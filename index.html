@@ -1035,7 +1035,7 @@ input.f::-webkit-outer-spin-button, input.f::-webkit-inner-spin-button{-webkit-a
       <button class="btn dark" id="wOut" style="margin-top:10px">Sign out</button>
       <div class="ob-caption">No code? Any league member can share an invite link. Or peek at a demo season with code <b style="color:var(--mut)">DEMO</b>.</div>
     </div>
-    <div class="ob-caption" id="obCaption">New or returning, email is one door — no passwords. Just looking? Join with code <b style="color:var(--mut)">DEMO</b>. <span style="opacity:.5">v23.42</span></div>
+    <div class="ob-caption" id="obCaption">New or returning, email is one door — no passwords. Just looking? Join with code <b style="color:var(--mut)">DEMO</b>. <span style="opacity:.5">v23.43</span></div>
   </div>
   <div class="ob-splash" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
   
@@ -3058,7 +3058,7 @@ const mkr = k => MARKERS[k]
 
 async function loadProfile(){
   const { data } = await sb.from('profiles')
-    .select('id, display_name, city, home_course, index_current, marker')
+    .select('id, display_name, city, home_course, index_current, marker, notify_chat')
     .eq('id', CS.user.id).maybeSingle();
   CS.profile = data || null;
   if(CS.profile?.index_current != null) state.myIndex = Number(CS.profile.index_current);
@@ -3154,6 +3154,13 @@ function openProfileHub(){
     <div class="eyebrow" style="margin-top:20px">Your leagues</div>
     ${leagues}
 
+    <div class="eyebrow" style="margin-top:20px">Notifications</div>
+    <div style="display:flex; gap:8px; flex-wrap:wrap;">
+      <button class="mini" id="phPushTog">Enable on this device</button>
+      <button class="mini" id="phChatTog">Chat pings: —</button>
+    </div>
+    <p class="fine" style="padding-left:0">The board's big moments — rounds, reveals, month closes. Chat has its own switch.</p>
+
     <div class="eyebrow" style="margin-top:20px">Membership &amp; billing</div>
     <div class="byrow"><span>PLAN</span><b>FREE · PILOT</b></div>
     <p class="fine" style="padding-left:0">Pro Shop ($40/season) and Verified League land at launch — nothing to pay during the pilot.</p>
@@ -3204,6 +3211,27 @@ function openProfileHub(){
     await sb.auth.signOut();
     location.reload();
   });
+
+  /* notifications: reflect current state, then toggle on tap */
+  const pushBtn = $('#phPushTog'), chatBtn = $('#phChatTog');
+  const chatLabel = () => { chatBtn.textContent = 'Chat pings: ' + ((CS.profile?.notify_chat ?? true) ? 'ON' : 'OFF'); };
+  chatLabel();
+  getPushSub().then(sub => { if(sub) pushBtn.textContent = 'Disable on this device'; });
+  pushBtn.addEventListener('click', async () => {
+    pushBtn.disabled = true;
+    const sub = await getPushSub();
+    if(sub){ await disablePush(); pushBtn.textContent = 'Enable on this device'; }
+    else if(await enablePush()){ pushBtn.textContent = 'Disable on this device'; }
+    pushBtn.disabled = false;
+  });
+  chatBtn.addEventListener('click', async () => {
+    chatBtn.disabled = true;
+    const next = !(CS.profile?.notify_chat ?? true);
+    const { error } = await sb.rpc('set_notify_chat', { p_on: next });
+    if(error) toast('Could not update: ' + error.message);
+    else { CS.profile.notify_chat = next; chatLabel(); }
+    chatBtn.disabled = false;
+  });
 }
 $('#whoChip').addEventListener('click', openProfileHub);
 
@@ -3223,6 +3251,52 @@ async function shareInvite(){
   } catch(e){ toast('Invite code: ' + code); }
 }
 window.shareInvite = shareInvite;
+
+/* ---------- push notifications: subscribe this device ---------- */
+/* VAPID public key — safe to ship in the client. 'PASTE_' prefix = not yet
+   configured; enablePush guards on it. Private key lives ONLY in edge
+   function secrets. */
+const VAPID_PUBLIC = 'PASTE_VAPID_PUBLIC_KEY';
+function urlB64ToUint8Array(s){
+  const pad = '='.repeat((4 - s.length % 4) % 4);
+  const raw = atob((s + pad).replace(/-/g, '+').replace(/_/g, '/'));
+  return Uint8Array.from([...raw].map(c => c.charCodeAt(0)));
+}
+async function getPushSub(){
+  if(!('serviceWorker' in navigator) || !('PushManager' in window)) return null;
+  const reg = await navigator.serviceWorker.ready;
+  return reg.pushManager.getSubscription();
+}
+async function enablePush(){
+  if(VAPID_PUBLIC.startsWith('PASTE_')){ toast('Push not wired up yet — key pending'); return false; }
+  if(!('serviceWorker' in navigator) || !('PushManager' in window)){
+    toast('Notifications need the installed app — add to home screen first'); return false;
+  }
+  const perm = await Notification.requestPermission();
+  if(perm !== 'granted'){ toast('Notifications blocked — allow them in settings'); return false; }
+  const reg = await navigator.serviceWorker.ready;
+  let sub = await reg.pushManager.getSubscription();
+  if(!sub) sub = await reg.pushManager.subscribe({
+    userVisibleOnly: true,
+    applicationServerKey: urlB64ToUint8Array(VAPID_PUBLIC),
+  });
+  const j = sub.toJSON();
+  const { error } = await sb.from('push_subscriptions').upsert({
+    profile_id: CS.user.id, endpoint: sub.endpoint,
+    p256dh: j.keys.p256dh, auth: j.keys.auth,
+  }, { onConflict: 'endpoint' });
+  if(error){ toast('Could not save subscription: ' + error.message); return false; }
+  toast('Notifications on — the board will find you');
+  return true;
+}
+async function disablePush(){
+  const sub = await getPushSub();
+  if(sub){
+    await sb.from('push_subscriptions').delete().eq('endpoint', sub.endpoint);
+    await sub.unsubscribe();
+  }
+  toast('Notifications off on this device');
+}
 
 /* ---------- course memory: your last courses, one tap on quick post ---------- */
 async function loadCourseMemory(){

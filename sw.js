@@ -4,7 +4,7 @@
    same-origin static assets, and hands-off for everything cross-origin
    (Supabase auth/realtime, Google Fonts). Bump VERSION with the client version
    so each deploy retires the previous cache. */
-const VERSION = 'v23.42';
+const VERSION = 'v23.43';
 const CACHE = `cupseason-${VERSION}`;
 const SHELL = [
   '/',
@@ -59,5 +59,26 @@ self.addEventListener('fetch', (e) => {
           return res;
         })
     )
+  );
+});
+
+self.addEventListener('push', (e) => {
+  let d = {};
+  try { d = e.data ? e.data.json() : {}; } catch (_) {}
+  e.waitUntil(self.registration.showNotification(d.title || 'Cup Season', {
+    body: d.body || '',
+    icon: '/icon-192.png',
+    badge: '/icon-192.png',
+    data: { url: d.url || '/' },
+  }));
+});
+
+self.addEventListener('notificationclick', (e) => {
+  e.notification.close();
+  e.waitUntil(
+    clients.matchAll({ type: 'window', includeUncontrolled: true }).then((list) => {
+      for (const c of list) { if ('focus' in c) return c.focus(); }
+      return clients.openWindow((e.notification.data && e.notification.data.url) || '/');
+    })
   );
 });
