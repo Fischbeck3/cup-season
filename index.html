@@ -1027,7 +1027,7 @@ input.f::-webkit-outer-spin-button, input.f::-webkit-inner-spin-button{-webkit-a
       <button class="btn dark" id="wOut" style="margin-top:10px">Sign out</button>
       <div class="ob-caption">No code? Ask your commissioner — it's in the League tab. Or peek at a demo season with code <b style="color:var(--mut)">DEMO</b>.</div>
     </div>
-    <div class="ob-caption" id="obCaption">New or returning, email is one door — no passwords. Just looking? Join with code <b style="color:var(--mut)">DEMO</b>. <span style="opacity:.5">v23.33</span></div>
+    <div class="ob-caption" id="obCaption">New or returning, email is one door — no passwords. Just looking? Join with code <b style="color:var(--mut)">DEMO</b>. <span style="opacity:.5">v23.34</span></div>
   </div>
   <div class="ob-splash" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
   
@@ -1639,6 +1639,7 @@ const $$=s=>document.querySelectorAll(s);
 const fmt$=n=>'$'+n.toLocaleString();
 let toastT;
 function toast(m){const t=$('#toast');t.textContent=m;t.classList.add('show');clearTimeout(toastT);toastT=setTimeout(()=>t.classList.remove('show'),2400);}
+function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
 
 /* ================= onboarding (LIVE — Supabase) ================= */
 function enterApp(){ $('#onboard').classList.add('hide'); }
@@ -1761,8 +1762,9 @@ function renderFeed(){
       return;
     }
     if(f.msg){
+      /* chat bodies are user-composed — escape, never trust as HTML */
       el.insertAdjacentHTML('beforeend',
-        `<div class="msgrow"><span class="bar" style="background:${SQHEX[f.ci]}"></span><div class="mtxt"><b>${f.who}</b>${f.txt}</div></div>`);
+        `<div class="msgrow"><span class="bar" style="background:${SQHEX[f.ci]}"></span><div class="mtxt"><b>${esc(f.who)}</b>${esc(f.txt)}</div></div>`);
       return;
     }
     const up=f.pvi>=0;
@@ -1813,11 +1815,22 @@ function renderFeed(){
 function scrollFeedBottom(){
   requestAnimationFrame(()=>window.scrollTo({top:document.body.scrollHeight}));
 }
-$('#chatSend').addEventListener('click',()=>{
+$('#chatSend').addEventListener('click',async ()=>{
   const v=$('#chatIn').value.trim(); if(!v)return;
-  feed.push({d:TODAY, msg:true, who:'You', ci:1, txt:v});
   $('#chatIn').value='';
+  feed.push({d:TODAY, msg:true, who:'You', ci:1, txt:v});
   renderFeed(); scrollFeedBottom();
+  if(!state.demo && window.CS?.league && window.sb){
+    /* optimistic echo above; realtime INSERT rebuilds the feed with the real row */
+    const { error } = await window.sb.from('posts').insert({
+      league_id: window.CS.league.id,
+      season_id: window.CS.season?.id ?? null,
+      kind: 'chat',
+      member_id: window.CS.member?.id,
+      body: v
+    });
+    if(error){ $('#chatIn').value=v; feed.pop(); renderFeed(); toast('Message didn’t send — try again'); }
+  }
 });
 $('#chatIn').addEventListener('keydown',e=>{ if(e.key==='Enter') $('#chatSend').click(); });
 
@@ -3221,13 +3234,17 @@ async function loadStandingsAndFeed(){
 
   /* feed: the posts table is the board */
   const { data: posts } = await sb.from('posts')
-    .select('kind, body, created_at').eq('league_id', CS.league.id)
+    .select('kind, body, created_at, member_id').eq('league_id', CS.league.id)
     .order('created_at', { ascending:true }).limit(120);
+  const memCi = id => {
+    const i = CS.squads.findIndex(q => (q.squad_members||[]).some(x => x.member_id === id));
+    return i >= 0 ? i % 4 : 1;
+  };
   feed.length = 0;
   (posts||[]).forEach(p => {
     const d = new Date(p.created_at);
     const ds = `${DOW[d.getDay()]} \u00b7 ${MOS[d.getMonth()]} ${d.getDate()}`;
-    if(p.kind === 'chat') feed.push({ d: ds, msg:true, who:'', ci:1, txt:p.body });
+    if(p.kind === 'chat') feed.push({ d: ds, msg:true, who: memName(p.member_id) + ' ', ci: memCi(p.member_id), txt:p.body });
     else feed.push({ d: ds, sys:true, txt:p.body });
   });
   if(!feed.length) feed.push({ d: dAgo(0), sys:true, txt:(CS.league.name||'Your league')+' is live \u2014 post the first round' });
