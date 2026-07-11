@@ -1027,7 +1027,7 @@ input.f::-webkit-outer-spin-button, input.f::-webkit-inner-spin-button{-webkit-a
       <button class="btn dark" id="wOut" style="margin-top:10px">Sign out</button>
       <div class="ob-caption">No code? Ask your commissioner — it's in the League tab. Or peek at a demo season with code <b style="color:var(--mut)">DEMO</b>.</div>
     </div>
-    <div class="ob-caption" id="obCaption">New or returning, email is one door — no passwords. Just looking? Join with code <b style="color:var(--mut)">DEMO</b>. <span style="opacity:.5">v23.34</span></div>
+    <div class="ob-caption" id="obCaption">New or returning, email is one door — no passwords. Just looking? Join with code <b style="color:var(--mut)">DEMO</b>. <span style="opacity:.5">v23.35</span></div>
   </div>
   <div class="ob-splash" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
   
@@ -3227,7 +3227,7 @@ async function loadStandingsAndFeed(){
   const pts = Object.fromEntries((st||[]).map(r => [r.squad_id, r.points]));
   teams.length = 0;
   CS.squads.forEach((q,i) => teams.push({
-    name: q.name, cap: memName(q.captain_member_id), pts: pts[q.id] ?? 0, ci: i % 4, id: q.id,
+    name: q.name, cap: memName(q.captain_member_id), pts: pts[q.id] ?? 0, ci: (q.color ?? i) % 4, id: q.id,
   }));
   teams.sort((a,b) => b.pts - a.pts);
   series = teams.map(() => []);
@@ -3282,7 +3282,7 @@ function renderFormation(){
   $('#squads').innerHTML = CS.squads.map(q => `
     <div class="card fm-squad tap" data-sq="${q.id}" style="margin-bottom:8px; ${CS.sel ? 'border-color:var(--pos);' : ''}">
       <div style="display:flex; align-items:center; gap:8px;">
-        <span class="sw" style="background:${q.color}"></span><b>${q.name}</b>
+        <span class="sw" style="background:${SQHEX[q.color] ?? SQHEX[0]}"></span><b>${q.name}</b>
         <span class="fine" style="padding:0; margin-left:auto">${(q.squad_members||[]).length} JOES</span>
       </div>
       <div style="margin-top:6px">${(q.squad_members||[]).map(x =>
