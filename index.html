@@ -1035,7 +1035,7 @@ input.f::-webkit-outer-spin-button, input.f::-webkit-inner-spin-button{-webkit-a
       <button class="btn dark" id="wOut" style="margin-top:10px">Sign out</button>
       <div class="ob-caption">No code? Any league member can share an invite link. Or peek at a demo season with code <b style="color:var(--mut)">DEMO</b>.</div>
     </div>
-    <div class="ob-caption" id="obCaption">New or returning, email is one door — no passwords. Just looking? Join with code <b style="color:var(--mut)">DEMO</b>. <span style="opacity:.5">v23.43</span></div>
+    <div class="ob-caption" id="obCaption">New or returning, email is one door — no passwords. Just looking? Join with code <b style="color:var(--mut)">DEMO</b>. <span style="opacity:.5">v23.44</span></div>
   </div>
   <div class="ob-splash" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
   
@@ -3256,7 +3256,7 @@ window.shareInvite = shareInvite;
 /* VAPID public key — safe to ship in the client. 'PASTE_' prefix = not yet
    configured; enablePush guards on it. Private key lives ONLY in edge
    function secrets. */
-const VAPID_PUBLIC = 'PASTE_VAPID_PUBLIC_KEY';
+const VAPID_PUBLIC = 'BNPaPITPxUk_D_D83dVhdGWSYqpHMwE3tGucyUqlNPPOjXUDM8jTgCpV6-UmO8UroC926Cn_RuUpNF0dtpCrt3c';
 function urlB64ToUint8Array(s){
   const pad = '='.repeat((4 - s.length % 4) % 4);
   const raw = atob((s + pad).replace(/-/g, '+').replace(/_/g, '/'));
