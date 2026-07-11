@@ -993,7 +993,7 @@ input.f::-webkit-outer-spin-button, input.f::-webkit-inner-spin-button{-webkit-a
     <div id="obWelcome" style="display:none">
       <div class="ob-hero" style="margin-bottom:22px">
         <div class="lockbadge" style="color:var(--pos); border-color:rgba(67,224,124,.35); background:rgba(67,224,124,.07)">✓ SIGNED IN</div>
-        <h1 style="font-size:30px">You're in. <em>No league on this account yet.</em></h1>
+        <h1 style="font-size:30px">Your <em>clubhouse.</em></h1>
         <p id="obWelcomeWho" style="margin-top:10px"></p>
       </div>
       <div class="card" id="wCard" style="margin-bottom:14px; text-align:left;">
@@ -1003,8 +1003,9 @@ input.f::-webkit-outer-spin-button, input.f::-webkit-inner-spin-button{-webkit-a
           <div style="margin-left:auto; text-align:right"><div class="fine" style="padding:0">INDEX</div><b id="wIdx" class="mono" style="font-size:18px"></b></div>
         </div>
       </div>
-      <div class="card" id="wPost" style="margin-bottom:14px; text-align:left;">
-        <div class="eyebrow" style="margin-top:0">My golf — post a round, league or not</div>
+      <div class="eyebrow" style="text-align:left; margin:18px 0 8px">Play a round — the tee sheet</div>
+      <div class="card" id="wPost" style="margin-bottom:10px; text-align:left;">
+        <div class="eyebrow" style="margin-top:0">Post a round — league or not, it counts</div>
         <div class="frow">
           <div><label class="f" for="wGross">18-hole gross</label><input class="f" id="wGross" type="number" inputmode="numeric" placeholder="88"></div>
           <div><label class="f" for="wDate">Date</label><input class="f" id="wDate" type="date"></div>
@@ -1018,16 +1019,23 @@ input.f::-webkit-outer-spin-button, input.f::-webkit-inner-spin-button{-webkit-a
         <button class="mini" id="wPostGo" style="margin-top:10px">Post round</button>
         <div id="wRecent" style="margin-top:10px"></div>
       </div>
-      <button class="btn" id="wCreate">Start a new league</button>
+      <div class="card" style="margin-bottom:14px; text-align:left; opacity:.75">
+        <div style="display:flex; align-items:center; gap:8px;">
+          <b style="font-size:14px">Organize a round</b><span class="soon">SOON</span>
+        </div>
+        <div class="fine" style="padding:6px 0 0">Tee up buddies and guests — match play, Wolf, skins. Scored live, posted once.</div>
+      </div>
+      <div class="eyebrow" style="text-align:left; margin:18px 0 8px">League play — cup season</div>
+      <button class="btn" id="wCreate">Start a league</button>
       <button class="btn dark" id="wJoin" style="margin-top:10px">I have an invite code</button>
       <div class="joinbox" id="wJoinBox">
         <input id="wCode" placeholder="CUP-CODE" autocomplete="off">
         <button class="btn" id="wCodeGo">Join</button>
       </div>
       <button class="btn dark" id="wOut" style="margin-top:10px">Sign out</button>
-      <div class="ob-caption">No code? Ask your Pro — it's in the League tab. Or peek at a demo season with code <b style="color:var(--mut)">DEMO</b>.</div>
+      <div class="ob-caption">No code? Any league member can share an invite link. Or peek at a demo season with code <b style="color:var(--mut)">DEMO</b>.</div>
     </div>
-    <div class="ob-caption" id="obCaption">New or returning, email is one door — no passwords. Just looking? Join with code <b style="color:var(--mut)">DEMO</b>. <span style="opacity:.5">v23.41</span></div>
+    <div class="ob-caption" id="obCaption">New or returning, email is one door — no passwords. Just looking? Join with code <b style="color:var(--mut)">DEMO</b>. <span style="opacity:.5">v23.42</span></div>
   </div>
   <div class="ob-splash" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
   
