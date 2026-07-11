@@ -1027,7 +1027,7 @@ input.f::-webkit-outer-spin-button, input.f::-webkit-inner-spin-button{-webkit-a
       <button class="btn dark" id="wOut" style="margin-top:10px">Sign out</button>
       <div class="ob-caption">No code? Ask your Pro — it's in the League tab. Or peek at a demo season with code <b style="color:var(--mut)">DEMO</b>.</div>
     </div>
-    <div class="ob-caption" id="obCaption">New or returning, email is one door — no passwords. Just looking? Join with code <b style="color:var(--mut)">DEMO</b>. <span style="opacity:.5">v23.40</span></div>
+    <div class="ob-caption" id="obCaption">New or returning, email is one door — no passwords. Just looking? Join with code <b style="color:var(--mut)">DEMO</b>. <span style="opacity:.5">v23.41</span></div>
   </div>
   <div class="ob-splash" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
   
@@ -1084,7 +1084,7 @@ input.f::-webkit-outer-spin-button, input.f::-webkit-inner-spin-button{-webkit-a
         <div id="homeSetup" style="display:none">
           <div class="eyebrow">League setup · three steps to first tee</div>
           <div class="check"><span class="num">1</span><div class="tt"><b>Season settings</b><small>STAKES · RULES · FORMAT</small></div><button class="mini" data-go="wizard">Continue</button></div>
-          <div class="check"><span class="num">2</span><div class="tt"><b>Invite the Joes</b><small>CODE SNDYCUP · 9 OF 16 JOINED</small></div><button class="mini copycode">Copy</button></div>
+          <div class="check"><span class="num">2</span><div class="tt"><b>Invite the Joes</b><small>CODE SNDYCUP · 9 OF 16 JOINED</small></div><button class="mini copycode">Invite</button></div>
           <div class="check"><span class="num">3</span><div class="tt"><b>Squad formation</b><small>UNLOCKS WHEN SETTINGS LOCK</small></div><button class="mini" disabled style="opacity:.4">Locked</button></div>
         </div>
 
@@ -1315,6 +1315,7 @@ input.f::-webkit-outer-spin-button, input.f::-webkit-inner-spin-button{-webkit-a
                 <div>
                   <label class="f" for="inCourse">Course & tees</label>
                   <input class="f" id="inCourse" value="Home muni — Blue tees">
+                  <div id="courseChips" style="margin-top:8px"></div>
                 </div>
               </div>
               <div class="frow" style="margin-top:10px">
@@ -1480,7 +1481,7 @@ input.f::-webkit-outer-spin-button, input.f::-webkit-inner-spin-button{-webkit-a
           <div class="eyebrow" style="margin-top:0">Review the bylaws, then lock it in</div>
           <div class="card" id="bylawsReview" style="margin-bottom:10px"></div>
           <div class="codebox">SNDYCUP</div>
-          <button class="btn dark copycode" style="margin-bottom:10px">Copy league code</button>
+          <button class="btn dark copycode" style="margin-bottom:10px">Share invite link</button>
           <p class="fine" id="inviteNote" style="padding-bottom:10px">Invites email out to 9 players when you lock. These settings become the league bylaws — amendments go through the league log.</p>
           <button class="btn" id="lockBtn">Lock the bylaws & form the squads</button>
         </div>
@@ -1497,7 +1498,7 @@ input.f::-webkit-outer-spin-button, input.f::-webkit-inner-spin-button{-webkit-a
         <div class="card" id="bylawsHub" style="margin-bottom:14px"></div>
 
         <div class="eyebrow">League</div>
-        <div class="check"><span class="num">⛳</span><div class="tt"><b>Members & invites</b><small>16 JOES · CODE SNDYCUP</small></div><button class="mini copycode">Copy</button></div>
+        <div class="check"><span class="num">⛳</span><div class="tt"><b>Members & invites</b><small>16 JOES · CODE SNDYCUP</small></div><button class="mini copycode">Invite</button></div>
         <div class="check"><span class="num">$</span><div class="tt"><b>The pot</b><small id="hubPotSub">$1,200 · 13/16 BUY-INS IN</small></div><button class="mini" data-go="pot">View</button></div>
         <div class="check"><span class="num">◫</span><div class="tt"><b>Squads</b><small id="hubDraftSub">COMPLETE · ROSTERS LOCKED</small></div><button class="mini" data-go="draft">View</button></div>
 
@@ -1566,6 +1567,12 @@ input.f::-webkit-outer-spin-button, input.f::-webkit-inner-spin-button{-webkit-a
 })();
 </script>
 <div class="toast" id="toast" role="status"></div>
+
+<div id="installNudge" style="display:none; position:fixed; left:12px; right:12px; bottom:76px; z-index:60; background:var(--bg2); border:1px solid var(--line2); border-radius:14px; padding:12px 14px; align-items:center; gap:10px;">
+  <span style="flex:1; font-size:13px;">Get the full-screen app — add Cup Season to your home screen.</span>
+  <button class="mini" id="nudgeGo">Add</button>
+  <button class="mini" id="nudgeX" aria-label="Not now">×</button>
+</div>
 
 <div class="sheet" id="sheet" role="dialog" aria-modal="true" aria-labelledby="shTitle">
   <div class="panel">
@@ -2956,7 +2963,29 @@ $('#setName').addEventListener('input',e=>{
   $('#leagueName').textContent=n; $('#sideLeague').textContent=n;
 });
 $$('[data-go]').forEach(b=>b.addEventListener('click',e=>{e.preventDefault();switchView(b.dataset.go);}));
-$$('.copycode').forEach(b=>b.addEventListener('click',()=>toast('Invite code SNDYCUP copied — text it to the group')));
+$$('.copycode').forEach(b=>b.addEventListener('click',async ()=>{
+  if(!state.demo && window.CS?.league && window.shareInvite){ window.shareInvite(); return; }
+  try{ await navigator.clipboard.writeText('SNDYCUP'); }catch(e){}
+  toast('Invite code SNDYCUP copied — text it to the group');
+}));
+
+/* ---------- PWA install nudge ---------- */
+(function(){
+  var standalone = matchMedia('(display-mode: standalone)').matches || navigator.standalone === true;
+  if(standalone || localStorage.getItem('cs_nudge_done')) return;
+  var deferred = null, n = document.getElementById('installNudge');
+  function show(){ if(n) n.style.display = 'flex'; }
+  function dismiss(){ localStorage.setItem('cs_nudge_done','1'); if(n) n.style.display = 'none'; }
+  window.addEventListener('beforeinstallprompt', function(e){ e.preventDefault(); deferred = e; show(); });
+  if(/iphone|ipad|ipod/i.test(navigator.userAgent)) setTimeout(show, 12000);
+  document.getElementById('nudgeGo').addEventListener('click', function(){
+    if(deferred){ deferred.prompt(); deferred = null; dismiss(); return; }
+    openSheet('Add to your home screen', 'Installs like an app — no store',
+      '<p style="line-height:1.7">In <b>Safari</b>: tap the <b>Share</b> button (the square with the arrow), scroll down, tap <b>Add to Home Screen</b>.<br><br>Full screen, your icon, your leagues one tap away.</p>');
+    dismiss();
+  });
+  document.getElementById('nudgeX').addEventListener('click', dismiss);
+})();
 $$('.ibtn').forEach(b=>b.addEventListener('click',e=>{
   e.preventDefault(); e.stopPropagation();
   const t=$('#ih-'+b.dataset.i);
@@ -3170,6 +3199,47 @@ function openProfileHub(){
 }
 $('#whoChip').addEventListener('click', openProfileHub);
 
+/* ---------- invite links: share sheet over the league code ---------- */
+async function shareInvite(){
+  const code = CS.league?.code;
+  if(!code) return;
+  const url = 'https://cupseason.app/?join=' + encodeURIComponent(code);
+  const text = `You're invited to ${CS.league.name} on Cup Season`;
+  if(navigator.share){
+    try { await navigator.share({ title: 'Cup Season', text, url }); return; }
+    catch(e){ if(e && e.name === 'AbortError') return; }
+  }
+  try {
+    await navigator.clipboard.writeText(text + ' — ' + url);
+    toast('Invite link copied — text it to the group');
+  } catch(e){ toast('Invite code: ' + code); }
+}
+window.shareInvite = shareInvite;
+
+/* ---------- course memory: your last courses, one tap on quick post ---------- */
+async function loadCourseMemory(){
+  const el = $('#courseChips');
+  if(!el || !CS.user) return;
+  const { data } = await sb.from('rounds')
+    .select('course_label, rating, slope, played_on')
+    .eq('profile_id', CS.user.id)
+    .not('course_label', 'is', null)
+    .order('played_on', { ascending: false }).limit(30);
+  const seen = new Map();
+  (data || []).forEach(r => { if(!seen.has(r.course_label)) seen.set(r.course_label, r); });
+  const top = [...seen.values()].slice(0, 3);
+  if(!top.length){ el.innerHTML = ''; return; }
+  el.innerHTML = top.map((r, i) =>
+    `<button class="mini" data-cc="${i}" style="margin:0 6px 6px 0">${esc(r.course_label)} · ${r.rating}/${r.slope}</button>`).join('');
+  el.querySelectorAll('[data-cc]').forEach(b => b.addEventListener('click', () => {
+    const r = top[+b.dataset.cc];
+    $('#inCourse').value = r.course_label;
+    $('#inRating').value = r.rating;
+    $('#inSlope').value = r.slope;
+    toast('Course filled — just the gross and the date');
+  }));
+}
+
 /* ---------- my golf: league-less quick post + recent ---------- */
 function fillWelcomeCard(){
   const p = CS.profile; if(!p) return;
@@ -3283,6 +3353,9 @@ async function enterLeague(m){
   }
   try { await loadLeagueData(); } catch(e){ bootTrace('league data: '+(e.message||e)); }
   subscribeLeague();
+  loadCourseMemory();
+  const ce = $('#commishEmail');
+  if(ce && CS.user?.email){ ce.value = CS.user.email; ce.readOnly = true; ce.style.opacity = '.65'; }
 
   bootStep = 'reveal';
   renderPhase(); renderStats();
@@ -3861,6 +3934,14 @@ async function resumeAfterProfile(){
   }
 })();
 
+/* invite links: /?join=CODE rides the existing cs_code auto-join machinery —
+   signed-in users join on this boot; signed-out users join right after auth */
+const joinParam = new URLSearchParams(window.location.search).get('join');
+if(joinParam){
+  localStorage.setItem('cs_code', joinParam.trim().toUpperCase());
+  history.replaceState(null, '', window.location.pathname);
+}
+
 if(new URLSearchParams(window.location.search).has('exit')){
   sb.auth.signOut().finally(() => window.location.replace(window.location.pathname));
 }
@@ -3870,6 +3951,11 @@ async function safeBoot(){
   if(booting || CS.league) return;
   booting = true;
   try { await boot(); } finally { booting = false; }
+  /* invite link landed while signed out: surface it on the door */
+  const pend = localStorage.getItem('cs_code');
+  if(!CS.user && pend){
+    openEmailBox($('#obJoin'), `You're invited — code ${pend}. Enter your email and you'll join the league automatically.`);
+  }
 }
 sb.auth.onAuthStateChange((event) => {
   /* never call supabase methods synchronously in this callback — the client
