@@ -941,7 +941,7 @@ input.f::-webkit-outer-spin-button, input.f::-webkit-inner-spin-button{-webkit-a
     <div class="ob-hero">
       <div class="ob-mark">◉ Cup Season</div>
         <div class="ob-ticks" aria-hidden="true"><i style="background:var(--sq0)"></i><i style="background:var(--sq1)"></i><i style="background:var(--sq2)"></i><i style="background:var(--sq3)"></i></div>
-            <h1>Draft your crew.<br>Post real rounds.<br><em>Take the cup.</em></h1>
+            <h1>Rally your crew.<br>Post real rounds.<br><em>Take the cup.</em></h1>
       <p>Four squads, four colors, any course in the country. Points all season, a cup at the end.</p>
     </div>
     <div id="obDoor">
@@ -1025,9 +1025,9 @@ input.f::-webkit-outer-spin-button, input.f::-webkit-inner-spin-button{-webkit-a
         <button class="btn" id="wCodeGo">Join</button>
       </div>
       <button class="btn dark" id="wOut" style="margin-top:10px">Sign out</button>
-      <div class="ob-caption">No code? Ask your commissioner — it's in the League tab. Or peek at a demo season with code <b style="color:var(--mut)">DEMO</b>.</div>
+      <div class="ob-caption">No code? Ask your Pro — it's in the League tab. Or peek at a demo season with code <b style="color:var(--mut)">DEMO</b>.</div>
     </div>
-    <div class="ob-caption" id="obCaption">New or returning, email is one door — no passwords. Just looking? Join with code <b style="color:var(--mut)">DEMO</b>. <span style="opacity:.5">v23.37</span></div>
+    <div class="ob-caption" id="obCaption">New or returning, email is one door — no passwords. Just looking? Join with code <b style="color:var(--mut)">DEMO</b>. <span style="opacity:.5">v23.38</span></div>
   </div>
   <div class="ob-splash" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
   
@@ -1085,15 +1085,15 @@ input.f::-webkit-outer-spin-button, input.f::-webkit-inner-spin-button{-webkit-a
           <div class="eyebrow">League setup · three steps to first tee</div>
           <div class="check"><span class="num">1</span><div class="tt"><b>Season settings</b><small>STAKES · RULES · FORMAT</small></div><button class="mini" data-go="wizard">Continue</button></div>
           <div class="check"><span class="num">2</span><div class="tt"><b>Invite the Joes</b><small>CODE SNDYCUP · 9 OF 16 JOINED</small></div><button class="mini copycode">Copy</button></div>
-          <div class="check"><span class="num">3</span><div class="tt"><b>Draft night</b><small>UNLOCKS WHEN SETTINGS LOCK</small></div><button class="mini" disabled style="opacity:.4">Locked</button></div>
+          <div class="check"><span class="num">3</span><div class="tt"><b>Squad formation</b><small>UNLOCKS WHEN SETTINGS LOCK</small></div><button class="mini" disabled style="opacity:.4">Locked</button></div>
         </div>
 
         <div id="homeDraft" style="display:none">
           <div class="phasehero">
-            <div class="k">Draft night is live</div>
-            <div class="n">Captains to the couch.</div>
-            <div class="m">SNAKE · 3 ROUNDS · 12 JOES IN THE POOL</div>
-            <button class="btn" style="margin-top:16px" data-go="draft">Enter the draft room</button>
+            <div class="k">Squads are forming</div>
+            <div class="n">The Pro has the list.</div>
+            <div class="m">12 JOES IN THE POOL</div>
+            <button class="btn" style="margin-top:16px" data-go="draft">Form the squads</button>
           </div>
         </div>
 
@@ -1195,10 +1195,10 @@ input.f::-webkit-outer-spin-button, input.f::-webkit-inner-spin-button{-webkit-a
             <div class="eyebrow">Player pool <a href="#" id="resetDraft">Restart</a></div>
             <div id="pool"></div>
             <div id="draftAdmin" style="display:none">
-              <div class="eyebrow">Commissioner</div>
+              <div class="eyebrow">Pro</div>
               <button class="mini" id="dShuffle">Randomize order</button>
               <button class="mini" id="dPickFor" style="margin-left:6px">Pick for captain</button>
-              <p class="fine" style="padding-top:8px">Every pick and override is written to the commissioner log.</p>
+              <p class="fine" style="padding-top:8px">Every pick and override is written to the league log.</p>
             </div>
           </div>
         </div>
@@ -1395,7 +1395,7 @@ input.f::-webkit-outer-spin-button, input.f::-webkit-inner-spin-button{-webkit-a
             <label class="f" for="setName">League name</label>
             <input class="f" id="setName" value="The Sunday Cup" style="font-family:var(--sans); font-size:16px;">
             <div style="height:14px"></div>
-            <label class="f" for="commishEmail">Commissioner — you</label>
+            <label class="f" for="commishEmail">Pro — you</label>
             <input class="f" id="commishEmail" type="email" value="you@cupseason.app" autocomplete="off" style="font-family:var(--sans);">
             <div style="height:14px"></div>
             <label class="f">Player invites · <span id="slotNote">0 of 3 filled</span></label>
@@ -1422,16 +1422,16 @@ input.f::-webkit-outer-spin-button, input.f::-webkit-inner-spin-button{-webkit-a
             <div class="ctl"><button id="startDown" aria-label="Earlier start">−</button><button id="startUp" aria-label="Later start">+</button></div>
           </div>
           <div class="eyebrow">Competition structure <button class="ibtn" data-i="structure" aria-expanded="false" aria-label="About competition structure">i</button></div>
-          <div class="ihelp" id="ih-structure">How the league is organized. <b>Solo</b> means everyone competes individually — no squads, no draft night. Squad modes split the league into teams via a draft; more squads want more Joes (4 squads plays best at 8+).</div>
+          <div class="ihelp" id="ih-structure">How the league is organized. <b>Solo</b> means everyone competes individually — no squads. Squad modes split the league into teams the Pro assigns or draws; more squads want more Joes (4 squads plays best at 8+).</div>
           <div class="seg" id="structSeg">
             <button data-s="solo">Solo</button>
             <button data-s="squads2">2 Squads</button>
             <button data-s="squads3">3 Squads</button>
             <button data-s="squads4" class="on">4 Squads</button>
           </div>
-          <p class="fine" id="structNote">4 squads · the full draft experience — wants 8+ Joes.</p>
+          <p class="fine" id="structNote">4 squads · the full cup experience — wants 8+ Joes.</p>
           <div class="eyebrow">Squad formation <button class="ibtn" data-i="draft" aria-expanded="false" aria-label="About squad formation">i</button></div>
-          <div class="ihelp" id="ih-draft">How squads get filled. <b>Blind draw</b> shuffles everyone server-side and announces the reveal to the board — nobody can rig the hat. <b>Commissioner assign</b> lets you place players yourself, for groups who picked teams in the group chat. Draft night with picks and a clock is on the Pro roadmap.</div>
+          <div class="ihelp" id="ih-draft">How squads get filled. <b>Blind draw</b> shuffles everyone server-side and announces the reveal to the board — nobody can rig the hat. <b>Pro assign</b> lets you place players yourself, for groups who picked teams in the group chat. Live draft night with picks and a clock is on the Pro Shop roadmap.</div>
           <div class="seg" id="draftSeg">
             <button data-d="random" class="on">Blind draw</button>
             <button data-d="assign">Assign</button>
@@ -1449,7 +1449,7 @@ input.f::-webkit-outer-spin-button, input.f::-webkit-inner-spin-button{-webkit-a
 
         <div class="wizstep" data-step="2">
           <div class="eyebrow" style="margin-top:0">Competitiveness — pick once, argue never <button class="ibtn" data-i="preset" aria-expanded="false" aria-label="About competitiveness presets">i</button></div>
-          <div class="ihelp" id="ih-preset">One pick that bundles the fairness rules — handicap allowance, score verification, and eligible courses. <b>Casual</b> is honor-system beer league, <b>Standard</b> wants GHIN-posted rounds, <b>Cutthroat</b> adds attestation and rated tees. Every individual dial unlocks with Commissioner Pro.</div>
+          <div class="ihelp" id="ih-preset">One pick that bundles the fairness rules — handicap allowance, score verification, and eligible courses. <b>Casual</b> is honor-system beer league, <b>Standard</b> wants GHIN-posted rounds, <b>Cutthroat</b> adds attestation and rated tees. Every individual dial unlocks with Pro Shop.</div>
           <button class="preset" data-p="0">
             <h4>Casual <span class="ok">✓</span></h4>
             <p><b>100% hcp</b> · honor scores · any course · unlimited counting · no floor</p>
@@ -1473,7 +1473,7 @@ input.f::-webkit-outer-spin-button, input.f::-webkit-inner-spin-button{-webkit-a
             <div class="val" id="floorVal">2 / mo</div>
             <div class="ctl"><button id="floorDown" aria-label="Lower floor">−</button><button id="floorUp" aria-label="Raise floor">+</button></div>
           </div>
-          <div class="ihelp" id="ih-floor">The anti-ghosting rule. Every player must post at least this many rounds a month, or the squad takes a penalty — −5 points per round short under Standard rules. One commissioner-approved bye month per season covers vacations and injuries.</div>
+          <div class="ihelp" id="ih-floor">The anti-ghosting rule. Every player must post at least this many rounds a month, or the squad takes a penalty — −5 points per round short under Standard rules. One Pro-approved bye month per season covers vacations and injuries.</div>
         </div>
 
         <div class="wizstep" data-step="3">
@@ -1481,8 +1481,8 @@ input.f::-webkit-outer-spin-button, input.f::-webkit-inner-spin-button{-webkit-a
           <div class="card" id="bylawsReview" style="margin-bottom:10px"></div>
           <div class="codebox">SNDYCUP</div>
           <button class="btn dark copycode" style="margin-bottom:10px">Copy league code</button>
-          <p class="fine" id="inviteNote" style="padding-bottom:10px">Invites email out to 9 players when you lock. These settings become the league bylaws — amendments go through the commissioner log.</p>
-          <button class="btn" id="lockBtn">Lock the bylaws & open the draft</button>
+          <p class="fine" id="inviteNote" style="padding-bottom:10px">Invites email out to 9 players when you lock. These settings become the league bylaws — amendments go through the league log.</p>
+          <button class="btn" id="lockBtn">Lock the bylaws & form the squads</button>
         </div>
 
         <div class="wiznav">
@@ -1499,11 +1499,11 @@ input.f::-webkit-outer-spin-button, input.f::-webkit-inner-spin-button{-webkit-a
         <div class="eyebrow">League</div>
         <div class="check"><span class="num">⛳</span><div class="tt"><b>Members & invites</b><small>16 JOES · CODE SNDYCUP</small></div><button class="mini copycode">Copy</button></div>
         <div class="check"><span class="num">$</span><div class="tt"><b>The pot</b><small id="hubPotSub">$1,200 · 13/16 BUY-INS IN</small></div><button class="mini" data-go="pot">View</button></div>
-        <div class="check"><span class="num">◫</span><div class="tt"><b>Draft results</b><small id="hubDraftSub">COMPLETE · ROSTERS LOCKED</small></div><button class="mini" data-go="draft">View</button></div>
+        <div class="check"><span class="num">◫</span><div class="tt"><b>Squads</b><small id="hubDraftSub">COMPLETE · ROSTERS LOCKED</small></div><button class="mini" data-go="draft">View</button></div>
 
         <div class="eyebrow">Upgrades</div>
         <div class="pro">
-          <h3>Commissioner Pro</h3>
+          <h3>Pro Shop</h3>
           <div class="pr">$40 / SEASON · PLAYERS ALWAYS FREE</div>
           <ul>
             <li><span class="pb">PRO</span> Custom rules — every dial unlocked</li>
@@ -1725,7 +1725,7 @@ function sparkline(arr,ci){
 function renderStandings(){
   const el=$('#standings');
   if(!teams.length){
-    const soloTxt = state.structure==='solo' ? 'INDIVIDUAL RACE \u2014 NO SQUADS, NO DRAFT.<br>STANDINGS START AT THE FIRST POSTED ROUND; TOP 2 MEET IN THE CUP FINAL.' : 'NO ROUNDS YET.<br>SQUADS FORM AT THE DRAFT \u2014 STANDINGS START AT THE FIRST POSTED ROUND.';
+    const soloTxt = state.structure==='solo' ? 'INDIVIDUAL RACE \u2014 NO SQUADS.<br>STANDINGS START AT THE FIRST POSTED ROUND; TOP 2 MEET IN THE CUP FINAL.' : 'NO ROUNDS YET.<br>SQUADS FORM WHEN THE PRO LOCKS \u2014 STANDINGS START AT THE FIRST POSTED ROUND.';
     el.innerHTML='<tr><th></th><th>'+(state.structure==='solo'?'Player':'Squad')+'</th><th class="num">Pts</th></tr><tr><td colspan="3" style="padding:18px 6px;color:var(--dim);font-family:var(--mono);font-size:10.5px;letter-spacing:.08em;line-height:1.8">'+soloTxt+'</td></tr>';
     return;
   }
@@ -1844,17 +1844,17 @@ function renderDraft(){
   if(!state.demo && window.CS?.league && window.renderFormation){ window.renderFormation(); return; }
   const dt=state.draftType;
   $('#draftEyebrow').textContent = dt==='assign'
-    ? 'Commissioner assign · no draft'
-    : dt==='live' ? 'Live draft · pick clock' : 'Draft night · snake';
+    ? 'Squad formation · Pro assign'
+    : dt==='live' ? 'Live draft · pick clock' : 'Squad formation · blind draw';
   $('#draftAdmin').style.display = state.draft.isCommish && dt!=='assign' ? 'block':'none';
 
   if(dt==='assign'){
     $('#draftLock').style.display='none';
-    $('#clock').innerHTML='<span class="accent" style="background:var(--gold)"></span><div class="k">Commissioner assign</div><div class="n">You place the squads</div><div class="m">NO DRAFT · TAP A PLAYER, PICK A SQUAD</div>';
+    $('#clock').innerHTML='<span class="accent" style="background:var(--gold)"></span><div class="k">Pro assign</div><div class="n">You place the squads</div><div class="m">TAP A PLAYER, PICK A SQUAD</div>';
     $('#pool').innerHTML='';
   }
   if(!teams.length){
-    $('#clock').innerHTML='<span class="accent" style="background:var(--pos)"></span><div class="k">Draft night</div><div class="n">Waiting on the Joes</div><div class="m">THE BOARD SEEDS FROM YOUR ROSTER ONCE INVITES LAND</div>';
+    $('#clock').innerHTML='<span class="accent" style="background:var(--pos)"></span><div class="k">Squad formation</div><div class="n">Waiting on the Joes</div><div class="m">THE BOARD SEEDS FROM YOUR ROSTER ONCE INVITES LAND</div>';
     $('#squads').innerHTML='';
     $('#pool').innerHTML='<p class="fine">Invited players appear in the pool as they sign in with your league code.</p>';
     return;
@@ -1879,7 +1879,7 @@ function renderDraft(){
   const clock=$('#clock');
   clock.innerHTML= done
     ? `<span class="accent" style="background:var(--gold)"></span>
-       <div class="k">Draft complete</div><div class="n">Good luck, everybody</div>
+       <div class="k">Squads are set</div><div class="n">Good luck, everybody</div>
        <div class="m">ROSTERS LOCKED · SEASON OPENS W1</div>`
     : `<span class="accent" style="background:${SQHEX[onClock]}"></span>
        <div class="k">On the clock</div><div class="n">${captains[onClock]}</div>
@@ -1938,7 +1938,7 @@ function renderDraft(){
       feed.push({d:TODAY, sys:true, txt:`${captains[team].toUpperCase()} DRAFTS ${p.n.toUpperCase()} · ${p.i.toFixed(1)} · R${rd}P${pk}`});
       renderFeed();
       toast(viaCommish
-        ? `Commissioner picked ${p.n} for ${captains[team]} — logged`
+        ? `Pro picked ${p.n} for ${captains[team]} — logged`
         : `${captains[team]} drafts ${p.n} (${p.i.toFixed(1)})`);
       renderDraft();
     });
@@ -1972,7 +1972,7 @@ $('#dShuffle').addEventListener('click',()=>{
   toast('Order randomized and posted to the board');
 });
 $('#dPickFor').addEventListener('click',()=>{
-  toast('You already can — as commissioner, any pool player is tappable on any clock');
+  toast('You already can — as the Pro, any pool player is tappable on any clock');
 });
 
 /* ================= post ================= */
@@ -2071,7 +2071,7 @@ function renderPot(){
     const row=document.createElement('button');
     row.className='payer';
     row.innerHTML=`<span>You</span><span class="tick">✓</span>`;
-    row.addEventListener('click',()=>toast('Buy-ins get marked by the commissioner as money moves on Venmo'));
+    row.addEventListener('click',()=>toast('Buy-ins get marked by the Pro as money moves on Venmo'));
     el.appendChild(row);
     $('#paidCount').textContent=0;
     $('#paidChip').textContent=`0/${players} buy-ins in`;
@@ -2856,10 +2856,10 @@ function currentWeek(){
 const FMT_NAMES=['Points Race','Head-to-Head','Hybrid'];
 const STRUCT_NAMES={solo:'Individual — no squads', squads2:'2 squads', squads3:'3 squads', squads4:'4 squads'};
 const STRUCT_NOTES={
-  solo:'Individual · every Joe for himself — works at any size (4+). No draft; top 2 players meet in the Cup Final — the final four weeks.',
+  solo:'Individual · every Joe for himself — works at any size (4+). No squads; top 2 players meet in the Cup Final — the final four weeks.',
   squads2:'2 squads · fits 4–7 Joes. Both squads reach the Cup Final; the regular-season leader carries a +10 head start.',
   squads3:'3 squads · fits 6+. Cup line after 2nd — top 2 advance.',
-  squads4:'4 squads · the full draft experience — wants 8+ Joes.',
+  squads4:'4 squads · the full cup experience — wants 8+ Joes.',
 };
 $$('#structSeg button').forEach(b=>b.addEventListener('click',()=>{
   $$('#structSeg button').forEach(x=>x.classList.remove('on'));
@@ -2874,7 +2874,7 @@ function renderBylaws(){
   const pr=PRESETS[state.preset];
   const rows=`
     <div class="byrow"><span>STRUCTURE</span><b>${STRUCT_NAMES[state.structure]}</b></div>
-    <div class="byrow"><span>SQUAD FORMATION</span><b>${({random:'Blind draw',assign:'Commissioner assign',snake:'Snake · async',live:'Live · pick clock'})[state.draftType]}</b></div>
+    <div class="byrow"><span>SQUAD FORMATION</span><b>${({random:'Blind draw',assign:'Pro assign',snake:'Snake · async',live:'Live · pick clock'})[state.draftType]}</b></div>
     <div class="byrow"><span>PRESET</span><b>${pr.name}</b></div>
     <div class="byrow"><span>HANDICAP ALLOWANCE</span><b>${ALLOW[state.preset]}%</b></div>
     <div class="byrow"><span>VERIFICATION</span><b>${VERIF[state.preset]}</b></div>
@@ -2899,7 +2899,7 @@ function updateInviteNote(){
   const sn=$('#slotNote');
   if(sn) sn.textContent=`${n} of ${state.emails.length} filled`;
   const note=$('#inviteNote');
-  if(note) note.textContent=`Invites email out to ${n} player${n===1?'':'s'} when you lock — that makes ${n+1} of a minimum ${MIN_LEAGUE}. These settings become the league bylaws; amendments go through the commissioner log.`;
+  if(note) note.textContent=`Invites email out to ${n} player${n===1?'':'s'} when you lock — that makes ${n+1} of a minimum ${MIN_LEAGUE}. These settings become the league bylaws; amendments go through the league log.`;
 }
 function renderEmails(){
   const el=$('#emailSlots'); el.innerHTML='';
@@ -2937,7 +2937,7 @@ function renderPhase(){
       : `Wk ${currentWeek()} / ${totalWeeks()} · ${FMT_NAMES[state.fmt]} · ${PRESETS[state.preset].name} rules`;
   if(state.demo) $('#phaseSub').textContent = 'DEMO · ' + $('#phaseSub').textContent;
   const hd=$('#hubDraftSub');
-  if(hd) hd.textContent = state.structure==='solo' ? 'INDIVIDUAL LEAGUE — NO DRAFT'
+  if(hd) hd.textContent = state.structure==='solo' ? 'INDIVIDUAL LEAGUE — NO SQUADS'
     : p==='setup' ? 'OPENS AFTER SETTINGS LOCK'
     : p==='draft' ? 'LIVE NOW — CAPTAINS READY'
     : 'COMPLETE · ROSTERS LOCKED';
@@ -3269,7 +3269,7 @@ function renderFormation(){
   const pool = unassignedMembers();
   const eb = $('#draftEyebrow');
   if(eb) eb.textContent = state.draftType === 'assign'
-    ? 'Form squads \u00b7 commissioner assign' : 'Form squads \u00b7 blind draw';
+    ? 'Form squads \u00b7 Pro assign' : 'Form squads \u00b7 blind draw';
   $('#draftAdmin').style.display = 'none';
   const lock = $('#draftLock'); if(lock) lock.style.display = 'none';
 
@@ -3569,8 +3569,8 @@ $('#lockBtn').addEventListener('click', async () => {
     await loadMemberships();
     switchView('home');
     toast(nextPhase === 'season'
-      ? 'Bylaws locked — no draft needed, season is live'
-      : `Bylaws locked${emails ? ` — ${emails} invites queued` : ''}, draft night is live`);
+      ? 'Bylaws locked — no squads to form, season is live'
+      : `Bylaws locked${emails ? ` — ${emails} invites queued` : ''}, squad formation is open`);
   } catch(err){ toast('Lock failed: ' + err.message); }
   finally { btn.disabled = false; }
 });
@@ -3640,7 +3640,7 @@ $('#wCodeGo').addEventListener('click', async () => {
     toast('Joined ' + m.league.name);
   } catch(err){
     toast(/invalid/i.test(err.message)
-      ? 'No league with that code — check with your commissioner'
+      ? 'No league with that code — check with your Pro'
       : 'Could not join: ' + err.message);
   }
 });
