@@ -9,6 +9,8 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Cup Season">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='22' fill='%230C0D0F'/%3E%3Cpolyline points='16,70 36,52 52,60 84,28' fill='none' stroke='%2343E07C' stroke-width='8' stroke-linecap='round' stroke-linejoin='round'/%3E%3Ccircle cx='84' cy='28' r='7' fill='%2343E07C'/%3E%3C/svg%3E">
+<link rel="manifest" href="/manifest.webmanifest">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
 <meta name="description" content="Season-long fantasy golf with your own crew.">
 <meta property="og:title" content="Cup Season — fantasy golf for your actual foursome">
 <meta property="og:url" content="https://cupseason.app">
@@ -1025,7 +1027,7 @@ input.f::-webkit-outer-spin-button, input.f::-webkit-inner-spin-button{-webkit-a
       <button class="btn dark" id="wOut" style="margin-top:10px">Sign out</button>
       <div class="ob-caption">No code? Ask your commissioner — it's in the League tab. Or peek at a demo season with code <b style="color:var(--mut)">DEMO</b>.</div>
     </div>
-    <div class="ob-caption" id="obCaption">New or returning, email is one door — no passwords. Just looking? Join with code <b style="color:var(--mut)">DEMO</b>. <span style="opacity:.5">v23.32</span></div>
+    <div class="ob-caption" id="obCaption">New or returning, email is one door — no passwords. Just looking? Join with code <b style="color:var(--mut)">DEMO</b>. <span style="opacity:.5">v23.33</span></div>
   </div>
   <div class="ob-splash" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
   
@@ -1552,6 +1554,14 @@ input.f::-webkit-outer-spin-button, input.f::-webkit-inner-spin-button{-webkit-a
   window.addEventListener('unhandledrejection', function(e){
     var r=e.reason||{};
     show('async: '+(r.message||String(r)));
+  });
+})();
+(function(){
+  // PWA: register after load so it never competes with the boot chain.
+  // Registration failure is non-fatal — the app runs fine un-installed.
+  if(!('serviceWorker' in navigator)) return;
+  window.addEventListener('load', function(){
+    navigator.serviceWorker.register('/sw.js').catch(function(){});
   });
 })();
 </script>
