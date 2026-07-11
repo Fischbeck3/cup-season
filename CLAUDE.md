@@ -91,6 +91,12 @@ edge months** (blanket rule, decided). League timezone default
   repeatedly (most recently surfacing the set_profile NOT NULL error).
 - **Demo mode is a diorama** — gate every real-data path with `!state.demo`;
   demo dates are relative (`dAgo`, `M3`) so it never reads stale.
+- **A missing `window.*` bridge fails SILENTLY as demo mode.** Classic-side
+  guards like `if(window.sb)` don't error when the module never exported the
+  name — they quietly take the demo/local path. `window.sb` was missing until
+  v23.39; every classic-side DB write (chat, quick post) local-echoed and
+  looked exactly like "not saving." When classic code references `window.X`,
+  grep for the `window.X =` assignment in the module before trusting it.
 
 ## Environments & commands
 
