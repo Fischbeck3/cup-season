@@ -945,8 +945,8 @@ input.f::-webkit-outer-spin-button, input.f::-webkit-inner-spin-button{-webkit-a
       <p>Four squads, four colors, any course in the country. Points all season, a cup at the end.</p>
     </div>
     <div id="obDoor">
-    <button class="btn" id="obCreate">Start a league</button>
-    <button class="btn dark" id="obEmail">Continue with email</button>
+    <button class="btn" id="obCreate">Create your golfer card</button>
+    <button class="btn dark" id="obEmail">Sign in with email</button>
     <div class="joinbox" id="emailbox">
       <input id="obEmailIn" class="email" type="email" placeholder="you@email.com" autocomplete="email" inputmode="email">
       <button class="btn" id="obEmailGo">Go</button>
@@ -1027,7 +1027,7 @@ input.f::-webkit-outer-spin-button, input.f::-webkit-inner-spin-button{-webkit-a
       <button class="btn dark" id="wOut" style="margin-top:10px">Sign out</button>
       <div class="ob-caption">No code? Ask your commissioner — it's in the League tab. Or peek at a demo season with code <b style="color:var(--mut)">DEMO</b>.</div>
     </div>
-    <div class="ob-caption" id="obCaption">New or returning, email is one door — no passwords. Just looking? Join with code <b style="color:var(--mut)">DEMO</b>. <span style="opacity:.5">v23.35</span></div>
+    <div class="ob-caption" id="obCaption">New or returning, email is one door — no passwords. Just looking? Join with code <b style="color:var(--mut)">DEMO</b>. <span style="opacity:.5">v23.36</span></div>
   </div>
   <div class="ob-splash" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
   
@@ -3512,18 +3512,14 @@ $('#obEmailGo').addEventListener('click', async () => {
   } finally { btn.disabled = false; btn.textContent = 'Go'; }
 });
 
-$('#obCreate').addEventListener('click', async () => {
+$('#obCreate').addEventListener('click', () => {
+  /* profile-first: the door creates YOU, not a league. Leagues start from
+     the signed-in home (wCreate) — like joining groups after the account. */
   if(!CS.user){
-    localStorage.setItem('cs_intent','create');
-    openEmailBox($('#obCreate'), 'Enter your email — the sign-in link drops you straight into league setup.');
+    openEmailBox($('#obCreate'), 'Enter your email — your code sets up your golfer card, then your leagues.');
     return;
   }
-  try {
-    await createLeague();
-    enterApp();
-    switchView('wizard');
-    toast('League created — set your bylaws');
-  } catch(err){ toast('Could not create league: ' + err.message); }
+  showWelcome();
 });
 
 $('#obJoin').addEventListener('click', () => {
@@ -3704,19 +3700,10 @@ async function boot(){
       } catch(e){ toast('Auto-join failed: ' + e.message); }
     }
 
-    if(localStorage.getItem('cs_intent') === 'create'){
-      localStorage.removeItem('cs_intent');
-      bootStep = 'create-league';
-      try {
-        await createLeague();
-        enterApp();
-        state.phase = 'setup';
-        renderPhase();
-        switchView('wizard');
-        toast('League created — name it and set the bylaws');
-        return;
-      } catch(e){ /* fall through to normal routing */ }
-    }
+    /* profile-first (v23.36): the old cs_intent shortcut that auto-created a
+       league on first boot is gone — everyone lands on their own home first;
+       leagues start from wCreate there. */
+    localStorage.removeItem('cs_intent');
 
     if(CS.memberships.length === 0){
       bootTrace('signed in, no league on this account \u2014 welcome screen');
