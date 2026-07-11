@@ -1027,7 +1027,7 @@ input.f::-webkit-outer-spin-button, input.f::-webkit-inner-spin-button{-webkit-a
       <button class="btn dark" id="wOut" style="margin-top:10px">Sign out</button>
       <div class="ob-caption">No code? Ask your commissioner — it's in the League tab. Or peek at a demo season with code <b style="color:var(--mut)">DEMO</b>.</div>
     </div>
-    <div class="ob-caption" id="obCaption">New or returning, email is one door — no passwords. Just looking? Join with code <b style="color:var(--mut)">DEMO</b>. <span style="opacity:.5">v23.36</span></div>
+    <div class="ob-caption" id="obCaption">New or returning, email is one door — no passwords. Just looking? Join with code <b style="color:var(--mut)">DEMO</b>. <span style="opacity:.5">v23.37</span></div>
   </div>
   <div class="ob-splash" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
   
@@ -1829,7 +1829,7 @@ $('#chatSend').addEventListener('click',async ()=>{
       member_id: window.CS.member?.id,
       body: v
     });
-    if(error){ $('#chatIn').value=v; feed.pop(); renderFeed(); toast('Message didn’t send — try again'); }
+    if(error){ $('#chatIn').value=v; feed.pop(); renderFeed(); toast('Message didn’t send: ' + (error.message || error.code || 'unknown error')); }
   }
 });
 $('#chatIn').addEventListener('keydown',e=>{ if(e.key==='Enter') $('#chatSend').click(); });
@@ -3205,8 +3205,8 @@ async function loadLeagueData(){
       .select('id, name, color, captain_member_id, squad_members(member_id)')
       .eq('season_id', CS.season.id).order('name');
     CS.squads = sq || [];
-    await loadStandingsAndFeed();
   }
+  await loadStandingsAndFeed(); /* board is league-scoped — load it pre-season too */
   renderFormation();
 }
 
@@ -3220,7 +3220,10 @@ const memMk = id => {
 };
 
 async function loadStandingsAndFeed(){
-  if(!CS.season) return;
+  /* the board belongs to the LEAGUE, not the season — chat must load and
+     persist from day one, pre-lock. Only standings need a season. */
+  if(!CS.league) return;
+  if(CS.season){
   /* standings: view points mapped onto squads -> the demo teams shape */
   const { data: st } = await sb.from('v_squad_standings')
     .select('squad_id, points').eq('season_id', CS.season.id);
@@ -3231,6 +3234,7 @@ async function loadStandingsAndFeed(){
   }));
   teams.sort((a,b) => b.pts - a.pts);
   series = teams.map(() => []);
+  }
 
   /* feed: the posts table is the board */
   const { data: posts } = await sb.from('posts')
@@ -3249,7 +3253,8 @@ async function loadStandingsAndFeed(){
   });
   if(!feed.length) feed.push({ d: dAgo(0), sys:true, txt:(CS.league.name||'Your league')+' is live \u2014 post the first round' });
 
-  renderStandings(); renderFeed(); renderPhase(); renderStats();
+  if(CS.season){ renderStandings(); renderPhase(); renderStats(); }
+  renderFeed();
 }
 
 /* ---------- squad formation (Blind draw / Assign) ---------- */
