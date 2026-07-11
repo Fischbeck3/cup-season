@@ -1027,7 +1027,7 @@ input.f::-webkit-outer-spin-button, input.f::-webkit-inner-spin-button{-webkit-a
       <button class="btn dark" id="wOut" style="margin-top:10px">Sign out</button>
       <div class="ob-caption">No code? Ask your Pro — it's in the League tab. Or peek at a demo season with code <b style="color:var(--mut)">DEMO</b>.</div>
     </div>
-    <div class="ob-caption" id="obCaption">New or returning, email is one door — no passwords. Just looking? Join with code <b style="color:var(--mut)">DEMO</b>. <span style="opacity:.5">v23.39</span></div>
+    <div class="ob-caption" id="obCaption">New or returning, email is one door — no passwords. Just looking? Join with code <b style="color:var(--mut)">DEMO</b>. <span style="opacity:.5">v23.40</span></div>
   </div>
   <div class="ob-splash" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
   
@@ -1072,7 +1072,7 @@ input.f::-webkit-outer-spin-button, input.f::-webkit-inner-spin-button{-webkit-a
           <h1 id="leagueName">The Sunday Cup</h1>
           <div class="sub" id="phaseSub">Wk 18 / 36 · Hybrid · Standard rules</div>
         </div>
-        <div class="who mono">MJ</div>
+        <div class="who mono" id="whoChip" role="button" aria-label="Your profile" style="cursor:pointer">MJ</div>
       </div>
     </header>
 
@@ -3025,6 +3025,7 @@ async function loadProfile(){
     .eq('id', CS.user.id).maybeSingle();
   CS.profile = data || null;
   if(CS.profile?.index_current != null) state.myIndex = Number(CS.profile.index_current);
+  refreshWhoChip();
   return CS.profile;
 }
 
@@ -3071,6 +3072,103 @@ $('#pfSave').addEventListener('click', async () => {
     $('#pfStatus').textContent = 'Save failed: ' + (e.message || e);
   } finally { btn.disabled = false; btn.textContent = 'Save my card'; }
 });
+
+/* ---------- profile hub: the avatar chip opens your card ---------- */
+const initialsOf = n => ((n||'').trim().split(/\s+/).map(w => w[0]).join('').slice(0,2).toUpperCase()) || 'MJ';
+function refreshWhoChip(){
+  const el = $('#whoChip');
+  if(el && CS.profile?.display_name) el.textContent = initialsOf(CS.profile.display_name);
+}
+let phMarker = null;
+function renderPhMarkers(){
+  const grid = $('#phMarkers'); if(!grid) return;
+  grid.innerHTML = Object.keys(MARKERS).map(k =>
+    `<button class="mini" data-phmk="${k}" style="display:flex;flex-direction:column;align-items:center;gap:4px;padding:10px 4px;${k===phMarker?'border-color:var(--pos);color:var(--pos);':''}">${mkr(k)}<span style="font-size:9px;letter-spacing:.06em">${MARKERS[k].n.toUpperCase()}</span></button>`).join('');
+  grid.querySelectorAll('[data-phmk]').forEach(b => b.addEventListener('click', () => {
+    phMarker = b.dataset.phmk; renderPhMarkers();
+  }));
+}
+function openProfileHub(){
+  if(!CS.profile){ toast('Demo golfer — sign in to build your own card'); return; }
+  const p = CS.profile;
+  phMarker = p.marker || 'saguaro';
+  const leagues = (CS.memberships||[]).map(m =>
+    `<div class="byrow"><span>${esc(m.league.name)}</span><b>${m.role==='commissioner'?'PRO':'PLAYER'} · ${esc(m.league.code)}</b></div>`).join('')
+    || '<p class="fine">No leagues yet — start one or join with a code.</p>';
+  openSheet('Your golfer card', 'Profile · travels into every league', `
+    <label class="f" for="phName">Name on the card</label>
+    <input class="f" id="phName" style="font-family:var(--sans)">
+    <div class="frow" style="margin-top:8px">
+      <div><label class="f" for="phCity">City</label><input class="f" id="phCity" style="font-family:var(--sans)"></div>
+      <div><label class="f" for="phHome">Home course</label><input class="f" id="phHome" style="font-family:var(--sans)"></div>
+    </div>
+    <label class="f" style="display:block; margin-top:8px">Ball marker</label>
+    <div id="phMarkers" style="display:grid; grid-template-columns:repeat(4,1fr); gap:8px; margin-top:8px;"></div>
+    <button class="mini" id="phSave" style="margin-top:10px">Save card</button>
+    <span class="fine" id="phStatus"></span>
+
+    <div class="eyebrow" style="margin-top:20px">Handicap index</div>
+    <div style="display:flex; gap:10px; align-items:center;">
+      <input class="f" id="phIdx" type="number" step="0.1" inputmode="decimal" style="max-width:110px">
+      <button class="mini" id="phIdxGo">Update index</button>
+    </div>
+    <p class="fine" style="padding-left:0">Changes are announced on every league board you're in — the crew polices the sandbaggers.</p>
+
+    <div class="eyebrow" style="margin-top:20px">Your leagues</div>
+    ${leagues}
+
+    <div class="eyebrow" style="margin-top:20px">Membership &amp; billing</div>
+    <div class="byrow"><span>PLAN</span><b>FREE · PILOT</b></div>
+    <p class="fine" style="padding-left:0">Pro Shop ($40/season) and Verified League land at launch — nothing to pay during the pilot.</p>
+
+    <button class="btn dark" id="phOut" style="margin-top:16px">Sign out</button>
+  `);
+  $('#phName').value = p.display_name || '';
+  $('#phCity').value = p.city || '';
+  $('#phHome').value = p.home_course || '';
+  $('#phIdx').value = p.index_current != null ? Number(p.index_current).toFixed(1) : '';
+  renderPhMarkers();
+
+  $('#phSave').addEventListener('click', async () => {
+    const name = $('#phName').value.trim();
+    if(!name){ $('#phStatus').textContent = 'The card needs a name.'; return; }
+    const btn = $('#phSave'); btn.disabled = true;
+    try {
+      const { error } = await sb.rpc('set_profile', {
+        p_name: name,
+        p_city: $('#phCity').value.trim() || null,
+        p_home: $('#phHome').value.trim() || null,
+        p_index: null, /* index moves ONLY via set_index — announced on the boards */
+        p_marker: phMarker,
+      });
+      if(error) throw error;
+      await loadProfile();
+      refreshWhoChip();
+      toast('Card saved');
+    } catch(e){ $('#phStatus').textContent = 'Save failed: ' + (e.message||e); }
+    finally { btn.disabled = false; }
+  });
+
+  $('#phIdxGo').addEventListener('click', async () => {
+    const idx = parseFloat($('#phIdx').value);
+    if(isNaN(idx) || idx < -10 || idx > 54){ toast('Index looks off — expected -10 to 54'); return; }
+    const btn = $('#phIdxGo'); btn.disabled = true;
+    try {
+      const { error } = await sb.rpc('set_index', { p_index: idx });
+      if(error) throw error;
+      await loadProfile();
+      state.myIndex = idx;
+      toast(`Index updated to ${idx.toFixed(1)} — posted to your league boards`);
+    } catch(e){ toast('Index update failed: ' + (e.message||e)); }
+    finally { btn.disabled = false; }
+  });
+
+  $('#phOut').addEventListener('click', async () => {
+    await sb.auth.signOut();
+    location.reload();
+  });
+}
+$('#whoChip').addEventListener('click', openProfileHub);
 
 /* ---------- my golf: league-less quick post + recent ---------- */
 function fillWelcomeCard(){
