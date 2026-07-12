@@ -1142,7 +1142,7 @@ body::before{
       </div>
             
     </div>
-    <div class="ob-caption" id="obCaption">New or returning, email is one door — no passwords. Just looking? Join with code <b style="color:var(--mut)">DEMO</b>. <span style="opacity:.5">v23.61</span></div>
+    <div class="ob-caption" id="obCaption">New or returning, email is one door — no passwords. Just looking? Join with code <b style="color:var(--mut)">DEMO</b>. <span style="opacity:.5">v23.62</span></div>
   </div>
   <div class="ob-splash" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
   
@@ -1181,7 +1181,10 @@ body::before{
     <header class="hdr">
       <div class="hdr-in">
         <div class="title">
-          <h1 id="leagueName">The Sunday Cup</h1>
+          <div id="lgRow" role="button" aria-label="Switch league" style="display:flex; align-items:center; gap:7px; width:fit-content;">
+            <h1 id="leagueName">The Sunday Cup</h1>
+            <svg id="lgChev" viewBox="0 0 24 24" style="display:none; width:14px; height:14px; flex:none; stroke:currentColor; stroke-width:2.4; fill:none; opacity:.55;"><path d="M6 9.5l6 6 6-6"/></svg>
+          </div>
           <div class="sub" id="phaseSub">Wk 18 / 36 · Hybrid · Standard rules</div>
         </div>
         <div class="who mono" id="whoChip" role="button" aria-label="Your profile" style="cursor:pointer">MJ</div>
@@ -1254,6 +1257,11 @@ body::before{
         </div>
 
         <div id="homeSeason">
+        <div class="phasehero" id="kickoffHero" style="display:none">
+          <div class="k">At the starter</div>
+          <div class="n" id="khTee">First tee Sunday</div>
+          <div class="m" id="khCount">SQUADS LOCKED · PRACTICE ROUNDS HIT YOUR CARD, NOT THE SEASON</div>
+        </div>
         <button class="livebanner" id="liveBanner" data-go="play">
           <div class="lk"><span class="dot"></span>Live round in progress</div>
           <div class="ln" id="lbStatus">ALL SQUARE</div>
@@ -1670,13 +1678,22 @@ body::before{
       <button class="btn dark" id="wOut" style="margin-top:10px">Sign out</button>
       <div class="ob-caption">No code? Any league member can share an invite link. Or peek at a demo season with code <b style="color:var(--mut)">DEMO</b>.</div>
         </div>
-        <div class="eyebrow league-only">The bylaws · locked at first tee</div>
-        <div class="card" id="bylawsHub" style="margin-bottom:14px"></div>
+        <div class="card league-only" id="hubHeader" style="margin-bottom:14px">
+          <div style="display:flex; align-items:center; gap:10px;">
+            <div style="min-width:0"><b id="hhName" style="font-size:16px">The Sunday Cup</b><div class="fine" id="hhPhase" style="padding:2px 0 0">SEASON LIVE</div></div>
+            <button class="mini copycode" style="margin-left:auto; flex:none">Code · <b class="mono" id="hhCode">SNDYCUP</b></button>
+          </div>
+          <div class="fine" id="hhSpan" style="padding:8px 0 0">Sun Jul 5 → Sat Dec 26 · 25 wks</div>
+          <div class="fine" id="hhPro" style="padding:2px 0 0">THE PRO · —</div>
+        </div>
 
         <div class="eyebrow">League</div>
         <div class="check"><span class="num">⛳</span><div class="tt"><b>Members & invites</b><small id="hubMembersSub">16 JOES · CODE SNDYCUP</small></div><button class="mini copycode">Invite</button></div>
         <div class="check"><span class="num">$</span><div class="tt"><b>The pot</b><small id="hubPotSub">$1,200 · 13/16 BUY-INS IN</small></div><button class="mini" data-go="pot">View</button></div>
         <div class="check"><span class="num">◫</span><div class="tt"><b>Squads</b><small id="hubDraftSub">COMPLETE · ROSTERS LOCKED</small></div><button class="mini" data-go="draft">View</button></div>
+
+        <div class="eyebrow league-only">The bylaws · locked at first tee</div>
+        <div class="card" id="bylawsHub" style="margin-bottom:14px"></div>
 
         <div class="eyebrow">The Pro Shop</div>
         <div class="pro">
@@ -2824,12 +2841,15 @@ function renderStats(){
   const credits=my ? my.credits : yourMonthCredits();
   const used=my ? Math.min(my.counting, capN) : Math.min(credits, capN);
   const fmtN=n=> n%1 ? n.toFixed(1) : String(n);
-  const wk=$('#statWk'); if(wk) wk.textContent=state.demo?'W18':('W'+currentWeek());
+  const wk=$('#statWk'); if(wk) wk.textContent=state.demo?'W18':(atStarter()?'—':'W'+currentWeek());
   const wt=$('#wkTotal2'); if(wt && !state.demo) wt.textContent=totalWeeks();
   const sf=$('#statFinal');
   if(sf && !state.demo){
     const cf=cupFinalStart();
-    if(isCupFinal()){
+    if(atStarter()){
+      sf.textContent=`First tee ${firstTeeText()}`;
+      sf.style.color='var(--gold)';
+    } else if(isCupFinal()){
       const left=Math.max(0, Math.ceil((seasonE()-Date.now())/864e5));
       sf.textContent=`CUP FINAL LIVE · ${left} day${left===1?'':'s'} left`;
       sf.style.color='var(--gold)';
@@ -2849,7 +2869,13 @@ function renderStats(){
     ? fmtN(credits)+' <small>rounds</small>'
     : fmtN(used)+' <small>/ '+capN+'</small>';
   $('#statCountD').textContent=curMonth()+' · '+CAPS[state.cap].toLowerCase()+' count';
-  const nk=$('#nextK'); if(nk) nk.textContent=`Next up · ${curMonth()} floor`;
+  const nk=$('#nextK');
+  if(atStarter()){
+    if(nk) nk.textContent='Next up · kickoff';
+    $('#nextTxt').textContent=`First tee ${firstTeeText()} — practice rounds hit your card, not the season.`;
+    return;
+  }
+  if(nk) nk.textContent=`Next up · ${curMonth()} floor`;
   const rem=Math.max(0, state.floor - credits);
   $('#nextTxt').textContent = rem>0
     ? `${fmtN(rem)} counting round${rem===1?'':'s'} to go — ${CAPS[state.cap].toLowerCase()} count, you've banked ${fmtN(credits)}.`
@@ -3214,6 +3240,14 @@ function cupFinalStart(){ const d=new Date(seasonE()); d.setDate(d.getDate()-27)
 function isCupFinal(){
   return !state.demo && state.phase==='season' && Date.now() >= cupFinalStart().getTime();
 }
+/* "At the starter": bylaws locked, squads formed, first tee still ahead.
+   Seasons start on a Sunday (§14.0) — until then the week counter is a lie. */
+function atStarter(){
+  return !state.demo && state.phase==='season' && !!state.seasonStart
+      && Date.now() < seasonS().getTime();
+}
+function daysToTee(){ return Math.max(0, Math.ceil((seasonS().getTime()-Date.now())/864e5)); }
+function firstTeeText(){ const s=seasonS(); return `Sun ${MOS[s.getMonth()]} ${s.getDate()}`; }
 function totalWeeks(){
   const s=seasonS(), e=seasonE();
   return Math.max(1, Math.ceil((e-s)/(7*864e5)));
@@ -3306,10 +3340,22 @@ function renderPhase(){
     : p==='draft' ? 'SQUAD FORMATION · ROSTERS PENDING'
     : state.demo
       ? `Wk 18 / 36 · ${FMT_NAMES[state.fmt]} · ${PRESETS[state.preset].name} rules`
+      : atStarter()
+      ? `AT THE STARTER · FIRST TEE ${firstTeeText().toUpperCase()} · ${daysToTee()} DAY${daysToTee()===1?'':'S'}`
       : isCupFinal()
       ? `CUP FINAL · Wk ${currentWeek()} / ${totalWeeks()} · fresh slate · ${PRESETS[state.preset].name} rules`
       : `Wk ${currentWeek()} / ${totalWeeks()} · ${FMT_NAMES[state.fmt]} · ${PRESETS[state.preset].name} rules`;
   if(state.demo) $('#phaseSub').textContent = 'DEMO · ' + $('#phaseSub').textContent;
+  const kh=$('#kickoffHero');
+  if(kh){
+    const on = p==='season' && atStarter();
+    kh.style.display = on ? 'block' : 'none';
+    if(on){
+      $('#khTee').textContent = 'First tee ' + firstTeeText();
+      const d=daysToTee();
+      $('#khCount').textContent = `KICKS OFF IN ${d} DAY${d===1?'':'S'} · SQUADS LOCKED · PRACTICE ROUNDS HIT YOUR CARD, NOT THE SEASON`;
+    }
+  }
   const hd=$('#hubDraftSub');
   if(hd) hd.textContent = state.structure==='solo' ? 'INDIVIDUAL LEAGUE — NO SQUADS'
     : p==='setup' ? 'OPENS AFTER SETTINGS LOCK'
@@ -3340,6 +3386,22 @@ function renderLeagueMeta(){
     state.structure==='solo'    ? `CUP LINE = TOP 2 PLAYERS AT W${totalWeeks()} MEET IN THE CUP FINAL`
     : state.structure==='squads2' ? 'BOTH SQUADS REACH THE CUP FINAL — SEASON LEADER CARRIES +10'
     : `CUP LINE = TOP 2 AT W${totalWeeks()} ADVANCE TO THE CUP FINAL`;
+  /* the league header card — who, where, when, and the Pro */
+  if($('#hubHeader')){
+    $('#hhName').textContent=L.name;
+    $('#hhCode').textContent=L.code;
+    $('#hhPhase').textContent =
+      state.phase==='setup' ? 'SETUP — INVITES OPEN'
+      : state.phase==='draft' ? 'SQUAD FORMATION'
+      : atStarter() ? `AT THE STARTER — FIRST TEE ${firstTeeText().toUpperCase()}`
+      : isCupFinal() ? `CUP FINAL — WK ${currentWeek()} / ${totalWeeks()}`
+      : `SEASON LIVE — WK ${currentWeek()} / ${totalWeeks()}`;
+    $('#hhSpan').textContent = state.seasonStart
+      ? seasonSpanText()
+      : 'Season dates lock with the bylaws';
+    const pro=members.find(m=>m.role==='commissioner');
+    $('#hhPro').textContent='THE PRO · '+(pro?.profile?.display_name||'—').toUpperCase();
+  }
 }
 function renderWizard(){
   $$('.wizstep').forEach(s=>s.classList.toggle('on',+s.dataset.step===state.wiz));
@@ -3962,6 +4024,7 @@ async function enterLeague(m){
 
   $('#leagueName').textContent = m.league.name;
   $('#sideLeague').textContent = m.league.name;
+  const chev = $('#lgChev'); if(chev) chev.style.display = 'block';
   document.querySelectorAll('.codebox').forEach(el => el.textContent = m.league.code);
 
   bootStep = 'blank-slate';
@@ -4480,13 +4543,51 @@ $('#lockBtn').addEventListener('click', async () => {
   finally { btn.disabled = false; }
 });
 
-/* league switcher — tap the league name in the header */
-$('#leagueName').addEventListener('click', async () => {
-  if(CS.memberships.length < 2) return;
-  const names = CS.memberships.map((m,i) => `${i+1}. ${m.league.name}`).join('\n');
-  const pick = prompt('Switch league:\n' + names, '1');
-  const m = CS.memberships[Number(pick) - 1];
-  if(m) enterLeague(m);
+/* league switcher — the header name (and sidebar) opens the sheet.
+   Every membership, the clubhouse, and start/join live one tap away. */
+function switcherChip(m){
+  if(m.league.phase === 'setup') return 'SETUP — INVITES OPEN';
+  if(m.league.phase === 'draft') return 'SQUAD FORMATION';
+  if(CS.league && m.league.id === CS.league.id){
+    if(atStarter()) return 'AT THE STARTER';
+    return isCupFinal() ? 'CUP FINAL' : `WK ${currentWeek()} / ${totalWeeks()}`;
+  }
+  return 'IN SEASON';
+}
+function goClubhouse(){
+  CS.league = null; CS.season = null; CS.member = null;
+  if(CS.chan){ try{ rtClient.removeChannel(CS.chan); }catch(e){} CS.chan = null; }
+  showWelcome();
+}
+function openLeagueSwitcher(){
+  if(!CS.user) return; /* demo has no leagues to switch */
+  const cur = CS.league?.id;
+  const row = (attr, icon, title, sub, here) => `
+    <div class="check tap" data-lgsw="${attr}" style="cursor:pointer; ${here?'border-color:var(--pos);':''}">
+      <span class="num">${icon}</span>
+      <div class="tt"><b>${title}</b><small>${sub}</small></div>
+      ${here?'<span class="fine" style="padding:0; color:var(--pos)">HERE</span>':''}
+    </div>`;
+  const leagues = (CS.memberships||[]).map(m => row(
+    m.league.id, '⛳', m.league.name,
+    switcherChip(m) + (m.role === 'commissioner' ? ' · YOU ARE THE PRO' : ''),
+    m.league.id === cur)).join('');
+  openSheet('Switch league', 'EVERY CUP YOU PLAY IN',
+    leagues
+    + row('__clubhouse', '⌂', 'Your clubhouse', 'ROUNDS & BUDDIES — NO LEAGUE LENS', !cur && !state.demo)
+    + row('__new', '+', 'Start or join a league', 'NEW CUP, OR AN INVITE CODE', false));
+  $('#shBody').querySelectorAll('[data-lgsw]').forEach(b => b.addEventListener('click', async () => {
+    const v = b.dataset.lgsw; closeSheet();
+    if(v === '__clubhouse'){ if(cur || state.demo) goClubhouse(); return; }
+    if(v === '__new'){ goClubhouse(); switchView('hub'); return; }
+    const m = CS.memberships.find(x => x.league.id === v);
+    if(m && v !== cur) await enterLeague(m);
+  }));
+}
+window.openLeagueSwitcher = openLeagueSwitcher;
+['lgRow','sideLeague'].forEach(id => {
+  const el = document.getElementById(id);
+  if(el){ el.style.cursor = 'pointer'; el.addEventListener('click', openLeagueSwitcher); }
 });
 
 /* ---------- welcome fork: signed in, no league yet ---------- */
@@ -4497,7 +4598,10 @@ function showWelcome(){
   state.demo = false;
   state.phase = 'season'; /* keep routing away from wizard/draft */
   $('#leagueName').textContent = 'Cup Season';
-  $('#phaseSub').textContent = 'No league yet — your golf still counts';
+  $('#phaseSub').textContent = (CS.memberships||[]).length
+    ? 'Your clubhouse — every round still counts'
+    : 'No league yet — your golf still counts';
+  const chev = $('#lgChev'); if(chev) chev.style.display = 'block';
   const sl = $('#sideLeague'); if(sl) sl.textContent = 'Your clubhouse';
   const sm = $('#sideMeta'); if(sm) sm.textContent = 'Rounds & buddies';
   const bs = $('#brandSeason'); if(bs) bs.textContent = 'cupseason.app';

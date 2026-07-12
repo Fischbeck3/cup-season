@@ -2,7 +2,11 @@
 
 2026-07-12 · v23.60 · every view scored against spec-v1.0, product-vision-v1.0,
 personas-dashboards-v1.0, and the live code. Items numbered A1, B2… for
-work-through. Status: batch 1 (P0, A1–A12) SHIPPED in v23.61. Batches 2+ pending discussion.
+work-through. Status: batch 1 (P0, A1–A12) SHIPPED v23.61. Batch 2 (B1–B4, C1) SHIPPED
+v23.62 — decisions: pre-kickoff phase named "At the starter"; NO global
+progress bar (C3 dropped — week-by-week progress detail moves to the
+calendar/timeline build, D3/task #16). C2 (kickoff board post) rides the
+next server migration. C4 folded into future calendar work.
 
 Root cause of most of it: the prototype-era markup and render functions carry
 demo defaults ("SNDYCUP", "16 Joes", "$1,200") that the real-league path never
