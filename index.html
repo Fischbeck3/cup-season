@@ -1235,7 +1235,7 @@ body::before{
       </div>
             
     </div>
-    <div class="ob-caption" id="obCaption">New or returning, email is one door — no passwords. Just looking? Join with code <b style="color:var(--mut)">DEMO</b>. <span style="opacity:.5">v23.68</span></div>
+    <div class="ob-caption" id="obCaption">New or returning, email is one door — no passwords. Just looking? Join with code <b style="color:var(--mut)">DEMO</b>. <span style="opacity:.5">v23.69</span></div>
   </div>
   <div class="ob-splash" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
   
@@ -1392,9 +1392,9 @@ body::before{
         <button class="ontheline" data-go="pot">
           <div>
             <div class="ok">On the line</div>
-            <div class="oa" id="lineAmt">$1,200</div>
+            <div class="oa" id="lineAmt">$525</div>
           </div>
-          <div class="os" id="lineSplit">CHAMPS $720 · RUNNER-UP $300 · POINTS KING $180</div>
+          <div class="os" id="lineSplit">CHAMPS $315 · RUNNER-UP $131 · POINTS KING $79</div>
           <span class="go">→</span>
         </button>
 
@@ -1858,8 +1858,8 @@ body::before{
 
 <nav class="tabbar" aria-label="Sections">
   <button class="tab active" data-v="home"><svg viewBox="0 0 24 24"><path d="M4 11.5 12 4l8 7.5"/><path d="M6 10v10h12V10"/></svg>Home</button>
-  <button class="tab" data-v="record" aria-label="Post a round"><span class="circ"><svg viewBox="0 0 24 24"><path d="M12 6v12M6 12h12"/></svg></span>Post</button>
   <button class="tab" data-v="hub"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="2.9"/><path d="M12 3.6v2.2M12 18.2v2.2M3.6 12h2.2M18.2 12h2.2M6.1 6.1l1.6 1.6M16.3 16.3l1.6 1.6M17.9 6.1l-1.6 1.6M7.7 16.3l-1.6 1.6"/></svg>League</button>
+  <button class="tab" data-v="record" aria-label="Post a round"><span class="circ"><svg viewBox="0 0 24 24"><path d="M12 6v12M6 12h12"/></svg></span>Post</button>
   <button class="tab" data-v="cal"><svg viewBox="0 0 24 24"><rect x="4" y="5.5" width="16" height="15" rx="2.2"/><path d="M4 10.5h16M8.5 3.5v4M15.5 3.5v4"/></svg>Calendar</button>
   <button class="tab" data-v="stats"><svg viewBox="0 0 24 24"><path d="M5 20V11M12 20V4M19 20v-7"/></svg>You</button>
 </nav>
@@ -3455,8 +3455,10 @@ function renderBylaws(){
   const hub=$('#bylawsHub'); if(hub) hub.innerHTML=rows;
   const rev=$('#bylawsReview'); if(rev) rev.innerHTML=rows;
   const la=$('#lineAmt'); if(la){
-    /* demo stays at its 16-Joe diorama; real leagues price off the actual roster */
-    const n=(!state.demo && window.CS?.members?.length) ? window.CS.members.length : 16;
+    /* one source of player count everywhere the pot shows: demo = the crew,
+       real = the actual roster (the 16 fallback made the tile lie vs the pot page) */
+    const n = state.demo ? state.payers.length
+      : (window.CS?.members?.length || Math.max(1, state.emails.filter(e=>e.includes('@')).length + 1));
     const total=state.stake*n;
     const [pc,pr,pk]=state.payout||[60,25,15];
     la.textContent=fmt$(total);
