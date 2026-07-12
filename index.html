@@ -1035,7 +1035,7 @@ input.f::-webkit-outer-spin-button, input.f::-webkit-inner-spin-button{-webkit-a
       <button class="btn dark" id="wOut" style="margin-top:10px">Sign out</button>
       <div class="ob-caption">No code? Any league member can share an invite link. Or peek at a demo season with code <b style="color:var(--mut)">DEMO</b>.</div>
     </div>
-    <div class="ob-caption" id="obCaption">New or returning, email is one door — no passwords. Just looking? Join with code <b style="color:var(--mut)">DEMO</b>. <span style="opacity:.5">v23.49</span></div>
+    <div class="ob-caption" id="obCaption">New or returning, email is one door — no passwords. Just looking? Join with code <b style="color:var(--mut)">DEMO</b>. <span style="opacity:.5">v23.50</span></div>
   </div>
   <div class="ob-splash" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
   
@@ -3035,6 +3035,18 @@ const CS = { user:null, memberships:[], league:null, member:null };
    silently fell back to demo local-echo because of it.) */
 window.CS = CS;
 window.sb = sb;
+
+/* DIAGNOSTIC (remove after realtime confirmed): raw WebSocket probe --
+   separates machine/network blocking from library behavior. HTTPS working
+   while WS dies = AV TLS interception / middlebox signature. */
+setTimeout(() => {
+  try {
+    const ws = new WebSocket(SUPABASE_URL.replace('https', 'wss') + '/realtime/v1/websocket?apikey=' + SUPABASE_KEY + '&vsn=1.0.0');
+    const t = setTimeout(() => { try{ws.close();}catch(_){} toast('raw socket: TIMEOUT'); }, 8000);
+    ws.onopen = () => { clearTimeout(t); toast('raw socket: CONNECTED'); setTimeout(() => ws.close(), 100); };
+    ws.onclose = (e) => { clearTimeout(t); if(!e.wasClean && e.code !== 1000) toast('raw socket: FAILED code ' + e.code); };
+  } catch(e){ toast('raw socket: EXCEPTION -- ' + e.message); }
+}, 2500);
 
 const codeFor = name => (name.replace(/[^a-zA-Z]/g,'').toUpperCase().slice(0,4) || 'CUP')
   + Math.random().toString(36).slice(2,6).toUpperCase();
