@@ -40,6 +40,26 @@
   --sans:'IBM Plex Sans', -apple-system, 'Segoe UI', Roboto, sans-serif;
   --mono:'IBM Plex Mono', ui-monospace, 'SF Mono', Menlo, monospace;
 }
+/* light mode: same bones, dawn palette. html[data-theme] is stamped by the
+   pre-paint script below and the Appearance selector in the profile. */
+html[data-theme="light"]{
+  --bg0:#EFF2EE; --bg1:#FBFCFA; --bg2:#E5EAE4;
+  --line:#D9DFD7; --line2:#C9D1C8;
+  --ink:#1A2620; --mut:#52625A; --dim:#8C9992;
+  --pos:#0E9B51; --neg:#CC4038; --gold:#A87F10;
+  --sq0:#2C7CD3; --sq1:#DE6A22; --sq2:#7A58DE; --sq3:#0D9E8F;
+  --glow:rgba(14,155,81,.10);
+}
+html[data-theme="light"] body::before{opacity:.3;}
+/* the design layer machines dark surfaces by hand — light counterparts */
+html[data-theme="light"] .card, html[data-theme="light"] .stat{
+  background:linear-gradient(180deg, #FDFEFC 0%, #F4F7F3 100%);
+  border-color:#DBE1D9;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.85), 0 1px 3px rgba(23,38,30,.07);
+}
+html[data-theme="light"] .hdr{background:rgba(239,242,238,.86);}
+html[data-theme="light"] .tabbar{background:rgba(239,242,238,.92); border-top:1px solid var(--line);}
+html[data-theme="light"] .msgrow, html[data-theme="light"] .sysrow{background:#FBFCFA;}
 *{box-sizing:border-box; margin:0; padding:0;}
 html{height:100%;}
 body{
@@ -597,10 +617,14 @@ input.f::-webkit-outer-spin-button, input.f::-webkit-inner-spin-button{-webkit-a
 .crow b{color:var(--ink); font-weight:600; margin-right:6px;}
 .cinput{display:flex; gap:8px; margin-top:8px;}
 .cinput input{flex:1; min-height:40px; font-family:var(--sans); font-weight:500;}
+/* v23.65: the feed loosens up — league notices read like a clubhouse note,
+   not a terminal. Sans, sentence-sized, quiet gold accent instead of the
+   dashed mono banner. */
 .sysrow{
-  font-family:var(--mono); font-size:10px; letter-spacing:.14em; text-transform:uppercase;
-  color:var(--gold); text-align:center; padding:10px 6px; margin-bottom:8px;
-  border:1px dashed #E9BE6233; border-radius:12px; background:rgba(233,190,98,.03);
+  font-family:var(--sans); font-size:12.5px; letter-spacing:.01em; line-height:1.5;
+  color:var(--mut); text-align:left; padding:10px 13px; margin-bottom:8px;
+  border:1px solid var(--line); border-left:3px solid rgba(233,190,98,.5);
+  border-radius:12px; background:var(--bg1);
 }
 .echips{display:flex; flex-wrap:wrap; gap:6px; margin:10px 0 4px;}
 .echip{
@@ -631,8 +655,8 @@ input.f::-webkit-outer-spin-button, input.f::-webkit-inner-spin-button{-webkit-a
   padding:11px 13px; margin-bottom:8px;
 }
 .msgrow .bar{width:3.5px; align-self:stretch; border-radius:2px; flex:none;}
-.msgrow .mtxt{font-size:13px; line-height:1.55; color:var(--mut);}
-.msgrow .mtxt b{color:var(--ink); font-weight:600; margin-right:6px;}
+.msgrow .mtxt{font-size:13.5px; line-height:1.6; color:var(--ink); letter-spacing:.01em;}
+.msgrow .mtxt b{color:var(--ink); font-weight:650; margin-right:6px;}
 .composer{
   position:sticky; bottom:84px; z-index:10;
   display:flex; gap:8px; padding:10px 0 6px; margin-top:14px;
@@ -1067,6 +1091,30 @@ body::before{
   .btn, .mini, .tab .circ, .check{transition:none;}
 }
 </style>
+<script>
+/* theme, pre-paint — runs before any content renders so there is no flash.
+   cs_theme: 'dark' (default) | 'light' | 'auto' (match device). */
+(function(){
+  window.applyTheme = function(){
+    var pref = 'dark';
+    try { pref = localStorage.getItem('cs_theme') || 'dark'; } catch(_){}
+    var t = pref === 'auto'
+      ? (matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark')
+      : pref;
+    document.documentElement.dataset.theme = t;
+    var m = document.querySelector('meta[name="theme-color"]');
+    if(m) m.content = t === 'light' ? '#EFF2EE' : '#0C0D0F';
+  };
+  window.setTheme = function(mode){
+    try { localStorage.setItem('cs_theme', mode); } catch(_){}
+    window.applyTheme();
+  };
+  window.applyTheme();
+  try {
+    matchMedia('(prefers-color-scheme: light)').addEventListener('change', window.applyTheme);
+  } catch(_){}
+})();
+</script>
 </head>
 <body>
 
@@ -1155,7 +1203,7 @@ body::before{
       </div>
             
     </div>
-    <div class="ob-caption" id="obCaption">New or returning, email is one door — no passwords. Just looking? Join with code <b style="color:var(--mut)">DEMO</b>. <span style="opacity:.5">v23.64</span></div>
+    <div class="ob-caption" id="obCaption">New or returning, email is one door — no passwords. Just looking? Join with code <b style="color:var(--mut)">DEMO</b>. <span style="opacity:.5">v23.65</span></div>
   </div>
   <div class="ob-splash" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
   
@@ -2033,6 +2081,20 @@ function renderStandings(){
 }
 
 /* ================= feed ================= */
+/* server bodies arrive ALL CAPS (scoreboard voice). On the feed they read
+   like code — ease them into a sentence: lowercase, capitalize the opener.
+   Mixed-case strings (chat, announcements) pass through untouched. */
+const easeCaps = s => {
+  if(!s || s !== s.toUpperCase()) return s;
+  let t = s.toLowerCase();
+  t = t.replace(/(^|[.!?]\s+|·\s+|—\s+)([a-z])/g, (m,a,b)=>a+b.toUpperCase()); /* sentence & segment starts */
+  t = t.replace(/(^|[^'])\b([b-hj-z])\b/g, (m,a,c)=>a+c.toUpperCase());        /* name initials (never a/i, never 's) */
+  t = t.replace(/\b(sun|mon|tue|wed|thu|fri|sat|jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)\b/g,
+                m=>m[0].toUpperCase()+m.slice(1));                             /* days & months */
+  t = t.replace(/\b(with|vs|to)\s+([a-z])/gi, (m,w,c)=>w+' '+c.toUpperCase()); /* names after with/vs/to */
+  t = t.replace(/&\s+([a-z])/g, (m,c)=>'& '+c.toUpperCase());                  /* names after & */
+  return t;
+};
 function renderFeed(){
   const el=$('#feedList'); el.innerHTML='';
   let lastD=null;
@@ -2043,7 +2105,7 @@ function renderFeed(){
     }
     if(f.roundpost){
       el.insertAdjacentHTML('beforeend',
-        `<div class="msgrow"><span class="bar" style="background:${SQHEX[f.ci]}"></span><div class="mtxt">${esc(f.txt)}</div></div>`);
+        `<div class="msgrow"><span class="bar" style="background:${SQHEX[f.ci]}"></span><div class="mtxt">${esc(easeCaps(f.txt))}</div></div>`);
       return;
     }
     if(f.ann){
@@ -2051,7 +2113,8 @@ function renderFeed(){
       return;
     }
     if(f.sys){
-      el.insertAdjacentHTML('beforeend',`<div class="sysrow">◆ ${f.txt}</div>`);
+      /* sys bodies can carry user-composed fragments (declared-round notes) — escape */
+      el.insertAdjacentHTML('beforeend',`<div class="sysrow">◆ ${esc(easeCaps(f.txt||''))}</div>`);
       return;
     }
     if(f.msg){
@@ -2134,11 +2197,11 @@ function renderFeedFull(){
         </div></div>`);
         return;
       }
-      el.insertAdjacentHTML('beforeend',`<div class="sysrow">◆ ${esc(f.txt||'')}</div>`);
+      el.insertAdjacentHTML('beforeend',`<div class="sysrow">◆ ${esc(easeCaps(f.txt||''))}</div>`);
       return;
     }
     if(f.ann){ el.insertAdjacentHTML('beforeend',`<div class="annrow"><b>📣 FROM THE PRO</b>${esc(f.txt)}</div>`); return; }
-    if(f.sys){ el.insertAdjacentHTML('beforeend',`<div class="sysrow">◆ ${f.txt}</div>`); return; }
+    if(f.sys){ el.insertAdjacentHTML('beforeend',`<div class="sysrow">◆ ${esc(easeCaps(f.txt||''))}</div>`); return; }
     if(f.msg){
       el.insertAdjacentHTML('beforeend',
         `<div class="msgrow"><span class="bar" style="background:${SQHEX[f.ci]}"></span><div class="mtxt"><b>${esc(f.who)}</b>${esc(f.txt)}</div></div>`);
@@ -3482,7 +3545,7 @@ function renderCalendar(){
     const items=byDay[d]||[];
     const isToday = cur.y===now.getFullYear() && cur.m===now.getMonth() && d===now.getDate();
     const dots=items.slice(0,3).map(it=>
-      `<i class="caldot ${it.kind==='rd' ? (it.sr && it.sr.shared_league && !it.sr.mine ? 'lgm' : 'rd') : 'lg'}" style="margin:0"></i>`).join('');
+      `<i class="caldot ${it.kind==='rd' ? (it.sr && (it.sr.tagged_me || (it.sr.shared_league && !it.sr.mine)) ? 'lgm' : 'rd') : 'lg'}" style="margin:0"></i>`).join('');
     html+=`<div class="calcell${isToday?' today':''}${items.length?' has':''}" data-cd="${d}">${d}<span class="caldots">${dots}</span></div>`;
   }
   grid.innerHTML=html;
@@ -3490,7 +3553,7 @@ function renderCalendar(){
     const d=Number(c.dataset.cd), items=byDay[d]||[];
     openSheet(`${DOW[new Date(cur.y,cur.m,d).getDay()]} ${MOS[cur.m]} ${d}`, `${items.length} ON THE SHEET`,
       items.map(it=> it.kind==='rd'
-        ? `<div class="check"><span class="num">${window.mkr?.(it.sr.marker||'saguaro')||'⛳'}</span><div class="tt"><b>${it.sr.mine?'You':it.sr.display_name}${it.sr.shared_league&&!it.sr.mine?' · <span style="color:var(--gold)">LEAGUE MATE</span>':''}</b><small>${[it.sr.course_label?it.sr.course_label.toUpperCase():null, it.sr.note?'“'+it.sr.note+'”':null].filter(Boolean).join(' · ')||'ROUND ON THE BOOKS'}</small></div></div>`
+        ? `<div class="check"><span class="num">${window.mkr?.(it.sr.marker||'saguaro')||'⛳'}</span><div class="tt"><b>${it.sr.mine?'You':it.sr.display_name}${it.sr.tagged_me?' · <span style="color:var(--gold)">YOU’RE IN</span>':(it.sr.shared_league&&!it.sr.mine?' · <span style="color:var(--gold)">LEAGUE MATE</span>':'')}</b><small>${[it.sr.course_label?it.sr.course_label.toUpperCase():null, (it.sr.tagged_names||[]).length?'WITH '+it.sr.tagged_names.join(' & ').toUpperCase():null, it.sr.note?'“'+it.sr.note+'”':null].filter(Boolean).join(' · ')||'ROUND ON THE BOOKS'}</small></div></div>`
         : `<div class="check"><span class="num">⛳</span><div class="tt"><b style="${it.gold?'color:var(--gold)':''}">${it.t}</b></div></div>`
       ).join(''));
   }));
@@ -3504,10 +3567,11 @@ function renderCalendar(){
         const d=new Date(sr.play_on+'T00:00:00');
         const n=Math.round((d-now)/864e5);
         const when = n===0?'TODAY':n===1?'TOMORROW':n+' DAYS';
+        const withTxt=(sr.tagged_names||[]).length?' · WITH '+sr.tagged_names.join(' & ').toUpperCase():'';
         return `<div class="check">
           <span class="num">${window.mkr?.(sr.marker||'saguaro')||'⛳'}</span>
-          <div class="tt"><b>${sr.mine?'You':sr.display_name}${sr.shared_league&&!sr.mine?' · <span style="color:var(--gold)">LEAGUE MATE</span>':(sr.is_friend&&!sr.mine?' · <span style="color:var(--mut)">BUDDY</span>':'')}</b>
-          <small>${DOW[d.getDay()].toUpperCase()} ${MOS[d.getMonth()].toUpperCase()} ${d.getDate()}${sr.course_label?' · '+sr.course_label.toUpperCase():''}${sr.note?' · “'+sr.note+'”':''}</small></div>
+          <div class="tt"><b>${sr.mine?'You':sr.display_name}${sr.tagged_me?' · <span style="color:var(--gold)">YOU’RE IN</span>':(sr.shared_league&&!sr.mine?' · <span style="color:var(--gold)">LEAGUE MATE</span>':(sr.is_friend&&!sr.mine?' · <span style="color:var(--mut)">BUDDY</span>':''))}</b>
+          <small>${DOW[d.getDay()].toUpperCase()} ${MOS[d.getMonth()].toUpperCase()} ${d.getDate()}${sr.course_label?' · '+sr.course_label.toUpperCase():''}${withTxt}${sr.note?' · “'+sr.note+'”':''}</small></div>
           <span style="display:flex; gap:8px; align-items:center; flex:none">
             <b class="mono" style="font-size:10px; color:var(--mut); letter-spacing:.06em">${when}</b>
             ${sr.mine?`<button class="mini" data-scratch="${sr.id}">✕</button>`:''}
@@ -3840,6 +3904,13 @@ function openProfileHub(){
     </div>
     <p class="fine" style="padding-left:0">The board's big moments — rounds, reveals, month closes. Chat has its own switch.</p>
 
+    <div class="eyebrow" style="margin-top:20px">Appearance</div>
+    <div style="display:flex; gap:6px;" id="phTheme">
+      <button class="mini" data-th="dark">Dark</button>
+      <button class="mini" data-th="light">Light</button>
+      <button class="mini" data-th="auto">Match device</button>
+    </div>
+
     <div class="eyebrow" style="margin-top:20px">Membership &amp; billing</div>
     <div class="byrow"><span>PLAN</span><b>FREE · PILOT</b></div>
     <p class="fine" style="padding-left:0">Cup Season membership lands at launch — nothing to pay during the pilot.</p>
@@ -3967,6 +4038,23 @@ function openProfileHub(){
     }));
   }
   loadFriendsList();
+
+  /* appearance: highlight the saved mode, switch on tap */
+  const themeBox = $('#phTheme');
+  if(themeBox){
+    const mark = () => {
+      let cur = 'dark'; try { cur = localStorage.getItem('cs_theme') || 'dark'; } catch(_){}
+      themeBox.querySelectorAll('[data-th]').forEach(b => {
+        const on = b.dataset.th === cur;
+        b.style.borderColor = on ? 'var(--pos)' : '';
+        b.style.color = on ? 'var(--pos)' : '';
+      });
+    };
+    mark();
+    themeBox.querySelectorAll('[data-th]').forEach(b => b.addEventListener('click', () => {
+      window.setTheme(b.dataset.th); mark();
+    }));
+  }
 
   /* notifications: reflect current state, then toggle on tap */
   const pushBtn = $('#phPushTog'), chatBtn = $('#phChatTog');
@@ -4265,7 +4353,7 @@ CS.members = []; CS.squads = []; CS.sel = null;
 async function loadLeagueData(){
   if(!CS.league) return;
   const { data: mem } = await sb.from('league_members')
-    .select('id, role, profile:profiles(display_name, marker, index_current, handle)')
+    .select('id, role, profile_id, profile:profiles(display_name, marker, index_current, handle)')
     .eq('league_id', CS.league.id);
   CS.members = mem || [];
 
@@ -4818,19 +4906,44 @@ async function loadLeagueSpans(){
   } catch(e){ console.warn('[spans]', e); window.leagueSpans = []; }
 }
 
-/* "Put a round on the books" — date + course + note, fans to every board */
-document.getElementById('calDeclare')?.addEventListener('click', () => {
+/* "Put a round on the books" — date + course + note + your group.
+   Tag candidates = accepted buddies + current-league mates; the RPC
+   re-validates server-side (never trust the chip list). */
+document.getElementById('calDeclare')?.addEventListener('click', async () => {
   if(state.demo || !CS.user){ toast('Sign in to put rounds on the books'); return; }
   const d = new Date(); d.setDate(d.getDate() + ((6 - d.getDay() + 7) % 7 || 7)); /* next Saturday */
   const iso = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+  /* gather taggable golfers: buddies + league mates, deduped, minus me */
+  const cand = new Map();
+  try {
+    const { data } = await sb.rpc('my_friends');
+    (data||[]).filter(f => f.status === 'accepted')
+      .forEach(f => cand.set(f.profile_id, { name: f.display_name, mk: f.marker }));
+  } catch(e){}
+  (CS.members||[]).forEach(m => {
+    if(m.profile_id && m.profile_id !== CS.user.id && !cand.has(m.profile_id))
+      cand.set(m.profile_id, { name: m.profile?.display_name || '—', mk: m.profile?.marker });
+  });
+  const tagged = new Set();
+  const chips = [...cand.entries()].map(([pid, c]) =>
+    `<button class="mini" data-drtag="${pid}" style="margin:0 6px 6px 0">${mkr(c.mk || 'saguaro')} ${c.name}</button>`).join('');
   openSheet('Put a round on the books', 'BUDDIES & LEAGUE MATES SEE IT THE MOMENT YOU POST',
     `<label class="f">Day</label><input class="f" id="drDate" type="date" value="${iso}">
      <label class="f" style="margin-top:10px; display:block">Course</label>
      <input class="f" id="drCourse" placeholder="Pebble Beach" style="font-family:var(--sans)">
      <label class="f" style="margin-top:10px; display:block">Note · optional</label>
      <input class="f" id="drNote" maxlength="140" placeholder="buddies trip — looking for a 4th" style="font-family:var(--sans)">
+     ${chips ? `<label class="f" style="margin-top:12px; display:block">Tag your group · <span id="drTagN">0</span> tagged</label>
+     <div style="margin-top:8px">${chips}</div>` : ''}
      <button class="btn" id="drGo" style="margin-top:14px">On the books</button>
-     <p class="fine" style="padding-top:8px">Posts to your leagues' boards. Scratch it any time from the calendar.</p>`);
+     <p class="fine" style="padding-top:8px">Posts to your leagues' boards — tagged golfers are named. Scratch it any time from the calendar.</p>`);
+  document.querySelectorAll('[data-drtag]').forEach(b => b.addEventListener('click', () => {
+    const pid = b.dataset.drtag;
+    if(tagged.has(pid)){ tagged.delete(pid); b.style.borderColor=''; b.style.color=''; }
+    else if(tagged.size >= 7){ toast('Seven tags max — it’s golf, not a scramble league'); return; }
+    else { tagged.add(pid); b.style.borderColor='var(--pos)'; b.style.color='var(--pos)'; }
+    const n = document.getElementById('drTagN'); if(n) n.textContent = tagged.size;
+  }));
   document.getElementById('drGo').addEventListener('click', async () => {
     const btn = document.getElementById('drGo'); btn.disabled = true;
     try {
@@ -4838,10 +4951,11 @@ document.getElementById('calDeclare')?.addEventListener('click', () => {
         p_play_on: document.getElementById('drDate').value,
         p_course: document.getElementById('drCourse').value,
         p_note: document.getElementById('drNote').value,
+        p_tagged: [...tagged],
       });
       if(error) throw error;
       closeSheet();
-      toast('On the books — the boards know');
+      toast(tagged.size ? 'On the books — your group is named on the boards' : 'On the books — the boards know');
       loadSchedule();
       if(CS.league) loadStandingsAndFeed();
     } catch(e){ toast(e.message || String(e)); btn.disabled = false; }
