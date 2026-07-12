@@ -308,3 +308,30 @@ These supersede conflicting lines above and in spec-v1.0; fold into v1.1.
 8. **Events engine is the next major arc** — snapshots, deep stats, lead
    changes, milestones, weekly winners, lifetime rivalry records, curated
    notifications (replacing all-posts push).
+
+### 7b. Flag resolutions, batch 2 (2026-07-12)
+
+9. **Events are first-class schema** (not overloaded leagues): `events`,
+   `event_teams`, `event_players`, `event_sessions`, `event_duels`, plus
+   nullable `posts.event_id` so the board and push rails serve events
+   natively. The Ryder requirement doc builds on this.
+10. **Wolf kit confirmed as v1 defaults:** net-zero ledger (lone ±3 vs
+    field ∓1 each; partnered ±1 each), holes 17–18 wolf = current last
+    place (comeback rule), carries OFF, blind wolf OFF. All later toggles.
+11. **Ryder session defaults confirmed:** both idle = halve (½ each);
+    lineups blind + simultaneous, due Saturday midnight before the session
+    week; session weighting off by default (dial exists).
+12. **Hybrid +15 does NOT pay in partial edge months** — consistent with
+    the floor waiver; weekly moments still celebrate stub weeks. (Closes
+    spec §14.0's open question for v1.1.)
+
+Implementer defaults (engineering-level, changeable cheaply):
+- Course handicap v1 = round(Index × Slope ÷ 113); rating−par adjustment
+  deferred.
+- Side-game ledger = flat `game_ledger` table (receipts-friendly), not a
+  jsonb log.
+- Match-play milestone posts to the league board: ON when all players share
+  the league ("feels alive" principle), OFF otherwise.
+- Wolf per-player loss cap: deferred to a later toggle, not v1.
+- Ryder MVP pot cut: exists as a dial, OFF by default (winning team splits
+  evenly).
