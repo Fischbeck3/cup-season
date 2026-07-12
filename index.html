@@ -1142,7 +1142,7 @@ body::before{
       </div>
             
     </div>
-    <div class="ob-caption" id="obCaption">New or returning, email is one door — no passwords. Just looking? Join with code <b style="color:var(--mut)">DEMO</b>. <span style="opacity:.5">v23.60</span></div>
+    <div class="ob-caption" id="obCaption">New or returning, email is one door — no passwords. Just looking? Join with code <b style="color:var(--mut)">DEMO</b>. <span style="opacity:.5">v23.61</span></div>
   </div>
   <div class="ob-splash" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
   
@@ -1156,7 +1156,7 @@ body::before{
       <div class="mk">
         <svg viewBox="0 0 100 100"><polyline points="16,70 36,52 52,60 84,28" fill="none" stroke="#43E07C" stroke-width="10" stroke-linecap="round" stroke-linejoin="round"/><circle cx="84" cy="28" r="8" fill="#43E07C"/></svg>
       </div>
-      <div><b>Cup Season</b><small>Season III</small></div>
+      <div><b>Cup Season</b><small id="brandSeason">Season III</small></div>
     </div>
     <button class="navitem active" data-v="home">
       <svg viewBox="0 0 24 24"><path d="M4 11.5 12 4l8 7.5"/><path d="M6 10v10h12V10"/></svg> Home
@@ -1172,7 +1172,7 @@ body::before{
     </button>
     <div class="foot">
       <div class="lg" id="sideLeague">The Sunday Cup</div>
-      <div class="sm">16 Joes · 4 squads</div>
+      <div class="sm" id="sideMeta">16 Joes · 4 squads</div>
     </div>
   </aside>
 
@@ -1240,7 +1240,7 @@ body::before{
         <div id="homeSetup" style="display:none">
           <div class="eyebrow">League setup · three steps to first tee</div>
           <div class="check"><span class="num">1</span><div class="tt"><b>Season settings</b><small>STAKES · RULES · FORMAT</small></div><button class="mini" data-go="wizard">Continue</button></div>
-          <div class="check"><span class="num">2</span><div class="tt"><b>Invite the Joes</b><small>CODE SNDYCUP · 9 OF 16 JOINED</small></div><button class="mini copycode">Invite</button></div>
+          <div class="check"><span class="num">2</span><div class="tt"><b>Invite the Joes</b><small id="setupInviteSub">CODE SNDYCUP · 9 OF 16 JOINED</small></div><button class="mini copycode">Invite</button></div>
           <div class="check"><span class="num">3</span><div class="tt"><b>Squad formation</b><small>UNLOCKS WHEN SETTINGS LOCK</small></div><button class="mini" disabled style="opacity:.4">Locked</button></div>
         </div>
 
@@ -1248,7 +1248,7 @@ body::before{
           <div class="phasehero">
             <div class="k">Squads are forming</div>
             <div class="n">The Pro has the list.</div>
-            <div class="m">12 JOES IN THE POOL</div>
+            <div class="m" id="draftPoolSub">12 JOES IN THE POOL</div>
             <button class="btn" style="margin-top:16px" data-go="draft">Form the squads</button>
           </div>
         </div>
@@ -1263,7 +1263,7 @@ body::before{
         <div class="stats">
           <div class="stat"><div class="k">Season</div><div class="v"><span id="statWk">W18</span> <small>/ <span id="wkTotal2">36</span></small></div><div class="d fl" id="statFinal">Cup Final · final 4 wks</div></div>
           <div class="stat"><div class="k">The pot</div><div class="v gold" id="chipPot">$1,200</div><div class="d fl" id="paidChip">13/16 buy-ins in</div></div>
-          <div class="stat"><div class="k">Your index</div><div class="v" id="statIdx">12.4</div><div class="d up">▼ 0.3 this month</div></div>
+          <div class="stat"><div class="k">Your index</div><div class="v" id="statIdx">12.4</div><div class="d up" id="statIdxD">▼ 0.3 this month</div></div>
           <div class="stat"><div class="k">Counting rounds</div><div class="v" id="statCount">3 <small>/ 4</small></div><div class="d fl" id="statCountD">This month · best 4 count</div></div>
         </div>
 
@@ -1290,7 +1290,7 @@ body::before{
             <div class="card">
               <div class="chart-legend" id="chartLegend"></div>
               <svg id="raceChart" viewBox="0 0 640 230" role="img" aria-label="Season points race chart"></svg>
-              <div class="chart-note">CUP LINE = TOP 2 AT W36 ADVANCE TO THE CUP FINAL</div>
+              <div class="chart-note" id="chartNote">CUP LINE = TOP 2 AT W36 ADVANCE TO THE CUP FINAL</div>
             </div>
           </div>
 
@@ -1323,7 +1323,7 @@ body::before{
         </div>
         <div class="eyebrow">Your season</div>
         <div class="stats">
-          <div class="stat"><div class="k">Rounds posted</div><div class="v" id="msR">11</div><div class="d fl">Season III</div></div>
+          <div class="stat"><div class="k">Rounds posted</div><div class="v" id="msR">11</div><div class="d fl">This season</div></div>
           <div class="stat"><div class="k">Avg PvI</div><div class="v" id="msAvg">+0.6</div><div class="d fl">vs your index</div></div>
           <div class="stat"><div class="k">Best round</div><div class="v" id="msBest">+2.9</div><div class="d fl">PvI · season</div></div>
           <div class="stat"><div class="k">Index move</div><div class="v" id="msDelta">▼ 0.3</div><div class="d up">Season to date</div></div>
@@ -1541,7 +1541,7 @@ body::before{
             <p class="fine"><b>Cup Season keeps the books — it never holds the money.</b> Buy-ins and payouts move friend-to-friend on Venmo or cash. We just make sure nobody argues at the bar.</p>
           </div>
           <div>
-            <div class="eyebrow">Buy-ins · <span id="paidCount">13</span>/16 in</div>
+            <div class="eyebrow">Buy-ins · <span id="paidCount">13/16</span> in</div>
             <div id="payers"></div>
           </div>
         </div>
@@ -1674,31 +1674,21 @@ body::before{
         <div class="card" id="bylawsHub" style="margin-bottom:14px"></div>
 
         <div class="eyebrow">League</div>
-        <div class="check"><span class="num">⛳</span><div class="tt"><b>Members & invites</b><small>16 JOES · CODE SNDYCUP</small></div><button class="mini copycode">Invite</button></div>
+        <div class="check"><span class="num">⛳</span><div class="tt"><b>Members & invites</b><small id="hubMembersSub">16 JOES · CODE SNDYCUP</small></div><button class="mini copycode">Invite</button></div>
         <div class="check"><span class="num">$</span><div class="tt"><b>The pot</b><small id="hubPotSub">$1,200 · 13/16 BUY-INS IN</small></div><button class="mini" data-go="pot">View</button></div>
         <div class="check"><span class="num">◫</span><div class="tt"><b>Squads</b><small id="hubDraftSub">COMPLETE · ROSTERS LOCKED</small></div><button class="mini" data-go="draft">View</button></div>
 
-        <div class="eyebrow">Upgrades</div>
+        <div class="eyebrow">The Pro Shop</div>
         <div class="pro">
           <h3>Pro Shop</h3>
-          <div class="pr">$40 / SEASON · PLAYERS ALWAYS FREE</div>
+          <div class="pr">CUP SEASON MEMBERSHIP · COMING AT LAUNCH · THE PILOT RIDES FREE</div>
           <ul>
-            <li><span class="pb">PRO</span> Custom rules — every dial unlocked</li>
-            <li><span class="pb">PRO</span> Live draft night with pick timer</li>
-            <li><span class="pb">PRO</span> Trades & waiver wire</li>
-            <li><span class="pb">PRO</span> Multi-season history & records</li>
+            <li><span class="pb">SOON</span> Custom rules — every dial unlocked</li>
+            <li><span class="pb">SOON</span> Live draft night with pick timer</li>
+            <li><span class="pb">SOON</span> Trades & waiver wire</li>
+            <li><span class="pb">SOON</span> Multi-season history & records</li>
           </ul>
-          <button class="btn gold">Upgrade the league</button>
-        </div>
-        <div class="pro">
-          <h3>Verified League</h3>
-          <div class="pr">$12 / PLAYER / SEASON · REQUIRES PRO</div>
-          <ul>
-            <li><span class="pb">GHIN</span> Official index auto-sync on revision day</li>
-            <li><span class="pb">GHIN</span> Round verification against GHIN records</li>
-            <li><span class="pb">GHIN</span> Make It Official — register the league as a real club</li>
-          </ul>
-          <button class="btn dark">Learn about verification</button>
+          <button class="btn dark" disabled style="opacity:.55; cursor:default">Coming at launch</button>
         </div>
       </section>
 
@@ -2365,24 +2355,32 @@ $('#postBtn').addEventListener('click', async ()=>{
 /* ================= pot ================= */
 function renderPot(){
   if(!state.demo){
-    const invited=[...new Set(state.emails.map(e=>e.trim().toLowerCase()))].filter(e=>e.includes('@') && e!==(CS.user.email||'').toLowerCase()).length;
-    const players=Math.max(1, invited+1);
+    /* the pot prices off the REAL roster (wizard invites only preview it
+       pre-join); collection state arrives with the buy_ins build */
+    const ms=(window.CS?.members)||[];
+    const invited=[...new Set(state.emails.map(e=>e.trim().toLowerCase()))].filter(e=>e.includes('@') && e!==((window.CS?.user?.email)||'').toLowerCase()).length;
+    const players=Math.max(ms.length, invited+1, 1);
     const total=state.stake*players;
-    $('#potAmt').textContent=fmt$(0);
-    $('#chipPot').textContent=fmt$(0);
-    $('#potMath').textContent=`${players} × ${fmt$(state.stake)} buy-in · ${fmt$(total)} when everyone's in`;
+    $('#potAmt').textContent=fmt$(total);
+    $('#chipPot').textContent=fmt$(total);
+    $('#potMath').textContent=`${players} × ${fmt$(state.stake)} buy-in · tracked, never held`;
     $('#pay1').textContent=fmt$(Math.round(total*0.6));
     $('#pay2').textContent=fmt$(Math.round(total*0.25));
     $('#pay3').textContent=fmt$(Math.round(total*0.15));
     const el=$('#payers'); el.innerHTML='';
-    const row=document.createElement('button');
-    row.className='payer';
-    row.innerHTML=`<span>You</span><span class="tick">✓</span>`;
-    row.addEventListener('click',()=>toast('Buy-ins get marked by the Pro as money moves on Venmo'));
-    el.appendChild(row);
-    $('#paidCount').textContent=0;
+    const names=ms.length
+      ? ms.map(m=>m.profile?.display_name||'—')
+      : [(window.CS?.profile?.display_name)||'You'];
+    names.forEach(nm=>{
+      const row=document.createElement('button');
+      row.className='payer';
+      row.innerHTML=`<span>${nm}</span><span class="tick">✓</span>`;
+      row.addEventListener('click',()=>toast('Buy-ins get marked by the Pro as money moves on Venmo — tracking lands in an upcoming build'));
+      el.appendChild(row);
+    });
+    $('#paidCount').textContent=`0/${players}`;
     $('#paidChip').textContent=`0/${players} buy-ins in`;
-  const hps=$('#hubPotSub'); if(hps) hps.textContent=`${fmt$(0)} \u00b7 0/${players} BUY-INS IN`;
+    const hps=$('#hubPotSub'); if(hps) hps.textContent=`${fmt$(total)} \u00b7 0/${players} BUY-INS IN`;
     return;
   }
   const total=state.stake*16;
@@ -2401,7 +2399,7 @@ function renderPot(){
     el.appendChild(row);
   });
   const n=state.payers.filter(p=>p.paid).length;
-  $('#paidCount').textContent=n;
+  $('#paidCount').textContent=`${n}/16`;
   $('#paidChip').textContent=`${n}/16 buy-ins in`;
 }
 
@@ -2819,8 +2817,12 @@ function yourMonthCredits(){
 }
 function renderStats(){
   const capN=[2,4,6,Infinity][state.cap];
-  const credits=yourMonthCredits();
-  const used=Math.min(credits, capN);
+  /* real leagues read the view-backed month numbers (window.myMonth, set by
+     the module) — the demo's feed-scrape (who==='You') never matches real
+     display names and would pin every real user at zero */
+  const my=(!state.demo && window.myMonth) ? window.myMonth : null;
+  const credits=my ? my.credits : yourMonthCredits();
+  const used=my ? Math.min(my.counting, capN) : Math.min(credits, capN);
   const fmtN=n=> n%1 ? n.toFixed(1) : String(n);
   const wk=$('#statWk'); if(wk) wk.textContent=state.demo?'W18':('W'+currentWeek());
   const wt=$('#wkTotal2'); if(wt && !state.demo) wt.textContent=totalWeeks();
@@ -2837,6 +2839,12 @@ function renderStats(){
     }
   }
   $('#statIdx').textContent=state.myIndex.toFixed(1);
+  const xd=$('#statIdxD');
+  if(xd && !state.demo){
+    const d=window.myIndexDelta;
+    if(d==null || !isFinite(d) || Math.abs(d)<0.05){ xd.textContent='Season to date'; xd.className='d fl'; }
+    else { xd.textContent=(d<0?'▼ ':'▲ ')+Math.abs(d).toFixed(1)+' this season'; xd.className='d '+(d<0?'up':'fl'); }
+  }
   $('#statCount').innerHTML = capN===Infinity
     ? fmtN(credits)+' <small>rounds</small>'
     : fmtN(used)+' <small>/ '+capN+'</small>';
@@ -2916,6 +2924,7 @@ const PLAYERS=[
   {n:'Ziggy', ci:3, sq:'CPO', r:6,  avg:-1.2, best:0.5, pts:33, d:0.2},
 ];
 function renderIndStats(){
+  if(!state.demo){ renderIndStatsReal(); return; }
   const rows=PLAYERS.map(p=>{
     const s=feed.filter(f=>f.sess && f.who===p.n);
     const pts=p.pts + s.reduce((a,f)=>a+f.pts,0);
@@ -2950,6 +2959,58 @@ function renderIndStats(){
   $('#indTable').innerHTML=html;
   $('#indTable').querySelectorAll('[data-pl]').forEach(r=>
     r.addEventListener('click',()=>showPlayer(r.dataset.pl)));
+}
+
+/* the real You tab: v_individual_standings + v_rounds_ranked via window.indRows
+   (built by the module). Demo PLAYERS never touch a real league's screen. */
+function renderIndStatsReal(){
+  const rows=window.indRows||[];
+  const dash=id=>{ const el=$(id); if(el) el.textContent='—'; };
+  if(!rows.length){
+    ['#msR','#msAvg','#msBest','#msDelta','#awKing','#awImp','#awIron'].forEach(dash);
+    $('#awKingS').textContent='Points King';
+    $('#awImpS').textContent='Most Improved';
+    $('#awIronS').textContent='Iron Man';
+    $('#indTable').innerHTML='<tr><td class="fine" style="padding:12px 4px">The race fills in once your league season is live and rounds land.</td></tr>';
+    return;
+  }
+  const me=rows.find(p=>p.me);
+  const sgn=v=>(v>=0?'+':'')+v.toFixed(1);
+  $('#msR').textContent = me ? me.r : '—';
+  $('#msAvg').textContent = me && me.r ? sgn(me.avg) : '—';
+  $('#msBest').textContent = me && me.best!=null ? sgn(me.best) : '—';
+  $('#msDelta').textContent = me && me.d!=null && Math.abs(me.d)>=0.05
+    ? (me.d<0?'▼ ':'▲ ')+Math.abs(me.d).toFixed(1) : '—';
+
+  const king=rows[0];
+  const iron=[...rows].sort((a,b)=>b.r-a.r)[0];
+  const movers=rows.filter(p=>p.d!=null && p.d<-0.04).sort((a,b)=>a.d-b.d);
+  $('#awKing').textContent=king.pts>0?king.n:'—';
+  $('#awKingS').textContent='Points King'+(king.pts>0?' · '+king.pts+' pts':'');
+  if(movers.length){ $('#awImp').textContent=movers[0].n; $('#awImpS').textContent='Most Improved · ▼'+Math.abs(movers[0].d).toFixed(1); }
+  else { $('#awImp').textContent='—'; $('#awImpS').textContent='Most Improved · needs 2+ rounds'; }
+  $('#awIron').textContent=iron.r>0?iron.n:'—';
+  $('#awIronS').textContent='Iron Man'+(iron.r>0?' · '+iron.r+' rds':'');
+
+  let html=`<tr><th></th><th>Player</th><th class="num">R</th><th class="num">Avg PvI</th><th class="num">Pts</th></tr>`;
+  rows.forEach((p,i)=>{
+    html+=`<tr class="tap" data-ri="${i}"${p.me?' style="background:var(--bg2)"':''}>
+      <td class="rk mono">${String(i+1).padStart(2,'0')}</td>
+      <td><div style="display:flex;align-items:center;gap:10px"><span class="sw" style="background:${SQHEX[p.ci]??SQHEX[1]}"></span><div><div class="tn">${p.n}</div><div class="tc">${p.sq||''}</div></div></div></td>
+      <td class="num" style="font-family:var(--mono);font-size:12px">${p.r}</td>
+      <td class="num dw" style="color:${p.avg>=0?'var(--pos)':'var(--neg)'}">${p.r?sgn(p.avg):'—'}</td>
+      <td class="num pts">${p.pts}</td></tr>`;
+  });
+  $('#indTable').innerHTML=html;
+  /* receipts: every points figure opens the rounds that produced it (§16) */
+  $('#indTable').querySelectorAll('[data-ri]').forEach(tr=>tr.addEventListener('click',()=>{
+    const p=rows[Number(tr.dataset.ri)]; if(!p) return;
+    const hist=(p.hist||[]);
+    const body=hist.length
+      ? hist.map(h=>`<div class="fine" style="display:flex;justify-content:space-between;padding:4px 0"><span>${h.played_on}${h.holes_played===9?' · 9 HOLES':''}${h.counting?'':' · NOT COUNTING'}</span><b class="mono">PvI ${sgn(Number(h.pvi))} · ${h.points} PTS</b></div>`).join('')
+      : '<p class="fine">No rounds this season yet.</p>';
+    openSheet(p.n, `${p.r} ROUND${p.r===1?'':'S'} · ${p.pts} PTS`, body);
+  }));
 }
 
 /* ================= drill-down receipts ================= */
@@ -3116,6 +3177,7 @@ function showRound(name, idx){
 function resetToBlank(leagueName){
   state.demo=false;
   MONTH_BASE=0;
+  window.indRows=[]; window.myMonth=null; window.myIndexDelta=null;
   feed.length=0;
   feed.push({d:TODAY, sys:true, txt:(leagueName||'Your league')+' is live — say hello on the board'});
   teams.length=0;
@@ -3194,7 +3256,9 @@ function renderBylaws(){
   const hub=$('#bylawsHub'); if(hub) hub.innerHTML=rows;
   const rev=$('#bylawsReview'); if(rev) rev.innerHTML=rows;
   const la=$('#lineAmt'); if(la){
-    const total=state.stake*16;
+    /* demo stays at its 16-Joe diorama; real leagues price off the actual roster */
+    const n=(!state.demo && window.CS?.members?.length) ? window.CS.members.length : 16;
+    const total=state.stake*n;
     la.textContent=fmt$(total);
     $('#lineSplit').textContent=`CHAMPS ${fmt$(Math.round(total*0.6))} · RUNNER-UP ${fmt$(Math.round(total*0.25))} · POINTS KING ${fmt$(Math.round(total*0.15))}`;
   }
@@ -3232,11 +3296,14 @@ $('#emailAdd').addEventListener('click',()=>{
 
 function renderPhase(){
   const p=state.phase;
+  const L=!state.demo && window.CS?.league ? window.CS.league : null;
+  const nMem=(window.CS?.members||[]).length;
   $('#homeSetup').style.display  = p==='setup' ? 'block':'none';
   $('#homeDraft').style.display  = p==='draft' ? 'block':'none';
   $('#homeSeason').style.display = p==='season'? 'block':'none';
-  $('#phaseSub').textContent = p==='setup' ? 'SETUP · CODE SNDYCUP · 9 OF 16 JOINED'
-    : p==='draft' ? 'DRAFT NIGHT · ROSTERS PENDING'
+  $('#phaseSub').textContent = p==='setup'
+    ? (L ? `SETUP · CODE ${L.code} · ${nMem} JOINED` : 'SETUP · CODE SNDYCUP · 9 OF 16 JOINED')
+    : p==='draft' ? 'SQUAD FORMATION · ROSTERS PENDING'
     : state.demo
       ? `Wk 18 / 36 · ${FMT_NAMES[state.fmt]} · ${PRESETS[state.preset].name} rules`
       : isCupFinal()
@@ -3248,7 +3315,31 @@ function renderPhase(){
     : p==='setup' ? 'OPENS AFTER SETTINGS LOCK'
     : p==='draft' ? 'LIVE NOW — CAPTAINS READY'
     : 'COMPLETE · ROSTERS LOCKED';
+  renderLeagueMeta();
   renderLiveBanner();
+}
+/* every league-identity string on screen renders from real state — the
+   markup defaults are demo scenery and must never survive a real league */
+const ROMAN=['','I','II','III','IV','V','VI','VII','VIII','IX','X','XI','XII'];
+function renderLeagueMeta(){
+  if(state.demo || !window.CS?.league) return;
+  const L=window.CS.league, members=window.CS.members||[], squads=window.CS.squads||[];
+  const n=members.length, joes=k=>`${k} JOE${k===1?'':'S'}`;
+  const hm=$('#hubMembersSub'); if(hm) hm.textContent=`${joes(n)} · CODE ${L.code}`;
+  const si=$('#setupInviteSub'); if(si) si.textContent=`CODE ${L.code} · ${n} JOINED`;
+  const seated=new Set();
+  squads.forEach(q=>(q.squad_members||[]).forEach(x=>seated.add(x.member_id)));
+  const pool=members.filter(m=>!seated.has(m.id)).length;
+  const dp=$('#draftPoolSub'); if(dp) dp.textContent=`${joes(pool)} IN THE POOL`;
+  const sm=$('#sideMeta');
+  if(sm) sm.textContent=`${n} Joe${n===1?'':'s'} · ${STRUCT_NAMES[state.structure]||'—'}`;
+  const bs=$('#brandSeason');
+  if(bs) bs.textContent = window.CS.season?.number ? 'Season '+(ROMAN[window.CS.season.number]||window.CS.season.number) : 'cupseason.app';
+  const cn=$('#chartNote');
+  if(cn) cn.textContent =
+    state.structure==='solo'    ? `CUP LINE = TOP 2 PLAYERS AT W${totalWeeks()} MEET IN THE CUP FINAL`
+    : state.structure==='squads2' ? 'BOTH SQUADS REACH THE CUP FINAL — SEASON LEADER CARRIES +10'
+    : `CUP LINE = TOP 2 AT W${totalWeeks()} ADVANCE TO THE CUP FINAL`;
 }
 function renderWizard(){
   $$('.wizstep').forEach(s=>s.classList.toggle('on',+s.dataset.step===state.wiz));
@@ -3498,7 +3589,7 @@ function openProfileHub(){
 
     <div class="eyebrow" style="margin-top:20px">Membership &amp; billing</div>
     <div class="byrow"><span>PLAN</span><b>FREE · PILOT</b></div>
-    <p class="fine" style="padding-left:0">Pro Shop ($40/season) and Verified League land at launch — nothing to pay during the pilot.</p>
+    <p class="fine" style="padding-left:0">Cup Season membership lands at launch — nothing to pay during the pilot.</p>
 
     <button class="btn dark" id="phOut" style="margin-top:16px">Sign out</button>
   `);
@@ -3880,7 +3971,7 @@ async function enterLeague(m){
   bootStep = 'season-dates';
   try {
     const { data: season } = await sb.from('seasons')
-      .select('id, starts_on, ends_on, status').eq('league_id', m.league.id)
+      .select('id, number, starts_on, ends_on, status').eq('league_id', m.league.id)
       .order('number', { ascending:false }).limit(1).maybeSingle();
     if(season){
       CS.season = season;
@@ -4006,7 +4097,54 @@ async function loadStandingsAndFeed(){
   }
   if(!feed.length) feed.push({ d: dAgo(0), sys:true, txt:(CS.league.name||'Your league')+' is live \u2014 post the first round' });
 
-  if(CS.season){ renderStandings(); renderPhase(); renderStats(); }
+  /* the You tab + Home month numbers, off the same views the server scores
+     with \u2014 no demo-shaped math anywhere near a real league */
+  if(CS.season){
+    try {
+      const capN=[2,4,6,Infinity][state.cap];
+      const [{ data: rr }, { data: ind }] = await Promise.all([
+        sb.from('v_rounds_ranked')
+          .select('member_id, pvi, points, month_rank, floor_credit, played_on, index_at_post, holes_played')
+          .eq('season_id', CS.season.id),
+        sb.from('v_individual_standings')
+          .select('member_id, points, rounds_posted')
+          .eq('season_id', CS.season.id),
+      ]);
+      const by={};
+      (rr||[]).forEach(r=>{ (by[r.member_id] ||= []).push(r); });
+      Object.values(by).forEach(a=>a.sort((x,y)=> x.played_on<y.played_on ? -1 : 1));
+      const sqOf = id => {
+        const q = CS.squads.find(q => (q.squad_members||[]).some(x => x.member_id === id));
+        return q ? q.name.slice(0,4).toUpperCase() : '';
+      };
+      window.indRows = (ind||[]).map(i=>{
+        const rs=by[i.member_id]||[];
+        const d = rs.length>1 ? Number(rs[rs.length-1].index_at_post)-Number(rs[0].index_at_post) : null;
+        return {
+          n: memName(i.member_id), ci: memCi(i.member_id), sq: sqOf(i.member_id),
+          r: Number(i.rounds_posted),
+          avg: rs.length ? rs.reduce((a,r)=>a+Number(r.pvi),0)/rs.length : 0,
+          best: rs.length ? Math.max(...rs.map(r=>Number(r.pvi))) : null,
+          pts: Number(i.points), d, me: i.member_id===CS.member?.id,
+          hist: rs.map(r=>({ ...r, counting: r.month_rank<=capN })).reverse(),
+        };
+      }).sort((a,b)=>b.pts-a.pts || b.avg-a.avg);
+      const mine=by[CS.member?.id]||[];
+      const now=new Date();
+      const mkey=`${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
+      const mm=mine.filter(r=>String(r.played_on).startsWith(mkey));
+      window.myMonth={
+        credits: mm.reduce((a,r)=>a+Number(r.floor_credit),0),
+        counting: mm.filter(r=>r.month_rank<=capN).length,
+      };
+      window.myIndexDelta = mine.length>1
+        ? Number(CS.profile?.index_current ?? mine[mine.length-1].index_at_post) - Number(mine[0].index_at_post)
+        : null;
+    } catch(e){ console.warn('[stats]', e); }
+  }
+
+  if(CS.season){ renderStandings(); renderStats(); }
+  renderPhase(); renderIndStats(); renderPot(); renderBylaws();
   renderFeed();
 }
 window.loadStandingsAndFeed = loadStandingsAndFeed;
@@ -4361,6 +4499,11 @@ function showWelcome(){
   $('#leagueName').textContent = 'Cup Season';
   $('#phaseSub').textContent = 'No league yet — your golf still counts';
   const sl = $('#sideLeague'); if(sl) sl.textContent = 'Your clubhouse';
+  const sm = $('#sideMeta'); if(sm) sm.textContent = 'Rounds & buddies';
+  const bs = $('#brandSeason'); if(bs) bs.textContent = 'cupseason.app';
+  /* the You tab must not show demo Joes to a league-less golfer */
+  window.indRows = []; window.myMonth = null; window.myIndexDelta = null;
+  renderIndStats();
   fillWelcomeCard();
   loadRecentRounds();
   loadCourseMemory();
