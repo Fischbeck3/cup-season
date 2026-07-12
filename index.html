@@ -921,6 +921,107 @@ body:not(.noleague) #hubLeagueless{display:none;}
 #boardCard .composer{position:static; background:none; padding:10px 0 2px;}
 #homeLeagueless .card, #hubLeagueless .btn{text-align:left;}
 #hubLeagueless .btn{width:100%;}
+/* ================================================================
+   v23.56 — design refresh. The night scoreboard, machined.
+   Layered surfaces, one living accent (scoreline green -> teal),
+   state you can feel. Overrides ride the cascade; base stays.
+   ================================================================ */
+:root{
+  --grad:linear-gradient(135deg, #43E07C 0%, #2FD3BE 100%);
+  --glow:rgba(67,224,124,.14);
+}
+
+/* atmosphere: a faint dawn over the course, fixed behind everything */
+body::before{
+  content:""; position:fixed; inset:0; z-index:-1; pointer-events:none;
+  background:
+    radial-gradient(60% 34% at 50% -6%, rgba(67,224,124,.055), transparent 70%),
+    radial-gradient(48% 30% at 88% 104%, rgba(47,211,190,.045), transparent 70%);
+}
+
+::selection{background:rgba(67,224,124,.28);}
+*{scrollbar-width:thin; scrollbar-color:var(--line2) transparent;}
+*::-webkit-scrollbar{width:8px; height:8px;}
+*::-webkit-scrollbar-thumb{background:var(--line2); border-radius:99px;}
+*::-webkit-scrollbar-track{background:transparent;}
+
+/* machined surfaces: light falls from above */
+.card, .stat{
+  background:linear-gradient(180deg, #16191E 0%, #121417 100%);
+  border-color:#262A32;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.035), 0 1px 2px rgba(0,0,0,.25);
+}
+.check{transition:border-color .15s ease, transform .15s ease;}
+@media(hover:hover){
+  .check:hover{border-color:var(--line2); transform:translateY(-1px);}
+}
+
+/* the accent lives: primary actions carry the scoreline gradient */
+.btn:not(.dark):not(.gold):not(.apple){
+  background:var(--grad); color:#06120B;
+  box-shadow:0 8px 22px -10px var(--glow), inset 0 1px 0 rgba(255,255,255,.25);
+}
+.btn, .mini, .tab, .navitem{transition:filter .12s ease, transform .1s ease, box-shadow .15s ease;}
+.btn:active, .mini:active{transform:scale(.98);}
+.mini:focus-visible, .f:focus-visible{
+  outline:none; border-color:rgba(67,224,124,.55);
+  box-shadow:0 0 0 3px var(--glow);
+}
+
+/* header: the chip wears the brand ring */
+.hdr .who{
+  border-color:rgba(67,224,124,.4);
+  box-shadow:0 0 0 2px rgba(67,224,124,.1);
+  color:var(--pos); transition:box-shadow .15s ease;
+}
+.hdr .who:active{box-shadow:0 0 0 4px var(--glow);}
+
+/* tabbar: four lanes, a raised tee for Post, a dot that says where you are */
+.tabbar{grid-template-columns:repeat(4,1fr);}
+.tab{position:relative;}
+.tab.active::after{
+  content:""; position:absolute; top:2px; left:50%; transform:translateX(-50%);
+  width:4px; height:4px; border-radius:50%; background:var(--pos);
+}
+.tab .circ{
+  background:var(--grad);
+  box-shadow:0 10px 24px -8px var(--glow), 0 4px 10px -4px rgba(0,0,0,.5),
+             inset 0 1px 0 rgba(255,255,255,.3);
+  transition:transform .12s ease;
+}
+.tab:active .circ{transform:scale(.94);}
+.tab[data-v="record"].active::after{display:none;}
+
+/* desktop rail: active item glows from its edge */
+.navitem.active{
+  background:linear-gradient(90deg, rgba(67,224,124,.09), rgba(67,224,124,0) 70%);
+}
+
+/* eyebrows: every section tees off with the scoreline dash */
+.eyebrow{justify-content:flex-start; gap:8px;}
+.eyebrow::before{
+  content:""; width:10px; height:3px; border-radius:2px; flex:none;
+  background:var(--grad); opacity:.85;
+}
+.eyebrow a, .eyebrow span:last-child{margin-left:auto;}
+
+/* the board scrolls like an instrument, not a page */
+#feedList{scrollbar-gutter:stable; padding-right:2px; overscroll-behavior:contain;}
+
+/* toast: springs up, sits confident */
+.toast{
+  transition:opacity .2s ease, transform .34s cubic-bezier(.34,1.56,.64,1);
+  box-shadow:0 12px 32px -10px rgba(0,0,0,.6);
+}
+
+/* views: settle rather than pop */
+.view{animation:vin .26s cubic-bezier(.22,.9,.32,1) both;}
+
+@media(prefers-reduced-motion:reduce){
+  .view{animation:none;}
+  .toast{transition:opacity .15s ease;}
+  .btn, .mini, .tab .circ, .check{transition:none;}
+}
 </style>
 </head>
 <body>
@@ -1010,7 +1111,7 @@ body:not(.noleague) #hubLeagueless{display:none;}
       </div>
             
     </div>
-    <div class="ob-caption" id="obCaption">New or returning, email is one door — no passwords. Just looking? Join with code <b style="color:var(--mut)">DEMO</b>. <span style="opacity:.5">v23.55</span></div>
+    <div class="ob-caption" id="obCaption">New or returning, email is one door — no passwords. Just looking? Join with code <b style="color:var(--mut)">DEMO</b>. <span style="opacity:.5">v23.56</span></div>
   </div>
   <div class="ob-splash" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
   
