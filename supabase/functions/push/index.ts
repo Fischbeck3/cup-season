@@ -54,19 +54,25 @@ Deno.serve(async (req) => {
     url: '/',
   });
 
+  console.log(`[push] kind=${record.kind} recipients=${recipients.length} subs=${subs.length}`);
+
   const dead: string[] = [];
+  let sent = 0;
   await Promise.all(subs.map(async (s) => {
     try {
       await webpush.sendNotification(
         { endpoint: s.endpoint, keys: { p256dh: s.p256dh, auth: s.auth } },
         payload,
       );
+      sent++;
     } catch (e) {
       const code = (e as { statusCode?: number })?.statusCode;
+      console.error(`[push] send failed code=${code} body=${(e as { body?: string })?.body ?? ''} msg=${(e as Error)?.message ?? e}`);
       if (code === 404 || code === 410) dead.push(s.id); // subscription expired
     }
   }));
   if (dead.length) await sb.from('push_subscriptions').delete().in('id', dead);
+  console.log(`[push] sent=${sent} pruned=${dead.length}`);
 
   return new Response('ok');
 });
