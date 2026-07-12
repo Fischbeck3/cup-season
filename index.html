@@ -916,8 +916,10 @@ input.f::-webkit-outer-spin-button, input.f::-webkit-inner-spin-button{-webkit-a
 /* ---- adaptive shell (v23.55): one shell, league or not ---- */
 body.noleague #view-home > *:not(#homeLeagueless){display:none !important;}
 body.noleague #view-hub  > *:not(#hubLeagueless){display:none !important;}
+body.noleague #view-cal  > *:not(#calLeagueless){display:none !important;}
 body:not(.noleague) #homeLeagueless,
-body:not(.noleague) #hubLeagueless{display:none;}
+body:not(.noleague) #hubLeagueless,
+body:not(.noleague) #calLeagueless{display:none;}
 #boardCard .composer{position:static; background:none; padding:10px 0 2px;}
 #homeLeagueless .card, #hubLeagueless .btn{text-align:left;}
 #hubLeagueless .btn{width:100%;}
@@ -977,7 +979,7 @@ body::before{
 .hdr .who:active{box-shadow:0 0 0 4px var(--glow);}
 
 /* tabbar: four lanes, a raised tee for Post, a dot that says where you are */
-.tabbar{grid-template-columns:repeat(4,1fr);}
+.tabbar{grid-template-columns:repeat(5,1fr);}
 .tab{position:relative;}
 .tab.active::after{
   content:""; position:absolute; top:2px; left:50%; transform:translateX(-50%);
@@ -1083,7 +1085,7 @@ body::before{
       <div class="ob-mark">◉ Cup Season</div>
         <div class="ob-ticks" aria-hidden="true"><i style="background:var(--sq0)"></i><i style="background:var(--sq1)"></i><i style="background:var(--sq2)"></i><i style="background:var(--sq3)"></i></div>
             <h1>Rally your crew.<br>Post real rounds.<br><em>Take the cup.</em></h1>
-      <p>Four squads, four colors, any course in the country. Points all season, a cup at the end.</p>
+      <p>Post the rounds you're already playing, wherever you play them. The points pile up all season — and at the end, somebody takes the cup home.</p>
     </div>
     <div id="obDoor">
     <button class="btn" id="obCreate">Create your golfer card</button>
@@ -1142,7 +1144,7 @@ body::before{
       </div>
             
     </div>
-    <div class="ob-caption" id="obCaption">New or returning, email is one door — no passwords. Just looking? Join with code <b style="color:var(--mut)">DEMO</b>. <span style="opacity:.5">v23.62</span></div>
+    <div class="ob-caption" id="obCaption">New or returning, email is one door — no passwords. Just looking? Join with code <b style="color:var(--mut)">DEMO</b>. <span style="opacity:.5">v23.63</span></div>
   </div>
   <div class="ob-splash" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
   
@@ -1166,6 +1168,9 @@ body::before{
     </button>
     <button class="navitem" data-v="hub">
       <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="2.9"/><path d="M12 3.6v2.2M12 18.2v2.2M3.6 12h2.2M18.2 12h2.2M6.1 6.1l1.6 1.6M16.3 16.3l1.6 1.6M17.9 6.1l-1.6 1.6M7.7 16.3l-1.6 1.6"/></svg> League
+    </button>
+    <button class="navitem" data-v="cal">
+      <svg viewBox="0 0 24 24"><rect x="4" y="5.5" width="16" height="15" rx="2.2"/><path d="M4 10.5h16M8.5 3.5v4M15.5 3.5v4"/></svg> Calendar
     </button>
     <button class="navitem" data-v="stats">
       <svg viewBox="0 0 24 24"><path d="M5 20V11M12 20V4M19 20v-7"/></svg> You
@@ -1349,6 +1354,22 @@ body::before{
           <table class="tbl" id="indTable"></table>
         </div>
         <p class="fine">Points King takes 15% of the pot at season's end. Most Improved is index drop since Week 1; Iron Man is most rounds posted. All three run in parallel with the squad race — bylaws §4.</p>
+      </section>
+
+      <!-- CALENDAR -->
+      <section class="view" id="view-cal">
+        <div id="calLeagueless">
+          <div class="eyebrow" style="margin-top:0">The calendar rides a season</div>
+          <div class="card" style="text-align:left">
+            <p class="fine" style="padding:0">Kickoffs, month closes, the Cup Final window — it all comes from a league season. Start one or join with a code and this page fills itself.</p>
+            <button class="mini" data-go="hub" style="margin-top:10px">Start or join a league</button>
+          </div>
+        </div>
+        <div class="eyebrow">Coming up</div>
+        <div id="calUpcoming"></div>
+        <div class="eyebrow">Week by week</div>
+        <div class="card" id="calWeeks" style="text-align:left"></div>
+        <p class="fine">Declared rounds — “Jake plays Thursday at TPC” — land with the tee sheet build, and this page becomes the watch list.</p>
       </section>
 
       <!-- DRAFT -->
@@ -1730,6 +1751,7 @@ body::before{
   <button class="tab active" data-v="home"><svg viewBox="0 0 24 24"><path d="M4 11.5 12 4l8 7.5"/><path d="M6 10v10h12V10"/></svg>Home</button>
   <button class="tab" data-v="record" aria-label="Post a round"><span class="circ"><svg viewBox="0 0 24 24"><path d="M12 6v12M6 12h12"/></svg></span>Post</button>
   <button class="tab" data-v="hub"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="2.9"/><path d="M12 3.6v2.2M12 18.2v2.2M3.6 12h2.2M18.2 12h2.2M6.1 6.1l1.6 1.6M16.3 16.3l1.6 1.6M17.9 6.1l-1.6 1.6M7.7 16.3l-1.6 1.6"/></svg>League</button>
+  <button class="tab" data-v="cal"><svg viewBox="0 0 24 24"><rect x="4" y="5.5" width="16" height="15" rx="2.2"/><path d="M4 10.5h16M8.5 3.5v4M15.5 3.5v4"/></svg>Calendar</button>
   <button class="tab" data-v="stats"><svg viewBox="0 0 24 24"><path d="M5 20V11M12 20V4M19 20v-7"/></svg>You</button>
 </nav>
 
@@ -1737,7 +1759,18 @@ body::before{
 <div id="errbar" role="alert"></div>
 <script>
 (function(){
+  /* v23.63: smooth sailing — the pilot error bar is OFF by default. Everything
+     still logs to the console; flip the bar back on with /?debug (persists via
+     localStorage, /?debug=off clears) if field debugging is ever needed again. */
+  try {
+    if(/[?&]debug=off/.test(location.search)) localStorage.removeItem('cs_debug');
+    else if(/[?&]debug/.test(location.search)) localStorage.setItem('cs_debug','1');
+  } catch(_){}
+  window.CS_DEBUG = /[?&]debug(?!=off)/.test(location.search) ||
+    (function(){ try { return localStorage.getItem('cs_debug')==='1'; } catch(_){ return false; } })();
   function show(msg){
+    console.error('[cs]', msg);
+    if(!window.CS_DEBUG) return;
     var b=document.getElementById('errbar');
     if(!b) return;
     b.style.display='block';
@@ -2372,32 +2405,48 @@ $('#postBtn').addEventListener('click', async ()=>{
 /* ================= pot ================= */
 function renderPot(){
   if(!state.demo){
-    /* the pot prices off the REAL roster (wizard invites only preview it
-       pre-join); collection state arrives with the buy_ins build */
+    /* the pot prices off the REAL roster; collection state is the buy_ins
+       table. The Pro taps a name as money moves — mark_buy_in RPC,
+       commissioner-gated at the database, posts the tally to the board. */
     const ms=(window.CS?.members)||[];
     const invited=[...new Set(state.emails.map(e=>e.trim().toLowerCase()))].filter(e=>e.includes('@') && e!==((window.CS?.user?.email)||'').toLowerCase()).length;
     const players=Math.max(ms.length, invited+1, 1);
     const total=state.stake*players;
+    const bi=window.buyIns||{};
+    const isPro=window.CS?.member?.role==='commissioner';
+    const paidN=ms.filter(m=>bi[m.id]?.paid).length;
+    const collected=ms.reduce((a,m)=>a+(bi[m.id]?.paid ? (bi[m.id].amount_cents!=null ? bi[m.id].amount_cents/100 : state.stake) : 0),0);
+    const [pc,pr,pk]=state.payout||[60,25,15];
     $('#potAmt').textContent=fmt$(total);
     $('#chipPot').textContent=fmt$(total);
-    $('#potMath').textContent=`${players} × ${fmt$(state.stake)} buy-in · tracked, never held`;
-    $('#pay1').textContent=fmt$(Math.round(total*0.6));
-    $('#pay2').textContent=fmt$(Math.round(total*0.25));
-    $('#pay3').textContent=fmt$(Math.round(total*0.15));
+    $('#potMath').textContent=`${players} × ${fmt$(state.stake)} buy-in · ${fmt$(collected)} collected`;
+    $('#pay1').textContent=fmt$(Math.round(total*pc/100));
+    $('#pay2').textContent=fmt$(Math.round(total*pr/100));
+    $('#pay3').textContent=fmt$(Math.round(total*pk/100));
     const el=$('#payers'); el.innerHTML='';
-    const names=ms.length
-      ? ms.map(m=>m.profile?.display_name||'—')
-      : [(window.CS?.profile?.display_name)||'You'];
-    names.forEach(nm=>{
+    (ms.length?ms:[null]).forEach(m=>{
+      const paid=m ? !!bi[m.id]?.paid : false;
       const row=document.createElement('button');
-      row.className='payer';
-      row.innerHTML=`<span>${nm}</span><span class="tick">✓</span>`;
-      row.addEventListener('click',()=>toast('Buy-ins get marked by the Pro as money moves on Venmo — tracking lands in an upcoming build'));
+      row.className='payer'+(paid?' paid':'');
+      row.innerHTML=`<span>${m ? (m.profile?.display_name||'—') : ((window.CS?.profile?.display_name)||'You')}</span><span class="tick">✓</span>`;
+      row.addEventListener('click', async ()=>{
+        if(!m) return;
+        if(!isPro){ toast('The Pro marks buy-ins as money moves on Venmo'); return; }
+        if(!window.CS?.season?.id){ toast('Buy-ins open once the bylaws lock'); return; }
+        row.disabled=true;
+        try{
+          const { error } = await window.sb.rpc('mark_buy_in',
+            { p_season: window.CS.season.id, p_member: m.id, p_paid: !paid });
+          if(error) throw error;
+          (window.buyIns ||= {})[m.id] = { ...(bi[m.id]||{}), paid: !paid, amount_cents: state.stake*100 };
+          renderPot();
+        }catch(e){ toast('Mark failed: '+(e.message||e)); row.disabled=false; }
+      });
       el.appendChild(row);
     });
-    $('#paidCount').textContent=`0/${players}`;
-    $('#paidChip').textContent=`0/${players} buy-ins in`;
-    const hps=$('#hubPotSub'); if(hps) hps.textContent=`${fmt$(total)} \u00b7 0/${players} BUY-INS IN`;
+    $('#paidCount').textContent=`${paidN}/${players}`;
+    $('#paidChip').textContent=`${paidN}/${players} buy-ins in`;
+    const hps=$('#hubPotSub'); if(hps) hps.textContent=`${fmt$(total)} \u00b7 ${paidN}/${players} BUY-INS IN`;
     return;
   }
   const total=state.stake*16;
@@ -3203,7 +3252,7 @@ function showRound(name, idx){
 function resetToBlank(leagueName){
   state.demo=false;
   MONTH_BASE=0;
-  window.indRows=[]; window.myMonth=null; window.myIndexDelta=null;
+  window.indRows=[]; window.myMonth=null; window.myIndexDelta=null; window.buyIns={};
   feed.length=0;
   feed.push({d:TODAY, sys:true, txt:(leagueName||'Your league')+' is live — say hello on the board'});
   teams.length=0;
@@ -3293,8 +3342,9 @@ function renderBylaws(){
     /* demo stays at its 16-Joe diorama; real leagues price off the actual roster */
     const n=(!state.demo && window.CS?.members?.length) ? window.CS.members.length : 16;
     const total=state.stake*n;
+    const [pc,pr,pk]=state.payout||[60,25,15];
     la.textContent=fmt$(total);
-    $('#lineSplit').textContent=`CHAMPS ${fmt$(Math.round(total*0.6))} · RUNNER-UP ${fmt$(Math.round(total*0.25))} · POINTS KING ${fmt$(Math.round(total*0.15))}`;
+    $('#lineSplit').textContent=`CHAMPS ${fmt$(Math.round(total*pc/100))} · RUNNER-UP ${fmt$(Math.round(total*pr/100))} · POINTS KING ${fmt$(Math.round(total*pk/100))}`;
   }
 }
 const MIN_LEAGUE=4;                    /* foursome floor — spec §8 v0.7 */
@@ -3362,7 +3412,65 @@ function renderPhase(){
     : p==='draft' ? 'LIVE NOW — CAPTAINS READY'
     : 'COMPLETE · ROSTERS LOCKED';
   renderLeagueMeta();
+  renderCalendar();
   renderLiveBanner();
+}
+/* ---------- the calendar tab: the season's shape, zero new schema ----------
+   Everything derives from season dates (§14.0): kickoff Sunday, month closes
+   on the 1st, Cup Final at ends_on−27, season end Saturday, weekly snapshot
+   Sunday nights. Past weeks read the standings_snapshots history. */
+function renderCalendar(){
+  const up=$('#calUpcoming'), wkEl=$('#calWeeks');
+  if(!up) return;
+  const noSeason = state.phase!=='season' || (!state.demo && !state.seasonStart);
+  if(noSeason){
+    up.innerHTML='<div class="card" style="text-align:left"><p class="fine" style="padding:0">'+(
+      state.phase==='setup' ? 'Season dates lock with the bylaws — the calendar fills from there.'
+      : 'Squads first, then the schedule.')+'</p></div>';
+    wkEl.innerHTML='<p class="fine" style="padding:0">Week-by-week history records Sunday nights once the season is live.</p>';
+    return;
+  }
+  const s=seasonS(), e=seasonE(), cf=cupFinalStart();
+  const today=new Date(); today.setHours(0,0,0,0);
+  const ev=[];
+  if(today<s) ev.push({d:s, t:'First tee — kickoff', sub:'WEEK 1 BEGINS · SQUADS LOCKED', gold:true});
+  if(today>=s && today<=e){
+    const nx=new Date(today); nx.setDate(nx.getDate() + ((7-nx.getDay())%7 || 7));
+    if(nx<=e) ev.push({d:nx, t:`Week ${currentWeek()} closes`, sub:'SUNDAY NIGHT · STANDINGS SNAPSHOT RECORDED'});
+  }
+  let mc=new Date(today.getFullYear(), today.getMonth()+1, 1);
+  while(mc<=e && ev.length<9){
+    if(mc>s) ev.push({d:mc, t:`${MOS[(mc.getMonth()+11)%12]} closes`, sub:'FLOORS & BONUSES ASSESSED · BEST ROUNDS BANKED'});
+    mc=new Date(mc.getFullYear(), mc.getMonth()+1, 1);
+  }
+  if(cf>=today && cf<=e) ev.push({d:cf, t:'Cup Final begins', sub:'FINAL 4 WEEKS · FRESH SLATE', gold:true});
+  if(e>=today) ev.push({d:e, t:'Season ends', sub:'SATURDAY · THE CUP IS DECIDED', gold:true});
+  ev.sort((a,b)=>a.d-b.d);
+  const chip=d=>{ const n=Math.round((d-today)/864e5);
+    return n<=0?'TODAY' : n===1?'TOMORROW' : n<=13 ? n+' DAYS' : `${DOW[d.getDay()]} ${MOS[d.getMonth()]} ${d.getDate()}`.toUpperCase(); };
+  up.innerHTML = ev.slice(0,7).map(x=>`
+    <div class="check">
+      <div class="tt"><b style="${x.gold?'color:var(--gold)':''}">${x.t}</b><small>${DOW[x.d.getDay()].toUpperCase()} ${MOS[x.d.getMonth()].toUpperCase()} ${x.d.getDate()} · ${x.sub}</small></div>
+      <b class="mono" style="flex:none; font-size:11px; color:var(--mut); letter-spacing:.06em">${chip(x.d)}</b>
+    </div>`).join('') || '<div class="card"><p class="fine" style="padding:0">Season complete — the cup has a home.</p></div>';
+
+  const hist=(!state.demo && window.seasonHistory) ? window.seasonHistory : [];
+  if(!hist.length){
+    wkEl.innerHTML='<p class="fine" style="padding:0">'+(state.demo
+      ? 'The demo skips the archive — real seasons record every Sunday night.'
+      : 'Nothing recorded yet — the first snapshot writes Sunday night, and every week lands here for the season.')+'</p>';
+  } else {
+    const nameOf=id=>{ const t=teams.find(t=>t.id===id); return t?t.name:'—'; };
+    wkEl.innerHTML = hist.slice().reverse().map(sn=>{
+      const sq=((sn.standings&&sn.standings.squads)||[]).slice().sort((a,b)=>b.points-a.points);
+      const lead=sq[0], second=sq[1];
+      const gap=lead&&second ? lead.points-second.points : null;
+      return `<div class="fine" style="display:flex; justify-content:space-between; gap:10px; padding:5px 0;">
+        <span><b class="mono" style="color:var(--ink)">WK ${sn.week_no}</b>${lead?' · '+nameOf(lead.squad_id).toUpperCase()+' LED':''}${gap!=null?(gap===0?' · TIED AT THE TOP':' · BY '+gap):''}</span>
+        <b class="mono">${lead?lead.points+' PTS':''}</b>
+      </div>`;
+    }).join('');
+  }
 }
 /* every league-identity string on screen renders from real state — the
    markup defaults are demo scenery and must never survive a real league */
@@ -4010,6 +4118,7 @@ function applyBylaws(b){
                     ? ['casual','standard','cutthroat'].indexOf(b.preset) : 1;
   state.fmt       = ['points','h2h','hybrid'].indexOf(b.season_format);
   state.structure = b.structure;
+  state.payout    = [b.payout_champ ?? 60, b.payout_runnerup ?? 25, b.payout_king ?? 15];
   renderSetup(); renderBylaws();
 }
 
@@ -4081,6 +4190,9 @@ async function loadLeagueData(){
       .select('id, name, color, captain_member_id, squad_members(member_id)')
       .eq('season_id', CS.season.id).order('name');
     CS.squads = sq || [];
+    const { data: bi } = await sb.from('buy_ins')
+      .select('member_id, paid, amount_cents').eq('season_id', CS.season.id);
+    window.buyIns = Object.fromEntries((bi||[]).map(r => [r.member_id, r]));
   }
   await loadStandingsAndFeed(); /* board is league-scoped — load it pre-season too */
   renderFormation();
@@ -4409,6 +4521,8 @@ async function lockBylaws(){
 
 /* ---------- wire the UI ---------- */
 function bootTrace(m){
+  console.log('[boot]', m); /* breadcrumbs always live in the console */
+  if(!window.CS_DEBUG) return;
   if(typeof PILOT!=='undefined' && !PILOT) return;
   const b = document.getElementById('errbar');
   if(!b) return;
@@ -4420,6 +4534,8 @@ function authStatus(msg, kind){
   const el=$('#obStatus');
   if(el){ el.textContent = msg; el.className = 'ob-status' + (kind ? ' ' + kind : ''); }
   if(kind === 'err'){
+    console.error('[cs]', msg);
+    if(!window.CS_DEBUG) return;
     const b = document.getElementById('errbar');
     if(b){ b.style.display='block'; b.textContent='⚠ ' + msg + '  — screenshot this and send it'; }
   }

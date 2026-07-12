@@ -5,8 +5,10 @@ personas-dashboards-v1.0, and the live code. Items numbered A1, B2… for
 work-through. Status: batch 1 (P0, A1–A12) SHIPPED v23.61. Batch 2 (B1–B4, C1) SHIPPED
 v23.62 — decisions: pre-kickoff phase named "At the starter"; NO global
 progress bar (C3 dropped — week-by-week progress detail moves to the
-calendar/timeline build, D3/task #16). C2 (kickoff board post) rides the
-next server migration. C4 folded into future calendar work.
+calendar/timeline build, D3/task #16). Batch 3 (D2 pot + D3 calendar-as-tab
++ C2 kickoff post) SHIPPED v23.63 with migration 20260712130000 — decisions:
+buy-in marks post to the board; Calendar is a first-class 5th tab; intro
+hero copy rewritten; pilot error bar OFF by default (/?debug re-enables).
 
 Root cause of most of it: the prototype-era markup and render functions carry
 demo defaults ("SNDYCUP", "16 Joes", "$1,200") that the real-league path never
