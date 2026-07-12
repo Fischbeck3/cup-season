@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96" fill="none">
+  <!-- Cup Season master mark — flag in the cup, four-squad orbit ring.
+       Dark-background version (flag in off-white). -->
+  <g stroke-width="7" stroke-linecap="round">
+    <circle cx="48" cy="60" r="26" stroke="#43E07C" stroke-dasharray="31 133" transform="rotate(112 48 60)"/>
+    <circle cx="48" cy="60" r="26" stroke="#57A8FF" stroke-dasharray="31 133" transform="rotate(202 48 60)"/>
+    <circle cx="48" cy="60" r="26" stroke="#FB8B4B" stroke-dasharray="31 133" transform="rotate(292 48 60)"/>
+    <circle cx="48" cy="60" r="26" stroke="#A78BFA" stroke-dasharray="31 133" transform="rotate(22 48 60)"/>
+  </g>
+  <ellipse cx="48" cy="60" rx="12" ry="4.5" stroke="#F4F7F4" stroke-width="4.5"/>
+  <path d="M48 58V10" stroke="#F4F7F4" stroke-width="5.5" stroke-linecap="round"/>
+  <path d="M48 9l20 7.5L48 24z" fill="#F4F7F4"/>
+</svg>
