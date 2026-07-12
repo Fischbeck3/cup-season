@@ -1,4 +1,4 @@
-// Cup Season — push sender.
+// Cup Season — push sender. rev 2026-07-12a (diagnostic logging)
 // Invoked by a Database Webhook on public.posts INSERT. The board is the
 // app's nervous system, so this one function covers chat, round fan-outs,
 // reveals, and month closes. Auth: shared secret header (the webhook is
