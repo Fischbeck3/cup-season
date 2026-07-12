@@ -349,7 +349,8 @@ input.f::-webkit-outer-spin-button, input.f::-webkit-inner-spin-button{-webkit-a
 .purse .m{font-family:var(--mono); font-size:11px; color:var(--mut);}
 .trip{display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin-top:10px;}
 .trip .p{background:var(--bg1); border:1px solid var(--line); border-radius:12px; padding:12px 8px; text-align:center;}
-.trip .p b{display:block; font-family:var(--mono); font-size:17px; font-weight:600; font-variant-numeric:tabular-nums;}
+.trip .p b{display:block; font-family:var(--mono); font-size:17px; font-weight:600; font-variant-numeric:tabular-nums; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; min-width:0;}
+.trip .p{min-width:0;}
 .trip .p span{font-family:var(--mono); font-size:8.5px; letter-spacing:.1em; text-transform:uppercase; color:var(--dim);}
 .payer{
   display:flex; align-items:center; justify-content:space-between; gap:10px;
@@ -907,10 +908,11 @@ input.f::-webkit-outer-spin-button, input.f::-webkit-inner-spin-button{-webkit-a
 }
 .ob-hero{margin-bottom:26px;}
 .ob-mark{
-  display:flex; align-items:center; gap:9px;
-  font-family:var(--mono); font-size:11px; letter-spacing:.2em;
-  text-transform:uppercase; color:var(--pos); margin-bottom:18px;
+  display:flex; align-items:center; gap:13px;
+  font-family:var(--mono); font-size:14px; font-weight:600; letter-spacing:.32em;
+  text-transform:uppercase; color:var(--ink); margin-bottom:20px;
 }
+.ob-mark .ob-logo{flex:none;}
 .ob-hero h1{font-size:36px; font-weight:700; line-height:1.1; letter-spacing:-.02em; margin-bottom:12px;}
 .ob-hero h1 em{font-style:normal; color:var(--pos);}
 .ob-hero p{font-size:14.5px; color:var(--mut); line-height:1.65; max-width:36ch;}
@@ -1141,10 +1143,22 @@ body::before{
   </div>
   <div class="ob-in">
     <div class="ob-hero">
-      <div class="ob-mark">◉ Cup Season</div>
-        <div class="ob-ticks" aria-hidden="true"><i style="background:var(--sq0)"></i><i style="background:var(--sq1)"></i><i style="background:var(--sq2)"></i><i style="background:var(--sq3)"></i></div>
-            <h1>Rally your crew.<br>Post real rounds.<br><em>Take the cup.</em></h1>
-      <p>Post the rounds you're already playing, wherever you play them. The points pile up all season — and at the end, somebody takes the cup home.</p>
+      <div class="ob-mark">
+        <svg class="ob-logo" viewBox="0 0 96 96" width="44" height="44" fill="none" aria-hidden="true">
+          <g stroke-width="6" stroke-linecap="round" fill="none">
+            <circle cx="48" cy="60" r="26" stroke="var(--pos)" stroke-dasharray="31 133" transform="rotate(112 48 60)"/>
+            <circle cx="48" cy="60" r="26" stroke="var(--sq0)" stroke-dasharray="31 133" transform="rotate(202 48 60)"/>
+            <circle cx="48" cy="60" r="26" stroke="var(--sq1)" stroke-dasharray="31 133" transform="rotate(292 48 60)"/>
+            <circle cx="48" cy="60" r="26" stroke="var(--sq2)" stroke-dasharray="31 133" transform="rotate(22 48 60)"/>
+          </g>
+          <ellipse cx="48" cy="60" rx="12" ry="4.5" stroke="currentColor" stroke-width="4"/>
+          <path d="M48 58V10" stroke="currentColor" stroke-width="5" stroke-linecap="round"/>
+          <path d="M48 10l19 7-19 7z" fill="currentColor"/>
+        </svg>
+        <b>Cup Season</b>
+      </div>
+      <h1>Leagues. Rounds.<br>Friends. <em>Golf.</em></h1>
+      <p>Organize your season. Play more. Keep score.</p>
     </div>
     <div id="obDoor">
     <button class="btn" id="obCreate">Create your golfer card</button>
@@ -1203,7 +1217,7 @@ body::before{
       </div>
             
     </div>
-    <div class="ob-caption" id="obCaption">New or returning, email is one door — no passwords. Just looking? Join with code <b style="color:var(--mut)">DEMO</b>. <span style="opacity:.5">v23.65</span></div>
+    <div class="ob-caption" id="obCaption">New or returning, email is one door — no passwords. Just looking? Join with code <b style="color:var(--mut)">DEMO</b>. <span style="opacity:.5">v23.66</span></div>
   </div>
   <div class="ob-splash" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
   
@@ -1215,7 +1229,17 @@ body::before{
   <aside class="side">
     <div class="brand">
       <div class="mk">
-        <svg viewBox="0 0 100 100"><polyline points="16,70 36,52 52,60 84,28" fill="none" stroke="#43E07C" stroke-width="10" stroke-linecap="round" stroke-linejoin="round"/><circle cx="84" cy="28" r="8" fill="#43E07C"/></svg>
+        <svg viewBox="0 0 96 96" fill="none">
+          <g stroke-width="7" stroke-linecap="round" fill="none">
+            <circle cx="48" cy="60" r="26" stroke="var(--pos)" stroke-dasharray="31 133" transform="rotate(112 48 60)"/>
+            <circle cx="48" cy="60" r="26" stroke="var(--sq0)" stroke-dasharray="31 133" transform="rotate(202 48 60)"/>
+            <circle cx="48" cy="60" r="26" stroke="var(--sq1)" stroke-dasharray="31 133" transform="rotate(292 48 60)"/>
+            <circle cx="48" cy="60" r="26" stroke="var(--sq2)" stroke-dasharray="31 133" transform="rotate(22 48 60)"/>
+          </g>
+          <ellipse cx="48" cy="60" rx="12" ry="4.5" stroke="var(--ink)" stroke-width="5"/>
+          <path d="M48 58V10" stroke="var(--ink)" stroke-width="6" stroke-linecap="round"/>
+          <path d="M48 10l19 7-19 7z" fill="var(--ink)"/>
+        </svg>
       </div>
       <div><b>Cup Season</b><small id="brandSeason">Season III</small></div>
     </div>
@@ -1236,7 +1260,7 @@ body::before{
     </button>
     <div class="foot">
       <div class="lg" id="sideLeague">The Sunday Cup</div>
-      <div class="sm" id="sideMeta">16 Joes · 4 squads</div>
+      <div class="sm" id="sideMeta">7 Joes · 2 squads</div>
     </div>
   </aside>
 
@@ -1334,7 +1358,7 @@ body::before{
         </button>
         <div class="stats">
           <div class="stat"><div class="k">Season</div><div class="v"><span id="statWk">W18</span> <small>/ <span id="wkTotal2">36</span></small></div><div class="d fl" id="statFinal">Cup Final · final 4 wks</div></div>
-          <div class="stat"><div class="k">The pot</div><div class="v gold" id="chipPot">$1,200</div><div class="d fl" id="paidChip">13/16 buy-ins in</div></div>
+          <div class="stat"><div class="k">The pot</div><div class="v gold" id="chipPot">$525</div><div class="d fl" id="paidChip">5/7 buy-ins in</div></div>
           <div class="stat"><div class="k">Your index</div><div class="v" id="statIdx">12.4</div><div class="d up" id="statIdxD">▼ 0.3 this month</div></div>
           <div class="stat"><div class="k">Counting rounds</div><div class="v" id="statCount">3 <small>/ 4</small></div><div class="d fl" id="statCountD">This month · best 4 count</div></div>
         </div>
@@ -1362,7 +1386,7 @@ body::before{
             <div class="card">
               <div class="chart-legend" id="chartLegend"></div>
               <svg id="raceChart" viewBox="0 0 640 230" role="img" aria-label="Season points race chart"></svg>
-              <div class="chart-note" id="chartNote">CUP LINE = TOP 2 AT W36 ADVANCE TO THE CUP FINAL</div>
+              <div class="chart-note" id="chartNote">BOTH SQUADS REACH THE CUP FINAL — SEASON LEADER CARRIES +10</div>
             </div>
           </div>
 
@@ -1626,8 +1650,8 @@ body::before{
             <div class="eyebrow">Season stakes</div>
             <div class="purse">
               <div class="k">The pot</div>
-              <div class="amt" id="potAmt">$1,200</div>
-              <div class="m" id="potMath">16 × $75 buy-in · locked before W1</div>
+              <div class="amt" id="potAmt">$525</div>
+              <div class="m" id="potMath">7 × $75 buy-in · locked before W1</div>
             </div>
             <div class="trip">
               <div class="p"><b id="pay1">$720</b><span>Cup champs</span></div>
@@ -1637,7 +1661,7 @@ body::before{
             <p class="fine"><b>Cup Season keeps the books — it never holds the money.</b> Buy-ins and payouts move friend-to-friend on Venmo or cash. We just make sure nobody argues at the bar.</p>
           </div>
           <div>
-            <div class="eyebrow">Buy-ins · <span id="paidCount">13/16</span> in</div>
+            <div class="eyebrow">Buy-ins · <span id="paidCount">5/7</span> in</div>
             <div id="payers"></div>
           </div>
         </div>
@@ -1776,8 +1800,8 @@ body::before{
         </div>
 
         <div class="eyebrow">League</div>
-        <div class="check"><span class="num">⛳</span><div class="tt"><b>Members & invites</b><small id="hubMembersSub">16 JOES · CODE SNDYCUP</small></div><button class="mini" id="hubMembersBtn">View</button></div>
-        <div class="check"><span class="num">$</span><div class="tt"><b>The pot</b><small id="hubPotSub">$1,200 · 13/16 BUY-INS IN</small></div><button class="mini" data-go="pot">View</button></div>
+        <div class="check"><span class="num">⛳</span><div class="tt"><b>Members & invites</b><small id="hubMembersSub">7 JOES · CODE SNDYCUP</small></div><button class="mini" id="hubMembersBtn">View</button></div>
+        <div class="check"><span class="num">$</span><div class="tt"><b>The pot</b><small id="hubPotSub">$525 · 5/7 BUY-INS IN</small></div><button class="mini" data-go="pot">View</button></div>
         <div class="check"><span class="num">◫</span><div class="tt"><b>Squads</b><small id="hubDraftSub">COMPLETE · ROSTERS LOCKED</small></div><button class="mini" data-go="draft">View</button></div>
 
         <div class="eyebrow league-only">The bylaws · locked at first tee</div>
@@ -1894,40 +1918,37 @@ const SQ = ['var(--sq0)','var(--sq1)','var(--sq2)','var(--sq3)'];
 const PILOT=true;   /* flip false to strip pilot chrome: chip + boot narration */
 const PILOT_FORM='https://docs.google.com/forms/d/e/1FAIpQLSe9OSajVZR4OvKru-1VVxsG2eae4fduG8t0exQ2ESWo1XnbGg/viewform';
 const SQHEX = ['#57A8FF','#FB8B4B','#A78BFA','#2FD3BE'];
+/* the demo diorama is THE CREW — the seven Joes who pilot this thing */
+const DEMO_ME='Jerecho';
 const teams = [
-  {name:'Mudsharks',      cap:'Marcus', pts:214, ci:0},
-  {name:'Sandbaggers',    cap:'Danny',  pts:207, ci:1},
-  {name:'Shankopotamus',  cap:'Trey',   pts:189, ci:2},
-  {name:'Cart Path Only', cap:'Cole',   pts:171, ci:3},
+  {name:'Mudsharks',   cap:'Jerecho', pts:241, ci:0},
+  {name:'Sandbaggers', cap:'Ed',      pts:216, ci:1},
 ];
 const feed = [
-  {d:dAgo(4), msg:true, who:'Marcus', ci:0, txt:'Reminder: floor is 2 rounds this month. No excuses, Pete.'},
-  {d:dAgo(4), who:'Trey', team:'Shankopotamus', ci:2, meta:'79 GROSS · AGUILA', pvi:4.1, pts:12, kud:5, mine:false, cm:[{w:'Danny',t:'sandbagger alert 🚨'},{w:'Cole',t:'ok tour pro'}]},
-  {d:dAgo(3), who:'Benny', team:'Cart Path Only', ci:3, meta:'88 GROSS · SIM ROUND', pvi:-2.2, pts:6, kud:2, mine:false, cm:[{w:'Marcus',t:'sim rounds… we\u2019ll allow it'},{w:'Benny',t:'scoreboard talks 🤷'}]},
-  {d:dAgo(2), who:'Ray', team:'Mudsharks', ci:0, meta:'92 GROSS · PAPAGO', pvi:0.4, pts:7, kud:1, mine:false, cm:[]},
-  {d:dAgo(1), who:'Danny', team:'Sandbaggers', ci:1, meta:'81 GROSS · ENCANTO', pvi:2.4, pts:9, kud:3, mine:false, cm:[{w:'You',t:'putts were rolling today'}]},
-  {d:dAgo(1), sys:true, txt:'Sandbaggers cross the cup line — into 2nd'},
-  {d:dAgo(0), msg:true, who:'Cole', ci:3, txt:'Who\u2019s in for Papago Saturday AM? Two carts locked.'},
+  {d:dAgo(4), msg:true, who:'Ed', ci:1, txt:'Reminder: floor is 2 rounds this month. No excuses, Garrett.'},
+  {d:dAgo(4), who:'Logan', team:'Mudsharks', ci:0, meta:'79 GROSS · AGUILA', pvi:3.4, pts:12, kud:5, mine:false, cm:[{w:'Ed',t:'sandbagger alert 🚨'},{w:'Mitch',t:'ok tour pro'}]},
+  {d:dAgo(3), who:'Garrett', team:'Sandbaggers', ci:1, meta:'96 GROSS · SIM ROUND', pvi:-2.2, pts:6, kud:2, mine:false, cm:[{w:'Ed',t:'sim rounds… we\u2019ll allow it'},{w:'Garrett',t:'scoreboard talks 🤷'}]},
+  {d:dAgo(2), who:'Metz', team:'Mudsharks', ci:0, meta:'92 GROSS · PAPAGO', pvi:0.4, pts:7, kud:1, mine:false, cm:[]},
+  {d:dAgo(1), who:'Ed', team:'Sandbaggers', ci:1, meta:'81 GROSS · ENCANTO', pvi:2.4, pts:9, kud:3, mine:false, cm:[{w:'Jerecho',t:'putts were rolling today'}]},
+  {d:dAgo(1), sys:true, txt:'Sandbaggers close the gap — 25 back'},
+  {d:dAgo(0), msg:true, who:'Mitch', ci:1, txt:'Who\u2019s in for Papago Saturday AM? Two carts locked.'},
 ];
 const TODAY=dAgo(0);
-const captains = ['Marcus','Danny','Trey','Cole'];
-const squadNames = ['Mudsharks','Sandbaggers','Shankopotamus','Cart Path Only'];
+const captains = ['Jerecho','Ed'];
+const squadNames = ['Mudsharks','Sandbaggers'];
 const poolSeed = [
-  {n:'Ray',i:8.1},{n:'Benny',i:22.4},{n:'Otto',i:14.9},{n:'Gus',i:11.2},
-  {n:'Deej',i:17.6},{n:'Sal',i:6.4},{n:'Pete',i:19.8},{n:'Manny',i:12.4},
-  {n:'Hutch',i:24.0},{n:'Kirby',i:9.7},{n:'Flo',i:15.3},{n:'Ziggy',i:20.5},
+  {n:'Logan',i:8.1},{n:'Mitch',i:14.9},{n:'Metz',i:15.3},{n:'Blake',i:19.8},{n:'Garrett',i:22.4},
 ];
 const payersSeed = [
-  ['Marcus',1],['Danny',1],['Trey',1],['Cole',1],['Ray',1],['Benny',1],['Otto',1],['Gus',1],
-  ['Deej',1],['Sal',1],['Pete',0],['Manny',1],['Hutch',0],['Kirby',1],['Flo',1],['Ziggy',0],
+  ['Jerecho',1],['Ed',1],['Logan',1],['Mitch',1],['Metz',1],['Blake',0],['Garrett',0],
 ];
 
 /* ================= state ================= */
 const state = {
-  draft:{pick:0, pool:[...poolSeed], rosters:[[],[],[],[]], order:[0,1,2,3, 3,2,1,0, 0,1,2,3], meCaptain:1, isCommish:true},
+  draft:{pick:0, pool:[...poolSeed], rosters:[[],[]], order:[0,1, 1,0, 0], meCaptain:0, isCommish:true},
   payers:payersSeed.map(p=>({name:p[0], paid:!!p[1]})),
   stake:75, months:6, cap:1, floor:2, myIndex:12.4,
-  phase:'season', wiz:0, preset:1, fmt:2, emails:[], showOthers:false, structure:'squads4', demo:true, startOffset:0,
+  phase:'season', wiz:0, preset:1, fmt:2, emails:[], showOthers:false, structure:'squads2', demo:true, startOffset:0,
   draftType:'random',
 };
 const STAKES=[25,50,75,100,150,200], LENGTHS=[6,9,12], CAPS=['Best 2','Best 4','Best 6','Unlimited'];
@@ -2163,7 +2184,7 @@ function renderFeed(){
     const fi=+b.dataset.s;
     const inp=el.querySelector(`input[data-i="${fi}"]`);
     const v=inp.value.trim(); if(!v)return;
-    feed[fi].cm.push({w:'You',t:v});
+    feed[fi].cm.push({w:(state.demo?DEMO_ME:'You'),t:v});
     renderFeed();
     const t=$('#th'+fi); if(t)t.style.display='block';
   }));
@@ -2243,7 +2264,7 @@ function scrollFeedBottom(){
 async function sendChatFrom(inp){
   const v=inp.value.trim(); if(!v)return;
   inp.value='';
-  feed.push({d:TODAY, msg:true, who:'You', ci:1, txt:v});
+  feed.push({d:TODAY, msg:true, who:(state.demo?DEMO_ME:'You'), ci:(state.demo?0:1), txt:v});
   renderFeed(); scrollFeedBottom();
   if(!state.demo && window.CS?.league && window.sb){
     /* optimistic echo above; realtime INSERT rebuilds the feed with the real row */
@@ -2475,13 +2496,13 @@ $('#postBtn').addEventListener('click', async ()=>{
     finally { btn.disabled=false; }
     return;
   }
-  feed.push({d:TODAY, sess:true, who:'You',team:(state.demo?'Sandbaggers':'\u2014'),ci:1,meta:`${label} · ${$('#inCourse').value.toUpperCase()}`,pvi:vs,pts,kud:0,mine:false,cm:[]});
-  const snd=teams.find(t=>t.name==='Sandbaggers');
-  if(snd) snd.pts+=pts;   /* pre-draft real league: no squads yet */
+  feed.push({d:TODAY, sess:true, who:(state.demo?DEMO_ME:'You'),team:(state.demo?'Mudsharks':'\u2014'),ci:(state.demo?0:1),meta:`${label} · ${$('#inCourse').value.toUpperCase()}`,pvi:vs,pts,kud:0,mine:false,cm:[]});
+  const snd=teams.find(t=>t.name==='Mudsharks');
+  if(snd) snd.pts+=pts;   /* demo: my squad banks the points */
   teams.sort((a,b)=>b.pts-a.pts);
   renderChart(); renderStandings(); renderFeed(); renderStats(); renderIndStats();
   switchView('home'); scrollFeedBottom();
-  toast(`Round posted — +${pts} pts to Sandbaggers`);
+  toast(`Round posted — +${pts} pts to ${state.demo?'Mudsharks':'your squad'}`);
 });
 
 /* ================= pot ================= */
@@ -2531,10 +2552,11 @@ function renderPot(){
     const hps=$('#hubPotSub'); if(hps) hps.textContent=`${fmt$(total)} \u00b7 ${paidN}/${players} BUY-INS IN`;
     return;
   }
-  const total=state.stake*16;
+  const nPay=state.payers.length;
+  const total=state.stake*nPay;
   $('#potAmt').textContent=fmt$(total);
   $('#chipPot').textContent=fmt$(total);
-  $('#potMath').textContent=`16 × ${fmt$(state.stake)} buy-in · locked before W1`;
+  $('#potMath').textContent=`${nPay} × ${fmt$(state.stake)} buy-in · locked before W1`;
   $('#pay1').textContent=fmt$(Math.round(total*0.6));
   $('#pay2').textContent=fmt$(Math.round(total*0.25));
   $('#pay3').textContent=fmt$(Math.round(total*0.15));
@@ -2547,8 +2569,8 @@ function renderPot(){
     el.appendChild(row);
   });
   const n=state.payers.filter(p=>p.paid).length;
-  $('#paidCount').textContent=`${n}/16`;
-  $('#paidChip').textContent=`${n}/16 buy-ins in`;
+  $('#paidCount').textContent=`${n}/${nPay}`;
+  $('#paidChip').textContent=`${n}/${nPay} buy-ins in`;
 }
 
 /* ================= league setup ================= */
@@ -2628,13 +2650,13 @@ let PAR=[4,4,3,5,4,4,3,4,5,4,3,4,5,4,4,3,4,5];
 let SI =[7,13,15,1,9,5,17,11,3,8,14,2,10,4,12,18,6,16];
 let CRATE=70.2, CSLOPE=123;
 const ROSTER=[
-  {n:'You',   i:12.4, ci:1, team:'Sandbaggers', guest:false, locked:true},
-  {n:'Danny', i:9.8,  ci:1, team:'Sandbaggers', guest:false},
-  {n:'Ray',   i:8.1,  ci:0, team:'Mudsharks', guest:false},
-  {n:'Marcus',i:10.2, ci:0, team:'Mudsharks', guest:false},
-  {n:'Benny', i:22.4, ci:3, team:'Cart Path Only', guest:false},
-  {n:'Chuck', i:14.2, ci:-1, team:null, guest:true,  est:false},
-  {n:'Gary',  i:20.0, ci:-1, team:null, guest:true,  est:true},
+  {n:'Jerecho', i:12.4, ci:0, team:'Mudsharks', guest:false, locked:true, me:true},
+  {n:'Logan',   i:8.1,  ci:0, team:'Mudsharks', guest:false},
+  {n:'Ed',      i:10.2, ci:1, team:'Sandbaggers', guest:false},
+  {n:'Mitch',   i:14.9, ci:1, team:'Sandbaggers', guest:false},
+  {n:'Blake',   i:19.8, ci:0, team:'Mudsharks', guest:false},
+  {n:'Chuck',   i:14.2, ci:-1, team:null, guest:true,  est:false},
+  {n:'Gary',    i:20.0, ci:-1, team:null, guest:true,  est:true},
 ];
 let sel=[0,1,2,5];
 let LIVE=sel.map(i=>ROSTER[i]);
@@ -2848,9 +2870,9 @@ function renderRoster(){
     });
     wrap.appendChild(b);
   };
-  const homeTeam = state.demo ? 'Sandbaggers' : 'Your squad';
+  const homeTeam = state.demo ? 'Mudsharks' : 'Your squad';
   const groups=[
-    {label: state.demo ? 'Your squad · Sandbaggers' : 'You', test:p=>!p.guest && p.team===homeTeam},
+    {label: state.demo ? 'Your squad · Mudsharks' : 'You', test:p=>!p.guest && p.team===homeTeam},
     {label:'League', test:p=>!p.guest && p.team!==homeTeam},
     {label:'Guests', test:p=>p.guest},
   ];
@@ -2887,7 +2909,7 @@ function renderLiveBanner(){
        : (m.a===m.b?'ALL SQUARE':`${m.a>m.b?teamA:teamB} ${Math.abs(m.a-m.b)} UP`);
   } else if(state.live.game==='wolf'){
     const pts=wolfPoints();
-    const me=LIVE.findIndex(p=>p.n==='You');
+    const me=LIVE.findIndex(p=>p.me || p.n==='You');
     const v=me>=0?pts[me]:0;
     st=`WOLF · YOU ${v>=0?'+':''}${v} PTS`;
   }
@@ -2958,8 +2980,9 @@ $('#finishBtn').addEventListener('click',()=>{
 const curMonth=()=>new Date().toLocaleString('en-US',{month:'long'});
 let MONTH_BASE=3;   /* counting rounds already banked before this session (demo seed) */
 function yourMonthCredits(){
+  const meN = state.demo ? DEMO_ME : 'You';
   return MONTH_BASE + feed.reduce((a,f)=>{
-    if(f.sys || f.msg || f.who!=='You') return a;
+    if(f.sys || f.msg || f.who!==meN) return a;
     return a + (f.meta.includes('9 HOLES') ? 0.5 : 1);
   }, 0);
 }
@@ -3063,22 +3086,14 @@ $('#editCard').addEventListener('click', openCardSheet);
 
 /* ================= individual stats (Stats tab) ================= */
 const PLAYERS=[
-  {n:'You',   ci:1, sq:'SND', r:11, avg:0.6,  best:2.9, pts:55, d:-0.3},
-  {n:'Danny', ci:1, sq:'SND', r:12, avg:1.1,  best:2.4, pts:60, d:-0.5},
-  {n:'Sal',   ci:1, sq:'SND', r:9,  avg:0.4,  best:3.4, pts:49, d:-0.2},
-  {n:'Flo',   ci:1, sq:'SND', r:8,  avg:-0.1, best:1.8, pts:43, d:-2.1},
-  {n:'Marcus',ci:0, sq:'MUD', r:12, avg:0.9,  best:3.1, pts:61, d:-0.8},
-  {n:'Ray',   ci:0, sq:'MUD', r:11, avg:0.8,  best:2.2, pts:58, d:0.1},
-  {n:'Gus',   ci:0, sq:'MUD', r:10, avg:0.2,  best:2.0, pts:52, d:-0.4},
-  {n:'Kirby', ci:0, sq:'MUD', r:8,  avg:-0.3, best:1.5, pts:43, d:0.3},
-  {n:'Trey',  ci:2, sq:'SHK', r:13, avg:1.4,  best:4.1, pts:63, d:-1.2},
-  {n:'Otto',  ci:2, sq:'SHK', r:9,  avg:0.1,  best:1.9, pts:46, d:-0.1},
-  {n:'Deej',  ci:2, sq:'SHK', r:14, avg:-0.6, best:1.2, pts:42, d:0.6},
-  {n:'Hutch', ci:2, sq:'SHK', r:7,  avg:-0.9, best:0.8, pts:38, d:-0.7},
-  {n:'Cole',  ci:3, sq:'CPO', r:10, avg:0.5,  best:2.6, pts:52, d:-0.6},
-  {n:'Benny', ci:3, sq:'CPO', r:9,  avg:-0.4, best:1.4, pts:45, d:1.0},
-  {n:'Pete',  ci:3, sq:'CPO', r:8,  avg:-0.7, best:0.9, pts:41, d:0.4},
-  {n:'Ziggy', ci:3, sq:'CPO', r:6,  avg:-1.2, best:0.5, pts:33, d:0.2},
+  /* squad sums + ADJ reconcile with teams[]: MUD 226+15=241 · SND 206+15−5=216 */
+  {n:'Jerecho', me:true, ci:0, sq:'MUD', r:11, avg:0.6,  best:2.9, pts:61, d:-0.3},
+  {n:'Logan',   ci:0, sq:'MUD', r:14, avg:1.1,  best:3.4, pts:63, d:-0.8},
+  {n:'Metz',    ci:0, sq:'MUD', r:9,  avg:0.4,  best:2.2, pts:55, d:-1.4},
+  {n:'Blake',   ci:0, sq:'MUD', r:8,  avg:-0.3, best:1.5, pts:47, d:0.3},
+  {n:'Ed',      ci:1, sq:'SND', r:13, avg:1.3,  best:4.1, pts:75, d:-1.1},
+  {n:'Mitch',   ci:1, sq:'SND', r:11, avg:0.8,  best:2.6, pts:70, d:-0.5},
+  {n:'Garrett', ci:1, sq:'SND', r:9,  avg:-0.9, best:0.8, pts:61, d:0.6},
 ];
 function renderIndStats(){
   if(!state.demo){ renderIndStatsReal(); return; }
@@ -3091,7 +3106,7 @@ function renderIndStats(){
     return {...p, pts, r, avg, best};
   }).sort((a,b)=>b.pts-a.pts || b.avg-a.avg);
 
-  const me=rows.find(p=>p.n==='You');
+  const me=rows.find(p=>p.me) || rows.find(p=>p.n==='You') || rows[0];
   $('#msR').textContent=me.r;
   $('#msAvg').textContent=(me.avg>=0?'+':'')+me.avg.toFixed(1);
   $('#msBest').textContent='+'+me.best.toFixed(1);
@@ -3106,7 +3121,7 @@ function renderIndStats(){
 
   let html=`<tr><th></th><th>Player</th><th class="num">R</th><th class="num">Avg PvI</th><th class="num">Pts</th></tr>`;
   rows.forEach((p,i)=>{
-    html+=`<tr class="tap" data-pl="${p.n}"${p.n==='You'?' style="background:var(--bg2)"':''}>
+    html+=`<tr class="tap" data-pl="${p.n}"${(p.me||p.n==='You')?' style="background:var(--bg2)"':''}>
       <td class="rk mono">${String(i+1).padStart(2,'0')}</td>
       <td><div style="display:flex;align-items:center;gap:10px"><span class="sw" style="background:${SQHEX[p.ci]}"></span><div><div class="tn">${p.n}</div><div class="tc">${p.sq}</div></div></div></td>
       <td class="num" style="font-family:var(--mono);font-size:12px">${p.r}</td>
@@ -3139,14 +3154,16 @@ function renderIndStatsReal(){
   $('#msDelta').textContent = me && me.d!=null && Math.abs(me.d)>=0.05
     ? (me.d<0?'▼ ':'▲ ')+Math.abs(me.d).toFixed(1) : '—';
 
+  /* award tiles are narrow — first names only, so the row never wraps */
+  const fn=n=>(n||'—').trim().split(/\s+/)[0];
   const king=rows[0];
   const iron=[...rows].sort((a,b)=>b.r-a.r)[0];
   const movers=rows.filter(p=>p.d!=null && p.d<-0.04).sort((a,b)=>a.d-b.d);
-  $('#awKing').textContent=king.pts>0?king.n:'—';
+  $('#awKing').textContent=king.pts>0?fn(king.n):'—';
   $('#awKingS').textContent='Points King'+(king.pts>0?' · '+king.pts+' pts':'');
-  if(movers.length){ $('#awImp').textContent=movers[0].n; $('#awImpS').textContent='Most Improved · ▼'+Math.abs(movers[0].d).toFixed(1); }
+  if(movers.length){ $('#awImp').textContent=fn(movers[0].n); $('#awImpS').textContent='Most Improved · ▼'+Math.abs(movers[0].d).toFixed(1); }
   else { $('#awImp').textContent='—'; $('#awImpS').textContent='Most Improved · needs 2+ rounds'; }
-  $('#awIron').textContent=iron.r>0?iron.n:'—';
+  $('#awIron').textContent=iron.r>0?fn(iron.n):'—';
   $('#awIronS').textContent='Iron Man'+(iron.r>0?' · '+iron.r+' rds':'');
 
   let html=`<tr><th></th><th>Player</th><th class="num">R</th><th class="num">Avg PvI</th><th class="num">Pts</th></tr>`;
@@ -3177,8 +3194,7 @@ const SQABBR=['MUD','SND','SHK','CPO'];
 const ADJ = [   /* demo adjustments — mirrors season_adjustments (migration 003) */
   {sq:'Sandbaggers', month:M3[1], kind:'matchup_bonus', pts:15, why:'Monthly head-to-head winner'},
   {sq:'Mudsharks',   month:M3[0], kind:'matchup_bonus', pts:15, why:'Monthly head-to-head winner'},
-  {sq:'Cart Path Only', month:M3[1], kind:'floor_penalty', pts:-5, who:'Ziggy', why:'Floor 2/mo — posted 1'},
-  {sq:'Shankopotamus', month:M3[0], kind:'floor_penalty', pts:-5, who:'Hutch', why:'Floor 2/mo — posted 1'},
+  {sq:'Sandbaggers', month:M3[0], kind:'floor_penalty', pts:-5, who:'Garrett', why:'Floor 2/mo — posted 1'},
 ];
 /* demo round history — the receipts behind each player's number */
 const HIST = {};
@@ -3572,9 +3588,9 @@ function renderCalendar(){
           <span class="num">${window.mkr?.(sr.marker||'saguaro')||'⛳'}</span>
           <div class="tt"><b>${sr.mine?'You':sr.display_name}${sr.tagged_me?' · <span style="color:var(--gold)">YOU’RE IN</span>':(sr.shared_league&&!sr.mine?' · <span style="color:var(--gold)">LEAGUE MATE</span>':(sr.is_friend&&!sr.mine?' · <span style="color:var(--mut)">BUDDY</span>':''))}</b>
           <small>${DOW[d.getDay()].toUpperCase()} ${MOS[d.getMonth()].toUpperCase()} ${d.getDate()}${sr.course_label?' · '+sr.course_label.toUpperCase():''}${withTxt}${sr.note?' · “'+sr.note+'”':''}</small></div>
-          <span style="display:flex; gap:8px; align-items:center; flex:none">
+          <span style="display:flex; gap:6px; align-items:center; flex:none">
             <b class="mono" style="font-size:10px; color:var(--mut); letter-spacing:.06em">${when}</b>
-            ${sr.mine?`<button class="mini" data-scratch="${sr.id}">✕</button>`:''}
+            ${sr.mine?`<button class="mini" data-retag="${sr.id}" title="Tag your group">＋</button><button class="mini" data-scratch="${sr.id}">✕</button>`:''}
           </span>
         </div>`;
       }).join('');
@@ -4906,14 +4922,9 @@ async function loadLeagueSpans(){
   } catch(e){ console.warn('[spans]', e); window.leagueSpans = []; }
 }
 
-/* "Put a round on the books" — date + course + note + your group.
-   Tag candidates = accepted buddies + current-league mates; the RPC
-   re-validates server-side (never trust the chip list). */
-document.getElementById('calDeclare')?.addEventListener('click', async () => {
-  if(state.demo || !CS.user){ toast('Sign in to put rounds on the books'); return; }
-  const d = new Date(); d.setDate(d.getDate() + ((6 - d.getDay() + 7) % 7 || 7)); /* next Saturday */
-  const iso = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
-  /* gather taggable golfers: buddies + league mates, deduped, minus me */
+/* tag candidates = accepted buddies + current-league mates, deduped, minus
+   me. The RPCs re-validate server-side (never trust the chip list). */
+async function gatherTagCandidates(){
   const cand = new Map();
   try {
     const { data } = await sb.rpc('my_friends');
@@ -4924,9 +4935,34 @@ document.getElementById('calDeclare')?.addEventListener('click', async () => {
     if(m.profile_id && m.profile_id !== CS.user.id && !cand.has(m.profile_id))
       cand.set(m.profile_id, { name: m.profile?.display_name || '—', mk: m.profile?.marker });
   });
+  return cand;
+}
+const tagChipHtml = (cand, attr) => [...cand.entries()].map(([pid, c]) =>
+  `<button class="mini" data-${attr}="${pid}" style="margin:0 6px 6px 0">${mkr(c.mk || 'saguaro')} ${c.name}</button>`).join('');
+function bindTagChips(attr, tagged){
+  document.querySelectorAll(`[data-${attr}]`).forEach(b => {
+    const pid = b.dataset[attr==='drtag'?'drtag':'rttag'];
+    const paint = () => { const on = tagged.has(pid);
+      b.style.borderColor = on ? 'var(--pos)' : ''; b.style.color = on ? 'var(--pos)' : ''; };
+    paint();
+    b.addEventListener('click', () => {
+      if(tagged.has(pid)) tagged.delete(pid);
+      else if(tagged.size >= 7){ toast('Seven tags max — it’s golf, not a scramble league'); return; }
+      else tagged.add(pid);
+      paint();
+      const n = document.getElementById('drTagN'); if(n) n.textContent = tagged.size;
+    });
+  });
+}
+
+/* "Put a round on the books" — date + course + note + your group */
+document.getElementById('calDeclare')?.addEventListener('click', async () => {
+  if(state.demo || !CS.user){ toast('Sign in to put rounds on the books'); return; }
+  const d = new Date(); d.setDate(d.getDate() + ((6 - d.getDay() + 7) % 7 || 7)); /* next Saturday */
+  const iso = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+  const cand = await gatherTagCandidates();
   const tagged = new Set();
-  const chips = [...cand.entries()].map(([pid, c]) =>
-    `<button class="mini" data-drtag="${pid}" style="margin:0 6px 6px 0">${mkr(c.mk || 'saguaro')} ${c.name}</button>`).join('');
+  const chips = tagChipHtml(cand, 'drtag');
   openSheet('Put a round on the books', 'BUDDIES & LEAGUE MATES SEE IT THE MOMENT YOU POST',
     `<label class="f">Day</label><input class="f" id="drDate" type="date" value="${iso}">
      <label class="f" style="margin-top:10px; display:block">Course</label>
@@ -4934,16 +4970,11 @@ document.getElementById('calDeclare')?.addEventListener('click', async () => {
      <label class="f" style="margin-top:10px; display:block">Note · optional</label>
      <input class="f" id="drNote" maxlength="140" placeholder="buddies trip — looking for a 4th" style="font-family:var(--sans)">
      ${chips ? `<label class="f" style="margin-top:12px; display:block">Tag your group · <span id="drTagN">0</span> tagged</label>
-     <div style="margin-top:8px">${chips}</div>` : ''}
+     <div style="margin-top:8px">${chips}</div>`
+     : `<p class="fine" style="padding-top:10px">No one to tag yet — add golf buddies from your profile, or invite the league.</p>`}
      <button class="btn" id="drGo" style="margin-top:14px">On the books</button>
      <p class="fine" style="padding-top:8px">Posts to your leagues' boards — tagged golfers are named. Scratch it any time from the calendar.</p>`);
-  document.querySelectorAll('[data-drtag]').forEach(b => b.addEventListener('click', () => {
-    const pid = b.dataset.drtag;
-    if(tagged.has(pid)){ tagged.delete(pid); b.style.borderColor=''; b.style.color=''; }
-    else if(tagged.size >= 7){ toast('Seven tags max — it’s golf, not a scramble league'); return; }
-    else { tagged.add(pid); b.style.borderColor='var(--pos)'; b.style.color='var(--pos)'; }
-    const n = document.getElementById('drTagN'); if(n) n.textContent = tagged.size;
-  }));
+  bindTagChips('drtag', tagged);
   document.getElementById('drGo').addEventListener('click', async () => {
     const btn = document.getElementById('drGo'); btn.disabled = true;
     try {
@@ -4962,8 +4993,35 @@ document.getElementById('calDeclare')?.addEventListener('click', async () => {
   });
 });
 
-/* scratch your own declared round (list is classic-rendered — delegate) */
+/* retag your own declared round — add the buddy you forgot */
+async function openRetagSheet(id){
+  const sr = (window.mySchedule||[]).find(x => x.id === id);
+  if(!sr) return;
+  const cand = await gatherTagCandidates();
+  const tagged = new Set((sr.tagged||[]).filter(pid => cand.has(pid)));
+  const chips = tagChipHtml(cand, 'rttag');
+  const d = new Date(sr.play_on + 'T00:00:00');
+  openSheet('Tag your group', `${DOW[d.getDay()]} ${MOS[d.getMonth()]} ${d.getDate()}${sr.course_label ? ' · ' + sr.course_label.toUpperCase() : ''}`,
+    (chips || '<p class="fine">No one to tag yet — add golf buddies from your profile.</p>')
+    + `<div style="margin-top:6px"><span class="fine" style="padding:0"><span id="drTagN">${tagged.size}</span> tagged</span></div>
+       <button class="btn" id="rtGo" style="margin-top:14px">Save the group</button>`);
+  bindTagChips('rttag', tagged);
+  document.getElementById('rtGo')?.addEventListener('click', async () => {
+    const btn = document.getElementById('rtGo'); btn.disabled = true;
+    try {
+      const { error } = await sb.rpc('retag_round', { p_id: id, p_tagged: [...tagged] });
+      if(error) throw error;
+      closeSheet();
+      toast('Group updated');
+      loadSchedule();
+    } catch(e){ toast(e.message || String(e)); btn.disabled = false; }
+  });
+}
+
+/* scratch/retag your own declared round (list is classic-rendered — delegate) */
 document.getElementById('calList')?.addEventListener('click', async (e) => {
+  const rt = e.target?.dataset?.retag;
+  if(rt){ openRetagSheet(rt); return; }
   const id = e.target?.dataset?.scratch; if(!id) return;
   e.target.disabled = true;
   try {
