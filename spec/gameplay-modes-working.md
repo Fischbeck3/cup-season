@@ -272,3 +272,39 @@ shippable on existing round machinery + one new schema arc.
    requirement doc
 4. Alternate season engines (Quota) unlock free once live rounds capture
    hole detail (spec §2.5)
+
+---
+
+## 7. Requirements-session decisions (2026-07-12) — promoted to canon
+
+These supersede conflicting lines above and in spec-v1.0; fold into v1.1.
+
+1. **Cadence:** monthly engine (caps/floors/H2H unchanged), **weekly
+   moments** — the events engine crowns weekly winners and writes
+   "won Week 4" headlines off the week snapshots. No competition-window
+   migration.
+2. **Squad formation scales with roster size** (supersedes §15's flat
+   menu). Always available: Pro assign, blind draw. **Captains pick**
+   unlocks when the Pro names N captains (the Ryder mechanic, generalized —
+   right-sized for small leagues and two-team events). **Snake draft**
+   surfaces only for rosters ~12+ (m004 schema ready; async picks, each
+   posted to the board; no pick clock at launch). The wizard offers what
+   fits the roster instead of a format menu.
+3. **The endgame is a bylaw dial:** `finish = points_table | cup_final`.
+   A season may crown the points champion outright, or build to the
+   final-4-weeks Cup Final (§14.3) if the Pro configures it. Migration 008
+   must implement the dial, not assume the Final. (Semifinal brackets:
+   rejected for now.)
+4. **Rounds post instantly** — no approval gate. "Round approved" in the
+   vision doc maps to **attestation** (a buddy vouches → ping), not a Pro
+   queue.
+5. **Hole-by-hole is the default posting UI, not required** (stepper on
+   par; gross-only escape hatch flagged "no hole detail"). Course cards
+   arc pulled forward.
+6. **Monetization: one general membership.** Verified tier dead; GHIN is
+   an optional reference field on the card. Multi-season history is no
+   longer a paid gate.
+7. **Profile: photo optional** (marker fallback), GHIN optional.
+8. **Events engine is the next major arc** — snapshots, deep stats, lead
+   changes, milestones, weekly winners, lifetime rivalry records, curated
+   notifications (replacing all-posts push).
