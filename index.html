@@ -1035,7 +1035,7 @@ input.f::-webkit-outer-spin-button, input.f::-webkit-inner-spin-button{-webkit-a
       <button class="btn dark" id="wOut" style="margin-top:10px">Sign out</button>
       <div class="ob-caption">No code? Any league member can share an invite link. Or peek at a demo season with code <b style="color:var(--mut)">DEMO</b>.</div>
     </div>
-    <div class="ob-caption" id="obCaption">New or returning, email is one door — no passwords. Just looking? Join with code <b style="color:var(--mut)">DEMO</b>. <span style="opacity:.5">v23.50</span></div>
+    <div class="ob-caption" id="obCaption">New or returning, email is one door — no passwords. Just looking? Join with code <b style="color:var(--mut)">DEMO</b>. <span style="opacity:.5">v23.51</span></div>
   </div>
   <div class="ob-splash" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
   
@@ -3036,17 +3036,34 @@ const CS = { user:null, memberships:[], league:null, member:null };
 window.CS = CS;
 window.sb = sb;
 
-/* DIAGNOSTIC (remove after realtime confirmed): raw WebSocket probe --
-   separates machine/network blocking from library behavior. HTTPS working
-   while WS dies = AV TLS interception / middlebox signature. */
-setTimeout(() => {
+/* DIAGNOSTIC (remove after realtime confirmed): library-channel probes ON
+   THIS MACHINE -- A: anon client, B: same with the real session token.
+   Raw socket already proven CONNECTED here; these two isolate the library
+   join vs the auth token. */
+setTimeout(async () => {
+  const FAKE = 'league_id=eq.00000000-0000-4000-8000-000000000000';
+  const shape = (c, name) => c.channel(name).on('postgres_changes',
+    { event:'INSERT', schema:'public', table:'posts', filter: FAKE }, ()=>{});
+  const run = (c, name) => new Promise(r => {
+    const t = setTimeout(() => r(name + ' TIMEOUT'), 8000);
+    shape(c, name).subscribe((st, e) => {
+      if(st === 'SUBSCRIBED'){ clearTimeout(t); r(name + ' SUBSCRIBED'); }
+      else if(st !== 'CLOSED'){ clearTimeout(t); r(name + ' ' + st + ' ' + (e?.message || '')); }
+    });
+  });
   try {
-    const ws = new WebSocket(SUPABASE_URL.replace('https', 'wss') + '/realtime/v1/websocket?apikey=' + SUPABASE_KEY + '&vsn=1.0.0');
-    const t = setTimeout(() => { try{ws.close();}catch(_){} toast('raw socket: TIMEOUT'); }, 8000);
-    ws.onopen = () => { clearTimeout(t); toast('raw socket: CONNECTED'); setTimeout(() => ws.close(), 100); };
-    ws.onclose = (e) => { clearTimeout(t); if(!e.wasClean && e.code !== 1000) toast('raw socket: FAILED code ' + e.code); };
-  } catch(e){ toast('raw socket: EXCEPTION -- ' + e.message); }
-}, 2500);
+    const probe = createClient(SUPABASE_URL, SUPABASE_KEY,
+      { auth: { persistSession:false, autoRefreshToken:false, lock:(_n,_t,fn)=>fn() } });
+    const a = await run(probe, 'diag-a');
+    toast('probe ' + a); console.log('[probe]', a);
+    const { data:{ session } } = await sb.auth.getSession();
+    if(session){
+      probe.realtime.setAuth(session.access_token);
+      const b = await run(probe, 'diag-b');
+      setTimeout(() => { toast('probe ' + b); console.log('[probe]', b); }, 2500);
+    }
+  } catch(e){ toast('probe EXC ' + e.message); }
+}, 4000);
 
 const codeFor = name => (name.replace(/[^a-zA-Z]/g,'').toUpperCase().slice(0,4) || 'CUP')
   + Math.random().toString(36).slice(2,6).toUpperCase();
