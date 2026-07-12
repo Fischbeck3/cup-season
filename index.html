@@ -912,6 +912,15 @@ input.f::-webkit-outer-spin-button, input.f::-webkit-inner-spin-button{-webkit-a
 .joinbox .btn{width:auto; padding:0 22px; margin:0;}
 
 
+
+/* ---- adaptive shell (v23.55): one shell, league or not ---- */
+body.noleague #view-home > *:not(#homeLeagueless){display:none !important;}
+body.noleague #view-hub  > *:not(#hubLeagueless){display:none !important;}
+body:not(.noleague) #homeLeagueless,
+body:not(.noleague) #hubLeagueless{display:none;}
+#boardCard .composer{position:static; background:none; padding:10px 0 2px;}
+#homeLeagueless .card, #hubLeagueless .btn{text-align:left;}
+#hubLeagueless .btn{width:100%;}
 </style>
 </head>
 <body>
@@ -999,7 +1008,60 @@ input.f::-webkit-outer-spin-button, input.f::-webkit-inner-spin-button{-webkit-a
         <h1 style="font-size:30px">Your <em>clubhouse.</em></h1>
         <p id="obWelcomeWho" style="margin-top:10px"></p>
       </div>
-      <div class="card" id="wCard" style="margin-bottom:14px; text-align:left;">
+            
+    </div>
+    <div class="ob-caption" id="obCaption">New or returning, email is one door — no passwords. Just looking? Join with code <b style="color:var(--mut)">DEMO</b>. <span style="opacity:.5">v23.55</span></div>
+  </div>
+  <div class="ob-splash" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
+  
+</div>
+
+<div class="shell">
+
+  <!-- ============ SIDEBAR (desktop) ============ -->
+  <aside class="side">
+    <div class="brand">
+      <div class="mk">
+        <svg viewBox="0 0 100 100"><polyline points="16,70 36,52 52,60 84,28" fill="none" stroke="#43E07C" stroke-width="10" stroke-linecap="round" stroke-linejoin="round"/><circle cx="84" cy="28" r="8" fill="#43E07C"/></svg>
+      </div>
+      <div><b>Cup Season</b><small>Season III</small></div>
+    </div>
+    <button class="navitem active" data-v="home">
+      <svg viewBox="0 0 24 24"><path d="M4 11.5 12 4l8 7.5"/><path d="M6 10v10h12V10"/></svg> Home
+    </button>
+    <button class="navitem" data-v="record">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.6"/><path d="M12 8.2v7.6M8.2 12h7.6"/></svg> Post a round
+    </button>
+    <button class="navitem" data-v="hub">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="2.9"/><path d="M12 3.6v2.2M12 18.2v2.2M3.6 12h2.2M18.2 12h2.2M6.1 6.1l1.6 1.6M16.3 16.3l1.6 1.6M17.9 6.1l-1.6 1.6M7.7 16.3l-1.6 1.6"/></svg> League
+    </button>
+    <button class="navitem" data-v="stats">
+      <svg viewBox="0 0 24 24"><path d="M5 20V11M12 20V4M19 20v-7"/></svg> You
+    </button>
+    <div class="foot">
+      <div class="lg" id="sideLeague">The Sunday Cup</div>
+      <div class="sm">16 Joes · 4 squads</div>
+    </div>
+  </aside>
+
+  <!-- ============ MAIN ============ -->
+  <div class="main">
+    <header class="hdr">
+      <div class="hdr-in">
+        <div class="title">
+          <h1 id="leagueName">The Sunday Cup</h1>
+          <div class="sub" id="phaseSub">Wk 18 / 36 · Hybrid · Standard rules</div>
+        </div>
+        <div class="who mono" id="whoChip" role="button" aria-label="Your profile" style="cursor:pointer">MJ</div>
+      </div>
+    </header>
+
+    <div class="wrap">
+
+      <!-- HOME -->
+      <section class="view active" id="view-home">
+        <div id="homeLeagueless">
+          <div class="card" id="wCard" style="margin-bottom:14px; text-align:left;">
         <div style="display:flex; align-items:center; gap:10px;">
           <span id="wMk" style="color:var(--pos)"></span>
           <div><b id="wName" style="font-size:16px"></b><div class="fine" id="wMeta" style="padding:0"></div></div>
@@ -1028,70 +1090,19 @@ input.f::-webkit-outer-spin-button, input.f::-webkit-inner-spin-button{-webkit-a
         </div>
         <div class="fine" style="padding:6px 0 0">Tee up buddies and guests — match play, Wolf, skins. Scored live, posted once.</div>
       </div>
-      <div class="eyebrow" style="text-align:left; margin:18px 0 8px">League play — cup season</div>
-      <button class="btn" id="wCreate">Start a league</button>
-      <button class="btn dark" id="wJoin" style="margin-top:10px">I have an invite code</button>
-      <div class="joinbox" id="wJoinBox">
-        <input id="wCode" placeholder="CUP-CODE" autocomplete="off">
-        <button class="btn" id="wCodeGo">Join</button>
-      </div>
-      <button class="btn dark" id="wFind" style="margin-top:10px">Find golfers</button>
-      <button class="btn dark" id="wOut" style="margin-top:10px">Sign out</button>
-      <div class="ob-caption">No code? Any league member can share an invite link. Or peek at a demo season with code <b style="color:var(--mut)">DEMO</b>.</div>
-    </div>
-    <div class="ob-caption" id="obCaption">New or returning, email is one door — no passwords. Just looking? Join with code <b style="color:var(--mut)">DEMO</b>. <span style="opacity:.5">v23.54</span></div>
-  </div>
-  <div class="ob-splash" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
-  
-</div>
-
-<div class="shell">
-
-  <!-- ============ SIDEBAR (desktop) ============ -->
-  <aside class="side">
-    <div class="brand">
-      <div class="mk">
-        <svg viewBox="0 0 100 100"><polyline points="16,70 36,52 52,60 84,28" fill="none" stroke="#43E07C" stroke-width="10" stroke-linecap="round" stroke-linejoin="round"/><circle cx="84" cy="28" r="8" fill="#43E07C"/></svg>
-      </div>
-      <div><b>Cup Season</b><small>Season III</small></div>
-    </div>
-    <button class="navitem active" data-v="home">
-      <svg viewBox="0 0 24 24"><path d="M4 11.5 12 4l8 7.5"/><path d="M6 10v10h12V10"/></svg> Home
-    </button>
-    <button class="navitem" data-v="feed">
-      <svg viewBox="0 0 24 24"><path d="M20 12.5c0 3.6-3.6 6.5-8 6.5-1 0-2-.15-2.9-.42L4.5 20l1.2-3.1C4.6 15.7 4 14.2 4 12.5 4 8.9 7.6 6 12 6s8 2.9 8 6.5z"/></svg> Feed
-    </button>
-    <button class="navitem" data-v="record">
-      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.6"/><path d="M12 8.2v7.6M8.2 12h7.6"/></svg> Record a round
-    </button>
-    <button class="navitem" data-v="stats">
-      <svg viewBox="0 0 24 24"><path d="M5 20V11M12 20V4M19 20v-7"/></svg> Stats
-    </button>
-    <button class="navitem" data-v="hub">
-      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="2.9"/><path d="M12 3.6v2.2M12 18.2v2.2M3.6 12h2.2M18.2 12h2.2M6.1 6.1l1.6 1.6M16.3 16.3l1.6 1.6M17.9 6.1l-1.6 1.6M7.7 16.3l-1.6 1.6"/></svg> League
-    </button>
-    <div class="foot">
-      <div class="lg" id="sideLeague">The Sunday Cup</div>
-      <div class="sm">16 Joes · 4 squads</div>
-    </div>
-  </aside>
-
-  <!-- ============ MAIN ============ -->
-  <div class="main">
-    <header class="hdr">
-      <div class="hdr-in">
-        <div class="title">
-          <h1 id="leagueName">The Sunday Cup</h1>
-          <div class="sub" id="phaseSub">Wk 18 / 36 · Hybrid · Standard rules</div>
+<div style="display:flex; gap:8px; margin-bottom:14px;">
+            <button class="mini" id="hlLeague">Start or join a league</button>
+            <button class="mini" id="hlFind">Find golfers</button>
+          </div>
         </div>
-        <div class="who mono" id="whoChip" role="button" aria-label="Your profile" style="cursor:pointer">MJ</div>
-      </div>
-    </header>
-
-    <div class="wrap">
-
-      <!-- HOME -->
-      <section class="view active" id="view-home">
+        <div class="card league-only" id="boardCard" style="margin-bottom:14px; text-align:left;">
+          <div class="eyebrow" style="margin-top:0">The board · rounds land here automatically</div>
+          <div id="feedList" style="max-height:52vh; overflow-y:auto;"></div>
+          <div class="composer">
+            <input class="f" id="chatIn" placeholder="Message the league…">
+            <button class="btn" id="chatSend">Send</button>
+          </div>
+        </div>
 
         <div id="homeSetup" style="display:none">
           <div class="eyebrow">League setup · three steps to first tee</div>
@@ -1161,17 +1172,22 @@ input.f::-webkit-outer-spin-button, input.f::-webkit-inner-spin-button{-webkit-a
       </section>
 
       <!-- FEED -->
-      <section class="view" id="view-feed">
-        <div class="eyebrow">League board · rounds land here automatically</div>
-        <div id="feedList"></div>
-        <div class="composer">
-          <input class="f" id="chatIn" placeholder="Message the league…">
-          <button class="btn" id="chatSend">Send</button>
-        </div>
-      </section>
+
 
       <!-- STATS -->
       <section class="view" id="view-stats">
+        <div class="card" id="youCard" style="margin-bottom:14px; text-align:left;">
+          <div style="display:flex; align-items:center; gap:10px;">
+            <span id="youMk" style="color:var(--pos)"></span>
+            <div><b id="youName" style="font-size:16px">Your card</b><div class="fine" id="youMeta" style="padding:0"></div></div>
+            <div style="margin-left:auto; text-align:right"><div class="fine" style="padding:0">INDEX</div><b id="youIdx" class="mono" style="font-size:18px">—</b></div>
+            <button class="mini" id="youProfile" style="margin-left:10px">Profile</button>
+          </div>
+        </div>
+        <div class="card" style="margin-bottom:14px; text-align:left; opacity:.75">
+          <div style="display:flex; align-items:center; gap:8px;"><b style="font-size:14px">Trophy case</b><span class="soon">SOON</span></div>
+          <div class="fine" style="padding:6px 0 0">Weekly awards, milestones, streaks and rivalry records land with the events engine.</div>
+        </div>
         <div class="eyebrow">Your season</div>
         <div class="stats">
           <div class="stat"><div class="k">Rounds posted</div><div class="v" id="msR">11</div><div class="d fl">Season III</div></div>
@@ -1506,7 +1522,19 @@ input.f::-webkit-outer-spin-button, input.f::-webkit-inner-spin-button{-webkit-a
 
       <!-- LEAGUE HUB -->
       <section class="view" id="view-hub">
-        <div class="eyebrow">The bylaws · locked at first tee</div>
+        <div id="hubLeagueless">
+          <div class="eyebrow" style="margin-top:0">League play — cup season</div>
+          <button class="btn" id="wCreate">Start a league</button>
+      <button class="btn dark" id="wJoin" style="margin-top:10px">I have an invite code</button>
+      <div class="joinbox" id="wJoinBox">
+        <input id="wCode" placeholder="CUP-CODE" autocomplete="off">
+        <button class="btn" id="wCodeGo">Join</button>
+      </div>
+      <button class="btn dark" id="wFind" style="margin-top:10px">Find golfers</button>
+      <button class="btn dark" id="wOut" style="margin-top:10px">Sign out</button>
+      <div class="ob-caption">No code? Any league member can share an invite link. Or peek at a demo season with code <b style="color:var(--mut)">DEMO</b>.</div>
+        </div>
+        <div class="eyebrow league-only">The bylaws · locked at first tee</div>
         <div class="card" id="bylawsHub" style="margin-bottom:14px"></div>
 
         <div class="eyebrow">League</div>
@@ -1545,10 +1573,9 @@ input.f::-webkit-outer-spin-button, input.f::-webkit-inner-spin-button{-webkit-a
 <!-- ============ TAB BAR (mobile) ============ -->
 <nav class="tabbar" aria-label="Sections">
   <button class="tab active" data-v="home"><svg viewBox="0 0 24 24"><path d="M4 11.5 12 4l8 7.5"/><path d="M6 10v10h12V10"/></svg>Home</button>
-  <button class="tab" data-v="feed"><svg viewBox="0 0 24 24"><path d="M20 12.5c0 3.6-3.6 6.5-8 6.5-1 0-2-.15-2.9-.42L4.5 20l1.2-3.1C4.6 15.7 4 14.2 4 12.5 4 8.9 7.6 6 12 6s8 2.9 8 6.5z"/></svg>Feed</button>
-  <button class="tab" data-v="record" aria-label="Record a round"><span class="circ"><svg viewBox="0 0 24 24"><path d="M12 6v12M6 12h12"/></svg></span>Record</button>
-  <button class="tab" data-v="stats"><svg viewBox="0 0 24 24"><path d="M5 20V11M12 20V4M19 20v-7"/></svg>Stats</button>
+  <button class="tab" data-v="record" aria-label="Post a round"><span class="circ"><svg viewBox="0 0 24 24"><path d="M12 6v12M6 12h12"/></svg></span>Post</button>
   <button class="tab" data-v="hub"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="2.9"/><path d="M12 3.6v2.2M12 18.2v2.2M3.6 12h2.2M18.2 12h2.2M6.1 6.1l1.6 1.6M16.3 16.3l1.6 1.6M17.9 6.1l-1.6 1.6M7.7 16.3l-1.6 1.6"/></svg>League</button>
+  <button class="tab" data-v="stats"><svg viewBox="0 0 24 24"><path d="M5 20V11M12 20V4M19 20v-7"/></svg>You</button>
 </nav>
 
 <a id="pilotChip" target="_blank" rel="noopener">PILOT · REPORT A BUG</a>
@@ -1670,6 +1697,7 @@ $('#obApple').addEventListener('click',()=>{toast('Apple sign-in ships with the 
 
 /* ================= nav ================= */
 function switchView(v){
+  if(v==='feed') v='home'; /* v23.55: the board lives on Home */
   if(v==='draft' && state.phase==='setup'){ toast('Lock settings first — the draft opens after setup'); v='wizard'; }
   $$('.tab').forEach(t=>t.classList.toggle('active',t.dataset.v===v));
   $$('.navitem').forEach(t=>t.classList.toggle('active',t.dataset.v===v));
@@ -1832,7 +1860,10 @@ function renderFeed(){
   }));
 }
 function scrollFeedBottom(){
-  requestAnimationFrame(()=>window.scrollTo({top:document.body.scrollHeight}));
+  requestAnimationFrame(()=>{
+    const l=document.getElementById('feedList');
+    if(l) l.scrollTop = l.scrollHeight;
+  });
 }
 $('#chatSend').addEventListener('click',async ()=>{
   const v=$('#chatIn').value.trim(); if(!v)return;
@@ -2039,9 +2070,9 @@ function recalc(){
 $('#postBtn').addEventListener('click', async ()=>{
   if(!state.lastPost){toast('Enter at least one nine first');return;}
   const {pts,vs,label}=state.lastPost;
-  if(!state.demo && window.CS?.league && window.sb){
+  if(!state.demo && window.CS?.user && window.sb){
     const sb=window.sb, CS=window.CS;
-    /* real league: the round is a fact — insert it, the trigger scores the
+    /* real account (league or not): the round is a fact — insert it, the trigger scores the
        differential, the views score the league, the board post fans out */
     const f9=parseFloat($('#inF9').value)||0, b9=parseFloat($('#inB9').value)||0;
     const rating=parseFloat($('#inRating').value), slope=parseInt($('#inSlope').value);
@@ -2060,7 +2091,8 @@ $('#postBtn').addEventListener('click', async ()=>{
       if(error) throw error;
       toast(`Round posted — ~${pts} pts pending the league's math`);
       if(window.loadStandingsAndFeed) await window.loadStandingsAndFeed();
-      switchView('feed'); scrollFeedBottom();
+      if(window.loadRecentRounds) window.loadRecentRounds();
+      switchView('home'); scrollFeedBottom();
     } catch(e){ toast('Post failed: '+(e.message||e)); }
     finally { btn.disabled=false; }
     return;
@@ -2070,7 +2102,7 @@ $('#postBtn').addEventListener('click', async ()=>{
   if(snd) snd.pts+=pts;   /* pre-draft real league: no squads yet */
   teams.sort((a,b)=>b.pts-a.pts);
   renderChart(); renderStandings(); renderFeed(); renderStats(); renderIndStats();
-  switchView('feed'); scrollFeedBottom();
+  switchView('home'); scrollFeedBottom();
   toast(`Round posted — +${pts} pts to Sandbaggers`);
 });
 
@@ -2515,7 +2547,7 @@ $('#finishBtn').addEventListener('click',()=>{
   state.live.active=false; state.live.stage='setup';
   teams.sort((a,b)=>b.pts-a.pts);
   renderChart(); renderStandings(); renderFeed(); renderPlay(); renderStats(); renderIndStats();
-  switchView('feed'); scrollFeedBottom();
+  switchView('home'); scrollFeedBottom();
   toast(posted+' rounds posted & attested'+(guests.length?` — recap texted to ${guests.join(' & ')} with an app invite`:''));
   switchView('home');
 });
@@ -3142,6 +3174,13 @@ const initialsOf = n => ((n||'').trim().split(/\s+/).map(w => w[0]).join('').sli
 function refreshWhoChip(){
   const el = $('#whoChip');
   if(el && CS.profile?.display_name) el.textContent = initialsOf(CS.profile.display_name);
+  const p = CS.profile; if(!p) return;
+  if($('#youName')) $('#youName').textContent = p.display_name || 'Your card';
+  if($('#youMeta')) $('#youMeta').textContent =
+    [p.handle ? '@'+p.handle : null, p.city, p.home_course].filter(Boolean).join(' · ');
+  if($('#youIdx')) $('#youIdx').textContent =
+    p.index_current != null ? Number(p.index_current).toFixed(1) : '—';
+  if($('#youMk')) $('#youMk').innerHTML = mkr(p.marker || 'saguaro');
 }
 let phMarker = null;
 function renderPhMarkers(){
@@ -3352,6 +3391,10 @@ function openProfileHub(){
 }
 $('#whoChip').addEventListener('click', openProfileHub);
 $('#wFind').addEventListener('click', openProfileHub);
+$('#youProfile')?.addEventListener('click', openProfileHub);
+$('#hlFind')?.addEventListener('click', openProfileHub);
+$('#hlLeague')?.addEventListener('click', () => switchView('hub'));
+window.loadRecentRounds = loadRecentRounds;
 
 /* ---------- invite links: share sheet over the league code ---------- */
 async function shareInvite(){
@@ -3519,6 +3562,7 @@ function applyBylaws(b){
 
 /* ---------- enter a league ---------- */
 async function enterLeague(m){
+  document.body.classList.remove('noleague');
   CS.league = m.league;
   CS.member = { id:m.id, role:m.role, index:m.index_current };
   state.myIndex = Number(m.index_current);
@@ -3925,6 +3969,7 @@ $('#joinGo').addEventListener('click', async () => {
   const code = $('#joinCode').value.trim().toUpperCase();
   if(!code) return toast('Enter the league code');
   if(code==='DEMO'){
+    document.body.classList.remove('noleague');
     enterApp(); state.phase='season'; renderPhase(); switchView('home');
     toast('Demo league — The Sunday Cup. Nothing here saves.');
     return;
@@ -3975,27 +4020,19 @@ $('#leagueName').addEventListener('click', async () => {
 
 /* ---------- welcome fork: signed in, no league yet ---------- */
 function showWelcome(){
-  $('#obDoor').style.display = 'none';
-  $('#emailbox').classList.remove('open');
-  $('#codebox').classList.remove('open');
-  $('#joinbox').classList.remove('open');
-  /* force-visible: entrance animations leave revealed content at opacity 0 */
-  const w = $('#obWelcome');
-  if(w){
-    w.style.display = 'block';
-    [w, ...w.querySelectorAll('*')].forEach(el => {
-      el.style.animation = 'none'; el.style.opacity = '1'; el.style.transform = 'none';
-    });
-  }
-  const cap = $('#obCaption');
-  if(cap){ cap.style.animation='none'; cap.style.opacity='1'; }
-  authStatus('');
-  $('#obCaption').style.display = 'none';
-  $('#obWelcome').style.display = 'block';
-  $('#obWelcomeWho').textContent =
-    `Signed in as ${CS.user.email}. Nobody has added this address to a league yet.`;
-  document.querySelector('.onboard .ob-hero').style.display = 'none';
+  /* v23.55 adaptive shell: league-less golfers enter the SAME app, no foyer */
+  document.body.classList.add('noleague');
+  CS.league = null;
+  state.demo = false;
+  state.phase = 'season'; /* keep routing away from wizard/draft */
+  $('#leagueName').textContent = 'Cup Season';
+  $('#phaseSub').textContent = 'No league yet — your golf still counts';
+  const sl = $('#sideLeague'); if(sl) sl.textContent = 'Your clubhouse';
   fillWelcomeCard();
+  loadRecentRounds();
+  loadCourseMemory();
+  enterApp();
+  switchView('home');
 }
 function hideWelcome(){
   $('#obWelcome').style.display = 'none';
@@ -4014,6 +4051,7 @@ $('#wCodeGo').addEventListener('click', async () => {
   const code = $('#wCode').value.trim().toUpperCase();
   if(!code) return toast('Enter the league code');
   if(code==='DEMO'){
+    document.body.classList.remove('noleague');
     enterApp(); state.phase='season'; renderPhase(); switchView('home');
     toast('Demo league — The Sunday Cup. Nothing here saves.');
     return;
