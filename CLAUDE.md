@@ -146,11 +146,16 @@ real), live rounds & side games (Wolf), attestation taps.
 11. Open spec question: hybrid +15 in partial edge months (§14.0 waives floors
     only — decide in spec v1.1).
 
-## Roadmap tiers (spec §11, §15)
+## Monetization (REVISED 2026-07-12 — supersedes spec §6/§11 tiers)
 
-Free covers full seasons. Commissioner Pro ($40/season): custom dials, live
-draft w/ clock (snake + live draft are schema-ready, UI retired to roadmap),
-trades, multi-season history. Verified League ($12/player): GHIN integrity
-layer — additive by design, app-computed index is the permanent fallback.
-Never resell the Handicap Index (the TheGrint lesson). Clubs/B2B deferred
-until two real leagues ask to play each other (§17).
+**One general membership.** The Verified League tier is DEAD; GHIN is an
+optional reference field on the golfer card, never a paid verification
+product. A "Pro" layer for advanced features may come later — until decided,
+assume a single catch-all subscription. Never resell the Handicap Index
+(the TheGrint lesson). Clubs/B2B deferred until two real leagues ask to
+play each other (§17).
+
+**Product canon:** `spec/product-vision-v1.0.md` (the five principles, the
+five-question filter, the Cup Season Test) governs feature decisions
+alongside spec-v1.0. `spec/gameplay-modes-working.md` holds the mode designs
+with ⚑ decision flags.
