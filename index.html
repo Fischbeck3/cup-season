@@ -1111,7 +1111,7 @@ body::before{
       </div>
             
     </div>
-    <div class="ob-caption" id="obCaption">New or returning, email is one door — no passwords. Just looking? Join with code <b style="color:var(--mut)">DEMO</b>. <span style="opacity:.5">v23.56</span></div>
+    <div class="ob-caption" id="obCaption">New or returning, email is one door — no passwords. Just looking? Join with code <b style="color:var(--mut)">DEMO</b>. <span style="opacity:.5">v23.57</span></div>
   </div>
   <div class="ob-splash" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
   
@@ -1527,6 +1527,9 @@ body::before{
             <div style="height:14px"></div>
             <label class="f" for="commishEmail">Pro — you</label>
             <input class="f" id="commishEmail" type="email" value="you@cupseason.app" autocomplete="off" style="font-family:var(--sans);">
+            <div style="height:14px"></div>
+            <label class="f">Your buddies · one tap adds them</label>
+            <div id="wzBuddies" style="margin-top:8px"></div>
             <div style="height:14px"></div>
             <label class="f">Player invites · <span id="slotNote">0 of 3 filled</span></label>
             <div id="emailSlots" style="margin-top:8px"></div>
@@ -2184,7 +2187,7 @@ $('#postBtn').addEventListener('click', async ()=>{
         gross: nine ? (f9||b9) : f9+b9,
         rating,
         nine_rating: nine ? rating/2 : null,
-        slope, holes_played: nine ? 9 : 18, source: 'app',
+        slope, holes_played: nine ? 9 : 18, source: 'quick',
         played_on: $('#inDate').value || null,
         course_label: $('#inCourse').value.trim() || null,
         season_id: CS.season?.id || null,
@@ -3497,6 +3500,39 @@ $('#hlFind')?.addEventListener('click', openProfileHub);
 $('#hlLeague')?.addEventListener('click', () => switchView('hub'));
 window.loadRecentRounds = loadRecentRounds;
 
+/* ---------- wizard: one-tap buddy adds (before email invites) ---------- */
+async function renderWizardBuddies(){
+  const box = $('#wzBuddies');
+  if(!box || !CS.league || state.demo) return;
+  const { data, error } = await sb.rpc('my_friends');
+  if(error){ box.innerHTML = ''; return; }
+  const friends = (data || []).filter(f => f.status === 'accepted');
+  if(!friends.length){
+    box.innerHTML = '<p class="fine" style="padding:0">No golf buddies yet — find golfers from the You tab, or invite below by email.</p>';
+    return;
+  }
+  box.innerHTML = friends.map(f => `
+    <div class="byrow" style="align-items:center; gap:8px;">
+      <span>${mkr(f.marker || 'saguaro')} ${esc(f.display_name || '—')}
+        <span class="fine" style="padding:0">@${esc(f.handle || '?')}</span></span>
+      <button class="mini" data-wzadd="${f.profile_id}">Add</button>
+    </div>`).join('');
+  box.querySelectorAll('[data-wzadd]').forEach(b => b.addEventListener('click', async () => {
+    b.disabled = true;
+    const { error: ae } = await sb.rpc('add_friend_to_league',
+      { p_league: CS.league.id, p_profile: b.dataset.wzadd });
+    if(ae){
+      toast(ae.message);
+      if(!/Already/.test(ae.message)) b.disabled = false;
+      else b.outerHTML = '<b class="fine" style="padding:0">IN ✓</b>';
+      return;
+    }
+    b.outerHTML = '<b class="fine" style="padding:0">IN ✓</b>';
+    toast('Added — their pocket just buzzed');
+    loadLeagueData();
+  }));
+}
+
 /* ---------- invite links: share sheet over the league code ---------- */
 async function shareInvite(){
   const code = CS.league?.code;
@@ -3610,7 +3646,7 @@ $('#wPostGo').addEventListener('click', async () => {
   const btn = $('#wPostGo'); btn.disabled = true;
   try {
     const { error } = await sb.from('rounds').insert({
-      gross, rating, slope, holes_played: 18, source: 'app',
+      gross, rating, slope, holes_played: 18, source: 'quick',
       played_on: $('#wDate').value || null,
       course_label: $('#wCourse').value.trim() || null,
     });
@@ -3729,6 +3765,7 @@ async function loadLeagueData(){
   }
   await loadStandingsAndFeed(); /* board is league-scoped — load it pre-season too */
   renderFormation();
+  if(CS.league?.phase === 'setup' || state.phase === 'setup') renderWizardBuddies();
 }
 
 const memName = id => {
