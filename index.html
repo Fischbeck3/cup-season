@@ -1035,7 +1035,7 @@ input.f::-webkit-outer-spin-button, input.f::-webkit-inner-spin-button{-webkit-a
       <button class="btn dark" id="wOut" style="margin-top:10px">Sign out</button>
       <div class="ob-caption">No code? Any league member can share an invite link. Or peek at a demo season with code <b style="color:var(--mut)">DEMO</b>.</div>
     </div>
-    <div class="ob-caption" id="obCaption">New or returning, email is one door — no passwords. Just looking? Join with code <b style="color:var(--mut)">DEMO</b>. <span style="opacity:.5">v23.47</span></div>
+    <div class="ob-caption" id="obCaption">New or returning, email is one door — no passwords. Just looking? Join with code <b style="color:var(--mut)">DEMO</b>. <span style="opacity:.5">v23.48</span></div>
   </div>
   <div class="ob-splash" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
   
@@ -3610,14 +3610,15 @@ async function subscribeLeague(){
   CS.chan = sb.channel('lg-' + CS.league.id)
     .on('postgres_changes',
       { event:'INSERT', schema:'public', table:'posts', filter:'league_id=eq.' + CS.league.id },
-      () => { loadStandingsAndFeed(); })
+      () => { toast('⚡ board event'); loadStandingsAndFeed(); }) /* DIAGNOSTIC toast — remove after realtime confirmed */
     .on('postgres_changes',
       { event:'INSERT', schema:'public', table:'squad_members' },
       () => { if(state.phase === 'draft') loadLeagueData(); })
     .subscribe((status, err) => {
       /* silent realtime failures cost a debugging session — surface them */
       console.log('[realtime]', status, err || '');
-      if(status !== 'SUBSCRIBED') bootTrace('realtime: ' + status + (err ? ' — ' + (err.message || err) : ''));
+      if(status === 'SUBSCRIBED') toast('Live board connected ✓'); /* DIAGNOSTIC toast — remove after realtime confirmed */
+      else bootTrace('realtime: ' + status + (err ? ' — ' + (err.message || err) : ''));
     });
 }
 
