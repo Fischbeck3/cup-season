@@ -4,7 +4,9 @@ Status: DRAFT for sign-off · 2026-07-12 · the "app feels alive" arc (task #5)
 Feeds from: product-vision-v1.0 (principle 5, memory > statistics),
 personas-dashboards-v1.0 (role homes, storytelling standings, watch list),
 gameplay-modes-working §7 (monthly engine, weekly moments).
-Decision-needed items marked ⚑.
+Decision-needed items marked ⚑ — ALL RESOLVED 2026-07-12: rivalry unit =
+weekly clash · barriers = career firsts · round pushes default ON with
+per-user notify_rounds mute · snapshots = one table with scope column.
 
 ## 0. Purpose
 
