@@ -1014,6 +1014,18 @@ body::before{
   box-shadow:0 12px 32px -10px rgba(0,0,0,.6);
 }
 
+/* announcements: the Pro's voice sits above the noise */
+.annrow{
+  margin:10px 0; padding:11px 14px; border-radius:12px;
+  background:linear-gradient(90deg, rgba(233,190,98,.10), rgba(233,190,98,.02));
+  border:1px solid rgba(233,190,98,.35);
+  font-size:13px; line-height:1.5; color:var(--ink);
+}
+.annrow b{
+  display:block; font-family:var(--mono); font-size:9.5px; font-weight:600;
+  letter-spacing:.14em; color:var(--gold); margin-bottom:4px;
+}
+
 /* views: settle rather than pop */
 .view{animation:vin .26s cubic-bezier(.22,.9,.32,1) both;}
 
@@ -1111,7 +1123,7 @@ body::before{
       </div>
             
     </div>
-    <div class="ob-caption" id="obCaption">New or returning, email is one door — no passwords. Just looking? Join with code <b style="color:var(--mut)">DEMO</b>. <span style="opacity:.5">v23.57</span></div>
+    <div class="ob-caption" id="obCaption">New or returning, email is one door — no passwords. Just looking? Join with code <b style="color:var(--mut)">DEMO</b>. <span style="opacity:.5">v23.58</span></div>
   </div>
   <div class="ob-splash" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
   
@@ -1201,7 +1213,8 @@ body::before{
           <div id="feedList" style="max-height:52vh; overflow-y:auto;"></div>
           <div class="composer">
             <input class="f" id="chatIn" placeholder="Message the league…">
-            <button class="btn" id="chatSend">Send</button>
+            <button class="btn dark" id="annBtn" style="display:none; width:auto; padding:0 14px;" title="Announce to the league">📣</button>
+            <button class="btn" id="chatSend" style="width:auto; padding:0 18px;">Send</button>
           </div>
         </div>
 
@@ -1907,6 +1920,10 @@ function renderFeed(){
     if(f.d!==lastD){
       el.insertAdjacentHTML('beforeend',`<div class="datesep">${f.d}</div>`);
       lastD=f.d;
+    }
+    if(f.ann){
+      el.insertAdjacentHTML('beforeend',`<div class="annrow"><b>📣 FROM THE PRO</b>${esc(f.txt)}</div>`);
+      return;
     }
     if(f.sys){
       el.insertAdjacentHTML('beforeend',`<div class="sysrow">◆ ${f.txt}</div>`);
@@ -3500,6 +3517,17 @@ $('#hlFind')?.addEventListener('click', openProfileHub);
 $('#hlLeague')?.addEventListener('click', () => switchView('hub'));
 window.loadRecentRounds = loadRecentRounds;
 
+$('#annBtn')?.addEventListener('click', async () => {
+  const v = $('#chatIn').value.trim();
+  if(!v){ toast('Type the announcement first, then 📣'); return; }
+  if(!CS.league) return;
+  const btn = $('#annBtn'); btn.disabled = true;
+  const { error } = await sb.rpc('announce', { p_league: CS.league.id, p_body: v });
+  if(error) toast('Could not announce: ' + error.message);
+  else { $('#chatIn').value = ''; toast('Announced — the league heard you'); }
+  btn.disabled = false;
+});
+
 /* ---------- wizard: one-tap buddy adds (before email invites) ---------- */
 async function renderWizardBuddies(){
   const box = $('#wzBuddies');
@@ -3733,6 +3761,8 @@ async function enterLeague(m){
     if(pe) pe.textContent = 'Post a round · your index ' + state.myIndex.toFixed(1);
   }
   try { await loadLeagueData(); } catch(e){ bootTrace('league data: '+(e.message||e)); }
+  const ab = $('#annBtn');
+  if(ab) ab.style.display = CS.member?.role === 'commissioner' ? '' : 'none';
   subscribeLeague();
   loadCourseMemory();
   const ce = $('#commishEmail');
@@ -3807,6 +3837,7 @@ async function loadStandingsAndFeed(){
     const d = new Date(p.created_at);
     const ds = `${DOW[d.getDay()]} \u00b7 ${MOS[d.getMonth()]} ${d.getDate()}`;
     if(p.kind === 'chat') feed.push({ d: ds, msg:true, who: memName(p.member_id) + ' ', ci: memCi(p.member_id), txt:p.body });
+    else if(p.kind === 'announce') feed.push({ d: ds, ann:true, txt:p.body });
     else feed.push({ d: ds, sys:true, txt:p.body });
   });
   if(!feed.length) feed.push({ d: dAgo(0), sys:true, txt:(CS.league.name||'Your league')+' is live \u2014 post the first round' });
