@@ -916,10 +916,21 @@ input.f::-webkit-outer-spin-button, input.f::-webkit-inner-spin-button{-webkit-a
 /* ---- adaptive shell (v23.55): one shell, league or not ---- */
 body.noleague #view-home > *:not(#homeLeagueless){display:none !important;}
 body.noleague #view-hub  > *:not(#hubLeagueless){display:none !important;}
-body.noleague #view-cal  > *:not(#calLeagueless){display:none !important;}
 body:not(.noleague) #homeLeagueless,
-body:not(.noleague) #hubLeagueless,
-body:not(.noleague) #calLeagueless{display:none;}
+body:not(.noleague) #hubLeagueless{display:none;}
+/* the calendar is SOCIAL, not league-gated — friends' rounds show either way */
+.calgrid{display:grid; grid-template-columns:repeat(7,1fr); gap:3px;}
+.calhd{font-family:var(--mono); font-size:9px; letter-spacing:.08em; color:var(--dim); text-align:center; padding:2px 0 6px;}
+.calcell{position:relative; aspect-ratio:1; border-radius:8px; background:var(--bg2); display:flex; flex-direction:column; align-items:center; justify-content:center; gap:3px; font-family:var(--mono); font-size:11px; color:var(--mut); border:1px solid transparent; cursor:default;}
+.calcell.blank{background:none;}
+.calcell.today{border-color:var(--pos); color:var(--ink);}
+.calcell.has{cursor:pointer;}
+.calcell.has:hover{border-color:var(--line);}
+.caldots{display:flex; gap:3px; height:5px;}
+.caldot{display:inline-block; width:5px; height:5px; border-radius:50%; background:var(--dim); vertical-align:middle; margin-right:4px;}
+.caldot.rd{background:var(--pos);}
+.caldot.lgm{background:var(--gold);}
+.caldot.lg{background:var(--dim);}
 #boardCard .composer{position:static; background:none; padding:10px 0 2px;}
 #homeLeagueless .card, #hubLeagueless .btn{text-align:left;}
 #hubLeagueless .btn{width:100%;}
@@ -1144,7 +1155,7 @@ body::before{
       </div>
             
     </div>
-    <div class="ob-caption" id="obCaption">New or returning, email is one door — no passwords. Just looking? Join with code <b style="color:var(--mut)">DEMO</b>. <span style="opacity:.5">v23.63</span></div>
+    <div class="ob-caption" id="obCaption">New or returning, email is one door — no passwords. Just looking? Join with code <b style="color:var(--mut)">DEMO</b>. <span style="opacity:.5">v23.64</span></div>
   </div>
   <div class="ob-splash" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
   
@@ -1358,18 +1369,26 @@ body::before{
 
       <!-- CALENDAR -->
       <section class="view" id="view-cal">
-        <div id="calLeagueless">
-          <div class="eyebrow" style="margin-top:0">The calendar rides a season</div>
-          <div class="card" style="text-align:left">
-            <p class="fine" style="padding:0">Kickoffs, month closes, the Cup Final window — it all comes from a league season. Start one or join with a code and this page fills itself.</p>
-            <button class="mini" data-go="hub" style="margin-top:10px">Start or join a league</button>
+        <div class="eyebrow" style="display:flex; align-items:center; margin-top:0">The calendar
+          <span style="margin-left:auto; display:flex; gap:8px; align-items:center;">
+            <button class="mini" id="calPrev" aria-label="Previous month">←</button>
+            <b class="mono" id="calTitle" style="font-size:11px; letter-spacing:.1em; min-width:72px; text-align:center">—</b>
+            <button class="mini" id="calNext" aria-label="Next month">→</button>
+          </span>
+        </div>
+        <div class="card" style="text-align:left; padding:12px">
+          <div class="calgrid" id="calGrid"></div>
+          <div class="fine" style="padding:8px 0 0; display:flex; gap:12px; flex-wrap:wrap">
+            <span><i class="caldot rd"></i> ROUND ON THE BOOKS</span>
+            <span><i class="caldot lgm"></i> LEAGUE MATE</span>
+            <span><i class="caldot lg"></i> SEASON DATE</span>
           </div>
         </div>
-        <div class="eyebrow">Coming up</div>
-        <div id="calUpcoming"></div>
-        <div class="eyebrow">Week by week</div>
+        <button class="btn" id="calDeclare" style="margin-top:12px">Put a round on the books</button>
+        <div class="eyebrow">On the books</div>
+        <div id="calList"></div>
+        <div class="eyebrow" id="calWeeksHead">Week by week</div>
         <div class="card" id="calWeeks" style="text-align:left"></div>
-        <p class="fine">Declared rounds — “Jake plays Thursday at TPC” — land with the tee sheet build, and this page becomes the watch list.</p>
       </section>
 
       <!-- DRAFT -->
@@ -1709,7 +1728,7 @@ body::before{
         </div>
 
         <div class="eyebrow">League</div>
-        <div class="check"><span class="num">⛳</span><div class="tt"><b>Members & invites</b><small id="hubMembersSub">16 JOES · CODE SNDYCUP</small></div><button class="mini copycode">Invite</button></div>
+        <div class="check"><span class="num">⛳</span><div class="tt"><b>Members & invites</b><small id="hubMembersSub">16 JOES · CODE SNDYCUP</small></div><button class="mini" id="hubMembersBtn">View</button></div>
         <div class="check"><span class="num">$</span><div class="tt"><b>The pot</b><small id="hubPotSub">$1,200 · 13/16 BUY-INS IN</small></div><button class="mini" data-go="pot">View</button></div>
         <div class="check"><span class="num">◫</span><div class="tt"><b>Squads</b><small id="hubDraftSub">COMPLETE · ROSTERS LOCKED</small></div><button class="mini" data-go="draft">View</button></div>
 
@@ -3415,63 +3434,126 @@ function renderPhase(){
   renderCalendar();
   renderLiveBanner();
 }
-/* ---------- the calendar tab: the season's shape, zero new schema ----------
-   Everything derives from season dates (§14.0): kickoff Sunday, month closes
-   on the 1st, Cup Final at ends_on−27, season end Saturday, weekly snapshot
-   Sunday nights. Past weeks read the standings_snapshots history. */
+/* ---------- the calendar tab: month by month, social first ----------
+   Days carry (a) rounds on the books — yours, friends', league mates' (the
+   my_schedule RPC does the visibility math) and (b) season dates from EVERY
+   league you're in (window.leagueSpans). A league mate's round glows gold:
+   the "Logan's playing Pebble — get something on the books" loop. */
+function calFirst(y,m){ return new Date(y,m,1); }
 function renderCalendar(){
-  const up=$('#calUpcoming'), wkEl=$('#calWeeks');
-  if(!up) return;
-  const noSeason = state.phase!=='season' || (!state.demo && !state.seasonStart);
-  if(noSeason){
-    up.innerHTML='<div class="card" style="text-align:left"><p class="fine" style="padding:0">'+(
-      state.phase==='setup' ? 'Season dates lock with the bylaws — the calendar fills from there.'
-      : 'Squads first, then the schedule.')+'</p></div>';
-    wkEl.innerHTML='<p class="fine" style="padding:0">Week-by-week history records Sunday nights once the season is live.</p>';
-    return;
-  }
-  const s=seasonS(), e=seasonE(), cf=cupFinalStart();
-  const today=new Date(); today.setHours(0,0,0,0);
-  const ev=[];
-  if(today<s) ev.push({d:s, t:'First tee — kickoff', sub:'WEEK 1 BEGINS · SQUADS LOCKED', gold:true});
-  if(today>=s && today<=e){
-    const nx=new Date(today); nx.setDate(nx.getDate() + ((7-nx.getDay())%7 || 7));
-    if(nx<=e) ev.push({d:nx, t:`Week ${currentWeek()} closes`, sub:'SUNDAY NIGHT · STANDINGS SNAPSHOT RECORDED'});
-  }
-  let mc=new Date(today.getFullYear(), today.getMonth()+1, 1);
-  while(mc<=e && ev.length<9){
-    if(mc>s) ev.push({d:mc, t:`${MOS[(mc.getMonth()+11)%12]} closes`, sub:'FLOORS & BONUSES ASSESSED · BEST ROUNDS BANKED'});
-    mc=new Date(mc.getFullYear(), mc.getMonth()+1, 1);
-  }
-  if(cf>=today && cf<=e) ev.push({d:cf, t:'Cup Final begins', sub:'FINAL 4 WEEKS · FRESH SLATE', gold:true});
-  if(e>=today) ev.push({d:e, t:'Season ends', sub:'SATURDAY · THE CUP IS DECIDED', gold:true});
-  ev.sort((a,b)=>a.d-b.d);
-  const chip=d=>{ const n=Math.round((d-today)/864e5);
-    return n<=0?'TODAY' : n===1?'TOMORROW' : n<=13 ? n+' DAYS' : `${DOW[d.getDay()]} ${MOS[d.getMonth()]} ${d.getDate()}`.toUpperCase(); };
-  up.innerHTML = ev.slice(0,7).map(x=>`
-    <div class="check">
-      <div class="tt"><b style="${x.gold?'color:var(--gold)':''}">${x.t}</b><small>${DOW[x.d.getDay()].toUpperCase()} ${MOS[x.d.getMonth()].toUpperCase()} ${x.d.getDate()} · ${x.sub}</small></div>
-      <b class="mono" style="flex:none; font-size:11px; color:var(--mut); letter-spacing:.06em">${chip(x.d)}</b>
-    </div>`).join('') || '<div class="card"><p class="fine" style="padding:0">Season complete — the cup has a home.</p></div>';
+  const grid=$('#calGrid'); if(!grid) return;
+  const now=new Date(); now.setHours(0,0,0,0);
+  const cur=window.calCursor || (window.calCursor={y:now.getFullYear(), m:now.getMonth()});
+  $('#calTitle').textContent = `${MOS[cur.m].toUpperCase()} ${cur.y}`;
 
-  const hist=(!state.demo && window.seasonHistory) ? window.seasonHistory : [];
-  if(!hist.length){
-    wkEl.innerHTML='<p class="fine" style="padding:0">'+(state.demo
-      ? 'The demo skips the archive — real seasons record every Sunday night.'
-      : 'Nothing recorded yet — the first snapshot writes Sunday night, and every week lands here for the season.')+'</p>';
-  } else {
-    const nameOf=id=>{ const t=teams.find(t=>t.id===id); return t?t.name:'—'; };
-    wkEl.innerHTML = hist.slice().reverse().map(sn=>{
-      const sq=((sn.standings&&sn.standings.squads)||[]).slice().sort((a,b)=>b.points-a.points);
-      const lead=sq[0], second=sq[1];
-      const gap=lead&&second ? lead.points-second.points : null;
-      return `<div class="fine" style="display:flex; justify-content:space-between; gap:10px; padding:5px 0;">
-        <span><b class="mono" style="color:var(--ink)">WK ${sn.week_no}</b>${lead?' · '+nameOf(lead.squad_id).toUpperCase()+' LED':''}${gap!=null?(gap===0?' · TIED AT THE TOP':' · BY '+gap):''}</span>
-        <b class="mono">${lead?lead.points+' PTS':''}</b>
-      </div>`;
-    }).join('');
+  /* gather this month's items, keyed by day-of-month */
+  const byDay={};
+  const add=(d,item)=>{ if(d && d.getFullYear()===cur.y && d.getMonth()===cur.m) (byDay[d.getDate()] ||= []).push(item); };
+  const inLeague = state.phase==='season' && (state.demo || state.seasonStart);
+  if(inLeague){
+    const s=seasonS(), e=seasonE(), cf=cupFinalStart();
+    const lgName = state.demo ? 'The Sunday Cup' : (window.CS?.league?.name || 'Your league');
+    add(s,  {kind:'lg', t:`${lgName} — first tee`, gold:true});
+    add(cf, {kind:'lg', t:`${lgName} — Cup Final begins`, gold:true});
+    add(e,  {kind:'lg', t:`${lgName} — season ends, cup decided`, gold:true});
+    const first=calFirst(cur.y, cur.m);
+    if(first>s && first<=e) add(first, {kind:'lg', t:`${MOS[(cur.m+11)%12]} closes — floors & bonuses assessed`});
+    for(let d=1; d<=31; d++){
+      const dt=new Date(cur.y, cur.m, d);
+      if(dt.getMonth()!==cur.m) break;
+      if(dt.getDay()===0 && dt>s && dt<=e && +dt!==+s) add(dt, {kind:'lg', t:'Week closes — snapshot recorded'});
+    }
+  }
+  (window.leagueSpans||[]).forEach(ls=>{
+    if(!state.demo && window.CS?.league && ls.league_id===window.CS.league.id) return;
+    add(new Date(ls.starts_on+'T00:00:00'), {kind:'lg', t:`${ls.name} — first tee`});
+    add(new Date(ls.ends_on+'T00:00:00'),   {kind:'lg', t:`${ls.name} — season ends`, gold:true});
+  });
+  (window.mySchedule||[]).forEach(sr=>{
+    add(new Date(sr.play_on+'T00:00:00'), {kind:'rd', sr});
+  });
+
+  /* the grid */
+  const firstDow=calFirst(cur.y,cur.m).getDay();
+  const days=new Date(cur.y, cur.m+1, 0).getDate();
+  let html=DOW.map(d=>`<div class="calhd">${d[0].toUpperCase()}</div>`).join('');
+  for(let i=0;i<firstDow;i++) html+='<div class="calcell blank"></div>';
+  for(let d=1; d<=days; d++){
+    const items=byDay[d]||[];
+    const isToday = cur.y===now.getFullYear() && cur.m===now.getMonth() && d===now.getDate();
+    const dots=items.slice(0,3).map(it=>
+      `<i class="caldot ${it.kind==='rd' ? (it.sr && it.sr.shared_league && !it.sr.mine ? 'lgm' : 'rd') : 'lg'}" style="margin:0"></i>`).join('');
+    html+=`<div class="calcell${isToday?' today':''}${items.length?' has':''}" data-cd="${d}">${d}<span class="caldots">${dots}</span></div>`;
+  }
+  grid.innerHTML=html;
+  grid.querySelectorAll('.calcell.has').forEach(c=>c.addEventListener('click',()=>{
+    const d=Number(c.dataset.cd), items=byDay[d]||[];
+    openSheet(`${DOW[new Date(cur.y,cur.m,d).getDay()]} ${MOS[cur.m]} ${d}`, `${items.length} ON THE SHEET`,
+      items.map(it=> it.kind==='rd'
+        ? `<div class="check"><span class="num">${window.mkr?.(it.sr.marker||'saguaro')||'⛳'}</span><div class="tt"><b>${it.sr.mine?'You':it.sr.display_name}${it.sr.shared_league&&!it.sr.mine?' · <span style="color:var(--gold)">LEAGUE MATE</span>':''}</b><small>${[it.sr.course_label?it.sr.course_label.toUpperCase():null, it.sr.note?'“'+it.sr.note+'”':null].filter(Boolean).join(' · ')||'ROUND ON THE BOOKS'}</small></div></div>`
+        : `<div class="check"><span class="num">⛳</span><div class="tt"><b style="${it.gold?'color:var(--gold)':''}">${it.t}</b></div></div>`
+      ).join(''));
+  }));
+
+  /* the on-the-books list: this month's rounds with the social framing */
+  const list=$('#calList');
+  if(list){
+    const rows=(window.mySchedule||[])
+      .filter(sr=>{ const d=new Date(sr.play_on+'T00:00:00'); return d.getFullYear()===cur.y && d.getMonth()===cur.m && d>=now; })
+      .map(sr=>{
+        const d=new Date(sr.play_on+'T00:00:00');
+        const n=Math.round((d-now)/864e5);
+        const when = n===0?'TODAY':n===1?'TOMORROW':n+' DAYS';
+        return `<div class="check">
+          <span class="num">${window.mkr?.(sr.marker||'saguaro')||'⛳'}</span>
+          <div class="tt"><b>${sr.mine?'You':sr.display_name}${sr.shared_league&&!sr.mine?' · <span style="color:var(--gold)">LEAGUE MATE</span>':(sr.is_friend&&!sr.mine?' · <span style="color:var(--mut)">BUDDY</span>':'')}</b>
+          <small>${DOW[d.getDay()].toUpperCase()} ${MOS[d.getMonth()].toUpperCase()} ${d.getDate()}${sr.course_label?' · '+sr.course_label.toUpperCase():''}${sr.note?' · “'+sr.note+'”':''}</small></div>
+          <span style="display:flex; gap:8px; align-items:center; flex:none">
+            <b class="mono" style="font-size:10px; color:var(--mut); letter-spacing:.06em">${when}</b>
+            ${sr.mine?`<button class="mini" data-scratch="${sr.id}">✕</button>`:''}
+          </span>
+        </div>`;
+      }).join('');
+    list.innerHTML = rows || `<p class="fine" style="padding:6px 0">Nothing on the books for ${MOS[cur.m]}${state.demo?' — scheduling is a real-account thing':''}. ${!state.demo?'Put one up — league mates and buddies see it the moment you do.':''}</p>`;
+  }
+
+  /* week-by-week history (league seasons only) */
+  const wkEl=$('#calWeeks'), wkHd=$('#calWeeksHead');
+  const showWk = inLeague;
+  if(wkHd) wkHd.style.display = showWk?'':'none';
+  if(wkEl){
+    wkEl.style.display = showWk?'':'none';
+    if(showWk){
+      const hist=(!state.demo && window.seasonHistory) ? window.seasonHistory : [];
+      if(!hist.length){
+        wkEl.innerHTML='<p class="fine" style="padding:0">'+(state.demo
+          ? 'The demo skips the archive — real seasons record every Sunday night.'
+          : 'Nothing recorded yet — the first snapshot writes Sunday night, and every week lands here for the season.')+'</p>';
+      } else {
+        const nameOf=id=>{ const t=teams.find(t=>t.id===id); return t?t.name:'—'; };
+        wkEl.innerHTML = hist.slice().reverse().map(sn=>{
+          const sq=((sn.standings&&sn.standings.squads)||[]).slice().sort((a,b)=>b.points-a.points);
+          const lead=sq[0], second=sq[1];
+          const gap=lead&&second ? lead.points-second.points : null;
+          return `<div class="fine" style="display:flex; justify-content:space-between; gap:10px; padding:5px 0;">
+            <span><b class="mono" style="color:var(--ink)">WK ${sn.week_no}</b>${lead?' · '+nameOf(lead.squad_id).toUpperCase()+' LED':''}${gap!=null?(gap===0?' · TIED AT THE TOP':' · BY '+gap):''}</span>
+            <b class="mono">${lead?lead.points+' PTS':''}</b>
+          </div>`;
+        }).join('');
+      }
+    }
   }
 }
+$('#calPrev').addEventListener('click',()=>{
+  const c=window.calCursor||{y:new Date().getFullYear(), m:new Date().getMonth()};
+  c.m--; if(c.m<0){c.m=11;c.y--;} window.calCursor=c;
+  if(window.loadSchedule) window.loadSchedule(); else renderCalendar();
+});
+$('#calNext').addEventListener('click',()=>{
+  const c=window.calCursor||{y:new Date().getFullYear(), m:new Date().getMonth()};
+  c.m++; if(c.m>11){c.m=0;c.y++;} window.calCursor=c;
+  if(window.loadSchedule) window.loadSchedule(); else renderCalendar();
+});
 /* every league-identity string on screen renders from real state — the
    markup defaults are demo scenery and must never survive a real league */
 const ROMAN=['','I','II','III','IV','V','VI','VII','VIII','IX','X','XI','XII'];
@@ -3619,6 +3701,7 @@ const MARKERS = {
 const mkr = k => MARKERS[k]
   ? `<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-4px"><path d="${MARKERS[k].p}"/></svg>`
   : '';
+window.mkr = mkr; /* classic renderCalendar draws markers — bridge or it silently breaks */
 
 async function loadProfile(){
   const { data } = await sb.from('profiles')
@@ -4159,6 +4242,7 @@ async function enterLeague(m){
     if(pe) pe.textContent = 'Post a round · your index ' + state.myIndex.toFixed(1);
   }
   try { await loadLeagueData(); } catch(e){ bootTrace('league data: '+(e.message||e)); }
+  loadLeagueSpans().then(loadSchedule); /* the calendar's social + season layers */
   const ab = $('#annBtn');
   if(ab) ab.style.display = CS.member?.role === 'commissioner' ? '' : 'none';
   subscribeLeague();
@@ -4181,7 +4265,7 @@ CS.members = []; CS.squads = []; CS.sel = null;
 async function loadLeagueData(){
   if(!CS.league) return;
   const { data: mem } = await sb.from('league_members')
-    .select('id, role, profile:profiles(display_name, marker, index_current)')
+    .select('id, role, profile:profiles(display_name, marker, index_current, handle)')
     .eq('league_id', CS.league.id);
   CS.members = mem || [];
 
@@ -4706,6 +4790,139 @@ window.openLeagueSwitcher = openLeagueSwitcher;
   if(el){ el.style.cursor = 'pointer'; el.addEventListener('click', openLeagueSwitcher); }
 });
 
+/* ---------- the calendar's data: rounds on the books + every league's season */
+async function loadSchedule(){
+  if(!CS.user){ renderCalendar(); return; }
+  const c = window.calCursor || { y:new Date().getFullYear(), m:new Date().getMonth() };
+  const pad = n => String(n).padStart(2,'0');
+  const last = new Date(c.y, c.m+1, 0).getDate();
+  try {
+    const { data, error } = await sb.rpc('my_schedule', {
+      p_from: `${c.y}-${pad(c.m+1)}-01`, p_to: `${c.y}-${pad(c.m+1)}-${pad(last)}` });
+    if(error) throw error;
+    window.mySchedule = data || [];
+  } catch(e){ console.warn('[schedule]', e); window.mySchedule = window.mySchedule || []; }
+  renderCalendar();
+}
+window.loadSchedule = loadSchedule;
+
+async function loadLeagueSpans(){
+  if(!CS.user || !(CS.memberships||[]).length){ window.leagueSpans = []; return; }
+  try {
+    const ids = CS.memberships.map(m => m.league.id);
+    const { data } = await sb.from('seasons')
+      .select('league_id, starts_on, ends_on, status').in('league_id', ids)
+      .in('status', ['active','cup_final']);
+    const nameOf = id => CS.memberships.find(m => m.league.id === id)?.league.name || 'League';
+    window.leagueSpans = (data||[]).map(s => ({ ...s, name: nameOf(s.league_id) }));
+  } catch(e){ console.warn('[spans]', e); window.leagueSpans = []; }
+}
+
+/* "Put a round on the books" — date + course + note, fans to every board */
+document.getElementById('calDeclare')?.addEventListener('click', () => {
+  if(state.demo || !CS.user){ toast('Sign in to put rounds on the books'); return; }
+  const d = new Date(); d.setDate(d.getDate() + ((6 - d.getDay() + 7) % 7 || 7)); /* next Saturday */
+  const iso = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+  openSheet('Put a round on the books', 'BUDDIES & LEAGUE MATES SEE IT THE MOMENT YOU POST',
+    `<label class="f">Day</label><input class="f" id="drDate" type="date" value="${iso}">
+     <label class="f" style="margin-top:10px; display:block">Course</label>
+     <input class="f" id="drCourse" placeholder="Pebble Beach" style="font-family:var(--sans)">
+     <label class="f" style="margin-top:10px; display:block">Note · optional</label>
+     <input class="f" id="drNote" maxlength="140" placeholder="buddies trip — looking for a 4th" style="font-family:var(--sans)">
+     <button class="btn" id="drGo" style="margin-top:14px">On the books</button>
+     <p class="fine" style="padding-top:8px">Posts to your leagues' boards. Scratch it any time from the calendar.</p>`);
+  document.getElementById('drGo').addEventListener('click', async () => {
+    const btn = document.getElementById('drGo'); btn.disabled = true;
+    try {
+      const { error } = await sb.rpc('declare_round', {
+        p_play_on: document.getElementById('drDate').value,
+        p_course: document.getElementById('drCourse').value,
+        p_note: document.getElementById('drNote').value,
+      });
+      if(error) throw error;
+      closeSheet();
+      toast('On the books — the boards know');
+      loadSchedule();
+      if(CS.league) loadStandingsAndFeed();
+    } catch(e){ toast(e.message || String(e)); btn.disabled = false; }
+  });
+});
+
+/* scratch your own declared round (list is classic-rendered — delegate) */
+document.getElementById('calList')?.addEventListener('click', async (e) => {
+  const id = e.target?.dataset?.scratch; if(!id) return;
+  e.target.disabled = true;
+  try {
+    const { error } = await sb.rpc('scratch_round', { p_id: id });
+    if(error) throw error;
+    toast('Scratched');
+    loadSchedule();
+  } catch(err){ toast('Scratch failed: ' + (err.message || err)); e.target.disabled = false; }
+});
+
+/* ---------- members & invites: the clubhouse roster ---------- */
+async function openMembersSheet(){
+  if(state.demo || !CS.league){ toast('The demo roster is scenery — join a real league'); return; }
+  const isPro = CS.member?.role === 'commissioner';
+  let invites = [];
+  if(isPro){
+    try {
+      const { data } = await sb.from('invites')
+        .select('email, status').eq('league_id', CS.league.id).order('created_at');
+      invites = data || [];
+    } catch(e){ /* invites readable by the Pro only — fine */ }
+  }
+  const sqName = id => {
+    const q = CS.squads.find(q => (q.squad_members||[]).some(x => x.member_id === id));
+    return q ? q.name.toUpperCase() : '';
+  };
+  const rows = CS.members.map(m => `
+    <div class="check">
+      <span class="num">${mkr(m.profile?.marker || 'saguaro')}</span>
+      <div class="tt"><b>${m.profile?.display_name || '—'}${m.role==='commissioner' ? ' · <span style="color:var(--gold)">THE PRO</span>' : ''}</b>
+      <small>${[m.profile?.handle ? '@'+m.profile.handle : null,
+                m.profile?.index_current != null ? 'INDEX '+Number(m.profile.index_current).toFixed(1) : null,
+                sqName(m.id) || null].filter(Boolean).join(' · ') || 'GOLFER'}</small></div>
+      ${isPro && m.id !== CS.member.id ? `<span style="display:flex; gap:6px; flex:none">
+        ${CS.league.phase === 'setup' ? `<button class="mini" data-msrm="${m.id}">Remove</button>` : ''}
+        <button class="mini" data-mspro="${m.id}">Make Pro</button>
+      </span>` : ''}
+    </div>`).join('');
+  const pending = invites.filter(i => i.status === 'sent');
+  openSheet('Members & invites', `${CS.members.length} JOE${CS.members.length===1?'':'S'} · CODE ${CS.league.code}`,
+    rows
+    + (pending.length ? '<div class="eyebrow">Invites out</div>' + pending.map(i =>
+        `<div class="fine" style="padding:3px 0">✉ ${i.email} · WAITING</div>`).join('') : '')
+    + `<button class="btn dark" id="msShare" style="margin-top:14px">Share the invite link</button>`);
+  document.getElementById('msShare')?.addEventListener('click', () => window.shareInvite?.());
+  document.querySelectorAll('[data-msrm]').forEach(b => b.addEventListener('click', async () => {
+    const m = CS.members.find(x => x.id === b.dataset.msrm);
+    if(!confirm(`Remove ${m?.profile?.display_name || 'this member'} from ${CS.league.name}? Their profile and rounds are untouched — they just leave this league.`)) return;
+    b.disabled = true;
+    try {
+      const { error } = await sb.rpc('remove_member', { p_member: b.dataset.msrm });
+      if(error) throw error;
+      toast('Removed — the board knows');
+      closeSheet();
+      await loadLeagueData();
+    } catch(e){ toast(e.message || String(e)); b.disabled = false; }
+  }));
+  document.querySelectorAll('[data-mspro]').forEach(b => b.addEventListener('click', async () => {
+    const m = CS.members.find(x => x.id === b.dataset.mspro);
+    if(!confirm(`Hand the Pro role to ${m?.profile?.display_name || 'this member'}? You become a player — only they can hand it back.`)) return;
+    b.disabled = true;
+    try {
+      const { error } = await sb.rpc('transfer_pro', { p_member: b.dataset.mspro });
+      if(error) throw error;
+      closeSheet();
+      toast('The shop has a new Pro');
+      setTimeout(() => location.reload(), 900); /* role change reshapes the whole UI */
+    } catch(e){ toast(e.message || String(e)); b.disabled = false; }
+  }));
+}
+window.openMembersSheet = openMembersSheet;
+document.getElementById('hubMembersBtn')?.addEventListener('click', openMembersSheet);
+
 /* ---------- welcome fork: signed in, no league yet ---------- */
 function showWelcome(){
   /* v23.55 adaptive shell: league-less golfers enter the SAME app, no foyer */
@@ -4727,6 +4944,7 @@ function showWelcome(){
   fillWelcomeCard();
   loadRecentRounds();
   loadCourseMemory();
+  loadLeagueSpans().then(loadSchedule); /* buddies' rounds show without a league */
   enterApp();
   switchView('home');
 }

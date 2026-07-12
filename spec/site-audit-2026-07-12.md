@@ -9,6 +9,13 @@ calendar/timeline build, D3/task #16). Batch 3 (D2 pot + D3 calendar-as-tab
 + C2 kickoff post) SHIPPED v23.63 with migration 20260712130000 — decisions:
 buy-in marks post to the board; Calendar is a first-class 5th tab; intro
 hero copy rewritten; pilot error bar OFF by default (/?debug re-enables).
+Batch 4 (D1 roster + calendar v2) SHIPPED v23.64 with migration
+20260712150000 — decisions: calendar is MONTH-GRID and SOCIAL (declared
+rounds pulled forward from task #16; profile-level like rounds; visibility
+= friends + shared-league, league mates highlighted gold; declaration
+posts to every board with the note riding). remove_member is setup-only
+until the bye/void toolkit; transfer_pro live. Task #16 remainder:
+watch-list projections + live status, after the events engine.
 
 Root cause of most of it: the prototype-era markup and render functions carry
 demo defaults ("SNDYCUP", "16 Joes", "$1,200") that the real-league path never
