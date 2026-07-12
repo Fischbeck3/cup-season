@@ -1142,7 +1142,7 @@ body::before{
       </div>
             
     </div>
-    <div class="ob-caption" id="obCaption">New or returning, email is one door — no passwords. Just looking? Join with code <b style="color:var(--mut)">DEMO</b>. <span style="opacity:.5">v23.59</span></div>
+    <div class="ob-caption" id="obCaption">New or returning, email is one door — no passwords. Just looking? Join with code <b style="color:var(--mut)">DEMO</b>. <span style="opacity:.5">v23.60</span></div>
   </div>
   <div class="ob-splash" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
   
@@ -1869,6 +1869,26 @@ function buildSeries(){
   });
 }
 
+/* real leagues: series = recorded weekly snapshots + the live 'now' point */
+function buildRealSeries(WKS){
+  const hist = window.seasonHistory || [];
+  const lastWk = hist.length ? Math.max(...hist.map(h => h.week_no)) : 0;
+  series = teams.map(t => {
+    const arr = [];
+    let last = 0;
+    for(let w = 1; w <= Math.min(WKS, lastWk); w++){
+      const snap = hist.find(h => h.week_no === w);
+      if(snap){
+        const row = ((snap.standings && snap.standings.squads) || []).find(sq => sq.squad_id === t.id);
+        if(row && row.points != null) last = Number(row.points);
+      }
+      arr.push(last);
+    }
+    arr.push(t.pts); /* now */
+    return arr;
+  });
+}
+
 /* ================= race chart ================= */
 function renderChart(){
   const svg=$('#raceChart');
@@ -1877,25 +1897,35 @@ function renderChart(){
     svg.innerHTML='<text x="320" y="112" text-anchor="middle" font-family="IBM Plex Mono" font-size="10" letter-spacing="2.5" fill="#5E6570">THE RACE STARTS WITH THE FIRST POSTED ROUND</text><text x="320" y="132" text-anchor="middle" font-family="IBM Plex Mono" font-size="9" letter-spacing="1.5" fill="#3A3F47">SHARE THE LEAGUE CODE TO FILL THE TEE SHEET</text>';
     return;
   }
-  buildSeries();
+  const real = !state.demo && window.CS?.league;
+  const WKS = real ? Math.max(2, window.seasonWeeks || 18) : WEEKS;
+  if(real) buildRealSeries(WKS); else buildSeries();
   const W=640,H=230,L=36,R=14,T=12,B=26;
   const iw=W-L-R, ih=H-T-B;
-  const ymax=Math.ceil(Math.max(...teams.map(t=>t.pts))/50)*50;
-  const x=w=>L+iw*(w/(WEEKS-1));
+  const ymax=Math.max(50, Math.ceil(Math.max(...teams.map(t=>t.pts))/50)*50);
+  const x=w=>L+iw*(w/(WKS-1));
   const y=v=>T+ih*(1-v/ymax);
   let g='';
   for(let gv=0;gv<=ymax;gv+=50){
     g+=`<line x1="${L}" y1="${y(gv)}" x2="${W-R}" y2="${y(gv)}" stroke="#24272E" stroke-width="1"/>`;
     g+=`<text x="${L-8}" y="${y(gv)+3}" text-anchor="end" font-family="IBM Plex Mono" font-size="9" fill="#5E6570">${gv}</text>`;
   }
-  [1,6,12,18].forEach(w=>{
+  const marks = real
+    ? [...new Set([1, Math.round(WKS/3), Math.round(2*WKS/3), WKS])].filter(w=>w>=1&&w<=WKS)
+    : [1,6,12,18];
+  marks.forEach(w=>{
     g+=`<text x="${x(w-1)}" y="${H-8}" text-anchor="middle" font-family="IBM Plex Mono" font-size="9" fill="#5E6570">W${w}</text>`;
   });
   teams.forEach((t,ti)=>{
-    const pts=series[ti].map((v,w)=>`${x(w).toFixed(1)},${y(v).toFixed(1)}`).join(' ');
+    const arr=series[ti]||[];
+    if(!arr.length) return;
+    const pts=arr.map((v,w)=>`${x(w).toFixed(1)},${y(v).toFixed(1)}`).join(' ');
     g+=`<polyline points="${pts}" fill="none" stroke="${SQHEX[t.ci]}" stroke-width="2.25" stroke-linejoin="round" stroke-linecap="round" opacity="0.95"/>`;
-    g+=`<circle cx="${x(WEEKS-1)}" cy="${y(t.pts)}" r="3.6" fill="${SQHEX[t.ci]}"/>`;
+    g+=`<circle cx="${x(arr.length-1)}" cy="${y(t.pts)}" r="3.6" fill="${SQHEX[t.ci]}"/>`;
   });
+  if(real && !(window.seasonHistory||[]).length){
+    g+=`<text x="${W/2}" y="${T+14}" text-anchor="middle" font-family="IBM Plex Mono" font-size="9" letter-spacing="2" fill="#5E6570">WEEKLY HISTORY STARTS RECORDING SUNDAY NIGHT</text>`;
+  }
   svg.innerHTML=g;
 
   const lg=$('#chartLegend'); lg.innerHTML='';
@@ -3946,6 +3976,16 @@ async function loadStandingsAndFeed(){
     else if(p.kind === 'round' && p.round_id) feed.push({ d: ds, roundpost:true, rid: p.round_id, who: memName(p.member_id), ci: memCi(p.member_id), txt: p.body });
     else feed.push({ d: ds, sys:true, txt:p.body });
   });
+
+  /* season history: the weekly snapshots the cron spine records */
+  if(CS.season){
+    const { data: snaps } = await sb.from('standings_snapshots')
+      .select('week_no, standings').eq('season_id', CS.season.id).order('week_no');
+    window.seasonHistory = snaps || [];
+    const d0 = new Date(CS.season.starts_on + 'T00:00:00');
+    const d1 = new Date(CS.season.ends_on + 'T00:00:00');
+    window.seasonWeeks = Math.max(2, Math.round((d1 - d0 + 864e5) / (7 * 864e5)));
+  } else { window.seasonHistory = []; window.seasonWeeks = null; }
 
   /* the Strava-card cache: round facts + this league's lens, keyed by round id */
   const rids = [...new Set(feed.filter(f => f.roundpost).map(f => f.rid))];
