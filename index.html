@@ -976,6 +976,9 @@ input.f::-webkit-outer-spin-button, input.f::-webkit-inner-spin-button{-webkit-a
       <label class="f" for="pfName">Name on the card</label>
       <input class="f" id="pfName" autocomplete="off" placeholder="First name or nickname" style="font-family:var(--sans); font-size:16px;">
       <div style="height:12px"></div>
+      <label class="f" for="pfHandle">Your handle — how buddies find you</label>
+      <input class="f" id="pfHandle" autocomplete="off" placeholder="@jerecho" style="font-family:var(--sans); font-size:16px;">
+      <div style="height:12px"></div>
       <div class="frow">
         <div><label class="f" for="pfCity">City</label><input class="f" id="pfCity" autocomplete="off" placeholder="Tempe, AZ" style="font-family:var(--sans);"></div>
         <div><label class="f" for="pfIdx">Handicap index</label><input class="f" id="pfIdx" type="number" step="0.1" inputmode="decimal" placeholder="12.4"></div>
@@ -1032,10 +1035,11 @@ input.f::-webkit-outer-spin-button, input.f::-webkit-inner-spin-button{-webkit-a
         <input id="wCode" placeholder="CUP-CODE" autocomplete="off">
         <button class="btn" id="wCodeGo">Join</button>
       </div>
+      <button class="btn dark" id="wFind" style="margin-top:10px">Find golfers</button>
       <button class="btn dark" id="wOut" style="margin-top:10px">Sign out</button>
       <div class="ob-caption">No code? Any league member can share an invite link. Or peek at a demo season with code <b style="color:var(--mut)">DEMO</b>.</div>
     </div>
-    <div class="ob-caption" id="obCaption">New or returning, email is one door — no passwords. Just looking? Join with code <b style="color:var(--mut)">DEMO</b>. <span style="opacity:.5">v23.53</span></div>
+    <div class="ob-caption" id="obCaption">New or returning, email is one door — no passwords. Just looking? Join with code <b style="color:var(--mut)">DEMO</b>. <span style="opacity:.5">v23.54</span></div>
   </div>
   <div class="ob-splash" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
   
@@ -3069,7 +3073,7 @@ const mkr = k => MARKERS[k]
 
 async function loadProfile(){
   const { data } = await sb.from('profiles')
-    .select('id, display_name, city, home_course, index_current, marker, notify_chat')
+    .select('id, display_name, city, home_course, index_current, marker, notify_chat, handle, discoverable')
     .eq('id', CS.user.id).maybeSingle();
   CS.profile = data || null;
   if(CS.profile?.index_current != null) state.myIndex = Number(CS.profile.index_current);
@@ -3090,6 +3094,12 @@ function showProfileGate(){
     el.style.animation='none'; el.style.opacity='1'; el.style.transform='none';
   });
   if(CS.profile?.display_name && !$('#pfName').value) $('#pfName').value = CS.profile.display_name;
+  if(!$('#pfHandle').value){
+    const sug = CS.profile?.handle
+      || (CS.profile?.display_name || CS.user?.email || '').split('@')[0]
+           .toLowerCase().replace(/[^a-z0-9_]/g, '').slice(0, 20);
+    if(sug) $('#pfHandle').value = '@' + sug;
+  }
   const grid = $('#pfMarkers');
   grid.innerHTML = Object.keys(MARKERS).map(k =>
     `<button class="mini" data-mk="${k}" style="display:flex;flex-direction:column;align-items:center;gap:4px;padding:10px 4px;${k===pfMarker?'border-color:var(--pos);color:var(--pos);':''}">${mkr(k)}<span style="font-size:9px;letter-spacing:.06em">${MARKERS[k].n.toUpperCase()}</span></button>`).join('');
@@ -3101,9 +3111,15 @@ function showProfileGate(){
 $('#pfSave').addEventListener('click', async () => {
   const name = $('#pfName').value.trim();
   if(!name){ $('#pfStatus').textContent = 'The card needs a name.'; return; }
+  const hnd = $('#pfHandle').value.trim().replace(/^@/, '').toLowerCase();
+  if(!/^[a-z0-9_]{3,20}$/.test(hnd)){
+    $('#pfStatus').textContent = 'Handle: 3–20 letters, numbers or underscores.'; return;
+  }
   const idx = parseFloat($('#pfIdx').value);
   const btn = $('#pfSave'); btn.disabled = true; btn.textContent = '…';
   try {
+    const { error: he } = await sb.rpc('set_handle', { p_handle: hnd });
+    if(he) throw he;
     const { error } = await sb.rpc('set_profile', {
       p_name: name,
       p_city: $('#pfCity').value.trim() || null,
@@ -3152,6 +3168,14 @@ function openProfileHub(){
     </div>
     <label class="f" style="display:block; margin-top:8px">Ball marker</label>
     <div id="phMarkers" style="display:grid; grid-template-columns:repeat(4,1fr); gap:8px; margin-top:8px;"></div>
+    <div class="frow" style="margin-top:10px">
+      <div><label class="f" for="phHandle">Handle</label><input class="f" id="phHandle" style="font-family:var(--sans)"></div>
+      <div><label class="f">Findable by</label><div id="phDisc" style="display:flex; gap:6px; margin-top:6px;">
+        <button class="mini" data-disc="everyone">All</button>
+        <button class="mini" data-disc="friends">Buddies</button>
+        <button class="mini" data-disc="nobody">Nobody</button>
+      </div></div>
+    </div>
     <button class="mini" id="phSave" style="margin-top:10px">Save card</button>
     <span class="fine" id="phStatus"></span>
 
@@ -3164,6 +3188,11 @@ function openProfileHub(){
 
     <div class="eyebrow" style="margin-top:20px">Your leagues</div>
     ${leagues}
+
+    <div class="eyebrow" style="margin-top:20px">Golf buddies</div>
+    <input class="f" id="phFind" placeholder="Find golfers — name or @handle" autocomplete="off" style="font-family:var(--sans)">
+    <div id="phResults" style="margin-top:8px"></div>
+    <div id="phFriends" style="margin-top:8px"></div>
 
     <div class="eyebrow" style="margin-top:20px">Notifications</div>
     <div style="display:flex; gap:8px; flex-wrap:wrap;">
@@ -3179,6 +3208,7 @@ function openProfileHub(){
     <button class="btn dark" id="phOut" style="margin-top:16px">Sign out</button>
   `);
   $('#phName').value = p.display_name || '';
+  $('#phHandle').value = p.handle ? '@' + p.handle : '';
   $('#phCity').value = p.city || '';
   $('#phHome').value = p.home_course || '';
   $('#phIdx').value = p.index_current != null ? Number(p.index_current).toFixed(1) : '';
@@ -3189,6 +3219,11 @@ function openProfileHub(){
     if(!name){ $('#phStatus').textContent = 'The card needs a name.'; return; }
     const btn = $('#phSave'); btn.disabled = true;
     try {
+      const hnd = $('#phHandle').value.trim().replace(/^@/, '').toLowerCase();
+      if(hnd && hnd !== (CS.profile?.handle || '')){
+        const { error: he } = await sb.rpc('set_handle', { p_handle: hnd });
+        if(he) throw he;
+      }
       const { error } = await sb.rpc('set_profile', {
         p_name: name,
         p_city: $('#phCity').value.trim() || null,
@@ -3223,6 +3258,77 @@ function openProfileHub(){
     location.reload();
   });
 
+  /* discoverability: highlight current, tap to switch */
+  const discPaint = () => $('#phDisc').querySelectorAll('[data-disc]').forEach(b => {
+    const on = b.dataset.disc === (CS.profile?.discoverable || 'everyone');
+    b.style.borderColor = on ? 'var(--pos)' : '';
+    b.style.color = on ? 'var(--pos)' : '';
+  });
+  discPaint();
+  $('#phDisc').querySelectorAll('[data-disc]').forEach(b => b.addEventListener('click', async () => {
+    const { error } = await sb.rpc('set_discoverable', { p_mode: b.dataset.disc });
+    if(error) return toast('Could not update: ' + error.message);
+    CS.profile.discoverable = b.dataset.disc; discPaint();
+  }));
+
+  /* golf buddies: live search + friends list */
+  const relBtn = r =>
+    r.rel === 'friend'    ? '<b class="fine" style="padding:0">BUDDIES ✓</b>' :
+    r.rel === 'requested' ? '<b class="fine" style="padding:0">REQUESTED</b>' :
+    r.rel === 'incoming'  ? `<button class="mini" data-fadd="${r.profile_id}">Accept</button>` :
+                            `<button class="mini" data-fadd="${r.profile_id}">Add</button>`;
+  const golferRow = (r, right) => `
+    <div class="byrow" style="align-items:center; gap:8px;">
+      <span>${mkr(r.marker || 'saguaro')} ${esc(r.display_name || '—')}
+        <span class="fine" style="padding:0">@${esc(r.handle || '?')}${r.city ? ' · ' + esc(r.city) : ''}</span></span>
+      ${right}
+    </div>`;
+  let findTimer = null, lastResults = [];
+  async function runSearch(){
+    const q = $('#phFind').value.trim();
+    const box = $('#phResults');
+    if(q.length < 2){ box.innerHTML = ''; return; }
+    const { data, error } = await sb.rpc('search_golfers', { p_q: q });
+    if(error){ box.innerHTML = `<p class="fine">Search failed: ${esc(error.message)}</p>`; return; }
+    lastResults = data || [];
+    box.innerHTML = lastResults.length
+      ? lastResults.map(r => golferRow(r, relBtn(r))).join('')
+      : '<p class="fine">No golfers found — invite links still work for everyone else.</p>';
+    box.querySelectorAll('[data-fadd]').forEach(b => b.addEventListener('click', async () => {
+      b.disabled = true;
+      const { data: res, error: fe } = await sb.rpc('friend_request', { p_profile: b.dataset.fadd });
+      if(fe){ toast('Could not send: ' + fe.message); b.disabled = false; return; }
+      toast(res === 'friend' ? 'Golf buddies ✓' : 'Request sent');
+      runSearch(); loadFriendsList();
+    }));
+  }
+  $('#phFind').addEventListener('input', () => { clearTimeout(findTimer); findTimer = setTimeout(runSearch, 350); });
+
+  async function loadFriendsList(){
+    const box = $('#phFriends');
+    const { data, error } = await sb.rpc('my_friends');
+    if(error || !data){ box.innerHTML = ''; return; }
+    const pendingIn  = data.filter(f => f.status === 'pending' && f.incoming);
+    const pendingOut = data.filter(f => f.status === 'pending' && !f.incoming);
+    const friends    = data.filter(f => f.status === 'accepted');
+    box.innerHTML =
+      pendingIn.map(f => golferRow(f,
+        `<span style="display:flex; gap:6px;"><button class="mini" data-facc="${f.friendship_id}">Accept</button><button class="mini" data-fdec="${f.friendship_id}">×</button></span>`)).join('')
+      + pendingOut.map(f => golferRow(f, '<b class="fine" style="padding:0">REQUESTED</b>')).join('')
+      + friends.map(f => golferRow(f, '<b class="fine" style="padding:0">BUDDIES ✓</b>')).join('')
+      + (!data.length ? '<p class="fine">No buddies yet — search above or share an invite link.</p>' : '');
+    box.querySelectorAll('[data-facc],[data-fdec]').forEach(b => b.addEventListener('click', async () => {
+      b.disabled = true;
+      const accept = b.hasAttribute('data-facc');
+      const id = b.dataset.facc || b.dataset.fdec;
+      const { error: re } = await sb.rpc('friend_respond', { p_id: id, p_accept: accept });
+      if(re) toast('Failed: ' + re.message);
+      else toast(accept ? 'Golf buddies ✓' : 'Request declined');
+      loadFriendsList();
+    }));
+  }
+  loadFriendsList();
+
   /* notifications: reflect current state, then toggle on tap */
   const pushBtn = $('#phPushTog'), chatBtn = $('#phChatTog');
   const chatLabel = () => { chatBtn.textContent = 'Chat pings: ' + ((CS.profile?.notify_chat ?? true) ? 'ON' : 'OFF'); };
@@ -3245,6 +3351,7 @@ function openProfileHub(){
   });
 }
 $('#whoChip').addEventListener('click', openProfileHub);
+$('#wFind').addEventListener('click', openProfileHub);
 
 /* ---------- invite links: share sheet over the league code ---------- */
 async function shareInvite(){
@@ -3966,7 +4073,7 @@ async function boot(){
     await loadProfile();
     /* gate on marker: display_name can be auto-filled by the m001 signup
        trigger; marker exists only once the golfer card has been saved */
-    if(!CS.profile || !CS.profile.marker){
+    if(!CS.profile || !CS.profile.marker || !CS.profile.handle){
       bootTrace('no golfer card yet — profile gate');
       showProfileGate();
       return;   // resumeAfterProfile() continues the boot after save
