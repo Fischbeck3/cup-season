@@ -1283,7 +1283,7 @@ body::before{
       </div>
             
     </div>
-    <div class="ob-caption" id="obCaption">New or returning, email is one door. No passwords. Just looking? Join with code <b style="color:var(--mut)">DEMO</b>. <span style="opacity:.5">v23.80</span></div>
+    <div class="ob-caption" id="obCaption">New or returning, email is one door. No passwords. Just looking? Join with code <b style="color:var(--mut)">DEMO</b>. <span style="opacity:.5">v23.81</span></div>
   </div>
   <div class="ob-splash" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
   
@@ -3930,6 +3930,21 @@ function renderEvent(){
       <div class="evclinch">${clinchLine}</div>
     </div>`;
 
+  /* organizer controls — the event's creator runs the roster + sessions */
+  const meU=window.CS?.user?.id, iAmOrg = ev.created_by===meU;
+  const unassigned = players.filter(p=>!p.team_id);
+  if(iAmOrg){
+    html+=`<div style="display:flex; gap:8px; margin:2px 0 6px"><button class="mini" onclick="window.openRyderPlayers&&window.openRyderPlayers()">＋ Add players</button></div>`;
+    if(unassigned.length){
+      html+=`<div class="eyebrow">Unassigned</div>`+unassigned.map(p=>`<div class="check"><span class="num">${window.mkr?.(p.marker||'saguaro')||'⛳'}</span>
+        <div class="tt"><b>${esc(p.name)}</b></div>
+        <span style="display:flex;gap:6px;flex:none">
+          <button class="mini" onclick="window.ryderAssign('${p.id}','${A.id}')">→ ${esc(A.name)}</button>
+          <button class="mini" onclick="window.ryderAssign('${p.id}','${B.id}')">→ ${esc(B.name)}</button>
+        </span></div>`).join('');
+    }
+  }
+
   /* sessions, newest first */
   sessions.slice().sort((a,b)=>b.session_no-a.session_no).forEach(s=>{
     const ds=duels.filter(d=>d.session_id===s.id);
@@ -3950,6 +3965,10 @@ function renderEvent(){
         ${pvi?`<span class="pv">${pvi}</span>`:''}
       </div>`;
     });
+    if(iAmOrg){
+      if(!ds.length) html+=`<button class="mini" onclick="window.ryderPair('${s.id}')" style="margin-top:4px">Generate pairings</button>`;
+      else if(s.status!=='closed') html+=`<button class="mini" onclick="window.ryderResolve('${s.id}')" style="margin-top:4px">Score this session</button>`;
+    }
     html+=`</div>`;
   });
 
@@ -5250,11 +5269,13 @@ function openLeagueSwitcher(){
     + (events ? '<div class="eyebrow">Events</div>' + events : '')
     + '<div class="eyebrow">Elsewhere</div>'
     + row('__clubhouse', '⌂', 'Your clubhouse', 'ROUNDS & BUDDIES — NO LEAGUE LENS', !cur && !state.demo)
-    + row('__new', '+', 'Start or join a league', 'NEW CUP, OR AN INVITE CODE', false));
+    + row('__new', '+', 'Start or join a league', 'A SEASON, OR AN INVITE CODE', false)
+    + row('__ryder', '🏆', 'Start a Ryder event', 'TWO TEAMS · SHORT · PVI DUELS', false));
   $('#shBody').querySelectorAll('[data-lgsw]').forEach(b => b.addEventListener('click', async () => {
     const v = b.dataset.lgsw; closeSheet();
     if(v === '__clubhouse'){ if(cur || state.demo) goClubhouse(); return; }
     if(v === '__new'){ goClubhouse(); switchView('hub'); return; }
+    if(v === '__ryder'){ if(window.openRyderSetup) window.openRyderSetup(); return; }
     if(v.startsWith('__event:')){ if(window.openEvent) await window.openEvent(v.slice(8)); return; }
     const m = CS.memberships.find(x => x.league.id === v);
     if(m && v !== cur) await enterLeague(m);
@@ -5354,6 +5375,105 @@ async function loadEvent(id){
   } catch(e){ console.warn('[event]', e); }
 }
 window.openEvent = async (id) => { await loadEvent(id); switchView('event'); };
+
+/* ---------- The Ryder: create an event + organizer actions ---------- */
+function nextSundayISO(){
+  const d=new Date(); d.setHours(0,0,0,0);
+  d.setDate(d.getDate() + ((7 - d.getDay()) % 7 || 7));
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+}
+async function openRyderSetup(){
+  if(!CS.user){ toast('Sign in to start an event'); return; }
+  const leagues = (CS.memberships||[]).map(m=>`<option value="${m.league.id}">${esc(m.league.name)}</option>`).join('');
+  openSheet('Start a Ryder', 'TWO TEAMS · PVI DUELS · FIRST TO THE CLINCH', `
+    <label class="f" for="rsName">Event name</label>
+    <input class="f" id="rsName" placeholder="The Grudge Match" autocomplete="off" style="font-family:var(--sans)">
+    <div class="frow" style="margin-top:10px">
+      <div><label class="f" for="rsA">Team A</label><input class="f" id="rsA" placeholder="Red" autocomplete="off" style="font-family:var(--sans)"></div>
+      <div><label class="f" for="rsB">Team B</label><input class="f" id="rsB" placeholder="Blue" autocomplete="off" style="font-family:var(--sans)"></div>
+    </div>
+    <label class="f" style="margin-top:10px; display:block">Sessions</label>
+    <div class="seg" id="rsSess">${[3,4,5,6].map(n=>`<button data-n="${n}" class="${n===3?'on':''}">${n}</button>`).join('')}</div>
+    <label class="f" style="margin-top:10px; display:block">Cadence</label>
+    <div class="seg" id="rsCad"><button data-w="1" class="on">Weekly</button><button data-w="2">Every 2 wks</button></div>
+    <label class="f" style="margin-top:10px" for="rsStart">First tee (a Sunday)</label>
+    <input class="f" id="rsStart" type="date" value="${nextSundayISO()}">
+    <label class="f" style="margin-top:10px" for="rsLeague">Attach to a league <span style="color:var(--dim)">(optional)</span></label>
+    <select class="f" id="rsLeague" style="font-family:var(--sans)"><option value="">Standalone — invite anyone</option>${leagues}</select>
+    <button class="btn" id="rsGo" style="margin-top:16px">Create the event</button>
+    <p class="fine">You captain Team A. Add players and assign teams from the scoreboard once it's created.</p>
+  `);
+  let sess=3, weeks=1;
+  document.querySelectorAll('#rsSess button').forEach(b=>b.addEventListener('click',()=>{document.querySelectorAll('#rsSess button').forEach(x=>x.classList.remove('on'));b.classList.add('on');sess=+b.dataset.n;}));
+  document.querySelectorAll('#rsCad button').forEach(b=>b.addEventListener('click',()=>{document.querySelectorAll('#rsCad button').forEach(x=>x.classList.remove('on'));b.classList.add('on');weeks=+b.dataset.w;}));
+  document.getElementById('rsGo').addEventListener('click',async()=>{
+    const name=document.getElementById('rsName').value.trim();
+    if(!name){ toast('Name the event'); return; }
+    const go=document.getElementById('rsGo'); go.disabled=true;
+    try{
+      const { data, error } = await sb.rpc('create_event', {
+        p_name:name, p_starts_on:document.getElementById('rsStart').value||nextSundayISO(),
+        p_sessions:sess, p_session_weeks:weeks, p_draw_rule:'team_pvi',
+        p_team_a:document.getElementById('rsA').value.trim()||'Red',
+        p_team_b:document.getElementById('rsB').value.trim()||'Blue',
+        p_league:document.getElementById('rsLeague').value||null,
+      });
+      if(error) throw error;
+      closeSheet(); await loadMyEvents();
+      toast('Event created — add your players');
+      window.openEvent(data);        /* create_event returns the event uuid */
+    }catch(e){ toast('Create failed: '+(e.message||e)); go.disabled=false; }
+  });
+}
+window.openRyderSetup = openRyderSetup;
+
+async function ryderCandidates(E){
+  const map=new Map();
+  try{ const {data}=await sb.rpc('my_friends');
+    (data||[]).filter(f=>f.status==='accepted').forEach(f=>map.set(f.profile_id,{name:f.display_name,mk:f.marker})); }catch(e){}
+  if(E.event.league_id){
+    try{ const {data}=await sb.from('league_members').select('profile_id, profile:profiles(display_name,marker)').eq('league_id',E.event.league_id);
+      (data||[]).forEach(m=>{ if(m.profile_id!==CS.user.id) map.set(m.profile_id,{name:m.profile?.display_name||'—',mk:m.profile?.marker}); }); }catch(e){}
+  }
+  (E.players||[]).forEach(p=>map.delete(p.profile_id));   /* drop those already in */
+  return map;
+}
+window.openRyderPlayers = async function(){
+  const E=window.CS_EVENT; if(!E) return;
+  const A=E.teams.find(t=>t.slot===0), B=E.teams.find(t=>t.slot===1);
+  const cand=await ryderCandidates(E);
+  if(!cand.size){ openSheet('Add players','NO ONE TO ADD', `<p class="fine">Add golf buddies from your profile first${E.event.league_id?" — everyone in the attached league is already in":''}.</p>`); return; }
+  const rows=[...cand.entries()].map(([pid,c])=>`
+    <div class="check"><span class="num">${window.mkr?.(c.mk||'saguaro')||'⛳'}</span>
+      <div class="tt"><b>${esc(c.name)}</b></div>
+      <span style="display:flex;gap:6px;flex:none">
+        <button class="mini" data-add="${pid}" data-team="${A.id}">＋ ${esc(A.name)}</button>
+        <button class="mini" data-add="${pid}" data-team="${B.id}">＋ ${esc(B.name)}</button>
+      </span></div>`).join('');
+  openSheet('Add players', 'TAP A TEAM TO ADD', rows);
+  document.querySelectorAll('[data-add]').forEach(b=>b.addEventListener('click',async()=>{
+    b.disabled=true;
+    try{
+      const { data:epid, error } = await sb.rpc('add_event_player',{p_event:E.event.id, p_profile:b.dataset.add});
+      if(error) throw error;
+      if(epid) await sb.rpc('set_event_team',{p_player:epid, p_team:b.dataset.team});
+      b.parentElement.innerHTML='<span class="fine" style="color:var(--pos); padding:0">ADDED</span>';
+      await loadEvent(E.event.id);   /* refresh behind the sheet */
+    }catch(e){ toast(e.message||String(e)); b.disabled=false; }
+  }));
+};
+window.ryderAssign = async (playerId, teamId)=>{
+  try{ const {error}=await sb.rpc('set_event_team',{p_player:playerId,p_team:teamId}); if(error)throw error;
+    await loadEvent(window.CS_EVENT.event.id); }catch(e){ toast(e.message||String(e)); }
+};
+window.ryderPair = async (sessionId)=>{
+  try{ const {error}=await sb.rpc('generate_pairings',{p_session:sessionId}); if(error)throw error;
+    toast('Pairings set'); await loadEvent(window.CS_EVENT.event.id); }catch(e){ toast('Pairing failed: '+(e.message||e)); }
+};
+window.ryderResolve = async (sessionId)=>{
+  try{ const {error}=await sb.rpc('resolve_session',{p_session:sessionId}); if(error)throw error;
+    toast('Session scored'); await loadEvent(window.CS_EVENT.event.id); }catch(e){ toast('Score failed: '+(e.message||e)); }
+};
 
 /* D4: the You tab's league record — latest season per membership, my place in
    it, ranked from v_individual_standings. Archives deepen as seasons close. */
