@@ -77,11 +77,19 @@ async function reset(admin: any, me?: string) {
   if (leagueIds.length) collect((await admin.from("events").select("id").in("league_id", leagueIds)).data);
   if (me)               collect((await admin.from("events").select("id").eq("created_by", me).eq("name", "The Grudge")).data);
   for (const eid of evIds) { await admin.from("events").delete().eq("id", eid); removed.events++; }
-  // Delete each test league's posts FIRST. posts.member_id → league_members has
-  // NO cascade, so those posts block deleting the members (whether the members
-  // go via the league cascade or the profile cascade). Clear posts, and the
-  // league delete then cascades members/squads/seasons/buy_ins cleanly.
+  // Clear every no-cascade reference to league_members before deleting a league,
+  // else they block the member cascade (and thus the league + profile deletes):
+  //   posts.member_id, buy_ins.marked_by, squads.captain_member_id
+  // (cup_finalists deleted ahead of squads, which it references). Then the league
+  // cascade — members, seasons, settings, invites, rounds' fan-out — is clean.
   for (const lid of leagueIds) {
+    const { data: seas } = await admin.from("seasons").select("id").eq("league_id", lid);
+    const seasonIds = (seas ?? []).map((s: any) => s.id);
+    if (seasonIds.length) {
+      await admin.from("cup_finalists").delete().in("season_id", seasonIds);
+      await admin.from("buy_ins").delete().in("season_id", seasonIds);
+      await admin.from("squads").delete().in("season_id", seasonIds);
+    }
     await admin.from("posts").delete().eq("league_id", lid);
     const le = await admin.from("leagues").delete().eq("id", lid);
     if (le.error) removed.errors.push(`league ${lid.slice(0, 8)}: ${le.error.message}`);
