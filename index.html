@@ -1078,6 +1078,11 @@ body::before{
   display:block; font-family:var(--mono); font-size:9.5px; font-weight:600;
   letter-spacing:.14em; color:var(--gold); margin-bottom:4px;
 }
+/* the latest announcement rides pinned at the top of the board card */
+.annrow.pin{
+  position:sticky; top:0; z-index:2; margin-top:0;
+  background:linear-gradient(90deg, rgba(233,190,98,.10), rgba(233,190,98,.02)), var(--bg1);
+}
 
 /* the full-screen board: the league's room */
 #boardFull{
@@ -1242,7 +1247,7 @@ body::before{
       </div>
             
     </div>
-    <div class="ob-caption" id="obCaption">New or returning, email is one door — no passwords. Just looking? Join with code <b style="color:var(--mut)">DEMO</b>. <span style="opacity:.5">v23.71</span></div>
+    <div class="ob-caption" id="obCaption">New or returning, email is one door — no passwords. Just looking? Join with code <b style="color:var(--mut)">DEMO</b>. <span style="opacity:.5">v23.72</span></div>
   </div>
   <div class="ob-splash" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
   
@@ -1382,7 +1387,7 @@ body::before{
           <span class="go">→</span>
         </button>
         <div class="stats">
-          <div class="stat"><div class="k">Season</div><div class="v"><span id="statWk">W18</span> <small>/ <span id="wkTotal2">36</span></small></div><div class="d fl" id="statFinal">Cup Final · final 4 wks</div></div>
+          <div class="stat"><div class="k">Season</div><div class="v"><span id="statWk">W18</span> <small>/ <span id="wkTotal2">24</span></small></div><div class="d fl" id="statFinal">Cup Final · final 4 wks</div></div>
           <div class="stat"><div class="k">The pot</div><div class="v gold" id="chipPot">$525</div><div class="d fl" id="paidChip">5/7 buy-ins in</div></div>
           <div class="stat"><div class="k">Your index</div><div class="v" id="statIdx">12.4</div><div class="d up" id="statIdxD">▼ 0.3 this month</div></div>
           <div class="stat"><div class="k">Counting rounds</div><div class="v" id="statCount">3 <small>/ 4</small></div><div class="d fl" id="statCountD">This month · best 4 count</div></div>
@@ -1461,7 +1466,10 @@ body::before{
         <div class="card" style="padding:10px 12px 4px">
           <table class="tbl" id="indTable"></table>
         </div>
-        <p class="fine">Points King takes 15% of the pot at season's end. Most Improved is index drop since Week 1; Iron Man is most rounds posted. All three run in parallel with the squad race — bylaws §4.</p>
+        <p class="fine">Points King takes <span id="kingPct">15</span>% of the pot at season's end. Most Improved is index drop since Week 1; Iron Man is most rounds posted. All three run in parallel with the squad race — bylaws §4.</p>
+
+        <div class="eyebrow" id="lgRecHead" style="display:none">League record</div>
+        <div id="lgRec" style="display:none; margin-bottom:14px"></div>
       </section>
 
       <!-- CALENDAR -->
@@ -1700,7 +1708,7 @@ body::before{
         <div class="wizstep on" data-step="0">
           <div class="card">
             <label class="f" for="setName">League name</label>
-            <input class="f" id="setName" value="The Sunday Cup" style="font-family:var(--sans); font-size:16px;">
+            <input class="f" id="setName" placeholder="The Big Slice, The Sunday Cup, Dew Sweepers…" style="font-family:var(--sans); font-size:16px;">
             <div style="height:14px"></div>
             <label class="f" for="commishEmail">Pro — you</label>
             <input class="f" id="commishEmail" type="email" value="you@cupseason.app" autocomplete="off" style="font-family:var(--sans);">
@@ -1822,6 +1830,7 @@ body::before{
           </div>
           <div class="fine" id="hhSpan" style="padding:8px 0 0">Sun Jul 5 → Sat Dec 26 · 25 wks</div>
           <div class="fine" id="hhPro" style="padding:2px 0 0">THE PRO · —</div>
+          <div class="fine" id="hhDanger" style="display:none; padding:8px 0 0"><a href="#" id="hhDelete" style="color:var(--neg)">Cancel &amp; delete this league</a> — only possible before the first tee</div>
         </div>
 
         <div class="eyebrow">League</div>
@@ -1954,6 +1963,7 @@ const feed = [
   {d:dAgo(4), who:'Logan', team:'Mudsharks', ci:0, meta:'79 GROSS · AGUILA', pvi:3.4, pts:12, kud:5, mine:false, cm:[{w:'Ed',t:'sandbagger alert 🚨'},{w:'Mitch',t:'ok tour pro'}]},
   {d:dAgo(3), who:'Garrett', team:'Sandbaggers', ci:1, meta:'96 GROSS · SIM ROUND', pvi:-2.2, pts:6, kud:2, mine:false, cm:[{w:'Ed',t:'sim rounds… we\u2019ll allow it'},{w:'Garrett',t:'scoreboard talks 🤷'}]},
   {d:dAgo(2), who:'Metz', team:'Mudsharks', ci:0, meta:'92 GROSS · PAPAGO', pvi:0.4, pts:7, kud:1, mine:false, cm:[]},
+  {d:dAgo(2), ann:true, txt:'Buy-ins close Sunday — the pot is waiting on Blake and Garrett.'},
   {d:dAgo(1), who:'Ed', team:'Sandbaggers', ci:1, meta:'81 GROSS · ENCANTO', pvi:2.4, pts:9, kud:3, mine:false, cm:[{w:'Jerecho',t:'putts were rolling today'}]},
   {d:dAgo(1), sys:true, txt:'Sandbaggers close the gap — 25 back'},
   {d:dAgo(0), msg:true, who:'Mitch', ci:1, txt:'Who\u2019s in for Papago Saturday AM? Two carts locked.'},
@@ -1978,6 +1988,17 @@ const state = {
 };
 const STAKES=[25,50,75,100,150,200], LENGTHS=[6,9,12], CAPS=['Best 2','Best 4','Best 6','Unlimited'];
 const WEEKS=18;
+/* the demo rides a real Sunday-season frame (spec §14.0): first tee 17 whole
+   weeks back — today is always W18 of 24 — ending on a Saturday. Every date
+   the diorama shows (calendar, header, Cup Final) derives from this frame.
+   Real leagues overwrite both fields from the DB; blank slates null them. */
+(function demoSeasonFrame(){
+  const s=new Date(); s.setHours(0,0,0,0);
+  s.setDate(s.getDate() - s.getDay() - 17*7);            /* Sunday, 17 wks back */
+  const e=new Date(s); e.setDate(e.getDate() + 24*7 - 1); /* Saturday, 24 whole wks */
+  const iso=d=>`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+  state.seasonStart=iso(s); state.seasonEnd=iso(e);
+})();
 let series=[]; /* per-team cumulative weekly points, aligned to teams[] order */
 
 /* ================= helpers ================= */
@@ -2143,8 +2164,14 @@ const easeCaps = s => {
 };
 function renderFeed(){
   const el=$('#feedList'); el.innerHTML='';
+  /* E3: the Pro's latest announcement rides pinned above the noise —
+     announcements are not chat, they must survive the scroll */
+  let pin=-1; feed.forEach((f,i)=>{ if(f.ann) pin=i; });
+  if(pin>-1)
+    el.insertAdjacentHTML('beforeend',`<div class="annrow pin"><b>📌 FROM THE PRO</b>${esc(feed[pin].txt)}</div>`);
   let lastD=null;
   feed.forEach((f,fi)=>{
+    if(fi===pin) return; /* pinned above — never twice */
     if(f.d!==lastD){
       el.insertAdjacentHTML('beforeend',`<div class="datesep">${f.d}</div>`);
       lastD=f.d;
@@ -2321,6 +2348,7 @@ function renderDraft(){
     ? 'Squad formation · Pro assign'
     : dt==='live' ? 'Live draft · pick clock' : 'Squad formation · blind draw';
   $('#draftAdmin').style.display = state.draft.isCommish && dt!=='assign' ? 'block':'none';
+  const rs=$('#resetDraft'); if(rs) rs.style.display='';   /* demo toy — real leagues hide it */
 
   if(dt==='assign'){
     $('#draftLock').style.display='none';
@@ -3020,10 +3048,10 @@ function renderStats(){
   const credits=my ? my.credits : yourMonthCredits();
   const used=my ? Math.min(my.counting, capN) : Math.min(credits, capN);
   const fmtN=n=> n%1 ? n.toFixed(1) : String(n);
-  const wk=$('#statWk'); if(wk) wk.textContent=state.demo?'W18':(atStarter()?'—':'W'+currentWeek());
-  const wt=$('#wkTotal2'); if(wt && !state.demo) wt.textContent=totalWeeks();
+  const wk=$('#statWk'); if(wk) wk.textContent=atStarter()?'—':'W'+currentWeek();
+  const wt=$('#wkTotal2'); if(wt) wt.textContent=totalWeeks();
   const sf=$('#statFinal');
-  if(sf && !state.demo){
+  if(sf){
     const cf=cupFinalStart();
     if(atStarter()){
       sf.textContent=`First tee ${firstTeeText()}`;
@@ -3033,8 +3061,20 @@ function renderStats(){
       sf.textContent=`CUP FINAL LIVE · ${left} day${left===1?'':'s'} left`;
       sf.style.color='var(--gold)';
     } else {
-      sf.textContent=`Cup Final · Sun ${MOS[cf.getMonth()]} ${cf.getDate()}`;
-      sf.style.color='';
+      /* C4: the month machinery, surfaced — nearest deadline wins (§14.0).
+         Week closes Sunday night, month closes on the 1st, Cup Final looms. */
+      const today=new Date(); today.setHours(0,0,0,0);
+      const dTo=d=>Math.round((d-today)/864e5);
+      const sun=new Date(today); sun.setDate(sun.getDate()+(7-sun.getDay())%7);
+      const first=new Date(today.getFullYear(), today.getMonth()+1, 1);
+      const opts=[
+        {n:dTo(sun),   pri:0, gold:false, t:dTo(sun)===0?'Week closes tonight':`Week closes Sun · ${dTo(sun)}d`},
+        {n:dTo(first), pri:1, gold:false, t:`Month closes ${MOS[first.getMonth()]} 1 · floors assessed`},
+      ];
+      if(cf>=today) opts.push({n:dTo(cf), pri:2, gold:true, t:`Cup Final · Sun ${MOS[cf.getMonth()]} ${cf.getDate()} · ${dTo(cf)}d`});
+      const nx=opts.sort((a,b)=>a.n-b.n || b.pri-a.pri)[0];
+      sf.textContent=nx.t;
+      sf.style.color=nx.gold?'var(--gold)':'';
     }
   }
   $('#statIdx').textContent=state.myIndex.toFixed(1);
@@ -3120,7 +3160,27 @@ const PLAYERS=[
   {n:'Mitch',   ci:1, sq:'SND', r:11, avg:0.8,  best:2.6, pts:70, d:-0.5},
   {n:'Garrett', ci:1, sq:'SND', r:9,  avg:-0.9, best:0.8, pts:61, d:0.6},
 ];
+/* D4: the You tab's league record — one line per membership: league, season,
+   where you sit. Real rows come from window.leagueRecord (module); the demo
+   derives its single row from the diorama so the arithmetic reconciles. */
+function renderLeagueRecord(){
+  const hd=$('#lgRecHead'), el=$('#lgRec'); if(!hd||!el) return;
+  const ord=n=>{const s=['TH','ST','ND','RD'],v=n%100;return n+(s[(v-20)%10]||s[v]||s[0]);};
+  let rows;
+  if(state.demo){
+    const rk=[...PLAYERS].sort((a,b)=>b.pts-a.pts);
+    const i=rk.findIndex(p=>p.me);
+    rows=[{name:'The Sunday Cup', number:1,
+           line:`WK ${currentWeek()} / ${totalWeeks()} · ${i>=0?ord(i+1)+' OF '+rk.length+' · '+rk[i].pts+' PTS':'—'}`}];
+  } else rows=window.leagueRecord||[];
+  if(!rows.length){ hd.style.display='none'; el.style.display='none'; return; }
+  hd.style.display=''; el.style.display='';
+  el.innerHTML=rows.map(r=>`<div class="check"><span class="num">⛳</span>
+    <div class="tt"><b>${esc(r.name)}</b><small>SEASON ${ROMAN[r.number]||r.number} · ${r.line}</small></div></div>`).join('');
+}
 function renderIndStats(){
+  renderLeagueRecord();
+  const kp=$('#kingPct'); if(kp) kp.textContent=(state.payout||[60,25,15])[2];
   if(!state.demo){ renderIndStatsReal(); return; }
   const rows=PLAYERS.map(p=>{
     const s=feed.filter(f=>f.sess && f.who===p.n);
@@ -3375,6 +3435,9 @@ function showRound(name, idx){
 function resetToBlank(leagueName){
   state.demo=false;
   MONTH_BASE=0;
+  /* the demo's Sunday-season frame must never shadow a real league — the DB
+     rewrites these when a season exists; until then there are no season dates */
+  state.seasonStart=null; state.seasonEnd=null;
   window.indRows=[]; window.myMonth=null; window.myIndexDelta=null; window.buyIns={};
   feed.length=0;
   feed.push({d:TODAY, sys:true, txt:(leagueName||'Your league')+' is live — say hello on the board'});
@@ -3514,7 +3577,7 @@ function renderPhase(){
     ? (L ? `SETUP · CODE ${L.code} · ${nMem} JOINED` : 'SETUP · CODE SNDYCUP · 9 OF 16 JOINED')
     : p==='draft' ? 'SQUAD FORMATION · ROSTERS PENDING'
     : state.demo
-      ? `Wk 18 / 36 · ${FMT_NAMES[state.fmt]} · ${PRESETS[state.preset].name} rules`
+      ? `Wk ${currentWeek()} / ${totalWeeks()} · ${FMT_NAMES[state.fmt]} · ${PRESETS[state.preset].name} rules`
       : atStarter()
       ? `AT THE STARTER · FIRST TEE ${firstTeeText().toUpperCase()} · ${daysToTee()} DAY${daysToTee()===1?'':'S'}`
       : isCupFinal()
@@ -3665,7 +3728,14 @@ $('#calNext').addEventListener('click',()=>{
    markup defaults are demo scenery and must never survive a real league */
 const ROMAN=['','I','II','III','IV','V','VI','VII','VIII','IX','X','XI','XII'];
 function renderLeagueMeta(){
-  if(state.demo || !window.CS?.league) return;
+  if(state.demo){
+    /* the diorama's header card rides the demo season frame — E6 */
+    const sp=$('#hhSpan'); if(sp) sp.textContent=seasonSpanText();
+    const ph=$('#hhPhase'); if(ph) ph.textContent=`SEASON LIVE — WK ${currentWeek()} / ${totalWeeks()}`;
+    const dz=$('#hhDanger'); if(dz) dz.style.display='none';
+    return;
+  }
+  if(!window.CS?.league) return;
   const L=window.CS.league, members=window.CS.members||[], squads=window.CS.squads||[];
   const n=members.length, joes=k=>`${k} JOE${k===1?'':'S'}`;
   const hm=$('#hubMembersSub'); if(hm) hm.textContent=`${joes(n)} · CODE ${L.code}`;
@@ -3698,6 +3768,12 @@ function renderLeagueMeta(){
       : 'Season dates lock with the bylaws';
     const pro=members.find(m=>m.role==='commissioner');
     $('#hhPro').textContent='THE PRO · '+(pro?.profile?.display_name||'—').toUpperCase();
+    /* the escape hatch: a league that never went live can be scrapped by the
+       Pro — setup, squad formation, or at the starter. Server re-validates. */
+    const dz=$('#hhDanger');
+    if(dz) dz.style.display =
+      window.CS.member?.role==='commissioner'
+      && (['setup','draft'].includes(state.phase) || atStarter()) ? '' : 'none';
   }
 }
 function renderWizard(){
@@ -3709,14 +3785,17 @@ function renderWizard(){
 $('#wizBack').addEventListener('click',()=>{state.wiz=Math.max(0,state.wiz-1);renderWizard();});
 $('#wizNext').addEventListener('click',()=>{state.wiz=Math.min(3,state.wiz+1);renderWizard();});
 $('#setName').addEventListener('input',e=>{
-  const n=e.target.value.trim()||'The Sunday Cup';
+  const n=e.target.value.trim()||'Your league';
   $('#leagueName').textContent=n; $('#sideLeague').textContent=n;
 });
 $$('[data-go]').forEach(b=>b.addEventListener('click',e=>{e.preventDefault();switchView(b.dataset.go);}));
 $$('.copycode').forEach(b=>b.addEventListener('click',async ()=>{
   if(!state.demo && window.CS?.league && window.shareInvite){ window.shareInvite(); return; }
-  try{ await navigator.clipboard.writeText('SNDYCUP'); }catch(e){}
-  toast('Invite code SNDYCUP copied — text it to the group');
+  /* E1: fall back to the REAL code when the share layer is missing — the
+     literal is demo scenery only */
+  const code=(!state.demo && window.CS?.league?.code) || 'SNDYCUP';
+  try{ await navigator.clipboard.writeText(code); }catch(e){}
+  toast(`Invite code ${code} copied — text it to the group`);
 }));
 
 /* ---------- PWA install nudge ---------- */
@@ -4374,6 +4453,7 @@ async function enterLeague(m){
   }
   try { await loadLeagueData(); } catch(e){ bootTrace('league data: '+(e.message||e)); }
   loadLeagueSpans().then(loadSchedule); /* the calendar's social + season layers */
+  loadLeagueRecord();                   /* the You tab's per-league record rows */
   const ab = $('#annBtn');
   if(ab) ab.style.display = CS.member?.role === 'commissioner' ? '' : 'none';
   subscribeLeague();
@@ -4554,6 +4634,9 @@ function renderFormation(){
     ? 'Form squads \u00b7 Pro assign' : 'Form squads \u00b7 blind draw';
   $('#draftAdmin').style.display = 'none';
   const lock = $('#draftLock'); if(lock) lock.style.display = 'none';
+  /* E5: the demo's "Restart" toy resets local draft state — never show it to
+     a real league; the server owns squad formation */
+  const rst = document.getElementById('resetDraft'); if(rst) rst.style.display = 'none';
 
   $('#clock').innerHTML = `<span class="accent" style="background:var(--pos)"></span>
     <div class="k">Form squads</div>
@@ -4857,6 +4940,15 @@ $('#joinGo').addEventListener('click', async () => {
 
 $('#lockBtn').addEventListener('click', async () => {
   const btn = $('#lockBtn');
+  /* D5: no league locks bylaws unnamed — the placeholder must never become
+     the banner. 'My Cup' is the pre-wizard scaffold name, not a choice. */
+  const typed = ($('#setName')?.value || '').trim();
+  if(!typed && (!CS.league || CS.league.name === 'My Cup')){
+    toast('Name the league first — top of the wizard');
+    state.wiz = 0; renderWizard(); switchView('wizard');
+    $('#setName')?.focus();
+    return;
+  }
   btn.disabled = true;
   try {
     // If the wizard was reached without a league row (fresh signup), create it now.
@@ -4921,6 +5013,29 @@ window.openLeagueSwitcher = openLeagueSwitcher;
   if(el){ el.style.cursor = 'pointer'; el.addEventListener('click', openLeagueSwitcher); }
 });
 
+/* the escape hatch: a league that never went live can be deleted by the Pro.
+   Typed-name gate — heavier friction than confirm(), on purpose. The RPC
+   re-validates phase + first tee server-side; rounds are never touched. */
+document.getElementById('hhDelete')?.addEventListener('click', async e => {
+  e.preventDefault();
+  if(state.demo || !CS.league || CS.member?.role !== 'commissioner') return;
+  const nm = CS.league.name;
+  const typed = prompt(
+    `This deletes ${nm} for everyone in it — members, board, pot sheet, squads. ` +
+    `Rounds stay on every golfer's profile. Type the league name to confirm:`);
+  if(typed === null) return;
+  if(typed.trim().toLowerCase() !== nm.trim().toLowerCase()){
+    toast('Name didn’t match — nothing deleted'); return;
+  }
+  try {
+    const { error } = await sb.rpc('delete_league', { p_league: CS.league.id });
+    if(error) throw error;
+    toast(nm + ' deleted — every round stays on its golfer');
+    await loadMemberships();
+    goClubhouse();
+  } catch(err){ toast(err.message || String(err)); }
+});
+
 /* ---------- the calendar's data: rounds on the books + every league's season */
 async function loadSchedule(){
   if(!CS.user){ renderCalendar(); return; }
@@ -4947,6 +5062,47 @@ async function loadLeagueSpans(){
     const nameOf = id => CS.memberships.find(m => m.league.id === id)?.league.name || 'League';
     window.leagueSpans = (data||[]).map(s => ({ ...s, name: nameOf(s.league_id) }));
   } catch(e){ console.warn('[spans]', e); window.leagueSpans = []; }
+}
+
+/* D4: the You tab's league record — latest season per membership, my place in
+   it, ranked from v_individual_standings. Archives deepen as seasons close. */
+async function loadLeagueRecord(){
+  if(!CS.user || !(CS.memberships||[]).length){ window.leagueRecord = []; renderIndStats(); return; }
+  try {
+    const ids = CS.memberships.map(m => m.league.id);
+    const { data: seas } = await sb.from('seasons')
+      .select('id, league_id, number, status, starts_on')
+      .in('league_id', ids).order('number', { ascending:false });
+    const latest = new Map();
+    (seas||[]).forEach(s => { if(!latest.has(s.league_id)) latest.set(s.league_id, s); });
+    const sids = [...latest.values()].map(s => s.id);
+    let st = [];
+    if(sids.length){
+      const { data } = await sb.from('v_individual_standings')
+        .select('season_id, member_id, points').in('season_id', sids);
+      st = data || [];
+    }
+    const ord = n => { const s=['TH','ST','ND','RD'], v=n%100; return n+(s[(v-20)%10]||s[v]||s[0]); };
+    window.leagueRecord = CS.memberships.map(m => {
+      const s = latest.get(m.league.id);
+      let line;
+      if(!s || m.league.phase === 'setup') line = 'FORMING — INVITES OPEN';
+      else if(m.league.phase === 'draft') line = 'SQUAD FORMATION';
+      else {
+        const rows = st.filter(x => x.season_id === s.id)
+                       .sort((a,b) => (b.points||0) - (a.points||0));
+        const i = rows.findIndex(x => x.member_id === m.id);
+        const place = i >= 0 ? `${ord(i+1)} OF ${rows.length} · ${rows[i].points||0} PTS` : '—';
+        const sd = localDate(s.starts_on);
+        line = sd > new Date()                                   ? `FIRST TEE SUN ${MOS[sd.getMonth()].toUpperCase()} ${sd.getDate()}`
+             : s.status === 'cup_final'                          ? `CUP FINAL · ${place}`
+             : (s.status === 'complete' || m.league.phase === 'complete') ? `FINISHED ${place}`
+             : place;
+      }
+      return { name: m.league.name, number: s?.number || 1, line };
+    });
+  } catch(e){ console.warn('[record]', e); window.leagueRecord = []; }
+  renderIndStats();
 }
 
 /* tag candidates = accepted buddies + current-league mates, deduped, minus
@@ -5137,8 +5293,11 @@ function showWelcome(){
   const sl = $('#sideLeague'); if(sl) sl.textContent = 'Your clubhouse';
   const sm = $('#sideMeta'); if(sm) sm.textContent = 'Rounds & buddies';
   const bs = $('#brandSeason'); if(bs) bs.textContent = 'cupseason.app';
-  /* the You tab must not show demo Joes to a league-less golfer */
+  /* the You tab must not show demo Joes to a league-less golfer — and the
+     demo's season frame must not paint ghost league dates on the calendar */
+  state.seasonStart = null; state.seasonEnd = null;
   window.indRows = []; window.myMonth = null; window.myIndexDelta = null;
+  loadLeagueRecord();
   renderIndStats();
   fillWelcomeCard();
   loadRecentRounds();

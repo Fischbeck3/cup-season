@@ -16,6 +16,16 @@ rounds pulled forward from task #16; profile-level like rounds; visibility
 posts to every board with the note riding). remove_member is setup-only
 until the bye/void toolkit; transfer_pro live. Task #16 remainder:
 watch-list projections + live status, after the events engine.
+Batch 7 (stragglers) SHIPPED v23.72 with migration 20260712230000 —
+D5 (setName ships empty + lock-time name guard; 'My Cup' scaffold never
+locks), E5 (Restart hidden in real leagues), C4 (season sub-line rotates
+nearest deadline: week close Sun / month close 1st / Cup Final), E3
+(latest announcement pinned sticky atop the board card), D4 (You-tab
+League record rows from latest season per membership), E6 (demo rides a
+relative Sunday-season frame — always W18 of 24), E1 leftover (copycode
+fallback reads the real code). NEW: delete_league RPC — the Pro can
+cancel & delete a league that never went live (setup/draft/at the
+starter; typed-name gate; rounds untouched). AUDIT LIST CLOSED.
 
 Root cause of most of it: the prototype-era markup and render functions carry
 demo defaults ("SNDYCUP", "16 Joes", "$1,200") that the real-league path never
