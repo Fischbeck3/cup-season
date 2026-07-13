@@ -1290,7 +1290,7 @@ body::before{
       </div>
             
     </div>
-    <div class="ob-caption" id="obCaption">New or returning, email is one door. No passwords. Just looking? Join with code <b style="color:var(--mut)">DEMO</b>. <span style="opacity:.5">v23.84</span></div>
+    <div class="ob-caption" id="obCaption">New or returning, email is one door. No passwords. Just looking? Join with code <b style="color:var(--mut)">DEMO</b>. <span style="opacity:.5">v23.85</span></div>
   </div>
   <div class="ob-splash" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
   
@@ -1763,13 +1763,16 @@ body::before{
             <label class="f" for="commishEmail">Pro — you</label>
             <input class="f" id="commishEmail" type="email" value="you@cupseason.app" autocomplete="off" style="font-family:var(--sans);">
             <div style="height:14px"></div>
-            <label class="f">Your buddies · one tap adds them</label>
+            <label class="f">Add golfers · search the app or tap a buddy</label>
+            <input class="f" id="wzFind" placeholder="Find golfers by name or @handle" autocomplete="off" style="font-family:var(--sans); margin-top:6px;">
+            <div id="wzResults" style="margin-top:8px"></div>
             <div id="wzBuddies" style="margin-top:8px"></div>
+            <div id="wzPicked" style="margin-top:8px"></div>
             <div style="height:14px"></div>
-            <label class="f">Player invites · <span id="slotNote">0 of 3 filled</span></label>
+            <label class="f">Not on the app? Invite by email · <span id="slotNote">0 filled</span></label>
             <div id="emailSlots" style="margin-top:8px"></div>
-            <button class="mini" id="emailAdd" style="margin-top:2px">+ Add player</button>
-            <p class="fine" style="padding-top:8px">Cup Season leagues start at four: you plus three. A foursome tracks points, handicaps, live rounds and the pot; add more players and squads unlock. Invites email out when you lock; anyone can also join later with the league code.</p>
+            <button class="mini" id="emailAdd" style="margin-top:2px">+ Add email</button>
+            <p class="fine" style="padding-top:8px">Cup Season leagues start at four: you plus three. Golfers already on the app get an invite to accept; email invites go out when you lock. Anyone can also join later with the league code.</p>
           </div>
         </div>
 
@@ -2033,7 +2036,7 @@ const state = {
   draft:{pick:0, pool:[...poolSeed], rosters:[[],[]], order:[0,1, 1,0, 0], meCaptain:0, isCommish:true},
   payers:payersSeed.map(p=>({name:p[0], paid:!!p[1]})),
   stake:75, months:6, cap:1, floor:2, myIndex:12.4,
-  phase:'season', wiz:0, preset:1, fmt:2, emails:[], showOthers:false, structure:'squads2', demo:true, startOffset:0,
+  phase:'season', wiz:0, preset:1, fmt:2, emails:[], wizInvitees:[], showOthers:false, structure:'squads2', demo:true, startOffset:0,
   draftType:'random',
 };
 const STAKES=[25,50,75,100,150,200], LENGTHS=[6,9,12], CAPS=['Best 2','Best 4','Best 6','Unlimited'];
@@ -2736,7 +2739,7 @@ function renderPot(){
        table. The Pro taps a name as money moves — mark_buy_in RPC,
        commissioner-gated at the database, posts the tally to the board. */
     const ms=(window.CS?.members)||[];
-    const invited=[...new Set(state.emails.map(e=>e.trim().toLowerCase()))].filter(e=>e.includes('@') && e!==((window.CS?.user?.email)||'').toLowerCase()).length;
+    const invited=[...new Set(state.emails.map(e=>e.trim().toLowerCase()))].filter(e=>e.includes('@') && e!==((window.CS?.user?.email)||'').toLowerCase()).length + (state.wizInvitees?.length||0);
     const players=Math.max(ms.length, invited+1, 1);
     const total=state.stake*players;
     const bi=window.buyIns||{};
@@ -3703,7 +3706,7 @@ function renderBylaws(){
     /* one source of player count everywhere the pot shows: demo = the crew,
        real = the actual roster (the 16 fallback made the tile lie vs the pot page) */
     const n = state.demo ? state.payers.length
-      : (window.CS?.members?.length || Math.max(1, state.emails.filter(e=>e.includes('@')).length + 1));
+      : (window.CS?.members?.length || Math.max(1, state.emails.filter(e=>e.includes('@')).length + (state.wizInvitees?.length||0) + 1));
     const total=state.stake*n;
     const [pc,pr,pk]=state.payout||[60,25,15];
     la.textContent=fmt$(total);
@@ -3714,10 +3717,12 @@ const MIN_LEAGUE=4;                    /* foursome floor — spec §8 v0.7 */
 if(state.emails.length===0) state.emails=Array(MIN_LEAGUE-1).fill('');
 function updateInviteNote(){
   const n=state.emails.filter(e=>e.includes('@')).length;
+  const app=(state.wizInvitees||[]).length;
   const sn=$('#slotNote');
-  if(sn) sn.textContent=`${n} of ${state.emails.length} filled`;
+  if(sn) sn.textContent=`${n} filled`;
   const note=$('#inviteNote');
-  if(note) note.textContent=`Invites email out to ${n} player${n===1?'':'s'} when you lock, that makes ${n+1} of a minimum ${MIN_LEAGUE}. These settings become the league bylaws; amendments go through the league log.`;
+  const tot=n+app;
+  if(note) note.textContent=`${tot} golfer${tot===1?'':'s'} invited (${app} in-app, ${n} by email) when you lock, that makes ${tot+1} of a minimum ${MIN_LEAGUE}. These settings become the league bylaws; amendments go through the league log.`;
 }
 function renderEmails(){
   const el=$('#emailSlots'); el.innerHTML='';
@@ -4088,6 +4093,7 @@ function renderWizard(){
   $$('.wizdots i').forEach((d,i)=>d.classList.toggle('on',i<=state.wiz));
   $('#wizBack').style.visibility = state.wiz===0 ? 'hidden':'visible';
   $('#wizNext').style.display = state.wiz===3 ? 'none':'flex';
+  if(state.wiz===0 && !state.demo) window.renderWizAddGolfers?.();
 }
 $('#wizBack').addEventListener('click',()=>{state.wiz=Math.max(0,state.wiz-1);renderWizard();});
 $('#wizNext').addEventListener('click',()=>{state.wiz=Math.min(3,state.wiz+1);renderWizard();});
@@ -4524,38 +4530,75 @@ $('#annBtn')?.addEventListener('click', async () => {
   btn.disabled = false;
 });
 
-/* ---------- wizard: one-tap buddy adds (before email invites) ---------- */
-async function renderWizardBuddies(){
-  const box = $('#wzBuddies');
-  if(!box || !CS.league || state.demo) return;
-  const { data, error } = await sb.rpc('my_friends');
-  if(error){ box.innerHTML = ''; return; }
-  const friends = (data || []).filter(f => f.status === 'accepted');
-  if(!friends.length){
-    box.innerHTML = '<p class="fine" style="padding:0">No golf buddies yet. Find golfers from the You tab, or invite below by email.</p>';
-    return;
-  }
-  box.innerHTML = friends.map(f => `
-    <div class="byrow" style="align-items:center; gap:8px;">
-      <span>${mkr(f.marker || 'saguaro')} ${esc(f.display_name || '—')}
-        <span class="fine" style="padding:0">@${esc(f.handle || '?')}</span></span>
-      <button class="mini" data-wzadd="${f.profile_id}">Add</button>
-    </div>`).join('');
-  box.querySelectorAll('[data-wzadd]').forEach(b => b.addEventListener('click', async () => {
-    b.disabled = true;
-    const { error: ae } = await sb.rpc('add_friend_to_league',
-      { p_league: CS.league.id, p_profile: b.dataset.wzadd });
-    if(ae){
-      toast(ae.message);
-      if(!/Already/.test(ae.message)) b.disabled = false;
-      else b.outerHTML = '<b class="fine" style="padding:0">IN ✓</b>';
-      return;
-    }
-    b.outerHTML = '<b class="fine" style="padding:0">IN ✓</b>';
-    toast('Added. Their pocket just buzzed.');
-    loadLeagueData();
+/* ---------- wizard: stage in-app golfers to invite (fired at lock) ----------
+   No league row exists until lock, so we can't send invites yet: the picker
+   STAGES golfers into state.wizInvitees (chips), and lockBylaws fires an
+   invite_golfer for each once the league is created. Email stays the
+   not-on-the-app fallback. */
+const wzCache = new Map();              // profile_id -> profile row (for click lookup)
+function wzRow(p){
+  const pid = p.profile_id || p.id;
+  wzCache.set(pid, p);
+  const staged = (state.wizInvitees||[]).some(x => x.id === pid);
+  return `<div class="byrow" style="align-items:center; gap:8px;">
+    <span>${mkr(p.marker || 'saguaro')} ${esc(p.display_name || '—')}
+      <span class="fine" style="padding:0">@${esc(p.handle || '?')}</span></span>
+    ${staged ? '<b class="fine" style="padding:0; color:var(--pos)">ADDED ✓</b>'
+             : `<button class="mini" data-wzadd="${pid}">Add</button>`}</div>`;
+}
+function wzBind(scope){
+  scope.querySelectorAll('[data-wzadd]').forEach(b => b.addEventListener('click', () => {
+    const p = wzCache.get(b.dataset.wzadd); if(!p) return;
+    const id = p.profile_id || p.id;
+    state.wizInvitees = state.wizInvitees || [];
+    if(!state.wizInvitees.some(x => x.id === id))
+      state.wizInvitees.push({ id, name: p.display_name, handle: p.handle, marker: p.marker });
+    b.outerHTML = '<b class="fine" style="padding:0; color:var(--pos)">ADDED ✓</b>';
+    renderWizPicked(); updateInviteNote();
   }));
 }
+function renderWizPicked(){
+  const box = $('#wzPicked'); if(!box) return;
+  const picked = state.wizInvitees || [];
+  box.innerHTML = picked.map(p => `
+    <div class="byrow" style="align-items:center; gap:8px;">
+      <span>${mkr(p.marker || 'saguaro')} ${esc(p.name || '—')}
+        <span class="fine" style="padding:0">@${esc(p.handle || '?')}</span></span>
+      <button class="mini" data-wzrm="${p.id}">Remove</button>
+    </div>`).join('');
+  box.querySelectorAll('[data-wzrm]').forEach(b => b.addEventListener('click', () => {
+    state.wizInvitees = (state.wizInvitees||[]).filter(x => x.id !== b.dataset.wzrm);
+    renderWizPicked(); updateInviteNote(); renderWizAddGolfers();
+  }));
+}
+async function renderWizAddGolfers(){
+  const box = $('#wzBuddies');
+  if(!box || state.demo) return;
+  try{
+    const { data, error } = await sb.rpc('my_friends');
+    if(error){ box.innerHTML = ''; return; }
+    const friends = (data || []).filter(f => f.status === 'accepted');
+    box.innerHTML = friends.length ? friends.map(wzRow).join('')
+      : '<p class="fine" style="padding:0">No buddies yet — search above, or invite by email below.</p>';
+    wzBind(box);
+  }catch(e){ box.innerHTML = ''; }
+  renderWizPicked();
+}
+window.renderWizAddGolfers = renderWizAddGolfers;   /* classic renderWizard reaches across the boundary */
+/* search box wiring (once) — stage from search results too */
+$('#wzFind')?.addEventListener('input', () => {
+  clearTimeout(window.__wzT); const q = $('#wzFind').value.trim();
+  const rx = $('#wzResults'); if(!rx) return;
+  if(q.length < 2){ rx.innerHTML = ''; return; }
+  window.__wzT = setTimeout(async () => {
+    try{
+      const { data } = await sb.rpc('search_golfers', { p_q: q });
+      rx.innerHTML = (data||[]).length ? data.map(wzRow).join('')
+        : '<p class="fine" style="padding:0">No golfers found.</p>';
+      wzBind(rx);
+    }catch(e){}
+  }, 300);
+});
 
 /* ---------- invite links: share sheet over the league code ---------- */
 async function shareInvite(){
@@ -4801,7 +4844,7 @@ async function loadLeagueData(){
   }
   await loadStandingsAndFeed(); /* board is league-scoped — load it pre-season too */
   renderFormation();
-  if(CS.league?.phase === 'setup' || state.phase === 'setup') renderWizardBuddies();
+  if(CS.league?.phase === 'setup' || state.phase === 'setup') renderWizAddGolfers();
 }
 
 const memName = id => {
@@ -5088,6 +5131,15 @@ async function lockBylaws(){
     );
   }
 
+  /* in-app golfers staged in the wizard → consent invites (they accept in
+     their notifications). invite_golfer raises if already a member; swallow
+     so a retap after a partial lock doesn't blow up the whole lock. */
+  const staged = state.wizInvitees || [];
+  for(const g of staged){
+    try{ await sb.rpc('invite_golfer', { p_league: CS.league.id, p_event: null, p_profile: g.id }); }
+    catch(e){}
+  }
+
   const starts = seasonStartDate();
   const ends   = seasonEndDate();
   const iso = d => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
@@ -5124,7 +5176,7 @@ async function lockBylaws(){
   $('#sideLeague').textContent = name;
   state.phase = nextPhase;
   renderPhase();
-  return { emails: emails.length, nextPhase };
+  return { emails: emails.length, invited: staged.length, nextPhase };
 }
 
 /* ---------- wire the UI ---------- */
@@ -5266,12 +5318,14 @@ $('#lockBtn').addEventListener('click', async () => {
       if(!CS.user) throw new Error('not signed in');
       await createLeague();
     }
-    const { emails, nextPhase } = await lockBylaws();
+    const { emails, invited, nextPhase } = await lockBylaws();
+    state.wizInvitees = []; wzCache.clear();   /* sent — don't re-stage on re-entry */
     await loadMemberships();
     switchView('home');
+    const sent = (invited||0) + (emails||0);
     toast(nextPhase === 'season'
-      ? 'Bylaws locked: no squads to form, season is live'
-      : `Bylaws locked${emails ? `, ${emails} invites queued` : ''}, squad formation is open`);
+      ? `Bylaws locked: no squads to form, season is live${sent ? ` · ${sent} invited` : ''}`
+      : `Bylaws locked${sent ? `, ${sent} golfer${sent===1?'':'s'} invited` : ''}, squad formation is open`);
   } catch(err){ toast('Lock failed: ' + err.message); }
   finally { btn.disabled = false; }
 });
