@@ -1290,7 +1290,7 @@ body::before{
       </div>
             
     </div>
-    <div class="ob-caption" id="obCaption">New or returning, email is one door. No passwords. Just looking? Join with code <b style="color:var(--mut)">DEMO</b>. <span style="opacity:.5">v23.88</span></div>
+    <div class="ob-caption" id="obCaption">New or returning, email is one door. No passwords. Just looking? Join with code <b style="color:var(--mut)">DEMO</b>. <span style="opacity:.5">v23.89</span></div>
   </div>
   <div class="ob-splash" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
   
@@ -1487,10 +1487,8 @@ body::before{
             <button class="mini" id="youProfile" style="margin-left:10px">Profile</button>
           </div>
         </div>
-        <div class="card" style="margin-bottom:14px; text-align:left; opacity:.75">
-          <div style="display:flex; align-items:center; gap:8px;"><b style="font-size:14px">Trophy case</b><span class="soon">SOON</span></div>
-          <div class="fine" style="padding:6px 0 0">Weekly awards, milestones, streaks and rivalry records land with the events engine.</div>
-        </div>
+        <div class="eyebrow" style="margin-top:0">Your display case</div>
+        <div id="trophyCase" style="margin-bottom:14px"></div>
         <div class="eyebrow">Your season</div>
         <div class="stats">
           <div class="stat"><div class="k">Rounds posted</div><div class="v" id="msR">11</div><div class="d fl">This season</div></div>
@@ -3359,7 +3357,33 @@ function renderLeagueRecord(){
   el.innerHTML=rows.map(r=>`<div class="check"><span class="num">⛳</span>
     <div class="tt"><b>${esc(r.name)}</b><small>SEASON ${ROMAN[r.number]||r.number} · ${r.line}</small></div></div>`).join('');
 }
+/* the display case — real trophies come from window.trophies (module loader);
+   the demo shows a filled case so the diorama sells the feature. */
+const DEMO_TROPHIES = [
+  {kind:'league', title:'PIGL Cup',   subtitle:'Champion',  season_year:2025},
+  {kind:'ryder',  title:'The Grudge', subtitle:'The Ryder', season_year:2026},
+  {kind:'major',  title:'The Bloom',  subtitle:'Major',     season_year:2026},
+];
+function trophyIcon(k){ return k==='ryder'?'⚔️':k==='bracket'?'🥊':'🏆'; }
+function renderTrophyCase(){
+  const box=$('#trophyCase'); if(!box) return;
+  const list = state.demo ? DEMO_TROPHIES : (window.trophies||[]);
+  if(!list.length){
+    box.innerHTML = '<div class="card" style="text-align:left"><div class="fine" style="padding:0">No hardware yet. Win a league Cup Final or a Ryder and it lands here — your whole crew will see it.</div></div>';
+    return;
+  }
+  const tile = t => {
+    const yr = t.season_year ? " · '"+String(t.season_year).slice(2) : '';
+    return `<div style="border:0.5px solid var(--line); background:var(--bg2); border-radius:12px; padding:12px 6px 10px; text-align:center;">
+      <div style="font-size:26px; line-height:1">${trophyIcon(t.kind)}</div>
+      <div style="font-size:12px; font-weight:600; color:var(--ink); margin-top:6px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis">${esc(t.title||'—')}</div>
+      <div style="font-size:10px; color:var(--mut); margin-top:1px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis">${esc(t.subtitle||t.kind||'')}${yr}</div>
+    </div>`;
+  };
+  box.innerHTML = `<div style="display:grid; grid-template-columns:repeat(3,1fr); gap:8px">${list.map(tile).join('')}</div>`;
+}
 function renderIndStats(){
+  renderTrophyCase();
   renderLeagueRecord();
   const kp=$('#kingPct'); if(kp) kp.textContent=(state.payout||[60,25,15])[2];
   if(!state.demo){ renderIndStatsReal(); return; }
@@ -4847,6 +4871,7 @@ async function loadLeagueData(){
   }
   await loadStandingsAndFeed(); /* board is league-scoped — load it pre-season too */
   renderFormation();
+  loadTrophies();               /* the case is user-global, refresh it in-league too */
   if(CS.league?.phase === 'setup' || state.phase === 'setup') renderWizAddGolfers();
 }
 
@@ -5792,6 +5817,15 @@ window.openInvitePicker = openInvitePicker;
 
 /* D4: the You tab's league record — latest season per membership, my place in
    it, ranked from v_individual_standings. Archives deepen as seasons close. */
+/* the display case — cross-league, user-global; reload on every entry point
+   so a fresh Ryder win shows without a refresh */
+async function loadTrophies(){
+  if(!CS.user){ window.trophies = []; if(window.renderTrophyCase) window.renderTrophyCase(); return; }
+  try{ const { data } = await sb.rpc('my_trophies'); window.trophies = data || []; }
+  catch(e){ window.trophies = window.trophies || []; }
+  if(window.renderTrophyCase) window.renderTrophyCase();
+}
+window.loadTrophies = loadTrophies;
 async function loadLeagueRecord(){
   if(!CS.user || !(CS.memberships||[]).length){ window.leagueRecord = []; renderIndStats(); return; }
   try {
@@ -6026,6 +6060,7 @@ function showWelcome(){
   state.seasonStart = null; state.seasonEnd = null;
   window.indRows = []; window.myMonth = null; window.myIndexDelta = null;
   loadLeagueRecord();
+  loadTrophies();
   renderIndStats();
   fillWelcomeCard();
   loadRecentRounds();
