@@ -1290,7 +1290,7 @@ body::before{
       </div>
             
     </div>
-    <div class="ob-caption" id="obCaption">New or returning, email is one door. No passwords. Just looking? Join with code <b style="color:var(--mut)">DEMO</b>. <span style="opacity:.5">v23.86</span></div>
+    <div class="ob-caption" id="obCaption">New or returning, email is one door. No passwords. Just looking? Join with code <b style="color:var(--mut)">DEMO</b>. <span style="opacity:.5">v23.87</span></div>
   </div>
   <div class="ob-splash" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
   
@@ -5540,17 +5540,61 @@ async function openRyderSetup(){
     <input class="f" id="rsStart" type="date" value="${nextSundayISO()}">
     <label class="f" style="margin-top:10px" for="rsLeague">Attach to a league <span style="color:var(--dim)">(optional)</span></label>
     <select class="f" id="rsLeague" style="font-family:var(--sans)"><option value="">Standalone — invite anyone</option>${leagues}</select>
+    <label class="f" style="margin-top:12px; display:block">Add players · search the app or tap a buddy</label>
+    <input class="f" id="rsFind" placeholder="Find golfers by name or @handle" autocomplete="off" style="font-family:var(--sans); margin-top:6px;">
+    <div id="rsResults" style="margin-top:8px"></div>
+    <div id="rsBuddies" style="margin-top:8px"></div>
+    <div id="rsPicked" style="margin-top:8px"></div>
     <div class="card" style="margin-top:14px; padding:11px 13px; background:var(--bg2)">
       <div class="fine" style="padding:0; line-height:1.65">
         <b style="color:var(--ink)">How it plays.</b> Two teams, one <b>session</b> a week. Each session you're paired 1‑on‑1 with someone on the other team; your best round that week — scored by how far you beat <em>your own</em> index (PvI) — faces theirs. <b>Win a duel = 1 point, tie = ½ each.</b> First team past half the points takes the cup. Points scale to team size: 6‑a‑side over 3 weeks is 18 points, first to 9½.
       </div>
     </div>
     <button class="btn" id="rsGo" style="margin-top:14px">Create the event</button>
-    <p class="fine">You captain Team A. Add players and assign teams from the scoreboard once it's created.</p>
+    <p class="fine">You captain Team A. Invited players get a notification to accept; you draw or assign teams from the scoreboard once they're in.</p>
   `);
   let sess=3, weeks=1;
   document.querySelectorAll('#rsSess button').forEach(b=>b.addEventListener('click',()=>{document.querySelectorAll('#rsSess button').forEach(x=>x.classList.remove('on'));b.classList.add('on');sess=+b.dataset.n;}));
   document.querySelectorAll('#rsCad button').forEach(b=>b.addEventListener('click',()=>{document.querySelectorAll('#rsCad button').forEach(x=>x.classList.remove('on'));b.classList.add('on');weeks=+b.dataset.w;}));
+
+  /* inline golfer picker — stage now, fire invite_golfer once the event has
+     an id (mirrors the league wizard). Local state; the sheet is modal. */
+  const rsStaged = new Map();        // pid -> {name, handle, marker}
+  const rsCache  = new Map();        // pid -> profile row (click lookup)
+  const rsRow = p => { const pid=p.profile_id||p.id; rsCache.set(pid,p);
+    return `<div class="byrow" style="align-items:center; gap:8px;">
+      <span>${mkr(p.marker||'saguaro')} ${esc(p.display_name||'—')}
+        <span class="fine" style="padding:0">@${esc(p.handle||'?')}</span></span>
+      ${rsStaged.has(pid)?'<b class="fine" style="padding:0; color:var(--pos)">ADDED ✓</b>'
+        :`<button class="mini" data-rsadd="${pid}">Add</button>`}</div>`; };
+  const rsBind = scope => scope.querySelectorAll('[data-rsadd]').forEach(b=>b.addEventListener('click',()=>{
+    const p=rsCache.get(b.dataset.rsadd); if(!p) return; const id=p.profile_id||p.id;
+    rsStaged.set(id,{name:p.display_name,handle:p.handle,marker:p.marker});
+    b.outerHTML='<b class="fine" style="padding:0; color:var(--pos)">ADDED ✓</b>'; renderRsPicked();
+  }));
+  function renderRsPicked(){ const box=document.getElementById('rsPicked'); if(!box) return;
+    box.innerHTML=[...rsStaged].map(([id,p])=>`<div class="byrow" style="align-items:center; gap:8px;">
+      <span>${mkr(p.marker||'saguaro')} ${esc(p.name||'—')}
+        <span class="fine" style="padding:0">@${esc(p.handle||'?')}</span></span>
+      <button class="mini" data-rsrm="${id}">Remove</button></div>`).join('');
+    box.querySelectorAll('[data-rsrm]').forEach(b=>b.addEventListener('click',()=>{
+      rsStaged.delete(b.dataset.rsrm); renderRsPicked(); rsRenderBuddies(); }));
+  }
+  async function rsRenderBuddies(){ const box=document.getElementById('rsBuddies'); if(!box) return;
+    try{ const {data}=await sb.rpc('my_friends'); const fr=(data||[]).filter(f=>f.status==='accepted');
+      box.innerHTML=fr.length?fr.map(rsRow).join(''):'<p class="fine" style="padding:0">No buddies yet — search above, or invite from the scoreboard later.</p>';
+      rsBind(box);
+    }catch(e){ box.innerHTML=''; } renderRsPicked();
+  }
+  rsRenderBuddies();
+  let rsT=null;
+  document.getElementById('rsFind')?.addEventListener('input',()=>{ clearTimeout(rsT);
+    const q=document.getElementById('rsFind').value.trim(), rx=document.getElementById('rsResults'); if(!rx) return;
+    if(q.length<2){ rx.innerHTML=''; return; }
+    rsT=setTimeout(async()=>{ try{ const {data}=await sb.rpc('search_golfers',{p_q:q});
+      rx.innerHTML=(data||[]).length?data.map(rsRow).join(''):'<p class="fine" style="padding:0">No golfers found.</p>'; rsBind(rx);
+    }catch(e){} },300);
+  });
   document.getElementById('rsGo').addEventListener('click',async()=>{
     const name=document.getElementById('rsName').value.trim();
     if(!name){ toast('Name the event'); return; }
@@ -5564,8 +5608,12 @@ async function openRyderSetup(){
         p_league:document.getElementById('rsLeague').value||null,
       });
       if(error) throw error;
+      /* event now has an id — fire the staged invites (organizer-gated RPC) */
+      for(const [pid] of rsStaged){
+        try{ await sb.rpc('invite_golfer',{ p_league:null, p_event:data, p_profile:pid }); }catch(e){}
+      }
       closeSheet(); await loadMyEvents();
-      toast('Event created — add your players');
+      toast(rsStaged.size ? `Event created — ${rsStaged.size} invited` : 'Event created — add your players');
       window.openEvent(data);        /* create_event returns the event uuid */
     }catch(e){ toast('Create failed: '+(e.message||e)); go.disabled=false; }
   });
