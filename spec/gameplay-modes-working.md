@@ -324,6 +324,12 @@ These supersede conflicting lines above and in spec-v1.0; fold into v1.1.
 12. **Hybrid +15 does NOT pay in partial edge months** — consistent with
     the floor waiver; weekly moments still celebrate stub weeks. (Closes
     spec §14.0's open question for v1.1.)
+13. **Event↔league linkage = B (2026-07-13):** events carry a nullable
+    `league_id` — attach to a league (borrow crew + board) or stand alone.
+    Always a parallel ledger (never cup points); attach needs league
+    membership; `on delete set null`. Entry IA: clubhouse forks **Start a
+    League · Start an Event · Join**, peer containers; plus "Run a Ryder with
+    this crew" inside a league. See `ryder-v1.md` §R2.6.
 
 Implementer defaults (engineering-level, changeable cheaply):
 - Course handicap v1 = round(Index × Slope ÷ 113); rating−par adjustment

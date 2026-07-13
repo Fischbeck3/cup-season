@@ -18,6 +18,15 @@ Runs on the existing `rounds` machinery + one new schema arc.
 4. **Draw rule = `team_pvi` tiebreak** for one-offs (higher total team PvI wins);
    `defender` retains once an event has a prior holder; `shared` optional.
 5. **v1 = singles only.** Fourball pairs / live-day finale are fast-follows.
+6. **Event↔league linkage = B (2026-07-13).** An event may **attach to a league**
+   (nullable `events.league_id`, borrow its crew + board) OR stand alone (null).
+   It always scores as its own **parallel ledger** — never touches cup points.
+   Attach requires the creator be a league member; `on delete set null` so
+   scrapping a league detaches, never destroys, the event. Entry points fork in
+   the clubhouse: **Start a League · Start an Event · Join** (peer containers),
+   plus "Run a Ryder with this crew" from inside a league. League-member reads of
+   attached events + board fan-out (`posts.event_id`) are fast-follows; v1 gates
+   reads on event membership.
 
 ## §R3 — The duel (the async match)
 `duel(session, A, B)`: each player's **best round in the session window**
@@ -37,8 +46,9 @@ clinch number      = M/2 + 0.5   ·   draw at exactly M/2
 12v12 × (4+4+12 real) = 28 → 14.5. Ours (singles): 6v6 × 3 = 18 → 9.5.
 
 ## §R5 — Schema (`events` first-class; additive; spec §17 reserved this)
-- `events(id, name, created_by, kind='ryder', status setup|live|complete,
-  starts_on, session_count, session_weeks, draw_rule, defender_team_id, allowance=100)`
+- `events(id, name, created_by, league_id (nullable, decision B), kind='ryder',
+  status setup|live|complete, starts_on, session_count, session_weeks,
+  draw_rule, defender_team_id, allowance=100)`
 - `event_teams(id, event_id, slot 0|1, name, color, captain_player_id)`
 - `event_players(id, event_id, profile_id, team_id, role, seed, benched_count)`
 - `event_sessions(id, event_id, session_no, opens_on, closes_on, status, weight=1)`

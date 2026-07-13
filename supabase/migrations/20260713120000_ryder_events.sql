@@ -13,6 +13,11 @@ create table if not exists public.events (
   id             uuid primary key default gen_random_uuid(),
   name           text not null,
   created_by     uuid not null references public.profiles(id),
+  -- decision B (2026-07-13): an event may attach to a league (borrow its crew
+  -- + board) or stand alone (null). It always scores as its own parallel
+  -- ledger — the link is roster/board convenience, never cup-point coupling.
+  -- on delete set null: scrapping a league detaches, never destroys the event.
+  league_id      uuid references public.leagues(id) on delete set null,
   kind           text not null default 'ryder',
   status         text not null default 'setup' check (status in ('setup','live','complete')),
   starts_on      date not null,
@@ -140,12 +145,16 @@ create policy event_duels_read on public.event_duels for select to authenticated
 -- ========================================================================
 create or replace function public.create_event(
   p_name text, p_starts_on date, p_sessions integer, p_session_weeks integer,
-  p_draw_rule text, p_team_a text, p_team_b text)
+  p_draw_rule text, p_team_a text, p_team_b text, p_league uuid default null)
 returns uuid language plpgsql security definer set search_path = public as $$
 declare v_event uuid; v_team_a uuid; v_cap uuid; i integer; v_open date;
 begin
-  insert into events (name, created_by, starts_on, session_count, session_weeks, draw_rule)
-  values (p_name, auth.uid(), p_starts_on,
+  -- you can only attach an event to a league you belong to (decision B)
+  if p_league is not null and not is_league_member(p_league) then
+    raise exception 'you must be in the league to run an event with it';
+  end if;
+  insert into events (name, created_by, league_id, starts_on, session_count, session_weeks, draw_rule)
+  values (p_name, auth.uid(), p_league, p_starts_on,
           greatest(1, least(26, coalesce(p_sessions,3))),
           greatest(1, least(4, coalesce(p_session_weeks,1))),
           coalesce(p_draw_rule,'team_pvi'))
@@ -316,8 +325,8 @@ begin
 end $$;
 
 -- grants
-revoke all on function public.create_event(text,date,integer,integer,text,text,text) from public;
-grant execute on function public.create_event(text,date,integer,integer,text,text,text) to authenticated;
+revoke all on function public.create_event(text,date,integer,integer,text,text,text,uuid) from public;
+grant execute on function public.create_event(text,date,integer,integer,text,text,text,uuid) to authenticated;
 grant execute on function public.add_event_player(uuid,uuid) to authenticated;
 grant execute on function public.set_event_team(uuid,uuid) to authenticated;
 grant execute on function public.generate_pairings(uuid) to authenticated;
