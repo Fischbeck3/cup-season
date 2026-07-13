@@ -542,6 +542,14 @@ input.f::-webkit-outer-spin-button, input.f::-webkit-inner-spin-button{-webkit-a
 .optcard.soon::before{background:var(--dim);}
 .optcard.soon:hover{border-color:var(--line2); filter:none;}
 .optcard.soon .go{font-family:var(--mono); font-size:9px; font-weight:600; letter-spacing:.12em; color:var(--dim);}
+/* course search results — type a course, pick a tee, rating+slope autofill */
+.coursedd{margin:6px 0 2px; border:1px solid var(--line2); border-radius:10px; overflow:hidden; background:var(--bg2); max-height:230px; overflow-y:auto;}
+.coursedd button{display:block; width:100%; text-align:left; background:none; border:none; border-bottom:1px solid var(--line); padding:9px 12px; cursor:pointer; color:var(--ink);}
+.coursedd button:last-child{border-bottom:none;}
+.coursedd button:hover{background:var(--bg1);}
+.coursedd button b{display:block; font-size:13px; font-weight:600; line-height:1.3;}
+.coursedd button span{font-family:var(--mono); font-size:10px; color:var(--mut); letter-spacing:.03em;}
+.coursedd .coursedd-msg{padding:9px 12px; font-family:var(--mono); font-size:10px; color:var(--dim); letter-spacing:.03em;}
 .mini{
   font-family:var(--mono); font-size:11px; font-weight:600; letter-spacing:.04em;
   color:var(--ink); background:var(--bg2); border:1px solid var(--line2);
@@ -1254,7 +1262,7 @@ body::before{
       </div>
             
     </div>
-    <div class="ob-caption" id="obCaption">New or returning, email is one door. No passwords. Just looking? Join with code <b style="color:var(--mut)">DEMO</b>. <span style="opacity:.5">v23.74</span></div>
+    <div class="ob-caption" id="obCaption">New or returning, email is one door. No passwords. Just looking? Join with code <b style="color:var(--mut)">DEMO</b>. <span style="opacity:.5">v23.75</span></div>
   </div>
   <div class="ob-splash" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
   
@@ -2568,6 +2576,7 @@ $('#postBtn').addEventListener('click', async ()=>{
         slope, holes_played: nine ? 9 : 18, source: 'quick',
         played_on: $('#inDate').value || null,
         course_label: $('#inCourse').value.trim() || null,
+        course_id: $('#inCourse').dataset.courseId || null,
         season_id: CS.season?.id || null,
       });
       if(error) throw error;
@@ -2587,6 +2596,60 @@ $('#postBtn').addEventListener('click', async ()=>{
   switchView('home'); scrollFeedBottom();
   toast(`Round posted: +${pts} pts to ${state.demo?'Mudsharks':'your squad'}`);
 });
+
+/* ---------- course search: type a name, pick a tee, rating+slope autofill ----
+   Real accounts only. The lookup runs through the `courses` Edge Function,
+   which holds the GolfCourseAPI key server-side — never in this client. Manual
+   entry stays the fallback; the demo keeps typing. Selecting a tee stamps the
+   course_id onto the input's dataset, which the round insert reads. */
+function attachCourseSearch(courseSel, ratingSel, slopeSel){
+  const input=$(courseSel); if(!input) return;
+  const dd=document.createElement('div'); dd.className='coursedd'; dd.style.display='none';
+  input.insertAdjacentElement('afterend', dd);
+  const hide=()=>{ dd.style.display='none'; dd.innerHTML=''; };
+  let timer=null, lastQ='';
+  async function run(q){
+    if(state.demo || !window.CS?.user || !window.sb) return;
+    try {
+      const { data, error } = await window.sb.functions.invoke('courses', { body:{ action:'search', q } });
+      if(error) throw error;
+      const rows=[];
+      (data?.courses||[]).forEach(c=>{
+        (c.tees||[]).forEach(te=>{
+          if(te.course_rating==null || te.slope_rating==null) return;
+          rows.push({ id:c.id, label:[c.club_name, c.course_name].filter(Boolean).join(' — ') || c.course_name || 'Course',
+            tee:te.tee_name||'', rating:te.course_rating, slope:te.slope_rating, gender:te.gender });
+        });
+      });
+      if(!rows.length){ dd.innerHTML='<div class="coursedd-msg">No match — type the rating and slope by hand.</div>'; dd.style.display='block'; return; }
+      dd.innerHTML=rows.slice(0,24).map((r,i)=>
+        `<button type="button" data-ci="${i}"><b>${esc(r.label)}</b><span>${esc(r.tee)}${r.gender==='female'?' · F':''} · ${r.rating}/${r.slope}</span></button>`).join('');
+      dd.style.display='block';
+      dd.querySelectorAll('[data-ci]').forEach(b=>b.addEventListener('mousedown',e=>{
+        e.preventDefault(); /* fire before blur hides the list */
+        const r=rows[+b.dataset.ci];
+        input.value=r.label; input.dataset.courseId=r.id;
+        const ra=$(ratingSel), sl=$(slopeSel);
+        if(ra) ra.value=r.rating; if(sl) sl.value=r.slope;
+        if(ratingSel==='#inRating' && typeof recalc==='function') recalc();
+        hide(); toast('Course filled: just the gross and the date');
+        /* fire-and-forget: warm our own course DB from the pick */
+        window.sb.functions.invoke('courses', { body:{ action:'cache', id:r.id } }).catch(()=>{});
+      }));
+    } catch(e){ hide(); /* silent — manual entry still works */ }
+  }
+  input.addEventListener('input', ()=>{
+    input.dataset.courseId='';            /* manual edit invalidates the last pick */
+    const q=input.value.trim();
+    clearTimeout(timer);
+    if(q.length<3 || state.demo || !window.CS?.user){ hide(); return; }
+    if(q===lastQ){ return; } lastQ=q;
+    timer=setTimeout(()=>run(q), 320);
+  });
+  input.addEventListener('blur', ()=>setTimeout(hide, 160));
+}
+attachCourseSearch('#inCourse', '#inRating', '#inSlope');
+attachCourseSearch('#wCourse',  '#wRating',  '#wSlope');
 
 /* ================= pot ================= */
 function renderPot(){
@@ -4401,6 +4464,7 @@ $('#wPostGo').addEventListener('click', async () => {
       gross, rating, slope, holes_played: 18, source: 'quick',
       played_on: $('#wDate').value || null,
       course_label: $('#wCourse').value.trim() || null,
+      course_id: $('#wCourse').dataset.courseId || null,
     });
     if(error) throw error;
     toast('Round posted to your card');
