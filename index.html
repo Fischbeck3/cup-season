@@ -1283,7 +1283,7 @@ body::before{
       </div>
             
     </div>
-    <div class="ob-caption" id="obCaption">New or returning, email is one door. No passwords. Just looking? Join with code <b style="color:var(--mut)">DEMO</b>. <span style="opacity:.5">v23.82</span></div>
+    <div class="ob-caption" id="obCaption">New or returning, email is one door. No passwords. Just looking? Join with code <b style="color:var(--mut)">DEMO</b>. <span style="opacity:.5">v23.83</span></div>
   </div>
   <div class="ob-splash" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
   
@@ -5254,8 +5254,9 @@ function goClubhouse(){
   if(CS.chan){ try{ rtClient.removeChannel(CS.chan); }catch(e){} CS.chan = null; }
   showWelcome();
 }
-function openLeagueSwitcher(){
+async function openLeagueSwitcher(){
   if(!CS.user) return; /* demo has no leagues to switch */
+  await loadMyEvents();   /* always show events created since the last load */
   const cur = CS.league?.id;
   const row = (attr, icon, title, sub, here) => `
     <div class="check tap" data-lgsw="${attr}" style="cursor:pointer; ${here?'border-color:var(--pos);':''}">
