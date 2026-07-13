@@ -1262,7 +1262,7 @@ body::before{
       </div>
             
     </div>
-    <div class="ob-caption" id="obCaption">New or returning, email is one door. No passwords. Just looking? Join with code <b style="color:var(--mut)">DEMO</b>. <span style="opacity:.5">v23.75</span></div>
+    <div class="ob-caption" id="obCaption">New or returning, email is one door. No passwords. Just looking? Join with code <b style="color:var(--mut)">DEMO</b>. <span style="opacity:.5">v23.76</span></div>
   </div>
   <div class="ob-splash" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
   
@@ -2615,15 +2615,19 @@ function attachCourseSearch(courseSel, ratingSel, slopeSel){
       if(error) throw error;
       const rows=[];
       (data?.courses||[]).forEach(c=>{
+        /* club and course names are often identical — don't print it twice */
+        const label = (c.club_name && c.course_name && c.club_name!==c.course_name)
+          ? `${c.club_name} — ${c.course_name}` : (c.course_name || c.club_name || 'Course');
+        const place = [c.city, c.state].filter(Boolean).join(', ');
         (c.tees||[]).forEach(te=>{
           if(te.course_rating==null || te.slope_rating==null) return;
-          rows.push({ id:c.id, label:[c.club_name, c.course_name].filter(Boolean).join(' — ') || c.course_name || 'Course',
-            tee:te.tee_name||'', rating:te.course_rating, slope:te.slope_rating, gender:te.gender });
+          rows.push({ id:c.id, label, place, tee:te.tee_name||'',
+            rating:te.course_rating, slope:te.slope_rating, gender:te.gender });
         });
       });
       if(!rows.length){ dd.innerHTML='<div class="coursedd-msg">No match — type the rating and slope by hand.</div>'; dd.style.display='block'; return; }
       dd.innerHTML=rows.slice(0,24).map((r,i)=>
-        `<button type="button" data-ci="${i}"><b>${esc(r.label)}</b><span>${esc(r.tee)}${r.gender==='female'?' · F':''} · ${r.rating}/${r.slope}</span></button>`).join('');
+        `<button type="button" data-ci="${i}"><b>${esc(r.label)}</b><span>${esc(r.tee)}${r.gender==='female'?' · F':''} · ${r.rating}/${r.slope}${r.place?' · '+esc(r.place):''}</span></button>`).join('');
       dd.style.display='block';
       dd.querySelectorAll('[data-ci]').forEach(b=>b.addEventListener('mousedown',e=>{
         e.preventDefault(); /* fire before blur hides the list */
