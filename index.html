@@ -1290,7 +1290,7 @@ body::before{
       </div>
             
     </div>
-    <div class="ob-caption" id="obCaption">New or returning, email is one door. No passwords. Just looking? Join with code <b style="color:var(--mut)">DEMO</b>. <span style="opacity:.5">v23.89</span></div>
+    <div class="ob-caption" id="obCaption">New or returning, email is one door. No passwords. Just looking? Join with code <b style="color:var(--mut)">DEMO</b>. <span style="opacity:.5">v23.90</span></div>
   </div>
   <div class="ob-splash" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
   
@@ -1489,26 +1489,27 @@ body::before{
         </div>
         <div class="eyebrow" style="margin-top:0">Your display case</div>
         <div id="trophyCase" style="margin-bottom:14px"></div>
-        <div class="eyebrow">Your season</div>
+        <div class="eyebrow">Lifetime</div>
         <div class="stats">
-          <div class="stat"><div class="k">Rounds posted</div><div class="v" id="msR">11</div><div class="d fl">This season</div></div>
-          <div class="stat"><div class="k">Avg PvI</div><div class="v" id="msAvg">+0.6</div><div class="d fl">vs your index</div></div>
-          <div class="stat"><div class="k">Best round</div><div class="v" id="msBest">+2.9</div><div class="d fl">PvI · season</div></div>
-          <div class="stat"><div class="k">Index move</div><div class="v" id="msDelta">▼ 0.3</div><div class="d up">Season to date</div></div>
+          <div class="stat"><div class="k">Rounds posted</div><div class="v" id="clR">—</div><div class="d fl">All time</div></div>
+          <div class="stat"><div class="k">Best PvI</div><div class="v" id="clBest">—</div><div class="d fl">Career best</div></div>
+          <div class="stat"><div class="k">Avg PvI</div><div class="v" id="clAvg">—</div><div class="d fl">vs your index</div></div>
+          <div class="stat"><div class="k">Cups &amp; events</div><div class="v" id="clPlayed">—</div><div class="d fl">Played in</div></div>
         </div>
 
-        <div class="eyebrow">Season awards · live</div>
-        <div class="trip">
-          <div class="p"><b id="awKing">—</b><span id="awKingS">Points King</span></div>
-          <div class="p"><b id="awImp">—</b><span id="awImpS">Most Improved</span></div>
-          <div class="p"><b id="awIron">—</b><span id="awIronS">Iron Man</span></div>
-        </div>
+        <div class="eyebrow">Recent rounds</div>
+        <div class="card" style="text-align:left; padding:10px 12px"><div id="youRecent"></div></div>
+        <button class="btn" id="youPost" style="margin-top:10px">Post a round</button>
 
-        <div class="eyebrow">Points King race · every player</div>
-        <div class="card" style="padding:10px 12px 4px">
-          <table class="tbl" id="indTable"></table>
+        <div class="league-only">
+          <div class="eyebrow">This season · in your league</div>
+          <div class="stats">
+            <div class="stat"><div class="k">Rounds posted</div><div class="v" id="msR">—</div><div class="d fl">This season</div></div>
+            <div class="stat"><div class="k">Avg PvI</div><div class="v" id="msAvg">—</div><div class="d fl">vs your index</div></div>
+            <div class="stat"><div class="k">Best round</div><div class="v" id="msBest">—</div><div class="d fl">PvI · season</div></div>
+            <div class="stat"><div class="k">Index move</div><div class="v" id="msDelta">—</div><div class="d up">Season to date</div></div>
+          </div>
         </div>
-        <p class="fine">Points King takes <span id="kingPct">15</span>% of the pot at season's end. Most Improved is index drop since Week 1; Iron Man is most rounds posted. All three run in parallel with the squad race — bylaws §4.</p>
 
         <div class="eyebrow" id="lgRecHead" style="display:none">League record</div>
         <div id="lgRec" style="display:none; margin-bottom:14px"></div>
@@ -1888,6 +1889,17 @@ body::before{
         <div class="check"><span class="num">⛳</span><div class="tt"><b>Members & invites</b><small id="hubMembersSub">7 PLAYERS · CODE SNDYCUP</small></div><button class="mini" id="hubMembersBtn">View</button></div>
         <div class="check"><span class="num">$</span><div class="tt"><b>The pot</b><small id="hubPotSub">$525 · 5/7 BUY-INS IN</small></div><button class="mini" data-go="pot">View</button></div>
         <div class="check"><span class="num">◫</span><div class="tt"><b>Squads</b><small id="hubDraftSub">COMPLETE · ROSTERS LOCKED</small></div><button class="mini" data-go="draft">View</button></div>
+
+        <div class="eyebrow league-only">The individual race · every player</div>
+        <div class="trip league-only">
+          <div class="p"><b id="awKing">—</b><span id="awKingS">Points King</span></div>
+          <div class="p"><b id="awImp">—</b><span id="awImpS">Most Improved</span></div>
+          <div class="p"><b id="awIron">—</b><span id="awIronS">Iron Man</span></div>
+        </div>
+        <div class="card league-only" style="padding:10px 12px 4px">
+          <table class="tbl" id="indTable"></table>
+        </div>
+        <p class="fine league-only">Points King takes <span id="kingPct">15</span>% of the pot at season's end. Most Improved is index drop since Week 1; Iron Man is most rounds posted. All three run in parallel with the squad race — bylaws §4.</p>
 
         <div class="eyebrow league-only">The bylaws · locked at first tee</div>
         <div class="card" id="bylawsHub" style="margin-bottom:14px"></div>
@@ -3382,8 +3394,32 @@ function renderTrophyCase(){
   };
   box.innerHTML = `<div style="display:grid; grid-template-columns:repeat(3,1fr); gap:8px">${list.map(tile).join('')}</div>`;
 }
+/* lifetime line + recent rounds — cross-league, user-global (window.career,
+   set by the module loader). The demo shows a lived-in career. */
+function renderCareer(){
+  const c = state.demo
+    ? { rounds:42, best:4.8, avg:1.2, played:3, recent:[
+        {played_on:'2026-06-30', course_label:'Papago GC',    gross:82, differential:9.1,  holes_played:18},
+        {played_on:'2026-06-22', course_label:'Ken McDonald', gross:88, differential:13.4, holes_played:18},
+        {played_on:'2026-06-14', course_label:'Grayhawk',      gross:80, differential:7.8,  holes_played:18} ] }
+    : window.career;
+  const set = (id,v)=>{ const el=$(id); if(el) el.textContent=v; };
+  const sign = v => (v>=0?'+':'') + v.toFixed(1);
+  if(!c){ ['#clR','#clBest','#clAvg','#clPlayed'].forEach(id=>set(id,'—')); const yr=$('#youRecent'); if(yr) yr.innerHTML=''; return; }
+  set('#clR', c.rounds);
+  set('#clBest', c.best!=null ? sign(c.best) : '—');
+  set('#clAvg',  c.avg !=null ? sign(c.avg)  : '—');
+  set('#clPlayed', c.played);
+  const yr=$('#youRecent'); if(yr){
+    yr.innerHTML = (c.recent && c.recent.length)
+      ? c.recent.map(r=>`<div class="fine" style="padding:3px 0; display:flex; justify-content:space-between;"><span>${r.played_on} · ${(r.course_label||'').toUpperCase()||'ROUND'}${r.holes_played===9?' · 9':''}</span><b class="mono">${r.gross} · ${r.differential}</b></div>`).join('')
+      : '<div class="fine" style="padding:3px 0">No rounds yet. Post one below.</div>';
+  }
+}
+$('#youPost')?.addEventListener('click', ()=> switchView('record'));
 function renderIndStats(){
   renderTrophyCase();
+  renderCareer();
   renderLeagueRecord();
   const kp=$('#kingPct'); if(kp) kp.textContent=(state.payout||[60,25,15])[2];
   if(!state.demo){ renderIndStatsReal(); return; }
@@ -4872,6 +4908,7 @@ async function loadLeagueData(){
   await loadStandingsAndFeed(); /* board is league-scoped — load it pre-season too */
   renderFormation();
   loadTrophies();               /* the case is user-global, refresh it in-league too */
+  loadCareer();                 /* lifetime line is cross-league too */
   if(CS.league?.phase === 'setup' || state.phase === 'setup') renderWizAddGolfers();
 }
 
@@ -5826,6 +5863,29 @@ async function loadTrophies(){
   if(window.renderTrophyCase) window.renderTrophyCase();
 }
 window.loadTrophies = loadTrophies;
+/* lifetime line — computed client-side from the profile's rounds (PvI at 100%
+   allowance = index_at_post − differential), plus league/event counts. No RPC. */
+async function loadCareer(){
+  if(!CS.user){ window.career = null; if(window.renderCareer) window.renderCareer(); return; }
+  try{
+    const { data } = await sb.from('rounds')
+      .select('gross, differential, index_at_post, played_on, course_label, holes_played')
+      .eq('profile_id', CS.user.id).order('played_on', { ascending:false }).limit(400);
+    const rows = data || [];
+    const vals = rows
+      .map(r => (r.index_at_post!=null && r.differential!=null) ? (Number(r.index_at_post) - Number(r.differential)) : null)
+      .filter(v => v!=null);
+    window.career = {
+      rounds: rows.length,
+      best:  vals.length ? Math.max(...vals) : null,
+      avg:   vals.length ? vals.reduce((a,b)=>a+b,0)/vals.length : null,
+      played:(CS.memberships||[]).length + ((window.myEvents||[]).length),
+      recent: rows.slice(0,5),
+    };
+  }catch(e){ window.career = window.career || null; }
+  if(window.renderCareer) window.renderCareer();
+}
+window.loadCareer = loadCareer;
 async function loadLeagueRecord(){
   if(!CS.user || !(CS.memberships||[]).length){ window.leagueRecord = []; renderIndStats(); return; }
   try {
@@ -6061,6 +6121,7 @@ function showWelcome(){
   window.indRows = []; window.myMonth = null; window.myIndexDelta = null;
   loadLeagueRecord();
   loadTrophies();
+  loadCareer();
   renderIndStats();
   fillWelcomeCard();
   loadRecentRounds();
