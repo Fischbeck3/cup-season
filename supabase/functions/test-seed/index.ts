@@ -77,8 +77,16 @@ async function reset(admin: any, me?: string) {
   if (leagueIds.length) collect((await admin.from("events").select("id").in("league_id", leagueIds)).data);
   if (me)               collect((await admin.from("events").select("id").eq("created_by", me).eq("name", "The Grudge")).data);
   for (const eid of evIds) { await admin.from("events").delete().eq("id", eid); removed.events++; }
-  // leagues (cascade members/squads/seasons/posts/buy_ins)
-  for (const lid of leagueIds) { await admin.from("leagues").delete().eq("id", lid); removed.leagues++; }
+  // Delete each test league's posts FIRST. posts.member_id → league_members has
+  // NO cascade, so those posts block deleting the members (whether the members
+  // go via the league cascade or the profile cascade). Clear posts, and the
+  // league delete then cascades members/squads/seasons/buy_ins cleanly.
+  for (const lid of leagueIds) {
+    await admin.from("posts").delete().eq("league_id", lid);
+    const le = await admin.from("leagues").delete().eq("id", lid);
+    if (le.error) removed.errors.push(`league ${lid.slice(0, 8)}: ${le.error.message}`);
+    else removed.leagues++;
+  }
   // per bot: clear anything that RESTRICT-blocks the profile cascade, delete the
   // profile explicitly, then the auth user. deleteUser returns {error} (never
   // throws) — check it, so a blocked delete can't be miscounted as success.
@@ -87,7 +95,7 @@ async function reset(admin: any, me?: string) {
     const pe = await admin.from("profiles").delete().eq("id", id);
     if (pe.error) removed.errors.push(`profile ${id.slice(0, 8)}: ${pe.error.message}`);
     const de = await admin.auth.admin.deleteUser(id);
-    if (de.error) removed.errors.push(`auth ${id.slice(0, 8)}: ${de.error.message}`);
+    if (de.error) removed.errors.push(`auth ${id.slice(0, 8)}: ${JSON.stringify(de.error)}`);
     else removed.bots++;
   }
   return removed;
