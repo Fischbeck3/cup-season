@@ -14,7 +14,9 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const GCA_BASE = "https://api.golfcourseapi.com";
-const KEY = Deno.env.get("GOLFCOURSE_API_KEY") ?? "";
+// .trim() defends against a trailing space/newline in the secret — a common
+// cause of a 401 from GolfCourseAPI even when the key itself is correct.
+const KEY = (Deno.env.get("GOLFCOURSE_API_KEY") ?? "").trim();
 const SB_URL = Deno.env.get("SUPABASE_URL") ?? "";
 const SB_SERVICE = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
 
