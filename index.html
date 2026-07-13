@@ -1290,7 +1290,7 @@ body::before{
       </div>
             
     </div>
-    <div class="ob-caption" id="obCaption">New or returning, email is one door. No passwords. Just looking? Join with code <b style="color:var(--mut)">DEMO</b>. <span style="opacity:.5">v23.85</span></div>
+    <div class="ob-caption" id="obCaption">New or returning, email is one door. No passwords. Just looking? Join with code <b style="color:var(--mut)">DEMO</b>. <span style="opacity:.5">v23.86</span></div>
   </div>
   <div class="ob-splash" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
   
@@ -2105,6 +2105,9 @@ function switchView(v){
   $$('.navitem').forEach(t=>t.classList.toggle('active',t.dataset.v===v));
   $$('.view').forEach(x=>x.classList.toggle('active',x.id==='view-'+v));
   window.scrollTo({top:0});
+  /* the wizard's buddy picker renders lazily — every entry path (welcome
+     "Start a league", the lock-fallback) lands here, so fire it here once */
+  if(v==='wizard' && !state.demo) window.renderWizAddGolfers?.();
 }
 $$('.tab, .navitem').forEach(b=>b.addEventListener('click',()=>switchView(b.dataset.v)));
 
