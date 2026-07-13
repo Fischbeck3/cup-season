@@ -1283,7 +1283,7 @@ body::before{
       </div>
             
     </div>
-    <div class="ob-caption" id="obCaption">New or returning, email is one door. No passwords. Just looking? Join with code <b style="color:var(--mut)">DEMO</b>. <span style="opacity:.5">v23.81</span></div>
+    <div class="ob-caption" id="obCaption">New or returning, email is one door. No passwords. Just looking? Join with code <b style="color:var(--mut)">DEMO</b>. <span style="opacity:.5">v23.82</span></div>
   </div>
   <div class="ob-splash" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
   
@@ -3930,6 +3930,11 @@ function renderEvent(){
       <div class="evclinch">${clinchLine}</div>
     </div>`;
 
+  /* how it scores — everyone sees the rule, not just the organizer */
+  html += `<p class="fine" style="padding:0 0 6px">${P>0
+    ? `Each session pairs everyone 1‑on‑1; best round that week vs your index (PvI) wins the point, a tie splits it. First to ${evHalf(clinch)} of ${M} takes the cup.`
+    : `Each session pairs everyone 1‑on‑1; best round that week vs your index (PvI) wins the point, a tie splits it. Add players to both teams to set the target.`}</p>`;
+
   /* organizer controls — the event's creator runs the roster + sessions */
   const meU=window.CS?.user?.id, iAmOrg = ev.created_by===meU;
   const unassigned = players.filter(p=>!p.team_id);
@@ -5258,10 +5263,18 @@ function openLeagueSwitcher(){
       <div class="tt"><b>${title}</b><small>${sub}</small></div>
       ${here?'<span class="fine" style="padding:0; color:var(--pos)">HERE</span>':''}
     </div>`;
-  const leagues = (CS.memberships||[]).map(m => row(
-    m.league.id, '⛳', m.league.name,
-    switcherChip(m) + (m.role === 'commissioner' ? ' · YOU ARE THE PRO' : ''),
-    m.league.id === cur)).join('');
+  const leagues = (CS.memberships||[]).map(m => {
+    const here = m.league.id === cur;
+    /* a league you run that hasn't started yet can be scrapped right here */
+    const canScrap = m.role === 'commissioner' && ['setup','draft'].includes(m.league.phase);
+    const right = here ? '<span class="fine" style="padding:0; color:var(--pos)">HERE</span>'
+      : canScrap ? `<button class="mini" data-lgdel="${m.league.id}" data-lgname="${esc(m.league.name)}" title="Delete this league" style="flex:none">✕</button>` : '';
+    return `<div class="check tap" data-lgsw="${m.league.id}" style="cursor:pointer; ${here?'border-color:var(--pos);':''}">
+      <span class="num">⛳</span>
+      <div class="tt"><b>${esc(m.league.name)}</b><small>${switcherChip(m) + (m.role === 'commissioner' ? ' · YOU ARE THE PRO' : '')}</small></div>
+      ${right}
+    </div>`;
+  }).join('');
   const evStat = e => e.status==='complete' ? 'FINAL' : e.status==='setup' ? 'FORMING' : 'LIVE';
   const events = (window.myEvents||[]).map(e => row('__event:'+e.id, '🏆', e.name, 'THE RYDER · '+evStat(e), false)).join('');
   openSheet('Switch', 'EVERY CUP & EVENT YOU PLAY IN',
@@ -5279,6 +5292,21 @@ function openLeagueSwitcher(){
     if(v.startsWith('__event:')){ if(window.openEvent) await window.openEvent(v.slice(8)); return; }
     const m = CS.memberships.find(x => x.league.id === v);
     if(m && v !== cur) await enterLeague(m);
+  }));
+  /* scrap a not-yet-started league without entering it */
+  $('#shBody').querySelectorAll('[data-lgdel]').forEach(b => b.addEventListener('click', async (e) => {
+    e.stopPropagation();
+    const id = b.dataset.lgdel, nm = b.dataset.lgname;
+    if(!confirm(`Delete "${nm}"? It hasn't started, so this removes it completely.`)) return;
+    b.disabled = true;
+    try {
+      const { error } = await sb.rpc('delete_league', { p_league: id });
+      if(error) throw error;
+      if(CS.league?.id === id) goClubhouse();
+      toast(nm + ' deleted');
+      await loadMemberships();
+      openLeagueSwitcher();            /* re-render the sheet with it gone */
+    } catch(err){ toast(err.message || String(err)); b.disabled = false; }
   }));
 }
 window.openLeagueSwitcher = openLeagueSwitcher;
@@ -5400,7 +5428,12 @@ async function openRyderSetup(){
     <input class="f" id="rsStart" type="date" value="${nextSundayISO()}">
     <label class="f" style="margin-top:10px" for="rsLeague">Attach to a league <span style="color:var(--dim)">(optional)</span></label>
     <select class="f" id="rsLeague" style="font-family:var(--sans)"><option value="">Standalone — invite anyone</option>${leagues}</select>
-    <button class="btn" id="rsGo" style="margin-top:16px">Create the event</button>
+    <div class="card" style="margin-top:14px; padding:11px 13px; background:var(--bg2)">
+      <div class="fine" style="padding:0; line-height:1.65">
+        <b style="color:var(--ink)">How it plays.</b> Two teams, one <b>session</b> a week. Each session you're paired 1‑on‑1 with someone on the other team; your best round that week — scored by how far you beat <em>your own</em> index (PvI) — faces theirs. <b>Win a duel = 1 point, tie = ½ each.</b> First team past half the points takes the cup. Points scale to team size: 6‑a‑side over 3 weeks is 18 points, first to 9½.
+      </div>
+    </div>
+    <button class="btn" id="rsGo" style="margin-top:14px">Create the event</button>
     <p class="fine">You captain Team A. Add players and assign teams from the scoreboard once it's created.</p>
   `);
   let sess=3, weeks=1;
