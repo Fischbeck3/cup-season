@@ -1290,7 +1290,7 @@ body::before{
       </div>
             
     </div>
-    <div class="ob-caption" id="obCaption">New or returning, email is one door. No passwords. Just looking? Join with code <b style="color:var(--mut)">DEMO</b>. <span style="opacity:.5">v23.87</span></div>
+    <div class="ob-caption" id="obCaption">New or returning, email is one door. No passwords. Just looking? Join with code <b style="color:var(--mut)">DEMO</b>. <span style="opacity:.5">v23.88</span></div>
   </div>
   <div class="ob-splash" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
   
@@ -5349,6 +5349,57 @@ function goClubhouse(){
   if(CS.chan){ try{ rtClient.removeChannel(CS.chan); }catch(e){} CS.chan = null; }
   showWelcome();
 }
+/* the event-style menu — Ryder is live, the rest are the roadmap. Keeps the
+   Ryder from being the lone hard-coded event: it's the first of a category. */
+function openEventPicker(){
+  openSheet('Start an event', 'SHORT FORM · ITS OWN LITTLE TROPHY', `
+    <div class="check tap" data-evstyle="ryder" style="cursor:pointer; border-color:var(--pos)">
+      <span class="num">⚔️</span><div class="tt"><b>The Ryder</b><small>TWO TEAMS · WEEKLY PVI DUELS · FIRST TO THE CLINCH</small></div>
+      <span class="fine" style="padding:0; color:var(--pos)">LIVE</span></div>
+    <div class="check tap" data-evstyle="bracket" style="cursor:pointer">
+      <span class="num">🥊</span><div class="tt"><b>Bracket</b><small>KNOCKOUT · SEEDED · LAST GOLFER STANDING</small></div>
+      <span class="fine" style="padding:0; color:var(--dim)">SOON</span></div>
+    <div class="check tap" data-evstyle="major" style="cursor:pointer">
+      <span class="num">🏆</span><div class="tt"><b>A Major</b><small>A TIMED MAJOR · BEST ROUND TAKES THE TROPHY</small></div>
+      <span class="fine" style="padding:0; color:var(--dim)">SOON</span></div>
+    <p class="fine">Every event mints a trophy for your display case. More styles land after the pilot.</p>
+  `);
+  $('#shBody').querySelectorAll('[data-evstyle]').forEach(b => b.addEventListener('click', () => {
+    const s = b.dataset.evstyle;
+    if(s === 'ryder'){ closeSheet(); if(window.openRyderSetup) window.openRyderSetup(); return; }
+    toast(s === 'bracket' ? 'Bracket lands right after the pilot' : 'Majors land right after the pilot');
+  }));
+}
+/* join-by-code, self-contained — the hub's join box hides for members, so the
+   Clubhouse sheet carries its own */
+function openJoinSheet(){
+  openSheet('Join with a code', 'GOT AN INVITE CODE?', `
+    <input class="f" id="jCode" placeholder="CUP-CODE" autocomplete="off" style="font-family:var(--sans); text-transform:uppercase">
+    <button class="btn" id="jGo" style="margin-top:12px">Join</button>
+    <p class="fine">No code? Any member can share an invite link — or you'll see an invite here when someone adds you.</p>
+  `);
+  const go = async () => {
+    const code = ($('#jCode').value||'').trim().toUpperCase();
+    if(!code){ toast('Enter the league code'); return; }
+    $('#jGo').disabled = true;
+    try{
+      const { error } = await sb.rpc('join_league', { p_code: code });
+      if(error) throw error;
+      await loadMemberships();
+      const m = CS.memberships.find(x => x.league.code === code);
+      if(!m) throw new Error('joined, but league not found');
+      closeSheet();
+      if(document.body.classList.contains('noleague')) hideWelcome();
+      await enterLeague(m);
+      toast('Joined ' + m.league.name);
+    }catch(err){
+      toast(/invalid/i.test(err.message||'') ? 'No league with that code. Check with your Pro' : 'Could not join: ' + (err.message||err));
+      $('#jGo').disabled = false;
+    }
+  };
+  $('#jGo').addEventListener('click', go);
+  $('#jCode').addEventListener('keydown', e => { if(e.key === 'Enter') go(); });
+}
 async function openLeagueSwitcher(){
   if(!CS.user) return; /* demo has no leagues to switch */
   await loadMyEvents();   /* always show events created since the last load */
@@ -5381,20 +5432,30 @@ async function openLeagueSwitcher(){
         <button class="mini" data-swacc="${i.id}">Accept</button>
         <button class="mini" data-swdec="${i.id}">✕</button>
       </span></div>`).join('');
-  openSheet('Switch', 'EVERY CUP & EVENT YOU PLAY IN',
-    leagues
+  /* the get-started surface: bold, unmissable. Primary two carry the accent. */
+  const startCard = (attr, icon, title, sub, accent) => `
+    <div class="check tap" data-lgsw="${attr}" style="cursor:pointer; ${accent?'border-color:var(--pos);':''}">
+      <span class="num">${icon}</span>
+      <div class="tt"><b>${title}</b><small>${sub}</small></div>
+      <span class="fine" style="padding:0; color:var(--dim)">→</span>
+    </div>`;
+  openSheet('Clubhouse', 'EVERYTHING YOU PLAY, AND WHAT TO START NEXT',
+    '<div class="eyebrow" style="margin-top:0">Your leagues · the long game</div>'
+    + (leagues || '<p class="fine" style="padding:2px 0 8px">No leagues yet — start or join one below.</p>')
+    + '<div class="eyebrow">Your events · the short game</div>'
+    + (events || '<p class="fine" style="padding:2px 0 8px">No events yet — start a short one below.</p>')
     + (invites ? '<div class="eyebrow">Invites</div>' + invites : '')
-    + (events ? '<div class="eyebrow">Events</div>' + events : '')
-    + '<div class="eyebrow">Elsewhere</div>'
-    + row('__clubhouse', '⌂', 'Your clubhouse', 'ROUNDS & BUDDIES — NO LEAGUE LENS', !cur && !state.demo)
-    + row('__new', '+', 'Start or join a league', 'A SEASON, OR AN INVITE CODE', false)
-    + row('__ryder', '🏆', 'Start a Ryder event', 'TWO TEAMS · SHORT · PVI DUELS', false));
+    + '<div class="eyebrow">Start something</div>'
+    + startCard('__newleague', '⛳', 'Start a league', 'A FULL SEASON · SQUADS · A CUP FINAL', true)
+    + startCard('__event', '🏆', 'Start an event', 'SHORT FORM · RYDER, BRACKET, A MAJOR', true)
+    + startCard('__join', '🔑', 'Join with a code', 'GOT AN INVITE CODE?', false));
   $('#shBody').querySelectorAll('[data-lgsw]').forEach(b => b.addEventListener('click', async () => {
-    const v = b.dataset.lgsw; closeSheet();
-    if(v === '__clubhouse'){ if(cur || state.demo) goClubhouse(); return; }
-    if(v === '__new'){ goClubhouse(); switchView('hub'); return; }
-    if(v === '__ryder'){ if(window.openRyderSetup) window.openRyderSetup(); return; }
-    if(v.startsWith('__event:')){ if(window.openEvent) await window.openEvent(v.slice(8)); return; }
+    const v = b.dataset.lgsw;
+    if(v === '__newleague'){ closeSheet(); document.getElementById('wCreate')?.click(); return; }
+    if(v === '__event'){ closeSheet(); openEventPicker(); return; }
+    if(v === '__join'){ closeSheet(); openJoinSheet(); return; }
+    if(v.startsWith('__event:')){ closeSheet(); if(window.openEvent) await window.openEvent(v.slice(8)); return; }
+    closeSheet();
     const m = CS.memberships.find(x => x.league.id === v);
     if(m && v !== cur) await enterLeague(m);
   }));
