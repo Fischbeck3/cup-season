@@ -552,6 +552,25 @@ input.f::-webkit-outer-spin-button, input.f::-webkit-inner-spin-button{-webkit-a
 .coursedd .coursedd-msg{padding:9px 12px; font-family:var(--mono); font-size:10px; color:var(--dim); letter-spacing:.03em;}
 .coursedd .coursedd-back{font-family:var(--mono); font-size:10px; font-weight:600; letter-spacing:.06em; color:var(--mut); background:var(--bg1); position:sticky; top:0;}
 .coursedd .coursedd-back:hover{background:var(--bg1); color:var(--ink);}
+/* The Ryder — event scoreboard */
+.evscore{padding:16px 14px; text-align:center;}
+.evtop{display:flex; align-items:center; justify-content:center; gap:14px;}
+.evteam{display:flex; align-items:center; gap:8px; min-width:0; flex:1;}
+.evteam.a{justify-content:flex-end;} .evteam.b{justify-content:flex-start;}
+.evteam b{font-size:14px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+.evteam .sw{width:12px; height:12px; border-radius:3px; flex:none;}
+.evbig{font-family:var(--mono); font-size:30px; font-weight:700; font-variant-numeric:tabular-nums; letter-spacing:.02em; flex:none;}
+.evbig small{color:var(--dim); font-size:20px; margin:0 6px;}
+.evclinch{padding:10px 0 0; font-family:var(--mono); font-size:10px; letter-spacing:.08em; color:var(--mut);}
+.evsess{margin-top:14px;}
+.evsesshd{display:flex; align-items:center; gap:8px; font-family:var(--mono); font-size:10px; letter-spacing:.08em; color:var(--dim); margin:0 0 6px;}
+.evduel{display:flex; align-items:center; gap:8px; padding:6px 10px; border:1px solid var(--line); border-radius:9px; margin-bottom:5px; font-size:12.5px;}
+.evduel .nm{flex:1; min-width:0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+.evduel .nm.b{text-align:right;}
+.evduel .nm.win{font-weight:700;}
+.evduel .mid{font-family:var(--mono); font-size:9.5px; letter-spacing:.06em; color:var(--dim); flex:none;}
+.evduel .pv{font-family:var(--mono); font-size:10px; color:var(--mut); flex:none;}
+.evwin{color:var(--gold); font-weight:700;}
 .mini{
   font-family:var(--mono); font-size:11px; font-weight:600; letter-spacing:.04em;
   color:var(--ink); background:var(--bg2); border:1px solid var(--line2);
@@ -1264,7 +1283,7 @@ body::before{
       </div>
             
     </div>
-    <div class="ob-caption" id="obCaption">New or returning, email is one door. No passwords. Just looking? Join with code <b style="color:var(--mut)">DEMO</b>. <span style="opacity:.5">v23.79</span></div>
+    <div class="ob-caption" id="obCaption">New or returning, email is one door. No passwords. Just looking? Join with code <b style="color:var(--mut)">DEMO</b>. <span style="opacity:.5">v23.80</span></div>
   </div>
   <div class="ob-splash" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
   
@@ -1511,6 +1530,12 @@ body::before{
         <div id="calList"></div>
         <div class="eyebrow" id="calWeeksHead">Week by week</div>
         <div class="card" id="calWeeks" style="text-align:left"></div>
+      </section>
+
+      <!-- EVENT (The Ryder — standalone) -->
+      <section class="view" id="view-event">
+        <a href="#" class="backlink" data-go="home">← Back to the clubhouse</a>
+        <div id="eventBody"></div>
       </section>
 
       <!-- DRAFT -->
@@ -3867,6 +3892,84 @@ $('#calNext').addEventListener('click',()=>{
   c.m++; if(c.m>11){c.m=0;c.y++;} window.calCursor=c;
   if(window.loadSchedule) window.loadSchedule(); else renderCalendar();
 });
+
+/* ---------- The Ryder: read-only event scoreboard ----------
+   Renders window.CS_EVENT (assembled by the module's loadEvent): the running
+   A–B tally toward the clinch, each session's duels, and the rosters. */
+function evHalf(n){ const w=Math.floor(n), h=(n-w)>=0.5; return (w||!h?String(w):'')+(h?'½':''); }
+function renderEvent(){
+  const el=$('#eventBody'); if(!el) return;
+  const E=window.CS_EVENT;
+  if(!E || !E.event){ el.innerHTML='<p class="fine" style="padding:12px 4px">No event loaded.</p>'; return; }
+  const ev=E.event, teams=E.teams||[], players=E.players||[], sessions=E.sessions||[], duels=E.duels||[];
+  const A=teams.find(t=>t.slot===0)||teams[0]||{name:'Team A',color:0,id:'a'};
+  const B=teams.find(t=>t.slot===1)||teams[1]||{name:'Team B',color:1,id:'b'};
+  const pById=id=>players.find(p=>p.id===id)||{name:'—',marker:'saguaro',team_id:null};
+  const pts=tid=>Number((E.scoreboard||{})[tid]||0);
+  const rc=tid=>players.filter(p=>p.team_id===tid).length;
+  const P=Math.min(rc(A.id),rc(B.id)), M=P*(ev.session_count||sessions.length||1), clinch=M/2+0.5;
+  const aP=pts(A.id), bP=pts(B.id);
+  const sw=c=>`<span class="sw" style="background:${SQHEX[c]??SQHEX[0]}"></span>`;
+  const wkNo=sessions.filter(s=>s.status==='closed').length;
+
+  let statusChip = ev.status==='complete'
+    ? (ev.winner_team_id===A.id?A.name:ev.winner_team_id===B.id?B.name:'—').toUpperCase()+' TAKES THE CUP'
+    : ev.status==='setup' ? 'FORMING' : `LIVE · WK ${Math.min(wkNo+1,ev.session_count)}/${ev.session_count}`;
+  let clinchLine = ev.status==='complete'
+    ? `FINAL · ${evHalf(aP)}–${evHalf(bP)}`
+    : `FIRST TO ${evHalf(clinch)} · ${A.name.toUpperCase()} NEEDS ${evHalf(Math.max(0,clinch-aP))} · ${B.name.toUpperCase()} NEEDS ${evHalf(Math.max(0,clinch-bP))}`;
+
+  let html=`<div class="eyebrow" style="margin-top:0; display:flex; align-items:center">${esc(ev.name)}
+    <span class="fine" style="margin-left:auto; padding:0; color:var(--gold)">${statusChip}</span></div>
+    <div class="card evscore">
+      <div class="evtop">
+        <div class="evteam a">${sw(A.color)}<b>${esc(A.name)}</b></div>
+        <div class="evbig">${evHalf(aP)}<small>–</small>${evHalf(bP)}</div>
+        <div class="evteam b"><b>${esc(B.name)}</b>${sw(B.color)}</div>
+      </div>
+      <div class="evclinch">${clinchLine}</div>
+    </div>`;
+
+  /* sessions, newest first */
+  sessions.slice().sort((a,b)=>b.session_no-a.session_no).forEach(s=>{
+    const ds=duels.filter(d=>d.session_id===s.id);
+    const d0=new Date(s.opens_on+'T00:00:00'), d1=new Date(s.closes_on+'T00:00:00');
+    const when=`${MOS[d0.getMonth()].toUpperCase()} ${d0.getDate()}–${MOS[d1.getMonth()].toUpperCase()} ${d1.getDate()}`;
+    html+=`<div class="evsess"><div class="evsesshd">SESSION ${s.session_no} · ${when} · ${s.status.toUpperCase()}</div>`;
+    if(!ds.length){ html+=`<div class="fine" style="padding:2px 0">Pairings not set.</div>`; }
+    ds.forEach(d=>{
+      const a=pById(d.a_player), b=pById(d.b_player);
+      const aw=d.result==='a', bw=d.result==='b', hv=d.result==='halve', pend=d.result==='pending';
+      const mid = pend?'vs':hv?'halved':(aw||bw)?'def.':'vs';
+      const pvi = (d.a_pvi!=null||d.b_pvi!=null)
+        ? `${d.a_pvi!=null?(d.a_pvi>=0?'+':'')+Number(d.a_pvi).toFixed(1):'–'} / ${d.b_pvi!=null?(d.b_pvi>=0?'+':'')+Number(d.b_pvi).toFixed(1):'–'}` : '';
+      html+=`<div class="evduel">
+        <span class="nm a ${aw?'win':''}">${window.mkr?.(a.marker||'saguaro')||''} ${esc(a.name)}</span>
+        <span class="mid ${hv?'evwin':''}">${mid}</span>
+        <span class="nm b ${bw?'win':''}">${esc(b.name)} ${window.mkr?.(b.marker||'saguaro')||''}</span>
+        ${pvi?`<span class="pv">${pvi}</span>`:''}
+      </div>`;
+    });
+    html+=`</div>`;
+  });
+
+  /* rosters with each player's duel record */
+  const recOf=pid=>{ let w=0,l=0,h=0;
+    duels.forEach(d=>{ if(d.result==='pending') return;
+      if(d.a_player===pid){ d.result==='a'?w++:d.result==='b'?l++:h++; }
+      else if(d.b_player===pid){ d.result==='b'?w++:d.result==='a'?l++:h++; } });
+    return `${w}-${l}-${h}`; };
+  [A,B].forEach(t=>{
+    const roster=players.filter(p=>p.team_id===t.id).sort((x,y)=>x.seed-y.seed);
+    html+=`<div class="eyebrow" style="display:flex; align-items:center">${sw(t.color)}<span style="margin-left:6px">${esc(t.name)}</span></div>`;
+    html+=roster.map(p=>`<div class="check"><span class="num">${window.mkr?.(p.marker||'saguaro')||'⛳'}</span>
+      <div class="tt"><b>${esc(p.name)}${p.role==='captain'?' · <span style="color:var(--gold)">CAPTAIN</span>':''}</b>
+      <small>${recOf(p.id)} · W-L-H</small></div></div>`).join('') || '<div class="fine" style="padding:2px 0">No one assigned yet.</div>';
+  });
+
+  el.innerHTML=html;
+}
+window.renderEvent=renderEvent;
 /* every league-identity string on screen renders from real state — the
    markup defaults are demo scenery and must never survive a real league */
 const ROMAN=['','I','II','III','IV','V','VI','VII','VIII','IX','X','XI','XII'];
@@ -4598,6 +4701,7 @@ async function enterLeague(m){
   try { await loadLeagueData(); } catch(e){ bootTrace('league data: '+(e.message||e)); }
   loadLeagueSpans().then(loadSchedule); /* the calendar's social + season layers */
   loadLeagueRecord();                   /* the You tab's per-league record rows */
+  loadMyEvents();                       /* Ryder events in the switcher */
   const ab = $('#annBtn');
   if(ab) ab.style.display = CS.member?.role === 'commissioner' ? '' : 'none';
   subscribeLeague();
@@ -5139,14 +5243,19 @@ function openLeagueSwitcher(){
     m.league.id, '⛳', m.league.name,
     switcherChip(m) + (m.role === 'commissioner' ? ' · YOU ARE THE PRO' : ''),
     m.league.id === cur)).join('');
-  openSheet('Switch league', 'EVERY CUP YOU PLAY IN',
+  const evStat = e => e.status==='complete' ? 'FINAL' : e.status==='setup' ? 'FORMING' : 'LIVE';
+  const events = (window.myEvents||[]).map(e => row('__event:'+e.id, '🏆', e.name, 'THE RYDER · '+evStat(e), false)).join('');
+  openSheet('Switch', 'EVERY CUP & EVENT YOU PLAY IN',
     leagues
+    + (events ? '<div class="eyebrow">Events</div>' + events : '')
+    + '<div class="eyebrow">Elsewhere</div>'
     + row('__clubhouse', '⌂', 'Your clubhouse', 'ROUNDS & BUDDIES — NO LEAGUE LENS', !cur && !state.demo)
     + row('__new', '+', 'Start or join a league', 'NEW CUP, OR AN INVITE CODE', false));
   $('#shBody').querySelectorAll('[data-lgsw]').forEach(b => b.addEventListener('click', async () => {
     const v = b.dataset.lgsw; closeSheet();
     if(v === '__clubhouse'){ if(cur || state.demo) goClubhouse(); return; }
     if(v === '__new'){ goClubhouse(); switchView('hub'); return; }
+    if(v.startsWith('__event:')){ if(window.openEvent) await window.openEvent(v.slice(8)); return; }
     const m = CS.memberships.find(x => x.league.id === v);
     if(m && v !== cur) await enterLeague(m);
   }));
@@ -5207,6 +5316,44 @@ async function loadLeagueSpans(){
     window.leagueSpans = (data||[]).map(s => ({ ...s, name: nameOf(s.league_id) }));
   } catch(e){ console.warn('[spans]', e); window.leagueSpans = []; }
 }
+
+/* ---------- The Ryder: event data ---------- */
+async function loadMyEvents(){
+  if(!CS.user){ window.myEvents = []; return; }
+  try {
+    const { data } = await sb.from('event_players')
+      .select('event:events(id, name, status, kind)').eq('profile_id', CS.user.id);
+    window.myEvents = (data||[]).map(r => r.event).filter(Boolean);
+  } catch(e){ window.myEvents = []; }
+}
+window.loadMyEvents = loadMyEvents;
+
+async function loadEvent(id){
+  if(!CS.user) return;
+  try {
+    const [ev, tm, pl, ss, du, sc] = await Promise.all([
+      sb.from('events').select('*').eq('id', id).single(),
+      sb.from('event_teams').select('*').eq('event_id', id).order('slot'),
+      sb.from('event_players').select('id, profile_id, team_id, role, seed, benched_count, profile:profiles(display_name, marker)').eq('event_id', id),
+      sb.from('event_sessions').select('*').eq('event_id', id).order('session_no'),
+      sb.from('event_duels').select('*').eq('event_id', id),
+      sb.from('v_event_scoreboard').select('team_id, points').eq('event_id', id),
+    ]);
+    const scoreboard = {}; (sc.data||[]).forEach(r => scoreboard[r.team_id] = Number(r.points));
+    window.CS_EVENT = {
+      event: ev.data,
+      teams: tm.data || [],
+      players: (pl.data||[]).map(p => ({ id:p.id, profile_id:p.profile_id, team_id:p.team_id,
+        role:p.role, seed:p.seed, benched_count:p.benched_count,
+        name:p.profile?.display_name||'—', marker:p.profile?.marker||'saguaro' })),
+      sessions: ss.data || [],
+      duels: du.data || [],
+      scoreboard,
+    };
+    window.renderEvent?.();
+  } catch(e){ console.warn('[event]', e); }
+}
+window.openEvent = async (id) => { await loadEvent(id); switchView('event'); };
 
 /* D4: the You tab's league record — latest season per membership, my place in
    it, ranked from v_individual_standings. Archives deepen as seasons close. */
@@ -5447,6 +5594,7 @@ function showWelcome(){
   loadRecentRounds();
   loadCourseMemory();
   loadLeagueSpans().then(loadSchedule); /* buddies' rounds show without a league */
+  loadMyEvents();                       /* Ryder events in the switcher */
   enterApp();
   switchView('home');
 }
