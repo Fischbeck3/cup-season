@@ -535,6 +535,13 @@ input.f::-webkit-outer-spin-button, input.f::-webkit-inner-spin-button{-webkit-a
 .optcard h4{font-size:15px; font-weight:700;}
 .optcard p{font-family:var(--mono); font-size:10.5px; color:var(--mut); margin-top:5px; line-height:1.7; letter-spacing:.02em;}
 .optcard .go{position:absolute; right:16px; top:50%; transform:translateY(-50%); color:var(--dim); font-size:16px;}
+/* live scoring is a diorama until task #11 wires it to real posting — for real
+   leagues the card reads "coming soon" and does nothing, so nobody trusts a
+   round that would never leave the device. Quick post is the real path. */
+.optcard.soon{opacity:.6; cursor:default;}
+.optcard.soon::before{background:var(--dim);}
+.optcard.soon:hover{border-color:var(--line2); filter:none;}
+.optcard.soon .go{font-family:var(--mono); font-size:9px; font-weight:600; letter-spacing:.12em; color:var(--dim);}
 .mini{
   font-family:var(--mono); font-size:11px; font-weight:600; letter-spacing:.04em;
   color:var(--ink); background:var(--bg2); border:1px solid var(--line2);
@@ -1247,7 +1254,7 @@ body::before{
       </div>
             
     </div>
-    <div class="ob-caption" id="obCaption">New or returning, email is one door. No passwords. Just looking? Join with code <b style="color:var(--mut)">DEMO</b>. <span style="opacity:.5">v23.73</span></div>
+    <div class="ob-caption" id="obCaption">New or returning, email is one door. No passwords. Just looking? Join with code <b style="color:var(--mut)">DEMO</b>. <span style="opacity:.5">v23.74</span></div>
   </div>
   <div class="ob-splash" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
   
@@ -1526,7 +1533,7 @@ body::before{
           <p>GROSS + TEE · SOLO ROUND FROM ANYWHERE · FEEDS THE SEASON INSTANTLY</p>
           <span class="go">→</span>
         </button>
-        <button class="optcard" style="--acc:var(--sq0)" data-go="play">
+        <button class="optcard" id="optLive" style="--acc:var(--sq0)" data-go="play">
           <h4>Live round — the group's here</h4>
           <p>HOLE-BY-HOLE · MATCH PLAY & WOLF · AUTO-ATTESTED · GUESTS WELCOME, NO ACCOUNT NEEDED</p>
           <span class="go">→</span>
@@ -2021,12 +2028,35 @@ $('#obApple').addEventListener('click',()=>{toast('Apple sign-in ships with the 
 function switchView(v){
   if(v==='feed') v='home'; /* v23.55: the board lives on Home */
   if(v==='draft' && state.phase==='setup'){ toast('Lock settings first: the draft opens after setup'); v='wizard'; }
+  /* live scoring only runs in the demo diorama today — its finish handler
+     local-echoes and never hits the DB (task #11). Route real accounts to
+     quick post so no one trusts a round that would silently vanish. */
+  if(v==='play' && !state.demo){ toast('Live scoring lands right after the pilot — Quick post has you covered'); v='post'; }
+  gateLiveRound();
   $$('.tab').forEach(t=>t.classList.toggle('active',t.dataset.v===v));
   $$('.navitem').forEach(t=>t.classList.toggle('active',t.dataset.v===v));
   $$('.view').forEach(x=>x.classList.toggle('active',x.id==='view-'+v));
   window.scrollTo({top:0});
 }
 $$('.tab, .navitem').forEach(b=>b.addEventListener('click',()=>switchView(b.dataset.v)));
+
+/* The live-round chooser card: interactive in the demo, honestly "coming
+   soon" for real leagues until its posting path is wired (task #11). */
+function gateLiveRound(){
+  const card=document.getElementById('optLive'); if(!card) return;
+  const h=card.querySelector('h4'), p=card.querySelector('p'), go=card.querySelector('.go');
+  if(state.demo){
+    card.classList.remove('soon'); card.disabled=false; card.dataset.go='play';
+    if(h) h.textContent="Live round — the group's here";
+    if(p) p.textContent='HOLE-BY-HOLE · MATCH PLAY & WOLF · AUTO-ATTESTED · GUESTS WELCOME, NO ACCOUNT NEEDED';
+    if(go) go.textContent='→';
+  } else {
+    card.classList.add('soon'); card.disabled=true; card.dataset.go='';
+    if(h) h.textContent='Live round — coming soon';
+    if(p) p.textContent='HOLE-BY-HOLE SCORING, MATCH PLAY & WOLF, GUESTS WELCOME. LANDS RIGHT AFTER THE PILOT — QUICK POST HAS YOU COVERED TODAY.';
+    if(go) go.textContent='SOON';
+  }
+}
 
 /* ================= season series (mock) ================= */
 function buildSeries(){
@@ -3006,6 +3036,10 @@ $('#backToSetup').addEventListener('click',e=>{
   renderPlay();
 });
 $('#finishBtn').addEventListener('click',()=>{
+  /* safety net: live scoring posts nothing to the DB yet (task #11). The
+     chooser already blocks real leagues from reaching here — this refuses
+     the local-echo outright if any path ever slips through. */
+  if(!state.demo){ toast('Live scoring lands right after the pilot — Quick post has you covered'); switchView('post'); return; }
   const left=18-[...Array(18).keys()].filter(h=>holeDone(h)).length;
   if(left>0){toast(left+' holes left to score');return;}
   let posted=0;
@@ -3602,6 +3636,7 @@ function renderPhase(){
   renderLeagueMeta();
   renderCalendar();
   renderLiveBanner();
+  gateLiveRound();
 }
 /* ---------- the calendar tab: month by month, social first ----------
    Days carry (a) rounds on the books — yours, friends', league mates' (the
