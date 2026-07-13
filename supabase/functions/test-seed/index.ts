@@ -50,7 +50,7 @@ const BOTS = [
 const COURSES = ["Papago GC", "Encanto GC", "Aguila GC", "Cave Creek GC", "Grand Canyon University GC"];
 
 async function reset(admin: any, me?: string) {
-  const removed: Record<string, number> = { events: 0, leagues: 0, bots: 0 };
+  const removed: any = { events: 0, leagues: 0, bots: 0, errors: [] as string[] };
   // Find bots directly in auth.users — the source of truth. Their profile rows
   // may be missing (a prior partial run), which is exactly why a profiles-based
   // lookup left orphaned auth users that then blocked re-seeding.
@@ -79,8 +79,17 @@ async function reset(admin: any, me?: string) {
   for (const eid of evIds) { await admin.from("events").delete().eq("id", eid); removed.events++; }
   // leagues (cascade members/squads/seasons/posts/buy_ins)
   for (const lid of leagueIds) { await admin.from("leagues").delete().eq("id", lid); removed.leagues++; }
-  // bot auth users → cascade profiles + rounds + event_players + friendships
-  for (const id of ids) { try { await admin.auth.admin.deleteUser(id); removed.bots++; } catch (_) {} }
+  // per bot: clear anything that RESTRICT-blocks the profile cascade, delete the
+  // profile explicitly, then the auth user. deleteUser returns {error} (never
+  // throws) — check it, so a blocked delete can't be miscounted as success.
+  for (const id of ids) {
+    await admin.from("events").delete().eq("created_by", id);   // events.created_by is RESTRICT
+    const pe = await admin.from("profiles").delete().eq("id", id);
+    if (pe.error) removed.errors.push(`profile ${id.slice(0, 8)}: ${pe.error.message}`);
+    const de = await admin.auth.admin.deleteUser(id);
+    if (de.error) removed.errors.push(`auth ${id.slice(0, 8)}: ${de.error.message}`);
+    else removed.bots++;
+  }
   return removed;
 }
 
