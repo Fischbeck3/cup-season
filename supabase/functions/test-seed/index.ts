@@ -51,8 +51,17 @@ const COURSES = ["Papago GC", "Encanto GC", "Aguila GC", "Cave Creek GC", "Grand
 
 async function reset(admin: any, me?: string) {
   const removed: Record<string, number> = { events: 0, leagues: 0, bots: 0 };
-  const { data: bots } = await admin.from("profiles").select("id").like("email", `%@${BOT_DOMAIN}`);
-  const ids = (bots ?? []).map((b: any) => b.id);
+  // Find bots directly in auth.users — the source of truth. Their profile rows
+  // may be missing (a prior partial run), which is exactly why a profiles-based
+  // lookup left orphaned auth users that then blocked re-seeding.
+  const ids: string[] = [];
+  for (let page = 1; page <= 20; page++) {
+    const { data, error } = await admin.auth.admin.listUsers({ page, perPage: 200 });
+    const users = data?.users ?? [];
+    if (error || !users.length) break;
+    for (const u of users) if ((u.email ?? "").endsWith(`@${BOT_DOMAIN}`)) ids.push(u.id);
+    if (users.length < 200) break;
+  }
   // the bot-commissioned test leagues
   let leagueIds: string[] = [];
   if (ids.length) {
