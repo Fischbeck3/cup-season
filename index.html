@@ -1264,7 +1264,7 @@ body::before{
       </div>
             
     </div>
-    <div class="ob-caption" id="obCaption">New or returning, email is one door. No passwords. Just looking? Join with code <b style="color:var(--mut)">DEMO</b>. <span style="opacity:.5">v23.78</span></div>
+    <div class="ob-caption" id="obCaption">New or returning, email is one door. No passwords. Just looking? Join with code <b style="color:var(--mut)">DEMO</b>. <span style="opacity:.5">v23.79</span></div>
   </div>
   <div class="ob-splash" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
   
@@ -2023,6 +2023,28 @@ const $=s=>document.querySelector(s);
 const $$=s=>document.querySelectorAll(s);
 const fmt$=n=>'$'+n.toLocaleString();
 let toastT;
+
+/* ---- reveal safety net (never let the splash trap the screen) ----
+   The intro splash and the entrance fades use CSS animations with fill:both.
+   Browsers PAUSE animations in a backgrounded/throttled tab (PWA cold start,
+   load-while-switched-away, slow first paint). If the timeline never completes,
+   the splash panels stay covering the screen (z-index:5) and the sign-in door
+   stays at opacity:0 — the site is blank. Animations must never gate whether
+   critical content is visible: force the end-state in JS, on a timer and the
+   moment the page becomes visible, independent of any animation running. */
+(function(){
+  function forceReveal(){
+    document.querySelectorAll('.ob-splash').forEach(s=>{ s.style.display='none'; });
+    /* a running (even frozen) animation with fill:both overrides inline styles,
+       so clearing opacity isn't enough — kill the animation, then the base
+       style (opacity:1, no transform) takes over and the element is visible */
+    ['obDoor','obCaption'].forEach(id=>{ const e=document.getElementById(id); if(e){ e.style.animation='none'; e.style.opacity='1'; } });
+    document.querySelectorAll('.onboard .ob-hero').forEach(h=>{ h.style.animation='none'; h.style.opacity='1'; });
+  }
+  /* after the intended animation window; and instantly whenever the tab is shown */
+  setTimeout(forceReveal, 2300);
+  document.addEventListener('visibilitychange', ()=>{ if(!document.hidden) forceReveal(); });
+})();
 function toast(m){const t=$('#toast');t.textContent=m;t.classList.add('show');clearTimeout(toastT);toastT=setTimeout(()=>t.classList.remove('show'),2400);}
 function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
 
