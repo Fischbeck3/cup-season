@@ -571,6 +571,13 @@ input.f::-webkit-outer-spin-button, input.f::-webkit-inner-spin-button{-webkit-a
 .evduel .mid{font-family:var(--mono); font-size:9.5px; letter-spacing:.06em; color:var(--dim); flex:none;}
 .evduel .pv{font-family:var(--mono); font-size:10px; color:var(--mut); flex:none;}
 .evwin{color:var(--gold); font-weight:700;}
+/* notifications banner — pending invites, act in line */
+#notifBanner:not(:empty){margin-bottom:12px; display:flex; flex-direction:column; gap:8px;}
+.notifrow{display:flex; align-items:center; gap:10px; padding:11px 13px; border-radius:12px;
+  background:linear-gradient(90deg, rgba(67,224,124,.10), rgba(67,224,124,.02)); border:1px solid rgba(67,224,124,.35);}
+.notifrow .tt{flex:1; min-width:0;}
+.notifrow .tt b{font-size:13.5px; display:block;}
+.notifrow .tt small{font-family:var(--mono); font-size:9.5px; letter-spacing:.06em; color:var(--mut);}
 .mini{
   font-family:var(--mono); font-size:11px; font-weight:600; letter-spacing:.04em;
   color:var(--ink); background:var(--bg2); border:1px solid var(--line2);
@@ -1283,7 +1290,7 @@ body::before{
       </div>
             
     </div>
-    <div class="ob-caption" id="obCaption">New or returning, email is one door. No passwords. Just looking? Join with code <b style="color:var(--mut)">DEMO</b>. <span style="opacity:.5">v23.83</span></div>
+    <div class="ob-caption" id="obCaption">New or returning, email is one door. No passwords. Just looking? Join with code <b style="color:var(--mut)">DEMO</b>. <span style="opacity:.5">v23.84</span></div>
   </div>
   <div class="ob-splash" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
   
@@ -1349,6 +1356,7 @@ body::before{
 
       <!-- HOME -->
       <section class="view active" id="view-home">
+        <div id="notifBanner"></div>
         <div id="homeLeagueless">
           <div class="card" id="wCard" style="margin-bottom:14px; text-align:left;">
         <div style="display:flex; align-items:center; gap:10px;">
@@ -3939,7 +3947,7 @@ function renderEvent(){
   const meU=window.CS?.user?.id, iAmOrg = ev.created_by===meU;
   const unassigned = players.filter(p=>!p.team_id);
   if(iAmOrg){
-    html+=`<div style="display:flex; gap:8px; margin:2px 0 6px"><button class="mini" onclick="window.openRyderPlayers&&window.openRyderPlayers()">＋ Add players</button></div>`;
+    html+=`<div style="display:flex; gap:8px; margin:2px 0 6px"><button class="mini" onclick="window.openInvitePicker&&window.openInvitePicker({event:'${ev.id}'})">＋ Invite players</button></div>`;
     if(unassigned.length){
       html+=`<div class="eyebrow">Unassigned</div>`+unassigned.map(p=>`<div class="check"><span class="num">${window.mkr?.(p.marker||'saguaro')||'⛳'}</span>
         <div class="tt"><b>${esc(p.name)}</b></div>
@@ -3994,6 +4002,35 @@ function renderEvent(){
   el.innerHTML=html;
 }
 window.renderEvent=renderEvent;
+
+/* ---------- notifications banner: pending invites, act in line ---------- */
+function renderNotifications(){
+  const el=$('#notifBanner'); if(!el) return;
+  const inv=window.myInvites||[];
+  if(!inv.length || state.demo){ el.innerHTML=''; return; }
+  el.innerHTML=inv.map(i=>`
+    <div class="notifrow">
+      <div class="tt"><b>${i.kind==='league'?'League invite':'Ryder invite'} · ${esc(i.container_name||'')}</b>
+        <small>from ${esc(i.inviter||'a golfer')}${i.kind==='event'&&i.starts_on?' · first tee '+i.starts_on:''}</small></div>
+      <span style="display:flex; gap:6px; flex:none">
+        <button class="mini" data-ivacc="${i.id}">Accept</button>
+        <button class="mini" data-ivdet="${i.id}">Details</button>
+      </span>
+    </div>`).join('');
+  el.querySelectorAll('[data-ivacc]').forEach(b=>b.addEventListener('click',()=>window.respondInvite(b.dataset.ivacc,true)));
+  el.querySelectorAll('[data-ivdet]').forEach(b=>b.addEventListener('click',()=>{
+    const i=inv.find(x=>x.id===b.dataset.ivdet); if(!i) return;
+    openSheet(i.kind==='league'?'League invite':'Ryder invite', (i.container_name||'').toUpperCase(),
+      `<p class="fine">${i.kind==='league'?'A season-long league.':'A Ryder event — two teams, PvI duels.'} Invited by ${esc(i.inviter||'a golfer')}${i.starts_on?`. First tee ${i.starts_on}.`:''}</p>
+       <div style="display:flex; gap:8px; margin-top:14px">
+         <button class="btn" id="ivDetAcc" style="flex:1">Accept & join</button>
+         <button class="btn dark" id="ivDetDec" style="flex:1">Decline</button>
+       </div>`);
+    $('#ivDetAcc').addEventListener('click',()=>{ closeSheet(); window.respondInvite(i.id,true); });
+    $('#ivDetDec').addEventListener('click',()=>{ closeSheet(); window.respondInvite(i.id,false); });
+  }));
+}
+window.renderNotifications=renderNotifications;
 /* every league-identity string on screen renders from real state — the
    markup defaults are demo scenery and must never survive a real league */
 const ROMAN=['','I','II','III','IV','V','VI','VII','VIII','IX','X','XI','XII'];
@@ -4726,6 +4763,7 @@ async function enterLeague(m){
   loadLeagueSpans().then(loadSchedule); /* the calendar's social + season layers */
   loadLeagueRecord();                   /* the You tab's per-league record rows */
   loadMyEvents();                       /* Ryder events in the switcher */
+  loadInvites().then(()=>window.renderNotifications&&window.renderNotifications());  /* invite banner */
   const ab = $('#annBtn');
   if(ab) ab.style.display = CS.member?.role === 'commissioner' ? '' : 'none';
   subscribeLeague();
@@ -5257,6 +5295,7 @@ function goClubhouse(){
 async function openLeagueSwitcher(){
   if(!CS.user) return; /* demo has no leagues to switch */
   await loadMyEvents();   /* always show events created since the last load */
+  await loadInvites();    /* and any pending invites */
   const cur = CS.league?.id;
   const row = (attr, icon, title, sub, here) => `
     <div class="check tap" data-lgsw="${attr}" style="cursor:pointer; ${here?'border-color:var(--pos);':''}">
@@ -5278,8 +5317,16 @@ async function openLeagueSwitcher(){
   }).join('');
   const evStat = e => e.status==='complete' ? 'FINAL' : e.status==='setup' ? 'FORMING' : 'LIVE';
   const events = (window.myEvents||[]).map(e => row('__event:'+e.id, '🏆', e.name, 'THE RYDER · '+evStat(e), false)).join('');
+  const invites = (window.myInvites||[]).map(i => `
+    <div class="check"><span class="num">${i.kind==='league'?'⛳':'🏆'}</span>
+      <div class="tt"><b>${esc(i.container_name||'')}</b><small>INVITE · FROM ${esc((i.inviter||'').toUpperCase())}</small></div>
+      <span style="display:flex; gap:6px; flex:none">
+        <button class="mini" data-swacc="${i.id}">Accept</button>
+        <button class="mini" data-swdec="${i.id}">✕</button>
+      </span></div>`).join('');
   openSheet('Switch', 'EVERY CUP & EVENT YOU PLAY IN',
     leagues
+    + (invites ? '<div class="eyebrow">Invites</div>' + invites : '')
     + (events ? '<div class="eyebrow">Events</div>' + events : '')
     + '<div class="eyebrow">Elsewhere</div>'
     + row('__clubhouse', '⌂', 'Your clubhouse', 'ROUNDS & BUDDIES — NO LEAGUE LENS', !cur && !state.demo)
@@ -5293,6 +5340,13 @@ async function openLeagueSwitcher(){
     if(v.startsWith('__event:')){ if(window.openEvent) await window.openEvent(v.slice(8)); return; }
     const m = CS.memberships.find(x => x.league.id === v);
     if(m && v !== cur) await enterLeague(m);
+  }));
+  /* accept / decline invites right from the top bar */
+  $('#shBody').querySelectorAll('[data-swacc],[data-swdec]').forEach(b => b.addEventListener('click', async (e) => {
+    e.stopPropagation();
+    const acc = b.hasAttribute('data-swacc');
+    await window.respondInvite(b.dataset.swacc || b.dataset.swdec, acc);
+    openLeagueSwitcher();   /* re-render with the invite resolved */
   }));
   /* scrap a not-yet-started league without entering it */
   $('#shBody').querySelectorAll('[data-lgdel]').forEach(b => b.addEventListener('click', async (e) => {
@@ -5509,6 +5563,67 @@ window.ryderResolve = async (sessionId)=>{
     toast('Session scored'); await loadEvent(window.CS_EVENT.event.id); }catch(e){ toast('Score failed: '+(e.message||e)); }
 };
 
+/* ---------- invites (decision B): consent-based add for leagues + events ---------- */
+async function loadInvites(){
+  if(!CS.user){ window.myInvites = []; return; }
+  try{ const { data } = await sb.rpc('my_invites'); window.myInvites = data || []; }
+  catch(e){ window.myInvites = []; }
+}
+window.loadInvites = loadInvites;
+
+window.respondInvite = async (id, accept)=>{
+  try{
+    const { error } = await sb.rpc('respond_invite', { p_id:id, p_accept:accept });
+    if(error) throw error;
+    await loadInvites();
+    if(accept){ await loadMemberships(); await loadMyEvents(); }
+    if(window.renderNotifications) window.renderNotifications();
+    toast(accept ? 'Joined ✓' : 'Declined');
+  }catch(e){ toast(e.message || String(e)); }
+};
+
+/* the shared Add-golfers picker — invite to a league OR an event */
+async function openInvitePicker(container){
+  if(!CS.user) return;
+  const isLeague = !!container.league, cid = container.league || container.event;
+  openSheet('Add golfers', 'SEARCH THE APP · OR YOUR BUDDIES', `
+    <input class="f" id="ivFind" placeholder="Find golfers by name or @handle" autocomplete="off" style="font-family:var(--sans)">
+    <div id="ivResults" style="margin-top:8px"></div>
+    <div class="eyebrow">Your buddies</div>
+    <div id="ivBuddies"></div>
+    ${isLeague ? '<button class="btn dark" id="ivLink" style="margin-top:12px">Share an invite link instead</button>' : ''}
+    <p class="fine">Invited golfers get a notification and choose to join. ${isLeague?'Not on the app? Share the link.':''}</p>
+  `);
+  const invited = new Set();
+  const rowFor = p => { const pid=p.profile_id||p.id;
+    return `<div class="check"><span class="num">${mkr(p.marker||'saguaro')}</span>
+      <div class="tt"><b>${esc(p.display_name||'—')}</b><small>@${esc(p.handle||'?')}${p.city?' · '+esc(p.city):''}</small></div>
+      ${invited.has(pid)?'<b class="fine" style="padding:0; color:var(--pos)">INVITED</b>':`<button class="mini" data-iv="${pid}">Invite</button>`}</div>`; };
+  const bind = scope => scope.querySelectorAll('[data-iv]').forEach(b=>b.addEventListener('click',async()=>{
+    b.disabled=true;
+    try{
+      const { error } = await sb.rpc('invite_golfer',{ p_league:isLeague?cid:null, p_event:isLeague?null:cid, p_profile:b.dataset.iv });
+      if(error) throw error;
+      invited.add(b.dataset.iv);
+      b.outerHTML='<b class="fine" style="padding:0; color:var(--pos)">INVITED</b>';
+    }catch(e){ toast(e.message||String(e)); b.disabled=false; }
+  }));
+  try{ const { data } = await sb.rpc('my_friends');
+    const fr=(data||[]).filter(f=>f.status==='accepted'), bx=$('#ivBuddies');
+    bx.innerHTML = fr.length ? fr.map(rowFor).join('') : '<p class="fine" style="padding:0">No buddies yet — search above.</p>';
+    bind(bx);
+  }catch(e){}
+  let t=null;
+  $('#ivFind').addEventListener('input',()=>{ clearTimeout(t); const q=$('#ivFind').value.trim();
+    if(q.length<2){ $('#ivResults').innerHTML=''; return; }
+    t=setTimeout(async()=>{ try{ const { data } = await sb.rpc('search_golfers',{p_q:q});
+      const rx=$('#ivResults'); rx.innerHTML=(data||[]).length?data.map(rowFor).join(''):'<p class="fine" style="padding:0">No golfers found.</p>'; bind(rx);
+    }catch(e){} }, 300);
+  });
+  if(isLeague) $('#ivLink')?.addEventListener('click',()=>{ if(window.shareInvite) window.shareInvite(); });
+}
+window.openInvitePicker = openInvitePicker;
+
 /* D4: the You tab's league record — latest season per membership, my place in
    it, ranked from v_individual_standings. Archives deepen as seasons close. */
 async function loadLeagueRecord(){
@@ -5693,7 +5808,9 @@ async function openMembersSheet(){
     rows
     + (pending.length ? '<div class="eyebrow">Invites out</div>' + pending.map(i =>
         `<div class="fine" style="padding:3px 0">✉ ${i.email} · WAITING</div>`).join('') : '')
-    + `<button class="btn dark" id="msShare" style="margin-top:14px">Share the invite link</button>`);
+    + (isPro ? `<button class="btn" id="msAdd" style="margin-top:14px">Add golfers</button>` : '')
+    + `<button class="btn dark" id="msShare" style="margin-top:10px">Share the invite link</button>`);
+  document.getElementById('msAdd')?.addEventListener('click', () => { closeSheet(); window.openInvitePicker?.({ league: CS.league.id }); });
   document.getElementById('msShare')?.addEventListener('click', () => window.shareInvite?.());
   document.querySelectorAll('[data-msrm]').forEach(b => b.addEventListener('click', async () => {
     const m = CS.members.find(x => x.id === b.dataset.msrm);
@@ -5749,6 +5866,7 @@ function showWelcome(){
   loadCourseMemory();
   loadLeagueSpans().then(loadSchedule); /* buddies' rounds show without a league */
   loadMyEvents();                       /* Ryder events in the switcher */
+  loadInvites().then(()=>window.renderNotifications&&window.renderNotifications());  /* invite banner */
   enterApp();
   switchView('home');
 }
