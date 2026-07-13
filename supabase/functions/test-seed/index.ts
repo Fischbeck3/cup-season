@@ -49,18 +49,28 @@ const BOTS = [
 ];
 const COURSES = ["Papago GC", "Encanto GC", "Aguila GC", "Cave Creek GC", "Grand Canyon University GC"];
 
-async function reset(admin: any) {
+async function reset(admin: any, me?: string) {
   const removed: Record<string, number> = { events: 0, leagues: 0, bots: 0 };
   const { data: bots } = await admin.from("profiles").select("id").like("email", `%@${BOT_DOMAIN}`);
   const ids = (bots ?? []).map((b: any) => b.id);
-  if (!ids.length) return removed;
-  // events first (league_id set-null on league delete would orphan them)
-  const { data: evs } = await admin.from("events").select("id").in("created_by", ids);
-  for (const e of evs ?? []) { await admin.from("events").delete().eq("id", e.id); removed.events++; }
-  // leagues the bots commissioned (cascades members/squads/seasons/posts/buy_ins)
-  const { data: lgs } = await admin.from("leagues").select("id").in("commissioner_id", ids);
-  for (const l of lgs ?? []) { await admin.from("leagues").delete().eq("id", l.id); removed.leagues++; }
-  // finally the bot auth users → cascade profiles + rounds + event_players + friendships
+  // the bot-commissioned test leagues
+  let leagueIds: string[] = [];
+  if (ids.length) {
+    const { data: lgs } = await admin.from("leagues").select("id").in("commissioner_id", ids);
+    leagueIds = (lgs ?? []).map((l: any) => l.id);
+  }
+  // events to remove: created by a bot, attached to a test league, or the
+  // caller's seeded 'The Grudge' (created_by=you, may be detached/orphaned).
+  // Delete events BEFORE their leagues, else league delete null-orphans them.
+  const evIds = new Set<string>();
+  const collect = (rows: any) => (rows ?? []).forEach((e: any) => evIds.add(e.id));
+  if (ids.length)       collect((await admin.from("events").select("id").in("created_by", ids)).data);
+  if (leagueIds.length) collect((await admin.from("events").select("id").in("league_id", leagueIds)).data);
+  if (me)               collect((await admin.from("events").select("id").eq("created_by", me).eq("name", "The Grudge")).data);
+  for (const eid of evIds) { await admin.from("events").delete().eq("id", eid); removed.events++; }
+  // leagues (cascade members/squads/seasons/posts/buy_ins)
+  for (const lid of leagueIds) { await admin.from("leagues").delete().eq("id", lid); removed.leagues++; }
+  // bot auth users → cascade profiles + rounds + event_players + friendships
   for (const id of ids) { try { await admin.auth.admin.deleteUser(id); removed.bots++; } catch (_) {} }
   return removed;
 }
@@ -81,7 +91,7 @@ async function seedRound(admin: any, profileId: string, seasonId: string, idx: n
 
 async function seed(admin: any, me: string) {
   const log: string[] = [];
-  await reset(admin);
+  await reset(admin, me);
 
   // ---- 1. bots ----
   const bot: { id: string; idx: number; name: string; mk: string }[] = [];
@@ -224,7 +234,7 @@ async function seed(admin: any, me: string) {
   // ---- 5. Ryder event "The Grudge", attached to Ridgeline Cup (decision B) ----
   const gStart = sundayOffsetWeeks(-2);
   const { data: ev } = await admin.from("events").insert({
-    name: "The Grudge", created_by: me, league_id: L1.leagueId, kind: "ryder",
+    name: "The Grudge", created_by: L1.commish.id, league_id: L1.leagueId, kind: "ryder",
     status: "live", starts_on: iso(gStart), session_count: 3, session_weeks: 1, draw_rule: "team_pvi", allowance: 100,
   }).select("id").single();
   const eventId = ev.id;
@@ -288,7 +298,7 @@ Deno.serve(async (req) => {
   const admin = createClient(SB_URL, SERVICE);
 
   try {
-    if (body.action === "reset") return json({ ok: true, removed: await reset(admin) });
+    if (body.action === "reset") return json({ ok: true, removed: await reset(admin, user.id) });
     if (body.action === "seed") return json(await seed(admin, user.id));
     return json({ error: "unknown action (use seed|reset)" }, 400);
   } catch (e) {
