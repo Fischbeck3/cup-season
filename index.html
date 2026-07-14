@@ -883,6 +883,9 @@ input.f::-webkit-outer-spin-button, input.f::-webkit-inner-spin-button{-webkit-a
 .fbcat{ font-family:var(--sans); font-size:12px; color:var(--mut); background:var(--bg1);
   border:1px solid var(--line2); border-radius:99px; padding:6px 12px; cursor:pointer; }
 .fbcat.on{ color:var(--ink); border-color:var(--gold); background:rgba(233,190,98,.1); }
+.ftag{ display:inline-flex; align-items:center; gap:2px; font-family:var(--mono); font-size:8.5px;
+  letter-spacing:.04em; color:var(--brand); background:rgba(233,190,98,.1);
+  border:1px solid rgba(233,190,98,.32); border-radius:99px; padding:1px 6px; vertical-align:middle; white-space:nowrap; }
 #errbar{
   position:fixed; left:0; right:0; bottom:0; z-index:999; display:none;
   font-family:var(--mono); font-size:10.5px; line-height:1.6; letter-spacing:.02em;
@@ -1289,7 +1292,7 @@ body::before{
       </div>
             
     </div>
-    <div class="ob-caption" id="obCaption">New or returning, email is one door. No passwords. Just looking? <a href="#" id="obDemoLink" style="color:var(--pos)">Peek at the demo</a>. <span style="opacity:.5">v23.110</span></div>
+    <div class="ob-caption" id="obCaption">New or returning, email is one door. No passwords. Just looking? <a href="#" id="obDemoLink" style="color:var(--pos)">Peek at the demo</a>. <span style="opacity:.5">v23.111</span></div>
   </div>
   <div class="ob-splash" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
   
@@ -3539,16 +3542,24 @@ const DEMO_FEED = [
   {golfer:'You',   marker:'shark',   gross:82, pvi:2.9, course:'Aguila',    played_on:'2026-07-11', is_me:true},
   {golfer:'Marco', marker:'cactus',  gross:90, pvi:0.4, course:'Encanto',   played_on:'2026-07-10'},
 ];
+/* founder badge — FOUNDER_ID is loaded by loadProfile via the founder_id() RPC.
+   Badges the one founder wherever their name shows. Demo badges DEMO_ME so the
+   diorama sells it. */
+function founderTag(pid, name){
+  const isF = (state.demo && name && name === DEMO_ME) || (pid && pid === window.FOUNDER_ID);
+  return isF ? ' <span class="ftag" title="Cup Season founder">✦ Founder</span>' : '';
+}
 function feedRow(r){
   const who = esc(r.is_me ? 'You' : (r.golfer||'A golfer'));
+  const whoTag = who + (r.is_me ? '' : founderTag(r.profile_id, r.golfer));
   const mk = window.mkr ? window.mkr(r.marker||'saguaro') : '';
   const course = esc(r.course || 'a round');
   const pvi = (r.pvi!=null) ? `${r.pvi>=0?'+':''}${r.pvi} vs index` : '';
   let badge='', line='';
-  if(r.is_pr){ badge='🔥 Personal best'; line = `${who} set a personal best — ${r.gross} at ${course}${pvi?' · '+pvi:''}`; }
-  else if(r.is_sub80){ badge='⛳ Broke 80'; line = `${who} broke 80 for the first time — ${r.gross} at ${course}`; }
-  else if(r.is_first){ badge='🎉 First round'; line = `${who} posted ${r.is_me?'your':'their'} first round — ${r.gross} at ${course}`; }
-  else { line = `${who} posted ${r.gross} at ${course}${pvi?' · '+pvi:''}`; }
+  if(r.is_pr){ badge='🔥 Personal best'; line = `${whoTag} set a personal best — ${r.gross} at ${course}${pvi?' · '+pvi:''}`; }
+  else if(r.is_sub80){ badge='⛳ Broke 80'; line = `${whoTag} broke 80 for the first time — ${r.gross} at ${course}`; }
+  else if(r.is_first){ badge='🎉 First round'; line = `${whoTag} posted ${r.is_me?'your':'their'} first round — ${r.gross} at ${course}`; }
+  else { line = `${whoTag} posted ${r.gross} at ${course}${pvi?' · '+pvi:''}`; }
   return `<div class="check"><span class="num">${mk}</span>
     <div class="tt"><b>${line}</b><small>${badge?badge+' · ':''}${dfmtShort(r.played_on)}</small></div></div>`;
 }
@@ -3573,7 +3584,7 @@ function renderHomeRequests(){
       const name = esc(f.display_name||'A golfer');
       const h = f.handle ? '@'+esc(f.handle) : '';
       return `<div class="check" style="border-color:var(--brand)"><span class="num">${mk}</span>
-        <div class="tt"><b>${name}</b><small>${h}${h?' · ':''}wants to be golf buddies</small></div>
+        <div class="tt"><b>${name}${founderTag(f.profile_id, f.display_name)}</b><small>${h}${h?' · ':''}wants to be golf buddies</small></div>
         <span style="display:flex; gap:6px; flex:none">
           <button class="mini" data-hreqacc="${f.friendship_id}">Accept</button>
           <button class="mini" data-hreqdec="${f.friendship_id}">×</button>
@@ -4518,6 +4529,7 @@ async function loadProfile(){
     .eq('id', CS.user.id).maybeSingle();
   CS.profile = data || null;
   if(CS.profile?.index_current != null) state.myIndex = Number(CS.profile.index_current);
+  try { const { data: fid } = await sb.rpc('founder_id'); window.FOUNDER_ID = fid || null; } catch(_){ /* pre-migration: no badge */ }
   refreshWhoChip();
   return CS.profile;
 }
@@ -4768,7 +4780,7 @@ function openProfileHub(){
                             `<button class="mini" data-fadd="${r.profile_id}">Add</button>`;
   const golferRow = (r, right) => `
     <div class="byrow" style="align-items:center; gap:8px;">
-      <span>${mkr(r.marker || 'saguaro')} ${esc(r.display_name || '—')}
+      <span>${mkr(r.marker || 'saguaro')} ${esc(r.display_name || '—')}${founderTag(r.profile_id, r.display_name)}
         <span class="fine" style="padding:0">@${esc(r.handle || '?')}${r.city ? ' · ' + esc(r.city) : ''}</span></span>
       ${right}
     </div>`;
