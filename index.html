@@ -1285,7 +1285,7 @@ body::before{
       </div>
             
     </div>
-    <div class="ob-caption" id="obCaption">New or returning, email is one door. No passwords. Just looking? <a href="#" id="obDemoLink" style="color:var(--pos)">Peek at the demo</a>. <span style="opacity:.5">v23.100</span></div>
+    <div class="ob-caption" id="obCaption">New or returning, email is one door. No passwords. Just looking? <a href="#" id="obDemoLink" style="color:var(--pos)">Peek at the demo</a>. <span style="opacity:.5">v23.101</span></div>
   </div>
   <div class="ob-splash" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
   
@@ -3503,8 +3503,8 @@ function renderHomeHub(){
     + '<div class="eyebrow">Start something</div>' + starts;
   gbox.querySelectorAll('[data-hglg]').forEach(b => b.addEventListener('click', () => {
     const id = b.dataset.hglg;
-    if(window.CS?.league?.id !== id) window.enterLeagueById?.(id);
-    switchView('hub');
+    switchView('hub');   /* snappy: jump now, load in place */
+    if(window.CS?.league?.id !== id) window.enterLeagueById?.(id, false);   /* nav:false — don't let enterLeague bounce us back to Home */
   }));
   gbox.querySelectorAll('[data-hgev]').forEach(b => b.addEventListener('click', () => {
     if(window.openEvent) window.openEvent(b.dataset.hgev);
@@ -4998,7 +4998,7 @@ function applyBylaws(b){
 }
 
 /* ---------- enter a league ---------- */
-async function enterLeague(m){
+async function enterLeague(m, nav=true){
   document.body.classList.remove('noleague');
   CS.league = m.league;
   CS.member = { id:m.id, role:m.role, index:m.index_current };
@@ -5051,7 +5051,9 @@ async function enterLeague(m){
   bootTrace('reveal \u2713');
   setTimeout(() => { const b=document.getElementById('errbar');
     if(b && b.textContent==='boot: reveal \u2713') b.style.display='none'; }, 1600);
-  switchView(state.phase === 'setup' ? 'wizard' : 'home');
+  /* the caller may already have chosen the view (e.g. the Home hub jumps to
+     Clubhouse on click) — only auto-navigate when it hasn't (boot, invites) */
+  if(nav) switchView(state.phase === 'setup' ? 'wizard' : 'home');
 }
 
 /* ---------- real league data (profile-first, reads the views) ---------- */
@@ -5745,9 +5747,9 @@ window.openLeagueSwitcher = openLeagueSwitcher;
 window.openEventPicker = openEventPicker;
 window.openJoinSheet   = openJoinSheet;
 /* switch into a league by id — the Home hub's group rows call this (classic) */
-window.enterLeagueById = async (id) => {
+window.enterLeagueById = async (id, nav=true) => {
   const m = (CS.memberships||[]).find(x => x.league.id === id);
-  if(m) await enterLeague(m);
+  if(m) await enterLeague(m, nav);
 };
 ['lgRow','sideLeague'].forEach(id => {
   const el = document.getElementById(id);
