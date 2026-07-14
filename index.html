@@ -1001,7 +1001,7 @@ input.f::-webkit-outer-spin-button, input.f::-webkit-inner-spin-button{-webkit-a
 
 
 /* ---- adaptive shell (v23.55): one shell, league or not ---- */
-body.noleague #view-home > *:not(#homeLeagueless){display:none !important;}
+body.noleague #view-home > *:not(#homeLeagueless):not(#homeRequests){display:none !important;}
 body.noleague #view-hub  > *:not(#hubLeagueless){display:none !important;}
 body:not(.noleague) #homeLeagueless,
 body:not(.noleague) #hubLeagueless{display:none;}
@@ -1289,7 +1289,7 @@ body::before{
       </div>
             
     </div>
-    <div class="ob-caption" id="obCaption">New or returning, email is one door. No passwords. Just looking? <a href="#" id="obDemoLink" style="color:var(--pos)">Peek at the demo</a>. <span style="opacity:.5">v23.108</span></div>
+    <div class="ob-caption" id="obCaption">New or returning, email is one door. No passwords. Just looking? <a href="#" id="obDemoLink" style="color:var(--pos)">Peek at the demo</a>. <span style="opacity:.5">v23.109</span></div>
   </div>
   <div class="ob-splash" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
   
@@ -1354,9 +1354,9 @@ body::before{
       <!-- HOME -->
       <section class="view active" id="view-home">
         <div id="notifBanner"></div>
+        <div id="homeRequests"></div>
         <div id="homeHub">
           <div id="homeGreeting"></div>
-          <div id="homeRequests"></div>
           <div class="eyebrow" style="margin-top:0">Start something</div>
           <div id="homeStart"></div>
           <div class="eyebrow">Your leagues</div>
