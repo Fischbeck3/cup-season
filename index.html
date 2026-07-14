@@ -936,7 +936,7 @@ input.f::-webkit-outer-spin-button, input.f::-webkit-inner-spin-button{-webkit-a
      Selectors carry .onboard so they outrank the base rules declared later. */
   .onboard{justify-content:center; align-items:flex-start; padding-left:clamp(44px, 9vw, 150px);}
   .onboard .ob-in{width:440px;}
-  .onboard .ob-course{width:min(52vw, 740px); top:50%; right:0; transform:translateY(-52%);}
+  .onboard .ob-course{width:min(60vw, 880px); top:50%; right:0; transform:translateY(-52%);}
   .onboard .ob-mark{font-size:16px; gap:16px; margin-bottom:26px;}
   .onboard .ob-mark .ob-logo{width:54px; height:54px;}
   .onboard .ob-hero h1{font-size:54px; margin-bottom:16px;}
@@ -945,9 +945,9 @@ input.f::-webkit-outer-spin-button, input.f::-webkit-inner-spin-button{-webkit-a
 .onboard.hide{opacity:0; visibility:hidden;}
 /* ---- entry: course graphic, squad flash, entrance motion ---- */
 .ob-in{position:relative; z-index:1;}
-.ob-course{position:absolute; top:0; right:0; width:min(100%,460px); aspect-ratio:1/1; pointer-events:none; z-index:0;}
+.ob-course{position:absolute; top:0; right:0; width:min(100%,560px); aspect-ratio:1/1; pointer-events:none; z-index:0;}
 .ob-course svg{position:absolute; inset:0; width:100%; height:100%; display:block;}
-@media(max-width:759px){ .ob-course{width:340px; right:-30px; top:-16px; opacity:.9;} }
+@media(max-width:759px){ .ob-course{width:410px; right:-30px; top:-16px; opacity:.9;} }
 .ob-ticks{display:flex; gap:5px; margin-bottom:14px;}
 .ob-ticks i{width:22px; height:4px; border-radius:2px;}
 .ob-splash{position:absolute; inset:0; z-index:5; pointer-events:none;}
@@ -1216,7 +1216,7 @@ body::before{
       <g style="animation:csFade 1s ease 2s both">
         <ellipse cx="316" cy="340" rx="17" ry="6" fill="#04110A" stroke="#0F3520" stroke-width="2"></ellipse>
         <path d="M323 337V212" stroke="#F4F7F4" stroke-width="4.5" stroke-linecap="round"></path>
-        <path d="M323 212l42 14.5-42 14.5z" fill="#F4F7F4"></path>
+        <path d="M323 212l42 14.5-42 14.5z" fill="#E9BE62"></path>
       </g>
       <ellipse cx="316" cy="340" rx="17" ry="6" stroke="#43E07C" stroke-width="1.5" style="transform-box:fill-box; transform-origin:center; animation:csRing 2.8s ease-out 3s infinite"></ellipse>
     </svg>
@@ -1291,7 +1291,7 @@ body::before{
       </div>
             
     </div>
-    <div class="ob-caption" id="obCaption">New or returning, email is one door. No passwords. Just looking? <a href="#" id="obDemoLink" style="color:var(--pos)">Peek at the demo</a>. <span style="opacity:.5">v23.113</span></div>
+    <div class="ob-caption" id="obCaption">New or returning, email is one door. No passwords. Just looking? <a href="#" id="obDemoLink" style="color:var(--pos)">Peek at the demo</a>. <span style="opacity:.5">v23.114</span></div>
   </div>
   <div class="ob-splash" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
   
