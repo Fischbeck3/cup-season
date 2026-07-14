@@ -15,6 +15,15 @@
 
 begin;
 
+-- GOTCHA (learned the hard way): TRUNCATE ... CASCADE force-truncates EVERY
+-- table with an FK to a truncated one, regardless of its ON DELETE rule. The
+-- legacy `courses` table has courses.created_by -> profiles, so cascading the
+-- profiles truncate nuked courses -> course_tees -> course_holes. The live
+-- API cache (api_courses) has no such link and was never at risk, but protect
+-- the legacy tables too: drop that FK before the wipe, recreate it (as ON
+-- DELETE SET NULL, so a future profile delete just orphans provenance) after.
+alter table public.courses drop constraint if exists courses_created_by_fkey;
+
 -- Truncate every user/game table that actually exists (skips any whose
 -- migration hasn't run yet, so the script is safe to run in any state).
 do $$
@@ -40,6 +49,14 @@ end $$;
 
 -- The login accounts themselves (cascades within the auth schema).
 delete from auth.users;
+
+-- Recreate the courses provenance FK as ON DELETE SET NULL. Null any surviving
+-- created_by first (the profiles they pointed to are now gone) so the new
+-- constraint validates.
+update public.courses set created_by = null where created_by is not null;
+alter table public.courses
+  add constraint courses_created_by_fkey
+  foreign key (created_by) references public.profiles(id) on delete set null;
 
 commit;
 
