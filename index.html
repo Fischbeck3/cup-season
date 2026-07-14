@@ -1289,7 +1289,7 @@ body::before{
       </div>
             
     </div>
-    <div class="ob-caption" id="obCaption">New or returning, email is one door. No passwords. Just looking? <a href="#" id="obDemoLink" style="color:var(--pos)">Peek at the demo</a>. <span style="opacity:.5">v23.107</span></div>
+    <div class="ob-caption" id="obCaption">New or returning, email is one door. No passwords. Just looking? <a href="#" id="obDemoLink" style="color:var(--pos)">Peek at the demo</a>. <span style="opacity:.5">v23.108</span></div>
   </div>
   <div class="ob-splash" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
   
@@ -1356,6 +1356,7 @@ body::before{
         <div id="notifBanner"></div>
         <div id="homeHub">
           <div id="homeGreeting"></div>
+          <div id="homeRequests"></div>
           <div class="eyebrow" style="margin-top:0">Start something</div>
           <div id="homeStart"></div>
           <div class="eyebrow">Your leagues</div>
@@ -3558,8 +3559,42 @@ function renderHomeFeed(){
     ? list.map(feedRow).join('')
     : '<p class="fine" style="padding:0">No rounds from your circle yet. Post one, or add golfers on your Tour Card.</p>';
 }
+const DEMO_REQUESTS = [{friendship_id:'demo', display_name:'Marco', handle:'marco_v', marker:'cactus'}];
+/* incoming friend requests, front and center on Home — used to hide in the
+   Tour Card and nobody found them. */
+function renderHomeRequests(){
+  const box=$('#homeRequests'); if(!box) return;
+  const list = state.demo ? DEMO_REQUESTS : (window.homeRequests||[]);
+  if(!list.length){ box.innerHTML=''; return; }
+  box.innerHTML =
+    `<div class="eyebrow" style="margin-top:0; color:var(--brand)">Friend request${list.length>1?'s':''}</div>` +
+    list.map(f=>{
+      const mk = window.mkr ? window.mkr(f.marker||'saguaro') : '';
+      const name = esc(f.display_name||'A golfer');
+      const h = f.handle ? '@'+esc(f.handle) : '';
+      return `<div class="check" style="border-color:var(--brand)"><span class="num">${mk}</span>
+        <div class="tt"><b>${name}</b><small>${h}${h?' · ':''}wants to be golf buddies</small></div>
+        <span style="display:flex; gap:6px; flex:none">
+          <button class="mini" data-hreqacc="${f.friendship_id}">Accept</button>
+          <button class="mini" data-hreqdec="${f.friendship_id}">×</button>
+        </span></div>`;
+    }).join('');
+  box.querySelectorAll('[data-hreqacc],[data-hreqdec]').forEach(b=>b.addEventListener('click', async()=>{
+    if(state.demo){ toast('Demo — sign in to add real buddies'); return; }
+    b.disabled=true;
+    const accept=b.hasAttribute('data-hreqacc');
+    const id=b.dataset.hreqacc||b.dataset.hreqdec;
+    try{
+      const {error}=await window.sb.rpc('friend_respond',{p_id:id, p_accept:accept});
+      if(error) throw error;
+      toast(accept?'Golf buddies ✓':'Request declined');
+      window.loadHome?.();
+    }catch(e){ b.disabled=false; toast('Failed: '+(e.message||e)); }
+  }));
+}
 function renderHomeHub(){
   renderGreeting();
+  renderHomeRequests();
   renderHomeStart();
   renderHomeRecap();
   renderHomeFeed();
@@ -6252,6 +6287,8 @@ async function loadHome(){
   } catch(e){ window.leagueEnds = window.leagueEnds||{}; }
   try { const { data } = await sb.rpc('home_feed', { p_days: 21 }); window.homeFeed = data || []; }
   catch(e){ window.homeFeed = window.homeFeed||[]; }
+  try { const { data } = await sb.rpc('my_friends'); window.homeRequests = (data||[]).filter(f => f.status==='pending' && f.incoming); }
+  catch(e){ window.homeRequests = window.homeRequests||[]; }
   if(window.renderHomeHub) window.renderHomeHub();
 }
 window.loadHome = loadHome;
