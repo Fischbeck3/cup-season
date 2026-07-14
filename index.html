@@ -39,6 +39,7 @@
   --pos:#43E07C;         /* performance up */
   --neg:#FF5F56;         /* performance down */
   --gold:#E9BE62;        /* money */
+  --brand:var(--gold);   /* primary action + brand duty — was --pos (green); gold reads pot/trophy, not swing-sensor. Green stays semantic (positive/live) */
   --sq0:#57A8FF;         /* squad blue */
   --sq1:#FB8B4B;         /* squad orange */
   --sq2:#A78BFA;         /* squad violet */
@@ -110,7 +111,7 @@ button{font-family:var(--sans); touch-action:manipulation; color:var(--ink);}
   border-left:2px solid transparent;
 }
 .navitem svg{width:19px; height:19px; stroke:currentColor; fill:none; stroke-width:1.8; stroke-linecap:round; stroke-linejoin:round;}
-.navitem.active{color:var(--ink); background:var(--bg2); border-left-color:var(--pos);}
+.navitem.active{color:var(--ink); background:var(--bg2); border-left-color:var(--brand);}
 .navitem:hover{color:var(--ink);}
 .navitem:focus-visible{outline:2px solid var(--pos); outline-offset:-2px;}
 .side .foot{margin-top:auto; padding:12px 10px 4px; border-top:1px solid var(--line);}
@@ -331,7 +332,7 @@ input.f::-webkit-outer-spin-button, input.f::-webkit-inner-spin-button{-webkit-a
 .btn{
   display:flex; align-items:center; justify-content:center; gap:8px;
   width:100%; min-height:46px; border:none; border-radius:11px; cursor:pointer;
-  font-size:14px; font-weight:600; color:var(--bg0); background:var(--pos);
+  font-size:14px; font-weight:600; color:var(--bg0); background:var(--brand);
   transition:filter .12s ease;
 }
 .btn:hover{filter:brightness(1.06);}
@@ -416,8 +417,8 @@ input.f::-webkit-outer-spin-button, input.f::-webkit-inner-spin-button{-webkit-a
   border:1.5px solid var(--line2); color:transparent;
   display:grid; place-items:center; font-size:11px; font-weight:700;
 }
-.preset.sel{border-color:var(--line2); box-shadow:inset 3px 0 0 var(--pos);}
-.preset.sel .ok{background:var(--pos); border-color:var(--pos); color:var(--bg0);}
+.preset.sel{border-color:var(--line2); box-shadow:inset 3px 0 0 var(--brand);}
+.preset.sel .ok{background:var(--brand); border-color:var(--brand); color:var(--bg0);}
 .preset p{font-family:var(--mono); font-size:11px; color:var(--mut); line-height:1.6; margin-top:5px;}
 .preset p b{color:var(--ink); font-weight:600;}
 .pro{
@@ -488,7 +489,7 @@ input.f::-webkit-outer-spin-button, input.f::-webkit-inner-spin-button{-webkit-a
   border-radius:9px; padding:9px 6px; font-family:var(--mono); font-size:10.5px;
   font-weight:600; color:var(--mut); cursor:pointer;
 }
-.wolfbtns button.on{color:var(--bg0); background:var(--pos); border-color:var(--pos);}
+.wolfbtns button.on{color:var(--bg0); background:var(--brand); border-color:var(--brand);}
 .wolfbtns button:focus-visible{outline:2px solid var(--pos); outline-offset:2px;}
 .wolftally{display:grid; grid-template-columns:repeat(4,1fr); gap:6px; margin-top:12px;}
 .wolftally .wt{background:var(--bg2); border:1px solid var(--line); border-radius:9px; padding:8px 4px; text-align:center;}
@@ -529,7 +530,7 @@ input.f::-webkit-outer-spin-button, input.f::-webkit-inner-spin-button{-webkit-a
   padding:16px 40px 16px 18px; margin-bottom:10px; position:relative; overflow:hidden;
   transition:border-color .12s ease;
 }
-.optcard::before{content:""; position:absolute; left:0; top:0; bottom:0; width:3.5px; background:var(--acc,var(--pos));}
+.optcard::before{content:""; position:absolute; left:0; top:0; bottom:0; width:3.5px; background:var(--acc,var(--brand));}
 .optcard:hover{border-color:var(--line2); filter:brightness(1.08);}
 .optcard:focus-visible{outline:2px solid var(--pos); outline-offset:2px;}
 .optcard h4{font-size:15px; font-weight:700;}
@@ -602,8 +603,8 @@ input.f::-webkit-outer-spin-button, input.f::-webkit-inner-spin-button{-webkit-a
   background:var(--bg1); border:1px solid var(--line2); border-radius:var(--r);
   padding:22px 20px; position:relative; overflow:hidden;
 }
-.phasehero::before{content:""; position:absolute; left:0; top:0; bottom:0; width:3.5px; background:var(--pos);}
-.phasehero .k{font-family:var(--mono); font-size:10px; letter-spacing:.2em; text-transform:uppercase; color:var(--pos);}
+.phasehero::before{content:""; position:absolute; left:0; top:0; bottom:0; width:3.5px; background:var(--brand);}
+.phasehero .k{font-family:var(--mono); font-size:10px; letter-spacing:.2em; text-transform:uppercase; color:var(--brand);}
 .phasehero .n{font-size:24px; font-weight:700; letter-spacing:-.01em; margin:7px 0 4px;}
 .phasehero .m{font-family:var(--mono); font-size:10.5px; color:var(--dim); letter-spacing:.08em;}
 .nextcard{
@@ -611,9 +612,9 @@ input.f::-webkit-outer-spin-button, input.f::-webkit-inner-spin-button{-webkit-a
   background:var(--bg1); border:1px solid var(--line2); border-radius:var(--r);
   padding:13px 15px; margin-bottom:14px; position:relative; overflow:hidden;
 }
-.nextcard::before{content:""; position:absolute; left:0; top:0; bottom:0; width:3.5px; background:var(--pos);}
+.nextcard::before{content:""; position:absolute; left:0; top:0; bottom:0; width:3.5px; background:var(--brand);}
 .nextcard .nx{flex:1; min-width:0;}
-.nextcard .nk{font-family:var(--mono); font-size:9.5px; letter-spacing:.16em; text-transform:uppercase; color:var(--pos);}
+.nextcard .nk{font-family:var(--mono); font-size:9.5px; letter-spacing:.16em; text-transform:uppercase; color:var(--brand);}
 .nextcard .nt{font-size:13px; font-weight:600; margin-top:3px;}
 .wizdots{display:flex; gap:6px; margin-bottom:14px;}
 .wizdots i{height:4px; flex:1; border-radius:99px; background:var(--bg2);}
@@ -628,9 +629,9 @@ input.f::-webkit-outer-spin-button, input.f::-webkit-inner-spin-button{-webkit-a
   border-radius:12px; padding:16px 10px; margin-bottom:10px;
 }
 .tab .circ{
-  width:42px; height:42px; border-radius:50%; background:var(--pos);
+  width:42px; height:42px; border-radius:50%; background:var(--brand);
   display:grid; place-items:center; margin-top:-14px;
-  box-shadow:0 6px 16px -6px var(--pos);
+  box-shadow:0 6px 16px -6px var(--brand);
 }
 .tab .circ svg{stroke:var(--bg0);}
 
@@ -658,7 +659,7 @@ input.f::-webkit-outer-spin-button, input.f::-webkit-inner-spin-button{-webkit-a
   border-radius:99px; padding:6px 12px; cursor:pointer;
 }
 .act:hover{color:var(--ink);}
-.act.on{color:var(--bg0); background:var(--pos); border-color:var(--pos);}
+.act.on{color:var(--bg0); background:var(--brand); border-color:var(--brand);}
 .act:focus-visible{outline:2px solid var(--pos); outline-offset:2px;}
 .cthread{margin-top:10px;}
 .crow{
@@ -723,8 +724,8 @@ input.f::-webkit-outer-spin-button, input.f::-webkit-inner-spin-button{-webkit-a
   color:var(--mut); background:var(--bg2); border:1px solid var(--line2);
   border-radius:99px; padding:8px 13px; cursor:pointer; margin:0 6px 6px 0;
 }
-.selchip.on{color:var(--bg0); background:var(--pos); border-color:var(--pos);}
-.selchip.on .gtag{background:var(--bg0); color:var(--pos);}
+.selchip.on{color:var(--bg0); background:var(--brand); border-color:var(--brand);}
+.selchip.on .gtag{background:var(--bg0); color:var(--brand);}
 .selchip:focus-visible{outline:2px solid var(--pos); outline-offset:2px;}
 .selchip[disabled]{opacity:.45; cursor:default;}
 .livebanner{
@@ -907,7 +908,7 @@ input.f::-webkit-outer-spin-button, input.f::-webkit-inner-spin-button{-webkit-a
   padding:6px 2px; border-radius:10px; min-height:46px;
 }
 .tab svg{width:21px; height:21px; stroke:currentColor; fill:none; stroke-width:1.8; stroke-linecap:round; stroke-linejoin:round;}
-.tab.active{color:var(--pos);}
+.tab.active{color:var(--brand);}
 .tab:focus-visible{outline:2px solid var(--pos); outline-offset:-2px;}
 
 /* ============ toast ============ */
@@ -974,7 +975,7 @@ input.f::-webkit-outer-spin-button, input.f::-webkit-inner-spin-button{-webkit-a
 }
 .ob-mark .ob-logo{flex:none;}
 .ob-hero h1{font-size:36px; font-weight:700; line-height:1.1; letter-spacing:-.02em; margin-bottom:12px;}
-.ob-hero h1 em{font-style:normal; color:var(--pos);}
+.ob-hero h1 em{font-style:normal; color:var(--brand);}
 .ob-hero p{font-size:14.5px; color:var(--mut); line-height:1.65; max-width:36ch;}
 .ob-caption{text-align:center; font-family:var(--mono); font-size:10px; color:var(--dim); margin-top:14px; letter-spacing:.04em;}
 .joinbox{display:none; gap:8px; margin-top:9px;}
@@ -1026,8 +1027,8 @@ body:not(.noleague) #hubLeagueless{display:none;}
    state you can feel. Overrides ride the cascade; base stays.
    ================================================================ */
 :root{
-  --grad:linear-gradient(135deg, #43E07C 0%, #2FD3BE 100%);
-  --glow:rgba(67,224,124,.14);
+  --grad:linear-gradient(135deg, #E9BE62 0%, #C99A2E 100%);  /* the scoreline gradient — now gold (was green→teal). This is the primary brand accent: btn, FAB, eyebrow dash, nav glow */
+  --glow:rgba(233,190,98,.16);
 }
 
 /* atmosphere: a faint dawn over the course, fixed behind everything */
@@ -1057,13 +1058,13 @@ body::before{
 
 /* the accent lives: primary actions carry the scoreline gradient */
 .btn:not(.dark):not(.gold):not(.apple){
-  background:var(--grad); color:#06120B;
+  background:var(--grad); color:#1C1503;
   box-shadow:0 8px 22px -10px var(--glow), inset 0 1px 0 rgba(255,255,255,.25);
 }
 .btn, .mini, .tab, .navitem{transition:filter .12s ease, transform .1s ease, box-shadow .15s ease;}
 .btn:active, .mini:active{transform:scale(.98);}
 .mini:focus-visible, .f:focus-visible{
-  outline:none; border-color:rgba(67,224,124,.55);
+  outline:none; border-color:rgba(233,190,98,.55);
   box-shadow:0 0 0 3px var(--glow);
 }
 
@@ -1080,7 +1081,7 @@ body::before{
 .tab{position:relative;}
 .tab.active::after{
   content:""; position:absolute; top:2px; left:50%; transform:translateX(-50%);
-  width:4px; height:4px; border-radius:50%; background:var(--pos);
+  width:4px; height:4px; border-radius:50%; background:var(--brand);
 }
 .tab .circ{
   background:var(--grad);
@@ -1093,7 +1094,7 @@ body::before{
 
 /* desktop rail: active item glows from its edge */
 .navitem.active{
-  background:linear-gradient(90deg, rgba(67,224,124,.09), rgba(67,224,124,0) 70%);
+  background:linear-gradient(90deg, rgba(233,190,98,.10), rgba(233,190,98,0) 70%);
 }
 
 /* eyebrows: every section tees off with the scoreline dash */
@@ -1288,7 +1289,7 @@ body::before{
       </div>
             
     </div>
-    <div class="ob-caption" id="obCaption">New or returning, email is one door. No passwords. Just looking? <a href="#" id="obDemoLink" style="color:var(--pos)">Peek at the demo</a>. <span style="opacity:.5">v23.105</span></div>
+    <div class="ob-caption" id="obCaption">New or returning, email is one door. No passwords. Just looking? <a href="#" id="obDemoLink" style="color:var(--pos)">Peek at the demo</a>. <span style="opacity:.5">v23.106</span></div>
   </div>
   <div class="ob-splash" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
   
@@ -1501,7 +1502,7 @@ body::before{
       <!-- RECORD (chooser) -->
       <section class="view" id="view-record">
         <div class="eyebrow">Record a round · both paths score identically</div>
-        <button class="optcard" style="--acc:var(--pos)" data-go="post">
+        <button class="optcard" style="--acc:var(--brand)" data-go="post">
           <h4>Quick post — 20 seconds</h4>
           <p>Gross + tee · solo round from anywhere · feeds the season instantly</p>
           <span class="go">→</span>
@@ -1589,7 +1590,7 @@ body::before{
               <div class="wolfbtns" id="wolfBtns"></div>
               <div class="wolftally" id="wolfTally"></div>
             </div>
-            <div class="gamecard" id="settleCard" style="--acc:var(--pos)">
+            <div class="gamecard" id="settleCard" style="--acc:var(--brand)">
               <div class="gk">Round settlement · live</div>
               <div class="settle" id="settle"></div>
             </div>
