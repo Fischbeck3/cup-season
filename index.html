@@ -1292,7 +1292,7 @@ body::before{
       </div>
             
     </div>
-    <div class="ob-caption" id="obCaption">New or returning, email is one door. No passwords. Just looking? <a href="#" id="obDemoLink" style="color:var(--pos)">Peek at the demo</a>. <span style="opacity:.5">v23.111</span></div>
+    <div class="ob-caption" id="obCaption">New or returning, email is one door. No passwords. Just looking? <a href="#" id="obDemoLink" style="color:var(--pos)">Peek at the demo</a>. <span style="opacity:.5">v23.112</span></div>
   </div>
   <div class="ob-splash" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
   
@@ -2362,7 +2362,7 @@ function renderFeed(){
     if(f.msg){
       /* chat bodies are user-composed — escape, never trust as HTML */
       el.insertAdjacentHTML('beforeend',
-        `<div class="msgrow"><span class="bar" style="background:${SQHEX[f.ci]}"></span><div class="mtxt"><b>${esc(f.who)}</b>${esc(f.txt)}</div></div>`);
+        `<div class="msgrow"><span class="bar" style="background:${SQHEX[f.ci]}"></span><div class="mtxt"><b>${esc(f.who)}${founderTag(f.pid, f.who)}</b>${esc(f.txt)}</div></div>`);
       return;
     }
     const up=f.pvi>=0;
@@ -2446,7 +2446,7 @@ function renderFeedFull(){
     if(f.sys){ el.insertAdjacentHTML('beforeend',`<div class="sysrow">◆ ${esc(easeCaps(f.txt||''))}</div>`); return; }
     if(f.msg){
       el.insertAdjacentHTML('beforeend',
-        `<div class="msgrow"><span class="bar" style="background:${SQHEX[f.ci]}"></span><div class="mtxt"><b>${esc(f.who)}</b>${esc(f.txt)}</div></div>`);
+        `<div class="msgrow"><span class="bar" style="background:${SQHEX[f.ci]}"></span><div class="mtxt"><b>${esc(f.who)}${founderTag(f.pid, f.who)}</b>${esc(f.txt)}</div></div>`);
       return;
     }
     /* demo diorama round cards: same story shape, no actions */
@@ -5225,6 +5225,7 @@ const memName = id => {
   const m = CS.members.find(x => x.id === id);
   return m?.profile?.display_name || '\u2014';
 };
+const memPid = id => CS.members.find(x => x.id === id)?.profile_id || null;
 const memMk = id => {
   const m = CS.members.find(x => x.id === id);
   return mkr(m?.profile?.marker || 'saguaro');
@@ -5259,7 +5260,7 @@ async function loadStandingsAndFeed(){
   (posts||[]).forEach(p => {
     const d = new Date(p.created_at);
     const ds = `${DOW[d.getDay()]} \u00b7 ${MOS[d.getMonth()]} ${d.getDate()}`;
-    if(p.kind === 'chat') feed.push({ d: ds, msg:true, who: memName(p.member_id) + ' ', ci: memCi(p.member_id), txt:p.body });
+    if(p.kind === 'chat') feed.push({ d: ds, msg:true, who: memName(p.member_id) + ' ', pid: memPid(p.member_id), ci: memCi(p.member_id), txt:p.body });
     else if(p.kind === 'announce') feed.push({ d: ds, ann:true, txt:p.body });
     else if(p.kind === 'round' && p.round_id) feed.push({ d: ds, roundpost:true, rid: p.round_id, who: memName(p.member_id), ci: memCi(p.member_id), txt: p.body });
     else feed.push({ d: ds, sys:true, txt:p.body });
