@@ -1290,7 +1290,7 @@ body::before{
       </div>
             
     </div>
-    <div class="ob-caption" id="obCaption">New or returning, email is one door. No passwords. Just looking? Join with code <b style="color:var(--mut)">DEMO</b>. <span style="opacity:.5">v23.90</span></div>
+    <div class="ob-caption" id="obCaption">New or returning, email is one door. No passwords. Just looking? Join with code <b style="color:var(--mut)">DEMO</b>. <span style="opacity:.5">v23.91</span></div>
   </div>
   <div class="ob-splash" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
   
@@ -1323,13 +1323,13 @@ body::before{
       <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.6"/><path d="M12 8.2v7.6M8.2 12h7.6"/></svg> Post a round
     </button>
     <button class="navitem" data-v="hub">
-      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="2.9"/><path d="M12 3.6v2.2M12 18.2v2.2M3.6 12h2.2M18.2 12h2.2M6.1 6.1l1.6 1.6M16.3 16.3l1.6 1.6M17.9 6.1l-1.6 1.6M7.7 16.3l-1.6 1.6"/></svg> League
+      <svg viewBox="0 0 24 24"><path d="M3 20h18"/><path d="M5 20V9l7-4 7 4v11"/><path d="M10 20v-5h4v5"/><path d="M12 5V2.5l3 1-3 1"/></svg> Clubhouse
     </button>
     <button class="navitem" data-v="cal">
       <svg viewBox="0 0 24 24"><rect x="4" y="5.5" width="16" height="15" rx="2.2"/><path d="M4 10.5h16M8.5 3.5v4M15.5 3.5v4"/></svg> Calendar
     </button>
     <button class="navitem" data-v="stats">
-      <svg viewBox="0 0 24 24"><path d="M5 20V11M12 20V4M19 20v-7"/></svg> You
+      <svg viewBox="0 0 24 24"><rect x="3" y="5.5" width="18" height="13" rx="2.2"/><circle cx="8.5" cy="11.4" r="2.3"/><path d="M13 9.6h4.6M13 13h4.6M6 15.7c.7-1.3 4-1.3 4.7 0"/></svg> Tour Card
     </button>
     <div class="foot">
       <div class="lg" id="sideLeague">The Sunday Cup</div>
@@ -1357,6 +1357,12 @@ body::before{
       <!-- HOME -->
       <section class="view active" id="view-home">
         <div id="notifBanner"></div>
+        <div id="homeHub">
+          <div class="eyebrow" style="margin-top:0">Your groups · tap to open</div>
+          <div id="hubGroups"></div>
+          <div class="eyebrow">Coming up</div>
+          <div id="hubComing"></div>
+        </div>
         <div id="homeLeagueless">
           <div class="card" id="wCard" style="margin-bottom:14px; text-align:left;">
         <div style="display:flex; align-items:center; gap:10px;">
@@ -1392,16 +1398,6 @@ body::before{
             <button class="mini" id="hlFind">Find golfers</button>
           </div>
         </div>
-        <div class="card league-only" id="boardCard" style="margin-bottom:14px; text-align:left;">
-          <div class="eyebrow" style="margin-top:0">The board · rounds land here automatically <a href="#" id="bfOpen">OPEN ↗</a></div>
-          <div id="feedList" style="max-height:52vh; overflow-y:auto;"></div>
-          <div class="composer">
-            <input class="f" id="chatIn" placeholder="Message the league…">
-            <button class="btn dark" id="annBtn" style="display:none; width:auto; padding:0 14px;" title="Announce to the league">📣</button>
-            <button class="btn" id="chatSend" style="width:auto; padding:0 18px;">Send</button>
-          </div>
-        </div>
-
         <div id="homeSetup" style="display:none">
           <div class="eyebrow">League setup · three steps to first tee</div>
           <div class="check"><span class="num">1</span><div class="tt"><b>Season settings</b><small>STAKES · RULES · FORMAT</small></div><button class="mini" data-go="wizard">Continue</button></div>
@@ -1885,8 +1881,18 @@ body::before{
           <div class="fine" id="hhDanger" style="display:none; padding:8px 0 0"><a href="#" id="hhDelete" style="color:var(--neg)">Cancel &amp; delete this league</a> (only possible before the first tee)</div>
         </div>
 
-        <div class="eyebrow">League</div>
-        <div class="check"><span class="num">⛳</span><div class="tt"><b>Members & invites</b><small id="hubMembersSub">7 PLAYERS · CODE SNDYCUP</small></div><button class="mini" id="hubMembersBtn">View</button></div>
+        <div class="card league-only" id="boardCard" style="margin-bottom:14px; text-align:left;">
+          <div class="eyebrow" style="margin-top:0">The board · rounds land here automatically <a href="#" id="bfOpen">OPEN ↗</a></div>
+          <div id="feedList" style="max-height:52vh; overflow-y:auto;"></div>
+          <div class="composer">
+            <input class="f" id="chatIn" placeholder="Message the league…">
+            <button class="btn dark" id="annBtn" style="display:none; width:auto; padding:0 14px;" title="Announce to the league">📣</button>
+            <button class="btn" id="chatSend" style="width:auto; padding:0 18px;">Send</button>
+          </div>
+        </div>
+
+        <div class="eyebrow league-only">League</div>
+        <div class="check league-only"><span class="num">⛳</span><div class="tt"><b>Members & invites</b><small id="hubMembersSub">7 PLAYERS · CODE SNDYCUP</small></div><button class="mini" id="hubMembersBtn">View</button></div>
         <div class="check"><span class="num">$</span><div class="tt"><b>The pot</b><small id="hubPotSub">$525 · 5/7 BUY-INS IN</small></div><button class="mini" data-go="pot">View</button></div>
         <div class="check"><span class="num">◫</span><div class="tt"><b>Squads</b><small id="hubDraftSub">COMPLETE · ROSTERS LOCKED</small></div><button class="mini" data-go="draft">View</button></div>
 
@@ -1937,10 +1943,10 @@ body::before{
 
 <nav class="tabbar" aria-label="Sections">
   <button class="tab active" data-v="home"><svg viewBox="0 0 24 24"><path d="M4 11.5 12 4l8 7.5"/><path d="M6 10v10h12V10"/></svg>Home</button>
-  <button class="tab" data-v="hub"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="2.9"/><path d="M12 3.6v2.2M12 18.2v2.2M3.6 12h2.2M18.2 12h2.2M6.1 6.1l1.6 1.6M16.3 16.3l1.6 1.6M17.9 6.1l-1.6 1.6M7.7 16.3l-1.6 1.6"/></svg>League</button>
+  <button class="tab" data-v="hub"><svg viewBox="0 0 24 24"><path d="M3 20h18"/><path d="M5 20V9l7-4 7 4v11"/><path d="M10 20v-5h4v5"/><path d="M12 5V2.5l3 1-3 1"/></svg>Clubhouse</button>
   <button class="tab" data-v="record" aria-label="Post a round"><span class="circ"><svg viewBox="0 0 24 24"><path d="M12 6v12M6 12h12"/></svg></span>Post</button>
   <button class="tab" data-v="cal"><svg viewBox="0 0 24 24"><rect x="4" y="5.5" width="16" height="15" rx="2.2"/><path d="M4 10.5h16M8.5 3.5v4M15.5 3.5v4"/></svg>Calendar</button>
-  <button class="tab" data-v="stats"><svg viewBox="0 0 24 24"><path d="M5 20V11M12 20V4M19 20v-7"/></svg>You</button>
+  <button class="tab" data-v="stats"><svg viewBox="0 0 24 24"><rect x="3" y="5.5" width="18" height="13" rx="2.2"/><circle cx="8.5" cy="11.4" r="2.3"/><path d="M13 9.6h4.6M13 13h4.6M6 15.7c.7-1.3 4-1.3 4.7 0"/></svg>Tour Card</button>
 </nav>
 
 <a id="pilotChip" target="_blank" rel="noopener">PILOT · REPORT A BUG</a>
@@ -2118,6 +2124,7 @@ function switchView(v){
   /* the wizard's buddy picker renders lazily — every entry path (welcome
      "Start a league", the lock-fallback) lands here, so fire it here once */
   if(v==='wizard' && !state.demo) window.renderWizAddGolfers?.();
+  if(v==='home' && typeof renderHomeHub==='function') renderHomeHub();
 }
 $$('.tab, .navitem').forEach(b=>b.addEventListener('click',()=>switchView(b.dataset.v)));
 
@@ -3368,6 +3375,77 @@ function renderLeagueRecord(){
   hd.style.display=''; el.style.display='';
   el.innerHTML=rows.map(r=>`<div class="check"><span class="num">⛳</span>
     <div class="tt"><b>${esc(r.name)}</b><small>SEASON ${ROMAN[r.number]||r.number} · ${r.line}</small></div></div>`).join('');
+}
+/* ---------- Home = the hub: your groups + what's coming up ----------
+   Cross-group landing. Groups switch via window.enterLeagueById / openEvent
+   (module-bridged). "Coming up" reads the schedule already loaded for the
+   calendar. Deeper digest (buddies' scores with faces) lands in part 2. */
+function leaguePhaseLabel(m){
+  const p = m.league.phase;
+  if(p==='setup') return 'SETUP · INVITES OPEN';
+  if(p==='draft') return 'SQUAD FORMATION';
+  return m.role==='commissioner' ? 'IN SEASON · YOU ARE THE PRO' : 'IN SEASON';
+}
+function hubGroupRow(icon,name,sub,here){
+  return `<div class="check" style="${here?'border-color:var(--pos);':''}"><span class="num">${icon}</span>
+    <div class="tt"><b>${name}</b><small>${sub}</small></div>
+    ${here?'<span class="fine" style="padding:0; color:var(--pos)">HERE</span>':'<span class="fine" style="padding:0; color:var(--dim)">→</span>'}</div>`;
+}
+function upcomingFromSchedule(){
+  const s = window.mySchedule || [];
+  const today = new Date(); today.setHours(0,0,0,0);
+  const out = [];
+  s.forEach(r => {
+    const d = r.played_on || r.date || r.day || r.on; if(!d) return;
+    const dt = (typeof localDate==='function') ? localDate(d) : new Date(d);
+    if(isNaN(dt) || dt < today) return;
+    const days = Math.round((dt - today) / 86400000);
+    out.push({ when: days===0?'TODAY':days===1?'TOMORROW':('IN '+days+' DAYS'),
+      what: (r.label || r.course_label || r.title || 'Declared round'),
+      who: (r.league_name || r.who || ''), _d: dt });
+  });
+  out.sort((a,b)=>a._d - b._d);
+  return out.slice(0,4);
+}
+function renderHubComing(){
+  const box = $('#hubComing'); if(!box) return;
+  const items = state.demo
+    ? [{when:'IN 2 DAYS', what:'Your declared round', who:'PIGL · Papago GC'},
+       {when:'SATURDAY', what:'Ryder session 3 closes', who:'The Grudge'}]
+    : upcomingFromSchedule();
+  box.innerHTML = items.length
+    ? items.map(i=>`<div class="check"><span class="num" style="font-size:10px; letter-spacing:.04em; line-height:1.2; text-align:center">${esc(i.when)}</span><div class="tt"><b>${esc(i.what)}</b><small>${esc(i.who||'')}</small></div></div>`).join('')
+    : '<p class="fine" style="padding:0">Nothing on the books yet — put a round on the calendar.</p>';
+}
+function renderHomeHub(){
+  const gbox = $('#hubGroups'); if(!gbox) return;
+  if(state.demo){
+    gbox.innerHTML = hubGroupRow('⛳','The Sunday Cup','WK 18 / 24 · IN SEASON', true)
+      + hubGroupRow('🏆','The Grudge','THE RYDER · LIVE', false);
+    renderHubComing(); return;
+  }
+  const cur = window.CS?.league?.id;
+  const leagues = (CS.memberships||[]).map(m => {
+    const here = m.league.id === cur;
+    return `<div class="check tap" data-hglg="${m.league.id}" style="cursor:pointer; ${here?'border-color:var(--pos);':''}"><span class="num">⛳</span>
+      <div class="tt"><b>${esc(m.league.name)}</b><small>${leaguePhaseLabel(m)}</small></div>
+      ${here?'<span class="fine" style="padding:0; color:var(--pos)">HERE</span>':'<span class="fine" style="padding:0; color:var(--dim)">→</span>'}</div>`;
+  }).join('');
+  const evStat = e => e.status==='complete'?'FINAL':e.status==='setup'?'FORMING':'LIVE';
+  const events = (window.myEvents||[]).map(e =>
+    `<div class="check tap" data-hgev="${e.id}" style="cursor:pointer"><span class="num">🏆</span>
+      <div class="tt"><b>${esc(e.name)}</b><small>THE RYDER · ${evStat(e)}</small></div>
+      <span class="fine" style="padding:0; color:var(--dim)">→</span></div>`).join('');
+  gbox.innerHTML = (leagues + events) || '<p class="fine" style="padding:0">No groups yet — start or join one below.</p>';
+  gbox.querySelectorAll('[data-hglg]').forEach(b => b.addEventListener('click', () => {
+    const id = b.dataset.hglg;
+    if(window.CS?.league?.id !== id) window.enterLeagueById?.(id);
+    switchView('hub');
+  }));
+  gbox.querySelectorAll('[data-hgev]').forEach(b => b.addEventListener('click', () => {
+    if(window.openEvent) window.openEvent(b.dataset.hgev);
+  }));
+  renderHubComing();
 }
 /* the display case — real trophies come from window.trophies (module loader);
    the demo shows a filled case so the diorama sells the feature. */
@@ -5545,6 +5623,11 @@ async function openLeagueSwitcher(){
   }));
 }
 window.openLeagueSwitcher = openLeagueSwitcher;
+/* switch into a league by id — the Home hub's group rows call this (classic) */
+window.enterLeagueById = async (id) => {
+  const m = (CS.memberships||[]).find(x => x.league.id === id);
+  if(m) await enterLeague(m);
+};
 ['lgRow','sideLeague'].forEach(id => {
   const el = document.getElementById(id);
   if(el){ el.style.cursor = 'pointer'; el.addEventListener('click', openLeagueSwitcher); }
@@ -6126,8 +6209,8 @@ function showWelcome(){
   fillWelcomeCard();
   loadRecentRounds();
   loadCourseMemory();
-  loadLeagueSpans().then(loadSchedule); /* buddies' rounds show without a league */
-  loadMyEvents();                       /* Ryder events in the switcher */
+  loadLeagueSpans().then(loadSchedule).then(()=>window.renderHomeHub&&window.renderHomeHub()); /* buddies' rounds show without a league */
+  loadMyEvents().then(()=>window.renderHomeHub&&window.renderHomeHub());                       /* Ryder events in the switcher + hub */
   loadInvites().then(()=>window.renderNotifications&&window.renderNotifications());  /* invite banner */
   enterApp();
   switchView('home');
