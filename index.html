@@ -1005,7 +1005,18 @@ input.f::-webkit-outer-spin-button, input.f::-webkit-inner-spin-button{-webkit-a
 
 /* ---- adaptive shell (v23.55): one shell, league or not ---- */
 body.noleague #view-home > *:not(#homeLeagueless):not(#homeRequests){display:none !important;}
-body.noleague #view-hub  > *:not(#hubLeagueless){display:none !important;}
+body.noleague #view-hub  > *:not(#hubLeagueless):not(#hubSeg):not(#hubPeople){display:none !important;}
+#view-hub.showpeople > *:not(#hubSeg):not(#hubPeople){display:none !important;}
+#view-hub:not(.showpeople) #hubPeople{display:none;}
+.prow{display:flex; align-items:center; gap:10px; padding:11px 0; border-top:1px solid var(--line);}
+.prow:first-child{border-top:none;}
+.prow .pmk{flex:none; width:22px; text-align:center; color:var(--mut);}
+.prow .pmeta{min-width:0; flex:1; display:flex; flex-direction:column; line-height:1.3;}
+.prow .pmeta b{font-size:14px; font-weight:600; color:var(--ink); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+.prow .pmeta small{font-size:11.5px; color:var(--mut);}
+.prow .pact{flex:none; display:flex; gap:6px;}
+.ptag{flex:none; font-family:var(--mono); font-size:10px; letter-spacing:.06em; color:var(--mut); padding:2px 8px; white-space:nowrap;}
+.ptag.ok{color:var(--pos);} .ptag.pos{color:var(--brand);}
 body:not(.noleague) #homeLeagueless,
 body:not(.noleague) #hubLeagueless{display:none;}
 /* the calendar is SOCIAL, not league-gated — friends' rounds show either way */
@@ -1291,7 +1302,7 @@ body::before{
       </div>
             
     </div>
-    <div class="ob-caption" id="obCaption">New or returning, email is one door. No passwords. Just looking? <a href="#" id="obDemoLink" style="color:var(--pos)">Peek at the demo</a>. <span style="opacity:.5">v23.117</span></div>
+    <div class="ob-caption" id="obCaption">New or returning, email is one door. No passwords. Just looking? <a href="#" id="obDemoLink" style="color:var(--pos)">Peek at the demo</a>. <span style="opacity:.5">v23.118</span></div>
   </div>
   <div class="ob-splash" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
   
@@ -1310,7 +1321,7 @@ body::before{
       <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.6"/><path d="M12 8.2v7.6M8.2 12h7.6"/></svg> Post a round
     </button>
     <button class="navitem" data-v="hub">
-      <svg viewBox="0 0 24 24"><path d="M3 20h18"/><path d="M5 20V9l7-4 7 4v11"/><path d="M10 20v-5h4v5"/><path d="M12 5V2.5l3 1-3 1"/></svg> Clubhouse
+      <svg viewBox="0 0 24 24"><path d="M3 20h18"/><path d="M5 20V9l7-4 7 4v11"/><path d="M10 20v-5h4v5"/><path d="M12 5V2.5l3 1-3 1"/></svg> Crew
     </button>
     <button class="navitem" data-v="cal">
       <svg viewBox="0 0 24 24"><rect x="4" y="5.5" width="16" height="15" rx="2.2"/><path d="M4 10.5h16M8.5 3.5v4M15.5 3.5v4"/></svg> Calendar
@@ -1799,6 +1810,11 @@ body::before{
 
       <!-- LEAGUE HUB -->
       <section class="view" id="view-hub">
+        <div class="seg" id="hubSeg" style="margin-bottom:12px">
+          <button data-hubseg="groups" class="on">Groups</button>
+          <button data-hubseg="people">People</button>
+        </div>
+        <div id="hubPeople"></div>
         <div id="hubLeagueless">
           <div class="eyebrow" style="margin-top:0">League play — cup season</div>
           <button class="btn" id="wCreate">Start a league</button>
@@ -1959,7 +1975,7 @@ body::before{
 
 <nav class="tabbar" aria-label="Sections">
   <button class="tab active" data-v="home"><svg viewBox="0 0 24 24"><path d="M4 11.5 12 4l8 7.5"/><path d="M6 10v10h12V10"/></svg>Home</button>
-  <button class="tab" data-v="hub"><svg viewBox="0 0 24 24"><path d="M3 20h18"/><path d="M5 20V9l7-4 7 4v11"/><path d="M10 20v-5h4v5"/><path d="M12 5V2.5l3 1-3 1"/></svg>Clubhouse</button>
+  <button class="tab" data-v="hub"><svg viewBox="0 0 24 24"><path d="M3 20h18"/><path d="M5 20V9l7-4 7 4v11"/><path d="M10 20v-5h4v5"/><path d="M12 5V2.5l3 1-3 1"/></svg>Crew</button>
   <button class="tab" data-v="record" aria-label="Post a round"><span class="circ"><svg viewBox="0 0 24 24"><path d="M12 6v12M6 12h12"/></svg></span>Post</button>
   <button class="tab" data-v="cal"><svg viewBox="0 0 24 24"><rect x="4" y="5.5" width="16" height="15" rx="2.2"/><path d="M4 10.5h16M8.5 3.5v4M15.5 3.5v4"/></svg>Calendar</button>
   <button class="tab" data-v="stats"><svg viewBox="0 0 24 24"><rect x="3" y="5.5" width="18" height="13" rx="2.2"/><circle cx="8.5" cy="11.4" r="2.3"/><path d="M13 9.6h4.6M13 13h4.6M6 15.7c.7-1.3 4-1.3 4.7 0"/></svg>Tour Card</button>
@@ -2151,9 +2167,20 @@ function switchView(v){
      "Start a league", the lock-fallback) lands here, so fire it here once */
   if(v==='wizard' && !state.demo) window.renderWizAddGolfers?.();
   if(v==='home' && typeof renderHomeHub==='function') renderHomeHub();
-  if(v==='hub' && typeof renderClubGroups==='function') renderClubGroups();
+  if(v==='hub'){
+    if(typeof renderClubGroups==='function') renderClubGroups();
+    if(document.getElementById('view-hub')?.classList.contains('showpeople')) window.renderCrewPeople?.();
+  }
 }
 $$('.tab, .navitem').forEach(b=>b.addEventListener('click',()=>switchView(b.dataset.v)));
+
+/* Crew segment: People | Groups */
+$$('#hubSeg [data-hubseg]').forEach(b=>b.addEventListener('click',()=>{
+  const people = b.dataset.hubseg==='people';
+  $$('#hubSeg [data-hubseg]').forEach(x=>x.classList.toggle('on', x===b));
+  document.getElementById('view-hub').classList.toggle('showpeople', people);
+  if(people) window.renderCrewPeople?.();
+}));
 
 /* a11y: the app renders many click-only .tap rows (hub, switcher, sheets,
    start cards). Stamp each focusable + button-role as it appears, and treat
@@ -3567,7 +3594,7 @@ function renderHomeFeed(){
   const list = state.demo ? DEMO_FEED : (window.homeFeed||[]);
   box.innerHTML = list.length
     ? list.map(feedRow).join('')
-    : '<p class="fine" style="padding:0">No rounds from your circle yet. Post one, or add golfers on your Tour Card.</p>';
+    : '<p class="fine" style="padding:0">No rounds from your circle yet. Post one, or add golfers in <a href="#" data-gopeople style="color:var(--brand)">Crew</a>.</p>';
 }
 const DEMO_REQUESTS = [{friendship_id:'demo', display_name:'Marco', handle:'marco_v', marker:'cactus'}];
 /* incoming friend requests, front and center on Home — used to hide in the
@@ -4611,6 +4638,115 @@ function renderPhMarkers(){
     phMarker = b.dataset.phmk; renderPhMarkers();
   }));
 }
+/* ============================================================
+   People — one friends surface + one reusable picker, replacing the
+   scattered "search golfers + add" copies. Data: search_golfers /
+   my_friends / friend_request / friend_respond (+ invite via onPick).
+   ============================================================ */
+function psRow(r, actionHTML){
+  return `<div class="prow"><span class="pmk">${mkr(r.marker||'saguaro')}</span>
+    <span class="pmeta"><b>${esc(r.display_name||'—')}${founderTag(r.profile_id, r.display_name)}</b>
+      <small>@${esc(r.handle||'?')}${r.city?' · '+esc(r.city):''}</small></span>${actionHTML}</div>`;
+}
+function psFriendTag(rel){
+  return rel==='friend' ? '<span class="ptag ok">Buddies</span>'
+       : rel==='requested' ? '<span class="ptag">Requested</span>'
+       : rel==='incoming' ? '<span class="ptag pos">Wants to add you</span>' : '';
+}
+async function psSearch(q){ try{ const {data}=await sb.rpc('search_golfers',{p_q:q}); return data||[]; }catch(_){ return []; } }
+async function psFriends(){ try{ const {data}=await sb.rpc('my_friends'); return data||[]; }catch(_){ return []; } }
+
+async function renderCrewPeople(){
+  const box = document.getElementById('hubPeople'); if(!box) return;
+  if(!CS.user){ box.innerHTML = '<p class="fine" style="padding:0">Sign in to add golf buddies and see requests.</p>'; return; }
+  box.innerHTML = `
+    <input class="f" id="crFind" placeholder="Find golfers by name or @handle" autocomplete="off" style="font-family:var(--sans)">
+    <div id="crResults" style="margin-top:10px"></div>
+    <div id="crReq" style="margin-top:6px"></div>
+    <div id="crBud" style="margin-top:6px"></div>`;
+  const paint = async () => {
+    const data = await psFriends();
+    const reqs=data.filter(f=>f.status==='pending'&&f.incoming);
+    const out =data.filter(f=>f.status==='pending'&&!f.incoming);
+    const buds=data.filter(f=>f.status==='accepted');
+    document.getElementById('crReq').innerHTML = reqs.length
+      ? `<div class="eyebrow" style="color:var(--brand)">Requests · ${reqs.length}</div>`+reqs.map(f=>psRow(f,
+         `<span class="pact"><button class="mini" data-facc="${f.friendship_id}">Accept</button><button class="mini" data-fdec="${f.friendship_id}">✕</button></span>`)).join('') : '';
+    document.getElementById('crBud').innerHTML =
+      `<div class="eyebrow">Your buddies${buds.length?' · '+buds.length:''}</div>`+
+      (buds.length ? buds.map(f=>psRow(f,'<span class="ptag ok">Buddies</span>')).join('')
+        : '<p class="fine" style="padding:0">No buddies yet. Search up top to add your crew.</p>')+
+      (out.length ? `<div class="eyebrow">Requested</div>`+out.map(f=>psRow(f,'<span class="ptag">Requested</span>')).join('') : '');
+    box.querySelectorAll('[data-facc],[data-fdec]').forEach(b=>b.addEventListener('click', async()=>{
+      b.disabled=true; const acc=b.hasAttribute('data-facc');
+      const {error}=await sb.rpc('friend_respond',{p_id:b.dataset.facc||b.dataset.fdec, p_accept:acc});
+      if(error) toast('Failed: '+error.message); else toast(acc?'Golf buddies ✓':'Request declined');
+      paint(); window.loadHome?.();
+    }));
+  };
+  let t=null;
+  document.getElementById('crFind').addEventListener('input', ()=>{ clearTimeout(t); t=setTimeout(async()=>{
+    const q=document.getElementById('crFind').value.trim(), rb=document.getElementById('crResults');
+    if(q.length<2){ rb.innerHTML=''; return; }
+    const res=await psSearch(q);
+    rb.innerHTML = res.length ? res.map(r=>psRow(r, (r.rel==='none'||r.rel==='incoming')
+        ? `<span class="pact"><button class="mini" data-add="${r.profile_id}">${r.rel==='incoming'?'Accept':'Add'}</button></span>`
+        : psFriendTag(r.rel))).join('') : '<p class="fine">No golfers found. Invite links still work for everyone else.</p>';
+    rb.querySelectorAll('[data-add]').forEach(b=>b.addEventListener('click', async()=>{
+      b.disabled=true;
+      const {data:rr, error}=await sb.rpc('friend_request',{p_profile:b.dataset.add});
+      if(error){ toast('Could not send: '+error.message); b.disabled=false; return; }
+      toast(rr==='friend'?'Golf buddies ✓':'Request sent');
+      b.outerHTML=`<span class="ptag ${rr==='friend'?'ok':''}">${rr==='friend'?'Buddies':'Requested'}</span>`;
+      paint(); window.loadHome?.();
+    }));
+  }, 350); });
+  paint();
+}
+window.renderCrewPeople = renderCrewPeople;
+
+function openPeoplePicker(opts){
+  opts=opts||{}; const mode=opts.mode||'befriend'; const staged=new Set();
+  openSheet(opts.title||'Add golfers', opts.sub||'Search the app or your buddies', `
+    <input class="f" id="ppFind" placeholder="Find golfers by name or @handle" autocomplete="off" style="font-family:var(--sans)">
+    <div id="ppList" style="margin-top:10px"></div>`);
+  const listBox=document.getElementById('ppList');
+  const actionFor=(r)=>{
+    if(mode==='invite'){
+      if((opts.excludeIds||[]).includes(r.profile_id)) return '<span class="ptag ok">In</span>';
+      if(staged.has(r.profile_id)) return '<span class="ptag ok">Added ✓</span>';
+      return `<span class="pact"><button class="mini" data-pick="${r.profile_id}" data-nm="${esc(r.display_name||'')}">Add</button></span>`;
+    }
+    return (r.rel==='none') ? `<span class="pact"><button class="mini" data-add="${r.profile_id}">Add</button></span>`
+      : r.rel==='incoming' ? `<span class="pact"><button class="mini" data-add="${r.profile_id}">Accept</button></span>`
+      : psFriendTag(r.rel);
+  };
+  const wire=()=>{
+    listBox.querySelectorAll('[data-add]').forEach(b=>b.addEventListener('click', async()=>{
+      b.disabled=true;
+      const {data:rr, error}=await sb.rpc('friend_request',{p_profile:b.dataset.add});
+      if(error){ toast('Could not send: '+error.message); b.disabled=false; return; }
+      toast(rr==='friend'?'Golf buddies ✓':'Request sent');
+      b.outerHTML=`<span class="ptag ${rr==='friend'?'ok':''}">${rr==='friend'?'Buddies':'Requested'}</span>`;
+    }));
+    listBox.querySelectorAll('[data-pick]').forEach(b=>b.addEventListener('click', async()=>{
+      b.disabled=true; const pid=b.dataset.pick;
+      try{ if(opts.onPick) await opts.onPick(pid, b.dataset.nm); staged.add(pid); b.outerHTML='<span class="ptag ok">Added ✓</span>'; }
+      catch(e){ toast('Could not add: '+(e.message||e)); b.disabled=false; }
+    }));
+  };
+  const render=(rows)=>{ listBox.innerHTML = rows.length ? rows.map(r=>psRow(r, actionFor(r))).join('')
+      : '<p class="fine">No golfers found. Invite links still work for everyone else.</p>'; wire(); };
+  psFriends().then(d=>render(d.filter(f=>f.status==='accepted')));
+  let t=null;
+  document.getElementById('ppFind').addEventListener('input', ()=>{ clearTimeout(t); t=setTimeout(async()=>{
+    const q=document.getElementById('ppFind').value.trim();
+    if(q.length<2){ psFriends().then(d=>render(d.filter(f=>f.status==='accepted'))); return; }
+    render(await psSearch(q));
+  }, 350); });
+}
+window.openPeoplePicker = openPeoplePicker;
+
 function openProfileHub(){
   if(!CS.profile){ toast('Demo golfer: sign in to build your own card'); return; }
   const p = CS.profile;
@@ -4649,9 +4785,8 @@ function openProfileHub(){
     ${leagues}
 
     <div class="eyebrow" style="margin-top:20px">Golf buddies</div>
-    <input class="f" id="phFind" placeholder="Find golfers by name or @handle" autocomplete="off" style="font-family:var(--sans)">
-    <div id="phResults" style="margin-top:8px"></div>
-    <div id="phFriends" style="margin-top:8px"></div>
+    <button class="btn dark" id="phCrew">Find &amp; manage in Crew</button>
+    <p class="fine" style="padding-left:0">Your buddies, requests, and search live in the Crew tab now.</p>
 
     <div class="eyebrow" style="margin-top:20px">Notifications</div>
     <div style="display:flex; gap:8px; flex-wrap:wrap;">
@@ -4771,68 +4906,8 @@ function openProfileHub(){
     CS.profile.discoverable = b.dataset.disc; discPaint();
   }));
 
-  /* golf buddies: live search + friends list */
-  const relBtn = r =>
-    r.rel === 'friend'    ? '<b class="fine" style="padding:0">BUDDIES ✓</b>' :
-    r.rel === 'requested' ? '<b class="fine" style="padding:0">REQUESTED</b>' :
-    r.rel === 'incoming'  ? `<button class="mini" data-fadd="${r.profile_id}">Accept</button>` :
-                            `<button class="mini" data-fadd="${r.profile_id}">Add</button>`;
-  const golferRow = (r, right) => `
-    <div class="byrow" style="align-items:center; gap:8px;">
-      <span>${mkr(r.marker || 'saguaro')} ${esc(r.display_name || '—')}${founderTag(r.profile_id, r.display_name)}
-        <span class="fine" style="padding:0">@${esc(r.handle || '?')}${r.city ? ' · ' + esc(r.city) : ''}</span></span>
-      ${right}
-    </div>`;
-  let findTimer = null, lastResults = [];
-  async function runSearch(){
-    const q = $('#phFind').value.trim();
-    const box = $('#phResults');
-    if(q.length < 2){ box.innerHTML = ''; return; }
-    const { data, error } = await sb.rpc('search_golfers', { p_q: q });
-    if(error){ box.innerHTML = `<p class="fine">Search failed: ${esc(error.message)}</p>`; return; }
-    lastResults = data || [];
-    box.innerHTML = lastResults.length
-      ? lastResults.map(r => golferRow(r, relBtn(r))).join('')
-      : '<p class="fine">No golfers found. Invite links still work for everyone else.</p>';
-    box.querySelectorAll('[data-fadd]').forEach(b => b.addEventListener('click', async () => {
-      b.disabled = true;
-      const { data: res, error: fe } = await sb.rpc('friend_request', { p_profile: b.dataset.fadd });
-      if(fe){ toast('Could not send: ' + fe.message); b.disabled = false; return; }
-      toast(res === 'friend' ? 'Golf buddies ✓' : 'Request sent');
-      /* flip THIS button now — search_golfers doesn't echo the new rel, so a
-         re-search would reset it to "Add" and invite a double-tap */
-      b.outerHTML = res === 'friend'
-        ? '<b class="fine" style="padding:0">BUDDIES ✓</b>'
-        : '<b class="fine" style="padding:0">REQUESTED</b>';
-      loadFriendsList();
-    }));
-  }
-  $('#phFind').addEventListener('input', () => { clearTimeout(findTimer); findTimer = setTimeout(runSearch, 350); });
-
-  async function loadFriendsList(){
-    const box = $('#phFriends');
-    const { data, error } = await sb.rpc('my_friends');
-    if(error || !data){ box.innerHTML = ''; return; }
-    const pendingIn  = data.filter(f => f.status === 'pending' && f.incoming);
-    const pendingOut = data.filter(f => f.status === 'pending' && !f.incoming);
-    const friends    = data.filter(f => f.status === 'accepted');
-    box.innerHTML =
-      pendingIn.map(f => golferRow(f,
-        `<span style="display:flex; gap:6px;"><button class="mini" data-facc="${f.friendship_id}">Accept</button><button class="mini" data-fdec="${f.friendship_id}">×</button></span>`)).join('')
-      + pendingOut.map(f => golferRow(f, '<b class="fine" style="padding:0">REQUESTED</b>')).join('')
-      + friends.map(f => golferRow(f, '<b class="fine" style="padding:0">BUDDIES ✓</b>')).join('')
-      + (!data.length ? '<p class="fine">No buddies yet. Search above or share an invite link.</p>' : '');
-    box.querySelectorAll('[data-facc],[data-fdec]').forEach(b => b.addEventListener('click', async () => {
-      b.disabled = true;
-      const accept = b.hasAttribute('data-facc');
-      const id = b.dataset.facc || b.dataset.fdec;
-      const { error: re } = await sb.rpc('friend_respond', { p_id: id, p_accept: accept });
-      if(re) toast('Failed: ' + re.message);
-      else toast(accept ? 'Golf buddies ✓' : 'Request declined');
-      loadFriendsList();
-    }));
-  }
-  loadFriendsList();
+  /* golf buddies live in Crew › People now — the Tour Card just links there */
+  $('#phCrew')?.addEventListener('click', () => { closeSheet(); window.goCrewPeople?.(); });
 
   /* appearance: highlight the saved mode, switch on tap */
   const themeBox = $('#phTheme');
@@ -4873,10 +4948,19 @@ function openProfileHub(){
   });
 }
 $('#whoChip')?.addEventListener('click', openProfileHub);   /* chip retired; guard stays */
-$('#wFind')?.addEventListener('click', openProfileHub);
 $('#youProfile')?.addEventListener('click', openProfileHub);
-$('#hlFind')?.addEventListener('click', openProfileHub);
-$('#crewAdd')?.addEventListener('click', openProfileHub);
+/* "Add golfers" now lands in Crew > People, not the profile editor */
+function goCrewPeople(){
+  switchView('hub');
+  $$('#hubSeg [data-hubseg]').forEach(x=>x.classList.toggle('on', x.dataset.hubseg==='people'));
+  document.getElementById('view-hub')?.classList.add('showpeople');
+  window.renderCrewPeople?.();
+}
+window.goCrewPeople = goCrewPeople;
+document.addEventListener('click', e=>{ if(e.target.closest('[data-gopeople]')){ e.preventDefault(); goCrewPeople(); } });
+$('#wFind')?.addEventListener('click', goCrewPeople);
+$('#hlFind')?.addEventListener('click', goCrewPeople);
+$('#crewAdd')?.addEventListener('click', goCrewPeople);
 $('#hdrLogo')?.addEventListener('click', ()=> switchView('home'));
 $('#hlLeague')?.addEventListener('click', () => switchView('hub'));
 $('#hlEvent')?.addEventListener('click', () => window.openEventPicker?.());
