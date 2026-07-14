@@ -874,11 +874,14 @@ input.f::-webkit-outer-spin-button, input.f::-webkit-inner-spin-button{-webkit-a
 }
 #pilotChip{
   position:fixed; right:10px; bottom:calc(66px + env(safe-area-inset-bottom)); z-index:150;
-  font-family:var(--mono); font-size:8.5px; letter-spacing:.1em; text-decoration:none;
+  font-family:var(--mono); font-size:9px; letter-spacing:.02em; text-decoration:none;
   color:var(--dim); background:var(--bg1); border:1px solid var(--line2);
-  border-radius:99px; padding:4px 9px; opacity:.65;
+  border-radius:99px; padding:5px 11px; opacity:.7; cursor:pointer;
 }
 #pilotChip:hover{opacity:1; color:var(--mut);}
+.fbcat{ font-family:var(--sans); font-size:12px; color:var(--mut); background:var(--bg1);
+  border:1px solid var(--line2); border-radius:99px; padding:6px 12px; cursor:pointer; }
+.fbcat.on{ color:var(--ink); border-color:var(--gold); background:rgba(233,190,98,.1); }
 #errbar{
   position:fixed; left:0; right:0; bottom:0; z-index:999; display:none;
   font-family:var(--mono); font-size:10.5px; line-height:1.6; letter-spacing:.02em;
@@ -1285,7 +1288,7 @@ body::before{
       </div>
             
     </div>
-    <div class="ob-caption" id="obCaption">New or returning, email is one door. No passwords. Just looking? <a href="#" id="obDemoLink" style="color:var(--pos)">Peek at the demo</a>. <span style="opacity:.5">v23.103</span></div>
+    <div class="ob-caption" id="obCaption">New or returning, email is one door. No passwords. Just looking? <a href="#" id="obDemoLink" style="color:var(--pos)">Peek at the demo</a>. <span style="opacity:.5">v23.104</span></div>
   </div>
   <div class="ob-splash" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
   
@@ -1958,7 +1961,7 @@ body::before{
   <button class="tab" data-v="stats"><svg viewBox="0 0 24 24"><rect x="3" y="5.5" width="18" height="13" rx="2.2"/><circle cx="8.5" cy="11.4" r="2.3"/><path d="M13 9.6h4.6M13 13h4.6M6 15.7c.7-1.3 4-1.3 4.7 0"/></svg>Tour Card</button>
 </nav>
 
-<a id="pilotChip" target="_blank" rel="noopener">PILOT · REPORT A BUG</a>
+<button id="pilotChip" type="button">Tell us how it's going</button>
 <div id="errbar" role="alert"></div>
 <script>
 (function(){
@@ -2028,7 +2031,6 @@ function dAgo(n){
 const M3=[2,1,0].map(k=>{ const d=new Date(); d.setDate(1); d.setMonth(d.getMonth()-k); return MOS[d.getMonth()].toUpperCase(); });
 const SQ = ['var(--sq0)','var(--sq1)','var(--sq2)','var(--sq3)'];
 const PILOT=true;   /* flip false to strip pilot chrome: chip + boot narration */
-const PILOT_FORM='https://docs.google.com/forms/d/e/1FAIpQLSe9OSajVZR4OvKru-1VVxsG2eae4fduG8t0exQ2ESWo1XnbGg/viewform';
 const SQHEX = ['#57A8FF','#FB8B4B','#A78BFA','#2FD3BE'];
 /* the demo diorama is THE CREW — the seven players who pilot this thing */
 const DEMO_ME='Jerecho';
@@ -4409,7 +4411,7 @@ $$('.ibtn').forEach(b=>b.addEventListener('click',e=>{
 
 /* ================= init ================= */
 (()=>{ const pc=document.getElementById('pilotChip');
-  if(pc){ if(PILOT) pc.href=PILOT_FORM; else pc.remove(); } })();
+  if(pc){ if(PILOT) pc.addEventListener('click', ()=> window.openFeedback?.()); else pc.remove(); } })();
 seedHistory();
 /* post form defaults to today, local — toISOString() is UTC and drifts in Phoenix evenings */
 { const d=new Date(); $('#inDate').value=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; }
@@ -5715,6 +5717,55 @@ function openJoinSheet(){
   $('#jGo').addEventListener('click', go);
   $('#jCode').addEventListener('keydown', e => { if(e.key === 'Enter') go(); });
 }
+
+/* Pilot feedback — friction, confusion, ideas. Opens an in-app sheet and writes
+   to submit_feedback with WHERE the user was (screen, league, version, device)
+   auto-attached, so a half-formed note still tells us where to look. */
+window.openFeedback = function(){
+  openSheet("Tell us how it's going", 'What helped, what confused you, what you would change', `
+    <div style="display:flex; gap:6px; flex-wrap:wrap; margin-bottom:12px">
+      <button type="button" class="fbcat" data-cat="confusing">Confusing</button>
+      <button type="button" class="fbcat" data-cat="friction">Friction</button>
+      <button type="button" class="fbcat" data-cat="idea">Idea</button>
+      <button type="button" class="fbcat" data-cat="bug">Bug</button>
+    </div>
+    <textarea class="f" id="fbBody" rows="4" placeholder="Where did the app get in your way? Even a half-formed thought helps." style="font-family:var(--sans); resize:vertical; width:100%"></textarea>
+    <button class="btn" id="fbGo" style="margin-top:12px">Send</button>
+    <p class="fine">Goes straight to Jerecho. We attach which screen you are on so we can find it fast.</p>
+  `);
+  let cat = '';
+  $('#shBody').querySelectorAll('.fbcat').forEach(b => b.addEventListener('click', () => {
+    const on = b.classList.contains('on');
+    $('#shBody').querySelectorAll('.fbcat').forEach(x => x.classList.remove('on'));
+    if(!on){ b.classList.add('on'); cat = b.dataset.cat; } else { cat = ''; }
+  }));
+  const go = async () => {
+    const body = ($('#fbBody').value || '').trim();
+    if(!body){ toast('Add a line first — anything helps'); return; }
+    if(!window.sb || !CS?.user){ toast('Sign in to send feedback'); return; }
+    $('#fbGo').disabled = true;
+    const ctx = {
+      view: document.querySelector('.view.active')?.id || null,
+      version: (document.querySelector('#obCaption span:last-child')?.textContent || '').trim() || null,
+      league_id: CS.league?.id || null,
+      league_name: CS.league?.name || null,
+      event_id: window.E?.event?.id || null,
+      demo: !CS?.user,
+      path: location.pathname + location.hash,
+      ua: navigator.userAgent
+    };
+    try{
+      const { error } = await sb.rpc('submit_feedback', { p_category: cat || 'other', p_body: body, p_context: ctx });
+      if(error) throw error;
+      closeSheet();
+      toast('Sent — thank you. This is how the app gets better.');
+    }catch(err){
+      toast('Could not send: ' + (err.message || err));
+      $('#fbGo').disabled = false;
+    }
+  };
+  $('#fbGo').addEventListener('click', go);
+};
 async function openLeagueSwitcher(){
   if(!CS.user) return; /* demo has no leagues to switch */
   await loadMyEvents();   /* always show events created since the last load */
