@@ -1285,7 +1285,7 @@ body::before{
       </div>
             
     </div>
-    <div class="ob-caption" id="obCaption">New or returning, email is one door. No passwords. Just looking? <a href="#" id="obDemoLink" style="color:var(--pos)">Peek at the demo</a>. <span style="opacity:.5">v23.102</span></div>
+    <div class="ob-caption" id="obCaption">New or returning, email is one door. No passwords. Just looking? <a href="#" id="obDemoLink" style="color:var(--pos)">Peek at the demo</a>. <span style="opacity:.5">v23.103</span></div>
   </div>
   <div class="ob-splash" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
   
@@ -1351,10 +1351,13 @@ body::before{
       <section class="view active" id="view-home">
         <div id="notifBanner"></div>
         <div id="homeHub">
-          <div class="eyebrow" style="margin-top:0">Your groups · tap to open</div>
-          <div id="hubGroups"></div>
-          <div class="eyebrow">Coming up</div>
-          <div id="hubComing"></div>
+          <div id="homeGreeting"></div>
+          <div class="eyebrow" style="margin-top:0">Start something</div>
+          <div id="homeStart"></div>
+          <div class="eyebrow">Your leagues</div>
+          <div id="homeRecap"></div>
+          <div class="eyebrow">Around your circle</div>
+          <div id="homeFeed"></div>
         </div>
         <div id="homeLeagueless">
           <div class="card" id="wCard" style="margin-bottom:14px; text-align:left;">
@@ -1801,6 +1804,8 @@ body::before{
       <button class="btn dark" id="wOut" style="margin-top:10px">Sign out</button>
       <div class="ob-caption">No code? Any league member can share an invite link. Or peek at a demo season with code <b style="color:var(--mut)">DEMO</b>.</div>
         </div>
+        <div class="eyebrow league-only" style="margin-top:0">Your groups</div>
+        <div id="clubGroups" class="league-only" style="display:flex; gap:8px; overflow-x:auto; padding-bottom:6px; margin-bottom:12px"></div>
         <div class="card league-only" id="hubHeader" style="margin-bottom:14px">
           <div style="display:flex; align-items:center; gap:10px;">
             <div style="min-width:0"><b id="hhName" style="font-size:16px">The Sunday Cup</b><div class="fine" id="hhPhase" style="padding:2px 0 0">Season live</div></div>
@@ -2140,6 +2145,7 @@ function switchView(v){
      "Start a league", the lock-fallback) lands here, so fire it here once */
   if(v==='wizard' && !state.demo) window.renderWizAddGolfers?.();
   if(v==='home' && typeof renderHomeHub==='function') renderHomeHub();
+  if(v==='hub' && typeof renderClubGroups==='function') renderClubGroups();
 }
 $$('.tab, .navitem').forEach(b=>b.addEventListener('click',()=>switchView(b.dataset.v)));
 
@@ -3454,65 +3460,107 @@ function upcomingFromSchedule(){
   out.sort((a,b)=>a._d - b._d);
   return out.slice(0,4);
 }
-function renderHubComing(){
-  const box = $('#hubComing'); if(!box) return;
-  const items = state.demo
-    ? [{when:'IN 2 DAYS', what:'Your declared round', who:'The Sunday Cup · Papago GC'},
-       {when:'SATURDAY', what:'Ryder session 3 closes', who:'The Grudge'}]
-    : upcomingFromSchedule();
-  box.innerHTML = items.length
-    ? items.map(i=>`<div class="check"><span class="num" style="font-size:10px; letter-spacing:.04em; line-height:1.2; text-align:center">${esc(i.when)}</span><div class="tt"><b>${esc(i.what)}</b><small>${esc(i.who||'')}</small></div></div>`).join('')
-    : '<p class="fine" style="padding:0">Nothing on the books yet — put a round on the calendar.</p>';
+const dfmt = iso => { if(!iso) return ''; const d=(typeof localDate==='function')?localDate(iso):new Date(iso);
+  return isNaN(d)?'' : d.toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'}); };
+const dfmtShort = iso => { if(!iso) return ''; const d=(typeof localDate==='function')?localDate(iso):new Date(iso);
+  return isNaN(d)?'' : d.toLocaleDateString('en-US',{month:'short',day:'numeric'}); };
+
+/* ---------- Clubhouse: the group switcher (chips at the top) ---------- */
+function groupChip(label, sub, here, attr){
+  return `<button ${attr} style="flex:0 0 auto; text-align:left; padding:8px 12px; border-radius:10px; border:0.5px solid ${here?'var(--pos)':'var(--line)'}; background:var(--bg2); cursor:pointer;">
+    <span style="display:block; font-size:13px; font-weight:600; color:var(--ink); white-space:nowrap">${label}</span>
+    <span style="display:block; font-size:10px; letter-spacing:.04em; color:${here?'var(--pos)':'var(--mut)'}; white-space:nowrap; text-transform:uppercase">${sub}</span>
+  </button>`;
 }
-function renderHomeHub(){
-  const gbox = $('#hubGroups'); if(!gbox) return;
-  if(state.demo){
-    gbox.innerHTML =
-      `<div class="check tap" data-demolg style="cursor:pointer; border-color:var(--pos)"><span class="num">⛳</span>
-        <div class="tt"><b>The Sunday Cup</b><small>Wk 18 / 24 · in season</small></div>
-        <span class="fine" style="padding:0; color:var(--pos)">HERE</span></div>
-      <div class="check tap" data-demoev style="cursor:pointer"><span class="num">🏆</span>
-        <div class="tt"><b>The Grudge</b><small>The Ryder · live</small></div>
-        <span class="fine" style="padding:0; color:var(--dim)">→</span></div>`;
-    gbox.querySelector('[data-demolg]')?.addEventListener('click', ()=> switchView('hub'));
-    gbox.querySelector('[data-demoev]')?.addEventListener('click', ()=> toast('The Grudge is a Ryder event — start your own from any league'));
-    renderHubComing(); return;
-  }
+function renderClubGroups(){
+  const box = $('#clubGroups'); if(!box) return;
+  if(state.demo){ box.innerHTML = groupChip('The Sunday Cup','Here',true,'') + groupChip('The Grudge','Ryder · live','',''); return; }
   const cur = window.CS?.league?.id;
-  const leagues = (CS.memberships||[]).map(m => {
-    const here = m.league.id === cur;
-    return `<div class="check tap" data-hglg="${m.league.id}" style="cursor:pointer; ${here?'border-color:var(--pos);':''}"><span class="num">⛳</span>
-      <div class="tt"><b>${esc(m.league.name)}</b><small>${leaguePhaseLabel(m)}</small></div>
-      ${here?'<span class="fine" style="padding:0; color:var(--pos)">HERE</span>':'<span class="fine" style="padding:0; color:var(--dim)">→</span>'}</div>`;
-  }).join('');
   const evStat = e => e.status==='complete'?'Final':e.status==='setup'?'Forming':'Live';
-  const events = (window.myEvents||[]).map(e =>
-    `<div class="check tap" data-hgev="${e.id}" style="cursor:pointer"><span class="num">🏆</span>
-      <div class="tt"><b>${esc(e.name)}</b><small>The Ryder · ${evStat(e)}</small></div>
-      <span class="fine" style="padding:0; color:var(--dim)">→</span></div>`).join('');
-  /* start actions live here now — the top-bar switcher is retired, so the hub
-     is the one place you create a league or event */
-  const starts = `
+  const chips = (CS.memberships||[]).map(m =>
+      groupChip(esc(m.league.name), m.league.id===cur?'Here':(m.role==='commissioner'?'Your league':'In season'), m.league.id===cur, `data-cglg="${m.league.id}"`)).join('')
+    + (window.myEvents||[]).map(e => groupChip(esc(e.name), 'Ryder · '+evStat(e), false, `data-cgev="${e.id}"`)).join('');
+  box.innerHTML = chips || '<span class="fine" style="padding:0">No groups yet.</span>';
+  box.querySelectorAll('[data-cglg]').forEach(b=>b.addEventListener('click',()=>{ const id=b.dataset.cglg; if(window.CS?.league?.id!==id) window.enterLeagueById?.(id, false); }));
+  box.querySelectorAll('[data-cgev]').forEach(b=>b.addEventListener('click',()=>{ if(window.openEvent) window.openEvent(b.dataset.cgev); }));
+}
+
+/* ---------- Home: greeting + start + league recap + the circle feed ---------- */
+function renderGreeting(){
+  const g=$('#homeGreeting'); if(!g) return;
+  const name = state.demo ? 'Jerecho' : (window.CS?.profile?.display_name || 'there');
+  const h = new Date().getHours();
+  const part = h<12?'Good morning':h<18?'Good afternoon':'Good evening';
+  g.innerHTML = `<div style="padding:2px 0 12px"><b style="font-size:20px; color:var(--ink)">${part}, ${esc(name)}.</b></div>`;
+}
+function renderHomeStart(){
+  const box=$('#homeStart'); if(!box) return;
+  box.innerHTML = `
     <div class="check tap" data-hgnew style="cursor:pointer; border-color:var(--pos)"><span class="num">⛳</span>
       <div class="tt"><b>Start a league</b><small>A full season · squads · a Cup Final</small></div><span class="fine" style="padding:0; color:var(--dim)">→</span></div>
     <div class="check tap" data-hgnewev style="cursor:pointer; border-color:var(--pos)"><span class="num">🏆</span>
       <div class="tt"><b>Start an event</b><small>Short form · Ryder, Bracket, a Major</small></div><span class="fine" style="padding:0; color:var(--dim)">→</span></div>
     <div class="check tap" data-hgjoin style="cursor:pointer"><span class="num">🔑</span>
       <div class="tt"><b>Join with a code</b><small>Got an invite code?</small></div><span class="fine" style="padding:0; color:var(--dim)">→</span></div>`;
-  gbox.innerHTML = (leagues + events || '<p class="fine" style="padding:2px 0 8px">No groups yet — start or join one below.</p>')
-    + '<div class="eyebrow">Start something</div>' + starts;
-  gbox.querySelectorAll('[data-hglg]').forEach(b => b.addEventListener('click', () => {
-    const id = b.dataset.hglg;
-    switchView('hub');   /* snappy: jump now, load in place */
-    if(window.CS?.league?.id !== id) window.enterLeagueById?.(id, false);   /* nav:false — don't let enterLeague bounce us back to Home */
-  }));
-  gbox.querySelectorAll('[data-hgev]').forEach(b => b.addEventListener('click', () => {
-    if(window.openEvent) window.openEvent(b.dataset.hgev);
-  }));
-  gbox.querySelector('[data-hgnew]')?.addEventListener('click', () => document.getElementById('wCreate')?.click());
-  gbox.querySelector('[data-hgnewev]')?.addEventListener('click', () => window.openEventPicker?.());
-  gbox.querySelector('[data-hgjoin]')?.addEventListener('click', () => window.openJoinSheet?.());
-  renderHubComing();
+  box.querySelector('[data-hgnew]')?.addEventListener('click', () => document.getElementById('wCreate')?.click());
+  box.querySelector('[data-hgnewev]')?.addEventListener('click', () => window.openEventPicker?.());
+  box.querySelector('[data-hgjoin]')?.addEventListener('click', () => window.openJoinSheet?.());
+}
+function recapRow(title, sub, icon, attr){
+  return `<div class="check${attr?' tap':''}" ${attr||''} style="${attr?'cursor:pointer;':''}"><span class="num">${icon}</span>
+    <div class="tt"><b>${title}</b><small>${sub}</small></div>${attr?'<span class="fine" style="padding:0; color:var(--dim)">→</span>':''}</div>`;
+}
+function renderHomeRecap(){
+  const box=$('#homeRecap'); if(!box) return;
+  if(state.demo){
+    box.innerHTML = recapRow('The Sunday Cup','Season ends Sat, Aug 29 · Wk 18 / 24','⛳','')
+      + recapRow('Your declared round','In 2 days · Papago GC','🗓️','');
+    return;
+  }
+  const rows = (CS.memberships||[]).map(m => {
+    const end = (window.leagueEnds||{})[m.league.id];
+    const sub = end ? 'Season ends '+dfmt(end) : leaguePhaseLabel(m);
+    return recapRow(esc(m.league.name), sub, '⛳', `data-hglg="${m.league.id}"`);
+  });
+  upcomingFromSchedule().slice(0,2).forEach(i => {
+    const when = i.when.charAt(0)+i.when.slice(1).toLowerCase();
+    rows.push(recapRow(esc(i.what), when + (i.who?' · '+esc(i.who):''), '🗓️', ''));
+  });
+  box.innerHTML = rows.length ? rows.join('') : '<p class="fine" style="padding:0">No leagues yet — start or join one above.</p>';
+  box.querySelectorAll('[data-hglg]').forEach(b=>b.addEventListener('click',()=>{ const id=b.dataset.hglg; switchView('hub'); if(window.CS?.league?.id!==id) window.enterLeagueById?.(id, false); }));
+}
+const DEMO_FEED = [
+  {golfer:'Diego', marker:'saguaro', gross:79, pvi:5.2, course:'Papago GC', played_on:'2026-07-13', is_pr:true},
+  {golfer:'Rosa',  marker:'quail',   gross:74, pvi:3.8, course:'Grayhawk',  played_on:'2026-07-12', is_sub80:true},
+  {golfer:'You',   marker:'shark',   gross:82, pvi:2.9, course:'Aguila',    played_on:'2026-07-11', is_me:true},
+  {golfer:'Marco', marker:'cactus',  gross:90, pvi:0.4, course:'Encanto',   played_on:'2026-07-10'},
+];
+function feedRow(r){
+  const who = esc(r.is_me ? 'You' : (r.golfer||'A golfer'));
+  const mk = window.mkr ? window.mkr(r.marker||'saguaro') : '';
+  const course = esc(r.course || 'a round');
+  const pvi = (r.pvi!=null) ? `${r.pvi>=0?'+':''}${r.pvi} vs index` : '';
+  let badge='', line='';
+  if(r.is_pr){ badge='🔥 Personal best'; line = `${who} set a personal best — ${r.gross} at ${course}${pvi?' · '+pvi:''}`; }
+  else if(r.is_sub80){ badge='⛳ Broke 80'; line = `${who} broke 80 for the first time — ${r.gross} at ${course}`; }
+  else if(r.is_first){ badge='🎉 First round'; line = `${who} posted their first round — ${r.gross} at ${course}`; }
+  else { line = `${who} posted ${r.gross} at ${course}${pvi?' · '+pvi:''}`; }
+  return `<div class="check"><span class="num">${mk}</span>
+    <div class="tt"><b>${line}</b><small>${badge?badge+' · ':''}${dfmtShort(r.played_on)}</small></div></div>`;
+}
+function renderHomeFeed(){
+  const box=$('#homeFeed'); if(!box) return;
+  const list = state.demo ? DEMO_FEED : (window.homeFeed||[]);
+  box.innerHTML = list.length
+    ? list.map(feedRow).join('')
+    : '<p class="fine" style="padding:0">No rounds from your circle yet. Post one, or add golfers on your Tour Card.</p>';
+}
+function renderHomeHub(){
+  renderGreeting();
+  renderHomeStart();
+  renderHomeRecap();
+  renderHomeFeed();
+  renderClubGroups();   /* keep the Clubhouse switcher in sync */
 }
 /* the display case — real trophies come from window.trophies (module loader);
    the demo shows a filled case so the diorama sells the feature. */
@@ -5040,9 +5088,10 @@ async function enterLeague(m, nav=true){
     if(pe) pe.textContent = 'Post a round · your index ' + state.myIndex.toFixed(1);
   }
   try { await loadLeagueData(); } catch(e){ bootTrace('league data: '+(e.message||e)); }
-  loadLeagueSpans().then(loadSchedule).then(()=>window.renderHomeHub&&window.renderHomeHub()); /* calendar layers + hub "coming up" */
+  loadLeagueSpans().then(loadSchedule).then(()=>window.renderHomeHub&&window.renderHomeHub()); /* calendar layers + Home recap "next rounds" */
   loadLeagueRecord();                   /* the You tab's per-league record rows */
-  loadMyEvents().then(()=>window.renderHomeHub&&window.renderHomeHub());   /* events in the switcher + the Home hub (was missing on boot) */
+  loadMyEvents().then(()=>window.renderHomeHub&&window.renderHomeHub());   /* events → group switcher + recap */
+  loadHome();                           /* the Home welcome feed + season end dates */
   loadInvites().then(()=>window.renderNotifications&&window.renderNotifications());  /* invite banner */
   const ab = $('#annBtn');
   if(ab) ab.style.display = CS.member?.role === 'commissioner' ? '' : 'none';
@@ -6102,6 +6151,24 @@ async function loadCareer(){
   if(window.renderCareer) window.renderCareer();
 }
 window.loadCareer = loadCareer;
+/* the Home welcome feed: your circle's recent rounds (home_feed RPC, with PR /
+   milestone flags) + season end dates for the league recap. Degrades to an
+   empty feed if the RPC isn't deployed yet. */
+async function loadHome(){
+  if(!CS.user){ window.homeFeed=[]; window.leagueEnds={}; if(window.renderHomeHub) window.renderHomeHub(); return; }
+  try {
+    const ids = (CS.memberships||[]).map(m=>m.league.id);
+    if(ids.length){
+      const { data: seas } = await sb.from('seasons').select('league_id, ends_on, number').in('league_id', ids).order('number',{ascending:false});
+      const ends={}; (seas||[]).forEach(s=>{ if(!(s.league_id in ends)) ends[s.league_id]=s.ends_on; });
+      window.leagueEnds = ends;
+    } else window.leagueEnds = {};
+  } catch(e){ window.leagueEnds = window.leagueEnds||{}; }
+  try { const { data } = await sb.rpc('home_feed', { p_days: 21 }); window.homeFeed = data || []; }
+  catch(e){ window.homeFeed = window.homeFeed||[]; }
+  if(window.renderHomeHub) window.renderHomeHub();
+}
+window.loadHome = loadHome;
 async function loadLeagueRecord(){
   if(!CS.user || !(CS.memberships||[]).length){ window.leagueRecord = []; renderIndStats(); return; }
   try {
@@ -6342,8 +6409,9 @@ function showWelcome(){
   fillWelcomeCard();
   loadRecentRounds();
   loadCourseMemory();
-  loadLeagueSpans().then(loadSchedule).then(()=>window.renderHomeHub&&window.renderHomeHub()); /* buddies' rounds show without a league */
-  loadMyEvents().then(()=>window.renderHomeHub&&window.renderHomeHub());                       /* Ryder events in the switcher + hub */
+  loadLeagueSpans().then(loadSchedule).then(()=>window.renderHomeHub&&window.renderHomeHub()); /* Home recap "next rounds" */
+  loadMyEvents().then(()=>window.renderHomeHub&&window.renderHomeHub());                       /* events → group switcher + recap */
+  loadHome();                                                                                  /* the Home welcome feed */
   loadInvites().then(()=>window.renderNotifications&&window.renderNotifications());  /* invite banner */
   enterApp();
   switchView('home');
