@@ -1285,7 +1285,7 @@ body::before{
       </div>
             
     </div>
-    <div class="ob-caption" id="obCaption">New or returning, email is one door. No passwords. Just looking? Join with code <b style="color:var(--mut)">DEMO</b>. <span style="opacity:.5">v23.98</span></div>
+    <div class="ob-caption" id="obCaption">New or returning, email is one door. No passwords. Just looking? <a href="#" id="obDemoLink" style="color:var(--pos)">Peek at the demo</a>. <span style="opacity:.5">v23.99</span></div>
   </div>
   <div class="ob-splash" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
   
@@ -1389,7 +1389,7 @@ body::before{
 <div style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:14px;">
             <button class="mini" id="hlLeague">Start or join a league</button>
             <button class="mini" id="hlEvent">Start an event</button>
-            <button class="mini" id="hlFind">Find golfers</button>
+            <button class="mini" id="hlFind">Add golfers</button>
           </div>
         </div>
       </section>
@@ -1410,15 +1410,15 @@ body::before{
         <div class="card" id="crewIntro" style="margin-bottom:14px; text-align:left;">
           <b style="font-size:14px">Build your crew</b>
           <div class="fine" style="padding:6px 0 10px">Add the golfers you play with. Your buddies power one-tap invites to leagues and events, tags on your rounds, and the board — no email needed.</div>
-          <button class="btn" id="crewAdd">Find &amp; add golfers</button>
+          <button class="btn" id="crewAdd">Add golfers</button>
         </div>
         <div class="eyebrow" style="margin-top:0">Your display case</div>
         <div id="trophyCase" style="margin-bottom:14px"></div>
         <div class="eyebrow">Lifetime</div>
         <div class="stats">
           <div class="stat"><div class="k">Rounds posted</div><div class="v" id="clR">—</div><div class="d fl">All time</div></div>
-          <div class="stat"><div class="k">Best PvI</div><div class="v" id="clBest">—</div><div class="d fl">Career best</div></div>
-          <div class="stat"><div class="k">Avg PvI</div><div class="v" id="clAvg">—</div><div class="d fl">vs your index</div></div>
+          <div class="stat"><div class="k">Best vs index</div><div class="v" id="clBest">—</div><div class="d fl">Career best</div></div>
+          <div class="stat"><div class="k">Avg vs index</div><div class="v" id="clAvg">—</div><div class="d fl">vs your index</div></div>
           <div class="stat"><div class="k">Cups &amp; events</div><div class="v" id="clPlayed">—</div><div class="d fl">Played in</div></div>
         </div>
 
@@ -1427,11 +1427,11 @@ body::before{
         <button class="btn" id="youPost" style="margin-top:10px">Post a round</button>
 
         <div class="league-only">
-          <div class="eyebrow">This season · in your league</div>
+          <div class="eyebrow">This season · <span id="youSeasonLg">your league</span></div>
           <div class="stats">
             <div class="stat"><div class="k">Rounds posted</div><div class="v" id="msR">—</div><div class="d fl">This season</div></div>
-            <div class="stat"><div class="k">Avg PvI</div><div class="v" id="msAvg">—</div><div class="d fl">vs your index</div></div>
-            <div class="stat"><div class="k">Best round</div><div class="v" id="msBest">—</div><div class="d fl">PvI · season</div></div>
+            <div class="stat"><div class="k">Avg vs index</div><div class="v" id="msAvg">—</div><div class="d fl">vs your index</div></div>
+            <div class="stat"><div class="k">Best round</div><div class="v" id="msBest">—</div><div class="d fl">vs index · season</div></div>
             <div class="stat"><div class="k">Index move</div><div class="v" id="msDelta">—</div><div class="d up">Season to date</div></div>
           </div>
         </div>
@@ -1505,7 +1505,7 @@ body::before{
           <p>HOLE-BY-HOLE · MATCH PLAY & WOLF · AUTO-ATTESTED · GUESTS WELCOME, NO ACCOUNT NEEDED</p>
           <span class="go">→</span>
         </button>
-        <p class="fine">A better round always displaces your worst counter, so posting never stops mattering. Your month's status lives on Home.</p>
+        <p class="fine">Both paths score the same. Your month's status lives on Clubhouse.</p>
       </section>
 
       <!-- PLAY (live round) -->
@@ -1616,7 +1616,7 @@ body::before{
               </div>
               <div class="frow" style="margin-top:10px">
                 <div><label class="f" for="inDate">Date</label><input class="f" id="inDate" type="date"></div>
-                <div style="display:flex; align-items:flex-end;"><p class="fine" style="padding:0 0 6px">Played 9? Fill one side: it posts at half value and counts 0.5 toward your floor.</p></div>
+                <div style="display:flex; align-items:flex-end;"><p class="fine" style="padding:0 0 6px">Played 9? Fill one side — it posts at half value and counts as half a round.</p></div>
               </div>
               <div style="height:14px"></div>
               <button class="btn" id="postBtn">Post round</button>
@@ -1643,7 +1643,7 @@ body::before{
                 <tr><td>Over by 1–3</td><td>6</td></tr>
                 <tr><td>Rough day, posted anyway</td><td>5</td></tr>
               </table>
-              <p class="fine">Every posted round scores. Best 4 per month count toward your squad: a better round displaces your worst counter in real time.</p>
+              <p class="fine">Every posted round scores. Your best 4 each month count toward your squad — a better round always replaces your lowest, in real time.</p>
             </div>
           </div>
         </div>
@@ -1796,7 +1796,7 @@ body::before{
         <input id="wCode" placeholder="CUP-CODE" autocomplete="off">
         <button class="btn" id="wCodeGo">Join</button>
       </div>
-      <button class="btn dark" id="wFind" style="margin-top:10px">Find golfers</button>
+      <button class="btn dark" id="wFind" style="margin-top:10px">Add golfers</button>
       <button class="btn dark" id="wOut" style="margin-top:10px">Sign out</button>
       <div class="ob-caption">No code? Any league member can share an invite link. Or peek at a demo season with code <b style="color:var(--mut)">DEMO</b>.</div>
         </div>
@@ -1806,7 +1806,7 @@ body::before{
             <button class="mini copycode" style="margin-left:auto; flex:none">Code · <b class="mono" id="hhCode">SNDYCUP</b></button>
           </div>
           <div class="fine" id="hhSpan" style="padding:8px 0 0">Sun Jul 5 → Sat Dec 26 · 25 wks</div>
-          <div class="fine" id="hhPro" style="padding:2px 0 0">THE PRO · —</div>
+          <div class="fine" id="hhPro" style="padding:2px 0 0">THE PRO · JERECHO</div>
           <div class="fine" id="hhDanger" style="display:none; padding:8px 0 0"><a href="#" id="hhDelete" style="color:var(--neg)">Cancel &amp; delete this league</a> (only possible before the first tee)</div>
         </div>
 
@@ -1857,8 +1857,8 @@ body::before{
 
         <div class="nextcard">
           <div class="nx">
-            <div class="nk" id="nextK">Next up · this month's floor</div>
-            <div class="nt" id="nextTxt">1 counting round to go (best 4 count, you've banked 3).</div>
+            <div class="nk" id="nextK">Next up · this month</div>
+            <div class="nt" id="nextTxt">Post 1 more round this month — best 4 count, you've posted 3.</div>
           </div>
           <button class="mini" data-go="record">Record</button>
         </div>
@@ -1892,8 +1892,8 @@ body::before{
         </div>
 
         <div class="eyebrow league-only">League</div>
-        <div class="check league-only"><span class="num">⛳</span><div class="tt"><b>Members & invites</b><small id="hubMembersSub">7 PLAYERS · CODE SNDYCUP</small></div><button class="mini" id="hubMembersBtn">View</button></div>
-        <div class="check"><span class="num">$</span><div class="tt"><b>The pot</b><small id="hubPotSub">$525 · 5/7 BUY-INS IN</small></div><button class="mini" data-go="pot">View</button></div>
+        <div class="check league-only"><span class="num">⛳</span><div class="tt"><b>Members & invites</b><small id="hubMembersSub">7 players</small></div><button class="mini" id="hubMembersBtn">View</button></div>
+        <div class="check league-only"><span class="num">$</span><div class="tt"><b>The pot</b><small id="hubPotSub">Buy-ins & payouts</small></div><button class="mini" data-go="pot">View</button></div>
         <div class="check"><span class="num">◫</span><div class="tt"><b>Squads</b><small id="hubDraftSub">COMPLETE · ROSTERS LOCKED</small></div><button class="mini" data-go="draft">View</button></div>
 
         <div class="eyebrow league-only">The individual race · every player</div>
@@ -1907,21 +1907,24 @@ body::before{
         </div>
         <p class="fine league-only">Points King takes <span id="kingPct">15</span>% of the pot at season's end. Most Improved is index drop since Week 1; Iron Man is most rounds posted. All three run in parallel with the squad race — bylaws §4.</p>
 
-        <div class="eyebrow league-only">The bylaws · locked at first tee</div>
-        <div class="card" id="bylawsHub" style="margin-bottom:14px"></div>
+        <details class="hubmore league-only" style="margin-bottom:14px">
+          <summary style="cursor:pointer; font-family:var(--mono); font-size:11px; letter-spacing:.14em; text-transform:uppercase; color:var(--dim); padding:8px 0;">League rules &amp; Pro Shop</summary>
+          <div class="eyebrow" style="margin-top:10px">The bylaws · locked at first tee</div>
+          <div class="card" id="bylawsHub" style="margin-bottom:14px"></div>
 
-        <div class="eyebrow">The Pro Shop</div>
-        <div class="pro">
-          <h3>Pro Shop</h3>
-          <div class="pr">CUP SEASON MEMBERSHIP · COMING AT LAUNCH · THE PILOT RIDES FREE</div>
-          <ul>
-            <li><span class="pb">SOON</span> Custom rules, every dial unlocked</li>
-            <li><span class="pb">SOON</span> Live draft night with pick timer</li>
-            <li><span class="pb">SOON</span> Trades & waiver wire</li>
-            <li><span class="pb">SOON</span> Multi-season history & records</li>
-          </ul>
-          <button class="btn dark" disabled style="opacity:.55; cursor:default">Coming at launch</button>
-        </div>
+          <div class="eyebrow">The Pro Shop</div>
+          <div class="pro">
+            <h3>Pro Shop</h3>
+            <div class="pr">CUP SEASON MEMBERSHIP · COMING AT LAUNCH · THE PILOT RIDES FREE</div>
+            <ul>
+              <li><span class="pb">SOON</span> Custom rules, every dial unlocked</li>
+              <li><span class="pb">SOON</span> Live draft night with pick timer</li>
+              <li><span class="pb">SOON</span> Trades & waiver wire</li>
+              <li><span class="pb">SOON</span> Multi-season history & records</li>
+            </ul>
+            <button class="btn dark" disabled style="opacity:.55; cursor:default">Coming at launch</button>
+          </div>
+        </details>
       </section>
 
     </div>
@@ -2839,7 +2842,7 @@ function renderPot(){
     });
     $('#paidCount').textContent=`${paidN}/${players}`;
     $('#paidChip').textContent=`${paidN}/${players} buy-ins in`;
-    const hps=$('#hubPotSub'); if(hps) hps.textContent=`${fmt$(total)} \u00b7 ${paidN}/${players} BUY-INS IN`;
+    const hps=$('#hubPotSub'); if(hps) hps.textContent='Buy-ins & payouts';
     return;
   }
   const nPay=state.payers.length;
@@ -3335,11 +3338,11 @@ function renderStats(){
     $('#nextTxt').textContent=`First tee ${firstTeeText()}. Practice rounds hit your card, not the season.`;
     return;
   }
-  if(nk) nk.textContent=`Next up · ${curMonth()} floor`;
+  if(nk) nk.textContent=`Next up · ${curMonth()}`;
   const rem=Math.max(0, state.floor - credits);
   $('#nextTxt').textContent = rem>0
-    ? `${fmtN(rem)} counting round${rem===1?'':'s'} to go: ${CAPS[state.cap].toLowerCase()} count, you've banked ${fmtN(credits)}.`
-    : `${curMonth()} floor met: ${fmtN(credits)} banked. Extra rounds still upgrade your worst counter.`;
+    ? `Post ${fmtN(rem)} more round${rem===1?'':'s'} this month — ${CAPS[state.cap].toLowerCase()} count, you've posted ${fmtN(credits)}.`
+    : `${curMonth()} is covered — ${fmtN(credits)} rounds counting. A better one always replaces your lowest.`;
 }
 
 /* ================= course card · pars in a sheet ================= */
@@ -3569,6 +3572,7 @@ function renderIndStats(){
     set('#youIdx', (state.myIndex||12.4).toFixed(1));
     if(window.mkr) set('#youMk', window.mkr('saguaro'), true);
   }
+  const ysl=$('#youSeasonLg'); if(ysl) ysl.textContent = state.demo ? 'The Sunday Cup' : (window.CS?.league?.name || 'your league');
   renderLeagueRecord();
   const kp=$('#kingPct'); if(kp) kp.textContent=(state.payout||[60,25,15])[2];
   if(!state.demo){ renderIndStatsReal(); return; }
@@ -3594,7 +3598,7 @@ function renderIndStats(){
   $('#awImp').textContent=imp.n;    $('#awImpS').textContent='Most Improved · ▼'+Math.abs(imp.d).toFixed(1);
   $('#awIron').textContent=iron.n;  $('#awIronS').textContent='Iron Man · '+iron.r+' rds';
 
-  let html=`<tr><th></th><th>Player</th><th class="num">R</th><th class="num">Avg PvI</th><th class="num">Pts</th></tr>`;
+  let html=`<tr><th></th><th>Player</th><th class="num">R</th><th class="num">Avg vs index</th><th class="num">Pts</th></tr>`;
   rows.forEach((p,i)=>{
     html+=`<tr class="tap" data-pl="${p.n}"${(p.me||p.n==='You')?' style="background:var(--bg2)"':''}>
       <td class="rk mono">${String(i+1).padStart(2,'0')}</td>
@@ -3641,7 +3645,7 @@ function renderIndStatsReal(){
   $('#awIron').textContent=iron.r>0?fn(iron.n):'—';
   $('#awIronS').textContent='Iron Man'+(iron.r>0?' · '+iron.r+' rds':'');
 
-  let html=`<tr><th></th><th>Player</th><th class="num">R</th><th class="num">Avg PvI</th><th class="num">Pts</th></tr>`;
+  let html=`<tr><th></th><th>Player</th><th class="num">R</th><th class="num">Avg vs index</th><th class="num">Pts</th></tr>`;
   rows.forEach((p,i)=>{
     html+=`<tr class="tap" data-ri="${i}"${p.me?' style="background:var(--bg2)"':''}>
       <td class="rk mono">${String(i+1).padStart(2,'0')}</td>
@@ -3656,7 +3660,7 @@ function renderIndStatsReal(){
     const p=rows[Number(tr.dataset.ri)]; if(!p) return;
     const hist=(p.hist||[]);
     const body=hist.length
-      ? hist.map(h=>`<div class="fine" style="display:flex;justify-content:space-between;padding:4px 0"><span>${h.played_on}${h.holes_played===9?' · 9 HOLES':''}${h.counting?'':' · NOT COUNTING'}</span><b class="mono">PvI ${sgn(Number(h.pvi))} · ${h.points} PTS</b></div>`).join('')
+      ? hist.map(h=>`<div class="fine" style="display:flex;justify-content:space-between;padding:4px 0"><span>${h.played_on}${h.holes_played===9?' · 9 HOLES':''}${h.counting?'':' · NOT COUNTING'}</span><b class="mono">${sgn(Number(h.pvi))} vs index · ${h.points} PTS</b></div>`).join('')
       : '<p class="fine">No rounds this season yet.</p>';
     openSheet(p.n, `${p.r} ROUND${p.r===1?'':'S'} · ${p.pts} PTS`, body);
   }));
@@ -3748,7 +3752,7 @@ function showSquad(name){
   roster.sort((a,b)=>b.pts-a.pts).forEach(p=>{
     h+=`<button class="rdrow" data-player="${p.n}">
       <span class="sw" style="background:${SQHEX[p.ci]}"></span>
-      <span class="rn"><b>${p.n}</b><small>${p.r} ROUNDS · AVG PvI ${p.avg>=0?'+':''}${p.avg.toFixed(1)}</small></span>
+      <span class="rn"><b>${p.n}</b><small>${p.r} ROUNDS · AVG vs index ${p.avg>=0?'+':''}${p.avg.toFixed(1)}</small></span>
       <span class="rp">${p.pts}</span></button>`;
   });
   h+=`<p class="fine" style="padding-top:12px">Squad points = counting rounds + monthly bonuses − floor penalties. Tap any player for their rounds.</p>`;
@@ -3765,7 +3769,7 @@ function showPlayer(name){
 
   let h=`<div class="mathrow"><span>Rounds posted</span><b>${p.r}</b></div>
     <div class="mathrow"><span>Counting (${CAPS[state.cap].toLowerCase()} / mo)</span><b>${counting.length}</b></div>
-    <div class="mathrow"><span>Average PvI</span><b>${p.avg>=0?'+':''}${p.avg.toFixed(1)}</b></div>
+    <div class="mathrow"><span>Average vs index</span><b>${p.avg>=0?'+':''}${p.avg.toFixed(1)}</b></div>
     <div class="mathrow tot"><span>Season points</span><b>${p.pts}</b></div>`;
 
   h+=`<div class="eyebrow" style="margin-top:18px">Counting rounds</div>`;
@@ -3773,7 +3777,7 @@ function showPlayer(name){
     const i=(HIST[name]||[]).indexOf(r);
     h+=`<button class="rdrow" data-round="${name}|${i}">
       <span class="rn"><b>${r.gross} at ${r.course}${r.nine?' · 9':''}</b>
-      <small>${r.d} · PvI ${r.pvi>=0?'+':''}${r.pvi.toFixed(1)}${r.live?' · ✓ ATTESTED':''}</small></span>
+      <small>${r.d} · ${r.pvi>=0?'+':''}${r.pvi.toFixed(1)} vs index${r.live?' · ✓ ATTESTED':''}</small></span>
       <span class="rp">${r.pts}</span></button>`;
   });
   if(cut.length){
@@ -3782,7 +3786,7 @@ function showPlayer(name){
       const i=(HIST[name]||[]).indexOf(r);
       h+=`<button class="rdrow cut" data-round="${name}|${i}">
         <span class="rn"><b>${r.gross} at ${r.course}${r.nine?' · 9':''}</b>
-        <small>${r.d} · PvI ${r.pvi>=0?'+':''}${r.pvi.toFixed(1)}</small></span>
+        <small>${r.d} · ${r.pvi>=0?'+':''}${r.pvi.toFixed(1)} vs index</small></span>
         <span class="cuttag">NO COUNT</span>
         <span class="rp">${r.pts}</span></button>`;
     });
@@ -4157,8 +4161,8 @@ function renderEvent(){
 
   /* how it scores — everyone sees the rule, not just the organizer */
   html += `<p class="fine" style="padding:0 0 6px">${P>0
-    ? `Each session pairs everyone 1‑on‑1; best round that week vs your index (PvI) wins the point, a tie splits it. First to ${evHalf(clinch)} of ${M} takes the cup.`
-    : `Each session pairs everyone 1‑on‑1; best round that week vs your index (PvI) wins the point, a tie splits it. Add players to both teams to set the target.`}</p>`;
+    ? `Each session pairs everyone 1‑on‑1; best round that week vs your index wins the point, a tie splits it. First to ${evHalf(clinch)} of ${M} takes the cup.`
+    : `Each session pairs everyone 1‑on‑1; best round that week vs your index wins the point, a tie splits it. Add players to both teams to set the target.`}</p>`;
 
   /* organizer controls — the event's creator runs the roster + sessions */
   const meU=window.CS?.user?.id, iAmOrg = ev.created_by===meU;
@@ -4238,7 +4242,7 @@ function renderNotifications(){
   el.querySelectorAll('[data-ivdet]').forEach(b=>b.addEventListener('click',()=>{
     const i=inv.find(x=>x.id===b.dataset.ivdet); if(!i) return;
     openSheet(i.kind==='league'?'League invite':'Ryder invite', (i.container_name||'').toUpperCase(),
-      `<p class="fine">${i.kind==='league'?'A season-long league.':'A Ryder event — two teams, PvI duels.'} Invited by ${esc(i.inviter||'a golfer')}${i.starts_on?`. First tee ${i.starts_on}.`:''}</p>
+      `<p class="fine">${i.kind==='league'?'A season-long league.':'A Ryder event — two teams, vs-index duels.'} Invited by ${esc(i.inviter||'a golfer')}${i.starts_on?`. First tee ${i.starts_on}.`:''}</p>
        <div style="display:flex; gap:8px; margin-top:14px">
          <button class="btn" id="ivDetAcc" style="flex:1">Accept & join</button>
          <button class="btn dark" id="ivDetDec" style="flex:1">Decline</button>
@@ -4255,14 +4259,14 @@ function renderLeagueMeta(){
   if(state.demo){
     /* the diorama's header card rides the demo season frame — E6 */
     const sp=$('#hhSpan'); if(sp) sp.textContent=seasonSpanText();
-    const ph=$('#hhPhase'); if(ph) ph.textContent=`SEASON LIVE — WK ${currentWeek()} / ${totalWeeks()}`;
+    const ph=$('#hhPhase'); if(ph) ph.textContent='SEASON LIVE';
     const dz=$('#hhDanger'); if(dz) dz.style.display='none';
     return;
   }
   if(!window.CS?.league) return;
   const L=window.CS.league, members=window.CS.members||[], squads=window.CS.squads||[];
   const n=members.length, players=k=>`${k} PLAYER${k===1?'':'S'}`;
-  const hm=$('#hubMembersSub'); if(hm) hm.textContent=`${players(n)} · CODE ${L.code}`;
+  const hm=$('#hubMembersSub'); if(hm) hm.textContent=players(n);
   const si=$('#setupInviteSub'); if(si) si.textContent=`CODE ${L.code} · ${n} JOINED`;
   const seated=new Set();
   squads.forEach(q=>(q.squad_members||[]).forEach(x=>seated.add(x.member_id)));
@@ -5499,6 +5503,14 @@ $('#obJoin').addEventListener('click', () => {
   $('#joinCode').focus();
 });
 
+/* one-tap demo — the caption used to just NAME the code and make you type it */
+$('#obDemoLink')?.addEventListener('click', (e) => {
+  e.preventDefault();
+  document.body.classList.remove('noleague');
+  enterApp(); state.demo = true; state.phase = 'season'; renderPhase(); switchView('home');
+  toast('Demo league: The Sunday Cup. Nothing here saves.');
+});
+
 $('#joinGo').addEventListener('click', async () => {
   const code = $('#joinCode').value.trim().toUpperCase();
   if(!code) return toast('Enter the league code');
@@ -5584,7 +5596,7 @@ function goClubhouse(){
 function openEventPicker(){
   openSheet('Start an event', 'SHORT FORM · ITS OWN LITTLE TROPHY', `
     <div class="check tap" data-evstyle="ryder" style="cursor:pointer; border-color:var(--pos)">
-      <span class="num">⚔️</span><div class="tt"><b>The Ryder</b><small>TWO TEAMS · WEEKLY PVI DUELS · FIRST TO THE CLINCH</small></div>
+      <span class="num">⚔️</span><div class="tt"><b>The Ryder</b><small>TWO TEAMS · WEEKLY VS-INDEX DUELS · FIRST TO THE CLINCH</small></div>
       <span class="fine" style="padding:0; color:var(--pos)">LIVE</span></div>
     <div class="check tap" data-evstyle="bracket" style="cursor:pointer">
       <span class="num">🥊</span><div class="tt"><b>Bracket</b><small>KNOCKOUT · SEEDED · LAST GOLFER STANDING</small></div>
@@ -5824,7 +5836,7 @@ function nextSundayISO(){
 async function openRyderSetup(){
   if(!CS.user){ toast('Sign in to start an event'); return; }
   const leagues = (CS.memberships||[]).map(m=>`<option value="${m.league.id}">${esc(m.league.name)}</option>`).join('');
-  openSheet('Start a Ryder', 'TWO TEAMS · PVI DUELS · FIRST TO THE CLINCH', `
+  openSheet('Start a Ryder', 'TWO TEAMS · VS-INDEX DUELS · FIRST TO THE CLINCH', `
     <label class="f" for="rsName">Event name</label>
     <input class="f" id="rsName" placeholder="The Grudge Match" autocomplete="off" style="font-family:var(--sans)">
     <div class="frow" style="margin-top:10px">
@@ -5846,7 +5858,7 @@ async function openRyderSetup(){
     <div id="rsPicked" style="margin-top:8px"></div>
     <div class="card" style="margin-top:14px; padding:11px 13px; background:var(--bg2)">
       <div class="fine" style="padding:0; line-height:1.65">
-        <b style="color:var(--ink)">How it plays.</b> Two teams, one <b>session</b> a week. Each session you're paired 1‑on‑1 with someone on the other team; your best round that week — scored by how far you beat <em>your own</em> index (PvI) — faces theirs. <b>Win a duel = 1 point, tie = ½ each.</b> First team past half the points takes the cup. Points scale to team size: 6‑a‑side over 3 weeks is 18 points, first to 9½.
+        <b style="color:var(--ink)">How it plays.</b> Two teams, one <b>session</b> a week. Each session you're paired 1‑on‑1 with someone on the other team; your best round that week — scored by how far you beat <em>your own</em> index — faces theirs. <b>Win a duel = 1 point, tie = ½ each.</b> First team past half the points takes the cup. Points scale to team size: 6‑a‑side over 3 weeks is 18 points, first to 9½.
       </div>
     </div>
     <button class="btn" id="rsGo" style="margin-top:14px">Create the event</button>
@@ -6420,7 +6432,7 @@ async function boot(){
     bootStep = 'enterLeague';
     bootTrace('entering ' + CS.memberships[0].league.name);
     await enterLeague(CS.memberships[0]);
-    if(CS.memberships.length > 1) toast('Tap the league name to switch leagues');
+    if(CS.memberships.length > 1) toast('Switch groups anytime from Home');
   } catch(e){
     authStatus('Boot failed at [' + bootStep + ']: ' + (e.message || e), 'err');
   } finally {
