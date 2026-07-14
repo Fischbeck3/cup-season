@@ -1290,7 +1290,7 @@ body::before{
       </div>
             
     </div>
-    <div class="ob-caption" id="obCaption">New or returning, email is one door. No passwords. Just looking? Join with code <b style="color:var(--mut)">DEMO</b>. <span style="opacity:.5">v23.93</span></div>
+    <div class="ob-caption" id="obCaption">New or returning, email is one door. No passwords. Just looking? Join with code <b style="color:var(--mut)">DEMO</b>. <span style="opacity:.5">v23.94</span></div>
   </div>
   <div class="ob-splash" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
   
@@ -1300,22 +1300,8 @@ body::before{
 
   <!-- ============ SIDEBAR (desktop) ============ -->
   <aside class="side">
-    <div class="brand">
-      <div class="mk">
-        <svg viewBox="0 0 96 96" fill="none">
-          <g stroke-width="7" stroke-linecap="round" fill="none">
-            <path d="M61.9 73.8 A33 13 0 0 1 18.1 67.5" stroke="var(--pos)"/>
-            <path d="M16.1 65.4 A33 13 0 0 1 29.1 51.4" stroke="var(--sq0)"/>
-            <path d="M34.1 50.2 A33 13 0 0 1 64.5 50.7" stroke="var(--sq2)"/>
-            <path d="M71.3 52.8 A33 13 0 0 1 76.6 68.5" stroke="var(--sq1)"/>
-          </g>
-          <ellipse cx="48" cy="62" rx="10" ry="4" stroke="var(--ink)" stroke-width="5"/>
-          <path d="M48 60V16" stroke="var(--ink)" stroke-width="6" stroke-linecap="round"/>
-          <path d="M48 14l20 7.5L48 29z" fill="var(--ink)"/>
-        </svg>
-      </div>
-      <div><b>Cup Season</b><small id="brandSeason">Season III</small></div>
-    </div>
+    <!-- desktop brand block retired: the header carries the Cup Season logo now.
+         #brandSeason setters are guarded, so its removal is a no-op. -->
     <button class="navitem active" data-v="home">
       <svg viewBox="0 0 24 24"><path d="M4 11.5 12 4l8 7.5"/><path d="M6 10v10h12V10"/></svg> Home
     </button>
@@ -1405,8 +1391,9 @@ body::before{
         </div>
         <div class="fine" style="padding:6px 0 0">Tee up buddies and guests: match play, Wolf, skins. Scored live, posted once.</div>
       </div>
-<div style="display:flex; gap:8px; margin-bottom:14px;">
+<div style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:14px;">
             <button class="mini" id="hlLeague">Start or join a league</button>
+            <button class="mini" id="hlEvent">Start an event</button>
             <button class="mini" id="hlFind">Find golfers</button>
           </div>
         </div>
@@ -3454,7 +3441,17 @@ function renderHomeHub(){
     `<div class="check tap" data-hgev="${e.id}" style="cursor:pointer"><span class="num">🏆</span>
       <div class="tt"><b>${esc(e.name)}</b><small>THE RYDER · ${evStat(e)}</small></div>
       <span class="fine" style="padding:0; color:var(--dim)">→</span></div>`).join('');
-  gbox.innerHTML = (leagues + events) || '<p class="fine" style="padding:0">No groups yet — start or join one below.</p>';
+  /* start actions live here now — the top-bar switcher is retired, so the hub
+     is the one place you create a league or event */
+  const starts = `
+    <div class="check tap" data-hgnew style="cursor:pointer; border-color:var(--pos)"><span class="num">⛳</span>
+      <div class="tt"><b>Start a league</b><small>A FULL SEASON · SQUADS · A CUP FINAL</small></div><span class="fine" style="padding:0; color:var(--dim)">→</span></div>
+    <div class="check tap" data-hgnewev style="cursor:pointer; border-color:var(--pos)"><span class="num">🏆</span>
+      <div class="tt"><b>Start an event</b><small>SHORT FORM · RYDER, BRACKET, A MAJOR</small></div><span class="fine" style="padding:0; color:var(--dim)">→</span></div>
+    <div class="check tap" data-hgjoin style="cursor:pointer"><span class="num">🔑</span>
+      <div class="tt"><b>Join with a code</b><small>GOT AN INVITE CODE?</small></div><span class="fine" style="padding:0; color:var(--dim)">→</span></div>`;
+  gbox.innerHTML = (leagues + events || '<p class="fine" style="padding:2px 0 8px">No groups yet — start or join one below.</p>')
+    + '<div class="eyebrow">Start something</div>' + starts;
   gbox.querySelectorAll('[data-hglg]').forEach(b => b.addEventListener('click', () => {
     const id = b.dataset.hglg;
     if(window.CS?.league?.id !== id) window.enterLeagueById?.(id);
@@ -3463,6 +3460,9 @@ function renderHomeHub(){
   gbox.querySelectorAll('[data-hgev]').forEach(b => b.addEventListener('click', () => {
     if(window.openEvent) window.openEvent(b.dataset.hgev);
   }));
+  gbox.querySelector('[data-hgnew]')?.addEventListener('click', () => document.getElementById('wCreate')?.click());
+  gbox.querySelector('[data-hgnewev]')?.addEventListener('click', () => window.openEventPicker?.());
+  gbox.querySelector('[data-hgjoin]')?.addEventListener('click', () => window.openJoinSheet?.());
   renderHubComing();
 }
 /* the display case — real trophies come from window.trophies (module loader);
@@ -4678,6 +4678,7 @@ $('#hlFind')?.addEventListener('click', openProfileHub);
 $('#crewAdd')?.addEventListener('click', openProfileHub);
 $('#hdrLogo')?.addEventListener('click', ()=> switchView('home'));
 $('#hlLeague')?.addEventListener('click', () => switchView('hub'));
+$('#hlEvent')?.addEventListener('click', () => window.openEventPicker?.());
 window.loadRecentRounds = loadRecentRounds;
 
 $('#annBtn')?.addEventListener('click', async () => {
@@ -5643,6 +5644,9 @@ async function openLeagueSwitcher(){
   }));
 }
 window.openLeagueSwitcher = openLeagueSwitcher;
+/* the Home hub's Start cards call these (classic → module) */
+window.openEventPicker = openEventPicker;
+window.openJoinSheet   = openJoinSheet;
 /* switch into a league by id — the Home hub's group rows call this (classic) */
 window.enterLeagueById = async (id) => {
   const m = (CS.memberships||[]).find(x => x.league.id === id);
