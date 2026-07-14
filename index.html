@@ -1290,7 +1290,7 @@ body::before{
       </div>
             
     </div>
-    <div class="ob-caption" id="obCaption">New or returning, email is one door. No passwords. Just looking? Join with code <b style="color:var(--mut)">DEMO</b>. <span style="opacity:.5">v23.94</span></div>
+    <div class="ob-caption" id="obCaption">New or returning, email is one door. No passwords. Just looking? Join with code <b style="color:var(--mut)">DEMO</b>. <span style="opacity:.5">v23.95</span></div>
   </div>
   <div class="ob-splash" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
   
@@ -2661,7 +2661,10 @@ $('#postBtn').addEventListener('click', async ()=>{
         slope, holes_played: nine ? 9 : 18, source: 'quick',
         played_on: $('#inDate').value || null,
         course_label: $('#inCourse').value.trim() || null,
-        course_id: $('#inCourse').dataset.courseId || null,
+        /* course_id withheld: live rounds.course_id is the LEGACY uuid column
+           (the api-cache migration silently no-op'd against it) — sending the
+           GolfCourseAPI text id ("6325") kills the whole insert. Linkage
+           returns as api_course_id with the reconciliation migration. */
         season_id: CS.season?.id || null,
       });
       if(error) throw error;
@@ -4878,7 +4881,7 @@ $('#wPostGo').addEventListener('click', async () => {
       gross, rating, slope, holes_played: 18, source: 'quick',
       played_on: $('#wDate').value || null,
       course_label: $('#wCourse').value.trim() || null,
-      course_id: $('#wCourse').dataset.courseId || null,
+      /* course_id withheld — see the postBtn insert: legacy uuid column */
     });
     if(error) throw error;
     toast('Round posted to your card');
@@ -5450,7 +5453,7 @@ $('#joinGo').addEventListener('click', async () => {
   }
   if(!CS.user){
     localStorage.setItem('cs_code', code);
-    openEmailBox($('#joinbox'), `Enter your email: we\u2019ll auto-join ${code} the moment your link lands.`);
+    openEmailBox($('#joinbox'), `Enter your email: we\u2019ll auto-join ${code} the moment your sign-in code lands.`);
     return;
   }
   try {
