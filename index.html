@@ -1291,7 +1291,7 @@ body::before{
       </div>
             
     </div>
-    <div class="ob-caption" id="obCaption">New or returning, email is one door. No passwords. Just looking? <a href="#" id="obDemoLink" style="color:var(--pos)">Peek at the demo</a>. <span style="opacity:.5">v23.116</span></div>
+    <div class="ob-caption" id="obCaption">New or returning, email is one door. No passwords. Just looking? <a href="#" id="obDemoLink" style="color:var(--pos)">Peek at the demo</a>. <span style="opacity:.5">v23.117</span></div>
   </div>
   <div class="ob-splash" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
   
@@ -2370,8 +2370,8 @@ function renderFeed(){
       <div class="round">
         <span class="bar" style="background:${SQHEX[f.ci]}"></span>
         <div class="body">
-          <div class="l1 tap" data-fp="${f.who}">${f.who} <span>· ${f.team}</span></div>
-          <div class="l2">${f.meta}</div>
+          <div class="l1 tap" data-fp="${esc(f.who)}">${esc(f.who)} <span>· ${esc(f.team)}</span></div>
+          <div class="l2">${esc(f.meta)}</div>
         </div>
         <span class="pvi ${up?'up':'dn'}">${up?'+':''}${f.pvi.toFixed(1)}</span>
         <div class="pts">${f.pts}<small>PTS</small></div>
@@ -2381,7 +2381,7 @@ function renderFeed(){
         <button class="act" data-c="${fi}">💬 ${f.cm.length}</button>
       </div>
       <div class="cthread" id="th${fi}" style="display:none">
-        ${f.cm.map(c=>`<div class="crow"><b>${c.w}</b>${c.t}</div>`).join('')}
+        ${f.cm.map(c=>`<div class="crow"><b>${esc(c.w)}</b>${esc(c.t)}</div>`).join('')}
         <div class="cinput">
           <input class="f" placeholder="Talk your talk…" data-i="${fi}">
           <button class="mini" data-s="${fi}">Send</button>
@@ -2454,7 +2454,7 @@ function renderFeedFull(){
       el.insertAdjacentHTML('beforeend',`
       <div class="fcard"><div class="round">
         <span class="bar" style="background:${SQHEX[f.ci]}"></span>
-        <div class="body"><div class="l1">${f.who} <span>· ${f.team||''}</span></div><div class="l2">${f.meta||''}</div></div>
+        <div class="body"><div class="l1">${esc(f.who)} <span>· ${esc(f.team||'')}</span></div><div class="l2">${esc(f.meta||'')}</div></div>
         <span class="pvi ${up?'up':'dn'}">${up?'+':''}${f.pvi.toFixed(1)}</span>
         <div class="pts">${f.pts}<small>PTS</small></div>
       </div></div>`);
@@ -2837,7 +2837,7 @@ function renderPot(){
       const paid=m ? !!bi[m.id]?.paid : false;
       const row=document.createElement('button');
       row.className='payer'+(paid?' paid':'');
-      row.innerHTML=`<span>${m ? (m.profile?.display_name||'—') : ((window.CS?.profile?.display_name)||'You')}</span><span class="tick">✓</span>`;
+      row.innerHTML=`<span>${esc(m ? (m.profile?.display_name||'—') : ((window.CS?.profile?.display_name)||'You'))}</span><span class="tick">✓</span>`;
       row.addEventListener('click', async ()=>{
         if(!m) return;
         if(!isPro){ toast('The Pro marks buy-ins as money moves on Venmo'); return; }
@@ -3653,7 +3653,7 @@ function renderCareer(){
   set('#clPlayed', c.played);
   const yr=$('#youRecent'); if(yr){
     yr.innerHTML = (c.recent && c.recent.length)
-      ? c.recent.map(r=>`<div class="fine" style="padding:3px 0; display:flex; justify-content:space-between;"><span>${r.played_on} · ${(r.course_label||'').toUpperCase()||'ROUND'}${r.holes_played===9?' · 9':''}</span><b class="mono">${r.gross} · ${r.differential}</b></div>`).join('')
+      ? c.recent.map(r=>`<div class="fine" style="padding:3px 0; display:flex; justify-content:space-between;"><span>${r.played_on} · ${esc((r.course_label||'').toUpperCase())||'ROUND'}${r.holes_played===9?' · 9':''}</span><b class="mono">${r.gross} · ${r.differential}</b></div>`).join('')
       : '<div class="fine" style="padding:3px 0">No rounds yet. Post one below.</div>';
   }
 }
@@ -3838,10 +3838,10 @@ function showSquad(name){
 
   let h=`<div class="mathrow"><span>Counting rounds</span><b>${fromRounds}</b></div>`;
   adjs.filter(a=>a.pts>0).forEach(a=>{
-    h+=`<div class="mathrow pos"><span>${a.month} · ${a.why}</span><b>+${a.pts}</b></div>`;
+    h+=`<div class="mathrow pos"><span>${a.month} · ${esc(a.why)}</span><b>+${a.pts}</b></div>`;
   });
   adjs.filter(a=>a.pts<0).forEach(a=>{
-    h+=`<div class="mathrow neg"><span>${a.month} · ${a.who} · ${a.why}</span><b>${a.pts}</b></div>`;
+    h+=`<div class="mathrow neg"><span>${a.month} · ${esc(a.who)} · ${esc(a.why)}</span><b>${a.pts}</b></div>`;
   });
   h+=`<div class="mathrow tot"><span>Total</span><b>${t.pts}</b></div>`;
 
@@ -4153,8 +4153,8 @@ function renderCalendar(){
     const d=Number(c.dataset.cd), items=byDay[d]||[];
     openSheet(`${DOW[new Date(cur.y,cur.m,d).getDay()]} ${MOS[cur.m]} ${d}`, `${items.length} ON THE SHEET`,
       items.map(it=> it.kind==='rd'
-        ? `<div class="check"><span class="num">${window.mkr?.(it.sr.marker||'saguaro')||'⛳'}</span><div class="tt"><b>${it.sr.mine?'You':it.sr.display_name}${it.sr.tagged_me?' · <span style="color:var(--gold)">YOU’RE IN</span>':(it.sr.shared_league&&!it.sr.mine?' · <span style="color:var(--gold)">LEAGUE MATE</span>':'')}</b><small>${[it.sr.course_label?it.sr.course_label.toUpperCase():null, (it.sr.tagged_names||[]).length?'WITH '+it.sr.tagged_names.join(' & ').toUpperCase():null, it.sr.note?'“'+it.sr.note+'”':null].filter(Boolean).join(' · ')||'ROUND ON THE BOOKS'}</small></div></div>`
-        : `<div class="check"><span class="num">⛳</span><div class="tt"><b style="${it.gold?'color:var(--gold)':''}">${it.t}</b></div></div>`
+        ? `<div class="check"><span class="num">${window.mkr?.(it.sr.marker||'saguaro')||'⛳'}</span><div class="tt"><b>${it.sr.mine?'You':esc(it.sr.display_name)}${it.sr.tagged_me?' · <span style="color:var(--gold)">YOU’RE IN</span>':(it.sr.shared_league&&!it.sr.mine?' · <span style="color:var(--gold)">LEAGUE MATE</span>':'')}</b><small>${[it.sr.course_label?esc(it.sr.course_label.toUpperCase()):null, (it.sr.tagged_names||[]).length?'WITH '+esc(it.sr.tagged_names.join(' & ').toUpperCase()):null, it.sr.note?'“'+esc(it.sr.note)+'”':null].filter(Boolean).join(' · ')||'ROUND ON THE BOOKS'}</small></div></div>`
+        : `<div class="check"><span class="num">⛳</span><div class="tt"><b style="${it.gold?'color:var(--gold)':''}">${esc(it.t)}</b></div></div>`
       ).join(''));
   }));
 
@@ -4167,11 +4167,11 @@ function renderCalendar(){
         const d=new Date(sr.play_on+'T00:00:00');
         const n=Math.round((d-now)/864e5);
         const when = n===0?'TODAY':n===1?'TOMORROW':n+' DAYS';
-        const withTxt=(sr.tagged_names||[]).length?' · WITH '+sr.tagged_names.join(' & ').toUpperCase():'';
+        const withTxt=(sr.tagged_names||[]).length?' · WITH '+esc(sr.tagged_names.join(' & ').toUpperCase()):'';
         return `<div class="check">
           <span class="num">${window.mkr?.(sr.marker||'saguaro')||'⛳'}</span>
-          <div class="tt"><b>${sr.mine?'You':sr.display_name}${sr.tagged_me?' · <span style="color:var(--gold)">YOU’RE IN</span>':(sr.shared_league&&!sr.mine?' · <span style="color:var(--gold)">LEAGUE MATE</span>':(sr.is_friend&&!sr.mine?' · <span style="color:var(--mut)">BUDDY</span>':''))}</b>
-          <small>${DOW[d.getDay()].toUpperCase()} ${MOS[d.getMonth()].toUpperCase()} ${d.getDate()}${sr.course_label?' · '+sr.course_label.toUpperCase():''}${withTxt}${sr.note?' · “'+sr.note+'”':''}</small></div>
+          <div class="tt"><b>${sr.mine?'You':esc(sr.display_name)}${sr.tagged_me?' · <span style="color:var(--gold)">YOU’RE IN</span>':(sr.shared_league&&!sr.mine?' · <span style="color:var(--gold)">LEAGUE MATE</span>':(sr.is_friend&&!sr.mine?' · <span style="color:var(--mut)">BUDDY</span>':''))}</b>
+          <small>${DOW[d.getDay()].toUpperCase()} ${MOS[d.getMonth()].toUpperCase()} ${d.getDate()}${sr.course_label?' · '+esc(sr.course_label.toUpperCase()):''}${withTxt}${sr.note?' · “'+esc(sr.note)+'”':''}</small></div>
           <span style="display:flex; gap:6px; align-items:center; flex:none">
             <b class="mono" style="font-size:10px; color:var(--mut); letter-spacing:.06em">${when}</b>
             ${sr.mine?`<button class="mini" data-retag="${sr.id}" title="Tag your group">＋</button><button class="mini" data-scratch="${sr.id}">✕</button>`:''}
@@ -5067,7 +5067,7 @@ async function loadRecentRounds(){
     .eq('profile_id', CS.user.id).order('played_on', { ascending:false }).limit(5);
   const el = $('#wRecent'); if(!el) return;
   el.innerHTML = (data && data.length)
-    ? data.map(r => `<div class="fine" style="padding:3px 0; display:flex; justify-content:space-between;"><span>${r.played_on} · ${(r.course_label||'').toUpperCase() || 'ROUND'}${r.holes_played===9?' · 9':''}</span><b class="mono">${r.gross} · ${r.differential}</b></div>`).join('')
+    ? data.map(r => `<div class="fine" style="padding:3px 0; display:flex; justify-content:space-between;"><span>${r.played_on} · ${esc((r.course_label||'').toUpperCase()) || 'ROUND'}${r.holes_played===9?' · 9':''}</span><b class="mono">${r.gross} · ${r.differential}</b></div>`).join('')
     : '<div class="fine" style="padding:3px 0">No rounds yet. The card fills as you post.</div>';
 }
 $('#wPostGo').addEventListener('click', async () => {
@@ -5388,7 +5388,7 @@ function renderFormation(){
 
   $('#pool').innerHTML = pool.length
     ? '<div class="eyebrow">The pool</div>' + pool.map(m =>
-        `<button class="mini" data-mem="${m.id}" style="margin:0 6px 6px 0; ${CS.sel===m.id?'border-color:var(--pos);color:var(--pos);':''}">${mkr(m.profile?.marker||'saguaro')} ${m.profile?.display_name || '\u2014'}</button>`).join('')
+        `<button class="mini" data-mem="${m.id}" style="margin:0 6px 6px 0; ${CS.sel===m.id?'border-color:var(--pos);color:var(--pos);':''}">${mkr(m.profile?.marker||'saguaro')} ${esc(m.profile?.display_name || '\u2014')}</button>`).join('')
     : '<p class="fine">Pool is empty. players appear here as they join with the league code.</p>';
 
   const draw = $('#fmDraw');
@@ -6479,7 +6479,7 @@ async function openMembersSheet(){
   const rows = CS.members.map(m => `
     <div class="check">
       <span class="num">${mkr(m.profile?.marker || 'saguaro')}</span>
-      <div class="tt"><b>${m.profile?.display_name || '—'}${m.role==='commissioner' ? ' · <span style="color:var(--gold)">THE PRO</span>' : ''}</b>
+      <div class="tt"><b>${esc(m.profile?.display_name || '—')}${m.role==='commissioner' ? ' · <span style="color:var(--gold)">THE PRO</span>' : ''}</b>
       <small>${[m.profile?.handle ? '@'+m.profile.handle : null,
                 m.profile?.index_current != null ? 'INDEX '+Number(m.profile.index_current).toFixed(1) : null,
                 sqName(m.id) || null].filter(Boolean).join(' · ') || 'GOLFER'}</small></div>
