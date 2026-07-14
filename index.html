@@ -1290,7 +1290,7 @@ body::before{
       </div>
             
     </div>
-    <div class="ob-caption" id="obCaption">New or returning, email is one door. No passwords. Just looking? Join with code <b style="color:var(--mut)">DEMO</b>. <span style="opacity:.5">v23.91</span></div>
+    <div class="ob-caption" id="obCaption">New or returning, email is one door. No passwords. Just looking? Join with code <b style="color:var(--mut)">DEMO</b>. <span style="opacity:.5">v23.92</span></div>
   </div>
   <div class="ob-splash" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
   
@@ -1341,14 +1341,26 @@ body::before{
   <div class="main">
     <header class="hdr">
       <div class="hdr-in">
-        <div class="title">
-          <div id="lgRow" role="button" aria-label="Switch league" style="display:flex; align-items:center; gap:7px; width:fit-content;">
-            <h1 id="leagueName">The Sunday Cup</h1>
-            <svg id="lgChev" viewBox="0 0 24 24" style="display:none; width:14px; height:14px; flex:none; stroke:currentColor; stroke-width:2.4; fill:none; opacity:.55;"><path d="M6 9.5l6 6 6-6"/></svg>
-          </div>
-          <div class="sub" id="phaseSub">Wk 18 / 36 · Hybrid · Standard rules</div>
+        <!-- league name + week live in the Clubhouse header and the Home hub now;
+             kept here (hidden) so existing setters never null-ref -->
+        <div class="title" style="display:none">
+          <div id="lgRow"><h1 id="leagueName">The Sunday Cup</h1><svg id="lgChev" viewBox="0 0 24 24" style="display:none"><path d="M6 9.5l6 6 6-6"/></svg></div>
+          <div class="sub" id="phaseSub">Wk 18 / 36</div>
         </div>
-        <div class="who mono" id="whoChip" role="button" aria-label="Your profile" style="cursor:pointer">MJ</div>
+        <button class="hdrlogo" id="hdrLogo" aria-label="Cup Season — home" style="margin-left:auto; display:flex; align-items:center; gap:8px; background:none; border:0; cursor:pointer; padding:6px 0;">
+          <svg viewBox="0 0 96 96" fill="none" style="width:24px; height:24px; flex:none">
+            <g stroke-width="7" stroke-linecap="round" fill="none">
+              <path d="M61.9 73.8 A33 13 0 0 1 18.1 67.5" stroke="var(--pos)"/>
+              <path d="M16.1 65.4 A33 13 0 0 1 29.1 51.4" stroke="var(--sq0)"/>
+              <path d="M34.1 50.2 A33 13 0 0 1 64.5 50.7" stroke="var(--sq2)"/>
+              <path d="M71.3 52.8 A33 13 0 0 1 76.6 68.5" stroke="var(--sq1)"/>
+            </g>
+            <ellipse cx="48" cy="62" rx="10" ry="4" stroke="var(--ink)" stroke-width="5"/>
+            <path d="M48 60V16" stroke="var(--ink)" stroke-width="6" stroke-linecap="round"/>
+            <path d="M48 14l20 7.5L48 29z" fill="var(--ink)"/>
+          </svg>
+          <b style="font-size:15px; color:var(--ink); letter-spacing:.01em">Cup Season</b>
+        </button>
       </div>
     </header>
 
@@ -1482,6 +1494,11 @@ body::before{
             <div style="margin-left:auto; text-align:right"><div class="fine" style="padding:0">INDEX</div><b id="youIdx" class="mono" style="font-size:18px">—</b></div>
             <button class="mini" id="youProfile" style="margin-left:10px">Profile</button>
           </div>
+        </div>
+        <div class="card" id="crewIntro" style="margin-bottom:14px; text-align:left;">
+          <b style="font-size:14px">Build your crew</b>
+          <div class="fine" style="padding:6px 0 10px">Add the golfers you play with. Your buddies power one-tap invites to leagues and events, tags on your rounds, and the board — no email needed.</div>
+          <button class="btn" id="crewAdd">Find &amp; add golfers</button>
         </div>
         <div class="eyebrow" style="margin-top:0">Your display case</div>
         <div id="trophyCase" style="margin-bottom:14px"></div>
@@ -4653,10 +4670,12 @@ function openProfileHub(){
     chatBtn.disabled = false;
   });
 }
-$('#whoChip').addEventListener('click', openProfileHub);
-$('#wFind').addEventListener('click', openProfileHub);
+$('#whoChip')?.addEventListener('click', openProfileHub);   /* chip retired; guard stays */
+$('#wFind')?.addEventListener('click', openProfileHub);
 $('#youProfile')?.addEventListener('click', openProfileHub);
 $('#hlFind')?.addEventListener('click', openProfileHub);
+$('#crewAdd')?.addEventListener('click', openProfileHub);
+$('#hdrLogo')?.addEventListener('click', ()=> switchView('home'));
 $('#hlLeague')?.addEventListener('click', () => switchView('hub'));
 window.loadRecentRounds = loadRecentRounds;
 
