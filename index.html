@@ -1290,7 +1290,7 @@ body::before{
       </div>
             
     </div>
-    <div class="ob-caption" id="obCaption">New or returning, email is one door. No passwords. Just looking? Join with code <b style="color:var(--mut)">DEMO</b>. <span style="opacity:.5">v23.92</span></div>
+    <div class="ob-caption" id="obCaption">New or returning, email is one door. No passwords. Just looking? Join with code <b style="color:var(--mut)">DEMO</b>. <span style="opacity:.5">v23.93</span></div>
   </div>
   <div class="ob-splash" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
   
@@ -1409,76 +1409,6 @@ body::before{
             <button class="mini" id="hlLeague">Start or join a league</button>
             <button class="mini" id="hlFind">Find golfers</button>
           </div>
-        </div>
-        <div id="homeSetup" style="display:none">
-          <div class="eyebrow">League setup · three steps to first tee</div>
-          <div class="check"><span class="num">1</span><div class="tt"><b>Season settings</b><small>STAKES · RULES · FORMAT</small></div><button class="mini" data-go="wizard">Continue</button></div>
-          <div class="check"><span class="num">2</span><div class="tt"><b>Invite the players</b><small id="setupInviteSub">CODE SNDYCUP · 9 OF 16 JOINED</small></div><button class="mini copycode">Invite</button></div>
-          <div class="check"><span class="num">3</span><div class="tt"><b>Squad formation</b><small>UNLOCKS WHEN SETTINGS LOCK</small></div><button class="mini" disabled style="opacity:.4">Locked</button></div>
-        </div>
-
-        <div id="homeDraft" style="display:none">
-          <div class="phasehero">
-            <div class="k">Squads are forming</div>
-            <div class="n">The Pro has the list.</div>
-            <div class="m" id="draftPoolSub">12 PLAYERS IN THE POOL</div>
-            <button class="btn" style="margin-top:16px" data-go="draft">Form the squads</button>
-          </div>
-        </div>
-
-        <div id="homeSeason">
-        <div class="phasehero" id="kickoffHero" style="display:none">
-          <div class="k">At the starter</div>
-          <div class="n" id="khTee">First tee Sunday</div>
-          <div class="m" id="khCount">SQUADS LOCKED · PRACTICE ROUNDS HIT YOUR CARD, NOT THE SEASON</div>
-        </div>
-        <button class="livebanner" id="liveBanner" data-go="play">
-          <div class="lk"><span class="dot"></span>Live round in progress</div>
-          <div class="ln" id="lbStatus">ALL SQUARE</div>
-          <div class="lm" id="lbHole">HOLE 7 · ENCANTO GC</div>
-          <span class="go">→</span>
-        </button>
-        <div class="stats">
-          <div class="stat"><div class="k">Season</div><div class="v"><span id="statWk">W18</span> <small>/ <span id="wkTotal2">24</span></small></div><div class="d fl" id="statFinal">Cup Final · final 4 wks</div></div>
-          <div class="stat"><div class="k">The pot</div><div class="v gold" id="chipPot">$525</div><div class="d fl" id="paidChip">5/7 buy-ins in</div></div>
-          <div class="stat"><div class="k">Your index</div><div class="v" id="statIdx">12.4</div><div class="d up" id="statIdxD">▼ 0.3 this month</div></div>
-          <div class="stat"><div class="k">Counting rounds</div><div class="v" id="statCount">3 <small>/ 4</small></div><div class="d fl" id="statCountD">This month · best 4 count</div></div>
-        </div>
-
-        <div class="nextcard">
-          <div class="nx">
-            <div class="nk" id="nextK">Next up · this month's floor</div>
-            <div class="nt" id="nextTxt">1 counting round to go (best 4 count, you've banked 3).</div>
-          </div>
-          <button class="mini" data-go="record">Record</button>
-        </div>
-
-        <button class="ontheline" data-go="pot">
-          <div>
-            <div class="ok">On the line</div>
-            <div class="oa" id="lineAmt">$525</div>
-          </div>
-          <div class="os" id="lineSplit">CHAMPS $315 · RUNNER-UP $131 · POINTS KING $79</div>
-          <span class="go">→</span>
-        </button>
-
-        <div class="homegrid">
-          <div>
-            <div class="eyebrow">Season race · cup points by week</div>
-            <div class="card">
-              <div class="chart-legend" id="chartLegend"></div>
-              <svg id="raceChart" viewBox="0 0 640 230" role="img" aria-label="Season points race chart"></svg>
-              <div class="chart-note" id="chartNote">BOTH SQUADS REACH THE CUP FINAL — SEASON LEADER CARRIES +10</div>
-            </div>
-          </div>
-
-          <div>
-            <div class="eyebrow">Standings</div>
-            <div class="card" style="padding:10px 12px 4px">
-              <table class="tbl" id="standings"></table>
-            </div>
-          </div>
-        </div>
         </div>
       </section>
 
@@ -1906,6 +1836,77 @@ body::before{
             <button class="btn dark" id="annBtn" style="display:none; width:auto; padding:0 14px;" title="Announce to the league">📣</button>
             <button class="btn" id="chatSend" style="width:auto; padding:0 18px;">Send</button>
           </div>
+        </div>
+
+        <div id="homeSetup" style="display:none">
+          <div class="eyebrow">League setup · three steps to first tee</div>
+          <div class="check"><span class="num">1</span><div class="tt"><b>Season settings</b><small>STAKES · RULES · FORMAT</small></div><button class="mini" data-go="wizard">Continue</button></div>
+          <div class="check"><span class="num">2</span><div class="tt"><b>Invite the players</b><small id="setupInviteSub">CODE SNDYCUP · 9 OF 16 JOINED</small></div><button class="mini copycode">Invite</button></div>
+          <div class="check"><span class="num">3</span><div class="tt"><b>Squad formation</b><small>UNLOCKS WHEN SETTINGS LOCK</small></div><button class="mini" disabled style="opacity:.4">Locked</button></div>
+        </div>
+
+        <div id="homeDraft" style="display:none">
+          <div class="phasehero">
+            <div class="k">Squads are forming</div>
+            <div class="n">The Pro has the list.</div>
+            <div class="m" id="draftPoolSub">12 PLAYERS IN THE POOL</div>
+            <button class="btn" style="margin-top:16px" data-go="draft">Form the squads</button>
+          </div>
+        </div>
+
+        <div id="homeSeason">
+        <div class="phasehero" id="kickoffHero" style="display:none">
+          <div class="k">At the starter</div>
+          <div class="n" id="khTee">First tee Sunday</div>
+          <div class="m" id="khCount">SQUADS LOCKED · PRACTICE ROUNDS HIT YOUR CARD, NOT THE SEASON</div>
+        </div>
+        <button class="livebanner" id="liveBanner" data-go="play">
+          <div class="lk"><span class="dot"></span>Live round in progress</div>
+          <div class="ln" id="lbStatus">ALL SQUARE</div>
+          <div class="lm" id="lbHole">HOLE 7 · ENCANTO GC</div>
+          <span class="go">→</span>
+        </button>
+        <div class="stats">
+          <div class="stat"><div class="k">Season</div><div class="v"><span id="statWk">W18</span> <small>/ <span id="wkTotal2">24</span></small></div><div class="d fl" id="statFinal">Cup Final · final 4 wks</div></div>
+          <div class="stat"><div class="k">The pot</div><div class="v gold" id="chipPot">$525</div><div class="d fl" id="paidChip">5/7 buy-ins in</div></div>
+          <div class="stat"><div class="k">Your index</div><div class="v" id="statIdx">12.4</div><div class="d up" id="statIdxD">▼ 0.3 this month</div></div>
+          <div class="stat"><div class="k">Counting rounds</div><div class="v" id="statCount">3 <small>/ 4</small></div><div class="d fl" id="statCountD">This month · best 4 count</div></div>
+        </div>
+
+        <div class="nextcard">
+          <div class="nx">
+            <div class="nk" id="nextK">Next up · this month's floor</div>
+            <div class="nt" id="nextTxt">1 counting round to go (best 4 count, you've banked 3).</div>
+          </div>
+          <button class="mini" data-go="record">Record</button>
+        </div>
+
+        <button class="ontheline" data-go="pot">
+          <div>
+            <div class="ok">On the line</div>
+            <div class="oa" id="lineAmt">$525</div>
+          </div>
+          <div class="os" id="lineSplit">CHAMPS $315 · RUNNER-UP $131 · POINTS KING $79</div>
+          <span class="go">→</span>
+        </button>
+
+        <div class="homegrid">
+          <div>
+            <div class="eyebrow">Season race · cup points by week</div>
+            <div class="card">
+              <div class="chart-legend" id="chartLegend"></div>
+              <svg id="raceChart" viewBox="0 0 640 230" role="img" aria-label="Season points race chart"></svg>
+              <div class="chart-note" id="chartNote">BOTH SQUADS REACH THE CUP FINAL — SEASON LEADER CARRIES +10</div>
+            </div>
+          </div>
+
+          <div>
+            <div class="eyebrow">Standings</div>
+            <div class="card" style="padding:10px 12px 4px">
+              <table class="tbl" id="standings"></table>
+            </div>
+          </div>
+        </div>
         </div>
 
         <div class="eyebrow league-only">League</div>
