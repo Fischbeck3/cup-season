@@ -1290,7 +1290,7 @@ body::before{
       </div>
             
     </div>
-    <div class="ob-caption" id="obCaption">New or returning, email is one door. No passwords. Just looking? Join with code <b style="color:var(--mut)">DEMO</b>. <span style="opacity:.5">v23.95</span></div>
+    <div class="ob-caption" id="obCaption">New or returning, email is one door. No passwords. Just looking? Join with code <b style="color:var(--mut)">DEMO</b>. <span style="opacity:.5">v23.96</span></div>
   </div>
   <div class="ob-splash" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
   
@@ -3418,7 +3418,7 @@ function upcomingFromSchedule(){
 function renderHubComing(){
   const box = $('#hubComing'); if(!box) return;
   const items = state.demo
-    ? [{when:'IN 2 DAYS', what:'Your declared round', who:'PIGL · Papago GC'},
+    ? [{when:'IN 2 DAYS', what:'Your declared round', who:'The Sunday Cup · Papago GC'},
        {when:'SATURDAY', what:'Ryder session 3 closes', who:'The Grudge'}]
     : upcomingFromSchedule();
   box.innerHTML = items.length
@@ -3428,8 +3428,15 @@ function renderHubComing(){
 function renderHomeHub(){
   const gbox = $('#hubGroups'); if(!gbox) return;
   if(state.demo){
-    gbox.innerHTML = hubGroupRow('⛳','The Sunday Cup','WK 18 / 24 · IN SEASON', true)
-      + hubGroupRow('🏆','The Grudge','THE RYDER · LIVE', false);
+    gbox.innerHTML =
+      `<div class="check tap" data-demolg style="cursor:pointer; border-color:var(--pos)"><span class="num">⛳</span>
+        <div class="tt"><b>The Sunday Cup</b><small>WK 18 / 24 · IN SEASON</small></div>
+        <span class="fine" style="padding:0; color:var(--pos)">HERE</span></div>
+      <div class="check tap" data-demoev style="cursor:pointer"><span class="num">🏆</span>
+        <div class="tt"><b>The Grudge</b><small>THE RYDER · LIVE</small></div>
+        <span class="fine" style="padding:0; color:var(--dim)">→</span></div>`;
+    gbox.querySelector('[data-demolg]')?.addEventListener('click', ()=> switchView('hub'));
+    gbox.querySelector('[data-demoev]')?.addEventListener('click', ()=> toast('The Grudge is a Ryder event — start your own from any league'));
     renderHubComing(); return;
   }
   const cur = window.CS?.league?.id;
@@ -3519,6 +3526,14 @@ $('#youPost')?.addEventListener('click', ()=> switchView('record'));
 function renderIndStats(){
   renderTrophyCase();
   renderCareer();
+  /* the demo's Tour Card must show a golfer, not a blank "Your card / —"
+     (real accounts fill this from CS.profile via refreshWhoChip) */
+  if(state.demo){
+    const set=(id,v,html)=>{ const e=$(id); if(e){ if(html) e.innerHTML=v; else e.textContent=v; } };
+    set('#youName','Jerecho'); set('#youMeta','@jerecho · Tempe, AZ · Papago GC');
+    set('#youIdx', (state.myIndex||12.4).toFixed(1));
+    if(window.mkr) set('#youMk', window.mkr('saguaro'), true);
+  }
   renderLeagueRecord();
   const kp=$('#kingPct'); if(kp) kp.textContent=(state.payout||[60,25,15])[2];
   if(!state.demo){ renderIndStatsReal(); return; }
@@ -4606,7 +4621,12 @@ function openProfileHub(){
       const { data: res, error: fe } = await sb.rpc('friend_request', { p_profile: b.dataset.fadd });
       if(fe){ toast('Could not send: ' + fe.message); b.disabled = false; return; }
       toast(res === 'friend' ? 'Golf buddies ✓' : 'Request sent');
-      runSearch(); loadFriendsList();
+      /* flip THIS button now — search_golfers doesn't echo the new rel, so a
+         re-search would reset it to "Add" and invite a double-tap */
+      b.outerHTML = res === 'friend'
+        ? '<b class="fine" style="padding:0">BUDDIES ✓</b>'
+        : '<b class="fine" style="padding:0">REQUESTED</b>';
+      loadFriendsList();
     }));
   }
   $('#phFind').addEventListener('input', () => { clearTimeout(findTimer); findTimer = setTimeout(runSearch, 350); });
@@ -4968,9 +4988,9 @@ async function enterLeague(m){
     if(pe) pe.textContent = 'Post a round · your index ' + state.myIndex.toFixed(1);
   }
   try { await loadLeagueData(); } catch(e){ bootTrace('league data: '+(e.message||e)); }
-  loadLeagueSpans().then(loadSchedule); /* the calendar's social + season layers */
+  loadLeagueSpans().then(loadSchedule).then(()=>window.renderHomeHub&&window.renderHomeHub()); /* calendar layers + hub "coming up" */
   loadLeagueRecord();                   /* the You tab's per-league record rows */
-  loadMyEvents();                       /* Ryder events in the switcher */
+  loadMyEvents().then(()=>window.renderHomeHub&&window.renderHomeHub());   /* events in the switcher + the Home hub (was missing on boot) */
   loadInvites().then(()=>window.renderNotifications&&window.renderNotifications());  /* invite banner */
   const ab = $('#annBtn');
   if(ab) ab.style.display = CS.member?.role === 'commissioner' ? '' : 'none';
@@ -5452,8 +5472,17 @@ $('#joinGo').addEventListener('click', async () => {
     return;
   }
   if(!CS.user){
+    /* validate BEFORE the email round-trip: a typo fails here, not after the
+       code arrives. `undefined` = RPC not deployed yet \u2192 arm anyway (degrade). */
+    let name;
+    try { const { data } = await sb.rpc('league_by_code', { p_code: code }); name = data; }
+    catch(e){ name = undefined; }
+    if(name === null){ toast('No league with that code \u2014 check with your Pro'); return; }
     localStorage.setItem('cs_code', code);
-    openEmailBox($('#joinbox'), `Enter your email: we\u2019ll auto-join ${code} the moment your sign-in code lands.`);
+    if(name) localStorage.setItem('cs_code_name', name); else localStorage.removeItem('cs_code_name');
+    openEmailBox($('#joinbox'), name
+      ? `Enter your email \u2014 you'll join ${name} the moment your sign-in code lands.`
+      : `Enter your email \u2014 we'll auto-join ${code} the moment your sign-in code lands.`);
     return;
   }
   try {
@@ -6331,6 +6360,7 @@ async function boot(){
     const pend = localStorage.getItem('cs_code');
     if(pend){
       localStorage.removeItem('cs_code');
+      localStorage.removeItem('cs_code_name');
       try {
         const { error } = await sb.rpc('join_league', { p_code: pend });
         if(error) throw error;
@@ -6410,8 +6440,11 @@ async function safeBoot(){
   try { await boot(); } finally { booting = false; }
   /* invite link landed while signed out: surface it on the door */
   const pend = localStorage.getItem('cs_code');
+  const pendName = localStorage.getItem('cs_code_name');
   if(!CS.user && pend){
-    openEmailBox($('#obJoin'), `You're invited: code ${pend}. Enter your email and you'll join the league automatically.`);
+    openEmailBox($('#obJoin'), pendName
+      ? `You're invited to ${pendName}. Enter your email and you'll join automatically.`
+      : `You're invited: code ${pend}. Enter your email and you'll join the league automatically.`);
   }
 }
 sb.auth.onAuthStateChange((event) => {
@@ -6420,7 +6453,7 @@ sb.auth.onAuthStateChange((event) => {
   if(event === 'SIGNED_IN' || event === 'INITIAL_SESSION'){
     setTimeout(safeBoot, 0);
   }
-  if(event === 'SIGNED_OUT'){ CS.user=null; CS.league=null; backToDoor(); }
+  if(event === 'SIGNED_OUT'){ CS.user=null; CS.league=null; try{ localStorage.removeItem('cs_code'); localStorage.removeItem('cs_code_name'); }catch(_){}; backToDoor(); }
 });
 
 safeBoot();
