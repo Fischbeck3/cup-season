@@ -1285,7 +1285,7 @@ body::before{
       </div>
             
     </div>
-    <div class="ob-caption" id="obCaption">New or returning, email is one door. No passwords. Just looking? <a href="#" id="obDemoLink" style="color:var(--pos)">Peek at the demo</a>. <span style="opacity:.5">v23.101</span></div>
+    <div class="ob-caption" id="obCaption">New or returning, email is one door. No passwords. Just looking? <a href="#" id="obDemoLink" style="color:var(--pos)">Peek at the demo</a>. <span style="opacity:.5">v23.102</span></div>
   </div>
   <div class="ob-splash" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
   
@@ -1466,7 +1466,7 @@ body::before{
 
       <!-- EVENT (The Ryder — standalone) -->
       <section class="view" id="view-event">
-        <a href="#" class="backlink" data-go="home">← Back to the clubhouse</a>
+        <a href="#" class="backlink" data-go="home">← Home</a>
         <div id="eventBody"></div>
       </section>
 
@@ -1803,7 +1803,7 @@ body::before{
         </div>
         <div class="card league-only" id="hubHeader" style="margin-bottom:14px">
           <div style="display:flex; align-items:center; gap:10px;">
-            <div style="min-width:0"><b id="hhName" style="font-size:16px">The Sunday Cup</b><div class="fine" id="hhPhase" style="padding:2px 0 0">SEASON LIVE</div></div>
+            <div style="min-width:0"><b id="hhName" style="font-size:16px">The Sunday Cup</b><div class="fine" id="hhPhase" style="padding:2px 0 0">Season live</div></div>
             <button class="mini copycode" style="margin-left:auto; flex:none">Code · <b class="mono" id="hhCode">SNDYCUP</b></button>
           </div>
           <div class="fine" id="hhSpan" style="padding:8px 0 0">Sun Jul 5 → Sat Dec 26 · 25 wks</div>
@@ -4260,7 +4260,7 @@ function renderLeagueMeta(){
   if(state.demo){
     /* the diorama's header card rides the demo season frame — E6 */
     const sp=$('#hhSpan'); if(sp) sp.textContent=seasonSpanText();
-    const ph=$('#hhPhase'); if(ph) ph.textContent='SEASON LIVE';
+    const ph=$('#hhPhase'); if(ph) ph.textContent='Season live';
     const dz=$('#hhDanger'); if(dz) dz.style.display='none';
     return;
   }
@@ -4286,17 +4286,23 @@ function renderLeagueMeta(){
   if($('#hubHeader')){
     $('#hhName').textContent=L.name;
     $('#hhCode').textContent=L.code;
+    /* week lives on the Season tile — the header just names the phase */
     $('#hhPhase').textContent =
       state.phase==='setup' ? 'Setup — invites open'
       : state.phase==='draft' ? 'Squad formation'
-      : atStarter() ? `AT THE STARTER — FIRST TEE ${firstTeeText().toUpperCase()}`
-      : isCupFinal() ? `CUP FINAL — WK ${currentWeek()} / ${totalWeeks()}`
-      : `SEASON LIVE — WK ${currentWeek()} / ${totalWeeks()}`;
+      : atStarter() ? `At the starter — first tee ${firstTeeText()}`
+      : isCupFinal() ? 'Cup Final'
+      : 'Season live';
     $('#hhSpan').textContent = state.seasonStart
       ? seasonSpanText()
       : 'Season dates lock with the bylaws';
+    /* in setup the roster isn't loaded yet, so the Pro who just created the
+       league would see "—" — fall back to their own name */
     const pro=members.find(m=>m.role==='commissioner');
-    $('#hhPro').textContent='THE PRO · '+(pro?.profile?.display_name||'—').toUpperCase();
+    const proName = pro?.profile?.display_name
+      || (window.CS.member?.role==='commissioner' ? CS.profile?.display_name : null)
+      || '—';
+    $('#hhPro').textContent='THE PRO · '+proName.toUpperCase();
     /* the escape hatch: a league that never went live can be scrapped by the
        Pro — setup, squad formation, or at the starter. Server re-validates. */
     const dz=$('#hhDanger');
