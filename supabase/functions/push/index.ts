@@ -63,7 +63,9 @@ async function sendEmail(toEmail: string, toName: string, subject: string, html:
       method: 'POST',
       headers: { 'api-key': key, 'content-type': 'application/json', accept: 'application/json' },
       body: JSON.stringify({
-        sender: { name: 'Cup Season', email: 'hello@cupseason.app' },
+        // Must be an authorised sender in Brevo — default to the address your
+        // auth emails already use; override with the BREVO_SENDER secret.
+        sender: { name: 'Cup Season', email: Deno.env.get('BREVO_SENDER') ?? 'hello@cupseason.app' },
         to: [{ email: toEmail, name: toName || undefined }],
         subject,
         htmlContent: html,
