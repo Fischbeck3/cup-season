@@ -1285,7 +1285,7 @@ body::before{
       </div>
             
     </div>
-    <div class="ob-caption" id="obCaption">New or returning, email is one door. No passwords. Just looking? <a href="#" id="obDemoLink" style="color:var(--pos)">Peek at the demo</a>. <span style="opacity:.5">v23.99</span></div>
+    <div class="ob-caption" id="obCaption">New or returning, email is one door. No passwords. Just looking? <a href="#" id="obDemoLink" style="color:var(--pos)">Peek at the demo</a>. <span style="opacity:.5">v23.100</span></div>
   </div>
   <div class="ob-splash" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
   
@@ -1497,12 +1497,12 @@ body::before{
         <div class="eyebrow">Record a round · both paths score identically</div>
         <button class="optcard" style="--acc:var(--pos)" data-go="post">
           <h4>Quick post — 20 seconds</h4>
-          <p>GROSS + TEE · SOLO ROUND FROM ANYWHERE · FEEDS THE SEASON INSTANTLY</p>
+          <p>Gross + tee · solo round from anywhere · feeds the season instantly</p>
           <span class="go">→</span>
         </button>
         <button class="optcard" id="optLive" style="--acc:var(--sq0)" data-go="play">
           <h4>Live round — the group's here</h4>
-          <p>HOLE-BY-HOLE · MATCH PLAY & WOLF · AUTO-ATTESTED · GUESTS WELCOME, NO ACCOUNT NEEDED</p>
+          <p>Hole-by-hole · match play & Wolf · auto-attested · guests welcome, no account needed</p>
           <span class="go">→</span>
         </button>
         <p class="fine">Both paths score the same. Your month's status lives on Clubhouse.</p>
@@ -1702,12 +1702,12 @@ body::before{
 
         <div class="wizstep" data-step="1">
           <div class="setrow">
-            <div class="lab">Buy-in<small>PER PLAYER · SEASON</small></div>
+            <div class="lab">Buy-in<small>Per player · season</small></div>
             <div class="val" id="stakeVal">$75</div>
             <div class="ctl"><button id="stakeDown" aria-label="Lower buy-in">−</button><button id="stakeUp" aria-label="Raise buy-in">+</button></div>
           </div>
           <div class="setrow">
-            <div class="lab">Season length<small>CUP FINAL · FINAL 4 WEEKS</small></div>
+            <div class="lab">Season length<small>Cup Final · final 4 weeks</small></div>
             <div class="val" id="lenVal">6 mo</div>
             <div class="ctl"><button id="lenDown" aria-label="Shorter season">−</button><button id="lenUp" aria-label="Longer season">+</button></div>
           </div>
@@ -1758,7 +1758,7 @@ body::before{
             <p><b>90% hcp</b> · verified + attested · rated tees · best 4 / mo · 3-round floor</p>
           </button>
           <div class="setrow">
-            <div class="lab">Counting cap <button class="ibtn" data-i="cap" aria-expanded="false" aria-label="About counting cap">i</button><small>BEST N ROUNDS / MONTH</small></div>
+            <div class="lab">Counting cap <button class="ibtn" data-i="cap" aria-expanded="false" aria-label="About counting cap">i</button><small>Best N rounds / month</small></div>
             <div class="val" id="capVal">Best 4</div>
             <div class="ctl"><button id="capDown" aria-label="Lower counting cap">−</button><button id="capUp" aria-label="Raise counting cap">+</button></div>
           </div>
@@ -1781,6 +1781,7 @@ body::before{
         </div>
 
         <div class="wiznav">
+          <button class="btn dark" id="wizCancel">Cancel</button>
           <button class="btn dark" id="wizBack">← Back</button>
           <button class="btn" id="wizNext">Next →</button>
         </div>
@@ -1822,9 +1823,9 @@ body::before{
 
         <div id="homeSetup" style="display:none">
           <div class="eyebrow">League setup · three steps to first tee</div>
-          <div class="check"><span class="num">1</span><div class="tt"><b>Season settings</b><small>STAKES · RULES · FORMAT</small></div><button class="mini" data-go="wizard">Continue</button></div>
+          <div class="check"><span class="num">1</span><div class="tt"><b>Season settings</b><small>Stakes · rules · format</small></div><button class="mini" data-go="wizard">Continue</button></div>
           <div class="check"><span class="num">2</span><div class="tt"><b>Invite the players</b><small id="setupInviteSub">CODE SNDYCUP · 9 OF 16 JOINED</small></div><button class="mini copycode">Invite</button></div>
-          <div class="check"><span class="num">3</span><div class="tt"><b>Squad formation</b><small>UNLOCKS WHEN SETTINGS LOCK</small></div><button class="mini" disabled style="opacity:.4">Locked</button></div>
+          <div class="check"><span class="num">3</span><div class="tt"><b>Squad formation</b><small>Unlocks when settings lock</small></div><button class="mini" disabled style="opacity:.4">Locked</button></div>
         </div>
 
         <div id="homeDraft" style="display:none">
@@ -1894,7 +1895,7 @@ body::before{
         <div class="eyebrow league-only">League</div>
         <div class="check league-only"><span class="num">⛳</span><div class="tt"><b>Members & invites</b><small id="hubMembersSub">7 players</small></div><button class="mini" id="hubMembersBtn">View</button></div>
         <div class="check league-only"><span class="num">$</span><div class="tt"><b>The pot</b><small id="hubPotSub">Buy-ins & payouts</small></div><button class="mini" data-go="pot">View</button></div>
-        <div class="check"><span class="num">◫</span><div class="tt"><b>Squads</b><small id="hubDraftSub">COMPLETE · ROSTERS LOCKED</small></div><button class="mini" data-go="draft">View</button></div>
+        <div class="check"><span class="num">◫</span><div class="tt"><b>Squads</b><small id="hubDraftSub">Complete · rosters locked</small></div><button class="mini" data-go="draft">View</button></div>
 
         <div class="eyebrow league-only">The individual race · every player</div>
         <div class="trip league-only">
@@ -2173,7 +2174,7 @@ function gateLiveRound(){
   if(state.demo){
     card.classList.remove('soon'); card.disabled=false; card.dataset.go='play';
     if(h) h.textContent="Live round — the group's here";
-    if(p) p.textContent='HOLE-BY-HOLE · MATCH PLAY & WOLF · AUTO-ATTESTED · GUESTS WELCOME, NO ACCOUNT NEEDED';
+    if(p) p.textContent='Hole-by-hole · match play & Wolf · auto-attested · guests welcome, no account needed';
     if(go) go.textContent='→';
   } else {
     card.classList.add('soon'); card.disabled=true; card.dataset.go='';
@@ -2537,7 +2538,7 @@ function renderDraft(){
   clock.innerHTML= done
     ? `<span class="accent" style="background:var(--gold)"></span>
        <div class="k">Squads are set</div><div class="n">Good luck, everybody</div>
-       <div class="m">ROSTERS LOCKED · SEASON OPENS W1</div>`
+       <div class="m">Rosters locked · season opens W1</div>`
     : `<span class="accent" style="background:${SQHEX[onClock]}"></span>
        <div class="k">On the clock</div><div class="n">${captains[onClock]}</div>
        <div class="m">R${rd} · PICK ${pk}/4 · ${squadNames[onClock].toUpperCase()}</div>`;
@@ -2555,7 +2556,7 @@ function renderDraft(){
     go.textContent='Start the season →';
     go.addEventListener('click',()=>{
       state.phase='season'; renderPhase(); switchView('home');
-      feed.push({d:TODAY, sys:true, txt:'ROSTERS LOCKED — THE SEASON IS LIVE'});
+      feed.push({d:TODAY, sys:true, txt:'Rosters locked — the season is live'});
       renderFeed();
       toast('Season is live: post your first round');
     });
@@ -3428,9 +3429,9 @@ function renderLeagueRecord(){
    calendar. Deeper digest (buddies' scores with faces) lands in part 2. */
 function leaguePhaseLabel(m){
   const p = m.league.phase;
-  if(p==='setup') return 'SETUP · INVITES OPEN';
-  if(p==='draft') return 'SQUAD FORMATION';
-  return m.role==='commissioner' ? 'IN SEASON · YOU ARE THE PRO' : 'IN SEASON';
+  if(p==='setup') return 'Setup · invites open';
+  if(p==='draft') return 'Squad formation';
+  return m.role==='commissioner' ? 'In season · you are the Pro' : 'In season';
 }
 function hubGroupRow(icon,name,sub,here){
   return `<div class="check" style="${here?'border-color:var(--pos);':''}"><span class="num">${icon}</span>
@@ -3468,10 +3469,10 @@ function renderHomeHub(){
   if(state.demo){
     gbox.innerHTML =
       `<div class="check tap" data-demolg style="cursor:pointer; border-color:var(--pos)"><span class="num">⛳</span>
-        <div class="tt"><b>The Sunday Cup</b><small>WK 18 / 24 · IN SEASON</small></div>
+        <div class="tt"><b>The Sunday Cup</b><small>Wk 18 / 24 · in season</small></div>
         <span class="fine" style="padding:0; color:var(--pos)">HERE</span></div>
       <div class="check tap" data-demoev style="cursor:pointer"><span class="num">🏆</span>
-        <div class="tt"><b>The Grudge</b><small>THE RYDER · LIVE</small></div>
+        <div class="tt"><b>The Grudge</b><small>The Ryder · live</small></div>
         <span class="fine" style="padding:0; color:var(--dim)">→</span></div>`;
     gbox.querySelector('[data-demolg]')?.addEventListener('click', ()=> switchView('hub'));
     gbox.querySelector('[data-demoev]')?.addEventListener('click', ()=> toast('The Grudge is a Ryder event — start your own from any league'));
@@ -3484,20 +3485,20 @@ function renderHomeHub(){
       <div class="tt"><b>${esc(m.league.name)}</b><small>${leaguePhaseLabel(m)}</small></div>
       ${here?'<span class="fine" style="padding:0; color:var(--pos)">HERE</span>':'<span class="fine" style="padding:0; color:var(--dim)">→</span>'}</div>`;
   }).join('');
-  const evStat = e => e.status==='complete'?'FINAL':e.status==='setup'?'FORMING':'LIVE';
+  const evStat = e => e.status==='complete'?'Final':e.status==='setup'?'Forming':'Live';
   const events = (window.myEvents||[]).map(e =>
     `<div class="check tap" data-hgev="${e.id}" style="cursor:pointer"><span class="num">🏆</span>
-      <div class="tt"><b>${esc(e.name)}</b><small>THE RYDER · ${evStat(e)}</small></div>
+      <div class="tt"><b>${esc(e.name)}</b><small>The Ryder · ${evStat(e)}</small></div>
       <span class="fine" style="padding:0; color:var(--dim)">→</span></div>`).join('');
   /* start actions live here now — the top-bar switcher is retired, so the hub
      is the one place you create a league or event */
   const starts = `
     <div class="check tap" data-hgnew style="cursor:pointer; border-color:var(--pos)"><span class="num">⛳</span>
-      <div class="tt"><b>Start a league</b><small>A FULL SEASON · SQUADS · A CUP FINAL</small></div><span class="fine" style="padding:0; color:var(--dim)">→</span></div>
+      <div class="tt"><b>Start a league</b><small>A full season · squads · a Cup Final</small></div><span class="fine" style="padding:0; color:var(--dim)">→</span></div>
     <div class="check tap" data-hgnewev style="cursor:pointer; border-color:var(--pos)"><span class="num">🏆</span>
-      <div class="tt"><b>Start an event</b><small>SHORT FORM · RYDER, BRACKET, A MAJOR</small></div><span class="fine" style="padding:0; color:var(--dim)">→</span></div>
+      <div class="tt"><b>Start an event</b><small>Short form · Ryder, Bracket, a Major</small></div><span class="fine" style="padding:0; color:var(--dim)">→</span></div>
     <div class="check tap" data-hgjoin style="cursor:pointer"><span class="num">🔑</span>
-      <div class="tt"><b>Join with a code</b><small>GOT AN INVITE CODE?</small></div><span class="fine" style="padding:0; color:var(--dim)">→</span></div>`;
+      <div class="tt"><b>Join with a code</b><small>Got an invite code?</small></div><span class="fine" style="padding:0; color:var(--dim)">→</span></div>`;
   gbox.innerHTML = (leagues + events || '<p class="fine" style="padding:2px 0 8px">No groups yet — start or join one below.</p>')
     + '<div class="eyebrow">Start something</div>' + starts;
   gbox.querySelectorAll('[data-hglg]').forEach(b => b.addEventListener('click', () => {
@@ -3906,7 +3907,7 @@ function renderBylaws(){
   const pr=PRESETS[state.preset];
   const rows=`
     <div class="byrow"><span>STRUCTURE</span><b>${STRUCT_NAMES[state.structure]}</b></div>
-    <div class="byrow"><span>SQUAD FORMATION</span><b>${({random:'Blind draw',assign:'Pro assign',snake:'Snake · async',live:'Live · pick clock'})[state.draftType]}</b></div>
+    <div class="byrow"><span>Squad formation</span><b>${({random:'Blind draw',assign:'Pro assign',snake:'Snake · async',live:'Live · pick clock'})[state.draftType]}</b></div>
     <div class="byrow"><span>PRESET</span><b>${pr.name}</b></div>
     <div class="byrow"><span>HANDICAP ALLOWANCE</span><b>${ALLOW[state.preset]}%</b></div>
     <div class="byrow"><span>VERIFICATION</span><b>${VERIF[state.preset]}</b></div>
@@ -3930,7 +3931,7 @@ function renderBylaws(){
   }
 }
 const MIN_LEAGUE=4;                    /* foursome floor — spec §8 v0.7 */
-if(state.emails.length===0) state.emails=Array(MIN_LEAGUE-1).fill('');
+if(state.emails.length===0) state.emails=[''];   /* one line; "+ Add email" grows it */
 function updateInviteNote(){
   const n=state.emails.filter(e=>e.includes('@')).length;
   const app=(state.wizInvitees||[]).length;
@@ -3971,7 +3972,7 @@ function renderPhase(){
   $('#homeSeason').style.display = p==='season'? 'block':'none';
   $('#phaseSub').textContent = p==='setup'
     ? (L ? `SETUP · CODE ${L.code} · ${nMem} JOINED` : 'SETUP · CODE SNDYCUP · 9 OF 16 JOINED')
-    : p==='draft' ? 'SQUAD FORMATION · ROSTERS PENDING'
+    : p==='draft' ? 'Squad formation · rosters pending'
     : state.demo
       ? `Wk ${currentWeek()} / ${totalWeeks()} · ${FMT_NAMES[state.fmt]} · ${PRESETS[state.preset].name} rules`
       : atStarter()
@@ -3991,10 +3992,10 @@ function renderPhase(){
     }
   }
   const hd=$('#hubDraftSub');
-  if(hd) hd.textContent = state.structure==='solo' ? 'INDIVIDUAL LEAGUE — NO SQUADS'
+  if(hd) hd.textContent = state.structure==='solo' ? 'Individual league — no squads'
     : p==='setup' ? 'OPENS AFTER SETTINGS LOCK'
     : p==='draft' ? 'LIVE NOW — CAPTAINS READY'
-    : 'COMPLETE · ROSTERS LOCKED';
+    : 'Complete · rosters locked';
   renderLeagueMeta();
   renderCalendar();
   renderLiveBanner();
@@ -4143,7 +4144,7 @@ function renderEvent(){
 
   let statusChip = ev.status==='complete'
     ? (ev.winner_team_id===A.id?A.name:ev.winner_team_id===B.id?B.name:'—').toUpperCase()+' TAKES THE CUP'
-    : ev.status==='setup' ? 'FORMING' : `LIVE · WK ${Math.min(wkNo+1,ev.session_count)}/${ev.session_count}`;
+    : ev.status==='setup' ? 'Forming' : `Live · wk ${Math.min(wkNo+1,ev.session_count)}/${ev.session_count}`;
   let clinchLine = ev.status==='complete'
     ? `FINAL · ${evHalf(aP)}–${evHalf(bP)}`
     : `FIRST TO ${evHalf(clinch)} · ${A.name.toUpperCase()} NEEDS ${evHalf(Math.max(0,clinch-aP))} · ${B.name.toUpperCase()} NEEDS ${evHalf(Math.max(0,clinch-bP))}`;
@@ -4286,8 +4287,8 @@ function renderLeagueMeta(){
     $('#hhName').textContent=L.name;
     $('#hhCode').textContent=L.code;
     $('#hhPhase').textContent =
-      state.phase==='setup' ? 'SETUP — INVITES OPEN'
-      : state.phase==='draft' ? 'SQUAD FORMATION'
+      state.phase==='setup' ? 'Setup — invites open'
+      : state.phase==='draft' ? 'Squad formation'
       : atStarter() ? `AT THE STARTER — FIRST TEE ${firstTeeText().toUpperCase()}`
       : isCupFinal() ? `CUP FINAL — WK ${currentWeek()} / ${totalWeeks()}`
       : `SEASON LIVE — WK ${currentWeek()} / ${totalWeeks()}`;
@@ -4307,7 +4308,8 @@ function renderLeagueMeta(){
 function renderWizard(){
   $$('.wizstep').forEach(s=>s.classList.toggle('on',+s.dataset.step===state.wiz));
   $$('.wizdots i').forEach((d,i)=>d.classList.toggle('on',i<=state.wiz));
-  $('#wizBack').style.visibility = state.wiz===0 ? 'hidden':'visible';
+  $('#wizBack').style.display   = state.wiz===0 ? 'none':'flex';
+  $('#wizCancel').style.display = state.wiz===0 ? 'flex':'none';   /* step 0: Cancel replaces Back */
   $('#wizNext').style.display = state.wiz===3 ? 'none':'flex';
   if(state.wiz===0 && !state.demo) window.renderWizAddGolfers?.();
 }
@@ -5226,7 +5228,7 @@ function renderFormation(){
     <div class="k">Form squads</div>
     <div class="n">${pool.length ? pool.length + ' in the pool' : 'Everyone has a squad'}</div>
     <div class="m">${state.draftType === 'assign'
-      ? 'TAP A PLAYER, THEN TAP A SQUAD'
+      ? 'Tap a player, then tap a squad'
       : 'THE HAT SHUFFLES SERVER-SIDE \u2014 NOBODY RIGS THE DRAW'}</div>
     ${isC && pool.length && state.draftType !== 'assign'
       ? '<button class="mini" id="fmDraw" style="margin-top:10px">Draw squads</button>' : ''}
@@ -5578,31 +5580,45 @@ $('#lockBtn').addEventListener('click', async () => {
 /* league switcher — the header name (and sidebar) opens the sheet.
    Every membership, the clubhouse, and start/join live one tap away. */
 function switcherChip(m){
-  if(m.league.phase === 'setup') return 'SETUP — INVITES OPEN';
-  if(m.league.phase === 'draft') return 'SQUAD FORMATION';
+  if(m.league.phase === 'setup') return 'Setup — invites open';
+  if(m.league.phase === 'draft') return 'Squad formation';
   if(CS.league && m.league.id === CS.league.id){
     if(atStarter()) return 'AT THE STARTER';
     return isCupFinal() ? 'CUP FINAL' : `WK ${currentWeek()} / ${totalWeeks()}`;
   }
-  return 'IN SEASON';
+  return 'In season';
 }
 function goClubhouse(){
   CS.league = null; CS.season = null; CS.member = null;
   if(CS.chan){ try{ rtClient.removeChannel(CS.chan); }catch(e){} CS.chan = null; }
   showWelcome();
 }
+/* wizard step-0 Cancel: the league row already exists (created on "Start a
+   league"), so abandoning discards it — delete_league is setup/draft-only. */
+document.getElementById('wizCancel')?.addEventListener('click', async () => {
+  if(!confirm("Cancel this league? It hasn't started, so this discards it completely.")) return;
+  try {
+    if(!state.demo && CS.league?.id){
+      const { error } = await sb.rpc('delete_league', { p_league: CS.league.id });
+      if(error) throw error;
+      await loadMemberships();
+    }
+  } catch(e){ toast('Could not discard: ' + (e.message || e)); return; }
+  goClubhouse();
+  toast('League discarded');
+});
 /* the event-style menu — Ryder is live, the rest are the roadmap. Keeps the
    Ryder from being the lone hard-coded event: it's the first of a category. */
 function openEventPicker(){
-  openSheet('Start an event', 'SHORT FORM · ITS OWN LITTLE TROPHY', `
+  openSheet('Start an event', 'Short form · its own little trophy', `
     <div class="check tap" data-evstyle="ryder" style="cursor:pointer; border-color:var(--pos)">
-      <span class="num">⚔️</span><div class="tt"><b>The Ryder</b><small>TWO TEAMS · WEEKLY VS-INDEX DUELS · FIRST TO THE CLINCH</small></div>
+      <span class="num">⚔️</span><div class="tt"><b>The Ryder</b><small>Two teams · weekly vs-index duels · first to the clinch</small></div>
       <span class="fine" style="padding:0; color:var(--pos)">LIVE</span></div>
     <div class="check tap" data-evstyle="bracket" style="cursor:pointer">
-      <span class="num">🥊</span><div class="tt"><b>Bracket</b><small>KNOCKOUT · SEEDED · LAST GOLFER STANDING</small></div>
+      <span class="num">🥊</span><div class="tt"><b>Bracket</b><small>Knockout · seeded · last golfer standing</small></div>
       <span class="fine" style="padding:0; color:var(--dim)">SOON</span></div>
     <div class="check tap" data-evstyle="major" style="cursor:pointer">
-      <span class="num">🏆</span><div class="tt"><b>A Major</b><small>A TIMED MAJOR · BEST ROUND TAKES THE TROPHY</small></div>
+      <span class="num">🏆</span><div class="tt"><b>A Major</b><small>A timed major · best round takes the trophy</small></div>
       <span class="fine" style="padding:0; color:var(--dim)">SOON</span></div>
     <p class="fine">Every event mints a trophy for your display case. More styles land after the pilot.</p>
   `);
@@ -5615,7 +5631,7 @@ function openEventPicker(){
 /* join-by-code, self-contained — the hub's join box hides for members, so the
    Clubhouse sheet carries its own */
 function openJoinSheet(){
-  openSheet('Join with a code', 'GOT AN INVITE CODE?', `
+  openSheet('Join with a code', 'Got an invite code?', `
     <input class="f" id="jCode" placeholder="CUP-CODE" autocomplete="off" style="font-family:var(--sans); text-transform:uppercase">
     <button class="btn" id="jGo" style="margin-top:12px">Join</button>
     <p class="fine">No code? Any member can share an invite link — or you'll see an invite here when someone adds you.</p>
@@ -5665,8 +5681,8 @@ async function openLeagueSwitcher(){
       ${right}
     </div>`;
   }).join('');
-  const evStat = e => e.status==='complete' ? 'FINAL' : e.status==='setup' ? 'FORMING' : 'LIVE';
-  const events = (window.myEvents||[]).map(e => row('__event:'+e.id, '🏆', e.name, 'THE RYDER · '+evStat(e), false)).join('');
+  const evStat = e => e.status==='complete' ? 'Final' : e.status==='setup' ? 'Forming' : 'Live';
+  const events = (window.myEvents||[]).map(e => row('__event:'+e.id, '🏆', e.name, 'The Ryder · '+evStat(e), false)).join('');
   const invites = (window.myInvites||[]).map(i => `
     <div class="check"><span class="num">${i.kind==='league'?'⛳':'🏆'}</span>
       <div class="tt"><b>${esc(i.container_name||'')}</b><small>INVITE · FROM ${esc((i.inviter||'').toUpperCase())}</small></div>
@@ -5688,9 +5704,9 @@ async function openLeagueSwitcher(){
     + (events || '<p class="fine" style="padding:2px 0 8px">No events yet — start a short one below.</p>')
     + (invites ? '<div class="eyebrow">Invites</div>' + invites : '')
     + '<div class="eyebrow">Start something</div>'
-    + startCard('__newleague', '⛳', 'Start a league', 'A FULL SEASON · SQUADS · A CUP FINAL', true)
-    + startCard('__event', '🏆', 'Start an event', 'SHORT FORM · RYDER, BRACKET, A MAJOR', true)
-    + startCard('__join', '🔑', 'Join with a code', 'GOT AN INVITE CODE?', false));
+    + startCard('__newleague', '⛳', 'Start a league', 'A full season · squads · a Cup Final', true)
+    + startCard('__event', '🏆', 'Start an event', 'Short form · Ryder, Bracket, a Major', true)
+    + startCard('__join', '🔑', 'Join with a code', 'Got an invite code?', false));
   $('#shBody').querySelectorAll('[data-lgsw]').forEach(b => b.addEventListener('click', async () => {
     const v = b.dataset.lgsw;
     if(v === '__newleague'){ closeSheet(); document.getElementById('wCreate')?.click(); return; }
@@ -5836,7 +5852,7 @@ function nextSundayISO(){
 async function openRyderSetup(){
   if(!CS.user){ toast('Sign in to start an event'); return; }
   const leagues = (CS.memberships||[]).map(m=>`<option value="${m.league.id}">${esc(m.league.name)}</option>`).join('');
-  openSheet('Start a Ryder', 'TWO TEAMS · VS-INDEX DUELS · FIRST TO THE CLINCH', `
+  openSheet('Start a Ryder', 'Two teams · vs-index duels · first to the clinch', `
     <label class="f" for="rsName">Event name</label>
     <input class="f" id="rsName" placeholder="The Grudge Match" autocomplete="off" style="font-family:var(--sans)">
     <div class="frow" style="margin-top:10px">
@@ -5861,7 +5877,10 @@ async function openRyderSetup(){
         <b style="color:var(--ink)">How it plays.</b> Two teams, one <b>session</b> a week. Each session you're paired 1‑on‑1 with someone on the other team; your best round that week — scored by how far you beat <em>your own</em> index — faces theirs. <b>Win a duel = 1 point, tie = ½ each.</b> First team past half the points takes the cup. Points scale to team size: 6‑a‑side over 3 weeks is 18 points, first to 9½.
       </div>
     </div>
-    <button class="btn" id="rsGo" style="margin-top:14px">Create the event</button>
+    <div style="display:flex; gap:8px; margin-top:14px;">
+      <button class="btn dark" id="rsCancel" style="flex:0 0 auto; width:auto; padding:0 16px">Cancel</button>
+      <button class="btn" id="rsGo" style="flex:1">Create the event</button>
+    </div>
     <p class="fine">You captain Team A. Invited players get a notification to accept; you draw or assign teams from the scoreboard once they're in.</p>
   `);
   let sess=3, weeks=1;
@@ -5906,6 +5925,7 @@ async function openRyderSetup(){
       rx.innerHTML=(data||[]).length?data.map(rsRow).join(''):'<p class="fine" style="padding:0">No golfers found.</p>'; rsBind(rx);
     }catch(e){} },300);
   });
+  document.getElementById('rsCancel').addEventListener('click', ()=> closeSheet());
   document.getElementById('rsGo').addEventListener('click',async()=>{
     const name=document.getElementById('rsName').value.trim();
     if(!name){ toast('Name the event'); return; }
@@ -6094,8 +6114,8 @@ async function loadLeagueRecord(){
     window.leagueRecord = CS.memberships.map(m => {
       const s = latest.get(m.league.id);
       let line;
-      if(!s || m.league.phase === 'setup') line = 'FORMING — INVITES OPEN';
-      else if(m.league.phase === 'draft') line = 'SQUAD FORMATION';
+      if(!s || m.league.phase === 'setup') line = 'Forming — invites open';
+      else if(m.league.phase === 'draft') line = 'Squad formation';
       else {
         const rows = st.filter(x => x.season_id === s.id)
                        .sort((a,b) => (b.points||0) - (a.points||0));
