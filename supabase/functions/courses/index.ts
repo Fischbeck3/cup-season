@@ -106,7 +106,10 @@ Deno.serve(async (req) => {
       const cid = String(c.id ?? id);
       const admin = createClient(SB_URL, SB_SERVICE);
 
-      await admin.from("courses").upsert({
+      // api_* tables: the original `courses`/`course_tees`/`course_holes`
+      // names collided with a legacy uuid schema, so upserts silently failed
+      // (text ids into uuid columns). See 20260714050000_course_cache_reconcile.
+      await admin.from("api_courses").upsert({
         id: cid,
         club_name: c.club_name ?? null,
         course_name: c.course_name ?? null,
@@ -120,10 +123,10 @@ Deno.serve(async (req) => {
       });
 
       // replace tees + holes so a re-cache is a clean refresh
-      await admin.from("course_tees").delete().eq("course_id", cid);
+      await admin.from("api_course_tees").delete().eq("course_id", cid);
       for (const te of flattenTees(c)) {
         const { data: teeRow, error } = await admin
-          .from("course_tees")
+          .from("api_course_tees")
           .insert({
             course_id: cid,
             gender: te.gender,
@@ -140,7 +143,7 @@ Deno.serve(async (req) => {
         if (error || !teeRow) continue;
         if (te.holes?.length) {
           await admin
-            .from("course_holes")
+            .from("api_course_holes")
             .insert(te.holes.map((h: any) => ({ tee_id: teeRow.id, ...h })));
         }
       }

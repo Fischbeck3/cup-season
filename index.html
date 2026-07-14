@@ -1285,7 +1285,7 @@ body::before{
       </div>
             
     </div>
-    <div class="ob-caption" id="obCaption">New or returning, email is one door. No passwords. Just looking? Join with code <b style="color:var(--mut)">DEMO</b>. <span style="opacity:.5">v23.97</span></div>
+    <div class="ob-caption" id="obCaption">New or returning, email is one door. No passwords. Just looking? Join with code <b style="color:var(--mut)">DEMO</b>. <span style="opacity:.5">v23.98</span></div>
   </div>
   <div class="ob-splash" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
   
@@ -2683,19 +2683,25 @@ $('#postBtn').addEventListener('click', async ()=>{
     const nine = !(f9>0 && b9>0);
     const btn=$('#postBtn'); btn.disabled=true;
     try {
-      const { error } = await sb.from('rounds').insert({
+      const payload = {
         gross: nine ? (f9||b9) : f9+b9,
         rating,
         nine_rating: nine ? rating/2 : null,
         slope, holes_played: nine ? 9 : 18, source: 'quick',
         played_on: $('#inDate').value || null,
         course_label: $('#inCourse').value.trim() || null,
-        /* course_id withheld: live rounds.course_id is the LEGACY uuid column
-           (the api-cache migration silently no-op'd against it) — sending the
-           GolfCourseAPI text id ("6325") kills the whole insert. Linkage
-           returns as api_course_id with the reconciliation migration. */
+        /* soft link to the reconciled cache (text id, no FK — never blocks the
+           insert on cache timing). Legacy uuid course_id stays untouched. */
+        api_course_id: $('#inCourse').dataset.courseId || null,
         season_id: CS.season?.id || null,
-      });
+      };
+      let { error } = await sb.from('rounds').insert(payload);
+      /* Netlify ships this client before `db push` — if the column isn't there
+         yet, drop the soft link and retry so a post never fails on deploy skew */
+      if(error && /api_course_id/.test(error.message||'')){
+        delete payload.api_course_id;
+        ({ error } = await sb.from('rounds').insert(payload));
+      }
       if(error) throw error;
       toast(`Round posted: ~${pts} pts pending the league's math`);
       if(window.loadStandingsAndFeed) await window.loadStandingsAndFeed();
@@ -4926,12 +4932,17 @@ $('#wPostGo').addEventListener('click', async () => {
   if(!gross || !rating || !slope){ toast('Gross, rating and slope make a round'); return; }
   const btn = $('#wPostGo'); btn.disabled = true;
   try {
-    const { error } = await sb.from('rounds').insert({
+    const payload = {
       gross, rating, slope, holes_played: 18, source: 'quick',
       played_on: $('#wDate').value || null,
       course_label: $('#wCourse').value.trim() || null,
-      /* course_id withheld — see the postBtn insert: legacy uuid column */
-    });
+      api_course_id: $('#wCourse').dataset.courseId || null,   /* soft link, see postBtn */
+    };
+    let { error } = await sb.from('rounds').insert(payload);
+    if(error && /api_course_id/.test(error.message||'')){   /* pre-migration deploy skew */
+      delete payload.api_course_id;
+      ({ error } = await sb.from('rounds').insert(payload));
+    }
     if(error) throw error;
     toast('Round posted to your card');
     $('#wGross').value = '';
