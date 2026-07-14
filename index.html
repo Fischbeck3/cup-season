@@ -1234,8 +1234,7 @@ body::before{
       <p>Post the rounds you're already playing, wherever you play them. The points pile up all season, and somebody takes the cup home at the end.</p>
     </div>
     <div id="obDoor">
-    <button class="btn" id="obCreate">Create your golfer card</button>
-    <button class="btn dark" id="obEmail">Sign in with email</button>
+    <button class="btn" id="obEmail">Continue with email</button>
     <div class="joinbox" id="emailbox">
       <input id="obEmailIn" class="email" type="email" placeholder="you@email.com" autocomplete="email" inputmode="email">
       <button class="btn" id="obEmailGo">Go</button>
@@ -1251,10 +1250,6 @@ body::before{
       <input id="joinCode" placeholder="CUP-CODE" maxlength="8" autocomplete="off">
       <button class="btn" id="joinGo">Join</button>
     </div>
-    <button class="btn dark" id="obApple" style="opacity:.55">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M16.7 12.9c0-2.4 2-3.5 2-3.6-1.1-1.6-2.8-1.8-3.4-1.9-1.5-.1-2.8.9-3.6.9-.7 0-1.9-.8-3.1-.8C7 7.5 5.5 8.4 4.7 9.8c-1.8 3-.5 7.5 1.3 9.9.8 1.2 1.8 2.5 3.1 2.5 1.3-.1 1.7-.8 3.3-.8 1.5 0 1.9.8 3.2.8 1.3 0 2.2-1.2 3-2.4.9-1.4 1.3-2.7 1.3-2.8-.1 0-2.6-1-2.6-4.1zM14.4 5.6c.7-.8 1.1-2 1-3.1-1 0-2.2.7-2.9 1.5-.6.7-1.2 1.9-1 3 1.1.1 2.2-.6 2.9-1.4z"/></svg>
-      Continue with Apple <span class="soon">SOON</span>
-    </button>
     </div>
     <div id="obProfile" style="display:none">
       <div class="ob-hero" style="margin-bottom:18px">
@@ -1290,7 +1285,7 @@ body::before{
       </div>
             
     </div>
-    <div class="ob-caption" id="obCaption">New or returning, email is one door. No passwords. Just looking? Join with code <b style="color:var(--mut)">DEMO</b>. <span style="opacity:.5">v23.96</span></div>
+    <div class="ob-caption" id="obCaption">New or returning, email is one door. No passwords. Just looking? Join with code <b style="color:var(--mut)">DEMO</b>. <span style="opacity:.5">v23.97</span></div>
   </div>
   <div class="ob-splash" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
   
@@ -2106,12 +2101,19 @@ function toast(m){const t=$('#toast');t.textContent=m;t.classList.add('show');cl
 function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
 
 /* ================= onboarding (LIVE — Supabase) ================= */
-function enterApp(){ $('#onboard').classList.add('hide'); }
-function backToDoor(){ $('#onboard').classList.remove('hide'); }
+function enterApp(){
+  const ob = $('#onboard'); ob.classList.add('hide');
+  /* the .hide fade is a `visibility` transition — in a BACKGROUND tab that
+     transition never advances, so the overlay stays visible:visible and traps
+     every click (opened-from-a-text-in-a-hidden-tab). display:none isn't
+     transitioned, so force it once the fade window has passed (or immediately
+     if the tab is hidden). Same family as the splash forceReveal net. */
+  const kill = () => { if(ob.classList.contains('hide')) ob.style.display = 'none'; };
+  document.hidden ? kill() : setTimeout(kill, 350);
+}
+function backToDoor(){ const ob = $('#onboard'); ob.style.display = ''; ob.classList.remove('hide'); }
 
-/* Handlers are attached in the module script below (CS.boot).
-   These stubs keep the demo usable if the backend is unreachable. */
-$('#obApple').addEventListener('click',()=>{toast('Apple sign-in ships with the App Store build. Email works today');});
+/* Handlers are attached in the module script below (CS.boot). */
 
 /* ================= nav ================= */
 function switchView(v){
@@ -2121,6 +2123,10 @@ function switchView(v){
      local-echoes and never hits the DB (task #11). Route real accounts to
      quick post so no one trusts a round that would silently vanish. */
   if(v==='play' && !state.demo){ toast('Live scoring lands right after the pilot — Quick post has you covered'); v='post'; }
+  /* Live is gated for real accounts, so the two-option chooser is a toll on
+     the most-used action — send real users straight to Quick post. The demo
+     keeps the chooser (Live works there). */
+  if(v==='record' && !state.demo) v='post';
   gateLiveRound();
   $$('.tab').forEach(t=>t.classList.toggle('active',t.dataset.v===v));
   $$('.navitem').forEach(t=>t.classList.toggle('active',t.dataset.v===v));
@@ -2132,6 +2138,29 @@ function switchView(v){
   if(v==='home' && typeof renderHomeHub==='function') renderHomeHub();
 }
 $$('.tab, .navitem').forEach(b=>b.addEventListener('click',()=>switchView(b.dataset.v)));
+
+/* a11y: the app renders many click-only .tap rows (hub, switcher, sheets,
+   start cards). Stamp each focusable + button-role as it appears, and treat
+   Enter/Space as a click. One observer covers every dynamic render site. */
+(function(){
+  const stamp = root => {
+    if(!root || !root.querySelectorAll) return;
+    if(root.matches && root.matches('.tap:not([data-a11y])')){
+      root.setAttribute('tabindex','0'); root.setAttribute('role','button'); root.setAttribute('data-a11y','1');
+    }
+    root.querySelectorAll('.tap:not([data-a11y])').forEach(el=>{
+      el.setAttribute('tabindex','0'); el.setAttribute('role','button'); el.setAttribute('data-a11y','1');
+    });
+  };
+  document.addEventListener('keydown', e=>{
+    if((e.key==='Enter' || e.key===' ') && e.target?.classList?.contains('tap')){
+      e.preventDefault(); e.target.click();
+    }
+  });
+  new MutationObserver(muts=>{ for(const m of muts) for(const n of m.addedNodes) if(n.nodeType===1) stamp(n); })
+    .observe(document.body, {childList:true, subtree:true});
+  stamp(document.body);
+})();
 
 /* The live-round chooser card: interactive in the demo, honestly "coming
    soon" for real leagues until its posting path is wired (task #11). */
@@ -5400,6 +5429,7 @@ function openEmailBox(afterEl, msg){
 }
 
 $('#obEmail').addEventListener('click', () => {
+  $('#joinbox').classList.remove('open');   /* don't stack the code box under it */
   openEmailBox($('#obEmail'));
 });
 
@@ -5447,17 +5477,13 @@ $('#obEmailGo').addEventListener('click', async () => {
   } finally { btn.disabled = false; btn.textContent = 'Go'; }
 });
 
-$('#obCreate').addEventListener('click', () => {
-  /* profile-first: the door creates YOU, not a league. Leagues start from
-     the signed-in home (wCreate) — like joining groups after the account. */
-  if(!CS.user){
-    openEmailBox($('#obCreate'), 'Enter your email: your code sets up your golfer card, then your leagues.');
-    return;
-  }
-  showWelcome();
-});
+/* obCreate retired: "Create" and "Sign in" were the same OTP with different
+   captions. One "Continue with email" door now; the golfer-card gate handles
+   new users automatically after verify. */
 
 $('#obJoin').addEventListener('click', () => {
+  $('#emailbox').classList.remove('open');   /* don't stack the two input rows */
+  $('#codebox').classList.remove('open');
   $('#joinbox').classList.add('open');
   $('#joinCode').focus();
 });
