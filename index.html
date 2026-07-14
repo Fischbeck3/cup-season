@@ -1289,7 +1289,7 @@ body::before{
       </div>
             
     </div>
-    <div class="ob-caption" id="obCaption">New or returning, email is one door. No passwords. Just looking? <a href="#" id="obDemoLink" style="color:var(--pos)">Peek at the demo</a>. <span style="opacity:.5">v23.106</span></div>
+    <div class="ob-caption" id="obCaption">New or returning, email is one door. No passwords. Just looking? <a href="#" id="obDemoLink" style="color:var(--pos)">Peek at the demo</a>. <span style="opacity:.5">v23.107</span></div>
   </div>
   <div class="ob-splash" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
   
@@ -4626,6 +4626,16 @@ function openProfileHub(){
     <p class="fine" style="padding-left:0">Cup Season membership lands at launch. Nothing to pay during the pilot.</p>
 
     <button class="btn dark" id="phOut" style="margin-top:16px">Sign out</button>
+
+    <div class="eyebrow" style="margin-top:24px">Danger zone</div>
+    <a href="#" id="phDelete" class="fine" style="color:var(--neg); padding-left:0; display:inline-block">Delete my account</a>
+    <div id="phDelConfirm" style="display:none; margin-top:8px">
+      <p class="fine" style="padding-left:0">This can't be undone. Your name and profile are removed and your login is closed for good. Rounds you've posted stay in the record so nobody else's standings or pot break — you'll just show as "Former member".</p>
+      <div style="display:flex; gap:8px; margin-top:10px">
+        <button class="btn" id="phDelYes" style="background:var(--neg); color:#fff; box-shadow:none; flex:1">Delete permanently</button>
+        <button class="mini" id="phDelNo">Cancel</button>
+      </div>
+    </div>
   `);
   $('#phName').value = p.display_name || '';
   $('#phHandle').value = p.handle ? '@' + p.handle : '';
@@ -4676,6 +4686,30 @@ function openProfileHub(){
   $('#phOut').addEventListener('click', async () => {
     await sb.auth.signOut();
     location.reload();
+  });
+
+  /* delete account — soft delete (tombstone): PII scrubbed, login revoked,
+     competition rows kept. Two-step so it can't fire on a stray tap. */
+  $('#phDelete')?.addEventListener('click', (e) => {
+    e.preventDefault();
+    $('#phDelete').style.display = 'none';
+    $('#phDelConfirm').style.display = 'block';
+  });
+  $('#phDelNo')?.addEventListener('click', () => {
+    $('#phDelConfirm').style.display = 'none';
+    $('#phDelete').style.display = 'inline-block';
+  });
+  $('#phDelYes')?.addEventListener('click', async () => {
+    const btn = $('#phDelYes'); btn.disabled = true; btn.textContent = 'Deleting…';
+    try {
+      const { error } = await sb.rpc('delete_account');
+      if(error) throw error;
+      await sb.auth.signOut();
+      window.location.replace(window.location.pathname);
+    } catch(e) {
+      btn.disabled = false; btn.textContent = 'Delete permanently';
+      toast(e.message || 'Could not delete account');
+    }
   });
 
   /* discoverability: highlight current, tap to switch */

@@ -1,4 +1,4 @@
-// Cup Season — push sender. rev 2026-07-12b (social graph)
+// Cup Season — push sender. rev 2026-07-14 (friend-request email)
 // Invoked by Database Webhooks:
 //   - public.posts INSERT           -> league board fan-out
 //   - public.friendships INSERT/UPDATE -> friend request / accept pings
@@ -6,6 +6,9 @@
 //
 // Secrets required (supabase secrets set):
 //   VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY, VAPID_SUBJECT, PUSH_WEBHOOK_SECRET
+// Optional (enables friend-request EMAIL alongside web push):
+//   BREVO_API_KEY  — Brevo (Sendinblue) transactional API key. Sender below
+//                    must be an authorised sender/domain in your Brevo account.
 
 import { createClient } from 'npm:@supabase/supabase-js@2';
 import webpush from 'npm:web-push@3';
@@ -49,6 +52,43 @@ async function sendTo(profileIds: string[], title: string, body: string) {
   console.log(`[push] sent=${sent} pruned=${dead.length}`);
 }
 
+// Transactional email via Brevo. No-op (logs and returns) when BREVO_API_KEY
+// is unset, so email is purely additive — push never depends on it.
+async function sendEmail(toEmail: string, toName: string, subject: string, html: string) {
+  const key = Deno.env.get('BREVO_API_KEY');
+  if (!key) { console.log('[email] BREVO_API_KEY unset — skipping'); return; }
+  if (!toEmail || toEmail.endsWith('@cupseason.invalid')) { console.log('[email] no valid recipient'); return; }
+  try {
+    const res = await fetch('https://api.brevo.com/v3/smtp/email', {
+      method: 'POST',
+      headers: { 'api-key': key, 'content-type': 'application/json', accept: 'application/json' },
+      body: JSON.stringify({
+        sender: { name: 'Cup Season', email: 'hello@cupseason.app' },
+        to: [{ email: toEmail, name: toName || undefined }],
+        subject,
+        htmlContent: html,
+      }),
+    });
+    console.log(`[email] status=${res.status}`);
+  } catch (e) {
+    console.error(`[email] failed msg=${(e as Error)?.message ?? e}`);
+  }
+}
+
+function friendRequestEmail(toName: string, fromName: string, fromHandle: string) {
+  const greeting = toName ? `Hi ${toName},` : 'Hi,';
+  const who = fromHandle ? `${fromName} (@${fromHandle})` : fromName;
+  return `<div style="font-family:-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;max-width:480px;margin:0 auto;color:#1a2620">
+    <p style="font-size:16px;line-height:1.5">${greeting}</p>
+    <p style="font-size:16px;line-height:1.5"><strong>${who}</strong> added you as a golf buddy on Cup Season.</p>
+    <p style="font-size:16px;line-height:1.5">Open the app to accept and you'll see each other's rounds and scores.</p>
+    <p style="margin:24px 0">
+      <a href="https://cupseason.app" style="background:#E9BE62;color:#1c1503;text-decoration:none;font-weight:600;padding:12px 22px;border-radius:10px;display:inline-block">Open Cup Season</a>
+    </p>
+    <p style="font-size:12px;color:#8c9992;line-height:1.5">You're getting this because someone added you on Cup Season. Manage notifications in your Tour Card.</p>
+  </div>`;
+}
+
 Deno.serve(async (req) => {
   if (req.headers.get('x-push-secret') !== Deno.env.get('PUSH_WEBHOOK_SECRET')) {
     return new Response('forbidden', { status: 403 });
@@ -60,14 +100,20 @@ Deno.serve(async (req) => {
   if (table === 'friendships') {
     const who = async (id: string) => {
       const { data } = await sb.from('profiles')
-        .select('display_name, handle').eq('id', id).maybeSingle();
+        .select('display_name, handle, email').eq('id', id).maybeSingle();
       return data;
     };
     if (type === 'INSERT' && record.status === 'pending') {
-      const p = await who(record.requester);
+      const [p, a] = await Promise.all([who(record.requester), who(record.addressee)]);
       console.log('[push] kind=friend-request');
       await sendTo([record.addressee], 'Cup Season',
         `${p?.display_name ?? 'A golfer'} (@${p?.handle ?? '?'}) wants to be golf buddies`);
+      // Requests only (pilot decision) — email the person who was added.
+      await sendEmail(
+        a?.email ?? '', a?.display_name ?? '',
+        `${p?.display_name ?? 'A golfer'} added you on Cup Season`,
+        friendRequestEmail(a?.display_name ?? '', p?.display_name ?? 'A golfer', p?.handle ?? ''),
+      );
     } else if (type === 'UPDATE' && record.status === 'accepted' && old_record?.status === 'pending') {
       const p = await who(record.addressee);
       console.log('[push] kind=friend-accept');
