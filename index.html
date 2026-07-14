@@ -1289,7 +1289,7 @@ body::before{
       </div>
             
     </div>
-    <div class="ob-caption" id="obCaption">New or returning, email is one door. No passwords. Just looking? <a href="#" id="obDemoLink" style="color:var(--pos)">Peek at the demo</a>. <span style="opacity:.5">v23.109</span></div>
+    <div class="ob-caption" id="obCaption">New or returning, email is one door. No passwords. Just looking? <a href="#" id="obDemoLink" style="color:var(--pos)">Peek at the demo</a>. <span style="opacity:.5">v23.110</span></div>
   </div>
   <div class="ob-splash" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
   
@@ -5615,10 +5615,17 @@ $('#obEmailGo').addEventListener('click', async () => {
     toast('Code sent');
   } catch(err){
     const m = (err.message || '').toLowerCase();
+    const code = (err.code || err.error_code || '').toString().toLowerCase();
+    const banned = code.includes('ban') || m.includes('ban') || m.includes('deleted') || err.status === 403;
+    const rate = m.includes('rate') || err.status === 429;
     authStatus(
-      m.includes('rate')
-        ? 'Rate limit: the built-in mailer allows only a few emails per hour. Wait a bit, or switch SMTP to Resend.'
-        : 'Sign-in failed: ' + err.message,
+      banned
+        ? 'This account was closed and can’t sign in again. Start fresh with a different email.'
+      : rate
+        ? 'Too many sign-in emails for now — the mailer limits sends per hour. Give it a few minutes.'
+      : err.message
+        ? 'Sign-in failed: ' + err.message
+        : 'Couldn’t send a sign-in code. If you deleted this account it can’t be reused — try a different email. Otherwise wait a minute and retry.',
       'err');
   } finally { btn.disabled = false; btn.textContent = 'Go'; }
 });
