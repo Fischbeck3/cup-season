@@ -1404,7 +1404,7 @@ body::before{
       </div>
             
     </div>
-    <div class="ob-caption" id="obCaption">New or returning, email is one door. No passwords. Just looking? <a href="#" id="obDemoLink" style="color:var(--pos)">Peek at the demo</a>. <span style="opacity:.5">v23.136</span></div>
+    <div class="ob-caption" id="obCaption">New or returning, email is one door. No passwords. <span style="opacity:.5">v23.137</span></div>
   </div>
   <div class="ob-splash" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
   
@@ -6002,23 +6002,13 @@ $('#obJoin').addEventListener('click', () => {
   $('#joinCode').focus();
 });
 
-/* one-tap demo — the caption used to just NAME the code and make you type it */
-$('#obDemoLink')?.addEventListener('click', (e) => {
-  e.preventDefault();
-  document.body.classList.remove('noleague');
-  enterApp(); state.demo = true; state.phase = 'season'; renderPhase(); switchView('home');
-  toast('Demo league: The Sunday Cup. Nothing here saves.');
-});
+/* Demo diorama retired from the door (v23.137): real pilot is live, so the
+   sign-in screen no longer offers a fake league. The demo code paths stay
+   dormant behind state.demo (now unreachable) rather than a risky rip-out. */
 
 $('#joinGo').addEventListener('click', async () => {
   const code = $('#joinCode').value.trim().toUpperCase();
   if(!code) return toast('Enter the league code');
-  if(code==='DEMO'){
-    document.body.classList.remove('noleague');
-    enterApp(); state.phase='season'; renderPhase(); switchView('home');
-    toast('Demo league: The Sunday Cup. Nothing here saves.');
-    return;
-  }
   if(!CS.user){
     /* validate BEFORE the email round-trip: a typo fails here, not after the
        code arrives. `undefined` = RPC not deployed yet \u2192 arm anyway (degrade). */
@@ -6908,12 +6898,6 @@ $('#wJoin').addEventListener('click', () => {
 $('#wCodeGo').addEventListener('click', async () => {
   const code = $('#wCode').value.trim().toUpperCase();
   if(!code) return toast('Enter the league code');
-  if(code==='DEMO'){
-    document.body.classList.remove('noleague');
-    enterApp(); state.phase='season'; renderPhase(); switchView('home');
-    toast('Demo league: The Sunday Cup. Nothing here saves.');
-    return;
-  }
   try {
     const { error } = await sb.rpc('join_league', { p_code: code });
     if(error) throw error;
