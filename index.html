@@ -1319,7 +1319,7 @@ body::before{
       </div>
             
     </div>
-    <div class="ob-caption" id="obCaption">New or returning, email is one door. No passwords. Just looking? <a href="#" id="obDemoLink" style="color:var(--pos)">Peek at the demo</a>. <span style="opacity:.5">v23.127</span></div>
+    <div class="ob-caption" id="obCaption">New or returning, email is one door. No passwords. Just looking? <a href="#" id="obDemoLink" style="color:var(--pos)">Peek at the demo</a>. <span style="opacity:.5">v23.128</span></div>
   </div>
   <div class="ob-splash" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
   
@@ -1471,20 +1471,24 @@ body::before{
         </div>
       </section>
 
-      <!-- RECORD (chooser) -->
+      <!-- ⊕ GOLF (IA P4): golf's three tenses in one door — after, during, before -->
       <section class="view" id="view-record">
-        <div class="eyebrow">Record a round · both paths score identically</div>
+        <div class="eyebrow">Golf · before, during and after the round</div>
         <button class="optcard" style="--acc:var(--brand)" data-go="post">
-          <h4>Quick post — 20 seconds</h4>
-          <p>Gross + tee · solo round from anywhere · feeds the season instantly</p>
+          <h4>Post a round — after you play</h4>
+          <p>Gross + tee, 20 seconds · counts on your card and in every league</p>
           <span class="go">→</span>
         </button>
         <button class="optcard" id="optLive" style="--acc:var(--sq0)" data-go="play">
-          <h4>Live round — the group's here</h4>
-          <p>Hole-by-hole · match play & Wolf · auto-attested · guests welcome, no account needed</p>
+          <h4>Play now — score the group live</h4>
+          <p>A shared pencil: hole-by-hole, match play, Wolf & the settle-up · guests welcome</p>
           <span class="go">→</span>
         </button>
-        <p class="fine">Both paths score the same. Your month's status lives on Clubhouse.</p>
+        <button class="optcard" id="optPlan" style="--acc:var(--gold)">
+          <h4>Plan a tee time — before</h4>
+          <p>Put a round on the books · your buddies and leagues see it the moment you post</p>
+          <span class="go">→</span>
+        </button>
       </section>
 
       <!-- PLAY (live round) -->
@@ -1602,16 +1606,16 @@ body::before{
             </div>
           </div>
           <div>
-            <div class="eyebrow">Round score</div>
+            <div class="eyebrow">How this round scores</div>
             <div class="calc" aria-live="polite">
-              <div class="k">Cup points this round</div>
+              <div class="k">League points this round</div>
               <div class="big" id="calcPts">–</div>
               <div class="msg" id="calcMsg">Enter at least one nine to see the points.</div>
               <div class="trio">
                 <div><b id="calcDiff">–</b><span>Differential</span></div>
-                <div><b id="calcVs">–</b><span>vs index</span></div>
-                <div><b>SND</b><span>Squad</span></div>
+                <div><b id="calcVs">–</b><span>vs your index</span></div>
               </div>
+              <p class="fine" style="padding:8px 0 0">No league yet? The round still counts on your card — points apply in any league you join.</p>
             </div>
             <div class="eyebrow">Point bands</div>
             <div class="card">
@@ -2165,14 +2169,12 @@ function switchView(v){
   if(v==='cal'){ v='hub'; setRoomSeg('schedule'); }
   if(v==='pot'){ v='hub'; setRoomSeg('pot'); }
   if(v==='draft' && state.phase==='setup'){ toast('Lock settings first: the draft opens after setup'); v='wizard'; }
-  /* live scoring only runs in the demo diorama today — its finish handler
-     local-echoes and never hits the DB (task #11). Route real accounts to
-     quick post so no one trusts a round that would silently vanish. */
-  if(v==='play' && !state.demo){ toast('Live scoring lands right after the pilot — Quick post has you covered'); v='post'; }
-  /* Live is gated for real accounts, so the two-option chooser is a toll on
-     the most-used action — send real users straight to Quick post. The demo
-     keeps the chooser (Live works there). */
-  if(v==='record' && !state.demo) v='post';
+  /* IA P4: real accounts get the full ⊕ triptych. Play now is a shared
+     PENCIL for real accounts — it scores games and settle-ups live but
+     persists nothing; the finish handler walks your gross into Quick post
+     so the round counts. No silent data loss possible (task #11 makes the
+     pencil itself persist). */
+  if(v==='play' && !state.demo) primeRealRoster();
   gateLiveRound();
   $$('.tab').forEach(t=>t.classList.toggle('active',t.dataset.v===v));
   $$('.navitem').forEach(t=>t.classList.toggle('active',t.dataset.v===v));
@@ -2235,10 +2237,12 @@ function gateLiveRound(){
     if(p) p.textContent='Hole-by-hole · match play & Wolf · auto-attested · guests welcome, no account needed';
     if(go) go.textContent='→';
   } else {
-    card.classList.add('soon'); card.disabled=true; card.dataset.go='';
-    if(h) h.textContent='Live round — coming soon';
-    if(p) p.textContent='HOLE-BY-HOLE SCORING, MATCH PLAY & WOLF, GUESTS WELCOME. LANDS RIGHT AFTER THE PILOT — QUICK POST HAS YOU COVERED TODAY.';
-    if(go) go.textContent='SOON';
+    /* IA P4: the pencil opens for real accounts. Copy stays honest — games
+       and settle-ups score live; the round itself posts via Quick post. */
+    card.classList.remove('soon'); card.disabled=false; card.dataset.go='play';
+    if(h) h.textContent='Play now — score the group live';
+    if(p) p.textContent='A shared pencil: match play, Wolf & the settle-up. Post your gross after — the finish screen hands it to you.';
+    if(go) go.textContent='→';
   }
 }
 
@@ -3042,6 +3046,23 @@ function freshLive(){
 }
 state.live=freshLive();
 
+/* IA P4: a real account's tee sheet starts as YOU + add guests — never the
+   demo crew. Runs once per session, on first entry to Play. */
+let rosterPrimed=false;
+function primeRealRoster(){
+  if(state.demo || rosterPrimed) return;
+  rosterPrimed=true;
+  const p=window.CS?.profile||{};
+  ROSTER.length=0;
+  ROSTER.push({ n:(p.display_name||'You'), i:Number(p.index_current)||state.myIndex||18,
+                ci:1, team:'—', guest:false, locked:true, me:true });
+  sel=[0];
+  LIVE=sel.map(i=>ROSTER[i]);
+  recomputeStrokes();
+  state.live=freshLive();
+  if(typeof renderPlay==='function') renderPlay();
+}
+
 const holeDone=h=>LIVE.every((_,pi)=>state.live.scores[pi][h]!==null);
 const netOf=(pi,h)=>state.live.scores[pi][h]-strokeOn(pi,h);
 
@@ -3317,10 +3338,28 @@ $('#backToSetup').addEventListener('click',e=>{
   renderPlay();
 });
 $('#finishBtn').addEventListener('click',()=>{
-  /* safety net: live scoring posts nothing to the DB yet (task #11). The
-     chooser already blocks real leagues from reaching here — this refuses
-     the local-echo outright if any path ever slips through. */
-  if(!state.demo){ toast('Live scoring lands right after the pilot — Quick post has you covered'); switchView('post'); return; }
+  /* IA P4 real accounts: the pencil persists nothing (task #11) — so the
+     finish WALKS YOUR GROSS into Quick post. Honest handoff, no silent loss:
+     the settle-up was live, the round posts through the real path. */
+  if(!state.demo){
+    const meIdx = LIVE.findIndex(p=>p.me);
+    let f9=0, b9=0;
+    if(meIdx>-1){
+      const s=state.live.scores[meIdx]||[];
+      f9=s.slice(0,9).reduce((a,b)=>a+(b||0),0);
+      b9=s.slice(9).reduce((a,b)=>a+(b||0),0);
+    }
+    const course=($('#lrCourse').value||'').trim();
+    state.live.active=false; state.live.stage='setup';
+    renderPlay();
+    switchView('post');
+    if(f9>0) $('#inF9').value=f9;
+    if(b9>0) $('#inB9').value=b9;
+    if(course && !$('#inCourse').value.trim()) $('#inCourse').value=course;
+    if(typeof recalc==='function') recalc();
+    toast('Game settled. Now post the gross so the round counts');
+    return;
+  }
   const left=18-[...Array(18).keys()].filter(h=>holeDone(h)).length;
   if(left>0){toast(left+' holes left to score');return;}
   let posted=0;
@@ -6513,7 +6552,9 @@ function bindTagChips(attr, tagged){
 }
 
 /* "Put a round on the books" — date + course + note + your group */
-document.getElementById('calDeclare')?.addEventListener('click', async () => {
+/* one declare sheet, two doors (IA P4): the room's Schedule pane and the
+   ⊕ Plan card. Works league-less — scheduled_rounds is profile-scoped. */
+async function openDeclareSheet(){
   if(state.demo || !CS.user){ toast('Sign in to put rounds on the books'); return; }
   const d = new Date(); d.setDate(d.getDate() + ((6 - d.getDay() + 7) % 7 || 7)); /* next Saturday */
   const iso = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
@@ -6548,7 +6589,10 @@ document.getElementById('calDeclare')?.addEventListener('click', async () => {
       if(CS.league) loadStandingsAndFeed();
     } catch(e){ toast(e.message || String(e)); btn.disabled = false; }
   });
-});
+}
+window.openDeclareSheet = openDeclareSheet;
+document.getElementById('calDeclare')?.addEventListener('click', openDeclareSheet);
+document.getElementById('optPlan')?.addEventListener('click', openDeclareSheet);
 
 /* retag your own declared round — add the buddy you forgot */
 async function openRetagSheet(id){
