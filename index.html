@@ -220,6 +220,9 @@ button{font-family:var(--sans); touch-action:manipulation; color:var(--ink);}
 .standStory b{font-weight:600;}
 .rkmove{font-family:var(--mono); font-size:9.5px; margin-left:3px; letter-spacing:0;}
 .rkmove.up{color:var(--pos);} .rkmove.dn{color:var(--dim);}
+.rivrec{font-family:var(--mono); font-size:14px; font-weight:600; letter-spacing:.02em; flex:none;}
+.rivrec.up{color:var(--pos);} .rivrec.dn{color:var(--dim);} .rivrec.ev{color:var(--mut);}
+#youRivals .prow.tap{cursor:pointer;}
 
 /* ============ standings table ============ */
 .tbl{width:100%; border-collapse:collapse;}
@@ -1409,7 +1412,7 @@ body::before{
       </div>
             
     </div>
-    <div class="ob-caption" id="obCaption">New or returning, email is one door. No passwords. <span style="opacity:.5">v23.138</span></div>
+    <div class="ob-caption" id="obCaption">New or returning, email is one door. No passwords. <span style="opacity:.5">v23.139</span></div>
   </div>
   <div class="ob-splash" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
   
@@ -1526,6 +1529,10 @@ body::before{
              Search + requests + your crew — the People surface, one home. -->
         <div class="eyebrow">Golf buddies</div>
         <div id="youPeople" style="text-align:left"></div>
+
+        <!-- Events engine ckpt 4: lifetime head-to-head, weekly-clash (§3). -->
+        <div class="eyebrow league-only" id="youRivalsHead">Rivalries · your record</div>
+        <div id="youRivals" class="league-only" style="text-align:left"></div>
 
         <div class="league-only">
           <div class="eyebrow">This season · <span id="youSeasonLg">your league</span></div>
@@ -2304,7 +2311,7 @@ function switchView(v){
     if(!state.demo && window.CS?.league && !(window.CS.members||[]).length && window.loadLeagueData)
       window.loadLeagueData();
   }
-  if(v==='stats') window.renderCrewPeople?.();   /* IA P5: buddies live on You */
+  if(v==='stats'){ window.renderCrewPeople?.(); window.renderRivalries?.(); }   /* IA P5: buddies + rivalries live on You */
 }
 $$('.tab, .navitem').forEach(b=>b.addEventListener('click',()=>switchView(b.dataset.v)));
 
@@ -5022,6 +5029,46 @@ async function renderCrewPeople(){
   paint();
 }
 window.renderCrewPeople = renderCrewPeople;
+
+/* Rivalries: lifetime weekly-clash record vs your league mates (ckpt 4).
+   my_rivalries() → summary rows; rivalry_weeks() → the receipts (§16). */
+async function renderRivalries(){
+  const box=document.getElementById('youRivals'), head=document.getElementById('youRivalsHead');
+  if(!box) return;
+  if(!CS.user || state.demo){ box.innerHTML=''; if(head) head.style.display='none'; return; }
+  let data=[];
+  try{ const {data:d}=await sb.rpc('my_rivalries'); data=d||[]; }catch(_){ data=[]; }
+  if(!data.length){ box.innerHTML=''; if(head) head.style.display='none'; return; }
+  if(head) head.style.display='';
+  box.innerHTML=data.map(r=>{
+    const cls=r.lead==='up'?'up':r.lead==='down'?'dn':'ev';
+    const rec=`${r.wins}–${r.losses}${r.ties?'–'+r.ties:''}`;
+    return `<div class="prow tap" data-riv="${r.opponent}" data-rivn="${esc(r.display_name||'—')}" data-rivr="${rec}">
+      <span class="pmk">${mkr(r.marker||'saguaro')}</span>
+      <span class="pmeta"><b>${esc(r.display_name||'—')}</b><small>${r.meetings} week${r.meetings===1?'':'s'} head-to-head</small></span>
+      <span class="rivrec ${cls}">${rec}</span></div>`;
+  }).join('');
+  box.querySelectorAll('[data-riv]').forEach(b=>b.addEventListener('click',
+    ()=>openRivalrySheet(b.dataset.riv, b.dataset.rivn, b.dataset.rivr)));
+}
+window.renderRivalries = renderRivalries;
+
+async function openRivalrySheet(oppId, name, rec){
+  let weeks=[];
+  try{ const {data}=await sb.rpc('rivalry_weeks',{p_opponent:oppId}); weeks=data||[]; }catch(_){ weeks=[]; }
+  const body = weeks.length ? weeks.map(x=>{
+    const d=new Date(x.wk+'T00:00:00');
+    const me=Number(x.my_pvi), th=Number(x.opp_pvi);
+    const tag = x.winner==='me'?'<span style="color:var(--pos)">WON</span>'
+              : x.winner==='them'?'<span style="color:var(--dim)">LOST</span>'
+              : '<span style="color:var(--mut)">HALVED</span>';
+    return `<div class="check"><span class="num mono" style="font-size:10.5px; line-height:1.25">WK OF<br>${MOS[d.getMonth()].toUpperCase()} ${d.getDate()}</span>
+      <div class="tt"><b>${tag} · YOU ${me>=0?'+':''}${me.toFixed(1)} · ${esc(name)} ${th>=0?'+':''}${th.toFixed(1)}</b>
+      <small>BEST PvI THAT WEEK</small></div></div>`;
+  }).join('') : '<p class="fine">No head-to-head weeks yet. A clash counts a week you both post.</p>';
+  openSheet(`You vs ${name}`, `${rec||''} · WEEKLY CLASH · HIGHER PvI TAKES THE WEEK`, body);
+}
+window.openRivalrySheet = openRivalrySheet;
 
 function openPeoplePicker(opts){
   opts=opts||{}; const mode=opts.mode||'befriend'; const staged=new Set(); const rowCache=new Map();
