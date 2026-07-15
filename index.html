@@ -970,6 +970,11 @@ input.f::-webkit-outer-spin-button, input.f::-webkit-inner-spin-button{-webkit-a
   .onboard .ob-hero p{font-size:17px;}
 }
 .onboard.hide{opacity:0; visibility:hidden;}
+/* iPhone PWA freeze fix: the splash has an infinite SVG ring (csRing). Once the
+   door is dismissed, freeze ALL its animation immediately — belt to enterApp's
+   display:none, and a net for any boot that errors before enterApp runs, so a
+   perpetual compositing loop can never sit behind the app. */
+.onboard.hide, .onboard.hide *{animation-play-state:paused !important;}
 /* ---- entry: course graphic, squad flash, entrance motion ---- */
 .ob-in{position:relative; z-index:1;}
 .ob-course{position:absolute; top:0; right:0; width:min(100%,560px); aspect-ratio:1/1; pointer-events:none; z-index:0;}
@@ -1389,7 +1394,7 @@ body::before{
       </div>
             
     </div>
-    <div class="ob-caption" id="obCaption">New or returning, email is one door. No passwords. Just looking? <a href="#" id="obDemoLink" style="color:var(--pos)">Peek at the demo</a>. <span style="opacity:.5">v23.133</span></div>
+    <div class="ob-caption" id="obCaption">New or returning, email is one door. No passwords. Just looking? <a href="#" id="obDemoLink" style="color:var(--pos)">Peek at the demo</a>. <span style="opacity:.5">v23.134</span></div>
   </div>
   <div class="ob-splash" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
   
