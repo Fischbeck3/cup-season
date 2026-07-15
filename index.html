@@ -703,6 +703,14 @@ input.f::-webkit-outer-spin-button, input.f::-webkit-inner-spin-button{-webkit-a
   border:1px solid var(--line); border-left:3px solid rgba(233,190,98,.5);
   border-radius:12px; background:var(--bg1);
 }
+.momrow{
+  font-family:var(--sans); font-size:12.5px; letter-spacing:.01em; line-height:1.5;
+  color:var(--ink); text-align:left; padding:10px 13px; margin-bottom:8px;
+  border:1px solid rgba(47,164,106,.32); border-left:3px solid var(--brand);
+  border-radius:12px; background:linear-gradient(180deg, rgba(47,164,106,.10), rgba(47,164,106,.03));
+}
+.momrow b{color:var(--brand); font-weight:600; margin-right:6px;}
+html[data-theme="light"] .momrow{background:rgba(21,116,63,.06);}
 .echips{display:flex; flex-wrap:wrap; gap:6px; margin:10px 0 4px;}
 .echip{
   display:flex; align-items:center; gap:7px;
@@ -1396,7 +1404,7 @@ body::before{
       </div>
             
     </div>
-    <div class="ob-caption" id="obCaption">New or returning, email is one door. No passwords. Just looking? <a href="#" id="obDemoLink" style="color:var(--pos)">Peek at the demo</a>. <span style="opacity:.5">v23.135</span></div>
+    <div class="ob-caption" id="obCaption">New or returning, email is one door. No passwords. Just looking? <a href="#" id="obDemoLink" style="color:var(--pos)">Peek at the demo</a>. <span style="opacity:.5">v23.136</span></div>
   </div>
   <div class="ob-splash" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
   
@@ -2509,6 +2517,10 @@ function renderFeed(){
       el.insertAdjacentHTML('beforeend',`<div class="annrow"><b>📣 FROM THE PRO</b>${esc(f.txt)}</div>`);
       return;
     }
+    if(f.moment){
+      el.insertAdjacentHTML('beforeend',`<div class="momrow"><b>✦</b>${esc(easeCaps(f.txt||''))}</div>`);
+      return;
+    }
     if(f.sys){
       /* sys bodies can carry user-composed fragments (declared-round notes) — escape */
       el.insertAdjacentHTML('beforeend',`<div class="sysrow">◆ ${esc(easeCaps(f.txt||''))}</div>`);
@@ -2598,6 +2610,7 @@ function renderFeedFull(){
       return;
     }
     if(f.ann){ el.insertAdjacentHTML('beforeend',`<div class="annrow"><b>📣 FROM THE PRO</b>${esc(f.txt)}</div>`); return; }
+    if(f.moment){ el.insertAdjacentHTML('beforeend',`<div class="momrow"><b>✦</b>${esc(easeCaps(f.txt||''))}</div>`); return; }
     if(f.sys){ el.insertAdjacentHTML('beforeend',`<div class="sysrow">◆ ${esc(easeCaps(f.txt||''))}</div>`); return; }
     if(f.msg){
       el.insertAdjacentHTML('beforeend',
@@ -5596,6 +5609,7 @@ async function loadStandingsAndFeed(){
     if(p.kind === 'chat') feed.push({ d: ds, msg:true, who: memName(p.member_id) + ' ', pid: memPid(p.member_id), ci: memCi(p.member_id), txt:p.body });
     else if(p.kind === 'announce') feed.push({ d: ds, ann:true, txt:p.body });
     else if(p.kind === 'round' && p.round_id) feed.push({ d: ds, roundpost:true, rid: p.round_id, who: memName(p.member_id), ci: memCi(p.member_id), txt: p.body });
+    else if(p.kind === 'moment') feed.push({ d: ds, moment:true, txt:p.body });
     else feed.push({ d: ds, sys:true, txt:p.body });
   });
 
