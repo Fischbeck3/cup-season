@@ -44,9 +44,20 @@
   --sq1:#FB8B4B;         /* squad orange */
   --sq2:#A78BFA;         /* squad violet */
   --sq3:#2FD3BE;         /* squad teal */
-  --r:14px;
+  /* Design tokens (vision doc, Batch A): cards 16 · controls 10 · sheets 24.
+     Three type voices — sans (now), mono (the scorer's tent), serif (memory
+     & honor: hero numbers, headlines, trophies). One motion physics: the
+     roll-out — fast start, long soft settle, like a putt dying at the hole.
+     Exactly two shadow levels: resting whisper, lifted sheet. */
+  --r:16px;              /* cards */
+  --rc:10px;             /* controls: buttons, inputs, minis */
+  --rs:24px;             /* sheets */
   --sans:'IBM Plex Sans', -apple-system, 'Segoe UI', Roboto, sans-serif;
   --mono:'IBM Plex Mono', ui-monospace, 'SF Mono', Menlo, monospace;
+  --serif:'Charter','Iowan Old Style','Palatino Linotype',Georgia,serif;
+  --roll:cubic-bezier(.16,.84,.36,1);
+  --shadow-rest:0 1px 2px rgba(0,0,0,.28);
+  --shadow-lift:0 18px 44px -12px rgba(0,0,0,.55);
 }
 /* light mode: same bones, dawn palette. html[data-theme] is stamped by the
    pre-paint script below and the Appearance selector in the profile. */
@@ -173,7 +184,7 @@ button{font-family:var(--sans); touch-action:manipulation; color:var(--ink);}
 .stats{display:grid; grid-template-columns:repeat(2,1fr); gap:8px;}
 @media(min-width:700px){ .stats{grid-template-columns:repeat(4,1fr);} }
 .stat{
-  background:var(--bg1); border:1px solid var(--line); border-radius:12px;
+  background:var(--bg1); border:1px solid var(--line); border-radius:var(--r);
   padding:12px 14px;
 }
 .stat .k{font-family:var(--mono); font-size:9.5px; letter-spacing:.14em; text-transform:uppercase; color:var(--dim);}
@@ -297,7 +308,7 @@ label.f{
 }
 input.f{
   width:100%; font-family:var(--mono); font-size:16px; font-weight:500; color:var(--ink);
-  background:var(--bg2); border:1px solid var(--line2); border-radius:10px;
+  background:var(--bg2); border:1px solid var(--line2); border-radius:var(--rc);
   padding:11px 12px; min-height:44px;
 }
 input.f:focus-visible{outline:2px solid var(--pos); outline-offset:1px;}
@@ -331,9 +342,9 @@ input.f::-webkit-outer-spin-button, input.f::-webkit-inner-spin-button{-webkit-a
 /* ============ buttons ============ */
 .btn{
   display:flex; align-items:center; justify-content:center; gap:8px;
-  width:100%; min-height:46px; border:none; border-radius:11px; cursor:pointer;
+  width:100%; min-height:46px; border:none; border-radius:var(--rc); cursor:pointer;
   font-size:14px; font-weight:600; color:var(--bg0); background:var(--brand);
-  transition:filter .12s ease;
+  transition:filter .2s var(--roll), transform .2s var(--roll);
 }
 .btn:hover{filter:brightness(1.06);}
 .btn:focus-visible{outline:2px solid var(--ink); outline-offset:2px;}
@@ -528,7 +539,7 @@ input.f::-webkit-outer-spin-button, input.f::-webkit-inner-spin-button{-webkit-a
   display:block; width:100%; text-align:left; cursor:pointer;
   background:var(--bg1); border:1px solid var(--line2); border-radius:var(--r);
   padding:16px 40px 16px 18px; margin-bottom:10px; position:relative; overflow:hidden;
-  transition:border-color .12s ease;
+  transition:border-color .25s var(--roll);
 }
 .optcard::before{content:""; position:absolute; left:0; top:0; bottom:0; width:3.5px; background:var(--acc,var(--brand));}
 .optcard:hover{border-color:var(--line2); filter:brightness(1.08);}
@@ -582,13 +593,13 @@ input.f::-webkit-outer-spin-button, input.f::-webkit-inner-spin-button{-webkit-a
 .mini{
   font-family:var(--mono); font-size:11px; font-weight:600; letter-spacing:.04em;
   color:var(--ink); background:var(--bg2); border:1px solid var(--line2);
-  border-radius:9px; padding:9px 14px; cursor:pointer; flex:none;
+  border-radius:var(--rc); padding:9px 14px; cursor:pointer; flex:none;
 }
 .mini:hover{border-color:var(--dim);}
 .mini:focus-visible{outline:2px solid var(--pos); outline-offset:2px;}
 .check{
   display:flex; align-items:center; gap:12px;
-  background:var(--bg1); border:1px solid var(--line); border-radius:12px;
+  background:var(--bg1); border:1px solid var(--line); border-radius:var(--r);
   padding:13px 14px; margin-bottom:8px;
 }
 .check .num{
@@ -804,11 +815,12 @@ input.f::-webkit-outer-spin-button, input.f::-webkit-inner-spin-button{-webkit-a
 .sheet .panel{
   position:absolute; left:0; right:0; bottom:0; max-height:88vh; overflow-y:auto;
   background:var(--bg1); border-top:1px solid var(--line2);
-  border-radius:20px 20px 0 0; padding:14px 16px calc(24px + env(safe-area-inset-bottom));
+  border-radius:var(--rs) var(--rs) 0 0; padding:14px 16px calc(24px + env(safe-area-inset-bottom));
+  box-shadow:var(--shadow-lift);
 }
 @media(min-width:760px){
   .sheet .panel{ left:50%; right:auto; bottom:auto; top:50%; transform:translate(-50%,-50%);
-    width:640px; max-height:82vh; border-radius:18px; border:1px solid var(--line2); }
+    width:640px; max-height:82vh; border-radius:var(--rs); border:1px solid var(--line2); }
 }
 .sheet .grab{width:36px; height:4px; border-radius:99px; background:var(--line2); margin:0 auto 14px;}
 .sheet h3{font-size:18px; font-weight:700; letter-spacing:-.01em; padding-right:28px;}
@@ -1116,7 +1128,7 @@ body::before{
   background:var(--grad);
   box-shadow:0 10px 24px -8px var(--glow), 0 4px 10px -4px rgba(0,0,0,.5),
              inset 0 1px 0 rgba(255,255,255,.3);
-  transition:transform .12s ease;
+  transition:transform .22s var(--roll);
 }
 .tab:active .circ{transform:scale(.94);}
 .tab[data-v="record"].active::after{display:none;}
@@ -1139,9 +1151,20 @@ body::before{
 
 /* toast: springs up, sits confident */
 .toast{
-  transition:opacity .2s ease, transform .34s cubic-bezier(.34,1.56,.64,1);
-  box-shadow:0 12px 32px -10px rgba(0,0,0,.6);
+  /* the roll-out, never a bounce — golf doesn't bounce, it rolls to a stop */
+  transition:opacity .2s ease, transform .34s var(--roll);
+  box-shadow:var(--shadow-lift);
 }
+
+/* ============ Batch A (vision doc): the serif voice ============
+   Memory & honor speak serif — hero numbers, headlines, ceremony lines.
+   The UI stays grotesque; the scorer's tent stays mono. Digits that stack
+   get tabular numerals so scores line up like scores. */
+.stat .v, .calc .big, .purse .amt, .ontheline .oa, .phasehero .n{
+  font-family:var(--serif); font-variant-numeric:tabular-nums;
+}
+.ob-hero h1, #homeGreeting b{ font-family:var(--serif); letter-spacing:-.01em; }
+.mono, .tbl, .bands, .trio b, .codebox{ font-variant-numeric:tabular-nums; }
 
 /* announcements: the Pro's voice sits above the noise */
 .annrow{
@@ -1317,7 +1340,7 @@ body::before{
       </div>
             
     </div>
-    <div class="ob-caption" id="obCaption">New or returning, email is one door. No passwords. Just looking? <a href="#" id="obDemoLink" style="color:var(--pos)">Peek at the demo</a>. <span style="opacity:.5">v23.129</span></div>
+    <div class="ob-caption" id="obCaption">New or returning, email is one door. No passwords. Just looking? <a href="#" id="obDemoLink" style="color:var(--pos)">Peek at the demo</a>. <span style="opacity:.5">v23.130</span></div>
   </div>
   <div class="ob-splash" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
   
@@ -3593,7 +3616,7 @@ function renderGreeting(){
   const name = state.demo ? 'Jerecho' : (window.CS?.profile?.display_name || 'there');
   const h = new Date().getHours();
   const part = h<12?'Good morning':h<18?'Good afternoon':'Good evening';
-  g.innerHTML = `<div style="padding:2px 0 12px"><b style="font-size:20px; color:var(--ink)">${part}, ${esc(name)}.</b></div>`;
+  g.innerHTML = `<div style="padding:2px 0 12px"><b style="font-size:23px; color:var(--ink)">${part}, ${esc(name)}.</b></div>`;
 }
 function renderHomeStart(){
   const box=$('#homeStart'); if(!box) return;
