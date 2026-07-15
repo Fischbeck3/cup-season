@@ -1412,7 +1412,7 @@ body::before{
       </div>
             
     </div>
-    <div class="ob-caption" id="obCaption">New or returning, email is one door. No passwords. <span style="opacity:.5">v23.139</span></div>
+    <div class="ob-caption" id="obCaption">New or returning, email is one door. No passwords. <span style="opacity:.5">v23.140</span></div>
   </div>
   <div class="ob-splash" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
   
@@ -3921,22 +3921,50 @@ const DEMO_TROPHIES = [
   {kind:'major',  title:'The Bloom',  subtitle:'Major',     season_year:2026},
 ];
 function trophyIcon(k){ return k==='ryder'?'⚔️':k==='bracket'?'🥊':'🏆'; }
+/* career milestones (achievements table) → tile icon + title */
+const ACH_META = {
+  first_round:  {icon:'⛳', title:'First round'},
+  sub_100:      {icon:'🎯', title:'Broke 100'},
+  sub_90:       {icon:'🎯', title:'Broke 90'},
+  sub_80:       {icon:'🔥', title:'Broke 80'},
+  personal_best:{icon:'📉', title:'Personal best'},
+  streak_4:     {icon:'📈', title:'4-week streak'},
+  streak_8:     {icon:'📈', title:'8-week streak'},
+  streak_12:    {icon:'💪', title:'Iron Man'},
+};
+function achSubtitle(a){
+  const m=a.meta||{};
+  if(a.kind==='personal_best' && m.diff!=null) return 'Diff '+Number(m.diff).toFixed(1);
+  if(a.kind && a.kind.indexOf('sub_')===0 && m.gross!=null) return m.gross+' gross';
+  if(a.kind && a.kind.indexOf('streak_')===0 && m.weeks!=null) return m.weeks+' weeks';
+  if(a.kind==='first_round') return 'Posted';
+  return a.label||'';
+}
 function renderTrophyCase(){
   const box=$('#trophyCase'); if(!box) return;
-  const list = state.demo ? DEMO_TROPHIES : (window.trophies||[]);
-  if(!list.length){
-    box.innerHTML = '<div class="card" style="text-align:left"><div class="fine" style="padding:0">No hardware yet. Win a league Cup Final or a Ryder and it lands here — your whole crew will see it.</div></div>';
+  const hw  = state.demo ? DEMO_TROPHIES : (window.trophies||[]);
+  const ach = state.demo ? [] : (window.achievements||[]);
+  const cell = (icon,title,sub) =>
+    `<div style="border:0.5px solid var(--line); background:var(--bg2); border-radius:12px; padding:12px 6px 10px; text-align:center;">
+      <div style="font-size:26px; line-height:1">${icon}</div>
+      <div style="font-size:12px; font-weight:600; color:var(--ink); margin-top:6px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis">${esc(title)}</div>
+      <div style="font-size:11.5px; color:var(--mut); margin-top:1px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis">${esc(sub)}</div>
+    </div>`;
+  const tiles = [];
+  hw.forEach(t=>{
+    const yr = t.season_year ? " · '"+String(t.season_year).slice(2) : '';
+    tiles.push(cell(trophyIcon(t.kind), t.title||'—', (t.subtitle||t.kind||'')+yr));
+  });
+  ach.forEach(a=>{
+    const m = ACH_META[a.kind] || {icon:'🏅', title:a.label||'Milestone'};
+    const yr = a.earned_on ? " · '"+String(a.earned_on).slice(2,4) : '';
+    tiles.push(cell(m.icon, m.title, achSubtitle(a)+yr));
+  });
+  if(!tiles.length){
+    box.innerHTML = '<div class="card" style="text-align:left"><div class="fine" style="padding:0">No hardware yet. Break 80, post your first round, or win a Cup Final — milestones and trophies land here.</div></div>';
     return;
   }
-  const tile = t => {
-    const yr = t.season_year ? " · '"+String(t.season_year).slice(2) : '';
-    return `<div style="border:0.5px solid var(--line); background:var(--bg2); border-radius:12px; padding:12px 6px 10px; text-align:center;">
-      <div style="font-size:26px; line-height:1">${trophyIcon(t.kind)}</div>
-      <div style="font-size:12px; font-weight:600; color:var(--ink); margin-top:6px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis">${esc(t.title||'—')}</div>
-      <div style="font-size:11.5px; color:var(--mut); margin-top:1px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis">${esc(t.subtitle||t.kind||'')}${yr}</div>
-    </div>`;
-  };
-  box.innerHTML = `<div style="display:grid; grid-template-columns:repeat(3,1fr); gap:8px">${list.map(tile).join('')}</div>`;
+  box.innerHTML = `<div style="display:grid; grid-template-columns:repeat(3,1fr); gap:8px">${tiles.join('')}</div>`;
 }
 /* lifetime line + recent rounds — cross-league, user-global (window.career,
    set by the module loader). The demo shows a lived-in career. */
@@ -6633,9 +6661,11 @@ window.openInvitePicker = openInvitePicker;
 /* the display case — cross-league, user-global; reload on every entry point
    so a fresh Ryder win shows without a refresh */
 async function loadTrophies(){
-  if(!CS.user){ window.trophies = []; if(window.renderTrophyCase) window.renderTrophyCase(); return; }
+  if(!CS.user){ window.trophies = []; window.achievements = []; if(window.renderTrophyCase) window.renderTrophyCase(); return; }
   try{ const { data } = await sb.rpc('my_trophies'); window.trophies = data || []; }
   catch(e){ window.trophies = window.trophies || []; }
+  try{ const { data } = await sb.rpc('my_achievements'); window.achievements = data || []; }
+  catch(e){ window.achievements = window.achievements || []; }
   if(window.renderTrophyCase) window.renderTrophyCase();
 }
 window.loadTrophies = loadTrophies;
