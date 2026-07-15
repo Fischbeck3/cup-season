@@ -71,7 +71,12 @@ async function sendEmail(toEmail: string, toName: string, subject: string, html:
         htmlContent: html,
       }),
     });
-    console.log(`[email] status=${res.status}`);
+    if (res.status >= 300) {
+      const body = await res.text().catch(() => '');
+      console.log(`[email] status=${res.status} body=${body.slice(0, 300)}`);
+    } else {
+      console.log(`[email] status=${res.status}`);
+    }
   } catch (e) {
     console.error(`[email] failed msg=${(e as Error)?.message ?? e}`);
   }
