@@ -1302,7 +1302,7 @@ body::before{
       </div>
             
     </div>
-    <div class="ob-caption" id="obCaption">New or returning, email is one door. No passwords. Just looking? <a href="#" id="obDemoLink" style="color:var(--pos)">Peek at the demo</a>. <span style="opacity:.5">v23.122</span></div>
+    <div class="ob-caption" id="obCaption">New or returning, email is one door. No passwords. Just looking? <a href="#" id="obDemoLink" style="color:var(--pos)">Peek at the demo</a>. <span style="opacity:.5">v23.123</span></div>
   </div>
   <div class="ob-splash" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
   
@@ -5191,12 +5191,26 @@ function fillWelcomeCard(){
 }
 async function loadRecentRounds(){
   const { data } = await sb.from('rounds')
-    .select('gross, differential, played_on, course_label, holes_played')
+    .select('id, gross, differential, played_on, course_label, holes_played')
     .eq('profile_id', CS.user.id).order('played_on', { ascending:false }).limit(5);
   const el = $('#wRecent'); if(!el) return;
-  el.innerHTML = (data && data.length)
-    ? data.map(r => `<div class="fine" style="padding:3px 0; display:flex; justify-content:space-between;"><span>${r.played_on} · ${esc((r.course_label||'').toUpperCase()) || 'ROUND'}${r.holes_played===9?' · 9':''}</span><b class="mono">${r.gross} · ${r.differential}</b></div>`).join('')
-    : '<div class="fine" style="padding:3px 0">No rounds yet. The card fills as you post.</div>';
+  if(!(data && data.length)){ el.innerHTML = '<div class="fine" style="padding:3px 0">No rounds yet. The card fills as you post.</div>'; return; }
+  el.innerHTML = data.map(r => `<div class="fine" style="padding:3px 0; display:flex; justify-content:space-between; align-items:center; gap:8px;">
+      <span>${r.played_on} · ${esc((r.course_label||'').toUpperCase()) || 'ROUND'}${r.holes_played===9?' · 9':''}</span>
+      <span style="display:flex; align-items:center; gap:12px;"><b class="mono">${r.gross} · ${r.differential}</b>
+        <button data-delr="${r.id}" title="Delete this round" aria-label="Delete round" style="background:none; border:none; color:var(--dim); cursor:pointer; font-size:16px; line-height:1; padding:2px 4px;">×</button></span>
+    </div>`).join('');
+  el.querySelectorAll('[data-delr]').forEach(b => b.addEventListener('click', async () => {
+    if(!confirm('Delete this round? It leaves your card and any league standings it counted toward.')) return;
+    b.disabled = true;
+    try{
+      const { error } = await sb.rpc('delete_round', { p_round: b.dataset.delr });
+      if(error) throw error;
+      toast('Round deleted');
+      await loadRecentRounds();
+      if(window.loadStandingsAndFeed) await window.loadStandingsAndFeed();
+    }catch(e){ toast('Delete failed: ' + (e.message || e)); b.disabled = false; }
+  }));
 }
 $('#wPostGo').addEventListener('click', async () => {
   const gross = parseInt($('#wGross').value), rating = parseFloat($('#wRating').value), slope = parseInt($('#wSlope').value);
@@ -6828,6 +6842,19 @@ sb.auth.onAuthStateChange((event) => {
     setTimeout(safeBoot, 0);
   }
   if(event === 'SIGNED_OUT'){ CS.user=null; CS.league=null; try{ localStorage.removeItem('cs_code'); localStorage.removeItem('cs_code_name'); }catch(_){}; backToDoor(); }
+});
+
+/* iOS standalone PWA resume: iOS suspends the page's WebSocket while the app is
+   backgrounded, so on reopen realtime is dead and the board feels frozen/stale.
+   On a real resume (>2.5s hidden) re-arm the league channel and refresh the
+   board + invites. Signed-in only, debounced against quick tab flicks, never
+   reloads. (Needs on-device confirmation of the freeze report.) */
+let csHiddenAt = 0;
+document.addEventListener('visibilitychange', () => {
+  if(document.hidden){ csHiddenAt = Date.now(); return; }
+  if(!CS.user || (Date.now() - csHiddenAt) < 2500) return;
+  if(CS.league){ subscribeLeague().then(() => window.loadStandingsAndFeed && window.loadStandingsAndFeed()).catch(() => {}); }
+  loadInvites().then(() => window.renderNotifications && window.renderNotifications()).catch(() => {});
 });
 
 safeBoot();
