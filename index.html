@@ -223,6 +223,7 @@ button{font-family:var(--sans); touch-action:manipulation; color:var(--ink);}
 .rivrec{font-family:var(--mono); font-size:14px; font-weight:600; letter-spacing:.02em; flex:none;}
 .rivrec.up{color:var(--pos);} .rivrec.dn{color:var(--dim);} .rivrec.ev{color:var(--mut);}
 #youRivals .prow.tap{cursor:pointer;}
+[data-tc]{cursor:pointer;}
 
 /* ============ standings table ============ */
 .tbl{width:100%; border-collapse:collapse;}
@@ -1412,7 +1413,7 @@ body::before{
       </div>
             
     </div>
-    <div class="ob-caption" id="obCaption">New or returning, email is one door. No passwords. <span style="opacity:.5">v23.143</span></div>
+    <div class="ob-caption" id="obCaption">New or returning, email is one door. No passwords. <span style="opacity:.5">v23.144</span></div>
   </div>
   <div class="ob-splash" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
   
@@ -3819,7 +3820,7 @@ function feedRow(r){
   else if(r.is_sub80){ badge='⛳ Broke 80'; line = `${whoTag} broke 80 for the first time — ${r.gross} at ${course}`; }
   else if(r.is_first){ badge='🎉 First round'; line = `${whoTag} posted ${r.is_me?'your':'their'} first round — ${r.gross} at ${course}`; }
   else { line = `${whoTag} posted ${r.gross} at ${course}${pvi?' · '+pvi:''}`; }
-  return `<div class="check"><span class="num">${mk}</span>
+  return `<div class="check"><span class="num"${r.profile_id?` data-tc="${r.profile_id}"`:''}>${mk}</span>
     <div class="tt"><b>${line}</b><small>${badge?badge+' · ':''}${dfmtShort(r.played_on)}</small></div></div>`;
 }
 /* league moments (announce + system posts) as feed cards — rounds never come
@@ -4936,7 +4937,7 @@ window.mkr = mkr; /* classic renderCalendar draws markers — bridge or it silen
 
 async function loadProfile(){
   const { data } = await sb.from('profiles')
-    .select('id, display_name, city, home_course, index_current, marker, notify_chat, notify_rounds, handle, discoverable')
+    .select('id, display_name, city, home_course, index_current, marker, notify_chat, notify_rounds, handle, discoverable, ghin_number')
     .eq('id', CS.user.id).maybeSingle();
   CS.profile = data || null;
   if(CS.profile?.index_current != null) state.myIndex = Number(CS.profile.index_current);
@@ -5050,8 +5051,8 @@ function renderPhMarkers(){
    my_friends / friend_request / friend_respond (+ invite via onPick).
    ============================================================ */
 function psRow(r, actionHTML){
-  return `<div class="prow"><span class="pmk">${mkr(r.marker||'saguaro')}</span>
-    <span class="pmeta"><b>${esc(r.display_name||'—')}${founderTag(r.profile_id, r.display_name)}</b>
+  return `<div class="prow"><span class="pmk" data-tc="${r.profile_id}">${mkr(r.marker||'saguaro')}</span>
+    <span class="pmeta" data-tc="${r.profile_id}"><b>${esc(r.display_name||'—')}${founderTag(r.profile_id, r.display_name)}</b>
       <small>@${esc(r.handle||'?')}${r.city?' · '+esc(r.city):''}</small></span>${actionHTML}</div>`;
 }
 function psFriendTag(rel){
@@ -5124,13 +5125,11 @@ async function renderRivalries(){
   box.innerHTML=data.map(r=>{
     const cls=r.lead==='up'?'up':r.lead==='down'?'dn':'ev';
     const rec=`${r.wins}–${r.losses}${r.ties?'–'+r.ties:''}`;
-    return `<div class="prow tap" data-riv="${r.opponent}" data-rivn="${esc(r.display_name||'—')}" data-rivr="${rec}">
+    return `<div class="prow" data-tc="${r.opponent}">
       <span class="pmk">${mkr(r.marker||'saguaro')}</span>
       <span class="pmeta"><b>${esc(r.display_name||'—')}</b><small>${r.meetings} week${r.meetings===1?'':'s'} head-to-head</small></span>
       <span class="rivrec ${cls}">${rec}</span></div>`;
   }).join('');
-  box.querySelectorAll('[data-riv]').forEach(b=>b.addEventListener('click',
-    ()=>openRivalrySheet(b.dataset.riv, b.dataset.rivn, b.dataset.rivr)));
 }
 window.renderRivalries = renderRivalries;
 
@@ -5150,6 +5149,73 @@ async function openRivalrySheet(oppId, name, rec){
   openSheet(`You vs ${name}`, `${rec||''} · WEEKLY CLASH · HIGHER PvI TAKES THE WEEK`, body);
 }
 window.openRivalrySheet = openRivalrySheet;
+
+/* Tour Card: any golfer's whole card, viewable (tour_card RPC). The identity
+   object was owner-only; now every name is a door. Visibility is enforced
+   server-side (shared league/event, accepted buddy, or discoverable=everyone). */
+async function openTourCard(profileId){
+  if(!profileId) return;
+  if(state.demo || !CS.user){ toast('Sign in to see Tour Cards'); return; }
+  openSheet('Tour Card', 'LOADING…', '<p class="fine" style="padding:8px 0">Pulling the card…</p>');
+  let card=null;
+  try{ const {data}=await sb.rpc('tour_card',{p_profile:profileId}); card=data; }catch(_){ card=null; }
+  if(!card || !card.visible){
+    openSheet('Tour Card','PRIVATE','<p class="fine" style="padding:8px 0">This golfer keeps their card private, or you don’t share a league yet.</p>');
+    return;
+  }
+  const p=card.profile||{}, c=card.career||{}, vs=card.vs_you, tr=card.trophies||[], rec=card.recent||[];
+  const idx = p.index_current!=null ? Number(p.index_current).toFixed(1) : '—';
+  const meta = [p.city?esc(p.city):null, p.home_course?esc(p.home_course):null].filter(Boolean).join(' · ');
+  const ghinLine = p.ghin ? `<div class="fine" style="padding-left:0; margin-top:6px">GHIN ${esc(p.ghin)}</div>` : '';
+  const header = `<div style="display:flex; align-items:center; gap:12px">
+      <span style="font-size:34px; line-height:1">${mkr(p.marker||'saguaro')}</span>
+      <div style="min-width:0"><div style="font-size:18px; font-weight:600">${esc(p.display_name||'—')}${p.handle?' <span style="color:var(--mut); font-weight:400; font-size:14px">@'+esc(p.handle)+'</span>':''}</div>
+        <div class="fine" style="padding-left:0">${meta||'&nbsp;'}</div></div>
+      <div style="margin-left:auto; text-align:right; flex:none"><div style="font-family:var(--serif); font-size:22px; color:var(--ink)">${idx}</div><div class="fine" style="padding:0; letter-spacing:.1em">INDEX</div></div>
+    </div>${ghinLine}`;
+  let vsHtml='';
+  if(vs && (vs.wins+vs.losses+vs.ties)>0){
+    const lead = vs.wins>vs.losses?'up':vs.wins<vs.losses?'dn':'ev';
+    const rec2 = `${vs.wins}–${vs.losses}${vs.ties?'–'+vs.ties:''}`;
+    vsHtml = `<div class="prow tap" id="tcVs" style="margin-top:14px"><span class="pmeta"><b>Your head-to-head</b><small>weekly clash · tap for the weeks</small></span><span class="rivrec ${lead}">${rec2}</span></div>`;
+  }
+  const best = c.best!=null ? Number(c.best).toFixed(1) : '—';
+  const avg = c.avg_pvi!=null ? (Number(c.avg_pvi)>=0?'+':'')+Number(c.avg_pvi).toFixed(1) : '—';
+  const stats = `<div class="stats" style="margin-top:14px">
+      <div class="stat"><div class="k">Rounds</div><div class="v">${c.rounds||0}</div></div>
+      <div class="stat"><div class="k">Best diff</div><div class="v">${best}</div></div>
+      <div class="stat"><div class="k">Avg PvI</div><div class="v">${avg}</div></div></div>`;
+  let trHtml='';
+  if(tr.length){
+    trHtml = `<div class="eyebrow" style="margin-top:16px">Trophy case</div><div style="display:grid; grid-template-columns:repeat(3,1fr); gap:8px">`
+      + tr.map(a=>{ const m=ACH_META[a.kind]||{icon:'🏅',title:a.label||'Milestone'};
+          const yr=a.earned_on?" · '"+String(a.earned_on).slice(2,4):'';
+          return `<div style="border:0.5px solid var(--line); background:var(--bg2); border-radius:12px; padding:12px 6px 10px; text-align:center;">
+            <div style="font-size:26px; line-height:1">${m.icon}</div>
+            <div style="font-size:12px; font-weight:600; color:var(--ink); margin-top:6px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis">${esc(m.title)}</div>
+            <div style="font-size:11.5px; color:var(--mut); margin-top:1px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis">${esc(achSubtitle(a))}${yr}</div></div>`;
+        }).join('') + `</div>`;
+  }
+  let recHtml='';
+  if(rec.length){
+    recHtml = `<div class="eyebrow" style="margin-top:16px">Recent rounds</div>`
+      + rec.map(r=>{ const d=new Date(r.played_on+'T00:00:00');
+          const diff=r.differential!=null?Number(r.differential).toFixed(1):'—';
+          return `<div class="check"><span class="num mono" style="font-size:11px">${MOS[d.getMonth()].toUpperCase()} ${d.getDate()}</span>
+            <div class="tt"><b>${r.gross} GROSS${r.holes_played===9?' · 9 HOLES':''}</b><small>${r.course_label?esc(r.course_label.toUpperCase())+' · ':''}DIFF ${diff}</small></div></div>`;
+        }).join('');
+  }
+  openSheet(p.is_me?'Your Tour Card':'Tour Card', p.is_me?'THIS IS HOW YOUR CREW SEES YOU':(p.handle?'@'+p.handle.toUpperCase():''), header+vsHtml+stats+trHtml+recHtml);
+  const vb=document.getElementById('tcVs');
+  if(vb) vb.addEventListener('click', ()=> openRivalrySheet(profileId, p.display_name||'them',
+    `${vs.wins}–${vs.losses}${vs.ties?'–'+vs.ties:''}`));
+}
+window.openTourCard = openTourCard;
+/* one delegated door: any [data-tc="<profileId>"] element opens that card */
+document.addEventListener('click', e=>{
+  const el = e.target.closest('[data-tc]');
+  if(el && el.dataset.tc){ e.preventDefault(); openTourCard(el.dataset.tc); }
+});
 
 function openPeoplePicker(opts){
   opts=opts||{}; const mode=opts.mode||'befriend'; const staged=new Set(); const rowCache=new Map();
@@ -5221,6 +5287,9 @@ function openProfileHub(){
         <button class="mini" data-disc="nobody">Nobody</button>
       </div></div>
     </div>
+    <label class="f" for="phGhin" style="display:block; margin-top:8px">GHIN # · optional</label>
+    <input class="f" id="phGhin" inputmode="numeric" placeholder="e.g. 1234567" style="font-family:var(--sans); max-width:180px">
+    <p class="fine" style="padding-left:0">A reference on your card — we never resell or verify it. Leave it blank if you'd rather not.</p>
     <button class="mini" id="phSave" style="margin-top:10px">Save card</button>
     <span class="fine" id="phStatus"></span>
 
@@ -5273,6 +5342,7 @@ function openProfileHub(){
   $('#phHandle').value = p.handle ? '@' + p.handle : '';
   $('#phCity').value = p.city || '';
   $('#phHome').value = p.home_course || '';
+  $('#phGhin').value = p.ghin_number || '';
   $('#phIdx').value = p.index_current != null ? Number(p.index_current).toFixed(1) : '';
   renderPhMarkers();
 
@@ -5292,6 +5362,7 @@ function openProfileHub(){
         p_home: $('#phHome').value.trim() || null,
         p_index: null, /* index moves ONLY via set_index — announced on the boards */
         p_marker: phMarker,
+        p_ghin: $('#phGhin').value.trim(), /* '' clears; the RPC treats null as "keep" */
       });
       if(error) throw error;
       await loadProfile();
