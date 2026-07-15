@@ -896,7 +896,9 @@ input.f::-webkit-outer-spin-button, input.f::-webkit-inner-spin-button{-webkit-a
 /* ============ tab bar (mobile) ============ */
 .tabbar{
   position:fixed; left:0; right:0; bottom:0; z-index:25;
-  display:grid; grid-template-columns:repeat(4,1fr); /* IA P2: Calendar tab retired */
+  /* five tracks so the Post ⊕ sits DEAD CENTER (pilot ask): two flexible lanes
+     each side of a fixed middle track; Tour Card rides the right pair */
+  display:grid; grid-template-columns:2fr 2fr auto 2fr 2fr;
   padding:7px 8px calc(9px + env(safe-area-inset-bottom));
   background:rgba(12,13,15,.9);
   backdrop-filter:blur(18px) saturate(1.3);
@@ -1099,8 +1101,12 @@ body::before{
 }
 .hdr .who:active{box-shadow:0 0 0 4px var(--glow);}
 
-/* tabbar: four lanes, a raised tee for Post, a dot that says where you are */
-.tabbar{grid-template-columns:repeat(4,1fr);}
+/* tabbar: a raised tee for Post dead center, a dot that says where you are */
+.tabbar{grid-template-columns:2fr 2fr auto 2fr 2fr;}
+.tab[data-v="home"]{grid-column:1;}
+.tab[data-v="hub"]{grid-column:2;}
+.tab[data-v="record"]{grid-column:3; min-width:64px;}
+.tab[data-v="stats"]{grid-column:4 / span 2;}
 .tab{position:relative;}
 .tab.active::after{
   content:""; position:absolute; top:2px; left:50%; transform:translateX(-50%);
@@ -1311,7 +1317,7 @@ body::before{
       </div>
             
     </div>
-    <div class="ob-caption" id="obCaption">New or returning, email is one door. No passwords. Just looking? <a href="#" id="obDemoLink" style="color:var(--pos)">Peek at the demo</a>. <span style="opacity:.5">v23.125</span></div>
+    <div class="ob-caption" id="obCaption">New or returning, email is one door. No passwords. Just looking? <a href="#" id="obDemoLink" style="color:var(--pos)">Peek at the demo</a>. <span style="opacity:.5">v23.126</span></div>
   </div>
   <div class="ob-splash" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
   
@@ -2178,6 +2184,10 @@ function switchView(v){
   if(v==='home' && typeof renderHomeHub==='function') renderHomeHub();
   if(v==='hub'){
     if(typeof renderClubGroups==='function') renderClubGroups();
+    /* safety net: if boot's league load failed or hasn't landed, opening the
+       room kicks it — the room must never sit empty */
+    if(!state.demo && window.CS?.league && !(window.CS.members||[]).length && window.loadLeagueData)
+      window.loadLeagueData();
     if(document.getElementById('view-hub')?.classList.contains('showpeople')) window.renderCrewPeople?.();
   }
 }
@@ -5284,9 +5294,18 @@ async function enterLeague(m, nav=true){
   state.myIndex = Number(m.index_current);
   state.phase   = m.league.phase === 'setup' ? 'setup'
                 : m.league.phase === 'draft' ? 'draft' : 'season';
+  /* boot re-enters this league next session (pilot: "delay for Pilot to
+     populate in Crew" — boot was entering memberships[0], not the league
+     the golfer actually lives in) */
+  try{ localStorage.setItem('cs_last_league', m.league.id); }catch(_){}
 
   $('#leagueName').textContent = m.league.name;
   $('#sideLeague').textContent = m.league.name;
+  /* instant feedback while the room loads — a league switch runs several
+     awaited queries; the header must move the moment you tap */
+  const hn=$('#hhName');  if(hn) hn.textContent = m.league.name;
+  const hp=$('#hhPhase'); if(hp) hp.textContent = 'Loading the room…';
+  window.renderClubGroups?.();   /* highlight the chip immediately */
   const chev = $('#lgChev'); if(chev) chev.style.display = 'block';
   document.querySelectorAll('.codebox').forEach(el => el.textContent = m.league.code);
 
@@ -5338,6 +5357,7 @@ async function enterLeague(m, nav=true){
 /* ---------- real league data (profile-first, reads the views) ---------- */
 CS.members = []; CS.squads = []; CS.sel = null;
 
+window.loadLeagueData = (...a) => loadLeagueData(...a);   /* hub safety net (classic side) */
 async function loadLeagueData(){
   if(!CS.league) return;
   const { data: mem } = await sb.from('league_members')
@@ -6777,8 +6797,12 @@ async function boot(){
       return;
     }
     bootStep = 'enterLeague';
-    bootTrace('entering ' + CS.memberships[0].league.name);
-    await enterLeague(CS.memberships[0]);
+    /* prefer the league you were last in — memberships[0] is DB order, which
+       put pilots in the wrong room until they clicked over from Home */
+    const lastId = (()=>{ try{ return localStorage.getItem('cs_last_league'); }catch(_){ return null; } })();
+    const mFirst = CS.memberships.find(x => x.league.id === lastId) || CS.memberships[0];
+    bootTrace('entering ' + mFirst.league.name);
+    await enterLeague(mFirst);
     if(CS.memberships.length > 1) toast('Switch groups anytime from Home');
   } catch(e){
     authStatus('Boot failed at [' + bootStep + ']: ' + (e.message || e), 'err');
@@ -6795,7 +6819,8 @@ async function resumeAfterProfile(){
     await loadMemberships();
     if(CS.memberships.length === 0){ showWelcome(); return; }
     bootStep = 'enterLeague';
-    await enterLeague(CS.memberships[0]);
+    const lastId2 = (()=>{ try{ return localStorage.getItem('cs_last_league'); }catch(_){ return null; } })();
+    await enterLeague(CS.memberships.find(x => x.league.id === lastId2) || CS.memberships[0]);
   } catch(e){
     authStatus('Boot failed at [' + bootStep + ']: ' + (e.message || e), 'err');
   } finally { bootStep = 'reveal'; }
