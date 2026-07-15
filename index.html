@@ -497,6 +497,9 @@ input.f::-webkit-outer-spin-button, input.f::-webkit-inner-spin-button{-webkit-a
 .step button:hover{color:var(--ink);}
 .step button:focus-visible{outline:2px solid var(--pos); outline-offset:-2px;}
 .step .sv{font-family:var(--mono); font-size:15px; font-weight:600; min-width:26px; text-align:center; font-variant-numeric:tabular-nums;}
+/* Batch C: the old scorecard notation — under par draws a gold birdie circle */
+.step .sv.birdie{width:28px; height:28px; line-height:28px; min-width:28px; border-radius:50%;
+  color:var(--gold); box-shadow:inset 0 0 0 2px var(--gold);}
 .gamecard{
   background:var(--bg1); border:1px solid var(--line2); border-radius:var(--r);
   padding:14px; margin-bottom:10px; position:relative; overflow:hidden;
@@ -1176,6 +1179,14 @@ body::before{
 }
 @media(prefers-reduced-motion:reduce){ #stamp{display:none !important;} }
 
+/* Batch C: scorecard-shaped skeletons while the feed loads — never a spinner */
+.skrow{display:flex; align-items:center; gap:12px; background:var(--bg1);
+  border:1px solid var(--line); border-radius:var(--r); padding:13px 14px; margin-bottom:8px;}
+.skb{background:linear-gradient(90deg,var(--bg2) 25%,var(--line2) 40%,var(--bg2) 60%);
+  background-size:280% 100%; border-radius:6px; animation:shimmer 1.3s ease-in-out infinite;}
+@keyframes shimmer{0%{background-position:100% 0;} 100%{background-position:-80% 0;}}
+@media(prefers-reduced-motion:reduce){ .skb{animation:none;} }
+
 /* eyebrows: every section tees off with the scoreline dash */
 .eyebrow{justify-content:flex-start; gap:8px;}
 .eyebrow::before{
@@ -1378,7 +1389,7 @@ body::before{
       </div>
             
     </div>
-    <div class="ob-caption" id="obCaption">New or returning, email is one door. No passwords. Just looking? <a href="#" id="obDemoLink" style="color:var(--pos)">Peek at the demo</a>. <span style="opacity:.5">v23.132</span></div>
+    <div class="ob-caption" id="obCaption">New or returning, email is one door. No passwords. Just looking? <a href="#" id="obDemoLink" style="color:var(--pos)">Peek at the demo</a>. <span style="opacity:.5">v23.133</span></div>
   </div>
   <div class="ob-splash" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
   
@@ -2411,6 +2422,21 @@ function sparkline(arr,ci){
   }).join(' ');
   return `<svg class="spark" width="60" height="18" viewBox="0 0 60 18"><polyline points="${pts}" fill="none" stroke="${SQHEX[ci]}" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
 }
+/* Batch C: row-glide — when the table reorders, rows slide to their new spot
+   instead of teleporting (FLIP). Keyed by data-squad; reduced-motion opts out. */
+function flipRows(el, keyAttr, apply){
+  if(!el || matchMedia('(prefers-reduced-motion:reduce)').matches){ apply(); return; }
+  const first=new Map();
+  el.querySelectorAll('['+keyAttr+']').forEach(r=>first.set(r.getAttribute(keyAttr), r.getBoundingClientRect().top));
+  apply();
+  el.querySelectorAll('['+keyAttr+']').forEach(r=>{
+    const o=first.get(r.getAttribute(keyAttr)); if(o==null) return;
+    const d=o-r.getBoundingClientRect().top;
+    if(Math.abs(d)<1) return;
+    r.style.transform='translateY('+d+'px)'; r.style.transition='none';
+    requestAnimationFrame(()=>{ r.style.transition='transform .55s var(--roll)'; r.style.transform=''; });
+  });
+}
 function renderStandings(){
   const el=$('#standings');
   if(!teams.length){
@@ -2432,7 +2458,7 @@ function renderStandings(){
     </tr>`;
     if(i===1) html+=`<tr class="cutrow"><td colspan="5">Cup line · top 2 advance</td></tr>`;
   });
-  el.innerHTML=html;
+  flipRows(el, 'data-squad', ()=>{ el.innerHTML=html; });
   el.querySelectorAll('[data-squad]').forEach(r=>
     r.addEventListener('click',()=>showSquad(r.dataset.squad)));
 }
@@ -3232,7 +3258,7 @@ function renderPlay(){
       <div class="tot">${done.length? gross+' THRU '+done.length+'<br>'+(vp>=0?'+':'')+vp : '—'}</div>
       <div class="step">
         <button aria-label="Minus ${p.n}" data-pi="${pi}" data-d="-1">−</button>
-        <span class="sv">${s===null?'–':s}</span>
+        <span class="sv${s!==null && s<PAR[h] ? ' birdie':''}">${s===null?'–':s}</span>
         <button aria-label="Plus ${p.n}" data-pi="${pi}" data-d="1">+</button>
       </div>`;
     rows.appendChild(row);
@@ -3742,9 +3768,19 @@ function postRow(p){
   return `<div class="check"><span class="num">${icon}</span>
     <div class="tt"><b>${esc(p.body||'')}</b><small>${lg?esc(lg)+' · ':''}${dfmtShort((p.created_at||'').slice(0,10))}</small></div></div>`;
 }
+function skeletonRows(n){
+  let h='';
+  for(let i=0;i<n;i++) h+=`<div class="skrow"><span class="skb" style="width:26px;height:26px;border-radius:50%"></span>`
+    +`<div style="flex:1"><span class="skb" style="display:block;height:11px;width:${72-i*10}%"></span>`
+    +`<span class="skb" style="display:block;height:9px;width:42%;margin-top:8px"></span></div></div>`;
+  return h;
+}
 function renderHomeFeed(){
   const box=$('#homeFeed'); if(!box) return;
   if(state.demo){ box.innerHTML = DEMO_FEED.map(feedRow).join(''); return; }
+  /* loading: scorecard skeletons until the first fetch lands (undefined = not
+     yet loaded; [] = loaded empty → the real empty state) */
+  if(window.homeFeed===undefined && window.homePosts===undefined){ box.innerHTML = skeletonRows(3); return; }
   /* ONE feed (IA P1): circle rounds + league moments, newest first */
   const items = (window.homeFeed||[]).map(r => ({ t:(r.played_on||''), html:feedRow(r) }))
     .concat((window.homePosts||[]).map(p => ({ t:(p.created_at||'').slice(0,10), html:postRow(p) })))
