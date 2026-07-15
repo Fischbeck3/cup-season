@@ -1007,12 +1007,10 @@ input.f::-webkit-outer-spin-button, input.f::-webkit-inner-spin-button{-webkit-a
 /* ---- adaptive shell (v23.55 → one-home IA P1): Home is ONE tree for both
    states — content adapts inside the renderers, never via a CSS fork. The hub
    still forks until the League Room lands (P2). ---- */
-body.noleague #view-hub  > *:not(#hubLeagueless):not(#hubSeg):not(#hubPeople){display:none !important;}
+body.noleague #view-hub  > *:not(#hubLeagueless){display:none !important;}
 /* League Room segments (IA P2): one pane at a time */
 .roompane{display:none;}
 .roompane.on{display:block;}
-#view-hub.showpeople > *:not(#hubSeg):not(#hubPeople){display:none !important;}
-#view-hub:not(.showpeople) #hubPeople{display:none;}
 .prow{display:flex; align-items:center; gap:10px; padding:11px 0; border-top:1px solid var(--line);}
 .prow:first-child{border-top:none;}
 .prow .pmk{flex:none; width:22px; text-align:center; color:var(--mut);}
@@ -1319,7 +1317,7 @@ body::before{
       </div>
             
     </div>
-    <div class="ob-caption" id="obCaption">New or returning, email is one door. No passwords. Just looking? <a href="#" id="obDemoLink" style="color:var(--pos)">Peek at the demo</a>. <span style="opacity:.5">v23.128</span></div>
+    <div class="ob-caption" id="obCaption">New or returning, email is one door. No passwords. Just looking? <a href="#" id="obDemoLink" style="color:var(--pos)">Peek at the demo</a>. <span style="opacity:.5">v23.129</span></div>
   </div>
   <div class="ob-splash" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
   
@@ -1353,6 +1351,12 @@ body::before{
   <div class="main">
     <header class="hdr">
       <div class="hdr-in">
+        <!-- IA P5: friends go contextual — find & add any golfer from anywhere -->
+        <button class="hdrsearch" id="hdrSearch" aria-label="Find golfers" title="Find golfers"
+          style="background:none; border:0; cursor:pointer; padding:6px; color:var(--mut); display:flex;">
+          <svg viewBox="0 0 24 24" width="21" height="21" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+            <circle cx="11" cy="11" r="7"/><path d="M20 20l-3.2-3.2"/></svg>
+        </button>
         <!-- league name + week live in the Clubhouse header and the Home hub now;
              kept here (hidden) so existing setters never null-ref -->
         <div class="title" style="display:none">
@@ -1425,6 +1429,11 @@ body::before{
         <div class="eyebrow">Recent rounds</div>
         <div class="card" style="text-align:left; padding:10px 12px"><div id="youRecent"></div></div>
         <button class="btn" id="youPost" style="margin-top:10px">Post a round</button>
+
+        <!-- IA P5: buddies live here now (the Crew · People segment retired).
+             Search + requests + your crew — the People surface, one home. -->
+        <div class="eyebrow">Golf buddies</div>
+        <div id="youPeople" style="text-align:left"></div>
 
         <div class="league-only">
           <div class="eyebrow">This season · <span id="youSeasonLg">your league</span></div>
@@ -1751,11 +1760,9 @@ body::before{
 
       <!-- LEAGUE HUB -->
       <section class="view" id="view-hub">
-        <div class="seg" id="hubSeg" style="margin-bottom:12px">
-          <button data-hubseg="groups" class="on">Groups</button>
-          <button data-hubseg="people">People</button>
-        </div>
-        <div id="hubPeople"></div>
+        <!-- IA P5: the People segment retired — buddies moved to You,
+             finding golfers moved to the header search. Crew is now purely
+             your leagues & events (the "Groups" it always was). -->
         <div id="hubLeagueless">
           <div class="eyebrow" style="margin-top:0">League play — cup season</div>
           <button class="btn" id="wCreate">Start a league</button>
@@ -2190,18 +2197,10 @@ function switchView(v){
        room kicks it — the room must never sit empty */
     if(!state.demo && window.CS?.league && !(window.CS.members||[]).length && window.loadLeagueData)
       window.loadLeagueData();
-    if(document.getElementById('view-hub')?.classList.contains('showpeople')) window.renderCrewPeople?.();
   }
+  if(v==='stats') window.renderCrewPeople?.();   /* IA P5: buddies live on You */
 }
 $$('.tab, .navitem').forEach(b=>b.addEventListener('click',()=>switchView(b.dataset.v)));
-
-/* Crew segment: People | Groups */
-$$('#hubSeg [data-hubseg]').forEach(b=>b.addEventListener('click',()=>{
-  const people = b.dataset.hubseg==='people';
-  $$('#hubSeg [data-hubseg]').forEach(x=>x.classList.toggle('on', x===b));
-  document.getElementById('view-hub').classList.toggle('showpeople', people);
-  if(people) window.renderCrewPeople?.();
-}));
 
 /* a11y: the app renders many click-only .tap rows (hub, switcher, sheets,
    start cards). Stamp each focusable + button-role as it appears, and treat
@@ -3678,7 +3677,7 @@ function renderHomeFeed(){
     .slice(0,30);
   box.innerHTML = items.length
     ? items.map(i=>i.html).join('')
-    : '<p class="fine" style="padding:0">No rounds from your circle yet. Post one, or add golfers in <a href="#" data-gopeople style="color:var(--brand)">Crew</a>.</p>';
+    : '<p class="fine" style="padding:0">No rounds from your circle yet. Post one, or <a href="#" data-gopeople style="color:var(--brand)">add golf buddies</a>.</p>';
 }
 /* Up Next — what's coming, one glance: next declared round, invites waiting,
    the month-close clock. Hides entirely when there's nothing coming. */
@@ -4802,7 +4801,7 @@ async function psSearch(q){ try{ const {data}=await sb.rpc('search_golfers',{p_q
 async function psFriends(){ try{ const {data}=await sb.rpc('my_friends'); return data||[]; }catch(_){ return []; } }
 
 async function renderCrewPeople(){
-  const box = document.getElementById('hubPeople'); if(!box) return;
+  const box = document.getElementById('youPeople'); if(!box) return;   /* IA P5: buddies on You */
   if(!CS.user){ box.innerHTML = '<p class="fine" style="padding:0">Sign in to add golf buddies and see requests.</p>'; return; }
   box.innerHTML = `
     <input class="f" id="crFind" placeholder="Find golfers by name or @handle" autocomplete="off" style="font-family:var(--sans)">
@@ -4934,8 +4933,8 @@ function openProfileHub(){
     ${leagues}
 
     <div class="eyebrow" style="margin-top:20px">Golf buddies</div>
-    <button class="btn dark" id="phCrew">Find &amp; manage in Crew</button>
-    <p class="fine" style="padding-left:0">Your buddies, requests, and search live in the Crew tab now.</p>
+    <button class="btn dark" id="phCrew">Manage buddies on your Tour Card</button>
+    <p class="fine" style="padding-left:0">Your buddies and requests live on your Tour Card. Add anyone from the 🔍 search up top.</p>
 
     <div class="eyebrow" style="margin-top:20px">Notifications</div>
     <div style="display:flex; gap:8px; flex-wrap:wrap;">
@@ -5099,15 +5098,21 @@ function openProfileHub(){
 $('#whoChip')?.addEventListener('click', openProfileHub);   /* chip retired; guard stays */
 $('#youProfile')?.addEventListener('click', openProfileHub);
 /* "Add golfers" now lands in Crew > People, not the profile editor */
+/* IA P5: "manage my buddies" now lands on the You tab; "add a golfer" opens
+   the search overlay (the one People Picker in befriend mode). */
 function goCrewPeople(){
-  switchView('hub');
-  $$('#hubSeg [data-hubseg]').forEach(x=>x.classList.toggle('on', x.dataset.hubseg==='people'));
-  document.getElementById('view-hub')?.classList.add('showpeople');
+  switchView('stats');
   window.renderCrewPeople?.();
 }
 window.goCrewPeople = goCrewPeople;
+function openFindGolfers(){
+  if(!CS.user){ toast('Sign in to find and add golfers'); return; }
+  openPeoplePicker({ title:'Find golfers', sub:'Search by name or @handle to add buddies' });
+}
+window.openFindGolfers = openFindGolfers;
 document.addEventListener('click', e=>{ if(e.target.closest('[data-gopeople]')){ e.preventDefault(); goCrewPeople(); } });
-$('#wFind')?.addEventListener('click', goCrewPeople);
+$('#wFind')?.addEventListener('click', openFindGolfers);
+$('#hdrSearch')?.addEventListener('click', openFindGolfers);
 $('#hdrLogo')?.addEventListener('click', ()=> switchView('home'));
 
 $('#annBtn')?.addEventListener('click', async () => {
