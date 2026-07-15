@@ -28,18 +28,25 @@
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
 :root{
-  --bg0:#0C0D0F;         /* page */
-  --bg1:#131519;         /* surface */
-  --bg2:#1B1E24;         /* raised / inputs */
-  --line:#24272E;
-  --line2:#2E323B;
+  /* Vision-doc palette (Batch B): the trophy room at dusk — deep green-black
+     ground, champagne gold spent ONLY on what's earned, fairway/pine green as
+     the primary voice, one dawn blue for links & live. The fairway is a deep
+     Masters green, deliberately NOT the neon sensor-green (--pos) we moved off
+     of in v23.106 — different identity, no Arccos echo. */
+  --bg0:#0A0E0C;         /* page — dusk green-black */
+  --bg1:#121710;         /* surface */
+  --bg2:#1A201A;         /* raised / inputs */
+  --line:#252C24;
+  --line2:#30372E;
   --ink:#ECEEF2;
-  --mut:#9AA1AC;
-  --dim:#5E6570;
-  --pos:#43E07C;         /* performance up */
-  --neg:#FF5F56;         /* performance down */
-  --gold:#E9BE62;        /* money */
-  --brand:var(--gold);   /* primary action + brand duty — was --pos (green); gold reads pot/trophy, not swing-sensor. Green stays semantic (positive/live) */
+  --mut:#98A29A;
+  --dim:#5E665E;
+  --pos:#43E07C;         /* performance up / live — SEMANTIC only (neon) */
+  --neg:#FF5F56;         /* performance down / money owed */
+  --gold:#D8B25A;        /* champagne — EARNED only: leads, pot, trophies */
+  --pine:#0E3B24;        /* deepest green — the tee, ceremony grounds */
+  --brand:#2FA46A;       /* fairway — primary action + brand (fills + accents) */
+  --dawn:#63ADFF;        /* links & live states */
   --sq0:#57A8FF;         /* squad blue */
   --sq1:#FB8B4B;         /* squad orange */
   --sq2:#A78BFA;         /* squad violet */
@@ -65,9 +72,10 @@ html[data-theme="light"]{
   --bg0:#EFF2EE; --bg1:#FBFCFA; --bg2:#E5EAE4;
   --line:#D9DFD7; --line2:#C9D1C8;
   --ink:#1A2620; --mut:#52625A; --dim:#8C9992;
-  --pos:#0E9B51; --neg:#CC4038; --gold:#A87F10;
+  --pos:#0E9B51; --neg:#CC4038; --gold:#9A7418;   /* champagne, ink-dark for paper */
+  --pine:#0E3B24; --brand:#15743F; --dawn:#2C6E9E;  /* fairway/pine/dawn on the tee sheet */
   --sq0:#2C7CD3; --sq1:#DE6A22; --sq2:#7A58DE; --sq3:#0D9E8F;
-  --glow:rgba(14,155,81,.10);
+  --glow:rgba(21,116,63,.12);
 }
 html[data-theme="light"] body::before{opacity:.3;}
 /* the design layer machines dark surfaces by hand — light counterparts */
@@ -219,6 +227,9 @@ button{font-family:var(--sans); touch-action:manipulation; color:var(--ink);}
 .tbl td{padding:11px 8px; border-top:1px solid var(--line); vertical-align:middle;}
 .tbl .rk{font-family:var(--mono); font-size:12px; color:var(--dim); width:26px;}
 .tbl tr.lead .rk{color:var(--gold);}
+/* Batch B: the leader carries a hairline champagne underline — gold earned */
+.tbl tr.lead td{box-shadow:inset 0 -2px 0 -1px rgba(216,178,90,.55);}
+.tbl tr.lead .pts{color:var(--gold);}
 .tbl .sw{width:9px; height:20px; border-radius:3px; display:inline-block;}
 .tbl .tn{font-size:13.5px; font-weight:600; line-height:1.2;}
 .tbl .tc{font-family:var(--mono); font-size:10px; color:var(--dim); margin-top:2px;}
@@ -894,10 +905,10 @@ input.f::-webkit-outer-spin-button, input.f::-webkit-inner-spin-button{-webkit-a
 #pilotChip:hover{opacity:1; color:var(--mut);}
 .fbcat{ font-family:var(--sans); font-size:12px; color:var(--mut); background:var(--bg1);
   border:1px solid var(--line2); border-radius:99px; padding:6px 12px; cursor:pointer; }
-.fbcat.on{ color:var(--ink); border-color:var(--gold); background:rgba(233,190,98,.1); }
+.fbcat.on{ color:var(--ink); border-color:var(--brand); background:rgba(47,164,106,.12); }
 .ftag{ display:inline-flex; align-items:center; gap:2px; font-family:var(--mono); font-size:8.5px;
-  letter-spacing:.04em; color:var(--brand); background:rgba(233,190,98,.1);
-  border:1px solid rgba(233,190,98,.32); border-radius:99px; padding:1px 6px; vertical-align:middle; white-space:nowrap; }
+  letter-spacing:.04em; color:var(--gold); background:rgba(216,178,90,.12);  /* founder = earned → champagne */
+  border:1px solid rgba(216,178,90,.34); border-radius:99px; padding:1px 6px; vertical-align:middle; white-space:nowrap; }
 #errbar{
   position:fixed; left:0; right:0; bottom:0; z-index:999; display:none;
   font-family:var(--mono); font-size:10.5px; line-height:1.6; letter-spacing:.02em;
@@ -1061,8 +1072,8 @@ body:not(.noleague) #hubLeagueless{display:none;}
    state you can feel. Overrides ride the cascade; base stays.
    ================================================================ */
 :root{
-  --grad:linear-gradient(135deg, #E9BE62 0%, #C99A2E 100%);  /* the scoreline gradient — now gold (was green→teal). This is the primary brand accent: btn, FAB, eyebrow dash, nav glow */
-  --glow:rgba(233,190,98,.16);
+  --grad:linear-gradient(135deg, #35B074 0%, #0E3B24 100%);  /* the scoreline gradient — fairway→pine (Batch B). Primary brand accent: btn, tee, eyebrow dash, nav glow */
+  --glow:rgba(47,164,106,.20);
 }
 
 /* atmosphere: a faint dawn over the course, fixed behind everything */
@@ -1090,10 +1101,12 @@ body::before{
   .check:hover{border-color:var(--line2); transform:translateY(-1px);}
 }
 
-/* the accent lives: primary actions carry the scoreline gradient */
+/* Batch B: primary actions are flat fairway with dark text (readable + pops);
+   the dramatic fairway→pine --grad is reserved for the tee, which has a cream
+   glyph and no text to worry about. */
 .btn:not(.dark):not(.gold):not(.apple){
-  background:var(--grad); color:#1C1503;
-  box-shadow:0 8px 22px -10px var(--glow), inset 0 1px 0 rgba(255,255,255,.25);
+  background:var(--brand); color:#08120C;
+  box-shadow:0 8px 22px -12px var(--glow), inset 0 1px 0 rgba(255,255,255,.2);
 }
 .btn, .mini, .tab, .navitem{transition:filter .12s ease, transform .1s ease, box-shadow .15s ease;}
 .btn:active, .mini:active{transform:scale(.98);}
@@ -1119,6 +1132,7 @@ body::before{
   z-index:26; font-size:0; gap:0; padding:0;   /* circle only — no label */
 }
 .tab[data-v="record"] .circ{margin:0;}
+.tab[data-v="record"] .circ svg{stroke:#F4F8F2;}   /* cream + on the pine tee (Batch B) */
 .tab{position:relative;}
 .tab.active::after{
   content:""; position:absolute; top:2px; left:50%; transform:translateX(-50%);
@@ -1135,8 +1149,11 @@ body::before{
 
 /* desktop rail: active item glows from its edge */
 .navitem.active{
-  background:linear-gradient(90deg, rgba(233,190,98,.10), rgba(233,190,98,0) 70%);
+  background:linear-gradient(90deg, rgba(47,164,106,.12), rgba(47,164,106,0) 70%);
 }
+/* Batch B: dawn blue is the link & live voice */
+.fine a, .eyebrow a{color:var(--dawn);}
+.livebanner .lk .dot{background:var(--dawn);}
 
 /* eyebrows: every section tees off with the scoreline dash */
 .eyebrow{justify-content:flex-start; gap:8px;}
@@ -1340,7 +1357,7 @@ body::before{
       </div>
             
     </div>
-    <div class="ob-caption" id="obCaption">New or returning, email is one door. No passwords. Just looking? <a href="#" id="obDemoLink" style="color:var(--pos)">Peek at the demo</a>. <span style="opacity:.5">v23.130</span></div>
+    <div class="ob-caption" id="obCaption">New or returning, email is one door. No passwords. Just looking? <a href="#" id="obDemoLink" style="color:var(--pos)">Peek at the demo</a>. <span style="opacity:.5">v23.131</span></div>
   </div>
   <div class="ob-splash" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
   
