@@ -1412,7 +1412,7 @@ body::before{
       </div>
             
     </div>
-    <div class="ob-caption" id="obCaption">New or returning, email is one door. No passwords. <span style="opacity:.5">v23.141</span></div>
+    <div class="ob-caption" id="obCaption">New or returning, email is one door. No passwords. <span style="opacity:.5">v23.142</span></div>
   </div>
   <div class="ob-splash" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
   
@@ -1486,6 +1486,7 @@ body::before{
         <div id="homeHub">
           <div id="homeGreeting"></div>
           <div id="homeUpNext"></div>
+          <div id="homePulse"></div>
           <div class="eyebrow" style="margin-top:0">Start something</div>
           <div id="homeStart"></div>
           <div class="eyebrow">Your leagues</div>
@@ -3907,12 +3908,59 @@ function renderHomeRequests(){
 function renderHomeHub(){
   renderGreeting();
   renderUpNext();
+  renderPulse();
   renderHomeRequests();
   renderHomeStart();
   renderHomeRecap();
   renderHomeFeed();
   renderClubGroups();   /* keep the Clubhouse switcher in sync */
 }
+/* role-aware Home (events-doc §6): the month's participation, spoken to your
+   role — the Pro sees who's short of the floor, the golfer sees their own line. */
+function pulseCard(top, bodyHtml){
+  return `<div class="card" style="text-align:left; padding:12px 14px; margin:0 0 14px">
+    <div class="mono" style="font-size:11px; letter-spacing:.08em; color:var(--mut); margin-bottom:5px">${esc(top)}</div>
+    <div style="font-size:13.5px; color:var(--ink); line-height:1.45">${bodyHtml}</div>
+  </div>`;
+}
+function renderPulse(){
+  const box=$('#homePulse'); if(!box) return;
+  const rows=(!state.demo && window.leaguePulse) || [];
+  if(state.demo || !CS.user || !CS.league || !rows.length){ box.innerHTML=''; return; }
+  const isPro=CS.member?.role==='commissioner';
+  const floor=rows[0].floor ?? 2;
+  const mName=MOS[new Date().getMonth()];
+  const now=new Date(), eom=new Date(now.getFullYear(), now.getMonth()+1, 0);
+  const days=Math.max(0, Math.round((eom-now)/86400000));
+  const closes=`closes ${days===0?'today':'in '+days+'d'}`;
+  const fmt=n=>{ n=Number(n); return n%1 ? n.toFixed(1) : String(n); };
+
+  if(rows[0].partial){
+    box.innerHTML=pulseCard(`${mName} · floors waived (short month)`,
+      isPro ? `Post freely — no participation floor this month.` : `No floor this month — post when you can.`);
+    return;
+  }
+  if(isPro){
+    const short=rows.filter(r=>!r.at_floor);
+    const atFloor=rows.length-short.length;
+    const names=short.slice(0,4).map(r=>esc(r.display_name||'A member')).join(', ')+(short.length>4?` +${short.length-4}`:'');
+    box.innerHTML=pulseCard(`${mName} · ${atFloor}/${rows.length} at the floor · ${closes}`,
+      short.length ? `Waiting on <b>${names}</b> to hit ${floor}/mo.` : `Everyone's cleared the floor.`);
+  } else {
+    const me=rows.find(r=>r.is_me); if(!me){ box.innerHTML=''; return; }
+    const need=Math.max(0, floor-Number(me.credits));
+    box.innerHTML=pulseCard(`Your month · ${fmt(me.credits)}/${floor} counted · ${closes}`,
+      need>0 ? `Post <b>${need%1?need.toFixed(1):need} more</b> to clear the ${floor}/mo floor.`
+             : `You've cleared the floor for ${mName}.`);
+  }
+}
+async function loadPulse(){
+  if(!CS.user || !CS.league || state.demo){ window.leaguePulse=[]; if(window.renderPulse) renderPulse(); return; }
+  try{ const {data}=await sb.rpc('league_pulse',{p_league:CS.league.id}); window.leaguePulse=data||[]; }
+  catch(_){ window.leaguePulse=window.leaguePulse||[]; }
+  if(window.renderPulse) renderPulse();
+}
+window.renderPulse=renderPulse; window.loadPulse=loadPulse;
 /* the display case — real trophies come from window.trophies (module loader);
    the demo shows a filled case so the diorama sells the feature. */
 const DEMO_TROPHIES = [
@@ -5634,6 +5682,7 @@ async function enterLeague(m, nav=true){
     if(pe) pe.textContent = 'Post a round · your index ' + state.myIndex.toFixed(1);
   }
   try { await loadLeagueData(); } catch(e){ bootTrace('league data: '+(e.message||e)); }
+  loadPulse();                          /* role-aware Home: month participation pulse */
   loadLeagueSpans().then(loadSchedule).then(()=>window.renderHomeHub&&window.renderHomeHub()); /* calendar layers + Home recap "next rounds" */
   loadLeagueRecord();                   /* the You tab's per-league record rows */
   loadMyEvents().then(()=>window.renderHomeHub&&window.renderHomeHub());   /* events → group switcher + recap */
@@ -6993,6 +7042,7 @@ function showWelcome(){
   loadCareer();
   renderIndStats();
   loadCourseMemory();
+  loadPulse();                          /* role-aware Home: month participation pulse */
   loadLeagueSpans().then(loadSchedule).then(()=>window.renderHomeHub&&window.renderHomeHub()); /* Home recap "next rounds" */
   loadMyEvents().then(()=>window.renderHomeHub&&window.renderHomeHub());                       /* events → group switcher + recap */
   loadHome();                                                                                  /* the Home welcome feed */
