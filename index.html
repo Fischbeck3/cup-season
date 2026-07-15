@@ -1302,7 +1302,7 @@ body::before{
       </div>
             
     </div>
-    <div class="ob-caption" id="obCaption">New or returning, email is one door. No passwords. Just looking? <a href="#" id="obDemoLink" style="color:var(--pos)">Peek at the demo</a>. <span style="opacity:.5">v23.121</span></div>
+    <div class="ob-caption" id="obCaption">New or returning, email is one door. No passwords. Just looking? <a href="#" id="obDemoLink" style="color:var(--pos)">Peek at the demo</a>. <span style="opacity:.5">v23.122</span></div>
   </div>
   <div class="ob-splash" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
   
@@ -1705,8 +1705,12 @@ body::before{
             <label class="f" for="setName">League name</label>
             <input class="f" id="setName" placeholder="The Big Slice, The Sunday Cup, Dew Sweepers…" style="font-family:var(--sans); font-size:16px;">
             <div style="height:14px"></div>
-            <label class="f" for="commishEmail">Pro — you</label>
-            <input class="f" id="commishEmail" type="email" value="you@cupseason.app" autocomplete="off" style="font-family:var(--sans);">
+            <label class="f">Pro — that's you</label>
+            <div id="commishChip" class="prow" style="margin-top:6px; cursor:default">
+              <span class="pmk">◆</span>
+              <span class="pmeta"><b>You</b><small>You run this league</small></span>
+              <span class="ptag" style="color:var(--gold)">THE PRO</span>
+            </div>
             <div style="height:14px"></div>
             <label class="f">Add golfers</label>
             <button class="btn dark" id="wzAdd" style="margin-top:6px">Search the app or tap a buddy</button>
@@ -1726,14 +1730,13 @@ body::before{
             <div class="ctl"><button id="stakeDown" aria-label="Lower buy-in">−</button><button id="stakeUp" aria-label="Raise buy-in">+</button></div>
           </div>
           <div class="setrow">
-            <div class="lab">Season length<small>Cup Final · final 4 weeks</small></div>
+            <div class="lab">Season length<small>Weeks or months · ends the same weekday</small></div>
             <div class="val" id="lenVal">6 mo</div>
             <div class="ctl"><button id="lenDown" aria-label="Shorter season">−</button><button id="lenUp" aria-label="Longer season">+</button></div>
           </div>
           <div class="setrow">
-            <div class="lab">First tee<small id="seasonSpan">SUNDAY START · SATURDAY FINISH</small></div>
-            <div class="val" id="startVal">—</div>
-            <div class="ctl"><button id="startDown" aria-label="Earlier start">−</button><button id="startUp" aria-label="Later start">+</button></div>
+            <div class="lab">First tee<small id="seasonSpan">Pick any day</small></div>
+            <input class="f" id="startDate" type="date" style="max-width:160px; padding:9px 11px; font-family:var(--sans);">
           </div>
           <div class="eyebrow">Competition structure <button class="ibtn" data-i="structure" aria-expanded="false" aria-label="About competition structure">i</button></div>
           <div class="ihelp" id="ih-structure">How the league is organized. <b>Solo</b> means everyone competes individually: no squads. Squad modes split the league into teams the Pro assigns or draws; more squads want more players (4 squads plays best at 8+).</div>
@@ -2081,10 +2084,16 @@ const state = {
   draft:{pick:0, pool:[...poolSeed], rosters:[[],[]], order:[0,1, 1,0, 0], meCaptain:0, isCommish:true},
   payers:payersSeed.map(p=>({name:p[0], paid:!!p[1]})),
   stake:75, months:6, cap:1, floor:2, myIndex:12.4,
-  phase:'season', wiz:0, preset:1, fmt:2, emails:[], wizInvitees:[], showOthers:false, structure:'squads2', demo:true, startOffset:0,
+  phase:'season', wiz:0, preset:1, fmt:2, emails:[], wizInvitees:[], showOthers:false, structure:'squads2', demo:true, startOffset:0, durWeeks:26, startISO:'',
   draftType:'random',
 };
 const STAKES=[25,50,75,100,150,200], LENGTHS=[6,9,12], CAPS=['Best 2','Best 4','Best 6','Unlimited'];
+/* season length ladder in WEEKS — short casual seasons ("a quick 3-round run
+   before it's cold") through full multi-month leagues. Flexible start (§14.0
+   v1.1: Sunday-start no longer required — caps/floors stay calendar-month). */
+const DURS=[2,3,4,5,6,8,10,13,17,22,26,39,52];
+const durLabel = w => w<8 ? `${w} wk` : `${Math.round(w/4.345)} mo`;
+const durMonths = w => Math.max(1, Math.round(w/4.345));
 const WEEKS=18;
 /* the demo rides a real Sunday-season frame (spec §14.0): first tee 17 whole
    weeks back — today is always W18 of 24 — ending on a Saturday. Every date
@@ -2913,37 +2922,43 @@ function renderPot(){
 /* ================= league setup ================= */
 function renderSetup(){
   $('#stakeVal').textContent=fmt$(state.stake);
-  $('#lenVal').textContent=state.months+' mo';
+  $('#lenVal').textContent=durLabel(state.durWeeks);
   $('#capVal').textContent=CAPS[state.cap];
   $('#floorVal').textContent=state.floor+' / mo';
-  $('#wkTotal2').textContent=state.months*4;
+  $('#wkTotal2').textContent=state.durWeeks;
   renderSeasonDates();
   renderPhase(); renderBylaws(); renderStats();
 }
-function seasonStartDate(){
-  const d=new Date();
-  d.setDate(d.getDate() + ((7 - d.getDay()) % 7) + state.startOffset*7);  // next Sunday (+N wks)
+const WD=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+function defaultStart(){                       // next upcoming Saturday — a natural first tee
+  const d=new Date(); d.setDate(d.getDate() + ((6 - d.getDay() + 7) % 7 || 7));
   return new Date(d.getFullYear(), d.getMonth(), d.getDate());
 }
-function seasonEndDate(){
-  const s=seasonStartDate();
-  const e=new Date(s.getFullYear(), s.getMonth()+state.months, s.getDate());
-  e.setDate(e.getDate() - ((e.getDay()+1) % 7));   // snap back to a Saturday
-  return e;
+function seasonStartDate(){
+  if(state.startISO) return localDate(state.startISO);
+  return defaultStart();
 }
+function seasonEndDate(){                       // start + N whole weeks → same weekday, flexible
+  const s=seasonStartDate();
+  return new Date(s.getFullYear(), s.getMonth(), s.getDate() + state.durWeeks*7);
+}
+function isoOf(d){ return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; }
 function renderSeasonDates(){
   const s=seasonStartDate(), e=seasonEndDate();
-  const wks=Math.round((e-s+864e5)/(7*864e5));
-  $('#startVal').textContent=`Sun ${MOS[s.getMonth()]} ${s.getDate()}`;
-  $('#seasonSpan').textContent=`${MOS[s.getMonth()]} ${s.getDate()} – ${MOS[e.getMonth()]} ${e.getDate()} · ${wks} WKS · ENDS SATURDAY`;
+  const sd=$('#startDate');
+  if(sd){ if(!state.startISO) state.startISO=isoOf(s); if(sd.value!==state.startISO) sd.value=state.startISO; }
+  const sp=$('#seasonSpan');
+  if(sp) sp.textContent=`${WD[s.getDay()]} ${MOS[s.getMonth()]} ${s.getDate()} – ${WD[e.getDay()]} ${MOS[e.getMonth()]} ${e.getDate()}`;
 }
-$('#startUp').addEventListener('click',()=>{if(state.startOffset<25){state.startOffset++;renderSeasonDates();}});
-$('#startDown').addEventListener('click',()=>{if(state.startOffset>0){state.startOffset--;renderSeasonDates();}});
+document.getElementById('startDate')?.addEventListener('change',e=>{
+  state.startISO = e.target.value || '';    /* any day — no Sunday snap (§14.0 v1.1) */
+  renderSetup();
+});
 const step=(arr,cur,dir)=>{const i=arr.indexOf(cur);const j=i+dir;return (j>=0&&j<arr.length)?arr[j]:cur;};
 $('#stakeUp').addEventListener('click',()=>{state.stake=step(STAKES,state.stake,1);renderSetup();renderPot();});
 $('#stakeDown').addEventListener('click',()=>{state.stake=step(STAKES,state.stake,-1);renderSetup();renderPot();});
-$('#lenUp').addEventListener('click',()=>{state.months=step(LENGTHS,state.months,1);renderSetup();});
-$('#lenDown').addEventListener('click',()=>{state.months=step(LENGTHS,state.months,-1);renderSetup();});
+$('#lenUp').addEventListener('click',()=>{state.durWeeks=step(DURS,state.durWeeks,1);renderSetup();});
+$('#lenDown').addEventListener('click',()=>{state.durWeeks=step(DURS,state.durWeeks,-1);renderSetup();});
 $('#capUp').addEventListener('click',()=>{if(state.cap<CAPS.length-1){state.cap++;renderSetup();}});
 $('#capDown').addEventListener('click',()=>{if(state.cap>0){state.cap--;renderSetup();}});
 $('#floorUp').addEventListener('click',()=>{if(state.floor<4){state.floor++;renderSetup();}});
@@ -4042,8 +4057,10 @@ function renderBylaws(){
     <div class="byrow"><span>PARTICIPATION FLOOR</span><b>${state.floor} / mo · ${PENALTY[state.preset]}</b></div>
     <div class="byrow"><span>SEASON FORMAT</span><b>${FMT_NAMES[state.fmt]}</b></div>
     <div class="byrow"><span>BUY-IN</span><b>${fmt$(state.stake)} / player</b></div>
-    <div class="byrow"><span>SEASON</span><b>${state.months} mo · ${seasonSpanText()}</b></div>
-    <div class="byrow"><span>CUP FINAL</span><b>Final 4 weeks · from Sun ${MOS[cupFinalStart().getMonth()]} ${cupFinalStart().getDate()} · scored fresh</b></div>`;
+    <div class="byrow"><span>SEASON</span><b>${durLabel(state.durWeeks)} · ${seasonSpanText()}</b></div>
+    ${state.durWeeks>=6
+      ? `<div class="byrow"><span>CUP FINAL</span><b>Final 4 weeks · from ${WD[cupFinalStart().getDay()]} ${MOS[cupFinalStart().getMonth()]} ${cupFinalStart().getDate()} · scored fresh</b></div>`
+      : `<div class="byrow"><span>FINISH</span><b>One table, whole season · short-run cup</b></div>`}`;
   const hub=$('#bylawsHub'); if(hub) hub.innerHTML=rows;
   const rev=$('#bylawsReview'); if(rev) rev.innerHTML=rows;
   const la=$('#lineAmt'); if(la){
@@ -4620,6 +4637,27 @@ $('#pfSave').addEventListener('click', async () => {
   } finally { btn.disabled = false; btn.textContent = 'Save my card'; }
 });
 
+/* live username check — the handle is a real, unique @name (set_handle enforces
+   it at the DB). Give the onboarding picker instant available/taken feedback so
+   it reads like any other "choose a username" step (pilot feedback). */
+let hChkTimer = null;
+$('#pfHandle')?.addEventListener('input', () => {
+  const st = $('#pfStatus'); if(!st) return;
+  const hnd = $('#pfHandle').value.trim().replace(/^@/, '').toLowerCase();
+  clearTimeout(hChkTimer);
+  if(!hnd){ st.textContent = ''; st.style.color = ''; return; }
+  if(!/^[a-z0-9_]{3,20}$/.test(hnd)){ st.textContent = 'Handle: 3–20 letters, numbers or underscores.'; st.style.color = ''; return; }
+  st.textContent = `Checking @${hnd}…`; st.style.color = '';
+  hChkTimer = setTimeout(async () => {
+    try {
+      const { data } = await sb.rpc('search_golfers', { p_q: hnd });
+      const taken = (data||[]).some(r => (r.handle||'').toLowerCase() === hnd && r.profile_id !== CS.user?.id);
+      st.textContent = taken ? `@${hnd} is taken — try another.` : `@${hnd} is available ✓`;
+      st.style.color = taken ? 'var(--neg)' : 'var(--pos)';
+    } catch(_){ st.textContent = ''; }
+  }, 360);
+});
+
 /* ---------- profile hub: the avatar chip opens your card ---------- */
 const initialsOf = n => ((n||'').trim().split(/\s+/).map(w => w[0]).join('').slice(0,2).toUpperCase()) || 'MJ';
 function refreshWhoChip(){
@@ -5017,9 +5055,23 @@ function renderWizPicked(){
     renderWizPicked(); updateInviteNote();
   }));
 }
+/* the Pro is always the creator — show it as a fixed identity, not a dead
+   email field (pilot feedback: "Pro-you won't let me type"). */
+function renderProChip(){
+  const box = $('#commishChip'); if(!box) return;
+  const p = (window.CS && CS.profile) || {};
+  const handle = p.handle ? '@'+p.handle : (CS.user?.email || '');
+  box.innerHTML =
+    `<span class="pmk">${p.marker ? mkr(p.marker) : '◆'}</span>
+     <span class="pmeta"><b>${esc(p.display_name || 'You')}</b>
+       <small>${esc(handle)} · you run this league</small></span>
+     <span class="ptag" style="color:var(--gold)">THE PRO</span>`;
+}
+window.renderProChip = renderProChip;
 /* the wizard's "Add golfers" opens the one People Picker (invite mode) and
    stages into state.wizInvitees; lockBylaws fires the invites at lock. */
 function renderWizAddGolfers(){
+  renderProChip();
   renderWizPicked();
   const btn = $('#wzAdd');
   if(btn && !btn._wired){
@@ -5200,6 +5252,11 @@ function applyBylaws(b){
   const CAPMAP = { 2:0, 4:1, 6:2 };
   state.stake     = Math.round(b.buyin_cents/100);
   state.months    = b.season_months;
+  /* prefer the real season span if it's loaded; else approx from months */
+  state.durWeeks  = (state.seasonStart && state.seasonEnd)
+    ? Math.max(1, Math.round((localDate(state.seasonEnd) - localDate(state.seasonStart)) / (7*864e5)))
+    : Math.max(2, Math.round((b.season_months||6) * 4.345));
+  if(state.seasonStart) state.startISO = state.seasonStart;
   state.floor     = b.participation_floor;
   state.cap       = b.counting_cap === null ? 3 : (CAPMAP[b.counting_cap] ?? 1);
   state.preset    = ['casual','standard','cutthroat'].indexOf(b.preset) >= 0
@@ -5256,8 +5313,7 @@ async function enterLeague(m, nav=true){
   if(ab) ab.style.display = CS.member?.role === 'commissioner' ? '' : 'none';
   subscribeLeague();
   loadCourseMemory();
-  const ce = $('#commishEmail');
-  if(ce && CS.user?.email){ ce.value = CS.user.email; ce.readOnly = true; ce.style.opacity = '.65'; }
+  renderProChip();
 
   bootStep = 'reveal';
   renderPhase(); renderStats();
@@ -5569,7 +5625,7 @@ async function lockBylaws(){
     season_format:       ['points','h2h','hybrid'][state.fmt],
     structure:           state.structure,
     buyin_cents:         state.stake * 100,
-    season_months:       state.months,
+    season_months:       durMonths(state.durWeeks),
     draft_type:          state.draftType,
     locked_at:           new Date().toISOString(),
   }).eq('league_id', CS.league.id);
