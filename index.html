@@ -1004,7 +1004,7 @@ input.f::-webkit-outer-spin-button, input.f::-webkit-inner-spin-button{-webkit-a
 
 
 /* ---- adaptive shell (v23.55): one shell, league or not ---- */
-body.noleague #view-home > *:not(#homeLeagueless):not(#homeRequests){display:none !important;}
+body.noleague #view-home > *:not(#homeLeagueless):not(#homeRequests):not(#notifBanner){display:none !important;}
 body.noleague #view-hub  > *:not(#hubLeagueless):not(#hubSeg):not(#hubPeople){display:none !important;}
 #view-hub.showpeople > *:not(#hubSeg):not(#hubPeople){display:none !important;}
 #view-hub:not(.showpeople) #hubPeople{display:none;}
@@ -1302,7 +1302,7 @@ body::before{
       </div>
             
     </div>
-    <div class="ob-caption" id="obCaption">New or returning, email is one door. No passwords. Just looking? <a href="#" id="obDemoLink" style="color:var(--pos)">Peek at the demo</a>. <span style="opacity:.5">v23.120</span></div>
+    <div class="ob-caption" id="obCaption">New or returning, email is one door. No passwords. Just looking? <a href="#" id="obDemoLink" style="color:var(--pos)">Peek at the demo</a>. <span style="opacity:.5">v23.121</span></div>
   </div>
   <div class="ob-splash" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
   
@@ -2745,6 +2745,12 @@ $('#postBtn').addEventListener('click', async ()=>{
       }
       if(error) throw error;
       toast(`Round posted: ~${pts} pts pending the league's math`);
+      /* clear the form so a posted round never reads as "didn't submit"
+         (pilot feedback: entered a second round thinking the first failed) */
+      $('#inF9').value=''; $('#inB9').value='';
+      $('#inCourse').value=''; $('#inCourse').dataset.courseId='';
+      $('#inRating').value=''; $('#inSlope').value='';
+      state.lastPost=null; if(typeof recalc==='function') recalc();
       if(window.loadStandingsAndFeed) await window.loadStandingsAndFeed();
       if(window.loadRecentRounds) window.loadRecentRounds();
       switchView('home'); scrollFeedBottom();
@@ -4984,6 +4990,19 @@ $('#annBtn')?.addEventListener('click', async () => {
    STAGES golfers into state.wizInvitees (chips), and lockBylaws fires an
    invite_golfer for each once the league is created. Email stays the
    not-on-the-app fallback. */
+/* a brand-new league starts from a clean slate — never inherit a discarded
+   league's name, staged players, or emails (pilot feedback: both carried over
+   between a cancelled and a freshly-minted league). Called on fresh create and
+   after a cancel/discard. */
+function resetWizard(){
+  state.wiz = 0;
+  state.emails = [''];
+  state.wizInvitees = [];
+  const nm = document.getElementById('setName'); if(nm) nm.value = '';
+  renderWizPicked();
+  if(typeof updateInviteNote === 'function') updateInviteNote();
+}
+window.resetWizard = resetWizard;
 function renderWizPicked(){
   const box = $('#wzPicked'); if(!box) return;
   const picked = state.wizInvitees || [];
@@ -5809,6 +5828,7 @@ document.getElementById('wizCancel')?.addEventListener('click', async () => {
       await loadMemberships();
     }
   } catch(e){ toast('Could not discard: ' + (e.message || e)); return; }
+  resetWizard();
   goClubhouse();
   toast('League discarded');
 });
@@ -6608,6 +6628,7 @@ $('#wCodeGo').addEventListener('click', async () => {
 
 $('#wCreate').addEventListener('click', async () => {
   bootTrace('creating league…');
+  resetWizard();   /* fresh slate — no leftover name/players from a prior draft */
   try {
     await createLeague();
     bootTrace('league created ✓');
