@@ -1302,7 +1302,7 @@ body::before{
       </div>
             
     </div>
-    <div class="ob-caption" id="obCaption">New or returning, email is one door. No passwords. Just looking? <a href="#" id="obDemoLink" style="color:var(--pos)">Peek at the demo</a>. <span style="opacity:.5">v23.118</span></div>
+    <div class="ob-caption" id="obCaption">New or returning, email is one door. No passwords. Just looking? <a href="#" id="obDemoLink" style="color:var(--pos)">Peek at the demo</a>. <span style="opacity:.5">v23.119</span></div>
   </div>
   <div class="ob-splash" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
   
@@ -4706,16 +4706,19 @@ async function renderCrewPeople(){
 window.renderCrewPeople = renderCrewPeople;
 
 function openPeoplePicker(opts){
-  opts=opts||{}; const mode=opts.mode||'befriend'; const staged=new Set();
+  opts=opts||{}; const mode=opts.mode||'befriend'; const staged=new Set(); const rowCache=new Map();
   openSheet(opts.title||'Add golfers', opts.sub||'Search the app or your buddies', `
     <input class="f" id="ppFind" placeholder="Find golfers by name or @handle" autocomplete="off" style="font-family:var(--sans)">
-    <div id="ppList" style="margin-top:10px"></div>`);
+    <div id="ppList" style="margin-top:10px"></div>
+    ${opts.footerBtn ? `<button class="btn dark" id="ppFooter" style="margin-top:12px">${esc(opts.footerBtn.label)}</button>` : ''}
+    ${opts.note ? `<p class="fine">${esc(opts.note)}</p>` : ''}`);
   const listBox=document.getElementById('ppList');
+  if(opts.footerBtn) document.getElementById('ppFooter')?.addEventListener('click', ()=>opts.footerBtn.onClick());
   const actionFor=(r)=>{
     if(mode==='invite'){
       if((opts.excludeIds||[]).includes(r.profile_id)) return '<span class="ptag ok">In</span>';
       if(staged.has(r.profile_id)) return '<span class="ptag ok">Added ✓</span>';
-      return `<span class="pact"><button class="mini" data-pick="${r.profile_id}" data-nm="${esc(r.display_name||'')}">Add</button></span>`;
+      return `<span class="pact"><button class="mini" data-pick="${r.profile_id}">Add</button></span>`;
     }
     return (r.rel==='none') ? `<span class="pact"><button class="mini" data-add="${r.profile_id}">Add</button></span>`
       : r.rel==='incoming' ? `<span class="pact"><button class="mini" data-add="${r.profile_id}">Accept</button></span>`
@@ -4730,12 +4733,13 @@ function openPeoplePicker(opts){
       b.outerHTML=`<span class="ptag ${rr==='friend'?'ok':''}">${rr==='friend'?'Buddies':'Requested'}</span>`;
     }));
     listBox.querySelectorAll('[data-pick]').forEach(b=>b.addEventListener('click', async()=>{
-      b.disabled=true; const pid=b.dataset.pick;
-      try{ if(opts.onPick) await opts.onPick(pid, b.dataset.nm); staged.add(pid); b.outerHTML='<span class="ptag ok">Added ✓</span>'; }
+      b.disabled=true; const r=rowCache.get(b.dataset.pick);
+      try{ if(opts.onPick) await opts.onPick(r); staged.add(b.dataset.pick); b.outerHTML='<span class="ptag ok">Added ✓</span>'; }
       catch(e){ toast('Could not add: '+(e.message||e)); b.disabled=false; }
     }));
   };
-  const render=(rows)=>{ listBox.innerHTML = rows.length ? rows.map(r=>psRow(r, actionFor(r))).join('')
+  const render=(rows)=>{ rows.forEach(r=>rowCache.set(r.profile_id, r));
+    listBox.innerHTML = rows.length ? rows.map(r=>psRow(r, actionFor(r))).join('')
       : '<p class="fine">No golfers found. Invite links still work for everyone else.</p>'; wire(); };
   psFriends().then(d=>render(d.filter(f=>f.status==='accepted')));
   let t=null;
@@ -6299,45 +6303,21 @@ window.respondInvite = async (id, accept)=>{
   }catch(e){ toast(e.message || String(e)); }
 };
 
-/* the shared Add-golfers picker — invite to a league OR an event */
+/* Add golfers to a league OR event — now a thin wrapper over the one People
+   Picker (invite mode). Deleted its private search/buddy/invite copy. */
 async function openInvitePicker(container){
   if(!CS.user) return;
   const isLeague = !!container.league, cid = container.league || container.event;
-  openSheet('Add golfers', 'SEARCH THE APP · OR YOUR BUDDIES', `
-    <input class="f" id="ivFind" placeholder="Find golfers by name or @handle" autocomplete="off" style="font-family:var(--sans)">
-    <div id="ivResults" style="margin-top:8px"></div>
-    <div class="eyebrow">Your buddies</div>
-    <div id="ivBuddies"></div>
-    ${isLeague ? '<button class="btn dark" id="ivLink" style="margin-top:12px">Share an invite link instead</button>' : ''}
-    <p class="fine">Invited golfers get a notification and choose to join. ${isLeague?'Not on the app? Share the link.':''}</p>
-  `);
-  const invited = new Set();
-  const rowFor = p => { const pid=p.profile_id||p.id;
-    return `<div class="check"><span class="num">${mkr(p.marker||'saguaro')}</span>
-      <div class="tt"><b>${esc(p.display_name||'—')}</b><small>@${esc(p.handle||'?')}${p.city?' · '+esc(p.city):''}</small></div>
-      ${invited.has(pid)?'<b class="fine" style="padding:0; color:var(--pos)">INVITED</b>':`<button class="mini" data-iv="${pid}">Invite</button>`}</div>`; };
-  const bind = scope => scope.querySelectorAll('[data-iv]').forEach(b=>b.addEventListener('click',async()=>{
-    b.disabled=true;
-    try{
-      const { error } = await sb.rpc('invite_golfer',{ p_league:isLeague?cid:null, p_event:isLeague?null:cid, p_profile:b.dataset.iv });
+  openPeoplePicker({
+    mode:'invite',
+    title:'Add golfers',
+    sub:'Invited golfers get a notification and choose to join',
+    onPick: async (r) => {
+      const { error } = await sb.rpc('invite_golfer',{ p_league:isLeague?cid:null, p_event:isLeague?null:cid, p_profile:r.profile_id });
       if(error) throw error;
-      invited.add(b.dataset.iv);
-      b.outerHTML='<b class="fine" style="padding:0; color:var(--pos)">INVITED</b>';
-    }catch(e){ toast(e.message||String(e)); b.disabled=false; }
-  }));
-  try{ const { data } = await sb.rpc('my_friends');
-    const fr=(data||[]).filter(f=>f.status==='accepted'), bx=$('#ivBuddies');
-    bx.innerHTML = fr.length ? fr.map(rowFor).join('') : '<p class="fine" style="padding:0">No buddies yet — search above.</p>';
-    bind(bx);
-  }catch(e){}
-  let t=null;
-  $('#ivFind').addEventListener('input',()=>{ clearTimeout(t); const q=$('#ivFind').value.trim();
-    if(q.length<2){ $('#ivResults').innerHTML=''; return; }
-    t=setTimeout(async()=>{ try{ const { data } = await sb.rpc('search_golfers',{p_q:q});
-      const rx=$('#ivResults'); rx.innerHTML=(data||[]).length?data.map(rowFor).join(''):'<p class="fine" style="padding:0">No golfers found.</p>'; bind(rx);
-    }catch(e){} }, 300);
+    },
+    footerBtn: isLeague ? { label:'Share an invite link instead', onClick: ()=>{ if(window.shareInvite) window.shareInvite(); } } : null
   });
-  if(isLeague) $('#ivLink')?.addEventListener('click',()=>{ if(window.shareInvite) window.shareInvite(); });
 }
 window.openInvitePicker = openInvitePicker;
 
