@@ -6,8 +6,12 @@
 -- among the day's others by uuid, never rising to the top. Return created_at (the
 -- actual post time) and order by it, so newest-posted lands first. Additive: the
 -- column set only grows.
+--
+-- NOTE: adding a column changes the function's return type, which
+-- `create or replace` refuses (SQLSTATE 42P13) — so drop first, then recreate.
 -- ============================================================================
 
+drop function if exists public.home_feed(integer);
 create or replace function public.home_feed(p_days integer default 21)
 returns table(
   round_id uuid, profile_id uuid, golfer text, marker text, handle text,
