@@ -1302,7 +1302,7 @@ body::before{
       </div>
             
     </div>
-    <div class="ob-caption" id="obCaption">New or returning, email is one door. No passwords. Just looking? <a href="#" id="obDemoLink" style="color:var(--pos)">Peek at the demo</a>. <span style="opacity:.5">v23.119</span></div>
+    <div class="ob-caption" id="obCaption">New or returning, email is one door. No passwords. Just looking? <a href="#" id="obDemoLink" style="color:var(--pos)">Peek at the demo</a>. <span style="opacity:.5">v23.120</span></div>
   </div>
   <div class="ob-splash" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
   
@@ -1708,10 +1708,8 @@ body::before{
             <label class="f" for="commishEmail">Pro — you</label>
             <input class="f" id="commishEmail" type="email" value="you@cupseason.app" autocomplete="off" style="font-family:var(--sans);">
             <div style="height:14px"></div>
-            <label class="f">Add golfers · search the app or tap a buddy</label>
-            <input class="f" id="wzFind" placeholder="Find golfers by name or @handle" autocomplete="off" style="font-family:var(--sans); margin-top:6px;">
-            <div id="wzResults" style="margin-top:8px"></div>
-            <div id="wzBuddies" style="margin-top:8px"></div>
+            <label class="f">Add golfers</label>
+            <button class="btn dark" id="wzAdd" style="margin-top:6px">Search the app or tap a buddy</button>
             <div id="wzPicked" style="margin-top:8px"></div>
             <div style="height:14px"></div>
             <label class="f">Not on the app? Invite by email · <span id="slotNote">0 filled</span></label>
@@ -4986,28 +4984,6 @@ $('#annBtn')?.addEventListener('click', async () => {
    STAGES golfers into state.wizInvitees (chips), and lockBylaws fires an
    invite_golfer for each once the league is created. Email stays the
    not-on-the-app fallback. */
-const wzCache = new Map();              // profile_id -> profile row (for click lookup)
-function wzRow(p){
-  const pid = p.profile_id || p.id;
-  wzCache.set(pid, p);
-  const staged = (state.wizInvitees||[]).some(x => x.id === pid);
-  return `<div class="byrow" style="align-items:center; gap:8px;">
-    <span>${mkr(p.marker || 'saguaro')} ${esc(p.display_name || '—')}
-      <span class="fine" style="padding:0">@${esc(p.handle || '?')}</span></span>
-    ${staged ? '<b class="fine" style="padding:0; color:var(--pos)">ADDED ✓</b>'
-             : `<button class="mini" data-wzadd="${pid}">Add</button>`}</div>`;
-}
-function wzBind(scope){
-  scope.querySelectorAll('[data-wzadd]').forEach(b => b.addEventListener('click', () => {
-    const p = wzCache.get(b.dataset.wzadd); if(!p) return;
-    const id = p.profile_id || p.id;
-    state.wizInvitees = state.wizInvitees || [];
-    if(!state.wizInvitees.some(x => x.id === id))
-      state.wizInvitees.push({ id, name: p.display_name, handle: p.handle, marker: p.marker });
-    b.outerHTML = '<b class="fine" style="padding:0; color:var(--pos)">ADDED ✓</b>';
-    renderWizPicked(); updateInviteNote();
-  }));
-}
 function renderWizPicked(){
   const box = $('#wzPicked'); if(!box) return;
   const picked = state.wizInvitees || [];
@@ -5019,37 +4995,30 @@ function renderWizPicked(){
     </div>`).join('');
   box.querySelectorAll('[data-wzrm]').forEach(b => b.addEventListener('click', () => {
     state.wizInvitees = (state.wizInvitees||[]).filter(x => x.id !== b.dataset.wzrm);
-    renderWizPicked(); updateInviteNote(); renderWizAddGolfers();
+    renderWizPicked(); updateInviteNote();
   }));
 }
-async function renderWizAddGolfers(){
-  const box = $('#wzBuddies');
-  if(!box || state.demo) return;
-  try{
-    const { data, error } = await sb.rpc('my_friends');
-    if(error){ box.innerHTML = ''; return; }
-    const friends = (data || []).filter(f => f.status === 'accepted');
-    box.innerHTML = friends.length ? friends.map(wzRow).join('')
-      : '<p class="fine" style="padding:0">No buddies yet — search above, or invite by email below.</p>';
-    wzBind(box);
-  }catch(e){ box.innerHTML = ''; }
+/* the wizard's "Add golfers" opens the one People Picker (invite mode) and
+   stages into state.wizInvitees; lockBylaws fires the invites at lock. */
+function renderWizAddGolfers(){
   renderWizPicked();
+  const btn = $('#wzAdd');
+  if(btn && !btn._wired){
+    btn._wired = true;
+    btn.addEventListener('click', () => openPeoplePicker({
+      mode:'invite', title:'Add golfers to the league',
+      sub:'They get an invite to accept when you lock',
+      excludeIds: (state.wizInvitees||[]).map(x=>x.id),
+      onPick: (r) => {
+        state.wizInvitees = state.wizInvitees || [];
+        if(!state.wizInvitees.some(x => x.id === r.profile_id))
+          state.wizInvitees.push({ id:r.profile_id, name:r.display_name, handle:r.handle, marker:r.marker });
+        renderWizPicked(); updateInviteNote();
+      }
+    }));
+  }
 }
 window.renderWizAddGolfers = renderWizAddGolfers;   /* classic renderWizard reaches across the boundary */
-/* search box wiring (once) — stage from search results too */
-$('#wzFind')?.addEventListener('input', () => {
-  clearTimeout(window.__wzT); const q = $('#wzFind').value.trim();
-  const rx = $('#wzResults'); if(!rx) return;
-  if(q.length < 2){ rx.innerHTML = ''; return; }
-  window.__wzT = setTimeout(async () => {
-    try{
-      const { data } = await sb.rpc('search_golfers', { p_q: q });
-      rx.innerHTML = (data||[]).length ? data.map(wzRow).join('')
-        : '<p class="fine" style="padding:0">No golfers found.</p>';
-      wzBind(rx);
-    }catch(e){}
-  }, 300);
-});
 
 /* ---------- invite links: share sheet over the league code ---------- */
 async function shareInvite(){
@@ -5802,7 +5771,7 @@ $('#lockBtn').addEventListener('click', async () => {
       await createLeague();
     }
     const { emails, invited, nextPhase } = await lockBylaws();
-    state.wizInvitees = []; wzCache.clear();   /* sent — don't re-stage on re-entry */
+    state.wizInvitees = [];   /* sent — don't re-stage on re-entry */
     await loadMemberships();
     switchView('home');
     const sent = (invited||0) + (emails||0);
@@ -6152,10 +6121,8 @@ async function openRyderSetup(){
     <input class="f" id="rsStart" type="date" value="${nextSundayISO()}">
     <label class="f" style="margin-top:10px" for="rsLeague">Attach to a league <span style="color:var(--dim)">(optional)</span></label>
     <select class="f" id="rsLeague" style="font-family:var(--sans)"><option value="">Standalone — invite anyone</option>${leagues}</select>
-    <label class="f" style="margin-top:12px; display:block">Add players · search the app or tap a buddy</label>
-    <input class="f" id="rsFind" placeholder="Find golfers by name or @handle" autocomplete="off" style="font-family:var(--sans); margin-top:6px;">
-    <div id="rsResults" style="margin-top:8px"></div>
-    <div id="rsBuddies" style="margin-top:8px"></div>
+    <label class="f" style="margin-top:12px; display:block">Add players</label>
+    <button class="btn dark" id="rsAdd" style="margin-top:6px">Search the app or tap a buddy</button>
     <div id="rsPicked" style="margin-top:8px"></div>
     <div class="card" style="margin-top:14px; padding:11px 13px; background:var(--bg2)">
       <div class="fine" style="padding:0; line-height:1.65">
@@ -6172,44 +6139,23 @@ async function openRyderSetup(){
   document.querySelectorAll('#rsSess button').forEach(b=>b.addEventListener('click',()=>{document.querySelectorAll('#rsSess button').forEach(x=>x.classList.remove('on'));b.classList.add('on');sess=+b.dataset.n;}));
   document.querySelectorAll('#rsCad button').forEach(b=>b.addEventListener('click',()=>{document.querySelectorAll('#rsCad button').forEach(x=>x.classList.remove('on'));b.classList.add('on');weeks=+b.dataset.w;}));
 
-  /* inline golfer picker — stage now, fire invite_golfer once the event has
-     an id (mirrors the league wizard). Local state; the sheet is modal. */
+  /* players: stage now via the shared People Picker, fire invite_golfer once
+     the event has an id (below). rsStaged holds the staged set. */
   const rsStaged = new Map();        // pid -> {name, handle, marker}
-  const rsCache  = new Map();        // pid -> profile row (click lookup)
-  const rsRow = p => { const pid=p.profile_id||p.id; rsCache.set(pid,p);
-    return `<div class="byrow" style="align-items:center; gap:8px;">
-      <span>${mkr(p.marker||'saguaro')} ${esc(p.display_name||'—')}
-        <span class="fine" style="padding:0">@${esc(p.handle||'?')}</span></span>
-      ${rsStaged.has(pid)?'<b class="fine" style="padding:0; color:var(--pos)">ADDED ✓</b>'
-        :`<button class="mini" data-rsadd="${pid}">Add</button>`}</div>`; };
-  const rsBind = scope => scope.querySelectorAll('[data-rsadd]').forEach(b=>b.addEventListener('click',()=>{
-    const p=rsCache.get(b.dataset.rsadd); if(!p) return; const id=p.profile_id||p.id;
-    rsStaged.set(id,{name:p.display_name,handle:p.handle,marker:p.marker});
-    b.outerHTML='<b class="fine" style="padding:0; color:var(--pos)">ADDED ✓</b>'; renderRsPicked();
-  }));
   function renderRsPicked(){ const box=document.getElementById('rsPicked'); if(!box) return;
     box.innerHTML=[...rsStaged].map(([id,p])=>`<div class="byrow" style="align-items:center; gap:8px;">
       <span>${mkr(p.marker||'saguaro')} ${esc(p.name||'—')}
         <span class="fine" style="padding:0">@${esc(p.handle||'?')}</span></span>
       <button class="mini" data-rsrm="${id}">Remove</button></div>`).join('');
     box.querySelectorAll('[data-rsrm]').forEach(b=>b.addEventListener('click',()=>{
-      rsStaged.delete(b.dataset.rsrm); renderRsPicked(); rsRenderBuddies(); }));
+      rsStaged.delete(b.dataset.rsrm); renderRsPicked(); }));
   }
-  async function rsRenderBuddies(){ const box=document.getElementById('rsBuddies'); if(!box) return;
-    try{ const {data}=await sb.rpc('my_friends'); const fr=(data||[]).filter(f=>f.status==='accepted');
-      box.innerHTML=fr.length?fr.map(rsRow).join(''):'<p class="fine" style="padding:0">No buddies yet — search above, or invite from the scoreboard later.</p>';
-      rsBind(box);
-    }catch(e){ box.innerHTML=''; } renderRsPicked();
-  }
-  rsRenderBuddies();
-  let rsT=null;
-  document.getElementById('rsFind')?.addEventListener('input',()=>{ clearTimeout(rsT);
-    const q=document.getElementById('rsFind').value.trim(), rx=document.getElementById('rsResults'); if(!rx) return;
-    if(q.length<2){ rx.innerHTML=''; return; }
-    rsT=setTimeout(async()=>{ try{ const {data}=await sb.rpc('search_golfers',{p_q:q});
-      rx.innerHTML=(data||[]).length?data.map(rsRow).join(''):'<p class="fine" style="padding:0">No golfers found.</p>'; rsBind(rx);
-    }catch(e){} },300);
-  });
+  document.getElementById('rsAdd')?.addEventListener('click', ()=> openPeoplePicker({
+    mode:'invite', title:'Add players', sub:'They get an invite to accept once the event is created',
+    excludeIds:[...rsStaged.keys()],
+    onPick:(r)=>{ rsStaged.set(r.profile_id,{name:r.display_name,handle:r.handle,marker:r.marker}); renderRsPicked(); }
+  }));
+  renderRsPicked();
   document.getElementById('rsCancel').addEventListener('click', ()=> closeSheet());
   document.getElementById('rsGo').addEventListener('click',async()=>{
     const name=document.getElementById('rsName').value.trim();
