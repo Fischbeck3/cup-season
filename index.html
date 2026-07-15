@@ -1412,7 +1412,7 @@ body::before{
       </div>
             
     </div>
-    <div class="ob-caption" id="obCaption">New or returning, email is one door. No passwords. <span style="opacity:.5">v23.140</span></div>
+    <div class="ob-caption" id="obCaption">New or returning, email is one door. No passwords. <span style="opacity:.5">v23.141</span></div>
   </div>
   <div class="ob-splash" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
   
@@ -4883,7 +4883,7 @@ window.mkr = mkr; /* classic renderCalendar draws markers — bridge or it silen
 
 async function loadProfile(){
   const { data } = await sb.from('profiles')
-    .select('id, display_name, city, home_course, index_current, marker, notify_chat, handle, discoverable')
+    .select('id, display_name, city, home_course, index_current, marker, notify_chat, notify_rounds, handle, discoverable')
     .eq('id', CS.user.id).maybeSingle();
   CS.profile = data || null;
   if(CS.profile?.index_current != null) state.myIndex = Number(CS.profile.index_current);
@@ -5188,9 +5188,10 @@ function openProfileHub(){
     <div class="eyebrow" style="margin-top:20px">Notifications</div>
     <div style="display:flex; gap:8px; flex-wrap:wrap;">
       <button class="mini" id="phPushTog">Enable on this device</button>
+      <button class="mini" id="phRoundsTog">Round pings: —</button>
       <button class="mini" id="phChatTog">Chat pings: —</button>
     </div>
-    <p class="fine" style="padding-left:0">The board's big moments: rounds, reveals, month closes. Chat has its own switch.</p>
+    <p class="fine" style="padding-left:0">Moments, reveals, and month closes always come through. Round posts and chat each have their own switch.</p>
 
     <div class="eyebrow" style="margin-top:20px">Appearance</div>
     <div style="display:flex; gap:6px;" id="phTheme">
@@ -5324,9 +5325,18 @@ function openProfileHub(){
   }
 
   /* notifications: reflect current state, then toggle on tap */
-  const pushBtn = $('#phPushTog'), chatBtn = $('#phChatTog');
+  const pushBtn = $('#phPushTog'), chatBtn = $('#phChatTog'), roundsBtn = $('#phRoundsTog');
   const chatLabel = () => { chatBtn.textContent = 'Chat pings: ' + ((CS.profile?.notify_chat ?? true) ? 'ON' : 'OFF'); };
-  chatLabel();
+  const roundsLabel = () => { if(roundsBtn) roundsBtn.textContent = 'Round pings: ' + ((CS.profile?.notify_rounds ?? true) ? 'ON' : 'OFF'); };
+  chatLabel(); roundsLabel();
+  roundsBtn?.addEventListener('click', async () => {
+    roundsBtn.disabled = true;
+    const next = !(CS.profile?.notify_rounds ?? true);
+    const { error } = await sb.rpc('set_notify_rounds', { p_on: next });
+    if(error) toast('Could not update: ' + error.message);
+    else { if(CS.profile) CS.profile.notify_rounds = next; roundsLabel(); }
+    roundsBtn.disabled = false;
+  });
   getPushSub().then(sub => { if(sub) pushBtn.textContent = 'Disable on this device'; });
   pushBtn.addEventListener('click', async () => {
     pushBtn.disabled = true;

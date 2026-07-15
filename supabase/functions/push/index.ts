@@ -136,13 +136,20 @@ Deno.serve(async (req) => {
   const [{ data: lg }, { data: members }] = await Promise.all([
     sb.from('leagues').select('name').eq('id', record.league_id).maybeSingle(),
     sb.from('league_members')
-      .select('id, profile_id, profiles(notify_chat)')
+      .select('id, profile_id, profiles(notify_chat, notify_rounds)')
       .eq('league_id', record.league_id),
   ]);
 
+  // curated push: chat -> notify_chat, round -> notify_rounds, everything else
+  // (moment / announce / system) always delivers.
+  const wants = (p: { notify_chat?: boolean; notify_rounds?: boolean } | null) => {
+    if (record.kind === 'chat') return p?.notify_chat ?? true;
+    if (record.kind === 'round') return p?.notify_rounds ?? true;
+    return true;
+  };
   const recipients = (members ?? [])
     .filter((m) => m.id !== record.member_id) // never ping the author
-    .filter((m) => record.kind !== 'chat' || (m.profiles?.notify_chat ?? true))
+    .filter((m) => wants(m.profiles))
     .map((m) => m.profile_id);
   console.log(`[push] kind=${record.kind} recipients=${recipients.length}`);
   await sendTo(recipients, lg?.name ?? 'Cup Season',
