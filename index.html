@@ -215,6 +215,11 @@ button{font-family:var(--sans); touch-action:manipulation; color:var(--ink);}
 .chart-legend .pt{font-family:var(--mono); font-size:12.5px; color:var(--ink);}
 #raceChart{width:100%; height:auto; display:block;}
 .chart-note{font-family:var(--mono); font-size:11.5px; color:var(--dim); letter-spacing:.06em; margin-top:10px;}
+.standStory{font-family:var(--serif); font-size:13px; line-height:1.45; color:var(--ink); padding:2px 2px 10px; margin-bottom:2px; border-bottom:1px solid var(--line);}
+.standStory:empty{display:none;}
+.standStory b{font-weight:600;}
+.rkmove{font-family:var(--mono); font-size:9.5px; margin-left:3px; letter-spacing:0;}
+.rkmove.up{color:var(--pos);} .rkmove.dn{color:var(--dim);}
 
 /* ============ standings table ============ */
 .tbl{width:100%; border-collapse:collapse;}
@@ -1404,7 +1409,7 @@ body::before{
       </div>
             
     </div>
-    <div class="ob-caption" id="obCaption">New or returning, email is one door. No passwords. <span style="opacity:.5">v23.137</span></div>
+    <div class="ob-caption" id="obCaption">New or returning, email is one door. No passwords. <span style="opacity:.5">v23.138</span></div>
   </div>
   <div class="ob-splash" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
   
@@ -1962,6 +1967,7 @@ body::before{
           <div>
             <div class="eyebrow">Standings</div>
             <div class="card" style="padding:10px 12px 4px">
+              <div class="standStory" id="standingsStory"></div>
               <table class="tbl" id="standings"></table>
             </div>
           </div>
@@ -2455,18 +2461,43 @@ function flipRows(el, keyAttr, apply){
 }
 function renderStandings(){
   const el=$('#standings');
+  const story=$('#standingsStory');
   if(!teams.length){
+    if(story) story.innerHTML='';
     const soloTxt = state.structure==='solo' ? 'INDIVIDUAL RACE \u2014 NO SQUADS.<br>STANDINGS START AT THE FIRST POSTED ROUND; TOP 2 MEET IN THE CUP FINAL.' : 'NO ROUNDS YET.<br>SQUADS FORM WHEN THE PRO LOCKS \u2014 STANDINGS START AT THE FIRST POSTED ROUND.';
     el.innerHTML='<tr><th></th><th>'+(state.structure==='solo'?'Player':'Squad')+'</th><th class="num">Pts</th></tr><tr><td colspan="3" style="padding:18px 6px;color:var(--dim);font-family:var(--mono);font-size:12px;letter-spacing:.08em;line-height:1.8">'+soloTxt+'</td></tr>';
     return;
+  }
+  const priorRank={};
+  const hist=(!state.demo && window.seasonHistory) ? window.seasonHistory : [];
+  if(hist.length){
+    const lastWk=Math.max(...hist.map(h=>h.week_no));
+    const snap=hist.find(h=>h.week_no===lastWk);
+    ((snap && snap.standings && snap.standings.squads)||[]).slice()
+      .sort((a,b)=>(Number(b.points)||0)-(Number(a.points)||0))
+      .forEach((row,idx)=>{ priorRank[row.squad_id]=idx; });
+  }
+  if(story){
+    const a=teams[0], b=teams[1]; let txt='';
+    if(!b){ txt = a.pts>0 ? `<b style="color:${SQHEX[a.ci]}">${esc(a.name)}</b> out front — waiting on a challenger.` : ''; }
+    else if(a.pts===0 && b.pts===0){ txt=''; }
+    else { const m=a.pts-b.pts;
+      txt = m===0
+        ? `Dead heat — <b style="color:${SQHEX[a.ci]}">${esc(a.name)}</b> and <b style="color:${SQHEX[b.ci]}">${esc(b.name)}</b> level at ${a.pts}.`
+        : `<b style="color:${SQHEX[a.ci]}">${esc(a.name)}</b> lead by <b>${m}</b> · <b style="color:${SQHEX[b.ci]}">${esc(b.name)}</b> ${m<=15?'a good weekend back':m+' back'}.`;
+    }
+    story.innerHTML=txt;
   }
   let html=`<tr><th></th><th>Squad</th><th>Trend</th><th class="num">Δ Wk</th><th class="num">Pts</th></tr>`;
   teams.forEach((t,i)=>{
     const ti=teams.indexOf(t);
     const arr=series[ti]||[];
     const dwk=arr.length>1 ? arr[arr.length-1]-arr[arr.length-2] : 0;
+    const pr=priorRank[t.id];
+    let mv='';
+    if(pr!=null && pr!==i){ const d=pr-i; mv=`<span class="rkmove ${d>0?'up':'dn'}" title="${d>0?'up':'down'} ${Math.abs(d)} this week">${d>0?'▲':'▼'}${Math.abs(d)}</span>`; }
     html+=`<tr class="${i===0?'lead':''} tap" data-squad="${t.name}">
-      <td class="rk mono">${String(i+1).padStart(2,'0')}</td>
+      <td class="rk mono">${String(i+1).padStart(2,'0')}${mv}</td>
       <td><div style="display:flex;align-items:center;gap:10px"><span class="sw" style="background:${SQHEX[t.ci]}"></span><div><div class="tn">${t.name}</div><div class="tc">CAPT. ${t.cap.toUpperCase()}</div></div></div></td>
       <td>${arr.length>1?sparkline(arr,t.ci):'<span class="fine" style="padding:0;color:var(--dim)">WK 1</span>'}</td>
       <td class="num"><span class="dw" style="color:${dwk>=12?'var(--pos)':'var(--mut)'}">+${dwk}</span></td>
