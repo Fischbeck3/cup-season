@@ -1064,8 +1064,10 @@ body:not(.noleague) #hubLeagueless{display:none;}
 .calcell{position:relative; aspect-ratio:1; border-radius:8px; background:var(--bg2); display:flex; flex-direction:column; align-items:center; justify-content:center; gap:3px; font-family:var(--mono); font-size:12.5px; color:var(--mut); border:1px solid transparent; cursor:default;}
 .calcell.blank{background:none;}
 .calcell.today{border-color:var(--pos); color:var(--ink);}
-.calcell.has{cursor:pointer;}
-.calcell.has:hover{border-color:var(--line);}
+.calcell.tap{cursor:pointer;}
+.calcell.tap:hover{border-color:var(--line);}
+.calcell.tap:active{transform:scale(.94);}
+.calcell.plan:hover{border-color:var(--gold); color:var(--ink);}
 .caldots{display:flex; gap:3px; height:5px;}
 .caldot{display:inline-block; width:5px; height:5px; border-radius:50%; background:var(--dim); vertical-align:middle; margin-right:4px;}
 .caldot.rd{background:var(--pos);}
@@ -1394,7 +1396,7 @@ body::before{
       </div>
             
     </div>
-    <div class="ob-caption" id="obCaption">New or returning, email is one door. No passwords. Just looking? <a href="#" id="obDemoLink" style="color:var(--pos)">Peek at the demo</a>. <span style="opacity:.5">v23.134</span></div>
+    <div class="ob-caption" id="obCaption">New or returning, email is one door. No passwords. Just looking? <a href="#" id="obDemoLink" style="color:var(--pos)">Peek at the demo</a>. <span style="opacity:.5">v23.135</span></div>
   </div>
   <div class="ob-splash" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
   
@@ -1986,7 +1988,8 @@ body::before{
             <span><i class="caldot lg"></i> SEASON DATE</span>
           </div>
         </div>
-        <button class="btn" id="calDeclare" style="margin-top:12px">Put a round on the books</button>
+        <p class="fine" style="text-align:center; padding:9px 0 2px">Tap any day to put a round on the books.</p>
+        <button class="btn" id="calDeclare" style="margin-top:8px">Put a round on the books</button>
         <div class="eyebrow">On the books</div>
         <div id="calList"></div>
         <div class="eyebrow" id="calWeeksHead">Week by week</div>
@@ -4405,23 +4408,34 @@ function renderCalendar(){
   /* the grid */
   const firstDow=calFirst(cur.y,cur.m).getDay();
   const days=new Date(cur.y, cur.m+1, 0).getDate();
+  const pad2=n=>String(n).padStart(2,'0');
+  const isoOf=d=>`${cur.y}-${pad2(cur.m+1)}-${pad2(d)}`;
+  const canPlan = !state.demo && CS.user;
   let html=DOW.map(d=>`<div class="calhd">${d[0].toUpperCase()}</div>`).join('');
   for(let i=0;i<firstDow;i++) html+='<div class="calcell blank"></div>';
   for(let d=1; d<=days; d++){
     const items=byDay[d]||[];
     const isToday = cur.y===now.getFullYear() && cur.m===now.getMonth() && d===now.getDate();
+    const isPast = new Date(cur.y,cur.m,d) < now;
+    const tappable = items.length || (canPlan && !isPast);
     const dots=items.slice(0,3).map(it=>
       `<i class="caldot ${it.kind==='rd' ? (it.sr && (it.sr.tagged_me || (it.sr.shared_league && !it.sr.mine)) ? 'lgm' : 'rd') : 'lg'}" style="margin:0"></i>`).join('');
-    html+=`<div class="calcell${isToday?' today':''}${items.length?' has':''}" data-cd="${d}">${d}<span class="caldots">${dots}</span></div>`;
+    html+=`<div class="calcell${isToday?' today':''}${items.length?' has':''}${tappable?' tap':''}${canPlan&&!isPast&&!items.length?' plan':''}" data-cd="${d}">${d}<span class="caldots">${dots}</span></div>`;
   }
   grid.innerHTML=html;
-  grid.querySelectorAll('.calcell.has').forEach(c=>c.addEventListener('click',()=>{
-    const d=Number(c.dataset.cd), items=byDay[d]||[];
-    openSheet(`${DOW[new Date(cur.y,cur.m,d).getDay()]} ${MOS[cur.m]} ${d}`, `${items.length} ON THE SHEET`,
+  grid.querySelectorAll('.calcell.tap').forEach(c=>c.addEventListener('click',()=>{
+    const d=Number(c.dataset.cd), items=byDay[d]||[], iso=isoOf(d);
+    const isPast = new Date(cur.y,cur.m,d) < now;
+    const canAdd = canPlan && !isPast;
+    if(!items.length){ if(canAdd) openDeclareSheet(iso); return; }
+    const dowName = `${DOW[new Date(cur.y,cur.m,d).getDay()]} ${MOS[cur.m]} ${d}`;
+    openSheet(dowName, `${items.length} ON THE SHEET`,
       items.map(it=> it.kind==='rd'
-        ? `<div class="check"><span class="num">${window.mkr?.(it.sr.marker||'saguaro')||'⛳'}</span><div class="tt"><b>${it.sr.mine?'You':esc(it.sr.display_name)}${it.sr.tagged_me?' · <span style="color:var(--gold)">YOU’RE IN</span>':(it.sr.shared_league&&!it.sr.mine?' · <span style="color:var(--gold)">LEAGUE MATE</span>':'')}</b><small>${[it.sr.course_label?esc(it.sr.course_label.toUpperCase()):null, (it.sr.tagged_names||[]).length?'WITH '+esc(it.sr.tagged_names.join(' & ').toUpperCase()):null, it.sr.note?'“'+esc(it.sr.note)+'”':null].filter(Boolean).join(' · ')||'ROUND ON THE BOOKS'}</small></div></div>`
+        ? `<div class="check"><span class="num">${window.mkr?.(it.sr.marker||'saguaro')||'⛳'}</span><div class="tt"><b>${it.sr.mine?'You':esc(it.sr.display_name)}${it.sr.tee_time?' · <span style="color:var(--gold)">'+fmtTee(it.sr.tee_time)+'</span>':''}${it.sr.tagged_me?' · <span style="color:var(--gold)">YOU’RE IN</span>':(it.sr.shared_league&&!it.sr.mine?' · <span style="color:var(--gold)">LEAGUE MATE</span>':'')}</b><small>${[it.sr.course_label?esc(it.sr.course_label.toUpperCase()):null, (it.sr.tagged_names||[]).length?'WITH '+esc(it.sr.tagged_names.join(' & ').toUpperCase()):null, it.sr.note?'“'+esc(it.sr.note)+'”':null].filter(Boolean).join(' · ')||'ROUND ON THE BOOKS'}</small></div></div>`
         : `<div class="check"><span class="num">⛳</span><div class="tt"><b style="${it.gold?'color:var(--gold)':''}">${esc(it.t)}</b></div></div>`
-      ).join(''));
+      ).join('')
+      + (canAdd ? `<button class="btn dark" id="dayAdd" style="margin-top:12px">＋ Put your round on this day</button>` : ''));
+    if(canAdd) document.getElementById('dayAdd')?.addEventListener('click', ()=>{ closeSheet(); openDeclareSheet(iso); });
   }));
 
   /* the on-the-books list: this month's rounds with the social framing */
@@ -4436,7 +4450,7 @@ function renderCalendar(){
         const withTxt=(sr.tagged_names||[]).length?' · WITH '+esc(sr.tagged_names.join(' & ').toUpperCase()):'';
         return `<div class="check">
           <span class="num">${window.mkr?.(sr.marker||'saguaro')||'⛳'}</span>
-          <div class="tt"><b>${sr.mine?'You':esc(sr.display_name)}${sr.tagged_me?' · <span style="color:var(--gold)">YOU’RE IN</span>':(sr.shared_league&&!sr.mine?' · <span style="color:var(--gold)">LEAGUE MATE</span>':(sr.is_friend&&!sr.mine?' · <span style="color:var(--mut)">BUDDY</span>':''))}</b>
+          <div class="tt"><b>${sr.mine?'You':esc(sr.display_name)}${sr.tee_time?' · <span style="color:var(--gold)">'+fmtTee(sr.tee_time)+'</span>':''}${sr.tagged_me?' · <span style="color:var(--gold)">YOU’RE IN</span>':(sr.shared_league&&!sr.mine?' · <span style="color:var(--gold)">LEAGUE MATE</span>':(sr.is_friend&&!sr.mine?' · <span style="color:var(--mut)">BUDDY</span>':''))}</b>
           <small>${DOW[d.getDay()].toUpperCase()} ${MOS[d.getMonth()].toUpperCase()} ${d.getDate()}${sr.course_label?' · '+esc(sr.course_label.toUpperCase()):''}${withTxt}${sr.note?' · “'+esc(sr.note)+'”':''}</small></div>
           <span style="display:flex; gap:6px; align-items:center; flex:none">
             <b class="mono" style="font-size:11.5px; color:var(--mut); letter-spacing:.06em">${when}</b>
@@ -6675,15 +6689,28 @@ function bindTagChips(attr, tagged){
 /* "Put a round on the books" — date + course + note + your group */
 /* one declare sheet, two doors (IA P4): the room's Schedule pane and the
    ⊕ Plan card. Works league-less — scheduled_rounds is profile-scoped. */
-async function openDeclareSheet(){
+/* "07:40:00" (Postgres time) or "07:40" → "7:40a"; empty → '' */
+function fmtTee(t){
+  if(!t) return '';
+  const m = String(t).match(/^(\d{1,2}):(\d{2})/); if(!m) return '';
+  let h = +m[1]; const mm = m[2]; const ap = h < 12 ? 'a' : 'p';
+  h = h % 12; if(h === 0) h = 12;
+  return `${h}:${mm}${ap}`;
+}
+window.fmtTee = fmtTee;
+async function openDeclareSheet(prefillISO){
   if(state.demo || !CS.user){ toast('Sign in to put rounds on the books'); return; }
-  const d = new Date(); d.setDate(d.getDate() + ((6 - d.getDay() + 7) % 7 || 7)); /* next Saturday */
-  const iso = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+  let iso = prefillISO;
+  if(!iso){ const d = new Date(); d.setDate(d.getDate() + ((6 - d.getDay() + 7) % 7 || 7)); /* next Saturday */
+    iso = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; }
   const cand = await gatherTagCandidates();
   const tagged = new Set();
   const chips = tagChipHtml(cand, 'drtag');
   openSheet('Put a round on the books', 'BUDDIES & LEAGUE MATES SEE IT THE MOMENT YOU POST',
-    `<label class="f">Day</label><input class="f" id="drDate" type="date" value="${iso}">
+    `<div style="display:flex; gap:10px">
+       <div style="flex:1"><label class="f">Day</label><input class="f" id="drDate" type="date" value="${iso}"></div>
+       <div style="width:132px"><label class="f" style="color:var(--gold)">Tee time · optional</label><input class="f" id="drTee" type="time" step="300"></div>
+     </div>
      <label class="f" style="margin-top:10px; display:block">Course</label>
      <input class="f" id="drCourse" placeholder="Pebble Beach" style="font-family:var(--sans)">
      <label class="f" style="margin-top:10px; display:block">Note · optional</label>
@@ -6702,6 +6729,7 @@ async function openDeclareSheet(){
         p_course: document.getElementById('drCourse').value,
         p_note: document.getElementById('drNote').value,
         p_tagged: [...tagged],
+        p_tee: document.getElementById('drTee').value || null,
       });
       if(error) throw error;
       closeSheet();
