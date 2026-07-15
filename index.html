@@ -1413,7 +1413,7 @@ body::before{
       </div>
             
     </div>
-    <div class="ob-caption" id="obCaption">New or returning, email is one door. No passwords. <span style="opacity:.5">v23.144</span></div>
+    <div class="ob-caption" id="obCaption">New or returning, email is one door. No passwords. <span style="opacity:.5">v23.145</span></div>
   </div>
   <div class="ob-splash" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
   
@@ -5031,7 +5031,7 @@ function refreshWhoChip(){
   const p = CS.profile; if(!p) return;
   if($('#youName')) $('#youName').textContent = p.display_name || 'Your card';
   if($('#youMeta')) $('#youMeta').textContent =
-    [p.handle ? '@'+p.handle : null, p.city, p.home_course].filter(Boolean).join(' · ');
+    [p.handle ? '@'+p.handle : null, p.city, p.home_course, p.ghin_number ? 'GHIN '+p.ghin_number : null].filter(Boolean).join(' · ');
   if($('#youIdx')) $('#youIdx').textContent =
     p.index_current != null ? Number(p.index_current).toFixed(1) : '—';
   if($('#youMk')) $('#youMk').innerHTML = mkr(p.marker || 'saguaro');
