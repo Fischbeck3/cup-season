@@ -1412,7 +1412,7 @@ body::before{
       </div>
             
     </div>
-    <div class="ob-caption" id="obCaption">New or returning, email is one door. No passwords. <span style="opacity:.5">v23.142</span></div>
+    <div class="ob-caption" id="obCaption">New or returning, email is one door. No passwords. <span style="opacity:.5">v23.143</span></div>
   </div>
   <div class="ob-splash" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
   
@@ -1635,8 +1635,8 @@ body::before{
           <div class="card" style="margin-bottom:12px">
             <label class="f">Game for this round · pick one</label>
             <div class="seg" id="gameSeg" style="margin:10px 0 0">
-              <button data-g="none">Just score</button>
-              <button data-g="match" class="on">Match play</button>
+              <button data-g="score" class="on">Just score</button>
+              <button data-g="match">Match play</button>
               <button data-g="wolf">Wolf · side tally</button>
             </div>
             <p class="fine" id="gameNote">Stroke play \u2014 your card, your pace. One to four players; post when you\u2019re done.</p>
@@ -2378,13 +2378,15 @@ function buildSeries(){
 function buildRealSeries(WKS){
   const hist = window.seasonHistory || [];
   const lastWk = hist.length ? Math.max(...hist.map(h => h.week_no)) : 0;
+  const solo = teams.length && teams[0].solo;   /* individual race — no squads */
   series = teams.map(t => {
     const arr = [];
     let last = 0;
     for(let w = 1; w <= Math.min(WKS, lastWk); w++){
       const snap = hist.find(h => h.week_no === w);
       if(snap){
-        const row = ((snap.standings && snap.standings.squads) || []).find(sq => sq.squad_id === t.id);
+        const rows = (snap.standings && (solo ? snap.standings.individuals : snap.standings.squads)) || [];
+        const row = solo ? rows.find(x => x.member_id === t.id) : rows.find(x => x.squad_id === t.id);
         if(row && row.points != null) last = Number(row.points);
       }
       arr.push(last);
@@ -2476,14 +2478,15 @@ function renderStandings(){
     el.innerHTML='<tr><th></th><th>'+(state.structure==='solo'?'Player':'Squad')+'</th><th class="num">Pts</th></tr><tr><td colspan="3" style="padding:18px 6px;color:var(--dim);font-family:var(--mono);font-size:12px;letter-spacing:.08em;line-height:1.8">'+soloTxt+'</td></tr>';
     return;
   }
+  const solo = teams[0]?.solo;   /* individual race — rows are players, not squads */
   const priorRank={};
   const hist=(!state.demo && window.seasonHistory) ? window.seasonHistory : [];
   if(hist.length){
     const lastWk=Math.max(...hist.map(h=>h.week_no));
     const snap=hist.find(h=>h.week_no===lastWk);
-    ((snap && snap.standings && snap.standings.squads)||[]).slice()
+    ((snap && snap.standings && (solo?snap.standings.individuals:snap.standings.squads))||[]).slice()
       .sort((a,b)=>(Number(b.points)||0)-(Number(a.points)||0))
-      .forEach((row,idx)=>{ priorRank[row.squad_id]=idx; });
+      .forEach((row,idx)=>{ priorRank[solo?row.member_id:row.squad_id]=idx; });
   }
   if(story){
     const a=teams[0], b=teams[1]; let txt='';
@@ -2496,7 +2499,7 @@ function renderStandings(){
     }
     story.innerHTML=txt;
   }
-  let html=`<tr><th></th><th>Squad</th><th>Trend</th><th class="num">Δ Wk</th><th class="num">Pts</th></tr>`;
+  let html=`<tr><th></th><th>${solo?'Player':'Squad'}</th><th>Trend</th><th class="num">Δ Wk</th><th class="num">Pts</th></tr>`;
   teams.forEach((t,i)=>{
     const ti=teams.indexOf(t);
     const arr=series[ti]||[];
@@ -2504,9 +2507,9 @@ function renderStandings(){
     const pr=priorRank[t.id];
     let mv='';
     if(pr!=null && pr!==i){ const d=pr-i; mv=`<span class="rkmove ${d>0?'up':'dn'}" title="${d>0?'up':'down'} ${Math.abs(d)} this week">${d>0?'▲':'▼'}${Math.abs(d)}</span>`; }
-    html+=`<tr class="${i===0?'lead':''} tap" data-squad="${t.name}">
+    html+=`<tr class="${i===0?'lead':''} ${solo?'':'tap'}" data-squad="${t.name}">
       <td class="rk mono">${String(i+1).padStart(2,'0')}${mv}</td>
-      <td><div style="display:flex;align-items:center;gap:10px"><span class="sw" style="background:${SQHEX[t.ci]}"></span><div><div class="tn">${t.name}</div><div class="tc">CAPT. ${t.cap.toUpperCase()}</div></div></div></td>
+      <td><div style="display:flex;align-items:center;gap:10px"><span class="sw" style="background:${SQHEX[t.ci]}"></span><div><div class="tn">${t.name}</div><div class="tc">${solo ? (t.sub||0)+' ROUND'+(t.sub===1?'':'S') : 'CAPT. '+t.cap.toUpperCase()}</div></div></div></td>
       <td>${arr.length>1?sparkline(arr,t.ci):'<span class="fine" style="padding:0;color:var(--dim)">WK 1</span>'}</td>
       <td class="num"><span class="dw" style="color:${dwk>=12?'var(--pos)':'var(--mut)'}">+${dwk}</span></td>
       <td class="num pts">${t.pts}</td>
@@ -2514,7 +2517,7 @@ function renderStandings(){
     if(i===1) html+=`<tr class="cutrow"><td colspan="5">Cup line · top 2 advance</td></tr>`;
   });
   flipRows(el, 'data-squad', ()=>{ el.innerHTML=html; });
-  el.querySelectorAll('[data-squad]').forEach(r=>
+  if(!solo) el.querySelectorAll('[data-squad]').forEach(r=>
     r.addEventListener('click',()=>showSquad(r.dataset.squad)));
 }
 
@@ -3201,7 +3204,7 @@ recomputeStrokes();
 const strokeOn=(pi,h)=>SI[h]<=STROKES[pi]?1:0;
 
 function freshLive(){
-  return {stage:'setup', active:false, game:'match', hole:0,
+  return {stage:'setup', active:false, game:'score', hole:0,
     scores:LIVE.map(()=>Array(18).fill(null)), wolf:Array(18).fill(null)};
 }
 state.live=freshLive();
@@ -3842,8 +3845,10 @@ function renderHomeFeed(){
      yet loaded; [] = loaded empty → the real empty state) */
   if(window.homeFeed===undefined && window.homePosts===undefined){ box.innerHTML = skeletonRows(3); return; }
   /* ONE feed (IA P1): circle rounds + league moments, newest first */
-  const items = (window.homeFeed||[]).map(r => ({ t:(r.played_on||''), html:feedRow(r) }))
-    .concat((window.homePosts||[]).map(p => ({ t:(p.created_at||'').slice(0,10), html:postRow(p) })))
+  /* sort by actual post time (created_at, full ISO) so new rounds land on top;
+     fall back to played_on for any legacy row without a timestamp */
+  const items = (window.homeFeed||[]).map(r => ({ t:(r.created_at||r.played_on||''), html:feedRow(r) }))
+    .concat((window.homePosts||[]).map(p => ({ t:(p.created_at||''), html:postRow(p) })))
     .sort((a,b)=> a.t<b.t ? 1 : a.t>b.t ? -1 : 0)
     .slice(0,30);
   box.innerHTML = items.length
@@ -5832,7 +5837,7 @@ async function loadStandingsAndFeed(){
         const d = rs.length>1 ? Number(rs[rs.length-1].index_at_post)-Number(rs[0].index_at_post) : null;
         return {
           n: memName(i.member_id), ci: memCi(i.member_id), sq: sqOf(i.member_id),
-          r: Number(i.rounds_posted),
+          mid: i.member_id, r: Number(i.rounds_posted),
           avg: rs.length ? rs.reduce((a,r)=>a+Number(r.pvi),0)/rs.length : 0,
           best: rs.length ? Math.max(...rs.map(r=>Number(r.pvi))) : null,
           pts: Number(i.points), d, me: i.member_id===CS.member?.id,
@@ -5851,6 +5856,18 @@ async function loadStandingsAndFeed(){
         ? Number(CS.profile?.index_current ?? mine[mine.length-1].index_at_post) - Number(mine[0].index_at_post)
         : null;
     } catch(e){ console.warn('[stats]', e); }
+  }
+
+  /* solo / 1v1 leagues form no squads — the race IS the individual standings.
+     Populate teams from indRows so the chart + Standings card render players
+     instead of sitting empty. (buildRealSeries + renderStandings read t.solo.) */
+  if(CS.season && !CS.squads.length && (window.indRows||[]).length){
+    teams.length = 0;
+    window.indRows.forEach(r => teams.push({
+      name:r.n, cap:'', pts:r.pts, ci:r.ci, id:r.mid, solo:true, sub:r.r,
+    }));
+    teams.sort((a,b)=> b.pts - a.pts);
+    series = teams.map(()=> []);
   }
 
   if(CS.season){ renderStandings(); renderStats(); }
