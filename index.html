@@ -1003,8 +1003,9 @@ input.f::-webkit-outer-spin-button, input.f::-webkit-inner-spin-button{-webkit-a
 
 
 
-/* ---- adaptive shell (v23.55): one shell, league or not ---- */
-body.noleague #view-home > *:not(#homeLeagueless):not(#homeRequests):not(#notifBanner){display:none !important;}
+/* ---- adaptive shell (v23.55 → one-home IA P1): Home is ONE tree for both
+   states — content adapts inside the renderers, never via a CSS fork. The hub
+   still forks until the League Room lands (P2). ---- */
 body.noleague #view-hub  > *:not(#hubLeagueless):not(#hubSeg):not(#hubPeople){display:none !important;}
 #view-hub.showpeople > *:not(#hubSeg):not(#hubPeople){display:none !important;}
 #view-hub:not(.showpeople) #hubPeople{display:none;}
@@ -1017,8 +1018,13 @@ body.noleague #view-hub  > *:not(#hubLeagueless):not(#hubSeg):not(#hubPeople){di
 .prow .pact{flex:none; display:flex; gap:6px;}
 .ptag{flex:none; font-family:var(--mono); font-size:10px; letter-spacing:.06em; color:var(--mut); padding:2px 8px; white-space:nowrap;}
 .ptag.ok{color:var(--pos);} .ptag.pos{color:var(--brand);}
-body:not(.noleague) #homeLeagueless,
 body:not(.noleague) #hubLeagueless{display:none;}
+/* Up Next strip — what's coming, one glance, hides when empty */
+#homeUpNext:not(:empty){display:flex; gap:8px; flex-wrap:wrap; margin:0 0 14px;}
+.upchip{display:inline-flex; align-items:center; gap:8px; border:0.5px solid var(--line);
+  background:var(--bg2); border-radius:99px; padding:7px 13px; white-space:nowrap;}
+.upchip .k{font-family:var(--mono); font-size:9px; letter-spacing:.09em; color:var(--mut); text-transform:uppercase;}
+.upchip b{font-size:12.5px; font-weight:600; color:var(--ink);}
 /* the calendar is SOCIAL, not league-gated — friends' rounds show either way */
 .calgrid{display:grid; grid-template-columns:repeat(7,1fr); gap:3px;}
 .calhd{font-family:var(--mono); font-size:9px; letter-spacing:.08em; color:var(--dim); text-align:center; padding:2px 0 6px;}
@@ -1033,7 +1039,7 @@ body:not(.noleague) #hubLeagueless{display:none;}
 .caldot.lgm{background:var(--gold);}
 .caldot.lg{background:var(--dim);}
 #boardCard .composer{position:static; background:none; padding:10px 0 2px;}
-#homeLeagueless .card, #hubLeagueless .btn{text-align:left;}
+#hubLeagueless .btn{text-align:left;}
 #hubLeagueless .btn{width:100%;}
 /* ================================================================
    v23.56 — design refresh. The night scoreboard, machined.
@@ -1302,7 +1308,7 @@ body::before{
       </div>
             
     </div>
-    <div class="ob-caption" id="obCaption">New or returning, email is one door. No passwords. Just looking? <a href="#" id="obDemoLink" style="color:var(--pos)">Peek at the demo</a>. <span style="opacity:.5">v23.123</span></div>
+    <div class="ob-caption" id="obCaption">New or returning, email is one door. No passwords. Just looking? <a href="#" id="obDemoLink" style="color:var(--pos)">Peek at the demo</a>. <span style="opacity:.5">v23.124</span></div>
   </div>
   <div class="ob-splash" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
   
@@ -1368,50 +1374,17 @@ body::before{
       <section class="view active" id="view-home">
         <div id="notifBanner"></div>
         <div id="homeRequests"></div>
+        <!-- ONE home (IA P1): the same tree serves league-less and member states.
+             The quick-post card is gone — the + tab is the only score entry. -->
         <div id="homeHub">
           <div id="homeGreeting"></div>
+          <div id="homeUpNext"></div>
           <div class="eyebrow" style="margin-top:0">Start something</div>
           <div id="homeStart"></div>
           <div class="eyebrow">Your leagues</div>
           <div id="homeRecap"></div>
           <div class="eyebrow">Around your circle</div>
           <div id="homeFeed"></div>
-        </div>
-        <div id="homeLeagueless">
-          <div class="card" id="wCard" style="margin-bottom:14px; text-align:left;">
-        <div style="display:flex; align-items:center; gap:10px;">
-          <span id="wMk" style="color:var(--pos)"></span>
-          <div><b id="wName" style="font-size:16px"></b><div class="fine" id="wMeta" style="padding:0"></div></div>
-          <div style="margin-left:auto; text-align:right"><div class="fine" style="padding:0">INDEX</div><b id="wIdx" class="mono" style="font-size:18px"></b></div>
-        </div>
-      </div>
-      <div class="eyebrow" style="text-align:left; margin:18px 0 8px">Play a round — the tee sheet</div>
-      <div class="card" id="wPost" style="margin-bottom:10px; text-align:left;">
-        <div class="eyebrow" style="margin-top:0">Post a round — league or not, it counts</div>
-        <div class="frow">
-          <div><label class="f" for="wGross">18-hole gross</label><input class="f" id="wGross" type="number" inputmode="numeric" placeholder="88"></div>
-          <div><label class="f" for="wDate">Date</label><input class="f" id="wDate" type="date"></div>
-        </div>
-        <div class="frow" style="margin-top:8px">
-          <div><label class="f" for="wRating">Rating</label><input class="f" id="wRating" type="number" step="0.1" inputmode="decimal" placeholder="70.2"></div>
-          <div><label class="f" for="wSlope">Slope</label><input class="f" id="wSlope" type="number" inputmode="numeric" placeholder="123"></div>
-        </div>
-        <label class="f" for="wCourse" style="margin-top:8px; display:block">Course</label>
-        <input class="f" id="wCourse" autocomplete="off" placeholder="Papago GC" style="font-family:var(--sans);">
-        <button class="mini" id="wPostGo" style="margin-top:10px">Post round</button>
-        <div id="wRecent" style="margin-top:10px"></div>
-      </div>
-      <div class="card" style="margin-bottom:14px; text-align:left; opacity:.75">
-        <div style="display:flex; align-items:center; gap:8px;">
-          <b style="font-size:14px">Organize a round</b><span class="soon">SOON</span>
-        </div>
-        <div class="fine" style="padding:6px 0 0">Tee up buddies and guests: match play, Wolf, skins. Scored live, posted once.</div>
-      </div>
-<div style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:14px;">
-            <button class="mini" id="hlLeague">Start or join a league</button>
-            <button class="mini" id="hlEvent">Start an event</button>
-            <button class="mini" id="hlFind">Add golfers</button>
-          </div>
         </div>
       </section>
 
@@ -2761,7 +2734,8 @@ $('#postBtn').addEventListener('click', async ()=>{
       $('#inRating').value=''; $('#inSlope').value='';
       state.lastPost=null; if(typeof recalc==='function') recalc();
       if(window.loadStandingsAndFeed) await window.loadStandingsAndFeed();
-      if(window.loadRecentRounds) window.loadRecentRounds();
+      if(window.loadCareer) window.loadCareer();     /* You-tab recent rounds */
+      if(window.loadHome) window.loadHome();         /* the one home feed */
       switchView('home'); scrollFeedBottom();
     } catch(e){ toast('Post failed: '+(e.message||e)); }
     finally { btn.disabled=false; }
@@ -2849,7 +2823,6 @@ function attachCourseSearch(courseSel, ratingSel, slopeSel){
   input.addEventListener('blur', ()=>setTimeout(hide, 160));
 }
 attachCourseSearch('#inCourse', '#inRating', '#inSlope');
-attachCourseSearch('#wCourse',  '#wRating',  '#wSlope');
 
 /* ================= pot ================= */
 function renderPot(){
@@ -3608,12 +3581,48 @@ function feedRow(r){
   return `<div class="check"><span class="num">${mk}</span>
     <div class="tt"><b>${line}</b><small>${badge?badge+' · ':''}${dfmtShort(r.played_on)}</small></div></div>`;
 }
+/* league moments (announce + system posts) as feed cards — rounds never come
+   this way (home_feed owns them), so the two sources can't double up */
+function postRow(p){
+  const m = (window.CS?.memberships||[]).find(x=>x.league.id===p.league_id);
+  const lg = m ? m.league.name : '';
+  const icon = p.kind==='announce' ? '📣' : '🏁';
+  return `<div class="check"><span class="num">${icon}</span>
+    <div class="tt"><b>${esc(p.body||'')}</b><small>${lg?esc(lg)+' · ':''}${dfmtShort((p.created_at||'').slice(0,10))}</small></div></div>`;
+}
 function renderHomeFeed(){
   const box=$('#homeFeed'); if(!box) return;
-  const list = state.demo ? DEMO_FEED : (window.homeFeed||[]);
-  box.innerHTML = list.length
-    ? list.map(feedRow).join('')
+  if(state.demo){ box.innerHTML = DEMO_FEED.map(feedRow).join(''); return; }
+  /* ONE feed (IA P1): circle rounds + league moments, newest first */
+  const items = (window.homeFeed||[]).map(r => ({ t:(r.played_on||''), html:feedRow(r) }))
+    .concat((window.homePosts||[]).map(p => ({ t:(p.created_at||'').slice(0,10), html:postRow(p) })))
+    .sort((a,b)=> a.t<b.t ? 1 : a.t>b.t ? -1 : 0)
+    .slice(0,30);
+  box.innerHTML = items.length
+    ? items.map(i=>i.html).join('')
     : '<p class="fine" style="padding:0">No rounds from your circle yet. Post one, or add golfers in <a href="#" data-gopeople style="color:var(--brand)">Crew</a>.</p>';
+}
+/* Up Next — what's coming, one glance: next declared round, invites waiting,
+   the month-close clock. Hides entirely when there's nothing coming. */
+function upChip(k,v){ return `<span class="upchip"><span class="k">${k}</span><b>${esc(v)}</b></span>`; }
+function renderUpNext(){
+  const box=$('#homeUpNext'); if(!box) return;
+  const chips=[];
+  if(state.demo){
+    chips.push(upChip('Next round','Papago GC · in 2 days'));
+    chips.push(upChip('The Sunday Cup','Wk 18 / 24'));
+  } else {
+    const up = (typeof upcomingFromSchedule==='function') ? upcomingFromSchedule() : [];
+    if(up.length) chips.push(upChip('Next round', up[0].what + ' · ' + up[0].when.toLowerCase()));
+    const needs = (window.myInvites||[]).length + (window.homeRequests||[]).length;
+    if(needs) chips.push(upChip('Needs you', needs + (needs===1?' invite':' invites')));
+    if((window.CS?.memberships||[]).length){
+      const now=new Date(); const eom=new Date(now.getFullYear(), now.getMonth()+1, 0);
+      const days=Math.max(0, Math.round((eom-now)/86400000));
+      if(days<=10) chips.push(upChip('Month closes', days===0?'today':'in '+days+' day'+(days===1?'':'s')));
+    }
+  }
+  box.innerHTML = chips.join('');
 }
 const DEMO_REQUESTS = [{friendship_id:'demo', display_name:'Marco', handle:'marco_v', marker:'cactus'}];
 /* incoming friend requests, front and center on Home — used to hide in the
@@ -3650,6 +3659,7 @@ function renderHomeRequests(){
 }
 function renderHomeHub(){
   renderGreeting();
+  renderUpNext();
   renderHomeRequests();
   renderHomeStart();
   renderHomeRecap();
@@ -3698,9 +3708,24 @@ function renderCareer(){
   set('#clAvg',  c.avg !=null ? sign(c.avg)  : '—');
   set('#clPlayed', c.played);
   const yr=$('#youRecent'); if(yr){
+    /* delete-a-round lives here now (moved off the retired quick-post card):
+       owner-only ×, delete_round RPC, standings views recompute on their own */
+    const canDel = !state.demo && window.sb;
     yr.innerHTML = (c.recent && c.recent.length)
-      ? c.recent.map(r=>`<div class="fine" style="padding:3px 0; display:flex; justify-content:space-between;"><span>${r.played_on} · ${esc((r.course_label||'').toUpperCase())||'ROUND'}${r.holes_played===9?' · 9':''}</span><b class="mono">${r.gross} · ${r.differential}</b></div>`).join('')
-      : '<div class="fine" style="padding:3px 0">No rounds yet. Post one below.</div>';
+      ? c.recent.map(r=>`<div class="fine" style="padding:3px 0; display:flex; justify-content:space-between; align-items:center; gap:8px;"><span>${r.played_on} · ${esc((r.course_label||'').toUpperCase())||'ROUND'}${r.holes_played===9?' · 9':''}</span><span style="display:flex; align-items:center; gap:12px;"><b class="mono">${r.gross} · ${r.differential}</b>${canDel&&r.id?`<button data-delr="${r.id}" title="Delete this round" aria-label="Delete round" style="background:none; border:none; color:var(--dim); cursor:pointer; font-size:16px; line-height:1; padding:2px 4px;">×</button>`:''}</span></div>`).join('')
+      : '<div class="fine" style="padding:3px 0">No rounds yet. Post one from the + tab.</div>';
+    yr.querySelectorAll('[data-delr]').forEach(b=>b.addEventListener('click', async ()=>{
+      if(!confirm('Delete this round? It leaves your card and any league standings it counted toward.')) return;
+      b.disabled = true;
+      try{
+        const { error } = await window.sb.rpc('delete_round', { p_round: b.dataset.delr });
+        if(error) throw error;
+        toast('Round deleted');
+        if(window.loadCareer) await window.loadCareer();
+        if(window.loadStandingsAndFeed) await window.loadStandingsAndFeed();
+        if(window.loadHome) window.loadHome();
+      }catch(e){ toast('Delete failed: ' + (e.message || e)); b.disabled = false; }
+    }));
   }
 }
 $('#youPost')?.addEventListener('click', ()=> switchView('record'));
@@ -5005,12 +5030,8 @@ function goCrewPeople(){
 window.goCrewPeople = goCrewPeople;
 document.addEventListener('click', e=>{ if(e.target.closest('[data-gopeople]')){ e.preventDefault(); goCrewPeople(); } });
 $('#wFind')?.addEventListener('click', goCrewPeople);
-$('#hlFind')?.addEventListener('click', goCrewPeople);
 $('#crewAdd')?.addEventListener('click', goCrewPeople);
 $('#hdrLogo')?.addEventListener('click', ()=> switchView('home'));
-$('#hlLeague')?.addEventListener('click', () => switchView('hub'));
-$('#hlEvent')?.addEventListener('click', () => window.openEventPicker?.());
-window.loadRecentRounds = loadRecentRounds;
 
 $('#annBtn')?.addEventListener('click', async () => {
   const v = $('#chatIn').value.trim();
@@ -5178,63 +5199,8 @@ async function loadCourseMemory(){
   }));
 }
 
-/* ---------- my golf: league-less quick post + recent ---------- */
-function fillWelcomeCard(){
-  const p = CS.profile; if(!p) return;
-  $('#wMk').innerHTML = mkr(p.marker || 'saguaro');
-  $('#wName').textContent = p.display_name || '';
-  $('#wMeta').textContent = [p.city, p.home_course].filter(Boolean).join(' · ');
-  $('#wIdx').textContent = p.index_current != null ? Number(p.index_current).toFixed(1) : '—';
-  const d = new Date();
-  $('#wDate').value = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
-  loadRecentRounds();
-}
-async function loadRecentRounds(){
-  const { data } = await sb.from('rounds')
-    .select('id, gross, differential, played_on, course_label, holes_played')
-    .eq('profile_id', CS.user.id).order('played_on', { ascending:false }).limit(5);
-  const el = $('#wRecent'); if(!el) return;
-  if(!(data && data.length)){ el.innerHTML = '<div class="fine" style="padding:3px 0">No rounds yet. The card fills as you post.</div>'; return; }
-  el.innerHTML = data.map(r => `<div class="fine" style="padding:3px 0; display:flex; justify-content:space-between; align-items:center; gap:8px;">
-      <span>${r.played_on} · ${esc((r.course_label||'').toUpperCase()) || 'ROUND'}${r.holes_played===9?' · 9':''}</span>
-      <span style="display:flex; align-items:center; gap:12px;"><b class="mono">${r.gross} · ${r.differential}</b>
-        <button data-delr="${r.id}" title="Delete this round" aria-label="Delete round" style="background:none; border:none; color:var(--dim); cursor:pointer; font-size:16px; line-height:1; padding:2px 4px;">×</button></span>
-    </div>`).join('');
-  el.querySelectorAll('[data-delr]').forEach(b => b.addEventListener('click', async () => {
-    if(!confirm('Delete this round? It leaves your card and any league standings it counted toward.')) return;
-    b.disabled = true;
-    try{
-      const { error } = await sb.rpc('delete_round', { p_round: b.dataset.delr });
-      if(error) throw error;
-      toast('Round deleted');
-      await loadRecentRounds();
-      if(window.loadStandingsAndFeed) await window.loadStandingsAndFeed();
-    }catch(e){ toast('Delete failed: ' + (e.message || e)); b.disabled = false; }
-  }));
-}
-$('#wPostGo').addEventListener('click', async () => {
-  const gross = parseInt($('#wGross').value), rating = parseFloat($('#wRating').value), slope = parseInt($('#wSlope').value);
-  if(!gross || !rating || !slope){ toast('Gross, rating and slope make a round'); return; }
-  const btn = $('#wPostGo'); btn.disabled = true;
-  try {
-    const payload = {
-      gross, rating, slope, holes_played: 18, source: 'quick',
-      played_on: $('#wDate').value || null,
-      course_label: $('#wCourse').value.trim() || null,
-      api_course_id: $('#wCourse').dataset.courseId || null,   /* soft link, see postBtn */
-    };
-    let { error } = await sb.from('rounds').insert(payload);
-    if(error && /api_course_id/.test(error.message||'')){   /* pre-migration deploy skew */
-      delete payload.api_course_id;
-      ({ error } = await sb.from('rounds').insert(payload));
-    }
-    if(error) throw error;
-    toast('Round posted to your card');
-    $('#wGross').value = '';
-    loadRecentRounds();
-  } catch(e){ toast('Post failed: ' + (e.message || e)); }
-  finally { btn.disabled = false; }
-});
+/* Quick-post card retired (IA P1): the + tab is the only score entry.
+   Delete-a-round moved with the recent-rounds list to the You tab (renderCareer). */
 
 /* ---------- auth ---------- */
 /* Code-only OTP. No emailRedirectTo on purpose: passing it invites Supabase to
@@ -5591,6 +5557,7 @@ async function subscribeLeague(){
       { event:'INSERT', schema:'public', table:'posts', filter:'league_id=eq.' + CS.league.id },
       () => {
         loadStandingsAndFeed();
+        if(window.loadHome) window.loadHome();        /* the one home feed (IA P1) */
         if(state.phase === 'draft') loadLeagueData(); /* board carries the draw reveal */
       })
     .subscribe((status, err) => {
@@ -6374,7 +6341,7 @@ async function loadCareer(){
   if(!CS.user){ window.career = null; if(window.renderCareer) window.renderCareer(); return; }
   try{
     const { data } = await sb.from('rounds')
-      .select('gross, differential, index_at_post, played_on, course_label, holes_played')
+      .select('id, gross, differential, index_at_post, played_on, course_label, holes_played')
       .eq('profile_id', CS.user.id).order('played_on', { ascending:false }).limit(400);
     const rows = data || [];
     const vals = rows
@@ -6406,6 +6373,20 @@ async function loadHome(){
   } catch(e){ window.leagueEnds = window.leagueEnds||{}; }
   try { const { data } = await sb.rpc('home_feed', { p_days: 21 }); window.homeFeed = data || []; }
   catch(e){ window.homeFeed = window.homeFeed||[]; }
+  /* league moments for the one feed (IA P1): announcements + system posts.
+     round_id-null keeps rounds out — home_feed already carries every circle
+     round (buddies + league-mates), so board round-posts would be duplicates.
+     Chat stays on the board; the home feed is moments, not messages. */
+  try {
+    const ids = (CS.memberships||[]).map(m=>m.league.id);
+    if(ids.length){
+      const { data: ps } = await sb.from('posts')
+        .select('id, league_id, kind, body, created_at')
+        .in('league_id', ids).is('round_id', null).neq('kind','chat')
+        .order('created_at', { ascending:false }).limit(20);
+      window.homePosts = ps || [];
+    } else window.homePosts = [];
+  } catch(e){ window.homePosts = window.homePosts||[]; }
   try { const { data } = await sb.rpc('my_friends'); window.homeRequests = (data||[]).filter(f => f.status==='pending' && f.incoming); }
   catch(e){ window.homeRequests = window.homeRequests||[]; }
   if(window.renderHomeHub) window.renderHomeHub();
@@ -6648,8 +6629,6 @@ function showWelcome(){
   loadTrophies();
   loadCareer();
   renderIndStats();
-  fillWelcomeCard();
-  loadRecentRounds();
   loadCourseMemory();
   loadLeagueSpans().then(loadSchedule).then(()=>window.renderHomeHub&&window.renderHomeHub()); /* Home recap "next rounds" */
   loadMyEvents().then(()=>window.renderHomeHub&&window.renderHomeHub());                       /* events → group switcher + recap */
