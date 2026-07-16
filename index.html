@@ -633,6 +633,14 @@ input.f::-webkit-outer-spin-button, input.f::-webkit-inner-spin-button{-webkit-a
 .check .tt{flex:1; min-width:0;}
 .check .tt b{font-size:13.5px; font-weight:600; display:block;}
 .check .tt small{font-family:var(--mono); font-size:11px; color:var(--dim); letter-spacing:.08em; display:block; margin-top:2px;}
+/* home feed time buckets (pilot: "today, this week, a button for older") */
+.feedsec{font-family:var(--mono); font-size:10.5px; letter-spacing:.14em; text-transform:uppercase; color:var(--dim); margin:16px 2px 8px;}
+.feedsec:first-child{margin-top:2px;}
+.feedmore{margin-top:4px;}
+.feedmore>summary{list-style:none; cursor:pointer; font-family:var(--mono); font-size:11px; letter-spacing:.1em; text-transform:uppercase; color:var(--mut); padding:10px 12px; border:1px solid var(--line); border-radius:var(--r); background:var(--bg1); text-align:center; user-select:none;}
+.feedmore>summary::-webkit-details-marker{display:none;}
+.feedmore>summary:hover{color:var(--ink); border-color:var(--line2);}
+.feedmore[open]>summary{margin-bottom:8px; color:var(--dim);}
 .phasehero{
   background:var(--bg1); border:1px solid var(--line2); border-radius:var(--r);
   padding:22px 20px; position:relative; overflow:hidden;
@@ -2229,6 +2237,12 @@ function dAgo(n){
   const d=new Date(); d.setDate(d.getDate()-n);
   return n===0 ? `Today · ${MOS[d.getMonth()]} ${d.getDate()}`
                : `${DOW[d.getDay()]} · ${MOS[d.getMonth()]} ${d.getDate()}`;
+}
+/* local-date ISO n days ago, built by hand (never toISOString — UTC shifts the
+   day in Phoenix). Demo dates stay relative so the diorama never reads stale. */
+function isoAgo(n){
+  const d=new Date(); d.setDate(d.getDate()-n);
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
 }
 /* the last three calendar months, oldest first — demo history window */
 const M3=[2,1,0].map(k=>{ const d=new Date(); d.setDate(1); d.setMonth(d.getMonth()-k); return MOS[d.getMonth()].toUpperCase(); });
@@ -4594,11 +4608,13 @@ function renderHomeRecap(){
   box.innerHTML = rows.length ? rows.join('') : '<p class="fine" style="padding:0">No leagues yet — start or join one above.</p>';
   box.querySelectorAll('[data-hglg]').forEach(b=>b.addEventListener('click',()=>{ const id=b.dataset.hglg; switchView('hub'); if(window.CS?.league?.id!==id) window.enterLeagueById?.(id, false); }));
 }
+/* relative dates spread across the feed's time buckets: today / this week /
+   earlier — so the diorama shows all three and never reads stale */
 const DEMO_FEED = [
-  {golfer:'Diego', marker:'saguaro', gross:79, pvi:5.2, course:'Papago GC', played_on:'2026-07-13', is_pr:true},
-  {golfer:'Rosa',  marker:'quail',   gross:74, pvi:3.8, course:'Grayhawk',  played_on:'2026-07-12', is_sub80:true},
-  {golfer:'You',   marker:'shark',   gross:82, pvi:2.9, course:'Aguila',    played_on:'2026-07-11', is_me:true},
-  {golfer:'Marco', marker:'cactus',  gross:90, pvi:0.4, course:'Encanto',   played_on:'2026-07-10'},
+  {golfer:'Diego', marker:'saguaro', gross:79, pvi:5.2, course:'Papago GC', played_on:isoAgo(0), is_pr:true},
+  {golfer:'Rosa',  marker:'quail',   gross:74, pvi:3.8, course:'Grayhawk',  played_on:isoAgo(2), is_sub80:true},
+  {golfer:'You',   marker:'shark',   gross:82, pvi:2.9, course:'Aguila',    played_on:isoAgo(4), is_me:true},
+  {golfer:'Marco', marker:'cactus',  gross:90, pvi:0.4, course:'Encanto',   played_on:isoAgo(9)},
 ];
 /* founder badge — FOUNDER_ID is loaded by loadProfile via the founder_id() RPC.
    Badges the one founder wherever their name shows. Demo badges DEMO_ME so the
@@ -4637,21 +4653,41 @@ function skeletonRows(n){
     +`<span class="skb" style="display:block;height:9px;width:42%;margin-top:8px"></span></div></div>`;
   return h;
 }
+/* group feed items into Today / This week / Earlier so the stream stops
+   stacking (pilot: "today section, this week, and a button for older").
+   Bucket by the row's own displayed date (d) so section and label agree;
+   Earlier collapses behind a native <details> — auto-open when nothing's recent
+   so the feed never looks empty. */
+function feedBuckets(items){
+  const now=new Date(), today0=new Date(now.getFullYear(),now.getMonth(),now.getDate());
+  const g=[[],[],[]];   // 0 today · 1 this week · 2 earlier
+  items.forEach(i=>{
+    const ds=(i.d||'').slice(0,10); let b=2;
+    if(ds){ const days=Math.round((today0-localDate(ds))/86400000); b = days<=0?0 : days<=6?1 : 2; }
+    g[b].push(i.html);
+  });
+  const LAB=['Today','This week']; let html='';
+  for(let k=0;k<2;k++) if(g[k].length) html += `<div class="feedsec">${LAB[k]}</div>`+g[k].join('');
+  if(g[2].length){
+    const open=(g[0].length+g[1].length)===0;
+    html += `<details class="feedmore"${open?' open':''}><summary>${open?'Earlier':'Show earlier · '+g[2].length}</summary>${g[2].join('')}</details>`;
+  }
+  return html;
+}
 function renderHomeFeed(){
   const box=$('#homeFeed'); if(!box) return;
-  if(state.demo){ box.innerHTML = DEMO_FEED.map(feedRow).join(''); return; }
+  if(state.demo){ box.innerHTML = feedBuckets(DEMO_FEED.map(r=>({ d:r.played_on, html:feedRow(r) }))); return; }
   /* loading: scorecard skeletons until the first fetch lands (undefined = not
      yet loaded; [] = loaded empty → the real empty state) */
   if(window.homeFeed===undefined && window.homePosts===undefined){ box.innerHTML = skeletonRows(3); return; }
-  /* ONE feed (IA P1): circle rounds + league moments, newest first */
-  /* sort by actual post time (created_at, full ISO) so new rounds land on top;
-     fall back to played_on for any legacy row without a timestamp */
-  const items = (window.homeFeed||[]).map(r => ({ t:(r.created_at||r.played_on||''), html:feedRow(r) }))
-    .concat((window.homePosts||[]).map(p => ({ t:(p.created_at||''), html:postRow(p) })))
+  /* ONE feed (IA P1): circle rounds + league moments, newest first. Sort by
+     actual post time (created_at, full ISO); bucket by the displayed date (d). */
+  const items = (window.homeFeed||[]).map(r => ({ t:(r.created_at||r.played_on||''), d:((r.played_on||r.created_at||'')+'').slice(0,10), html:feedRow(r) }))
+    .concat((window.homePosts||[]).map(p => ({ t:(p.created_at||''), d:((p.created_at||'')+'').slice(0,10), html:postRow(p) })))
     .sort((a,b)=> a.t<b.t ? 1 : a.t>b.t ? -1 : 0)
     .slice(0,30);
   box.innerHTML = items.length
-    ? items.map(i=>i.html).join('')
+    ? feedBuckets(items)
     : '<p class="fine" style="padding:0">No rounds from your circle yet. Post one, or <a href="#" data-gopeople style="color:var(--brand)">add golf buddies</a>.</p>';
 }
 /* Up Next — what's coming, one glance: next declared round, invites waiting,
