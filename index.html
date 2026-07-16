@@ -1413,7 +1413,7 @@ body::before{
       </div>
             
     </div>
-    <div class="ob-caption" id="obCaption">New or returning, email is one door. No passwords. <span style="opacity:.5">v23.156</span></div>
+    <div class="ob-caption" id="obCaption">New or returning, email is one door. No passwords. <span style="opacity:.5">v23.157</span></div>
   </div>
   <div class="ob-splash" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
   
@@ -1638,7 +1638,8 @@ body::before{
             <div class="seg" id="gameSeg" style="margin:10px 0 0">
               <button data-g="score" class="on">Just score</button>
               <button data-g="match">Match play</button>
-              <button data-g="wolf">Wolf · side tally</button>
+              <button data-g="wolf">Wolf</button>
+              <button data-g="skins">Skins</button>
             </div>
             <p class="fine" id="gameNote">Stroke play \u2014 your card, your pace. One to four players; post when you\u2019re done.</p>
             <div id="matchSetup" style="display:none; margin-top:12px; border-top:0.5px solid var(--line); padding-top:12px;">
@@ -1676,10 +1677,17 @@ body::before{
               <div class="gm" id="matchMeta">THRU 0 · STROKES OFF LOW MAN (DANNY)</div>
             </div>
             <div class="gamecard" id="wolfCard" style="--acc:var(--gold)">
-              <div class="gk">Wolf · points tally · lone wolf pays 3</div>
+              <div class="gk">Wolf · lone wolf plays for 3</div>
               <div class="gs" id="wolfWho">CHUCK IS THE WOLF</div>
+              <div class="gm" id="wolfMeta"></div>
               <div class="wolfbtns" id="wolfBtns"></div>
               <div class="wolftally" id="wolfTally"></div>
+            </div>
+            <div class="gamecard" id="skinsCard" style="--acc:var(--gold)">
+              <div class="gk">Skins · ties carry the pot</div>
+              <div class="gs" id="skinsStatus">HOLE 1 WORTH 1 SKIN</div>
+              <div class="gm" id="skinsMeta"></div>
+              <div class="wolftally" id="skinsTally"></div>
             </div>
             <div class="gamecard" id="settleCard" style="--acc:var(--brand)">
               <div class="gk">Round settlement · live</div>
@@ -3337,12 +3345,25 @@ function matchCalc(){
   return {a,b,played,closed};
 }
 
-function wolfPoints(){
+/* who's the wolf on hole h: the shuffled-at-tee-off order rotates 1–16;
+   17–18 go to CURRENT LAST PLACE in the ledger (the comeback rule, §3.2 /
+   batch-2 default). wolfAt(16) reads points through 15 — earlier holes only,
+   never itself. */
+function wolfOrderNow(){ return state.live.wolfOrder || [0,1,2,3]; }
+function wolfAt(h){
+  const ord=wolfOrderNow();
+  if(h<16) return ord[h%4];
+  const pts=wolfPointsThrough(h);
+  let worst=ord[0];
+  [0,1,2,3].forEach(p=>{ if(pts[p]<pts[worst]) worst=p; });
+  return worst;
+}
+function wolfPointsThrough(limit){
   const pts=[0,0,0,0];
-  for(let h=0;h<18;h++){
+  for(let h=0;h<limit;h++){
     const pick=state.live.wolf[h];
     if(!pick||!holeDone(h)) continue;
-    const w=h%4;
+    const w=wolfAt(h);
     const side = pick.mode==='lone' ? [w] : [w,pick.partner];
     const opp=[0,1,2,3].filter(p=>!side.includes(p));
     const ns=Math.min(...side.map(p=>netOf(p,h)));
@@ -3359,21 +3380,53 @@ function wolfPoints(){
   }
   return pts;
 }
+function wolfPoints(){ return wolfPointsThrough(18); }
 
-function settleRows(pts){
+/* skins: lowest NET takes the hole's skin(s); ties carry the pot forward
+   (decision-log D9). Works 2–4 players; carried skins die at 18 (v1). */
+function skinsCalc(){
+  const n=LIVE.length;
+  const won=LIVE.map(()=>0);
+  let carry=1, thru=0;
+  for(let h=0;h<18;h++){
+    if(!holeDone(h)) break;
+    const nets=LIVE.map((_,pi)=>netOf(pi,h));
+    const mn=Math.min(...nets);
+    const winners=nets.reduce((a,v,i)=>{ if(v===mn)a.push(i); return a; },[]);
+    if(winners.length===1){ won[winners[0]]+=carry; carry=1; }
+    else carry++;
+    thru=h+1;
+  }
+  /* net-zero ledger: each skin pays the winner (n−1) and everyone else −1 */
+  const total=won.reduce((a,b)=>a+b,0);
+  const pts=won.map(w=>w*n-total);
+  return {won, pts, carry, thru};
+}
+
+/* minimized transfer set from a net-zero points ledger — data first, HTML on
+   top, so the live card and the finish recap read the same math */
+function settleTransfers(pts, val){
+  if(!(val>0)) return [];
   const cr=[],db=[];
   pts.forEach((p,i)=>{
-    const amt=p*WOLF_VAL;
+    const amt=p*val;
     if(amt>0)cr.push({i,amt}); else if(amt<0)db.push({i,amt:-amt});
   });
   cr.sort((x,y)=>y.amt-x.amt); db.sort((x,y)=>y.amt-x.amt);
-  const rows=[]; let ci=0,di=0;
+  const out=[]; let ci=0,di=0;
   while(ci<cr.length&&di<db.length){
     const x=Math.min(cr[ci].amt,db[di].amt);
-    rows.push(`<div class="srow"><span>${LIVE[db[di].i].n.toUpperCase()} → ${LIVE[cr[ci].i].n.toUpperCase()}</span><b>$${x}</b></div>`);
+    out.push({from:LIVE[db[di].i].n, to:LIVE[cr[ci].i].n, amt:x});
     cr[ci].amt-=x; db[di].amt-=x;
     if(!cr[ci].amt)ci++; if(!db[di].amt)di++;
   }
+  return out;
+}
+function settleRows(pts, val){
+  const v = val!=null ? val : WOLF_VAL;
+  if(!(v>0)) return '<div class="srow"><span>BRAGGING POINTS — NO MONEY ON IT</span><b>$0</b></div>';
+  const rows=settleTransfers(pts, v).map(t=>
+    `<div class="srow"><span>${t.from.toUpperCase()} → ${t.to.toUpperCase()}</span><b>$${t.amt}</b></div>`);
   return rows.length?rows.join(''):'<div class="srow"><span>ALL SQUARE</span><b>$0</b></div>';
 }
 
@@ -3386,7 +3439,8 @@ function renderPlay(){
   $('#lrEyebrowTxt').textContent=`Live round · ${($('#lrCourse').value||'Course')} — ${($('#lrTee').value||'Tee')} · ${CRATE}/${CSLOPE}`;
   $('#matchCard').style.display = state.live.game==='match' ? 'block':'none';
   $('#wolfCard').style.display  = state.live.game==='wolf'  ? 'block':'none';
-  $('#settleCard').style.display= state.live.game==='wolf'  ? 'block':'none';
+  const sc=$('#skinsCard'); if(sc) sc.style.display = state.live.game==='skins' ? 'block':'none';
+  $('#settleCard').style.display= (state.live.game==='wolf'||state.live.game==='skins') ? 'block':'none';
 
   const h=state.live.hole;
   $('#holeNum').textContent='HOLE '+(h+1);
@@ -3446,8 +3500,17 @@ function renderPlay(){
     + (SIEST?' · EST. CARD':'');
 
   if(state.live.game==='wolf' && LIVE.length===4){
-  const wolfIdx=h%4;
-  $('#wolfWho').textContent=LIVE[wolfIdx].n.toUpperCase()+' IS THE WOLF';
+  const wolfIdx=wolfAt(h);
+  const comeback = h>=16;
+  $('#wolfWho').textContent=LIVE[wolfIdx].n.toUpperCase()+' IS THE WOLF'+(comeback?' · COMEBACK':'');
+  /* tee order: rotation shifted so the wolf watches every drive (tees last) */
+  const wm=$('#wolfMeta');
+  if(wm){
+    const ord=wolfOrderNow();
+    const k=ord.indexOf(wolfIdx);
+    const tees=(k>=0?ord.slice(k+1).concat(ord.slice(0,k+1)):ord).map(p=>LIVE[p].n.toUpperCase());
+    wm.textContent='TEES: '+tees.join(' · ')+(state.live.stake>0?` · $${state.live.stake}/PT`:' · BRAGGING POINTS');
+  }
   const wb=$('#wolfBtns'); wb.innerHTML='';
   const pick=state.live.wolf[h];
   [0,1,2,3].filter(p=>p!==wolfIdx).forEach(p=>{
@@ -3462,6 +3525,13 @@ function renderPlay(){
   if(pick&&pick.mode==='lone')lone.classList.add('on');
   lone.addEventListener('click',()=>{state.live.wolf[h]={mode:'lone'};renderPlay();});
   wb.appendChild(lone);
+  if(pick){
+    /* catch-up/undo (batch-3 #16): any hole's call is re-enterable */
+    const clr=document.createElement('button');
+    clr.textContent='CLEAR';
+    clr.addEventListener('click',()=>{state.live.wolf[h]=null;renderPlay();});
+    wb.appendChild(clr);
+  }
 
   const pts=wolfPoints();
   const wt=$('#wolfTally'); wt.innerHTML='';
@@ -3472,7 +3542,27 @@ function renderPlay(){
     wt.appendChild(d);
   });
 
-  $('#settle').innerHTML=settleRows(pts);
+  $('#settle').innerHTML=settleRows(pts, state.live.stake);
+  }
+
+  if(state.live.game==='skins' && LIVE.length>=2){
+    const sk=skinsCalc();
+    const ss=$('#skinsStatus'), sm=$('#skinsMeta');
+    if(ss) ss.textContent = sk.thru>=18
+      ? (sk.carry>1?`DONE · ${sk.carry-1} SKIN${sk.carry===2?'':'S'} DIED CARRIED`:'DONE · EVERY SKIN CLAIMED')
+      : `HOLE ${sk.thru+1} WORTH ${sk.carry} SKIN${sk.carry===1?'':'S'}`;
+    if(sm) sm.textContent = `THRU ${sk.thru} · LOW NET TAKES IT`
+      + (state.live.stake>0?` · $${state.live.stake}/SKIN`:' · BRAGGING SKINS');
+    const st=$('#skinsTally');
+    if(st){
+      st.innerHTML='';
+      LIVE.forEach((p,pi)=>{
+        const d=document.createElement('div'); d.className='wt';
+        d.innerHTML=`<b style="color:${sk.won[pi]>0?'var(--pos)':'var(--mut)'}">${sk.won[pi]}</b><span>${p.n.toUpperCase()}</span>`;
+        st.appendChild(d);
+      });
+    }
+    $('#settle').innerHTML=settleRows(sk.pts, state.live.stake);
   }
   renderLiveBanner();
 }
@@ -3483,9 +3573,26 @@ $('#holeNext').addEventListener('click',()=>{state.live.hole=Math.min(17,state.l
    slope, or game change. */
 function renderMatchPrev(){
   const box=$('#matchSetup'); if(!box) return;
-  const on = state.live.game==='match';
-  box.style.display = on ? 'block' : 'none';
-  const prev=$('#matchPrev'); if(!on || !prev) return;
+  const g=state.live.game;
+  const money = g==='match'||g==='wolf'||g==='skins';
+  box.style.display = money ? 'block' : 'none';
+  const prev=$('#matchPrev'); if(!money || !prev) return;
+  const lbl=box.querySelector('label[for="lrStake"]');
+  if(lbl) lbl.textContent = g==='match' ? 'Stake per side · $0 = bragging rights'
+    : g==='wolf' ? 'Dollars per point · $0 = bragging rights'
+    : 'Dollars per skin · $0 = bragging rights';
+  if(g==='wolf'){
+    prev.innerHTML = sel.length===4
+      ? 'Wolf order shuffles at tee-off and locks. The wolf tees last, picks a partner after any drive — or goes lone for 3. Holes 17–18: last place is the wolf.'
+      : 'Wolf needs exactly 4 players.';
+    return;
+  }
+  if(g==='skins'){
+    prev.innerHTML = (sel.length>=2 && sel.length<=4)
+      ? 'Low net wins the hole’s skin; a tie carries it — next hole is worth more. Strokes apply off the low man.'
+      : 'Skins takes 2 to 4 players.';
+    return;
+  }
   if(sel.length!==2 && sel.length!==4){
     prev.innerHTML='Match play takes 2 (singles) or 4 (2v2 net best ball).';
     return;
@@ -3613,6 +3720,10 @@ function renderLiveBanner(){
     const me=LIVE.findIndex(p=>p.me || p.n==='You');
     const v=me>=0?pts[me]:0;
     st=`WOLF · YOU ${v>=0?'+':''}${v} PTS`;
+  } else if(state.live.game==='skins'){
+    const sk=skinsCalc();
+    const me=LIVE.findIndex(p=>p.me || p.n==='You');
+    st=`SKINS · ${sk.carry} RIDING · YOU ${me>=0?sk.won[me]:0}`;
   }
   $('#lbStatus').textContent=st;
   $('#lbHole').textContent=`HOLE ${state.live.hole+1} · ${($('#lrCourse').value||'Encanto GC').toUpperCase()} · THRU ${m.played}`;
@@ -3631,24 +3742,37 @@ $$('#gameSeg button').forEach(b=>b.addEventListener('click',()=>{
   renderRoster();   /* match extras (stake, strokes preview, side swap) follow the game */
   const GN={score:'Stroke play \u2014 your card, your pace. One to four players; post when you\u2019re done.',
     match:'Singles (2) or 2v2 net best ball (4). Keep scoring; we tally the match as you go.',
-    wolf:'A round of Wolf \u2014 needs four. We run the rotation and the side tally; scores still post.'};
+    wolf:'A round of Wolf \u2014 needs four. We run the rotation and the side tally; scores still post.',
+    skins:'Low net takes the hole\u2019s skin; ties carry the pot. Two to four players; scores still post.'};
   const gn=$('#gameNote'); if(gn) gn.textContent=GN[state.live.game]||GN.score;
 }));
 /* editCard toggle is bound by the course-card engine below */
 /* guest and league-player add buttons render inside the roster groups */
 $('#teeOffBtn').addEventListener('click', async ()=>{
-  if(state.live.game==='score' ? sel.length<1 : state.live.game==='match' ? (sel.length!==2 && sel.length!==4) : sel.length!==4){
-    return toast(state.live.game==='score' ? 'Pick at least yourself'
-      : state.live.game==='match' ? 'Match play takes 2 (singles) or 4 (2v2)'
+  const g=state.live.game;
+  const bad = g==='score' ? sel.length<1
+    : g==='match' ? (sel.length!==2 && sel.length!==4)
+    : g==='skins' ? (sel.length<2 || sel.length>4)
+    : sel.length!==4;
+  if(bad){
+    return toast(g==='score' ? 'Pick at least yourself'
+      : g==='match' ? 'Match play takes 2 (singles) or 4 (2v2)'
+      : g==='skins' ? 'Skins takes 2 to 4 players'
       : 'Wolf needs exactly 4');
   }
-  const game=state.live.game;
+  const game=g;
   LIVE=sel.map(i=>ROSTER[i]);
   setMatchTeams();
   syncTeeInputs();
-  /* the stake is declared at tee-off and locked (spec §13.2) — $0 = bragging */
-  const stake = game==='match' ? Math.max(0, parseFloat($('#lrStake')?.value)||0) : 0;
-  state.live={stage:'live', active:true, game, stake,
+  /* the stake is declared at tee-off and locked (spec §13.2) — $0 = bragging.
+     match: per side · wolf: per point · skins: per skin */
+  const stake = (game==='match'||game==='wolf'||game==='skins')
+    ? Math.max(0, parseFloat($('#lrStake')?.value)||0) : 0;
+  /* wolf order: server-less shuffle at tee-off, locked (§3.1) */
+  const wolfOrder = game==='wolf'
+    ? [0,1,2,3].map(v=>[Math.random(),v]).sort((a,b)=>a[0]-b[0]).map(x=>x[1])
+    : null;
+  state.live={stage:'live', active:true, game, stake, wolfOrder,
     hole:0, scores:LIVE.map(()=>Array(18).fill(null)), wolf:Array(18).fill(null),
     lr:null, pmap:null, guestTokens:{}};
   /* real accounts persist the live round now (guests get claim tokens);
@@ -3663,6 +3787,10 @@ $('#teeOffBtn').addEventListener('click', async ()=>{
       const cfg = game==='match'
         ? { stake, side_a:MTEAMS[0].map(i=>LIVE[i].n), side_b:MTEAMS[1].map(i=>LIVE[i].n),
             si_estimated:!!SIEST }
+        : game==='wolf'
+        ? { stake, order:(wolfOrder||[]).map(p=>LIVE[p].n), si_estimated:!!SIEST }
+        : game==='skins'
+        ? { stake, si_estimated:!!SIEST }
         : {};
       const args = {
         p_league:CS.league.id, p_course_id:null, p_tee_id:null,
@@ -3709,6 +3837,35 @@ function matchResult(){
            a:m.a, b:m.b, thru:m.played, stake:state.live.stake||0,
            side_a:names(0), side_b:names(1) };
 }
+/* wolf + skins outcomes — same shape discipline: ledger, transfers, and a
+   one-line story the server posts to the board (upcased + capped there) */
+function wolfResult(){
+  const val=state.live.stake||0;
+  const pts=wolfPoints();
+  const line=LIVE.map((p,i)=> val>0
+    ? `${p.n} ${pts[i]>=0?'+':'−'}$${Math.abs(pts[i]*val)}`
+    : `${p.n} ${pts[i]>=0?'+':''}${pts[i]}`).join(', ');
+  return { game:'wolf', stake:val,
+    players:LIVE.map((p,i)=>({name:p.n, pts:pts[i]})),
+    transfers:settleTransfers(pts, val),
+    story:`Wolf: ${line}${val>0?` · $${val}/pt`:' pts'}` };
+}
+function skinsResult(){
+  const val=state.live.stake||0;
+  const sk=skinsCalc();
+  const winners=LIVE.map((p,i)=>({name:p.n, skins:sk.won[i]})).filter(x=>x.skins>0);
+  const line=winners.length? winners.map(x=>`${x.name} ${x.skins}`).join(', ') : 'nobody took a skin';
+  return { game:'skins', stake:val, thru:sk.thru, carried_died:Math.max(0, sk.carry-1),
+    players:LIVE.map((p,i)=>({name:p.n, skins:sk.won[i], pts:sk.pts[i]})),
+    transfers:settleTransfers(sk.pts, val),
+    story:`Skins: ${line}${val>0?` · $${val} a skin`:''}${sk.carry>1?` · ${sk.carry-1} carried died`:''}` };
+}
+function gameResult(){
+  if(state.live.game==='match') return matchResult();
+  if(state.live.game==='wolf'  && LIVE.length===4) return wolfResult();
+  if(state.live.game==='skins' && LIVE.length>=2) return skinsResult();
+  return null;
+}
 function finishRealLiveRound(){
   const cards = LIVE.map((p,i)=>({
     player_id: state.live.pmap?.[i],
@@ -3716,7 +3873,7 @@ function finishRealLiveRound(){
   })).filter(c=>c.player_id);
   const memberN = LIVE.filter(p=>!p.guest).length;
   const guestN  = LIVE.filter(p=>p.guest).length;
-  const result = matchResult();
+  const result = gameResult();
   openSheet('Finish the round', 'ONE FINISH — EVERY MEMBER’S CARD POSTS',
     `<p class="fine" style="padding-top:0">Complete cards post to the season, attested by the group${guestN?`; ${guestN} guest${guestN===1?'':'s'} get a recap to claim`:''}. A partial card is skipped, not lost.</p>
      <button class="btn" id="lrPost" style="margin-top:12px">Post ${memberN} card${memberN===1?'':'s'} to the season</button>
@@ -3750,8 +3907,8 @@ function finishRealLiveRound(){
 function showLiveRecap(d, result){
   const posted=d.posted||[], guests=d.guests||[], skipped=d.skipped||[];
   const rows=[];
-  /* the match settles first — the settlement card is the recap's headline */
-  if(result){
+  /* the game settles first — the settlement card is the recap's headline */
+  if(result && result.game==='match'){
     const won=result.winner!=null;
     const wSide=result.winner==='0'?result.side_a:result.side_b;
     const lSide=result.winner==='0'?result.side_b:result.side_a;
@@ -3763,6 +3920,14 @@ function showLiveRecap(d, result){
              : 'ALL SQUARE — NO MONEY MOVES')
       : 'BRAGGING RIGHTS ONLY';
     rows.push(`<div class="check"><span class="num">⚔️</span><div class="tt"><b>${esc(line)}</b><small>${esc(money)}</small></div></div>`);
+  } else if(result && (result.game==='wolf' || result.game==='skins')){
+    const icon=result.game==='wolf'?'🐺':'💰';
+    const money = result.stake>0
+      ? ((result.transfers||[]).length
+          ? result.transfers.map(t=>`${t.from.toUpperCase()} PAYS ${t.to.toUpperCase()} $${t.amt}`).join(' · ')+' · VENMO'
+          : 'ALL SQUARE — NO MONEY MOVES')
+      : 'BRAGGING RIGHTS ONLY';
+    rows.push(`<div class="check"><span class="num">${icon}</span><div class="tt"><b>${esc(result.story||'')}</b><small>${esc(money)}</small></div></div>`);
   }
   posted.forEach(x=>rows.push(`<div class="check"><span class="num">⛳</span><div class="tt"><b>${esc(x.name)} · ${x.gross}</b><small>POSTED · ${x.holes} HOLES · ✓ ATTESTED</small></div></div>`));
   skipped.forEach(x=>rows.push(`<div class="check"><span class="num">—</span><div class="tt"><b>${esc(x.name)}</b><small>NOT POSTED · ${esc(String(x.reason||'')).toUpperCase()}</small></div></div>`));
@@ -7657,6 +7822,7 @@ async function boot(){
 
 /* continue the boot after the golfer-card gate saves */
 async function resumeAfterProfile(){
+  claimPendingRound();   /* guest → golfer: attach the waiting round now that the card exists */
   try {
     bootStep = 'memberships';
     await loadMemberships();
@@ -7693,6 +7859,33 @@ if(joinParam){
   history.replaceState(null, '', window.location.pathname);
 }
 
+/* guest claim links: /?claim=<token> — the funnel (spec §13.3). The token is
+   stored, the waiting card shows at the door, and the round attaches after
+   auth + golfer card (see claimPendingRound in safeBoot / resumeAfterProfile). */
+const claimParam = new URLSearchParams(window.location.search).get('claim');
+if(claimParam){
+  try{ localStorage.setItem('cs_claim', claimParam.trim()); }catch(_){}
+  history.replaceState(null, '', window.location.pathname);
+}
+async function claimPendingRound(){
+  let tok=null; try{ tok=localStorage.getItem('cs_claim'); }catch(_){}
+  if(!tok || !CS.user || !CS.profile?.marker) return;
+  try{
+    const { data, error } = await sb.rpc('claim_round', { p_token: tok });
+    if(error) throw error;
+    try{ localStorage.removeItem('cs_claim'); }catch(_){}
+    if(data?.already) toast('That round is already on your card');
+    else if(data?.posted){
+      toast(`Claimed ✓ — your ${data.gross} is on your card`);
+      if(window.loadCareer) loadCareer();
+    }
+    else toast('Round claimed — the card was incomplete, so nothing posted');
+  }catch(e){
+    try{ localStorage.removeItem('cs_claim'); }catch(_){}
+    toast('Claim failed: '+(e.message||e));
+  }
+}
+
 if(new URLSearchParams(window.location.search).has('exit')){
   sb.auth.signOut().finally(() => window.location.replace(window.location.pathname));
 }
@@ -7710,6 +7903,21 @@ async function safeBoot(){
       ? `You're invited to ${pendName}. Enter your email and you'll join automatically.`
       : `You're invited: code ${pend}. Enter your email and you'll join the league automatically.`);
   }
+  /* guest claim: the round is waiting at the door (anon-readable by token) */
+  let claimTok=null; try{ claimTok=localStorage.getItem('cs_claim'); }catch(_){}
+  if(!CS.user && claimTok){
+    try{
+      const { data } = await sb.rpc('claim_round_info', { p_token: claimTok });
+      if(data && !data.claimed){
+        openEmailBox($('#obJoin'),
+          `${data.guest_name || 'Your card'} — ${data.gross ? data.gross+' at ' : ''}${data.course_label || 'the course'}`
+          + `${data.played_on ? ' · '+data.played_on : ''}. Enter your email, save your golfer card, and the round is yours for good.`);
+      } else if(data && data.claimed){
+        try{ localStorage.removeItem('cs_claim'); }catch(_){}
+      }
+    }catch(_){}
+  }
+  if(CS.user) claimPendingRound();
 }
 sb.auth.onAuthStateChange((event) => {
   /* never call supabase methods synchronously in this callback — the client
