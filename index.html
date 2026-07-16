@@ -1421,7 +1421,7 @@ body::before{
       </div>
             
     </div>
-    <div class="ob-caption" id="obCaption">New or returning, email is one door. No passwords. <span style="opacity:.5">v23.163</span></div>
+    <div class="ob-caption" id="obCaption">New or returning, email is one door. No passwords. <span style="opacity:.5">v23.164</span></div>
   </div>
   <div class="ob-splash" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
   
@@ -2962,6 +2962,53 @@ function vsPhrase(vs){
   if(vs>=-1) return 'played to your number';
   return vs.toFixed(1).replace('-','')+' over your number';
 }
+/* ---- M2 / D17 · the post-round epilogue — the poster hears it first ----
+   Reads round_epilogue() JSON into a private sheet shown over home right after
+   a post: the round's meaning (band + points), what it earned, and any rivalry
+   record it moved. Every line names a feeling — nothing here is a bare stat.
+   Dismissible; skipped silently on deploy skew or a nothing-to-say round so the
+   60-second post is never blocked (D17 tradeoff). Reuses the .check row shape. */
+const EPI_ACH = {
+  personal_best: { icon:'⭐', txt:'A personal best',                     sub:'The best round you’ve posted' },
+  sub_80:        { icon:'🏆', txt:'You broke 80 for the first time', sub:'That one goes on the wall' },
+  sub_90:        { icon:'🏆', txt:'You broke 90 for the first time', sub:'Pinned to your card' },
+  sub_100:       { icon:'🏆', txt:'You broke 100 for the first time',sub:'Pinned to your card' },
+  streak_4:      { icon:'🔥', txt:'Four weeks running',             sub:'Iron man' },
+  streak_8:      { icon:'🔥', txt:'Eight weeks running',            sub:'Iron man doesn’t take weeks off' },
+  streak_12:     { icon:'🔥', txt:'Twelve weeks running',           sub:'Iron man' },
+  first_round:   { icon:'⛳', txt:'Your first round is on the board',     sub:'Welcome to the season' },
+};
+function epiCounting(rank){
+  if(rank==null) return '';
+  const capN=[2,4,6,Infinity][state.cap ?? 3];
+  if(rank<=capN) return capN===Infinity ? ' · counts this month' : ` · counts #${rank} this month`;
+  return ` · outside your best ${capN} this month, for now`;
+}
+function showEpilogue(epi, course){
+  if(!epi) return;
+  const rows=[];
+  const pvi = epi.pvi!=null ? Number(epi.pvi) : null;
+  if(pvi!=null){
+    rows.push(`<div class="check"><span class="num">⛳</span><div class="tt"><b>${esc(bandName(pvi))}${epi.points!=null?` · ${epi.points} pts`:''}</b><small>${esc(vsPhrase(pvi))}${epiCounting(epi.month_rank)}</small></div></div>`);
+  }
+  (epi.earned||[]).forEach(a=>{
+    const m=EPI_ACH[a.kind] || { icon:'✦', txt:a.label||'A milestone', sub:'Pinned to your card' };
+    rows.push(`<div class="check"><span class="num">${m.icon}</span><div class="tt"><b>${esc(m.txt)}</b><small>${esc(m.sub)}</small></div></div>`);
+  });
+  (epi.rivals||[]).forEach(rv=>{
+    const w=rv.wins, l=rv.losses, t=rv.ties;
+    const line = rv.lead==='up'   ? `You lead ${rv.name} ${w}–${l}`
+              :  rv.lead==='down' ? `${rv.name} leads you ${l}–${w}`
+              :                     `Dead even with ${rv.name}, ${w}–${l}`;
+    const tie = t>0 ? ` · ${t} halved` : '';
+    rows.push(`<div class="check"><span class="num">⚔️</span><div class="tt"><b>${esc(line)} all-time${tie}</b><small>Your clash this week counted</small></div></div>`);
+  });
+  if(!rows.length) return; /* nothing worth interrupting a post for */
+  const sub = course
+    ? `${epi.gross!=null?epi.gross+' at ':''}${String(course).toUpperCase()}`
+    : 'THE ROUND, FOR YOU FIRST';
+  openSheet('Your round', sub, rows.join(''));
+}
 /* ---- quick-post hole-by-hole (decision #5: default UI, par-prefilled, the
    gross-only path stays as a flagged-not-punished escape hatch) ---- */
 const POST_PAR_STD=[4,4,4,3,5,4,3,4,5, 4,4,3,4,5,4,3,4,5];   // par 72 template
@@ -3127,6 +3174,14 @@ $('#postBtn').addEventListener('click', async ()=>{
       if(window.loadCareer) window.loadCareer();     /* You-tab recent rounds */
       if(window.loadHome) window.loadHome();         /* the one home feed */
       switchView('home'); scrollFeedBottom();
+      /* M2/D17 — the poster hears it first: a private epilogue sheet over home.
+         Non-blocking; degrades silent on deploy skew or a nothing-to-say round. */
+      if(rrow?.id){
+        try {
+          const { data: epi } = await sb.rpc('round_epilogue', { p_round: rrow.id });
+          showEpilogue(epi, payload.course_label);
+        } catch(_){ /* RPC not deployed yet, or nothing to say — never block a post */ }
+      }
     } catch(e){ toast('Post failed: '+(e.message||e)); }
     finally { btn.disabled=false; }
     return;
