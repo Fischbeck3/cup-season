@@ -655,6 +655,14 @@ input.f::-webkit-outer-spin-button, input.f::-webkit-inner-spin-button{-webkit-a
 .wizdots i.on{background:var(--pos);}
 .wizstep{display:none;}
 .wizstep.on{display:block; animation:vin .22s ease both;}
+/* quick-post hole grid (decision #5): par-prefilled, adjust only deviations */
+.pgrid{display:grid; grid-template-columns:repeat(auto-fill,minmax(52px,1fr)); gap:6px;}
+.pcell{background:var(--bg2); border:0.5px solid var(--line); border-radius:9px; padding:5px 2px 6px; text-align:center;}
+.pcell .pn{display:block; font-size:9.5px; color:var(--dim); letter-spacing:.04em;}
+.pcell .prow{display:flex; align-items:center; justify-content:center; gap:3px; margin-top:2px;}
+.pcell .prow button{width:19px; height:19px; border:0.5px solid var(--line); background:var(--bg); border-radius:6px; color:var(--ink); font-size:14px; line-height:1; padding:0; cursor:pointer;}
+.pcell .ps{min-width:18px; font-size:15px; font-weight:600; font-variant-numeric:tabular-nums;}
+.pcell.bird .ps{color:var(--pos);} .pcell.bog .ps{color:var(--mut);} .pcell.eag .ps{color:var(--gold);}
 .wiznav{display:flex; gap:8px; margin-top:16px;}
 .wiznav .btn{flex:1; margin:0;}
 .codebox{
@@ -1413,7 +1421,7 @@ body::before{
       </div>
             
     </div>
-    <div class="ob-caption" id="obCaption">New or returning, email is one door. No passwords. <span style="opacity:.5">v23.162</span></div>
+    <div class="ob-caption" id="obCaption">New or returning, email is one door. No passwords. <span style="opacity:.5">v23.163</span></div>
   </div>
   <div class="ob-splash" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
   
@@ -1716,13 +1724,37 @@ body::before{
                 <div><label class="f" for="inRating">Rating</label><input class="f" id="inRating" type="number" step="0.1" placeholder="72.1" inputmode="decimal"></div>
                 <div><label class="f" for="inSlope">Slope</label><input class="f" id="inSlope" type="number" placeholder="128" inputmode="numeric"></div>
               </div>
-              <div class="frow" style="margin-top:10px">
-                <div><label class="f" for="inF9">Front 9 gross</label><input class="f" id="inF9" type="number" placeholder="41" inputmode="numeric"></div>
-                <div><label class="f" for="inB9">Back 9 gross</label><input class="f" id="inB9" type="number" placeholder="43" inputmode="numeric"></div>
+              <div style="margin-top:12px; display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
+                <label class="f" style="margin:0">Your card</label>
+                <div class="seg" id="postMode" style="margin:0; flex:1; min-width:180px;">
+                  <button data-pm="holes" class="on" type="button">Hole by hole</button>
+                  <button data-pm="total" type="button">Just the total</button>
+                </div>
+                <div class="seg" id="postSide" style="margin:0;">
+                  <button data-ph="18" class="on" type="button">18</button>
+                  <button data-ph="9" type="button">Front 9</button>
+                </div>
               </div>
+
+              <!-- default: par-prefilled hole grid — adjust only what you didn't par -->
+              <div id="postHolesWrap" style="margin-top:10px">
+                <div id="postHoleGridF"></div>
+                <div id="postHoleGridB" style="margin-top:6px"></div>
+                <p class="fine" style="padding-top:6px">Each hole starts on par — tap to adjust only what you didn't. <a href="#" id="postSetPars" style="color:var(--brand)">Set the pars →</a></p>
+              </div>
+
+              <!-- escape hatch: gross only, flagged, never badged punitively -->
+              <div id="postTotalWrap" style="margin-top:10px; display:none">
+                <div class="frow">
+                  <div><label class="f" for="inF9">Front 9 gross</label><input class="f" id="inF9" type="number" placeholder="41" inputmode="numeric"></div>
+                  <div><label class="f" for="inB9">Back 9 gross</label><input class="f" id="inB9" type="number" placeholder="43" inputmode="numeric"></div>
+                </div>
+                <p class="fine" style="padding-top:6px">Fastest way in. Front 9 only posts at half value and counts as half a round.</p>
+              </div>
+
               <div class="frow" style="margin-top:10px">
                 <div><label class="f" for="inDate">Date</label><input class="f" id="inDate" type="date"></div>
-                <div style="display:flex; align-items:flex-end;"><p class="fine" style="padding:0 0 6px">Played 9? Fill one side — it posts at half value and counts as half a round.</p></div>
+                <div style="display:flex; align-items:flex-end;"><p class="fine" style="padding:0 0 6px" id="postGrossLine">—</p></div>
               </div>
               <div style="height:14px"></div>
               <button class="btn" id="postBtn">Post round</button>
@@ -2151,6 +2183,7 @@ body::before{
   });
   window.addEventListener('unhandledrejection', function(e){
     var r=e.reason||{};
+    console.error('[cs-stack]', (e.reason&&e.reason.stack)||'(no stack)');
     show('async: '+(r.message||String(r)));
   });
 })();
@@ -2929,11 +2962,49 @@ function vsPhrase(vs){
   if(vs>=-1) return 'played to your number';
   return vs.toFixed(1).replace('-','')+' over your number';
 }
+/* ---- quick-post hole-by-hole (decision #5: default UI, par-prefilled, the
+   gross-only path stays as a flagged-not-punished escape hatch) ---- */
+const POST_PAR_STD=[4,4,4,3,5,4,3,4,5, 4,4,3,4,5,4,3,4,5];   // par 72 template
+state.post = { mode:'holes', side:18, pars:POST_PAR_STD.slice(), scores:POST_PAR_STD.slice() };
+/* f9/b9 the rest of the pipeline reads — from the grid in holes mode, from the
+   two inputs in total mode. One source, so scoring never disagrees with entry. */
+function postInputs(){
+  if(state.post.mode==='holes'){
+    const s=state.post.scores, sum=(a,b)=>{ let t=0; for(let i=a;i<b;i++) t+=(+s[i]||0); return t; };
+    return state.post.side===9 ? { f9:sum(0,9), b9:0 } : { f9:sum(0,9), b9:sum(9,18) };
+  }
+  return { f9:parseFloat($('#inF9').value)||0, b9:parseFloat($('#inB9').value)||0 };
+}
+function renderPostHoles(){
+  const wrapH=$('#postHolesWrap'), wrapT=$('#postTotalWrap'); if(!wrapH) return;
+  wrapH.style.display = state.post.mode==='holes' ? 'block':'none';
+  if(wrapT) wrapT.style.display = state.post.mode==='total' ? 'block':'none';
+  const ps=$('#postSide'); if(ps) ps.style.display = state.post.mode==='holes' ? '' : 'none';
+  if(state.post.mode==='holes'){
+    const cell=i=>{
+      const par=state.post.pars[i], sc=state.post.scores[i];
+      const cls = sc<=par-2?'eag':sc<par?'bird':sc>par?'bog':'';
+      return `<div class="pcell ${cls}"><span class="pn">${i+1} · P${par}</span>
+        <div class="prow"><button type="button" data-phm="${i}" aria-label="Minus hole ${i+1}">−</button>
+        <span class="ps">${sc}</span>
+        <button type="button" data-php="${i}" aria-label="Plus hole ${i+1}">+</button></div></div>`;
+    };
+    $('#postHoleGridF').innerHTML=`<div class="pgrid">${[...Array(9).keys()].map(cell).join('')}</div>`;
+    const bg=$('#postHoleGridB');
+    if(bg) bg.innerHTML = state.post.side===18 ? `<div class="pgrid">${[...Array(9).keys()].map(i=>cell(i+9)).join('')}</div>` : '';
+    wrapH.querySelectorAll('[data-php]').forEach(b=>b.addEventListener('click',()=>{
+      const i=+b.dataset.php; state.post.scores[i]=Math.min(15,(+state.post.scores[i]||state.post.pars[i])+1); renderPostHoles();
+    }));
+    wrapH.querySelectorAll('[data-phm]').forEach(b=>b.addEventListener('click',()=>{
+      const i=+b.dataset.phm; state.post.scores[i]=Math.max(1,(+state.post.scores[i]||state.post.pars[i])-1); renderPostHoles();
+    }));
+  }
+  recalc();
+}
 function recalc(){
   const rating=parseFloat($('#inRating').value)||0;
   const slope=parseFloat($('#inSlope').value)||113;
-  const f9=parseFloat($('#inF9').value)||0;
-  const b9=parseFloat($('#inB9').value)||0;
+  const {f9,b9}=postInputs();
   let diff, vs, pts, msg, gross, label;
   if(f9>0 && b9>0){
     gross=f9+b9;
@@ -2953,6 +3024,7 @@ function recalc(){
   } else {
     $('#calcPts').textContent='–'; $('#calcMsg').textContent='Enter at least one nine.';
     $('#calcDiff').textContent='–'; $('#calcVs').textContent='–';
+    const gl0=$('#postGrossLine'); if(gl0) gl0.textContent='Enter your card to see the score.';
     state.lastPost=null; return;
   }
   $('#calcDiff').textContent=diff.toFixed(1);
@@ -2960,9 +3032,46 @@ function recalc(){
   $('#calcVs').style.color = vs>=0 ? 'var(--pos)' : 'var(--neg)';
   $('#calcPts').textContent=pts;
   $('#calcMsg').textContent=msg;
+  const gl=$('#postGrossLine');
+  if(gl) gl.textContent = `Gross ${gross} · ${label.includes('9 HOLES')?'9 holes · half value':'18 holes'}`;
   state.lastPost={pts, vs, label};
 }
-['inRating','inSlope','inF9','inB9'].forEach(id=>$('#'+id).addEventListener('input',recalc));
+['inRating','inSlope','inF9','inB9'].forEach(id=>$('#'+id)?.addEventListener('input',recalc));
+/* mode + side toggles for the quick-post card */
+$$('#postMode button').forEach(b=>b.addEventListener('click',()=>{
+  $$('#postMode button').forEach(x=>x.classList.remove('on')); b.classList.add('on');
+  state.post.mode=b.dataset.pm; renderPostHoles();
+}));
+$$('#postSide button').forEach(b=>b.addEventListener('click',()=>{
+  $$('#postSide button').forEach(x=>x.classList.remove('on')); b.classList.add('on');
+  state.post.side=+b.dataset.ph; renderPostHoles();
+}));
+/* set the pars for this card — reuses the live-round par sheet's logic inline */
+document.getElementById('postSetPars')?.addEventListener('click',(e)=>{ e.preventDefault(); openPostParsSheet(); });
+function openPostParsSheet(){
+  const n=state.post.side;
+  openSheet('Set the pars', 'TAP TO ADJUST — DEFAULTS TO PAR 72', `
+    <div id="parGrid"></div>
+    <p class="fine" style="padding-top:8px">Only matters if this course isn't par 72 — the scores you enter are what post.</p>
+    <button class="btn" id="parDone" style="margin-top:10px">Done</button>`);
+  const draw=()=>{
+    const cell=i=>`<div class="pcell"><span class="pn">${i+1}</span>
+      <div class="prow"><button type="button" data-parm="${i}">−</button>
+      <span class="ps">${state.post.pars[i]}</span>
+      <button type="button" data-parp="${i}">+</button></div></div>`;
+    const rng=[...Array(n).keys()];
+    document.getElementById('parGrid').innerHTML=`<div class="pgrid">${rng.map(cell).join('')}</div>`;
+    document.querySelectorAll('[data-parp]').forEach(b=>b.addEventListener('click',()=>{
+      const i=+b.dataset.parp; state.post.pars[i]=Math.min(6,state.post.pars[i]+1);
+      if(state.post.scores[i]==null) state.post.scores[i]=state.post.pars[i]; draw();
+    }));
+    document.querySelectorAll('[data-parm]').forEach(b=>b.addEventListener('click',()=>{
+      const i=+b.dataset.parm; state.post.pars[i]=Math.max(3,state.post.pars[i]-1); draw();
+    }));
+  };
+  draw();
+  document.getElementById('parDone')?.addEventListener('click',()=>{ closeSheet(); renderPostHoles(); });
+}
 $('#postBtn').addEventListener('click', async ()=>{
   if(!state.lastPost){toast('Enter at least one nine first');return;}
   const {pts,vs,label}=state.lastPost;
@@ -2970,9 +3079,10 @@ $('#postBtn').addEventListener('click', async ()=>{
     const sb=window.sb, CS=window.CS;
     /* real account (league or not): the round is a fact — insert it, the trigger scores the
        differential, the views score the league, the board post fans out */
-    const f9=parseFloat($('#inF9').value)||0, b9=parseFloat($('#inB9').value)||0;
+    const {f9,b9}=postInputs();
     const rating=parseFloat($('#inRating').value), slope=parseInt($('#inSlope').value);
     const nine = !(f9>0 && b9>0);
+    const holesMode = state.post.mode==='holes';
     const btn=$('#postBtn'); btn.disabled=true;
     try {
       const payload = {
@@ -2987,14 +3097,22 @@ $('#postBtn').addEventListener('click', async ()=>{
         api_course_id: $('#inCourse').dataset.courseId || null,
         season_id: CS.season?.id || null,
       };
-      let { error } = await sb.from('rounds').insert(payload);
+      let { data:rrow, error } = await sb.from('rounds').insert(payload).select('id').single();
       /* Netlify ships this client before `db push` — if the column isn't there
          yet, drop the soft link and retry so a post never fails on deploy skew */
       if(error && /api_course_id/.test(error.message||'')){
         delete payload.api_course_id;
-        ({ error } = await sb.from('rounds').insert(payload));
+        ({ data:rrow, error } = await sb.from('rounds').insert(payload).select('id').single());
       }
       if(error) throw error;
+      /* decision #5: a hole-by-hole card writes its strokes to round_holes, so
+         the round carries hole detail (feeds stats, moments, match receipts).
+         Best-effort — a round_holes hiccup never un-posts the round. */
+      if(holesMode && rrow?.id){
+        const nH = nine ? 9 : 18, rh=[];
+        for(let i=0;i<nH;i++){ const s=+state.post.scores[i]; if(s>0) rh.push({ round_id:rrow.id, hole_number:i+1, strokes:s }); }
+        if(rh.length){ try{ await sb.from('round_holes').insert(rh); }catch(_){} }
+      }
       stampPosted('POSTED ✓');
       toast(`Round posted: ~${pts} pts pending the league's math`);
       /* clear the form so a posted round never reads as "didn't submit"
@@ -3002,7 +3120,9 @@ $('#postBtn').addEventListener('click', async ()=>{
       $('#inF9').value=''; $('#inB9').value='';
       $('#inCourse').value=''; $('#inCourse').dataset.courseId='';
       $('#inRating').value=''; $('#inSlope').value='';
-      state.lastPost=null; if(typeof recalc==='function') recalc();
+      state.post.scores = state.post.pars.slice();   /* reset the grid to par */
+      state.lastPost=null;
+      if(typeof renderPostHoles==='function') renderPostHoles(); else if(typeof recalc==='function') recalc();
       if(window.loadStandingsAndFeed) await window.loadStandingsAndFeed();
       if(window.loadCareer) window.loadCareer();     /* You-tab recent rounds */
       if(window.loadHome) window.loadHome();         /* the one home feed */
@@ -5518,7 +5638,7 @@ $$('.ibtn').forEach(b=>b.addEventListener('click',e=>{
 seedHistory();
 /* post form defaults to today, local — toISOString() is UTC and drifts in Phoenix evenings */
 { const d=new Date(); $('#inDate').value=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; }
-renderChart(); renderStandings(); renderFeed(); renderDraft(); renderPot(); renderSetup(); recalc(); renderRoster(); renderPlay(); renderWizard(); renderPhase(); renderBylaws(); renderEmails(); renderStats(); renderIndStats();
+renderChart(); renderStandings(); renderFeed(); renderDraft(); renderPot(); renderSetup(); renderPostHoles(); renderRoster(); renderPlay(); renderWizard(); renderPhase(); renderBylaws(); renderEmails(); renderStats(); renderIndStats();
 </script>
 
 <!-- ============================================================

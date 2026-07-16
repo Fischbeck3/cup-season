@@ -4,7 +4,7 @@
    same-origin static assets, and hands-off for everything cross-origin
    (Supabase auth/realtime, Google Fonts). Bump VERSION with the client version
    so each deploy retires the previous cache. */
-const VERSION = 'v23.162';
+const VERSION = 'v23.163';
 const CACHE = `cupseason-${VERSION}`;
 const SHELL = [
   '/',
