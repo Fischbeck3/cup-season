@@ -1413,7 +1413,7 @@ body::before{
       </div>
             
     </div>
-    <div class="ob-caption" id="obCaption">New or returning, email is one door. No passwords. <span style="opacity:.5">v23.145</span></div>
+    <div class="ob-caption" id="obCaption">New or returning, email is one door. No passwords. <span style="opacity:.5">v23.146</span></div>
   </div>
   <div class="ob-splash" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
   
@@ -1505,7 +1505,7 @@ body::before{
         <div class="card" id="youCard" style="margin-bottom:14px; text-align:left;">
           <div style="display:flex; align-items:center; gap:10px;">
             <span id="youMk" style="color:var(--pos)"></span>
-            <div><b id="youName" style="font-size:16px">Your card</b><div class="fine" id="youMeta" style="padding:0"></div></div>
+            <div><b id="youName" style="font-size:16px">Your card</b><div class="fine" id="youMeta" style="padding:0"></div><div class="fine" id="youAnchor" style="padding:2px 0 0; color:var(--dim)"></div></div>
             <div style="margin-left:auto; text-align:right"><div class="fine" style="padding:0">INDEX</div><b id="youIdx" class="mono" style="font-size:18px">—</b></div>
             <button class="mini" id="youProfile" style="margin-left:10px" aria-label="Card & settings" title="Card & settings">⚙</button>
           </div>
@@ -4937,7 +4937,7 @@ window.mkr = mkr; /* classic renderCalendar draws markers — bridge or it silen
 
 async function loadProfile(){
   const { data } = await sb.from('profiles')
-    .select('id, display_name, city, home_course, index_current, marker, notify_chat, notify_rounds, handle, discoverable, ghin_number')
+    .select('id, display_name, city, home_course, index_current, marker, notify_chat, notify_rounds, handle, discoverable, ghin_number, created_at')
     .eq('id', CS.user.id).maybeSingle();
   CS.profile = data || null;
   if(CS.profile?.index_current != null) state.myIndex = Number(CS.profile.index_current);
@@ -5031,7 +5031,11 @@ function refreshWhoChip(){
   const p = CS.profile; if(!p) return;
   if($('#youName')) $('#youName').textContent = p.display_name || 'Your card';
   if($('#youMeta')) $('#youMeta').textContent =
-    [p.handle ? '@'+p.handle : null, p.city, p.home_course, p.ghin_number ? 'GHIN '+p.ghin_number : null].filter(Boolean).join(' · ');
+    [p.handle ? '@'+p.handle : null, p.city, p.home_course].filter(Boolean).join(' · ');
+  if($('#youAnchor')){
+    const since = p.created_at ? (()=>{ const d=new Date(p.created_at); return 'Member since '+MOS[d.getMonth()]+' '+d.getFullYear(); })() : null;
+    $('#youAnchor').textContent = [p.ghin_number ? 'GHIN '+p.ghin_number : null, since].filter(Boolean).join(' · ');
+  }
   if($('#youIdx')) $('#youIdx').textContent =
     p.index_current != null ? Number(p.index_current).toFixed(1) : '—';
   if($('#youMk')) $('#youMk').innerHTML = mkr(p.marker || 'saguaro');
@@ -5166,7 +5170,9 @@ async function openTourCard(profileId){
   const p=card.profile||{}, c=card.career||{}, vs=card.vs_you, tr=card.trophies||[], rec=card.recent||[];
   const idx = p.index_current!=null ? Number(p.index_current).toFixed(1) : '—';
   const meta = [p.city?esc(p.city):null, p.home_course?esc(p.home_course):null].filter(Boolean).join(' · ');
-  const ghinLine = p.ghin ? `<div class="fine" style="padding-left:0; margin-top:6px">GHIN ${esc(p.ghin)}</div>` : '';
+  const since = p.member_since ? (()=>{ const d=new Date(p.member_since); return 'Member since '+MOS[d.getMonth()]+' '+d.getFullYear(); })() : null;
+  const anchorTxt = [p.ghin ? 'GHIN '+esc(p.ghin) : null, since].filter(Boolean).join(' · ');
+  const ghinLine = anchorTxt ? `<div class="fine" style="padding-left:0; margin-top:6px; color:var(--dim)">${anchorTxt}</div>` : '';
   const header = `<div style="display:flex; align-items:center; gap:12px">
       <span style="font-size:34px; line-height:1">${mkr(p.marker||'saguaro')}</span>
       <div style="min-width:0"><div style="font-size:18px; font-weight:600">${esc(p.display_name||'—')}${p.handle?' <span style="color:var(--mut); font-weight:400; font-size:14px">@'+esc(p.handle)+'</span>':''}</div>
@@ -5351,11 +5357,8 @@ function openProfileHub(){
     if(!name){ $('#phStatus').textContent = 'The card needs a name.'; return; }
     const btn = $('#phSave'); btn.disabled = true;
     try {
-      const hnd = $('#phHandle').value.trim().replace(/^@/, '').toLowerCase();
-      if(hnd && hnd !== (CS.profile?.handle || '')){
-        const { error: he } = await sb.rpc('set_handle', { p_handle: hnd });
-        if(he) throw he;
-      }
+      /* card fields save first so a rate-limited handle change never discards
+         the rest of the edits */
       const { error } = await sb.rpc('set_profile', {
         p_name: name,
         p_city: $('#phCity').value.trim() || null,
@@ -5365,6 +5368,12 @@ function openProfileHub(){
         p_ghin: $('#phGhin').value.trim(), /* '' clears; the RPC treats null as "keep" */
       });
       if(error) throw error;
+      /* handle is its own step (unique + 60-day cooldown) — report but don't lose the card */
+      const hnd = $('#phHandle').value.trim().replace(/^@/, '').toLowerCase();
+      if(hnd && hnd !== (CS.profile?.handle || '')){
+        const { error: he } = await sb.rpc('set_handle', { p_handle: hnd });
+        if(he){ await loadProfile(); refreshWhoChip(); $('#phStatus').textContent = 'Card saved · handle: ' + he.message; return; }
+      }
       await loadProfile();
       refreshWhoChip();
       toast('Card saved');
