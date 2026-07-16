@@ -1421,7 +1421,7 @@ body::before{
       </div>
             
     </div>
-    <div class="ob-caption" id="obCaption">New or returning, email is one door. No passwords. <span style="opacity:.5">v23.164</span></div>
+    <div class="ob-caption" id="obCaption">New or returning, email is one door. No passwords. <span style="opacity:.5">v23.165</span></div>
   </div>
   <div class="ob-splash" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
   
@@ -3001,7 +3001,9 @@ function showEpilogue(epi, course){
               :  rv.lead==='down' ? `${rv.name} leads you ${l}–${w}`
               :                     `Dead even with ${rv.name}, ${w}–${l}`;
     const tie = t>0 ? ` · ${t} halved` : '';
-    rows.push(`<div class="check"><span class="num">⚔️</span><div class="tt"><b>${esc(line)} all-time${tie}</b><small>Your clash this week counted</small></div></div>`);
+    /* M3: a named rivalry announces itself in the epilogue too */
+    const sub = rv.rivalry_name ? `“${esc(rv.rivalry_name)}” · your clash this week counted` : 'Your clash this week counted';
+    rows.push(`<div class="check"><span class="num">⚔️</span><div class="tt"><b>${esc(line)} all-time${tie}</b><small>${sub}</small></div></div>`);
   });
   if(!rows.length) return; /* nothing worth interrupting a post for */
   const sub = course
@@ -5954,6 +5956,7 @@ async function renderRivalries(){
   let data=[];
   try{ const {data:d}=await sb.rpc('my_rivalries'); data=d||[]; }catch(_){ data=[]; }
   if(!data.length){ box.innerHTML=''; if(head) head.style.display='none'; return; }
+  window.RIVALS = data;   /* M3: the rivalry sheet reads the christened name from here */
   if(head) head.style.display='';
   box.innerHTML=data.map(r=>{
     const cls=r.lead==='up'?'up':r.lead==='down'?'dn':'ev';
@@ -5965,9 +5968,11 @@ async function renderRivalries(){
       r.meetings?`${r.meetings} week${r.meetings===1?'':'s'} head-to-head`:null,
       dTot?`Ryder duels ${r.duel_wins}–${r.duel_losses}${r.duel_halves?'–'+r.duel_halves:''}`:null,
     ].filter(Boolean).join(' · ');
+    /* M3: a christened rivalry wears its name in gold, above the opponent */
+    const named=r.rivalry_name?`<span class="eyebrow" style="color:var(--gold); display:block; margin-bottom:2px">${esc(r.rivalry_name.toUpperCase())}</span>`:'';
     return `<div class="prow" data-tc="${r.opponent}">
       <span class="pmk">${mkr(r.marker||'saguaro')}</span>
-      <span class="pmeta"><b>${esc(r.display_name||'—')}</b><small>${facets}</small></span>
+      <span class="pmeta">${named}<b>${esc(r.display_name||'—')}</b><small>${facets}</small></span>
       <span class="rivrec ${cls}">${rec}</span></div>`;
   }).join('');
 }
@@ -5976,7 +5981,8 @@ window.renderRivalries = renderRivalries;
 async function openRivalrySheet(oppId, name, rec){
   let weeks=[];
   try{ const {data}=await sb.rpc('rivalry_weeks',{p_opponent:oppId}); weeks=data||[]; }catch(_){ weeks=[]; }
-  const body = weeks.length ? weeks.map(x=>{
+  const rv=(window.RIVALS||[]).find(x=>x.opponent===oppId); const curName=rv?.rivalry_name||'';
+  const weeksHtml = weeks.length ? weeks.map(x=>{
     const d=new Date(x.wk+'T00:00:00');
     const me=Number(x.my_pvi), th=Number(x.opp_pvi);
     const tag = x.winner==='me'?'<span style="color:var(--pos)">WON</span>'
@@ -5986,9 +5992,37 @@ async function openRivalrySheet(oppId, name, rec){
       <div class="tt"><b>${tag} · YOU ${me>=0?'+':''}${me.toFixed(1)} · ${esc(name)} ${th>=0?'+':''}${th.toFixed(1)}</b>
       <small>BEST ROUND VS INDEX THAT WEEK</small></div></div>`;
   }).join('') : '<p class="fine">No head-to-head weeks yet. A clash counts a week you both post.</p>';
-  openSheet(`You vs ${name}`, `${rec||''} · WEEKLY CLASH · BETTER ROUND VS INDEX TAKES THE WEEK`, body);
+  /* M3/D18: name the rivalry — either rival can name, rename, or clear it */
+  const eyebrow = curName?`<div class="eyebrow" style="color:var(--gold); margin-bottom:10px">“${esc(curName.toUpperCase())}”</div>`:'';
+  const nameBtn = `<button class="btn dark" id="rivNameBtn" style="margin-top:12px">${curName?`Rename “${esc(curName)}”`:'Name this rivalry'}</button>`;
+  openSheet(`You vs ${name}`, `${rec||''} · WEEKLY CLASH · BETTER ROUND VS INDEX TAKES THE WEEK`, eyebrow + weeksHtml + nameBtn);
+  document.getElementById('rivNameBtn')?.addEventListener('click', ()=>openNameRivalry(oppId, name, curName));
 }
 window.openRivalrySheet = openRivalrySheet;
+
+/* M3/D18: the naming sheet. Naming requires real history (enforced server-side);
+   either rival can rename or clear — that's the misuse valve, not a moderator. */
+function openNameRivalry(oppId, oppName, cur){
+  openSheet(cur?'Rename the rivalry':'Name the rivalry', `YOU VS ${(oppName||'THEM').toUpperCase()}`, `
+    <p class="fine" style="padding-top:0">Give it a name your crew would actually say — “The Grudge,” “Border War.” Either of you can change it later.</p>
+    <input class="f" id="rivName" maxlength="40" placeholder="The Grudge" value="${esc(cur||'')}" autocomplete="off" style="font-family:var(--sans)">
+    <button class="btn" id="rivNameSave" style="margin-top:12px">${cur?'Save the name':'Name it'}</button>
+    ${cur?'<button class="btn dark" id="rivNameClear" style="margin-top:8px">Clear the name</button>':''}`);
+  const save=async(clear)=>{
+    const val = clear ? '' : (document.getElementById('rivName')?.value||'').trim();
+    const sb2=document.getElementById('rivNameSave'), cb=document.getElementById('rivNameClear');
+    if(sb2) sb2.disabled=true; if(cb) cb.disabled=true;
+    try{
+      const { error } = await sb.rpc('set_rivalry_name', { p_opponent: oppId, p_name: val });
+      if(error) throw error;
+      toast(clear?'Name cleared':'Rivalry named — “'+val+'”');
+      if(window.renderRivalries) await window.renderRivalries();
+      openRivalrySheet(oppId, oppName);   /* reopen with the fresh name */
+    }catch(e){ toast('Could not save: '+(e.message||e.code||'unknown')); if(sb2) sb2.disabled=false; if(cb) cb.disabled=false; }
+  };
+  document.getElementById('rivNameSave')?.addEventListener('click', ()=>save(false));
+  document.getElementById('rivNameClear')?.addEventListener('click', ()=>save(true));
+}
 
 /* Tour Card: any golfer's whole card, viewable (tour_card RPC). The identity
    object was owner-only; now every name is a door. Visibility is enforced

@@ -270,14 +270,21 @@ logged as non-entries at the batch foot.
   pre-game card. Pre-game card ships in the same checkpoint: when a declared
   round's tagged foursome contains an opponent with history, the board/
   countdown surfaces the all-time record before the round.
-- **⚑ Open:** misuse valve — recommendation is the Pro can clear a name in
-  their league's surfaces; a global block only if it ever actually happens.
+- **⚑ Resolved (build):** misuse valve — EITHER rival can rename or CLEAR the
+  name (name = '' deletes the row). That is the valve: if one side names it
+  something ugly, the other renames it. Pro-side clear deferred until real
+  abuse appears (a global block "only if it ever actually happens").
+- **SPLIT (build):** the pre-game head-to-head card (#7) moved to **M4** — it
+  wants the countdown surface M4 builds ("the record, before the round" has no
+  home until the countdown exists). M3 shipped the naming system alone; the
+  record already rides the M2 epilogue and the rivalries facet.
 - **Principle:** #4; #5; D12 (rivalry is the lifetime-record noun — naming
   deepens it, no new noun introduced).
 - **Benefit:** the rivalry becomes a possession; the pre-game card gives
   every shared tee sheet stakes.
 - **Tradeoffs:** rename ping-pong between rivals is possible — acceptable at
   crew scale (it IS banter); revisit only on real abuse.
+- **Shipped:** M3 at v23.165 (migration 20260716210000_named_rivalries).
 
 ### D19 · The trash-talk thread anchors to the round, then archives (M4)
 - **Current:** chat is one league-wide stream on the board; an upcoming round
