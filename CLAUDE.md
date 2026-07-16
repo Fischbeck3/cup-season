@@ -1,8 +1,9 @@
 # CLAUDE.md — Cup Season
 
 Season-long fantasy golf for real friend groups. Captains draft squads, everyone
-posts real handicapped rounds from anywhere, points accumulate across months, a
-Cup Final settles it. The pot is tracked, never held. Live at cupseason.app.
+posts real handicapped rounds from anywhere, points accumulate across months, and
+the endgame settles it — a four-week Cup Final or the points table, the Pro's
+dial. The pot is tracked, never held. Live at cupseason.app.
 
 **Owner:** Jerecho (Tempe, AZ) — runs PIGL, the beta league; ~12 index.
 **Spec:** `spec/spec-v1.0.md` is the source of truth for every rule. Cite
@@ -12,16 +13,50 @@ sections (§2.2, §14.0) when making competition-model decisions.
 
 ## Working protocol (non-negotiable)
 
-1. **Talk first.** Design decisions accumulate in a punch list. Code is written
+1. **Talk first.** Design decisions are logged (see rule 5). Code is written
    only on an explicit "build it."
-2. **One batched version per checkpoint.** Client versions are `v23.NN` shown in
-   the sign-in caption — bump it every build. Migrations are numbered `NNN.sql`
-   and never edited after they've run in production; fixes get a new number.
+2. **One batched version per checkpoint.** Every client build bumps BOTH the
+   sign-in caption (`#obCaption span:last-child`, `v23.NN`) AND `sw.js`'s
+   `VERSION` — together, or the service worker serves a stale shell. Migrations
+   are timestamp-named (`YYYYMMDDHHMMSS_slug.sql`) and never edited after they
+   run in production; a fix is a NEW migration (a function change is
+   `create or replace` in that new file).
 3. **Design passes and structural builds ride separately.** (Learned during the
    auth arc: the splash-art pass was pulled while debugging, restored after.)
 4. **Everything shows its work.** Spec §16 — no points figure without a path to
    the rounds that produced it. Server posts league events to the board;
    adjustments live in a ledger with reasons; rounds are never mutated.
+5. **Log every mechanic change.** Any change to a competition/gameplay mechanic
+   gets an entry in `spec/decision-log.md` (hierarchy-of-truth format: current
+   mechanic · problem · recommendation · principle served · benefit · tradeoffs,
+   + a named CONFLICT line if it collides with a higher level) BEFORE it's built.
+   The hierarchy: vision → principles → IA → mechanics → UI → implementation;
+   lower levels never silently contradict higher ones.
+
+## Deploy & verify discipline (non-negotiable)
+
+- **Two deploys, always separate.** `supabase db push` ships the DATABASE
+  (migrations); `git push` ships the CLIENT (`index.html`/`sw.js` → Netlify).
+  They are independent — conflating them cost 14 undeployed client versions
+  early on. Claude's sandbox CANNOT run `supabase` (db push / functions deploy /
+  secrets) — the USER runs those; state the exact commands in the handoff.
+  Diagnostic for "is it live": cupseason.app's `#obCaption` version vs `git log`.
+  A change touching both layers needs BOTH pushes; a pure-migration change needs
+  no client bump, a pure-client change needs no db push.
+- **Deploy-skew safety.** Netlify may serve a new client before its migration
+  is pushed (or vice-versa). New RPC args / columns get a client-side retry that
+  drops the new field on the "column/function/schema cache" error, and new SQL
+  functions default their added params — so neither order breaks a live user.
+- **Verify before commit** (when the change is observable in the browser). Serve
+  locally (`python -m http.server 8791`), drive the changed flow with the
+  browser MCP (`?exit` to reset auth; `javascript_tool` for state — screenshots
+  time out on the splash animation), and CLEAR the SW + caches first
+  (`getRegistrations().unregister()` + `caches.delete`) or you test a stale
+  build. Console must be clean but for the one known pre-existing boot rejection.
+- **index.html has MIXED middot encodings** — some template strings carry the
+  literal escape `·`, others the real UTF-8 `·`. An Edit that fails "string
+  not found" on a middot-containing line usually means the wrong form; anchor on
+  adjacent ASCII-only lines instead of fighting it (`cat -A` reveals which).
 
 ## Architecture
 
@@ -41,8 +76,10 @@ sections (§2.2, §14.0) when making competition-model decisions.
   both "Magic Link" and "Confirm signup" templates render `{{ .Token }}` and
   contain NO `{{ .ConfirmationURL }}`.
 - **DNS:** Porkbun + Netlify. **Payments:** Stripe, parked until launch.
-- **Course data:** mScorecard / golfapi.io (CSV import preferred); community
-  card templates are the seed strategy (spec §13.1).
+- **Course data:** GolfCourseAPI via the `courses` Edge Function (key held
+  server-side); results cached into our own `api_courses`/`api_course_tees`/
+  `api_course_holes` tables so play-time reads never hit the third party. Live
+  and verified in prod. Per-hole par + handicap (SI) are cached on tee pick.
 
 ### Data model in one breath (post-007, profile-first)
 
@@ -108,43 +145,53 @@ edge months** (blanket rule, decided). League timezone default
 
 ## Environments & commands
 
-- Deploy: Netlify (drag `index.html` or CLI once repo is linked).
-- Migrations: run in Supabase SQL Editor today; move to
-  `supabase db push` once CLI is linked. 001–005 predate this repo — recover
-  from saved SQL snippets / prior chats before deleting anything in dashboard.
-- pg_cron: NOT yet enabled. When enabling, use migration 006's commented block
-  (`run_month_closes`, `run_week_snapshots`, `daily_season_tick`), not m003's.
+- **Supabase CLI is linked** (ref `zddbfcokmvneltrgukzf`, repo on GitHub +
+  Netlify). Migrations ship via `supabase db push`; Edge Functions via
+  `supabase functions deploy <name>`. Use `supabase db dump`, NOT `db pull`.
+  The USER runs all of these (sandbox can't) — see Deploy discipline.
+- Client: `git push` → Netlify auto-build.
+- pg_cron: the cron jobs (`run_month_closes`, `run_week_snapshots`,
+  `daily_season_tick`, `run_event_sessions`) self-schedule inside their
+  migrations when the extension exists. Confirm pg_cron is enabled in prod, or
+  month-closes / week-snapshots / the Ryder tick won't fire.
+- **Push:** a Database Webhook on `posts` INSERT → the `push` Edge Function
+  (curated by kind + per-user mute flags); a SECOND webhook on `push_nudges`
+  INSERT → the same function drives the Ryder duel-taunt opt-in. Both use the
+  `x-push-secret` header. Secrets (VAPID, PUSH_WEBHOOK_SECRET, BREVO) live in
+  Supabase secrets, NEVER in migrations or chat.
 
-## State as of v23.32 / migration 007
+## State as of v23.163 / migrations through `20260716180000`
 
-**Working end-to-end:** email-code auth → golfer card gate → league-less home
-(My Golf quick post + recent rounds) → create league → wizard (Blind draw /
-Assign) → lock (creates squads via `form_squads`) → join by code → blind draw
-(`randomize_squads`, server shuffle, board reveal) / tap-assign → start season
-→ quick post writes `rounds`, server scores, board fans out → standings + feed
-read the views, realtime on `posts`.
+**Live & working end-to-end** (all real, not demo): email-code auth → golfer
+card → league-less home → create league via the rebuilt **wizard** (roster-aware
+structure, endgame dial, pot split, fine-print disclosure) → lock → join by code
+/ invite link (with the join covenant) → blind draw / assign → season. Posting:
+the **hole-by-hole stepper is default** (par-prefilled grid, writes
+`round_holes`), gross-only is the escape hatch. Scoring: the **auto-handicap
+engine** derives the index from scores (WHS-lite, establishes at 3 rounds; a
+manual index is a starter that scores overtake); round cards speak the **named
+bands** ("beat your number by X"), never PvI/differential; **receipts** tap from
+any points figure. **Tee sheet** live: Match Play (strokes off the low man,
+ladder, settlement), Wolf (rotation + comeback + net-zero ledger), Skins
+(carry-over) — each posts a board story + settlement card; **guest claim links**
+attach a round to a new golfer. **The Ryder** (standalone events) runs
+end-to-end: create → roster → sessions self-open/resolve on the tick →
+scoreboard, number-to-beat chips, opt-in taunts, MVP + shared trophies, rivalry
+duels facet. **Endgame** is a bylaw dial (008): Cup Final OR points-table
+crowning, §14.3 tiebreak ladder, trophies + pot settlement post. **Auto-bye**
+forgives the first missed floor. Storytelling standings, moments, trophy case,
+role-aware Home, curated push — all live.
 
-**Still demo/local (honest edges):** deep-stats page, season chart (needs
-`standings_snapshots` history), pot screen, board chat *composing* (reading is
-real), live rounds & side games (Wolf), attestation taps.
+**Honest edges / not yet done:** photos (own arc, deferred a sprint) · the
+captains-pick + snake-draft *engines* (wizard shows the built two + roster-fit
+guidance; server-side draft engines unbuilt) · a pre-existing boot-time async
+rejection ("reading 'n'") + repeated boot (own task, in progress) · the TIMED
+pre-launch QA run (needs prod deployed + human testers — see
+`spec/prelaunch-qa-2026-07-13.md`).
 
-## Punch list (near-term, in rough priority)
-
-1. Wizard: pot/payout-split controls (006 columns exist), darkened prefill on
-   league name + commissioner email (auto-fill from session).
-2. Commissioner tools: grant bye, void round (ledger + log exist server-side).
-3. Board chat composing via `posts` insert.
-4. Pot/buy-ins UI on `buy_ins`.
-5. Index self-edit (visible in feed — socially policed).
-6. Attestation tap on quick posts.
-7. Migration 008: fresh-slate Cup Final crowning + §14.3 tiebreak ladder
-   (seeds already captured by 006). Design pass needed first.
-8. Ball-marker full set (~24 archetype SVGs — named for shapes, never real
-   courses: trademark landmine). Starter 8 shipped.
-9. Demo diorama: align to Sunday-season model (cosmetic, low priority).
-10. PWA manifest + service worker before telling PIGL "add to home screen."
-11. Open spec question: hybrid +15 in partial edge months (§14.0 waives floors
-    only — decide in spec v1.1).
+**Near-term work lives in the task list, not here** — this file stays
+architecture + rules. For "what's next," read the tasks; for "why a mechanic is
+the way it is," read `spec/decision-log.md`.
 
 ## Monetization (REVISED 2026-07-12 — supersedes spec §6/§11 tiers)
 
@@ -154,6 +201,15 @@ product. A "Pro" layer for advanced features may come later — until decided,
 assume a single catch-all subscription. Never resell the Handicap Index
 (the TheGrint lesson). Clubs/B2B deferred until two real leagues ask to
 play each other (§17).
+
+**Pricing (PARKED pending focus groups, 2026-07-15):** working model is a
+per-league **season pass** paid by the Pro out of the pot (~$49–99/season ≈
+$5–8/player — priced against the pot, not against other apps); individual
+identity + handicap free forever; live games lean free (the guest-claim funnel).
+Decided: **"Founding League" badges** — PIGL + the first ~5–10 leagues free
+forever. Open: price point, season-1-free scope, whether the Ryder is ever paid.
+Stripe stays parked. Marketing = shareable artifacts (claim link, settlement
+card, season recap), foursome-by-foursome, no paid acquisition.
 
 **Product canon:** `spec/product-vision-v1.0.md` (the five principles, the
 five-question filter, the Cup Season Test) governs feature decisions
