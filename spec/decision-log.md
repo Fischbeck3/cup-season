@@ -268,6 +268,205 @@ exists).
 
 ---
 
+## Batch 4 — 2026-07-16, the memory layer (spec/memory-layer-v1.md → V1 build)
+
+Backlog lives in the task list as M1–M10. Entries below cover the checkpoints
+that change or add a mechanic; M1 (voice pass), M6 (ceremony presentation),
+M8 (recap-card render), and M10 (identity presentation) are level-5/6 and are
+logged as non-entries at the batch foot. (Batch follows Batch 3; the memory-
+layer entries are renumbered D18–D23 to clear the calendar lane's D17 — the
+M1–M3 commit messages predate the renumber and cite the old D17–D18.)
+
+### D18 · The post-round beat: the poster hears it first (M2)
+- **Current:** posting a round fans straight to the board; the poster learns
+  what their round *meant* (PB, streak, rivalry flip, points) the same way
+  everyone else does — by reading the feed.
+- **Problem:** the emotional peak of the product is spent broadcasting, not
+  celebrating. Your own win reaches you second-hand.
+- **Recommendation:** a private post-round epilogue sheet, shown to the poster
+  before they land back on the board: new PB / achievement / streak /
+  rivalry-record change ("You're now 4–3 up on Jake, all-time") / points
+  context. One gather RPC (`round_epilogue`). Also: a round that flips a
+  squad standing gets comeback/collapse framing in the existing lead-change
+  moment (create-or-replace, new migration). If the round's foursome was
+  tagged, the sheet offers a one-tap partner shoutout that posts a board line.
+- **Principle:** #4 Memory > Statistics; #5 Feels Alive.
+- **Benefit:** the win is yours first; the board gets drama, not just data.
+- **Tradeoffs:** one more surface in the post flow — must not break the
+  60-second-post friction target (sheet is dismissible, never blocking).
+
+### D19 · Rivalries can be christened (M3)
+- **Current:** rivalries are a computed facet (`my_rivalries()`,
+  `rivalry_weeks()`) — real records, no identity. Every rivalry is anonymous.
+- **Problem:** "memory > statistics" — a lifetime record with no name is a
+  statistic. Friend groups already name these things ("The Grudge").
+- **Recommendation:** a `rivalry_names` table keyed on the unordered profile
+  pair (league-agnostic — a rivalry is between people, not lenses). Either
+  rival can name or rename it (must have actual head-to-head history); the
+  name rides everywhere the rivalry surfaces — facet, board lines, epilogue,
+  pre-game card. Pre-game card ships in the same checkpoint: when a declared
+  round's tagged foursome contains an opponent with history, the board/
+  countdown surfaces the all-time record before the round.
+- **⚑ Resolved (build):** misuse valve — EITHER rival can rename or CLEAR the
+  name (name = '' deletes the row). That is the valve: if one side names it
+  something ugly, the other renames it. Pro-side clear deferred until real
+  abuse appears (a global block "only if it ever actually happens").
+- **SPLIT (build):** the pre-game head-to-head card (#7) moved to **M4** — it
+  wants the countdown surface M4 builds ("the record, before the round" has no
+  home until the countdown exists). M3 shipped the naming system alone; the
+  record already rides the M2 epilogue and the rivalries facet.
+- **Principle:** #4; #5; D12 (rivalry is the lifetime-record noun — naming
+  deepens it, no new noun introduced).
+- **Benefit:** the rivalry becomes a possession; the pre-game card gives
+  every shared tee sheet stakes.
+- **Tradeoffs:** rename ping-pong between rivals is possible — acceptable at
+  crew scale (it IS banter); revisit only on real abuse.
+- **Shipped:** M3 at v23.165 (migration 20260716210000_named_rivalries).
+
+### D20 · The trash-talk thread anchors to the round, then archives (M4)
+- **Current:** chat is one league-wide stream on the board; an upcoming round
+  (declared, tee time set, foursome tagged) has no conversational home.
+- **Problem:** anticipation is the most under-built phase; pre-round talk is
+  the cheapest real anticipation there is, and today it dissolves into the
+  general stream and is lost to the round it was about.
+- **Recommendation:** `posts` gains a nullable `scheduled_round_id`; the
+  countdown card opens that round's thread; when the round posts, the thread
+  archives into the round's story (the round card links its pre-game talk).
+  Still `kind='chat'` — no new post kind, no new realtime surface.
+- **Principle:** #5 Feels Alive; guardrail — the thread serves the round's
+  story and then closes; it is not a standing sub-feed (no generic social
+  features).
+- **Benefit:** the board reads like a locker room before a round and a
+  scrapbook after; the talk becomes part of the memory.
+- **Tradeoffs:** threads fragment chat attention slightly; mitigated because
+  thread posts can still render inline on the board (anchored, not hidden).
+
+### D21 · The Callout — a declared number settles itself (M5)
+- **Current:** no pre-round commitment mechanic exists. The Ryder has
+  number-to-beat chips (computed, not declared); regular rounds have nothing.
+- **Problem:** stakes before a round currently require a side game; there is
+  no lightweight "I'm calling my shot" primitive.
+- **Recommendation:** from the countdown card, a player can publicly commit —
+  a number to beat, or a straight-up callout of a tagged opponent. It posts
+  to the thread; when the round(s) post, it auto-settles as its own row plus
+  a board settlement line. Rounds are never mutated (§16); a callout is
+  bravado with a receipt, worth zero points — it never touches scoring.
+- **⚑ Open (need the Pro's call before build):** (a) settle basis — gross or
+  net? recommendation: the named band's own terms, i.e. "beat your number" =
+  net vs your number, "beat Jake" = head-to-head on net; (b) tie — push, no
+  line posted or a "push" line? recommendation: a push line (the receipt
+  exists either way); (c) no-post by settle date — quietly expires or posts
+  "never showed"? recommendation: quietly expires — shame mechanics violate
+  the D23 nudge policy's spirit.
+- **Principle:** #5; #3 (competition with receipts); §16 show-your-work.
+- **CONFLICT check (level 4):** none — no points, no handicap interaction; it
+  is social machinery wearing competition clothes. Named here so that stays
+  true: if a future version ever wants callouts to score, that is a NEW
+  level-4 decision, not an extension of this one.
+- **Benefit:** every casual round can carry stakes a bar can repeat.
+- **Tradeoffs:** a settle engine (small) + one more pre-round affordance;
+  gated to rounds with a declared schedule so quick-posts stay 60 seconds.
+
+### D22 · Mark This — the golfer's memory outranks the machine's (M7)
+- **Current:** `round_moments()` picks ONE headline per round by fixed
+  priority: milestone barrier > personal best > iron-man streak. Entirely
+  computed; the golfer has no say in what a round is remembered for.
+- **Problem:** the machine remembers scores; people remember *moments* — the
+  ace, the bet-winning putt. Today the system cannot know hole 14 mattered.
+- **CONFLICT (level 4, named):** the one-headline-per-round rule ("a round is
+  one story, not three") is deliberate and stays. Adding a user mark risks
+  either two headlines or silently discarding one.
+- **Resolution/Recommendation:** the rule survives intact — the mark joins
+  the priority chain at the TOP: mark > barrier > PB > streak. One tap in the
+  stepper marks at most one hole per round; a marked round's headline is the
+  golfer's moment (computed milestones still ride the receipts/achievements
+  path, so a PB set on a marked round still pins as an achievement — the
+  achievement lifespan is unaffected, only the board headline yields).
+- **Principle:** #4 Memory > Statistics (this is the purest expression of it
+  in the product); #2 (one tap, zero new screens, 60-second post preserved).
+- **Benefit:** the round is remembered for what the golfer felt, not what the
+  math noticed.
+- **Tradeoffs:** a marked mediocre round can bury a PB headline — accepted
+  by design (the golfer chose); receipts still show everything.
+
+### D23 · The nudge policy — every nudge names its emotion (M9)
+- **Current:** push is curated by kind + per-user mutes; there are no
+  re-engagement nudges of any kind. Nothing resurfaces.
+- **Problem:** days-later resurfacing is the retention loop, and it is the
+  easiest place in the product to slide into engagement-bait.
+- **Recommendation (the policy, codified):** a nudge must name one of the
+  eight emotions (pride, nostalgia, anticipation, belonging, rivalry, joy,
+  reflection, achievement) or it doesn't render. Each nudge fires ONCE per
+  triggering condition — no repeat-nagging, no shame framing, no badge
+  counts. V1 nudges are HOME-SURFACED chips only, never push: (a)
+  "You and Jake haven't played together in 47 days" (nostalgia) — tap starts
+  a declare-round with them pre-tagged; (b) "Your iron-man streak (7 weeks)
+  needs a round by Sunday" (anticipation) — one reminder, streak already
+  live in `round_moments()`. Push escalation is a Year-2 decision with its
+  own entry.
+- **Principle:** #1 Golf First (a nudge is a reason to play, not a reason to
+  tap); #4; the memory-layer guardrails (level 2).
+- **Benefit:** retention through relationships and traditions, with dignity.
+- **Tradeoffs:** deliberately weaker short-term re-engagement than push —
+  accepted; the point is the five-year relationship.
+
+---
+
+## Batch 5 — 2026-07-16, the events engine's competitive half (task #5)
+
+### D21 · Season clinch & scenario math (the magic number)
+- **Current:** clinch/"needs" math exists for the Ryder
+  (`FIRST TO 9½ · TEAM A NEEDS 3`), but the **season/Cup race has none** —
+  standings show points, never what they *mean* for the endgame. The Social
+  lane owns the emotional half of the events engine (moments, voice,
+  rivalries); this is the missing **competitive projection** half.
+- **Problem observed:** the tension of the final weeks is invisible. A points
+  leader can't see they've locked a Cup seed; a chaser can't see they're
+  eliminated or exactly what they need. The endgame's drama is unstated, and
+  spec §16 ("every number shows its work") stops at the current total — it
+  never projects.
+- **Recommendation:** a `season_scenarios(season)` engine over
+  `v_squad_standings` / `v_individual_standings` that computes, per contender:
+  **magic number** (points to guarantee a seed/crown), **clinched**,
+  **eliminated**, and the **cut line** — feeding one storytelling line the
+  standings/Home render. Seeds follow the endgame dial (008): `cup_final` →
+  top 2 seed (2-squad → both in, so the race is the **#1 seed / +10**), solo →
+  top 2; `points_table` → the leader (K=1). Seed race ends at `ends_on − 27`
+  (Cup Final) else `ends_on`; once `status = cup_final`, seeds are locked and
+  the engine reports the locked seeds instead.
+- **The honesty rule (the load-bearing design choice):** clinch/elimination
+  are declared **only when true under a deliberately GENEROUS remaining-points
+  ceiling** — `roster × months-left × counting_cap × 12` (the top band; bonuses
+  are off per D7, and a floor credit never exceeds cap×12, so this is a valid
+  upper bound). Erring generous means the engine **never** falsely says
+  "clinched" or "eliminated"; borderline stays "in the hunt." A wrong certainty
+  would be a §16/trust violation; a cautious one is just quiet.
+- **Principle:** spec §16 (show your work — now for the *endgame*); #5 Feels
+  Alive (the last weeks acquire stakes); #1 Golf First (fairness is felt —
+  no false math).
+- **Benefit:** "your Sunday round matters because…" becomes literal; the race
+  reads as a race, and the numbers are trustworthy because they're conservative.
+- **Tradeoffs:** with an unlimited counting cap the ceiling is huge, so nothing
+  clinches until the window closes — honest (unlimited posting = unlimited
+  swing), if less dramatic; most leagues set a cap. The generous bound also
+  means a mathematically-decided-but-not-provably-so race shows "in the hunt" a
+  little longer than a human would call it — accepted, per the honesty rule.
+- **Boundary (no collision):** the Social lane renders standings storytelling;
+  this produces the *numbers*. New engine + one new client line in a new
+  element — no edits to their moment/feed/rivalry surfaces.
+
+---
+
+*Batch-4 non-entries (checked, no mechanic change): M1 storyteller/settlement
+voice (level-5 copy; the mechanic-visible rule "mixed-case bodies pass
+`easeCaps` untouched" is implementation, unchanged) · M6 roster-reveal +
+kickoff ritual (presentation of events that already post) · M8 recap card
+(render of existing facts; D2's no-jargon rule applies to the card) · M10
+living identity card (presentation; identity FACTS it surfaces are all
+already earned objects — any new fact type would need its own entry).*
+
+---
+
 *Non-entries (checked, no change and no conflict): the single-player
 heartbeat / individual free hook is already approved direction (ESPN model,
 2026-07); the translation pass (D1–D3) touches no level-4 rule; Cup Final

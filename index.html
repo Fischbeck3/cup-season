@@ -218,6 +218,11 @@ button{font-family:var(--sans); touch-action:manipulation; color:var(--ink);}
 .standStory{font-family:var(--serif); font-size:13px; line-height:1.45; color:var(--ink); padding:2px 2px 10px; margin-bottom:2px; border-bottom:1px solid var(--line);}
 .standStory:empty{display:none;}
 .standStory b{font-weight:600;}
+/* the clinch/scenario line — the endgame math, quieter than the story above */
+.scenLine{font-family:var(--mono); font-size:11px; letter-spacing:.05em; line-height:1.7; color:var(--mut); padding:9px 2px 3px; border-top:1px solid var(--line);}
+.scenLine .clinch{color:var(--pos);}
+.scenLine .out{color:var(--dim);}
+.scenLine b{color:var(--ink); font-weight:600;}
 .rkmove{font-family:var(--mono); font-size:9.5px; margin-left:3px; letter-spacing:0;}
 .rkmove.up{color:var(--pos);} .rkmove.dn{color:var(--dim);}
 .rivrec{font-family:var(--mono); font-size:14px; font-weight:600; letter-spacing:.02em; flex:none;}
@@ -1421,7 +1426,7 @@ body::before{
       </div>
             
     </div>
-    <div class="ob-caption" id="obCaption">New or returning, email is one door. No passwords. <span style="opacity:.5">v23.167</span></div>
+    <div class="ob-caption" id="obCaption">New or returning, email is one door. No passwords. <span style="opacity:.5">v23.171</span></div>
   </div>
   <div class="ob-splash" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
   
@@ -1997,7 +2002,7 @@ body::before{
         <div id="homeSeason">
         <div class="phasehero" id="kickoffHero" style="display:none">
           <div class="k">At the starter</div>
-          <div class="n" id="khTee">First tee Sunday</div>
+          <div class="n" id="khTee">First tee —</div>
           <div class="m" id="khCount">SQUADS LOCKED · PRACTICE ROUNDS HIT YOUR CARD, NOT THE SEASON</div>
         </div>
         <button class="livebanner" id="liveBanner" data-go="play">
@@ -2045,6 +2050,7 @@ body::before{
             <div class="card" style="padding:10px 12px 4px">
               <div class="standStory" id="standingsStory"></div>
               <table class="tbl" id="standings"></table>
+              <div class="scenLine" id="scenarioLine" style="display:none"></div>
             </div>
           </div>
         </div>
@@ -2599,6 +2605,7 @@ function renderStandings(){
         if(p && typeof openMemberHist==='function') openMemberHist(p);
       } else showSquad(r.dataset.squad);
     }));
+  window.renderScenarioLine && window.renderScenarioLine();   /* clinch line rides under the table (D21) */
 }
 
 /* ================= feed ================= */
@@ -2966,6 +2973,55 @@ function vsPhrase(vs){
   if(vs>=-1) return 'played to your number';
   return vs.toFixed(1).replace('-','')+' over your number';
 }
+/* ---- M2 / D17 · the post-round epilogue — the poster hears it first ----
+   Reads round_epilogue() JSON into a private sheet shown over home right after
+   a post: the round's meaning (band + points), what it earned, and any rivalry
+   record it moved. Every line names a feeling — nothing here is a bare stat.
+   Dismissible; skipped silently on deploy skew or a nothing-to-say round so the
+   60-second post is never blocked (D17 tradeoff). Reuses the .check row shape. */
+const EPI_ACH = {
+  personal_best: { icon:'⭐', txt:'A personal best',                     sub:'The best round you’ve posted' },
+  sub_80:        { icon:'🏆', txt:'You broke 80 for the first time', sub:'That one goes on the wall' },
+  sub_90:        { icon:'🏆', txt:'You broke 90 for the first time', sub:'Pinned to your card' },
+  sub_100:       { icon:'🏆', txt:'You broke 100 for the first time',sub:'Pinned to your card' },
+  streak_4:      { icon:'🔥', txt:'Four weeks running',             sub:'Iron man' },
+  streak_8:      { icon:'🔥', txt:'Eight weeks running',            sub:'Iron man doesn’t take weeks off' },
+  streak_12:     { icon:'🔥', txt:'Twelve weeks running',           sub:'Iron man' },
+  first_round:   { icon:'⛳', txt:'Your first round is on the board',     sub:'Welcome to the season' },
+};
+function epiCounting(rank){
+  if(rank==null) return '';
+  const capN=[2,4,6,Infinity][state.cap ?? 3];
+  if(rank<=capN) return capN===Infinity ? ' · counts this month' : ` · counts #${rank} this month`;
+  return ` · outside your best ${capN} this month, for now`;
+}
+function showEpilogue(epi, course){
+  if(!epi) return;
+  const rows=[];
+  const pvi = epi.pvi!=null ? Number(epi.pvi) : null;
+  if(pvi!=null){
+    rows.push(`<div class="check"><span class="num">⛳</span><div class="tt"><b>${esc(bandName(pvi))}${epi.points!=null?` · ${epi.points} pts`:''}</b><small>${esc(vsPhrase(pvi))}${epiCounting(epi.month_rank)}</small></div></div>`);
+  }
+  (epi.earned||[]).forEach(a=>{
+    const m=EPI_ACH[a.kind] || { icon:'✦', txt:a.label||'A milestone', sub:'Pinned to your card' };
+    rows.push(`<div class="check"><span class="num">${m.icon}</span><div class="tt"><b>${esc(m.txt)}</b><small>${esc(m.sub)}</small></div></div>`);
+  });
+  (epi.rivals||[]).forEach(rv=>{
+    const w=rv.wins, l=rv.losses, t=rv.ties;
+    const line = rv.lead==='up'   ? `You lead ${rv.name} ${w}–${l}`
+              :  rv.lead==='down' ? `${rv.name} leads you ${l}–${w}`
+              :                     `Dead even with ${rv.name}, ${w}–${l}`;
+    const tie = t>0 ? ` · ${t} halved` : '';
+    /* M3: a named rivalry announces itself in the epilogue too */
+    const sub = rv.rivalry_name ? `“${esc(rv.rivalry_name)}” · your clash this week counted` : 'Your clash this week counted';
+    rows.push(`<div class="check"><span class="num">⚔️</span><div class="tt"><b>${esc(line)} all-time${tie}</b><small>${sub}</small></div></div>`);
+  });
+  if(!rows.length) return; /* nothing worth interrupting a post for */
+  const sub = course
+    ? `${epi.gross!=null?epi.gross+' at ':''}${String(course).toUpperCase()}`
+    : 'THE ROUND, FOR YOU FIRST';
+  openSheet('Your round', sub, rows.join(''));
+}
 /* ---- quick-post hole-by-hole (decision #5: default UI, par-prefilled, the
    gross-only path stays as a flagged-not-punished escape hatch) ---- */
 const POST_PAR_STD=[4,4,4,3,5,4,3,4,5, 4,4,3,4,5,4,3,4,5];   // par 72 template
@@ -3176,6 +3232,14 @@ $('#postBtn').addEventListener('click', async ()=>{
       if(window.loadCareer) window.loadCareer();     /* You-tab recent rounds */
       if(window.loadHome) window.loadHome();         /* the one home feed */
       switchView('home'); scrollFeedBottom();
+      /* M2/D17 — the poster hears it first: a private epilogue sheet over home.
+         Non-blocking; degrades silent on deploy skew or a nothing-to-say round. */
+      if(rrow?.id){
+        try {
+          const { data: epi } = await sb.rpc('round_epilogue', { p_round: rrow.id });
+          showEpilogue(epi, payload.course_label);
+        } catch(_){ /* RPC not deployed yet, or nothing to say — never block a post */ }
+      }
     } catch(e){ toast('Post failed: '+(e.message||e)); }
     finally { btn.disabled=false; }
     return;
@@ -4815,23 +4879,29 @@ function renderPulse(){
   const closes=`closes ${days===0?'today':'in '+days+'d'}`;
   const fmt=n=>{ n=Number(n); return n%1 ? n.toFixed(1) : String(n); };
 
+  /* pilot F(confusing): the label now NAMES the card ("Jul · monthly floor")
+     and every status reads "cleared" — never the ambiguous "at the floor,"
+     which scanned as a bad thing and contradicted its own "cleared" subtitle. */
   if(rows[0].partial){
-    box.innerHTML=pulseCard(`${mName} · floors waived (short month)`,
-      isPro ? `Post freely — no participation floor this month.` : `No floor this month — post when you can.`);
+    box.innerHTML=pulseCard(`${mName} · no minimum this month`,
+      isPro ? `Short month — no monthly floor. Everyone posts freely.` : `Short month — no floor to clear. Post when you can.`);
     return;
   }
   if(isPro){
     const short=rows.filter(r=>!r.at_floor);
     const atFloor=rows.length-short.length;
     const names=short.slice(0,4).map(r=>esc(r.display_name||'A member')).join(', ')+(short.length>4?` +${short.length-4}`:'');
-    box.innerHTML=pulseCard(`${mName} · ${atFloor}/${rows.length} at the floor · ${closes}`,
-      short.length ? `Waiting on <b>${names}</b> to hit ${floor}/mo.` : `Everyone's cleared the floor.`);
+    box.innerHTML=pulseCard(`${mName} · monthly floor · ${closes}`,
+      short.length ? `<b>${atFloor}/${rows.length} cleared</b> the ${floor}-round floor. Waiting on <b>${names}</b>.`
+                   : `<b>Everyone's cleared</b> the ${floor}-round floor for ${mName}.`);
   } else {
     const me=rows.find(r=>r.is_me); if(!me){ box.innerHTML=''; return; }
     const need=Math.max(0, floor-Number(me.credits));
-    box.innerHTML=pulseCard(`Your month · ${fmt(me.credits)}/${floor} counted · ${closes}`,
-      need>0 ? `Post <b>${need%1?need.toFixed(1):need} more</b> to clear the ${floor}/mo floor.`
-             : `You've cleared the floor for ${mName}.`);
+    const needTxt=need%1?need.toFixed(1):need;
+    const cr=fmt(me.credits);
+    box.innerHTML=pulseCard(`Your ${mName} · ${closes}`,
+      need>0 ? `<b>${cr}/${floor}</b> counted — post <b>${needTxt} more</b> to clear this month's floor.`
+             : `<b>Cleared for ${mName}</b> — ${cr} round${cr==='1'?'':'s'} counted, floor met.`);
   }
 }
 async function loadPulse(){
@@ -5287,7 +5357,9 @@ function atStarter(){
       && Date.now() < seasonS().getTime();
 }
 function daysToTee(){ return Math.max(0, Math.ceil((seasonS().getTime()-Date.now())/864e5)); }
-function firstTeeText(){ const s=seasonS(); return `Sun ${MOS[s.getMonth()]} ${s.getDate()}`; }
+/* real weekday, not a hardcoded "Sun" — §14.0 v1.1 dropped the Sunday-start
+   snap, so a season can tee off any day (pilot: "every league says Sunday"). */
+function firstTeeText(){ const s=seasonS(); return `${DOW[s.getDay()]} ${MOS[s.getMonth()]} ${s.getDate()}`; }
 function totalWeeks(){
   const s=seasonS(), e=seasonE();
   return Math.max(1, Math.ceil((e-s)/(7*864e5)));
@@ -6123,6 +6195,7 @@ async function renderRivalries(){
   let data=[];
   try{ const {data:d}=await sb.rpc('my_rivalries'); data=d||[]; }catch(_){ data=[]; }
   if(!data.length){ box.innerHTML=''; if(head) head.style.display='none'; return; }
+  window.RIVALS = data;   /* M3: the rivalry sheet reads the christened name from here */
   if(head) head.style.display='';
   box.innerHTML=data.map(r=>{
     const cls=r.lead==='up'?'up':r.lead==='down'?'dn':'ev';
@@ -6134,9 +6207,11 @@ async function renderRivalries(){
       r.meetings?`${r.meetings} week${r.meetings===1?'':'s'} head-to-head`:null,
       dTot?`Ryder duels ${r.duel_wins}–${r.duel_losses}${r.duel_halves?'–'+r.duel_halves:''}`:null,
     ].filter(Boolean).join(' · ');
+    /* M3: a christened rivalry wears its name in gold, above the opponent */
+    const named=r.rivalry_name?`<span class="eyebrow" style="color:var(--gold); display:block; margin-bottom:2px">${esc(r.rivalry_name.toUpperCase())}</span>`:'';
     return `<div class="prow" data-tc="${r.opponent}">
       <span class="pmk">${mkr(r.marker||'saguaro')}</span>
-      <span class="pmeta"><b>${esc(r.display_name||'—')}</b><small>${facets}</small></span>
+      <span class="pmeta">${named}<b>${esc(r.display_name||'—')}</b><small>${facets}</small></span>
       <span class="rivrec ${cls}">${rec}</span></div>`;
   }).join('');
 }
@@ -6145,7 +6220,8 @@ window.renderRivalries = renderRivalries;
 async function openRivalrySheet(oppId, name, rec){
   let weeks=[];
   try{ const {data}=await sb.rpc('rivalry_weeks',{p_opponent:oppId}); weeks=data||[]; }catch(_){ weeks=[]; }
-  const body = weeks.length ? weeks.map(x=>{
+  const rv=(window.RIVALS||[]).find(x=>x.opponent===oppId); const curName=rv?.rivalry_name||'';
+  const weeksHtml = weeks.length ? weeks.map(x=>{
     const d=new Date(x.wk+'T00:00:00');
     const me=Number(x.my_pvi), th=Number(x.opp_pvi);
     const tag = x.winner==='me'?'<span style="color:var(--pos)">WON</span>'
@@ -6155,9 +6231,37 @@ async function openRivalrySheet(oppId, name, rec){
       <div class="tt"><b>${tag} · YOU ${me>=0?'+':''}${me.toFixed(1)} · ${esc(name)} ${th>=0?'+':''}${th.toFixed(1)}</b>
       <small>BEST ROUND VS INDEX THAT WEEK</small></div></div>`;
   }).join('') : '<p class="fine">No head-to-head weeks yet. A clash counts a week you both post.</p>';
-  openSheet(`You vs ${name}`, `${rec||''} · WEEKLY CLASH · BETTER ROUND VS INDEX TAKES THE WEEK`, body);
+  /* M3/D18: name the rivalry — either rival can name, rename, or clear it */
+  const eyebrow = curName?`<div class="eyebrow" style="color:var(--gold); margin-bottom:10px">“${esc(curName.toUpperCase())}”</div>`:'';
+  const nameBtn = `<button class="btn dark" id="rivNameBtn" style="margin-top:12px">${curName?`Rename “${esc(curName)}”`:'Name this rivalry'}</button>`;
+  openSheet(`You vs ${name}`, `${rec||''} · WEEKLY CLASH · BETTER ROUND VS INDEX TAKES THE WEEK`, eyebrow + weeksHtml + nameBtn);
+  document.getElementById('rivNameBtn')?.addEventListener('click', ()=>openNameRivalry(oppId, name, curName));
 }
 window.openRivalrySheet = openRivalrySheet;
+
+/* M3/D18: the naming sheet. Naming requires real history (enforced server-side);
+   either rival can rename or clear — that's the misuse valve, not a moderator. */
+function openNameRivalry(oppId, oppName, cur){
+  openSheet(cur?'Rename the rivalry':'Name the rivalry', `YOU VS ${(oppName||'THEM').toUpperCase()}`, `
+    <p class="fine" style="padding-top:0">Give it a name your crew would actually say — “The Grudge,” “Border War.” Either of you can change it later.</p>
+    <input class="f" id="rivName" maxlength="40" placeholder="The Grudge" value="${esc(cur||'')}" autocomplete="off" style="font-family:var(--sans)">
+    <button class="btn" id="rivNameSave" style="margin-top:12px">${cur?'Save the name':'Name it'}</button>
+    ${cur?'<button class="btn dark" id="rivNameClear" style="margin-top:8px">Clear the name</button>':''}`);
+  const save=async(clear)=>{
+    const val = clear ? '' : (document.getElementById('rivName')?.value||'').trim();
+    const sb2=document.getElementById('rivNameSave'), cb=document.getElementById('rivNameClear');
+    if(sb2) sb2.disabled=true; if(cb) cb.disabled=true;
+    try{
+      const { error } = await sb.rpc('set_rivalry_name', { p_opponent: oppId, p_name: val });
+      if(error) throw error;
+      toast(clear?'Name cleared':'Rivalry named — “'+val+'”');
+      if(window.renderRivalries) await window.renderRivalries();
+      openRivalrySheet(oppId, oppName);   /* reopen with the fresh name */
+    }catch(e){ toast('Could not save: '+(e.message||e.code||'unknown')); if(sb2) sb2.disabled=false; if(cb) cb.disabled=false; }
+  };
+  document.getElementById('rivNameSave')?.addEventListener('click', ()=>save(false));
+  document.getElementById('rivNameClear')?.addEventListener('click', ()=>save(true));
+}
 
 /* Tour Card: any golfer's whole card, viewable (tour_card RPC). The identity
    object was owner-only; now every name is a door. Visibility is enforced
@@ -6888,7 +6992,8 @@ async function loadStandingsAndFeed(){
     const d0 = new Date(CS.season.starts_on + 'T00:00:00');
     const d1 = new Date(CS.season.ends_on + 'T00:00:00');
     window.seasonWeeks = Math.max(2, Math.round((d1 - d0 + 864e5) / (7 * 864e5)));
-  } else { window.seasonHistory = []; window.seasonWeeks = null; }
+    loadScenarios();   /* the clinch/scenario line — fire-and-forget, renders when it lands */
+  } else { window.seasonHistory = []; window.seasonWeeks = null; if(window.renderScenarioLine) renderScenarioLine(); }
 
   /* the Strava-card cache: round facts + this league's lens, keyed by round id */
   const rids = [...new Set(feed.filter(f => f.roundpost).map(f => f.rid))];
@@ -6972,6 +7077,63 @@ async function loadStandingsAndFeed(){
   renderFeed();
 }
 window.loadStandingsAndFeed = loadStandingsAndFeed;
+
+/* ---------- the clinch/scenario line (D21) — the endgame math, honestly ----
+   season_scenarios() returns {meta, rows}; each row carries clinched /
+   eliminated / needs, computed under a GENEROUS remaining-points ceiling so a
+   "locked" / "out" claim is never wrong (D21's honesty rule). We only phrase
+   the parts that are DEFINITE (clinched, eliminated) or ACHIEVABLE this window
+   (needs ≤ what the leader can still add). Everything else stays quiet — the
+   story line above already carries the lead. */
+async function loadScenarios(){
+  if(state.demo || !CS.user || !CS.season){ window.scenarios=null; if(window.renderScenarioLine) renderScenarioLine(); return; }
+  try{
+    const { data, error } = await sb.rpc('season_scenarios', { p_season: CS.season.id });
+    if(error) throw error;
+    window.scenarios = data || null;
+  }catch(e){ console.warn('[scenarios]', e); window.scenarios=null; }
+  if(window.renderScenarioLine) renderScenarioLine();
+}
+window.loadScenarios = loadScenarios;
+function scenSeedWord(meta){
+  if(meta.finish==='points_table') return 'THE CROWN';
+  if(meta.level==='squad' && meta.structure==='squads2') return 'THE TOP SEED · +10';
+  return 'A CUP SEED';
+}
+function renderScenarioLine(){
+  const box = document.getElementById('scenarioLine'); if(!box) return;
+  const sc = window.scenarios;
+  const hide = () => { box.style.display='none'; box.innerHTML=''; };
+  if(state.demo || !sc || !sc.meta || !(sc.rows||[]).length){ return hide(); }
+  const meta = sc.meta, rows = sc.rows;
+  const up = s => esc(String(s||'').toUpperCase());
+  /* Cup Final already running → seeds are settled facts */
+  if(meta.locked){
+    const seeds = rows.slice(0, meta.k).map(r=>up(r.name));
+    box.innerHTML = `<span class="clinch">SEEDS LOCKED</span> — ${seeds.join(' · ')} INTO THE CUP FINAL`;
+    box.style.display='block'; return;
+  }
+  /* seed race closed (window past) but not yet flipped, or nothing to project */
+  if(meta.months_left===0){ return hide(); }
+  const sw = scenSeedWord(meta);
+  const capped = meta.cap && meta.cap < 999;      /* an unbounded cap can't project a magic number */
+  const lead = rows[0];
+  const leadHeadroom = Number(lead.max_final) - Number(lead.points);   /* what the leader can still add */
+  const parts = [];
+  if(lead.clinched){
+    parts.push(`<b>${up(lead.name)}</b> HAS LOCKED ${sw}`);
+  } else if(capped && lead.needs>0 && lead.needs <= leadHeadroom){
+    parts.push(`<b>${up(lead.name)}</b> · ${lead.needs} MORE LOCKS ${sw}`);
+  }
+  const out = rows.filter(r=>r.eliminated).map(r=>up(r.name));
+  if(out.length){
+    parts.push(`<span class="out">${out.join(', ')} OUT OF THE ${meta.finish==='points_table'?'RACE':'SEED RACE'}</span>`);
+  }
+  if(!parts.length){ return hide(); }
+  box.innerHTML = parts.join(' · ');
+  box.style.display='block';
+}
+window.renderScenarioLine = renderScenarioLine;
 
 /* ---------- squad formation (Blind draw / Assign) ---------- */
 function unassignedMembers(){
@@ -7649,10 +7811,39 @@ async function loadWatchList(){
     if(error) throw error;
     window.watchAll = data || [];
   } catch(e){ console.warn('[watch]', e); window.watchAll = window.watchAll || []; }
+  await ensureRivals();   /* M4/#7: the pre-game record needs the rivalry lookup */
   renderWatchList();
   if(typeof renderUpNext==='function') renderUpNext();   /* Home echo tracks it */
 }
 window.loadWatchList = loadWatchList;
+/* M4/#7 · the pre-game record — a rival's round on your Watch List wears the
+   head-to-head BEFORE the round (the anticipation-phase payoff of M3's named
+   rivalries). Reads my_rivalries (cached in window.RIVALS); pure client. */
+async function ensureRivals(){
+  if(window.RIVALS) return window.RIVALS;
+  try{ const { data } = await sb.rpc('my_rivalries'); window.RIVALS = data || []; }
+  catch(_){ window.RIVALS = []; }
+  return window.RIVALS;
+}
+function rivalryTag(pid){
+  const r = (window.RIVALS||[]).find(x => x.opponent === pid);
+  if(!r) return null;
+  const first = esc((r.display_name||'They').split(' ')[0]);
+  let rec = null;
+  if(r.meetings > 0){
+    rec = r.wins > r.losses ? `you lead ${r.wins}–${r.losses}`
+        : r.wins < r.losses ? `${first} leads ${r.losses}–${r.wins}`
+        : `even ${r.wins}–${r.losses}`;
+  } else {
+    const dw = r.duel_wins||0, dl = r.duel_losses||0;
+    if(dw||dl) rec = dw>dl ? `you lead duels ${dw}–${dl}`
+                    : dw<dl ? `${first} leads duels ${dl}–${dw}`
+                    : `even in duels ${dw}–${dl}`;
+  }
+  if(!rec) return null;
+  const nm = r.rivalry_name ? `“${esc(r.rivalry_name)}” · ` : '';
+  return `<span style="color:var(--gold)">${nm}${rec}</span>`;
+}
 /* others' upcoming rounds, nearest first — the rows the Watch List shows */
 function watchRows(){
   const today = new Date(); today.setHours(0,0,0,0);
@@ -7675,6 +7866,7 @@ function renderWatchList(){
     const rel = sr.is_friend ? 'BUDDY' : 'LEAGUE MATE';
     const bits = [ when, sr.course_label?esc(sr.course_label.toUpperCase()):null,
       sr.tee_time?`<span style="color:var(--gold)">${fmtTee(sr.tee_time)}</span>`:null,
+      rivalryTag(sr.profile_id),   /* M4/#7: the head-to-head, before the round */
       sr.tagged_me?'<span style="color:var(--gold)">YOU’RE IN</span>':null,
       sr.note?'“'+esc(sr.note)+'”':null ].filter(Boolean).join(' · ');
     return `<div class="check">
