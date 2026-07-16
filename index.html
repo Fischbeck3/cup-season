@@ -1997,7 +1997,7 @@ body::before{
         <div id="homeSeason">
         <div class="phasehero" id="kickoffHero" style="display:none">
           <div class="k">At the starter</div>
-          <div class="n" id="khTee">First tee Sunday</div>
+          <div class="n" id="khTee">First tee —</div>
           <div class="m" id="khCount">SQUADS LOCKED · PRACTICE ROUNDS HIT YOUR CARD, NOT THE SEASON</div>
         </div>
         <button class="livebanner" id="liveBanner" data-go="play">
@@ -5163,7 +5163,9 @@ function atStarter(){
       && Date.now() < seasonS().getTime();
 }
 function daysToTee(){ return Math.max(0, Math.ceil((seasonS().getTime()-Date.now())/864e5)); }
-function firstTeeText(){ const s=seasonS(); return `Sun ${MOS[s.getMonth()]} ${s.getDate()}`; }
+/* real weekday, not a hardcoded "Sun" — §14.0 v1.1 dropped the Sunday-start
+   snap, so a season can tee off any day (pilot: "every league says Sunday"). */
+function firstTeeText(){ const s=seasonS(); return `${DOW[s.getDay()]} ${MOS[s.getMonth()]} ${s.getDate()}`; }
 function totalWeeks(){
   const s=seasonS(), e=seasonE();
   return Math.max(1, Math.ceil((e-s)/(7*864e5)));
