@@ -1413,7 +1413,7 @@ body::before{
       </div>
             
     </div>
-    <div class="ob-caption" id="obCaption">New or returning, email is one door. No passwords. <span style="opacity:.5">v23.147</span></div>
+    <div class="ob-caption" id="obCaption">New or returning, email is one door. No passwords. <span style="opacity:.5">v23.148</span></div>
   </div>
   <div class="ob-splash" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
   
@@ -3234,6 +3234,12 @@ function primeRealRoster(){
   recomputeStrokes();
   state.live=freshLive();
   if(typeof renderPlay==='function') renderPlay();
+  /* the roster hadn't loaded yet (a league always has at least YOU, so an
+     empty list means the load never ran) — fetch it, then re-prime so the
+     picker fills with league mates */
+  if(window.CS?.league && !(window.CS.members||[]).length && window.loadLeagueData){
+    window.loadLeagueData().then(()=>{ if(!(state.live && state.live.active)) primeRealRoster(); });
+  }
 }
 
 const holeDone=h=>LIVE.every((_,pi)=>state.live.scores[pi][h]!==null);
