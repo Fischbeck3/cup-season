@@ -1413,7 +1413,7 @@ body::before{
       </div>
             
     </div>
-    <div class="ob-caption" id="obCaption">New or returning, email is one door. No passwords. <span style="opacity:.5">v23.148</span></div>
+    <div class="ob-caption" id="obCaption">New or returning, email is one door. No passwords. <span style="opacity:.5">v23.149</span></div>
   </div>
   <div class="ob-splash" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
   
@@ -3240,6 +3240,22 @@ function primeRealRoster(){
   if(window.CS?.league && !(window.CS.members||[]).length && window.loadLeagueData){
     window.loadLeagueData().then(()=>{ if(!(state.live && state.live.active)) primeRealRoster(); });
   }
+  /* golf buddies join the picker too — as non-posting players (identity
+     pre-filled), so you can score a round with friends who aren't in the
+     league. Deduped against members already in the roster. */
+  if(window.sb && window.CS?.user){
+    sb.rpc('my_friends').then(({data})=>{
+      if(state.live && state.live.active) return;
+      const have=new Set(ROSTER.map(r=>r.pid).filter(Boolean));
+      let added=false;
+      (data||[]).filter(f=>f.status==='accepted' && f.profile_id && !have.has(f.profile_id)).forEach(f=>{
+        ROSTER.push({ n:f.display_name||'Buddy', i:Number(f.index_current)||18, ci:-1, team:null,
+                      guest:true, buddy:true, est:(f.index_current==null), pid:f.profile_id });
+        added=true;
+      });
+      if(added && typeof renderRoster==='function') renderRoster();
+    }).catch(()=>{});
+  }
 }
 
 const holeDone=h=>LIVE.every((_,pi)=>state.live.scores[pi][h]!==null);
@@ -3407,7 +3423,7 @@ function renderRoster(){
       const p=ROSTER[idx];
       d.className='pslot';
       d.innerHTML=`
-        <div class="sn">${p.guest?'<span class="gtag">G</span>':`<span style="width:8px;height:8px;border-radius:3px;background:${SQHEX[p.ci]};display:inline-block;"></span>`}${p.n}</div>
+        <div class="sn">${p.guest?`<span class="gtag">${p.buddy?'B':'G'}</span>`:`<span style="width:8px;height:8px;border-radius:3px;background:${SQHEX[p.ci]};display:inline-block;"></span>`}${p.n}</div>
         <div class="si">${p.i.toFixed(1)} IDX · TEAM ${k<2?'A':'B'}</div>
         ${p.locked?'':`<button class="sx" data-rm="${idx}" aria-label="Remove ${p.n}">×</button>`}`;
     }
@@ -3425,7 +3441,7 @@ function renderRoster(){
     const b=document.createElement('button');
     b.className='selchip';
     const mark=p.guest
-      ? '<span class="gtag">GUEST</span>'
+      ? `<span class="gtag">${p.buddy?'BUDDY':'GUEST'}</span>`
       : `<span style="width:8px;height:8px;border-radius:3px;background:${SQHEX[p.ci]};display:inline-block;"></span>`;
     b.innerHTML=`${mark}${p.n} · ${p.i.toFixed(1)}`;
     b.addEventListener('click',()=>{
@@ -3438,15 +3454,23 @@ function renderRoster(){
   const groups=[
     {label: state.demo ? 'Your squad · Mudsharks' : 'You', test:p=>!p.guest && p.team===homeTeam},
     {label:'League', test:p=>!p.guest && p.team!==homeTeam},
-    {label:'Guests', test:p=>p.guest},
+    {label:'Buddies', test:p=>p.guest && p.buddy},
+    {label:'Guests', test:p=>p.guest && !p.buddy},
   ];
+  let any=false;
   groups.forEach(gr=>{
     const items=[];
     ROSTER.forEach((p,i)=>{ if(gr.test(p) && !sel.includes(i)) items.push([p,i]); });
     if(!items.length) return;
     addLabel(gr.label);
     items.forEach(([p,i])=>addChip(p,i));
+    any=true;
   });
+  if(!any && !state.demo){
+    const h=document.createElement('p'); h.className='fine'; h.style.padding='2px 0';
+    h.textContent='No league mates or buddies to add yet — add a guest below, or invite your crew to the league.';
+    wrap.appendChild(h);
+  }
 
   $('#selCount').textContent=sel.length;
 }
