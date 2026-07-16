@@ -1413,7 +1413,7 @@ body::before{
       </div>
             
     </div>
-    <div class="ob-caption" id="obCaption">New or returning, email is one door. No passwords. <span style="opacity:.5">v23.155</span></div>
+    <div class="ob-caption" id="obCaption">New or returning, email is one door. No passwords. <span style="opacity:.5">v23.156</span></div>
   </div>
   <div class="ob-splash" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
   
@@ -3256,7 +3256,12 @@ function recomputeStrokes(){
   STROKES=CHS.map(c=>c-LOWCH);
 }
 recomputeStrokes();
-const strokeOn=(pi,h)=>SI[h]<=STROKES[pi]?1:0;
+/* strokes on a hole — proper match-play allocation: 19+ strokes wrap around
+   the card (28 given = 1 every hole + a 2nd on the 10 hardest) */
+const strokeOn=(pi,h)=>{
+  const stk=STROKES[pi]||0;
+  return Math.floor(stk/18) + (SI[h]<=(stk%18)?1:0);
+};
 
 function freshLive(){
   return {stage:'setup', active:false, game:'score', hole:0,
@@ -3405,7 +3410,7 @@ function renderPlay(){
     const row=document.createElement('div'); row.className='prow';
     row.innerHTML=`
       <span class="sw" style="background:${p.guest?'var(--dim)':SQHEX[p.ci]}"></span>
-      <div class="nm"><b>${p.n} ${p.guest?'<span class="gtag">GUEST</span>':''}${strokeOn(pi,h)?'<span class="strokedot" title="stroke here"></span>':''}</b>
+      <div class="nm"><b>${p.n} ${p.guest?'<span class="gtag">GUEST</span>':''}${'<span class="strokedot" title="stroke here"></span>'.repeat(strokeOn(pi,h))}</b>
       <small>${p.guest?(p.est?'EST ':'SELF '):''}${fmtIdx(p.i)} IDX · ${STROKES[pi]} STK</small></div>
       <div class="tot">${done.length? gross+' THRU '+done.length+'<br>'+(vp>=0?'+':'')+vp : '—'}</div>
       <div class="step">
@@ -3492,8 +3497,15 @@ function renderMatchPrev(){
   const lines=ps.map((p,k)=>{
     const stk=chs[k]-low;
     if(!stk) return null;
-    const holes=[...SI.keys()].filter(h=>SI[h]<=stk).map(h=>h+1).sort((a,b)=>a-b);
-    return `<b>${esc(p.n)}</b> gets ${stk}: hole${stk===1?'':'s'} ${holes.join(', ')}`;
+    /* short lists name the holes; long ones would be noise — the dot on each
+       hole row marks them during play */
+    if(stk<=6){
+      const holes=[...SI.keys()].filter(h=>SI[h]<=stk).map(h=>h+1).sort((a,b)=>a-b);
+      return `<b>${esc(p.n)}</b> gets ${stk}: hole${stk===1?'':'s'} ${holes.join(', ')}`;
+    }
+    if(stk<18)  return `<b>${esc(p.n)}</b> gets ${stk} — the ${stk} hardest holes`;
+    if(stk===18) return `<b>${esc(p.n)}</b> gets a stroke on every hole`;
+    return `<b>${esc(p.n)}</b> gets ${stk} — a stroke every hole, two on the ${stk-18} hardest`;
   }).filter(Boolean);
   const sides = sel.length===2
     ? `<b>${esc(ps[0].n)}</b> vs <b>${esc(ps[1].n)}</b>`
