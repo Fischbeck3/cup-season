@@ -237,3 +237,8 @@ exists).
 heartbeat / individual free hook is already approved direction (ESPN model,
 2026-07); the translation pass (D1–D3) touches no level-4 rule; Cup Final
 mechanics (D4) unchanged pending migration 008's endgame dial.*
+
+*Status notes: D1–D3, D5, D11 shipped v23.153 · D4 (foreshadow + dial)
+shipped v23.160 with migration 008 · D9 (skins forward) shipped v23.157 ·
+batch-3 #17/#18 shipped v23.158–159 (Ryder). Open: D6–D8 (wizard rebuild,
+task #9) · D10 (photos, next sprint) · D14 (auto-bye) · D16.*
