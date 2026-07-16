@@ -1421,7 +1421,7 @@ body::before{
       </div>
             
     </div>
-    <div class="ob-caption" id="obCaption">New or returning, email is one door. No passwords. <span style="opacity:.5">v23.165</span></div>
+    <div class="ob-caption" id="obCaption">New or returning, email is one door. No passwords. <span style="opacity:.5">v23.166</span></div>
   </div>
   <div class="ob-splash" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
   
@@ -1615,6 +1615,7 @@ body::before{
 
         <div id="playSetup" style="display:none">
           <div class="eyebrow">Set up the round</div>
+          <div id="planBridge" style="display:none; margin-bottom:10px"></div>
           <div class="card" style="margin-bottom:10px">
             <label class="f" for="lrCourse">Course</label>
             <input class="f" id="lrCourse" value="Encanto GC" style="font-family:var(--sans);">
@@ -2062,6 +2063,8 @@ body::before{
         </div><!-- /room-standings -->
 
         <div class="roompane" id="room-schedule">
+        <div class="eyebrow" id="calWatchHead" style="margin-top:0; display:none">In your crew's plans</div>
+        <div id="calWatch" style="display:none; margin-bottom:6px"></div>
         <div class="eyebrow" style="display:flex; align-items:center; margin-top:0">The calendar
           <span style="margin-left:auto; display:flex; gap:8px; align-items:center;">
             <button class="mini" id="calPrev" aria-label="Previous month">←</button>
@@ -2185,7 +2188,6 @@ body::before{
   });
   window.addEventListener('unhandledrejection', function(e){
     var r=e.reason||{};
-    console.error('[cs-stack]', (e.reason&&e.reason.stack)||'(no stack)');
     show('async: '+(r.message||String(r)));
   });
 })();
@@ -3671,11 +3673,46 @@ function settleRows(pts, val){
   return rows.length?rows.join(''):'<div class="srow"><span>ALL SQUARE</span><b>$0</b></div>';
 }
 
+/* Plan → Play bridge (D17 sibling): teeing off with a round already on your
+   books today? Pull its course + planned group into the tee sheet instead of
+   rebuilding it. Names map to roster entries; any that don't match are named so
+   you can add them (or add a guest). watchAll carries a today→+14 window. */
+function renderPlanBridge(){
+  const box=$('#planBridge'); if(!box) return;
+  if(state.demo || !window.CS?.user){ box.style.display='none'; return; }
+  const pad=n=>String(n).padStart(2,'0');
+  const now=new Date();
+  const todayISO=`${now.getFullYear()}-${pad(now.getMonth()+1)}-${pad(now.getDate())}`;
+  const mine=(window.watchAll||[]).filter(r=>r.mine!==false && r.play_on===todayISO);
+  if(!mine.length){ box.style.display='none'; return; }
+  const sr=mine[0];
+  const withN=(sr.tagged_names||[]).length?' · with '+esc(sr.tagged_names.join(' & ')):'';
+  box.style.display='block';
+  box.innerHTML=`<div class="card" style="border-color:var(--gold); padding:12px">
+    <b style="display:block; margin-bottom:2px">On your books today${sr.course_label?' · '+esc(sr.course_label):''}</b>
+    <span class="fine" style="padding:0">Load the course and your group into the tee sheet${withN}.</span>
+    <button class="mini" id="planLoad" style="margin-top:10px">Load it →</button>
+  </div>`;
+  $('#planLoad').addEventListener('click',()=>{
+    if(sr.course_label) $('#lrCourse').value=sr.course_label;
+    let added=0; const missed=[];
+    (sr.tagged_names||[]).forEach(nm=>{
+      const i=ROSTER.findIndex(p=>String(p.n).toLowerCase()===String(nm).toLowerCase());
+      if(i>=0){ if(!sel.includes(i) && sel.length<4){ sel.push(i); added++; } }
+      else missed.push(nm);
+    });
+    box.style.display='none';
+    renderRoster();
+    toast(added
+      ? `Loaded${missed.length?' — add '+esc(missed.join(', '))+' below':''}`
+      : (sr.course_label?'Course loaded — pick your group below':'Pick your group below'));
+  });
+}
 function renderPlay(){
   const setup = state.live.stage==='setup';
   $('#playSetup').style.display = setup ? 'block':'none';
   $('#playLive').style.display  = setup ? 'none':'block';
-  if(setup){ renderRoster(); renderLiveBanner(); return; }
+  if(setup){ renderPlanBridge(); renderRoster(); renderLiveBanner(); return; }
 
   $('#lrEyebrowTxt').textContent=`Live round · ${($('#lrCourse').value||'Course')} — ${($('#lrTee').value||'Tee')} · ${CRATE}/${CSLOPE}`;
   $('#matchCard').style.display = state.live.game==='match' ? 'block':'none';
@@ -3732,8 +3769,8 @@ function renderPlay(){
   const _li=(typeof CHS!=='undefined'&&CHS&&CHS.length)?CHS.indexOf(LOWCH):-1;
   const lowMan=(_li>=0?String(LIVE[_li]?.n||''):'').toUpperCase();
   $('#matchTeams').textContent = LIVE.length===2
-    ? `Match play \u00b7 singles \u00b7 ${LIVE[0].n} vs ${LIVE[1].n}`
-    : `Match play \u00b7 net best ball \u00b7 ${LIVE[0].n} + ${LIVE[1].n} vs ${LIVE[2].n} + ${LIVE[3].n}`;
+    ? `Match play \u00b7 singles \u00b7 ${LIVE[0]?.n||''} vs ${LIVE[1]?.n||''}`
+    : `Match play \u00b7 net best ball \u00b7 ${LIVE[0]?.n||''} + ${LIVE[1]?.n||''} vs ${LIVE[2]?.n||''} + ${LIVE[3]?.n||''}`;
   const m=matchCalc();
   const _dormie = !m.closed && m.a!==m.b && Math.abs(m.a-m.b)===18-m.played;
   $('#matchStatus').textContent = m.closed
@@ -3748,20 +3785,20 @@ function renderPlay(){
   if(state.live.game==='wolf' && LIVE.length===4){
   const wolfIdx=wolfAt(h);
   const comeback = h>=16;
-  $('#wolfWho').textContent=LIVE[wolfIdx].n.toUpperCase()+' IS THE WOLF'+(comeback?' · COMEBACK':'');
+  $('#wolfWho').textContent=(LIVE[wolfIdx]?.n||'').toUpperCase()+' IS THE WOLF'+(comeback?' · COMEBACK':'');
   /* tee order: rotation shifted so the wolf watches every drive (tees last) */
   const wm=$('#wolfMeta');
   if(wm){
     const ord=wolfOrderNow();
     const k=ord.indexOf(wolfIdx);
-    const tees=(k>=0?ord.slice(k+1).concat(ord.slice(0,k+1)):ord).map(p=>LIVE[p].n.toUpperCase());
+    const tees=(k>=0?ord.slice(k+1).concat(ord.slice(0,k+1)):ord).map(p=>(LIVE[p]?.n||'').toUpperCase());
     wm.textContent='TEES: '+tees.join(' · ')+(state.live.stake>0?` · $${state.live.stake}/PT`:' · BRAGGING POINTS');
   }
   const wb=$('#wolfBtns'); wb.innerHTML='';
   const pick=state.live.wolf[h];
   [0,1,2,3].filter(p=>p!==wolfIdx).forEach(p=>{
     const b=document.createElement('button');
-    b.textContent='+ '+LIVE[p].n.toUpperCase();
+    b.textContent='+ '+(LIVE[p]?.n||'').toUpperCase();
     if(pick&&pick.mode==='partner'&&pick.partner===p)b.classList.add('on');
     b.addEventListener('click',()=>{state.live.wolf[h]={mode:'partner',partner:p};renderPlay();});
     wb.appendChild(b);
@@ -4410,17 +4447,23 @@ function hubGroupRow(icon,name,sub,here){
     ${here?'<span class="fine" style="padding:0; color:var(--pos)">HERE</span>':'<span class="fine" style="padding:0; color:var(--dim)">→</span>'}</div>`;
 }
 function upcomingFromSchedule(){
-  const s = window.mySchedule || [];
+  /* "your next round" is YOURS — the schedule rows carry others' rounds too
+     (buddies, league mates), so filter to mine. Field is play_on (the RPC's
+     column); the old played_on/date guesses never matched and this silently
+     returned nothing on real data. The Watch List owns others' plans. */
+  const s = (window.watchAll && window.watchAll.length) ? window.watchAll : (window.mySchedule || []);
   const today = new Date(); today.setHours(0,0,0,0);
   const out = [];
   s.forEach(r => {
-    const d = r.played_on || r.date || r.day || r.on; if(!d) return;
+    if(r.mine === false) return;
+    const d = r.play_on || r.played_on || r.date || r.day || r.on; if(!d) return;
     const dt = (typeof localDate==='function') ? localDate(d) : new Date(d);
     if(isNaN(dt) || dt < today) return;
     const days = Math.round((dt - today) / 86400000);
+    const withN = (r.tagged_names||[]).length ? 'with '+r.tagged_names.join(' & ') : '';
     out.push({ when: days===0?'TODAY':days===1?'TOMORROW':('IN '+days+' DAYS'),
-      what: (r.label || r.course_label || r.title || 'Declared round'),
-      who: (r.league_name || r.who || ''), _d: dt });
+      what: (r.course_label || r.label || r.title || 'Declared round'),
+      who: withN || r.league_name || r.who || '', _d: dt });
   });
   out.sort((a,b)=>a._d - b._d);
   return out.slice(0,4);
@@ -4566,6 +4609,15 @@ function renderUpNext(){
   } else {
     const up = (typeof upcomingFromSchedule==='function') ? upcomingFromSchedule() : [];
     if(up.length) chips.push(upChip('Next round', up[0].what + ' · ' + up[0].when.toLowerCase()));
+    /* the crew's plans echo Home → the Watch List is one tap from the nudge */
+    const watch = (window.watchAll||[]).filter(r => r.mine===false && (r.is_friend||r.shared_league) && !r.tagged_me);
+    if(watch.length){
+      watch.sort((a,b)=> a.play_on < b.play_on ? -1 : 1);
+      const w = watch[0], d = localDate(w.play_on);
+      const n = Math.round((d - new Date().setHours(0,0,0,0))/864e5);
+      const when = n===0?'today':n===1?'tomorrow':DOW[d.getDay()].toLowerCase();
+      chips.push(upChip("Crew's playing", (w.display_name||'A buddy').split(' ')[0] + ' · ' + when));
+    }
     const needs = (window.myInvites||[]).length + (window.homeRequests||[]).length;
     if(needs) chips.push(upChip('Needs you', needs + (needs===1?' invite':' invites')));
     if((window.CS?.memberships||[]).length){
@@ -5401,6 +5453,7 @@ function renderCalendar(){
       }
     }
   }
+  window.renderWatchList && window.renderWatchList();   /* crew's plans ride atop the grid */
 }
 $('#calPrev').addEventListener('click',()=>{
   const c=window.calCursor||{y:new Date().getFullYear(), m:new Date().getMonth()};
@@ -6603,11 +6656,12 @@ async function enterLeague(m, nav=true){
   }
   try { await loadLeagueData(); } catch(e){ bootTrace('league data: '+(e.message||e)); }
   loadPulse();                          /* role-aware Home: month participation pulse */
-  loadLeagueSpans().then(loadSchedule).then(()=>window.renderHomeHub&&window.renderHomeHub()); /* calendar layers + Home recap "next rounds" */
+  loadLeagueSpans().then(loadSchedule).then(()=>window.renderHomeHub&&window.renderHomeHub()).catch(e=>bootTrace('home hub: '+(e.message||e))); /* calendar layers + Home recap "next rounds" */
+  loadWatchList().catch(e=>bootTrace('watch: '+(e.message||e)));   /* the crew's plans (14-day window, cursor-independent) */
   loadLeagueRecord();                   /* the You tab's per-league record rows */
-  loadMyEvents().then(()=>window.renderHomeHub&&window.renderHomeHub());   /* events → group switcher + recap */
+  loadMyEvents().then(()=>window.renderHomeHub&&window.renderHomeHub()).catch(e=>bootTrace('events: '+(e.message||e)));   /* events → group switcher + recap */
   loadHome();                           /* the Home welcome feed + season end dates */
-  loadInvites().then(()=>window.renderNotifications&&window.renderNotifications());  /* invite banner */
+  loadInvites().then(()=>window.renderNotifications&&window.renderNotifications()).catch(e=>bootTrace('invites: '+(e.message||e)));  /* invite banner */
   const ab = $('#annBtn');
   if(ab) ab.style.display = CS.member?.role === 'commissioner' ? '' : 'none';
   subscribeLeague();
@@ -7450,6 +7504,67 @@ async function loadSchedule(){
 }
 window.loadSchedule = loadSchedule;
 
+/* ---------- the Watch List: a friend is already going — get in on it ----------
+   A cursor-independent 14-day window (today → +14), so it survives calendar
+   paging and feeds Home's Up Next too. watchAll holds the raw rows; watchRows()
+   filters to OTHERS' rounds (buddies + league mates) — the join loop CLAUDE.md
+   names but never delivered as a surface. "I'm in" declares your own round that
+   day/course tagging the host (D17): two rounds, one outing, schema-free. */
+async function loadWatchList(){
+  if(!CS.user){ window.watchAll = []; renderWatchList(); return; }
+  const t = new Date(); t.setHours(0,0,0,0);
+  const end = new Date(t); end.setDate(end.getDate()+14);
+  const pad = n => String(n).padStart(2,'0');
+  const iso = d => `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+  try {
+    const { data, error } = await sb.rpc('my_schedule', { p_from: iso(t), p_to: iso(end) });
+    if(error) throw error;
+    window.watchAll = data || [];
+  } catch(e){ console.warn('[watch]', e); window.watchAll = window.watchAll || []; }
+  renderWatchList();
+  if(typeof renderUpNext==='function') renderUpNext();   /* Home echo tracks it */
+}
+window.loadWatchList = loadWatchList;
+/* others' upcoming rounds, nearest first — the rows the Watch List shows */
+function watchRows(){
+  const today = new Date(); today.setHours(0,0,0,0);
+  return (window.watchAll||[])
+    .filter(sr => sr.mine === false && (sr.is_friend || sr.shared_league))
+    .filter(sr => { const d = localDate(sr.play_on); return !isNaN(d) && d >= today; })
+    .sort((a,b)=> a.play_on < b.play_on ? -1 : a.play_on > b.play_on ? 1 : 0);
+}
+function renderWatchList(){
+  const box = $('#calWatch'), head = $('#calWatchHead');
+  if(!box || !head) return;
+  if(state.demo){ box.style.display='none'; head.style.display='none'; return; }
+  const rows = watchRows();
+  if(!rows.length){ box.style.display='none'; head.style.display='none'; return; }
+  head.style.display=''; box.style.display='';
+  box.innerHTML = rows.slice(0,6).map((sr,i)=>{
+    const d = localDate(sr.play_on);
+    const n = Math.round((d - new Date().setHours(0,0,0,0))/864e5);
+    const when = n===0?'TODAY':n===1?'TOMORROW':`${DOW[d.getDay()].toUpperCase()} ${MOS[d.getMonth()].toUpperCase()} ${d.getDate()}`;
+    const rel = sr.is_friend ? 'BUDDY' : 'LEAGUE MATE';
+    const bits = [ when, sr.course_label?esc(sr.course_label.toUpperCase()):null,
+      sr.tee_time?`<span style="color:var(--gold)">${fmtTee(sr.tee_time)}</span>`:null,
+      sr.tagged_me?'<span style="color:var(--gold)">YOU’RE IN</span>':null,
+      sr.note?'“'+esc(sr.note)+'”':null ].filter(Boolean).join(' · ');
+    return `<div class="check">
+      <span class="num">${window.mkr?.(sr.marker||'saguaro')||'⛳'}</span>
+      <div class="tt"><b>${esc(sr.display_name)} <span class="fine" style="padding:0; color:var(--dim); letter-spacing:.06em">${rel}</span></b>
+      <small>${bits}</small></div>
+      ${sr.tagged_me ? `<span class="fine" style="padding:0; color:var(--gold); flex:none">ON THE BOOKS</span>`
+        : `<button class="mini" data-imin="${i}" style="flex:none">I’m in</button>`}
+    </div>`;
+  }).join('');
+  box.querySelectorAll('[data-imin]').forEach(b=>b.addEventListener('click',()=>{
+    const sr = rows[+b.dataset.imin]; if(!sr) return;
+    openDeclareSheet(sr.play_on, { course: sr.course_label||'', tee: sr.tee_time||'',
+      tagPids: [sr.profile_id], hostName: sr.display_name });
+  }));
+}
+window.renderWatchList = renderWatchList;
+
 async function loadLeagueSpans(){
   if(!CS.user || !(CS.memberships||[]).length){ window.leagueSpans = []; return; }
   try {
@@ -7863,27 +7978,33 @@ function fmtTee(t){
   return `${h}:${mm}${ap}`;
 }
 window.fmtTee = fmtTee;
-async function openDeclareSheet(prefillISO){
+async function openDeclareSheet(prefillISO, opts){
   if(state.demo || !CS.user){ toast('Sign in to put rounds on the books'); return; }
-  let iso = prefillISO;
+  opts = opts || {};
+  let iso = (typeof prefillISO === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(prefillISO)) ? prefillISO : null;
   if(!iso){ const d = new Date(); d.setDate(d.getDate() + ((6 - d.getDay() + 7) % 7 || 7)); /* next Saturday */
     iso = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; }
   const cand = await gatherTagCandidates();
-  const tagged = new Set();
+  /* "I'm in" seeds the host as a tag so both rounds cluster on the day */
+  const tagged = new Set((opts.tagPids||[]).filter(pid => cand.has(pid)));
   const chips = tagChipHtml(cand, 'drtag');
-  openSheet('Put a round on the books', 'BUDDIES & LEAGUE MATES SEE IT THE MOMENT YOU POST',
-    `<div style="display:flex; gap:10px">
+  const teeVal = opts.tee ? String(opts.tee).slice(0,5) : '';
+  const joining = opts.hostName ? `You're in — declaring your own round alongside ${esc(opts.hostName)}.` : '';
+  openSheet(opts.hostName ? 'Get in on it' : 'Put a round on the books',
+    opts.hostName ? 'YOUR ROUND POSTS AND SCORES ON ITS OWN — YOU BOTH SHOW ON THE DAY' : 'BUDDIES & LEAGUE MATES SEE IT THE MOMENT YOU POST',
+    `${joining ? `<p class="fine" style="padding:0 0 10px; color:var(--gold)">${joining}</p>` : ''}
+     <div style="display:flex; gap:10px">
        <div style="flex:1"><label class="f">Day</label><input class="f" id="drDate" type="date" value="${iso}"></div>
-       <div style="width:132px"><label class="f" style="color:var(--gold)">Tee time · optional</label><input class="f" id="drTee" type="time" step="300"></div>
+       <div style="width:132px"><label class="f" style="color:var(--gold)">Tee time · optional</label><input class="f" id="drTee" type="time" step="300" value="${teeVal}"></div>
      </div>
      <label class="f" style="margin-top:10px; display:block">Course</label>
-     <input class="f" id="drCourse" placeholder="Pebble Beach" style="font-family:var(--sans)">
+     <input class="f" id="drCourse" placeholder="Pebble Beach" style="font-family:var(--sans)" value="${esc(opts.course||'')}">
      <label class="f" style="margin-top:10px; display:block">Note · optional</label>
      <input class="f" id="drNote" maxlength="140" placeholder="buddies trip, looking for a 4th" style="font-family:var(--sans)">
-     ${chips ? `<label class="f" style="margin-top:12px; display:block">Tag your group · <span id="drTagN">0</span> tagged</label>
+     ${chips ? `<label class="f" style="margin-top:12px; display:block">Tag your group · <span id="drTagN">${tagged.size}</span> tagged</label>
      <div style="margin-top:8px">${chips}</div>`
      : `<p class="fine" style="padding-top:10px">No one to tag yet. Add golf buddies from your profile, or invite the league.</p>`}
-     <button class="btn" id="drGo" style="margin-top:14px">On the books</button>
+     <button class="btn" id="drGo" style="margin-top:14px">${opts.hostName ? "I'm in" : 'On the books'}</button>
      <p class="fine" style="padding-top:8px">Posts to your leagues' boards: tagged golfers are named. Scratch it any time from the calendar.</p>`);
   bindTagChips('drtag', tagged);
   document.getElementById('drGo').addEventListener('click', async () => {
@@ -7898,15 +8019,16 @@ async function openDeclareSheet(prefillISO){
       });
       if(error) throw error;
       closeSheet();
-      toast(tagged.size ? 'On the books: your group is named on the boards' : 'On the books: the boards know');
-      loadSchedule();
+      toast(opts.hostName ? "You're in — it's on both boards"
+        : tagged.size ? 'On the books: your group is named on the boards' : 'On the books: the boards know');
+      loadSchedule(); loadWatchList();
       if(CS.league) loadStandingsAndFeed();
     } catch(e){ toast(e.message || String(e)); btn.disabled = false; }
   });
 }
 window.openDeclareSheet = openDeclareSheet;
-document.getElementById('calDeclare')?.addEventListener('click', openDeclareSheet);
-document.getElementById('optPlan')?.addEventListener('click', openDeclareSheet);
+document.getElementById('calDeclare')?.addEventListener('click', () => openDeclareSheet());
+document.getElementById('optPlan')?.addEventListener('click', () => openDeclareSheet());
 
 /* retag your own declared round — add the buddy you forgot */
 async function openRetagSheet(id){
@@ -7943,7 +8065,7 @@ document.getElementById('calList')?.addEventListener('click', async (e) => {
     const { error } = await sb.rpc('scratch_round', { p_id: id });
     if(error) throw error;
     toast('Scratched');
-    loadSchedule();
+    loadSchedule(); loadWatchList();
   } catch(err){ toast('Scratch failed: ' + (err.message || err)); e.target.disabled = false; }
 });
 
@@ -8103,10 +8225,11 @@ function showWelcome(){
   renderIndStats();
   loadCourseMemory();
   loadPulse();                          /* role-aware Home: month participation pulse */
-  loadLeagueSpans().then(loadSchedule).then(()=>window.renderHomeHub&&window.renderHomeHub()); /* Home recap "next rounds" */
-  loadMyEvents().then(()=>window.renderHomeHub&&window.renderHomeHub());                       /* events → group switcher + recap */
+  loadLeagueSpans().then(loadSchedule).then(()=>window.renderHomeHub&&window.renderHomeHub()).catch(e=>bootTrace('home hub: '+(e.message||e))); /* Home recap "next rounds" */
+  loadWatchList().catch(e=>bootTrace('watch: '+(e.message||e)));                               /* the crew's plans, league-less too */
+  loadMyEvents().then(()=>window.renderHomeHub&&window.renderHomeHub()).catch(e=>bootTrace('events: '+(e.message||e)));                       /* events → group switcher + recap */
   loadHome();                                                                                  /* the Home welcome feed */
-  loadInvites().then(()=>window.renderNotifications&&window.renderNotifications());  /* invite banner */
+  loadInvites().then(()=>window.renderNotifications&&window.renderNotifications()).catch(e=>bootTrace('invites: '+(e.message||e)));  /* invite banner */
   enterApp();
   switchView('home');
 }
@@ -8302,10 +8425,18 @@ if(new URLSearchParams(window.location.search).has('exit')){
 }
 
 let booting = false;
-async function safeBoot(){
+/* bootResolved goes true once a boot cycle finishes (door shown OR league
+   entered). It makes safeBoot idempotent: the initial-load triggers below
+   (INITIAL_SESSION + a belt-and-suspenders fallback) can both fire, but only
+   the first actually boots — the rest no-op. A real later sign-in passes
+   force=true to override it; SIGNED_OUT clears it. This is what stops the
+   double "no session" boot without racing on a timer. */
+let bootResolved = false;
+async function safeBoot(force){
   if(booting || CS.league) return;
+  if(bootResolved && !force) return;
   booting = true;
-  try { await boot(); } finally { booting = false; }
+  try { await boot(); } finally { booting = false; bootResolved = true; }
   /* invite link landed while signed out: surface it on the door */
   const pend = localStorage.getItem('cs_code');
   const pendName = localStorage.getItem('cs_code_name');
@@ -8330,13 +8461,18 @@ async function safeBoot(){
   }
   if(CS.user) claimPendingRound();
 }
+/* supabase-js emits INITIAL_SESSION once on load — that drives the first boot.
+   The old code ALSO called safeBoot() directly at the bottom of the script, so
+   every load booted twice (the no-session path logged "no session" twice, and
+   any stray async rejection in the boot chain surfaced as an unhandledrejection
+   twice). Now the initial boot is idempotent via bootResolved, so the event and
+   the fallback below can't double up. A genuine later sign-in forces a boot. */
 sb.auth.onAuthStateChange((event) => {
   /* never call supabase methods synchronously in this callback — the client
      holds an internal auth lock here and getSession() would deadlock */
-  if(event === 'SIGNED_IN' || event === 'INITIAL_SESSION'){
-    setTimeout(safeBoot, 0);
-  }
-  if(event === 'SIGNED_OUT'){ CS.user=null; CS.league=null; try{ localStorage.removeItem('cs_code'); localStorage.removeItem('cs_code_name'); }catch(_){}; backToDoor(); }
+  if(event === 'SIGNED_IN'){ setTimeout(() => safeBoot(true), 0); }
+  else if(event === 'INITIAL_SESSION'){ setTimeout(() => safeBoot(false), 0); }
+  else if(event === 'SIGNED_OUT'){ bootResolved=false; CS.user=null; CS.league=null; try{ localStorage.removeItem('cs_code'); localStorage.removeItem('cs_code_name'); }catch(_){}; backToDoor(); }
 });
 
 /* iOS standalone PWA resume: iOS suspends the page's WebSocket while the app is
@@ -8352,7 +8488,10 @@ document.addEventListener('visibilitychange', () => {
   loadInvites().then(() => window.renderNotifications && window.renderNotifications()).catch(() => {});
 });
 
-safeBoot();
+/* Fallback: if INITIAL_SESSION never arrives (auth transport stall), boot
+   anyway. Idempotent — if INITIAL_SESSION already booted, bootResolved makes
+   this a no-op, so a healthy load still boots exactly once regardless of timing. */
+setTimeout(() => safeBoot(false), 3000);
 </script>
 
 </body>

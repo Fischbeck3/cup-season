@@ -233,6 +233,41 @@ exists).
 
 ---
 
+## Batch 3 — 2026-07-16, calendar & tee-sheet connective tissue (tasks #11/#16)
+
+### D17 · The Watch List and "I'm in" (join a friend's declared round)
+- **Current:** declared rounds live on the calendar; a league mate's round
+  shows as a passive gold dot you must find by tapping its day. The loop
+  CLAUDE.md names — "Logan's playing Pebble, get something on the books" — is
+  *described* in comments but never *delivered* as a surface, and there is no
+  way to act on someone else's plan.
+- **Problem observed:** the highest-retention moment in amateur golf (a buddy
+  is already going — join them) is buried one tap deep and has no verb. The
+  calendar is a passive record, not an active nudge.
+- **Recommendation:** a **Watch List** — buddies' and league-mates' rounds in
+  the next ~14 days, surfaced atop the Calendar (compact echo in Home's Up
+  Next), each with a one-tap **"I'm in"** and **"Put my own up."** "I'm in"
+  *declares your own round* on that day/course and auto-tags the host — reusing
+  `declare_round`, no new table and no shared-roster schema. The two rounds
+  then cluster on the same day, and each golfer's round still posts and scores
+  independently (an outing is two rounds, not one shared record).
+- **Principle:** #4 the app feels alive (a plan you can act on, not just read);
+  #2 Low Friction (join in one tap); #5 Memory > Statistics (the outing becomes
+  a shared moment on both boards).
+- **Benefit:** converts a friend's plan into your round at the exact moment
+  intent is highest; makes the calendar the between-rounds retention loop the
+  vision asks for.
+- **Tradeoffs:** two rounds per outing rather than one shared roster — chosen
+  deliberately: it keeps scheduling profile-scoped and schema-free, and mirrors
+  reality (each golfer posts their own card). A true shared tee sheet (one
+  roster, one record) is a later call if leagues ask for it.
+- **Not a mechanic change (built alongside, no separate entry):** the Plan→Play
+  prefill (tee off a declared round with its group + course pre-filled) and the
+  `upcomingFromSchedule` field-name fix (`played_on`→`play_on`, split mine from
+  watch) are plumbing/bug-fix at level 5–6.
+
+---
+
 *Non-entries (checked, no change and no conflict): the single-player
 heartbeat / individual free hook is already approved direction (ESPN model,
 2026-07); the translation pass (D1–D3) touches no level-4 rule; Cup Final
