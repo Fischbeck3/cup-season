@@ -1413,7 +1413,7 @@ body::before{
       </div>
             
     </div>
-    <div class="ob-caption" id="obCaption">New or returning, email is one door. No passwords. <span style="opacity:.5">v23.153</span></div>
+    <div class="ob-caption" id="obCaption">New or returning, email is one door. No passwords. <span style="opacity:.5">v23.154</span></div>
   </div>
   <div class="ob-splash" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
   
@@ -5582,7 +5582,12 @@ function openProfileHub(){
       await loadProfile();
       state.myIndex = idx;
       toast(`Index updated to ${idx.toFixed(1)}, posted to your league boards`);
-    } catch(e){ toast('Index update failed: ' + (e.message||e)); }
+    } catch(e){
+      /* an established golfer's set is refused by design (behavior B) — that's
+         information, not a failure, so don't dress it up as an error */
+      const m = e.message || String(e);
+      toast(/comes from your scores/.test(m) ? m : 'Index update failed: ' + m);
+    }
     finally { btn.disabled = false; }
   });
   $('#phScoreHelp')?.addEventListener('click', (e)=>{ e.preventDefault(); window.openScoringHelp?.(); });
