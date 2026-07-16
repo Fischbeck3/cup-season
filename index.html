@@ -1421,7 +1421,7 @@ body::before{
       </div>
             
     </div>
-    <div class="ob-caption" id="obCaption">New or returning, email is one door. No passwords. <span style="opacity:.5">v23.163</span></div>
+    <div class="ob-caption" id="obCaption">New or returning, email is one door. No passwords. <span style="opacity:.5">v23.164</span></div>
   </div>
   <div class="ob-splash" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
   
@@ -1752,11 +1752,13 @@ body::before{
                 <p class="fine" style="padding-top:6px">Fastest way in. Front 9 only posts at half value and counts as half a round.</p>
               </div>
 
-              <div class="frow" style="margin-top:10px">
-                <div><label class="f" for="inDate">Date</label><input class="f" id="inDate" type="date"></div>
-                <div style="display:flex; align-items:flex-end;"><p class="fine" style="padding:0 0 6px" id="postGrossLine">—</p></div>
+              <div style="margin-top:10px">
+                <label class="f" for="inDate">Date</label><input class="f" id="inDate" type="date">
               </div>
-              <div style="height:14px"></div>
+              <!-- F2: the live gross reads at a glance right above Post, so an
+                   untouched (even-par) card is visible before the tap -->
+              <div id="postGrossLine" style="margin-top:12px; padding:10px 12px; border:1px solid var(--line2); border-radius:10px; background:var(--bg2); font-weight:700; font-size:15px; text-align:center; color:var(--ink)">—</div>
+              <div style="height:12px"></div>
               <button class="btn" id="postBtn">Post round</button>
             </div>
           </div>
@@ -2965,7 +2967,10 @@ function vsPhrase(vs){
 /* ---- quick-post hole-by-hole (decision #5: default UI, par-prefilled, the
    gross-only path stays as a flagged-not-punished escape hatch) ---- */
 const POST_PAR_STD=[4,4,4,3,5,4,3,4,5, 4,4,3,4,5,4,3,4,5];   // par 72 template
-state.post = { mode:'holes', side:18, pars:POST_PAR_STD.slice(), scores:POST_PAR_STD.slice() };
+/* F2: `touched` tracks whether the golfer interacted with the grid at all —
+   guards against a rushed Post on an untouched par-prefilled card (accidental
+   even-par). Tracks interaction, not scores===pars, so a legit dial-to-par counts. */
+state.post = { mode:'holes', side:18, pars:POST_PAR_STD.slice(), scores:POST_PAR_STD.slice(), touched:false };
 /* f9/b9 the rest of the pipeline reads — from the grid in holes mode, from the
    two inputs in total mode. One source, so scoring never disagrees with entry. */
 function postInputs(){
@@ -2993,10 +2998,10 @@ function renderPostHoles(){
     const bg=$('#postHoleGridB');
     if(bg) bg.innerHTML = state.post.side===18 ? `<div class="pgrid">${[...Array(9).keys()].map(i=>cell(i+9)).join('')}</div>` : '';
     wrapH.querySelectorAll('[data-php]').forEach(b=>b.addEventListener('click',()=>{
-      const i=+b.dataset.php; state.post.scores[i]=Math.min(15,(+state.post.scores[i]||state.post.pars[i])+1); renderPostHoles();
+      const i=+b.dataset.php; state.post.scores[i]=Math.min(15,(+state.post.scores[i]||state.post.pars[i])+1); state.post.touched=true; renderPostHoles();
     }));
     wrapH.querySelectorAll('[data-phm]').forEach(b=>b.addEventListener('click',()=>{
-      const i=+b.dataset.phm; state.post.scores[i]=Math.max(1,(+state.post.scores[i]||state.post.pars[i])-1); renderPostHoles();
+      const i=+b.dataset.phm; state.post.scores[i]=Math.max(1,(+state.post.scores[i]||state.post.pars[i])-1); state.post.touched=true; renderPostHoles();
     }));
   }
   recalc();
@@ -3062,11 +3067,11 @@ function openPostParsSheet(){
     const rng=[...Array(n).keys()];
     document.getElementById('parGrid').innerHTML=`<div class="pgrid">${rng.map(cell).join('')}</div>`;
     document.querySelectorAll('[data-parp]').forEach(b=>b.addEventListener('click',()=>{
-      const i=+b.dataset.parp; state.post.pars[i]=Math.min(6,state.post.pars[i]+1);
+      const i=+b.dataset.parp; state.post.pars[i]=Math.min(6,state.post.pars[i]+1); state.post.touched=true;
       if(state.post.scores[i]==null) state.post.scores[i]=state.post.pars[i]; draw();
     }));
     document.querySelectorAll('[data-parm]').forEach(b=>b.addEventListener('click',()=>{
-      const i=+b.dataset.parm; state.post.pars[i]=Math.max(3,state.post.pars[i]-1); draw();
+      const i=+b.dataset.parm; state.post.pars[i]=Math.max(3,state.post.pars[i]-1); state.post.touched=true; draw();
     }));
   };
   draw();
@@ -3074,6 +3079,21 @@ function openPostParsSheet(){
 }
 $('#postBtn').addEventListener('click', async ()=>{
   if(!state.lastPost){toast('Enter at least one nine first');return;}
+  /* F2 soft block: an untouched hole grid is still every-hole-par — a rushed
+     Post would bank an accidental even-par. Intercept once; the golfer either
+     enters their card or confirms even-par on purpose (astronomically rare,
+     never forbidden). Total mode enters gross directly, so it's exempt. */
+  if(state.post.mode==='holes' && !state.post.touched){
+    openSheet('Post as even par?', 'YOU HAVEN’T ENTERED YOUR CARD YET', `
+      <p class="fine" style="padding-bottom:12px">Each hole is still on par, so this would post an even-par ${state.post.pars.slice(0,state.post.side).reduce((a,b)=>a+b,0)} — and it counts on your card and in every league.</p>
+      <button class="btn" id="postEnterCard" style="margin-bottom:8px">Enter my card</button>
+      <button class="btn dark" id="postEvenAnyway">Post even par anyway</button>`);
+    document.getElementById('postEnterCard')?.addEventListener('click',closeSheet);
+    document.getElementById('postEvenAnyway')?.addEventListener('click',()=>{
+      state.post.touched=true; closeSheet(); $('#postBtn').click();
+    });
+    return;
+  }
   const {pts,vs,label}=state.lastPost;
   if(!state.demo && window.CS?.user && window.sb){
     const sb=window.sb, CS=window.CS;
@@ -3121,6 +3141,7 @@ $('#postBtn').addEventListener('click', async ()=>{
       $('#inCourse').value=''; $('#inCourse').dataset.courseId='';
       $('#inRating').value=''; $('#inSlope').value='';
       state.post.scores = state.post.pars.slice();   /* reset the grid to par */
+      state.post.touched=false;                       /* next round starts fresh */
       state.lastPost=null;
       if(typeof renderPostHoles==='function') renderPostHoles(); else if(typeof recalc==='function') recalc();
       if(window.loadStandingsAndFeed) await window.loadStandingsAndFeed();
