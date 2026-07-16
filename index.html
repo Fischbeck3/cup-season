@@ -1413,7 +1413,7 @@ body::before{
       </div>
             
     </div>
-    <div class="ob-caption" id="obCaption">New or returning, email is one door. No passwords. <span style="opacity:.5">v23.149</span></div>
+    <div class="ob-caption" id="obCaption">New or returning, email is one door. No passwords. <span style="opacity:.5">v23.150</span></div>
   </div>
   <div class="ob-splash" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
   
@@ -3367,9 +3367,10 @@ function renderPlay(){
     });
   });
 
-  const teamA=`${LIVE[0].n} & ${LIVE[1].n}`.toUpperCase();
-  const teamB=`${LIVE[2].n} & ${LIVE[3].n}`.toUpperCase();
-  const lowMan=LIVE[CHS.indexOf(LOWCH)].n.toUpperCase();
+  const teamA=`${LIVE[0]?.n||''} & ${LIVE[1]?.n||''}`.toUpperCase();
+  const teamB=`${LIVE[2]?.n||''} & ${LIVE[3]?.n||''}`.toUpperCase();
+  const _li=(typeof CHS!=='undefined'&&CHS&&CHS.length)?CHS.indexOf(LOWCH):-1;
+  const lowMan=(_li>=0?String(LIVE[_li]?.n||''):'').toUpperCase();
   $('#matchTeams').textContent = LIVE.length===2
     ? `Match play \u00b7 singles \u00b7 ${LIVE[0].n} vs ${LIVE[1].n}`
     : `Match play \u00b7 net best ball \u00b7 ${LIVE[0].n} + ${LIVE[1].n} vs ${LIVE[2].n} + ${LIVE[3].n}`;
@@ -3379,6 +3380,7 @@ function renderPlay(){
     : (m.a===m.b?'ALL SQUARE':`${m.a>m.b?teamA:teamB} ${Math.abs(m.a-m.b)} UP`);
   $('#matchMeta').textContent=`THRU ${m.played} · STROKES OFF LOW MAN (${lowMan})`;
 
+  if(state.live.game==='wolf' && LIVE.length===4){
   const wolfIdx=h%4;
   $('#wolfWho').textContent=LIVE[wolfIdx].n.toUpperCase()+' IS THE WOLF';
   const wb=$('#wolfBtns'); wb.innerHTML='';
@@ -3406,6 +3408,7 @@ function renderPlay(){
   });
 
   $('#settle').innerHTML=settleRows(pts);
+  }
   renderLiveBanner();
 }
 $('#holePrev').addEventListener('click',()=>{state.live.hole=Math.max(0,state.live.hole-1);renderPlay();});
@@ -3488,8 +3491,8 @@ function renderLiveBanner(){
   const b=$('#liveBanner'); if(!b) return;
   if(!state.live.active || state.phase!=='season'){ b.style.display='none'; return; }
   b.style.display='block';
-  const teamA=`${LIVE[0].n} & ${LIVE[1].n}`.toUpperCase();
-  const teamB=`${LIVE[2].n} & ${LIVE[3].n}`.toUpperCase();
+  const teamA=`${LIVE[0]?.n||''} & ${LIVE[1]?.n||''}`.toUpperCase();
+  const teamB=`${LIVE[2]?.n||''} & ${LIVE[3]?.n||''}`.toUpperCase();
   const m=matchCalc();
   let st='SCORING LIVE';
   if(state.live.game==='match'){
