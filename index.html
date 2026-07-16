@@ -1413,7 +1413,7 @@ body::before{
       </div>
             
     </div>
-    <div class="ob-caption" id="obCaption">New or returning, email is one door. No passwords. <span style="opacity:.5">v23.159</span></div>
+    <div class="ob-caption" id="obCaption">New or returning, email is one door. No passwords. <span style="opacity:.5">v23.160</span></div>
   </div>
   <div class="ob-splash" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
   
@@ -2212,6 +2212,7 @@ const state = {
   stake:75, months:6, cap:1, floor:2, myIndex:12.4,
   phase:'season', wiz:0, preset:1, fmt:2, emails:[], wizInvitees:[], showOthers:false, structure:'squads2', demo:true, startOffset:0, durWeeks:26, startISO:'',
   draftType:'random',
+  finish:'cup_final',   /* the endgame dial (008): cup_final | points_table */
 };
 const STAKES=[25,50,75,100,150,200], LENGTHS=[6,9,12], CAPS=['Best 2','Best 4','Best 6','Unlimited'];
 /* season length ladder in WEEKS — short casual seasons ("a quick 3-round run
@@ -4014,7 +4015,14 @@ function renderStats(){
         {n:dTo(sun),   pri:0, gold:false, t:dTo(sun)===0?'Week closes tonight':`Week closes Sun · ${dTo(sun)}d`},
         {n:dTo(first), pri:1, gold:false, t:`Month closes ${MOS[first.getMonth()]} 1 · floors assessed`},
       ];
-      if(cf>=today) opts.push({n:dTo(cf), pri:2, gold:true, t:`Cup Final · Sun ${MOS[cf.getMonth()]} ${cf.getDate()} · ${dTo(cf)}d`});
+      /* the endgame dial (008): only Cup Final leagues get the Final line;
+         points-table leagues foreshadow the table crowning instead (D4) */
+      if((state.finish||'cup_final')==='cup_final'){
+        if(cf>=today) opts.push({n:dTo(cf), pri:2, gold:true, t:`Cup Final · Sun ${MOS[cf.getMonth()]} ${cf.getDate()} · ${dTo(cf)}d`});
+      } else {
+        const en=new Date(seasonE());
+        if(en>=today) opts.push({n:dTo(en), pri:2, gold:true, t:`Points table crowns it · ends ${MOS[en.getMonth()]} ${en.getDate()} · ${dTo(en)}d`});
+      }
       const nx=opts.sort((a,b)=>a.n-b.n || b.pri-a.pri)[0];
       sf.textContent=nx.t;
       sf.style.color=nx.gold?'var(--gold)':'';
@@ -4807,6 +4815,7 @@ function resetToBlank(leagueName){
   /* the demo's Sunday-season frame must never shadow a real league — the DB
      rewrites these when a season exists; until then there are no season dates */
   state.seasonStart=null; state.seasonEnd=null;
+  state.finish='cup_final';   /* never carry one league's dial into the next */
   window.indRows=[]; window.myMonth=null; window.myIndexDelta=null; window.buyIns={};
   feed.length=0;
   feed.push({d:TODAY, sys:true, txt:(leagueName||'Your league')+' is live. Say hello on the board'});
@@ -4842,6 +4851,8 @@ function seasonSpanText(){
    Start = ends_on − 27 days: a Sunday, since seasons end Saturday. */
 function cupFinalStart(){ const d=new Date(seasonE()); d.setDate(d.getDate()-27); return d; }
 function isCupFinal(){
+  /* the endgame dial (008): points-table leagues never enter a Final */
+  if(!state.demo && (state.finish||'cup_final')!=='cup_final') return false;
   return !state.demo && state.phase==='season' && Date.now() >= cupFinalStart().getTime();
 }
 /* "At the starter": bylaws locked, squads formed, first tee still ahead.
@@ -4890,11 +4901,29 @@ function renderBylaws(){
     <div class="byrow"><span>SEASON FORMAT</span><b>${FMT_NAMES[state.fmt]}</b></div>
     <div class="byrow"><span>BUY-IN</span><b>${fmt$(state.stake)} / player</b></div>
     <div class="byrow"><span>SEASON</span><b>${durLabel(state.durWeeks)} · ${seasonSpanText()}</b></div>
-    ${state.durWeeks>=6
+    ${(state.finish||'cup_final')==='cup_final' && state.durWeeks>=6
       ? `<div class="byrow"><span>CUP FINAL</span><b>Final 4 weeks · from ${WD[cupFinalStart().getDay()]} ${MOS[cupFinalStart().getMonth()]} ${cupFinalStart().getDate()} · scored fresh</b></div>`
-      : `<div class="byrow"><span>FINISH</span><b>One table, whole season · short-run cup</b></div>`}`;
+      : `<div class="byrow"><span>FINISH</span><b>Points table crowns it · whole season, one race</b></div>`}`;
   const hub=$('#bylawsHub'); if(hub) hub.innerHTML=rows;
   const rev=$('#bylawsReview'); if(rev) rev.innerHTML=rows;
+  /* the endgame dial (migration 008): the Pro can flip the finish until the
+     final window opens — after that it's settled, argue never */
+  if(hub && !state.demo && window.CS?.member?.role==='commissioner'
+     && state.phase==='season' && !isCupFinal()){
+    const cur=(state.finish||'cup_final');
+    hub.insertAdjacentHTML('beforeend',
+      `<div style="padding:6px 0 2px"><button class="mini" id="finishDial">Finish: ${cur==='cup_final'?'Cup Final':'points table'} — switch to ${cur==='cup_final'?'points table':'the Cup Final'}</button></div>`);
+    hub.querySelector('#finishDial')?.addEventListener('click', async ()=>{
+      const next = cur==='cup_final' ? 'points_table' : 'cup_final';
+      try{
+        const { error } = await window.sb.rpc('set_league_finish', { p_league: CS.league.id, p_finish: next });
+        if(error) throw error;
+        state.finish=next;
+        toast(next==='cup_final' ? 'The Cup Final returns — final 4 weeks, scored fresh' : 'Points table crowns the champion — posted to the board');
+        renderBylaws(); renderStats();
+      }catch(e){ toast(e.message||String(e)); }
+    });
+  }
   const la=$('#lineAmt'); if(la){
     /* one source of player count everywhere the pot shows: demo = the crew,
        real = the actual roster (the 16 fallback made the tile lie vs the pot page) */
@@ -6249,6 +6278,7 @@ function applyBylaws(b){
   state.fmt       = ['points','h2h','hybrid'].indexOf(b.season_format);
   state.structure = b.structure;
   state.payout    = [b.payout_champ ?? 60, b.payout_runnerup ?? 25, b.payout_king ?? 15];
+  state.finish    = b.finish || 'cup_final';   /* migration 008: the endgame dial */
   renderSetup(); renderBylaws();
 }
 
