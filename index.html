@@ -1421,7 +1421,7 @@ body::before{
       </div>
             
     </div>
-    <div class="ob-caption" id="obCaption">New or returning, email is one door. No passwords. <span style="opacity:.5">v23.164</span></div>
+    <div class="ob-caption" id="obCaption">New or returning, email is one door. No passwords. <span style="opacity:.5">v23.165</span></div>
   </div>
   <div class="ob-splash" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
   
@@ -3051,31 +3051,57 @@ $$('#postSide button').forEach(b=>b.addEventListener('click',()=>{
   $$('#postSide button').forEach(x=>x.classList.remove('on')); b.classList.add('on');
   state.post.side=+b.dataset.ph; renderPostHoles();
 }));
-/* set the pars for this card — reuses the live-round par sheet's logic inline */
+/* set the pars for this card — matches the live-round course card (openCardSheet):
+   type nine digits a side, not eighteen ±steppers. One format until the course DB
+   fills pars/SI in for us. Setting pars is card setup, not score entry, so it
+   never flips `touched` — the F2 even-par guard still holds until scores go in. */
 document.getElementById('postSetPars')?.addEventListener('click',(e)=>{ e.preventDefault(); openPostParsSheet(); });
 function openPostParsSheet(){
-  const n=state.post.side;
-  openSheet('Set the pars', 'TAP TO ADJUST — DEFAULTS TO PAR 72', `
-    <div id="parGrid"></div>
-    <p class="fine" style="padding-top:8px">Only matters if this course isn't par 72 — the scores you enter are what post.</p>
-    <button class="btn" id="parDone" style="margin-top:10px">Done</button>`);
-  const draw=()=>{
-    const cell=i=>`<div class="pcell"><span class="pn">${i+1}</span>
-      <div class="prow"><button type="button" data-parm="${i}">−</button>
-      <span class="ps">${state.post.pars[i]}</span>
-      <button type="button" data-parp="${i}">+</button></div></div>`;
-    const rng=[...Array(n).keys()];
-    document.getElementById('parGrid').innerHTML=`<div class="pgrid">${rng.map(cell).join('')}</div>`;
-    document.querySelectorAll('[data-parp]').forEach(b=>b.addEventListener('click',()=>{
-      const i=+b.dataset.parp; state.post.pars[i]=Math.min(6,state.post.pars[i]+1); state.post.touched=true;
-      if(state.post.scores[i]==null) state.post.scores[i]=state.post.pars[i]; draw();
-    }));
-    document.querySelectorAll('[data-parm]').forEach(b=>b.addEventListener('click',()=>{
-      const i=+b.dataset.parm; state.post.pars[i]=Math.max(3,state.post.pars[i]-1); state.post.touched=true; draw();
-    }));
-  };
-  draw();
-  document.getElementById('parDone')?.addEventListener('click',()=>{ closeSheet(); renderPostHoles(); });
+  const nine = state.post.side===9;
+  openSheet('Set the pars',
+    (($('#inCourse')?.value||'Course')+' · pars only').toUpperCase(),
+    `<div class="cardlbl"><span>Front nine</span><span id="ppF9sum">—</span></div>
+     <input class="cardin" id="ppF9" inputmode="numeric" maxlength="9" placeholder="453453543" autocomplete="off">
+     ${nine?'':`<div class="cardlbl"><span>Back nine</span><span id="ppB9sum">—</span></div>
+     <input class="cardin" id="ppB9" inputmode="numeric" maxlength="9" placeholder="434445345" autocomplete="off">`}
+     <div class="cardlbl"><span>Total par</span><span id="ppTot">—</span></div>
+     <p class="fine" style="padding-top:6px">Nine digits a side, 3–6. ${nine?'Front nine only.':'Type it once.'} Only matters if this course isn't par 72 — exact stroke index arrives with the course database.</p>
+     <button class="btn" id="ppSave" style="margin-top:10px">Done</button>`);
+  const f9=$('#ppF9'), b9=nine?null:$('#ppB9');
+  f9.value=state.post.pars.slice(0,9).join('');
+  if(b9) b9.value=state.post.pars.slice(9,18).join('');
+  function refresh(){
+    const f=f9.value, b=b9?b9.value:'';
+    const fs=$('#ppF9sum'), bs=b9?$('#ppB9sum'):null, ct=$('#ppTot');
+    fs.textContent=f.length?sumStr(f):'—';
+    fs.className=f.length?(validSide(f)?'ok':'no'):'';
+    f9.classList.toggle('bad', f.length===9&&!validSide(f));
+    if(bs){
+      bs.textContent=b.length?sumStr(b):'—';
+      bs.className=b.length?(validSide(b)?'ok':'no'):'';
+      b9.classList.toggle('bad', b.length===9&&!validSide(b));
+    }
+    const ok = validSide(f) && (nine || validSide(b));
+    if(ok){ ct.textContent=sumStr(f)+(nine?0:sumStr(b)); ct.className='ok'; }
+    else { ct.textContent='—'; ct.className=''; }
+  }
+  [f9,b9].filter(Boolean).forEach(inp=>inp.addEventListener('input',()=>{
+    inp.value=inp.value.replace(/[^3-6]/g,'').slice(0,9);
+    if(inp===f9 && b9 && inp.value.length===9) b9.focus();
+    refresh();
+  }));
+  $('#ppSave').addEventListener('click',()=>{
+    const f=f9.value, b=b9?b9.value:'';
+    if(!validSide(f) || (!nine && !validSide(b))){ toast('Nine digits a side, 3 through 6'); return; }
+    const back = nine ? state.post.pars.slice(9,18) : [...b].map(Number);
+    state.post.pars = [...[...f].map(Number), ...back];
+    state.post.scores = state.post.pars.slice();   /* grid re-opens on the new pars */
+    closeSheet();
+    renderPostHoles();
+    toast('Pars set — adjust the holes you didn’t par');
+  });
+  refresh();
+  f9.focus();
 }
 $('#postBtn').addEventListener('click', async ()=>{
   if(!state.lastPost){toast('Enter at least one nine first');return;}
