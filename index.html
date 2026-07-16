@@ -1408,12 +1408,12 @@ body::before{
     <div id="obWelcome" style="display:none">
       <div class="ob-hero" style="margin-bottom:22px">
         <div class="lockbadge" style="color:var(--pos); border-color:rgba(67,224,124,.35); background:rgba(67,224,124,.07)">✓ SIGNED IN</div>
-        <h1 style="font-size:30px">Your <em>clubhouse.</em></h1>
+        <h1 style="font-size:30px">You're <em>in.</em></h1>
         <p id="obWelcomeWho" style="margin-top:10px"></p>
       </div>
             
     </div>
-    <div class="ob-caption" id="obCaption">New or returning, email is one door. No passwords. <span style="opacity:.5">v23.152</span></div>
+    <div class="ob-caption" id="obCaption">New or returning, email is one door. No passwords. <span style="opacity:.5">v23.153</span></div>
   </div>
   <div class="ob-splash" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
   
@@ -2509,7 +2509,7 @@ function renderStandings(){
     const pr=priorRank[t.id];
     let mv='';
     if(pr!=null && pr!==i){ const d=pr-i; mv=`<span class="rkmove ${d>0?'up':'dn'}" title="${d>0?'up':'down'} ${Math.abs(d)} this week">${d>0?'▲':'▼'}${Math.abs(d)}</span>`; }
-    html+=`<tr class="${i===0?'lead':''} ${solo?'':'tap'}" data-squad="${t.name}">
+    html+=`<tr class="${i===0?'lead':''} tap" data-squad="${t.name}">
       <td class="rk mono">${String(i+1).padStart(2,'0')}${mv}</td>
       <td><div style="display:flex;align-items:center;gap:10px"><span class="sw" style="background:${SQHEX[t.ci]}"></span><div><div class="tn">${t.name}</div><div class="tc">${solo ? (t.sub||0)+' ROUND'+(t.sub===1?'':'S') : 'CAPT. '+t.cap.toUpperCase()}</div></div></div></td>
       <td>${arr.length>1?sparkline(arr,t.ci):'<span class="fine" style="padding:0;color:var(--dim)">WK 1</span>'}</td>
@@ -2519,8 +2519,15 @@ function renderStandings(){
     if(i===1) html+=`<tr class="cutrow"><td colspan="5">Cup line · top 2 advance</td></tr>`;
   });
   flipRows(el, 'data-squad', ()=>{ el.innerHTML=html; });
-  if(!solo) el.querySelectorAll('[data-squad]').forEach(r=>
-    r.addEventListener('click',()=>showSquad(r.dataset.squad)));
+  /* receipts from the table itself: squads open the squad math, solo rows
+     open the player's rounds — no points figure without its rounds (§16) */
+  el.querySelectorAll('[data-squad]').forEach(r=>
+    r.addEventListener('click',()=>{
+      if(solo){
+        const p=(window.indRows||[]).find(x=>x.n===r.dataset.squad);
+        if(p && typeof openMemberHist==='function') openMemberHist(p);
+      } else showSquad(r.dataset.squad);
+    }));
 }
 
 /* ================= feed ================= */
@@ -2633,16 +2640,21 @@ function renderFeedFull(){
       const r=(window.roundCache||{})[f.rid];
       if(r && r.gross!=null){
         const up=(r.pvi??0)>=0;
-        const counting = r.month_rank!=null
-          ? `<span class="ok">COUNTING #${r.month_rank} THIS MONTH</span>`
-          : `<span class="dim">PRE-SEASON · NOT COUNTING</span>`;
+        /* D2: no differential/index jargon on the story card — the round reads
+           as a sentence; the math lives in the receipts sheet */
+        const capN=[2,4,6,Infinity][state.cap];
+        const counting = r.month_rank==null
+          ? `<span class="dim">PRE-SEASON · NOT COUNTING</span>`
+          : r.month_rank<=capN
+            ? `<span class="ok">COUNTING #${r.month_rank} THIS MONTH</span>`
+            : `<span class="dim">BUMPED — OUTSIDE THE BEST ${capN===Infinity?'':capN} THIS MONTH</span>`;
         el.insertAdjacentHTML('beforeend',`
         <div class="fcard"><div class="round">
           <span class="bar" style="background:${SQHEX[f.ci]}"></span>
           <div class="body">
             <div class="l1">${esc(f.who||'—')}</div>
             <div class="l2">${esc(r.course_label||'somewhere out there')} · ${r.holes_played||18} holes · ${r.played_on||''}</div>
-            <div class="rline">${r.gross} GROSS · DIFF ${r.differential} · IDX ${r.index_at_post}</div>
+            <div class="rline">${r.gross} GROSS${r.pvi!=null?` · ${bandName(Number(r.pvi)).toUpperCase()}`:''}</div>
             <div class="rline">${counting}</div>
           </div>
           ${r.pvi!=null?`<span class="pvi ${up?'up':'dn'}">${up?'+':''}${Number(r.pvi).toFixed(1)}</span>`:''}
@@ -2667,7 +2679,8 @@ function renderFeedFull(){
       el.insertAdjacentHTML('beforeend',`
       <div class="fcard"><div class="round">
         <span class="bar" style="background:${SQHEX[f.ci]}"></span>
-        <div class="body"><div class="l1">${esc(f.who)} <span>· ${esc(f.team||'')}</span></div><div class="l2">${esc(f.meta||'')}</div></div>
+        <div class="body"><div class="l1">${esc(f.who)} <span>· ${esc(f.team||'')}</span></div><div class="l2">${esc(f.meta||'')}</div>
+        <div class="rline">${bandName(f.pvi).toUpperCase()}</div></div>
         <span class="pvi ${up?'up':'dn'}">${up?'+':''}${f.pvi.toFixed(1)}</span>
         <div class="pts">${f.pts}<small>PTS</small></div>
       </div></div>`);
@@ -2860,11 +2873,27 @@ $('#dPickFor').addEventListener('click',()=>{
 
 /* ================= post ================= */
 function pointsFor(vs){
-  if(vs>=3)  return [12,'You torched your index by '+vs.toFixed(1)+'. Sandbagger alert.'];
-  if(vs>=1)  return [9,'You beat your index by '+vs.toFixed(1)+'. Nice round.'];
+  if(vs>=3)  return [12,'You torched your number by '+vs.toFixed(1)+'. Sandbagger alert.'];
+  if(vs>=1)  return [9,'You beat your number by '+vs.toFixed(1)+'. Nice round.'];
   if(vs>=-1) return [7,'Right on your number. Steady points.'];
   if(vs>=-3) return [6,'A little loose, still cash in the bank.'];
   return [5,'Rough one, but posted rounds always score.'];
+}
+/* the named bands (spec §2.2's Read column) — the display language for scoring.
+   PvI stays the engine currency; the SCREEN says "your number" (decision D1). */
+function bandName(vs){
+  if(vs>=3)  return 'Torched it';
+  if(vs>=1)  return 'Beat your number';
+  if(vs>=-1) return 'Played to it';
+  if(vs>=-3) return 'A little loose';
+  return 'Posted anyway';
+}
+function vsPhrase(vs){
+  vs=Number(vs);
+  if(!isFinite(vs)) return '';
+  if(vs>=1)  return 'beat your number by '+vs.toFixed(1);
+  if(vs>=-1) return 'played to your number';
+  return vs.toFixed(1).replace('-','')+' over your number';
 }
 function recalc(){
   const rating=parseFloat($('#inRating').value)||0;
@@ -3696,17 +3725,32 @@ function renderStats(){
       sf.style.color=nx.gold?'var(--gold)':'';
     }
   }
-  $('#statIdx').textContent=state.myIndex.toFixed(1);
+  /* establishing golfers show a build meter, never a dash or a ghost number
+     (decision D3 — the dash reads as broken; it's actually progress) */
+  const est = !state.demo && window.CS?.profile && window.CS.profile.index_current==null;
   const xd=$('#statIdxD');
-  if(xd && !state.demo){
-    const d=window.myIndexDelta;
-    if(d==null || !isFinite(d) || Math.abs(d)<0.05){ xd.textContent='Season to date'; xd.className='d fl'; }
-    else { xd.textContent=(d<0?'▼ ':'▲ ')+Math.abs(d).toFixed(1)+' this season'; xd.className='d '+(d<0?'up':'fl'); }
+  if(est){
+    const n=Math.min(window.career?.rounds ?? 0, 3);
+    $('#statIdx').textContent=n+' of 3';
+    if(xd){ xd.textContent='Building your number'; xd.className='d fl'; }
+  } else {
+    $('#statIdx').textContent=state.myIndex.toFixed(1);
+    if(xd && !state.demo){
+      const d=window.myIndexDelta;
+      if(d==null || !isFinite(d) || Math.abs(d)<0.05){ xd.textContent='Season to date'; xd.className='d fl'; }
+      else { xd.textContent=(d<0?'▼ ':'▲ ')+Math.abs(d).toFixed(1)+' this season'; xd.className='d '+(d<0?'up':'fl'); }
+    }
   }
-  $('#statCount').innerHTML = capN===Infinity
-    ? fmtN(credits)+' <small>rounds</small>'
-    : fmtN(used)+' <small>/ '+capN+'</small>';
-  $('#statCountD').textContent=curMonth()+' · '+CAPS[state.cap].toLowerCase()+' count';
+  /* D3: the month is a fill meter, not prose about "caps" — four slots you
+     can see filling. A better round always bumps your worst counter. */
+  if(capN===Infinity){
+    $('#statCount').innerHTML = fmtN(credits)+' <small>rounds</small>';
+  } else {
+    const dots=Array.from({length:capN},(_,i)=>
+      `<span style="display:inline-block;width:7px;height:7px;border-radius:50%;margin-right:3px;${i<used?'background:var(--pos)':'border:1px solid var(--dim);opacity:.55'}"></span>`).join('');
+    $('#statCount').innerHTML = fmtN(used)+' <small>/ '+capN+'</small><span style="display:block;margin-top:4px;line-height:1">'+dots+'</span>';
+  }
+  $('#statCountD').textContent=curMonth()+(capN===Infinity?' · every round counts':' · your best '+capN+' count');
   const nk=$('#nextK');
   if(atStarter()){
     if(nk) nk.textContent='Next up · kickoff';
@@ -4255,13 +4299,20 @@ function renderIndStatsReal(){
   $('#indTable').innerHTML=html;
   /* receipts: every points figure opens the rounds that produced it (§16) */
   $('#indTable').querySelectorAll('[data-ri]').forEach(tr=>tr.addEventListener('click',()=>{
-    const p=rows[Number(tr.dataset.ri)]; if(!p) return;
-    const hist=(p.hist||[]);
-    const body=hist.length
-      ? hist.map(h=>`<div class="fine" style="display:flex;justify-content:space-between;padding:4px 0"><span>${h.played_on}${h.holes_played===9?' · 9 HOLES':''}${h.counting?'':' · NOT COUNTING'}</span><b class="mono">${sgn(Number(h.pvi))} vs index · ${h.points} PTS</b></div>`).join('')
-      : '<p class="fine">No rounds this season yet — post one and you\'re on the board.</p>';
-    openSheet(p.n, `${p.r} ROUND${p.r===1?'':'S'} · ${p.pts} PTS`, body);
+    const p=rows[Number(tr.dataset.ri)]; if(p) openMemberHist(p);
   }));
+}
+
+/* the one member-receipts sheet — reached from the You table, squad sheets,
+   and solo standings rows. Every number traces to the rounds behind it (§16). */
+function openMemberHist(p){
+  const sgn=v=>(v>=0?'+':'')+Number(v).toFixed(1);
+  const hist=(p.hist||[]);
+  const body=hist.length
+    ? hist.map(h=>`<div class="fine" style="display:flex;justify-content:space-between;gap:10px;padding:4px 0"><span>${h.played_on}${h.holes_played===9?' · 9 HOLES':''}${h.counting?'':' · BUMPED'}</span><b class="mono" style="white-space:nowrap">${sgn(h.pvi)} vs index · ${h.points} PTS</b></div>`).join('')
+      + (hist.some(h=>!h.counting)?'<p class="fine" style="padding-top:10px">Bumped rounds still happened — a better round took their monthly slot. A better round always bumps your worst counter.</p>':'')
+    : '<p class="fine">No rounds this season yet — post one and you\'re on the board.</p>';
+  openSheet(p.n, `${p.r} ROUND${p.r===1?'':'S'} · ${p.pts} PTS`, body);
 }
 
 /* ================= drill-down receipts ================= */
@@ -4331,6 +4382,9 @@ document.addEventListener('keydown',e=>{ if(e.key==='Escape') closeSheet(); });
 /* squad → its arithmetic */
 function showSquad(name){
   const t=teams.find(t=>t.name===name); if(!t) return;
+  /* real leagues: the squad receipt reads the same views the server scores
+     with (indRows), never the demo PLAYERS shape */
+  if(!state.demo && window.CS?.league){ showSquadReal(t); return; }
   const roster=PLAYERS.filter(p=>p.sq===SQABBR[t.ci]);
   const adjs=ADJ.filter(a=>a.sq===name);
   const bonus=adjs.filter(a=>a.pts>0).reduce((a,b)=>a+b.pts,0);
@@ -4355,6 +4409,32 @@ function showSquad(name){
   });
   h+=`<p class="fine" style="padding-top:12px">Squad points = counting rounds + monthly bonuses − floor penalties. Tap any player for their rounds.</p>`;
   openSheet(name, `CAPT. ${t.cap.toUpperCase()} · ${roster.length} PLAYERS`, h);
+}
+
+/* real squad receipts: members from CS.squads, numbers from indRows —
+   the same rows the You table reads, so the math can never disagree (§16) */
+function showSquadReal(t){
+  const q=(window.CS?.squads||[]).find(x=>x.id===t.id);
+  const ids=new Set((q?.squad_members||[]).map(x=>x.member_id));
+  const rows=(window.indRows||[]).filter(r=>ids.has(r.mid)).sort((a,b)=>b.pts-a.pts);
+  const fromRounds=rows.reduce((a,r)=>a+r.pts,0);
+  const adj=t.pts-fromRounds;   /* the ledger's net: bonuses − penalties */
+  let h=`<div class="mathrow"><span>Counting rounds</span><b>${fromRounds}</b></div>`;
+  if(adj) h+=`<div class="mathrow ${adj>0?'pos':'neg'}"><span>Bonuses &amp; penalties · the ledger</span><b>${adj>0?'+':''}${adj}</b></div>`;
+  h+=`<div class="mathrow tot"><span>Total</span><b>${t.pts}</b></div>`;
+  h+=`<div class="eyebrow" style="margin-top:18px">Who built it</div>`;
+  rows.forEach((p,i)=>{
+    h+=`<button class="rdrow" data-sqm="${i}">
+      <span class="sw" style="background:${SQHEX[p.ci]??SQHEX[1]}"></span>
+      <span class="rn"><b>${esc(p.n)}</b><small>${p.r} ROUND${p.r===1?'':'S'} · AVG vs index ${p.r?(p.avg>=0?'+':'')+p.avg.toFixed(1):'—'}</small></span>
+      <span class="rp">${p.pts}</span></button>`;
+  });
+  if(!rows.length) h+=`<p class="fine">No rounds posted yet — the squad is waiting on its first counter.</p>`;
+  h+=`<p class="fine" style="padding-top:12px">Squad points = everyone's counting rounds + the ledger. Tap any player for the rounds behind their number.</p>`;
+  openSheet(t.name, `${t.cap?'CAPT. '+t.cap.toUpperCase()+' · ':''}${rows.length} PLAYERS · ${t.pts} PTS`, h);
+  document.querySelectorAll('[data-sqm]').forEach(b=>b.addEventListener('click',()=>{
+    const p=rows[Number(b.dataset.sqm)]; if(p) openMemberHist(p);
+  }));
 }
 
 /* player → their rounds, counting and displaced */
@@ -4385,7 +4465,7 @@ function showPlayer(name){
       h+=`<button class="rdrow cut" data-round="${name}|${i}">
         <span class="rn"><b>${r.gross} at ${r.course}${r.nine?' · 9':''}</b>
         <small>${r.d} · ${r.pvi>=0?'+':''}${r.pvi.toFixed(1)} vs index</small></span>
-        <span class="cuttag">NO COUNT</span>
+        <span class="cuttag">BUMPED</span>
         <span class="rp">${r.pts}</span></button>`;
     });
     h+=`<p class="fine" style="padding-top:12px">Displaced rounds still happened; they just fell outside the monthly cap. A better round always bumps your worst counter.</p>`;
@@ -5137,8 +5217,18 @@ function refreshWhoChip(){
     const since = p.created_at ? (()=>{ const d=new Date(p.created_at); return 'Member since '+MOS[d.getMonth()]+' '+d.getFullYear(); })() : null;
     $('#youAnchor').textContent = [p.ghin_number ? 'GHIN '+p.ghin_number : null, since].filter(Boolean).join(' · ');
   }
-  if($('#youIdx')) $('#youIdx').textContent =
-    p.index_current != null ? Number(p.index_current).toFixed(1) : '—';
+  if($('#youIdx')){
+    if(p.index_current != null){
+      $('#youIdx').textContent = Number(p.index_current).toFixed(1);
+      $('#youIdx').style.fontSize = '';
+    } else {
+      /* building, not broken — the dash read as an error (decision D3) */
+      const n = Math.min(window.career?.rounds ?? 0, 3);
+      $('#youIdx').textContent = n + ' of 3';
+      $('#youIdx').style.fontSize = '13px';
+      $('#youIdx').title = 'Building your number — your index appears at 3 posted rounds';
+    }
+  }
   if($('#youMk')) $('#youMk').innerHTML = mkr(p.marker || 'saguaro');
 }
 let phMarker = null;
@@ -5249,9 +5339,9 @@ async function openRivalrySheet(oppId, name, rec){
               : '<span style="color:var(--mut)">HALVED</span>';
     return `<div class="check"><span class="num mono" style="font-size:10.5px; line-height:1.25">WK OF<br>${MOS[d.getMonth()].toUpperCase()} ${d.getDate()}</span>
       <div class="tt"><b>${tag} · YOU ${me>=0?'+':''}${me.toFixed(1)} · ${esc(name)} ${th>=0?'+':''}${th.toFixed(1)}</b>
-      <small>BEST PvI THAT WEEK</small></div></div>`;
+      <small>BEST ROUND VS INDEX THAT WEEK</small></div></div>`;
   }).join('') : '<p class="fine">No head-to-head weeks yet. A clash counts a week you both post.</p>';
-  openSheet(`You vs ${name}`, `${rec||''} · WEEKLY CLASH · HIGHER PvI TAKES THE WEEK`, body);
+  openSheet(`You vs ${name}`, `${rec||''} · WEEKLY CLASH · BETTER ROUND VS INDEX TAKES THE WEEK`, body);
 }
 window.openRivalrySheet = openRivalrySheet;
 
@@ -5291,7 +5381,7 @@ async function openTourCard(profileId){
   const stats = `<div class="stats" style="margin-top:14px">
       <div class="stat"><div class="k">Rounds</div><div class="v">${c.rounds||0}</div></div>
       <div class="stat"><div class="k">Best diff</div><div class="v">${best}</div></div>
-      <div class="stat"><div class="k">Avg PvI</div><div class="v">${avg}</div></div></div>`;
+      <div class="stat"><div class="k">Avg vs index</div><div class="v">${avg}</div></div></div>`;
   let trHtml='';
   if(tr.length){
     trHtml = `<div class="eyebrow" style="margin-top:16px">Trophy case</div><div style="display:grid; grid-template-columns:repeat(3,1fr); gap:8px">`
@@ -6395,6 +6485,7 @@ $('#joinGo').addEventListener('click', async () => {
     const m = CS.memberships.find(x => x.league.code === code);
     await enterLeague(m);
     toast('Joined ' + m.league.name);
+    openLeagueWelcome(m.league.name);
   } catch(err){ toast('Could not join: ' + err.message); }
 });
 
@@ -6502,6 +6593,7 @@ function openJoinSheet(){
       if(document.body.classList.contains('noleague')) hideWelcome();
       await enterLeague(m);
       toast('Joined ' + m.league.name);
+      openLeagueWelcome(m.league.name);
     }catch(err){
       toast(/invalid/i.test(err.message||'') ? 'No league with that code. Check with your Pro' : 'Could not join: ' + (err.message||err));
       $('#jGo').disabled = false;
@@ -6598,7 +6690,7 @@ async function openLeagueSwitcher(){
       <div class="tt"><b>${title}</b><small>${sub}</small></div>
       <span class="fine" style="padding:0; color:var(--dim)">→</span>
     </div>`;
-  openSheet('Clubhouse', 'EVERYTHING YOU PLAY, AND WHAT TO START NEXT',
+  openSheet('Your leagues', 'EVERYTHING YOU PLAY, AND WHAT TO START NEXT',
     '<div class="eyebrow" style="margin-top:0">Your leagues · the long game</div>'
     + (leagues || '<p class="fine" style="padding:2px 0 8px">No leagues yet — start or join one below.</p>')
     + '<div class="eyebrow">Your events · the short game</div>'
@@ -6948,6 +7040,9 @@ async function loadCareer(){
     };
   }catch(e){ window.career = window.career || null; }
   if(window.renderCareer) window.renderCareer();
+  /* the establishing meter ("2 of 3") needs the round count, which lands
+     after the profile paints — refresh the card once the career is in */
+  if(CS.profile && CS.profile.index_current==null) refreshWhoChip();
 }
 window.loadCareer = loadCareer;
 /* the Home welcome feed: your circle's recent rounds (home_feed RPC, with PR /
@@ -7237,25 +7332,36 @@ window.openMembersSheet = openMembersSheet;
    Reachable from the index editor and the league-rules panel. */
 function openScoringHelp(){
   openSheet('How scoring works', 'HANDICAPS · CUP POINTS · THE MONEY', `
-    <div class="eyebrow" style="margin-top:0">Your handicap index</div>
-    <p class="fine" style="padding:0 0 6px">It builds from your scores — no typing. Each round's <b>differential</b> (how you played vs the course's rating &amp; slope) feeds a WHS-style index off your best recent rounds. It appears once you've posted <b>3 rounds</b>; until then you're <i>establishing</i>.</p>
-    <p class="fine" style="padding:0 0 10px">You (or the Pro) can set a <b>starter</b> index to get going sooner — but once you have 3 posted rounds, your scores take over. Manual changes are announced to your league so the crew keeps everyone honest.</p>
+    <div class="eyebrow" style="margin-top:0">Your number</div>
+    <p class="fine" style="padding:0 0 6px">Your handicap index builds from your scores — no typing. Every round measures how you played against the course's difficulty (rating &amp; slope), and your best recent rounds set your number, WHS-style. It appears once you've posted <b>3 rounds</b>; until then it shows as building.</p>
+    <p class="fine" style="padding:0 0 10px">You (or the Pro) can set a <b>starter</b> to get going sooner — but once you have 3 posted rounds, your scores take over. Manual changes are announced to your league so the crew keeps everyone honest.</p>
     <div class="eyebrow">Every round → cup points</div>
-    <p class="fine" style="padding:0 0 4px">A round scores by <b>PvI</b> — Performance vs Index: your playing index minus the round's differential. Beat your number and PvI is positive. It converts to cup points:</p>
+    <p class="fine" style="padding:0 0 4px">Every round is scored against <b>your own number</b> — a 22-index beating their number is worth exactly what a 6-index beating theirs is:</p>
     <div class="card" style="text-align:left; padding:10px 12px; margin-bottom:10px">
-      <div class="fine" style="padding:2px 0">PvI +3.0 or better · <b>12 pts</b></div>
-      <div class="fine" style="padding:2px 0">+1.0 to +2.9 · <b>9 pts</b></div>
-      <div class="fine" style="padding:2px 0">−0.9 to +0.9 · <b>7 pts</b></div>
-      <div class="fine" style="padding:2px 0">−3.0 to −1.0 · <b>6 pts</b></div>
-      <div class="fine" style="padding:2px 0">worse · <b>5 pts</b></div>
+      <div class="fine" style="padding:2px 0"><b>Torched it</b> · beat it by 3+ · <b>12 pts</b></div>
+      <div class="fine" style="padding:2px 0"><b>Beat your number</b> · by 1–3 · <b>9 pts</b></div>
+      <div class="fine" style="padding:2px 0"><b>Played to it</b> · within 1 · <b>7 pts</b></div>
+      <div class="fine" style="padding:2px 0"><b>A little loose</b> · 1–3 over · <b>6 pts</b></div>
+      <div class="fine" style="padding:2px 0"><b>Posted anyway</b> · rough day · <b>5 pts</b></div>
     </div>
-    <p class="fine" style="padding:0 0 10px">The 12-point ceiling caps what a padded index can buy; the 5-point floor means a posted 98 still beats an unposted 82. Show up and it counts.</p>
+    <p class="fine" style="padding:0 0 10px">The 12-point ceiling caps what a padded number can buy; the 5-point floor means a posted 98 still beats an unposted 82. <b>You can't hurt your squad by playing badly — only by not playing.</b></p>
     <div class="eyebrow">What counts</div>
-    <p class="fine" style="padding:0 0 10px">Your best rounds each month feed your squad's total (a monthly cap), and everyone owes a minimum number of rounds a month (the participation floor) so nobody coasts. Your league's exact dials are in <b>League rules</b>.</p>
+    <p class="fine" style="padding:0 0 10px">Your best rounds each month count for your squad — a better round always bumps your worst counter — and everyone owes a minimum number of rounds a month so nobody coasts. Your league's exact numbers are in <b>League rules</b>.</p>
     <div class="eyebrow">The money</div>
     <p class="fine" style="padding:0 0 8px">The pot is <b>tracked, never held</b> — Cup Season keeps the math and shows a settlement card; the money moves on Venmo between you.</p>`);
 }
 window.openScoringHelp = openScoringHelp;
+
+/* the join-moment covenant (decision D3): the three rules that kill the fear
+   at the door — shown once, right after joining, when they matter most */
+function openLeagueWelcome(name){
+  openSheet('Welcome to '+(name||'the league'), 'THREE THINGS TO KNOW', `
+    <p class="fine" style="padding:0 0 10px"><b style="color:var(--pos)">You can't hurt your squad by playing badly.</b> Only by not playing. Every posted round scores — a rough day is still points on the board.</p>
+    <p class="fine" style="padding:0 0 10px"><b>Rounds score against your own number.</b> Beat your handicap and it's a big day, whatever you shot. Your best rounds each month count; a better round always bumps your worst.</p>
+    <p class="fine" style="padding:0 0 12px"><b>The pot is tracked, never held.</b> Cup Season keeps the tab and shows who owes what; money moves on Venmo between you.</p>
+    <p class="fine" style="padding:0"><a href="#" onclick="openScoringHelp();return false" style="color:var(--brand)">How scoring works →</a></p>`);
+}
+window.openLeagueWelcome = openLeagueWelcome;
 document.getElementById('rulesScoreHelp')?.addEventListener('click', openScoringHelp);
 document.getElementById('hubMembersBtn')?.addEventListener('click', openMembersSheet);
 
@@ -7268,10 +7374,10 @@ function showWelcome(){
   state.phase = 'season'; /* keep routing away from wizard/draft */
   $('#leagueName').textContent = 'Cup Season';
   $('#phaseSub').textContent = (CS.memberships||[]).length
-    ? 'Your clubhouse, every round still counts'
+    ? 'Your leagues are a tap away, every round counts'
     : 'No league yet, your golf still counts';
   const chev = $('#lgChev'); if(chev) chev.style.display = 'block';
-  const sl = $('#sideLeague'); if(sl) sl.textContent = 'Your clubhouse';
+  const sl = $('#sideLeague'); if(sl) sl.textContent = 'Your golf';
   const sm = $('#sideMeta'); if(sm) sm.textContent = 'Rounds & buddies';
   const bs = $('#brandSeason'); if(bs) bs.textContent = 'cupseason.app';
   /* the You tab must not show demo players to a league-less golfer — and the
@@ -7316,6 +7422,7 @@ $('#wCodeGo').addEventListener('click', async () => {
     hideWelcome();
     await enterLeague(m);
     toast('Joined ' + m.league.name);
+    openLeagueWelcome(m.league.name);
   } catch(err){
     toast(/invalid/i.test(err.message)
       ? 'No league with that code. Check with your Pro'
@@ -7381,7 +7488,7 @@ async function boot(){
         if(error) throw error;
         await loadMemberships();
         const m = CS.memberships.find(x => x.league.code === pend);
-        if(m){ await enterLeague(m); toast('Joined ' + m.league.name); return; }
+        if(m){ await enterLeague(m); toast('Joined ' + m.league.name); openLeagueWelcome(m.league.name); return; }
       } catch(e){ toast('Auto-join failed: ' + e.message); }
     }
 
