@@ -1413,7 +1413,7 @@ body::before{
       </div>
             
     </div>
-    <div class="ob-caption" id="obCaption">New or returning, email is one door. No passwords. <span style="opacity:.5">v23.151</span></div>
+    <div class="ob-caption" id="obCaption">New or returning, email is one door. No passwords. <span style="opacity:.5">v23.152</span></div>
   </div>
   <div class="ob-splash" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
   
@@ -2050,7 +2050,8 @@ body::before{
         <details class="hubmore league-only" style="margin-bottom:14px">
           <summary style="cursor:pointer; font-family:var(--mono); font-size:12.5px; letter-spacing:.14em; text-transform:uppercase; color:var(--dim); padding:8px 0;">League rules &amp; Pro Shop</summary>
           <div class="eyebrow" style="margin-top:10px">The bylaws · locked at first tee</div>
-          <div class="card" id="bylawsHub" style="margin-bottom:14px"></div>
+          <div class="card" id="bylawsHub" style="margin-bottom:10px"></div>
+          <button class="mini" id="rulesScoreHelp" style="margin-bottom:14px">How scoring &amp; handicaps work →</button>
 
           <div class="eyebrow">The Pro Shop</div>
           <div class="pro">
@@ -5404,7 +5405,7 @@ function openProfileHub(){
       <input class="f" id="phIdx" type="number" step="0.1" inputmode="decimal" style="max-width:110px">
       <button class="mini" id="phIdxGo">Update index</button>
     </div>
-    <p class="fine" style="padding-left:0">Your index builds automatically from your posted scores (best of your recent rounds, WHS-style) — it appears once you've posted 3. Set it here to seed a starter or override; changes are announced on your league boards, crew-policed.</p>
+    <p class="fine" style="padding-left:0">Your index builds automatically from your posted scores (best of your recent rounds, WHS-style) — it appears once you've posted 3. Set it here to seed a starter; once you have 3 rounds your scores take over. Changes are announced on your league boards, crew-policed. <a href="#" id="phScoreHelp" style="color:var(--brand)">How scoring works →</a></p>
 
     <div class="eyebrow" style="margin-top:20px">Your leagues</div>
     ${leagues}
@@ -5494,6 +5495,7 @@ function openProfileHub(){
     } catch(e){ toast('Index update failed: ' + (e.message||e)); }
     finally { btn.disabled = false; }
   });
+  $('#phScoreHelp')?.addEventListener('click', (e)=>{ e.preventDefault(); window.openScoringHelp?.(); });
 
   $('#phOut').addEventListener('click', async () => {
     await sb.auth.signOut();
@@ -7173,7 +7175,8 @@ async function openMembersSheet(){
       <small>${[m.profile?.handle ? '@'+m.profile.handle : null,
                 m.profile?.index_current != null ? 'INDEX '+Number(m.profile.index_current).toFixed(1) : null,
                 sqName(m.id) || null].filter(Boolean).join(' · ') || 'GOLFER'}</small></div>
-      ${isPro && m.id !== CS.member.id ? `<span style="display:flex; gap:6px; flex:none">
+      ${isPro && m.id !== CS.member.id ? `<span style="display:flex; gap:6px; flex:none; flex-wrap:wrap; justify-content:flex-end">
+        <button class="mini" data-msidx="${m.id}">Set index</button>
         ${CS.league.phase === 'setup' ? `<button class="mini" data-msrm="${m.id}">Remove</button>` : ''}
         <button class="mini" data-mspro="${m.id}">Make Pro</button>
       </span>` : ''}
@@ -7211,8 +7214,49 @@ async function openMembersSheet(){
       setTimeout(() => location.reload(), 900); /* role change reshapes the whole UI */
     } catch(e){ toast(e.message || String(e)); b.disabled = false; }
   }));
+  document.querySelectorAll('[data-msidx]').forEach(b => b.addEventListener('click', async () => {
+    const m = CS.members.find(x => x.id === b.dataset.msidx);
+    const cur = m?.profile?.index_current;
+    const val = prompt(`Starter index for ${m?.profile?.display_name || 'this member'}.\nOnce they post 3 rounds, their scores take over.`, cur!=null ? Number(cur).toFixed(1) : '');
+    if(val===null) return;
+    const idx = parseFloat(val);
+    if(isNaN(idx) || idx < -10 || idx > 54){ toast('Index looks off: expected -10 to 54'); return; }
+    b.disabled = true;
+    try {
+      const { error } = await sb.rpc('set_member_index', { p_member: b.dataset.msidx, p_index: idx });
+      if(error) throw error;
+      toast('Starter index set — posted to the board');
+      closeSheet();
+      await loadLeagueData();
+    } catch(e){ toast(e.message || String(e)); b.disabled = false; }
+  }));
 }
 window.openMembersSheet = openMembersSheet;
+
+/* the disclaimer: how scoring + the handicap starter system actually work.
+   Reachable from the index editor and the league-rules panel. */
+function openScoringHelp(){
+  openSheet('How scoring works', 'HANDICAPS · CUP POINTS · THE MONEY', `
+    <div class="eyebrow" style="margin-top:0">Your handicap index</div>
+    <p class="fine" style="padding:0 0 6px">It builds from your scores — no typing. Each round's <b>differential</b> (how you played vs the course's rating &amp; slope) feeds a WHS-style index off your best recent rounds. It appears once you've posted <b>3 rounds</b>; until then you're <i>establishing</i>.</p>
+    <p class="fine" style="padding:0 0 10px">You (or the Pro) can set a <b>starter</b> index to get going sooner — but once you have 3 posted rounds, your scores take over. Manual changes are announced to your league so the crew keeps everyone honest.</p>
+    <div class="eyebrow">Every round → cup points</div>
+    <p class="fine" style="padding:0 0 4px">A round scores by <b>PvI</b> — Performance vs Index: your playing index minus the round's differential. Beat your number and PvI is positive. It converts to cup points:</p>
+    <div class="card" style="text-align:left; padding:10px 12px; margin-bottom:10px">
+      <div class="fine" style="padding:2px 0">PvI +3.0 or better · <b>12 pts</b></div>
+      <div class="fine" style="padding:2px 0">+1.0 to +2.9 · <b>9 pts</b></div>
+      <div class="fine" style="padding:2px 0">−0.9 to +0.9 · <b>7 pts</b></div>
+      <div class="fine" style="padding:2px 0">−3.0 to −1.0 · <b>6 pts</b></div>
+      <div class="fine" style="padding:2px 0">worse · <b>5 pts</b></div>
+    </div>
+    <p class="fine" style="padding:0 0 10px">The 12-point ceiling caps what a padded index can buy; the 5-point floor means a posted 98 still beats an unposted 82. Show up and it counts.</p>
+    <div class="eyebrow">What counts</div>
+    <p class="fine" style="padding:0 0 10px">Your best rounds each month feed your squad's total (a monthly cap), and everyone owes a minimum number of rounds a month (the participation floor) so nobody coasts. Your league's exact dials are in <b>League rules</b>.</p>
+    <div class="eyebrow">The money</div>
+    <p class="fine" style="padding:0 0 8px">The pot is <b>tracked, never held</b> — Cup Season keeps the math and shows a settlement card; the money moves on Venmo between you.</p>`);
+}
+window.openScoringHelp = openScoringHelp;
+document.getElementById('rulesScoreHelp')?.addEventListener('click', openScoringHelp);
 document.getElementById('hubMembersBtn')?.addEventListener('click', openMembersSheet);
 
 /* ---------- welcome fork: signed in, no league yet ---------- */
