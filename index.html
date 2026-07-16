@@ -1421,7 +1421,7 @@ body::before{
       </div>
             
     </div>
-    <div class="ob-caption" id="obCaption">New or returning, email is one door. No passwords. <span style="opacity:.5">v23.166</span></div>
+    <div class="ob-caption" id="obCaption">New or returning, email is one door. No passwords. <span style="opacity:.5">v23.168</span></div>
   </div>
   <div class="ob-splash" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
   
@@ -2966,6 +2966,55 @@ function vsPhrase(vs){
   if(vs>=-1) return 'played to your number';
   return vs.toFixed(1).replace('-','')+' over your number';
 }
+/* ---- M2 / D17 · the post-round epilogue — the poster hears it first ----
+   Reads round_epilogue() JSON into a private sheet shown over home right after
+   a post: the round's meaning (band + points), what it earned, and any rivalry
+   record it moved. Every line names a feeling — nothing here is a bare stat.
+   Dismissible; skipped silently on deploy skew or a nothing-to-say round so the
+   60-second post is never blocked (D17 tradeoff). Reuses the .check row shape. */
+const EPI_ACH = {
+  personal_best: { icon:'⭐', txt:'A personal best',                     sub:'The best round you’ve posted' },
+  sub_80:        { icon:'🏆', txt:'You broke 80 for the first time', sub:'That one goes on the wall' },
+  sub_90:        { icon:'🏆', txt:'You broke 90 for the first time', sub:'Pinned to your card' },
+  sub_100:       { icon:'🏆', txt:'You broke 100 for the first time',sub:'Pinned to your card' },
+  streak_4:      { icon:'🔥', txt:'Four weeks running',             sub:'Iron man' },
+  streak_8:      { icon:'🔥', txt:'Eight weeks running',            sub:'Iron man doesn’t take weeks off' },
+  streak_12:     { icon:'🔥', txt:'Twelve weeks running',           sub:'Iron man' },
+  first_round:   { icon:'⛳', txt:'Your first round is on the board',     sub:'Welcome to the season' },
+};
+function epiCounting(rank){
+  if(rank==null) return '';
+  const capN=[2,4,6,Infinity][state.cap ?? 3];
+  if(rank<=capN) return capN===Infinity ? ' · counts this month' : ` · counts #${rank} this month`;
+  return ` · outside your best ${capN} this month, for now`;
+}
+function showEpilogue(epi, course){
+  if(!epi) return;
+  const rows=[];
+  const pvi = epi.pvi!=null ? Number(epi.pvi) : null;
+  if(pvi!=null){
+    rows.push(`<div class="check"><span class="num">⛳</span><div class="tt"><b>${esc(bandName(pvi))}${epi.points!=null?` · ${epi.points} pts`:''}</b><small>${esc(vsPhrase(pvi))}${epiCounting(epi.month_rank)}</small></div></div>`);
+  }
+  (epi.earned||[]).forEach(a=>{
+    const m=EPI_ACH[a.kind] || { icon:'✦', txt:a.label||'A milestone', sub:'Pinned to your card' };
+    rows.push(`<div class="check"><span class="num">${m.icon}</span><div class="tt"><b>${esc(m.txt)}</b><small>${esc(m.sub)}</small></div></div>`);
+  });
+  (epi.rivals||[]).forEach(rv=>{
+    const w=rv.wins, l=rv.losses, t=rv.ties;
+    const line = rv.lead==='up'   ? `You lead ${rv.name} ${w}–${l}`
+              :  rv.lead==='down' ? `${rv.name} leads you ${l}–${w}`
+              :                     `Dead even with ${rv.name}, ${w}–${l}`;
+    const tie = t>0 ? ` · ${t} halved` : '';
+    /* M3: a named rivalry announces itself in the epilogue too */
+    const sub = rv.rivalry_name ? `“${esc(rv.rivalry_name)}” · your clash this week counted` : 'Your clash this week counted';
+    rows.push(`<div class="check"><span class="num">⚔️</span><div class="tt"><b>${esc(line)} all-time${tie}</b><small>${sub}</small></div></div>`);
+  });
+  if(!rows.length) return; /* nothing worth interrupting a post for */
+  const sub = course
+    ? `${epi.gross!=null?epi.gross+' at ':''}${String(course).toUpperCase()}`
+    : 'THE ROUND, FOR YOU FIRST';
+  openSheet('Your round', sub, rows.join(''));
+}
 /* ---- quick-post hole-by-hole (decision #5: default UI, par-prefilled, the
    gross-only path stays as a flagged-not-punished escape hatch) ---- */
 const POST_PAR_STD=[4,4,4,3,5,4,3,4,5, 4,4,3,4,5,4,3,4,5];   // par 72 template
@@ -3176,6 +3225,14 @@ $('#postBtn').addEventListener('click', async ()=>{
       if(window.loadCareer) window.loadCareer();     /* You-tab recent rounds */
       if(window.loadHome) window.loadHome();         /* the one home feed */
       switchView('home'); scrollFeedBottom();
+      /* M2/D17 — the poster hears it first: a private epilogue sheet over home.
+         Non-blocking; degrades silent on deploy skew or a nothing-to-say round. */
+      if(rrow?.id){
+        try {
+          const { data: epi } = await sb.rpc('round_epilogue', { p_round: rrow.id });
+          showEpilogue(epi, payload.course_label);
+        } catch(_){ /* RPC not deployed yet, or nothing to say — never block a post */ }
+      }
     } catch(e){ toast('Post failed: '+(e.message||e)); }
     finally { btn.disabled=false; }
     return;
@@ -6001,6 +6058,7 @@ async function renderRivalries(){
   let data=[];
   try{ const {data:d}=await sb.rpc('my_rivalries'); data=d||[]; }catch(_){ data=[]; }
   if(!data.length){ box.innerHTML=''; if(head) head.style.display='none'; return; }
+  window.RIVALS = data;   /* M3: the rivalry sheet reads the christened name from here */
   if(head) head.style.display='';
   box.innerHTML=data.map(r=>{
     const cls=r.lead==='up'?'up':r.lead==='down'?'dn':'ev';
@@ -6012,9 +6070,11 @@ async function renderRivalries(){
       r.meetings?`${r.meetings} week${r.meetings===1?'':'s'} head-to-head`:null,
       dTot?`Ryder duels ${r.duel_wins}–${r.duel_losses}${r.duel_halves?'–'+r.duel_halves:''}`:null,
     ].filter(Boolean).join(' · ');
+    /* M3: a christened rivalry wears its name in gold, above the opponent */
+    const named=r.rivalry_name?`<span class="eyebrow" style="color:var(--gold); display:block; margin-bottom:2px">${esc(r.rivalry_name.toUpperCase())}</span>`:'';
     return `<div class="prow" data-tc="${r.opponent}">
       <span class="pmk">${mkr(r.marker||'saguaro')}</span>
-      <span class="pmeta"><b>${esc(r.display_name||'—')}</b><small>${facets}</small></span>
+      <span class="pmeta">${named}<b>${esc(r.display_name||'—')}</b><small>${facets}</small></span>
       <span class="rivrec ${cls}">${rec}</span></div>`;
   }).join('');
 }
@@ -6023,7 +6083,8 @@ window.renderRivalries = renderRivalries;
 async function openRivalrySheet(oppId, name, rec){
   let weeks=[];
   try{ const {data}=await sb.rpc('rivalry_weeks',{p_opponent:oppId}); weeks=data||[]; }catch(_){ weeks=[]; }
-  const body = weeks.length ? weeks.map(x=>{
+  const rv=(window.RIVALS||[]).find(x=>x.opponent===oppId); const curName=rv?.rivalry_name||'';
+  const weeksHtml = weeks.length ? weeks.map(x=>{
     const d=new Date(x.wk+'T00:00:00');
     const me=Number(x.my_pvi), th=Number(x.opp_pvi);
     const tag = x.winner==='me'?'<span style="color:var(--pos)">WON</span>'
@@ -6033,9 +6094,37 @@ async function openRivalrySheet(oppId, name, rec){
       <div class="tt"><b>${tag} · YOU ${me>=0?'+':''}${me.toFixed(1)} · ${esc(name)} ${th>=0?'+':''}${th.toFixed(1)}</b>
       <small>BEST ROUND VS INDEX THAT WEEK</small></div></div>`;
   }).join('') : '<p class="fine">No head-to-head weeks yet. A clash counts a week you both post.</p>';
-  openSheet(`You vs ${name}`, `${rec||''} · WEEKLY CLASH · BETTER ROUND VS INDEX TAKES THE WEEK`, body);
+  /* M3/D18: name the rivalry — either rival can name, rename, or clear it */
+  const eyebrow = curName?`<div class="eyebrow" style="color:var(--gold); margin-bottom:10px">“${esc(curName.toUpperCase())}”</div>`:'';
+  const nameBtn = `<button class="btn dark" id="rivNameBtn" style="margin-top:12px">${curName?`Rename “${esc(curName)}”`:'Name this rivalry'}</button>`;
+  openSheet(`You vs ${name}`, `${rec||''} · WEEKLY CLASH · BETTER ROUND VS INDEX TAKES THE WEEK`, eyebrow + weeksHtml + nameBtn);
+  document.getElementById('rivNameBtn')?.addEventListener('click', ()=>openNameRivalry(oppId, name, curName));
 }
 window.openRivalrySheet = openRivalrySheet;
+
+/* M3/D18: the naming sheet. Naming requires real history (enforced server-side);
+   either rival can rename or clear — that's the misuse valve, not a moderator. */
+function openNameRivalry(oppId, oppName, cur){
+  openSheet(cur?'Rename the rivalry':'Name the rivalry', `YOU VS ${(oppName||'THEM').toUpperCase()}`, `
+    <p class="fine" style="padding-top:0">Give it a name your crew would actually say — “The Grudge,” “Border War.” Either of you can change it later.</p>
+    <input class="f" id="rivName" maxlength="40" placeholder="The Grudge" value="${esc(cur||'')}" autocomplete="off" style="font-family:var(--sans)">
+    <button class="btn" id="rivNameSave" style="margin-top:12px">${cur?'Save the name':'Name it'}</button>
+    ${cur?'<button class="btn dark" id="rivNameClear" style="margin-top:8px">Clear the name</button>':''}`);
+  const save=async(clear)=>{
+    const val = clear ? '' : (document.getElementById('rivName')?.value||'').trim();
+    const sb2=document.getElementById('rivNameSave'), cb=document.getElementById('rivNameClear');
+    if(sb2) sb2.disabled=true; if(cb) cb.disabled=true;
+    try{
+      const { error } = await sb.rpc('set_rivalry_name', { p_opponent: oppId, p_name: val });
+      if(error) throw error;
+      toast(clear?'Name cleared':'Rivalry named — “'+val+'”');
+      if(window.renderRivalries) await window.renderRivalries();
+      openRivalrySheet(oppId, oppName);   /* reopen with the fresh name */
+    }catch(e){ toast('Could not save: '+(e.message||e.code||'unknown')); if(sb2) sb2.disabled=false; if(cb) cb.disabled=false; }
+  };
+  document.getElementById('rivNameSave')?.addEventListener('click', ()=>save(false));
+  document.getElementById('rivNameClear')?.addEventListener('click', ()=>save(true));
+}
 
 /* Tour Card: any golfer's whole card, viewable (tour_card RPC). The identity
    object was owner-only; now every name is a door. Visibility is enforced
