@@ -412,6 +412,51 @@ M1–M3 commit messages predate the renumber and cite the old D17–D18.)
 
 ---
 
+## Batch 5 — 2026-07-16, the events engine's competitive half (task #5)
+
+### D21 · Season clinch & scenario math (the magic number)
+- **Current:** clinch/"needs" math exists for the Ryder
+  (`FIRST TO 9½ · TEAM A NEEDS 3`), but the **season/Cup race has none** —
+  standings show points, never what they *mean* for the endgame. The Social
+  lane owns the emotional half of the events engine (moments, voice,
+  rivalries); this is the missing **competitive projection** half.
+- **Problem observed:** the tension of the final weeks is invisible. A points
+  leader can't see they've locked a Cup seed; a chaser can't see they're
+  eliminated or exactly what they need. The endgame's drama is unstated, and
+  spec §16 ("every number shows its work") stops at the current total — it
+  never projects.
+- **Recommendation:** a `season_scenarios(season)` engine over
+  `v_squad_standings` / `v_individual_standings` that computes, per contender:
+  **magic number** (points to guarantee a seed/crown), **clinched**,
+  **eliminated**, and the **cut line** — feeding one storytelling line the
+  standings/Home render. Seeds follow the endgame dial (008): `cup_final` →
+  top 2 seed (2-squad → both in, so the race is the **#1 seed / +10**), solo →
+  top 2; `points_table` → the leader (K=1). Seed race ends at `ends_on − 27`
+  (Cup Final) else `ends_on`; once `status = cup_final`, seeds are locked and
+  the engine reports the locked seeds instead.
+- **The honesty rule (the load-bearing design choice):** clinch/elimination
+  are declared **only when true under a deliberately GENEROUS remaining-points
+  ceiling** — `roster × months-left × counting_cap × 12` (the top band; bonuses
+  are off per D7, and a floor credit never exceeds cap×12, so this is a valid
+  upper bound). Erring generous means the engine **never** falsely says
+  "clinched" or "eliminated"; borderline stays "in the hunt." A wrong certainty
+  would be a §16/trust violation; a cautious one is just quiet.
+- **Principle:** spec §16 (show your work — now for the *endgame*); #5 Feels
+  Alive (the last weeks acquire stakes); #1 Golf First (fairness is felt —
+  no false math).
+- **Benefit:** "your Sunday round matters because…" becomes literal; the race
+  reads as a race, and the numbers are trustworthy because they're conservative.
+- **Tradeoffs:** with an unlimited counting cap the ceiling is huge, so nothing
+  clinches until the window closes — honest (unlimited posting = unlimited
+  swing), if less dramatic; most leagues set a cap. The generous bound also
+  means a mathematically-decided-but-not-provably-so race shows "in the hunt" a
+  little longer than a human would call it — accepted, per the honesty rule.
+- **Boundary (no collision):** the Social lane renders standings storytelling;
+  this produces the *numbers*. New engine + one new client line in a new
+  element — no edits to their moment/feed/rivalry surfaces.
+
+---
+
 *Batch-4 non-entries (checked, no mechanic change): M1 storyteller/settlement
 voice (level-5 copy; the mechanic-visible rule "mixed-case bodies pass
 `easeCaps` untouched" is implementation, unchanged) · M6 roster-reveal +

@@ -218,6 +218,11 @@ button{font-family:var(--sans); touch-action:manipulation; color:var(--ink);}
 .standStory{font-family:var(--serif); font-size:13px; line-height:1.45; color:var(--ink); padding:2px 2px 10px; margin-bottom:2px; border-bottom:1px solid var(--line);}
 .standStory:empty{display:none;}
 .standStory b{font-weight:600;}
+/* the clinch/scenario line — the endgame math, quieter than the story above */
+.scenLine{font-family:var(--mono); font-size:11px; letter-spacing:.05em; line-height:1.7; color:var(--mut); padding:9px 2px 3px; border-top:1px solid var(--line);}
+.scenLine .clinch{color:var(--pos);}
+.scenLine .out{color:var(--dim);}
+.scenLine b{color:var(--ink); font-weight:600;}
 .rkmove{font-family:var(--mono); font-size:9.5px; margin-left:3px; letter-spacing:0;}
 .rkmove.up{color:var(--pos);} .rkmove.dn{color:var(--dim);}
 .rivrec{font-family:var(--mono); font-size:14px; font-weight:600; letter-spacing:.02em; flex:none;}
@@ -1429,7 +1434,7 @@ body::before{
       </div>
             
     </div>
-    <div class="ob-caption" id="obCaption">New or returning, email is one door. No passwords. <span style="opacity:.5">v23.169</span></div>
+    <div class="ob-caption" id="obCaption">New or returning, email is one door. No passwords. <span style="opacity:.5">v23.171</span></div>
   </div>
   <div class="ob-splash" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
   
@@ -2053,6 +2058,7 @@ body::before{
             <div class="card" style="padding:10px 12px 4px">
               <div class="standStory" id="standingsStory"></div>
               <table class="tbl" id="standings"></table>
+              <div class="scenLine" id="scenarioLine" style="display:none"></div>
             </div>
           </div>
         </div>
@@ -2613,6 +2619,7 @@ function renderStandings(){
         if(p && typeof openMemberHist==='function') openMemberHist(p);
       } else showSquad(r.dataset.squad);
     }));
+  window.renderScenarioLine && window.renderScenarioLine();   /* clinch line rides under the table (D21) */
 }
 
 /* ================= feed ================= */
@@ -6893,7 +6900,8 @@ async function loadStandingsAndFeed(){
     const d0 = new Date(CS.season.starts_on + 'T00:00:00');
     const d1 = new Date(CS.season.ends_on + 'T00:00:00');
     window.seasonWeeks = Math.max(2, Math.round((d1 - d0 + 864e5) / (7 * 864e5)));
-  } else { window.seasonHistory = []; window.seasonWeeks = null; }
+    loadScenarios();   /* the clinch/scenario line — fire-and-forget, renders when it lands */
+  } else { window.seasonHistory = []; window.seasonWeeks = null; if(window.renderScenarioLine) renderScenarioLine(); }
 
   /* the Strava-card cache: round facts + this league's lens, keyed by round id */
   const rids = [...new Set(feed.filter(f => f.roundpost).map(f => f.rid))];
@@ -6977,6 +6985,63 @@ async function loadStandingsAndFeed(){
   renderFeed();
 }
 window.loadStandingsAndFeed = loadStandingsAndFeed;
+
+/* ---------- the clinch/scenario line (D21) — the endgame math, honestly ----
+   season_scenarios() returns {meta, rows}; each row carries clinched /
+   eliminated / needs, computed under a GENEROUS remaining-points ceiling so a
+   "locked" / "out" claim is never wrong (D21's honesty rule). We only phrase
+   the parts that are DEFINITE (clinched, eliminated) or ACHIEVABLE this window
+   (needs ≤ what the leader can still add). Everything else stays quiet — the
+   story line above already carries the lead. */
+async function loadScenarios(){
+  if(state.demo || !CS.user || !CS.season){ window.scenarios=null; if(window.renderScenarioLine) renderScenarioLine(); return; }
+  try{
+    const { data, error } = await sb.rpc('season_scenarios', { p_season: CS.season.id });
+    if(error) throw error;
+    window.scenarios = data || null;
+  }catch(e){ console.warn('[scenarios]', e); window.scenarios=null; }
+  if(window.renderScenarioLine) renderScenarioLine();
+}
+window.loadScenarios = loadScenarios;
+function scenSeedWord(meta){
+  if(meta.finish==='points_table') return 'THE CROWN';
+  if(meta.level==='squad' && meta.structure==='squads2') return 'THE TOP SEED · +10';
+  return 'A CUP SEED';
+}
+function renderScenarioLine(){
+  const box = document.getElementById('scenarioLine'); if(!box) return;
+  const sc = window.scenarios;
+  const hide = () => { box.style.display='none'; box.innerHTML=''; };
+  if(state.demo || !sc || !sc.meta || !(sc.rows||[]).length){ return hide(); }
+  const meta = sc.meta, rows = sc.rows;
+  const up = s => esc(String(s||'').toUpperCase());
+  /* Cup Final already running → seeds are settled facts */
+  if(meta.locked){
+    const seeds = rows.slice(0, meta.k).map(r=>up(r.name));
+    box.innerHTML = `<span class="clinch">SEEDS LOCKED</span> — ${seeds.join(' · ')} INTO THE CUP FINAL`;
+    box.style.display='block'; return;
+  }
+  /* seed race closed (window past) but not yet flipped, or nothing to project */
+  if(meta.months_left===0){ return hide(); }
+  const sw = scenSeedWord(meta);
+  const capped = meta.cap && meta.cap < 999;      /* an unbounded cap can't project a magic number */
+  const lead = rows[0];
+  const leadHeadroom = Number(lead.max_final) - Number(lead.points);   /* what the leader can still add */
+  const parts = [];
+  if(lead.clinched){
+    parts.push(`<b>${up(lead.name)}</b> HAS LOCKED ${sw}`);
+  } else if(capped && lead.needs>0 && lead.needs <= leadHeadroom){
+    parts.push(`<b>${up(lead.name)}</b> · ${lead.needs} MORE LOCKS ${sw}`);
+  }
+  const out = rows.filter(r=>r.eliminated).map(r=>up(r.name));
+  if(out.length){
+    parts.push(`<span class="out">${out.join(', ')} OUT OF THE ${meta.finish==='points_table'?'RACE':'SEED RACE'}</span>`);
+  }
+  if(!parts.length){ return hide(); }
+  box.innerHTML = parts.join(' · ');
+  box.style.display='block';
+}
+window.renderScenarioLine = renderScenarioLine;
 
 /* ---------- squad formation (Blind draw / Assign) ---------- */
 function unassignedMembers(){
@@ -7654,10 +7719,39 @@ async function loadWatchList(){
     if(error) throw error;
     window.watchAll = data || [];
   } catch(e){ console.warn('[watch]', e); window.watchAll = window.watchAll || []; }
+  await ensureRivals();   /* M4/#7: the pre-game record needs the rivalry lookup */
   renderWatchList();
   if(typeof renderUpNext==='function') renderUpNext();   /* Home echo tracks it */
 }
 window.loadWatchList = loadWatchList;
+/* M4/#7 · the pre-game record — a rival's round on your Watch List wears the
+   head-to-head BEFORE the round (the anticipation-phase payoff of M3's named
+   rivalries). Reads my_rivalries (cached in window.RIVALS); pure client. */
+async function ensureRivals(){
+  if(window.RIVALS) return window.RIVALS;
+  try{ const { data } = await sb.rpc('my_rivalries'); window.RIVALS = data || []; }
+  catch(_){ window.RIVALS = []; }
+  return window.RIVALS;
+}
+function rivalryTag(pid){
+  const r = (window.RIVALS||[]).find(x => x.opponent === pid);
+  if(!r) return null;
+  const first = esc((r.display_name||'They').split(' ')[0]);
+  let rec = null;
+  if(r.meetings > 0){
+    rec = r.wins > r.losses ? `you lead ${r.wins}–${r.losses}`
+        : r.wins < r.losses ? `${first} leads ${r.losses}–${r.wins}`
+        : `even ${r.wins}–${r.losses}`;
+  } else {
+    const dw = r.duel_wins||0, dl = r.duel_losses||0;
+    if(dw||dl) rec = dw>dl ? `you lead duels ${dw}–${dl}`
+                    : dw<dl ? `${first} leads duels ${dl}–${dw}`
+                    : `even in duels ${dw}–${dl}`;
+  }
+  if(!rec) return null;
+  const nm = r.rivalry_name ? `“${esc(r.rivalry_name)}” · ` : '';
+  return `<span style="color:var(--gold)">${nm}${rec}</span>`;
+}
 /* others' upcoming rounds, nearest first — the rows the Watch List shows */
 function watchRows(){
   const today = new Date(); today.setHours(0,0,0,0);
@@ -7680,6 +7774,7 @@ function renderWatchList(){
     const rel = sr.is_friend ? 'BUDDY' : 'LEAGUE MATE';
     const bits = [ when, sr.course_label?esc(sr.course_label.toUpperCase()):null,
       sr.tee_time?`<span style="color:var(--gold)">${fmtTee(sr.tee_time)}</span>`:null,
+      rivalryTag(sr.profile_id),   /* M4/#7: the head-to-head, before the round */
       sr.tagged_me?'<span style="color:var(--gold)">YOU’RE IN</span>':null,
       sr.note?'“'+esc(sr.note)+'”':null ].filter(Boolean).join(' · ');
     return `<div class="check">
