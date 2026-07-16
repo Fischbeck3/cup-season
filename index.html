@@ -1421,7 +1421,7 @@ body::before{
       </div>
             
     </div>
-    <div class="ob-caption" id="obCaption">New or returning, email is one door. No passwords. <span style="opacity:.5">v23.166</span></div>
+    <div class="ob-caption" id="obCaption">New or returning, email is one door. No passwords. <span style="opacity:.5">v23.167</span></div>
   </div>
   <div class="ob-splash" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
   
@@ -3571,6 +3571,128 @@ function primeRealRoster(){
   }
 }
 
+/* ---- live-round resume (pilot bug: a refresh dropped the in-progress round) ----
+   state.live is in-memory; the durable spine is the server row (live_rounds +
+   live_round_players), which stays status='live' until finish_live_round closes
+   it. On boot we rehydrate identity + config from the server and overlay the
+   entered-but-unposted strokes from localStorage (keyed by live_round_id), so a
+   same-device refresh mid-round brings the whole card back. A cleared cache /
+   other device still resumes the round SHELL with a blank card — the round no
+   longer vanishes. No new RPC or column: live_rounds/live_round_players are
+   member-readable via existing RLS, so this is a pure-client change. */
+const liveKey = lr => 'cs.live.' + lr;
+function persistLive(){
+  const L=state.live;
+  if(state.demo || !L || !L.active || !L.lr) return;
+  try{ localStorage.setItem(liveKey(L.lr),
+    JSON.stringify({ v:1, scores:L.scores, wolf:L.wolf, hole:L.hole })); }catch(_){}
+}
+window.persistLive = persistLive;
+function clearLiveCache(keep){
+  const keepK = keep ? liveKey(keep) : null;
+  try{ Object.keys(localStorage).forEach(k=>{
+    if(k.indexOf('cs.live.')===0 && k!==keepK) localStorage.removeItem(k); }); }catch(_){}
+}
+window.clearLiveCache = clearLiveCache;
+async function rehydrateLiveRound(){
+  if(state.demo) return;
+  const sb=window.sb, CS=window.CS;
+  if(!sb || !CS || !CS.league) return;
+  const myMid=CS.member?.id, myPid=CS.user?.id;
+
+  let rounds;
+  try{
+    const { data, error } = await sb.from('live_rounds')
+      .select('id, game, game_config, course_snapshot, course_label, started_by, started_at, live_round_players(id, member_id, guest_name, guest_index, index_source, position)')
+      .eq('league_id', CS.league.id).eq('status','live')
+      .order('started_at', { ascending:false });
+    if(error) throw error;
+    rounds=data||[];
+  }catch(_){ return; }   /* offline / deploy-skew: skip resume, never block boot */
+
+  /* RLS returns every open round in the league — resume only one I'm in */
+  const mine=rounds.find(r=>
+    r.started_by===myMid ||
+    (r.live_round_players||[]).some(p=>{
+      if(!p.member_id) return false;
+      const m=(CS.members||[]).find(x=>x.id===p.member_id);
+      return m && m.profile_id===myPid;
+    }));
+  if(!mine){ clearLiveCache(null); return; }   /* none open → GC stale caches */
+  clearLiveCache(mine.id);                      /* GC every OTHER round's cache */
+
+  const players=(mine.live_round_players||[]).slice().sort((a,b)=>a.position-b.position);
+  if(!players.length) return;
+
+  /* rebuild the foursome from members / guests, in tee-off (position) order */
+  LIVE = players.map(pl=>{
+    if(pl.member_id){
+      const m=(CS.members||[]).find(x=>x.id===pl.member_id);
+      const pid=m?.profile_id;
+      return { n:(m?.profile?.display_name||'Member'), i:Number(m?.profile?.index_current)||18,
+               ci:1, team:'—', guest:false, mid:pl.member_id, pid,
+               me:pid===myPid, locked:pid===myPid };
+    }
+    return { n:(pl.guest_name||'Guest'), i:Number(pl.guest_index)||18, ci:-1, team:null,
+             guest:true, est:pl.index_source==='estimated', pid:null };
+  });
+
+  /* course card off the tee-off snapshot (pars/SI/rating/slope) */
+  const snap=mine.course_snapshot||{};
+  if(Array.isArray(snap.pars) && snap.pars.length===18) PAR=snap.pars.map(Number);
+  if(Array.isArray(snap.si) && snap.si.length===18){
+    SI=snap.si.map(Number); SIEST=!!(mine.game_config && mine.game_config.si_estimated);
+  } else estimateSI();
+  if(snap.rating!=null) CRATE=Number(snap.rating)||CRATE;
+  if(snap.slope!=null)  CSLOPE=Number(snap.slope)||CSLOPE;
+  if($('#lrCourse')) $('#lrCourse').value = snap.label||mine.course_label||'';
+  if($('#lrTee'))    $('#lrTee').value    = snap.tee||'';
+  if($('#lrRate'))   $('#lrRate').value   = snap.rating!=null?snap.rating:'';
+  if($('#lrSlope'))  $('#lrSlope').value  = snap.slope!=null?snap.slope:'';
+  recomputeStrokes();
+
+  /* game shape off game_config (stake, sides, wolf order) */
+  const cfg=mine.game_config||{};
+  const game = mine.game==='none' ? 'score' : mine.game;
+  const idxByName=nm=>LIVE.findIndex(p=>p.n===nm);
+  if(game==='match'){
+    const a=(cfg.side_a||[]).map(idxByName).filter(i=>i>=0);
+    const b=(cfg.side_b||[]).map(idxByName).filter(i=>i>=0);
+    if(a.length && b.length) MTEAMS=[a,b]; else setMatchTeams();
+  } else setMatchTeams();
+  let wolfOrder=null;
+  if(game==='wolf'){
+    const ord=(cfg.order||[]).map(idxByName).filter(i=>i>=0);
+    wolfOrder = ord.length===LIVE.length ? ord : [0,1,2,3];
+  }
+
+  state.live = { stage:'live', active:true, game, stake:Number(cfg.stake)||0, wolfOrder,
+    hole:0, scores:LIVE.map(()=>Array(18).fill(null)), wolf:Array(18).fill(null),
+    lr:mine.id, pmap:players.map(p=>p.id), guestTokens:{} };
+
+  /* overlay this device's entered-but-unposted strokes / calls / hole cursor */
+  try{
+    const raw=localStorage.getItem(liveKey(mine.id));
+    if(raw){
+      const c=JSON.parse(raw);
+      if(Array.isArray(c.scores) && c.scores.length===LIVE.length){
+        state.live.scores = c.scores.map(a=>{
+          const r=Array(18).fill(null);
+          (Array.isArray(a)?a:[]).forEach((val,k)=>{ if(k<18 && val!=null) r[k]=val; });
+          return r;
+        });
+      }
+      if(Array.isArray(c.wolf) && c.wolf.length===18) state.live.wolf=c.wolf;
+      if(Number.isInteger(c.hole)) state.live.hole=Math.max(0,Math.min(17,c.hole));
+    }
+  }catch(_){}
+
+  rosterPrimed=true;   /* the active guard already blocks primeRealRoster, but be explicit */
+  if(typeof renderPlay==='function') renderPlay();
+  toast('Resumed your live round');
+}
+window.rehydrateLiveRound = rehydrateLiveRound;
+
 const holeDone=h=>LIVE.every((_,pi)=>state.live.scores[pi][h]!==null);
 const netOf=(pi,h)=>state.live.scores[pi][h]-strokeOn(pi,h);
 
@@ -3714,6 +3836,7 @@ function renderPlay(){
   $('#playLive').style.display  = setup ? 'none':'block';
   if(setup){ renderPlanBridge(); renderRoster(); renderLiveBanner(); return; }
 
+  persistLive();   /* every live repaint follows a state.live mutation → snapshot the card so a refresh resumes it */
   $('#lrEyebrowTxt').textContent=`Live round · ${($('#lrCourse').value||'Course')} — ${($('#lrTee').value||'Tee')} · ${CRATE}/${CSLOPE}`;
   $('#matchCard').style.display = state.live.game==='match' ? 'block':'none';
   $('#wolfCard').style.display  = state.live.game==='wolf'  ? 'block':'none';
@@ -4177,6 +4300,7 @@ function finishRealLiveRound(){
         ({ data, error } = await sb.rpc('finish_live_round', args));
       }
       if(error) throw error;
+      try{ localStorage.removeItem('cs.live.'+state.live.lr); }catch(_){}   /* round posted → drop its resume cache */
       closeSheet();
       state.live.active=false; state.live.stage='setup';
       renderPlay();
@@ -6655,6 +6779,10 @@ async function enterLeague(m, nav=true){
     if(pe) pe.textContent = 'Post a round · your index ' + state.myIndex.toFixed(1);
   }
   try { await loadLeagueData(); } catch(e){ bootTrace('league data: '+(e.message||e)); }
+  /* resume an in-progress live round dropped by a refresh — runs after
+     loadLeagueData so CS.members is populated; sets state.live.active before
+     Play can open, so primeRealRoster's guard leaves the resumed round alone */
+  try { await window.rehydrateLiveRound?.(); } catch(e){ bootTrace('live resume: '+(e.message||e)); }
   loadPulse();                          /* role-aware Home: month participation pulse */
   loadLeagueSpans().then(loadSchedule).then(()=>window.renderHomeHub&&window.renderHomeHub()).catch(e=>bootTrace('home hub: '+(e.message||e))); /* calendar layers + Home recap "next rounds" */
   loadWatchList().catch(e=>bootTrace('watch: '+(e.message||e)));   /* the crew's plans (14-day window, cursor-independent) */
