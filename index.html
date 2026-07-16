@@ -2002,7 +2002,7 @@ body::before{
         <div id="homeSeason">
         <div class="phasehero" id="kickoffHero" style="display:none">
           <div class="k">At the starter</div>
-          <div class="n" id="khTee">First tee Sunday</div>
+          <div class="n" id="khTee">First tee —</div>
           <div class="m" id="khCount">SQUADS LOCKED · PRACTICE ROUNDS HIT YOUR CARD, NOT THE SEASON</div>
         </div>
         <button class="livebanner" id="liveBanner" data-go="play">
@@ -4755,23 +4755,29 @@ function renderPulse(){
   const closes=`closes ${days===0?'today':'in '+days+'d'}`;
   const fmt=n=>{ n=Number(n); return n%1 ? n.toFixed(1) : String(n); };
 
+  /* pilot F(confusing): the label now NAMES the card ("Jul · monthly floor")
+     and every status reads "cleared" — never the ambiguous "at the floor,"
+     which scanned as a bad thing and contradicted its own "cleared" subtitle. */
   if(rows[0].partial){
-    box.innerHTML=pulseCard(`${mName} · floors waived (short month)`,
-      isPro ? `Post freely — no participation floor this month.` : `No floor this month — post when you can.`);
+    box.innerHTML=pulseCard(`${mName} · no minimum this month`,
+      isPro ? `Short month — no monthly floor. Everyone posts freely.` : `Short month — no floor to clear. Post when you can.`);
     return;
   }
   if(isPro){
     const short=rows.filter(r=>!r.at_floor);
     const atFloor=rows.length-short.length;
     const names=short.slice(0,4).map(r=>esc(r.display_name||'A member')).join(', ')+(short.length>4?` +${short.length-4}`:'');
-    box.innerHTML=pulseCard(`${mName} · ${atFloor}/${rows.length} at the floor · ${closes}`,
-      short.length ? `Waiting on <b>${names}</b> to hit ${floor}/mo.` : `Everyone's cleared the floor.`);
+    box.innerHTML=pulseCard(`${mName} · monthly floor · ${closes}`,
+      short.length ? `<b>${atFloor}/${rows.length} cleared</b> the ${floor}-round floor. Waiting on <b>${names}</b>.`
+                   : `<b>Everyone's cleared</b> the ${floor}-round floor for ${mName}.`);
   } else {
     const me=rows.find(r=>r.is_me); if(!me){ box.innerHTML=''; return; }
     const need=Math.max(0, floor-Number(me.credits));
-    box.innerHTML=pulseCard(`Your month · ${fmt(me.credits)}/${floor} counted · ${closes}`,
-      need>0 ? `Post <b>${need%1?need.toFixed(1):need} more</b> to clear the ${floor}/mo floor.`
-             : `You've cleared the floor for ${mName}.`);
+    const needTxt=need%1?need.toFixed(1):need;
+    const cr=fmt(me.credits);
+    box.innerHTML=pulseCard(`Your ${mName} · ${closes}`,
+      need>0 ? `<b>${cr}/${floor}</b> counted — post <b>${needTxt} more</b> to clear this month's floor.`
+             : `<b>Cleared for ${mName}</b> — ${cr} round${cr==='1'?'':'s'} counted, floor met.`);
   }
 }
 async function loadPulse(){
@@ -5227,7 +5233,9 @@ function atStarter(){
       && Date.now() < seasonS().getTime();
 }
 function daysToTee(){ return Math.max(0, Math.ceil((seasonS().getTime()-Date.now())/864e5)); }
-function firstTeeText(){ const s=seasonS(); return `Sun ${MOS[s.getMonth()]} ${s.getDate()}`; }
+/* real weekday, not a hardcoded "Sun" — §14.0 v1.1 dropped the Sunday-start
+   snap, so a season can tee off any day (pilot: "every league says Sunday"). */
+function firstTeeText(){ const s=seasonS(); return `${DOW[s.getDay()]} ${MOS[s.getMonth()]} ${s.getDate()}`; }
 function totalWeeks(){
   const s=seasonS(), e=seasonE();
   return Math.max(1, Math.ceil((e-s)/(7*864e5)));
