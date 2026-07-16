@@ -1421,7 +1421,7 @@ body::before{
       </div>
             
     </div>
-    <div class="ob-caption" id="obCaption">New or returning, email is one door. No passwords. <span style="opacity:.5">v23.167</span></div>
+    <div class="ob-caption" id="obCaption">New or returning, email is one door. No passwords. <span style="opacity:.5">v23.168</span></div>
   </div>
   <div class="ob-splash" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
   
@@ -7610,10 +7610,39 @@ async function loadWatchList(){
     if(error) throw error;
     window.watchAll = data || [];
   } catch(e){ console.warn('[watch]', e); window.watchAll = window.watchAll || []; }
+  await ensureRivals();   /* M4/#7: the pre-game record needs the rivalry lookup */
   renderWatchList();
   if(typeof renderUpNext==='function') renderUpNext();   /* Home echo tracks it */
 }
 window.loadWatchList = loadWatchList;
+/* M4/#7 · the pre-game record — a rival's round on your Watch List wears the
+   head-to-head BEFORE the round (the anticipation-phase payoff of M3's named
+   rivalries). Reads my_rivalries (cached in window.RIVALS); pure client. */
+async function ensureRivals(){
+  if(window.RIVALS) return window.RIVALS;
+  try{ const { data } = await sb.rpc('my_rivalries'); window.RIVALS = data || []; }
+  catch(_){ window.RIVALS = []; }
+  return window.RIVALS;
+}
+function rivalryTag(pid){
+  const r = (window.RIVALS||[]).find(x => x.opponent === pid);
+  if(!r) return null;
+  const first = esc((r.display_name||'They').split(' ')[0]);
+  let rec = null;
+  if(r.meetings > 0){
+    rec = r.wins > r.losses ? `you lead ${r.wins}–${r.losses}`
+        : r.wins < r.losses ? `${first} leads ${r.losses}–${r.wins}`
+        : `even ${r.wins}–${r.losses}`;
+  } else {
+    const dw = r.duel_wins||0, dl = r.duel_losses||0;
+    if(dw||dl) rec = dw>dl ? `you lead duels ${dw}–${dl}`
+                    : dw<dl ? `${first} leads duels ${dl}–${dw}`
+                    : `even in duels ${dw}–${dl}`;
+  }
+  if(!rec) return null;
+  const nm = r.rivalry_name ? `“${esc(r.rivalry_name)}” · ` : '';
+  return `<span style="color:var(--gold)">${nm}${rec}</span>`;
+}
 /* others' upcoming rounds, nearest first — the rows the Watch List shows */
 function watchRows(){
   const today = new Date(); today.setHours(0,0,0,0);
@@ -7636,6 +7665,7 @@ function renderWatchList(){
     const rel = sr.is_friend ? 'BUDDY' : 'LEAGUE MATE';
     const bits = [ when, sr.course_label?esc(sr.course_label.toUpperCase()):null,
       sr.tee_time?`<span style="color:var(--gold)">${fmtTee(sr.tee_time)}</span>`:null,
+      rivalryTag(sr.profile_id),   /* M4/#7: the head-to-head, before the round */
       sr.tagged_me?'<span style="color:var(--gold)">YOU’RE IN</span>':null,
       sr.note?'“'+esc(sr.note)+'”':null ].filter(Boolean).join(' · ');
     return `<div class="check">
