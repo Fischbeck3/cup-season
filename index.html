@@ -1413,7 +1413,7 @@ body::before{
       </div>
             
     </div>
-    <div class="ob-caption" id="obCaption">New or returning, email is one door. No passwords. <span style="opacity:.5">v23.161</span></div>
+    <div class="ob-caption" id="obCaption">New or returning, email is one door. No passwords. <span style="opacity:.5">v23.162</span></div>
   </div>
   <div class="ob-splash" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
   
@@ -3557,6 +3557,9 @@ function renderPlay(){
     });
   });
 
+  /* match card = match-only. A 3-player skins game has no LIVE[3] and the net-
+     best-ball line assumed 4 — never run the ladder math for skins/wolf/score. */
+  if(state.live.game==='match'){
   const teamA=`${LIVE[0]?.n||''} & ${LIVE[1]?.n||''}`.toUpperCase();
   const teamB=`${LIVE[2]?.n||''} & ${LIVE[3]?.n||''}`.toUpperCase();
   const _li=(typeof CHS!=='undefined'&&CHS&&CHS.length)?CHS.indexOf(LOWCH):-1;
@@ -3572,6 +3575,8 @@ function renderPlay(){
   $('#matchMeta').textContent=`THRU ${m.played} · STROKES OFF LOW MAN (${lowMan})`
     + (state.live.stake>0?` · $${state.live.stake} A SIDE`:'')
     + (SIEST?' · EST. CARD':'');
+
+  }
 
   if(state.live.game==='wolf' && LIVE.length===4){
   const wolfIdx=wolfAt(h);
@@ -3782,11 +3787,14 @@ function renderLiveBanner(){
   const b=$('#liveBanner'); if(!b) return;
   if(!state.live.active || state.phase!=='season'){ b.style.display='none'; return; }
   b.style.display='block';
-  const teamA=`${LIVE[0]?.n||''} & ${LIVE[1]?.n||''}`.toUpperCase();
-  const teamB=`${LIVE[2]?.n||''} & ${LIVE[3]?.n||''}`.toUpperCase();
-  const m=matchCalc();
+  /* thru = holes every player has finished (game-agnostic; matchCalc is
+     match-only — a 3-player skins game has no MTEAMS[1] to net) */
+  let thru=0; for(let k=0;k<18;k++){ if(holeDone(k)) thru=k+1; else break; }
   let st='SCORING LIVE';
   if(state.live.game==='match'){
+    const teamA=`${LIVE[0]?.n||''} & ${LIVE[1]?.n||''}`.toUpperCase();
+    const teamB=`${LIVE[2]?.n||''} & ${LIVE[3]?.n||''}`.toUpperCase();
+    const m=matchCalc();
     st = m.closed ? `${m.closed.winner===0?teamA:teamB} WIN ${m.closed.lead}&${m.closed.rem}`
        : (m.a===m.b?'ALL SQUARE':`${m.a>m.b?teamA:teamB} ${Math.abs(m.a-m.b)} UP`);
   } else if(state.live.game==='wolf'){
@@ -3800,7 +3808,7 @@ function renderLiveBanner(){
     st=`SKINS · ${sk.carry} RIDING · YOU ${me>=0?sk.won[me]:0}`;
   }
   $('#lbStatus').textContent=st;
-  $('#lbHole').textContent=`HOLE ${state.live.hole+1} · ${($('#lrCourse').value||'Encanto GC').toUpperCase()} · THRU ${m.played}`;
+  $('#lbHole').textContent=`HOLE ${state.live.hole+1} · ${($('#lrCourse').value||'Encanto GC').toUpperCase()} · THRU ${thru}`;
 }
 function syncTeeInputs(){
   CRATE=parseFloat($('#lrRate').value)||72;
@@ -7797,7 +7805,7 @@ async function openMembersSheet(){
                 sqName(m.id) || null].filter(Boolean).join(' · ') || 'GOLFER'}</small></div>
       ${isPro && m.id !== CS.member.id ? `<span style="display:flex; gap:6px; flex:none; flex-wrap:wrap; justify-content:flex-end">
         <button class="mini" data-msidx="${m.id}">Set index</button>
-        ${CS.league.phase === 'setup' ? `<button class="mini" data-msrm="${m.id}">Remove</button>` : ''}
+        ${CS.league.phase === 'setup' ? `<button class="mini" data-msrm="${m.id}">Remove</button>` : `<button class="mini" data-msbye="${m.id}">Bye</button>`}
         <button class="mini" data-mspro="${m.id}">Make Pro</button>
       </span>` : ''}
     </div>`).join('');
@@ -7820,6 +7828,19 @@ async function openMembersSheet(){
       toast('Removed. The board knows.');
       closeSheet();
       await loadLeagueData();
+    } catch(e){ toast(e.message || String(e)); b.disabled = false; }
+  }));
+  document.querySelectorAll('[data-msbye]').forEach(b => b.addEventListener('click', async () => {
+    const m = CS.members.find(x => x.id === b.dataset.msbye);
+    const now = new Date();
+    const monISO = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-01`;
+    if(!confirm(`Grant ${m?.profile?.display_name || 'this member'} a bye for ${MOS[now.getMonth()]}? Their one season bye — it waives this month's floor. (A missed floor auto-uses it anyway; this is for a known absence.)`)) return;
+    b.disabled = true;
+    try {
+      const { error } = await sb.rpc('set_member_bye', { p_member: b.dataset.msbye, p_month: monISO, p_on: true });
+      if(error) throw error;
+      toast('Bye granted — posted to the board');
+      closeSheet();
     } catch(e){ toast(e.message || String(e)); b.disabled = false; }
   }));
   document.querySelectorAll('[data-mspro]').forEach(b => b.addEventListener('click', async () => {
@@ -7871,7 +7892,7 @@ function openScoringHelp(){
     </div>
     <p class="fine" style="padding:0 0 10px">The 12-point ceiling caps what a padded number can buy; the 5-point floor means a posted 98 still beats an unposted 82. <b>You can't hurt your squad by playing badly — only by not playing.</b></p>
     <div class="eyebrow">What counts</div>
-    <p class="fine" style="padding:0 0 10px">Your best rounds each month count for your squad — a better round always bumps your worst counter — and everyone owes a minimum number of rounds a month so nobody coasts. Your league's exact numbers are in <b>League rules</b>.</p>
+    <p class="fine" style="padding:0 0 10px">Your best rounds each month count for your squad — a better round always bumps your worst counter — and everyone owes a minimum number of rounds a month so nobody coasts. Miss it once and your <b>season bye</b> covers you automatically — life happens; the floor bites from the second miss. Your league's exact numbers are in <b>League rules</b>.</p>
     <div class="eyebrow">The money</div>
     <p class="fine" style="padding:0 0 8px">The pot is <b>tracked, never held</b> — Cup Season keeps the math and shows a settlement card; the money moves on Venmo between you.</p>`);
 }

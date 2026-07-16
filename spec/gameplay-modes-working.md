@@ -108,8 +108,11 @@ Spec §13.2 fixes v1 scoring: **rotating wolf, partner ±1 / lone +3/−3,
 dollar value at tee-off, netted ledger.** Full design:
 
 ### 3.1 Setup (at tee-off)
-- Exactly 4 players (members and/or guests). ⚑ 3-player variant ("pig")
-  deferred.
+- Exactly 4 players (members and/or guests). **3-player variant ("pig") is
+  HARD-CUT from v1** (decision-log D16): no greyed option, no mention — the
+  tee-off validation requires exactly 4, and a 3-ball takes Skins or Just
+  score. Revive only when a real 3-ball asks; until then the deferral is
+  invisible, not a broken button.
 - Wolf order: random shuffle at game start (or manual arrange), locked.
 - Dollar value per point set at tee-off (can be $0 = bragging points).
 - ⚑ Toggles (v1 defaults in bold): **carries off** / carries on (pushed hole
@@ -341,3 +344,118 @@ Implementer defaults (engineering-level, changeable cheaply):
 - Wolf per-player loss cap: deferred to a later toggle, not v1.
 - Ryder MVP pot cut: exists as a dial, OFF by default (winning team splits
   evenly).
+
+---
+
+## 7c. Flag resolutions, batch 3 (2026-07-15) — recording dynamics
+
+Batches 1–2 settled the *rules* of each mode. This batch settles the
+*recording* — the act of capturing a game and what a capture feeds. Every
+item below was argued against its own steelman before landing; the
+"landed on" line is the decision, the "argued past" line is why the obvious
+version was wrong, kept so nobody reopens it cold. Items 14–15 are **canon**
+(promote to spec v1.1). Items 16–18 are **requirement-doc constraints** —
+binding on the tee-sheet (§2–§3), Ryder (§4), and events-engine arcs, not
+schema-ready yet. Item 19 is a stepper-build acceptance test.
+
+14. **A finished live round IS the posted round — one entry, many
+    consumers.** Completing a live game (Match Play, Wolf) writes hole
+    detail to `round_holes`, and that same round feeds the season, the
+    match/game ledger, the rivalry record, and the handicap. There is never
+    a second entry. *Gated, not automatic:* finish → one confirm
+    ("Post this round? [Post / Casual — don't post]"), default Post. Casual
+    is the escape hatch for closed-out/picked-up/mulligan games that
+    shouldn't touch the season or index. *Per-player, not per-game:* your
+    round posts only if **your** card is complete and **you** confirm — a
+    partner whose ball stopped mattering mid-hole (team formats) has gaps
+    and isn't force-posted; guests never post (no account, §13.3).
+    - *Argued past:* "auto-post everything" pollutes the season with casual
+      games — true, which is why the confirm gate and per-player
+      completeness rule exist rather than dropping the principle. The double
+      entry itself is the Principle-2 violation to kill; the gate is the one
+      tap that survives.
+
+15. **Co-play generates "played with" automatically; attestation stays a
+    deliberate tap.** Two tiers, not one. Sharing a live round auto-writes a
+    **played-with** fact (free — feeds rivalry records §18, feed copy
+    "with Danny O & Cole W", the with-line already on declared rounds). It
+    does NOT auto-attest. **Attestation remains an explicit vouch**, but
+    co-players are **prompted** for it ("You played with Jerecho — vouch for
+    the 84?"), killing the cold-start without diluting the act. This
+    supersedes decision #4's implication that co-play and attestation are
+    unrelated systems.
+    - *Argued past:* "attested by existing" (presence = vouching) — too
+      strong; it makes the padding foursome self-verify and empties the word
+      "attested." Anti-sandbagging was never attestation's job (the 12-point
+      ceiling, §1.1, is). Attestation is a *social* signal, so it keeps its
+      deliberate tap; only the played-with *fact* is automatic.
+
+16. **Every live-game state must be enterable after the fact — the phase
+    machine is a prompt engine, not a lock.** (Constraint on §2–§3.) The
+    Wolf/Match state machines (§2.3, §3.2) are the happy path for a phone
+    that's out every tee; real groups fall behind. So the flow that decides
+    whether the mode survives is **catch-up**: reconstruct a missed hole in
+    a few taps ("hole 8: Danny wolf, went lone, lost"), undo included. No
+    live-game state may be reachable ONLY through the real-time prompt.
+    Corollary: irrevocable-pass (§3.2) is enforceable live, advisory on
+    backfill. Corollary: **one designated scorekeeper phone is the v1
+    primary model**; everyone's-phone live sync is v2. Write this as a
+    design constraint in the tee-sheet requirement doc before the state
+    machine is built rigid — retrofit is expensive.
+    - *Argued past:* "backfill corrodes the whole pitch (the app forgets
+      too)" — real, but a happy-path-only design doesn't force compliance,
+      it forces mid-game abandonment, which teaches "doesn't work on a real
+      course." Recovery is the feature surviving contact, not failing.
+
+17. **The async duel surfaces a target, and the target push is opt-in.**
+    (Constraint on §4.) The moment an opponent posts inside the session
+    window, the duel has a number to beat — show it on the duel chip
+    unconditionally ("Marcus posted +1.2 · you have until Sunday"), the
+    prospectus' one-more-round rule as a game mechanic. The *notification*
+    of it is **per-user opt-in** (Principle: "only meaningful ones, no
+    spam" — a standing taunt must be chosen). Timing becomes strategy (set
+    the pace vs. hold your card, echoing the blind-lineup logic §4.2); that
+    tension is a feature of the weekly cadence, not a bug to design out.
+    - *Argued past:* "posting first hands your opponent a target, so
+      everyone sandbags timing to Saturday night" — the timing meta is good
+      drama, not a leak; and the pressure/tone risk is a copy + opt-in
+      problem, not a reason to hide the scoreboard.
+
+18. **One rivalry object per pair, faceted — never a single blended
+    W-L number.** (Constraint on events-engine, task #5 — schema decision,
+    urgent.) Match Play, Wolf, and Ryder duels are parallel *points*
+    ledgers (§5 unchanged) but must all write to **one rivalry record per
+    pair** so history converges: header "Jerecho vs Marcus — 12 meetings,"
+    faceted "match play 2–1 · duels 3–2 · 7 Wolf nights." Every mode feeds
+    the same object; **no single number** pretends a 1v3 Wolf hole equals a
+    singles match. The events engine must land rivalries on this shape now —
+    if it ships duels-only, folding side games in later is a painful
+    retrofit. This makes decision-#8's "lifetime rivalry records" concrete.
+    - *Argued past:* "blend it all into 7–4 lifetime" — the records aren't
+      commensurable and golfers know it; a blended number starts a bar
+      argument it can't settle (Principle 4: the memory must be *true*). The
+      faceted object keeps every meeting without the fake aggregate.
+
+19. **The declared round is the tee sheet's parent — prefill flows forward,
+    one direction only.** (Constraint on task #11.) On a declared day, the
+    round on the books offers "Tee off — start a live round," carrying
+    course, tee time, and tagged group as **editable defaults** (all four
+    now captured, v23.135). The continuum is one object's lifecycle:
+    plan (calendar) → tee off (+ pick a game: Wolf, Match Play) → post →
+    points. The tee sheet is ALSO spawnable from nothing (four on the first
+    tee, nobody declared) — so the declared round is *a* parent, never the
+    *required* one, and plan data never constrains the game (facts flow
+    plan→game, never back). Do not build a second scheduling front door;
+    that recreates the "two home tabs" redundancy one layer down.
+    - *Argued past:* "planned and played are different objects, welding them
+      risks stale foursome-of-record" — only if prefill were bidirectional
+      or mandatory; one-directional editable defaults have no such downside.
+
+Two copy/craft notes (not decisions — build guidance):
+- **Don't badge the gross-only escape hatch punitively.** "No hole detail"
+  reads as a scarlet letter. Make the hole-by-hole stepper fast enough
+  (par-prefilled, adjust only deviations — decision #5) that the hatch is
+  rarely wanted, rather than flagging the golfers who take it.
+- **The 60-second post is an acceptance test, not an aspiration.** The
+  success metric (post a round in under 60 seconds) is a stated pass/fail
+  gate on the stepper build, measured, not a hope.
