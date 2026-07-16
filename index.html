@@ -1413,7 +1413,7 @@ body::before{
       </div>
             
     </div>
-    <div class="ob-caption" id="obCaption">New or returning, email is one door. No passwords. <span style="opacity:.5">v23.154</span></div>
+    <div class="ob-caption" id="obCaption">New or returning, email is one door. No passwords. <span style="opacity:.5">v23.155</span></div>
   </div>
   <div class="ob-splash" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
   
@@ -1641,6 +1641,11 @@ body::before{
               <button data-g="wolf">Wolf · side tally</button>
             </div>
             <p class="fine" id="gameNote">Stroke play \u2014 your card, your pace. One to four players; post when you\u2019re done.</p>
+            <div id="matchSetup" style="display:none; margin-top:12px; border-top:0.5px solid var(--line); padding-top:12px;">
+              <label class="f" for="lrStake">Stake per side · $0 = bragging rights</label>
+              <input class="f" id="lrStake" type="number" min="0" step="1" value="0" inputmode="numeric" style="max-width:110px; margin-top:6px;">
+              <div id="matchPrev" class="fine" style="padding:10px 0 0"></div>
+            </div>
           </div>
           <button class="btn" id="teeOffBtn">Tee off →</button>
         </div>
@@ -3211,6 +3216,25 @@ $$('.preset').forEach(p=>{
 let PAR=[4,4,3,5,4,4,3,4,5,4,3,4,5,4,4,3,4,5];
 let SI =[7,13,15,1,9,5,17,11,3,8,14,2,10,4,12,18,6,16];
 let CRATE=70.2, CSLOPE=123;
+/* golf convention: an index better than scratch is a PLUS handicap — display
+   "+1.7", never "-1.7". Storage stays signed (negative = better than scratch). */
+function fmtIdx(v){
+  v=Number(v);
+  if(!isFinite(v)) return '—';
+  return v<0 ? '+'+Math.abs(v).toFixed(1) : v.toFixed(1);
+}
+window.fmtIdx=fmtIdx;
+/* stroke index fallback (spec §2.2 match play): no real card SI → allocate
+   hardest-first by par then hole number, and FLAG it estimated everywhere it
+   shows. The demo card's SI is a real card; a real course entered by pars only
+   is not. */
+let SIEST=false;
+function estimateSI(){
+  const order=[...PAR.keys()].sort((a,b)=> PAR[b]-PAR[a] || a-b);
+  SI=Array(18).fill(18);
+  order.forEach((h,rank)=>{ SI[h]=rank+1; });
+  SIEST=true;
+}
 const ROSTER=[
   {n:'Jerecho', i:12.4, ci:0, team:'Mudsharks', guest:false, locked:true, me:true},
   {n:'Logan',   i:8.1,  ci:0, team:'Mudsharks', guest:false},
@@ -3261,6 +3285,9 @@ function primeRealRoster(){
   rosterPrimed=true;
   sel=[0];
   LIVE=sel.map(i=>ROSTER[i]);
+  /* a real account never inherits the demo course's stroke index — estimate
+     from pars (flagged) until a real card supplies SI */
+  estimateSI();
   recomputeStrokes();
   state.live=freshLive();
   if(typeof renderPlay==='function') renderPlay();
@@ -3379,7 +3406,7 @@ function renderPlay(){
     row.innerHTML=`
       <span class="sw" style="background:${p.guest?'var(--dim)':SQHEX[p.ci]}"></span>
       <div class="nm"><b>${p.n} ${p.guest?'<span class="gtag">GUEST</span>':''}${strokeOn(pi,h)?'<span class="strokedot" title="stroke here"></span>':''}</b>
-      <small>${p.guest?(p.est?'EST ':'SELF '):''}${p.i.toFixed(1)} IDX · ${STROKES[pi]} STK</small></div>
+      <small>${p.guest?(p.est?'EST ':'SELF '):''}${fmtIdx(p.i)} IDX · ${STROKES[pi]} STK</small></div>
       <div class="tot">${done.length? gross+' THRU '+done.length+'<br>'+(vp>=0?'+':'')+vp : '—'}</div>
       <div class="step">
         <button aria-label="Minus ${p.n}" data-pi="${pi}" data-d="-1">−</button>
@@ -3405,10 +3432,13 @@ function renderPlay(){
     ? `Match play \u00b7 singles \u00b7 ${LIVE[0].n} vs ${LIVE[1].n}`
     : `Match play \u00b7 net best ball \u00b7 ${LIVE[0].n} + ${LIVE[1].n} vs ${LIVE[2].n} + ${LIVE[3].n}`;
   const m=matchCalc();
+  const _dormie = !m.closed && m.a!==m.b && Math.abs(m.a-m.b)===18-m.played;
   $('#matchStatus').textContent = m.closed
     ? `${m.closed.winner===0?teamA:teamB} WIN ${m.closed.lead}&${m.closed.rem}`
-    : (m.a===m.b?'ALL SQUARE':`${m.a>m.b?teamA:teamB} ${Math.abs(m.a-m.b)} UP`);
-  $('#matchMeta').textContent=`THRU ${m.played} · STROKES OFF LOW MAN (${lowMan})`;
+    : (m.a===m.b?'ALL SQUARE':`${m.a>m.b?teamA:teamB} ${Math.abs(m.a-m.b)} UP${_dormie?' · DORMIE':''}`);
+  $('#matchMeta').textContent=`THRU ${m.played} · STROKES OFF LOW MAN (${lowMan})`
+    + (state.live.stake>0?` · $${state.live.stake} A SIDE`:'')
+    + (SIEST?' · EST. CARD':'');
 
   if(state.live.game==='wolf' && LIVE.length===4){
   const wolfIdx=h%4;
@@ -3443,6 +3473,36 @@ function renderPlay(){
 }
 $('#holePrev').addEventListener('click',()=>{state.live.hole=Math.max(0,state.live.hole-1);renderPlay();});
 $('#holeNext').addEventListener('click',()=>{state.live.hole=Math.min(17,state.live.hole+1);renderPlay();});
+/* the tee-off match preview: sides + who gets strokes WHERE — the first-tee
+   argument, settled before anyone hits (§2.2). Recomputed on every roster,
+   slope, or game change. */
+function renderMatchPrev(){
+  const box=$('#matchSetup'); if(!box) return;
+  const on = state.live.game==='match';
+  box.style.display = on ? 'block' : 'none';
+  const prev=$('#matchPrev'); if(!on || !prev) return;
+  if(sel.length!==2 && sel.length!==4){
+    prev.innerHTML='Match play takes 2 (singles) or 4 (2v2 net best ball).';
+    return;
+  }
+  const ps=sel.map(i=>ROSTER[i]);
+  const chs=ps.map(p=>Math.round(p.i*CSLOPE/113));
+  const low=Math.min(...chs);
+  const lowName=ps[chs.indexOf(low)].n;
+  const lines=ps.map((p,k)=>{
+    const stk=chs[k]-low;
+    if(!stk) return null;
+    const holes=[...SI.keys()].filter(h=>SI[h]<=stk).map(h=>h+1).sort((a,b)=>a-b);
+    return `<b>${esc(p.n)}</b> gets ${stk}: hole${stk===1?'':'s'} ${holes.join(', ')}`;
+  }).filter(Boolean);
+  const sides = sel.length===2
+    ? `<b>${esc(ps[0].n)}</b> vs <b>${esc(ps[1].n)}</b>`
+    : `<b>${esc(ps[0].n)} + ${esc(ps[1].n)}</b> vs <b>${esc(ps[2].n)} + ${esc(ps[3].n)}</b> · net best ball`;
+  prev.innerHTML = sides
+    + `<br>Strokes off the low man (${esc(lowName)})${SIEST?' · <i>estimated card — no real stroke index</i>':''}: `
+    + (lines.length ? lines.join(' · ') : 'everyone plays level — no strokes')
+    + '.';
+}
 function renderRoster(){
   /* the four slots — selected players live here, with × to remove */
   const slots=$('#fourSlots'); slots.innerHTML='';
@@ -3454,14 +3514,21 @@ function renderRoster(){
       d.innerHTML=`<div class="sn">Open slot</div><div class="si">TAP A PLAYER BELOW</div>`;
     } else {
       const p=ROSTER[idx];
+      const swap = state.live.game==='match' && sel.length===4
+        ? `<button class="sx" data-swap="${k}" aria-label="Move ${p.n} to team ${k<2?'B':'A'}" style="right:30px">⇄</button>` : '';
       d.className='pslot';
       d.innerHTML=`
         <div class="sn">${p.guest?`<span class="gtag">${p.buddy?'B':'G'}</span>`:`<span style="width:8px;height:8px;border-radius:3px;background:${SQHEX[p.ci]};display:inline-block;"></span>`}${p.n}</div>
-        <div class="si">${p.i.toFixed(1)} IDX · TEAM ${k<2?'A':'B'}</div>
-        ${p.locked?'':`<button class="sx" data-rm="${idx}" aria-label="Remove ${p.n}">×</button>`}`;
+        <div class="si">${fmtIdx(p.i)} IDX · TEAM ${k<2?'A':'B'}</div>
+        ${swap}${p.locked?'':`<button class="sx" data-rm="${idx}" aria-label="Remove ${p.n}">×</button>`}`;
     }
     slots.appendChild(d);
   }
+  slots.querySelectorAll('[data-swap]').forEach(b=>b.addEventListener('click',()=>{
+    const k=+b.dataset.swap, j=(k+2)%4;
+    [sel[k],sel[j]]=[sel[j],sel[k]];
+    renderRoster();
+  }));
   slots.querySelectorAll('[data-rm]').forEach(b=>b.addEventListener('click',()=>{
     sel=sel.filter(x=>x!==+b.dataset.rm); renderRoster();
   }));
@@ -3476,7 +3543,7 @@ function renderRoster(){
     const mark=p.guest
       ? `<span class="gtag">${p.buddy?'BUDDY':'GUEST'}</span>`
       : `<span style="width:8px;height:8px;border-radius:3px;background:${SQHEX[p.ci]};display:inline-block;"></span>`;
-    b.innerHTML=`${mark}${p.n} · ${p.i.toFixed(1)}`;
+    b.innerHTML=`${mark}${p.n} · ${fmtIdx(p.i)}`;
     b.addEventListener('click',()=>{
       if(sel.length>=4){ toast('Foursome is full: remove someone first'); return; }
       sel.push(i); renderRoster();
@@ -3506,6 +3573,7 @@ function renderRoster(){
   }
 
   $('#selCount').textContent=sel.length;
+  renderMatchPrev();
 }
 $('#gAdd').addEventListener('click',()=>{
   const n=$('#gName').value.trim();
@@ -3541,12 +3609,14 @@ function syncTeeInputs(){
   CRATE=parseFloat($('#lrRate').value)||72;
   CSLOPE=parseInt($('#lrSlope').value,10)||113;
   recomputeStrokes();
+  renderMatchPrev();   /* slope moves course handicaps → strokes move too */
 }
 ['lrRate','lrSlope'].forEach(id=>$('#'+id).addEventListener('input',syncTeeInputs));
 $$('#gameSeg button').forEach(b=>b.addEventListener('click',()=>{
   $$('#gameSeg button').forEach(x=>x.classList.remove('on'));
   b.classList.add('on');
   state.live.game=b.dataset.g;
+  renderRoster();   /* match extras (stake, strokes preview, side swap) follow the game */
   const GN={score:'Stroke play \u2014 your card, your pace. One to four players; post when you\u2019re done.',
     match:'Singles (2) or 2v2 net best ball (4). Keep scoring; we tally the match as you go.',
     wolf:'A round of Wolf \u2014 needs four. We run the rotation and the side tally; scores still post.'};
@@ -3564,7 +3634,9 @@ $('#teeOffBtn').addEventListener('click', async ()=>{
   LIVE=sel.map(i=>ROSTER[i]);
   setMatchTeams();
   syncTeeInputs();
-  state.live={stage:'live', active:true, game,
+  /* the stake is declared at tee-off and locked (spec §13.2) — $0 = bragging */
+  const stake = game==='match' ? Math.max(0, parseFloat($('#lrStake')?.value)||0) : 0;
+  state.live={stage:'live', active:true, game, stake,
     hole:0, scores:LIVE.map(()=>Array(18).fill(null)), wolf:Array(18).fill(null),
     lr:null, pmap:null, guestTokens:{}};
   /* real accounts persist the live round now (guests get claim tokens);
@@ -3576,10 +3648,21 @@ $('#teeOffBtn').addEventListener('click', async ()=>{
         nine_rating:null, pars:PAR.slice(), si:(SI?SI.slice():null),
         label:($('#lrCourse').value||'').trim(), tee:($('#lrTee').value||'').trim() };
       const players=LIVE.map(p=> p.guest ? {guest_name:p.n, guest_index:(p.est?null:p.i)} : {member_id:p.mid});
-      const { data, error } = await sb.rpc('start_live_round', {
+      const cfg = game==='match'
+        ? { stake, side_a:MTEAMS[0].map(i=>LIVE[i].n), side_b:MTEAMS[1].map(i=>LIVE[i].n),
+            si_estimated:!!SIEST }
+        : {};
+      const args = {
         p_league:CS.league.id, p_course_id:null, p_tee_id:null,
         p_course_label:snap.label, p_snapshot:snap,
-        p_game:(game==='score'?'none':game), p_players:players });
+        p_game:(game==='score'?'none':game), p_players:players, p_config:cfg };
+      let { data, error } = await sb.rpc('start_live_round', args);
+      /* Netlify ships this client before `db push` — old RPC has no p_config;
+         drop it and retry so a tee-off never fails on deploy skew */
+      if(error && /p_config|function|schema cache/i.test(error.message||'')){
+        delete args.p_config;
+        ({ data, error } = await sb.rpc('start_live_round', args));
+      }
       if(error) throw error;
       state.live.lr = data.live_round_id;
       const byPos=(data.players||[]).slice().sort((a,b)=>a.position-b.position);
@@ -3600,6 +3683,20 @@ $('#backToSetup').addEventListener('click',e=>{
   renderPlay();
 });
 /* real live-round finish: confirm → finish_live_round → recap (checkpoint 1) */
+/* the match's outcome, computed from the same hole data everything else reads —
+   never a second source of truth. Called once, at finish. */
+function matchResult(){
+  if(state.live.game!=='match') return null;
+  const m=matchCalc();
+  const names=t=>MTEAMS[t].map(i=>LIVE[i]?.n).filter(Boolean).join(' & ');
+  let winner=null, status;
+  if(m.closed){ winner=m.closed.winner; status=`${m.closed.lead}&${m.closed.rem}`; }
+  else if(m.a!==m.b){ winner=m.a>m.b?0:1; status=`${Math.abs(m.a-m.b)} UP THRU ${m.played}`; }
+  else status='HALVED';
+  return { game:'match', winner: winner==null?null:String(winner), status,
+           a:m.a, b:m.b, thru:m.played, stake:state.live.stake||0,
+           side_a:names(0), side_b:names(1) };
+}
 function finishRealLiveRound(){
   const cards = LIVE.map((p,i)=>({
     player_id: state.live.pmap?.[i],
@@ -3607,6 +3704,7 @@ function finishRealLiveRound(){
   })).filter(c=>c.player_id);
   const memberN = LIVE.filter(p=>!p.guest).length;
   const guestN  = LIVE.filter(p=>p.guest).length;
+  const result = matchResult();
   openSheet('Finish the round', 'ONE FINISH — EVERY MEMBER’S CARD POSTS',
     `<p class="fine" style="padding-top:0">Complete cards post to the season, attested by the group${guestN?`; ${guestN} guest${guestN===1?'':'s'} get a recap to claim`:''}. A partial card is skipped, not lost.</p>
      <button class="btn" id="lrPost" style="margin-top:12px">Post ${memberN} card${memberN===1?'':'s'} to the season</button>
@@ -3615,13 +3713,19 @@ function finishRealLiveRound(){
     const pb=document.getElementById('lrPost'), cb=document.getElementById('lrCasual');
     if(pb) pb.disabled=true; if(cb) cb.disabled=true;
     try{
-      const { data, error } = await sb.rpc('finish_live_round', {
-        p_live_round: state.live.lr, p_cards: cards, p_casual: !!casual });
+      const args = { p_live_round: state.live.lr, p_cards: cards, p_casual: !!casual,
+                     p_result: result };
+      let { data, error } = await sb.rpc('finish_live_round', args);
+      /* deploy skew: old RPC has no p_result — drop it, the finish still lands */
+      if(error && /p_result|function|schema cache/i.test(error.message||'')){
+        delete args.p_result;
+        ({ data, error } = await sb.rpc('finish_live_round', args));
+      }
       if(error) throw error;
       closeSheet();
       state.live.active=false; state.live.stage='setup';
       renderPlay();
-      showLiveRecap(data||{});
+      showLiveRecap(data||{}, casual?null:result);
       if(window.CS?.league && window.loadStandingsAndFeed) loadStandingsAndFeed();
     }catch(e){
       toast('Finish failed: '+(e.message||e));
@@ -3631,9 +3735,23 @@ function finishRealLiveRound(){
   document.getElementById('lrPost')?.addEventListener('click', ()=>go(false));
   document.getElementById('lrCasual')?.addEventListener('click', ()=>go(true));
 }
-function showLiveRecap(d){
+function showLiveRecap(d, result){
   const posted=d.posted||[], guests=d.guests||[], skipped=d.skipped||[];
   const rows=[];
+  /* the match settles first — the settlement card is the recap's headline */
+  if(result){
+    const won=result.winner!=null;
+    const wSide=result.winner==='0'?result.side_a:result.side_b;
+    const lSide=result.winner==='0'?result.side_b:result.side_a;
+    const line = won
+      ? `${wSide} def. ${lSide} ${result.status}`
+      : `${result.side_a} and ${result.side_b} halved the match`;
+    const money = result.stake>0
+      ? (won ? `${lSide.toUpperCase()} PAYS ${wSide.toUpperCase()} $${result.stake} · VENMO`
+             : 'ALL SQUARE — NO MONEY MOVES')
+      : 'BRAGGING RIGHTS ONLY';
+    rows.push(`<div class="check"><span class="num">⚔️</span><div class="tt"><b>${esc(line)}</b><small>${esc(money)}</small></div></div>`);
+  }
   posted.forEach(x=>rows.push(`<div class="check"><span class="num">⛳</span><div class="tt"><b>${esc(x.name)} · ${x.gross}</b><small>POSTED · ${x.holes} HOLES · ✓ ATTESTED</small></div></div>`));
   skipped.forEach(x=>rows.push(`<div class="check"><span class="num">—</span><div class="tt"><b>${esc(x.name)}</b><small>NOT POSTED · ${esc(String(x.reason||'')).toUpperCase()}</small></div></div>`));
   guests.forEach(g=>{ const url=`${location.origin}/?claim=${g.claim_token}`;
@@ -3734,7 +3852,7 @@ function renderStats(){
     $('#statIdx').textContent=n+' of 3';
     if(xd){ xd.textContent='Building your number'; xd.className='d fl'; }
   } else {
-    $('#statIdx').textContent=state.myIndex.toFixed(1);
+    $('#statIdx').textContent=fmtIdx(state.myIndex);
     if(xd && !state.demo){
       const d=window.myIndexDelta;
       if(d==null || !isFinite(d) || Math.abs(d)<0.05){ xd.textContent='Season to date'; xd.className='d fl'; }
@@ -3801,7 +3919,9 @@ function openCardSheet(){
     const f=f9.value, b=b9.value;
     if(!validSide(f)||!validSide(b)){ toast('Nine digits a side, 3 through 6'); return; }
     PAR=[...f,...b].map(Number);
-    SI=null;
+    /* pars-only card carries no stroke index — estimate (flagged), never null:
+       strokeOn()/matchCalc() dereference SI on every match hole */
+    estimateSI();
     closeSheet();
     $('#cardNote').textContent=`Card saved: par ${sumStr(f)+sumStr(b)}. The stepper opens on each hole's par.`;
     renderPlay();
@@ -5219,7 +5339,7 @@ function refreshWhoChip(){
   }
   if($('#youIdx')){
     if(p.index_current != null){
-      $('#youIdx').textContent = Number(p.index_current).toFixed(1);
+      $('#youIdx').textContent = fmtIdx(p.index_current);
       $('#youIdx').style.fontSize = '';
     } else {
       /* building, not broken — the dash read as an error (decision D3) */
@@ -5359,7 +5479,7 @@ async function openTourCard(profileId){
     return;
   }
   const p=card.profile||{}, c=card.career||{}, vs=card.vs_you, tr=card.trophies||[], rec=card.recent||[];
-  const idx = p.index_current!=null ? Number(p.index_current).toFixed(1) : '—';
+  const idx = p.index_current!=null ? fmtIdx(p.index_current) : '—';
   const meta = [p.city?esc(p.city):null, p.home_course?esc(p.home_course):null].filter(Boolean).join(' · ');
   const since = p.member_since ? (()=>{ const d=new Date(p.member_since); return 'Member since '+MOS[d.getMonth()]+' '+d.getFullYear(); })() : null;
   const anchorTxt = [p.ghin ? 'GHIN '+esc(p.ghin) : null, since].filter(Boolean).join(' · ');
@@ -7273,7 +7393,7 @@ async function openMembersSheet(){
       <span class="num">${mkr(m.profile?.marker || 'saguaro')}</span>
       <div class="tt"><b>${esc(m.profile?.display_name || '—')}${m.role==='commissioner' ? ' · <span style="color:var(--gold)">THE PRO</span>' : ''}</b>
       <small>${[m.profile?.handle ? '@'+m.profile.handle : null,
-                m.profile?.index_current != null ? 'INDEX '+Number(m.profile.index_current).toFixed(1) : null,
+                m.profile?.index_current != null ? 'INDEX '+fmtIdx(m.profile.index_current) : null,
                 sqName(m.id) || null].filter(Boolean).join(' · ') || 'GOLFER'}</small></div>
       ${isPro && m.id !== CS.member.id ? `<span style="display:flex; gap:6px; flex:none; flex-wrap:wrap; justify-content:flex-end">
         <button class="mini" data-msidx="${m.id}">Set index</button>
