@@ -233,14 +233,51 @@ exists).
 
 ---
 
+## Batch 3 — 2026-07-16, calendar & tee-sheet connective tissue (tasks #11/#16)
+
+### D17 · The Watch List and "I'm in" (join a friend's declared round)
+- **Current:** declared rounds live on the calendar; a league mate's round
+  shows as a passive gold dot you must find by tapping its day. The loop
+  CLAUDE.md names — "Logan's playing Pebble, get something on the books" — is
+  *described* in comments but never *delivered* as a surface, and there is no
+  way to act on someone else's plan.
+- **Problem observed:** the highest-retention moment in amateur golf (a buddy
+  is already going — join them) is buried one tap deep and has no verb. The
+  calendar is a passive record, not an active nudge.
+- **Recommendation:** a **Watch List** — buddies' and league-mates' rounds in
+  the next ~14 days, surfaced atop the Calendar (compact echo in Home's Up
+  Next), each with a one-tap **"I'm in"** and **"Put my own up."** "I'm in"
+  *declares your own round* on that day/course and auto-tags the host — reusing
+  `declare_round`, no new table and no shared-roster schema. The two rounds
+  then cluster on the same day, and each golfer's round still posts and scores
+  independently (an outing is two rounds, not one shared record).
+- **Principle:** #4 the app feels alive (a plan you can act on, not just read);
+  #2 Low Friction (join in one tap); #5 Memory > Statistics (the outing becomes
+  a shared moment on both boards).
+- **Benefit:** converts a friend's plan into your round at the exact moment
+  intent is highest; makes the calendar the between-rounds retention loop the
+  vision asks for.
+- **Tradeoffs:** two rounds per outing rather than one shared roster — chosen
+  deliberately: it keeps scheduling profile-scoped and schema-free, and mirrors
+  reality (each golfer posts their own card). A true shared tee sheet (one
+  roster, one record) is a later call if leagues ask for it.
+- **Not a mechanic change (built alongside, no separate entry):** the Plan→Play
+  prefill (tee off a declared round with its group + course pre-filled) and the
+  `upcomingFromSchedule` field-name fix (`played_on`→`play_on`, split mine from
+  watch) are plumbing/bug-fix at level 5–6.
+
+---
+
 ## Batch 4 — 2026-07-16, the memory layer (spec/memory-layer-v1.md → V1 build)
 
 Backlog lives in the task list as M1–M10. Entries below cover the checkpoints
 that change or add a mechanic; M1 (voice pass), M6 (ceremony presentation),
 M8 (recap-card render), and M10 (identity presentation) are level-5/6 and are
-logged as non-entries at the batch foot.
+logged as non-entries at the batch foot. (Batch follows Batch 3; the memory-
+layer entries are renumbered D18–D23 to clear the calendar lane's D17 — the
+M1–M3 commit messages predate the renumber and cite the old D17–D18.)
 
-### D17 · The post-round beat: the poster hears it first (M2)
+### D18 · The post-round beat: the poster hears it first (M2)
 - **Current:** posting a round fans straight to the board; the poster learns
   what their round *meant* (PB, streak, rivalry flip, points) the same way
   everyone else does — by reading the feed.
@@ -258,7 +295,7 @@ logged as non-entries at the batch foot.
 - **Tradeoffs:** one more surface in the post flow — must not break the
   60-second-post friction target (sheet is dismissible, never blocking).
 
-### D18 · Rivalries can be christened (M3)
+### D19 · Rivalries can be christened (M3)
 - **Current:** rivalries are a computed facet (`my_rivalries()`,
   `rivalry_weeks()`) — real records, no identity. Every rivalry is anonymous.
 - **Problem:** "memory > statistics" — a lifetime record with no name is a
@@ -286,7 +323,7 @@ logged as non-entries at the batch foot.
   crew scale (it IS banter); revisit only on real abuse.
 - **Shipped:** M3 at v23.165 (migration 20260716210000_named_rivalries).
 
-### D19 · The trash-talk thread anchors to the round, then archives (M4)
+### D20 · The trash-talk thread anchors to the round, then archives (M4)
 - **Current:** chat is one league-wide stream on the board; an upcoming round
   (declared, tee time set, foursome tagged) has no conversational home.
 - **Problem:** anticipation is the most under-built phase; pre-round talk is
@@ -304,7 +341,7 @@ logged as non-entries at the batch foot.
 - **Tradeoffs:** threads fragment chat attention slightly; mitigated because
   thread posts can still render inline on the board (anchored, not hidden).
 
-### D20 · The Callout — a declared number settles itself (M5)
+### D21 · The Callout — a declared number settles itself (M5)
 - **Current:** no pre-round commitment mechanic exists. The Ryder has
   number-to-beat chips (computed, not declared); regular rounds have nothing.
 - **Problem:** stakes before a round currently require a side game; there is
@@ -320,7 +357,7 @@ logged as non-entries at the batch foot.
   line posted or a "push" line? recommendation: a push line (the receipt
   exists either way); (c) no-post by settle date — quietly expires or posts
   "never showed"? recommendation: quietly expires — shame mechanics violate
-  the D22 nudge policy's spirit.
+  the D23 nudge policy's spirit.
 - **Principle:** #5; #3 (competition with receipts); §16 show-your-work.
 - **CONFLICT check (level 4):** none — no points, no handicap interaction; it
   is social machinery wearing competition clothes. Named here so that stays
@@ -330,7 +367,7 @@ logged as non-entries at the batch foot.
 - **Tradeoffs:** a settle engine (small) + one more pre-round affordance;
   gated to rounds with a declared schedule so quick-posts stay 60 seconds.
 
-### D21 · Mark This — the golfer's memory outranks the machine's (M7)
+### D22 · Mark This — the golfer's memory outranks the machine's (M7)
 - **Current:** `round_moments()` picks ONE headline per round by fixed
   priority: milestone barrier > personal best > iron-man streak. Entirely
   computed; the golfer has no say in what a round is remembered for.
@@ -352,7 +389,7 @@ logged as non-entries at the batch foot.
 - **Tradeoffs:** a marked mediocre round can bury a PB headline — accepted
   by design (the golfer chose); receipts still show everything.
 
-### D22 · The nudge policy — every nudge names its emotion (M9)
+### D23 · The nudge policy — every nudge names its emotion (M9)
 - **Current:** push is curated by kind + per-user mutes; there are no
   re-engagement nudges of any kind. Nothing resurfaces.
 - **Problem:** days-later resurfacing is the retention loop, and it is the
