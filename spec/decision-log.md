@@ -242,7 +242,9 @@ mechanics (D4) unchanged pending migration 008's endgame dial.*
 shipped v23.160 with migration 008 · D9 (skins forward) shipped v23.157 ·
 batch-3 #17/#18 shipped v23.158–159 (Ryder) · D6 + D8 shipped v23.161 (wizard
 rebuild — Hybrid gone, cap/floor behind a disclosure; D7 bonus-layer was
-never in the wizard, so N/A). Open: D10 (photos, next sprint) · D14 (auto-bye)
-· D16 (3-player Wolf hard-cut) · captains-pick + snake draft engines (decision
-#2's fuller formation — server-side draft engines unbuilt; wizard shows the
-built two + roster-fit guidance, roadmap-honest).*
+never in the wizard, so N/A) · D14 (auto-bye) + D16 (3-player Wolf hard-cut)
+shipped v23.162 (migration 20260716180000_auto_bye). Open: D10 (photos, next
+sprint) · captains-pick + snake draft engines (decision #2's fuller formation
+— server-side draft engines unbuilt; wizard shows the built two + roster-fit
+guidance, roadmap-honest). **Decision log fully reconciled except the two
+noted roadmap items.***
