@@ -1434,7 +1434,7 @@ body::before{
       </div>
             
     </div>
-    <div class="ob-caption" id="obCaption">New or returning, email is one door. No passwords. <span style="opacity:.5">v23.172</span></div>
+    <div class="ob-caption" id="obCaption">New or returning, email is one door. No passwords. <span style="opacity:.5">v23.173</span></div>
   </div>
   <div class="ob-splash" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
   
@@ -3675,39 +3675,40 @@ window.clearLiveCache = clearLiveCache;
 async function rehydrateLiveRound(){
   if(state.demo) return;
   const sb=window.sb, CS=window.CS;
-  if(!sb || !CS || !CS.league) return;
-  const myMid=CS.member?.id, myPid=CS.user?.id;
+  if(!sb || !CS) return;
+  const myPid=CS.user?.id;
 
+  /* Cross-league: a live round belongs to whatever league it was teed off in,
+     which may NOT be the one boot landed on (e.g. a match with a rival in
+     another crew). RLS scopes SELECT to leagues I'm a member of, so we DON'T
+     filter by CS.league — we pull every open round I can see and resume the
+     newest one I'm actually a player in. Each player's identity comes from the
+     round's OWN league via a nested join (CS.members only holds the booted
+     league's roster, so it can't name the other league's players). */
   let rounds;
   try{
     const { data, error } = await sb.from('live_rounds')
-      .select('id, game, game_config, course_snapshot, course_label, started_by, started_at, live_round_players(id, member_id, guest_name, guest_index, index_source, position)')
-      .eq('league_id', CS.league.id).eq('status','live')
+      .select('id, league_id, game, game_config, course_snapshot, course_label, started_by, started_at, live_round_players(id, member_id, guest_name, guest_index, index_source, position, member:league_members(profile_id, profile:profiles(display_name, index_current)))')
+      .eq('status','live')
       .order('started_at', { ascending:false });
     if(error) throw error;
     rounds=data||[];
   }catch(_){ return; }   /* offline / deploy-skew: skip resume, never block boot */
 
-  /* RLS returns every open round in the league — resume only one I'm in */
-  const mine=rounds.find(r=>
-    r.started_by===myMid ||
-    (r.live_round_players||[]).some(p=>{
-      if(!p.member_id) return false;
-      const m=(CS.members||[]).find(x=>x.id===p.member_id);
-      return m && m.profile_id===myPid;
-    }));
+  const iAmIn = r => (r.live_round_players||[]).some(p => p.member?.profile_id===myPid);
+  const mine  = rounds.find(iAmIn);
   if(!mine){ clearLiveCache(null); return; }   /* none open → GC stale caches */
   clearLiveCache(mine.id);                      /* GC every OTHER round's cache */
 
   const players=(mine.live_round_players||[]).slice().sort((a,b)=>a.position-b.position);
   if(!players.length) return;
 
-  /* rebuild the foursome from members / guests, in tee-off (position) order */
+  /* rebuild the foursome from members / guests, in tee-off (position) order —
+     names + indexes come off the round's own league, so it works cross-league */
   LIVE = players.map(pl=>{
     if(pl.member_id){
-      const m=(CS.members||[]).find(x=>x.id===pl.member_id);
-      const pid=m?.profile_id;
-      return { n:(m?.profile?.display_name||'Member'), i:Number(m?.profile?.index_current)||18,
+      const prof=pl.member?.profile, pid=pl.member?.profile_id;
+      return { n:(prof?.display_name||'Member'), i:Number(prof?.index_current)||18,
                ci:1, team:'—', guest:false, mid:pl.member_id, pid,
                me:pid===myPid, locked:pid===myPid };
     }
