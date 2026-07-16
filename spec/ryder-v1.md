@@ -205,16 +205,18 @@ history · captains-pick theater (reuse league formation later) · cross-event
 analytics. Per decision-log D12: user-facing noun is **"the Ryder"** and
 "your match this week" — "event" and "duel" stay schema words.
 
-## §R12 — ⚑ Open for sign-off (small, don't block ckpt 1)
+## §R12 — flags SIGNED OFF (Jerecho, 2026-07-16)
 
-1. **Sim rounds in duels:** default EXCLUDE (matches handicap engine's
-   basis) — confirm. A sim-heavy winter crew is exactly the off-season
-   audience, so the OPPOSITE default is defensible; per-event toggle is the
-   escape if real demand shows.
-2. **Detached-event timezone:** America/Phoenix default vs creator-profile
-   city. Leaning Phoenix (no-DST simplicity, house default).
-3. **Session boundary time:** closes_on Saturday 23:59 event-tz (mirrors
-   week snapshots) — confirm midnight vs "when resolved by tick ~00:10".
-4. **Buy-in v1:** tracked number on the event card + settlement card at
-   completion (no per-player buy_ins ledger rows until the pot arc) —
-   confirm this thin version is enough for v1.
+1. **Sim rounds in duels: EXCLUDED** (matches the handicap engine's basis).
+   Per-event toggle remains the escape hatch if a winter crew asks.
+2. **Detached-event timezone: the creator's clock** — client passes the
+   device IANA tz at create (the practical reading of "creator's city");
+   league-attached events inherit the league's active-season tz; fallback
+   America/Phoenix. `events.tz`, validated server-side.
+3. **Session boundary: Saturday 23:59 event-tz**, resolved by the daily tick
+   (`run_event_sessions`, ~00:15). Organizer "Score this session" stays as
+   the manual override.
+4. **Buy-in v1: the thin version** — tracked number + settlement card at
+   completion; per-player buy_ins ledger waits for the pot arc.
+
+Implemented in migration `20260716150000_ryder_v2_gaps.sql` + client v23.158.

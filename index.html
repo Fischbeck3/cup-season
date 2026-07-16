@@ -1413,7 +1413,7 @@ body::before{
       </div>
             
     </div>
-    <div class="ob-caption" id="obCaption">New or returning, email is one door. No passwords. <span style="opacity:.5">v23.157</span></div>
+    <div class="ob-caption" id="obCaption">New or returning, email is one door. No passwords. <span style="opacity:.5">v23.158</span></div>
   </div>
   <div class="ob-splash" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
   
@@ -5130,7 +5130,8 @@ function renderEvent(){
   const wkNo=sessions.filter(s=>s.status==='closed').length;
 
   let statusChip = ev.status==='complete'
-    ? (ev.winner_team_id===A.id?A.name:ev.winner_team_id===B.id?B.name:'—').toUpperCase()+' TAKES THE CUP'
+    ? (ev.winner_team_id ? (ev.winner_team_id===A.id?A.name:B.name).toUpperCase()+' TAKES THE CUP'
+                         : 'SHARED — BOTH NAMES ON IT')
     : ev.status==='setup' ? 'Forming' : `Live · wk ${Math.min(wkNo+1,ev.session_count)}/${ev.session_count}`;
   let clinchLine = ev.status==='complete'
     ? `FINAL · ${evHalf(aP)}–${evHalf(bP)}`
@@ -5174,12 +5175,24 @@ function renderEvent(){
     const when=`${MOS[d0.getMonth()].toUpperCase()} ${d0.getDate()}–${MOS[d1.getMonth()].toUpperCase()} ${d1.getDate()}`;
     html+=`<div class="evsess"><div class="evsesshd">SESSION ${s.session_no} · ${when} · ${s.status.toUpperCase()}</div>`;
     if(!ds.length){ html+=`<div class="fine" style="padding:2px 0">Pairings not set.</div>`; }
+    const waiting=[];   /* the nag list: who hasn't posted in an open session */
     ds.forEach(d=>{
       const a=pById(d.a_player), b=pById(d.b_player);
       const aw=d.result==='a', bw=d.result==='b', hv=d.result==='halve', pend=d.result==='pending';
       const mid = pend?'vs':hv?'halved':(aw||bw)?'def.':'vs';
-      const pvi = (d.a_pvi!=null||d.b_pvi!=null)
-        ? `${d.a_pvi!=null?(d.a_pvi>=0?'+':'')+Number(d.a_pvi).toFixed(1):'–'} / ${d.b_pvi!=null?(d.b_pvi>=0?'+':'')+Number(d.b_pvi).toFixed(1):'–'}` : '';
+      const sgn=v=>(v>=0?'+':'')+Number(v).toFixed(1);
+      let pvi = (d.a_pvi!=null||d.b_pvi!=null)
+        ? `${d.a_pvi!=null?sgn(d.a_pvi):'–'} / ${d.b_pvi!=null?sgn(d.b_pvi):'–'}` : '';
+      /* the number to beat (batch-3 #17): pending duel in an open session
+         shows each side's live best — the standing target */
+      if(pend && s.status==='open'){
+        const t=(E.targets||{})[d.id];
+        if(t){
+          pvi = `${t.a!=null?sgn(t.a):'—'} / ${t.b!=null?sgn(t.b):'—'}`;
+          if(t.a==null) waiting.push(a.name);
+          if(t.b==null) waiting.push(b.name);
+        }
+      }
       html+=`<div class="evduel">
         <span class="nm a ${aw?'win':''}">${window.mkr?.(a.marker||'saguaro')||''} ${esc(a.name)}</span>
         <span class="mid ${hv?'evwin':''}">${mid}</span>
@@ -5187,6 +5200,11 @@ function renderEvent(){
         ${pvi?`<span class="pv">${pvi}</span>`:''}
       </div>`;
     });
+    if(s.status==='open' && waiting.length){
+      const d1=new Date(s.closes_on+'T00:00:00');
+      const days=Math.max(0, Math.round((d1-new Date().setHours(0,0,0,0))/864e5));
+      html+=`<div class="fine" style="padding:4px 0 0">Still to post: <b>${waiting.map(esc).join(', ')}</b> · ${days===0?'closes tonight':days+'d left'}.</div>`;
+    }
     if(iAmOrg){
       if(!ds.length) html+=`<button class="mini" onclick="window.ryderPair('${s.id}')" style="margin-top:4px">Generate pairings</button>`;
       else if(s.status!=='closed') html+=`<button class="mini" onclick="window.ryderResolve('${s.id}')" style="margin-top:4px">Score this session</button>`;
@@ -7123,6 +7141,15 @@ async function loadEvent(id){
       sb.from('v_event_scoreboard').select('team_id, points').eq('event_id', id),
     ]);
     const scoreboard = {}; (sc.data||[]).forEach(r => scoreboard[r.team_id] = Number(r.points));
+    /* the number to beat (batch-3 #17): live targets for every OPEN session's
+       pending duels — the chip shows it unconditionally */
+    const targets = {};
+    for(const s of (ss.data||[]).filter(x=>x.status==='open')){
+      try{
+        const { data:tg } = await sb.rpc('event_session_targets', { p_session: s.id });
+        (tg||[]).forEach(t => { targets[t.duel_id] = { a:t.a_pvi, b:t.b_pvi }; });
+      }catch(_){ /* RPC not deployed yet — chips just stay quiet */ }
+    }
     window.CS_EVENT = {
       event: ev.data,
       teams: tm.data || [],
@@ -7132,6 +7159,7 @@ async function loadEvent(id){
       sessions: ss.data || [],
       duels: du.data || [],
       scoreboard,
+      targets,
     };
     window.renderEvent?.();
   } catch(e){ console.warn('[event]', e); }
@@ -7203,13 +7231,21 @@ async function openRyderSetup(){
     if(!name){ toast('Name the event'); return; }
     const go=document.getElementById('rsGo'); go.disabled=true;
     try{
-      const { data, error } = await sb.rpc('create_event', {
+      const args = {
         p_name:name, p_starts_on:document.getElementById('rsStart').value||nextSundayISO(),
         p_sessions:sess, p_session_weeks:weeks, p_draw_rule:'team_pvi',
         p_team_a:document.getElementById('rsA').value.trim()||'Red',
         p_team_b:document.getElementById('rsB').value.trim()||'Blue',
         p_league:document.getElementById('rsLeague').value||null,
-      });
+        /* R12.2: standalone events run on the creator's clock */
+        p_tz:(()=>{ try{ return Intl.DateTimeFormat().resolvedOptions().timeZone||null; }catch(_){ return null; } })(),
+      };
+      let { data, error } = await sb.rpc('create_event', args);
+      /* deploy skew: old RPC has no p_tz — drop it and retry */
+      if(error && /p_tz|function|schema cache/i.test(error.message||'')){
+        delete args.p_tz;
+        ({ data, error } = await sb.rpc('create_event', args));
+      }
       if(error) throw error;
       /* event now has an id — fire the staged invites (organizer-gated RPC) */
       for(const [pid] of rsStaged){
