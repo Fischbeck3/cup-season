@@ -215,3 +215,12 @@ card, season recap), foursome-by-foursome, no paid acquisition.
 five-question filter, the Cup Season Test) governs feature decisions
 alongside spec-v1.0. `spec/gameplay-modes-working.md` holds the mode designs
 with ⚑ decision flags.
+
+## Session tracks
+
+Work branches into durable **lanes** — see `spec/session-tracks.md` for the map
+and paste-ready kickoff prompts. A session stays in one lane; the routing rule:
+**Gameplay** builds the rule · **UX** makes it legible · **Social** makes it
+sticky · **Growth/Launch** gets it in front of people · **Business** decides why
+it exists. Near-term work lives in the task list; "why a mechanic is the way it
+is" lives in `spec/decision-log.md`.
