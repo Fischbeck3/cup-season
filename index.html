@@ -2183,7 +2183,6 @@ body::before{
   });
   window.addEventListener('unhandledrejection', function(e){
     var r=e.reason||{};
-    console.error('[cs-stack]', (e.reason&&e.reason.stack)||'(no stack)');
     show('async: '+(r.message||String(r)));
   });
 })();
@@ -3685,8 +3684,8 @@ function renderPlay(){
   const _li=(typeof CHS!=='undefined'&&CHS&&CHS.length)?CHS.indexOf(LOWCH):-1;
   const lowMan=(_li>=0?String(LIVE[_li]?.n||''):'').toUpperCase();
   $('#matchTeams').textContent = LIVE.length===2
-    ? `Match play \u00b7 singles \u00b7 ${LIVE[0].n} vs ${LIVE[1].n}`
-    : `Match play \u00b7 net best ball \u00b7 ${LIVE[0].n} + ${LIVE[1].n} vs ${LIVE[2].n} + ${LIVE[3].n}`;
+    ? `Match play \u00b7 singles \u00b7 ${LIVE[0]?.n||''} vs ${LIVE[1]?.n||''}`
+    : `Match play \u00b7 net best ball \u00b7 ${LIVE[0]?.n||''} + ${LIVE[1]?.n||''} vs ${LIVE[2]?.n||''} + ${LIVE[3]?.n||''}`;
   const m=matchCalc();
   const _dormie = !m.closed && m.a!==m.b && Math.abs(m.a-m.b)===18-m.played;
   $('#matchStatus').textContent = m.closed
@@ -3701,20 +3700,20 @@ function renderPlay(){
   if(state.live.game==='wolf' && LIVE.length===4){
   const wolfIdx=wolfAt(h);
   const comeback = h>=16;
-  $('#wolfWho').textContent=LIVE[wolfIdx].n.toUpperCase()+' IS THE WOLF'+(comeback?' · COMEBACK':'');
+  $('#wolfWho').textContent=(LIVE[wolfIdx]?.n||'').toUpperCase()+' IS THE WOLF'+(comeback?' · COMEBACK':'');
   /* tee order: rotation shifted so the wolf watches every drive (tees last) */
   const wm=$('#wolfMeta');
   if(wm){
     const ord=wolfOrderNow();
     const k=ord.indexOf(wolfIdx);
-    const tees=(k>=0?ord.slice(k+1).concat(ord.slice(0,k+1)):ord).map(p=>LIVE[p].n.toUpperCase());
+    const tees=(k>=0?ord.slice(k+1).concat(ord.slice(0,k+1)):ord).map(p=>(LIVE[p]?.n||'').toUpperCase());
     wm.textContent='TEES: '+tees.join(' · ')+(state.live.stake>0?` · $${state.live.stake}/PT`:' · BRAGGING POINTS');
   }
   const wb=$('#wolfBtns'); wb.innerHTML='';
   const pick=state.live.wolf[h];
   [0,1,2,3].filter(p=>p!==wolfIdx).forEach(p=>{
     const b=document.createElement('button');
-    b.textContent='+ '+LIVE[p].n.toUpperCase();
+    b.textContent='+ '+(LIVE[p]?.n||'').toUpperCase();
     if(pick&&pick.mode==='partner'&&pick.partner===p)b.classList.add('on');
     b.addEventListener('click',()=>{state.live.wolf[h]={mode:'partner',partner:p};renderPlay();});
     wb.appendChild(b);
@@ -8255,10 +8254,18 @@ if(new URLSearchParams(window.location.search).has('exit')){
 }
 
 let booting = false;
-async function safeBoot(){
+/* bootResolved goes true once a boot cycle finishes (door shown OR league
+   entered). It makes safeBoot idempotent: the initial-load triggers below
+   (INITIAL_SESSION + a belt-and-suspenders fallback) can both fire, but only
+   the first actually boots — the rest no-op. A real later sign-in passes
+   force=true to override it; SIGNED_OUT clears it. This is what stops the
+   double "no session" boot without racing on a timer. */
+let bootResolved = false;
+async function safeBoot(force){
   if(booting || CS.league) return;
+  if(bootResolved && !force) return;
   booting = true;
-  try { await boot(); } finally { booting = false; }
+  try { await boot(); } finally { booting = false; bootResolved = true; }
   /* invite link landed while signed out: surface it on the door */
   const pend = localStorage.getItem('cs_code');
   const pendName = localStorage.getItem('cs_code_name');
@@ -8283,13 +8290,18 @@ async function safeBoot(){
   }
   if(CS.user) claimPendingRound();
 }
+/* supabase-js emits INITIAL_SESSION once on load — that drives the first boot.
+   The old code ALSO called safeBoot() directly at the bottom of the script, so
+   every load booted twice (the no-session path logged "no session" twice, and
+   any stray async rejection in the boot chain surfaced as an unhandledrejection
+   twice). Now the initial boot is idempotent via bootResolved, so the event and
+   the fallback below can't double up. A genuine later sign-in forces a boot. */
 sb.auth.onAuthStateChange((event) => {
   /* never call supabase methods synchronously in this callback — the client
      holds an internal auth lock here and getSession() would deadlock */
-  if(event === 'SIGNED_IN' || event === 'INITIAL_SESSION'){
-    setTimeout(safeBoot, 0);
-  }
-  if(event === 'SIGNED_OUT'){ CS.user=null; CS.league=null; try{ localStorage.removeItem('cs_code'); localStorage.removeItem('cs_code_name'); }catch(_){}; backToDoor(); }
+  if(event === 'SIGNED_IN'){ setTimeout(() => safeBoot(true), 0); }
+  else if(event === 'INITIAL_SESSION'){ setTimeout(() => safeBoot(false), 0); }
+  else if(event === 'SIGNED_OUT'){ bootResolved=false; CS.user=null; CS.league=null; try{ localStorage.removeItem('cs_code'); localStorage.removeItem('cs_code_name'); }catch(_){}; backToDoor(); }
 });
 
 /* iOS standalone PWA resume: iOS suspends the page's WebSocket while the app is
@@ -8305,7 +8317,10 @@ document.addEventListener('visibilitychange', () => {
   loadInvites().then(() => window.renderNotifications && window.renderNotifications()).catch(() => {});
 });
 
-safeBoot();
+/* Fallback: if INITIAL_SESSION never arrives (auth transport stall), boot
+   anyway. Idempotent — if INITIAL_SESSION already booted, bootResolved makes
+   this a no-op, so a healthy load still boots exactly once regardless of timing. */
+setTimeout(() => safeBoot(false), 3000);
 </script>
 
 </body>
