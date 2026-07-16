@@ -130,8 +130,26 @@ Deno.serve(async (req) => {
     return new Response('ok');
   }
 
-  // default branch: league board posts
-  if (!record.league_id) return new Response('ok');
+  // opt-in duel taunts (the Ryder, batch-3 #17): one row = one recipient
+  if (table === 'push_nudges') {
+    console.log('[push] kind=nudge');
+    await sendTo([record.profile_id], record.title ?? 'The Ryder', String(record.body ?? ''));
+    return new Response('ok');
+  }
+
+  // event board posts (the Ryder): fan to the event's players
+  if (!record.league_id) {
+    if (!record.event_id) return new Response('ok');
+    const [{ data: evt }, { data: eps }] = await Promise.all([
+      sb.from('events').select('name').eq('id', record.event_id).maybeSingle(),
+      sb.from('event_players').select('profile_id').eq('event_id', record.event_id),
+    ]);
+    const recipients = (eps ?? []).map((e) => e.profile_id);
+    console.log(`[push] kind=${record.kind} event recipients=${recipients.length}`);
+    await sendTo(recipients, evt?.name ?? 'The Ryder',
+      String(record.body ?? 'Something happened in your event'));
+    return new Response('ok');
+  }
 
   const [{ data: lg }, { data: members }] = await Promise.all([
     sb.from('leagues').select('name').eq('id', record.league_id).maybeSingle(),

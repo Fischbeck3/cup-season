@@ -1413,7 +1413,7 @@ body::before{
       </div>
             
     </div>
-    <div class="ob-caption" id="obCaption">New or returning, email is one door. No passwords. <span style="opacity:.5">v23.158</span></div>
+    <div class="ob-caption" id="obCaption">New or returning, email is one door. No passwords. <span style="opacity:.5">v23.159</span></div>
   </div>
   <div class="ob-splash" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
   
@@ -5155,6 +5155,11 @@ function renderEvent(){
 
   /* organizer controls — the event's creator runs the roster + sessions */
   const meU=window.CS?.user?.id, iAmOrg = ev.created_by===meU;
+  /* the opt-in taunt (batch-3 #17): a standing target push must be CHOSEN */
+  const meP=players.find(p=>p.profile_id===meU);
+  if(meP && ev.status!=='complete'){
+    html+=`<div style="margin:2px 0 8px"><button class="mini" onclick="window.ryderNotify('${ev.id}',${meP.notify_target?'false':'true'})">🔔 Duel taunts: ${meP.notify_target?'ON — mute them':'OFF — ping me when my opponent posts'}</button></div>`;
+  }
   const unassigned = players.filter(p=>!p.team_id);
   if(iAmOrg){
     html+=`<div style="display:flex; gap:8px; margin:2px 0 6px"><button class="mini" onclick="window.openInvitePicker&&window.openInvitePicker({event:'${ev.id}'})">＋ Invite players</button></div>`;
@@ -5225,6 +5230,13 @@ function renderEvent(){
       <div class="tt"><b>${esc(p.name)}${p.role==='captain'?' · <span style="color:var(--gold)">CAPTAIN</span>':''}</b>
       <small>${recOf(p.id)} · W-L-H</small></div></div>`).join('') || '<div class="fine" style="padding:2px 0">No one assigned yet.</div>';
   });
+
+  /* the event board: the engine's story — pairings, results, the cup */
+  const posts=E.posts||[];
+  if(posts.length){
+    html+=`<div class="eyebrow" style="margin-top:14px">The board</div>`;
+    html+=posts.map(p=>`<div class="sysrow">◆ ${esc(easeCaps(p.body||''))}</div>`).join('');
+  }
 
   el.innerHTML=html;
 }
@@ -5635,9 +5647,16 @@ async function renderRivalries(){
   box.innerHTML=data.map(r=>{
     const cls=r.lead==='up'?'up':r.lead==='down'?'dn':'ev';
     const rec=`${r.wins}–${r.losses}${r.ties?'–'+r.ties:''}`;
+    /* the faceted record (batch-3 #18): clashes and Ryder duels side by side,
+       never one blended number */
+    const dTot=(r.duel_wins||0)+(r.duel_losses||0)+(r.duel_halves||0);
+    const facets=[
+      r.meetings?`${r.meetings} week${r.meetings===1?'':'s'} head-to-head`:null,
+      dTot?`Ryder duels ${r.duel_wins}–${r.duel_losses}${r.duel_halves?'–'+r.duel_halves:''}`:null,
+    ].filter(Boolean).join(' · ');
     return `<div class="prow" data-tc="${r.opponent}">
       <span class="pmk">${mkr(r.marker||'saguaro')}</span>
-      <span class="pmeta"><b>${esc(r.display_name||'—')}</b><small>${r.meetings} week${r.meetings===1?'':'s'} head-to-head</small></span>
+      <span class="pmeta"><b>${esc(r.display_name||'—')}</b><small>${facets}</small></span>
       <span class="rivrec ${cls}">${rec}</span></div>`;
   }).join('');
 }
@@ -7135,7 +7154,7 @@ async function loadEvent(id){
     const [ev, tm, pl, ss, du, sc] = await Promise.all([
       sb.from('events').select('*').eq('id', id).single(),
       sb.from('event_teams').select('*').eq('event_id', id).order('slot'),
-      sb.from('event_players').select('id, profile_id, team_id, role, seed, benched_count, profile:profiles(display_name, marker)').eq('event_id', id),
+      sb.from('event_players').select('id, profile_id, team_id, role, seed, benched_count, notify_target, profile:profiles(display_name, marker)').eq('event_id', id),
       sb.from('event_sessions').select('*').eq('event_id', id).order('session_no'),
       sb.from('event_duels').select('*').eq('event_id', id),
       sb.from('v_event_scoreboard').select('team_id, points').eq('event_id', id),
@@ -7150,16 +7169,26 @@ async function loadEvent(id){
         (tg||[]).forEach(t => { targets[t.duel_id] = { a:t.a_pvi, b:t.b_pvi }; });
       }catch(_){ /* RPC not deployed yet — chips just stay quiet */ }
     }
+    /* the event board: engine posts (pairings, results, the cup) */
+    let evPosts = [];
+    try{
+      const { data: ps } = await sb.from('posts')
+        .select('kind, body, created_at').eq('event_id', id)
+        .order('created_at', { ascending:false }).limit(30);
+      evPosts = ps || [];
+    }catch(_){ /* pre-migration deploy skew — board just stays empty */ }
     window.CS_EVENT = {
       event: ev.data,
       teams: tm.data || [],
       players: (pl.data||[]).map(p => ({ id:p.id, profile_id:p.profile_id, team_id:p.team_id,
         role:p.role, seed:p.seed, benched_count:p.benched_count,
+        notify_target:!!p.notify_target,
         name:p.profile?.display_name||'—', marker:p.profile?.marker||'saguaro' })),
       sessions: ss.data || [],
       duels: du.data || [],
       scoreboard,
       targets,
+      posts: evPosts,
     };
     window.renderEvent?.();
   } catch(e){ console.warn('[event]', e); }
@@ -7305,6 +7334,14 @@ window.ryderPair = async (sessionId)=>{
 window.ryderResolve = async (sessionId)=>{
   try{ const {error}=await sb.rpc('resolve_session',{p_session:sessionId}); if(error)throw error;
     toast('Session scored'); await loadEvent(window.CS_EVENT.event.id); }catch(e){ toast('Score failed: '+(e.message||e)); }
+};
+window.ryderNotify = async (eventId, on)=>{
+  try{
+    const { error } = await sb.rpc('set_event_notify', { p_event:eventId, p_on:on });
+    if(error) throw error;
+    toast(on ? "Taunts on — you'll hear the moment your opponent posts" : 'Taunts muted');
+    await loadEvent(eventId);
+  }catch(e){ toast(e.message||String(e)); }
 };
 
 /* ---------- invites (decision B): consent-based add for leagues + events ---------- */
