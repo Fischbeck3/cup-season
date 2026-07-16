@@ -1413,7 +1413,7 @@ body::before{
       </div>
             
     </div>
-    <div class="ob-caption" id="obCaption">New or returning, email is one door. No passwords. <span style="opacity:.5">v23.146</span></div>
+    <div class="ob-caption" id="obCaption">New or returning, email is one door. No passwords. <span style="opacity:.5">v23.147</span></div>
   </div>
   <div class="ob-splash" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
   
@@ -3214,12 +3214,21 @@ state.live=freshLive();
    demo crew. Runs once per session, on first entry to Play. */
 let rosterPrimed=false;
 function primeRealRoster(){
-  if(state.demo || rosterPrimed) return;
-  rosterPrimed=true;
+  if(state.demo) return;
+  if(state.live && state.live.active) return;   /* never wipe an in-progress round */
   const p=window.CS?.profile||{};
+  const myPid=window.CS?.user?.id;
   ROSTER.length=0;
   ROSTER.push({ n:(p.display_name||'You'), i:Number(p.index_current)||state.myIndex||18,
-                ci:1, team:'—', guest:false, locked:true, me:true });
+                ci:1, team:'—', guest:false, locked:true, me:true,
+                mid:window.CS?.member?.id||null, pid:myPid });
+  /* league mates fill the foursome — their cards post too (co-play, §13.1) */
+  (window.CS?.members||[]).forEach(m=>{
+    if(m.profile_id===myPid) return;
+    ROSTER.push({ n:(m.profile?.display_name||'Member'), i:Number(m.profile?.index_current)||18,
+                  ci:1, team:'—', guest:false, mid:m.id, pid:m.profile_id });
+  });
+  rosterPrimed=true;
   sel=[0];
   LIVE=sel.map(i=>ROSTER[i]);
   recomputeStrokes();
@@ -3482,17 +3491,43 @@ $$('#gameSeg button').forEach(b=>b.addEventListener('click',()=>{
 }));
 /* editCard toggle is bound by the course-card engine below */
 /* guest and league-player add buttons render inside the roster groups */
-$('#teeOffBtn').addEventListener('click',()=>{
+$('#teeOffBtn').addEventListener('click', async ()=>{
   if(state.live.game==='score' ? sel.length<1 : state.live.game==='match' ? (sel.length!==2 && sel.length!==4) : sel.length!==4){
     return toast(state.live.game==='score' ? 'Pick at least yourself'
       : state.live.game==='match' ? 'Match play takes 2 (singles) or 4 (2v2)'
       : 'Wolf needs exactly 4');
   }
+  const game=state.live.game;
   LIVE=sel.map(i=>ROSTER[i]);
   setMatchTeams();
   syncTeeInputs();
-  state.live={stage:'live', active:true, game:state.live.game,
-    hole:0, scores:LIVE.map(()=>Array(18).fill(null)), wolf:Array(18).fill(null)};
+  state.live={stage:'live', active:true, game,
+    hole:0, scores:LIVE.map(()=>Array(18).fill(null)), wolf:Array(18).fill(null),
+    lr:null, pmap:null, guestTokens:{}};
+  /* real accounts persist the live round now (guests get claim tokens);
+     scoring stays client-side until finish (checkpoint 1 spine) */
+  if(!state.demo && window.sb && window.CS?.league){
+    const btn=$('#teeOffBtn'); btn.disabled=true;
+    try{
+      const snap={ rating:parseFloat($('#lrRate').value)||null, slope:parseInt($('#lrSlope').value)||null,
+        nine_rating:null, pars:PAR.slice(), si:(SI?SI.slice():null),
+        label:($('#lrCourse').value||'').trim(), tee:($('#lrTee').value||'').trim() };
+      const players=LIVE.map(p=> p.guest ? {guest_name:p.n, guest_index:(p.est?null:p.i)} : {member_id:p.mid});
+      const { data, error } = await sb.rpc('start_live_round', {
+        p_league:CS.league.id, p_course_id:null, p_tee_id:null,
+        p_course_label:snap.label, p_snapshot:snap,
+        p_game:(game==='score'?'none':game), p_players:players });
+      if(error) throw error;
+      state.live.lr = data.live_round_id;
+      const byPos=(data.players||[]).slice().sort((a,b)=>a.position-b.position);
+      state.live.pmap = byPos.map(pl=>pl.id);
+      byPos.forEach(pl=>{ if(pl.guest_name) state.live.guestTokens[pl.position]=pl.claim_token; });
+    }catch(e){
+      toast('Could not start the round: '+(e.message||e));
+      state.live.active=false; state.live.stage='setup'; btn.disabled=false; renderPlay(); return;
+    }
+    btn.disabled=false;
+  }
   renderPlay();
   toast('On the tee, good luck everybody');
 });
@@ -3501,27 +3536,59 @@ $('#backToSetup').addEventListener('click',e=>{
   state.live.stage='setup'; state.live.active=false;
   renderPlay();
 });
-$('#finishBtn').addEventListener('click',()=>{
-  /* IA P4 real accounts: the pencil persists nothing (task #11) — so the
-     finish WALKS YOUR GROSS into Quick post. Honest handoff, no silent loss:
-     the settle-up was live, the round posts through the real path. */
-  if(!state.demo){
-    const meIdx = LIVE.findIndex(p=>p.me);
-    let f9=0, b9=0;
-    if(meIdx>-1){
-      const s=state.live.scores[meIdx]||[];
-      f9=s.slice(0,9).reduce((a,b)=>a+(b||0),0);
-      b9=s.slice(9).reduce((a,b)=>a+(b||0),0);
+/* real live-round finish: confirm → finish_live_round → recap (checkpoint 1) */
+function finishRealLiveRound(){
+  const cards = LIVE.map((p,i)=>({
+    player_id: state.live.pmap?.[i],
+    strokes: (state.live.scores[i]||[]).map(s=> s==null ? null : s),
+  })).filter(c=>c.player_id);
+  const memberN = LIVE.filter(p=>!p.guest).length;
+  const guestN  = LIVE.filter(p=>p.guest).length;
+  openSheet('Finish the round', 'ONE FINISH — EVERY MEMBER’S CARD POSTS',
+    `<p class="fine" style="padding-top:0">Complete cards post to the season, attested by the group${guestN?`; ${guestN} guest${guestN===1?'':'s'} get a recap to claim`:''}. A partial card is skipped, not lost.</p>
+     <button class="btn" id="lrPost" style="margin-top:12px">Post ${memberN} card${memberN===1?'':'s'} to the season</button>
+     <button class="btn dark" id="lrCasual" style="margin-top:8px">This one was casual — post nothing</button>`);
+  const go = async (casual) => {
+    const pb=document.getElementById('lrPost'), cb=document.getElementById('lrCasual');
+    if(pb) pb.disabled=true; if(cb) cb.disabled=true;
+    try{
+      const { data, error } = await sb.rpc('finish_live_round', {
+        p_live_round: state.live.lr, p_cards: cards, p_casual: !!casual });
+      if(error) throw error;
+      closeSheet();
+      state.live.active=false; state.live.stage='setup';
+      renderPlay();
+      showLiveRecap(data||{});
+      if(window.CS?.league && window.loadStandingsAndFeed) loadStandingsAndFeed();
+    }catch(e){
+      toast('Finish failed: '+(e.message||e));
+      if(pb) pb.disabled=false; if(cb) cb.disabled=false;
     }
-    const course=($('#lrCourse').value||'').trim();
-    state.live.active=false; state.live.stage='setup';
-    renderPlay();
-    switchView('post');
-    if(f9>0) $('#inF9').value=f9;
-    if(b9>0) $('#inB9').value=b9;
-    if(course && !$('#inCourse').value.trim()) $('#inCourse').value=course;
-    if(typeof recalc==='function') recalc();
-    toast('Game settled. Now post the gross so the round counts');
+  };
+  document.getElementById('lrPost')?.addEventListener('click', ()=>go(false));
+  document.getElementById('lrCasual')?.addEventListener('click', ()=>go(true));
+}
+function showLiveRecap(d){
+  const posted=d.posted||[], guests=d.guests||[], skipped=d.skipped||[];
+  const rows=[];
+  posted.forEach(x=>rows.push(`<div class="check"><span class="num">⛳</span><div class="tt"><b>${esc(x.name)} · ${x.gross}</b><small>POSTED · ${x.holes} HOLES · ✓ ATTESTED</small></div></div>`));
+  skipped.forEach(x=>rows.push(`<div class="check"><span class="num">—</span><div class="tt"><b>${esc(x.name)}</b><small>NOT POSTED · ${esc(String(x.reason||'')).toUpperCase()}</small></div></div>`));
+  guests.forEach(g=>{ const url=`${location.origin}/?claim=${g.claim_token}`;
+    rows.push(`<div class="check"><span class="num">🎟️</span><div class="tt"><b>${esc(g.name||'Guest')}</b><small>GUEST RECAP — SHARE THE LINK</small></div><button class="mini" data-copylink="${esc(url)}" style="flex:none">Copy</button></div>`); });
+  openSheet(d.casual?'Casual — nothing posted':'Round posted',
+    `${posted.length} CARD${posted.length===1?'':'S'} TO THE SEASON`,
+    rows.join('') || '<p class="fine" style="padding-top:0">Nothing to post.</p>');
+  document.querySelectorAll('#shBody [data-copylink]').forEach(b=>b.addEventListener('click',()=>{
+    try{ navigator.clipboard?.writeText(b.dataset.copylink); toast('Recap link copied'); }
+    catch(_){ toast('Copy failed'); }
+  }));
+}
+$('#finishBtn').addEventListener('click',()=>{
+  /* real accounts: the live round posts every member's card at once (§13.1),
+     hole detail and all — through finish_live_round (checkpoint 1). */
+  if(!state.demo){
+    if(!state.live.lr){ toast('This round was not started on the server — tee off again'); return; }
+    finishRealLiveRound();
     return;
   }
   const left=18-[...Array(18).keys()].filter(h=>holeDone(h)).length;
