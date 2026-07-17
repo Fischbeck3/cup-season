@@ -728,15 +728,6 @@ input.f::-webkit-outer-spin-button, input.f::-webkit-inner-spin-button{-webkit-a
   padding:12px 13px; margin-bottom:8px;
 }
 .fcard .round{border:none; background:none; padding:0; margin:0;}
-.factions{display:flex; gap:8px; margin-top:10px; padding-top:10px; border-top:1px solid var(--line);}
-.act{
-  font-family:var(--mono); font-size:12.5px; font-weight:600; letter-spacing:.04em;
-  color:var(--mut); background:var(--bg2); border:1px solid var(--line2);
-  border-radius:99px; padding:6px 12px; cursor:pointer;
-}
-.act:hover{color:var(--ink);}
-.act.on{color:var(--bg0); background:var(--brand); border-color:var(--brand);}
-.act:focus-visible{outline:2px solid var(--pos); outline-offset:2px;}
 .cthread{margin-top:10px;}
 .crow{
   font-size:12.5px; color:var(--mut); padding:7px 2px;
@@ -2938,18 +2929,64 @@ function wireSocial(el){
     const t=el.querySelector('#th'+b.dataset.c);
     if(t) t.style.display = t.style.display==='none' ? 'block':'none';
   }));
+  /* clear BEFORE sending: sendComment re-renders synchronously, and the
+     continuity capture would otherwise resurrect the just-sent text */
   el.querySelectorAll('[data-s]').forEach(b=>b.addEventListener('click',()=>{
     const fi=b.dataset.s;
     const inp=el.querySelector(`input[data-i="${fi}"]`);
     const f=feed[+fi]; if(!f||!inp) return;
-    sendComment(f, inp.value); inp.value='';
+    const v=inp.value; inp.value='';
+    sendComment(f, v);
   }));
   el.querySelectorAll('.cinput input[data-i]').forEach(inp=>inp.addEventListener('keydown',e=>{
-    if(e.key==='Enter'){ const f=feed[+inp.dataset.i]; if(f){ sendComment(f, inp.value); inp.value=''; } }
+    if(e.key==='Enter'){
+      const f=feed[+inp.dataset.i]; if(!f) return;
+      const v=inp.value; inp.value='';
+      sendComment(f, v);
+    }
   }));
 }
+/* ---------- social UI continuity across re-renders ----------
+   Both feed renderers rebuild innerHTML wholesale, and a re-render can land
+   mid-conversation: posting a comment re-renders (D25 shipped this as a
+   regression — the thread you typed into collapsed), and a realtime nudge can
+   fire while you're mid-sentence. Capture open threads / palettes, in-progress
+   input, and focus BEFORE the wipe; restore after. Keyed by post_id (stable
+   across feed rebuilds), falling back to position for demo items. */
+function socialUiKey(fi){ return feed[fi]?.post_id || ('i'+fi); }
+function socialUiCapture(el){
+  const s={ th:[], pal:[], vals:{}, focus:null };
+  el.querySelectorAll('.cthread').forEach(t=>{
+    const fi=+t.id.slice(2); if(!(fi>=0)) return;
+    const k=socialUiKey(fi);
+    if(t.style.display!=='none') s.th.push(k);
+    const inp=t.querySelector('input[data-i]');
+    if(inp&&inp.value) s.vals[k]=inp.value;
+    if(inp&&document.activeElement===inp) s.focus=k;
+  });
+  el.querySelectorAll('.rxpalette.open').forEach(p=>{
+    const fi=+p.id.replace(/^h?rxp/,''); if(fi>=0) s.pal.push(socialUiKey(fi));
+  });
+  return s;
+}
+function socialUiRestore(el, s){
+  if(!s.th.length && !s.pal.length && !s.focus && !Object.keys(s.vals).length) return;
+  const byKey={}; feed.forEach((f,fi)=>{ byKey[socialUiKey(fi)]=fi; });
+  const each=(keys,fn)=>keys.forEach(k=>{ const fi=byKey[k]; if(fi!=null) fn(fi,k); });
+  each(s.th, fi=>{ const t=el.querySelector('#th'+fi); if(t) t.style.display='block'; });
+  each(s.pal, fi=>{ const p=el.querySelector('#rxp'+fi); if(p) p.classList.add('open'); });
+  each(Object.keys(s.vals), (fi,k)=>{
+    const inp=el.querySelector(`input[data-i="${fi}"]`); if(inp) inp.value=s.vals[k];
+  });
+  if(s.focus!=null) each([s.focus], fi=>{
+    const inp=el.querySelector(`input[data-i="${fi}"]`);
+    if(inp){ inp.focus(); inp.setSelectionRange(inp.value.length, inp.value.length); }
+  });
+}
 function renderFeed(){
-  const el=$('#feedList'); el.innerHTML='';
+  const el=$('#feedList');
+  const uiS=socialUiCapture(el);
+  el.innerHTML='';
   /* E3: the Pro's latest announcement rides pinned above the noise —
      announcements are not chat, they must survive the scroll */
   let pin=-1; feed.forEach((f,i)=>{ if(f.ann) pin=i; });
@@ -3008,6 +3045,7 @@ function renderFeed(){
     if(HIST[b.dataset.fp]) showPlayer(b.dataset.fp);
   }));
   wireSocial(el);
+  socialUiRestore(el, uiS);
   if($('#boardFull')?.classList.contains('open')) renderFeedFull();
 }
 /* the full-screen board: every round is a story card (Strava pattern).
@@ -3015,6 +3053,7 @@ function renderFeed(){
    reader's position so a reaction tap mid-scroll doesn't yank the board down. */
 function renderFeedFull(force){
   const el=$('#feedListFull'); if(!el) return;
+  const uiS=socialUiCapture(el);
   const prevTop=el.scrollTop;
   const atBottom = el.scrollHeight - prevTop - el.clientHeight < 60;
   el.innerHTML='';
@@ -3072,6 +3111,7 @@ function renderFeedFull(force){
     }
   });
   wireSocial(el);
+  socialUiRestore(el, uiS);
   requestAnimationFrame(()=>{ el.scrollTop = (force||atBottom) ? el.scrollHeight : prevTop; });
 }
 function openBoardFull(){
