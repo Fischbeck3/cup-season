@@ -6885,7 +6885,16 @@ function openProfileHub(){
   const leagues = (CS.memberships||[]).map(m =>
     `<div class="byrow"><span>${esc(m.league.name)}</span><b>${m.role==='commissioner'?'PRO':'PLAYER'} · ${esc(m.league.code)}</b></div>`).join('')
     || '<p class="fine">No leagues yet. Start one or join with a code.</p>';
-  openSheet('Card & settings', 'Edit your card · app settings live here, not on your profile', `
+  /* You-tab audit (pilot, 2026-07-17): one sheet, two intents, split by
+     segment — YOUR CARD (identity: what the crew sees) | SETTINGS (this
+     device & account). The old single scroll buried notifications and
+     sign-out under ten sections of identity fields. */
+  openSheet('Card & settings', 'Your card is what the crew sees · settings run the app', `
+    <div class="seg" id="phSeg" style="margin-bottom:14px">
+      <button data-ph="card" class="on">Your card</button>
+      <button data-ph="settings">Settings</button>
+    </div>
+    <div id="phPaneCard">
     <label class="f" for="phName">Name on the card</label>
     <input class="f" id="phName" style="font-family:var(--sans)">
     <div class="frow" style="margin-top:8px">
@@ -6918,11 +6927,9 @@ function openProfileHub(){
     <div class="eyebrow" style="margin-top:20px">Your leagues</div>
     ${leagues}
 
-    <div class="eyebrow" style="margin-top:20px">Golf buddies</div>
-    <button class="btn dark" id="phCrew">Manage buddies on your Tour Card</button>
-    <p class="fine" style="padding-left:0">Your buddies and requests live on your Tour Card. Add anyone from the 🔍 search up top.</p>
-
-    <div class="eyebrow" style="margin-top:20px">Notifications</div>
+    </div>
+    <div id="phPaneSettings" style="display:none">
+    <div class="eyebrow" style="margin-top:0">Notifications</div>
     <div style="display:flex; gap:8px; flex-wrap:wrap;">
       <button class="mini" id="phPushTog">Enable on this device</button>
       <button class="mini" id="phRoundsTog">Round pings: —</button>
@@ -6952,7 +6959,13 @@ function openProfileHub(){
         <button class="mini" id="phDelNo">Cancel</button>
       </div>
     </div>
+    </div>
   `);
+  document.querySelectorAll('#phSeg [data-ph]').forEach(b => b.addEventListener('click', () => {
+    document.querySelectorAll('#phSeg [data-ph]').forEach(x => x.classList.toggle('on', x===b));
+    $('#phPaneCard').style.display = b.dataset.ph==='card' ? '' : 'none';
+    $('#phPaneSettings').style.display = b.dataset.ph==='settings' ? '' : 'none';
+  }));
   $('#phName').value = p.display_name || '';
   $('#phHandle').value = p.handle ? '@' + p.handle : '';
   $('#phCity').value = p.city || '';
@@ -7053,7 +7066,6 @@ function openProfileHub(){
   }));
 
   /* golf buddies live in Crew › People now — the Tour Card just links there */
-  $('#phCrew')?.addEventListener('click', () => { closeSheet(); window.goCrewPeople?.(); });
 
   /* appearance: highlight the saved mode, switch on tap */
   const themeBox = $('#phTheme');
