@@ -583,6 +583,65 @@ mechanics (D4) unchanged pending migration 008's endgame dial.*
 
 ---
 
+## Batch 8 — 2026-07-17, the quiet day (Social lane)
+
+### D-NN · Home never opens on nothing (the thin-feed problem)
+*(coordinator: assign the next free D-number.)*
+- **Current:** Home's "Around your circle" renders a bare reverse-chron list of
+  the last 21 days of circle rounds + league posts (`renderHomeFeed`), with an
+  empty state only when there is literally nothing.
+- **Problem:** the design review (2026-07-16 §8.1) names this the **#1
+  unacknowledged risk in the stack**, and it's arithmetic, not polish: an
+  8-person league posting weekly generates ~2–3 board items a *week*, so most
+  opens reveal **nothing new**. Principle 5 promises "opening Cup Season should
+  reveal something new." Today the product quietly breaks that promise ~4 days
+  out of 7, and no amount of moment-engine work changes the volume.
+- **Recommendation:** a **quiet-day frame** above the feed (`renderHomeDigest`).
+  A per-profile seen-mark (localStorage, read ONCE per load so a re-render can't
+  erase the digest you're reading) splits two cases: (a) **something changed** →
+  lead with what ("Since you were here: 3 rounds, a personal best from Diego,
+  and Rosa broke 80"); (b) **genuinely quiet** → resurface the best recent thing
+  instead of a dead list ("Quiet since your last visit · Today — Diego set a
+  personal best"). Ranking for (b): milestone (PR > sub-80 > first round) beats
+  a good score beats a recent one, inside a 14-day window. First visit shows no
+  digest — the feed itself is the reveal.
+- **Principle:** #5 Feels Alive — **the rule this encodes: an open never
+  reveals nothing.** If there's no new content, curate rather than fabricate.
+- **CONFLICT check:** none, and one guardrail explicitly honored. The
+  memory-layer's anti-optimization stance (and D23's nudge policy) forbid
+  manufacturing engagement. This does **not** invent content, notify, or nag —
+  it re-frames facts the user already had access to, in-app, on a surface they
+  chose to open. The review's own retention guidance stands: natural cadence is
+  **2–4×/week, not daily**; chasing daily opens would violate the guardrails,
+  so this deliberately makes a quiet day read as *calm*, not as failure.
+- **Benefit:** 3 items/week feels curated instead of dead; the quiet day gets a
+  reason to exist rather than punishing the opener with an empty screen.
+- **Tradeoffs:** (a) the seen-mark is per device (localStorage), so the digest
+  is per-device, not per-account — acceptable for V1; a server-side last_seen is
+  the upgrade path. (b) A highlight can repeat across consecutive quiet days —
+  accepted; the best thing that happened is still the best thing. (c) Adds one
+  more block above the feed on Home's already-long tree.
+- **Boundary (no collision):** this is Social's retention loop (§8 Social &
+  memory), rendering into a new `#homeDigest` slot; it reads `home_feed`/
+  `homePosts` and touches no UX/onboarding copy, no Gameplay rule, and none of
+  the Climb/standings surfaces.
+
+### Correction to D25 — the reaction skew-fallback silently wrote 🔥
+Not a mechanic change; logged because it corrupted a shipped mechanic's intent.
+D25's client carried a deploy-skew guard that, on a column/schema error,
+retried the `post_kudos` insert **without** the emoji — and the column's
+`default '🔥'` then stamped fire. So a 🦅 tap persisted as a 🔥 (reported from
+the live board). The pre-migration window it guarded is over
+(`20260716230000` is live; PostgREST serves the column — verified against the
+live API). **Removed**: a reaction now saves as chosen or fails loudly, never
+becomes a *different* reaction. Standing lesson: a skew guard may degrade
+loudly, never silently substitute data. Also: the `☺ react` pill is now a
+plain `+` (the picker hangs off it; nothing in the affordance should read as a
+reaction itself). Possible residue: rows written while the fallback fired are
+indistinguishable from genuine 🔥 — see the handoff diagnostic.
+
+---
+
 *Status notes: D1–D3, D5, D11 shipped v23.153 · D4 (foreshadow + dial)
 shipped v23.160 with migration 008 · D9 (skins forward) shipped v23.157 ·
 batch-3 #17/#18 shipped v23.158–159 (Ryder) · D6 + D8 shipped v23.161 (wizard

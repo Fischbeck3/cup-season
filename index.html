@@ -758,13 +758,20 @@ input.f::-webkit-outer-spin-button, input.f::-webkit-inner-spin-button{-webkit-a
 .rxchip .e{font-family:var(--sans); margin-right:4px;}
 .rxchip:hover{color:var(--ink);}
 .rxchip.on{color:var(--bg0); background:var(--brand); border-color:var(--brand);}
-.rxadd, .rxcm{
+.rxcm{
   font-family:var(--mono); font-size:12.5px; font-weight:600; color:var(--mut);
   background:var(--bg2); border:1px solid var(--line2);
   border-radius:99px; padding:5px 11px; cursor:pointer; line-height:1;
 }
-.rxadd .e{font-family:var(--sans); font-size:14px;}
+/* the add-reaction affordance is a plain "+" — the picker hangs off it, and
+   nothing about it should read as a reaction itself */
+.rxadd{
+  font-family:var(--mono); font-size:15px; font-weight:600; color:var(--mut);
+  background:var(--bg2); border:1px solid var(--line2);
+  border-radius:99px; padding:0 11px; height:26px; cursor:pointer; line-height:1;
+}
 .rxadd:hover, .rxcm:hover{color:var(--ink);}
+.rxadd:focus-visible, .rxcm:focus-visible{outline:2px solid var(--pos); outline-offset:2px;}
 .rxpalette{
   display:none; gap:5px; flex-wrap:wrap; margin-top:8px; padding:8px;
   background:var(--bg2); border:1px solid var(--line); border-radius:12px;
@@ -776,6 +783,21 @@ input.f::-webkit-outer-spin-button, input.f::-webkit-inner-spin-button{-webkit-a
 }
 .rxpalette button:hover{border-color:var(--line2); background:var(--bg1);}
 .rxpalette button:focus-visible{outline:2px solid var(--pos); outline-offset:2px;}
+/* the quiet-day frame — Home's feed never opens as a bare list. Either it says
+   what changed since you were last here, or (on a genuinely quiet day) it
+   resurfaces the best recent thing so the open still reveals something. */
+.digest{
+  font-family:var(--sans); font-size:13px; line-height:1.55; color:var(--mut);
+  background:var(--bg1); border:1px solid var(--line);
+  border-left:3px solid var(--brand);
+  border-radius:12px; padding:10px 13px; margin-bottom:10px;
+}
+.digest b{color:var(--ink); font-weight:650;}
+.digest .dk{
+  display:block; font-family:var(--mono); font-size:10.5px; letter-spacing:.08em;
+  text-transform:uppercase; color:var(--mut); opacity:.7; margin-bottom:4px;
+}
+html[data-theme="light"] .digest{background:#FBFCFA;}
 /* v23.65: the feed loosens up — league notices read like a clubhouse note,
    not a terminal. Sans, sentence-sized, quiet gold accent instead of the
    dashed mono banner. */
@@ -1567,6 +1589,7 @@ body::before{
           <div class="eyebrow">Your leagues</div>
           <div id="homeRecap"></div>
           <div class="eyebrow">Around your circle</div>
+          <div id="homeDigest"></div>
           <div id="homeFeed"></div>
         </div>
       </section>
@@ -2786,7 +2809,7 @@ function socialBar(f, fi, opts){
   return `<div class="social">
     <div class="rxbar">
       ${chips}
-      <button class="rxadd" data-rxadd="${fi}"><span class="e">☺</span> react</button>
+      <button class="rxadd" data-rxadd="${fi}" title="Add a reaction" aria-label="Add a reaction">+</button>
       ${cmBtn}
     </div>
     <div class="rxpalette" id="rxp${fi}">${pal}</div>
@@ -2809,14 +2832,14 @@ async function toggleRx(f, emoji){
   let error;
   if(had){ ({ error } = await window.sb.from('post_kudos').delete().match(row)); }
   else   { ({ error } = await window.sb.from('post_kudos').insert(row)); }
-  /* deploy-skew: pre-migration the emoji column is absent — degrade to a plain
-     kudos row so a live user's tap still lands (reads back as 🔥). */
-  if(error && /emoji|column|schema/i.test(error.message||error.code||'')){
-    const bare={ post_id:f.post_id, member_id:window.CS.member.id };
-    ({ error } = had ? await window.sb.from('post_kudos').delete().match(bare)
-                     : await window.sb.from('post_kudos').insert(bare));
-  }
-  if(error){ /* revert the optimistic flip */
+  /* NO skew fallback here, deliberately. The original guard retried the insert
+     WITHOUT emoji on a column/schema error — and the column's default stamped
+     '🔥', so a 🦅 tap silently persisted as fire. That shipped, and it is
+     exactly the "new emojis fall back to a fire emoji" bug. The pre-migration
+     window it protected is over (20260716230000 is live). A reaction now either
+     saves as chosen or fails loudly — never becomes a different reaction. */
+  if(error){ /* revert the optimistic flip — and say so */
+    console.warn('[reaction]', emoji, error);
     if(had){ cur.me=true; cur.n++; (cur.who||(cur.who=[])).push(me); }
     else   { cur.me=false; cur.n=Math.max(0,cur.n-1); cur.who=(cur.who||[]).filter(w=>w!==me); }
     rerenderFeeds(); toast('Reaction didn’t save: '+(error.message||error.code||'unknown'));
@@ -5133,6 +5156,89 @@ function feedBuckets(items){
   }
   return html;
 }
+/* ---------- the quiet-day frame (the thin-feed problem) ----------
+   Crew-scale arithmetic: an 8-person league posting weekly makes ~2–3 board
+   items a WEEK, so most opens would reveal nothing new (design review §8.1).
+   No amount of moment-engine polish changes that arithmetic — so Home never
+   opens as a bare reverse-chron list. It either says what changed since your
+   last visit, or (on a genuinely quiet day) resurfaces the best recent thing.
+   The rule this enforces: an open never reveals nothing.
+   The seen-mark is per profile and read ONCE per load (dgAsOf) so a re-render
+   mid-session can't erase the digest you're currently reading. */
+function dgKey(){ return 'cs.seen.' + (window.CS?.profile?.id || (state.demo ? 'demo' : 'anon')); }
+function dgReadSeen(){ try{ return Number(localStorage.getItem(dgKey())) || 0; }catch(e){ return 0; } }
+function dgMarkSeen(){ try{ localStorage.setItem(dgKey(), String(Date.now())); }catch(e){} }
+/* a feed time is either a full ISO stamp (created_at) or a bare date
+   (played_on) — bare dates parse as UTC midnight, so route them through
+   localDate or they render a day early in Phoenix (landmine) */
+function dgTime(s){
+  if(!s) return 0;
+  const str=String(s);
+  const d = str.length<=10 ? localDate(str) : new Date(str);
+  const n = d ? d.getTime() : 0;
+  return isNaN(n) ? 0 : n;
+}
+function dgItems(){
+  if(state.demo) return DEMO_FEED.map(r=>({ t:r.played_on, kind:'round', r }));
+  return (window.homeFeed||[]).map(r=>({ t:(r.created_at||r.played_on||''), kind:'round', r }))
+    .concat((window.homePosts||[]).map(p=>({ t:(p.created_at||''), kind:'post', p })));
+}
+/* serial comma is load-bearing here: "a personal best from Diego and Rosa broke
+   80" reads as one clause about two people. "…from Diego, and Rosa broke 80"
+   doesn't. */
+function dgJoin(a){
+  if(a.length<2) return a[0]||'';
+  if(a.length===2) return a[0]+' and '+a[1];
+  return a.slice(0,-1).join(', ') + ', and ' + a[a.length-1];
+}
+function dgWho(r){ return esc(r.is_me ? 'You' : (r.golfer || 'a golfer')); }
+function dgDay(t){
+  const days = Math.round((Date.now() - dgTime(t)) / 864e5);
+  return days<=0 ? 'Today' : days===1 ? 'Yesterday' : dfmtShort(String(t).slice(0,10));
+}
+/* the best thing worth resurfacing: a milestone outranks a good score, and a
+   good score outranks a recent one */
+function dgBest(items){
+  const now=Date.now();
+  const recent=items.filter(i=> i.kind==='round' && (now - dgTime(i.t)) <= 14*864e5);
+  if(!recent.length) return null;
+  const rank=i=> i.r.is_pr?4 : i.r.is_sub80?3 : i.r.is_first?2 : 1;
+  return recent.slice().sort((a,b)=>
+    rank(b)-rank(a) || (Number(b.r.pvi||0)-Number(a.r.pvi||0)) || dgTime(b.t)-dgTime(a.t))[0];
+}
+function dgLine(i){
+  const r=i.r, who=dgWho(r), course=esc(r.course||'a round');
+  if(r.is_pr)    return `<b>${who}</b> set a personal best — ${r.gross} at ${course}`;
+  if(r.is_sub80) return `<b>${who}</b> broke 80 — ${r.gross} at ${course}`;
+  if(r.is_first) return `<b>${who}</b> posted ${r.is_me?'your':'their'} first round — ${r.gross} at ${course}`;
+  return `<b>${who}</b> posted ${r.gross} at ${course}`;
+}
+function renderHomeDigest(){
+  const box=$('#homeDigest'); if(!box) return;
+  box.innerHTML='';
+  const items=dgItems().filter(i=>i.t);
+  if(!items.length) return;
+  if(window.dgAsOf===undefined){ window.dgAsOf = dgReadSeen(); dgMarkSeen(); }
+  const mark=window.dgAsOf;
+  if(!mark) return;                       /* first visit — the feed IS the reveal */
+  const fresh=items.filter(i=> dgTime(i.t) > mark);
+  if(fresh.length){
+    const rounds=fresh.filter(i=>i.kind==='round'), posts=fresh.filter(i=>i.kind==='post');
+    const bits=[];
+    if(rounds.length) bits.push(`<b>${rounds.length} round${rounds.length>1?'s':''}</b>`);
+    const pr=rounds.find(i=>i.r.is_pr), s80=rounds.find(i=>i.r.is_sub80), fst=rounds.find(i=>i.r.is_first);
+    if(pr)  bits.push(`a personal best from ${dgWho(pr.r)}`);
+    if(s80) bits.push(`${dgWho(s80.r)} broke 80`);
+    if(fst) bits.push(`${dgWho(fst.r)}'s first round`);
+    if(posts.length) bits.push(`${posts.length} league note${posts.length>1?'s':''}`);
+    if(!bits.length) return;
+    box.innerHTML=`<div class="digest"><span class="dk">Since you were here</span>${dgJoin(bits)}.</div>`;
+    return;
+  }
+  const best=dgBest(items);
+  if(!best) return;
+  box.innerHTML=`<div class="digest"><span class="dk">Quiet since your last visit</span>${dgDay(best.t)} — ${dgLine(best)}</div>`;
+}
 function renderHomeFeed(){
   const box=$('#homeFeed'); if(!box) return;
   if(state.demo){ box.innerHTML = feedBuckets(DEMO_FEED.map(r=>({ d:r.played_on, html:feedRow(r) }))); return; }
@@ -5221,6 +5327,7 @@ function renderHomeHub(){
   renderHomeRequests();
   renderHomeStart();
   renderHomeRecap();
+  renderHomeDigest();   /* the quiet-day frame rides above the feed it frames */
   renderHomeFeed();
   renderClubGroups();   /* keep the Clubhouse switcher in sync */
 }
