@@ -215,6 +215,27 @@ button{font-family:var(--sans); touch-action:manipulation; color:var(--ink);}
 .chart-legend .pt{font-family:var(--mono); font-size:12.5px; color:var(--ink);}
 #raceChart{width:100%; height:auto; display:block;}
 .chart-note{font-family:var(--mono); font-size:11.5px; color:var(--dim); letter-spacing:.06em; margin-top:10px;}
+/* ===== the climb — you-centered cup-line ladder (D22) ===== */
+.climb{display:flex; flex-direction:column; gap:3px;}
+.climb-rung{display:flex; align-items:center; gap:9px; padding:8px 10px; border:1px solid var(--line); border-radius:9px;}
+.climb-rung .rk{font-family:var(--mono); font-size:11px; color:var(--dim); flex:none; width:18px;}
+.climb-rung .sw{width:10px; height:10px; border-radius:3px; flex:none;}
+.climb-rung .mk{font-size:15px; flex:none; line-height:1;}
+.climb-rung .nm{flex:1; min-width:0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; font-weight:600; font-size:13px;}
+.climb-rung .pts{font-family:var(--mono); font-size:13px; color:var(--ink); flex:none;}
+.climb-rung .gap{font-family:var(--mono); font-size:11px; color:var(--dim); flex:none; min-width:36px; text-align:right;}
+.climb-rung.me{border-color:var(--gold);}
+.climb-rung.me .nm{color:var(--gold);}
+.climb-rung .badge{font-family:var(--mono); font-size:9.5px; letter-spacing:.08em; padding:1px 5px; border-radius:4px; flex:none;}
+.climb-rung .badge.lock{color:var(--pos); border:1px solid var(--pos);}
+.climb-rung .badge.out{color:var(--dim); border:1px solid var(--line);}
+.climb-spark{flex:none; margin:0 1px;}
+.climb-cut{display:flex; align-items:center; gap:8px; padding:4px 2px; font-family:var(--mono); font-size:10px; letter-spacing:.08em; color:var(--gold);}
+.climb-cut .ln{flex:1; height:0; border-top:1px dashed var(--gold); opacity:.55;}
+.climb-cut .lb{flex:none;}
+.climb-ellip{font-family:var(--mono); font-size:10px; color:var(--dim); text-align:center; padding:1px 0; letter-spacing:.12em; opacity:.7;}
+.climb-empty{font-family:var(--mono); font-size:11px; letter-spacing:.1em; color:var(--dim); text-align:center; padding:26px 10px; line-height:1.9;}
+.climb-empty span{opacity:.7; font-size:10px;}
 .standStory{font-family:var(--serif); font-size:13px; line-height:1.45; color:var(--ink); padding:2px 2px 10px; margin-bottom:2px; border-bottom:1px solid var(--line);}
 .standStory:empty{display:none;}
 .standStory b{font-weight:600;}
@@ -2077,11 +2098,10 @@ body::before{
 
         <div class="homegrid">
           <div>
-            <div class="eyebrow">Season race · cup points by week</div>
+            <div class="eyebrow">Season race · the climb</div>
             <div class="card">
-              <div class="chart-legend" id="chartLegend"></div>
-              <svg id="raceChart" viewBox="0 0 640 230" role="img" aria-label="Season points race chart"></svg>
-              <div class="chart-note" id="chartNote">BOTH SQUADS REACH THE CUP FINAL — SEASON LEADER CARRIES +10</div>
+              <div class="climb" id="climb" role="img" aria-label="The climb — your place in the season race"></div>
+              <div class="chart-note" id="climbNote"></div>
             </div>
           </div>
 
@@ -2521,51 +2541,102 @@ function buildRealSeries(WKS){
   });
 }
 
-/* ================= race chart ================= */
-function renderChart(){
-  const svg=$('#raceChart');
+/* ================= the climb (D22) =================
+   Replaces the multi-line race chart with a you-centered cup-line ladder:
+   a WINDOW of the ranked field — leader, the rung above you (to catch), you,
+   the rung below (chasing you) — with the cup line drawn across and points-back
+   gaps. Gap/cutline math reads window.scenarios (D21) when present so it agrees
+   with the clinch line exactly; falls back to the standings order otherwise. A
+   single self-trajectory sparkline rides the viewer's rung — no per-competitor
+   palette, so a solo field of any size stays legible (the old chart mapped
+   every squad-less player onto one color and drew them on top of each other). */
+function climbCut(meta){
+  /* {K, line} — how many advance and what the cup line is called */
+  if(meta){
+    if(meta.finish==='points_table') return {K:1, line:'CROWN LINE'};
+    if(meta.level==='squad' && meta.structure==='squads2') return {K:1, line:'TOP SEED · +10'};
+    return {K:meta.k||2, line:'CUP LINE'};
+  }
+  return {K:2, line:'CUP LINE'};   /* demo / pre-scenarios: matches the standings cutrow */
+}
+function climbSpark(arr,ci){
+  if(!arr || arr.length<2) return '';
+  const last=arr.slice(-8);
+  const min=Math.min(...last), max=Math.max(...last);
+  const pts=last.map((v,i)=>{
+    const px=(i/(last.length-1))*54;
+    const py=15-((v-min)/Math.max(1,max-min))*13-1;
+    return `${px.toFixed(1)},${py.toFixed(1)}`;
+  }).join(' ');
+  return `<svg class="climb-spark" width="54" height="17" viewBox="0 0 54 17" aria-hidden="true"><polyline points="${pts}" fill="none" stroke="${SQHEX[ci]}" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+}
+function renderClimb(){
+  const box=$('#climb'); if(!box) return;
+  const note=$('#climbNote');
   if(!teams.length){
-    $('#chartLegend').innerHTML='';
-    svg.innerHTML='<text x="320" y="112" text-anchor="middle" font-family="IBM Plex Mono" font-size="10" letter-spacing="2.5" fill="#5E6570">THE RACE STARTS WITH THE FIRST POSTED ROUND</text><text x="320" y="132" text-anchor="middle" font-family="IBM Plex Mono" font-size="9" letter-spacing="1.5" fill="#3A3F47">SHARE THE LEAGUE CODE TO FILL THE TEE SHEET</text>';
-    return;
+    box.innerHTML='<div class="climb-empty">THE RACE STARTS WITH THE FIRST POSTED ROUND<br><span>SHARE THE LEAGUE CODE TO FILL THE TEE SHEET</span></div>';
+    if(note) note.textContent=''; return;
   }
-  const real = !state.demo && window.CS?.league;
-  const WKS = real ? Math.max(2, window.seasonWeeks || 18) : WEEKS;
-  if(real) buildRealSeries(WKS); else buildSeries();
-  const W=640,H=230,L=36,R=14,T=12,B=26;
-  const iw=W-L-R, ih=H-T-B;
-  const ymax=Math.max(50, Math.ceil(Math.max(...teams.map(t=>t.pts))/50)*50);
-  const x=w=>L+iw*(w/(WKS-1));
-  const y=v=>T+ih*(1-v/ymax);
-  let g='';
-  for(let gv=0;gv<=ymax;gv+=50){
-    g+=`<line x1="${L}" y1="${y(gv)}" x2="${W-R}" y2="${y(gv)}" stroke="#24272E" stroke-width="1"/>`;
-    g+=`<text x="${L-8}" y="${y(gv)+3}" text-anchor="end" font-family="IBM Plex Mono" font-size="9" fill="#5E6570">${gv}</text>`;
+  const real=!state.demo && window.CS?.league;
+  const WKS=real ? Math.max(2, window.seasonWeeks || 18) : WEEKS;
+  if(real) buildRealSeries(WKS); else buildSeries();   /* populate series aligned to teams (feeds the self-sparkline) */
+  const solo=teams[0]?.solo;
+  const sc=(!state.demo && window.scenarios && window.scenarios.meta) ? window.scenarios : null;
+  const meta=sc?sc.meta:null;
+  const cut=climbCut(meta);
+  const K=Math.max(1,cut.K);
+  const scById={};
+  if(sc) (sc.rows||[]).forEach(r=>{ scById[r.id]=r; });
+  /* the viewer's rung (solo → their member row; squad → the squad they're on) */
+  let myId=null;
+  if(!state.demo && window.CS?.member){
+    if(solo) myId=window.CS.member.id;
+    else { const q=(window.CS.squads||[]).find(q=>(q.squad_members||[]).some(x=>x.member_id===window.CS.member.id)); myId=q?q.id:null; }
   }
-  const marks = real
-    ? [...new Set([1, Math.round(WKS/3), Math.round(2*WKS/3), WKS])].filter(w=>w>=1&&w<=WKS)
-    : [1,6,12,18];
-  marks.forEach(w=>{
-    g+=`<text x="${x(w-1)}" y="${H-8}" text-anchor="middle" font-family="IBM Plex Mono" font-size="9" fill="#5E6570">W${w}</text>`;
+  const meIdx = myId!=null ? teams.findIndex(t=>t.id===myId) : -1;
+  const me = meIdx>=0 ? teams[meIdx] : null;
+  const n=teams.length;
+  /* which rungs to show: leader, the cup-line neighbours, and the viewer ±1 */
+  const show=new Set([0]);
+  if(K<n){ show.add(K-1); show.add(K); } else { show.add(n-1); }
+  if(meIdx>=0){ show.add(meIdx-1); show.add(meIdx); show.add(meIdx+1); }
+  const idxs=[...show].filter(i=>i>=0 && i<n).sort((a,b)=>a-b);
+  let html='', cutDrawn=false, prev=-1;
+  const drawCut=()=>{
+    let lb=cut.line;
+    if(me){
+      if(meIdx<K){ const cush=me.pts-(teams[K]?teams[K].pts:0); lb=`${cut.line} · ${cush} CLEAR`; }
+      else { const need=(teams[K-1]?teams[K-1].pts:0)-me.pts; lb=`${cut.line} · ${need>0?need+' BACK':'ON THE LINE'}`; }
+    }
+    html+=`<div class="climb-cut"><span class="ln"></span><span class="lb">${lb}</span><span class="ln"></span></div>`;
+    cutDrawn=true;
+  };
+  idxs.forEach(i=>{
+    if(prev>=0 && i>prev+1) html+=`<div class="climb-ellip">··· ${i-prev-1} more ···</div>`;
+    if(K<n && !cutDrawn && i>=K) drawCut();
+    const t=teams[i], row=scById[t.id], isMe=(i===meIdx);
+    const swatch = solo
+      ? `<span class="mk">${t.mk||'⛳'}</span>`
+      : `<span class="sw" style="background:${SQHEX[t.ci]}"></span>`;
+    let gap='';
+    if(me && !isMe){ const d=t.pts-me.pts; gap = d>0?`+${d}`:`${d}`; }
+    else if(!me && i>0){ gap=`-${teams[0].pts-t.pts}`; }   /* spectator: behind the leader */
+    let badge='';
+    if(row && row.clinched) badge='<span class="badge lock">LOCKED</span>';
+    else if(row && row.eliminated) badge='<span class="badge out">OUT</span>';
+    const spark = isMe ? climbSpark(series[i], t.ci) : '';
+    html+=`<div class="climb-rung${isMe?' me':''}">`
+        + `<span class="rk">${String(i+1).padStart(2,'0')}</span>${swatch}`
+        + `<span class="nm">${esc(t.name)}</span>${spark}${badge}`
+        + `<span class="pts">${t.pts}</span><span class="gap">${gap}</span></div>`;
+    prev=i;
   });
-  teams.forEach((t,ti)=>{
-    const arr=series[ti]||[];
-    if(!arr.length) return;
-    const pts=arr.map((v,w)=>`${x(w).toFixed(1)},${y(v).toFixed(1)}`).join(' ');
-    g+=`<polyline points="${pts}" fill="none" stroke="${SQHEX[t.ci]}" stroke-width="2.25" stroke-linejoin="round" stroke-linecap="round" opacity="0.95"/>`;
-    g+=`<circle cx="${x(arr.length-1)}" cy="${y(t.pts)}" r="3.6" fill="${SQHEX[t.ci]}"/>`;
-  });
-  if(real && !(window.seasonHistory||[]).length){
-    g+=`<text x="${W/2}" y="${T+14}" text-anchor="middle" font-family="IBM Plex Mono" font-size="9" letter-spacing="2" fill="#5E6570">WEEKLY HISTORY STARTS RECORDING SUNDAY NIGHT</text>`;
+  box.innerHTML=html;
+  if(note){
+    if(K>=n) note.textContent=`EVERYONE ADVANCES — ${n} CONTENDER${n===1?'':'S'}, ${K} SEAT${K===1?'':'S'}`;
+    else if(meta) note.textContent=`TOP ${K} ${meta.finish==='points_table'?'— THE POINTS CROWN':'ADVANCE'} · PROJECTED UNDER A GENEROUS CEILING`;
+    else note.textContent=`TOP ${K} ADVANCE TO THE CUP FINAL`;
   }
-  svg.innerHTML=g;
-
-  const lg=$('#chartLegend'); lg.innerHTML='';
-  teams.forEach((t,ti)=>{
-    const d=document.createElement('div'); d.className='lg';
-    d.innerHTML=`<span class="sw" style="background:${SQHEX[t.ci]}"></span>${t.name} <span class="pt">${t.pts}</span>`;
-    lg.appendChild(d);
-  });
 }
 
 /* ================= standings ================= */
@@ -3436,7 +3507,7 @@ $('#postBtn').addEventListener('click', async ()=>{
   const snd=teams.find(t=>t.name==='Mudsharks');
   if(snd) snd.pts+=pts;   /* demo: my squad banks the points */
   teams.sort((a,b)=>b.pts-a.pts);
-  renderChart(); renderStandings(); renderFeed(); renderStats(); renderIndStats();
+  renderClimb(); renderStandings(); renderFeed(); renderStats(); renderIndStats();
   switchView('home'); scrollFeedBottom();
   stampPosted('POSTED ✓');
   toast(`Round posted: +${pts} pts to ${state.demo?'Mudsharks':'your squad'}`);
@@ -4711,7 +4782,7 @@ $('#finishBtn').addEventListener('click',()=>{
   const guests=LIVE.filter(p=>p.guest).map(p=>p.n);
   state.live.active=false; state.live.stage='setup';
   teams.sort((a,b)=>b.pts-a.pts);
-  renderChart(); renderStandings(); renderFeed(); renderPlay(); renderStats(); renderIndStats();
+  renderClimb(); renderStandings(); renderFeed(); renderPlay(); renderStats(); renderIndStats();
   switchView('home'); scrollFeedBottom();
   toast(posted+' rounds posted & attested'+(guests.length?`; recap texted to ${guests.join(' & ')} with an app invite`:''));
   switchView('home');
@@ -5620,7 +5691,7 @@ function resetToBlank(leagueName){
   LIVE=sel.map(i=>ROSTER[i]);
   recomputeStrokes();
   state.live=freshLive();
-  renderChart(); renderStandings(); renderFeed(); renderStats(); renderIndStats();
+  renderClimb(); renderStandings(); renderFeed(); renderStats(); renderIndStats();
   renderRoster(); renderPlay(); renderPot(); renderBylaws(); renderPhase();
 }
 
@@ -6140,11 +6211,7 @@ function renderLeagueMeta(){
   if(sm) sm.textContent=`${n} player${n===1?'':'s'} · ${STRUCT_NAMES[state.structure]||'—'}`;
   const bs=$('#brandSeason');
   if(bs) bs.textContent = window.CS.season?.number ? 'Season '+(ROMAN[window.CS.season.number]||window.CS.season.number) : 'cupseason.app';
-  const cn=$('#chartNote');
-  if(cn) cn.textContent =
-    state.structure==='solo'    ? `CUP LINE = TOP 2 PLAYERS AT W${totalWeeks()} MEET IN THE CUP FINAL`
-    : state.structure==='squads2' ? 'BOTH SQUADS REACH THE CUP FINAL — SEASON LEADER CARRIES +10'
-    : `CUP LINE = TOP 2 AT W${totalWeeks()} ADVANCE TO THE CUP FINAL`;
+  /* the cup-line note is owned by renderClimb (#climbNote) now — live text */
   /* the league header card — who, where, when, and the Pro */
   if($('#hubHeader')){
     $('#hhName').textContent=L.name;
@@ -6228,7 +6295,7 @@ $$('.ibtn').forEach(b=>b.addEventListener('click',e=>{
 seedHistory();
 /* post form defaults to today, local — toISOString() is UTC and drifts in Phoenix evenings */
 { const d=new Date(); $('#inDate').value=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; }
-renderChart(); renderStandings(); renderFeed(); renderDraft(); renderPot(); renderSetup(); renderPostHoles(); renderRoster(); renderPlay(); renderWizard(); renderPhase(); renderBylaws(); renderEmails(); renderStats(); renderIndStats();
+renderClimb(); renderStandings(); renderFeed(); renderDraft(); renderPot(); renderSetup(); renderPostHoles(); renderRoster(); renderPlay(); renderWizard(); renderPhase(); renderBylaws(); renderEmails(); renderStats(); renderIndStats();
 </script>
 
 <!-- ============================================================
@@ -7365,13 +7432,13 @@ async function loadStandingsAndFeed(){
   if(CS.season && !CS.squads.length && (window.indRows||[]).length){
     teams.length = 0;
     window.indRows.forEach(r => teams.push({
-      name:r.n, cap:'', pts:r.pts, ci:r.ci, id:r.mid, solo:true, sub:r.r,
+      name:r.n, cap:'', pts:r.pts, ci:r.ci, id:r.mid, solo:true, sub:r.r, mk:memMk(r.mid),
     }));
     teams.sort((a,b)=> b.pts - a.pts);
     series = teams.map(()=> []);
   }
 
-  if(CS.season){ renderStandings(); renderStats(); }
+  if(CS.season){ renderClimb(); renderStandings(); renderStats(); }
   renderPhase(); renderIndStats(); renderPot(); renderBylaws();
   renderFeed();
 }
@@ -7392,6 +7459,7 @@ async function loadScenarios(){
     window.scenarios = data || null;
   }catch(e){ console.warn('[scenarios]', e); window.scenarios=null; }
   if(window.renderScenarioLine) renderScenarioLine();
+  if(window.renderClimb) renderClimb();   /* the climb reads clinch/eliminated + the cut line from here */
 }
 window.loadScenarios = loadScenarios;
 function scenSeedWord(meta){
