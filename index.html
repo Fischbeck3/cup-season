@@ -1835,8 +1835,8 @@ body::before{
               <div style="margin-top:12px; display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
                 <label class="f" style="margin:0">Your card</label>
                 <div class="seg" id="postMode" style="margin:0; flex:1; min-width:180px;">
-                  <button data-pm="holes" class="on" type="button">Hole by hole</button>
-                  <button data-pm="total" type="button">Just the total</button>
+                  <button data-pm="total" class="on" type="button">Front &amp; back</button>
+                  <button data-pm="holes" type="button">Hole by hole</button>
                 </div>
                 <div class="seg" id="postSide" style="margin:0;">
                   <button data-ph="18" class="on" type="button">18</button>
@@ -1844,20 +1844,20 @@ body::before{
                 </div>
               </div>
 
-              <!-- default: par-prefilled hole grid — adjust only what you didn't par -->
-              <div id="postHolesWrap" style="margin-top:10px">
+              <!-- opt-in: par-prefilled hole grid — adjust only what you didn't par -->
+              <div id="postHolesWrap" style="margin-top:10px; display:none">
                 <div id="postHoleGridF"></div>
                 <div id="postHoleGridB" style="margin-top:6px"></div>
                 <p class="fine" style="padding-top:6px">Each hole starts on par — tap to adjust only what you didn't. <a href="#" id="postSetPars" style="color:var(--brand)">Set the pars →</a></p>
               </div>
 
-              <!-- escape hatch: gross only, flagged, never badged punitively -->
-              <div id="postTotalWrap" style="margin-top:10px; display:none">
+              <!-- default: front & back gross — how golfers keep score (D32) -->
+              <div id="postTotalWrap" style="margin-top:10px">
                 <div class="frow">
                   <div><label class="f" for="inF9">Front 9 gross</label><input class="f" id="inF9" type="number" placeholder="41" inputmode="numeric"></div>
                   <div><label class="f" for="inB9">Back 9 gross</label><input class="f" id="inB9" type="number" placeholder="43" inputmode="numeric"></div>
                 </div>
-                <p class="fine" style="padding-top:6px">Fastest way in. Front 9 only posts at half value and counts as half a round.</p>
+                <p class="fine" style="padding-top:6px">How most golfers keep it — 41 out, 43 in. Fill one nine only and it posts at half value, half a round. Want every hole on the card? Tap <b>Hole by hole</b>.</p>
               </div>
 
               <div style="margin-top:10px">
@@ -3557,7 +3557,7 @@ const POST_PAR_STD=[4,4,4,3,5,4,3,4,5, 4,4,3,4,5,4,3,4,5];   // par 72 template
 /* F2: `touched` tracks whether the golfer interacted with the grid at all —
    guards against a rushed Post on an untouched par-prefilled card (accidental
    even-par). Tracks interaction, not scores===pars, so a legit dial-to-par counts. */
-state.post = { mode:'holes', side:18, pars:POST_PAR_STD.slice(), scores:POST_PAR_STD.slice(), touched:false };
+state.post = { mode:'total', side:18, pars:POST_PAR_STD.slice(), scores:POST_PAR_STD.slice(), touched:false };  /* D32: front & back is the default; hole-by-hole is the opt-in card */
 /* f9/b9 the rest of the pipeline reads — from the grid in holes mode, from the
    two inputs in total mode. One source, so scoring never disagrees with entry. */
 function postInputs(){

@@ -832,3 +832,41 @@ D26's level-4 mechanic; no gameplay change. Drafted before build, per protocol.)
   to the name. (c) A *trailing* hidden player vanished silently (the ellipsis
   only drew between shown rungs) — the window now ends with "··· N more ···"
   when the field continues below it.
+
+---
+
+### D32 · Front-and-back becomes the default post; hole-by-hole is the opt-in card
+*(Gameplay/UX · amends decision #5, which made the hole-by-hole grid the default.)*
+- **Current:** the quick-post card defaults to the par-prefilled **hole-by-hole
+  grid** (`state.post.mode='holes'`), eighteen ±steppers a card; "Just the total"
+  (two boxes, Front 9 gross + Back 9 gross) is the flagged escape hatch, badged
+  "Fastest way in."
+- **Problem observed:** entering every hole is friction the number does not need.
+  The handicap is computed from the **gross total only** — `differential =
+  (gross − rating) × 113 ÷ slope` (score_round, §2.1); **nothing reads
+  `round_holes`**, and there is no net-double-bogey / ESC capping. So the
+  hole-by-hole grid and a front/back total produce the **identical index**. The
+  grid buys the per-hole card (storytelling / the §16 receipt), not accuracy —
+  yet it is what every poster pays by default. Fails principle #2 (Low Friction,
+  the 60-second post).
+- **Recommendation:** make **front-and-back total the default** entry mode
+  (`state.post.mode='total'`), reframed as the front door — how golfers already
+  keep score ("41 out, 43 in"), not a lesser shortcut. Keep **hole-by-hole as
+  the opt-in "full card"** for anyone who wants the per-hole receipt; it still
+  writes `round_holes` exactly as before. No capability is removed — the diligent
+  still get their card, the quick-poster gets two boxes.
+- **Principle:** #2 Low Friction (fewer taps to post); #4 Memory > Statistics
+  (front/back is how the round is remembered); §16 unaffected — the total still
+  shows its work (gross → differential → band), and the per-hole card remains
+  available for those who want the finer trace.
+- **Benefit:** the common path is two numbers; the handicap is unchanged; the
+  full card is one tap away for the golfer who wants it.
+- **Tradeoffs:** most rounds will no longer carry a per-hole `round_holes` card,
+  so the hole-by-hole storytelling surface (birdie/par colouring, the receipt's
+  finer trace) appears only on opted-in rounds. Accepted: it was always
+  decoration on the number, never part of it.
+- **Deliberately deferred:** persisting the F9/B9 **split** as columns (for
+  "41/43" texture in the record) is a migration; not built now. The split is
+  captured at entry and summed to gross — the record stores gross, as today.
+- **CONFLICT check:** none. Amends a UI-default decision (#5); the scoring
+  mechanic and the hierarchy above it are untouched.
