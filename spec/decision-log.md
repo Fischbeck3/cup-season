@@ -753,3 +753,82 @@ sprint) · captains-pick + snake draft engines (decision #2's fuller formation
 — server-side draft engines unbuilt; wizard shows the built two + roster-fit
 guidance, roadmap-honest). **Decision log fully reconciled except the two
 noted roadmap items.***
+
+## Batch 8 — 2026-07-17, the Climb gets its finish (UX lane)
+
+### D-NN · The Climb's visual finish — presence, voice, motion, and real semantics
+*(placeholder — coordinator assigns the number at merge. Level 5 (UI) on top of
+D26's level-4 mechanic; no gameplay change. Drafted before build, per protocol.)*
+- **Current:** D26's ladder is live and honest — window logic, `season_scenarios`
+  gaps, cutline, spectator fallback all work — but visually it is a table with
+  one gold-bordered row. Every rung has identical padding in a uniform 3px
+  stack; the viewer's rung differs only by border/name color. Gaps render as a
+  right-aligned mono column (`+6` / `-4`) with no names attached. The
+  "··· N more ···" ellipsis is a 1px-padded row, so 2 hidden players and 14
+  hidden players look the same. Rank changes rebuild `innerHTML` wholesale — no
+  motion. The container is `role="img"` with one static `aria-label`, so a
+  screen reader hears the ladder's name and none of its content. The
+  self-sparkline strokes `SQHEX[t.ci]` — the very palette D26 exists to escape.
+- **Problem observed:** D26 promised a race with a face ("6 back of Jake for
+  the last cup spot · Dana +4 behind you") and specified spacing rhythm,
+  gap-label framing, and motion on rank change as the unfinished polish. As
+  built, the ladder answers "where do I rank" (orienting) but not "who do I
+  catch" (rivalry) — the emotional register D26 chose. Bare signed numbers are
+  a stat, not a stake (#4). Silence for screen-reader users is an access bug,
+  not a style choice. And a passed rival teleports instead of falling — the one
+  moment the ladder exists for goes unfelt (#5).
+- **Recommendation (five moves, one pass):**
+  1. **Spacing rhythm — the viewer has weight.** The `.me` rung gets taller
+     padding and a slightly larger name; the rungs directly above/below tuck
+     close so they read as *adjacent*; the leader stands apart. The ellipsis
+     divider scales its vertical presence with the count it hides, so distance
+     looks like distance.
+  2. **Gap voice — names on the two rungs that matter.** The rung above the
+     viewer carries catch-framing ("6 back of Jake"); the rung below carries
+     chase-framing ("Dana +4 behind you"); when the rung above is also the
+     cup-line boundary, the label absorbs the stake ("…for the last cup spot").
+     All other rungs keep the bare mono number. Numbers are D24's, verbatim —
+     **no recomputation, no rounding**; this is framing only.
+  3. **Motion on rank change.** Route the render through the existing
+     `flipRows` FLIP helper (proven on the standings table), keyed by rung id,
+     `var(--roll)` timing, `prefers-reduced-motion` honored. A rung entering or
+     leaving the window fades (~200ms) rather than popping — FLIP can't express
+     enter/leave, and a hard cut on the "you passed them" beat wastes the
+     moment.
+  4. **Real semantics, not a picture.** Replace `role="img"` with a list
+     (`<ol>`/`role="list"`) whose rungs read naturally: "3rd — Jake, 41 points,
+     6 ahead of you." The cutline becomes a labeled separator. Deletes the
+     access bug; costs nothing visually.
+  5. **Sparkline goes gold.** The self-trajectory strokes `var(--gold)` (the
+     viewer's color everywhere else in the ladder) instead of `SQHEX[t.ci]`.
+     One viewer, one line, one color — the squad-palette dependency D26
+     deprecated exits the component entirely.
+- **Principle:** #4 Memory > Statistics (a name and a stake, not a signed
+  integer); #5 Feels Alive (overtakes are *seen*); #2 Low Friction (the two
+  rungs you act on are the two that speak); §16 unchanged (every number still
+  taps back to D24's math). Access: standings legible to every golfer is the
+  10-second-standings success metric applied honestly.
+- **Benefit:** the ladder finally reads in D26's chosen register — a climb with
+  you on it — at zero change to the underlying math or data flow; screen-reader
+  users get the standings for the first time; the last trace of the retired
+  squad palette leaves the component.
+- **Tradeoffs:** (a) name-bearing gap labels are longer than bare numbers —
+  small-screen truncation must degrade to the number, never clip the name
+  mid-word. (b) Enter/leave fades add a second motion primitive beside FLIP;
+  kept subtle and reduced-motion-gated. (c) Catch/chase voice heats up the
+  neighbor relationship by design — it stays descriptive (states the gap, names
+  the person, never "go get them"); anything push-shaped is D23's fence
+  (Social), not this surface.
+- **CONFLICT check:** none. Level 5 executing D26's explicit handoff; the
+  mechanic, gap math, cutline rule, and window logic are untouched. The voice
+  guideline (D1–D3 plain language, named bands) is served, not bent.
+- **Boundary:** in-app render only — no nudges, no feed/moment surfaces, no
+  schema, no migration. Pure client (`index.html`); needs a `git push` only.
+- **Build notes (found while building, same pass):** (a) the demo diorama
+  rendered the *spectator* fallback — demo mode never set a viewer, so the
+  marketing surface couldn't demo the you-centered ladder; it now anchors
+  DEMO_ME's squad (demo coherence, not a mechanic change — the real spectator
+  fallback is untouched). (b) Demo teams carry no `id`, so FLIP keys fall back
+  to the name. (c) A *trailing* hidden player vanished silently (the ellipsis
+  only drew between shown rungs) — the window now ends with "··· N more ···"
+  when the field continues below it.

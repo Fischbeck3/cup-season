@@ -525,6 +525,18 @@ people post too.
    for your number and the Iron Man, not the table." Values call, not a math one.
 2. **⚑ Where does it live** — Home, the post-a-round screen, or both? Trigger
    logic + math are Gameplay's; **placement is UX's**.
+   **✓ ANSWERED (UX lane, 2026-07-17): the post-a-round screen.** Home is the
+   reveal surface (#5) — a "what your next round is worth" line there speaks on
+   days the golfer isn't playing and is wallpaper by week three (the exact ⚑3
+   failure). On the post screen the golfer is present *because they played*; the
+   line lands where it's actionable. **Carve-out, deliberately NOT taken:** the
+   priority-1 case (floor at risk) is a "go play" message, and a floor-short
+   golfer is by definition not visiting the post screen — the one golfer who
+   most needs the line never sees it there. Surfacing that case on Home is the
+   honest fix, but a time-boxed "short with 5 days left" on Home is a nudge →
+   D23 (Social's fence) + a Jerecho call, not a UX placement decision. So: ⚑2
+   is settled for priorities 2–5; the floor-at-risk Home surface rides with ⚑1
+   to Jerecho and coordinates with Social if approved.
 3. **⚑ Should it ever be silent?** Lean yes — a line that speaks daily becomes
    wallpaper and stops meaning anything.
 
