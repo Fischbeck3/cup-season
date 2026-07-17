@@ -459,3 +459,76 @@ Two copy/craft notes (not decisions — build guidance):
 - **The 60-second post is an acceptance test, not an aspiration.** The
   success metric (post a round in under 60 seconds) is a stated pass/fail
   gate on the stepper build, measured, not a hope.
+
+---
+
+## 8. The personal stake line (PARKED — designed, not decided, not built)
+
+Designed in the Gameplay lane 2026-07-17; parked when the lane closed. Nothing
+built, no decision-log entry drafted — three ⚑ questions below must be answered
+before this becomes a D-entry. Captured here so the reasoning is not lost.
+
+**The idea:** one line telling a golfer what their next round is actually worth.
+
+**The trap that makes this a mechanic, not a copy line:** the obvious version —
+"a great round today is worth up to 12!" — is a *lie* for much of the league most
+months. The counting cap (best 4/month, default) means once you are at cap your
+next round only counts if it displaces your worst counting round.
+
+| Your state this month | What the next round is actually worth |
+|---|---|
+| Short of the floor | its points (5–12) **plus** killing the penalty (−5/round short, Standard) — up to a **17-point swing** |
+| Below cap, floor met | **5–12**, never less than 5 |
+| At cap, worst counting = 6 | **0–6** — only the part above the 6 |
+| At cap, worst counting = 12 | **exactly 0** to the table |
+
+Two spec facts make it sharp: a posted round **never scores zero** (worst band is
+5 — "a posted 98 beats an unposted 82"), and displacement is **real-time** (§3.1).
+So the honest marginal value is `max(0, 12 − your worst counting round)` —
+computable client-side today from `window.myMonth` + `indRows[].hist`. No engine,
+no migration.
+
+**Inherited honesty rule (from D24):** never claim a resulting position — other
+people post too.
+- ✅ "8 back of the cup line — one top-band round closes it."
+- ❌ "A 10 today puts you 2nd." (assumes nobody else plays; false by dinner)
+
+**Priority ladder (one line wins):**
+1. **Floor at risk** — short, month closing. Highest stakes, time-boxed.
+2. **Index not established** (<3 rounds) — "two more and your number is real."
+3. **At cap** — the honest marginal: "your best four are banked."
+4. **Cup-line / rival stake** — only when closable in one round (gap ≤ 12).
+5. **Below cap, nothing urgent** — "even a rough day banks 5."
+6. Otherwise **quiet** — hides rather than babbles, same discipline as D24's
+   scenario line.
+
+**Settled while designing:**
+- **Role-blind.** The Pro is also a player; their round has identical math.
+  A Pro-shaped *league-health* line ("3 players are short with 5 days left") is
+  real but is its **own deferred entry** — and it brushes D23 (nudge policy,
+  Social's fence), so it needs coordination, not assumption.
+- **Explain by receipt, not tooltip.** The line taps through to the month's slot
+  meter (D3's best-four fill) — §16, and already built.
+- **Never say "counting cap."** Say "your best four" (D2, no jargon).
+- **The new-user fear self-solves:** you cannot be at cap and be new — four
+  counting rounds means the floor is met twice over. A new golfer gets line #2,
+  which is welcoming. *Caveat:* a **Best 2** league can put a two-rounds-in
+  player at cap, so the at-cap tone must reframe, never deflate.
+
+**⚑ Open — answer these before drafting the D-entry:**
+1. **⚑ Show the at-cap-zero line at all?** It honestly tells a golfer their round
+   does not count — fighting "every round counts" and the one-more-round rule.
+   This is the one place the feature could actively suppress play. *Proposed
+   resolution (Memory > Statistics):* the round still counts for the **index**,
+   the **Iron Man** count, the **board**, and a possible **moment** — so the line
+   reframes rather than deflates: "your four slots are full — today's round is
+   for your number and the Iron Man, not the table." Values call, not a math one.
+2. **⚑ Where does it live** — Home, the post-a-round screen, or both? Trigger
+   logic + math are Gameplay's; **placement is UX's**.
+3. **⚑ Should it ever be silent?** Lean yes — a line that speaks daily becomes
+   wallpaper and stops meaning anything.
+
+**Implementation note:** `floor_penalty` is **not** hydrated client-side (only
+`state.preset`, which the client *couples* to it on write). Read `b.floor_penalty`
+directly — inferring from the preset misstates the stake for any league whose
+penalty diverged from it.
