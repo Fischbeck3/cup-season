@@ -414,7 +414,7 @@ M1–M3 commit messages predate the renumber and cite the old D17–D18.)
 
 ## Batch 5 — 2026-07-16, the events engine's competitive half (task #5)
 
-### D21 · Season clinch & scenario math (the magic number)
+### D24 · Season clinch & scenario math (the magic number)
 - **Current:** clinch/"needs" math exists for the Ryder
   (`FIRST TO 9½ · TEAM A NEEDS 3`), but the **season/Cup race has none** —
   standings show points, never what they *mean* for the endgame. The Social
@@ -469,9 +469,9 @@ already earned objects — any new fact type would need its own entry).*
 
 ## Batch 6 — 2026-07-16, the board reacts back (Social lane)
 
-### D-NN · Reactions & comments become real, with a crew vocabulary
-*(coordinator: assign the next free D-number — the lane numbered D20/D21
-independently once already; this is the fix.)*
+### D25 · Reactions & comments become real, with a crew vocabulary
+*(assigned **D25** at merge — reconciled with the memory batch's numbering;
+the lane had numbered adjacent to D20/D21 independently.)*
 - **Current:** the board's 🔥 kudos and 💬 comments are **theater** — a local
   counter and an in-memory array (`f.kud++`, `feed[fi].cm.push`), gone on
   reload. The backend has always been there: `post_kudos` (PK `post_id,
@@ -529,14 +529,14 @@ heartbeat / individual free hook is already approved direction (ESPN model,
 2026-07); the translation pass (D1–D3) touches no level-4 rule; Cup Final
 mechanics (D4) unchanged pending migration 008's endgame dial.*
 
-## Batch 6 — 2026-07-16, the season race gets a face (gameplay lane)
+## Batch 7 — 2026-07-16, the season race gets a face (gameplay lane)
 
-### D22 · The Climb — a you-centered cup-line ladder (replaces the race chart)
-*(D-number provisional — coordinator assigns the final number at merge.)*
+### D26 · The Climb — a you-centered cup-line ladder (replaces the race chart)
+*(assigned **D26** at merge.)*
 - **Current:** the season race renders as a multi-line cumulative-points chart
   (`renderChart`, `buildRealSeries`, `SQHEX` — a **4-color** palette). It is
   the most statistical object in the app, it **duplicates** what the standings
-  table, the story line, and the D21 clinch line already say, it becomes
+  table, the story line, and the D24 clinch line already say, it becomes
   unreadable spaghetti past ~4 competitors, and it is **broken for solo**:
   a squad-less player falls through `memCi`'s fallback (`return 1`), so every
   individual draws in the same orange — the "solo point graph is wrong" report.
@@ -554,7 +554,7 @@ mechanics (D4) unchanged pending migration 008's endgame dial.*
   each gap ("6 back of Jake for the last cup spot · Dana +4 behind you"). It
   renders a **window** (you ± neighbors + cutline + leader), never all N, so it
   is legible at 4 players or 20 and needs no per-competitor palette. Gap and
-  cutline numbers read from `season_scenarios` (D21) so they stay honest and
+  cutline numbers read from `season_scenarios` (D24) so they stay honest and
   match the clinch line exactly. Squad leagues get the same ladder (squad rungs).
   The cutline follows the endgame dial (008): `cup_final` → below seed #2 (2-squad
   → the #1-seed / +10 line); solo → below #2; `points_table` → below #1.
@@ -564,7 +564,7 @@ mechanics (D4) unchanged pending migration 008's endgame dial.*
   "am I climbing?" for the competitive/trip personas with zero palette collision.
 - **Principle:** #4 Memory > Statistics (a target and a rivalry, not a stat);
   #5 Feels Alive (the race has a face — the person one rung up); §16 (every gap
-  traces to D21's conservative math, which traces to rounds); #2 Low Friction
+  traces to D24's conservative math, which traces to rounds); #2 Low Friction
   (one glance answers "where do I stand").
 - **Benefit:** the season race becomes personal and emotionally legible; the
   solo color bug is **deleted at the root** rather than patched; squads gain a
@@ -578,7 +578,7 @@ mechanics (D4) unchanged pending migration 008's endgame dial.*
   the IA and the memory-layer guardrails rather than contradicting them.
 - **Boundary (no collision):** the **data + framing** (what to show, the gap
   math, the cutline rule) is this lane; the **finished visual polish** is UX's.
-  This ships a working, legible first version reading D21's output — no edits to
+  This ships a working, legible first version reading D24's output — no edits to
   Social's feed/moment/rivalry surfaces.
 
 ---

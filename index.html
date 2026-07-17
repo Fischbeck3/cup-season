@@ -215,7 +215,7 @@ button{font-family:var(--sans); touch-action:manipulation; color:var(--ink);}
 .chart-legend .pt{font-family:var(--mono); font-size:12.5px; color:var(--ink);}
 #raceChart{width:100%; height:auto; display:block;}
 .chart-note{font-family:var(--mono); font-size:11.5px; color:var(--dim); letter-spacing:.06em; margin-top:10px;}
-/* ===== the climb — you-centered cup-line ladder (D22) ===== */
+/* ===== the climb — you-centered cup-line ladder (D26) ===== */
 .climb{display:flex; flex-direction:column; gap:3px;}
 .climb-rung{display:flex; align-items:center; gap:9px; padding:8px 10px; border:1px solid var(--line); border-radius:9px;}
 .climb-rung .rk{font-family:var(--mono); font-size:11px; color:var(--dim); flex:none; width:18px;}
@@ -1486,7 +1486,7 @@ body::before{
       </div>
             
     </div>
-    <div class="ob-caption" id="obCaption">New or returning, email is one door. No passwords. <span style="opacity:.5">v23.174</span></div>
+    <div class="ob-caption" id="obCaption">New or returning, email is one door. No passwords. <span style="opacity:.5">v23.175</span></div>
   </div>
   <div class="ob-splash" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
   
@@ -2541,11 +2541,11 @@ function buildRealSeries(WKS){
   });
 }
 
-/* ================= the climb (D22) =================
+/* ================= the climb (D26) =================
    Replaces the multi-line race chart with a you-centered cup-line ladder:
    a WINDOW of the ranked field — leader, the rung above you (to catch), you,
    the rung below (chasing you) — with the cup line drawn across and points-back
-   gaps. Gap/cutline math reads window.scenarios (D21) when present so it agrees
+   gaps. Gap/cutline math reads window.scenarios (D24) when present so it agrees
    with the clinch line exactly; falls back to the standings order otherwise. A
    single self-trajectory sparkline rides the viewer's rung — no per-competitor
    palette, so a solo field of any size stays legible (the old chart mapped
@@ -2722,7 +2722,7 @@ function renderStandings(){
         if(p && typeof openMemberHist==='function') openMemberHist(p);
       } else showSquad(r.dataset.squad);
     }));
-  window.renderScenarioLine && window.renderScenarioLine();   /* clinch line rides under the table (D21) */
+  window.renderScenarioLine && window.renderScenarioLine();   /* clinch line rides under the table (D24) */
 }
 
 /* ================= feed ================= */
@@ -7444,10 +7444,10 @@ async function loadStandingsAndFeed(){
 }
 window.loadStandingsAndFeed = loadStandingsAndFeed;
 
-/* ---------- the clinch/scenario line (D21) — the endgame math, honestly ----
+/* ---------- the clinch/scenario line (D24) — the endgame math, honestly ----
    season_scenarios() returns {meta, rows}; each row carries clinched /
    eliminated / needs, computed under a GENEROUS remaining-points ceiling so a
-   "locked" / "out" claim is never wrong (D21's honesty rule). We only phrase
+   "locked" / "out" claim is never wrong (D24's honesty rule). We only phrase
    the parts that are DEFINITE (clinched, eliminated) or ACHIEVABLE this window
    (needs ≤ what the leader can still add). Everything else stays quiet — the
    story line above already carries the lead. */

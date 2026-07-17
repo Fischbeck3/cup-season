@@ -1,5 +1,5 @@
 -- ============================================================================
--- Season clinch & scenario math (decision-log D21, task #5 — the events
+-- Season clinch & scenario math (decision-log D24, task #5 — the events
 -- engine's competitive half).
 --
 -- season_scenarios(season) projects the endgame from v_squad_standings /
@@ -7,7 +7,7 @@
 -- a seed/crown), clinched, eliminated, and the cut line. The Social lane owns
 -- the storytelling voice; this owns the NUMBERS.
 --
--- THE HONESTY RULE (D21): clinch/elimination are declared only when true under
+-- THE HONESTY RULE (D24): clinch/elimination are declared only when true under
 -- a deliberately GENEROUS remaining-points ceiling —
 --   roster × months-left × counting_cap × 12  (the top band).
 -- Bonuses are off (D7) and a floor credit never exceeds cap×12, so this is a
