@@ -690,6 +690,43 @@ option-A entries above.)*
   diorama mentions ride only alongside other news and the demo's quiet day
   stays demonstrably quiet.
 
+### D-NN · The Round Recap Card — the peak becomes a shareable artifact (#18)
+*(coordinator: assign the next free D-number.)*
+- **Current:** the post-round peak is private (D18's epilogue sheet: band,
+  points, milestones, rivalry lines — poster hears it first) and it stays in
+  the app. Shareable artifacts exist only for live-round games (settlement
+  cards) and guests (claim links). The ordinary posted round — the app's
+  commonest event — produces nothing you can put in the group chat.
+- **Problem:** memory-layer #18 names this the artifact of the peak and **the
+  #1 growth loop** (design review §8 concurs: "the settlement card and claim
+  link are the right artifacts"). Pride is the emotion; a proud golfer with
+  nothing to post shares nothing.
+- **The fork, decided:** the artifact is an **image** (canvas-rendered PNG,
+  branded dark/gold, shared via the native share sheet on mobile; download +
+  caption-to-clipboard on desktop). Weighed against a tokened public round
+  page with OG unfurl (stronger click-through funnel, but real server
+  machinery — public read RPC + per-round OG on a SPA), which is Growth-lane
+  work that can later reuse this same card design. The printed `cupseason.app`
+  is the funnel for now; claim links remain the clickable path.
+- **Placement:** a "Share the card" action on the epilogue sheet — the moment
+  pride peaks. NOT on the live-round finish recap yet: `finish_live_round`
+  returns no per-player pvi, so a card from there would lack the band phrase;
+  extending that RPC is a named follow-on, not smuggled scope. Retrieval-later
+  (share any past round) is a cheap follow-on once the renderer exists.
+- **Card content under D2's law:** gross (the hero) + the named band phrase +
+  course/date/points + at most one milestone badge + marker emblem + wordmark.
+  No differential, no index, no jargon — the receipts stay in the app.
+- **Principle:** #4 Memory > Statistics (the round becomes a keepsake); Pride
+  (memory-layer's named emotion); growth = shareable artifacts,
+  foursome-by-foursome, no paid acquisition (monetization canon).
+- **Benefit:** every posted round can end with a thing worth showing off; the
+  group chat outside the app sees the brand weekly.
+- **Tradeoffs:** (a) no click-through from an image — accepted, Growth lane
+  owns the link-unfurl upgrade; (b) canvas text rendering varies slightly by
+  platform fonts (Charter → Georgia fallback) — accepted, it's a keepsake not
+  a spec sheet; (c) a no-content epilogue (rare: no pvi, nothing earned)
+  shows no share button — the card needs its hero number.
+
 ### Correction to D25 — the reaction skew-fallback silently wrote 🔥
 Not a mechanic change; logged because it corrupted a shipped mechanic's intent.
 D25's client carried a deploy-skew guard that, on a column/schema error,

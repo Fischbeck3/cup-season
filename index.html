@@ -3321,6 +3321,89 @@ function vsPhrase(vs){
   if(vs>=-1) return 'played to your number';
   return vs.toFixed(1).replace('-','')+' over your number';
 }
+/* ---- the Round Recap Card (#18) — the peak becomes a shareable artifact ----
+   A canvas-rendered PNG in the brand's fixed dark identity (the card ignores
+   the viewer's theme — an artifact has ONE face). D2's law holds on the way
+   out the door: gross + the named band phrase + course/date/points + at most
+   one milestone badge. No differential, no index, no jargon — receipts stay
+   in the app. Mobile: native share sheet. Desktop: download + caption copied. */
+const CARD_BADGE = {
+  personal_best:'PERSONAL BEST', sub_80:'BROKE 80', sub_90:'BROKE 90',
+  sub_100:'BROKE 100', streak_4:'4 WEEKS RUNNING', streak_8:'8 WEEKS RUNNING',
+  streak_12:'12 WEEKS RUNNING', first_round:'FIRST ROUND ON THE BOARD',
+};
+function drawRecapCard(d){
+  const W=1080, H=1350;
+  const BG='#0C100D', PANEL='#10150F', INK='#E8ECE9', MUT='#98A29A', GOLD='#E9BE62';
+  const cv=document.createElement('canvas'); cv.width=W; cv.height=H;
+  const x=cv.getContext('2d');
+  const MONO="'IBM Plex Mono',ui-monospace,Menlo,monospace";
+  const SERIF="'Charter','Iowan Old Style','Palatino Linotype',Georgia,serif";
+  const SANS="'IBM Plex Sans',-apple-system,'Segoe UI',Roboto,sans-serif";
+  const ctr=(txt,y,font,fill,ls)=>{ x.font=font; x.fillStyle=fill;
+    try{ x.letterSpacing=(ls||0)+'px'; }catch(e){}
+    x.textAlign='center'; x.fillText(txt,W/2,y);
+    try{ x.letterSpacing='0px'; }catch(e){} };
+  x.fillStyle=BG; x.fillRect(0,0,W,H);
+  x.fillStyle=PANEL;
+  x.beginPath(); x.roundRect(36,36,W-72,H-72,28); x.fill();
+  x.strokeStyle='rgba(233,190,98,.35)'; x.lineWidth=2;
+  x.beginPath(); x.roundRect(36,36,W-72,H-72,28); x.stroke();
+  /* the marker — identity above everything (living-card rule) */
+  const mk=(window.MARKERS||{})[d.marker];
+  x.strokeStyle='rgba(233,190,98,.4)'; x.lineWidth=2;
+  x.beginPath(); x.arc(W/2,208,78,0,7); x.stroke();
+  if(mk){
+    const s=4.6, path=new Path2D(mk.p);
+    x.save(); x.translate(W/2-12*s,208-12*s); x.scale(s,s);
+    x.strokeStyle=GOLD; x.lineWidth=1.8; x.lineCap='round'; x.lineJoin='round';
+    x.stroke(path); x.restore();
+  }
+  ctr((d.name||'A GOLFER').toUpperCase(), 372, `600 44px ${MONO}`, INK, 7);
+  if(d.league) ctr(d.league.toUpperCase(), 424, `400 27px ${MONO}`, MUT, 5);
+  /* the hero number — serif, the memory-and-honor voice */
+  ctr(String(d.gross), 760, `700 300px ${SERIF}`, INK);
+  if(d.pvi!=null){
+    ctr(bandName(Number(d.pvi)).toUpperCase(), 850, `600 46px ${MONO}`, GOLD, 9);
+    ctr(vsPhrase(Number(d.pvi)), 906, `500 31px ${SANS}`, MUT);
+  }
+  if(d.badge) ctr('★ '+d.badge, 972, `600 31px ${MONO}`, GOLD, 5);
+  x.strokeStyle='rgba(255,255,255,.1)'; x.lineWidth=1;
+  x.beginPath(); x.moveTo(280,1020); x.lineTo(W-280,1020); x.stroke();
+  ctr((d.course||'A ROUND').toUpperCase(), 1084, `600 36px ${MONO}`, INK, 4);
+  const DW=['SUN','MON','TUE','WED','THU','FRI','SAT'], MO=['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'];
+  const dt=d.date||new Date();
+  const when=`${DW[dt.getDay()]} · ${MO[dt.getMonth()]} ${dt.getDate()}`+(d.points!=null?` · ${d.points} PTS`:'');
+  ctr(when, 1134, `500 29px ${MONO}`, MUT, 4);
+  ctr('Cup Season', 1246, `600 52px ${SERIF}`, INK);
+  ctr('cupseason.app', 1292, `500 27px ${MONO}`, MUT, 4);
+  return cv;
+}
+function recapText(d){
+  return `${d.gross} at ${d.course||'the course'}`
+    + (d.pvi!=null?` — ${vsPhrase(Number(d.pvi)).toLowerCase()}`:'')
+    + (d.points!=null?` · ${d.points} pts`:'') + ' · cupseason.app';
+}
+async function shareRecapCard(d){
+  try{
+    const blob=await new Promise(res=>drawRecapCard(d).toBlob(res,'image/png'));
+    const file=new File([blob],'cup-season-recap.png',{type:'image/png'});
+    const text=recapText(d);
+    if(navigator.canShare && navigator.canShare({files:[file]})){
+      await navigator.share({files:[file], text});
+      return;
+    }
+    const a=document.createElement('a');
+    a.href=URL.createObjectURL(blob); a.download='cup-season-recap.png'; a.click();
+    setTimeout(()=>URL.revokeObjectURL(a.href),5000);
+    try{ await navigator.clipboard?.writeText(text); toast('Card downloaded · caption copied'); }
+    catch(e){ toast('Card downloaded'); }
+  }catch(e){
+    if(e && e.name==='AbortError') return;   /* golfer closed the share sheet — not an error */
+    console.warn('[recap card]', e);
+    toast('Couldn’t make the card: '+(e.message||'unknown'));
+  }
+}
 /* ---- M2 / D17 · the post-round epilogue — the poster hears it first ----
    Reads round_epilogue() JSON into a private sheet shown over home right after
    a post: the round's meaning (band + points), what it earned, and any rivalry
@@ -3368,7 +3451,20 @@ function showEpilogue(epi, course){
   const sub = course
     ? `${epi.gross!=null?epi.gross+' at ':''}${String(course).toUpperCase()}`
     : 'THE ROUND, FOR YOU FIRST';
+  /* #18: the peak's shareable form — the card needs its hero number */
+  if(epi.gross!=null)
+    rows.push(`<button class="btn" id="epiShare" style="width:100%;margin-top:14px">Share the card</button>`);
   openSheet('Your round', sub, rows.join(''));
+  const sh=$('#shBody').querySelector('#epiShare');
+  if(sh) sh.addEventListener('click',()=>shareRecapCard({
+    name:  state.demo ? DEMO_ME : (window.CS?.profile?.display_name || 'You'),
+    marker: (state.demo ? null : window.CS?.profile?.marker) || 'saguaro',
+    gross: epi.gross, pvi: epi.pvi!=null ? Number(epi.pvi) : null,
+    points: epi.points!=null ? Number(epi.points) : null,
+    course: course || '', date: new Date(),
+    league: state.demo ? 'The Sunday Cup' : (window.CS?.league?.name || null),
+    badge: CARD_BADGE[(epi.earned||[])[0]?.kind] || null,
+  }));
 }
 /* ---- quick-post hole-by-hole (decision #5: default UI, par-prefilled, the
    gross-only path stays as a flagged-not-punished escape hatch) ---- */
@@ -6678,6 +6774,7 @@ const mkr = k => MARKERS[k]
   ? `<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-4px"><path d="${MARKERS[k].p}"/></svg>`
   : '';
 window.mkr = mkr; /* classic renderCalendar draws markers — bridge or it silently breaks */
+window.MARKERS = MARKERS; /* classic recap-card canvas draws the marker PATH — same bridge rule */
 
 async function loadProfile(){
   const { data } = await sb.from('profiles')
