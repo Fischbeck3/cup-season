@@ -1815,7 +1815,7 @@ body::before{
               <div class="big" id="calcPts">–</div>
               <div class="msg" id="calcMsg">Enter at least one nine to see the points.</div>
               <div class="trio">
-                <div><b id="calcDiff">–</b><span>Differential</span></div>
+                <div><b id="calcGross">–</b><span>Gross</span></div>
                 <div><b id="calcVs">–</b><span>vs your index</span></div>
               </div>
               <p class="fine" style="padding:8px 0 0">No league yet? The round still counts on your card — points apply in any league you join.</p>
@@ -3274,11 +3274,11 @@ function recalc(){
     label=`${g9} GROSS · 9 HOLES`;
   } else {
     $('#calcPts').textContent='–'; $('#calcMsg').textContent='Enter at least one nine.';
-    $('#calcDiff').textContent='–'; $('#calcVs').textContent='–';
+    $('#calcGross').textContent='–'; $('#calcVs').textContent='–';
     const gl0=$('#postGrossLine'); if(gl0) gl0.textContent='Enter your card to see the score.';
     state.lastPost=null; return;
   }
-  $('#calcDiff').textContent=diff.toFixed(1);
+  $('#calcGross').textContent=Math.round(gross);
   $('#calcVs').textContent=(vs>=0?'+':'')+vs.toFixed(1);
   $('#calcVs').style.color = vs>=0 ? 'var(--pos)' : 'var(--neg)';
   $('#calcPts').textContent=pts;
