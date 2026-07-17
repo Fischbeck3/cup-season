@@ -1434,7 +1434,7 @@ body::before{
       </div>
             
     </div>
-    <div class="ob-caption" id="obCaption">New or returning, email is one door. No passwords. <span style="opacity:.5">v23.173</span></div>
+    <div class="ob-caption" id="obCaption">New or returning, email is one door. No passwords. <span style="opacity:.5">v23.174</span></div>
   </div>
   <div class="ob-splash" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
   
@@ -1502,6 +1502,7 @@ body::before{
       <!-- HOME -->
       <section class="view active" id="view-home">
         <div id="notifBanner"></div>
+        <div id="resumeBanner" style="display:none"></div>
         <div id="homeRequests"></div>
         <!-- ONE home (IA P1): the same tree serves league-less and member states.
              The quick-post card is gone — the + tab is the only score entry. -->
@@ -3650,20 +3651,33 @@ function primeRealRoster(){
 }
 
 /* ---- live-round resume (pilot bug: a refresh dropped the in-progress round) ----
-   state.live is in-memory; the durable spine is the server row (live_rounds +
-   live_round_players), which stays status='live' until finish_live_round closes
-   it. On boot we rehydrate identity + config from the server and overlay the
-   entered-but-unposted strokes from localStorage (keyed by live_round_id), so a
-   same-device refresh mid-round brings the whole card back. A cleared cache /
-   other device still resumes the round SHELL with a blank card — the round no
-   longer vanishes. No new RPC or column: live_rounds/live_round_players are
-   member-readable via existing RLS, so this is a pure-client change. */
+   state.live is in-memory. The FIX is local-first: the moment you tee off, and
+   on every change, we write a FULL snapshot of the round (players, course card,
+   game, stake, teams, scores, hole) to localStorage keyed by live_round_id. On
+   boot we rehydrate straight from that snapshot — zero network dependency, so a
+   flaky query can never lose your round on the same device. The server (open
+   live_rounds row, member-readable via RLS) is a SECOND source: it validates
+   the local resume and covers a fresh device / cleared cache (cross-league too,
+   since a match may live in another crew's league). A "Continue your round"
+   banner on Home makes the resumed round reachable. Pure client change. */
 const liveKey = lr => 'cs.live.' + lr;
+/* the whole round, everything needed to repaint it with no server round-trip */
+function buildLiveSnapshot(){
+  const L=state.live;
+  return { v:2, lr:L.lr, league_id:L.league_id||null, ts:Date.now(),
+    game:L.game, stake:L.stake||0, wolfOrder:L.wolfOrder||null,
+    pmap:L.pmap||null, guestTokens:L.guestTokens||{},
+    scores:L.scores, wolf:L.wolf, hole:L.hole,
+    teams: (typeof MTEAMS!=='undefined' && MTEAMS) ? MTEAMS.map(t=>t.slice()) : null,
+    course:{ label:($('#lrCourse')?.value||''), tee:($('#lrTee')?.value||''),
+             rating:CRATE, slope:CSLOPE, pars:PAR.slice(), si:(SI?SI.slice():null), siEst:!!SIEST },
+    players: LIVE.map(p=>({ n:p.n, i:p.i, ci:p.ci, guest:!!p.guest, est:!!p.est,
+             mid:p.mid||null, pid:p.pid||null, me:!!p.me, locked:!!p.locked, team:p.team })) };
+}
 function persistLive(){
   const L=state.live;
   if(state.demo || !L || !L.active || !L.lr) return;
-  try{ localStorage.setItem(liveKey(L.lr),
-    JSON.stringify({ v:1, scores:L.scores, wolf:L.wolf, hole:L.hole })); }catch(_){}
+  try{ localStorage.setItem(liveKey(L.lr), JSON.stringify(buildLiveSnapshot())); }catch(_){}
 }
 window.persistLive = persistLive;
 function clearLiveCache(keep){
@@ -3672,39 +3686,49 @@ function clearLiveCache(keep){
     if(k.indexOf('cs.live.')===0 && k!==keepK) localStorage.removeItem(k); }); }catch(_){}
 }
 window.clearLiveCache = clearLiveCache;
-async function rehydrateLiveRound(){
-  if(state.demo) return;
-  const sb=window.sb, CS=window.CS;
-  if(!sb || !CS) return;
-  const myPid=CS.user?.id;
-
-  /* Cross-league: a live round belongs to whatever league it was teed off in,
-     which may NOT be the one boot landed on (e.g. a match with a rival in
-     another crew). RLS scopes SELECT to leagues I'm a member of, so we DON'T
-     filter by CS.league — we pull every open round I can see and resume the
-     newest one I'm actually a player in. Each player's identity comes from the
-     round's OWN league via a nested join (CS.members only holds the booted
-     league's roster, so it can't name the other league's players). */
-  let rounds;
-  try{
-    const { data, error } = await sb.from('live_rounds')
-      .select('id, league_id, game, game_config, course_snapshot, course_label, started_by, started_at, live_round_players(id, member_id, guest_name, guest_index, index_source, position, member:league_members(profile_id, profile:profiles(display_name, index_current)))')
-      .eq('status','live')
-      .order('started_at', { ascending:false });
-    if(error) throw error;
-    rounds=data||[];
-  }catch(_){ return; }   /* offline / deploy-skew: skip resume, never block boot */
-
-  const iAmIn = r => (r.live_round_players||[]).some(p => p.member?.profile_id===myPid);
-  const mine  = rounds.find(iAmIn);
-  if(!mine){ clearLiveCache(null); return; }   /* none open → GC stale caches */
-  clearLiveCache(mine.id);                      /* GC every OTHER round's cache */
-
+function readLiveSnapshots(){
+  const out=[];
+  try{ Object.keys(localStorage).forEach(k=>{
+    if(k.indexOf('cs.live.')!==0) return;
+    try{ const s=JSON.parse(localStorage.getItem(k)); if(s && s.lr) out.push(s); }catch(_){}
+  }); }catch(_){}
+  out.sort((a,b)=>(b.ts||0)-(a.ts||0));
+  return out;
+}
+/* restore every play-view global from a local full snapshot */
+function applyLiveSnapshot(s){
+  if(!s || !Array.isArray(s.players) || !s.players.length) return false;
+  const n=s.players.length;
+  LIVE = s.players.map(p=>({ n:p.n||'Player', i:Number(p.i)||18, ci:(p.ci==null?1:p.ci),
+    guest:!!p.guest, est:!!p.est, mid:p.mid||null, pid:p.pid||null,
+    me:!!p.me, locked:!!p.locked, team:(p.team==null?'—':p.team) }));
+  const c=s.course||{};
+  if(Array.isArray(c.pars) && c.pars.length===18) PAR=c.pars.map(Number);
+  if(Array.isArray(c.si) && c.si.length===18){ SI=c.si.map(Number); SIEST=!!c.siEst; } else estimateSI();
+  if(c.rating!=null) CRATE=Number(c.rating)||CRATE;
+  if(c.slope!=null)  CSLOPE=Number(c.slope)||CSLOPE;
+  if($('#lrCourse')) $('#lrCourse').value=c.label||'';
+  if($('#lrTee'))    $('#lrTee').value=c.tee||'';
+  if($('#lrRate'))   $('#lrRate').value=c.rating!=null?c.rating:'';
+  if($('#lrSlope'))  $('#lrSlope').value=c.slope!=null?c.slope:'';
+  recomputeStrokes();
+  if(Array.isArray(s.teams) && s.teams.length) MTEAMS=s.teams.map(t=>t.slice()); else setMatchTeams();
+  const scores = (Array.isArray(s.scores) && s.scores.length===n)
+    ? s.scores.map(a=>{ const r=Array(18).fill(null); (Array.isArray(a)?a:[]).forEach((v,k)=>{ if(k<18 && v!=null) r[k]=v; }); return r; })
+    : LIVE.map(()=>Array(18).fill(null));
+  const wolf = (Array.isArray(s.wolf) && s.wolf.length===18) ? s.wolf.slice() : Array(18).fill(null);
+  const hole = Number.isInteger(s.hole) ? Math.max(0,Math.min(17,s.hole)) : 0;
+  state.live = { stage:'live', active:true, game:s.game||'score', stake:Number(s.stake)||0,
+    wolfOrder:s.wolfOrder||null, hole, scores, wolf, lr:s.lr, league_id:s.league_id||null,
+    pmap:s.pmap||null, guestTokens:s.guestTokens||{} };
+  rosterPrimed=true;
+  return true;
+}
+/* restore from a server open-round row (fresh device / cleared cache); overlays
+   any local strokes we do have for that id */
+function applyServerRound(mine, myPid){
   const players=(mine.live_round_players||[]).slice().sort((a,b)=>a.position-b.position);
-  if(!players.length) return;
-
-  /* rebuild the foursome from members / guests, in tee-off (position) order —
-     names + indexes come off the round's own league, so it works cross-league */
+  if(!players.length) return false;
   LIVE = players.map(pl=>{
     if(pl.member_id){
       const prof=pl.member?.profile, pid=pl.member?.profile_id;
@@ -3715,13 +3739,10 @@ async function rehydrateLiveRound(){
     return { n:(pl.guest_name||'Guest'), i:Number(pl.guest_index)||18, ci:-1, team:null,
              guest:true, est:pl.index_source==='estimated', pid:null };
   });
-
-  /* course card off the tee-off snapshot (pars/SI/rating/slope) */
   const snap=mine.course_snapshot||{};
   if(Array.isArray(snap.pars) && snap.pars.length===18) PAR=snap.pars.map(Number);
-  if(Array.isArray(snap.si) && snap.si.length===18){
-    SI=snap.si.map(Number); SIEST=!!(mine.game_config && mine.game_config.si_estimated);
-  } else estimateSI();
+  if(Array.isArray(snap.si) && snap.si.length===18){ SI=snap.si.map(Number); SIEST=!!(mine.game_config && mine.game_config.si_estimated); }
+  else estimateSI();
   if(snap.rating!=null) CRATE=Number(snap.rating)||CRATE;
   if(snap.slope!=null)  CSLOPE=Number(snap.slope)||CSLOPE;
   if($('#lrCourse')) $('#lrCourse').value = snap.label||mine.course_label||'';
@@ -3729,8 +3750,6 @@ async function rehydrateLiveRound(){
   if($('#lrRate'))   $('#lrRate').value   = snap.rating!=null?snap.rating:'';
   if($('#lrSlope'))  $('#lrSlope').value  = snap.slope!=null?snap.slope:'';
   recomputeStrokes();
-
-  /* game shape off game_config (stake, sides, wolf order) */
   const cfg=mine.game_config||{};
   const game = mine.game==='none' ? 'score' : mine.game;
   const idxByName=nm=>LIVE.findIndex(p=>p.n===nm);
@@ -3744,33 +3763,96 @@ async function rehydrateLiveRound(){
     const ord=(cfg.order||[]).map(idxByName).filter(i=>i>=0);
     wolfOrder = ord.length===LIVE.length ? ord : [0,1,2,3];
   }
-
   state.live = { stage:'live', active:true, game, stake:Number(cfg.stake)||0, wolfOrder,
     hole:0, scores:LIVE.map(()=>Array(18).fill(null)), wolf:Array(18).fill(null),
-    lr:mine.id, pmap:players.map(p=>p.id), guestTokens:{} };
-
-  /* overlay this device's entered-but-unposted strokes / calls / hole cursor */
+    lr:mine.id, league_id:mine.league_id||null, pmap:players.map(p=>p.id), guestTokens:{} };
   try{
     const raw=localStorage.getItem(liveKey(mine.id));
-    if(raw){
-      const c=JSON.parse(raw);
-      if(Array.isArray(c.scores) && c.scores.length===LIVE.length){
-        state.live.scores = c.scores.map(a=>{
-          const r=Array(18).fill(null);
-          (Array.isArray(a)?a:[]).forEach((val,k)=>{ if(k<18 && val!=null) r[k]=val; });
-          return r;
-        });
+    if(raw){ const cc=JSON.parse(raw);
+      if(Array.isArray(cc.scores) && cc.scores.length===LIVE.length){
+        state.live.scores = cc.scores.map(a=>{ const r=Array(18).fill(null);
+          (Array.isArray(a)?a:[]).forEach((v,k)=>{ if(k<18 && v!=null) r[k]=v; }); return r; });
       }
-      if(Array.isArray(c.wolf) && c.wolf.length===18) state.live.wolf=c.wolf;
-      if(Number.isInteger(c.hole)) state.live.hole=Math.max(0,Math.min(17,c.hole));
+      if(Array.isArray(cc.wolf) && cc.wolf.length===18) state.live.wolf=cc.wolf.slice();
+      if(Number.isInteger(cc.hole)) state.live.hole=Math.max(0,Math.min(17,cc.hole));
     }
   }catch(_){}
+  rosterPrimed=true;
+  return true;
+}
+async function rehydrateLiveRound(){
+  if(state.demo) return;
+  const CS=window.CS, myPid=CS?.user?.id;
 
-  rosterPrimed=true;   /* the active guard already blocks primeRealRoster, but be explicit */
-  if(typeof renderPlay==='function') renderPlay();
-  toast('Resumed your live round');
+  /* 1) LOCAL-FIRST — resume from this device's full snapshot, no network. */
+  let resumed=false;
+  const local=readLiveSnapshots().find(s => s.v>=2 && Array.isArray(s.players) && s.players.length);
+  if(local && applyLiveSnapshot(local)){
+    resumed=true;
+    if(typeof renderPlay==='function') renderPlay();
+    renderResumeBanner();
+    toast('Continue your round — tap the banner on Home');
+  }
+
+  /* 2) SERVER — validate / cover a fresh device. Never let a transient error
+     wipe a good local resume; surface failures instead of swallowing them. */
+  const sb=window.sb;
+  if(!sb || !CS){ return; }
+  let rounds=null;
+  try{
+    const { data, error } = await sb.from('live_rounds')
+      .select('id, league_id, game, game_config, course_snapshot, course_label, started_at, live_round_players(id, member_id, guest_name, guest_index, index_source, position, member:league_members(profile_id, profile:profiles(display_name, index_current)))')
+      .eq('status','live').order('started_at',{ ascending:false });
+    if(error) throw error;
+    rounds=data||[];
+  }catch(e){
+    try{ console.warn('[live-resume] server query failed:', e.message||e); }catch(_){}
+    window.__liveResumeDiag={ ok:false, err:String(e&&e.message||e), local:resumed };
+    return;   /* keep any local resume */
+  }
+  const mineList=rounds.filter(r => (r.live_round_players||[]).some(p=>p.member?.profile_id===myPid));
+  const openIds=new Set(mineList.map(r=>r.id));
+  const mine=mineList[0]||null;
+  window.__liveResumeDiag={ ok:true, openMine:mineList.length, local:resumed,
+    localLr:(local?local.lr:null), serverLr:(mine?mine.id:null) };
+
+  if(resumed){
+    if(state.live.lr && openIds.has(state.live.lr)) return;   /* local matches an open round — done */
+    /* the local round is finished / gone — retire it, then fall through */
+    clearLiveCache(null); state.live=freshLive();
+    if(typeof renderPlay==='function') renderPlay(); renderResumeBanner();
+    resumed=false;
+    toast('That round was already finished');
+  }
+  if(mine && applyServerRound(mine, myPid)){
+    clearLiveCache(mine.id);
+    if(typeof renderPlay==='function') renderPlay();
+    renderResumeBanner();
+    toast('Continue your round — tap the banner on Home');
+  } else if(!mine){
+    clearLiveCache(null);
+  }
 }
 window.rehydrateLiveRound = rehydrateLiveRound;
+/* the Home affordance: a tappable "Continue your round" banner, shown whenever a
+   round is live in state (independent of which league boot entered) */
+function renderResumeBanner(){
+  const el=document.getElementById('resumeBanner'); if(!el) return;
+  const L=state.live;
+  if(state.demo || !L || !L.active || !L.lr || L.stage!=='live'){ el.style.display='none'; el.innerHTML=''; return; }
+  let thru=0; for(let k=0;k<18;k++){ if(holeDone(k)) thru=k+1; else break; }
+  const course=($('#lrCourse')?.value||'Your round');
+  const gl={score:'Stroke play', match:'Match play', wolf:'Wolf', skins:'Skins'}[L.game]||'Live round';
+  el.style.display='block';
+  el.innerHTML=`<button class="livebanner" id="resumeGo" style="width:100%">
+    <div class="lk"><span class="dot"></span>Continue your round</div>
+    <div class="ln">${esc(course.toUpperCase())} · ${esc(gl.toUpperCase())}</div>
+    <div class="lm">HOLE ${L.hole+1} · THRU ${thru}</div>
+    <span class="go">→</span>
+  </button>`;
+  document.getElementById('resumeGo')?.addEventListener('click',()=>switchView('play'));
+}
+window.renderResumeBanner = renderResumeBanner;
 
 const holeDone=h=>LIVE.every((_,pi)=>state.live.scores[pi][h]!==null);
 const netOf=(pi,h)=>state.live.scores[pi][h]-strokeOn(pi,h);
@@ -4262,7 +4344,7 @@ $('#teeOffBtn').addEventListener('click', async ()=>{
     : null;
   state.live={stage:'live', active:true, game, stake, wolfOrder,
     hole:0, scores:LIVE.map(()=>Array(18).fill(null)), wolf:Array(18).fill(null),
-    lr:null, pmap:null, guestTokens:{}};
+    lr:null, league_id:(window.CS?.league?.id||null), pmap:null, guestTokens:{}};
   /* real accounts persist the live round now (guests get claim tokens);
      scoring stays client-side until finish (checkpoint 1 spine) */
   if(!state.demo && window.sb && window.CS?.league){
@@ -4383,6 +4465,7 @@ function finishRealLiveRound(){
       closeSheet();
       state.live.active=false; state.live.stage='setup';
       renderPlay();
+      renderResumeBanner();   /* round posted → the Home Continue banner clears */
       showLiveRecap(data||{}, casual?null:result);
       if(window.CS?.league && window.loadStandingsAndFeed) loadStandingsAndFeed();
     }catch(e){
@@ -4887,6 +4970,7 @@ function renderHomeRequests(){
   }));
 }
 function renderHomeHub(){
+  renderResumeBanner();   /* an in-progress live round is the first thing you see */
   renderGreeting();
   renderUpNext();
   renderPulse();
