@@ -215,25 +215,41 @@ button{font-family:var(--sans); touch-action:manipulation; color:var(--ink);}
 .chart-legend .pt{font-family:var(--mono); font-size:12.5px; color:var(--ink);}
 #raceChart{width:100%; height:auto; display:block;}
 .chart-note{font-family:var(--mono); font-size:11.5px; color:var(--dim); letter-spacing:.06em; margin-top:10px;}
-/* ===== the climb — you-centered cup-line ladder (D26) ===== */
-.climb{display:flex; flex-direction:column; gap:3px;}
-.climb-rung{display:flex; align-items:center; gap:9px; padding:8px 10px; border:1px solid var(--line); border-radius:9px;}
+/* ===== the climb — you-centered cup-line ladder (D26 · finish pass D-NN) =====
+   Rhythm: margins, not a uniform flex gap — your rung has weight, the rungs
+   you race tuck close, the leader stands apart, and the ellipsis stretches
+   with the distance it hides. Voice lines wrap onto a second row inside the
+   two adjacent rungs. Ghost/enter classes serve the FLIP applier. */
+.climb{display:flex; flex-direction:column; position:relative;}
+.climb-rung{display:flex; align-items:center; flex-wrap:wrap; gap:2px 9px; padding:8px 10px; margin-bottom:7px; border:1px solid var(--line); border-radius:9px; background:var(--bg1);}
+.climb-rung:last-child{margin-bottom:0;}
 .climb-rung .rk{font-family:var(--mono); font-size:11px; color:var(--dim); flex:none; width:18px;}
 .climb-rung .sw{width:10px; height:10px; border-radius:3px; flex:none;}
 .climb-rung .mk{font-size:15px; flex:none; line-height:1;}
 .climb-rung .nm{flex:1; min-width:0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; font-weight:600; font-size:13px;}
 .climb-rung .pts{font-family:var(--mono); font-size:13px; color:var(--ink); flex:none;}
 .climb-rung .gap{font-family:var(--mono); font-size:11px; color:var(--dim); flex:none; min-width:36px; text-align:right;}
-.climb-rung.me{border-color:var(--gold);}
-.climb-rung.me .nm{color:var(--gold);}
+.climb-rung .gap:empty{min-width:0;}
+.climb-rung.lead{margin-bottom:14px;}
+.climb-rung.tuck{margin-bottom:3px;}   /* adjacency beats the leader's standoff — declared after .lead on purpose */
+.climb-rung.me{border-color:var(--gold); padding:12px 10px;}
+.climb-rung.me .nm{color:var(--gold); font-size:15px;}
+.climb-rung.me .pts{font-size:15px;}
+.climb-rung .voice{flex:none; flex-basis:100%; min-width:0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; font-family:var(--mono); font-size:11px; letter-spacing:.04em; color:var(--dim); padding-left:46px;}
+.climb-rung .voice b{color:var(--ink); font-weight:600;}
+.climb-rung .voice .stake{color:var(--gold);}
 .climb-rung .badge{font-family:var(--mono); font-size:9.5px; letter-spacing:.08em; padding:1px 5px; border-radius:4px; flex:none;}
 .climb-rung .badge.lock{color:var(--pos); border:1px solid var(--pos);}
 .climb-rung .badge.out{color:var(--dim); border:1px solid var(--line);}
 .climb-spark{flex:none; margin:0 1px;}
-.climb-cut{display:flex; align-items:center; gap:8px; padding:4px 2px; font-family:var(--mono); font-size:10px; letter-spacing:.08em; color:var(--gold);}
+.climb-cut{display:flex; align-items:center; gap:8px; padding:2px 2px; margin-bottom:6px; font-family:var(--mono); font-size:10px; letter-spacing:.08em; color:var(--gold);}
 .climb-cut .ln{flex:1; height:0; border-top:1px dashed var(--gold); opacity:.55;}
 .climb-cut .lb{flex:none;}
-.climb-ellip{font-family:var(--mono); font-size:10px; color:var(--dim); text-align:center; padding:1px 0; letter-spacing:.12em; opacity:.7;}
+.climb-ellip{font-family:var(--mono); font-size:10px; color:var(--dim); text-align:center; letter-spacing:.12em; opacity:.7; margin-bottom:7px;}
+.climb-rung.in{animation:climbIn .22s ease-out;}
+@keyframes climbIn{from{opacity:0}}
+.climb-ghost{position:absolute; left:0; right:0; margin:0; pointer-events:none; transition:opacity .2s ease-out;}
+@media (prefers-reduced-motion:reduce){ .climb-rung.in{animation:none;} .climb-ghost{display:none;} }
 .climb-empty{font-family:var(--mono); font-size:11px; letter-spacing:.1em; color:var(--dim); text-align:center; padding:26px 10px; line-height:1.9;}
 .climb-empty span{opacity:.7; font-size:10px;}
 .standStory{font-family:var(--serif); font-size:13px; line-height:1.45; color:var(--ink); padding:2px 2px 10px; margin-bottom:2px; border-bottom:1px solid var(--line);}
@@ -2100,7 +2116,7 @@ body::before{
           <div>
             <div class="eyebrow">Season race · the climb</div>
             <div class="card">
-              <div class="climb" id="climb" role="img" aria-label="The climb — your place in the season race"></div>
+              <div class="climb" id="climb" role="list" aria-label="The climb — your place in the season race"></div>
               <div class="chart-note" id="climbNote"></div>
             </div>
           </div>
@@ -2559,7 +2575,8 @@ function climbCut(meta){
   }
   return {K:2, line:'CUP LINE'};   /* demo / pre-scenarios: matches the standings cutrow */
 }
-function climbSpark(arr,ci){
+function climbSpark(arr){
+  /* one viewer, one line, one color — gold, like everything else on your rung */
   if(!arr || arr.length<2) return '';
   const last=arr.slice(-8);
   const min=Math.min(...last), max=Math.max(...last);
@@ -2568,7 +2585,38 @@ function climbSpark(arr,ci){
     const py=15-((v-min)/Math.max(1,max-min))*13-1;
     return `${px.toFixed(1)},${py.toFixed(1)}`;
   }).join(' ');
-  return `<svg class="climb-spark" width="54" height="17" viewBox="0 0 54 17" aria-hidden="true"><polyline points="${pts}" fill="none" stroke="${SQHEX[ci]}" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+  return `<svg class="climb-spark" width="54" height="17" viewBox="0 0 54 17" aria-hidden="true"><polyline points="${pts}" fill="none" stroke="var(--gold)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+}
+function climbOrd(n){ const v=n%100; return (v>=11&&v<=13) ? n+'th' : n+(['th','st','nd','rd'][n%10]||'th'); }
+/* FLIP + enter/leave fade. Rows keyed by data-cid: surviving rows glide to
+   their new spot, new rows fade in, rows leaving the window fade out as
+   absolutely-positioned ghosts. Reduced-motion gets a plain swap. */
+function applyClimb(box, html){
+  const prevRows=box.querySelectorAll('[data-cid]');
+  if(matchMedia('(prefers-reduced-motion:reduce)').matches || !prevRows.length){ box.innerHTML=html; return; }
+  const first=new Map();
+  prevRows.forEach(r=>first.set(r.getAttribute('data-cid'), {top:r.offsetTop, node:r}));
+  box.innerHTML=html;
+  const seen=new Set();
+  box.querySelectorAll('[data-cid]').forEach(r=>{
+    const k=r.getAttribute('data-cid'); seen.add(k);
+    const o=first.get(k);
+    if(o){
+      const d=o.top-r.offsetTop;
+      if(Math.abs(d)>=1){
+        r.style.transform='translateY('+d+'px)'; r.style.transition='none';
+        requestAnimationFrame(()=>{ r.style.transition='transform .55s var(--roll)'; r.style.transform=''; });
+      }
+    } else r.classList.add('in');
+  });
+  first.forEach((o,k)=>{
+    if(seen.has(k)) return;
+    const g=o.node; g.classList.add('climb-ghost'); g.setAttribute('aria-hidden','true'); g.removeAttribute('data-cid');
+    g.style.top=o.top+'px';
+    box.appendChild(g);
+    requestAnimationFrame(()=>{ g.style.opacity='0'; });
+    setTimeout(()=>{ g.remove(); }, 260);
+  });
 }
 function renderClimb(){
   const box=$('#climb'); if(!box) return;
@@ -2593,7 +2641,9 @@ function renderClimb(){
     if(solo) myId=window.CS.member.id;
     else { const q=(window.CS.squads||[]).find(q=>(q.squad_members||[]).some(x=>x.member_id===window.CS.member.id)); myId=q?q.id:null; }
   }
-  const meIdx = myId!=null ? teams.findIndex(t=>t.id===myId) : -1;
+  let meIdx = myId!=null ? teams.findIndex(t=>t.id===myId) : -1;
+  /* demo diorama stars DEMO_ME — anchor their rung so the ladder demos itself */
+  if(state.demo) meIdx = teams.findIndex(t=> t.cap===DEMO_ME || t.name===DEMO_ME);
   const me = meIdx>=0 ? teams[meIdx] : null;
   const n=teams.length;
   /* which rungs to show: leader, the cup-line neighbours, and the viewer ±1 */
@@ -2601,6 +2651,10 @@ function renderClimb(){
   if(K<n){ show.add(K-1); show.add(K); } else { show.add(n-1); }
   if(meIdx>=0){ show.add(meIdx-1); show.add(meIdx); show.add(meIdx+1); }
   const idxs=[...show].filter(i=>i>=0 && i<n).sort((a,b)=>a-b);
+  const shown=new Set(idxs);
+  const stakeTxt = cut.line==='CROWN LINE' ? 'the crown'
+                 : cut.line==='CUP LINE'   ? 'the last cup spot'
+                 : 'the top seed';
   let html='', cutDrawn=false, prev=-1;
   const drawCut=()=>{
     let lb=cut.line;
@@ -2608,30 +2662,57 @@ function renderClimb(){
       if(meIdx<K){ const cush=me.pts-(teams[K]?teams[K].pts:0); lb=`${cut.line} · ${cush} CLEAR`; }
       else { const need=(teams[K-1]?teams[K-1].pts:0)-me.pts; lb=`${cut.line} · ${need>0?need+' BACK':'ON THE LINE'}`; }
     }
-    html+=`<div class="climb-cut"><span class="ln"></span><span class="lb">${lb}</span><span class="ln"></span></div>`;
+    html+=`<div class="climb-cut" data-cid="cut" role="separator" aria-label="${esc(lb)}"><span class="ln"></span><span class="lb">${lb}</span><span class="ln"></span></div>`;
     cutDrawn=true;
   };
   idxs.forEach(i=>{
-    if(prev>=0 && i>prev+1) html+=`<div class="climb-ellip">··· ${i-prev-1} more ···</div>`;
+    if(prev>=0 && i>prev+1){
+      const hid=i-prev-1, pad=Math.min(16, 3+hid*1.5);   /* distance looks like distance */
+      html+=`<div class="climb-ellip" data-cid="e${prev}" role="listitem" aria-label="${hid} more between" style="padding:${pad.toFixed(1)}px 0">··· ${hid} more ···</div>`;
+    }
     if(K<n && !cutDrawn && i>=K) drawCut();
     const t=teams[i], row=scById[t.id], isMe=(i===meIdx);
     const swatch = solo
       ? `<span class="mk">${t.mk||'⛳'}</span>`
       : `<span class="sw" style="background:${SQHEX[t.ci]}"></span>`;
-    let gap='';
-    if(me && !isMe){ const d=t.pts-me.pts; gap = d>0?`+${d}`:`${d}`; }
+    /* the two rungs you race speak; everyone else keeps the bare number */
+    let gap='', voice='';
+    if(me && i===meIdx-1){
+      const d=t.pts-me.pts;
+      voice = d===0 ? `level with <b>${esc(t.name)}</b>` : `<b>${d}</b> back of <b>${esc(t.name)}</b>`;
+      if(meIdx>=K && i===K-1) voice+=` <span class="stake">— ${stakeTxt}</span>`;
+    } else if(me && i===meIdx+1){
+      const d=me.pts-t.pts;
+      voice = d===0 ? `<b>${esc(t.name)}</b> level with you` : `<b>${esc(t.name)}</b> ${d} behind you`;
+    } else if(me && !isMe){ const d=t.pts-me.pts; gap = d>0?`+${d}`:`${d}`; }
     else if(!me && i>0){ gap=`-${teams[0].pts-t.pts}`; }   /* spectator: behind the leader */
     let badge='';
     if(row && row.clinched) badge='<span class="badge lock">LOCKED</span>';
     else if(row && row.eliminated) badge='<span class="badge out">OUT</span>';
-    const spark = isMe ? climbSpark(series[i], t.ci) : '';
-    html+=`<div class="climb-rung${isMe?' me':''}">`
+    const spark = isMe ? climbSpark(series[i]) : '';
+    /* what a screen reader hears for this rung */
+    let al = isMe ? `You — ${climbOrd(i+1)}, ${t.pts} points`
+                  : `${climbOrd(i+1)} — ${esc(t.name)}, ${t.pts} points`;
+    if(me && !isMe){ const d=t.pts-me.pts; al += d===0?', level with you':(d>0?`, ${d} ahead of you`:`, ${-d} behind you`); }
+    else if(!me && i>0){ al += `, ${teams[0].pts-t.pts} behind the leader`; }
+    if(row && row.clinched) al+=', clinched'; else if(row && row.eliminated) al+=', eliminated';
+    const cls='climb-rung'
+      + (isMe?' me':'')
+      + (i===0?' lead':'')
+      + ((me && (i===meIdx-1 || (isMe && shown.has(meIdx+1))))?' tuck':'');
+    html+=`<div class="${cls}" data-cid="${esc(String(t.id??t.name))}" role="listitem" aria-label="${al}">`
         + `<span class="rk">${String(i+1).padStart(2,'0')}</span>${swatch}`
         + `<span class="nm">${esc(t.name)}</span>${spark}${badge}`
-        + `<span class="pts">${t.pts}</span><span class="gap">${gap}</span></div>`;
+        + `<span class="pts">${t.pts}</span><span class="gap">${gap}</span>`
+        + (voice?`<span class="voice">${voice}</span>`:'')
+        + `</div>`;
     prev=i;
   });
-  box.innerHTML=html;
+  if(prev<n-1){   /* the field goes on below the window — say so */
+    const hid=n-1-prev, pad=Math.min(16, 3+hid*1.5);
+    html+=`<div class="climb-ellip" data-cid="etail" role="listitem" aria-label="${hid} more below" style="padding:${pad.toFixed(1)}px 0">··· ${hid} more ···</div>`;
+  }
+  applyClimb(box, html);
   if(note){
     if(K>=n) note.textContent=`EVERYONE ADVANCES — ${n} CONTENDER${n===1?'':'S'}, ${K} SEAT${K===1?'':'S'}`;
     else if(meta) note.textContent=`TOP ${K} ${meta.finish==='points_table'?'— THE POINTS CROWN':'ADVANCE'} · PROJECTED UNDER A GENEROUS CEILING`;
