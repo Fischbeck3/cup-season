@@ -1834,7 +1834,11 @@ body::before{
               </div>
               <div style="margin-top:12px; display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
                 <label class="f" style="margin:0">Your card</label>
-                <div class="seg" id="postMode" style="margin:0; flex:1; min-width:180px;">
+                <!-- D34: the mode toggle is HIDDEN, not deleted — the quick post
+                     is front & back only until scorecard OCR (photos arc #13)
+                     gives the grid a job as the confirmation surface. Restore =
+                     remove display:none + a D-entry. -->
+                <div class="seg" id="postMode" style="margin:0; flex:1; min-width:180px; display:none">
                   <button data-pm="total" class="on" type="button">Front &amp; back</button>
                   <button data-pm="holes" type="button">Hole by hole</button>
                 </div>
@@ -1857,7 +1861,7 @@ body::before{
                   <div><label class="f" for="inF9">Front 9 gross</label><input class="f" id="inF9" type="number" placeholder="41" inputmode="numeric"></div>
                   <div><label class="f" for="inB9">Back 9 gross</label><input class="f" id="inB9" type="number" placeholder="43" inputmode="numeric"></div>
                 </div>
-                <p class="fine" style="padding-top:6px">How most golfers keep it — 41 out, 43 in. Fill one nine only and it posts at half value, half a round. Want every hole on the card? Tap <b>Hole by hole</b>.</p>
+                <p class="fine" style="padding-top:6px">How most golfers keep it — 41 out, 43 in. Played just one nine? Fill that side only and it posts at half value, half a round.</p>
               </div>
 
               <div style="margin-top:10px">

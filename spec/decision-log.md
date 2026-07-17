@@ -900,3 +900,32 @@ table golfers write to and reshapes how task #14 runs.)*
   on failure) — acceptable: they inform friction fixes, they are not the
   competition record. Rounds remain the only facts.
 - **CONFLICT check:** none. Adds observation, changes no mechanic.
+
+---
+
+### D34 · The quick post is front & back only — the hole-by-hole card is pulled
+*(Amends D32 — same day. D32 demoted the grid to opt-in; the first two pilot
+users on the site still messaged the Pro about the complex post. Real-user
+friction on day one outranks the phased approach; the audit spoke first.)*
+- **Current:** D32's shape — front & back default, hole-by-hole one tap away
+  behind a mode toggle.
+- **Problem observed:** the toggle itself still surfaces the complexity. Two
+  for two real users stumbled on posting; at pilot scale that is 100% of the
+  evidence. The 60-second post (principle #2) is the acceptance test, and the
+  test is failing at the door.
+- **Recommendation:** hide the mode toggle — the quick post is **two boxes,
+  period**. The grid code stays DORMANT (hidden, not deleted): restoring it, or
+  wiring a prefill into it, is a one-line unhide. Per-hole data still has two
+  living paths: **live scoring** (the tee sheet pencil, entered hole-at-a-time
+  during play — unaffected by this change) and, long-term, **scorecard photo
+  OCR** riding the photos arc (#13): snap the card → vision model → grid
+  prefilled → confirm. When OCR lands, the grid returns as the *confirmation*
+  surface, which is what it should have been all along.
+- **Principle:** #2 Low Friction — the 60-second post is a gate, not a hope;
+  §16 unaffected (gross → differential → band still shows its work).
+- **Benefit:** the post screen has exactly one shape; nothing to explain.
+- **Tradeoffs:** no retrospective per-hole card until OCR — quick-posted rounds
+  carry no hole detail for stats/moments (live rounds still do). The
+  even-par soft block and D33's mode-mix telemetry go dormant with the grid.
+- **CONFLICT check:** amends D32 (UI level) within hours — named, deliberate,
+  evidence-driven. The scoring mechanic and everything above it: untouched.

@@ -46,17 +46,17 @@ Mark each run. A miss is a friction fix, not a fail to argue with.
 
 ### 3. Round posted — target < 1:00  *(reshaped AGAIN by D32, 2026-07-17)*
 - [ ] Post tab → **Course** (type real course → pick course → pick tee; rating/slope autofill) + date
-- [ ] **Front & back (the default, D32):** two boxes — "41 out, 43 in" → the
+- [ ] **Front & back (the ONLY mode, D34):** two boxes — "41 out, 43 in" → the
       Gross line reads right → **Post round**. **Time: ____** (target < 1:00)
-- [ ] **The full card (opt-in):** switch to **Hole by hole** — the grid opens on
-      par, adjust the holes you didn't par, post. **Time: ____** (expected
-      slower; that's fine — it's the receipt, not the fast path)
 - [ ] **No course match:** type a course not in the DB → type rating/slope by hand → post. Still under a minute?
-- Watch for: does front/back read instantly as "how I already keep score," or
-  do they hunt for per-hole entry? Course search speed, tee-list clarity,
-  whether the autofill was trusted. On the full card: the untouched-grid
-  **soft block** ("Post as even par?") now intercepts a rushed post — if a
-  tester hits it, note whether the sheet read as help or as friction.
+- Watch for: does front/back read instantly as "how I already keep score"?
+  Course search speed, tee-list clarity, whether the autofill was trusted.
+- *(D34, 2026-07-17: the hole-by-hole card is PULLED from the quick post —
+  hidden, not deleted — after the first two pilot users stumbled on it.
+  Per-hole detail lives in live scoring (tee sheet) today and returns to the
+  quick post as the confirmation surface when scorecard OCR ships with the
+  photos arc. The old full-card timing rows below any earlier findings are
+  historical.)*
 - Note: gate 3 is also **passively measured on every real post** — see
   "Tracking the gates during the pilot" below. The stopwatch run validates the
   first-timer experience; the passive layer validates the cohort.
