@@ -664,6 +664,32 @@ mechanics (D4) unchanged pending migration 008's endgame dial.*
   built; (c) comments stay a board-only thing (Home rows are too dense for
   threads — same split as chat).
 
+### D-NN · The digest mentions what landed on YOUR rounds ("Ed 🔥'd your 84")
+*(coordinator: assign the next free D-number; extends the quiet-day-frame and
+option-A entries above.)*
+- **Current:** the digest counts new rounds and league notes; reactions and
+  comments happen silently — you find them only by scrolling to your own card.
+- **Problem:** attention on your golf is the single cheapest "something new"
+  the thin-feed arithmetic allows — it requires nobody to play. A 🔥 at 11pm
+  is news at 7am, and today the 7am open doesn't say it.
+- **Recommendation:** reactions + comments on **your** rounds since the
+  seen-mark join the digest sentence ("…and Ed 🔥'd your 84"; several →
+  "and 2 more chimed in on your rounds"). Crucially, a mention can **rescue a
+  quiet day**: no new rounds but a fresh reaction still opens "Since you were
+  here" instead of the fallback highlight. Your own taps are never news.
+  Requires `post_kudos.created_at` (new migration `20260717010000` — the table
+  had no time dimension; "since" was unanswerable). Skew rule honored the
+  honest way: rows with no timestamp in the payload are *skipped*, never
+  guessed at.
+- **Principle:** #5 (the open answers back with what happened *to you*);
+  D23's spirit intact — this is in-app framing of real facts, not a nudge,
+  not a notification, nothing manufactured.
+- **Tradeoffs:** pre-migration reaction rows get stamped at migration time, so
+  each may be mentioned once as slightly newer than it was, then ages out —
+  accepted (days old, low stakes). Demo seeds carry no timestamps, so in the
+  diorama mentions ride only alongside other news and the demo's quiet day
+  stays demonstrably quiet.
+
 ### Correction to D25 — the reaction skew-fallback silently wrote 🔥
 Not a mechanic change; logged because it corrupted a shipped mechanic's intent.
 D25's client carried a deploy-skew guard that, on a column/schema error,

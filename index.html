@@ -2914,6 +2914,7 @@ async function refreshSocial(){
   rerenderFeeds();
   await fetchHomeSocial();
   renderHomeFeed();
+  if(window.renderHomeDigest) renderHomeDigest();   /* a live 🔥 on your round is digest news */
 }
 window.refreshSocial = refreshSocial;
 /* attach the shared handlers to a feed container. `lookup` maps a feed index
@@ -5150,7 +5151,7 @@ function homeRxOf(r){
    Names need their own resolve: memName() only knows the open league's
    roster, and a reactor can sit in a shared league that isn't open. */
 async function fetchHomeSocial(){
-  window.homeRx = { post:{}, kud:{}, names:{} };
+  window.homeRx = { post:{}, kud:{}, names:{}, raw:[], cmine:[], myIds:new Set() };
   if(state.demo || !window.sb || !window.CS?.user) return;
   const rids=[...new Set((window.homeFeed||[]).map(r=>r.round_id).filter(Boolean))];
   if(!rids.length) return;
@@ -5167,14 +5168,26 @@ async function fetchHomeSocial(){
     });
     const pids=Object.values(window.homeRx.post).map(t=>t.post_id);
     if(!pids.length) return;
-    const { data: kud } = await window.sb.from('post_kudos').select('*').in('post_id', pids);
-    const memberIds=[...new Set((kud||[]).map(k=>k.member_id))];
+    /* MY posts among them — the digest mentions what landed on YOUR rounds */
+    const myPids=(window.homeFeed||[])
+      .filter(r=>r.is_me && window.homeRx.post[r.round_id])
+      .map(r=>window.homeRx.post[r.round_id].post_id);
+    const [{ data: kud }, { data: cmt }] = await Promise.all([
+      window.sb.from('post_kudos').select('*').in('post_id', pids),
+      myPids.length
+        ? window.sb.from('post_comments').select('post_id, member_id, created_at').in('post_id', myPids)
+        : Promise.resolve({ data: [] }),
+    ]);
+    const memberIds=[...new Set((kud||[]).map(k=>k.member_id).concat((cmt||[]).map(c=>c.member_id)))];
     if(memberIds.length){
       const { data: mems } = await window.sb.from('league_members')
         .select('id, profile:profiles(display_name)').in('id', memberIds);
       (mems||[]).forEach(m=>{ window.homeRx.names[m.id]=m.profile?.display_name || 'someone'; });
     }
     const myIds=new Set((window.CS?.memberships||[]).map(m=>m.id));
+    window.homeRx.myIds=myIds;
+    window.homeRx.raw=kud||[];       /* timestamped rows — the digest reads these */
+    window.homeRx.cmine=cmt||[];
     (kud||[]).forEach(k=>{
       const e=k.emoji||'🔥';
       const s=((window.homeRx.kud[k.post_id]||={})[e]||={n:0, me:false, who:[]});
@@ -5331,6 +5344,37 @@ function dgLine(i){
   if(r.is_first) return `<b>${who}</b> posted ${r.is_me?'your':'their'} first round — ${r.gross} at ${course}`;
   return `<b>${who}</b> posted ${r.gross} at ${course}`;
 }
+/* what landed on YOUR rounds since the mark — reactions and comments, the
+   attention your golf collected while you were gone. This is thin-feed fuel
+   that requires nobody to play: a 🔥 at 11pm is news at 7am. Rows without a
+   created_at (written before the timestamp migration) are skipped — no time,
+   no "since" claim. */
+function dgMentions(mark){
+  const out=[];
+  if(state.demo){
+    /* diorama: the seeded reactions on the is_me row, treated as fresh */
+    DEMO_FEED.filter(r=>r.is_me&&r.rx).forEach(r=>{
+      Object.entries(r.rx).forEach(([e,s])=>(s.who||[]).forEach(w=>out.push({who:w, e, gross:r.gross})));
+    });
+    return out;
+  }
+  const hr=window.homeRx; if(!hr) return out;
+  const mine={};
+  (window.homeFeed||[]).forEach(r=>{ if(r.is_me&&hr.post[r.round_id]) mine[hr.post[r.round_id].post_id]=r; });
+  (hr.raw||[]).forEach(k=>{
+    if(!k.created_at || dgTime(k.created_at)<=mark) return;
+    const r=mine[k.post_id]; if(!r) return;
+    if(hr.myIds.has(k.member_id)) return;          /* my own tap isn't news */
+    out.push({ who:hr.names[k.member_id]||'someone', e:k.emoji||'🔥', gross:r.gross });
+  });
+  (hr.cmine||[]).forEach(c=>{
+    if(!c.created_at || dgTime(c.created_at)<=mark) return;
+    const r=mine[c.post_id]; if(!r) return;
+    if(hr.myIds.has(c.member_id)) return;
+    out.push({ who:hr.names[c.member_id]||'someone', e:null, gross:r.gross });
+  });
+  return out;
+}
 function renderHomeDigest(){
   const box=$('#homeDigest'); if(!box) return;
   box.innerHTML='';
@@ -5340,7 +5384,12 @@ function renderHomeDigest(){
   const mark=window.dgAsOf;
   if(!mark) return;                       /* first visit — the feed IS the reveal */
   const fresh=items.filter(i=> dgTime(i.t) > mark);
-  if(fresh.length){
+  /* mentions can RESCUE a quiet day for real users — a reaction on your round
+     IS something new. The demo's seeds carry no timestamps, so there they ride
+     only alongside other news and the diorama's quiet day stays quiet. */
+  let men=dgMentions(mark);
+  if(state.demo && !fresh.length) men=[];
+  if(fresh.length || men.length){
     const rounds=fresh.filter(i=>i.kind==='round'), posts=fresh.filter(i=>i.kind==='post');
     const bits=[];
     if(rounds.length) bits.push(`<b>${rounds.length} round${rounds.length>1?'s':''}</b>`);
@@ -5349,6 +5398,12 @@ function renderHomeDigest(){
     if(s80) bits.push(`${dgWho(s80.r)} broke 80`);
     if(fst) bits.push(`${dgWho(fst.r)}'s first round`);
     if(posts.length) bits.push(`${posts.length} league note${posts.length>1?'s':''}`);
+    if(men.length){
+      const m=men[0];
+      bits.push(m.e ? `<b>${esc(m.who)}</b> ${m.e}’d your ${m.gross}`
+                    : `<b>${esc(m.who)}</b> chimed in on your ${m.gross}`);
+      if(men.length>1) bits.push(`${men.length-1} more chimed in on your rounds`);
+    }
     if(!bits.length) return;
     box.innerHTML=`<div class="digest"><span class="dk">Since you were here</span>${dgJoin(bits)}.</div>`;
     return;
