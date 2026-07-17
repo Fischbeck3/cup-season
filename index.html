@@ -1406,11 +1406,12 @@ body::before{
 </style>
 <script>
 /* theme, pre-paint — runs before any content renders so there is no flash.
-   cs_theme: 'dark' (default) | 'light' | 'auto' (match device). */
+   cs_theme: 'light' (default, D35 — daylight is where golf happens) | 'dark'
+   | 'auto' (match device). An explicit choice in Appearance always wins. */
 (function(){
   window.applyTheme = function(){
-    var pref = 'dark';
-    try { pref = localStorage.getItem('cs_theme') || 'dark'; } catch(_){}
+    var pref = 'light';
+    try { pref = localStorage.getItem('cs_theme') || 'light'; } catch(_){}
     var t = pref === 'auto'
       ? (matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark')
       : pref;
@@ -7534,7 +7535,7 @@ function openProfileHub(){
   const themeBox = $('#phTheme');
   if(themeBox){
     const mark = () => {
-      let cur = 'dark'; try { cur = localStorage.getItem('cs_theme') || 'dark'; } catch(_){}
+      let cur = 'light'; try { cur = localStorage.getItem('cs_theme') || 'light'; } catch(_){}  /* D35: must match applyTheme's default or the toggle highlights the wrong pill */
       themeBox.querySelectorAll('[data-th]').forEach(b => {
         const on = b.dataset.th === cur;
         b.style.borderColor = on ? 'var(--pos)' : '';

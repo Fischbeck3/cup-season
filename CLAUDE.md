@@ -69,7 +69,8 @@ sections (§2.2, §14.0) when making competition-model decisions.
 
 ## Architecture
 
-- **Client:** single-file PWA (`index.html`), dark UI, deployed on Netlify.
+- **Client:** single-file PWA (`index.html`), light-first UI (dark one tap
+  away in Appearance — D35), deployed on Netlify.
   Three script blocks: two classic, one `type="module"` (Supabase client, auth,
   data layer). **Classic ↔ module boundary is a landmine** — module top-level
   names are NOT visible to classic scripts; bridge explicitly via `window.*`

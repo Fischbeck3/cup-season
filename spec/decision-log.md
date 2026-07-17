@@ -929,3 +929,33 @@ friction on day one outranks the phased approach; the audit spoke first.)*
   even-par soft block and D33's mode-mix telemetry go dormant with the grid.
 - **CONFLICT check:** amends D32 (UI level) within hours — named, deliberate,
   evidence-driven. The scoring mechanic and everything above it: untouched.
+
+---
+
+### D35 · Light mode becomes the default; dark stays one tap away
+*(UI level. Reverses the dark-first assumption the app was built on — named,
+not slid past: CLAUDE.md calls the product "dark UI," and every design pass
+until v23.65 was dark-only.)*
+- **Current:** `cs_theme` defaults to `'dark'`; light and auto exist in
+  Appearance but nobody lands there.
+- **Problem observed:** golf happens in daylight. The app's core moments —
+  posting at the 19th hole, the tee sheet mid-round, checking the cup line in
+  a cart — happen outdoors, where a dark UI fights the sun. The Pro called it
+  during pilot week.
+- **Recommendation:** default `'light'` for anyone without an explicit
+  Appearance choice (both the pre-paint script and the settings marker), and
+  the PWA manifest goes light so the installed launch flash matches. An
+  explicit choice always wins and always persists.
+- **Caveat (honest mechanics):** the preference lives in localStorage, so
+  "new users" really means "anyone who never touched Appearance" — a device
+  that had the old default flips to light on its next visit. At pilot scale,
+  post-wipe, that is effectively everyone, and it is the intended outcome.
+- **Principle:** #2 Low Friction (legibility where the product is actually
+  used); the brand's gold-forward pass (v23.106) already tuned both palettes.
+- **Benefit:** first impressions happen in daylight and now read in daylight.
+- **Tradeoffs:** installed PWAs may briefly flash light for the dark-chosen
+  until their manifest cache refreshes; the light palette has had fewer
+  eyeball-hours than dark — pilot feedback will surface any rough spot fast.
+- **CONFLICT check:** contradicts the "dark UI" line in CLAUDE.md's
+  architecture note — that line should read "light-first, dark one tap away"
+  at the next docs pass. Named here so the contradiction is never silent.
