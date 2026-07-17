@@ -472,6 +472,60 @@ heartbeat / individual free hook is already approved direction (ESPN model,
 2026-07); the translation pass (D1–D3) touches no level-4 rule; Cup Final
 mechanics (D4) unchanged pending migration 008's endgame dial.*
 
+## Batch 6 — 2026-07-16, the season race gets a face (gameplay lane)
+
+### D22 · The Climb — a you-centered cup-line ladder (replaces the race chart)
+*(D-number provisional — coordinator assigns the final number at merge.)*
+- **Current:** the season race renders as a multi-line cumulative-points chart
+  (`renderChart`, `buildRealSeries`, `SQHEX` — a **4-color** palette). It is
+  the most statistical object in the app, it **duplicates** what the standings
+  table, the story line, and the D21 clinch line already say, it becomes
+  unreadable spaghetti past ~4 competitors, and it is **broken for solo**:
+  a squad-less player falls through `memCi`'s fallback (`return 1`), so every
+  individual draws in the same orange — the "solo point graph is wrong" report.
+- **Problem observed:** a points-over-time line graph fails the Cup Season Test
+  ("would golfers miss it because it made their golf life richer, or because it
+  was another stat they occasionally glanced at?") — it lands on the wrong side.
+  It answers "who has more points" (the table already does) but never the
+  question a golfer actually feels: *where am I in this race, who's right above
+  me, and how far to the cup line.* And its color model assumes ≤4 squads, so
+  it cannot represent a solo field at all.
+- **Recommendation:** replace it with **The Climb** — a focused vertical ladder
+  centered on the viewer. Rungs show **your row**, the **rung above** (the
+  player/squad to catch), the **rung below** (who's chasing you), the **leader**,
+  and the **cup line** drawn across the ladder — with **points-back** labels on
+  each gap ("6 back of Jake for the last cup spot · Dana +4 behind you"). It
+  renders a **window** (you ± neighbors + cutline + leader), never all N, so it
+  is legible at 4 players or 20 and needs no per-competitor palette. Gap and
+  cutline numbers read from `season_scenarios` (D21) so they stay honest and
+  match the clinch line exactly. Squad leagues get the same ladder (squad rungs).
+  The cutline follows the endgame dial (008): `cup_final` → below seed #2 (2-squad
+  → the #1-seed / +10 line); solo → below #2; `points_table` → below #1.
+- **Optional texture (keeps the season arc without the spaghetti):** a single
+  **self-trajectory sparkline** — the viewer's own weekly points from
+  `seasonHistory`, one line in one color — tucked beside their rung. Preserves
+  "am I climbing?" for the competitive/trip personas with zero palette collision.
+- **Principle:** #4 Memory > Statistics (a target and a rivalry, not a stat);
+  #5 Feels Alive (the race has a face — the person one rung up); §16 (every gap
+  traces to D21's conservative math, which traces to rounds); #2 Low Friction
+  (one glance answers "where do I stand").
+- **Benefit:** the season race becomes personal and emotionally legible; the
+  solo color bug is **deleted at the root** rather than patched; squads gain a
+  clearer read too. One fewer redundant, generic surface.
+- **Tradeoffs:** loses the whole-field arc a few analytically-minded users
+  liked — mitigated by the optional self-sparkline. A **spectator** with no
+  membership (or a pre-first-round league) has no "you" to anchor on → fallback:
+  show the top of the ladder + the cutline, no self-anchor. The ladder is a
+  *snapshot*, not history; history lives in the sparkline and the receipts.
+- **CONFLICT check:** none. Removing a redundant statistical surface *serves*
+  the IA and the memory-layer guardrails rather than contradicting them.
+- **Boundary (no collision):** the **data + framing** (what to show, the gap
+  math, the cutline rule) is this lane; the **finished visual polish** is UX's.
+  This ships a working, legible first version reading D21's output — no edits to
+  Social's feed/moment/rivalry surfaces.
+
+---
+
 *Status notes: D1–D3, D5, D11 shipped v23.153 · D4 (foreshadow + dial)
 shipped v23.160 with migration 008 · D9 (skins forward) shipped v23.157 ·
 batch-3 #17/#18 shipped v23.158–159 (Ryder) · D6 + D8 shipped v23.161 (wizard
