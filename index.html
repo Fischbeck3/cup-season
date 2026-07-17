@@ -368,12 +368,15 @@ label.f{
   display:block; font-family:var(--mono); font-size:11px; letter-spacing:.14em;
   text-transform:uppercase; color:var(--dim); margin-bottom:6px;
 }
-input.f{
+/* 16px floor on EVERY .f control — iOS Safari auto-zooms any focused field
+   under 16px, and textareas/selects weren't covered (pilot: the feedback
+   form zoomed). Keep the whole family in one rule so it can't drift. */
+input.f, textarea.f, select.f{
   width:100%; font-family:var(--mono); font-size:16px; font-weight:500; color:var(--ink);
   background:var(--bg2); border:1px solid var(--line2); border-radius:var(--rc);
   padding:11px 12px; min-height:44px;
 }
-input.f:focus-visible{outline:2px solid var(--pos); outline-offset:1px;}
+input.f:focus-visible, textarea.f:focus-visible, select.f:focus-visible{outline:2px solid var(--pos); outline-offset:1px;}
 input.f::-webkit-outer-spin-button, input.f::-webkit-inner-spin-button{-webkit-appearance:none;}
 
 .postgrid{display:block;}
@@ -1759,6 +1762,7 @@ body::before{
             <div style="height:12px"></div>
             <button class="btn" id="finishBtn">Finish round & post to season</button>
             <p class="fine">Scores entered together are <b>auto-attested</b>: the group verifies everyone's round just by playing it. <b>Guests need no account:</b> they play every side game, appear in the settlement, and get a recap text with their scorecard and an invite when you finish. Only league members' rounds post to the season.</p>
+            <button class="mini" id="discardBtn" style="margin-top:6px; color:var(--dim)">Scrap this round</button>
           </div>
           <div>
             <div class="eyebrow">Side games · tracked live, settled on Venmo</div>
@@ -4838,6 +4842,37 @@ function showLiveRecap(d, result){
     catch(_){ toast('Copy failed'); }
   }));
 }
+/* pilot: "Live round needs a discard button." Two-tap confirm, then: close the
+   server row (abandon_live_round — otherwise the next boot's server sweep
+   resurrects the round on every device), clear the local snapshot, reset play
+   state. Nothing posts, for anyone. Deploy-skew: if the RPC isn't live yet the
+   local clear still proceeds — worst case the round reappears once and the
+   user scraps it again after the db push. */
+let discardArm=0;
+$('#discardBtn')?.addEventListener('click', async ()=>{
+  const btn=$('#discardBtn');
+  if(Date.now()-discardArm>4000){
+    discardArm=Date.now();
+    btn.textContent='Tap again to scrap — nothing posts, for anyone';
+    btn.style.color='var(--neg)';
+    setTimeout(()=>{ if(Date.now()-discardArm>=3900){ btn.textContent='Scrap this round'; btn.style.color='var(--dim)'; } }, 4200);
+    return;
+  }
+  discardArm=0; btn.disabled=true;
+  if(!state.demo && state.live.lr && window.sb){
+    try{
+      const { error } = await window.sb.rpc('abandon_live_round', { p_live_round: state.live.lr });
+      if(error) throw error;
+    }catch(e){ try{ console.warn('[discard] server abandon failed:', e.message||e); }catch(_){} }
+  }
+  clearLiveCache(null);
+  state.live=freshLive();
+  btn.disabled=false; btn.textContent='Scrap this round'; btn.style.color='var(--dim)';
+  if(typeof renderPlay==='function') renderPlay();
+  renderResumeBanner();
+  switchView('home');
+  toast('Round scrapped — nothing posted');
+});
 $('#finishBtn').addEventListener('click',()=>{
   /* real accounts: the live round posts every member's card at once (§13.1),
      hole detail and all — through finish_live_round (checkpoint 1). */
@@ -5207,7 +5242,17 @@ function feedBuckets(items){
     g[b].push(i.html);
   });
   const LAB=['Today','This week']; let html='';
-  for(let k=0;k<2;k++) if(g[k].length) html += `<div class="feedsec">${LAB[k]}</div>`+g[k].join('');
+  /* pilot (filed twice): time buckets alone didn't stop the stacking — an
+     active league puts 20+ rounds inside "This week". Cap what each bucket
+     shows; the rest waits behind its own expander. CAP+1 guard so a single
+     hidden row never earns a whole "show 1 more" button. */
+  const CAP=8;
+  for(let k=0;k<2;k++) if(g[k].length){
+    html += `<div class="feedsec">${LAB[k]}</div>`;
+    if(g[k].length<=CAP+1) html += g[k].join('');
+    else html += g[k].slice(0,CAP).join('')
+      + `<details class="feedmore"><summary>Show ${g[k].length-CAP} more · ${LAB[k].toLowerCase()}</summary>${g[k].slice(CAP).join('')}</details>`;
+  }
   if(g[2].length){
     const open=(g[0].length+g[1].length)===0;
     html += `<details class="feedmore"${open?' open':''}><summary>${open?'Earlier':'Show earlier · '+g[2].length}</summary>${g[2].join('')}</details>`;
@@ -6536,7 +6581,20 @@ function refreshWhoChip(){
     [p.handle ? '@'+p.handle : null, p.city, p.home_course].filter(Boolean).join(' · ');
   if($('#youAnchor')){
     const since = p.created_at ? (()=>{ const d=new Date(p.created_at); return 'Member since '+MOS[d.getMonth()]+' '+d.getFullYear(); })() : null;
-    $('#youAnchor').textContent = [p.ghin_number ? 'GHIN '+p.ghin_number : null, since].filter(Boolean).join(' · ');
+    if(p.ghin_number){
+      $('#youAnchor').textContent = ['GHIN '+p.ghin_number, since].filter(Boolean).join(' · ');
+    } else {
+      /* pilot: a new golfer went looking for GHIN at account creation.
+         Creation stays lean (principle 2) — the card offers it quietly here
+         instead, landing on the same field they'd have wanted at signup. */
+      $('#youAnchor').innerHTML = (since ? esc(since)+' · ' : '')
+        + '<a href="#" id="youAddGhin" style="color:var(--brand)">add your GHIN</a>';
+      $('#youAddGhin')?.addEventListener('click', e => {
+        e.preventDefault(); openProfileHub();
+        setTimeout(() => { const g=document.getElementById('phGhin');
+          if(g){ g.scrollIntoView({block:'center'}); g.focus({preventScroll:true}); } }, 60);
+      });
+    }
   }
   if($('#youIdx')){
     if(p.index_current != null){
@@ -8768,9 +8826,9 @@ async function openDeclareSheet(prefillISO, opts){
   openSheet(opts.hostName ? 'Get in on it' : 'Put a round on the books',
     opts.hostName ? 'YOUR ROUND POSTS AND SCORES ON ITS OWN — YOU BOTH SHOW ON THE DAY' : 'BUDDIES & LEAGUE MATES SEE IT THE MOMENT YOU POST',
     `${joining ? `<p class="fine" style="padding:0 0 10px; color:var(--gold)">${joining}</p>` : ''}
-     <div style="display:flex; gap:10px">
-       <div style="flex:1"><label class="f">Day</label><input class="f" id="drDate" type="date" value="${iso}"></div>
-       <div style="width:132px"><label class="f" style="color:var(--gold)">Tee time · optional</label><input class="f" id="drTee" type="time" step="300" value="${teeVal}"></div>
+     <div style="display:flex; gap:10px; align-items:flex-end; flex-wrap:wrap">
+       <div style="flex:1 1 150px; min-width:150px"><label class="f" for="drDate">Day</label><input class="f" id="drDate" type="date" value="${iso}"></div>
+       <div style="flex:1 1 150px; min-width:150px"><label class="f" for="drTee" style="color:var(--gold)">Tee time · optional</label><input class="f" id="drTee" type="time" step="300" value="${teeVal}"></div>
      </div>
      <label class="f" style="margin-top:10px; display:block">Course</label>
      <input class="f" id="drCourse" placeholder="Pebble Beach" style="font-family:var(--sans)" value="${esc(opts.course||'')}">
