@@ -15,11 +15,15 @@ sections (§2.2, §14.0) when making competition-model decisions.
 
 1. **Talk first.** Design decisions are logged (see rule 5). Code is written
    only on an explicit "build it."
-2. **One batched version per checkpoint.** Every client build bumps BOTH the
-   sign-in caption (`#obCaption span:last-child`, `v23.NN`) AND `sw.js`'s
-   `VERSION` — together, or the service worker serves a stale shell. Migrations
-   are timestamp-named (`YYYYMMDDHHMMSS_slug.sql`) and never edited after they
-   run in production; a fix is a NEW migration (a function change is
+2. **NEVER hand-edit the version — the build stamps it.** The sign-in caption
+   and `sw.js`'s `VERSION` both carry the placeholder `__CS_VERSION__`; Netlify
+   replaces it with the commit SHA at deploy (`stamp-version.sh`, wired in
+   `netlify.toml`). Leave both lines alone. They move together by construction,
+   so the service worker can no longer serve a stale shell, and parallel
+   sessions can no longer collide on a version line (they did, repeatedly —
+   that hand-bumped line was the single biggest source of merge friction).
+   Migrations are timestamp-named (`YYYYMMDDHHMMSS_slug.sql`) and never edited
+   after they run in production; a fix is a NEW migration (a function change is
    `create or replace` in that new file).
 3. **Design passes and structural builds ride separately.** (Learned during the
    auth arc: the splash-art pass was pulled while debugging, restored after.)
@@ -40,9 +44,12 @@ sections (§2.2, §14.0) when making competition-model decisions.
   They are independent — conflating them cost 14 undeployed client versions
   early on. Claude's sandbox CANNOT run `supabase` (db push / functions deploy /
   secrets) — the USER runs those; state the exact commands in the handoff.
-  Diagnostic for "is it live": cupseason.app's `#obCaption` version vs `git log`.
-  A change touching both layers needs BOTH pushes; a pure-migration change needs
-  no client bump, a pure-client change needs no db push.
+  Diagnostic for "is it live": cupseason.app's `#obCaption` reads `v23 · <sha>`
+  — compare that SHA straight to `git log`. (Locally it reads `v23 · dev` or the
+  raw `__CS_VERSION__` placeholder: unstamped is the tell that you're not on a
+  Netlify build.) A change touching both layers needs BOTH pushes; a
+  pure-migration change needs no client push, a pure-client change needs no db
+  push.
 - **Deploy-skew safety.** Netlify may serve a new client before its migration
   is pushed (or vice-versa). New RPC args / columns get a client-side retry that
   drops the new field on the "column/function/schema cache" error, and new SQL

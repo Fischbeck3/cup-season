@@ -1,0 +1,11 @@
+# Cup Season is a single-file PWA — there is no bundler and nothing to compile.
+# The only build step stamps the commit into the version placeholders (see
+# stamp-version.sh), so no human ever hand-edits a version line again. The site
+# is still published straight from the repo root.
+#
+# If this build ever fails, Netlify keeps the previous deploy live — it does not
+# publish a broken build. Reverting this file + stamp-version.sh restores the
+# old no-build static deploy.
+[build]
+  command = "bash ./stamp-version.sh"
+  publish = "."
