@@ -5257,11 +5257,11 @@ function renderHomeRecap(){
 const DEMO_FEED = [
   {golfer:'Diego', marker:'saguaro', gross:79, pvi:5.2, course:'Papago GC', played_on:isoAgo(0), is_pr:true,
    rx:{'🔥':{n:2,me:false,who:['Rosa','Marco']},'🚨':{n:1,me:false,who:['Marco']}}},
-  {golfer:'Rosa',  marker:'quail',   gross:74, pvi:3.8, course:'Grayhawk',  played_on:isoAgo(2), is_sub80:true,
+  {golfer:'Rosa',  marker:'azalea',  gross:74, pvi:3.8, course:'Grayhawk',  played_on:isoAgo(2), is_sub80:true,
    rx:{'🦅':{n:1,me:false,who:['Diego']}}},
   {golfer:'You',   marker:'shark',   gross:82, pvi:2.9, course:'Aguila',    played_on:isoAgo(4), is_me:true,
    rx:{'🧊':{n:1,me:false,who:['Rosa']}}},
-  {golfer:'Marco', marker:'cactus',  gross:90, pvi:0.4, course:'Encanto',   played_on:isoAgo(9)},
+  {golfer:'Marco', marker:'weebridge', gross:90, pvi:0.4, course:'Encanto', played_on:isoAgo(9)},
 ];
 /* founder badge — FOUNDER_ID is loaded by loadProfile via the founder_id() RPC.
    Badges the one founder wherever their name shows. Demo badges DEMO_ME so the
@@ -5598,7 +5598,7 @@ function renderUpNext(){
   }
   box.innerHTML = chips.join('');
 }
-const DEMO_REQUESTS = [{friendship_id:'demo', display_name:'Marco', handle:'marco_v', marker:'cactus'}];
+const DEMO_REQUESTS = [{friendship_id:'demo', display_name:'Marco', handle:'marco_v', marker:'weebridge'}];
 /* incoming friend requests, front and center on Home — used to hide in the
    Tour Card and nobody found them. */
 function renderHomeRequests(){
@@ -6769,6 +6769,14 @@ const MARKERS = {
   dunes:     {n:'The Dunes',      p:'M3 17c3-4 5-4 8-1 2-4 5-5 10-2M6 9c1-2 3-2 4 0'},
   beer:      {n:'The Beverage',   p:'M7 5h8v14H7zM15 8h3v6h-3M9 8v8M12 8v8'},
   shark:     {n:'The Shark',      p:'M4 17c4 1 12 1 16 0-2-2-5-3-7-3l2-7-6 7c-2 0-4 1-5 3z'},
+  /* the famous-golf wing — every nod oblique, never named (the wink IS the
+     feature, and the obliqueness is also the legal safe zone) */
+  azalea:    {n:'The Azalea',     p:'M12 10c-1.4-1.9-1.4-4.7 0-6 1.4 1.3 1.4 4.1 0 6M10 11.3C7.7 10.7 6 8.4 6.5 6.5c1.9.1 3.9 2.1 4.3 4.4M10.9 13.6c-1.6 1.8-4.4 2.4-6 1.2.8-1.8 3.5-2.9 5.8-2.5M13.1 13.6c1.6 1.8 4.4 2.4 6 1.2-.8-1.8-3.5-2.9-5.8-2.5M14 11.3c2.3-.6 4-2.9 3.5-4.8-1.9.1-3.9 2.1-4.3 4.4M13.2 12a1.2 1.2 0 11-2.4 0 1.2 1.2 0 012.4 0'},
+  jug:       {n:'The Jug',        p:'M11 3h2M12 3v2M10 5h4l.6 3c1.8 1.2 2 4.4.4 6h-6c-1.6-1.6-1.4-4.8.4-6L10 5M12 14v3M9.5 20h5c0-1.6-1-2.6-2.5-2.6s-2.5 1-2.5 2.6M16 9c2 0 2.8 1.8 2 3.2-.5 1-1.4 1.6-2.5 1.8'},
+  weebridge: {n:'The Wee Bridge', p:'M2 16h4c0-3 2.5-5 6-5s6 2 6 5h4M9.5 16c0-1.7 1-2.7 2.5-2.7s2.5 1 2.5 2.7M8 19.5c1.5-1.2 6.5-1.2 8 0'},
+  no2:       {n:'No. 2',          p:'M6 21V3.5M6 4.5h8.5v6H6M8.6 6.8c0-.9.7-1.5 1.6-1.5s1.6.6 1.6 1.4c0 1.3-3.2 1.9-3.2 3.1h3.3'},
+  stamp:     {n:'The Postage Stamp', p:'M5 5h14v14H5zM8 4v2M12 4v2M16 4v2M8 18v2M12 18v2M16 18v2M10.5 14.5V9.5l3 1.3-3 1.2M8.5 15.5c1.2-.7 5.8-.7 7 0'},
+  thistle:   {n:'The Thistle',    p:'M8.2 5l1.5 2.6M12 4v3M15.8 5l-1.5 2.6M12 7c2.2 0 3.5 1.2 3.5 3s-1.3 3-3.5 3-3.5-1.2-3.5-3 1.3-3 3.5-3M10.2 8.6l3.6 2.8M13.8 8.6l-3.6 2.8M12 13v8M11 16.5c-1.8-.2-3.2-1.2-3.7-2.9M13 17.8c1.8-.2 3.2-1.2 3.7-2.9'},
 };
 const mkr = k => MARKERS[k]
   ? `<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-4px"><path d="${MARKERS[k].p}"/></svg>`
