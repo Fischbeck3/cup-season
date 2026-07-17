@@ -870,3 +870,33 @@ D26's level-4 mechanic; no gameplay change. Drafted before build, per protocol.)
   captured at entry and summed to gross — the record stores gross, as today.
 - **CONFLICT check:** none. Amends a UI-default decision (#5); the scoring
   mechanic and the hierarchy above it are untouched.
+
+---
+
+### D33 · Pilot instrumentation — the QA gates become passive funnels
+*(Ops/QA, not a competition mechanic — logged for the record because it adds a
+table golfers write to and reshapes how task #14 runs.)*
+- **Current:** the pre-launch QA plan is a stopwatch walkthrough with fresh
+  alias emails; zero instrumentation exists — the 60-second post is a stated
+  pass/fail gate we cannot measure.
+- **Problem observed:** the pilot puts real golfers on the app this week. A
+  supervised walkthrough measures one tester once; the pilot measures the whole
+  cohort continuously — but only if the measurements are captured.
+- **Recommendation:** (1) a skinny `client_events` breadcrumb table — four
+  events (`post_open`, `post_submit`, `post_mode_switch`,
+  `post_even_par_confirmed`), insert-only for the golfer, unreadable through
+  the API; (2) `v_pilot_gates` + `v_post_timings`, operator-only views that
+  compute gates 1–3 from existing rows + breadcrumbs; (3) gates 4–5 stay
+  human (ride-alongs + `pilot_feedback`). Pass thresholds become cohort
+  medians. No third-party analytics vendor.
+- **Privacy stance:** breadcrumbs carry timings and mode choices, never
+  scores-by-hole or free text; the golfer can only insert their own; views
+  joining `auth.users` are revoked from the API roles.
+- **Principle:** §16 applied to ourselves — the QA verdict shows its work
+  (every "gate passed" traces to queryable rows, not a memory of a stopwatch).
+- **Benefit:** gate 3 measured on every real post forever; D32's mode-mix
+  question answers itself; F2 becomes a count, not a worry.
+- **Tradeoffs:** breadcrumbs are client-fired and lossy by design (swallowed
+  on failure) — acceptable: they inform friction fixes, they are not the
+  competition record. Rounds remain the only facts.
+- **CONFLICT check:** none. Adds observation, changes no mechanic.

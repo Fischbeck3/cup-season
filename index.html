@@ -2487,6 +2487,8 @@ function switchView(v){
   $$('.navitem').forEach(t=>t.classList.toggle('active',t.dataset.v===v));
   $$('.view').forEach(x=>x.classList.toggle('active',x.id==='view-'+v));
   window.scrollTo({top:0});
+  /* D33: gate 3's clock starts when the composer opens (qaEvent hoists) */
+  if(v==='post'){ window._qaPostOpenedAt = Date.now(); qaEvent('post_open'); }
   /* the wizard's buddy picker renders lazily — every entry path (welcome
      "Start a league", the lock-fallback) lands here, so fire it here once */
   if(v==='wizard' && !state.demo) window.renderWizAddGolfers?.();
@@ -3551,8 +3553,19 @@ function showEpilogue(epi, course){
     badge: CARD_BADGE[(epi.earned||[])[0]?.kind] || null,
   }));
 }
-/* ---- quick-post hole-by-hole (decision #5: default UI, par-prefilled, the
-   gross-only path stays as a flagged-not-punished escape hatch) ---- */
+/* ---- pilot instrumentation (D33): fire-and-forget breadcrumbs into
+   client_events. Demo is a diorama (never emits), a missing sb bridge no-ops,
+   and every failure is swallowed — a breadcrumb must never break a post.
+   profile_id defaults to auth.uid() server-side, so nothing is sent here. ---- */
+function qaEvent(event, props){
+  try{
+    if(state.demo || !window.sb) return;
+    window.sb.from('client_events').insert({ event, props: props||{} }).then(null, ()=>{});
+  }catch(_){}
+}
+
+/* ---- quick-post entry (D32: front & back is the default; the hole-by-hole
+   card from decision #5 stays as the opt-in, still par-prefilled) ---- */
 const POST_PAR_STD=[4,4,4,3,5,4,3,4,5, 4,4,3,4,5,4,3,4,5];   // par 72 template
 /* F2: `touched` tracks whether the golfer interacted with the grid at all —
    guards against a rushed Post on an untouched par-prefilled card (accidental
@@ -3633,6 +3646,7 @@ function recalc(){
 $$('#postMode button').forEach(b=>b.addEventListener('click',()=>{
   $$('#postMode button').forEach(x=>x.classList.remove('on')); b.classList.add('on');
   state.post.mode=b.dataset.pm; renderPostHoles();
+  qaEvent('post_mode_switch', { to: b.dataset.pm });   /* D33: hatch reversals show grid friction */
 }));
 $$('#postSide button').forEach(b=>b.addEventListener('click',()=>{
   $$('#postSide button').forEach(x=>x.classList.remove('on')); b.classList.add('on');
@@ -3703,6 +3717,7 @@ $('#postBtn').addEventListener('click', async ()=>{
       <button class="btn dark" id="postEvenAnyway">Post even par anyway</button>`);
     document.getElementById('postEnterCard')?.addEventListener('click',closeSheet);
     document.getElementById('postEvenAnyway')?.addEventListener('click',()=>{
+      qaEvent('post_even_par_confirmed');   /* D33: F2 measured, not guessed */
       state.post.touched=true; closeSheet(); $('#postBtn').click();
     });
     return;
@@ -3746,6 +3761,14 @@ $('#postBtn').addEventListener('click', async ()=>{
         for(let i=0;i<nH;i++){ const s=+state.post.scores[i]; if(s>0) rh.push({ round_id:rrow.id, hole_number:i+1, strokes:s }); }
         if(rh.length){ try{ await sb.from('round_holes').insert(rh); }catch(_){} }
       }
+      /* D33: gate 3 measured on every real post — composer-open → posted */
+      qaEvent('post_submit', {
+        mode:  holesMode ? 'holes' : 'total',
+        secs:  window._qaPostOpenedAt ? Math.round((Date.now() - window._qaPostOpenedAt)/1000) : null,
+        gross: payload.gross,
+        holes: nine ? 9 : 18
+      });
+      window._qaPostOpenedAt = Date.now();   /* a second post times from here, not the stale open */
       stampPosted('POSTED ✓');
       toast(`Round posted: ~${pts} pts pending the league's math`);
       /* clear the form so a posted round never reads as "didn't submit"
