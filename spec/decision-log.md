@@ -585,8 +585,8 @@ mechanics (D4) unchanged pending migration 008's endgame dial.*
 
 ## Batch 8 — 2026-07-17, the quiet day (Social lane)
 
-### D-NN · Home never opens on nothing (the thin-feed problem)
-*(coordinator: assign the next free D-number.)*
+### D27 · Home never opens on nothing (the thin-feed problem)
+*(assigned **D27** at merge.)*
 - **Current:** Home's "Around your circle" renders a bare reverse-chron list of
   the last 21 days of circle rounds + league posts (`renderHomeFeed`), with an
   empty state only when there is literally nothing.
@@ -626,8 +626,8 @@ mechanics (D4) unchanged pending migration 008's endgame dial.*
   `homePosts` and touches no UX/onboarding copy, no Gameplay rule, and none of
   the Climb/standings surfaces.
 
-### D-NN · Reactions reach Home's circle feed (through the shared-league post)
-*(coordinator: assign the next free D-number.)*
+### D28 · Reactions reach Home's circle feed (through the shared-league post)
+*(assigned **D28** at merge.)*
 - **Current:** reactions (D25) live on the board's two views only. Home's
   "Around your circle" — the IA's P1 one-feed and the surface most opens land
   on — renders circle rounds with no social affordance at all.
@@ -664,8 +664,8 @@ mechanics (D4) unchanged pending migration 008's endgame dial.*
   built; (c) comments stay a board-only thing (Home rows are too dense for
   threads — same split as chat).
 
-### D-NN · The digest mentions what landed on YOUR rounds ("Ed 🔥'd your 84")
-*(coordinator: assign the next free D-number; extends the quiet-day-frame and
+### D29 · The digest mentions what landed on YOUR rounds ("Ed 🔥'd your 84")
+*(assigned **D29** at merge; extends the quiet-day-frame and
 option-A entries above.)*
 - **Current:** the digest counts new rounds and league notes; reactions and
   comments happen silently — you find them only by scrolling to your own card.
@@ -690,8 +690,8 @@ option-A entries above.)*
   diorama mentions ride only alongside other news and the demo's quiet day
   stays demonstrably quiet.
 
-### D-NN · The Round Recap Card — the peak becomes a shareable artifact (#18)
-*(coordinator: assign the next free D-number.)*
+### D30 · The Round Recap Card — the peak becomes a shareable artifact (#18)
+*(assigned **D30** at merge.)*
 - **Current:** the post-round peak is private (D18's epilogue sheet: band,
   points, milestones, rivalry lines — poster hears it first) and it stays in
   the app. Shareable artifacts exist only for live-round games (settlement
@@ -756,8 +756,8 @@ noted roadmap items.***
 
 ## Batch 8 — 2026-07-17, the Climb gets its finish (UX lane)
 
-### D-NN · The Climb's visual finish — presence, voice, motion, and real semantics
-*(placeholder — coordinator assigns the number at merge. Level 5 (UI) on top of
+### D31 · The Climb's visual finish — presence, voice, motion, and real semantics
+*(assigned **D31** at merge. Level 5 (UI) on top of
 D26's level-4 mechanic; no gameplay change. Drafted before build, per protocol.)*
 - **Current:** D26's ladder is live and honest — window logic, `season_scenarios`
   gaps, cutline, spectator fallback all work — but visually it is a table with
