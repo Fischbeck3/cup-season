@@ -4,3 +4,8 @@ node_modules/
 .env
 *.local
 .claude/settings.local.json
+
+# Database dumps live in the repo root and carry auth.users — real emails,
+# encrypted_password, refresh + session tokens. This repo is PUBLIC. Root-level
+# only, so supabase/migrations/*.sql is untouched and still tracked.
+/*.sql
