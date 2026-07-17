@@ -783,6 +783,13 @@ input.f::-webkit-outer-spin-button, input.f::-webkit-inner-spin-button{-webkit-a
 }
 .rxpalette button:hover{border-color:var(--line2); background:var(--bg1);}
 .rxpalette button:focus-visible{outline:2px solid var(--pos); outline-offset:2px;}
+/* Home's circle rows are denser than board cards — the strip shrinks to fit
+   under the round line and never opens a thread (comments stay a board thing) */
+.hrx{display:flex; flex-wrap:wrap; gap:5px; align-items:center; margin-top:6px;}
+.hrx .rxchip{font-size:11.5px; padding:3px 8px;}
+.hrx .rxadd{font-size:13px; height:21px; padding:0 8px;}
+.rxpalette.h{margin-top:6px; padding:6px;}
+.rxpalette.h button{font-size:17px; padding:4px 6px;}
 /* the quiet-day frame — Home's feed never opens as a bare list. Either it says
    what changed since you were last here, or (on a genuinely quiet day) it
    resurfaces the best recent thing so the open still reveals something. */
@@ -2788,16 +2795,25 @@ function ensureRx(f){
 /* HTML for the reaction chips + comment toggle + palette + thread. fi is the
    feed index (the wiring key); the item must carry a stable identity for the
    handlers to find it. */
+/* present-reaction chips + the picker, parameterized by data-attribute so the
+   board (data-rx/rxpick → feed[i]) and Home (data-hrx/hpick → circle rows)
+   wire to their own arrays without cross-talk */
+function rxChipsHtml(rx, attr, idx){
+  return Object.keys(rx).filter(e=>rx[e]&&rx[e].n>0).map(e=>{
+    const r=rx[e]; const who=(r.who&&r.who.length)?r.who.join(', '):'';
+    const title=`${RXLABEL[e]||''}${who?' — '+who:''}`;
+    return `<button class="rxchip ${r.me?'on':''}" ${attr}="${idx}" data-e="${e}" title="${esc(title)}"><span class="e">${e}</span>${r.n}</button>`;
+  }).join('');
+}
+function rxPaletteHtml(attr, idx){
+  return REACTIONS.map(r=>
+    `<button ${attr}="${idx}" data-e="${r.e}" title="${esc(r.label)}" aria-label="${esc(r.label)}">${r.e}</button>`).join('');
+}
 function socialBar(f, fi, opts){
   const comments = !opts || opts.comments!==false;   /* chat lines react but don't thread */
   const rx=ensureRx(f); const cm=f.cm||(f.cm=[]);
-  const chips=Object.keys(rx).filter(e=>rx[e]&&rx[e].n>0).map(e=>{
-    const r=rx[e]; const who=(r.who&&r.who.length)?r.who.join(', '):'';
-    const title=`${RXLABEL[e]||''}${who?' — '+who:''}`;
-    return `<button class="rxchip ${r.me?'on':''}" data-rx="${fi}" data-e="${e}" title="${esc(title)}"><span class="e">${e}</span>${r.n}</button>`;
-  }).join('');
-  const pal=REACTIONS.map(r=>
-    `<button data-rxpick="${fi}" data-e="${r.e}" title="${esc(r.label)}" aria-label="${esc(r.label)}">${r.e}</button>`).join('');
+  const chips=rxChipsHtml(rx,'data-rx',fi);
+  const pal=rxPaletteHtml('data-rxpick',fi);
   const cmBtn = comments ? `<button class="rxcm" data-c="${fi}">💬 ${cm.length}</button>` : '';
   const thread = comments ? `<div class="cthread" id="th${fi}" style="display:none">
       ${cm.map(c=>`<div class="crow"><b>${esc(c.w)}</b>${esc(c.t)}</div>`).join('')}
@@ -2818,30 +2834,37 @@ function socialBar(f, fi, opts){
 }
 /* who am I on the board */
 function myBoardName(){ return state.demo ? DEMO_ME : (window.CS?.member ? memName(window.CS.member.id) : 'You'); }
+/* flip one reaction state on/off for `me` — the optimistic half, and its revert */
+function rxFlip(cur, me, on){
+  if(on){ cur.me=true;  cur.n++; (cur.who||(cur.who=[])).push(me); }
+  else  { cur.me=false; cur.n=Math.max(0,cur.n-1); cur.who=(cur.who||[]).filter(w=>w!==me); }
+}
+/* THE one write path for a reaction row — insert or delete, exactly as chosen.
+   NO skew fallback here, deliberately. The original guard retried the insert
+   WITHOUT emoji on a column/schema error — and the column's default stamped
+   '🔥', so a 🦅 tap silently persisted as fire. That shipped, and it is
+   exactly the "new emojis fall back to a fire emoji" bug. The pre-migration
+   window it protected is over (20260716230000 is live). A reaction now either
+   saves as chosen or fails loudly — never becomes a different reaction. */
+async function rxWrite(post_id, member_id, emoji, had){
+  const row={ post_id, member_id, emoji };
+  const { error } = had
+    ? await window.sb.from('post_kudos').delete().match(row)
+    : await window.sb.from('post_kudos').insert(row);
+  return error || null;
+}
 /* toggle my reaction of `emoji` on feed item f — optimistic, DB-backed when real */
 async function toggleRx(f, emoji){
   const rx=ensureRx(f); const me=myBoardName();
   const cur=rx[emoji]||(rx[emoji]={n:0, me:false, who:[]});
   const had=cur.me;
-  /* optimistic local flip */
-  if(had){ cur.me=false; cur.n=Math.max(0,cur.n-1); cur.who=(cur.who||[]).filter(w=>w!==me); }
-  else   { cur.me=true;  cur.n++; (cur.who||(cur.who=[])).push(me); }
+  rxFlip(cur, me, !had);
   rerenderFeeds();
   if(state.demo || !f.post_id || !window.sb || !window.CS?.member) return;
-  const row={ post_id:f.post_id, member_id:window.CS.member.id, emoji };
-  let error;
-  if(had){ ({ error } = await window.sb.from('post_kudos').delete().match(row)); }
-  else   { ({ error } = await window.sb.from('post_kudos').insert(row)); }
-  /* NO skew fallback here, deliberately. The original guard retried the insert
-     WITHOUT emoji on a column/schema error — and the column's default stamped
-     '🔥', so a 🦅 tap silently persisted as fire. That shipped, and it is
-     exactly the "new emojis fall back to a fire emoji" bug. The pre-migration
-     window it protected is over (20260716230000 is live). A reaction now either
-     saves as chosen or fails loudly — never becomes a different reaction. */
+  const error = await rxWrite(f.post_id, window.CS.member.id, emoji, had);
   if(error){ /* revert the optimistic flip — and say so */
     console.warn('[reaction]', emoji, error);
-    if(had){ cur.me=true; cur.n++; (cur.who||(cur.who=[])).push(me); }
-    else   { cur.me=false; cur.n=Math.max(0,cur.n-1); cur.who=(cur.who||[]).filter(w=>w!==me); }
+    rxFlip(cur, me, had);
     rerenderFeeds(); toast('Reaction didn’t save: '+(error.message||error.code||'unknown'));
   }
 }
@@ -2884,11 +2907,13 @@ async function fetchSocial(pids){
   feed.forEach(f=>{ if(f.post_id){ f.rx = rxBy[f.post_id] || {}; f.cm = cmBy[f.post_id] || []; } });
 }
 /* realtime nudge: a reaction/comment landed elsewhere — re-pull just the
-   social layer for the current board and repaint (no standings refetch) */
+   social layer (board + Home strips) and repaint, no standings refetch */
 async function refreshSocial(){
   if(state.demo || !window.CS?.league) return;
   await fetchSocial([...new Set(feed.filter(f=>f.post_id).map(f=>f.post_id))]);
   rerenderFeeds();
+  await fetchHomeSocial();
+  renderHomeFeed();
 }
 window.refreshSocial = refreshSocial;
 /* attach the shared handlers to a feed container. `lookup` maps a feed index
@@ -5093,9 +5118,12 @@ function renderHomeRecap(){
 /* relative dates spread across the feed's time buckets: today / this week /
    earlier — so the diorama shows all three and never reads stale */
 const DEMO_FEED = [
-  {golfer:'Diego', marker:'saguaro', gross:79, pvi:5.2, course:'Papago GC', played_on:isoAgo(0), is_pr:true},
-  {golfer:'Rosa',  marker:'quail',   gross:74, pvi:3.8, course:'Grayhawk',  played_on:isoAgo(2), is_sub80:true},
-  {golfer:'You',   marker:'shark',   gross:82, pvi:2.9, course:'Aguila',    played_on:isoAgo(4), is_me:true},
+  {golfer:'Diego', marker:'saguaro', gross:79, pvi:5.2, course:'Papago GC', played_on:isoAgo(0), is_pr:true,
+   rx:{'🔥':{n:2,me:false,who:['Rosa','Marco']},'🚨':{n:1,me:false,who:['Marco']}}},
+  {golfer:'Rosa',  marker:'quail',   gross:74, pvi:3.8, course:'Grayhawk',  played_on:isoAgo(2), is_sub80:true,
+   rx:{'🦅':{n:1,me:false,who:['Diego']}}},
+  {golfer:'You',   marker:'shark',   gross:82, pvi:2.9, course:'Aguila',    played_on:isoAgo(4), is_me:true,
+   rx:{'🧊':{n:1,me:false,who:['Rosa']}}},
   {golfer:'Marco', marker:'cactus',  gross:90, pvi:0.4, course:'Encanto',   played_on:isoAgo(9)},
 ];
 /* founder badge — FOUNDER_ID is loaded by loadProfile via the founder_id() RPC.
@@ -5105,7 +5133,94 @@ function founderTag(pid, name){
   const isF = (state.demo && name && name === DEMO_ME) || (pid && pid === window.FOUNDER_ID);
   return isF ? ' <span class="ftag" title="Cup Season founder">✦ Founder</span>' : '';
 }
-function feedRow(r){
+/* ---------- Home circle reactions (option A: through the shared-league post)
+   Home is profile-first and cross-league; a reaction is league-scoped
+   (post_kudos → posts → league), and a round fans into one post PER league.
+   So each circle round maps to ONE deterministic post: the currently-open
+   league's if the viewer is in it, else the round's OLDEST post. Rows with no
+   shared-league post (friend-only circle members) show no strip at all — an
+   affordance that would fail is worse than none. */
+function homeRxOf(r){
+  if(state.demo) return r.rx || (r.rx = {});
+  const t = window.homeRx?.post?.[r.round_id];
+  if(!t) return null;
+  return window.homeRx.kud[t.post_id] || (window.homeRx.kud[t.post_id] = {});
+}
+/* map circle rounds → their one post, then batch the kudos + actor names.
+   Names need their own resolve: memName() only knows the open league's
+   roster, and a reactor can sit in a shared league that isn't open. */
+async function fetchHomeSocial(){
+  window.homeRx = { post:{}, kud:{}, names:{} };
+  if(state.demo || !window.sb || !window.CS?.user) return;
+  const rids=[...new Set((window.homeFeed||[]).map(r=>r.round_id).filter(Boolean))];
+  if(!rids.length) return;
+  try{
+    const { data: posts } = await window.sb.from('posts')
+      .select('id, league_id, round_id, created_at')
+      .in('round_id', rids).eq('kind','round')
+      .order('created_at', { ascending:true });   /* oldest-first: first-in wins below */
+    const cur=window.CS?.league?.id;
+    (posts||[]).forEach(p=>{
+      const t=window.homeRx.post[p.round_id];
+      if(!t || (p.league_id===cur && t.league_id!==cur))
+        window.homeRx.post[p.round_id]={ post_id:p.id, league_id:p.league_id };
+    });
+    const pids=Object.values(window.homeRx.post).map(t=>t.post_id);
+    if(!pids.length) return;
+    const { data: kud } = await window.sb.from('post_kudos').select('*').in('post_id', pids);
+    const memberIds=[...new Set((kud||[]).map(k=>k.member_id))];
+    if(memberIds.length){
+      const { data: mems } = await window.sb.from('league_members')
+        .select('id, profile:profiles(display_name)').in('id', memberIds);
+      (mems||[]).forEach(m=>{ window.homeRx.names[m.id]=m.profile?.display_name || 'someone'; });
+    }
+    const myIds=new Set((window.CS?.memberships||[]).map(m=>m.id));
+    (kud||[]).forEach(k=>{
+      const e=k.emoji||'🔥';
+      const s=((window.homeRx.kud[k.post_id]||={})[e]||={n:0, me:false, who:[]});
+      s.n++; if(myIds.has(k.member_id)) s.me=true;
+      s.who.push(window.homeRx.names[k.member_id]||'someone');
+    });
+  }catch(e){ console.warn('[homeSocial]', e); }
+}
+async function toggleHomeRx(r, emoji){
+  const rx=homeRxOf(r); if(!rx) return;
+  const me = state.demo ? DEMO_ME : (window.CS?.profile?.display_name || 'You');
+  const cur=rx[emoji]||(rx[emoji]={n:0, me:false, who:[]});
+  const had=cur.me;
+  rxFlip(cur, me, !had);
+  renderHomeFeed();
+  if(state.demo) return;
+  const t=window.homeRx?.post?.[r.round_id]; if(!t) return;
+  /* the write must carry MY member id in the POST's league — CS.member is the
+     open league's membership, which may be the wrong one from Home */
+  const mem=(window.CS?.memberships||[]).find(m=>m.league.id===t.league_id);
+  const error = mem ? await rxWrite(t.post_id, mem.id, emoji, had)
+                    : { message:'not a member of that league' };
+  if(error){
+    console.warn('[reaction:home]', emoji, error);
+    rxFlip(cur, me, had);
+    renderHomeFeed();
+    toast('Reaction didn’t save: '+(error.message||error.code||'unknown'));
+  }
+}
+function wireHomeSocial(box){
+  const rows = state.demo ? DEMO_FEED : (window.homeFeed||[]);
+  box.querySelectorAll('[data-hrx]').forEach(b=>b.addEventListener('click',()=>{
+    const r=rows[+b.dataset.hrx]; if(r) toggleHomeRx(r, b.dataset.e);
+  }));
+  box.querySelectorAll('[data-hadd]').forEach(b=>b.addEventListener('click',()=>{
+    const p=box.querySelector('#hrxp'+b.dataset.hadd); if(p) p.classList.toggle('open');
+  }));
+  box.querySelectorAll('[data-hpick]').forEach(b=>b.addEventListener('click',()=>{
+    const r=rows[+b.dataset.hpick]; if(!r) return;
+    const p=box.querySelector('#hrxp'+b.dataset.hpick); if(p) p.classList.remove('open');
+    const rx=homeRxOf(r); const cur=rx&&rx[b.dataset.e];
+    if(cur&&cur.me) return;
+    toggleHomeRx(r, b.dataset.e);
+  }));
+}
+function feedRow(r, idx){
   const who = esc(r.is_me ? 'You' : (r.golfer||'A golfer'));
   const whoTag = who + (r.is_me ? '' : founderTag(r.profile_id, r.golfer));
   const mk = window.mkr ? window.mkr(r.marker||'saguaro') : '';
@@ -5116,8 +5231,11 @@ function feedRow(r){
   else if(r.is_sub80){ badge='⛳ Broke 80'; line = `${whoTag} broke 80 for the first time — ${r.gross} at ${course}`; }
   else if(r.is_first){ badge='🎉 First round'; line = `${whoTag} posted ${r.is_me?'your':'their'} first round — ${r.gross} at ${course}`; }
   else { line = `${whoTag} posted ${r.gross} at ${course}${pvi?' · '+pvi:''}`; }
+  const rx = idx!==undefined ? homeRxOf(r) : null;
+  const social = rx ? `<div class="hrx">${rxChipsHtml(rx,'data-hrx',idx)}<button class="rxadd" data-hadd="${idx}" title="Add a reaction" aria-label="Add a reaction">+</button></div>
+    <div class="rxpalette h" id="hrxp${idx}">${rxPaletteHtml('data-hpick',idx)}</div>` : '';
   return `<div class="check"><span class="num"${r.profile_id?` data-tc="${r.profile_id}"`:''}>${mk}</span>
-    <div class="tt"><b>${line}</b><small>${badge?badge+' · ':''}${dfmtShort(r.played_on)}</small></div></div>`;
+    <div class="tt"><b>${line}</b><small>${badge?badge+' · ':''}${dfmtShort(r.played_on)}</small>${social}</div></div>`;
 }
 /* league moments (announce + system posts) as feed cards — rounds never come
    this way (home_feed owns them), so the two sources can't double up */
@@ -5241,19 +5359,22 @@ function renderHomeDigest(){
 }
 function renderHomeFeed(){
   const box=$('#homeFeed'); if(!box) return;
-  if(state.demo){ box.innerHTML = feedBuckets(DEMO_FEED.map(r=>({ d:r.played_on, html:feedRow(r) }))); return; }
+  if(state.demo){ box.innerHTML = feedBuckets(DEMO_FEED.map((r,i)=>({ d:r.played_on, html:feedRow(r,i) }))); wireHomeSocial(box); return; }
   /* loading: scorecard skeletons until the first fetch lands (undefined = not
      yet loaded; [] = loaded empty → the real empty state) */
   if(window.homeFeed===undefined && window.homePosts===undefined){ box.innerHTML = skeletonRows(3); return; }
   /* ONE feed (IA P1): circle rounds + league moments, newest first. Sort by
      actual post time (created_at, full ISO); bucket by the displayed date (d). */
-  const items = (window.homeFeed||[]).map(r => ({ t:(r.created_at||r.played_on||''), d:((r.played_on||r.created_at||'')+'').slice(0,10), html:feedRow(r) }))
+  /* the index rides into feedRow so the reaction strip can map back to the
+     SOURCE row (window.homeFeed[i]) after the merged sort/slice */
+  const items = (window.homeFeed||[]).map((r,i) => ({ t:(r.created_at||r.played_on||''), d:((r.played_on||r.created_at||'')+'').slice(0,10), html:feedRow(r,i) }))
     .concat((window.homePosts||[]).map(p => ({ t:(p.created_at||''), d:((p.created_at||'')+'').slice(0,10), html:postRow(p) })))
     .sort((a,b)=> a.t<b.t ? 1 : a.t>b.t ? -1 : 0)
     .slice(0,30);
   box.innerHTML = items.length
     ? feedBuckets(items)
     : '<p class="fine" style="padding:0">No rounds from your circle yet. Post one, or <a href="#" data-gopeople style="color:var(--brand)">add golf buddies</a>.</p>';
+  wireHomeSocial(box);
 }
 /* Up Next — what's coming, one glance: next declared round, invites waiting,
    the month-close clock. Hides entirely when there's nothing coming. */
@@ -8676,6 +8797,8 @@ async function loadHome(){
   } catch(e){ window.leagueEnds = window.leagueEnds||{}; }
   try { const { data } = await sb.rpc('home_feed', { p_days: 21 }); window.homeFeed = data || []; }
   catch(e){ window.homeFeed = window.homeFeed||[]; }
+  /* circle reactions ride the rounds just loaded (round → shared-league post) */
+  try { await fetchHomeSocial(); } catch(e){ console.warn('[homeSocial]', e); }
   /* league moments for the one feed (IA P1): announcements + system posts.
      round_id-null keeps rounds out — home_feed already carries every circle
      round (buddies + league-mates), so board round-posts would be duplicates.

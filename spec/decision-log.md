@@ -626,6 +626,44 @@ mechanics (D4) unchanged pending migration 008's endgame dial.*
   `homePosts` and touches no UX/onboarding copy, no Gameplay rule, and none of
   the Climb/standings surfaces.
 
+### D-NN · Reactions reach Home's circle feed (through the shared-league post)
+*(coordinator: assign the next free D-number.)*
+- **Current:** reactions (D25) live on the board's two views only. Home's
+  "Around your circle" — the IA's P1 one-feed and the surface most opens land
+  on — renders circle rounds with no social affordance at all.
+- **Problem:** the highest-traffic surface is the one place you can't cheer a
+  round. And reactions are thin-feed fuel (board activity that requires nobody
+  to play golf) — but only if they live where the opens happen.
+- **The fork this entry decides:** Home is profile-first and cross-league
+  (`home_feed` = friends ∪ league-mates ∪ event-mates), while a reaction is
+  league-scoped (`post_kudos` → `posts` → league; a round fans into one post
+  PER league via `round_to_board()`). So "react on Home" must pick a board.
+  Options weighed: (A) react through a shared-league post, deterministically
+  chosen; (C) new profile-scoped `round_kudos` so reactions belong to the round
+  itself. **Decision: A.** C is architecturally purer (every circle row becomes
+  reactable, including friend-only connections) but costs a migration, circle-
+  visibility RLS, and a two-source merge on every board card — built when a
+  real user hits the gap (D8's rule), i.e. tries to react to a friend-only
+  round and can't.
+- **The deterministic-league rule (mechanic-visible, hence logged):** when the
+  viewer shares several leagues with the poster, the reaction lands on the
+  **currently-open league's** board if it is one of them, else the board whose
+  round-post is **oldest**. One tap = one row, always; a reaction never fans.
+  Rows with no shared-league post (friend-only circle members) show **no
+  reaction strip** — an affordance that would fail is worse than none.
+- **Write-path correctness:** reacting from Home into a league that is not the
+  currently-open one must send the viewer's member id **in that league**
+  (RLS `kudos_all` enforces `member_id = my_member_id(league)`), resolved via
+  memberships — never `CS.member` blindly.
+- **Principle:** #5 Feels Alive (the open surface answers back); §16 (who
+  reacted stays legible on Home too).
+- **Benefit:** the tap happens where the eyes are; board cards inherit the
+  count because it IS the board's row underneath.
+- **Tradeoffs:** (a) multi-league overlap lands the cheer on one board, not
+  all — honest, minor; (b) friend-only rows stay inert until/unless C is ever
+  built; (c) comments stay a board-only thing (Home rows are too dense for
+  threads — same split as chat).
+
 ### Correction to D25 — the reaction skew-fallback silently wrote 🔥
 Not a mechanic change; logged because it corrupted a shipped mechanic's intent.
 D25's client carried a deploy-skew guard that, on a column/schema error,
