@@ -42,8 +42,10 @@ sections (§2.2, §14.0) when making competition-model decisions.
 - **Two deploys, always separate.** `supabase db push` ships the DATABASE
   (migrations); `git push` ships the CLIENT (`index.html`/`sw.js` → Netlify).
   They are independent — conflating them cost 14 undeployed client versions
-  early on. Claude's sandbox CANNOT run `supabase` (db push / functions deploy /
-  secrets) — the USER runs those; state the exact commands in the handoff.
+  early on. Claude's sandbox CAN invoke the linked `supabase` CLI for READ-ONLY
+  work (`db dump` ran clean in-session, 2026-07-17), but db push / functions
+  deploy / secrets stay the USER's — they mutate prod or need privileged creds,
+  so a human stays at the wheel; state the exact commands in the handoff.
   Diagnostic for "is it live": cupseason.app's `#obCaption` reads `v23 · <sha>`
   — compare that SHA straight to `git log`. (Locally it reads `v23 · dev` or the
   raw `__CS_VERSION__` placeholder: unstamped is the tell that you're not on a
@@ -155,7 +157,8 @@ edge months** (blanket rule, decided). League timezone default
 - **Supabase CLI is linked** (ref `zddbfcokmvneltrgukzf`, repo on GitHub +
   Netlify). Migrations ship via `supabase db push`; Edge Functions via
   `supabase functions deploy <name>`. Use `supabase db dump`, NOT `db pull`.
-  The USER runs all of these (sandbox can't) — see Deploy discipline.
+  The USER runs the MUTATING ones (db push, functions deploy, secrets); the
+  sandbox can run read-only `db dump` itself — see Deploy discipline.
 - Client: `git push` → Netlify auto-build.
 - pg_cron: the cron jobs (`run_month_closes`, `run_week_snapshots`,
   `daily_season_tick`, `run_event_sessions`) self-schedule inside their
