@@ -583,6 +583,166 @@ mechanics (D4) unchanged pending migration 008's endgame dial.*
 
 ---
 
+## Batch 8 — 2026-07-17, the quiet day (Social lane)
+
+### D-NN · Home never opens on nothing (the thin-feed problem)
+*(coordinator: assign the next free D-number.)*
+- **Current:** Home's "Around your circle" renders a bare reverse-chron list of
+  the last 21 days of circle rounds + league posts (`renderHomeFeed`), with an
+  empty state only when there is literally nothing.
+- **Problem:** the design review (2026-07-16 §8.1) names this the **#1
+  unacknowledged risk in the stack**, and it's arithmetic, not polish: an
+  8-person league posting weekly generates ~2–3 board items a *week*, so most
+  opens reveal **nothing new**. Principle 5 promises "opening Cup Season should
+  reveal something new." Today the product quietly breaks that promise ~4 days
+  out of 7, and no amount of moment-engine work changes the volume.
+- **Recommendation:** a **quiet-day frame** above the feed (`renderHomeDigest`).
+  A per-profile seen-mark (localStorage, read ONCE per load so a re-render can't
+  erase the digest you're reading) splits two cases: (a) **something changed** →
+  lead with what ("Since you were here: 3 rounds, a personal best from Diego,
+  and Rosa broke 80"); (b) **genuinely quiet** → resurface the best recent thing
+  instead of a dead list ("Quiet since your last visit · Today — Diego set a
+  personal best"). Ranking for (b): milestone (PR > sub-80 > first round) beats
+  a good score beats a recent one, inside a 14-day window. First visit shows no
+  digest — the feed itself is the reveal.
+- **Principle:** #5 Feels Alive — **the rule this encodes: an open never
+  reveals nothing.** If there's no new content, curate rather than fabricate.
+- **CONFLICT check:** none, and one guardrail explicitly honored. The
+  memory-layer's anti-optimization stance (and D23's nudge policy) forbid
+  manufacturing engagement. This does **not** invent content, notify, or nag —
+  it re-frames facts the user already had access to, in-app, on a surface they
+  chose to open. The review's own retention guidance stands: natural cadence is
+  **2–4×/week, not daily**; chasing daily opens would violate the guardrails,
+  so this deliberately makes a quiet day read as *calm*, not as failure.
+- **Benefit:** 3 items/week feels curated instead of dead; the quiet day gets a
+  reason to exist rather than punishing the opener with an empty screen.
+- **Tradeoffs:** (a) the seen-mark is per device (localStorage), so the digest
+  is per-device, not per-account — acceptable for V1; a server-side last_seen is
+  the upgrade path. (b) A highlight can repeat across consecutive quiet days —
+  accepted; the best thing that happened is still the best thing. (c) Adds one
+  more block above the feed on Home's already-long tree.
+- **Boundary (no collision):** this is Social's retention loop (§8 Social &
+  memory), rendering into a new `#homeDigest` slot; it reads `home_feed`/
+  `homePosts` and touches no UX/onboarding copy, no Gameplay rule, and none of
+  the Climb/standings surfaces.
+
+### D-NN · Reactions reach Home's circle feed (through the shared-league post)
+*(coordinator: assign the next free D-number.)*
+- **Current:** reactions (D25) live on the board's two views only. Home's
+  "Around your circle" — the IA's P1 one-feed and the surface most opens land
+  on — renders circle rounds with no social affordance at all.
+- **Problem:** the highest-traffic surface is the one place you can't cheer a
+  round. And reactions are thin-feed fuel (board activity that requires nobody
+  to play golf) — but only if they live where the opens happen.
+- **The fork this entry decides:** Home is profile-first and cross-league
+  (`home_feed` = friends ∪ league-mates ∪ event-mates), while a reaction is
+  league-scoped (`post_kudos` → `posts` → league; a round fans into one post
+  PER league via `round_to_board()`). So "react on Home" must pick a board.
+  Options weighed: (A) react through a shared-league post, deterministically
+  chosen; (C) new profile-scoped `round_kudos` so reactions belong to the round
+  itself. **Decision: A.** C is architecturally purer (every circle row becomes
+  reactable, including friend-only connections) but costs a migration, circle-
+  visibility RLS, and a two-source merge on every board card — built when a
+  real user hits the gap (D8's rule), i.e. tries to react to a friend-only
+  round and can't.
+- **The deterministic-league rule (mechanic-visible, hence logged):** when the
+  viewer shares several leagues with the poster, the reaction lands on the
+  **currently-open league's** board if it is one of them, else the board whose
+  round-post is **oldest**. One tap = one row, always; a reaction never fans.
+  Rows with no shared-league post (friend-only circle members) show **no
+  reaction strip** — an affordance that would fail is worse than none.
+- **Write-path correctness:** reacting from Home into a league that is not the
+  currently-open one must send the viewer's member id **in that league**
+  (RLS `kudos_all` enforces `member_id = my_member_id(league)`), resolved via
+  memberships — never `CS.member` blindly.
+- **Principle:** #5 Feels Alive (the open surface answers back); §16 (who
+  reacted stays legible on Home too).
+- **Benefit:** the tap happens where the eyes are; board cards inherit the
+  count because it IS the board's row underneath.
+- **Tradeoffs:** (a) multi-league overlap lands the cheer on one board, not
+  all — honest, minor; (b) friend-only rows stay inert until/unless C is ever
+  built; (c) comments stay a board-only thing (Home rows are too dense for
+  threads — same split as chat).
+
+### D-NN · The digest mentions what landed on YOUR rounds ("Ed 🔥'd your 84")
+*(coordinator: assign the next free D-number; extends the quiet-day-frame and
+option-A entries above.)*
+- **Current:** the digest counts new rounds and league notes; reactions and
+  comments happen silently — you find them only by scrolling to your own card.
+- **Problem:** attention on your golf is the single cheapest "something new"
+  the thin-feed arithmetic allows — it requires nobody to play. A 🔥 at 11pm
+  is news at 7am, and today the 7am open doesn't say it.
+- **Recommendation:** reactions + comments on **your** rounds since the
+  seen-mark join the digest sentence ("…and Ed 🔥'd your 84"; several →
+  "and 2 more chimed in on your rounds"). Crucially, a mention can **rescue a
+  quiet day**: no new rounds but a fresh reaction still opens "Since you were
+  here" instead of the fallback highlight. Your own taps are never news.
+  Requires `post_kudos.created_at` (new migration `20260717010000` — the table
+  had no time dimension; "since" was unanswerable). Skew rule honored the
+  honest way: rows with no timestamp in the payload are *skipped*, never
+  guessed at.
+- **Principle:** #5 (the open answers back with what happened *to you*);
+  D23's spirit intact — this is in-app framing of real facts, not a nudge,
+  not a notification, nothing manufactured.
+- **Tradeoffs:** pre-migration reaction rows get stamped at migration time, so
+  each may be mentioned once as slightly newer than it was, then ages out —
+  accepted (days old, low stakes). Demo seeds carry no timestamps, so in the
+  diorama mentions ride only alongside other news and the demo's quiet day
+  stays demonstrably quiet.
+
+### D-NN · The Round Recap Card — the peak becomes a shareable artifact (#18)
+*(coordinator: assign the next free D-number.)*
+- **Current:** the post-round peak is private (D18's epilogue sheet: band,
+  points, milestones, rivalry lines — poster hears it first) and it stays in
+  the app. Shareable artifacts exist only for live-round games (settlement
+  cards) and guests (claim links). The ordinary posted round — the app's
+  commonest event — produces nothing you can put in the group chat.
+- **Problem:** memory-layer #18 names this the artifact of the peak and **the
+  #1 growth loop** (design review §8 concurs: "the settlement card and claim
+  link are the right artifacts"). Pride is the emotion; a proud golfer with
+  nothing to post shares nothing.
+- **The fork, decided:** the artifact is an **image** (canvas-rendered PNG,
+  branded dark/gold, shared via the native share sheet on mobile; download +
+  caption-to-clipboard on desktop). Weighed against a tokened public round
+  page with OG unfurl (stronger click-through funnel, but real server
+  machinery — public read RPC + per-round OG on a SPA), which is Growth-lane
+  work that can later reuse this same card design. The printed `cupseason.app`
+  is the funnel for now; claim links remain the clickable path.
+- **Placement:** a "Share the card" action on the epilogue sheet — the moment
+  pride peaks. NOT on the live-round finish recap yet: `finish_live_round`
+  returns no per-player pvi, so a card from there would lack the band phrase;
+  extending that RPC is a named follow-on, not smuggled scope. Retrieval-later
+  (share any past round) is a cheap follow-on once the renderer exists.
+- **Card content under D2's law:** gross (the hero) + the named band phrase +
+  course/date/points + at most one milestone badge + marker emblem + wordmark.
+  No differential, no index, no jargon — the receipts stay in the app.
+- **Principle:** #4 Memory > Statistics (the round becomes a keepsake); Pride
+  (memory-layer's named emotion); growth = shareable artifacts,
+  foursome-by-foursome, no paid acquisition (monetization canon).
+- **Benefit:** every posted round can end with a thing worth showing off; the
+  group chat outside the app sees the brand weekly.
+- **Tradeoffs:** (a) no click-through from an image — accepted, Growth lane
+  owns the link-unfurl upgrade; (b) canvas text rendering varies slightly by
+  platform fonts (Charter → Georgia fallback) — accepted, it's a keepsake not
+  a spec sheet; (c) a no-content epilogue (rare: no pvi, nothing earned)
+  shows no share button — the card needs its hero number.
+
+### Correction to D25 — the reaction skew-fallback silently wrote 🔥
+Not a mechanic change; logged because it corrupted a shipped mechanic's intent.
+D25's client carried a deploy-skew guard that, on a column/schema error,
+retried the `post_kudos` insert **without** the emoji — and the column's
+`default '🔥'` then stamped fire. So a 🦅 tap persisted as a 🔥 (reported from
+the live board). The pre-migration window it guarded is over
+(`20260716230000` is live; PostgREST serves the column — verified against the
+live API). **Removed**: a reaction now saves as chosen or fails loudly, never
+becomes a *different* reaction. Standing lesson: a skew guard may degrade
+loudly, never silently substitute data. Also: the `☺ react` pill is now a
+plain `+` (the picker hangs off it; nothing in the affordance should read as a
+reaction itself). Possible residue: rows written while the fallback fired are
+indistinguishable from genuine 🔥 — see the handoff diagnostic.
+
+---
+
 *Status notes: D1–D3, D5, D11 shipped v23.153 · D4 (foreshadow + dial)
 shipped v23.160 with migration 008 · D9 (skins forward) shipped v23.157 ·
 batch-3 #17/#18 shipped v23.158–159 (Ryder) · D6 + D8 shipped v23.161 (wizard

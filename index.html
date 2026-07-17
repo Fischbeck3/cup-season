@@ -728,15 +728,6 @@ input.f::-webkit-outer-spin-button, input.f::-webkit-inner-spin-button{-webkit-a
   padding:12px 13px; margin-bottom:8px;
 }
 .fcard .round{border:none; background:none; padding:0; margin:0;}
-.factions{display:flex; gap:8px; margin-top:10px; padding-top:10px; border-top:1px solid var(--line);}
-.act{
-  font-family:var(--mono); font-size:12.5px; font-weight:600; letter-spacing:.04em;
-  color:var(--mut); background:var(--bg2); border:1px solid var(--line2);
-  border-radius:99px; padding:6px 12px; cursor:pointer;
-}
-.act:hover{color:var(--ink);}
-.act.on{color:var(--bg0); background:var(--brand); border-color:var(--brand);}
-.act:focus-visible{outline:2px solid var(--pos); outline-offset:2px;}
 .cthread{margin-top:10px;}
 .crow{
   font-size:12.5px; color:var(--mut); padding:7px 2px;
@@ -758,13 +749,20 @@ input.f::-webkit-outer-spin-button, input.f::-webkit-inner-spin-button{-webkit-a
 .rxchip .e{font-family:var(--sans); margin-right:4px;}
 .rxchip:hover{color:var(--ink);}
 .rxchip.on{color:var(--bg0); background:var(--brand); border-color:var(--brand);}
-.rxadd, .rxcm{
+.rxcm{
   font-family:var(--mono); font-size:12.5px; font-weight:600; color:var(--mut);
   background:var(--bg2); border:1px solid var(--line2);
   border-radius:99px; padding:5px 11px; cursor:pointer; line-height:1;
 }
-.rxadd .e{font-family:var(--sans); font-size:14px;}
+/* the add-reaction affordance is a plain "+" — the picker hangs off it, and
+   nothing about it should read as a reaction itself */
+.rxadd{
+  font-family:var(--mono); font-size:15px; font-weight:600; color:var(--mut);
+  background:var(--bg2); border:1px solid var(--line2);
+  border-radius:99px; padding:0 11px; height:26px; cursor:pointer; line-height:1;
+}
 .rxadd:hover, .rxcm:hover{color:var(--ink);}
+.rxadd:focus-visible, .rxcm:focus-visible{outline:2px solid var(--pos); outline-offset:2px;}
 .rxpalette{
   display:none; gap:5px; flex-wrap:wrap; margin-top:8px; padding:8px;
   background:var(--bg2); border:1px solid var(--line); border-radius:12px;
@@ -776,6 +774,28 @@ input.f::-webkit-outer-spin-button, input.f::-webkit-inner-spin-button{-webkit-a
 }
 .rxpalette button:hover{border-color:var(--line2); background:var(--bg1);}
 .rxpalette button:focus-visible{outline:2px solid var(--pos); outline-offset:2px;}
+/* Home's circle rows are denser than board cards — the strip shrinks to fit
+   under the round line and never opens a thread (comments stay a board thing) */
+.hrx{display:flex; flex-wrap:wrap; gap:5px; align-items:center; margin-top:6px;}
+.hrx .rxchip{font-size:11.5px; padding:3px 8px;}
+.hrx .rxadd{font-size:13px; height:21px; padding:0 8px;}
+.rxpalette.h{margin-top:6px; padding:6px;}
+.rxpalette.h button{font-size:17px; padding:4px 6px;}
+/* the quiet-day frame — Home's feed never opens as a bare list. Either it says
+   what changed since you were last here, or (on a genuinely quiet day) it
+   resurfaces the best recent thing so the open still reveals something. */
+.digest{
+  font-family:var(--sans); font-size:13px; line-height:1.55; color:var(--mut);
+  background:var(--bg1); border:1px solid var(--line);
+  border-left:3px solid var(--brand);
+  border-radius:12px; padding:10px 13px; margin-bottom:10px;
+}
+.digest b{color:var(--ink); font-weight:650;}
+.digest .dk{
+  display:block; font-family:var(--mono); font-size:10.5px; letter-spacing:.08em;
+  text-transform:uppercase; color:var(--mut); opacity:.7; margin-bottom:4px;
+}
+html[data-theme="light"] .digest{background:#FBFCFA;}
 /* v23.65: the feed loosens up — league notices read like a clubhouse note,
    not a terminal. Sans, sentence-sized, quiet gold accent instead of the
    dashed mono banner. */
@@ -1567,6 +1587,7 @@ body::before{
           <div class="eyebrow">Your leagues</div>
           <div id="homeRecap"></div>
           <div class="eyebrow">Around your circle</div>
+          <div id="homeDigest"></div>
           <div id="homeFeed"></div>
         </div>
       </section>
@@ -2765,16 +2786,25 @@ function ensureRx(f){
 /* HTML for the reaction chips + comment toggle + palette + thread. fi is the
    feed index (the wiring key); the item must carry a stable identity for the
    handlers to find it. */
+/* present-reaction chips + the picker, parameterized by data-attribute so the
+   board (data-rx/rxpick → feed[i]) and Home (data-hrx/hpick → circle rows)
+   wire to their own arrays without cross-talk */
+function rxChipsHtml(rx, attr, idx){
+  return Object.keys(rx).filter(e=>rx[e]&&rx[e].n>0).map(e=>{
+    const r=rx[e]; const who=(r.who&&r.who.length)?r.who.join(', '):'';
+    const title=`${RXLABEL[e]||''}${who?' — '+who:''}`;
+    return `<button class="rxchip ${r.me?'on':''}" ${attr}="${idx}" data-e="${e}" title="${esc(title)}"><span class="e">${e}</span>${r.n}</button>`;
+  }).join('');
+}
+function rxPaletteHtml(attr, idx){
+  return REACTIONS.map(r=>
+    `<button ${attr}="${idx}" data-e="${r.e}" title="${esc(r.label)}" aria-label="${esc(r.label)}">${r.e}</button>`).join('');
+}
 function socialBar(f, fi, opts){
   const comments = !opts || opts.comments!==false;   /* chat lines react but don't thread */
   const rx=ensureRx(f); const cm=f.cm||(f.cm=[]);
-  const chips=Object.keys(rx).filter(e=>rx[e]&&rx[e].n>0).map(e=>{
-    const r=rx[e]; const who=(r.who&&r.who.length)?r.who.join(', '):'';
-    const title=`${RXLABEL[e]||''}${who?' — '+who:''}`;
-    return `<button class="rxchip ${r.me?'on':''}" data-rx="${fi}" data-e="${e}" title="${esc(title)}"><span class="e">${e}</span>${r.n}</button>`;
-  }).join('');
-  const pal=REACTIONS.map(r=>
-    `<button data-rxpick="${fi}" data-e="${r.e}" title="${esc(r.label)}" aria-label="${esc(r.label)}">${r.e}</button>`).join('');
+  const chips=rxChipsHtml(rx,'data-rx',fi);
+  const pal=rxPaletteHtml('data-rxpick',fi);
   const cmBtn = comments ? `<button class="rxcm" data-c="${fi}">💬 ${cm.length}</button>` : '';
   const thread = comments ? `<div class="cthread" id="th${fi}" style="display:none">
       ${cm.map(c=>`<div class="crow"><b>${esc(c.w)}</b>${esc(c.t)}</div>`).join('')}
@@ -2786,7 +2816,7 @@ function socialBar(f, fi, opts){
   return `<div class="social">
     <div class="rxbar">
       ${chips}
-      <button class="rxadd" data-rxadd="${fi}"><span class="e">☺</span> react</button>
+      <button class="rxadd" data-rxadd="${fi}" title="Add a reaction" aria-label="Add a reaction">+</button>
       ${cmBtn}
     </div>
     <div class="rxpalette" id="rxp${fi}">${pal}</div>
@@ -2795,30 +2825,37 @@ function socialBar(f, fi, opts){
 }
 /* who am I on the board */
 function myBoardName(){ return state.demo ? DEMO_ME : (window.CS?.member ? memName(window.CS.member.id) : 'You'); }
+/* flip one reaction state on/off for `me` — the optimistic half, and its revert */
+function rxFlip(cur, me, on){
+  if(on){ cur.me=true;  cur.n++; (cur.who||(cur.who=[])).push(me); }
+  else  { cur.me=false; cur.n=Math.max(0,cur.n-1); cur.who=(cur.who||[]).filter(w=>w!==me); }
+}
+/* THE one write path for a reaction row — insert or delete, exactly as chosen.
+   NO skew fallback here, deliberately. The original guard retried the insert
+   WITHOUT emoji on a column/schema error — and the column's default stamped
+   '🔥', so a 🦅 tap silently persisted as fire. That shipped, and it is
+   exactly the "new emojis fall back to a fire emoji" bug. The pre-migration
+   window it protected is over (20260716230000 is live). A reaction now either
+   saves as chosen or fails loudly — never becomes a different reaction. */
+async function rxWrite(post_id, member_id, emoji, had){
+  const row={ post_id, member_id, emoji };
+  const { error } = had
+    ? await window.sb.from('post_kudos').delete().match(row)
+    : await window.sb.from('post_kudos').insert(row);
+  return error || null;
+}
 /* toggle my reaction of `emoji` on feed item f — optimistic, DB-backed when real */
 async function toggleRx(f, emoji){
   const rx=ensureRx(f); const me=myBoardName();
   const cur=rx[emoji]||(rx[emoji]={n:0, me:false, who:[]});
   const had=cur.me;
-  /* optimistic local flip */
-  if(had){ cur.me=false; cur.n=Math.max(0,cur.n-1); cur.who=(cur.who||[]).filter(w=>w!==me); }
-  else   { cur.me=true;  cur.n++; (cur.who||(cur.who=[])).push(me); }
+  rxFlip(cur, me, !had);
   rerenderFeeds();
   if(state.demo || !f.post_id || !window.sb || !window.CS?.member) return;
-  const row={ post_id:f.post_id, member_id:window.CS.member.id, emoji };
-  let error;
-  if(had){ ({ error } = await window.sb.from('post_kudos').delete().match(row)); }
-  else   { ({ error } = await window.sb.from('post_kudos').insert(row)); }
-  /* deploy-skew: pre-migration the emoji column is absent — degrade to a plain
-     kudos row so a live user's tap still lands (reads back as 🔥). */
-  if(error && /emoji|column|schema/i.test(error.message||error.code||'')){
-    const bare={ post_id:f.post_id, member_id:window.CS.member.id };
-    ({ error } = had ? await window.sb.from('post_kudos').delete().match(bare)
-                     : await window.sb.from('post_kudos').insert(bare));
-  }
-  if(error){ /* revert the optimistic flip */
-    if(had){ cur.me=true; cur.n++; (cur.who||(cur.who=[])).push(me); }
-    else   { cur.me=false; cur.n=Math.max(0,cur.n-1); cur.who=(cur.who||[]).filter(w=>w!==me); }
+  const error = await rxWrite(f.post_id, window.CS.member.id, emoji, had);
+  if(error){ /* revert the optimistic flip — and say so */
+    console.warn('[reaction]', emoji, error);
+    rxFlip(cur, me, had);
     rerenderFeeds(); toast('Reaction didn’t save: '+(error.message||error.code||'unknown'));
   }
 }
@@ -2861,11 +2898,14 @@ async function fetchSocial(pids){
   feed.forEach(f=>{ if(f.post_id){ f.rx = rxBy[f.post_id] || {}; f.cm = cmBy[f.post_id] || []; } });
 }
 /* realtime nudge: a reaction/comment landed elsewhere — re-pull just the
-   social layer for the current board and repaint (no standings refetch) */
+   social layer (board + Home strips) and repaint, no standings refetch */
 async function refreshSocial(){
   if(state.demo || !window.CS?.league) return;
   await fetchSocial([...new Set(feed.filter(f=>f.post_id).map(f=>f.post_id))]);
   rerenderFeeds();
+  await fetchHomeSocial();
+  renderHomeFeed();
+  if(window.renderHomeDigest) renderHomeDigest();   /* a live 🔥 on your round is digest news */
 }
 window.refreshSocial = refreshSocial;
 /* attach the shared handlers to a feed container. `lookup` maps a feed index
@@ -2889,18 +2929,64 @@ function wireSocial(el){
     const t=el.querySelector('#th'+b.dataset.c);
     if(t) t.style.display = t.style.display==='none' ? 'block':'none';
   }));
+  /* clear BEFORE sending: sendComment re-renders synchronously, and the
+     continuity capture would otherwise resurrect the just-sent text */
   el.querySelectorAll('[data-s]').forEach(b=>b.addEventListener('click',()=>{
     const fi=b.dataset.s;
     const inp=el.querySelector(`input[data-i="${fi}"]`);
     const f=feed[+fi]; if(!f||!inp) return;
-    sendComment(f, inp.value); inp.value='';
+    const v=inp.value; inp.value='';
+    sendComment(f, v);
   }));
   el.querySelectorAll('.cinput input[data-i]').forEach(inp=>inp.addEventListener('keydown',e=>{
-    if(e.key==='Enter'){ const f=feed[+inp.dataset.i]; if(f){ sendComment(f, inp.value); inp.value=''; } }
+    if(e.key==='Enter'){
+      const f=feed[+inp.dataset.i]; if(!f) return;
+      const v=inp.value; inp.value='';
+      sendComment(f, v);
+    }
   }));
 }
+/* ---------- social UI continuity across re-renders ----------
+   Both feed renderers rebuild innerHTML wholesale, and a re-render can land
+   mid-conversation: posting a comment re-renders (D25 shipped this as a
+   regression — the thread you typed into collapsed), and a realtime nudge can
+   fire while you're mid-sentence. Capture open threads / palettes, in-progress
+   input, and focus BEFORE the wipe; restore after. Keyed by post_id (stable
+   across feed rebuilds), falling back to position for demo items. */
+function socialUiKey(fi){ return feed[fi]?.post_id || ('i'+fi); }
+function socialUiCapture(el){
+  const s={ th:[], pal:[], vals:{}, focus:null };
+  el.querySelectorAll('.cthread').forEach(t=>{
+    const fi=+t.id.slice(2); if(!(fi>=0)) return;
+    const k=socialUiKey(fi);
+    if(t.style.display!=='none') s.th.push(k);
+    const inp=t.querySelector('input[data-i]');
+    if(inp&&inp.value) s.vals[k]=inp.value;
+    if(inp&&document.activeElement===inp) s.focus=k;
+  });
+  el.querySelectorAll('.rxpalette.open').forEach(p=>{
+    const fi=+p.id.replace(/^h?rxp/,''); if(fi>=0) s.pal.push(socialUiKey(fi));
+  });
+  return s;
+}
+function socialUiRestore(el, s){
+  if(!s.th.length && !s.pal.length && !s.focus && !Object.keys(s.vals).length) return;
+  const byKey={}; feed.forEach((f,fi)=>{ byKey[socialUiKey(fi)]=fi; });
+  const each=(keys,fn)=>keys.forEach(k=>{ const fi=byKey[k]; if(fi!=null) fn(fi,k); });
+  each(s.th, fi=>{ const t=el.querySelector('#th'+fi); if(t) t.style.display='block'; });
+  each(s.pal, fi=>{ const p=el.querySelector('#rxp'+fi); if(p) p.classList.add('open'); });
+  each(Object.keys(s.vals), (fi,k)=>{
+    const inp=el.querySelector(`input[data-i="${fi}"]`); if(inp) inp.value=s.vals[k];
+  });
+  if(s.focus!=null) each([s.focus], fi=>{
+    const inp=el.querySelector(`input[data-i="${fi}"]`);
+    if(inp){ inp.focus(); inp.setSelectionRange(inp.value.length, inp.value.length); }
+  });
+}
 function renderFeed(){
-  const el=$('#feedList'); el.innerHTML='';
+  const el=$('#feedList');
+  const uiS=socialUiCapture(el);
+  el.innerHTML='';
   /* E3: the Pro's latest announcement rides pinned above the noise —
      announcements are not chat, they must survive the scroll */
   let pin=-1; feed.forEach((f,i)=>{ if(f.ann) pin=i; });
@@ -2959,6 +3045,7 @@ function renderFeed(){
     if(HIST[b.dataset.fp]) showPlayer(b.dataset.fp);
   }));
   wireSocial(el);
+  socialUiRestore(el, uiS);
   if($('#boardFull')?.classList.contains('open')) renderFeedFull();
 }
 /* the full-screen board: every round is a story card (Strava pattern).
@@ -2966,6 +3053,7 @@ function renderFeed(){
    reader's position so a reaction tap mid-scroll doesn't yank the board down. */
 function renderFeedFull(force){
   const el=$('#feedListFull'); if(!el) return;
+  const uiS=socialUiCapture(el);
   const prevTop=el.scrollTop;
   const atBottom = el.scrollHeight - prevTop - el.clientHeight < 60;
   el.innerHTML='';
@@ -3023,6 +3111,7 @@ function renderFeedFull(force){
     }
   });
   wireSocial(el);
+  socialUiRestore(el, uiS);
   requestAnimationFrame(()=>{ el.scrollTop = (force||atBottom) ? el.scrollHeight : prevTop; });
 }
 function openBoardFull(){
@@ -3232,6 +3321,89 @@ function vsPhrase(vs){
   if(vs>=-1) return 'played to your number';
   return vs.toFixed(1).replace('-','')+' over your number';
 }
+/* ---- the Round Recap Card (#18) — the peak becomes a shareable artifact ----
+   A canvas-rendered PNG in the brand's fixed dark identity (the card ignores
+   the viewer's theme — an artifact has ONE face). D2's law holds on the way
+   out the door: gross + the named band phrase + course/date/points + at most
+   one milestone badge. No differential, no index, no jargon — receipts stay
+   in the app. Mobile: native share sheet. Desktop: download + caption copied. */
+const CARD_BADGE = {
+  personal_best:'PERSONAL BEST', sub_80:'BROKE 80', sub_90:'BROKE 90',
+  sub_100:'BROKE 100', streak_4:'4 WEEKS RUNNING', streak_8:'8 WEEKS RUNNING',
+  streak_12:'12 WEEKS RUNNING', first_round:'FIRST ROUND ON THE BOARD',
+};
+function drawRecapCard(d){
+  const W=1080, H=1350;
+  const BG='#0C100D', PANEL='#10150F', INK='#E8ECE9', MUT='#98A29A', GOLD='#E9BE62';
+  const cv=document.createElement('canvas'); cv.width=W; cv.height=H;
+  const x=cv.getContext('2d');
+  const MONO="'IBM Plex Mono',ui-monospace,Menlo,monospace";
+  const SERIF="'Charter','Iowan Old Style','Palatino Linotype',Georgia,serif";
+  const SANS="'IBM Plex Sans',-apple-system,'Segoe UI',Roboto,sans-serif";
+  const ctr=(txt,y,font,fill,ls)=>{ x.font=font; x.fillStyle=fill;
+    try{ x.letterSpacing=(ls||0)+'px'; }catch(e){}
+    x.textAlign='center'; x.fillText(txt,W/2,y);
+    try{ x.letterSpacing='0px'; }catch(e){} };
+  x.fillStyle=BG; x.fillRect(0,0,W,H);
+  x.fillStyle=PANEL;
+  x.beginPath(); x.roundRect(36,36,W-72,H-72,28); x.fill();
+  x.strokeStyle='rgba(233,190,98,.35)'; x.lineWidth=2;
+  x.beginPath(); x.roundRect(36,36,W-72,H-72,28); x.stroke();
+  /* the marker — identity above everything (living-card rule) */
+  const mk=(window.MARKERS||{})[d.marker];
+  x.strokeStyle='rgba(233,190,98,.4)'; x.lineWidth=2;
+  x.beginPath(); x.arc(W/2,208,78,0,7); x.stroke();
+  if(mk){
+    const s=4.6, path=new Path2D(mk.p);
+    x.save(); x.translate(W/2-12*s,208-12*s); x.scale(s,s);
+    x.strokeStyle=GOLD; x.lineWidth=1.8; x.lineCap='round'; x.lineJoin='round';
+    x.stroke(path); x.restore();
+  }
+  ctr((d.name||'A GOLFER').toUpperCase(), 372, `600 44px ${MONO}`, INK, 7);
+  if(d.league) ctr(d.league.toUpperCase(), 424, `400 27px ${MONO}`, MUT, 5);
+  /* the hero number — serif, the memory-and-honor voice */
+  ctr(String(d.gross), 760, `700 300px ${SERIF}`, INK);
+  if(d.pvi!=null){
+    ctr(bandName(Number(d.pvi)).toUpperCase(), 850, `600 46px ${MONO}`, GOLD, 9);
+    ctr(vsPhrase(Number(d.pvi)), 906, `500 31px ${SANS}`, MUT);
+  }
+  if(d.badge) ctr('★ '+d.badge, 972, `600 31px ${MONO}`, GOLD, 5);
+  x.strokeStyle='rgba(255,255,255,.1)'; x.lineWidth=1;
+  x.beginPath(); x.moveTo(280,1020); x.lineTo(W-280,1020); x.stroke();
+  ctr((d.course||'A ROUND').toUpperCase(), 1084, `600 36px ${MONO}`, INK, 4);
+  const DW=['SUN','MON','TUE','WED','THU','FRI','SAT'], MO=['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'];
+  const dt=d.date||new Date();
+  const when=`${DW[dt.getDay()]} · ${MO[dt.getMonth()]} ${dt.getDate()}`+(d.points!=null?` · ${d.points} PTS`:'');
+  ctr(when, 1134, `500 29px ${MONO}`, MUT, 4);
+  ctr('Cup Season', 1246, `600 52px ${SERIF}`, INK);
+  ctr('cupseason.app', 1292, `500 27px ${MONO}`, MUT, 4);
+  return cv;
+}
+function recapText(d){
+  return `${d.gross} at ${d.course||'the course'}`
+    + (d.pvi!=null?` — ${vsPhrase(Number(d.pvi)).toLowerCase()}`:'')
+    + (d.points!=null?` · ${d.points} pts`:'') + ' · cupseason.app';
+}
+async function shareRecapCard(d){
+  try{
+    const blob=await new Promise(res=>drawRecapCard(d).toBlob(res,'image/png'));
+    const file=new File([blob],'cup-season-recap.png',{type:'image/png'});
+    const text=recapText(d);
+    if(navigator.canShare && navigator.canShare({files:[file]})){
+      await navigator.share({files:[file], text});
+      return;
+    }
+    const a=document.createElement('a');
+    a.href=URL.createObjectURL(blob); a.download='cup-season-recap.png'; a.click();
+    setTimeout(()=>URL.revokeObjectURL(a.href),5000);
+    try{ await navigator.clipboard?.writeText(text); toast('Card downloaded · caption copied'); }
+    catch(e){ toast('Card downloaded'); }
+  }catch(e){
+    if(e && e.name==='AbortError') return;   /* golfer closed the share sheet — not an error */
+    console.warn('[recap card]', e);
+    toast('Couldn’t make the card: '+(e.message||'unknown'));
+  }
+}
 /* ---- M2 / D17 · the post-round epilogue — the poster hears it first ----
    Reads round_epilogue() JSON into a private sheet shown over home right after
    a post: the round's meaning (band + points), what it earned, and any rivalry
@@ -3279,7 +3451,20 @@ function showEpilogue(epi, course){
   const sub = course
     ? `${epi.gross!=null?epi.gross+' at ':''}${String(course).toUpperCase()}`
     : 'THE ROUND, FOR YOU FIRST';
+  /* #18: the peak's shareable form — the card needs its hero number */
+  if(epi.gross!=null)
+    rows.push(`<button class="btn" id="epiShare" style="width:100%;margin-top:14px">Share the card</button>`);
   openSheet('Your round', sub, rows.join(''));
+  const sh=$('#shBody').querySelector('#epiShare');
+  if(sh) sh.addEventListener('click',()=>shareRecapCard({
+    name:  state.demo ? DEMO_ME : (window.CS?.profile?.display_name || 'You'),
+    marker: (state.demo ? null : window.CS?.profile?.marker) || 'saguaro',
+    gross: epi.gross, pvi: epi.pvi!=null ? Number(epi.pvi) : null,
+    points: epi.points!=null ? Number(epi.points) : null,
+    course: course || '', date: new Date(),
+    league: state.demo ? 'The Sunday Cup' : (window.CS?.league?.name || null),
+    badge: CARD_BADGE[(epi.earned||[])[0]?.kind] || null,
+  }));
 }
 /* ---- quick-post hole-by-hole (decision #5: default UI, par-prefilled, the
    gross-only path stays as a flagged-not-punished escape hatch) ---- */
@@ -5070,10 +5255,13 @@ function renderHomeRecap(){
 /* relative dates spread across the feed's time buckets: today / this week /
    earlier — so the diorama shows all three and never reads stale */
 const DEMO_FEED = [
-  {golfer:'Diego', marker:'saguaro', gross:79, pvi:5.2, course:'Papago GC', played_on:isoAgo(0), is_pr:true},
-  {golfer:'Rosa',  marker:'quail',   gross:74, pvi:3.8, course:'Grayhawk',  played_on:isoAgo(2), is_sub80:true},
-  {golfer:'You',   marker:'shark',   gross:82, pvi:2.9, course:'Aguila',    played_on:isoAgo(4), is_me:true},
-  {golfer:'Marco', marker:'cactus',  gross:90, pvi:0.4, course:'Encanto',   played_on:isoAgo(9)},
+  {golfer:'Diego', marker:'saguaro', gross:79, pvi:5.2, course:'Papago GC', played_on:isoAgo(0), is_pr:true,
+   rx:{'🔥':{n:2,me:false,who:['Rosa','Marco']},'🚨':{n:1,me:false,who:['Marco']}}},
+  {golfer:'Rosa',  marker:'azalea',  gross:74, pvi:3.8, course:'Grayhawk',  played_on:isoAgo(2), is_sub80:true,
+   rx:{'🦅':{n:1,me:false,who:['Diego']}}},
+  {golfer:'You',   marker:'shark',   gross:82, pvi:2.9, course:'Aguila',    played_on:isoAgo(4), is_me:true,
+   rx:{'🧊':{n:1,me:false,who:['Rosa']}}},
+  {golfer:'Marco', marker:'weebridge', gross:90, pvi:0.4, course:'Encanto', played_on:isoAgo(9)},
 ];
 /* founder badge — FOUNDER_ID is loaded by loadProfile via the founder_id() RPC.
    Badges the one founder wherever their name shows. Demo badges DEMO_ME so the
@@ -5082,7 +5270,106 @@ function founderTag(pid, name){
   const isF = (state.demo && name && name === DEMO_ME) || (pid && pid === window.FOUNDER_ID);
   return isF ? ' <span class="ftag" title="Cup Season founder">✦ Founder</span>' : '';
 }
-function feedRow(r){
+/* ---------- Home circle reactions (option A: through the shared-league post)
+   Home is profile-first and cross-league; a reaction is league-scoped
+   (post_kudos → posts → league), and a round fans into one post PER league.
+   So each circle round maps to ONE deterministic post: the currently-open
+   league's if the viewer is in it, else the round's OLDEST post. Rows with no
+   shared-league post (friend-only circle members) show no strip at all — an
+   affordance that would fail is worse than none. */
+function homeRxOf(r){
+  if(state.demo) return r.rx || (r.rx = {});
+  const t = window.homeRx?.post?.[r.round_id];
+  if(!t) return null;
+  return window.homeRx.kud[t.post_id] || (window.homeRx.kud[t.post_id] = {});
+}
+/* map circle rounds → their one post, then batch the kudos + actor names.
+   Names need their own resolve: memName() only knows the open league's
+   roster, and a reactor can sit in a shared league that isn't open. */
+async function fetchHomeSocial(){
+  window.homeRx = { post:{}, kud:{}, names:{}, raw:[], cmine:[], myIds:new Set() };
+  if(state.demo || !window.sb || !window.CS?.user) return;
+  const rids=[...new Set((window.homeFeed||[]).map(r=>r.round_id).filter(Boolean))];
+  if(!rids.length) return;
+  try{
+    const { data: posts } = await window.sb.from('posts')
+      .select('id, league_id, round_id, created_at')
+      .in('round_id', rids).eq('kind','round')
+      .order('created_at', { ascending:true });   /* oldest-first: first-in wins below */
+    const cur=window.CS?.league?.id;
+    (posts||[]).forEach(p=>{
+      const t=window.homeRx.post[p.round_id];
+      if(!t || (p.league_id===cur && t.league_id!==cur))
+        window.homeRx.post[p.round_id]={ post_id:p.id, league_id:p.league_id };
+    });
+    const pids=Object.values(window.homeRx.post).map(t=>t.post_id);
+    if(!pids.length) return;
+    /* MY posts among them — the digest mentions what landed on YOUR rounds */
+    const myPids=(window.homeFeed||[])
+      .filter(r=>r.is_me && window.homeRx.post[r.round_id])
+      .map(r=>window.homeRx.post[r.round_id].post_id);
+    const [{ data: kud }, { data: cmt }] = await Promise.all([
+      window.sb.from('post_kudos').select('*').in('post_id', pids),
+      myPids.length
+        ? window.sb.from('post_comments').select('post_id, member_id, created_at').in('post_id', myPids)
+        : Promise.resolve({ data: [] }),
+    ]);
+    const memberIds=[...new Set((kud||[]).map(k=>k.member_id).concat((cmt||[]).map(c=>c.member_id)))];
+    if(memberIds.length){
+      const { data: mems } = await window.sb.from('league_members')
+        .select('id, profile:profiles(display_name)').in('id', memberIds);
+      (mems||[]).forEach(m=>{ window.homeRx.names[m.id]=m.profile?.display_name || 'someone'; });
+    }
+    const myIds=new Set((window.CS?.memberships||[]).map(m=>m.id));
+    window.homeRx.myIds=myIds;
+    window.homeRx.raw=kud||[];       /* timestamped rows — the digest reads these */
+    window.homeRx.cmine=cmt||[];
+    (kud||[]).forEach(k=>{
+      const e=k.emoji||'🔥';
+      const s=((window.homeRx.kud[k.post_id]||={})[e]||={n:0, me:false, who:[]});
+      s.n++; if(myIds.has(k.member_id)) s.me=true;
+      s.who.push(window.homeRx.names[k.member_id]||'someone');
+    });
+  }catch(e){ console.warn('[homeSocial]', e); }
+}
+async function toggleHomeRx(r, emoji){
+  const rx=homeRxOf(r); if(!rx) return;
+  const me = state.demo ? DEMO_ME : (window.CS?.profile?.display_name || 'You');
+  const cur=rx[emoji]||(rx[emoji]={n:0, me:false, who:[]});
+  const had=cur.me;
+  rxFlip(cur, me, !had);
+  renderHomeFeed();
+  if(state.demo) return;
+  const t=window.homeRx?.post?.[r.round_id]; if(!t) return;
+  /* the write must carry MY member id in the POST's league — CS.member is the
+     open league's membership, which may be the wrong one from Home */
+  const mem=(window.CS?.memberships||[]).find(m=>m.league.id===t.league_id);
+  const error = mem ? await rxWrite(t.post_id, mem.id, emoji, had)
+                    : { message:'not a member of that league' };
+  if(error){
+    console.warn('[reaction:home]', emoji, error);
+    rxFlip(cur, me, had);
+    renderHomeFeed();
+    toast('Reaction didn’t save: '+(error.message||error.code||'unknown'));
+  }
+}
+function wireHomeSocial(box){
+  const rows = state.demo ? DEMO_FEED : (window.homeFeed||[]);
+  box.querySelectorAll('[data-hrx]').forEach(b=>b.addEventListener('click',()=>{
+    const r=rows[+b.dataset.hrx]; if(r) toggleHomeRx(r, b.dataset.e);
+  }));
+  box.querySelectorAll('[data-hadd]').forEach(b=>b.addEventListener('click',()=>{
+    const p=box.querySelector('#hrxp'+b.dataset.hadd); if(p) p.classList.toggle('open');
+  }));
+  box.querySelectorAll('[data-hpick]').forEach(b=>b.addEventListener('click',()=>{
+    const r=rows[+b.dataset.hpick]; if(!r) return;
+    const p=box.querySelector('#hrxp'+b.dataset.hpick); if(p) p.classList.remove('open');
+    const rx=homeRxOf(r); const cur=rx&&rx[b.dataset.e];
+    if(cur&&cur.me) return;
+    toggleHomeRx(r, b.dataset.e);
+  }));
+}
+function feedRow(r, idx){
   const who = esc(r.is_me ? 'You' : (r.golfer||'A golfer'));
   const whoTag = who + (r.is_me ? '' : founderTag(r.profile_id, r.golfer));
   const mk = window.mkr ? window.mkr(r.marker||'saguaro') : '';
@@ -5093,8 +5380,11 @@ function feedRow(r){
   else if(r.is_sub80){ badge='⛳ Broke 80'; line = `${whoTag} broke 80 for the first time — ${r.gross} at ${course}`; }
   else if(r.is_first){ badge='🎉 First round'; line = `${whoTag} posted ${r.is_me?'your':'their'} first round — ${r.gross} at ${course}`; }
   else { line = `${whoTag} posted ${r.gross} at ${course}${pvi?' · '+pvi:''}`; }
+  const rx = idx!==undefined ? homeRxOf(r) : null;
+  const social = rx ? `<div class="hrx">${rxChipsHtml(rx,'data-hrx',idx)}<button class="rxadd" data-hadd="${idx}" title="Add a reaction" aria-label="Add a reaction">+</button></div>
+    <div class="rxpalette h" id="hrxp${idx}">${rxPaletteHtml('data-hpick',idx)}</div>` : '';
   return `<div class="check"><span class="num"${r.profile_id?` data-tc="${r.profile_id}"`:''}>${mk}</span>
-    <div class="tt"><b>${line}</b><small>${badge?badge+' · ':''}${dfmtShort(r.played_on)}</small></div></div>`;
+    <div class="tt"><b>${line}</b><small>${badge?badge+' · ':''}${dfmtShort(r.played_on)}</small>${social}</div></div>`;
 }
 /* league moments (announce + system posts) as feed cards — rounds never come
    this way (home_feed owns them), so the two sources can't double up */
@@ -5133,21 +5423,149 @@ function feedBuckets(items){
   }
   return html;
 }
+/* ---------- the quiet-day frame (the thin-feed problem) ----------
+   Crew-scale arithmetic: an 8-person league posting weekly makes ~2–3 board
+   items a WEEK, so most opens would reveal nothing new (design review §8.1).
+   No amount of moment-engine polish changes that arithmetic — so Home never
+   opens as a bare reverse-chron list. It either says what changed since your
+   last visit, or (on a genuinely quiet day) resurfaces the best recent thing.
+   The rule this enforces: an open never reveals nothing.
+   The seen-mark is per profile and read ONCE per load (dgAsOf) so a re-render
+   mid-session can't erase the digest you're currently reading. */
+function dgKey(){ return 'cs.seen.' + (window.CS?.profile?.id || (state.demo ? 'demo' : 'anon')); }
+function dgReadSeen(){ try{ return Number(localStorage.getItem(dgKey())) || 0; }catch(e){ return 0; } }
+function dgMarkSeen(){ try{ localStorage.setItem(dgKey(), String(Date.now())); }catch(e){} }
+/* a feed time is either a full ISO stamp (created_at) or a bare date
+   (played_on) — bare dates parse as UTC midnight, so route them through
+   localDate or they render a day early in Phoenix (landmine) */
+function dgTime(s){
+  if(!s) return 0;
+  const str=String(s);
+  const d = str.length<=10 ? localDate(str) : new Date(str);
+  const n = d ? d.getTime() : 0;
+  return isNaN(n) ? 0 : n;
+}
+function dgItems(){
+  if(state.demo) return DEMO_FEED.map(r=>({ t:r.played_on, kind:'round', r }));
+  return (window.homeFeed||[]).map(r=>({ t:(r.created_at||r.played_on||''), kind:'round', r }))
+    .concat((window.homePosts||[]).map(p=>({ t:(p.created_at||''), kind:'post', p })));
+}
+/* serial comma is load-bearing here: "a personal best from Diego and Rosa broke
+   80" reads as one clause about two people. "…from Diego, and Rosa broke 80"
+   doesn't. */
+function dgJoin(a){
+  if(a.length<2) return a[0]||'';
+  if(a.length===2) return a[0]+' and '+a[1];
+  return a.slice(0,-1).join(', ') + ', and ' + a[a.length-1];
+}
+function dgWho(r){ return esc(r.is_me ? 'You' : (r.golfer || 'a golfer')); }
+function dgDay(t){
+  const days = Math.round((Date.now() - dgTime(t)) / 864e5);
+  return days<=0 ? 'Today' : days===1 ? 'Yesterday' : dfmtShort(String(t).slice(0,10));
+}
+/* the best thing worth resurfacing: a milestone outranks a good score, and a
+   good score outranks a recent one */
+function dgBest(items){
+  const now=Date.now();
+  const recent=items.filter(i=> i.kind==='round' && (now - dgTime(i.t)) <= 14*864e5);
+  if(!recent.length) return null;
+  const rank=i=> i.r.is_pr?4 : i.r.is_sub80?3 : i.r.is_first?2 : 1;
+  return recent.slice().sort((a,b)=>
+    rank(b)-rank(a) || (Number(b.r.pvi||0)-Number(a.r.pvi||0)) || dgTime(b.t)-dgTime(a.t))[0];
+}
+function dgLine(i){
+  const r=i.r, who=dgWho(r), course=esc(r.course||'a round');
+  if(r.is_pr)    return `<b>${who}</b> set a personal best — ${r.gross} at ${course}`;
+  if(r.is_sub80) return `<b>${who}</b> broke 80 — ${r.gross} at ${course}`;
+  if(r.is_first) return `<b>${who}</b> posted ${r.is_me?'your':'their'} first round — ${r.gross} at ${course}`;
+  return `<b>${who}</b> posted ${r.gross} at ${course}`;
+}
+/* what landed on YOUR rounds since the mark — reactions and comments, the
+   attention your golf collected while you were gone. This is thin-feed fuel
+   that requires nobody to play: a 🔥 at 11pm is news at 7am. Rows without a
+   created_at (written before the timestamp migration) are skipped — no time,
+   no "since" claim. */
+function dgMentions(mark){
+  const out=[];
+  if(state.demo){
+    /* diorama: the seeded reactions on the is_me row, treated as fresh */
+    DEMO_FEED.filter(r=>r.is_me&&r.rx).forEach(r=>{
+      Object.entries(r.rx).forEach(([e,s])=>(s.who||[]).forEach(w=>out.push({who:w, e, gross:r.gross})));
+    });
+    return out;
+  }
+  const hr=window.homeRx; if(!hr) return out;
+  const mine={};
+  (window.homeFeed||[]).forEach(r=>{ if(r.is_me&&hr.post[r.round_id]) mine[hr.post[r.round_id].post_id]=r; });
+  (hr.raw||[]).forEach(k=>{
+    if(!k.created_at || dgTime(k.created_at)<=mark) return;
+    const r=mine[k.post_id]; if(!r) return;
+    if(hr.myIds.has(k.member_id)) return;          /* my own tap isn't news */
+    out.push({ who:hr.names[k.member_id]||'someone', e:k.emoji||'🔥', gross:r.gross });
+  });
+  (hr.cmine||[]).forEach(c=>{
+    if(!c.created_at || dgTime(c.created_at)<=mark) return;
+    const r=mine[c.post_id]; if(!r) return;
+    if(hr.myIds.has(c.member_id)) return;
+    out.push({ who:hr.names[c.member_id]||'someone', e:null, gross:r.gross });
+  });
+  return out;
+}
+function renderHomeDigest(){
+  const box=$('#homeDigest'); if(!box) return;
+  box.innerHTML='';
+  const items=dgItems().filter(i=>i.t);
+  if(!items.length) return;
+  if(window.dgAsOf===undefined){ window.dgAsOf = dgReadSeen(); dgMarkSeen(); }
+  const mark=window.dgAsOf;
+  if(!mark) return;                       /* first visit — the feed IS the reveal */
+  const fresh=items.filter(i=> dgTime(i.t) > mark);
+  /* mentions can RESCUE a quiet day for real users — a reaction on your round
+     IS something new. The demo's seeds carry no timestamps, so there they ride
+     only alongside other news and the diorama's quiet day stays quiet. */
+  let men=dgMentions(mark);
+  if(state.demo && !fresh.length) men=[];
+  if(fresh.length || men.length){
+    const rounds=fresh.filter(i=>i.kind==='round'), posts=fresh.filter(i=>i.kind==='post');
+    const bits=[];
+    if(rounds.length) bits.push(`<b>${rounds.length} round${rounds.length>1?'s':''}</b>`);
+    const pr=rounds.find(i=>i.r.is_pr), s80=rounds.find(i=>i.r.is_sub80), fst=rounds.find(i=>i.r.is_first);
+    if(pr)  bits.push(`a personal best from ${dgWho(pr.r)}`);
+    if(s80) bits.push(`${dgWho(s80.r)} broke 80`);
+    if(fst) bits.push(`${dgWho(fst.r)}'s first round`);
+    if(posts.length) bits.push(`${posts.length} league note${posts.length>1?'s':''}`);
+    if(men.length){
+      const m=men[0];
+      bits.push(m.e ? `<b>${esc(m.who)}</b> ${m.e}’d your ${m.gross}`
+                    : `<b>${esc(m.who)}</b> chimed in on your ${m.gross}`);
+      if(men.length>1) bits.push(`${men.length-1} more chimed in on your rounds`);
+    }
+    if(!bits.length) return;
+    box.innerHTML=`<div class="digest"><span class="dk">Since you were here</span>${dgJoin(bits)}.</div>`;
+    return;
+  }
+  const best=dgBest(items);
+  if(!best) return;
+  box.innerHTML=`<div class="digest"><span class="dk">Quiet since your last visit</span>${dgDay(best.t)} — ${dgLine(best)}</div>`;
+}
 function renderHomeFeed(){
   const box=$('#homeFeed'); if(!box) return;
-  if(state.demo){ box.innerHTML = feedBuckets(DEMO_FEED.map(r=>({ d:r.played_on, html:feedRow(r) }))); return; }
+  if(state.demo){ box.innerHTML = feedBuckets(DEMO_FEED.map((r,i)=>({ d:r.played_on, html:feedRow(r,i) }))); wireHomeSocial(box); return; }
   /* loading: scorecard skeletons until the first fetch lands (undefined = not
      yet loaded; [] = loaded empty → the real empty state) */
   if(window.homeFeed===undefined && window.homePosts===undefined){ box.innerHTML = skeletonRows(3); return; }
   /* ONE feed (IA P1): circle rounds + league moments, newest first. Sort by
      actual post time (created_at, full ISO); bucket by the displayed date (d). */
-  const items = (window.homeFeed||[]).map(r => ({ t:(r.created_at||r.played_on||''), d:((r.played_on||r.created_at||'')+'').slice(0,10), html:feedRow(r) }))
+  /* the index rides into feedRow so the reaction strip can map back to the
+     SOURCE row (window.homeFeed[i]) after the merged sort/slice */
+  const items = (window.homeFeed||[]).map((r,i) => ({ t:(r.created_at||r.played_on||''), d:((r.played_on||r.created_at||'')+'').slice(0,10), html:feedRow(r,i) }))
     .concat((window.homePosts||[]).map(p => ({ t:(p.created_at||''), d:((p.created_at||'')+'').slice(0,10), html:postRow(p) })))
     .sort((a,b)=> a.t<b.t ? 1 : a.t>b.t ? -1 : 0)
     .slice(0,30);
   box.innerHTML = items.length
     ? feedBuckets(items)
     : '<p class="fine" style="padding:0">No rounds from your circle yet. Post one, or <a href="#" data-gopeople style="color:var(--brand)">add golf buddies</a>.</p>';
+  wireHomeSocial(box);
 }
 /* Up Next — what's coming, one glance: next declared round, invites waiting,
    the month-close clock. Hides entirely when there's nothing coming. */
@@ -5180,7 +5598,7 @@ function renderUpNext(){
   }
   box.innerHTML = chips.join('');
 }
-const DEMO_REQUESTS = [{friendship_id:'demo', display_name:'Marco', handle:'marco_v', marker:'cactus'}];
+const DEMO_REQUESTS = [{friendship_id:'demo', display_name:'Marco', handle:'marco_v', marker:'weebridge'}];
 /* incoming friend requests, front and center on Home — used to hide in the
    Tour Card and nobody found them. */
 function renderHomeRequests(){
@@ -5221,6 +5639,7 @@ function renderHomeHub(){
   renderHomeRequests();
   renderHomeStart();
   renderHomeRecap();
+  renderHomeDigest();   /* the quiet-day frame rides above the feed it frames */
   renderHomeFeed();
   renderClubGroups();   /* keep the Clubhouse switcher in sync */
 }
@@ -6350,11 +6769,20 @@ const MARKERS = {
   dunes:     {n:'The Dunes',      p:'M3 17c3-4 5-4 8-1 2-4 5-5 10-2M6 9c1-2 3-2 4 0'},
   beer:      {n:'The Beverage',   p:'M7 5h8v14H7zM15 8h3v6h-3M9 8v8M12 8v8'},
   shark:     {n:'The Shark',      p:'M4 17c4 1 12 1 16 0-2-2-5-3-7-3l2-7-6 7c-2 0-4 1-5 3z'},
+  /* the famous-golf wing — every nod oblique, never named (the wink IS the
+     feature, and the obliqueness is also the legal safe zone) */
+  azalea:    {n:'The Azalea',     p:'M12 10c-1.4-1.9-1.4-4.7 0-6 1.4 1.3 1.4 4.1 0 6M10 11.3C7.7 10.7 6 8.4 6.5 6.5c1.9.1 3.9 2.1 4.3 4.4M10.9 13.6c-1.6 1.8-4.4 2.4-6 1.2.8-1.8 3.5-2.9 5.8-2.5M13.1 13.6c1.6 1.8 4.4 2.4 6 1.2-.8-1.8-3.5-2.9-5.8-2.5M14 11.3c2.3-.6 4-2.9 3.5-4.8-1.9.1-3.9 2.1-4.3 4.4M13.2 12a1.2 1.2 0 11-2.4 0 1.2 1.2 0 012.4 0'},
+  jug:       {n:'The Jug',        p:'M11 3h2M12 3v2M10 5h4l.6 3c1.8 1.2 2 4.4.4 6h-6c-1.6-1.6-1.4-4.8.4-6L10 5M12 14v3M9.5 20h5c0-1.6-1-2.6-2.5-2.6s-2.5 1-2.5 2.6M16 9c2 0 2.8 1.8 2 3.2-.5 1-1.4 1.6-2.5 1.8'},
+  weebridge: {n:'The Wee Bridge', p:'M2 16h4c0-3 2.5-5 6-5s6 2 6 5h4M9.5 16c0-1.7 1-2.7 2.5-2.7s2.5 1 2.5 2.7M8 19.5c1.5-1.2 6.5-1.2 8 0'},
+  no2:       {n:'No. 2',          p:'M6 21V3.5M6 4.5h8.5v6H6M8.6 6.8c0-.9.7-1.5 1.6-1.5s1.6.6 1.6 1.4c0 1.3-3.2 1.9-3.2 3.1h3.3'},
+  stamp:     {n:'The Postage Stamp', p:'M5 5h14v14H5zM8 4v2M12 4v2M16 4v2M8 18v2M12 18v2M16 18v2M10.5 14.5V9.5l3 1.3-3 1.2M8.5 15.5c1.2-.7 5.8-.7 7 0'},
+  thistle:   {n:'The Thistle',    p:'M8.2 5l1.5 2.6M12 4v3M15.8 5l-1.5 2.6M12 7c2.2 0 3.5 1.2 3.5 3s-1.3 3-3.5 3-3.5-1.2-3.5-3 1.3-3 3.5-3M10.2 8.6l3.6 2.8M13.8 8.6l-3.6 2.8M12 13v8M11 16.5c-1.8-.2-3.2-1.2-3.7-2.9M13 17.8c1.8-.2 3.2-1.2 3.7-2.9'},
 };
 const mkr = k => MARKERS[k]
   ? `<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-4px"><path d="${MARKERS[k].p}"/></svg>`
   : '';
 window.mkr = mkr; /* classic renderCalendar draws markers — bridge or it silently breaks */
+window.MARKERS = MARKERS; /* classic recap-card canvas draws the marker PATH — same bridge rule */
 
 async function loadProfile(){
   const { data } = await sb.from('profiles')
@@ -8569,6 +8997,8 @@ async function loadHome(){
   } catch(e){ window.leagueEnds = window.leagueEnds||{}; }
   try { const { data } = await sb.rpc('home_feed', { p_days: 21 }); window.homeFeed = data || []; }
   catch(e){ window.homeFeed = window.homeFeed||[]; }
+  /* circle reactions ride the rounds just loaded (round → shared-league post) */
+  try { await fetchHomeSocial(); } catch(e){ console.warn('[homeSocial]', e); }
   /* league moments for the one feed (IA P1): announcements + system posts.
      round_id-null keeps rounds out — home_feed already carries every circle
      round (buddies + league-mates), so board round-posts would be duplicates.
