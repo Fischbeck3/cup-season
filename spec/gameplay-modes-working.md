@@ -544,3 +544,14 @@ people post too.
 `state.preset`, which the client *couples* to it on write). Read `b.floor_penalty`
 directly — inferring from the preset misstates the stake for any league whose
 penalty diverged from it.
+
+---
+
+## 9. Parked idea: earned markers (from the Social lane, 2026-07-17)
+
+One line, captured at lane close: ball markers could be *earned*, not just
+picked — break 80 → unlock The Jug, first Ryder win → The Thistle. The Social
+lane flagged it as a real retention hook and correctly stopped at the boundary:
+unlockables are a mechanic (achievement rules, visibility, whether picked-vs-
+earned markers read differently), so it gets a decision-log entry before any
+build. Not designed, not committed to — just not lost.
