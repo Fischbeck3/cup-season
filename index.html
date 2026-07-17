@@ -724,6 +724,37 @@ input.f::-webkit-outer-spin-button, input.f::-webkit-inner-spin-button{-webkit-a
 .crow b{color:var(--ink); font-weight:600; margin-right:6px;}
 .cinput{display:flex; gap:8px; margin-top:8px;}
 .cinput input{flex:1; min-height:40px; font-family:var(--sans); font-weight:500;}
+/* reactions — the crew's vocabulary. present reactions read as counted chips;
+   ＋ opens the palette. one row per (member, emoji), so a round can collect a
+   🦅 and a 🚨 at once. who-reacted rides the chip title (rule 4: shows work). */
+.social{margin-top:10px; padding-top:10px; border-top:1px solid var(--line);}
+.rxbar{display:flex; flex-wrap:wrap; gap:6px; align-items:center;}
+.rxchip{
+  font-family:var(--mono); font-size:12.5px; font-weight:600; letter-spacing:.02em;
+  color:var(--mut); background:var(--bg2); border:1px solid var(--line2);
+  border-radius:99px; padding:5px 10px; cursor:pointer; line-height:1;
+}
+.rxchip .e{font-family:var(--sans); margin-right:4px;}
+.rxchip:hover{color:var(--ink);}
+.rxchip.on{color:var(--bg0); background:var(--brand); border-color:var(--brand);}
+.rxadd, .rxcm{
+  font-family:var(--mono); font-size:12.5px; font-weight:600; color:var(--mut);
+  background:var(--bg2); border:1px solid var(--line2);
+  border-radius:99px; padding:5px 11px; cursor:pointer; line-height:1;
+}
+.rxadd .e{font-family:var(--sans); font-size:14px;}
+.rxadd:hover, .rxcm:hover{color:var(--ink);}
+.rxpalette{
+  display:none; gap:5px; flex-wrap:wrap; margin-top:8px; padding:8px;
+  background:var(--bg2); border:1px solid var(--line); border-radius:12px;
+}
+.rxpalette.open{display:flex;}
+.rxpalette button{
+  font-family:var(--sans); font-size:19px; line-height:1; background:none;
+  border:1px solid transparent; border-radius:10px; padding:5px 7px; cursor:pointer;
+}
+.rxpalette button:hover{border-color:var(--line2); background:var(--bg1);}
+.rxpalette button:focus-visible{outline:2px solid var(--pos); outline-offset:2px;}
 /* v23.65: the feed loosens up — league notices read like a clubhouse note,
    not a terminal. Sans, sentence-sized, quiet gold accent instead of the
    dashed mono banner. */
@@ -2638,6 +2669,165 @@ const easeCaps = s => {
   t = t.replace(/&\s+([a-z])/g, (m,c)=>'& '+c.toUpperCase());                  /* names after & */
   return t;
 };
+/* ---------- reactions + comments: the board's social spine ----------
+   Six curated reactions carry the crew's voice; each is one row in post_kudos
+   keyed (post_id, member_id, emoji). Rendering + wiring is shared between the
+   compact feed and the full-screen board via socialBar()/wireSocial(). Demo
+   items (no f.post_id) stay ephemeral — the diorama never writes. */
+const REACTIONS=[
+  {e:'🔥', label:'heater'},      /* 🔥 hot round, on a run */
+  {e:'🦅', label:'the eagle'},   /* 🦅 genuinely great, respect */
+  {e:'⛳',       label:'dialed'},      /* ⛳ stuck it, clean golf */
+  {e:'🧊', label:'ice'},         /* 🧊 clutch, closed it out */
+  {e:'🐍', label:'snake'},       /* 🐍 playful jab, three-putt energy */
+  {e:'🚨', label:'sandbagger'},  /* 🚨 the friendly accusation */
+];
+const RXLABEL=Object.fromEntries(REACTIONS.map(r=>[r.e,r.label]));
+/* demo items arrive with legacy kud/mine — fold them into a 🔥 chip once so
+   the diorama keeps reacting without a post row. */
+function ensureRx(f){
+  if(f.rx) return f.rx;
+  f.rx={};
+  if(f.kud){ f.rx['🔥']={n:f.kud, me:!!f.mine, who:[]}; }
+  return f.rx;
+}
+/* HTML for the reaction chips + comment toggle + palette + thread. fi is the
+   feed index (the wiring key); the item must carry a stable identity for the
+   handlers to find it. */
+function socialBar(f, fi, opts){
+  const comments = !opts || opts.comments!==false;   /* chat lines react but don't thread */
+  const rx=ensureRx(f); const cm=f.cm||(f.cm=[]);
+  const chips=Object.keys(rx).filter(e=>rx[e]&&rx[e].n>0).map(e=>{
+    const r=rx[e]; const who=(r.who&&r.who.length)?r.who.join(', '):'';
+    const title=`${RXLABEL[e]||''}${who?' — '+who:''}`;
+    return `<button class="rxchip ${r.me?'on':''}" data-rx="${fi}" data-e="${e}" title="${esc(title)}"><span class="e">${e}</span>${r.n}</button>`;
+  }).join('');
+  const pal=REACTIONS.map(r=>
+    `<button data-rxpick="${fi}" data-e="${r.e}" title="${esc(r.label)}" aria-label="${esc(r.label)}">${r.e}</button>`).join('');
+  const cmBtn = comments ? `<button class="rxcm" data-c="${fi}">💬 ${cm.length}</button>` : '';
+  const thread = comments ? `<div class="cthread" id="th${fi}" style="display:none">
+      ${cm.map(c=>`<div class="crow"><b>${esc(c.w)}</b>${esc(c.t)}</div>`).join('')}
+      <div class="cinput">
+        <input class="f" placeholder="Talk your talk…" data-i="${fi}">
+        <button class="mini" data-s="${fi}">Send</button>
+      </div>
+    </div>` : '';
+  return `<div class="social">
+    <div class="rxbar">
+      ${chips}
+      <button class="rxadd" data-rxadd="${fi}"><span class="e">☺</span> react</button>
+      ${cmBtn}
+    </div>
+    <div class="rxpalette" id="rxp${fi}">${pal}</div>
+    ${thread}
+  </div>`;
+}
+/* who am I on the board */
+function myBoardName(){ return state.demo ? DEMO_ME : (window.CS?.member ? memName(window.CS.member.id) : 'You'); }
+/* toggle my reaction of `emoji` on feed item f — optimistic, DB-backed when real */
+async function toggleRx(f, emoji){
+  const rx=ensureRx(f); const me=myBoardName();
+  const cur=rx[emoji]||(rx[emoji]={n:0, me:false, who:[]});
+  const had=cur.me;
+  /* optimistic local flip */
+  if(had){ cur.me=false; cur.n=Math.max(0,cur.n-1); cur.who=(cur.who||[]).filter(w=>w!==me); }
+  else   { cur.me=true;  cur.n++; (cur.who||(cur.who=[])).push(me); }
+  rerenderFeeds();
+  if(state.demo || !f.post_id || !window.sb || !window.CS?.member) return;
+  const row={ post_id:f.post_id, member_id:window.CS.member.id, emoji };
+  let error;
+  if(had){ ({ error } = await window.sb.from('post_kudos').delete().match(row)); }
+  else   { ({ error } = await window.sb.from('post_kudos').insert(row)); }
+  /* deploy-skew: pre-migration the emoji column is absent — degrade to a plain
+     kudos row so a live user's tap still lands (reads back as 🔥). */
+  if(error && /emoji|column|schema/i.test(error.message||error.code||'')){
+    const bare={ post_id:f.post_id, member_id:window.CS.member.id };
+    ({ error } = had ? await window.sb.from('post_kudos').delete().match(bare)
+                     : await window.sb.from('post_kudos').insert(bare));
+  }
+  if(error){ /* revert the optimistic flip */
+    if(had){ cur.me=true; cur.n++; (cur.who||(cur.who=[])).push(me); }
+    else   { cur.me=false; cur.n=Math.max(0,cur.n-1); cur.who=(cur.who||[]).filter(w=>w!==me); }
+    rerenderFeeds(); toast('Reaction didn’t save: '+(error.message||error.code||'unknown'));
+  }
+}
+/* post a comment on feed item f — optimistic echo, DB-backed when real */
+async function sendComment(f, text){
+  const v=(text||'').trim(); if(!v) return;
+  const cm=f.cm||(f.cm=[]);
+  cm.push({ w:myBoardName(), t:v });
+  rerenderFeeds();
+  if(state.demo || !f.post_id || !window.sb || !window.CS?.member) return;
+  const { error } = await window.sb.from('post_comments').insert({
+    post_id:f.post_id, member_id:window.CS.member.id, body:v });
+  if(error){ cm.pop(); rerenderFeeds(); toast('Comment didn’t send: '+(error.message||error.code||'unknown')); }
+}
+/* re-render the feed. renderFeed() already cascades to the full board when
+   it's open, so one call refreshes both views. */
+function rerenderFeeds(){ renderFeed(); }
+/* pull reactions + comments for a set of post ids and fold them onto the
+   matching feed items. select('*') on post_kudos keeps it deploy-skew safe —
+   a pre-migration table (no emoji column) just defaults every row to 🔥. */
+async function fetchSocial(pids){
+  pids = (pids||[]).filter(Boolean);
+  feed.forEach(f=>{ if(f.post_id){ f.rx = {}; f.cm = []; } });
+  if(!pids.length || !window.sb) return;
+  let kud, cmt;
+  try{
+    ([{ data: kud }, { data: cmt }] = await Promise.all([
+      window.sb.from('post_kudos').select('*').in('post_id', pids),
+      window.sb.from('post_comments').select('post_id, member_id, body, created_at')
+        .in('post_id', pids).order('created_at', { ascending:true }),
+    ]));
+  }catch(e){ console.warn('[social]', e); return; }
+  const rxBy={}, cmBy={}, mine=window.CS?.member?.id;
+  (kud||[]).forEach(k=>{
+    const e=k.emoji||'🔥';
+    const s=((rxBy[k.post_id]||={})[e]||={n:0, me:false, who:[]});
+    s.n++; if(k.member_id===mine) s.me=true; s.who.push(memName(k.member_id));
+  });
+  (cmt||[]).forEach(c=>{ (cmBy[c.post_id]||=[]).push({ w:memName(c.member_id), t:c.body }); });
+  feed.forEach(f=>{ if(f.post_id){ f.rx = rxBy[f.post_id] || {}; f.cm = cmBy[f.post_id] || []; } });
+}
+/* realtime nudge: a reaction/comment landed elsewhere — re-pull just the
+   social layer for the current board and repaint (no standings refetch) */
+async function refreshSocial(){
+  if(state.demo || !window.CS?.league) return;
+  await fetchSocial([...new Set(feed.filter(f=>f.post_id).map(f=>f.post_id))]);
+  rerenderFeeds();
+}
+window.refreshSocial = refreshSocial;
+/* attach the shared handlers to a feed container. `lookup` maps a feed index
+   (data attr) back to the feed item — both renderers pass fi = position in
+   `feed`, so the lookup is just feed[fi]. */
+function wireSocial(el){
+  el.querySelectorAll('[data-rx]').forEach(b=>b.addEventListener('click',()=>{
+    const f=feed[+b.dataset.rx]; if(f) toggleRx(f, b.dataset.e);
+  }));
+  el.querySelectorAll('[data-rxadd]').forEach(b=>b.addEventListener('click',()=>{
+    const p=el.querySelector('#rxp'+b.dataset.rxadd); if(p) p.classList.toggle('open');
+  }));
+  el.querySelectorAll('[data-rxpick]').forEach(b=>b.addEventListener('click',()=>{
+    const f=feed[+b.dataset.rxpick]; if(!f) return;
+    const p=el.querySelector('#rxp'+b.dataset.rxpick); if(p) p.classList.remove('open');
+    const rx=ensureRx(f); const cur=rx[b.dataset.e];
+    if(cur&&cur.me) return;          /* already reacted with this one — no-op */
+    toggleRx(f, b.dataset.e);
+  }));
+  el.querySelectorAll('[data-c]').forEach(b=>b.addEventListener('click',()=>{
+    const t=el.querySelector('#th'+b.dataset.c);
+    if(t) t.style.display = t.style.display==='none' ? 'block':'none';
+  }));
+  el.querySelectorAll('[data-s]').forEach(b=>b.addEventListener('click',()=>{
+    const fi=b.dataset.s;
+    const inp=el.querySelector(`input[data-i="${fi}"]`);
+    const f=feed[+fi]; if(!f||!inp) return;
+    sendComment(f, inp.value); inp.value='';
+  }));
+  el.querySelectorAll('.cinput input[data-i]').forEach(inp=>inp.addEventListener('keydown',e=>{
+    if(e.key==='Enter'){ const f=feed[+inp.dataset.i]; if(f){ sendComment(f, inp.value); inp.value=''; } }
+  }));
+}
 function renderFeed(){
   const el=$('#feedList'); el.innerHTML='';
   /* E3: the Pro's latest announcement rides pinned above the noise —
@@ -2653,8 +2843,10 @@ function renderFeed(){
       lastD=f.d;
     }
     if(f.roundpost){
+      /* the round line IS the reactable story in the compact feed — reactions
+         + comments ride inside the text column, below the color stripe */
       el.insertAdjacentHTML('beforeend',
-        `<div class="msgrow"><span class="bar" style="background:${SQHEX[f.ci]}"></span><div class="mtxt">${esc(easeCaps(f.txt))}</div></div>`);
+        `<div class="msgrow"><span class="bar" style="background:${SQHEX[f.ci]}"></span><div class="mtxt">${esc(easeCaps(f.txt))}${socialBar(f,fi)}</div></div>`);
       return;
     }
     if(f.ann){
@@ -2671,9 +2863,10 @@ function renderFeed(){
       return;
     }
     if(f.msg){
-      /* chat bodies are user-composed — escape, never trust as HTML */
+      /* chat bodies are user-composed — escape, never trust as HTML.
+         chat reacts but doesn't thread (comments:false) */
       el.insertAdjacentHTML('beforeend',
-        `<div class="msgrow"><span class="bar" style="background:${SQHEX[f.ci]}"></span><div class="mtxt"><b>${esc(f.who)}${founderTag(f.pid, f.who)}</b>${esc(f.txt)}</div></div>`);
+        `<div class="msgrow"><span class="bar" style="background:${SQHEX[f.ci]}"></span><div class="mtxt"><b>${esc(f.who)}${founderTag(f.pid, f.who)}</b>${esc(f.txt)}${socialBar(f,fi,{comments:false})}</div></div>`);
       return;
     }
     const up=f.pvi>=0;
@@ -2688,46 +2881,25 @@ function renderFeed(){
         <span class="pvi ${up?'up':'dn'}">${up?'+':''}${f.pvi.toFixed(1)}</span>
         <div class="pts">${f.pts}<small>PTS</small></div>
       </div>
-      <div class="factions">
-        <button class="act ${f.mine?'on':''}" data-k="${fi}">🔥 ${f.kud}</button>
-        <button class="act" data-c="${fi}">💬 ${f.cm.length}</button>
-      </div>
-      <div class="cthread" id="th${fi}" style="display:none">
-        ${f.cm.map(c=>`<div class="crow"><b>${esc(c.w)}</b>${esc(c.t)}</div>`).join('')}
-        <div class="cinput">
-          <input class="f" placeholder="Talk your talk…" data-i="${fi}">
-          <button class="mini" data-s="${fi}">Send</button>
-        </div>
-      </div>`;
+      ${socialBar(f,fi)}`;
     el.appendChild(card);
   });
   el.querySelectorAll('[data-fp]').forEach(b=>b.addEventListener('click',()=>{
     if(HIST[b.dataset.fp]) showPlayer(b.dataset.fp);
   }));
-  el.querySelectorAll('[data-k]').forEach(b=>b.addEventListener('click',()=>{
-    const f=feed[+b.dataset.k]; f.mine=!f.mine; f.kud+=f.mine?1:-1; renderFeed();
-    if(f.mine)toast('Kudos sent to '+f.who);
-  }));
-  el.querySelectorAll('[data-c]').forEach(b=>b.addEventListener('click',()=>{
-    const t=$('#th'+b.dataset.c);
-    t.style.display = t.style.display==='none' ? 'block':'none';
-  }));
-  el.querySelectorAll('[data-s]').forEach(b=>b.addEventListener('click',()=>{
-    const fi=+b.dataset.s;
-    const inp=el.querySelector(`input[data-i="${fi}"]`);
-    const v=inp.value.trim(); if(!v)return;
-    feed[fi].cm.push({w:(state.demo?DEMO_ME:'You'),t:v});
-    renderFeed();
-    const t=$('#th'+fi); if(t)t.style.display='block';
-  }));
+  wireSocial(el);
   if($('#boardFull')?.classList.contains('open')) renderFeedFull();
 }
-/* the full-screen board: every round is a story card (Strava pattern) */
-function renderFeedFull(){
+/* the full-screen board: every round is a story card (Strava pattern).
+   `force` scrolls to the newest (open + fresh chat); otherwise we preserve the
+   reader's position so a reaction tap mid-scroll doesn't yank the board down. */
+function renderFeedFull(force){
   const el=$('#feedListFull'); if(!el) return;
+  const prevTop=el.scrollTop;
+  const atBottom = el.scrollHeight - prevTop - el.clientHeight < 60;
   el.innerHTML='';
   let lastD=null;
-  feed.forEach(f=>{
+  feed.forEach((f,fi)=>{
     if(f.d!==lastD){ el.insertAdjacentHTML('beforeend',`<div class="datesep">${f.d}</div>`); lastD=f.d; }
     if(f.roundpost){
       const r=(window.roundCache||{})[f.rid];
@@ -2752,7 +2924,7 @@ function renderFeedFull(){
           </div>
           ${r.pvi!=null?`<span class="pvi ${up?'up':'dn'}">${up?'+':''}${Number(r.pvi).toFixed(1)}</span>`:''}
           ${r.points!=null?`<div class="pts">${r.points}<small>PTS</small></div>`:''}
-        </div></div>`);
+        </div>${socialBar(f,fi)}</div>`);
         return;
       }
       el.insertAdjacentHTML('beforeend',`<div class="sysrow">◆ ${esc(easeCaps(f.txt||''))}</div>`);
@@ -2763,10 +2935,10 @@ function renderFeedFull(){
     if(f.sys){ el.insertAdjacentHTML('beforeend',`<div class="sysrow">◆ ${esc(easeCaps(f.txt||''))}</div>`); return; }
     if(f.msg){
       el.insertAdjacentHTML('beforeend',
-        `<div class="msgrow"><span class="bar" style="background:${SQHEX[f.ci]}"></span><div class="mtxt"><b>${esc(f.who)}${founderTag(f.pid, f.who)}</b>${esc(f.txt)}</div></div>`);
+        `<div class="msgrow"><span class="bar" style="background:${SQHEX[f.ci]}"></span><div class="mtxt"><b>${esc(f.who)}${founderTag(f.pid, f.who)}</b>${esc(f.txt)}${socialBar(f,fi,{comments:false})}</div></div>`);
       return;
     }
-    /* demo diorama round cards: same story shape, no actions */
+    /* demo diorama round cards: same story shape */
     if(f.pts!=null){
       const up=f.pvi>=0;
       el.insertAdjacentHTML('beforeend',`
@@ -2776,14 +2948,15 @@ function renderFeedFull(){
         <div class="rline">${bandName(f.pvi).toUpperCase()}</div></div>
         <span class="pvi ${up?'up':'dn'}">${up?'+':''}${f.pvi.toFixed(1)}</span>
         <div class="pts">${f.pts}<small>PTS</small></div>
-      </div></div>`);
+      </div>${socialBar(f,fi)}</div>`);
     }
   });
-  requestAnimationFrame(()=>{ el.scrollTop = el.scrollHeight; });
+  wireSocial(el);
+  requestAnimationFrame(()=>{ el.scrollTop = (force||atBottom) ? el.scrollHeight : prevTop; });
 }
 function openBoardFull(){
   $('#bfSub').textContent = (window.CS?.league?.name || state.demo && 'The Sunday Cup' || 'Cup Season').toUpperCase();
-  renderFeedFull();
+  renderFeedFull(true);
   $('#boardFull').classList.add('open');
   document.body.style.overflow='hidden';
 }
@@ -7088,7 +7261,7 @@ async function loadStandingsAndFeed(){
 
   /* feed: the posts table is the board */
   const { data: posts } = await sb.from('posts')
-    .select('kind, body, created_at, member_id, round_id').eq('league_id', CS.league.id)
+    .select('id, kind, body, created_at, member_id, round_id').eq('league_id', CS.league.id)
     .order('created_at', { ascending:true }).limit(120);
   const memCi = id => {
     const i = CS.squads.findIndex(q => (q.squad_members||[]).some(x => x.member_id === id));
@@ -7098,9 +7271,10 @@ async function loadStandingsAndFeed(){
   (posts||[]).forEach(p => {
     const d = new Date(p.created_at);
     const ds = `${DOW[d.getDay()]} \u00b7 ${MOS[d.getMonth()]} ${d.getDate()}`;
-    if(p.kind === 'chat') feed.push({ d: ds, msg:true, who: memName(p.member_id) + ' ', pid: memPid(p.member_id), ci: memCi(p.member_id), txt:p.body });
+    /* chat + round posts carry post_id so reactions/comments can attach */
+    if(p.kind === 'chat') feed.push({ d: ds, msg:true, post_id:p.id, who: memName(p.member_id) + ' ', pid: memPid(p.member_id), ci: memCi(p.member_id), txt:p.body });
     else if(p.kind === 'announce') feed.push({ d: ds, ann:true, txt:p.body });
-    else if(p.kind === 'round' && p.round_id) feed.push({ d: ds, roundpost:true, rid: p.round_id, who: memName(p.member_id), ci: memCi(p.member_id), txt: p.body });
+    else if(p.kind === 'round' && p.round_id) feed.push({ d: ds, roundpost:true, post_id:p.id, rid: p.round_id, who: memName(p.member_id), ci: memCi(p.member_id), txt: p.body });
     else if(p.kind === 'moment') feed.push({ d: ds, moment:true, txt:p.body });
     else feed.push({ d: ds, sys:true, txt:p.body });
   });
@@ -7133,6 +7307,10 @@ async function loadStandingsAndFeed(){
     (rds || []).forEach(r => { window.roundCache[r.id] = r; });
     (rank || []).forEach(r => Object.assign(window.roundCache[r.round_id] ||= {}, r));
   }
+
+  /* reactions + comments: fold the board's social layer onto each feed item */
+  await fetchSocial([...new Set(feed.filter(f => f.post_id).map(f => f.post_id))]);
+
   if(!feed.length) feed.push({ d: dAgo(0), sys:true, txt:(CS.league.name||'Your league')+' is live \u2014 post the first round' });
 
   /* the You tab + Home month numbers, off the same views the server scores
@@ -7350,6 +7528,11 @@ async function subscribeLeague(){
     const { data:{ session } } = await sb.auth.getSession();
     if(session) rtClient.realtime.setAuth(session.access_token);
   } catch(e){ console.warn('[realtime] setup', e); }
+  /* reactions/comments arrive on their own tables (no league_id column of
+     their own — RLS scopes them to my leagues). Coalesce a burst into one
+     light social refresh so a flurry of taps doesn't refetch per event. */
+  let socialT=null;
+  const nudgeSocial=()=>{ clearTimeout(socialT); socialT=setTimeout(()=>{ if(window.refreshSocial) window.refreshSocial(); }, 250); };
   CS.chan = rtClient.channel('lg-' + CS.league.id)
     .on('postgres_changes',
       { event:'INSERT', schema:'public', table:'posts', filter:'league_id=eq.' + CS.league.id },
@@ -7358,6 +7541,8 @@ async function subscribeLeague(){
         if(window.loadHome) window.loadHome();        /* the one home feed (IA P1) */
         if(state.phase === 'draft') loadLeagueData(); /* board carries the draw reveal */
       })
+    .on('postgres_changes', { event:'*', schema:'public', table:'post_kudos' }, nudgeSocial)
+    .on('postgres_changes', { event:'*', schema:'public', table:'post_comments' }, nudgeSocial)
     .subscribe((status, err) => {
       /* keep failures loud in the breadcrumbs — silence cost a full session */
       console.log('[realtime]', status, err || '');

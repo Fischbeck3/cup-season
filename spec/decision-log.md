@@ -467,6 +467,63 @@ already earned objects — any new fact type would need its own entry).*
 
 ---
 
+## Batch 6 — 2026-07-16, the board reacts back (Social lane)
+
+### D-NN · Reactions & comments become real, with a crew vocabulary
+*(coordinator: assign the next free D-number — the lane numbered D20/D21
+independently once already; this is the fix.)*
+- **Current:** the board's 🔥 kudos and 💬 comments are **theater** — a local
+  counter and an in-memory array (`f.kud++`, `feed[fi].cm.push`), gone on
+  reload. The backend has always been there: `post_kudos` (PK `post_id,
+  member_id`) and `post_comments` ship in the baseline with RLS
+  (`kudos_all`, `comments_add`/`comments_read`) and both sit in the
+  `supabase_realtime` publication. The client simply never wrote to them.
+- **Problem:** the two pillars this lane owns are "feels alive" and "memory >
+  statistics," and the single most-touched surface — reacting to a mate's
+  round — persists nothing and says nothing back. A reaction is also
+  one-note: an undifferentiated cheer can't carry a golf crew's actual voice,
+  where a suspicious 79 earns a 🦅 and a 🚨 in the same breath.
+- **Recommendation:** wire the existing spine, and give a reaction an **emoji
+  vocabulary** — six curated: 🔥 heater · 🦅 the eagle · ⛳ dialed · 🧊 ice ·
+  🐍 snake · 🚨 sandbagger. One row per `(post_id, member_id, emoji)` (PK
+  repointed to include emoji, Slack-style stacking), so a card collects a pile
+  of distinct reactions. Reactions ride **round story cards and chat** in both
+  feed views; comments thread on **round cards only** (a per-line reply thread
+  on chat is noise). Counts show *who* reacted (chip title) — §16, shows its
+  work. Demo stays ephemeral (the diorama never writes). Realtime: a light
+  social-only refresh on `post_kudos`/`post_comments` change, not a standings
+  refetch.
+- **Principle:** #5 Feels Alive (the board answers back); memory > statistics
+  (the reactions + talk become part of the round's record); §16 (who cheered
+  is legible).
+- **CONFLICT check (level 4 — vs D20):** D20's guardrail reads "not a standing
+  sub-feed… no generic social features." Named and resolved: the reaction/
+  comment tables **predate** D20 — they were always in the intended model, not
+  a new generic-social bolt-on. Reactions/comments **anchor to a specific
+  post** (a round or a chat line) and travel with it; they serve the exact
+  locker-room→scrapbook arc D20 wants, rather than opening a rival feed. The
+  guardrail still holds: no standing sub-feed, no follows, no DMs — reactions
+  live *on the memory*, not beside it.
+- **Benefit:** the highest-frequency social act finally persists and speaks the
+  crew's language; a round card becomes a small, permanent scene.
+- **Tradeoffs:** (a) one migration repoints the `post_kudos` PK — safe (the
+  table has never had a client writer, so it's empty in prod); deploy-skew
+  falls back to a plain 🔥 kudos on a missing-column error so a live tap never
+  breaks. (b) A social realtime refresh mid-typing collapses an open comment
+  thread — same class of behavior the existing chat realtime already has;
+  flagged as a follow-on (preserve open-thread + in-progress input across
+  social re-renders), not fixed here. (c) The emoji palette is fixed/curated,
+  not user-defined — deliberate; an open reaction picker is a generic-social
+  feature D20 rules out.
+
+*Ships:* migration `20260716230000_post_reactions.sql` (needs a `db push`) +
+client (`index.html`). Verified in the demo diorama: add/toggle reactions,
+post comments, both feed views, clean console. Real-path persistence/realtime
+follows the established `sendChatFrom` + RLS pattern (untestable in-sandbox
+without an authed league).
+
+---
+
 *Non-entries (checked, no change and no conflict): the single-player
 heartbeat / individual free hook is already approved direction (ESPN model,
 2026-07); the translation pass (D1–D3) touches no level-4 rule; Cup Final
