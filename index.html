@@ -1504,6 +1504,7 @@ body::before{
       <input id="joinCode" placeholder="CUP-CODE" maxlength="8" autocomplete="off">
       <button class="btn" id="joinGo">Join</button>
     </div>
+    <p class="fine" style="text-align:center; margin-top:16px; opacity:.7">By continuing you agree to the <a href="/legal.html#terms" target="_blank" rel="noopener" style="color:var(--mut); text-decoration:underline">Terms</a> &amp; <a href="/legal.html#privacy" target="_blank" rel="noopener" style="color:var(--mut); text-decoration:underline">Privacy Policy</a>.</p>
     </div>
     <div id="obProfile" style="display:none">
       <div class="ob-hero" style="margin-bottom:18px">
@@ -2332,11 +2333,15 @@ body::before{
     b.textContent='⚠ '+msg+'  — screenshot this and send it';
   }
   window.addEventListener('error', function(e){
-    show((e.message||'script error')+' @ '+(e.filename||'').split('/').pop()+':'+(e.lineno||'?'));
+    var m=(e.message||'script error')+' @ '+(e.filename||'').split('/').pop()+':'+(e.lineno||'?');
+    show(m);
+    try{ if(typeof qaEvent==='function') qaEvent('client_error', { kind:'error', msg:String(m).slice(0,300) }); }catch(_){}
   });
   window.addEventListener('unhandledrejection', function(e){
     var r=e.reason||{};
-    show('async: '+(r.message||String(r)));
+    var m='async: '+(r.message||String(r));
+    show(m);
+    try{ if(typeof qaEvent==='function') qaEvent('client_error', { kind:'rejection', msg:String(m).slice(0,300) }); }catch(_){}
   });
 })();
 (function(){
@@ -2951,6 +2956,7 @@ function socialBar(f, fi, opts){
     <div class="rxbar">
       ${chips}
       <button class="rxadd" data-rxadd="${fi}" title="Add a reaction" aria-label="Add a reaction">+</button>
+      ${f.post_id?`<button class="rxadd" data-report="${fi}" title="Report this post" aria-label="Report this post">⚑</button>`:''}
       ${cmBtn}
     </div>
     <div class="rxpalette" id="rxp${fi}">${pal}</div>
@@ -3041,6 +3047,20 @@ async function refreshSocial(){
   renderHomeFeed();
   if(window.renderHomeDigest) renderHomeDigest();   /* a live 🔥 on your round is digest news */
 }
+/* report a board post/round/chat line to the league. Backed by report_content
+   (dedupes per reporter+post); degrades to a toast if the RPC isn't live yet. */
+async function reportPost(f){
+  if(!f || !f.post_id) return;
+  if(state.demo || !window.sb){ toast('Sign in to report a post'); return; }
+  const reason = prompt('Report this post to keep the boards clean.\nWhat’s wrong with it?');
+  if(reason===null) return;
+  try{
+    const { error } = await window.sb.rpc('report_content', { p_post: f.post_id, p_reason: (reason||'').slice(0,500) });
+    if(error) throw error;
+    toast('Reported — thanks. We’ll take a look.');
+    try{ if(typeof qaEvent==='function') qaEvent('content_reported', { post: f.post_id }); }catch(_){}
+  }catch(e){ toast('Couldn’t send the report: '+(e.message||e.code||'try again')); }
+}
 window.refreshSocial = refreshSocial;
 /* attach the shared handlers to a feed container. `lookup` maps a feed index
    (data attr) back to the feed item — both renderers pass fi = position in
@@ -3051,6 +3071,9 @@ function wireSocial(el){
   }));
   el.querySelectorAll('[data-rxadd]').forEach(b=>b.addEventListener('click',()=>{
     const p=el.querySelector('#rxp'+b.dataset.rxadd); if(p) p.classList.toggle('open');
+  }));
+  el.querySelectorAll('[data-report]').forEach(b=>b.addEventListener('click',()=>{
+    const f=feed[+b.dataset.report]; if(f) reportPost(f);
   }));
   el.querySelectorAll('[data-rxpick]').forEach(b=>b.addEventListener('click',()=>{
     const f=feed[+b.dataset.rxpick]; if(!f) return;
@@ -7729,6 +7752,7 @@ function openProfileHub(){
          never shows once you're pinned + signed in). Stamped at deploy — the
          same __CS_VERSION__ substitution as the caption; NEVER hand-edit. -->
     <p class="fine" style="padding-left:0; margin-top:24px; opacity:.55">Cup Season · v23 · __CS_VERSION__</p>
+    <p class="fine" style="padding-left:0; margin-top:6px; opacity:.55"><a href="/legal.html#privacy" target="_blank" rel="noopener" style="color:var(--mut)">Privacy</a> · <a href="/legal.html#terms" target="_blank" rel="noopener" style="color:var(--mut)">Terms</a> · <a href="/legal.html#pot" target="_blank" rel="noopener" style="color:var(--mut)">Prize pool</a></p>
     </div>
   `);
   document.querySelectorAll('#phSeg [data-ph]').forEach(b => b.addEventListener('click', () => {
