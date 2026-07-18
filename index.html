@@ -1075,7 +1075,9 @@ html[data-theme="light"] .momrow{background:rgba(21,116,63,.06);}
   position:fixed; left:50%; bottom:92px; transform:translateX(-50%) translateY(12px);
   background:var(--ink); color:var(--bg0); font-size:13px; font-weight:600;
   padding:11px 18px; border-radius:99px; opacity:0; pointer-events:none;
-  transition:all .22s ease; max-width:86%; text-align:center; z-index:40;
+  /* above the sheets (z 200) — "Card saved" was firing invisibly behind an
+     open sheet (pilot feedback, 2026-07-17) */
+  transition:all .22s ease; max-width:86%; text-align:center; z-index:1000;
 }
 @media(min-width:960px){ .toast{bottom:28px;} }
 .toast.show{opacity:1; transform:translateX(-50%) translateY(0);}
@@ -7132,7 +7134,7 @@ async function renderCrewPeople(){
   let t=null;
   document.getElementById('crFind').addEventListener('input', ()=>{ clearTimeout(t); t=setTimeout(async()=>{
     const q=document.getElementById('crFind').value.trim(), rb=document.getElementById('crResults');
-    if(q.length<2){ rb.innerHTML=''; return; }
+    if(!q.length){ rb.innerHTML=''; return; }   /* one letter searches (pilot: "M" must find @mm…) */
     const res=await psSearch(q);
     rb.innerHTML = res.length ? res.map(r=>psRow(r, (r.rel==='none'||r.rel==='incoming')
         ? `<span class="pact"><button class="mini" data-add="${r.profile_id}">${r.rel==='incoming'?'Accept':'Add'}</button></span>`
@@ -7336,7 +7338,7 @@ function openPeoplePicker(opts){
   let t=null;
   document.getElementById('ppFind').addEventListener('input', ()=>{ clearTimeout(t); t=setTimeout(async()=>{
     const q=document.getElementById('ppFind').value.trim();
-    if(q.length<2){ psFriends().then(d=>render(d.filter(f=>f.status==='accepted'))); return; }
+    if(!q.length){ psFriends().then(d=>render(d.filter(f=>f.status==='accepted'))); return; }
     render(await psSearch(q));
   }, 350); });
 }
@@ -7463,7 +7465,9 @@ function openProfileHub(){
       await loadProfile();
       refreshWhoChip();
       toast('Card saved');
-    } catch(e){ $('#phStatus').textContent = 'Save failed: ' + (e.message||e); }
+      /* the sheet stays open, so confirm inside it too (pilot feedback) */
+      $('#phStatus').textContent = 'Card saved ✓'; $('#phStatus').style.color = 'var(--pos)';
+    } catch(e){ $('#phStatus').textContent = 'Save failed: ' + (e.message||e); $('#phStatus').style.color = ''; }
     finally { btn.disabled = false; }
   });
 
@@ -8745,18 +8749,32 @@ window.enterLeagueById = async (id, nav=true) => {
 });
 
 /* the escape hatch: a league that never went live can be deleted by the Pro.
-   Typed-name gate — heavier friction than confirm(), on purpose. The RPC
-   re-validates phase + first tee server-side; rounds are never touched. */
+   Two tiers (pilot feedback, 2026-07-17): a league that's still just you gets a
+   plain confirm — the typed-name ritual made the create-and-scrap loop feel
+   like defusing a bomb. Once OTHER golfers have joined, the heavy gate stays:
+   deleting takes their seat, their board, their pot sheet. The RPC re-validates
+   phase + first tee server-side either way; rounds are never touched. */
 document.getElementById('hhDelete')?.addEventListener('click', async e => {
   e.preventDefault();
   if(state.demo || !CS.league || CS.member?.role !== 'commissioner') return;
   const nm = CS.league.name;
-  const typed = prompt(
-    `This deletes ${nm} for everyone in it: members, board, pot sheet, squads. ` +
-    `Rounds stay on every golfer's profile. Type the league name to confirm:`);
-  if(typed === null) return;
-  if(typed.trim().toLowerCase() !== nm.trim().toLowerCase()){
-    toast('Name didn’t match: nothing deleted'); return;
+  let others = 1;   /* unknown → assume someone's in, keep the heavy gate */
+  try {
+    const { count } = await sb.from('league_members')
+      .select('*', { count: 'exact', head: true })
+      .eq('league_id', CS.league.id).neq('profile_id', CS.user.id);
+    others = count ?? 1;
+  } catch(_){}
+  if(others === 0){
+    if(!confirm(`Delete ${nm}? It's just you in it — the league, its board and settings go completely.`)) return;
+  } else {
+    const typed = prompt(
+      `This deletes ${nm} for everyone in it: members, board, pot sheet, squads. ` +
+      `Rounds stay on every golfer's profile. Type the league name to confirm:`);
+    if(typed === null) return;
+    if(typed.trim().toLowerCase() !== nm.trim().toLowerCase()){
+      toast('Name didn’t match: nothing deleted'); return;
+    }
   }
   try {
     const { error } = await sb.rpc('delete_league', { p_league: CS.league.id });

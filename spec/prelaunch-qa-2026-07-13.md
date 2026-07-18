@@ -134,6 +134,21 @@ waive.
 ## Findings log
 _(date · gate · what stalled · fix)_
 
+### 2026-07-17 · first pilot_feedback rows (3) — all fixed same day
+- **Search too strict (gate 5 in spirit):** a user couldn't find his buddy —
+  handle/display both start "Mm" (email-derived), so "Mi"/"Ma" matched nothing
+  and the one query that would have ("M") was dropped by a 2-char floor in the
+  client AND the RPC. Fix: 1-char queries allowed, handle matches substring,
+  results ordered buddies → shared-league → handle-prefix → name
+  (migration `20260717194623_looser_golfer_search` + client gates).
+- **"Save card doesn't confirm":** it DID — `toast('Card saved')` fired at
+  z-index 40, behind the sheet overlay at z-index 200. Every toast fired from
+  inside any sheet was invisible. Fix: toast to z-index 1000 + an in-sheet
+  "Card saved ✓" status line.
+- **Typed-name league delete "annoying":** two tiers now — a league that's
+  still just the Pro gets a plain confirm; once others have joined, the
+  typed-name ritual stays (their seat/board/pot are at stake).
+
 ### 2026-07-17 · pre-pilot state
 - **DB wiped for the pilot** (keeper: jerecho@fischbeck3.com; backup
   `pre_pilot_backup_2026-07-17.sql`, restorable). The gate views will see only
