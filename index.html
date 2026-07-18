@@ -4656,7 +4656,14 @@ async function rehydrateLiveRound(){
     window.__liveResumeDiag={ ok:false, err:String(e&&e.message||e), local:resumed };
     return;   /* keep any local resume */
   }
-  const mineList=rounds.filter(r => (r.live_round_players||[]).some(p=>p.member?.profile_id===myPid));
+  /* pilot: "I joined a league and an in-progress round from days ago appeared."
+     A golf round is hours, not days — a still-'live' round older than 2 days is
+     an abandoned one, not something to resurface. Don't auto-resume it (the play
+     view's "Scrap this round" still closes it if they open it). */
+  const LIVE_MAX_AGE = 2*24*3600*1000;
+  const mineList=rounds.filter(r =>
+    (r.live_round_players||[]).some(p=>p.member?.profile_id===myPid)
+    && (!r.started_at || (Date.now() - new Date(r.started_at).getTime()) < LIVE_MAX_AGE));
   const openIds=new Set(mineList.map(r=>r.id));
   const mine=mineList[0]||null;
   window.__liveResumeDiag={ ok:true, openMine:mineList.length, local:resumed,
@@ -6837,11 +6844,21 @@ function renderCalendar(){
     const dowName = `${DOW[new Date(cur.y,cur.m,d).getDay()]} ${MOS[cur.m]} ${d}`;
     openSheet(dowName, `${items.length} ON THE SHEET`,
       items.map(it=> it.kind==='rd'
-        ? `<div class="check"><span class="num">${window.mkr?.(it.sr.marker||'saguaro')||'⛳'}</span><div class="tt"><b>${it.sr.mine?'You':esc(it.sr.display_name)}${it.sr.tee_time?' · <span style="color:var(--gold)">'+fmtTee(it.sr.tee_time)+'</span>':''}${it.sr.tagged_me?' · <span style="color:var(--gold)">YOU’RE IN</span>':(it.sr.shared_league&&!it.sr.mine?' · <span style="color:var(--gold)">LEAGUE MATE</span>':'')}</b><small>${[it.sr.course_label?esc(it.sr.course_label.toUpperCase()):null, (it.sr.tagged_names||[]).length?'WITH '+esc(it.sr.tagged_names.join(' & ').toUpperCase()):null, it.sr.note?'“'+esc(it.sr.note)+'”':null].filter(Boolean).join(' · ')||'ROUND ON THE BOOKS'}</small></div></div>`
+        ? `<div class="check"><span class="num">${window.mkr?.(it.sr.marker||'saguaro')||'⛳'}</span><div class="tt"><b>${it.sr.mine?'You':esc(it.sr.display_name)}${it.sr.tee_time?' · <span style="color:var(--gold)">'+fmtTee(it.sr.tee_time)+'</span>':''}${it.sr.tagged_me?' · <span style="color:var(--gold)">YOU’RE IN</span>':(it.sr.shared_league&&!it.sr.mine?' · <span style="color:var(--gold)">LEAGUE MATE</span>':'')}</b><small>${[it.sr.course_label?esc(it.sr.course_label.toUpperCase()):null, (it.sr.tagged_names||[]).length?'WITH '+esc(it.sr.tagged_names.join(' & ').toUpperCase()):null, it.sr.note?'“'+esc(it.sr.note)+'”':null].filter(Boolean).join(' · ')||'ROUND ON THE BOOKS'}</small></div>${it.sr.mine?'<span style="display:flex; gap:6px; flex:none; margin-left:auto"><button class="mini" data-retag="'+it.sr.id+'" title="Edit group">＋</button><button class="mini" data-scratch="'+it.sr.id+'" title="Cancel this round">✕</button></span>':''}</div>`
         : `<div class="check"><span class="num">⛳</span><div class="tt"><b style="${it.gold?'color:var(--gold)':''}">${esc(it.t)}</b></div></div>`
       ).join('')
       + (canAdd ? `<button class="btn dark" id="dayAdd" style="margin-top:12px">＋ Put your round on this day</button>` : ''));
     if(canAdd) document.getElementById('dayAdd')?.addEventListener('click', ()=>{ closeSheet(); openDeclareSheet(iso); });
+    /* manage your own round straight from the day sheet (pilot: cancel/edit was
+       only in the list below the grid, hard to find). Change the date = cancel
+       here, then re-add on the right day. */
+    $('#shBody')?.querySelectorAll('[data-retag]').forEach(b=>b.addEventListener('click',()=>{ closeSheet(); openRetagSheet(b.dataset.retag); }));
+    $('#shBody')?.querySelectorAll('[data-scratch]').forEach(b=>b.addEventListener('click', async()=>{
+      b.disabled=true;
+      try{ const {error}=await sb.rpc('scratch_round',{p_id:b.dataset.scratch}); if(error) throw error;
+        closeSheet(); toast('Round scratched'); loadSchedule(); if(window.loadWatchList) loadWatchList();
+      }catch(e){ toast('Scratch failed: '+(e.message||e)); b.disabled=false; }
+    }));
   }));
 
   /* the on-the-books list: this month's rounds with the social framing */
