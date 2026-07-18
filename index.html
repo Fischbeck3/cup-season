@@ -1967,7 +1967,7 @@ body::before{
 
         <div class="wizstep" data-step="1">
           <div class="setrow">
-            <div class="lab">Buy-in<small>Per player · season</small></div>
+            <div class="lab">Buy-in<small>Per player · $0 = bragging rights</small></div>
             <div class="val" id="stakeVal">$75</div>
             <div class="ctl"><button id="stakeDown" aria-label="Lower buy-in">−</button><button id="stakeUp" aria-label="Raise buy-in">+</button></div>
           </div>
@@ -2423,13 +2423,17 @@ const state = {
   finish:'cup_final',   /* the endgame dial (008): cup_final | points_table */
   payout:[60,25,15],    /* champ / runner-up / points king — sums 100 */
 };
-const STAKES=[25,50,75,100,150,200], LENGTHS=[6,9,12], CAPS=['Best 2','Best 4','Best 6','Unlimited'];
+const STAKES=[0,25,50,75,100,150,200], LENGTHS=[6,9,12], CAPS=['Best 2','Best 4','Best 6','Unlimited'];
 /* season length ladder in WEEKS — short casual seasons ("a quick 3-round run
    before it's cold") through full multi-month leagues. Flexible start (§14.0
    v1.1: Sunday-start no longer required — caps/floors stay calendar-month). */
 const DURS=[2,3,4,5,6,8,10,13,17,22,26,39,52];
 const durLabel = w => w<8 ? `${w} wk` : `${Math.round(w/4.345)} mo`;
-const durMonths = w => Math.max(1, Math.round(w/4.345));
+/* season_months is a coarse, stored-only settings field; the real season length
+   is week-based (durWeeks → seasons.starts_on/ends_on). The DB caps it to 3..12
+   (league_settings_season_months_check), so clamp here or a short/long season
+   fails to lock. */
+const durMonths = w => Math.min(12, Math.max(3, Math.round(w/4.345)));
 const WEEKS=18;
 /* the demo rides a real Sunday-season frame (spec §14.0): first tee 17 whole
    weeks back — today is always W18 of 24 — ending on a Saturday. Every date
@@ -4176,6 +4180,17 @@ attachCourseSearch('#inCourse', '#inRating', '#inSlope');
 
 /* ================= pot ================= */
 function renderPot(){
+  /* bragging rights: $0 buy-in means no pot, no buy-in tracking. One branch
+     covers both the demo and the real League Room. */
+  if(state.stake===0){
+    ['potAmt','chipPot'].forEach(id=>{ const e=$('#'+id); if(e) e.textContent='—'; });
+    const pm=$('#potMath'); if(pm) pm.textContent='Bragging rights · no money in play';
+    ['pay1','pay2','pay3'].forEach(id=>{ const e=$('#'+id); if(e) e.textContent='—'; });
+    ['paidChip','paidCount'].forEach(id=>{ const e=$('#'+id); if(e) e.textContent='Bragging rights'; });
+    const py=$('#payers'); if(py) py.innerHTML='<p class="fine" style="opacity:.7; padding:6px 2px">No buy-ins — this league plays for bragging rights.</p>';
+    const hps=$('#hubPotSub'); if(hps) hps.textContent='Bragging rights';
+    return;
+  }
   if(!state.demo){
     /* the pot prices off the REAL roster; collection state is the buy_ins
        table. The Pro taps a name as money moves — mark_buy_in RPC,
@@ -4261,7 +4276,7 @@ function syncWizSegs(){
   const ps=$('#presetSummary'); if(ps) ps.textContent=PRESET_SUMMARY[state.preset]||'';
 }
 function renderSetup(){
-  $('#stakeVal').textContent=fmt$(state.stake);
+  $('#stakeVal').textContent=state.stake===0?'None':fmt$(state.stake);
   $('#lenVal').textContent=durLabel(state.durWeeks);
   $('#capVal').textContent=CAPS[state.cap];
   $('#floorVal').textContent=state.floor+' / mo';
@@ -6647,8 +6662,10 @@ function renderBylaws(){
     <div class="byrow"><span>COUNTING CAP</span><b>${CAPS[state.cap]} / mo</b></div>
     <div class="byrow"><span>PARTICIPATION FLOOR</span><b>${state.floor} / mo · ${PENALTY[state.preset]}</b></div>
     <div class="byrow"><span>SEASON FORMAT</span><b>${FMT_NAMES[state.fmt]}</b></div>
-    <div class="byrow"><span>BUY-IN</span><b>${fmt$(state.stake)} / player</b></div>
-    <div class="byrow"><span>POT SPLIT</span><b>${(state.payout||[60,25,15]).join(' / ')} · champ / 2nd / king</b></div>
+    ${state.stake===0
+      ? `<div class="byrow"><span>BUY-IN</span><b>None · bragging rights</b></div>`
+      : `<div class="byrow"><span>BUY-IN</span><b>${fmt$(state.stake)} / player</b></div>
+    <div class="byrow"><span>POT SPLIT</span><b>${(state.payout||[60,25,15]).join(' / ')} · champ / 2nd / king</b></div>`}
     <div class="byrow"><span>SEASON</span><b>${durLabel(state.durWeeks)} · ${seasonSpanText()}</b></div>
     ${(state.finish||'cup_final')==='cup_final' && state.durWeeks>=6
       ? `<div class="byrow"><span>CUP FINAL</span><b>Final 4 weeks · from ${WD[cupFinalStart().getDay()]} ${MOS[cupFinalStart().getMonth()]} ${cupFinalStart().getDate()} · scored fresh</b></div>`
