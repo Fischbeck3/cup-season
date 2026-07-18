@@ -2113,6 +2113,8 @@ body::before{
             <div class="n">The Pro has the list.</div>
             <div class="m" id="draftPoolSub">12 PLAYERS IN THE POOL</div>
             <button class="btn" style="margin-top:16px" data-go="draft">Form the squads</button>
+            <button class="btn dark" style="margin-top:10px" id="draftShare">Share the invite link</button>
+            <div class="fine" id="draftJoinsQuiet" style="display:none; padding:8px 0 0"></div>
           </div>
         </div>
 
@@ -6785,11 +6787,29 @@ function renderLeagueMeta(){
   const L=window.CS.league, members=window.CS.members||[], squads=window.CS.squads||[];
   const n=members.length, players=k=>`${k} PLAYER${k===1?'':'S'}`;
   const hm=$('#hubMembersSub'); if(hm) hm.textContent=players(n);
-  const si=$('#setupInviteSub'); if(si) si.textContent=`CODE ${L.code} · ${n} JOINED`;
+  /* growth: the seat-fill loop — the structure's minimum headcount is the
+     target; short of it, every count reads as seats to fill, not a census */
+  const min=STRUCT_MIN[state.structure]||4, short=Math.max(0,min-n);
+  const si=$('#setupInviteSub');
+  if(si) si.textContent=`CODE ${L.code} · `+(short
+    ? `${n} OF ${min} IN — ${short} SEAT${short===1?'':'S'} OPEN`
+    : `${n} JOINED — ENOUGH FOR THE DRAW`);
   const seated=new Set();
   squads.forEach(q=>(q.squad_members||[]).forEach(x=>seated.add(x.member_id)));
   const pool=members.filter(m=>!seated.has(m.id)).length;
-  const dp=$('#draftPoolSub'); if(dp) dp.textContent=`${players(pool)} IN THE POOL`;
+  const dp=$('#draftPoolSub');
+  if(dp) dp.textContent=`${players(pool)} IN THE POOL`+(short?` · ${short} SEAT${short===1?'':'S'} OPEN`:'');
+  /* joins gone quiet? 48h since the last one, still short, pre-draw → say so */
+  const dq=$('#draftJoinsQuiet');
+  if(dq){
+    let quiet=false;
+    if(short && n){
+      const stamps=members.map(m=>+new Date(m.joined_at||0)).filter(v=>Number.isFinite(v)&&v>0);
+      quiet=stamps.length>0 && (Date.now()-Math.max(...stamps))>48*3600*1000;
+    }
+    dq.style.display=quiet?'block':'none';
+    if(quiet) dq.textContent='Joins have gone quiet — a nudge in the group chat usually does it.';
+  }
   const sm=$('#sideMeta');
   if(sm) sm.textContent=`${n} player${n===1?'':'s'} · ${STRUCT_NAMES[state.structure]||'—'}`;
   const bs=$('#brandSeason');
@@ -7698,6 +7718,40 @@ async function shareInvite(){
 }
 window.shareInvite = shareInvite;
 
+/* growth (2026-07-17): the wizard's last screen is the invite link. Seat math
+   comes from the structure the Pro just picked (STRUCT_MIN/NAMES are classic
+   top-level consts — visible here; the typeof guard keeps a future refactor
+   from crashing the lock celebration). */
+function openLockShare(nextPhase, sent){
+  const L = CS.league; if(!L || state.demo) return;
+  const SM = typeof STRUCT_MIN  !== 'undefined' ? STRUCT_MIN  : {solo:2,squads2:4,squads3:6,squads4:8};
+  const SN = typeof STRUCT_NAMES!== 'undefined' ? STRUCT_NAMES: {};
+  const n = (CS.members||[]).length, min = SM[state.structure]||4;
+  const need = Math.max(0, min - n);
+  const struct = (SN[state.structure]||'the squads').toLowerCase();
+  const line = nextPhase === 'season'
+    ? 'Season is live — every golfer you add posts from day one.'
+    : need ? `${n} in so far — ${need} more fills ${struct}, and the draw runs when the crew is in.`
+           : `${n} in — enough for ${struct}. Run the draw whenever you're ready.`;
+  openSheet('Bylaws locked ⛳', 'One link fills the league', `
+    <p class="fine" style="padding:0 0 10px">${esc(line)}${sent ? ` (${sent} already invited.)` : ''}</p>
+    <div class="card" style="text-align:left; padding:10px 12px; margin-bottom:12px">
+      <div class="fine" style="padding:0">You're invited to <b>${esc(L.name)}</b> on Cup Season<br>
+      <span class="mono">cupseason.app/?join=${esc(L.code)}</span></div>
+    </div>
+    <button class="btn" id="lkShare">Share the invite link</button>
+    <button class="btn dark" id="lkLater" style="margin-top:10px">Later — it lives in the league room</button>`);
+  document.getElementById('lkShare')?.addEventListener('click', () => shareInvite());
+  document.getElementById('lkLater')?.addEventListener('click', () => closeSheet());
+}
+
+/* growth (2026-07-17): squad-formation home card carries its own share button —
+   invites stay open until the draw, and any member can fill seats */
+document.getElementById('draftShare')?.addEventListener('click', () => {
+  if(state.demo){ toast('Demo league — invites work in your real league'); return; }
+  shareInvite();
+});
+
 /* ---------- push notifications: subscribe this device ---------- */
 /* VAPID public key — safe to ship in the client. 'PASTE_' prefix = not yet
    configured; enablePush guards on it. Private key lives ONLY in edge
@@ -7898,7 +7952,7 @@ window.loadLeagueData = (...a) => loadLeagueData(...a);   /* hub safety net (cla
 async function loadLeagueData(){
   if(!CS.league) return;
   const { data: mem } = await sb.from('league_members')
-    .select('id, role, profile_id, profile:profiles(display_name, marker, index_current, handle)')
+    .select('id, role, profile_id, joined_at, profile:profiles(display_name, marker, index_current, handle)')
     .eq('league_id', CS.league.id);
   CS.members = mem || [];
 
@@ -8512,10 +8566,10 @@ $('#lockBtn').addEventListener('click', async () => {
     state.wizInvitees = [];   /* sent — don't re-stage on re-entry */
     await loadMemberships();
     switchView('home');
-    const sent = (invited||0) + (emails||0);
-    toast(nextPhase === 'season'
-      ? `Bylaws locked: no squads to form, season is live${sent ? ` · ${sent} invited` : ''}`
-      : `Bylaws locked${sent ? `, ${sent} golfer${sent===1?'':'s'} invited` : ''}, squad formation is open`);
+    toast('Bylaws locked');
+    /* growth (2026-07-17): creation ends on the SHARE moment, not a Done
+       toast — a league is only real once the crew is in it */
+    openLockShare(nextPhase, (invited||0) + (emails||0));
   } catch(err){ toast('Lock failed: ' + err.message); }
   finally { btn.disabled = false; }
 });
@@ -9523,7 +9577,14 @@ function openLeagueWelcome(name){
     <p class="fine" style="padding:0 0 10px"><b style="color:var(--pos)">You can't hurt your squad by playing badly.</b> Only by not playing. Every posted round scores — a rough day is still points on the board.</p>
     <p class="fine" style="padding:0 0 10px"><b>Rounds score against your own number.</b> Beat your handicap and it's a big day, whatever you shot. Your best rounds each month count; a better round always bumps your worst.</p>
     <p class="fine" style="padding:0 0 12px"><b>The pot is tracked, never held.</b> Cup Season keeps the tab and shows who owes what; money moves on Venmo between you.</p>
-    <p class="fine" style="padding:0"><a href="#" onclick="openScoringHelp();return false" style="color:var(--brand)">How scoring works →</a></p>`);
+    <p class="fine" style="padding:0 0 12px"><a href="#" onclick="openScoringHelp();return false" style="color:var(--brand)">How scoring works →</a></p>
+    <div style="border-top:1px solid var(--line); padding-top:12px">
+      <p class="fine" style="padding:0 0 8px"><b>Who else plays with you?</b> Growing the league isn't the Pro's chore — any member's link works.</p>
+      <button class="btn dark" id="cvShare">Share the invite link</button>
+    </div>`);
+  /* growth (2026-07-17): the covenant ends on the share ask — the moment
+     someone joins is the moment they know who else belongs here */
+  document.getElementById('cvShare')?.addEventListener('click', () => shareInvite());
 }
 window.openLeagueWelcome = openLeagueWelcome;
 document.getElementById('rulesScoreHelp')?.addEventListener('click', openScoringHelp);
