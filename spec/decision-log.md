@@ -997,3 +997,39 @@ and side-game fuel, exactly as D32/D34 established.)*
 - **CONFLICT check:** none upward. D34 anticipated exactly this return path
   for the grid. Pricing question ("who pays for scans at scale") is PARKED
   with the pricing decision — the caps make the interim safe.
+
+---
+
+<!-- Note: D37 (security hardening) lives on the security-hardening branch and
+     lands here when it merges. This entry is D38 to keep numbers stable. -->
+
+### D38 · The League Room calendar is league-scoped; the round becomes an object
+*(IA + level-5 change now; a build-toward arc for the object. No competition
+mechanic changes — pure visibility + a future social layer.)*
+- **Current:** the calendar tab was retired into the League Room (IA P2), but
+  `my_schedule` returns your rounds **plus friends' plus league-mates'**, each
+  labeled. So a buddy you share no league with appeared inside a specific
+  league's room. Pilot batch-3 flagged it as confusing.
+- **Problem:** "the schedule lives in the League Room" (IA) collides with "the
+  schedule is your whole social calendar" (the my_schedule design). A room about
+  *this* league showing a stranger-to-the-league reads as a leak.
+- **Recommendation (shipped, `4991af9`):** the League Room calendar — grid,
+  on-the-books list, and watch list — scopes to `mine || shared_league ||
+  tagged_me`; pure-buddy rounds drop to **Home** (`renderUpNext`, untouched),
+  where the full social calendar belongs. Decided WITH the owner: "scope the
+  League Room, and make Home the richer social/planning surface."
+- **The build-toward (`spec/scheduled-rounds-arc.md`):** promote a scheduled
+  round from a calendar row to a **clickable object** — a detail sheet (Stage 1,
+  the keystone) that later carries RSVP (who's in), comments (a mini board),
+  course info (from the cache), and weather (Open-Meteo, keyless). Home gets rich
+  cards that tap into the same sheet. Adds **no paid dependency**.
+- **Principle:** IA (the League Room is about the league) · #5 Feels Alive (a
+  round you rally the crew around) · #2 Low Friction (one sheet, all the info) ·
+  the bank-account contract (free to run).
+- **Benefit:** the League Room reads true; Home becomes the social planning hub;
+  the round gains a home for coordination.
+- **Tradeoffs:** `shared_league` is a cross-league proxy (a round isn't tied to
+  a league) — Stage 1's `course_id` migration is where an optional `league_id`
+  can retire that. The arc is DESIGN-logged, not yet built — awaits a "build it."
+- **CONFLICT check:** none upward — resolves an IA-vs-implementation collision in
+  the IA's favor.
