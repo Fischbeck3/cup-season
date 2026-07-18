@@ -6814,7 +6814,11 @@ function renderCalendar(){
     add(new Date(ls.starts_on+'T00:00:00'), {kind:'lg', t:`${ls.name} — first tee`});
     add(new Date(ls.ends_on+'T00:00:00'),   {kind:'lg', t:`${ls.name} — season ends`, gold:true});
   });
-  (window.mySchedule||[]).forEach(sr=>{
+  /* League Room calendar is LEAGUE-scoped (pilot feedback #3): your rounds,
+     league-mates', and any you're tagged in — a pure buddy you share no league
+     with lives on Home, not in a specific league's room. (shared_league is the
+     best proxy until scheduled rounds carry a league — see spec/scheduled-rounds-arc.md.) */
+  (window.mySchedule||[]).filter(sr => sr.mine || sr.shared_league || sr.tagged_me).forEach(sr=>{
     add(new Date(sr.play_on+'T00:00:00'), {kind:'rd', sr});
   });
 
@@ -6865,6 +6869,7 @@ function renderCalendar(){
   const list=$('#calList');
   if(list){
     const rows=(window.mySchedule||[])
+      .filter(sr => sr.mine || sr.shared_league || sr.tagged_me)   /* League Room = league-scoped (pilot #3) */
       .filter(sr=>{ const d=new Date(sr.play_on+'T00:00:00'); return d.getFullYear()===cur.y && d.getMonth()===cur.m && d>=now; })
       .map(sr=>{
         const d=new Date(sr.play_on+'T00:00:00');
@@ -9246,7 +9251,9 @@ function rivalryTag(pid){
 function watchRows(){
   const today = new Date(); today.setHours(0,0,0,0);
   return (window.watchAll||[])
-    .filter(sr => sr.mine === false && (sr.is_friend || sr.shared_league))
+    /* League Room watch list = league-mates' plans (+ rounds you're tagged in);
+       pure buddies stay on Home. (pilot #3) */
+    .filter(sr => sr.mine === false && (sr.shared_league || sr.tagged_me))
     .filter(sr => { const d = localDate(sr.play_on); return !isNaN(d) && d >= today; })
     .sort((a,b)=> a.play_on < b.play_on ? -1 : a.play_on > b.play_on ? 1 : 0);
 }
