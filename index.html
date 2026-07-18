@@ -1866,6 +1866,10 @@ body::before{
                 <div id="postHoleGridF"></div>
                 <div id="postHoleGridB" style="margin-top:6px"></div>
                 <p class="fine" style="padding-top:6px">Each hole starts on par — tap to adjust only what you didn't. <a href="#" id="postSetPars" style="color:var(--brand)">Set the pars →</a></p>
+                <!-- the scan's escape hatch: a bad read never traps anyone in the
+                     grid — one tap back to the two-number card (course/date/photo
+                     survive; only the model's numbers are scrapped) -->
+                <p class="fine" style="padding-top:2px"><a href="#" id="postScanBack" style="color:var(--mut)">✕ Scrap the scan — type front &amp; back instead</a></p>
               </div>
 
               <!-- default: front & back gross — how golfers keep score (D32) -->
@@ -1898,6 +1902,9 @@ body::before{
               <div id="postGrossLine" style="margin-top:12px; padding:10px 12px; border:1px solid var(--line2); border-radius:10px; background:var(--bg2); font-weight:700; font-size:15px; text-align:center; color:var(--ink)">—</div>
               <div style="height:12px"></div>
               <button class="btn" id="postBtn">Post round</button>
+              <!-- abandonment is a real path, not a refresh: one tap empties the
+                   card (pilot: a tested/half-filled composer lingered for days) -->
+              <p class="fine" style="text-align:center; padding:10px 0 0"><a href="#" id="postReset" style="color:var(--mut)">Start over — clear this card</a></p>
             </div>
           </div>
           <div>
@@ -4059,6 +4066,39 @@ function scanPartnersSheet(ctx){
     }catch(err){ toast('Couldn’t make the link: '+(err.message||err)); b.disabled=false; }
   }));
 }
+
+/* the two ways out of a half-filled card (pilot, 2026-07-18):
+   Start over = the whole composer back to blank (a tested or abandoned card
+   lingered across visits — state.post persists by design for mid-entry tab
+   switches, so leaving needs a door, not a refresh).
+   Scrap the scan = just the model's numbers go; course/date/photo stay. */
+function resetPostComposer(){
+  ['inF9','inB9','inRating','inSlope','inCourse','inDate'].forEach(id=>{ const e=$('#'+id); if(e) e.value=''; });
+  const ic=$('#inCourse'); if(ic) ic.dataset.courseId='';
+  const chips=$('#courseChips'); if(chips) chips.innerHTML='';
+  state.post.mode='total';
+  state.post.scores = state.post.pars.slice();
+  state.post.touched=false;
+  state.post.scan=null;
+  window._scanShot=null;
+  setPostPhoto(null);
+  state.lastPost=null;
+  renderPostHoles();
+}
+$('#postReset')?.addEventListener('click',e=>{
+  e.preventDefault();
+  resetPostComposer();
+  toast('Card cleared');
+});
+$('#postScanBack')?.addEventListener('click',e=>{
+  e.preventDefault();
+  state.post.mode='total';
+  state.post.scores = state.post.pars.slice();
+  state.post.touched=false;
+  state.post.scan=null;
+  renderPostHoles();
+  toast('Scan scrapped — type your nines in');
+});
 
 /* ---------- course search: two steps, Course → Tee ----------
    Type a name → pick the course (city shown to confirm you've got the right
