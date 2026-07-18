@@ -9,3 +9,6 @@ node_modules/
 # encrypted_password, refresh + session tokens. This repo is PUBLIC. Root-level
 # only, so supabase/migrations/*.sql is untouched and still tracked.
 /*.sql
+
+# Build output (assembled by stamp-version.sh)
+dist/

@@ -997,3 +997,49 @@ and side-game fuel, exactly as D32/D34 established.)*
 - **CONFLICT check:** none upward. D34 anticipated exactly this return path
   for the grid. Pricing question ("who pays for scans at scale") is PARKED
   with the pricing decision — the caps make the interim safe.
+
+---
+
+### D37 · Security hardening — the enforcement floor, before strangers
+*(Enforcement of existing rules, not new mechanics: it makes the DB actually
+enforce what the spec always promised — §16 rounds immutable, "identity is
+checked at the database," the pot/points ledger is commissioner-only. Two
+sub-items are pure bug fixes to mechanics that were silently broken.)*
+- **Current (pre-hardening):** an RLS/grant floor that assumed trusted users.
+  A principal-engineer audit (`spec/launch-audit-2026-07-18.md`, five
+  parallel deep-dives + line-by-line verification) found the intent
+  architecture sound (definer RPCs, `search_path` pinned, no dynamic SQL, no
+  secrets leaked) but the floor holed: any member could `PATCH` their
+  `league_members.role` to commissioner; any owner could `PATCH` a posted
+  round's `differential`; season-lifecycle + Ryder-engine functions were
+  anon/authenticated-callable; and `ALTER DEFAULT PRIVILEGES` silently granted
+  EXECUTE-to-anon on every function. Plus two functional time bombs: a CHECK
+  that made every month-close abort, and one that made every scan-claim abort.
+- **Problem:** the pilot is friends (nobody malicious), so none of it bit —
+  but "public launch" is the opposite of trusted, and the two bombs break for
+  everyone on a timer (month-close Aug 1; scan-claim on first use).
+- **Recommendation (shipped):** two surgical migrations —
+  `20260718172300` (blockers: drop `members_self` + `rounds_owner_update`;
+  revoke lifecycle/engine functions from the API roles; flip default
+  privileges so future functions aren't auto-granted; revoke `email` column +
+  drop `profiles_read`; drop legacy `finish_live_round(uuid)`; widen the two
+  CHECKs) and `20260718173100` (medium: league/friend-scoped media reads,
+  round sanity bounds NOT VALID, legacy course-write drops, round FK → SET
+  NULL, courses cost cap). Client: the ~18 unescaped XSS sinks in the
+  competition tables + tee sheet now `esc()`; deploy: `publish = "dist"`
+  allowlist + security headers + a Report-Only CSP.
+- **Principle:** the product canon's trust model ("identity is checked at the
+  database, not by hiding a button") — now actually true · §16 (rounds never
+  mutated) — now enforced, not just intended · Low Friction preserved (every
+  fix is invisible to honest users).
+- **Benefit:** the app moves from "safe among friends" to "safe in front of
+  strangers" without a redesign; the two bombs are defused before they fire.
+- **Tradeoffs:** the default-privilege flip is a **durable new rule** — every
+  future migration MUST explicitly `grant execute ... to authenticated` on any
+  new client-called RPC (they no longer auto-grant). Recorded in CLAUDE.md.
+  Some medium items (live-round foursome-scoping, event-roster consent, join
+  phase-gating) are DEFERRED as reviewed SQL in the handoff — they touch live
+  flows and want a test round before they ride, and join-gating is a product
+  call (late joiners) not a pure security fix.
+- **CONFLICT check:** none upward — this is the IA/mechanics levels finally
+  matching the vision/principles level that always claimed DB-enforced trust.
