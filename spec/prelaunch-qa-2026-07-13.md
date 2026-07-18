@@ -157,10 +157,20 @@ _(date · gate · what stalled · fix)_
   script above is updated. The old 60s-on-the-grid measurement is obsolete.
 - **F2 upgraded:** the untouched-grid soft block shipped; deliberate even-par
   posts now emit `post_even_par_confirmed`, so F2 is measured, not guessed.
-- **F1 residue — still unconfirmed in prod** (two minutes in the dashboard
-  before the crew shows up): the `push` Edge Function deploy, the
-  `push_nudges` webhook, and **pg_cron enabled** (without it, month-closes and
-  the Ryder tick silently never fire — that would poison pilot data in week 1).
+- **F1 residue — mostly CONFIRMED via read-only CLI (2026-07-17):**
+  - ✓ `push` Edge Function deployed & ACTIVE (v20, `supabase functions list`)
+  - ✓ **pg_cron enabled** (extension present in a fresh schema dump) — and the
+    jobs are provably scheduled: `20260712110000_enable_cron_spine` calls
+    `cron.schedule` UNGUARDED, so the applied-in-prod migration stack could not
+    exist if scheduling had failed. Ryder tick (guarded) followed 4 days later.
+  - ☐ REMAINING, dashboard-only: the **`push_nudges` webhook** (Database →
+    Webhooks → INSERT on push_nudges → push fn, `x-push-secret` header).
+    Optional belt-and-suspenders in the SQL editor:
+    `select jobname, schedule, active from cron.job order by jobname;`
+    → expect 4 rows (cs-month-close, cs-week-snapshot, cs-daily-tick,
+    run_event_sessions), all active.
+  - Noted for #34: a `test-seed` Edge Function is still deployed in prod
+    (JWT-gated, but seed machinery — delete before public launch).
 
 ### 2026-07-16 · structural re-audit (v23.163) — findings
 
