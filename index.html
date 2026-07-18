@@ -1538,7 +1538,7 @@ body::before{
       </div>
             
     </div>
-    <div class="ob-caption" id="obCaption">New or returning, email is one door. No passwords. <span style="opacity:.5">v23 · __CS_VERSION__</span></div>
+    <div class="ob-caption" id="obCaption"><span style="opacity:.5">v23 · __CS_VERSION__</span></div>
   </div>
   <div class="ob-splash" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
   
@@ -7682,6 +7682,11 @@ function openProfileHub(){
         <button class="mini" id="phDelNo">Cancel</button>
       </div>
     </div>
+
+    <!-- the build identity, visible from the installed app (the sign-in caption
+         never shows once you're pinned + signed in). Stamped at deploy — the
+         same __CS_VERSION__ substitution as the caption; NEVER hand-edit. -->
+    <p class="fine" style="padding-left:0; margin-top:24px; opacity:.55">Cup Season · v23 · __CS_VERSION__</p>
     </div>
   `);
   document.querySelectorAll('#phSeg [data-ph]').forEach(b => b.addEventListener('click', () => {
