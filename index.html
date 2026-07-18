@@ -747,6 +747,8 @@ input.f::-webkit-outer-spin-button, input.f::-webkit-inner-spin-button{-webkit-a
   padding:12px 13px; margin-bottom:8px;
 }
 .fcard .round{border:none; background:none; padding:0; margin:0;}
+/* photos arc: the round's photo rides inside the story card */
+.fphoto{display:block; width:100%; max-height:320px; object-fit:cover; border-radius:10px; margin-top:9px; border:1px solid var(--line);}
 .cthread{margin-top:10px;}
 .crow{
   font-size:12.5px; color:var(--mut); padding:7px 2px;
@@ -1878,6 +1880,19 @@ body::before{
               <div style="margin-top:10px">
                 <label class="f" for="inDate">Date</label><input class="f" id="inDate" type="date">
               </div>
+              <!-- photos arc (#13, D36): the scan is an accelerator over typed
+                   entry — its button only shows when the flag says scanning is
+                   on, and every failure path falls back to the inputs above -->
+              <div id="postPhotoRow" style="margin-top:12px; display:none; gap:8px; align-items:center; flex-wrap:wrap;">
+                <button class="mini" id="postScanBtn" type="button" style="display:none">📷 Scan the card</button>
+                <button class="mini" id="postPhotoBtn" type="button">🖼 Add a photo</button>
+                <button class="mini" id="postPhotoClear" type="button" style="display:none">✕ Remove</button>
+              </div>
+              <div id="postPhotoPrev" style="display:none; margin-top:8px">
+                <img id="postPhotoImg" alt="Round photo" style="max-width:100%; max-height:180px; border-radius:10px; object-fit:cover; border:1px solid var(--line2)">
+              </div>
+              <input type="file" id="postPhotoFile" accept="image/*" style="display:none">
+              <input type="file" id="postScanFile" accept="image/*" capture="environment" style="display:none">
               <!-- F2: the live gross reads at a glance right above Post, so an
                    untouched (even-par) card is visible before the tap -->
               <div id="postGrossLine" style="margin-top:12px; padding:10px 12px; border:1px solid var(--line2); border-radius:10px; background:var(--bg2); font-weight:700; font-size:15px; text-align:center; color:var(--ink)">—</div>
@@ -2505,7 +2520,13 @@ function switchView(v){
   $$('.view').forEach(x=>x.classList.toggle('active',x.id==='view-'+v));
   window.scrollTo({top:0});
   /* D33: gate 3's clock starts when the composer opens (qaEvent hoists) */
-  if(v==='post'){ window._qaPostOpenedAt = Date.now(); qaEvent('post_open'); }
+  if(v==='post'){
+    window._qaPostOpenedAt = Date.now(); qaEvent('post_open');
+    /* photos arc: photo row for real accounts; scan button only when the flag
+       allows (hoisted classic fns — defined by the time a user can tap) */
+    if(typeof loadScanFlag==='function') loadScanFlag();
+    if(typeof refreshPostPhotoUI==='function') refreshPostPhotoUI();
+  }
   /* the wizard's buddy picker renders lazily — every entry path (welcome
      "Start a league", the lock-fallback) lands here, so fire it here once */
   if(v==='wizard' && !state.demo) window.renderWizAddGolfers?.();
@@ -3187,7 +3208,7 @@ function renderFeedFull(force){
           </div>
           ${r.pvi!=null?`<span class="pvi ${up?'up':'dn'}">${up?'+':''}${Number(r.pvi).toFixed(1)}</span>`:''}
           ${r.points!=null?`<div class="pts">${r.points}<small>PTS</small></div>`:''}
-        </div>${socialBar(f,fi)}</div>`);
+        </div>${r.photo_url?`<img class="fphoto" src="${esc(r.photo_url)}" alt="Round photo" loading="lazy">`:''}${socialBar(f,fi)}</div>`);
         return;
       }
       el.insertAdjacentHTML('beforeend',`<div class="sysrow">◆ ${esc(easeCaps(f.txt||''))}</div>`);
@@ -3449,7 +3470,17 @@ function drawRecapCard(d){
     x.textAlign='center'; x.fillText(txt,W/2,y);
     try{ x.letterSpacing='0px'; }catch(e){} };
   x.fillStyle=BG; x.fillRect(0,0,W,H);
-  x.fillStyle=PANEL;
+  /* photos arc: the round's photo becomes the card's atmosphere — cover-cropped
+     under a heavy brand-dark wash so every text position holds unchanged */
+  if(d._img){
+    const iw=d._img.width||d._img.naturalWidth, ih=d._img.height||d._img.naturalHeight;
+    if(iw&&ih){
+      const s=Math.max(W/iw,H/ih), dw=iw*s, dh=ih*s;
+      x.drawImage(d._img,(W-dw)/2,(H-dh)/2,dw,dh);
+      x.fillStyle='rgba(12,16,13,.78)'; x.fillRect(0,0,W,H);
+    }
+  }
+  x.fillStyle = d._img ? 'rgba(16,21,15,.58)' : PANEL;
   x.beginPath(); x.roundRect(36,36,W-72,H-72,28); x.fill();
   x.strokeStyle='rgba(233,190,98,.35)'; x.lineWidth=2;
   x.beginPath(); x.roundRect(36,36,W-72,H-72,28); x.stroke();
@@ -3490,6 +3521,10 @@ function recapText(d){
 }
 async function shareRecapCard(d){
   try{
+    /* the posted photo rides onto the card when there is one (photos arc) */
+    if(d.photo && typeof photoDrawable==='function'){
+      try{ d._img = await photoDrawable(d.photo); }catch(_){ d._img=null; }
+    }
     const blob=await new Promise(res=>drawRecapCard(d).toBlob(res,'image/png'));
     const file=new File([blob],'cup-season-recap.png',{type:'image/png'});
     const text=recapText(d);
@@ -3568,6 +3603,7 @@ function showEpilogue(epi, course){
     course: course || '', date: new Date(),
     league: state.demo ? 'The Sunday Cup' : (window.CS?.league?.name || null),
     badge: CARD_BADGE[(epi.earned||[])[0]?.kind] || null,
+    photo: window._lastPostPhoto || null,   /* photos arc: the round's photo becomes the card's backdrop */
   }));
 }
 /* ---- pilot instrumentation (D33): fire-and-forget breadcrumbs into
@@ -3762,11 +3798,28 @@ $('#postBtn').addEventListener('click', async ()=>{
         api_course_id: $('#inCourse').dataset.courseId || null,
         season_id: CS.season?.id || null,
       };
+      /* photos arc: upload first (own-prefix path in the private bucket), ride
+         the path on the insert. A failed upload demotes to a photo-less post —
+         the photo is garnish, the round is the fact. */
+      if(state.post.photo){
+        try{
+          const pid=(crypto.randomUUID ? crypto.randomUUID() : Date.now()+'-'+Math.random().toString(36).slice(2));
+          const path=`${CS.user.id}/${pid}.jpg`;
+          const { error: upErr } = await sb.storage.from('media')
+            .upload(path, state.post.photo, { contentType:'image/jpeg', upsert:false });
+          if(upErr) toast('Photo didn’t stick — posting the round without it');
+          else payload.photo_path = path;
+        }catch(_){ /* storage unreachable: post without the photo */ }
+      }
       let { data:rrow, error } = await sb.from('rounds').insert(payload).select('id').single();
-      /* Netlify ships this client before `db push` — if the column isn't there
-         yet, drop the soft link and retry so a post never fails on deploy skew */
+      /* Netlify ships this client before `db push` — if a column isn't there
+         yet, drop it and retry so a post never fails on deploy skew */
       if(error && /api_course_id/.test(error.message||'')){
         delete payload.api_course_id;
+        ({ data:rrow, error } = await sb.from('rounds').insert(payload).select('id').single());
+      }
+      if(error && /photo_path/.test(error.message||'')){
+        delete payload.photo_path;
         ({ data:rrow, error } = await sb.from('rounds').insert(payload).select('id').single());
       }
       if(error) throw error;
@@ -3785,6 +3838,24 @@ $('#postBtn').addEventListener('click', async ()=>{
         gross: payload.gross,
         holes: nine ? 9 : 18
       });
+      /* D36: scan accuracy is measured, not guessed — cells the golfer changed
+         from what the model read = the model's error rate, straight to Monday */
+      let scanCtx=null;
+      if(state.post.scan){
+        const read=state.post.scan.read||[];
+        const fixed=read.reduce((n,v,i)=> n + (v>0 && +state.post.scores[i]!==v ? 1 : 0), 0);
+        qaEvent('scan_post', { fixed, misses: read.filter(v=>!(v>0)).length });
+        /* partner rows need the course context captured BEFORE the form clears */
+        scanCtx = {
+          others: state.post.scan.others,
+          course_label: payload.course_label, rating: payload.rating,
+          slope: payload.slope, played_on: payload.played_on, holes: 18,
+        };
+        state.post.scan=null;
+      }
+      window._lastPostPhoto = state.post.photo || null;  /* the recap card rides it */
+      window._scanShot = null;
+      setPostPhoto(null);
       window._qaPostOpenedAt = Date.now();   /* a second post times from here, not the stale open */
       stampPosted('POSTED ✓');
       toast(`Round posted: ~${pts} pts pending the league's math`);
@@ -3793,6 +3864,7 @@ $('#postBtn').addEventListener('click', async ()=>{
       $('#inF9').value=''; $('#inB9').value='';
       $('#inCourse').value=''; $('#inCourse').dataset.courseId='';
       $('#inRating').value=''; $('#inSlope').value='';
+      state.post.mode='total';                        /* the grid was a scan confirm — the composer resets to front & back (D34) */
       state.post.scores = state.post.pars.slice();   /* reset the grid to par */
       state.post.touched=false;                       /* next round starts fresh */
       state.lastPost=null;
@@ -3801,9 +3873,12 @@ $('#postBtn').addEventListener('click', async ()=>{
       if(window.loadCareer) window.loadCareer();     /* You-tab recent rounds */
       if(window.loadHome) window.loadHome();         /* the one home feed */
       switchView('home'); scrollFeedBottom();
-      /* M2/D17 — the poster hears it first: a private epilogue sheet over home.
-         Non-blocking; degrades silent on deploy skew or a nothing-to-say round. */
-      if(rrow?.id){
+      /* one sheet gets the moment: partner claim links when a scan carried the
+         group (the growth loop is time-sensitive — the crew is standing right
+         there), otherwise the M2/D17 epilogue as always. Both non-blocking. */
+      if(scanCtx?.others?.length){
+        try{ scanPartnersSheet(scanCtx); }catch(_){}
+      } else if(rrow?.id){
         try {
           const { data: epi } = await sb.rpc('round_epilogue', { p_round: rrow.id });
           showEpilogue(epi, payload.course_label);
@@ -3822,6 +3897,168 @@ $('#postBtn').addEventListener('click', async ()=>{
   stampPosted('POSTED ✓');
   toast(`Round posted: +${pts} pts to ${state.demo?'Mudsharks':'your squad'}`);
 });
+
+/* ============ photos arc (#13, D36): photo attach + scorecard scan ============
+   The scan is an ACCELERATOR riding on typed entry: every failure path — flag
+   off, cap hit, credits out, unreadable card, function missing — lands the
+   golfer exactly where they already were (front & back inputs). The D34 grid
+   returns here as the CONFIRMATION surface: the model proposes, the golfer
+   fixes cells, the receipt stores what the GOLFER confirmed (§16). */
+async function photoDrawable(file){
+  try{ return await createImageBitmap(file); }
+  catch(_){
+    /* Safari + HEIC: the <img> decoder handles what createImageBitmap won't */
+    return await new Promise((res,rej)=>{
+      const u=URL.createObjectURL(file), im=new Image();
+      im.onload=()=>{ res(im); setTimeout(()=>URL.revokeObjectURL(u),0); };
+      im.onerror=rej; im.src=u;
+    });
+  }
+}
+async function compressPhoto(file, maxDim, quality){
+  const im=await photoDrawable(file);
+  const w0=im.width||im.naturalWidth, h0=im.height||im.naturalHeight;
+  const s=Math.min(1, maxDim/Math.max(w0,h0));
+  const w=Math.max(1,Math.round(w0*s)), h=Math.max(1,Math.round(h0*s));
+  const cv=document.createElement('canvas'); cv.width=w; cv.height=h;
+  cv.getContext('2d').drawImage(im,0,0,w,h);
+  return new Promise((res,rej)=>cv.toBlob(b=>b?res(b):rej(new Error('encode failed')),'image/jpeg',quality));
+}
+const b64ofBlob = blob => new Promise((res,rej)=>{
+  const r=new FileReader();
+  r.onload=()=>res(String(r.result).split(',')[1]||'');
+  r.onerror=rej; r.readAsDataURL(blob);
+});
+function setPostPhoto(blob){
+  state.post.photo = blob || null;
+  const prev=$('#postPhotoPrev'), img=$('#postPhotoImg'), clr=$('#postPhotoClear'), add=$('#postPhotoBtn');
+  if(!prev||!img||!clr||!add) return;
+  if(blob){
+    img.src=URL.createObjectURL(blob);
+    prev.style.display='block'; clr.style.display=''; add.textContent='🖼 Change photo';
+  } else {
+    if(img.src){ try{ URL.revokeObjectURL(img.src); }catch(_){} }
+    img.removeAttribute('src');
+    prev.style.display='none'; clr.style.display='none'; add.textContent='🖼 Add a photo';
+  }
+}
+function refreshPostPhotoUI(){
+  const row=$('#postPhotoRow'); if(!row) return;
+  const real = !state.demo && window.CS?.user && window.sb;
+  row.style.display = real ? 'flex' : 'none';
+  const sBtn=$('#postScanBtn');
+  /* flag-gated: no flag row loaded (or enabled:false) = no button. Fail closed. */
+  if(sBtn) sBtn.style.display = (real && window.scanFlag && window.scanFlag.enabled!==false) ? '' : 'none';
+}
+let scanFlagLoaded=false;
+async function loadScanFlag(){
+  if(scanFlagLoaded || state.demo || !window.sb || !window.CS?.user){ refreshPostPhotoUI(); return; }
+  scanFlagLoaded=true;
+  try{
+    const { data } = await window.sb.from('app_flags').select('value').eq('key','scan').maybeSingle();
+    window.scanFlag = data?.value || null;   /* pre-migration: null → button hidden */
+  }catch(_){ window.scanFlag = null; }
+  refreshPostPhotoUI();
+}
+$('#postPhotoBtn')?.addEventListener('click',()=>$('#postPhotoFile')?.click());
+$('#postPhotoClear')?.addEventListener('click',()=>setPostPhoto(null));
+$('#postPhotoFile')?.addEventListener('change',async e=>{
+  const f=e.target.files?.[0]; e.target.value=''; if(!f) return;
+  try{ setPostPhoto(await compressPhoto(f,1600,.82)); }
+  catch(_){ toast('Couldn’t read that image'); }
+});
+$('#postScanBtn')?.addEventListener('click',()=>$('#postScanFile')?.click());
+$('#postScanFile')?.addEventListener('change',async e=>{
+  const f=e.target.files?.[0]; e.target.value=''; if(!f) return;
+  const btn=$('#postScanBtn'); const was=btn.textContent;
+  btn.disabled=true; btn.textContent='Reading the card…';
+  try{
+    /* 2200px keeps handwritten digits legible for the model; ~½MB upload */
+    const shot=await compressPhoto(f,2200,.9);
+    const { data, error } = await window.sb.functions.invoke('scan',
+      { body:{ image: await b64ofBlob(shot), media_type:'image/jpeg' } });
+    if(error) throw error;
+    if(data?.unavailable){
+      if(data.reason==='daily_cap') toast('Scan limit for today — type your nines in');
+      else toast('Scan’s resting — type your nines in');
+      if(data.reason==='disabled'){ window.scanFlag={enabled:false}; refreshPostPhotoUI(); }
+      return;
+    }
+    if(!data?.ok || !data.scan?.players?.length){
+      toast('Couldn’t read the card — type your nines in'); return;
+    }
+    window._scanShot = shot;   /* the scan doubles as the round photo */
+    scanPickRow(data.scan);
+  }catch(_){ toast('Scan’s resting — type your nines in'); }
+  finally{ btn.disabled=false; btn.textContent=was; }
+});
+function scanPickRow(scan){
+  if(scan.players.length===1){ scanApply(scan,0); return; }
+  openSheet('Whose card is this?','TAP YOUR ROW',
+    scan.players.map((p,i)=>
+      `<div class="check tap" data-scanrow="${i}"><span class="num">⛳</span><div class="tt">
+        <b>${esc(p.name||('Player '+(i+1)))}</b>
+        <small>${p.total?p.total+' GROSS · ':''}${p.holes_read}/18 HOLES READ</small></div></div>`).join('')
+    + `<p class="fine" style="padding-top:8px">After you post, your partners’ rows can be sent to them as claim links.</p>`);
+  $('#shBody').querySelectorAll('[data-scanrow]').forEach(b=>b.addEventListener('click',()=>{
+    closeSheet(); scanApply(scan,+b.dataset.scanrow);
+  }));
+}
+function scanApply(scan, idx){
+  const me=scan.players[idx];
+  state.post.side = me.holes.slice(9).some(v=>v>0) ? 18 : 9;
+  $$('#postSide button').forEach(x=>x.classList.toggle('on',+x.dataset.ph===state.post.side));
+  if(scan.par_row.filter(v=>v>=3&&v<=6).length>=9)
+    state.post.pars = scan.par_row.map((v,i)=> (v>=3&&v<=6) ? v : (state.post.pars[i]||4));
+  /* the hidden D34 grid comes back as the confirm surface: mode flips to holes
+     programmatically (the seg stays hidden), unreadable cells default to par,
+     touched=true so the even-par guard knows this is a real card */
+  state.post.mode='holes';
+  state.post.scores = me.holes.map((v,i)=> v>0 ? v : state.post.pars[i]);
+  state.post.touched = true;
+  state.post.scan = { read: me.holes.slice(), others: scan.players.filter((_,i)=>i!==idx) };
+  if(scan.course_name && !$('#inCourse').value.trim()) $('#inCourse').value=scan.course_name;
+  /* the date WRITTEN ON THE CARD beats the composer's "today" default —
+     scans often happen at the 19th or the morning after (still editable) */
+  if(scan.date) $('#inDate').value=scan.date;
+  if(window._scanShot) setPostPhoto(window._scanShot);
+  renderPostHoles();
+  const miss=me.holes.filter(v=>!(v>0)).length;
+  toast(miss ? `Card read — ${miss} hole${miss===1?'':'s'} I couldn’t make out are set to par`
+             : 'Card read — check the grid, then post');
+}
+/* the stretch: one scan posts the whole foursome. Each partner row mints a
+   claim (same funnel as tee-sheet guests — /?claim= serves both) the poster
+   texts out; claiming turns the row into a real round on the partner's card. */
+function scanPartnersSheet(ctx){
+  const rows=(ctx.others||[]).filter(p=>p.holes_read>0 || p.total>=18);
+  if(!rows.length) return;
+  openSheet('Send their rounds','ONE SCAN, THE WHOLE GROUP',
+    `<p class="fine" style="padding:0 0 10px">Your partners’ rows came off the same card. Send each a link — one tap and the round lands on their own golfer card.</p>`
+    + rows.map((p,i)=>
+      `<div class="check"><span class="num">🎟️</span><div class="tt">
+        <b>${esc(p.name||('Player '+(i+1)))}</b><small>${p.total?p.total+' GROSS':'PARTIAL CARD'}</small></div>
+        <button class="mini" data-scl="${i}" style="flex:none">Copy link</button></div>`).join(''));
+  $('#shBody').querySelectorAll('[data-scl]').forEach(b=>b.addEventListener('click', async ()=>{
+    const p=rows[+b.dataset.scl]; b.disabled=true;
+    try{
+      if(!p._token){
+        const { data, error } = await window.sb.rpc('create_scan_claim',{
+          p_name: p.name||null, p_gross: p.total||null,
+          p_strokes: p.holes,   /* jsonb param: the array serializes as-is */
+          p_course: ctx.course_label||null, p_rating: ctx.rating??null,
+          p_slope: ctx.slope??null, p_played: ctx.played_on||null,
+          p_holes: ctx.holes||18,
+        });
+        if(error) throw error;
+        p._token=data;
+      }
+      await navigator.clipboard?.writeText(`${location.origin}/?claim=${p._token}`);
+      b.textContent='Copied ✓';
+      qaEvent('scan_claim_minted');
+    }catch(err){ toast('Couldn’t make the link: '+(err.message||err)); b.disabled=false; }
+  }));
+}
 
 /* ---------- course search: two steps, Course → Tee ----------
    Type a name → pick the course (city shown to confirm you've got the right
@@ -8034,9 +8271,11 @@ async function loadStandingsAndFeed(){
   const rids = [...new Set(feed.filter(f => f.roundpost).map(f => f.rid))];
   window.roundCache = {};
   if(rids.length){
-    const [{ data: rds }, { data: rank }] = await Promise.all([
+    /* photo_path ships with the photos-arc migration — until it's pushed, the
+       select falls back without the column so the board never breaks on skew */
+    let [rq, { data: rank }] = await Promise.all([
       sb.from('rounds')
-        .select('id, gross, differential, course_label, played_on, holes_played, index_at_post')
+        .select('id, gross, differential, course_label, played_on, holes_played, index_at_post, photo_path')
         .in('id', rids),
       CS.season
         ? sb.from('v_rounds_ranked')
@@ -8044,8 +8283,27 @@ async function loadStandingsAndFeed(){
             .eq('season_id', CS.season.id).in('round_id', rids)
         : Promise.resolve({ data: [] }),
     ]);
+    if(rq.error && /photo_path/.test(rq.error.message||''))
+      rq = await sb.from('rounds')
+        .select('id, gross, differential, course_label, played_on, holes_played, index_at_post')
+        .in('id', rids);
+    const rds = rq.data;
     (rds || []).forEach(r => { window.roundCache[r.id] = r; });
     (rank || []).forEach(r => Object.assign(window.roundCache[r.round_id] ||= {}, r));
+    /* private bucket: one batched signing call turns paths into hour-long
+       URLs for the story cards; a storage hiccup just means text-only cards */
+    const withPhoto = (rds || []).filter(r => r.photo_path);
+    if(withPhoto.length){
+      try{
+        const { data: signed } = await sb.storage.from('media')
+          .createSignedUrls(withPhoto.map(r => r.photo_path), 3600);
+        (signed || []).forEach(s => {
+          if(!s?.signedUrl) return;
+          const r = withPhoto.find(r => r.photo_path === s.path);
+          if(r && window.roundCache[r.id]) window.roundCache[r.id].photo_url = s.signedUrl;
+        });
+      }catch(_){ /* cards render without photos */ }
+    }
   }
 
   /* reactions + comments: fold the board's social layer onto each feed item */
@@ -9794,20 +10052,32 @@ if(claimParam){
 async function claimPendingRound(){
   let tok=null; try{ tok=localStorage.getItem('cs_claim'); }catch(_){}
   if(!tok || !CS.user || !CS.profile?.marker) return;
+  /* one /?claim= funnel, two sources: tee-sheet guest cards first, then
+     scanned-scorecard partner rows (photos arc) — same UX either way */
+  let data=null, firstErr=null;
   try{
-    const { data, error } = await sb.rpc('claim_round', { p_token: tok });
-    if(error) throw error;
-    try{ localStorage.removeItem('cs_claim'); }catch(_){}
-    if(data?.already) toast('That round is already on your card');
-    else if(data?.posted){
-      toast(`Claimed ✓ — your ${data.gross} is on your card`);
-      if(window.loadCareer) loadCareer();
-    }
-    else toast('Round claimed — the card was incomplete, so nothing posted');
+    const r = await sb.rpc('claim_round', { p_token: tok });
+    if(r.error) throw r.error;
+    data = r.data;
   }catch(e){
-    try{ localStorage.removeItem('cs_claim'); }catch(_){}
-    toast('Claim failed: '+(e.message||e));
+    firstErr = e;
+    try{
+      const r2 = await sb.rpc('claim_scan_round', { p_token: tok });
+      if(r2.error) throw r2.error;
+      data = r2.data;
+    }catch(e2){
+      try{ localStorage.removeItem('cs_claim'); }catch(_){}
+      toast('Claim failed: '+((firstErr&&firstErr.message)||e2.message||e2));
+      return;
+    }
   }
+  try{ localStorage.removeItem('cs_claim'); }catch(_){}
+  if(data?.already) toast('That round is already on your card');
+  else if(data?.posted){
+    toast(`Claimed ✓ — your ${data.gross} is on your card`);
+    if(window.loadCareer) loadCareer();
+  }
+  else toast('Round claimed — the card was incomplete, so nothing posted');
 }
 
 if(new URLSearchParams(window.location.search).has('exit')){
@@ -9839,7 +10109,14 @@ async function safeBoot(force){
   let claimTok=null; try{ claimTok=localStorage.getItem('cs_claim'); }catch(_){}
   if(!CS.user && claimTok){
     try{
-      const { data } = await sb.rpc('claim_round_info', { p_token: claimTok });
+      /* the door card serves both claim sources (live guests + scan partners) */
+      let data=null;
+      try{ ({ data } = await sb.rpc('claim_round_info', { p_token: claimTok })); }
+      catch(_){}
+      if(!data){
+        try{ ({ data } = await sb.rpc('scan_claim_info', { p_token: claimTok })); }
+        catch(_){}
+      }
       if(data && !data.claimed){
         openEmailBox($('#obJoin'),
           `${data.guest_name || 'Your card'} — ${data.gross ? data.gross+' at ' : ''}${data.course_label || 'the course'}`

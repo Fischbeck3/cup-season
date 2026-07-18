@@ -959,3 +959,41 @@ until v23.65 was dark-only.)*
 - **CONFLICT check:** contradicts the "dark UI" line in CLAUDE.md's
   architecture note — that line should read "light-first, dark one tap away"
   at the next docs pass. Named here so the contradiction is never silent.
+
+---
+
+### D36 · Scorecard scan: the camera becomes the fastest way to post (photos arc)
+*(Mechanic-adjacent — changes how rounds are ENTERED, never how they SCORE.
+Scoring still reads only gross/rating/slope; per-hole data stays storytelling
+and side-game fuel, exactly as D32/D34 established.)*
+- **Current:** quick post is front & back only (D34); the hole grid is hidden;
+  per-hole detail lives only in live scoring.
+- **Problem:** typing is the tax on every post, and the first two pilot users
+  flagged entry friction the day invites went out. The ideal state was named
+  in the D34 discussion: "pull the data."
+- **Recommendation:** a Scan button on the composer photographs the paper
+  scorecard; a vision model (claude-opus-4-8, structured outputs, key held
+  server-side in the `scan` Edge Function) reads par row + every player row;
+  the D34 grid returns as the CONFIRMATION surface — the model proposes, the
+  golfer fixes cells, the round stores what the GOLFER confirmed (§16 holds).
+  Partner rows mint claim links (`scan_claims`, same /?claim= funnel as tee
+  sheet guests): one scan can post the whole foursome.
+- **Cost discipline (structural):** kill switch + per-golfer daily cap +
+  global monthly cap in `app_flags`, checked server-side BEFORE spending;
+  prepaid API credits with no auto-reload; every failure path degrades to
+  typed entry. Worst case is a number chosen in advance (~2¢/scan, ~$5 per
+  league-season at Best-4 cadence). `scan_usage` + the `scan_post` breadcrumb
+  (cells fixed) make accuracy and spend measurable, so a cheaper model is a
+  data-driven one-line change later.
+- **Principle:** #2 Low Friction (the 60-second post becomes a 20-second one)
+  · #16 receipts (golfer-confirmed, never model-asserted) · growth canon
+  (foursome-by-foursome: the partner claim IS the invite).
+- **Benefit:** per-hole detail returns to quick posts without typing 18
+  numbers; every scan can seed three claim funnels.
+- **Tradeoffs:** a real (capped) marginal cost per post; handwriting OCR is
+  ~90% not 100% (the confirm grid is the design, not a patch); scan photos of
+  scorecards may incidentally contain names — league-scoped visibility and
+  the private bucket cover the pilot, revisit at public launch (#34).
+- **CONFLICT check:** none upward. D34 anticipated exactly this return path
+  for the grid. Pricing question ("who pays for scans at scale") is PARKED
+  with the pricing decision — the caps make the interim safe.

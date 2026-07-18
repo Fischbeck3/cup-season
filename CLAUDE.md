@@ -193,12 +193,21 @@ crowning, §14.3 tiebreak ladder, trophies + pot settlement post. **Auto-bye**
 forgives the first missed floor. Storytelling standings, moments, trophy case,
 role-aware Home, curated push — all live.
 
-**Honest edges / not yet done:** photos (own arc, deferred a sprint) · the
-captains-pick + snake-draft *engines* (wizard shows the built two + roster-fit
-guidance; server-side draft engines unbuilt) · a pre-existing boot-time async
-rejection ("reading 'n'") + repeated boot (own task, in progress) · the TIMED
-pre-launch QA run (needs prod deployed + human testers — see
-`spec/prelaunch-qa-2026-07-13.md`).
+**Photos arc (#13, D36, 2026-07-18) is BUILT:** round photos (private `media`
+bucket, `rounds.photo_path`, board story cards + recap-card backdrop) and
+**scorecard scan** — the `scan` Edge Function (claude-opus-4-8 vision,
+structured outputs, ANTHROPIC_API_KEY in secrets) reads the card, the D34 grid
+returns as the confirm surface, partner rows mint `/?claim=` links
+(`scan_claims`). Cost is fail-closed: kill switch + caps in `app_flags.scan`,
+prepaid credits no auto-reload, every failure degrades to typed entry. See
+`spec/photos-arc.md`.
+
+**Honest edges / not yet done:** profile photos (deliberately skipped — the
+marker is identity) · the captains-pick + snake-draft *engines* (wizard shows
+the built two + roster-fit guidance; server-side draft engines unbuilt) · a
+pre-existing boot-time async rejection ("reading 'n'") + repeated boot (own
+task, in progress) · the TIMED pre-launch QA run (needs prod deployed + human
+testers — see `spec/prelaunch-qa-2026-07-13.md`).
 
 **Near-term work lives in the task list, not here** — this file stays
 architecture + rules. For "what's next," read the tasks; for "why a mechanic is
