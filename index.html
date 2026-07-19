@@ -749,6 +749,38 @@ input.f::-webkit-outer-spin-button, input.f::-webkit-inner-spin-button{-webkit-a
 .fcard .round{border:none; background:none; padding:0; margin:0;}
 /* photos arc: the round's photo rides inside the story card */
 .fphoto{display:block; width:100%; max-height:320px; object-fit:cover; border-radius:10px; margin-top:9px; border:1px solid var(--line);}
+/* the round object detail sheet (scheduled-rounds arc) */
+.rsheet .rs-course{margin:2px 0 10px;}
+.rsheet .rs-course b{font-size:19px; display:block; letter-spacing:-.01em;}
+.rsheet .rs-course .meta{display:block; font-size:11px; color:var(--mut); margin-top:3px; letter-spacing:.02em;}
+.rsheet .rs-course .place{display:block; font-size:11.5px; color:var(--dim); margin-top:1px;}
+.rs-when{display:flex; gap:8px; flex-wrap:wrap; align-items:center;}
+.teechip{font-size:12.5px; font-weight:600; background:var(--bg2); border:1px solid var(--line); border-radius:8px; padding:6px 10px;}
+.wxchip{font-size:12px; color:var(--mut); background:rgba(212,178,62,.12); border:1px solid rgba(212,178,62,.32); border-radius:8px; padding:6px 10px;}
+.wxchip .sun{color:var(--gold);} .wxchip b{color:var(--ink);}
+.rs-note{font-style:italic; color:var(--mut); font-size:13px; margin-top:10px;}
+.rivchip{margin-top:12px; border:1px solid rgba(212,178,62,.34); background:rgba(212,178,62,.08); border-radius:10px; padding:9px 11px; font-size:13px;}
+.rivchip em{font-style:italic; color:var(--mut);}
+.rs-lbl{font-family:var(--mono); font-size:10px; letter-spacing:.16em; text-transform:uppercase; color:var(--dim); margin:16px 0 8px; display:flex; justify-content:space-between;}
+.rs-lbl .n{color:var(--pos); font-weight:600;}
+.rsvppill{font-family:var(--mono); font-size:9.5px; letter-spacing:.05em; text-transform:uppercase; font-weight:700; padding:3px 8px; border-radius:99px; flex:none; align-self:center;}
+.rsvppill.in{color:var(--pos); background:rgba(67,224,124,.14);}
+.rsvppill.maybe{color:var(--gold); background:rgba(212,178,62,.16);}
+.rsvppill.out{color:var(--dim); background:var(--bg2);}
+.rsvppill.none{color:var(--dim); background:var(--bg2);}
+.rsvpset{display:flex; gap:7px; margin-top:10px;}
+.rbtn{flex:1; font-size:12.5px; font-weight:600; color:var(--mut); border:1px solid var(--line); border-radius:9px; padding:9px; background:var(--panel);}
+.rbtn.on.in{color:#fff; background:var(--pos); border-color:var(--pos);}
+.rbtn.on.maybe{color:#3a2c07; background:var(--gold); border-color:var(--gold);}
+.rbtn.on.out{color:var(--ink); background:var(--bg2); border-color:var(--line2);}
+.rs-thread{display:flex; flex-direction:column; gap:8px;}
+.crow2{display:flex; gap:9px; align-items:flex-start; font-size:13px;}
+.crow2 b{font-weight:600;} .crow2 .t{color:var(--mut);}
+.rs-cinput{display:flex; gap:8px; margin-top:10px;}
+.rs-cinput .f{flex:1;}
+.managebar2{display:flex; gap:8px; margin-top:16px;}
+.mbtn2{flex:1; text-align:center; font-size:12px; font-weight:600; color:var(--mut); border:1px solid var(--line); border-radius:9px; padding:9px;}
+.mbtn2.warn{color:var(--neg); border-color:rgba(255,90,90,.3);}
 .cthread{margin-top:10px;}
 .crow{
   font-size:12.5px; color:var(--mut); padding:7px 2px;
@@ -6848,7 +6880,7 @@ function renderCalendar(){
     const dowName = `${DOW[new Date(cur.y,cur.m,d).getDay()]} ${MOS[cur.m]} ${d}`;
     openSheet(dowName, `${items.length} ON THE SHEET`,
       items.map(it=> it.kind==='rd'
-        ? `<div class="check"><span class="num">${window.mkr?.(it.sr.marker||'saguaro')||'⛳'}</span><div class="tt"><b>${it.sr.mine?'You':esc(it.sr.display_name)}${it.sr.tee_time?' · <span style="color:var(--gold)">'+fmtTee(it.sr.tee_time)+'</span>':''}${it.sr.tagged_me?' · <span style="color:var(--gold)">YOU’RE IN</span>':(it.sr.shared_league&&!it.sr.mine?' · <span style="color:var(--gold)">LEAGUE MATE</span>':'')}</b><small>${[it.sr.course_label?esc(it.sr.course_label.toUpperCase()):null, (it.sr.tagged_names||[]).length?'WITH '+esc(it.sr.tagged_names.join(' & ').toUpperCase()):null, it.sr.note?'“'+esc(it.sr.note)+'”':null].filter(Boolean).join(' · ')||'ROUND ON THE BOOKS'}</small></div>${it.sr.mine?'<span style="display:flex; gap:6px; flex:none; margin-left:auto"><button class="mini" data-retag="'+it.sr.id+'" title="Edit group">＋</button><button class="mini" data-scratch="'+it.sr.id+'" title="Cancel this round">✕</button></span>':''}</div>`
+        ? `<div class="check tap" data-roundopen="${it.sr.id}"><span class="num">${window.mkr?.(it.sr.marker||'saguaro')||'⛳'}</span><div class="tt"><b>${it.sr.mine?'You':esc(it.sr.display_name)}${it.sr.tee_time?' · <span style="color:var(--gold)">'+fmtTee(it.sr.tee_time)+'</span>':''}${it.sr.tagged_me?' · <span style="color:var(--gold)">YOU’RE IN</span>':(it.sr.shared_league&&!it.sr.mine?' · <span style="color:var(--gold)">LEAGUE MATE</span>':'')}</b><small>${[it.sr.course_label?esc(it.sr.course_label.toUpperCase()):null, (it.sr.tagged_names||[]).length?'WITH '+esc(it.sr.tagged_names.join(' & ').toUpperCase()):null, it.sr.note?'“'+esc(it.sr.note)+'”':null].filter(Boolean).join(' · ')||'ROUND ON THE BOOKS'}</small></div>${it.sr.mine?'<span style="display:flex; gap:6px; flex:none; margin-left:auto"><button class="mini" data-retag="'+it.sr.id+'" title="Edit group">＋</button><button class="mini" data-scratch="'+it.sr.id+'" title="Cancel this round">✕</button></span>':''}</div>`
         : `<div class="check"><span class="num">⛳</span><div class="tt"><b style="${it.gold?'color:var(--gold)':''}">${esc(it.t)}</b></div></div>`
       ).join('')
       + (canAdd ? `<button class="btn dark" id="dayAdd" style="margin-top:12px">＋ Put your round on this day</button>` : ''));
@@ -6862,6 +6894,11 @@ function renderCalendar(){
       try{ const {error}=await sb.rpc('scratch_round',{p_id:b.dataset.scratch}); if(error) throw error;
         closeSheet(); toast('Round scratched'); loadSchedule(); if(window.loadWatchList) loadWatchList();
       }catch(e){ toast('Scratch failed: '+(e.message||e)); b.disabled=false; }
+    }));
+    /* tap the round (not its ✕/＋) to open the full round object */
+    $('#shBody')?.querySelectorAll('[data-roundopen]').forEach(el=>el.addEventListener('click',(e)=>{
+      if(e.target.closest('button')) return;
+      closeSheet(); if(window.openRoundSheet) window.openRoundSheet(el.dataset.roundopen);
     }));
   }));
 
@@ -9274,7 +9311,7 @@ function renderWatchList(){
       rivalryTag(sr.profile_id),   /* M4/#7: the head-to-head, before the round */
       sr.tagged_me?'<span style="color:var(--gold)">YOU’RE IN</span>':null,
       sr.note?'“'+esc(sr.note)+'”':null ].filter(Boolean).join(' · ');
-    return `<div class="check">
+    return `<div class="check tap" data-wopen="${sr.id}">
       <span class="num">${window.mkr?.(sr.marker||'saguaro')||'⛳'}</span>
       <div class="tt"><b>${esc(sr.display_name)} <span class="fine" style="padding:0; color:var(--dim); letter-spacing:.06em">${rel}</span></b>
       <small>${bits}</small></div>
@@ -9286,6 +9323,10 @@ function renderWatchList(){
     const sr = rows[+b.dataset.imin]; if(!sr) return;
     openDeclareSheet(sr.play_on, { course: sr.course_label||'', tee: sr.tee_time||'',
       tagPids: [sr.profile_id], hostName: sr.display_name });
+  }));
+  /* tap a crew member's plan (not the "I'm in" button) to open the round object */
+  box.querySelectorAll('[data-wopen]').forEach(el=>el.addEventListener('click',(e)=>{
+    if(e.target.closest('button')) return; openRoundSheet(el.dataset.wopen);
   }));
 }
 window.renderWatchList = renderWatchList;
@@ -9734,16 +9775,23 @@ async function openDeclareSheet(prefillISO, opts){
      <button class="btn" id="drGo" style="margin-top:14px">${opts.hostName ? "I'm in" : 'On the books'}</button>
      <p class="fine" style="padding-top:8px">Posts to your leagues' boards: tagged golfers are named. Scratch it any time from the calendar.</p>`);
   bindTagChips('drtag', tagged);
+  attachCourseSearch('#drCourse');   /* pick a real course -> stamps course_id -> course info + weather in the sheet */
+  if(opts.courseId){ const dc=document.getElementById('drCourse'); if(dc) dc.dataset.courseId=opts.courseId; }
   document.getElementById('drGo').addEventListener('click', async () => {
     const btn = document.getElementById('drGo'); btn.disabled = true;
     try {
-      const { error } = await sb.rpc('declare_round', {
+      const base = {
         p_play_on: document.getElementById('drDate').value,
         p_course: document.getElementById('drCourse').value,
         p_note: document.getElementById('drNote').value,
         p_tagged: [...tagged],
         p_tee: document.getElementById('drTee').value || null,
-      });
+      };
+      let { error } = await sb.rpc('declare_round', { ...base, p_course_id: document.getElementById('drCourse').dataset.courseId || null });
+      /* deploy skew: pre-migration declare_round has no p_course_id — drop it */
+      if(error && /course_id|function|schema cache/i.test(error.message||'')){
+        ({ error } = await sb.rpc('declare_round', base));
+      }
       if(error) throw error;
       closeSheet();
       toast(opts.hostName ? "You're in — it's on both boards"
@@ -9756,6 +9804,118 @@ async function openDeclareSheet(prefillISO, opts){
 window.openDeclareSheet = openDeclareSheet;
 document.getElementById('calDeclare')?.addEventListener('click', () => openDeclareSheet());
 document.getElementById('optPlan')?.addEventListener('click', () => openDeclareSheet());
+
+/* ===== the round as an object: tap into a scheduled round (arc Stages 1–5) =====
+   course info + weather + who's-in + a mini board. Everything degrades
+   gracefully: a round with no linked course shows the typed name (never blank),
+   and weather simply hides when there's no location or it's out of range. */
+async function openRoundSheet(id){
+  if(state.demo || !window.sb){ toast('Sign in to open a round'); return; }
+  openSheet('Round', 'Loading…', '<p class="fine" style="padding:10px 0">Loading the round…</p>');
+  let d=null;
+  try{
+    const { data, error } = await sb.rpc('round_detail', { p_round:id });
+    if(error) throw error; d=data;
+  }catch(e){
+    /* deploy-skew: round_detail not live yet — fall back to the schedule row */
+    const sr=[...(window.mySchedule||[]), ...(window.watchAll||[])].find(x=>x.id===id);
+    if(!sr){ closeSheet(); toast('Couldn’t load that round'); return; }
+    d={ id:sr.id, profile_id:sr.profile_id, owner_name:sr.display_name, owner_marker:sr.marker,
+        mine:!!sr.mine, play_on:sr.play_on, tee_time:sr.tee_time, note:sr.note,
+        course_label:sr.course_label, course_id:sr.course_id||null, course:null,
+        my_rsvp:sr.my_rsvp||null, rsvp:[], comments:[] };
+  }
+  renderRoundSheet(id, d);
+}
+window.openRoundSheet = openRoundSheet;
+window.renderRoundSheet = (id,d)=>renderRoundSheet(id,d);   /* bridge (classic wiring + testability) */
+window.openRetagSheet = openRetagSheet;   /* classic calendar (renderCalendar) opens it too — must be bridged */
+
+function renderRoundSheet(id, d){
+  const M = window.mkr || (()=> '⛳');
+  const play = d.play_on ? localDate(d.play_on) : null;
+  const dateTxt = play ? `${DOW[play.getDay()]} ${MOS[play.getMonth()]} ${play.getDate()}` : 'Round';
+  const tee = d.tee_time ? fmtTee(d.tee_time) : '';
+  /* course header — cache name if linked, else the typed label, else a word. NEVER blank. */
+  const courseName = (d.course && d.course.name) || d.course_label || 'A round';
+  const meta = d.course ? [
+    d.course.tee ? esc(String(d.course.tee).toUpperCase()) : null,
+    (d.course.rating!=null && d.course.slope!=null) ? `${d.course.rating} / ${d.course.slope}` : null,
+    d.course.par ? `PAR ${d.course.par}` : null ].filter(Boolean).join(' · ') : '';
+  const place = d.course && (d.course.city||d.course.state) ? [d.course.city,d.course.state].filter(Boolean).join(', ') : '';
+
+  const rsvp = d.rsvp||[];
+  const inN = rsvp.filter(r=>r.status==='in').length;
+  const rsvpRows = rsvp.length ? rsvp.map(r=>`<div class="check">
+      <span class="num">${M(r.marker||'saguaro')}</span>
+      <div class="tt"><b>${esc(r.name||'A golfer')}${r.profile_id===d.profile_id?' <span class="fine" style="padding:0; color:var(--gold)">HOST</span>':''}</b></div>
+      <span class="rsvppill ${r.status||'none'}">${({in:'In',maybe:'Maybe',out:'Out'})[r.status]||'No reply'}</span>
+    </div>`).join('') : '<p class="fine" style="padding:2px 0; opacity:.7">Just you so far — tag your group.</p>';
+  const myR=d.my_rsvp;
+  const rsvpSet = `<div class="rsvpset">
+     <button class="rbtn${myR==='in'?' on in':''}" data-rsvp="in">I’m in</button>
+     <button class="rbtn${myR==='maybe'?' on maybe':''}" data-rsvp="maybe">Maybe</button>
+     <button class="rbtn${myR==='out'?' on out':''}" data-rsvp="out">Can’t</button></div>`;
+
+  const riv = (!d.mine && typeof rivalryTag==='function') ? rivalryTag(d.profile_id) : null;
+  const rivHtml = riv ? `<div class="rivchip">◇ ${riv} · <em>one more round.</em></div>` : '';
+
+  const comments=d.comments||[];
+  const cHtml = comments.length ? comments.map(c=>`<div class="crow2">
+      <span class="num">${M(c.marker||'saguaro')}</span>
+      <div><b>${esc(c.name||'')}</b> <span class="t">${esc(c.body||'')}</span></div></div>`).join('')
+    : '<p class="fine" style="padding:2px 0; opacity:.7">No messages yet — kick it off.</p>';
+
+  const manage = d.mine ? `<div class="managebar2">
+     <button class="mbtn2" id="rrGroup">Edit group</button>
+     <button class="mbtn2 warn" id="rrScratch">Cancel round</button></div>` : '';
+
+  const body = `<div class="rsheet">
+    <div class="rs-course"><b>${esc(courseName)}</b>${meta?`<span class="meta mono">${meta}</span>`:''}${place?`<span class="place">${esc(place)}</span>`:''}</div>
+    <div class="rs-when"><span class="teechip mono">${tee?tee+' tee':'Tee TBD'}</span><span class="wxchip mono" id="rsWx" style="display:none"></span></div>
+    ${d.note?`<div class="rs-note">“${esc(d.note)}”</div>`:''}
+    ${rivHtml}
+    <div class="rs-lbl">Who’s in <span class="n">${inN} in</span></div>
+    <div class="rs-who">${rsvpRows}</div>
+    ${rsvpSet}
+    <div class="rs-lbl">On the board</div>
+    <div class="rs-thread">${cHtml}</div>
+    <div class="rs-cinput"><input class="f" id="rsComment" placeholder="Say something to the group…" maxlength="500"><button class="mini" id="rsSend">Send</button></div>
+    ${manage}
+  </div>`;
+  openSheet(dateTxt, tee?`${tee} tee`:'On the books', body);
+
+  loadRoundWeather(d);
+  const reload=()=>openRoundSheet(id);
+  $('#shBody').querySelectorAll('[data-rsvp]').forEach(b=>b.addEventListener('click', async()=>{
+    b.disabled=true;
+    try{ const {error}=await sb.rpc('set_round_rsvp',{p_round:id,p_status:b.dataset.rsvp}); if(error) throw error; reload(); }
+    catch(e){ toast('RSVP didn’t save: '+(e.message||e.code||'try again')); b.disabled=false; }
+  }));
+  const send=async()=>{ const inp=$('#rsComment'); const v=(inp&&inp.value||'').trim(); if(!v) return;
+    try{ const {error}=await sb.rpc('add_round_comment',{p_round:id,p_body:v}); if(error) throw error; reload(); }
+    catch(e){ toast('Couldn’t post: '+(e.message||e.code||'try again')); } };
+  $('#rsSend')?.addEventListener('click', send);
+  $('#rsComment')?.addEventListener('keydown',e=>{ if(e.key==='Enter'){ e.preventDefault(); send(); } });
+  $('#rrGroup')?.addEventListener('click',()=>{ closeSheet(); openRetagSheet(id); });
+  $('#rrScratch')?.addEventListener('click', async(e)=>{ const b=e.currentTarget; b.disabled=true;
+    try{ const {error}=await sb.rpc('scratch_round',{p_id:id}); if(error) throw error; closeSheet(); toast('Round scratched'); loadSchedule(); if(window.loadWatchList) loadWatchList(); }
+    catch(err){ toast('Scratch failed: '+(err.message||err)); b.disabled=false; }
+  });
+}
+/* weather rides in async; if there's no location or it's out of range, the chip
+   just stays hidden — never a blank panel (the founder's one ask). */
+async function loadRoundWeather(d){
+  const el=$('#rsWx'); if(!el) return;
+  if(!d.course || d.course.lat==null || d.course.lon==null || !d.play_on){ el.style.display='none'; return; }
+  try{
+    const { data } = await sb.functions.invoke('weather', { body:{ lat:d.course.lat, lon:d.course.lon, date:d.play_on, course_id:d.course_id } });
+    if(!data || data.unavailable || !data.weather){ el.style.display='none'; return; }
+    const w=data.weather;
+    el.innerHTML=`<span class="sun">☀</span> <b>${w.hi}°</b> ${esc(w.summary||'')}${w.wind?` · ${w.wind}mph`:''}`;
+    el.style.display='';
+  }catch(_){ el.style.display='none'; }
+}
 
 /* retag your own declared round — add the buddy you forgot */
 async function openRetagSheet(id){
