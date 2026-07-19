@@ -1,11 +1,36 @@
-# Cup Season is a single-file PWA — there is no bundler and nothing to compile.
-# The only build step stamps the commit into the version placeholders (see
-# stamp-version.sh), so no human ever hand-edits a version line again. The site
-# is still published straight from the repo root.
+# Cup Season is a single-file PWA — no bundler, nothing to compile. The build
+# stamps the commit into the version placeholders and assembles the publish
+# allowlist (see stamp-version.sh). The site is served from dist/ — ONLY the
+# shippable assets, never the migrations / spec / CLAUDE.md that live in the repo.
 #
 # If this build ever fails, Netlify keeps the previous deploy live — it does not
 # publish a broken build. Reverting this file + stamp-version.sh restores the
-# old no-build static deploy.
+# old (leaky) whole-repo deploy.
 [build]
   command = "bash ./stamp-version.sh"
-  publish = "."
+  publish = "dist"
+
+# Security headers (OPS-C7, spec/launch-audit-2026-07-18.md). All safe to
+# enforce — none of them change how the app behaves.
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Frame-Options = "DENY"
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+    Permissions-Policy = "geolocation=(), microphone=(), camera=(), payment=(), usb=()"
+    Strict-Transport-Security = "max-age=31536000; includeSubDomains; preload"
+    # CSP ships in REPORT-ONLY first: it observes and logs violations to the
+    # console without blocking anything, so a missed legitimate origin can't
+    # break the live app. The esc() pass is the actual XSS fix; this is
+    # defense-in-depth. After a deploy, watch the console for CSP reports for a
+    # day; if it's clean, rename this key to `Content-Security-Policy` to enforce
+    # (the real value then is the locked connect-src/img-src, which stops a
+    # future injected script from exfiltrating a token off-origin).
+    Content-Security-Policy-Report-Only = "default-src 'self'; script-src 'self' 'unsafe-inline' https://esm.sh; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob: https://*.supabase.co; connect-src 'self' https://*.supabase.co wss://*.supabase.co; frame-ancestors 'none'; base-uri 'self'; object-src 'none'; form-action 'self'"
+
+# The service worker must never be cached — it's how new builds reach users.
+[[headers]]
+  for = "/sw.js"
+  [headers.values]
+    Cache-Control = "no-cache, no-store, must-revalidate"

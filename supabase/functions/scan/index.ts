@@ -112,7 +112,11 @@ Deno.serve(async (req) => {
 
   const admin = createClient(SB_URL, SB_SERVICE);
 
-  // -- caps: refuse BEFORE spending ----------------------------------------
+  // -- caps: RESERVE before spending (closes the TOCTOU race). Insert the
+  //    usage row FIRST, then count INCLUDING it. Concurrent calls all see each
+  //    other's committed rows, so the caps can only ever over-refuse (safe),
+  //    never over-spend. On cap-reject we delete the reservation, so the ledger
+  //    only ever holds real attempts. `ok` flips true after a successful call.
   const { data: flagRow } = await admin
     .from("app_flags").select("value").eq("key", "scan").maybeSingle();
   const flag = flagRow?.value ?? {};
@@ -124,14 +128,22 @@ Deno.serve(async (req) => {
   const monthStart = new Date();
   monthStart.setUTCDate(1); monthStart.setUTCHours(0, 0, 0, 0);
 
+  const { data: resv } = await admin.from("scan_usage")
+    .insert({ profile_id: uid, model: MODEL, ok: false })
+    .select("id").single();
+  const resvId = resv?.id ?? null;
+
   const [{ count: mine }, { count: all }] = await Promise.all([
     admin.from("scan_usage").select("*", { count: "exact", head: true })
       .eq("profile_id", uid).gte("created_at", dayAgo),
     admin.from("scan_usage").select("*", { count: "exact", head: true })
       .gte("created_at", monthStart.toISOString()),
   ]);
-  if ((mine ?? 0) >= dailyCap) return soft("daily_cap");
-  if ((all ?? 0) >= monthlyCap) return soft("monthly_cap");
+  // counts INCLUDE this reservation, so reject when the total exceeds the cap
+  if ((mine ?? 0) > dailyCap || (all ?? 0) > monthlyCap) {
+    if (resvId) await admin.from("scan_usage").delete().eq("id", resvId);
+    return soft((mine ?? 0) > dailyCap ? "daily_cap" : "monthly_cap");
+  }
 
   // -- the one paid call ----------------------------------------------------
   let scan: any = null;
@@ -175,9 +187,10 @@ Deno.serve(async (req) => {
     console.error("[scan] fetch", String(e));
   }
 
-  // -- ledger (cap counter + accuracy dataset), best-effort -----------------
+  // -- finalize the reservation: flip ok=true on success (best-effort). A
+  //    failed attempt keeps ok=false — it still spent the call, so it counts.
   try {
-    await admin.from("scan_usage").insert({ profile_id: uid, model: MODEL, ok });
+    if (resvId && ok) await admin.from("scan_usage").update({ ok: true }).eq("id", resvId);
   } catch (_) { /* never fail the response on ledger issues */ }
 
   if (!ok || !scan) return soft("scan_failed");

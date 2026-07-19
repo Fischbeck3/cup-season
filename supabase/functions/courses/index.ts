@@ -19,6 +19,7 @@ const GCA_BASE = "https://api.golfcourseapi.com";
 const KEY = (Deno.env.get("GOLFCOURSE_API_KEY") ?? "").trim();
 const SB_URL = Deno.env.get("SUPABASE_URL") ?? "";
 const SB_SERVICE = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
+const SB_ANON = Deno.env.get("SUPABASE_ANON_KEY") ?? "";
 
 const cors = {
   "Access-Control-Allow-Origin": "*",
@@ -71,6 +72,31 @@ Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: cors });
   if (!KEY) return json({ error: "GOLFCOURSE_API_KEY not set" }, 500);
 
+  // -- caller must be a signed-in USER, not just the public anon key. The
+  //    platform verify_jwt default accepts the anon key (it's a valid JWT), so
+  //    without this any internet caller could drive the paid GolfCourseAPI.
+  const asUser = createClient(SB_URL, SB_ANON, {
+    global: { headers: { Authorization: req.headers.get("Authorization") ?? "" } },
+  });
+  const { data: u } = await asUser.auth.getUser();
+  const uid = u?.user?.id;
+  if (!uid) return json({ error: "not signed in" }, 401);
+
+  const admin = createClient(SB_URL, SB_SERVICE);
+
+  // -- per-user daily cap (paid API — refuse before spending). Retune from the
+  //    SQL editor: update app_flags set value=... where key='courses'.
+  const { data: capRow } = await admin
+    .from("app_flags").select("value").eq("key", "courses").maybeSingle();
+  const dailyCap = Number((capRow?.value as any)?.daily_per_user ?? 150);
+  const dayAgo = new Date(Date.now() - 24 * 3600 * 1000).toISOString();
+  const { count: used } = await admin.from("courses_usage")
+    .select("*", { count: "exact", head: true })
+    .eq("profile_id", uid).gte("created_at", dayAgo);
+  if ((used ?? 0) >= dailyCap) {
+    return json({ error: "daily course-lookup limit reached" }, 429);
+  }
+
   let body: any;
   try {
     body = await req.json();
@@ -78,6 +104,9 @@ Deno.serve(async (req) => {
     return json({ error: "bad request body" }, 400);
   }
   const action = body?.action;
+  // ledger = the rate-limit counter; best-effort, never blocks the response
+  admin.from("courses_usage").insert({ profile_id: uid, action: String(action ?? "") })
+    .then(() => {}, () => {});
 
   try {
     if (action === "search") {
@@ -104,7 +133,7 @@ Deno.serve(async (req) => {
       const data = await gca(`/v1/courses/${encodeURIComponent(id)}`);
       const c = data?.course ?? data;
       const cid = String(c.id ?? id);
-      const admin = createClient(SB_URL, SB_SERVICE);
+      // admin client created at the top (caller-gated + capped)
 
       // api_* tables: the original `courses`/`course_tees`/`course_holes`
       // names collided with a legacy uuid schema, so upserts silently failed

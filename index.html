@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="theme-color" content="#0C0D0F">
-<meta name="color-scheme" content="dark">
+<meta name="color-scheme" content="light dark">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Cup Season">
@@ -1463,6 +1463,7 @@ body::before{
       ? (matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark')
       : pref;
     document.documentElement.dataset.theme = t;
+    document.documentElement.style.colorScheme = t;   /* native controls (date pickers, selects) follow the active theme */
     var m = document.querySelector('meta[name="theme-color"]');
     if(m) m.content = t === 'light' ? '#EFF2EE' : '#0C0D0F';
   };
@@ -1546,6 +1547,7 @@ body::before{
       <input id="joinCode" placeholder="CUP-CODE" maxlength="8" autocomplete="off">
       <button class="btn" id="joinGo">Join</button>
     </div>
+    <p class="fine" style="text-align:center; margin-top:16px; opacity:.7">By continuing you agree to the <a href="/legal.html#terms" target="_blank" rel="noopener" style="color:var(--mut); text-decoration:underline">Terms</a> &amp; <a href="/legal.html#privacy" target="_blank" rel="noopener" style="color:var(--mut); text-decoration:underline">Privacy Policy</a>.</p>
     </div>
     <div id="obProfile" style="display:none">
       <div class="ob-hero" style="margin-bottom:18px">
@@ -1563,6 +1565,7 @@ body::before{
         <div><label class="f" for="pfCity">City</label><input class="f" id="pfCity" autocomplete="off" placeholder="Tempe, AZ" style="font-family:var(--sans);"></div>
         <div><label class="f" for="pfIdx">Handicap index</label><input class="f" id="pfIdx" type="number" step="0.1" inputmode="decimal" placeholder="12.4"></div>
       </div>
+      <p class="fine" style="margin:6px 2px 0; padding:0; color:var(--dim)">Don't know it? A best guess is fine — after 3 posted rounds we work out your real number.</p>
       <div style="height:12px"></div>
       <label class="f" for="pfHome">Home course</label>
       <input class="f" id="pfHome" autocomplete="off" placeholder="Papago GC" style="font-family:var(--sans);">
@@ -2375,11 +2378,15 @@ body::before{
     b.textContent='⚠ '+msg+'  — screenshot this and send it';
   }
   window.addEventListener('error', function(e){
-    show((e.message||'script error')+' @ '+(e.filename||'').split('/').pop()+':'+(e.lineno||'?'));
+    var m=(e.message||'script error')+' @ '+(e.filename||'').split('/').pop()+':'+(e.lineno||'?');
+    show(m);
+    try{ if(typeof qaEvent==='function') qaEvent('client_error', { kind:'error', msg:String(m).slice(0,300) }); }catch(_){}
   });
   window.addEventListener('unhandledrejection', function(e){
     var r=e.reason||{};
-    show('async: '+(r.message||String(r)));
+    var m='async: '+(r.message||String(r));
+    show(m);
+    try{ if(typeof qaEvent==='function') qaEvent('client_error', { kind:'rejection', msg:String(m).slice(0,300) }); }catch(_){}
   });
 })();
 (function(){
@@ -2905,9 +2912,9 @@ function renderStandings(){
     const pr=priorRank[t.id];
     let mv='';
     if(pr!=null && pr!==i){ const d=pr-i; mv=`<span class="rkmove ${d>0?'up':'dn'}" title="${d>0?'up':'down'} ${Math.abs(d)} this week">${d>0?'▲':'▼'}${Math.abs(d)}</span>`; }
-    html+=`<tr class="${i===0?'lead':''} tap" data-squad="${t.name}">
+    html+=`<tr class="${i===0?'lead':''} tap" data-squad="${esc(t.name)}">
       <td class="rk mono">${String(i+1).padStart(2,'0')}${mv}</td>
-      <td><div style="display:flex;align-items:center;gap:10px"><span class="sw" style="background:${SQHEX[t.ci]}"></span><div><div class="tn">${t.name}</div><div class="tc">${solo ? (t.sub||0)+' ROUND'+(t.sub===1?'':'S') : 'CAPT. '+t.cap.toUpperCase()}</div></div></div></td>
+      <td><div style="display:flex;align-items:center;gap:10px"><span class="sw" style="background:${SQHEX[t.ci]}"></span><div><div class="tn">${esc(t.name)}</div><div class="tc">${solo ? (t.sub||0)+' ROUND'+(t.sub===1?'':'S') : 'CAPT. '+esc(t.cap).toUpperCase()}</div></div></div></td>
       <td>${arr.length>1?sparkline(arr,t.ci):'<span class="fine" style="padding:0;color:var(--dim)">WK 1</span>'}</td>
       <td class="num"><span class="dw" style="color:${dwk>=12?'var(--pos)':'var(--mut)'}">+${dwk}</span></td>
       <td class="num pts">${t.pts}</td>
@@ -2974,7 +2981,7 @@ function rxChipsHtml(rx, attr, idx){
   return Object.keys(rx).filter(e=>rx[e]&&rx[e].n>0).map(e=>{
     const r=rx[e]; const who=(r.who&&r.who.length)?r.who.join(', '):'';
     const title=`${RXLABEL[e]||''}${who?' — '+who:''}`;
-    return `<button class="rxchip ${r.me?'on':''}" ${attr}="${idx}" data-e="${e}" title="${esc(title)}"><span class="e">${e}</span>${r.n}</button>`;
+    return `<button class="rxchip ${r.me?'on':''}" ${attr}="${idx}" data-e="${esc(e)}" title="${esc(title)}"><span class="e">${esc(e)}</span>${r.n}</button>`;
   }).join('');
 }
 function rxPaletteHtml(attr, idx){
@@ -2998,6 +3005,7 @@ function socialBar(f, fi, opts){
     <div class="rxbar">
       ${chips}
       <button class="rxadd" data-rxadd="${fi}" title="Add a reaction" aria-label="Add a reaction">+</button>
+      ${f.post_id?`<button class="rxadd" data-report="${fi}" title="Report this post" aria-label="Report this post">⚑</button>`:''}
       ${cmBtn}
     </div>
     <div class="rxpalette" id="rxp${fi}">${pal}</div>
@@ -3088,6 +3096,20 @@ async function refreshSocial(){
   renderHomeFeed();
   if(window.renderHomeDigest) renderHomeDigest();   /* a live 🔥 on your round is digest news */
 }
+/* report a board post/round/chat line to the league. Backed by report_content
+   (dedupes per reporter+post); degrades to a toast if the RPC isn't live yet. */
+async function reportPost(f){
+  if(!f || !f.post_id) return;
+  if(state.demo || !window.sb){ toast('Sign in to report a post'); return; }
+  const reason = prompt('Report this post to keep the boards clean.\nWhat’s wrong with it?');
+  if(reason===null) return;
+  try{
+    const { error } = await window.sb.rpc('report_content', { p_post: f.post_id, p_reason: (reason||'').slice(0,500) });
+    if(error) throw error;
+    toast('Reported — thanks. We’ll take a look.');
+    try{ if(typeof qaEvent==='function') qaEvent('content_reported', { post: f.post_id }); }catch(_){}
+  }catch(e){ toast('Couldn’t send the report: '+(e.message||e.code||'try again')); }
+}
 window.refreshSocial = refreshSocial;
 /* attach the shared handlers to a feed container. `lookup` maps a feed index
    (data attr) back to the feed item — both renderers pass fi = position in
@@ -3098,6 +3120,9 @@ function wireSocial(el){
   }));
   el.querySelectorAll('[data-rxadd]').forEach(b=>b.addEventListener('click',()=>{
     const p=el.querySelector('#rxp'+b.dataset.rxadd); if(p) p.classList.toggle('open');
+  }));
+  el.querySelectorAll('[data-report]').forEach(b=>b.addEventListener('click',()=>{
+    const f=feed[+b.dataset.report]; if(f) reportPost(f);
   }));
   el.querySelectorAll('[data-rxpick]').forEach(b=>b.addEventListener('click',()=>{
     const f=feed[+b.dataset.rxpick]; if(!f) return;
@@ -4850,7 +4875,7 @@ function settleRows(pts, val){
   const v = val!=null ? val : WOLF_VAL;
   if(!(v>0)) return '<div class="srow"><span>BRAGGING POINTS — NO MONEY ON IT</span><b>$0</b></div>';
   const rows=settleTransfers(pts, v).map(t=>
-    `<div class="srow"><span>${t.from.toUpperCase()} → ${t.to.toUpperCase()}</span><b>$${t.amt}</b></div>`);
+    `<div class="srow"><span>${esc(t.from).toUpperCase()} → ${esc(t.to).toUpperCase()}</span><b>$${t.amt}</b></div>`);
   return rows.length?rows.join(''):'<div class="srow"><span>ALL SQUARE</span><b>$0</b></div>';
 }
 
@@ -4924,13 +4949,13 @@ function renderPlay(){
     const row=document.createElement('div'); row.className='prow';
     row.innerHTML=`
       <span class="sw" style="background:${p.guest?'var(--dim)':SQHEX[p.ci]}"></span>
-      <div class="nm"><b>${p.n} ${p.guest?'<span class="gtag">GUEST</span>':''}${'<span class="strokedot" title="stroke here"></span>'.repeat(strokeOn(pi,h))}</b>
+      <div class="nm"><b>${esc(p.n)} ${p.guest?'<span class="gtag">GUEST</span>':''}${'<span class="strokedot" title="stroke here"></span>'.repeat(strokeOn(pi,h))}</b>
       <small>${p.guest?(p.est?'EST ':'SELF '):''}${fmtIdx(p.i)} IDX · ${STROKES[pi]} STK</small></div>
       <div class="tot">${done.length? gross+' THRU '+done.length+'<br>'+(vp>=0?'+':'')+vp : '—'}</div>
       <div class="step">
-        <button aria-label="Minus ${p.n}" data-pi="${pi}" data-d="-1">−</button>
+        <button aria-label="Minus ${esc(p.n)}" data-pi="${pi}" data-d="-1">−</button>
         <span class="sv${s!==null && s<PAR[h] ? ' birdie':''}">${s===null?'–':s}</span>
-        <button aria-label="Plus ${p.n}" data-pi="${pi}" data-d="1">+</button>
+        <button aria-label="Plus ${esc(p.n)}" data-pi="${pi}" data-d="1">+</button>
       </div>`;
     rows.appendChild(row);
   });
@@ -5003,7 +5028,7 @@ function renderPlay(){
   LIVE.forEach((p,pi)=>{
     const d=document.createElement('div'); d.className='wt';
     const v=pts[pi];
-    d.innerHTML=`<b style="color:${v>0?'var(--pos)':v<0?'var(--neg)':'var(--mut)'}">${v>0?'+':''}${v}</b><span>${p.n.toUpperCase()}</span>`;
+    d.innerHTML=`<b style="color:${v>0?'var(--pos)':v<0?'var(--neg)':'var(--mut)'}">${v>0?'+':''}${v}</b><span>${esc(p.n).toUpperCase()}</span>`;
     wt.appendChild(d);
   });
 
@@ -5023,7 +5048,7 @@ function renderPlay(){
       st.innerHTML='';
       LIVE.forEach((p,pi)=>{
         const d=document.createElement('div'); d.className='wt';
-        d.innerHTML=`<b style="color:${sk.won[pi]>0?'var(--pos)':'var(--mut)'}">${sk.won[pi]}</b><span>${p.n.toUpperCase()}</span>`;
+        d.innerHTML=`<b style="color:${sk.won[pi]>0?'var(--pos)':'var(--mut)'}">${sk.won[pi]}</b><span>${esc(p.n).toUpperCase()}</span>`;
         st.appendChild(d);
       });
     }
@@ -5099,12 +5124,12 @@ function renderRoster(){
     } else {
       const p=ROSTER[idx];
       const swap = state.live.game==='match' && sel.length===4
-        ? `<button class="sx" data-swap="${k}" aria-label="Move ${p.n} to team ${k<2?'B':'A'}" style="right:30px">⇄</button>` : '';
+        ? `<button class="sx" data-swap="${k}" aria-label="Move ${esc(p.n)} to team ${k<2?'B':'A'}" style="right:30px">⇄</button>` : '';
       d.className='pslot';
       d.innerHTML=`
-        <div class="sn">${p.guest?`<span class="gtag">${p.buddy?'B':'G'}</span>`:`<span style="width:8px;height:8px;border-radius:3px;background:${SQHEX[p.ci]};display:inline-block;"></span>`}${p.n}</div>
+        <div class="sn">${p.guest?`<span class="gtag">${p.buddy?'B':'G'}</span>`:`<span style="width:8px;height:8px;border-radius:3px;background:${SQHEX[p.ci]};display:inline-block;"></span>`}${esc(p.n)}</div>
         <div class="si">${fmtIdx(p.i)} IDX · TEAM ${k<2?'A':'B'}</div>
-        ${swap}${p.locked?'':`<button class="sx" data-rm="${idx}" aria-label="Remove ${p.n}">×</button>`}`;
+        ${swap}${p.locked?'':`<button class="sx" data-rm="${idx}" aria-label="Remove ${esc(p.n)}">×</button>`}`;
     }
     slots.appendChild(d);
   }
@@ -5127,7 +5152,7 @@ function renderRoster(){
     const mark=p.guest
       ? `<span class="gtag">${p.buddy?'BUDDY':'GUEST'}</span>`
       : `<span style="width:8px;height:8px;border-radius:3px;background:${SQHEX[p.ci]};display:inline-block;"></span>`;
-    b.innerHTML=`${mark}${p.n} · ${fmtIdx(p.i)}`;
+    b.innerHTML=`${mark}${esc(p.n)} · ${fmtIdx(p.i)}`;
     b.addEventListener('click',()=>{
       if(sel.length>=4){ toast('Foursome is full: remove someone first'); return; }
       sel.push(i); renderRoster();
@@ -6435,7 +6460,7 @@ function renderIndStatsReal(){
   rows.forEach((p,i)=>{
     html+=`<tr class="tap" data-ri="${i}"${p.me?' style="background:var(--bg2)"':''}>
       <td class="rk mono">${String(i+1).padStart(2,'0')}</td>
-      <td><div style="display:flex;align-items:center;gap:10px"><span class="sw" style="background:${SQHEX[p.ci]??SQHEX[1]}"></span><div><div class="tn">${p.n}</div><div class="tc">${p.sq||''}</div></div></div></td>
+      <td><div style="display:flex;align-items:center;gap:10px"><span class="sw" style="background:${SQHEX[p.ci]??SQHEX[1]}"></span><div><div class="tn">${esc(p.n)}</div><div class="tc">${esc(p.sq||'')}</div></div></div></td>
       <td class="num" style="font-family:var(--mono);font-size:12px">${p.r}</td>
       <td class="num dw" style="color:${p.avg>=0?'var(--pos)':'var(--neg)'}">${p.r?sgn(p.avg):'—'}</td>
       <td class="num pts">${p.pts}</td></tr>`;
@@ -6629,9 +6654,9 @@ function showRound(name, idx){
 
   let h=`<div class="mathrow"><span>Gross</span><b>${r.gross}${r.nine?' (9 holes)':''}</b></div>
     <div class="mathrow"><span>Course rating / slope</span><b>${CRATE} / ${CSLOPE}</b></div>
-    <div class="mathrow"><span>Differential</span><b>${diff.toFixed(1)}</b></div>
+    <div class="mathrow"><span>Round vs course</span><b>${diff.toFixed(1)}</b></div>
     <div class="mathrow"><span>Index × allowance</span><b>${state.myIndex.toFixed(1)} × ${allow}%</b></div>
-    <div class="mathrow ${r.pvi>=0?'pos':'neg'}"><span>Player vs Index</span><b>${r.pvi>=0?'+':''}${r.pvi.toFixed(1)}</b></div>
+    <div class="mathrow ${r.pvi>=0?'pos':'neg'}"><span>Vs your number</span><b>${r.pvi>=0?'+':''}${r.pvi.toFixed(1)}</b></div>
     <div class="mathrow tot"><span>Points${r.nine?' · half value':''}</span><b>${r.pts}</b></div>`;
 
   if(r.live){
@@ -7009,7 +7034,7 @@ function renderCalendar(){
           const lead=sq[0], second=sq[1];
           const gap=lead&&second ? lead.points-second.points : null;
           return `<div class="fine" style="display:flex; justify-content:space-between; gap:10px; padding:5px 0;">
-            <span><b class="mono" style="color:var(--ink)">WK ${sn.week_no}</b>${lead?' · '+nameOf(lead.squad_id).toUpperCase()+' LED':''}${gap!=null?(gap===0?' · TIED AT THE TOP':' · BY '+gap):''}</span>
+            <span><b class="mono" style="color:var(--ink)">WK ${sn.week_no}</b>${lead?' · '+esc(nameOf(lead.squad_id)).toUpperCase()+' LED':''}${gap!=null?(gap===0?' · TIED AT THE TOP':' · BY '+gap):''}</span>
             <b class="mono">${lead?lead.points+' PTS':''}</b>
           </div>`;
         }).join('');
@@ -7867,6 +7892,7 @@ function openProfileHub(){
          never shows once you're pinned + signed in). Stamped at deploy — the
          same __CS_VERSION__ substitution as the caption; NEVER hand-edit. -->
     <p class="fine" style="padding-left:0; margin-top:24px; opacity:.55">Cup Season · v23 · __CS_VERSION__</p>
+    <p class="fine" style="padding-left:0; margin-top:6px; opacity:.55"><a href="/legal.html#privacy" target="_blank" rel="noopener" style="color:var(--mut)">Privacy</a> · <a href="/legal.html#terms" target="_blank" rel="noopener" style="color:var(--mut)">Terms</a> · <a href="/legal.html#pot" target="_blank" rel="noopener" style="color:var(--mut)">Prize pool</a></p>
     </div>
   `);
   document.querySelectorAll('#phSeg [data-ph]').forEach(b => b.addEventListener('click', () => {
@@ -8651,11 +8677,11 @@ function renderFormation(){
   $('#squads').innerHTML = CS.squads.map(q => `
     <div class="card fm-squad tap" data-sq="${q.id}" style="margin-bottom:8px; ${CS.sel ? 'border-color:var(--pos);' : ''}">
       <div style="display:flex; align-items:center; gap:8px;">
-        <span class="sw" style="background:${SQHEX[q.color] ?? SQHEX[0]}"></span><b>${q.name}</b>
+        <span class="sw" style="background:${SQHEX[q.color] ?? SQHEX[0]}"></span><b>${esc(q.name)}</b>
         <span class="fine" style="padding:0; margin-left:auto">${(q.squad_members||[]).length} PLAYERS</span>
       </div>
       <div style="margin-top:6px">${(q.squad_members||[]).map(x =>
-        `<div class="fine" style="padding:2px 0">${memMk(x.member_id)} ${memName(x.member_id)}${q.captain_member_id===x.member_id?' \u00b7 C':''}</div>`).join('') || '<div class="fine" style="padding:2px 0; color:var(--dim)">Empty</div>'}</div>
+        `<div class="fine" style="padding:2px 0">${memMk(x.member_id)} ${esc(memName(x.member_id))}${q.captain_member_id===x.member_id?' \u00b7 C':''}</div>`).join('') || '<div class="fine" style="padding:2px 0; color:var(--dim)">Empty</div>'}</div>
     </div>`).join('');
 
   $('#pool').innerHTML = pool.length
@@ -8924,7 +8950,7 @@ $('#obEmailGo').addEventListener('click', async () => {
     CS.pendingEmail = email;
     $('#codebox').classList.add('open');
     $('#obCodeIn').focus();
-    authStatus(`Sent to ${email}. Type the sign-in code from the newest email. One send at a time: tapping Go again retires older codes.`,'ok');
+    authStatus(`Sent to ${email}. Type the sign-in code from the newest email — check spam if it's slow. One send at a time: tapping Go again retires older codes.`,'ok');
     toast('Code sent');
   } catch(err){
     const m = (err.message || '').toLowerCase();

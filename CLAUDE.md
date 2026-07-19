@@ -82,6 +82,16 @@ sections (§2.2, §14.0) when making competition-model decisions.
   helper functions `is_league_member()`, `is_commissioner()`, `my_member_id()`.
   Writes with game consequences go through security-definer RPCs, never direct
   inserts (identity is checked at the database, not by hiding a button).
+  **Grants are now explicit (D37, migration `20260718172300`).** Default
+  privileges no longer auto-grant EXECUTE to `anon`/`authenticated`, so **every
+  new migration MUST `grant execute on function … to authenticated`** for any
+  client-called RPC (and to `anon` only for the four public endpoints:
+  `claim_round_info`, `scan_claim_info`, `league_by_code`, `founder_id`). A new
+  RPC that "silently 403s in prod" is almost always a missing grant. Also killed
+  in D37 and never to be reintroduced: the `members_self` UPDATE policy (let a
+  member self-promote to commissioner) and `rounds_owner_update` (let an owner
+  rewrite a posted round — §16 says rounds are immutable; deletion is
+  `delete_round()` only).
 - **Email:** Brevo SMTP behind Supabase auth. **Code-only OTP templates** —
   both "Magic Link" and "Confirm signup" templates render `{{ .Token }}` and
   contain NO `{{ .ConfirmationURL }}`.
@@ -160,7 +170,14 @@ edge months** (blanket rule, decided). League timezone default
   `supabase functions deploy <name>`. Use `supabase db dump`, NOT `db pull`.
   The USER runs the MUTATING ones (db push, functions deploy, secrets); the
   sandbox can run read-only `db dump` itself — see Deploy discipline.
-- Client: `git push` → Netlify auto-build.
+- Client: `git push` → Netlify auto-build. **Netlify publishes `dist/`, a
+  build-time ALLOWLIST** (D37 / OPS-C7): `stamp-version.sh` copies only the
+  shippable assets (index.html, sw.js, manifest, icons, og-image, brand/) into
+  `dist/` and stamps the copies — migrations, `spec/`, `CLAUDE.md`, and backups
+  are NEVER served. Adding a new web-served asset means adding it to the
+  allowlist in `stamp-version.sh`, or it 404s. `netlify.toml` also carries the
+  security headers + a Report-Only CSP (flip to enforcing once the deploy shows
+  a clean console).
 - pg_cron: the cron jobs (`run_month_closes`, `run_week_snapshots`,
   `daily_season_tick`, `run_event_sessions`) self-schedule inside their
   migrations when the extension exists. Confirm pg_cron is enabled in prod, or
