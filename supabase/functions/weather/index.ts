@@ -49,18 +49,25 @@ Deno.serve(async (req) => {
 
   let body: any;
   try { body = await req.json(); } catch { return json({ error: "bad body" }, 400); }
-  const lat = Number(body?.lat), lon = Number(body?.lon);
+  let lat = Number(body?.lat), lon = Number(body?.lon);
   const date = String(body?.date ?? "");
   const courseId = String(body?.course_id ?? "") || "manual";
-  if (!Number.isFinite(lat) || !Number.isFinite(lon)) return soft("no_location");
   if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) return soft("no_date");
+
+  const admin = createClient(SB_URL, SB_SERVICE);
+
+  // Home cards carry only a course_id — resolve its location from the cache.
+  if ((!Number.isFinite(lat) || !Number.isFinite(lon)) && courseId !== "manual") {
+    const { data: c } = await admin.from("api_courses")
+      .select("latitude, longitude").eq("id", courseId).maybeSingle();
+    if (c) { lat = Number(c.latitude); lon = Number(c.longitude); }
+  }
+  if (!Number.isFinite(lat) || !Number.isFinite(lon)) return soft("no_location");
 
   // forecast window: today .. +16 days (Open-Meteo's free range)
   const day = new Date(date + "T00:00:00Z").getTime();
   const now = Date.now();
   if (day < now - 24 * 3600e3 || day > now + 16 * 24 * 3600e3) return soft("out_of_range");
-
-  const admin = createClient(SB_URL, SB_SERVICE);
 
   // cache hit? (fresh within 6h)
   const { data: cached } = await admin.from("weather_cache")

@@ -781,6 +781,17 @@ input.f::-webkit-outer-spin-button, input.f::-webkit-inner-spin-button{-webkit-a
 .managebar2{display:flex; gap:8px; margin-top:16px;}
 .mbtn2{flex:1; text-align:center; font-size:12px; font-weight:600; color:var(--mut); border:1px solid var(--line); border-radius:9px; padding:9px;}
 .mbtn2.warn{color:var(--neg); border-color:rgba(255,90,90,.3);}
+/* Home "Coming up" rich cards (round-object arc Stage 6) */
+.hround{display:flex; align-items:center; gap:10px; padding:11px 12px; margin-bottom:7px; background:var(--panel); border:1px solid var(--line); border-radius:11px;}
+.hround.tap{cursor:pointer;} .hround.tap:active{transform:scale(.99);}
+.hround .num{flex:none;}
+.hr-body{flex:1; min-width:0;}
+.hr-body b{font-size:12.5px; display:block; letter-spacing:.02em;}
+.hr-body small{display:block; color:var(--mut); font-size:11.5px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+.hr-side{display:flex; align-items:center; gap:7px; flex:none;}
+.hr-in{font-family:var(--mono); font-size:10px; font-weight:700; letter-spacing:.04em; color:var(--pos); background:rgba(67,224,124,.14); border-radius:99px; padding:3px 8px;}
+.hr-c{font-size:10.5px; color:var(--dim);}
+.hr-wx{font-size:11px; color:var(--mut);}
 .cthread{margin-top:10px;}
 .crow{
   font-size:12.5px; color:var(--mut); padding:7px 2px;
@@ -1645,6 +1656,8 @@ body::before{
         <div id="homeHub">
           <div id="homeGreeting"></div>
           <div id="homeUpNext"></div>
+          <div class="eyebrow" id="homeRoundsHead" style="display:none">Coming up</div>
+          <div id="homeRounds"></div>
           <div id="homePulse"></div>
           <div class="eyebrow" style="margin-top:0">Start something</div>
           <div id="homeStart"></div>
@@ -6095,6 +6108,56 @@ function renderUpNext(){
   }
   box.innerHTML = chips.join('');
 }
+/* Stage 6 of the round-object arc: Home surfaces the next few rounds (yours +
+   your circle — Home keeps buddies, D38) as rich cards that tap into the round
+   object, with a course + RSVP glance and a lazy weather peek. */
+function homeRoundCard(sr, demo){
+  const M = window.mkr || (()=>'⛳');
+  const d = sr.play_on ? localDate(sr.play_on) : null;
+  const when = sr._whenTxt || (d ? (()=>{ const n=Math.round((d-new Date().setHours(0,0,0,0))/864e5);
+    return n===0?'TODAY':n===1?'TOMORROW':`${DOW[d.getDay()].toUpperCase()} ${MOS[d.getMonth()].toUpperCase()} ${d.getDate()}`; })() : '');
+  const who = sr.mine ? 'You' : esc(sr.display_name||sr.who||'A golfer');
+  const rel = sr.mine ? '' : (sr.shared_league?'LEAGUE MATE':(sr.is_friend?'BUDDY':''));
+  const tee = sr.tee_time ? fmtTee(sr.tee_time) : '';
+  const bits = [ sr.course_label?esc(sr.course_label.toUpperCase()):null, tee?`<span style="color:var(--gold)">${tee}</span>`:null ].filter(Boolean).join(' · ');
+  const inN = sr.rsvp_in||0, cN = sr.comment_n||0;
+  return `<div class="hround${demo?'':' tap'}"${demo?'':` data-hround="${sr.id}"`}>
+    <span class="num">${M(sr.marker||'saguaro')}</span>
+    <div class="hr-body"><b>${when}${rel?` · <span class="fine" style="padding:0; color:var(--dim)">${rel}</span>`:''}</b>
+      <small>${who}${bits?' · '+bits:''}</small></div>
+    <div class="hr-side">${inN?`<span class="hr-in">${inN} in</span>`:''}${cN?`<span class="hr-c">💬 ${cN}</span>`:''}<span class="hr-wx mono" id="hrwx-${demo?'demo':sr.id}" style="display:none"></span></div>
+  </div>`;
+}
+function renderHomeRounds(){
+  const box=$('#homeRounds'), head=$('#homeRoundsHead'); if(!box||!head) return;
+  if(state.demo){
+    head.style.display='';
+    box.innerHTML = homeRoundCard({mine:true, _whenTxt:'IN 2 DAYS', course_label:'Papago GC', tee_time:'07:40', rsvp_in:3, comment_n:2, marker:'saguaro'}, true)
+      + homeRoundCard({_whenTxt:'SATURDAY', display_name:'Galen', is_friend:true, course_label:'Encanto GC', rsvp_in:2, marker:'saguaro'}, true);
+    return;
+  }
+  const today=new Date(); today.setHours(0,0,0,0);
+  const src=(window.watchAll&&window.watchAll.length)?window.watchAll:(window.mySchedule||[]);
+  const seen=new Set();
+  const rounds=src.filter(sr=>{ if(!sr.id||seen.has(sr.id)) return false;
+    const d=localDate(sr.play_on); if(isNaN(d)||d<today) return false; seen.add(sr.id); return true; })
+    .sort((a,b)=> a.play_on<b.play_on?-1:a.play_on>b.play_on?1:0).slice(0,5);
+  if(!rounds.length){ box.innerHTML=''; head.style.display='none'; return; }
+  head.style.display='';
+  box.innerHTML = rounds.map(sr=>homeRoundCard(sr)).join('');
+  box.querySelectorAll('[data-hround]').forEach(el=>el.addEventListener('click',()=>{ if(window.openRoundSheet) window.openRoundSheet(el.dataset.hround); }));
+  rounds.forEach(sr=>{ if(sr.course_id) fillHomeWeather(sr); });   /* lazy, cached, fail-silent */
+}
+window.renderHomeRounds = renderHomeRounds;
+async function fillHomeWeather(sr){
+  if(state.demo || !window.sb || !sr.course_id) return;
+  try{
+    const { data } = await window.sb.functions.invoke('weather', { body:{ course_id:sr.course_id, date:sr.play_on } });
+    if(!data || data.unavailable || !data.weather) return;
+    const el=document.getElementById('hrwx-'+sr.id); if(!el) return;
+    el.textContent=`☀ ${data.weather.hi}°`; el.style.display='';
+  }catch(_){ /* no glance is fine — never a blank */ }
+}
 const DEMO_REQUESTS = [{friendship_id:'demo', display_name:'Marco', handle:'marco_v', marker:'weebridge'}];
 /* incoming friend requests, front and center on Home — used to hide in the
    Tour Card and nobody found them. */
@@ -6132,6 +6195,7 @@ function renderHomeHub(){
   renderResumeBanner();   /* an in-progress live round is the first thing you see */
   renderGreeting();
   renderUpNext();
+  renderHomeRounds();   /* Stage 6: the crew's next rounds as tap-in cards */
   renderPulse();
   renderHomeRequests();
   renderHomeStart();
@@ -9254,6 +9318,7 @@ async function loadWatchList(){
   await ensureRivals();   /* M4/#7: the pre-game record needs the rivalry lookup */
   renderWatchList();
   if(typeof renderUpNext==='function') renderUpNext();   /* Home echo tracks it */
+  if(typeof renderHomeRounds==='function') renderHomeRounds();
 }
 window.loadWatchList = loadWatchList;
 /* M4/#7 · the pre-game record — a rival's round on your Watch List wears the
