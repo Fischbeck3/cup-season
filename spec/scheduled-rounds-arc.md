@@ -1,5 +1,12 @@
 # Scheduled rounds → a first-class round object (build-toward plan)
 
+> **STATUS: BUILT 2026-07-18 (all six stages).** Migration `20260718192400_round_object`
+> + the `weather` Edge Function + the client (`openRoundSheet` detail sheet, declare
+> course search, calendar/watch/Home entry points, Home "Coming up" rich cards).
+> Ships client-first (deploy-skew-safe); needs `db push` + `functions deploy weather`
+> for live data. The one true-scoping caveat (`league_id`) is in the migration,
+> unused — retire the `shared_league` proxy when per-league schedules matter.
+
 Written 2026-07-18 from pilot feedback (batch 3). Today a scheduled round is a
 calendar row: a date, a course label, a note, a tee time, and a `tagged[]` list.
 The pilot wants to **click into it** — a lightweight event/message-board thread
