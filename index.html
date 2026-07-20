@@ -706,6 +706,17 @@ input.f::-webkit-outer-spin-button, input.f::-webkit-inner-spin-button{-webkit-a
 .wizdots{display:flex; gap:6px; margin-bottom:14px;}
 .wizdots i{height:4px; flex:1; border-radius:99px; background:var(--bg2);}
 .wizdots i.on{background:var(--pos);}
+/* Stage 3a: desktop wizard — steps left, a live "your league so far" panel on
+   the right that fills in as the Pro turns the dials. Mobile is untouched: the
+   aside hides and the bylaws live in step 3's review as before. */
+.wiz-aside{display:none;}
+.wiz-aside-h{font-family:var(--mono); font-size:11.5px; letter-spacing:.16em; text-transform:uppercase; color:var(--dim); margin-bottom:10px;}
+@media(min-width:1100px){
+  #view-wizard .wiz-grid{display:grid; grid-template-columns:minmax(0,1fr) 340px; gap:28px; align-items:start;}
+  #view-wizard .wiz-main{min-width:0;}
+  #view-wizard .wiz-aside{display:block; position:sticky; top:88px;}
+  #view-wizard #bylawsReview{display:none;}   /* the sticky aside IS the review on desktop */
+}
 .wizstep{display:none;}
 .wizstep.on{display:block; animation:vin .22s ease both;}
 /* quick-post hole grid (decision #5): par-prefilled, adjust only deviations */
@@ -2288,6 +2299,8 @@ body::before{
 
       <!-- WIZARD (commissioner setup) -->
       <section class="view" id="view-wizard">
+        <div class="wiz-grid">
+        <div class="wiz-main">
         <div class="eyebrow">Create your league · locks at first tee</div>
         <div class="wizdots"><i class="on"></i><i></i><i></i><i></i></div>
 
@@ -2415,6 +2428,13 @@ body::before{
           <button class="btn dark" id="wizBack">← Back</button>
           <button class="btn" id="wizNext">Next →</button>
         </div>
+        </div><!-- /wiz-main -->
+        <aside class="wiz-aside" aria-label="Your league so far">
+          <div class="wiz-aside-h">Your league so far</div>
+          <div class="card" id="wizAside"></div>
+          <p class="fine" id="wizAsideHint">Turn the dials — the bylaws fill in here. Everything locks at the first tee.</p>
+        </aside>
+        </div><!-- /wiz-grid -->
       </section>
 
       <!-- LEAGUE HUB -->
@@ -7283,6 +7303,7 @@ function renderBylaws(){
       : `<div class="byrow"><span>FINISH</span><b>Points table crowns it · whole season, one race</b></div>`}`;
   const hub=$('#bylawsHub'); if(hub) hub.innerHTML=rows;
   const rev=$('#bylawsReview'); if(rev) rev.innerHTML=rows;
+  const asd=$('#wizAside'); if(asd) asd.innerHTML=rows;   /* Stage 3a: the desktop live panel */
   /* the endgame dial (migration 008): the Pro can flip the finish until the
      final window opens — after that it's settled, argue never */
   if(hub && !state.demo && window.CS?.member?.role==='commissioner'
