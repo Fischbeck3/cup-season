@@ -1674,25 +1674,18 @@ body::before{
       <div class="ob-hero" style="margin-bottom:18px">
         <div class="lockbadge" style="color:var(--pos); border-color:rgba(67,224,124,.35); background:rgba(67,224,124,.07)">✓ SIGNED IN</div>
         <h1 style="font-size:30px">Set up your <em>golfer card.</em></h1>
-        <p style="margin-top:10px">Once, then never again. Your rounds, index and marker travel with you into every league.</p>
+        <p style="margin-top:10px">Just a name and a marker to start — this card follows you into every league.</p>
       </div>
       <label class="f" for="pfName">Name on the card</label>
       <input class="f" id="pfName" autocomplete="off" placeholder="First name or nickname" style="font-family:var(--sans); font-size:16px;">
       <div style="height:12px"></div>
-      <label class="f" for="pfHandle">Your handle: how buddies find you</label>
+      <label class="f" for="pfHandle">Your handle — how buddies find you</label>
       <input class="f" id="pfHandle" autocomplete="off" placeholder="@jerecho" style="font-family:var(--sans); font-size:16px;">
-      <div style="height:12px"></div>
-      <div class="frow">
-        <div><label class="f" for="pfCity">City</label><input class="f" id="pfCity" autocomplete="off" placeholder="Tempe, AZ" style="font-family:var(--sans);"></div>
-        <div><label class="f" for="pfIdx">Handicap index</label><input class="f" id="pfIdx" type="number" step="0.1" inputmode="decimal" placeholder="12.4"></div>
-      </div>
-      <p class="fine" style="margin:6px 2px 0; padding:0; color:var(--dim)">Don't know it? A best guess is fine — after 3 posted rounds we work out your real number.</p>
-      <div style="height:12px"></div>
-      <label class="f" for="pfHome">Home course</label>
-      <input class="f" id="pfHome" autocomplete="off" placeholder="Papago GC" style="font-family:var(--sans);">
+      <p class="fine" style="margin:6px 2px 0; padding:0; color:var(--dim)">Suggested from your name — tap to change it.</p>
       <div style="height:14px"></div>
       <label class="f">Ball marker</label>
       <div id="pfMarkers" style="display:grid; grid-template-columns:repeat(4,1fr); gap:8px; margin-top:8px;"></div>
+      <p class="fine" style="margin:10px 2px 0; padding:0; color:var(--dim)">City, home course, and your index live on your card — add them any time from the You tab.</p>
       <div style="height:16px"></div>
       <button class="btn" id="pfSave">Save my card</button>
       <div class="ob-caption" id="pfStatus" style="margin-top:10px"></div>
@@ -7914,6 +7907,7 @@ function showProfileGate(){
            .toLowerCase().replace(/[^a-z0-9_]/g, '').slice(0, 20);
     if(sug) $('#pfHandle').value = '@' + sug;
   }
+  pfCheckHandle();   /* show availability on the pre-filled suggestion right away */
   const grid = $('#pfMarkers');
   grid.innerHTML = Object.keys(MARKERS).map(k =>
     `<button class="mini" data-mk="${k}" style="display:flex;flex-direction:column;align-items:center;gap:4px;padding:10px 4px;${k===pfMarker?'border-color:var(--pos);color:var(--pos);':''}">${mkr(k)}<span style="font-size:10.5px;letter-spacing:.06em">${MARKERS[k].n.toUpperCase()}</span></button>`).join('');
@@ -7929,16 +7923,19 @@ $('#pfSave').addEventListener('click', async () => {
   if(!/^[a-z0-9_]{3,20}$/.test(hnd)){
     $('#pfStatus').textContent = 'Handle: 3–20 letters, numbers or underscores.'; return;
   }
-  const idx = parseFloat($('#pfIdx').value);
   const btn = $('#pfSave'); btn.disabled = true; btn.textContent = '…';
   try {
     const { error: he } = await sb.rpc('set_handle', { p_handle: hnd });
     if(he) throw he;
+    /* Phase 2: the card asks for name + handle + marker only. City, home course,
+       and index are deferred to the You-tab card editor (#phCity/#phHome/#phIdx).
+       A brand-new profile has these null already (the boot gate only shows for a
+       missing marker), so passing null here clobbers nothing. */
     const { error } = await sb.rpc('set_profile', {
       p_name: name,
-      p_city: $('#pfCity').value.trim() || null,
-      p_home: $('#pfHome').value.trim() || null,
-      p_index: isNaN(idx) ? null : idx,
+      p_city: null,
+      p_home: null,
+      p_index: null,
       p_marker: pfMarker,
     });
     if(error) throw error;
@@ -7962,8 +7959,8 @@ $('#pfSave').addEventListener('click', async () => {
 /* live username check — the handle is a real, unique @name (set_handle enforces
    it at the DB). Give the onboarding picker instant available/taken feedback so
    it reads like any other "choose a username" step (pilot feedback). */
-let hChkTimer = null;
-$('#pfHandle')?.addEventListener('input', () => {
+let hChkTimer = null, pfHandleTouched = false;
+function pfCheckHandle(){
   const st = $('#pfStatus'); if(!st) return;
   const hnd = $('#pfHandle').value.trim().replace(/^@/, '').toLowerCase();
   clearTimeout(hChkTimer);
@@ -7974,11 +7971,21 @@ $('#pfHandle')?.addEventListener('input', () => {
     try {
       const { data } = await sb.rpc('search_golfers', { p_q: hnd });
       const taken = (data||[]).some(r => (r.handle||'').toLowerCase() === hnd && r.profile_id !== CS.user?.id);
-      st.textContent = taken ? `@${hnd} is taken — try another.` : `@${hnd} is available ✓`;
+      st.textContent = taken ? `@${hnd} is taken — tap to edit it.` : `@${hnd} is available ✓`;
       st.style.color = taken ? 'var(--neg)' : 'var(--pos)';
     } catch(_){ st.textContent = ''; }
   }, 360);
+}
+/* Phase 2: the handle auto-derives from the name and refines as you type it —
+   until you edit the handle yourself, at which point it's yours and we stop.
+   One less thing to invent at the wall (Airbnb/Duolingo: infer, don't ask). */
+$('#pfName')?.addEventListener('input', () => {
+  if(pfHandleTouched) return;
+  const sug = ($('#pfName').value || '').toLowerCase().replace(/[^a-z0-9_]/g, '').slice(0, 20);
+  $('#pfHandle').value = sug ? '@' + sug : '';
+  pfCheckHandle();
 });
+$('#pfHandle')?.addEventListener('input', () => { pfHandleTouched = true; pfCheckHandle(); });
 
 /* ---------- profile hub: the avatar chip opens your card ---------- */
 const initialsOf = n => ((n||'').trim().split(/\s+/).map(w => w[0]).join('').slice(0,2).toUpperCase()) || 'MJ';
