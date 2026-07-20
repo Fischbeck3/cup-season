@@ -3,7 +3,9 @@
 Season-long fantasy golf for real friend groups. Captains draft squads, everyone
 posts real handicapped rounds from anywhere, points accumulate across months, and
 the endgame settles it — a four-week Cup Final or the points table, the Pro's
-dial. The pot is tracked, never held. Live at cupseason.app.
+dial. The pot is a tracked ledger; money moves between friends ("never held"
+retired — D39 keeps collection/distro open as a future service). Live at
+cupseason.app.
 
 **Owner:** Jerecho (Tempe, AZ) — runs PIGL, the beta league; ~12 index.
 **Spec:** `spec/spec-v1.0.md` is the source of truth for every rule. Cite

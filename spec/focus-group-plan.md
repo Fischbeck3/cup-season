@@ -177,8 +177,9 @@ leagues renew without resentment,"** not **"the max we can extract."**
 Three Level-1 commitments already imply the sustainability posture:
 - **Golf First** — aggressive pricing pushes cost onto the individual golfer
   (the door killed twice: Verified tier dead; never resell the Index).
-- **Pot tracked, never held** — revenue is structurally capped at a painless
-  slice of a pot you don't touch.
+- **Pot as ledger (money not handled today — D39)** — revenue is capped at a
+  painless slice of a pot the app doesn't touch; D39 keeps collection/distro
+  open later, so the cap is posture, not structure.
 - **No paid acquisition** — growth is goodwill; resentment isn't lost revenue,
   it's lost *distribution*.
 

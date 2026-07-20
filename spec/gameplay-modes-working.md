@@ -53,8 +53,8 @@ Individual layer always on: Points King ($ from pot), Most Improved, Iron Man.
 
 ### 1.4 Pot (season)
 Buy-ins tracked in `buy_ins`, payout split bylaw exists (m006: default
-60/25/15 champs/runner-up/points king, must sum 100). Pot is **tracked,
-never held** — settlement is a card, money moves on Venmo.
+60/25/15 champs/runner-up/points king, must sum 100). Pot is **a
+ledger (D39)** — settlement is a card, money moves on Venmo.
 ⚑ Pot UI + wizard pot step = the wizard-rebuild checkpoint.
 
 ---
@@ -225,7 +225,8 @@ Classic 3-week shape: W1 fourball, W2 singles, W3 singles at double value.
 - Buy-in per player tracked (reuse buy_ins pattern, event-scoped). Default
   payout: winning team splits evenly. ⚑ Options: MVP cut (best duel
   record, tiebreak total PvI), captains' side wager line.
-- Tracked, never held — settlement card at the end, same as everywhere.
+- On the books (D39 ledger canon) — settlement card at the end, same as
+  everywhere.
 
 ### 4.5 Event board & drama
 - Every duel result posts as it lands ("W2: Jerecho def. Marcus, +2.1 vs

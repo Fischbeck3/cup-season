@@ -11,7 +11,8 @@ The welcome page is nine words. *"Rally your crew. Post real rounds. Take the
 cup."* — then an email field. The splash art is excellent and the auth path is
 fast, but a stranger learns nothing: not that captains draft squads, not that
 real handicapped rounds from any course count, not that points accumulate
-across months into an endgame, not that the pot is tracked and never held.
+across months into an endgame, not that the pot is kept on the books
+between friends.
 
 Desktop is where that stranger matters most. Member signup mostly happens on a
 phone (an invite link in the group chat), but **the Pro — the one person who
@@ -72,8 +73,9 @@ roughly:
    number, score for the squad. Every point has a receipt.
 3. **The season shape** — months, caps and floors in plain words, then the
    Cup Final (or the points table — the Pro's dial).
-4. **The pot** — tracked, never held. Exact phrase; align with legal.html.
-   Bragging-rights leagues exist ($0 stake).
+4. **The pot** — ledger language: every dollar on the books, money moves
+   between friends ("never held" retired — D39). Bragging-rights leagues
+   exist ($0 stake).
 5. **For the Pro** — you set the structure with the wizard (roster, endgame,
    pot split, fine print); the app runs the season: standings, receipts,
    month closes, the board. Bring the crew you already text.
@@ -110,7 +112,9 @@ Layout may change; nav structure may not.
   never PvI, never differential.
 - "The Pro," never commissioner. No prices anywhere (pricing PARKED). No
   tiers, no "verified" anything, GHIN never a product.
-- Pot: "tracked, never held" — match legal.html exactly.
+- Pot: ledger language — "every dollar on the books"; "never held" is
+  retired (D39: collection/distro stays open as a future service).
+  legal.html stays present-tense factual, untouched.
 - Golf-honest tone; no growth-hack hype. Vary punctuation (the em-dash
   monoculture was deliberately broken once — don't rebuild it).
 - Raw material to mine: CLAUDE.md's opening paragraph (the one-breath pitch),

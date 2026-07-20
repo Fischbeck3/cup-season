@@ -66,7 +66,7 @@ signups, social followers.
 
 | Segment | Attractive? | Pain today | How CS solves it | Channel | Message |
 |---|---|---|---|---|---|
-| **Standing buddy leagues** (Sat groups, men's-league-adjacent crews already running a "season" on a spreadsheet + GroupMe + Venmo) | ★★★★★ recurring, has a clear Pro, hair-on-fire pain | Spreadsheet fatigue, pot/Venmo tracking, "who's actually winning?", handicap arguments | Replaces the spreadsheet; tracks the pot (never holds it); shows-its-work standings; auto-handicap | The Pro directly (r/golf, local FB golf groups, course boards, word of mouth) | *"Retire the spreadsheet. Run your season in your pocket."* |
+| **Standing buddy leagues** (Sat groups, men's-league-adjacent crews already running a "season" on a spreadsheet + GroupMe + Venmo) | ★★★★★ recurring, has a clear Pro, hair-on-fire pain | Spreadsheet fatigue, pot/Venmo tracking, "who's actually winning?", handicap arguments | Replaces the spreadsheet; keeps the pot's ledger (money moves between friends); shows-its-work standings; auto-handicap | The Pro directly (r/golf, local FB golf groups, course boards, word of mouth) | *"Retire the spreadsheet. Run your season in your pocket."* |
 | **Men's / women's associations** (course-run leagues) | ★★★★ big rosters, recurring | Manual scorekeeping, board-driven, low-tech | Same, plus board/settlement automation | Course pro shop, association organizers | *"Your league, minus the clipboard."* |
 | **Golf-trip crews** (Bandon/Scottsdale buddies trips) | ★★★ high passion, but *episodic* not recurring | Formats, live scoring, memories | Tee sheet (Match/Wolf/Skins), settlement cards, recap | Trip organizer, r/golf trip threads | *"The trip deserves a trophy."* |
 | **Charity tournaments** | ★★ high visibility, **one-and-done** | Day-of logistics | Live games + settlement, but no season → no retention | Event organizers | (Use as a *demo* surface, not a core segment) |
@@ -335,7 +335,8 @@ ads. Delegate or defer.
    free tier for evangelists, never gate the individual golfer.
 5. **The "betting app" perception → platform/legal/trust friction** — the pot reads as
    gambling to a reviewer, a store, or a cautious Pro. *Mitigate:* hold the line on
-   **"tracked, never held — no money moves through the app"** in every surface and store
+   **"the app keeps the ledger — money moves between friends, not through the app"**
+   (D39 phrasing) in every surface and store
    listing (Product Vision explicitly: *not a betting app*); keep this as a standing
    assumption to re-validate (§14).
 
@@ -353,7 +354,7 @@ eng time for the funnel's weakest gate, not feature breadth.)*
    changes.
 3. **White-glove onboarding lifts activation** enough to justify founder hours (and can
    later be codified into self-serve). A/B in Q1.
-4. **"Tracked, never held" clears App Store review and Pro trust** without gambling
+4. **The ledger-only pot posture (D39) clears App Store review and Pro trust** without gambling
    friction. Confirmed enough to launch; re-validate on any store-policy change.
 5. **Year-round metros retain across the calendar** without a churn cliff, and cold-metro
    spring launches activate. Watch Q1→Q2 cohorts.

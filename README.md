@@ -2,7 +2,8 @@
 
 Season-long fantasy golf for real friend groups — your foursome are the
 athletes. Draft squads, post real handicapped rounds from anywhere, points
-accumulate all season, a Cup Final settles it. The pot is tracked, never held.
+accumulate all season, a Cup Final settles it. The pot is kept on the books;
+the money moves between friends.
 
 - **`index.html`** — the entire client (single-file PWA, deployed on Netlify).
   Current: v23.32.

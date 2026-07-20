@@ -1076,3 +1076,41 @@ mechanic changes — pure visibility + a future social layer.)*
   can retire that. The arc is DESIGN-logged, not yet built — awaits a "build it."
 - **CONFLICT check:** none upward — resolves an IA-vs-implementation collision in
   the IA's favor.
+
+---
+
+### D39 · Pot canon: "never held" retired for ledger language
+*(2026-07-20, owner decision in the desktop-arc session. Voice/business level;
+no gameplay mechanic changes.)*
+- **Current:** the pot's canonical phrase is "tracked, never held" — D3's
+  covenant third rule, the wizard payout help, scoring help, the pot pane,
+  README, the guide, GTM messaging. legal.html states the present-tense facts
+  ("does not collect, hold, transfer, or distribute money, takes no fee or
+  cut").
+- **Problem:** "never" is a permanent promise. The owner wants the option to
+  offer pot **collection/distribution as a service** later; a forever-promise
+  on every surface forecloses it or forces a public walk-back.
+- **Recommendation:** retire "never held" everywhere the product speaks.
+  Canon becomes present-tense **ledger language** — standard line: *"Cup
+  Season keeps the ledger; the money moves between friends."* Door headline:
+  *"Every dollar on the books."* Also drop "takes no cut" from marketing copy
+  (a future service might take one). legal.html is untouched: it is
+  present-tense fact, accurate today; if a money service ever ships, that is
+  a compliance project (money-transmission territory), not a copy edit.
+- **Principle:** golf-honest voice (say what is true now; promise nothing
+  structural) · business optionality (monetization posture is the owner's
+  call, and Stripe is parked).
+- **Benefit:** every surface stays truthful if collection/distro ships; no
+  public reversal of a "never."
+- **Tradeoffs:** loses a punchy trust differentiator; D3's covenant line
+  softens slightly. Mitigation: ledger language keeps the trust claim
+  concrete ("keeps the tab, shows who owes what") without the forever clause.
+  The focus-group "revenue structurally capped" argument (pricing doc) now
+  carries a D39 asterisk — the cap is posture, not structure.
+- **CONFLICT (named):** supersedes the desktop-arc brief's voice canon
+  ("'tracked, never held' — match legal.html exactly") and rewords D3's third
+  covenant rule. GTM risk-mitigation #5 and assumption #4 re-anchor on the
+  ledger posture ("money moves between friends, not through the app" — still
+  true today). Frozen artifacts (prospectus, ia-blueprint, season-lifecycle,
+  sent pilot PDFs) and immutable migration comments keep the old phrase as
+  historical record.
