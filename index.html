@@ -711,6 +711,19 @@ input.f::-webkit-outer-spin-button, input.f::-webkit-inner-spin-button{-webkit-a
    aside hides and the bylaws live in step 3's review as before. */
 .wiz-aside{display:none;}
 .wiz-aside-h{font-family:var(--mono); font-size:11.5px; letter-spacing:.16em; text-transform:uppercase; color:var(--dim); margin-bottom:10px;}
+/* Stage 3d: the wizard aside is a drawn PORTRAIT of the league, live from the
+   dials. flex-wrap on rows so a long value never pushes text out of its box. */
+.wizp{display:flex; flex-direction:column; gap:12px;}
+.wizp-h{display:flex; align-items:center; gap:11px;}
+.wizp-h b{font-family:var(--serif); font-size:19px; font-weight:700; line-height:1.12; display:block;}
+.wizp-h small{display:block; font-family:var(--mono); font-size:9px; letter-spacing:.13em; color:var(--dim); text-transform:uppercase; margin-top:3px;}
+.wizp-row{display:flex; align-items:center; gap:8px; font-size:13px; flex-wrap:wrap;}
+.wizp-row .k{font-family:var(--mono); font-size:9px; letter-spacing:.12em; color:var(--dim); text-transform:uppercase; width:62px; flex:none;}
+.wizp-dot{width:10px; height:10px; border-radius:3px; display:inline-block; flex:none;}
+.wizp-chip{font-family:var(--mono); font-size:9.5px; letter-spacing:.04em; text-transform:uppercase; padding:3px 9px; border-radius:99px; border:1px solid var(--line2); color:var(--dim); white-space:nowrap;}
+.wizp-chip.on{border-color:var(--brand); color:var(--brand); background:var(--glow);}
+.wizp-gold{font-family:var(--serif); color:var(--gold); font-weight:700; font-size:24px; font-variant-numeric:tabular-nums;}
+.wizp-sub{font-family:var(--mono); font-size:9px; letter-spacing:.08em; color:var(--dim); text-transform:uppercase; padding-left:70px; margin-top:-4px;}
 @media(min-width:1100px){
   #view-wizard .wiz-grid{display:grid; grid-template-columns:minmax(0,1fr) 340px; gap:28px; align-items:start;}
   #view-wizard .wiz-main{min-width:0;}
@@ -7324,6 +7337,51 @@ $$('#structSeg button').forEach(b=>b.addEventListener('click',()=>{
 }));
 const ALLOW=[100,95,90], VERIF=['Honor system','Attested','GHIN-verified + attested'];
 const PENALTY=['None','−5 sqd pts / round short','Forfeit month'];
+/* Stage 3d: the desktop wizard aside — a drawn portrait of the league, live
+   from the dials (the Pro watches it assemble instead of reading a list). All
+   from existing wizard state; no schema. */
+function wizPortrait(){
+  const sqN = ({solo:0, squads2:2, squads3:3, squads4:4})[state.structure] ?? 4;
+  const name = ($('#setName')?.value || '').trim() || 'Your league';
+  const draft = ({random:'Blind draw', assign:'Pro assign', snake:'Snake', live:'Live draft'})[state.draftType] || 'Blind draw';
+  const cup = (state.finish||'cup_final')==='cup_final';
+  const canCup = cup && state.durWeeks>=6;
+  const roster = (typeof wizRoster==='function') ? wizRoster() : 1;
+  const stake = state.stake||0, pot = stake*roster, pay = state.payout || [60,25,15];
+  const dots = sqN
+    ? Array.from({length:sqN},(_,i)=>`<span class="wizp-dot" style="background:var(--sq${i})"></span>`).join('')
+    : `<span class="wizp-dot" style="background:var(--mut)"></span>`;
+  const structLine = sqN ? `${sqN} SQUADS · ${draft.toUpperCase()}` : 'SOLO · EVERY PLAYER';
+  const bw = pay.map(p=>Math.max(5, p*1.36));
+  const bar = `<svg viewBox="0 0 150 10" width="150" height="10" aria-hidden="true"><rect x="0" y="1" width="${bw[0]}" height="8" rx="4" fill="var(--brand)"/><rect x="${bw[0]+3}" y="1" width="${bw[1]}" height="8" rx="4" fill="var(--brand)" opacity=".55"/><rect x="${bw[0]+bw[1]+6}" y="1" width="${bw[2]}" height="8" rx="4" fill="var(--brand)" opacity=".3"/></svg>`;
+  const potRow = stake>0
+    ? `<div class="wizp-row"><span class="k">The pot</span><span class="wizp-gold">${fmt$(pot)}</span>${bar}</div>
+       <div class="wizp-sub">${fmt$(stake)} / player · ${roster} in so far · ${pay.join('/')}</div>`
+    : `<div class="wizp-row"><span class="k">The pot</span><b style="color:var(--ink)">Bragging rights</b><span style="font-family:var(--mono);font-size:10px;color:var(--dim)">$0 STAKE</span></div>`;
+  const mo = Math.max(1, Math.min(6, Math.round(state.durWeeks/4.345)));
+  let blocks=''; for(let i=0;i<mo;i++) blocks += `<rect x="${i*41}" y="12" width="36" height="22" rx="5" fill="none" stroke="var(--line2)" stroke-width="1.2"/>`;
+  const fx = mo*41;
+  const finalSeg = canCup
+    ? `<rect x="${fx}" y="12" width="24" height="22" rx="5" stroke="var(--brand)" fill="var(--glow)" stroke-width="1.6"/><text x="${fx+12}" y="8" font-size="6" letter-spacing="1" text-anchor="middle" fill="var(--brand)" style="font-family:var(--mono)">FINAL 4</text><path d="M${fx+22} 12V4" stroke="#F4F7F4" stroke-width="1.5" stroke-linecap="round"/><path d="M${fx+22} 4l7 2.4-7 2.4z" fill="var(--gold)"/>`
+    : '';
+  const bandW = fx + (canCup?30:6);
+  const seasonRow = `<div class="wizp-row"><span class="k">Season</span><svg viewBox="0 0 ${bandW} 40" width="${Math.min(210,bandW)}" aria-hidden="true">${blocks}${finalSeg}</svg><span style="font-family:var(--mono);font-size:9.5px;color:var(--mut)">${durLabel(state.durWeeks)}${canCup?'':' · POINTS TABLE'}</span></div>`;
+  return `<div class="wizp">
+    <div class="wizp-h">
+      <svg viewBox="0 0 100 52" width="80" aria-hidden="true">
+        <path d="M4 10 C 30 18, 42 30, 48 42" stroke="var(--sq0)" stroke-width="1.8" fill="none" stroke-linecap="round"/>
+        <path d="M96 10 C 70 18, 58 30, 52 42" stroke="var(--sq1)" stroke-width="1.8" fill="none" stroke-linecap="round"/>
+        <ellipse cx="50" cy="43" rx="7" ry="2.6" fill="#04110A" stroke="#0F3520" stroke-width="1.4"/>
+        <path d="M53 41V16" stroke="#F4F7F4" stroke-width="2" stroke-linecap="round"/><path d="M53 16l14 5-14 5z" fill="var(--gold)"/>
+      </svg>
+      <div><b>${esc(name)}</b><small>Forming · locks at first tee</small></div>
+    </div>
+    <div class="wizp-row"><span class="k">Squads</span>${dots}<span style="font-family:var(--mono);font-size:10px;color:var(--mut)">${structLine}</span></div>
+    <div class="wizp-row"><span class="k">Endgame</span><span class="wizp-chip ${cup?'on':''}">Cup Final</span><span class="wizp-chip ${cup?'':'on'}">Points table</span></div>
+    ${potRow}
+    ${seasonRow}
+  </div>`;
+}
 function renderBylaws(){
   const pr=PRESETS[state.preset];
   const rows=`
@@ -7345,7 +7403,7 @@ function renderBylaws(){
       : `<div class="byrow"><span>FINISH</span><b>Points table crowns it · whole season, one race</b></div>`}`;
   const hub=$('#bylawsHub'); if(hub) hub.innerHTML=rows;
   const rev=$('#bylawsReview'); if(rev) rev.innerHTML=rows;
-  const asd=$('#wizAside'); if(asd) asd.innerHTML=rows;   /* Stage 3a: the desktop live panel */
+  const asd=$('#wizAside'); if(asd) asd.innerHTML=wizPortrait();   /* Stage 3d: the desktop live portrait */
   /* the endgame dial (migration 008): the Pro can flip the finish until the
      final window opens — after that it's settled, argue never */
   if(hub && !state.demo && window.CS?.member?.role==='commissioner'
