@@ -1683,10 +1683,14 @@ body::before{
       <label class="f" for="pfHandle">Your handle — how buddies find you</label>
       <input class="f" id="pfHandle" autocomplete="off" placeholder="@jerecho" style="font-family:var(--sans); font-size:16px;">
       <p class="fine" style="margin:6px 2px 0; padding:0; color:var(--dim)">Suggested from your name — tap to change it.</p>
+      <div style="height:12px"></div>
+      <label class="f" for="pfIdx">Handicap index <span style="color:var(--dim); font-weight:400">· optional</span></label>
+      <input class="f" id="pfIdx" type="number" step="0.1" inputmode="decimal" placeholder="e.g. 12.4">
+      <p class="fine" style="margin:6px 2px 0; padding:0; color:var(--dim)">Know your index — from GHIN or anywhere? Enter it as a starting point. Otherwise your first three rounds set it, and it keeps adjusting as you play.</p>
       <div style="height:14px"></div>
       <label class="f">Ball marker</label>
       <div id="pfMarkers" style="display:grid; grid-template-columns:repeat(4,1fr); gap:8px; margin-top:8px;"></div>
-      <p class="fine" style="margin:10px 2px 0; padding:0; color:var(--dim)">City, home course, and your index live on your card — add them any time from the You tab.</p>
+      <p class="fine" style="margin:10px 2px 0; padding:0; color:var(--dim)">City and home course live on your card — add them any time from the You tab.</p>
       <div style="height:16px"></div>
       <button class="btn" id="pfSave">Save my card</button>
       <div class="ob-caption" id="pfStatus" style="margin-top:10px"></div>
@@ -2929,9 +2933,15 @@ let toastT;
   const dots=document.getElementById('csTdots').children;
   const N=document.querySelectorAll('.cs-tslide').length;
   let ti=0, lastFocus=null;
+  /* PER-ACCOUNT (was per-browser): cs_tour_done alone suppressed every later
+     account in the same browser, so a second signup / a shared device never
+     saw the tour (pilot 2026-07-20). Key by user id. The old global key is NOT
+     consulted, so an existing user who saw the old tour gets the re-cut one
+     once — harmless, and it re-arms testing. */
+  const seenKey=()=>'cs_tour_done_'+((window.CS&&CS.user&&CS.user.id)||'anon');
   const seenFlag={
-    get(){ try{ return localStorage.getItem('cs_tour_done')==='1'; }catch(_){ return false; } },
-    set(){ try{ localStorage.setItem('cs_tour_done','1'); }catch(_){} }
+    get(){ try{ return localStorage.getItem(seenKey())==='1'; }catch(_){ return false; } },
+    set(){ try{ localStorage.setItem(seenKey(),'1'); }catch(_){} }
   };
   function go(i){
     ti=Math.max(0, Math.min(N-1, i));
@@ -7965,19 +7975,20 @@ $('#pfSave').addEventListener('click', async () => {
   if(!/^[a-z0-9_]{3,20}$/.test(hnd)){
     $('#pfStatus').textContent = 'Handle: 3–20 letters, numbers or underscores.'; return;
   }
+  const idx = parseFloat($('#pfIdx').value);
   const btn = $('#pfSave'); btn.disabled = true; btn.textContent = '…';
   try {
     const { error: he } = await sb.rpc('set_handle', { p_handle: hnd });
     if(he) throw he;
-    /* Phase 2: the card asks for name + handle + marker only. City, home course,
-       and index are deferred to the You-tab card editor (#phCity/#phHome/#phIdx).
-       A brand-new profile has these null already (the boot gate only shows for a
-       missing marker), so passing null here clobbers nothing. */
+    /* the card asks for name + handle + marker + an OPTIONAL starting index.
+       City and home course stay deferred to the You-tab editor (#phCity/#phHome);
+       a brand-new profile has them null, so passing null clobbers nothing. The
+       index is a starter your scores overtake (WHS-lite, established at 3). */
     const { error } = await sb.rpc('set_profile', {
       p_name: name,
       p_city: null,
       p_home: null,
-      p_index: null,
+      p_index: isNaN(idx) ? null : idx,
       p_marker: pfMarker,
     });
     if(error) throw error;
