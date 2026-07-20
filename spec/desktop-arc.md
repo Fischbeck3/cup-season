@@ -166,6 +166,24 @@ returning-member time-to-door unchanged.
 - **Mobile gets the story: YES.** Same sections, lighter, below the door.
 - **Stage-3 scope: all three** — wizard, Home, League Room, in that order.
 
+## Decisions v2 (owner, 2026-07-20 — supersedes the above where they collide)
+
+- **The door is ONE screen, no scrolling.** Centered composition: the crest
+  (tracers dive from both wings into one flagged hole), the door, and at
+  >=1100px two live wings — rounds hitting the board + the standings
+  mid-coup (hand-authored diorama; loops pause on hide, die on dismissal).
+- **The story lives in the welcome tour**, not on the door: the
+  first-sign-in click-through (fires after the golfer-card save; skip
+  button; replay under You → Settings → Getting started). The ship gate
+  moves with it — a new member can explain the game back after the six
+  slides. The door's job: lede + wings + convert.
+- **Pot canon is D39 ledger language** ("every dollar on the books");
+  "never held" is retired everywhere the product speaks.
+- Built: centered door + wings (`546f5b4`) · tour (`607db63`) · story
+  folded into the tour, door de-scrolled (this commit). The current-state
+  line anchors earlier in this file predate these builds — re-grep before
+  trusting them.
+
 ## Still open (raise in the design plan; defaults stand unless argued)
 
 - **D-a · Story placement:** default = below-door scroll on the same
