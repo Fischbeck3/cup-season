@@ -4404,6 +4404,7 @@ $('#postBtn').addEventListener('click', async ()=>{
       window._qaPostOpenedAt = Date.now();   /* a second post times from here, not the stale open */
       stampPosted('POSTED ✓');
       toast(`Round posted: ~${pts} pts pending the league's math`);
+      setTimeout(() => window.csEarnInstallNudge?.(), 1400);   /* earned: the first real round hits the board */
       /* clear the form so a posted round never reads as "didn't submit"
          (pilot feedback: entered a second round thinking the first failed) */
       $('#inF9').value=''; $('#inB9').value='';
@@ -7775,21 +7776,30 @@ $$('.copycode').forEach(b=>b.addEventListener('click',async ()=>{
 }));
 
 /* ---------- PWA install nudge ---------- */
+/* Retimed (2026-07-20): the nudge fires on an EARNED moment — the first real
+   round posted, or an invited member landing in their league — never on a
+   12s wall clock mid-onboarding (Fogg: prompt at peak motivation, i.e. after
+   a success, not during effort). beforeinstallprompt is captured but HELD;
+   window.csEarnInstallNudge() is the single gate those moments call. Shows
+   once, ever; no-ops when standalone or already dismissed. */
 (function(){
   var standalone = matchMedia('(display-mode: standalone)').matches || navigator.standalone === true;
-  if(standalone || localStorage.getItem('cs_nudge_done')) return;
-  var deferred = null, n = document.getElementById('installNudge');
-  function show(){ if(n) n.style.display = 'flex'; }
-  function dismiss(){ localStorage.setItem('cs_nudge_done','1'); if(n) n.style.display = 'none'; }
-  window.addEventListener('beforeinstallprompt', function(e){ e.preventDefault(); deferred = e; show(); });
-  if(/iphone|ipad|ipod/i.test(navigator.userAgent)) setTimeout(show, 12000);
-  document.getElementById('nudgeGo').addEventListener('click', function(){
-    if(deferred){ deferred.prompt(); deferred = null; dismiss(); return; }
-    openSheet('Add to your home screen', 'Installs like an app, no App Store needed',
-      '<p style="line-height:1.7">In <b>Safari</b>: tap the <b>Share</b> button (the square with the arrow), scroll down, tap <b>Add to Home Screen</b>.<br><br>Full screen, your icon, your leagues one tap away.</p>');
-    dismiss();
-  });
-  document.getElementById('nudgeX').addEventListener('click', dismiss);
+  var n = document.getElementById('installNudge');
+  var deferred = null, shown = false;
+  function eligible(){ try{ return !standalone && !localStorage.getItem('cs_nudge_done'); }catch(_){ return !standalone; } }
+  function show(){ if(shown || !eligible() || !n) return; shown = true; n.style.display = 'flex'; }
+  function dismiss(){ try{ localStorage.setItem('cs_nudge_done','1'); }catch(_){}; if(n) n.style.display = 'none'; }
+  window.addEventListener('beforeinstallprompt', function(e){ e.preventDefault(); deferred = e; });  /* hold — don't show until earned */
+  window.csEarnInstallNudge = function(){ show(); };
+  if(n){
+    document.getElementById('nudgeGo').addEventListener('click', function(){
+      if(deferred){ deferred.prompt(); deferred = null; dismiss(); return; }
+      openSheet('Add to your home screen', 'Installs like an app, no App Store needed',
+        '<p style="line-height:1.7">In <b>Safari</b>: tap the <b>Share</b> button (the square with the arrow), scroll down, tap <b>Add to Home Screen</b>.<br><br>Full screen, your icon, your leagues one tap away.</p>');
+      dismiss();
+    });
+    document.getElementById('nudgeX').addEventListener('click', dismiss);
+  }
 })();
 $$('.ibtn').forEach(b=>b.addEventListener('click',e=>{
   e.preventDefault(); e.stopPropagation();
@@ -7935,10 +7945,15 @@ $('#pfSave').addEventListener('click', async () => {
     await loadProfile();
     $('#obProfile').style.display = 'none';
     toast(`Card saved. Welcome, ${name}.`);
-    await resumeAfterProfile();
-    /* first sign-in only: the card save IS the first-run signal (marker gate).
-       Small delay so the app surface settles behind the overlay. */
-    setTimeout(() => window.openWelcomeTour?.(), 600);
+    const arrival = await resumeAfterProfile();
+    /* the welcome tour explains "what is Cup Season" — show it ONLY to an
+       organic first-timer. Invited members and guest-claim users are taught by
+       their league covenant / their claimed round; the tour would collide with
+       that and delay the very thing they came for. (Replay under You →
+       Getting started for anyone who wants it later.) */
+    if(arrival && !arrival.viaInvite && !arrival.inLeague){
+      setTimeout(() => window.openWelcomeTour?.(), 600);
+    }
   } catch(e){
     $('#pfStatus').textContent = 'Save failed: ' + (e.message || e);
   } finally { btn.disabled = false; btn.textContent = 'Save my card'; }
@@ -10816,15 +10831,42 @@ async function boot(){
 /* continue the boot after the golfer-card gate saves */
 async function resumeAfterProfile(){
   claimPendingRound();   /* guest → golfer: attach the waiting round now that the card exists */
+  const ls = k => { try{ return localStorage.getItem(k); }catch(_){ return null; } };
+  /* arrival intent, captured before we consume it: an invited member (cs_code)
+     or guest-claim user (cs_claim) is taught by their league covenant / their
+     claimed round — NOT the generic welcome tour. Returned to the caller. */
+  const viaInvite = !!(ls('cs_code') || ls('cs_claim'));
   try {
+    /* pending invite code: join NOW so an invited first-timer lands inside their
+       league on THIS session. boot()'s join block is skipped on first signup
+       (the profile-gate early return sits before it), so without this the join
+       silently defers to a later refresh and they'd land league-less here. The
+       code is removed before the attempt (as in boot()) so a failure can't loop. */
+    const pend = ls('cs_code');
+    if(pend){
+      try{ localStorage.removeItem('cs_code'); localStorage.removeItem('cs_code_name'); }catch(_){}
+      try{
+        const { error } = await sb.rpc('join_league', { p_code: pend });
+        if(error) throw error;
+      }catch(e){ toast('Auto-join failed: ' + (e.message||e)); }
+    }
     bootStep = 'memberships';
     await loadMemberships();
-    if(CS.memberships.length === 0){ showWelcome(); return; }
+    if(CS.memberships.length === 0){ showWelcome(); return { inLeague:false, viaInvite }; }
     bootStep = 'enterLeague';
-    const lastId2 = (()=>{ try{ return localStorage.getItem('cs_last_league'); }catch(_){ return null; } })();
-    await enterLeague(CS.memberships.find(x => x.league.id === lastId2) || CS.memberships[0]);
+    const lastId2 = ls('cs_last_league');
+    const joined = pend ? CS.memberships.find(x => x.league.code === pend) : null;
+    const target = joined || CS.memberships.find(x => x.league.id === lastId2) || CS.memberships[0];
+    await enterLeague(target);
+    if(joined){
+      toast('Joined ' + target.league.name);
+      openLeagueWelcome(target.league.name);                     /* the covenant is their teaching */
+      setTimeout(() => window.csEarnInstallNudge?.(), 3200);     /* earned moment, after the covenant */
+    }
+    return { inLeague:true, viaInvite };
   } catch(e){
     authStatus('Boot failed at [' + bootStep + ']: ' + (e.message || e), 'err');
+    return { inLeague:false, viaInvite };
   } finally { bootStep = 'reveal'; }
 }
 
