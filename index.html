@@ -726,6 +726,13 @@ input.f::-webkit-outer-spin-button, input.f::-webkit-inner-spin-button{-webkit-a
   #view-home .home-main{min-width:0;}
   #view-home .home-rail{display:flex; flex-direction:column; gap:6px;}
 }
+/* Stage 3b.1 (pilot follow-up): on league-less PHONES, Start something is the
+   golfer's #1 action — the rail hoists above the feed. Members keep feed-first
+   (starting a second league is rare). Desktop unaffected: both are visible. */
+@media(max-width:1099px){
+  body.noleague #view-home .home-grid{display:flex; flex-direction:column;}
+  body.noleague #view-home .home-rail{order:-1;}
+}
 /* Stage 3c: desktop League Room — Standings and the Board side by side (the
    board is the alive spine, worth keeping in view). Only the standings segment
    splits; schedule/pot/league stay single full-width panes. Robust + resize-safe:
@@ -1994,6 +2001,9 @@ body::before{
              The quick-post card is gone — the + tab is the only score entry. -->
         <div id="homeHub">
           <div id="homeGreeting"></div>
+          <!-- the up-next strip is time-sensitive and glanceable: full width,
+               right under the greeting, BOTH breakpoints (hides when empty) -->
+          <div id="homeUpNext"></div>
           <div class="home-grid">
           <div class="home-main">
           <div class="eyebrow">Your leagues</div>
@@ -2003,7 +2013,6 @@ body::before{
           <div id="homeFeed"></div>
           </div>
           <aside class="home-rail" aria-label="At a glance">
-          <div id="homeUpNext"></div>
           <div class="eyebrow" id="homeRoundsHead" style="display:none">Coming up</div>
           <div id="homeRounds"></div>
           <div id="homePulse"></div>
