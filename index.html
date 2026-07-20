@@ -1686,7 +1686,12 @@ body::before{
       <div style="height:12px"></div>
       <label class="f" for="pfIdx">Handicap index <span style="color:var(--dim); font-weight:400">· optional</span></label>
       <input class="f" id="pfIdx" type="number" step="0.1" inputmode="decimal" placeholder="e.g. 12.4">
-      <p class="fine" style="margin:6px 2px 0; padding:0; color:var(--dim)">Know your index — from GHIN or anywhere? Enter it as a starting point. Otherwise your first three rounds set it, and it keeps adjusting as you play.</p>
+      <p class="fine" style="margin:6px 2px 0; padding:0; color:var(--dim)">Know your index? Enter it as a starting point — otherwise your first three rounds set it, and it keeps adjusting as you play.</p>
+      <button class="mini" id="pfGhinToggle" type="button" style="margin-top:8px">+ Add your GHIN number</button>
+      <div id="pfGhinWrap" style="display:none; margin-top:8px">
+        <input class="f" id="pfGhin" inputmode="numeric" autocomplete="off" placeholder="GHIN # · e.g. 1234567" style="font-family:var(--sans); max-width:220px">
+        <p class="fine" style="margin:6px 2px 0; padding:0; color:var(--dim)">Links your USGA record — that's identity, not your number. Your index still comes from your posted scores.</p>
+      </div>
       <div style="height:14px"></div>
       <label class="f">Ball marker</label>
       <div id="pfMarkers" style="display:grid; grid-template-columns:repeat(4,1fr); gap:8px; margin-top:8px;"></div>
@@ -7990,6 +7995,7 @@ $('#pfSave').addEventListener('click', async () => {
       p_home: null,
       p_index: isNaN(idx) ? null : idx,
       p_marker: pfMarker,
+      p_ghin: (($('#pfGhin')?.value) || '').trim() || null,   /* GHIN B: identity, optional; null = keep (none on a new profile) */
     });
     if(error) throw error;
     await loadProfile();
@@ -8039,6 +8045,14 @@ $('#pfName')?.addEventListener('input', () => {
   pfCheckHandle();
 });
 $('#pfHandle')?.addEventListener('input', () => { pfHandleTouched = true; pfCheckHandle(); });
+/* GHIN B: one "Your handicap" block — the index seeds your number, GHIN is a
+   quiet reveal for identity (doesn't set the number; we never import the index). */
+$('#pfGhinToggle')?.addEventListener('click', () => {
+  const w = $('#pfGhinWrap'); if(!w) return;
+  w.style.display = 'block';
+  $('#pfGhinToggle').style.display = 'none';
+  $('#pfGhin')?.focus();
+});
 
 /* ---------- profile hub: the avatar chip opens your card ---------- */
 const initialsOf = n => ((n||'').trim().split(/\s+/).map(w => w[0]).join('').slice(0,2).toUpperCase()) || 'MJ';
