@@ -1661,7 +1661,8 @@ body::before{
       <input id="obCodeIn" inputmode="numeric" maxlength="10" placeholder="CODE FROM EMAIL" autocomplete="one-time-code">
       <button class="btn" id="obCodeGo">Verify</button>
     </div>
-    <div class="ob-status" id="obStatus"></div>
+    <div class="ob-status" id="obStatus" role="status" aria-live="polite"></div>
+    <button class="cs-tskip" id="obResend" type="button" style="display:none">Resend code</button>
 
     <button class="btn dark" id="obJoin">I have an invite code</button>
       <div class="joinbox" id="joinbox">
@@ -7911,7 +7912,15 @@ function showProfileGate(){
   [g, ...g.querySelectorAll('*')].forEach(el => {
     el.style.animation='none'; el.style.opacity='1'; el.style.transform='none';
   });
-  if(CS.profile?.display_name && !$('#pfName').value) $('#pfName').value = CS.profile.display_name;
+  /* Phase 5: never pre-fill the name with the m001 email-derived display_name
+     ("jerechofischbeck") — an ugly default the user has to clear. Compare
+     normalized forms so dot/space/case variants of the email local part are
+     all treated as auto-derived. A real saved name still pre-fills. */
+  const dn = CS.profile?.display_name || '';
+  const norm = s => String(s||'').toLowerCase().replace(/[^a-z0-9]/g, '');
+  const emailLocal = (CS.user?.email || '').split('@')[0];
+  const derivedName = dn && emailLocal && norm(dn) === norm(emailLocal);
+  if(dn && !derivedName && !$('#pfName').value) $('#pfName').value = dn;
   if(!$('#pfHandle').value){
     const sug = CS.profile?.handle
       || (CS.profile?.display_name || CS.user?.email || '').split('@')[0]
@@ -7919,12 +7928,34 @@ function showProfileGate(){
     if(sug) $('#pfHandle').value = '@' + sug;
   }
   pfCheckHandle();   /* show availability on the pre-filled suggestion right away */
+  /* Phase 5: the marker grid is a real radiogroup — roving tabindex, arrow
+     keys, aria-checked, and a 10ms haptic tick on pick. */
   const grid = $('#pfMarkers');
+  grid.setAttribute('role','radiogroup');
+  grid.setAttribute('aria-label','Ball marker');
   grid.innerHTML = Object.keys(MARKERS).map(k =>
-    `<button class="mini" data-mk="${k}" style="display:flex;flex-direction:column;align-items:center;gap:4px;padding:10px 4px;${k===pfMarker?'border-color:var(--pos);color:var(--pos);':''}">${mkr(k)}<span style="font-size:10.5px;letter-spacing:.06em">${MARKERS[k].n.toUpperCase()}</span></button>`).join('');
+    `<button class="mini" data-mk="${k}" role="radio" aria-checked="${k===pfMarker}" tabindex="${k===pfMarker?0:-1}" style="display:flex;flex-direction:column;align-items:center;gap:4px;padding:10px 4px;${k===pfMarker?'border-color:var(--pos);color:var(--pos);':''}">${mkr(k)}<span style="font-size:10.5px;letter-spacing:.06em">${MARKERS[k].n.toUpperCase()}</span></button>`).join('');
   grid.querySelectorAll('[data-mk]').forEach(b => b.addEventListener('click', () => {
-    pfMarker = b.dataset.mk; showProfileGate();
+    pfMarker = b.dataset.mk;
+    try{ if(navigator.vibrate) navigator.vibrate(10); }catch(_){}
+    showProfileGate();
+    grid.querySelector(`[data-mk="${pfMarker}"]`)?.focus();
   }));
+  if(!grid._csKeys){
+    grid._csKeys = true;   /* the grid element persists across rebuilds — bind once */
+    grid.addEventListener('keydown', e => {
+      const keys = Object.keys(MARKERS);
+      let i = keys.indexOf(pfMarker);
+      if(e.key==='ArrowRight' || e.key==='ArrowDown') i = (i+1) % keys.length;
+      else if(e.key==='ArrowLeft' || e.key==='ArrowUp') i = (i-1+keys.length) % keys.length;
+      else return;
+      e.preventDefault();
+      pfMarker = keys[i];
+      try{ if(navigator.vibrate) navigator.vibrate(10); }catch(_){}
+      showProfileGate();
+      grid.querySelector(`[data-mk="${pfMarker}"]`)?.focus();
+    });
+  }
 }
 
 $('#pfSave').addEventListener('click', async () => {
@@ -9423,6 +9454,7 @@ function openEmailBox(afterEl, msg){
   afterEl.insertAdjacentElement('afterend', box);
   box.insertAdjacentElement('afterend', $('#codebox'));
   $('#codebox').insertAdjacentElement('afterend', $('#obStatus'));
+  const rs = $('#obResend'); if(rs) $('#obStatus').insertAdjacentElement('afterend', rs);
   box.classList.add('open');
   $('#obEmailIn').focus();
   authStatus(msg || '');
@@ -9454,6 +9486,61 @@ $('#obCodeGo').addEventListener('click', async () => {
   }
 });
 
+/* Phase 5: the code auto-submits at 8 digits (Supabase OTPs are 8 — landmine:
+   never maxlength=6) — typed or pasted, non-digits stripped as you go. The
+   flag + in-flight check stop a double fire. */
+let otpAuto = false;
+$('#obCodeIn')?.addEventListener('input', () => {
+  const el = $('#obCodeIn');
+  const digits = el.value.replace(/\D/g, '');
+  if(digits !== el.value) el.value = digits;
+  if(digits.length >= 8 && !otpAuto && !$('#obCodeGo').disabled){
+    otpAuto = true;
+    try{ if(navigator.vibrate) navigator.vibrate(10); }catch(_){}
+    $('#obCodeGo').click();
+    setTimeout(() => { otpAuto = false; }, 1500);   /* re-arm after a failed verify */
+  }
+});
+
+/* Phase 5: resend with a cooldown, and a spam hint that appears only while
+   actually waiting (box open, nothing typed, no error on screen). */
+let resendT = null, spamT = null;
+function startResendCooldown(){
+  const b = $('#obResend'); if(!b) return;
+  let left = 30;
+  b.style.display = 'block'; b.disabled = true;
+  b.textContent = `Resend code (${left}s)`;
+  clearInterval(resendT);
+  resendT = setInterval(() => {
+    left--;
+    if(left <= 0){ clearInterval(resendT); b.disabled = false; b.textContent = 'Resend code'; }
+    else b.textContent = `Resend code (${left}s)`;
+  }, 1000);
+}
+function scheduleSpamHint(){
+  clearTimeout(spamT);
+  spamT = setTimeout(() => {
+    if($('#codebox').classList.contains('open') && !$('#obCodeIn').value.trim()
+       && !CS.user && !$('#obStatus').className.includes('err')){
+      authStatus('No code yet? Check spam for the newest Cup Season email — older codes retire when a new one sends.');
+    }
+  }, 20000);
+}
+$('#obResend')?.addEventListener('click', async () => {
+  const email = CS.pendingEmail || $('#obEmailIn').value.trim();
+  if(!email.includes('@')) return authStatus('Enter your email above first.','err');
+  const b = $('#obResend'); b.disabled = true;
+  authStatus('Sending a fresh code…');
+  try {
+    await requestOtpCode(email);
+    authStatus(`Fresh code sent to ${email} — the newest email wins.`,'ok');
+    startResendCooldown(); scheduleSpamHint();
+  } catch(e){
+    authStatus('Couldn’t resend: ' + (e.message || e), 'err');
+    b.disabled = false;
+  }
+});
+
 $('#obEmailGo').addEventListener('click', async () => {
   const email = $('#obEmailIn').value.trim();
   if(!email.includes('@')) return authStatus('Enter a real email address.','err');
@@ -9465,8 +9552,9 @@ $('#obEmailGo').addEventListener('click', async () => {
     CS.pendingEmail = email;
     $('#codebox').classList.add('open');
     $('#obCodeIn').focus();
-    authStatus(`Sent to ${email}. Type the sign-in code from the newest email — check spam if it's slow. One send at a time: tapping Go again retires older codes.`,'ok');
+    authStatus(`Sent to ${email}. Type the sign-in code from the newest email.`,'ok');
     toast('Code sent');
+    startResendCooldown(); scheduleSpamHint();
   } catch(err){
     const m = (err.message || '').toLowerCase();
     const code = (err.code || err.error_code || '').toString().toLowerCase();
@@ -9491,6 +9579,7 @@ $('#obEmailGo').addEventListener('click', async () => {
 $('#obJoin').addEventListener('click', () => {
   $('#emailbox').classList.remove('open');   /* don't stack the two input rows */
   $('#codebox').classList.remove('open');
+  const rs=$('#obResend'); if(rs) rs.style.display='none';
   $('#joinbox').classList.add('open');
   $('#joinCode').focus();
 });
