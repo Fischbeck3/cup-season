@@ -717,6 +717,15 @@ input.f::-webkit-outer-spin-button, input.f::-webkit-inner-spin-button{-webkit-a
   #view-wizard .wiz-aside{display:block; position:sticky; top:88px;}
   #view-wizard #bylawsReview{display:none;}   /* the sticky aside IS the review on desktop */
 }
+/* Stage 3b: desktop Home — feed/story in the main column, a glance-and-act rail
+   (coming up · pulse · start something) on the right. The greeting stays full
+   width on top. Mobile keeps a single column in source order (greeting, feed,
+   then the rail blocks) — no interleave to preserve, renderers target ids. */
+@media(min-width:1100px){
+  #view-home .home-grid{display:grid; grid-template-columns:minmax(0,1fr) 320px; gap:28px; align-items:start;}
+  #view-home .home-main{min-width:0;}
+  #view-home .home-rail{display:flex; flex-direction:column; gap:6px;}
+}
 .wizstep{display:none;}
 .wizstep.on{display:block; animation:vin .22s ease both;}
 /* quick-post hole grid (decision #5): par-prefilled, adjust only deviations */
@@ -1970,17 +1979,23 @@ body::before{
              The quick-post card is gone — the + tab is the only score entry. -->
         <div id="homeHub">
           <div id="homeGreeting"></div>
+          <div class="home-grid">
+          <div class="home-main">
+          <div class="eyebrow">Your leagues</div>
+          <div id="homeRecap"></div>
+          <div class="eyebrow">Around your circle</div>
+          <div id="homeDigest"></div>
+          <div id="homeFeed"></div>
+          </div>
+          <aside class="home-rail" aria-label="At a glance">
           <div id="homeUpNext"></div>
           <div class="eyebrow" id="homeRoundsHead" style="display:none">Coming up</div>
           <div id="homeRounds"></div>
           <div id="homePulse"></div>
           <div class="eyebrow" style="margin-top:0">Start something</div>
           <div id="homeStart"></div>
-          <div class="eyebrow">Your leagues</div>
-          <div id="homeRecap"></div>
-          <div class="eyebrow">Around your circle</div>
-          <div id="homeDigest"></div>
-          <div id="homeFeed"></div>
+          </aside>
+          </div>
         </div>
       </section>
 
