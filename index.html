@@ -4092,7 +4092,7 @@ function epiCounting(rank){
   if(rank<=capN) return capN===Infinity ? ' · counts this month' : ` · counts #${rank} this month`;
   return ` · outside your best ${capN} this month, for now`;
 }
-function showEpilogue(epi, course){
+function showEpilogue(epi, course, firstEver){
   if(!epi) return;
   const rows=[];
   const pvi = epi.pvi!=null ? Number(epi.pvi) : null;
@@ -4113,14 +4113,19 @@ function showEpilogue(epi, course){
     const sub = rv.rivalry_name ? `“${esc(rv.rivalry_name)}” · your clash this week counted` : 'Your clash this week counted';
     rows.push(`<div class="check"><span class="num">⚔️</span><div class="tt"><b>${esc(line)} all-time${tie}</b><small>${sub}</small></div></div>`);
   });
-  if(!rows.length) return; /* nothing worth interrupting a post for */
+  if(!rows.length && !firstEver) return; /* nothing worth interrupting a post for */
+  /* Phase 4: the first-ever round always gets its moment + the shareable card,
+     even when there's no band row yet (a brand-new golfer has no index, so pvi
+     is null) — the first success is the growth seam. */
+  if(firstEver)
+    rows.unshift(`<div class="check"><span class="num">🎉</span><div class="tt"><b>Your first round is on the board</b><small>Welcome to the season — your number and record start here</small></div></div>`);
   const sub = course
     ? `${epi.gross!=null?epi.gross+' at ':''}${String(course).toUpperCase()}`
     : 'THE ROUND, FOR YOU FIRST';
   /* #18: the peak's shareable form — the card needs its hero number */
   if(epi.gross!=null)
-    rows.push(`<button class="btn" id="epiShare" style="width:100%;margin-top:14px">Share the card</button>`);
-  openSheet('Your round', sub, rows.join(''));
+    rows.push(`<button class="btn" id="epiShare" style="width:100%;margin-top:14px">${firstEver?'Share your first card':'Share the card'}</button>`);
+  openSheet(firstEver?'Welcome to the season ⛳':'Your round', sub, rows.join(''));
   const sh=$('#shBody').querySelector('#epiShare');
   if(sh) sh.addEventListener('click',()=>shareRecapCard({
     name:  state.demo ? DEMO_ME : (window.CS?.profile?.display_name || 'You'),
@@ -4397,6 +4402,7 @@ $('#postBtn').addEventListener('click', async ()=>{
       state.post.touched=false;                       /* next round starts fresh */
       state.lastPost=null;
       if(typeof renderPostHoles==='function') renderPostHoles(); else if(typeof recalc==='function') recalc();
+      const firstEver = (window.career?.rounds || 0) === 0;   /* Phase 4: capture before loadCareer updates the count */
       if(window.loadStandingsAndFeed) await window.loadStandingsAndFeed();
       if(window.loadCareer) window.loadCareer();     /* You-tab recent rounds */
       if(window.loadHome) window.loadHome();         /* the one home feed */
@@ -4409,7 +4415,7 @@ $('#postBtn').addEventListener('click', async ()=>{
       } else if(rrow?.id){
         try {
           const { data: epi } = await sb.rpc('round_epilogue', { p_round: rrow.id });
-          showEpilogue(epi, payload.course_label);
+          showEpilogue(epi, payload.course_label, firstEver);
         } catch(_){ /* RPC not deployed yet, or nothing to say — never block a post */ }
       }
     } catch(e){ toast('Post failed: '+(e.message||e)); }
@@ -6783,6 +6789,20 @@ function renderTrophyCase(){
 }
 /* lifetime line + recent rounds — cross-league, user-global (window.career,
    set by the module loader). The demo shows a lived-in career. */
+/* Phase 4: one empty-state pattern — a quiet icon, one line in voice, one next
+   step. The CTA routes via the delegated [data-empty-go] handler (injected
+   buttons don't get the load-time [data-go] binding). Every dead end becomes a
+   next move. */
+function emptyState(o){
+  o = o || {};
+  const cta = (o.ctaLabel && o.ctaGo)
+    ? `<button class="btn" data-empty-go="${esc(o.ctaGo)}" style="max-width:240px; margin:14px auto 0">${esc(o.ctaLabel)}</button>`
+    : '';
+  return `<div style="text-align:center; padding:20px 10px;">`
+    + `<div aria-hidden="true" style="font-size:22px; opacity:.45; margin-bottom:8px">${o.icon||'⛳'}</div>`
+    + `<p class="fine" style="padding:0; color:var(--mut); max-width:34ch; margin:0 auto">${esc(o.line||'')}</p>${cta}</div>`;
+}
+window.emptyState = emptyState;
 function renderCareer(){
   const c = state.demo
     ? { rounds:42, best:4.8, avg:1.2, played:3, recent:[
@@ -6803,7 +6823,7 @@ function renderCareer(){
     const canDel = !state.demo && window.sb;
     yr.innerHTML = (c.recent && c.recent.length)
       ? c.recent.map(r=>`<div class="fine" style="padding:3px 0; display:flex; justify-content:space-between; align-items:center; gap:8px;"><span>${r.played_on} · ${esc((r.course_label||'').toUpperCase())||'ROUND'}${r.holes_played===9?' · 9':''}</span><span style="display:flex; align-items:center; gap:12px;"><b class="mono">${r.gross} · ${r.differential}</b>${canDel&&r.id?`<button data-delr="${r.id}" title="Delete this round" aria-label="Delete round" style="background:none; border:none; color:var(--dim); cursor:pointer; font-size:16px; line-height:1; padding:2px 4px;">×</button>`:''}</span></div>`).join('')
-      : '<div class="fine" style="padding:3px 0">No rounds yet — the card fills as you play.</div>';
+      : emptyState({ icon:'⛳', line:'No rounds yet — your card fills as you play.', ctaLabel:'Post your first round', ctaGo:'record' });
     yr.querySelectorAll('[data-delr]').forEach(b=>b.addEventListener('click', async ()=>{
       if(!confirm('Delete this round? It leaves your card and any league standings it counted toward.')) return;
       b.disabled = true;
@@ -6927,7 +6947,7 @@ function openMemberHist(p){
   const body=hist.length
     ? hist.map(h=>`<div class="fine" style="display:flex;justify-content:space-between;gap:10px;padding:4px 0"><span>${h.played_on}${h.holes_played===9?' · 9 HOLES':''}${h.counting?'':' · BUMPED'}</span><b class="mono" style="white-space:nowrap">${sgn(h.pvi)} vs index · ${h.points} PTS</b></div>`).join('')
       + (hist.some(h=>!h.counting)?'<p class="fine" style="padding-top:10px">Bumped rounds still happened — a better round took their monthly slot. A better round always bumps your worst counter.</p>':'')
-    : '<p class="fine">No rounds this season yet — post one and you\'re on the board.</p>';
+    : emptyState({ icon:'⛳', line:'No rounds this season yet — post one and you\'re on the board.', ctaLabel:'Post a round', ctaGo:'record' });
   openSheet(p.n, `${p.r} ROUND${p.r===1?'':'S'} · ${p.pts} PTS`, body);
 }
 
@@ -7748,6 +7768,8 @@ $('#setName').addEventListener('input',e=>{
   $('#leagueName').textContent=n; $('#sideLeague').textContent=n;
 });
 $$('[data-go]').forEach(b=>b.addEventListener('click',e=>{e.preventDefault();switchView(b.dataset.go);}));
+/* Phase 4: delegated so empty-state CTAs injected after load still route */
+document.addEventListener('click',e=>{ const b=e.target.closest('[data-empty-go]'); if(b){ e.preventDefault(); switchView(b.dataset.emptyGo); } });
 $$('.copycode').forEach(b=>b.addEventListener('click',async ()=>{
   if(!state.demo && window.CS?.league && window.shareInvite){ window.shareInvite(); return; }
   /* E1: fall back to the REAL code when the share layer is missing — the
