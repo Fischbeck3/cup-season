@@ -732,10 +732,14 @@ input.f::-webkit-outer-spin-button, input.f::-webkit-inner-spin-button{-webkit-a
    the layout keys off #roomGrid[data-room], set by setRoomSeg, so every seg state
    is well-defined. Mobile is untouched (the wrapper is a plain block <1100). */
 @media(min-width:1100px){
-  #roomGrid[data-room="standings"]{display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:24px; align-items:start;}
+  #roomGrid[data-room="standings"]{display:grid; grid-template-columns:minmax(0,1.18fr) minmax(0,.82fr); gap:24px; align-items:start;}
   #roomGrid[data-room="standings"] #room-standings{display:block; grid-column:1; min-width:0;}
   #roomGrid[data-room="standings"] #room-board{display:block; grid-column:2; min-width:0;}
   #roomSeg [data-room="board"]{display:none;}   /* board rides alongside standings — no separate tab needed */
+  /* the standings pane carries its OWN >=960px two-col grid (.homegrid: climb |
+     table) sized for the full column — inside this split it must stack, or both
+     halves render at ~200px and text escapes its pills (pilot, 2026-07-20) */
+  #roomGrid[data-room="standings"] .homegrid{display:block;}
 }
 .wizstep{display:none;}
 .wizstep.on{display:block; animation:vin .22s ease both;}
