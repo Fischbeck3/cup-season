@@ -1147,3 +1147,36 @@ change; no scoring mechanic touched.)*
   decision. Passive code displays still remain in two setup surfaces (the phase
   subtitle at renderPhase, the hub-header code chip) — deferred as optional
   follow-ups; the routing backstop makes them harmless.
+
+---
+
+### D41 · Run it back (post-season renewal moment)
+*(2026-07-20, desktop-arc 3d. Retention/lifecycle surface; no scoring mechanic
+touched. V1 built.)*
+- **Current:** when a league finishes (phase `complete`), the season just ends.
+  Nothing prompts the crew to continue — the group chat is hottest exactly when
+  the app goes quiet. GTM year-1 names "the run-it-back renewal moment" as the
+  mitigation for off-season churn (risk #3), but it was unbuilt.
+- **Problem:** the highest-leverage retention beat — a season *just settled* —
+  had no product surface. Re-creating next season meant the Pro rebuilding all
+  the bylaws from scratch.
+- **Recommendation (V1, built):** a "Run it back — Season 2" card on Home's
+  Start-something when the user has a `complete` league. It opens the create
+  wizard PREFILLED with the old league's bylaws (`applyBylaws(loadBylaws(id))`)
+  and a `· S2` name; the Pro reviews and locks → a new league carrying the same
+  structure/endgame/pot split/season length. Reuses the entire existing create
+  flow (runItBack stashes the bylaws, clicks `#wCreate`, a hook applies them
+  after the scaffold+wizard appear) — **no new engine, RPC, or schema.**
+- **Principle:** #5 Feels Alive (the season continues) · #4 Memory (S1 → S2, a
+  franchise) · GTM retention (the renewal moment, now real).
+- **Benefit:** the settled season becomes the on-ramp to the next; the Pro
+  re-creates in two taps with everything carried over and editable.
+- **Tradeoffs:** V1 mints a NEW league id — continuity by *convention* (the
+  `· S2` name + carried bylaws), not a linked object. **True multi-season
+  continuity** (same league id, running back-to-back history, "defending
+  champs", the grudge/margin line) is a Pro Shop / Gameplay-lane build with its
+  own decision. Deferred from V1: the champion+margin detail on the card, the
+  event rematch row, and the settlement-post-tail + ended-league-room seams
+  (V1 lives on Home only).
+- **CONFLICT check:** none upward — a new retention surface consistent with the
+  vision. Flags the future linked-multi-season Gameplay build.

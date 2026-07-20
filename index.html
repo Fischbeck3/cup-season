@@ -733,6 +733,14 @@ input.f::-webkit-outer-spin-button, input.f::-webkit-inner-spin-button{-webkit-a
 .startjoin{display:flex; align-items:center; justify-content:center; gap:8px; width:100%; margin-top:10px; padding:11px; background:var(--bg2); border:1px solid var(--line2); border-radius:12px; font-weight:600; font-size:13px; cursor:pointer; color:var(--ink);}
 @media(hover:hover){ .startdoor:hover, .startjoin:hover{border-color:var(--brand);} }
 .startdoor:focus-visible, .startjoin:focus-visible{outline:2px solid var(--pos); outline-offset:2px;}
+/* D41: run-it-back — the settled season, gold-washed, above the cold-start doors */
+.runback{border:1px solid color-mix(in srgb, var(--gold) 42%, var(--line2)); border-radius:14px; padding:14px; margin-bottom:12px;
+  background:linear-gradient(180deg, color-mix(in srgb, var(--gold) 10%, transparent), transparent 72%);}
+.runback .rb-top{display:flex; align-items:center; gap:11px; margin-bottom:12px;}
+.runback .rb-top svg{flex:none;}
+.runback .rb-k{font-family:var(--mono); font-size:9px; letter-spacing:.14em; text-transform:uppercase; color:var(--dim);}
+.runback .rb-top b{font-family:var(--serif); font-size:17px; font-weight:700; display:block; line-height:1.15;}
+.runback .rb-sub{font-family:var(--mono); font-size:9px; letter-spacing:.06em; text-transform:uppercase; color:var(--dim); text-align:center; margin-top:8px; line-height:1.5;}
 @media(min-width:1100px){
   #view-wizard .wiz-grid{display:grid; grid-template-columns:minmax(0,1fr) 340px; gap:28px; align-items:start;}
   #view-wizard .wiz-main{min-width:0;}
@@ -6279,7 +6287,22 @@ function renderGreeting(){
 }
 function renderHomeStart(){
   const box=$('#homeStart'); if(!box) return;
-  box.innerHTML = `
+  /* D41: a settled season leads — run it back before the cold-start doors */
+  const done = !state.demo && (window.CS?.memberships||[]).find(m => m.league?.phase==='complete');
+  const rb = done ? `
+    <div class="runback">
+      <div class="rb-top">
+        <svg viewBox="0 0 44 44" width="34" fill="none" aria-hidden="true">
+          <path d="M14 6h16v7c0 6.5-3.6 10.5-8 10.5S14 19.5 14 13z" stroke="var(--gold)" stroke-width="2"/>
+          <path d="M14 9H8c0 6 2.5 9 6.5 9.5M30 9h6c0 6-2.5 9-6.5 9.5" stroke="var(--gold)" stroke-width="1.6"/>
+          <path d="M22 23.5v6M16 34h12M18 30h8" stroke="var(--gold)" stroke-width="1.8" stroke-linecap="round"/>
+        </svg>
+        <div><div class="rb-k">Season wrapped</div><b>${esc(done.league.name)}</b></div>
+      </div>
+      <button class="btn" data-runback="${esc(done.league.id)}" type="button">Run it back — Season 2</button>
+      <div class="rb-sub">Same crew, same bylaws, fresh table — change anything in the wizard.</div>
+    </div>` : '';
+  box.innerHTML = rb + `
     <div class="startgrid">
       <button class="startdoor" data-hgnew type="button">
         <svg viewBox="0 0 60 40" aria-hidden="true">
@@ -6300,6 +6323,7 @@ function renderHomeStart(){
   box.querySelector('[data-hgnew]')?.addEventListener('click', () => document.getElementById('wCreate')?.click());
   box.querySelector('[data-hgnewev]')?.addEventListener('click', () => window.openEventPicker?.());
   box.querySelector('[data-hgjoin]')?.addEventListener('click', () => window.openJoinSheet?.());
+  if(done) box.querySelector('[data-runback]')?.addEventListener('click', () => window.runItBack?.(done.league));
 }
 function recapRow(title, sub, icon, attr){
   return `<div class="check${attr?' tap':''}" ${attr||''} style="${attr?'cursor:pointer;':''}"><span class="num">${icon}</span>
@@ -9026,6 +9050,20 @@ function applyBylaws(b){
   renderSetup(); renderBylaws();
 }
 
+/* Stage 3d-4 / D41: run it back — a settled season is the on-ramp to the next.
+   Stash the old league's bylaws + a "· S2" name, then run the normal create
+   flow (#wCreate); the handler's hook applies the prefill once the scaffold +
+   wizard are up. New league id — continuity by convention; linked multi-season
+   is a later Pro Shop build. No new engine/RPC/schema. */
+async function runItBack(oldLeague){
+  if(!oldLeague) return;
+  let bylaws=null; try{ bylaws = await loadBylaws(oldLeague.id); }catch(_){}
+  const base = (oldLeague.name||'Your league').replace(/\s*·\s*S\d+\s*$/i,'').trim();
+  window._runItBack = { bylaws, name: base + ' · S2' };
+  document.getElementById('wCreate')?.click();
+}
+window.runItBack = runItBack;
+
 /* ---------- enter a league ---------- */
 async function enterLeague(m, nav=true){
   document.body.classList.remove('noleague');
@@ -11034,8 +11072,20 @@ $('#wCreate').addEventListener('click', async () => {
     state.phase = 'setup';
     renderPhase();
     switchView('wizard');
-    toast('League created: name it and set the bylaws');
+    if(window._runItBack){
+      /* D41: carry last season's bylaws + name into the fresh scaffold */
+      try{
+        if(window._runItBack.bylaws) applyBylaws(window._runItBack.bylaws);
+        const nm=document.getElementById('setName'); if(nm) nm.value=window._runItBack.name;
+        renderBylaws();
+      }catch(_){}
+      window._runItBack=null;
+      toast('Run it back — last season’s bylaws carried over. Review and lock.');
+    } else {
+      toast('League created: name it and set the bylaws');
+    }
   } catch(e){
+    window._runItBack=null;
     authStatus('Create failed: ' + (e.message || e), 'err');
   }
 });
