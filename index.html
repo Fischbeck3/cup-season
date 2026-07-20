@@ -2413,8 +2413,6 @@ body::before{
         <div class="wizstep" data-step="3">
           <div class="eyebrow" style="margin-top:0">Review the bylaws, then lock it in</div>
           <div class="card" id="bylawsReview" style="margin-bottom:10px"></div>
-          <div class="codebox">SNDYCUP</div>
-          <button class="btn dark copycode" style="margin-bottom:10px">Share invite link</button>
           <p class="fine" id="inviteNote" style="padding-bottom:10px">Invites email out to 9 players when you lock. These settings become the league bylaws; amendments go through the league log.</p>
           <button class="btn" id="lockBtn">Lock the bylaws & form the squads</button>
         </div>
@@ -2481,7 +2479,7 @@ body::before{
         <div id="homeSetup" style="display:none">
           <div class="eyebrow">League setup · three steps to first tee</div>
           <div class="check"><span class="num">1</span><div class="tt"><b>Season settings</b><small>Stakes · rules · format</small></div><button class="mini" data-go="wizard">Continue</button></div>
-          <div class="check"><span class="num">2</span><div class="tt"><b>Invite the players</b><small id="setupInviteSub">CODE SNDYCUP · 9 OF 16 JOINED</small></div><button class="mini copycode">Invite</button></div>
+          <div class="check"><span class="num">2</span><div class="tt"><b>Invite the crew</b><small>One link fills the league — it opens the moment you lock</small></div><button class="mini" disabled style="opacity:.4">At lock</button></div>
           <div class="check"><span class="num">3</span><div class="tt"><b>Squad formation</b><small>Unlocks when settings lock</small></div><button class="mini" disabled style="opacity:.4">Locked</button></div>
         </div>
 
@@ -8886,7 +8884,15 @@ async function enterLeague(m, nav=true){
     if(b && b.textContent==='boot: reveal \u2713') b.style.display='none'; }, 1600);
   /* the caller may already have chosen the view (e.g. the Home hub jumps to
      Clubhouse on click) — only auto-navigate when it hasn't (boot, invites) */
-  if(nav) switchView(state.phase === 'setup' ? 'wizard' : 'home');
+  /* only the Pro configures the league in the wizard. A member who enters a
+     still-unlocked (setup-phase) league must land on Home's forming state, NOT
+     the wizard — which scaffolds as "My Cup" and reads as if they created a
+     league (pilot 2026-07-20). Gating the invite link on lock should make this
+     unreachable now; it stays as the backstop. (D40) */
+  if(nav){
+    const isPro = m.role === 'commissioner';
+    switchView(state.phase === 'setup' && isPro ? 'wizard' : 'home');
+  }
 }
 
 /* ---------- real league data (profile-first, reads the views) ---------- */

@@ -1114,3 +1114,36 @@ no gameplay mechanic changes.)*
   true today). Frozen artifacts (prospectus, ia-blueprint, season-lifecycle,
   sent pilot PDFs) and immutable migration comments keep the old phrase as
   historical record.
+
+---
+
+### D40 · Invites gate on lock (reverses the 2026-07-17 invite-during-setup)
+*(2026-07-20, owner decision after a pilot mis-route. League-lifecycle/flow
+change; no scoring mechanic touched.)*
+- **Current:** the invite link/code was shared DURING setup — the wizard's last
+  step showed "Share invite link" above the lock button, and the setup-Home
+  checklist had an "Invite the players" step with a live seat counter (the
+  2026-07-17 growth decision: fill seats early). enterLeague routed ANY member
+  of a setup-phase league into the wizard (8889).
+- **Problem (pilot 2026-07-20):** a Pro created a league, never locked it, and
+  shared the pre-lock link. The invited member joined the unlocked league and
+  enterLeague dropped them into the wizard — which scaffolds as "My Cup" — so it
+  read as if they'd created a duplicate league. Pre-lock joins + wizard routing
+  = a broken invited-member experience on the highest-value funnel.
+- **Recommendation (built):** (1) enterLeague routes only the Pro
+  (role=commissioner) to the wizard in setup; members land on Home's forming
+  state — the backstop. (2) The public share link/code moves to AFTER lock:
+  removed from the wizard's pre-lock step and the setup checklist's invite
+  action. The post-lock `openLockShare` sheet (already built) is the single
+  share moment; the pre-loaded email/in-app roster still gets invited AT lock.
+- **Principle:** correctness > early seat-fill; a member must never see the
+  Pro's configuration tool. Low Friction preserved — locking is one tap and
+  openLockShare hands over the link immediately, so the funnel barely moves.
+- **Benefit:** members can only join a locked league → they always route
+  correctly; the "created a My Cup league" confusion is impossible.
+- **Tradeoffs:** loses pre-lock seat-filling. Mitigated: openLockShare fires the
+  instant you lock, so "one link fills the league" is preserved, one tap later.
+- **CONFLICT (named):** reverses the 2026-07-17 "invite during setup" growth
+  decision. Passive code displays still remain in two setup surfaces (the phase
+  subtitle at renderPhase, the hub-header code chip) — deferred as optional
+  follow-ups; the routing backstop makes them harmless.
