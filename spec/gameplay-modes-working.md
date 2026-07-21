@@ -691,3 +691,17 @@ stays a named door (`season_adjustments` at settle, never `cup_points()`).
 **⚑ none open** — all flags resolved with the owner 2026-07-20. The window
 shape was the owner's redirect (days, not weeks; the compressed-window hype
 loop) — recorded in D43.
+
+### 10.9 Parked: the annual Major (owner insight, 2026-07-20, day of the build)
+
+Majors anchor to the **crew's own calendar**, not the pro tour's — "the annual
+Thanksgiving Major," "the New Year's tee-off," the trip week. Stronger than
+Masters-week tie-ins because the date already belongs to the crew. **V1 already
+serves it by convention:** create by the same jug name each year (any final
+day, 2–4 days), `trophies.season_year` stamps the lineage, the case reads
+"The Thanksgiving Major · 2026 / 2027 / …" with zero build. **The lineage
+build is its own decision entry before anything ships:** defending champion
+named in the announce, an "Nth annual" counter, a champions roll on the event
+page, one-tap rematch with bylaws carried (the event analog of D41's
+run-it-back — D41 explicitly deferred "the event rematch row"), and any
+anticipation nudge rides D23's fence. Not designed, not committed — captured.
