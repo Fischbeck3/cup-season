@@ -3111,6 +3111,10 @@ function switchView(v){
      so the round counts. No silent data loss possible (task #11 makes the
      pencil itself persist). */
   if(v==='play' && !state.demo) primeRealRoster();
+  /* F-005: the event room renders from CS_EVENT via loadEvent; if view-event is
+     shown without a loaded event, render the empty-state ("No event loaded.")
+     instead of leaving a blank shell with just the back link. */
+  if(v==='event') window.renderEvent?.();
   gateLiveRound();
   $$('.tab').forEach(t=>t.classList.toggle('active',t.dataset.v===v));
   $$('.navitem').forEach(t=>t.classList.toggle('active',t.dataset.v===v));
@@ -10532,7 +10536,7 @@ window.openFeedback = function(){
       version: (document.querySelector('#obCaption span:last-child')?.textContent || '').trim() || null,
       league_id: CS.league?.id || null,
       league_name: CS.league?.name || null,
-      event_id: window.E?.event?.id || null,
+      event_id: window.CS_EVENT?.event?.id || null,
       demo: !CS?.user,
       path: location.pathname + location.hash,
       ua: navigator.userAgent

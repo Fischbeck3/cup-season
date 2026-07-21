@@ -11,6 +11,7 @@ const SHELL = [
   '/manifest.webmanifest',
   '/icon-192.png',
   '/icon-512.png',
+  '/icon-512-maskable.png',
 ];
 
 self.addEventListener('install', (e) => {
