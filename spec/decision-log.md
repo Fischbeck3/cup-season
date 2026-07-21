@@ -1510,3 +1510,29 @@ proof.)*
   D23's fence respected (push opt-in, board posts are not nudges). Departs
   from both design reviews' "proof before features" posture — named here
   as a deliberate owner call, not an oversight.
+
+---
+
+### D53 · The month-close podium — the close becomes a ceremony
+*(2026-07-21, gameplay-audit session. Storytelling extension of close_month;
+no scoring change, no hardware. Build is a server-post copy extension.)*
+- **Current:** close_month() posts "JULY CLOSED" + a standings snapshot.
+  Correct machinery, zero ceremony.
+- **Problem:** the month is the product's natural episode and its ending is
+  administrative. Member-member golf runs on podium moments; the close is
+  the one guaranteed monthly beat every league shares, and it currently
+  spends itself in one line.
+- **Recommendation:** the close post becomes a short ceremony, all from
+  data already computed: month podium (top squad-month score), month MVP
+  (best individual points), biggest climb (largest table move). No new
+  points, no hardware, no new tables. The ghost list (who fell short)
+  stays PRIVATE — floors already handle it in the ledger; shame is not a
+  mechanic (D23).
+- **Principle:** Memory > Statistics — the episode ender is a story;
+  "JULY CLOSED" is a fact.
+- **Benefit:** a recurring screenshot-shaped artifact every month; the
+  month gains a finale worth checking the app for.
+- **Tradeoffs:** none material. Copy discipline required so the podium
+  never reads as a leaderboard-of-shame for the bottom.
+- **CONFLICT (named):** none upward. Rides §14.2's existing close post;
+  D23 respected (no shame surface).
