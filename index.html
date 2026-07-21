@@ -1751,7 +1751,7 @@ html[data-theme="light"] .btn:not(.dark):not(.gold):not(.apple){color:#FFFFFF;}
 
     <button class="btn dark" id="obJoin">I have an invite code</button>
       <div class="joinbox" id="joinbox">
-      <input id="joinCode" placeholder="CUP-CODE" maxlength="8" autocomplete="off">
+      <input id="joinCode" placeholder="LEAGUE CODE" maxlength="8" autocomplete="off">
       <button class="btn" id="joinGo">Join</button>
     </div>
     <button class="btn dark" id="obDemo" style="margin-top:10px">Peek at a live season</button>
@@ -1887,7 +1887,7 @@ html[data-theme="light"] .btn:not(.dark):not(.gold):not(.apple){color:#FFFFFF;}
           <div class="home-main">
           <div class="eyebrow">Your leagues</div>
           <div id="homeRecap"></div>
-          <div class="eyebrow">Around your circle</div>
+          <div class="eyebrow">Around your crew</div>
           <div id="homeDigest"></div>
           <div id="homeFeed"></div>
           </div>
@@ -1938,7 +1938,7 @@ html[data-theme="light"] .btn:not(.dark):not(.gold):not(.apple){color:#FFFFFF;}
 
         <!-- IA P5: buddies live here now (the Crew · People segment retired).
              Search + requests + your crew — the People surface, one home. -->
-        <div class="eyebrow">Golf buddies</div>
+        <div class="eyebrow">Your crew</div>
         <div id="youPeople" style="text-align:left"></div>
 
         <!-- Events engine ckpt 4: lifetime head-to-head, weekly-clash (§3). -->
@@ -2005,14 +2005,14 @@ html[data-theme="light"] .btn:not(.dark):not(.gold):not(.apple){color:#FFFFFF;}
         </button>
         <button class="optcard" id="optPlan" style="--acc:var(--gold)">
           <h4>Plan a tee time — before</h4>
-          <p>Put a round on the books · your buddies and leagues see it the moment you post</p>
+          <p>Put a round on the tee sheet · your buddies and leagues see it the moment you post</p>
           <span class="go">→</span>
         </button>
       </section>
 
       <!-- PLAY (live round) -->
       <section class="view" id="view-play">
-        <a href="#" class="backlink" data-go="record">← Record a round</a>
+        <a href="#" class="backlink" data-go="record">← Golf</a>
 
         <div id="playSetup" style="display:none">
           <div class="eyebrow">Set up the round</div>
@@ -2111,7 +2111,7 @@ html[data-theme="light"] .btn:not(.dark):not(.gold):not(.apple){color:#FFFFFF;}
 
       <!-- POST -->
       <section class="view" id="view-post">
-        <a href="#" class="backlink" data-go="record">← Record a round</a>
+        <a href="#" class="backlink" data-go="record">← Golf</a>
         <div class="postgrid">
           <div>
             <div class="eyebrow">Post a round · your index 12.4</div>
@@ -2354,7 +2354,7 @@ html[data-theme="light"] .btn:not(.dark):not(.gold):not(.apple){color:#FFFFFF;}
           <button class="btn" id="wCreate">Start a league</button>
       <button class="btn dark" id="wJoin" style="margin-top:10px">I have an invite code</button>
       <div class="joinbox" id="wJoinBox">
-        <input id="wCode" placeholder="CUP-CODE" autocomplete="off">
+        <input id="wCode" placeholder="LEAGUE CODE" autocomplete="off">
         <button class="btn" id="wCodeGo">Join</button>
       </div>
       <button class="btn dark" id="wDemo" style="margin-top:10px">Peek at a live season</button>
@@ -2418,7 +2418,7 @@ html[data-theme="light"] .btn:not(.dark):not(.gold):not(.apple){color:#FFFFFF;}
 
         <div id="homeSeason">
         <div class="phasehero" id="kickoffHero" style="display:none">
-          <div class="k">At the starter</div>
+          <div class="k">Before first tee</div>
           <div class="n" id="khTee">First tee —</div>
           <div class="m" id="khCount">SQUADS LOCKED · PRACTICE ROUNDS HIT YOUR CARD, NOT THE SEASON</div>
         </div>
@@ -2440,7 +2440,7 @@ html[data-theme="light"] .btn:not(.dark):not(.gold):not(.apple){color:#FFFFFF;}
             <div class="nk" id="nextK">Next up · this month</div>
             <div class="nt" id="nextTxt">Post 1 more round this month — best 4 count, you've posted 3.</div>
           </div>
-          <button class="mini" data-go="record">Record</button>
+          <button class="mini" data-go="record">Live round</button>
         </div>
 
         <button class="ontheline" data-go="pot">
@@ -2497,14 +2497,14 @@ html[data-theme="light"] .btn:not(.dark):not(.gold):not(.apple){color:#FFFFFF;}
         <div class="card" style="text-align:left; padding:12px">
           <div class="calgrid" id="calGrid"></div>
           <div class="fine" style="padding:8px 0 0; display:flex; gap:12px; flex-wrap:wrap">
-            <span><i class="caldot rd"></i> ROUND ON THE BOOKS</span>
+            <span><i class="caldot rd"></i> ON THE TEE SHEET</span>
             <span><i class="caldot lgm"></i> LEAGUE MATE</span>
             <span><i class="caldot lg"></i> SEASON DATE</span>
           </div>
         </div>
-        <p class="fine" style="text-align:center; padding:9px 0 2px">Tap any day to put a round on the books.</p>
-        <button class="btn" id="calDeclare" style="margin-top:8px">Put a round on the books</button>
-        <div class="eyebrow">On the books</div>
+        <p class="fine" style="text-align:center; padding:9px 0 2px">Tap any day to put a round on the tee sheet.</p>
+        <button class="btn" id="calDeclare" style="margin-top:8px">Put a round on the tee sheet</button>
+        <div class="eyebrow">On the tee sheet</div>
         <div id="calList"></div>
         <div class="eyebrow" id="calWeeksHead">Week by week</div>
         <div class="card" id="calWeeks" style="text-align:left"></div>
@@ -5224,7 +5224,7 @@ function renderPlanBridge(){
   const withN=(sr.tagged_names||[]).length?' · with '+esc(sr.tagged_names.join(' & ')):'';
   box.style.display='block';
   box.innerHTML=`<div class="card" style="border-color:var(--gold); padding:12px">
-    <b style="display:block; margin-bottom:2px">On your books today${sr.course_label?' · '+esc(sr.course_label):''}</b>
+    <b style="display:block; margin-bottom:2px">On your tee sheet today${sr.course_label?' · '+esc(sr.course_label):''}</b>
     <span class="fine" style="padding:0">Load the course and your group into the tee sheet${withN}.</span>
     <button class="mini" id="planLoad" style="margin-top:10px">Load it →</button>
   </div>`;
@@ -5492,7 +5492,7 @@ function renderRoster(){
   const groups=[
     {label: state.demo ? 'Your squad · Mudsharks' : 'You', test:p=>!p.guest && p.team===homeTeam},
     {label:'League', test:p=>!p.guest && p.team!==homeTeam},
-    {label:'Buddies', test:p=>p.guest && p.buddy},
+    {label:'Crew', test:p=>p.guest && p.buddy},
     {label:'Guests', test:p=>p.guest && !p.buddy},
   ];
   let any=false;
@@ -6462,7 +6462,7 @@ function renderHomeFeed(){
     .slice(0,30);
   box.innerHTML = items.length
     ? feedBuckets(items)
-    : '<p class="fine" style="padding:0">No rounds from your circle yet. Post one, or <a href="#" data-gopeople style="color:var(--brand)">add golf buddies</a>.</p>';
+    : '<p class="fine" style="padding:0">No rounds from your crew yet. Post one, or <a href="#" data-gopeople style="color:var(--brand)">add golf buddies</a>.</p>';
   wireHomeSocial(box);
 }
 /* Up Next — what's coming, one glance: next declared round, invites waiting,
@@ -7315,7 +7315,7 @@ function renderPhase(){
     : state.demo
       ? `Wk ${currentWeek()} / ${totalWeeks()} · ${FMT_NAMES[state.fmt]} · ${PRESETS[state.preset].name} rules`
       : atStarter()
-      ? `AT THE STARTER · FIRST TEE ${firstTeeText().toUpperCase()} · ${daysToTee()} DAY${daysToTee()===1?'':'S'}`
+      ? `BEFORE FIRST TEE · ${firstTeeText().toUpperCase()} · ${daysToTee()} DAY${daysToTee()===1?'':'S'}`
       : isCupFinal()
       ? `CUP FINAL · Wk ${currentWeek()} / ${totalWeeks()} · fresh slate · ${PRESETS[state.preset].name} rules`
       : `Wk ${currentWeek()} / ${totalWeeks()} · ${FMT_NAMES[state.fmt]} · ${PRESETS[state.preset].name} rules`;
@@ -7409,7 +7409,7 @@ function renderCalendar(){
     const dowName = `${DOW[new Date(cur.y,cur.m,d).getDay()]} ${MOS[cur.m]} ${d}`;
     openSheet(dowName, `${items.length} ON THE SHEET`,
       items.map(it=> it.kind==='rd'
-        ? `<div class="check tap" data-roundopen="${it.sr.id}"><span class="num">${window.mkr?.(it.sr.marker||'saguaro')||'⛳'}</span><div class="tt"><b>${it.sr.mine?'You':esc(it.sr.display_name)}${it.sr.tee_time?' · <span style="color:var(--gold)">'+fmtTee(it.sr.tee_time)+'</span>':''}${it.sr.tagged_me?' · <span style="color:var(--gold)">YOU’RE IN</span>':(it.sr.shared_league&&!it.sr.mine?' · <span style="color:var(--gold)">LEAGUE MATE</span>':'')}</b><small>${[it.sr.course_label?esc(it.sr.course_label.toUpperCase()):null, (it.sr.tagged_names||[]).length?'WITH '+esc(it.sr.tagged_names.join(' & ').toUpperCase()):null, it.sr.note?'“'+esc(it.sr.note)+'”':null].filter(Boolean).join(' · ')||'ROUND ON THE BOOKS'}</small></div>${it.sr.mine?'<span style="display:flex; gap:6px; flex:none; margin-left:auto"><button class="mini" data-retag="'+it.sr.id+'" title="Edit group"><svg class="ic" aria-hidden="true"><use href="#i-plus"/></svg></button><button class="mini" data-scratch="'+it.sr.id+'" title="Cancel this round"><svg class="ic" aria-hidden="true"><use href="#i-close"/></svg></button></span>':''}</div>`
+        ? `<div class="check tap" data-roundopen="${it.sr.id}"><span class="num">${window.mkr?.(it.sr.marker||'saguaro')||'⛳'}</span><div class="tt"><b>${it.sr.mine?'You':esc(it.sr.display_name)}${it.sr.tee_time?' · <span style="color:var(--gold)">'+fmtTee(it.sr.tee_time)+'</span>':''}${it.sr.tagged_me?' · <span style="color:var(--gold)">YOU’RE IN</span>':(it.sr.shared_league&&!it.sr.mine?' · <span style="color:var(--gold)">LEAGUE MATE</span>':'')}</b><small>${[it.sr.course_label?esc(it.sr.course_label.toUpperCase()):null, (it.sr.tagged_names||[]).length?'WITH '+esc(it.sr.tagged_names.join(' & ').toUpperCase()):null, it.sr.note?'“'+esc(it.sr.note)+'”':null].filter(Boolean).join(' · ')||'ON THE TEE SHEET'}</small></div>${it.sr.mine?'<span style="display:flex; gap:6px; flex:none; margin-left:auto"><button class="mini" data-retag="'+it.sr.id+'" title="Edit group"><svg class="ic" aria-hidden="true"><use href="#i-plus"/></svg></button><button class="mini" data-scratch="'+it.sr.id+'" title="Cancel this round"><svg class="ic" aria-hidden="true"><use href="#i-close"/></svg></button></span>':''}</div>`
         : `<div class="check"><span class="num">⛳</span><div class="tt"><b style="${it.gold?'color:var(--gold)':''}">${esc(it.t)}</b></div></div>`
       ).join('')
       + (canAdd ? `<button class="btn dark" id="dayAdd" style="margin-top:12px"><svg class="ic" aria-hidden="true"><use href="#i-plus"/></svg> Put your round on this day</button>` : ''));
@@ -7452,7 +7452,7 @@ function renderCalendar(){
           </span>
         </div>`;
       }).join('');
-    list.innerHTML = rows || `<p class="fine" style="padding:6px 0">Nothing on the books for ${MOS[cur.m]}${state.demo?' (scheduling is a real-account thing)':''}. ${!state.demo?'Put one up: league mates and buddies see it the moment you do.':''}</p>`;
+    list.innerHTML = rows || `<p class="fine" style="padding:6px 0">Nothing on the tee sheet for ${MOS[cur.m]}${state.demo?' (scheduling is a real-account thing)':''}. ${!state.demo?'Put one up: league mates and buddies see it the moment you do.':''}</p>`;
   }
 
   /* week-by-week history (league seasons only) */
@@ -7921,7 +7921,7 @@ function renderLeagueMeta(){
     $('#hhPhase').textContent =
       state.phase==='setup' ? 'Setup — invites open'
       : state.phase==='draft' ? 'Squad formation'
-      : atStarter() ? `At the starter — first tee ${firstTeeText()}`
+      : atStarter() ? `Before first tee — ${firstTeeText()}`
       : isCupFinal() ? 'Cup Final'
       : 'Season live';
     $('#hhSpan').textContent = state.seasonStart
@@ -8307,7 +8307,7 @@ async function renderCrewPeople(){
       ? `<div class="eyebrow" style="color:var(--brand)">Requests · ${reqs.length}</div>`+reqs.map(f=>psRow(f,
          `<span class="pact"><button class="mini" data-facc="${f.friendship_id}">Accept</button><button class="mini" data-fdec="${f.friendship_id}" aria-label="Decline"><svg class="ic" aria-hidden="true"><use href="#i-close"/></svg></button></span>`)).join('') : '';
     document.getElementById('crBud').innerHTML =
-      `<div class="eyebrow">Your buddies${buds.length?' · '+buds.length:''}</div>`+
+      `<div class="eyebrow">Crew${buds.length?' · '+buds.length:''}</div>`+
       (buds.length ? buds.map(f=>psRow(f,'<span class="ptag ok">Buddies</span>')).join('')
         : '<p class="fine" style="padding:0">No buddies yet. Search up top to add your crew.</p>')+
       (out.length ? `<div class="eyebrow">Requested</div>`+out.map(f=>psRow(f,'<span class="ptag">Requested</span>')).join('') : '');
@@ -8560,7 +8560,7 @@ function openProfileHub(){
       <div><label class="f" for="phHandle">Handle</label><input class="f" id="phHandle" style="font-family:var(--sans)"></div>
       <div><label class="f">Findable by</label><div id="phDisc" style="display:flex; gap:6px; margin-top:6px;">
         <button class="mini" data-disc="everyone">All</button>
-        <button class="mini" data-disc="friends">Buddies</button>
+        <button class="mini" data-disc="friends">Crew</button>
         <button class="mini" data-disc="nobody">Nobody</button>
       </div></div>
     </div>
@@ -9866,7 +9866,7 @@ function switcherChip(m){
   if(m.league.phase === 'setup') return 'Setup — invites open';
   if(m.league.phase === 'draft') return 'Squad formation';
   if(CS.league && m.league.id === CS.league.id){
-    if(atStarter()) return 'AT THE STARTER';
+    if(atStarter()) return 'BEFORE FIRST TEE';
     return isCupFinal() ? 'CUP FINAL' : `WK ${currentWeek()} / ${totalWeeks()}`;
   }
   return 'In season';
@@ -9917,7 +9917,7 @@ function openEventPicker(){
    Clubhouse sheet carries its own */
 function openJoinSheet(){
   openSheet('Join with a code', 'Got an invite code?', `
-    <input class="f" id="jCode" placeholder="CUP-CODE" autocomplete="off" style="font-family:var(--sans); text-transform:uppercase">
+    <input class="f" id="jCode" placeholder="LEAGUE CODE" autocomplete="off" style="font-family:var(--sans); text-transform:uppercase">
     <button class="btn" id="jGo" style="margin-top:12px">Join</button>
     <p class="fine">No code? Any member can share an invite link — or you'll see an invite here when someone adds you.</p>
   `);
@@ -10225,7 +10225,7 @@ function renderWatchList(){
       <span class="num">${window.mkr?.(sr.marker||'saguaro')||'⛳'}</span>
       <div class="tt"><b>${esc(sr.display_name)} <span class="fine" style="padding:0; color:var(--dim); letter-spacing:.06em">${rel}</span></b>
       <small>${bits}</small></div>
-      ${sr.tagged_me ? `<span class="fine" style="padding:0; color:var(--gold); flex:none">ON THE BOOKS</span>`
+      ${sr.tagged_me ? `<span class="fine" style="padding:0; color:var(--gold); flex:none">ON THE TEE SHEET</span>`
         : `<button class="mini" data-imin="${i}" style="flex:none">I’m in</button>`}
     </div>`;
   }).join('');
@@ -10829,7 +10829,7 @@ function fmtTee(t){
 }
 window.fmtTee = fmtTee;
 async function openDeclareSheet(prefillISO, opts){
-  if(state.demo || !CS.user){ toast('Sign in to put rounds on the books'); return; }
+  if(state.demo || !CS.user){ toast('Sign in to put rounds on the tee sheet'); return; }
   opts = opts || {};
   let iso = (typeof prefillISO === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(prefillISO)) ? prefillISO : null;
   if(!iso){ const d = new Date(); d.setDate(d.getDate() + ((6 - d.getDay() + 7) % 7 || 7)); /* next Saturday */
@@ -10840,7 +10840,7 @@ async function openDeclareSheet(prefillISO, opts){
   const chips = tagChipHtml(cand, 'drtag');
   const teeVal = opts.tee ? String(opts.tee).slice(0,5) : '';
   const joining = opts.hostName ? `You're in — declaring your own round alongside ${esc(opts.hostName)}.` : '';
-  openSheet(opts.hostName ? 'Get in on it' : 'Put a round on the books',
+  openSheet(opts.hostName ? 'Get in on it' : 'Put a round on the tee sheet',
     opts.hostName ? 'YOUR ROUND POSTS AND SCORES ON ITS OWN — YOU BOTH SHOW ON THE DAY' : 'BUDDIES & LEAGUE MATES SEE IT THE MOMENT YOU POST',
     `${joining ? `<p class="fine" style="padding:0 0 10px; color:var(--gold)">${joining}</p>` : ''}
      <div style="display:flex; gap:10px; align-items:flex-end; flex-wrap:wrap">
@@ -10854,7 +10854,7 @@ async function openDeclareSheet(prefillISO, opts){
      ${chips ? `<label class="f" style="margin-top:12px; display:block">Tag your group · <span id="drTagN">${tagged.size}</span> tagged</label>
      <div style="margin-top:8px">${chips}</div>`
      : `<p class="fine" style="padding-top:10px">No one to tag yet. Add golf buddies from your profile, or invite the league.</p>`}
-     <button class="btn" id="drGo" style="margin-top:14px">${opts.hostName ? "I'm in" : 'On the books'}</button>
+     <button class="btn" id="drGo" style="margin-top:14px">${opts.hostName ? "I'm in" : 'On the tee sheet'}</button>
      <p class="fine" style="padding-top:8px">Posts to your leagues' boards: tagged golfers are named. Scratch it any time from the calendar.</p>`);
   bindTagChips('drtag', tagged);
   attachCourseSearch('#drCourse');   /* pick a real course -> stamps course_id -> course info + weather in the sheet */
@@ -10877,7 +10877,7 @@ async function openDeclareSheet(prefillISO, opts){
       if(error) throw error;
       closeSheet();
       toast(opts.hostName ? "You're in — it's on both boards"
-        : tagged.size ? 'On the books: your group is named on the boards' : 'On the books: the boards know');
+        : tagged.size ? 'On the tee sheet: your group is named on the boards' : 'On the tee sheet: the boards know');
       loadSchedule(); loadWatchList();
       if(CS.league) loadStandingsAndFeed();
     } catch(e){ toast(e.message || String(e)); btn.disabled = false; }
@@ -10965,7 +10965,7 @@ function renderRoundSheet(id, d){
     <div class="rs-cinput"><input class="f" id="rsComment" placeholder="Say something to the group…" maxlength="500"><button class="mini" id="rsSend">Send</button></div>
     ${manage}
   </div>`;
-  openSheet(dateTxt, tee?`${tee} tee`:'On the books', body);
+  openSheet(dateTxt, tee?`${tee} tee`:'On the tee sheet', body);
 
   loadRoundWeather(d);
   const reload=()=>openRoundSheet(id);
@@ -11189,7 +11189,7 @@ function showWelcome(){
     : 'No league yet, your golf still counts';
   const chev = $('#lgChev'); if(chev) chev.style.display = 'block';
   const sl = $('#sideLeague'); if(sl) sl.textContent = 'Your golf';
-  const sm = $('#sideMeta'); if(sm) sm.textContent = 'Rounds & buddies';
+  const sm = $('#sideMeta'); if(sm) sm.textContent = 'Rounds & crew';
   const bs = $('#brandSeason'); if(bs) bs.textContent = 'cupseason.app';
   /* the You tab must not show demo players to a league-less golfer — and the
      demo's season frame must not paint ghost league dates on the calendar */
