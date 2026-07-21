@@ -756,12 +756,15 @@ input.f::-webkit-outer-spin-button, input.f::-webkit-inner-spin-button{-webkit-a
   #view-home .home-main{min-width:0;}
   #view-home .home-rail{display:flex; flex-direction:column; gap:6px;}
 }
-/* Stage 3b.1 (pilot follow-up): on league-less PHONES, Start something is the
-   golfer's #1 action — the rail hoists above the feed. Members keep feed-first
-   (starting a second league is rare). Desktop unaffected: both are visible. */
+/* Stage 3b.1 (pilot follow-up, revised): on PHONES the rail — coming up · pulse
+   · Start something — hoists above the feed for EVERYONE, restoring the original
+   mobile order (glance-and-act, then the feed). Members were left feed-first at
+   first, but Start dead-last at the very bottom read as buried (pilot). Desktop
+   is untouched — the grid two-column only applies >=1100px, so both stay
+   visible side by side there. */
 @media(max-width:1099px){
-  body.noleague #view-home .home-grid{display:flex; flex-direction:column;}
-  body.noleague #view-home .home-rail{order:-1;}
+  #view-home .home-grid{display:flex; flex-direction:column;}
+  #view-home .home-rail{order:-1;}
 }
 /* Stage 3c: desktop League Room — Standings and the Board side by side (the
    board is the alive spine, worth keeping in view). Only the standings segment
