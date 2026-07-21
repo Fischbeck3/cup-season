@@ -665,6 +665,10 @@ input.f::-webkit-outer-spin-button, input.f::-webkit-inner-spin-button{-webkit-a
 }
 .mini:hover{border-color:var(--dim);}
 .mini:focus-visible{outline:2px solid var(--pos); outline-offset:2px;}
+/* F6: the one icon-chrome class — sized/aligned for inline use next to text */
+.ic{width:14px; height:14px; vertical-align:-2px; pointer-events:none;}
+.ic.flip{transform:rotate(180deg);}
+.dot{display:inline-block; width:8px; height:8px; border-radius:50%; background:currentColor; flex:none; vertical-align:1px;}
 .check{
   display:flex; align-items:center; gap:12px;
   background:var(--bg1); border:1px solid var(--line); border-radius:var(--r);
@@ -1674,6 +1678,52 @@ html[data-theme="light"] .btn:not(.dark):not(.gold):not(.apple){color:#FFFFFF;}
 </head>
 <body>
 
+<!-- F6: one mono-weight line-icon set for CHROME (buttons, carets, close,
+     counts, section glyphs). Reactions, markers, achievements and board
+     voice stay their own emoji systems by design — see decision-log. -->
+<svg style="display:none" aria-hidden="true">
+  <symbol id="i-camera" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M4 8a2 2 0 0 1 2-2h1.5l1-2h7l1 2H18a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2z"/>
+    <circle cx="12" cy="12.5" r="3.3"/>
+  </symbol>
+  <symbol id="i-photo" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <rect x="3.5" y="4.5" width="17" height="15" rx="2"/>
+    <circle cx="8.5" cy="9.5" r="1.5"/>
+    <path d="M4 17l5-5 3.5 3.5L17.5 10 20 12.5"/>
+  </symbol>
+  <symbol id="i-comment" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M4 6a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2h-6.5L7 19.5V16H6a2 2 0 0 1-2-2z"/>
+  </symbol>
+  <symbol id="i-close" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M5 5 19 19M19 5 5 19"/>
+  </symbol>
+  <symbol id="i-chevron-down" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <polyline points="5 9 12 16 19 9"/>
+  </symbol>
+  <symbol id="i-flag" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M6 21V4"/>
+    <path d="M6 5h12l-4 3.5L18 12H6"/>
+  </symbol>
+  <symbol id="i-users" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="9" cy="8.2" r="3"/>
+    <path d="M3.3 19.5a5.7 5.7 0 0 1 11.4 0"/>
+    <circle cx="17" cy="9" r="2.3"/>
+    <path d="M15.2 13.2A5 5 0 0 1 20.7 18"/>
+  </symbol>
+  <symbol id="i-plus" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M12 5v14M5 12h14"/>
+  </symbol>
+  <symbol id="i-swap" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M4 7h13l-3-3"/>
+    <path d="M20 17H7l3 3"/>
+  </symbol>
+  <symbol id="i-key" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="7.5" cy="8.5" r="3.5"/>
+    <path d="M10 11 19 20"/>
+    <path d="M13.2 14.2 15.2 12.2M15.7 16.7 17.7 14.7"/>
+  </symbol>
+</svg>
+
 <!-- ============ ONBOARDING ============ -->
 <div class="onboard" id="onboard">
   
@@ -2111,7 +2161,7 @@ html[data-theme="light"] .btn:not(.dark):not(.gold):not(.apple){color:#FFFFFF;}
         <div class="draftgrid">
           <div>
             <div class="eyebrow" id="draftEyebrow">Draft night · snake</div>
-            <div class="lockbadge" id="draftLock" style="display:none">⬤ On the clock — only the picking captain can select</div>
+            <div class="lockbadge" id="draftLock" style="display:none"><span class="dot"></span> On the clock — only the picking captain can select</div>
             <div class="clock" id="clock"></div>
             <div class="squads" id="squads"></div>
           </div>
@@ -2289,7 +2339,7 @@ html[data-theme="light"] .btn:not(.dark):not(.gold):not(.apple){color:#FFFFFF;}
                 <!-- the scan's escape hatch: a bad read never traps anyone in the
                      grid — one tap back to the two-number card (course/date/photo
                      survive; only the model's numbers are scrapped) -->
-                <p class="fine" style="padding-top:2px"><a href="#" id="postScanBack" style="color:var(--mut)">✕ Scrap the scan — type front &amp; back instead</a></p>
+                <p class="fine" style="padding-top:2px"><a href="#" id="postScanBack" style="color:var(--mut)"><svg class="ic" aria-hidden="true"><use href="#i-close"/></svg> Scrap the scan — type front &amp; back instead</a></p>
               </div>
 
               <!-- default: front & back gross — how golfers keep score (D32) -->
@@ -2308,9 +2358,9 @@ html[data-theme="light"] .btn:not(.dark):not(.gold):not(.apple){color:#FFFFFF;}
                    entry — its button only shows when the flag says scanning is
                    on, and every failure path falls back to the inputs above -->
               <div id="postPhotoRow" style="margin-top:12px; display:none; gap:8px; align-items:center; flex-wrap:wrap;">
-                <button class="mini" id="postScanBtn" type="button" style="display:none">📷 Scan the card</button>
-                <button class="mini" id="postPhotoBtn" type="button">🖼 Add a photo</button>
-                <button class="mini" id="postPhotoClear" type="button" style="display:none">✕ Remove</button>
+                <button class="mini" id="postScanBtn" type="button" style="display:none"><svg class="ic" aria-hidden="true"><use href="#i-camera"/></svg> Scan the card</button>
+                <button class="mini" id="postPhotoBtn" type="button"><svg class="ic" aria-hidden="true"><use href="#i-photo"/></svg> Add a photo</button>
+                <button class="mini" id="postPhotoClear" type="button" style="display:none"><svg class="ic" aria-hidden="true"><use href="#i-close"/></svg> Remove</button>
               </div>
               <div id="postPhotoPrev" style="display:none; margin-top:8px">
                 <img id="postPhotoImg" alt="Round photo" style="max-width:100%; max-height:180px; border-radius:10px; object-fit:cover; border:1px solid var(--line2)">
@@ -2459,7 +2509,7 @@ html[data-theme="light"] .btn:not(.dark):not(.gold):not(.apple){color:#FFFFFF;}
             <p><b>90% hcp</b> · verified + attested · rated tees · best 4 / mo · 3-round floor</p>
           </button>
           <p class="fine" id="presetSummary" style="padding-top:2px"></p>
-          <button class="mini" id="fineprintToggle" aria-expanded="false" style="margin-top:6px">Adjust the fine print ▾</button>
+          <button class="mini" id="fineprintToggle" aria-expanded="false" style="margin-top:6px">Adjust the fine print <svg class="ic" aria-hidden="true"><use href="#i-chevron-down"/></svg></button>
           <div id="fineprint" style="display:none; margin-top:10px">
             <div class="setrow">
               <div class="lab">Counting cap <button class="ibtn" data-i="cap" aria-expanded="false" aria-label="About counting cap">i</button><small>Best N rounds / month</small></div>
@@ -2687,8 +2737,8 @@ html[data-theme="light"] .btn:not(.dark):not(.gold):not(.apple){color:#FFFFFF;}
 
         <div class="roompane" id="room-league">
         <div class="eyebrow league-only" style="margin-top:0">League</div>
-        <div class="check league-only"><span class="num">⛳</span><div class="tt"><b>Members & invites</b><small id="hubMembersSub">7 players</small></div><button class="mini" id="hubMembersBtn">View</button></div>
-        <div class="check"><span class="num">◫</span><div class="tt"><b>Squads</b><small id="hubDraftSub">Complete · rosters locked</small></div><button class="mini" data-go="draft">View</button></div>
+        <div class="check league-only"><span class="num"><svg class="ic" aria-hidden="true"><use href="#i-flag"/></svg></span><div class="tt"><b>Members & invites</b><small id="hubMembersSub">7 players</small></div><button class="mini" id="hubMembersBtn">View</button></div>
+        <div class="check"><span class="num"><svg class="ic" aria-hidden="true"><use href="#i-users"/></svg></span><div class="tt"><b>Squads</b><small id="hubDraftSub">Complete · rosters locked</small></div><button class="mini" data-go="draft">View</button></div>
 
         <details class="hubmore league-only" style="margin-bottom:14px">
           <summary style="cursor:pointer; font-family:var(--mono); font-size:12.5px; letter-spacing:.14em; text-transform:uppercase; color:var(--dim); padding:8px 0;">League rules &amp; Pro Shop</summary>
@@ -2721,7 +2771,7 @@ html[data-theme="light"] .btn:not(.dark):not(.gold):not(.apple){color:#FFFFFF;}
 <div id="boardFull" role="dialog" aria-label="League board">
   <header class="bf-hdr">
     <div><b id="bfTitle" class="mono">THE BOARD</b><small id="bfSub"></small></div>
-    <button class="mini" id="bfClose" aria-label="Close">✕</button>
+    <button class="mini" id="bfClose" aria-label="Close"><svg class="ic" aria-hidden="true"><use href="#i-close"/></svg></button>
   </header>
   <div id="feedListFull"></div>
   <div class="composer bf-comp">
@@ -2786,13 +2836,13 @@ html[data-theme="light"] .btn:not(.dark):not(.gold):not(.apple){color:#FFFFFF;}
 <div id="installNudge" style="display:none; position:fixed; left:12px; right:12px; bottom:76px; z-index:60; background:var(--bg2); border:1px solid var(--line2); border-radius:14px; padding:12px 14px; align-items:center; gap:10px;">
   <span style="flex:1; font-size:13px;">Get the full-screen app: add Cup Season to your home screen.</span>
   <button class="mini" id="nudgeGo">Add</button>
-  <button class="mini" id="nudgeX" aria-label="Not now">×</button>
+  <button class="mini" id="nudgeX" aria-label="Not now"><svg class="ic" aria-hidden="true"><use href="#i-close"/></svg></button>
 </div>
 
 <div class="sheet" id="sheet" role="dialog" aria-modal="true" aria-labelledby="shTitle">
   <div class="panel">
     <div class="grab"></div>
-    <button class="x" id="shClose" aria-label="Close">×</button>
+    <button class="x" id="shClose" aria-label="Close"><svg class="ic" style="width:18px;height:18px;vertical-align:-4px" aria-hidden="true"><use href="#i-close"/></svg></button>
     <h3 id="shTitle">—</h3>
     <div class="sub" id="shSub">—</div>
     <div id="shBody" style="margin-top:14px"></div>
@@ -3538,7 +3588,7 @@ function socialBar(f, fi, opts){
   const rx=ensureRx(f); const cm=f.cm||(f.cm=[]);
   const chips=rxChipsHtml(rx,'data-rx',fi);
   const pal=rxPaletteHtml('data-rxpick',fi);
-  const cmBtn = comments ? `<button class="rxcm" data-c="${fi}">💬 ${cm.length}</button>` : '';
+  const cmBtn = comments ? `<button class="rxcm" data-c="${fi}" aria-label="${cm.length} comment${cm.length===1?'':'s'}"><svg class="ic" aria-hidden="true"><use href="#i-comment"/></svg> ${cm.length}</button>` : '';
   const thread = comments ? `<div class="cthread" id="th${fi}" style="display:none">
       ${cm.map(c=>`<div class="crow"><b>${esc(c.w)}</b>${esc(c.t)}</div>`).join('')}
       <div class="cinput">
@@ -3941,9 +3991,9 @@ function renderDraft(){
   if(done || state.draftType==='assign'){ lock.style.display='none'; }
   else {
     lock.style.display='inline-flex';
-    lock.textContent = mine
-      ? '⬤ You are on the clock: make your pick'
-      : `⬤ ${captains[onClock]} is picking: only their account can select`;
+    lock.innerHTML = mine
+      ? '<span class="dot"></span> You are on the clock: make your pick'
+      : `<span class="dot"></span> ${esc(captains[onClock])} is picking: only their account can select`;
     lock.style.color = mine ? 'var(--pos)' : 'var(--gold)';
     lock.style.borderColor = mine ? 'rgba(67,224,124,.3)' : 'rgba(233,190,98,.25)';
     lock.style.background = mine ? 'rgba(67,224,124,.06)' : 'rgba(233,190,98,.08)';
@@ -4568,11 +4618,11 @@ function setPostPhoto(blob){
   if(!prev||!img||!clr||!add) return;
   if(blob){
     img.src=URL.createObjectURL(blob);
-    prev.style.display='block'; clr.style.display=''; add.textContent='🖼 Change photo';
+    prev.style.display='block'; clr.style.display=''; add.innerHTML='<svg class="ic" aria-hidden="true"><use href="#i-photo"/></svg> Change photo';
   } else {
     if(img.src){ try{ URL.revokeObjectURL(img.src); }catch(_){} }
     img.removeAttribute('src');
-    prev.style.display='none'; clr.style.display='none'; add.textContent='🖼 Add a photo';
+    prev.style.display='none'; clr.style.display='none'; add.innerHTML='<svg class="ic" aria-hidden="true"><use href="#i-photo"/></svg> Add a photo';
   }
 }
 function refreshPostPhotoUI(){
@@ -4629,7 +4679,7 @@ function scanPickRow(scan){
   if(scan.players.length===1){ scanApply(scan,0); return; }
   openSheet('Whose card is this?','TAP YOUR ROW',
     scan.players.map((p,i)=>
-      `<div class="check tap" data-scanrow="${i}"><span class="num">⛳</span><div class="tt">
+      `<div class="check tap" data-scanrow="${i}"><span class="num"><svg class="ic" aria-hidden="true"><use href="#i-flag"/></svg></span><div class="tt">
         <b>${esc(p.name||('Player '+(i+1)))}</b>
         <small>${p.total?p.total+' GROSS · ':''}${p.holes_read}/18 HOLES READ</small></div></div>`).join('')
     + `<p class="fine" style="padding-top:8px">After you post, your partners’ rows can be sent to them as claim links.</p>`);
@@ -4989,7 +5039,8 @@ document.getElementById('fineprintToggle')?.addEventListener('click',()=>{
   const open = fp.style.display==='none';
   fp.style.display = open ? 'block':'none';
   t.setAttribute('aria-expanded', open?'true':'false');
-  t.textContent = open ? 'Hide the fine print ▴' : 'Adjust the fine print ▾';
+  t.innerHTML = (open ? 'Hide the fine print ' : 'Adjust the fine print ')
+    + `<svg class="ic${open?' flip':''}" aria-hidden="true"><use href="#i-chevron-down"/></svg>`;
 });
 
 const PRESETS=[
@@ -5676,12 +5727,12 @@ function renderRoster(){
     } else {
       const p=ROSTER[idx];
       const swap = state.live.game==='match' && sel.length===4
-        ? `<button class="sx" data-swap="${k}" aria-label="Move ${esc(p.n)} to team ${k<2?'B':'A'}" style="right:30px">⇄</button>` : '';
+        ? `<button class="sx" data-swap="${k}" aria-label="Move ${esc(p.n)} to team ${k<2?'B':'A'}" style="right:30px"><svg class="ic" aria-hidden="true"><use href="#i-swap"/></svg></button>` : '';
       d.className='pslot';
       d.innerHTML=`
         <div class="sn">${p.guest?`<span class="gtag">${p.buddy?'B':'G'}</span>`:`<span style="width:8px;height:8px;border-radius:3px;background:${SQHEX[p.ci]};display:inline-block;"></span>`}${esc(p.n)}</div>
         <div class="si">${fmtIdx(p.i)} IDX · TEAM ${k<2?'A':'B'}</div>
-        ${swap}${p.locked?'':`<button class="sx" data-rm="${idx}" aria-label="Remove ${esc(p.n)}">×</button>`}`;
+        ${swap}${p.locked?'':`<button class="sx" data-rm="${idx}" aria-label="Remove ${esc(p.n)}"><svg class="ic" aria-hidden="true"><use href="#i-close"/></svg></button>`}`;
     }
     slots.appendChild(d);
   }
@@ -6220,7 +6271,7 @@ function renderLeagueRecord(){
   } else rows=window.leagueRecord||[];
   if(!rows.length){ hd.style.display='none'; el.style.display='none'; return; }
   hd.style.display=''; el.style.display='';
-  el.innerHTML=rows.map(r=>`<div class="check"><span class="num">⛳</span>
+  el.innerHTML=rows.map(r=>`<div class="check"><span class="num"><svg class="ic" aria-hidden="true"><use href="#i-flag"/></svg></span>
     <div class="tt"><b>${esc(r.name)}</b><small>SEASON ${ROMAN[r.number]||r.number} · ${r.line}</small></div></div>`).join('');
 }
 /* ---------- Home = the hub: your groups + what's coming up ----------
@@ -6329,7 +6380,7 @@ function renderHomeStart(){
         </svg>
         <b>Start an event</b><small>The weekend battle</small></button>
     </div>
-    <button class="startjoin" data-hgjoin type="button">🔑 Join with a code</button>`;
+    <button class="startjoin" data-hgjoin type="button"><svg class="ic" aria-hidden="true"><use href="#i-key"/></svg> Join with a code</button>`;
   box.querySelector('[data-hgnew]')?.addEventListener('click', () => document.getElementById('wCreate')?.click());
   box.querySelector('[data-hgnewev]')?.addEventListener('click', () => window.openEventPicker?.());
   box.querySelector('[data-hgjoin]')?.addEventListener('click', () => window.openJoinSheet?.());
@@ -6731,7 +6782,7 @@ function homeRoundCard(sr, demo){
     <span class="num">${M(sr.marker||'saguaro')}</span>
     <div class="hr-body"><b>${when}${rel?` · <span class="fine" style="padding:0; color:var(--dim)">${rel}</span>`:''}</b>
       <small>${who}${bits?' · '+bits:''}</small></div>
-    <div class="hr-side">${inN?`<span class="hr-in">${inN} in</span>`:''}${cN?`<span class="hr-c">💬 ${cN}</span>`:''}<span class="hr-wx mono" id="hrwx-${demo?'demo':sr.id}" style="display:none"></span></div>
+    <div class="hr-side">${inN?`<span class="hr-in">${inN} in</span>`:''}${cN?`<span class="hr-c"><svg class="ic" aria-hidden="true"><use href="#i-comment"/></svg> ${cN}</span>`:''}<span class="hr-wx mono" id="hrwx-${demo?'demo':sr.id}" style="display:none"></span></div>
   </div>`;
 }
 function renderHomeRounds(){
@@ -6781,7 +6832,7 @@ function renderHomeRequests(){
         <div class="tt"><b>${name}${founderTag(f.profile_id, f.display_name)}</b><small>${h}${h?' · ':''}wants to be golf buddies</small></div>
         <span style="display:flex; gap:6px; flex:none">
           <button class="mini" data-hreqacc="${f.friendship_id}">Accept</button>
-          <button class="mini" data-hreqdec="${f.friendship_id}">×</button>
+          <button class="mini" data-hreqdec="${f.friendship_id}" aria-label="Decline"><svg class="ic" aria-hidden="true"><use href="#i-close"/></svg></button>
         </span></div>`;
     }).join('');
   box.querySelectorAll('[data-hreqacc],[data-hreqdec]').forEach(b=>b.addEventListener('click', async()=>{
@@ -6970,7 +7021,7 @@ function renderCareer(){
        owner-only ×, delete_round RPC, standings views recompute on their own */
     const canDel = !state.demo && window.sb;
     yr.innerHTML = (c.recent && c.recent.length)
-      ? c.recent.map(r=>`<div class="fine" style="padding:3px 0; display:flex; justify-content:space-between; align-items:center; gap:8px;"><span>${r.played_on} · ${esc((r.course_label||'').toUpperCase())||'ROUND'}${r.holes_played===9?' · 9':''}</span><span style="display:flex; align-items:center; gap:12px;"><b class="mono">${r.gross} · ${r.differential}</b>${canDel&&r.id?`<button data-delr="${r.id}" title="Delete this round" aria-label="Delete round" style="background:none; border:none; color:var(--dim); cursor:pointer; font-size:16px; line-height:1; padding:2px 4px;">×</button>`:''}</span></div>`).join('')
+      ? c.recent.map(r=>`<div class="fine" style="padding:3px 0; display:flex; justify-content:space-between; align-items:center; gap:8px;"><span>${r.played_on} · ${esc((r.course_label||'').toUpperCase())||'ROUND'}${r.holes_played===9?' · 9':''}</span><span style="display:flex; align-items:center; gap:12px;"><b class="mono">${r.gross} · ${r.differential}</b>${canDel&&r.id?`<button data-delr="${r.id}" title="Delete this round" aria-label="Delete round" style="background:none; border:none; color:var(--dim); cursor:pointer; font-size:16px; line-height:1; padding:2px 4px;"><svg class="ic" aria-hidden="true"><use href="#i-close"/></svg></button>`:''}</span></div>`).join('')
       : emptyState({ icon:'⛳', line:'No rounds yet — your card fills as you play.', ctaLabel:'Post your first round', ctaGo:'record' });
     yr.querySelectorAll('[data-delr]').forEach(b=>b.addEventListener('click', async ()=>{
       if(!confirm('Delete this round? It leaves your card and any league standings it counted toward.')) return;
@@ -7630,10 +7681,10 @@ function renderCalendar(){
     const dowName = `${DOW[new Date(cur.y,cur.m,d).getDay()]} ${MOS[cur.m]} ${d}`;
     openSheet(dowName, `${items.length} ON THE SHEET`,
       items.map(it=> it.kind==='rd'
-        ? `<div class="check tap" data-roundopen="${it.sr.id}"><span class="num">${window.mkr?.(it.sr.marker||'saguaro')||'⛳'}</span><div class="tt"><b>${it.sr.mine?'You':esc(it.sr.display_name)}${it.sr.tee_time?' · <span style="color:var(--gold)">'+fmtTee(it.sr.tee_time)+'</span>':''}${it.sr.tagged_me?' · <span style="color:var(--gold)">YOU’RE IN</span>':(it.sr.shared_league&&!it.sr.mine?' · <span style="color:var(--gold)">LEAGUE MATE</span>':'')}</b><small>${[it.sr.course_label?esc(it.sr.course_label.toUpperCase()):null, (it.sr.tagged_names||[]).length?'WITH '+esc(it.sr.tagged_names.join(' & ').toUpperCase()):null, it.sr.note?'“'+esc(it.sr.note)+'”':null].filter(Boolean).join(' · ')||'ROUND ON THE BOOKS'}</small></div>${it.sr.mine?'<span style="display:flex; gap:6px; flex:none; margin-left:auto"><button class="mini" data-retag="'+it.sr.id+'" title="Edit group">＋</button><button class="mini" data-scratch="'+it.sr.id+'" title="Cancel this round">✕</button></span>':''}</div>`
+        ? `<div class="check tap" data-roundopen="${it.sr.id}"><span class="num">${window.mkr?.(it.sr.marker||'saguaro')||'⛳'}</span><div class="tt"><b>${it.sr.mine?'You':esc(it.sr.display_name)}${it.sr.tee_time?' · <span style="color:var(--gold)">'+fmtTee(it.sr.tee_time)+'</span>':''}${it.sr.tagged_me?' · <span style="color:var(--gold)">YOU’RE IN</span>':(it.sr.shared_league&&!it.sr.mine?' · <span style="color:var(--gold)">LEAGUE MATE</span>':'')}</b><small>${[it.sr.course_label?esc(it.sr.course_label.toUpperCase()):null, (it.sr.tagged_names||[]).length?'WITH '+esc(it.sr.tagged_names.join(' & ').toUpperCase()):null, it.sr.note?'“'+esc(it.sr.note)+'”':null].filter(Boolean).join(' · ')||'ROUND ON THE BOOKS'}</small></div>${it.sr.mine?'<span style="display:flex; gap:6px; flex:none; margin-left:auto"><button class="mini" data-retag="'+it.sr.id+'" title="Edit group"><svg class="ic" aria-hidden="true"><use href="#i-plus"/></svg></button><button class="mini" data-scratch="'+it.sr.id+'" title="Cancel this round"><svg class="ic" aria-hidden="true"><use href="#i-close"/></svg></button></span>':''}</div>`
         : `<div class="check"><span class="num">⛳</span><div class="tt"><b style="${it.gold?'color:var(--gold)':''}">${esc(it.t)}</b></div></div>`
       ).join('')
-      + (canAdd ? `<button class="btn dark" id="dayAdd" style="margin-top:12px">＋ Put your round on this day</button>` : ''));
+      + (canAdd ? `<button class="btn dark" id="dayAdd" style="margin-top:12px"><svg class="ic" aria-hidden="true"><use href="#i-plus"/></svg> Put your round on this day</button>` : ''));
     if(canAdd) document.getElementById('dayAdd')?.addEventListener('click', ()=>{ closeSheet(); openDeclareSheet(iso); });
     /* manage your own round straight from the day sheet (pilot: cancel/edit was
        only in the list below the grid, hard to find). Change the date = cancel
@@ -7669,7 +7720,7 @@ function renderCalendar(){
           <small>${DOW[d.getDay()].toUpperCase()} ${MOS[d.getMonth()].toUpperCase()} ${d.getDate()}${sr.course_label?' · '+esc(sr.course_label.toUpperCase()):''}${withTxt}${sr.note?' · “'+esc(sr.note)+'”':''}</small></div>
           <span style="display:flex; gap:6px; align-items:center; flex:none">
             <b class="mono" style="font-size:11.5px; color:var(--mut); letter-spacing:.06em">${when}</b>
-            ${sr.mine?`<button class="mini" data-retag="${sr.id}" title="Tag your group">＋</button><button class="mini" data-scratch="${sr.id}">✕</button>`:''}
+            ${sr.mine?`<button class="mini" data-retag="${sr.id}" title="Tag your group"><svg class="ic" aria-hidden="true"><use href="#i-plus"/></svg></button><button class="mini" data-scratch="${sr.id}" aria-label="Cancel this round"><svg class="ic" aria-hidden="true"><use href="#i-close"/></svg></button>`:''}
           </span>
         </div>`;
       }).join('');
@@ -7768,7 +7819,7 @@ function renderEvent(){
   }
   const unassigned = players.filter(p=>!p.team_id);
   if(iAmOrg){
-    html+=`<div style="display:flex; gap:8px; margin:2px 0 6px"><button class="mini" onclick="window.openInvitePicker&&window.openInvitePicker({event:'${ev.id}'})">＋ Invite players</button></div>`;
+    html+=`<div style="display:flex; gap:8px; margin:2px 0 6px"><button class="mini" onclick="window.openInvitePicker&&window.openInvitePicker({event:'${ev.id}'})"><svg class="ic" aria-hidden="true"><use href="#i-plus"/></svg> Invite players</button></div>`;
     if(unassigned.length){
       html+=`<div class="eyebrow">Unassigned</div>`+unassigned.map(p=>`<div class="check"><span class="num">${window.mkr?.(p.marker||'saguaro')||'⛳'}</span>
         <div class="tt"><b>${esc(p.name)}</b></div>
@@ -7908,7 +7959,7 @@ function renderMajorRoom(el, E){
   }
   if(iAmOrg && !complete){
     html+=`<div style="display:flex; gap:8px; flex-wrap:wrap; margin:2px 0 6px">
-      <button class="mini" onclick="window.openInvitePicker&&window.openInvitePicker({event:'${ev.id}'})">＋ Invite golfers</button>`;
+      <button class="mini" onclick="window.openInvitePicker&&window.openInvitePicker({event:'${ev.id}'})"><svg class="ic" aria-hidden="true"><use href="#i-plus"/></svg> Invite golfers</button>`;
     if(ev.status==='setup' && s && d0<=todayMid){
       html += board.length>=2
         ? `<button class="mini" onclick="window.majorOpenNow('${s.id}')">Open the window now</button>`
@@ -7918,7 +7969,7 @@ function renderMajorRoom(el, E){
       html+=`<button class="mini" onclick="window.majorSettle('${s.id}')">Sound the horn — settle</button>`;
     }
     /* escape hatch: only while nothing has been scored (the RPC re-validates) */
-    if(!horn) html+=`<button class="mini" onclick="window.scrapEvent('${ev.id}')" title="Scrap this Major">✕ Scrap</button>`;
+    if(!horn) html+=`<button class="mini" onclick="window.scrapEvent('${ev.id}')" title="Scrap this Major"><svg class="ic" aria-hidden="true"><use href="#i-close"/></svg> Scrap</button>`;
     html+=`</div>`;
   }
 
@@ -8530,7 +8581,7 @@ async function renderCrewPeople(){
     const buds=data.filter(f=>f.status==='accepted');
     document.getElementById('crReq').innerHTML = reqs.length
       ? `<div class="eyebrow" style="color:var(--brand)">Requests · ${reqs.length}</div>`+reqs.map(f=>psRow(f,
-         `<span class="pact"><button class="mini" data-facc="${f.friendship_id}">Accept</button><button class="mini" data-fdec="${f.friendship_id}">✕</button></span>`)).join('') : '';
+         `<span class="pact"><button class="mini" data-facc="${f.friendship_id}">Accept</button><button class="mini" data-fdec="${f.friendship_id}" aria-label="Decline"><svg class="ic" aria-hidden="true"><use href="#i-close"/></svg></button></span>`)).join('') : '';
     document.getElementById('crBud').innerHTML =
       `<div class="eyebrow">Your buddies${buds.length?' · '+buds.length:''}</div>`+
       (buds.length ? buds.map(f=>psRow(f,'<span class="ptag ok">Buddies</span>')).join('')
@@ -10229,7 +10280,7 @@ async function openLeagueSwitcher(){
     /* a league you run that hasn't started yet can be scrapped right here */
     const canScrap = m.role === 'commissioner' && ['setup','draft'].includes(m.league.phase);
     const right = here ? '<span class="fine" style="padding:0; color:var(--pos)">HERE</span>'
-      : canScrap ? `<button class="mini" data-lgdel="${m.league.id}" data-lgname="${esc(m.league.name)}" title="Delete this league" style="flex:none">✕</button>` : '';
+      : canScrap ? `<button class="mini" data-lgdel="${m.league.id}" data-lgname="${esc(m.league.name)}" title="Delete this league" style="flex:none"><svg class="ic" aria-hidden="true"><use href="#i-close"/></svg></button>` : '';
     return `<div class="check tap" data-lgsw="${m.league.id}" style="cursor:pointer; ${here?'border-color:var(--pos);':''}">
       <span class="num">⛳</span>
       <div class="tt"><b>${esc(m.league.name)}</b><small>${switcherChip(m) + (m.role === 'commissioner' ? ' · YOU ARE THE PRO' : '')}</small></div>
@@ -10244,7 +10295,7 @@ async function openLeagueSwitcher(){
       <div class="tt"><b>${esc(i.container_name||'')}</b><small>INVITE · FROM ${esc((i.inviter||'').toUpperCase())}</small></div>
       <span style="display:flex; gap:6px; flex:none">
         <button class="mini" data-swacc="${i.id}">Accept</button>
-        <button class="mini" data-swdec="${i.id}">✕</button>
+        <button class="mini" data-swdec="${i.id}" aria-label="Decline"><svg class="ic" aria-hidden="true"><use href="#i-close"/></svg></button>
       </span></div>`).join('');
   /* the get-started surface: bold, unmissable. Primary two carry the accent. */
   const startCard = (attr, icon, title, sub, accent) => `
@@ -10816,8 +10867,8 @@ window.openRyderPlayers = async function(){
     <div class="check"><span class="num">${window.mkr?.(c.mk||'saguaro')||'⛳'}</span>
       <div class="tt"><b>${esc(c.name)}</b></div>
       <span style="display:flex;gap:6px;flex:none">
-        <button class="mini" data-add="${pid}" data-team="${A.id}">＋ ${esc(A.name)}</button>
-        <button class="mini" data-add="${pid}" data-team="${B.id}">＋ ${esc(B.name)}</button>
+        <button class="mini" data-add="${pid}" data-team="${A.id}"><svg class="ic" aria-hidden="true"><use href="#i-plus"/></svg> ${esc(A.name)}</button>
+        <button class="mini" data-add="${pid}" data-team="${B.id}"><svg class="ic" aria-hidden="true"><use href="#i-plus"/></svg> ${esc(B.name)}</button>
       </span></div>`).join('');
   openSheet('Add players', 'TAP A TEAM TO ADD', rows);
   document.querySelectorAll('[data-add]').forEach(b=>b.addEventListener('click',async()=>{
