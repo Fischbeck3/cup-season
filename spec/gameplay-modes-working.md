@@ -738,6 +738,10 @@ reasoning is findable; the full arguments live in the audit report.
 - **The records book** — league/lifetime firsts (lowest round ever posted,
   longest streak in league history) from data already held; turns every
   round into a potential history event.
+- **Rivalry chip on shared rounds** — surface the faceted record (item 18's
+  one-object-per-pair) on any round card whose with-line names a rival:
+  "Jerecho vs Marcus · 12 meetings". Data exists; this is placement — needs
+  UX-lane coordination, logged here so the Gameplay side of it isn't lost.
 - **Final-day horn + eliminated-squad race** — live cut-line surface on the
   season's last Sunday; Points King foregrounded for non-finalists once
   Cup Final seeds lock (half the league goes emotionally dark for 4 weeks).
