@@ -840,7 +840,13 @@ input.f::-webkit-outer-spin-button, input.f::-webkit-inner-spin-button{-webkit-a
    the template) supplies the light-ink-regardless-of-theme tokens — the same
    mechanism the ceremony surfaces use; a photo card is its own room too. The
    scrim's rgba(10,14,12,*) is --bg0 in decimal, so the card's darkest edge
-   always resolves to the same dusk floor no matter the active theme. */
+   always resolves to the same dusk floor no matter the active theme.
+   3.2 follow-up (contrast review): the gradient alone at the old two stops
+   (.15→.78) left the name line — which sits around 55-65% down the card,
+   not at the very bottom — in a weak part of the scrim (~.5 effective alpha,
+   measured ~3.1-3.5:1 against a bright photo). Strengthened to three stops
+   so the text block's whole zone clears .65+ before text-color even enters
+   the picture. */
 .fcard .round.has-photo{
   position:relative; overflow:hidden;
   min-height:200px; align-items:flex-end;
@@ -849,10 +855,42 @@ input.f::-webkit-outer-spin-button, input.f::-webkit-inner-spin-button{-webkit-a
 }
 .fcard .round.has-photo::before{
   content:""; position:absolute; inset:0; border-radius:inherit;
-  background:linear-gradient(180deg, rgba(10,14,12,.15) 0%, rgba(10,14,12,.78) 100%);
+  background:linear-gradient(180deg, rgba(10,14,12,.35) 0%, rgba(10,14,12,.65) 55%, rgba(10,14,12,.85) 100%);
   pointer-events:none;
 }
 .fcard .round.has-photo>*{position:relative; z-index:1;}
+/* 3.2 follow-up: every line that reads DIRECTLY on the photo (no opaque chip
+   behind it — unlike .pvi, which sits on its own solid --bg2 chip and was
+   already safe) is forced to one of two fixed light shades. .room-dusk's
+   dusk --mut/--dim tokens are NOT light enough on their own here — measured
+   ~3.8:1 (--mut) and worse (--dim) against a bright photo even at the
+   scrim's darkest stop, both under the 4.5:1 floor. --pos/--neg (used by the
+   counting-line spans) are semantic and saturated but can dip too depending
+   on the gradient position, so they're folded into the same fixed secondary
+   shade here — the words themselves ("COUNTING…", "BUMPED…") still carry the
+   meaning. Text-shadow is belt-and-braces on top of the (already-passing)
+   forced colors, not a substitute for them. */
+.fcard .round.has-photo .l1,
+.fcard .round.has-photo .pts{ color:#ECEEF2; }
+.fcard .round.has-photo .l1 span,
+.fcard .round.has-photo .l2,
+.fcard .round.has-photo .rline,
+.fcard .round.has-photo .rline .ok,
+.fcard .round.has-photo .rline .dim,
+.fcard .round.has-photo .pts small{ color:rgba(236,238,242,.92); }
+.fcard .round.has-photo .l1,
+.fcard .round.has-photo .l1 span,
+.fcard .round.has-photo .l2,
+.fcard .round.has-photo .rline,
+.fcard .round.has-photo .pts,
+.fcard .round.has-photo .pts small{
+  text-shadow:0 1px 2px rgba(0,0,0,.45);
+}
+/* 3.2 follow-up: offscreen photo cards skip paint (the containment the old
+   loading="lazy" <img> got natively) — genuine lazy-FETCH parity would need
+   an IntersectionObserver to delay setting the background-image itself;
+   deferred, this is the paint-cost half of that regression. */
+.fcard.has-photo{ content-visibility:auto; contain-intrinsic-size:auto 200px; }
 /* the round object detail sheet (scheduled-rounds arc) */
 .rsheet .rs-course{margin:2px 0 10px;}
 .rsheet .rs-course b{font-size:19px; display:block; letter-spacing:-.01em;}
@@ -3831,11 +3869,13 @@ function renderFeedFull(force){
            an attachment below it — .has-photo carries the background-image +
            scrim (CSS), .room-dusk forces light ink regardless of theme (same
            mechanism the ceremony surfaces use), .tap wires the a11y auto-stamp
-           (role/tabindex/Enter-Space) and the hover affordance for free. No
-           photo: the two ternaries both fall to '', so the div is byte-for-byte
-           the plain <div class="round"> from before this change. */
+           (role/tabindex/Enter-Space) and the hover affordance for free.
+           .has-photo on .fcard itself (separately) is just the
+           content-visibility hook — see the CSS. No photo: all three
+           ternaries fall to '', so both opening tags are byte-for-byte
+           <div class="fcard"><div class="round"> as before this change. */
         el.insertAdjacentHTML('beforeend',`
-        <div class="fcard"><div class="round${r.photo_url?' has-photo room-dusk tap':''}"${r.photo_url?` style="background-image:url('${esc(r.photo_url)}')" data-photo-open="${esc(r.photo_url)}"`:''}>
+        <div class="fcard${r.photo_url?' has-photo':''}"><div class="round${r.photo_url?' has-photo room-dusk tap':''}"${r.photo_url?` style="background-image:url('${esc(r.photo_url)}')" data-photo-open="${esc(r.photo_url)}" aria-label="${esc(f.who||'—')} — round photo"`:''}>
           <span class="bar" style="background:${SQHEX[f.ci]}"></span>
           <div class="body">
             <div class="l1">${esc(f.who||'—')}</div>
@@ -3875,7 +3915,11 @@ function renderFeedFull(force){
   /* photos arc, task 3.2: tap the photo ground to open it full-size — the
      card itself crops (cover) for layout, this is the uncropped view. Reuses
      the codebase's target=_blank/rel=noopener pattern (see the legal-links
-     footer) rather than a bespoke lightbox. */
+     footer) rather than a bespoke lightbox. The URL is a signed URL minted
+     in the batched createSignedUrls call at league-load (1h TTL, see
+     ~line 9558) — a tab left open past that hour opens a 403 on tap. Same
+     staleness the card's own <img> background already carries; not new,
+     not changed here. */
   el.querySelectorAll('[data-photo-open]').forEach(c=>c.addEventListener('click',()=>{
     window.open(c.dataset.photoOpen, '_blank', 'noopener');
   }));
