@@ -4311,7 +4311,13 @@ function drawRecapCard(d){
   if(d.league) ctr(d.league.toUpperCase(), 424, `400 27px ${MONO}`, MUT, 5);
   /* the hero number — serif, the memory-and-honor voice */
   ctr(String(d.gross), 760, `700 300px ${SERIF}`, INK);
-  if(d.pvi!=null){
+  /* band renders only on a SANE vs — a rating-less post recalcs to a nonsense
+     differential (≈ −71.6 → "71.6 over your number"), so |pvi|>30 means we
+     don't really have a number. Gated here at render time so every caller
+     (ceremony share, epilogue share, future ones) is covered; rows below sit
+     at fixed y, so the card stands without the band. Display gate only. */
+  const pviSane = d.pvi!=null && isFinite(d.pvi) && Math.abs(Number(d.pvi))<=30;
+  if(pviSane){
     ctr(bandName(Number(d.pvi)).toUpperCase(), 850, `600 46px ${MONO}`, GOLD, 9);
     ctr(vsPhrase(Number(d.pvi)), 906, `500 31px ${SERIF}`, MUT);
   }
@@ -4328,8 +4334,11 @@ function drawRecapCard(d){
   return cv;
 }
 function recapText(d){
+  /* caption rides with the card — same sane-vs gate keeps the garbage phrase
+     out of the share text too */
+  const pviSane = d.pvi!=null && isFinite(d.pvi) && Math.abs(Number(d.pvi))<=30;
   return `${d.gross} at ${d.course||'the course'}`
-    + (d.pvi!=null?` — ${vsPhrase(Number(d.pvi)).toLowerCase()}`:'')
+    + (pviSane?` — ${vsPhrase(Number(d.pvi)).toLowerCase()}`:'')
     + (d.points!=null?` · ${d.points} pts`:'') + ' · cupseason.app';
 }
 async function shareRecapCard(d){
