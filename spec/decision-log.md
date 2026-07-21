@@ -1562,3 +1562,35 @@ server-side shuffle, rigging-proof — is untouched.)*
   crew scale, usually fine; countdown copy can nudge a shared time.
 - **CONFLICT (named):** amends §15's reveal mechanics only; the formation
   rules (blind draw default, assign, captains-pick roadmap) are untouched.
+
+---
+
+### D55 · The sunlight chip — index movement shown where money enters
+*(2026-07-21, gameplay-audit session. Transparency surface; no eligibility
+rule, no block, no enforcement.)*
+- **Current:** PvI off index_at_post is the load-bearing currency of every
+  money surface. The season is protected by the 12-band ceiling; the Major
+  removes the ceiling ("the round of your life pays in full") and its
+  field line (D44) only stops the un-established. The Ryder ships with no
+  anti-sandbag at all.
+- **Problem:** the one place a padded index pays linearly is exactly where
+  dollars appear, and the integrity of the number is asserted, not shown.
+  The first suspicious Major win (D43 names it as the revisit trigger) is
+  cheaper to pre-empt than to adjudicate.
+- **Recommendation:** on money-event entry surfaces (Ryder roster, Major
+  field), each player carries a neutral fact-chip: current index vs 60/90
+  days ago — "12.4 · was 11.2 in May" — from the index snapshot history
+  already kept. New profiles with no history show "—". No block, no flag,
+  no threshold, no accusation copy: sunlight, and the crew polices itself
+  the way real money games always have.
+- **Principle:** §16, everything shows its work — extended from scores to
+  the number the scores are measured against. Anti-sandbagging by
+  transparency, not enforcement (the same philosophy as the 12 ceiling).
+- **Benefit:** closes the audit's money-integrity gap for both events with
+  one chip; no accusation UI to build or moderate.
+- **Tradeoffs:** an honest improver's falling index wears the chip too —
+  acceptable because the chip is a neutral fact and falling indexes read
+  as bragging rights anyway. A rising index has innocent explanations
+  (injury, rust); the chip states, never judges — copy law.
+- **CONFLICT (named):** none upward. Complements D44's field line (which
+  gates the un-established); neither replaces the other.
