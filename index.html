@@ -3516,7 +3516,10 @@ function ensureRx(f){
    handlers to find it. */
 /* present-reaction chips + the picker, parameterized by data-attribute so the
    board (data-rx/rxpick → feed[i]) and Home (data-hrx/hpick → circle rows)
-   wire to their own arrays without cross-talk */
+   wire to their own arrays without cross-talk.
+   opts.ns prefixes the palette/thread ids ('' compact board, 'f-' full board) —
+   both surfaces co-render the same feed, so unprefixed ids would duplicate
+   in-document once the full board has opened */
 function rxChipsHtml(rx, attr, idx){
   return Object.keys(rx).filter(e=>rx[e]&&rx[e].n>0).map(e=>{
     const r=rx[e]; const who=(r.who&&r.who.length)?r.who.join(', '):'';
@@ -3530,11 +3533,12 @@ function rxPaletteHtml(attr, idx){
 }
 function socialBar(f, fi, opts){
   const comments = !opts || opts.comments!==false;   /* chat lines react but don't thread */
+  const ns=(opts&&opts.ns)||'';
   const rx=ensureRx(f); const cm=f.cm||(f.cm=[]);
   const chips=rxChipsHtml(rx,'data-rx',fi);
   const pal=rxPaletteHtml('data-rxpick',fi);
   const cmBtn = comments ? `<button class="rxcm" data-c="${fi}">💬 ${cm.length}</button>` : '';
-  const thread = comments ? `<div class="cthread" id="th${fi}" style="display:none">
+  const thread = comments ? `<div class="cthread" id="${ns}th${fi}" style="display:none">
       ${cm.map(c=>`<div class="crow"><b>${esc(c.w)}</b>${esc(c.t)}</div>`).join('')}
       <div class="cinput">
         <input class="f" placeholder="Talk your talk…" data-i="${fi}">
@@ -3548,7 +3552,7 @@ function socialBar(f, fi, opts){
       ${f.post_id?`<button class="rxadd" data-report="${fi}" title="Report this post" aria-label="Report this post">⚑</button>`:''}
       ${cmBtn}
     </div>
-    <div class="rxpalette" id="rxp${fi}">${pal}</div>
+    <div class="rxpalette" id="${ns}rxp${fi}">${pal}</div>
     ${thread}
   </div>`;
 }
@@ -3654,25 +3658,26 @@ window.refreshSocial = refreshSocial;
 /* attach the shared handlers to a feed container. `lookup` maps a feed index
    (data attr) back to the feed item — both renderers pass fi = position in
    `feed`, so the lookup is just feed[fi]. */
-function wireSocial(el){
+function wireSocial(el, ns){
+  ns=ns||'';   /* must match the socialBar ns this container rendered with */
   el.querySelectorAll('[data-rx]').forEach(b=>b.addEventListener('click',()=>{
     const f=feed[+b.dataset.rx]; if(f) toggleRx(f, b.dataset.e);
   }));
   el.querySelectorAll('[data-rxadd]').forEach(b=>b.addEventListener('click',()=>{
-    const p=el.querySelector('#rxp'+b.dataset.rxadd); if(p) p.classList.toggle('open');
+    const p=el.querySelector('#'+ns+'rxp'+b.dataset.rxadd); if(p) p.classList.toggle('open');
   }));
   el.querySelectorAll('[data-report]').forEach(b=>b.addEventListener('click',()=>{
     const f=feed[+b.dataset.report]; if(f) reportPost(f);
   }));
   el.querySelectorAll('[data-rxpick]').forEach(b=>b.addEventListener('click',()=>{
     const f=feed[+b.dataset.rxpick]; if(!f) return;
-    const p=el.querySelector('#rxp'+b.dataset.rxpick); if(p) p.classList.remove('open');
+    const p=el.querySelector('#'+ns+'rxp'+b.dataset.rxpick); if(p) p.classList.remove('open');
     const rx=ensureRx(f); const cur=rx[b.dataset.e];
     if(cur&&cur.me) return;          /* already reacted with this one — no-op */
     toggleRx(f, b.dataset.e);
   }));
   el.querySelectorAll('[data-c]').forEach(b=>b.addEventListener('click',()=>{
-    const t=el.querySelector('#th'+b.dataset.c);
+    const t=el.querySelector('#'+ns+'th'+b.dataset.c);
     if(t) t.style.display = t.style.display==='none' ? 'block':'none';
   }));
   /* clear BEFORE sending: sendComment re-renders synchronously, and the
@@ -3703,7 +3708,9 @@ function socialUiKey(fi){ return feed[fi]?.post_id || ('i'+fi); }
 function socialUiCapture(el){
   const s={ th:[], pal:[], vals:{}, focus:null };
   el.querySelectorAll('.cthread').forEach(t=>{
-    const fi=+t.id.slice(2); if(!(fi>=0)) return;
+    /* ids are <ns>th<fi> / <ns>rxp<fi> — strip the letter/hyphen prefix,
+       whatever surface (th / f-th / rxp / f-rxp / hrxp) minted it */
+    const fi=+t.id.replace(/^\D+/,''); if(!(fi>=0)) return;
     const k=socialUiKey(fi);
     if(t.style.display!=='none') s.th.push(k);
     const inp=t.querySelector('input[data-i]');
@@ -3711,16 +3718,17 @@ function socialUiCapture(el){
     if(inp&&document.activeElement===inp) s.focus=k;
   });
   el.querySelectorAll('.rxpalette.open').forEach(p=>{
-    const fi=+p.id.replace(/^h?rxp/,''); if(fi>=0) s.pal.push(socialUiKey(fi));
+    const fi=+p.id.replace(/^\D+/,''); if(fi>=0) s.pal.push(socialUiKey(fi));
   });
   return s;
 }
-function socialUiRestore(el, s){
+function socialUiRestore(el, s, ns){
+  ns=ns||'';
   if(!s.th.length && !s.pal.length && !s.focus && !Object.keys(s.vals).length) return;
   const byKey={}; feed.forEach((f,fi)=>{ byKey[socialUiKey(fi)]=fi; });
   const each=(keys,fn)=>keys.forEach(k=>{ const fi=byKey[k]; if(fi!=null) fn(fi,k); });
-  each(s.th, fi=>{ const t=el.querySelector('#th'+fi); if(t) t.style.display='block'; });
-  each(s.pal, fi=>{ const p=el.querySelector('#rxp'+fi); if(p) p.classList.add('open'); });
+  each(s.th, fi=>{ const t=el.querySelector('#'+ns+'th'+fi); if(t) t.style.display='block'; });
+  each(s.pal, fi=>{ const p=el.querySelector('#'+ns+'rxp'+fi); if(p) p.classList.add('open'); });
   each(Object.keys(s.vals), (fi,k)=>{
     const inp=el.querySelector(`input[data-i="${fi}"]`); if(inp) inp.value=s.vals[k];
   });
@@ -3829,7 +3837,7 @@ function renderFeedFull(force){
           </div>
           ${r.pvi!=null?`<span class="pvi ${up?'up':'dn'}">${up?'+':''}${Number(r.pvi).toFixed(1)}</span>`:''}
           ${r.points!=null?`<div class="pts">${r.points}<small>PTS</small></div>`:''}
-        </div>${r.photo_url?`<img class="fphoto" src="${esc(r.photo_url)}" alt="Round photo" loading="lazy">`:''}${socialBar(f,fi)}</div>`);
+        </div>${r.photo_url?`<img class="fphoto" src="${esc(r.photo_url)}" alt="Round photo" loading="lazy">`:''}${socialBar(f,fi,{ns:'f-'})}</div>`);
         return;
       }
       el.insertAdjacentHTML('beforeend',`<div class="sysrow">◆ ${esc(easeCaps(f.txt||''))}</div>`);
@@ -3840,7 +3848,7 @@ function renderFeedFull(force){
     if(f.sys){ el.insertAdjacentHTML('beforeend',`<div class="sysrow">◆ ${esc(easeCaps(f.txt||''))}</div>`); return; }
     if(f.msg){
       el.insertAdjacentHTML('beforeend',
-        `<div class="msgrow"><span class="bar" style="background:${SQHEX[f.ci]}"></span><div class="mtxt"><b>${esc(f.who)}${founderTag(f.pid, f.who)}</b>${esc(f.txt)}${socialBar(f,fi,{comments:false})}</div></div>`);
+        `<div class="msgrow"><span class="bar" style="background:${SQHEX[f.ci]}"></span><div class="mtxt"><b>${esc(f.who)}${founderTag(f.pid, f.who)}</b>${esc(f.txt)}${socialBar(f,fi,{comments:false,ns:'f-'})}</div></div>`);
       return;
     }
     /* demo diorama round cards: same story shape */
@@ -3853,11 +3861,11 @@ function renderFeedFull(force){
         <div class="rline">${bandName(f.pvi).toUpperCase()}</div></div>
         <span class="pvi ${up?'up':'dn'}">${up?'+':''}${f.pvi.toFixed(1)}</span>
         <div class="pts">${f.pts}<small>PTS</small></div>
-      </div>${socialBar(f,fi)}</div>`);
+      </div>${socialBar(f,fi,{ns:'f-'})}</div>`);
     }
   });
-  wireSocial(el);
-  socialUiRestore(el, uiS);
+  wireSocial(el, 'f-');
+  socialUiRestore(el, uiS, 'f-');
   requestAnimationFrame(()=>{ el.scrollTop = (force||atBottom) ? el.scrollHeight : prevTop; });
 }
 function openBoardFull(){
