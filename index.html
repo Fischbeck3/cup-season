@@ -3055,6 +3055,23 @@ function stampPosted(label){
 }
 window.stampPosted=stampPosted;
 function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+/* F-003: users should never read raw Postgres/PostgREST jargon. Map known
+   error classes to a plain sentence; the raw text still lands in the console
+   (and, for uncaught errors, client_events via the global handler). Classic
+   fn-decl so the module can call it bare, like toast(). */
+function humanError(e, prefix){
+  const raw = (e && e.message) ? String(e.message) : String(e ?? '');
+  try { console.warn('[cs] error:', prefix || '', raw); } catch(_){}
+  const m = raw.toLowerCase();
+  let msg;
+  if(/failed to fetch|networkerror|network request|load failed|timeout/.test(m)) msg = 'Connection hiccup — check your signal and try again.';
+  else if(/jwt|not authenticated|auth session|invalid.*token|permission denied|row-level|not logged in/.test(m)) msg = 'Please sign in again.';
+  else if(/schema cache|does not exist|could not find the|no function matches|column .* does not/.test(m)) msg = 'Just updated — give it a second and try again.';
+  else if(/duplicate key|already exists|unique constraint/.test(m)) msg = 'That already exists.';
+  else if(/violates|constraint|not-null|null value|invalid input/.test(m)) msg = "That didn't go through — please try again.";
+  else msg = 'Something went wrong — please try again.';
+  return prefix ? (prefix + ' ' + msg) : msg;
+}
 
 /* ================= onboarding (LIVE — Supabase) ================= */
 function enterApp(){
@@ -7781,7 +7798,7 @@ function renderBylaws(){
         state.finish=next;
         toast(next==='cup_final' ? 'The Cup Final returns — final 4 weeks, scored fresh' : 'Points table crowns the champion — posted to the board');
         renderBylaws(); renderStats();
-      }catch(e){ toast(e.message||String(e)); }
+      }catch(e){ toast(humanError(e)); }
     });
   }
   const la=$('#lineAmt'); if(la){
@@ -9702,6 +9719,11 @@ const memMk = id => {
   const m = CS.members.find(x => x.id === id);
   return mkr(m?.profile?.marker || 'saguaro');
 };
+/* classic myBoardName + fetchSocial call memName across the classic↔module
+   boundary; a top-level const isn't visible there, so bare memName() threw
+   "Can't find variable: memName" on WebKit/iOS (F-007). Bridge it. memPid/
+   memMk are called module-side only, so they don't need bridging. */
+window.memName = memName;
 
 async function loadStandingsAndFeed(){
   /* the board belongs to the LEAGUE, not the season — chat must load and
@@ -9985,7 +10007,7 @@ function renderFormation(){
       renderPhase(); switchView('home');
       toast('The season is live \u2014 post a round');
       await loadStandingsAndFeed();
-    } catch(e){ toast(e.message||e); start.disabled = false; }
+    } catch(e){ toast(humanError(e)); start.disabled = false; }
   });
   if(isC && state.draftType === 'assign'){
     $('#pool').querySelectorAll('[data-mem]').forEach(b => b.addEventListener('click', () => {
@@ -10040,6 +10062,11 @@ async function subscribeLeague(){
 
 /* ---------- create a league ---------- */
 async function createLeague(){
+  /* F-001: never fire the create_league RPC without a real session (demo or
+     signed-out) — it round-trips to prod and dies on the NOT-NULL
+     commissioner_id. Entry points pre-empt this and route to sign-in; this is
+     the backstop so no future caller can reintroduce the prod hit. */
+  if(state.demo || !CS.user) throw new Error('Sign in to start your league.');
   const name = ($('#setName').value || '').trim() || 'My Cup';
   const code = codeFor(name);
 
@@ -10602,7 +10629,7 @@ async function openLeagueSwitcher(){
       toast(nm + ' deleted');
       await loadMemberships();
       openLeagueSwitcher();            /* re-render the sheet with it gone */
-    } catch(err){ toast(err.message || String(err)); b.disabled = false; }
+    } catch(err){ toast(humanError(err)); b.disabled = false; }
   }));
 }
 window.openLeagueSwitcher = openLeagueSwitcher;
@@ -10653,7 +10680,7 @@ document.getElementById('hhDelete')?.addEventListener('click', async e => {
     toast(nm + ' deleted. Every round stays on its golfer.');
     await loadMemberships();
     goClubhouse();
-  } catch(err){ toast(err.message || String(err)); }
+  } catch(err){ toast(humanError(err)); }
 });
 
 /* ---------- the calendar's data: rounds on the books + every league's season */
@@ -11069,7 +11096,7 @@ window.majorEnter = async (eventId)=>{
     if(error) throw error;
     toast("You're in the field");
     await loadMyEvents(); await loadEvent(eventId);
-  }catch(e){ toast(e.message||String(e)); }
+  }catch(e){ toast(humanError(e)); }
 };
 window.majorOpenNow = async (sessionId)=>{
   try{
@@ -11077,7 +11104,7 @@ window.majorOpenNow = async (sessionId)=>{
     if(error) throw error;
     toast('The window is open');
     await loadEvent(window.CS_EVENT.event.id);
-  }catch(e){ toast(e.message||String(e)); }
+  }catch(e){ toast(humanError(e)); }
 };
 window.majorSettle = async (sessionId)=>{
   try{
@@ -11085,7 +11112,7 @@ window.majorSettle = async (sessionId)=>{
     if(error) throw error;
     toast('Settled — the jug has a name');
     await loadEvent(window.CS_EVENT.event.id);
-  }catch(e){ toast(e.message||String(e)); }
+  }catch(e){ toast(humanError(e)); }
 };
 /* the organizer's escape hatch — scrap an event created by mistake. The RPC
    re-validates server-side: organizer only, never once settled or scored. */
@@ -11102,7 +11129,7 @@ window.scrapEvent = async (eventId)=>{
     await loadMyEvents();
     goClubhouse();
     if(window.renderHomeHub) window.renderHomeHub();
-  }catch(e){ toast(e.message||String(e)); }
+  }catch(e){ toast(humanError(e)); }
 };
 
 async function ryderCandidates(E){
@@ -11137,12 +11164,12 @@ window.openRyderPlayers = async function(){
       if(epid) await sb.rpc('set_event_team',{p_player:epid, p_team:b.dataset.team});
       b.parentElement.innerHTML='<span class="fine" style="color:var(--pos); padding:0">ADDED</span>';
       await loadEvent(E.event.id);   /* refresh behind the sheet */
-    }catch(e){ toast(e.message||String(e)); b.disabled=false; }
+    }catch(e){ toast(humanError(e)); b.disabled=false; }
   }));
 };
 window.ryderAssign = async (playerId, teamId)=>{
   try{ const {error}=await sb.rpc('set_event_team',{p_player:playerId,p_team:teamId}); if(error)throw error;
-    await loadEvent(window.CS_EVENT.event.id); }catch(e){ toast(e.message||String(e)); }
+    await loadEvent(window.CS_EVENT.event.id); }catch(e){ toast(humanError(e)); }
 };
 window.ryderPair = async (sessionId)=>{
   try{ const {error}=await sb.rpc('generate_pairings',{p_session:sessionId}); if(error)throw error;
@@ -11158,7 +11185,7 @@ window.ryderNotify = async (eventId, on)=>{
     if(error) throw error;
     toast(on ? "Taunts on — you'll hear the moment your opponent posts" : 'Taunts muted');
     await loadEvent(eventId);
-  }catch(e){ toast(e.message||String(e)); }
+  }catch(e){ toast(humanError(e)); }
 };
 
 /* ---------- invites (decision B): consent-based add for leagues + events ---------- */
@@ -11784,6 +11811,15 @@ $('#wDemo').addEventListener('click', () => {
 });
 
 $('#wCreate').addEventListener('click', async () => {
+  if(state.demo || !CS.user){
+    /* F-001: a demo or signed-out tap on "Start a league" must not reach
+       create_league (prod round-trip → raw commissioner_id error on the
+       acquisition tour). Route to sign-in — a real league saves to the
+       account. */
+    toast('Sign in to start your league.');
+    backToDoor();
+    return;
+  }
   bootTrace('creating league…');
   resetWizard();   /* fresh slate — no leftover name/players from a prior draft */
   try {
@@ -11807,7 +11843,7 @@ $('#wCreate').addEventListener('click', async () => {
     }
   } catch(e){
     window._runItBack=null;
-    authStatus('Create failed: ' + (e.message || e), 'err');
+    authStatus(humanError(e, 'Could not create the league.'), 'err');
   }
 });
 
