@@ -1404,3 +1404,31 @@ future client+SQL plan, not this session.)*
   to a few points across a nine-month season.
 - **CONFLICT (named):** amends spec §5 "New member provisional." Nothing
   upward — principles #1–#3 all served or neutral.
+
+---
+
+### D50 · The Pro's ruling — the dispute procedure, written down
+*(2026-07-21, gameplay-audit session. Governance rule; copy-only build —
+the covenant and fine print gain one paragraph in a future UX pass.)*
+- **Current:** personas-dashboards grants the Pro "resolve disputes" and
+  "lock scores"; no doc anywhere says HOW. The override log, the adjustments
+  ledger, and D43's no-retro-flip rule all exist — but no user-facing rule
+  ties them together.
+- **Problem:** the first contested 79 in a money league is improvised. A
+  dispute with no procedure escalates in the group chat — the exact failure
+  "set it once, argue never" exists to prevent.
+- **Recommendation:** one paragraph, stated at join (covenant) and in league
+  fine print: **"The Pro rules. Every ruling is a logged entry with a
+  reason, visible to the whole league, receipts attached. Settled events
+  never change after the fact — the record of the ruling is the recourse."**
+  No appeal machinery in-app; the crew's own governance is the appeal.
+- **Principle:** "Set it once, argue never" + §16 (everything shows its
+  work). A ruling is just another number that shows its work.
+- **Benefit:** disputes end in one place, in one tap-through; the Pro's
+  power is legitimized by visibility instead of resented as fiat.
+- **Tradeoffs:** Pro-as-judge in the Pro's own league is a real conflict of
+  interest. Mitigated, not solved: the log is public to the league, and the
+  no-retro-flip rule means a ruling can't quietly rewrite history.
+- **CONFLICT (named):** none upward — makes personas' asserted power
+  concrete; consistent with D43 ("settled cards never retro-flip") and the
+  §9 override-log rule.
