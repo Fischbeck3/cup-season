@@ -25,7 +25,7 @@
 <title>Cup Season — season-long fantasy golf with your own crew</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
 :root{
   /* Vision-doc palette (Batch B): the trophy room at dusk — deep green-black
@@ -59,7 +59,7 @@
   --r:16px;              /* cards */
   --rc:10px;             /* controls: buttons, inputs, minis */
   --rs:24px;             /* sheets */
-  --sans:'IBM Plex Sans', -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --sans:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;
   --mono:'IBM Plex Mono', ui-monospace, 'SF Mono', Menlo, monospace;
   --serif:'Charter','Iowan Old Style','Palatino Linotype',Georgia,serif;
   --roll:cubic-bezier(.16,.84,.36,1);
@@ -1491,6 +1491,10 @@ body::before{
   background:var(--brand); color:#08120C;
   box-shadow:0 8px 22px -12px var(--glow), inset 0 1px 0 rgba(255,255,255,.2);
 }
+/* F1: dark text on the light-theme fairway (#15743F) is only 3.27:1 — fails
+   WCAG AA. White ink clears 5.83:1. Dark theme's brighter fairway (#2FA46A)
+   already passes at 6.02:1 with the near-black ink above — untouched. */
+html[data-theme="light"] .btn:not(.dark):not(.gold):not(.apple){color:#FFFFFF;}
 .btn, .mini, .tab, .navitem{transition:filter .12s ease, transform .1s ease, box-shadow .15s ease;}
 .btn:active, .mini:active{transform:scale(.98);}
 .mini:focus-visible, .f:focus-visible{
@@ -1513,6 +1517,7 @@ body::before{
   position:fixed; left:50%; transform:translateX(-50%);
   bottom:calc(64px + env(safe-area-inset-bottom));
   z-index:26; font-size:0; gap:0; padding:0;   /* circle only — no label */
+  min-width:44px;   /* F2: hit target was 42×46 (width-limited); floor to 44 */
 }
 .tab[data-v="record"] .circ{margin:0;}
 .tab[data-v="record"] .circ svg{stroke:#F4F8F2;}   /* cream + on the pine tee (Batch B) */
@@ -1965,7 +1970,7 @@ body::before{
       <svg viewBox="0 0 24 24"><path d="M3 20h18"/><path d="M5 20V9l7-4 7 4v11"/><path d="M10 20v-5h4v5"/><path d="M12 5V2.5l3 1-3 1"/></svg> Crew
     </button>
     <button class="navitem" data-v="stats">
-      <svg viewBox="0 0 24 24"><rect x="3" y="5.5" width="18" height="13" rx="2.2"/><circle cx="8.5" cy="11.4" r="2.3"/><path d="M13 9.6h4.6M13 13h4.6M6 15.7c.7-1.3 4-1.3 4.7 0"/></svg> Tour Card
+      <svg viewBox="0 0 24 24"><rect x="3" y="5.5" width="18" height="13" rx="2.2"/><circle cx="8.5" cy="11.4" r="2.3"/><path d="M13 9.6h4.6M13 13h4.6M6 15.7c.7-1.3 4-1.3 4.7 0"/></svg> You
     </button>
     <div class="foot">
       <div class="lg" id="sideLeague">The Sunday Cup</div>
@@ -2729,7 +2734,7 @@ body::before{
   <button class="tab active" data-v="home"><svg viewBox="0 0 24 24"><path d="M4 11.5 12 4l8 7.5"/><path d="M6 10v10h12V10"/></svg>Home</button>
   <button class="tab" data-v="hub"><svg viewBox="0 0 24 24"><path d="M3 20h18"/><path d="M5 20V9l7-4 7 4v11"/><path d="M10 20v-5h4v5"/><path d="M12 5V2.5l3 1-3 1"/></svg>Crew</button>
   <button class="tab" data-v="record" aria-label="Post a round"><span class="circ"><svg viewBox="0 0 24 24"><path d="M12 6v12M6 12h12"/></svg></span>Post</button>
-  <button class="tab" data-v="stats"><svg viewBox="0 0 24 24"><rect x="3" y="5.5" width="18" height="13" rx="2.2"/><circle cx="8.5" cy="11.4" r="2.3"/><path d="M13 9.6h4.6M13 13h4.6M6 15.7c.7-1.3 4-1.3 4.7 0"/></svg>Tour Card</button>
+  <button class="tab" data-v="stats"><svg viewBox="0 0 24 24"><rect x="3" y="5.5" width="18" height="13" rx="2.2"/><circle cx="8.5" cy="11.4" r="2.3"/><path d="M13 9.6h4.6M13 13h4.6M6 15.7c.7-1.3 4-1.3 4.7 0"/></svg>You</button>
 </nav>
 
 <button id="pilotChip" type="button">Tell us how it's going</button>
