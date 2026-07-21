@@ -713,3 +713,34 @@ named in the announce, an "Nth annual" counter, a champions roll on the event
 page, one-tap rematch with bylaws carried (the event analog of D41's
 run-it-back — D41 explicitly deferred "the event rematch row"), and any
 anticipation nudge rides D23's fence. Not designed, not committed — captured.
+
+---
+
+## 11. Parked from the 2026-07-21 gameplay audit (captured, not committed)
+
+Each needs its own decision entry before any build. One line each so the
+reasoning is findable; the full arguments live in the audit report.
+
+- **2-player rivalry season** — a season-long duel with one buddy as the
+  front door (min league size is 4; the hardest ask is 8 friends × 9
+  months). Duel machinery exists; league becomes the upgrade path. The
+  audit's biggest radical idea — needs its own brainstorm, not a batch line.
+- **Defending-champion continuity** — D41 extension: "defending" badge,
+  revenge headlines, Season 2 as sequel. Rides linked multi-season
+  continuity, which D41 already deferred.
+- **The records book** — league/lifetime firsts (lowest round ever posted,
+  longest streak in league history) from data already held; turns every
+  round into a potential history event.
+- **Final-day horn + eliminated-squad race** — live cut-line surface on the
+  season's last Sunday; Points King foregrounded for non-finalists once
+  Cup Final seeds lock (half the league goes emotionally dark for 4 weeks).
+- **The Callout (M5)** — public number-to-beat with auto-settle; still ⚑ in
+  the memory layer; the audit ranks it the trash-talk engine. Needs the
+  D51 stake-line math + D23 coordination.
+- **9-hole floor-credit simplification** — kill the 0.5-credit fraction
+  (9s count fully toward the floor, or not at all). Small, real, not
+  batched into D48 because it changes a rule rather than deleting one.
+- **Annual Major lineage** — already parked at §10.9; the audit co-signs it
+  as the strongest legacy mechanic in the corpus. Unchanged, re-flagged.
+- **Earned markers** — already parked at §9. Unchanged, re-flagged: the
+  Major champion's marker is the natural first entry.
