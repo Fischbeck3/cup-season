@@ -2259,7 +2259,7 @@ html[data-theme="light"] .btn:not(.dark):not(.gold):not(.apple){color:#FFFFFF;}
             <p><b>90% hcp</b> · verified + attested · rated tees · best 4 / mo · 3-round floor</p>
           </button>
           <p class="fine" id="presetSummary" style="padding-top:2px"></p>
-          <button class="btn" id="wizFastPath" style="margin-top:10px">Use standard setup →</button>
+          <button class="btn" id="wizFastPath" style="margin-top:10px">Use these defaults →</button>
           <button class="mini" id="wizCustomize" aria-expanded="false" style="margin-top:10px">Customize <svg class="ic" aria-hidden="true"><use href="#i-chevron-down"/></svg></button>
           <div id="wizDials" style="display:none; margin-top:12px">
           <div class="setrow">
@@ -2293,13 +2293,6 @@ html[data-theme="light"] .btn:not(.dark):not(.gold):not(.apple){color:#FFFFFF;}
             <button data-d="assign">Assign</button>
           </div>
           <p class="fine" id="draftNote">Blind draw: the server shuffles every joined player into squads and posts the reveal. Argument-proof.</p>
-          <div class="eyebrow">How it's scored <button class="ibtn" data-i="format" aria-expanded="false" aria-label="About how it's scored">i</button></div>
-          <div class="ihelp" id="ih-format">How the season is decided. <b>Points Race</b> is one cumulative table all year: simplest to follow. <b>Head-to-Head</b> plays monthly squad matchups with a W–L record; total points break ties.</div>
-          <div class="seg" id="fmtSeg">
-            <button data-f="0" class="on">Points Race</button>
-            <button data-f="1">Head-to-Head</button>
-          </div>
-          <p class="fine" id="fmtNote">Points Race: one cumulative table all season. Cup line = top 2 advance to the Cup Final.</p>
           <div class="eyebrow">How it ends <button class="ibtn" data-i="finish" aria-expanded="false" aria-label="About how it ends">i</button></div>
           <div class="ihelp" id="ih-finish">How the champion is crowned. <b>Cup Final</b> resets for the last four weeks — top seeds race fresh, anyone can catch fire, playoff drama. <b>Points table</b> crowns whoever leads when the season ends: the whole year is the race, no reset.</div>
           <div class="seg" id="finishSeg">
@@ -2333,8 +2326,7 @@ html[data-theme="light"] .btn:not(.dark):not(.gold):not(.apple){color:#FFFFFF;}
         <div class="wizstep" data-step="2">
           <div class="eyebrow" style="margin-top:0">Review the bylaws, then lock it in</div>
           <div class="card" id="bylawsReview" style="margin-bottom:10px"></div>
-          <p class="fine" id="inviteNote" style="padding-bottom:4px">You can invite the crew the moment the bylaws lock — anyone can also join later with the league code.</p>
-          <p class="fine" style="padding:0 2px 10px">Lock opens the invite link — one link fills the league. Minimum four to tee off.</p>
+          <p class="fine" id="inviteNote" style="padding-bottom:10px">Lock opens the invite link — one link fills the league; anyone can also join later with the league code. Minimum four to tee off.</p>
           <button class="btn" id="lockBtn">Lock the bylaws & form the squads</button>
         </div>
 
@@ -4678,8 +4670,8 @@ const PRESET_SUMMARY=[
   'Cutthroat: 90% handicap, attested + rated tees, best 4 a month, a 3-round floor. For crews that want the screws tight.',
 ];
 function syncWizSegs(){
-  /* reflect state onto the segments (a loaded league, or a preset change) */
-  $$('#fmtSeg button').forEach(b=>b.classList.toggle('on',+b.dataset.f===state.fmt));
+  /* reflect state onto the segments (a loaded league, or a preset change).
+     D48: the format seg is retired — Points Race is the only season format. */
   $$('#finishSeg button').forEach(b=>b.classList.toggle('on',b.dataset.e===(state.finish||'cup_final')));
   const payKey=(state.payout||[60,25,15]).join(',');
   $$('#paySeg button').forEach(b=>b.classList.toggle('on',b.dataset.pay===payKey));
@@ -4735,20 +4727,10 @@ $('#capDown').addEventListener('click',()=>{if(state.cap>0){state.cap--;renderSe
 $('#floorUp').addEventListener('click',()=>{if(state.floor<4){state.floor++;renderSetup();}});
 $('#floorDown').addEventListener('click',()=>{if(state.floor>0){state.floor--;renderSetup();}});
 
-const FMT_NOTES=[
-  'Points Race: one cumulative table all season. Cup line = top 2 advance to the Cup Final.',
-  'Head-to-Head: monthly squad matchups, standings by W–L record, total points breaks ties.',
-  'Hybrid: season-long points race, plus a +15 squad bonus to each month\'s head-to-head winner.',
-];
-$$('#fmtSeg button').forEach(b=>{
-  b.addEventListener('click',()=>{
-    $$('#fmtSeg button').forEach(x=>x.classList.remove('on'));
-    b.classList.add('on');
-    state.fmt=+b.dataset.f;
-    $('#fmtNote').textContent=FMT_NOTES[state.fmt];
-    renderBylaws();
-  });
-});
+/* D48: the format dial is retired — Points Race is the only season format now.
+   state.fmt stays 0 (state init + resetToBlank); the old fmtSeg/FMT_NOTES wiring
+   is gone. FMT_NAMES is kept (it labels the bylaws/aside/phase strings and still
+   renders legacy h2h/hybrid leagues loaded from the DB by their stored value). */
 /* the endgame dial (migration 008): Cup Final vs points-table crowning (D4) */
 const FINISH_NOTES={
   cup_final:'Cup Final: the last four weeks reset and score fresh — top seeds only, whoever’s hottest takes the cup.',
