@@ -1615,3 +1615,57 @@ rule, no block, no enforcement.)*
   (injury, rust); the chip states, never judges — copy law.
 - **CONFLICT (named):** none upward. Complements D44's field line (which
   gates the un-established); neither replaces the other.
+
+---
+
+### D56 · Pricing unparked — visible model at iOS launch, checkout waits for season 2
+*(2026-07-21, pricing-arc session, owner decision. BUSINESS level (1–2).
+Discovery + deck + integration plan only; zero app code ships from the arc.)*
+- **Current:** pricing PARKED 2026-07-15 pending focus groups (CLAUDE.md
+  monetization canon). Blanket public silence in force: socials plan forbids
+  pricing talk in any reply; `appstore-launch-kit.md` FAQ deflects ("long-term
+  pricing is honestly still being decided"). Working model on the books but
+  unshown: per-league season pass paid by the Pro out of the pot ($49–99/season
+  ≈ $5–8/player), individual golfer free forever, Founding Leagues (PIGL +
+  first ~5–10) free forever, charge at the season-2 "run it back" moment
+  (gtm-year1 §11; assumption §14.1).
+- **Problem:** the mid-August iOS launch onboards the leagues whose season-2
+  renewal lands early 2027. If the first time a Pro hears a number is the
+  renewal ask, "wait, it was free" becomes the fight — GTM failure mode #4
+  (renewal/price mistrust) predicts exactly this. And the focus groups the
+  park is pending need an instrument: a shown, concrete model to react to,
+  not a hypothetical "$X?" (focus-group-plan's own trap #2).
+- **Decision (owner):** UNPARK, at bounded depth. (a) **Scope: REFINE the
+  canon model** — per-league pass, Pro pays from pot, golfer free forever,
+  Founding free forever, charge at season 2 — the field does not reopen.
+  (b) **Launch depth: VISIBLE MODEL, NO CHECKOUT** — at iOS launch the model
+  is public and honest on the wizard pot step, the You-tab membership card,
+  and the League Room Pro view, all wearing first-season-free messaging; no
+  payment rails ship; charging begins when the first leagues hit season 2.
+  (c) The arc produces discovery, the focus-group deck
+  (`spec/handoffs/pricing-deck.html`), surface mockups, and an eng
+  integration plan — the deck is the instrument the parked focus groups run
+  on, and the script's answers close the price point.
+- **Principle:** charge-after-proven-value (GTM §11) · golf-honest voice —
+  say what is true now, D39 lineage: a price stated up front is honest, a
+  price revealed at renewal is a trap · business optionality (Stripe stays
+  parked; nothing structural is promised).
+- **Benefit:** every league recruited at launch signs up under a stated
+  model, so the season-2 ask arrives pre-announced; the focus groups react
+  to real surfaces instead of hypotheticals; App Store metadata can answer
+  "what does it cost" truthfully.
+- **Tradeoffs:** public numbers before the point is focus-group-final —
+  mitigated by range/anchor framing owned by the deck until the owner ships
+  copy. Competitors see the model — accepted; the moat is the crew and the
+  record, not the price sheet.
+- **CONFLICT (named):** **overrides** the blanket no-public-pricing-talk
+  posture (the 2026-07-15 park's public half: socials forbidden-list line,
+  launch-kit FAQ deflection — both re-anchor on the visible model when the
+  owner ships copy). **Upholds:** no pricing on the app's front door (the
+  door stays clean; D47's door headline untouched) · Stripe parked · Founding
+  Leagues free forever · golfer free forever · D39 ledger posture (the pass
+  is paid TO Cup Season; the pot is never held BY it — the two stay visibly
+  distinct on every surface). **Stays parked:** the exact price point (until
+  the script's answers are in) · checkout/payment rails (build gated on the
+  first real season-2) · pot collection/distro as a service (D39's future
+  door, untouched).
