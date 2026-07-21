@@ -277,6 +277,13 @@ shippable on existing round machinery + one new schema arc.
 4. Alternate season engines (Quota) unlock free once live rounds capture
    hole detail (spec §2.5)
 
+Post-audit addendum (2026-07-21): approved decisions D48–D55 spawn builds in
+this order, each on its own explicit "build it" — (1) D51 stake line
+(client-only, highest value-to-effort), (2) D52 weekly clash (owner call:
+FOR LAUNCH, not month-1-gated), (3) D53 podium + D54 draft-night reveal
+(copy/server-post extensions), (4) D55 sunlight chip. D48–D50 need no build
+beyond spec v1.1 reconciliation and one covenant paragraph.
+
 ---
 
 ## 7. Requirements-session decisions (2026-07-12) — promoted to canon
