@@ -497,6 +497,7 @@ input.f::-webkit-outer-spin-button, input.f::-webkit-inner-spin-button{-webkit-a
 .preset.sel .ok{background:var(--brand); border-color:var(--brand); color:var(--bg0);}
 .preset p{font-family:var(--mono); font-size:12.5px; color:var(--mut); line-height:1.6; margin-top:5px;}
 .preset p b{color:var(--ink); font-weight:600;}
+.preset .lead{font-family:var(--sans); font-size:13px; font-weight:600; color:var(--ink); line-height:1.45; margin-top:4px;}
 .pro{
   background:var(--bg1); border:1px solid var(--line2); border-radius:var(--r);
   padding:16px; position:relative; overflow:hidden; margin-bottom:10px;
@@ -2223,7 +2224,7 @@ html[data-theme="light"] .btn:not(.dark):not(.gold):not(.apple){color:#FFFFFF;}
         <div class="wiz-grid">
         <div class="wiz-main">
         <div class="eyebrow">Create your league · locks at first tee</div>
-        <div class="wizdots"><i class="on"></i><i></i><i></i><i></i></div>
+        <div class="wizdots"><i class="on"></i><i></i><i></i></div>
 
         <div class="wizstep on" data-step="0">
           <div class="card">
@@ -2236,19 +2237,31 @@ html[data-theme="light"] .btn:not(.dark):not(.gold):not(.apple){color:#FFFFFF;}
               <span class="pmeta"><b>You</b><small>You run this league</small></span>
               <span class="ptag" style="color:var(--gold)">THE PRO</span>
             </div>
-            <div style="height:14px"></div>
-            <label class="f">Add golfers</label>
-            <button class="btn dark" id="wzAdd" style="margin-top:6px">Search the app or tap a buddy</button>
-            <div id="wzPicked" style="margin-top:8px"></div>
-            <div style="height:14px"></div>
-            <label class="f">Not on the app? Invite by email · <span id="slotNote">0 filled</span></label>
-            <div id="emailSlots" style="margin-top:8px"></div>
-            <button class="mini" id="emailAdd" style="margin-top:2px">+ Add email</button>
-            <p class="fine" style="padding-top:8px">Cup Season leagues start at four: you plus three. Golfers already on the app get an invite to accept; email invites go out when you lock. Anyone can also join later with the league code.</p>
           </div>
         </div>
 
         <div class="wizstep" data-step="1">
+          <div class="eyebrow" style="margin-top:0">Competitiveness — pick once, argue never <button class="ibtn" data-i="preset" aria-expanded="false" aria-label="About competitiveness presets">i</button></div>
+          <div class="ihelp" id="ih-preset">One pick that bundles the fairness rules: handicap allowance, score verification, and eligible courses. <b>Casual</b> is honor-system beer league, <b>Standard</b> wants GHIN-posted rounds, <b>Cutthroat</b> adds attestation and rated tees. Every individual dial unlocks with Pro Shop.</div>
+          <button class="preset" data-p="0">
+            <h4>Casual <span class="ok">✓</span></h4>
+            <p class="lead">Honor scores, everything counts</p>
+            <p><b>100% hcp</b> · honor scores · any course · unlimited counting · no floor</p>
+          </button>
+          <button class="preset sel" data-p="1">
+            <h4>Standard <span class="ok">✓</span></h4>
+            <p class="lead">Weekly-golfer fair, light guardrails</p>
+            <p><b>95% hcp</b> · GHIN rounds · best 4 / mo count · 2-round floor</p>
+          </button>
+          <button class="preset" data-p="2">
+            <h4>Cutthroat <span class="ok">✓</span></h4>
+            <p class="lead">Tournament-tight, receipts required</p>
+            <p><b>90% hcp</b> · verified + attested · rated tees · best 4 / mo · 3-round floor</p>
+          </button>
+          <p class="fine" id="presetSummary" style="padding-top:2px"></p>
+          <button class="btn" id="wizFastPath" style="margin-top:10px">Use standard setup →</button>
+          <button class="mini" id="wizCustomize" aria-expanded="false" style="margin-top:10px">Customize <svg class="ic" aria-hidden="true"><use href="#i-chevron-down"/></svg></button>
+          <div id="wizDials" style="display:none; margin-top:12px">
           <div class="setrow">
             <div class="lab">Buy-in<small>Per player · $0 = bragging rights</small></div>
             <div class="val" id="stakeVal">$75</div>
@@ -2263,7 +2276,7 @@ html[data-theme="light"] .btn:not(.dark):not(.gold):not(.apple){color:#FFFFFF;}
             <div class="lab">First tee<small id="seasonSpan">Pick any day</small></div>
             <input class="f" id="startDate" type="date" style="max-width:160px; padding:9px 11px; font-family:var(--sans);">
           </div>
-          <div class="eyebrow">Competition structure <button class="ibtn" data-i="structure" aria-expanded="false" aria-label="About competition structure">i</button></div>
+          <div class="eyebrow">Teams <button class="ibtn" data-i="structure" aria-expanded="false" aria-label="About teams">i</button></div>
           <div class="ihelp" id="ih-structure">How the league is organized. <b>Solo</b> means everyone competes individually: no squads. Squad modes split the league into teams the Pro assigns or draws; more squads want more players (4 squads plays best at 8+).</div>
           <div class="seg" id="structSeg">
             <button data-s="solo">Solo</button>
@@ -2273,21 +2286,21 @@ html[data-theme="light"] .btn:not(.dark):not(.gold):not(.apple){color:#FFFFFF;}
           </div>
           <p class="fine" id="structNote">4 squads · the full cup experience for 8+ players.</p>
           <p class="fine" id="structFit" style="padding-top:0; color:var(--gold)"></p>
-          <div class="eyebrow">Squad formation <button class="ibtn" data-i="draft" aria-expanded="false" aria-label="About squad formation">i</button></div>
+          <div class="eyebrow">How teams fill <button class="ibtn" data-i="draft" aria-expanded="false" aria-label="About how teams fill">i</button></div>
           <div class="ihelp" id="ih-draft">How squads get filled. <b>Blind draw</b> shuffles everyone server-side and announces the reveal to the board, so nobody can rig the hat. <b>Pro assign</b> lets you place players yourself, for groups who picked teams in the group chat. Live draft night with picks and a clock is on the Pro Shop roadmap.</div>
           <div class="seg" id="draftSeg">
             <button data-d="random" class="on">Blind draw</button>
             <button data-d="assign">Assign</button>
           </div>
           <p class="fine" id="draftNote">Blind draw: the server shuffles every joined player into squads and posts the reveal. Argument-proof.</p>
-          <div class="eyebrow">Season format <button class="ibtn" data-i="format" aria-expanded="false" aria-label="About season format">i</button></div>
+          <div class="eyebrow">How it's scored <button class="ibtn" data-i="format" aria-expanded="false" aria-label="About how it's scored">i</button></div>
           <div class="ihelp" id="ih-format">How the season is decided. <b>Points Race</b> is one cumulative table all year: simplest to follow. <b>Head-to-Head</b> plays monthly squad matchups with a W–L record; total points break ties.</div>
           <div class="seg" id="fmtSeg">
             <button data-f="0" class="on">Points Race</button>
             <button data-f="1">Head-to-Head</button>
           </div>
           <p class="fine" id="fmtNote">Points Race: one cumulative table all season. Cup line = top 2 advance to the Cup Final.</p>
-          <div class="eyebrow">The endgame <button class="ibtn" data-i="finish" aria-expanded="false" aria-label="About the endgame">i</button></div>
+          <div class="eyebrow">How it ends <button class="ibtn" data-i="finish" aria-expanded="false" aria-label="About how it ends">i</button></div>
           <div class="ihelp" id="ih-finish">How the champion is crowned. <b>Cup Final</b> resets for the last four weeks — top seeds race fresh, anyone can catch fire, playoff drama. <b>Points table</b> crowns whoever leads when the season ends: the whole year is the race, no reset.</div>
           <div class="seg" id="finishSeg">
             <button data-e="cup_final" class="on">Cup Final</button>
@@ -2302,45 +2315,26 @@ html[data-theme="light"] .btn:not(.dark):not(.gold):not(.apple){color:#FFFFFF;}
             <button data-pay="50,30,20">Spread it</button>
           </div>
           <p class="fine" id="payNote">Balanced: champ 60% · runner-up 25% · Points King 15%.</p>
+          <div class="setrow">
+            <div class="lab">Counting cap <button class="ibtn" data-i="cap" aria-expanded="false" aria-label="About counting cap">i</button><small>Best N rounds / month</small></div>
+            <div class="val" id="capVal">Best 4</div>
+            <div class="ctl"><button id="capDown" aria-label="Lower counting cap">−</button><button id="capUp" aria-label="Raise counting cap">+</button></div>
+          </div>
+          <div class="ihelp" id="ih-cap">The core fairness dial. Only your best N rounds each month score for the squad, so the retiree who plays daily can't bury the dad who plays weekly. A better round automatically replaces your worst counter, so posting never stops mattering.</div>
+          <div class="setrow">
+            <div class="lab">Participation floor <button class="ibtn" data-i="floor" aria-expanded="false" aria-label="About participation floor">i</button><small>MIN ROUNDS / MONTH · −5 SQD PTS SHORT</small></div>
+            <div class="val" id="floorVal">2 / mo</div>
+            <div class="ctl"><button id="floorDown" aria-label="Lower floor">−</button><button id="floorUp" aria-label="Raise floor">+</button></div>
+          </div>
+          <div class="ihelp" id="ih-floor">The anti-ghosting rule. Every player must post at least this many rounds a month, or the squad takes a penalty: −5 points per round short under Standard rules. One Pro-approved bye month per season covers vacations and injuries.</div>
+          </div><!-- /wizDials -->
         </div>
 
         <div class="wizstep" data-step="2">
-          <div class="eyebrow" style="margin-top:0">Competitiveness — pick once, argue never <button class="ibtn" data-i="preset" aria-expanded="false" aria-label="About competitiveness presets">i</button></div>
-          <div class="ihelp" id="ih-preset">One pick that bundles the fairness rules: handicap allowance, score verification, and eligible courses. <b>Casual</b> is honor-system beer league, <b>Standard</b> wants GHIN-posted rounds, <b>Cutthroat</b> adds attestation and rated tees. Every individual dial unlocks with Pro Shop.</div>
-          <button class="preset" data-p="0">
-            <h4>Casual <span class="ok">✓</span></h4>
-            <p><b>100% hcp</b> · honor scores · any course · unlimited counting · no floor</p>
-          </button>
-          <button class="preset sel" data-p="1">
-            <h4>Standard <span class="ok">✓</span></h4>
-            <p><b>95% hcp</b> · GHIN rounds · best 4 / mo count · 2-round floor</p>
-          </button>
-          <button class="preset" data-p="2">
-            <h4>Cutthroat <span class="ok">✓</span></h4>
-            <p><b>90% hcp</b> · verified + attested · rated tees · best 4 / mo · 3-round floor</p>
-          </button>
-          <p class="fine" id="presetSummary" style="padding-top:2px"></p>
-          <button class="mini" id="fineprintToggle" aria-expanded="false" style="margin-top:6px">Adjust the fine print <svg class="ic" aria-hidden="true"><use href="#i-chevron-down"/></svg></button>
-          <div id="fineprint" style="display:none; margin-top:10px">
-            <div class="setrow">
-              <div class="lab">Counting cap <button class="ibtn" data-i="cap" aria-expanded="false" aria-label="About counting cap">i</button><small>Best N rounds / month</small></div>
-              <div class="val" id="capVal">Best 4</div>
-              <div class="ctl"><button id="capDown" aria-label="Lower counting cap">−</button><button id="capUp" aria-label="Raise counting cap">+</button></div>
-            </div>
-            <div class="ihelp" id="ih-cap">The core fairness dial. Only your best N rounds each month score for the squad, so the retiree who plays daily can't bury the dad who plays weekly. A better round automatically replaces your worst counter, so posting never stops mattering.</div>
-            <div class="setrow">
-              <div class="lab">Participation floor <button class="ibtn" data-i="floor" aria-expanded="false" aria-label="About participation floor">i</button><small>MIN ROUNDS / MONTH · −5 SQD PTS SHORT</small></div>
-              <div class="val" id="floorVal">2 / mo</div>
-              <div class="ctl"><button id="floorDown" aria-label="Lower floor">−</button><button id="floorUp" aria-label="Raise floor">+</button></div>
-            </div>
-            <div class="ihelp" id="ih-floor">The anti-ghosting rule. Every player must post at least this many rounds a month, or the squad takes a penalty: −5 points per round short under Standard rules. One Pro-approved bye month per season covers vacations and injuries.</div>
-          </div>
-        </div>
-
-        <div class="wizstep" data-step="3">
           <div class="eyebrow" style="margin-top:0">Review the bylaws, then lock it in</div>
           <div class="card" id="bylawsReview" style="margin-bottom:10px"></div>
-          <p class="fine" id="inviteNote" style="padding-bottom:10px">Invites email out to 9 players when you lock. These settings become the league bylaws; amendments go through the league log.</p>
+          <p class="fine" id="inviteNote" style="padding-bottom:4px">You can invite the crew the moment the bylaws lock — anyone can also join later with the league code.</p>
+          <p class="fine" style="padding:0 2px 10px">Lock opens the invite link — one link fills the league. Minimum four to tee off.</p>
           <button class="btn" id="lockBtn">Lock the bylaws & form the squads</button>
         </div>
 
@@ -4780,14 +4774,16 @@ $$('#paySeg button').forEach(b=>b.addEventListener('click',()=>{
   $('#payNote').textContent=PAY_NOTES[b.dataset.pay];
   renderBylaws();
 }));
-/* D8: the cap/floor dials live behind a disclosure — the preset carries the
-   load, the 4% who want to tune still can */
-document.getElementById('fineprintToggle')?.addEventListener('click',()=>{
-  const fp=$('#fineprint'), t=$('#fineprintToggle');
-  const open = fp.style.display==='none';
-  fp.style.display = open ? 'block':'none';
+/* D8 → A-W3: every wizard dial (buy-in … participation floor) now lives behind
+   ONE disclosure. The preset carries the load; the Pro who wants to tune opens
+   this. Supersedes the old cap/floor-only "fine print" toggle. */
+document.getElementById('wizCustomize')?.addEventListener('click',()=>{
+  const d=$('#wizDials'), t=$('#wizCustomize');
+  if(!d||!t) return;
+  const open = d.style.display==='none';
+  d.style.display = open ? 'block':'none';
   t.setAttribute('aria-expanded', open?'true':'false');
-  t.innerHTML = (open ? 'Hide the fine print ' : 'Adjust the fine print ')
+  t.innerHTML = (open ? 'Hide options ' : 'Customize ')
     + `<svg class="ic${open?' flip':''}" aria-hidden="true"><use href="#i-chevron-down"/></svg>`;
 });
 
@@ -7297,16 +7293,17 @@ function renderBylaws(){
 const MIN_LEAGUE=4;                    /* foursome floor — spec §8 v0.7 */
 if(state.emails.length===0) state.emails=[''];   /* one line; "+ Add email" grows it */
 function updateInviteNote(){
-  const n=state.emails.filter(e=>e.includes('@')).length;
-  const app=(state.wizInvitees||[]).length;
+  /* A-W2: staged invites left the wizard — invites open post-lock behind the
+     share link, so there's no per-slot count to surface. #inviteNote is now a
+     static link-first line owned by the review markup. Kept as a guarded
+     near-no-op so its remaining callers (resetWizard, the people picker) and
+     the retired #slotNote never throw. */
   const sn=$('#slotNote');
-  if(sn) sn.textContent=`${n} filled`;
-  const note=$('#inviteNote');
-  const tot=n+app;
-  if(note) note.textContent=`${tot} golfer${tot===1?'':'s'} invited (${app} in-app, ${n} by email) when you lock, that makes ${tot+1} of a minimum ${MIN_LEAGUE}. These settings become the league bylaws; amendments go through the league log.`;
+  if(sn) sn.textContent=`${state.emails.filter(e=>e.includes('@')).length} filled`;
 }
 function renderEmails(){
-  const el=$('#emailSlots'); el.innerHTML='';
+  const el=$('#emailSlots'); if(!el) return;   /* A-W2: email slots left the wizard */
+  el.innerHTML='';
   state.emails.forEach((e,i)=>{
     const inp=document.createElement('input');
     inp.className='f'; inp.type='email';
@@ -7320,12 +7317,8 @@ function renderEmails(){
   });
   updateInviteNote();
 }
-$('#emailAdd').addEventListener('click',()=>{
-  state.emails.push('');
-  renderEmails();
-  const inputs=$('#emailSlots').querySelectorAll('input');
-  inputs[inputs.length-1].focus();
-});
+/* A-W2: the "+ Add email" slot machinery left the wizard with the rest of the
+   staged-invite surface — invites are post-lock now, behind the share link. */
 
 function renderPhase(){
   const p=state.phase;
@@ -7972,11 +7965,15 @@ function renderWizard(){
   $$('.wizdots i').forEach((d,i)=>d.classList.toggle('on',i<=state.wiz));
   $('#wizBack').style.display   = state.wiz===0 ? 'none':'flex';
   $('#wizCancel').style.display = state.wiz===0 ? 'flex':'none';   /* step 0: Cancel replaces Back */
-  $('#wizNext').style.display = state.wiz===3 ? 'none':'flex';
+  $('#wizNext').style.display = state.wiz===2 ? 'none':'flex';
   if(state.wiz===0 && !state.demo) window.renderWizAddGolfers?.();
 }
 $('#wizBack').addEventListener('click',()=>{state.wiz=Math.max(0,state.wiz-1);renderWizard();});
-$('#wizNext').addEventListener('click',()=>{state.wiz=Math.min(3,state.wiz+1);renderWizard();});
+$('#wizNext').addEventListener('click',()=>{state.wiz=Math.min(2,state.wiz+1);renderWizard();});
+/* A-W3 fast path: the defaults are excellent — skip the dials and land on
+   Review & lock. Any preset tapped above rides along; the review card
+   re-renders from current state. */
+$('#wizFastPath')?.addEventListener('click',()=>{ renderBylaws(); state.wiz=2; renderWizard(); });
 $('#setName').addEventListener('input',e=>{
   const n=e.target.value.trim()||'Your league';
   $('#leagueName').textContent=n; $('#sideLeague').textContent=n;
