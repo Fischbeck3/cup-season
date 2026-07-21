@@ -1,0 +1,139 @@
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>02 · The Drop — band reveal after posting</title>
+<style>
+/* Ceremony surface — dusk-locked per D2.2 (rooms, not themes): hardcoded dusk
+   hexes exactly like #finish (index.html:1606–1646); only type + easing from vars. */
+:root{
+  --gold:#D8B25A; --brand:#2FA46A;
+  --rc:10px;
+  --sans:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;
+  --mono:'IBM Plex Mono', ui-monospace, 'SF Mono', Menlo, monospace;
+  --serif:'Charter','Iowan Old Style','Palatino Linotype',Georgia,serif;
+  --roll:cubic-bezier(.16,.84,.36,1);
+}
+*{margin:0; padding:0; box-sizing:border-box;}
+body{background:#0A0E0C; color:#ECEEF2; font-family:var(--sans); min-height:100vh;}
+.pbar{display:flex; flex-wrap:wrap; align-items:center; gap:10px; padding:14px 18px; border-bottom:1px solid #252C24; background:#121710;}
+.pbar .nm{font-family:var(--serif); font-size:18px; font-weight:700; margin-right:6px;}
+.pbar .chip{font-family:var(--mono); font-size:10.5px; letter-spacing:.1em; text-transform:uppercase; color:#5E665E; border:1px solid #30372E; border-radius:6px; padding:3px 8px;}
+.pbar a{color:#63ADFF; font-size:13px; text-decoration:none; margin-left:auto;}
+.pctl{display:flex; flex-wrap:wrap; gap:8px; padding:12px 18px;}
+.pbtn{font-family:var(--sans); font-size:13px; font-weight:600; color:#ECEEF2; background:#1A201A; border:1px solid #30372E; border-radius:var(--rc); padding:9px 16px; cursor:pointer;}
+.pbtn.on{background:var(--brand); color:#06130B; border-color:transparent;}
+.meaning{padding:10px 18px 4px; max-width:640px; font-size:13.5px; line-height:1.6; color:#98A29A;}
+.meaning b{color:#ECEEF2;}
+
+/* ---- the finish screen, replicated ---- */
+.stage{position:relative; min-height:620px; display:flex; align-items:center; justify-content:center; padding:32px 24px; overflow:hidden;
+  background:radial-gradient(120% 90% at 50% -10%, #12271B 0%, #0A0E0C 55%), #0A0E0C;}
+.finish-card{width:100%; max-width:440px; text-align:center; display:flex; flex-direction:column; align-items:center;}
+.finish-eyebrow{font-family:var(--mono); font-size:12px; font-weight:500; letter-spacing:.22em; text-transform:uppercase; color:#8FA096;}
+.gross-slot{position:relative; margin-top:18px;}
+.finish-gross{font-family:var(--serif); font-variant-numeric:tabular-nums; font-weight:700; font-size:clamp(84px,26vw,96px); line-height:.94; color:#ECEEF2;}
+.finish-band{font-family:var(--serif); font-size:19px; line-height:1.32; color:#ECEEF2; margin-top:12px; max-width:30ch;}
+.finish-pts{font-family:var(--mono); font-size:13px; font-weight:600; letter-spacing:.16em; text-transform:uppercase; margin-top:24px; min-height:1em; color:var(--gold);}
+.finish-rule{width:64px; height:1px; background:#1C2620; margin-top:26px;}
+.finish-share{display:flex; align-items:center; justify-content:center; min-height:46px; min-width:220px; margin-top:26px; padding:0 28px; border:0; border-radius:var(--rc); font-family:var(--sans); font-size:14px; font-weight:600; color:#06130B; background:#2FA46A;}
+.finish-back{margin-top:8px; padding:12px; border:0; background:none; font-family:var(--sans); font-size:14px; font-weight:500; color:#8FA096;}
+
+/* the ball: rolls in along the gross baseline, dies at the center, drops.
+   Roll = translateX on --roll (a putt decelerating); spin sold by an off-center
+   dimple rotating inside the wrapper. Drop = 240ms ease-in exit (exits fast). */
+.ball{position:absolute; left:50%; bottom:6px; width:13px; height:13px; margin-left:-6px; opacity:0;}
+.ballrot{width:100%; height:100%; position:relative;}
+.ballrot::before{content:""; position:absolute; inset:0; border-radius:50%; background:#F4F7F4;}
+.ballrot::after{content:""; position:absolute; left:2.5px; top:5.5px; width:3px; height:3px; border-radius:50%; background:#B9C2BB;}
+@keyframes ballRoll{0%{opacity:0; transform:translateX(-150px);} 12%{opacity:1;} 100%{opacity:1; transform:translateX(0);}}
+@keyframes ballSpin{from{transform:rotate(0);} to{transform:rotate(500deg);}}
+@keyframes ballDrop{from{opacity:1; transform:translateY(0) scale(1);} to{opacity:0; transform:translateY(15px) scale(.6);}}
+@keyframes finishRoll{from{opacity:0; transform:translateY(14px);} to{opacity:1; transform:none;}}
+@keyframes csFade{from{opacity:0;} to{opacity:1;}}
+
+/* CURRENT — shipped stagger (index.html:1640–1642) */
+.stage[data-mode="current"] .finish-eyebrow{animation:csFade .4s ease both;}
+.stage[data-mode="current"] .ball{display:none;}
+.stage[data-mode="current"] .finish-gross{animation:finishRoll .64s var(--roll) both;}
+.stage[data-mode="current"] .finish-band{animation:finishRoll .64s var(--roll) .15s both;}
+.stage[data-mode="current"] .finish-pts{animation:finishRoll .64s var(--roll) .3s both;}
+.stage[data-mode="current"] .finish-rule, .stage[data-mode="current"] .finish-share, .stage[data-mode="current"] .finish-back{animation:csFade .5s ease .5s both;}
+
+/* PROPOSED — the drop: ~1.05s of held breath (the ball on the lip), then the
+   number lands where the ball fell. Ceremony surface: longer than 400ms is
+   allowed here, and the pause IS the meaning. */
+.stage[data-mode="proposed"] .finish-eyebrow{animation:csFade .4s ease both;}
+.stage[data-mode="proposed"] .ball{animation:ballRoll .9s var(--roll) .15s both, ballDrop .24s ease-in 1.08s forwards;}
+.stage[data-mode="proposed"] .ballrot{animation:ballSpin .9s var(--roll) .15s both;}
+.stage[data-mode="proposed"] .finish-gross{animation:finishRoll .64s var(--roll) 1.18s both;}
+.stage[data-mode="proposed"] .finish-band{animation:finishRoll .64s var(--roll) 1.36s both;}
+.stage[data-mode="proposed"] .finish-pts{animation:finishRoll .64s var(--roll) 1.54s both;}
+.stage[data-mode="proposed"] .finish-rule, .stage[data-mode="proposed"] .finish-share, .stage[data-mode="proposed"] .finish-back{animation:csFade .5s ease 1.9s both;}
+
+/* reduced motion — everything lands instantly (the app's #finish law) */
+.stage.rm *{animation:none !important;}
+.stage.rm .ball{display:none;}
+@media(prefers-reduced-motion:reduce){
+  .stage *{animation:none !important;}
+  .stage .ball{display:none;}
+}
+</style>
+
+<div class="pbar">
+  <span class="nm">02 · The Drop</span>
+  <span class="chip">strand 2 · finish screen</span>
+  <span class="chip">ceremony · dusk-locked</span>
+  <span class="chip">cost M</span>
+  <a href="index.html">← all prototypes</a>
+</div>
+<div class="meaning">
+  Your round arrives the way a putt does: the ball <b>rolls out of the left, dies at the
+  center, hangs, and drops</b> — and the number lands where it fell. The ~1s pause before
+  the gross is the ball on the lip; removing the motion removes the held breath. Band and
+  points follow on the shipped stagger, untouched.
+</div>
+<div class="pctl">
+  <button class="pbtn" id="bReplay">⟳ Replay</button>
+  <button class="pbtn" id="bCurrent">Current (shipped)</button>
+  <button class="pbtn on" id="bProposed">Proposed</button>
+  <button class="pbtn" id="bRM">Reduced motion</button>
+</div>
+
+<div id="stageWrap">
+<div class="stage" data-mode="proposed">
+  <div class="finish-card">
+    <div class="finish-eyebrow">Round posted · Papago GC</div>
+    <div class="gross-slot">
+      <div class="ball" aria-hidden="true"><div class="ballrot"></div></div>
+      <div class="finish-gross">84</div>
+    </div>
+    <div class="finish-band">You beat your number by 2.4.</div>
+    <div class="finish-pts">+9 pts · Mudsharks</div>
+    <div class="finish-rule"></div>
+    <button class="finish-share">Share the card</button>
+    <button class="finish-back">Back to the board</button>
+  </div>
+</div>
+</div>
+
+<script>
+const wrap = document.getElementById('stageWrap');
+let mode = 'proposed', rm = false;
+function stage(){ return wrap.querySelector('.stage'); }
+function apply(){
+  const s = stage();
+  s.dataset.mode = mode;
+  s.classList.toggle('rm', rm);
+  document.getElementById('bCurrent').classList.toggle('on', mode==='current');
+  document.getElementById('bProposed').classList.toggle('on', mode==='proposed');
+  document.getElementById('bRM').classList.toggle('on', rm);
+}
+function replay(){
+  const s = stage(), fresh = s.cloneNode(true);  /* clone-swap restarts CSS animations */
+  wrap.replaceChild(fresh, s); apply();
+}
+document.getElementById('bReplay').onclick = replay;
+document.getElementById('bCurrent').onclick = ()=>{ mode='current'; replay(); };
+document.getElementById('bProposed').onclick = ()=>{ mode='proposed'; replay(); };
+document.getElementById('bRM').onclick = ()=>{ rm=!rm; replay(); };
+apply();
+</script>

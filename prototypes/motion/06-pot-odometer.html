@@ -1,0 +1,182 @@
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>06 · The Pot Odometer — money on the books</title>
+<style>
+/* tokens copied from index.html:30–79 — the pot page is a utility surface,
+   follows the theme. Gold on the figure is EARNED (the pot is the season's
+   stake — the token's own charter). */
+:root{
+  --bg0:#0A0E0C; --bg1:#121710; --bg2:#1A201A;
+  --line:#252C24; --line2:#30372E;
+  --ink:#ECEEF2; --mut:#98A29A; --dim:#5E665E;
+  --pos:#43E07C; --neg:#FF5F56; --gold:#D8B25A;
+  --brand:#2FA46A; --dawn:#63ADFF;
+  --r:16px; --rc:10px;
+  --sans:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;
+  --mono:'IBM Plex Mono', ui-monospace, 'SF Mono', Menlo, monospace;
+  --serif:'Charter','Iowan Old Style','Palatino Linotype',Georgia,serif;
+  --roll:cubic-bezier(.16,.84,.36,1);
+}
+html[data-theme="light"]{
+  --bg0:#EFF2EE; --bg1:#FBFCFA; --bg2:#E5EAE4;
+  --line:#D9DFD7; --line2:#C9D1C8;
+  --ink:#1A2620; --mut:#52625A; --dim:#8C9992;
+  --pos:#0E9B51; --neg:#CC4038; --gold:#9A7418;
+  --brand:#15743F; --dawn:#2C6E9E;
+}
+*{margin:0; padding:0; box-sizing:border-box;}
+body{background:var(--bg0); color:var(--ink); font-family:var(--sans); min-height:100vh;}
+.pbar{display:flex; flex-wrap:wrap; align-items:center; gap:10px; padding:14px 18px; border-bottom:1px solid var(--line); background:var(--bg1);}
+.pbar .nm{font-family:var(--serif); font-size:18px; font-weight:700; margin-right:6px;}
+.pbar .chip{font-family:var(--mono); font-size:10.5px; letter-spacing:.1em; text-transform:uppercase; color:var(--dim); border:1px solid var(--line2); border-radius:6px; padding:3px 8px;}
+.pbar a{color:var(--dawn); font-size:13px; text-decoration:none; margin-left:auto;}
+.pctl{display:flex; flex-wrap:wrap; gap:8px; padding:12px 18px;}
+.pbtn{font-family:var(--sans); font-size:13px; font-weight:600; color:var(--ink); background:var(--bg2); border:1px solid var(--line2); border-radius:var(--rc); padding:9px 16px; cursor:pointer;}
+.pbtn.on, .pbtn.go{background:var(--brand); color:#06130B; border-color:transparent;}
+.pbtn:disabled{opacity:.45; cursor:default;}
+.meaning{padding:10px 18px 4px; max-width:640px; font-size:13.5px; line-height:1.6; color:var(--mut);}
+.meaning b{color:var(--ink);}
+
+.stagewrap{display:flex; justify-content:center; padding:40px 20px;}
+.card{width:100%; max-width:430px; background:var(--bg1); border:1px solid var(--line); border-radius:var(--r); padding:22px 20px; text-align:center;}
+.pot-eyebrow{font-family:var(--mono); font-size:11.5px; letter-spacing:.2em; text-transform:uppercase; color:var(--dim);}
+/* the centerpiece — the pot page's 52px serif hero (2.3), digits as odometer
+   columns. Each column is a 1em window over a 0–9 strip; the strip TRANSLATES
+   to the target digit on --roll. transform-only, tabular so nothing reflows. */
+.pot-fig{position:relative; display:inline-flex; align-items:baseline; margin-top:14px;
+  font-family:var(--serif); font-size:52px; font-weight:700; color:var(--gold);
+  font-variant-numeric:tabular-nums; line-height:1;}
+.pot-fig .cur{font-size:30px; margin-right:2px; align-self:flex-start; margin-top:5px;}
+.odo{display:inline-block; height:1em; overflow:hidden;}
+.odo .strip{display:flex; flex-direction:column; transition:transform .7s var(--roll);}
+.odo .strip b{display:block; height:1em; line-height:1; font-weight:700;}
+.pot-sub{font-family:var(--mono); font-size:11.5px; letter-spacing:.08em; color:var(--mut); margin-top:10px;}
+/* the rise: the paid amount lifts off the figure and dissolves — chalk dust
+   off a scoreboard, not confetti */
+.chip-rise{position:absolute; left:50%; top:-6px; transform:translateX(-50%);
+  font-family:var(--mono); font-size:13px; font-weight:600; letter-spacing:.1em; color:var(--gold);
+  opacity:0; pointer-events:none; white-space:nowrap;}
+.chip-rise.go{animation:chipRise 1.1s var(--roll) forwards;}
+@keyframes chipRise{
+  0%{opacity:0; transform:translateX(-50%) translateY(6px);}
+  25%{opacity:1;}
+  100%{opacity:0; transform:translateX(-50%) translateY(-30px);}
+}
+.ledger{margin-top:18px; text-align:left; border-top:1px solid var(--line);}
+.ledger .ln{display:flex; justify-content:space-between; gap:10px; padding:9px 4px; border-bottom:1px solid var(--line); font-size:13px;}
+.ledger .k{color:var(--mut);}
+.ledger .v{font-family:var(--mono); font-size:12.5px; color:var(--ink);}
+.ledger .ln.new{animation:csUp .5s var(--roll) .45s both;}
+@keyframes csUp{from{opacity:0; transform:translateY(14px);} to{opacity:1; transform:none;}}
+.pot-foot{font-family:var(--mono); font-size:11px; letter-spacing:.08em; color:var(--dim); margin-top:14px;}
+
+/* reduced motion: value swaps instantly, the ledger line appears, the rise is skipped */
+body.rm .odo .strip{transition:none;}
+body.rm .chip-rise{display:none;}
+body.rm .ledger .ln.new{animation:none;}
+@media(prefers-reduced-motion:reduce){
+  .odo .strip{transition:none;}
+  .chip-rise{display:none;}
+  .ledger .ln.new{animation:none;}
+}
+</style>
+
+<div class="pbar">
+  <span class="nm">06 · The Pot Odometer</span>
+  <span class="chip">strand 2 · pot page / home rail</span>
+  <span class="chip">follows theme</span>
+  <span class="chip">gold · earned</span>
+  <span class="chip">cost M</span>
+  <a href="index.html">← all prototypes</a>
+</div>
+<div class="meaning">
+  The pot is a ledger — every dollar on the books. When a buy-in lands, the serif
+  centerpiece doesn't swap: <b>each changed digit rolls like a gauge absorbing the
+  entry</b> (right to left, 60ms apart, on --roll), the paid amount <b>lifts off the top
+  and dissolves</b> like chalk dust, and the ledger line inks in below. You watch the
+  books take the money.
+</div>
+<div class="pctl">
+  <button class="pbtn go" id="bGo">Blake pays his $75</button>
+  <button class="pbtn" id="bReset">Reset</button>
+  <button class="pbtn" id="bRM">Reduced motion</button>
+  <button class="pbtn" id="bTheme">Theme</button>
+</div>
+
+<div class="stagewrap">
+  <div class="card">
+    <div class="pot-eyebrow">The pot · on the books</div>
+    <div class="pot-fig" id="fig">
+      <span class="cur">$</span>
+      <span class="odo" data-slot="0"></span><span class="odo" data-slot="1"></span><span class="odo" data-slot="2"></span>
+      <span class="chip-rise" id="chip">+$75 · Blake</span>
+    </div>
+    <div class="pot-sub">5 of 7 paid in · $75 a head</div>
+    <div class="ledger" id="ledger">
+      <div class="ln"><span class="k">Mitch · buy-in</span><span class="v">+$75</span></div>
+      <div class="ln"><span class="k">Metz · buy-in</span><span class="v">+$75</span></div>
+    </div>
+    <div class="pot-foot">Money moves between friends — the app keeps the books</div>
+  </div>
+</div>
+
+<script>
+/* odometer: strips hold 0–9 twice so any digit can roll UPWARD (odometers
+   only turn one way); the strip translates by whole digit-heights (1em each). */
+const DIGITS='0123456789';
+let value = 525;
+const slots = [...document.querySelectorAll('.odo')];
+const pos = [5,2,5];                       /* current strip index per slot */
+slots.forEach((s,i)=>{
+  const strip = document.createElement('span'); strip.className='strip';
+  strip.innerHTML = (DIGITS+DIGITS).split('').map(d=>'<b>'+d+'</b>').join('');
+  s.appendChild(strip);
+  strip.style.transform = 'translateY(-'+pos[i]+'em)';
+});
+function rollTo(n){
+  const str = String(n).padStart(3,'0');
+  slots.forEach((s,i)=>{
+    const cur = pos[i], want = +str[i];
+    if(cur===want) return;
+    const next = cur + ((want - cur) + 10) % 10;      /* always roll upward */
+    const strip = s.querySelector('.strip');
+    strip.dataset.home = want;                        /* latest target wins the re-home */
+    strip.style.transitionDelay = ((slots.length-1-i)*60)+'ms';   /* right → left */
+    strip.style.transform = 'translateY(-'+next+'em)';
+    pos[i] = want;
+    /* silently re-home the strip to the low bank after the roll (no visible jump);
+       ontransitionend property = one handler, so a retarget can't be clobbered */
+    strip.ontransitionend = ()=>{
+      strip.ontransitionend = null;
+      strip.style.transition='none'; strip.style.transitionDelay='';
+      strip.style.transform='translateY(-'+strip.dataset.home+'em)';
+      void strip.offsetWidth;
+      strip.style.transition='';
+    };
+  });
+}
+function pay(){
+  const b = document.getElementById('bGo');
+  if(b.disabled) return; b.disabled = true;
+  value += 75;
+  rollTo(value);
+  const chip = document.getElementById('chip');
+  chip.classList.remove('go'); void chip.offsetWidth; chip.classList.add('go');
+  const ln = document.createElement('div');
+  ln.className='ln new';
+  ln.innerHTML='<span class="k">Blake · buy-in</span><span class="v">+$75</span>';
+  document.getElementById('ledger').appendChild(ln);
+  document.querySelector('.pot-sub').textContent = '6 of 7 paid in · $75 a head';
+}
+function reset(){
+  value = 525; rollTo(value);
+  document.getElementById('bGo').disabled = false;
+  const ledger = document.getElementById('ledger');
+  ledger.querySelectorAll('.ln.new').forEach(x=>x.remove());
+  document.querySelector('.pot-sub').textContent = '5 of 7 paid in · $75 a head';
+}
+document.getElementById('bGo').onclick = pay;
+document.getElementById('bReset').onclick = reset;
+document.getElementById('bRM').onclick = e=>{ document.body.classList.toggle('rm'); e.target.classList.toggle('on'); };
+document.getElementById('bTheme').onclick = ()=>{ const h=document.documentElement; h.dataset.theme = h.dataset.theme==='light'?'':'light'; };
+</script>

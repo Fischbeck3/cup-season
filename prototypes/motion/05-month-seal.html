@@ -1,0 +1,134 @@
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>05 · The Month Seal — a chapter closes</title>
+<style>
+/* tokens copied from index.html:30–79 — the board is a utility surface; the
+   seal follows the theme. */
+:root{
+  --bg0:#0A0E0C; --bg1:#121710; --bg2:#1A201A;
+  --line:#252C24; --line2:#30372E;
+  --ink:#ECEEF2; --mut:#98A29A; --dim:#5E665E;
+  --pos:#43E07C; --neg:#FF5F56; --gold:#D8B25A;
+  --brand:#2FA46A; --dawn:#63ADFF;
+  --sq0:#57A8FF; --sq1:#FB8B4B;
+  --r:16px; --rc:10px;
+  --sans:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;
+  --mono:'IBM Plex Mono', ui-monospace, 'SF Mono', Menlo, monospace;
+  --serif:'Charter','Iowan Old Style','Palatino Linotype',Georgia,serif;
+  --roll:cubic-bezier(.16,.84,.36,1);
+}
+html[data-theme="light"]{
+  --bg0:#EFF2EE; --bg1:#FBFCFA; --bg2:#E5EAE4;
+  --line:#D9DFD7; --line2:#C9D1C8;
+  --ink:#1A2620; --mut:#52625A; --dim:#8C9992;
+  --pos:#0E9B51; --neg:#CC4038; --gold:#9A7418;
+  --brand:#15743F; --dawn:#2C6E9E;
+  --sq0:#2C7CD3; --sq1:#DE6A22;
+}
+*{margin:0; padding:0; box-sizing:border-box;}
+body{background:var(--bg0); color:var(--ink); font-family:var(--sans); min-height:100vh;}
+.pbar{display:flex; flex-wrap:wrap; align-items:center; gap:10px; padding:14px 18px; border-bottom:1px solid var(--line); background:var(--bg1);}
+.pbar .nm{font-family:var(--serif); font-size:18px; font-weight:700; margin-right:6px;}
+.pbar .chip{font-family:var(--mono); font-size:10.5px; letter-spacing:.1em; text-transform:uppercase; color:var(--dim); border:1px solid var(--line2); border-radius:6px; padding:3px 8px;}
+.pbar a{color:var(--dawn); font-size:13px; text-decoration:none; margin-left:auto;}
+.pctl{display:flex; flex-wrap:wrap; gap:8px; padding:12px 18px;}
+.pbtn{font-family:var(--sans); font-size:13px; font-weight:600; color:var(--ink); background:var(--bg2); border:1px solid var(--line2); border-radius:var(--rc); padding:9px 16px; cursor:pointer;}
+.pbtn.on{background:var(--brand); color:#06130B; border-color:transparent;}
+.meaning{padding:10px 18px 4px; max-width:640px; font-size:13.5px; line-height:1.6; color:var(--mut);}
+.meaning b{color:var(--ink);}
+
+.stagewrap{display:flex; justify-content:center; padding:40px 20px;}
+.card{width:100%; max-width:430px; background:var(--bg1); border:1px solid var(--line); border-radius:var(--r); padding:22px 20px; text-align:center;}
+.seal-eyebrow{font-family:var(--mono); font-size:11.5px; letter-spacing:.2em; text-transform:uppercase; color:var(--dim);}
+.seal{font-family:var(--serif); font-size:38px; font-weight:700; letter-spacing:.01em; margin-top:14px; line-height:1.1;}
+.seal small{display:block; font-family:var(--mono); font-size:12px; font-weight:500; letter-spacing:.26em; color:var(--mut); margin-top:6px;}
+.seal-rule{height:1px; background:var(--line2); margin:18px 10px 4px; transform-origin:center;}
+.ledger{margin-top:12px; text-align:left;}
+.ledger .ln{display:flex; justify-content:space-between; gap:10px; padding:9px 4px; border-bottom:1px solid var(--line); font-size:13px;}
+.ledger .ln:last-child{border-bottom:0;}
+.ledger .k{color:var(--mut);}
+.ledger .v{font-family:var(--mono); font-size:12.5px; color:var(--ink); text-align:right;}
+.ledger .v.gold{color:var(--gold);}          /* the month's winner — earned */
+.ledger .v.neg{color:var(--neg);}
+.seal-foot{font-family:var(--mono); font-size:11px; letter-spacing:.08em; color:var(--dim); margin-top:14px;}
+
+/* the seal: stampIn's cousin (index.html:1596) — same thock, but it LANDS and
+   STAYS. A chapter close is solemn: no rubber-stamp bounce-out, a 1.4° cant,
+   scale settles through the overshoot on --roll. */
+@keyframes monthSeal{
+  0%{opacity:0; transform:scale(1.35) rotate(-1.4deg);}
+  22%{opacity:1; transform:scale(.965) rotate(-1.4deg);}   /* the thock */
+  38%{transform:scale(1.012) rotate(-1.4deg);}
+  55%{transform:scale(1) rotate(-1.4deg);}
+  100%{opacity:1; transform:scale(1) rotate(-1.4deg);}
+}
+@keyframes ruleDraw{from{transform:scaleX(0);} to{transform:scaleX(1);}}
+@keyframes csUp{from{opacity:0; transform:translateY(14px);} to{opacity:1; transform:none;}}
+@keyframes csFade{from{opacity:0;} to{opacity:1;}}
+.card.go .seal-eyebrow{animation:csFade .4s ease both;}
+.card.go .seal{animation:monthSeal .6s var(--roll) .25s both;}
+.card.go .seal-rule{animation:ruleDraw .35s var(--roll) .8s both;}
+.card.go .ledger .ln:nth-child(1){animation:csUp .45s var(--roll) 1.0s both;}
+.card.go .ledger .ln:nth-child(2){animation:csUp .45s var(--roll) 1.09s both;}
+.card.go .ledger .ln:nth-child(3){animation:csUp .45s var(--roll) 1.18s both;}
+.card.go .ledger .ln:nth-child(4){animation:csUp .45s var(--roll) 1.27s both;}
+.card.go .seal-foot{animation:csFade .5s ease 1.6s both;}
+.card:not(.go) > *{opacity:0;}
+
+/* reduced motion: the sealed card is simply present. The cant stays — it's
+   information (a hand set this), not motion. */
+body.rm .card.go *{animation:none !important;}
+body.rm .card.go .seal{transform:rotate(-1.4deg);}
+@media(prefers-reduced-motion:reduce){
+  .card.go *{animation:none !important;}
+  .card.go .seal{transform:rotate(-1.4deg);}
+}
+</style>
+
+<div class="pbar">
+  <span class="nm">05 · The Month Seal</span>
+  <span class="chip">strand 2 · board · close_month post</span>
+  <span class="chip">follows theme</span>
+  <span class="chip">cost S</span>
+  <a href="index.html">← all prototypes</a>
+</div>
+<div class="meaning">
+  When <b>close_month</b> runs, a chapter of the season is over — caps applied, floors
+  assessed, nothing can change again (§16: the ledger shows its work). The month name
+  <b>seals onto the board with one thock</b> — stampIn's physics, but it lands and stays,
+  canted 1.4° like a hand set it — then the rule draws and the ledger lines settle in
+  under it. The POSTED stamp celebrates; the seal <b>closes</b>.
+</div>
+<div class="pctl">
+  <button class="pbtn on" id="bGo">⟳ Close the month</button>
+  <button class="pbtn" id="bRM">Reduced motion</button>
+  <button class="pbtn" id="bTheme">Theme</button>
+</div>
+
+<div class="stagewrap" id="stageWrap">
+  <div class="card go">
+    <div class="seal-eyebrow">The board · league event</div>
+    <div class="seal">April<small>· Closed ·</small></div>
+    <div class="seal-rule"></div>
+    <div class="ledger">
+      <div class="ln"><span class="k">Counting rounds</span><span class="v">Jerecho 2 · Logan 2 · Ed 2</span></div>
+      <div class="ln"><span class="k">Floor assessed</span><span class="v neg">Blake −5</span></div>
+      <div class="ln"><span class="k">Auto-bye</span><span class="v">Garrett · first miss forgiven</span></div>
+      <div class="ln"><span class="k">Month taken by</span><span class="v gold">Mudsharks · 41–33</span></div>
+    </div>
+    <div class="seal-foot">Every figure taps to its receipt</div>
+  </div>
+</div>
+
+<script>
+const wrap = document.getElementById('stageWrap');
+function replay(){
+  const c = wrap.querySelector('.card'), fresh = c.cloneNode(true);
+  fresh.classList.remove('go');
+  wrap.replaceChild(fresh, c);
+  requestAnimationFrame(()=>requestAnimationFrame(()=>fresh.classList.add('go')));
+}
+document.getElementById('bGo').onclick = replay;
+document.getElementById('bRM').onclick = e=>{ document.body.classList.toggle('rm'); e.target.classList.toggle('on'); replay(); };
+document.getElementById('bTheme').onclick = ()=>{ const h=document.documentElement; h.dataset.theme = h.dataset.theme==='light'?'':'light'; };
+</script>

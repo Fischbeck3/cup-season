@@ -1,0 +1,119 @@
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Cup Season · motion lane — prototype gallery</title>
+<style>
+/* tokens copied from index.html:30–79 */
+:root{
+  --bg0:#0A0E0C; --bg1:#121710; --bg2:#1A201A;
+  --line:#252C24; --line2:#30372E;
+  --ink:#ECEEF2; --mut:#98A29A; --dim:#5E665E;
+  --pos:#43E07C; --gold:#D8B25A; --brand:#2FA46A; --dawn:#63ADFF;
+  --sq0:#57A8FF; --sq1:#FB8B4B; --sq2:#A78BFA; --sq3:#2FD3BE;
+  --r:16px; --rc:10px;
+  --sans:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;
+  --mono:'IBM Plex Mono', ui-monospace, 'SF Mono', Menlo, monospace;
+  --serif:'Charter','Iowan Old Style','Palatino Linotype',Georgia,serif;
+  --roll:cubic-bezier(.16,.84,.36,1);
+}
+*{margin:0; padding:0; box-sizing:border-box;}
+body{background:var(--bg0); color:var(--ink); font-family:var(--sans); min-height:100vh; padding:34px 20px 60px;}
+.wrap{max-width:640px; margin:0 auto;}
+.eyebrow{font-family:var(--mono); font-size:11.5px; letter-spacing:.2em; text-transform:uppercase; color:var(--dim);}
+h1{font-family:var(--serif); font-size:34px; font-weight:700; letter-spacing:-.01em; margin:10px 0 8px;}
+.lede{font-size:14px; line-height:1.65; color:var(--mut); max-width:52ch; margin-bottom:26px;}
+.lede b{color:var(--ink);}
+.sect{font-family:var(--mono); font-size:11px; letter-spacing:.18em; text-transform:uppercase; color:var(--dim); margin:26px 2px 10px; display:flex; align-items:center; gap:10px;}
+.sect::after{content:""; height:1px; flex:1; background:var(--line);}
+a.proto{display:block; text-decoration:none; color:var(--ink); background:var(--bg1); border:1px solid var(--line); border-radius:var(--r); padding:15px 16px; margin-bottom:9px; transition:transform .25s var(--roll), border-color .25s ease;}
+@media(hover:hover){ a.proto:hover{transform:translateY(-2px); border-color:var(--line2);} }
+.proto .tt{display:flex; align-items:baseline; gap:10px; flex-wrap:wrap;}
+.proto .nm{font-family:var(--serif); font-size:18px; font-weight:700;}
+.proto .chip{font-family:var(--mono); font-size:9.5px; letter-spacing:.1em; text-transform:uppercase; color:var(--dim); border:1px solid var(--line2); border-radius:5px; padding:2px 6px;}
+.proto .chip.gold{color:var(--gold); border-color:rgba(216,178,90,.4);}
+.proto .ds{font-size:13px; line-height:1.55; color:var(--mut); margin-top:6px;}
+.cardonly{background:var(--bg1); border:1px dashed var(--line2); border-radius:var(--r); padding:13px 16px; margin-bottom:9px;}
+.cardonly .nm{font-weight:600; font-size:14px;}
+.cardonly .ds{font-size:12.5px; color:var(--mut); margin-top:3px; line-height:1.5;}
+.foot{font-family:var(--mono); font-size:11px; letter-spacing:.06em; color:var(--dim); margin-top:28px; line-height:1.8;}
+.foot a{color:var(--dawn); text-decoration:none;}
+</style>
+
+<div class="wrap">
+  <div class="eyebrow">Motion lane · prototype gallery</div>
+  <h1>What the game feels like when it moves</h1>
+  <p class="lede">
+    Seven clickable concepts — one entry-choreography evolution, six bold moments.
+    Every one: <b>tokens copied in, no libraries, transform/opacity only</b>, reduced-motion
+    designed per concept (toggle it on each page), gold spent only on what's earned.
+    Full cards + build order in <b>spec/motion-dossier.md</b>.
+  </p>
+
+  <div class="sect">Strand 1 · the entry page</div>
+  <a class="proto" href="01-entry-finale.html">
+    <div class="tt"><span class="nm">01 · The Last Ten Feet</span>
+      <span class="chip">budget-locked</span><span class="chip">cost M</span></div>
+    <div class="ds">The tracers finish their flight — comet heads, the ball drops at the lip,
+    the flag plants, the ground answers once — and the squad wipes deposit the scoreline
+    ticks as they clear. A/B against shipped, door time measured live: still 2.05s.</div>
+  </a>
+
+  <div class="sect">Strand 2 · the bold moments</div>
+  <a class="proto" href="02-the-drop.html">
+    <div class="tt"><span class="nm">02 · The Drop</span>
+      <span class="chip">ceremony · dusk-locked</span><span class="chip">cost M</span></div>
+    <div class="ds">The band reveal opens with a putt: the ball rolls out of the left, dies at
+    the center, hangs, drops — and your gross lands where it fell.</div>
+  </a>
+  <a class="proto" href="03-flip-board.html">
+    <div class="tt"><span class="nm">03 · The Flip Board</span>
+      <span class="chip">standings</span><span class="chip">cost M</span></div>
+    <div class="ds">A lead change posted the old way: rank and points cards half-turn like the
+    manual boards at the majors, rows glide on shipped FLIP physics, and one ripple —
+    the roar — crosses the card. Gold moves only after the flip.</div>
+  </a>
+  <a class="proto" href="04-engraver.html">
+    <div class="tt"><span class="nm">04 · The Engraver</span>
+      <span class="chip gold">gold · earned</span><span class="chip">cost M</span></div>
+    <div class="ds">A trophy takes a name the way the Claret Jug does — the outline draws,
+    then a gold needle sweeps the plate and leaves the winner engraved behind it.</div>
+  </a>
+  <a class="proto" href="05-month-seal.html">
+    <div class="tt"><span class="nm">05 · The Month Seal</span>
+      <span class="chip">board</span><span class="chip">cost S</span></div>
+    <div class="ds">close_month lands with one solemn thock — the month seals shut, canted
+    like a hand set it, and the ledger lines settle in beneath. Celebration stamps fade;
+    seals stay.</div>
+  </a>
+  <a class="proto" href="06-pot-odometer.html">
+    <div class="tt"><span class="nm">06 · The Pot Odometer</span>
+      <span class="chip gold">gold · earned</span><span class="chip">cost M</span></div>
+    <div class="ds">A buy-in lands and the serif centerpiece absorbs it digit by digit —
+    gauges rolling right to left — while the amount lifts off the top like chalk dust
+    and the ledger line inks in.</div>
+  </a>
+  <a class="proto" href="07-draft-turn.html">
+    <div class="tt"><span class="nm">07 · Draft Night — the Card Turns</span>
+      <span class="chip">room-dusk candidate</span><span class="chip">cost L</span></div>
+    <div class="ds">The blind draw made visible: a face-down card — marker rosette up, squad
+    color on the edge — turns to reveal who the season dealt, then glides into its
+    roster slot.</div>
+  </a>
+
+  <div class="sect">Card-only · in the dossier, no prototype</div>
+  <div class="cardonly"><div class="nm">C8 · Seeds Lock (Cup Final)</div>
+    <div class="ds">The four seed rows settle, bracket lines draw toward the final, a pin
+    plants at the end of the path. csDraw + flagPlant vocabulary, no new physics.</div></div>
+  <div class="cardonly"><div class="nm">C9 · Your Number Mints (index establishes)</div>
+    <div class="ds">At round three the em-dash rolls to your first real index — odometer
+    physics from 06 — and the ground answers once. A quiet, personal ceremony.</div></div>
+  <div class="cardonly"><div class="nm">C10 · The Taunt Lands (Ryder duels)</div>
+    <div class="ds">An incoming taunt arcs in like a chip shot and squashes on landing —
+    csUp with a hop, 300ms, done. Playful, small, never gold.</div></div>
+
+  <div class="foot">
+    prototypes/motion/ · self-contained files, open any of them straight from disk ·
+    dossier: spec/motion-dossier.md · brief: spec/motion-brief.md<br>
+    Laws honored: forceReveal (content visible without motion) · reduced-motion per
+    concept · no infinite loop unpaused · 1–2 animated elements per view.
+  </div>
+</div>

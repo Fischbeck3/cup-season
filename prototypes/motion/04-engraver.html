@@ -1,0 +1,124 @@
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>04 · The Engraver — a trophy takes a name</title>
+<style>
+/* Ceremony surface — dusk-locked per D2.2. Gold is EARNED here: this is the
+   earned moment the token was saved for. */
+:root{
+  --gold:#D8B25A; --brand:#2FA46A; --rc:10px;
+  --sans:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;
+  --mono:'IBM Plex Mono', ui-monospace, 'SF Mono', Menlo, monospace;
+  --serif:'Charter','Iowan Old Style','Palatino Linotype',Georgia,serif;
+  --roll:cubic-bezier(.16,.84,.36,1);
+}
+*{margin:0; padding:0; box-sizing:border-box;}
+body{background:#0A0E0C; color:#ECEEF2; font-family:var(--sans); min-height:100vh;}
+.pbar{display:flex; flex-wrap:wrap; align-items:center; gap:10px; padding:14px 18px; border-bottom:1px solid #252C24; background:#121710;}
+.pbar .nm{font-family:var(--serif); font-size:18px; font-weight:700; margin-right:6px;}
+.pbar .chip{font-family:var(--mono); font-size:10.5px; letter-spacing:.1em; text-transform:uppercase; color:#5E665E; border:1px solid #30372E; border-radius:6px; padding:3px 8px;}
+.pbar a{color:#63ADFF; font-size:13px; text-decoration:none; margin-left:auto;}
+.pctl{display:flex; flex-wrap:wrap; gap:8px; padding:12px 18px;}
+.pbtn{font-family:var(--sans); font-size:13px; font-weight:600; color:#ECEEF2; background:#1A201A; border:1px solid #30372E; border-radius:var(--rc); padding:9px 16px; cursor:pointer;}
+.pbtn.on{background:var(--brand); color:#06130B;}
+.meaning{padding:10px 18px 4px; max-width:640px; font-size:13.5px; line-height:1.6; color:#98A29A;}
+.meaning b{color:#ECEEF2;}
+
+.stage{min-height:640px; display:flex; align-items:center; justify-content:center; padding:32px 24px;
+  background:radial-gradient(120% 90% at 50% -10%, #12271B 0%, #0A0E0C 55%), #0A0E0C;}
+.mint{width:100%; max-width:440px; text-align:center; display:flex; flex-direction:column; align-items:center;}
+.mint-eyebrow{font-family:var(--mono); font-size:12px; font-weight:500; letter-spacing:.22em; text-transform:uppercase; color:#8FA096;}
+.jug{width:120px; margin-top:26px;}
+/* the plate: trophies take names on a plate — the engraving surface. Solid
+   ground so the sliding cover can match it exactly (the transform-only reveal). */
+.plate{position:relative; margin-top:24px; padding:14px 26px 12px; background:#10150F; border:1px solid #252C24; border-radius:8px; overflow:hidden;}
+.plate .who{font-family:var(--serif); font-size:44px; font-weight:700; letter-spacing:.02em; color:var(--gold); line-height:1;}
+/* the engraver: an opaque cover slides off left-to-right; its leading edge is
+   the gold needle. Pure translateX — no clip-path, no width animation. */
+.cover{position:absolute; inset:0; background:#10150F; border-left:2px solid var(--gold); box-shadow:-2px 0 12px rgba(216,178,90,.55);}
+.rule{width:120px; height:1px; background:var(--gold); opacity:.55; margin-top:14px; transform-origin:center;}
+.mint-meta{font-family:var(--serif); font-size:17px; color:#ECEEF2; margin-top:18px;}
+.mint-pts{font-family:var(--mono); font-size:12.5px; font-weight:600; letter-spacing:.16em; text-transform:uppercase; margin-top:14px; color:var(--gold);}
+
+@keyframes csFade{from{opacity:0;} to{opacity:1;}}
+@keyframes csUp{from{opacity:0; transform:translateY(14px);} to{opacity:1; transform:none;}}
+@keyframes jugDraw{from{stroke-dashoffset:640;} to{stroke-dashoffset:0;}}
+@keyframes engrave{from{transform:translateX(0);} to{transform:translateX(103%);}}
+@keyframes ruleDraw{from{transform:scaleX(0);} to{transform:scaleX(1);}}
+
+.stage.go .mint-eyebrow{animation:csFade .4s ease both;}
+.stage.go .jug path{animation:jugDraw 1.0s ease .2s forwards;}
+.stage.go .plate{animation:csUp .5s var(--roll) 1.0s both;}
+.stage.go .cover{animation:engrave 1.1s var(--roll) 1.3s forwards;}
+.stage.go .rule{animation:ruleDraw .3s var(--roll) 2.4s both;}
+.stage.go .mint-meta{animation:csUp .5s var(--roll) 2.55s both;}
+.stage.go .mint-pts{animation:csUp .5s var(--roll) 2.8s both;}
+.stage:not(.go) .mint{opacity:0;}
+
+/* reduced motion: the trophy is simply THERE, name engraved — one quiet fade.
+   Same information, no theater. */
+body.rm .stage.go *{animation:none !important;}
+body.rm .stage.go .jug path{stroke-dashoffset:0 !important;}
+body.rm .stage.go .cover{display:none;}
+body.rm .stage.go .mint{animation:csFade .6s ease both;}
+@media(prefers-reduced-motion:reduce){
+  .stage.go *{animation:none !important;}
+  .stage.go .jug path{stroke-dashoffset:0 !important;}
+  .stage.go .cover{display:none;}
+  .stage.go .mint{animation:csFade .6s ease both;}
+}
+</style>
+
+<div class="pbar">
+  <span class="nm">04 · The Engraver</span>
+  <span class="chip">strand 2 · trophy mint / Major crowned</span>
+  <span class="chip">ceremony · dusk-locked</span>
+  <span class="chip">gold · earned</span>
+  <span class="chip">cost M</span>
+  <a href="index.html">← all prototypes</a>
+</div>
+<div class="meaning">
+  The Claret Jug is engraved the same afternoon it's won. Here the trophy outline
+  draws itself, then <b>the winner's name is engraved onto the plate</b> — a gold needle
+  sweeps left to right and leaves the name behind it (a sliding cover, pure transform).
+  Once a season per trophy; the length is the point. Remove the motion and it's a label;
+  with it, it's a name being cut into metal.
+</div>
+<div class="pctl">
+  <button class="pbtn on" id="bGo">⟳ Mint the trophy</button>
+  <button class="pbtn" id="bRM">Reduced motion</button>
+</div>
+
+<div id="stageWrap">
+<div class="stage go">
+  <div class="mint">
+    <div class="mint-eyebrow">Major champion · The Aguila Major</div>
+    <svg class="jug" viewBox="0 0 120 120" fill="none" aria-hidden="true">
+      <path d="M38 18 h44 v10 c0 24 -8 34 -22 38 c-14 -4 -22 -14 -22 -38 z
+               M38 24 c-10 0 -16 6 -14 14 c2 8 8 12 16 12
+               M82 24 c10 0 16 6 14 14 c-2 8 -8 12 -16 12
+               M60 66 v14 M48 88 h24 M44 96 h32 v8 h-32 z"
+        stroke="#D8B25A" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"
+        stroke-dasharray="640" style="stroke-dashoffset:640"/>
+    </svg>
+    <div class="plate">
+      <div class="who">Logan</div>
+      <div class="cover" aria-hidden="true"></div>
+    </div>
+    <div class="rule"></div>
+    <div class="mint-meta">74 gross at Aguila · beat his number by 4.1</div>
+    <div class="mint-pts">Into the trophy case · Mudsharks</div>
+  </div>
+</div>
+</div>
+
+<script>
+const wrap = document.getElementById('stageWrap');
+function replay(){
+  const s = wrap.querySelector('.stage'), fresh = s.cloneNode(true);
+  fresh.classList.remove('go');
+  wrap.replaceChild(fresh, s);
+  requestAnimationFrame(()=>requestAnimationFrame(()=>fresh.classList.add('go')));
+}
+document.getElementById('bGo').onclick = replay;
+document.getElementById('bRM').onclick = e=>{ document.body.classList.toggle('rm'); e.target.classList.toggle('on'); replay(); };
+</script>

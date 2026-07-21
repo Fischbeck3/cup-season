@@ -1,0 +1,179 @@
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>03 · The Flip Board — a lead change</title>
+<style>
+/* tokens copied from index.html:30–79 — standings are a UTILITY surface, so
+   this one follows the theme (toggle below), unlike the dusk-locked ceremonies. */
+:root{
+  --bg0:#0A0E0C; --bg1:#121710; --bg2:#1A201A;
+  --line:#252C24; --line2:#30372E;
+  --ink:#ECEEF2; --mut:#98A29A; --dim:#5E665E;
+  --pos:#43E07C; --neg:#FF5F56; --gold:#D8B25A;
+  --brand:#2FA46A; --dawn:#63ADFF;
+  --sq0:#57A8FF; --sq1:#FB8B4B; --sq2:#A78BFA; --sq3:#2FD3BE;
+  --r:16px; --rc:10px;
+  --sans:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;
+  --mono:'IBM Plex Mono', ui-monospace, 'SF Mono', Menlo, monospace;
+  --serif:'Charter','Iowan Old Style','Palatino Linotype',Georgia,serif;
+  --roll:cubic-bezier(.16,.84,.36,1);
+}
+html[data-theme="light"]{
+  --bg0:#EFF2EE; --bg1:#FBFCFA; --bg2:#E5EAE4;
+  --line:#D9DFD7; --line2:#C9D1C8;
+  --ink:#1A2620; --mut:#52625A; --dim:#8C9992;
+  --pos:#0E9B51; --neg:#CC4038; --gold:#9A7418;
+  --brand:#15743F; --dawn:#2C6E9E;
+  --sq0:#2C7CD3; --sq1:#DE6A22; --sq2:#7A58DE; --sq3:#0D9E8F;
+}
+*{margin:0; padding:0; box-sizing:border-box;}
+body{background:var(--bg0); color:var(--ink); font-family:var(--sans); min-height:100vh;}
+.pbar{display:flex; flex-wrap:wrap; align-items:center; gap:10px; padding:14px 18px; border-bottom:1px solid var(--line); background:var(--bg1);}
+.pbar .nm{font-family:var(--serif); font-size:18px; font-weight:700; margin-right:6px;}
+.pbar .chip{font-family:var(--mono); font-size:10.5px; letter-spacing:.1em; text-transform:uppercase; color:var(--dim); border:1px solid var(--line2); border-radius:6px; padding:3px 8px;}
+.pbar a{color:var(--dawn); font-size:13px; text-decoration:none; margin-left:auto;}
+.pctl{display:flex; flex-wrap:wrap; gap:8px; padding:12px 18px;}
+.pbtn{font-family:var(--sans); font-size:13px; font-weight:600; color:var(--ink); background:var(--bg2); border:1px solid var(--line2); border-radius:var(--rc); padding:9px 16px; cursor:pointer;}
+.pbtn.on{background:var(--brand); color:#06130B; border-color:transparent;}
+.pbtn.go{background:var(--brand); color:#06130B; border-color:transparent;}
+.meaning{padding:10px 18px 4px; max-width:640px; font-size:13.5px; line-height:1.6; color:var(--mut);}
+.meaning b{color:var(--ink);}
+
+.stagewrap{display:flex; justify-content:center; padding:40px 20px;}
+.card{width:100%; max-width:430px; background:var(--bg1); border:1px solid var(--line); border-radius:var(--r); padding:16px; position:relative;}
+.eyebrow{font-family:var(--mono); font-size:11.5px; font-weight:500; letter-spacing:.16em; text-transform:uppercase; color:var(--dim); margin:0 2px 12px;}
+
+/* the climb, replicated (index.html:223–253) */
+.climb{display:flex; flex-direction:column; position:relative;}
+.climb-rung{display:flex; align-items:center; gap:9px; padding:10px; margin-bottom:7px; border:1px solid var(--line); border-radius:9px; background:var(--bg1); position:relative;}
+.climb-rung .rk{font-family:var(--mono); font-size:11px; color:var(--dim); flex:none; width:18px; perspective:420px;}
+.climb-rung .rk span, .climb-rung .pts span{display:inline-block; backface-visibility:hidden;}
+.climb-rung .sw{width:10px; height:10px; border-radius:3px; flex:none;}
+.climb-rung .nm{flex:1; min-width:0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; font-weight:600; font-size:13px; transition:color .3s ease;}
+.climb-rung .pts{font-family:var(--mono); font-size:13px; color:var(--ink); flex:none; perspective:420px;}
+.climb-rung.lead .nm{color:var(--gold);}         /* the lead is EARNED — gold */
+.climb-rung.me{border-color:var(--gold);}
+/* the roar: one ripple leaves the overtaking row and crosses the card — the
+   gallery three fairways over hears it before the board updates. transform-only. */
+.roar{position:absolute; inset:0; border:1.5px solid var(--brand); border-radius:9px; pointer-events:none; opacity:0;}
+.roar.go{animation:roar .8s ease-out forwards;}
+@keyframes roar{0%{opacity:.55; transform:scale(.98,.96);} 100%{opacity:0; transform:scale(1.55,3.4);}}
+.note{font-family:var(--mono); font-size:11px; letter-spacing:.08em; color:var(--dim); margin-top:10px; text-align:center; min-height:1.2em;}
+.note b{color:var(--gold);}
+@media(prefers-reduced-motion:reduce){ .roar{display:none;} }
+body.rm .roar{display:none;}
+</style>
+
+<div class="pbar">
+  <span class="nm">03 · The Flip Board</span>
+  <span class="chip">strand 2 · standings / the climb</span>
+  <span class="chip">follows theme</span>
+  <span class="chip">cost M</span>
+  <a href="index.html">← all prototypes</a>
+</div>
+<div class="meaning">
+  A lead change is news that used to be posted <b>by hand, slat by slat</b>, on the manual
+  boards at the majors. Here the affected rank and points cards do a half-turn flip
+  (rotateX, two phases) while the rows glide on the shipped FLIP physics, and <b>one
+  ripple — the roar</b> — leaves the overtaking row and crosses the card. Gold moves to
+  the new leader only after the flip: the lead is earned, then painted.
+</div>
+<div class="pctl">
+  <button class="pbtn go" id="bGo">Logan posts +12 · lead change</button>
+  <button class="pbtn" id="bReset">Reset</button>
+  <button class="pbtn" id="bRM">Reduced motion</button>
+  <button class="pbtn" id="bTheme">Theme</button>
+</div>
+
+<div class="stagewrap">
+  <div class="card">
+    <div class="eyebrow">The climb · month 4</div>
+    <div class="climb" id="climb"></div>
+    <div class="note" id="note"></div>
+  </div>
+</div>
+
+<script>
+/* data: the crew (index.html demo diorama). Logan +12 overtakes Jerecho. */
+const START = [
+  {id:'jerecho', nm:'Jerecho', sw:'var(--sq0)', pts:58, me:true},
+  {id:'logan',   nm:'Logan',   sw:'var(--sq0)', pts:52},
+  {id:'ed',      nm:'Ed',      sw:'var(--sq1)', pts:49},
+  {id:'mitch',   nm:'Mitch',   sw:'var(--sq1)', pts:41},
+];
+let rows;
+const climb = document.getElementById('climb');
+const note = document.getElementById('note');
+const rmOS = matchMedia('(prefers-reduced-motion: reduce)').matches;
+const rm = ()=> rmOS || document.body.classList.contains('rm');
+
+function render(){
+  climb.innerHTML='';
+  rows.forEach((r,i)=>{
+    const el = document.createElement('div');
+    el.className = 'climb-rung'+(i===0?' lead':'')+(r.me?' me':'');
+    el.dataset.id = r.id;
+    el.innerHTML = '<div class="rk"><span>'+(i+1)+'</span></div>'
+      +'<span class="sw" style="background:'+r.sw+'"></span>'
+      +'<span class="nm">'+r.nm+'</span>'
+      +'<div class="pts"><span>'+r.pts+'</span></div>'
+      +'<div class="roar"></div>';
+    climb.appendChild(el);
+  });
+}
+/* Augusta slat: old value folds up (150ms ease-in), new value swings down
+   (180ms ease-out). Exits faster than entrances; both halves transform-only. */
+function slat(cell, newText){
+  const span = cell.querySelector('span');
+  if(rm()){ span.textContent = newText; return; }
+  const a = span.animate([{transform:'rotateX(0)'},{transform:'rotateX(90deg)'}], {duration:150, easing:'cubic-bezier(.5,0,.9,.4)', fill:'forwards'});
+  a.onfinish = ()=>{
+    span.textContent = newText;
+    span.animate([{transform:'rotateX(-90deg)'},{transform:'rotateX(0)'}], {duration:180, easing:'cubic-bezier(.16,.84,.36,1)', fill:'forwards'});
+  };
+}
+function leadChange(){
+  document.getElementById('bGo').disabled = true;
+  /* first: capture, mutate, reorder */
+  const first = {};
+  climb.querySelectorAll('.climb-rung').forEach(el=>{ first[el.dataset.id] = el.getBoundingClientRect().top; });
+  rows.find(r=>r.id==='logan').pts += 12;
+  rows.sort((a,b)=>b.pts-a.pts);
+  const affected = ['logan','jerecho'];
+  render();
+  /* FLIP glide — shipped physics: transform .55s var(--roll) (index.html:3253) */
+  climb.querySelectorAll('.climb-rung').forEach(el=>{
+    const d = first[el.dataset.id] - el.getBoundingClientRect().top;
+    if(d && !rm()){
+      el.style.transform = 'translateY('+d+'px)';
+      requestAnimationFrame(()=>{ el.style.transition='transform .55s var(--roll)'; el.style.transform=''; });
+    }
+  });
+  /* slats: rank + points flip on the two affected rows, staggered like a
+     board operator working top-down */
+  climb.querySelectorAll('.climb-rung').forEach((el,i)=>{
+    if(!affected.includes(el.dataset.id)) return;
+    const r = rows[i];
+    /* pre-set old values so the flip shows the change, not the render */
+    el.querySelector('.rk span').textContent = el.dataset.id==='logan' ? '2' : '1';
+    el.querySelector('.pts span').textContent = el.dataset.id==='logan' ? '52' : '58';
+    setTimeout(()=>{ slat(el.querySelector('.rk'), String(i+1)); }, 380 + i*140);
+    setTimeout(()=>{ slat(el.querySelector('.pts'), String(r.pts)); }, 470 + i*140);
+  });
+  /* the roar: one ripple from the overtaking row */
+  const loganEl = climb.querySelector('[data-id="logan"] .roar');
+  setTimeout(()=>{ loganEl.classList.add('go'); }, 560);
+  setTimeout(()=>{ note.innerHTML = '<b>Logan takes the lead</b> · 64 to 58'; }, 900);
+}
+function reset(){
+  rows = START.map(r=>({...r}));
+  rows.sort((a,b)=>b.pts-a.pts);
+  note.textContent='';
+  document.getElementById('bGo').disabled = false;
+  render();
+}
+document.getElementById('bGo').onclick = leadChange;
+document.getElementById('bReset').onclick = reset;
+document.getElementById('bRM').onclick = e=>{ document.body.classList.toggle('rm'); e.target.classList.toggle('on'); };
+document.getElementById('bTheme').onclick = ()=>{ const h=document.documentElement; h.dataset.theme = h.dataset.theme==='light'?'':'light'; };
+reset();
+</script>
