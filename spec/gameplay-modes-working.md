@@ -556,3 +556,138 @@ lane flagged it as a real retention hook and correctly stopped at the boundary:
 unlockables are a mechanic (achievement rules, visibility, whether picked-vs-
 earned markers read differently), so it gets a decision-log entry before any
 build. Not designed, not committed to — just not lost.
+
+---
+
+## 10. The Major (standalone championship — days, the field, one jug)
+
+Decided 2026-07-20 with the owner (decision-log **D42–D46**; this section pays
+the IA's Major IOU). A **standalone championship event** on the events spine
+(`kind='major'`), league-attachable like the Ryder, always a parallel ledger
+(§5 — never cup points). The product line spreads by time-grain: the Season is
+months (squads) · the Ryder is weeks (teams) · **the Major is a weekend (the
+field)**. The pitch: one weekend, every card on one board, one name on the jug.
+
+### 10.1 Container & window
+
+- Event: a name worth engraving (the crew names the jug — "The PIGL
+  Championship"), organizer = the Pro of the event, optional league attach
+  (borrow crew + board). Teams: none — `event_teams` sits empty for majors.
+- **Window:** organizer picks the **final day** (any weekday; wizard defaults
+  the next Sunday) and **length 2–4 days** (default 4 = Thu→Sun, real-major
+  grammar). ONE `event_sessions` row IS the window (`opens_on = final_on −
+  days + 1`, `closes_on = final_on`); the daily tick opens and settles it
+  (§R12.3 rails; tz per §R12.2: league season > creator device > Phoenix).
+- **Field:** invite via the existing picker; **late entry until the horn** (a
+  Saturday joiner with a Sunday card is legal; entries post to the board).
+  Auto-open needs ≥2 entered (the Ryder's both-benches rule, translated).
+  The organizer plays like anyone.
+
+### 10.2 Scoring — your best card, vs your number (D43)
+
+- **Best eligible card in the window is your score.** Unlimited attempts; every
+  attempt also lives its normal season/index life (rounds are facts).
+- Eligible: **18-hole cards only** (a 9 still feeds season + index; the Major
+  is the full test — dial later if a twilight crew asks), never voided, never
+  sim. PvI at 100% allowance off `index_at_post` — a frozen-at-entry index was
+  rejected (forks the one currency, muddies receipts).
+- **No band ceiling.** The round of your life pays in full; the ringer vector
+  closes at the field line (10.4), not by muting the heater. Revisit trigger:
+  the first suspicious win.
+- Leaderboard grammar: **"JERECHO 82 · −4.2"** — gross is the story,
+  vs-your-number is the ranking; named bands stay the per-card voice (D1/D2).
+  Every figure taps to its card (§16). Build note: the live board REQUIRES a
+  security-definer read — rounds RLS is owner-only (`event_session_targets`
+  precedent).
+- **NO CARD** = an honest unranked row at the foot; no synthetic penalty
+  number. A no-card buy-in settles as a donation, visible on the card.
+
+### 10.3 The window tells its story (server posts, existing rails)
+
+Open post at the tick ("THE PIGL CHAMPIONSHIP IS LIVE — CARDS IN BY SUNDAY
+NIGHT") · every card / clubhouse-lead change posts to the event board
+("JERECHO CARDS 82 — CLUBHOUSE LEADER AT −4.2") · **a round booked during the
+window posts the chase** ("MARCUS BOOKED SATURDAY — CHASING −4.2" — the
+owner's hype beat, riding `scheduled_rounds`) · a final-day-morning stakes
+post via the daily tick · settle on the tick after the horn (organizer manual
+settle stays as override). Push: stories ride the existing curated webhook;
+**no new opt-in nudge class** in v1 (`notify_target` is duel-shaped; a Major
+has no assigned opponent — deferred until a real ask).
+
+### 10.4 The field line — two tiers, one leaderboard (D44)
+
+- **Established (engine-derived) index at entry → contends** for title + pot.
+  The un-established join anyway, appear on the board **flagged exhibition** —
+  name in lights, can't win title or money, official by the next Major. The
+  claimed guest plays THIS Major; the conversion hook is the flag itself.
+- Checked ONCE at add-time against the handicap engine's own established
+  definition (never a parallel count). Establishing mid-window still finishes
+  exhibition — a card that rode a starter number must not contend for money.
+
+### 10.5 Ties — the countback ladder, best-card edition (D45)
+
+Tied best card → **better second-best card** (the deeper weekend wins; any
+second card beats none — playing more is the covenant's value) →
+**earliest-posted best card** (they set the number) → **logged coin flip**
+(§14.3 precedent, receipts attached). Applies to every paying place. Stated in
+the fine print at create — chosen, not discovered. Playoff window = the
+fast-follow when a real tie earns it; shared titles rejected.
+
+### 10.6 Ceremony & pot (D46)
+
+- **Champion-only hardware:** one `trophies` row (kind 'major', title = the
+  event's name); the case stays scarce — the jug engraves one name. Runner-up
+  lives in the recap + settlement post, never the case.
+- Champion story posts to the event board and — when attached — the league
+  board. **Share-ready recap card** at settle (D30 canvas pattern: champion +
+  marker, event name, final top-3, gross + vs-number, date, wordmark) carrying
+  the join path (GTM §3 rule).
+- Pot: D39 ledger posture. Buy-in at create, **$0 bragging rights first-class
+  and default**; paying places default **60/25/15** (the season's own split)
+  with a winner-take-all preset; no custom-% editor (D8). Exhibition never
+  pays.
+- **Earned champion's marker:** §9's perfect candidate — flagged, own decision
+  entry when unparked, nothing built silently.
+
+### 10.7 Schema direction (additive; the Ryder rails, not a fork)
+
+```
+events            kind='major' (no CHECK to alter); window rides the one
+                  session row; + buy_in numeric default 0,
+                  + pot_split text 'places'|'wta'
+event_players     + exhibition boolean not null default false (set at add)
+event_major_cards (event_id, player_id→event_players, round_id→rounds (the
+                  §16 receipt), gross, pvi, rank, prize, resolved_at) —
+                  frozen at settle; the live board is a definer fn
+tick              run_event_sessions branches on kind: majors skip
+                  generate_pairings → open_major (board post) / settle_major
+                  (ladder, prizes, stories, complete → trophies trigger,
+                  kind-aware: award branches 'ryder'/'major')
+RPCs              create_major(name, final_on, days, buy_in, split, league?,
+                  tz?) · add_event_player gains the exhibition check for
+                  majors · major_leaderboard(event) definer read ·
+                  settle_major — engine paths cron-drivable (auth.uid() null),
+                  human callers organizer-gated, same as resolve_session
+posts             existing event_id rail; an attached Major's completion post
+                  carries BOTH league_id + event_id (posts_home_check allows)
+```
+
+D37 law: every new client-called RPC ships its explicit
+`grant execute … to authenticated`; engine-only fns stay revoked from API
+roles (`run_event_sessions` precedent). Edge cases decided here: settled cards
+never retro-flip on a later void (§R10 mirror; the organizer's recourse is the
+log) · a zero-card Major completes with a no-champion story and the pot
+returned on the settlement card · organizer deletion → provenance rule (§R10)
+· deploy-skew: the client try/catches the new RPCs so old client + new DB and
+the reverse both live.
+
+### 10.8 Not in v1
+
+Playoff windows · runner-up hardware (a placement dial later) · the
+order-of-merit circuit · a 9-hole dial · attempt caps · custom pot % · new
+push classes · earned markers (parked, §9) · season adoption — the D42 port
+stays a named door (`season_adjustments` at settle, never `cup_points()`).
+
+**⚑ none open** — all flags resolved with the owner 2026-07-20. The window
+shape was the owner's redirect (days, not weeks; the compressed-window hype
+loop) — recorded in D43.

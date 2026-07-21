@@ -1180,3 +1180,164 @@ touched. V1 built.)*
   (V1 lives on Home only).
 - **CONFLICT check:** none upward — a new retention surface consistent with the
   vision. Flags the future linked-multi-season Gameplay build.
+
+---
+
+## Batch 9 — 2026-07-20, the Major (gameplay lane, majors arc)
+
+*The Major was a name at the IA level with zero mechanic (listed beside Ryder
+and Bracket under "Start something"; `trophies` reserved `kind 'major'` on day
+one). This batch designs it. All five entries resolved WITH the owner
+2026-07-20 before any build; the design lands as gameplay-modes §10.*
+
+### D42 · The Major is a standalone championship on the event rails (the ⚑ shape decision)
+- **Current:** "Major" is IA canon only — no section in gameplay-modes, no
+  schema, no engine. Two honest readings existed: a standalone championship
+  event, or in-season "major weekends" scoring bonus weight toward the Cup.
+- **Problem:** the in-season reading touches `cup_points()`, caps, and §14's
+  fairness story — a rewrite of the flagship mode's math at launch time. The
+  standalone reading rides rails that already run (events, sessions tick,
+  event board, trophies).
+- **Decision (owner):** **standalone championship event** on the events spine
+  (`events.kind='major'`), league-attachable exactly like the Ryder (borrow
+  crew + board; always a parallel ledger, never cup points — gameplay-modes
+  §5). **The A→B port is named, not built:** if a season ever adopts a Major
+  ("this one counts toward the Cup"), it enters through `season_adjustments` —
+  a ledgered, reasoned, receipted bonus assessed at settle, the exact port
+  §14.2 built for `close_month()` — never through `cup_points()`/caps/§14
+  machinery. V1 ships nothing behind that door.
+- **Principle:** IA level 3 (Major is a peer of Ryder under Start something);
+  #2 Low Friction (smallest honest v1); §16 (the future port is a ledger with
+  reasons, not silent math).
+- **Benefit:** PIGL runs its Major this season without touching the season
+  engine; the B reading collapses from a machinery rewrite into one parked
+  flag behind a named door.
+- **Tradeoffs:** a league that wants an adopted major waits for the port to be
+  built — accepted; no league has asked.
+
+### D43 · The championship window — days, not weeks; your best card stands
+- **Current:** no mechanic. The session's opening recommendation was four
+  weekly rounds, cumulative (real majors' four days mapped onto the crew's
+  weekly cadence).
+- **Decision (owner redirect, reasoning adopted and recorded):** **a
+  compressed window of days** — the organizer picks the **final day** (any
+  weekday; wizard defaults the next Sunday) and **length 2–4 days** (default
+  4, Thu→Sun — real-major grammar). **Your best eligible card in the window
+  is your score**, unlimited attempts. The owner's argument: flexibility over
+  a one-day (nobody herds twelve calendars), differentiation from the league's
+  week/month machinery, and the hype loop lives *inside* the window — "X
+  carded an 82, Y carded an 84, Y just booked another round for the last
+  day." The product line spreads by time-grain: the Season is months
+  (squads) · the Ryder is weeks (teams) · **the Major is a weekend (the
+  field)**.
+- **Scoring:** best card by PvI at 100% allowance off `index_at_post`, same
+  as everywhere (a frozen-at-entry index was rejected — it forks the app's
+  one currency and muddies receipts). Leaderboard wears golf's own grammar
+  vs your personal par: "JERECHO 82 · −4.2" — gross is the story,
+  vs-your-number is the ranking; the named bands stay the per-card voice
+  (D1/D2 law). **No band ceiling:** the round of your life pays in full —
+  that is what a Major is for. The ringer vector closes at the field line
+  (D44), not by muting the heater; revisit trigger: the first suspicious win.
+- **Eligibility:** duel rules verbatim (never voided, never sim) **plus
+  18-hole cards only** — a 9 still feeds season and index; the Major is the
+  full test (a dial later if a twilight crew asks).
+- **No card = NO CARD:** an honest unranked row at the foot. Best-card
+  scoring needs no synthetic penalty arithmetic — the empty row is the sting.
+  A no-card buy-in settles as a donation, visible on the settlement card.
+- **The window tells its story** (server posts, existing rails): open post at
+  the tick ("THE PIGL CHAMPIONSHIP IS LIVE — CARDS IN BY SUNDAY NIGHT");
+  every card / clubhouse-lead change posts to the event board ("JERECHO CARDS
+  82 — CLUBHOUSE LEADER AT −4.2"); **a round booked during the window posts
+  the chase** ("MARCUS BOOKED SATURDAY — CHASING −4.2" — the owner's own hype
+  beat, riding `scheduled_rounds`); a final-day-morning stakes post via the
+  daily tick. Push: stories ride the existing curated webhook; **no new
+  opt-in nudge class** — `notify_target` is duel-shaped and a Major has no
+  assigned opponent (deferred until a real ask).
+- **Principle:** #5 Feels Alive (a leaderboard that moves all weekend); #1
+  Golf First; #2 (create = pick a weekend); §16 (every figure taps to its
+  card).
+- **Tradeoffs:** a compressed window rewards whoever is free that weekend —
+  accepted: it's an event, not the season, and the season already honors the
+  busy. Unlimited attempts give the thrice-a-weekend player more draws at
+  variance than the once-er — golf-honest (the Ryder's comparator has the
+  same property), naturally capped by the window's length. Settlement rides
+  the daily tick, so the Sunday-night horn crowns Monday morning; the
+  organizer's manual settle stays as the override.
+
+### D44 · The field line — two tiers, one leaderboard (exhibition rows)
+- **Current:** no mechanic. Substrate: the auto-handicap engine (WHS-lite,
+  establishes at 3 rounds; a manual index is a starter that scores overtake).
+- **Problem:** a Major with money is the sandbag jackpot — the self-declared
+  20 who shoots 82 steals the jug. But a strict established-only door kills
+  the guest-claim funnel (the GTM's cheapest wedge) at its hottest moment.
+- **Decision (owner):** **two-tier.** An established (engine-derived) index
+  at entry → contends for title and pot. The un-established join anyway and
+  appear on the leaderboard **flagged exhibition** — name up in lights, can't
+  win title or money, official by the next Major. The claimed guest plays
+  THIS Major; the conversion hook is the flag itself.
+- **Late entry:** allowed until the horn (a Saturday joiner with a Sunday
+  card is legal; entries post to the board). No roster lock needed —
+  best-card scoring makes late entry self-limiting. The window auto-opens
+  with ≥2 entered (the Ryder's both-benches rule, translated). The organizer
+  plays like anyone (role-blind).
+- **The line is checked once, at add-time,** against the engine's own
+  established definition (never a parallel count). Establishing mid-window
+  still finishes exhibition — a card that rode a starter number must not
+  contend for money; that is the exact hole the line exists to close.
+  (Settle-time re-check considered and rejected for v1 on that ground.)
+- **Principle:** #1 (fairness is felt); growth canon (the funnel stays open
+  mid-event); #2 (one check at entry, zero per-day logic).
+- **Tradeoffs:** an exhibition row can top the raw numbers while the jug goes
+  to #2 — an awkward beat but an honest one; board copy must crown the
+  champion while letting the exhibition line be seen (voice work at build).
+
+### D45 · Ties — the countback ladder, best-card edition
+- **Current:** §14.3's ladder exists for the Cup Final; nothing for majors.
+- **Decision (owner):** countback, no playoff in v1 — the Major decides at
+  the horn and the ceremony fires on time. The ladder, receipts at every
+  rung: **tied best card → better second-best card in the window** (the
+  deeper weekend wins; any second card beats none — playing more is the
+  covenant's own value) → **earliest-posted best card** (they set the number;
+  the field had to match it) → **logged coin flip** (§14.3 precedent, posted
+  with receipts). Applies to every paying place, not just the title. Stated
+  in the fine print at create so it's chosen, not discovered.
+- **Rejected:** sudden-death playoff window (real drama, but ceremony and
+  settlement wait a week for everyone — logged as the fast-follow when a real
+  tie earns it) · shared titles (a Major that can't produce THE champion
+  loses its point; the shared cup stays a Ryder thing).
+- **Principle:** decidable without a human; §16; #5 (the horn means
+  something).
+- **Tradeoffs:** the earliest-posted rung mildly rewards posting early — it
+  is rung 3 of 4; a countback crowns without a head-to-head moment — accepted,
+  the playoff is the upgrade path.
+
+### D46 · Ceremony & pot — champion-only hardware, ledger money, the recap card
+- **Ceremony:** completion mints **one trophy row per Major — the
+  champion's** (`trophies` kind 'major', title = the event's name). The case
+  stays scarce because the jug engraves one name; the runner-up lives in the
+  recap and the settlement post, never the case. The champion story posts to
+  the event board and — when league-attached — the league board. A
+  **share-ready recap card** renders at settle (the D30 canvas pattern:
+  champion + marker, event name, final top-3, gross + vs-number, date,
+  wordmark) and carries the join path (GTM §3: the sharer looks good, the
+  card carries a claim/join path, it shows what a spreadsheet can't).
+- **Earned champion's marker:** §9's parked idea has its perfect candidate
+  here — flagged, own decision entry when unparked, nothing built silently.
+- **Pot:** D39 posture verbatim — a ledger; the settlement card; money moves
+  between friends. Buy-in set at create, **$0 bragging rights is first-class
+  and the default** (money is a choice, not a default). Paying places default
+  **60/25/15** — the season's own split, one fewer number to invent — with a
+  winner-take-all preset; no custom-% editor in v1 (D8). Exhibition rows
+  never pay (D44); a no-card buy-in settles as a donation, on the card.
+- **Naming & calendar:** the user-facing noun is **"a Major"**, "the Majors"
+  as branding plural (D12 discipline — "event", "session", "window" stay
+  schema words). One at a time as practice, unconstrained. The order-of-merit
+  circuit (player of the year across majors) parks until multi-event
+  aggregation earns it. Real-major-week anchoring is marketing (Socials
+  lane), never a mechanic dependency.
+- **Principle:** #4 Memory > Statistics (the case means something because
+  it's scarce); D39; growth canon.
+- **Tradeoffs:** runner-up hardware will be the first ask — the answer is a
+  placement dial later, not default hardware. The $0 default may undersell
+  the pot ritual for money crews — the create step surfaces the choice
+  ("Buy-in · $0 = bragging rights") so it's seen, not buried.
