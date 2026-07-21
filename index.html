@@ -3596,7 +3596,7 @@ async function toggleRx(f, emoji){
   if(error){ /* revert the optimistic flip — and say so */
     console.warn('[reaction]', emoji, error);
     rxFlip(cur, me, had);
-    rerenderFeeds(); toast('Reaction didn’t save: '+(error.message||error.code||'unknown'));
+    rerenderFeeds(); toast(humanError(error, 'Reaction did not save.'));
   }
 }
 /* post a comment on feed item f — optimistic echo, DB-backed when real */
@@ -3608,7 +3608,7 @@ async function sendComment(f, text){
   if(state.demo || !f.post_id || !window.sb || !window.CS?.member) return;
   const { error } = await window.sb.from('post_comments').insert({
     post_id:f.post_id, member_id:window.CS.member.id, body:v });
-  if(error){ cm.pop(); rerenderFeeds(); toast('Comment didn’t send: '+(error.message||error.code||'unknown')); }
+  if(error){ cm.pop(); rerenderFeeds(); toast(humanError(error, 'Comment did not send.')); }
 }
 /* re-render the feed. renderFeed() already cascades to the full board when
    it's open, so one call refreshes both views. */
@@ -3659,7 +3659,7 @@ async function reportPost(f){
     if(error) throw error;
     toast('Reported — thanks. We’ll take a look.');
     try{ if(typeof qaEvent==='function') qaEvent('content_reported', { post: f.post_id }); }catch(_){}
-  }catch(e){ toast('Couldn’t send the report: '+(e.message||e.code||'try again')); }
+  }catch(e){ toast(humanError(e, 'Could not send the report.')); }
 }
 window.refreshSocial = refreshSocial;
 /* the tray is exclusive + dismissible from anywhere (F11 3.1): picking a chip
@@ -4107,7 +4107,7 @@ async function sendChatFrom(inp){
       member_id: window.CS.member?.id,
       body: v
     });
-    if(error){ inp.value=v; feed.pop(); renderFeed(); toast('Message didn’t send: ' + (error.message || error.code || 'unknown error')); }
+    if(error){ inp.value=v; feed.pop(); renderFeed(); toast(humanError(error, 'Message did not send.')); }
   }
 }
 $('#chatSend').addEventListener('click',()=>sendChatFrom($('#chatIn')));
@@ -4383,7 +4383,7 @@ async function shareRecapCard(d){
   }catch(e){
     if(e && e.name==='AbortError') return;   /* golfer closed the share sheet — not an error */
     console.warn('[recap card]', e);
-    toast('Couldn’t make the card: '+(e.message||'unknown'));
+    toast(humanError(e, 'Could not make the card.'));
   }
 }
 /* ---- M2 / D17 · the post-round epilogue — the poster hears it first ----
@@ -4826,7 +4826,7 @@ $('#postBtn').addEventListener('click', async ()=>{
           showEpilogue(epi, payload.course_label, firstEver);
         } catch(_){ /* RPC not deployed yet, or nothing to say — never block a post */ }
       }
-    } catch(e){ toast('Post failed: '+(e.message||e)); }
+    } catch(e){ toast(humanError(e, 'Post failed.')); }
     finally { btn.disabled=false; }
     return;
   }
@@ -5008,7 +5008,7 @@ function scanPartnersSheet(ctx){
       await navigator.clipboard?.writeText(`${location.origin}/?claim=${p._token}`);
       b.textContent='Copied ✓';
       qaEvent('scan_claim_minted');
-    }catch(err){ toast('Couldn’t make the link: '+(err.message||err)); b.disabled=false; }
+    }catch(err){ toast(humanError(err, 'Could not make the link.')); b.disabled=false; }
   }));
 }
 
@@ -5168,7 +5168,7 @@ function renderPot(){
           if(error) throw error;
           (window.buyIns ||= {})[m.id] = { ...(bi[m.id]||{}), paid: !paid, amount_cents: state.stake*100 };
           renderPot();
-        }catch(e){ toast('Mark failed: '+(e.message||e)); row.disabled=false; }
+        }catch(e){ toast(humanError(e, 'Mark failed.')); row.disabled=false; }
       });
       el.appendChild(row);
     });
@@ -6166,7 +6166,7 @@ $('#teeOffBtn').addEventListener('click', async ()=>{
       state.live.pmap = byPos.map(pl=>pl.id);
       byPos.forEach(pl=>{ if(pl.guest_name) state.live.guestTokens[pl.position]=pl.claim_token; });
     }catch(e){
-      toast('Could not start the round: '+(e.message||e));
+      toast(humanError(e, 'Could not start the round.'));
       state.live.active=false; state.live.stage='setup'; btn.disabled=false; renderPlay(); return;
     }
     btn.disabled=false;
@@ -6256,7 +6256,7 @@ function finishRealLiveRound(){
       showLiveRecap(data||{}, casual?null:result);
       if(window.CS?.league && window.loadStandingsAndFeed) loadStandingsAndFeed();
     }catch(e){
-      toast('Finish failed: '+(e.message||e));
+      toast(humanError(e, 'Finish failed.'));
       if(pb) pb.disabled=false; if(cb) cb.disabled=false;
     }
   };
@@ -6774,7 +6774,7 @@ async function toggleHomeRx(r, emoji){
     console.warn('[reaction:home]', emoji, error);
     rxFlip(cur, me, had);
     renderHomeFeed();
-    toast('Reaction didn’t save: '+(error.message||error.code||'unknown'));
+    toast(humanError(error, 'Reaction did not save.'));
   }
 }
 function wireHomeSocial(box){
@@ -7119,7 +7119,7 @@ function renderHomeRequests(){
       if(error) throw error;
       toast(accept?'Golf buddies ✓':'Request declined');
       window.loadHome?.();
-    }catch(e){ b.disabled=false; toast('Failed: '+(e.message||e)); }
+    }catch(e){ b.disabled=false; toast(humanError(e)); }
   }));
 }
 function renderHomeHub(){
@@ -7307,7 +7307,7 @@ function renderCareer(){
         if(window.loadCareer) await window.loadCareer();
         if(window.loadStandingsAndFeed) await window.loadStandingsAndFeed();
         if(window.loadHome) window.loadHome();
-      }catch(e){ toast('Delete failed: ' + (e.message || e)); b.disabled = false; }
+      }catch(e){ toast(humanError(e, 'Delete failed.')); b.disabled = false; }
     }));
   }
 }
@@ -7966,7 +7966,7 @@ function renderCalendar(){
       b.disabled=true;
       try{ const {error}=await sb.rpc('scratch_round',{p_id:b.dataset.scratch}); if(error) throw error;
         closeSheet(); toast('Round scratched'); loadSchedule(); if(window.loadWatchList) loadWatchList();
-      }catch(e){ toast('Scratch failed: '+(e.message||e)); b.disabled=false; }
+      }catch(e){ toast(humanError(e, 'Scratch failed.')); b.disabled=false; }
     }));
     /* tap the round (not its ✕/＋) to open the full round object */
     $('#shBody')?.querySelectorAll('[data-roundopen]').forEach(el=>el.addEventListener('click',(e)=>{
@@ -8381,7 +8381,7 @@ async function shareMajorCard(d){
   }catch(e){
     if(e && e.name==='AbortError') return;
     console.warn('[major card]', e);
-    toast('Couldn’t make the card: '+(e.message||'unknown'));
+    toast(humanError(e, 'Could not make the card.'));
   }
 }
 window.shareMajorCard=shareMajorCard;
@@ -8724,7 +8724,7 @@ $('#pfSave').addEventListener('click', async () => {
     toast(`Card saved. Welcome, ${name}.`);
     await resumeAfterProfile();
   } catch(e){
-    $('#pfStatus').textContent = 'Save failed: ' + (e.message || e);
+    $('#pfStatus').textContent = humanError(e, 'Save failed.');
   } finally { btn.disabled = false; btn.textContent = 'Save my card'; }
 });
 
@@ -8858,7 +8858,7 @@ async function renderCrewPeople(){
     box.querySelectorAll('[data-facc],[data-fdec]').forEach(b=>b.addEventListener('click', async()=>{
       b.disabled=true; const acc=b.hasAttribute('data-facc');
       const {error}=await sb.rpc('friend_respond',{p_id:b.dataset.facc||b.dataset.fdec, p_accept:acc});
-      if(error) toast('Failed: '+error.message); else toast(acc?'Golf buddies ✓':'Request declined');
+      if(error) toast(humanError(error)); else toast(acc?'Golf buddies ✓':'Request declined');
       paint(); window.loadHome?.();
     }));
   };
@@ -8873,7 +8873,7 @@ async function renderCrewPeople(){
     rb.querySelectorAll('[data-add]').forEach(b=>b.addEventListener('click', async()=>{
       b.disabled=true;
       const {data:rr, error}=await sb.rpc('friend_request',{p_profile:b.dataset.add});
-      if(error){ toast('Could not send: '+error.message); b.disabled=false; return; }
+      if(error){ toast(humanError(error, 'Could not send.')); b.disabled=false; return; }
       toast(rr==='friend'?'Golf buddies ✓':'Request sent');
       b.outerHTML=`<span class="ptag ${rr==='friend'?'ok':''}">${rr==='friend'?'Buddies':'Requested'}</span>`;
       paint(); window.loadHome?.();
@@ -8954,7 +8954,7 @@ function openNameRivalry(oppId, oppName, cur){
       toast(clear?'Name cleared':'Rivalry named — “'+val+'”');
       if(window.renderRivalries) await window.renderRivalries();
       openRivalrySheet(oppId, oppName);   /* reopen with the fresh name */
-    }catch(e){ toast('Could not save: '+(e.message||e.code||'unknown')); if(sb2) sb2.disabled=false; if(cb) cb.disabled=false; }
+    }catch(e){ toast(humanError(e, 'Could not save.')); if(sb2) sb2.disabled=false; if(cb) cb.disabled=false; }
   };
   document.getElementById('rivNameSave')?.addEventListener('click', ()=>save(false));
   document.getElementById('rivNameClear')?.addEventListener('click', ()=>save(true));
@@ -9052,14 +9052,14 @@ function openPeoplePicker(opts){
     listBox.querySelectorAll('[data-add]').forEach(b=>b.addEventListener('click', async()=>{
       b.disabled=true;
       const {data:rr, error}=await sb.rpc('friend_request',{p_profile:b.dataset.add});
-      if(error){ toast('Could not send: '+error.message); b.disabled=false; return; }
+      if(error){ toast(humanError(error, 'Could not send.')); b.disabled=false; return; }
       toast(rr==='friend'?'Golf buddies ✓':'Request sent');
       b.outerHTML=`<span class="ptag ${rr==='friend'?'ok':''}">${rr==='friend'?'Buddies':'Requested'}</span>`;
     }));
     listBox.querySelectorAll('[data-pick]').forEach(b=>b.addEventListener('click', async()=>{
       b.disabled=true; const r=rowCache.get(b.dataset.pick);
       try{ if(opts.onPick) await opts.onPick(r); staged.add(b.dataset.pick); b.outerHTML='<span class="ptag ok">Added ✓</span>'; }
-      catch(e){ toast('Could not add: '+(e.message||e)); b.disabled=false; }
+      catch(e){ toast(humanError(e, 'Could not add.')); b.disabled=false; }
     }));
   };
   const render=(rows)=>{ rows.forEach(r=>rowCache.set(r.profile_id, r));
@@ -9204,7 +9204,7 @@ function openProfileHub(){
       toast('Card saved');
       /* the sheet stays open, so confirm inside it too (pilot feedback) */
       $('#phStatus').textContent = 'Card saved ✓'; $('#phStatus').style.color = 'var(--pos)';
-    } catch(e){ $('#phStatus').textContent = 'Save failed: ' + (e.message||e); $('#phStatus').style.color = ''; }
+    } catch(e){ $('#phStatus').textContent = humanError(e, 'Save failed.'); $('#phStatus').style.color = ''; }
     finally { btn.disabled = false; }
   });
 
@@ -9253,7 +9253,7 @@ function openProfileHub(){
       window.location.replace(window.location.pathname);
     } catch(e) {
       btn.disabled = false; btn.textContent = 'Delete permanently';
-      toast(e.message || 'Could not delete account');
+      toast(humanError(e, 'Could not delete the account.'));
     }
   });
 
@@ -9266,7 +9266,7 @@ function openProfileHub(){
   discPaint();
   $('#phDisc').querySelectorAll('[data-disc]').forEach(b => b.addEventListener('click', async () => {
     const { error } = await sb.rpc('set_discoverable', { p_mode: b.dataset.disc });
-    if(error) return toast('Could not update: ' + error.message);
+    if(error) return toast(humanError(error, 'Could not update.'));
     CS.profile.discoverable = b.dataset.disc; discPaint();
   }));
 
@@ -9298,7 +9298,7 @@ function openProfileHub(){
     roundsBtn.disabled = true;
     const next = !(CS.profile?.notify_rounds ?? true);
     const { error } = await sb.rpc('set_notify_rounds', { p_on: next });
-    if(error) toast('Could not update: ' + error.message);
+    if(error) toast(humanError(error, 'Could not update.'));
     else { if(CS.profile) CS.profile.notify_rounds = next; roundsLabel(); }
     roundsBtn.disabled = false;
   });
@@ -9314,7 +9314,7 @@ function openProfileHub(){
     chatBtn.disabled = true;
     const next = !(CS.profile?.notify_chat ?? true);
     const { error } = await sb.rpc('set_notify_chat', { p_on: next });
-    if(error) toast('Could not update: ' + error.message);
+    if(error) toast(humanError(error, 'Could not update.'));
     else { CS.profile.notify_chat = next; chatLabel(); }
     chatBtn.disabled = false;
   });
@@ -9345,7 +9345,7 @@ $('#annBtn')?.addEventListener('click', async () => {
   if(!CS.league) return;
   const btn = $('#annBtn'); btn.disabled = true;
   const { error } = await sb.rpc('announce', { p_league: CS.league.id, p_body: v });
-  if(error) toast('Could not announce: ' + error.message);
+  if(error) toast(humanError(error, 'Could not announce.'));
   else { $('#chatIn').value = ''; toast('Announced. The league heard you.'); }
   btn.disabled = false;
 });
@@ -9502,7 +9502,7 @@ async function enablePush(){
     profile_id: CS.user.id, endpoint: sub.endpoint,
     p256dh: j.keys.p256dh, auth: j.keys.auth,
   }, { onConflict: 'endpoint' });
-  if(error){ toast('Could not save subscription: ' + error.message); return false; }
+  if(error){ toast(humanError(error, 'Could not save subscription.')); return false; }
   toast('Notifications on. The board will find you.');
   return true;
 }
@@ -9999,7 +9999,7 @@ function renderFormation(){
       if(error) throw error;
       toast('The hat has spoken');
       await loadLeagueData();
-    } catch(e){ toast('Draw failed: '+(e.message||e)); draw.disabled = false; }
+    } catch(e){ toast(humanError(e, 'Draw failed.')); draw.disabled = false; }
   });
   const start = $('#fmStart');
   if(start) start.addEventListener('click', async () => {
@@ -10024,7 +10024,7 @@ function renderFormation(){
         if(error) throw error;
         CS.sel = null;
         await loadLeagueData();
-      } catch(e){ toast('Assign failed: '+(e.message||e)); }
+      } catch(e){ toast(humanError(e, 'Assign failed.')); }
     }));
   }
 }
@@ -10241,7 +10241,7 @@ $('#obCodeGo').addEventListener('click', async () => {
     /* cleanest handoff: reload with the stored session; boot runs the proven path */
     setTimeout(() => window.location.replace(window.location.pathname), 400);
   } catch(e){
-    authStatus('Code didn\u2019t take: ' + e.message + '. Codes expire with resends, use the newest email.','err');
+    authStatus(humanError(e, 'Code didn\u2019t take.') + ' Codes expire with resends, use the newest email.','err');
   } finally {
     btn.disabled = false; btn.textContent = 'Verify';
   }
@@ -10297,7 +10297,7 @@ $('#obResend')?.addEventListener('click', async () => {
     authStatus(`Fresh code sent to ${email} — the newest email wins.`,'ok');
     startResendCooldown(); scheduleSpamHint();
   } catch(e){
-    authStatus('Couldn’t resend: ' + (e.message || e), 'err');
+    authStatus(humanError(e, 'Could not resend.'), 'err');
     b.disabled = false;
   }
 });
@@ -10387,7 +10387,7 @@ $('#joinGo').addEventListener('click', async () => {
     await enterLeague(m);
     toast('Joined ' + m.league.name);
     openLeagueWelcome(m.league.name);
-  } catch(err){ toast('Could not join: ' + err.message); }
+  } catch(err){ toast(humanError(err, 'Could not join.')); }
 });
 
 $('#lockBtn').addEventListener('click', async () => {
@@ -10416,7 +10416,7 @@ $('#lockBtn').addEventListener('click', async () => {
     /* growth (2026-07-17): creation ends on the SHARE moment, not a Done
        toast — a league is only real once the crew is in it */
     openLockShare(nextPhase, (invited||0) + (emails||0));
-  } catch(err){ toast('Lock failed: ' + err.message); }
+  } catch(err){ toast(humanError(err, 'Lock failed.')); }
   finally { btn.disabled = false; }
 });
 
@@ -10446,7 +10446,7 @@ document.getElementById('wizCancel')?.addEventListener('click', async () => {
       if(error) throw error;
       await loadMemberships();
     }
-  } catch(e){ toast('Could not discard: ' + (e.message || e)); return; }
+  } catch(e){ toast(humanError(e, 'Could not discard.')); return; }
   resetWizard();
   goClubhouse();
   toast('League discarded');
@@ -10497,7 +10497,7 @@ function openJoinSheet(){
       toast('Joined ' + m.league.name);
       openLeagueWelcome(m.league.name);
     }catch(err){
-      toast(/invalid/i.test(err.message||'') ? 'No league with that code. Check with your Pro' : 'Could not join: ' + (err.message||err));
+      toast(/invalid/i.test(err.message||'') ? 'No league with that code. Check with your Pro' : humanError(err, 'Could not join.'));
       $('#jGo').disabled = false;
     }
   };
@@ -10547,7 +10547,7 @@ window.openFeedback = function(){
       closeSheet();
       toast('Sent — thank you. This is how the app gets better.');
     }catch(err){
-      toast('Could not send: ' + (err.message || err));
+      toast(humanError(err, 'Could not send.'));
       $('#fbGo').disabled = false;
     }
   };
@@ -10987,7 +10987,7 @@ async function openRyderSetup(){
       closeSheet(); await loadMyEvents();
       toast(rsStaged.size ? `Event created — ${rsStaged.size} invited` : 'Event created — add your players');
       window.openEvent(data);        /* create_event returns the event uuid */
-    }catch(e){ toast('Create failed: '+(e.message||e)); go.disabled=false; }
+    }catch(e){ toast(humanError(e, 'Could not create the event.')); go.disabled=false; }
   });
 }
 window.openRyderSetup = openRyderSetup;
@@ -11177,11 +11177,11 @@ window.ryderAssign = async (playerId, teamId)=>{
 };
 window.ryderPair = async (sessionId)=>{
   try{ const {error}=await sb.rpc('generate_pairings',{p_session:sessionId}); if(error)throw error;
-    toast('Pairings set'); await loadEvent(window.CS_EVENT.event.id); }catch(e){ toast('Pairing failed: '+(e.message||e)); }
+    toast('Pairings set'); await loadEvent(window.CS_EVENT.event.id); }catch(e){ toast(humanError(e, 'Pairing failed.')); }
 };
 window.ryderResolve = async (sessionId)=>{
   try{ const {error}=await sb.rpc('resolve_session',{p_session:sessionId}); if(error)throw error;
-    toast('Session scored'); await loadEvent(window.CS_EVENT.event.id); }catch(e){ toast('Score failed: '+(e.message||e)); }
+    toast('Session scored'); await loadEvent(window.CS_EVENT.event.id); }catch(e){ toast(humanError(e, 'Score failed.')); }
 };
 window.ryderNotify = async (eventId, on)=>{
   try{
@@ -11208,7 +11208,7 @@ window.respondInvite = async (id, accept)=>{
     if(accept){ await loadMemberships(); await loadMyEvents(); }
     if(window.renderNotifications) window.renderNotifications();
     toast(accept ? 'Joined ✓' : 'Declined');
-  }catch(e){ toast(e.message || String(e)); }
+  }catch(e){ toast(humanError(e)); }
 };
 
 /* Add golfers to a league OR event — now a thin wrapper over the one People
@@ -11440,7 +11440,7 @@ async function openDeclareSheet(prefillISO, opts){
         : tagged.size ? 'On the tee sheet: your group is named on the boards' : 'On the tee sheet: the boards know');
       loadSchedule(); loadWatchList();
       if(CS.league) loadStandingsAndFeed();
-    } catch(e){ toast(e.message || String(e)); btn.disabled = false; }
+    } catch(e){ toast(humanError(e)); btn.disabled = false; }
   });
 }
 window.openDeclareSheet = openDeclareSheet;
@@ -11532,17 +11532,17 @@ function renderRoundSheet(id, d){
   $('#shBody').querySelectorAll('[data-rsvp]').forEach(b=>b.addEventListener('click', async()=>{
     b.disabled=true;
     try{ const {error}=await sb.rpc('set_round_rsvp',{p_round:id,p_status:b.dataset.rsvp}); if(error) throw error; reload(); }
-    catch(e){ toast('RSVP didn’t save: '+(e.message||e.code||'try again')); b.disabled=false; }
+    catch(e){ toast(humanError(e, 'RSVP did not save.')); b.disabled=false; }
   }));
   const send=async()=>{ const inp=$('#rsComment'); const v=(inp&&inp.value||'').trim(); if(!v) return;
     try{ const {error}=await sb.rpc('add_round_comment',{p_round:id,p_body:v}); if(error) throw error; reload(); }
-    catch(e){ toast('Couldn’t post: '+(e.message||e.code||'try again')); } };
+    catch(e){ toast(humanError(e, 'Could not post.')); } };
   $('#rsSend')?.addEventListener('click', send);
   $('#rsComment')?.addEventListener('keydown',e=>{ if(e.key==='Enter'){ e.preventDefault(); send(); } });
   $('#rrGroup')?.addEventListener('click',()=>{ closeSheet(); openRetagSheet(id); });
   $('#rrScratch')?.addEventListener('click', async(e)=>{ const b=e.currentTarget; b.disabled=true;
     try{ const {error}=await sb.rpc('scratch_round',{p_id:id}); if(error) throw error; closeSheet(); toast('Round scratched'); loadSchedule(); if(window.loadWatchList) loadWatchList(); }
-    catch(err){ toast('Scratch failed: '+(err.message||err)); b.disabled=false; }
+    catch(err){ toast(humanError(err, 'Scratch failed.')); b.disabled=false; }
   });
 }
 /* weather rides in async; if there's no location or it's out of range, the chip
@@ -11580,7 +11580,7 @@ async function openRetagSheet(id){
       closeSheet();
       toast('Group updated');
       loadSchedule();
-    } catch(e){ toast(e.message || String(e)); btn.disabled = false; }
+    } catch(e){ toast(humanError(e)); btn.disabled = false; }
   });
 }
 
@@ -11595,7 +11595,7 @@ document.getElementById('calList')?.addEventListener('click', async (e) => {
     if(error) throw error;
     toast('Scratched');
     loadSchedule(); loadWatchList();
-  } catch(err){ toast('Scratch failed: ' + (err.message || err)); e.target.disabled = false; }
+  } catch(err){ toast(humanError(err, 'Scratch failed.')); e.target.disabled = false; }
 });
 
 /* ---------- members & invites: the clubhouse roster ---------- */
@@ -11646,7 +11646,7 @@ async function openMembersSheet(){
       toast('Removed. The board knows.');
       closeSheet();
       await loadLeagueData();
-    } catch(e){ toast(e.message || String(e)); b.disabled = false; }
+    } catch(e){ toast(humanError(e)); b.disabled = false; }
   }));
   document.querySelectorAll('[data-msbye]').forEach(b => b.addEventListener('click', async () => {
     const m = CS.members.find(x => x.id === b.dataset.msbye);
@@ -11659,7 +11659,7 @@ async function openMembersSheet(){
       if(error) throw error;
       toast('Bye granted — posted to the board');
       closeSheet();
-    } catch(e){ toast(e.message || String(e)); b.disabled = false; }
+    } catch(e){ toast(humanError(e)); b.disabled = false; }
   }));
   document.querySelectorAll('[data-mspro]').forEach(b => b.addEventListener('click', async () => {
     const m = CS.members.find(x => x.id === b.dataset.mspro);
@@ -11671,7 +11671,7 @@ async function openMembersSheet(){
       closeSheet();
       toast('The shop has a new Pro');
       setTimeout(() => location.reload(), 900); /* role change reshapes the whole UI */
-    } catch(e){ toast(e.message || String(e)); b.disabled = false; }
+    } catch(e){ toast(humanError(e)); b.disabled = false; }
   }));
   document.querySelectorAll('[data-msidx]').forEach(b => b.addEventListener('click', async () => {
     const m = CS.members.find(x => x.id === b.dataset.msidx);
@@ -11687,7 +11687,7 @@ async function openMembersSheet(){
       toast('Starter index set — posted to the board');
       closeSheet();
       await loadLeagueData();
-    } catch(e){ toast(e.message || String(e)); b.disabled = false; }
+    } catch(e){ toast(humanError(e)); b.disabled = false; }
   }));
 }
 window.openMembersSheet = openMembersSheet;
@@ -11798,7 +11798,7 @@ $('#wCodeGo').addEventListener('click', async () => {
   } catch(err){
     toast(/invalid/i.test(err.message)
       ? 'No league with that code. Check with your Pro'
-      : 'Could not join: ' + err.message);
+      : humanError(err, 'Could not join.'));
   }
 });
 
@@ -11894,7 +11894,7 @@ async function boot(){
         await loadMemberships();
         const m = CS.memberships.find(x => x.league.code === pend);
         if(m){ await enterLeague(m); toast('Joined ' + m.league.name); openLeagueWelcome(m.league.name); return; }
-      } catch(e){ toast('Auto-join failed: ' + e.message); }
+      } catch(e){ toast(humanError(e, 'Auto-join failed.')); }
     }
 
     /* profile-first (v23.36): the old cs_intent shortcut that auto-created a
@@ -11943,7 +11943,7 @@ async function resumeAfterProfile(){
       try{
         const { error } = await sb.rpc('join_league', { p_code: pend });
         if(error) throw error;
-      }catch(e){ toast('Auto-join failed: ' + (e.message||e)); }
+      }catch(e){ toast(humanError(e, 'Auto-join failed.')); }
     }
     bootStep = 'memberships';
     await loadMemberships();
@@ -12015,7 +12015,7 @@ async function claimPendingRound(){
       data = r2.data;
     }catch(e2){
       try{ localStorage.removeItem('cs_claim'); }catch(_){}
-      toast('Claim failed: '+((firstErr&&firstErr.message)||e2.message||e2));
+      toast(humanError((firstErr||e2), 'Claim failed.'));
       return;
     }
   }
