@@ -900,10 +900,13 @@ input.f::-webkit-outer-spin-button, input.f::-webkit-inner-spin-button{-webkit-a
 .rxchip:hover{color:var(--ink);}
 .rxchip.on{color:var(--bg0); background:var(--brand); border-color:var(--brand);}
 /* the heater doubles as the one-thumb quick-tap (F11 3.1) — its hit box
-   clears the 44px floor via padding, never by inflating the emoji itself */
+   clears the 44px floor via padding, never by inflating the emoji itself.
+   Touch hardening: real iOS fires the text-selection callout on a held
+   press unless it's suppressed here. */
 .rxchip.quick{
   display:inline-flex; align-items:center; justify-content:center;
   min-width:44px; min-height:44px; padding:5px 14px;
+  -webkit-touch-callout:none; user-select:none;
 }
 .rxcm{
   font-family:var(--mono); font-size:12.5px; font-weight:600; color:var(--mut);
@@ -911,14 +914,18 @@ input.f::-webkit-outer-spin-button, input.f::-webkit-inner-spin-button{-webkit-a
   border-radius:99px; padding:5px 11px; cursor:pointer; line-height:1;
 }
 /* the add-reaction affordance is a plain "+" icon — the tray hangs off it,
-   and nothing about it should read as a reaction itself. Same 44px floor. */
+   and nothing about it should read as a reaction itself. The report-flag ⚑
+   (data-report) shares this class for its chrome only — the 44px floor
+   (bullet 5) is scoped to the two tray triggers (data-rxadd/data-hadd) so
+   the report button stays its original compact size. */
 .rxadd{
-  font-family:var(--mono); font-weight:600; color:var(--mut);
+  font-family:var(--mono); font-size:15px; font-weight:600; color:var(--mut);
   background:var(--bg2); border:1px solid var(--line2);
   border-radius:99px; cursor:pointer; line-height:1;
   display:inline-flex; align-items:center; justify-content:center;
-  min-width:44px; min-height:44px; padding:0 14px;
+  padding:0 11px; height:26px;
 }
+.rxadd[data-rxadd], .rxadd[data-hadd]{min-width:44px; min-height:44px; padding:0 14px;}
 .rxadd:hover, .rxcm:hover{color:var(--ink);}
 .rxadd:focus-visible, .rxcm:focus-visible{outline:2px solid var(--pos); outline-offset:2px;}
 .rxpalette{
@@ -939,7 +946,7 @@ input.f::-webkit-outer-spin-button, input.f::-webkit-inner-spin-button{-webkit-a
 .hrx{display:flex; flex-wrap:wrap; gap:5px; align-items:center; margin-top:6px;}
 .hrx .rxchip{font-size:11.5px; padding:3px 8px;}
 .hrx .rxchip.quick{min-width:44px; min-height:44px; padding:3px 12px;}
-.hrx .rxadd{min-width:44px; min-height:44px; padding:0 12px;}
+.hrx .rxadd[data-hadd]{min-width:44px; min-height:44px; padding:0 12px;}
 .rxpalette.h{margin-top:6px; padding:6px;}
 .rxpalette.h button{font-size:17px; padding:4px 6px;}
 /* the quiet-day frame — Home's feed never opens as a bare list. Either it says
@@ -3456,7 +3463,7 @@ function socialBar(f, fi, opts){
   const rx=ensureRx(f); const cm=f.cm||(f.cm=[]);
   const chips=rxChipsHtml(rx,'data-rx',fi);
   const pal=rxPaletteHtml('data-rxpick',fi);
-  const cmBtn = comments ? `<button class="rxcm" data-c="${fi}" title="Comments" aria-label="Comments"><svg class="ic" aria-hidden="true"><use href="#i-comment"/></svg>${cm.length?` ${cm.length}`:''}</button>` : '';
+  const cmBtn = comments ? `<button class="rxcm" data-c="${fi}" title="Comments" aria-label="Comments" aria-expanded="false"><svg class="ic" aria-hidden="true"><use href="#i-comment"/></svg>${cm.length?` ${cm.length}`:''}</button>` : '';
   const thread = comments ? `<div class="cthread" id="th${fi}" style="display:none">
       ${cm.map(c=>`<div class="crow"><b>${esc(c.w)}</b>${esc(c.t)}</div>`).join('')}
       <div class="cinput">
@@ -3467,7 +3474,7 @@ function socialBar(f, fi, opts){
   return `<div class="social">
     <div class="rxbar">
       ${chips}
-      <button class="rxadd" data-rxadd="${fi}" title="More reactions" aria-label="More reactions"><svg class="ic" aria-hidden="true"><use href="#i-plus"/></svg></button>
+      <button class="rxadd" data-rxadd="${fi}" title="More reactions" aria-label="More reactions" aria-expanded="false"><svg class="ic" aria-hidden="true"><use href="#i-plus"/></svg></button>
       ${f.post_id?`<button class="rxadd" data-report="${fi}" title="Report this post" aria-label="Report this post">⚑</button>`:''}
       ${cmBtn}
     </div>
@@ -3577,18 +3584,36 @@ window.refreshSocial = refreshSocial;
 /* the tray is exclusive + dismissible from anywhere (F11 3.1): picking a chip
    already closes its own tray (data-rxpick/data-hpick below) — this covers
    the other two closes bullet 2 asks for, tap-out and Escape, and also means
-   opening one tray closes any other. One shared listener for both surfaces:
-   .rxpalette is the class regardless of board (id rxp*) or Home (id hrxp*). */
-function closeAllTrays(){ document.querySelectorAll('.rxpalette.open').forEach(p=>p.classList.remove('open')); }
+   opening one tray closes any other. One shared set of helpers for both
+   surfaces: .rxpalette is the class regardless of board (id rxp*) or Home
+   (id hrxp*).
+   closeTray also resets its trigger's aria-expanded (3.1 follow-up) — the
+   tray closes via several paths (pick, tap-out, Escape, another tray
+   opening) and the + button's disclosure state has to stay honest through
+   all of them. The trigger is found via DOM adjacency (the tray's previous
+   sibling is always the bar holding its own + button, on both surfaces —
+   see socialBar()/feedRow()) rather than an id/attribute lookup, because the
+   board renders TWO copies of the same fi (compact #feedList + full-screen
+   #feedListFull once it's been opened) and a document-wide id match would
+   silently reset the wrong copy's button. */
+function closeTray(p){
+  p.classList.remove('open');
+  const addBtn=p.previousElementSibling?.querySelector('[data-rxadd],[data-hadd]');
+  if(addBtn) addBtn.setAttribute('aria-expanded','false');
+}
+function closeAllTrays(){ document.querySelectorAll('.rxpalette.open').forEach(closeTray); }
 document.addEventListener('click', e=>{
-  document.querySelectorAll('.rxpalette.open').forEach(p=>{ if(!p.contains(e.target)) p.classList.remove('open'); });
+  document.querySelectorAll('.rxpalette.open').forEach(p=>{ if(!p.contains(e.target)) closeTray(p); });
 });
 document.addEventListener('keydown', e=>{ if(e.key==='Escape') closeAllTrays(); });
 /* long-press (≥350ms pointerdown) on the 🔥 quick-tap chip opens the tray
    without also firing its tap-toggle — pointerdown timer + a `held` flag on
    the element (the approved mock). `attr` is the data-attribute name minus
    "data-" ('rx'/'hrx'), `prefix` is the palette id prefix ('rxp'/'hrxp');
-   shared by both surfaces so the gesture can't drift apart between them. */
+   shared by both surfaces so the gesture can't drift apart between them.
+   Also flips the + button's aria-expanded true on open, via the same
+   sibling lookup closeTray uses, since the long-press never touches the
+   button itself but does put it in charge of the (now open) disclosure. */
 function wireRxHold(el, attr, prefix){
   el.querySelectorAll(`.rxchip.quick[data-${attr}]`).forEach(chip=>{
     chip.addEventListener('pointerdown', ()=>{
@@ -3597,7 +3622,11 @@ function wireRxHold(el, attr, prefix){
         chip._held=true;
         closeAllTrays();
         const p=el.querySelector('#'+prefix+chip.dataset[attr]);
-        if(p) p.classList.add('open');
+        if(p){
+          p.classList.add('open');
+          const addBtn=p.previousElementSibling?.querySelector('[data-rxadd],[data-hadd]');
+          if(addBtn) addBtn.setAttribute('aria-expanded','true');
+        }
       }, 350);
     });
     ['pointerup','pointerleave','pointercancel'].forEach(evt=>
@@ -3619,20 +3648,23 @@ function wireSocial(el){
     const willOpen=!p.classList.contains('open');
     closeAllTrays();
     if(willOpen) p.classList.add('open');
+    b.setAttribute('aria-expanded', willOpen);
   }));
   el.querySelectorAll('[data-report]').forEach(b=>b.addEventListener('click',()=>{
     const f=feed[+b.dataset.report]; if(f) reportPost(f);
   }));
   el.querySelectorAll('[data-rxpick]').forEach(b=>b.addEventListener('click',()=>{
     const f=feed[+b.dataset.rxpick]; if(!f) return;
-    const p=el.querySelector('#rxp'+b.dataset.rxpick); if(p) p.classList.remove('open');
+    const p=el.querySelector('#rxp'+b.dataset.rxpick); if(p) closeTray(p);
     const rx=ensureRx(f); const cur=rx[b.dataset.e];
     if(cur&&cur.me) return;          /* already reacted with this one — no-op */
     toggleRx(f, b.dataset.e);
   }));
   el.querySelectorAll('[data-c]').forEach(b=>b.addEventListener('click',()=>{
-    const t=el.querySelector('#th'+b.dataset.c);
-    if(t) t.style.display = t.style.display==='none' ? 'block':'none';
+    const t=el.querySelector('#th'+b.dataset.c); if(!t) return;
+    const open = t.style.display==='none';
+    t.style.display = open ? 'block':'none';
+    b.setAttribute('aria-expanded', open);
   }));
   /* clear BEFORE sending: sendComment re-renders synchronously, and the
      continuity capture would otherwise resurrect the just-sent text */
@@ -6521,10 +6553,11 @@ function wireHomeSocial(box){
     const willOpen=!p.classList.contains('open');
     closeAllTrays();
     if(willOpen) p.classList.add('open');
+    b.setAttribute('aria-expanded', willOpen);
   }));
   box.querySelectorAll('[data-hpick]').forEach(b=>b.addEventListener('click',()=>{
     const r=rows[+b.dataset.hpick]; if(!r) return;
-    const p=box.querySelector('#hrxp'+b.dataset.hpick); if(p) p.classList.remove('open');
+    const p=box.querySelector('#hrxp'+b.dataset.hpick); if(p) closeTray(p);
     const rx=homeRxOf(r); const cur=rx&&rx[b.dataset.e];
     if(cur&&cur.me) return;
     toggleHomeRx(r, b.dataset.e);
@@ -6542,7 +6575,7 @@ function feedRow(r, idx){
   else if(r.is_first){ badge='🎉 First round'; line = `${whoTag} posted ${r.is_me?'your':'their'} first round — ${r.gross} at ${course}`; }
   else { line = `${whoTag} posted ${r.gross} at ${course}${pvi?' · '+pvi:''}`; }
   const rx = idx!==undefined ? homeRxOf(r) : null;
-  const social = rx ? `<div class="hrx">${rxChipsHtml(rx,'data-hrx',idx)}<button class="rxadd" data-hadd="${idx}" title="More reactions" aria-label="More reactions"><svg class="ic" aria-hidden="true"><use href="#i-plus"/></svg></button></div>
+  const social = rx ? `<div class="hrx">${rxChipsHtml(rx,'data-hrx',idx)}<button class="rxadd" data-hadd="${idx}" title="More reactions" aria-label="More reactions" aria-expanded="false"><svg class="ic" aria-hidden="true"><use href="#i-plus"/></svg></button></div>
     <div class="rxpalette h" id="hrxp${idx}">${rxPaletteHtml('data-hpick',idx)}</div>` : '';
   return `<div class="check"><span class="num"${r.profile_id?` data-tc="${r.profile_id}"`:''}>${mk}</span>
     <div class="tt"><b>${line}</b><small>${badge?badge+' · ':''}${dfmtShort(r.played_on)}</small>${social}</div></div>`;
