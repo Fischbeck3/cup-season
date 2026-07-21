@@ -3812,14 +3812,28 @@ function digestRoundLine(f){
    pass; the cache clears on the next microtask so a later, separate render
    still re-reads fresh. */
 let _bdCache;
+/* 3.3 follow-up: the seen-mark is read ONCE per league per session and
+   frozen into window.bdAsOf (keyed by boardSeenKey() — a session can visit
+   more than one league, unlike the single-profile window.dgAsOf above at
+   ~6872, whose exact freeze-once pattern this mirrors). Without the freeze,
+   every background render (boot, switchView('home'), a data reload) would
+   each read-then-immediately-overwrite "now", so "since you were here"
+   would quietly mean "since the last render" instead of "since you left
+   and came back". */
 function boardDigestHtml(){
   if(_bdCache!==undefined) return _bdCache;
   queueMicrotask(()=>{ _bdCache=undefined; });
   if(!feed.length) return _bdCache='';
-  let marker=null;
-  try{ const raw=localStorage.getItem(boardSeenKey()); if(raw) marker=Number(raw); }catch(_){}
-  try{ localStorage.setItem(boardSeenKey(), String(Date.now())); }catch(_){}
-  if(marker==null) return _bdCache='';   /* first-ever open — the feed itself is the reveal */
+  const key=boardSeenKey();
+  if(!window.bdAsOf) window.bdAsOf={};
+  if(window.bdAsOf[key]===undefined){
+    let raw=null;
+    try{ raw=localStorage.getItem(key); }catch(_){}
+    window.bdAsOf[key] = raw ? Number(raw) : 0;
+    try{ localStorage.setItem(key, String(Date.now())); }catch(_){}
+  }
+  const marker=window.bdAsOf[key];
+  if(!marker) return _bdCache='';        /* first-ever open — the feed itself is the reveal */
   const now=Date.now();
   const newest=feed.reduce((mx,f)=>Math.max(mx, f.ts ?? now), 0);
   if(newest>marker) return _bdCache='';  /* something new landed — feed renders exactly as today */
@@ -3831,7 +3845,20 @@ function boardDigestHtml(){
   for(let i=feed.length-1;i>=0;i--){
     if(feed[i].sys){ lines.push('◆ '+esc(easeCaps(feed[i].txt||''))); break; }
   }
-  const next=$('#statFinal')?.textContent?.trim();  /* Home's own countdown/week-close line — reused, not re-derived */
+  /* 3.3 follow-up: a seasonless REAL league's load path never runs
+     renderStats() before renderFeed() (only the CS.season-present branch
+     does, confirmed at ~9811: `if(CS.season){ ...renderStats(); }` then
+     renderFeed() unconditionally after) — so #statFinal can still be
+     holding a PREVIOUS league's line, or the static HTML default ("Cup
+     Final · final 4 wks"), for a league that hasn't locked yet. Gate on
+     CS.season rather than trust whatever text is sitting in the DOM.
+     Demo, however, never populates CS.season at all (verified: undefined
+     throughout every demo session) even though renderStats() runs
+     unconditionally there and #statFinal is always trustworthy — gating on
+     CS.season alone would silently drop this line for ALL of demo, not
+     just the seasonless-league case it's meant to catch. state.demo carves
+     out that exception. */
+  const next = (state.demo || window.CS?.season) ? ($('#statFinal')?.textContent?.trim()||'') : '';
   if(next) lines.push(esc(next));
   if(!lines.length) return _bdCache='';
   return _bdCache = `<div class="digest"><span class="dk">SINCE YOU WERE HERE</span>${lines.join('<br>')}</div>`;
@@ -3991,10 +4018,13 @@ function renderFeedFull(force){
   }));
   wireSocial(el);
   socialUiRestore(el, uiS);
-  /* F13 (3.3): a digest at the top is pointless if force-scroll immediately
-     carries it off-screen to the newest item — land at the top instead so
-     it's the first thing seen. No digest: unchanged behavior. */
-  requestAnimationFrame(()=>{ el.scrollTop = dg ? 0 : (force||atBottom) ? el.scrollHeight : prevTop; });
+  /* F13 (3.3, follow-up fix): a digest at the top is pointless if force-scroll
+     immediately carries it off-screen to the newest item — land at the top
+     on open/fresh instead. But only on open/fresh: gating this on `dg` alone
+     forced top on EVERY re-render while a digest shows, so a reaction tap
+     mid-scroll (force=false, atBottom=false) yanked the reader back to the
+     top — prevTop still wins whenever this isn't an open/follow moment. */
+  requestAnimationFrame(()=>{ el.scrollTop = (force||atBottom) ? (dg?0:el.scrollHeight) : prevTop; });
 }
 function openBoardFull(){
   $('#bfSub').textContent = (window.CS?.league?.name || state.demo && 'The Sunday Cup' || 'Cup Season').toUpperCase();
