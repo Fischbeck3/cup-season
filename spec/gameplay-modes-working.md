@@ -463,7 +463,7 @@ Two copy/craft notes (not decisions — build guidance):
 
 ---
 
-## 8. The personal stake line (PARKED — designed, not decided, not built)
+## 8. The personal stake line (DECIDED — D51, 2026-07-21; build pending its own plan)
 
 Designed in the Gameplay lane 2026-07-17; parked when the lane closed. Nothing
 built, no decision-log entry drafted — three ⚑ questions below must be answered

@@ -1432,3 +1432,41 @@ the covenant and fine print gain one paragraph in a future UX pass.)*
 - **CONFLICT (named):** none upward — makes personas' asserted power
   concrete; consistent with D43 ("settled cards never retro-flip") and the
   §9 override-log rule.
+
+---
+
+### D51 · The stake line — what your next round is worth (unparked from §8)
+*(2026-07-21, gameplay-audit session. Unparks gameplay-modes-working §8;
+BUILD is a separate client plan on an explicit "build it." The audit ranked
+this the highest value-to-effort item in the backlog: the one-more-round
+rule as a mechanic.)*
+- **Current:** designed in full (gameplay-modes §8), parked 2026-07-17 with
+  three ⚑. ⚑2 (placement) already answered by the UX lane: the post-a-round
+  screen. No line exists in the product.
+- **Problem:** the product never tells a golfer what today's round is
+  actually worth — and the naive version ("worth up to 12!") is a lie for
+  anyone at cap. The honest marginal is computable client-side today.
+- **Recommendation:** ship §8 as designed. Priority ladder (floor at risk →
+  index not established → at cap → cup-line closable → below-cap default →
+  silent). ⚑1 RESOLVED (owner, 2026-07-21): show the at-cap line, reframed —
+  "your best four are banked; today's round is for your number, the Iron
+  Man, and the board" — honest, never deflating (a round never scores zero
+  to the golfer's life, only to the table). ⚑3 RESOLVED (owner, 2026-07-21):
+  silent by default when nothing on the ladder applies. Inherited laws
+  restated for the build: never claim a resulting position (D24); never say
+  "counting cap" — say "your best four" (D2); line taps through to the
+  month's slot meter (D3, §16); read `b.floor_penalty` directly, never
+  infer from preset.
+- **Principle:** Every round counts + the one-more-round rule; §16 (the
+  line is a receipt with a verb).
+- **Benefit:** the post screen answers "why post today" at the exact moment
+  the golfer is present because they played; floor-at-risk becomes a
+  17-point swing stated plainly.
+- **Tradeoffs:** the at-cap truth can still cool a table-chasing golfer.
+  Chosen deliberately over the alternative (a comforting lie). The
+  floor-at-risk Home surface (the golfer who most needs the line never
+  visits the post screen) stays OPEN — it is a nudge, so it rides D23's
+  fence and needs Social-lane coordination; logged here as the named
+  remainder, not silently dropped.
+- **CONFLICT (named):** none upward. Brushes D23 only via the deferred
+  Home-surface remainder, which is explicitly not shipped here.
