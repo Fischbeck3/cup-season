@@ -1653,6 +1653,11 @@ html[data-theme="light"] .room-dusk .btn:not(.dark):not(.gold):not(.apple){color
   font-family:var(--serif); font-weight:700; font-size:36px;
   font-variant-numeric:tabular-nums; line-height:1;
 }
+/* 2.3 follow-up: the pot panel keeps its 52px centerpiece — serif/weight/
+   tabular-nums still come from .heronum above, only the size reverts. Same
+   specificity as .purse .amt.heronum (3 classes), later source order wins;
+   #lineAmt/#statIdx/#youIdx have no .purse .amt match, so they hold 36px. */
+.purse .amt.heronum{ font-size:52px; }
 
 /* announcements: the Pro's voice sits above the noise */
 .annrow{
