@@ -255,7 +255,7 @@ Seeds lock when the window opens (top-2 squads; both at 2-squad scale, leader +1
 
 ## 15. Squad formation *(amended from "The Draft" — decided this cycle)*
 
-**Blind draw** *(default, Free)*: server-side shuffle of all joined members, round-robin, revealed as a board post — rigging-proof. **Commissioner assign** *(Free)*: teams from the group chat, placed by hand. **Snake draft** and **Live draft + pick clock** retire to the **Pro roadmap** (schema from m004 remains ready). Captains are an optional label until the Final captain-playoff needs them. Season can't start with unassigned members; late joiners assigned to the thinnest squad, logged.
+**Blind draw** *(default, Free)*: server-side shuffle of all joined members, round-robin, revealed as a board post — rigging-proof. *(D54, 2026-07-21: the Pro may schedule the draw for a paced card-by-card reveal; instant remains default. See decision log.)* **Commissioner assign** *(Free)*: teams from the group chat, placed by hand. **Snake draft** and **Live draft + pick clock** retire to the **Pro roadmap** (schema from m004 remains ready). Captains are an optional label until the Final captain-playoff needs them. Season can't start with unassigned members; late joiners assigned to the thinnest squad, logged.
 
 ---
 

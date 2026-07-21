@@ -1536,3 +1536,29 @@ no scoring change, no hardware. Build is a server-post copy extension.)*
   never reads as a leaderboard-of-shame for the bottom.
 - **CONFLICT (named):** none upward. Rides §14.2's existing close post;
   D23 respected (no shame surface).
+
+---
+
+### D54 · Draft night — the blind draw learns to take its time
+*(2026-07-21, gameplay-audit session. Reveal mechanics only; the draw rule —
+server-side shuffle, rigging-proof — is untouched.)*
+- **Current:** §15 blind draw runs instantly and reveals as one board post.
+- **Problem:** draft night is the highest-retention day in fantasy sports —
+  people schedule around it — and Cup Season spends it as a feed item. The
+  audit's missing moment #1.
+- **Recommendation:** the Pro may SCHEDULE the draw (default remains
+  instant). A scheduled draw shows a countdown on Home; at T-0 squads
+  reveal card-by-card as paced board posts (~30s stagger), reactions live
+  between reveals. The shuffle itself is unchanged — one server-side
+  shuffle at T-0, then paced disclosure of a result already fixed
+  (rigging-proof property preserved by construction).
+- **Principle:** create memories — the same information, delivered as an
+  event instead of a record.
+- **Benefit:** the season opens with theater instead of paperwork; the
+  first shared-appointment moment of every league's life.
+- **Tradeoffs:** needs a pacing mechanism (server-timed posts vs a client
+  reveal over one post — the implementation lane decides; neither touches
+  the draw's integrity). Scattered-timezone crews may watch alone — at
+  crew scale, usually fine; countdown copy can nudge a shared time.
+- **CONFLICT (named):** amends §15's reveal mechanics only; the formation
+  rules (blind draw default, assign, captains-pick roadmap) are untouched.
