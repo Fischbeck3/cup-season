@@ -1523,6 +1523,48 @@ html[data-theme="light"] .btn:not(.dark):not(.gold):not(.apple){color:#FFFFFF;}
 }
 @media(prefers-reduced-motion:reduce){ #stamp{display:none !important;} }
 
+/* ============ the finish screen (2.1): a posted round ends in ceremony ============
+   Replaces the quick POSTED stamp for the post flow with a dusk-locked full-
+   screen band reveal — the trophy room at dusk. DUSK-LOCKED = the same face in
+   light and paper (an honor moment has one look), so it carries hardcoded dusk
+   hexes, not the theme tokens; only the type families + the house easing come
+   from vars. Gross, band, and points roll in staggered on --roll (a putt dying
+   at the hole); reduced-motion lands them instantly. */
+#finish{
+  position:fixed; inset:0; z-index:1100; display:none;
+  align-items:center; justify-content:center; padding:32px 24px;
+  background:radial-gradient(120% 90% at 50% -10%, #12271B 0%, #0A0E0C 55%), #0A0E0C;
+  -webkit-tap-highlight-color:transparent;
+}
+#finish.open{display:flex;}
+.finish-card{width:100%; max-width:440px; text-align:center; display:flex; flex-direction:column; align-items:center;}
+.finish-eyebrow{font-family:var(--mono); font-size:12px; font-weight:500; letter-spacing:.22em; text-transform:uppercase; color:#8FA096;}
+.finish-gross{font-family:var(--serif); font-variant-numeric:tabular-nums; font-weight:700; font-size:clamp(84px,26vw,96px); line-height:.94; color:#ECEEF2; margin-top:18px;}
+.finish-band{font-family:var(--serif); font-size:19px; line-height:1.32; color:#ECEEF2; margin-top:12px;}
+.finish-pts{font-family:var(--mono); font-size:13px; font-weight:600; letter-spacing:.16em; text-transform:uppercase; margin-top:24px; min-height:1em;}
+.finish-pts.earned{color:#D8B25A;}   /* champagne — league points, EARNED */
+.finish-pts.card{color:#8FA096;}      /* league-less: it just counts on your card */
+.finish-rule{width:64px; height:1px; background:#1C2620; margin-top:26px;}
+.finish-share{
+  display:flex; align-items:center; justify-content:center; min-height:46px; min-width:220px;
+  margin-top:26px; padding:0 28px; border:0; border-radius:var(--rc); cursor:pointer;
+  font-family:var(--sans); font-size:14px; font-weight:600; color:#06130B; background:#2FA46A;
+  transition:filter .2s var(--roll);
+}
+.finish-share:hover{filter:brightness(1.06);}
+.finish-share:focus-visible{outline:2px solid #ECEEF2; outline-offset:2px;}
+.finish-back{margin-top:8px; padding:12px; border:0; background:none; cursor:pointer;
+  font-family:var(--sans); font-size:14px; font-weight:500; color:#8FA096;}
+.finish-back:focus-visible{outline:2px solid #8FA096; outline-offset:2px; border-radius:6px;}
+/* the reveal — staggered roll-in on the brand's one easing */
+#finish.open .finish-gross{animation:finishRoll .64s var(--roll) both;}
+#finish.open .finish-band{animation:finishRoll .64s var(--roll) .15s both;}
+#finish.open .finish-pts{animation:finishRoll .64s var(--roll) .3s both;}
+@keyframes finishRoll{from{opacity:0; transform:translateY(14px);} to{opacity:1; transform:none;}}
+@media(prefers-reduced-motion:reduce){
+  #finish.open .finish-gross, #finish.open .finish-band, #finish.open .finish-pts{animation:none;}
+}
+
 /* Batch C: scorecard-shaped skeletons while the feed loads — never a spinner */
 .skrow{display:flex; align-items:center; gap:12px; background:var(--bg1);
   border:1px solid var(--line); border-radius:var(--r); padding:13px 14px; margin-bottom:8px;}
@@ -2629,6 +2671,20 @@ html[data-theme="light"] .btn:not(.dark):not(.gold):not(.apple){color:#FFFFFF;}
 <div class="toast" id="toast" role="status"></div>
 <!-- Batch C: the round posts like a signed scorecard — a stamp + haptic thock -->
 <div id="stamp" aria-hidden="true"><div class="stampInk">POSTED ✓</div></div>
+
+<!-- the finish screen (2.1): a posted round ends in ceremony, not a toast.
+     Dusk-locked full-screen band reveal; dialog role, dismisses to the board. -->
+<div id="finish" role="dialog" aria-modal="true" aria-label="Round posted" aria-hidden="true">
+  <div class="finish-card">
+    <div class="finish-eyebrow" id="finEyebrow"></div>
+    <div class="finish-gross" id="finGross"></div>
+    <div class="finish-band" id="finBand"></div>
+    <div class="finish-pts" id="finPts"></div>
+    <div class="finish-rule" aria-hidden="true"></div>
+    <button class="finish-share" id="finShare" type="button">Share the card</button>
+    <button class="finish-back" id="finBack" type="button">Back to the board</button>
+  </div>
+</div>
 
 <div id="installNudge" style="display:none; position:fixed; left:12px; right:12px; bottom:76px; z-index:60; background:var(--bg2); border:1px solid var(--line2); border-radius:14px; padding:12px 14px; align-items:center; gap:10px;">
   <span style="flex:1; font-size:13px;">Get the full-screen app: add Cup Season to your home screen.</span>
@@ -4021,6 +4077,67 @@ function showEpilogue(epi, course, firstEver){
     photo: window._lastPostPhoto || null,   /* photos arc: the round's photo becomes the card's backdrop */
   }));
 }
+/* ============ the finish screen (2.1): a posted round ends in ceremony ============
+   Replaces the quick POSTED stamp for the post flow (real + demo) with a dusk-
+   locked full-screen band reveal. A CURTAIN in front of the existing success
+   path — the board fan-out, the loads, and the navigation already ran (or run
+   behind it); this only layers the moment and closes back to wherever the flow
+   landed (home). Bands are NEVER re-derived here: vsPhrase() is the one phrase
+   producer, the same the round cards and the recap card use. Champagne is
+   earned-only — the points line goes gold ONLY when league points exist,
+   ink-muted ("counts on your card") otherwise. Share rides the existing
+   recap-card path (shareRecapCard); no new fetches — every value is passed in. */
+let _finishShare=null;
+function finishCeremony(o){
+  const el=document.getElementById('finish');
+  if(!el){ stampPosted('POSTED ✓'); return; }   /* element gone: never fail silent — old stamp */
+  const DW=['SUN','MON','TUE','WED','THU','FRI','SAT'];
+  const MO=['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'];
+  const dt=(o.date instanceof Date && !isNaN(o.date)) ? o.date : new Date();
+  $('#finEyebrow').textContent=`${String(o.course||'A round').toUpperCase()} · ${DW[dt.getDay()]} ${MO[dt.getMonth()]} ${dt.getDate()}`;
+  $('#finGross').textContent=(o.gross!=null?o.gross:'');
+  /* the band line reuses the app's one phrase producer — never re-derived */
+  $('#finBand').textContent=(o.vs!=null && isFinite(o.vs)) ? vsPhrase(Number(o.vs)) : '';
+  const pl=$('#finPts');
+  if(o.inLeague && o.points!=null){
+    pl.className='finish-pts earned';
+    pl.textContent=`+${o.points} PTS`+(o.squad ? ` · COUNTS FOR ${String(o.squad).toUpperCase()}` : ' · COUNTS THIS SEASON');
+  } else {
+    pl.className='finish-pts card';
+    pl.textContent='COUNTS ON YOUR CARD';
+  }
+  /* stash the exact payload the recap-card path expects (matches the epilogue) */
+  _finishShare={
+    name:o.name||'You', marker:o.marker||'saguaro', gross:o.gross,
+    pvi:(o.vs!=null && isFinite(o.vs)) ? Number(o.vs) : null,
+    points:o.points!=null ? Number(o.points) : null,
+    course:o.course||'', date:dt, league:o.leagueName||null,
+    badge:null, photo:o.photo||null,
+  };
+  el.classList.remove('open'); void el.offsetWidth;   /* restart the stagger on a second post */
+  el.setAttribute('aria-hidden','false'); el.classList.add('open');
+  document.body.style.overflow='hidden';
+  try{ if(navigator.vibrate) navigator.vibrate([10,38,10]); }catch(_){}   /* the stamp's thock */
+}
+function finishDismiss(){
+  const el=document.getElementById('finish');
+  if(!el || !el.classList.contains('open')) return;   /* idempotent — dismiss fires once */
+  el.classList.remove('open'); el.setAttribute('aria-hidden','true');
+  /* the epilogue sheet may have opened behind the curtain — don't steal its
+     scroll lock; only release the body when nothing else is holding it open */
+  document.body.style.overflow = document.getElementById('sheet')?.classList.contains('open') ? 'hidden' : '';
+}
+(function wireFinish(){
+  const el=document.getElementById('finish'); if(!el) return;
+  $('#finShare')?.addEventListener('click',()=>{ if(_finishShare) shareRecapCard(_finishShare); });
+  $('#finBack')?.addEventListener('click',finishDismiss);
+  el.addEventListener('click',e=>{ if(e.target===el) finishDismiss(); });   /* backdrop */
+  /* capture-phase Escape: the curtain eats it before the global sheet-closer,
+     so one keypress can't collapse the ceremony AND the epilogue at once */
+  document.addEventListener('keydown',e=>{
+    if(e.key==='Escape' && el.classList.contains('open')){ finishDismiss(); e.stopImmediatePropagation(); }
+  },true);
+})();
 /* ---- pilot instrumentation (D33): fire-and-forget breadcrumbs into
    client_events. Demo is a diorama (never emits), a missing sb bridge no-ops,
    and every failure is swallowed — a breadcrumb must never break a post.
@@ -4272,7 +4389,21 @@ $('#postBtn').addEventListener('click', async ()=>{
       window._scanShot = null;
       setPostPhoto(null);
       window._qaPostOpenedAt = Date.now();   /* a second post times from here, not the stale open */
-      stampPosted('POSTED ✓');
+      /* 2.1: the post ends in ceremony, not a stamp — a curtain over the
+         existing success path (the loads + nav below still run; dismiss lands
+         on home). The explicit else keeps a missing ceremony fn from failing
+         silent (landmine), falling back to the old stamp. */
+      { const mySquad=(window.CS?.squads||[]).find(q=>(q.squad_members||[]).some(x=>x.member_id===window.CS?.member?.id))?.name || null;
+        if(typeof finishCeremony==='function') finishCeremony({
+          course: payload.course_label || 'A round',
+          date: payload.played_on ? localDate(payload.played_on) : new Date(),
+          gross: payload.gross, vs, points: pts, squad: mySquad,
+          inLeague: !!window.CS?.league,
+          name: window.CS?.profile?.display_name || 'You',
+          marker: window.CS?.profile?.marker || 'saguaro',
+          leagueName: window.CS?.league?.name || null,
+          photo: window._lastPostPhoto || null,
+        }); else stampPosted('POSTED ✓'); }
       toast(`Round posted: ~${pts} pts pending the league's math`);
       setTimeout(() => window.csEarnInstallNudge?.(), 1400);   /* earned: the first real round hits the board */
       /* clear the form so a posted round never reads as "didn't submit"
@@ -4311,7 +4442,18 @@ $('#postBtn').addEventListener('click', async ()=>{
   teams.sort((a,b)=>b.pts-a.pts);
   renderClimb(); renderStandings(); renderFeed(); renderStats(); renderIndStats();
   switchView('home'); scrollFeedBottom();
-  stampPosted('POSTED ✓');
+  /* 2.1: the diorama gets the same ceremony — demo passes demo data in */
+  if(typeof finishCeremony==='function') finishCeremony({
+    course: $('#inCourse').value.trim() || 'A round',
+    date: $('#inDate').value ? localDate($('#inDate').value) : new Date(),
+    gross: parseInt(label,10)||0, vs, points: pts,
+    squad: state.demo ? 'Mudsharks' : null,
+    inLeague: state.demo || !!window.CS?.league,
+    name: state.demo ? DEMO_ME : (window.CS?.profile?.display_name || 'You'),
+    marker: (state.demo ? null : window.CS?.profile?.marker) || 'saguaro',
+    leagueName: state.demo ? 'The Sunday Cup' : (window.CS?.league?.name || null),
+    photo: state.demo ? null : (window._lastPostPhoto||null),
+  }); else stampPosted('POSTED ✓');
   toast(`Round posted: +${pts} pts to ${state.demo?'Mudsharks':'your squad'}`);
 });
 
