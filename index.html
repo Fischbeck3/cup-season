@@ -6274,7 +6274,9 @@ function renderClubGroups(){
   const evStat = e => e.status==='complete'?'Final':e.status==='setup'?'Forming':'Live';
   const chips = (CS.memberships||[]).map(m =>
       groupChip(esc(m.league.name), m.league.id===cur?'Here':(m.role==='commissioner'?'Your league':'In season'), m.league.id===cur, `data-cglg="${m.league.id}"`)).join('')
-    + (window.myEvents||[]).map(e => groupChip(esc(e.name), 'Ryder · '+evStat(e), false, `data-cgev="${e.id}"`)).join('');
+    + (window.myEvents||[]).map(e => groupChip(esc(e.name),
+        (e.kind==='major'?'Major':'Ryder') + ' · ' + (e.mine===false ? 'Enter the field' : evStat(e)),
+        false, `data-cgev="${e.id}"`)).join('');
   box.innerHTML = chips || '<span class="fine" style="padding:0">No groups yet.</span>';
   box.querySelectorAll('[data-cglg]').forEach(b=>b.addEventListener('click',()=>{ const id=b.dataset.cglg; if(window.CS?.league?.id!==id) window.enterLeagueById?.(id, false); }));
   box.querySelectorAll('[data-cgev]').forEach(b=>b.addEventListener('click',()=>{ if(window.openEvent) window.openEvent(b.dataset.cgev); }));
@@ -7716,6 +7718,7 @@ function renderEvent(){
   const el=$('#eventBody'); if(!el) return;
   const E=window.CS_EVENT;
   if(!E || !E.event){ el.innerHTML='<p class="fine" style="padding:12px 4px">No event loaded.</p>'; return; }
+  if(E.event.kind==='major'){ renderMajorRoom(el, E); return; }
   const ev=E.event, teams=E.teams||[], players=E.players||[], sessions=E.sessions||[], duels=E.duels||[];
   const A=teams.find(t=>t.slot===0)||teams[0]||{name:'Team A',color:0,id:'a'};
   const B=teams.find(t=>t.slot===1)||teams[1]||{name:'Team B',color:1,id:'b'};
@@ -7839,6 +7842,219 @@ function renderEvent(){
   el.innerHTML=html;
 }
 window.renderEvent=renderEvent;
+
+/* ---------- The Major: the championship room (D42–D46, gameplay-modes §10) ----------
+   One window, the whole field on one board, best 18-hole card vs your own
+   number. Speaks UNDER/OVER in words (PvI +4.2 = "4.2 UNDER"); every figure
+   taps to its round (§16 via openRoundSheet). Exhibition rows are on the
+   board and never paid (D44). */
+function mjVs(n){
+  if(n==null) return '—';
+  const r=Math.round(Number(n)*10)/10;
+  if(r===0) return 'LEVEL';
+  return Math.abs(r)+(r>0?' UNDER':' OVER');
+}
+function mjMoney(n){
+  const v=Math.round(Number(n||0)*100)/100;
+  return '$'+(v===Math.floor(v)?String(v):v.toFixed(2));
+}
+function renderMajorRoom(el, E){
+  const ev=E.event, s=(E.sessions||[])[0]||null;
+  const board=E.majorBoard||[], cards=E.majorCards||[], posts=E.posts||[];
+  const meU=window.CS?.user?.id, iAmOrg=ev.created_by===meU;
+  const mine=board.some(r=>r.profile_id===meU);
+  const byPlayer={}; board.forEach(r=>byPlayer[r.player_id]=r);
+  const d0=s?new Date(s.opens_on+'T00:00:00'):null, d1=s?new Date(s.closes_on+'T00:00:00'):null;
+  const when=s?`${MOS[d0.getMonth()].toUpperCase()} ${d0.getDate()}–${MOS[d1.getMonth()].toUpperCase()} ${d1.getDate()}`:'';
+  const todayMid=new Date(); todayMid.setHours(0,0,0,0);
+  const daysLeft=d1?Math.round((d1-todayMid)/864e5):null;   /* 0 = the final day */
+  const days=s?Math.round((d1-d0)/864e5)+1:0;
+  const complete=ev.status==='complete';
+  const champCard=cards.find(c=>c.rank===1)||null;
+  const champ=champCard?byPlayer[champCard.player_id]:null;
+  const contendersIn=board.filter(r=>!r.exhibition).length;
+  const buyIn=Number(ev.buy_in||0), pot=buyIn*contendersIn;
+
+  let statusChip = complete
+    ? (champ?esc(champ.display_name.toUpperCase())+' TAKES THE JUG':'SETTLED — NO CARDS')
+    : ev.status==='setup' ? (daysLeft!=null&&d0>todayMid?'FORMING · OPENS '+MOS[d0.getMonth()].toUpperCase()+' '+d0.getDate():'FORMING')
+    : daysLeft>0 ? `LIVE · ${daysLeft}D LEFT` : daysLeft===0 ? 'THE FINAL DAY' : 'AWAITING THE HORN';
+
+  let html=`<div class="eyebrow" style="margin-top:0; display:flex; align-items:center">${esc(ev.name)}
+    <span class="fine" style="margin-left:auto; padding:0; color:var(--gold)">${statusChip}</span></div>
+    <div class="card evscore">
+      <div style="text-align:center; padding:4px 0 2px">
+        <div style="font-size:34px; line-height:1">🏆</div>
+        <div style="font-family:var(--mono); font-size:13px; letter-spacing:.14em; color:var(--gold); margin-top:6px">A MAJOR · ${days} DAYS</div>
+        <div class="fine" style="padding:4px 0 0">${when} · FIELD OF ${board.length}${board.length!==contendersIn?` (${board.length-contendersIn} EXHIBITION)`:''}</div>
+        <div class="fine" style="padding:2px 0 0">${buyIn>0
+          ? `BUY-IN ${mjMoney(buyIn)} · POT ${mjMoney(pot)} · ${ev.pot_split==='wta'?'WINNER TAKES ALL':'60 / 25 / 15'}`
+          : 'BRAGGING RIGHTS'}</div>
+      </div>
+    </div>`;
+
+  html += `<p class="fine" style="padding:0 0 6px">Your best 18-hole card inside the window, scored against your own number. Post as many as the weekend allows — the best one stands.</p>`;
+
+  /* enter / organizer controls */
+  const horn = (E.sessions||[]).some(x=>x.status==='closed');
+  const inLeague = ev.league_id && (window.CS?.memberships||[]).some(m=>m.league.id===ev.league_id);
+  if(!mine && inLeague && !complete && !horn && meU){
+    html+=`<div style="margin:2px 0 8px"><button class="btn" onclick="window.majorEnter('${ev.id}')">Enter the field</button></div>`;
+  }
+  if(iAmOrg && !complete){
+    html+=`<div style="display:flex; gap:8px; flex-wrap:wrap; margin:2px 0 6px">
+      <button class="mini" onclick="window.openInvitePicker&&window.openInvitePicker({event:'${ev.id}'})">＋ Invite golfers</button>`;
+    if(ev.status==='setup' && s && d0<=todayMid){
+      html += board.length>=2
+        ? `<button class="mini" onclick="window.majorOpenNow('${s.id}')">Open the window now</button>`
+        : `<span class="fine" style="padding:4px 0 0">Needs 2 in the field to open.</span>`;
+    }
+    if(ev.status==='live' && daysLeft!=null && daysLeft<0){
+      html+=`<button class="mini" onclick="window.majorSettle('${s.id}')">Sound the horn — settle</button>`;
+    }
+    html+=`</div>`;
+  }
+
+  /* ---- the leaderboard ---- */
+  const rowHtml=(pos,r,extra,tap)=>`
+    <div class="check${tap?' tap':''}" ${tap?`style="cursor:pointer" data-mjrnd="${tap}"`:''}>
+      <span class="num" style="font-family:var(--mono); font-size:13px; color:var(--dim); min-width:26px; text-align:center">${pos}</span>
+      <div class="tt"><b>${window.mkr?.(r.marker||'saguaro')||'⛳'} ${esc(r.display_name)}</b><small>${extra}</small></div>
+      ${r.pvi!=null?`<span style="font-family:var(--mono); font-size:13.5px; color:${Number(r.pvi)>0?'var(--pos)':'var(--mut)'}; flex:none">${mjVs(r.pvi)}</span>`:''}
+    </div>`;
+
+  if(complete && cards.length){
+    html+=`<div class="eyebrow">Final — every card counts</div>`;
+    const nameOf=c=>byPlayer[c.player_id]||{display_name:'—',marker:'saguaro'};
+    cards.filter(c=>c.rank!=null).sort((a,b)=>a.rank-b.rank).forEach(c=>{
+      const r={...nameOf(c), pvi:c.pvi};
+      const prize=Number(c.prize||0)>0?` · ${mjMoney(c.prize)}`:'';
+      const line=`${c.gross!=null?c.gross+' · ':''}${c.cards||0} card${(c.cards||0)===1?'':'s'}${prize}`;
+      html+=rowHtml(c.rank===1?'🏆':'#'+c.rank, r, line, c.round_id||'');
+    });
+    const ex=cards.filter(c=>c.rank==null && !c.no_card).sort((a,b)=>Number(b.pvi||-99)-Number(a.pvi||-99));
+    if(ex.length){
+      html+=`<div class="eyebrow">Exhibition — official by the next one</div>`;
+      ex.forEach(c=>{ const r={...nameOf(c), pvi:c.pvi};
+        html+=rowHtml('EX', r, `${c.gross!=null?c.gross+' · ':''}${c.cards||0} card${(c.cards||0)===1?'':'s'}`, c.round_id||''); });
+    }
+    const nc=cards.filter(c=>c.no_card);
+    if(nc.length){
+      html+=`<div class="eyebrow">No card</div>`;
+      nc.forEach(c=>{ const r={...nameOf(c), pvi:null};
+        html+=rowHtml('—', r, buyIn>0&&!c.exhibition?'No card · buy-in stays in the pot':'No card this time'); });
+    }
+    if(champ && champCard){
+      html+=`<button class="btn" id="mjShare" style="width:100%; margin-top:12px">Share the jug 🏆</button>`;
+    }
+  } else {
+    html+=`<div class="eyebrow">The clubhouse${ev.status==='live'?' — live':''}</div>`;
+    let pos=0;
+    const carded=board.filter(r=>r.pvi!=null), waiting=board.filter(r=>r.pvi==null);
+    carded.forEach(r=>{
+      const label = r.exhibition ? 'EX' : ('#'+(++pos));
+      const line=`${r.gross!=null?r.gross+' · ':''}${r.cards||0} card${(r.cards||0)===1?'':'s'}${r.exhibition?' · exhibition':''}`;
+      html+=rowHtml(label, r, line, r.round_id||'');
+    });
+    if(!carded.length) html+=`<div class="fine" style="padding:2px 0">No cards yet${ev.status==='live'?' — first one takes the clubhouse':''}.</div>`;
+    if(waiting.length){
+      html+=`<div class="eyebrow">Yet to card</div>`;
+      waiting.forEach(r=>{ html+=rowHtml('—', r, r.exhibition?'Exhibition — official by the next one':'The window is open'); });
+    }
+    if(ev.status==='live' && waiting.length && daysLeft!=null && daysLeft>=0){
+      html+=`<div class="fine" style="padding:4px 0 0">Still to card: <b>${waiting.map(r=>esc(r.display_name)).join(', ')}</b> · ${daysLeft===0?'cards in by tonight':daysLeft+'d left'}.</div>`;
+    }
+  }
+
+  /* the fine print — chosen, not discovered (D45) */
+  html+=`<div class="card" style="margin-top:12px; padding:11px 13px; background:var(--bg2)">
+    <div class="fine" style="padding:0; line-height:1.65">
+      <b style="color:var(--ink)">The fine print.</b> 18-hole cards only; scored by how far you beat <em>your own</em> number. An established number (3 posted rounds) contends for the jug${buyIn>0?' and the pot':''}; newer golfers play <b>exhibition</b> — on the board, official by the next one. Ties settle on countback: second-best card, then earliest posted, then a logged coin flip.${buyIn>0?` Pot is a ledger — ${ev.pot_split==='wta'?'winner takes it':'60/25/15, top three'}; money moves between friends.`:''}
+    </div>
+  </div>`;
+
+  /* the event board: the window narrating itself */
+  if(posts.length){
+    html+=`<div class="eyebrow" style="margin-top:14px">The board</div>`;
+    html+=posts.map(p=>`<div class="sysrow">◆ ${esc(easeCaps(p.body||''))}</div>`).join('');
+  }
+
+  el.innerHTML=html;
+  el.querySelectorAll('[data-mjrnd]').forEach(x=>x.addEventListener('click',()=>{
+    if(x.dataset.mjrnd && window.openRoundSheet) window.openRoundSheet(x.dataset.mjrnd);
+  }));
+  const sh=el.querySelector('#mjShare');
+  if(sh && champ && champCard) sh.addEventListener('click',()=>shareMajorCard({
+    jug: ev.name, name: champ.display_name, marker: champ.marker||'saguaro',
+    gross: champCard.gross, pvi: champCard.pvi,
+    podium: cards.filter(c=>c.rank===2||c.rank===3).sort((a,b)=>a.rank-b.rank)
+      .map(c=>({rank:c.rank, name:(byPlayer[c.player_id]||{}).display_name||'—', pvi:c.pvi})),
+    when, pot: pot>0?mjMoney(pot):null
+  }));
+}
+
+/* the jug card — the Major's share artifact (D46; D30's canvas pattern) */
+function drawMajorCard(d){
+  const W=1080, H=1350;
+  const BG='#0C100D', PANEL='#10150F', INK='#E8ECE9', MUT='#98A29A', GOLD='#E9BE62';
+  const cv=document.createElement('canvas'); cv.width=W; cv.height=H;
+  const x=cv.getContext('2d');
+  const MONO="'IBM Plex Mono',ui-monospace,Menlo,monospace";
+  const SERIF="'Charter','Iowan Old Style','Palatino Linotype',Georgia,serif";
+  const ctr=(txt,y,font,fill,ls)=>{ x.font=font; x.fillStyle=fill;
+    try{ x.letterSpacing=(ls||0)+'px'; }catch(e){}
+    x.textAlign='center'; x.fillText(txt,W/2,y);
+    try{ x.letterSpacing='0px'; }catch(e){} };
+  x.fillStyle=BG; x.fillRect(0,0,W,H);
+  x.fillStyle=PANEL;
+  x.beginPath(); x.roundRect(36,36,W-72,H-72,28); x.fill();
+  x.strokeStyle='rgba(233,190,98,.35)'; x.lineWidth=2;
+  x.beginPath(); x.roundRect(36,36,W-72,H-72,28); x.stroke();
+  const mk=(window.MARKERS||{})[d.marker];
+  x.strokeStyle='rgba(233,190,98,.4)'; x.lineWidth=2;
+  x.beginPath(); x.arc(W/2,208,78,0,7); x.stroke();
+  if(mk){
+    const s=4.6, path=new Path2D(mk.p);
+    x.save(); x.translate(W/2-12*s,208-12*s); x.scale(s,s);
+    x.strokeStyle=GOLD; x.lineWidth=1.8; x.lineCap='round'; x.lineJoin='round';
+    x.stroke(path); x.restore();
+  }
+  ctr('MAJOR CHAMPION', 348, `600 30px ${MONO}`, GOLD, 9);
+  ctr((d.name||'A GOLFER').toUpperCase(), 412, `600 46px ${MONO}`, INK, 7);
+  ctr(String(d.gross??'—'), 760, `700 300px ${SERIF}`, INK);
+  if(d.pvi!=null) ctr(mjVs(d.pvi)+' THEIR NUMBER', 850, `600 44px ${MONO}`, GOLD, 7);
+  ctr('BEST CARD OF THE WINDOW', 906, `500 27px ${MONO}`, MUT, 5);
+  x.strokeStyle='rgba(255,255,255,.1)'; x.lineWidth=1;
+  x.beginPath(); x.moveTo(280,1000); x.lineTo(W-280,1000); x.stroke();
+  ctr((d.jug||'A MAJOR').toUpperCase(), 1064, `600 36px ${MONO}`, INK, 4);
+  const pod=(d.podium||[]).map(p=>`${p.rank===2?'2ND':'3RD'} ${(p.name||'').toUpperCase()} ${mjVs(p.pvi)}`).join(' · ');
+  if(pod) ctr(pod, 1116, `500 26px ${MONO}`, MUT, 3);
+  ctr((d.when||'')+(d.pot?` · POT ${d.pot}`:''), 1166, `500 27px ${MONO}`, MUT, 4);
+  ctr('Cup Season', 1246, `600 52px ${SERIF}`, INK);
+  ctr('START YOURS AT CUPSEASON.APP', 1292, `500 25px ${MONO}`, MUT, 4);
+  return cv;
+}
+async function shareMajorCard(d){
+  try{
+    const blob=await new Promise(res=>drawMajorCard(d).toBlob(res,'image/png'));
+    const file=new File([blob],'cup-season-major.png',{type:'image/png'});
+    const text=`${d.name} takes ${d.jug} — ${d.gross}, ${mjVs(d.pvi).toLowerCase()} their number · cupseason.app`;
+    if(navigator.canShare && navigator.canShare({files:[file]})){
+      await navigator.share({files:[file], text});
+      return;
+    }
+    const a=document.createElement('a');
+    a.href=URL.createObjectURL(blob); a.download='cup-season-major.png'; a.click();
+    setTimeout(()=>URL.revokeObjectURL(a.href),5000);
+    try{ await navigator.clipboard?.writeText(text); toast('Card downloaded · caption copied'); }
+    catch(e){ toast('Card downloaded'); }
+  }catch(e){
+    if(e && e.name==='AbortError') return;
+    console.warn('[major card]', e);
+    toast('Couldn’t make the card: '+(e.message||'unknown'));
+  }
+}
+window.shareMajorCard=shareMajorCard;
 
 /* ---------- notifications banner: pending invites, act in line ---------- */
 function renderNotifications(){
@@ -9898,15 +10114,16 @@ function openEventPicker(){
     <div class="check tap" data-evstyle="bracket" style="cursor:pointer">
       <span class="num">🥊</span><div class="tt"><b>Bracket</b><small>Knockout · seeded · last golfer standing</small></div>
       <span class="fine" style="padding:0; color:var(--dim)">SOON</span></div>
-    <div class="check tap" data-evstyle="major" style="cursor:pointer">
-      <span class="num">🏆</span><div class="tt"><b>A Major</b><small>A timed major · best round takes the trophy</small></div>
-      <span class="fine" style="padding:0; color:var(--dim)">SOON</span></div>
+    <div class="check tap" data-evstyle="major" style="cursor:pointer; border-color:var(--pos)">
+      <span class="num">🏆</span><div class="tt"><b>A Major</b><small>A championship window · best card takes the jug</small></div>
+      <span class="fine" style="padding:0; color:var(--pos)">LIVE</span></div>
     <p class="fine">Every event mints a trophy for your display case. More styles land after the pilot.</p>
   `);
   $('#shBody').querySelectorAll('[data-evstyle]').forEach(b => b.addEventListener('click', () => {
     const s = b.dataset.evstyle;
     if(s === 'ryder'){ closeSheet(); if(window.openRyderSetup) window.openRyderSetup(); return; }
-    toast(s === 'bracket' ? 'Bracket lands right after the pilot' : 'Majors land right after the pilot');
+    if(s === 'major'){ closeSheet(); if(window.openMajorSetup) window.openMajorSetup(); return; }
+    toast('Bracket lands right after the pilot');
   }));
 }
 /* join-by-code, self-contained — the hub's join box hides for members, so the
@@ -10013,7 +10230,8 @@ async function openLeagueSwitcher(){
     </div>`;
   }).join('');
   const evStat = e => e.status==='complete' ? 'Final' : e.status==='setup' ? 'Forming' : 'Live';
-  const events = (window.myEvents||[]).map(e => row('__event:'+e.id, '🏆', e.name, 'The Ryder · '+evStat(e), false)).join('');
+  const events = (window.myEvents||[]).map(e => row('__event:'+e.id, e.kind==='major'?'🏆':'⚔️', e.name,
+    (e.kind==='major'?'A Major':'The Ryder') + ' · ' + (e.mine===false?'Enter the field':evStat(e)), false)).join('');
   const invites = (window.myInvites||[]).map(i => `
     <div class="check"><span class="num">${i.kind==='league'?'⛳':'🏆'}</span>
       <div class="tt"><b>${esc(i.container_name||'')}</b><small>INVITE · FROM ${esc((i.inviter||'').toUpperCase())}</small></div>
@@ -10254,8 +10472,20 @@ async function loadMyEvents(){
   try {
     const { data } = await sb.from('event_players')
       .select('event:events(id, name, status, kind)').eq('profile_id', CS.user.id);
-    window.myEvents = (data||[]).map(r => r.event).filter(Boolean);
+    window.myEvents = (data||[]).map(r => r.event).filter(Boolean).map(e => ({...e, mine:true}));
   } catch(e){ window.myEvents = []; }
+  /* the crew's attached events too (spectator reads, the Major's enter path) —
+     visible but not yet joined ride with mine:false. Skew-safe: pre-migration
+     RLS simply returns none of them. */
+  try {
+    const lids = (CS.memberships||[]).map(m => m.league.id);
+    if(lids.length){
+      const { data: att } = await sb.from('events')
+        .select('id, name, status, kind, league_id').in('league_id', lids).neq('status','complete');
+      const seen = new Set((window.myEvents||[]).map(e => e.id));
+      (att||[]).forEach(e => { if(!seen.has(e.id)) window.myEvents.push({...e, mine:false}); });
+    }
+  } catch(e){ /* old DB: attached events stay invite-only */ }
 }
 window.loadMyEvents = loadMyEvents;
 
@@ -10265,16 +10495,30 @@ async function loadEvent(id){
     const [ev, tm, pl, ss, du, sc] = await Promise.all([
       sb.from('events').select('*').eq('id', id).single(),
       sb.from('event_teams').select('*').eq('event_id', id).order('slot'),
-      sb.from('event_players').select('id, profile_id, team_id, role, seed, benched_count, notify_target, profile:profiles(display_name, marker)').eq('event_id', id),
+      sb.from('event_players').select('*, profile:profiles(display_name, marker)').eq('event_id', id),
       sb.from('event_sessions').select('*').eq('event_id', id).order('session_no'),
       sb.from('event_duels').select('*').eq('event_id', id),
       sb.from('v_event_scoreboard').select('team_id, points').eq('event_id', id),
     ]);
     const scoreboard = {}; (sc.data||[]).forEach(r => scoreboard[r.team_id] = Number(r.points));
+    /* the Major's surfaces: the live board (definer read — rounds RLS is
+       owner-only) and the frozen cards once settled. Skew-safe: a missing RPC
+       just leaves the room empty with the board posts still telling the story. */
+    let majorBoard = [], majorCards = [];
+    if(ev.data?.kind === 'major'){
+      try{
+        const { data: mb } = await sb.rpc('major_leaderboard', { p_event: id });
+        majorBoard = mb || [];
+      }catch(_){ /* pre-migration deploy skew */ }
+      try{
+        const { data: mc } = await sb.from('event_major_cards').select('*').eq('event_id', id);
+        majorCards = mc || [];
+      }catch(_){ /* pre-migration deploy skew */ }
+    }
     /* the number to beat (batch-3 #17): live targets for every OPEN session's
        pending duels — the chip shows it unconditionally */
     const targets = {};
-    for(const s of (ss.data||[]).filter(x=>x.status==='open')){
+    for(const s of (ss.data||[]).filter(x=>x.status==='open' && ev.data?.kind!=='major')){
       try{
         const { data:tg } = await sb.rpc('event_session_targets', { p_session: s.id });
         (tg||[]).forEach(t => { targets[t.duel_id] = { a:t.a_pvi, b:t.b_pvi }; });
@@ -10293,13 +10537,15 @@ async function loadEvent(id){
       teams: tm.data || [],
       players: (pl.data||[]).map(p => ({ id:p.id, profile_id:p.profile_id, team_id:p.team_id,
         role:p.role, seed:p.seed, benched_count:p.benched_count,
-        notify_target:!!p.notify_target,
+        notify_target:!!p.notify_target, exhibition:!!p.exhibition,
         name:p.profile?.display_name||'—', marker:p.profile?.marker||'saguaro' })),
       sessions: ss.data || [],
       duels: du.data || [],
       scoreboard,
       targets,
       posts: evPosts,
+      majorBoard,
+      majorCards,
     };
     window.renderEvent?.();
   } catch(e){ console.warn('[event]', e); }
@@ -10398,6 +10644,133 @@ async function openRyderSetup(){
   });
 }
 window.openRyderSetup = openRyderSetup;
+
+/* ---------- The Major: create a championship window (D42–D46) ---------- */
+async function openMajorSetup(){
+  if(!CS.user){ toast('Sign in to start a Major'); return; }
+  const leagues = (CS.memberships||[]).map(m=>`<option value="${m.league.id}">${esc(m.league.name)}</option>`).join('');
+  openSheet('Start a Major', 'One window · every card on one board · one name on the jug', `
+    <label class="f" for="mjName">Name the jug</label>
+    <input class="f" id="mjName" placeholder="The PIGL Championship" autocomplete="off" style="font-family:var(--sans)">
+    <label class="f" style="margin-top:10px" for="mjFinal">The final day</label>
+    <input class="f" id="mjFinal" type="date" value="${nextSundayISO()}">
+    <label class="f" style="margin-top:10px; display:block">Window</label>
+    <div class="seg" id="mjDays">${[2,3,4].map(n=>`<button data-n="${n}" class="${n===4?'on':''}">${n} days</button>`).join('')}</div>
+    <p class="fine" style="padding:4px 0 0" id="mjWhen"></p>
+    <label class="f" style="margin-top:10px" for="mjBuy">Buy-in per player <span style="color:var(--dim)">($0 = bragging rights)</span></label>
+    <input class="f" id="mjBuy" type="number" min="0" step="1" value="0" inputmode="numeric" style="font-family:var(--sans)">
+    <div id="mjSplitWrap" style="display:none">
+      <label class="f" style="margin-top:10px; display:block">The pot pays</label>
+      <div class="seg" id="mjSplit"><button data-s="places" class="on">Top 3 · 60/25/15</button><button data-s="wta">Winner takes all</button></div>
+    </div>
+    <label class="f" style="margin-top:10px" for="mjLeague">Run it with a league <span style="color:var(--dim)">(optional)</span></label>
+    <select class="f" id="mjLeague" style="font-family:var(--sans)"><option value="">Standalone — invite anyone</option>${leagues}</select>
+    <label class="f" style="margin-top:12px; display:block">Add golfers</label>
+    <button class="btn dark" id="mjAdd" style="margin-top:6px">Search the app or tap a buddy</button>
+    <div id="mjPicked" style="margin-top:8px"></div>
+    <div class="card" style="margin-top:14px; padding:11px 13px; background:var(--bg2)">
+      <div class="fine" style="padding:0; line-height:1.65">
+        <b style="color:var(--ink)">How it plays.</b> Everyone posts inside the window — any course, any day it's open. Your <b>best 18-hole card</b>, scored against <em>your own</em> number, is your score; post as many as the weekend allows. An established number (3 posted rounds) contends for the jug; newer golfers play <b>exhibition</b> — on the board, official by the next one. Ties settle on countback: second-best card, then earliest posted, then a logged coin flip.
+      </div>
+    </div>
+    <div style="display:flex; gap:8px; margin-top:14px;">
+      <button class="btn dark" id="mjCancel" style="flex:0 0 auto; width:auto; padding:0 16px">Cancel</button>
+      <button class="btn" id="mjGo" style="flex:1">Set the Major</button>
+    </div>
+    <p class="fine">A league Major shows on the crew's board and any member can enter. The window opens on its first morning; the jug settles the morning after the final day.</p>
+  `);
+  let days=4, split='places';
+  const whenLine=()=>{
+    const f=document.getElementById('mjFinal')?.value; const el=document.getElementById('mjWhen');
+    if(!el || !f) return;
+    const [y,m,d]=f.split('-').map(Number); const end=new Date(y,m-1,d);
+    if(isNaN(end)){ el.textContent=''; return; }
+    const start=new Date(end); start.setDate(end.getDate()-(days-1));
+    const fmt=dt=>dt.toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'});
+    el.textContent=`${fmt(start)} → ${fmt(end)} · best card by ${end.toLocaleDateString('en-US',{weekday:'long'})} night`;
+  };
+  document.querySelectorAll('#mjDays button').forEach(b=>b.addEventListener('click',()=>{document.querySelectorAll('#mjDays button').forEach(x=>x.classList.remove('on'));b.classList.add('on');days=+b.dataset.n; whenLine();}));
+  document.querySelectorAll('#mjSplit button').forEach(b=>b.addEventListener('click',()=>{document.querySelectorAll('#mjSplit button').forEach(x=>x.classList.remove('on'));b.classList.add('on');split=b.dataset.s;}));
+  document.getElementById('mjFinal')?.addEventListener('change', whenLine);
+  document.getElementById('mjBuy')?.addEventListener('input', ()=>{
+    const v=Number(document.getElementById('mjBuy').value||0);
+    document.getElementById('mjSplitWrap').style.display = v>0?'block':'none';
+  });
+  whenLine();
+
+  const mjStaged = new Map();
+  function renderMjPicked(){ const box=document.getElementById('mjPicked'); if(!box) return;
+    box.innerHTML=[...mjStaged].map(([id,p])=>`<div class="byrow" style="align-items:center; gap:8px;">
+      <span>${mkr(p.marker||'saguaro')} ${esc(p.name||'—')}
+        <span class="fine" style="padding:0">@${esc(p.handle||'?')}</span></span>
+      <button class="mini" data-mjrm="${id}">Remove</button></div>`).join('');
+    box.querySelectorAll('[data-mjrm]').forEach(b=>b.addEventListener('click',()=>{
+      mjStaged.delete(b.dataset.mjrm); renderMjPicked(); }));
+  }
+  document.getElementById('mjAdd')?.addEventListener('click', ()=> openPeoplePicker({
+    mode:'invite', title:'Add golfers', sub:'They get an invite to accept once the Major is set',
+    excludeIds:[...mjStaged.keys()],
+    onPick:(r)=>{ mjStaged.set(r.profile_id,{name:r.display_name,handle:r.handle,marker:r.marker}); renderMjPicked(); }
+  }));
+  renderMjPicked();
+  document.getElementById('mjCancel').addEventListener('click', ()=> closeSheet());
+  document.getElementById('mjGo').addEventListener('click', async ()=>{
+    const name=document.getElementById('mjName').value.trim();
+    if(!name){ toast('Name the jug — a Major needs a name'); return; }
+    const go=document.getElementById('mjGo'); go.disabled=true;
+    try{
+      const { data, error } = await sb.rpc('create_major', {
+        p_name:name,
+        p_final_on:document.getElementById('mjFinal').value||nextSundayISO(),
+        p_days:days,
+        p_buy_in:Number(document.getElementById('mjBuy').value||0),
+        p_pot_split:split,
+        p_league:document.getElementById('mjLeague').value||null,
+        p_tz:(()=>{ try{ return Intl.DateTimeFormat().resolvedOptions().timeZone||null; }catch(_){ return null; } })(),
+      });
+      if(error) throw error;
+      for(const [pid] of mjStaged){
+        try{ await sb.rpc('invite_golfer',{ p_league:null, p_event:data, p_profile:pid }); }catch(e){}
+      }
+      closeSheet(); await loadMyEvents();
+      toast(mjStaged.size ? `The Major is set — ${mjStaged.size} invited` : 'The Major is set — build the field');
+      window.openEvent(data);
+    }catch(e){
+      const msg=String(e.message||e);
+      toast(/create_major|function|schema cache/i.test(msg)
+        ? 'The Major needs the database update first — one push away'
+        : 'Create failed: '+msg);
+      go.disabled=false;
+    }
+  });
+}
+window.openMajorSetup = openMajorSetup;
+
+/* Major room actions (classic room → these module hands) */
+window.majorEnter = async (eventId)=>{
+  try{
+    const { error } = await sb.rpc('enter_major', { p_event:eventId });
+    if(error) throw error;
+    toast("You're in the field");
+    await loadMyEvents(); await loadEvent(eventId);
+  }catch(e){ toast(e.message||String(e)); }
+};
+window.majorOpenNow = async (sessionId)=>{
+  try{
+    const { error } = await sb.rpc('open_major', { p_session:sessionId });
+    if(error) throw error;
+    toast('The window is open');
+    await loadEvent(window.CS_EVENT.event.id);
+  }catch(e){ toast(e.message||String(e)); }
+};
+window.majorSettle = async (sessionId)=>{
+  try{
+    const { error } = await sb.rpc('settle_major', { p_session:sessionId });
+    if(error) throw error;
+    toast('Settled — the jug has a name');
+    await loadEvent(window.CS_EVENT.event.id);
+  }catch(e){ toast(e.message||String(e)); }
+};
 
 async function ryderCandidates(E){
   const map=new Map();
