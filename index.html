@@ -1565,6 +1565,39 @@ html[data-theme="light"] .btn:not(.dark):not(.gold):not(.apple){color:#FFFFFF;}
   #finish.open .finish-gross, #finish.open .finish-band, #finish.open .finish-pts{animation:none;}
 }
 
+/* ============ rooms, not themes (2.2): ceremony renders in the trophy room ============
+   Theme (paper/dusk) stays a preference for UTILITY surfaces. CEREMONY surfaces
+   always render dusk, so a shared honor moment shows the same face for every
+   viewer regardless of their theme. The #finish screen above does this with
+   hardcoded hexes; reusable, token-consuming surfaces do it with this class.
+   .room-dusk re-asserts the dusk tokens -- exactly the set html[data-theme="light"]
+   flips -- and forces inherited ink dusk. The paired light-theme rules re-machine
+   the surfaces whose paint is hardcoded per-theme (.card/.stat/.btn) so paper can't
+   leak into the room. Colors only -- geometry untouched. */
+.room-dusk{
+  --bg0:#0A0E0C; --bg1:#121710; --bg2:#1A201A;
+  --line:#252C24; --line2:#30372E;
+  --ink:#ECEEF2; --mut:#98A29A; --dim:#5E665E;
+  --pos:#43E07C; --neg:#FF5F56; --gold:#D8B25A;
+  --pine:#0E3B24; --brand:#2FA46A; --dawn:#63ADFF;
+  --sq0:#57A8FF; --sq1:#FB8B4B; --sq2:#A78BFA; --sq3:#2FD3BE;
+  --glow:rgba(47,164,106,.20);
+  color:var(--ink);
+}
+/* the draw reveal is a whole room, not a card floating on a board -- in light
+   theme give it the dusk floor so its bare eyebrows/notes sit on dusk, not paper
+   (dark theme already has the dusk floor from the page, so leave it untouched) */
+html[data-theme="light"] #view-draft.room-dusk{background:var(--bg0);}
+/* light theme only: .card/.stat/.btn paint from hardcoded per-theme values, so the
+   token re-declaration alone can't reach them -- restore their dusk faces in-room */
+html[data-theme="light"] .room-dusk .card,
+html[data-theme="light"] .room-dusk .stat{
+  background:linear-gradient(180deg,#16191E 0%,#121417 100%);
+  border-color:#262A32;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.035), 0 1px 2px rgba(0,0,0,.25);
+}
+html[data-theme="light"] .room-dusk .btn:not(.dark):not(.gold):not(.apple){color:#08120C;}
+
 /* Batch C: scorecard-shaped skeletons while the feed loads — never a spinner */
 .skrow{display:flex; align-items:center; gap:12px; background:var(--bg1);
   border:1px solid var(--line); border-radius:var(--r); padding:13px 14px; margin-bottom:8px;}
@@ -1965,7 +1998,7 @@ html[data-theme="light"] .btn:not(.dark):not(.gold):not(.apple){color:#FFFFFF;}
              Everything editable + app settings live behind the ⚙. The
              "Build your crew" card is gone (redundant with Crew · People). -->
         <div class="eyebrow" style="margin-top:0">Your display case</div>
-        <div id="trophyCase" style="margin-bottom:14px"></div>
+        <div id="trophyCase" class="room-dusk" style="margin-bottom:14px"></div>
         <div class="eyebrow">Lifetime</div>
         <div class="stats">
           <div class="stat"><div class="k">Rounds posted</div><div class="v" id="clR">—</div><div class="d fl">All time</div></div>
@@ -2011,7 +2044,7 @@ html[data-theme="light"] .btn:not(.dark):not(.gold):not(.apple){color:#FFFFFF;}
       </section>
 
       <!-- DRAFT -->
-      <section class="view" id="view-draft">
+      <section class="view room-dusk" id="view-draft">
         <div class="draftgrid">
           <div>
             <div class="eyebrow" id="draftEyebrow">Draft night · snake</div>
@@ -2142,7 +2175,7 @@ html[data-theme="light"] .btn:not(.dark):not(.gold):not(.apple){color:#FFFFFF;}
               <div class="gm" id="skinsMeta"></div>
               <div class="wolftally" id="skinsTally"></div>
             </div>
-            <div class="gamecard" id="settleCard" style="--acc:var(--brand)">
+            <div class="gamecard room-dusk" id="settleCard" style="--acc:var(--brand)">
               <div class="gk">Round settlement · live</div>
               <div class="settle" id="settle"></div>
             </div>
@@ -3930,7 +3963,6 @@ function drawRecapCard(d){
   const x=cv.getContext('2d');
   const MONO="'IBM Plex Mono',ui-monospace,Menlo,monospace";
   const SERIF="'Charter','Iowan Old Style','Palatino Linotype',Georgia,serif";
-  const SANS="'IBM Plex Sans',-apple-system,'Segoe UI',Roboto,sans-serif";
   const ctr=(txt,y,font,fill,ls)=>{ x.font=font; x.fillStyle=fill;
     try{ x.letterSpacing=(ls||0)+'px'; }catch(e){}
     x.textAlign='center'; x.fillText(txt,W/2,y);
@@ -3966,7 +3998,7 @@ function drawRecapCard(d){
   ctr(String(d.gross), 760, `700 300px ${SERIF}`, INK);
   if(d.pvi!=null){
     ctr(bandName(Number(d.pvi)).toUpperCase(), 850, `600 46px ${MONO}`, GOLD, 9);
-    ctr(vsPhrase(Number(d.pvi)), 906, `500 31px ${SANS}`, MUT);
+    ctr(vsPhrase(Number(d.pvi)), 906, `500 31px ${SERIF}`, MUT);
   }
   if(d.badge) ctr('★ '+d.badge, 972, `600 31px ${MONO}`, GOLD, 5);
   x.strokeStyle='rgba(255,255,255,.1)'; x.lineWidth=1;
@@ -5913,6 +5945,7 @@ function showLiveRecap(d, result){
   openSheet(d.casual?'Casual — nothing posted':'Round posted',
     `${posted.length} CARD${posted.length===1?'':'S'} TO THE SEASON`,
     rows.join('') || '<p class="fine" style="padding-top:0">Nothing to post.</p>');
+  $('#sheet').classList.add('room-dusk');   /* the post-round settlement is a ceremony - dusk for every viewer, like #finish */
   document.querySelectorAll('#shBody [data-copylink]').forEach(b=>b.addEventListener('click',()=>{
     try{ navigator.clipboard?.writeText(b.dataset.copylink); toast('Recap link copied'); }
     catch(_){ toast('Copy failed'); }
@@ -7081,6 +7114,7 @@ function openSheet(title, sub, bodyHtml){
   $('#shSub').textContent=sub;
   $('#shBody').innerHTML=bodyHtml;
   $('#sheet').classList.add('open');
+  $('#sheet').classList.remove('room-dusk');   /* sheets are utility by default; ceremonies re-add after openSheet */
   document.body.style.overflow='hidden';
   $('#shBody').querySelectorAll('[data-player]').forEach(b=>
     b.addEventListener('click',()=>showPlayer(b.dataset.player)));
