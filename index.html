@@ -4452,8 +4452,13 @@ function finishCeremony(o){
   const dt=(o.date instanceof Date && !isNaN(o.date)) ? o.date : new Date();
   $('#finEyebrow').textContent=`${String(o.course||'A round').toUpperCase()} · ${DW[dt.getDay()]} ${MO[dt.getMonth()]} ${dt.getDate()}`;
   $('#finGross').textContent=(o.gross!=null?o.gross:'');
-  /* the band line reuses the app's one phrase producer — never re-derived */
-  $('#finBand').textContent=(o.vs!=null && isFinite(o.vs)) ? vsPhrase(Number(o.vs)) : '';
+  /* the band line reuses the app's one phrase producer — never re-derived.
+     Gate on a SANE vs: a rating-less post recalcs to a nonsense differential
+     (≈ −71.6 → "71.6 over your number"), so |vs|>30 means we don't really have
+     a number — the band bows out and eyebrow/gross/points carry the ceremony
+     alone. Scoring/recalc are untouched; this is a display gate only. */
+  const vsSane = o.vs!=null && isFinite(o.vs) && Math.abs(Number(o.vs))<=30;
+  $('#finBand').textContent = vsSane ? vsPhrase(Number(o.vs)) : '';
   const pl=$('#finPts');
   if(o.inLeague && o.points>0){   /* champagne = EARNED: gold only for real points (>0), self-enforcing canon */
     pl.className='finish-pts earned';
