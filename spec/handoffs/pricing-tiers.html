@@ -1,0 +1,333 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Cup Season — the fence, from the user's seat (internal)</title>
+<style>
+/* Companion to pricing-deck.html — same tokens (index.html:30–79). Self-contained. */
+:root{
+  --bg0:#0A0E0C; --bg1:#121710; --bg2:#1A201A;
+  --line:#252C24; --line2:#30372E;
+  --ink:#ECEEF2; --mut:#98A29A; --dim:#5E665E;
+  --pos:#43E07C; --neg:#FF5F56;
+  --gold:#D8B25A; --pine:#0E3B24; --brand:#2FA46A; --dawn:#63ADFF;
+  --r:16px; --rc:10px; --rs:24px;
+  --sans:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;
+  --mono:'IBM Plex Mono',ui-monospace,'SF Mono',Menlo,Consolas,monospace;
+  --serif:'Charter','Iowan Old Style','Palatino Linotype',Georgia,serif;
+  --shadow-rest:0 1px 2px rgba(0,0,0,.28);
+  --shadow-lift:0 18px 44px -12px rgba(0,0,0,.55);
+}
+html[data-theme="light"]{
+  --bg0:#EFF2EE; --bg1:#FBFCFA; --bg2:#E5EAE4;
+  --line:#D9DFD7; --line2:#C9D1C8;
+  --ink:#1A2620; --mut:#52625A; --dim:#8C9992;
+  --pos:#0E9B51; --neg:#CC4038; --gold:#9A7418;
+  --pine:#0E3B24; --brand:#15743F; --dawn:#2C6E9E;
+  --shadow-rest:0 1px 2px rgba(20,30,24,.10);
+  --shadow-lift:0 18px 44px -12px rgba(20,30,24,.18);
+}
+*{box-sizing:border-box; margin:0; padding:0;}
+body{font-family:var(--sans); background:var(--bg0); color:var(--ink); line-height:1.5; -webkit-font-smoothing:antialiased;}
+.slide{min-height:100svh; display:flex; flex-direction:column; justify-content:center; padding:56px 20px; position:relative;}
+.slide-inner{width:100%; max-width:920px; margin:0 auto;}
+.slideno{position:absolute; top:22px; left:24px; font-family:var(--mono); font-size:11px; letter-spacing:.16em; color:var(--dim);}
+.themebtn{position:fixed; top:16px; right:16px; z-index:50; font-family:var(--mono); font-size:11.5px; letter-spacing:.08em; color:var(--mut); background:var(--bg1); border:1px solid var(--line2); border-radius:999px; padding:8px 14px; cursor:pointer;}
+.themebtn:hover{color:var(--ink); border-color:var(--dim);}
+.eyebrow{font-family:var(--mono); font-size:11.5px; font-weight:500; letter-spacing:.16em; text-transform:uppercase; color:var(--dim); margin:0 0 14px;}
+h1{font-family:var(--serif); font-weight:600; letter-spacing:-.01em; font-size:clamp(32px,5.6vw,54px); line-height:1.08; margin-bottom:16px;}
+h2{font-family:var(--serif); font-weight:600; letter-spacing:-.01em; font-size:clamp(25px,4.2vw,38px); line-height:1.12; margin-bottom:12px;}
+.lede{font-size:16.5px; color:var(--mut); max-width:640px;}
+.lede b{color:var(--ink); font-weight:600;}
+.note{margin-top:22px; padding:12px 14px; border-left:2px solid var(--line2); font-family:var(--mono); font-size:12.5px; color:var(--dim); line-height:1.65;}
+.note b{color:var(--mut); letter-spacing:.08em;}
+.gold{color:var(--gold);} .pos{color:var(--pos);} .neg{color:var(--neg);} .mono{font-family:var(--mono);}
+/* ---- journey map ---- */
+.journey{margin-top:30px; overflow-x:auto; padding-bottom:8px;}
+.jtrack{display:flex; align-items:flex-start; min-width:680px; position:relative; padding-top:18px;}
+.jtrack::before{content:""; position:absolute; top:24px; left:4%; right:4%; height:2px; background:var(--line2);}
+.jstop{flex:1; position:relative; text-align:center; padding:0 6px;}
+.jdot{width:14px; height:14px; border-radius:50%; background:var(--bg2); border:2px solid var(--line2); margin:0 auto; position:relative; z-index:1;}
+.jdot.stated{border-color:var(--brand);}
+.jdot.ask{background:var(--brand); border-color:var(--brand); width:18px; height:18px; margin-top:-2px;}
+.jstop .when{font-family:var(--mono); font-size:10px; letter-spacing:.12em; text-transform:uppercase; color:var(--dim); margin-top:10px;}
+.jstop .what{font-size:13px; margin-top:4px; font-weight:600;}
+.jstop .money{font-family:var(--mono); font-size:11px; margin-top:4px; color:var(--dim); line-height:1.5;}
+.jstop .money.yes{color:var(--pos);}
+html[data-theme="light"] .jstop .money.yes{color:var(--brand);}
+/* ---- phones ---- */
+.mockrow{display:flex; gap:26px; flex-wrap:wrap; justify-content:center; margin-top:26px;}
+.mockcol{display:flex; flex-direction:column; gap:10px; align-items:center; max-width:360px;}
+.mocklbl{font-family:var(--mono); font-size:11px; letter-spacing:.14em; text-transform:uppercase; color:var(--dim); text-align:center; line-height:1.7;}
+.mocklbl b{color:var(--mut);}
+.phone{width:min(330px,92vw); border-radius:44px; padding:10px; background:var(--bg2); border:1px solid var(--line2); box-shadow:var(--shadow-lift); flex:none;}
+.phone.bad{filter:saturate(.55); position:relative;}
+.screen{border-radius:34px; overflow:hidden; background:var(--bg0); border:1px solid var(--line); padding:14px 14px 18px; min-height:430px; position:relative;}
+.statusbar{display:flex; justify-content:space-between; align-items:center; font-family:var(--mono); font-size:10px; color:var(--dim); padding:2px 6px 12px;}
+.apptitle{font-family:var(--mono); font-size:11px; letter-spacing:.16em; text-transform:uppercase; color:var(--dim); padding:0 2px 10px;}
+.s-eyebrow{font-family:var(--mono); font-size:10.5px; font-weight:500; letter-spacing:.16em; text-transform:uppercase; color:var(--dim); margin:13px 2px 7px;}
+.s-card{background:var(--bg1); border:1px solid var(--line); border-radius:var(--r); padding:12px 13px;}
+.s-card + .s-card{margin-top:8px;}
+.s-fine{font-size:11.5px; color:var(--dim); line-height:1.55; padding:8px 2px 0;}
+.s-fine b{color:var(--mut);}
+.s-hero{font-family:var(--serif); font-size:38px; font-weight:600; line-height:1; font-variant-numeric:tabular-nums; margin:2px 0 3px;}
+.s-k{font-family:var(--mono); font-size:10px; letter-spacing:.14em; text-transform:uppercase; color:var(--dim);}
+.s-m{font-family:var(--mono); font-size:11px; color:var(--mut); margin-top:2px;}
+.s-btn{display:flex; align-items:center; justify-content:center; margin-top:9px; min-height:40px; border-radius:var(--rc); font-size:13px; font-weight:600; background:var(--brand); color:#fff;}
+.s-btn.ghost{background:var(--bg2); color:var(--ink); border:1px solid var(--line2); font-weight:500;}
+.s-row{display:flex; justify-content:space-between; align-items:baseline; font-size:13px; padding:7px 2px; border-bottom:1px solid var(--line);}
+.s-row:last-child{border-bottom:none;}
+.s-row .pts{font-family:var(--mono); font-weight:600; font-variant-numeric:tabular-nums;}
+.s-row .nm b{font-weight:600;}
+.s-row .nm small{color:var(--dim); font-size:11px; margin-left:6px;}
+.s-post{font-size:12.5px; line-height:1.55; padding:10px 12px;}
+.s-post .who{font-family:var(--mono); font-size:10px; letter-spacing:.12em; text-transform:uppercase; color:var(--dim); margin-bottom:4px;}
+.s-tabs{display:flex; gap:4px; background:var(--bg2); border:1px solid var(--line2); border-radius:11px; padding:4px; margin-bottom:10px;}
+.s-tabs span{flex:1; text-align:center; font-size:11px; font-weight:600; color:var(--mut); padding:7px 4px; border-radius:8px;}
+.s-tabs span.on{background:var(--bg1); color:var(--ink); border:1px solid var(--line2);}
+.foundbadge{display:inline-flex; align-items:center; gap:7px; font-family:var(--mono); font-size:10.5px; font-weight:600; letter-spacing:.14em; text-transform:uppercase; color:var(--gold); border:1px solid color-mix(in srgb, var(--gold) 55%, var(--line)); background:color-mix(in srgb, var(--gold) 10%, var(--bg1)); border-radius:999px; padding:5px 11px;}
+.chip{display:inline-block; font-family:var(--mono); font-size:10.5px; letter-spacing:.06em; color:var(--mut); border:1px solid var(--line2); border-radius:999px; padding:4px 10px; margin:3px 3px 0 0;}
+.lockchip{display:inline-flex; align-items:center; gap:5px; font-family:var(--mono); font-size:10px; letter-spacing:.08em; color:var(--neg); border:1px dashed color-mix(in srgb, var(--neg) 55%, var(--line)); border-radius:8px; padding:3px 8px;}
+.banx{position:absolute; inset:0; display:flex; align-items:center; justify-content:center; pointer-events:none; z-index:3;}
+.banx span{font-family:var(--mono); font-size:12px; font-weight:600; letter-spacing:.18em; color:var(--neg); background:color-mix(in srgb, var(--bg0) 88%, transparent); border:2px solid var(--neg); border-radius:12px; padding:10px 16px; transform:rotate(-12deg); text-transform:uppercase;}
+.archbanner{display:flex; align-items:center; gap:8px; margin-top:9px; background:color-mix(in srgb, var(--brand) 12%, var(--bg1)); border:1px solid color-mix(in srgb, var(--brand) 40%, var(--line)); border-radius:var(--rc); padding:9px 11px; font-size:12px; line-height:1.5;}
+.rules{display:flex; flex-direction:column; gap:0; margin-top:20px;}
+.rule{display:flex; gap:14px; padding:13px 0; border-bottom:1px solid var(--line); align-items:baseline;}
+.rule:last-child{border-bottom:none;}
+.rule .n{font-family:var(--mono); font-size:11px; color:var(--dim); flex:0 0 22px;}
+.rule .t{font-size:14.5px;}
+.rule .t b{font-weight:600;}
+.rule .t small{display:block; color:var(--dim); font-size:12.5px; margin-top:2px; line-height:1.5;}
+.footer{font-family:var(--mono); font-size:11px; letter-spacing:.1em; color:var(--dim); text-align:center; padding:30px 16px 44px;}
+@media print{.slide{min-height:0; padding:28px 8px; page-break-after:always;} .themebtn{display:none;}}
+</style>
+</head>
+<body>
+<button class="themebtn" id="themeBtn" type="button">light&nbsp;/&nbsp;dark</button>
+
+<!-- ============ 1 · THE MONEY MAP ============ -->
+<section class="slide">
+  <div class="slideno">FENCE · 1/6</div>
+  <div class="slide-inner">
+    <div class="eyebrow">Companion to pricing-deck.html · D56 · internal</div>
+    <h1>A league's first year — every screen, one money moment</h1>
+    <p class="lede">The whole worry in one picture: across a league's entire first-year
+    journey, money is <b>stated</b> once and <b>asked for</b> once. Every other screen of
+    every other week is free and looks it.</p>
+    <div class="journey"><div class="jtrack">
+      <div class="jstop"><div class="jdot stated"></div><div class="when">Day 1</div><div class="what">Create league</div><div class="money">price <b>stated</b> ·<br>“first season free”</div></div>
+      <div class="jstop"><div class="jdot"></div><div class="when">Week 1</div><div class="what">Draft night</div><div class="money">no money UI</div></div>
+      <div class="jstop"><div class="jdot"></div><div class="when">Months 1–6</div><div class="what">Rounds · clashes · closes</div><div class="money">no money UI</div></div>
+      <div class="jstop"><div class="jdot"></div><div class="when">Season end</div><div class="what">Cup Final · recap</div><div class="money">no money UI</div></div>
+      <div class="jstop"><div class="jdot ask"></div><div class="when">Run it back</div><div class="what">Season 2</div><div class="money yes">the one ask · $79<br>Pro only</div></div>
+      <div class="jstop"><div class="jdot"></div><div class="when">Season 2+</div><div class="what">Same crew, new year</div><div class="money">no money UI</div></div>
+    </div></div>
+    <div class="note"><b>MEMBERS —</b> the ask is Pro-only. A member can play Cup Season
+    for years and never once meet a pricing surface. Their membership card states facts;
+    it never sells.</div>
+  </div>
+</section>
+
+<!-- ============ 2 · THE FREE GOLFER ============ -->
+<section class="slide">
+  <div class="slideno">FENCE · 2/6</div>
+  <div class="slide-inner">
+    <h2>Ring 1 — the golfer, free forever</h2>
+    <p class="lede">League-less Sam gets a <b>complete product</b>, not a demo: index engine,
+    every round, career record, live games. Zero locks, zero nags, nothing grayed out.
+    This is the hook (the ESPN model) — the app is worth keeping before any league exists.</p>
+    <div class="mockrow">
+      <div class="mockcol">
+        <div class="phone"><div class="screen">
+          <div class="statusbar"><span>9:41</span><span>CUP SEASON</span><span>▮▮▮</span></div>
+          <div class="apptitle">Home · Sam · no league</div>
+          <div class="s-card">
+            <div class="s-k">Your index</div>
+            <div class="s-hero">11.8</div>
+            <div class="s-m">built from your last 12 rounds · WHS-style</div>
+          </div>
+          <div class="s-card">
+            <div class="s-row"><span class="nm"><b>Sat · Papago</b><small>84 · beat your number</small></span><span class="pts pos">−1.4</span></div>
+            <div class="s-row"><span class="nm"><b>Sun · Encanto</b><small>88 · steady</small></span><span class="pts">+0.6</span></div>
+            <div class="s-row"><span class="nm"><b>Wed · Aguila</b><small>82 · career round 🎉</small></span><span class="pts pos">−3.1</span></div>
+          </div>
+          <div class="s-btn">Post a round</div>
+          <div class="s-btn ghost">Start something — match · skins · league</div>
+          <div class="s-fine"><b>No locks anywhere.</b> Your index, record, and rounds are
+          yours for life — free forever, league or no league.</div>
+        </div></div>
+        <div class="mocklbl"><b>Sam · league-less golfer</b><br>complete product · no upsell chrome</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 3 · THE MEMBER ============ -->
+<section class="slide">
+  <div class="slideno">FENCE · 3/6</div>
+  <div class="slide-inner">
+    <h2>Ring 2 — the member, who never meets a paywall</h2>
+    <p class="lede">Marcus is in a passholder league. His entire experience — standings,
+    board, clashes, trophies — contains <b>no pricing surface at all</b>. The one place
+    money appears in his app is the pot he's playing for.</p>
+    <div class="mockrow">
+      <div class="mockcol">
+        <div class="phone"><div class="screen">
+          <div class="statusbar"><span>9:41</span><span>SUNDAY CUP</span><span>▮▮▮</span></div>
+          <div class="apptitle">League Room · Standings</div>
+          <div class="s-tabs"><span class="on">Standings</span><span>Board</span><span>Schedule</span><span>Pot</span></div>
+          <div class="s-card">
+            <div class="s-row"><span class="nm"><b>1 · Squad Rojas</b><small>leads by 25</small></span><span class="pts gold">312</span></div>
+            <div class="s-row"><span class="nm"><b>2 · Squad Chen</b><small>25 back · closing</small></span><span class="pts">287</span></div>
+            <div class="s-row"><span class="nm"><b>3 · Squad Ortiz</b><small>41 back</small></span><span class="pts">271</span></div>
+          </div>
+          <div class="s-card s-post">
+            <div class="who">This week · the clash</div>
+            <b>Marcus v Jerecho</b> — rivalry game, 3–2 all-time. Best band of the week
+            takes the headline.
+          </div>
+          <div class="s-fine">Every number taps to the rounds that made it. Nothing here
+          asks Marcus for anything — the pass was one line on the buy-in he already paid
+          his Pro.</div>
+        </div></div>
+        <div class="mocklbl"><b>Marcus · member, season 2</b><br>paid league · zero pricing UI in his life</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 4 · WHAT THE PASS BUYS ============ -->
+<section class="slide">
+  <div class="slideno">FENCE · 4/6</div>
+  <div class="slide-inner">
+    <h2>Ring 3 — the season machine (what $79 actually buys)</h2>
+    <p class="lede">The pass never buys the golfer's own golf back — it buys the league a
+    <b>living season</b>: the draft, the table that moves, month closes that arrive like
+    episodes, the clash, the Cup Final, the recap. The lens, not the facts.</p>
+    <div class="mockrow">
+      <div class="mockcol">
+        <div class="phone"><div class="screen">
+          <div class="statusbar"><span>9:41</span><span>SUNDAY CUP</span><span>▮▮▮</span></div>
+          <div class="apptitle">Board · month close</div>
+          <div class="s-card s-post">
+            <div class="who">Cup Season · Jul 1</div>
+            <b>JUNE CLOSED — the podium:</b> 🥇 Squad Rojas (118) · MVP Dana (+41) ·
+            biggest climb: Squad Chen, 4 spots. August opens with the lead at 25.
+          </div>
+          <div class="s-card s-post">
+            <div class="who">Cup Season · draft night</div>
+            <b>THE DRAW IS LIVE</b> — squads reveal card by card. First out:
+            <b>Marcus → Squad Rojas.</b>
+          </div>
+          <div class="s-card s-post">
+            <div class="who">Cup Season · week 9</div>
+            <b>THE CUP CHANGED HANDS.</b> Squad Chen takes the lead by 3.
+          </div>
+          <div class="s-fine"><b>This is the product the Pro pays for</b> — a season that
+          runs itself and narrates itself. Posting rounds, the index, live games: those
+          were never for sale.</div>
+        </div></div>
+        <div class="mocklbl"><b>The passholder league's board</b><br>the season machine, mid-story</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 5 · THE LAPSE ============ -->
+<section class="slide">
+  <div class="slideno">FENCE · 5/6</div>
+  <div class="slide-inner">
+    <h2>The lapse — archive, never ransom</h2>
+    <p class="lede">League finishes season 1, doesn't run it back. Left: what we ship —
+    everything they built stays readable and shareable; only the lens sleeps. Right: the
+    freemium anti-pattern we refuse — locks on their own memories. For a new, unverified
+    service, the right phone is the one that confirms every fear.</p>
+    <div class="mockrow">
+      <div class="mockcol">
+        <div class="phone"><div class="screen">
+          <div class="statusbar"><span>9:41</span><span>SUNDAY CUP</span><span>▮▮▮</span></div>
+          <div class="apptitle">League Room · archive</div>
+          <div class="s-card">
+            <div class="s-k">The 2026 season · final</div>
+            <div style="font-family:var(--serif); font-size:19px; font-weight:600; margin-top:5px;" class="gold">🏆 Marcus — champion</div>
+            <div class="s-m">standings · every round · the recap — all still here</div>
+          </div>
+          <div class="s-card s-post">
+            <div class="who">Board · yesterday</div>
+            <b>Dana:</b> boys, Saturday scramble at Papago? board still works, obviously
+          </div>
+          <div class="archbanner"><span><b>The season sleeps; the story stays.</b> Run it
+          back whenever — $79 wakes the table, the clash, and season 3 of the record.</span></div>
+          <div class="s-btn ghost">Run it back — start the 2027 season</div>
+          <div class="s-fine">Rounds keep posting to every golfer's own record. Live games
+          still play. Trophies stay won. Nothing is taken back.</div>
+        </div></div>
+        <div class="mocklbl"><b>What we ship</b> · archive mode<br>read forever · board alive · one calm door back</div>
+      </div>
+      <div class="mockcol">
+        <div class="phone bad"><div class="banx"><span>Never this</span></div><div class="screen">
+          <div class="statusbar"><span>9:41</span><span>SUNDAY CUP</span><span>▮▮▮</span></div>
+          <div class="apptitle">League Room · expired</div>
+          <div class="s-card" style="opacity:.55;">
+            <div class="s-k">The 2026 season</div>
+            <div style="font-size:13px; margin-top:5px;">🔒 Standings hidden — <u>upgrade to view</u></div>
+          </div>
+          <div class="s-card" style="opacity:.55;">
+            <div style="font-size:13px;">🔒 Your trophies are locked</div>
+            <div class="s-m"><span class="lockchip">🔒 PRO ONLY</span> <span class="lockchip">🔒 EXPIRED</span></div>
+          </div>
+          <div class="s-card" style="opacity:.55;">
+            <div style="font-size:13px;">🔒 Board frozen — subscribe to keep chatting</div>
+          </div>
+          <div class="s-btn" style="background:var(--neg);">UPGRADE NOW — 50% OFF ⏰</div>
+          <div class="s-fine" style="color:var(--neg); opacity:.8;">Hostage UI: their own
+          memories behind a lock, urgency timers, shame chrome. The exact move that makes
+          an unverified service look like a trap.</div>
+        </div></div>
+        <div class="mocklbl"><b>The anti-pattern</b> · what freemium would do<br>refused — grandfather law, no-ransom law</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 6 · THE RULES ============ -->
+<section class="slide">
+  <div class="slideno">FENCE · 6/6</div>
+  <div class="slide-inner">
+    <h2>The fence rules (canon when the enforcement builds)</h2>
+    <div class="rules">
+      <div class="rule"><span class="n">01</span><span class="t"><b>The schema is the fence.</b>
+      <small>Rounds belong to profiles (free facts); leagues are scoring lenses (the pass). The pass gates the lens, never the facts — post-007 architecture already enforces it.</small></span></div>
+      <div class="rule"><span class="n">02</span><span class="t"><b>Free wears zero locks.</b>
+      <small>No grayed buttons, no 🔒 chrome, no upgrade nags anywhere in the free experience. The league-less golfer gets a complete product.</small></span></div>
+      <div class="rule"><span class="n">03</span><span class="t"><b>The ask is an event, not ambient.</b>
+      <small>One person (the Pro) · one moment (run it back) · once a season. Members never see a paywall, ever.</small></span></div>
+      <div class="rule"><span class="n">04</span><span class="t"><b>Archive, never ransom.</b>
+      <small>A lapsed league keeps everything it built — readable, shareable, board alive, rounds still posting to profiles. Only new season machinery sleeps.</small></span></div>
+      <div class="rule"><span class="n">05</span><span class="t"><b>The grandfather law.</b>
+      <small>Nothing that ever shipped free moves behind the pass later. The fence moves only by adding new premium things — never by demotion.</small></span></div>
+      <div class="rule"><span class="n">06</span><span class="t"><b>The funnel is never fenced.</b>
+      <small>Live games, settlement cards, claim links, standalone events: free — they are acquisition, not product to monetize.</small></span></div>
+      <div class="rule"><span class="n">07</span><span class="t"><b>The held door: a Pro Shop layer, later.</b>
+      <small>Power-organizer features (draft engines, multi-league dashboard, advanced Ryder) may become a second SKU. Base pass stays painless; the layer is upsell, never extraction.</small></span></div>
+    </div>
+    <div class="note"><b>STATUS —</b> presentation canon from the pricing arc discussion,
+    2026-07-21. Needs a decision-log entry (fence + grandfather + no-ransom) before the
+    season-2 enforcement build; nothing is enforced at launch — everything is free anyway.</div>
+  </div>
+</section>
+
+<div class="footer">CUP SEASON · THE FENCE · COMPANION TO PRICING-DECK.HTML · INTERNAL · 2026-07-21</div>
+
+<script>
+(function(){
+  var btn=document.getElementById('themeBtn'), root=document.documentElement;
+  btn.addEventListener('click',function(){
+    root.dataset.theme = root.dataset.theme==='dark' ? 'light' : 'dark';
+  });
+})();
+</script>
+</body>
+</html>
