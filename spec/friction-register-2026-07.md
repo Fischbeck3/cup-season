@@ -9,37 +9,39 @@ session; this file is the only write. Read-only against PROD Supabase throughout
 
 ## Executive summary (10 lines)
 
-1. **New findings: 6** — P0 ×0, P1 ×2, P2 ×1, P3 ×3. Plus a large "verified
+1. **New findings: 7** — P0 ×0, P1 ×3, P2 ×1, P3 ×3. Plus a large "verified
    clean" set and cross-refs to the launch audit / design reviews (nothing
    re-filed).
 2. The product is in good shape: signed-out boot and the full demo diorama
    (Home, You, post/live/draft, the League Room's 5 tabs) render **clean in
    light + dark, at 375 and 1280** — no `undefined`/`NaN`/`${}` leaks, **no
    horizontal overflow on any view**, no stray prod calls.
-3. **Scariest #1 — F-001 (P1):** the demo's "Start a league" CTA fires the real
+3. **Scariest #1 — F-007 (P1):** a **live production error on real (iOS) users**,
+   fired twice on 2026-07-21 (`client_events`): `Can't find variable: memName` —
+   a classic↔module bridge miss (`const memName` lives in the module, is called
+   from a classic block, and is never `window.*`-bridged). Silently breaks board
+   name / kudos / comment rendering for signed-in users. WebKit-only phrasing =
+   iOS, the submission target.
+4. **Scariest #2 — F-001 (P1):** the demo's "Start a league" CTA fires the real
    `create_league` RPC (no `!state.demo`/auth guard) → prod round-trip → a raw
-   Postgres error shown to the user: *"null value in column commissioner_id …"*.
-   Reproduced live. The demo IS the acquisition tour (design-review F7), so this
-   is the worst thing a prospect can tap. No data risk (insert fails atomically).
-4. **Scariest #2 — F-002 (P1):** 3 **new** unescaped user-string sinks the
+   Postgres error on the acquisition tour. Reproduced live. No data risk (insert
+   fails atomically).
+5. **Scariest #3 — F-002 (P1):** 3 **new** unescaped user-string sinks the
    launch audit didn't list (Ryder team names ×2, friend `display_name` in tag
-   chips). The launch audit's SEC-C6 esc() cluster is otherwise **now fixed** —
-   these are the residue of the same account-takeover class.
-5. **Scariest #3 — F-003 (P2):** ~70 sites surface raw backend `.message`
-   strings to users (Postgres/PostgREST jargon in toasts + auth screens);
-   expands the launch audit's "~20 toasts" note with exact lines.
-6. Positive confirmations worth banking: **legal.html is live** (Privacy +
+   chips); the SEC-C6 esc() cluster is otherwise **now fixed**. Plus **F-003
+   (P2):** ~70 sites surface raw backend `.message` jargon to users.
+6. **`client_events` mined** (Docker back up): 20 events / 4 users / since
+   2026-07-17. The **only** error rows were the two F-007 rejections. Funnel
+   hint (small N, watch not file): 13 `post_open` → 4 `post_submit` across 4 → 2
+   users.
+7. Positive confirmations worth banking: **legal.html is live** (Privacy +
    Terms + Prize-Pool disclaimer — closes the launch-audit App-Store blocker);
    **all 71 client RPCs are granted** (no silent 403s); sw.js cache ⊆ dist
    allowlist; OTP `maxlength=10`; date landmines clean; demo gating otherwise
    airtight.
-7. **Source gap:** `client_events` (real-user error history) could NOT be mined
-   — `supabase db dump` needs Docker (down this session) and no on-disk backup
-   carries the table. Recommend the owner run it (see §Evidence, source 4).
-8. **Recommended Batch 1 (client-only, no migration, ~½ day):** **F-001 +
-   F-003** — guard `createLeague` (route to sign-in in demo/signed-out) and
-   humanize the error surface. Both harden the demo-as-tour and every error
-   state; highest embarrassment-reduction per hour.
+8. **Recommended Batch 1 (client-only, no migration, ~½ day):** **F-007 + F-001
+   + F-003** — bridge `memName` (one line, stops a live iOS error), guard
+   `createLeague`, humanize the error surface. Highest value per hour.
 9. **Batch 2 (fold into the launch-audit hardening pass):** **F-002** — 3
    `esc()` wraps, ships with the SEC-C6 security work.
 10. **Batch 3 (polish):** **F-004/F-005/F-006** — bridge `window.E`, empty
@@ -77,6 +79,20 @@ session; this file is the only write. Read-only against PROD Supabase throughout
 - **Effort:** S — 3 wraps. **Middot caveat:** line **8046 contains 2 literal `·` (U+00B7)** — anchor the Edit on that byte, not `·` (nearby lines in the same function use the `·` escape form; file is mixed).
 - **Batch:** 2 (ship with the SEC-C6 hardening pass). Inherits that finding's launch-blocker status.
 - **Dedup:** extends launch-audit SEC-C6 (cite). Not a re-file — the SEC-C6 lines are now escaped; these three are new.
+
+### F-007 · `memName` referenced across the classic↔module boundary, unbridged → live iOS `ReferenceError` · **P1**
+- **Surface:** signed-in board / social render (chat board names, kudos attribution, comments) · real users · **`client_events` + code-read**.
+- **Repro (real-user evidence + code-read):**
+  1. `client_events` holds 2 `client_error` rows, both `{"msg":"async: Can't find variable: memName","kind":"rejection"}`, at 2026-07-21 00:30 and 02:17 UTC — real signed-in users, not this session.
+  2. `memName` is a top-level **`const`** in the **module** block (`index.html:9696`; module spans `<script type="module">` 8544-12070).
+  3. It is called from the **classic** block (2837-8538) at `:3546` (`myBoardName`), `:3614` and `:3616` (`fetchSocial` → kudos/comment name mapping).
+  4. A top-level `const` is block-scoped to its own `<script>` and is **not** a `window` property, so classic code cannot see it; there is **no `window.memName =` bridge** anywhere. Bare `memName(...)` in classic → `ReferenceError` → WebKit renders it "Can't find variable: memName" (Chrome/V8 would say "memName is not defined"), caught by the global `unhandledrejection` handler.
+- **Evidence:** `client_events` (event=`client_error`, ×2, today). Script-block boundaries: classic `2837-8538`, module `8544-12070`. `memName` def at `:9696`; unbridged (grep shows no `window.memName`). Same failure class as the historical `window.sb` demo-fallback landmine (CLAUDE.md).
+- **Suspected cause:** `index.html:9696` `const memName` not exposed to classic; classic callers at `:3546/3614/3616` assume it's global. The `.toUpperCase()`-style siblings elsewhere are in-module (fine); only the three classic callers throw.
+- **Impact:** silent — the affected social render aborts (names don't resolve on the board / kudos / comments) for whoever hits the path; no visible crash, so it went unnoticed until instrumentation caught it. WebKit-only phrasing = **iOS users**, the submission target.
+- **Effort:** S — one bridge line in the module (`window.memName = memName;`) next to the existing `window.CS/sb/…` bridges; classic callers then resolve it. Verified the siblings do NOT need it: `memPid`/`memMk`/`memCi` (`:9700/9701/9727`) are module-defined AND only called module-side (`:9739-9960`) — `memName` is the sole cross-boundary caller.
+- **Batch:** 1 (cheapest, stops a live error).
+- **Dedup:** NOT the already-owned boot rejection ("reading 'n'" — different message); genuinely new. Same landmine *class* as CLAUDE.md's bridge note, new instance.
 
 ### F-003 · ~70 raw backend error strings surfaced to users · **P2**
 - **Surface:** toasts + auth/boot screens across the app · all viewports/themes · code-read + one live instance (F-001).
@@ -161,14 +177,18 @@ session; this file is the only write. Read-only against PROD Supabase throughout
    exists anywhere in the tree (only the `feedback`/`pilot_instrumentation`
    migrations). Tester feedback is captured in design-review-2026-07-20 Part II
    (W/T/N) — cited, not re-filed.
-4. **`client_events` — BLOCKED (source gap).** `supabase db dump` on this CLI
-   shells out to a Docker image for the dump role; Docker Desktop is down
-   (`LegacyDockerRunError`). No on-disk backup carries the table
-   (`pre_pilot_backup_2026-07-17.sql` has no `client_events` COPY;
-   `pre_pilot_backup.sql` is 0 bytes). **Recommend:** owner runs
-   `supabase db dump --linked --data-only -s public` (Docker up) or queries
-   `client_events` where the event kind is an error, to mine real-user failures.
-   The one live client error this session (F-001) is filed.
+4. **`client_events` — DONE (Docker back up).**
+   `supabase db dump --linked --data-only -s public` (read-only; dumped to local
+   scratchpad, PII never surfaced). Table = **20 rows / 4 users / since
+   2026-07-17** (instrumentation's first day). Columns: `id, profile_id, event,
+   props, created_at`. Distribution: 13 `post_open`, 4 `post_submit`, 1
+   `scan_post`, **2 `client_error`**. Both error rows are the **F-007**
+   `memName` rejection (2026-07-21 00:30 + 02:17 UTC) — the audit's most
+   valuable single finding came from here. Funnel observation (small N — noted,
+   not filed): 13 `post_open` → 4 `post_submit` across 4 → 2 distinct users;
+   worth watching once volume grows (post-flow completion). (Earlier this
+   session the dump was blocked — the CLI shells out to Docker for the dump
+   role and Docker was down; re-run succeeded once it was up.)
 5. **Console + network — DONE.** Signed-out boot: no console errors, 3× GET
    index.html (200) only. Demo walk: **no supabase requests** (guardrail
    confirmed) + the F-001 create error. Known pre-existing boot async rejection
