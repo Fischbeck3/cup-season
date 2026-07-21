@@ -292,6 +292,12 @@ tr.cutrow td{
   font-family:var(--mono); font-size:11px; letter-spacing:.16em; text-transform:uppercase;
   color:var(--gold); text-align:center; background:rgba(233,190,98,.04);
 }
+/* F14 2.3: standings go full-bleed — the table owns the column's horizontal
+   edges instead of sitting in a card gutter. Row separators/padding are
+   untouched (.tbl td keeps its own inset); only the outer frame drops. A
+   plain class (not a .card modifier) so there's no cascade to fight in
+   either theme or inside .room-dusk — nothing else targets it. */
+.tblwrap{background:none; border:none; padding:8px 0 2px;}
 
 /* ============ feed ============ */
 .round{
@@ -1634,6 +1640,20 @@ html[data-theme="light"] .room-dusk .btn:not(.dark):not(.gold):not(.apple){color
 .ob-hero h1, #homeGreeting b{ font-family:var(--serif); letter-spacing:-.01em; }
 .mono, .tbl, .bands, .trio b, .codebox{ font-variant-numeric:tabular-nums; }
 
+/* F14 2.3: hero numbers — the pot total and your index step up from the
+   shared serif-stat voice above into a bigger ceremony display. Named
+   sites only: On the line, the stakes/pot panel, You-tab INDEX, Home's
+   Your index tile. Compound selectors outrank each site's own sizing rule
+   so the class wins the cascade without !important; everything else in
+   .stat/.purse/.ontheline (week count, counting rounds, etc.) is untouched. */
+.stat .v.heronum,
+.ontheline .oa.heronum,
+.purse .amt.heronum,
+.heronum{
+  font-family:var(--serif); font-weight:700; font-size:36px;
+  font-variant-numeric:tabular-nums; line-height:1;
+}
+
 /* announcements: the Pro's voice sits above the noise */
 .annrow{
   margin:10px 0; padding:11px 14px; border-radius:12px;
@@ -1986,7 +2006,7 @@ html[data-theme="light"] .room-dusk .btn:not(.dark):not(.gold):not(.apple){color
           <div style="display:flex; align-items:center; gap:10px;">
             <span id="youMk" style="color:var(--pos)"></span>
             <div><b id="youName" style="font-size:16px">Your card</b><div class="fine" id="youMeta" style="padding:0"></div><div class="fine" id="youAnchor" style="padding:2px 0 0; color:var(--dim)"></div></div>
-            <div style="margin-left:auto; text-align:right"><div class="fine" style="padding:0">INDEX</div><b id="youIdx" class="mono" style="font-size:18px">—</b></div>
+            <div style="margin-left:auto; text-align:right"><div class="fine" style="padding:0">INDEX</div><b id="youIdx" class="heronum">—</b></div>
             <button class="mini" id="youProfile" style="margin-left:10px" aria-label="Card & settings" title="Card & settings">⚙</button>
           </div>
         </div>
@@ -2506,7 +2526,7 @@ html[data-theme="light"] .room-dusk .btn:not(.dark):not(.gold):not(.apple){color
         <div class="stats">
           <div class="stat"><div class="k">Season</div><div class="v"><span id="statWk">W18</span> <small>/ <span id="wkTotal2">24</span></small></div><div class="d fl" id="statFinal">Cup Final · final 4 wks</div></div>
           <div class="stat"><div class="k">The pot</div><div class="v gold" id="chipPot">$525</div><div class="d fl" id="paidChip">5/7 buy-ins in</div></div>
-          <div class="stat"><div class="k">Your index</div><div class="v" id="statIdx">12.4</div><div class="d up" id="statIdxD">▼ 0.3 this month</div></div>
+          <div class="stat"><div class="k">Your index</div><div class="v heronum" id="statIdx">12.4</div><div class="d up" id="statIdxD">▼ 0.3 this month</div></div>
           <div class="stat"><div class="k">Counting rounds</div><div class="v" id="statCount">3 <small>/ 4</small></div><div class="d fl" id="statCountD">This month · best 4 count</div></div>
         </div>
 
@@ -2521,7 +2541,7 @@ html[data-theme="light"] .room-dusk .btn:not(.dark):not(.gold):not(.apple){color
         <button class="ontheline" data-go="pot">
           <div>
             <div class="ok">On the line</div>
-            <div class="oa" id="lineAmt">$525</div>
+            <div class="oa heronum" id="lineAmt">$525</div>
           </div>
           <div class="os" id="lineSplit">CHAMPS $315 · RUNNER-UP $131 · POINTS KING $79</div>
           <span class="go">→</span>
@@ -2538,7 +2558,7 @@ html[data-theme="light"] .room-dusk .btn:not(.dark):not(.gold):not(.apple){color
 
           <div>
             <div class="eyebrow">Standings</div>
-            <div class="card" style="padding:10px 12px 4px">
+            <div class="tblwrap">
               <div class="standStory" id="standingsStory"></div>
               <table class="tbl" id="standings"></table>
               <div class="scenLine" id="scenarioLine" style="display:none"></div>
@@ -2553,7 +2573,7 @@ html[data-theme="light"] .room-dusk .btn:not(.dark):not(.gold):not(.apple){color
           <div class="p"><b id="awImp">—</b><span id="awImpS">Most Improved</span></div>
           <div class="p"><b id="awIron">—</b><span id="awIronS">Iron Man</span></div>
         </div>
-        <div class="card league-only" style="padding:10px 12px 4px">
+        <div class="tblwrap league-only">
           <table class="tbl" id="indTable"></table>
         </div>
         <p class="fine league-only">Points King takes <span id="kingPct">15</span>% of the pot at season's end. Most Improved is index drop since Week 1; Iron Man is most rounds posted. All three run in parallel with the squad race — bylaws §4.</p>
@@ -2591,7 +2611,7 @@ html[data-theme="light"] .room-dusk .btn:not(.dark):not(.gold):not(.apple){color
             <div class="eyebrow" style="margin-top:0">Season stakes</div>
             <div class="purse">
               <div class="k">The pot</div>
-              <div class="amt" id="potAmt">$525</div>
+              <div class="amt heronum" id="potAmt">$525</div>
               <div class="m" id="potMath">7 × $75 buy-in · locked before W1</div>
             </div>
             <div class="trip">
