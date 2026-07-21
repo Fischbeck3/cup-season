@@ -833,8 +833,26 @@ input.f::-webkit-outer-spin-button, input.f::-webkit-inner-spin-button{-webkit-a
   padding:12px 13px; margin-bottom:8px;
 }
 .fcard .round{border:none; background:none; padding:0; margin:0;}
-/* photos arc: the round's photo rides inside the story card */
-.fphoto{display:block; width:100%; max-height:320px; object-fit:cover; border-radius:10px; margin-top:9px; border:1px solid var(--line);}
+/* photos arc, task 3.2: the round's photo becomes the story card's ground —
+   Strava's lesson, the effort IS the content. Three classes (.fcard .round
+   .has-photo) out-specify the zeroed .fcard .round rule just above so padding
+   comes back for the overlaid text. .room-dusk (added alongside .has-photo in
+   the template) supplies the light-ink-regardless-of-theme tokens — the same
+   mechanism the ceremony surfaces use; a photo card is its own room too. The
+   scrim's rgba(10,14,12,*) is --bg0 in decimal, so the card's darkest edge
+   always resolves to the same dusk floor no matter the active theme. */
+.fcard .round.has-photo{
+  position:relative; overflow:hidden;
+  min-height:200px; align-items:flex-end;
+  padding:11px 13px; border-radius:10px;
+  background-size:cover; background-position:center;
+}
+.fcard .round.has-photo::before{
+  content:""; position:absolute; inset:0; border-radius:inherit;
+  background:linear-gradient(180deg, rgba(10,14,12,.15) 0%, rgba(10,14,12,.78) 100%);
+  pointer-events:none;
+}
+.fcard .round.has-photo>*{position:relative; z-index:1;}
 /* the round object detail sheet (scheduled-rounds arc) */
 .rsheet .rs-course{margin:2px 0 10px;}
 .rsheet .rs-course b{font-size:19px; display:block; letter-spacing:-.01em;}
@@ -3809,8 +3827,15 @@ function renderFeedFull(force){
           : r.month_rank<=capN
             ? `<span class="ok">COUNTING #${r.month_rank} THIS MONTH</span>`
             : `<span class="dim">BUMPED — OUTSIDE THE BEST ${capN===Infinity?'':capN} THIS MONTH</span>`;
+        /* photos arc, task 3.2: a photo becomes the card's ground rather than
+           an attachment below it — .has-photo carries the background-image +
+           scrim (CSS), .room-dusk forces light ink regardless of theme (same
+           mechanism the ceremony surfaces use), .tap wires the a11y auto-stamp
+           (role/tabindex/Enter-Space) and the hover affordance for free. No
+           photo: the two ternaries both fall to '', so the div is byte-for-byte
+           the plain <div class="round"> from before this change. */
         el.insertAdjacentHTML('beforeend',`
-        <div class="fcard"><div class="round">
+        <div class="fcard"><div class="round${r.photo_url?' has-photo room-dusk tap':''}"${r.photo_url?` style="background-image:url('${esc(r.photo_url)}')" data-photo-open="${esc(r.photo_url)}"`:''}>
           <span class="bar" style="background:${SQHEX[f.ci]}"></span>
           <div class="body">
             <div class="l1">${esc(f.who||'—')}</div>
@@ -3820,7 +3845,7 @@ function renderFeedFull(force){
           </div>
           ${r.pvi!=null?`<span class="pvi ${up?'up':'dn'}">${up?'+':''}${Number(r.pvi).toFixed(1)}</span>`:''}
           ${r.points!=null?`<div class="pts">${r.points}<small>PTS</small></div>`:''}
-        </div>${r.photo_url?`<img class="fphoto" src="${esc(r.photo_url)}" alt="Round photo" loading="lazy">`:''}${socialBar(f,fi)}</div>`);
+        </div>${socialBar(f,fi)}</div>`);
         return;
       }
       el.insertAdjacentHTML('beforeend',`<div class="sysrow">◆ ${esc(easeCaps(f.txt||''))}</div>`);
@@ -3847,6 +3872,13 @@ function renderFeedFull(force){
       </div>${socialBar(f,fi)}</div>`);
     }
   });
+  /* photos arc, task 3.2: tap the photo ground to open it full-size — the
+     card itself crops (cover) for layout, this is the uncropped view. Reuses
+     the codebase's target=_blank/rel=noopener pattern (see the legal-links
+     footer) rather than a bespoke lightbox. */
+  el.querySelectorAll('[data-photo-open]').forEach(c=>c.addEventListener('click',()=>{
+    window.open(c.dataset.photoOpen, '_blank', 'noopener');
+  }));
   wireSocial(el);
   socialUiRestore(el, uiS);
   requestAnimationFrame(()=>{ el.scrollTop = (force||atBottom) ? el.scrollHeight : prevTop; });
