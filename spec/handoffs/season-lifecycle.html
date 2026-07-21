@@ -1,0 +1,296 @@
+<title>Cup Season — a season, start to finish</title>
+<style>
+  :root{
+    --bg:#F1F3EE; --card:#FDFDFB; --card2:#F7F8F4; --ink:#182119; --mut:#5C6A5E;
+    --line:#DDE2D9; --line2:#CCD3C8; --gold:#8F6E22; --goldbg:#F5EEDD; --green:#2E5D46;
+    --greenbg:#E7EEE8; --neg:#9C3E2E; --rail:#C8CFC4; --shadow:0 1px 3px rgba(24,33,25,.07);
+    --serif:Georgia,'Iowan Old Style','Times New Roman',serif;
+    --sans:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+  }
+  @media (prefers-color-scheme: dark){ :root{
+    --bg:#0C0E0D; --card:#141816; --card2:#191E1B; --ink:#EAEDE7; --mut:#98A499;
+    --line:#252B26; --line2:#323A33; --gold:#D8B25A; --goldbg:#241E10; --green:#7FA98F;
+    --greenbg:#16211B; --neg:#D08A7B; --rail:#2C332D; --shadow:0 1px 3px rgba(0,0,0,.4);
+  }}
+  :root[data-theme="dark"]{
+    --bg:#0C0E0D; --card:#141816; --card2:#191E1B; --ink:#EAEDE7; --mut:#98A499;
+    --line:#252B26; --line2:#323A33; --gold:#D8B25A; --goldbg:#241E10; --green:#7FA98F;
+    --greenbg:#16211B; --neg:#D08A7B; --rail:#2C332D; --shadow:0 1px 3px rgba(0,0,0,.4);
+  }
+  :root[data-theme="light"]{
+    --bg:#F1F3EE; --card:#FDFDFB; --card2:#F7F8F4; --ink:#182119; --mut:#5C6A5E;
+    --line:#DDE2D9; --line2:#CCD3C8; --gold:#8F6E22; --goldbg:#F5EEDD; --green:#2E5D46;
+    --greenbg:#E7EEE8; --neg:#9C3E2E; --rail:#C8CFC4; --shadow:0 1px 3px rgba(24,33,25,.07);
+  }
+  body{background:var(--bg); color:var(--ink); font-family:var(--sans); line-height:1.55; margin:0;}
+  .wrap{max-width:880px; margin:0 auto; padding:48px 20px 80px;}
+  .eyebrow{font-size:11px; letter-spacing:.14em; font-weight:700; color:var(--green); text-transform:uppercase;}
+  h1{font-family:var(--serif); font-size:clamp(30px,5.5vw,44px); line-height:1.12; margin:10px 0 8px; text-wrap:balance; font-weight:600;}
+  .sub{color:var(--mut); font-size:15px; max-width:56ch; margin:0;}
+  h2{font-family:var(--serif); font-size:23px; font-weight:600; margin:0 0 4px; text-wrap:balance;}
+  .lede{color:var(--mut); font-size:14px; margin:0 0 18px; max-width:62ch;}
+  .fine{color:var(--mut); font-size:12.5px;}
+  .num{font-variant-numeric:tabular-nums;}
+
+  /* the timeline rail */
+  .phase{display:grid; grid-template-columns:52px 1fr; gap:0 18px; margin-top:44px;}
+  .rail{position:relative;}
+  .rail::before{content:""; position:absolute; left:25px; top:44px; bottom:-44px; width:2px; background:var(--rail);}
+  .phase:last-of-type .rail::before{display:none;}
+  .dot{width:52px; height:52px; border-radius:50%; background:var(--card); border:2px solid var(--line2);
+       display:flex; align-items:center; justify-content:center; font-family:var(--serif); font-size:19px;
+       font-weight:700; position:relative; z-index:1; box-shadow:var(--shadow);}
+  .dot.gold{border-color:var(--gold); color:var(--gold);}
+  .when{font-size:11px; letter-spacing:.1em; text-transform:uppercase; font-weight:700; color:var(--mut); margin:2px 0 2px;}
+  .when b{color:var(--gold);}
+
+  .card{background:var(--card); border:1px solid var(--line); border-radius:14px; padding:18px 20px; box-shadow:var(--shadow); margin-top:12px;}
+  .card + .card{margin-top:10px;}
+  table{border-collapse:collapse; width:100%; font-size:13.5px;}
+  th{text-align:left; font-size:11px; letter-spacing:.09em; text-transform:uppercase; color:var(--mut); font-weight:700; padding:6px 10px; border-bottom:1px solid var(--line2);}
+  td{padding:7px 10px; border-bottom:1px solid var(--line);}
+  tr:last-child td{border-bottom:none;}
+  .pts{font-family:var(--serif); font-weight:700; color:var(--gold); font-size:16px;}
+  .tablewrap{overflow-x:auto;}
+
+  /* formation diagram */
+  .form{display:grid; grid-template-columns:repeat(4,1fr); gap:10px; margin-top:6px;}
+  .squad{background:var(--card2); border:1px solid var(--line); border-radius:12px; padding:10px 12px; text-align:center;}
+  .squad .nm{font-family:var(--serif); font-weight:700; font-size:14px;}
+  .squad .mem{font-size:12px; color:var(--mut); margin-top:4px; line-height:1.7;}
+  .cap{color:var(--green); font-weight:600;}
+
+  /* best-4 counting strip */
+  .rounds{display:flex; gap:6px; flex-wrap:wrap; margin-top:8px;}
+  .r{border:1px solid var(--line2); border-radius:9px; padding:6px 9px; font-size:12px; text-align:center; min-width:52px; background:var(--card2);}
+  .r b{display:block; font-family:var(--serif); font-size:15px;}
+  .r.count{border-color:var(--gold); background:var(--goldbg);}
+  .r.count b{color:var(--gold);}
+  .r.out{opacity:.5;}
+  .r small{color:var(--mut); font-size:10.5px;}
+
+  /* season strip */
+  .strip{display:grid; grid-template-columns:4fr 4fr 5fr; gap:6px; margin-top:10px;}
+  .mo{border:1px solid var(--line); border-radius:11px; overflow:hidden;}
+  .mo .hd{font-size:11px; letter-spacing:.1em; text-transform:uppercase; font-weight:700; padding:7px 10px 5px; color:var(--mut); background:var(--card2); border-bottom:1px solid var(--line);}
+  .mo .bd{padding:9px 10px 11px; font-size:12px; color:var(--mut); background:var(--card);}
+  .mo .bd b{color:var(--ink); font-weight:600;}
+  .mo.final .hd{color:var(--gold); background:var(--goldbg);}
+  .mo.final{border-color:var(--gold);}
+  .oct{display:flex; height:8px; border-radius:5px; overflow:hidden; margin-top:8px; border:1px solid var(--line2);}
+  .oct .a{flex:3; background:var(--greenbg);}
+  .oct .b{flex:28; background:var(--gold);}
+
+  /* bracket */
+  .bracket{display:grid; grid-template-columns:1fr auto 1fr auto 1fr; gap:10px; align-items:center; margin-top:8px;}
+  .bk{background:var(--card2); border:1px solid var(--line); border-radius:11px; padding:9px 12px; font-size:13px;}
+  .bk .num{float:right; font-family:var(--serif); font-weight:700;}
+  .bk.seed{border-color:var(--gold);}
+  .bk.champ{border-color:var(--gold); background:var(--goldbg); font-family:var(--serif); font-weight:700; font-size:15px; text-align:center; padding:16px 12px;}
+  .arrow{color:var(--mut); font-size:16px; text-align:center;}
+  .bkcol{display:flex; flex-direction:column; gap:8px;}
+  .dim{opacity:.55;}
+
+  .split{display:grid; grid-template-columns:1fr 1fr; gap:10px;}
+  .ledger{font-size:13px;}
+  .ledger .row{display:flex; justify-content:space-between; padding:6px 0; border-bottom:1px solid var(--line);}
+  .ledger .row:last-child{border-bottom:none;}
+  .ledger b{font-family:var(--serif);}
+  .gold-t{color:var(--gold);}
+
+  .foot{margin-top:56px; padding-top:16px; border-top:1px solid var(--line);}
+  @media (max-width:640px){
+    .form{grid-template-columns:repeat(2,1fr);}
+    .split{grid-template-columns:1fr;}
+    .strip{grid-template-columns:1fr;}
+    .bracket{grid-template-columns:1fr; }
+    .arrow{transform:rotate(90deg);}
+    .phase{grid-template-columns:40px 1fr; gap:0 12px;}
+    .dot{width:40px; height:40px; font-size:16px;}
+    .rail::before{left:19px; top:36px;}
+  }
+</style>
+
+<div class="wrap">
+  <div class="eyebrow">Cup Season · the shape of a season</div>
+  <h1>Eight golfers. Four squads. One cup.</h1>
+  <p class="sub">Creation to champion for a 2-per-squad league, on a real calendar:
+  a three-month season, <b>Sunday Aug 2 → Saturday Oct 31, 2026</b> — thirteen whole weeks,
+  the last four of which are the Cup Final.</p>
+
+  <!-- ========================= PHASE 1 ========================= -->
+  <div class="phase">
+    <div class="rail"><div class="dot">1</div></div>
+    <div>
+      <div class="when">Week 0 · one evening</div>
+      <h2>The Pro builds it</h2>
+      <p class="lede">One person runs the wizard — ten minutes, five choices. Everything chosen here
+      is the league's constitution for the season.</p>
+      <div class="card tablewrap">
+        <table>
+          <tr><th>Dial</th><th>This league</th><th>What it means</th></tr>
+          <tr><td>Roster → formation</td><td><b>8 golfers · 4 squads of 2</b></td><td>the wizard suggests the structure that fits the headcount</td></tr>
+          <tr><td>Counting cap</td><td><b>Best 4</b> / month</td><td>roughly weekly cadence; extra rounds can only help</td></tr>
+          <tr><td>Floor</td><td><b>2</b> rounds / month</td><td>−5 squad points per round short; first miss auto-forgiven</td></tr>
+          <tr><td>Endgame dial</td><td><b>Cup Final</b></td><td>final four weeks, scored fresh (the other setting: points table crowns outright)</td></tr>
+          <tr><td>Pot</td><td><b>$50 × 8 = $400</b> · 60 / 25 / 15</td><td>tracked, never held — the app keeps the sheet, the crew keeps the money</td></tr>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================= PHASE 2 ========================= -->
+  <div class="phase">
+    <div class="rail"><div class="dot">2</div></div>
+    <div>
+      <div class="when">Week 0 · over a group chat</div>
+      <h2>The crew joins, the draw drops</h2>
+      <p class="lede">The invite link lands in the chat; each golfer signs in with an email code and builds
+      their card — name, home course, ball marker, handicap (typed in, or the app derives it from their
+      first three posted scores). When all eight are in, the Pro locks the roster and runs the
+      <b>blind draw</b>: a server-side shuffle, revealed to everyone as a board post. Rigging-proof by construction.</p>
+      <div class="card">
+        <div class="form">
+          <div class="squad"><div class="nm">Saguaro</div><div class="mem"><span class="cap">A1 ©</span><br>A2</div></div>
+          <div class="squad"><div class="nm">Lighthouse</div><div class="mem"><span class="cap">B1 ©</span><br>B2</div></div>
+          <div class="squad"><div class="nm">Roadrunner</div><div class="mem"><span class="cap">C1 ©</span><br>C2</div></div>
+          <div class="squad"><div class="nm">Ocotillo</div><div class="mem"><span class="cap">D1 ©</span><br>D2</div></div>
+        </div>
+        <p class="fine" style="margin:10px 0 0">© = captain, an optional label until the Final needs one.
+        The season can't start with anyone unassigned.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================= PHASE 3 ========================= -->
+  <div class="phase">
+    <div class="rail"><div class="dot">3</div></div>
+    <div>
+      <div class="when">Sunday, Aug 2 — the season opens</div>
+      <h2>Post rounds from anywhere; every one scores</h2>
+      <p class="lede">No schedule, no tee-time coordination. Anyone plays any course, any day, and posts
+      the score in under a minute — front nine, back nine, done. The engine handicaps it against
+      <em>their own number</em>, so the 6-index and the 24-index are on level terms.</p>
+      <div class="card tablewrap">
+        <table>
+          <tr><th>The round, vs your number</th><th style="text-align:right">Cup points</th></tr>
+          <tr><td>Torched it — beat it by 3+</td><td style="text-align:right"><span class="pts num">12</span></td></tr>
+          <tr><td>Beat your number (+1 to +3)</td><td style="text-align:right"><span class="pts num">9</span></td></tr>
+          <tr><td>Played to your index (±1)</td><td style="text-align:right"><span class="pts num">7</span></td></tr>
+          <tr><td>A little loose (−1 to −3)</td><td style="text-align:right"><span class="pts num">6</span></td></tr>
+          <tr><td>Rough day, posted anyway</td><td style="text-align:right"><span class="pts num">5</span></td></tr>
+        </table>
+        <p class="fine" style="margin:10px 0 0">The 12-point ceiling is the anti-sandbag: a padded handicap
+        can only ever buy the top band. The 5-point floor means a posted 98 beats an unposted 82 —
+        there is no round not worth posting.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================= PHASE 4 ========================= -->
+  <div class="phase">
+    <div class="rail"><div class="dot">4</div></div>
+    <div>
+      <div class="when">Every month · Aug &amp; Sep</div>
+      <h2>Best 4 count, the floor keeps everyone honest</h2>
+      <p class="lede">A golfer can post ten rounds a month — only the <b>best four</b> feed the squad.
+      A new better round displaces the worst counting one in real time. Here's A1's August:</p>
+      <div class="card">
+        <div class="rounds">
+          <div class="r count"><b class="num">12</b><small>Aug 3</small></div>
+          <div class="r count"><b class="num">9</b><small>Aug 9</small></div>
+          <div class="r count"><b class="num">9</b><small>Aug 22</small></div>
+          <div class="r count"><b class="num">7</b><small>Aug 16</small></div>
+          <div class="r out"><b class="num">6</b><small>Aug 12</small></div>
+          <div class="r out"><b class="num">5</b><small>Aug 29</small></div>
+        </div>
+        <p class="fine" style="margin:10px 0 0">A1's counting month: <b class="gold-t num">37</b>.
+        A2 adds <b class="gold-t num">29</b> → Saguaro's August is <b class="gold-t num">66</b>.
+        Displaced rounds stay visible — the cap is machinery you can watch, and every points figure
+        taps open to the rounds behind it.</p>
+      </div>
+      <div class="card">
+        <b style="font-family:var(--serif)">The turn of the month — automated, on the board</b>
+        <p class="fine" style="margin:6px 0 0">At midnight on the 1st the month closes itself:
+        floor penalties post to a visible ledger with reasons (first miss of the season is auto-forgiven —
+        the bye), the board gets its <b>"AUGUST CLOSED"</b> post, standings snapshot, and handicap
+        indexes revise from recent scores. Nobody keeps the books; the books keep themselves.</p>
+      </div>
+      <div class="strip">
+        <div class="mo"><div class="hd">August</div><div class="bd"><b>Month 1</b> · full caps &amp; floors · closes Sep 1</div></div>
+        <div class="mo"><div class="hd">September</div><div class="bd"><b>Month 2</b> · full caps &amp; floors · closes Oct 1</div></div>
+        <div class="mo final"><div class="hd">October · the Final month</div><div class="bd"><b>Oct 4 — the Turn</b> · seeds lock, final four weeks begin
+          <div class="oct"><span class="a"></span><span class="b"></span></div></div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================= PHASE 5 ========================= -->
+  <div class="phase">
+    <div class="rail"><div class="dot gold">5</div></div>
+    <div>
+      <div class="when">Sunday, Oct 4 · <b>four weeks out — the Turn</b></div>
+      <h2>Seeds lock: two squads make the Final</h2>
+      <p class="lede">The season table has done its job. The top two squads advance; the regular-season
+      leader carries a <b>+10 head start</b> into the Final. Everything below the cup line keeps playing —
+      the individual races run to the last day.</p>
+      <div class="card">
+        <div class="bracket">
+          <div class="bkcol">
+            <div class="bk seed">1 · Roadrunner <span class="num gold-t">142</span></div>
+            <div class="bk seed">2 · Saguaro <span class="num gold-t">131</span></div>
+            <div class="bk dim">3 · Lighthouse <span class="num">124</span></div>
+            <div class="bk dim">4 · Ocotillo <span class="num">98</span></div>
+          </div>
+          <div class="arrow">→</div>
+          <div class="bkcol">
+            <div class="bk seed">Roadrunner <b class="num gold-t">+10</b></div>
+            <div class="bk seed">Saguaro <b class="num">+0</b></div>
+            <div class="fine" style="text-align:center">4 weeks · scored fresh<br>same counting rules</div>
+          </div>
+          <div class="arrow">→</div>
+          <div class="bk champ">🏆 Champion</div>
+        </div>
+        <p class="fine" style="margin:10px 0 0">"Scored fresh" is the point: 142 vs 131 becomes 10 vs 0.
+        A season of grinding earns position, not safety — the Final is winnable from either chair.
+        Dead heat after four weeks? The ladder: head-to-head months won → best single month →
+        fewest rounds used → a logged coin flip.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================= PHASE 6 ========================= -->
+  <div class="phase">
+    <div class="rail"><div class="dot gold">6</div></div>
+    <div>
+      <div class="when">Sunday, Nov 1 · <b>the day after</b></div>
+      <h2>The Trophy Room</h2>
+      <p class="lede">Forty-eight hours of grace for rounds played on or before the final Saturday, then
+      the season crowns itself. Home becomes the Trophy Room: champion banner, final table, superlatives,
+      and the pot settlement card — screenshot-shaped by design.</p>
+      <div class="split">
+        <div class="card ledger">
+          <b>Pot settlement · $400</b>
+          <div class="row" style="margin-top:6px"><span>🏆 Champions — Saguaro (A1 &amp; A2)</span><b class="gold-t num">$240</b></div>
+          <div class="row"><span>Runners-up — Roadrunner</span><b class="num">$100</b></div>
+          <div class="row"><span>👑 Points King — C2</span><b class="num">$60</b></div>
+        </div>
+        <div class="card ledger">
+          <b>Season awards</b>
+          <div class="row" style="margin-top:6px"><span>👑 Points King</span><span>most individual points</span></div>
+          <div class="row"><span>📉 Most Improved</span><span>biggest index drop</span></div>
+          <div class="row"><span>🛠 Iron Man</span><span>most rounds posted</span></div>
+        </div>
+      </div>
+      <p class="fine" style="margin:12px 0 0">Trophies mint to each winner's profile permanently — hardware
+      outlives the league. Then the re-up: <b>run it back</b> carries the bylaws forward, re-draws the
+      squads, and archives Season I into the league's history.</p>
+    </div>
+  </div>
+
+  <div class="foot fine">
+    Mechanics per spec v1.0 — points bands §2.2 · counting &amp; floors §3 · formats §4 ·
+    season clock &amp; the four-week Final §14 · blind draw §15 · every number shows its work §16.
+    Pot figures are an example; the split is a wizard dial.
+  </div>
+</div>

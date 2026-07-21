@@ -1,0 +1,374 @@
+<meta charset="utf-8">
+<title>Cup Season — Design & Launch Brief</title>
+<style>
+  :root{
+    --bg0:#0C0D0F; --bg1:#131519; --bg2:#1B1E24;
+    --line:#24272E; --line2:#2E323B;
+    --ink:#ECEEF2; --mut:#9AA1AC; --dim:#5E6570;
+    --accent:#43E07C; --accent-ink:#04140B;
+    --gold:#E9BE62;
+    --trackA:#57A8FF; --trackA-soft:rgba(87,168,255,.12);
+    --trackB:#FB8B4B; --trackB-soft:rgba(251,139,75,.12);
+    --sq0:#57A8FF; --sq1:#FB8B4B; --sq2:#A78BFA; --sq3:#2FD3BE;
+    --sans:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;
+    --mono:ui-monospace,'SF Mono','Cascadia Mono',Menlo,Consolas,monospace;
+    --r:14px;
+  }
+  @media (prefers-color-scheme: light){
+    :root{
+      --bg0:#EFF2EE; --bg1:#FBFCFA; --bg2:#E5EAE4;
+      --line:#D9DFD7; --line2:#C9D1C8;
+      --ink:#1A2620; --mut:#52625A; --dim:#8C9992;
+      --accent:#0E9B51; --accent-ink:#F2FBF6;
+      --gold:#A87F10;
+      --trackA:#2C7CD3; --trackA-soft:rgba(44,124,211,.10);
+      --trackB:#DE6A22; --trackB-soft:rgba(222,106,34,.10);
+      --sq0:#2C7CD3; --sq1:#DE6A22; --sq2:#7A58DE; --sq3:#0D9E8F;
+    }
+  }
+  :root[data-theme="dark"]{
+    --bg0:#0C0D0F; --bg1:#131519; --bg2:#1B1E24;
+    --line:#24272E; --line2:#2E323B;
+    --ink:#ECEEF2; --mut:#9AA1AC; --dim:#5E6570;
+    --accent:#43E07C; --accent-ink:#04140B;
+    --gold:#E9BE62;
+    --trackA:#57A8FF; --trackA-soft:rgba(87,168,255,.12);
+    --trackB:#FB8B4B; --trackB-soft:rgba(251,139,75,.12);
+    --sq0:#57A8FF; --sq1:#FB8B4B; --sq2:#A78BFA; --sq3:#2FD3BE;
+  }
+  :root[data-theme="light"]{
+    --bg0:#EFF2EE; --bg1:#FBFCFA; --bg2:#E5EAE4;
+    --line:#D9DFD7; --line2:#C9D1C8;
+    --ink:#1A2620; --mut:#52625A; --dim:#8C9992;
+    --accent:#0E9B51; --accent-ink:#F2FBF6;
+    --gold:#A87F10;
+    --trackA:#2C7CD3; --trackA-soft:rgba(44,124,211,.10);
+    --trackB:#DE6A22; --trackB-soft:rgba(222,106,34,.10);
+    --sq0:#2C7CD3; --sq1:#DE6A22; --sq2:#7A58DE; --sq3:#0D9E8F;
+  }
+
+  *{box-sizing:border-box;}
+  body{
+    margin:0; background:var(--bg0); color:var(--ink);
+    font-family:var(--sans); font-size:15.5px; line-height:1.6;
+    -webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:800px; margin:0 auto; padding:52px 24px 90px;}
+  p{margin:0 0 14px; max-width:64ch; color:var(--ink);}
+  p.mut{color:var(--mut);}
+  strong{font-weight:650;}
+  a{color:inherit;}
+  ::selection{background:var(--accent); color:var(--accent-ink);}
+
+  /* ---------- masthead ---------- */
+  .mast{display:flex; align-items:flex-start; gap:16px; margin-bottom:6px;}
+  .markbox{flex:none; width:52px; height:52px; border-radius:13px; background:var(--bg0);
+    display:flex; align-items:center; justify-content:center; border:1px solid var(--line2);}
+  :root[data-theme="light"] .markbox, @media (prefers-color-scheme:light){.markbox{background:#0C0D0F;}}
+  .markbox svg{width:38px; height:38px;}
+  .wordmark{font-family:var(--mono); font-weight:600; font-size:14px; letter-spacing:.32em;
+    text-transform:uppercase; color:var(--ink); margin-top:6px;}
+  .wordmark small{display:block; font-size:9.5px; letter-spacing:.2em; color:var(--dim); margin-top:5px; font-weight:500;}
+
+  .eyebrow{font-family:var(--mono); font-size:10.5px; font-weight:600; letter-spacing:.16em;
+    text-transform:uppercase; color:var(--dim); margin:34px 0 10px;}
+  .eyebrow.track{color:var(--track);}
+  h1{font-size:33px; font-weight:750; letter-spacing:-.015em; line-height:1.14;
+    margin:14px 0 12px; text-wrap:balance; max-width:16ch;}
+  .lede{font-size:16.5px; color:var(--mut); max-width:56ch; margin-bottom:22px;}
+
+  .metarow{display:flex; flex-wrap:wrap; gap:8px 10px; margin-bottom:8px;}
+  .chip{font-family:var(--mono); font-size:10.5px; letter-spacing:.08em; text-transform:uppercase;
+    color:var(--mut); background:var(--bg1); border:1px solid var(--line); border-radius:20px;
+    padding:5px 11px; display:inline-flex; align-items:center; gap:6px;}
+  .chip b{color:var(--ink); font-weight:600;}
+  .chip.live{color:var(--accent); border-color:color-mix(in srgb, var(--accent) 40%, var(--line));}
+  .chip.live::before{content:""; width:6px; height:6px; border-radius:50%; background:var(--accent);}
+
+  hr.rule{border:none; border-top:1px solid var(--line); margin:38px 0;}
+
+  /* ---------- track nav ---------- */
+  .tracknav{display:flex; gap:10px; margin:30px 0 6px; position:sticky; top:0; z-index:5;
+    background:linear-gradient(var(--bg0) 78%, transparent); padding:14px 0 10px;}
+  .tracknav a{flex:1; display:block; text-decoration:none; padding:13px 16px; border-radius:11px;
+    border:1px solid var(--line); background:var(--bg1); transition:border-color .15s;}
+  .tracknav a:hover{border-color:var(--line2);}
+  .tracknav .tn-k{font-family:var(--mono); font-size:10px; letter-spacing:.14em; text-transform:uppercase;}
+  .tracknav .tn-t{font-weight:650; font-size:14.5px; margin-top:3px;}
+  .tracknav a.a .tn-k{color:var(--trackA);}
+  .tracknav a.b .tn-k{color:var(--trackB);}
+
+  /* ---------- section / track ---------- */
+  section.track{margin-top:56px; --track:var(--trackA);}
+  section.track.b{--track:var(--trackB);}
+  .tk-label{display:inline-flex; align-items:center; gap:7px; font-family:var(--mono); font-size:10.5px;
+    letter-spacing:.14em; text-transform:uppercase; color:var(--track); margin-bottom:10px;}
+  .tk-label::before{content:""; width:7px; height:7px; border-radius:2px; background:var(--track);}
+  h2{font-size:24px; font-weight:700; letter-spacing:-.01em; margin:0 0 14px; text-wrap:balance;
+    border-left:3px solid var(--track); padding-left:14px;}
+  h3{font-size:13.5px; font-weight:650; text-transform:uppercase; letter-spacing:.06em; color:var(--mut);
+    margin:28px 0 12px;}
+  h3:first-of-type{margin-top:22px;}
+
+  /* ---------- cards / lists ---------- */
+  .card{background:var(--bg1); border:1px solid var(--line); border-radius:var(--r); padding:18px 20px;}
+  .promises{display:grid; grid-template-columns:1fr 1fr; gap:12px; margin:6px 0 18px;}
+  @media (max-width:600px){.promises{grid-template-columns:1fr;}}
+  .promise{background:var(--bg1); border:1px solid var(--line); border-radius:12px; padding:15px 16px;}
+  .promise .who{font-family:var(--mono); font-size:10px; letter-spacing:.1em; text-transform:uppercase; color:var(--dim);}
+  .promise .say{font-size:15px; font-weight:600; margin-top:7px; line-height:1.4;}
+
+  ol.steps{list-style:none; margin:6px 0 18px; padding:0; counter-reset:step;}
+  ol.steps li{counter-increment:step; position:relative; padding:0 0 20px 34px; margin-bottom:2px;
+    border-left:1.5px solid var(--line); margin-left:11px;}
+  ol.steps li:last-child{border-color:transparent; padding-bottom:2px;}
+  ol.steps li::before{content:counter(step); position:absolute; left:-11.5px; top:-1px; width:23px; height:23px;
+    border-radius:50%; background:var(--bg0); border:1.5px solid var(--track); color:var(--track);
+    font-family:var(--mono); font-size:10.5px; font-weight:700; display:flex; align-items:center; justify-content:center;}
+  ol.steps b{display:block; font-size:14.5px; font-weight:650; margin-bottom:3px;}
+  ol.steps span{color:var(--mut); font-size:14px;}
+
+  ul.punch{list-style:none; margin:6px 0 18px; padding:0; display:flex; flex-direction:column; gap:10px;}
+  ul.punch li{display:flex; gap:12px; padding:13px 15px; background:var(--bg1); border:1px solid var(--line);
+    border-radius:11px; align-items:flex-start;}
+  ul.punch li::before{content:""; flex:none; width:8px; height:8px; margin-top:5px; border-radius:2.5px; background:var(--track);}
+  ul.punch b{display:block; font-size:14.5px; font-weight:650; margin-bottom:2px;}
+  ul.punch span{color:var(--mut); font-size:13.8px; line-height:1.55;}
+
+  table{width:100%; border-collapse:collapse; margin:6px 0 18px; font-size:13.8px;}
+  th{text-align:left; font-family:var(--mono); font-size:10px; letter-spacing:.09em; text-transform:uppercase;
+    color:var(--dim); font-weight:600; padding:0 12px 9px 0; border-bottom:1px solid var(--line2);}
+  td{padding:11px 12px 11px 0; border-bottom:1px solid var(--line); vertical-align:top; color:var(--ink);}
+  td.mono{font-family:var(--mono); font-size:12.5px; color:var(--mut);}
+  .tablewrap{overflow-x:auto;}
+
+  .swatches{display:grid; grid-template-columns:repeat(auto-fill, minmax(128px,1fr)); gap:10px; margin:6px 0 18px;}
+  .sw{border:1px solid var(--line); border-radius:11px; overflow:hidden; background:var(--bg1);}
+  .sw i{display:block; height:46px;}
+  .sw .lab{padding:8px 10px 10px;}
+  .sw .lab b{display:block; font-size:12.5px; font-weight:650;}
+  .sw .lab span{font-family:var(--mono); font-size:10.5px; color:var(--dim);}
+
+  .markshow{display:flex; gap:14px; margin:6px 0 20px; flex-wrap:wrap;}
+  .markshow .tile{flex:1; min-width:220px; border-radius:13px; padding:26px; display:flex; flex-direction:column;
+    align-items:center; gap:12px; border:1px solid var(--line);}
+  .markshow .tile.dark{background:#0C0D0F;}
+  .markshow .tile.light{background:#EFF2EE;}
+  .markshow svg{width:64px; height:64px;}
+  .markshow .cap{font-family:var(--mono); font-size:10px; letter-spacing:.1em; text-transform:uppercase;}
+  .markshow .tile.dark .cap{color:#9AA1AC;}
+  .markshow .tile.light .cap{color:#52625A;}
+
+  .anatomy{font-family:var(--mono); font-size:12.5px; color:var(--mut); line-height:1.9;
+    background:var(--bg1); border:1px solid var(--line); border-radius:11px; padding:15px 18px; margin:0 0 18px;}
+  .anatomy b{color:var(--ink); font-weight:600;}
+  .anatomy .dot{display:inline-block; width:8px; height:8px; border-radius:2px; margin-right:8px;}
+
+  .metric{display:flex; justify-content:space-between; align-items:baseline; padding:11px 0;
+    border-bottom:1px solid var(--line); gap:14px;}
+  .metric:last-child{border-bottom:none;}
+  .metric .m-label{font-size:14px; color:var(--ink);}
+  .metric .m-val{font-family:var(--mono); font-size:13px; color:var(--track); white-space:nowrap; font-variant-numeric:tabular-nums;}
+
+  .callout{background:var(--track-soft); border:1px solid var(--track); border-radius:12px; padding:18px 20px; margin:22px 0;}
+  section.track .callout{--track-soft:var(--trackA-soft);}
+  section.track.b .callout{--track-soft:var(--trackB-soft);}
+  .callout h3{margin-top:0; color:var(--track);}
+  .decisions{list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:9px;}
+  .decisions li{font-size:14px; padding-left:18px; position:relative; color:var(--ink);}
+  .decisions li::before{content:"?"; position:absolute; left:0; top:0; font-family:var(--mono); font-weight:700; color:var(--track);}
+
+  footer{margin-top:64px; padding-top:22px; border-top:1px solid var(--line);
+    font-family:var(--mono); font-size:11px; color:var(--dim); letter-spacing:.04em;
+    display:flex; justify-content:space-between; flex-wrap:wrap; gap:8px;}
+
+  @media print{
+    body{background:#fff; color:#111;}
+    .tracknav, .markbox{display:none !important;}
+    .card, .promise, ul.punch li, .sw, table{background:#fff !important; border-color:#ccc !important;}
+    a{text-decoration:none;}
+  }
+</style>
+
+<div class="wrap">
+
+  <div class="mast">
+    <div class="markbox">
+      <svg viewBox="0 0 96 96" fill="none">
+        <g stroke-width="6" stroke-linecap="round" fill="none">
+          <path d="M61.9 73.8 A33 13 0 0 1 18.1 67.5" stroke="#43E07C"/>
+          <path d="M16.1 65.4 A33 13 0 0 1 29.1 51.4" stroke="#57A8FF"/>
+          <path d="M34.1 50.2 A33 13 0 0 1 64.5 50.7" stroke="#A78BFA"/>
+          <path d="M71.3 52.8 A33 13 0 0 1 76.6 68.5" stroke="#FB8B4B"/>
+        </g>
+        <ellipse cx="48" cy="62" rx="10" ry="4" stroke="#F4F7F4" stroke-width="4.5"/>
+        <path d="M48 60V16" stroke="#F4F7F4" stroke-width="5.5" stroke-linecap="round"/>
+        <path d="M48 14l20 7.5L48 29z" fill="#F4F7F4"/>
+      </svg>
+    </div>
+    <div class="wordmark">Cup Season<small>Design &amp; launch brief</small></div>
+  </div>
+
+  <div class="eyebrow" style="margin-top:30px">Two tracks, one pilot week</div>
+  <h1>Take the mark to design. Take the league to the world.</h1>
+  <p class="lede">Everything below the audit is closed and shipped as of v23.72. What's left isn't code — it's a
+  polish pass a designer should own, and a plan for getting Cup Season in front of golfers past the seven people
+  in PIGL who already know the login screen.</p>
+
+  <div class="metarow">
+    <span class="chip live">Demo sent to pilot <b>Jul 12</b></span>
+    <span class="chip">Beta league <b>PIGL · Tempe, AZ · ~12 index</b></span>
+    <span class="chip">Compiled <b>Jul 12, 2026</b></span>
+  </div>
+
+  <nav class="tracknav">
+    <a class="a" href="#brand"><div class="tn-k">Track A</div><div class="tn-t">Brand &amp; design handoff</div></a>
+    <a class="b" href="#launch"><div class="tn-k">Track B</div><div class="tn-t">Launch &amp; growth plan</div></a>
+  </nav>
+
+  <!-- ============ TRACK A — BRAND & DESIGN ============ -->
+  <section class="track a" id="brand">
+    <div class="tk-label">Track A · Brand &amp; design</div>
+    <h2>The mark works. It hasn't met a designer yet.</h2>
+    <p>It was built in-browser with canvas exports and hand-tuned SVG paths because there was no rasterizer on
+    hand — functional, not final. The concept is worth keeping; the execution is worth an hour with someone who
+    draws for a living.</p>
+
+    <h3>The mark, as it stands</h3>
+    <div class="markshow">
+      <div class="tile dark"><svg viewBox="0 0 96 96" fill="none">
+          <g stroke-width="6" stroke-linecap="round" fill="none">
+            <path d="M61.9 73.8 A33 13 0 0 1 18.1 67.5" stroke="#43E07C"/>
+            <path d="M16.1 65.4 A33 13 0 0 1 29.1 51.4" stroke="#57A8FF"/>
+            <path d="M34.1 50.2 A33 13 0 0 1 64.5 50.7" stroke="#A78BFA"/>
+            <path d="M71.3 52.8 A33 13 0 0 1 76.6 68.5" stroke="#FB8B4B"/>
+          </g>
+          <ellipse cx="48" cy="62" rx="10" ry="4" stroke="#F4F7F4" stroke-width="4.5"/>
+          <path d="M48 60V16" stroke="#F4F7F4" stroke-width="5.5" stroke-linecap="round"/>
+          <path d="M48 14l20 7.5L48 29z" fill="#F4F7F4"/>
+        </svg><span class="cap">mark.svg — dark ground</span></div>
+      <div class="tile light"><svg viewBox="0 0 96 96" fill="none">
+          <g stroke-width="6" stroke-linecap="round" fill="none">
+            <path d="M61.9 73.8 A33 13 0 0 1 18.1 67.5" stroke="#0E9B51"/>
+            <path d="M16.1 65.4 A33 13 0 0 1 29.1 51.4" stroke="#2C7CD3"/>
+            <path d="M34.1 50.2 A33 13 0 0 1 64.5 50.7" stroke="#7A58DE"/>
+            <path d="M71.3 52.8 A33 13 0 0 1 76.6 68.5" stroke="#DE6A22"/>
+          </g>
+          <ellipse cx="48" cy="62" rx="10" ry="4" stroke="#1A2620" stroke-width="4.5"/>
+          <path d="M48 60V16" stroke="#1A2620" stroke-width="5.5" stroke-linecap="round"/>
+          <path d="M48 14l20 7.5L48 29z" fill="#1A2620"/>
+        </svg><span class="cap">mark-light.svg — light ground</span></div>
+    </div>
+
+    <div class="anatomy">
+      <div><span class="dot" style="background:#F4F7F4;border:1px solid #999"></span><b>The idea:</b> a flag standing in the cup, orbited by a four-color ring lying flat on the green, in perspective.</div>
+      <div><span class="dot" style="background:#43E07C"></span><b>Green arc</b> 65°–155° — leads, lower-left. The brand accent.</div>
+      <div><span class="dot" style="background:#57A8FF"></span><b>Blue arc</b> 165°–235°</div>
+      <div><span class="dot" style="background:#A78BFA"></span><b>Violet arc</b> 245°–300° — passes behind the pole</div>
+      <div><span class="dot" style="background:#FB8B4B"></span><b>Orange arc</b> 315°–390°</div>
+      <div>Ellipse rx33 ry13, centered on a 96×96 frame. Four squads, one season, one ring.</div>
+    </div>
+
+    <h3>Asset inventory — what exists today</h3>
+    <div class="tablewrap"><table>
+      <tr><th>File</th><th>Use</th><th>Source</th></tr>
+      <tr><td>mark.svg / mark-light.svg</td><td>Master vector, dark &amp; light grounds</td><td class="mono">hand-authored SVG</td></tr>
+      <tr><td>lockup-dark.png / lockup-light.png</td><td>Mark + wordmark, email &amp; social</td><td class="mono">canvas export, 2×</td></tr>
+      <tr><td>icon-192 / icon-512 / maskable / apple-touch</td><td>PWA &amp; home-screen icons</td><td class="mono">canvas export</td></tr>
+      <tr><td>og-image.png</td><td>1200×630 social share card</td><td class="mono">canvas export</td></tr>
+      <tr><td>favicon</td><td>Browser tab</td><td class="mono">inline data URI</td></tr>
+    </table></div>
+
+    <h3>Palette in use</h3>
+    <div class="swatches">
+      <div class="sw"><i style="background:#0C0D0F"></i><div class="lab"><b>Ground</b><span>#0C0D0F</span></div></div>
+      <div class="sw"><i style="background:#43E07C"></i><div class="lab"><b>Accent (green)</b><span>#43E07C</span></div></div>
+      <div class="sw"><i style="background:#E9BE62"></i><div class="lab"><b>Gold — money</b><span>#E9BE62</span></div></div>
+      <div class="sw"><i style="background:#57A8FF"></i><div class="lab"><b>Squad — blue</b><span>#57A8FF</span></div></div>
+      <div class="sw"><i style="background:#FB8B4B"></i><div class="lab"><b>Squad — orange</b><span>#FB8B4B</span></div></div>
+      <div class="sw"><i style="background:#A78BFA"></i><div class="lab"><b>Squad — violet</b><span>#A78BFA</span></div></div>
+      <div class="sw"><i style="background:#2FD3BE"></i><div class="lab"><b>Squad — teal</b><span>#2FD3BE</span></div></div>
+    </div>
+    <p class="mut" style="font-size:13.5px">Wordmark is set in IBM Plex Mono, weight 600, tracked ~0.32em, always caps. Interface type is IBM Plex Sans. Both carry over unchanged — this handoff is about the mark and the icon system, not the typeface.</p>
+
+    <h3>What to bring to the designer</h3>
+    <ul class="punch">
+      <li><b>A micro-mark for small sizes.</b> Four thin arcs hold up at app-icon size; they may not survive a 16px favicon or a notification badge. Worth a one- or two-arc reduction for anything under ~24px.</li>
+      <li><b>True depth, not path order.</b> The violet arc reads as "behind the pole" only because it was drawn first. A designer can build that occlusion properly instead of relying on draw order.</li>
+      <li><b>Platform-native icon layers.</b> Current icons are flat canvas exports. iOS rounds its own corners; Android adaptive icons want separate foreground/background layers. Neither has a proper source file yet.</li>
+      <li><b>The rest of the ball-marker set.</b> Eight shape-named archetypes shipped (never real course references — that's a trademark problem waiting to happen); the roadmap calls for a full set of roughly twenty-four. This is illustrator work, not engineering work.</li>
+      <li><b>A colorblind pass.</b> Green and orange — two of the four squad colors — are a classic confusion pair for deuteranopia. If squad color is ever someone's only cue, it needs a shape or pattern backup.</li>
+      <li><b>One motion moment.</b> Nothing animates yet — not the splash, not a kickoff-post reveal. Even a short, simple sequence would go a long way toward "the app feels alive," which is a stated product principle, not a nice-to-have.</li>
+    </ul>
+
+    <div class="callout">
+      <h3 style="margin-top:0">Bring back</h3>
+      <p style="margin-bottom:0; font-size:14px">A true vector master (not a canvas export), a platform-correct icon set for iOS/Android/PWA, and the ring formula documented well enough that engineering can regenerate every asset from it without re-inventing the upload pipeline.</p>
+    </div>
+  </section>
+
+  <!-- ============ TRACK B — LAUNCH & GROWTH ============ -->
+  <section class="track b" id="launch">
+    <div class="tk-label">Track B · Launch &amp; growth</div>
+    <h2>PIGL is the pitch. Everyone else just hasn't seen it yet.</h2>
+    <p>Cup Season doesn't need an audience before launch — it needs one league finishing a season for real. That's
+    what's happening right now. The plan below is about turning that into the next five leagues without spending
+    on ads or building a marketing site first.</p>
+
+    <h3>Who it's for, in their own words</h3>
+    <div class="promises">
+      <div class="promise"><div class="who">The commissioner</div><div class="say">"I'll run the league so you can enjoy it."</div></div>
+      <div class="promise"><div class="who">The weekend regular</div><div class="say">"Every round counts."</div></div>
+      <div class="promise"><div class="who">The buddies-trip guy</div><div class="say">One format, one champion, a story worth retelling.</div></div>
+      <div class="promise"><div class="who">The home-course golfer</div><div class="say">Same faces, same course, season-long bragging rights.</div></div>
+    </div>
+
+    <h3>The loop is already built in</h3>
+    <p>A league isn't a feature that needs distribution — it's a distribution mechanic wearing a scoreboard. Every
+    commissioner who starts one invites four to sixteen friends who didn't have Cup Season profiles yesterday.
+    PIGL going first is the whole growth strategy in miniature: get one league to actually finish a season, then
+    let its members be the ones who start the next one.</p>
+
+    <h3>Where to spend attention, roughly in order</h3>
+    <ol class="steps">
+      <li><b>Finish PIGL for real.</b><span>Not the demo — the live season, with real money in the pot and real rounds posted. Every rough edge PIGL hits is a rough edge a stranger would have bounced off of.</span></li>
+      <li><b>Let PIGL open the next door.</b><span>No new tooling needed — every member already has an invite link and a code. The ask is just an ask: "start your own."</span></li>
+      <li><b>Go where the leagues already are, badly.</b><span>Golf-trip subreddits and Discords, home-course league organizers running things by spreadsheet and Venmo and a group text — the exact pain the commissioner promise is written for.</span></li>
+      <li><b>Course-level partnerships, once there are two live leagues to point to.</b><span>Municipal and semi-private courses that host informal leagues are a natural distribution partner — the community course-card seed strategy doubles as the pitch: add your course, invite your league.</span></li>
+      <li><b>Show results, not features.</b><span>A kickoff post, a Wolf-mode buzzer-beater, a Cup Final reveal — real moments from a real league beat a feature tour every time. The share card and email lockups are already built for this.</span></li>
+    </ol>
+
+    <h3>What the pitch sounds like</h3>
+    <ul class="punch">
+      <li><b>Every round counts.</b><span>The season is the whole point — not another place to log a score that disappears.</span></li>
+      <li><b>The commissioner is off the hook.</b><span>No more spreadsheet, no more Venmo chase, no more "wait, what were the rules again."</span></li>
+      <li><b>It's still your group chat — it just keeps score now.</b><span>Real friends, real courses, nothing simulated.</span></li>
+    </ul>
+
+    <h3>The numbers the pilot has to hit</h3>
+    <div class="card">
+      <div class="metric"><span class="m-label">Create a profile</span><span class="m-val">under 2 min</span></div>
+      <div class="metric"><span class="m-label">Join a league</span><span class="m-val">under 30 sec</span></div>
+      <div class="metric"><span class="m-label">Post a round</span><span class="m-val">under 60 sec</span></div>
+      <div class="metric"><span class="m-label">Understand standings</span><span class="m-val">under 10 sec</span></div>
+      <div class="metric"><span class="m-label">Tutorial required</span><span class="m-val">never</span></div>
+    </div>
+    <p class="mut" style="font-size:13.5px">These are the product's own success criteria, not launch-marketing copy — worth holding the pre-launch QA pass to directly.</p>
+
+    <div class="callout">
+      <h3 style="margin-top:0">Open decisions — yours to make</h3>
+      <ul class="decisions">
+        <li>When does any "Pro" tier get mentioned publicly — before or well after a second league is live?</li>
+        <li>Does course-level outreach start as a cold pitch, or only after PIGL can be shown as a finished season?</li>
+        <li>How much hands-on onboarding does the next league get versus a fully self-serve invite link?</li>
+        <li>Any press or content push before, or only after, a second league proves the loop works without you in the room?</li>
+      </ul>
+    </div>
+  </section>
+
+  <footer>
+    <span>Cup Season · cupseason.app</span>
+    <span>Brief compiled Jul 12, 2026 — v23.72</span>
+  </footer>
+
+</div>

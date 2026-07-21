@@ -1,0 +1,134 @@
+<title>Cup Season — Pilot Welcome</title>
+<style>
+  :root{
+    --bg:#0C0D0F; --card:#16191E; --line:#262A32;
+    --ink:#ECEEF2; --body:#CDD3DA; --mut:#8A929E; --dim:#5A616B;
+    --gold:#E9BE62; --green:#43E07C;
+    --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    --mono:ui-monospace,SFMono-Regular,Menlo,"Roboto Mono",monospace;
+  }
+  *{box-sizing:border-box;}
+  .pg{ background:var(--bg); color:var(--body); font-family:var(--sans);
+    font-size:16.5px; line-height:1.62; min-height:100vh;
+    padding:clamp(28px,6vw,72px) clamp(20px,5vw,40px);
+    background-image:
+      radial-gradient(60% 30% at 78% -4%, rgba(67,224,124,.06), transparent 70%),
+      radial-gradient(46% 26% at 12% 104%, rgba(233,190,98,.05), transparent 70%);
+  }
+  .wrap{ max-width:660px; margin:0 auto; display:flex; flex-direction:column; gap:32px; }
+  .sec-label{ font-family:var(--mono); font-size:12px; letter-spacing:.16em; text-transform:uppercase;
+    color:var(--gold); margin:0 0 14px; display:flex; align-items:center; gap:10px; }
+  .sec-label::after{ content:""; height:1px; flex:1; background:var(--line); }
+
+  .hero{ display:flex; flex-direction:column; gap:16px; }
+  .brandrow{ display:flex; align-items:center; gap:12px; }
+  .brandrow svg{ width:40px; height:40px; flex:none; }
+  .brandrow b{ font-family:var(--mono); font-size:13px; letter-spacing:.16em; text-transform:uppercase; color:var(--ink); }
+  h1{ font-family:var(--sans); font-weight:800; letter-spacing:-.025em; line-height:1.03;
+    font-size:clamp(36px,8.5vw,58px); color:var(--ink); margin:0; text-wrap:balance; }
+  h1 em{ font-style:normal; color:var(--gold); }
+  .lede{ font-size:clamp(17px,2.4vw,19px); color:var(--mut); margin:0; max-width:46ch; line-height:1.5; }
+
+  .block p{ margin:0 0 12px; }
+  .block p:last-child{ margin-bottom:0; }
+  .stat{ font-family:var(--mono); color:var(--green); font-weight:600; }
+  .block strong{ color:var(--ink); font-weight:600; }
+
+  ol.steps{ list-style:none; margin:0; padding:0; display:flex; flex-direction:column; }
+  ol.steps li{ display:grid; grid-template-columns:34px 1fr; gap:14px; align-items:start;
+    padding:13px 0; border-top:1px solid var(--line); }
+  ol.steps li:first-child{ border-top:none; }
+  ol.steps .n{ font-family:var(--mono); font-size:15px; font-weight:600; color:var(--gold);
+    font-variant-numeric:tabular-nums; padding-top:1px; }
+  ol.steps .t{ margin:0; }
+  ol.steps .t strong{ color:var(--ink); font-weight:600; }
+  .aside{ margin-top:15px; font-size:14.5px; color:var(--mut); border-left:2px solid var(--gold);
+    padding:2px 0 2px 14px; line-height:1.5; }
+
+  ul.know{ list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:13px; }
+  ul.know li{ display:grid; grid-template-columns:auto 1fr; gap:12px; align-items:start; }
+  ul.know .k{ font-family:var(--mono); font-size:10.5px; letter-spacing:.12em; text-transform:uppercase;
+    color:var(--bg); background:var(--gold); border-radius:99px; padding:3px 9px; white-space:nowrap; margin-top:3px; }
+  ul.know .k.green{ background:var(--green); }
+  ul.know p{ margin:0; line-height:1.5; }
+  ul.know strong{ color:var(--ink); font-weight:600; }
+
+  footer{ border-top:1px solid var(--line); padding-top:20px; display:flex; flex-wrap:wrap;
+    justify-content:space-between; gap:10px; font-family:var(--mono); font-size:12px;
+    letter-spacing:.06em; color:var(--dim); }
+  footer a{ color:var(--gold); text-decoration:none; }
+  footer a:hover, footer a:focus-visible{ text-decoration:underline; }
+
+  @media (prefers-reduced-motion:no-preference){
+    .pulse{ transform-box:fill-box; transform-origin:center; animation:ring 3.4s ease-out infinite; }
+    @keyframes ring{ 0%{ transform:scale(1); opacity:.5; } 70%,100%{ transform:scale(2.4); opacity:0; } }
+  }
+
+  /* PDF / print: keep the brand ground, drop the animated frame, fit a page */
+  @page{ size:Letter; margin:0; }
+  @media print{
+    *{ -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+    .pg{ min-height:auto; padding:44px 54px; }
+    .wrap{ gap:26px; }
+    .pulse{ display:none; }
+  }
+</style>
+
+<div class="pg">
+  <div class="wrap">
+
+    <header class="hero">
+      <div class="brandrow">
+        <svg viewBox="0 0 96 96" fill="none" aria-hidden="true">
+          <ellipse class="pulse" cx="48" cy="66" rx="15" ry="5.5" stroke="#43E07C" stroke-width="1.5"/>
+          <ellipse cx="48" cy="66" rx="15" ry="5.5" stroke="#43E07C" stroke-opacity=".22" stroke-width="1.5"/>
+          <ellipse cx="48" cy="66" rx="9" ry="3.4" fill="#04110A" stroke="#0F3520" stroke-width="2"/>
+          <path d="M52 64V22" stroke="#F4F7F4" stroke-width="4" stroke-linecap="round"/>
+          <path d="M52 22l22 7.5L52 37z" fill="#E9BE62"/>
+        </svg>
+        <b>Cup Season</b>
+      </div>
+      <h1>Rally your crew.<br>Post real rounds.<br><em>Take the cup.</em></h1>
+      <p class="lede">A season-long game built on the golf you already play, and here's what it is and how to jump in.</p>
+    </header>
+
+    <section class="block">
+      <p class="sec-label">The gist</p>
+      <p>Every round you post lands on a shared board the whole crew can see, so a good one becomes its own little moment and a blow-up gets you chirped just the same. You're really playing two games at once, since every round earns points for your squad in the team race while it also climbs your own line on the individual board. It all runs off your handicap, so the 20-index guy can hang with the scratch player, and both races keep tightening the deeper into the season you get.</p>
+      <p>It's basically fantasy golf, except the stats are your own actual rounds instead of made-up teams and players you've never met. It's just you and the guys you already text about tee times.</p>
+    </section>
+
+    <section class="block">
+      <p class="sec-label">How you score</p>
+      <p>After a round you'll see a number like <span class="stat">+3.2 vs index</span>, which is how you played against your own handicap (3.2 shots better than expected, in that case). Higher is better, and that number is really the whole currency, so when you play to your potential the points follow.</p>
+    </section>
+
+    <section class="block">
+      <p class="sec-label">Getting in · about five minutes</p>
+      <ol class="steps">
+        <li><span class="n">1</span><p class="t"><strong>Open cupseason.app on your phone.</strong> If you want it to feel like a real app, hit Share and then Add to Home Screen.</p></li>
+        <li><span class="n">2</span><p class="t"><strong>Sign in with your email.</strong> A code lands in your inbox, so there's no password to remember, and once you type it in you're through.</p></li>
+        <li><span class="n">3</span><p class="t"><strong>Set up your golfer card.</strong> Add your name, home course, index, and a ball marker that's yours, all of which takes about a minute.</p></li>
+        <li><span class="n">4</span><p class="t"><strong>Add your buddies.</strong> Search their name or @handle, and when someone adds you it pops up right on your home screen where you can tap Accept.</p></li>
+        <li><span class="n">5</span><p class="t"><strong>Post a round after you play.</strong> Enter your score, search the course, and pick the date, and since the app already knows the rating and slope it scores you and drops it on the board for the crew to see.</p></li>
+      </ol>
+      <p class="aside">Jerecho will get you into the league, so you'll either find an invite waiting in the app or he'll hand you a code to punch in.</p>
+    </section>
+
+    <section class="block">
+      <p class="sec-label">A few things to know</p>
+      <ul class="know">
+        <li><span class="k">Pilot</span><p>It won't be perfect yet, so when something's confusing or clunky, tap <strong>"Tell us how it's going"</strong> at the bottom of the screen. That's the whole point right now, so tell us wherever it trips you up.</p></li>
+        <li><span class="k green">Free</span><p>There's nothing to pay while we're testing, so just get out and play.</p></li>
+        <li><span class="k">The pot</span><p>It's optional and hands-off, so if your group plays for something the app tracks who's in and where it stands without ever touching the money, and you settle up however you always have.</p></li>
+        <li><span class="k">On your phone</span><p>It's built for your phone, so you can post a round right from the parking lot.</p></li>
+      </ul>
+    </section>
+
+    <footer>
+      <span>cupseason.app</span>
+      <span>Questions? Text Jerecho.</span>
+    </footer>
+
+  </div>
+</div>

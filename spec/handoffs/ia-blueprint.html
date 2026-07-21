@@ -1,0 +1,358 @@
+<title>Cup Season — IA Blueprint</title>
+<style>
+  :root{
+    --bg:#0C0D0F; --card:#16191E; --line:#262A32;
+    --ink:#ECEEF2; --body:#CDD3DA; --mut:#8A929E; --dim:#5A616B;
+    --gold:#E9BE62; --green:#43E07C; --neg:#F0655A; --blue:#57A8FF;
+    --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    --mono:ui-monospace,SFMono-Regular,Menlo,"Roboto Mono",monospace;
+  }
+  *{box-sizing:border-box;}
+  .pg{ background:var(--bg); color:var(--body); font-family:var(--sans);
+    font-size:16px; line-height:1.6; min-height:100vh;
+    padding:clamp(28px,6vw,72px) clamp(20px,5vw,40px);
+    background-image:
+      radial-gradient(60% 30% at 78% -4%, rgba(67,224,124,.05), transparent 70%),
+      radial-gradient(46% 26% at 12% 104%, rgba(233,190,98,.05), transparent 70%);
+  }
+  .wrap{ max-width:760px; margin:0 auto; display:flex; flex-direction:column; gap:44px; }
+  .sec-label{ font-family:var(--mono); font-size:12px; letter-spacing:.16em; text-transform:uppercase;
+    color:var(--gold); margin:0 0 14px; display:flex; align-items:center; gap:10px; }
+  .sec-label::after{ content:""; height:1px; flex:1; background:var(--line); }
+  .sec-label .n{ color:var(--dim); }
+  h1{ font-weight:800; letter-spacing:-.025em; line-height:1.04;
+    font-size:clamp(34px,7.5vw,54px); color:var(--ink); margin:0; text-wrap:balance; }
+  h1 em{ font-style:normal; color:var(--gold); }
+  h3{ color:var(--ink); font-size:17px; font-weight:700; margin:22px 0 8px; letter-spacing:-.01em; }
+  h3:first-of-type{ margin-top:0; }
+  .lede{ font-size:clamp(16.5px,2.3vw,18.5px); color:var(--mut); margin:0; max-width:56ch; line-height:1.55; }
+  p{ margin:0 0 12px; }
+  p:last-child{ margin-bottom:0; }
+  strong{ color:var(--ink); font-weight:600; }
+  .q{ font-family:var(--mono); color:var(--green); font-size:.92em; }
+  .brandrow{ display:flex; align-items:center; gap:12px; margin-bottom:16px; }
+  .brandrow svg{ width:38px; height:38px; flex:none; }
+  .brandrow b{ font-family:var(--mono); font-size:12px; letter-spacing:.16em; text-transform:uppercase; color:var(--ink); }
+  .brandrow small{ font-family:var(--mono); font-size:11px; letter-spacing:.1em; color:var(--dim); display:block; }
+
+  .callout{ border-left:2px solid var(--gold); padding:4px 0 4px 16px; color:var(--mut);
+    font-size:15px; line-height:1.55; margin:16px 0 0; }
+  .callout b{ color:var(--gold); font-weight:600; }
+
+  /* nav mock */
+  .phone{ max-width:420px; margin:18px auto 6px; }
+  .navmock{ display:grid; grid-template-columns:1fr 1fr 1fr 1fr; align-items:end; gap:4px;
+    background:var(--card); border:1px solid var(--line); border-radius:18px; padding:12px 10px 10px; }
+  .navmock .slot{ text-align:center; padding:6px 2px; border-radius:10px; }
+  .navmock .slot .ic{ font-size:20px; line-height:1; display:block; margin-bottom:5px; color:var(--mut); }
+  .navmock .slot b{ display:block; font-size:12px; font-weight:600; color:var(--ink); letter-spacing:.02em; }
+  .navmock .slot small{ display:block; font-family:var(--mono); font-size:8.5px; letter-spacing:.05em;
+    color:var(--dim); margin-top:3px; text-transform:uppercase; }
+  .navmock .fab{ position:relative; }
+  .navmock .fab .ic{ width:46px; height:46px; margin:-26px auto 5px; border-radius:50%;
+    background:var(--gold); color:#141519; font-size:24px; font-weight:700;
+    display:flex; align-items:center; justify-content:center;
+    box-shadow:0 6px 18px rgba(233,190,98,.28); }
+  .navnote{ text-align:center; font-family:var(--mono); font-size:10.5px; letter-spacing:.08em;
+    color:var(--dim); margin-top:10px; }
+
+  /* tree */
+  .treewrap{ background:var(--card); border:1px solid var(--line); border-radius:12px;
+    padding:18px 20px; overflow-x:auto; }
+  pre.tree{ margin:0; font-family:var(--mono); font-size:12.5px; line-height:1.75; color:var(--body); }
+  pre.tree .t{ color:var(--ink); font-weight:700; }
+  pre.tree .qq{ color:var(--green); }
+  pre.tree .g{ color:var(--gold); }
+  pre.tree .d{ color:var(--dim); }
+
+  /* tables */
+  table{ width:100%; border-collapse:collapse; font-size:14px; }
+  .tbwrap{ overflow-x:auto; }
+  th{ font-family:var(--mono); font-size:10.5px; letter-spacing:.12em; text-transform:uppercase;
+    color:var(--dim); text-align:left; padding:8px 12px 8px 0; border-bottom:1px solid var(--line); font-weight:600; }
+  td{ padding:10px 12px 10px 0; border-bottom:1px solid var(--line); vertical-align:top; line-height:1.5; }
+  tr:last-child td{ border-bottom:none; }
+  td b{ color:var(--ink); font-weight:600; }
+  .chip{ font-family:var(--mono); font-size:9.5px; letter-spacing:.1em; text-transform:uppercase;
+    border-radius:99px; padding:3px 9px; white-space:nowrap; display:inline-block; }
+  .chip.kill{ background:rgba(240,101,90,.14); color:var(--neg); }
+  .chip.merge{ background:rgba(233,190,98,.14); color:var(--gold); }
+  .chip.ctx{ background:rgba(87,168,255,.14); color:var(--blue); }
+  .chip.keep{ background:rgba(67,224,124,.14); color:var(--green); }
+
+  /* object model */
+  .om{ display:grid; grid-template-columns:repeat(auto-fit,minmax(210px,1fr)); gap:10px; margin-top:6px; }
+  .om .ent{ background:var(--card); border:1px solid var(--line); border-radius:12px; padding:14px 16px; }
+  .om .ent h4{ margin:0 0 6px; font-size:14px; color:var(--ink); display:flex; align-items:center; gap:8px; }
+  .om .ent h4 .k{ font-family:var(--mono); font-size:9px; letter-spacing:.1em; color:var(--gold); }
+  .om .ent p{ font-size:13px; color:var(--mut); margin:0; line-height:1.5; }
+
+  /* journeys */
+  ol.jz{ list-style:none; margin:0; padding:0; counter-reset:j; display:flex; flex-direction:column; }
+  ol.jz li{ counter-increment:j; display:grid; grid-template-columns:32px 1fr; gap:14px;
+    padding:14px 0; border-top:1px solid var(--line); }
+  ol.jz li:first-child{ border-top:none; }
+  ol.jz li::before{ content:counter(j,decimal-leading-zero); font-family:var(--mono); font-size:13px;
+    font-weight:600; color:var(--gold); padding-top:2px; }
+  ol.jz b{ color:var(--ink); font-weight:600; display:block; margin-bottom:2px; }
+  ol.jz p{ font-size:14.5px; color:var(--mut); margin:0; }
+  ol.jz .path{ font-family:var(--mono); font-size:11.5px; color:var(--green); }
+
+  /* phases */
+  .phase{ display:grid; grid-template-columns:auto 1fr; gap:14px; padding:13px 0; border-top:1px solid var(--line); align-items:start; }
+  .phase:first-of-type{ border-top:none; }
+  .phase .v{ font-family:var(--mono); font-size:11px; letter-spacing:.06em; color:var(--bg);
+    background:var(--gold); border-radius:6px; padding:3px 8px; white-space:nowrap; margin-top:2px; }
+  .phase p{ margin:0; font-size:15px; }
+  .phase b{ color:var(--ink); }
+
+  footer{ border-top:1px solid var(--line); padding-top:20px; display:flex; flex-wrap:wrap;
+    justify-content:space-between; gap:10px; font-family:var(--mono); font-size:11.5px;
+    letter-spacing:.06em; color:var(--dim); }
+</style>
+
+<div class="pg">
+<div class="wrap">
+
+  <header>
+    <div class="brandrow">
+      <svg viewBox="0 0 96 96" fill="none" aria-hidden="true">
+        <ellipse cx="48" cy="66" rx="15" ry="5.5" stroke="#43E07C" stroke-opacity=".35" stroke-width="1.5"/>
+        <ellipse cx="48" cy="66" rx="9" ry="3.4" fill="#04110A" stroke="#0F3520" stroke-width="2"/>
+        <path d="M52 64V22" stroke="#F4F7F4" stroke-width="4" stroke-linecap="round"/>
+        <path d="M52 22l22 7.5L52 37z" fill="#E9BE62"/>
+      </svg>
+      <div><b>Cup Season</b><small>IA Blueprint · v1 · July 2026</small></div>
+    </div>
+    <h1>Four questions.<br>Four rooms.<br><em>One atom.</em></h1>
+    <p class="lede" style="margin-top:14px">A ground-up information architecture for an app that is a stats tracker, a fantasy league, a social feed, and a tee sheet at once — without feeling like four apps stapled together.</p>
+  </header>
+
+  <!-- ============ 0 · DIAGNOSIS ============ -->
+  <section>
+    <p class="sec-label"><span class="n">00</span>Diagnosis — why it feels cluttered</p>
+    <p>Cup Season grew a screen per system. Leagues got a hub, stats got a page, friends got a tab, the calendar got a tab, the pot got a screen, posting got a page <em>and</em> a card on Home. Each was reasonable alone. Together they mean most features have two or three homes, and the user is never sure which one is canonical. The pilot said this eleven different ways: "redundant," "two home tabs," "should be separate from settings," "not accessible without a league."</p>
+    <p>Here is the irony: <strong>the database already solved this.</strong> Migration 007 made the round a global, immutable fact that belongs to a golfer, and made every league a <em>lens</em> that scores it through its own bylaws. Post once, appear everywhere. The schema is elegant. The UI never adopted the same idea — it still treats every surface as a silo that needs its own copy of everything. This blueprint is the client-side 007.</p>
+    <div class="callout"><b>The unlock:</b> screens are lenses, not silos. A round is posted once and read through many lenses (your card, your feed, each league's standings). A friend is added once and appears in every picker. The moment a feature needs a second home, it isn't a place — it's a verb or a lens.</div>
+  </section>
+
+  <!-- ============ 1 · PHILOSOPHY ============ -->
+  <section>
+    <p class="sec-label"><span class="n">01</span>Philosophy</p>
+
+    <h3>1 · The round is the atom</h3>
+    <p>Strava feels effortless because everything radiates from one object: the activity. Cup Season's activity is the round. Every screen in this architecture is a view over rounds: the feed is rounds as stories, standings are rounds as points, your stats are rounds as trends, the pot is rounds as stakes. Nothing else gets to be an atom.</p>
+
+    <h3>2 · Nouns are places, verbs are sheets</h3>
+    <p>Tabs answer questions; actions perform them. "Post a round" is not a place you visit, it's a thing you do — so it lives on the gold <strong>⊕</strong> and in context, never as a card squatting on a tab. Almost all of the pilot's "redundant" reports were verbs that had been promoted to places. Demote them and the clutter dissolves.</p>
+
+    <h3>3 · One home</h3>
+    <p>A home is where the app opens. By definition there is exactly one. Everything else is a room you visit and leave. The current app has three things that feel like home (league board, league-less welcome, the hub) which is why "two home tabs seemingly populate." In this architecture the home is the feed — full stop — and each league is a room inside Compete.</p>
+
+    <h3>4 · Golf has a clock</h3>
+    <p>Every golf interaction is before, during, or after a round. Plan a tee time. Play live (with side games). Post the score. Those are the same moment of life in three tenses, so they share one button. The ⊕ is not a "new post" button, it's an <em>"I'm golfing"</em> button.</p>
+
+    <h3>5 · Show the work (spec §16)</h3>
+    <p>Every number is a door. Standings row opens the counting rounds; a counting round opens its story; the story shows kudos, attestation, and the ledger entries it produced. This is already server-side law; the IA makes it navigation law. No dead-end numbers.</p>
+
+    <h3>6 · The empty app is still an app</h3>
+    <p>A golfer with zero leagues gets a complete product: a feed of their buddies' golf, their own card and stats, and the full ⊕. Competition is an upgrade, never a prerequisite. This kills the "what do I even do next" confusion and answers "game modes should be available from the get-go."</p>
+  </section>
+
+  <!-- ============ 2 · BOTTOM NAV ============ -->
+  <section>
+    <p class="sec-label"><span class="n">02</span>Bottom navigation</p>
+    <div class="phone">
+      <div class="navmock">
+        <div class="slot"><span class="ic">⌂</span><b>Home</b><small>What happened?</small></div>
+        <div class="slot"><span class="ic">🏆</span><b>Compete</b><small>Where do I stand?</small></div>
+        <div class="slot fab"><span class="ic">⊕</span><b>Golf</b><small>I'm playing</small></div>
+        <div class="slot"><span class="ic">◎</span><b>You</b><small>How am I doing?</small></div>
+      </div>
+      <p class="navnote">FOUR SLOTS · THE GOLD ⊕ IS A VERB, NOT A PLACE</p>
+    </div>
+    <p>Down from five tabs to four slots, and two of the five die entirely (Calendar and the People tab). Each slot is one question. The top bar of Home carries the two global utilities as overlays, the Instagram way: <strong>search</strong> (golfers, courses) and <strong>notifications</strong> (friend requests, league invites, kudos) — so social plumbing never needs a tab.</p>
+    <div class="callout"><b>Naming:</b> "Compete" is the clear choice; "Cups" is the on-brand alternative (every container mints a cup — seasons, Ryders, brackets). Decide by feel, the structure doesn't change.</div>
+  </section>
+
+  <!-- ============ 3 · SITEMAP ============ -->
+  <section>
+    <p class="sec-label"><span class="n">03</span>Complete sitemap</p>
+    <div class="treewrap"><pre class="tree">
+<span class="t">CUP SEASON</span>
+│
+├── <span class="t">HOME</span> <span class="qq">— What happened?</span>
+│   ├── Up Next strip <span class="d">· next tee time · pending invites · month-close countdown</span>
+│   ├── The Feed <span class="d">· buddies' rounds · league moments · trophies · draw reveals</span>
+│   │   └── Story card <span class="d">· kudos · comments · attest tap · "show the work" links</span>
+│   ├── <span class="g">🔍 Search</span> <span class="d">[overlay] · golfers by @handle/name · courses</span>
+│   └── <span class="g">🔔 Notifications</span> <span class="d">[sheet] · friend requests · league/event invites · kudos</span>
+│
+├── <span class="t">COMPETE</span> <span class="qq">— Who am I competing against?</span>
+│   ├── My competitions <span class="d">· leagues + events, live status chips ("2nd · 12 back")</span>
+│   ├── Start something <span class="d">· League · Ryder · Bracket · Major — visible from day one</span>
+│   ├── Join with a code <span class="d">[inline]</span>
+│   ├── <span class="t">League Room</span> <span class="d">[drill-in, segmented]</span>
+│   │   ├── Standings <span class="qq">— Where do I stand?</span> <span class="d">· squads + individual · taps open counting rounds</span>
+│   │   ├── Board <span class="qq">— What's the league saying?</span> <span class="d">· chat + system posts + Pro announcements</span>
+│   │   ├── Schedule <span class="qq">— What's next for us?</span> <span class="d">· calendar · declared rounds · closes · Cup Final</span>
+│   │   ├── Pot <span class="qq">— What's at stake?</span> <span class="d">· buy-ins (Pro taps as money moves) · payout split</span>
+│   │   └── Manage <span class="d">[Pro only] · invites · byes · voids · bylaws · Pro Shop upsell</span>
+│   └── <span class="t">Event Room</span> <span class="d">[drill-in] · Ryder scoreboard · sessions · roster</span>
+│
+├── <span class="g">⊕ GOLF</span> <span class="qq">— I'm playing</span> <span class="d">[sheet — before / during / after]</span>
+│   ├── Post a round <span class="d">· after · course typeahead · gross · date · done</span>
+│   ├── Play now <span class="d">· during · live scoring · Wolf / match / skins · guests welcome</span>
+│   └── Plan a tee time <span class="d">· before · declare a round · invite the crew</span>
+│
+└── <span class="t">YOU</span> <span class="qq">— How am I doing?</span>
+    ├── Golfer card <span class="d">· PUBLIC · name · @handle · marker · index · city · home course</span>
+    │   └── Display case <span class="d">· trophies live ON the card — it's the mantel</span>
+    ├── Stats <span class="d">· index trend · vs-index history · distributions · bests</span>
+    ├── Rounds <span class="d">· full archive · delete a mis-post</span>
+    ├── Buddies <span class="d">· manage the crew · requests also surface in 🔔</span>
+    └── ⚙ Settings <span class="d">[sheet — NOT part of the card] · account · notifications · appearance · delete account</span>
+</pre></div>
+    <p style="margin-top:12px"><strong>Depth rule:</strong> nothing lives more than two taps from a tab. Tab → room → sheet. If a feature needs a third level, it's contextual by definition.</p>
+  </section>
+
+  <!-- ============ 4 · SCREEN HIERARCHY ============ -->
+  <section>
+    <p class="sec-label"><span class="n">04</span>Tab &amp; screen hierarchy — one question each</p>
+    <div class="tbwrap"><table>
+      <tr><th>Screen</th><th>The one question</th><th>What earns a pixel here</th></tr>
+      <tr><td><b>Home</b></td><td class="q">What happened?</td><td>Stories from your circle and your leagues, newest first. One "Up Next" strip on top. Nothing that asks for input.</td></tr>
+      <tr><td><b>Notifications</b> <span class="chip ctx">overlay</span></td><td class="q">What needs me?</td><td>Requests and invites with accept/decline inline. Badge on the bell, never a tab.</td></tr>
+      <tr><td><b>Compete</b></td><td class="q">Who am I against?</td><td>Your containers with a one-line status each, plus the door to start or join one. No content from inside a league leaks up.</td></tr>
+      <tr><td><b>League Room · Standings</b></td><td class="q">Where do I stand?</td><td>Squad table, individual table, every number a door to its rounds.</td></tr>
+      <tr><td><b>League Room · Board</b></td><td class="q">What's the league saying?</td><td>Chat, system posts, Pro announcements pinned. The league's group text.</td></tr>
+      <tr><td><b>League Room · Schedule</b></td><td class="q">What's next for us?</td><td>Month grid, declared rounds, closes, Cup Final marker. Tap a day to plan.</td></tr>
+      <tr><td><b>League Room · Pot</b></td><td class="q">What's at stake?</td><td>Total, split, who's in. Pro taps names as money moves. Tracked, never held.</td></tr>
+      <tr><td><b>⊕ Golf</b> <span class="chip ctx">sheet</span></td><td class="q">I'm playing</td><td>Three tenses: plan / play / post. The only place score entry exists.</td></tr>
+      <tr><td><b>You</b></td><td class="q">How am I doing?</td><td>The public card up top (what others see), stats and archive below, settings behind the gear.</td></tr>
+      <tr><td><b>Settings</b> <span class="chip ctx">sheet</span></td><td class="q">How does the app behave?</td><td>Account, notifications, appearance, delete. Zero identity content.</td></tr>
+    </table></div>
+  </section>
+
+  <!-- ============ 5 · OBJECT MODEL ============ -->
+  <section>
+    <p class="sec-label"><span class="n">05</span>Object model</p>
+    <p>Five object families. Everything on screen is one of these or a view over one.</p>
+    <div class="om">
+      <div class="ent"><h4><span class="k">IDENTITY</span> Golfer</h4><p>Global. Name, @handle, marker, index, home course. Owns rounds and trophies; has buddies; joins containers. The card is its public face.</p></div>
+      <div class="ent"><h4><span class="k">FACT</span> Round</h4><p>Immutable. Gross, rating/slope, date, index-at-post, differential. Belongs to a golfer, never to a league. Deletable only by its owner.</p></div>
+      <div class="ent"><h4><span class="k">SOCIAL</span> Story</h4><p>What a fact looks like in public: a feed post carrying kudos, comments, attestation. Fans out to Home and every relevant league board.</p></div>
+      <div class="ent"><h4><span class="k">ARENA</span> Container</h4><p>League (seasons → squads → standings → pot), Event (Ryder, Bracket, Major), or Live Round (a session with side games). Each is a lens over rounds, and each mints trophies.</p></div>
+      <div class="ent"><h4><span class="k">LEDGER</span> Adjustment</h4><p>Floors, bonuses, voids, byes — every non-round point movement, with a reason. The "show the work" backbone; renders as system stories.</p></div>
+    </div>
+    <div class="treewrap" style="margin-top:12px"><pre class="tree">
+Golfer ──owns──▶ Round ──scored by trigger──▶ Story ──fans to──▶ Home feed + each league Board
+   │                │
+   │                └──read through lenses──▶ Standings · Stats · Pot stakes
+   ├──buddies──▶ Golfer                    (v_rounds_ranked: one fact, many scores)
+   ├──joins──▶ Container ──mints──▶ Trophy ──displays on──▶ Golfer card
+   └──earns──▶ Trophy          Container ──writes──▶ Adjustment ──explains──▶ Standings</pre></div>
+  </section>
+
+  <!-- ============ 6 · USER JOURNEYS ============ -->
+  <section>
+    <p class="sec-label"><span class="n">06</span>User journeys</p>
+    <ol class="jz">
+      <li><div><b>The invited rookie (five minutes)</b>
+        <p>Text link → email code → golfer card → lands on Home. Invite banner is the first thing on screen. Accept → League Room. First round posted from ⊕ that weekend; sees his own story on the feed and his name on the standings. Never saw an empty screen.</p>
+        <p class="path">link → sign in → card → Home banner → Accept → ⊕ → feed</p></div></li>
+      <li><div><b>The Sunday post (ninety seconds, parking lot)</b>
+        <p>⊕ → Post a round → recent-course chip fills rating/slope → gross → done. The story hits the feed; two buddies kudos it; the league standings chip on Compete now reads "2nd · 4 back." He didn't visit a single page to make all that happen.</p>
+        <p class="path">⊕ → chip → gross → post</p></div></li>
+      <li><div><b>The small crew, short season</b>
+        <p>Five guys, no appetite for squads. Compete → Start → League → Casual preset: uncapped individual race, no floors, three-week season starting Friday. Invites staged through the People Picker. Whole thing set up during one group-chat argument.</p>
+        <p class="path">Compete → Start → Casual → any-day start → invite → lock</p></div></li>
+      <li><div><b>Saturday golf, organized to settled</b>
+        <p>Tuesday: ⊕ → Plan a tee time → crew notified, it sits in Up Next all week. Saturday: ⊕ → Play now → Wolf with a guest. After: real rounds post through the same flow, the Wolf settle-up renders, nobody argues math.</p>
+        <p class="path">⊕ plan → ⊕ play → ⊕ post</p></div></li>
+      <li><div><b>The Pro at month-end</b>
+        <p>Home's Up Next strip: "PIGL closes in 3 days." League Room → Standings shows who's short of the floor → nudge from the roster row. After the close, the ledger explains every floor hit as a system story on the Board. Zero DMs asking "why did we lose 10 points."</p>
+        <p class="path">Up Next → Room → Standings → nudge → ledger story</p></div></li>
+      <li><div><b>The fat-fingered gross</b>
+        <p>Posted 89, meant 98. You → Rounds → × on the round → confirm. Standings recompute everywhere because the views read facts. No support ticket, no Pro intervention.</p>
+        <p class="path">You → Rounds → × → done</p></div></li>
+    </ol>
+  </section>
+
+  <!-- ============ 7 · REMOVE / MERGE / CONTEXTUALIZE ============ -->
+  <section>
+    <p class="sec-label"><span class="n">07</span>Remove · merge · make contextual</p>
+
+    <h3>Screens removed</h3>
+    <div class="tbwrap"><table>
+      <tr><th>Screen</th><th></th><th>Where it goes</th></tr>
+      <tr><td><b>Calendar tab</b></td><td><span class="chip kill">remove</span></td><td>Splits into the Up Next strip (Home) and League Room · Schedule. A mostly-empty month grid never earned a tab.</td></tr>
+      <tr><td><b>Crew · People tab</b></td><td><span class="chip kill">remove</span></td><td>Friends become fully contextual: 🔍 search overlay, 🔔 requests, You · Buddies. The People Picker <em>component</em> survives untouched — it was always the real asset, not the tab.</td></tr>
+      <tr><td><b>Pot page</b></td><td><span class="chip kill">remove</span></td><td>League Room · Pot. Money is league context, never global.</td></tr>
+      <tr><td><b>Quick-post card on Home</b></td><td><span class="chip kill">remove</span></td><td>⊕. One door for score entry. (Top pilot complaint, twice.)</td></tr>
+      <tr><td><b>Standalone Wolf / live pages</b></td><td><span class="chip kill">remove</span></td><td>⊕ · Play now. Side games are a mode of playing, not a destination — and this is how they come back.</td></tr>
+    </table></div>
+
+    <h3>Screens merged</h3>
+    <div class="tbwrap"><table>
+      <tr><th>Today</th><th></th><th>Becomes</th></tr>
+      <tr><td>League board + league-less welcome + "two home tabs"</td><td><span class="chip merge">merge</span></td><td><b>One feed.</b> Buddy rounds and all league moments interleave. Rooms are rooms.</td></tr>
+      <tr><td>Hub, standings, pot, calendar, board</td><td><span class="chip merge">merge</span></td><td><b>League Room</b> — one door, five segments. The ESPN model: enter the league, everything about it is inside.</td></tr>
+      <tr><td>Golfer-card sheet + deep stats + trophies + settings</td><td><span class="chip merge">merge</span></td><td><b>You</b> — public card (with the display case on it) up top; stats and archive below; settings exiled to the gear.</td></tr>
+      <tr><td>Six invite/add flows</td><td><span class="chip keep">done</span></td><td><b>One People Picker</b> — shipped v23.118–120. First proof this consolidation works.</td></tr>
+    </table></div>
+
+    <h3>Interactions that become contextual</h3>
+    <div class="tbwrap"><table>
+      <tr><th>Interaction</th><th></th><th>Context</th></tr>
+      <tr><td>Adding a friend</td><td><span class="chip ctx">contextual</span></td><td>🔍 overlay anywhere; accept from 🔔 or the Home banner.</td></tr>
+      <tr><td>League / event invites</td><td><span class="chip ctx">contextual</span></td><td>🔔 sheet + Home banner. Never a page.</td></tr>
+      <tr><td>Marking a buy-in</td><td><span class="chip ctx">contextual</span></td><td>Pro taps the payer row in League Room · Pot.</td></tr>
+      <tr><td>Attesting a round</td><td><span class="chip ctx">contextual</span></td><td>Tap on the story card itself, where the round already lives.</td></tr>
+      <tr><td>Editing your index</td><td><span class="chip ctx">contextual</span></td><td>On the You card — and it announces itself to the feed. Socially policed.</td></tr>
+      <tr><td>Pro tools (bye, void, nudge)</td><td><span class="chip ctx">contextual</span></td><td>Inline on roster rows and round stories, role-gated. A void lives on the thing being voided.</td></tr>
+      <tr><td>Joining by code</td><td><span class="chip ctx">contextual</span></td><td>Inline input on Compete.</td></tr>
+      <tr><td>Course selection</td><td><span class="chip ctx">contextual</span></td><td>Typeahead inside the post flow. Recent chips capped, never a library page.</td></tr>
+    </table></div>
+  </section>
+
+  <!-- ============ 8 · FEEDBACK MAP ============ -->
+  <section>
+    <p class="sec-label"><span class="n">08</span>Every pilot complaint, answered by structure</p>
+    <div class="tbwrap"><table>
+      <tr><th>Pilot said</th><th>The architecture answers</th></tr>
+      <tr><td>"Post a round on Home is redundant"</td><td>Quick-post card removed. ⊕ is the only door.</td></tr>
+      <tr><td>"Two home tabs, one unreachable"</td><td>One feed. League boards are rooms inside Compete.</td></tr>
+      <tr><td>"Golfer card should be my external profile, separate from settings"</td><td>You = public card; settings behind ⚙. Exactly this.</td></tr>
+      <tr><td>"Display case should be on the golfer card"</td><td>It is the card's centerpiece — the mantel.</td></tr>
+      <tr><td>"Build-crew is on this page and the core page"</td><td>Friend management has one home (You · Buddies) plus contextual search.</td></tr>
+      <tr><td>"Game modes should be available from the get-go"</td><td>Compete · Start something renders league-less. ⊕ · Play now needs no league at all.</td></tr>
+      <tr><td>"Wolf and other game modes gone — revisit"</td><td>They return as ⊕ · Play now, their correct home.</td></tr>
+      <tr><td>"Feed of friends' recent rounds would be fun"</td><td>That's the Home feed's whole job now.</td></tr>
+      <tr><td>"What is the SND thing / round score?"</td><td>Post flow speaks plain language: "vs your index." Jargon dies in the merge.</td></tr>
+      <tr><td>"Not sure what next steps are"</td><td>Up Next strip + a complete league-less app. The screen answers before the user asks.</td></tr>
+      <tr><td>"Calendar should let me tap a day to add a tee time"</td><td>League Room · Schedule does exactly that, wired to ⊕ · Plan.</td></tr>
+    </table></div>
+  </section>
+
+  <!-- ============ 9 · MIGRATION PATH ============ -->
+  <section>
+    <p class="sec-label"><span class="n">09</span>Migration path — five shippable phases</p>
+    <p>This is a live pilot, not a greenfield. Each phase is one deployable version that leaves the app better alone; order chosen so the biggest confusion (three homes) dies first.</p>
+    <div style="margin-top:14px">
+      <div class="phase"><span class="v">P1</span><p><b>One Home.</b> Merge league board(s) + buddy rounds into a single feed with the Up Next strip. Retire the quick-post card. The "two homes" and "friends' rounds feed" feedback die in the same build.</p></div>
+      <div class="phase"><span class="v">P2</span><p><b>League Room.</b> Standings · Board · Schedule · Pot · Manage as segments behind one door in Compete. Calendar tab and pot page retire. "Start something" renders league-less.</p></div>
+      <div class="phase"><span class="v">P3</span><p><b>You.</b> Public card with display case on top, stats and rounds archive below, settings behind the gear. The card becomes what a buddy sees when they tap your name anywhere.</p></div>
+      <div class="phase"><span class="v">P4</span><p><b>⊕ triptych.</b> Post / Play now / Plan a tee time. Wolf and the side games return inside Play now. Plain-language scoring copy replaces the "SND" panel.</p></div>
+      <div class="phase"><span class="v">P5</span><p><b>Retire the People tab.</b> Search overlay + notification bell + You · Buddies take over. Last because it's polish on a pattern the earlier phases prove.</p></div>
+    </div>
+    <div class="callout" style="margin-top:18px"><b>Nothing wasted:</b> the friends rework (v23.118–120) built the one component this whole architecture leans on — the People Picker. The XSS pass, the invite plumbing, the realtime spine, the flexible seasons: all of it slots in unchanged. This blueprint moves furniture, not foundations.</div>
+  </section>
+
+  <footer>
+    <span>CUP SEASON · IA BLUEPRINT V1</span>
+    <span>DESIGNED 2026-07-15 · BUILDS ON SPEC §14/§16 + MIGRATION 007</span>
+  </footer>
+
+</div>
+</div>

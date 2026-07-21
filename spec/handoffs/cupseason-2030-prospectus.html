@@ -1,0 +1,474 @@
+<title>CupSeason 2030 — Founding Prospectus</title>
+<style>
+  :root{
+    --paper:#FBFAF5; --paper2:#F3F1E8; --ink:#15211A; --body:#3C4A41; --mut:#6C7A70; --faint:#9AA69C;
+    --line:#E3E0D2; --pine:#0E3B24; --gold:#A87B24; --goldsoft:#C9A44E; --dawn:#3E6B8F;
+    --nite:#0D1512; --nite-ink:#E9EDE8; --nite-mut:#8FA096; --nite-line:#24312A;
+    --serif:Charter,"Iowan Old Style",Georgia,"Times New Roman",serif;
+    --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    --mono:ui-monospace,SFMono-Regular,Menlo,"Roboto Mono",monospace;
+  }
+  *{box-sizing:border-box;}
+  .pg{ background:var(--paper); color:var(--body); font-family:var(--sans);
+    font-size:16.5px; line-height:1.66; min-height:100vh;
+    padding:clamp(30px,6vw,84px) clamp(20px,5vw,44px); }
+  .wrap{ max-width:720px; margin:0 auto; }
+  section{ margin:0 0 72px; }
+  .eb{ font-family:var(--mono); font-size:11px; letter-spacing:.2em; text-transform:uppercase;
+    color:var(--gold); margin:0 0 16px; display:flex; align-items:center; gap:12px; }
+  .eb::after{ content:""; height:1px; flex:1; background:var(--line); }
+  .eb .pn{ color:var(--faint); }
+  h1,h2{ font-family:var(--serif); color:var(--ink); letter-spacing:-.015em; text-wrap:balance; }
+  h1{ font-size:clamp(40px,8vw,66px); line-height:1.02; font-weight:700; margin:0; }
+  h2{ font-size:clamp(24px,4.5vw,32px); line-height:1.15; font-weight:700; margin:0 0 18px; }
+  h3{ font-family:var(--sans); color:var(--ink); font-size:16.5px; font-weight:700; margin:28px 0 8px; letter-spacing:-.01em; }
+  h4{ font-family:var(--serif); color:var(--ink); font-size:19px; font-weight:700; margin:26px 0 6px; }
+  p{ margin:0 0 13px; } p:last-child{ margin-bottom:0; }
+  strong{ color:var(--ink); font-weight:650; }
+  em.hl{ font-style:normal; color:var(--pine); font-weight:600; }
+  .lede{ font-family:var(--serif); font-size:clamp(18px,2.6vw,21px); color:var(--mut); line-height:1.5; }
+  .sent{ font-family:var(--serif); font-size:clamp(22px,3.6vw,29px); line-height:1.35; color:var(--ink);
+    border-left:3px solid var(--gold); padding:6px 0 6px 22px; margin:26px 0; }
+  .rule{ background:var(--paper2); border:1px solid var(--line); border-radius:14px; padding:18px 22px;
+    font-size:15px; color:var(--body); margin:18px 0 0; }
+  .rule b{ color:var(--pine); }
+  ul.tight{ margin:0; padding-left:20px; }
+  ul.tight li{ margin:0 0 9px; }
+  ul.tight li b{ color:var(--ink); font-weight:650; }
+
+  /* tables */
+  .tbw{ overflow-x:auto; margin-top:8px; }
+  table{ width:100%; border-collapse:collapse; font-size:14px; }
+  th{ font-family:var(--mono); font-size:10px; letter-spacing:.12em; text-transform:uppercase;
+    color:var(--faint); text-align:left; padding:8px 14px 8px 0; border-bottom:1px solid var(--line); font-weight:600; }
+  td{ padding:11px 14px 11px 0; border-bottom:1px solid var(--line); vertical-align:top; line-height:1.5; }
+  tr:last-child td{ border-bottom:none; }
+  td b{ color:var(--ink); font-weight:650; }
+  td .q{ font-family:var(--mono); font-size:11.5px; color:var(--pine); }
+  td .emo{ font-family:var(--serif); font-style:italic; color:var(--gold); white-space:nowrap; }
+
+  /* object cards */
+  .om{ display:grid; grid-template-columns:repeat(auto-fit,minmax(215px,1fr)); gap:12px; margin-top:14px; }
+  .om .ent{ background:#fff; border:1px solid var(--line); border-radius:14px; padding:16px 18px;
+    box-shadow:0 1px 2px rgba(21,33,26,.04); }
+  .om .ent h5{ margin:0 0 6px; font-size:15px; color:var(--ink); font-family:var(--serif); font-weight:700; }
+  .om .ent h5 .k{ font-family:var(--mono); font-size:8.5px; letter-spacing:.14em; color:var(--gold);
+    display:block; margin-bottom:5px; }
+  .om .ent p{ font-size:13.5px; color:var(--mut); margin:0; line-height:1.5; }
+  .om .ent.new{ border-color:var(--goldsoft); background:linear-gradient(180deg,#FFFDF6,#fff); }
+  .om .ent.new h5 .k::after{ content:"  ·  INVENTED HERE"; color:var(--pine); }
+
+  /* nav mock */
+  .phone{ max-width:430px; margin:22px auto 8px; }
+  .navmock{ display:grid; grid-template-columns:1fr 1fr 1fr 1fr; align-items:end; gap:4px;
+    background:#fff; border:1px solid var(--line); border-radius:20px; padding:13px 12px 11px;
+    box-shadow:0 6px 24px rgba(21,33,26,.08); }
+  .navmock .slot{ text-align:center; padding:6px 2px; }
+  .navmock .slot .ic{ font-size:19px; display:block; margin-bottom:5px; color:var(--mut); }
+  .navmock .slot b{ display:block; font-size:12.5px; color:var(--ink); font-weight:650; }
+  .navmock .slot small{ display:block; font-family:var(--mono); font-size:8px; letter-spacing:.06em;
+    color:var(--faint); margin-top:3px; text-transform:uppercase; }
+  .navmock .fab .ic{ width:48px; height:48px; margin:-28px auto 5px; border-radius:50%;
+    background:var(--pine); color:#F6EFD9; font-size:24px; font-weight:400;
+    display:flex; align-items:center; justify-content:center; box-shadow:0 8px 22px rgba(14,59,36,.35); }
+  .navnote{ text-align:center; font-family:var(--mono); font-size:10px; letter-spacing:.1em; color:var(--faint); margin-top:12px; }
+
+  /* felt-experience moments */
+  .mom{ display:grid; grid-template-columns:110px 1fr; gap:18px; padding:16px 0; border-top:1px solid var(--line); }
+  .mom:first-of-type{ border-top:none; }
+  .mom .t{ font-family:var(--mono); font-size:11px; letter-spacing:.1em; text-transform:uppercase; color:var(--pine); padding-top:4px; }
+  .mom p{ font-size:15.5px; margin:0; }
+  @media (max-width:560px){ .mom{ grid-template-columns:1fr; gap:4px; } }
+
+  /* dark interludes */
+  .nite{ background:var(--nite); color:var(--nite-mut); border-radius:20px;
+    padding:clamp(28px,5vw,52px); margin:36px 0; }
+  .nite h2, .nite h4{ color:var(--nite-ink); }
+  .nite .eb{ color:var(--goldsoft); } .nite .eb::after{ background:var(--nite-line); }
+  .nite p{ color:var(--nite-mut); }
+  .nite strong{ color:var(--nite-ink); }
+  .nite .sent{ color:var(--nite-ink); border-color:var(--goldsoft); }
+
+  /* signature screens */
+  .scr{ border:1px solid var(--line); border-radius:16px; padding:22px 24px; margin:0 0 16px; background:#fff; }
+  .scr h4{ margin:0 0 2px; }
+  .scr .ref{ font-family:var(--mono); font-size:10.5px; letter-spacing:.06em; color:var(--dawn); margin:0 0 12px; text-transform:uppercase; }
+  .scr p{ font-size:15px; }
+  .scr .spec{ font-size:13.5px; color:var(--mut); border-top:1px dashed var(--line); margin-top:12px; padding-top:10px; }
+  .scr .spec b{ color:var(--pine); font-weight:650; font-family:var(--mono); font-size:11px; letter-spacing:.08em; }
+
+  .swatches{ display:flex; gap:10px; flex-wrap:wrap; margin:12px 0 4px; }
+  .sw{ width:92px; }
+  .sw i{ display:block; height:44px; border-radius:10px; border:1px solid var(--line); }
+  .sw span{ font-family:var(--mono); font-size:9px; letter-spacing:.06em; color:var(--mut); display:block; margin-top:5px; }
+
+  footer{ border-top:1px solid var(--line); padding-top:22px; display:flex; flex-wrap:wrap;
+    justify-content:space-between; gap:10px; font-family:var(--mono); font-size:11px; letter-spacing:.08em; color:var(--faint); }
+
+  /* print / PDF */
+  @page{ size:Letter; margin:0; }
+  @media print{
+    *{ -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+    .pg{ padding:48px 56px; }
+    section{ margin-bottom:52px; }
+    h2, h4{ break-after:avoid; }
+    .scr, .om .ent, .nite, .mom, tr{ break-inside:avoid; }
+    .navmock{ box-shadow:none; }
+    header{ margin-bottom:56px; }
+  }
+</style>
+
+<div class="pg"><div class="wrap">
+
+<!-- ============================== COVER ============================== -->
+<header style="margin-bottom:80px">
+  <p class="eb"><span class="pn">CUPSEASON · FOUNDING PROSPECTUS</span>SERIES A · DESIGNED FOR 2030</p>
+  <h1>Where amateur golf counts.</h1>
+  <p class="lede" style="margin-top:20px">An amateur plays twelve hundred rounds in a lifetime and keeps almost none of them. The score fades, the bet is forgotten, the trash talk scrolls away, the Saturdays blur. Golf is the most measured amateur sport on earth and somehow the least remembered. We are going to fix that — and in fixing it, build the operating system for an amateur golfer's competitive life.</p>
+</header>
+
+<!-- ============================== PART 0 ============================== -->
+<section>
+  <p class="eb"><span class="pn">PART 0</span>You asked us to tell you when you're solving the wrong problem</p>
+  <h2>Three corrections before a single screen gets designed</h2>
+
+  <h4>1 · Fantasy football is the wrong skeleton.</h4>
+  <p>Fantasy sports exist because fans <em class="hl">can't play</em> — the draft, the squad, the points engine are all machinery for simulating participation in someone else's game. Golfers can play. The product should not simulate competition; it should <strong>orchestrate real competition</strong>. Season-long cups stay — they're the heartbeat — but drafts, squads, and fantasy scaffolding are optional formats, never the spine. The spine is simpler and older: a group of friends, a stretch of time, something at stake.</p>
+
+  <h4>2 · The scorecard is not the loop. The gathering is.</h4>
+  <p>The highest-frequency behavior in amateur golf isn't scoring — it's <strong>organizing</strong>. The group chat fires every week even when nobody plays: who's in Saturday, what time, who owes whom. The incumbent isn't 18Birdies; it's iMessage. A product that owns the gathering owns the round, the score, the bet, and the memory downstream of it. A product that owns only the scorecard is a calculator waiting to be deleted.</p>
+
+  <h4>3 · Everyone is fighting over the round. Nobody owns the forty years.</h4>
+  <p>Every competitor optimizes the two hours of play. No one is building golf's <strong>memory</strong> — the lifetime record, the rivalry that ran three decades, the last round with your father. Memory is the moat: a feed can be copied in a quarter; twelve years of Saturdays cannot be copied at all. The most defensible thing this company will ever build is the past.</p>
+
+  <div class="sent">CupSeason is where amateur golf counts.<br><span style="font-size:.62em; color:var(--mut); font-family:var(--sans); font-weight:400">Counts as in scored. Counts as in matters. Counts as in adds up to something after all these years.</span></div>
+</section>
+
+<!-- ============================== PART 1 ============================== -->
+<section>
+  <p class="eb"><span class="pn">PART 1</span>Company vision</p>
+  <h2>Mission &amp; principles</h2>
+
+  <h3>Mission</h3>
+  <p>Make every round of amateur golf count toward something — a cup, a rivalry, a story, a life.</p>
+
+  <h3>Product principles</h3>
+  <ul class="tight">
+    <li><b>Real golf only.</b> Nothing simulated, nothing about the pros. The content is your foursome, or it doesn't exist.</li>
+    <li><b>The crew is the customer.</b> Individuals download apps; crews adopt operating systems. Every decision optimizes the group of six over the user of one.</li>
+    <li><b>Every round counts toward something.</b> A round that lands nowhere — no cup, no rivalry, no record — is a product failure.</li>
+    <li><b>Show the work.</b> Every number is a door. Any standing, any index, any payout opens to the rounds that produced it. Trust is a navigation feature.</li>
+    <li><b>Memory is sacred.</b> Rounds are immutable and kept forever. We are custodians of people's Saturdays.</li>
+    <li><b>Money is tracked, never held.</b> We are the ledger and never the bank. The needle stays friendly because the stakes stay theirs.</li>
+  </ul>
+
+  <h3>Design principles</h3>
+  <ul class="tight">
+    <li><b>Calm surfaces, loud moments.</b> Airbnb whitespace as the default state; full-bleed cinema when a cup is won. Restraint makes celebration land.</li>
+    <li><b>The app knows what time it is.</b> Tuesday night it's a clubhouse TV. Saturday 6 a.m. it's your caddie. Saturday 1 p.m. it's a scorer's tent. The interface follows golf's clock.</li>
+    <li><b>Numbers are doors.</b> No dead-end stat anywhere in the product. Tap it, see the rounds behind it.</li>
+    <li><b>Motion imitates the ball.</b> Every animation eases like a putt dying into the cup — fast start, long soft settle. Nothing bounces. Golf doesn't bounce; it rolls out.</li>
+    <li><b>Legible at noon.</b> Designed for direct sunlight, gloved thumbs, and one hand holding a beverage. Outdoor contrast is an accessibility requirement, not a mode.</li>
+    <li><b>One question per screen.</b> If a screen answers two questions, it's two screens or one too many.</li>
+  </ul>
+
+  <h3>Emotional goals — the week we're designing</h3>
+  <p><strong>Thursday: anticipation.</strong> The gathering card sits on Today like a ticket in a jacket pocket. <strong>Saturday: presence and consequence.</strong> Scoring takes seconds; the stakes make your ninth-hole putt mean something. <strong>Sunday: warmth.</strong> The story, the kudos, the needle from Ed. <strong>February: longing.</strong> The off-season should ache a little — "41 days to the thaw" is a feature.</p>
+
+  <h3>The five behaviors we engineer</h3>
+  <p><strong>Post every round</strong> (counting must be automatic, entry under thirty seconds). <strong>Open on rest days</strong> (the feed and the standings give Tuesday a reason). <strong>Organize</strong> (the gathering is one tap from anywhere). <strong>Needle</strong> (kudos, chirps, rivalry pokes — sanctioned trash talk). <strong>Return every season</strong> (the calendar rhythm: raise a cup each spring, crown it each fall, relive it each winter).</p>
+</section>
+
+<!-- ============================== PART 2 ============================== -->
+<section>
+  <p class="eb"><span class="pn">PART 2</span>Mental model</p>
+  <h2>Ten objects, four of them new to the world</h2>
+  <p>No screens yet. Just the nouns and how they hold each other. Everything visible in the product is one of these or a view over one.</p>
+
+  <div class="om">
+    <div class="ent"><h5><span class="k">IDENTITY</span>Golfer</h5><p>A person's permanent golf identity: name, handle, ball marker, index, home course. Owns rounds and trophies. Belongs to crews. Accrues a Record.</p></div>
+    <div class="ent"><h5><span class="k">FACT</span>Round</h5><p>The atom. One played 9 or 18: gross, course, date, conditions, index-at-post. Immutable. Belongs to the golfer, never to a competition — competitions borrow it.</p></div>
+    <div class="ent new"><h5><span class="k">SOCIAL UNIT</span>Crew</h5><p>The group chat made real: a persistent set of golfers who actually play together. Not followers, not a league roster — the foursome and its orbit. Crews outlive every competition they run. This is the unit of adoption, retention, and love.</p></div>
+    <div class="ent new"><h5><span class="k">COMPETITION</span>Cup</h5><p>Any competition a crew raises: a six-month season, a Ryder weekend, a one-day skins game, a match-play ladder, a bracket. One abstraction, many formats. Every cup has a span, a format, stakes, and a crowning. Every cup mints a trophy.</p></div>
+    <div class="ent new"><h5><span class="k">GRAVITY</span>Rivalry</h5><p>Auto-detected head-to-head lifetime record between two golfers who keep ending up in the same group. "You lead Ed 34–29, and he's won the last three." Nobody creates a rivalry; the product notices it. The single best answer to "play one more round" ever designed.</p></div>
+    <div class="ent"><h5><span class="k">SOCIAL</span>Story</h5><p>What a fact looks like in public: the feed unit a round or moment becomes. Carries reactions, chirps, attestations, photos. Fans out to every crew that cares.</p></div>
+    <div class="ent"><h5><span class="k">PLACE</span>Course</h5><p>A character, not a dropdown. Holds your personal record there, your crew's history there, the community's card data. "Papago: 41 rounds, best 84, Ed owns you here."</p></div>
+    <div class="ent"><h5><span class="k">HONOR</span>Trophy</h5><p>Minted only by cups — never given, always won. Lives permanently on the golfer's card. Engraved with the cup, the year, the crew, the margin.</p></div>
+    <div class="ent"><h5><span class="k">LEDGER</span>Stake</h5><p>What's riding: buy-ins, nassaus, skins. Tracked to the cent, held never. Settles into a who-owes-whom that the crew clears however it always has.</p></div>
+    <div class="ent new"><h5><span class="k">MEMORY</span>The Record</h5><p>A golfer's whole life in the sport, as an artifact: every round, every cup, every rivalry, every course, composed like an autobiography rather than a database dump. The forty-year product. The moat.</p></div>
+  </div>
+
+  <h3 style="margin-top:26px">How they hold each other</h3>
+  <p>A <strong>Golfer</strong> joins <strong>Crews</strong>. Crews raise <strong>Cups</strong>. Cups are decided by <strong>Rounds</strong>, made fair by the index, played at <strong>Courses</strong>, with <strong>Stakes</strong> riding. Rounds become <strong>Stories</strong>; repeated pairings crystallize into <strong>Rivalries</strong>; cups mint <strong>Trophies</strong>; and every one of these accrues, permanently, to <strong>the Record</strong>. One direction of flow, no cycles, no orphans: play → count → remember.</p>
+  <div class="rule"><b>The inversion that matters:</b> every competitor makes the competition the container and the people its members. We make the <b>people</b> the container and competitions the things they do together. Leagues end; crews don't. That single inversion is why year-two retention will look like a group chat's, not an app's.</div>
+</section>
+
+<!-- ============================== PART 3 ============================== -->
+<section>
+  <p class="eb"><span class="pn">PART 3</span>Navigation</p>
+  <h2>Four destinations, derived — not borrowed</h2>
+  <p>Navigation falls out of the object model. Golfers need to know what's happening (stories, standings, what's next), where they belong (crews and their cups), how to act (golf's three tenses), and who they are (the Record). Four questions. Four destinations. Nothing else earns a slot.</p>
+
+  <div class="phone">
+    <div class="navmock">
+      <div class="slot"><span class="ic">☀</span><b>Today</b><small>What's happening?</small></div>
+      <div class="slot"><span class="ic">⛺</span><b>Crews</b><small>Where do I belong?</small></div>
+      <div class="slot fab"><span class="ic">⊕</span><b>Play</b><small>I'm golfing</small></div>
+      <div class="slot"><span class="ic">◎</span><b>You</b><small>Who am I out here?</small></div>
+    </div>
+    <p class="navnote">SEARCH &amp; NOTIFICATIONS ARE OVERLAYS ON TODAY — SOCIAL PLUMBING NEVER GETS A TAB</p>
+  </div>
+
+  <ul class="tight" style="margin-top:18px">
+    <li><b>Today</b> exists because golf lives on a clock. It is not a feed; it is a <em class="hl">stage</em> that recomposes by state: a normal Tuesday shows stories and standings drift; the morning of a tee time it becomes your ticket — group, time, forecast, who's in; during a round it is the live card; the evening after, it leads with your story. One home that knows what time it is beats three homes that don't.</li>
+    <li><b>Crews</b> exists because belonging precedes competition. Each crew room holds its board (the chat), its cups, its calendar, its rivalries, its stakes — the entire life of that group behind one door. There is no separate "leagues" area, because a competition without its people is a spreadsheet.</li>
+    <li><b>⊕ Play</b> exists because golf has three tenses and they are one gesture: <em class="hl">Plan</em> a gathering (before) · <em class="hl">Play</em> live with games (during) · <em class="hl">Post</em> a finished round (after). It is a verb, rendered as a sheet, never a place you get lost in.</li>
+    <li><b>You</b> exists because the product's deepest promise is personal: the card others see, the trends only you see, and the Record that accumulates underneath both. Settings hide behind a gear; identity is never filed next to dark mode.</li>
+  </ul>
+</section>
+
+<!-- ============================== PART 4 ============================== -->
+<section>
+  <p class="eb"><span class="pn">PART 4</span>The user experience</p>
+  <h2>What it feels like</h2>
+
+  <div class="mom"><span class="t">Opening the app</span><p>Silence, then orientation. No splash video, no promotions. Today composes in 300ms: your crew's overnight stories settle in like the morning paper, and if golf is coming, the gathering card sits on top like a tee time written on a napkin. The feeling is a clubhouse porch, not a casino floor.</p></div>
+  <div class="mom"><span class="t">Starting a round</span><p>⊕ → Play now. Your usual crew is pre-staged from the gathering; the course knows you're a regular; the game picker offers Saturday's usual nassau with one tap. Twelve seconds from pocket to first tee. The phone goes back in the bag — it's a scorer, not a screen.</p></div>
+  <div class="mom"><span class="t">Finishing a round</span><p>The Walk-Off: one composed card — your score against your index, the match result, what moved in the cup, what the skins settled to. It stamps like a signed scorecard, with a haptic like a ball dropping. Then one button: post it to the crew. The work is already done; the moment is the reward.</p></div>
+  <div class="mom"><span class="t">Joining a season</span><p>A text from the crew: "we raised the cup." One link → your card slides in → the buy-in, the span, the format on a single sheet → you're on the tee sheet. Joining feels like signing an entry list, not configuring software.</p></div>
+  <div class="mom"><span class="t">Seeing friends</span><p>Ametz shot 84 at Papago and the card shows the 9th-hole birdie that saved it. You tip your cap (our kudos — a cap, not a heart). Ed chirps. The rivalry ticker under the story reminds everyone Ametz is now 2 back in the cup. Watching your friends play golf is the product's idle animation.</p></div>
+  <div class="mom"><span class="t">Competing</span><p>Standings are theater: the table breathes on Sundays, movers glow gold for a day, and every number opens to the rounds behind it, so nobody argues with the math — they argue with each other, which is the point. Pressure arrives softly: "Two counting rounds left this month."</p></div>
+  <div class="mom"><span class="t">Winning</span><p>The crowning is cinema. Full-bleed dusk screen, the trophy engraves itself letter by letter — your name, the cup, the year, the margin — then settles onto your card's case with a thock. Your crew's feed erupts on its own; you never have to say a word. The trophy is permanent. It will outlive the phone.</p></div>
+  <div class="mom"><span class="t">Losing</span><p>Dignity, then a hook. No sad trombone, no gray confetti. The final table stands as fact; your line reads second, four points shy, with the two rounds that would've flipped it one tap away. And underneath, already lit: "The rematch: spring cup opens March 1." Losing writes the first line of next season's story.</p></div>
+  <div class="mom"><span class="t">Sharing</span><p>Every story exports as a designed artifact — score, course, the one stat that tells the tale — beautiful enough for the group chat and Instagram both, watermarked like a scorecard, never like an ad. Sharing is bragging with receipts.</p></div>
+</section>
+
+<div class="nite">
+  <p class="eb"><span class="pn">PART 4 · CODA</span>Five years later</p>
+  <div class="sent">You open the Record on a February night.</div>
+  <p>Four hundred and six rounds. The graph of your index across five years, dipping the summer you got serious. Papago, 63 rounds, still your house. The rivalry page says you finally passed Ed last October — 41 to 40 — and there's a photo from that day, all of you squinting into the sun. The 2027 cup you won by a point. The 2028 one you lost by two, and it still stings, which is how you know it counted.</p>
+  <p>And there, June 2027: your dad's last round with you. An 89, windy, he birdied the ninth. You didn't know it was the last one. The Record did what records do — it kept it.</p>
+  <p><strong>This screen is why the company exists. Everything else in this document is in service of a night like this.</strong></p>
+</div>
+
+<!-- ============================== PART 5 ============================== -->
+<section>
+  <p class="eb"><span class="pn">PART 5</span>High-fidelity direction — the signature screens</p>
+  <h2>Eight screens treated cinematically</h2>
+  <p>The full catalog follows in Part 6; these eight carry the product's soul, so they get the director's treatment.</p>
+
+  <div class="scr">
+    <h4>Today — rest day</h4>
+    <p class="ref">Feels like: Strava's feed × Apple Fitness Summary × a morning paper</p>
+    <p>A quiet ivory canvas, one column, 24pt gutters. At top, a whisper of state in small caps — "CUP: 2ND · 4 BACK · 11 DAYS LEFT IN JUNE" — tappable, never shouting. Then stories: white cards, 16pt radius, a soft 2dp shadow, each led by the golfer's ball marker and a single hero number (score vs index) set in 34pt tabular serif. Photos bleed edge-to-edge inside cards. Kudos is a cap-tip icon that tilts 20° with a spring when tapped.</p>
+    <p class="spec"><b>MOTION</b> cards settle upward 12px on load, staggered 40ms, ease-out-quint. <b>EMPTY</b> "Quiet week. Papago's forecast says Saturday." with a one-tap Plan chip. <b>LOADING</b> skeletons shaped like scorecards, shimmer at 1.2s.</p>
+  </div>
+
+  <div class="scr">
+    <h4>Today — game day morning</h4>
+    <p class="ref">Feels like: an airline boarding pass × Arc Browser's daily delight</p>
+    <p>The feed steps back; a full-width ticket takes the stage: course name in 40pt serif, tee time enormous, the four ball markers of your group in a row, live forecast, one gold button — "I'm on my way." The ticket has a faint topographic texture of the course's first hole. Below it, one line of stakes: "Nassau $5 · cup counts." The app feels like it woke up before you did.</p>
+    <p class="spec"><b>MICRO</b> the ticket's tee time flips to "T-minus 0:48" inside the last hour. <b>MOTION</b> ticket slides down from the top like it was printed.</p>
+  </div>
+
+  <div class="scr">
+    <h4>Live Round</h4>
+    <p class="ref">Feels like: Apple Watch workout × a caddie's whisper</p>
+    <p>Sunlight mode by default: near-white ground, 8pt-grid, giant tap targets. One hole at a time — hole number in 64pt, par and yardage in quiet caps, four score steppers with 56pt touch zones. The match state lives in a single pill: "2 UP · 6 TO PLAY." Wolf and skins states ride the same pill, expandable with one thumb. No map, no ads, no feed. The phone spends 4 hours in a pocket and 40 seconds in a hand.</p>
+    <p class="spec"><b>MICRO</b> entering a birdie draws a single gold circle around the number — the old scorecard notation, resurrected. <b>MOTION</b> hole transitions slide horizontally with the easing of a ball rolling out. <b>STATE</b> survives airplane mode; syncs on signal without ceremony.</p>
+  </div>
+
+  <div class="scr">
+    <h4>The Walk-Off (round summary)</h4>
+    <p class="ref">Feels like: Strava's post-run summary × a signed scorecard × Linear's precision</p>
+    <p>One composed artifact on ivory: score huge in serif, then three lines that each answer a question — vs your index (+2.1, gold if you beat it), the match (won 2&1, Ed pays $10), the cup (moved 4th → 2nd, with a tiny sparkline of the standings shifting). A perforated edge at the card's bottom, an engraved-style date stamp. One primary button: "Post to the crew." The share export is this exact card.</p>
+    <p class="spec"><b>MICRO</b> the card "stamps" on completion — 6px drop, haptic thock. <b>HIERARCHY</b> score → meaning → consequence, top to bottom. <b>EMPTY</b> never empty; it exists only when a round does.</p>
+  </div>
+
+  <div class="scr">
+    <h4>Crew Room</h4>
+    <p class="ref">Feels like: a group chat that grew up × Notion's calm structure</p>
+    <p>The crew's name hand-set in serif over a strip of member markers. Beneath: the board (chat interleaved with system moments — "SEASON CUP · ROUND 3 COUNTED"), then the room's furniture in cards: the active cup with a live two-row standings preview, the next gathering, the stakes ledger, the rivalry corner ("Jerecho–Ed: 34–29, three straight for Ed"). Everything about this group behind one door, nothing about any other group visible.</p>
+    <p class="spec"><b>HIERARCHY</b> talk first — the board is the room's fireplace; competition is furniture arranged around it. <b>MICRO</b> unread chirps pulse the crew's tab dot once, never a number badge over 9.</p>
+  </div>
+
+  <div class="scr">
+    <h4>Cup Standings</h4>
+    <p class="ref">Feels like: ESPN's tables × Apple Health Trends × sports-section typography</p>
+    <p>A dense, confident table set in tabular numerals: rank, marker, name, points, movement arrows in gold and slate. The leader's row carries a hairline gold underline — subtle enough to respect, visible enough to hunt. Tap any row: it unfolds in place to the counting rounds, each one tap from its story. A thin "month closes in 6 days" band sits under the header like a chyron. Below the table, the stakes line: pot total, split, who's paid.</p>
+    <p class="spec"><b>MOTION</b> when standings shift, rows glide to their new order over 600ms — no teleporting; consequence should be watchable. <b>EMPTY</b> pre-season: the table renders with everyone at 0 and the copy "Every cup starts level."</p>
+  </div>
+
+  <div class="scr">
+    <h4>Rivalry</h4>
+    <p class="ref">Feels like: a boxing tally card × Wikipedia's head-to-head boxes × two lockers side by side</p>
+    <p>Two markers face off at the top; between them, the lifetime tally in enormous serif: 34–29. Underneath, the eras: streaks, biggest rout, the courses each man owns, the year the lead last changed hands. A shared timeline of every round played together runs down the page like a spine. One button, gold: "Settle it Saturday" — which opens Plan with both of you staged.</p>
+    <p class="spec"><b>MICRO</b> when the tally changes, the number flips like an old scoreboard odometer. <b>EMOTION</b> this page should make one of the two men slightly, productively angry.</p>
+  </div>
+
+  <div class="scr">
+    <h4>The Record</h4>
+    <p class="ref">Feels like: Apple's Year in Review × a leather club ledger × a museum wall</p>
+    <p>The one screen set fully in the editorial serif voice. Chapters, not filters: The Numbers (lifetime rounds, best year, index arc drawn as one continuous line), The Places (courses as engraved cards with your history at each), The People (rivalries and crews through time), The Honors (the trophy wall, engraved), The Rounds (the complete archive, every single one, searchable by feel — "windy days," "with Dad," "at Papago in October"). Scrolling it should feel like turning pages.</p>
+    <p class="spec"><b>MOTION</b> almost none — memory doesn't animate; it settles. Chapter transitions are slow cross-fades, 400ms. <b>LOADING</b> chapters resolve oldest-last, like a photo developing.</p>
+  </div>
+
+  <h3>States &amp; motion, globally</h3>
+  <p><strong>Empty states are invitations written in golf voice</strong> — never "No data": "No rounds yet. The card fills as you play." <strong>Loading is skeletal, never spinning</strong> — scorecard-shaped placeholders, one shimmer, 1.2s period. <strong>Microinteraction glossary:</strong> cap-tip (kudos), gold circle (birdie), stamp (round posted), odometer flip (rivalry), letter-engrave (trophy), row-glide (standings). Six signatures, reused everywhere, learned once.</p>
+</section>
+
+<!-- ============================== PART 6 ============================== -->
+<section>
+  <p class="eb"><span class="pn">PART 6</span>Screen catalog</p>
+  <h2>Thirty-four screens, each with one job</h2>
+  <p>Grouped by destination. Primary action in <span class="q">green mono</span>; the feeling each screen must produce in <span class="emo">gold italic</span>.</p>
+
+  <h3>Arrival</h3>
+  <div class="tbw"><table>
+    <tr><th>Screen</th><th>Purpose · primary action</th><th>Hierarchy &amp; secondaries</th><th>Emotion</th></tr>
+    <tr><td><b>01 First Open</b></td><td>Claim your golfer card. <span class="q">CLAIM @HANDLE</span></td><td>Name → handle (live availability) → marker → index. Four fields, one screen, no tour. Secondary: peek at a live demo crew.</td><td><span class="emo">initiation</span></td></tr>
+    <tr><td><b>02 The Invite</b></td><td>Land from a crew's link into belonging. <span class="q">JOIN THE CREW</span></td><td>Crew name huge, who's already in (markers), what's at stake. Secondary: lurk first.</td><td><span class="emo">being chosen</span></td></tr>
+  </table></div>
+
+  <h3>Today</h3>
+  <div class="tbw"><table>
+    <tr><th>Screen</th><th>Purpose · primary action</th><th>Hierarchy &amp; secondaries</th><th>Emotion</th></tr>
+    <tr><td><b>03 Today · rest</b></td><td>What happened around my golf. <span class="q">READ / CAP-TIP</span></td><td>State whisper → stories. Secondary: chirp, open standings from a story's ticker.</td><td><span class="emo">porch calm</span></td></tr>
+    <tr><td><b>04 Today · game day</b></td><td>Get me to the tee. <span class="q">I'M ON MY WAY</span></td><td>The ticket owns the fold; feed retreats below. Secondary: message group, check stakes.</td><td><span class="emo">pregame butterflies</span></td></tr>
+    <tr><td><b>05 Story detail</b></td><td>One round, fully told. <span class="q">CAP-TIP / CHIRP</span></td><td>Hero number → hole notes → attest chip → consequences (cup, rivalry, stakes). Secondary: view golfer, share card.</td><td><span class="emo">being there</span></td></tr>
+    <tr><td><b>06 The Bell</b></td><td>What needs me. <span class="q">ACCEPT</span></td><td>Requests and invites with inline accept; kudos batched below. Never a tab, always a sheet.</td><td><span class="emo">wanted</span></td></tr>
+    <tr><td><b>07 Search</b></td><td>Find a golfer or course. <span class="q">SEARCH</span></td><td>One field, two result families. Golfer rows show rel-state chips.</td><td><span class="emo">reach</span></td></tr>
+  </table></div>
+
+  <h3>⊕ Play</h3>
+  <div class="tbw"><table>
+    <tr><th>Screen</th><th>Purpose · primary action</th><th>Hierarchy &amp; secondaries</th><th>Emotion</th></tr>
+    <tr><td><b>08 The ⊕ sheet</b></td><td>Choose your tense. <span class="q">PLAN / PLAY / POST</span></td><td>Three cards, state-aware ordering (game-day morning leads with Play).</td><td><span class="emo">intent</span></td></tr>
+    <tr><td><b>09 Plan a gathering</b></td><td>Summon the crew. <span class="q">SEND IT</span></td><td>Day → course → time → who. Crew pre-staged; guests by phone contact.</td><td><span class="emo">ringleader</span></td></tr>
+    <tr><td><b>10 Gathering</b></td><td>The living tee sheet. <span class="q">I'M IN</span></td><td>RSVP states as markers on tees; forecast; stakes proposal; chat thread inline.</td><td><span class="emo">it's happening</span></td></tr>
+    <tr><td><b>11 Live · quick</b></td><td>Score me, stay pocketed. <span class="q">ENTER SCORE</span></td><td>Hole-at-a-time stepper, giant targets, sunlight palette.</td><td><span class="emo">flow</span></td></tr>
+    <tr><td><b>12 Live · match &amp; games</b></td><td>Score all of us. <span class="q">ENTER SCORES</span></td><td>Four steppers + the match pill; game states one thumb-reach away.</td><td><span class="emo">competition</span></td></tr>
+    <tr><td><b>13 Game picker</b></td><td>What are we playing for. <span class="q">LOCK THE GAME</span></td><td>Nassau / skins / wolf / match cards with plain-language rules and last-time defaults.</td><td><span class="emo">stakes set</span></td></tr>
+    <tr><td><b>14 The Walk-Off</b></td><td>The round, composed. <span class="q">POST TO THE CREW</span></td><td>Score → meaning → consequence. Secondary: edit, share card, settle-up view.</td><td><span class="emo">signed card</span></td></tr>
+    <tr><td><b>15 Attest</b></td><td>Vouch for a round. <span class="q">ATTEST ✓</span></td><td>One tap on the story itself. Attester markers accumulate on the card.</td><td><span class="emo">honor system</span></td></tr>
+    <tr><td><b>16 Post a round</b></td><td>Backfill in 30 seconds. <span class="q">POST</span></td><td>Course typeahead + recent chips → gross → date. Nothing else required.</td><td><span class="emo">no friction</span></td></tr>
+  </table></div>
+
+  <h3>Crews</h3>
+  <div class="tbw"><table>
+    <tr><th>Screen</th><th>Purpose · primary action</th><th>Hierarchy &amp; secondaries</th><th>Emotion</th></tr>
+    <tr><td><b>17 Crews index</b></td><td>My rooms. <span class="q">ENTER A ROOM</span></td><td>Crew cards with live pulse lines ("cup: you're 2nd · Sat gathering: 3 in"). Secondary: start or join a crew.</td><td><span class="emo">belonging</span></td></tr>
+    <tr><td><b>18 Crew room</b></td><td>The life of this group. <span class="q">TALK</span></td><td>Board first; cup, gathering, stakes, rivalries as furniture cards.</td><td><span class="emo">the 19th hole</span></td></tr>
+    <tr><td><b>19 Crew board</b></td><td>The chat, with receipts. <span class="q">CHIRP</span></td><td>Messages interleaved with system moments; Pro announcements pin gold.</td><td><span class="emo">banter</span></td></tr>
+    <tr><td><b>20 Crew calendar</b></td><td>Our season on a wall. <span class="q">TAP A DAY → PLAN</span></td><td>Gatherings, cup milestones, month closes; past days show what was shot.</td><td><span class="emo">rhythm</span></td></tr>
+    <tr><td><b>21 Raise a Cup</b></td><td>Start a competition. <span class="q">RAISE IT</span></td><td>Format gallery (season / ryder / skins day / ladder / bracket) → span (any day, weeks or months) → fairness preset → stakes. Four steps, plain language.</td><td><span class="emo">ceremony</span></td></tr>
+    <tr><td><b>22 Cup standings</b></td><td>Where we all stand. <span class="q">OPEN A ROW</span></td><td>The table; rows unfold to counting rounds; closes-chyron; stakes line.</td><td><span class="emo">theater</span></td></tr>
+    <tr><td><b>23 The Crowning</b></td><td>End the cup properly. <span class="q">WITNESS</span></td><td>Full-bleed finale: winner, engraving animation, final table preserved forever. Secondary: rematch button.</td><td><span class="emo">glory</span></td></tr>
+    <tr><td><b>24 Rivalry</b></td><td>The two of us, all-time. <span class="q">SETTLE IT SATURDAY</span></td><td>Tally, eras, shared timeline, owned courses.</td><td><span class="emo">productive anger</span></td></tr>
+    <tr><td><b>25 Stakes</b></td><td>What's riding, who's square. <span class="q">MARK PAID</span> (organizer)</td><td>Pot, splits, ledger of every game's settle-up; net who-owes-whom.</td><td><span class="emo">clean books</span></td></tr>
+    <tr><td><b>26 Crew history</b></td><td>Our past seasons. <span class="q">RELIVE</span></td><td>Cup cards by year with winners engraved; the crew's own record.</td><td><span class="emo">lore</span></td></tr>
+  </table></div>
+
+  <h3>You</h3>
+  <div class="tbw"><table>
+    <tr><th>Screen</th><th>Purpose · primary action</th><th>Hierarchy &amp; secondaries</th><th>Emotion</th></tr>
+    <tr><td><b>27 Golfer card</b></td><td>Who I am out here (public). <span class="q">—</span></td><td>Marker, name, index, home course, trophy shelf, recent form. What anyone sees tapping your name anywhere.</td><td><span class="emo">pride</span></td></tr>
+    <tr><td><b>28 The Record</b></td><td>My golf life, kept. <span class="q">TURN PAGES</span></td><td>Chapters: numbers, places, people, honors, rounds.</td><td><span class="emo">nostalgia</span></td></tr>
+    <tr><td><b>29 Trends</b></td><td>Am I getting better? <span class="q">SCRUB THE LINE</span></td><td>Index arc, vs-index rolling average, scoring distribution. Apple-Health clarity, no jargon.</td><td><span class="emo">honest mirror</span></td></tr>
+    <tr><td><b>30 Trophy case</b></td><td>What I've won. <span class="q">INSPECT</span></td><td>Engraved pieces on shelves; each opens its cup's preserved final table.</td><td><span class="emo">earned</span></td></tr>
+    <tr><td><b>31 Round archive</b></td><td>Every round, findable. <span class="q">SEARCH BY FEEL</span></td><td>Filter by course, crew, month, weather, "with @ed". Owner can delete a mis-post.</td><td><span class="emo">completeness</span></td></tr>
+    <tr><td><b>32 Index detail</b></td><td>Why my number is my number. <span class="q">SEE THE MATH</span></td><td>The counting differentials, shown work, portable card.</td><td><span class="emo">trust</span></td></tr>
+    <tr><td><b>33 Settings</b></td><td>How the app behaves. <span class="q">—</span></td><td>Account, notifications, appearance, data, delete. Zero identity content.</td><td><span class="emo">invisible</span></td></tr>
+  </table></div>
+
+  <h3>Courses</h3>
+  <div class="tbw"><table>
+    <tr><th>Screen</th><th>Purpose · primary action</th><th>Hierarchy &amp; secondaries</th><th>Emotion</th></tr>
+    <tr><td><b>34 Course page</b></td><td>The place as a character. <span class="q">PLAN HERE</span></td><td>Card data up top; then <em>your</em> history here, your crew's history here, who owns it in your rivalries.</td><td><span class="emo">home turf</span></td></tr>
+  </table></div>
+</section>
+
+<!-- ============================== PART 7 ============================== -->
+<section>
+  <p class="eb"><span class="pn">PART 7</span>Design system</p>
+  <h2>“Morning tee sheet, trophy room at night”</h2>
+
+  <h3>Color philosophy</h3>
+  <p>Two worlds, both real places in golf. <strong>Daylight</strong> (default): warm paper whites and pine-green ink — the morning tee sheet, built for sunlight and calm. <strong>Dusk</strong> (dark mode): deep green-black with champagne gold — the trophy room, where honors and finales live. Gold is spent only on what is <em class="hl">earned</em>: leads, wins, trophies, movement upward. It is never decoration. One dawn blue exists for links and live states. Semantic red appears only for money owed and deletion.</p>
+  <div class="swatches">
+    <div class="sw"><i style="background:#FBFAF5"></i><span>PAPER FBFAF5</span></div>
+    <div class="sw"><i style="background:#15211A"></i><span>INK 15211A</span></div>
+    <div class="sw"><i style="background:#0E3B24"></i><span>PINE 0E3B24</span></div>
+    <div class="sw"><i style="background:#C9A44E"></i><span>CHAMPAGNE C9A44E</span></div>
+    <div class="sw"><i style="background:#3E6B8F"></i><span>DAWN 3E6B8F</span></div>
+    <div class="sw"><i style="background:#0D1512"></i><span>DUSK 0D1512</span></div>
+  </div>
+
+  <h3>Typography</h3>
+  <p>Three voices. <strong>A modern text serif</strong> (the voice of memory and honor): headlines, the Record, trophies, hero numbers on story cards. <strong>A confident grotesque</strong> (the voice of now): UI, tables, live play — always with tabular numerals; scores must stack like scores. <strong>A quiet mono</strong> (the voice of the scorer's tent): eyebrows, timestamps, stakes, system moments. Type scale on a 1.25 ratio from 12 to 64; hero numbers may break the scale because a 64pt score is the point.</p>
+
+  <h3>Space, shape, elevation</h3>
+  <p>8pt grid; screen gutters 20–24pt; cards breathe with 16–20pt internal padding and Airbnb-grade section gaps (32–48pt). Corner radius: 16pt cards, 10pt controls, 24pt sheets — friendly but not bubbly. Elevation is Linear-flat: hairline borders carry structure, shadows exist at exactly two levels (resting 2dp whisper, lifted 8dp for sheets), and nothing floats without a reason.</p>
+
+  <h3>Iconography &amp; illustration</h3>
+  <p>Icons: 2px rounded strokes, drawn on the same grid, golf-native where it matters (the cap-tip, the pennant, the marker). Illustration style: <strong>engraved-scorecard linework</strong> — single-weight etchings like an old club ledger, used for empty states and ceremony, never cartoons. Ball markers are the avatar system: 24+ archetype shapes, collectible, permanent.</p>
+
+  <h3>Photography</h3>
+  <p>Only the members' own. Golden-hour, phone-shot, honest — sunburned, wind-blown, gloriously amateur. The product's photography direction is a constraint, not a style guide: we never show golf the members didn't play. No stock swings. No pros.</p>
+
+  <h3>Motion</h3>
+  <p>One physics: <strong>the roll-out</strong> — fast start, long soft settle (cubic ease-out, 250–400ms), the way a putt dies at the hole. Six signature microinteractions (cap-tip, gold circle, stamp, odometer, engrave, row-glide) and no others without a design review. Celebrations are earned and rare; the crowning is the only full-screen takeover in the product. Every animation respects reduced-motion by settling instantly.</p>
+
+  <h3>Accessibility</h3>
+  <p>Contrast AAA for scores and money, AA minimum everywhere. <strong>Sunlight mode</strong>: auto-engaging high-contrast live-play palette driven by ambient light — designed for noon glare and polarized sunglasses. Touch targets 44pt minimum, 56pt during live play (gloves). Color never carries meaning alone: movement arrows pair with direction, gold pairs with rank. Full Dynamic Type support including the tables, which reflow rather than truncate. Every number-as-door is a labeled button for screen readers: "Second place, 41 points, opens counting rounds."</p>
+</section>
+
+<!-- ============================== PART 8 ============================== -->
+<section>
+  <p class="eb"><span class="pn">PART 8</span>What makes CupSeason different</p>
+  <h2>Seven apps walk into a clubhouse</h2>
+  <p>Our golfer currently runs his competitive life across seven products. Each owns a fragment; none owns the thing itself.</p>
+  <div class="tbw"><table>
+    <tr><th>They use</th><th>For</th><th>Why CupSeason absorbs it</th></tr>
+    <tr><td><b>GHIN</b></td><td>The index</td><td>Our index computes from rounds you already post, shows its math, and travels into every cup. GHIN is the DMV; we're the driver's seat.</td></tr>
+    <tr><td><b>18Birdies / Golfshot</b></td><td>GPS scorecard</td><td>We absorb the <em>scoring moment</em>, not the rangefinder — live play is faster here because the crew, stakes, and games are pre-staged. Yardage is a partner, not a battleground.</td></tr>
+    <tr><td><b>TheGrint</b></td><td>Handicap + league-lite</td><td>Crews and cups do natively what bolted-on leagues imitate — and we never resell your index back to you.</td></tr>
+    <tr><td><b>Strava</b></td><td>The feed feeling</td><td>Strava's golf is a heart-rate line. Our stories carry stakes, rivalries, and consequences — a feed where every post moves a table somebody cares about.</td></tr>
+    <tr><td><b>Instagram</b></td><td>Sharing the great days</td><td>Your 84 drowns between a wedding and a meme. Here it lands in front of the only audience that understands it — and exports beautifully when you want the wider world to see.</td></tr>
+    <tr><td><b>ESPN Fantasy</b></td><td>Competitive drama</td><td>Fantasy is drama about strangers. We generate the same Sunday-night table-watching from rounds <em>you</em> played. Realer stakes, same dopamine, better story.</td></tr>
+    <tr><td><b>iMessage</b></td><td>The actual organizing</td><td>The unnamed incumbent. The crew room is the group chat with a memory: the trash talk stays attached to the rounds it was about.</td></tr>
+  </table></div>
+  <div class="rule"><b>The lock-in nobody can copy:</b> a competitor can clone every screen in this document. They cannot clone your crew's twelve years of Saturdays, your 41–40 lead over Ed, or the June 2027 round in the Record. The moat is not features. The moat is the past — and it compounds daily.</div>
+</section>
+
+<!-- ============================== PART 9 ============================== -->
+<section>
+  <p class="eb"><span class="pn">PART 9</span>Roadmap</p>
+  <h2>From one crew to the sport's memory</h2>
+
+  <h4>Version 1 — the wedge (one crew, one cup, whole)</h4>
+  <p>One crew runs one season perfectly: gather → play → post → count → crown. The feed, the card, the index, stakes tracked, the Walk-Off, the crowning. Nothing else — no courses directory, no rivalry pages, no Record. V1's only metric: does the crew raise a second cup without being asked?</p>
+
+  <h4>Year 2 — gravity</h4>
+  <p>Rivalries ship and change everything (retention becomes personal). The Record v1. Courses become characters. Multi-crew life. Season films — a two-minute cinematic "Your Year in Golf" every December that gets shared beyond the app and becomes the growth engine. Settle-up deep links. The off-season countdown.</p>
+
+  <h4>Year 5 — the institution</h4>
+  <p>Clubs and munis run their leagues, member-guests, and club championships on CupSeason — the B2B layer arrives because two real crews asked to play each other, not before. The CupSeason index is accepted wherever amateurs play for fun. City ladders connect crews into an amateur season. The memory vault: scan the shoebox of old scorecards; the Record reaches back before the app existed.</p>
+
+  <h4>Year 10 — the operating system, for real</h4>
+  <p>The default way amateur golf is organized in every country that plays it. A golfer's Record spans her junior years to her senior club. And one weekend each fall: <strong>the CupSeason Open</strong> — the largest golf tournament ever played, tens of thousands of crews on ten thousand courses, one distributed leaderboard, handicapped to a single table. Amateur golf gets what the pros always had: a history that keeps score.</p>
+</section>
+
+<div class="nite">
+  <p class="eb"><span class="pn">FINAL RULE</span>The test every pixel must pass</p>
+  <div class="sent">"Does this make someone want to play one more round with their friends?"</div>
+  <p>Applied honestly, it already killed features during this exercise: <strong>AI swing analysis</strong> (improves a swing, summons no foursome — cut). <strong>GPS rangefinders</strong> (a utility war we don't want to win — partner, cut). <strong>Pro golf news and content</strong> (about someone else's golf — cut). <strong>Public follower counts</strong> (turns crews into audiences — cut). <strong>Streaks and daily-active mechanics</strong> (guilt is not anticipation — cut).</p>
+  <p>What survives is everything in this document: the gathering that gets you there, the cup that makes it count, the rivalry that makes it personal, and the Record that makes it permanent. <strong>Play one more round. We'll keep it forever.</strong></p>
+</div>
+
+<footer>
+  <span>CUPSEASON · FOUNDING PROSPECTUS · V1</span>
+  <span>THE FOUNDING TEAM · JULY 2026, DESIGNED FOR 2030</span>
+</footer>
+
+</div></div>

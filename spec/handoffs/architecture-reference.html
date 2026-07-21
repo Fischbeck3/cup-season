@@ -1,0 +1,220 @@
+<title>Cup Season — Architecture Reference</title>
+<style>
+  :root{
+    --bg:#0D0F12; --s1:#16191E; --s2:#1C2027; --line:#272C35; --line2:#333A45;
+    --ink:#E8EBF0; --body:#C0C7D2; --mut:#8A93A0; --dim:#5C6572;
+    --gold:#E9BE62; --strava:#FB8B4B; --fantasy:#43E07C; --collab:#57A8FF; --violet:#A78BFA;
+    --pos:#43E07C; --warn:#E9BE62;
+    --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    --mono:ui-monospace,"Cascadia Mono",SFMono-Regular,Menlo,Consolas,monospace;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  .pg{ background:var(--bg); color:var(--body); font-family:var(--sans); font-size:15.5px; line-height:1.6;
+    padding:clamp(28px,5vw,60px) clamp(18px,4vw,40px);
+    background-image:radial-gradient(46% 30% at 88% -4%, rgba(233,190,98,.05), transparent 70%); }
+  .wrap{ max-width:900px; margin:0 auto; display:flex; flex-direction:column; gap:34px; }
+  .eyebrow{ font-family:var(--mono); font-size:11px; letter-spacing:.22em; text-transform:uppercase; color:var(--gold); }
+  h1{ font-size:clamp(30px,5vw,44px); font-weight:800; letter-spacing:-.025em; line-height:1.05; color:var(--ink); text-wrap:balance; margin-top:8px; }
+  h2{ font-size:13px; font-family:var(--mono); letter-spacing:.16em; text-transform:uppercase; color:var(--gold); display:flex; align-items:center; gap:10px; margin-bottom:2px;}
+  h2::after{ content:""; height:1px; flex:1; background:var(--line); }
+  .lede{ font-size:clamp(16px,2.2vw,18px); color:var(--mut); max-width:64ch; line-height:1.5; }
+  p{ max-width:70ch; } b,strong{ color:var(--ink); font-weight:600; }
+  code,.m{ font-family:var(--mono); font-size:.88em; color:var(--ink); background:var(--s2); padding:1px 5px; border-radius:5px; }
+
+  .finding{ background:var(--s1); border:1px solid var(--line); border-left:3px solid var(--gold); border-radius:0 12px 12px 0; padding:20px 22px; }
+  .finding h3{ font-size:18px; color:var(--ink); margin-bottom:8px; font-weight:600; }
+  .finding p{ margin-bottom:10px; } .finding p:last-child{ margin-bottom:0; }
+
+  .cards{ display:grid; grid-template-columns:repeat(auto-fit,minmax(260px,1fr)); gap:16px; }
+  .card{ background:var(--s1); border:1px solid var(--line); border-radius:12px; padding:18px; display:flex; flex-direction:column; gap:12px; }
+  .card .top{ display:flex; align-items:center; gap:9px; }
+  .card .dot{ width:10px; height:10px; border-radius:3px; flex:none; }
+  .card .nm{ font-weight:700; color:var(--ink); font-size:16px; }
+  .card .sub{ font-family:var(--mono); font-size:10px; letter-spacing:.08em; text-transform:uppercase; color:var(--mut); margin-left:auto; }
+  .stack{ display:flex; flex-direction:column; gap:5px; }
+  .lyr{ background:var(--s2); border:1px solid var(--line2); border-radius:7px; padding:7px 10px; }
+  .lyr .k{ font-family:var(--mono); font-size:9px; letter-spacing:.1em; text-transform:uppercase; color:var(--dim); display:block; }
+  .lyr .v{ font-size:12.5px; color:var(--body); }
+  .lyr .v b{ color:var(--ink); }
+  .pts{ list-style:none; display:flex; flex-direction:column; gap:7px; margin-top:2px; }
+  .pts li{ font-size:12.8px; color:var(--body); line-height:1.45; padding-left:15px; position:relative; }
+  .pts li::before{ content:"›"; position:absolute; left:0; color:var(--mut); }
+
+  .tblwrap{ overflow-x:auto; border:1px solid var(--line); border-radius:12px; }
+  table{ border-collapse:collapse; width:100%; min-width:720px; font-size:13px; }
+  th,td{ text-align:left; padding:11px 13px; border-bottom:1px solid var(--line); vertical-align:top; }
+  thead th{ font-family:var(--mono); font-size:10px; letter-spacing:.08em; text-transform:uppercase; color:var(--mut); background:var(--s1); position:sticky; top:0; }
+  tbody td:first-child{ color:var(--ink); font-weight:500; white-space:nowrap; }
+  td.us{ background:rgba(233,190,98,.06); color:var(--body); }
+  th.us{ color:var(--gold); background:rgba(233,190,98,.08); }
+  .ok{ color:var(--pos); } .gap{ color:var(--warn); }
+  tr:last-child td{ border-bottom:none; }
+
+  .canon{ background:var(--s1); border:1px solid var(--line); border-radius:12px; padding:20px; display:flex; flex-direction:column; gap:10px; }
+  .clyr{ border-radius:9px; padding:13px 15px; border:1px solid var(--line2); }
+  .clyr .ct{ font-weight:600; color:var(--ink); font-size:14px; margin-bottom:3px; }
+  .clyr .cd{ font-size:12.5px; color:var(--body); }
+  .clyr .cd .m{ background:rgba(255,255,255,.04); }
+  .c1{ background:rgba(87,168,255,.07); border-color:rgba(87,168,255,.28); }
+  .c2{ background:rgba(167,139,250,.07); border-color:rgba(167,139,250,.28); }
+  .c3{ background:rgba(67,224,124,.06); border-color:rgba(67,224,124,.26); }
+  .down{ text-align:center; color:var(--dim); font-family:var(--mono); font-size:14px; line-height:1; }
+
+  .recs{ display:flex; flex-direction:column; gap:14px; }
+  .rec{ display:grid; grid-template-columns:96px 1fr; gap:14px; align-items:start; }
+  .rtag{ font-family:var(--mono); font-size:10px; letter-spacing:.06em; text-transform:uppercase; padding:4px 8px; border-radius:6px; text-align:center; white-space:nowrap; }
+  .rtag.keep{ color:var(--pos); background:rgba(67,224,124,.1); border:1px solid rgba(67,224,124,.3); }
+  .rtag.fix{ color:var(--gold); background:rgba(233,190,98,.1); border:1px solid rgba(233,190,98,.3); }
+  .rtag.soon{ color:var(--collab); background:rgba(87,168,255,.1); border:1px solid rgba(87,168,255,.3); }
+  .rtag.later{ color:var(--mut); background:var(--s2); border:1px solid var(--line2); }
+  .rec .rb b{ color:var(--ink); }
+  .rec .rb{ font-size:13.5px; }
+  .rec .rb small{ display:block; color:var(--mut); font-size:12px; margin-top:3px; line-height:1.45; }
+
+  .src{ font-size:12px; color:var(--mut); }
+  .src a{ color:var(--collab); text-decoration:none; } .src a:hover{ text-decoration:underline; }
+  .foot{ border-top:1px solid var(--line); padding-top:16px; font-family:var(--mono); font-size:11px; letter-spacing:.05em; color:var(--dim); }
+</style>
+
+<div class="pg"><div class="wrap">
+
+  <header>
+    <div class="eyebrow">Architecture reference · Cup Season</div>
+    <h1>Are we building this right?</h1>
+    <p class="lede" style="margin-top:12px">How Cup Season's architecture stacks up against Strava, fantasy-football backends (Sleeper / ESPN), and team-collaboration apps (Discord / Slack) — what to keep, and where the real gap is.</p>
+  </header>
+
+  <section class="finding">
+    <h3>The short answer: the backend is the right shape. The gap is the client.</h3>
+    <p>Every one of these apps separates <b>immutable, user-owned facts</b> (an activity, a player's stat line, a message, a round) from the <b>group-specific lenses</b> that score and rank them (segments, league scoring, channels, league bylaws) — sitting on top of a <b>global identity + social graph</b> that cuts across every group. Cup Season's <span class="m">rounds store facts → leagues are lenses → profiles are global</span> is that exact architecture. Sleeper migrated databases over getting this right; Strava rebuilt its leaderboards around it.</p>
+    <p>What's <em>not</em> validated is the client. There's no reusable component layer, which is why "add friends" ended up built <b>six different ways</b>. That's the real architectural debt — and the Crew / People-Picker work you just started is the first correct instance of fixing it.</p>
+  </section>
+
+  <section>
+    <h2>The four architectures</h2>
+  </section>
+
+  <div class="cards">
+
+    <div class="card">
+      <div class="top"><span class="dot" style="background:var(--gold)"></span><span class="nm">Cup Season</span><span class="sub">today</span></div>
+      <div class="stack">
+        <div class="lyr"><span class="k">Client</span><span class="v"><b>Single-file PWA</b> · classic + module scripts · Netlify</span></div>
+        <div class="lyr"><span class="k">Backend</span><span class="v"><b>Supabase</b> · Postgres + Auth + Realtime + Edge fns</span></div>
+        <div class="lyr"><span class="k">Facts</span><span class="v"><b>profiles</b> (global) · <b>rounds</b> (immutable) · courses</span></div>
+        <div class="lyr"><span class="k">Lenses</span><span class="v"><b>v_rounds_ranked</b> → per-league scoring · ledger</span></div>
+        <div class="lyr"><span class="k">Spine</span><span class="v"><b>posts</b> board · Realtime on rtClient</span></div>
+      </div>
+      <ul class="pts">
+        <li>Score-on-read via views + <span class="m">score_round()</span> trigger</li>
+        <li>Writes go through security-definer RPCs (identity at the DB)</li>
+        <li>No component model → the friends duplication</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <div class="top"><span class="dot" style="background:var(--strava)"></span><span class="nm">Strava</span><span class="sub">fitness social</span></div>
+      <div class="stack">
+        <div class="lyr"><span class="k">Client</span><span class="v">Native iOS/Android · web microfrontends</span></div>
+        <div class="lyr"><span class="k">Services</span><span class="v"><b>100+ services</b> · Scala / Ruby / Go · from a Rails monolith</span></div>
+        <div class="lyr"><span class="k">Spine</span><span class="v"><b>Kafka</b> event stream · sync-ack then async enrich</span></div>
+        <div class="lyr"><span class="k">Stores</span><span class="v">MySQL (canonical) · <b>ScyllaDB</b> (leaderboards) · Redis (feeds)</span></div>
+      </div>
+      <ul class="pts">
+        <li>Activity stores facts; leaderboards + feeds are <b>projections</b></li>
+        <li>Event-sourcing + CQRS: log "X changed" → rebuild, idempotent</li>
+        <li>Hybrid feed fan-out (write for normal, read for high-fanout)</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <div class="top"><span class="dot" style="background:var(--fantasy)"></span><span class="nm">Fantasy football</span><span class="sub">Sleeper · ESPN</span></div>
+      <div class="stack">
+        <div class="lyr"><span class="k">Client</span><span class="v">Native / React Native · real-time</span></div>
+        <div class="lyr"><span class="k">Backend</span><span class="v"><b>Elixir / Phoenix</b> (Sleeper) · websockets</span></div>
+        <div class="lyr"><span class="k">Global</span><span class="v"><b>Player spine</b> — one stat line, stable IDs</span></div>
+        <div class="lyr"><span class="k">Lens</span><span class="v">Scoring = <b>config per league</b> over shared events</span></div>
+        <div class="lyr"><span class="k">Store</span><span class="v"><b>ScyllaDB</b> · materialized views · Kafka push</span></div>
+      </div>
+      <ul class="pts">
+        <li>One performance, many league lenses — via materialized views</li>
+        <li>Event log + reversible totals; corrections never mutate history</li>
+        <li>Chat-first (Sleeper was a messaging app; the game rode on it)</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <div class="top"><span class="dot" style="background:var(--collab)"></span><span class="nm">Team collab</span><span class="sub">Discord · Slack</span></div>
+      <div class="stack">
+        <div class="lyr"><span class="k">Client</span><span class="v">Native / RN · local-first sync (Linear)</span></div>
+        <div class="lyr"><span class="k">Gateway</span><span class="v"><b>Isolated WebSocket tier</b> · Elixir → Rust (Discord)</span></div>
+        <div class="lyr"><span class="k">Identity</span><span class="v"><b>Global account + friends graph</b> (not per-server)</span></div>
+        <div class="lyr"><span class="k">Membership</span><span class="v"><b>(user, workspace, role)</b> join → the switcher</span></div>
+        <div class="lyr"><span class="k">Content</span><span class="v">Messages scoped to channel → workspace</span></div>
+      </div>
+      <ul class="pts">
+        <li>Identity + friends are global; only content is tenant-scoped</li>
+        <li>Connection tier isolated from business logic</li>
+        <li>Unread = per-(user, channel); intent-vs-delivery for notifs</li>
+      </ul>
+    </div>
+
+  </div>
+
+  <section>
+    <h2>Side by side</h2>
+    <p style="color:var(--mut); font-size:14px; margin-bottom:12px">The same skeleton in every column — and Cup Season already has most of it. <span class="ok">✓ aligned</span> · <span class="gap">⚠ gap / upgrade path</span></p>
+    <div class="tblwrap"><table>
+      <thead><tr><th>Dimension</th><th>Strava</th><th>Fantasy</th><th>Collab</th><th class="us">Cup Season</th></tr></thead>
+      <tbody>
+        <tr><td>User-owned fact</td><td>Activity</td><td>Player stat line</td><td>Message</td><td class="us"><b>Round</b> <span class="ok">✓</span></td></tr>
+        <tr><td>Group "lens" over it</td><td>Segment / leaderboard</td><td>League scoring config</td><td>Channel</td><td class="us"><span class="m">v_rounds_ranked</span> <span class="ok">✓</span></td></tr>
+        <tr><td>Global identity + friends</td><td>Follow graph</td><td>Account + leagues</td><td>Account-level friends</td><td class="us"><span class="m">profiles</span> + <span class="m">friendships</span> <span class="ok">✓</span></td></tr>
+        <tr><td>Membership</td><td>Clubs</td><td>Rosters</td><td>(user, workspace, role)</td><td class="us"><span class="m">league_members</span> <span class="ok">✓</span></td></tr>
+        <tr><td>Real-time board</td><td>Feed (Redis)</td><td>Live scores (WS)</td><td>Gateway (WS)</td><td class="us">Realtime on <span class="m">posts</span> <span class="ok">✓</span></td></tr>
+        <tr><td>Correctness</td><td>Immutable + projections</td><td>Event log + ledger</td><td>Append log</td><td class="us">rounds never mutated + ledger <span class="ok">✓</span></td></tr>
+        <tr><td>Compute model</td><td>Async projections</td><td>Precompute on write</td><td>Coalescing cache</td><td class="us">on-read views <span class="gap">⚠</span></td></tr>
+        <tr><td>Client architecture</td><td>Microfrontends</td><td>Native / RN</td><td>Componentized / local-first</td><td class="us">single-file, no components <span class="gap">⚠</span></td></tr>
+      </tbody>
+    </table></div>
+  </section>
+
+  <section>
+    <h2>The canonical shape</h2>
+    <p style="color:var(--mut); font-size:14px; margin-bottom:12px">Strip away the scale differences and all four are the same three layers. Cup Season maps onto it cleanly.</p>
+    <div class="canon">
+      <div class="clyr c1"><div class="ct">1 · Global layer &nbsp;<span class="ok" style="font-size:12px">✓ we have this</span></div><div class="cd">Identity, the social graph, and immutable facts. One row per user, one per fact. &nbsp;<span class="m">profiles · friendships · rounds · courses</span></div></div>
+      <div class="down">↓</div>
+      <div class="clyr c2"><div class="ct">2 · Membership layer &nbsp;<span class="ok" style="font-size:12px">✓ we have this</span></div><div class="cd">A thin join that says who's in what, with roles. Powers the switcher, access checks, "which leagues do we share." &nbsp;<span class="m">league_members · event_players</span></div></div>
+      <div class="down">↓</div>
+      <div class="clyr c3"><div class="ct">3 · Tenant / lens layer &nbsp;<span class="ok" style="font-size:12px">✓ we have this</span></div><div class="cd">Per-group scoring, standings, and board — computed <em>off</em> the shared facts, never forking them. &nbsp;<span class="m">v_rounds_ranked · v_squad_standings · posts</span></div></div>
+    </div>
+    <p style="margin-top:12px; font-size:14px; color:var(--body)">Friends live in layer 1 (global), which is why they must not be trapped inside any one tab or league — the exact bug the <b>Crew</b> rework fixes. Discord is the closest model: one account, an account-level friends graph, servers that merely <em>reference</em> users.</p>
+  </section>
+
+  <section>
+    <h2>What to do about it</h2>
+    <div class="recs">
+      <div class="rec"><span class="rtag keep">Keep</span><div class="rb"><b>The facts → lenses split.</b><small>rounds → v_rounds_ranked is the architecture Sleeper and Strava spent real pain to get right. Protect this boundary above all; never mutate a round.</small></div></div>
+      <div class="rec"><span class="rtag keep">Keep</span><div class="rb"><b>Global identity + cross-cutting friends graph.</b><small>Discord's exact model. The Crew / People-Picker work is finishing this — friends belong to the person, not a league.</small></div></div>
+      <div class="rec"><span class="rtag keep">Keep</span><div class="rb"><b>Immutable rounds + adjustments ledger, and DB-enforced identity.</b><small>Event-log-plus-reversible-ledger is the industry-standard correctness pattern, not idiosyncratic caution. Security-definer RPCs are the right version of commissioner tools.</small></div></div>
+      <div class="rec"><span class="rtag fix">Fix now</span><div class="rb"><b>Establish a client component layer.</b><small>The one real gap. No reusable components is why friends got built six times. Build a small shared library — a person-row, the People Picker, a board-row, a card — and reuse everywhere. Highest-leverage architectural investment you can make; you've started it.</small></div></div>
+      <div class="rec"><span class="rtag soon">Soon</span><div class="rb"><b>Model unread + notifications properly.</b><small>A per-(profile, board) last-seen marker, mentions as a distinct class, and Slack's "notable to X" vs "buzz their phone" split. Directly answers the pilot's "I don't know what's new or what to do next."</small></div></div>
+      <div class="rec"><span class="rtag soon">Soon</span><div class="rb"><b>Make every recompute idempotent.</b><small>Like close_month()'s month_closed sentinel — apply that everywhere a projection is rebuilt, so a re-run or backfill can never double-count.</small></div></div>
+      <div class="rec"><span class="rtag later">Later</span><div class="rb"><b>Precompute-on-write standings.</b><small>On-read views are fine for ~12 golfers. When standings feel slow or leagues multiply, the upgrade is a standings_snapshots totals table written per round — not a fancier view. Don't build it early.</small></div></div>
+      <div class="rec"><span class="rtag later">Later</span><div class="rb"><b>Local-first sync &amp; hybrid fan-out.</b><small>Linear's local-first engine gives native-feel posting on patchy course-side connections; Strava's hybrid fan-out handles celebrity accounts. Both are real patterns, neither matters at friend-group scale. Know they exist; don't pay for them yet.</small></div></div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Sources</h2>
+    <p class="src">
+      <b style="color:var(--strava)">Strava:</b> engineering.medium.com — <a href="https://medium.com/strava-engineering/rebuilding-the-segment-leaderboards-infrastructure-part-1-background-13d8850c2e77">Rebuilding segment leaderboards</a>, <a href="https://medium.com/strava-engineering/mesos-at-strava-5ac98d00dacf">Mesos at Strava</a>, <a href="https://resources.scylladb.com/iot/how-strava-s-nosql-move-keeps-athletes-moving">ScyllaDB case study</a>.<br>
+      <b style="color:var(--fantasy)">Fantasy:</b> <a href="https://www.scylladb.com/2020/10/22/sleeper-app-using-scylla-to-level-the-playing-field/">Sleeper on ScyllaDB</a> (Elixir, materialized views), <a href="https://www.sportmonks.com/blogs/fantasy-scoring-engines-architecture-and-edge-cases/">Fantasy scoring engines</a>, <a href="https://a16z.com/announcement/investing-in-sleeper/">a16z on Sleeper</a>.<br>
+      <b style="color:var(--collab)">Collab:</b> <a href="https://discord.com/blog/how-discord-stores-trillions-of-messages">Discord message storage</a>, <a href="https://elixir-lang.org/blog/2020/10/08/real-time-communication-at-scale-with-elixir-at-discord/">Discord real-time</a>, <a href="https://slack.engineering/flannel-an-application-level-edge-cache-to-make-slack-scale/">Slack Flannel</a>, <a href="https://www.notion.com/blog/sharding-postgres-at-notion">Notion sharding</a>, <a href="https://www.fujimon.com/blog/linear-sync-engine">Linear sync engine</a>.
+    </p>
+  </section>
+
+  <div class="foot">Cup Season · internal architecture reference · built from three parallel research passes + a codebase read</div>
+
+</div></div>

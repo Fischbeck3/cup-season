@@ -12,3 +12,7 @@ node_modules/
 
 # Build output (assembled by stamp-version.sh)
 dist/
+
+# Handoff PDF exports — regenerable binaries; their HTML sources are tracked
+# alongside in spec/handoffs/.
+spec/handoffs/*.pdf
