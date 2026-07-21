@@ -139,6 +139,9 @@ this section to Points Race + the endgame dial.)*
 | Exceptional score rule | Two rounds of PvI ≥ +7 in one month → index cut 1.0 immediately |
 | New member provisional | First 3 rounds score at fixed 7 points |
 
+*(D49, 2026-07-21: flat-7 retired — provisional rounds score normally,
+badged until established. See decision log.)*
+
 ---
 
 ## 6. Verification tiers

@@ -1378,3 +1378,29 @@ for any of these, so nothing is deleted from the client.)*
 - **CONFLICT (named):** supersedes spec §4 Formats B/C, §2.3, and the §8
   preset-matrix rows for format/bonus/allowance. Subsumes D6 (Hybrid hidden)
   and D7 (bonuses unsurfaced) — both were half-measures this completes.
+
+---
+
+### D49 · Provisional rounds score normally — flat-7 retired
+*(2026-07-21, gameplay-audit session. Scoring-edge change; build rides a
+future client+SQL plan, not this session.)*
+- **Current:** spec §5 — a new member's first 3 rounds score a fixed 7
+  ("New member provisional").
+- **Problem:** special arithmetic lands at the moment a new golfer is most
+  nervous (both design reviews name this cliff). A great first round scoring
+  a flat 7 reads as robbery; a terrible one scoring 7 reads as charity.
+  Either way the first score — the first story — is a lie with an asterisk.
+- **Recommendation:** provisional rounds score NORMALLY off the starter
+  index, badged "provisional" on the card until the engine establishes
+  (3 rounds — the engine's own definition, never a parallel count). No
+  special points path anywhere.
+- **Principle:** Low Friction (one less rule) + Memory > Statistics (the
+  first round must be a true story).
+- **Benefit:** deletes a rule that needed explaining exactly when explaining
+  is most expensive; the first-round moment lands honestly.
+- **Tradeoffs:** a sandbagged starter index can buy up to 12/round for 3
+  rounds (was capped at 7). Bounded: the 12-point band ceiling (§2.2), the
+  exceptional-score cut (§5), and engine takeover at round 3 limit exposure
+  to a few points across a nine-month season.
+- **CONFLICT (named):** amends spec §5 "New member provisional." Nothing
+  upward — principles #1–#3 all served or neutral.
