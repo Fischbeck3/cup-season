@@ -1341,3 +1341,30 @@ one). This batch designs it. All five entries resolved WITH the owner
   placement dial later, not default hardware. The $0 default may undersell
   the pot ritual for money crews — the create step surfaces the choice
   ("Buy-in · $0 = bragging rights") so it's seen, not buried.
+
+### D47 · Noun sweep II (2026-07-20, from the pre-build comprehension review)
+- **Current:** post-D11 copy grew a second people-noun set ("circle,"
+  "buddies" as labels); "on the books" covers both money and scheduling;
+  the Home "Record" button collides with the Record (the 2030 archive
+  object); "card" runs unqualified in four senses (profile / scorecard /
+  recap / settlement); wizard dial groups speak system nouns ("Competition
+  structure," "Season format," "The endgame"); "CUP-CODE" vs "league code";
+  "At the starter" labels the pre-season state.
+- **Problem:** tester feedback (relayed 2026-07-20) — comprehension tax at
+  the door and in the wizard; five nouns for two ideas was D11's exact
+  disease, regrown at the edges.
+- **Recommendation (assignments, copy-only):** **crew = the people**
+  everywhere ("circle" retires; "buddies" survives only inside prose, never
+  as a label) · **books = money** (D39 door headline keeps it), scheduling
+  moves to **the tee sheet** ("Put it on the tee sheet") · Home button
+  **"Live round"** replaces "Record" · **"card" never unqualified** (Tour
+  Card the artifact, scorecard idiom in the post flow, recap/settlement
+  cards as artifact class) · wizard groups in the Pro's grammar (**Teams ·
+  How teams fill · How it's scored · How it ends · House rules**) · one code
+  noun: **league code** · **"Before first tee"** replaces "At the starter."
+- **Principle:** #2 (low friction); the no-tutorial success metric; D11/D12
+  noun discipline (one noun, one thing).
+- **Benefit:** the wizard speaks the Pro's language; the door explains
+  itself; "Record" is free for the archive when Wrapped ships.
+- **Tradeoffs:** none mechanical — copy sweep only. Sweep rides the UX arc
+  (design-review-2026-07-20 Part II, task 1.5).
