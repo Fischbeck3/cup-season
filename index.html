@@ -8055,12 +8055,12 @@ function renderEvent(){
   const wkNo=sessions.filter(s=>s.status==='closed').length;
 
   let statusChip = ev.status==='complete'
-    ? (ev.winner_team_id ? (ev.winner_team_id===A.id?A.name:B.name).toUpperCase()+' TAKES THE CUP'
+    ? (ev.winner_team_id ? esc((ev.winner_team_id===A.id?A.name:B.name).toUpperCase())+' TAKES THE CUP'
                          : 'SHARED — BOTH NAMES ON IT')
     : ev.status==='setup' ? 'Forming' : `Live · wk ${Math.min(wkNo+1,ev.session_count)}/${ev.session_count}`;
   let clinchLine = ev.status==='complete'
     ? `FINAL · ${evHalf(aP)}–${evHalf(bP)}`
-    : `FIRST TO ${evHalf(clinch)} · ${A.name.toUpperCase()} NEEDS ${evHalf(Math.max(0,clinch-aP))} · ${B.name.toUpperCase()} NEEDS ${evHalf(Math.max(0,clinch-bP))}`;
+    : `FIRST TO ${evHalf(clinch)} · ${esc(A.name.toUpperCase())} NEEDS ${evHalf(Math.max(0,clinch-aP))} · ${esc(B.name.toUpperCase())} NEEDS ${evHalf(Math.max(0,clinch-bP))}`;
 
   let html=`<div class="eyebrow" style="margin-top:0; display:flex; align-items:center">${esc(ev.name)}
     <span class="fine" style="margin-left:auto; padding:0; color:var(--gold)">${statusChip}</span></div>
@@ -11355,7 +11355,7 @@ async function gatherTagCandidates(){
   return cand;
 }
 const tagChipHtml = (cand, attr) => [...cand.entries()].map(([pid, c]) =>
-  `<button class="mini" data-${attr}="${pid}" style="margin:0 6px 6px 0">${mkr(c.mk || 'saguaro')} ${c.name}</button>`).join('');
+  `<button class="mini" data-${attr}="${pid}" style="margin:0 6px 6px 0">${mkr(c.mk || 'saguaro')} ${esc(c.name)}</button>`).join('');
 function bindTagChips(attr, tagged){
   document.querySelectorAll(`[data-${attr}]`).forEach(b => {
     const pid = b.dataset[attr==='drtag'?'drtag':'rttag'];
