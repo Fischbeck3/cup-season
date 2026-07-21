@@ -3493,7 +3493,10 @@ function ensureRx(f){
    handlers to find it. */
 /* present-reaction chips + the picker, parameterized by data-attribute so the
    board (data-rx/rxpick → feed[i]) and Home (data-hrx/hpick → circle rows)
-   wire to their own arrays without cross-talk */
+   wire to their own arrays without cross-talk.
+   opts.ns prefixes the palette/thread ids ('' compact board, 'f-' full board) —
+   both surfaces co-render the same feed, so unprefixed ids would duplicate
+   in-document once the full board has opened */
 function rxChipsHtml(rx, attr, idx){
   const present=Object.keys(rx).filter(e=>rx[e]&&rx[e].n>0);
   const chips=present.map(e=>{
@@ -3516,11 +3519,12 @@ function rxPaletteHtml(attr, idx){
 }
 function socialBar(f, fi, opts){
   const comments = !opts || opts.comments!==false;   /* chat lines react but don't thread */
+  const ns=(opts&&opts.ns)||'';
   const rx=ensureRx(f); const cm=f.cm||(f.cm=[]);
   const chips=rxChipsHtml(rx,'data-rx',fi);
   const pal=rxPaletteHtml('data-rxpick',fi);
   const cmBtn = comments ? `<button class="rxcm" data-c="${fi}" title="Comments" aria-label="Comments" aria-expanded="false"><svg class="ic" aria-hidden="true"><use href="#i-comment"/></svg>${cm.length?` ${cm.length}`:''}</button>` : '';
-  const thread = comments ? `<div class="cthread" id="th${fi}" style="display:none">
+  const thread = comments ? `<div class="cthread" id="${ns}th${fi}" style="display:none">
       ${cm.map(c=>`<div class="crow"><b>${esc(c.w)}</b>${esc(c.t)}</div>`).join('')}
       <div class="cinput">
         <input class="f" placeholder="Talk your talk…" data-i="${fi}">
@@ -3534,7 +3538,7 @@ function socialBar(f, fi, opts){
       ${f.post_id?`<button class="rxadd" data-report="${fi}" title="Report this post" aria-label="Report this post">⚑</button>`:''}
       ${cmBtn}
     </div>
-    <div class="rxpalette" id="rxp${fi}">${pal}</div>
+    <div class="rxpalette" id="${ns}rxp${fi}">${pal}</div>
     ${thread}
   </div>`;
 }
@@ -3692,15 +3696,16 @@ function wireRxHold(el, attr, prefix){
 /* attach the shared handlers to a feed container. `lookup` maps a feed index
    (data attr) back to the feed item — both renderers pass fi = position in
    `feed`, so the lookup is just feed[fi]. */
-function wireSocial(el){
+function wireSocial(el, ns){
+  ns=ns||'';   /* must match the socialBar ns this container rendered with */
   el.querySelectorAll('[data-rx]').forEach(b=>b.addEventListener('click',e=>{
     if(b._held){ b._held=false; e.stopPropagation(); return; }   /* long-press already opened the tray — don't also toggle */
     const f=feed[+b.dataset.rx]; if(f) toggleRx(f, b.dataset.e);
   }));
-  wireRxHold(el, 'rx', 'rxp');
+  wireRxHold(el, 'rx', ns+'rxp');
   el.querySelectorAll('[data-rxadd]').forEach(b=>b.addEventListener('click',e=>{
     e.stopPropagation();
-    const p=el.querySelector('#rxp'+b.dataset.rxadd); if(!p) return;
+    const p=el.querySelector('#'+ns+'rxp'+b.dataset.rxadd); if(!p) return;
     const willOpen=!p.classList.contains('open');
     closeAllTrays();
     if(willOpen) p.classList.add('open');
@@ -3711,13 +3716,13 @@ function wireSocial(el){
   }));
   el.querySelectorAll('[data-rxpick]').forEach(b=>b.addEventListener('click',()=>{
     const f=feed[+b.dataset.rxpick]; if(!f) return;
-    const p=el.querySelector('#rxp'+b.dataset.rxpick); if(p) closeTray(p);
+    const p=el.querySelector('#'+ns+'rxp'+b.dataset.rxpick); if(p) closeTray(p);
     const rx=ensureRx(f); const cur=rx[b.dataset.e];
     if(cur&&cur.me) return;          /* already reacted with this one — no-op */
     toggleRx(f, b.dataset.e);
   }));
   el.querySelectorAll('[data-c]').forEach(b=>b.addEventListener('click',()=>{
-    const t=el.querySelector('#th'+b.dataset.c); if(!t) return;
+    const t=el.querySelector('#'+ns+'th'+b.dataset.c); if(!t) return;
     const open = t.style.display==='none';
     t.style.display = open ? 'block':'none';
     b.setAttribute('aria-expanded', open);
@@ -3750,7 +3755,9 @@ function socialUiKey(fi){ return feed[fi]?.post_id || ('i'+fi); }
 function socialUiCapture(el){
   const s={ th:[], pal:[], vals:{}, focus:null };
   el.querySelectorAll('.cthread').forEach(t=>{
-    const fi=+t.id.slice(2); if(!(fi>=0)) return;
+    /* ids are <ns>th<fi> / <ns>rxp<fi> — strip the letter/hyphen prefix,
+       whatever surface (th / f-th / rxp / f-rxp / hrxp) minted it */
+    const fi=+t.id.replace(/^\D+/,''); if(!(fi>=0)) return;
     const k=socialUiKey(fi);
     if(t.style.display!=='none') s.th.push(k);
     const inp=t.querySelector('input[data-i]');
@@ -3758,16 +3765,32 @@ function socialUiCapture(el){
     if(inp&&document.activeElement===inp) s.focus=k;
   });
   el.querySelectorAll('.rxpalette.open').forEach(p=>{
-    const fi=+p.id.replace(/^h?rxp/,''); if(fi>=0) s.pal.push(socialUiKey(fi));
+    const fi=+p.id.replace(/^\D+/,''); if(fi>=0) s.pal.push(socialUiKey(fi));
   });
   return s;
 }
-function socialUiRestore(el, s){
+function socialUiRestore(el, s, ns){
+  ns=ns||'';
   if(!s.th.length && !s.pal.length && !s.focus && !Object.keys(s.vals).length) return;
   const byKey={}; feed.forEach((f,fi)=>{ byKey[socialUiKey(fi)]=fi; });
   const each=(keys,fn)=>keys.forEach(k=>{ const fi=byKey[k]; if(fi!=null) fn(fi,k); });
-  each(s.th, fi=>{ const t=el.querySelector('#th'+fi); if(t) t.style.display='block'; });
-  each(s.pal, fi=>{ const p=el.querySelector('#rxp'+fi); if(p) p.classList.add('open'); });
+  /* re-opening a tray/thread has to carry its trigger's aria-expanded back to
+     true — the render wiped both the DOM and the disclosure state, and a
+     restored-open tray whose + button still reads collapsed lies to a screen
+     reader. Trigger found by adjacency (closeTray's approach), never a
+     document-wide id match: the board renders two copies of each fi. */
+  each(s.th, fi=>{
+    const t=el.querySelector('#'+ns+'th'+fi); if(!t) return;
+    t.style.display='block';
+    const cBtn=t.closest('.social')?.querySelector('[data-c]');
+    if(cBtn) cBtn.setAttribute('aria-expanded','true');
+  });
+  each(s.pal, fi=>{
+    const p=el.querySelector('#'+ns+'rxp'+fi); if(!p) return;
+    p.classList.add('open');
+    const addBtn=p.previousElementSibling?.querySelector('[data-rxadd],[data-hadd]');
+    if(addBtn) addBtn.setAttribute('aria-expanded','true');
+  });
   each(Object.keys(s.vals), (fi,k)=>{
     const inp=el.querySelector(`input[data-i="${fi}"]`); if(inp) inp.value=s.vals[k];
   });
@@ -3978,7 +4001,7 @@ function renderFeedFull(force){
           </div>
           ${r.pvi!=null?`<span class="pvi ${up?'up':'dn'}">${up?'+':''}${Number(r.pvi).toFixed(1)}</span>`:''}
           ${r.points!=null?`<div class="pts">${r.points}<small>PTS</small></div>`:''}
-        </div>${socialBar(f,fi)}</div>`);
+        </div>${socialBar(f,fi,{ns:'f-'})}</div>`);
         return;
       }
       el.insertAdjacentHTML('beforeend',`<div class="sysrow">◆ ${esc(easeCaps(f.txt||''))}</div>`);
@@ -3989,7 +4012,7 @@ function renderFeedFull(force){
     if(f.sys){ el.insertAdjacentHTML('beforeend',`<div class="sysrow">◆ ${esc(easeCaps(f.txt||''))}</div>`); return; }
     if(f.msg){
       el.insertAdjacentHTML('beforeend',
-        `<div class="msgrow"><span class="bar" style="background:${SQHEX[f.ci]}"></span><div class="mtxt"><b>${esc(f.who)}${founderTag(f.pid, f.who)}</b>${esc(f.txt)}${socialBar(f,fi,{comments:false})}</div></div>`);
+        `<div class="msgrow"><span class="bar" style="background:${SQHEX[f.ci]}"></span><div class="mtxt"><b>${esc(f.who)}${founderTag(f.pid, f.who)}</b>${esc(f.txt)}${socialBar(f,fi,{comments:false,ns:'f-'})}</div></div>`);
       return;
     }
     /* demo diorama round cards: same story shape */
@@ -4002,7 +4025,7 @@ function renderFeedFull(force){
         <div class="rline">${bandName(f.pvi).toUpperCase()}</div></div>
         <span class="pvi ${up?'up':'dn'}">${up?'+':''}${f.pvi.toFixed(1)}</span>
         <div class="pts">${f.pts}<small>PTS</small></div>
-      </div>${socialBar(f,fi)}</div>`);
+      </div>${socialBar(f,fi,{ns:'f-'})}</div>`);
     }
   });
   /* photos arc, task 3.2: tap the photo ground to open it full-size — the
@@ -4016,8 +4039,8 @@ function renderFeedFull(force){
   el.querySelectorAll('[data-photo-open]').forEach(c=>c.addEventListener('click',()=>{
     window.open(c.dataset.photoOpen, '_blank', 'noopener');
   }));
-  wireSocial(el);
-  socialUiRestore(el, uiS);
+  wireSocial(el, 'f-');
+  socialUiRestore(el, uiS, 'f-');
   /* F13 (3.3, follow-up fix): a digest at the top is pointless if force-scroll
      immediately carries it off-screen to the newest item — land at the top
      on open/fresh instead. But only on open/fresh: gating this on `dg` alone

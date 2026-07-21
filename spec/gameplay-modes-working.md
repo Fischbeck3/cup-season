@@ -43,8 +43,8 @@ index can buy; the 5 floor makes a posted 98 beat an unposted 82):
 - Squad month = Σ members' counting points − penalties. Season = Σ months.
 
 ### 1.3 Season formats
-A: Points Race (default) · B: Head-to-Head months (W-L table) ·
-C: Hybrid (points race + 15/month to h2h winner).
+Points Race only (D48 retired B/H2H and C/Hybrid). Endgame stays the bylaw
+dial: points_table | cup_final.
 **Cup Final:** final 4 weeks, seeds lock at `ends_on − 27`, scored fresh
 under the league's own counting rules. Tiebreak ladder: h2h months won →
 best single month → fewest rounds used → logged coin flip. (Migration 008 —
@@ -277,6 +277,13 @@ shippable on existing round machinery + one new schema arc.
 4. Alternate season engines (Quota) unlock free once live rounds capture
    hole detail (spec §2.5)
 
+Post-audit addendum (2026-07-21): approved decisions D48–D55 spawn builds in
+this order, each on its own explicit "build it" — (1) D51 stake line
+(client-only, highest value-to-effort), (2) D52 weekly clash (owner call:
+FOR LAUNCH, not month-1-gated), (3) D53 podium + D54 draft-night reveal
+(copy/server-post extensions), (4) D55 sunlight chip. D48–D50 need no build
+beyond spec v1.1 reconciliation and one covenant paragraph.
+
 ---
 
 ## 7. Requirements-session decisions (2026-07-12) — promoted to canon
@@ -463,7 +470,7 @@ Two copy/craft notes (not decisions — build guidance):
 
 ---
 
-## 8. The personal stake line (PARKED — designed, not decided, not built)
+## 8. The personal stake line (DECIDED — D51, 2026-07-21; build pending its own plan)
 
 Designed in the Gameplay lane 2026-07-17; parked when the lane closed. Nothing
 built, no decision-log entry drafted — three ⚑ questions below must be answered
@@ -556,6 +563,14 @@ lane flagged it as a real retention hook and correctly stopped at the boundary:
 unlockables are a mechanic (achievement rules, visibility, whether picked-vs-
 earned markers read differently), so it gets a decision-log entry before any
 build. Not designed, not committed to — just not lost.
+
+---
+
+## 9b. The weekly clash (DECIDED — D52; owner call: build for launch)
+
+One spotlighted pairing per league per season week; best band-of-week takes a
+headline W into the faceted rivalry record. Never cup points. Full packet in
+D52 — design detail lands here when the build plan spawns.
 
 ---
 
@@ -705,3 +720,38 @@ named in the announce, an "Nth annual" counter, a champions roll on the event
 page, one-tap rematch with bylaws carried (the event analog of D41's
 run-it-back — D41 explicitly deferred "the event rematch row"), and any
 anticipation nudge rides D23's fence. Not designed, not committed — captured.
+
+---
+
+## 11. Parked from the 2026-07-21 gameplay audit (captured, not committed)
+
+Each needs its own decision entry before any build. One line each so the
+reasoning is findable; the full arguments live in the audit report.
+
+- **2-player rivalry season** — a season-long duel with one buddy as the
+  front door (min league size is 4; the hardest ask is 8 friends × 9
+  months). Duel machinery exists; league becomes the upgrade path. The
+  audit's biggest radical idea — needs its own brainstorm, not a batch line.
+- **Defending-champion continuity** — D41 extension: "defending" badge,
+  revenge headlines, Season 2 as sequel. Rides linked multi-season
+  continuity, which D41 already deferred.
+- **The records book** — league/lifetime firsts (lowest round ever posted,
+  longest streak in league history) from data already held; turns every
+  round into a potential history event.
+- **Rivalry chip on shared rounds** — surface the faceted record (item 18's
+  one-object-per-pair) on any round card whose with-line names a rival:
+  "Jerecho vs Marcus · 12 meetings". Data exists; this is placement — needs
+  UX-lane coordination, logged here so the Gameplay side of it isn't lost.
+- **Final-day horn + eliminated-squad race** — live cut-line surface on the
+  season's last Sunday; Points King foregrounded for non-finalists once
+  Cup Final seeds lock (half the league goes emotionally dark for 4 weeks).
+- **The Callout (M5)** — public number-to-beat with auto-settle; still ⚑ in
+  the memory layer; the audit ranks it the trash-talk engine. Needs the
+  D51 stake-line math + D23 coordination.
+- **9-hole floor-credit simplification** — kill the 0.5-credit fraction
+  (9s count fully toward the floor, or not at all). Small, real, not
+  batched into D48 because it changes a rule rather than deleting one.
+- **Annual Major lineage** — already parked at §10.9; the audit co-signs it
+  as the strongest legacy mechanic in the corpus. Unchanged, re-flagged.
+- **Earned markers** — already parked at §9. Unchanged, re-flagged: the
+  Major champion's marker is the natural first entry.

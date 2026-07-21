@@ -1368,3 +1368,250 @@ one). This batch designs it. All five entries resolved WITH the owner
   itself; "Record" is free for the archive when Wrapped ships.
 - **Tradeoffs:** none mechanical — copy sweep only. Sweep rides the UX arc
   (design-review-2026-07-20 Part II, task 1.5).
+
+---
+
+### D48 · The subtraction batch — H2H, Hybrid, bonus layer, allowance dial retired
+*(2026-07-21, gameplay-audit session. Spec subtraction; no engine code exists
+for any of these, so nothing is deleted from the client.)*
+- **Current:** spec carries Format B (Head-to-Head months, §4), Format C
+  (Hybrid +15, §4 — already wizard-removed by D6), the bonus layer (§2.3 —
+  never surfaced per D7), and the handicap-allowance dial 100/95/90 (Custom-
+  only per D8). All four are dormant: no league uses them, no engine built.
+- **Problem:** dormant rules are explain-surface and spec debt. Both design
+  reviews flag "H2H in or out" as unresolved; the audit's verdict: "gone means
+  gone — from spec too." Every dormant dial re-appears in every future wizard,
+  QA pass, and two-minute explanation.
+- **Recommendation:** spec v1.1 removes all four. Formats collapse to Points
+  Race + the endgame dial (points_table | cup_final). Presets keep their fixed
+  allowance values (Casual 100 / Standard 95 / Cutthroat 90) as internal
+  constants; no user-facing dial anywhere, including Custom. §2.3 deleted;
+  preset-matrix rows (§8) updated. The weekly-clash packet (D52) covers the
+  weekly-competition itch H2H aimed at.
+- **Principle:** "Set it once, argue never" + the Cup Season Test — nobody
+  would miss these because none ever made a golf life richer.
+- **Benefit:** shrinks the explainable surface; closes a two-review open
+  question; kills three dials that were each "a support ticket wearing a
+  settings icon" (D8).
+- **Tradeoffs:** a future league wanting monthly match-ups waits for a
+  deliberate rebuild. Acceptable: engines were never built, so revival is a
+  re-spec, not a restoration.
+- **CONFLICT (named):** supersedes spec §4 Formats B/C, §2.3, and the §8
+  preset-matrix rows for format/bonus/allowance. Subsumes D6 (Hybrid hidden)
+  and D7 (bonuses unsurfaced) — both were half-measures this completes.
+
+---
+
+### D49 · Provisional rounds score normally — flat-7 retired
+*(2026-07-21, gameplay-audit session. Scoring-edge change; build rides a
+future client+SQL plan, not this session.)*
+- **Current:** spec §5 — a new member's first 3 rounds score a fixed 7
+  ("New member provisional").
+- **Problem:** special arithmetic lands at the moment a new golfer is most
+  nervous (both design reviews name this cliff). A great first round scoring
+  a flat 7 reads as robbery; a terrible one scoring 7 reads as charity.
+  Either way the first score — the first story — is a lie with an asterisk.
+- **Recommendation:** provisional rounds score NORMALLY off the starter
+  index, badged "provisional" on the card until the engine establishes
+  (3 rounds — the engine's own definition, never a parallel count). No
+  special points path anywhere.
+- **Principle:** Low Friction (one less rule) + Memory > Statistics (the
+  first round must be a true story).
+- **Benefit:** deletes a rule that needed explaining exactly when explaining
+  is most expensive; the first-round moment lands honestly.
+- **Tradeoffs:** a sandbagged starter index can buy up to 12/round for 3
+  rounds (was capped at 7). Bounded: the 12-point band ceiling (§2.2), the
+  exceptional-score cut (§5), and engine takeover at round 3 limit exposure
+  to a few points across a nine-month season.
+- **CONFLICT (named):** amends spec §5 "New member provisional." Nothing
+  upward — principles #1–#3 all served or neutral.
+
+---
+
+### D50 · The Pro's ruling — the dispute procedure, written down
+*(2026-07-21, gameplay-audit session. Governance rule; copy-only build —
+the covenant and fine print gain one paragraph in a future UX pass.)*
+- **Current:** personas-dashboards grants the Pro "resolve disputes" and
+  "lock scores"; no doc anywhere says HOW. The override log, the adjustments
+  ledger, and D43's no-retro-flip rule all exist — but no user-facing rule
+  ties them together.
+- **Problem:** the first contested 79 in a money league is improvised. A
+  dispute with no procedure escalates in the group chat — the exact failure
+  "set it once, argue never" exists to prevent.
+- **Recommendation:** one paragraph, stated at join (covenant) and in league
+  fine print: **"The Pro rules. Every ruling is a logged entry with a
+  reason, visible to the whole league, receipts attached. Settled events
+  never change after the fact — the record of the ruling is the recourse."**
+  No appeal machinery in-app; the crew's own governance is the appeal.
+- **Principle:** "Set it once, argue never" + §16 (everything shows its
+  work). A ruling is just another number that shows its work.
+- **Benefit:** disputes end in one place, in one tap-through; the Pro's
+  power is legitimized by visibility instead of resented as fiat.
+- **Tradeoffs:** Pro-as-judge in the Pro's own league is a real conflict of
+  interest. Mitigated, not solved: the log is public to the league, and the
+  no-retro-flip rule means a ruling can't quietly rewrite history.
+- **CONFLICT (named):** none upward — makes personas' asserted power
+  concrete; consistent with D43 ("settled cards never retro-flip") and the
+  §9 override-log rule.
+
+---
+
+### D51 · The stake line — what your next round is worth (unparked from §8)
+*(2026-07-21, gameplay-audit session. Unparks gameplay-modes-working §8;
+BUILD is a separate client plan on an explicit "build it." The audit ranked
+this the highest value-to-effort item in the backlog: the one-more-round
+rule as a mechanic.)*
+- **Current:** designed in full (gameplay-modes §8), parked 2026-07-17 with
+  three ⚑. ⚑2 (placement) already answered by the UX lane: the post-a-round
+  screen. No line exists in the product.
+- **Problem:** the product never tells a golfer what today's round is
+  actually worth — and the naive version ("worth up to 12!") is a lie for
+  anyone at cap. The honest marginal is computable client-side today.
+- **Recommendation:** ship §8 as designed. Priority ladder (floor at risk →
+  index not established → at cap → cup-line closable → below-cap default →
+  silent). ⚑1 RESOLVED (owner, 2026-07-21): show the at-cap line, reframed —
+  "your best four are banked; today's round is for your number, the Iron
+  Man, and the board" — honest, never deflating (a round never scores zero
+  to the golfer's life, only to the table). ⚑3 RESOLVED (owner, 2026-07-21):
+  silent by default when nothing on the ladder applies. Inherited laws
+  restated for the build: never claim a resulting position (D24); never say
+  "counting cap" — say "your best four" (D2); line taps through to the
+  month's slot meter (D3, §16); read `b.floor_penalty` directly, never
+  infer from preset.
+- **Principle:** Every round counts + the one-more-round rule; §16 (the
+  line is a receipt with a verb).
+- **Benefit:** the post screen answers "why post today" at the exact moment
+  the golfer is present because they played; floor-at-risk becomes a
+  17-point swing stated plainly.
+- **Tradeoffs:** the at-cap truth can still cool a table-chasing golfer.
+  Chosen deliberately over the alternative (a comforting lie). The
+  floor-at-risk Home surface (the golfer who most needs the line never
+  visits the post screen) stays OPEN — it is a nudge, so it rides D23's
+  fence and needs Social-lane coordination; logged here as the named
+  remainder, not silently dropped.
+- **CONFLICT (named):** none upward. Brushes D23 only via the deferred
+  Home-surface remainder, which is explicitly not shipped here.
+
+---
+
+### D52 · The weekly clash — one spotlighted pairing per week
+*(2026-07-21, gameplay-audit session. NEW mechanic — the audit's structural
+finding made concrete: the flagship season lacks the weekly anticipation
+loop the Ryder has. Owner call: build for LAUNCH, not gated on month-1
+proof.)*
+- **Current:** week snapshots write headlines ("won Week 4") and the events
+  engine detects rivalry weekly clashes — but nothing RIDES on a week.
+  Between month closes the standings drift; no appointment, no deadline.
+- **Problem:** fantasy football's engine is the week-as-episode
+  (anticipation Tue–Sat, resolution Sunday). Cup Season's unit is the
+  month — too long for an anticipation loop. The most exciting mode built
+  so far is the Ryder, a side product, precisely because it has weekly
+  duels.
+- **Recommendation:** each season week, spotlight ONE clash per league.
+  Engine picks the pairing: named rivalry (D21) > closest table gap >
+  least-recently-featured (rotation guarantee). Best band-of-week takes a
+  headline W; result feeds the faceted rivalry record ("weekly clash 3–2",
+  per the item-18 one-object-per-pair law). NO cup points — parallel
+  ledger, §5 unchanged. Board post at week open ("THIS WEEK: Jerecho v
+  Marcus"), settle post at week close; both-idle settles quiet (no
+  headline, honest). Push rides curated rails, opt-in (D23 + the item-17
+  number-to-beat precedent). BUILD: for launch (owner, 2026-07-21) — the
+  build plan spawns from this entry; the heartbeat outranks surface-count
+  discipline.
+- **Principle:** The App Should Feel Alive + anticipation between rounds —
+  at crew scale, where the thin-feed arithmetic (2–3 posts/week) can't
+  fill a daily feed, a weekly episode is the honest cadence.
+- **Benefit:** the season gets the Tue–Sun appointment beat; the rivalry
+  record gets a steady diet; the board gets two guaranteed stories a week.
+- **Tradeoffs:** a spotlight excludes everyone not in it that week —
+  rotation rule mitigates; small leagues (4–5) cycle fast anyway. Adds one
+  engine surface to a product the reviews say is already too wide — the
+  owner accepts that cost for the launch heartbeat.
+- **CONFLICT (named):** none upward. §5 parallel-ledger law respected;
+  D23's fence respected (push opt-in, board posts are not nudges). Departs
+  from both design reviews' "proof before features" posture — named here
+  as a deliberate owner call, not an oversight.
+
+---
+
+### D53 · The month-close podium — the close becomes a ceremony
+*(2026-07-21, gameplay-audit session. Storytelling extension of close_month;
+no scoring change, no hardware. Build is a server-post copy extension.)*
+- **Current:** close_month() posts "JULY CLOSED" + a standings snapshot.
+  Correct machinery, zero ceremony.
+- **Problem:** the month is the product's natural episode and its ending is
+  administrative. Member-member golf runs on podium moments; the close is
+  the one guaranteed monthly beat every league shares, and it currently
+  spends itself in one line.
+- **Recommendation:** the close post becomes a short ceremony, all from
+  data already computed: month podium (top squad-month score), month MVP
+  (best individual points), biggest climb (largest table move). No new
+  points, no hardware, no new tables. The ghost list (who fell short)
+  stays PRIVATE — floors already handle it in the ledger; shame is not a
+  mechanic (D23).
+- **Principle:** Memory > Statistics — the episode ender is a story;
+  "JULY CLOSED" is a fact.
+- **Benefit:** a recurring screenshot-shaped artifact every month; the
+  month gains a finale worth checking the app for.
+- **Tradeoffs:** none material. Copy discipline required so the podium
+  never reads as a leaderboard-of-shame for the bottom.
+- **CONFLICT (named):** none upward. Rides §14.2's existing close post;
+  D23 respected (no shame surface).
+
+---
+
+### D54 · Draft night — the blind draw learns to take its time
+*(2026-07-21, gameplay-audit session. Reveal mechanics only; the draw rule —
+server-side shuffle, rigging-proof — is untouched.)*
+- **Current:** §15 blind draw runs instantly and reveals as one board post.
+- **Problem:** draft night is the highest-retention day in fantasy sports —
+  people schedule around it — and Cup Season spends it as a feed item. The
+  audit's missing moment #1.
+- **Recommendation:** the Pro may SCHEDULE the draw (default remains
+  instant). A scheduled draw shows a countdown on Home; at T-0 squads
+  reveal card-by-card as paced board posts (~30s stagger), reactions live
+  between reveals. The shuffle itself is unchanged — one server-side
+  shuffle at T-0, then paced disclosure of a result already fixed
+  (rigging-proof property preserved by construction).
+- **Principle:** create memories — the same information, delivered as an
+  event instead of a record.
+- **Benefit:** the season opens with theater instead of paperwork; the
+  first shared-appointment moment of every league's life.
+- **Tradeoffs:** needs a pacing mechanism (server-timed posts vs a client
+  reveal over one post — the implementation lane decides; neither touches
+  the draw's integrity). Scattered-timezone crews may watch alone — at
+  crew scale, usually fine; countdown copy can nudge a shared time.
+- **CONFLICT (named):** amends §15's reveal mechanics only; the formation
+  rules (blind draw default, assign, captains-pick roadmap) are untouched.
+
+---
+
+### D55 · The sunlight chip — index movement shown where money enters
+*(2026-07-21, gameplay-audit session. Transparency surface; no eligibility
+rule, no block, no enforcement.)*
+- **Current:** PvI off index_at_post is the load-bearing currency of every
+  money surface. The season is protected by the 12-band ceiling; the Major
+  removes the ceiling ("the round of your life pays in full") and its
+  field line (D44) only stops the un-established. The Ryder ships with no
+  anti-sandbag at all.
+- **Problem:** the one place a padded index pays linearly is exactly where
+  dollars appear, and the integrity of the number is asserted, not shown.
+  The first suspicious Major win (D43 names it as the revisit trigger) is
+  cheaper to pre-empt than to adjudicate.
+- **Recommendation:** on money-event entry surfaces (Ryder roster, Major
+  field), each player carries a neutral fact-chip: current index vs 60/90
+  days ago — "12.4 · was 11.2 in May" — from the index snapshot history
+  already kept. New profiles with no history show "—". No block, no flag,
+  no threshold, no accusation copy: sunlight, and the crew polices itself
+  the way real money games always have.
+- **Principle:** §16, everything shows its work — extended from scores to
+  the number the scores are measured against. Anti-sandbagging by
+  transparency, not enforcement (the same philosophy as the 12 ceiling).
+- **Benefit:** closes the audit's money-integrity gap for both events with
+  one chip; no accusation UI to build or moderate.
+- **Tradeoffs:** an honest improver's falling index wears the chip too —
+  acceptable because the chip is a neutral fact and falling indexes read
+  as bragging rights anyway. A rising index has innocent explanations
+  (injury, rust); the chip states, never judges — copy law.
+- **CONFLICT (named):** none upward. Complements D44's field line (which
+  gates the un-established); neither replaces the other.

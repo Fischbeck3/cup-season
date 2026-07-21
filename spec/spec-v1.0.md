@@ -65,6 +65,8 @@ Why a 5-point floor: a posted 98 beats an unposted 82. The floor converts "I pla
 
 Bonuses add texture for casual leagues but widen the sandbag surface; Cutthroat leagues should leave them off.
 
+*(D48, 2026-07-21: retired — see decision log. v1.1 removes this section.)*
+
 ### 2.4 Round eligibility toggles
 
 | Toggle | Options | Notes |
@@ -121,6 +123,9 @@ Scale check (Standard, 4-man squads): ~118 pts/squad/month, ~1,065 over 9 months
 
 **The individual layer (always on):** **Points King** (most individual points — pays from the pot) · **Most Improved** (largest index drop) · **Iron Man** (most posted rounds).
 
+*(D48, 2026-07-21: Formats B and C retired — see decision log. v1.1 collapses
+this section to Points Race + the endgame dial.)*
+
 ---
 
 ## 5. Handicap & fairness system
@@ -133,6 +138,9 @@ Scale check (Standard, 4-man squads): ~118 pts/squad/month, ~1,065 over 9 months
 | In-season index rise cap | +1.0 max above season-start |
 | Exceptional score rule | Two rounds of PvI ≥ +7 in one month → index cut 1.0 immediately |
 | New member provisional | First 3 rounds score at fixed 7 points |
+
+*(D49, 2026-07-21: flat-7 retired — provisional rounds score normally,
+badged until established. See decision log.)*
 
 ---
 
@@ -169,6 +177,10 @@ Buy-in $25–$200 (default $75) · Payout split 60/25/15 (Champs/Runner-up/Point
 **Monetization mapping:** presets free; **Custom = Commissioner Pro** (§11).
 
 **League size (graduated):** min **4 players**. 4–5: **Individual** (top 2 duel the Final) or **2×2** (both reach the Final; leader +10). 6–7: 2×3 / 3×2. **8+: full 4-squad draft.** 10+ clears the USGA club threshold → Make It Official (§11).
+
+*(D48, 2026-07-21: the allowance dial, bonus-layer row, and format rows of the
+preset matrix are retired — presets keep their fixed values internally. See
+decision log; v1.1 updates the matrix.)*
 
 ---
 
@@ -243,7 +255,7 @@ Seeds lock when the window opens (top-2 squads; both at 2-squad scale, leader +1
 
 ## 15. Squad formation *(amended from "The Draft" — decided this cycle)*
 
-**Blind draw** *(default, Free)*: server-side shuffle of all joined members, round-robin, revealed as a board post — rigging-proof. **Commissioner assign** *(Free)*: teams from the group chat, placed by hand. **Snake draft** and **Live draft + pick clock** retire to the **Pro roadmap** (schema from m004 remains ready). Captains are an optional label until the Final captain-playoff needs them. Season can't start with unassigned members; late joiners assigned to the thinnest squad, logged.
+**Blind draw** *(default, Free)*: server-side shuffle of all joined members, round-robin, revealed as a board post — rigging-proof. *(D54, 2026-07-21: the Pro may schedule the draw for a paced card-by-card reveal; instant remains default. See decision log.)* **Commissioner assign** *(Free)*: teams from the group chat, placed by hand. **Snake draft** and **Live draft + pick clock** retire to the **Pro roadmap** (schema from m004 remains ready). Captains are an optional label until the Final captain-playoff needs them. Season can't start with unassigned members; late joiners assigned to the thinnest squad, logged.
 
 ---
 
