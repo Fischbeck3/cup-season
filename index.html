@@ -899,17 +899,25 @@ input.f::-webkit-outer-spin-button, input.f::-webkit-inner-spin-button{-webkit-a
 .rxchip .e{font-family:var(--sans); margin-right:4px;}
 .rxchip:hover{color:var(--ink);}
 .rxchip.on{color:var(--bg0); background:var(--brand); border-color:var(--brand);}
+/* the heater doubles as the one-thumb quick-tap (F11 3.1) — its hit box
+   clears the 44px floor via padding, never by inflating the emoji itself */
+.rxchip.quick{
+  display:inline-flex; align-items:center; justify-content:center;
+  min-width:44px; min-height:44px; padding:5px 14px;
+}
 .rxcm{
   font-family:var(--mono); font-size:12.5px; font-weight:600; color:var(--mut);
   background:var(--bg2); border:1px solid var(--line2);
   border-radius:99px; padding:5px 11px; cursor:pointer; line-height:1;
 }
-/* the add-reaction affordance is a plain "+" — the picker hangs off it, and
-   nothing about it should read as a reaction itself */
+/* the add-reaction affordance is a plain "+" icon — the tray hangs off it,
+   and nothing about it should read as a reaction itself. Same 44px floor. */
 .rxadd{
-  font-family:var(--mono); font-size:15px; font-weight:600; color:var(--mut);
+  font-family:var(--mono); font-weight:600; color:var(--mut);
   background:var(--bg2); border:1px solid var(--line2);
-  border-radius:99px; padding:0 11px; height:26px; cursor:pointer; line-height:1;
+  border-radius:99px; cursor:pointer; line-height:1;
+  display:inline-flex; align-items:center; justify-content:center;
+  min-width:44px; min-height:44px; padding:0 14px;
 }
 .rxadd:hover, .rxcm:hover{color:var(--ink);}
 .rxadd:focus-visible, .rxcm:focus-visible{outline:2px solid var(--pos); outline-offset:2px;}
@@ -925,10 +933,13 @@ input.f::-webkit-outer-spin-button, input.f::-webkit-inner-spin-button{-webkit-a
 .rxpalette button:hover{border-color:var(--line2); background:var(--bg1);}
 .rxpalette button:focus-visible{outline:2px solid var(--pos); outline-offset:2px;}
 /* Home's circle rows are denser than board cards — the strip shrinks to fit
-   under the round line and never opens a thread (comments stay a board thing) */
+   under the round line and never opens a thread (comments stay a board thing).
+   The quick-tap heater and the + still hold the 44px floor (bullet 5) here
+   too — padding grows the hit box, the glyph stays Home-scaled. */
 .hrx{display:flex; flex-wrap:wrap; gap:5px; align-items:center; margin-top:6px;}
 .hrx .rxchip{font-size:11.5px; padding:3px 8px;}
-.hrx .rxadd{font-size:13px; height:21px; padding:0 8px;}
+.hrx .rxchip.quick{min-width:44px; min-height:44px; padding:3px 12px;}
+.hrx .rxadd{min-width:44px; min-height:44px; padding:0 12px;}
 .rxpalette.h{margin-top:6px; padding:6px;}
 .rxpalette.h button{font-size:17px; padding:4px 6px;}
 /* the quiet-day frame — Home's feed never opens as a bare list. Either it says
@@ -3421,11 +3432,20 @@ function ensureRx(f){
    board (data-rx/rxpick → feed[i]) and Home (data-hrx/hpick → circle rows)
    wire to their own arrays without cross-talk */
 function rxChipsHtml(rx, attr, idx){
-  return Object.keys(rx).filter(e=>rx[e]&&rx[e].n>0).map(e=>{
+  const present=Object.keys(rx).filter(e=>rx[e]&&rx[e].n>0);
+  const chips=present.map(e=>{
     const r=rx[e]; const who=(r.who&&r.who.length)?r.who.join(', '):'';
     const title=`${RXLABEL[e]||''}${who?' — '+who:''}`;
-    return `<button class="rxchip ${r.me?'on':''}" ${attr}="${idx}" data-e="${esc(e)}" title="${esc(title)}"><span class="e">${esc(e)}</span>${r.n}</button>`;
+    const quick=e==='🔥'?' quick':'';
+    return `<button class="rxchip${quick} ${r.me?'on':''}" ${attr}="${idx}" data-e="${esc(e)}" title="${esc(title)}"><span class="e">${esc(e)}</span>${r.n}</button>`;
   }).join('');
+  /* F11 3.1: the heater is the one-thumb chip, always on the card face. If it
+     already carries reactions, the chip above IS the quick-tap (same button,
+     same toggle, marked .quick so the long-press wiring below finds it either
+     way) — only inject a bare one when nobody's fired yet, so a fresh card
+     still gets a one-tap target instead of forcing the six-chip tray open. */
+  if(present.includes('🔥')) return chips;
+  return chips + `<button class="rxchip quick" ${attr}="${idx}" data-e="🔥" title="${esc(RXLABEL['🔥'])}" aria-label="${esc(RXLABEL['🔥'])}"><span class="e" style="margin-right:0">🔥</span></button>`;
 }
 function rxPaletteHtml(attr, idx){
   return REACTIONS.map(r=>
@@ -3436,7 +3456,7 @@ function socialBar(f, fi, opts){
   const rx=ensureRx(f); const cm=f.cm||(f.cm=[]);
   const chips=rxChipsHtml(rx,'data-rx',fi);
   const pal=rxPaletteHtml('data-rxpick',fi);
-  const cmBtn = comments ? `<button class="rxcm" data-c="${fi}" aria-label="${cm.length} comment${cm.length===1?'':'s'}"><svg class="ic" aria-hidden="true"><use href="#i-comment"/></svg> ${cm.length}</button>` : '';
+  const cmBtn = comments ? `<button class="rxcm" data-c="${fi}" title="Comments" aria-label="Comments"><svg class="ic" aria-hidden="true"><use href="#i-comment"/></svg>${cm.length?` ${cm.length}`:''}</button>` : '';
   const thread = comments ? `<div class="cthread" id="th${fi}" style="display:none">
       ${cm.map(c=>`<div class="crow"><b>${esc(c.w)}</b>${esc(c.t)}</div>`).join('')}
       <div class="cinput">
@@ -3447,7 +3467,7 @@ function socialBar(f, fi, opts){
   return `<div class="social">
     <div class="rxbar">
       ${chips}
-      <button class="rxadd" data-rxadd="${fi}" title="Add a reaction" aria-label="Add a reaction">+</button>
+      <button class="rxadd" data-rxadd="${fi}" title="More reactions" aria-label="More reactions"><svg class="ic" aria-hidden="true"><use href="#i-plus"/></svg></button>
       ${f.post_id?`<button class="rxadd" data-report="${fi}" title="Report this post" aria-label="Report this post">⚑</button>`:''}
       ${cmBtn}
     </div>
@@ -3554,15 +3574,51 @@ async function reportPost(f){
   }catch(e){ toast('Couldn’t send the report: '+(e.message||e.code||'try again')); }
 }
 window.refreshSocial = refreshSocial;
+/* the tray is exclusive + dismissible from anywhere (F11 3.1): picking a chip
+   already closes its own tray (data-rxpick/data-hpick below) — this covers
+   the other two closes bullet 2 asks for, tap-out and Escape, and also means
+   opening one tray closes any other. One shared listener for both surfaces:
+   .rxpalette is the class regardless of board (id rxp*) or Home (id hrxp*). */
+function closeAllTrays(){ document.querySelectorAll('.rxpalette.open').forEach(p=>p.classList.remove('open')); }
+document.addEventListener('click', e=>{
+  document.querySelectorAll('.rxpalette.open').forEach(p=>{ if(!p.contains(e.target)) p.classList.remove('open'); });
+});
+document.addEventListener('keydown', e=>{ if(e.key==='Escape') closeAllTrays(); });
+/* long-press (≥350ms pointerdown) on the 🔥 quick-tap chip opens the tray
+   without also firing its tap-toggle — pointerdown timer + a `held` flag on
+   the element (the approved mock). `attr` is the data-attribute name minus
+   "data-" ('rx'/'hrx'), `prefix` is the palette id prefix ('rxp'/'hrxp');
+   shared by both surfaces so the gesture can't drift apart between them. */
+function wireRxHold(el, attr, prefix){
+  el.querySelectorAll(`.rxchip.quick[data-${attr}]`).forEach(chip=>{
+    chip.addEventListener('pointerdown', ()=>{
+      clearTimeout(chip._holdT); chip._held=false;
+      chip._holdT=setTimeout(()=>{
+        chip._held=true;
+        closeAllTrays();
+        const p=el.querySelector('#'+prefix+chip.dataset[attr]);
+        if(p) p.classList.add('open');
+      }, 350);
+    });
+    ['pointerup','pointerleave','pointercancel'].forEach(evt=>
+      chip.addEventListener(evt, ()=>clearTimeout(chip._holdT)));
+  });
+}
 /* attach the shared handlers to a feed container. `lookup` maps a feed index
    (data attr) back to the feed item — both renderers pass fi = position in
    `feed`, so the lookup is just feed[fi]. */
 function wireSocial(el){
-  el.querySelectorAll('[data-rx]').forEach(b=>b.addEventListener('click',()=>{
+  el.querySelectorAll('[data-rx]').forEach(b=>b.addEventListener('click',e=>{
+    if(b._held){ b._held=false; e.stopPropagation(); return; }   /* long-press already opened the tray — don't also toggle */
     const f=feed[+b.dataset.rx]; if(f) toggleRx(f, b.dataset.e);
   }));
-  el.querySelectorAll('[data-rxadd]').forEach(b=>b.addEventListener('click',()=>{
-    const p=el.querySelector('#rxp'+b.dataset.rxadd); if(p) p.classList.toggle('open');
+  wireRxHold(el, 'rx', 'rxp');
+  el.querySelectorAll('[data-rxadd]').forEach(b=>b.addEventListener('click',e=>{
+    e.stopPropagation();
+    const p=el.querySelector('#rxp'+b.dataset.rxadd); if(!p) return;
+    const willOpen=!p.classList.contains('open');
+    closeAllTrays();
+    if(willOpen) p.classList.add('open');
   }));
   el.querySelectorAll('[data-report]').forEach(b=>b.addEventListener('click',()=>{
     const f=feed[+b.dataset.report]; if(f) reportPost(f);
@@ -6454,11 +6510,17 @@ async function toggleHomeRx(r, emoji){
 }
 function wireHomeSocial(box){
   const rows = state.demo ? DEMO_FEED : (window.homeFeed||[]);
-  box.querySelectorAll('[data-hrx]').forEach(b=>b.addEventListener('click',()=>{
+  box.querySelectorAll('[data-hrx]').forEach(b=>b.addEventListener('click',e=>{
+    if(b._held){ b._held=false; e.stopPropagation(); return; }   /* long-press already opened the tray — don't also toggle */
     const r=rows[+b.dataset.hrx]; if(r) toggleHomeRx(r, b.dataset.e);
   }));
-  box.querySelectorAll('[data-hadd]').forEach(b=>b.addEventListener('click',()=>{
-    const p=box.querySelector('#hrxp'+b.dataset.hadd); if(p) p.classList.toggle('open');
+  wireRxHold(box, 'hrx', 'hrxp');
+  box.querySelectorAll('[data-hadd]').forEach(b=>b.addEventListener('click',e=>{
+    e.stopPropagation();
+    const p=box.querySelector('#hrxp'+b.dataset.hadd); if(!p) return;
+    const willOpen=!p.classList.contains('open');
+    closeAllTrays();
+    if(willOpen) p.classList.add('open');
   }));
   box.querySelectorAll('[data-hpick]').forEach(b=>b.addEventListener('click',()=>{
     const r=rows[+b.dataset.hpick]; if(!r) return;
@@ -6480,7 +6542,7 @@ function feedRow(r, idx){
   else if(r.is_first){ badge='🎉 First round'; line = `${whoTag} posted ${r.is_me?'your':'their'} first round — ${r.gross} at ${course}`; }
   else { line = `${whoTag} posted ${r.gross} at ${course}${pvi?' · '+pvi:''}`; }
   const rx = idx!==undefined ? homeRxOf(r) : null;
-  const social = rx ? `<div class="hrx">${rxChipsHtml(rx,'data-hrx',idx)}<button class="rxadd" data-hadd="${idx}" title="Add a reaction" aria-label="Add a reaction">+</button></div>
+  const social = rx ? `<div class="hrx">${rxChipsHtml(rx,'data-hrx',idx)}<button class="rxadd" data-hadd="${idx}" title="More reactions" aria-label="More reactions"><svg class="ic" aria-hidden="true"><use href="#i-plus"/></svg></button></div>
     <div class="rxpalette h" id="hrxp${idx}">${rxPaletteHtml('data-hpick',idx)}</div>` : '';
   return `<div class="check"><span class="num"${r.profile_id?` data-tc="${r.profile_id}"`:''}>${mk}</span>
     <div class="tt"><b>${line}</b><small>${badge?badge+' · ':''}${dfmtShort(r.played_on)}</small>${social}</div></div>`;
