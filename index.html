@@ -4061,8 +4061,11 @@ function showEpilogue(epi, course, firstEver){
   const sub = course
     ? `${epi.gross!=null?epi.gross+' at ':''}${String(course).toUpperCase()}`
     : 'THE ROUND, FOR YOU FIRST';
-  /* #18: the peak's shareable form — the card needs its hero number */
-  if(epi.gross!=null)
+  /* #18: the peak's shareable form — the card needs its hero number.
+     2.1 follow-up: when the ceremony already owned the share for this post, keep
+     every epilogue row above but drop this duplicate button; absent the ceremony
+     (fallback / older flows) it renders exactly as before. */
+  if(epi.gross!=null && !_ceremonyOwnsShare)
     rows.push(`<button class="btn" id="epiShare" style="width:100%;margin-top:14px">${firstEver?'Share your first card':'Share the card'}</button>`);
   openSheet(firstEver?'Welcome to the season ⛳':'Your round', sub, rows.join(''));
   const sh=$('#shBody').querySelector('#epiShare');
@@ -4088,6 +4091,12 @@ function showEpilogue(epi, course, firstEver){
    ink-muted ("counts on your card") otherwise. Share rides the existing
    recap-card path (shareRecapCard); no new fetches — every value is passed in. */
 let _finishShare=null;
+/* 2.1 follow-up: set true by finishCeremony when the ceremony owned the share
+   for this post, so the epilogue keeps all its content (achievements, rivalry
+   rows, counting rank, first-ever welcome) but drops its duplicate share button.
+   Reset per-post at the top of the post handler; only the ceremony sets it, so a
+   fallback/stamp post (or an older flow) leaves the epilogue's own share intact. */
+let _ceremonyOwnsShare=false;
 function finishCeremony(o){
   const el=document.getElementById('finish');
   if(!el){ stampPosted('POSTED ✓'); return; }   /* element gone: never fail silent — old stamp */
@@ -4099,7 +4108,7 @@ function finishCeremony(o){
   /* the band line reuses the app's one phrase producer — never re-derived */
   $('#finBand').textContent=(o.vs!=null && isFinite(o.vs)) ? vsPhrase(Number(o.vs)) : '';
   const pl=$('#finPts');
-  if(o.inLeague && o.points!=null){
+  if(o.inLeague && o.points>0){   /* champagne = EARNED: gold only for real points (>0), self-enforcing canon */
     pl.className='finish-pts earned';
     pl.textContent=`+${o.points} PTS`+(o.squad ? ` · COUNTS FOR ${String(o.squad).toUpperCase()}` : ' · COUNTS THIS SEASON');
   } else {
@@ -4117,6 +4126,7 @@ function finishCeremony(o){
   el.classList.remove('open'); void el.offsetWidth;   /* restart the stagger on a second post */
   el.setAttribute('aria-hidden','false'); el.classList.add('open');
   document.body.style.overflow='hidden';
+  _ceremonyOwnsShare=true;   /* the ceremony owns the share this post — the epilogue defers its own button */
   try{ if(navigator.vibrate) navigator.vibrate([10,38,10]); }catch(_){}   /* the stamp's thock */
 }
 function finishDismiss(){
@@ -4308,6 +4318,7 @@ $('#postBtn').addEventListener('click', async ()=>{
     return;
   }
   const {pts,vs,label}=state.lastPost;
+  _ceremonyOwnsShare=false;   /* 2.1 follow-up: fresh per post — only a fired ceremony re-sets it, so a fallback/stamp post keeps the epilogue's own share */
   if(!state.demo && window.CS?.user && window.sb){
     const sb=window.sb, CS=window.CS;
     /* real account (league or not): the round is a fact — insert it, the trigger scores the
@@ -4403,8 +4414,9 @@ $('#postBtn').addEventListener('click', async ()=>{
           marker: window.CS?.profile?.marker || 'saguaro',
           leagueName: window.CS?.league?.name || null,
           photo: window._lastPostPhoto || null,
-        }); else stampPosted('POSTED ✓'); }
-      toast(`Round posted: ~${pts} pts pending the league's math`);
+        }); else { stampPosted('POSTED ✓'); toast(`Round posted: ~${pts} pts pending the league's math`); } }
+      /* the ceremony IS the confirmation — its toast lives only in the stamp fallback (above),
+         never firing behind the z-1100 curtain */
       setTimeout(() => window.csEarnInstallNudge?.(), 1400);   /* earned: the first real round hits the board */
       /* clear the form so a posted round never reads as "didn't submit"
          (pilot feedback: entered a second round thinking the first failed) */
@@ -4453,8 +4465,7 @@ $('#postBtn').addEventListener('click', async ()=>{
     marker: (state.demo ? null : window.CS?.profile?.marker) || 'saguaro',
     leagueName: state.demo ? 'The Sunday Cup' : (window.CS?.league?.name || null),
     photo: state.demo ? null : (window._lastPostPhoto||null),
-  }); else stampPosted('POSTED ✓');
-  toast(`Round posted: +${pts} pts to ${state.demo?'Mudsharks':'your squad'}`);
+  }); else { stampPosted('POSTED ✓'); toast(`Round posted: +${pts} pts to ${state.demo?'Mudsharks':'your squad'}`); }
 });
 
 /* ============ photos arc (#13, D36): photo attach + scorecard scan ============
