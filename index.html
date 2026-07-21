@@ -4653,7 +4653,7 @@ $('#postPhotoFile')?.addEventListener('change',async e=>{
 $('#postScanBtn')?.addEventListener('click',()=>$('#postScanFile')?.click());
 $('#postScanFile')?.addEventListener('change',async e=>{
   const f=e.target.files?.[0]; e.target.value=''; if(!f) return;
-  const btn=$('#postScanBtn'); const was=btn.textContent;
+  const btn=$('#postScanBtn'); const was=btn.innerHTML;
   btn.disabled=true; btn.textContent='Reading the card…';
   try{
     /* 2200px keeps handwritten digits legible for the model; ~½MB upload */
@@ -4673,7 +4673,7 @@ $('#postScanFile')?.addEventListener('change',async e=>{
     window._scanShot = shot;   /* the scan doubles as the round photo */
     scanPickRow(data.scan);
   }catch(_){ toast('Scan’s resting — type your nines in'); }
-  finally{ btn.disabled=false; btn.textContent=was; }
+  finally{ btn.disabled=false; btn.innerHTML=was; }
 });
 function scanPickRow(scan){
   if(scan.players.length===1){ scanApply(scan,0); return; }
