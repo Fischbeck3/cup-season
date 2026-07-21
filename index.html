@@ -3776,6 +3776,66 @@ function socialUiRestore(el, s){
     if(inp){ inp.focus(); inp.setSelectionRange(inp.value.length, inp.value.length); }
   });
 }
+/* ---- F13 (3.3): quiet-day digest for the per-league board ----
+   Investigated first (grepped lastSeen/seen/badge/unread): an analogous
+   "since you were here" digest already exists — dgKey/dgReadSeen/dgMarkSeen
+   below, feeding renderHomeDigest() into #homeDigest. But that marker is
+   PROFILE-scoped for the unified Home feed (window.homeFeed/homePosts) — a
+   different surface from this league board (#feedList/#feedListFull, the
+   `feed` array). Nothing tracks "seen THIS league's board", so this adds a
+   minimal per-league sibling, same convention as dgKey just keyed by league.
+   Reused read-only, never re-derived: bandName(), easeCaps(), esc(),
+   window.roundCache (T11's cache), and Home's own #statFinal text. */
+function boardSeenKey(){ return 'cs_board_seen_' + (window.CS?.league?.id || (state.demo ? 'demo' : 'anon')); }
+/* the latest round story as one line. Real post: reuse the compact feed's
+   own rendering verbatim (easeCaps(f.txt)) when the rich cache isn't there;
+   otherwise compose name · course · band from fields/functions the rich
+   board card already uses (T11), never a new derivation. Demo/live-echo
+   shape (who+meta+pvi, no post body): same idea, composed from f.meta
+   (already "GROSS · COURSE") and bandName(). */
+function digestRoundLine(f){
+  if(f.roundpost){
+    const r = window.roundCache?.[f.rid];
+    if(r && r.gross!=null){
+      const band = r.pvi!=null ? bandName(Number(r.pvi)) : '';
+      return `${esc(f.who||'—')} · ${esc(r.course_label||'somewhere out there')}${band?` · ${esc(band)}`:''}`;
+    }
+    return esc(easeCaps(f.txt||''));
+  }
+  const band = f.pvi!=null ? bandName(f.pvi) : '';
+  return `${esc(f.who||'—')}${f.meta?` · ${esc(f.meta)}`:''}${band?` · ${esc(band)}`:''}`;
+}
+/* renderFeed() cascades into renderFeedFull() synchronously when the full
+   board is already open (see the #boardFull check at the end of renderFeed)
+   — so the second call must not re-read a marker the first call just wrote,
+   or the two containers can disagree mid-cascade. One decision per render
+   pass; the cache clears on the next microtask so a later, separate render
+   still re-reads fresh. */
+let _bdCache;
+function boardDigestHtml(){
+  if(_bdCache!==undefined) return _bdCache;
+  queueMicrotask(()=>{ _bdCache=undefined; });
+  if(!feed.length) return _bdCache='';
+  let marker=null;
+  try{ const raw=localStorage.getItem(boardSeenKey()); if(raw) marker=Number(raw); }catch(_){}
+  try{ localStorage.setItem(boardSeenKey(), String(Date.now())); }catch(_){}
+  if(marker==null) return _bdCache='';   /* first-ever open — the feed itself is the reveal */
+  const now=Date.now();
+  const newest=feed.reduce((mx,f)=>Math.max(mx, f.ts ?? now), 0);
+  if(newest>marker) return _bdCache='';  /* something new landed — feed renders exactly as today */
+  const lines=[];
+  for(let i=feed.length-1;i>=0;i--){
+    const f=feed[i];
+    if(f.roundpost || (f.pvi!=null && !f.msg && !f.ann && !f.moment && !f.sys)){ lines.push(digestRoundLine(f)); break; }
+  }
+  for(let i=feed.length-1;i>=0;i--){
+    if(feed[i].sys){ lines.push('◆ '+esc(easeCaps(feed[i].txt||''))); break; }
+  }
+  const next=$('#statFinal')?.textContent?.trim();  /* Home's own countdown/week-close line — reused, not re-derived */
+  if(next) lines.push(esc(next));
+  if(!lines.length) return _bdCache='';
+  return _bdCache = `<div class="digest"><span class="dk">SINCE YOU WERE HERE</span>${lines.join('<br>')}</div>`;
+}
 function renderFeed(){
   const el=$('#feedList');
   const uiS=socialUiCapture(el);
@@ -3785,6 +3845,9 @@ function renderFeed(){
   let pin=-1; feed.forEach((f,i)=>{ if(f.ann) pin=i; });
   if(pin>-1)
     el.insertAdjacentHTML('beforeend',`<div class="annrow pin"><b>📌 FROM THE PRO</b>${esc(feed[pin].txt)}</div>`);
+  /* F13 (3.3): quiet-day digest — rides below the pin, above the chronology */
+  const dg=boardDigestHtml();
+  if(dg) el.insertAdjacentHTML('beforeend', dg);
   let lastD=null;
   feed.forEach((f,fi)=>{
     if(fi===pin) return; /* pinned above — never twice */
@@ -3850,6 +3913,9 @@ function renderFeedFull(force){
   const prevTop=el.scrollTop;
   const atBottom = el.scrollHeight - prevTop - el.clientHeight < 60;
   el.innerHTML='';
+  /* F13 (3.3): quiet-day digest — same gate/content as the compact feed */
+  const dg=boardDigestHtml();
+  if(dg) el.insertAdjacentHTML('beforeend', dg);
   let lastD=null;
   feed.forEach((f,fi)=>{
     if(f.d!==lastD){ el.insertAdjacentHTML('beforeend',`<div class="datesep">${f.d}</div>`); lastD=f.d; }
@@ -3925,7 +3991,10 @@ function renderFeedFull(force){
   }));
   wireSocial(el);
   socialUiRestore(el, uiS);
-  requestAnimationFrame(()=>{ el.scrollTop = (force||atBottom) ? el.scrollHeight : prevTop; });
+  /* F13 (3.3): a digest at the top is pointless if force-scroll immediately
+     carries it off-screen to the newest item — land at the top instead so
+     it's the first thing seen. No digest: unchanged behavior. */
+  requestAnimationFrame(()=>{ el.scrollTop = dg ? 0 : (force||atBottom) ? el.scrollHeight : prevTop; });
 }
 function openBoardFull(){
   $('#bfSub').textContent = (window.CS?.league?.name || state.demo && 'The Sunday Cup' || 'Cup Season').toUpperCase();
@@ -3943,7 +4012,11 @@ $('#bfClose').addEventListener('click',closeBoardFull);
 function scrollFeedBottom(){
   requestAnimationFrame(()=>{
     const l=document.getElementById('feedList');
-    if(l) l.scrollTop = l.scrollHeight;
+    if(!l) return;
+    /* F13 (3.3): a digest up top defeats the point if we immediately scroll
+       past it — hold at the top on a quiet day (checked live off the DOM,
+       not a timing-sensitive cache: this runs from many call sites). */
+    l.scrollTop = l.querySelector('.digest') ? 0 : l.scrollHeight;
   });
 }
 async function sendChatFrom(inp){
@@ -9589,12 +9662,15 @@ async function loadStandingsAndFeed(){
   (posts||[]).forEach(p => {
     const d = new Date(p.created_at);
     const ds = `${DOW[d.getDay()]} \u00b7 ${MOS[d.getMonth()]} ${d.getDate()}`;
+    const ts = d.getTime();  /* F13 (3.3): real instant for the quiet-day digest's freshness check \u2014
+                                 already-fetched data (created_at), no new fetch; synthetic/local-echo
+                                 pushes elsewhere have no ts and default to "now" at comparison time */
     /* chat + round posts carry post_id so reactions/comments can attach */
-    if(p.kind === 'chat') feed.push({ d: ds, msg:true, post_id:p.id, who: memName(p.member_id) + ' ', pid: memPid(p.member_id), ci: memCi(p.member_id), txt:p.body });
-    else if(p.kind === 'announce') feed.push({ d: ds, ann:true, txt:p.body });
-    else if(p.kind === 'round' && p.round_id) feed.push({ d: ds, roundpost:true, post_id:p.id, rid: p.round_id, who: memName(p.member_id), ci: memCi(p.member_id), txt: p.body });
-    else if(p.kind === 'moment') feed.push({ d: ds, moment:true, txt:p.body });
-    else feed.push({ d: ds, sys:true, txt:p.body });
+    if(p.kind === 'chat') feed.push({ d: ds, ts, msg:true, post_id:p.id, who: memName(p.member_id) + ' ', pid: memPid(p.member_id), ci: memCi(p.member_id), txt:p.body });
+    else if(p.kind === 'announce') feed.push({ d: ds, ts, ann:true, txt:p.body });
+    else if(p.kind === 'round' && p.round_id) feed.push({ d: ds, ts, roundpost:true, post_id:p.id, rid: p.round_id, who: memName(p.member_id), ci: memCi(p.member_id), txt: p.body });
+    else if(p.kind === 'moment') feed.push({ d: ds, ts, moment:true, txt:p.body });
+    else feed.push({ d: ds, ts, sys:true, txt:p.body });
   });
 
   /* season history: the weekly snapshots the cron spine records */
