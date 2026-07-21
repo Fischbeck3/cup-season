@@ -1,0 +1,696 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Cup Season — the price of a season (internal deck)</title>
+<style>
+/* ============================================================
+   Cup Season pricing deck — D56 · 2026-07-21
+   Self-contained: system fonts only, no external assets.
+   Tokens copied verbatim from index.html:30–79 (trophy room at
+   dusk; gold is EARNED only — pot, founding, trophies).
+   ============================================================ */
+:root{
+  --bg0:#0A0E0C; --bg1:#121710; --bg2:#1A201A;
+  --line:#252C24; --line2:#30372E;
+  --ink:#ECEEF2; --mut:#98A29A; --dim:#5E665E;
+  --pos:#43E07C; --neg:#FF5F56;
+  --gold:#D8B25A; --pine:#0E3B24; --brand:#2FA46A; --dawn:#63ADFF;
+  --r:16px; --rc:10px; --rs:24px;
+  --sans:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;
+  --mono:'IBM Plex Mono',ui-monospace,'SF Mono',Menlo,Consolas,monospace;
+  --serif:'Charter','Iowan Old Style','Palatino Linotype',Georgia,serif;
+  --roll:cubic-bezier(.16,.84,.36,1);
+  --shadow-rest:0 1px 2px rgba(0,0,0,.28);
+  --shadow-lift:0 18px 44px -12px rgba(0,0,0,.55);
+}
+html[data-theme="light"]{
+  --bg0:#EFF2EE; --bg1:#FBFCFA; --bg2:#E5EAE4;
+  --line:#D9DFD7; --line2:#C9D1C8;
+  --ink:#1A2620; --mut:#52625A; --dim:#8C9992;
+  --pos:#0E9B51; --neg:#CC4038; --gold:#9A7418;
+  --pine:#0E3B24; --brand:#15743F; --dawn:#2C6E9E;
+  --shadow-rest:0 1px 2px rgba(20,30,24,.10);
+  --shadow-lift:0 18px 44px -12px rgba(20,30,24,.18);
+}
+*{box-sizing:border-box; margin:0; padding:0;}
+html{scroll-behavior:smooth;}
+body{
+  font-family:var(--sans); background:var(--bg0); color:var(--ink);
+  line-height:1.5; -webkit-font-smoothing:antialiased;
+}
+/* ---------- deck chrome ---------- */
+.slide{
+  min-height:100svh; display:flex; flex-direction:column; justify-content:center;
+  padding:56px 20px; position:relative;
+}
+.slide-inner{width:100%; max-width:880px; margin:0 auto;}
+.slideno{
+  position:absolute; top:22px; left:24px;
+  font-family:var(--mono); font-size:11px; letter-spacing:.16em; color:var(--dim);
+}
+.themebtn{
+  position:fixed; top:16px; right:16px; z-index:50;
+  font-family:var(--mono); font-size:11.5px; letter-spacing:.08em;
+  color:var(--mut); background:var(--bg1); border:1px solid var(--line2);
+  border-radius:999px; padding:8px 14px; cursor:pointer;
+}
+.themebtn:hover{color:var(--ink); border-color:var(--dim);}
+.eyebrow{
+  font-family:var(--mono); font-size:11.5px; font-weight:500;
+  letter-spacing:.16em; text-transform:uppercase; color:var(--dim);
+  margin:0 0 14px;
+}
+h1{
+  font-family:var(--serif); font-weight:600; letter-spacing:-.01em;
+  font-size:clamp(34px,6vw,58px); line-height:1.08; margin-bottom:18px;
+}
+h2{
+  font-family:var(--serif); font-weight:600; letter-spacing:-.01em;
+  font-size:clamp(26px,4.4vw,40px); line-height:1.12; margin-bottom:14px;
+}
+.lede{font-size:17px; color:var(--mut); max-width:620px;}
+.lede b{color:var(--ink); font-weight:600;}
+.card{
+  background:var(--bg1); border:1px solid var(--line); border-radius:var(--r);
+  padding:18px; box-shadow:var(--shadow-rest);
+}
+.fine{font-size:13px; color:var(--dim); line-height:1.6; padding-top:10px;}
+.fine b{color:var(--mut);}
+.note{
+  margin-top:22px; padding:12px 14px; border-left:2px solid var(--line2);
+  font-family:var(--mono); font-size:12.5px; color:var(--dim); line-height:1.65;
+}
+.note b{color:var(--mut); letter-spacing:.08em;}
+.ask{
+  display:inline-block; font-family:var(--mono); font-size:11px; font-weight:600;
+  letter-spacing:.12em; text-transform:uppercase; color:var(--bg0);
+  background:var(--brand); border-radius:999px; padding:3px 10px; margin-right:8px;
+}
+.gold{color:var(--gold);}
+.pos{color:var(--pos);} .neg{color:var(--neg);}
+.mono{font-family:var(--mono);}
+table{width:100%; border-collapse:collapse; font-size:14px;}
+th{
+  font-family:var(--mono); font-size:11px; font-weight:500; letter-spacing:.12em;
+  text-transform:uppercase; color:var(--dim); text-align:left;
+  padding:8px 10px; border-bottom:1px solid var(--line2);
+}
+td{padding:9px 10px; border-bottom:1px solid var(--line); vertical-align:top;}
+td.num, th.num{font-family:var(--mono); font-variant-numeric:tabular-nums; text-align:right;}
+.tablewrap{overflow-x:auto; border:1px solid var(--line); border-radius:var(--r); background:var(--bg1);}
+.tablewrap table td, .tablewrap table th{white-space:nowrap;}
+/* ---------- the one-slide model ---------- */
+.modelrows{display:flex; flex-direction:column; gap:10px; margin-top:26px;}
+.modelrow{
+  display:flex; align-items:baseline; gap:16px;
+  background:var(--bg1); border:1px solid var(--line); border-radius:var(--r);
+  padding:16px 18px;
+}
+.modelrow .who{
+  font-family:var(--mono); font-size:11px; letter-spacing:.14em; text-transform:uppercase;
+  color:var(--dim); flex:0 0 128px;
+}
+.modelrow .what{font-size:16px;}
+.modelrow .what b{font-weight:600;}
+.modelrow .what small{display:block; font-size:13px; color:var(--mut); margin-top:3px;}
+/* ---------- calculator ---------- */
+.calc{display:grid; gap:14px; margin-top:24px;}
+@media(min-width:760px){ .calc{grid-template-columns:300px 1fr;} }
+.dial{display:flex; align-items:center; justify-content:space-between; gap:10px; padding:12px 0; border-bottom:1px solid var(--line);}
+.dial:last-child{border-bottom:none;}
+.dial .lab{font-size:14px;}
+.dial .lab small{display:block; font-size:12px; color:var(--dim);}
+.dial .val{font-family:var(--mono); font-size:19px; font-weight:600; font-variant-numeric:tabular-nums; margin-left:auto;}
+.dial .ctl{display:flex; gap:6px;}
+.dial .ctl button{
+  width:34px; height:34px; border-radius:var(--rc); border:1px solid var(--line2);
+  background:var(--bg2); color:var(--ink); font-size:17px; cursor:pointer;
+}
+.dial .ctl button:hover{border-color:var(--dim);}
+.bignum{
+  font-family:var(--serif); font-size:clamp(44px,7vw,64px); font-weight:600;
+  letter-spacing:-.01em; line-height:1; font-variant-numeric:tabular-nums;
+}
+.calcout .row{padding:10px 0; border-bottom:1px solid var(--line);}
+.calcout .row:last-child{border-bottom:none;}
+.calcout .k{font-family:var(--mono); font-size:11px; letter-spacing:.14em; text-transform:uppercase; color:var(--dim);}
+.sentence{
+  font-family:var(--serif); font-size:clamp(19px,3vw,25px); line-height:1.4;
+  margin-top:22px; padding:18px 20px; background:var(--bg1);
+  border:1px solid var(--line); border-radius:var(--r);
+}
+.sentence b{font-weight:600;}
+/* ---------- phone mockups ---------- */
+.mockrow{display:flex; gap:26px; flex-wrap:wrap; justify-content:center; margin-top:26px;}
+.mockcol{display:flex; flex-direction:column; gap:10px; align-items:center;}
+.mocklbl{font-family:var(--mono); font-size:11px; letter-spacing:.14em; text-transform:uppercase; color:var(--dim);}
+.phone{
+  width:min(340px,92vw); border-radius:44px; padding:10px;
+  background:var(--bg2); border:1px solid var(--line2); box-shadow:var(--shadow-lift);
+  flex:none;
+}
+.screen{
+  border-radius:34px; overflow:hidden; background:var(--bg0);
+  border:1px solid var(--line); padding:14px 14px 18px; min-height:480px;
+}
+.statusbar{
+  display:flex; justify-content:space-between; align-items:center;
+  font-family:var(--mono); font-size:10px; color:var(--dim); padding:2px 6px 12px;
+}
+.apptitle{
+  font-family:var(--mono); font-size:11px; letter-spacing:.16em; text-transform:uppercase;
+  color:var(--dim); padding:0 2px 10px;
+}
+.s-eyebrow{
+  font-family:var(--mono); font-size:10.5px; font-weight:500; letter-spacing:.16em;
+  text-transform:uppercase; color:var(--dim); margin:14px 2px 8px;
+}
+.s-card{background:var(--bg1); border:1px solid var(--line); border-radius:var(--r); padding:13px 14px;}
+.s-card + .s-card{margin-top:9px;}
+.s-fine{font-size:11.5px; color:var(--dim); line-height:1.55; padding:8px 2px 0;}
+.s-fine b{color:var(--mut);}
+.s-dial{display:flex; align-items:center; gap:8px;}
+.s-dial .lab{font-size:13px;}
+.s-dial .lab small{display:block; font-size:11px; color:var(--dim);}
+.s-dial .val{font-family:var(--mono); font-size:18px; font-weight:600; margin-left:auto; font-variant-numeric:tabular-nums;}
+.s-dial .ctl{display:flex; gap:5px;}
+.s-dial .ctl b{
+  width:30px; height:30px; border-radius:9px; border:1px solid var(--line2);
+  background:var(--bg2); display:flex; align-items:center; justify-content:center;
+  font-size:15px; font-weight:500;
+}
+.s-hero{
+  font-family:var(--serif); font-size:40px; font-weight:600; line-height:1;
+  font-variant-numeric:tabular-nums; margin:2px 0 4px;
+}
+.s-k{font-family:var(--mono); font-size:10px; letter-spacing:.14em; text-transform:uppercase; color:var(--dim);}
+.s-m{font-family:var(--mono); font-size:11.5px; color:var(--mut); margin-top:2px;}
+.s-banner{
+  display:flex; align-items:center; gap:8px; margin-top:9px;
+  background:color-mix(in srgb, var(--brand) 14%, var(--bg1));
+  border:1px solid color-mix(in srgb, var(--brand) 45%, var(--line));
+  border-radius:var(--rc); padding:10px 12px; font-size:12.5px;
+}
+.s-banner b{color:var(--pos); font-weight:600;}
+html[data-theme="light"] .s-banner b{color:var(--brand);}
+.s-btn{
+  display:flex; align-items:center; justify-content:center; margin-top:10px;
+  min-height:42px; border-radius:var(--rc); font-size:13.5px; font-weight:600;
+  background:var(--brand); color:#fff;
+}
+.s-btn.ghost{background:var(--bg2); color:var(--ink); border:1px solid var(--line2); font-weight:500;}
+.s-pass-line{display:flex; align-items:baseline; gap:8px;}
+.s-pass-line .amt{font-family:var(--mono); font-size:18px; font-weight:600; margin-left:auto;}
+.s-ledger{display:flex; justify-content:space-between; font-family:var(--mono); font-size:12px; padding:6px 2px; color:var(--mut);}
+.s-ledger b{color:var(--ink); font-weight:600;}
+.foundbadge{
+  display:inline-flex; align-items:center; gap:7px;
+  font-family:var(--mono); font-size:10.5px; font-weight:600; letter-spacing:.14em;
+  text-transform:uppercase; color:var(--gold);
+  border:1px solid color-mix(in srgb, var(--gold) 55%, var(--line));
+  background:color-mix(in srgb, var(--gold) 10%, var(--bg1));
+  border-radius:999px; padding:5px 11px;
+}
+.chipline{display:flex; gap:6px; flex-wrap:wrap; margin-top:8px;}
+.chip{
+  font-family:var(--mono); font-size:10.5px; letter-spacing:.06em; color:var(--mut);
+  border:1px solid var(--line2); border-radius:999px; padding:4px 10px;
+}
+/* ---------- timeline ---------- */
+.timeline{display:flex; flex-direction:column; gap:0; margin-top:26px;}
+.tstep{display:flex; gap:18px; padding:0 0 26px; position:relative;}
+.tstep::before{
+  content:""; position:absolute; left:7px; top:22px; bottom:0; width:2px; background:var(--line2);
+}
+.tstep:last-child::before{display:none;}
+.tdot{
+  width:16px; height:16px; border-radius:50%; flex:none; margin-top:4px;
+  background:var(--brand); border:3px solid var(--bg0); box-shadow:0 0 0 1px var(--line2);
+}
+.tstep.future .tdot{background:var(--bg2);}
+.tbody b{font-size:16px; font-weight:600; display:block;}
+.tbody .when{font-family:var(--mono); font-size:11px; letter-spacing:.12em; text-transform:uppercase; color:var(--dim);}
+.tbody p{font-size:14px; color:var(--mut); margin-top:5px; max-width:560px;}
+/* ---------- decisions ---------- */
+.dec{display:flex; gap:14px; padding:14px 0; border-bottom:1px solid var(--line); align-items:baseline;}
+.dec:last-child{border-bottom:none;}
+.dec .q{flex:1; font-size:15px;}
+.dec .q small{display:block; color:var(--dim); font-size:12.5px; margin-top:3px; line-height:1.5;}
+.rec{
+  font-family:var(--mono); font-size:11px; font-weight:600; letter-spacing:.1em;
+  text-transform:uppercase; color:var(--pos); border:1px solid color-mix(in srgb, var(--pos) 40%, var(--line));
+  border-radius:999px; padding:4px 10px; flex:none;
+}
+html[data-theme="light"] .rec{color:var(--brand); border-color:color-mix(in srgb, var(--brand) 40%, var(--line));}
+.footer{
+  font-family:var(--mono); font-size:11px; letter-spacing:.1em; color:var(--dim);
+  text-align:center; padding:30px 16px 44px;
+}
+@media print{
+  .slide{min-height:0; padding:28px 8px; page-break-after:always;}
+  .themebtn{display:none;}
+}
+</style>
+</head>
+<body>
+
+<button class="themebtn" id="themeBtn" type="button">light&nbsp;/&nbsp;dark</button>
+
+<!-- ================= 1 · COVER ================= -->
+<section class="slide">
+  <div class="slideno">CUP SEASON · PRICING · 1/11</div>
+  <div class="slide-inner">
+    <div class="eyebrow">Internal + focus-group instrument · D56 · 2026-07-21 · not for public posting</div>
+    <h1>The price of a season.</h1>
+    <p class="lede">One model, priced against <b>the pot</b> — never against other apps,
+    never per month, never per golfer. This deck is shown, not sent: it is the
+    instrument the willingness-to-pay conversations run on, and the mockups are
+    the launch surfaces before they're built.</p>
+    <div class="note"><b>PRESENTER —</b> slides 2–4 are the focus-group core. Slide 10 is your
+    run-of-show. Everything else is for the owner and the eng lane.</div>
+  </div>
+</section>
+
+<!-- ================= 2 · THE MODEL ================= -->
+<section class="slide">
+  <div class="slideno">2/11 · THE MODEL</div>
+  <div class="slide-inner">
+    <h2>The whole model in one slide</h2>
+    <div class="modelrows">
+      <div class="modelrow"><span class="who">The golfer</span>
+        <span class="what"><b>Free forever.</b><small>Profile, index, record, every round — yours for life. Never a paywall, never resold.</small></span></div>
+      <div class="modelrow"><span class="who">The league</span>
+        <span class="what"><b>First season free — every league's.</b><small>The ask lands only at the "run it back" moment, after a season that worked.</small></span></div>
+      <div class="modelrow"><span class="who">The pass</span>
+        <span class="what"><b>One season pass per league, paid by the Pro out of the pot.</b><small>One line on the buy-in — about $5–8 a player. The only thing Cup Season ever charges.</small></span></div>
+      <div class="modelrow"><span class="who">The pot</span>
+        <span class="what"><b>Never ours.</b><small>Cup Season keeps the books; the money moves between friends. The pass is the one line paid to us — it never touches the prize money.</small></span></div>
+      <div class="modelrow"><span class="who">Founding</span>
+        <span class="what"><b class="gold">Founding Leagues — free forever.</b><small>PIGL and the first leagues, numbered and capped. When they're gone, they're gone.</small></span></div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= 3 · THE MATH (live) ================= -->
+<section class="slide">
+  <div class="slideno">3/11 · THE MATH</div>
+  <div class="slide-inner">
+    <h2>Priced against <em>your</em> pot</h2>
+    <p class="lede">Plug in the league's real numbers. The pass quotes itself.</p>
+    <div class="calc">
+      <div class="card">
+        <div class="dial">
+          <span class="lab">Crew<small>players on the roster</small></span>
+          <span class="val" id="cRoster">12</span>
+          <span class="ctl"><button id="rDn" aria-label="fewer">−</button><button id="rUp" aria-label="more">+</button></span>
+        </div>
+        <div class="dial">
+          <span class="lab">Buy-in<small>per player · $0 = bragging rights</small></span>
+          <span class="val" id="cStake">$75</span>
+          <span class="ctl"><button id="sDn" aria-label="lower">−</button><button id="sUp" aria-label="raise">+</button></span>
+        </div>
+        <div class="dial">
+          <span class="lab">The pot</span>
+          <span class="val gold" id="cPot">$900</span>
+        </div>
+      </div>
+      <div class="card calcout">
+        <div class="row">
+          <div class="k">The season pass — one price for the whole league</div>
+          <div class="bignum" id="cPass">$79</div>
+        </div>
+        <div class="row"><span class="k">Per player</span>
+          <div class="mono" style="font-size:19px; font-weight:600; margin-top:3px;" id="cPer">≈ $6.58 a player</div></div>
+        <div class="row"><span class="k">Against the money</span>
+          <div style="font-size:14px; color:var(--mut); margin-top:3px;" id="cVs">8.8% of the pot · less than a tenth of one buy-in</div></div>
+      </div>
+    </div>
+    <div class="sentence" id="cSentence">“<b>$79</b> is about <b>$6.60 a player</b> of your <b>$900 pot</b> — the cheapest thing in the league, including the range balls.”</div>
+    <div class="note"><b>PRESENTER —</b> set the dials to THEIR league before asking anything.
+    The four price fences (slide 10) get asked against this screen.</div>
+  </div>
+</section>
+
+<!-- ================= 4 · THE BANDS ================= -->
+<section class="slide">
+  <div class="slideno">4/11 · THE STRUCTURE</div>
+  <div class="slide-inner">
+    <h2>One number per league — about six bucks a man at any size</h2>
+    <p class="lede">Three flat prices by roster size, but the app only ever quotes <b>one</b> —
+    the wizard knows the crew. Flat for the Pro (one number to say out loud),
+    per-head-fair for the crew (everyone pays about a fiver, any roster).</p>
+    <div class="tablewrap" style="margin-top:22px;">
+      <table>
+        <thead><tr><th>Crew size</th><th class="num">The pass</th><th class="num">Per player</th><th class="num">On a $75 buy-in pot</th></tr></thead>
+        <tbody>
+          <tr><td>8–9 <span style="color:var(--dim)">(small crew)</span></td><td class="num">$49</td><td class="num">$5.44–6.13</td><td class="num">7–8% of the pot</td></tr>
+          <tr><td>10–13 <span style="color:var(--dim)">(most leagues)</span></td><td class="num"><b>$79</b></td><td class="num"><b>$6.08–7.90</b></td><td class="num"><b>~9%</b></td></tr>
+          <tr><td>14–16 <span style="color:var(--dim)">(big crew)</span></td><td class="num">$99</td><td class="num">$6.19–7.07</td><td class="num">~8%</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="fine"><b>Band fixes at roster lock</b> — adds or drops mid-season never reprice.
+    Season 2 re-reads its own roster. A flat $79 for everyone was rejected because it
+    charges the smallest, most price-sensitive crews double per head; a $6 per-head meter
+    was rejected because it reads as a seat tax and reprices on every roster change.</p>
+    <div class="note"><b>THE FAIRNESS SENTENCE the Pro tells the crew —</b> “The app's $79 for
+    the season out of the pot — call it six bucks a man. It keeps the books, the standings,
+    and the whole season; nobody touches a spreadsheet.”</div>
+  </div>
+</section>
+
+<!-- ================= 5 · MOCKUP: WIZARD ================= -->
+<section class="slide">
+  <div class="slideno">5/11 · SURFACE · CREATE WIZARD</div>
+  <div class="slide-inner">
+    <h2>The wizard pot step</h2>
+    <p class="lede">The pass appears where money is already being decided — as a line item
+    with per-player math, under a first-season-free banner. Launch ships this copy;
+    no checkout behind it.</p>
+    <div class="mockrow">
+      <div class="mockcol">
+        <div class="phone"><div class="screen">
+          <div class="statusbar"><span>9:41</span><span>CUP SEASON</span><span>▮▮▮</span></div>
+          <div class="apptitle">Create your league · Stakes</div>
+          <div class="s-card">
+            <div class="s-dial">
+              <span class="lab">Buy-in<small>Per player · $0 = bragging rights</small></span>
+              <span class="val">$75</span>
+              <span class="ctl"><b>−</b><b>+</b></span>
+            </div>
+          </div>
+          <div class="s-card">
+            <div class="s-k">The pot</div>
+            <div class="s-hero gold">$900</div>
+            <div class="s-m">12 × $75 buy-in · on the books, between friends</div>
+          </div>
+          <div class="s-eyebrow">The season pass</div>
+          <div class="s-card">
+            <div class="s-pass-line">
+              <span style="font-size:13.5px;">One pass, whole league, all season</span>
+              <span class="amt">$79</span>
+            </div>
+            <div class="s-m">≈ $6.60 a player · one line on the buy-in</div>
+            <div class="s-banner"><b>Your first season is free.</b>&nbsp;The pass starts if you run it back.</div>
+          </div>
+          <div class="s-fine"><b>Where the money goes:</b> the pass is paid to Cup Season.
+          The pot never is — buy-ins and payouts move friend-to-friend, and the app keeps
+          the books so nobody argues at the bar.</div>
+        </div></div>
+        <div class="mocklbl">Wizard · stakes step · launch state</div>
+      </div>
+    </div>
+    <div class="note"><b>DESIGN LAW —</b> gold is earned: the POT wears gold, the pass never
+    does. Pot math and pass math never share a line — D39's two ledgers stay visibly distinct.</div>
+  </div>
+</section>
+
+<!-- ================= 6 · MOCKUP: YOU TAB ================= -->
+<section class="slide">
+  <div class="slideno">6/11 · SURFACE · YOU TAB</div>
+  <div class="slide-inner">
+    <h2>The membership card — three states</h2>
+    <p class="lede">On the You tab, under the golfer card. The golfer line never changes;
+    the league line moves through founding → free season → paid.</p>
+    <div class="mockrow">
+      <div class="mockcol">
+        <div class="phone"><div class="screen" style="min-height:0;">
+          <div class="apptitle">You · Membership</div>
+          <div class="s-card">
+            <span class="foundbadge">★ Founding League № 1</span>
+            <div style="font-size:14px; margin-top:9px;"><b>PIGL</b> — free forever.</div>
+            <div class="s-m">One of the ten. Thanks for building this with us.</div>
+          </div>
+          <div class="s-fine"><b>Your golfer profile is free forever.</b> Index, record,
+          rounds — yours for life, in any league or none.</div>
+        </div></div>
+        <div class="mocklbl">State A · Founding (gold = earned)</div>
+      </div>
+      <div class="mockcol">
+        <div class="phone"><div class="screen" style="min-height:0;">
+          <div class="apptitle">You · Membership</div>
+          <div class="s-card">
+            <div class="s-k">Sunday Cup · Season 1</div>
+            <div style="font-size:14px; margin-top:6px;"><b>This season is free.</b></div>
+            <div class="s-m">Every league's first season is on us.</div>
+            <div class="chipline"><span class="chip">After season 1 · $79/season</span><span class="chip">≈ $6.60 a player</span><span class="chip">Paid by the Pro, from the pot</span></div>
+          </div>
+          <div class="s-fine"><b>Your golfer profile is free forever</b> — the pass belongs
+          to the league, never to you.</div>
+        </div></div>
+        <div class="mocklbl">State B · Free season (launch default)</div>
+      </div>
+      <div class="mockcol">
+        <div class="phone"><div class="screen" style="min-height:0;">
+          <div class="apptitle">You · Membership</div>
+          <div class="s-card">
+            <div class="s-k">Sunday Cup · Season 2</div>
+            <div style="font-size:14px; margin-top:6px;"><b>Season pass · paid through Nov&nbsp;2027</b></div>
+            <div class="s-m">$79 · renewed by Dana (the Pro) · from the pot</div>
+            <div class="chipline"><span class="chip">Receipt</span><span class="chip">How pricing works</span></div>
+          </div>
+          <div class="s-fine"><b>Your golfer profile is free forever.</b> If the league ever
+          lapses, your rounds and record stay yours.</div>
+        </div></div>
+        <div class="mocklbl">State C · Paid (season 2, future)</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= 7 · MOCKUP: LEAGUE ROOM ================= -->
+<section class="slide">
+  <div class="slideno">7/11 · SURFACE · LEAGUE ROOM (PRO VIEW)</div>
+  <div class="slide-inner">
+    <h2>Where the Pro sees the runway</h2>
+    <p class="lede">In the League Room's pot pane — league status and renewal runway sit
+    beside the money they'll come from. Members see the same pane without the renewal row.</p>
+    <div class="mockrow">
+      <div class="mockcol">
+        <div class="phone"><div class="screen">
+          <div class="statusbar"><span>9:41</span><span>SUNDAY CUP</span><span>▮▮▮</span></div>
+          <div class="apptitle">League Room · Pot</div>
+          <div class="s-card">
+            <div class="s-k">Season stakes</div>
+            <div class="s-hero gold">$900</div>
+            <div class="s-m">12 × $75 buy-in · locked before W1</div>
+            <div style="margin-top:10px; border-top:1px solid var(--line); padding-top:6px;">
+              <div class="s-ledger"><span>Buy-ins in</span><b>10/12</b></div>
+              <div class="s-ledger"><span>Champion's share</span><b>60%</b></div>
+            </div>
+          </div>
+          <div class="s-eyebrow">Season pass · Pro only</div>
+          <div class="s-card">
+            <div class="s-pass-line">
+              <span style="font-size:13.5px;"><b>Season 1 — free.</b></span>
+              <span class="amt" style="color:var(--mut); text-decoration:line-through;">$79</span>
+            </div>
+            <div class="s-m">Season ends Nov 22 · run-it-back opens with the recap</div>
+            <div class="s-m" style="margin-top:6px;">Next season: $79 from the pot · ≈ $6.60 a player</div>
+          </div>
+          <div class="s-fine"><b>Cup Season keeps the books.</b> Buy-ins and payouts move
+          friend-to-friend on Venmo or cash. The pass is the one line paid to Cup Season —
+          it never comes out of the prize money.</div>
+        </div></div>
+        <div class="mocklbl">League Room · pot pane · Pro view, season 1</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= 8 · MOCKUP: SEASON 2 ================= -->
+<section class="slide">
+  <div class="slideno">8/11 · SURFACE · THE RUN-IT-BACK MOMENT (FUTURE)</div>
+  <div class="slide-inner">
+    <h2>The season-2 ask — designed now, built later</h2>
+    <p class="lede">The recap just landed. The season worked. This is the only paywall in
+    the product, and it arrives <b>pre-announced</b> — the same $79 this league has seen
+    on every money surface since day one.</p>
+    <div class="mockrow">
+      <div class="mockcol">
+        <div class="phone"><div class="screen">
+          <div class="statusbar"><span>9:41</span><span>SUNDAY CUP</span><span>▮▮▮</span></div>
+          <div class="apptitle">Season recap · Nov 22</div>
+          <div class="s-card" style="text-align:center; padding:18px 14px;">
+            <div class="s-k">The 2026 season is in the books</div>
+            <div style="font-family:var(--serif); font-size:24px; font-weight:600; margin-top:8px;" class="gold">🏆 Marcus takes the Cup</div>
+            <div class="s-m" style="margin-top:6px;">214 rounds · 6 months · every dollar settled</div>
+          </div>
+          <div class="s-eyebrow">Run it back</div>
+          <div class="s-card">
+            <div style="font-family:var(--serif); font-size:20px; font-weight:600;">Same crew. New season.</div>
+            <div class="s-m" style="margin-top:6px;">The 2027 season pass — <b style="color:var(--ink)">$79</b> from the pot · ≈ $6.60 a player</div>
+            <div class="s-btn">Run it back — start season 2</div>
+            <div class="s-btn ghost">Not yet</div>
+          </div>
+          <div class="s-fine">Checkout happens at <b>cupseason.app</b>. Buy-ins and the pot
+          move friend-to-friend, same as always — the pass is the one line paid to Cup Season.</div>
+        </div></div>
+        <div class="mocklbl">Season-2 paywall · fires once, at peak proven value</div>
+      </div>
+    </div>
+    <div class="note"><b>APPLE POSTURE —</b> the button opens web checkout (Stripe on
+    cupseason.app). Allowed today on the US storefront without an entitlement; copy is built
+    so the link can drop to “renew at cupseason.app” plain text if rules revert. See slide 9.</div>
+  </div>
+</section>
+
+<!-- ================= 9 · ROLLOUT ================= -->
+<section class="slide">
+  <div class="slideno">9/11 · ROLLOUT</div>
+  <div class="slide-inner">
+    <h2>Rollout — honest at launch, paid at proven value</h2>
+    <div class="timeline">
+      <div class="tstep">
+        <div class="tdot"></div>
+        <div class="tbody">
+          <span class="when">Mid-August 2026 · iOS launch</span>
+          <b>Visible model, no checkout</b>
+          <p>Pricing public and honest on the wizard, You tab, and League Room — first-season-free
+          leads everywhere. No payment rails; Stripe stays parked. App Store metadata: free to
+          download, no in-app purchases, a league's first season free, season pass after.
+          The app's front door stays pricing-free.</p>
+        </div>
+      </div>
+      <div class="tstep">
+        <div class="tdot" style="background:var(--gold);"></div>
+        <div class="tbody">
+          <span class="when">Aug–Sep 2026 · this deck's job</span>
+          <b>The script closes the price point</b>
+          <p>15-minute sessions with PIGL (behavior only) and 3–5 arms-length Pros (the price
+          signal). Slide 10 is the run-of-show; seat-3 medians pick the final number inside
+          the $49/79/99 band frame.</p>
+        </div>
+      </div>
+      <div class="tstep future">
+        <div class="tdot"></div>
+        <div class="tbody">
+          <span class="when">First leagues hit season 2 · early 2027</span>
+          <b>Checkout ships — on the web</b>
+          <p>Stripe on cupseason.app; the Pro buys at a desk, the app shows pass status.
+          ~$2.59 in fees on a $79 pass vs $11.85 at Apple's 15%. The run-it-back surface
+          (slide 8) goes live. Founding Leagues never see it.</p>
+        </div>
+      </div>
+      <div class="tstep future">
+        <div class="tdot"></div>
+        <div class="tbody">
+          <span class="when">Standing posture · verified 2026-07-21</span>
+          <b>Apple: sell on the web, link out while allowed, IAP only as fallback</b>
+          <p>US storefront currently allows external purchase links, no entitlement, fee paused —
+          but the regime is contested (Ninth Circuit narrowed the zero-fee bar Dec 2025; SCOTUS
+          took the case June 2026). We build nothing that depends on link-out staying free:
+          web sale with in-app unlock is commission-free under any outcome. Small Business
+          Program (15%) enrolled as option value. Full memo: <span class="mono">spec/pricing-discovery-2026-07.md §6</span>.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= 10 · THE SCRIPT ================= -->
+<section class="slide">
+  <div class="slideno">10/11 · THE 15-MINUTE SCRIPT</div>
+  <div class="slide-inner">
+    <h2>Run of show — willingness to pay, 15 minutes</h2>
+    <p class="lede">1:1, live. PIGL answers count for <b>behavior</b>, not price (they're
+    friends and they're free forever). The 3–5 arms-length Pros carry the price decision.</p>
+    <div class="card" style="margin-top:20px; display:flex; flex-direction:column; gap:14px;">
+      <div><span class="ask">0–2 min</span><b>The pot walk</b> <span style="color:var(--dim)">(deck hidden)</span><br>
+      <span style="color:var(--mut); font-size:14px;">“Walk me through last season's money — buy-in, who collected, where it sat, what organizing cost you in dollars and hours.”</span></div>
+      <div><span class="ask">2–4 min</span><b>Show the thing</b><br>
+      <span style="color:var(--mut); font-size:14px;">Slide 2 (the model), then slide 3 with THEIR numbers in the dials. No price question yet.</span></div>
+      <div><span class="ask">4–8 min</span><b>The four fences</b> (Van Westendorp)<br>
+      <span style="color:var(--mut); font-size:14px;">Against your pot: so cheap you'd doubt it? · a bargain, easy yes? · getting expensive? · too expensive, period? <b style="color:var(--mut)">Record all four numbers.</b></span></div>
+      <div><span class="ask">8–11 min</span><b>The gatekeeper pair</b> — the study's most important data<br>
+      <span style="color:var(--mut); font-size:14px;">Pro: “$79 for the season — who decides, pot or your pocket?” · Member (separately): “Your Pro says it's six bucks each — instant yes, grumble, or no?” <b style="color:var(--mut)">The gap between answers is the conversion risk.</b></span></div>
+      <div><span class="ask">11–13 min</span><b>The renewal cliff</b><br>
+      <span style="color:var(--mut); font-size:14px;">“First season free, season 2 is $79 from the pot — re-up without blinking, or does ‘wait, it was free’ start a fight?”</span></div>
+      <div><span class="ask">13–14 min</span><b>Ryder à la carte</b> <span style="color:var(--dim)">(Trip Guys only)</span><br>
+      <span style="color:var(--mut); font-size:14px;">“One-weekend Ryder: ~$20 for the event, or free but only inside a $79 season?”</span></div>
+      <div><span class="ask">14–15 min</span><b>The kill question</b><br>
+      <span style="color:var(--mut); font-size:14px;">“What would make you not use this even if it were free?”</span></div>
+    </div>
+    <p class="fine"><b>$0-pot Pros get one extra probe:</b> “No money league — the app's
+    still $79. Split six ways, or does that kill it?” · Full instrument + scoring:
+    <span class="mono">spec/pricing-discovery-2026-07.md §5</span> and <span class="mono">spec/focus-group-plan.md</span>.</p>
+  </div>
+</section>
+
+<!-- ================= 11 · OPEN DECISIONS ================= -->
+<section class="slide">
+  <div class="slideno">11/11 · OPEN DECISIONS</div>
+  <div class="slide-inner">
+    <h2>Open decisions — each with a recommendation</h2>
+    <div class="card" style="margin-top:18px;">
+      <div class="dec"><div class="q">Price anchor<small>$49 reads suspiciously cheap against a $900 pot; $99 breaks $8/head at 12. $79 sits mid-window at every banded roster. Seat-3 medians make the final call.</small></div><span class="rec">$79 · script closes</span></div>
+      <div class="dec"><div class="q">Structure — flat vs per-head<small>Banded flat ($49 ≤9 · $79 10–13 · $99 14+), band fixed at roster lock, app quotes one number. Flat-simple for the Pro, per-head-fair for the crew.</small></div><span class="rec">Banded flat</span></div>
+      <div class="dec"><div class="q">Season-1-free scope<small>Per league (first completed season). Recreating a league to stay free torches its own history — the product's memory is the enforcement.</small></div><span class="rec">Per league</span></div>
+      <div class="dec"><div class="q">Founding cap<small>~$800–1,600/yr foregone at 10 leagues — trivial. The real cost is precedent: cap at 10, number the badges, close it loudly.</small></div><span class="rec">10 · numbered</span></div>
+      <div class="dec"><div class="q">Ryder / Major<small>Included with the league's pass; standalone events free at launch (the claim link is never gated). A ~$19–29 standalone-event SKU is a season-2 decision, sized by the script's Block D.</small></div><span class="rec">Included</span></div>
+      <div class="dec"><div class="q">Public /pricing page<small>Recommend YES — one quiet page: App Store metadata needs a truthful cost answer, and Pros research before committing. Ships only after the script locks the number; first-season-free leads; linked from footer + FAQ, never from the door. The door itself stays pricing-free either way.</small></div><span class="rec">Yes · quiet</span></div>
+      <div class="dec"><div class="q">Season-2 checkout rail<small>Web (Stripe on cupseason.app) primary under every legal outcome; in-app link-out used while US rules allow; IAP at 15% only if measured web friction costs renewals.</small></div><span class="rec">Web first</span></div>
+    </div>
+    <p class="fine">Decision authority: the owner. Paper trail: D56 (the unparking) ·
+    <span class="mono">spec/pricing-discovery-2026-07.md</span> (analysis) ·
+    <span class="mono">spec/handoffs/pricing-integration-plan.md</span> (the eng handoff).</p>
+  </div>
+</section>
+
+<div class="footer">CUP SEASON · PRICING DECK · D56 · 2026-07-21 · INTERNAL + FOCUS-GROUP USE · THE POT IS NEVER OURS</div>
+
+<script>
+/* theme toggle — deck default is dusk (dark); light for daylight showings */
+(function(){
+  var btn=document.getElementById('themeBtn'), root=document.documentElement;
+  btn.addEventListener('click',function(){
+    root.dataset.theme = root.dataset.theme==='dark' ? 'light' : 'dark';
+  });
+})();
+/* pot calculator — slide 3. Bands: <=9 -> $49 · 10-13 -> $79 · >=14 -> $99 */
+(function(){
+  var STAKES=[0,25,50,75,100,150,200];
+  var roster=12, si=3; /* $75 */
+  var fmt=function(n){return '$'+n.toLocaleString('en-US');};
+  function band(r){ return r<=9 ? 49 : (r<=13 ? 79 : 99); }
+  function render(){
+    var stake=STAKES[si], pot=stake*roster, pass=band(roster), per=pass/roster;
+    document.getElementById('cRoster').textContent=roster;
+    document.getElementById('cStake').textContent=fmt(stake);
+    document.getElementById('cPot').textContent= stake===0 ? '—' : fmt(pot);
+    document.getElementById('cPass').textContent=fmt(pass);
+    document.getElementById('cPer').textContent='≈ $'+per.toFixed(2)+' a player';
+    var vs=document.getElementById('cVs'), sen=document.getElementById('cSentence');
+    if(stake===0){
+      vs.textContent='Bragging-rights league — no pot in play. Call it $'+per.toFixed(2)+' a head, less than a sleeve each.';
+      sen.innerHTML='“<b>'+fmt(pass)+'</b> for the season — about <b>$'+per.toFixed(2)+' a player</b>. No pot to take it from, so split it on Venmo: less than a sleeve of balls each.”';
+    }else{
+      var pctPot=(pass/pot*100), pctBuy=(per/stake*100);
+      vs.textContent=pctPot.toFixed(1)+'% of the pot · '+(pctBuy<10?'less than a tenth':'about '+Math.round(pctBuy)+'%')+' of one buy-in';
+      sen.innerHTML='“<b>'+fmt(pass)+'</b> is about <b>$'+per.toFixed(2)+' a player</b> of your <b>'+fmt(pot)+' pot</b> — the cheapest thing in the league, including the range balls.”';
+    }
+  }
+  document.getElementById('rDn').onclick=function(){ if(roster>8) roster--; render(); };
+  document.getElementById('rUp').onclick=function(){ if(roster<16) roster++; render(); };
+  document.getElementById('sDn').onclick=function(){ if(si>0) si--; render(); };
+  document.getElementById('sUp').onclick=function(){ if(si<STAKES.length-1) si++; render(); };
+  render();
+})();
+/* arrow-key slide nav for presenting */
+(function(){
+  var slides=[].slice.call(document.querySelectorAll('.slide'));
+  document.addEventListener('keydown',function(e){
+    if(e.key!=='ArrowDown' && e.key!=='ArrowUp' && e.key!=='PageDown' && e.key!=='PageUp') return;
+    var y=window.scrollY, idx=0;
+    for(var i=0;i<slides.length;i++){ if(slides[i].offsetTop<=y+10) idx=i; }
+    var next=(e.key==='ArrowDown'||e.key==='PageDown') ? Math.min(idx+1,slides.length-1) : Math.max(idx-1,0);
+    e.preventDefault();
+    slides[next].scrollIntoView({behavior:'smooth'});
+  });
+})();
+</script>
+</body>
+</html>
