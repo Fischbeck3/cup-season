@@ -1760,6 +1760,7 @@ html[data-theme="light"] .btn:not(.dark):not(.gold):not(.apple){color:#FFFFFF;}
       <input id="joinCode" placeholder="CUP-CODE" maxlength="8" autocomplete="off">
       <button class="btn" id="joinGo">Join</button>
     </div>
+    <button class="btn dark" id="obDemo" style="margin-top:10px">Peek at a live season</button>
     <p class="fine" style="text-align:center; margin-top:16px; opacity:.7">By continuing you agree to the <a href="/legal.html#terms" target="_blank" rel="noopener" style="color:var(--mut); text-decoration:underline">Terms</a> &amp; <a href="/legal.html#privacy" target="_blank" rel="noopener" style="color:var(--mut); text-decoration:underline">Privacy Policy</a>.</p>
     </div>
     <div id="obProfile" style="display:none">
@@ -9809,9 +9810,21 @@ $('#obJoin').addEventListener('click', () => {
   $('#joinCode').focus();
 });
 
-/* Demo diorama retired from the door (v23.137): real pilot is live, so the
-   sign-in screen no longer offers a fake league. The demo code paths stay
-   dormant behind state.demo (now unreachable) rather than a risky rip-out. */
+/* F7 follow-up (1.2): the demo diorama returns to the door. Retired in
+   v23.137 when the real pilot went live ("no longer offers a fake league"),
+   but the task's actual intent was always to let a not-yet-signed-in visitor
+   — the next Pro deciding whether to bother — preview a live season before
+   creating an account. Same restored sequence as the hub's #wDemo (F7); see
+   that handler's comment for why state.demo is set explicitly even though
+   it's already the page's cold-boot default. Nothing here touches the
+   network — boot()'s own no-session path (a few lines down) no-ops
+   regardless of whether this fires first. Exit back to a real sign-in: any
+   reload, or the ?exit hatch if a stale session needs clearing too. */
+$('#obDemo').addEventListener('click', () => {
+  state.demo = true; state.phase = 'season';
+  enterApp(); renderPhase(); switchView('home');
+  toast('Demo league: The Sunday Cup. Nothing here saves.');
+});
 
 $('#joinGo').addEventListener('click', async () => {
   const code = $('#joinCode').value.trim().toUpperCase();
