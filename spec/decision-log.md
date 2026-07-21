@@ -1341,3 +1341,40 @@ one). This batch designs it. All five entries resolved WITH the owner
   placement dial later, not default hardware. The $0 default may undersell
   the pot ritual for money crews — the create step surfaces the choice
   ("Buy-in · $0 = bragging rights") so it's seen, not buried.
+
+---
+
+*(D47 is reserved — "Noun sweep II", logged on the `ux-arc-2026-07-20` branch,
+unmerged at the time this session opened. Numbering here starts at D48 to
+avoid a parallel-lane collision.)*
+
+---
+
+### D48 · The subtraction batch — H2H, Hybrid, bonus layer, allowance dial retired
+*(2026-07-21, gameplay-audit session. Spec subtraction; no engine code exists
+for any of these, so nothing is deleted from the client.)*
+- **Current:** spec carries Format B (Head-to-Head months, §4), Format C
+  (Hybrid +15, §4 — already wizard-removed by D6), the bonus layer (§2.3 —
+  never surfaced per D7), and the handicap-allowance dial 100/95/90 (Custom-
+  only per D8). All four are dormant: no league uses them, no engine built.
+- **Problem:** dormant rules are explain-surface and spec debt. Both design
+  reviews flag "H2H in or out" as unresolved; the audit's verdict: "gone means
+  gone — from spec too." Every dormant dial re-appears in every future wizard,
+  QA pass, and two-minute explanation.
+- **Recommendation:** spec v1.1 removes all four. Formats collapse to Points
+  Race + the endgame dial (points_table | cup_final). Presets keep their fixed
+  allowance values (Casual 100 / Standard 95 / Cutthroat 90) as internal
+  constants; no user-facing dial anywhere, including Custom. §2.3 deleted;
+  preset-matrix rows (§8) updated. The weekly-clash packet (D52) covers the
+  weekly-competition itch H2H aimed at.
+- **Principle:** "Set it once, argue never" + the Cup Season Test — nobody
+  would miss these because none ever made a golf life richer.
+- **Benefit:** shrinks the explainable surface; closes a two-review open
+  question; kills three dials that were each "a support ticket wearing a
+  settings icon" (D8).
+- **Tradeoffs:** a future league wanting monthly match-ups waits for a
+  deliberate rebuild. Acceptable: engines were never built, so revival is a
+  re-spec, not a restoration.
+- **CONFLICT (named):** supersedes spec §4 Formats B/C, §2.3, and the §8
+  preset-matrix rows for format/bonus/allowance. Subsumes D6 (Hybrid hidden)
+  and D7 (bonuses unsurfaced) — both were half-measures this completes.

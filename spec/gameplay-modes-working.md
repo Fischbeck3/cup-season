@@ -43,8 +43,8 @@ index can buy; the 5 floor makes a posted 98 beat an unposted 82):
 - Squad month = Σ members' counting points − penalties. Season = Σ months.
 
 ### 1.3 Season formats
-A: Points Race (default) · B: Head-to-Head months (W-L table) ·
-C: Hybrid (points race + 15/month to h2h winner).
+Points Race only (D48 retired B/H2H and C/Hybrid). Endgame stays the bylaw
+dial: points_table | cup_final.
 **Cup Final:** final 4 weeks, seeds lock at `ends_on − 27`, scored fresh
 under the league's own counting rules. Tiebreak ladder: h2h months won →
 best single month → fewest rounds used → logged coin flip. (Migration 008 —
