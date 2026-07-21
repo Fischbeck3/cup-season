@@ -9551,7 +9551,10 @@ function applyBylaws(b){
   state.cap       = b.counting_cap === null ? 3 : (CAPMAP[b.counting_cap] ?? 1);
   state.preset    = ['casual','standard','cutthroat'].indexOf(b.preset) >= 0
                     ? ['casual','standard','cutthroat'].indexOf(b.preset) : 1;
-  state.fmt       = ['points','h2h','hybrid'].indexOf(b.season_format);
+  /* legacy/null season_format would indexOf to -1 → FMT_NAMES[-1] renders
+     "undefined" and a relock writes season_format: undefined; clamp to
+     'points' (the D48 default) */
+  state.fmt       = Math.max(0, ['points','h2h','hybrid'].indexOf(b.season_format));
   state.structure = b.structure;
   state.payout    = [b.payout_champ ?? 60, b.payout_runnerup ?? 25, b.payout_king ?? 15];
   state.finish    = b.finish || 'cup_final';   /* migration 008: the endgame dial */
