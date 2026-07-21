@@ -1361,54 +1361,15 @@ html[data-theme="light"] .momrow{background:rgba(21,116,63,.06);}
 }
 
 
-/* ---- the welcome tour (first sign-in): sheet-styled overlay, above the
-   sheets (200), below the toast (1000). Outside .onboard — carries its own
-   reduced-motion rule. ---- */
-.cs-tour{
-  position:fixed; inset:0; z-index:205;
-  display:flex; align-items:center; justify-content:center; padding:18px;
-  background:rgba(4,8,6,.55);
-  backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px);
-}
-html[data-theme="light"] .cs-tour{background:rgba(233,238,232,.6);}
-.cs-tourcard{
-  width:min(520px, 100%); background:var(--bg1); border:1px solid var(--line2);
-  border-radius:var(--rs); box-shadow:var(--shadow-lift); overflow:hidden; outline:none;
-  animation:csTourIn .45s var(--roll) both;
-}
-@keyframes csTourIn{from{opacity:0; transform:translateY(18px) scale(.985);} to{opacity:1; transform:none;}}
-.cs-ttrack{display:flex; transition:transform .5s var(--roll);}
-.cs-tslide{flex:0 0 100%; padding:30px 30px 8px; text-align:center;}
-.cs-tslide .art{width:150px; margin:0 auto 16px;}
-.cs-tslide .art.wide{width:min(340px, 92%);}
-.cs-tslide .art svg{width:100%; height:auto; display:block;}
-.cs-tslide svg text{font-family:var(--mono);}
-.cs-tslide .k{
-  font-family:var(--mono); font-size:10.5px; letter-spacing:.18em;
-  text-transform:uppercase; color:var(--brand); margin-bottom:8px;
-}
-.cs-tslide h3{
-  font-family:var(--serif); font-size:26px; font-weight:700; letter-spacing:-.01em;
-  margin-bottom:10px; text-wrap:balance;
-}
-.cs-tslide p{font-size:14.5px; line-height:1.65; color:var(--mut); max-width:42ch; margin:0 auto;}
-.cs-tslide p b{color:var(--ink);}
-.cs-tfoot{padding:20px 30px 24px;}
-.cs-tdots{display:flex; justify-content:center; gap:7px; margin-bottom:16px;}
-.cs-tdots i{width:6px; height:6px; border-radius:50%; background:var(--line2); transition:background .3s ease, transform .3s var(--roll);}
-.cs-tdots i.on{background:var(--brand); transform:scale(1.25);}
-.cs-trow{display:flex; gap:9px; max-width:340px; margin:0 auto;}
-.cs-trow .btn{margin:0;}
+/* ---- shared "quiet link" style: sign-in resend code, etc. (formerly also
+   the welcome tour's skip link — the tour is retired, this utility stays,
+   D1.2/F7) ---- */
 .cs-tskip{
   display:block; margin:12px auto 0; background:none; border:none; cursor:pointer;
   font-size:12.5px; color:var(--dim); text-decoration:underline; text-underline-offset:3px;
 }
 .cs-tskip:hover{color:var(--mut);}
 .cs-tskip:focus-visible{outline:2px solid var(--pos); outline-offset:2px;}
-@media(prefers-reduced-motion:reduce){
-  .cs-tourcard{animation:none;}
-  .cs-ttrack, .cs-tdots i{transition:none;}
-}
 
 
 
@@ -1854,154 +1815,6 @@ html[data-theme="light"] .btn:not(.dark):not(.gold):not(.apple){color:#FFFFFF;}
 
   <div class="ob-splash" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
   
-</div>
-
-<!-- ============ WELCOME TOUR (first sign-in; replay under You → Settings).
-     Fired by pfSave's success path — the golfer-card save IS the first-run
-     signal (CLAUDE.md: onboarding gates on marker). Lives OUTSIDE .onboard,
-     so it carries its own reduced-motion rule. ============ -->
-<div class="cs-tour" id="csTour" role="dialog" aria-modal="true" aria-label="Welcome to Cup Season" style="display:none">
-  <div class="cs-tourcard" id="csTourCard" tabindex="-1">
-    <div style="overflow:hidden">
-      <div class="cs-ttrack" id="csTtrack">
-
-        <!-- 1 · two ways to play -->
-        <div class="cs-tslide">
-          <div class="art wide" aria-hidden="true">
-            <svg viewBox="0 0 300 152" fill="none">
-              <text x="18" y="26" font-size="9.5" letter-spacing="1.4" fill="var(--dim)">THE SEASON</text>
-              <path d="M26 106 C 54 98, 74 84, 92 72" stroke="var(--brand)" stroke-width="1.8" stroke-linecap="round" stroke-dasharray="3 5" opacity=".85"/>
-              <circle cx="26" cy="106" r="4" fill="var(--sq0)"/>
-              <circle cx="58" cy="90" r="4" fill="var(--sq1)"/>
-              <circle cx="92" cy="72" r="4" fill="var(--sq2)"/>
-              <g transform="translate(120 52)">
-                <path d="M-13 0h26l-2.5 11a10.5 10.5 0 0 1-21 0z" fill="none" stroke="var(--gold)" stroke-width="2"/>
-                <path d="M-13 2h-6c0 6.5 3 9.5 7 10M13 2h6c0 6.5-3 9.5-7 10" stroke="var(--gold)" stroke-width="1.6" fill="none"/>
-                <path d="M0 22v6M-7 34h14" stroke="var(--gold)" stroke-width="2" stroke-linecap="round"/>
-              </g>
-              <text x="68" y="132" font-size="8" letter-spacing=".8" text-anchor="middle" fill="var(--dim)">MONTHS → A CUP</text>
-              <line x1="150" y1="22" x2="150" y2="130" stroke="var(--line2)" stroke-width="1.2"/>
-              <text x="150" y="14" font-size="7.5" letter-spacing="1" text-anchor="middle" fill="var(--dim)">OR</text>
-              <text x="170" y="26" font-size="9.5" letter-spacing="1.4" fill="var(--dim)">THE RYDER</text>
-              <path d="M200 110V52" stroke="var(--mut)" stroke-width="2" stroke-linecap="round"/>
-              <path d="M200 52l24 7-24 7z" fill="var(--sq0)"/>
-              <path d="M244 110V52" stroke="var(--mut)" stroke-width="2" stroke-linecap="round"/>
-              <path d="M244 52l-24 7 24 7z" fill="var(--sq1)"/>
-              <text x="222" y="132" font-size="8" letter-spacing=".8" text-anchor="middle" fill="var(--dim)">TWO TEAMS · 9–7</text>
-            </svg>
-          </div>
-          <div class="k">Welcome · 1 of 5</div>
-          <h3>A season. Or a showdown.</h3>
-          <p>Cup Season is built on the golf you already play. Run a months-long league — draft squads, every round counts, a Cup Final settles it. Or go short-form: <b>the Ryder, a bracket, a major</b>. Same crew, real stakes.</p>
-        </div>
-
-        <!-- 2 · the scoring math -->
-        <div class="cs-tslide">
-          <div class="art wide" aria-hidden="true">
-            <svg viewBox="0 0 300 176" fill="none">
-              <rect x="34" y="10" width="232" height="156" rx="14" fill="var(--bg2)" stroke="var(--line2)" stroke-width="1.4"/>
-              <text x="54" y="46" font-size="10" letter-spacing="1.4" fill="var(--dim)">YOUR NUMBER</text>
-              <text x="246" y="48" font-size="19" text-anchor="end" fill="var(--mut)">87</text>
-              <line x1="54" y1="62" x2="246" y2="62" stroke="var(--line)"/>
-              <text x="54" y="90" font-size="10" letter-spacing="1.4" fill="var(--dim)">YOU SHOT</text>
-              <text x="246" y="96" font-size="30" text-anchor="end" fill="var(--ink)" style="font-family:var(--serif)" font-weight="700">84</text>
-              <rect x="54" y="118" width="118" height="30" rx="15" fill="var(--glow)" stroke="var(--brand)" stroke-width="1.3"/>
-              <text x="113" y="137" font-size="11" letter-spacing=".5" text-anchor="middle" fill="var(--brand)">BEAT IT BY 3</text>
-              <text x="200" y="132" font-size="12" fill="var(--dim)">→</text>
-              <text x="246" y="139" font-size="17" text-anchor="end" fill="var(--gold)" style="font-family:var(--serif)" font-weight="700">9 PTS</text>
-            </svg>
-          </div>
-          <div class="k">The game · 2 of 5</div>
-          <h3>Beat your number. That's the game.</h3>
-          <p>Your number comes from your own scores, so a 20-handicap and a scratch player compete straight up. <b>Beat it and the points follow.</b> A rough day still scores; only skipping hurts your squad.</p>
-        </div>
-
-        <!-- 3 · the board -->
-        <div class="cs-tslide">
-          <div class="art wide" aria-hidden="true">
-            <svg viewBox="0 0 300 186" fill="none">
-              <rect x="30" y="12" width="240" height="48" rx="12" fill="var(--bg2)" stroke="var(--line2)" stroke-width="1.2"/>
-              <circle cx="54" cy="36" r="12" fill="none" stroke="var(--sq0)" stroke-width="2.2"/>
-              <text x="76" y="33" font-size="12" fill="var(--ink)" style="font-family:var(--sans)" font-weight="600">Marcus</text>
-              <text x="76" y="48" font-size="9" letter-spacing=".6" fill="var(--dim)">PAPAGO · 82 · TORCHED IT</text>
-              <text x="252" y="41" font-size="13" text-anchor="end" fill="var(--gold)" style="font-family:var(--serif)" font-weight="700">+12</text>
-              <rect x="30" y="68" width="240" height="48" rx="12" fill="var(--bg2)" stroke="var(--line2)" stroke-width="1.2"/>
-              <circle cx="54" cy="92" r="12" fill="none" stroke="var(--sq1)" stroke-width="2.2"/>
-              <text x="76" y="89" font-size="12" fill="var(--ink)" style="font-family:var(--sans)" font-weight="600">Dana</text>
-              <text x="76" y="104" font-size="9" letter-spacing=".6" fill="var(--dim)">ENCANTO · 91 · POSTED ANYWAY</text>
-              <path d="M232 86h20a4 4 0 0 1 4 4v6a4 4 0 0 1-4 4h-12l-6 5v-5a4 4 0 0 1-2-14z" fill="none" stroke="var(--dawn)" stroke-width="1.6"/>
-              <rect x="30" y="124" width="240" height="48" rx="12" fill="var(--bg2)" stroke="var(--line2)" stroke-width="1.2"/>
-              <circle cx="54" cy="148" r="12" fill="none" stroke="var(--sq3)" stroke-width="2.2"/>
-              <text x="76" y="145" font-size="12" fill="var(--ink)" style="font-family:var(--sans)" font-weight="600">You</text>
-              <text x="76" y="160" font-size="9" letter-spacing=".6" fill="var(--dim)">AGUILA · 78 · BEAT YOUR NUMBER</text>
-              <text x="252" y="153" font-size="13" text-anchor="end" fill="var(--gold)" style="font-family:var(--serif)" font-weight="700">+9</text>
-            </svg>
-          </div>
-          <div class="k">The crew · 3 of 5</div>
-          <h3>The crew sees everything.</h3>
-          <p>Every round lands on a shared board — good ones get their moment, blow-ups get chirped. Add buddies by <b>@handle</b>, and run <b>Match Play, Wolf, or Skins</b> right from the cart.</p>
-        </div>
-
-        <!-- 4 · the pot -->
-        <div class="cs-tslide">
-          <div class="art wide" aria-hidden="true">
-            <svg viewBox="0 0 300 172" fill="none">
-              <text x="150" y="30" font-size="10" letter-spacing="1.6" text-anchor="middle" fill="var(--dim)">THE POT</text>
-              <text x="150" y="72" font-size="46" text-anchor="middle" fill="var(--gold)" style="font-family:var(--serif)" font-weight="700">$600</text>
-              <rect x="44" y="92" width="128" height="11" rx="5.5" fill="var(--brand)"/>
-              <rect x="176" y="92" width="52" height="11" rx="5.5" fill="var(--brand)" opacity=".55"/>
-              <rect x="232" y="92" width="24" height="11" rx="5.5" fill="var(--brand)" opacity=".3"/>
-              <g font-size="8.5" letter-spacing=".6" fill="var(--dim)">
-                <text x="44" y="118">CHAMP 60</text>
-                <text x="176" y="118">2ND 25</text>
-                <text x="232" y="118">KING 15</text>
-              </g>
-              <g transform="translate(0 6)">
-                <circle cx="112" cy="146" r="9" fill="none" stroke="var(--mut)" stroke-width="1.8"/>
-                <path d="M112 155c-6 0-9 3-9 7h18c0-4-3-7-9-7z" fill="none" stroke="var(--mut)" stroke-width="1.8"/>
-                <circle cx="188" cy="146" r="9" fill="none" stroke="var(--mut)" stroke-width="1.8"/>
-                <path d="M188 155c-6 0-9 3-9 7h18c0-4-3-7-9-7z" fill="none" stroke="var(--mut)" stroke-width="1.8"/>
-                <path d="M128 148h44M128 148l6-4M128 148l6 4M172 148l-6-4M172 148l-6 4" stroke="var(--gold)" stroke-width="1.6" stroke-linecap="round"/>
-              </g>
-            </svg>
-          </div>
-          <div class="k">The stakes · 4 of 5</div>
-          <h3>Every dollar on the books.</h3>
-          <p>Play for a pot or just the cup. The app keeps the ledger — buy-ins, who's in, the split at the end — and <b>the money moves between friends</b>, the way it always has.</p>
-        </div>
-
-        <!-- 5 · post a round -->
-        <div class="cs-tslide">
-          <div class="art wide" aria-hidden="true">
-            <svg viewBox="0 0 300 148" fill="none">
-              <circle cx="52" cy="74" r="26" fill="var(--brand)"/>
-              <path d="M52 62v24M40 74h24" stroke="#F4F8F2" stroke-width="3.4" stroke-linecap="round"/>
-              <text x="52" y="118" font-size="9" letter-spacing="1" text-anchor="middle" fill="var(--dim)">POST</text>
-              <path d="M92 74h26" stroke="var(--dim)" stroke-width="1.8"/>
-              <path d="M114 69l7 5-7 5z" fill="var(--dim)"/>
-              <rect x="134" y="34" width="140" height="80" rx="13" fill="var(--bg2)" stroke="var(--line2)" stroke-width="1.4"/>
-              <text x="152" y="72" font-size="30" fill="var(--ink)" style="font-family:var(--serif)" font-weight="700">84</text>
-              <text x="152" y="90" font-size="9" letter-spacing=".8" fill="var(--brand)">BEAT YOUR NUMBER</text>
-              <text x="258" y="60" font-size="14" text-anchor="end" fill="var(--gold)" style="font-family:var(--serif)" font-weight="700">+9</text>
-              <ellipse cx="200" cy="104" rx="30" ry="4" fill="none" stroke="var(--pos)" stroke-opacity=".3" stroke-width="1.4"/>
-            </svg>
-          </div>
-          <div class="k">Tee off · 5 of 5</div>
-          <h3>Post a round and you're on the board.</h3>
-          <p>That's the whole game — the rest you'll pick up by playing. Your first posted round starts your number, your record, and the chirping. <b>Let's put one up.</b></p>
-        </div>
-
-      </div>
-    </div>
-    <div class="cs-tfoot">
-      <div class="cs-tdots" id="csTdots" aria-hidden="true"><i class="on"></i><i></i><i></i><i></i><i></i></div>
-      <div class="cs-trow">
-        <button class="btn dark" id="csTBack" type="button" style="display:none">Back</button>
-        <button class="btn" id="csTNext" type="button">Next</button>
-      </div>
-      <button class="cs-tskip" id="csTSkip" type="button">Skip the tour</button>
-    </div>
-  </div>
 </div>
 
 <div class="shell">
@@ -2560,9 +2373,10 @@ html[data-theme="light"] .btn:not(.dark):not(.gold):not(.apple){color:#FFFFFF;}
         <input id="wCode" placeholder="CUP-CODE" autocomplete="off">
         <button class="btn" id="wCodeGo">Join</button>
       </div>
+      <button class="btn dark" id="wDemo" style="margin-top:10px">Peek at a live season</button>
       <button class="btn dark" id="wFind" style="margin-top:10px">Add golfers</button>
       <button class="btn dark" id="wOut" style="margin-top:10px">Sign out</button>
-      <div class="ob-caption">No code? Any league member can share an invite link. Or peek at a demo season with code <b style="color:var(--mut)">DEMO</b>.</div>
+      <div class="ob-caption">No code? Any league member can share an invite link.</div>
         </div>
         <div class="eyebrow league-only" style="margin-top:0">Your groups</div>
         <div id="clubGroups" class="league-only" style="display:flex; gap:8px; overflow-x:auto; padding-bottom:6px; margin-bottom:12px"></div>
@@ -2964,9 +2778,9 @@ let toastT;
 /* ---- desktop-arc: the door wings ----
    A hand-authored diorama (the door is pre-auth — no real data). Loops:
    never start under reduced motion or below 1100px, pause while the tab is
-   hidden, die for good once the onboard is dismissed (.hide). The story
-   itself lives in the welcome tour now (owner call 2026-07-20): the door is
-   one screen, the click-through carries the game. */
+   hidden, die for good once the onboard is dismissed (.hide). The welcome
+   tour this used to hand off to is retired (F7, 2026-07-20): the door stays
+   one screen: the demo season peek now carries the teaching. */
 (function(){
   const rm = matchMedia('(prefers-reduced-motion: reduce)').matches;
   const ob = document.getElementById('onboard');
@@ -3058,69 +2872,6 @@ let toastT;
 
 })();
 
-/* ---- the welcome tour engine (first sign-in / replay). Classic-side so
-   switchView is in scope; the module fires window.openWelcomeTour after the
-   golfer-card save (the first-run signal), and the profile sheet's replay
-   button calls it with 'replay'. cs_tour_done is the idempotence belt —
-   any dismissal counts as seen. ---- */
-(function(){
-  const tour=document.getElementById('csTour');
-  if(!tour) return;
-  const track=document.getElementById('csTtrack');
-  const dots=document.getElementById('csTdots').children;
-  const N=document.querySelectorAll('.cs-tslide').length;
-  let ti=0, lastFocus=null;
-  /* PER-ACCOUNT (was per-browser): cs_tour_done alone suppressed every later
-     account in the same browser, so a second signup / a shared device never
-     saw the tour (pilot 2026-07-20). Key by user id. The old global key is NOT
-     consulted, so an existing user who saw the old tour gets the re-cut one
-     once — harmless, and it re-arms testing. */
-  const seenKey=()=>'cs_tour_done_'+((window.CS&&CS.user&&CS.user.id)||'anon');
-  const seenFlag={
-    get(){ try{ return localStorage.getItem(seenKey())==='1'; }catch(_){ return false; } },
-    set(){ try{ localStorage.setItem(seenKey(),'1'); }catch(_){} }
-  };
-  function go(i){
-    ti=Math.max(0, Math.min(N-1, i));
-    track.style.transform='translateX(-'+(ti*100)+'%)';
-    for(let k=0;k<N;k++) dots[k].classList.toggle('on', k===ti);
-    document.getElementById('csTBack').style.display = ti===0 ? 'none' : 'flex';
-    document.getElementById('csTNext').textContent = ti===N-1 ? 'Post a round' : 'Next';
-    document.getElementById('csTSkip').textContent = ti===N-1 ? 'Look around first' : 'Skip the tour';
-  }
-  function close(){
-    seenFlag.set();
-    tour.style.display='none';
-    if(lastFocus && lastFocus.focus) try{ lastFocus.focus(); }catch(_){}
-  }
-  window.openWelcomeTour=function(mode){
-    if(mode!=='replay' && seenFlag.get()) return;
-    lastFocus=document.activeElement;
-    tour.style.display='flex';
-    go(0);
-    document.getElementById('csTourCard').focus();
-  };
-  document.getElementById('csTNext').addEventListener('click', ()=>{
-    if(ti===N-1){ close(); if(typeof switchView==='function') switchView('record'); }
-    else go(ti+1);
-  });
-  document.getElementById('csTBack').addEventListener('click', ()=>go(ti-1));
-  document.getElementById('csTSkip').addEventListener('click', ()=>close());
-  document.addEventListener('keydown', e=>{
-    if(tour.style.display==='none') return;
-    if(e.key==='Escape') close();
-    else if(e.key==='ArrowRight') go(ti+1);
-    else if(e.key==='ArrowLeft') go(ti-1);
-    else if(e.key==='Tab'){
-      /* focus trap: keep Tab within the tour's visible controls (a11y) */
-      const foc=[...tour.querySelectorAll('button')].filter(b=>b.offsetParent!==null);
-      if(!foc.length) return;
-      const first=foc[0], last=foc[foc.length-1], a=document.activeElement;
-      if(e.shiftKey && (a===first || !tour.contains(a))){ e.preventDefault(); last.focus(); }
-      else if(!e.shiftKey && (a===last || !tour.contains(a))){ e.preventDefault(); first.focus(); }
-    }
-  });
-})();
 function toast(m){const t=$('#toast');t.textContent=m;t.classList.add('show');clearTimeout(toastT);toastT=setTimeout(()=>t.classList.remove('show'),2400);}
 /* Batch C: the signed-scorecard stamp + haptic thock on a posted round */
 let stampT;
@@ -6363,6 +6114,10 @@ function renderHomeStart(){
       <button class="btn" data-runback="${esc(done.league.id)}" type="button">Run it back — Season 2</button>
       <div class="rb-sub">Same crew, same bylaws, fresh table — change anything in the wizard.</div>
     </div>` : '';
+  /* F7: round-first orientation — league-less only (a member already knows
+     rounds fan into their league; this is for someone who hasn't joined one
+     yet and might otherwise read "Start something" as a gate on posting). */
+  const leagueless = !state.demo && !(window.CS?.memberships||[]).length;
   box.innerHTML = rb + `
     <div class="startgrid">
       <button class="startdoor" data-hgnew type="button">
@@ -6380,7 +6135,8 @@ function renderHomeStart(){
         </svg>
         <b>Start an event</b><small>The weekend battle</small></button>
     </div>
-    <button class="startjoin" data-hgjoin type="button"><svg class="ic" aria-hidden="true"><use href="#i-key"/></svg> Join with a code</button>`;
+    <button class="startjoin" data-hgjoin type="button"><svg class="ic" aria-hidden="true"><use href="#i-key"/></svg> Join with a code</button>
+    ${leagueless ? '<p class="fine" style="padding:8px 0 0">Post a round — it counts on your card. Leagues score it when you join one.</p>' : ''}`;
   box.querySelector('[data-hgnew]')?.addEventListener('click', () => document.getElementById('wCreate')?.click());
   box.querySelector('[data-hgnewev]')?.addEventListener('click', () => window.openEventPicker?.());
   box.querySelector('[data-hgjoin]')?.addEventListener('click', () => window.openJoinSheet?.());
@@ -8446,15 +8202,7 @@ $('#pfSave').addEventListener('click', async () => {
     await loadProfile();
     $('#obProfile').style.display = 'none';
     toast(`Card saved. Welcome, ${name}.`);
-    const arrival = await resumeAfterProfile();
-    /* the welcome tour explains "what is Cup Season" — show it ONLY to an
-       organic first-timer. Invited members and guest-claim users are taught by
-       their league covenant / their claimed round; the tour would collide with
-       that and delay the very thing they came for. (Replay under You →
-       Getting started for anyone who wants it later.) */
-    if(arrival && !arrival.viaInvite && !arrival.inLeague){
-      setTimeout(() => window.openWelcomeTour?.(), 600);
-    }
+    await resumeAfterProfile();
   } catch(e){
     $('#pfStatus').textContent = 'Save failed: ' + (e.message || e);
   } finally { btn.disabled = false; btn.textContent = 'Save my card'; }
@@ -8873,9 +8621,6 @@ function openProfileHub(){
       <button class="mini" data-th="auto">Match device</button>
     </div>
 
-    <div class="eyebrow" style="margin-top:20px">Getting started</div>
-    <button class="mini" id="phTour">Replay the welcome tour</button>
-
     <div class="eyebrow" style="margin-top:20px">Membership &amp; billing</div>
     <div class="byrow"><span>PLAN</span><b>FREE · PILOT</b></div>
     <p class="fine" style="padding-left:0">Cup Season membership lands at launch. Nothing to pay during the pilot.</p>
@@ -8904,10 +8649,6 @@ function openProfileHub(){
     $('#phPaneCard').style.display = b.dataset.ph==='card' ? '' : 'none';
     $('#phPaneSettings').style.display = b.dataset.ph==='settings' ? '' : 'none';
   }));
-  $('#phTour')?.addEventListener('click', () => {
-    window.closeSheet?.();
-    window.openWelcomeTour?.('replay');
-  });
   $('#phName').value = p.display_name || '';
   $('#phHandle').value = p.handle ? '@' + p.handle : '';
   $('#phCity').value = p.city || '';
@@ -11513,6 +11254,18 @@ $('#wCodeGo').addEventListener('click', async () => {
   }
 });
 
+/* F7: "Peek at a live season" — the demo diorama's entry path (retired from
+   the door in v23.137 as a DEMO join-code shortcut; restored here as its own
+   button since the caption alone buried it). state.demo defaults true at
+   load, but showWelcome() flips it false to reach this league-less screen,
+   so it's reset explicitly. Nothing this enters ever writes to the DB. */
+$('#wDemo').addEventListener('click', () => {
+  document.body.classList.remove('noleague');
+  state.demo = true; state.phase = 'season';
+  enterApp(); renderPhase(); switchView('home');
+  toast('Demo league: The Sunday Cup. Nothing here saves.');
+});
+
 $('#wCreate').addEventListener('click', async () => {
   bootTrace('creating league…');
   resetWizard();   /* fresh slate — no leftover name/players from a prior draft */
@@ -11619,7 +11372,7 @@ async function resumeAfterProfile(){
   const ls = k => { try{ return localStorage.getItem(k); }catch(_){ return null; } };
   /* arrival intent, captured before we consume it: an invited member (cs_code)
      or guest-claim user (cs_claim) is taught by their league covenant / their
-     claimed round — NOT the generic welcome tour. Returned to the caller. */
+     claimed round, never generic first-run copy. Returned to the caller. */
   const viaInvite = !!(ls('cs_code') || ls('cs_claim'));
   try {
     /* pending invite code: join NOW so an invited first-timer lands inside their
