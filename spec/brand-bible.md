@@ -33,8 +33,8 @@ bible touches strategy it points, not duplicates.
 > **For the golfer who runs the group** — the one with the spreadsheet, the
 > Venmo thread, and the group chat — **Cup Season is the operating system that
 > runs the season for them**: real rounds from any course, handicapped fairly,
-> scored into standings everyone understands at a glance, with the pot tracked
-> and never held. **Unlike golf apps that measure swings or collect stats,**
+> scored into standings everyone understands at a glance, with the pot kept
+> as a ledger everyone can see. **Unlike golf apps that measure swings or collect stats,**
 > Cup Season makes the rounds a crew already plays count for something — a
 > season, a rivalry, a record that lasts.
 
@@ -78,9 +78,12 @@ thing, show a real artifact (settlement card, recap card, standings line) over
 any sentence. The product doing an un-spreadsheet-able thing *is* the message
 (GTM §3 design rule).
 
-**Money language — fixed, non-negotiable:** "the pot is **tracked, never
-held** — no money moves through the app." Appears wherever money is visible:
-landing, FAQ, store listing, press boilerplate. (Canon §3; GTM failure mode #5.)
+**Money language — fixed, non-negotiable (amended 2026-07-20 per D39):**
+*"Cup Season keeps the ledger; the money moves between friends."* Door
+headline: *"Every dollar on the books."* "Tracked, never held" and "takes no
+cut" are RETIRED — present-tense ledger facts only, no forever-promises.
+Appears wherever money is visible: landing, FAQ, store listing, press
+boilerplate. (Canon §3 as amended; GTM failure mode #5.)
 
 ## 3. Audiences (who we talk to, in priority order)
 
@@ -146,7 +149,7 @@ Brief for the UX/design lane — one page, dusk system, in this order:
    first round → standings is the v1 video when someone records it.)
 3. **How it works, in the Pro's grammar:** Draft → Post from anywhere → The
    month closes → The Cup. Four steps, one line each.
-4. **The money sentence:** tracked, never held — verbatim, its own block.
+4. **The money sentence:** the D39 ledger line — verbatim, its own block.
 5. **Founding wall:** "Founding League №1: PIGL, Tempe AZ" + open slots
    counter (scarcity per focus-group plan; grows into the §10 press asset).
 6. **Pricing:** honest and parked-aware: "Your first season is free. Seasons
@@ -160,12 +163,14 @@ Brief for the UX/design lane — one page, dusk system, in this order:
 
 No waitlist section: the product is live; a waitlist would be theater.
 
-### Store-listing kit (READY-WHEN — no store wrapper exists; ships with zero new writing when one does; doubles as og/meta copy today)
+### Store-listing kit (SUPERSEDED 2026-07-20 — the current, D39-correct
+listing lives in `spec/appstore-launch-kit.md` §1; this sketch stays as
+og/meta copy reference only. Note its name exceeds Apple's 30-char limit.)
 - **Name:** Cup Season — Golf League Seasons
 - **Subtitle (30ch):** "Run your golf season"
 - **Short description:** "Real rounds. Real handicaps. A season your crew
-  actually finishes — standings everyone understands, and a pot that's
-  tracked, never held."
+  actually finishes — standings everyone understands, and a pot that's a
+  ledger between friends."
 - **Keywords:** golf league, golf season, handicap, skins, match play, wolf,
   golf trip, ryder cup, golf with friends, league standings
 - **Screenshot captions (5):** ① "Draft the crew" ② "Post in under a minute"
@@ -252,7 +257,8 @@ are ready now:
 - **Boilerplate (use verbatim):** *Cup Season is the operating system for
   amateur golf competition. Friend groups draft squads, post real handicapped
   rounds from any course, and race a season-long cup — with standings anyone
-  can read and a pot that's tracked, never held. Built in Tempe, Arizona by a
+  can read and receipts behind every number. Cup Season keeps the ledger; the
+  money moves between friends. Built in Tempe, Arizona by a
   golfer who got tired of running his league on a spreadsheet. Founding league:
   PIGL. Live at cupseason.app.*
 - **Founder bio (outline):** Jerecho — founder; runs PIGL (the beta league),
@@ -263,9 +269,11 @@ are ready now:
   a story) → opened it to other crews. Angle for press: *founder-scratches-
   own-itch + "golf apps track swings; nobody was keeping score of the thing
   friends actually argue about."*
-- **Fact sheet:** founded 2026 · Tempe, AZ · PWA at cupseason.app · money
-  tracked never held (lead with it — preempts the gambling question) · free
-  first season · Founding Leagues program (№1 PIGL).
+- **Fact sheet:** founded 2026 · Tempe, AZ · PWA at cupseason.app · the pot
+  is a ledger — money moves between friends, not through the app (lead with
+  it — preempts the gambling question) · leagues play free today · Founding
+  Leagues program (№1 PIGL). *(2026-07-20: D39 wording; the assembled,
+  current press kit lives in `spec/appstore-launch-kit.md` §4.)*
 - **Assets:** lockups + marks from `brand/` (regenerate after the mark
   decision), og-image, 3–5 product-artifact screenshots (settlement card,
   standings, recap), one founder photo (does not exist yet — take one).

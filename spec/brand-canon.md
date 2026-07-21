@@ -61,9 +61,12 @@ crew's own voice. Never hype, never urgency, never shame.
 - **"The Pro,"** never "commissioner" (DB keeps the internal name; UI never).
 - **Named bands, never math jargon:** "beat your number by 0.6," never
   "PvI"/"differential" on any user surface.
-- **"Tracked, never held"** — the money sentence, verbatim, everywhere money
-  appears in marketing or store copy. It is the anti-"betting app" vaccine
-  (GTM failure mode #5).
+- **The ledger line (amended 2026-07-20, D39):** *"Cup Season keeps the
+  ledger; the money moves between friends"* — verbatim everywhere money
+  appears in marketing or store copy; door headline "Every dollar on the
+  books." ("Tracked, never held" and "takes no cut" retired — say what is
+  true now, promise nothing structural.) It is the anti-"betting app"
+  vaccine (GTM failure mode #5).
 - **"Run it back"** — the renewal verb. Seasons aren't "resubscribed."
 - **The join covenant** doubles as the fairness promise wherever fear appears
   (design-review recommendation, standing).
