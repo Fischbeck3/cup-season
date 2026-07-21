@@ -1470,3 +1470,43 @@ rule as a mechanic.)*
   remainder, not silently dropped.
 - **CONFLICT (named):** none upward. Brushes D23 only via the deferred
   Home-surface remainder, which is explicitly not shipped here.
+
+---
+
+### D52 · The weekly clash — one spotlighted pairing per week
+*(2026-07-21, gameplay-audit session. NEW mechanic — the audit's structural
+finding made concrete: the flagship season lacks the weekly anticipation
+loop the Ryder has. Owner call: build for LAUNCH, not gated on month-1
+proof.)*
+- **Current:** week snapshots write headlines ("won Week 4") and the events
+  engine detects rivalry weekly clashes — but nothing RIDES on a week.
+  Between month closes the standings drift; no appointment, no deadline.
+- **Problem:** fantasy football's engine is the week-as-episode
+  (anticipation Tue–Sat, resolution Sunday). Cup Season's unit is the
+  month — too long for an anticipation loop. The most exciting mode built
+  so far is the Ryder, a side product, precisely because it has weekly
+  duels.
+- **Recommendation:** each season week, spotlight ONE clash per league.
+  Engine picks the pairing: named rivalry (D21) > closest table gap >
+  least-recently-featured (rotation guarantee). Best band-of-week takes a
+  headline W; result feeds the faceted rivalry record ("weekly clash 3–2",
+  per the item-18 one-object-per-pair law). NO cup points — parallel
+  ledger, §5 unchanged. Board post at week open ("THIS WEEK: Jerecho v
+  Marcus"), settle post at week close; both-idle settles quiet (no
+  headline, honest). Push rides curated rails, opt-in (D23 + the item-17
+  number-to-beat precedent). BUILD: for launch (owner, 2026-07-21) — the
+  build plan spawns from this entry; the heartbeat outranks surface-count
+  discipline.
+- **Principle:** The App Should Feel Alive + anticipation between rounds —
+  at crew scale, where the thin-feed arithmetic (2–3 posts/week) can't
+  fill a daily feed, a weekly episode is the honest cadence.
+- **Benefit:** the season gets the Tue–Sun appointment beat; the rivalry
+  record gets a steady diet; the board gets two guaranteed stories a week.
+- **Tradeoffs:** a spotlight excludes everyone not in it that week —
+  rotation rule mitigates; small leagues (4–5) cycle fast anyway. Adds one
+  engine surface to a product the reviews say is already too wide — the
+  owner accepts that cost for the launch heartbeat.
+- **CONFLICT (named):** none upward. §5 parallel-ledger law respected;
+  D23's fence respected (push opt-in, board posts are not nudges). Departs
+  from both design reviews' "proof before features" posture — named here
+  as a deliberate owner call, not an oversight.

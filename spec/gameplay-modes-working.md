@@ -559,6 +559,14 @@ build. Not designed, not committed to — just not lost.
 
 ---
 
+## 9b. The weekly clash (DECIDED — D52; owner call: build for launch)
+
+One spotlighted pairing per league per season week; best band-of-week takes a
+headline W into the faceted rivalry record. Never cup points. Full packet in
+D52 — design detail lands here when the build plan spawns.
+
+---
+
 ## 10. The Major (standalone championship — days, the field, one jug)
 
 Decided 2026-07-20 with the owner (decision-log **D42–D46**; this section pays
