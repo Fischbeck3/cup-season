@@ -7912,6 +7912,8 @@ function renderMajorRoom(el, E){
     if(ev.status==='live' && daysLeft!=null && daysLeft<0){
       html+=`<button class="mini" onclick="window.majorSettle('${s.id}')">Sound the horn — settle</button>`;
     }
+    /* escape hatch: only while nothing has been scored (the RPC re-validates) */
+    if(!horn) html+=`<button class="mini" onclick="window.scrapEvent('${ev.id}')" title="Scrap this Major">✕ Scrap</button>`;
     html+=`</div>`;
   }
 
@@ -10769,6 +10771,23 @@ window.majorSettle = async (sessionId)=>{
     if(error) throw error;
     toast('Settled — the jug has a name');
     await loadEvent(window.CS_EVENT.event.id);
+  }catch(e){ toast(e.message||String(e)); }
+};
+/* the organizer's escape hatch — scrap an event created by mistake. The RPC
+   re-validates server-side: organizer only, never once settled or scored. */
+window.scrapEvent = async (eventId)=>{
+  /* name read from state, never interpolated into the handler — esc()'s &#39;
+     decodes back to a quote before JS parses an onclick, breaking the button */
+  const name = window.CS_EVENT?.event?.name || 'this event';
+  if(!confirm(`Scrap "${name}"? It hasn't been scored, so this removes it, its board and its field completely.`)) return;
+  try{
+    const { error } = await sb.rpc('delete_event', { p_event:eventId });
+    if(error) throw error;
+    toast(name + ' scrapped');
+    window.CS_EVENT = null;
+    await loadMyEvents();
+    goClubhouse();
+    if(window.renderHomeHub) window.renderHomeHub();
   }catch(e){ toast(e.message||String(e)); }
 };
 
