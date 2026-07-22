@@ -87,9 +87,9 @@ sections (§2.2, §14.0) when making competition-model decisions.
   **Grants are now explicit (D37, migration `20260718172300`).** Default
   privileges no longer auto-grant EXECUTE to `anon`/`authenticated`, so **every
   new migration MUST `grant execute on function … to authenticated`** for any
-  client-called RPC (and to `anon` only for the five public endpoints:
+  client-called RPC (and to `anon` only for the six public endpoints:
   `claim_round_info`, `scan_claim_info`, `league_by_code`, `founder_id`,
-  `share_info` — D57). A new
+  `share_info` — D57, `join_covenant_info` — setup-QA S3-01). A new
   RPC that "silently 403s in prod" is almost always a missing grant. Also killed
   in D37 and never to be reintroduced: the `members_self` UPDATE policy (let a
   member self-promote to commissioner) and `rounds_owner_update` (let an owner
@@ -121,8 +121,9 @@ fresh; seeds lock in `cup_finalists` when the daily tick flips
 
 ### Season shape (spec §14.0)
 
-Seasons start on a **Sunday**, end on a **Saturday**, N months snapped to whole
-weeks. Caps/floors are calendar-month machinery; **floors are waived in partial
+Seasons run N whole weeks from a **flexible first-tee weekday** (§14.0 v1.1
+dropped the Sunday-start snap — pilot: "every league says Sunday"; UI labels
+derive the REAL weekday, never hardcode Sun/Sat). Caps/floors are calendar-month machinery; **floors are waived in partial
 edge months** (blanket rule, decided). League timezone default
 `America/Phoenix` (no DST). Month closes run on the 1st ~00:10 local.
 

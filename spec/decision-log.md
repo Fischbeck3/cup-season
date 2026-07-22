@@ -1742,3 +1742,34 @@ Owner pre-approved the build 2026-07-22: "full send" in the arc brief.)*
   ("Growth-lane work that can later reuse this same card design"). D37's
   rule survives BECAUSE the entry + checks move together; §16's "rounds are
   never mutated" untouched — shares reference, never copy or edit.
+
+## Batch 11 — 2026-07-22, the setup-QA lane (UX/QA)
+
+### D58 · Formation integrity — the hat learns to count
+
+- **Current mechanic:** `randomize_squads` dealt unassigned members round-robin
+  from index 0 on every call and checked nothing else; `start_season` checked
+  only for unassigned members. `state.draftType` was set by the wizard dial and
+  never read back from bylaws.
+- **Problem (setup-QA S4-01/S4-02, prod walk):** a 1-golfer "draw" produced
+  1–0; a redraw after one join stacked 2–0 with Squad 2 empty and no recovery
+  control; a Pro-assign league rendered (and server-ran) the blind draw; a
+  degenerate formation could start a season under "minimum four to tee off."
+- **Recommendation (built):** the draw deals each pool golfer into the
+  currently smallest squad (ties shuffled) so draws and redraws always balance;
+  it refuses non-random `draft_type` and leagues with fewer golfers than
+  squads; zero-pool calls return silently (no phantom board story).
+  `start_season` refuses <4 golfers, any unassigned golfer, any empty squad.
+  Client rehydrates `state.draftType` from bylaws on every league entry.
+- **Principle served:** §2.2 (the draw is argument-proof only if it can't
+  produce an argument); §16 (a board story never announces a draw that moved
+  nobody); "minimum four to tee off" stops being copy and becomes a gate.
+- **Benefit:** the assign engine's absence is now an honest server refusal
+  instead of a silent wrong-engine run; no league can wedge itself into an
+  unstartable or unfair formation during setup.
+- **Tradeoffs:** a redraw still never RESHUFFLES already-seated golfers (that
+  stays the Pro's assign/delete recourse — reshuffle-on-every-draw would tear
+  up seats people already saw); min-4 blocks tiny test leagues from starting
+  (accepted: that is the spec's floor).
+- **CONFLICT check:** none upward; enforces §14.0/§2.2 as written. Snake/live
+  draft engines remain unbuilt and now refuse loudly instead of misfiring.

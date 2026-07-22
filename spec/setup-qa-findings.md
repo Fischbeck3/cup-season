@@ -13,10 +13,13 @@ Format: `ID · [bug|friction|copy|a11y] · where · what · repro`.
 ## The register
 
 ### S1 · Door → golfer card
-- S1-01 · bug · golfer card (onboarding) · saves with NO ball marker — `marker`
-  null in DB, no gate, You tab + settings confirm nothing selected; CLAUDE.md
-  gates onboarding on marker ("the marker is identity") · fresh signup → name
-  only → Save my card → lands home, marker never chosen
+- S1-01 · RETRACTED as bug, kept as friction · golfer card · the walk's
+  "markerless save" was instrumentation error — `pfMarker` defaults to
+  'saguaro' with aria-checked from first paint (the probe read aria-pressed),
+  so every save carries a marker. Real observation: the identity marker
+  arrives PRE-PICKED — a stranger can save without ever making the choice,
+  and every skipper is a saguaro · fresh signup → save without touching the
+  marker grid
 - S1-02 · copy · golfer card · handle pre-suggested from EMAIL local-part
   (`@jerechofischbeckqs1`) before any name typed, while caption reads
   "Suggested from your name"; re-suggests correctly once a name is typed ·
@@ -94,6 +97,10 @@ Format: `ID · [bug|friction|copy|a11y] · where · what · repro`.
   — 0 JOES" (JOES + broken singular) on the league's biggest setup moment
 - S4-05 · copy · clubhouse group chips · HERE badge lags a room switch (chip
   keeps HERE on the other league while the room below has switched)
+- S4-06 · bug · assign engine (found during fix verification) · `assign_player`
+  inserts commissioner_log WITHOUT actor_id (NOT NULL) — every assign died on
+  the constraint; unreachable in prod until S4-02's client fix rendered the
+  assign UI at all · assign league → tap player → tap squad → "Assign failed"
 
 ### S5 · Event setup (Ryder · Major)
 - S5-01 · bug · Ryder pairings · "Generate pairings" with an empty opposing
@@ -110,14 +117,15 @@ Format: `ID · [bug|friction|copy|a11y] · where · what · repro`.
   Major $0 default
 
 ### S6 · Tee sheet (live round)
-- S6-01 · bug · live-round finish · a COMPLETE 18-hole card posts nothing:
-  finish sheet itself counted "Post 1 card to the season", then the result read
-  "0 CARDS TO THE SEASON — NOT POSTED · INCOMPLETE CARD"; `rounds` stayed
-  empty; the guest claim then attaches an empty payload ("Round claimed — the
-  card was incomplete, so nothing posted"). UI held 18/18 scores for both
-  players (par-tap fill, 72 total on a par-72). Automation caveat noted — but
-  the finish-sheet count and the post result contradict each other inside one
-  flow · live round, fill all 18, Finish → Post
+- S6-01 · bug · live-round finish · one blank hole silently kills the whole
+  post: the finish sheet promises "Post N cards" counting MEMBERS (not
+  complete cards), nothing warns which holes are still open, and Finish is
+  final — the server (correctly) skips the incomplete card, the round is
+  unrecoverable, and the guest claim attaches an empty payload. VERIFIED root
+  cause on source: sheet count = `memberN`, no client completeness check; the
+  walk's card was 17/18 (one hole skipped en route) and died exactly this way
+  · live round, leave one hole blank, Finish → Post → "0 CARDS · INCOMPLETE
+  CARD"
 - S6-02 · bug · tee sheet copy · the default game card renders raw escape
   codes as text — backslash-u-2014 where the em dash should be and
   backslash-u-2019 where the apostrophe should be ("Stroke play [\ u2014] your

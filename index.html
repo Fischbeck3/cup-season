@@ -2334,7 +2334,7 @@ html[data-theme="light"] .room-dusk .btn:not(.dark):not(.gold):not(.apple){color
               <input class="f" id="lrRate" type="number" step="0.1" value="70.2" placeholder="Rating" inputmode="decimal">
               <input class="f" id="lrSlope" type="number" value="123" placeholder="Slope" inputmode="numeric">
             </div>
-            <p class="fine" style="padding-top:10px" id="cardNote">Demo card loaded: par 72. The stepper opens on each hole's par.</p>
+            <p class="fine" style="padding-top:10px" id="cardNote">Standard par-72 card. The stepper opens on each hole's par — pick your course above and the real pars load.</p>
             <button class="mini" id="editCard" style="margin-top:2px">Enter the pars</button>
           </div>
           <div class="card" style="margin-bottom:10px">
@@ -2361,7 +2361,7 @@ html[data-theme="light"] .room-dusk .btn:not(.dark):not(.gold):not(.apple){color
               <button data-g="wolf">Wolf</button>
               <button data-g="skins">Skins</button>
             </div>
-            <p class="fine" id="gameNote">Stroke play \u2014 your card, your pace. One to four players; post when you\u2019re done.</p>
+            <p class="fine" id="gameNote">Stroke play — your card, your pace. One to four players; post when you’re done.</p>
             <div id="matchSetup" style="display:none; margin-top:12px; border-top:0.5px solid var(--line); padding-top:12px;">
               <label class="f" for="lrStake">Stake per side · $0 = bragging rights</label>
               <input class="f" id="lrStake" type="number" min="0" step="1" value="0" inputmode="numeric" style="max-width:110px; margin-top:6px;">
@@ -4103,7 +4103,7 @@ function socialUiRestore(el, s, ns){
    Investigated first (grepped lastSeen/seen/badge/unread): an analogous
    "since you were here" digest already exists — dgKey/dgReadSeen/dgMarkSeen
    below, feeding renderHomeDigest() into #homeDigest. But that marker is
-   PROFILE-scoped for the unified Home feed (window.homeFeed/homePosts) — a
+   PROFILE-scoped for the unified Home feed (window.homeFeedRows/homePosts) — a
    different surface from this league board (#feedList/#feedListFull, the
    `feed` array). Nothing tracks "seen THIS league's board", so this adds a
    minimal per-league sibling, same convention as dgKey just keyed by league.
@@ -5847,13 +5847,18 @@ function primeRealRoster(){
   const p=window.CS?.profile||{};
   const myPid=window.CS?.user?.id;
   ROSTER.length=0;
+  /* setup-QA S6-03: an unestablished golfer (index_current null, "0 of 3")
+     was badged a flat "18.0 IDX" as if real — carry an est flag so every
+     surface says EST until the number mints. */
   ROSTER.push({ n:(p.display_name||'You'), i:Number(p.index_current)||state.myIndex||18,
+                est: p.index_current==null,
                 ci:1, team:'—', guest:false, locked:true, me:true,
                 mid:window.CS?.member?.id||null, pid:myPid });
   /* league mates fill the foursome — their cards post too (co-play, §13.1) */
   (window.CS?.members||[]).forEach(m=>{
     if(m.profile_id===myPid) return;
     ROSTER.push({ n:(m.profile?.display_name||'Member'), i:Number(m.profile?.index_current)||18,
+                  est: m.profile?.index_current==null,
                   ci:1, team:'—', guest:false, mid:m.id, pid:m.profile_id });
   });
   rosterPrimed=true;
@@ -6236,7 +6241,11 @@ function renderPlay(){
   if(setup){ renderPlanBridge(); renderRoster(); renderLiveBanner(); return; }
 
   persistLive();   /* every live repaint follows a state.live mutation → snapshot the card so a refresh resumes it */
-  $('#lrEyebrowTxt').textContent=`Live round · ${($('#lrCourse').value||'Course')} — ${($('#lrTee').value||'Tee')} · ${CRATE}/${CSLOPE}`;
+  /* setup-QA S6-04: the picked course label already ends "· Blue" — appending
+     the tee again read "BLUE — BLUE". Only append when it adds anything. */
+  {const _c=($('#lrCourse').value||'Course'), _t=($('#lrTee').value||'').trim();
+   const _dup=_t && _c.toLowerCase().endsWith(('· '+_t).toLowerCase());
+   $('#lrEyebrowTxt').textContent=`Live round · ${_c}${_t&&!_dup?` — ${_t}`:''} · ${CRATE}/${CSLOPE}`;}
   $('#matchCard').style.display = state.live.game==='match' ? 'block':'none';
   $('#wolfCard').style.display  = state.live.game==='wolf'  ? 'block':'none';
   const sc=$('#skinsCard'); if(sc) sc.style.display = state.live.game==='skins' ? 'block':'none';
@@ -6265,7 +6274,7 @@ function renderPlay(){
     row.innerHTML=`
       <span class="sw" style="background:${p.guest?'var(--dim)':SQHEX[p.ci]}"></span>
       <div class="nm"><b>${esc(p.n)} ${p.guest?'<span class="gtag">GUEST</span>':''}${'<span class="strokedot" title="stroke here"></span>'.repeat(strokeOn(pi,h))}</b>
-      <small>${p.guest?(p.est?'EST ':'SELF '):''}${fmtIdx(p.i)} IDX · ${STROKES[pi]} STK</small></div>
+      <small>${p.est?'EST ':(p.guest?'SELF ':'')}${fmtIdx(p.i)} IDX · ${STROKES[pi]} STK</small></div>
       <div class="tot">${done.length? gross+' THRU '+done.length+'<br>'+(vp>=0?'+':'')+vp : '—'}</div>
       <div class="step">
         <button aria-label="Minus ${esc(p.n)}" data-pi="${pi}" data-d="-1">−</button>
@@ -6443,7 +6452,7 @@ function renderRoster(){
       d.className='pslot';
       d.innerHTML=`
         <div class="sn">${p.guest?`<span class="gtag">${p.buddy?'B':'G'}</span>`:`<span style="width:8px;height:8px;border-radius:3px;background:${SQHEX[p.ci]};display:inline-block;"></span>`}${esc(p.n)}</div>
-        <div class="si">${fmtIdx(p.i)} IDX · TEAM ${k<2?'A':'B'}</div>
+        <div class="si">${p.est?'EST ':''}${fmtIdx(p.i)} IDX · TEAM ${k<2?'A':'B'}</div>
         ${swap}${p.locked?'':`<button class="sx" data-rm="${idx}" aria-label="Remove ${esc(p.n)}"><svg class="ic" aria-hidden="true"><use href="#i-close"/></svg></button>`}`;
     }
     slots.appendChild(d);
@@ -6568,10 +6577,10 @@ $$('#gameSeg button').forEach(b=>b.addEventListener('click',()=>{
   b.classList.add('on');
   state.live.game=b.dataset.g;
   renderRoster();   /* match extras (stake, strokes preview, side swap) follow the game */
-  const GN={score:'Stroke play \u2014 your card, your pace. One to four players; post when you\u2019re done.',
+  const GN={score:'Stroke play — your card, your pace. One to four players; post when you’re done.',
     match:'Singles (2) or 2v2 net best ball (4). Keep scoring; we tally the match as you go.',
-    wolf:'A round of Wolf \u2014 needs four. We run the rotation and the side tally; scores still post.',
-    skins:'Low net takes the hole\u2019s skin; ties carry the pot. Two to four players; scores still post.'};
+    wolf:'A round of Wolf — needs four. We run the rotation and the side tally; scores still post.',
+    skins:'Low net takes the hole’s skin; ties carry the pot. Two to four players; scores still post.'};
   const gn=$('#gameNote'); if(gn) gn.textContent=GN[state.live.game]||GN.score;
 }));
 /* editCard toggle is bound by the course-card engine below */
@@ -6699,12 +6708,37 @@ function finishRealLiveRound(){
     player_id: state.live.pmap?.[i],
     strokes: (state.live.scores[i]||[]).map(s=> s==null ? null : s),
   })).filter(c=>c.player_id);
-  const memberN = LIVE.filter(p=>!p.guest).length;
-  const guestN  = LIVE.filter(p=>p.guest).length;
+  /* setup-QA S6-01: the sheet used to promise "Post N cards" counting MEMBERS,
+     while the server (rightly) skips incomplete cards — one blank hole and a
+     round vanished behind a sheet that said it would post. Mirror the server's
+     completeness rule here, count only complete cards, and name the holes that
+     are still open before the finish becomes final. */
+  const cardHoles = i => {                 /* 18 | 9 | 0 — same rule as finish_live_round */
+    const a = state.live.scores[i]||[];
+    const f9  = [...Array(9)].every((_,k)=>a[k]!=null);
+    const b9  = [...Array(9)].every((_,k)=>a[k+9]!=null);
+    const anyB= [...Array(9)].some((_,k)=>a[k+9]!=null);
+    return (f9&&b9) ? 18 : (f9&&!anyB) ? 9 : 0;
+  };
+  const missingOf = i => { const a=state.live.scores[i]||[];
+    const out=[]; for(let h=0;h<18;h++) if(a[h]==null) out.push(h+1); return out; };
+  const seats = LIVE.map((p,i)=>({p,i})).filter(x=>state.live.pmap?.[x.i]);
+  const done  = seats.filter(x=>!x.p.guest && cardHoles(x.i)>0);
+  const open  = seats.filter(x=>cardHoles(x.i)===0);
+  const guestN = LIVE.filter(p=>p.guest).length;
+  const warn = open.length
+    ? `<p class="fine" style="padding-top:0;color:var(--neg)">${open.map(x=>{
+         const m=missingOf(x.i); const shown=m.slice(0,5).join(', ');
+         return `${esc(x.p.n||'A player')} — missing hole${m.length===1?'':'s'} ${shown}${m.length>5?` +${m.length-5} more`:''}`;
+       }).join(' · ')}. ${open.length===1?'That card':'Those cards'} won’t post — go back and fill in, or finish without.</p>`
+    : '';
   const result = gameResult();
   openSheet('Finish the round', 'ONE FINISH — EVERY MEMBER’S CARD POSTS',
-    `<p class="fine" style="padding-top:0">Complete cards post to the season, attested by the group${guestN?`; ${guestN} guest${guestN===1?'':'s'} get a recap to claim`:''}. A partial card is skipped, not lost.</p>
-     <button class="btn" id="lrPost" style="margin-top:12px">Post ${memberN} card${memberN===1?'':'s'} to the season</button>
+    `<p class="fine" style="padding-top:0">Complete cards post to the season, attested by the group${guestN?`; ${guestN} guest${guestN===1?'':'s'} get${guestN===1?'s':''} a recap to claim`:''}. A partial card is skipped, not lost.</p>
+     ${warn}
+     <button class="btn" id="lrPost" style="margin-top:12px">${done.length
+       ? `Post ${done.length} card${done.length===1?'':'s'} to the season`
+       : 'Finish — no complete member card to post'}</button>
      <button class="btn dark" id="lrCasual" style="margin-top:8px">This one was casual — post nothing</button>`);
   const go = async (casual) => {
     const pb=document.getElementById('lrPost'), cb=document.getElementById('lrCasual');
@@ -6887,7 +6921,7 @@ function renderStats(){
       /* the endgame dial (008): only Cup Final leagues get the Final line;
          points-table leagues foreshadow the table crowning instead (D4) */
       if((state.finish||'cup_final')==='cup_final'){
-        if(cf>=today) opts.push({n:dTo(cf), pri:2, gold:true, t:`Cup Final · Sun ${MOS[cf.getMonth()]} ${cf.getDate()} · ${dTo(cf)}d`});
+        if(cf>=today) opts.push({n:dTo(cf), pri:2, gold:true, t:`Cup Final · ${DOW[cf.getDay()]} ${MOS[cf.getMonth()]} ${cf.getDate()} · ${dTo(cf)}d`});
       } else {
         const en=new Date(seasonE());
         if(en>=today) opts.push({n:dTo(en), pri:2, gold:true, t:`Points table crowns it · ends ${MOS[en.getMonth()]} ${en.getDate()} · ${dTo(en)}d`});
@@ -7202,7 +7236,7 @@ function homeRxOf(r){
 async function fetchHomeSocial(){
   window.homeRx = { post:{}, kud:{}, names:{}, raw:[], cmine:[], myIds:new Set() };
   if(state.demo || !window.sb || !window.CS?.user) return;
-  const rids=[...new Set((window.homeFeed||[]).map(r=>r.round_id).filter(Boolean))];
+  const rids=[...new Set((window.homeFeedRows||[]).map(r=>r.round_id).filter(Boolean))];
   if(!rids.length) return;
   try{
     const { data: posts } = await window.sb.from('posts')
@@ -7218,7 +7252,7 @@ async function fetchHomeSocial(){
     const pids=Object.values(window.homeRx.post).map(t=>t.post_id);
     if(!pids.length) return;
     /* MY posts among them — the digest mentions what landed on YOUR rounds */
-    const myPids=(window.homeFeed||[])
+    const myPids=(window.homeFeedRows||[])
       .filter(r=>r.is_me && window.homeRx.post[r.round_id])
       .map(r=>window.homeRx.post[r.round_id].post_id);
     const [{ data: kud }, { data: cmt }] = await Promise.all([
@@ -7267,7 +7301,7 @@ async function toggleHomeRx(r, emoji){
   }
 }
 function wireHomeSocial(box){
-  const rows = state.demo ? DEMO_FEED : (window.homeFeed||[]);
+  const rows = state.demo ? DEMO_FEED : (window.homeFeedRows||[]);
   box.querySelectorAll('[data-hrx]').forEach(b=>b.addEventListener('click',e=>{
     if(b._held){ b._held=false; e.stopPropagation(); return; }   /* long-press already opened the tray — don't also toggle */
     const r=rows[+b.dataset.hrx]; if(r) toggleHomeRx(r, b.dataset.e);
@@ -7383,7 +7417,7 @@ function dgTime(s){
 }
 function dgItems(){
   if(state.demo) return DEMO_FEED.map(r=>({ t:r.played_on, kind:'round', r }));
-  return (window.homeFeed||[]).map(r=>({ t:(r.created_at||r.played_on||''), kind:'round', r }))
+  return (window.homeFeedRows||[]).map(r=>({ t:(r.created_at||r.played_on||''), kind:'round', r }))
     .concat((window.homePosts||[]).map(p=>({ t:(p.created_at||''), kind:'post', p })));
 }
 /* serial comma is load-bearing here: "a personal best from Diego and Rosa broke
@@ -7432,7 +7466,7 @@ function dgMentions(mark){
   }
   const hr=window.homeRx; if(!hr) return out;
   const mine={};
-  (window.homeFeed||[]).forEach(r=>{ if(r.is_me&&hr.post[r.round_id]) mine[hr.post[r.round_id].post_id]=r; });
+  (window.homeFeedRows||[]).forEach(r=>{ if(r.is_me&&hr.post[r.round_id]) mine[hr.post[r.round_id].post_id]=r; });
   (hr.raw||[]).forEach(k=>{
     if(!k.created_at || dgTime(k.created_at)<=mark) return;
     const r=mine[k.post_id]; if(!r) return;
@@ -7489,12 +7523,12 @@ function renderHomeFeed(){
   if(state.demo){ box.innerHTML = feedBuckets(DEMO_FEED.map((r,i)=>({ d:r.played_on, html:feedRow(r,i) }))); wireHomeSocial(box); return; }
   /* loading: scorecard skeletons until the first fetch lands (undefined = not
      yet loaded; [] = loaded empty → the real empty state) */
-  if(window.homeFeed===undefined && window.homePosts===undefined){ box.innerHTML = skeletonRows(3); return; }
+  if(window.homeFeedRows===undefined && window.homePosts===undefined){ box.innerHTML = skeletonRows(3); return; }
   /* ONE feed (IA P1): circle rounds + league moments, newest first. Sort by
      actual post time (created_at, full ISO); bucket by the displayed date (d). */
   /* the index rides into feedRow so the reaction strip can map back to the
-     SOURCE row (window.homeFeed[i]) after the merged sort/slice */
-  const items = (window.homeFeed||[]).map((r,i) => ({ t:(r.created_at||r.played_on||''), d:((r.played_on||r.created_at||'')+'').slice(0,10), html:feedRow(r,i) }))
+     SOURCE row (window.homeFeedRows[i]) after the merged sort/slice */
+  const items = (window.homeFeedRows||[]).map((r,i) => ({ t:(r.created_at||r.played_on||''), d:((r.played_on||r.created_at||'')+'').slice(0,10), html:feedRow(r,i) }))
     .concat((window.homePosts||[]).map(p => ({ t:(p.created_at||''), d:((p.created_at||'')+'').slice(0,10), html:postRow(p) })))
     .sort((a,b)=> a.t<b.t ? 1 : a.t>b.t ? -1 : 0)
     .slice(0,30);
@@ -7662,6 +7696,10 @@ function renderPulse(){
   const box=$('#homePulse'); if(!box) return;
   const rows=(!state.demo && window.leaguePulse) || [];
   if(state.demo || !CS.user || !CS.league || !rows.length){ box.innerHTML=''; return; }
+  /* setup-QA SX-01: the floor gauge demanded "0/2 · post 2 more" from a league
+     still in squad formation, days before its first tee. No season underway =
+     no floor to clear — the gauge starts talking when the season does. */
+  if(state.phase!=='season' || (typeof atStarter==='function' && atStarter())){ box.innerHTML=''; return; }
   const isPro=CS.member?.role==='commissioner';
   const floor=rows[0].floor ?? 2;
   const mName=MOS[new Date().getMonth()];
@@ -8162,8 +8200,10 @@ function localDate(iso){ const [y,m,d]=iso.split('-').map(Number); return new Da
 function seasonS(){ return state.seasonStart?localDate(state.seasonStart):seasonStartDate(); }
 function seasonE(){ return state.seasonEnd?localDate(state.seasonEnd):seasonEndDate(); }
 function seasonSpanText(){
+  /* setup-QA S2-01: hardcoded "Sun/Sat" survived the v1.1 flexible-start fix
+     here — the review labeled a Saturday first tee "Sun". Real weekdays. */
   const s=seasonS(), e=seasonE();
-  return `Sun ${MOS[s.getMonth()]} ${s.getDate()} → Sat ${MOS[e.getMonth()]} ${e.getDate()} · ${totalWeeks()} wks`;
+  return `${DOW[s.getDay()]} ${MOS[s.getMonth()]} ${s.getDate()} → ${DOW[e.getDay()]} ${MOS[e.getMonth()]} ${e.getDate()} · ${totalWeeks()} wks`;
 }
 /* Cup Final = the final four weeks, scored fresh (§14.0/§14.3).
    Start = ends_on − 27 days: a Sunday, since seasons end Saturday. */
@@ -8287,7 +8327,6 @@ function renderBylaws(){
     <div class="byrow"><span>VERIFICATION</span><b>${VERIF[state.preset]}</b></div>
     <div class="byrow"><span>COUNTING CAP</span><b>${CAPS[state.cap]} / mo</b></div>
     <div class="byrow"><span>PARTICIPATION FLOOR</span><b>${state.floor} / mo · ${PENALTY[state.preset]}</b></div>
-    <div class="byrow"><span>SEASON FORMAT</span><b>${FMT_NAMES[state.fmt]}</b></div>
     ${state.stake===0
       ? `<div class="byrow"><span>BUY-IN</span><b>None · bragging rights</b></div>`
       : `<div class="byrow"><span>BUY-IN</span><b>${fmt$(state.stake)} / player</b></div>
@@ -9916,6 +9955,10 @@ function resetWizard(){
   state.wiz = 0;
   state.emails = [''];
   state.wizInvitees = [];
+  /* setup-QA S2-03: state.stake's $75 default belongs to the demo diorama —
+     a REAL league starts at bragging rights; the Pro dials money up on
+     purpose ("$0 = bragging rights" is the dial's own promise). */
+  state.stake = 0;
   const nm = document.getElementById('setName'); if(nm) nm.value = '';
   renderWizPicked();
   if(typeof updateInviteNote === 'function') updateInviteNote();
@@ -9992,17 +10035,25 @@ window.shareInvite = shareInvite;
    comes from the structure the Pro just picked (STRUCT_MIN/NAMES are classic
    top-level consts — visible here; the typeof guard keeps a future refactor
    from crashing the lock celebration). */
-function openLockShare(nextPhase, sent){
+async function openLockShare(nextPhase, sent){
   const L = CS.league; if(!L || state.demo) return;
   const SM = typeof STRUCT_MIN  !== 'undefined' ? STRUCT_MIN  : {solo:2,squads2:4,squads3:6,squads4:8};
   const SN = typeof STRUCT_NAMES!== 'undefined' ? STRUCT_NAMES: {};
-  const n = (CS.members||[]).length, min = SM[state.structure]||4;
+  /* setup-QA S2-04: CS.members is whatever league loaded LAST — at lock it
+     said "0 in" with the Pro standing there (and "2 in" on a second league).
+     Count this league's seats fresh; fall back to the local list. */
+  let n = (CS.members||[]).length;
+  try{ const { count } = await sb.from('league_members')
+        .select('*',{count:'exact',head:true}).eq('league_id', L.id);
+       if(count!=null) n = count; }catch(_){}
+  const min = SM[state.structure]||4;
   const need = Math.max(0, min - n);
   const struct = (SN[state.structure]||'the squads').toLowerCase();
+  const forms = state.draftType==='assign' ? 'you seat the squads' : 'the draw runs';
   const line = nextPhase === 'season'
     ? 'Season is live — every golfer you add posts from day one.'
-    : need ? `${n} in so far — ${need} more fills ${struct}, and the draw runs when the crew is in.`
-           : `${n} in — enough for ${struct}. Run the draw whenever you're ready.`;
+    : need ? `${n} in so far — ${need} more fills ${struct}, and ${forms} when the crew is in.`
+           : `${n} in — enough for ${struct}. ${state.draftType==='assign'?'Seat the squads':'Run the draw'} whenever you're ready.`;
   openSheet('Bylaws locked ⛳', 'One link fills the league', `
     <p class="fine" style="padding:0 0 10px">${esc(line)}${sent ? ` (${sent} already invited.)` : ''}</p>
     <div class="card" style="text-align:left; padding:10px 12px; margin-bottom:12px">
@@ -10141,6 +10192,11 @@ function applyBylaws(b){
   state.structure = b.structure;
   state.payout    = [b.payout_champ ?? 60, b.payout_runnerup ?? 25, b.payout_king ?? 15];
   state.finish    = b.finish || 'cup_final';   /* migration 008: the endgame dial */
+  /* setup-QA S4-02: draftType was write-only global state — set by the wizard
+     dial, never read back, so every league opened as blind draw (and held the
+     LAST league's formation across a switch). Rehydrate per league. */
+  state.draftType = ['random','assign','snake','live'].includes(b.draft_type)
+                    ? b.draft_type : 'random';
   renderSetup(); renderBylaws();
 }
 
@@ -10201,7 +10257,10 @@ async function enterLeague(m, nav=true){
   if(CS.profile){
     state.myIndex = Number(CS.profile.index_current) || state.myIndex;
     const pe = document.querySelector('#view-post .eyebrow');
-    if(pe) pe.textContent = 'Post a round · your index ' + state.myIndex.toFixed(1);
+    /* setup-QA S6-03: no minted number = say "building", not a flat 18.0 */
+    if(pe) pe.textContent = CS.profile.index_current==null
+      ? 'Post a round · your index builds at 3 rounds'
+      : 'Post a round · your index ' + state.myIndex.toFixed(1);
   }
   try { await loadLeagueData(); } catch(e){ bootTrace('league data: '+(e.message||e)); }
   /* resume an in-progress live round dropped by a refresh — runs after
@@ -10533,7 +10592,7 @@ function renderFormation(){
     <div class="card fm-squad tap" data-sq="${q.id}" style="margin-bottom:8px; ${CS.sel ? 'border-color:var(--pos);' : ''}">
       <div style="display:flex; align-items:center; gap:8px;">
         <span class="sw" style="background:${SQHEX[q.color] ?? SQHEX[0]}"></span><b>${esc(q.name)}</b>
-        <span class="fine" style="padding:0; margin-left:auto">${(q.squad_members||[]).length} PLAYERS</span>
+        <span class="fine" style="padding:0; margin-left:auto">${(q.squad_members||[]).length} PLAYER${(q.squad_members||[]).length===1?'':'S'}</span>
       </div>
       <div style="margin-top:6px">${(q.squad_members||[]).map(x =>
         `<div class="fine" style="padding:2px 0">${memMk(x.member_id)} ${esc(memName(x.member_id))}${q.captain_member_id===x.member_id?' \u00b7 C':''}</div>`).join('') || '<div class="fine" style="padding:2px 0; color:var(--dim)">Empty</div>'}</div>
@@ -10542,7 +10601,7 @@ function renderFormation(){
   $('#pool').innerHTML = pool.length
     ? '<div class="eyebrow">The pool</div>' + pool.map(m =>
         `<button class="mini" data-mem="${m.id}" style="margin:0 6px 6px 0; ${CS.sel===m.id?'border-color:var(--pos);color:var(--pos);':''}">${mkr(m.profile?.marker||'saguaro')} ${esc(m.profile?.display_name || '\u2014')}</button>`).join('')
-    : '<p class="fine">Pool is empty. players appear here as they join with the league code.</p>';
+    : '<p class="fine">Pool is empty. Players appear here as they join with the league code.</p>';
 
   const draw = $('#fmDraw');
   if(draw) draw.addEventListener('click', async () => {
@@ -10945,6 +11004,30 @@ $('#obDemo').addEventListener('click', () => {
   toast('Demo league: The Sunday Cup. Nothing here saves.');
 });
 
+/* setup-QA S3-01: money never surprises anybody. When a league carries a
+   buy-in, a signed-in join pauses on a one-tap covenant that names the stake
+   BEFORE join_league runs; $0 leagues keep the one-tap join. Fails open to
+   the old flow while the RPC isn't deployed (skew) — the post-join welcome
+   still discloses the pot either way. */
+async function covenantGate(code){
+  let info=null;
+  try{ const {data,error}=await sb.rpc('join_covenant_info',{p_code:code}); if(!error) info=data; }catch(_){}
+  if(!info || !Number(info.buyin_cents)) return true;
+  const usd=Math.round(Number(info.buyin_cents)/100);
+  return new Promise(res=>{
+    openSheet('Before you join '+(info.name||'this league'), 'THE FINE PRINT, UP FRONT', `
+      <div class="byrow"><span>BUY-IN</span><b>$${usd} / player · on the pot sheet</b></div>
+      ${info.preset?`<div class="byrow"><span>PRESET</span><b>${esc(String(info.preset).replace(/^./,c=>c.toUpperCase()))}</b></div>`:''}
+      ${Number(info.floor)?`<div class="byrow"><span>PARTICIPATION FLOOR</span><b>${info.floor} round${Number(info.floor)===1?'':'s'} / mo</b></div>`:''}
+      <div class="byrow"><span>FINISH</span><b>${info.finish==='points_table'?'Points table crowns it':'Cup Final · final 4 weeks'}</b></div>
+      <p class="fine" style="padding-top:10px">Joining puts you on the pot sheet for $${usd}. Cup Season keeps the tab; money moves between you on Venmo.</p>
+      <button class="btn" id="covJoin" style="margin-top:10px">Join — I’m in for $${usd}</button>
+      <button class="btn dark" id="covNo" style="margin-top:8px">Not now</button>`);
+    document.getElementById('covJoin')?.addEventListener('click',()=>res(true));
+    document.getElementById('covNo')?.addEventListener('click',()=>{ closeSheet(); res(false); });
+  });
+}
+
 $('#joinGo').addEventListener('click', async () => {
   const code = $('#joinCode').value.trim().toUpperCase();
   if(!code) return toast('Enter the league code');
@@ -10963,6 +11046,7 @@ $('#joinGo').addEventListener('click', async () => {
     return;
   }
   try {
+    if(!(await covenantGate(code))) return;   /* stake shown, golfer said not now */
     const { error } = await sb.rpc('join_league', { p_code: code });
     if(error) throw error;
     await loadMemberships();
@@ -11070,6 +11154,7 @@ function openJoinSheet(){
     if(!code){ toast('Enter the league code'); return; }
     $('#jGo').disabled = true;
     try{
+      if(!(await covenantGate(code))) return;   /* covenant sheet replaced this one */
       const { error } = await sb.rpc('join_league', { p_code: code });
       if(error) throw error;
       await loadMemberships();
@@ -11305,32 +11390,48 @@ window.enterLeagueById = async (id, nav=true) => {
 document.getElementById('hhDelete')?.addEventListener('click', async e => {
   e.preventDefault();
   if(state.demo || !CS.league || CS.member?.role !== 'commissioner') return;
-  const nm = CS.league.name;
+  const nm = CS.league.name, lid = CS.league.id;
   let others = 1;   /* unknown → assume someone's in, keep the heavy gate */
   try {
     const { count } = await sb.from('league_members')
       .select('*', { count: 'exact', head: true })
-      .eq('league_id', CS.league.id).neq('profile_id', CS.user.id);
+      .eq('league_id', lid).neq('profile_id', CS.user.id);
     others = count ?? 1;
   } catch(_){}
+  /* setup-QA S4-03: this gate ran on native confirm()/prompt(), which
+     installed/standalone PWAs (and some webviews) silently swallow — the
+     escape hatch was a dead link exactly where the app lives. In-app sheet;
+     the typed-name gate stays when other golfers are in. */
+  const run = async () => {
+    try {
+      const { error } = await sb.rpc('delete_league', { p_league: lid });
+      if(error) throw error;
+      closeSheet();
+      toast(nm + ' deleted. Every round stays on its golfer.');
+      await loadMemberships();
+      goClubhouse();
+    } catch(err){ toast(humanError(err)); }
+  };
   if(others === 0){
-    if(!confirm(`Delete ${nm}? It's just you in it — the league, its board and settings go completely.`)) return;
+    openSheet('Delete '+nm+'?', 'ONLY POSSIBLE BEFORE THE FIRST TEE', `
+      <p class="fine" style="padding-top:0">It's just you in it — the league, its board and settings go completely. Rounds stay on your golfer card.</p>
+      <button class="btn" id="delGo" style="margin-top:10px;background:var(--neg)">Delete the league</button>
+      <button class="btn dark" id="delNo" style="margin-top:8px">Keep it</button>`);
   } else {
-    const typed = prompt(
-      `This deletes ${nm} for everyone in it: members, board, pot sheet, squads. ` +
-      `Rounds stay on every golfer's profile. Type the league name to confirm:`);
-    if(typed === null) return;
-    if(typed.trim().toLowerCase() !== nm.trim().toLowerCase()){
-      toast('Name didn’t match: nothing deleted'); return;
-    }
+    openSheet('Delete '+nm+'?', 'THIS TAKES EVERYONE’S SEAT', `
+      <p class="fine" style="padding-top:0">This deletes ${esc(nm)} for everyone in it: members, board, pot sheet, squads. Rounds stay on every golfer's profile. Type the league name to confirm.</p>
+      <input class="f" id="delName" placeholder="${esc(nm)}" autocomplete="off" style="font-family:var(--sans)">
+      <button class="btn" id="delGo" style="margin-top:10px;background:var(--neg)">Delete for everyone</button>
+      <button class="btn dark" id="delNo" style="margin-top:8px">Keep it</button>`);
   }
-  try {
-    const { error } = await sb.rpc('delete_league', { p_league: CS.league.id });
-    if(error) throw error;
-    toast(nm + ' deleted. Every round stays on its golfer.');
-    await loadMemberships();
-    goClubhouse();
-  } catch(err){ toast(humanError(err)); }
+  document.getElementById('delNo')?.addEventListener('click', closeSheet);
+  document.getElementById('delGo')?.addEventListener('click', () => {
+    if(others > 0){
+      const typed = (document.getElementById('delName')?.value || '').trim().toLowerCase();
+      if(typed !== nm.trim().toLowerCase()){ toast('Name didn’t match: nothing deleted'); return; }
+    }
+    run();
+  });
 });
 
 /* ---------- the calendar's data: rounds on the books + every league's season */
@@ -11822,8 +11923,11 @@ window.ryderAssign = async (playerId, teamId)=>{
     await loadEvent(window.CS_EVENT.event.id); }catch(e){ toast(humanError(e)); }
 };
 window.ryderPair = async (sessionId)=>{
-  try{ const {error}=await sb.rpc('generate_pairings',{p_session:sessionId}); if(error)throw error;
-    toast('Pairings set'); await loadEvent(window.CS_EVENT.event.id); }catch(e){ toast(humanError(e, 'Pairing failed.')); }
+  try{ const {data,error}=await sb.rpc('generate_pairings',{p_session:sessionId}); if(error)throw error;
+    /* setup-QA S5-01: 0 pairs used to toast "Pairings set" while the session
+       read "Pairings not set." — say what actually happened */
+    toast(Number(data)>0 ? 'Pairings set' : 'Both teams need golfers first — no pairings made.');
+    await loadEvent(window.CS_EVENT.event.id); }catch(e){ toast(humanError(e, 'Pairing failed.')); }
 };
 window.ryderResolve = async (sessionId)=>{
   try{ const {error}=await sb.rpc('resolve_session',{p_session:sessionId}); if(error)throw error;
@@ -11941,7 +12045,7 @@ window.loadCareer = loadCareer;
    milestone flags) + season end dates for the league recap. Degrades to an
    empty feed if the RPC isn't deployed yet. */
 async function loadHome(){
-  if(!CS.user){ window.homeFeed=[]; window.leagueEnds={}; if(window.renderHomeHub) window.renderHomeHub(); return; }
+  if(!CS.user){ window.homeFeedRows=[]; window.leagueEnds={}; if(window.renderHomeHub) window.renderHomeHub(); return; }
   try {
     const ids = (CS.memberships||[]).map(m=>m.league.id);
     if(ids.length){
@@ -11950,8 +12054,8 @@ async function loadHome(){
       window.leagueEnds = ends;
     } else window.leagueEnds = {};
   } catch(e){ window.leagueEnds = window.leagueEnds||{}; }
-  try { const { data } = await sb.rpc('home_feed', { p_days: 21 }); window.homeFeed = data || []; }
-  catch(e){ window.homeFeed = window.homeFeed||[]; }
+  try { const { data } = await sb.rpc('home_feed', { p_days: 21 }); window.homeFeedRows = data || []; }
+  catch(e){ window.homeFeedRows = window.homeFeedRows||[]; }
   /* circle reactions ride the rounds just loaded (round → shared-league post) */
   try { await fetchHomeSocial(); } catch(e){ console.warn('[homeSocial]', e); }
   /* league moments for the one feed (IA P1): announcements + system + moment
@@ -12402,6 +12506,16 @@ function openLeagueWelcome(name){
   /* growth (2026-07-17): the covenant ends on the share ask — the moment
      someone joins is the moment they know who else belongs here */
   document.getElementById('cvShare')?.addEventListener('click', () => shareInvite());
+  /* setup-QA S3-01: the auto-join path (invite link + fresh signup) reaches
+     this covenant without ever seeing the stake — name the number here. */
+  if(!state.demo && CS.league?.id){
+    loadBylaws(CS.league.id).then(b=>{
+      const usd=Math.round(Number(b?.buyin_cents||0)/100);
+      if(!usd) return;
+      document.getElementById('shBody')?.insertAdjacentHTML('afterbegin',
+        `<p class="fine" style="padding:0 0 10px"><b style="color:var(--gold)">You're on the pot sheet: $${usd} buy-in.</b> The Pro tracks who's paid; money moves on Venmo.</p>`);
+    }).catch(()=>{});
+  }
 }
 window.openLeagueWelcome = openLeagueWelcome;
 document.getElementById('rulesScoreHelp')?.addEventListener('click', openScoringHelp);
