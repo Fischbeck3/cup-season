@@ -506,6 +506,14 @@ input.f::-webkit-outer-spin-button, input.f::-webkit-inner-spin-button{-webkit-a
   padding:9px 6px; border-radius:8px;
 }
 .seg button.on{background:var(--bg1); color:var(--ink); border:1px solid var(--line2);}
+/* photos arc 2 (ckpt 1): album grid · receipt hero · digest thumb */
+#albumGrid{display:grid; grid-template-columns:repeat(3,1fr); gap:6px;}
+#albumGrid .almonth{grid-column:1/-1; font-family:var(--mono); font-size:10.5px; letter-spacing:.14em; text-transform:uppercase; color:var(--dim); padding:10px 2px 2px;}
+#albumGrid .alcell{aspect-ratio:1; border:1px solid var(--line2); border-radius:10px; background-size:cover; background-position:center; cursor:pointer; padding:0;}
+#albumGrid .alcell:focus-visible{outline:2px solid var(--pos); outline-offset:2px;}
+.rcpt-hero{margin:0 0 12px;}
+.rcpt-hero img{width:100%; max-height:260px; object-fit:cover; border-radius:12px; border:1px solid var(--line2); display:block;}
+.digest .dgthumb{float:right; width:44px; height:44px; border-radius:10px; object-fit:cover; margin-left:10px; border:1px solid var(--line2);}
 .seg button:focus-visible{outline:2px solid var(--pos); outline-offset:-2px;}
 .preset{
   width:100%; text-align:left; cursor:pointer;
@@ -2695,6 +2703,7 @@ html[data-theme="light"] .room-dusk .btn:not(.dark):not(.gold):not(.apple){color
           <button data-room="board">Board</button>
           <button data-room="schedule">Schedule</button>
           <button data-room="pot">Pot</button>
+          <button data-room="album">Album</button>
           <button data-room="league">League</button>
         </div>
 
@@ -2873,6 +2882,14 @@ html[data-theme="light"] .room-dusk .btn:not(.dark):not(.gold):not(.apple){color
           </div>
         </details>
         </div><!-- /room-league -->
+
+        <!-- photos arc 2 (ckpt 1): the season album — the league's round
+             photos in one place, newest first. Data is the same rounds the
+             board already reads; the grid renders lazily on first open. -->
+        <div class="roompane" id="room-album">
+          <div class="eyebrow league-only" style="margin-top:0">The album · every round photo this season</div>
+          <div id="albumGrid"></div>
+        </div><!-- /room-album -->
         </div><!-- /room-grid -->
       </section>
 
@@ -3338,6 +3355,7 @@ function setRoomSeg(r){
   const rg=$('#roomGrid'); if(rg) rg.dataset.room=r;   /* Stage 3c: the desktop standings+board split keys off this */
   if(r==='schedule' && typeof renderCalendar==='function') renderCalendar();
   if(r==='pot' && typeof renderPot==='function') renderPot();
+  if(r==='album') window.renderAlbum?.();   /* module-side (needs sb) — guard the boundary */
 }
 $$('#roomSeg [data-room]').forEach(b=>b.addEventListener('click',()=>setRoomSeg(b.dataset.room)));
 function switchView(v){
@@ -4291,7 +4309,7 @@ function renderFeedFull(force){
            ternaries fall to '', so both opening tags are byte-for-byte
            <div class="fcard"><div class="round"> as before this change. */
         el.insertAdjacentHTML('beforeend',`
-        <div class="fcard${r.photo_url?' has-photo':''}"><div class="round${r.photo_url?' has-photo room-dusk tap':''}"${r.photo_url?` style="background-image:url('${esc(r.photo_url)}')" data-photo-open="${esc(r.photo_url)}" aria-label="${esc(f.who||'—')} — round photo"`:''}>
+        <div class="fcard${r.photo_url?' has-photo':''}"><div class="round${r.photo_url?' has-photo room-dusk tap':''}"${r.photo_url?` data-rcpt="${r.id}" aria-label="${esc(f.who||'—')} — open the round" style="background-image:url('${esc(r.photo_url)}')"`:''}>
           <span class="bar" style="background:${SQHEX[f.ci]}"></span>
           <div class="body">
             <div class="l1">${esc(f.who||'—')}</div>
@@ -4336,8 +4354,10 @@ function renderFeedFull(force){
      ~line 9558) — a tab left open past that hour opens a 403 on tap. Same
      staleness the card's own <img> background already carries; not new,
      not changed here. */
-  el.querySelectorAll('[data-photo-open]').forEach(c=>c.addEventListener('click',()=>{
-    window.open(c.dataset.photoOpen, '_blank', 'noopener');
+  /* photos arc 2: the photo card opens the round's receipt (photo + facts),
+     not a bare image tab — the photo stays attached to what it proves */
+  el.querySelectorAll('[data-rcpt]').forEach(c=>c.addEventListener('click',()=>{
+    openRoundReceipt(c.dataset.rcpt);
   }));
   wireSocial(el, 'f-');
   socialUiRestore(el, uiS, 'f-');
@@ -7516,7 +7536,12 @@ function renderHomeDigest(){
   }
   const best=dgBest(items);
   if(!best) return;
-  box.innerHTML=`<div class="digest"><span class="dk">Quiet since your last visit</span>${dgDay(best.t)} — ${dgLine(best)}</div>`;
+  /* photos arc 2 (ckpt 1): the resurfaced round brings its photo when it has
+     one — a thumb, tappable to the receipt, never a bare link */
+  const ph = best.r && best.r.photo_url
+    ? `<img class="dgthumb" src="${esc(best.r.photo_url)}" alt="" data-dg-rcpt aria-hidden="true">` : '';
+  box.innerHTML=`<div class="digest">${ph}<span class="dk">Quiet since your last visit</span>${dgDay(best.t)} — ${dgLine(best)}</div>`;
+  if(ph) box.querySelector('[data-dg-rcpt]')?.addEventListener('click', ()=>openRoundReceipt(best.r));
 }
 function renderHomeFeed(){
   const box=$('#homeFeed'); if(!box) return;
@@ -7836,10 +7861,11 @@ function renderCareer(){
        owner-only ×, delete_round RPC, standings views recompute on their own */
     const canDel = !state.demo && window.sb;
     yr.innerHTML = (c.recent && c.recent.length)
-      ? c.recent.map(r=>`<div class="fine" style="padding:3px 0; display:flex; justify-content:space-between; align-items:center; gap:8px;"><span>${r.played_on} · ${esc((r.course_label||'').toUpperCase())||'ROUND'}${r.holes_played===9?' · 9':''}</span><span style="display:flex; align-items:center; gap:12px;">${r.photo_url?`<button data-photo-open="${esc(r.photo_url)}" title="Round photo" aria-label="Open round photo" style="background:none; border:none; color:var(--dim); cursor:pointer; padding:2px 2px; line-height:1;"><svg class="ic" aria-hidden="true"><use href="#i-photo"/></svg></button>`:''}<b class="mono">${r.gross} · ${r.differential}</b>${canDel&&r.id?`<button data-delr="${r.id}" title="Delete this round" aria-label="Delete round" style="background:none; border:none; color:var(--dim); cursor:pointer; font-size:16px; line-height:1; padding:2px 4px;"><svg class="ic" aria-hidden="true"><use href="#i-close"/></svg></button>`:''}</span></div>`).join('')
+      ? c.recent.map((r,ri)=>`<div class="fine" style="padding:3px 0; display:flex; justify-content:space-between; align-items:center; gap:8px;"><span>${r.played_on} · ${esc((r.course_label||'').toUpperCase())||'ROUND'}${r.holes_played===9?' · 9':''}</span><span style="display:flex; align-items:center; gap:12px;">${(r.photo_url||r.photo_path)?`<button data-rcpt-i="${ri}" title="Round photo" aria-label="Open the round" style="background:none; border:none; color:var(--dim); cursor:pointer; padding:2px 2px; line-height:1;"><svg class="ic" aria-hidden="true"><use href="#i-photo"/></svg></button>`:''}<b class="mono">${r.gross} · ${r.differential}</b>${canDel&&r.id?`<button data-delr="${r.id}" title="Delete this round" aria-label="Delete round" style="background:none; border:none; color:var(--dim); cursor:pointer; font-size:16px; line-height:1; padding:2px 4px;"><svg class="ic" aria-hidden="true"><use href="#i-close"/></svg></button>`:''}</span></div>`).join('')
       : emptyState({ icon:'⛳', line:'No rounds yet — your card fills as you play.', ctaLabel:'Post your first round', ctaGo:'record' });
-    yr.querySelectorAll('[data-photo-open]').forEach(b=>b.addEventListener('click', ()=>{
-      window.open(b.dataset.photoOpen, '_blank', 'noopener');
+    /* photos arc 2: the receipt sheet carries the photo — no bare image tabs */
+    yr.querySelectorAll('[data-rcpt-i]').forEach(b=>b.addEventListener('click', ()=>{
+      const r=c.recent[Number(b.dataset.rcptI)]; if(r) openRoundReceipt(r);
     }));
     yr.querySelectorAll('[data-delr]').forEach(b=>b.addEventListener('click', async ()=>{
       if(!confirm('Delete this round? It leaves your card and any league standings it counted toward.')) return;
@@ -7966,6 +7992,32 @@ function openMemberHist(p){
       + (hist.some(h=>!h.counting)?'<p class="fine" style="padding-top:10px">Bumped rounds still happened — a better round took their monthly slot. A better round always bumps your worst counter.</p>':'')
     : emptyState({ icon:'⛳', line:'No rounds this season yet — post one and you\'re on the board.', ctaLabel:'Post a round', ctaGo:'record' });
   openSheet(p.n, `${p.r} ROUND${p.r===1?'':'S'} · ${p.pts} PTS`, body);
+}
+
+/* photos arc 2 (ckpt 1): the one round-receipts sheet — a round opened from
+   the board, the You tab, or the album shows its photo full-bleed above the
+   facts. Accepts a roundCache id or a row object; a row with photo_path but
+   no signed URL signs on demand (silent skip on failure — facts still show). */
+function openRoundReceipt(x){
+  const r = (x && typeof x==='object') ? x : (window.roundCache||{})[x];
+  if(!r) return;
+  const pvi = r.pvi!=null ? Number(r.pvi)
+    : (r.index_at_post!=null && r.differential!=null ? Number(r.index_at_post)-Number(r.differential) : null);
+  const capN=[2,4,6,Infinity][state.cap];
+  const line=[r.course_label||'somewhere out there', (r.holes_played||18)+' holes', r.played_on||''].filter(Boolean).join(' · ');
+  openSheet(r.gross!=null ? r.gross+' gross' : 'The round', line.toUpperCase(), `
+    <div class="rcpt-hero" id="rcptHero" style="${r.photo_url?'':'display:none'}">${r.photo_url?`<img src="${esc(r.photo_url)}" alt="Round photo">`:''}</div>
+    ${pvi!=null?`<div class="mathrow"><span>Against your number</span><b>${pvi>=0?'+':''}${pvi.toFixed(1)} — ${bandName(pvi).toUpperCase()}</b></div>`:''}
+    ${r.points!=null?`<div class="mathrow"><span>Points</span><b>${r.points}</b></div>`:''}
+    ${r.month_rank!=null?`<div class="mathrow"><span>This month</span><b>${r.month_rank<=capN?'COUNTING #'+r.month_rank:'BUMPED'}</b></div>`:''}
+    ${r.holes_played===9?`<div class="mathrow"><span>Nine holes</span><b>HALF VALUE · HALF A ROUND</b></div>`:''}`);
+  if(!r.photo_url && r.photo_path && window.sb && !state.demo){
+    window.sb.storage.from('media').createSignedUrl(r.photo_path, 3600).then(({data})=>{
+      const hb=document.getElementById('rcptHero');
+      if(data?.signedUrl && hb){ r.photo_url=data.signedUrl;
+        hb.innerHTML=`<img src="${esc(data.signedUrl)}" alt="Round photo">`; hb.style.display=''; }
+    }).catch(()=>{});
+  }
 }
 
 /* ================= drill-down receipts ================= */
@@ -12041,6 +12093,57 @@ async function loadCareer(){
   if(CS.profile && CS.profile.index_current==null) refreshWhoChip();
 }
 window.loadCareer = loadCareer;
+
+/* photos arc 2 (ckpt 1): the season album — every league round photo in one
+   grid, newest first, month dividers. Same rounds table the board reads (RLS
+   already lets league mates see each other's rounds); one batched signing
+   call; tap opens the round receipt. Renders lazily on first segment open. */
+async function renderAlbum(){
+  const box = document.getElementById('albumGrid'); if(!box) return;
+  const MON=['January','February','March','April','May','June','July','August','September','October','November','December'];
+  const empty = () => { box.innerHTML =
+    '<p class="fine" style="padding:8px 2px">Photos land here when rounds carry them — add one from the Post card.</p>'; };
+  if(!window.sb || !CS?.user || !CS?.league){ empty(); return; }
+  box.innerHTML = '<p class="fine" style="padding:8px 2px">Opening the album…</p>';
+  try {
+    const pids = (CS.members||[]).map(m => m.profile_id).filter(Boolean);
+    if(!pids.length){ empty(); return; }
+    const { data: rows, error } = await sb.from('rounds')
+      .select('id, profile_id, gross, differential, index_at_post, played_on, course_label, holes_played, photo_path')
+      .in('profile_id', pids).not('photo_path', 'is', null)
+      .order('played_on', { ascending: false }).limit(60);
+    if(error) throw error;
+    if(!(rows||[]).length){ empty(); return; }
+    const { data: signed } = await sb.storage.from('media')
+      .createSignedUrls(rows.map(r => r.photo_path), 3600);
+    const url = {}; (signed||[]).forEach(s => { if(s?.signedUrl) url[s.path] = s.signedUrl; });
+    const nameOf = pid => {
+      const m = (CS.members||[]).find(m => m.profile_id === pid);
+      return m?.profile?.display_name || 'A golfer';
+    };
+    let html = '', lastMo = null, shown = 0;
+    const byId = {};
+    rows.forEach(r => {
+      const u = url[r.photo_path]; if(!u) return;
+      r.photo_url = u; byId[r.id] = r; shown++;
+      const mo = String(r.played_on||'').slice(0,7);
+      if(mo !== lastMo){
+        const [y,m] = mo.split('-');
+        html += `<div class="almonth">${MON[Number(m)-1]||''} ${y}</div>`;
+        lastMo = mo;
+      }
+      html += `<button class="alcell" data-alr="${r.id}" style="background-image:url('${u.replace(/'/g,'%27')}')" aria-label="${(window.esc||String)(nameOf(r.profile_id))} — ${r.gross??''} at ${(window.esc||String)(r.course_label||'the course')}, ${r.played_on||''}"></button>`;
+    });
+    if(!shown){ empty(); return; }
+    box.innerHTML = html;
+    box.querySelectorAll('[data-alr]').forEach(b => b.addEventListener('click', () => {
+      const r = byId[b.dataset.alr];
+      if(r && window.openRoundReceipt) window.openRoundReceipt(r);
+    }));
+  } catch(e){ empty(); }
+}
+window.renderAlbum = renderAlbum;
+
 /* the Home welcome feed: your circle's recent rounds (home_feed RPC, with PR /
    milestone flags) + season end dates for the league recap. Degrades to an
    empty feed if the RPC isn't deployed yet. */
@@ -12056,6 +12159,21 @@ async function loadHome(){
   } catch(e){ window.leagueEnds = window.leagueEnds||{}; }
   try { const { data } = await sb.rpc('home_feed', { p_days: 21 }); window.homeFeedRows = data || []; }
   catch(e){ window.homeFeedRows = window.homeFeedRows||[]; }
+  /* photos arc 2 (ckpt 1): one batched signing per load turns the circle's
+     photo paths into hour URLs (receipt hero + quiet-day thumb). Skew-safe:
+     a pre-migration payload has no photo_path and the filter finds nothing. */
+  try {
+    const wp = (window.homeFeedRows||[]).filter(r => r.photo_path).slice(0, 14);
+    if(wp.length){
+      const { data: signed } = await sb.storage.from('media')
+        .createSignedUrls(wp.map(r => r.photo_path), 3600);
+      (signed||[]).forEach(s => {
+        if(!s?.signedUrl) return;
+        const r = wp.find(r => r.photo_path === s.path);
+        if(r) r.photo_url = s.signedUrl;
+      });
+    }
+  } catch(e){ /* rows render photo-less */ }
   /* circle reactions ride the rounds just loaded (round → shared-league post) */
   try { await fetchHomeSocial(); } catch(e){ console.warn('[homeSocial]', e); }
   /* league moments for the one feed (IA P1): announcements + system + moment
