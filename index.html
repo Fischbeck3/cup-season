@@ -249,7 +249,18 @@ button{font-family:var(--sans); touch-action:manipulation; color:var(--ink);}
 .climb-rung.in{animation:climbIn .22s ease-out;}
 @keyframes climbIn{from{opacity:0}}
 .climb-ghost{position:absolute; left:0; right:0; margin:0; pointer-events:none; transition:opacity .2s ease-out;}
-@media (prefers-reduced-motion:reduce){ .climb-rung.in{animation:none;} .climb-ghost{display:none;} }
+/* C3 - the flip board: a lead change is news posted by hand. The affected rank
+   and points cells half-turn like the manual-board slats at the majors (WAAPI,
+   in applyClimb); one ripple - the roar - leaves the overtaking row; and the
+   leader's gold paints only AFTER the flip lands: earned, then painted. */
+.climb-rung{position:relative;}
+.climb-rung .nm{transition:color .3s ease;}
+.climb-rung.lead .nm{color:var(--gold);}
+.climb-rung.lead.lead-wait .nm{color:var(--ink);}
+.climb-roar{position:absolute; inset:0; border:1.5px solid var(--brand); border-radius:9px; pointer-events:none; opacity:0;}
+.climb-roar.go{animation:csRoar .8s ease-out forwards;}
+@keyframes csRoar{0%{opacity:.55; transform:scale(.98,.96);} 100%{opacity:0; transform:scale(1.55,3.4);}}
+@media (prefers-reduced-motion:reduce){ .climb-rung.in{animation:none;} .climb-ghost{display:none;} .climb-roar{display:none;} }
 .climb-empty{font-family:var(--mono); font-size:11px; letter-spacing:.1em; color:var(--dim); text-align:center; padding:26px 10px; line-height:1.9;}
 .climb-empty span{opacity:.7; font-size:10px;}
 .standStory{font-family:var(--serif); font-size:13px; line-height:1.45; color:var(--ink); padding:2px 2px 10px; margin-bottom:2px; border-bottom:1px solid var(--line);}
@@ -1097,9 +1108,9 @@ html[data-theme="light"] .momrow{background:rgba(21,116,63,.06);}
   font-family:var(--mono); font-size:11.5px; letter-spacing:.2em; text-transform:uppercase;
   color:var(--pos); display:flex; align-items:center; gap:8px;
 }
-.livebanner .dot{width:8px; height:8px; border-radius:50%; background:var(--pos); animation:pulse 1.6s ease infinite;}
-@keyframes pulse{0%,100%{opacity:1;} 50%{opacity:.25;}}
-@media(prefers-reduced-motion:reduce){ .livebanner .dot{animation:none;} }
+/* the dot no longer loops - it breathes once every 8s via WAAPI (hygiene
+   rule: infinite loops are loaders only; the interval lives in script 3) */
+.livebanner .dot{width:8px; height:8px; border-radius:50%; background:var(--pos);}
 .livebanner .ln{font-size:22px; font-weight:700; letter-spacing:-.01em; margin:8px 0 3px;}
 .livebanner .lm{font-family:var(--mono); font-size:12px; color:var(--mut); letter-spacing:.06em;}
 .livebanner .go{position:absolute; right:16px; top:50%; transform:translateY(-50%); color:var(--dim); font-size:16px;}
@@ -1348,6 +1359,24 @@ html[data-theme="light"] .momrow{background:rgba(21,116,63,.06);}
 @keyframes csPulse{0%,100%{opacity:1; transform:scale(1);} 50%{opacity:.55; transform:scale(1.35);}}
 @keyframes csRing{0%{transform:scale(.6); opacity:.8;} 100%{transform:scale(2.6); opacity:0;}}
 @keyframes csFade{from{opacity:0;} to{opacity:1;}}
+/* C1 - the last ten feet: the flag PLANTS (a stick pushed into turf, 2px
+   overshoot), the pennant answers with one waggle, the last ball drops at the
+   lip, the ground answers ONCE, and each squad wipe deposits its scoreline
+   tick as it clears. All of it lands inside the existing 0-2.05s door budget
+   by overlap - hero/door/caption delays are untouched. */
+@keyframes csPlant{0%{opacity:0; transform:translateY(12px);} 55%{opacity:1; transform:translateY(-2px);} 100%{opacity:1; transform:translateY(0);}}
+@keyframes csWag{0%,100%{transform:rotate(0);} 35%{transform:rotate(-6deg);} 70%{transform:rotate(2.5deg);}}
+@keyframes csBallIn{0%{opacity:0; transform:translateY(-9px) scale(1);} 30%{opacity:1;} 100%{opacity:0; transform:translateY(2px) scale(.55);}}
+@keyframes csTick{from{opacity:0; transform:scaleX(0);} to{opacity:1; transform:scaleX(1);}}
+.obflag{transform-box:fill-box; transform-origin:50% 100%; animation:csPlant .55s var(--roll) 1.45s both;}
+.obpen{transform-box:fill-box; transform-origin:0% 50%; animation:csWag .5s ease 2.0s both;}
+.obball{transform-box:fill-box; transform-origin:center; opacity:0; animation:csBallIn .24s ease-in 1.73s both;}
+.obring1{transform-box:fill-box; transform-origin:center; opacity:0; animation:csRing .9s ease-out 1.8s both;}
+.ob-ticks i{transform-origin:left center; animation:csTick .16s var(--roll) both;}
+.ob-ticks i:nth-child(1){animation-delay:1.12s;}
+.ob-ticks i:nth-child(2){animation-delay:.88s;}
+.ob-ticks i:nth-child(3){animation-delay:.96s;}
+.ob-ticks i:nth-child(4){animation-delay:1.2s;}
 @media(prefers-reduced-motion:reduce){
   .onboard *{animation:none !important; transition:none !important;}
   .ob-splash{display:none;}
@@ -1619,7 +1648,21 @@ html[data-theme="light"] .btn:not(.dark):not(.gold):not(.apple){color:#FFFFFF;}
 #finish.open{display:flex;}
 .finish-card{width:100%; max-width:440px; text-align:center; display:flex; flex-direction:column; align-items:center;}
 .finish-eyebrow{font-family:var(--mono); font-size:12px; font-weight:500; letter-spacing:.22em; text-transform:uppercase; color:#8FA096;}
-.finish-gross{font-family:var(--serif); font-variant-numeric:tabular-nums; font-weight:700; font-size:clamp(84px,26vw,96px); line-height:.94; color:#ECEEF2; margin-top:18px;}
+.gross-slot{position:relative; margin-top:18px;}
+.finish-gross{font-family:var(--serif); font-variant-numeric:tabular-nums; font-weight:700; font-size:clamp(84px,26vw,96px); line-height:.94; color:#ECEEF2;}
+/* C2 - the drop: the ball rolls out of the left along the gross baseline, dies
+   at center, hangs, and DROPS - the number lands where it fell. The ~1s pause
+   is the held breath; ceremony surface, the added second is the point. Spin is
+   sold by an off-center dimple rotating inside the wrapper; pure transform. */
+.finish-ball{position:absolute; left:50%; bottom:6px; width:13px; height:13px; margin-left:-6px; opacity:0; pointer-events:none;}
+.finish-ball i{display:block; width:100%; height:100%; position:relative;}
+.finish-ball i::before{content:""; position:absolute; inset:0; border-radius:50%; background:#F4F7F4;}
+.finish-ball i::after{content:""; position:absolute; left:2.5px; top:5.5px; width:3px; height:3px; border-radius:50%; background:#B9C2BB;}
+@keyframes csPutt{0%{opacity:0; transform:translateX(-150px);} 12%{opacity:1;} 100%{opacity:1; transform:translateX(0);}}
+@keyframes csSpin{from{transform:rotate(0);} to{transform:rotate(500deg);}}
+@keyframes csDrop{from{opacity:1; transform:translateY(0) scale(1);} to{opacity:0; transform:translateY(15px) scale(.6);}}
+#finish.open .finish-ball{animation:csPutt .9s var(--roll) .15s both, csDrop .24s ease-in 1.08s forwards;}
+#finish.open .finish-ball i{animation:csSpin .9s var(--roll) .15s both;}
 .finish-band{font-family:var(--serif); font-size:19px; line-height:1.32; color:#ECEEF2; margin-top:12px;}
 .finish-pts{font-family:var(--mono); font-size:13px; font-weight:600; letter-spacing:.16em; text-transform:uppercase; margin-top:24px; min-height:1em;}
 .finish-pts.earned{color:#D8B25A;}   /* champagne — league points, EARNED */
@@ -1636,13 +1679,69 @@ html[data-theme="light"] .btn:not(.dark):not(.gold):not(.apple){color:#FFFFFF;}
 .finish-back{margin-top:8px; padding:12px; border:0; background:none; cursor:pointer;
   font-family:var(--sans); font-size:14px; font-weight:500; color:#8FA096;}
 .finish-back:focus-visible{outline:2px solid #8FA096; outline-offset:2px; border-radius:6px;}
-/* the reveal — staggered roll-in on the brand's one easing */
-#finish.open .finish-gross{animation:finishRoll .64s var(--roll) both;}
-#finish.open .finish-band{animation:finishRoll .64s var(--roll) .15s both;}
-#finish.open .finish-pts{animation:finishRoll .64s var(--roll) .3s both;}
+/* the reveal — staggered roll-in on the brand's one easing, held until the
+   ball drops (C2): gross lands at 1.18s where the ball fell */
+#finish.open .finish-gross{animation:finishRoll .64s var(--roll) 1.18s both;}
+#finish.open .finish-band{animation:finishRoll .64s var(--roll) 1.36s both;}
+#finish.open .finish-pts{animation:finishRoll .64s var(--roll) 1.54s both;}
+#finish.open .finish-rule, #finish.open .finish-share, #finish.open .finish-back{animation:csFade .5s ease 1.9s both;}
 @keyframes finishRoll{from{opacity:0; transform:translateY(14px);} to{opacity:1; transform:none;}}
 @media(prefers-reduced-motion:reduce){
-  #finish.open .finish-gross, #finish.open .finish-band, #finish.open .finish-pts{animation:none;}
+  #finish.open .finish-gross, #finish.open .finish-band, #finish.open .finish-pts,
+  #finish.open .finish-rule, #finish.open .finish-share, #finish.open .finish-back{animation:none;}
+  #finish.open .finish-ball{display:none;}
+}
+
+/* ============ motion moments (dossier C4/C5/C6/C9/C10) ============ */
+/* C5 - the month seal: stampIn's cousin, but a chapter close LANDS AND STAYS,
+   canted 1.4deg like a hand set it. Fresh league-event cards arrive with the
+   thock; cards whose body says a month closed keep the cant (information - a
+   hand set this - so reduced motion keeps it too). */
+@keyframes csSeal{
+  0%{opacity:0; transform:scale(1.35) rotate(-1.4deg);}
+  22%{opacity:1; transform:scale(.965) rotate(-1.4deg);}
+  38%{transform:scale(1.012) rotate(-1.4deg);}
+  55%{transform:scale(1) rotate(-1.4deg);}
+  100%{opacity:1; transform:scale(1) rotate(-1.4deg);}
+}
+.check.sealin > .tt > b{display:inline-block; transform-origin:center; animation:csSeal .6s var(--roll) both;}
+.check.sealed > .tt > b{display:inline-block; transform:rotate(-1.4deg);}
+/* C4 - the engraver: a new trophy takes its name the afternoon it's won. An
+   opaque cover (plate-matched ground) slides off left-to-right; the leading
+   edge is a gold needle. Pure translateX - no clip-path. Plays ONCE, when a
+   trophy ARRIVES in the case, never on revisit. */
+@keyframes csEngrave{from{transform:translateX(0);} to{transform:translateX(103%);}}
+.tcell{position:relative;}
+.tcell .tmint{position:relative; display:inline-block; overflow:hidden; max-width:100%; vertical-align:bottom;}
+.tcell .tmint .tcover{position:absolute; inset:0; background:var(--bg2); border-left:2px solid var(--gold); box-shadow:-2px 0 10px rgba(216,178,90,.5);}
+.tcell.mintin{animation:csUp .5s var(--roll) both;}
+.tcell.mintin .tcover{animation:csEngrave 1.1s var(--roll) .5s forwards;}
+/* C6/C9 - the odometer: digit strips roll like gauges absorbing an entry;
+   built by csOdo() (right-to-left stagger, always rolling upward). Tabular
+   digits so nothing reflows. Reduced motion swaps instantly (csOdo checks). */
+.odo{display:inline-block; height:1em; overflow:hidden; vertical-align:baseline;}
+.odo .odostrip{display:flex; flex-direction:column; transition:transform .7s var(--roll);}
+.odo .odostrip b{display:block; height:1em; line-height:1; font-weight:inherit;}
+/* C9 - your number mints: the third round lands and an em-dash becomes YOUR
+   number. One quiet ring answers - identity, not a lead: no gold. */
+.mintwrap{position:relative; display:inline-block;}
+.mintring{position:absolute; left:50%; top:50%; width:34px; height:34px; margin:-17px 0 0 -17px; border:1.5px solid var(--pos); border-radius:50%; pointer-events:none; transform-origin:center; animation:csRing .9s ease-out both;}
+/* C10 - the taunt lands: an incoming duel target chips onto your green -
+   arcs in, squashes at touch, settles. Banter, never gold, never >350ms. */
+@keyframes csRise{
+  0%{opacity:0; transform:translate(-10px,-18px);}
+  60%{opacity:1; transform:translate(0,2px) scale(1.04,.94);}
+  100%{opacity:1; transform:none;}
+}
+.evduel .pv.pvrise{animation:csRise .3s var(--roll) both;}
+@media(prefers-reduced-motion:reduce){
+  .check.sealin > .tt > b{animation:none; transform:none;}
+  .check.sealed > .tt > b{transform:rotate(-1.4deg);}   /* the cant is information */
+  .tcell.mintin{animation:none;}
+  .tcell .tmint .tcover{display:none;}
+  .odo .odostrip{transition:none;}
+  .mintring{display:none;}
+  .evduel .pv.pvrise{animation:none;}
 }
 
 /* ============ rooms, not themes (2.2): ceremony renders in the trophy room ============
@@ -1880,18 +1979,21 @@ html[data-theme="light"] .room-dusk .btn:not(.dark):not(.gold):not(.apple){color
           <ellipse cx="230" cy="233" rx="78" ry="22" stroke="#43E07C" stroke-opacity=".18" stroke-width="1.5"/>
           <ellipse cx="230" cy="230" rx="44" ry="13" stroke="#43E07C" stroke-opacity=".30" stroke-width="1.5"/>
         </g>
-        <path d="M-24 96 C 80 118, 160 176, 224 224" stroke="#57A8FF" stroke-width="2.6" opacity=".85" stroke-linecap="round" stroke-dasharray="560" style="stroke-dashoffset:560; animation:csDraw 1.9s ease .25s forwards"></path>
-        <path d="M96 -20 C 140 66, 190 160, 227 222" stroke="#A78BFA" stroke-width="2.6" opacity=".85" stroke-linecap="round" stroke-dasharray="560" style="stroke-dashoffset:560; animation:csDraw 1.9s ease .45s forwards"></path>
-        <path d="M364 -20 C 320 66, 270 160, 233 222" stroke="#FB8B4B" stroke-width="2.6" opacity=".85" stroke-linecap="round" stroke-dasharray="560" style="stroke-dashoffset:560; animation:csDraw 1.9s ease .65s forwards"></path>
-        <path d="M484 96 C 380 118, 300 176, 236 224" stroke="#2FD3BE" stroke-width="2.6" opacity=".85" stroke-linecap="round" stroke-dasharray="560" style="stroke-dashoffset:560; animation:csDraw 1.9s ease .85s forwards"></path>
-        <g style="animation:csFade 1s ease 1.2s both">
+        <path class="obtr" d="M-24 96 C 80 118, 160 176, 224 224" stroke="#57A8FF" stroke-width="2.6" opacity=".85" stroke-linecap="round" stroke-dasharray="560" style="stroke-dashoffset:560; animation:csDraw 1.05s ease .20s forwards"></path>
+        <path class="obtr" d="M96 -20 C 140 66, 190 160, 227 222" stroke="#A78BFA" stroke-width="2.6" opacity=".85" stroke-linecap="round" stroke-dasharray="560" style="stroke-dashoffset:560; animation:csDraw 1.05s ease .36s forwards"></path>
+        <path class="obtr" d="M364 -20 C 320 66, 270 160, 233 222" stroke="#FB8B4B" stroke-width="2.6" opacity=".85" stroke-linecap="round" stroke-dasharray="560" style="stroke-dashoffset:560; animation:csDraw 1.05s ease .52s forwards"></path>
+        <path class="obtr" d="M484 96 C 380 118, 300 176, 236 224" stroke="#2FD3BE" stroke-width="2.6" opacity=".85" stroke-linecap="round" stroke-dasharray="560" style="stroke-dashoffset:560; animation:csDraw 1.05s ease .68s forwards"></path>
+        <g class="obflag">
           <ellipse cx="230" cy="226" rx="15" ry="5.5" fill="#04110A" stroke="#0F3520" stroke-width="2"></ellipse>
           <path d="M236 223V120" stroke="#F4F7F4" stroke-width="4" stroke-linecap="round"></path>
-          <path d="M236 120l38 13-38 13z" fill="#E9BE62"></path>
+          <path class="obpen" d="M236 120l38 13-38 13z" fill="#E9BE62"></path>
         </g>
-        <ellipse cx="230" cy="226" rx="15" ry="5.5" stroke="#43E07C" stroke-width="1.5" style="transform-box:fill-box; transform-origin:center; animation:csRing 2.8s ease-out 2.2s infinite"></ellipse>
+        <circle class="obball" cx="230" cy="224" r="4.5" fill="#F4F7F4"></circle>
+        <ellipse class="obring1" cx="230" cy="226" rx="15" ry="5.5" stroke="#43E07C" stroke-width="1.5"></ellipse>
+        <ellipse cx="230" cy="226" rx="15" ry="5.5" stroke="#43E07C" stroke-width="1.5" style="transform-box:fill-box; transform-origin:center; animation:csRing 2.8s ease-out 3.6s infinite"></ellipse>
       </svg>
     </div>
+    <div class="ob-ticks" aria-hidden="true" style="justify-content:center"><i style="background:var(--sq3)"></i><i style="background:var(--sq2)"></i><i style="background:var(--sq1)"></i><i style="background:var(--sq0)"></i></div>
     <div class="ob-hero">
       <div class="ob-mark">
         <svg class="ob-logo" viewBox="0 0 96 96" width="44" height="44" fill="none" aria-hidden="true">
@@ -2809,7 +2911,7 @@ html[data-theme="light"] .room-dusk .btn:not(.dark):not(.gold):not(.apple){color
 <div id="finish" role="dialog" aria-modal="true" aria-label="Round posted" aria-hidden="true">
   <div class="finish-card">
     <div class="finish-eyebrow" id="finEyebrow"></div>
-    <div class="finish-gross" id="finGross"></div>
+    <div class="gross-slot"><div class="finish-ball" aria-hidden="true"><i></i></div><div class="finish-gross" id="finGross"></div></div>
     <div class="finish-band" id="finBand"></div>
     <div class="finish-pts" id="finPts"></div>
     <div class="finish-rule" aria-hidden="true"></div>
@@ -2939,12 +3041,113 @@ let toastT;
     ['obDoor','obCaption'].forEach(id=>{ const e=document.getElementById(id); if(e){ e.style.animation='none'; e.style.opacity='1'; } });
     document.querySelectorAll('.onboard .ob-hero').forEach(h=>{ h.style.animation='none'; h.style.opacity='1'; });
     document.querySelectorAll('.ob-wing').forEach(el=>{ el.style.animation='none'; el.style.opacity='1'; });
+    /* C1 additions ride the same net: ticks and flag end visible, the
+       transient ball/ring/comets end gone - never the other way around */
+    document.querySelectorAll('.ob-ticks i, .obflag').forEach(el=>{ el.style.animation='none'; el.style.opacity='1'; });
+    document.querySelectorAll('.obball, .obring1, .ob-comet').forEach(el=>{ el.style.animation='none'; el.style.opacity='0'; });
   }
   /* after the intended animation window (chain ends ~2.35s: wings 1.65+.7);
      and instantly whenever the tab is shown */
   setTimeout(forceReveal, 2500);
   document.addEventListener('visibilitychange', ()=>{ if(!document.hidden) forceReveal(); });
 })();
+
+/* ---- C1: comet heads ride the tracer draws ----
+   A bright dot rides each crest tracer while it draws (the shot in flight).
+   Pure transform: the path is sampled with getPointAtLength into WAAPI
+   translate keyframes - no offset-path, no layout. Decoration only: spawned
+   after load, RM-guarded, self-terminating (ends at opacity 0), and the
+   forceReveal net above can kill it. */
+(function(){
+  if(matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  var ob=document.querySelector('.onboard');
+  if(!ob || ob.classList.contains('hide')) return;
+  var svg=ob.querySelector('.ob-crest svg'); if(!svg) return;
+  var DELAYS=[.20,.36,.52,.68], DRAW=1050;
+  ob.querySelectorAll('.obtr').forEach(function(path,i){
+    try{
+      var len=path.getTotalLength();
+      var dot=document.createElementNS('http://www.w3.org/2000/svg','circle');
+      dot.setAttribute('r','4'); dot.setAttribute('fill', path.getAttribute('stroke')||'#F4F7F4');
+      dot.setAttribute('class','ob-comet'); dot.style.opacity='0';
+      svg.appendChild(dot);
+      var N=36, frames=[];
+      for(var k=0;k<=N;k++){
+        var p=path.getPointAtLength(len*k/N);
+        frames.push({transform:'translate('+p.x+'px, '+p.y+'px)', opacity:(k===0||k===N)?0:1});
+      }
+      var a=dot.animate(frames, {duration:DRAW, delay:DELAYS[i]*1000, easing:'ease', fill:'both'});
+      a.onfinish=function(){ dot.remove(); };
+    }catch(_){}
+  });
+})();
+
+/* ---- C6/C9: the odometer (csOdo) ----
+   Rolls only the digits that changed, right-to-left, 60ms apart, always
+   upward (odometers turn one way). Non-digits render as plain spans. Reduced
+   motion (and first paint) swap instantly. Strips hold 0-9 twice so any
+   target is reachable rolling up; after the roll each strip silently re-homes
+   to the low bank. */
+function csOdo(el, txt){
+  if(!el) return;
+  txt=String(txt);
+  var old=el.dataset.odo!=null ? String(el.dataset.odo) : null;
+  el.dataset.odo=txt;
+  var rm=matchMedia('(prefers-reduced-motion:reduce)').matches;
+  if(old===txt) return;
+  if(rm || old===null || old.length!==txt.length){ el.textContent=txt; return; }
+  var frag=document.createDocumentFragment(), rolls=[];
+  for(var i=0;i<txt.length;i++){
+    var ch=txt[i], oc=old[i];
+    if(/\d/.test(ch) && /\d/.test(oc)){
+      var win=document.createElement('span'); win.className='odo';
+      var strip=document.createElement('span'); strip.className='odostrip';
+      var hh=''; for(var d=0; d<20; d++) hh+='<b>'+(d%10)+'</b>';
+      strip.innerHTML=hh;
+      var from=+oc, to=+ch;
+      var next= from + (((to-from)+10)%10);
+      strip.style.transition='none';
+      strip.style.transform='translateY(-'+from+'em)';
+      win.appendChild(strip); frag.appendChild(win);
+      if(from!==to) rolls.push({strip:strip, next:next, home:to, slot:i});
+      else strip.style.transform='translateY(-'+to+'em)';
+    } else {
+      var s=document.createElement('span'); s.textContent=ch; frag.appendChild(s);
+    }
+  }
+  el.textContent=''; el.appendChild(frag);
+  void el.offsetWidth;
+  var n=txt.length;
+  rolls.forEach(function(r){
+    r.strip.style.transition='';
+    r.strip.style.transitionDelay=((n-1-r.slot)*60)+'ms';
+    r.strip.style.transform='translateY(-'+r.next+'em)';
+    r.strip.ontransitionend=function(){
+      r.strip.ontransitionend=null;
+      r.strip.style.transition='none'; r.strip.style.transitionDelay='';
+      r.strip.style.transform='translateY(-'+r.home+'em)';
+      void r.strip.offsetWidth;
+      r.strip.style.transition='';
+    };
+  });
+}
+
+/* ---- ambient-rule hygiene: the live dot ----
+   The last always-on loop (the live-banner dot's infinite pulse) becomes a
+   single answer every 8s - WAAPI, paused by document.hidden, skipped under
+   reduced motion. Loops are for loaders; ambient signals breathe, not blink. */
+setInterval(function(){
+  if(document.hidden) return;
+  if(matchMedia('(prefers-reduced-motion:reduce)').matches) return;
+  document.querySelectorAll('.livebanner .dot').forEach(function(dot){
+    if(!dot.offsetParent) return;   /* banner hidden */
+    dot.animate([
+      {transform:'scale(1)', opacity:1},
+      {transform:'scale(1.4)', opacity:.45},
+      {transform:'scale(1)', opacity:1}
+    ], {duration:650, easing:'ease-out'});
+  });
+}, 8000);
 
 /* ---- desktop-arc: the door wings ----
    A hand-authored diorama (the door is pre-auth — no real data). Loops:
@@ -3257,12 +3460,49 @@ function climbOrd(n){ const v=n%100; return (v>=11&&v<=13) ? n+'th' : n+(['th','
 /* FLIP + enter/leave fade. Rows keyed by data-cid: surviving rows glide to
    their new spot, new rows fade in, rows leaving the window fade out as
    absolutely-positioned ghosts. Reduced-motion gets a plain swap. */
+/* C3 slat: one cell of the manual board - the old value folds up (150ms
+   ease-in), the operator swaps the card, the new value swings down (180ms
+   ease-out). Exits faster than entrances; both halves transform-only. */
+function csSlat(cell, newText){
+  if(!cell) return;
+  if(matchMedia('(prefers-reduced-motion:reduce)').matches){ cell.textContent=newText; return; }
+  const a=cell.animate([{transform:'rotateX(0)'},{transform:'rotateX(90deg)'}], {duration:150, easing:'cubic-bezier(.5,0,.9,.4)', fill:'forwards'});
+  a.onfinish=()=>{
+    cell.textContent=newText;
+    cell.animate([{transform:'rotateX(-90deg)'},{transform:'rotateX(0)'}], {duration:180, easing:'cubic-bezier(.16,.84,.36,1)', fill:'forwards'});
+  };
+}
 function applyClimb(box, html){
   const prevRows=box.querySelectorAll('[data-cid]');
   if(matchMedia('(prefers-reduced-motion:reduce)').matches || !prevRows.length){ box.innerHTML=html; return; }
   const first=new Map();
   prevRows.forEach(r=>first.set(r.getAttribute('data-cid'), {top:r.offsetTop, node:r}));
+  /* C3: remember who led and what the affected cells said, so a lead change
+     can flip slat-by-slat instead of teleporting */
+  const oldLead=box.querySelector('.climb-rung.lead')?.getAttribute('data-cid')||null;
+  const oldVals=new Map();
+  prevRows.forEach(r=>{ if(r.classList.contains('climb-rung')) oldVals.set(r.getAttribute('data-cid'), {rk:r.querySelector('.rk')?.textContent, pts:r.querySelector('.pts')?.textContent}); });
   box.innerHTML=html;
+  /* the lead changed hands: news. Slat the two affected rows, roar from the
+     overtaker, and hold the gold until the flip lands (earned, then painted). */
+  const newLeadEl=box.querySelector('.climb-rung.lead');
+  const newLead=newLeadEl?.getAttribute('data-cid')||null;
+  if(oldLead && newLead && oldLead!==newLead){
+    newLeadEl.classList.add('lead-wait');
+    [newLead, oldLead].forEach((cid,ix)=>{
+      const row=box.querySelector('.climb-rung[data-cid="'+(window.CSS&&CSS.escape?CSS.escape(cid):cid)+'"]');
+      if(!row) return;
+      const rk=row.querySelector('.rk'), pts=row.querySelector('.pts');
+      const was=oldVals.get(cid);
+      const rkNew=rk?.textContent, ptsNew=pts?.textContent;
+      if(was && rk && was.rk!==rkNew){ rk.textContent=was.rk; setTimeout(()=>csSlat(rk, rkNew), 380+ix*140); }
+      if(was && pts && was.pts!==ptsNew){ pts.textContent=was.pts; setTimeout(()=>csSlat(pts, ptsNew), 470+ix*140); }
+    });
+    const roar=document.createElement('div'); roar.className='climb-roar';
+    newLeadEl.appendChild(roar);
+    setTimeout(()=>{ roar.classList.add('go'); }, 560);
+    setTimeout(()=>{ newLeadEl.classList.remove('lead-wait'); roar.remove(); }, 1500);
+  }
   const seen=new Set();
   box.querySelectorAll('[data-cid]').forEach(r=>{
     const k=r.getAttribute('data-cid'); seen.add(k);
@@ -5145,7 +5385,7 @@ function renderPot(){
     const paidN=ms.filter(m=>bi[m.id]?.paid).length;
     const collected=ms.reduce((a,m)=>a+(bi[m.id]?.paid ? (bi[m.id].amount_cents!=null ? bi[m.id].amount_cents/100 : state.stake) : 0),0);
     const [pc,pr,pk]=state.payout||[60,25,15];
-    $('#potAmt').textContent=fmt$(total);
+    csOdo($('#potAmt'), fmt$(total));   /* C6: the books absorb the entry */
     $('#chipPot').textContent=fmt$(total);
     $('#potMath').textContent=`${players} × ${fmt$(state.stake)} buy-in · ${fmt$(collected)} collected`;
     $('#pay1').textContent=fmt$(Math.round(total*pc/100));
@@ -5179,7 +5419,7 @@ function renderPot(){
   }
   const nPay=state.payers.length;
   const total=state.stake*nPay;
-  $('#potAmt').textContent=fmt$(total);
+  csOdo($('#potAmt'), fmt$(total));   /* C6: the books absorb the entry */
   $('#chipPot').textContent=fmt$(total);
   $('#potMath').textContent=`${nPay} × ${fmt$(state.stake)} buy-in · locked before W1`;
   $('#pay1').textContent=fmt$(Math.round(total*0.6));
@@ -6424,10 +6664,20 @@ function renderStats(){
   const xd=$('#statIdxD');
   if(est){
     const n=Math.min(window.career?.rounds ?? 0, 3);
-    $('#statIdx').textContent=n+' of 3';
+    csOdo($('#statIdx'), n+' of 3');
     if(xd){ xd.textContent='Building your number'; xd.className='d fl'; }
   } else {
-    $('#statIdx').textContent=fmtIdx(state.myIndex);
+    /* C9 - your number mints: the moment "n of 3" becomes a real index, the
+       engine has spoken. One quiet ring answers - identity, not a lead. */
+    const ixEl=$('#statIdx');
+    const minted = !state.demo && / of 3$/.test(ixEl.textContent||'');
+    csOdo(ixEl, fmtIdx(state.myIndex));
+    if(minted && !matchMedia('(prefers-reduced-motion:reduce)').matches){
+      ixEl.style.position='relative';
+      const ring=document.createElement('span'); ring.className='mintring'; ring.setAttribute('aria-hidden','true');
+      ixEl.appendChild(ring);
+      setTimeout(()=>ring.remove(), 1000);
+    }
     if(xd && !state.demo){
       const d=window.myIndexDelta;
       if(d==null || !isFinite(d) || Math.abs(d)<0.05){ xd.textContent='Season to date'; xd.className='d fl'; }
@@ -6823,7 +7073,13 @@ function postRow(p){
   const m = (window.CS?.memberships||[]).find(x=>x.league.id===p.league_id);
   const lg = m ? m.league.name : '';
   const icon = p.kind==='announce' ? '📣' : '🏁';
-  return `<div class="check"><span class="num">${icon}</span>
+  /* C5 - the month seal: a fresh league event lands with the thock (once,
+     while it's under 48h old); a month-close card keeps the 1.4deg cant -
+     a hand set it, and that stays true in reduced motion too */
+  const ageMs = p.created_at ? (Date.now()-new Date(p.created_at).getTime()) : Infinity;
+  const closed = /\bclosed\b/i.test(p.body||'');
+  const sealCls = (p.kind!=='announce' && ageMs<48*3600*1000 ? ' sealin' : '') + (closed ? ' sealed' : '');
+  return `<div class="check${sealCls}"><span class="num">${icon}</span>
     <div class="tt"><b>${esc(p.body||'')}</b><small>${lg?esc(lg)+' · ':''}${dfmtShort((p.created_at||'').slice(0,10))}</small></div></div>`;
 }
 function skeletonRows(n){
@@ -7234,26 +7490,34 @@ function achSubtitle(a){
   if(a.kind==='first_round') return 'Posted';
   return a.label||'';
 }
+let _trophySeen=null;   /* C4: ids already in the case this session - a tile only engraves on ARRIVAL */
 function renderTrophyCase(){
   const box=$('#trophyCase'); if(!box) return;
   const hw  = state.demo ? DEMO_TROPHIES : (window.trophies||[]);
   const ach = state.demo ? [] : (window.achievements||[]);
-  const cell = (icon,title,sub) =>
-    `<div style="border:0.5px solid var(--line); background:var(--bg2); border-radius:12px; padding:12px 6px 10px; text-align:center;">
+  /* C4 - the engraver: a trophy that lands DURING the session (a fresh mint,
+     not a boot render) takes its name behind a sliding gold-needle cover. */
+  const keyOf = x => String(x.id ?? ((x.title||x.kind||'')+'|'+(x.season_year||x.earned_on||'')));
+  const fresh = id => _trophySeen!==null && !_trophySeen.has(id);
+  const cell = (icon,title,sub,mint) =>
+    `<div class="tcell${mint?' mintin':''}" style="border:0.5px solid var(--line); background:var(--bg2); border-radius:12px; padding:12px 6px 10px; text-align:center;">
       <div style="font-size:26px; line-height:1">${icon}</div>
-      <div style="font-size:12px; font-weight:600; color:var(--ink); margin-top:6px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis">${esc(title)}</div>
+      <div style="font-size:12px; font-weight:600; color:var(--ink); margin-top:6px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis">${mint?`<span class="tmint">${esc(title)}<span class="tcover" aria-hidden="true"></span></span>`:esc(title)}</div>
       <div style="font-size:11.5px; color:var(--mut); margin-top:1px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis">${esc(sub)}</div>
     </div>`;
-  const tiles = [];
+  const tiles = [], ids = [];
   hw.forEach(t=>{
     const yr = t.season_year ? " · '"+String(t.season_year).slice(2) : '';
-    tiles.push(cell(trophyIcon(t.kind), t.title||'—', (t.subtitle||t.kind||'')+yr));
+    const id='t'+keyOf(t); ids.push(id);
+    tiles.push(cell(trophyIcon(t.kind), t.title||'—', (t.subtitle||t.kind||'')+yr, fresh(id)));
   });
   ach.forEach(a=>{
     const m = ACH_META[a.kind] || {icon:'🏅', title:a.label||'Milestone'};
     const yr = a.earned_on ? " · '"+String(a.earned_on).slice(2,4) : '';
-    tiles.push(cell(m.icon, m.title, achSubtitle(a)+yr));
+    const id='a'+keyOf(a); ids.push(id);
+    tiles.push(cell(m.icon, m.title, achSubtitle(a)+yr, fresh(id)));
   });
+  _trophySeen = new Set(ids);
   if(!tiles.length){
     box.innerHTML = '<div class="card" style="text-align:left"><div class="fine" style="padding:0">No hardware yet. Break 80, post your first round, or win a Cup Final — milestones and trophies land here.</div></div>';
     return;
@@ -8127,11 +8391,17 @@ function renderEvent(){
           if(t.b==null) waiting.push(b.name);
         }
       }
+      /* C10 - the taunt lands: when a duel's number-to-beat CHANGES between
+         renders (the opponent posted), the chip arcs onto your green. Session
+         memory only; first paint never animates. */
+      window._pvSeen = window._pvSeen || {};
+      const pvRose = pvi && window._pvSeen[d.id]!==undefined && window._pvSeen[d.id]!==pvi;
+      window._pvSeen[d.id] = pvi;
       html+=`<div class="evduel">
         <span class="nm a ${aw?'win':''}">${window.mkr?.(a.marker||'saguaro')||''} ${esc(a.name)}</span>
         <span class="mid ${hv?'evwin':''}">${mid}</span>
         <span class="nm b ${bw?'win':''}">${esc(b.name)} ${window.mkr?.(b.marker||'saguaro')||''}</span>
-        ${pvi?`<span class="pv">${pvi}</span>`:''}
+        ${pvi?`<span class="pv${pvRose?' pvrise':''}">${pvi}</span>`:''}
       </div>`;
     });
     if(s.status==='open' && waiting.length){
