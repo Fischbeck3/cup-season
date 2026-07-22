@@ -1998,3 +1998,43 @@ machinery-already-exists. ⚑ marks the points still needing an owner call.*
 - **CONFLICT check:** brushes D21 exactly as blue-sky flagged — resolved by
   the composition rule above (compose, don't fork). Trophy law untouched:
   forfeits archive to facets, never the case.
+
+### D65 · The sandbox league — a season in an hour (owner tooling, 2026-07-24)
+- **Current:** verifying league play end-to-end needs eight humans and three
+  calendar months. The demo is a diorama (never exercises real RPCs); the QA
+  walk drill covers flows one account at a time but cannot compress time.
+- **Problem:** the owner cannot rehearse a full season (weeks of posting →
+  month closes → cup final → crowning) before real leagues live it first —
+  the endgame ships untested at season speed.
+- **Recommendation:** real mechanics, fake people, movable clock. Five
+  founder-gated RPCs (migration `20260724170000`): `sandbox_arm` flags a
+  league sandbox and mints ≤8 bot accounts (unroutable
+  `@sandbox.cupseason.test`, empty password — unloginable; non-discoverable;
+  members of the sandbox league ONLY); `sandbox_rewind(w)` slides BOTH season
+  dates back preserving length, so week w+1 is simply now and the cup window
+  / season end arrive through the ordinary daily-tick law; `sandbox_week`
+  posts the next empty week of bot rounds through the production insert path
+  (score_round, round_to_board, the WHS engine — all genuine); `sandbox_advance`
+  runs the sentinel-idempotent month closes + snapshot + daily tick on demand;
+  `sandbox_scrap` deletes the league graph then the bot users (cascade).
+  The sandbox Pro is a throwaway alias account, never the founder's real
+  profile — a round fans into EVERY league its profile belongs to, so
+  single-league membership IS the containment.
+- **Principle:** production is never a sandbox — so the sandbox is a fenced
+  production tenant, not a mock; everything shows its work (§16: bot rounds
+  are real rows with real receipts, deletable only by scrap-the-diorama).
+- **Benefit:** a whole season becomes a one-hour rehearsal; every future
+  mechanic (majors, forfeits, endgame dials) can be walked at season speed
+  before a real league meets it.
+- **Tradeoffs:** fabricated rounds exist in the prod database — accepted
+  because they are structurally quarantined (flagged league, single-league
+  bots, alias Pro) and fully scrappable. `auth.users` direct inserts are a
+  Supabase-internal shape that could drift; failure mode is a clean error at
+  arm time, nothing partial. Sandbox RPCs are deliberately NOT in db-checks
+  check 3 (that list is client-called RPCs; these are console-driven founder
+  tools — check 3 only fails on missing grants, so omission is safe).
+- **CONFLICT check:** grazes the demo-coherence law (the diorama never
+  fabricates people) — resolved by scope: the demo is what PROSPECTS see and
+  stays fabrication-free; the sandbox is founder-only tooling behind a flag,
+  invisible to anyone else. §16 immutability holds: rounds are never edited,
+  only scrapped with the whole diorama.
