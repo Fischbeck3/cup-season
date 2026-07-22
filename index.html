@@ -394,6 +394,15 @@ input.f, textarea.f, select.f{
   padding:11px 12px; min-height:44px;
 }
 input.f:focus-visible, textarea.f:focus-visible, select.f:focus-visible{outline:2px solid var(--pos); outline-offset:1px;}
+/* iOS date inputs ship an intrinsic min-width that ignores width:100% and
+   pokes past the container (the pilot's protruding date selector). Width
+   clamps everywhere; the appearance flattening is iOS-only (desktop Chrome
+   would lose its calendar button). Tap still opens the iOS picker. */
+input.f[type="date"]{ min-width:0; max-width:100%; }
+@supports (-webkit-touch-callout: none){
+  input.f[type="date"]{ -webkit-appearance:none; appearance:none; }
+  input.f[type="date"]::-webkit-date-and-time-value{ text-align:left; }
+}
 input.f::-webkit-outer-spin-button, input.f::-webkit-inner-spin-button{-webkit-appearance:none;}
 
 .postgrid{display:block;}
@@ -1173,6 +1182,9 @@ html[data-theme="light"] .momrow{background:rgba(21,116,63,.06);}
 .sheet.open{display:block;}
 .sheet .panel{
   position:absolute; left:0; right:0; bottom:0; max-height:88vh; overflow-y:auto;
+  /* overflow-x CLIPS: one over-wide child (iOS date inputs carry an intrinsic
+     min-width) let the whole sheet pan sideways — "slides around", pilot */
+  overflow-x:hidden;
   overscroll-behavior:contain; -webkit-overflow-scrolling:touch;
   background:var(--bg1); border-top:1px solid var(--line2);
   border-radius:var(--rs) var(--rs) 0 0; padding:14px 16px calc(24px + env(safe-area-inset-bottom));
