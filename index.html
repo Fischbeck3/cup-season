@@ -516,16 +516,30 @@ input.f::-webkit-outer-spin-button, input.f::-webkit-inner-spin-button{-webkit-a
 .digest .dgthumb{float:right; width:44px; height:44px; border-radius:10px; object-fit:cover; margin-left:10px; border:1px solid var(--line2);}
 /* photos arc 2 ckpt 2 (D59): faces + the marker stamp */
 img.face{border-radius:50%; object-fit:cover; vertical-align:-4px; border:1px solid var(--line2); background:var(--bg2);}
+/* the one avatar unit: photo circle + marker badge, or the marker alone */
+.fc{position:relative; flex:none; display:inline-flex; align-items:center; justify-content:center; border-radius:50%; background:var(--bg2); border:1px solid var(--line2);}
+.fc img.face{width:100%; height:100%; border-radius:50%; object-fit:cover; display:block; border:none; vertical-align:top;}
+.fc > svg{width:58%; height:58%;}
+.fc .fmk{position:absolute; right:-4px; bottom:-4px; width:46%; height:46%; min-width:17px; min-height:17px; display:flex; align-items:center; justify-content:center; border-radius:50%; background:var(--bg1); border:1px solid var(--line2); box-shadow:0 1px 3px rgba(8,9,11,.16); font-style:normal;}
+.fc .fmk svg{width:68%; height:68%; vertical-align:0;}
+.fc.femoji{font-size:19px;}
+.fc.s22{width:22px; height:22px;} .fc.s28{width:28px; height:28px;} .fc.s32{width:32px; height:32px;}
+.fc.s36{width:36px; height:36px;} .fc.s44{width:44px; height:44px;} .fc.s56{width:56px; height:56px;}
+.hffacew{display:flex; flex:none;}
 /* identity-led home feed (pilot: faces need to carry the feed, not decorate it) */
 .hfcard{background:var(--bg1); border:1px solid var(--line2); border-radius:14px; padding:12px 14px; margin:0 0 10px; cursor:pointer;}
 .hfcard:focus-visible{outline:2px solid var(--pos); outline-offset:2px;}
-.hfhead{display:flex; align-items:center; gap:10px;}
-.hfface{flex:none; width:36px; height:36px; display:flex; align-items:center; justify-content:center; border-radius:50%; background:var(--bg2); border:1px solid var(--line2); overflow:hidden;}
-.hfface img.face{width:36px; height:36px; border:none;}
-.hfface svg{width:22px; height:22px;}
+.hfhead{display:flex; align-items:center; gap:11px;}
 .hfid{flex:1; min-width:0;}
-.hfid b{display:block; font-size:14px; font-weight:600; letter-spacing:-.01em; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
-.hfid small{font-family:var(--mono); font-size:10.5px; color:var(--dim); letter-spacing:.05em; text-transform:uppercase;}
+.hfid b{display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; font-size:14px; font-weight:600; letter-spacing:-.01em; line-height:1.3;}
+.hfid small{display:block; margin-top:2px; font-family:var(--mono); font-size:10.5px; color:var(--dim); letter-spacing:.05em; text-transform:uppercase;}
+/* month-seal motion carries over from the .check rows (C5) */
+.hfcard.sealin .hfid > b{transform-origin:center; animation:csSeal .6s var(--roll) both;}
+.hfcard.sealed .hfid > b{transform:rotate(-1.4deg);}
+@media (prefers-reduced-motion: reduce){
+  .hfcard.sealin .hfid > b{animation:none; transform:none;}
+  .hfcard.sealed .hfid > b{transform:rotate(-1.4deg);}
+}
 .hfchip{flex:none; font-family:var(--mono); font-size:12.5px; font-weight:700; padding:3px 9px; border-radius:99px; border:1px solid var(--line2);}
 .hfchip.up{color:var(--pos); border-color:color-mix(in srgb, var(--pos) 35%, transparent);}
 .hfchip.dn{color:var(--mut);}
@@ -1533,7 +1547,7 @@ body.noleague #view-hub  > *:not(#hubLeagueless){display:none !important;}
 .roompane.on{display:block;}
 .prow{display:flex; align-items:center; gap:10px; padding:11px 0; border-top:1px solid var(--line);}
 .prow:first-child{border-top:none;}
-.prow .pmk{flex:none; width:22px; text-align:center; color:var(--mut);}
+.prow .pmk{flex:none; display:flex; color:var(--mut);}
 .prow .pmeta{min-width:0; flex:1; display:flex; flex-direction:column; line-height:1.3;}
 .prow .pmeta b{font-size:14px; font-weight:600; color:var(--ink); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
 .prow .pmeta small{font-size:13px; color:var(--mut);}
@@ -7368,10 +7382,19 @@ function wireHomeSocial(box){
    signed URL is in the map, ALWAYS the marker otherwise. No silhouette state.
    memberMarker resolves the per-league override for league surfaces. */
 function face(pid, markerKey, size){
+  /* one avatar unit (pilot: faces looked pasted over the old chips): a photo
+     fills the circle and the MARKER rides it as a badge — the marker is the
+     brand thread on every face, not a casualty of the photo. No photo: the
+     marker fills the circle. Unknown key falls to saguaro; never empty. */
   const u = pid && window.avatarUrl ? window.avatarUrl[pid] : null;
-  const s = size||20;
-  return u ? `<img class="face" src="${esc(u)}" width="${s}" height="${s}" alt="" loading="lazy">`
-           : (window.mkr ? (window.mkr(markerKey||'saguaro') || window.mkr('saguaro')) : '');
+  const s = size||36;
+  const cls = 'fc s' + (s>=56?56 : s>=44?44 : s>=36?36 : s>=32?32 : s>=28?28 : 22);
+  const mkSvg = window.mkr ? (window.mkr(markerKey||'saguaro') || window.mkr('saguaro')) : '';
+  if(u){
+    const badge = s>=32 ? `<i class="fmk" aria-hidden="true">${mkSvg}</i>` : '';
+    return `<span class="${cls}"><img class="face" src="${esc(u)}" alt="" loading="lazy">${badge}</span>`;
+  }
+  return `<span class="${cls}">${mkSvg}</span>`;
 }
 function memberMarker(pid){
   const m = (window.CS?.members||[]).find(m => m.profile_id === pid);
@@ -7397,7 +7420,7 @@ function feedRow(r, idx){
   const photo = r.photo_url ? `<img class="hfphoto" src="${esc(r.photo_url)}" alt="Round photo" loading="lazy">` : '';
   return `<div class="hfcard"${idx!==undefined?` data-hfr="${idx}"`:''} role="button" tabindex="0" aria-label="${who} — ${r.gross??''} at ${course}">
     <div class="hfhead">
-      <span class="hfface"${r.profile_id?` data-tc="${r.profile_id}"`:''}>${face(r.profile_id, r.marker, 36)}</span>
+      <span class="hffacew"${r.profile_id?` data-tc="${r.profile_id}"`:''}>${face(r.profile_id, r.marker, 44)}</span>
       <div class="hfid"><b>${whoTag}</b><small>${dfmtShort(r.played_on)}${badge?' · '+badge:''}</small></div>
       ${chip}
     </div>
@@ -7409,19 +7432,23 @@ function feedRow(r, idx){
 function postRow(p){
   const m = (window.CS?.memberships||[]).find(x=>x.league.id===p.league_id);
   const lg = m ? m.league.name : '';
-  /* D59 follow-up: a moment with a known author leads with their face
-     (current-league members resolve; everyone else keeps the icon) */
+  /* D59 follow-up: moments join the same card family as rounds — a known
+     author leads with their face (marker-badged), others get the icon in the
+     same circle; the server's SHOUTING body eases to a sentence (easeCaps). */
   const mem = p.member_id ? (window.CS?.members||[]).find(x=>x.id===p.member_id) : null;
-  const icon = mem ? face(mem.profile_id, mem.mk||mem.profile?.marker, 26)
-    : (p.kind==='announce' ? '📣' : '🏁');
+  const av = mem
+    ? `<span class="hffacew" data-tc="${mem.profile_id}">${face(mem.profile_id, mem.mk||mem.profile?.marker, 44)}</span>`
+    : `<span class="fc s44 femoji">${p.kind==='announce' ? '📣' : '🏁'}</span>`;
   /* C5 - the month seal: a fresh league event lands with the thock (once,
      while it's under 48h old); a month-close card keeps the 1.4deg cant -
      a hand set it, and that stays true in reduced motion too */
   const ageMs = p.created_at ? (Date.now()-new Date(p.created_at).getTime()) : Infinity;
   const closed = /\bclosed\b/i.test(p.body||'');
   const sealCls = (p.kind!=='announce' && ageMs<48*3600*1000 ? ' sealin' : '') + (closed ? ' sealed' : '');
-  return `<div class="check${sealCls}"><span class="num">${icon}</span>
-    <div class="tt"><b>${esc(p.body||'')}</b><small>${lg?esc(lg)+' · ':''}${dfmtShort((p.created_at||'').slice(0,10))}</small></div></div>`;
+  return `<div class="hfcard${sealCls}">
+    <div class="hfhead">${av}
+      <div class="hfid"><b>${esc(easeCaps(p.body||''))}</b><small>${lg?esc(lg)+' · ':''}${dfmtShort((p.created_at||'').slice(0,10))}</small></div>
+    </div></div>`;
 }
 function skeletonRows(n){
   let h='';
@@ -7716,10 +7743,10 @@ function renderHomeRequests(){
   box.innerHTML =
     `<div class="eyebrow" style="margin-top:0; color:var(--brand)">Friend request${list.length>1?'s':''}</div>` +
     list.map(f=>{
-      const mk = face(f.profile_id, f.marker);
+      const mk = face(f.profile_id, f.marker, 36);
       const name = esc(f.display_name||'A golfer');
       const h = f.handle ? '@'+esc(f.handle) : '';
-      return `<div class="check" style="border-color:var(--brand)"><span class="num">${mk}</span>
+      return `<div class="check" style="border-color:var(--brand)">${mk}
         <div class="tt"><b>${name}${founderTag(f.profile_id, f.display_name)}</b><small>${h}${h?' · ':''}wants to be golf buddies</small></div>
         <span style="display:flex; gap:6px; flex:none">
           <button class="mini" data-hreqacc="${f.friendship_id}">Accept</button>
@@ -9510,7 +9537,7 @@ function refreshWhoChip(){
       $('#youIdx').title = 'Building your number — your index appears at 3 posted rounds';
     }
   }
-  if($('#youMk')) $('#youMk').innerHTML = window.face ? window.face(CS.user?.id, p.marker, 22) : mkr(p.marker || 'saguaro');
+  if($('#youMk')) $('#youMk').innerHTML = window.face ? window.face(CS.user?.id, p.marker, 32) : mkr(p.marker || 'saguaro');
 }
 let phMarker = null;
 function renderPhMarkers(){
@@ -9527,7 +9554,7 @@ function renderPhMarkers(){
    my_friends / friend_request / friend_respond (+ invite via onPick).
    ============================================================ */
 function psRow(r, actionHTML){
-  return `<div class="prow"><span class="pmk" data-tc="${r.profile_id}">${window.face ? window.face(r.profile_id, r.marker) : mkr(r.marker||'saguaro')}</span>
+  return `<div class="prow"><span class="pmk" data-tc="${r.profile_id}">${window.face ? window.face(r.profile_id, r.marker, 36) : mkr(r.marker||'saguaro')}</span>
     <span class="pmeta" data-tc="${r.profile_id}"><b>${esc(r.display_name||'—')}${founderTag(r.profile_id, r.display_name)}</b>
       <small>@${esc(r.handle||'?')}${r.city?' · '+esc(r.city):''}</small></span>${actionHTML}</div>`;
 }
@@ -9690,7 +9717,7 @@ async function openTourCard(profileId){
   const reportLine = (hasFace && profileId !== CS.user?.id)
     ? `<div class="fine" style="padding:2px 0 0"><a href="#" id="tcReport" style="color:var(--dim)">Report photo</a></div>` : '';
   const header = `<div style="display:flex; align-items:center; gap:12px">
-      <span style="font-size:34px; line-height:1">${window.face ? window.face(profileId, p.marker, 40) : mkr(p.marker||'saguaro')}</span>
+      ${window.face ? window.face(profileId, p.marker, 56) : `<span style="font-size:34px; line-height:1">${mkr(p.marker||'saguaro')}</span>`}
       <div style="min-width:0"><div style="font-size:18px; font-weight:600">${esc(p.display_name||'—')}${p.handle?' <span style="color:var(--mut); font-weight:400; font-size:14px">@'+esc(p.handle)+'</span>':''}</div>
         <div class="fine" style="padding-left:0">${meta||'&nbsp;'}</div></div>
       <div style="margin-left:auto; text-align:right; flex:none"><div style="font-family:var(--serif); font-size:22px; color:var(--ink)">${idx}</div><div class="fine" style="padding:0; letter-spacing:.1em">INDEX</div></div>
@@ -9854,7 +9881,7 @@ function openProfileHub(){
     <div id="phMarkers" style="display:grid; grid-template-columns:repeat(4,1fr); gap:8px; margin-top:8px;"></div>
     <label class="f" style="display:block; margin-top:10px">Your photo · the marker always backs it up</label>
     <div style="display:flex; align-items:center; gap:10px; margin-top:8px">
-      <span id="phFace" style="width:44px; height:44px; flex:none; display:flex; align-items:center; justify-content:center; border:1px solid var(--line2); border-radius:50%; overflow:hidden"></span>
+      <span id="phFace" style="flex:none; display:flex"></span>
       <button class="mini" id="phPhotoBtn" type="button">Add a photo</button>
       <button class="mini" id="phPhotoRm" type="button" style="display:none">Remove</button>
       <input type="file" id="phPhotoFile" accept="image/*" style="display:none">
@@ -9942,8 +9969,8 @@ function openProfileHub(){
   const phPaint = () => {
     const el=$('#phFace'); if(!el) return;
     const u = window.avatarUrl && window.avatarUrl[CS.user.id];
-    el.innerHTML = u ? `<img src="${esc(u)}" style="width:100%; height:100%; object-fit:cover" alt="">`
-                     : (window.mkr ? window.mkr(phMarker||p.marker||'saguaro') : '');
+    el.innerHTML = window.face ? window.face(CS.user.id, phMarker||p.marker, 56)
+                 : (window.mkr ? window.mkr(phMarker||p.marker||'saguaro') : '');
     const rm=$('#phPhotoRm'), ad=$('#phPhotoBtn');
     if(rm) rm.style.display = u ? '' : 'none';
     if(ad) ad.textContent = u ? 'Change photo' : 'Add a photo';
@@ -12712,7 +12739,7 @@ async function openMembersSheet(){
   };
   const rows = CS.members.map(m => `
     <div class="check">
-      <span class="num">${window.face ? window.face(m.profile_id, m.mk || m.profile?.marker, 22) : mkr(m.profile?.marker || 'saguaro')}</span>
+      ${window.face ? window.face(m.profile_id, m.mk || m.profile?.marker, 36) : `<span class="num">${mkr(m.profile?.marker || 'saguaro')}</span>`}
       <div class="tt"><b>${esc(m.profile?.display_name || '—')}${m.role==='commissioner' ? ' · <span style="color:var(--gold)">THE PRO</span>' : ''}</b>
       <small>${[m.profile?.handle ? '@'+m.profile.handle : null,
                 m.profile?.index_current != null ? 'INDEX '+fmtIdx(m.profile.index_current) : null,
