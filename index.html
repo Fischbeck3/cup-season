@@ -516,6 +516,22 @@ input.f::-webkit-outer-spin-button, input.f::-webkit-inner-spin-button{-webkit-a
 .digest .dgthumb{float:right; width:44px; height:44px; border-radius:10px; object-fit:cover; margin-left:10px; border:1px solid var(--line2);}
 /* photos arc 2 ckpt 2 (D59): faces + the marker stamp */
 img.face{border-radius:50%; object-fit:cover; vertical-align:-4px; border:1px solid var(--line2); background:var(--bg2);}
+/* identity-led home feed (pilot: faces need to carry the feed, not decorate it) */
+.hfcard{background:var(--bg1); border:1px solid var(--line2); border-radius:14px; padding:12px 14px; margin:0 0 10px; cursor:pointer;}
+.hfcard:focus-visible{outline:2px solid var(--pos); outline-offset:2px;}
+.hfhead{display:flex; align-items:center; gap:10px;}
+.hfface{flex:none; width:36px; height:36px; display:flex; align-items:center; justify-content:center; border-radius:50%; background:var(--bg2); border:1px solid var(--line2); overflow:hidden;}
+.hfface img.face{width:36px; height:36px; border:none;}
+.hfface svg{width:22px; height:22px;}
+.hfid{flex:1; min-width:0;}
+.hfid b{display:block; font-size:14px; font-weight:600; letter-spacing:-.01em; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+.hfid small{font-family:var(--mono); font-size:10.5px; color:var(--dim); letter-spacing:.05em; text-transform:uppercase;}
+.hfchip{flex:none; font-family:var(--mono); font-size:12.5px; font-weight:700; padding:3px 9px; border-radius:99px; border:1px solid var(--line2);}
+.hfchip.up{color:var(--pos); border-color:color-mix(in srgb, var(--pos) 35%, transparent);}
+.hfchip.dn{color:var(--mut);}
+.hfline{font-size:13.5px; margin-top:8px; color:var(--ink); line-height:1.45;}
+.hfphoto{width:100%; max-height:170px; object-fit:cover; border-radius:10px; margin-top:10px; border:1px solid var(--line2); display:block;}
+.hfcard .hrx{margin-top:8px;}
 .mkstamp{position:absolute; right:10px; bottom:10px; width:26px; height:26px; display:flex; align-items:center; justify-content:center; border-radius:50%; background:rgba(8,9,11,.55); color:#ECEEF2; backdrop-filter:blur(2px);}
 .rcpt-hero{position:relative;}
 .seg button:focus-visible{outline:2px solid var(--pos); outline-offset:-2px;}
@@ -4316,7 +4332,7 @@ function renderFeedFull(force){
         <div class="fcard${r.photo_url?' has-photo':''}"><div class="round${r.photo_url?' has-photo room-dusk tap':''}"${r.photo_url?` data-rcpt="${r.id}" aria-label="${esc(f.who||'—')} — open the round" style="background-image:url('${esc(r.photo_url)}')"`:''}>
           <span class="bar" style="background:${SQHEX[f.ci]}"></span>
           <div class="body">
-            <div class="l1">${esc(f.who||'—')}</div>
+            <div class="l1" style="display:flex; align-items:center; gap:8px">${window.face?window.face(r.profile_id, memberMarker(r.profile_id), 22):''}<span>${esc(f.who||'—')}</span></div>
             <div class="l2">${esc(r.course_label||'somewhere out there')} · ${r.holes_played||18} holes · ${r.played_on||''}</div>
             <div class="rline">${r.gross} GROSS${r.pvi!=null?` · ${bandName(Number(r.pvi)).toUpperCase()}`:''}</div>
             <div class="rline">${counting}</div>
@@ -7362,28 +7378,42 @@ function memberMarker(pid){
   return m ? (m.mk || m.marker || m.profile?.marker || 'saguaro') : 'saguaro';
 }
 function feedRow(r, idx){
+  /* identity-led card (pilot, D59 follow-up): the face carries the name, so
+     the sentence drops it; the photo rides inline; the whole card opens the
+     receipt (reactions and the face keep their own taps). D2 language holds. */
   const who = esc(r.is_me ? 'You' : (r.golfer||'A golfer'));
   const whoTag = who + (r.is_me ? '' : founderTag(r.profile_id, r.golfer));
-  const mk = face(r.profile_id, r.marker);
   const course = esc(r.course || 'a round');
-  const pvi = (r.pvi!=null) ? `${r.pvi>=0?'+':''}${r.pvi} vs index` : '';
+  const pviN = r.pvi!=null ? Number(r.pvi) : null;
+  const chip = pviN!=null ? `<span class="hfchip ${pviN>=0?'up':'dn'}">${pviN>=0?'+':''}${pviN}</span>` : '';
   let badge='', line='';
-  if(r.is_pr){ badge='🔥 Personal best'; line = `${whoTag} set a personal best — ${r.gross} at ${course}${pvi?' · '+pvi:''}`; }
-  else if(r.is_sub80){ badge='⛳ Broke 80'; line = `${whoTag} broke 80 for the first time — ${r.gross} at ${course}`; }
-  else if(r.is_first){ badge='🎉 First round'; line = `${whoTag} posted ${r.is_me?'your':'their'} first round — ${r.gross} at ${course}`; }
-  else { line = `${whoTag} posted ${r.gross} at ${course}${pvi?' · '+pvi:''}`; }
+  if(r.is_pr){ badge='🔥 Personal best'; line = `Personal best — <b>${r.gross}</b> at ${course}`; }
+  else if(r.is_sub80){ badge='⛳ Broke 80'; line = `Broke 80 for the first time — <b>${r.gross}</b> at ${course}`; }
+  else if(r.is_first){ badge='🎉 First round'; line = `First round on the card — <b>${r.gross}</b> at ${course}`; }
+  else { line = `<b>${r.gross}</b> at ${course}`; }
   const rx = idx!==undefined ? homeRxOf(r) : null;
   const social = rx ? `<div class="hrx">${rxChipsHtml(rx,'data-hrx',idx)}<button class="rxadd" data-hadd="${idx}" title="More reactions" aria-label="More reactions" aria-expanded="false"><svg class="ic" aria-hidden="true"><use href="#i-plus"/></svg></button></div>
     <div class="rxpalette h" id="hrxp${idx}">${rxPaletteHtml('data-hpick',idx)}</div>` : '';
-  return `<div class="check"><span class="num"${r.profile_id?` data-tc="${r.profile_id}"`:''}>${mk}</span>
-    <div class="tt"><b>${line}</b><small>${badge?badge+' · ':''}${dfmtShort(r.played_on)}</small>${social}</div></div>`;
+  const photo = r.photo_url ? `<img class="hfphoto" src="${esc(r.photo_url)}" alt="Round photo" loading="lazy">` : '';
+  return `<div class="hfcard"${idx!==undefined?` data-hfr="${idx}"`:''} role="button" tabindex="0" aria-label="${who} — ${r.gross??''} at ${course}">
+    <div class="hfhead">
+      <span class="hfface"${r.profile_id?` data-tc="${r.profile_id}"`:''}>${face(r.profile_id, r.marker, 36)}</span>
+      <div class="hfid"><b>${whoTag}</b><small>${dfmtShort(r.played_on)}${badge?' · '+badge:''}</small></div>
+      ${chip}
+    </div>
+    <div class="hfline">${line}</div>
+    ${photo}${social}</div>`;
 }
 /* league moments (announce + system posts) as feed cards — rounds never come
    this way (home_feed owns them), so the two sources can't double up */
 function postRow(p){
   const m = (window.CS?.memberships||[]).find(x=>x.league.id===p.league_id);
   const lg = m ? m.league.name : '';
-  const icon = p.kind==='announce' ? '📣' : '🏁';
+  /* D59 follow-up: a moment with a known author leads with their face
+     (current-league members resolve; everyone else keeps the icon) */
+  const mem = p.member_id ? (window.CS?.members||[]).find(x=>x.id===p.member_id) : null;
+  const icon = mem ? face(mem.profile_id, mem.mk||mem.profile?.marker, 26)
+    : (p.kind==='announce' ? '📣' : '🏁');
   /* C5 - the month seal: a fresh league event lands with the thock (once,
      while it's under 48h old); a month-close card keeps the 1.4deg cant -
      a hand set it, and that stays true in reduced motion too */
@@ -7561,9 +7591,23 @@ function renderHomeDigest(){
   box.innerHTML=`<div class="digest">${ph}<span class="dk">Quiet since your last visit</span>${dgDay(best.t)} — ${dgLine(best)}</div>`;
   if(ph) box.querySelector('[data-dg-rcpt]')?.addEventListener('click', ()=>openRoundReceipt(best.r));
 }
+/* card tap → the receipt; the face (Tour Card door), buttons, and the open
+   reaction palette keep their own taps */
+function wireFeedReceipts(box){
+  box.querySelectorAll('[data-hfr]').forEach(el=>{
+    const open = e => {
+      if(e.target.closest('[data-tc],button,.rxpalette')) return;
+      const src = state.demo ? DEMO_FEED : (window.homeFeedRows||[]);
+      const r = src[Number(el.dataset.hfr)];
+      if(r && typeof openRoundReceipt==='function') openRoundReceipt(r);
+    };
+    el.addEventListener('click', open);
+    el.addEventListener('keydown', e=>{ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); open(e); } });
+  });
+}
 function renderHomeFeed(){
   const box=$('#homeFeed'); if(!box) return;
-  if(state.demo){ box.innerHTML = feedBuckets(DEMO_FEED.map((r,i)=>({ d:r.played_on, html:feedRow(r,i) }))); wireHomeSocial(box); return; }
+  if(state.demo){ box.innerHTML = feedBuckets(DEMO_FEED.map((r,i)=>({ d:r.played_on, html:feedRow(r,i) }))); wireHomeSocial(box); wireFeedReceipts(box); return; }
   /* loading: scorecard skeletons until the first fetch lands (undefined = not
      yet loaded; [] = loaded empty → the real empty state) */
   if(window.homeFeedRows===undefined && window.homePosts===undefined){ box.innerHTML = skeletonRows(3); return; }
@@ -7579,6 +7623,7 @@ function renderHomeFeed(){
     ? feedBuckets(items)
     : '<p class="fine" style="padding:0">No rounds from your crew yet. Post one, or <a href="#" data-gopeople style="color:var(--brand)">add golf buddies</a>.</p>';
   wireHomeSocial(box);
+  wireFeedReceipts(box);
 }
 /* Up Next — what's coming, one glance: next declared round, invites waiting,
    the month-close clock. Hides entirely when there's nothing coming. */
@@ -12344,7 +12389,7 @@ async function loadHome(){
          and they must keep showing here. kind='round' stays out (home_feed
          already carries every circle round; board round-posts would double). */
       const { data: ps } = await sb.from('posts')
-        .select('id, league_id, kind, body, created_at')
+        .select('id, league_id, kind, member_id, body, created_at')
         .in('league_id', ids).neq('kind','chat').neq('kind','round')
         .order('created_at', { ascending:false }).limit(20);
       window.homePosts = ps || [];
