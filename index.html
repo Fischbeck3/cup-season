@@ -1182,6 +1182,13 @@ html[data-theme="light"] .momrow{background:rgba(21,116,63,.06);}
   .sheet .panel{ left:50%; right:auto; bottom:auto; top:50%; transform:translate(-50%,-50%);
     width:640px; max-height:82vh; border-radius:var(--rs); border:1px solid var(--line2); }
 }
+/* iOS: vh ignores the collapsing Safari toolbar — a 88vh panel overruns the
+   VISIBLE viewport, so scrolling collapses the toolbar and the sheet appears
+   to slide. Dynamic units track what's actually on screen. */
+@supports (height: 1dvh){
+  .sheet .panel{ max-height:88dvh; }
+  @media(min-width:760px){ .sheet .panel{ max-height:82dvh; } }
+}
 .sheet .grab{width:36px; height:4px; border-radius:99px; background:var(--line2); margin:0 auto 14px;}
 .sheet h3{font-size:18px; font-weight:700; letter-spacing:-.01em; padding-right:28px;}
 .sheet .sub{font-family:var(--mono); font-size:11.5px; color:var(--dim); letter-spacing:.1em; text-transform:uppercase; margin-top:3px;}
@@ -2307,7 +2314,7 @@ html[data-theme="light"] .room-dusk .btn:not(.dark):not(.gold):not(.apple){color
           <div id="planBridge" style="display:none; margin-bottom:10px"></div>
           <div class="card" style="margin-bottom:10px">
             <label class="f" for="lrCourse">Course</label>
-            <input class="f" id="lrCourse" value="Encanto GC" style="font-family:var(--sans);">
+            <input class="f" id="lrCourse" value="Encanto GC" placeholder="Search a course, or type your own" autocomplete="off" style="font-family:var(--sans);">
             <div style="height:12px"></div>
             <label class="f">Tee & rating — off the scorecard</label>
             <div class="cinput" style="margin-top:8px">
@@ -4359,6 +4366,23 @@ function unlockBody(){
   document.body.style.left=''; document.body.style.right=''; document.body.style.width='';
   window.scrollTo(0,_bodyLockY);
 }
+/* iOS keyboard / date wheel: the visual viewport shrinks but fixed layers
+   don't — Safari pans the page to reveal the focused input and the whole
+   sheet "slides", parking controls under the keyboard. Fit the open panel to
+   the visual viewport and lift it above the keyboard on phones (the desktop
+   panel is centered — no lift there). */
+(function(){
+  const vv=window.visualViewport; if(!vv) return;
+  const fit=()=>{
+    const p=document.querySelector('.sheet.open .panel'); if(!p) return;
+    if(window.innerWidth>=760){ p.style.maxHeight=''; p.style.bottom=''; return; }
+    p.style.maxHeight=Math.round(vv.height*0.92)+'px';
+    p.style.bottom=Math.max(0, Math.round(window.innerHeight - vv.height - vv.offsetTop))+'px';
+  };
+  vv.addEventListener('resize',fit);
+  vv.addEventListener('scroll',fit);
+  window._sheetVVFit=fit;
+})();
 function openBoardFull(){
   $('#bfSub').textContent = (window.CS?.league?.name || state.demo && 'The Sunday Cup' || 'Cup Season').toUpperCase();
   renderFeedFull(true);
@@ -5786,6 +5810,11 @@ function primeRealRoster(){
   estimateSI();
   recomputeStrokes();
   state.live=freshLive();
+  /* pilot: the demo's Encanto scenery must not greet a real account — blank
+     course/tee so the search leads (rating/slope fall back to 72/113) */
+  ['lrCourse','lrTee','lrRate','lrSlope'].forEach(id=>{ const e=$('#'+id); if(e) e.value=''; });
+  const lrc=$('#lrCourse'); if(lrc) lrc.dataset.courseId='';
+  if(typeof syncTeeInputs==='function') syncTeeInputs();
   if(typeof renderPlay==='function') renderPlay();
   /* the roster hadn't loaded yet (a league always has at least YOU, so an
      empty list means the load never ran) — fetch it, then re-prime so the
@@ -7889,6 +7918,7 @@ function openSheet(title, sub, bodyHtml){
   $('#sheet').classList.remove('room-dusk');   /* sheets are utility by default; ceremonies re-add after openSheet */
   lockBody();
   $('#sheet .panel')?.scrollTo?.(0,0);   /* fresh content starts at the top, not a prior sheet's depth */
+  window._sheetVVFit?.();                /* keyboard may already be up (sheet-over-sheet) */
   $('#shBody').querySelectorAll('[data-player]').forEach(b=>
     b.addEventListener('click',()=>showPlayer(b.dataset.player)));
   $('#shBody').querySelectorAll('[data-round]').forEach(b=>
@@ -7899,6 +7929,8 @@ function openSheet(title, sub, bodyHtml){
 }
 function closeSheet(){
   $('#sheet').classList.remove('open');
+  /* drop any keyboard-fit inline sizing so the next open starts clean */
+  const p=$('#sheet .panel'); if(p){ p.style.maxHeight=''; p.style.bottom=''; }
   unlockBody();
 }
 $('#shClose').addEventListener('click',closeSheet);
