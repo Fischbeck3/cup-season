@@ -34,3 +34,11 @@
   for = "/sw.js"
   [headers.values]
     Cache-Control = "no-cache, no-store, must-revalidate"
+
+# Apple fetches this extensionless file for universal links (claim/join open
+# the iOS app); it must serve as JSON and never cache stale.
+[[headers]]
+  for = "/.well-known/apple-app-site-association"
+  [headers.values]
+    Content-Type = "application/json"
+    Cache-Control = "no-cache"

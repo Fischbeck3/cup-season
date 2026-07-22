@@ -38,6 +38,10 @@ mkdir -p "$DIST"
 cp index.html legal.html sw.js manifest.webmanifest apple-touch-icon.png \
    icon-192.png icon-512.png icon-512-maskable.png og-image.png "$DIST/"
 cp -r brand "$DIST/brand"
+# iOS universal links: Apple fetches this at https://cupseason.app/.well-known/
+# (claim/join links open the app). Team ID placeholder until enrollment lands.
+mkdir -p "$DIST/.well-known"
+cp .well-known/apple-app-site-association "$DIST/.well-known/"
 
 # --- stamp the COPIES (source keeps the placeholder) ------------------------
 sed -i "s/__CS_VERSION__/${SHORT}/g" "$DIST/index.html" "$DIST/sw.js"

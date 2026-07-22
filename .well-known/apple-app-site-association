@@ -1,0 +1,11 @@
+{
+  "applinks": {
+    "apps": [],
+    "details": [
+      {
+        "appID": "TEAMID.app.cupseason.ios",
+        "paths": ["/", "/?*"]
+      }
+    ]
+  }
+}

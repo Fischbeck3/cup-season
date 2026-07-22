@@ -1,0 +1,13 @@
+{
+  "appId": "app.cupseason.ios",
+  "appName": "Cup Season",
+  "webDir": "www",
+  "server": {
+    "url": "https://cupseason.app",
+    "allowNavigation": ["cupseason.app", "*.supabase.co"]
+  },
+  "ios": {
+    "contentInset": "automatic",
+    "backgroundColor": "#0A0E0C"
+  }
+}
