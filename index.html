@@ -4399,7 +4399,7 @@ function renderFeedFull(force){
           <div class="body">
             <div class="l1" style="display:flex; align-items:center; gap:8px">${window.face?window.face(r.profile_id, memberMarker(r.profile_id), 22):''}<span>${esc(f.who||'—')}</span></div>
             <div class="l2">${esc(r.course_label||'somewhere out there')} · ${r.holes_played||18} holes · ${r.played_on||''}</div>
-            <div class="rline">${r.gross} GROSS${r.pvi!=null?` · ${bandName(Number(r.pvi)).toUpperCase()}`:''}</div>
+            <div class="rline">${r.gross} GROSS${r.pvi!=null?` · ${(r.profile_id && r.profile_id===window.CS?.user?.id ? bandName(Number(r.pvi)) : theirs(bandName(Number(r.pvi)))).toUpperCase()}`:''}</div>
             <div class="rline">${counting}</div>
           </div>
           ${r.pvi!=null?`<span class="pvi ${up?'up':'dn'}">${up?'+':''}${Number(r.pvi).toFixed(1)}</span>`:''}
@@ -4713,6 +4713,11 @@ function vsPhrase(vs){
   if(vs>=-1) return 'played to your number';
   return vs.toFixed(1).replace('-','')+' over your number';
 }
+/* third-person form for surfaces that show SOMEONE ELSE's round — the share
+   page, crew rows in the feed, another golfer's receipt. "Your number" is the
+   owner's voice only; a stranger reading "2.4 over your number" can't tell
+   whose (pilot). Always they/them — never guess pronouns from a name. */
+const theirs = s => String(s||'').replace(/YOUR/g,'THEIR').replace(/Your/g,'Their').replace(/your/g,'their');
 /* ---- the Round Recap Card (#18) — the peak becomes a shareable artifact ----
    A canvas-rendered PNG in the brand's fixed dark identity (the card ignores
    the viewer's theme — an artifact has ONE face). D2's law holds on the way
@@ -7491,7 +7496,8 @@ function feedRow(r, idx){
   const milestone = r.is_pr ? '🔥 Personal best'
     : r.is_sub80 ? '⛳ Broke 80 — first time'
     : r.is_first ? '🎉 First round on the card' : null;
-  const vp = pviN!=null ? vsPhrase(pviN) : '';
+  const vp0 = pviN!=null ? vsPhrase(pviN) : '';
+  const vp = r.is_me ? vp0 : theirs(vp0);   /* crew rows speak third person */
   const vpCap = vp ? vp[0].toUpperCase()+vp.slice(1) : '';
   const rx = idx!==undefined ? homeRxOf(r) : null;
   const social = rx ? `<div class="hrx">${rxChipsHtml(rx,'data-hrx',idx)}<button class="rxadd" data-hadd="${idx}" title="More reactions" aria-label="More reactions" aria-expanded="false"><svg class="ic" aria-hidden="true"><use href="#i-plus"/></svg></button></div>
@@ -8195,7 +8201,8 @@ function openRoundReceipt(x){
     ? `<span class="mkstamp">${window.mkr(memberMarker(r.profile_id))}</span>` : '';
   openSheet(r.gross!=null ? r.gross+' gross' : 'The round', line.toUpperCase(), `
     <div class="rcpt-hero" id="rcptHero" style="${r.photo_url?'':'display:none'}">${r.photo_url?`<img src="${esc(r.photo_url)}" alt="Round photo">${stampOf()}`:''}</div>
-    ${pvi!=null?`<div class="mathrow"><span>Against your number</span><b>${pvi>=0?'+':''}${pvi.toFixed(1)} — ${bandName(pvi).toUpperCase()}</b></div>`:''}
+    ${pvi!=null?(()=>{ const mine = !r.profile_id || r.profile_id===window.CS?.user?.id;
+      return `<div class="mathrow"><span>${mine?'Against your number':'Against their number'}</span><b>${pvi>=0?'+':''}${pvi.toFixed(1)} — ${(mine?bandName(pvi):theirs(bandName(pvi))).toUpperCase()}</b></div>`; })():''}
     ${r.points!=null?`<div class="mathrow"><span>Points</span><b>${r.points}</b></div>`:''}
     ${r.month_rank!=null?`<div class="mathrow"><span>This month</span><b>${r.month_rank<=capN?'COUNTING #'+r.month_rank:'BUMPED'}</b></div>`:''}
     ${r.holes_played===9?`<div class="mathrow"><span>Nine holes</span><b>HALF VALUE · HALF A ROUND</b></div>`:''}`);
@@ -13365,8 +13372,8 @@ async function renderShareView(tok, _testInfo){
       ${info.league ? `<div style="letter-spacing:.14em;font-size:11.5px;color:${C.mut};margin-top:6px">${esc(String(info.league).toUpperCase())}</div>` : ''}
       <div style="font-family:${SERIF};font-size:104px;font-weight:700;line-height:1.15;margin:10px 0 2px">${esc(String(info.gross))}</div>
       ${info.holes === 9 ? `<div style="font-size:11px;color:${C.mut};letter-spacing:.14em">NINE HOLES</div>` : ''}
-      ${pviSane ? `<div style="color:${C.gold};letter-spacing:.16em;font-size:14.5px;font-weight:600;margin-top:10px">${esc(bandName(Number(info.pvi)).toUpperCase())}</div>
-      <div style="font-family:${SERIF};color:${pub ? 'rgba(232,236,233,.85)' : C.mut};font-size:14px;margin-top:6px">${esc(vsPhrase(Number(info.pvi)))}</div>` : ''}
+      ${pviSane ? `<div style="color:${C.gold};letter-spacing:.16em;font-size:14.5px;font-weight:600;margin-top:10px">${esc(theirs(bandName(Number(info.pvi))).toUpperCase())}</div>
+      <div style="font-family:${SERIF};color:${pub ? 'rgba(232,236,233,.85)' : C.mut};font-size:14px;margin-top:6px">${esc(theirs(vsPhrase(Number(info.pvi))))}</div>` : ''}
       <div style="border-top:1px solid rgba(255,255,255,.14);margin:18px 40px 0"></div>
       <div style="letter-spacing:.12em;font-size:13px;margin-top:16px">${esc(String(info.course || 'A ROUND').toUpperCase())}</div>
       <div style="color:${pub ? 'rgba(232,236,233,.75)' : C.mut};font-size:11.5px;letter-spacing:.12em;margin-top:8px">${esc(fmtD(info.played_on))}${info.points != null ? ` · ${esc(String(info.points))} PTS` : ''}</div>`;
