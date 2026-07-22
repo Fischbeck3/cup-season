@@ -2321,12 +2321,12 @@ html[data-theme="light"] .room-dusk .btn:not(.dark):not(.gold):not(.apple){color
           <div class="card" style="margin-bottom:10px">
             <label class="f">The foursome · <span id="selCount">4</span> / 4</label>
             <div class="slot4" id="fourSlots"></div>
-            <label class="f" style="margin-top:16px; display:block;">Tap to fill a slot</label>
+            <!-- pilot order: league chips lead, then the app-wide search
+                 (the same People Picker the events use), then guest-by-name -->
+            <label class="f" style="margin-top:16px; display:block;">Tap to fill a slot · league</label>
             <div id="rosterChips" style="margin-top:8px"></div>
-            <!-- pilot: "prefer the event/ryder process" — the same People
-                 Picker the events use, right in the tee sheet -->
             <button class="mini" id="rosterFind" style="margin-top:14px"><svg class="ic" aria-hidden="true"><use href="#i-users"/></svg> Search the app — add any golfer</button>
-            <label class="f" style="margin-top:12px; display:block;">Or add a guest by name</label>
+            <label class="f" style="margin-top:12px; display:block;">Add a guest</label>
             <div class="cinput" style="margin-top:8px">
               <input class="f" id="gName" placeholder="Name" style="font-family:var(--sans);">
               <input class="f" id="gIdx" type="number" step="0.1" placeholder="Index" inputmode="decimal" style="max-width:96px; flex:none;">
@@ -4343,6 +4343,9 @@ function lockBody(){
   document.body.style.overflow='hidden';
   if(document.body.style.position==='fixed') return;   /* already frozen (stacked overlays) */
   _bodyLockY=window.scrollY||document.documentElement.scrollTop||0;
+  /* iOS scrolls <html> even with the body fixed (focus-into-view on a date
+     input pans the whole document) — freeze the root too */
+  document.documentElement.style.overflow='hidden';
   document.body.style.position='fixed';
   document.body.style.top=(-_bodyLockY)+'px';
   document.body.style.left='0'; document.body.style.right='0'; document.body.style.width='100%';
@@ -4351,6 +4354,7 @@ function unlockBody(){
   if(anyOverlayOpen()){ document.body.style.overflow='hidden'; return; }   /* another layer still holds it */
   document.body.style.overflow='';
   if(document.body.style.position!=='fixed') return;
+  document.documentElement.style.overflow='';
   document.body.style.position=''; document.body.style.top='';
   document.body.style.left=''; document.body.style.right=''; document.body.style.width='';
   window.scrollTo(0,_bodyLockY);
@@ -5789,22 +5793,9 @@ function primeRealRoster(){
   if(window.CS?.league && !(window.CS.members||[]).length && window.loadLeagueData){
     window.loadLeagueData().then(()=>{ if(!(state.live && state.live.active)) primeRealRoster(); });
   }
-  /* golf buddies join the picker too — as non-posting players (identity
-     pre-filled), so you can score a round with friends who aren't in the
-     league. Deduped against members already in the roster. */
-  if(window.sb && window.CS?.user){
-    sb.rpc('my_friends').then(({data})=>{
-      if(state.live && state.live.active) return;
-      const have=new Set(ROSTER.map(r=>r.pid).filter(Boolean));
-      let added=false;
-      (data||[]).filter(f=>f.status==='accepted' && f.profile_id && !have.has(f.profile_id)).forEach(f=>{
-        ROSTER.push({ n:f.display_name||'Buddy', i:Number(f.index_current)||18, ci:-1, team:null,
-                      guest:true, buddy:true, est:(f.index_current==null), pid:f.profile_id });
-        added=true;
-      });
-      if(added && typeof renderRoster==='function') renderRoster();
-    }).catch(()=>{});
-  }
+  /* pilot: buddy chips no longer auto-crowd the picker — the chips lead with
+     the LEAGUE; buddies (and anyone else) arrive through the app-wide search
+     (#rosterFind), landing as non-posting players exactly as before. */
 }
 
 /* ---- live-round resume (pilot bug: a refresh dropped the in-progress round) ----
@@ -6418,7 +6409,7 @@ function renderRoster(){
   });
   if(!any && !state.demo){
     const h=document.createElement('p'); h.className='fine'; h.style.padding='2px 0';
-    h.textContent='No league mates or buddies to add yet — add a guest below, or invite your crew to the league.';
+    h.textContent='No league mates to tap yet — search the app or add a guest below.';
     wrap.appendChild(h);
   }
 
@@ -7912,6 +7903,8 @@ function closeSheet(){
 }
 $('#shClose').addEventListener('click',closeSheet);
 $('#sheet').addEventListener('click',e=>{ if(e.target.id==='sheet') closeSheet(); });
+/* iOS: a drag that starts on the backdrop must not pan the page behind */
+$('#sheet').addEventListener('touchmove',e=>{ if(e.target.id==='sheet') e.preventDefault(); },{passive:false});
 document.addEventListener('keydown',e=>{ if(e.key==='Escape') closeSheet(); });
 
 /* squad → its arithmetic */
@@ -9529,26 +9522,13 @@ function openPeoplePicker(opts){
   const render=(rows)=>{ rows.forEach(r=>rowCache.set(r.profile_id, r));
     listBox.innerHTML = rows.length ? rows.map(r=>psRow(r, actionFor(r))).join('')
       : '<p class="fine">No golfers found. Invite links still work for everyone else.</p>'; wire(); };
-  /* empty search = buddies + a few recommended (pilot: "need the search bar
-     and a few recommended") — the open league's roster, deduped */
-  const baseList = async () => {
-    const rows=(await psFriends()).filter(f=>f.status==='accepted');
-    const have=new Set(rows.map(r=>r.profile_id));
-    const me=CS.user?.id;
-    (window.CS?.members||[]).forEach(m=>{
-      if(!m.profile_id || m.profile_id===me || have.has(m.profile_id)) return;
-      have.add(m.profile_id);
-      rows.push({ profile_id:m.profile_id, display_name:m.profile?.display_name,
-                  handle:m.profile?.handle, marker:m.profile?.marker,
-                  index_current:m.profile?.index_current, rel:'none' });
-    });
-    return rows;
-  };
-  baseList().then(render);
+  /* empty search = your accepted buddies (pilot walked back the league-mate
+     recommendations here — the tee sheet's chips already lead with the league) */
+  psFriends().then(d=>render(d.filter(f=>f.status==='accepted')));
   let t=null;
   document.getElementById('ppFind').addEventListener('input', ()=>{ clearTimeout(t); t=setTimeout(async()=>{
     const q=document.getElementById('ppFind').value.trim();
-    if(!q.length){ baseList().then(render); return; }
+    if(!q.length){ psFriends().then(d=>render(d.filter(f=>f.status==='accepted'))); return; }
     render(await psSearch(q));
   }, 350); });
 }
