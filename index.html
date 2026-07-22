@@ -4766,7 +4766,9 @@ function drawRecapCard(d){
     x.stroke(path); x.restore();
   }
   ctr((d.name||'A GOLFER').toUpperCase(), 372, `600 44px ${MONO}`, INK, 7);
-  if(d.league) ctr(d.league.toUpperCase(), 424, `400 27px ${MONO}`, MUT, 5);
+  /* D60a: no league line on the card — the artifact is about the golfer, and
+     league names are in-joke space (pilot: "Who's the bitch?" on a PNG headed
+     for strangers). Callers may still pass d.league; it stays undrawn. */
   /* the hero number — serif, the memory-and-honor voice */
   ctr(String(d.gross), 760, `700 300px ${SERIF}`, INK);
   /* band renders only on a SANE vs — a rating-less post recalcs to a nonsense
@@ -4776,8 +4778,10 @@ function drawRecapCard(d){
      at fixed y, so the card stands without the band. Display gate only. */
   const pviSane = d.pvi!=null && isFinite(d.pvi) && Math.abs(Number(d.pvi))<=30;
   if(pviSane){
-    ctr(bandName(Number(d.pvi)).toUpperCase(), 850, `600 46px ${MONO}`, GOLD, 9);
-    ctr(vsPhrase(Number(d.pvi)), 906, `500 31px ${SERIF}`, MUT);
+    /* third person on the artifact — its audience is the group chat, and the
+       golfer's name is right above (same rule as the share page) */
+    ctr(theirs(bandName(Number(d.pvi))).toUpperCase(), 850, `600 46px ${MONO}`, GOLD, 9);
+    ctr(theirs(vsPhrase(Number(d.pvi))), 906, `500 31px ${SERIF}`, MUT);
   }
   if(d.badge) ctr('★ '+d.badge, 972, `600 31px ${MONO}`, GOLD, 5);
   x.strokeStyle='rgba(255,255,255,.1)'; x.lineWidth=1;
@@ -4796,7 +4800,7 @@ function recapText(d){
      out of the share text too */
   const pviSane = d.pvi!=null && isFinite(d.pvi) && Math.abs(Number(d.pvi))<=30;
   return `${d.gross} at ${d.course||'the course'}`
-    + (pviSane?` — ${vsPhrase(Number(d.pvi)).toLowerCase()}`:'')
+    + (pviSane?` — ${theirs(vsPhrase(Number(d.pvi))).toLowerCase()}`:'')
     + (d.points!=null?` · ${d.points} pts`:'') + ' · cupseason.app';
 }
 async function shareRecapCard(d){
