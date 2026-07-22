@@ -153,6 +153,18 @@ begin
           jsonb_build_object('squad', p_squad, 'member', p_member));
 end $$;
 
+-- delete_league (found in cleanup): the escape hatch dies on
+-- live_round_players_member_id_fkey the moment a league has ever opened a
+-- live round — even pre-first-tee, which is exactly when the hatch is legal.
+-- A live-round SEAT is lens furniture: it goes with the member (guest rows
+-- have member_id null and keep their claim tokens; posted round FACTS live in
+-- rounds, whose live_round_id already SET NULLs). Cascade the seat.
+alter table public.live_round_players
+  drop constraint if exists live_round_players_member_id_fkey;
+alter table public.live_round_players
+  add constraint live_round_players_member_id_fkey
+  foreign key (member_id) references public.league_members(id) on delete cascade;
+
 -- D37 discipline: functions (re)created after the default-privilege flip can
 -- pick up PUBLIC execute depending on the runner — strip and re-grant.
 revoke all on function public.randomize_squads(uuid) from public, anon;

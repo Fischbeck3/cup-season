@@ -101,6 +101,10 @@ Format: `ID · [bug|friction|copy|a11y] · where · what · repro`.
   inserts commissioner_log WITHOUT actor_id (NOT NULL) — every assign died on
   the constraint; unreachable in prod until S4-02's client fix rendered the
   assign UI at all · assign league → tap player → tap squad → "Assign failed"
+- S4-07 · bug · delete_league (found in cleanup) · fails on
+  `live_round_players_member_id_fkey` once the league has ever opened a live
+  round — even pre-first-tee, exactly when the hatch is legal; the sheet
+  swallows it as a vanishing toast · start any live round → Cancel & delete
 
 ### S5 · Event setup (Ryder · Major)
 - S5-01 · bug · Ryder pairings · "Generate pairings" with an empty opposing
