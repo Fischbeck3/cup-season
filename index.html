@@ -8918,6 +8918,11 @@ async function loadProfile(){
   if(window.FOUNDER_ID && CS.user?.id === window.FOUNDER_ID){
     const fd = document.getElementById('founderDesk'); if(fd) fd.style.display = 'block';
   }
+  /* W4: who have I muted — powers the Tour Card toggle label. Enforcement is
+     server-side RLS; this set is UI state only. Skew-safe: pre-migration the
+     RPC is absent and the set stays empty. */
+  try { const { data: mu } = await sb.rpc('my_mutes'); window.MUTED = new Set(mu || []); }
+  catch(_) { window.MUTED = new Set(); }
   refreshWhoChip();
   return CS.profile;
 }
@@ -9303,10 +9308,33 @@ async function openTourCard(profileId){
             <div class="tt"><b>${r.gross} GROSS${r.holes_played===9?' · 9 HOLES':''}</b><small>${r.course_label?esc(r.course_label.toUpperCase())+' · ':''}DIFF ${diff}</small></div></div>`;
         }).join('');
   }
-  openSheet(p.is_me?'Your Tour Card':'Tour Card', p.is_me?'THIS IS HOW YOUR CREW SEES YOU':(p.handle?'@'+p.handle.toUpperCase():''), header+vsHtml+stats+trHtml+recHtml);
+  /* W4 (iOS arc, Guideline 1.2): mute lives on the card — the one place you
+     already are when someone's posts are the problem. Enforcement is the RLS
+     policy (their board posts/comments vanish for you on the next read);
+     this button is the switch, not the filter. */
+  let muteHtml='';
+  if(!p.is_me){
+    const muted = window.MUTED instanceof Set && window.MUTED.has(profileId);
+    muteHtml = `<button class="mini" id="tcMute" style="margin-top:16px; color:var(--mut)">${muted?'🔈 Unmute — show their posts again':'🔇 Mute — hide their posts from your boards'}</button>`;
+  }
+  openSheet(p.is_me?'Your Tour Card':'Tour Card', p.is_me?'THIS IS HOW YOUR CREW SEES YOU':(p.handle?'@'+p.handle.toUpperCase():''), header+vsHtml+stats+trHtml+recHtml+muteHtml);
   const vb=document.getElementById('tcVs');
   if(vb) vb.addEventListener('click', ()=> openRivalrySheet(profileId, p.display_name||'them',
     `${vs.wins}–${vs.losses}${vs.ties?'–'+vs.ties:''}`));
+  const mb=document.getElementById('tcMute');
+  if(mb) mb.addEventListener('click', async ()=>{
+    const on = !(window.MUTED instanceof Set && window.MUTED.has(profileId));
+    mb.disabled = true;
+    try{
+      const { error } = await sb.rpc('set_mute', { p_profile: profileId, p_on: on });
+      if(error) throw error;
+      window.MUTED = window.MUTED instanceof Set ? window.MUTED : new Set();
+      on ? window.MUTED.add(profileId) : window.MUTED.delete(profileId);
+      closeSheet();
+      toast(on ? 'Muted. Their posts drop off your boards.' : 'Unmuted.');
+      window.refreshSocial?.();
+    }catch(e){ mb.disabled=false; toast(humanError(e, 'Could not change that.')); }
+  });
 }
 window.openTourCard = openTourCard;
 /* one delegated door: any [data-tc="<profileId>"] element opens that card */
@@ -10513,6 +10541,25 @@ $('#obEmail').addEventListener('click', () => {
 });
 
 $('#obCodeGo').addEventListener('click', async () => {
+  /* W3 (iOS arc): the App Review door. Apple reviewers can't receive our OTP
+     email, so exactly ONE account signs in with a password instead — the
+     branch is invisible unless that address is typed. Credentials live in
+     App Review notes; the account is a normal golfer otherwise. */
+  if(CS.reviewerMode){
+    const pw = $('#obCodeIn').value;
+    if(pw.length < 8) return authStatus('Enter the review password from the notes.','err');
+    const btn = $('#obCodeGo');
+    btn.disabled = true; btn.textContent = '…';
+    try {
+      const { error } = await sb.auth.signInWithPassword({ email: CS.pendingEmail, password: pw });
+      if(error) throw error;
+      authStatus('Signed in, loading…','ok');
+      setTimeout(() => window.location.replace(window.location.pathname), 400);
+    } catch(e){
+      authStatus(humanError(e, 'That password didn’t take.'),'err');
+    } finally { btn.disabled = false; btn.textContent = 'Verify'; }
+    return;
+  }
   const token = $('#obCodeIn').value.replace(/\D/g,'');
   const email = CS.pendingEmail || $('#obEmailIn').value.trim();
   if(token.length < 6) return authStatus('Type the full code from the email: every digit.','err');
@@ -10538,6 +10585,7 @@ $('#obCodeGo').addEventListener('click', async () => {
    flag + in-flight check stop a double fire. */
 let otpAuto = false;
 $('#obCodeIn')?.addEventListener('input', () => {
+  if(CS.reviewerMode) return;   /* W3: passwords keep their letters */
   const el = $('#obCodeIn');
   const digits = el.value.replace(/\D/g, '');
   if(digits !== el.value) el.value = digits;
@@ -10591,6 +10639,17 @@ $('#obResend')?.addEventListener('click', async () => {
 $('#obEmailGo').addEventListener('click', async () => {
   const email = $('#obEmailIn').value.trim();
   if(!email.includes('@')) return authStatus('Enter a real email address.','err');
+  /* W3: the review account skips OTP — flip the code input into a password
+     field and wait for the password from the App Review notes. */
+  if(email.toLowerCase() === 'reviewer@cupseason.app'){
+    CS.reviewerMode = true; CS.pendingEmail = email;
+    const ci = $('#obCodeIn');
+    ci.type = 'password'; ci.removeAttribute('inputmode'); ci.removeAttribute('maxlength');
+    ci.placeholder = 'REVIEW PASSWORD'; ci.value = '';
+    $('#codebox').classList.add('open'); ci.focus();
+    authStatus('Review access: enter the password from the notes.','ok');
+    return;
+  }
   const btn = $('#obEmailGo');
   btn.disabled = true; btn.textContent = '…';
   authStatus('Sending sign-in code…');

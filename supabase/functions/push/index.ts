@@ -50,6 +50,60 @@ async function sendTo(profileIds: string[], title: string, body: string) {
   }));
   if (dead.length) await sb.from('push_subscriptions').delete().in('id', dead);
   console.log(`[push] sent=${sent} pruned=${dead.length}`);
+
+  await sendApns(profileIds, title, body);
+}
+
+// ---- APNs (iOS arc W5) ------------------------------------------------------
+// The Capacitor wrapper's WKWebView can't receive web push; native device
+// tokens land in device_tokens (register_device_token RPC) and get APNs here.
+// Entirely env-gated: with no APNS_* secrets this is a silent no-op, so the
+// branch ships dormant and lights up when the Mac-phase key arrives.
+// Secrets (Mac phase): APNS_P8 (key file contents), APNS_KEY_ID, APNS_TEAM_ID.
+// Optional: APNS_TOPIC (defaults to the bundle id), APNS_SANDBOX=1 for dev.
+let apnsJwt: { token: string; at: number } | null = null;
+async function apnsToken(): Promise<string | null> {
+  const p8 = Deno.env.get('APNS_P8'), kid = Deno.env.get('APNS_KEY_ID'), team = Deno.env.get('APNS_TEAM_ID');
+  if (!p8 || !kid || !team) return null;
+  if (apnsJwt && Date.now() - apnsJwt.at < 45 * 60_000) return apnsJwt.token;
+  const pem = p8.replace(/-----[^-]+-----|\s/g, '');
+  const der = Uint8Array.from(atob(pem), (c) => c.charCodeAt(0));
+  const key = await crypto.subtle.importKey('pkcs8', der, { name: 'ECDSA', namedCurve: 'P-256' }, false, ['sign']);
+  const b64 = (o: unknown) => btoa(JSON.stringify(o)).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+  const input = `${b64({ alg: 'ES256', kid })}.${b64({ iss: team, iat: Math.floor(Date.now() / 1000) })}`;
+  const sig = new Uint8Array(await crypto.subtle.sign({ name: 'ECDSA', hash: 'SHA-256' }, key, new TextEncoder().encode(input)));
+  const sigB64 = btoa(String.fromCharCode(...sig)).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+  apnsJwt = { token: `${input}.${sigB64}`, at: Date.now() };
+  return apnsJwt.token;
+}
+async function sendApns(profileIds: string[], title: string, body: string) {
+  const jwt = await apnsToken();
+  if (!jwt) return; // dormant until the APNS_* secrets exist
+  const { data: toks } = await sb.from('device_tokens')
+    .select('token').in('profile_id', profileIds);
+  if (!toks?.length) return;
+  const host = Deno.env.get('APNS_SANDBOX') ? 'https://api.sandbox.push.apple.com' : 'https://api.push.apple.com';
+  const topic = Deno.env.get('APNS_TOPIC') ?? 'app.cupseason.ios';
+  const payload = JSON.stringify({ aps: { alert: { title, body: body.slice(0, 140) }, sound: 'default' } });
+  const dead: string[] = [];
+  let sent = 0;
+  await Promise.all(toks.map(async (t) => {
+    try {
+      const res = await fetch(`${host}/3/device/${t.token}`, {
+        method: 'POST',
+        headers: { authorization: `bearer ${jwt}`, 'apns-topic': topic, 'apns-push-type': 'alert' },
+        body: payload,
+      });
+      if (res.ok) { sent++; return; }
+      const txt = await res.text().catch(() => '');
+      console.error(`[apns] status=${res.status} body=${txt.slice(0, 120)}`);
+      if (res.status === 410 || txt.includes('BadDeviceToken') || txt.includes('Unregistered')) dead.push(t.token);
+    } catch (e) {
+      console.error(`[apns] failed msg=${(e as Error)?.message ?? e}`);
+    }
+  }));
+  if (dead.length) await sb.from('device_tokens').delete().in('token', dead);
+  if (sent || dead.length) console.log(`[apns] sent=${sent} pruned=${dead.length}`);
 }
 
 // Transactional email via Brevo. No-op (logs and returns) when BREVO_API_KEY

@@ -35,16 +35,16 @@ from (
         and p.proname not in ('claim_round_info','scan_claim_info','league_by_code','founder_id')) as extra
 ) t
 
--- 3 · every client-called RPC is executable by authenticated (the 73)
+-- 3 · every client-called RPC is executable by authenticated (the 76)
 union all
 select '3 · authenticated RPC grants',
-  case when missing = '' then 'PASS — all 73 granted'
+  case when missing = '' then 'PASS — all 76 granted'
     else 'FAIL — not granted: ' || missing end,
-  '73 names extracted from the client'
+  '76 names extracted from the client'
 from (
   select coalesce(string_agg(f, ', '), '') as missing
   from unnest(array[
-    'abandon_live_round','add_event_player','add_round_comment','announce','assign_player','claim_round','claim_round_info','claim_scan_round','create_event','create_league','create_major','create_scan_claim','declare_round','delete_account','delete_event','delete_league','delete_round','enter_major','event_session_targets','finish_live_round','form_squads','founder_desk','founder_id','founder_note','friend_request','friend_respond','generate_pairings','home_feed','invite_golfer','join_league','league_by_code','league_pulse','major_leaderboard','mark_buy_in','my_achievements','my_friends','my_invites','my_rivalries','my_schedule','my_trophies','open_major','randomize_squads','remove_member','report_content','resolve_session','respond_invite','retag_round','rivalry_weeks','round_detail','round_epilogue','scan_claim_info','scratch_round','search_golfers','season_scenarios','set_discoverable','set_event_notify','set_event_team','set_handle','set_index','set_league_finish','set_member_bye','set_member_index','set_notify_chat','set_notify_rounds','set_profile','set_rivalry_name','set_round_rsvp','settle_major','start_live_round','start_season','submit_feedback','tour_card','transfer_pro'
+    'abandon_live_round','add_event_player','add_round_comment','announce','assign_player','claim_round','claim_round_info','claim_scan_round','create_event','create_league','create_major','create_scan_claim','declare_round','delete_account','delete_event','delete_league','delete_round','enter_major','event_session_targets','finish_live_round','form_squads','founder_desk','founder_id','founder_note','friend_request','friend_respond','generate_pairings','home_feed','invite_golfer','join_league','league_by_code','league_pulse','major_leaderboard','mark_buy_in','my_achievements','my_friends','my_invites','my_rivalries','my_schedule','my_trophies','open_major','randomize_squads','remove_member','report_content','resolve_session','respond_invite','retag_round','rivalry_weeks','round_detail','round_epilogue','scan_claim_info','scratch_round','search_golfers','season_scenarios','set_discoverable','set_event_notify','set_event_team','set_handle','set_index','set_league_finish','set_member_bye','set_member_index','set_notify_chat','set_notify_rounds','set_profile','set_rivalry_name','set_round_rsvp','settle_major','start_live_round','start_season','submit_feedback','tour_card','transfer_pro','set_mute','my_mutes','register_device_token'
   ]) f
   where not exists (select 1 from pg_proc p join pg_namespace n on n.oid = p.pronamespace
     where n.nspname = 'public' and p.proname = f
