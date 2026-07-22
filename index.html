@@ -560,6 +560,10 @@ img.face{border-radius:50%; object-fit:cover; vertical-align:-4px; border:1px so
 .hsfoot{background:var(--bg1); color:var(--ink); padding:8px 12px; border-top:1px solid var(--line2);}
 /* moments sit quiet — clearly not a round */
 .hfcard.quiet{background:var(--bg2); border-style:dashed; cursor:default;}
+/* pilot: "Save card is hard to find when a change is made" — the button ARMS
+   the moment the card changes: fairway fill, one soft rise. Disarms on save. */
+.mini.armed{background:var(--brand); color:#fff; border-color:var(--brand); font-weight:700; animation:csRise .35s var(--roll) both;}
+@media (prefers-reduced-motion: reduce){ .mini.armed{animation:none;} }
 /* month-seal motion carries over from the .check rows (C5) */
 .hfcard.sealin .hfid > b{transform-origin:center; animation:csSeal .6s var(--roll) both;}
 .hfcard.sealed .hfid > b{transform:rotate(-1.4deg);}
@@ -10014,6 +10018,13 @@ function openProfileHub(){
     if(ad) ad.textContent = u ? 'Change photo' : 'Add a photo';
   };
   phPaint();
+  /* dirty-state: any card change arms Save (delegates survive the marker grid
+     re-render); photo add/remove save instantly and never arm */
+  const phArm = () => { const b=$('#phSave');
+    if(b && !b.classList.contains('armed')){ b.classList.add('armed'); b.textContent='Save changes'; } };
+  ['phName','phCity','phHome','phGhin','phHandle'].forEach(id=>$('#'+id)?.addEventListener('input', phArm));
+  $('#phDisc')?.addEventListener('click', phArm);
+  $('#phMarkers')?.addEventListener('click', phArm);
   const cropSquare = async (file) => {
     const im = await window.photoDrawable(file);
     const w0=im.width||im.naturalWidth, h0=im.height||im.naturalHeight, side=Math.min(w0,h0);
@@ -10086,6 +10097,7 @@ function openProfileHub(){
       toast('Card saved');
       /* the sheet stays open, so confirm inside it too (pilot feedback) */
       $('#phStatus').textContent = 'Card saved ✓'; $('#phStatus').style.color = 'var(--pos)';
+      btn.classList.remove('armed'); btn.textContent = 'Save card';
     } catch(e){ $('#phStatus').textContent = humanError(e, 'Save failed.'); $('#phStatus').style.color = ''; }
     finally { btn.disabled = false; }
   });
