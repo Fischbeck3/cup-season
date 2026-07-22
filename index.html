@@ -5440,7 +5440,7 @@ function renderPot(){
   state.payers.forEach((p,i)=>{
     const row=document.createElement('button');
     row.className='payer'+(p.paid?' paid':'');
-    row.innerHTML=`<span>${p.name}</span><span class="tick">✓</span>`;
+    row.innerHTML=`<span>${esc(p.name)}</span><span class="tick">✓</span>`;
     row.addEventListener('click',()=>{state.payers[i].paid=!state.payers[i].paid;renderPot();});
     el.appendChild(row);
   });
