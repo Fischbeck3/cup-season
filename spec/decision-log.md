@@ -1773,3 +1773,42 @@ Owner pre-approved the build 2026-07-22: "full send" in the arc brief.)*
   (accepted: that is the spec's floor).
 - **CONFLICT check:** none upward; enforces §14.0/§2.2 as written. Snake/live
   draft engines remain unbuilt and now refuse loudly instead of misfiring.
+
+## Batch 12 — 2026-07-23, photos arc 2 (Social/Growth seam)
+
+### D59 · Profile photos — the marker becomes the floor (the D36 reversal)
+
+- **Current mechanic:** D36 skipped profile photos deliberately — "the marker
+  is identity." Faces existed nowhere; every identity surface rendered the
+  chosen ball-marker glyph. (Note: spec/photos-arc-2.md drafted this as "D58";
+  the setup-QA lane claimed D58 for formation integrity first — this entry is
+  the same decision under its real number.)
+- **Problem:** the marker carries recognition among strangers poorly (twelve
+  saguaros in a growing league), and the Tour Card — the identity object — has
+  no face on the door. Pilot photos proved the appetite: golfers post photos of
+  rounds, not abstractions.
+- **Recommendation (built):** `profiles.photo_path` in the EXISTING private
+  `media` bucket (`{uid}/avatar.jpg`, own-prefix policies already fit; 8MB +
+  image-only caps hold). Avatars render wherever identity renders on league
+  surfaces; **the fallback is always the marker — no gray-silhouette state
+  exists in the app.** Per-league marker override (`league_members.marker`,
+  self-set via `set_league_marker`) keeps the marker a living choice, not a
+  relic. Round photos and the receipt hero carry the poster's marker medallion
+  (attribution + brand). Moderation: avatars stay signed-in-only (bucket
+  private); `report_content` widens to `kind='profile_photo'` targeting a
+  profile; the founder desk gains a reports pane (the report table finally has
+  a reader). Pro-side takedown deferred until real abuse (D19 precedent).
+- **Principle served:** #4 Memory > Statistics (the card is a person, not a
+  row); §16 adjacency (a report lands where someone actually looks).
+- **Benefit:** recognition at a glance in leagues past the first foursome; the
+  Tour Card reads like a card; the marker gains a second job (stamp) instead
+  of losing its first.
+- **Tradeoffs:** a moderation surface now exists and must be watched (desk
+  pane is the watch); signed-URL cost per league load (one batched call, 1h
+  TTL, same pattern as round photos); crop/upload UI weight in the You sheet.
+  Friends-only surfaces (picker rows for non-league buddies) keep the marker
+  floor in v1 — `my_friends` is untouched this checkpoint.
+- **CONFLICT (named, D36):** D36 said the marker IS identity; D59 demotes it
+  to identity FLOOR + brand mark. Owner call, 2026-07-22, recorded in
+  spec/photos-arc-2.md ("DESIGN APPROVED"). The demo diorama still never
+  fabricates faces — markers only there.

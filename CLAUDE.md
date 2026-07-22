@@ -232,10 +232,13 @@ structured outputs, ANTHROPIC_API_KEY in secrets) reads the card, the D34 grid
 returns as the confirm surface, partner rows mint `/?claim=` links
 (`scan_claims`). Cost is fail-closed: kill switch + caps in `app_flags.scan`,
 prepaid credits no auto-reload, every failure degrades to typed entry. See
-`spec/photos-arc.md`.
+`spec/photos-arc.md`. **Arc 2 (D59, 2026-07-23): profile photos ARE in** —
+avatars with the marker as the guaranteed fallback floor (no silhouette state),
+per-league marker override, marker medallion stamped on round photos, photo
+reports on the founder desk. The demo diorama still never fabricates faces.
+See `spec/photos-arc-2.md`.
 
-**Honest edges / not yet done:** profile photos (deliberately skipped — the
-marker is identity) · the captains-pick + snake-draft *engines* (wizard shows
+**Honest edges / not yet done:** the captains-pick + snake-draft *engines* (wizard shows
 the built two + roster-fit guidance; server-side draft engines unbuilt) · a
 pre-existing boot-time async rejection ("reading 'n'") + repeated boot (own
 task, in progress) · the TIMED pre-launch QA run (needs prod deployed + human

@@ -514,6 +514,10 @@ input.f::-webkit-outer-spin-button, input.f::-webkit-inner-spin-button{-webkit-a
 .rcpt-hero{margin:0 0 12px;}
 .rcpt-hero img{width:100%; max-height:260px; object-fit:cover; border-radius:12px; border:1px solid var(--line2); display:block;}
 .digest .dgthumb{float:right; width:44px; height:44px; border-radius:10px; object-fit:cover; margin-left:10px; border:1px solid var(--line2);}
+/* photos arc 2 ckpt 2 (D59): faces + the marker stamp */
+img.face{border-radius:50%; object-fit:cover; vertical-align:-4px; border:1px solid var(--line2); background:var(--bg2);}
+.mkstamp{position:absolute; right:10px; bottom:10px; width:26px; height:26px; display:flex; align-items:center; justify-content:center; border-radius:50%; background:rgba(8,9,11,.55); color:#ECEEF2; backdrop-filter:blur(2px);}
+.rcpt-hero{position:relative;}
 .seg button:focus-visible{outline:2px solid var(--pos); outline-offset:-2px;}
 .preset{
   width:100%; text-align:left; cursor:pointer;
@@ -4319,6 +4323,7 @@ function renderFeedFull(force){
           </div>
           ${r.pvi!=null?`<span class="pvi ${up?'up':'dn'}">${up?'+':''}${Number(r.pvi).toFixed(1)}</span>`:''}
           ${r.points!=null?`<div class="pts">${r.points}<small>PTS</small></div>`:''}
+          ${r.photo_url && r.profile_id && window.mkr ? `<span class="mkstamp">${window.mkr(memberMarker(r.profile_id))}</span>` : ''}
         </div>${socialBar(f,fi,{ns:'f-'})}</div>`);
         return;
       }
@@ -7343,10 +7348,23 @@ function wireHomeSocial(box){
     toggleHomeRx(r, b.dataset.e);
   }));
 }
+/* photos arc 2 (D59): one face for every identity chip — the avatar when the
+   signed URL is in the map, ALWAYS the marker otherwise. No silhouette state.
+   memberMarker resolves the per-league override for league surfaces. */
+function face(pid, markerKey, size){
+  const u = pid && window.avatarUrl ? window.avatarUrl[pid] : null;
+  const s = size||20;
+  return u ? `<img class="face" src="${esc(u)}" width="${s}" height="${s}" alt="" loading="lazy">`
+           : (window.mkr ? (window.mkr(markerKey||'saguaro') || window.mkr('saguaro')) : '');
+}
+function memberMarker(pid){
+  const m = (window.CS?.members||[]).find(m => m.profile_id === pid);
+  return m ? (m.mk || m.marker || m.profile?.marker || 'saguaro') : 'saguaro';
+}
 function feedRow(r, idx){
   const who = esc(r.is_me ? 'You' : (r.golfer||'A golfer'));
   const whoTag = who + (r.is_me ? '' : founderTag(r.profile_id, r.golfer));
-  const mk = window.mkr ? window.mkr(r.marker||'saguaro') : '';
+  const mk = face(r.profile_id, r.marker);
   const course = esc(r.course || 'a round');
   const pvi = (r.pvi!=null) ? `${r.pvi>=0?'+':''}${r.pvi} vs index` : '';
   let badge='', line='';
@@ -7653,7 +7671,7 @@ function renderHomeRequests(){
   box.innerHTML =
     `<div class="eyebrow" style="margin-top:0; color:var(--brand)">Friend request${list.length>1?'s':''}</div>` +
     list.map(f=>{
-      const mk = window.mkr ? window.mkr(f.marker||'saguaro') : '';
+      const mk = face(f.profile_id, f.marker);
       const name = esc(f.display_name||'A golfer');
       const h = f.handle ? '@'+esc(f.handle) : '';
       return `<div class="check" style="border-color:var(--brand)"><span class="num">${mk}</span>
@@ -8005,8 +8023,11 @@ function openRoundReceipt(x){
     : (r.index_at_post!=null && r.differential!=null ? Number(r.index_at_post)-Number(r.differential) : null);
   const capN=[2,4,6,Infinity][state.cap];
   const line=[r.course_label||'somewhere out there', (r.holes_played||18)+' holes', r.played_on||''].filter(Boolean).join(' · ');
+  /* D59 (2c): the poster's marker medallion rides the photo — attribution */
+  const stampOf = () => r.profile_id && window.mkr
+    ? `<span class="mkstamp">${window.mkr(memberMarker(r.profile_id))}</span>` : '';
   openSheet(r.gross!=null ? r.gross+' gross' : 'The round', line.toUpperCase(), `
-    <div class="rcpt-hero" id="rcptHero" style="${r.photo_url?'':'display:none'}">${r.photo_url?`<img src="${esc(r.photo_url)}" alt="Round photo">`:''}</div>
+    <div class="rcpt-hero" id="rcptHero" style="${r.photo_url?'':'display:none'}">${r.photo_url?`<img src="${esc(r.photo_url)}" alt="Round photo">${stampOf()}`:''}</div>
     ${pvi!=null?`<div class="mathrow"><span>Against your number</span><b>${pvi>=0?'+':''}${pvi.toFixed(1)} — ${bandName(pvi).toUpperCase()}</b></div>`:''}
     ${r.points!=null?`<div class="mathrow"><span>Points</span><b>${r.points}</b></div>`:''}
     ${r.month_rank!=null?`<div class="mathrow"><span>This month</span><b>${r.month_rank<=capN?'COUNTING #'+r.month_rank:'BUMPED'}</b></div>`:''}
@@ -8015,7 +8036,7 @@ function openRoundReceipt(x){
     window.sb.storage.from('media').createSignedUrl(r.photo_path, 3600).then(({data})=>{
       const hb=document.getElementById('rcptHero');
       if(data?.signedUrl && hb){ r.photo_url=data.signedUrl;
-        hb.innerHTML=`<img src="${esc(data.signedUrl)}" alt="Round photo">`; hb.style.display=''; }
+        hb.innerHTML=`<img src="${esc(data.signedUrl)}" alt="Round photo">${stampOf()}`; hb.style.display=''; }
     }).catch(()=>{});
   }
 }
@@ -9235,10 +9256,25 @@ window.mkr = mkr; /* classic renderCalendar draws markers — bridge or it silen
 window.MARKERS = MARKERS; /* classic recap-card canvas draws the marker PATH — same bridge rule */
 
 async function loadProfile(){
-  const { data } = await sb.from('profiles')
-    .select('id, display_name, city, home_course, index_current, marker, notify_chat, notify_rounds, handle, discoverable, ghin_number, created_at')
+  /* photos arc 2 (D59): photo_path rides the select — retry without it on
+     deploy skew (client ahead of the migration) */
+  let q = await sb.from('profiles')
+    .select('id, display_name, city, home_course, index_current, marker, notify_chat, notify_rounds, handle, discoverable, ghin_number, created_at, photo_path')
     .eq('id', CS.user.id).maybeSingle();
+  if(q.error && /photo_path/.test(q.error.message||''))
+    q = await sb.from('profiles')
+      .select('id, display_name, city, home_course, index_current, marker, notify_chat, notify_rounds, handle, discoverable, ghin_number, created_at')
+      .eq('id', CS.user.id).maybeSingle();
+  const data = q.data;
   CS.profile = data || null;
+  /* own avatar into the one shared map (marker floor if any step fails) */
+  window.avatarUrl = window.avatarUrl || {};
+  if(data?.photo_path){
+    try{
+      const { data: s } = await sb.storage.from('media').createSignedUrl(data.photo_path, 3600);
+      if(s?.signedUrl) window.avatarUrl[data.id] = s.signedUrl;
+    }catch(_){ }
+  } else if(data){ delete window.avatarUrl[data.id]; }
   if(CS.profile?.index_current != null) state.myIndex = Number(CS.profile.index_current);
   try { const { data: fid } = await sb.rpc('founder_id'); window.FOUNDER_ID = fid || null; } catch(_){ /* pre-migration: no badge */ }
   /* the founder's desk reveals for the owner only — the display toggle is
@@ -9424,7 +9460,7 @@ function refreshWhoChip(){
       $('#youIdx').title = 'Building your number — your index appears at 3 posted rounds';
     }
   }
-  if($('#youMk')) $('#youMk').innerHTML = mkr(p.marker || 'saguaro');
+  if($('#youMk')) $('#youMk').innerHTML = window.face ? window.face(CS.user?.id, p.marker, 22) : mkr(p.marker || 'saguaro');
 }
 let phMarker = null;
 function renderPhMarkers(){
@@ -9441,7 +9477,7 @@ function renderPhMarkers(){
    my_friends / friend_request / friend_respond (+ invite via onPick).
    ============================================================ */
 function psRow(r, actionHTML){
-  return `<div class="prow"><span class="pmk" data-tc="${r.profile_id}">${mkr(r.marker||'saguaro')}</span>
+  return `<div class="prow"><span class="pmk" data-tc="${r.profile_id}">${window.face ? window.face(r.profile_id, r.marker) : mkr(r.marker||'saguaro')}</span>
     <span class="pmeta" data-tc="${r.profile_id}"><b>${esc(r.display_name||'—')}${founderTag(r.profile_id, r.display_name)}</b>
       <small>@${esc(r.handle||'?')}${r.city?' · '+esc(r.city):''}</small></span>${actionHTML}</div>`;
 }
@@ -9598,12 +9634,17 @@ async function openTourCard(profileId){
   const since = p.member_since ? (()=>{ const d=new Date(p.member_since); return 'Member since '+MOS[d.getMonth()]+' '+d.getFullYear(); })() : null;
   const anchorTxt = [p.ghin ? 'GHIN '+esc(p.ghin) : null, since].filter(Boolean).join(' · ');
   const ghinLine = anchorTxt ? `<div class="fine" style="padding-left:0; margin-top:6px; color:var(--dim)">${anchorTxt}</div>` : '';
+  /* D59: the card gets a face (marker floor); a visible photo that isn't
+     yours can be reported — two-tap, lands on the founder desk */
+  const hasFace = !!(window.avatarUrl && window.avatarUrl[profileId]);
+  const reportLine = (hasFace && profileId !== CS.user?.id)
+    ? `<div class="fine" style="padding:2px 0 0"><a href="#" id="tcReport" style="color:var(--dim)">Report photo</a></div>` : '';
   const header = `<div style="display:flex; align-items:center; gap:12px">
-      <span style="font-size:34px; line-height:1">${mkr(p.marker||'saguaro')}</span>
+      <span style="font-size:34px; line-height:1">${window.face ? window.face(profileId, p.marker, 40) : mkr(p.marker||'saguaro')}</span>
       <div style="min-width:0"><div style="font-size:18px; font-weight:600">${esc(p.display_name||'—')}${p.handle?' <span style="color:var(--mut); font-weight:400; font-size:14px">@'+esc(p.handle)+'</span>':''}</div>
         <div class="fine" style="padding-left:0">${meta||'&nbsp;'}</div></div>
       <div style="margin-left:auto; text-align:right; flex:none"><div style="font-family:var(--serif); font-size:22px; color:var(--ink)">${idx}</div><div class="fine" style="padding:0; letter-spacing:.1em">INDEX</div></div>
-    </div>${ghinLine}`;
+    </div>${ghinLine}${reportLine}`;
   let vsHtml='';
   if(vs && (vs.wins+vs.losses+vs.ties)>0){
     const lead = vs.wins>vs.losses?'up':vs.wins<vs.losses?'dn':'ev';
@@ -9662,6 +9703,23 @@ async function openTourCard(profileId){
       toast(on ? 'Muted. Their posts drop off your boards.' : 'Unmuted.');
       window.refreshSocial?.();
     }catch(e){ mb.disabled=false; toast(humanError(e, 'Could not change that.')); }
+  });
+  /* D59 moderation: two-tap report, no native confirm (S4-03 lesson) */
+  const rb=document.getElementById('tcReport');
+  if(rb) rb.addEventListener('click', async e=>{
+    e.preventDefault();
+    if(rb.dataset.armed!=='1'){ rb.dataset.armed='1'; rb.textContent='Sure? Report this photo'; return; }
+    rb.style.pointerEvents='none';
+    try{
+      const { error } = await sb.rpc('report_content',
+        { p_kind:'profile_photo', p_profile: profileId, p_reason:'profile photo' });
+      if(error) throw error;
+      rb.textContent='Reported — the founder desk sees it'; rb.removeAttribute('href');
+    }catch(err){
+      rb.style.pointerEvents=''; rb.dataset.armed='';
+      rb.textContent='Report photo';
+      toast(humanError(err, 'Could not send that report.'));
+    }
   });
 }
 window.openTourCard = openTourCard;
@@ -9744,6 +9802,13 @@ function openProfileHub(){
     </div>
     <label class="f" style="display:block; margin-top:8px">Ball marker</label>
     <div id="phMarkers" style="display:grid; grid-template-columns:repeat(4,1fr); gap:8px; margin-top:8px;"></div>
+    <label class="f" style="display:block; margin-top:10px">Your photo · the marker always backs it up</label>
+    <div style="display:flex; align-items:center; gap:10px; margin-top:8px">
+      <span id="phFace" style="width:44px; height:44px; flex:none; display:flex; align-items:center; justify-content:center; border:1px solid var(--line2); border-radius:50%; overflow:hidden"></span>
+      <button class="mini" id="phPhotoBtn" type="button">Add a photo</button>
+      <button class="mini" id="phPhotoRm" type="button" style="display:none">Remove</button>
+      <input type="file" id="phPhotoFile" accept="image/*" style="display:none">
+    </div>
     <div class="frow" style="margin-top:10px">
       <div><label class="f" for="phHandle">Handle · moves once / 60 days</label><input class="f" id="phHandle" style="font-family:var(--sans)"></div>
       <div><label class="f">Findable by</label><div id="phDisc" style="display:flex; gap:6px; margin-top:6px;">
@@ -9820,6 +9885,64 @@ function openProfileHub(){
   $('#phGhin').value = p.ghin_number || '';
   $('#phIdx').value = p.index_current != null ? Number(p.index_current).toFixed(1) : '';
   renderPhMarkers();
+
+  /* D59: the avatar editor — square-crop to 512, straight into {uid}/avatar.jpg,
+     path rides set_profile. Immediate (not gated on Save); marker floor on any
+     failure; deploy skew (no p_photo_path yet) degrades to an honest toast. */
+  const phPaint = () => {
+    const el=$('#phFace'); if(!el) return;
+    const u = window.avatarUrl && window.avatarUrl[CS.user.id];
+    el.innerHTML = u ? `<img src="${esc(u)}" style="width:100%; height:100%; object-fit:cover" alt="">`
+                     : (window.mkr ? window.mkr(phMarker||p.marker||'saguaro') : '');
+    const rm=$('#phPhotoRm'), ad=$('#phPhotoBtn');
+    if(rm) rm.style.display = u ? '' : 'none';
+    if(ad) ad.textContent = u ? 'Change photo' : 'Add a photo';
+  };
+  phPaint();
+  const cropSquare = async (file) => {
+    const im = await window.photoDrawable(file);
+    const w0=im.width||im.naturalWidth, h0=im.height||im.naturalHeight, side=Math.min(w0,h0);
+    const cv=document.createElement('canvas'); cv.width=512; cv.height=512;
+    cv.getContext('2d').drawImage(im, (w0-side)/2, (h0-side)/2, side, side, 0, 0, 512, 512);
+    return new Promise((res,rej)=>cv.toBlob(b=>b?res(b):rej(new Error('encode failed')),'image/jpeg',.85));
+  };
+  $('#phPhotoBtn')?.addEventListener('click', ()=>$('#phPhotoFile')?.click());
+  $('#phPhotoFile')?.addEventListener('change', async e => {
+    const f=e.target.files?.[0]; e.target.value=''; if(!f) return;
+    const btn=$('#phPhotoBtn'); btn.disabled=true; btn.textContent='Uploading…';
+    try{
+      const blob = await cropSquare(f);
+      const path = `${CS.user.id}/avatar.jpg`;
+      const { error: upErr } = await sb.storage.from('media')
+        .upload(path, blob, { contentType:'image/jpeg', upsert:true });
+      if(upErr) throw upErr;
+      let { error } = await sb.rpc('set_profile',
+        { p_name: $('#phName').value.trim() || p.display_name, p_photo_path: path });
+      if(error && /p_photo_path|function|schema cache/.test(error.message||''))
+        throw new Error('Photo saved after the next server update — try again tomorrow');
+      if(error) throw error;
+      const { data: s } = await sb.storage.from('media').createSignedUrl(path, 3600);
+      window.avatarUrl = window.avatarUrl || {};
+      if(s?.signedUrl) window.avatarUrl[CS.user.id] = s.signedUrl;
+      if(CS.profile) CS.profile.photo_path = path;
+      phPaint(); refreshWhoChip(); toast('Photo on the card ✓');
+    }catch(err){ toast(humanError(err, 'Could not add the photo.')); }
+    btn.disabled=false; phPaint();
+  });
+  $('#phPhotoRm')?.addEventListener('click', async () => {
+    const btn=$('#phPhotoRm'); btn.disabled=true;
+    try{
+      const path = `${CS.user.id}/avatar.jpg`;
+      let { error } = await sb.rpc('set_profile',
+        { p_name: $('#phName').value.trim() || p.display_name, p_photo_path: '' });
+      if(error) throw error;
+      try{ await sb.storage.from('media').remove([path]); }catch(_){ }
+      if(window.avatarUrl) delete window.avatarUrl[CS.user.id];
+      if(CS.profile) CS.profile.photo_path = null;
+      phPaint(); refreshWhoChip(); toast('Back to the marker');
+    }catch(err){ toast(humanError(err, 'Could not remove it.')); }
+    btn.disabled=false;
+  });
 
   $('#phSave').addEventListener('click', async () => {
     const name = $('#phName').value.trim();
@@ -10357,10 +10480,33 @@ CS.members = []; CS.squads = []; CS.sel = null;
 window.loadLeagueData = (...a) => loadLeagueData(...a);   /* hub safety net (classic side) */
 async function loadLeagueData(){
   if(!CS.league) return;
-  const { data: mem } = await sb.from('league_members')
-    .select('id, role, profile_id, joined_at, profile:profiles(display_name, marker, index_current, handle)')
+  /* photos arc 2 (D59): avatars + the per-league marker override ride the
+     member load — retry without both on deploy skew */
+  let mq = await sb.from('league_members')
+    .select('id, role, profile_id, joined_at, marker, profile:profiles(display_name, marker, index_current, handle, photo_path)')
     .eq('league_id', CS.league.id);
-  CS.members = mem || [];
+  if(mq.error && /photo_path|marker/.test(mq.error.message||''))
+    mq = await sb.from('league_members')
+      .select('id, role, profile_id, joined_at, profile:profiles(display_name, marker, index_current, handle)')
+      .eq('league_id', CS.league.id);
+  CS.members = mq.data || [];
+  /* effective marker: league override → profile choice → floor */
+  CS.members.forEach(m => { m.mk = m.marker || m.profile?.marker || 'saguaro'; });
+  /* one batched signing per league load: every member avatar for the hour.
+     Failures leave the marker floor — no gray-silhouette state exists. */
+  window.avatarUrl = window.avatarUrl || {};
+  try{
+    const wp = CS.members.filter(m => m.profile?.photo_path);
+    if(wp.length){
+      const { data: signed } = await sb.storage.from('media')
+        .createSignedUrls(wp.map(m => m.profile.photo_path), 3600);
+      (signed||[]).forEach(s => {
+        if(!s?.signedUrl) return;
+        const m = wp.find(m => m.profile.photo_path === s.path);
+        if(m) window.avatarUrl[m.profile_id] = s.signedUrl;
+      });
+    }
+  }catch(_){ /* marker floor */ }
 
   if(CS.season){
     const { data: sq } = await sb.from('squads')
@@ -10452,7 +10598,7 @@ async function loadStandingsAndFeed(){
        select falls back without the column so the board never breaks on skew */
     let [rq, { data: rank }] = await Promise.all([
       sb.from('rounds')
-        .select('id, gross, differential, course_label, played_on, holes_played, index_at_post, photo_path')
+        .select('id, profile_id, gross, differential, course_label, played_on, holes_played, index_at_post, photo_path')
         .in('id', rids),
       CS.season
         ? sb.from('v_rounds_ranked')
@@ -11330,6 +11476,9 @@ window.openFounderDesk = async function(){
     <div class="eyebrow" style="margin-top:14px">Feedback ledger · last 20</div>
     ${rows(d.feedback, f => `<div class="check"><span class="num">${f.cat==='founder'?'✏️':f.cat==='bug'?'🐞':'💬'}</span>
       <div class="tt"><b>${esc(f.body||'').slice(0,200)}</b><small>${esc(f.cat||'')} · ${esc(f.who||'?')} · ${fdWhen(f.at)}</small></div></div>`)}
+    ${Array.isArray(d.reports) && d.reports.length ? `<div class="eyebrow" style="margin-top:14px">Content reports · last 15</div>
+    ${rows(d.reports, r => `<div class="check"><span class="num">${r.resolved?'✓':'🚩'}</span>
+      <div class="tt"><b>${esc(r.kind==='profile_photo'?'Photo':'Post')} — ${esc(r.target||'?')}</b><small>${esc(r.reason||'').slice(0,120)} · by ${esc(r.who||'?')} · ${fdWhen(r.at)}</small></div></div>`)}` : ''}
   `;
 };
 (()=>{ const n=document.getElementById('fdNote'), o=document.getElementById('fdOpen');
@@ -12509,7 +12658,7 @@ async function openMembersSheet(){
   };
   const rows = CS.members.map(m => `
     <div class="check">
-      <span class="num">${mkr(m.profile?.marker || 'saguaro')}</span>
+      <span class="num">${window.face ? window.face(m.profile_id, m.mk || m.profile?.marker, 22) : mkr(m.profile?.marker || 'saguaro')}</span>
       <div class="tt"><b>${esc(m.profile?.display_name || '—')}${m.role==='commissioner' ? ' · <span style="color:var(--gold)">THE PRO</span>' : ''}</b>
       <small>${[m.profile?.handle ? '@'+m.profile.handle : null,
                 m.profile?.index_current != null ? 'INDEX '+fmtIdx(m.profile.index_current) : null,
@@ -12519,7 +12668,11 @@ async function openMembersSheet(){
         ${CS.league.phase === 'setup' ? `<button class="mini" data-msrm="${m.id}">Remove</button>` : `<button class="mini" data-msbye="${m.id}">Bye</button>`}
         <button class="mini" data-mspro="${m.id}">Make Pro</button>
       </span>` : ''}
-    </div>`).join('');
+      ${m.id === CS.member?.id ? `<button class="mini" id="msMkMine" style="flex:none">Marker here</button>` : ''}
+    </div>`).join('')
+    /* D59 (2d): your marker in THIS league — override lives on league_members,
+       the profile marker stays your global choice */
+    + `<div id="msMkRow" style="display:none; grid-template-columns:repeat(4,1fr); gap:8px; margin:6px 0 2px"></div>`;
   const pending = invites.filter(i => i.status === 'sent');
   openSheet('Members & invites', `${CS.members.length} PLAYER${CS.members.length===1?'':'S'} · CODE ${CS.league.code}`,
     rows
@@ -12529,6 +12682,29 @@ async function openMembersSheet(){
     + `<button class="btn dark" id="msShare" style="margin-top:10px">Share the invite link</button>`);
   document.getElementById('msAdd')?.addEventListener('click', () => { closeSheet(); window.openInvitePicker?.({ league: CS.league.id }); });
   document.getElementById('msShare')?.addEventListener('click', () => window.shareInvite?.());
+  /* D59 (2d): the per-league marker picker — self-only, any time */
+  document.getElementById('msMkMine')?.addEventListener('click', () => {
+    const row = document.getElementById('msMkRow'); if(!row) return;
+    if(row.style.display !== 'none'){ row.style.display='none'; return; }
+    const cur = CS.member?.marker || null;
+    row.innerHTML = Object.keys(MARKERS).map(k =>
+      `<button class="mini" data-msmk="${k}" style="display:flex;flex-direction:column;align-items:center;gap:4px;padding:10px 4px;${(cur||CS.profile?.marker)===k?'border-color:var(--pos);color:var(--pos);':''}">${mkr(k)}<span style="font-size:10.5px;letter-spacing:.06em">${MARKERS[k].n.toUpperCase()}</span></button>`).join('')
+      + `<button class="mini" data-msmk="" style="grid-column:1/-1">Use my profile marker</button>`;
+    row.style.display='grid';
+    row.querySelectorAll('[data-msmk]').forEach(b => b.addEventListener('click', async () => {
+      b.disabled = true;
+      try{
+        const k = b.dataset.msmk || null;
+        const { error } = await sb.rpc('set_league_marker', { p_league: CS.league.id, p_marker: k });
+        if(error) throw error;
+        if(CS.member) CS.member.marker = k;
+        const me = CS.members.find(m => m.id === CS.member?.id);
+        if(me){ me.marker = k; me.mk = k || me.profile?.marker || 'saguaro'; }
+        toast(k ? 'Marker set for this league' : 'Back to your profile marker');
+        closeSheet(); openMembersSheet();
+      }catch(err){ b.disabled=false; toast(humanError(err, 'Could not set the marker.')); }
+    }));
+  });
   document.querySelectorAll('[data-msrm]').forEach(b => b.addEventListener('click', async () => {
     const m = CS.members.find(x => x.id === b.dataset.msrm);
     if(!confirm(`Remove ${m?.profile?.display_name || 'this member'} from ${CS.league.name}? Their profile and rounds are untouched. They just leave this league.`)) return;
