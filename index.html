@@ -526,13 +526,40 @@ img.face{border-radius:50%; object-fit:cover; vertical-align:-4px; border:1px so
 .fc.s22{width:22px; height:22px;} .fc.s28{width:28px; height:28px;} .fc.s32{width:32px; height:32px;}
 .fc.s36{width:36px; height:36px;} .fc.s44{width:44px; height:44px;} .fc.s56{width:56px; height:56px;}
 .hffacew{display:flex; flex:none;}
-/* identity-led home feed (pilot: faces need to carry the feed, not decorate it) */
+/* identity-led home feed — A2 scorecard rail + B1 photo-story takeover (owner
+   pick off the feed boards, 2026-07-23) */
 .hfcard{background:var(--bg1); border:1px solid var(--line2); border-radius:14px; padding:12px 14px; margin:0 0 10px; cursor:pointer;}
 .hfcard:focus-visible{outline:2px solid var(--pos); outline-offset:2px;}
 .hfhead{display:flex; align-items:center; gap:11px;}
 .hfid{flex:1; min-width:0;}
-.hfid b{display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; font-size:14px; font-weight:600; letter-spacing:-.01em; line-height:1.3;}
+.hfid b{display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; font-size:15px; font-weight:650; letter-spacing:-.02em; line-height:1.3;}
 .hfid small{display:block; margin-top:2px; font-family:var(--mono); font-size:10.5px; color:var(--dim); letter-spacing:.05em; text-transform:uppercase;}
+.hfid small.hfphrase{font-family:var(--sans); font-size:12.5px; color:var(--mut); text-transform:none; letter-spacing:0; margin-top:3px;}
+/* A2: the rail + the serif gross — the receipt's number language, pulled home.
+   Fairway rail by default; champagne ONLY on milestones (earned). */
+.hfcard.hfrail{position:relative; overflow:hidden; padding-left:18px;}
+.hfcard.hfrail::before{content:""; position:absolute; left:0; top:0; bottom:0; width:4px; background:var(--brand);}
+.hfcard.hfrail.gold::before{background:var(--gold);}
+.hfgross{flex:none; text-align:right;}
+.hfgross b{display:block; font-family:var(--serif); font-size:30px; line-height:1; font-weight:400; color:var(--ink);}
+.hfgross small{font-family:var(--mono); font-size:9.5px; letter-spacing:.14em; color:var(--dim); text-transform:uppercase;}
+.hfmeta{font-family:var(--mono); font-size:10.5px; color:var(--dim); letter-spacing:.06em; text-transform:uppercase; margin-top:9px;}
+/* B1: a photo-backed round IS the card — dusk wash, serif gross, marker medal */
+.hfcard.hfstory{padding:0; position:relative; overflow:hidden; min-height:220px; display:flex; flex-direction:column; justify-content:space-between; color:#F4F6F2; border:none;}
+.hfcard.hfstory .hsbg{position:absolute; inset:0; width:100%; height:100%; object-fit:cover;}
+.hfcard.hfstory::after{content:""; position:absolute; inset:0; background:linear-gradient(180deg, rgba(10,14,12,.55), rgba(10,14,12,.05) 40%, rgba(10,14,12,.72));}
+.hstop,.hsbot,.hsfoot{position:relative; z-index:2;}
+.hstop{display:flex; align-items:center; gap:10px; padding:12px 14px;}
+.hstop .hsid b{display:block; font-size:14.5px; font-weight:650; letter-spacing:-.01em; text-shadow:0 1px 6px rgba(0,0,0,.4);}
+.hstop .hsid small{display:block; font-family:var(--mono); font-size:10px; letter-spacing:.08em; text-transform:uppercase; opacity:.85; margin-top:2px;}
+.hsbot{display:flex; align-items:flex-end; justify-content:space-between; padding:0 14px 12px;}
+.hsg{font-family:var(--serif); font-size:44px; line-height:.95; text-shadow:0 2px 10px rgba(0,0,0,.45);}
+.hsg small{display:block; font-family:var(--mono); font-size:10px; letter-spacing:.16em; text-transform:uppercase; opacity:.9; margin-top:4px; text-shadow:none;}
+.hsmedal{width:30px; height:30px; flex:none; border-radius:50%; background:rgba(10,14,12,.55); display:flex; align-items:center; justify-content:center; color:#ECEEF2;}
+.hsmedal svg{width:16px; height:16px;}
+.hsfoot{background:var(--bg1); color:var(--ink); padding:8px 12px; border-top:1px solid var(--line2);}
+/* moments sit quiet — clearly not a round */
+.hfcard.quiet{background:var(--bg2); border-style:dashed; cursor:default;}
 /* month-seal motion carries over from the .check rows (C5) */
 .hfcard.sealin .hfid > b{transform-origin:center; animation:csSeal .6s var(--roll) both;}
 .hfcard.sealed .hfid > b{transform:rotate(-1.4deg);}
@@ -540,11 +567,6 @@ img.face{border-radius:50%; object-fit:cover; vertical-align:-4px; border:1px so
   .hfcard.sealin .hfid > b{animation:none; transform:none;}
   .hfcard.sealed .hfid > b{transform:rotate(-1.4deg);}
 }
-.hfchip{flex:none; font-family:var(--mono); font-size:12.5px; font-weight:700; padding:3px 9px; border-radius:99px; border:1px solid var(--line2);}
-.hfchip.up{color:var(--pos); border-color:color-mix(in srgb, var(--pos) 35%, transparent);}
-.hfchip.dn{color:var(--mut);}
-.hfline{font-size:13.5px; margin-top:8px; color:var(--ink); line-height:1.45;}
-.hfphoto{width:100%; max-height:170px; object-fit:cover; border-radius:10px; margin-top:10px; border:1px solid var(--line2); display:block;}
 .hfcard .hrx{margin-top:8px;}
 .mkstamp{position:absolute; right:10px; bottom:10px; width:26px; height:26px; display:flex; align-items:center; justify-content:center; border-radius:50%; background:rgba(8,9,11,.55); color:#ECEEF2; backdrop-filter:blur(2px);}
 .rcpt-hero{position:relative;}
@@ -7401,31 +7423,47 @@ function memberMarker(pid){
   return m ? (m.mk || m.marker || m.profile?.marker || 'saguaro') : 'saguaro';
 }
 function feedRow(r, idx){
-  /* identity-led card (pilot, D59 follow-up): the face carries the name, so
-     the sentence drops it; the photo rides inline; the whole card opens the
-     receipt (reactions and the face keep their own taps). D2 language holds. */
+  /* A2 scorecard rail + B1 photo takeover (owner pick, feed boards 2026-07-23):
+     the face carries the name, the serif gross carries the score — the same
+     number language as the receipt. A photo-backed round becomes the card
+     itself. Whole card opens the receipt; face + reactions keep their taps. */
   const who = esc(r.is_me ? 'You' : (r.golfer||'A golfer'));
   const whoTag = who + (r.is_me ? '' : founderTag(r.profile_id, r.golfer));
   const course = esc(r.course || 'a round');
   const pviN = r.pvi!=null ? Number(r.pvi) : null;
-  const chip = pviN!=null ? `<span class="hfchip ${pviN>=0?'up':'dn'}">${pviN>=0?'+':''}${pviN}</span>` : '';
-  let badge='', line='';
-  if(r.is_pr){ badge='🔥 Personal best'; line = `Personal best — <b>${r.gross}</b> at ${course}`; }
-  else if(r.is_sub80){ badge='⛳ Broke 80'; line = `Broke 80 for the first time — <b>${r.gross}</b> at ${course}`; }
-  else if(r.is_first){ badge='🎉 First round'; line = `First round on the card — <b>${r.gross}</b> at ${course}`; }
-  else { line = `<b>${r.gross}</b> at ${course}`; }
+  const milestone = r.is_pr ? '🔥 Personal best'
+    : r.is_sub80 ? '⛳ Broke 80 — first time'
+    : r.is_first ? '🎉 First round on the card' : null;
+  const vp = pviN!=null ? vsPhrase(pviN) : '';
+  const vpCap = vp ? vp[0].toUpperCase()+vp.slice(1) : '';
   const rx = idx!==undefined ? homeRxOf(r) : null;
   const social = rx ? `<div class="hrx">${rxChipsHtml(rx,'data-hrx',idx)}<button class="rxadd" data-hadd="${idx}" title="More reactions" aria-label="More reactions" aria-expanded="false"><svg class="ic" aria-hidden="true"><use href="#i-plus"/></svg></button></div>
     <div class="rxpalette h" id="hrxp${idx}">${rxPaletteHtml('data-hpick',idx)}</div>` : '';
-  const photo = r.photo_url ? `<img class="hfphoto" src="${esc(r.photo_url)}" alt="Round photo" loading="lazy">` : '';
-  return `<div class="hfcard"${idx!==undefined?` data-hfr="${idx}"`:''} role="button" tabindex="0" aria-label="${who} — ${r.gross??''} at ${course}">
+  const mkSvg = window.mkr ? (window.mkr(r.marker||'saguaro') || window.mkr('saguaro')) : '';
+
+  if(r.photo_url){
+    /* B1: the round as a story card — dusk wash, serif gross, marker medal */
+    return `<div class="hfcard hfstory"${idx!==undefined?` data-hfr="${idx}"`:''} role="button" tabindex="0" aria-label="${who} — ${r.gross??''} at ${course}">
+      <img class="hsbg" src="${esc(r.photo_url)}" alt="" loading="lazy">
+      <div class="hstop">
+        <span class="hffacew"${r.profile_id?` data-tc="${r.profile_id}"`:''}>${face(r.profile_id, r.marker, 40)}</span>
+        <div class="hsid"><b>${whoTag}</b><small>${course} · ${dfmtShort(r.played_on)}${milestone?' · '+milestone:''}</small></div>
+      </div>
+      <div class="hsbot">
+        <div class="hsg">${r.gross??''}${vp?`<small>${vp}</small>`:''}</div>
+        <span class="hsmedal" aria-hidden="true">${mkSvg}</span>
+      </div>
+      ${social?`<div class="hsfoot">${social}</div>`:''}</div>`;
+  }
+
+  return `<div class="hfcard hfrail${milestone?' gold':''}"${idx!==undefined?` data-hfr="${idx}"`:''} role="button" tabindex="0" aria-label="${who} — ${r.gross??''} at ${course}">
     <div class="hfhead">
       <span class="hffacew"${r.profile_id?` data-tc="${r.profile_id}"`:''}>${face(r.profile_id, r.marker, 44)}</span>
-      <div class="hfid"><b>${whoTag}</b><small>${dfmtShort(r.played_on)}${badge?' · '+badge:''}</small></div>
-      ${chip}
+      <div class="hfid"><b>${whoTag}</b>${(milestone||vpCap)?`<small class="hfphrase">${milestone||vpCap}</small>`:''}</div>
+      ${r.gross!=null?`<div class="hfgross"><b>${r.gross}</b><small>gross</small></div>`:''}
     </div>
-    <div class="hfline">${line}</div>
-    ${photo}${social}</div>`;
+    <div class="hfmeta">${course} · ${dfmtShort(r.played_on)}</div>
+    ${social}</div>`;
 }
 /* league moments (announce + system posts) as feed cards — rounds never come
    this way (home_feed owns them), so the two sources can't double up */
@@ -7445,7 +7483,7 @@ function postRow(p){
   const ageMs = p.created_at ? (Date.now()-new Date(p.created_at).getTime()) : Infinity;
   const closed = /\bclosed\b/i.test(p.body||'');
   const sealCls = (p.kind!=='announce' && ageMs<48*3600*1000 ? ' sealin' : '') + (closed ? ' sealed' : '');
-  return `<div class="hfcard${sealCls}">
+  return `<div class="hfcard quiet${sealCls}">
     <div class="hfhead">${av}
       <div class="hfid"><b>${esc(easeCaps(p.body||''))}</b><small>${lg?esc(lg)+' · ':''}${dfmtShort((p.created_at||'').slice(0,10))}</small></div>
     </div></div>`;
