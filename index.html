@@ -892,7 +892,7 @@ img.face{border-radius:50%; object-fit:cover; vertical-align:-4px; border:1px so
    the layout keys off #roomGrid[data-room], set by setRoomSeg, so every seg state
    is well-defined. Mobile is untouched (the wrapper is a plain block <1100). */
 @media(min-width:1100px){
-  #roomGrid[data-room="standings"]{display:grid; grid-template-columns:minmax(0,1.18fr) minmax(0,.82fr); gap:24px; align-items:start;}
+  #roomGrid[data-room="standings"]{display:grid; grid-template-columns:minmax(0,1.18fr) minmax(0,.82fr); gap:24px; align-items:start; grid-auto-flow:dense;}
   #roomGrid[data-room="standings"] #room-standings{display:block; grid-column:1; min-width:0;}
   #roomGrid[data-room="standings"] #room-board{display:block; grid-column:2; min-width:0;}
   #roomSeg [data-room="board"]{display:none;}   /* board rides alongside standings — no separate tab needed */
@@ -3880,7 +3880,7 @@ function renderStandings(){
       <td class="rk mono">${String(i+1).padStart(2,'0')}${mv}</td>
       <td><div style="display:flex;align-items:center;gap:10px"><span class="sw" style="background:${SQHEX[t.ci]}"></span><div><div class="tn">${esc(t.name)}</div><div class="tc">${solo ? (t.sub||0)+' ROUND'+(t.sub===1?'':'S') : 'CAPT. '+esc(t.cap).toUpperCase()}</div></div></div></td>
       <td>${arr.length>1?sparkline(arr,t.ci):'<span class="fine" style="padding:0;color:var(--dim)">WK 1</span>'}</td>
-      <td class="num"><span class="dw" style="color:${dwk>=12?'var(--pos)':'var(--mut)'}">+${dwk}</span></td>
+      <td class="num"><span class="dw" style="color:${dwk>=12?'var(--pos)':dwk<0?'var(--neg)':'var(--mut)'}">${dwk>0?'+':''}${dwk}</span></td>
       <td class="num pts">${t.pts}</td>
     </tr>`;
     if(i===1) html+=`<tr class="cutrow"><td colspan="5">Cup line · top 2 advance</td></tr>`;
@@ -8771,8 +8771,8 @@ function renderBylaws(){
       ? `<div class="byrow"><span>BUY-IN</span><b>None · bragging rights</b></div>`
       : `<div class="byrow"><span>BUY-IN</span><b>${fmt$(state.stake)} / player</b></div>
     <div class="byrow"><span>POT SPLIT</span><b>${(state.payout||[60,25,15]).join(' / ')} · champ / 2nd / king</b></div>`}
-    <div class="byrow"><span>SEASON</span><b>${durLabel(state.durWeeks)} · ${seasonSpanText()}</b></div>
-    ${(state.finish||'cup_final')==='cup_final' && state.durWeeks>=6
+    <div class="byrow"><span>SEASON</span><b>${totalWeeks()>=8 ? durLabel(totalWeeks())+' · ' : ''}${seasonSpanText()}</b></div>
+    ${(state.finish||'cup_final')==='cup_final' && totalWeeks()>=6
       ? `<div class="byrow"><span>CUP FINAL</span><b>Final 4 weeks · from ${WD[cupFinalStart().getDay()]} ${MOS[cupFinalStart().getMonth()]} ${cupFinalStart().getDate()} · scored fresh</b></div>`
       : `<div class="byrow"><span>FINISH</span><b>Points table crowns it · whole season, one race</b></div>`}`;
   const hub=$('#bylawsHub'); if(hub) hub.innerHTML=rows;
