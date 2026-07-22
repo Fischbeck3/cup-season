@@ -560,16 +560,26 @@ img.face{border-radius:50%; object-fit:cover; vertical-align:-4px; border:1px so
 .hsfoot{background:var(--bg1); color:var(--ink); padding:8px 12px; border-top:1px solid var(--line2);}
 /* moments sit quiet — clearly not a round */
 .hfcard.quiet{background:var(--bg2); border-style:dashed; cursor:default;}
-/* Tour Card — A2 spine + B1 trophy shelf (owner pick, tourcard boards 2026-07-23) */
-.tccard{position:relative; overflow:hidden; border:1px solid var(--line2); border-radius:14px; padding:14px 14px 14px 18px; background:var(--bg1);}
-.tccard::before{content:""; position:absolute; left:0; top:0; bottom:0; width:4px; background:var(--brand);}
-.tcidx b{display:block; font-family:var(--serif); font-size:32px; line-height:1; font-weight:400; color:var(--ink);}
-.tcidx small{font-family:var(--mono); font-size:9px; letter-spacing:.16em; color:var(--dim); text-transform:uppercase;}
-.tcvs{margin-top:11px; font-family:var(--mono); font-size:11px; font-weight:600; color:var(--brand); background:color-mix(in srgb, var(--brand) 8%, transparent); border:1px solid color-mix(in srgb, var(--brand) 25%, var(--line2)); border-radius:8px; padding:6px 10px; display:inline-block; cursor:pointer; letter-spacing:.06em;}
-/* the shelf: champagne on pine — ceremony colors, theme-agnostic like the
-   story card's dusk wash (gold here is EARNED hardware, canon) */
-.tcshelf{display:flex; gap:8px; overflow-x:auto; margin:14px -16px 0; padding:12px 16px; background:var(--pine);}
-.tcshelf .tro{flex:none; font-family:var(--mono); font-size:11.5px; color:#D8B25A; border:1px solid rgba(216,178,90,.5); background:rgba(216,178,90,.08); border-radius:8px; padding:6px 9px; white-space:nowrap;}
+/* Tour Card — C4 credential (owner pick, boards round 2, 2026-07-23): the
+   card is one pine OBJECT — face, index, trophies engraved on it — floating
+   in the sheet. Ceremony colors are theme-agnostic (champagne = earned). */
+.cred{position:relative; overflow:hidden; border-radius:16px; color:#ECEEF2; padding:16px;
+  background:linear-gradient(165deg, #114A2D 0%, var(--pine) 70%);
+  box-shadow:0 10px 30px rgba(14,59,36,.35), 0 2px 8px rgba(14,59,36,.28);}
+.cred .cwm{position:absolute; right:-30px; bottom:-34px; width:150px; height:150px; opacity:.1; pointer-events:none;}
+.cred .cwm svg{width:100%; height:100%; stroke:#ECEEF2; fill:none; stroke-width:1.2; stroke-linecap:round; stroke-linejoin:round;}
+.cred .ctop{display:flex; align-items:center; gap:12px;}
+.cred b.cnm{display:block; font-size:17px; font-weight:700; letter-spacing:-.02em;}
+.cred small.chd{display:block; font-family:var(--mono); font-size:10px; letter-spacing:.1em; text-transform:uppercase; opacity:.72; margin-top:2px;}
+.cred .csplit{display:flex; align-items:flex-end; justify-content:space-between; gap:12px; margin-top:16px;}
+.cred .cidx b{font-family:var(--serif); font-size:42px; line-height:.95; font-weight:400;}
+.cred .cidx small{display:block; font-family:var(--mono); font-size:9px; letter-spacing:.18em; opacity:.65; text-transform:uppercase; margin-top:3px;}
+.cred .ctros{text-align:right; font-family:var(--mono); font-size:10.5px; color:#D8B25A; line-height:1.9; min-width:0;}
+.cred .fc{background:rgba(236,238,242,.08); border-color:rgba(236,238,242,.3); color:#ECEEF2;}
+.cred .fc .fmk{background:var(--pine); border-color:rgba(236,238,242,.3); color:#D8B25A;}
+.cred a{color:#D8B25A;}
+.cred .mini{background:rgba(236,238,242,.1); color:#ECEEF2; border-color:rgba(236,238,242,.3);}
+.cred .cvs{margin-top:14px; display:inline-block; font-family:var(--mono); font-size:11px; font-weight:600; letter-spacing:.06em; color:#ECEEF2; background:rgba(236,238,242,.1); border:1px solid rgba(236,238,242,.28); border-radius:8px; padding:6px 10px; cursor:pointer;}
 /* pilot: "Save card is hard to find when a change is made" — the button ARMS
    the moment the card changes: fairway fill, one soft rise. Disarms on save. */
 .mini.armed{background:var(--brand); color:#fff; border-color:var(--brand); font-weight:700; animation:csRise .35s var(--roll) both;}
@@ -2281,12 +2291,17 @@ html[data-theme="light"] .room-dusk .btn:not(.dark):not(.gold):not(.apple){color
 
       <!-- STATS -->
       <section class="view" id="view-stats">
-        <div class="card" id="youCard" style="margin-bottom:14px; text-align:left;">
-          <div style="display:flex; align-items:center; gap:10px;">
-            <span id="youMk" style="color:var(--pos)"></span>
-            <div><b id="youName" style="font-size:16px">Your card</b><div class="fine" id="youMeta" style="padding:0"></div><div class="fine" id="youAnchor" style="padding:2px 0 0; color:var(--dim)"></div></div>
-            <div style="margin-left:auto; text-align:right"><div class="fine" style="padding:0">INDEX</div><b id="youIdx" class="heronum">—</b></div>
-            <button class="mini" id="youProfile" style="margin-left:10px" aria-label="Card & settings" title="Card & settings">⚙</button>
+        <!-- C4: your own credential — same object the crew sees on your Tour Card -->
+        <div class="cred" id="youCard" style="margin-bottom:14px; text-align:left;">
+          <div class="cwm" id="youWm" aria-hidden="true"></div>
+          <div class="ctop">
+            <span id="youMk" style="display:flex; flex:none"></span>
+            <div style="min-width:0; flex:1"><b class="cnm" id="youName">Your card</b><small class="chd" id="youMeta"></small><small class="chd" id="youAnchor" style="opacity:.55; text-transform:none; letter-spacing:.04em"></small></div>
+            <button class="mini" id="youProfile" style="flex:none" aria-label="Card & settings" title="Card & settings">⚙</button>
+          </div>
+          <div class="csplit">
+            <div class="cidx"><b id="youIdx">—</b><small>Handicap index</small></div>
+            <div class="ctros" id="youTros"></div>
           </div>
         </div>
         <!-- F8: feedback pill retired from floating chrome (de-AI scrub) — same
@@ -9585,11 +9600,29 @@ function refreshWhoChip(){
       /* building, not broken — the dash read as an error (decision D3) */
       const n = Math.min(window.career?.rounds ?? 0, 3);
       $('#youIdx').textContent = n + ' of 3';
-      $('#youIdx').style.fontSize = '13px';
+      $('#youIdx').style.fontSize = '15px';
       $('#youIdx').title = 'Building your number — your index appears at 3 posted rounds';
     }
   }
-  if($('#youMk')) $('#youMk').innerHTML = window.face ? window.face(CS.user?.id, p.marker, 32) : mkr(p.marker || 'saguaro');
+  if($('#youMk')) $('#youMk').innerHTML = window.face ? window.face(CS.user?.id, p.marker, 56) : mkr(p.marker || 'saguaro');
+  /* C4 credential dressing: your marker as the card's watermark, your top
+     hardware engraved on the face of it */
+  const wm = $('#youWm');
+  if(wm && window.MARKERS){
+    const mk = MARKERS[p.marker] || MARKERS.saguaro;
+    wm.innerHTML = mk ? `<svg viewBox="0 0 24 24"><path d="${mk.p}"/></svg>` : '';
+  }
+  const yt = $('#youTros');
+  if(yt){
+    const tr = Array.isArray(window.trophies) ? window.trophies : [];
+    const lines = tr.slice(0,3).map(a=>{
+      const m = ACH_META[a.kind] || { icon:'🏅', title:a.label||'Milestone' };
+      const yr = a.earned_on ? " · '"+String(a.earned_on).slice(2,4) : '';
+      return `${m.icon} ${esc(m.title)}${yr}`;
+    });
+    if(tr.length>3) lines.push(`+${tr.length-3} more in the case`);
+    yt.innerHTML = lines.join('<br>');
+  }
 }
 let phMarker = null;
 function renderPhMarkers(){
@@ -9759,50 +9792,50 @@ async function openTourCard(profileId){
   }
   const p=card.profile||{}, c=card.career||{}, vs=card.vs_you, tr=card.trophies||[], rec=card.recent||[];
   const idx = p.index_current!=null ? fmtIdx(p.index_current) : '—';
-  const meta = [p.city?esc(p.city):null, p.home_course?esc(p.home_course):null].filter(Boolean).join(' · ');
-  const since = p.member_since ? (()=>{ const d=new Date(p.member_since); return 'Member since '+MOS[d.getMonth()]+' '+d.getFullYear(); })() : null;
-  const anchorTxt = [p.ghin ? 'GHIN '+esc(p.ghin) : null, since].filter(Boolean).join(' · ');
   /* D59: the card gets a face (marker floor); a visible photo that isn't
      yours can be reported — two-tap, lands on the founder desk */
   const hasFace = !!(window.avatarUrl && window.avatarUrl[profileId]);
   const reportLine = (hasFace && profileId !== CS.user?.id)
     ? `<div class="fine" style="padding:2px 0 0"><a href="#" id="tcReport" style="color:var(--dim)">Report photo</a></div>` : '';
-  /* A2 spine (owner pick): the identity block IS a scorecard-rail card — the
-     same rail + serif number the feed and receipt speak. vs-you rides inside
-     as a fairway chip. */
+  /* C4 credential (owner pick, boards round 2): the Tour Card is one pine
+     OBJECT — face, index, and trophies engraved on it; the golfer's marker
+     as its watermark; vs-you rides the card as a chip. */
   let vsChip='';
   if(vs && (vs.wins+vs.losses+vs.ties)>0){
     const rec2 = `${vs.wins}–${vs.losses}${vs.ties?'–'+vs.ties:''}`;
     const lead = vs.wins>vs.losses?'YOU LEAD':vs.wins<vs.losses?'THEY LEAD':'ALL SQUARE';
-    vsChip = `<button class="tcvs" id="tcVs">VS YOU · ${rec2} · ${lead}</button>`;
+    vsChip = `<button class="cvs" id="tcVs">VS YOU · ${rec2} · ${lead}</button>`;
   }
-  const header = `<div class="tccard">
-    <div style="display:flex; align-items:flex-start; gap:12px">
+  const mkMeta = (typeof MARKERS!=='undefined' && (MARKERS[p.marker]||MARKERS.saguaro)) || null;
+  const est = p.member_since ? (()=>{ const d=new Date(p.member_since); return 'est. '+MOS[d.getMonth()]+' '+d.getFullYear(); })() : null;
+  const chd = [p.handle?'@'+esc(p.handle):null, p.city?esc(p.city):null, est].filter(Boolean).join(' · ');
+  const trosLines = tr.slice(0,4).map(a=>{
+    const m=ACH_META[a.kind]||{icon:'🏅',title:a.label||'Milestone'};
+    const yr=a.earned_on?" · '"+String(a.earned_on).slice(2,4):'';
+    return `${m.icon} ${esc(m.title)}${yr}`;
+  });
+  if(tr.length>4) trosLines.push(`+${tr.length-4} more`);
+  const header = `<div class="cred">
+    ${mkMeta?`<div class="cwm" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="${mkMeta.p}"/></svg></div>`:''}
+    <div class="ctop">
       ${window.face ? window.face(profileId, p.marker, 56) : `<span style="font-size:34px; line-height:1">${mkr(p.marker||'saguaro')}</span>`}
-      <div style="min-width:0; flex:1">
-        <div style="font-size:17px; font-weight:700; letter-spacing:-.02em">${esc(p.display_name||'—')}${p.handle?' <span style="color:var(--mut); font-weight:400; font-size:13.5px">@'+esc(p.handle)+'</span>':''}</div>
-        <div style="font-size:12.5px; color:var(--mut); margin-top:2px">${meta||'&nbsp;'}</div>
-        ${anchorTxt?`<div style="font-size:11px; color:var(--dim); margin-top:3px">${anchorTxt}</div>`:''}
-      </div>
-      <div class="tcidx" style="text-align:right; flex:none"><b>${idx}</b><small>index</small></div>
+      <div style="min-width:0; flex:1"><b class="cnm">${esc(p.display_name||'—')}</b><small class="chd">${chd||'&nbsp;'}</small></div>
+    </div>
+    <div class="csplit">
+      <div class="cidx"><b>${idx}</b><small>Handicap index</small></div>
+      ${trosLines.length?`<div class="ctros">${trosLines.join('<br>')}</div>`:''}
     </div>
     ${vsChip}
   </div>${reportLine}`;
-  /* B1's trophy shelf: champagne chips on pine, right under the identity card */
-  let trHtml='';
-  if(tr.length){
-    trHtml = `<div class="tcshelf" role="list" aria-label="Trophy case">`
-      + tr.map(a=>{ const m=ACH_META[a.kind]||{icon:'🏅',title:a.label||'Milestone'};
-          const yr=a.earned_on?" · '"+String(a.earned_on).slice(2,4):'';
-          return `<span class="tro" role="listitem" title="${esc(achSubtitle(a))}">${m.icon} ${esc(m.title)}${yr}</span>`;
-        }).join('') + `</div>`;
-  }
+  const trHtml='';
   const best = c.best!=null ? Number(c.best).toFixed(1) : '—';
   const avg = c.avg_pvi!=null ? (Number(c.avg_pvi)>=0?'+':'')+Number(c.avg_pvi).toFixed(1) : '—';
   const stats = `<div class="eyebrow" style="margin-top:16px">Career</div>
       <div class="mathrow"><span>Rounds</span><b>${c.rounds||0}</b></div>
       <div class="mathrow"><span>Best diff</span><b>${best}</b></div>
-      <div class="mathrow"><span>Avg vs index</span><b>${avg}</b></div>`;
+      <div class="mathrow"><span>Avg vs index</span><b>${avg}</b></div>
+      ${p.home_course?`<div class="mathrow"><span>Home course</span><b>${esc(p.home_course)}</b></div>`:''}
+      ${p.ghin?`<div class="mathrow"><span>GHIN</span><b>${esc(p.ghin)}</b></div>`:''}`;
   let recHtml='';
   if(rec.length){
     recHtml = `<div class="eyebrow" style="margin-top:16px">Recent rounds</div>`
