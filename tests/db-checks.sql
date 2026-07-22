@@ -5,7 +5,8 @@
 -- the client grows: node tests/preflight.mjs prints the count; the extractor
 -- one-liner lives in the repo history).
 -- Generated 2026-07-21 against the v23 client; refreshed 2026-07-22 (D57
--- public shares: anon list 4 → 5, authenticated list gains the share trio).
+-- public shares: anon list 4 → 5, authenticated list gains the share trio);
+-- refreshed 2026-07-24 (anon table seal 20260724150000: check 10).
 -- ============================================================================
 
 with checks as (
@@ -134,5 +135,41 @@ select '9 · profiles column grants',
           and not has_column_privilege('authenticated', 'public.profiles', c.column_name, 'select'))
     else 'PASS' end,
   'email sealed (20260718172300) · every later profiles column needs its own grant'
+
+-- 10 · anon holds ZERO relation privileges in public (seal 20260724150000):
+--      no table/view/sequence grants, no column grants, and no default-privilege
+--      auto-grant for future tables/sequences. PUBLIC counts too — anon inherits
+--      anything granted to PUBLIC. anon reaches the DB only through the six
+--      SECURITY DEFINER endpoints of check 2.
+union all
+select '10 · anon table seal',
+  case when count(*) = 0 then 'PASS'
+    else 'FAIL — ' || count(*)::text || ' leftover grant(s): ' || string_agg(o, ' · ') end,
+  'relations + columns + default acls all clean of anon/PUBLIC'
+from (
+  select c.relname || ' (' || a.privilege_type || ')' as o
+  from pg_class c
+  join pg_namespace n on n.oid = c.relnamespace
+  cross join lateral aclexplode(c.relacl) a
+  where n.nspname = 'public' and c.relkind in ('r','p','v','m','f','S')
+    and (a.grantee = 0 or a.grantee = 'anon'::regrole)
+  union all
+  select c.relname || '.' || att.attname || ' (column)'
+  from pg_attribute att
+  join pg_class c on c.oid = att.attrelid
+  join pg_namespace n on n.oid = c.relnamespace
+  cross join lateral aclexplode(att.attacl) a
+  where n.nspname = 'public' and att.attnum > 0 and not att.attisdropped
+    and (a.grantee = 0 or a.grantee = 'anon'::regrole)
+  union all
+  select 'default-acl (' || d.defaclobjtype::text || ') for role ' || d.defaclrole::regrole::text
+  from pg_default_acl d
+  left join pg_namespace n on n.oid = d.defaclnamespace
+  cross join lateral aclexplode(d.defaclacl) a
+  where d.defaclobjtype in ('r','S')
+    and (n.nspname = 'public'
+         or (d.defaclnamespace = 0 and d.defaclrole = 'postgres'::regrole))
+    and (a.grantee = 0 or a.grantee = 'anon'::regrole)
+) t
 )
 select * from checks order by check_name;

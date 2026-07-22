@@ -90,7 +90,11 @@ sections (§2.2, §14.0) when making competition-model decisions.
   client-called RPC (and to `anon` only for the six public endpoints:
   `claim_round_info`, `scan_claim_info`, `league_by_code`, `founder_id`,
   `share_info` — D57, `join_covenant_info` — setup-QA S3-01). A new
-  RPC that "silently 403s in prod" is almost always a missing grant. Also killed
+  RPC that "silently 403s in prod" is almost always a missing grant. Since
+  `20260724150000` anon holds ZERO relation privileges in `public` and the
+  table/sequence default-privilege auto-grant to anon is gone (db-checks
+  check 10 guards it) — never grant anon table access; extend an anon flow
+  with a SECURITY DEFINER RPC instead. Also killed
   in D37 and never to be reintroduced: the `members_self` UPDATE policy (let a
   member self-promote to commissioner) and `rounds_owner_update` (let an owner
   rewrite a posted round — §16 says rounds are immutable; deletion is
