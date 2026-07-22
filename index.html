@@ -2194,7 +2194,18 @@ html[data-theme="light"] .room-dusk .btn:not(.dark):not(.gold):not(.apple){color
         <!-- F8: feedback pill retired from floating chrome (de-AI scrub) — same
              handler (window.openFeedback via #pilotChip id), quiet row right by
              the card/settings entry instead of hovering over every screen. -->
-        <button type="button" id="pilotChip" class="fine" style="display:block; width:100%; text-align:left; background:none; border:0; padding:0 2px; margin-bottom:14px; cursor:pointer; color:var(--dim)">Tell us how it's going</button>
+        <button type="button" id="pilotChip" style="display:flex; align-items:center; gap:9px; width:100%; text-align:left; background:var(--bg1); border:1px solid var(--line); border-radius:12px; padding:12px 14px; margin-bottom:14px; cursor:pointer; color:var(--ink); font-family:var(--sans); font-size:13.5px; font-weight:600;">💬 Tell us how it's going<span style="margin-left:auto; color:var(--dim); font-weight:400">→</span></button>
+        <!-- the founder's desk: hidden for everyone but the owner; the SERVER
+             is the gate (founder_desk/founder_note refuse non-founders) — this
+             display toggle is courtesy, not security -->
+        <div class="card" id="founderDesk" style="display:none; margin-bottom:14px; text-align:left">
+          <div class="eyebrow" style="margin-top:0">Founder's desk</div>
+          <div style="display:flex; gap:8px; flex-wrap:wrap">
+            <button class="mini" id="fdNote">✏️ Field note</button>
+            <button class="mini" id="fdOpen">📈 Open the desk</button>
+          </div>
+          <p class="fine" style="padding:6px 0 0">Notes land in the feedback ledger · the desk shows signups, activity, errors, feedback.</p>
+        </div>
         <!-- IA P3: the You page IS the public profile — card, case, record.
              Everything editable + app settings live behind the ⚙. The
              "Build your crew" card is gone (redundant with Crew · People). -->
@@ -8902,6 +8913,11 @@ async function loadProfile(){
   CS.profile = data || null;
   if(CS.profile?.index_current != null) state.myIndex = Number(CS.profile.index_current);
   try { const { data: fid } = await sb.rpc('founder_id'); window.FOUNDER_ID = fid || null; } catch(_){ /* pre-migration: no badge */ }
+  /* the founder's desk reveals for the owner only — the display toggle is
+     courtesy; founder_desk()/founder_note() refuse anyone else at the DB */
+  if(window.FOUNDER_ID && CS.user?.id === window.FOUNDER_ID){
+    const fd = document.getElementById('founderDesk'); if(fd) fd.style.display = 'block';
+  }
   refreshWhoChip();
   return CS.profile;
 }
@@ -10823,6 +10839,68 @@ window.openFeedback = function(){
   };
   $('#fbGo').addEventListener('click', go);
 };
+
+/* ---- the founder's desk (owner-only; server enforces) ---- */
+function fdWhen(iso){
+  if(!iso) return '';
+  const d = new Date(iso), mins = Math.round((Date.now()-d.getTime())/60000);
+  if(mins < 60) return mins + 'm ago';
+  if(mins < 60*24) return Math.round(mins/60) + 'h ago';
+  return Math.round(mins/1440) + 'd ago';
+}
+window.openFounderNote = function(){
+  openSheet('Field note', 'Straight into the feedback ledger, tagged founder', `
+    <textarea class="f" id="fnBody" rows="4" placeholder="What you noticed, before it slips" style="font-family:var(--sans); resize:vertical; width:100%"></textarea>
+    <button class="btn" id="fnGo" style="margin-top:12px">Save note</button>
+  `);
+  $('#fnGo').addEventListener('click', async () => {
+    const body = ($('#fnBody').value || '').trim();
+    if(!body){ toast('Write the note first'); return; }
+    $('#fnGo').disabled = true;
+    try{
+      const { error } = await sb.rpc('founder_note', { p_body: body });
+      if(error) throw error;
+      closeSheet(); toast('Noted.');
+    }catch(err){ $('#fnGo').disabled = false; toast(humanError(err, 'Could not save.')); }
+  });
+};
+window.openFounderDesk = async function(){
+  openSheet("Founder's desk", 'Signups · activity · errors · feedback', `<div class="fine" style="padding:8px 0">Pulling the numbers…</div>`);
+  let d = null;
+  try{
+    const { data, error } = await sb.rpc('founder_desk');
+    if(error) throw error;
+    d = data;
+  }catch(err){
+    $('#shBody').innerHTML = `<p class="fine">${esc(humanError(err, 'The desk is not deployed yet — push the founder_desk migration.'))}</p>`;
+    return;
+  }
+  const stat = (k,v) => `<div class="stat"><div class="k">${k}</div><div class="v">${esc(String(v ?? 0))}</div></div>`;
+  const rows = (list, fmt) => (Array.isArray(list) && list.length)
+    ? list.map(fmt).join('')
+    : '<div class="fine" style="padding:4px 0">Nothing yet.</div>';
+  $('#shBody').innerHTML = `
+    <div class="stats" style="margin-bottom:14px">
+      ${stat('Golfers', d.profiles_total)}${stat('New · 7d', d.profiles_new_7d)}
+      ${stat('Rounds', d.rounds_total)}${stat('Rounds · 7d', d.rounds_7d)}
+      ${stat('Leagues', d.leagues)}${stat('Events', d.events)}
+      ${stat('Live now', d.live_open)}${stat('Posts · 7d', d.posts_7d)}
+    </div>
+    <div class="eyebrow">Newest golfer cards</div>
+    ${rows(d.newest, p => `<div class="check"><span class="num">${p.marker?'⛳':'👤'}</span>
+      <div class="tt"><b>${esc(p.name||'?')}</b><small>${esc(p.city||'—')} · ${fdWhen(p.at)}${p.marker?'':' · card not finished'}</small></div></div>`)}
+    <div class="eyebrow" style="margin-top:14px">Client events · last 30</div>
+    ${rows(d.client_events, e => `<div class="check"><span class="num">${/error|reject/i.test(e.event)?'🐞':'·'}</span>
+      <div class="tt"><b>${esc(e.event||'')}</b><small>${esc(e.who||'?')} · ${fdWhen(e.at)}${e.props && Object.keys(e.props).length ? ' · ' + esc(JSON.stringify(e.props).slice(0,120)) : ''}</small></div></div>`)}
+    <div class="eyebrow" style="margin-top:14px">Feedback ledger · last 20</div>
+    ${rows(d.feedback, f => `<div class="check"><span class="num">${f.cat==='founder'?'✏️':f.cat==='bug'?'🐞':'💬'}</span>
+      <div class="tt"><b>${esc(f.body||'').slice(0,200)}</b><small>${esc(f.cat||'')} · ${esc(f.who||'?')} · ${fdWhen(f.at)}</small></div></div>`)}
+  `;
+};
+(()=>{ const n=document.getElementById('fdNote'), o=document.getElementById('fdOpen');
+  if(n) n.addEventListener('click', ()=> window.openFounderNote());
+  if(o) o.addEventListener('click', ()=> window.openFounderDesk()); })();
+
 async function openLeagueSwitcher(){
   if(!CS.user) return; /* demo has no leagues to switch */
   await loadMyEvents();   /* always show events created since the last load */
