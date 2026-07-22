@@ -2357,6 +2357,9 @@ html[data-theme="light"] .room-dusk .btn:not(.dark):not(.gold):not(.apple){color
              "Build your crew" card is gone (redundant with Crew · People). -->
         <div class="eyebrow" style="margin-top:0">Your display case</div>
         <div id="trophyCase" class="room-dusk" style="margin-bottom:14px"></div>
+        <!-- D63: last round with — the reunion whisper. Threshold-fired only,
+             one name, in-app only; dismiss is 90 days of quiet (device-local). -->
+        <div id="lrwCard" style="margin-bottom:14px"></div>
         <div class="eyebrow">Lifetime</div>
         <div class="stats">
           <div class="stat"><div class="k">Rounds posted</div><div class="v" id="clR">—</div><div class="d fl">All time</div></div>
@@ -2972,6 +2975,13 @@ html[data-theme="light"] .room-dusk .btn:not(.dark):not(.gold):not(.apple){color
             <div id="payers"></div>
           </div>
         </div>
+        <!-- D64: the forfeit ledger — stakes past money, pot-grade rigor.
+             NEVER renders as dollars; prose voice; archive keeps settled ones. -->
+        <div class="league-only" id="stakesWrap" style="margin-top:18px">
+          <div class="eyebrow" style="display:flex; align-items:center">The other stakes · pride, on the books
+            <button class="mini" id="stakeAdd" style="margin-left:auto">Post a stake</button></div>
+          <div id="stakesList"></div>
+        </div>
         </div><!-- /room-pot -->
 
         <div class="roompane" id="room-league">
@@ -3473,6 +3483,7 @@ function setRoomSeg(r){
   const rg=$('#roomGrid'); if(rg) rg.dataset.room=r;   /* Stage 3c: the desktop standings+board split keys off this */
   if(r==='schedule' && typeof renderCalendar==='function') renderCalendar();
   if(r==='pot' && typeof renderPot==='function') renderPot();
+  if(r==='pot') window.loadStakes?.();      /* D64: refresh the forfeit ledger (module-side — guard) */
   if(r==='album') window.renderAlbum?.();   /* module-side (needs sb) — guard the boundary */
 }
 $$('#roomSeg [data-room]').forEach(b=>b.addEventListener('click',()=>setRoomSeg(b.dataset.room)));
@@ -8018,6 +8029,133 @@ const DEMO_TROPHIES = [
   {kind:'ryder',  title:'The Grudge', subtitle:'The Ryder', season_year:2026},
   {kind:'major',  title:'The Bloom',  subtitle:'Major',     season_year:2026},
 ];
+/* ============ Batch 13 classic surfaces (D63 whisper · D64 stakes) ============ */
+function nthUp(n){ const m=n%100; if(m>=11&&m<=13) return n+'TH'; return n+({1:'ST',2:'ND',3:'RD'}[n%10]||'TH'); }
+
+/* D63: the reunion whisper — one name, threshold-fired server-side, never a
+   nudge. Dismiss = 90 days of device-local quiet (module keeps the clock). */
+function renderLRW(){
+  const box=document.getElementById('lrwCard'); if(!box) return;
+  const w=window.CS_LRW;
+  if(!w || state.demo){ box.innerHTML=''; return; }
+  const mos=Math.max(12, Math.round((Date.now()-new Date(w.last_on+'T00:00:00'))/2592e6));
+  box.innerHTML=`<div class="card" style="display:flex; align-items:center; gap:12px">
+    <span style="flex:none; display:flex">${window.mkr?.(w.marker||'saguaro')||'⛳'}</span>
+    <div style="min-width:0; flex:1">
+      <div style="font-family:var(--serif); font-size:15px; line-height:1.4">You and <b>${esc(w.display_name)}</b> — last card together ${mos} months ago.</div>
+      <div class="fine" style="padding:2px 0 0">${w.shared_cards} rounds shared · one tap stages a Saturday</div>
+    </div>
+    <span style="display:flex; flex-direction:column; gap:6px; flex:none">
+      <button class="mini" id="lrwGo">Stage it</button>
+      <button class="mini" id="lrwHush" aria-label="Quiet for a while">Later</button>
+    </span></div>`;
+  document.getElementById('lrwGo')?.addEventListener('click', ()=>{
+    const d=new Date(); d.setHours(0,0,0,0);
+    d.setDate(d.getDate() + (((6 - d.getDay()) + 7) % 7 || 7));   /* next Saturday */
+    const iso=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+    window.openDeclareSheet?.(iso, { tagPids:[w.profile_id] });
+  });
+  document.getElementById('lrwHush')?.addEventListener('click', ()=> window.dismissLRW?.());
+}
+window.renderLRW = renderLRW;
+
+/* D64: the forfeit ledger — prose, never dollars. Settled rows are the
+   archive; the block hides entirely on skew (CS_STAKES null) and in demo. */
+function stakeName(pid){
+  const m=(window.CS?.members||[]).find(x=>x.profile_id===pid);
+  return m?.profile?.display_name || 'A golfer';
+}
+function renderStakes(){
+  const wrap=document.getElementById('stakesWrap'), box=document.getElementById('stakesList');
+  if(!wrap || !box) return;
+  const S=window.CS_STAKES;
+  if(state.demo || S==null){ wrap.style.display='none'; return; }
+  wrap.style.display='';
+  const meP=window.CS?.user?.id;
+  const open=S.filter(s=>s.status==='open'), done=S.filter(s=>s.status==='settled');
+  const row=s=>{
+    const vs = s.party_b ? `${esc(stakeName(s.party_a))} vs ${esc(stakeName(s.party_b))}`
+                         : `${esc(stakeName(s.party_a))} vs the field`;
+    const mine = meP && (s.party_a===meP || s.party_b===meP || s.created_by===meP);
+    return `<div class="check"><span class="num">🤝</span>
+      <div class="tt"><b>${esc(s.name)}</b><small>${vs} · ${esc(s.terms)}${s.hangs_on?` · rides on ${esc(s.hangs_on)}`:''}</small></div>
+      ${s.status==='open'
+        ? (mine?`<span style="display:flex;gap:6px;flex:none"><button class="mini" data-stset="${s.id}">Settle</button>${s.created_by===meP?`<button class="mini" data-stscrap="${s.id}" aria-label="Scrap">✕</button>`:''}</span>`
+              :`<span class="ptag">OPEN</span>`)
+        : `<span class="ptag ok">${esc(stakeName(s.winner)).toUpperCase()} TOOK IT</span>`}
+    </div>`;
+  };
+  box.innerHTML =
+    (open.length?open.map(row).join(''):`<p class="fine" style="padding:6px 0">No stakes on the books. The cookout isn't going to bet itself.</p>`)
+    + (done.length?`<div class="eyebrow" style="margin-top:12px">The archive</div>`+done.slice(0,8).map(row).join(''):'');
+  box.querySelectorAll('[data-stset]').forEach(b=>b.addEventListener('click',()=>openStakeSettle(b.dataset.stset)));
+  box.querySelectorAll('[data-stscrap]').forEach(b=>b.addEventListener('click',()=>{
+    if(confirm('Scrap this stake? The board will hear it.')) window.stakeScrap?.(b.dataset.stscrap); }));
+}
+window.renderStakes = renderStakes;
+
+function openStakeSettle(id){
+  const s=(window.CS_STAKES||[]).find(x=>x.id===id); if(!s) return;
+  const opts = s.party_b
+    ? [s.party_a, s.party_b].map(p=>`<button class="mini" data-stw="${p}" style="margin:4px 6px 0 0">${esc(stakeName(p))}</button>`).join('')
+    : (window.CS?.members||[]).filter(m=>m.profile_id)
+        .map(m=>`<button class="mini" data-stw="${m.profile_id}" style="margin:4px 6px 0 0">${esc(m.profile?.display_name||'—')}</button>`).join('');
+  openSheet('Settle the stake', s.name+' · '+s.terms, `
+    <p class="fine" style="padding:0 0 6px">${s.party_b?'Who took it?':'Who hit it? Anyone in the crew.'}</p>
+    <div>${opts}</div>
+    <label class="f" style="margin-top:12px" for="stNote">A line for the archive <span style="color:var(--dim)">(optional)</span></label>
+    <input class="f" id="stNote" placeholder="Settled on the 18th at Papago" style="font-family:var(--sans)">
+  `);
+  document.querySelectorAll('[data-stw]').forEach(b=>b.addEventListener('click', async ()=>{
+    await window.stakeSettle?.(id, b.dataset.stw, document.getElementById('stNote')?.value||null);
+    closeSheet();
+  }));
+}
+
+function openStakeCreate(){
+  if(state.demo || !window.CS?.user){ toast('Sign in to put a stake on the books'); return; }
+  const others=(window.CS?.members||[]).filter(m=>m.profile_id && m.profile_id!==window.CS.user.id);
+  const KINDS=[['hosts','Loser hosts'],['course_pick','Winner picks the course'],['strokes','Strokes next time'],['bounty','Standing bounty'],['custom','Name your own']];
+  openSheet('Post a stake', 'Pride, on the books — never money', `
+    <label class="f" for="stkName">Name it</label>
+    <input class="f" id="stkName" placeholder="The Lawn Bet" autocomplete="off" style="font-family:var(--sans)">
+    <label class="f" style="margin-top:10px; display:block">The shape</label>
+    <div class="seg" id="stkKind" style="flex-wrap:wrap">${KINDS.map(([k,l],i)=>`<button data-k="${k}" class="${i===0?'on':''}">${l}</button>`).join('')}</div>
+    <label class="f" style="margin-top:10px" for="stkTerms">The terms</label>
+    <input class="f" id="stkTerms" value="Loser hosts the cookout" data-auto="1" style="font-family:var(--sans)">
+    <label class="f" style="margin-top:10px; display:block">Against</label>
+    <select class="f" id="stkVs" style="font-family:var(--sans)">
+      <option value="">The field — first to hit it</option>
+      ${others.map(m=>`<option value="${m.profile_id}">${esc(m.profile?.display_name||'—')}</option>`).join('')}
+    </select>
+    <label class="f" style="margin-top:10px" for="stkHangs">Rides on <span style="color:var(--dim)">(optional)</span></label>
+    <input class="f" id="stkHangs" placeholder="Sunday's duel · first ace · the Cup Final" autocomplete="off" style="font-family:var(--sans)">
+    <div style="display:flex; gap:8px; margin-top:14px">
+      <button class="btn dark" id="stkCancel" style="flex:0 0 auto; width:auto; padding:0 16px">Cancel</button>
+      <button class="btn" id="stkGo" style="flex:1">Put it on the books</button>
+    </div>
+    <p class="fine">Stakes settle on a party's tap and archive into the record. The pot stays money; this never is.</p>
+  `);
+  let kind='hosts';
+  const TERMS={hosts:'Loser hosts the cookout',course_pick:'Winner picks the next course',strokes:'Loser gives 2 a side next time',bounty:'First ace: steak dinner from everyone',custom:''};
+  document.querySelectorAll('#stkKind button').forEach(b=>b.addEventListener('click',()=>{
+    document.querySelectorAll('#stkKind button').forEach(x=>x.classList.remove('on')); b.classList.add('on'); kind=b.dataset.k;
+    const t=document.getElementById('stkTerms');
+    if(t && (!t.value || t.dataset.auto)){ t.value=TERMS[kind]||''; t.dataset.auto='1'; }
+  }));
+  document.getElementById('stkTerms')?.addEventListener('input',e=>{ delete e.target.dataset.auto; });
+  document.getElementById('stkCancel')?.addEventListener('click',()=>closeSheet());
+  document.getElementById('stkGo')?.addEventListener('click', async ()=>{
+    const ok = await window.stakeCreate?.({
+      name:document.getElementById('stkName').value.trim(),
+      terms:document.getElementById('stkTerms').value.trim(),
+      kind, other:document.getElementById('stkVs').value||null,
+      hangs:document.getElementById('stkHangs').value.trim()||null });
+    if(ok) closeSheet();
+  });
+}
+document.getElementById('stakeAdd')?.addEventListener('click', openStakeCreate);
+
 function trophyIcon(k){ return k==='ryder'?'⚔️':k==='bracket'?'🥊':'🏆'; }
 /* career milestones (achievements table) → tile icon + title */
 const ACH_META = {
@@ -8930,6 +9068,30 @@ function renderEvent(){
       <div class="evclinch">${clinchLine}</div>
     </div>`;
 
+  /* D62: the series line — editions counted, the cup defended. Chain exists
+     only through the rematch tap; shared editions count half each. */
+  const rchain=(E.lineage||[]).filter(r=>r.kind!=='major');
+  if(rchain.length>1){
+    const pos=rchain.findIndex(r=>r.event_id===ev.id)+1;
+    const rpriors=rchain.filter(r=>r.status==='complete' && r.event_id!==ev.id);
+    let aW=0,bW=0;
+    rpriors.forEach(r=>{ if(r.winner_shared){aW+=.5;bW+=.5;} else if(r.winner_slot===0)aW++; else if(r.winner_slot===1)bW++; });
+    const series = aW===bW ? `SERIES LEVEL ${evHalf(aW)}–${evHalf(bW)}`
+      : aW>bW ? `${esc(A.name).toUpperCase()} LEADS THE SERIES ${evHalf(aW)}–${evHalf(bW)}`
+              : `${esc(B.name).toUpperCase()} LEADS THE SERIES ${evHalf(bW)}–${evHalf(aW)}`;
+    const last=rpriors[rpriors.length-1]||null;
+    const hold = (ev.status!=='complete' && last)
+      ? (last.winner_shared ? ' · THE CUP IS SHARED'
+         : last.winner_slot===0 ? ` · ${esc(A.name).toUpperCase()} DEFENDS`
+         : last.winner_slot===1 ? ` · ${esc(B.name).toUpperCase()} DEFENDS` : '')
+      : '';
+    if(pos>0) html+=`<div class="fine" style="text-align:center; padding:0 0 6px; color:var(--gold)">THE ${nthUp(pos)} RYDER · ${series}${hold}</div>`;
+  }
+  if(ev.status==='complete'){
+    /* D62: the rematch tap — benches re-invited, series line follows */
+    html+=`<div style="margin:2px 0 8px"><button class="btn dark" style="width:100%" onclick="window.ryderRunBack()">Run it back — next year's benches</button></div>`;
+  }
+
   /* how it scores — everyone sees the rule, not just the organizer */
   html += `<p class="fine" style="padding:0 0 6px">${P>0
     ? `Each session pairs everyone 1‑on‑1; best round that week vs your index wins the point, a tie splits it. First to ${evHalf(clinch)} of ${M} takes the cup.`
@@ -9083,6 +9245,15 @@ function renderMajorRoom(el, E){
       </div>
     </div>`;
 
+  /* D61: the annual voice — chain position + the defender, rematch-linked only */
+  const chain=(E.lineage||[]).filter(r=>r.kind==='major');
+  const myPos=chain.findIndex(r=>r.event_id===ev.id)+1;
+  const priors=chain.filter(r=>r.status==='complete' && r.event_id!==ev.id && r.champion);
+  const lastChamp=priors.length?priors[priors.length-1]:null;
+  if(chain.length>1 && myPos>0){
+    html+=`<div class="fine" style="text-align:center; padding:0 0 6px; color:var(--gold)">THE ${nthUp(myPos)} ANNUAL${lastChamp&&!complete?` · ${esc(lastChamp.champion).toUpperCase()} DEFENDS`:''}</div>`;
+  }
+
   html += `<p class="fine" style="padding:0 0 6px">Your best 18-hole card inside the window, scored against your own number. Post as many as the weekend allows — the best one stands.</p>`;
 
   /* enter / organizer controls */
@@ -9139,6 +9310,8 @@ function renderMajorRoom(el, E){
     if(champ && champCard){
       html+=`<button class="btn" id="mjShare" style="width:100%; margin-top:12px">Share the jug 🏆</button>`;
     }
+    /* D61: the rematch tap — the only door into a lineage */
+    html+=`<div style="margin-top:8px"><button class="btn dark" style="width:100%" onclick="window.majorRunBack()">Run it back — same jug, next year</button></div>`;
   } else {
     html+=`<div class="eyebrow">The clubhouse${ev.status==='live'?' — live':''}</div>`;
     let pos=0;
@@ -9156,6 +9329,15 @@ function renderMajorRoom(el, E){
     if(ev.status==='live' && waiting.length && daysLeft!=null && daysLeft>=0){
       html+=`<div class="fine" style="padding:4px 0 0">Still to card: <b>${waiting.map(r=>esc(r.display_name)).join(', ')}</b> · ${daysLeft===0?'cards in by tonight':daysLeft+'d left'}.</div>`;
     }
+  }
+
+  /* D61: the champions roll — the page the crew reads out loud every year */
+  if(priors.length){
+    html+=`<div class="eyebrow" style="margin-top:14px">The champions roll</div>`;
+    priors.forEach(r=>{
+      html+=`<div class="check"><span class="num" style="font-family:var(--mono); font-size:11px; color:var(--dim)">${r.year}</span>
+        <div class="tt"><b>${esc(r.champion)}</b><small>${r.champ_gross!=null?r.champ_gross+' · ':''}${r.champ_pvi!=null?mjVs(r.champ_pvi):''}${r===lastChamp?' · DEFENDING':''}</small></div></div>`;
+    });
   }
 
   /* the fine print — chosen, not discovered (D45) */
@@ -10815,6 +10997,8 @@ async function loadLeagueData(){
   renderFormation();
   loadTrophies();               /* the case is user-global, refresh it in-league too */
   loadCareer();                 /* lifetime line is cross-league too */
+  loadStakes();                 /* D64: the league's forfeit ledger (fire-and-forget) */
+  loadLastRoundWith();          /* D63: the reunion whisper (profile-global, quiet) */
   if(CS.league?.phase === 'setup' || state.phase === 'setup') renderWizAddGolfers();
 }
 
@@ -12104,6 +12288,13 @@ async function loadEvent(id){
         majorCards = mc || [];
       }catch(_){ /* pre-migration deploy skew */ }
     }
+    /* the lineage chain (D61/D62): the annual Major + the Ryder series.
+       Skew-safe — a missing RPC just means no chain UI. */
+    let lineage = [];
+    try{
+      const { data: lg } = await sb.rpc('event_lineage', { p_event: id });
+      lineage = lg || [];
+    }catch(_){ /* pre-migration deploy skew */ }
     /* the number to beat (batch-3 #17): live targets for every OPEN session's
        pending duels — the chip shows it unconditionally */
     const targets = {};
@@ -12135,6 +12326,7 @@ async function loadEvent(id){
       posts: evPosts,
       majorBoard,
       majorCards,
+      lineage,
     };
     window.renderEvent?.();
   } catch(e){ console.warn('[event]', e); }
@@ -12149,6 +12341,8 @@ function nextSundayISO(){
 }
 async function openRyderSetup(){
   if(!CS.user){ toast('Sign in to start an event'); return; }
+  /* run it back (D62): the rematch tap stashes a prefill; consumed once */
+  const pf = window.RS_PREFILL || null; window.RS_PREFILL = null;
   const leagues = (CS.memberships||[]).map(m=>`<option value="${m.league.id}">${esc(m.league.name)}</option>`).join('');
   openSheet('Start a Ryder', 'Two teams · vs-index duels · first to the clinch', `
     <label class="f" for="rsName">Event name</label>
@@ -12200,6 +12394,17 @@ async function openRyderSetup(){
     onPick:(r)=>{ rsStaged.set(r.profile_id,{name:r.display_name,handle:r.handle,marker:r.marker}); renderRsPicked(); }
   }));
   renderRsPicked();
+  /* the rematch arrives prefilled — benches re-invited, everything editable */
+  if(pf){
+    if(pf.name) document.getElementById('rsName').value = pf.name;
+    if(pf.teamA) document.getElementById('rsA').value = pf.teamA;
+    if(pf.teamB) document.getElementById('rsB').value = pf.teamB;
+    if(pf.sessions){ sess=pf.sessions; document.querySelectorAll('#rsSess button').forEach(x=>x.classList.toggle('on', +x.dataset.n===sess)); }
+    if(pf.weeks){ weeks=pf.weeks; document.querySelectorAll('#rsCad button').forEach(x=>x.classList.toggle('on', +x.dataset.w===weeks)); }
+    if(pf.league) document.getElementById('rsLeague').value = pf.league;
+    (pf.invitees||[]).forEach(p=>{ if(p.pid && p.pid!==CS.user?.id) rsStaged.set(p.pid,{name:p.name,handle:p.handle||'?',marker:p.marker}); });
+    renderRsPicked();
+  }
   document.getElementById('rsCancel').addEventListener('click', ()=> closeSheet());
   document.getElementById('rsGo').addEventListener('click',async()=>{
     const name=document.getElementById('rsName').value.trim();
@@ -12215,8 +12420,14 @@ async function openRyderSetup(){
         /* R12.2: standalone events run on the creator's clock */
         p_tz:(()=>{ try{ return Intl.DateTimeFormat().resolvedOptions().timeZone||null; }catch(_){ return null; } })(),
       };
+      /* the chain link (D62) rides only on a rematch — normal creates never send it */
+      if(pf?.lineage) args.p_lineage = pf.lineage;
       let { data, error } = await sb.rpc('create_event', args);
-      /* deploy skew: old RPC has no p_tz — drop it and retry */
+      /* deploy skew, newest arg first: drop p_lineage, then p_tz, and retry */
+      if(error && args.p_lineage && /p_lineage|function|schema cache/i.test(error.message||'')){
+        delete args.p_lineage;
+        ({ data, error } = await sb.rpc('create_event', args));
+      }
       if(error && /p_tz|function|schema cache/i.test(error.message||'')){
         delete args.p_tz;
         ({ data, error } = await sb.rpc('create_event', args));
@@ -12237,6 +12448,8 @@ window.openRyderSetup = openRyderSetup;
 /* ---------- The Major: create a championship window (D42–D46) ---------- */
 async function openMajorSetup(){
   if(!CS.user){ toast('Sign in to start a Major'); return; }
+  /* run it back (D61): the rematch tap stashes a prefill; consumed once */
+  const pf = window.MJ_PREFILL || null; window.MJ_PREFILL = null;
   const leagues = (CS.memberships||[]).map(m=>`<option value="${m.league.id}">${esc(m.league.name)}</option>`).join('');
   openSheet('Start a Major', 'One window · every card on one board · one name on the jug', `
     <label class="f" for="mjName">Name the jug</label>
@@ -12288,6 +12501,18 @@ async function openMajorSetup(){
   whenLine();
 
   const mjStaged = new Map();
+  /* the annual arrives prefilled — same jug, next year, field re-invited */
+  if(pf){
+    if(pf.name) document.getElementById('mjName').value = pf.name;
+    if(pf.final) document.getElementById('mjFinal').value = pf.final;
+    if(pf.days){ days=pf.days; document.querySelectorAll('#mjDays button').forEach(x=>x.classList.toggle('on', +x.dataset.n===days)); }
+    if(pf.buy!=null){ document.getElementById('mjBuy').value=pf.buy;
+      document.getElementById('mjSplitWrap').style.display = pf.buy>0?'block':'none'; }
+    if(pf.split){ split=pf.split; document.querySelectorAll('#mjSplit button').forEach(x=>x.classList.toggle('on', x.dataset.s===split)); }
+    if(pf.league) document.getElementById('mjLeague').value = pf.league;
+    (pf.invitees||[]).forEach(p=>{ if(p.pid && p.pid!==CS.user?.id) mjStaged.set(p.pid,{name:p.name,handle:p.handle||'?',marker:p.marker}); });
+    whenLine();
+  }
   function renderMjPicked(){ const box=document.getElementById('mjPicked'); if(!box) return;
     box.innerHTML=[...mjStaged].map(([id,p])=>`<div class="byrow" style="align-items:center; gap:8px;">
       <span>${mkr(p.marker||'saguaro')} ${esc(p.name||'—')}
@@ -12308,7 +12533,7 @@ async function openMajorSetup(){
     if(!name){ toast('Name the jug — a Major needs a name'); return; }
     const go=document.getElementById('mjGo'); go.disabled=true;
     try{
-      const { data, error } = await sb.rpc('create_major', {
+      const args = {
         p_name:name,
         p_final_on:document.getElementById('mjFinal').value||nextSundayISO(),
         p_days:days,
@@ -12316,7 +12541,15 @@ async function openMajorSetup(){
         p_pot_split:split,
         p_league:document.getElementById('mjLeague').value||null,
         p_tz:(()=>{ try{ return Intl.DateTimeFormat().resolvedOptions().timeZone||null; }catch(_){ return null; } })(),
-      });
+      };
+      /* the chain link (D61) rides only on a rematch — normal creates never send it */
+      if(pf?.lineage) args.p_lineage = pf.lineage;
+      let { data, error } = await sb.rpc('create_major', args);
+      /* deploy skew: old RPC has no p_lineage — drop it and retry */
+      if(error && args.p_lineage && /p_lineage|function|schema cache/i.test(error.message||'')){
+        delete args.p_lineage;
+        ({ data, error } = await sb.rpc('create_major', args));
+      }
       if(error) throw error;
       for(const [pid] of mjStaged){
         try{ await sb.rpc('invite_golfer',{ p_league:null, p_event:data, p_profile:pid }); }catch(e){}
@@ -12360,6 +12593,97 @@ window.majorSettle = async (sessionId)=>{
     await loadEvent(window.CS_EVENT.event.id);
   }catch(e){ toast(humanError(e)); }
 };
+/* ---------- Batch 13: lineage rematches + the whisper + the stakes ---------- */
+/* D61/D62 — run it back: the rematch tap is the ONLY door into a lineage.
+   Prefill from the settled event; the setup sheet stays fully editable. */
+const isoPlus = (dstr, addDays)=>{ const d=new Date(dstr+'T00:00:00'); d.setDate(d.getDate()+addDays);
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; };
+window.majorRunBack = ()=>{
+  const E=window.CS_EVENT; if(!E?.event) return;
+  const ev=E.event, s=(E.sessions||[])[0]||null;
+  const days = s ? Math.round((new Date(s.closes_on+'T00:00:00')-new Date(s.opens_on+'T00:00:00'))/864e5)+1 : 4;
+  window.MJ_PREFILL = {
+    name: ev.name, days,
+    final: s ? isoPlus(s.closes_on, 364) : null,   /* same weekday, next year */
+    buy: Number(ev.buy_in||0), split: ev.pot_split||'places',
+    league: ev.league_id||null, lineage: ev.lineage_id||ev.id,
+    invitees: (E.players||[]).filter(p=>p.profile_id && p.profile_id!==CS.user?.id)
+      .map(p=>({pid:p.profile_id, name:p.name, marker:p.marker})),
+  };
+  openMajorSetup();
+};
+window.ryderRunBack = ()=>{
+  const E=window.CS_EVENT; if(!E?.event) return;
+  const ev=E.event, A=(E.teams||[]).find(t=>t.slot===0), B=(E.teams||[]).find(t=>t.slot===1);
+  window.RS_PREFILL = {
+    name: ev.name, sessions: ev.session_count, weeks: ev.session_weeks,
+    teamA: A?.name, teamB: B?.name, league: ev.league_id||null,
+    lineage: ev.lineage_id||ev.id,
+    invitees: (E.players||[]).filter(p=>p.profile_id && p.profile_id!==CS.user?.id)
+      .map(p=>({pid:p.profile_id, name:p.name, marker:p.marker})),
+  };
+  openRyderSetup();
+};
+
+/* D63 — last round with: the reunion whisper. Threshold-fired by the server
+   read (12mo · ≥3 shared cards); one name; dismiss = 90 days quiet, local. */
+async function loadLastRoundWith(){
+  if(!CS.user) return;                     /* demo has no user — never fabricates longing */
+  try{
+    const key='cs_lrw_quiet_'+CS.user.id;
+    const q=+localStorage.getItem(key)||0;
+    if(q && Date.now()-q < 90*864e5){ window.CS_LRW=null; return; }
+    const { data, error } = await sb.rpc('last_round_with');
+    if(error) throw error;
+    window.CS_LRW = (data && data[0]) || null;
+  }catch(_){ window.CS_LRW=null; /* pre-migration deploy skew */ }
+  window.renderLRW?.();
+}
+window.dismissLRW = ()=>{
+  try{ localStorage.setItem('cs_lrw_quiet_'+(CS.user?.id||''), String(Date.now())); }catch(_){}
+  window.CS_LRW=null; window.renderLRW?.();
+};
+
+/* D64 — the forfeit ledger: reads ride RLS, writes ride the RPCs. Never
+   rendered as money anywhere — that rule lives in the render, enforced here
+   by simply having no amount to pass. */
+async function loadStakes(){
+  const lid=window.CS?.league?.id;
+  if(!lid || !CS.user){ window.CS_STAKES=null; window.renderStakes?.(); return; }
+  try{
+    const { data, error } = await sb.from('forfeits').select('*')
+      .eq('league_id', lid).order('created_at',{ascending:false}).limit(60);
+    if(error) throw error;
+    window.CS_STAKES = data||[];
+  }catch(_){ window.CS_STAKES=null; /* pre-migration deploy skew — block hides */ }
+  window.renderStakes?.();
+}
+window.loadStakes = loadStakes;
+window.stakeCreate = async (p)=>{
+  try{
+    const { error } = await sb.rpc('create_forfeit', {
+      p_league: window.CS?.league?.id, p_name: p.name, p_terms: p.terms,
+      p_kind: p.kind||'custom', p_other: p.other||null, p_hangs: p.hangs||null });
+    if(error) throw error;
+    toast('Stake posted — the board heard it');
+    await loadStakes(); return true;
+  }catch(e){ toast(humanError(e, 'Could not post the stake.')); return false; }
+};
+window.stakeSettle = async (id, winner, note)=>{
+  try{
+    const { error } = await sb.rpc('settle_forfeit', { p_id:id, p_winner:winner||null, p_note:note||null });
+    if(error) throw error;
+    toast('Settled — into the archive'); await loadStakes();
+  }catch(e){ toast(humanError(e)); }
+};
+window.stakeScrap = async (id)=>{
+  try{
+    const { error } = await sb.rpc('scrap_forfeit', { p_id:id });
+    if(error) throw error;
+    toast('Scrapped'); await loadStakes();
+  }catch(e){ toast(humanError(e)); }
+};
+
 /* the organizer's escape hatch — scrap an event created by mistake. The RPC
    re-validates server-side: organizer only, never once settled or scored. */
 window.scrapEvent = async (eventId)=>{
@@ -12808,6 +13132,7 @@ async function openRoundSheet(id){
 window.openRoundSheet = openRoundSheet;
 window.renderRoundSheet = (id,d)=>renderRoundSheet(id,d);   /* bridge (classic wiring + testability) */
 window.openRetagSheet = openRetagSheet;   /* classic calendar (renderCalendar) opens it too — must be bridged */
+window.openDeclareSheet = openDeclareSheet;   /* D63: the whisper's Stage-it tap lives classic-side */
 
 function renderRoundSheet(id, d){
   const M = window.mkr || (()=> '⛳');

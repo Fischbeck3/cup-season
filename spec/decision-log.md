@@ -1899,9 +1899,10 @@ machinery-already-exists. ⚑ marks the points still needing an owner call.*
   jug accumulates names; the cheapest lineage build in the corpus (D41's
   pattern, one additive column, existing posts rail).
 - **Tradeoffs:** organic same-name creates do NOT link (honest: lineage is
-  chosen, not guessed). ⚑ owner call: ship a later "adopt into lineage" tool,
-  or let convention cover strays? The champion's earned marker stays parked
-  (§9) — explicitly NOT unparked by this entry.
+  chosen, not guessed). ⚑ RESOLVED (build go, 2026-07-23): v1 is
+  rematch-only; the "adopt into lineage" tool waits for a real stray. The
+  champion's earned marker stays parked (§9) — explicitly NOT unparked by
+  this entry.
 - **CONFLICT check:** none upward. Pays D41's named deferral ("the event
   rematch row"); D46's ceremony untouched (each edition still mints its one
   trophy).
@@ -1921,7 +1922,9 @@ machinery-already-exists. ⚑ marks the points still needing an owner call.*
   chain ("THE 3RD RYDER · BLUE LEADS THE SERIES 2–1", shared editions counted
   as shared); the open post names the holder ("BLUE DEFENDS THE CUP").
   Series identity follows the team SLOT carried at rematch — rename freely,
-  the tally follows the bench, not the label.
+  the tally follows the bench, not the label. V1 TRIM (build, 2026-07-23):
+  the holder line renders in the ROOM HEADER ("BLUE DEFENDS"), not a server
+  open-post — the open post rides the next pairings-post touch.
 - **Principle:** the Rivalry object (2030 canon) · Memory · Feels Alive
   (between-editions air gains a score).
 - **Benefit:** "the 3rd Ryder" is a sentence that re-forms both benches by
@@ -1946,7 +1949,9 @@ machinery-already-exists. ⚑ marks the points still needing an owner call.*
   stages a gathering on the existing scheduled-rounds rails with both of you
   on it. Fires on THRESHOLD only, never a schedule: surfaces when the gap
   ≥ 12 months AND the history is real (≥ 3 prior shared cards), at most one
-  name at a time, dismiss = quiet for months. ⚑ owner call on both numbers.
+  name at a time, dismiss = quiet for months. ⚑ RESOLVED (build go,
+  2026-07-23): 12 months · ≥ 3 shared cards · dismiss = 90 days quiet,
+  device-local in v1.
   Copy law (this is the build's hard part): a statement of fact plus a door —
   never "you haven't," never streak grammar. D23 compliance explicit: the
   emotion is *longing*, named in the entry, and it must never read as guilt.
@@ -1976,8 +1981,11 @@ machinery-already-exists. ⚑ marks the points still needing an owner call.*
   a forfeit never settles anything itself — it hangs ON a thing that already
   settles (a duel, a match, a Callout, a season place); standing bounties
   settle by the parties' confirm tap. One engine of results; forfeits are
-  consequences, not competitions. ⚑ owner call: v1 template set, and whether
-  the Pro or any party can mark a standing bounty hit.
+  consequences, not competitions. ⚑ RESOLVED (build go, 2026-07-23): v1
+  templates = the four listed; either PARTY confirms a settle (the Pro's
+  D50 ruling stays the dispute backstop, not the happy path). V1 TRIM: every
+  settle is a party tap — the auto-hook onto duel/match/callout results is
+  the fast-follow, so v1 ships one engine and zero result-plumbing risk.
 - **Principle:** D39's exact posture extended past dollars (the ledger,
   never the bank) · Memory > Statistics (stakes become stories) · the Stake
   object (D51's line gains a non-dollar currency).
