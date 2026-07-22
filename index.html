@@ -1173,6 +1173,7 @@ html[data-theme="light"] .momrow{background:rgba(21,116,63,.06);}
 .sheet.open{display:block;}
 .sheet .panel{
   position:absolute; left:0; right:0; bottom:0; max-height:88vh; overflow-y:auto;
+  overscroll-behavior:contain; -webkit-overflow-scrolling:touch;
   background:var(--bg1); border-top:1px solid var(--line2);
   border-radius:var(--rs) var(--rs) 0 0; padding:14px 16px calc(24px + env(safe-area-inset-bottom));
   box-shadow:var(--shadow-lift);
@@ -2322,7 +2323,10 @@ html[data-theme="light"] .room-dusk .btn:not(.dark):not(.gold):not(.apple){color
             <div class="slot4" id="fourSlots"></div>
             <label class="f" style="margin-top:16px; display:block;">Tap to fill a slot</label>
             <div id="rosterChips" style="margin-top:8px"></div>
-            <label class="f" style="margin-top:14px; display:block;">Add a guest</label>
+            <!-- pilot: "prefer the event/ryder process" — the same People
+                 Picker the events use, right in the tee sheet -->
+            <button class="mini" id="rosterFind" style="margin-top:14px"><svg class="ic" aria-hidden="true"><use href="#i-users"/></svg> Search the app — add any golfer</button>
+            <label class="f" style="margin-top:12px; display:block;">Or add a guest by name</label>
             <div class="cinput" style="margin-top:8px">
               <input class="f" id="gName" placeholder="Name" style="font-family:var(--sans);">
               <input class="f" id="gIdx" type="number" step="0.1" placeholder="Index" inputmode="decimal" style="max-width:96px; flex:none;">
@@ -2658,6 +2662,10 @@ html[data-theme="light"] .room-dusk .btn:not(.dark):not(.gold):not(.apple){color
           </div>
           <div class="fine" id="hhSpan" style="padding:8px 0 0">Sun Jul 5 → Sat Dec 26 · 25 wks</div>
           <div class="fine" id="hhPro" style="padding:2px 0 0">THE PRO · JERECHO</div>
+          <!-- pilot: "league no longer has ability to add people" — an unlocked
+               league showed no add path at all. This button always works; the
+               picker's footer offers the share link. -->
+          <button class="mini" id="hhAdd" style="margin-top:10px">Add golfers</button>
           <div class="fine" id="hhDanger" style="display:none; padding:8px 0 0"><a href="#" id="hhDelete" style="color:var(--neg)">Cancel &amp; delete this league</a> (only possible before the first tee)</div>
         </div>
 
@@ -4321,15 +4329,41 @@ function renderFeedFull(force){
      top — prevTop still wins whenever this isn't an open/follow moment. */
   requestAnimationFrame(()=>{ el.scrollTop = (force||atBottom) ? (dg?0:el.scrollHeight) : prevTop; });
 }
+/* iOS: overflow:hidden alone doesn't stop the page BEHIND a fixed overlay from
+   scroll-chaining — the sheet "slides around" while you scroll it, and focusing
+   a date input scrolls the body and shoves the whole layer off-screen (pilot,
+   Ryder/Major create). Freeze the body for real while any overlay is open. */
+let _bodyLockY=0;
+function anyOverlayOpen(){
+  return !!(document.querySelector('.sheet.open')
+    || document.getElementById('boardFull')?.classList.contains('open')
+    || document.getElementById('finish')?.classList.contains('open'));
+}
+function lockBody(){
+  document.body.style.overflow='hidden';
+  if(document.body.style.position==='fixed') return;   /* already frozen (stacked overlays) */
+  _bodyLockY=window.scrollY||document.documentElement.scrollTop||0;
+  document.body.style.position='fixed';
+  document.body.style.top=(-_bodyLockY)+'px';
+  document.body.style.left='0'; document.body.style.right='0'; document.body.style.width='100%';
+}
+function unlockBody(){
+  if(anyOverlayOpen()){ document.body.style.overflow='hidden'; return; }   /* another layer still holds it */
+  document.body.style.overflow='';
+  if(document.body.style.position!=='fixed') return;
+  document.body.style.position=''; document.body.style.top='';
+  document.body.style.left=''; document.body.style.right=''; document.body.style.width='';
+  window.scrollTo(0,_bodyLockY);
+}
 function openBoardFull(){
   $('#bfSub').textContent = (window.CS?.league?.name || state.demo && 'The Sunday Cup' || 'Cup Season').toUpperCase();
   renderFeedFull(true);
   $('#boardFull').classList.add('open');
-  document.body.style.overflow='hidden';
+  lockBody();
 }
 function closeBoardFull(){
   $('#boardFull').classList.remove('open');
-  document.body.style.overflow='';
+  unlockBody();
 }
 $('#bfOpen').addEventListener('click',e=>{ e.preventDefault(); openBoardFull(); });
 $('#bfClose').addEventListener('click',closeBoardFull);
@@ -4758,7 +4792,7 @@ function finishCeremony(o){
   };
   el.classList.remove('open'); void el.offsetWidth;   /* restart the stagger on a second post */
   el.setAttribute('aria-hidden','false'); el.classList.add('open');
-  document.body.style.overflow='hidden';
+  lockBody();
   _ceremonyOwnsShare=true;   /* the ceremony owns the share this post — the epilogue defers its own button */
   try{ if(navigator.vibrate) navigator.vibrate([10,38,10]); }catch(_){}   /* the stamp's thock */
 }
@@ -4766,9 +4800,9 @@ function finishDismiss(){
   const el=document.getElementById('finish');
   if(!el || !el.classList.contains('open')) return;   /* idempotent — dismiss fires once */
   el.classList.remove('open'); el.setAttribute('aria-hidden','true');
-  /* the epilogue sheet may have opened behind the curtain — don't steal its
-     scroll lock; only release the body when nothing else is holding it open */
-  document.body.style.overflow = document.getElementById('sheet')?.classList.contains('open') ? 'hidden' : '';
+  /* the epilogue sheet may have opened behind the curtain — unlockBody only
+     releases when no other layer is holding the freeze */
+  unlockBody();
 }
 (function wireFinish(){
   const el=document.getElementById('finish'); if(!el) return;
@@ -4835,6 +4869,7 @@ function renderPostHoles(){
   recalc();
 }
 function recalc(){
+  if(typeof savePostDraft==='function') savePostDraft();   /* every card change mirrors to the draft */
   const rating=parseFloat($('#inRating').value)||0;
   const slope=parseFloat($('#inSlope').value)||113;
   const {f9,b9}=postInputs();
@@ -4870,6 +4905,53 @@ function recalc(){
   state.lastPost={pts, vs, label};
 }
 ['inRating','inSlope','inF9','inB9'].forEach(id=>$('#'+id)?.addEventListener('input',recalc));
+/* ---- post-card draft: survive an iOS page eviction (pilot: "input photo and
+   it kicked me out") ------------------------------------------------------
+   Opening the camera/photo picker backgrounds the PWA; under memory pressure
+   iOS reloads it and a fully-typed round vanishes. Mirror the typed card to
+   localStorage and offer it back on the next boot. The photo blob can't
+   survive eviction — the numbers are the point; re-pick the photo. */
+const POST_DRAFT_KEY='cs_post_draft';
+let _draftT=null, _draftRestored=false;
+function savePostDraft(){
+  if(state.demo || !window.CS?.user) return;
+  try{ clearTimeout(_draftT); }catch(_){ return; }   /* pre-init call = nothing to save yet */
+  _draftT=setTimeout(()=>{
+    try{
+      const vals={};
+      ['inF9','inB9','inRating','inSlope','inCourse','inDate'].forEach(id=>{ const e=$('#'+id); if(e) vals[id]=e.value; });
+      const hasAny = Object.values(vals).some(v=>String(v||'').trim()) || state.post.touched;
+      if(!hasAny){ localStorage.removeItem(POST_DRAFT_KEY); return; }
+      localStorage.setItem(POST_DRAFT_KEY, JSON.stringify({
+        at:Date.now(), vals, cid:($('#inCourse')?.dataset.courseId)||null,
+        mode:state.post.mode, side:state.post.side,
+        pars:state.post.pars, scores:state.post.scores, touched:state.post.touched,
+      }));
+    }catch(_){}
+  },350);
+}
+function clearPostDraft(){ try{ clearTimeout(_draftT); localStorage.removeItem(POST_DRAFT_KEY); }catch(_){} }
+function restorePostDraft(){
+  if(_draftRestored || state.demo || !window.CS?.user) return false;
+  _draftRestored=true;
+  try{
+    const raw=localStorage.getItem(POST_DRAFT_KEY); if(!raw) return false;
+    const d=JSON.parse(raw);
+    if(!d || !d.at || (Date.now()-d.at) > 24*3600*1000){ localStorage.removeItem(POST_DRAFT_KEY); return false; }
+    Object.entries(d.vals||{}).forEach(([id,v])=>{ const e=$('#'+id); if(e && v) e.value=v; });
+    if(d.cid && $('#inCourse')) $('#inCourse').dataset.courseId=d.cid;
+    if(d.mode) state.post.mode=d.mode;
+    if(d.side) state.post.side=d.side;
+    if(Array.isArray(d.pars)   && d.pars.length===18)   state.post.pars=d.pars.map(Number);
+    if(Array.isArray(d.scores) && d.scores.length===18) state.post.scores=d.scores.map(Number);
+    state.post.touched=!!d.touched;
+    renderPostHoles();
+    toast('Your unposted round came back — it’s waiting in Post a round');
+    return true;
+  }catch(_){ return false; }
+}
+window.restorePostDraft = restorePostDraft;   /* module boot calls it after sign-in */
+['inCourse','inDate'].forEach(id=>$('#'+id)?.addEventListener('input',savePostDraft));
 /* mode + side toggles for the quick-post card */
 $$('#postMode button').forEach(b=>b.addEventListener('click',()=>{
   $$('#postMode button').forEach(x=>x.classList.remove('on')); b.classList.add('on');
@@ -5059,6 +5141,7 @@ $('#postBtn').addEventListener('click', async ()=>{
       state.post.mode='total';                        /* the grid was a scan confirm — the composer resets to front & back (D34) */
       state.post.scores = state.post.pars.slice();   /* reset the grid to par */
       state.post.touched=false;                       /* next round starts fresh */
+      if(typeof clearPostDraft==='function') clearPostDraft();   /* posted = the draft's job is done */
       state.lastPost=null;
       if(typeof renderPostHoles==='function') renderPostHoles(); else if(typeof recalc==='function') recalc();
       const firstEver = (window.career?.rounds || 0) === 0;   /* Phase 4: capture before loadCareer updates the count */
@@ -5107,7 +5190,18 @@ $('#postBtn').addEventListener('click', async ()=>{
    golfer exactly where they already were (front & back inputs). The D34 grid
    returns here as the CONFIRMATION surface: the model proposes, the golfer
    fixes cells, the receipt stores what the GOLFER confirmed (§16). */
-async function photoDrawable(file){
+async function photoDrawable(file, maxDim){
+  /* decode-downscale where the browser supports it — a 48MP HEIC decoded at
+     full size is exactly the memory spike that gets a backgrounded PWA
+     evicted on iOS. Fall through to a plain decode if options are ignored. */
+  if(maxDim){
+    try{
+      /* width-only keeps the aspect ratio (both would stretch); the canvas
+         pass below still bounds the long side exactly */
+      const bm=await createImageBitmap(file,{ resizeWidth:maxDim, resizeQuality:'high' });
+      if(bm && bm.width) return bm;
+    }catch(_){}
+  }
   try{ return await createImageBitmap(file); }
   catch(_){
     /* Safari + HEIC: the <img> decoder handles what createImageBitmap won't */
@@ -5119,7 +5213,7 @@ async function photoDrawable(file){
   }
 }
 async function compressPhoto(file, maxDim, quality){
-  const im=await photoDrawable(file);
+  const im=await photoDrawable(file, maxDim);
   const w0=im.width||im.naturalWidth, h0=im.height||im.naturalHeight;
   const s=Math.min(1, maxDim/Math.max(w0,h0));
   const w=Math.max(1,Math.round(w0*s)), h=Math.max(1,Math.round(h0*s));
@@ -5284,6 +5378,7 @@ function resetPostComposer(){
 $('#postReset')?.addEventListener('click',e=>{
   e.preventDefault();
   resetPostComposer();
+  if(typeof clearPostDraft==='function') clearPostDraft();   /* an explicit start-over scraps the draft too */
   toast('Card cleared');
 });
 $('#postScanBack')?.addEventListener('click',e=>{
@@ -5303,7 +5398,7 @@ $('#postScanBack')?.addEventListener('click',e=>{
    lookup runs through the `courses` Edge Function that holds the GolfCourseAPI
    key server-side. Manual entry is always the fallback — rating/slope stay
    editable. Selecting a tee stamps course_id onto the input for the insert. */
-function attachCourseSearch(courseSel, ratingSel, slopeSel){
+function attachCourseSearch(courseSel, ratingSel, slopeSel, onTee){
   const input=$(courseSel); if(!input) return;
   const dd=document.createElement('div'); dd.className='coursedd'; dd.style.display='none';
   input.insertAdjacentElement('afterend', dd);
@@ -5326,9 +5421,13 @@ function attachCourseSearch(courseSel, ratingSel, slopeSel){
       input.value = c.label + (t.tee_name ? ' · '+t.tee_name : '');
       input.dataset.courseId = c.id;
       if(ra) ra.value=t.course_rating; if(sl) sl.value=t.slope_rating;
+      /* programmatic .value never fires 'input' — the live sheet's rate/slope
+         listeners (syncTeeInputs) need the event to recompute strokes */
+      [ra,sl].forEach(el=>{ if(el) el.dispatchEvent(new Event('input',{bubbles:true})); });
       if(ratingSel==='#inRating' && typeof recalc==='function') recalc();
       hide(); toast('Tees set — rating and slope filled');
-      window.sb.functions.invoke('courses', { body:{ action:'cache', id:c.id } }).catch(()=>{});
+      const cached = window.sb.functions.invoke('courses', { body:{ action:'cache', id:c.id } }).catch(()=>{});
+      if(typeof onTee==='function') onTee({ course:c, tee:t, cached });
     }));
   }
   function showCourses(){
@@ -5369,6 +5468,33 @@ function attachCourseSearch(courseSel, ratingSel, slopeSel){
   input.addEventListener('blur', ()=>setTimeout(hide, 160));
 }
 attachCourseSearch('#inCourse', '#inRating', '#inSlope');
+/* pilot: "tried live round and it didn't pull course api" — the live sheet was
+   a plain text input; only the post + tee-time sheets had the search. On tee
+   pick here: wait for the server-side cache, then lift the REAL per-hole par +
+   stroke index into the course card (mirrors what cardSave does by hand). */
+attachCourseSearch('#lrCourse', '#lrRate', '#lrSlope', async ({ course, tee, cached }) => {
+  const te = $('#lrTee'); if(te && tee.tee_name) te.value = tee.tee_name;
+  try{
+    await cached;
+    const { data: tees } = await window.sb.from('api_course_tees')
+      .select('id, tee_name, number_of_holes').eq('course_id', course.id);
+    const row = (tees||[]).find(x => x.tee_name === tee.tee_name && x.number_of_holes === 18)
+             || (tees||[]).find(x => x.tee_name === tee.tee_name)
+             || null;
+    if(!row) return;
+    const { data: holes } = await window.sb.from('api_course_holes')
+      .select('hole_number, par, handicap').eq('tee_id', row.id)
+      .order('hole_number', { ascending: true });
+    if(!holes || holes.length !== 18) return;   /* 9-hole cards keep the typed path */
+    PAR = holes.map(h => Number(h.par) || 4);
+    const si = holes.map(h => Number(h.handicap));
+    if(si.every(n => n >= 1 && n <= 18)){ SI = si; SIEST = false; } else estimateSI();
+    recomputeStrokes();
+    const cn = $('#cardNote');
+    if(cn) cn.textContent = `Card loaded: par ${PAR.reduce((a,b)=>a+b,0)} — real pars and stroke index from the course database.`;
+    if(typeof renderPlay === 'function') renderPlay();
+  }catch(_){ /* cache miss = the typed card path — never block setup */ }
+});
 
 /* ================= pot ================= */
 function renderPot(){
@@ -6308,6 +6434,26 @@ $('#gAdd').addEventListener('click',()=>{
   $('#gName').value=''; $('#gIdx').value='';
   renderRoster();
   toast(n+' added'+(isNaN(gi)?' (estimated 18.0 index)':''));
+});
+/* pilot: the foursome fills through the SAME People Picker the events use —
+   search anyone on the app; they land as a non-posting player (identity
+   pre-filled), exactly like a buddy row. Guest-by-name stays the fallback. */
+$('#rosterFind')?.addEventListener('click',()=>{
+  if(state.demo){ toast('Demo round — search works in your real tee sheet'); return; }
+  if(!window.openPeoplePicker){ toast('Still loading — try again in a second'); return; }
+  window.openPeoplePicker({
+    mode:'invite',
+    title:'Add to the foursome',
+    sub:'League mates and buddies are below — search anyone on the app',
+    excludeIds: ROSTER.map(r=>r.pid).filter(Boolean),
+    onPick:(r)=>{
+      if(ROSTER.some(x=>x.pid && x.pid===r.profile_id)){ toast(r.display_name+' is already in the picker'); return; }
+      ROSTER.push({ n:r.display_name||'Golfer', i:Number(r.index_current)||18, ci:-1, team:null,
+                    guest:true, buddy:true, est:(r.index_current==null), pid:r.profile_id });
+      if(sel.length<4) sel.push(ROSTER.length-1);
+      renderRoster();
+    },
+  });
 });
 function renderLiveBanner(){
   const b=$('#liveBanner'); if(!b) return;
@@ -7570,8 +7716,11 @@ function renderCareer(){
        owner-only ×, delete_round RPC, standings views recompute on their own */
     const canDel = !state.demo && window.sb;
     yr.innerHTML = (c.recent && c.recent.length)
-      ? c.recent.map(r=>`<div class="fine" style="padding:3px 0; display:flex; justify-content:space-between; align-items:center; gap:8px;"><span>${r.played_on} · ${esc((r.course_label||'').toUpperCase())||'ROUND'}${r.holes_played===9?' · 9':''}</span><span style="display:flex; align-items:center; gap:12px;"><b class="mono">${r.gross} · ${r.differential}</b>${canDel&&r.id?`<button data-delr="${r.id}" title="Delete this round" aria-label="Delete round" style="background:none; border:none; color:var(--dim); cursor:pointer; font-size:16px; line-height:1; padding:2px 4px;"><svg class="ic" aria-hidden="true"><use href="#i-close"/></svg></button>`:''}</span></div>`).join('')
+      ? c.recent.map(r=>`<div class="fine" style="padding:3px 0; display:flex; justify-content:space-between; align-items:center; gap:8px;"><span>${r.played_on} · ${esc((r.course_label||'').toUpperCase())||'ROUND'}${r.holes_played===9?' · 9':''}</span><span style="display:flex; align-items:center; gap:12px;">${r.photo_url?`<button data-photo-open="${esc(r.photo_url)}" title="Round photo" aria-label="Open round photo" style="background:none; border:none; color:var(--dim); cursor:pointer; padding:2px 2px; line-height:1;"><svg class="ic" aria-hidden="true"><use href="#i-photo"/></svg></button>`:''}<b class="mono">${r.gross} · ${r.differential}</b>${canDel&&r.id?`<button data-delr="${r.id}" title="Delete this round" aria-label="Delete round" style="background:none; border:none; color:var(--dim); cursor:pointer; font-size:16px; line-height:1; padding:2px 4px;"><svg class="ic" aria-hidden="true"><use href="#i-close"/></svg></button>`:''}</span></div>`).join('')
       : emptyState({ icon:'⛳', line:'No rounds yet — your card fills as you play.', ctaLabel:'Post your first round', ctaGo:'record' });
+    yr.querySelectorAll('[data-photo-open]').forEach(b=>b.addEventListener('click', ()=>{
+      window.open(b.dataset.photoOpen, '_blank', 'noopener');
+    }));
     yr.querySelectorAll('[data-delr]').forEach(b=>b.addEventListener('click', async ()=>{
       if(!confirm('Delete this round? It leaves your card and any league standings it counted toward.')) return;
       b.disabled = true;
@@ -7747,7 +7896,8 @@ function openSheet(title, sub, bodyHtml){
   $('#shBody').innerHTML=bodyHtml;
   $('#sheet').classList.add('open');
   $('#sheet').classList.remove('room-dusk');   /* sheets are utility by default; ceremonies re-add after openSheet */
-  document.body.style.overflow='hidden';
+  lockBody();
+  $('#sheet .panel')?.scrollTo?.(0,0);   /* fresh content starts at the top, not a prior sheet's depth */
   $('#shBody').querySelectorAll('[data-player]').forEach(b=>
     b.addEventListener('click',()=>showPlayer(b.dataset.player)));
   $('#shBody').querySelectorAll('[data-round]').forEach(b=>
@@ -7758,7 +7908,7 @@ function openSheet(title, sub, bodyHtml){
 }
 function closeSheet(){
   $('#sheet').classList.remove('open');
-  document.body.style.overflow='';
+  unlockBody();
 }
 $('#shClose').addEventListener('click',closeSheet);
 $('#sheet').addEventListener('click',e=>{ if(e.target.id==='sheet') closeSheet(); });
@@ -9379,11 +9529,26 @@ function openPeoplePicker(opts){
   const render=(rows)=>{ rows.forEach(r=>rowCache.set(r.profile_id, r));
     listBox.innerHTML = rows.length ? rows.map(r=>psRow(r, actionFor(r))).join('')
       : '<p class="fine">No golfers found. Invite links still work for everyone else.</p>'; wire(); };
-  psFriends().then(d=>render(d.filter(f=>f.status==='accepted')));
+  /* empty search = buddies + a few recommended (pilot: "need the search bar
+     and a few recommended") — the open league's roster, deduped */
+  const baseList = async () => {
+    const rows=(await psFriends()).filter(f=>f.status==='accepted');
+    const have=new Set(rows.map(r=>r.profile_id));
+    const me=CS.user?.id;
+    (window.CS?.members||[]).forEach(m=>{
+      if(!m.profile_id || m.profile_id===me || have.has(m.profile_id)) return;
+      have.add(m.profile_id);
+      rows.push({ profile_id:m.profile_id, display_name:m.profile?.display_name,
+                  handle:m.profile?.handle, marker:m.profile?.marker,
+                  index_current:m.profile?.index_current, rel:'none' });
+    });
+    return rows;
+  };
+  baseList().then(render);
   let t=null;
   document.getElementById('ppFind').addEventListener('input', ()=>{ clearTimeout(t); t=setTimeout(async()=>{
     const q=document.getElementById('ppFind').value.trim();
-    if(!q.length){ psFriends().then(d=>render(d.filter(f=>f.status==='accepted'))); return; }
+    if(!q.length){ baseList().then(render); return; }
     render(await psSearch(q));
   }, 350); });
 }
@@ -9415,7 +9580,7 @@ function openProfileHub(){
     <label class="f" style="display:block; margin-top:8px">Ball marker</label>
     <div id="phMarkers" style="display:grid; grid-template-columns:repeat(4,1fr); gap:8px; margin-top:8px;"></div>
     <div class="frow" style="margin-top:10px">
-      <div><label class="f" for="phHandle">Handle</label><input class="f" id="phHandle" style="font-family:var(--sans)"></div>
+      <div><label class="f" for="phHandle">Handle · moves once / 60 days</label><input class="f" id="phHandle" style="font-family:var(--sans)"></div>
       <div><label class="f">Findable by</label><div id="phDisc" style="display:flex; gap:6px; margin-top:6px;">
         <button class="mini" data-disc="everyone">All</button>
         <button class="mini" data-disc="friends">Crew</button>
@@ -11635,6 +11800,11 @@ async function openInvitePicker(container){
   });
 }
 window.openInvitePicker = openInvitePicker;
+/* the Clubhouse header's standing add-path (works locked or not) */
+document.getElementById('hhAdd')?.addEventListener('click', () => {
+  if(state.demo || !CS.league){ toast('Demo league — adding golfers works in your real league'); return; }
+  openInvitePicker({ league: CS.league.id });
+});
 
 /* D4: the You tab's league record — latest season per membership, my place in
    it, ranked from v_individual_standings. Archives deepen as seasons close. */
@@ -11654,10 +11824,28 @@ window.loadTrophies = loadTrophies;
 async function loadCareer(){
   if(!CS.user){ window.career = null; if(window.renderCareer) window.renderCareer(); return; }
   try{
-    const { data } = await sb.from('rounds')
-      .select('id, gross, differential, index_at_post, played_on, course_label, holes_played')
+    let rq = await sb.from('rounds')
+      .select('id, gross, differential, index_at_post, played_on, course_label, holes_played, photo_path')
       .eq('profile_id', CS.user.id).order('played_on', { ascending:false }).limit(400);
-    const rows = data || [];
+    if(rq.error && /photo_path/.test(rq.error.message||''))
+      rq = await sb.from('rounds')
+        .select('id, gross, differential, index_at_post, played_on, course_label, holes_played')
+        .eq('profile_id', CS.user.id).order('played_on', { ascending:false }).limit(400);
+    const rows = rq.data || [];
+    /* pilot: "no idea where round photos live" — they backdrop the board story
+       card; now the You tab's recent rounds carry them too (tap to open) */
+    const wp = rows.slice(0,5).filter(r => r.photo_path);
+    if(wp.length){
+      try{
+        const { data: signed } = await sb.storage.from('media')
+          .createSignedUrls(wp.map(r => r.photo_path), 3600);
+        (signed||[]).forEach(s => {
+          if(!s?.signedUrl) return;
+          const r = wp.find(r => r.photo_path === s.path);
+          if(r) r.photo_url = s.signedUrl;
+        });
+      }catch(_){ /* rows render without photos */ }
+    }
     const vals = rows
       .map(r => (r.index_at_post!=null && r.differential!=null) ? (Number(r.index_at_post) - Number(r.differential)) : null)
       .filter(v => v!=null);
@@ -11692,16 +11880,18 @@ async function loadHome(){
   catch(e){ window.homeFeed = window.homeFeed||[]; }
   /* circle reactions ride the rounds just loaded (round → shared-league post) */
   try { await fetchHomeSocial(); } catch(e){ console.warn('[homeSocial]', e); }
-  /* league moments for the one feed (IA P1): announcements + system posts.
-     round_id-null keeps rounds out — home_feed already carries every circle
-     round (buddies + league-mates), so board round-posts would be duplicates.
-     Chat stays on the board; the home feed is moments, not messages. */
+  /* league moments for the one feed (IA P1): announcements + system + moment
+     posts. Chat stays on the board; the home feed is moments, not messages. */
   try {
     const ids = (CS.memberships||[]).map(m=>m.league.id);
     if(ids.length){
+      /* kind-based, not round_id-null: moment posts now carry round_id (so a
+         deleted round takes its "PERSONAL BEST" headline with it — pilot bug),
+         and they must keep showing here. kind='round' stays out (home_feed
+         already carries every circle round; board round-posts would double). */
       const { data: ps } = await sb.from('posts')
         .select('id, league_id, kind, body, created_at')
-        .in('league_id', ids).is('round_id', null).neq('kind','chat')
+        .in('league_id', ids).neq('kind','chat').neq('kind','round')
         .order('created_at', { ascending:false }).limit(20);
       window.homePosts = ps || [];
     } else window.homePosts = [];
@@ -12221,7 +12411,7 @@ $('#wDemo').addEventListener('click', () => {
   toast('Demo league: The Sunday Cup. Nothing here saves.');
 });
 
-$('#wCreate').addEventListener('click', async () => {
+$('#wCreate').addEventListener('click', () => {
   if(state.demo || !CS.user){
     /* F-001: a demo or signed-out tap on "Start a league" must not reach
        create_league (prod round-trip → raw commissioner_id error on the
@@ -12231,31 +12421,48 @@ $('#wCreate').addEventListener('click', async () => {
     backToDoor();
     return;
   }
-  bootTrace('creating league…');
-  resetWizard();   /* fresh slate — no leftover name/players from a prior draft */
-  try {
-    await createLeague();
-    bootTrace('league created ✓');
-    enterApp();
-    state.phase = 'setup';
-    renderPhase();
-    switchView('wizard');
-    if(window._runItBack){
-      /* D41: carry last season's bylaws + name into the fresh scaffold */
-      try{
-        if(window._runItBack.bylaws) applyBylaws(window._runItBack.bylaws);
-        const nm=document.getElementById('setName'); if(nm) nm.value=window._runItBack.name;
-        renderBylaws();
-      }catch(_){}
+  /* pilot: a league row minted before a name exists = "My Cup" husks in prod.
+     The name is the first commitment — ask for it, THEN create the row. */
+  const carried = window._runItBack?.name || '';
+  openSheet('Name your league', 'The banner everything hangs under', `
+    <input class="f" id="nlName" placeholder="The Big Slice, The Sunday Cup, Dew Sweepers…" autocomplete="off" maxlength="40" style="font-family:var(--sans); font-size:16px" value="${esc(carried)}">
+    <p class="fine" style="padding-top:8px">You can rename it any time before the bylaws lock.</p>
+    <button class="btn" id="nlGo" style="margin-top:12px">Start the league</button>`);
+  const go = async () => {
+    const name = (document.getElementById('nlName')?.value || '').trim();
+    if(!name){ toast('Give the league its name first'); document.getElementById('nlName')?.focus(); return; }
+    const b = document.getElementById('nlGo'); if(b) b.disabled = true;
+    bootTrace('creating league…');
+    resetWizard();   /* fresh slate — no leftover players/bylaws from a prior draft */
+    try {
+      const nm = document.getElementById('setName'); if(nm) nm.value = name;   /* createLeague reads it */
+      await createLeague();
+      bootTrace('league created ✓');
+      closeSheet();
+      enterApp();
+      state.phase = 'setup';
+      renderPhase();
+      switchView('wizard');
+      if(window._runItBack){
+        /* D41: carry last season's bylaws into the fresh scaffold (name already carried above) */
+        try{
+          if(window._runItBack.bylaws) applyBylaws(window._runItBack.bylaws);
+          renderBylaws();
+        }catch(_){}
+        window._runItBack=null;
+        toast('Run it back — last season’s bylaws carried over. Review and lock.');
+      } else {
+        toast(name + ' is on the books — set the bylaws');
+      }
+    } catch(e){
       window._runItBack=null;
-      toast('Run it back — last season’s bylaws carried over. Review and lock.');
-    } else {
-      toast('League created: name it and set the bylaws');
+      if(b) b.disabled = false;
+      authStatus(humanError(e, 'Could not create the league.'), 'err');
     }
-  } catch(e){
-    window._runItBack=null;
-    authStatus(humanError(e, 'Could not create the league.'), 'err');
-  }
+  };
+  document.getElementById('nlGo')?.addEventListener('click', go);
+  document.getElementById('nlName')?.addEventListener('keydown', e => { if(e.key === 'Enter') go(); });
+  setTimeout(() => document.getElementById('nlName')?.focus(), 60);
 });
 
 $('#wOut').addEventListener('click', async () => {
@@ -12327,6 +12534,9 @@ async function boot(){
   } finally {
     clearTimeout(watchdog);
     bootStep = 'reveal';
+    /* an iOS eviction mid-compose reloads the page — offer the typed card back
+       (no-ops for demo / signed-out; guards live in restorePostDraft) */
+    window.restorePostDraft?.();
   }
 }
 
