@@ -1759,19 +1759,50 @@ html[data-theme="light"] .btn:not(.dark):not(.gold):not(.apple){color:#FFFFFF;}
 .finish-eyebrow{font-family:var(--mono); font-size:12px; font-weight:500; letter-spacing:.22em; text-transform:uppercase; color:#8FA096;}
 .gross-slot{position:relative; margin-top:18px;}
 .finish-gross{font-family:var(--serif); font-variant-numeric:tabular-nums; font-weight:700; font-size:clamp(84px,26vw,96px); line-height:.94; color:#ECEEF2;}
-/* C2 - the drop: the ball rolls out of the left along the gross baseline, dies
-   at center, hangs, and DROPS - the number lands where it fell. The ~1s pause
-   is the held breath; ceremony surface, the added second is the point. Spin is
-   sold by an off-center dimple rotating inside the wrapper; pure transform. */
-.finish-ball{position:absolute; left:50%; bottom:6px; width:13px; height:13px; margin-left:-6px; opacity:0; pointer-events:none;}
+/* C2 - the drop (owner-approved treatment, 2026-07-22 deck session): the ball
+   rolls out of the left along the gross baseline on REAL friction - constant
+   deceleration, distance follows 1-(1-t)^2 sampled into linear keyframes - dies
+   at the lip of an actual cup, hangs a beat, and falls THROUGH the ellipse.
+   The hole is two layers so the drop is occlusion, not shrinking: the full
+   ellipse (the opening) sits under the ball; only the front-lip crescent sits
+   over it and eats the ball from below while it dims into the dark. The ground
+   answers once (gold ring), the cup fades, and the number lands where it fell.
+   The ~1s pause is the held breath; ceremony surface, the added second is the
+   point. Spin is an off-center dimple rotating inside the wrapper. */
+.finish-ball{position:absolute; left:50%; bottom:6px; width:13px; height:13px; margin-left:-6px; opacity:0; pointer-events:none; z-index:1;}
 .finish-ball i{display:block; width:100%; height:100%; position:relative;}
-.finish-ball i::before{content:""; position:absolute; inset:0; border-radius:50%; background:#F4F7F4;}
+.finish-ball i::before{content:""; position:absolute; inset:0; border-radius:50%; background:#F4F7F4;
+  box-shadow:0 4px 3px -1px rgba(0,0,0,.5);}   /* contact shadow - the roll stays on the ground */
 .finish-ball i::after{content:""; position:absolute; left:2.5px; top:5.5px; width:3px; height:3px; border-radius:50%; background:#B9C2BB;}
-@keyframes csPutt{0%{opacity:0; transform:translateX(-150px);} 12%{opacity:1;} 100%{opacity:1; transform:translateX(0);}}
+/* the hole is SIBLING layers (never nested - an opacity animation would trap
+   the front lip's z-index inside its own stacking context and the ball would
+   paint over it): opening z0 < ball z1 < front-lip crescent z2 < ring z3 */
+.finish-cup,.finish-cupfront{position:absolute; left:50%; bottom:-4px; width:22px; height:10px; margin-left:-11px; border-radius:50%; background:#050807; opacity:0; pointer-events:none;}
+.finish-cup{box-shadow:inset 0 2px 4px rgba(0,0,0,.9), 0 0 0 1.5px #1C2620; z-index:0;}
+.finish-cupfront{box-shadow:0 0 0 1.5px #1C2620; clip-path:inset(52% 0 0 0); z-index:2;}
+.finish-cupring{position:absolute; left:50%; bottom:-5px; width:12px; height:12px; margin-left:-6px; border-radius:50%; border:1.5px solid #D8B25A; opacity:0; z-index:3; pointer-events:none;}
+@keyframes csPutt{  /* piecewise-linear friction: equal distance steps take longer and longer */
+  0%{opacity:0; transform:translateX(-150px);}
+  6%{opacity:1;}
+  20%{transform:translateX(-96px);}
+  40%{transform:translateX(-54px);}
+  60%{transform:translateX(-24px);}
+  80%{transform:translateX(-6px);}
+  92%{transform:translateX(-1px);}
+  100%{opacity:1; transform:translateX(0);}
+}
 @keyframes csSpin{from{transform:rotate(0);} to{transform:rotate(500deg);}}
-@keyframes csDrop{from{opacity:1; transform:translateY(0) scale(1);} to{opacity:0; transform:translateY(15px) scale(.6);}}
-#finish.open .finish-ball{animation:csPutt .9s var(--roll) .15s both, csDrop .24s ease-in 1.08s forwards;}
-#finish.open .finish-ball i{animation:csSpin .9s var(--roll) .15s both;}
+@keyframes csDrop{  /* into the opening: gravity ease-in; the front lip eats it, the sliver fades (transform/opacity only - house law) */
+  0%{opacity:1; transform:translateY(0);}
+  55%{opacity:.95;}
+  100%{opacity:0; transform:translateY(12px);}
+}
+@keyframes csAnswer{0%{opacity:.9; transform:scale(.5);} 100%{opacity:0; transform:scale(2.4);}}
+@keyframes csGone{to{opacity:0;}}
+#finish.open .finish-ball{animation:csPutt 1.15s linear .15s both, csDrop .3s cubic-bezier(.4,0,1,.6) 1.55s forwards;}
+#finish.open .finish-ball i{animation:csSpin 1.15s var(--roll) .15s both;}
+#finish.open .finish-cup, #finish.open .finish-cupfront{animation:csFade .4s ease .15s both, csGone .35s ease 2.35s forwards;}  /* in with the ball, gone once the number holds the room */
+#finish.open .finish-cupring{animation:csAnswer .7s var(--roll) 1.7s both;}
 .finish-band{font-family:var(--serif); font-size:19px; line-height:1.32; color:#ECEEF2; margin-top:12px;}
 .finish-pts{font-family:var(--mono); font-size:13px; font-weight:600; letter-spacing:.16em; text-transform:uppercase; margin-top:24px; min-height:1em;}
 .finish-pts.earned{color:#D8B25A;}   /* champagne — league points, EARNED */
@@ -1789,16 +1820,17 @@ html[data-theme="light"] .btn:not(.dark):not(.gold):not(.apple){color:#FFFFFF;}
   font-family:var(--sans); font-size:14px; font-weight:500; color:#8FA096;}
 .finish-back:focus-visible{outline:2px solid #8FA096; outline-offset:2px; border-radius:6px;}
 /* the reveal — staggered roll-in on the brand's one easing, held until the
-   ball drops (C2): gross lands at 1.18s where the ball fell */
-#finish.open .finish-gross{animation:finishRoll .64s var(--roll) 1.18s both;}
-#finish.open .finish-band{animation:finishRoll .64s var(--roll) 1.36s both;}
-#finish.open .finish-pts{animation:finishRoll .64s var(--roll) 1.54s both;}
-#finish.open .finish-rule, #finish.open .finish-share, #finish.open .finish-back{animation:csFade .5s ease 1.9s both;}
+   ball is in the hole (C2): gross lands at 1.85s where the ball fell */
+#finish.open .finish-gross{animation:finishRoll .64s var(--roll) 1.85s both;}
+#finish.open .finish-band{animation:finishRoll .64s var(--roll) 2.03s both;}
+#finish.open .finish-pts{animation:finishRoll .64s var(--roll) 2.21s both;}
+#finish.open .finish-rule, #finish.open .finish-share, #finish.open .finish-back{animation:csFade .5s ease 2.55s both;}
 @keyframes finishRoll{from{opacity:0; transform:translateY(14px);} to{opacity:1; transform:none;}}
 @media(prefers-reduced-motion:reduce){
   #finish.open .finish-gross, #finish.open .finish-band, #finish.open .finish-pts,
   #finish.open .finish-rule, #finish.open .finish-share, #finish.open .finish-back{animation:none;}
-  #finish.open .finish-ball{display:none;}
+  #finish.open .finish-ball, #finish.open .finish-cup,
+  #finish.open .finish-cupfront, #finish.open .finish-cupring{display:none;}
 }
 
 /* ============ motion moments (dossier C4/C5/C6/C9/C10) ============ */
@@ -3053,7 +3085,7 @@ html[data-theme="light"] .room-dusk .btn:not(.dark):not(.gold):not(.apple){color
 <div id="finish" role="dialog" aria-modal="true" aria-label="Round posted" aria-hidden="true">
   <div class="finish-card">
     <div class="finish-eyebrow" id="finEyebrow"></div>
-    <div class="gross-slot"><div class="finish-ball" aria-hidden="true"><i></i></div><div class="finish-gross" id="finGross"></div></div>
+    <div class="gross-slot"><div class="finish-cup" aria-hidden="true"></div><div class="finish-ball" aria-hidden="true"><i></i></div><div class="finish-cupfront" aria-hidden="true"></div><div class="finish-cupring" aria-hidden="true"></div><div class="finish-gross" id="finGross"></div></div>
     <div class="finish-band" id="finBand"></div>
     <div class="finish-pts" id="finPts"></div>
     <div class="finish-rule" aria-hidden="true"></div>
