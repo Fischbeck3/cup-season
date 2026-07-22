@@ -138,7 +138,13 @@ edge months** (blanket rule, decided). League timezone default
   the `postgres` role; not every migration runner is it) — every new
   function migration still needs its explicit `revoke ... from public, anon`.
   `tests/db-checks.sql` checks 2 and 9 catch both regressions; run it after
-  any grant-touching push.
+  any grant-touching push. **The seal also FROZE the column-grant list**: a
+  migration adding a profiles column MUST `grant select (<col>) on
+  public.profiles to authenticated` in the same file, or every select naming
+  it fails 42501 "permission denied for table profiles" — a message that
+  never names the column, so client skew-retries must fire on ANY error, not
+  on message sniffing (photo_path took boot down to the card gate,
+  2026-07-23; check 9 now asserts every non-email column is granted).
 
 - **Gmail's link scanner consumes single-use magic-link tokens** before the
   user clicks. Never reintroduce links or `emailRedirectTo`; code-only OTP.

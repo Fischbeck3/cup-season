@@ -117,12 +117,22 @@ from (
       group by 1, 2 having count(*) > 1) d) as dupes
 ) t
 
--- 9 · the email column stays sealed (H1: no API role can read it)
+-- 9 · the email column stays sealed — AND every other profiles column stays
+--     readable. The seal froze the column-grant list (20260721214500); a new
+--     column without its own grant fails boot as 42501 (photo_path, 2026-07-23).
 union all
-select '9 · profiles.email sealed',
+select '9 · profiles column grants',
   case when has_column_privilege('anon', 'public.profiles', 'email', 'select')
          or has_column_privilege('authenticated', 'public.profiles', 'email', 'select')
-    then 'FAIL — an API role can select profiles.email' else 'PASS' end,
-  'revoked in 20260718172300'
+    then 'FAIL — an API role can select profiles.email'
+       when exists (select 1 from information_schema.columns c
+         where c.table_schema='public' and c.table_name='profiles' and c.column_name <> 'email'
+           and not has_column_privilege('authenticated', 'public.profiles', c.column_name, 'select'))
+    then 'FAIL — ungranted non-email column: ' ||
+      (select string_agg(c.column_name, ', ') from information_schema.columns c
+        where c.table_schema='public' and c.table_name='profiles' and c.column_name <> 'email'
+          and not has_column_privilege('authenticated', 'public.profiles', c.column_name, 'select'))
+    else 'PASS' end,
+  'email sealed (20260718172300) · every later profiles column needs its own grant'
 )
 select * from checks order by check_name;

@@ -9261,10 +9261,15 @@ async function loadProfile(){
   let q = await sb.from('profiles')
     .select('id, display_name, city, home_course, index_current, marker, notify_chat, notify_rounds, handle, discoverable, ghin_number, created_at, photo_path')
     .eq('id', CS.user.id).maybeSingle();
-  if(q.error && /photo_path/.test(q.error.message||''))
+  if(q.error){
+    /* ANY error retries the legacy shape — a sealed table's missing column
+       grant fails as 42501 "permission denied" WITHOUT naming the column
+       (pilot, 2026-07-23), so error-message sniffing is not skew armor */
+    try{ console.warn('[loadProfile] photo select failed, retrying legacy:', q.error.message||q.error); }catch(_){}
     q = await sb.from('profiles')
       .select('id, display_name, city, home_course, index_current, marker, notify_chat, notify_rounds, handle, discoverable, ghin_number, created_at')
       .eq('id', CS.user.id).maybeSingle();
+  }
   const data = q.data;
   CS.profile = data || null;
   /* own avatar into the one shared map (marker floor if any step fails) */
@@ -10485,10 +10490,14 @@ async function loadLeagueData(){
   let mq = await sb.from('league_members')
     .select('id, role, profile_id, joined_at, marker, profile:profiles(display_name, marker, index_current, handle, photo_path)')
     .eq('league_id', CS.league.id);
-  if(mq.error && /photo_path|marker/.test(mq.error.message||''))
+  if(mq.error){
+    /* ANY error retries the legacy shape — see loadProfile: missing column
+       grants on a sealed table fail without naming the column */
+    try{ console.warn('[loadLeagueData] photo select failed, retrying legacy:', mq.error.message||mq.error); }catch(_){}
     mq = await sb.from('league_members')
       .select('id, role, profile_id, joined_at, profile:profiles(display_name, marker, index_current, handle)')
       .eq('league_id', CS.league.id);
+  }
   CS.members = mq.data || [];
   /* effective marker: league override → profile choice → floor */
   CS.members.forEach(m => { m.mk = m.marker || m.profile?.marker || 'saguaro'; });
