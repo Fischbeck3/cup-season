@@ -1669,3 +1669,76 @@ Discovery + deck + integration plan only; zero app code ships from the arc.)*
   the script's answers are in) · checkout/payment rails (build gated on the
   first real season-2) · pot collection/distro as a service (D39's future
   door, untouched).
+
+---
+
+## Batch 10 — 2026-07-22, the shareability lane (Growth)
+
+### D57 · Public share pages — a tokened, revocable window onto one artifact
+*(IA/visibility level — touches §16's visibility posture and D37's anon
+surface, so it's logged BEFORE the migration ships. Scoring mechanics
+untouched; this changes who can SEE a curated snapshot, never what counts.
+Owner pre-approved the build 2026-07-22: "full send" in the arc brief.)*
+- **Current:** every share artifact is an image or an invite. The recap/jug
+  cards leave as PNGs (D30/D46 — no click-through by design, Growth owns the
+  link upgrade); game settlements produce nothing tappable at all (audit F5);
+  the only public token surfaces are the claim funnel (`claim_round_info`,
+  `scan_claim_info`), the join code (`league_by_code`), and `founder_id` —
+  D37's four anon endpoints, checked literally by `tests/db-checks.sql` #2.
+  A recipient who wants to SEE the round behind a card must make an account.
+- **Problem:** the acquisition motion is shareable artifacts (marketing
+  canon), and the strongest artifact — a real round with a name, a course,
+  and a band phrase — dead-ends in a screenshot. D30 named the tokened public
+  page as Growth-lane work; the lane is here. Meanwhile any naïve "public
+  round page" (`/?round=<id>`) would leak enumerable ids and violate the
+  §16-adjacent posture that the DATABASE decides visibility, not the URL.
+- **Recommendation (the token model):** a `shares` table — `token uuid` PK
+  (`gen_random_uuid()`, unguessable), `kind` (`round|settlement|recap`),
+  `ref_id`, `created_by` (profile), `revoked`, `created_at`. RLS ON with **no
+  policies** — definer-only access, the client never touches rows.
+  `create_share(p_kind, p_ref)` (authenticated) verifies the caller owns or
+  played the artifact and returns the token — **minting is lazy**: no share
+  row exists until a golfer explicitly chooses "Share a link" (§16 spirit —
+  the golfer publishes; the app never does). Re-minting returns the existing
+  live token (one artifact, one link). `revoke_share(p_token)` (creator only)
+  kills a link that escaped the group chat. `share_info(p_token)` — **the ONE
+  new anon endpoint** — is security definer and returns a curated jsonb
+  snapshot: display name, marker, gross, the band phrase inputs, course
+  label, date, league name, settlement story/transfers. NEVER email,
+  never raw rows, never ids. **Fail-closed:** unknown, revoked, and
+  wrong-kind tokens all return the same empty answer — no error texture to
+  enumerate against; a bad link and a revoked link are indistinguishable
+  outside. Client route `/?share=TOKEN` renders a lightweight card view on
+  the existing shell — artifact big, "Built with Cup Season," one CTA to the
+  door — no nav, no app boot beyond the card.
+- **Why fail-closed instead of expressive errors:** an anon endpoint is a
+  probe surface. Distinct answers for "no such token" vs "revoked" vs "wrong
+  kind" turn the token space into an oracle; one empty answer makes the whole
+  surface worth exactly one bit. The recipient-side cost (a dead link says
+  only "nothing here") is accepted — the sharer can always re-mint.
+- **D37 discipline (enforcement, in the same migration):** explicit
+  `revoke ... from public, anon` on the two authenticated RPCs; explicit
+  grants (`share_info` → anon + authenticated); `tests/db-checks.sql` check 2
+  literal list goes 4 → 5, check 3 gains the three names; CLAUDE.md's "four
+  public endpoints" line becomes five. Checks 2/3/9 run after push.
+- **Principle:** growth canon (the artifact carries the join path — GTM §3);
+  #4 Memory > Statistics (the round is worth a page, not just a PNG); §16
+  (the snapshot shows its work: gross + band + course, receipts stay in the
+  app); D2's law holds on the way out (no differential, no index, no jargon
+  in the public snapshot).
+- **Benefit:** "send me the link" finally has an answer; every settlement
+  and recap can travel as a tap instead of a screenshot; the door CTA turns
+  a viewed round into a started crew.
+- **Tradeoffs:** (a) a share link is a bearer instrument — anyone holding
+  the token sees the snapshot; mitigations are unguessability, revocation,
+  and the curated (already-shoutable) payload. (b) Static OG v1: a pasted
+  share link unfurls as the generic app card, not the round (audit F6) —
+  per-share OG needs a crawler-serving edge function, ⚑ flagged follow-up,
+  NOT smuggled into this migration. (c) One more anon endpoint widens the
+  D37 surface by exactly one definer function — priced here, checked by
+  tests. (d) Revocation is manual; nothing expires by time — acceptable for
+  artifacts whose content is already the group chat's business.
+- **CONFLICT check:** none upward. Extends D30 exactly along its named seam
+  ("Growth-lane work that can later reuse this same card design"). D37's
+  rule survives BECAUSE the entry + checks move together; §16's "rounds are
+  never mutated" untouched — shares reference, never copy or edit.

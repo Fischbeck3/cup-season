@@ -2850,6 +2850,7 @@ html[data-theme="light"] .room-dusk .btn:not(.dark):not(.gold):not(.apple){color
         <div class="roompane" id="room-league">
         <div class="eyebrow league-only" style="margin-top:0">League</div>
         <div class="check league-only"><span class="num"><svg class="ic" aria-hidden="true"><use href="#i-flag"/></svg></span><div class="tt"><b>Members & invites</b><small id="hubMembersSub">7 players</small></div><button class="mini" id="hubMembersBtn">View</button></div>
+        <div class="check league-only"><span class="num">🔗</span><div class="tt"><b>Share the season</b><small>A public page — the standings so far, no account needed</small></div><span style="display:flex;gap:6px;flex:none"><button class="mini" id="hubSeasonShare">Link</button><button class="mini" id="hubSeasonRevoke" title="Revoke the shared link">✕</button></span></div>
         <div class="check"><span class="num"><svg class="ic" aria-hidden="true"><use href="#i-users"/></svg></span><div class="tt"><b>Squads</b><small id="hubDraftSub">Complete · rosters locked</small></div><button class="mini" data-go="draft">View</button></div>
 
         <details class="hubmore league-only" style="margin-bottom:14px">
@@ -4711,6 +4712,37 @@ async function shareRecapCard(d){
     toast(humanError(e, 'Could not make the card.'));
   }
 }
+/* ---- D57 · public share links — mint lazily, share like the invite link ----
+   create_share verifies ownership at the database and re-mints the same live
+   token per artifact; the page at /?share=TOKEN needs no account. Never called
+   in demo (callers gate) — the diorama publishes nothing. */
+async function csShareLink(kind, ref, text){
+  if(!window.sb || !ref){ toast('Sharing needs your real league'); return; }
+  try{
+    const { data, error } = await sb.rpc('create_share', { p_kind: kind, p_ref: ref });
+    if(error) throw error;
+    const url = location.origin + '/?share=' + data;
+    if(navigator.share){
+      try{ await navigator.share({ title:'Cup Season', text, url }); return; }
+      catch(e){ if(e && e.name==='AbortError') return; }
+    }
+    await navigator.clipboard?.writeText((text ? text + ': ' : '') + url);
+    toast('Link copied — no account needed to view it');
+  }catch(e){ toast(humanError(e, 'Could not make the link.')); }
+}
+/* revoke within the same three-RPC surface: create_share re-returns the live
+   token for this artifact, revoke_share kills it. A fresh share later mints a
+   NEW token — revoked copies stay dark. */
+async function csRevokeLink(kind, ref){
+  if(!window.sb || !ref) return;
+  try{
+    const { data, error } = await sb.rpc('create_share', { p_kind: kind, p_ref: ref });
+    if(error) throw error;
+    const r2 = await sb.rpc('revoke_share', { p_token: data });
+    if(r2.error) throw r2.error;
+    toast('Link revoked — shared copies go dark');
+  }catch(e){ toast(humanError(e, 'Could not revoke.')); }
+}
 /* ---- M2 / D17 · the post-round epilogue — the poster hears it first ----
    Reads round_epilogue() JSON into a private sheet shown over home right after
    a post: the round's meaning (band + points), what it earned, and any rivalry
@@ -4733,7 +4765,7 @@ function epiCounting(rank){
   if(rank<=capN) return capN===Infinity ? ' · counts this month' : ` · counts #${rank} this month`;
   return ` · outside your best ${capN} this month, for now`;
 }
-function showEpilogue(epi, course, firstEver){
+function showEpilogue(epi, course, firstEver, roundId){
   if(!epi) return;
   const rows=[];
   const pvi = epi.pvi!=null ? Number(epi.pvi) : null;
@@ -4769,7 +4801,17 @@ function showEpilogue(epi, course, firstEver){
      (fallback / older flows) it renders exactly as before. */
   if(epi.gross!=null && !_ceremonyOwnsShare)
     rows.push(`<button class="btn" id="epiShare" style="width:100%;margin-top:14px">${firstEver?'Share your first card':'Share the card'}</button>`);
+  /* D57: the link version of the same peak — a page anyone can open, no account.
+     Real rounds only (the diorama publishes nothing). */
+  if(epi.gross!=null && roundId && !state.demo)
+    rows.push(`<button class="btn dark" id="epiLink" style="width:100%;margin-top:8px">Share a link — no account needed</button>
+      <button class="cs-tskip" id="epiRevoke" type="button" style="width:100%;margin-top:6px">Revoke a shared link</button>`);
   openSheet(firstEver?'Welcome to the season ⛳':'Your round', sub, rows.join(''));
+  const lk=$('#shBody').querySelector('#epiLink');
+  if(lk) lk.addEventListener('click',()=>csShareLink('round', roundId,
+    `${window.CS?.profile?.display_name || 'A round'} — ${epi.gross} at ${course || 'the course'}`));
+  const rv=$('#shBody').querySelector('#epiRevoke');
+  if(rv) rv.addEventListener('click',()=>csRevokeLink('round', roundId));
   const sh=$('#shBody').querySelector('#epiShare');
   if(sh) sh.addEventListener('click',()=>shareRecapCard({
     name:  state.demo ? DEMO_ME : (window.CS?.profile?.display_name || 'You'),
@@ -5197,7 +5239,7 @@ $('#postBtn').addEventListener('click', async ()=>{
       } else if(rrow?.id){
         try {
           const { data: epi } = await sb.rpc('round_epilogue', { p_round: rrow.id });
-          showEpilogue(epi, payload.course_label, firstEver);
+          showEpilogue(epi, payload.course_label, firstEver, rrow.id);
         } catch(_){ /* RPC not deployed yet, or nothing to say — never block a post */ }
       }
     } catch(e){ toast(humanError(e, 'Post failed.')); }
@@ -6679,10 +6721,11 @@ function finishRealLiveRound(){
       if(error) throw error;
       try{ localStorage.removeItem('cs.live.'+state.live.lr); }catch(_){}   /* round posted → drop its resume cache */
       closeSheet();
+      const lrId = state.live.lr;   /* D57: the settlement link needs the id past the reset */
       state.live.active=false; state.live.stage='setup';
       renderPlay();
       renderResumeBanner();   /* round posted → the Home Continue banner clears */
-      showLiveRecap(data||{}, casual?null:result);
+      showLiveRecap(data||{}, casual?null:result, lrId);
       if(window.CS?.league && window.loadStandingsAndFeed) loadStandingsAndFeed();
     }catch(e){
       toast(humanError(e, 'Finish failed.'));
@@ -6692,7 +6735,7 @@ function finishRealLiveRound(){
   document.getElementById('lrPost')?.addEventListener('click', ()=>go(false));
   document.getElementById('lrCasual')?.addEventListener('click', ()=>go(true));
 }
-function showLiveRecap(d, result){
+function showLiveRecap(d, result, lrId){
   const posted=d.posted||[], guests=d.guests||[], skipped=d.skipped||[];
   const rows=[];
   /* the game settles first — the settlement card is the recap's headline */
@@ -6721,6 +6764,10 @@ function showLiveRecap(d, result){
   skipped.forEach(x=>rows.push(`<div class="check"><span class="num">—</span><div class="tt"><b>${esc(x.name)}</b><small>NOT POSTED · ${esc(String(x.reason||'')).toUpperCase()}</small></div></div>`));
   guests.forEach(g=>{ const url=`${location.origin}/?claim=${g.claim_token}`;
     rows.push(`<div class="check"><span class="num">🎟️</span><div class="tt"><b>${esc(g.name||'Guest')}</b><small>GUEST RECAP — SHARE THE LINK</small></div><button class="mini" data-copylink="${esc(url)}" style="flex:none">Copy</button></div>`); });
+  /* D57: the settlement travels as a page, not just a sheet — audit F5 */
+  if(result && lrId && !state.demo)
+    rows.push(`<button class="btn dark" id="lrShareLink" style="width:100%;margin-top:10px">Share the settlement — no account needed</button>
+      <button class="cs-tskip" id="lrShareRevoke" type="button" style="width:100%;margin-top:6px">Revoke a shared link</button>`);
   openSheet(d.casual?'Casual — nothing posted':'Round posted',
     `${posted.length} CARD${posted.length===1?'':'S'} TO THE SEASON`,
     rows.join('') || '<p class="fine" style="padding-top:0">Nothing to post.</p>');
@@ -6729,6 +6776,9 @@ function showLiveRecap(d, result){
     try{ navigator.clipboard?.writeText(b.dataset.copylink); toast('Recap link copied'); }
     catch(_){ toast('Copy failed'); }
   }));
+  document.getElementById('lrShareLink')?.addEventListener('click',()=>csShareLink('settlement', lrId,
+    (result?.story || `${result?.side_a || 'The match'} vs ${result?.side_b || ''}`).slice(0,120)));
+  document.getElementById('lrShareRevoke')?.addEventListener('click',()=>csRevokeLink('settlement', lrId));
 }
 /* pilot: "Live round needs a discard button." Two-tap confirm, then: close the
    server row (abandon_live_round — otherwise the next boot's server sweep
@@ -12356,6 +12406,17 @@ function openLeagueWelcome(name){
 window.openLeagueWelcome = openLeagueWelcome;
 document.getElementById('rulesScoreHelp')?.addEventListener('click', openScoringHelp);
 document.getElementById('hubMembersBtn')?.addEventListener('click', openMembersSheet);
+/* D57: the season's public page — minted lazily, member-checked at the DB */
+document.getElementById('hubSeasonShare')?.addEventListener('click', () => {
+  if(state.demo){ toast('Demo league — links work in your real league'); return; }
+  if(!CS.season?.id){ toast('The season page opens at first tee'); return; }
+  window.csShareLink?.('recap', CS.season.id,
+    `${CS.league?.name || 'Our league'} on Cup Season — the season so far`);
+});
+document.getElementById('hubSeasonRevoke')?.addEventListener('click', () => {
+  if(state.demo || !CS.season?.id) return;
+  window.csRevokeLink?.('recap', CS.season.id);
+});
 
 /* ---------- welcome fork: signed in, no league yet ---------- */
 function showWelcome(){
@@ -12622,12 +12683,126 @@ async function resumeAfterProfile(){
   }
 })();
 
+/* ---- D57 · /?share=TOKEN — the public card view -----------------------------
+   A lightweight terminal view on the shell: the artifact big, one CTA to the
+   door. No nav, no app boot (safeBoot gates on _csShareView). The URL keeps its
+   token so the page survives refresh + re-share. Fail-closed: any dead token
+   renders the same "nothing here" card. Artifact identity is the brand's fixed
+   dark face (D30) — the view ignores the viewer's theme. */
+const shareParam = new URLSearchParams(window.location.search).get('share');
+if(shareParam){ window._csShareView = true; renderShareView(shareParam.trim()); }
+window._csShareRender = renderShareView;   /* QA hook: drive the view with a token or a stub payload */
+async function renderShareView(tok, _testInfo){
+  const C = { bg:'#0C100D', panel:'#10150F', ink:'#E8ECE9', mut:'#98A29A', gold:'#E9BE62' };
+  const MONO = "'IBM Plex Mono',ui-monospace,Menlo,monospace";
+  const SERIF = "'Charter','Iowan Old Style','Palatino Linotype',Georgia,serif";
+  const wrap = document.createElement('div');
+  wrap.id = 'shareView';
+  wrap.style.cssText = `position:fixed;inset:0;z-index:99999;overflow:auto;background:${C.bg};color:${C.ink};-webkit-font-smoothing:antialiased`;
+  wrap.innerHTML = `<div style="max-width:430px;margin:0 auto;padding:26px 16px 40px;text-align:center;font-family:${MONO}">
+    <div style="letter-spacing:.22em;font-size:12px;color:${C.mut}">CUP SEASON</div>
+    <div id="svCard" style="margin-top:18px;background:${C.panel};border:1px solid rgba(233,190,98,.35);border-radius:18px;padding:26px 18px">
+      <div style="color:${C.mut};font-size:13px;padding:34px 0">Opening the card…</div>
+    </div>
+    <div id="svFoot" style="margin-top:22px"></div>
+  </div>`;
+  document.body.appendChild(wrap);
+  const fmtD = (iso) => {   /* manual parse — new Date('YYYY-MM-DD') is the UTC landmine */
+    const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(iso || '');
+    if(!m) return '';
+    const d = new Date(+m[1], +m[2]-1, +m[3]);
+    const DW=['SUN','MON','TUE','WED','THU','FRI','SAT'], MO=['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'];
+    return `${DW[d.getDay()]} · ${MO[d.getMonth()]} ${d.getDate()}`;
+  };
+  const markerSvg = (mk) => {
+    const m = (window.MARKERS || {})[mk];
+    if(!m) return '';
+    return `<div style="width:76px;height:76px;margin:0 auto 14px;border:2px solid rgba(233,190,98,.4);border-radius:50%;display:flex;align-items:center;justify-content:center">
+      <svg viewBox="0 0 24 24" width="44" height="44" fill="none" stroke="${C.gold}" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="${m.p}"/></svg></div>`;
+  };
+  let info = _testInfo || null;
+  if(!info) try{
+    const { data, error } = await sb.rpc('share_info', { p_token: tok });
+    if(!error) info = data;
+  }catch(_){}
+  const card = wrap.querySelector('#svCard'), foot = wrap.querySelector('#svFoot');
+  foot.innerHTML = `<div style="color:${C.mut};font-size:12px;letter-spacing:.08em;margin-bottom:12px">Built with Cup Season — real rounds, real crews</div>
+    <a href="/" style="display:block;background:${C.gold};color:#141810;text-decoration:none;border-radius:12px;padding:14px 12px;font-weight:600;letter-spacing:.04em">Start your crew's season</a>`;
+  if(!info || !info.kind){
+    card.innerHTML = `<div style="font-size:15px;line-height:1.6;color:${C.ink};padding:16px 0 6px">Nothing here.</div>
+      <div style="color:${C.mut};font-size:13px;line-height:1.6;padding-bottom:12px">This link may have been revoked, or never was. Cup Season is season-long fantasy golf for real friend groups.</div>`;
+    return;
+  }
+  if(info.kind === 'round'){
+    const pviSane = info.pvi != null && isFinite(info.pvi) && Math.abs(Number(info.pvi)) <= 30;
+    document.title = `${info.name} — ${info.gross} at ${info.course} · Cup Season`;
+    card.innerHTML = `
+      ${markerSvg(info.marker)}
+      <div style="letter-spacing:.18em;font-size:16px;font-weight:600">${esc(String(info.name).toUpperCase())}</div>
+      ${info.league ? `<div style="letter-spacing:.14em;font-size:11.5px;color:${C.mut};margin-top:6px">${esc(String(info.league).toUpperCase())}</div>` : ''}
+      <div style="font-family:${SERIF};font-size:104px;font-weight:700;line-height:1.15;margin:10px 0 2px">${esc(String(info.gross))}</div>
+      ${info.holes === 9 ? `<div style="font-size:11px;color:${C.mut};letter-spacing:.14em">NINE HOLES</div>` : ''}
+      ${pviSane ? `<div style="color:${C.gold};letter-spacing:.16em;font-size:14.5px;font-weight:600;margin-top:10px">${esc(bandName(Number(info.pvi)).toUpperCase())}</div>
+      <div style="font-family:${SERIF};color:${C.mut};font-size:14px;margin-top:6px">${esc(vsPhrase(Number(info.pvi)))}</div>` : ''}
+      <div style="border-top:1px solid rgba(255,255,255,.1);margin:18px 40px 0"></div>
+      <div style="letter-spacing:.12em;font-size:13px;margin-top:16px">${esc(String(info.course || 'A ROUND').toUpperCase())}</div>
+      <div style="color:${C.mut};font-size:11.5px;letter-spacing:.12em;margin-top:8px">${esc(fmtD(info.played_on))}${info.points != null ? ` · ${esc(String(info.points))} PTS` : ''}</div>`;
+  } else if(info.kind === 'settlement'){
+    const r = info.result || {};
+    const GAME = { match:'MATCH PLAY', wolf:'WOLF', skins:'SKINS', none:'THE ROUND' };
+    document.title = `${GAME[info.game] || 'Settlement'} at ${info.course} · Cup Season`;
+    const story = r.story
+      || (r.winner != null
+          ? `${(r.winner === '0' ? r.side_a : r.side_b) || 'Winners'} def. ${(r.winner === '0' ? r.side_b : r.side_a) || 'the other side'} ${r.status || ''}`
+          : (r.side_a ? `${r.side_a} and ${r.side_b} halved the match` : 'Settled on the course'));
+    const money = Number(r.stake) > 0
+      ? ((r.transfers || []).length
+          ? r.transfers.map(t => `${t.from} pays ${t.to} $${t.amt}`).join(' · ')
+          : `$${r.stake} on the line`)
+      : 'Bragging rights only';
+    card.innerHTML = `
+      <div style="color:${C.gold};letter-spacing:.2em;font-size:12px;font-weight:600">${esc(GAME[info.game] || 'SETTLED')}</div>
+      <div style="font-family:${SERIF};font-size:26px;line-height:1.35;margin:16px 6px 4px">${esc(story)}</div>
+      <div style="color:${C.mut};font-size:12.5px;letter-spacing:.08em;margin-top:10px">${esc(money)}</div>
+      ${(info.players || []).length ? `<div style="border-top:1px solid rgba(255,255,255,.1);margin:18px 40px"></div>
+      ${info.players.map(p => `<div style="display:flex;justify-content:space-between;padding:5px 12px;font-size:13.5px"><span>${esc(p.name)}</span><span style="color:${C.mut}">${p.gross != null ? esc(String(p.gross)) : '—'}</span></div>`).join('')}` : ''}
+      <div style="border-top:1px solid rgba(255,255,255,.1);margin:14px 40px 0"></div>
+      <div style="letter-spacing:.12em;font-size:12.5px;margin-top:14px">${esc(String(info.course || '').toUpperCase())}</div>
+      <div style="color:${C.mut};font-size:11.5px;letter-spacing:.12em;margin-top:8px">${esc(fmtD(info.played_on))}${info.league ? ` · ${esc(String(info.league).toUpperCase())}` : ''}</div>`;
+  } else if(info.kind === 'recap'){
+    document.title = `${info.league || 'A league'} — the season · Cup Season`;
+    const rows = (info.rows || []).map((q, i) =>
+      `<div style="display:flex;justify-content:space-between;align-items:baseline;padding:7px 12px;font-size:14px;${i === 0 ? `color:${C.gold};font-weight:600` : ''}">
+         <span>${i + 1} · ${esc(q.name)}</span><span style="font-family:${SERIF};font-size:16px">${esc(String(q.points))} pts</span></div>`).join('');
+    card.innerHTML = `
+      <div style="letter-spacing:.18em;font-size:16px;font-weight:600">${esc(String(info.league || 'A LEAGUE').toUpperCase())}</div>
+      <div style="color:${C.mut};font-size:11.5px;letter-spacing:.14em;margin-top:8px">THE SEASON · ${esc(fmtD(info.starts_on))} — ${esc(fmtD(info.ends_on))}</div>
+      ${info.champion ? `<div style="color:${C.gold};letter-spacing:.14em;font-size:13px;font-weight:600;margin-top:14px">🏆 ${esc(String(info.champion).toUpperCase())} TAKE THE CUP</div>` : ''}
+      ${info.points_king ? `<div style="color:${C.mut};font-size:12px;letter-spacing:.1em;margin-top:6px">POINTS KING · ${esc(String(info.points_king).toUpperCase())}</div>` : ''}
+      <div style="border-top:1px solid rgba(255,255,255,.1);margin:16px 30px 8px"></div>
+      ${rows || `<div style="color:${C.mut};font-size:13px;padding:10px 0">The table is warming up.</div>`}
+      <div style="color:${C.mut};font-size:11px;letter-spacing:.1em;margin-top:12px">${info.status === 'complete' ? 'FINAL' : 'STILL BEING PLAYED'}</div>`;
+  }
+}
+
 /* invite links: /?join=CODE rides the existing cs_code auto-join machinery —
    signed-in users join on this boot; signed-out users join right after auth */
 const joinParam = new URLSearchParams(window.location.search).get('join');
 if(joinParam){
-  localStorage.setItem('cs_code', joinParam.trim().toUpperCase());
+  const jc = joinParam.trim().toUpperCase();
+  localStorage.setItem('cs_code', jc);
   history.replaceState(null, '', window.location.pathname);
+  /* F1 (shareability audit): the LINK path never resolved the league name —
+     only manual code entry did — so recipients were greeted with the raw code.
+     Resolve it now (league_by_code is one of the anon endpoints) and, if the
+     door already opened on the generic line, warm it up in place. */
+  sb.rpc('league_by_code', { p_code: jc }).then(({ data }) => {
+    if(!data) return;
+    localStorage.setItem('cs_code_name', data);
+    const st = document.getElementById('obStatus');
+    if(st && /You're invited: code /.test(st.textContent))
+      st.textContent = `You're invited to ${data}. Enter your email and you'll join automatically.`;
+  }).catch(() => {});
 }
 
 /* guest claim links: /?claim=<token> — the funnel (spec §13.3). The token is
@@ -12682,6 +12857,7 @@ let booting = false;
    double "no session" boot without racing on a timer. */
 let bootResolved = false;
 async function safeBoot(force){
+  if(window._csShareView) return;   /* D57: the share page is terminal — no app boot behind it */
   if(booting || CS.league) return;
   if(bootResolved && !force) return;
   booting = true;
@@ -12712,6 +12888,14 @@ async function safeBoot(force){
           + `${data.played_on ? ' · '+data.played_on : ''}. Enter your email, save your golfer card, and the round is yours for good.`);
       } else if(data && data.claimed){
         try{ localStorage.removeItem('cs_claim'); }catch(_){}
+      } else {
+        /* F3 (shareability audit): a dead/garbage token failed SILENT — the
+           recipient tapped "your scorecard" and got the marketing door, and the
+           stored token fired a doomed claim + error toast after auth. Say it
+           plainly (same answer for every bad token — nothing to enumerate) and
+           drop the token. */
+        try{ localStorage.removeItem('cs_claim'); }catch(_){}
+        authStatus('That scorecard link has expired or was already claimed. Whoever sent it can share a fresh one from the round.', 'err');
       }
     }catch(_){}
   }

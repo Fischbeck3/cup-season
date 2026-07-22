@@ -87,8 +87,9 @@ sections (§2.2, §14.0) when making competition-model decisions.
   **Grants are now explicit (D37, migration `20260718172300`).** Default
   privileges no longer auto-grant EXECUTE to `anon`/`authenticated`, so **every
   new migration MUST `grant execute on function … to authenticated`** for any
-  client-called RPC (and to `anon` only for the four public endpoints:
-  `claim_round_info`, `scan_claim_info`, `league_by_code`, `founder_id`). A new
+  client-called RPC (and to `anon` only for the five public endpoints:
+  `claim_round_info`, `scan_claim_info`, `league_by_code`, `founder_id`,
+  `share_info` — D57). A new
   RPC that "silently 403s in prod" is almost always a missing grant. Also killed
   in D37 and never to be reintroduced: the `members_self` UPDATE policy (let a
   member self-promote to commissioner) and `rounds_owner_update` (let an owner
