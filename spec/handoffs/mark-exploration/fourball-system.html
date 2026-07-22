@@ -1,0 +1,204 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Cup Season — the Four-Ball system</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { background:#0A0E0C; color:#ECEEF2; font-family:'Segoe UI',sans-serif; padding:44px 48px 90px; }
+  h1 { font-family:Georgia,serif; font-size:30px; margin-bottom:6px; }
+  .sub { color:#98A29A; font-size:14px; margin-bottom:34px; max-width:74ch; line-height:1.6; }
+  h2 { font-family:ui-monospace,monospace; font-size:12px; letter-spacing:.2em; text-transform:uppercase; color:#D8B25A; margin:38px 0 14px; }
+  .panel { background:#121710; border:1px solid #252C24; border-radius:16px; padding:26px; }
+  .row { display:flex; gap:36px; align-items:center; flex-wrap:wrap; }
+  .cell { text-align:center; }
+  .lab { font-family:ui-monospace,monospace; font-size:10px; letter-spacing:.12em; color:#5E665E; margin-top:10px; text-transform:uppercase; }
+  .why { color:#98A29A; font-size:13.5px; line-height:1.6; max-width:70ch; margin-top:14px; }
+  .why b { color:#ECEEF2; }
+  .wordmark { font-family:ui-monospace,monospace; font-weight:600; letter-spacing:.34em; color:#ECEEF2; }
+  .light { background:#EFF2EE; }
+  .light .lab { color:#8C9992; }
+  @keyframes settle {
+    0% { transform: translate(var(--fx), var(--fy)) scale(.6); opacity:0; }
+    55% { opacity:1; }
+    78% { transform: translate(0,0) scale(1.06); }
+    100% { transform: translate(0,0) scale(1); }
+  }
+  .conv circle { transform-box: fill-box; transform-origin: center;
+    animation: settle 1.1s cubic-bezier(.16,.84,.36,1) both; }
+  .conv circle:nth-child(1){ --fx:0px;   --fy:-34px; animation-delay:.1s; }
+  .conv circle:nth-child(2){ --fx:34px;  --fy:0px;   animation-delay:.24s; }
+  .conv circle:nth-child(3){ --fx:0px;   --fy:34px;  animation-delay:.38s; }
+  .conv circle:nth-child(4){ --fx:-34px; --fy:0px;   animation-delay:.52s; }
+  @keyframes ringOnce { 0%{ transform:scale(.5); opacity:.7; } 100%{ transform:scale(1.9); opacity:0; } }
+  .conv .ring { transform-box:fill-box; transform-origin:center;
+    animation: ringOnce 1s ease-out 1.35s both; }
+  .replay { font-family:ui-monospace,monospace; font-size:11px; letter-spacing:.1em; color:#63ADFF;
+    background:none; border:1px solid #30372E; border-radius:8px; padding:7px 14px; cursor:pointer; margin-top:12px; }
+</style>
+
+<h1>The Four-Ball, incorporated</h1>
+<p class="sub">Four balls, one open center. The mark works because the product already
+speaks it: four squad colors, a crew circling one thing, and a hole nobody owns until
+the season says so. Below — the two states, the lockups, the icons, the motion, and
+exactly where it lands in the app.</p>
+
+<h2>1 · The two states — season open, cup taken</h2>
+<div class="panel">
+  <div class="row">
+    <div class="cell">
+      <svg viewBox="0 0 96 96" width="132" height="132">
+        <circle cx="48" cy="23" r="12" fill="#2FA46A"/>
+        <circle cx="73" cy="48" r="12" fill="#57A8FF"/>
+        <circle cx="48" cy="73" r="12" fill="#A78BFA"/>
+        <circle cx="23" cy="48" r="12" fill="#FB8B4B"/>
+      </svg>
+      <div class="lab">season open · the default mark</div>
+    </div>
+    <div class="cell">
+      <svg viewBox="0 0 96 96" width="132" height="132">
+        <circle cx="48" cy="23" r="12" fill="#2FA46A"/>
+        <circle cx="73" cy="48" r="12" fill="#57A8FF"/>
+        <circle cx="48" cy="73" r="12" fill="#A78BFA"/>
+        <circle cx="23" cy="48" r="12" fill="#FB8B4B"/>
+        <circle cx="48" cy="48" r="9.5" fill="#D8B25A"/>
+      </svg>
+      <div class="lab">cup taken · champion contexts only</div>
+    </div>
+    <div class="cell">
+      <svg viewBox="0 0 96 96" width="132" height="132">
+        <circle cx="48" cy="23" r="12" fill="none" stroke="#ECEEF2" stroke-width="6"/>
+        <circle cx="73" cy="48" r="12" fill="none" stroke="#ECEEF2" stroke-width="6"/>
+        <circle cx="48" cy="73" r="12" fill="none" stroke="#ECEEF2" stroke-width="6"/>
+        <circle cx="23" cy="48" r="12" fill="none" stroke="#ECEEF2" stroke-width="6"/>
+      </svg>
+      <div class="lab">mono ring · print / stamp / etch</div>
+    </div>
+  </div>
+  <p class="why"><b>The champagne center is EARNED.</b> The everyday mark keeps the hole
+  empty — the season is open, the thing in the middle belongs to nobody. The gold ball
+  drops into the center only where something was won: trophy case, champion cards,
+  season recaps, the Wrapped drop. The logo itself obeys the token charter — gold is
+  never decoration, and the brand carries a story in one dot.</p>
+</div>
+
+<h2>2 · Lockups</h2>
+<div class="panel">
+  <div class="row">
+    <div class="cell">
+      <div style="display:flex; align-items:center; gap:18px;">
+        <svg viewBox="0 0 96 96" width="54" height="54">
+          <circle cx="48" cy="23" r="12" fill="#2FA46A"/>
+          <circle cx="73" cy="48" r="12" fill="#57A8FF"/>
+          <circle cx="48" cy="73" r="12" fill="#A78BFA"/>
+          <circle cx="23" cy="48" r="12" fill="#FB8B4B"/>
+        </svg>
+        <span class="wordmark" style="font-size:21px">CUP SEASON</span>
+      </div>
+      <div class="lab" style="text-align:left">horizontal · header / email / door</div>
+    </div>
+    <div class="cell" style="margin-left:30px">
+      <svg viewBox="0 0 96 96" width="64" height="64" style="display:block; margin:0 auto">
+        <circle cx="48" cy="23" r="12" fill="#2FA46A"/>
+        <circle cx="73" cy="48" r="12" fill="#57A8FF"/>
+        <circle cx="48" cy="73" r="12" fill="#A78BFA"/>
+        <circle cx="23" cy="48" r="12" fill="#FB8B4B"/>
+      </svg>
+      <div class="wordmark" style="font-size:13px; margin-top:10px">CUP SEASON</div>
+      <div class="lab">stacked · splash / flyer / og</div>
+    </div>
+  </div>
+</div>
+
+<h2>3 · Icons — no size where it dies</h2>
+<div class="panel">
+  <div class="row">
+    <div class="cell">
+      <svg width="120" height="120" viewBox="0 0 96 96">
+        <rect width="96" height="96" rx="21" fill="#0A0E0C"/>
+        <g transform="translate(48 48) scale(.8) translate(-48 -48)">
+          <circle cx="48" cy="23" r="12" fill="#2FA46A"/>
+          <circle cx="73" cy="48" r="12" fill="#57A8FF"/>
+          <circle cx="48" cy="73" r="12" fill="#A78BFA"/>
+          <circle cx="23" cy="48" r="12" fill="#FB8B4B"/>
+        </g>
+      </svg>
+      <div class="lab">app icon · dusk tile</div>
+    </div>
+    <div class="cell"><svg viewBox="0 0 96 96" width="48" height="48"><circle cx="48" cy="23" r="12" fill="#2FA46A"/><circle cx="73" cy="48" r="12" fill="#57A8FF"/><circle cx="48" cy="73" r="12" fill="#A78BFA"/><circle cx="23" cy="48" r="12" fill="#FB8B4B"/></svg><div class="lab">48</div></div>
+    <div class="cell"><svg viewBox="0 0 96 96" width="24" height="24"><circle cx="48" cy="23" r="12" fill="#2FA46A"/><circle cx="73" cy="48" r="12" fill="#57A8FF"/><circle cx="48" cy="73" r="12" fill="#A78BFA"/><circle cx="23" cy="48" r="12" fill="#FB8B4B"/></svg><div class="lab">24</div></div>
+    <div class="cell"><svg viewBox="0 0 96 96" width="16" height="16"><circle cx="48" cy="23" r="13" fill="#2FA46A"/><circle cx="73" cy="48" r="13" fill="#57A8FF"/><circle cx="48" cy="73" r="13" fill="#A78BFA"/><circle cx="23" cy="48" r="13" fill="#FB8B4B"/></svg><div class="lab">16 favicon</div></div>
+  </div>
+  <p class="why">Four filled circles survive every raster size without anti-alias mush —
+  <b>this is the mark the favicon always wanted.</b> At 16px the dots fatten one unit;
+  that's the only size-specific tweak the whole system needs.</p>
+</div>
+
+<h2>4 · Motion — the mark IS the entry choreography</h2>
+<div class="panel">
+  <div class="row">
+    <div class="cell">
+      <svg viewBox="0 0 96 96" width="150" height="150" id="conv" class="conv">
+        <circle cx="48" cy="23" r="12" fill="#2FA46A"/>
+        <circle cx="73" cy="48" r="12" fill="#57A8FF"/>
+        <circle cx="48" cy="73" r="12" fill="#A78BFA"/>
+        <circle cx="23" cy="48" r="12" fill="#FB8B4B"/>
+        <circle class="ring" cx="48" cy="48" r="14" fill="none" stroke="#2FA46A" stroke-width="2"/>
+      </svg>
+      <div class="lab">the gather · four roll in, the ground answers</div>
+      <button class="replay" onclick="const s=document.getElementById('conv'),f=s.cloneNode(true);s.parentNode.replaceChild(f,s);f.id='conv'">&#8635; replay</button>
+    </div>
+    <div class="why" style="max-width:46ch">
+      <b>The gather</b> replaces the splash finale: four balls roll to their corners
+      on the --roll curve, the ring answers from the empty center. Same 2.05s
+      door budget, same reduced-motion law (all four simply present).<br><br>
+      <b>The loading state</b> is the four dots orbiting once. <b>The champion
+      moment</b> is the champagne ball dropping into the center — the only time
+      the hole fills, once a season, with the thock it deserves.
+    </div>
+  </div>
+</div>
+
+<h2>5 · Where the product already speaks it</h2>
+<div class="panel">
+  <p class="why" style="margin-top:0">
+  · <b>Squad swatches</b> in the climb and roster are already these four dots — the logo
+  becomes the system they were always quoting.<br>
+  · <b>Draft night</b>: picks are balls taking their place around the center.<br>
+  · <b>Wolf</b>: the lone-wolf call is one ball stepping out of the diamond — 1 v 3, the
+  mark itself playing the game.<br>
+  · <b>The Ryder</b>: two dots vs two dots. <b>The Major</b>: every ball converging on one
+  hole — the crest art already tells this story with tracers.<br>
+  · <b>Trophy case</b>: won seasons render the cup-taken state; the wall of champions is
+  a wall of filled centers.</p>
+</div>
+
+<h2>6 · On paper</h2>
+<div class="panel light">
+  <div class="row">
+    <div class="cell">
+      <svg viewBox="0 0 96 96" width="110" height="110">
+        <circle cx="48" cy="23" r="12" fill="#0D9E8F"/>
+        <circle cx="73" cy="48" r="12" fill="#2C7CD3"/>
+        <circle cx="48" cy="73" r="12" fill="#7A58DE"/>
+        <circle cx="23" cy="48" r="12" fill="#DE6A22"/>
+      </svg>
+      <div class="lab">paper · light-theme squad colors</div>
+    </div>
+    <div class="cell">
+      <svg viewBox="0 0 96 96" width="110" height="110">
+        <circle cx="48" cy="23" r="12" fill="none" stroke="#1A2620" stroke-width="6"/>
+        <circle cx="73" cy="48" r="12" fill="none" stroke="#1A2620" stroke-width="6"/>
+        <circle cx="48" cy="73" r="12" fill="none" stroke="#1A2620" stroke-width="6"/>
+        <circle cx="23" cy="48" r="12" fill="none" stroke="#1A2620" stroke-width="6"/>
+      </svg>
+      <div class="lab">ink stamp · flyer footer / scorecards</div>
+    </div>
+  </div>
+</div>
+
+<p class="why" style="margin-top:30px"><b>Rollout, one commit per layer:</b> master SVG
+set into brand/ → PNGs regenerated from vector at native sizes (favicon, PWA set,
+og-image, iOS Assets.xcassets — kills the upscale blur everywhere) → inline swaps
+(door lockup, sidebar, share-frame marks, Express frames) → the gather replaces the
+splash finale as a UX-lane motion card → champion-state wiring (trophy case + recaps)
+rides the next ceremony pass. The flag-and-orbit retires to the brand museum in
+brand/legacy/.</p>

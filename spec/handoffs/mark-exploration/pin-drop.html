@@ -1,0 +1,193 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Cup Season — the swirl and the pin drop</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { background:#0A0E0C; color:#ECEEF2; font-family:'Segoe UI',sans-serif; padding:44px 48px 90px; }
+  h1 { font-family:Georgia,serif; font-size:30px; margin-bottom:6px; }
+  .sub { color:#98A29A; font-size:14px; margin-bottom:34px; max-width:72ch; line-height:1.6; }
+  h2 { font-family:ui-monospace,monospace; font-size:12px; letter-spacing:.2em; text-transform:uppercase; color:#D8B25A; margin:36px 0 14px; }
+  .panel { background:#121710; border:1px solid #252C24; border-radius:16px; padding:26px; }
+  .row { display:flex; gap:40px; align-items:center; flex-wrap:wrap; }
+  .lab { font-family:ui-monospace,monospace; font-size:10px; letter-spacing:.12em; color:#5E665E; margin-top:10px; text-transform:uppercase; text-align:center; }
+  .why { color:#98A29A; font-size:13.5px; line-height:1.6; max-width:66ch; }
+  .why b { color:#ECEEF2; }
+  .replay { font-family:ui-monospace,monospace; font-size:11px; letter-spacing:.1em; color:#63ADFF;
+    background:none; border:1px solid #30372E; border-radius:8px; padding:8px 16px; cursor:pointer; margin-top:14px; display:block; }
+
+  /* ================= choreography =================
+     Phase 1 · the swirl: a shared carousel rotates 400deg while each ball
+       pulls from radius 40 to 0 - a true inward spiral, transforms only.
+     Phase 2 · the vanish: balls compress into the point they made; the
+       ground opens where they met (the hole is what the gather leaves).
+     Phase 3 · the drop: the pin falls hard, the turf answers with a squash,
+       the swallowtail unfurls with an overshoot and one wag.
+     Phase 4 · the return: the four resurface at their corners - the final
+       lockup is the four-ball WITH the planted pin. */
+  .stage { width: 340px; height: 340px; }
+
+  .carousel { transform-box:fill-box; transform-origin:center;
+    animation: swirl 1.25s cubic-bezier(.45,.05,.35,1) both; }
+  @keyframes swirl { from { transform: rotate(0deg); } to { transform: rotate(400deg); } }
+
+  .arm { transform-box:fill-box; transform-origin:center; }
+  .arm circle { transform-box:fill-box; transform-origin:center;
+    animation: pullin 1.25s cubic-bezier(.45,.05,.35,1) both, vanish .18s ease-in 1.22s forwards; }
+  .a1 circle { --r:-40px; } .a2 circle { --r:-40px; } .a3 circle { --r:-40px; } .a4 circle { --r:-40px; }
+  .a1 { transform: rotate(0deg); } .a2 { transform: rotate(90deg); }
+  .a3 { transform: rotate(180deg); } .a4 { transform: rotate(270deg); }
+  @keyframes pullin { from { transform: translateY(var(--r)) scale(1); }
+                      to   { transform: translateY(0) scale(.55); } }
+  @keyframes vanish { to { opacity:0; transform: translateY(0) scale(.2); } }
+
+  .hole { opacity:0; animation: holeopen .3s ease-out 1.34s both; }
+  @keyframes holeopen { from { opacity:0; } to { opacity:1; } }
+
+  .pin { transform-box:fill-box; transform-origin:48px 74px;
+    animation: pindrop .34s cubic-bezier(.6,0,.9,.6) 1.5s both; }
+  @keyframes pindrop { from { transform: translateY(-92px); opacity:0; }
+                       30% { opacity:1; } to { transform: translateY(0); } }
+  .turf { transform-box:fill-box; transform-origin:center;
+    animation: squash .42s cubic-bezier(.16,.84,.36,1) 1.82s both; }
+  @keyframes squash { 0% { transform: scale(1,1); } 35% { transform: scale(1.28,.6); }
+                      70% { transform: scale(.94,1.08); } 100% { transform: scale(1,1); } }
+  .tail { transform-box:fill-box; transform-origin:0% 50%;
+    animation: unfurl .5s cubic-bezier(.16,.84,.36,1) 1.9s both, wag .55s ease 2.42s both; }
+  @keyframes unfurl { 0% { transform: scaleX(0); } 70% { transform: scaleX(1.12); } 100% { transform: scaleX(1); } }
+  @keyframes wag { 0%,100% { transform: rotate(0); } 40% { transform: rotate(-5deg); } 75% { transform: rotate(2deg); } }
+  .ringA { transform-box:fill-box; transform-origin:center; opacity:0;
+    animation: ringout .8s ease-out 1.9s both; }
+  @keyframes ringout { 0% { opacity:.7; transform: scale(.5); } 100% { opacity:0; transform: scale(2.1); } }
+
+  .corner { transform-box:fill-box; transform-origin:center; opacity:0;
+    animation: resurface .55s cubic-bezier(.16,.84,.36,1) both; }
+  @keyframes resurface { 0% { opacity:0; transform: scale(.2); }
+                         70% { opacity:1; transform: scale(1.12); } 100% { opacity:1; transform: scale(1); } }
+  .c1 { animation-delay: 2.15s; } .c2 { animation-delay: 2.27s; }
+  .c3 { animation-delay: 2.39s; } .c4 { animation-delay: 2.51s; }
+
+  @media (prefers-reduced-motion: reduce) {
+    .carousel, .arm circle, .hole, .pin, .turf, .tail, .ringA, .corner { animation: none; }
+    .arm circle { opacity:0; }
+    .hole, .pin, .corner { opacity:1; }
+  }
+</style>
+
+<h1>The swirl and the pin drop</h1>
+<p class="sub">Four balls spiral into one point; the point becomes the hole; the pin
+drops hard enough to squash the turf; the swallowtail unfurls; and the four
+resurface at their corners. The end frame is the lockup - the four-ball with the
+planted pin. The pin itself is rebuilt: tapered shaft, tournament swallowtail with
+a shadowed fold, a collar where it meets the turf. Nothing bland about a flag that
+just landed.</p>
+
+<h2>The choreography</h2>
+<div class="panel">
+  <div class="row">
+    <div>
+      <svg class="stage" id="stage" viewBox="0 0 96 96">
+        <g class="carousel">
+          <g class="arm a1"><circle cx="48" cy="48" r="11" fill="#2FA46A"/></g>
+          <g class="arm a2"><circle cx="48" cy="48" r="11" fill="#57A8FF"/></g>
+          <g class="arm a3"><circle cx="48" cy="48" r="11" fill="#A78BFA"/></g>
+          <g class="arm a4"><circle cx="48" cy="48" r="11" fill="#FB8B4B"/></g>
+        </g>
+
+        <g class="hole">
+          <ellipse class="turf" cx="48" cy="74" rx="13" ry="4.6" fill="#04110A" stroke="#1E2B1E" stroke-width="2"/>
+        </g>
+
+        <circle class="ringA" cx="48" cy="74" r="13" fill="none" stroke="#2FA46A" stroke-width="2"/>
+
+        <g class="pin">
+          <path d="M46.4 74 L47.3 24 L48.7 24 L49.6 74 Z" fill="#ECEEF2"/>
+          <ellipse cx="48" cy="24" rx="2.6" ry="2.6" fill="#ECEEF2"/>
+          <g class="tail">
+            <path d="M48 20 L76 25 L66 31 L76 37 L48 42 Z" fill="#D8B25A"/>
+            <path d="M48 20 L48 42 L54 41 L54 21 Z" fill="#9A7418" opacity=".55"/>
+          </g>
+          <ellipse cx="48" cy="74" rx="4.6" ry="1.8" fill="#0A0E0C" stroke="#ECEEF2" stroke-width="1.6"/>
+        </g>
+
+        <circle class="corner c1" cx="48" cy="16" r="9" fill="#2FA46A"/>
+        <circle class="corner c2" cx="82" cy="50" r="9" fill="#57A8FF"/>
+        <circle class="corner c3" cx="14" cy="50" r="9" fill="#FB8B4B"/>
+      </svg>
+      <button class="replay" onclick="const s=document.getElementById('stage'),f=s.cloneNode(true);s.parentNode.replaceChild(f,s);f.id='stage'">REPLAY</button>
+      <div class="lab">2.6s - swirl, vanish, drop, squash, unfurl, resurface</div>
+    </div>
+    <div class="why">
+      <b>Phase 1 - the swirl (0-1.25s).</b> One carousel rotation, 400 degrees,
+      while each ball pulls its radius to zero: a true inward spiral, pure
+      transforms, --roll family easing.<br><br>
+      <b>Phase 2 - the vanish (1.22-1.35s).</b> The four compress into the point
+      they made. The hole opens exactly there - <b>the hole is what the gather
+      leaves behind.</b><br><br>
+      <b>Phase 3 - the drop (1.5-2.4s).</b> The pin falls hard, ease-in like
+      gravity; the turf squashes and recovers; the swallowtail unfurls with an
+      overshoot and one wag; the ground answers with a single ring.<br><br>
+      <b>Phase 4 - the return (2.15-2.6s).</b> Three resurface at the open
+      corners; the violet ball stays down. <b>Somebody's always in the cup.</b>
+      Final frame = the lockup.
+    </div>
+  </div>
+</div>
+
+<h2>The pin, rebuilt</h2>
+<div class="panel">
+  <div class="row">
+    <div>
+      <svg viewBox="0 0 96 96" width="180" height="180">
+        <ellipse cx="48" cy="76" rx="14" ry="5" fill="#04110A" stroke="#1E2B1E" stroke-width="2"/>
+        <path d="M46.2 76 L47.2 20 L48.8 20 L49.8 76 Z" fill="#ECEEF2"/>
+        <circle cx="48" cy="19.5" r="2.8" fill="#ECEEF2"/>
+        <path d="M48 16 L80 21.5 L68.5 28.5 L80 35.5 L48 41 Z" fill="#D8B25A"/>
+        <path d="M48 16 L48 41 L55 40 L55 17 Z" fill="#9A7418" opacity=".55"/>
+        <ellipse cx="48" cy="76" rx="5" ry="2" fill="#0A0E0C" stroke="#ECEEF2" stroke-width="1.8"/>
+      </svg>
+      <div class="lab">the tournament pin</div>
+    </div>
+    <div>
+      <svg viewBox="0 0 96 96" width="90" height="90">
+        <ellipse cx="48" cy="76" rx="14" ry="5" fill="none" stroke="#1A2620" stroke-width="4"/>
+        <path d="M46.2 76 L47.2 20 L48.8 20 L49.8 76 Z" fill="#1A2620"/>
+        <path d="M48 16 L80 21.5 L68.5 28.5 L80 35.5 L48 41 Z" fill="#1A2620"/>
+      </svg>
+      <div class="lab">mono - still reads</div>
+    </div>
+    <div class="why" style="max-width:44ch">
+      What changed from the bland one: <b>tapered shaft</b> (wider at the turf,
+      like a real pin), a <b>finial cap</b>, a <b>swallowtail pennant</b> - the
+      tournament cut, not a paper triangle - with a <b>shadowed fold</b> in
+      darker champagne so it has a front and a back, and a <b>collar</b> where
+      it enters the turf. Five details, zero gradients, one-color safe.
+    </div>
+  </div>
+</div>
+
+<h2>The end frame, held</h2>
+<div class="panel">
+  <div class="row">
+    <div>
+      <svg viewBox="0 0 96 96" width="200" height="200">
+        <circle cx="48" cy="16" r="9" fill="#2FA46A"/>
+        <circle cx="82" cy="50" r="9" fill="#57A8FF"/>
+        <ellipse cx="48" cy="74" rx="13" ry="4.6" fill="#04110A" stroke="#1E2B1E" stroke-width="2"/>
+        <path d="M46.4 74 L47.3 24 L48.7 24 L49.6 74 Z" fill="#ECEEF2"/>
+        <circle cx="48" cy="23.5" r="2.6" fill="#ECEEF2"/>
+        <path d="M48 20 L76 25 L66 31 L76 37 L48 42 Z" fill="#D8B25A"/>
+        <path d="M48 20 L48 42 L54 41 L54 21 Z" fill="#9A7418" opacity=".55"/>
+        <ellipse cx="48" cy="74" rx="4.6" ry="1.8" fill="#0A0E0C" stroke="#ECEEF2" stroke-width="1.6"/>
+        <circle cx="14" cy="50" r="9" fill="#FB8B4B"/>
+      </svg>
+      <div class="lab">the gathering, pinned - motion end state</div>
+    </div>
+    <div class="why" style="max-width:46ch">
+      The resurfaced balls take the open corners; the pin owns the vertical.
+      This frame is the <b>splash finale candidate</b> - it inherits the door's
+      exact story (squads converge on one hole) with the new mark language.
+      The static four-ball diamond stays the LOGO; this pinned composition is
+      the <b>ceremony and motion lockup</b>. Two artifacts, one system.
+    </div>
+  </div>
+</div>
