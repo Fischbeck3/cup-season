@@ -127,6 +127,17 @@ edge months** (blanket rule, decided). League timezone default
 
 ## Landmines (each cost real debugging time — do not relearn)
 
+- **Column revokes don't subtract from table grants.** `revoke select (email)`
+  did nothing while the baseline's table-level `GRANT ALL` stood — emails
+  stayed readable for weeks after the "fix." Sealing a column = revoke
+  table-level SELECT, re-grant the explicit column list without it
+  (migration `20260721214500`). Same family: functions created after the
+  D37 default-privilege flip can pick up `PUBLIC` execute (the flip binds to
+  the `postgres` role; not every migration runner is it) — every new
+  function migration still needs its explicit `revoke ... from public, anon`.
+  `tests/db-checks.sql` checks 2 and 9 catch both regressions; run it after
+  any grant-touching push.
+
 - **Gmail's link scanner consumes single-use magic-link tokens** before the
   user clicks. Never reintroduce links or `emailRedirectTo`; code-only OTP.
 - **Never call Supabase auth methods synchronously inside `onAuthStateChange`**
