@@ -4827,6 +4827,30 @@ async function csShareLink(kind, ref, text){
   try{
     const { data, error } = await sb.rpc('create_share', { p_kind: kind, p_ref: ref });
     if(error) throw error;
+    /* D60 — the photo travels: a shared ROUND with a photo publishes a
+       compressed copy to the public bucket at shared/{TOKEN}.jpg (this device
+       holds read access to the original; the page needs no signing). Best
+       effort — the link works photo-less if any step misses. The copy is a
+       snapshot: revoke kills it, a fresh mint republishes. */
+    if(kind === 'round'){
+      try{
+        const { data: rr } = await sb.from('rounds').select('photo_path').eq('id', ref).maybeSingle();
+        if(rr?.photo_path){
+          const { data: head } = await sb.storage.from('shared').list('', { search: data + '.jpg', limit: 1 });
+          const already = Array.isArray(head) && head.some(o => o.name === data + '.jpg');
+          if(!already){
+            const { data: sg } = await sb.storage.from('media').createSignedUrl(rr.photo_path, 60);
+            if(sg?.signedUrl){
+              const blob = await (await fetch(sg.signedUrl)).blob();
+              const jpg = await window.compressPhoto(blob, 1600, .8);
+              const up = await sb.storage.from('shared')
+                .upload(data + '.jpg', jpg, { contentType:'image/jpeg', upsert:false });
+              if(up.error && !/exists|duplicate/i.test(up.error.message||'')) throw up.error;
+            }
+          }
+        }
+      }catch(e){ try{ console.warn('[share photo] link ships photo-less:', e.message||e); }catch(_){} }
+    }
     const url = location.origin + '/?share=' + data;
     if(navigator.share){
       try{ await navigator.share({ title:'Cup Season', text, url }); return; }
@@ -4916,6 +4940,10 @@ function showEpilogue(epi, course, firstEver, roundId){
   const lk=$('#shBody').querySelector('#epiLink');
   if(lk) lk.addEventListener('click',()=>csShareLink('round', roundId,
     `${window.CS?.profile?.display_name || 'A round'} — ${epi.gross} at ${course || 'the course'}`));
+  /* D60 consent line: when a photo will travel with the link, the button says
+     so BEFORE the tap (the tap is the publish act) */
+  if(lk && (window._lastPostPhoto || null))
+    lk.textContent = 'Share a link — card + photo';
   const rv=$('#shBody').querySelector('#epiRevoke');
   if(rv) rv.addEventListener('click',()=>csRevokeLink('round', roundId));
   const sh=$('#shBody').querySelector('#epiShare');
@@ -13324,17 +13352,32 @@ async function renderShareView(tok, _testInfo){
   if(info.kind === 'round'){
     const pviSane = info.pvi != null && isFinite(info.pvi) && Math.abs(Number(info.pvi)) <= 30;
     document.title = `${info.name} — ${info.gross} at ${info.course} · Cup Season`;
-    card.innerHTML = `
-      ${markerSvg(info.marker)}
+    /* D60: a traveled photo becomes the card's ground — dark wash for the ink,
+       the marker as a corner medallion (it replaces the big top circle). The
+       payload is URL-free; the page builds the public path from its own token. */
+    const pub = info.photo ? `${SUPABASE_URL}/storage/v1/object/public/shared/${encodeURIComponent(String(tok||''))}.jpg` : null;
+    const m2 = (window.MARKERS || {})[info.marker];
+    const medal = pub && m2 ? `<span style="position:absolute;right:12px;bottom:12px;width:30px;height:30px;border-radius:50%;background:rgba(12,16,13,.55);display:flex;align-items:center;justify-content:center">
+      <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="${C.gold}" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="${m2.p}"/></svg></span>` : '';
+    const inner = `
+      ${pub ? '' : markerSvg(info.marker)}
       <div style="letter-spacing:.18em;font-size:16px;font-weight:600">${esc(String(info.name).toUpperCase())}</div>
       ${info.league ? `<div style="letter-spacing:.14em;font-size:11.5px;color:${C.mut};margin-top:6px">${esc(String(info.league).toUpperCase())}</div>` : ''}
       <div style="font-family:${SERIF};font-size:104px;font-weight:700;line-height:1.15;margin:10px 0 2px">${esc(String(info.gross))}</div>
       ${info.holes === 9 ? `<div style="font-size:11px;color:${C.mut};letter-spacing:.14em">NINE HOLES</div>` : ''}
       ${pviSane ? `<div style="color:${C.gold};letter-spacing:.16em;font-size:14.5px;font-weight:600;margin-top:10px">${esc(bandName(Number(info.pvi)).toUpperCase())}</div>
-      <div style="font-family:${SERIF};color:${C.mut};font-size:14px;margin-top:6px">${esc(vsPhrase(Number(info.pvi)))}</div>` : ''}
-      <div style="border-top:1px solid rgba(255,255,255,.1);margin:18px 40px 0"></div>
+      <div style="font-family:${SERIF};color:${pub ? 'rgba(232,236,233,.85)' : C.mut};font-size:14px;margin-top:6px">${esc(vsPhrase(Number(info.pvi)))}</div>` : ''}
+      <div style="border-top:1px solid rgba(255,255,255,.14);margin:18px 40px 0"></div>
       <div style="letter-spacing:.12em;font-size:13px;margin-top:16px">${esc(String(info.course || 'A ROUND').toUpperCase())}</div>
-      <div style="color:${C.mut};font-size:11.5px;letter-spacing:.12em;margin-top:8px">${esc(fmtD(info.played_on))}${info.points != null ? ` · ${esc(String(info.points))} PTS` : ''}</div>`;
+      <div style="color:${pub ? 'rgba(232,236,233,.75)' : C.mut};font-size:11.5px;letter-spacing:.12em;margin-top:8px">${esc(fmtD(info.played_on))}${info.points != null ? ` · ${esc(String(info.points))} PTS` : ''}</div>`;
+    if(pub){
+      card.style.position = 'relative'; card.style.overflow = 'hidden'; card.style.padding = '30px 18px';
+      card.innerHTML = `<img src="${pub}" alt="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover">
+        <div style="position:absolute;inset:0;background:linear-gradient(180deg,rgba(12,16,13,.82),rgba(12,16,13,.58) 45%,rgba(12,16,13,.86))"></div>
+        <div style="position:relative">${inner}</div>${medal}`;
+    } else {
+      card.innerHTML = inner;
+    }
   } else if(info.kind === 'settlement'){
     const r = info.result || {};
     const GAME = { match:'MATCH PLAY', wolf:'WOLF', skins:'SKINS', none:'THE ROUND' };

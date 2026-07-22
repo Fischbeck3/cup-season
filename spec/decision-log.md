@@ -1812,3 +1812,39 @@ Owner pre-approved the build 2026-07-22: "full send" in the arc brief.)*
   to identity FLOOR + brand mark. Owner call, 2026-07-22, recorded in
   spec/photos-arc-2.md ("DESIGN APPROVED"). The demo diorama still never
   fabricates faces — markers only there.
+
+### D60 · The photo travels — publish-by-copy onto the share page (extends D57)
+
+- **Current mechanic:** D57 share pages are text-only snapshots. Round photos
+  live in the PRIVATE `media` bucket; the anon share page cannot sign storage
+  URLs (definer SQL can't mint them; an edge-function proxy would add server
+  machinery and per-request cost).
+- **Problem:** the round card is the app's strongest artifact and its photo is
+  the strongest part — the shared page drops exactly the thing the group chat
+  would stop scrolling for.
+- **Recommendation (built):** **publish-by-copy.** A new PUBLIC bucket
+  `shared`; when a shared round carries a photo, the MINT flow (the sharer's
+  own device, which holds read access to the original) uploads a compressed
+  copy to `shared/{TOKEN}.jpg`. Storage policies gate writes by the `shares`
+  table itself — insert/delete allowed only where the filename's token is a
+  row with `created_by = auth.uid()`. Flat token path: no uid, no ids in the
+  URL (D57 law holds). `share_info`'s round branch gains `'photo': exists`
+  (definer reads `storage.objects`); the page renders the photo as the card's
+  backdrop under a dark wash with the marker as a corner medallion.
+  `revoke_share` deletes the copy first, then revokes the token — revoke
+  kills both.
+- **Publish consent:** the photo already went to the league board; tapping
+  "Share a link" is the publish act (D57's golfer-publishes spirit). The
+  button reads **"Share a link — card + photo"** when a photo will travel.
+- **Principle served:** growth canon (the artifact carries the join path);
+  #4 Memory > Statistics; D57's fail-closed token law unchanged.
+- **Benefit:** the shared round finally looks like the round; zero server
+  pieces, zero signing, stable public URL.
+- **Tradeoffs:** (a) the copy is a SNAPSHOT — replacing the round photo later
+  does not update an existing share (canon: the share is a snapshot; re-mint
+  after revoke picks up the new photo). (b) A public bucket exists now —
+  bounded to 2MB jpeg, writable only through the shares fence, unlisted flat
+  tokens. (c) Avatars still never reach the share page — the marker stays the
+  public face (D59 boundary).
+- **CONFLICT check:** none upward. Extends D57 along its named seam; §16
+  untouched (the original round row and photo are never modified).
