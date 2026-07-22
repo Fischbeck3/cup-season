@@ -27,6 +27,7 @@ pre-verified; claim all three where free so nobody squats the family).
 | YouTube | claim @cupseason | PARKED | Y2 per GTM §5. Claim the handle, upload nothing yet; the 30s capture (bible §5) can live here unlisted for embeds. |
 | Reddit | founder's PERSONAL account | ACTIVE presence | No brand account. Participate as Jerecho-who-runs-PIGL. Posture in §3. |
 | Facebook | personal + page later | Groups via personal | Local FB golf groups are an outreach surface (playbook message C), not a brand channel. |
+| LinkedIn | founder profile (page shell optional) | ACTIVE from W1 (1/wk) | Added 2026-07-21. Build-in-public in the FOUNDER's voice — organizers, golf-industry contacts, future partners read here. Long-form diary posts + launch announcements; never corporate-speak, same D39 laws. |
 
 Setup checklist per account: bio from §2 · link = https://cupseason.app ·
 avatar = current mark from `brand/` (regenerate after the mark decision —
