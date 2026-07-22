@@ -1861,3 +1861,132 @@ Owner pre-approved the build 2026-07-22: "full send" in the arc brief.)*
 - Server-side: share_info stops returning 'league' on round + settlement
   branches (curated payload — the page never receives it). Skew-safe both
   directions (client conditionals already guard the key's absence).
+
+---
+
+## Batch 13 — 2026-07-23, the lineage batch (gameplay/social seam)
+
+*Drafted from the 2030 deck session (owner-sequenced: Major lineage → Ryder
+series → Last Round With → Forfeit Ledger). All four are DRAFTS logged before
+build per the working protocol — each waits for its own "build it." Ranked by
+machinery-already-exists. ⚑ marks the points still needing an owner call.*
+
+### D61 · The annual Major — lineage unparked (§10.9)
+- **Current:** v1 serves the annual by convention only: create by the same jug
+  name each year, `trophies.season_year` stamps the year, the case reads "The
+  Thanksgiving Major · 2026 / 2027 / …". No defending champion in the
+  announce, no "Nth annual" counter, no champions roll, no one-tap rematch —
+  each year's Major is rebuilt from scratch and its history is invisible at
+  the exact moment it sells itself (create + announce).
+- **Problem:** the strongest hype sentence a crew owns — "4th annual ·
+  defending: Marcus" — is never rendered. The date already belongs to the
+  crew (§10.9's insight); the product doesn't know it.
+- **Recommendation:** lineage by EXPLICIT LINK, never name-sniffing.
+  (a) The event rematch row D41 deferred: "Run it back — {jug name}" on a
+  completed Major's room + Start-something, opening the Major create flow
+  prefilled (name, days, buy-in, split carried; final day advanced toward
+  next year's same weekday-anchor, editable). (b) A rematch-created event
+  stores `events.lineage_id` = the chain's first event id (additive column).
+  (c) The open/announce post names the defending champion and the count
+  ("THE 4TH ANNUAL THANKSGIVING MAJOR — MARCUS DEFENDS"). (d) The event page
+  carries the champions roll (completed events in the chain, year · name ·
+  gross · vs-number). (e) No new nudge class; any future anticipation nudge
+  rides D23's fence (named emotion: anticipation; threshold, never schedule).
+- **Principle:** #4 Memory is sacred (the annual is the crew's own calendar) ·
+  #5 Feels Alive · GTM §3 (the lineage artifact recruits — "official by the
+  next Major" now points at a real, named next Major).
+- **Benefit:** the zero-build convention becomes a real franchise object; the
+  jug accumulates names; the cheapest lineage build in the corpus (D41's
+  pattern, one additive column, existing posts rail).
+- **Tradeoffs:** organic same-name creates do NOT link (honest: lineage is
+  chosen, not guessed). ⚑ owner call: ship a later "adopt into lineage" tool,
+  or let convention cover strays? The champion's earned marker stays parked
+  (§9) — explicitly NOT unparked by this entry.
+- **CONFLICT check:** none upward. Pays D41's named deferral ("the event
+  rematch row"); D46's ceremony untouched (each edition still mints its one
+  trophy).
+
+### D62 · The Ryder becomes a series
+- **Current:** every Ryder is standalone. Completion mints the shared team
+  trophy + MVP (kind-aware award branch); rooms show one edition; rosters and
+  benches rebuild from scratch; the all-time tally between the two benches
+  exists only in the crew's heads.
+- **Problem:** the Rivalry object is the fuel, and the Ryder is its purest
+  container — but "Blue leads the series 2–1" is rendered nowhere, and the
+  dead air between editions has no standing score.
+- **Recommendation:** the same lineage rail as D61 (one build, two doors):
+  rematch tap on a completed Ryder carries name, session count, both team
+  names/colors, and benches (roster editable before lock); `lineage_id`
+  chains editions; the room header adds the series line computed from the
+  chain ("THE 3RD RYDER · BLUE LEADS THE SERIES 2–1", shared editions counted
+  as shared); the open post names the holder ("BLUE DEFENDS THE CUP").
+  Series identity follows the team SLOT carried at rematch — rename freely,
+  the tally follows the bench, not the label.
+- **Principle:** the Rivalry object (2030 canon) · Memory · Feels Alive
+  (between-editions air gains a score).
+- **Benefit:** "the 3rd Ryder" is a sentence that re-forms both benches by
+  itself; captains stop rebuilding rosters; the series line is the room's
+  cheapest new drama.
+- **Tradeoffs:** no cross-edition player stats in v1 (duels already archive
+  to rivalry facets; a series-MVP table is a later dial). A crew that wants
+  fresh random benches each year just… doesn't tap rematch — the series line
+  only exists inside a chain.
+- **CONFLICT check:** none upward. Trophy scarcity holds — every edition
+  mints its own hardware; the series line is a tally, not a trophy.
+
+### D63 · Last Round With — the reunion whisper (blue-sky #2 unparked)
+- **Current:** shared-card facts are already auto-captured (who was on the
+  tee sheet / attested rounds). The Record shows your rounds; nothing
+  surfaces the friend who drifted.
+- **Problem:** the one-more-round rule points at rivals and seasons; its
+  purest expression — handing a lapsed Saturday back — has no surface.
+  (Prospectus coda, turned proactive.)
+- **Recommendation:** one quiet card (Record + Crew room, in-app ONLY, no
+  push class): "You and Cole — last card together 14 months ago." One tap
+  stages a gathering on the existing scheduled-rounds rails with both of you
+  on it. Fires on THRESHOLD only, never a schedule: surfaces when the gap
+  ≥ 12 months AND the history is real (≥ 3 prior shared cards), at most one
+  name at a time, dismiss = quiet for months. ⚑ owner call on both numbers.
+  Copy law (this is the build's hard part): a statement of fact plus a door —
+  never "you haven't," never streak grammar. D23 compliance explicit: the
+  emotion is *longing*, named in the entry, and it must never read as guilt.
+- **Principle:** the Final Rule (custodians of people's Saturdays) · Memory ·
+  the one-more-round rule pointed at friendship instead of rivalry.
+- **Benefit:** a retention beat that IS the mission; zero new data capture;
+  arguably the purest Cup-Season-Test feature in the backlog.
+- **Tradeoffs:** tonal risk is the whole risk — melancholy handled badly
+  reads as guilt; copy reviews gate the ship. Uses only mutual card facts
+  (both parties were on the round) — no contact scraping, no one-sided
+  "misses you" surfaces.
+- **CONFLICT check:** none. D23's fence is the design, not a constraint on it.
+
+### D64 · The Forfeit Ledger — stakes past money (blue-sky #3 unparked)
+- **Current:** the pot is a dollars ledger (D39). The Callout (D21) settles a
+  declared number. Everything else real crews actually play for — the
+  cookout, the course pick, strokes next time, the standing ace bounty —
+  lives in the group chat and evaporates.
+- **Problem:** a $0 league reads as the poor cousin of a money league, when
+  its currency is pride — currently pride without receipts.
+- **Recommendation:** named non-money stakes with pot-grade rigor. A forfeit
+  = name + terms + parties + what it hangs on + settled-by + date, archived
+  into the rivalry facets like any meeting ("the Lawn Bet: Ed 4–3").
+  Templates first, free text second: loser hosts · winner picks the course ·
+  strokes-next-time · standing bounty ("first ace: steak dinner from
+  everyone — open since 2026"). COMPOSITION RULE (the D21 seam, resolved):
+  a forfeit never settles anything itself — it hangs ON a thing that already
+  settles (a duel, a match, a Callout, a season place); standing bounties
+  settle by the parties' confirm tap. One engine of results; forfeits are
+  consequences, not competitions. ⚑ owner call: v1 template set, and whether
+  the Pro or any party can mark a standing bounty hit.
+- **Principle:** D39's exact posture extended past dollars (the ledger,
+  never the bank) · Memory > Statistics (stakes become stories) · the Stake
+  object (D51's line gains a non-dollar currency).
+- **Benefit:** the $0 league becomes a league whose currency is pride with
+  receipts; twenty years on, the Wager Archive is lore no spreadsheet kept.
+- **Tradeoffs:** legibility burden — forfeits must be unmistakably NOT
+  money: no dollar rendering, no champagne treatment (gold stays earned
+  standings/pot language), prose voice not ledger arithmetic. Store-review
+  posture guarded: no cash value, no conversion to the pot, ever.
+- **CONFLICT check:** brushes D21 exactly as blue-sky flagged — resolved by
+  the composition rule above (compose, don't fork). Trophy law untouched:
+  forfeits archive to facets, never the case.
