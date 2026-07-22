@@ -742,6 +742,7 @@ img.face{border-radius:50%; object-fit:cover; vertical-align:-4px; border:1px so
 .coursedd button{display:block; width:100%; text-align:left; background:none; border:none; border-bottom:1px solid var(--line); padding:9px 12px; cursor:pointer; color:var(--ink);}
 .coursedd button:last-child{border-bottom:none;}
 .coursedd button:hover{background:var(--bg1);}
+.coursedd button.kbd{background:var(--bg1); outline:2px solid var(--pos); outline-offset:-2px;}
 .coursedd button b{display:block; font-size:13px; font-weight:600; line-height:1.3;}
 .coursedd button span{font-family:var(--mono); font-size:11.5px; color:var(--mut); letter-spacing:.03em;}
 .coursedd .coursedd-msg{padding:9px 12px; font-family:var(--mono); font-size:11.5px; color:var(--dim); letter-spacing:.03em;}
@@ -2061,7 +2062,7 @@ html[data-theme="light"] .room-dusk .btn:not(.dark):not(.gold):not(.apple){color
 </svg>
 
 <!-- ============ ONBOARDING ============ -->
-<div class="onboard" id="onboard">
+<div class="onboard" id="onboard" role="dialog" aria-modal="true" aria-label="Cup Season sign-in">
   
   <div class="ob-fold">
   <div class="ob-fgrid">
@@ -2152,7 +2153,7 @@ html[data-theme="light"] .room-dusk .btn:not(.dark):not(.gold):not(.apple){color
       <div style="height:12px"></div>
       <label class="f" for="pfHandle">Your handle — how buddies find you</label>
       <input class="f" id="pfHandle" autocomplete="off" placeholder="@jerecho" style="font-family:var(--sans); font-size:16px;">
-      <p class="fine" style="margin:6px 2px 0; padding:0; color:var(--dim)">Suggested from your name — tap to change it.</p>
+      <p class="fine" style="margin:6px 2px 0; padding:0; color:var(--dim)">A starting handle — tap to change it.</p>
       <div style="height:12px"></div>
       <label class="f" for="pfIdx">Handicap index <span style="color:var(--dim); font-weight:400">· optional</span></label>
       <input class="f" id="pfIdx" type="number" step="0.1" inputmode="decimal" placeholder="e.g. 12.4">
@@ -2647,17 +2648,17 @@ html[data-theme="light"] .room-dusk .btn:not(.dark):not(.gold):not(.apple){color
           <div class="eyebrow" style="margin-top:0">Competitiveness — pick once, argue never <button class="ibtn" data-i="preset" aria-expanded="false" aria-label="About competitiveness presets">i</button></div>
           <div class="ihelp" id="ih-preset">One pick that bundles the fairness rules: handicap allowance, score verification, and eligible courses. <b>Casual</b> is honor-system beer league, <b>Standard</b> wants GHIN-posted rounds, <b>Cutthroat</b> adds attestation and rated tees. Every individual dial unlocks with Pro Shop.</div>
           <button class="preset" data-p="0">
-            <h4>Casual <span class="ok">✓</span></h4>
+            <h4>Casual <span class="ok" aria-hidden="true">✓</span></h4>
             <p class="lead">Honor scores, everything counts</p>
             <p><b>100% hcp</b> · honor scores · any course · unlimited counting · no floor</p>
           </button>
           <button class="preset sel" data-p="1">
-            <h4>Standard <span class="ok">✓</span></h4>
+            <h4>Standard <span class="ok" aria-hidden="true">✓</span></h4>
             <p class="lead">Weekly-golfer fair, light guardrails</p>
             <p><b>95% hcp</b> · GHIN rounds · best 4 / mo count · 2-round floor</p>
           </button>
           <button class="preset" data-p="2">
-            <h4>Cutthroat <span class="ok">✓</span></h4>
+            <h4>Cutthroat <span class="ok" aria-hidden="true">✓</span></h4>
             <p class="lead">Tournament-tight, receipts required</p>
             <p><b>90% hcp</b> · verified + attested · rated tees · best 4 / mo · 3-round floor</p>
           </button>
@@ -5691,6 +5692,24 @@ function attachCourseSearch(courseSel, ratingSel, slopeSel, onTee){
     timer=setTimeout(()=>run(q), 320);
   });
   input.addEventListener('blur', ()=>setTimeout(hide, 160));
+  /* S6-06: the results bound mousedown only — keyboard and AT users could
+     never pick a course or tee. Arrow keys walk the list, Enter fires the
+     same mousedown handler the pointer path uses, Escape closes. */
+  input.addEventListener('keydown', e=>{
+    if(dd.style.display==='none') return;
+    const opts=[...dd.querySelectorAll('button')];
+    if(!opts.length) return;
+    let i=opts.findIndex(b=>b.classList.contains('kbd'));
+    if(e.key==='ArrowDown' || e.key==='ArrowUp'){
+      e.preventDefault();
+      i = e.key==='ArrowDown' ? Math.min(i+1, opts.length-1) : Math.max(i-1, 0);
+      opts.forEach((b,bi)=>b.classList.toggle('kbd', bi===i));
+      opts[i].scrollIntoView({ block:'nearest' });
+    } else if(e.key==='Enter' && i>=0){
+      e.preventDefault();
+      opts[i].dispatchEvent(new MouseEvent('mousedown', { bubbles:true, cancelable:true }));
+    } else if(e.key==='Escape'){ hide(); }
+  });
 }
 attachCourseSearch('#inCourse', '#inRating', '#inSlope');
 /* pilot: "tried live round and it didn't pull course api" — the live sheet was
@@ -8905,7 +8924,10 @@ function renderEvent(){
   }
 
   /* sessions, newest first */
-  sessions.slice().sort((a,b)=>b.session_no-a.session_no).forEach(s=>{
+  /* S5-02: before anything closes, Session 1 is the story — read top-down.
+     Once results exist, newest-first puts the live session on top. */
+  const anyClosed = sessions.some(s=>s.status==='closed');
+  sessions.slice().sort((a,b)=> anyClosed ? b.session_no-a.session_no : a.session_no-b.session_no).forEach(s=>{
     const ds=duels.filter(d=>d.session_id===s.id);
     const d0=new Date(s.opens_on+'T00:00:00'), d1=new Date(s.closes_on+'T00:00:00');
     const when=`${MOS[d0.getMonth()].toUpperCase()} ${d0.getDate()}–${MOS[d1.getMonth()].toUpperCase()} ${d1.getDate()}`;
@@ -9249,6 +9271,9 @@ function renderLeagueMeta(){
   const pool=members.filter(m=>!seated.has(m.id)).length;
   const dp=$('#draftPoolSub');
   if(dp) dp.textContent=`${players(pool)} IN THE POOL`+(short?` · ${short} SEAT${short===1?'':'S'} OPEN`:'');
+  /* S3-04: a member's tap opens a read-only draw view — say so on the button */
+  const fsq=document.querySelector('#homeDraft [data-go="draft"]');
+  if(fsq) fsq.textContent = (window.CS?.member?.role==='commissioner') ? 'Form the squads' : 'See the squads';
   /* joins gone quiet? 48h since the last one, still short, pre-draw → say so */
   const dq=$('#draftJoinsQuiet');
   if(dq){
@@ -9474,7 +9499,7 @@ async function loadProfile(){
   return CS.profile;
 }
 
-let pfMarker = 'saguaro';
+let pfMarker = null;   /* S1-01: no default — the marker is chosen, never inherited */
 function showProfileGate(){
   $('#obDoor').style.display = 'none';
   $('#obWelcome').style.display = 'none';
@@ -9486,6 +9511,17 @@ function showProfileGate(){
   [g, ...g.querySelectorAll('*')].forEach(el => {
     el.style.animation='none'; el.style.opacity='1'; el.style.transform='none';
   });
+  /* S7-02: the claim context survives the card gate — the door promised
+     "claiming X's round"; the save screen keeps that thread visible */
+  try{
+    if(localStorage.getItem('cs_claim') && !document.getElementById('pfClaimNote')){
+      const note=document.createElement('p');
+      note.id='pfClaimNote'; note.className='fine';
+      note.style.cssText='padding:0 0 10px; color:var(--gold)';
+      note.textContent='Saving your card attaches the round you’re claiming.';
+      g.prepend(note);
+    }
+  }catch(_){}
   /* Phase 5: never pre-fill the name with the m001 email-derived display_name
      ("jerechofischbeck") — an ugly default the user has to clear. Compare
      normalized forms so dot/space/case variants of the email local part are
@@ -9535,6 +9571,9 @@ function showProfileGate(){
 $('#pfSave').addEventListener('click', async () => {
   const name = $('#pfName').value.trim();
   if(!name){ $('#pfStatus').textContent = 'The card needs a name.'; return; }
+  /* S1-01: the marker is a CHOICE, not a default — every skipper was a
+     saguaro. No pre-pick; the save asks for one. */
+  if(!pfMarker){ $('#pfStatus').textContent = 'Pick your ball marker — it’s your face here.'; return; }
   const hnd = $('#pfHandle').value.trim().replace(/^@/, '').toLowerCase();
   if(!/^[a-z0-9_]{3,20}$/.test(hnd)){
     $('#pfStatus').textContent = 'Handle: 3–20 letters, numbers or underscores.'; return;
@@ -9667,7 +9706,7 @@ let phMarker = null;
 function renderPhMarkers(){
   const grid = $('#phMarkers'); if(!grid) return;
   grid.innerHTML = Object.keys(MARKERS).map(k =>
-    `<button class="mini" data-phmk="${k}" style="display:flex;flex-direction:column;align-items:center;gap:4px;padding:10px 4px;${k===phMarker?'border-color:var(--pos);color:var(--pos);':''}">${mkr(k)}<span style="font-size:10.5px;letter-spacing:.06em">${MARKERS[k].n.toUpperCase()}</span></button>`).join('');
+    `<button class="mini" data-phmk="${k}" aria-pressed="${k===phMarker?'true':'false'}" style="display:flex;flex-direction:column;align-items:center;gap:4px;padding:10px 4px;${k===phMarker?'border-color:var(--pos);color:var(--pos);':''}">${mkr(k)}<span style="font-size:10.5px;letter-spacing:.06em">${MARKERS[k].n.toUpperCase()}</span></button>`).join('');
   grid.querySelectorAll('[data-phmk]').forEach(b => b.addEventListener('click', () => {
     phMarker = b.dataset.phmk; renderPhMarkers();
   }));
@@ -9970,8 +10009,12 @@ function openPeoplePicker(opts){
     }));
   };
   const render=(rows)=>{ rows.forEach(r=>rowCache.set(r.profile_id, r));
+    /* S3-03: "No golfers found" only answers a SEARCH — an empty box gets an
+       invitation to type, not a verdict on nothing */
+    const q=(document.getElementById('ppFind')?.value||'').trim();
     listBox.innerHTML = rows.length ? rows.map(r=>psRow(r, actionFor(r))).join('')
-      : '<p class="fine">No golfers found. Invite links still work for everyone else.</p>'; wire(); };
+      : (q ? '<p class="fine">No golfers found. Invite links still work for everyone else.</p>'
+           : '<p class="fine">Type a name or @handle to search — buddies you add appear here.</p>'); wire(); };
   /* empty search = your accepted buddies (pilot walked back the league-mate
      recommendations here — the tee sheet's chips already lead with the league) */
   psFriends().then(d=>render(d.filter(f=>f.status==='accepted')));
