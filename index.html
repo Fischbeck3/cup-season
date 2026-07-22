@@ -13369,7 +13369,6 @@ async function renderShareView(tok, _testInfo){
     const inner = `
       ${pub ? '' : markerSvg(info.marker)}
       <div style="letter-spacing:.18em;font-size:16px;font-weight:600">${esc(String(info.name).toUpperCase())}</div>
-      ${info.league ? `<div style="letter-spacing:.14em;font-size:11.5px;color:${C.mut};margin-top:6px">${esc(String(info.league).toUpperCase())}</div>` : ''}
       <div style="font-family:${SERIF};font-size:104px;font-weight:700;line-height:1.15;margin:10px 0 2px">${esc(String(info.gross))}</div>
       ${info.holes === 9 ? `<div style="font-size:11px;color:${C.mut};letter-spacing:.14em">NINE HOLES</div>` : ''}
       ${pviSane ? `<div style="color:${C.gold};letter-spacing:.16em;font-size:14.5px;font-weight:600;margin-top:10px">${esc(theirs(bandName(Number(info.pvi))).toUpperCase())}</div>
@@ -13406,7 +13405,7 @@ async function renderShareView(tok, _testInfo){
       ${info.players.map(p => `<div style="display:flex;justify-content:space-between;padding:5px 12px;font-size:13.5px"><span>${esc(p.name)}</span><span style="color:${C.mut}">${p.gross != null ? esc(String(p.gross)) : '—'}</span></div>`).join('')}` : ''}
       <div style="border-top:1px solid rgba(255,255,255,.1);margin:14px 40px 0"></div>
       <div style="letter-spacing:.12em;font-size:12.5px;margin-top:14px">${esc(String(info.course || '').toUpperCase())}</div>
-      <div style="color:${C.mut};font-size:11.5px;letter-spacing:.12em;margin-top:8px">${esc(fmtD(info.played_on))}${info.league ? ` · ${esc(String(info.league).toUpperCase())}` : ''}</div>`;
+      <div style="color:${C.mut};font-size:11.5px;letter-spacing:.12em;margin-top:8px">${esc(fmtD(info.played_on))}</div>`;
   } else if(info.kind === 'recap'){
     document.title = `${info.league || 'A league'} — the season · Cup Season`;
     const rows = (info.rows || []).map((q, i) =>

@@ -1848,3 +1848,16 @@ Owner pre-approved the build 2026-07-22: "full send" in the arc brief.)*
   public face (D59 boundary).
 - **CONFLICT check:** none upward. Extends D57 along its named seam; §16
   untouched (the original round row and photo are never modified).
+
+### D60a · Amendment — league names stay home (share payload tightening)
+
+- **Pilot:** a round share carried the sharer's league name onto the public
+  page ("Who's the bitch?" on a stranger-facing artifact). League names are
+  in-joke space; the public page is not.
+- **Rule:** the artifact shows only what it is ABOUT. A round is about the
+  golfer (league dropped). A settlement is about the game (league dropped).
+  A recap IS the league's season — the name stays, because the sharer shares
+  the league itself, knowingly.
+- Server-side: share_info stops returning 'league' on round + settlement
+  branches (curated payload — the page never receives it). Skew-safe both
+  directions (client conditionals already guard the key's absence).
