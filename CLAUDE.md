@@ -87,9 +87,12 @@ sections (§2.2, §14.0) when making competition-model decisions.
   **Grants are now explicit (D37, migration `20260718172300`).** Default
   privileges no longer auto-grant EXECUTE to `anon`/`authenticated`, so **every
   new migration MUST `grant execute on function … to authenticated`** for any
-  client-called RPC (and to `anon` only for the six public endpoints:
+  client-called RPC (and to `anon` only for the seven public endpoints:
   `claim_round_info`, `scan_claim_info`, `league_by_code`, `founder_id`,
-  `share_info` — D57, `join_covenant_info` — setup-QA S3-01). A new
+  `share_info` — D57, `join_covenant_info` — setup-QA S3-01,
+  `email_unsubscribe` — D68: an unsubscribe that demands a login is not an
+  unsubscribe; it is fail-closed, takes an unguessable token, and can only
+  ever flip one boolean OFF). A new
   RPC that "silently 403s in prod" is almost always a missing grant. Since
   `20260724150000` anon holds ZERO relation privileges in `public` and the
   table/sequence default-privilege auto-grant to anon is gone (db-checks

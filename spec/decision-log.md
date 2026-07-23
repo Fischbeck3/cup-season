@@ -2119,3 +2119,39 @@ machinery-already-exists. ⚑ marks the points still needing an owner call.*
   "pay" affordance, and nothing the app itself moves.
 - **CONFLICT check:** none with D39 — a record of what friends settled between
   themselves, never a bank. Nothing here holds, moves, or owes money.
+
+### D68 · The season-end email — the ceremony, delivered
+- **Current:** a season ends inside the app. If you don't open Cup Season that
+  week, you learn the result from the group chat or not at all. Push exists but
+  is curated and easily muted; nothing reaches a lapsed member.
+- **Problem:** the run-it-back decision is made in the days AFTER a season
+  closes, and that is exactly when engagement is lowest. The ceremony (D66) is
+  the right content and the wrong channel for someone who isn't opening the app.
+- **Recommendation:** one email per season close, to the league.
+  (a) A queue table written by a TRIGGER on `seasons.status → complete`, so no
+  gameplay function is re-plumbed and a re-close can never double-send (unique
+  on season + kind). A Database Webhook drives the `season-email` Edge
+  Function — the same shape the push webhook already uses.
+  (b) Content is the ceremony: champion, margin, runner-up, points king, the
+  top of the table, and **the recipient's own payout line**. Body is composed
+  server-side by `season_email_payload()` so the function holds no game logic.
+  (c) **Consent is real.** `email_prefs` (opt-out, default on) in its OWN table
+  — deliberately NOT columns on `profiles`, because that table's grant list is
+  sealed and an unsubscribe token readable by a league-mate would let them
+  unsubscribe each other. Every email carries a one-click unsubscribe on an
+  unguessable token.
+- **Principle:** the ending is the product's best artifact, and it should reach
+  people where they are · consent is not a checkbox we assume.
+- **Benefit:** the strongest lever on a second season, aimed at the week it is
+  actually decided.
+- **Tradeoffs:** this opens a SEVENTH anon endpoint (`email_unsubscribe`),
+  breaking a list that has been exactly six since D37. Justified: an
+  unsubscribe that demands a login is not an unsubscribe. It is fail-closed,
+  takes an unguessable token, and can only ever flip one boolean OFF — it
+  cannot enumerate, read, or enable anything. `tests/db-checks.sql` check 2
+  moves 6 → 7 in the same commit, and CLAUDE.md's list is updated with it.
+  Bot and placeholder addresses are filtered so a sandbox league can never mail
+  anyone.
+- **CONFLICT check:** collides with D37's "exactly six anon endpoints", named
+  and accepted above rather than smuggled in. No conflict with D57 — the email
+  carries no ids, and its links are tokens.

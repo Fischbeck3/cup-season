@@ -10608,6 +10608,7 @@ function openProfileHub(){
       <button class="mini" id="phPushTog">Enable on this device</button>
       <button class="mini" id="phRoundsTog">Round pings: —</button>
       <button class="mini" id="phChatTog">Chat pings: —</button>
+      <button class="mini" id="phMailTog">Season email: —</button>
     </div>
     <p class="fine" style="padding-left:0">Moments, reveals, and month closes always come through. Round posts and chat each have their own switch.</p>
 
@@ -10861,6 +10862,24 @@ function openProfileHub(){
     else { CS.profile.notify_chat = next; chatLabel(); }
     chatBtn.disabled = false;
   });
+  /* D68: the season-end email. set_email_recap reads with no argument and
+     writes with one, so the same RPC paints the label and flips it. Skew-safe:
+     before the migration the call fails and the button just hides itself. */
+  const mailBtn = $('#phMailTog');
+  if(mailBtn){
+    const paint = on => { mailBtn.textContent = 'Season email: ' + (on ? 'ON' : 'OFF'); mailBtn.dataset.on = on ? '1' : ''; };
+    sb.rpc('set_email_recap', {}).then(({ data, error }) => {
+      if(error) mailBtn.style.display = 'none'; else paint(data !== false);
+    }).catch(()=>{ mailBtn.style.display = 'none'; });
+    mailBtn.addEventListener('click', async () => {
+      mailBtn.disabled = true;
+      const next = !mailBtn.dataset.on;
+      const { data, error } = await sb.rpc('set_email_recap', { p_on: next });
+      if(error) toast(humanError(error, 'Could not update.'));
+      else paint(data !== false);
+      mailBtn.disabled = false;
+    });
+  }
 }
 $('#whoChip')?.addEventListener('click', openProfileHub);   /* chip retired; guard stays */
 $('#youProfile')?.addEventListener('click', openProfileHub);
@@ -14062,6 +14081,31 @@ async function resumeAfterProfile(){
    token so the page survives refresh + re-share. Fail-closed: any dead token
    renders the same "nothing here" card. Artifact identity is the brand's fixed
    dark face (D30) — the view ignores the viewer's theme. */
+/* D68: one-click unsubscribe. Takes over the whole screen like the share view,
+   because someone arriving here wants ONE thing and should not have to find a
+   setting. Anon-safe: the RPC only ever turns the flag off, and it answers the
+   same whether or not the token was real — nothing to probe. */
+const unsubParam = new URLSearchParams(window.location.search).get('unsub');
+if(unsubParam){
+  window._csShareView = true;   /* reuse the takeover guard: skip the app boot */
+  (async ()=>{
+    let ok = false;
+    try{ const { error } = await sb.rpc('email_unsubscribe', { p_token: unsubParam.trim() }); ok = !error; }
+    catch(_){ ok = false; }
+    const w = document.createElement('div');
+    w.style.cssText = 'position:fixed;inset:0;z-index:99999;background:#0C100D;color:#E8ECE9;display:flex;align-items:center;justify-content:center;padding:24px;text-align:center;font-family:ui-monospace,Menlo,monospace';
+    w.innerHTML = `<div style="max-width:340px">
+      <div style="letter-spacing:.22em;font-size:12px;color:#98A29A">CUP SEASON</div>
+      <div style="font-family:Georgia,serif;font-size:26px;margin:16px 0 8px">${ok?'You&rsquo;re unsubscribed':'That link has expired'}</div>
+      <p style="color:#98A29A;font-size:13px;line-height:1.6;margin:0 0 20px">${ok
+        ? 'No more season-end emails. Your league and your rounds are untouched — this only stops the mail.'
+        : 'Nothing changed. You can turn season emails off any time from the app.'}</p>
+      <a href="/" style="display:inline-block;padding:12px 20px;border-radius:11px;background:#2FA46A;color:#08120C;font-family:-apple-system,Segoe UI,sans-serif;font-weight:600;text-decoration:none;font-size:14px">Open Cup Season</a>
+    </div>`;
+    document.body.appendChild(w);
+  })();
+}
+
 const shareParam = new URLSearchParams(window.location.search).get('share');
 if(shareParam){ window._csShareView = true; renderShareView(shareParam.trim()); }
 window._csShareRender = renderShareView;   /* QA hook: drive the view with a token or a stub payload */
