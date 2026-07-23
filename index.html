@@ -2987,7 +2987,7 @@ html[data-theme="light"] .room-dusk .btn:not(.dark):not(.gold):not(.apple){color
         <div class="roompane" id="room-league">
         <div class="eyebrow league-only" style="margin-top:0">League</div>
         <div class="check league-only"><span class="num"><svg class="ic" aria-hidden="true"><use href="#i-flag"/></svg></span><div class="tt"><b>Members & invites</b><small id="hubMembersSub">7 players</small></div><button class="mini" id="hubMembersBtn">View</button></div>
-        <div class="check league-only"><span class="num">🔗</span><div class="tt"><b>Share the season</b><small>A public page — the standings so far, no account needed</small></div><span style="display:flex;gap:6px;flex:none"><button class="mini" id="hubSeasonShare">Link</button><button class="mini" id="hubSeasonRevoke" title="Revoke the shared link">✕</button></span></div>
+        <div class="check league-only"><span class="num">🔗</span><div class="tt"><b>Share the season</b><small>A public page — the standings so far, no account needed</small></div><span style="display:flex;gap:6px;flex:none"><button class="mini" id="hubSeasonShare">Link</button><button class="mini" id="hubSeasonRevoke" title="Turn off this link — the page stops working for everyone who has it">✕</button></span></div>
         <div class="check"><span class="num"><svg class="ic" aria-hidden="true"><use href="#i-users"/></svg></span><div class="tt"><b>Squads</b><small id="hubDraftSub">Complete · rosters locked</small></div><button class="mini" data-go="draft">View</button></div>
 
         <details class="hubmore league-only" style="margin-bottom:14px">
@@ -3622,13 +3622,13 @@ function buildRealSeries(WKS){
    palette, so a solo field of any size stays legible (the old chart mapped
    every squad-less player onto one color and drew them on top of each other). */
 function climbCut(meta){
-  /* {K, line} — how many advance and what the cup line is called */
+  /* {K, line} — how many advance and what the cut line is called */
   if(meta){
     if(meta.finish==='points_table') return {K:1, line:'CROWN LINE'};
     if(meta.level==='squad' && meta.structure==='squads2') return {K:1, line:'TOP SEED · +10'};
-    return {K:meta.k||2, line:'CUP LINE'};
+    return {K:meta.k||2, line:'CUT LINE'};
   }
-  return {K:2, line:'CUP LINE'};   /* demo / pre-scenarios: matches the standings cutrow */
+  return {K:2, line:'CUT LINE'};   /* demo / pre-scenarios: matches the standings cutrow */
 }
 function climbSpark(arr){
   /* one viewer, one line, one color — gold, like everything else on your rung */
@@ -3883,7 +3883,7 @@ function renderStandings(){
       <td class="num"><span class="dw" style="color:${dwk>=12?'var(--pos)':dwk<0?'var(--neg)':'var(--mut)'}">${dwk>0?'+':''}${dwk}</span></td>
       <td class="num pts">${t.pts}</td>
     </tr>`;
-    if(i===1) html+=`<tr class="cutrow"><td colspan="5">Cup line · top 2 advance</td></tr>`;
+    if(i===1) html+=`<tr class="cutrow"><td colspan="5">Cut line · top 2 advance</td></tr>`;
   });
   flipRows(el, 'data-squad', ()=>{ el.innerHTML=html; });
   /* receipts from the table itself: squads open the squad math, solo rows
@@ -4923,7 +4923,7 @@ async function csRevokeLink(kind, ref){
     if(error) throw error;
     const r2 = await sb.rpc('revoke_share', { p_token: data });
     if(r2.error) throw r2.error;
-    toast('Link revoked — shared copies go dark');
+    toast('Link is off — the page stops working for everyone');
   }catch(e){ toast(humanError(e, 'Could not revoke.')); }
 }
 /* ---- M2 / D17 · the post-round epilogue — the poster hears it first ----
@@ -4988,7 +4988,8 @@ function showEpilogue(epi, course, firstEver, roundId){
      Real rounds only (the diorama publishes nothing). */
   if(epi.gross!=null && roundId && !state.demo)
     rows.push(`<button class="btn dark" id="epiLink" style="width:100%;margin-top:8px">Share a link — no account needed</button>
-      <button class="cs-tskip" id="epiRevoke" type="button" style="width:100%;margin-top:6px">Revoke a shared link</button>`);
+      <button class="cs-tskip" id="epiRevoke" type="button" style="width:100%;margin-top:6px">Turn off this link</button>
+      <p class="fine" style="margin:4px 0 0;text-align:center">The page stops working for everyone who has it. You can share a new link anytime.</p>`);
   openSheet(firstEver?'Welcome to the season ⛳':'Your round', sub, rows.join(''));
   const lk=$('#shBody').querySelector('#epiLink');
   if(lk) lk.addEventListener('click',()=>csShareLink('round', roundId,
@@ -8676,7 +8677,7 @@ const STRUCT_NAMES={solo:'Individual — no squads', squads2:'2 squads', squads3
 const STRUCT_NOTES={
   solo:'Individual · every player for himself — works at any size (4+). No squads; top 2 players meet in the Cup Final in the final four weeks.',
   squads2:'2 squads · fits 4–7 players. Both squads reach the Cup Final; the regular-season leader carries a +10 head start.',
-  squads3:'3 squads · fits 6+. Cup line after 2nd: top 2 advance.',
+  squads3:'3 squads · fits 6+. Cut line after 2nd: top 2 advance.',
   squads4:'4 squads · the full cup experience for 8+ players.',
 };
 /* decision #2: the wizard offers what fits the roster. These are guidance,
