@@ -134,10 +134,23 @@ Deno.serve(async (req) => {
   if (req.headers.get('x-push-secret') !== Deno.env.get('PUSH_WEBHOOK_SECRET')) {
     return new Response('forbidden', { status: 403 });
   }
-  let row: { id?: string; season_id?: string; sent_at?: string | null } = {};
-  try { row = (await req.json())?.record ?? {}; } catch { /* empty body */ }
-  if (!row.id || !row.season_id) return new Response('ok', { status: 200 });
+  // Be liberal in what we accept: a Database Webhook sends {record}, but the
+  // same hook can be wired as a plain HTTP request, and a manual curl sends the
+  // row bare. Never bail SILENTLY — the first live run returned 200 "ok" with
+  // no log line at all, which looked identical to "webhook not wired".
+  let body: Record<string, unknown> | null = null;
+  try { body = await req.json(); } catch { console.log('[season-email] body parse failed / empty'); }
+  const rec = (body?.record ?? body?.new ?? body ?? {}) as
+    { id?: string; season_id?: string; sent_at?: string | null };
+  if (!rec.id || !rec.season_id) {
+    console.log('[season-email] no usable record'
+      + ` topKeys=[${Object.keys(body ?? {}).join(',')}]`
+      + ` recordKeys=[${Object.keys((body?.record ?? {}) as object).join(',')}]`);
+    return new Response('no record', { status: 200 });
+  }
+  const row = rec;
   if (row.sent_at) return new Response('already sent', { status: 200 });
+  console.log(`[season-email] invoked queue=${row.id} season=${row.season_id}`);
 
   const { data, error } = await sb.rpc('season_email_payload', { p_season: row.season_id });
   if (error || !data) {
