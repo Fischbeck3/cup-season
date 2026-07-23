@@ -2038,3 +2038,47 @@ machinery-already-exists. ⚑ marks the points still needing an owner call.*
   stays fabrication-free; the sandbox is founder-only tooling behind a flag,
   invisible to anyone else. §16 immutability holds: rounds are never edited,
   only scrapped with the whole diorama.
+
+### D66 · The ceremony — a season has to END (close presentation + per-person settlement)
+- **Current:** `close_season` writes two all-caps system posts (the story, the
+  pot line) and Home swaps in a "Season wrapped · Run it back" card. The scores
+  that decided the thing exist ONLY inside the post prose — `c1.score`/`c2.score`
+  are computed, rendered into a string, and dropped. The pot is stated by ROLE
+  ("CHAMPS $240"), never by person.
+- **Problem:** the owner played a full season end-to-end in the sandbox and
+  MISSED THE ENDING. On refresh all he saw was the run-it-back emblem and
+  "W6/6 · 0 days left". A season that takes months to play ends in a feed item
+  you scroll past, and it answers neither question anyone actually asks: who
+  won and by how much, and what do I get.
+- **Recommendation:** four parts.
+  (a) A **takeover** on first open after status flips to `complete` — champion
+  big, the margin ("58–50 · by 8"), the tiebreak rung when one decided it,
+  runner-up, points king, then the viewer's OWN line: where they finished and
+  what they are owed.
+  (b) The pot resolves to **PEOPLE**. $240 to a two-golfer squad is $120 each;
+  a golfer who is both champion and points king sees ONE summed number, not two
+  rows. Money answers "what do I get", never "what does my team get".
+  (c) `close_season` **stores** `champion_score` / `runnerup_score` /
+  `tiebreak_rung` as columns instead of only rendering them into prose, so the
+  margin is structured truth that the ceremony, the recap card, and the
+  season-end email all read from ONE place — never parsed back out of a post
+  body.
+  (d) Re-viewable forever from the League Room and the trophy case; "Run it
+  back" sits AFTER the story, earned by it, instead of standing in for it.
+- **Principle:** Memory > Statistics — a season should end like something
+  happened · everything shows its work (§16 extends to the crown itself: the
+  margin and the deciding rung are its receipts) · D39 money posture unchanged
+  (the ledger names who owes whom; the app never holds or moves a cent).
+- **Benefit:** the ending becomes the artifact the league screenshots, and the
+  run-it-back tap follows the feeling instead of replacing it — the single
+  strongest lever on whether a league plays a second season.
+- **Tradeoffs:** a takeover is an interruption — it shows once per member per
+  season, dismisses on tap, and never blocks the app. Per-person money is more
+  legible and therefore more consequential: the split must be exactly the
+  bylaws' arithmetic with its inputs shown, or it invents a debt between
+  friends. Rounding is settled explicitly — shares are computed in cents and
+  any remainder rides with the highest seed, so the parts always sum to the pot.
+- **CONFLICT check:** none with D39 — still a record, never a bank; no
+  "collect" or "pay" affordance, and the settle line stays the D39 wording.
+  Trophy law untouched: `award_season_trophies()` already runs inside
+  `close_season`, so the ceremony READS trophies and never mints them.

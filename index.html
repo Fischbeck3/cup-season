@@ -1918,6 +1918,42 @@ html[data-theme="light"] .room-dusk .stat{
 }
 html[data-theme="light"] .room-dusk .btn:not(.dark):not(.gold):not(.apple){color:#08120C;}
 
+/* ---- D66: the ceremony. A season has to END. Gold is EARNED here and only
+   here -- the champion's name and the points king. Everything around it stays
+   quiet so the one bright thing reads. */
+.cerwrap{text-align:center; padding:6px 2px 2px;}
+.cerkick{font-family:var(--mono); font-size:10px; letter-spacing:.16em;
+  text-transform:uppercase; color:var(--mut); margin-bottom:10px;}
+.cerchamp{font-family:var(--serif,Georgia,serif); font-size:40px; line-height:1.04;
+  color:var(--gold); text-wrap:balance; margin:0 0 4px;}
+.cersub{font-size:14px; color:var(--ink); opacity:.86; margin-bottom:12px;}
+.cermargin{font-family:var(--mono); font-size:22px; color:var(--ink); letter-spacing:.02em;}
+.cermargin small{display:block; font-size:10px; letter-spacing:.14em; text-transform:uppercase;
+  color:var(--mut); margin-top:3px;}
+.certag{font-family:var(--mono); font-size:10px; letter-spacing:.12em; text-transform:uppercase;
+  color:var(--mut); margin-top:6px;}
+.cerrow{display:flex; justify-content:space-between; align-items:baseline; gap:12px;
+  padding:7px 0; border-bottom:1px solid var(--line);}
+.cerrow:last-child{border-bottom:0;}
+.cerrow .k{font-family:var(--mono); font-size:10px; letter-spacing:.12em;
+  text-transform:uppercase; color:var(--mut);}
+.cerrow .v{font-size:14px; color:var(--ink);}
+.cerrow .v.gold{color:var(--gold);}
+.cerblock{text-align:left; margin-top:16px; padding:12px 14px;
+  background:var(--bg1); border:1px solid var(--line); border-radius:12px;}
+.cerblock h4{margin:0 0 2px; font-size:13px; color:var(--ink);}
+.cerblock .fine{margin:0 0 8px;}
+.cerpay{display:flex; justify-content:space-between; align-items:baseline; gap:10px; padding:6px 0;}
+.cerpay + .cerpay{border-top:1px solid var(--line);}
+.cerpay .who{font-size:14px; color:var(--ink);}
+.cerpay .why{display:block; font-family:var(--mono); font-size:9.5px; letter-spacing:.1em;
+  text-transform:uppercase; color:var(--dim); margin-top:2px;}
+.cerpay .amt{font-family:var(--mono); font-size:15px; color:var(--ink); white-space:nowrap;}
+.ceryou{margin-top:14px; padding:12px 14px; border-radius:12px;
+  background:var(--glow); border:1px solid var(--brand); text-align:left;}
+.ceryou b{display:block; font-size:15px; color:var(--ink);}
+.ceryou small{color:var(--mut);}
+
 /* Batch C: scorecard-shaped skeletons while the feed loads — never a spinner */
 .skrow{display:flex; align-items:center; gap:12px; background:var(--bg1);
   border:1px solid var(--line); border-radius:var(--r); padding:13px 14px; margin-bottom:8px;}
@@ -3896,6 +3932,16 @@ function renderStandings(){
       } else showSquad(r.dataset.squad);
     }));
   window.renderScenarioLine && window.renderScenarioLine();   /* clinch line rides under the table (D24) */
+  /* D66: a finished season keeps its ending one tap away — the ceremony shows
+     once on its own, but it is an artifact, not an interruption you can lose */
+  if(!state.demo && window.CS?.season?.status==='complete'){
+    const host=$('#standingsStory');
+    if(host && !document.getElementById('cerReopen')){
+      host.insertAdjacentHTML('afterend',
+        `<button class="mini" id="cerReopen" type="button" style="margin-top:8px">See how it ended</button>`);
+      document.getElementById('cerReopen')?.addEventListener('click',()=>window.openSeasonCeremony?.(true));
+    }
+  }
 }
 
 /* ================= feed ================= */
@@ -8451,6 +8497,126 @@ function markCounting(rows){
   });
   return rows;
 }
+/* ================= D66: the ceremony — a season has to END ================
+   A season takes months to play and used to end in a system post you scrolled
+   past. On the first open after status flips to complete, the league gets a
+   takeover that answers the only two questions anyone asks: who won and by how
+   much, and what do I get. Re-openable forever from the League Room. */
+function csMoney(cents){
+  const v=(cents||0)/100;
+  return '$' + (Math.round(v*100)%100===0 ? String(Math.round(v)) : v.toFixed(2));
+}
+/* even split in CENTS; the remainder rides with the earliest seats so the
+   parts always sum to the whole — money between friends never loses a penny */
+function csSplitCents(total, n){
+  if(n<=0) return [];
+  const base=Math.floor(total/n); let rem=total-base*n;
+  return Array.from({length:n}, ()=>{ const c=base+(rem>0?1:0); if(rem>0) rem--; return c; });
+}
+/* the bylaws' arithmetic resolved to PEOPLE (D66). "$240 to the champs" is
+   useless to a human — $120 each is the number they came for. Someone who is
+   both champion and points king gets ONE summed line, never two rows. */
+function csSettlement(){
+  const S=window.CS?.season; if(!S) return null;
+  const members=window.CS?.members||[], squads=window.CS?.squads||[];
+  const solo=(state.structure==='solo');
+  const potCents=Math.round((state.stake||0)*100)*members.length;
+  const pay=state.payout||[60,25,15];
+  const runnerC=Math.round(potCents*(pay[1]||0)/100);
+  const kingC  =Math.round(potCents*(pay[2]||0)/100);
+  const champC =Math.max(0, potCents-runnerC-kingC);   /* champion absorbs the remainder */
+  const byId=id=>members.find(m=>m.id===id);
+  const sqName=sid=>(squads.find(s=>s.id===sid)||{}).name||'';
+  const sqIds=sid=>((squads.find(s=>s.id===sid)||{}).squad_members||[]).map(r=>r.member_id);
+  const tally=new Map();
+  const add=(mid,cents,why)=>{
+    const m=byId(mid); if(!m) return;
+    const k=m.profile_id||m.id;
+    const row=tally.get(k)||{m, name:m.profile?.display_name||'A golfer', cents:0, why:[]};
+    row.cents+=cents; if(why && !row.why.includes(why)) row.why.push(why);
+    tally.set(k,row);
+  };
+  const champIds = solo ? (S.champion_member_id?[S.champion_member_id]:[]) : sqIds(S.champion_squad_id);
+  const runIds   = solo ? (S.runnerup_member_id?[S.runnerup_member_id]:[]) : sqIds(S.runnerup_squad_id);
+  csSplitCents(champC, champIds.length).forEach((c,i)=>add(champIds[i],c,'Cup champion'));
+  csSplitCents(runnerC, runIds.length).forEach((c,i)=>add(runIds[i],c,'Runner-up'));
+  if(S.points_king_member_id) add(S.points_king_member_id, kingC, 'Points king');
+  const meId=window.CS?.user?.id;
+  const rows=[...tally.values()].sort((a,b)=>b.cents-a.cents);
+  return {
+    potCents, rows,
+    champName: solo ? (byId(S.champion_member_id)?.profile?.display_name||'The champion')
+                    : (sqName(S.champion_squad_id)||'The champion'),
+    runName:   solo ? (byId(S.runnerup_member_id)?.profile?.display_name||'')
+                    : sqName(S.runnerup_squad_id),
+    kingName:  byId(S.points_king_member_id)?.profile?.display_name||'',
+    mine: rows.find(r=>r.m.profile_id===meId)||null,
+    s1:S.champion_score, s2:S.runnerup_score, rung:S.tiebreak_rung
+  };
+}
+function openSeasonCeremony(force){
+  const S=window.CS?.season;
+  if(state.demo || !S || S.status!=='complete') return false;
+  const key='cs_cer_'+S.id;
+  if(!force){ try{ if(localStorage.getItem(key)) return false; }catch(_){ } }
+  const st=csSettlement(); if(!st) return false;
+  const n=v=>v==null?'':(Number(v)===Math.floor(Number(v))?String(Math.round(v)):Number(v).toFixed(1));
+  const cup=(state.finish||'cup_final')==='cup_final';
+  const margin=(st.s1!=null&&st.s2!=null)?Math.round((st.s1-st.s2)*10)/10:null;
+  const scoreLine = (st.s1!=null&&st.s2!=null)
+    ? `<div class="cermargin">${n(st.s1)}–${n(st.s2)}
+         <small>${margin>0?`by ${n(margin)}`:'level — the ladder decided it'}</small></div>` : '';
+  const payHtml = st.rows.length && st.potCents>0 ? `
+    <div class="cerblock">
+      <h4>The pot — ${csMoney(st.potCents)}</h4>
+      <p class="fine">${(window.CS?.members||[]).length} golfers · what each is owed</p>
+      ${st.rows.map(r=>`<div class="cerpay"><div class="who">${esc(r.name)}
+        <span class="why">${r.why.map(esc).join(' + ')}</span></div>
+        <div class="amt">${csMoney(r.cents)}</div></div>`).join('')}
+      ${(()=>{ /* a share with no eligible finisher (an empty squad) must not
+          silently vanish — the parts always visibly add up to the pot (§16) */
+        const paid=st.rows.reduce((a,r)=>a+r.cents,0), short=st.potCents-paid;
+        return short>0 ? `<div class="cerpay"><div class="who">Unclaimed
+          <span class="why">no eligible finisher</span></div>
+          <div class="amt">${csMoney(short)}</div></div>` : ''; })()}
+      <p class="fine" style="margin:10px 0 0">Cup Season keeps the books. Money moves
+        friend-to-friend — we just make sure nobody argues at the bar.</p>
+    </div>` : '';
+  const mineHtml = st.mine ? `
+    <div class="ceryou"><b>You're owed ${csMoney(st.mine.cents)}</b>
+      <small>${st.mine.why.map(esc).join(' + ')}</small></div>` : '';
+  const html = `
+    <div class="cerwrap">
+      <div class="cerkick">Season complete</div>
+      <div class="cerchamp">${esc(st.champName)}</div>
+      <div class="cersub">${cup?'take the Cup Final':'take the Cup'}</div>
+      ${scoreLine}
+      ${st.rung?`<div class="certag">decided on ${esc(st.rung)}</div>`:''}
+      <div class="cerblock">
+        ${st.runName?`<div class="cerrow"><span class="k">Runner-up</span><span class="v">${esc(st.runName)}</span></div>`:''}
+        ${st.kingName?`<div class="cerrow"><span class="k">Points king</span><span class="v gold">${esc(st.kingName)}</span></div>`:''}
+      </div>
+      ${mineHtml}
+      ${payHtml}
+      <button class="btn" id="cerRunBack" type="button" style="width:100%;margin-top:16px">Run it back — Season 2</button>
+      <button class="cs-tskip" id="cerDone" type="button" style="width:100%;margin-top:6px">Close</button>
+    </div>`;
+  openSheet(cup?'The Cup Final':'The season', '', html);
+  $('#sheet')?.classList.add('room-dusk');   /* ceremonies re-add the dusk floor */
+  try{ localStorage.setItem(key,'1'); }catch(_){ }
+  const rb=$('#shBody').querySelector('#cerRunBack');
+  if(rb) rb.addEventListener('click',()=>{
+    closeSheet();
+    /* the same handler Home's run-it-back card uses — never a DOM click on a
+       button that may not be rendered on the current view */
+    window.runItBack?.(window.CS?.league);
+  });
+  const dn=$('#shBody').querySelector('#cerDone');
+  if(dn) dn.addEventListener('click',()=>closeSheet());
+  return true;
+}
+window.openSeasonCeremony=openSeasonCeremony;
+
 function openSheet(title, sub, bodyHtml){
   $('#shTitle').textContent=title;
   $('#shSub').textContent=sub;
@@ -10891,9 +11057,22 @@ async function enterLeague(m, nav=true){
   try { applyBylaws(await loadBylaws(m.league.id)); } catch(e){ /* setup phase: none yet */ }
   bootStep = 'season-dates';
   try {
-    const { data: season } = await sb.from('seasons')
-      .select('id, number, starts_on, ends_on, status').eq('league_id', m.league.id)
+    /* D66: the result columns carry the ceremony (champion, margin, the rung
+       that decided it). Netlify can ship this client before the migration —
+       ANY error drops back to the legacy shape (never sniff the message: a
+       missing column on a sealed table doesn't name itself). */
+    const SEASON_COLS = 'id, number, starts_on, ends_on, status, champion_squad_id, '
+      + 'champion_member_id, runnerup_squad_id, runnerup_member_id, points_king_member_id, '
+      + 'champion_score, runnerup_score, tiebreak_rung';
+    let { data: season, error: sErr } = await sb.from('seasons')
+      .select(SEASON_COLS).eq('league_id', m.league.id)
       .order('number', { ascending:false }).limit(1).maybeSingle();
+    if(sErr){
+      try{ console.warn('[season] result columns unavailable, retrying legacy:', sErr.message||sErr); }catch(_){}
+      ({ data: season } = await sb.from('seasons')
+        .select('id, number, starts_on, ends_on, status').eq('league_id', m.league.id)
+        .order('number', { ascending:false }).limit(1).maybeSingle());
+    }
     if(season){
       CS.season = season;
       state.seasonStart = season.starts_on; state.seasonEnd = season.ends_on;
@@ -11000,6 +11179,10 @@ async function loadLeagueData(){
   loadCareer();                 /* lifetime line is cross-league too */
   loadStakes();                 /* D64: the league's forfeit ledger (fire-and-forget) */
   loadLastRoundWith();          /* D63: the reunion whisper (profile-global, quiet) */
+  /* D66: a finished season announces itself ONCE per member, after the room's
+     data is in (squads + members are the settlement's inputs). Never blocks
+     the app — it's a sheet, it dismisses, and the League Room can re-open it. */
+  if(CS.season?.status === 'complete') setTimeout(()=>window.openSeasonCeremony?.(false), 400);
   if(CS.league?.phase === 'setup' || state.phase === 'setup') renderWizAddGolfers();
 }
 
