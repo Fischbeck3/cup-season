@@ -10,6 +10,8 @@ cupseason.app.
 **Owner:** Jerecho (Tempe, AZ) — runs PIGL, the beta league; ~12 index.
 **Spec:** `spec/spec-v1.0.md` is the source of truth for every rule. Cite
 sections (§2.2, §14.0) when making competition-model decisions.
+**OS layer:** `../StudioOS` — role modes (/cto, /pm, /support, /release,
+/growth, /docs), briefings (/start-day, /end-day), doc map at `docs/doc-map.md`.
 
 ---
 
