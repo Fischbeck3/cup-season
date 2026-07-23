@@ -153,6 +153,22 @@ edge months** (blanket rule, decided). League timezone default
   on message sniffing (photo_path took boot down to the card gate,
   2026-07-23; check 9 now asserts every non-email column is granted).
 
+- **A new Database Webhook silently defaults to the WRONG Edge Function.**
+  The `season_email` hook (D68) was created on the right table with the right
+  header but pointing at `push`, and it took several round trips to see it.
+  Every symptom said "working": pg_net logged HTTP **200** with body **`ok`**,
+  because `push` returns a bare `ok` on any payload it doesn't recognise (six
+  separate paths do). Meanwhile the intended function showed ZERO invocations —
+  which reads identically to "webhook not wired yet". Rule: after creating any
+  webhook, verify the TARGET from the database, not the dashboard —
+  `select pg_get_triggerdef(oid) from pg_trigger where tgrelid =
+  'public.<table>'::regclass and not tgisinternal` — and read the URL's tail.
+  Corollary for every new webhook-driven function: never return a bare `ok`,
+  and log every invocation, so a misroute is distinguishable from a no-op.
+  **`pg_get_triggerdef` prints webhook headers IN PLAINTEXT**, including
+  `x-push-secret` — mask it before pasting anywhere:
+  `regexp_replace(pg_get_triggerdef(oid), '"x-push-secret":"[^"]*"',
+  '"x-push-secret":"***"')`.
 - **Gmail's link scanner consumes single-use magic-link tokens** before the
   user clicks. Never reintroduce links or `emailRedirectTo`; code-only OTP.
 - **Never call Supabase auth methods synchronously inside `onAuthStateChange`**
