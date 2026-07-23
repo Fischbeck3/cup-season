@@ -1918,6 +1918,22 @@ html[data-theme="light"] .room-dusk .stat{
 }
 html[data-theme="light"] .room-dusk .btn:not(.dark):not(.gold):not(.apple){color:#08120C;}
 
+/* ---- #14: once the season is live, the room LEADS WITH THE RACE. The stat
+   strip, "next up" and the pot line are all week-12 furniture the owner had to
+   scroll ~1000px past to answer "who has how many points". Ordering only --
+   no DOM surgery -- so every renderer keeps its element IDs and its handlers. */
+#homeSeason.raceled{display:flex; flex-direction:column;}
+#homeSeason.raceled > #kickoffHero{order:0;}
+#homeSeason.raceled > #liveBanner{order:1;}   /* a live round outranks the table */
+#homeSeason.raceled > .homegrid{order:2;}     /* the climb + the standings */
+#homeSeason.raceled > .stats{order:3;}
+#homeSeason.raceled > .nextcard{order:4;}
+#homeSeason.raceled > .ontheline{order:5;}
+#roomFooter{margin-top:20px; padding-top:14px; border-top:1px solid var(--line);
+  display:flex; gap:8px; align-items:center; flex-wrap:wrap;}
+#roomFooter:empty{display:none;}
+#hhAddSlot:empty{display:none;}
+
 /* ---- D66: the ceremony. A season has to END. Gold is EARNED here and only
    here -- the champion's name and the points king. Everything around it stays
    quiet so the one bright thing reads. */
@@ -2842,14 +2858,14 @@ html[data-theme="light"] .room-dusk .btn:not(.dark):not(.gold):not(.apple){color
         <div class="card league-only" id="hubHeader" style="margin-bottom:14px">
           <div style="display:flex; align-items:center; gap:10px;">
             <div style="min-width:0"><b id="hhName" style="font-size:16px">The Sunday Cup</b><div class="fine" id="hhPhase" style="padding:2px 0 0">Season live</div></div>
-            <button class="mini copycode" style="margin-left:auto; flex:none">Code · <b class="mono" id="hhCode">SNDYCUP</b></button>
+            <span id="hhCodeSlot" style="margin-left:auto; flex:none"><button class="mini copycode">Code · <b class="mono" id="hhCode">SNDYCUP</b></button></span>
           </div>
           <div class="fine" id="hhSpan" style="padding:8px 0 0">Sun Jul 5 → Sat Dec 26 · 25 wks</div>
           <div class="fine" id="hhPro" style="padding:2px 0 0">THE PRO · JERECHO</div>
           <!-- pilot: "league no longer has ability to add people" — an unlocked
                league showed no add path at all. This button always works; the
                picker's footer offers the share link. -->
-          <button class="mini" id="hhAdd" style="margin-top:10px">Add golfers</button>
+          <div id="hhAddSlot" style="margin-top:10px"><button class="mini" id="hhAdd">Add golfers</button></div>
           <div class="fine" id="hhDanger" style="display:none; padding:8px 0 0"><a href="#" id="hhDelete" style="color:var(--neg)">Cancel &amp; delete this league</a> (only possible before the first tee)</div>
         </div>
 
@@ -2962,6 +2978,11 @@ html[data-theme="light"] .room-dusk .btn:not(.dark):not(.gold):not(.apple){color
           <table class="tbl" id="indTable"></table>
         </div>
         <p class="fine league-only">Points King takes <span id="kingPct">15</span>% of the pot at season's end. Most Improved is index drop since Week 1; Iron Man is most rounds posted. All three run in parallel with the squad race — bylaws §4.</p>
+        <!-- #14: once the season is live, setup tools live down here. The join
+             code and Add golfers are MOVED into this footer (never cloned — the
+             same nodes keep their handlers) and moved back if the room returns
+             to setup. -->
+        <div id="roomFooter" class="league-only"></div>
         </div><!-- /room-standings -->
 
         <div class="roompane" id="room-schedule">
@@ -9010,7 +9031,25 @@ function renderPhase(){
   const nMem=(window.CS?.members||[]).length;
   $('#homeSetup').style.display  = p==='setup' ? 'block':'none';
   $('#homeDraft').style.display  = p==='draft' ? 'block':'none';
-  $('#homeSeason').style.display = p==='season'? 'block':'none';
+  /* #14: order the room by phase. A live season leads with the race; the join
+     code and Add golfers belong to setup, so they move to the room's footer
+     (moved, never cloned — the same nodes keep their listeners) and come back
+     if you switch to a league that hasn't teed off. */
+  const raceLed = p==='season' && !state.demo;
+  /* this inline display MUST agree with .raceled's flex: an inline `block`
+     silently outranks the class, the children stop being flex items, and every
+     `order` above becomes decoration that computes but never moves anything */
+  $('#homeSeason').style.display = p==='season' ? (raceLed?'flex':'block') : 'none';
+  $('#homeSeason')?.classList.toggle('raceled', raceLed);
+  const foot=$('#roomFooter');
+  if(foot){
+    const codeBtn = document.querySelector('#hubHeader .copycode') || foot.querySelector('.copycode');
+    const addBtn  = $('#hhAdd');
+    const cs=$('#hhCodeSlot'), as=$('#hhAddSlot');
+    const park=(el,host)=>{ if(el && host && el.parentElement!==host) host.appendChild(el); };
+    if(raceLed){ park(codeBtn, foot); park(addBtn, foot); }
+    else       { park(codeBtn, cs);   park(addBtn, as);   }
+  }
   $('#phaseSub').textContent = p==='setup'
     ? (L ? `SETUP · CODE ${L.code} · ${nMem} JOINED` : 'SETUP · CODE SNDYCUP · 9 OF 16 JOINED')
     : p==='draft' ? 'Squad formation · rosters pending'
