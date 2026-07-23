@@ -2082,3 +2082,40 @@ machinery-already-exists. ⚑ marks the points still needing an owner call.*
   "collect" or "pay" affordance, and the settle line stays the D39 wording.
   Trophy law untouched: `award_season_trophies()` already runs inside
   `close_season`, so the ceremony READS trophies and never mints them.
+
+### D67 · The career record — what you've won, and what it paid
+- **Current:** `trophies` already records every title with a placement
+  (`winner` / `runner_up` / `points_king`, league · major · event), but nothing
+  aggregates them — `window.career` is rounds-only (count, best differential,
+  average). Money is computed on the client at ceremony time and then
+  forgotten: nothing anywhere records what a season actually paid.
+- **Problem:** the pilot wants career earnings and bragging rights on the
+  golfer card. Two obstacles. There is no aggregate record to read; and
+  recomputing historical payouts is APPROXIMATE, because the pot depends on the
+  member count at the time and rosters change — a recomputed dollar figure
+  would silently drift as people join or leave. An approximate money number
+  between friends is worse than no number at all.
+- **Recommendation:**
+  (a) Record the settlement as FACT at close. `season_payouts` (season,
+  profile, cents, reason) is written by `award_season_trophies()`, which
+  already resolves the placements and already runs inside `close_season` — so
+  no gameplay function is re-plumbed to get it.
+  (b) `career_record()` returns titles + an EXACT sum of recorded payouts.
+  Never a re-derivation.
+  (c) The card LEADS WITH TITLES — cups, crowns, majors, runner-up finishes —
+  and carries the money as a secondary line in D39's frame.
+- **Principle:** everything shows its work (§16) — a career figure must be a
+  sum of recorded facts, not a recomputation that can disagree with what the
+  league was told on the day · Memory > Statistics: the card is a record of
+  what you have won, not a dashboard.
+- **Benefit:** bragging rights that survive roster churn and outlive any single
+  league, and the ceremony's numbers become server truth rather than a
+  per-device calculation.
+- **Tradeoffs:** only seasons closed from here forward get payout rows. Earlier
+  completed seasons show their titles with no money attached — honest, and in
+  practice there is one such season. A running dollar tally is also the surface
+  most likely to read as a wagering ledger to an app reviewer, which is exactly
+  why titles lead, the D39 wording stays verbatim, and there is no balance, no
+  "pay" affordance, and nothing the app itself moves.
+- **CONFLICT check:** none with D39 — a record of what friends settled between
+  themselves, never a bank. Nothing here holds, moves, or owes money.

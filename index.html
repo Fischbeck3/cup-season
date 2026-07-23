@@ -1918,6 +1918,21 @@ html[data-theme="light"] .room-dusk .stat{
 }
 html[data-theme="light"] .room-dusk .btn:not(.dark):not(.gold):not(.apple){color:#08120C;}
 
+/* ---- D67: the record. Titles lead and carry the gold (they are EARNED);
+   the money sits underneath, quiet, in D39's frame. */
+.recgrid{display:flex; flex-wrap:wrap; gap:8px;}
+.rec{flex:1 1 84px; min-width:84px; padding:9px 10px; border:1px solid var(--line);
+  border-radius:10px; background:var(--bg1); text-align:center;}
+.rec b{display:block; font-family:var(--serif,Georgia,serif); font-size:26px;
+  line-height:1; color:var(--gold);}
+.rec span{display:block; margin-top:4px; font-family:var(--mono); font-size:9px;
+  letter-spacing:.12em; text-transform:uppercase; color:var(--mut);}
+.recmoney{display:flex; justify-content:space-between; align-items:baseline; gap:12px;
+  margin-top:12px; padding-top:10px; border-top:1px solid var(--line);}
+.recmoney b{font-family:var(--mono); font-size:19px; color:var(--ink);}
+.recmoney small{display:block; font-family:var(--mono); font-size:9.5px;
+  letter-spacing:.1em; text-transform:uppercase; color:var(--mut); margin-top:2px;}
+
 /* ---- #14: once the season is live, the room LEADS WITH THE RACE. The stat
    strip, "next up" and the pot line are all week-12 furniture the owner had to
    scroll ~1000px past to answer "who has how many points". Ordering only --
@@ -2412,6 +2427,11 @@ html[data-theme="light"] .room-dusk .btn:not(.dark):not(.gold):not(.apple){color
         <!-- D63: last round with — the reunion whisper. Threshold-fired only,
              one name, in-app only; dismiss is 90 days of quiet (device-local). -->
         <div id="lrwCard" style="margin-bottom:14px"></div>
+        <!-- D67: the record — what you've WON. Titles lead; the money is a
+             secondary line in D39's frame (a record of what friends settled
+             between themselves, never a balance the app holds). -->
+        <div class="eyebrow">The record</div>
+        <div class="card" id="careerRecord" style="text-align:left; padding:12px 14px; margin-bottom:14px"></div>
         <div class="eyebrow">Lifetime</div>
         <div class="stats">
           <div class="stat"><div class="k">Rounds posted</div><div class="v" id="clR">—</div><div class="d fl">All time</div></div>
@@ -8335,6 +8355,41 @@ function emptyState(o){
     + `<p class="fine" style="padding:0; color:var(--mut); max-width:34ch; margin:0 auto">${esc(o.line||'')}</p>${cta}</div>`;
 }
 window.emptyState = emptyState;
+/* D67: the record — what you've won, and what it paid. Titles lead; zero-count
+   titles are omitted rather than shown as a wall of noughts. The money is an
+   exact sum of recorded payouts (season_payouts), never a recomputation. */
+function renderCareerRecord(){
+  const el=$('#careerRecord'); if(!el) return;
+  const r = state.demo
+    ? { cups:2, runner_ups:1, crowns:1, majors:0, events:1,
+        earnings_cents:36000, seasons_done:3, leagues:2 }
+    : window.careerRec;
+  if(!r){
+    el.innerHTML = `<p class="fine" style="margin:0">Your record fills in when a season closes.</p>`;
+    return;
+  }
+  const items = [['cups','Cup','Cups'], ['crowns','Points crown','Points crowns'],
+                 ['majors','Major','Majors'], ['events','Event','Events'],
+                 ['runner_ups','Runner-up','Runner-ups']]
+    .map(([k,one,many]) => ({ n:Number(r[k]||0), one, many }))
+    .filter(x => x.n>0);
+  const titles = items.length
+    ? `<div class="recgrid">${items.map(i=>
+        `<div class="rec"><b>${i.n}</b><span>${esc(i.n===1?i.one:i.many)}</span></div>`).join('')}</div>`
+    : `<p class="fine" style="margin:0">No silverware yet — every season starts level.</p>`;
+  const cents = Number(r.earnings_cents||0);
+  const done  = Number(r.seasons_done||0);
+  /* D39 verbatim posture: a record of what friends settled between themselves.
+     No balance, nothing owed to or by the app, no affordance to move a cent. */
+  const money = cents>0 ? `
+    <div class="recmoney">
+      <div><b>${csMoney(cents)}</b><small>Settled across ${done} season${done===1?'':'s'}</small></div>
+    </div>
+    <p class="fine" style="margin:8px 0 0">What your friends settled with you. Cup Season keeps the books — never the money.</p>` : '';
+  el.innerHTML = titles + money;
+}
+window.renderCareerRecord = renderCareerRecord;
+
 function renderCareer(){
   const c = state.demo
     ? { rounds:42, best:4.8, avg:1.2, played:3, recent:[
@@ -8377,6 +8432,7 @@ function renderCareer(){
 $('#youPost')?.addEventListener('click', ()=> switchView('record'));
 function renderIndStats(){
   renderTrophyCase();
+  renderCareerRecord();
   renderCareer();
   /* the demo's Tour Card must show a golfer, not a blank "Your card / —"
      (real accounts fill this from CS.profile via refreshWhoChip) */
@@ -11262,6 +11318,7 @@ async function loadLeagueData(){
   renderFormation();
   loadTrophies();               /* the case is user-global, refresh it in-league too */
   loadCareer();                 /* lifetime line is cross-league too */
+  loadCareerRecord();           /* D67: a closed season anywhere changes the record */
   loadStakes();                 /* D64: the league's forfeit ledger (fire-and-forget) */
   loadLastRoundWith();          /* D63: the reunion whisper (profile-global, quiet) */
   /* D66: a finished season announces itself ONCE per member, after the room's
@@ -13087,6 +13144,22 @@ async function loadTrophies(){
 window.loadTrophies = loadTrophies;
 /* lifetime line — computed client-side from the profile's rounds (PvI at 100%
    allowance = index_at_post − differential), plus league/event counts. No RPC. */
+/* D67: titles + an exact sum of recorded payouts. Skew-safe — before the
+   migration lands the RPC simply isn't there and the card says so. */
+async function loadCareerRecord(){
+  if(!CS.user){ window.careerRec = null; window.renderCareerRecord?.(); return; }
+  try{
+    const { data, error } = await sb.rpc('career_record');
+    if(error) throw error;
+    window.careerRec = data || null;
+  }catch(e){
+    try{ console.warn('[career_record] unavailable:', e.message||e); }catch(_){}
+    window.careerRec = window.careerRec || null;
+  }
+  window.renderCareerRecord?.();
+}
+window.loadCareerRecord = loadCareerRecord;
+
 async function loadCareer(){
   if(!CS.user){ window.career = null; if(window.renderCareer) window.renderCareer(); return; }
   try{
@@ -13739,6 +13812,7 @@ function showWelcome(){
   loadLeagueRecord();
   loadTrophies();
   loadCareer();
+  loadCareerRecord();           /* D67: titles + what they paid (user-global) */
   renderIndStats();
   loadCourseMemory();
   loadPulse();                          /* role-aware Home: month participation pulse */
