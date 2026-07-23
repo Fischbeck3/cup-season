@@ -3969,6 +3969,45 @@ function renderStandings(){
 /* server bodies arrive ALL CAPS (scoreboard voice). On the feed they read
    like code — ease them into a sentence: lowercase, capitalize the opener.
    Mixed-case strings (chat, announcements) pass through untouched. */
+/* ---- the name registry (#13). Capitals-as-data destroy a name: the server
+   stores "SANDY WEDGE'S BUY-IN IS IN", easeCaps can only restore the SENTENCE
+   opener, and the surname is lost forever ("Sandy wedge's"). No amount of
+   cleverness recovers a proper noun from an all-caps source — the information
+   is simply gone. So the client keeps a registry of names it has actually seen
+   (rosters, squads, you) and restores those.
+   Deliberately MULTI-WORD ONLY: "Sandy Wedge" as a unit is essentially never a
+   false positive, whereas a single first name would capitalize the common word
+   that shares it ("chip in" -> "Chip in"). Single names already survive at a
+   sentence start, which is where they nearly always sit.
+   Fixing this on the client rather than in the ~20 SQL generators is also the
+   only fix that reaches posts ALREADY WRITTEN — every historical body is
+   all-caps in the database and no server change can retroactively repair it. */
+window.csNames = window.csNames || new Map();   /* lowercased -> canonical */
+let _csNameRx = null;                            /* null = rebuild, false = none */
+function csLearnNames(list){
+  let changed = false;
+  (list||[]).forEach(n=>{
+    n = String(n==null?'':n).trim();
+    if(n.length>2 && n.indexOf(' ')>0 && !window.csNames.has(n.toLowerCase())){
+      window.csNames.set(n.toLowerCase(), n); changed = true;
+    }
+  });
+  if(changed) _csNameRx = null;
+}
+window.csLearnNames = csLearnNames;
+function csNameRx(){
+  if(_csNameRx !== null) return _csNameRx;
+  const keys = [...window.csNames.keys()].sort((a,b)=>b.length-a.length);
+  _csNameRx = keys.length
+    ? new RegExp('(' + keys.map(k=>k.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')).join('|') + ')', 'gi')
+    : false;
+  return _csNameRx;
+}
+
+/* ================= feed ================= */
+/* server bodies arrive ALL CAPS (scoreboard voice). On the feed they read
+   like code — ease them into a sentence: lowercase, capitalize the opener.
+   Mixed-case strings (chat, announcements) pass through untouched. */
 const easeCaps = s => {
   if(!s || s !== s.toUpperCase()) return s;
   let t = s.toLowerCase();
@@ -3978,6 +4017,8 @@ const easeCaps = s => {
                 m=>m[0].toUpperCase()+m.slice(1));                             /* days & months */
   t = t.replace(/\b(with|vs|to)\s+([a-z])/gi, (m,w,c)=>w+' '+c.toUpperCase()); /* names after with/vs/to */
   t = t.replace(/&\s+([a-z])/g, (m,c)=>'& '+c.toUpperCase());                  /* names after & */
+  const rx = csNameRx();   /* last: restore the proper nouns we actually know */
+  if(rx) t = t.replace(rx, m => window.csNames.get(m.toLowerCase()) || m);
   return t;
 };
 /* ---------- reactions + comments: the board's social spine ----------
@@ -9895,6 +9936,7 @@ async function loadProfile(){
   }
   const data = q.data;
   CS.profile = data || null;
+  window.csLearnNames?.([data?.display_name]);   /* #13: your own name, everywhere you appear */
   /* own avatar into the one shared map (marker floor if any step fails) */
   window.avatarUrl = window.avatarUrl || {};
   if(data?.photo_path){
@@ -11187,6 +11229,9 @@ async function loadLeagueData(){
   CS.members = mq.data || [];
   /* effective marker: league override → profile choice → floor */
   CS.members.forEach(m => { m.mk = m.marker || m.profile?.marker || 'saguaro'; });
+  /* #13: teach the feed this league's proper nouns, so the server's all-caps
+     bodies stop rendering "Sandy wedge" once easeCaps has lowercased them */
+  window.csLearnNames?.(CS.members.map(m => m.profile?.display_name));
   /* one batched signing per league load: every member avatar for the hour.
      Failures leave the marker floor — no gray-silhouette state exists. */
   window.avatarUrl = window.avatarUrl || {};
@@ -11208,6 +11253,7 @@ async function loadLeagueData(){
       .select('id, name, color, captain_member_id, squad_members(member_id)')
       .eq('season_id', CS.season.id).order('name');
     CS.squads = sq || [];
+    window.csLearnNames?.(CS.squads.map(s => s.name));   /* "Squad 4", team names */
     const { data: bi } = await sb.from('buy_ins')
       .select('member_id, paid, amount_cents').eq('season_id', CS.season.id);
     window.buyIns = Object.fromEntries((bi||[]).map(r => [r.member_id, r]));
@@ -13149,6 +13195,9 @@ async function loadHome(){
   } catch(e){ window.leagueEnds = window.leagueEnds||{}; }
   try { const { data } = await sb.rpc('home_feed', { p_days: 21 }); window.homeFeedRows = data || []; }
   catch(e){ window.homeFeedRows = window.homeFeedRows||[]; }
+  /* #13: courses and cross-league names shout too — the circle feed is the one
+     place the client sees golfers from leagues it hasn't loaded a roster for */
+  window.csLearnNames?.((window.homeFeedRows||[]).flatMap(r => [r.course_label, r.course, r.golfer, r.display_name]));
   /* photos arc 2 (ckpt 1): one batched signing per load turns the circle's
      photo paths into hour URLs (receipt hero + quiet-day thumb). Skew-safe:
      a pre-migration payload has no photo_path and the filter finds nothing. */
