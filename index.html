@@ -3542,6 +3542,7 @@ function humanError(e, prefix){
   if(/failed to fetch|networkerror|network request|load failed|timeout/.test(m)) msg = 'Connection hiccup — check your signal and try again.';
   else if(/jwt|not authenticated|auth session|invalid.*token|permission denied|row-level|not logged in/.test(m)) msg = 'Please sign in again.';
   else if(/schema cache|does not exist|could not find the|no function matches|column .* does not/.test(m)) msg = 'Just updated — give it a second and try again.';
+  else if(/can rsvp to this round|only the host and tagged/.test(m)) msg = 'Only the host and the players they tagged can RSVP.';   /* #5: D69 skew — surface the real reason, not a generic failure */
   else if(/duplicate key|already exists|unique constraint/.test(m)) msg = 'That already exists.';
   else if(/violates|constraint|not-null|null value|invalid input/.test(m)) msg = "That didn't go through — please try again.";
   else msg = 'Something went wrong — please try again.';
@@ -3971,7 +3972,11 @@ function renderStandings(){
       <td class="num"><span class="dw" style="color:${dwk>=12?'var(--pos)':dwk<0?'var(--neg)':'var(--mut)'}">${dwk>0?'+':''}${dwk}</span></td>
       <td class="num pts">${t.pts}</td>
     </tr>`;
-    if(i===1) html+=`<tr class="cutrow"><td colspan="5">Cut line · top 2 advance</td></tr>`;
+    /* #12 (audit): the cut line is a Cup-Final concept — "top 2 advance" is
+       meaningless for a points-table league (one race, no advancing) or a
+       field of 2 or fewer. Guard it. */
+    if(i===1 && (state.finish||'cup_final')==='cup_final' && teams.length>2)
+      html+=`<tr class="cutrow"><td colspan="5">Cut line · top 2 advance</td></tr>`;
   });
   flipRows(el, 'data-squad', ()=>{ el.innerHTML=html; });
   /* receipts from the table itself: squads open the squad math, solo rows
@@ -4015,12 +4020,20 @@ function renderStandings(){
    all-caps in the database and no server change can retroactively repair it. */
 window.csNames = window.csNames || new Map();   /* lowercased -> canonical */
 let _csNameRx = null;                            /* null = rebuild, false = none */
+/* #10: multi-word squad/course names that are ordinary English golf phrases
+   ("Back Nine") would otherwise re-capitalize the same words wherever they
+   appear in a post body. A small denylist keeps common phrases out of the
+   proper-noun registry; real names ("Sandy Wedge") sail through. */
+const CS_COMMON_PHRASES = new Set([
+  'back nine','front nine','the turn','the open','the pot','par three','par four',
+  'par five','no minimum','the crew','the books','on the','all square']);
 function csLearnNames(list){
   let changed = false;
   (list||[]).forEach(n=>{
     n = String(n==null?'':n).trim();
-    if(n.length>2 && n.indexOf(' ')>0 && !window.csNames.has(n.toLowerCase())){
-      window.csNames.set(n.toLowerCase(), n); changed = true;
+    const lc = n.toLowerCase();
+    if(n.length>2 && n.indexOf(' ')>0 && !CS_COMMON_PHRASES.has(lc) && !window.csNames.has(lc)){
+      window.csNames.set(lc, n); changed = true;
     }
   });
   if(changed) _csNameRx = null;
@@ -4029,8 +4042,10 @@ window.csLearnNames = csLearnNames;
 function csNameRx(){
   if(_csNameRx !== null) return _csNameRx;
   const keys = [...window.csNames.keys()].sort((a,b)=>b.length-a.length);
+  /* #10: \b anchors so a name never rewrites text mid-word (an "Al" would have
+     recased inside "also"); the registry only restores whole-word matches */
   _csNameRx = keys.length
-    ? new RegExp('(' + keys.map(k=>k.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')).join('|') + ')', 'gi')
+    ? new RegExp('\\b(' + keys.map(k=>k.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')).join('|') + ')\\b', 'gi')
     : false;
   return _csNameRx;
 }
@@ -7251,10 +7266,18 @@ function renderStats(){
   const credits=my ? my.credits : yourMonthCredits();
   const used=my ? Math.min(my.counting, capN) : Math.min(credits, capN);
   const fmtN=n=> n%1 ? n.toFixed(1) : String(n);
-  const wk=$('#statWk'); if(wk) wk.textContent=atStarter()?'—':'W'+currentWeek();
+  /* #2 (audit): a finished league still read "CUP FINAL LIVE · 0 days left" and
+     a live week counter, because enterLeague maps phase 'complete' → 'season'
+     and this strip had no complete branch. A completed season is settled — say
+     so, and freeze the week counter. */
+  const done = !state.demo && window.CS?.season?.status==='complete';
+  const wk=$('#statWk'); if(wk) wk.textContent = done ? String(totalWeeks()) : (atStarter()?'—':'W'+currentWeek());
   const wt=$('#wkTotal2'); if(wt) wt.textContent=totalWeeks();
   const sf=$('#statFinal');
-  if(sf){
+  if(sf && done){
+    sf.textContent='Season complete · settled';
+    sf.style.color='var(--gold)';
+  } else if(sf){
     const cf=cupFinalStart();
     if(atStarter()){
       sf.textContent=`First tee ${firstTeeText()}`;
@@ -7552,7 +7575,10 @@ function renderHomeRecap(){
   }
   const rows = (CS.memberships||[]).map(m => {
     const end = (window.leagueEnds||{})[m.league.id];
-    const sub = end ? 'Season ends '+dfmt(end) : leaguePhaseLabel(m);
+    /* #2: a finished league read "Season ends <a date in the past>" — the row
+       falls back to the phase label, which now names 'complete'. */
+    const sub = m.league.phase==='complete' ? 'Season complete'
+      : end ? 'Season ends '+dfmt(end) : leaguePhaseLabel(m);
     return recapRow(esc(m.league.name), sub, '⛳', `data-hglg="${m.league.id}"`);
   });
   upcomingFromSchedule().slice(0,2).forEach(i => {
@@ -8739,7 +8765,7 @@ function openSeasonCeremony(force){
       <p class="fine" style="margin:10px 0 0">Cup Season keeps the books. Money moves
         friend-to-friend — we just make sure nobody argues at the bar.</p>
     </div>` : '';
-  const mineHtml = st.mine ? `
+  const mineHtml = (st.mine && st.potCents>0) ? `
     <div class="ceryou"><b>You're owed ${csMoney(st.mine.cents)}</b>
       <small>${st.mine.why.map(esc).join(' + ')}</small></div>` : '';
   const html = `
@@ -9869,6 +9895,7 @@ function renderLeagueMeta(){
     $('#hhPhase').textContent =
       state.phase==='setup' ? 'Setup — invites open'
       : state.phase==='draft' ? 'Squad formation'
+      : (!state.demo && window.CS?.season?.status==='complete') ? 'Season complete'   /* #2: a finished league isn't "live" */
       : atStarter() ? `Before first tee — ${firstTeeText()}`
       : isCupFinal() ? 'Cup Final'
       : 'Season live';
@@ -11490,6 +11517,10 @@ async function loadStandingsAndFeed(){
     const rds = rq.data;
     (rds || []).forEach(r => { window.roundCache[r.id] = r; });
     (rank || []).forEach(r => Object.assign(window.roundCache[r.round_id] ||= {}, r));
+    /* #13: learn this board's own course names (raw mixed-case) so the compact
+       feed's all-caps course segment stops half-shouting for courses that
+       never surfaced in the 21-day home_feed circle window */
+    window.csLearnNames?.((rds || []).map(r => r.course_label));
     /* private bucket: one batched signing call turns paths into hour-long
        URLs for the story cards; a storage hiccup just means text-only cards */
     const withPhoto = (rds || []).filter(r => r.photo_path);
@@ -12727,6 +12758,10 @@ async function loadEvent(id){
       majorCards,
       lineage,
     };
+    /* #15: Ryder team names + the event name are user-supplied proper nouns
+       that the event board's all-caps posts (settlement/session/duel) would
+       otherwise half-shout — learn them so easeCaps restores them */
+    window.csLearnNames?.([...(tm.data||[]).map(t=>t.name), ev.data?.name]);
     window.renderEvent?.();
   } catch(e){ console.warn('[event]', e); }
 }
@@ -13343,7 +13378,7 @@ async function loadHome(){
   catch(e){ window.homeFeedRows = window.homeFeedRows||[]; }
   /* #13: courses and cross-league names shout too — the circle feed is the one
      place the client sees golfers from leagues it hasn't loaded a roster for */
-  window.csLearnNames?.((window.homeFeedRows||[]).flatMap(r => [r.course_label, r.course, r.golfer, r.display_name]));
+  window.csLearnNames?.((window.homeFeedRows||[]).flatMap(r => [r.course, r.golfer]));   /* #8: home_feed columns are `course`/`golfer` — the other two keys were always undefined */
   /* photos arc 2 (ckpt 1): one batched signing per load turns the circle's
      photo paths into hour URLs (receipt hero + quiet-day thumb). Skew-safe:
      a pre-migration payload has no photo_path and the filter finds nothing. */
@@ -13377,6 +13412,19 @@ async function loadHome(){
       window.homePosts = ps || [];
     } else window.homePosts = [];
   } catch(e){ window.homePosts = window.homePosts||[]; }
+  /* #11: the unified Home feed carries moment posts from ALL your leagues, but
+     loadLeagueData only learns the ACTIVE league's roster — a dormant member of
+     a secondary league, named in one of those all-caps posts, would half-shout
+     ("Sandy wedge"). Learn every membership's roster once so easeCaps restores
+     them. Cheap: one query, cosmetic on failure. */
+  try {
+    const lids = (CS.memberships||[]).map(m=>m.league.id);
+    if(lids.length){
+      const { data: allm } = await sb.from('league_members')
+        .select('profile:profiles(display_name)').in('league_id', lids);
+      window.csLearnNames?.((allm||[]).map(m=>m.profile?.display_name));
+    }
+  } catch(_){ /* names stay half-cased — purely cosmetic */ }
   try { const { data } = await sb.rpc('my_friends'); window.homeRequests = (data||[]).filter(f => f.status==='pending' && f.incoming); }
   catch(e){ window.homeRequests = window.homeRequests||[]; }
   if(window.renderHomeHub) window.renderHomeHub();
