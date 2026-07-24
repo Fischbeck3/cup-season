@@ -5529,11 +5529,22 @@ $('#postBtn').addEventListener('click', async ()=>{
          on home). The explicit else keeps a missing ceremony fn from failing
          silent (landmine), falling back to the old stamp. */
       { const mySquad=(window.CS?.squads||[]).find(q=>(q.squad_members||[]).some(x=>x.member_id===window.CS?.member?.id))?.name || null;
+        /* #2 (pilot): a round only "counts this season" if it lands INSIDE the
+           season window — the exact rule v_rounds_ranked enforces (played_on
+           between starts_on and ends_on). A pre-season or out-of-window
+           backdated round scores 0 server-side, so the ceremony must NOT flash
+           "COUNTS THIS SEASON" — it falls to "COUNTS ON YOUR CARD", matching
+           the app's own "practice rounds hit your card, not the season"
+           promise. Keyed on the date, not atStarter() alone: a backdated round
+           during an active season hits this too. */
+        const played = payload.played_on || isoOf(new Date());
+        const counts = !!window.CS?.league && !!state.seasonStart && !!state.seasonEnd
+          && played >= state.seasonStart && played <= state.seasonEnd;
         if(typeof finishCeremony==='function') finishCeremony({
           course: payload.course_label || 'A round',
           date: payload.played_on ? localDate(payload.played_on) : new Date(),
-          gross: payload.gross, vs, points: pts, squad: mySquad,
-          inLeague: !!window.CS?.league,
+          gross: payload.gross, vs, points: counts ? pts : null, squad: mySquad,
+          inLeague: counts,
           name: window.CS?.profile?.display_name || 'You',
           marker: window.CS?.profile?.marker || 'saguaro',
           leagueName: window.CS?.league?.name || null,
