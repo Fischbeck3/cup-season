@@ -5260,6 +5260,11 @@ function qaEvent(event, props){
     window.sb.from('client_events').insert({ event, props: props||{} }).then(null, ()=>{});
   }catch(_){}
 }
+/* The wizard funnel events (2026-07-24) are emitted from the MODULE block,
+   which cannot see this classic declaration by name — the same boundary that
+   threw "Can't find variable: memName" (F-007). Bridge it explicitly and call
+   it as window.qaEvent?.() over there, so a breadcrumb can never break lock. */
+window.qaEvent = qaEvent;
 
 /* ---- quick-post entry (D32: front & back is the default; the hole-by-hole
    card from decision #5 stays as the opt-in, still par-prefilled) ---- */
@@ -11262,6 +11267,9 @@ window.shareInvite = shareInvite;
    from crashing the lock celebration). */
 async function openLockShare(nextPhase, sent){
   const L = CS.league; if(!L || state.demo) return;
+  /* funnel (2026-07-24): the share moment is where a league becomes real.
+     lock_ok without invite_open means the Pro locked and never shared. */
+  window.qaEvent?.('invite_open', { sent: sent || 0 });
   const SM = typeof STRUCT_MIN  !== 'undefined' ? STRUCT_MIN  : {solo:2,squads2:4,squads3:6,squads4:8};
   const SN = typeof STRUCT_NAMES!== 'undefined' ? STRUCT_NAMES: {};
   /* setup-QA S2-04: CS.members is whatever league loaded LAST — at lock it
@@ -11973,6 +11981,11 @@ async function createLeague(){
 
   CS.league = league;
   CS.member = { id: member.id, role:'commissioner', index: member.index_current };
+  /* funnel (2026-07-24): the setup→invite path had ZERO telemetry while 7 of 8
+     real leagues sat stalled in setup under the scaffold name. named=false is
+     the signal that matters — an unnamed league cannot lock, so it can never
+     open invites. */
+  window.qaEvent?.('league_create', { named: name !== 'My Cup' });
   state.myIndex = Number(member.index_current) || 18;
   resetToBlank(name);            // real league = blank slate, no demo data
   state.phase = 'setup';
@@ -12344,7 +12357,12 @@ $('#lockBtn').addEventListener('click', async () => {
   /* D5: no league locks bylaws unnamed — the placeholder must never become
      the banner. 'My Cup' is the pre-wizard scaffold name, not a choice. */
   const typed = ($('#setName')?.value || '').trim();
+  window.qaEvent?.('lock_attempt');
   if(!typed && (!CS.league || CS.league.name === 'My Cup')){
+    /* funnel (2026-07-24): this bounce is the prime suspect for the setup
+       stall — it is announced by a transient toast and throws the Pro back to
+       step 0. If lock_blocked outnumbers lock_ok, the guard is the wall. */
+    window.qaEvent?.('lock_blocked', { reason: 'unnamed' });
     toast('Name the league first: top of the wizard');
     state.wiz = 0; renderWizard(); switchView('wizard');
     $('#setName')?.focus();
@@ -12358,6 +12376,7 @@ $('#lockBtn').addEventListener('click', async () => {
       await createLeague();
     }
     const { emails, invited, nextPhase } = await lockBylaws();
+    window.qaEvent?.('lock_ok', { next_phase: nextPhase });
     state.wizInvitees = [];   /* sent — don't re-stage on re-entry */
     await loadMemberships();
     switchView('home');
