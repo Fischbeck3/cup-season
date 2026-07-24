@@ -130,6 +130,27 @@ async function sendEmail(to: string, name: string | null, subject: string, html:
   }
 }
 
+// D71: a league-cancellation email. Self-contained — the league is already
+// gone, so everything the mail needs is in the notice's snapshot.
+function buildCancelHtml(league: string, r: { name: string | null; cents: number }) {
+  const owed = r.cents > 0
+    ? `<div style="margin:14px 0 0;padding:12px 14px;border-radius:12px;background:rgba(47,164,106,.20);border:1px solid #2FA46A">
+         <div style="font:600 15px -apple-system,Segoe UI,sans-serif;color:#ECEEF2">You're owed ${esc(money(r.cents))} back</div>
+         <div style="font:11px ui-monospace,Menlo,monospace;letter-spacing:.1em;text-transform:uppercase;color:#98A29A;margin-top:3px">Your buy-in · settle up between yourselves</div>
+       </div>`
+    : '';
+  return `<!doctype html><html><body style="margin:0;padding:0;background:#0A0E0C">
+  <div style="max-width:520px;margin:0 auto;padding:28px 22px;font-family:-apple-system,Segoe UI,sans-serif">
+    <div style="font:11px ui-monospace,Menlo,monospace;letter-spacing:.16em;text-transform:uppercase;color:#98A29A">League cancelled</div>
+    <div style="font:400 30px Georgia,serif;line-height:1.1;color:#ECEEF2;margin:10px 0 6px">${esc(league)} has been called off</div>
+    <div style="font:14px -apple-system,Segoe UI,sans-serif;color:#ECEEF2;opacity:.86">The season won't be played. Nobody won, and every buy-in comes back.</div>
+    ${owed}
+    <div style="font:11px -apple-system,Segoe UI,sans-serif;color:#5E665E;margin-top:20px;line-height:1.5">
+      Cup Season keeps the books — money moves friend-to-friend, never through us. Your posted rounds stay on your card.
+    </div>
+  </div></body></html>`;
+}
+
 Deno.serve(async (req) => {
   if (req.headers.get('x-push-secret') !== Deno.env.get('PUSH_WEBHOOK_SECRET')) {
     return new Response('forbidden', { status: 403 });
@@ -141,7 +162,28 @@ Deno.serve(async (req) => {
   let body: Record<string, unknown> | null = null;
   try { body = await req.json(); } catch { console.log('[season-email] body parse failed / empty'); }
   const rec = (body?.record ?? body?.new ?? body ?? {}) as
-    { id?: string; season_id?: string; sent_at?: string | null };
+    { id?: string; season_id?: string; sent_at?: string | null;
+      payload?: { league?: string; recipients?: { email?: string; name?: string | null; cents?: number }[] } };
+
+  // D71: a cancellation_notices row carries a self-contained payload (the league
+  // is already deleted). Handle it before the season-recap path — it has no
+  // season_id.
+  if (rec.payload && Array.isArray(rec.payload.recipients)) {
+    if (rec.sent_at) return new Response('already sent', { status: 200 });
+    const league = String(rec.payload.league ?? 'your league');
+    let cs = 0, cf = 0;
+    for (const r of rec.payload.recipients) {
+      if (!r?.email) continue;
+      const ok = await sendEmail(r.email, r.name ?? null,
+        `${league} was cancelled — your buy-in`, buildCancelHtml(league, { name: r.name ?? null, cents: r.cents ?? 0 }));
+      ok ? cs++ : cf++;
+    }
+    console.log(`[season-email] cancellation notice=${rec.id} sent=${cs} failed=${cf}`);
+    if (rec.id) await sb.rpc('mark_cancellation_sent', { p_id: rec.id, p_error: cf ? `${cf} failed` : null });
+    return new Response(JSON.stringify({ cancelled: true, sent: cs, failed: cf }), {
+      status: 200, headers: { 'content-type': 'application/json' } });
+  }
+
   if (!rec.id || !rec.season_id) {
     console.log('[season-email] no usable record'
       + ` topKeys=[${Object.keys(body ?? {}).join(',')}]`

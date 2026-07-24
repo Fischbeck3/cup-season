@@ -2174,6 +2174,52 @@ machinery-already-exists. ⚑ marks the points still needing an owner call.*
   and accepted above rather than smuggled in. No conflict with D57 — the email
   carries no ids, and its links are tokens.
 
+### D71 · League cancellation with consent (a started league can be ended)
+- **Current:** `delete_league` refuses any started league ("a live league cannot
+  be deleted") and is commissioner-only. Correct as a guard, but it leaves no
+  path to end a league once it's under way — a real pilot Pro asked to cancel a
+  started test league and there was no mechanism.
+- **Problem:** a league that shouldn't continue (a mistake, an abandoned test, a
+  crew that folded) is stuck live forever, and if there's a betting pool the
+  buy-ins are in limbo.
+- **Recommendation:** a Pro-initiated cancel gated by the money at stake. A FREE
+  league (no buy-in) the Pro cancels alone, immediately. A MONEY league requires
+  UNANIMOUS member approval; any single decline kills the request (the Pro can
+  reopen or withdraw). On execution the league is fully removed (league, season,
+  memberships, buy-ins, squads, board) — but every player's actual golf ROUNDS
+  survive on their profile (rounds are global; the league is only a lens). Each
+  member is owed their own paid buy-in back — a NOTICE, shown at consent and in
+  a cancellation email; the app moves nothing (D39). The Pro then lands on
+  "start another league".
+- **Principle served:** the Pro runs the league (they can end it) · consent
+  protects money (nobody loses a buy-in they didn't agree to) · §16 the record
+  book is sacred (a COMPLETE season still cannot be cancelled) · Memory: a
+  cancellation leaves each player their rounds.
+- **Benefit:** a started league is no longer a dead end; a betting pool unwinds
+  cleanly with everyone made whole.
+- **Tradeoffs:** unanimous-for-money means one silent member blocks a cancel —
+  chosen deliberately over a majority that could cancel someone out of their
+  buy-in. The cancellation email fires from a self-contained snapshot written
+  BEFORE the delete (its own table, no FK to the league), so the async send
+  never reads deleted data. Four new authenticated RPCs
+  (request/vote/withdraw/status) → `tests/db-checks.sql` check 3 moves 89 → 93
+  in the same commit; no new anon surface.
+- **CONFLICT check:** none with §16 — a completed season is still un-cancellable
+  (the record book). None with D39 — the refund is a settle-up notice, never a
+  transfer the app performs.
+- **OPEN (parked, NOT built):** the Pro season pass (monetization, Stripe
+  parked) — when it goes live, the pass must follow the ACCOUNT, not the league,
+  so cancel-and-restart never forfeits it. That is what the "start another
+  league" prompt is for. Deferred to the Stripe design; no refund path built for
+  a charge that doesn't exist yet.
+
+### Bundled with D71 · drop brand-name payment references (Venmo → generic)
+- **Current:** several money posts say "settle on Venmo".
+- **Change:** generic settle-up language everywhere ("settle up between
+  yourselves", "the Pro collects the pot"). Not a mechanic change — copy only,
+  logged here because it rides the D71 money-language pass. `close_season`'s pot
+  line already reads this way (D66); the rest are brought in line.
+
 ### Casing policy · the SQL de-shout is paid down OPPORTUNISTICALLY (2026-07-24)
 - **The principle stands (D66):** the scoreboard voice belongs to typography,
   not to stored data — capitals-as-data destroy proper nouns ("SANDY WEDGE" →
