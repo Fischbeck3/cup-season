@@ -1270,14 +1270,25 @@ html[data-theme="light"] .momrow{background:rgba(21,116,63,.06);}
 }
 .sheet.open{display:block;}
 .sheet .panel{
-  position:absolute; left:0; right:0; bottom:0; max-height:88vh; overflow-y:auto;
-  /* overflow-x CLIPS: one over-wide child (iOS date inputs carry an intrinsic
-     min-width) let the whole sheet pan sideways — "slides around", pilot */
-  overflow-x:hidden;
-  overscroll-behavior:contain; -webkit-overflow-scrolling:touch;
+  position:absolute; left:0; right:0; bottom:0; max-height:88vh;
+  /* the panel is a FIXED HEADER + a SCROLLING BODY, not one scroll box. When
+     the panel was itself the scroll container, the absolutely-positioned close
+     ✕ (its containing block) scrolled away with the content — a tall sheet
+     (Tour Card) trapped the user until they rotated. Now the ✕/title header
+     stays put and #shBody scrolls beneath it. */
+  display:flex; flex-direction:column; overflow:hidden;
   background:var(--bg1); border-top:1px solid var(--line2);
-  border-radius:var(--rs) var(--rs) 0 0; padding:14px 16px calc(24px + env(safe-area-inset-bottom));
+  border-radius:var(--rs) var(--rs) 0 0; padding:14px 16px 0;
   box-shadow:var(--shadow-lift);
+}
+/* the scroll lives on the body; overflow-x still CLIPS (iOS date inputs carry
+   an intrinsic min-width that let the whole sheet pan sideways — "slides
+   around", pilot). Bottom safe-area padding rides here so scrolled content
+   clears the home indicator. */
+.sheet .panel > #shBody{
+  flex:1 1 auto; min-height:0; overflow-y:auto; overflow-x:hidden;
+  overscroll-behavior:contain; -webkit-overflow-scrolling:touch;
+  padding-bottom:calc(24px + env(safe-area-inset-bottom));
 }
 @media(min-width:760px){
   .sheet .panel{ left:50%; right:auto; bottom:auto; top:50%; transform:translate(-50%,-50%);
@@ -8742,7 +8753,8 @@ function openSheet(title, sub, bodyHtml){
   $('#sheet').classList.add('open');
   $('#sheet').classList.remove('room-dusk');   /* sheets are utility by default; ceremonies re-add after openSheet */
   lockBody();
-  $('#sheet .panel')?.scrollTo?.(0,0);   /* fresh content starts at the top, not a prior sheet's depth */
+  $('#shBody')?.scrollTo?.(0,0);   /* #shBody is the scroll container now — reset it, not the panel */
+  $('#sheet .panel')?.scrollTo?.(0,0);   /* legacy no-op safety on the panel itself */
   window._sheetVVFit?.();                /* keyboard may already be up (sheet-over-sheet) */
   $('#shBody').querySelectorAll('[data-player]').forEach(b=>
     b.addEventListener('click',()=>showPlayer(b.dataset.player)));
