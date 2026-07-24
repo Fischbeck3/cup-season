@@ -2603,7 +2603,7 @@ html[data-theme="light"] .room-dusk .btn:not(.dark):not(.gold):not(.apple){color
             <button class="mini" id="discardBtn" style="margin-top:6px; color:var(--dim)">Scrap this round</button>
           </div>
           <div>
-            <div class="eyebrow">Side games · tracked live, settled on Venmo</div>
+            <div class="eyebrow">Side games · tracked live, settled between you</div>
             <div class="gamecard" id="matchCard" style="--acc:var(--sq0)">
               <div class="gk" id="matchTeams">Match play · net best ball · You + Danny vs Chuck + Gary</div>
               <div class="gs" id="matchStatus">ALL SQUARE</div>
@@ -2823,7 +2823,7 @@ html[data-theme="light"] .room-dusk .btn:not(.dark):not(.gold):not(.apple){color
           </div>
           <p class="fine" id="finishNote">Cup Final: the last four weeks reset and score fresh — top seeds only, whoever's hottest takes the cup.</p>
           <div class="eyebrow">The pot split <button class="ibtn" data-i="payout" aria-expanded="false" aria-label="About the pot split">i</button></div>
-          <div class="ihelp" id="ih-payout">How the pot pays out at season's end. Every split rewards the champion, the runner-up, and the Points King (best individual all year). The pot lives on the books here — the app keeps the ledger, money moves on Venmo.</div>
+          <div class="ihelp" id="ih-payout">How the pot pays out at season's end. Every split rewards the champion, the runner-up, and the Points King (best individual all year). The pot lives on the books here — the app keeps the ledger, money moves friend-to-friend.</div>
           <div class="seg" id="paySeg">
             <button data-pay="60,25,15" class="on">Balanced</button>
             <button data-pay="70,20,10">Winner-heavy</button>
@@ -2897,8 +2897,12 @@ html[data-theme="light"] .room-dusk .btn:not(.dark):not(.gold):not(.apple){color
                league showed no add path at all. This button always works; the
                picker's footer offers the share link. -->
           <div id="hhAddSlot" style="margin-top:10px"><button class="mini" id="hhAdd">Add golfers</button></div>
-          <div class="fine" id="hhDanger" style="display:none; padding:8px 0 0"><a href="#" id="hhDelete" style="color:var(--neg)">Cancel &amp; delete this league</a> (only possible before the first tee)</div>
+          <div class="fine" id="hhDanger" style="display:none; padding:8px 0 0"><a href="#" id="hhDelete" style="color:var(--neg)">Cancel &amp; delete this league</a> <span id="hhDangerNote">(only possible before the first tee)</span></div>
         </div>
+
+        <!-- D71: the cancellation consent banner — an open request shows here to
+             every member (approve / decline) and the Pro (withdraw). -->
+        <div id="cancelBanner" class="league-only" style="display:none; margin-bottom:12px"></div>
 
         <!-- LEAGUE ROOM (IA P2): one door, five segments. Panes wrap the existing
              blocks with their IDs intact, so every renderer works unchanged. -->
@@ -3056,7 +3060,7 @@ html[data-theme="light"] .room-dusk .btn:not(.dark):not(.gold):not(.apple){color
               <div class="p"><b id="pay2">$300</b><span>Runner-up</span></div>
               <div class="p"><b id="pay3">$180</b><span>Points king</span></div>
             </div>
-            <p class="fine"><b>Cup Season keeps the books.</b> Buy-ins and payouts move friend-to-friend on Venmo or cash. We just make sure nobody argues at the bar.</p>
+            <p class="fine"><b>Cup Season keeps the books.</b> Buy-ins and payouts move friend-to-friend. We just make sure nobody argues at the bar.</p>
           </div>
           <div>
             <div class="eyebrow">Buy-ins · <span id="paidCount">5/7</span> in</div>
@@ -5989,7 +5993,7 @@ function renderPot(){
       row.innerHTML=`<span>${esc(m ? (m.profile?.display_name||'—') : ((window.CS?.profile?.display_name)||'You'))}</span><span class="tick">✓</span>`;
       row.addEventListener('click', async ()=>{
         if(!m) return;
-        if(!isPro){ toast('The Pro marks buy-ins as money moves on Venmo'); return; }
+        if(!isPro){ toast('The Pro marks buy-ins as money moves between you'); return; }
         if(!window.CS?.season?.id){ toast('Buy-ins open once the bylaws lock'); return; }
         row.disabled=true;
         try{
@@ -7152,7 +7156,7 @@ function showLiveRecap(d, result, lrId){
       ? `${wSide} def. ${lSide} ${result.status}`
       : `${result.side_a} and ${result.side_b} halved the match`;
     const money = result.stake>0
-      ? (won ? `${lSide.toUpperCase()} PAYS ${wSide.toUpperCase()} $${result.stake} · VENMO`
+      ? (won ? `${lSide.toUpperCase()} PAYS ${wSide.toUpperCase()} $${result.stake} · SETTLE UP`
              : 'ALL SQUARE — NO MONEY MOVES')
       : 'BRAGGING RIGHTS ONLY';
     rows.push(`<div class="check"><span class="num">⚔️</span><div class="tt"><b>${esc(line)}</b><small>${esc(money)}</small></div></div>`);
@@ -7160,7 +7164,7 @@ function showLiveRecap(d, result, lrId){
     const icon=result.game==='wolf'?'🐺':'💰';
     const money = result.stake>0
       ? ((result.transfers||[]).length
-          ? result.transfers.map(t=>`${t.from.toUpperCase()} PAYS ${t.to.toUpperCase()} $${t.amt}`).join(' · ')+' · VENMO'
+          ? result.transfers.map(t=>`${t.from.toUpperCase()} PAYS ${t.to.toUpperCase()} $${t.amt}`).join(' · ')+' · SETTLE UP'
           : 'ALL SQUARE — NO MONEY MOVES')
       : 'BRAGGING RIGHTS ONLY';
     rows.push(`<div class="check"><span class="num">${icon}</span><div class="tt"><b>${esc(result.story||'')}</b><small>${esc(money)}</small></div></div>`);
@@ -9912,9 +9916,16 @@ function renderLeagueMeta(){
     /* the escape hatch: a league that never went live can be scrapped by the
        Pro — setup, squad formation, or at the starter. Server re-validates. */
     const dz=$('#hhDanger');
-    if(dz) dz.style.display =
-      window.CS.member?.role==='commissioner'
-      && (['setup','draft'].includes(state.phase) || atStarter()) ? '' : 'none';
+    /* D71: the Pro can end a league in ANY phase but 'complete' (the record
+       book). Pre-tee it's an instant delete; once under way it's the
+       consent flow. The note + the handler both key off that. */
+    const isPro = window.CS.member?.role==='commissioner' && !state.demo;
+    const preTee = ['setup','draft'].includes(state.phase) || atStarter();
+    if(dz) dz.style.display = (isPro && state.phase!=='complete') ? '' : 'none';
+    const dlk=$('#hhDelete'), dnote=$('#hhDangerNote');
+    if(dlk) dlk.textContent = preTee ? 'Cancel & delete this league' : 'Cancel this league';
+    if(dnote) dnote.textContent = preTee ? '(only possible before the first tee)'
+      : '(the season is under way — a pot needs every member to approve)';
   }
 }
 function renderWizard(){
@@ -11419,6 +11430,7 @@ async function loadLeagueData(){
   loadTrophies();               /* the case is user-global, refresh it in-league too */
   loadCareer();                 /* lifetime line is cross-league too */
   loadCareerRecord();           /* D67: a closed season anywhere changes the record */
+  refreshCancelStatus();        /* D71: surface an open cancellation request */
   loadStakes();                 /* D64: the league's forfeit ledger (fire-and-forget) */
   loadLastRoundWith();          /* D63: the reunion whisper (profile-global, quiet) */
   /* D66: a finished season announces itself ONCE per member, after the room's
@@ -12126,7 +12138,7 @@ async function covenantGate(code){
       ${info.preset?`<div class="byrow"><span>PRESET</span><b>${esc(String(info.preset).replace(/^./,c=>c.toUpperCase()))}</b></div>`:''}
       ${Number(info.floor)?`<div class="byrow"><span>PARTICIPATION FLOOR</span><b>${info.floor} round${Number(info.floor)===1?'':'s'} / mo</b></div>`:''}
       <div class="byrow"><span>FINISH</span><b>${info.finish==='points_table'?'Points table crowns it':'Cup Final · final 4 weeks'}</b></div>
-      <p class="fine" style="padding-top:10px">Joining puts you on the pot sheet for $${usd}. Cup Season keeps the tab; money moves between you on Venmo.</p>
+      <p class="fine" style="padding-top:10px">Joining puts you on the pot sheet for $${usd}. Cup Season keeps the tab; money moves between you.</p>
       <button class="btn" id="covJoin" style="margin-top:10px">Join — I’m in for $${usd}</button>
       <button class="btn dark" id="covNo" style="margin-top:8px">Not now</button>`);
     document.getElementById('covJoin')?.addEventListener('click',()=>res(true));
@@ -12496,10 +12508,85 @@ window.enterLeagueById = async (id, nav=true) => {
    like defusing a bomb. Once OTHER golfers have joined, the heavy gate stays:
    deleting takes their seat, their board, their pot sheet. The RPC re-validates
    phase + first tee server-side either way; rounds are never touched. */
+/* ---------- D71: league cancellation with consent ---------- */
+function renderCancelBanner(){
+  const box=$('#cancelBanner'); if(!box) return;
+  const cr=window.cancelReq;
+  if(state.demo || !cr || !cr.open){ box.style.display='none'; box.innerHTML=''; return; }
+  const refund = cr.you_refund_cents>0
+    ? `You get back ${fmt$(cr.you_refund_cents/100)} — your buy-in. ` : '';
+  let actions;
+  if(cr.is_pro){
+    actions = `<button class="mini" id="cxWithdraw">Call it off</button>
+      <span class="fine" style="align-self:center">${cr.approved} of ${cr.members} approved</span>`;
+  } else if(cr.you_approved){
+    actions = `<span class="fine">You approved — waiting on the rest (${cr.approved} of ${cr.members}).</span>`;
+  } else {
+    actions = `<button class="mini" id="cxYes">Approve</button>
+      <button class="mini" id="cxNo">Decline</button>
+      <span class="fine" style="align-self:center">${cr.approved} of ${cr.members} approved</span>`;
+  }
+  box.style.display='';
+  box.innerHTML = `<div class="card" style="border-color:var(--neg); text-align:left">
+    <b>The Pro wants to cancel ${esc(CS.league.name)}.</b>
+    <div class="fine" style="padding-top:4px">${refund}The season won't be played; nobody won and every buy-in comes back. Your rounds stay on your card.</div>
+    <div style="margin-top:10px; display:flex; gap:8px; flex-wrap:wrap">${actions}</div></div>`;
+  box.querySelector('#cxYes')?.addEventListener('click', ()=>cancelVote(true));
+  box.querySelector('#cxNo')?.addEventListener('click', ()=>cancelVote(false));
+  box.querySelector('#cxWithdraw')?.addEventListener('click', cancelWithdraw);
+}
+window.renderCancelBanner = renderCancelBanner;
+async function refreshCancelStatus(){
+  if(state.demo || !CS.league){ window.cancelReq=null; renderCancelBanner(); return; }
+  try{ const { data } = await sb.rpc('league_cancel_status', { p_league: CS.league.id }); window.cancelReq = data || null; }
+  catch(_){ window.cancelReq = window.cancelReq || null; }   /* skew-safe: no request surface until deployed */
+  renderCancelBanner();
+}
+window.refreshCancelStatus = refreshCancelStatus;
+async function cancelVote(approve){
+  if(!CS.league) return;
+  try{
+    const { data, error } = await sb.rpc('vote_league_cancel', { p_league: CS.league.id, p_approve: approve });
+    if(error) throw error;
+    if(data==='done'){ window.cancelReq=null; toast(CS.league.name+' cancelled. Every round stays on its golfer.'); await loadMemberships(); goClubhouse(); return; }
+    if(data==='declined'){ window.cancelReq=null; renderCancelBanner(); toast('You declined — the cancellation is off.'); return; }
+    await refreshCancelStatus();
+    toast('Approved — waiting on the rest.');
+  }catch(e){ toast(humanError(e)); }
+}
+async function cancelWithdraw(){
+  if(!CS.league) return;
+  try{
+    const { error } = await sb.rpc('withdraw_league_cancel', { p_league: CS.league.id });
+    if(error) throw error;
+    window.cancelReq=null; renderCancelBanner(); toast('Cancellation called off.');
+  }catch(e){ toast(humanError(e)); }
+}
+
 document.getElementById('hhDelete')?.addEventListener('click', async e => {
   e.preventDefault();
   if(state.demo || !CS.league || CS.member?.role !== 'commissioner') return;
   const nm = CS.league.name, lid = CS.league.id;
+  /* D71: once the season is under way, deletion runs through the consent flow —
+     free league cancels inline, a pot needs unanimous approval */
+  const preTee = ['setup','draft'].includes(state.phase) || atStarter();
+  if(!preTee){
+    openSheet('Cancel '+nm+'?', 'THE SEASON IS UNDER WAY', `
+      <p class="fine" style="padding-top:0">A free league cancels now. If there's a buy-in, every member must approve and each gets their buy-in back. Either way the league, its board and pot go — but every posted round stays on its golfer's card.</p>
+      <button class="btn" id="cxGo" style="margin-top:10px;background:var(--neg)">Start the cancellation</button>
+      <button class="btn dark" id="cxNo2" style="margin-top:8px">Keep it</button>`);
+    document.getElementById('cxNo2')?.addEventListener('click', closeSheet);
+    document.getElementById('cxGo')?.addEventListener('click', async () => {
+      try{
+        const { data, error } = await sb.rpc('request_league_cancel', { p_league: lid });
+        if(error) throw error;
+        closeSheet();
+        if(data==='done'){ toast(nm+' cancelled. Every round stays on its golfer.'); await loadMemberships(); goClubhouse(); }
+        else { toast('Cancellation requested — every member must approve.'); await refreshCancelStatus(); }
+      }catch(err){ toast(humanError(err)); }
+    });
+    return;
+  }
   let others = 1;   /* unknown → assume someone's in, keep the heavy gate */
   try {
     const { count } = await sb.from('league_members')
@@ -13875,7 +13962,7 @@ function openScoringHelp(){
     <div class="eyebrow">What counts</div>
     <p class="fine" style="padding:0 0 10px">Your best rounds each month count for your squad — a better round always bumps your worst counter — and everyone owes a minimum number of rounds a month so nobody coasts. Miss it once and your <b>season bye</b> covers you automatically — life happens; the floor bites from the second miss. Your league's exact numbers are in <b>League rules</b>.</p>
     <div class="eyebrow">The money</div>
-    <p class="fine" style="padding:0 0 8px">The pot is <b>on the books</b> — Cup Season keeps the ledger and shows a settlement card; the money moves on Venmo between you.</p>`);
+    <p class="fine" style="padding:0 0 8px">The pot is <b>on the books</b> — Cup Season keeps the ledger and shows a settlement card; the money moves between you.</p>`);
 }
 window.openScoringHelp = openScoringHelp;
 
@@ -13885,7 +13972,7 @@ function openLeagueWelcome(name){
   openSheet('Welcome to '+(name||'the league'), 'THREE THINGS TO KNOW', `
     <p class="fine" style="padding:0 0 10px"><b style="color:var(--pos)">You can't hurt your squad by playing badly.</b> Only by not playing. Every posted round scores — a rough day is still points on the board.</p>
     <p class="fine" style="padding:0 0 10px"><b>Rounds score against your own number.</b> Beat your handicap and it's a big day, whatever you shot. Your best rounds each month count; a better round always bumps your worst.</p>
-    <p class="fine" style="padding:0 0 12px"><b>The pot lives on the books.</b> Cup Season keeps the tab and shows who owes what; money moves on Venmo between you.</p>
+    <p class="fine" style="padding:0 0 12px"><b>The pot lives on the books.</b> Cup Season keeps the tab and shows who owes what; money moves between you.</p>
     <p class="fine" style="padding:0 0 12px"><a href="#" onclick="openScoringHelp();return false" style="color:var(--brand)">How scoring works →</a></p>
     <div style="border-top:1px solid var(--line); padding-top:12px">
       <p class="fine" style="padding:0 0 8px"><b>Who else plays with you?</b> Growing the league isn't the Pro's chore — any member's link works.</p>
@@ -13901,7 +13988,7 @@ function openLeagueWelcome(name){
       const usd=Math.round(Number(b?.buyin_cents||0)/100);
       if(!usd) return;
       document.getElementById('shBody')?.insertAdjacentHTML('afterbegin',
-        `<p class="fine" style="padding:0 0 10px"><b style="color:var(--gold)">You're on the pot sheet: $${usd} buy-in.</b> The Pro tracks who's paid; money moves on Venmo.</p>`);
+        `<p class="fine" style="padding:0 0 10px"><b style="color:var(--gold)">You're on the pot sheet: $${usd} buy-in.</b> The Pro tracks who's paid; money moves between you.</p>`);
     }).catch(()=>{});
   }
 }
