@@ -4243,14 +4243,28 @@ async function refreshSocial(){
 async function reportPost(f){
   if(!f || !f.post_id) return;
   if(state.demo || !window.sb){ toast('Sign in to report a post'); return; }
-  const reason = prompt('Report this post to keep the boards clean.\nWhat’s wrong with it?');
-  if(reason===null) return;
-  try{
-    const { error } = await window.sb.rpc('report_content', { p_post: f.post_id, p_reason: (reason||'').slice(0,500) });
-    if(error) throw error;
-    toast('Reported — thanks. We’ll take a look.');
-    try{ if(typeof qaEvent==='function') qaEvent('content_reported', { post: f.post_id }); }catch(_){}
-  }catch(e){ toast(humanError(e, 'Could not send the report.')); }
+  /* setup-QA S4-03 lesson, applied here 2026-07-24: native prompt() is
+     swallowed by installed/standalone PWAs — a real user's client reported
+     "prompt() is not supported" on 2026-07-22, which means the report died
+     silently on a MODERATION path. In-app sheet, same shape as the delete
+     gate. */
+  openSheet('Report this post', 'KEEPS THE BOARDS CLEAN', `
+    <p class="fine" style="padding-top:0">What’s wrong with it? Your note goes to the founder desk with the post.</p>
+    <input class="f" id="rptWhy" placeholder="Say what’s wrong…" autocomplete="off" maxlength="500" style="font-family:var(--sans)">
+    <button class="btn" id="rptGo" style="margin-top:10px">Send the report</button>
+    <button class="btn dark" id="rptNo" style="margin-top:8px">Cancel</button>`);
+  document.getElementById('rptNo')?.addEventListener('click', closeSheet);
+  document.getElementById('rptGo')?.addEventListener('click', async () => {
+    const go = document.getElementById('rptGo'); if(go) go.disabled = true;
+    const reason = (document.getElementById('rptWhy')?.value || '').slice(0,500);
+    try{
+      const { error } = await window.sb.rpc('report_content', { p_post: f.post_id, p_reason: reason });
+      if(error) throw error;
+      closeSheet();
+      toast('Reported — thanks. We’ll take a look.');
+      try{ if(typeof qaEvent==='function') qaEvent('content_reported', { post: f.post_id }); }catch(_){}
+    }catch(e){ if(go) go.disabled = false; toast(humanError(e, 'Could not send the report.')); }
+  });
 }
 window.refreshSocial = refreshSocial;
 /* the tray is exclusive + dismissible from anywhere (F11 3.1): picking a chip
@@ -14108,18 +14122,30 @@ async function openMembersSheet(){
   document.querySelectorAll('[data-msidx]').forEach(b => b.addEventListener('click', async () => {
     const m = CS.members.find(x => x.id === b.dataset.msidx);
     const cur = m?.profile?.index_current;
-    const val = prompt(`Starter index for ${m?.profile?.display_name || 'this member'}.\nOnce they post 3 rounds, their scores take over.`, cur!=null ? Number(cur).toFixed(1) : '');
-    if(val===null) return;
-    const idx = parseFloat(val);
-    if(isNaN(idx) || idx < -10 || idx > 54){ toast('Index looks off: expected -10 to 54'); return; }
-    b.disabled = true;
-    try {
-      const { error } = await sb.rpc('set_member_index', { p_member: b.dataset.msidx, p_index: idx });
-      if(error) throw error;
-      toast('Starter index set — posted to the board');
-      closeSheet();
-      await loadLeagueData();
-    } catch(e){ toast(humanError(e)); b.disabled = false; }
+    const who = m?.profile?.display_name || 'this member';
+    const mid = b.dataset.msidx;
+    /* setup-QA S4-03 lesson, applied here 2026-07-24: native prompt() is
+       swallowed by installed/standalone PWAs — a real user's client reported
+       "prompt() is not supported" on 2026-07-22. In-app sheet instead. */
+    openSheet('Starter index', 'A NUMBER TO START FROM', `
+      <p class="fine" style="padding-top:0">A starting number for ${esc(who)}. Once they post 3 rounds, their own scores take over.</p>
+      <input class="f" id="msIdxVal" type="number" step="0.1" min="-10" max="54" inputmode="decimal" placeholder="e.g. 12.4" value="${cur!=null ? Number(cur).toFixed(1) : ''}" style="font-family:var(--sans)">
+      <button class="btn" id="msIdxGo" style="margin-top:10px">Set the index</button>
+      <button class="btn dark" id="msIdxNo" style="margin-top:8px">Cancel</button>`);
+    document.getElementById('msIdxNo')?.addEventListener('click', closeSheet);
+    document.getElementById('msIdxGo')?.addEventListener('click', async () => {
+      const go = document.getElementById('msIdxGo');
+      const idx = parseFloat(document.getElementById('msIdxVal')?.value);
+      if(isNaN(idx) || idx < -10 || idx > 54){ toast('Index looks off: expected -10 to 54'); return; }
+      go.disabled = true;
+      try {
+        const { error } = await sb.rpc('set_member_index', { p_member: mid, p_index: idx });
+        if(error) throw error;
+        toast('Starter index set — posted to the board');
+        closeSheet();
+        await loadLeagueData();
+      } catch(e){ toast(humanError(e)); go.disabled = false; }
+    });
   }));
 }
 window.openMembersSheet = openMembersSheet;
