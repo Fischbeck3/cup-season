@@ -13542,10 +13542,19 @@ function renderRoundSheet(id, d){
       <span class="rsvppill ${r.status||'none'}">${({in:'In',maybe:'Maybe',out:'Out'})[r.status]||'No reply'}</span>
     </div>`).join('') : '<p class="fine" style="padding:2px 0; opacity:.7">Just you so far — tag your group.</p>';
   const myR=d.my_rsvp;
-  const rsvpSet = `<div class="rsvpset">
+  /* D69: RSVP is for the invited. The In/Maybe/Can't controls show only to the
+     host or a tagged player; everyone else still SEES the round and who's in,
+     with no RSVP affordance (an RSVP from someone the host didn't invite is
+     noise — tee times are booked at the course, not here). Server enforces the
+     same rule in set_round_rsvp; this just hides a control that would 403.
+     Skew-safe: pre-migration d.tagged_me is undefined, so non-hosts simply
+     don't see the buttons until the migration lands (fails closed, never
+     errors). */
+  const canRsvp = !!(d.mine || d.tagged_me);
+  const rsvpSet = canRsvp ? `<div class="rsvpset">
      <button class="rbtn${myR==='in'?' on in':''}" data-rsvp="in">I’m in</button>
      <button class="rbtn${myR==='maybe'?' on maybe':''}" data-rsvp="maybe">Maybe</button>
-     <button class="rbtn${myR==='out'?' on out':''}" data-rsvp="out">Can’t</button></div>`;
+     <button class="rbtn${myR==='out'?' on out':''}" data-rsvp="out">Can’t</button></div>` : '';
 
   const riv = (!d.mine && typeof rivalryTag==='function') ? rivalryTag(d.profile_id) : null;
   const rivHtml = riv ? `<div class="rivchip">◇ ${riv} · <em>one more round.</em></div>` : '';

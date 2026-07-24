@@ -2155,3 +2155,39 @@ machinery-already-exists. ⚑ marks the points still needing an owner call.*
 - **CONFLICT check:** collides with D37's "exactly six anon endpoints", named
   and accepted above rather than smuggled in. No conflict with D57 — the email
   carries no ids, and its links are tokens.
+
+### D69 · RSVP is for the invited — visibility stays, external RSVP goes
+- **Current:** a scheduled round is visible to the owner's whole league
+  (can_see_round clause 4, "shares any league"), and RSVP capability is bundled
+  with visibility — set_round_rsvp gates ONLY on can_see_round, so any
+  league-mate who can see a round can set In/Maybe/Out on it. This was D17 /
+  tee-sheet arc Stage 2's intent ("tagged players AND league-mates who can see
+  it set In/Maybe/Out"), built when the tee sheet was imagined as an open
+  book-a-tee-time board.
+- **Problem:** a pilot found it confusing that they could RSVP to a league-mate's
+  round they weren't part of. The owner's read (accepted): rounds are booked at
+  the COURSE, not in this app, so an RSVP from someone you didn't invite is
+  noise, not signal. The visibility itself is fine and even useful ("see where
+  people are playing, if they share it") — it is the WRITE that doesn't belong.
+- **Recommendation:** keep visibility exactly as is (whole-league, unchanged),
+  restrict the RSVP WRITE to the owner and the players they TAGGED. set_round_rsvp
+  gains an owner-or-tagged guard; the client hides the In/Maybe/Can't controls
+  unless the round is yours or you're tagged. A non-tagged viewer still sees the
+  round — where and when — with no RSVP affordance.
+- **Principle served:** IA legibility — a control should mean something; an RSVP
+  that changes nothing real (the tee time lives at the course) is a false
+  affordance. The social-visibility loop (see what your crew is playing) is
+  preserved; only the meaningless write is removed.
+- **Benefit:** the tee sheet reads honestly — "these are the people the host
+  invited," not "anyone in the league clicked a button."
+- **Tradeoffs:** narrows a capability some might have used as a lightweight
+  "I might join." Acceptable: if you want someone on your round, tag them; that
+  is the invite, and it is one tap. Existing RSVP rows from non-tagged members
+  are left in place (harmless, and there is negligible pilot data) — the change
+  is write-forward.
+- **CONFLICT check:** this REVERSES tee-sheet arc Stage 2 ("league-mates who can
+  see it may RSVP") — a deliberate amendment, logged here, not a silent drift.
+  D17's core loop (see your crew's plans, pile onto a tee time) survives via the
+  unchanged visibility; only the confirm-without-invitation half is retired. No
+  conflict with the base-table RLS (already owner-only; the rule lives in the
+  SECURITY DEFINER RPC).
