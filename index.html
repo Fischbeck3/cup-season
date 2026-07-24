@@ -5267,7 +5267,7 @@ const POST_PAR_STD=[4,4,4,3,5,4,3,4,5, 4,4,3,4,5,4,3,4,5];   // par 72 template
 /* F2: `touched` tracks whether the golfer interacted with the grid at all —
    guards against a rushed Post on an untouched par-prefilled card (accidental
    even-par). Tracks interaction, not scores===pars, so a legit dial-to-par counts. */
-state.post = { mode:'total', side:18, pars:POST_PAR_STD.slice(), scores:POST_PAR_STD.slice(), touched:false, rating9:false };  /* D32: front & back is the default; hole-by-hole is the opt-in card. D72: rating9 = the rating field already holds a 9-hole rating (a real 9-hole tee), so recalc must NOT halve it */
+state.post = { mode:'total', side:18, pars:POST_PAR_STD.slice(), scores:POST_PAR_STD.slice(), touched:false, rating9:false, parsCourse:null };  /* D32: front & back is the default; hole-by-hole is the opt-in card. D72: rating9 = the rating field already holds a 9-hole rating (a real 9-hole tee), so recalc must NOT halve it */
 /* f9/b9 the rest of the pipeline reads — from the grid in holes mode, from the
    two inputs in total mode. One source, so scoring never disagrees with entry. */
 function postInputs(){
@@ -5609,6 +5609,10 @@ $('#postBtn').addEventListener('click', async ()=>{
       $('#inRating').value=''; $('#inSlope').value='';
       state.post.mode='total';                        /* the grid was a scan confirm — the composer resets to front & back (D34) */
       state.post.side=18; state.post.rating9=false;   /* D72: the next round starts at 18 holes, not sticky on the last post's nine */
+      /* the course field just cleared above — the CARD clears with it. Keeping
+         the posted course's pars left the next round (typed course, or one with
+         no cached holes) wearing the last course's card. */
+      state.post.pars = POST_PAR_STD.slice(); state.post.parsCourse = null;
       state.post.scores = state.post.pars.slice();   /* reset the grid to par */
       state.post.touched=false;                       /* next round starts fresh */
       if(typeof clearPostDraft==='function') clearPostDraft();   /* posted = the draft's job is done */
@@ -5963,6 +5967,18 @@ attachCourseSearch('#inCourse', '#inRating', '#inSlope', async ({ course, tee, c
   const nine = Number(tee?.number_of_holes) === 9;
   state.post.side = nine ? 9 : 18;
   state.post.rating9 = nine;   /* a 9-hole tee's course_rating IS a 9-hole rating — don't halve it */
+  /* pilot: posted Palo Verde (par 30 nine), picked a different 18-hole course,
+     and its front nine still read par 30. A NEW course must never wear the last
+     one's pars — every path below that can't load real pars (uncached course,
+     partial hole data) used to fall back to whatever was already in the grid.
+     Reset to the neutral template on a course CHANGE, up front; the real pars
+     overlay it when the cache answers. Re-picking the same course leaves a
+     hand-typed card alone. */
+  if(state.post.parsCourse !== course.id){
+    state.post.pars   = POST_PAR_STD.slice();
+    state.post.scores = POST_PAR_STD.slice();
+    state.post.parsCourse = course.id;
+  }
   $$('#postSide button').forEach(x=>x.classList.toggle('on', +x.dataset.ph===state.post.side));
   renderPostHoles();
   try{
@@ -5997,6 +6013,14 @@ attachCourseSearch('#lrCourse', '#lrRate', '#lrSlope', async ({ course, tee, cac
      by choosing "9 holes" — its front nine loads and the SI re-ranks 1-9. */
   const teeNine = Number(tee?.number_of_holes) === 9;
   if(teeNine && state.live){ state.live.holes=9; state.live.rating9=true; if(typeof setLiveHolesUI==='function') setLiveHolesUI(9); }
+  /* same rule as the post grid: a NEW course never inherits the last one's
+     card. Every early return below (uncached course, partial hole rows) would
+     otherwise leave the previous course's pars + SI standing. */
+  if(LR_PARS_COURSE !== course.id){
+    PAR = POST_PAR_STD.slice(); SI_LOADED = null; estimateSI(liveHoles());
+    LR_PARS_COURSE = course.id;
+    recomputeStrokes();
+  }
   try{
     await cached;
     const { data: tees } = await window.sb.from('api_course_tees')
@@ -6283,6 +6307,7 @@ window.fmtIdx=fmtIdx;
    is not. */
 let SIEST=false;
 let SI_LOADED=null;   /* D73: the full 18-hole SI as loaded from the course DB, so a 9/18 toggle can re-rank the front nine to 1-9 and restore the full card */
+let LR_PARS_COURSE=null;   /* which course the live card's pars came from — a change resets the card so it never wears the last course's pars */
 /* D73: the live round's hole count (9|18). One source; every hole loop, the
    settlement math, and the nav read it so a nine never runs phantom holes
    10-18. Scores stay 18-wide with the back nine null (the server already reads
