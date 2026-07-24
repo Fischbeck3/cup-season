@@ -2174,6 +2174,33 @@ machinery-already-exists. ⚑ marks the points still needing an owner call.*
   and accepted above rather than smuggled in. No conflict with D57 — the email
   carries no ids, and its links are tokens.
 
+### Casing policy · the SQL de-shout is paid down OPPORTUNISTICALLY (2026-07-24)
+- **The principle stands (D66):** the scoreboard voice belongs to typography,
+  not to stored data — capitals-as-data destroy proper nouns ("SANDY WEDGE" →
+  no way back to "Sandy Wedge"). The right end-state is generators that store
+  NATURAL case, and any surface wanting the scoreboard look uses CSS
+  `text-transform`.
+- **But the client registry (a6a3b23 + the b7 audit hardening) already fixes
+  every VISIBLE symptom** — new posts and legacy, names/courses/Ryder teams,
+  with word boundaries and a common-phrase denylist. `easeCaps` softens the
+  all-caps bodies; `csLearnNames` restores the proper nouns it has loaded
+  (own name, all-membership rosters, active squads, board courses, event
+  teams, the 21-day circle).
+- **Ruling (owner, 2026-07-24): do NOT big-bang the de-shout.** Rewriting all
+  ~15-20 post generators (round_to_board, close_month, settle_major,
+  resolve_session, finish_live_round, the major/forfeit posters …) is a large,
+  mechanical, RISKY reproduction of consequential security-definer game
+  functions, for ZERO additional user-visible benefit (the registry already
+  covers it) and WITHOUT retiring the registry (legacy posts stay uppercase
+  forever). It is engineer-satisfying and golfer-invisible.
+- **How the debt gets retired:** whenever a generator is already being
+  rewritten for another reason, de-shout THAT one in the same migration —
+  compose its body in natural case so `easeCaps` (which no-ops on mixed case)
+  passes it straight through. Near-zero marginal cost, no big-bang risk.
+  close_season (D66) is the first one done; the rest fall as they're touched.
+  A future session must not treat the de-shout as owed work, nor skip it when
+  already inside a generator.
+
 ### D69 · RSVP is for the invited — visibility stays, external RSVP goes
 - **Current:** a scheduled round is visible to the owner's whole league
   (can_see_round clause 4, "shares any league"), and RSVP capability is bundled
