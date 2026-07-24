@@ -2220,6 +2220,44 @@ machinery-already-exists. ⚑ marks the points still needing an owner call.*
   logged here because it rides the D71 money-language pass. `close_season`'s pot
   line already reads this way (D66); the rest are brought in line.
 
+### D72 · 9-hole rounds are a first-class post (not 18 with blanks)
+- **Current:** the engine already scores a 9-hole round — enter one nine and it
+  computes `((gross − rating/2) × 113/slope) × 2` and halves the points ("half
+  value"), `holes_played = 9`. But the CHOICE is buried: a small "Front 9"
+  toggle appears only in hole-by-hole mode, the par-entry defaults to 18, the
+  post course-search never reads the API's `number_of_holes` (which the tee data
+  carries), and the tee loader hard-requires 18 holes — so a real pilot playing
+  9 at Palo Verde was forced to enter 18 pars and never found the escape hatch.
+- **Problem:** posting a nine is a normal thing golfers do (an executive course,
+  a quick after-work nine, a 9-hole club), and the app makes it feel unsupported.
+- **Recommendation:**
+  (a) A first-class **"18 holes / 9 holes"** choice on the post card, visible
+  before you enter anything, in both entry modes.
+  (b) **Auto-detect from the API:** when the picked tee is `number_of_holes = 9`,
+  default to 9-hole entry and load ITS pars.
+  (c) **Rating stays an 18-hole-EQUIVALENT** in the field, so the scoring math is
+  untouched: a real 9-hole tee stores 2× its 9-hole rating (recalc's `rating/2`
+  recovers it exactly), its slope goes in as-is. Playing a partial nine of an
+  18-hole course keeps the `rating/2` approximation (the standard WHS-lite move
+  when only an 18-hole rating exists — e.g. Palo Verde, which the API holds as an
+  18-hole par-60 course).
+- **Principle served:** meet golfers where they play (a nine is a real round) ·
+  the handicap engine stays WHS-honest (a 9-hole differential is a doubled
+  half-rating differential, half the points) · everything shows its work (the
+  receipt already says "Nine holes · half value").
+- **Benefit:** the friction that made a pilot enter 18 fake holes is gone;
+  genuine 9-hole courses post correctly with their real rating.
+- **Tradeoffs:** front-vs-back of a partial nine is treated as cosmetic — the
+  pars only prefill the grid (the differential is driven by gross, not par), so
+  a back-nine player adjusts their scores and the number is still right. The
+  rare intersection (an 18-hole course that ALSO carries a distinct 9-hole rated
+  tee) does NOT swap in that separate rating on the manual toggle — it uses the
+  `rating/2` approximation; genuine 9-hole COURSES get their real rating via the
+  auto-detect. Client-only, no migration, no mechanic-band change (the points
+  bands are untouched; only entry + rating-source change).
+- **CONFLICT check:** none. §16 holds (rounds still immutable, the differential
+  is still computed by the trigger from stored facts). No band/points change.
+
 ### Casing policy · the SQL de-shout is paid down OPPORTUNISTICALLY (2026-07-24)
 - **The principle stands (D66):** the scoreboard voice belongs to typography,
   not to stored data — capitals-as-data destroy proper nouns ("SANDY WEDGE" →

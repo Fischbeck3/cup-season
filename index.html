@@ -2660,8 +2660,8 @@ html[data-theme="light"] .room-dusk .btn:not(.dark):not(.gold):not(.apple){color
                   <button data-pm="holes" type="button">Hole by hole</button>
                 </div>
                 <div class="seg" id="postSide" style="margin:0;">
-                  <button data-ph="18" class="on" type="button">18</button>
-                  <button data-ph="9" type="button">Front 9</button>
+                  <button data-ph="18" class="on" type="button">18 holes</button>
+                  <button data-ph="9" type="button">9 holes</button>
                 </div>
               </div>
 
@@ -5260,7 +5260,7 @@ const POST_PAR_STD=[4,4,4,3,5,4,3,4,5, 4,4,3,4,5,4,3,4,5];   // par 72 template
 /* F2: `touched` tracks whether the golfer interacted with the grid at all —
    guards against a rushed Post on an untouched par-prefilled card (accidental
    even-par). Tracks interaction, not scores===pars, so a legit dial-to-par counts. */
-state.post = { mode:'total', side:18, pars:POST_PAR_STD.slice(), scores:POST_PAR_STD.slice(), touched:false };  /* D32: front & back is the default; hole-by-hole is the opt-in card */
+state.post = { mode:'total', side:18, pars:POST_PAR_STD.slice(), scores:POST_PAR_STD.slice(), touched:false, rating9:false };  /* D32: front & back is the default; hole-by-hole is the opt-in card. D72: rating9 = the rating field already holds a 9-hole rating (a real 9-hole tee), so recalc must NOT halve it */
 /* f9/b9 the rest of the pipeline reads — from the grid in holes mode, from the
    two inputs in total mode. One source, so scoring never disagrees with entry. */
 function postInputs(){
@@ -5268,13 +5268,22 @@ function postInputs(){
     const s=state.post.scores, sum=(a,b)=>{ let t=0; for(let i=a;i<b;i++) t+=(+s[i]||0); return t; };
     return state.post.side===9 ? { f9:sum(0,9), b9:0 } : { f9:sum(0,9), b9:sum(9,18) };
   }
-  return { f9:parseFloat($('#inF9').value)||0, b9:parseFloat($('#inB9').value)||0 };
+  const f9=parseFloat($('#inF9').value)||0, b9=parseFloat($('#inB9').value)||0;
+  /* D72: a 9-hole post ignores the back-nine box even if it carries a stale
+     value — whichever nine was typed is the round, at half value */
+  return state.post.side===9 ? { f9: f9||b9, b9:0 } : { f9, b9 };
 }
 function renderPostHoles(){
   const wrapH=$('#postHolesWrap'), wrapT=$('#postTotalWrap'); if(!wrapH) return;
   wrapH.style.display = state.post.mode==='holes' ? 'block':'none';
   if(wrapT) wrapT.style.display = state.post.mode==='total' ? 'block':'none';
-  const ps=$('#postSide'); if(ps) ps.style.display = state.post.mode==='holes' ? '' : 'none';
+  /* D72: the 18/9 choice is first-class — visible in BOTH modes (it's a holes
+     count, not a hole-by-hole detail). In front-&-back mode, a 9-hole post
+     collapses to a single "9-hole gross" box; the back-nine box hides. */
+  const ps=$('#postSide'); if(ps) ps.style.display = '';
+  const nine = state.post.side===9;
+  const b9box=$('#inB9')?.closest('div'); if(b9box) b9box.style.display = nine ? 'none' : '';
+  const f9lab=document.querySelector('label[for="inF9"]'); if(f9lab) f9lab.textContent = nine ? '9-hole gross' : 'Front 9 gross';
   if(state.post.mode==='holes'){
     const cell=i=>{
       const par=state.post.pars[i], sc=state.post.scores[i];
@@ -5311,7 +5320,12 @@ function recalc(){
   } else if(f9>0 || b9>0){
     const g9=f9||b9;
     gross=g9;
-    diff=((g9-rating/2)*113/slope)*2;
+    /* D72: a 9-hole differential = (nine gross − 9-hole rating) scaled, doubled
+       to an 18-hole equivalent. The 9-hole rating is either a real one loaded
+       from a 9-hole tee (rating9) or half the 18-hole rating (the approximation
+       when you played a partial nine of an 18-hole course). Slope is used as-is. */
+    const rating9 = state.post.rating9 ? rating : rating/2;
+    diff=((g9-rating9)*113/slope)*2;
     vs=state.myIndex-diff;
     const base=pointsFor(vs);
     pts=Math.ceil(base[0]/2);
@@ -5333,6 +5347,10 @@ function recalc(){
   state.lastPost={pts, vs, label};
 }
 ['inRating','inSlope','inF9','inB9'].forEach(id=>$('#'+id)?.addEventListener('input',recalc));
+/* D72: a hand-typed rating is assumed to be an 18-hole rating (recalc halves it
+   for a 9-hole post). A 9-hole tee's onTee re-sets rating9 afterward, so an
+   auto-loaded 9-hole rating is respected; only manual entry clears the flag. */
+$('#inRating')?.addEventListener('input',()=>{ state.post.rating9=false; });
 /* ---- post-card draft: survive an iOS page eviction (pilot: "input photo and
    it kicked me out") ------------------------------------------------------
    Opening the camera/photo picker backgrounds the PWA; under memory pressure
@@ -5352,7 +5370,7 @@ function savePostDraft(){
       if(!hasAny){ localStorage.removeItem(POST_DRAFT_KEY); return; }
       localStorage.setItem(POST_DRAFT_KEY, JSON.stringify({
         at:Date.now(), vals, cid:($('#inCourse')?.dataset.courseId)||null,
-        mode:state.post.mode, side:state.post.side,
+        mode:state.post.mode, side:state.post.side, rating9:state.post.rating9,
         pars:state.post.pars, scores:state.post.scores, touched:state.post.touched,
       }));
     }catch(_){}
@@ -5370,6 +5388,7 @@ function restorePostDraft(){
     if(d.cid && $('#inCourse')) $('#inCourse').dataset.courseId=d.cid;
     if(d.mode) state.post.mode=d.mode;
     if(d.side) state.post.side=d.side;
+    state.post.rating9=!!d.rating9;   /* D72: a restored 9-hole-tee post keeps its real 9-hole rating (no double-halve) */
     if(Array.isArray(d.pars)   && d.pars.length===18)   state.post.pars=d.pars.map(Number);
     if(Array.isArray(d.scores) && d.scores.length===18) state.post.scores=d.scores.map(Number);
     state.post.touched=!!d.touched;
@@ -5475,7 +5494,11 @@ $('#postBtn').addEventListener('click', async ()=>{
       const payload = {
         gross: nine ? (f9||b9) : f9+b9,
         rating,
-        nine_rating: nine ? rating/2 : null,
+        /* D72: nine_rating is the ACTUAL 9-hole rating the server scores against
+           ((gross − nine_rating)·113/slope·2). A real 9-hole tee already holds a
+           9-hole rating (rating9) — send it straight; an 18-hole course played as
+           a nine sends half. Matches recalc() and score_round() exactly. */
+        nine_rating: nine ? (state.post.rating9 ? rating : rating/2) : null,
         slope, holes_played: nine ? 9 : 18, source: 'quick',
         played_on: $('#inDate').value || null,
         course_label: $('#inCourse').value.trim() || null,
@@ -5578,6 +5601,7 @@ $('#postBtn').addEventListener('click', async ()=>{
       $('#inCourse').value=''; $('#inCourse').dataset.courseId='';
       $('#inRating').value=''; $('#inSlope').value='';
       state.post.mode='total';                        /* the grid was a scan confirm — the composer resets to front & back (D34) */
+      state.post.side=18; state.post.rating9=false;   /* D72: the next round starts at 18 holes, not sticky on the last post's nine */
       state.post.scores = state.post.pars.slice();   /* reset the grid to par */
       state.post.touched=false;                       /* next round starts fresh */
       if(typeof clearPostDraft==='function') clearPostDraft();   /* posted = the draft's job is done */
@@ -5924,7 +5948,36 @@ function attachCourseSearch(courseSel, ratingSel, slopeSel, onTee){
     } else if(e.key==='Escape'){ hide(); }
   });
 }
-attachCourseSearch('#inCourse', '#inRating', '#inSlope');
+attachCourseSearch('#inCourse', '#inRating', '#inSlope', async ({ course, tee, cached }) => {
+  /* D72: the API carries number_of_holes on every tee — default the post to the
+     holes the golfer actually picked. Sync first (straight off the picked tee)
+     so the 18/9 choice + rating convention are right even if the par-cache
+     lookup misses; the tee-pick handler already stamped rating/slope. */
+  const nine = Number(tee?.number_of_holes) === 9;
+  state.post.side = nine ? 9 : 18;
+  state.post.rating9 = nine;   /* a 9-hole tee's course_rating IS a 9-hole rating — don't halve it */
+  $$('#postSide button').forEach(x=>x.classList.toggle('on', +x.dataset.ph===state.post.side));
+  renderPostHoles();
+  try{
+    await cached;
+    const { data: tees } = await window.sb.from('api_course_tees')
+      .select('id, tee_name, number_of_holes, course_rating').eq('course_id', course.id);
+    if(!tees || !tees.length) return;
+    const picked = tees.find(t => t.tee_name===tee.tee_name && Number(t.course_rating)===Number(tee.course_rating))
+                || tees.find(t => t.tee_name===tee.tee_name) || tees[0];
+    const { data: holes } = await window.sb.from('api_course_holes')
+      .select('hole_number, par').eq('tee_id', picked.id).order('hole_number', { ascending:true });
+    if(!holes || !holes.length) return;
+    const pars = holes.map(h => Number(h.par) || 4);
+    /* real pars into the grid (setup, never flips `touched`): a 9-hole tee fills
+       the front nine, an 18-hole tee fills all eighteen */
+    state.post.pars = (picked.number_of_holes===9)
+      ? [...pars.slice(0,9), ...POST_PAR_STD.slice(9,18)]
+      : (pars.length===18 ? pars : state.post.pars);
+    state.post.scores = state.post.pars.slice();
+    renderPostHoles();
+  }catch(_){ /* cache miss = the typed path; the holes choice above still stands */ }
+});
 /* pilot: "tried live round and it didn't pull course api" — the live sheet was
    a plain text input; only the post + tee-time sheets had the search. On tee
    pick here: wait for the server-side cache, then lift the REAL per-hole par +
