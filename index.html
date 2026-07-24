@@ -2546,6 +2546,13 @@ html[data-theme="light"] .room-dusk .btn:not(.dark):not(.gold):not(.apple){color
               <input class="f" id="lrRate" type="number" step="0.1" value="70.2" placeholder="Rating" inputmode="decimal">
               <input class="f" id="lrSlope" type="number" value="123" placeholder="Slope" inputmode="numeric">
             </div>
+            <!-- D73: playing a nine? the whole round — scorecard, match/wolf/skins
+                 settlement, the posted score — adapts to 9. Auto-set to 9 when a
+                 9-hole tee is picked. -->
+            <div class="seg" id="lrHoles" style="margin:10px 0 0; max-width:220px;">
+              <button data-lh="18" class="on" type="button">18 holes</button>
+              <button data-lh="9" type="button">9 holes</button>
+            </div>
             <p class="fine" style="padding-top:10px" id="cardNote">Standard par-72 card. The stepper opens on each hole's par — pick your course above and the real pars load.</p>
             <button class="mini" id="editCard" style="margin-top:2px">Enter the pars</button>
           </div>
@@ -5984,27 +5991,76 @@ attachCourseSearch('#inCourse', '#inRating', '#inSlope', async ({ course, tee, c
    stroke index into the course card (mirrors what cardSave does by hand). */
 attachCourseSearch('#lrCourse', '#lrRate', '#lrSlope', async ({ course, tee, cached }) => {
   const te = $('#lrTee'); if(te && tee.tee_name) te.value = tee.tee_name;
+  /* D73: a real 9-hole tee flips the live round to a nine — its course_rating
+     IS a 9-hole rating (rating9). An 18-hole tee keeps the picker's choice, so
+     a course held as 18-but-really-9 (Palo Verde) can still be played as a nine
+     by choosing "9 holes" — its front nine loads and the SI re-ranks 1-9. */
+  const teeNine = Number(tee?.number_of_holes) === 9;
+  if(teeNine && state.live){ state.live.holes=9; state.live.rating9=true; if(typeof setLiveHolesUI==='function') setLiveHolesUI(9); }
   try{
     await cached;
     const { data: tees } = await window.sb.from('api_course_tees')
       .select('id, tee_name, number_of_holes').eq('course_id', course.id);
-    const row = (tees||[]).find(x => x.tee_name === tee.tee_name && x.number_of_holes === 18)
-             || (tees||[]).find(x => x.tee_name === tee.tee_name)
-             || null;
+    const want = liveHoles();
+    const row = (tees||[]).find(x => x.tee_name === tee.tee_name && x.number_of_holes === want)
+             || (tees||[]).find(x => x.tee_name === tee.tee_name) || null;
     if(!row) return;
     const { data: holes } = await window.sb.from('api_course_holes')
       .select('hole_number, par, handicap').eq('tee_id', row.id)
       .order('hole_number', { ascending: true });
-    if(!holes || holes.length !== 18) return;   /* 9-hole cards keep the typed path */
-    PAR = holes.map(h => Number(h.par) || 4);
-    const si = holes.map(h => Number(h.handicap));
-    if(si.every(n => n >= 1 && n <= 18)){ SI = si; SIEST = false; } else estimateSI();
+    if(!holes || !holes.length) return;
+    SI_LOADED = holes.map(h => Number(h.handicap));   /* raw card SI, for a later 9/18 re-rank */
+    if(liveHoles()===9){
+      /* the nine we play: a 9-hole tee's rows, or the FRONT nine of an 18-row
+         card. SI re-ranked among the nine so the strokes allocate 1-9. */
+      const nine = holes.slice(0,9);
+      PAR = [...nine.map(h => Number(h.par) || 4), ...PAR.slice(9,18)];
+      const rawSI = nine.map(h => Number(h.handicap));
+      if(rawSI.every(n => n >= 1)){
+        const order=[...rawSI.keys()].sort((a,b)=> rawSI[a]-rawSI[b]);
+        SI=Array(18).fill(18); order.forEach((idx,rank)=>{ SI[idx]=rank+1; }); SIEST=false;
+      } else estimateSI(9);
+    } else {
+      if(holes.length !== 18) return;   /* an 18-hole card must be complete */
+      PAR = holes.map(h => Number(h.par) || 4);
+      const si = holes.map(h => Number(h.handicap));
+      if(si.every(n => n >= 1 && n <= 18)){ SI = si; SIEST = false; } else estimateSI();
+    }
     recomputeStrokes();
     const cn = $('#cardNote');
-    if(cn) cn.textContent = `Card loaded: par ${PAR.reduce((a,b)=>a+b,0)} — real pars and stroke index from the course database.`;
+    if(cn) cn.textContent = `Card loaded: ${liveHoles()===9?'9-hole':'18-hole'} pars and stroke index from the course database.`;
     if(typeof renderPlay === 'function') renderPlay();
   }catch(_){ /* cache miss = the typed card path — never block setup */ }
 });
+/* D73: the live 9/18 picker. Re-derives the stroke index for the chosen count
+   (a nine ranks its holes 1-9 so strokes allocate right — the Palo Verde case:
+   pick the 18-hole course, choose 9, its front nine re-ranks), recomputes the
+   handicap (halved for a nine), and repaints. */
+function reindexSIForHoles(n){
+  if(n===9){
+    const src=(SI_LOADED&&SI_LOADED.length?SI_LOADED:SI).slice(0,9);
+    if(src.length===9 && src.every(v=>v>=1)){
+      const order=[...src.keys()].sort((a,b)=> src[a]-src[b]);
+      const out=Array(18).fill(18); order.forEach((idx,rank)=>{ out[idx]=rank+1; }); SI=out; SIEST=false;
+    } else estimateSI(9);
+  } else {
+    if(SI_LOADED && SI_LOADED.length===18 && SI_LOADED.every(v=>v>=1&&v<=18)){ SI=SI_LOADED.slice(); SIEST=false; }
+    else estimateSI(18);
+  }
+}
+function setLiveHolesUI(n){
+  n = n===9 ? 9 : 18;
+  $$('#lrHoles button').forEach(b=>b.classList.toggle('on', +b.dataset.lh===n));
+}
+$$('#lrHoles button').forEach(b=>b.addEventListener('click',()=>{
+  const n = +b.dataset.lh===9 ? 9 : 18;
+  if(state.live){ state.live.holes=n; if(n===18) state.live.rating9=false; }   /* a manual switch to 18 drops any 9-hole-tee flag */
+  setLiveHolesUI(n);
+  reindexSIForHoles(n);
+  recomputeStrokes();
+  if(state.live) state.live.hole=Math.min(state.live.hole||0, n-1);
+  renderPlay();
+}));
 
 /* ================= pot ================= */
 function renderPot(){
@@ -6226,8 +6282,15 @@ window.fmtIdx=fmtIdx;
    shows. The demo card's SI is a real card; a real course entered by pars only
    is not. */
 let SIEST=false;
-function estimateSI(){
-  const order=[...PAR.keys()].sort((a,b)=> PAR[b]-PAR[a] || a-b);
+let SI_LOADED=null;   /* D73: the full 18-hole SI as loaded from the course DB, so a 9/18 toggle can re-rank the front nine to 1-9 and restore the full card */
+/* D73: the live round's hole count (9|18). One source; every hole loop, the
+   settlement math, and the nav read it so a nine never runs phantom holes
+   10-18. Scores stay 18-wide with the back nine null (the server already reads
+   that as a 9-hole card) — only the LOOPS shrink. */
+function liveHoles(){ return (state.live && state.live.holes) || 18; }
+function estimateSI(n){
+  n = n || 18;   /* rank only the holes in play so a 9-hole card's SI is 1..9 */
+  const order=[...Array(n).keys()].sort((a,b)=> PAR[b]-PAR[a] || a-b);
   SI=Array(18).fill(18);
   order.forEach((h,rank)=>{ SI[h]=rank+1; });
   SIEST=true;
@@ -6248,7 +6311,10 @@ function setMatchTeams(){ MTEAMS = LIVE.length===2 ? [[0],[1]] : [[0,1],[2,3]]; 
 const WOLF_VAL=2;
 let CHS=[], LOWCH=0, STROKES=[];
 function recomputeStrokes(){
-  CHS=LIVE.map(p=>Math.round(p.i*CSLOPE/113));
+  /* D73: a 9-hole match allocates HALF the course handicap (WHS 9-hole CH), so
+     the strokes-off-low-man ladder is right for the nine actually played */
+  const nine = liveHoles()===9;
+  CHS=LIVE.map(p=>Math.round(p.i*CSLOPE/113/(nine?2:1)));
   LOWCH=Math.min(...CHS);
   STROKES=CHS.map(c=>c-LOWCH);
 }
@@ -6257,11 +6323,12 @@ recomputeStrokes();
    the card (28 given = 1 every hole + a 2nd on the 10 hardest) */
 const strokeOn=(pi,h)=>{
   const stk=STROKES[pi]||0;
-  return Math.floor(stk/18) + (SI[h]<=(stk%18)?1:0);
+  const H=liveHoles();   /* D73: wrap strokes over the holes in play (SI ranked 1..H) */
+  return Math.floor(stk/H) + (SI[h]<=(stk%H)?1:0);
 };
 
 function freshLive(){
-  return {stage:'setup', active:false, game:'score', hole:0,
+  return {stage:'setup', active:false, game:'score', hole:0, holes:18, rating9:false,
     scores:LIVE.map(()=>Array(18).fill(null)), wolf:Array(18).fill(null)};
 }
 state.live=freshLive();
@@ -6330,6 +6397,7 @@ function buildLiveSnapshot(){
   const L=state.live;
   return { v:2, lr:L.lr, league_id:L.league_id||null, ts:Date.now(),
     game:L.game, stake:L.stake||0, wolfOrder:L.wolfOrder||null,
+    holes:L.holes||18, rating9:!!L.rating9,   /* D73: a resumed nine stays a nine */
     pmap:L.pmap||null, guestTokens:L.guestTokens||{},
     scores:L.scores, wolf:L.wolf, hole:L.hole,
     teams: (typeof MTEAMS!=='undefined' && MTEAMS) ? MTEAMS.map(t=>t.slice()) : null,
@@ -6381,10 +6449,12 @@ function applyLiveSnapshot(s){
     ? s.scores.map(a=>{ const r=Array(18).fill(null); (Array.isArray(a)?a:[]).forEach((v,k)=>{ if(k<18 && v!=null) r[k]=v; }); return r; })
     : LIVE.map(()=>Array(18).fill(null));
   const wolf = (Array.isArray(s.wolf) && s.wolf.length===18) ? s.wolf.slice() : Array(18).fill(null);
-  const hole = Number.isInteger(s.hole) ? Math.max(0,Math.min(17,s.hole)) : 0;
+  const holes = s.holes===9 ? 9 : 18;   /* D73 */
+  const hole = Number.isInteger(s.hole) ? Math.max(0,Math.min(holes-1,s.hole)) : 0;
   state.live = { stage:'live', active:true, game:s.game||'score', stake:Number(s.stake)||0,
-    wolfOrder:s.wolfOrder||null, hole, scores, wolf, lr:s.lr, league_id:s.league_id||null,
+    wolfOrder:s.wolfOrder||null, holes, rating9:!!s.rating9, hole, scores, wolf, lr:s.lr, league_id:s.league_id||null,
     pmap:s.pmap||null, guestTokens:s.guestTokens||{} };
+  recomputeStrokes();   /* re-run now that holes is known (a nine halves the handicap) */
   rosterPrimed=true;
   return true;
 }
@@ -6427,9 +6497,11 @@ function applyServerRound(mine, myPid){
     const ord=(cfg.order||[]).map(idxByName).filter(i=>i>=0);
     wolfOrder = ord.length===LIVE.length ? ord : [0,1,2,3];
   }
+  const _srvHoles = snap.holes===9 ? 9 : 18;   /* D73: the started round's hole count rides the server snapshot */
   state.live = { stage:'live', active:true, game, stake:Number(cfg.stake)||0, wolfOrder,
-    hole:0, scores:LIVE.map(()=>Array(18).fill(null)), wolf:Array(18).fill(null),
+    holes:_srvHoles, rating9:false, hole:0, scores:LIVE.map(()=>Array(18).fill(null)), wolf:Array(18).fill(null),
     lr:mine.id, league_id:mine.league_id||null, pmap:players.map(p=>p.id), guestTokens:{} };
+  recomputeStrokes();   /* holes is known now — a nine halves the handicap */
   try{
     const raw=localStorage.getItem(liveKey(mine.id));
     if(raw){ const cc=JSON.parse(raw);
@@ -6438,7 +6510,8 @@ function applyServerRound(mine, myPid){
           (Array.isArray(a)?a:[]).forEach((v,k)=>{ if(k<18 && v!=null) r[k]=v; }); return r; });
       }
       if(Array.isArray(cc.wolf) && cc.wolf.length===18) state.live.wolf=cc.wolf.slice();
-      if(Number.isInteger(cc.hole)) state.live.hole=Math.max(0,Math.min(17,cc.hole));
+      if(cc.holes===9) state.live.holes=9;   /* D73: local snapshot may know the nine before the server snap is read */
+      if(Number.isInteger(cc.hole)) state.live.hole=Math.max(0,Math.min(state.live.holes-1,cc.hole));
     }
   }catch(_){}
   rosterPrimed=true;
@@ -6530,13 +6603,14 @@ const netOf=(pi,h)=>state.live.scores[pi][h]-strokeOn(pi,h);
 
 function matchCalc(){
   let a=0,b=0,played=0,closed=null;
-  for(let h=0;h<18;h++){
+  const H=liveHoles();   /* D73: a 4&3 on nine closes at rem against 9, not 18 */
+  for(let h=0;h<H;h++){
     if(!holeDone(h)) break;
     const na=Math.min(...MTEAMS[0].map(p=>netOf(p,h)));
     const nb=Math.min(...MTEAMS[1].map(p=>netOf(p,h)));
     if(na<nb)a++; else if(nb<na)b++;
     played=h+1;
-    const lead=Math.abs(a-b), rem=18-played;
+    const lead=Math.abs(a-b), rem=H-played;
     if(lead>rem && lead>0){closed={winner:a>b?0:1, lead, rem}; break;}
   }
   return {a,b,played,closed};
@@ -6549,7 +6623,7 @@ function matchCalc(){
 function wolfOrderNow(){ return state.live.wolfOrder || [0,1,2,3]; }
 function wolfAt(h){
   const ord=wolfOrderNow();
-  if(h<16) return ord[h%4];
+  if(h<liveHoles()-2) return ord[h%4];   /* D73: the last TWO holes go to last place — holes 8-9 on a nine, 17-18 on 18 */
   const pts=wolfPointsThrough(h);
   let worst=ord[0];
   [0,1,2,3].forEach(p=>{ if(pts[p]<pts[worst]) worst=p; });
@@ -6577,7 +6651,7 @@ function wolfPointsThrough(limit){
   }
   return pts;
 }
-function wolfPoints(){ return wolfPointsThrough(18); }
+function wolfPoints(){ return wolfPointsThrough(liveHoles()); }
 
 /* skins: lowest NET takes the hole's skin(s); ties carry the pot forward
    (decision-log D9). Works 2–4 players; carried skins die at 18 (v1). */
@@ -6585,7 +6659,7 @@ function skinsCalc(){
   const n=LIVE.length;
   const won=LIVE.map(()=>0);
   let carry=1, thru=0;
-  for(let h=0;h<18;h++){
+  for(let h=0;h<liveHoles();h++){   /* D73: a carried skin dies at the last hole played (9 or 18) */
     if(!holeDone(h)) break;
     const nets=LIVE.map((_,pi)=>netOf(pi,h));
     const mn=Math.min(...nets);
@@ -6684,7 +6758,7 @@ function renderPlay(){
   $('#holeMeta').textContent=`PAR ${PAR[h]}` + (SI ? ` · SI ${SI[h]}` : '');
 
   const dots=$('#holeDots'); dots.innerHTML='';
-  for(let k=0;k<18;k++){
+  for(let k=0;k<liveHoles();k++){   /* D73: a nine shows nine dots, not eighteen */
     const d=document.createElement('i');
     if(holeDone(k))d.classList.add('done');
     if(k===h)d.classList.add('cur');
@@ -6731,7 +6805,7 @@ function renderPlay(){
     ? `Match play \u00b7 singles \u00b7 ${LIVE[0]?.n||''} vs ${LIVE[1]?.n||''}`
     : `Match play \u00b7 net best ball \u00b7 ${LIVE[0]?.n||''} + ${LIVE[1]?.n||''} vs ${LIVE[2]?.n||''} + ${LIVE[3]?.n||''}`;
   const m=matchCalc();
-  const _dormie = !m.closed && m.a!==m.b && Math.abs(m.a-m.b)===18-m.played;
+  const _dormie = !m.closed && m.a!==m.b && Math.abs(m.a-m.b)===liveHoles()-m.played;
   $('#matchStatus').textContent = m.closed
     ? `${m.closed.winner===0?teamA:teamB} WIN ${m.closed.lead}&${m.closed.rem}`
     : (m.a===m.b?'ALL SQUARE':`${m.a>m.b?teamA:teamB} ${Math.abs(m.a-m.b)} UP${_dormie?' · DORMIE':''}`);
@@ -6743,7 +6817,7 @@ function renderPlay(){
 
   if(state.live.game==='wolf' && LIVE.length===4){
   const wolfIdx=wolfAt(h);
-  const comeback = h>=16;
+  const comeback = h>=liveHoles()-2;
   $('#wolfWho').textContent=(LIVE[wolfIdx]?.n||'').toUpperCase()+' IS THE WOLF'+(comeback?' · COMEBACK':'');
   /* tee order: rotation shifted so the wolf watches every drive (tees last) */
   const wm=$('#wolfMeta');
@@ -6790,7 +6864,7 @@ function renderPlay(){
   if(state.live.game==='skins' && LIVE.length>=2){
     const sk=skinsCalc();
     const ss=$('#skinsStatus'), sm=$('#skinsMeta');
-    if(ss) ss.textContent = sk.thru>=18
+    if(ss) ss.textContent = sk.thru>=liveHoles()
       ? (sk.carry>1?`DONE · ${sk.carry-1} SKIN${sk.carry===2?'':'S'} DIED CARRIED`:'DONE · EVERY SKIN CLAIMED')
       : `HOLE ${sk.thru+1} WORTH ${sk.carry} SKIN${sk.carry===1?'':'S'}`;
     if(sm) sm.textContent = `THRU ${sk.thru} · LOW NET TAKES IT`
@@ -6809,7 +6883,7 @@ function renderPlay(){
   renderLiveBanner();
 }
 $('#holePrev').addEventListener('click',()=>{state.live.hole=Math.max(0,state.live.hole-1);renderPlay();});
-$('#holeNext').addEventListener('click',()=>{state.live.hole=Math.min(17,state.live.hole+1);renderPlay();});
+$('#holeNext').addEventListener('click',()=>{state.live.hole=Math.min(liveHoles()-1,state.live.hole+1);renderPlay();});
 /* the tee-off match preview: sides + who gets strokes WHERE — the first-tee
    argument, settled before anyone hits (§2.2). Recomputed on every roster,
    slope, or game change. */
@@ -6825,7 +6899,7 @@ function renderMatchPrev(){
     : 'Dollars per skin · $0 = bragging rights';
   if(g==='wolf'){
     prev.innerHTML = sel.length===4
-      ? 'Wolf order shuffles at tee-off and locks. The wolf tees last, picks a partner after any drive — or goes lone for 3. Holes 17–18: last place is the wolf.'
+      ? `Wolf order shuffles at tee-off and locks. The wolf tees last, picks a partner after any drive — or goes lone for 3. Last two holes (${liveHoles()===9?'8–9':'17–18'}): last place is the wolf.`
       : 'Wolf needs exactly 4 players.';
     return;
   }
@@ -7037,7 +7111,8 @@ $('#teeOffBtn').addEventListener('click', async ()=>{
   const wolfOrder = game==='wolf'
     ? [0,1,2,3].map(v=>[Math.random(),v]).sort((a,b)=>a[0]-b[0]).map(x=>x[1])
     : null;
-  state.live={stage:'live', active:true, game, stake, wolfOrder,
+  const _holes=liveHoles(), _rating9=!!(state.live&&state.live.rating9);   /* carry the setup's holes choice into the live round */
+  state.live={stage:'live', active:true, game, stake, wolfOrder, holes:_holes, rating9:_rating9,
     hole:0, scores:LIVE.map(()=>Array(18).fill(null)), wolf:Array(18).fill(null),
     lr:null, league_id:(window.CS?.league?.id||null), pmap:null, guestTokens:{}};
   /* real accounts persist the live round now (guests get claim tokens);
@@ -7045,8 +7120,14 @@ $('#teeOffBtn').addEventListener('click', async ()=>{
   if(!state.demo && window.sb && window.CS?.league){
     const btn=$('#teeOffBtn'); btn.disabled=true;
     try{
-      const snap={ rating:parseFloat($('#lrRate').value)||null, slope:parseInt($('#lrSlope').value)||null,
-        nine_rating:null, pars:PAR.slice(), si:(SI?SI.slice():null),
+      /* D73: THE line that was starving the server's 9-hole path. A nine now
+         carries a real nine_rating — the 9-hole tee's own rating (rating9) or
+         half the 18-hole rating — so finish_live_round scores it half-value
+         instead of skipping every player with "no 9-hole rating". */
+      const _r=parseFloat($('#lrRate').value)||null;
+      const _nine9 = _holes===9 && _r!=null ? (_rating9 ? _r : _r/2) : null;
+      const snap={ rating:_r, slope:parseInt($('#lrSlope').value)||null,
+        nine_rating:_nine9, holes:_holes, pars:PAR.slice(), si:(SI?SI.slice():null),
         label:($('#lrCourse').value||'').trim(), tee:($('#lrTee').value||'').trim() };
       const players=LIVE.map(p=> p.guest ? {guest_name:p.n, guest_index:(p.est?null:p.i)} : {member_id:p.mid});
       const cfg = game==='match'
@@ -7149,7 +7230,7 @@ function finishRealLiveRound(){
     return (f9&&b9) ? 18 : (f9&&!anyB) ? 9 : 0;
   };
   const missingOf = i => { const a=state.live.scores[i]||[];
-    const out=[]; for(let h=0;h<18;h++) if(a[h]==null) out.push(h+1); return out; };
+    const out=[]; for(let h=0;h<liveHoles();h++) if(a[h]==null) out.push(h+1); return out; };   /* D73: a nine's holes 10-18 are legitimately empty — never "missing" */
   const seats = LIVE.map((p,i)=>({p,i})).filter(x=>state.live.pmap?.[x.i]);
   const done  = seats.filter(x=>!x.p.guest && cardHoles(x.i)>0);
   const open  = seats.filter(x=>cardHoles(x.i)===0);
@@ -7427,44 +7508,48 @@ function renderStats(){
 function sumStr(str){ return [...str].reduce((a,c)=>a+(+c||0),0); }
 function validSide(str){ return str.length===9 && [...str].every(c=>c>='3'&&c<='6'); }
 function openCardSheet(){
+  const nine = liveHoles()===9;   /* D73: a live nine types one side, not two */
   openSheet('Course card',
     (($('#lrCourse').value||'Course')+' · pars only').toUpperCase(),
-    `<div class="cardlbl"><span>Front nine</span><span id="f9sum">—</span></div>
+    `<div class="cardlbl"><span>${nine?'The nine':'Front nine'}</span><span id="f9sum">—</span></div>
      <input class="cardin" id="parF9" inputmode="numeric" maxlength="9" placeholder="453453543" autocomplete="off">
-     <div class="cardlbl"><span>Back nine</span><span id="b9sum">—</span></div>
-     <input class="cardin" id="parB9" inputmode="numeric" maxlength="9" placeholder="434445345" autocomplete="off">
+     ${nine?'':`<div class="cardlbl"><span>Back nine</span><span id="b9sum">—</span></div>
+     <input class="cardin" id="parB9" inputmode="numeric" maxlength="9" placeholder="434445345" autocomplete="off">`}
      <div class="cardlbl"><span>Total par</span><span id="ctot">—</span></div>
-     <p class="fine" style="padding-top:6px">Nine digits a side, 3–6. Type it once and the card saves for every league. Strokes fall by hole order; exact stroke index arrives with the course database.</p>
+     <p class="fine" style="padding-top:6px">Nine digits a side, 3–6. ${nine?'The nine you played.':'Type it once and the card saves for every league.'} Strokes fall by hole order; exact stroke index arrives with the course database.</p>
      <button class="btn" id="cardSave" style="margin-top:10px">Save the card</button>`);
-  const f9=$('#parF9'), b9=$('#parB9');
+  const f9=$('#parF9'), b9=nine?null:$('#parB9');
   f9.value=PAR.slice(0,9).join('');
-  b9.value=PAR.slice(9).join('');
+  if(b9) b9.value=PAR.slice(9).join('');
   function refresh(){
-    const f=f9.value, b=b9.value;
-    const fs=$('#f9sum'), bs=$('#b9sum'), ct=$('#ctot');
+    const f=f9.value, b=b9?b9.value:'';
+    const fs=$('#f9sum'), bs=b9?$('#b9sum'):null, ct=$('#ctot');
     fs.textContent=f.length?sumStr(f):'—';
-    bs.textContent=b.length?sumStr(b):'—';
     fs.className=f.length?(validSide(f)?'ok':'no'):'';
-    bs.className=b.length?(validSide(b)?'ok':'no'):'';
     f9.classList.toggle('bad', f.length===9&&!validSide(f));
-    b9.classList.toggle('bad', b.length===9&&!validSide(b));
-    if(validSide(f)&&validSide(b)){ ct.textContent=sumStr(f)+sumStr(b); ct.className='ok'; }
+    if(bs){
+      bs.textContent=b.length?sumStr(b):'—';
+      bs.className=b.length?(validSide(b)?'ok':'no'):'';
+      b9.classList.toggle('bad', b.length===9&&!validSide(b));
+    }
+    if(validSide(f)&&(nine||validSide(b))){ ct.textContent=sumStr(f)+(nine?0:sumStr(b)); ct.className='ok'; }
     else { ct.textContent='—'; ct.className=''; }
   }
-  [f9,b9].forEach(inp=>inp.addEventListener('input',()=>{
+  [f9,b9].filter(Boolean).forEach(inp=>inp.addEventListener('input',()=>{
     inp.value=inp.value.replace(/[^3-6]/g,'').slice(0,9);
-    if(inp===f9 && inp.value.length===9) b9.focus();
+    if(inp===f9 && b9 && inp.value.length===9) b9.focus();
     refresh();
   }));
   $('#cardSave').addEventListener('click',()=>{
-    const f=f9.value, b=b9.value;
-    if(!validSide(f)||!validSide(b)){ toast('Nine digits a side, 3 through 6'); return; }
-    PAR=[...f,...b].map(Number);
+    const f=f9.value, b=b9?b9.value:'';
+    if(!validSide(f)||(!nine&&!validSide(b))){ toast('Nine digits a side, 3 through 6'); return; }
+    PAR=nine ? [...[...f].map(Number), ...PAR.slice(9,18)] : [...f,...b].map(Number);
     /* pars-only card carries no stroke index — estimate (flagged), never null:
-       strokeOn()/matchCalc() dereference SI on every match hole */
-    estimateSI();
+       strokeOn()/matchCalc() dereference SI on every match hole. Rank over the
+       holes in play so a nine's SI is 1-9. */
+    estimateSI(nine?9:18); SI_LOADED=null;
     closeSheet();
-    $('#cardNote').textContent=`Card saved: par ${sumStr(f)+sumStr(b)}. The stepper opens on each hole's par.`;
+    $('#cardNote').textContent=`Card saved: par ${sumStr(f)+(nine?0:sumStr(b))}${nine?' · 9 holes':''}. The stepper opens on each hole's par.`;
     renderPlay();
     toast('Card saved: every league gets it from here');
   });

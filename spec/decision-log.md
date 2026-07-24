@@ -2258,6 +2258,42 @@ machinery-already-exists. ⚑ marks the points still needing an owner call.*
 - **CONFLICT check:** none. §16 holds (rounds still immutable, the differential
   is still computed by the trigger from stored facts). No band/points change.
 
+### D73 · 9-hole LIVE rounds (the tee sheet learns to play a nine)
+- **Current:** D72 gave the POST flow 9-hole support, but the LIVE round (the
+  shared in-person scorecard: match play / Wolf / skins, live settlement) stayed
+  hardwired to 18. A pilot playing a nine at Palo Verde got an 18-hole card with
+  no way to declare a nine.
+- **Problem:** a nine is a normal round, and the live round — the app's most
+  social, money-carrying surface — pretended it didn't exist.
+- **Recommendation:** thread ONE hole count (`state.live.holes`, 9|18) through
+  the whole live round. A 9/18 picker on the setup sheet (auto-set to 9 when a
+  9-hole tee is picked, or the front nine of an 18-that-is-really-9 like Palo
+  Verde); the course loader accepts a 9-hole tee and re-ranks its stroke index
+  1-9; every settlement + nav loop reads the count, not a literal 18.
+- **Server:** already 9-ready — `finish_live_round`/`claim_round` detect a
+  9-hole card (front nine filled, back nine null) and post it half-value (D72).
+  The ONE thing starving it was the client hardcoding `nine_rating:null` into
+  the tee-off snapshot; it now carries the real 9-hole rating (a 9-hole tee's
+  own, or half the 18-hole rating). NO schema change — the count rides the
+  jsonb course_snapshot; scores stay 18-wide with the back nine null.
+- **Settlement correctness (the money part):** a nine allocates HALF the course
+  handicap over the nine holes (SI ranked 1-9); match play closes out against 9
+  remaining (a 5&4 on nine ends at the 5th); Wolf's comeback falls on holes 8-9;
+  skins carries die at 9. Verified: on nine, CH 20→10, strokes wrap over 9,
+  the match closes at 5&4, skins tallies over 9, and the finish gate stops
+  reporting holes 10-18 as "missing".
+- **Principle served:** meet golfers where they play · the handicap engine stays
+  WHS-honest · everything shows its work (settlement reads the same hole data).
+- **Tradeoffs:** the 9=front-nine-of-18 convention keeps arrays 18-wide (no
+  refactor, crash-resume guards untouched) at the cost of treating front-vs-back
+  as cosmetic — pars only prefill the grid, so a back-nine player adjusts scores
+  and the gross (hence the differential) is still right. Client-only, no
+  migration.
+- **CONFLICT check:** none. §16 holds (rounds immutable, differential computed
+  from stored facts). The Ryder event (`resolve_session`) is unaffected — it
+  scores posted rounds via their differential, which D72 already stores at
+  18-equivalent value.
+
 ### Casing policy · the SQL de-shout is paid down OPPORTUNISTICALLY (2026-07-24)
 - **The principle stands (D66):** the scoreboard voice belongs to typography,
   not to stored data — capitals-as-data destroy proper nouns ("SANDY WEDGE" →
