@@ -2191,3 +2191,23 @@ machinery-already-exists. ⚑ marks the points still needing an owner call.*
   unchanged visibility; only the confirm-without-invitation half is retired. No
   conflict with the base-table RLS (already owner-only; the rule lives in the
   SECURITY DEFINER RPC).
+
+### D70 · A bragging-rights league shows no pot
+- **Current:** a $0-buy-in league still surfaced the pot everywhere a staked
+  one does — the gold "On the line" bar (reading "$0 · CHAMPS $0 · …"), the Pot
+  segment tab, the pot stat tile — even though the ceremony (D66), the bylaws,
+  and the pot pane already suppress money for $0.
+- **Problem (pilot):** "if this is just for points does the pot section need to
+  be displayed?" A row of $0s is noise, and it makes a bragging-rights league
+  look like a mis-configured money league.
+- **Recommendation:** when stake is 0, hide the money-ACTION surfaces (the
+  on-the-line bar and the Pot tab) and let the label carry the meaning — the
+  stat tile reads "None / Bragging rights", the bylaws read "None · bragging
+  rights". Absence by design, not by breakage. Toggled both directions so
+  switching to a staked league restores them.
+- **Principle:** the money layer is optional (monetization revision,
+  2026-07-12: identity + play are free; the pot is a league's own affair) —
+  a league that opts out shouldn't carry its chrome. D39 posture unchanged.
+- **Benefit:** a points-only league reads as a first-class choice.
+- **Tradeoffs:** none of consequence — purely display; every scoring and
+  standings surface is identical. CONFLICT check: none.

@@ -5939,7 +5939,7 @@ function renderPot(){
   /* bragging rights: $0 buy-in means no pot, no buy-in tracking. One branch
      covers both the demo and the real League Room. */
   if(state.stake===0){
-    ['potAmt','chipPot'].forEach(id=>{ const e=$('#'+id); if(e) e.textContent='—'; });
+    ['potAmt','chipPot'].forEach(id=>{ const e=$('#'+id); if(e) e.textContent='None'; });
     const pm=$('#potMath'); if(pm) pm.textContent='Bragging rights · no money in play';
     ['pay1','pay2','pay3'].forEach(id=>{ const e=$('#'+id); if(e) e.textContent='—'; });
     ['paidChip','paidCount'].forEach(id=>{ const e=$('#'+id); if(e) e.textContent='Bragging rights'; });
@@ -9121,15 +9121,29 @@ function renderBylaws(){
       }catch(e){ toast(humanError(e)); }
     });
   }
-  const la=$('#lineAmt'); if(la){
-    /* one source of player count everywhere the pot shows: demo = the crew,
-       real = the actual roster (the 16 fallback made the tile lie vs the pot page) */
-    const n = state.demo ? state.payers.length
-      : (window.CS?.members?.length || Math.max(1, state.emails.filter(e=>e.includes('@')).length + (state.wizInvitees?.length||0) + 1));
-    const total=state.stake*n;
-    const [pc,pr,pk]=state.payout||[60,25,15];
-    la.textContent=fmt$(total);
-    $('#lineSplit').textContent=`CHAMPS ${fmt$(Math.round(total*pc/100))} · RUNNER-UP ${fmt$(Math.round(total*pr/100))} · POINTS KING ${fmt$(Math.round(total*pk/100))}`;
+  /* #3 (pilot): "if this is just for points does the pot section need to be
+     displayed?" A $0 league has no pot — hide the money-action surfaces (the
+     gold "On the line" bar and the Pot tab). The stat tile + bylaws still carry
+     the "bragging rights" label so the absence reads as intentional. Toggled
+     both ways so switching to a staked league restores them. */
+  const otl=$('.ontheline');   /* it's a class, not an id — the gold "On the line" bar */
+  const potTab=document.querySelector('#roomSeg button[data-room="pot"]');
+  if(state.stake===0){
+    if(otl) otl.style.display='none';
+    if(potTab) potTab.style.display='none';
+  } else {
+    if(otl) otl.style.display='';
+    if(potTab) potTab.style.display='';
+    const la=$('#lineAmt'); if(la){
+      /* one source of player count everywhere the pot shows: demo = the crew,
+         real = the actual roster (the 16 fallback made the tile lie vs the pot page) */
+      const n = state.demo ? state.payers.length
+        : (window.CS?.members?.length || Math.max(1, state.emails.filter(e=>e.includes('@')).length + (state.wizInvitees?.length||0) + 1));
+      const total=state.stake*n;
+      const [pc,pr,pk]=state.payout||[60,25,15];
+      la.textContent=fmt$(total);
+      $('#lineSplit').textContent=`CHAMPS ${fmt$(Math.round(total*pc/100))} · RUNNER-UP ${fmt$(Math.round(total*pr/100))} · POINTS KING ${fmt$(Math.round(total*pk/100))}`;
+    }
   }
 }
 const MIN_LEAGUE=4;                    /* foursome floor — spec §8 v0.7 */
