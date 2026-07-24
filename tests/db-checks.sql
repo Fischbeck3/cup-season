@@ -6,7 +6,8 @@
 -- one-liner lives in the repo history).
 -- Generated 2026-07-21 against the v23 client; refreshed 2026-07-22 (D57
 -- public shares: anon list 4 → 5, authenticated list gains the share trio);
--- refreshed 2026-07-24 (anon table seal 20260724150000: check 10).
+-- refreshed 2026-07-24 (anon table seal 20260724150000: check 10; scoreboard
+-- security_invoker 20260725210000: check 11).
 -- ============================================================================
 
 with checks as (
@@ -170,6 +171,33 @@ from (
     and (n.nspname = 'public'
          or (d.defaclnamespace = 0 and d.defaclrole = 'postgres'::regrole))
     and (a.grantee = 0 or a.grantee = 'anon'::regrole)
+) t
+
+-- 11 · every view an API role can read runs as its READER (20260725210000).
+--      A view in public without security_invoker executes as its owner
+--      (postgres), who owns the base tables and therefore skips their RLS —
+--      so a grant to anon/authenticated becomes an unpoliced read of everything
+--      the view selects. v_event_scoreboard was the last one (it leaked every
+--      event's team totals cross-league). v_pilot_gates / v_post_timings are
+--      owner-mode but revoked from both API roles, so they stay out of scope.
+union all
+select '11 · views run as reader',
+  case when count(*) = 0 then 'PASS'
+    else 'FAIL — owner-mode view(s) on the API surface: ' || string_agg(relname, ' · ') end,
+  'security_invoker required on any public view granted to anon/authenticated'
+from (
+  select c.relname
+  from pg_class c
+  join pg_namespace n on n.oid = c.relnamespace
+  left join lateral (
+    select lower(split_part(o, '=', 2)) as v
+    from unnest(coalesce(c.reloptions, '{}'::text[])) o
+    where split_part(o, '=', 1) = 'security_invoker'
+  ) so on true
+  where n.nspname = 'public' and c.relkind = 'v'
+    and coalesce(so.v, 'false') not in ('true', 'on', '1', 'yes')
+    and (has_table_privilege('anon', c.oid, 'select')
+      or has_table_privilege('authenticated', c.oid, 'select'))
 ) t
 )
 select * from checks order by check_name;

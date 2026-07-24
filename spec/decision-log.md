@@ -1043,6 +1043,24 @@ sub-items are pure bug fixes to mechanics that were silently broken.)*
   call (late joiners) not a pure security fix.
 - **CONFLICT check:** none upward — this is the IA/mechanics levels finally
   matching the vision/principles level that always claimed DB-enforced trust.
+- **Amendment, 2026-07-24 (`20260725210000`) — views run as their reader.**
+  The anon table seal (`20260724150000`) closed the ANONYMOUS read of
+  `v_event_scoreboard` at the grant layer but left the view's execution mode
+  alone: no `security_invoker`, so it ran as its owner (postgres, who owns
+  `event_duels`/`event_players` and skips their RLS) while still granted to
+  `authenticated` — any signed-in user could read every event's team totals
+  cross-league, participant or not. Aggregate-only behind unguessable event
+  UUIDs, but a read no policy ever authorized, and the odd one out among the
+  four API-visible views. Flipped to `security_invoker='true'`; the base-table
+  policies (`is_event_member or is_event_league_member`, widened by D61's
+  Major migration) are exactly the ones already gating the `event_duels` read
+  the client makes in the same `Promise.all`, so the change is parity for
+  every legitimate reader and zero rows for everyone else. Definer callers
+  (`resolve_session`'s clinch check, the cron tick) are unaffected — they run
+  as the table owner. db-checks gains **check 11**: any public view an API
+  role can select must carry the option. Fixing it at the semantics layer
+  rather than the grant layer means the leak stays shut even if an anon grant
+  survives somewhere.
 
 ---
 
