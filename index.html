@@ -7330,10 +7330,17 @@ function renderStats(){
     return;
   }
   if(nk) nk.textContent=`Next up · ${curMonth()}`;
+  /* #5 (pilot): a partial (short) edge month WAIVES the floor — the pulse card
+     already knows this and says "no minimum this month", but this card used to
+     nag "post N more to clear the floor" in the same breath, a live
+     contradiction. Read the same partial flag so the two cards agree. */
+  const partial = !!(window.leaguePulse && window.leaguePulse[0] && window.leaguePulse[0].partial);
   const rem=Math.max(0, state.floor - credits);
-  $('#nextTxt').textContent = rem>0
-    ? `Post ${fmtN(rem)} more round${rem===1?'':'s'} this month — ${CAPS[state.cap].toLowerCase()} count, you've posted ${fmtN(credits)}.`
-    : `${curMonth()} is covered — ${fmtN(credits)} rounds counting. A better one always replaces your lowest.`;
+  $('#nextTxt').textContent = partial
+    ? `${curMonth()} is a short month — no floor to clear. Every round still counts.`
+    : rem>0
+      ? `Post ${fmtN(rem)} more round${rem===1?'':'s'} this month — ${CAPS[state.cap].toLowerCase()} count, you've posted ${fmtN(credits)}.`
+      : `${curMonth()} is covered — ${fmtN(credits)} rounds counting. A better one always replaces your lowest.`;
 }
 
 /* ================= course card · pars in a sheet ================= */
@@ -8164,6 +8171,16 @@ function renderPulse(){
     box.innerHTML=pulseGauge(Number(me.credits), floor, `Your ${mName} · ${closes}`,
       need>0 ? `<b>Post ${needTxt} more</b> to clear this month's floor — ${cr}/${floor} counted.`
              : `<b>Cleared for ${mName}</b> — ${cr} round${cr==='1'?'':'s'} counted, floor met.`);
+  }
+  /* #5 (pilot): "make it more clear about the month minimum." The gauge shows
+     the COUNT; this line states the RULE — how many, what a miss costs, and the
+     short-month waiver — sourced from state so it matches the bylaws exactly.
+     Squad leagues only (the penalty is squad points), and only when a miss
+     actually costs something (skipped for the casual preset and solo). */
+  const penTxt = ['', "your squad loses 5 points for every round you're short", 'you forfeit the month'][state.preset] || '';
+  if(state.structure!=='solo' && state.floor>0 && penTxt){
+    box.insertAdjacentHTML('beforeend',
+      `<p class="fine" style="padding:7px 2px 0; line-height:1.45">Monthly floor · <b>${state.floor} round${state.floor===1?'':'s'} a month</b>. Miss it and ${penTxt}. Short months are waived.</p>`);
   }
 }
 async function loadPulse(){
