@@ -5896,7 +5896,7 @@ function attachCourseSearch(courseSel, ratingSel, slopeSel, onTee){
   const dd=document.createElement('div'); dd.className='coursedd'; dd.style.display='none';
   input.insertAdjacentElement('afterend', dd);
   const ra=$(ratingSel), sl=$(slopeSel);
-  const hide=()=>{ dd.style.display='none'; dd.innerHTML=''; };
+  const hide=()=>{ dd.style.display='none'; dd.innerHTML=''; dd.dataset.stage=''; };
   let timer=null, lastQ='', courses=[];
 
   function showTees(ci){
@@ -5906,7 +5906,7 @@ function attachCourseSearch(courseSel, ratingSel, slopeSel, onTee){
       (c.tees.length ? c.tees.map((t,ti)=>
         `<button type="button" data-ti="${ti}"><b>${esc(t.tee_name||'Tee')}${t.gender==='female'?' · Women’s':''}</b><span>Rating ${t.course_rating} · Slope ${t.slope_rating}</span></button>`).join('')
        : '<div class="coursedd-msg">No rated tees listed — type the rating and slope by hand.</div>');
-    dd.style.display='block';
+    dd.style.display='block'; dd.dataset.stage='tees';   /* a late search response must not yank you back to the course list */
     dd.querySelector('[data-back]')?.addEventListener('mousedown',e=>{ e.preventDefault(); showCourses(); });
     dd.querySelectorAll('[data-ti]').forEach(b=>b.addEventListener('mousedown',e=>{
       e.preventDefault();
@@ -5924,6 +5924,7 @@ function attachCourseSearch(courseSel, ratingSel, slopeSel, onTee){
     }));
   }
   function showCourses(){
+    dd.dataset.stage='courses';
     if(!courses.length){ dd.innerHTML='<div class="coursedd-msg">No match — type the course, rating and slope by hand.</div>'; dd.style.display='block'; return; }
     dd.innerHTML = courses.map((c,ci)=>
       `<button type="button" data-ci="${ci}"><b>${esc(c.label)}</b><span>${c.place?esc(c.place)+' · ':''}${c.tees.length} tee${c.tees.length===1?'':'s'}</span></button>`).join('');
@@ -5935,20 +5936,48 @@ function attachCourseSearch(courseSel, ratingSel, slopeSel, onTee){
       showTees(ci);
     }));
   }
+  /* club and course names are often identical — don't print it twice */
+  const courseLabel = c => (c.club_name && c.course_name && c.club_name!==c.course_name)
+    ? `${c.club_name} — ${c.course_name}` : (c.course_name || c.club_name || 'Course');
+  const shapeCourse = (c, tees) => ({ id:String(c.id), label:courseLabel(c),
+    place:[c.city,c.state].filter(Boolean).join(', '),
+    tees:(tees||[]).filter(t=>t.course_rating!=null && t.slope_rating!=null) });
+  /* pilot: "app isn't syncing course — I tried courses that have been entered
+     before". Search only ever asked the API, so when the upstream is capped,
+     down, or erroring, even a course sitting in OUR cache became unfindable and
+     the dropdown just vanished. Search our own cache FIRST: it answers
+     instantly, costs no API call, and keeps working when the API doesn't. The
+     API still runs after, to add courses we've never seen. */
+  async function searchCache(q){
+    const safe = q.replace(/[,()%_*]/g,' ').trim();   /* PostgREST or() is comma/paren-delimited; % _ are ilike wildcards */
+    if(safe.length<3) return [];
+    const like = `%${safe}%`;
+    const { data, error } = await window.sb.from('api_courses')
+      .select('id, club_name, course_name, city, state, api_course_tees(tee_name, gender, course_rating, slope_rating, number_of_holes)')
+      .or(`course_name.ilike.${like},club_name.ilike.${like}`).limit(12);
+    if(error || !data) return [];
+    return data.map(c=>shapeCourse(c, c.api_course_tees)).filter(c=>c.tees.length);
+  }
   async function run(q){
     if(state.demo || !window.CS?.user || !window.sb) return;
+    let local=[];
+    try{ local = await searchCache(q); }catch(_){ local=[]; }
+    /* paint cached hits immediately — but never yank the user out of the tee
+       list, and never let a stale response overwrite a newer query */
+    const fresh = () => lastQ===q && dd.dataset.stage!=='tees';
+    if(local.length && fresh()){ courses=local; showCourses(); }
     try {
       const { data, error } = await window.sb.functions.invoke('courses', { body:{ action:'search', q } });
       if(error) throw error;
-      courses = (data?.courses||[]).map(c=>{
-        /* club and course names are often identical — don't print it twice */
-        const label = (c.club_name && c.course_name && c.club_name!==c.course_name)
-          ? `${c.club_name} — ${c.course_name}` : (c.course_name || c.club_name || 'Course');
-        const tees = (c.tees||[]).filter(t=>t.course_rating!=null && t.slope_rating!=null);
-        return { id:c.id, label, place:[c.city,c.state].filter(Boolean).join(', '), tees };
-      }).filter(c=>c.tees.length).slice(0,12);
-      showCourses();
-    } catch(e){ hide(); /* silent — manual entry still works */ }
+      const remote = (data?.courses||[]).map(c=>shapeCourse(c, c.tees)).filter(c=>c.tees.length);
+      const seen = new Set(local.map(c=>c.id));
+      const merged = [...local, ...remote.filter(c=>!seen.has(c.id))].slice(0,12);
+      if(fresh() && merged.length){ courses=merged; showCourses(); }
+    } catch(e){
+      /* API unavailable: cached results stand. Only fall back to manual entry
+         when we have nothing at all to offer. */
+      if(!local.length && fresh()) hide();
+    }
   }
   input.addEventListener('input', ()=>{
     input.dataset.courseId='';            /* manual edit invalidates the last pick */
