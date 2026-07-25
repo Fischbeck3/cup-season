@@ -1248,6 +1248,27 @@ html[data-theme="light"] .momrow{background:rgba(21,116,63,.06);}
 .ob-status.err{color:var(--neg);}
 .slot4{display:grid; grid-template-columns:repeat(2,1fr); gap:8px; margin-top:10px;}
 @media(min-width:700px){ .slot4{grid-template-columns:repeat(4,1fr);} }
+/* the court (pairing pick A): for a 4-player team game the slots BECOME the two
+   team zones — drag a player across (or tap-tap) and the sides auto-balance.
+   Replaces both the old per-slot swap arrows and the pairing button list. */
+.slot4.court{display:flex; gap:8px;}
+.crtzone{flex:1; border:1.5px dashed var(--line2); border-radius:13px; padding:8px;
+  min-height:116px; display:flex; flex-direction:column; gap:8px;
+  transition:border-color .15s, background .15s;}
+.crtzone.hot{border-color:var(--brand); background:var(--glow); border-style:solid;}
+.crtzone h5{font-family:var(--mono); font-size:9.5px; letter-spacing:.14em; color:var(--mut);
+  text-transform:uppercase; text-align:center; padding:2px 0 0; margin:0; font-weight:500;}
+.crtvs{align-self:center; font-family:var(--mono); font-size:10px; color:var(--dim); padding-top:52px; flex:none;}
+.crtchip{position:relative; display:flex; align-items:center; gap:8px; background:var(--bg2);
+  border:1px solid var(--line2); border-radius:11px; padding:8px 26px 8px 10px;
+  min-height:44px; user-select:none; -webkit-user-select:none; touch-action:none; cursor:grab;}
+.crtchip b{font-size:13px; display:flex; align-items:center; gap:6px;}
+.crtchip small{display:block; font-family:var(--mono); font-size:8.5px; letter-spacing:.1em; color:var(--dim);}
+.crtchip.dragging{opacity:.35;}
+.crtchip.picked{outline:2px solid var(--brand); outline-offset:1px;}
+.crtghost{position:fixed; z-index:1200; pointer-events:none;
+  transform:translate(-50%,-56%) rotate(2deg) scale(1.04);
+  box-shadow:0 10px 26px rgba(10,25,15,.30); opacity:.95;}
 .pslot{
   position:relative; background:var(--bg2); border:1px solid var(--line2);
   border-radius:12px; padding:10px 12px 9px; min-height:56px;
@@ -6406,25 +6427,102 @@ function freshLive(){
     scores:LIVE.map(()=>Array(18).fill(null)), wolf:Array(18).fill(null)};
 }
 /* 2v2 pairings (pilot: "we should be able to select how these are grouped") —
-   four players split three ways; the chooser lives on the match/sunningdale
-   preview and MTEAMS locks from it at tee-off. Slot order is pairing 0, so
-   the old behavior is the default. */
+   four players split three ways. Design pick A ("the court"): the four slots
+   BECOME the two team zones — drag a player across (or tap one, then another)
+   and the sides auto-balance. state.live.pairing (0|1|2 over PAIRINGS) stays
+   the single source of truth; MTEAMS locks from it at tee-off. Slot order is
+   pairing 0, so the old behavior is the default. */
 const PAIRINGS=[[[0,1],[2,3]],[[0,2],[1,3]],[[0,3],[1,2]]];
-function pairingPicker(){
-  if(sel.length!==4) return '';
-  const ps=sel.map(i=>ROSTER[i]);
-  const cur=(state.live&&state.live.pairing)||0;
-  return `<div class="fine" style="padding:0 0 6px">Pairings — who plays with who</div>`
-    + `<div class="seg" id="pairSeg" style="flex-direction:column; gap:6px; margin-bottom:8px">`
-    + PAIRINGS.map((P,k)=>`<button type="button" data-pair="${k}" class="${k===cur?'on':''}" style="width:100%">`
-        + `${esc(ps[P[0][0]].n)} + ${esc(ps[P[0][1]].n)} <span style="opacity:.55">vs</span> ${esc(ps[P[1][0]].n)} + ${esc(ps[P[1][1]].n)}</button>`).join('')
-    + `</div>`;
+function courtTeams(){ return (PAIRINGS[(state.live&&state.live.pairing)||0]||PAIRINGS[0]).map(t=>t.slice()); }
+function courtSwap(a,b){
+  /* swap two sel-POSITIONS across zones, then re-derive the pairing from
+     whoever partners position 0 — the only stable identity in the split */
+  const T=courtTeams();
+  const za=T[0].includes(a)?0:1, zb=T[0].includes(b)?0:1;
+  if(za===zb) return;
+  T[za][T[za].indexOf(a)]=b; T[zb][T[zb].indexOf(b)]=a;
+  const home=T[0].includes(0)?T[0]:T[1];
+  const partner=home[0]===0?home[1]:home[0];
+  state.live.pairing = ({1:0,2:1,3:2})[partner] ?? 0;
+  _crtPicked=null;
+  renderRoster();   /* renderRoster ends in renderMatchPrev — the sides line follows */
 }
-function bindPairing(host){
-  host.querySelectorAll('[data-pair]').forEach(b=>b.addEventListener('click',()=>{
-    state.live.pairing=+b.dataset.pair;
-    renderMatchPrev();
-  }));
+let _crtPicked=null;   /* tap-tap fallback: the currently picked sel-position */
+function renderCourt(slots){
+  const T=courtTeams();
+  const zoneEl=(zi,label)=>{
+    const z=document.createElement('div');
+    z.className='crtzone'; z.dataset.zone=zi;
+    z.innerHTML=`<h5>${label}</h5>`;
+    T[zi].forEach(k=>{
+      const idx=sel[k], p=ROSTER[idx];
+      const c=document.createElement('div');
+      c.className='crtchip'+(k===_crtPicked?' picked':'');
+      c.dataset.pos=k;
+      c.innerHTML=`<div><b>${p.guest?`<span class="gtag">${p.buddy?'B':'G'}</span>`:`<span style="width:8px;height:8px;border-radius:3px;background:${SQHEX[p.ci]};display:inline-block;"></span>`}${esc(p.n)}</b>
+        <small>${p.est?'EST ':''}${fmtIdx(p.i)} IDX</small></div>
+        ${p.locked?'':`<button class="sx" data-rm="${idx}" aria-label="Remove ${esc(p.n)}"><svg class="ic" aria-hidden="true"><use href="#i-close"/></svg></button>`}`;
+      courtDrag(c);
+      z.appendChild(c);
+    });
+    return z;
+  };
+  slots.appendChild(zoneEl(0,'Team A'));
+  const vs=document.createElement('div'); vs.className='crtvs'; vs.textContent='VS';
+  slots.appendChild(vs);
+  slots.appendChild(zoneEl(1,'Team B'));
+}
+function courtDrag(chip){
+  chip.addEventListener('pointerdown', e=>{
+    if(e.target.closest('[data-rm]')) return;   /* the × removes, never drags */
+    let ghost=null, moved=false;
+    const startX=e.clientX, startY=e.clientY;
+    try{ chip.setPointerCapture(e.pointerId); }catch(_){}
+    const zones=()=>document.querySelectorAll('#fourSlots .crtzone');
+    const move=ev=>{
+      if(!moved && Math.hypot(ev.clientX-startX, ev.clientY-startY)<7) return;
+      if(!moved){
+        moved=true;
+        ghost=chip.cloneNode(true); ghost.classList.add('crtghost');
+        ghost.style.width=chip.offsetWidth+'px';
+        document.body.appendChild(ghost);
+        chip.classList.add('dragging');
+      }
+      ghost.style.left=ev.clientX+'px'; ghost.style.top=ev.clientY+'px';
+      zones().forEach(z=>{
+        const r=z.getBoundingClientRect();
+        z.classList.toggle('hot', ev.clientX>=r.left&&ev.clientX<=r.right&&ev.clientY>=r.top&&ev.clientY<=r.bottom);
+      });
+    };
+    const up=ev=>{
+      chip.removeEventListener('pointermove', move);
+      chip.removeEventListener('pointerup', up);
+      chip.removeEventListener('pointercancel', up);
+      if(ghost){ ghost.remove(); ghost=null; }
+      chip.classList.remove('dragging');
+      const hot=document.querySelector('#fourSlots .crtzone.hot');
+      document.querySelectorAll('#fourSlots .crtzone').forEach(z=>z.classList.remove('hot'));
+      const pos=+chip.dataset.pos;
+      const T=courtTeams();
+      if(moved && hot){
+        const to=+hot.dataset.zone, from=T[0].includes(pos)?0:1;
+        if(from!==to) courtSwap(pos, T[to][T[to].length-1]);   /* auto-balance: swap with the far side's last */
+      } else if(!moved){
+        /* tap-tap: pick, then tap someone across the line to trade places */
+        if(_crtPicked===null){ _crtPicked=pos; renderRoster(); }
+        else if(_crtPicked===pos){ _crtPicked=null; renderRoster(); }
+        else {
+          const other=_crtPicked;
+          const sameZone = (T[0].includes(other))===(T[0].includes(pos));
+          if(sameZone){ _crtPicked=pos; renderRoster(); }
+          else courtSwap(other, pos);
+        }
+      }
+    };
+    chip.addEventListener('pointermove', move);
+    chip.addEventListener('pointerup', up);
+    chip.addEventListener('pointercancel', up);
+  });
 }
 state.live=freshLive();
 
@@ -7107,9 +7205,8 @@ function renderMatchPrev(){
   if(g==='sunningdale'){
     /* D74: no handicaps, so no strokes table — the game IS the equalizer */
     prev.innerHTML = (sel.length===2 || sel.length===4)
-      ? pairingPicker() + 'Straight up — nobody gets a shot for their index. Go 2 down and you get a stroke on each hole until you climb inside 1. Win a hole while ahead and you bank a unit; their comeback wins pull it back out.'
+      ? 'Straight up — nobody gets a shot for their index. Go 2 down and you get a stroke on each hole until you climb inside 1. Win a hole while ahead and you bank a unit; their comeback wins pull it back out.'
       : 'Sunningdale takes 2 (singles) or 4 (2v2 best ball).';
-    bindPairing(prev);
     return;
   }
   if(g==='wolf'){
@@ -7149,15 +7246,21 @@ function renderMatchPrev(){
   const sides = sel.length===2
     ? `<b>${esc(ps[0].n)}</b> vs <b>${esc(ps[1].n)}</b>`
     : `<b>${esc(ps[PP[0][0]].n)} + ${esc(ps[PP[0][1]].n)}</b> vs <b>${esc(ps[PP[1][0]].n)} + ${esc(ps[PP[1][1]].n)}</b> · net best ball`;
-  prev.innerHTML = pairingPicker() + sides
+  prev.innerHTML = sides
     + `<br>Strokes off the low man (${esc(lowName)})${SIEST?' · <i>estimated card — no real stroke index</i>':''}: `
     + (lines.length ? lines.join(' · ') : 'everyone plays level — no strokes')
     + '.';
-  bindPairing(prev);
 }
 function renderRoster(){
-  /* the four slots — selected players live here, with × to remove */
   const slots=$('#fourSlots'); slots.innerHTML='';
+  /* the court (pairing pick A): a 4-player team game turns the slots into the
+     two team zones — the grouping IS the layout. Everything else keeps the
+     flat four slots. */
+  const courtMode = (state.live.game==='match'||state.live.game==='sunningdale')
+    && sel.length===4 && state.live.stage!=='live';
+  slots.classList.toggle('court', courtMode);
+  if(courtMode){ renderCourt(slots); }
+  else {
   for(let k=0;k<4;k++){
     const idx=sel[k];
     const d=document.createElement('div');
@@ -7166,23 +7269,18 @@ function renderRoster(){
       d.innerHTML=`<div class="sn">Open slot</div><div class="si">TAP A PLAYER BELOW</div>`;
     } else {
       const p=ROSTER[idx];
-      const swap = state.live.game==='match' && sel.length===4
-        ? `<button class="sx" data-swap="${k}" aria-label="Move ${esc(p.n)} to team ${k<2?'B':'A'}" style="right:30px"><svg class="ic" aria-hidden="true"><use href="#i-swap"/></svg></button>` : '';
       d.className='pslot';
       d.innerHTML=`
         <div class="sn">${p.guest?`<span class="gtag">${p.buddy?'B':'G'}</span>`:`<span style="width:8px;height:8px;border-radius:3px;background:${SQHEX[p.ci]};display:inline-block;"></span>`}${esc(p.n)}</div>
-        <div class="si">${p.est?'EST ':''}${fmtIdx(p.i)} IDX · TEAM ${k<2?'A':'B'}</div>
-        ${swap}${p.locked?'':`<button class="sx" data-rm="${idx}" aria-label="Remove ${esc(p.n)}"><svg class="ic" aria-hidden="true"><use href="#i-close"/></svg></button>`}`;
+        <div class="si">${p.est?'EST ':''}${fmtIdx(p.i)} IDX</div>
+        ${p.locked?'':`<button class="sx" data-rm="${idx}" aria-label="Remove ${esc(p.n)}"><svg class="ic" aria-hidden="true"><use href="#i-close"/></svg></button>`}`;
     }
     slots.appendChild(d);
   }
-  slots.querySelectorAll('[data-swap]').forEach(b=>b.addEventListener('click',()=>{
-    const k=+b.dataset.swap, j=(k+2)%4;
-    [sel[k],sel[j]]=[sel[j],sel[k]];
-    renderRoster();
-  }));
-  slots.querySelectorAll('[data-rm]').forEach(b=>b.addEventListener('click',()=>{
-    sel=sel.filter(x=>x!==+b.dataset.rm); renderRoster();
+  }
+  slots.querySelectorAll('[data-rm]').forEach(b=>b.addEventListener('click',e=>{
+    e.stopPropagation();
+    sel=sel.filter(x=>x!==+b.dataset.rm); renderRoster(); renderMatchPrev();
   }));
 
   /* pick lists — only unselected players show here */
