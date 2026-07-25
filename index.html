@@ -2570,7 +2570,7 @@ html[data-theme="light"] .room-dusk .btn:not(.dark):not(.gold):not(.apple){color
               <input class="f" id="gIdx" type="number" step="0.1" placeholder="Index" inputmode="decimal" style="max-width:96px; flex:none;">
               <button class="mini" id="gAdd">Add</button>
             </div>
-            <p class="fine" style="padding-top:8px">Slots 1–2 are Team A in match play. League members post to the season; guests play every game, post nothing, no account needed. Leave index blank for an estimated 18.</p>
+            <p class="fine" style="padding-top:8px">Pick who plays with who under the game — pairings, stakes, the lot. League members post to the season; guests play every game, post nothing, no account needed. Leave index blank for an estimated 18.</p>
           </div>
           <div class="card" style="margin-bottom:12px">
             <label class="f">Game for this round · pick one</label>
@@ -6402,8 +6402,29 @@ const strokeOn=(pi,h)=>{
 };
 
 function freshLive(){
-  return {stage:'setup', active:false, game:'score', hole:0, holes:18, rating9:false,
+  return {stage:'setup', active:false, game:'score', hole:0, holes:18, rating9:false, pairing:0,
     scores:LIVE.map(()=>Array(18).fill(null)), wolf:Array(18).fill(null)};
+}
+/* 2v2 pairings (pilot: "we should be able to select how these are grouped") —
+   four players split three ways; the chooser lives on the match/sunningdale
+   preview and MTEAMS locks from it at tee-off. Slot order is pairing 0, so
+   the old behavior is the default. */
+const PAIRINGS=[[[0,1],[2,3]],[[0,2],[1,3]],[[0,3],[1,2]]];
+function pairingPicker(){
+  if(sel.length!==4) return '';
+  const ps=sel.map(i=>ROSTER[i]);
+  const cur=(state.live&&state.live.pairing)||0;
+  return `<div class="fine" style="padding:0 0 6px">Pairings — who plays with who</div>`
+    + `<div class="seg" id="pairSeg" style="flex-direction:column; gap:6px; margin-bottom:8px">`
+    + PAIRINGS.map((P,k)=>`<button type="button" data-pair="${k}" class="${k===cur?'on':''}" style="width:100%">`
+        + `${esc(ps[P[0][0]].n)} + ${esc(ps[P[0][1]].n)} <span style="opacity:.55">vs</span> ${esc(ps[P[1][0]].n)} + ${esc(ps[P[1][1]].n)}</button>`).join('')
+    + `</div>`;
+}
+function bindPairing(host){
+  host.querySelectorAll('[data-pair]').forEach(b=>b.addEventListener('click',()=>{
+    state.live.pairing=+b.dataset.pair;
+    renderMatchPrev();
+  }));
 }
 state.live=freshLive();
 
@@ -6591,13 +6612,43 @@ function applyServerRound(mine, myPid){
   rosterPrimed=true;
   return true;
 }
+/* pilot bug (scrap→restart "wasn't keeping score"): a scrap whose
+   abandon_live_round call failed (flaky signal — it happened in prod) left a
+   'live' corpse on the server, and the next reload RESURRECTED it as the
+   active round: empty card, wrong game, hijacking Play. Failed abandons now
+   QUEUE locally and drain at boot, teeoff, and the next scrap — and the
+   resume path treats a queued id as dead, so a corpse can never come back
+   even before the drain lands. */
+const PENDA_KEY='cs.pendingAbandons';
+function pendingAbandons(){ try{ return JSON.parse(localStorage.getItem(PENDA_KEY)||'[]'); }catch(_){ return []; } }
+function queueAbandon(id){ if(!id) return; const q=pendingAbandons(); if(!q.includes(id)) q.push(id);
+  try{ localStorage.setItem(PENDA_KEY, JSON.stringify(q.slice(-20))); }catch(_){} }
+async function drainAbandons(){
+  if(state.demo || !window.sb) return;
+  const q=pendingAbandons(); if(!q.length) return;
+  const left=[];
+  for(const id of q){
+    try{ const {error}=await window.sb.rpc('abandon_live_round',{p_live_round:id}); if(error) throw error; }
+    catch(_){ left.push(id); }
+  }
+  try{ localStorage.setItem(PENDA_KEY, JSON.stringify(left)); }catch(_){}
+}
+window.drainAbandons=drainAbandons;
 async function rehydrateLiveRound(){
   if(state.demo) return;
+  /* an ACTIVE in-memory round is the freshest truth there is — never re-apply
+     a snapshot or server row over it (a league switch mid-round used to). */
+  if(state.live && state.live.active && state.live.stage==='live' && state.live.lr){
+    persistLive();
+    return;
+  }
+  await drainAbandons();
+  const deadIds=new Set(pendingAbandons());
   const CS=window.CS, myPid=CS?.user?.id;
 
   /* 1) LOCAL-FIRST — resume from this device's full snapshot, no network. */
   let resumed=false;
-  const local=readLiveSnapshots().find(s => s.v>=2 && Array.isArray(s.players) && s.players.length);
+  const local=readLiveSnapshots().find(s => s.v>=2 && Array.isArray(s.players) && s.players.length && !deadIds.has(s.lr));
   if(local && applyLiveSnapshot(local)){
     resumed=true;
     if(typeof renderPlay==='function') renderPlay();
@@ -6627,7 +6678,8 @@ async function rehydrateLiveRound(){
      view's "Scrap this round" still closes it if they open it). */
   const LIVE_MAX_AGE = 2*24*3600*1000;
   const mineList=rounds.filter(r =>
-    (r.live_round_players||[]).some(p=>p.member?.profile_id===myPid)
+    !deadIds.has(r.id)   /* a scrapped-but-undelivered round is dead, not resumable */
+    && (r.live_round_players||[]).some(p=>p.member?.profile_id===myPid)
     && (!r.started_at || (Date.now() - new Date(r.started_at).getTime()) < LIVE_MAX_AGE));
   const openIds=new Set(mineList.map(r=>r.id));
   const mine=mineList[0]||null;
@@ -6927,13 +6979,16 @@ function renderPlay(){
   /* match card = match-only. A 3-player skins game has no LIVE[3] and the net-
      best-ball line assumed 4 — never run the ladder math for skins/wolf/score. */
   if(state.live.game==='match'){
-  const teamA=`${LIVE[0]?.n||''} & ${LIVE[1]?.n||''}`.toUpperCase();
-  const teamB=`${LIVE[2]?.n||''} & ${LIVE[3]?.n||''}`.toUpperCase();
+  /* teams read MTEAMS \u2014 the CHOSEN pairing \u2014 never slot order (the status line
+     names the winner from these, so slot order announced the wrong side) */
+  const teamA=MTEAMS[0].map(i=>LIVE[i]?.n).filter(Boolean).join(' & ').toUpperCase();
+  const teamB=MTEAMS[1].map(i=>LIVE[i]?.n).filter(Boolean).join(' & ').toUpperCase();
   const _li=(typeof CHS!=='undefined'&&CHS&&CHS.length)?CHS.indexOf(LOWCH):-1;
   const lowMan=(_li>=0?String(LIVE[_li]?.n||''):'').toUpperCase();
+  const _side=t=>MTEAMS[t].map(i=>LIVE[i]?.n).filter(Boolean).join(' + ');
   $('#matchTeams').textContent = LIVE.length===2
     ? `Match play \u00b7 singles \u00b7 ${LIVE[0]?.n||''} vs ${LIVE[1]?.n||''}`
-    : `Match play \u00b7 net best ball \u00b7 ${LIVE[0]?.n||''} + ${LIVE[1]?.n||''} vs ${LIVE[2]?.n||''} + ${LIVE[3]?.n||''}`;
+    : `Match play \u00b7 net best ball \u00b7 ${_side(0)} vs ${_side(1)}`;
   const m=matchCalc();
   const _dormie = !m.closed && m.a!==m.b && Math.abs(m.a-m.b)===liveHoles()-m.played;
   $('#matchStatus').textContent = m.closed
@@ -6950,9 +7005,10 @@ function renderPlay(){
   if(state.live.game==='sunningdale'){
     const nmOf=t=>MTEAMS[t].map(i=>LIVE[i]?.n).filter(Boolean).join(' & ').toUpperCase();
     const teamA=nmOf(0), teamB=nmOf(1);
+    const sideStr=t=>MTEAMS[t].map(i=>LIVE[i]?.n).filter(Boolean).join(' + ');   /* the CHOSEN pairing, never slot order */
     $('#matchTeams').textContent = LIVE.length===2
       ? `Sunningdale · singles · ${LIVE[0]?.n||''} vs ${LIVE[1]?.n||''}`
-      : `Sunningdale · 2v2 best ball · ${LIVE[0]?.n||''} + ${LIVE[1]?.n||''} vs ${LIVE[2]?.n||''} + ${LIVE[3]?.n||''}`;
+      : `Sunningdale · 2v2 best ball · ${sideStr(0)} vs ${sideStr(1)}`;
     const m=sunnCalc();
     $('#matchStatus').textContent = m.closed
       ? `${m.closed.winner===0?teamA:teamB} WIN ${m.closed.lead}&${m.closed.rem}`
@@ -7051,8 +7107,9 @@ function renderMatchPrev(){
   if(g==='sunningdale'){
     /* D74: no handicaps, so no strokes table — the game IS the equalizer */
     prev.innerHTML = (sel.length===2 || sel.length===4)
-      ? 'Straight up — nobody gets a shot for their index. Go 2 down and you get a stroke on each hole until you climb inside 1. Win a hole while ahead and you bank a unit; their comeback wins pull it back out.'
+      ? pairingPicker() + 'Straight up — nobody gets a shot for their index. Go 2 down and you get a stroke on each hole until you climb inside 1. Win a hole while ahead and you bank a unit; their comeback wins pull it back out.'
       : 'Sunningdale takes 2 (singles) or 4 (2v2 best ball).';
+    bindPairing(prev);
     return;
   }
   if(g==='wolf'){
@@ -7088,13 +7145,15 @@ function renderMatchPrev(){
     if(stk===18) return `<b>${esc(p.n)}</b> gets a stroke on every hole`;
     return `<b>${esc(p.n)}</b> gets ${stk} — a stroke every hole, two on the ${stk-18} hardest`;
   }).filter(Boolean);
+  const PP=PAIRINGS[(state.live&&state.live.pairing)||0]||PAIRINGS[0];
   const sides = sel.length===2
     ? `<b>${esc(ps[0].n)}</b> vs <b>${esc(ps[1].n)}</b>`
-    : `<b>${esc(ps[0].n)} + ${esc(ps[1].n)}</b> vs <b>${esc(ps[2].n)} + ${esc(ps[3].n)}</b> · net best ball`;
-  prev.innerHTML = sides
+    : `<b>${esc(ps[PP[0][0]].n)} + ${esc(ps[PP[0][1]].n)}</b> vs <b>${esc(ps[PP[1][0]].n)} + ${esc(ps[PP[1][1]].n)}</b> · net best ball`;
+  prev.innerHTML = pairingPicker() + sides
     + `<br>Strokes off the low man (${esc(lowName)})${SIEST?' · <i>estimated card — no real stroke index</i>':''}: `
     + (lines.length ? lines.join(' · ') : 'everyone plays level — no strokes')
     + '.';
+  bindPairing(prev);
 }
 function renderRoster(){
   /* the four slots — selected players live here, with × to remove */
@@ -7262,6 +7321,12 @@ $('#teeOffBtn').addEventListener('click', async ()=>{
   const game=g;
   LIVE=sel.map(i=>ROSTER[i]);
   setMatchTeams();
+  /* the chosen 2v2 pairing overrides slot order for the team games */
+  const _pairing=(state.live&&state.live.pairing)||0;
+  if((game==='match'||game==='sunningdale') && LIVE.length===4){
+    const P=PAIRINGS[_pairing]||PAIRINGS[0];
+    MTEAMS=[P[0].slice(),P[1].slice()];
+  }
   syncTeeInputs();
   /* the stake is declared at tee-off and locked (spec §13.2) — $0 = bragging.
      match: per side · wolf: per point · skins: per skin */
@@ -7272,13 +7337,14 @@ $('#teeOffBtn').addEventListener('click', async ()=>{
     ? [0,1,2,3].map(v=>[Math.random(),v]).sort((a,b)=>a[0]-b[0]).map(x=>x[1])
     : null;
   const _holes=liveHoles(), _rating9=!!(state.live&&state.live.rating9);   /* carry the setup's holes choice into the live round */
-  state.live={stage:'live', active:true, game, stake, wolfOrder, holes:_holes, rating9:_rating9,
+  state.live={stage:'live', active:true, game, stake, wolfOrder, holes:_holes, rating9:_rating9, pairing:_pairing,
     hole:0, scores:LIVE.map(()=>Array(18).fill(null)), wolf:Array(18).fill(null),
     lr:null, league_id:(window.CS?.league?.id||null), pmap:null, guestTokens:{}};
   /* real accounts persist the live round now (guests get claim tokens);
      scoring stays client-side until finish (checkpoint 1 spine) */
   if(!state.demo && window.sb && window.CS?.league){
     const btn=$('#teeOffBtn'); btn.disabled=true;
+    drainAbandons();   /* clear any scrapped-but-undelivered rounds before opening a new one */
     try{
       /* D73: THE line that was starving the server's 9-hole path. A nine now
          carries a real nine_rating — the 9-hole tee's own rating (rating9) or
@@ -7507,7 +7573,13 @@ $('#discardBtn')?.addEventListener('click', async ()=>{
     try{
       const { error } = await window.sb.rpc('abandon_live_round', { p_live_round: state.live.lr });
       if(error) throw error;
-    }catch(e){ try{ console.warn('[discard] server abandon failed:', e.message||e); }catch(_){} }
+    }catch(e){
+      /* the abandon MUST eventually land or this corpse resurrects on the next
+         boot — queue it; boot/teeoff/the next scrap drain the queue */
+      queueAbandon(state.live.lr);
+      try{ console.warn('[discard] server abandon failed — queued:', e.message||e); }catch(_){}
+    }
+    drainAbandons();   /* also retry anything queued from earlier scraps */
   }
   clearLiveCache(null);
   state.live=freshLive();
