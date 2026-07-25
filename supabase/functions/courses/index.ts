@@ -37,7 +37,16 @@ async function gca(path: string) {
   const r = await fetch(`${GCA_BASE}${path}`, {
     headers: { Authorization: `Key ${KEY}` },
   });
-  if (!r.ok) throw new Error(`golfcourseapi ${r.status}`);
+  if (!r.ok) {
+    // A failure here used to be INVISIBLE: the catch turned it into a 502 body
+    // and nothing reached the logs, so "search is broken" and "the upstream is
+    // rate-limited" looked identical from the dashboard. Log the status and a
+    // short body snippet — 429 = their quota (self-heals), 401/403 = the key,
+    // 5xx = their outage. NEVER log headers: KEY rides in Authorization.
+    const snippet = await r.text().catch(() => "");
+    console.error(`[courses] golfcourseapi ${r.status} on ${path} :: ${snippet.slice(0, 200)}`);
+    throw new Error(`golfcourseapi ${r.status}`);
+  }
   return r.json();
 }
 
@@ -104,6 +113,9 @@ Deno.serve(async (req) => {
     return json({ error: "bad request body" }, 400);
   }
   const action = body?.action;
+  // every invocation logs, so "never called" is distinguishable from "called
+  // and quietly failed" (the webhook landmine, same shape)
+  console.log(`[courses] action=${String(action ?? "")} used=${used ?? 0}/${dailyCap}`);
   // ledger = the rate-limit counter; best-effort, never blocks the response
   admin.from("courses_usage").insert({ profile_id: uid, action: String(action ?? "") })
     .then(() => {}, () => {});
@@ -181,6 +193,8 @@ Deno.serve(async (req) => {
 
     return json({ error: "unknown action" }, 400);
   } catch (e) {
-    return json({ error: String((e as Error)?.message ?? e) }, 502);
+    const msg = String((e as Error)?.message ?? e);
+    console.error(`[courses] action=${String(action ?? "")} failed :: ${msg}`);
+    return json({ error: msg }, 502);
   }
 });
