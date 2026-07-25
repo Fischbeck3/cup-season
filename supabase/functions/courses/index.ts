@@ -142,6 +142,28 @@ Deno.serve(async (req) => {
     if (action === "cache") {
       const id = String(body.id ?? "").trim();
       if (!id) return json({ error: "id required" }, 400);
+      // Pull from the dataset when we have it: a course cached in the last 90
+      // days with its hole rows intact is served as-is — no API spend, and a
+      // repeat tee pick keeps working through an upstream 429. Course data
+      // moves on a yearly cadence (re-rates); 90 days is comfortably fresh.
+      const { data: hit } = await admin
+        .from("api_courses").select("id, cached_at").eq("id", id).maybeSingle();
+      if (hit?.cached_at &&
+          Date.now() - new Date(hit.cached_at).getTime() < 90 * 24 * 3600 * 1000) {
+        const { data: teeIds } = await admin
+          .from("api_course_tees").select("id").eq("course_id", id);
+        let holeCount = 0;
+        if (teeIds?.length) {
+          const { count } = await admin
+            .from("api_course_holes").select("*", { count: "exact", head: true })
+            .in("tee_id", teeIds.map((t) => t.id));
+          holeCount = count ?? 0;
+        }
+        if (holeCount > 0) {
+          console.log(`[courses] cache hit for ${id} — no API call`);
+          return json({ ok: true, id, from_cache: true });
+        }
+      }
       const data = await gca(`/v1/courses/${encodeURIComponent(id)}`);
       const c = data?.course ?? data;
       const cid = String(c.id ?? id);
