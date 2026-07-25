@@ -2579,6 +2579,7 @@ html[data-theme="light"] .room-dusk .btn:not(.dark):not(.gold):not(.apple){color
               <button data-g="match">Match play</button>
               <button data-g="wolf">Wolf</button>
               <button data-g="skins">Skins</button>
+              <button data-g="sunningdale">Sunningdale</button>
             </div>
             <p class="fine" id="gameNote">Stroke play — your card, your pace. One to four players; post when you’re done.</p>
             <div id="matchSetup" style="display:none; margin-top:12px; border-top:0.5px solid var(--line); padding-top:12px;">
@@ -6560,7 +6561,7 @@ function applyServerRound(mine, myPid){
   const cfg=mine.game_config||{};
   const game = mine.game==='none' ? 'score' : mine.game;
   const idxByName=nm=>LIVE.findIndex(p=>p.n===nm);
-  if(game==='match'){
+  if(game==='match' || game==='sunningdale'){   /* both carry side_a/side_b in cfg */
     const a=(cfg.side_a||[]).map(idxByName).filter(i=>i>=0);
     const b=(cfg.side_b||[]).map(idxByName).filter(i=>i>=0);
     if(a.length && b.length) MTEAMS=[a,b]; else setMatchTeams();
@@ -6571,7 +6572,7 @@ function applyServerRound(mine, myPid){
     wolfOrder = ord.length===LIVE.length ? ord : [0,1,2,3];
   }
   const _srvHoles = snap.holes===9 ? 9 : 18;   /* D73: the started round's hole count rides the server snapshot */
-  state.live = { stage:'live', active:true, game, stake:Number(cfg.stake)||0, wolfOrder,
+  state.live = { stage:'live', active:true, game, stake:Number(cfg.stake ?? cfg.unit)||0, wolfOrder,   /* sunningdale's cfg calls it unit */
     holes:_srvHoles, rating9:false, hole:0, scores:LIVE.map(()=>Array(18).fill(null)), wolf:Array(18).fill(null),
     lr:mine.id, league_id:mine.league_id||null, pmap:players.map(p=>p.id), guestTokens:{} };
   recomputeStrokes();   /* holes is known now — a nine halves the handicap */
@@ -6747,6 +6748,59 @@ function skinsCalc(){
   return {won, pts, carry, thru};
 }
 
+/* Sunningdale (D74): match play with NO handicaps — the equalizer is
+   positional. Entering a hole N down (N>=2) gives that side N−1 strokes on it,
+   every such hole, so the match can never run away. The bank: a unit banked
+   per hole won while strictly ahead; a qualifying win by the other side pulls
+   one unit back (signed: +N = side A holds N units). PURE — tested by
+   tests/sunningdale.test.mjs (TDD, written red first); sunnCalc() below is the
+   thin wrapper that feeds it the live-round globals. */
+function sunnEngine(inp){
+  const scores=inp.scores, teams=inp.teams, H=inp.holes||18;
+  const done=h=>teams.every(t=>t.every(p=>scores[p] && scores[p][h]!=null));
+  let a=0,b=0,played=0,closed=null,bank=0;
+  for(let h=0;h<H;h++){
+    if(!done(h)) break;
+    const dA=Math.max(0,(b-a)-1), dB=Math.max(0,(a-b)-1);   /* strokes ON this hole */
+    const na=Math.min(...teams[0].map(p=>scores[p][h]-dA));
+    const nb=Math.min(...teams[1].map(p=>scores[p][h]-dB));
+    played=h+1;
+    if(na<nb){ a++; if(a>b) bank++; }
+    else if(nb<na){ b++; if(b>a) bank--; }
+    const lead=Math.abs(a-b), rem=H-played;
+    if(lead>rem && lead>0){ closed={winner:a>b?0:1, lead, rem}; break; }
+  }
+  const strokes=closed?[0,0]:[Math.max(0,(b-a)-1),Math.max(0,(a-b)-1)];
+  return {a,b,played,closed,bank,strokes};
+}
+/* thin wrappers over the pure engine — live-round globals in, engine out */
+function sunnCalc(){
+  return sunnEngine({ scores:state.live.scores, teams:MTEAMS, holes:liveHoles() });
+}
+/* strokes ON a given hole = deficit entering it — run the engine on the card
+   truncated to the holes before h (cheap; H<=18) */
+function sunnStrokesAt(h){
+  const cut=state.live.scores.map(a=>a.map((v,k)=> k<h ? v : null));
+  return sunnEngine({ scores:cut, teams:MTEAMS, holes:liveHoles() }).strokes;
+}
+function sunnResult(){
+  const m=sunnCalc();
+  const names=t=>MTEAMS[t].map(i=>LIVE[i]?.n).filter(Boolean).join(' & ');
+  let winner=null, status;
+  if(m.closed){ winner=m.closed.winner; status=`${m.closed.lead}&${m.closed.rem}`; }
+  else if(m.a!==m.b){ winner=m.a>m.b?0:1; status=`${Math.abs(m.a-m.b)} up thru ${m.played}`; }
+  else status='halved';
+  const unit=state.live.stake||0;
+  const bankTxt = m.bank===0 ? 'bank empty'
+    : `bank: ${names(m.bank>0?0:1)}${unit>0?` $${Math.abs(m.bank)*unit}`:` ${Math.abs(m.bank)} unit${Math.abs(m.bank)===1?'':'s'}`}`;
+  const story = winner==null
+    ? `Sunningdale: ${names(0)} and ${names(1)} halved it · ${bankTxt}`
+    : `Sunningdale: ${names(winner)} def. ${names(winner===0?1:0)} ${status} · no handicaps · ${bankTxt}`;
+  return { game:'sunningdale', winner: winner==null?null:String(winner), status,
+           a:m.a, b:m.b, thru:m.played, bank:m.bank, unit,
+           side_a:names(0), side_b:names(1), story };
+}
+
 /* minimized transfer set from a net-zero points ledger — data first, HTML on
    top, so the live card and the finish recap read the same math */
 function settleTransfers(pts, val){
@@ -6821,7 +6875,7 @@ function renderPlay(){
   {const _c=($('#lrCourse').value||'Course'), _t=($('#lrTee').value||'').trim();
    const _dup=_t && _c.toLowerCase().endsWith(('· '+_t).toLowerCase());
    $('#lrEyebrowTxt').textContent=`Live round · ${_c}${_t&&!_dup?` — ${_t}`:''} · ${CRATE}/${CSLOPE}`;}
-  $('#matchCard').style.display = state.live.game==='match' ? 'block':'none';
+  $('#matchCard').style.display = (state.live.game==='match'||state.live.game==='sunningdale') ? 'block':'none';
   $('#wolfCard').style.display  = state.live.game==='wolf'  ? 'block':'none';
   const sc=$('#skinsCard'); if(sc) sc.style.display = state.live.game==='skins' ? 'block':'none';
   $('#settleCard').style.display= (state.live.game==='wolf'||state.live.game==='skins') ? 'block':'none';
@@ -6848,8 +6902,11 @@ function renderPlay(){
     const row=document.createElement('div'); row.className='prow';
     row.innerHTML=`
       <span class="sw" style="background:${p.guest?'var(--dim)':SQHEX[p.ci]}"></span>
-      <div class="nm"><b>${esc(p.n)} ${p.guest?'<span class="gtag">GUEST</span>':''}${'<span class="strokedot" title="stroke here"></span>'.repeat(strokeOn(pi,h))}</b>
-      <small>${p.est?'EST ':(p.guest?'SELF ':'')}${fmtIdx(p.i)} IDX · ${STROKES[pi]} STK</small></div>
+      <div class="nm"><b>${esc(p.n)} ${p.guest?'<span class="gtag">GUEST</span>':''}${'<span class="strokedot" title="stroke here"></span>'.repeat(
+        state.live.game==='sunningdale'
+          ? (sunnStrokesAt(h)[MTEAMS[0].includes(pi)?0:1]||0)   /* D74: positional strokes, not SI */
+          : strokeOn(pi,h))}</b>
+      <small>${state.live.game==='sunningdale' ? 'NO HCP · STRAIGHT UP' : `${p.est?'EST ':(p.guest?'SELF ':'')}${fmtIdx(p.i)} IDX · ${STROKES[pi]} STK`}</small></div>
       <div class="tot">${done.length? gross+' THRU '+done.length+'<br>'+(vp>=0?'+':'')+vp : '—'}</div>
       <div class="step">
         <button aria-label="Minus ${esc(p.n)}" data-pi="${pi}" data-d="-1">−</button>
@@ -6886,6 +6943,26 @@ function renderPlay(){
     + (state.live.stake>0?` · $${state.live.stake} A SIDE`:'')
     + (SIEST?' · EST. CARD':'');
 
+  }
+
+  /* D74: Sunningdale shares the match card — same shape, different law. The
+     meta line always names the bank's holder and what's coming. */
+  if(state.live.game==='sunningdale'){
+    const nmOf=t=>MTEAMS[t].map(i=>LIVE[i]?.n).filter(Boolean).join(' & ').toUpperCase();
+    const teamA=nmOf(0), teamB=nmOf(1);
+    $('#matchTeams').textContent = LIVE.length===2
+      ? `Sunningdale · singles · ${LIVE[0]?.n||''} vs ${LIVE[1]?.n||''}`
+      : `Sunningdale · 2v2 best ball · ${LIVE[0]?.n||''} + ${LIVE[1]?.n||''} vs ${LIVE[2]?.n||''} + ${LIVE[3]?.n||''}`;
+    const m=sunnCalc();
+    $('#matchStatus').textContent = m.closed
+      ? `${m.closed.winner===0?teamA:teamB} WIN ${m.closed.lead}&${m.closed.rem}`
+      : (m.a===m.b?'ALL SQUARE':`${m.a>m.b?teamA:teamB} ${Math.abs(m.a-m.b)} UP`);
+    const unit=state.live.stake||0;
+    const sTxt = m.strokes[0]>0 ? ` · ${teamA} GET ${m.strokes[0]} NEXT`
+               : m.strokes[1]>0 ? ` · ${teamB} GET ${m.strokes[1]} NEXT` : '';
+    const bTxt = m.bank===0 ? ' · BANK EMPTY'
+      : ` · BANK: ${m.bank>0?teamA:teamB}${unit>0?` $${Math.abs(m.bank)*unit}`:` ${Math.abs(m.bank)}U`}`;
+    $('#matchMeta').textContent=`THRU ${m.played} · NO HANDICAPS${sTxt}${bTxt}`;
   }
 
   if(state.live.game==='wolf' && LIVE.length===4){
@@ -6963,13 +7040,21 @@ $('#holeNext').addEventListener('click',()=>{state.live.hole=Math.min(liveHoles(
 function renderMatchPrev(){
   const box=$('#matchSetup'); if(!box) return;
   const g=state.live.game;
-  const money = g==='match'||g==='wolf'||g==='skins';
+  const money = g==='match'||g==='wolf'||g==='skins'||g==='sunningdale';
   box.style.display = money ? 'block' : 'none';
   const prev=$('#matchPrev'); if(!money || !prev) return;
   const lbl=box.querySelector('label[for="lrStake"]');
   if(lbl) lbl.textContent = g==='match' ? 'Stake per side · $0 = bragging rights'
     : g==='wolf' ? 'Dollars per point · $0 = bragging rights'
+    : g==='sunningdale' ? 'Bank unit · $0 = bragging rights'
     : 'Dollars per skin · $0 = bragging rights';
+  if(g==='sunningdale'){
+    /* D74: no handicaps, so no strokes table — the game IS the equalizer */
+    prev.innerHTML = (sel.length===2 || sel.length===4)
+      ? 'Straight up — nobody gets a shot for their index. Go 2 down and you get a stroke on each hole until you climb inside 1. Win a hole while ahead and you bank a unit; their comeback wins pull it back out.'
+      : 'Sunningdale takes 2 (singles) or 4 (2v2 best ball).';
+    return;
+  }
   if(g==='wolf'){
     prev.innerHTML = sel.length===4
       ? `Wolf order shuffles at tee-off and locks. The wolf tees last, picks a partner after any drive — or goes lone for 3. Last two holes (${liveHoles()===9?'8–9':'17–18'}): last place is the wolf.`
@@ -7155,7 +7240,8 @@ $$('#gameSeg button').forEach(b=>b.addEventListener('click',()=>{
   const GN={score:'Stroke play — your card, your pace. One to four players; post when you’re done.',
     match:'Singles (2) or 2v2 net best ball (4). Keep scoring; we tally the match as you go.',
     wolf:'A round of Wolf — needs four. We run the rotation and the side tally; scores still post.',
-    skins:'Low net takes the hole’s skin; ties carry the pot. Two to four players; scores still post.'};
+    skins:'Low net takes the hole’s skin; ties carry the pot. Two to four players; scores still post.',
+    sunningdale:'Match play, no handicaps — go 2 down and you get a stroke until you climb out. Singles or 2v2. Win a hole while ahead to bank a unit.'};
   const gn=$('#gameNote'); if(gn) gn.textContent=GN[state.live.game]||GN.score;
 }));
 /* editCard toggle is bound by the course-card engine below */
@@ -7163,12 +7249,13 @@ $$('#gameSeg button').forEach(b=>b.addEventListener('click',()=>{
 $('#teeOffBtn').addEventListener('click', async ()=>{
   const g=state.live.game;
   const bad = g==='score' ? sel.length<1
-    : g==='match' ? (sel.length!==2 && sel.length!==4)
+    : (g==='match'||g==='sunningdale') ? (sel.length!==2 && sel.length!==4)
     : g==='skins' ? (sel.length<2 || sel.length>4)
     : sel.length!==4;
   if(bad){
     return toast(g==='score' ? 'Pick at least yourself'
       : g==='match' ? 'Match play takes 2 (singles) or 4 (2v2)'
+      : g==='sunningdale' ? 'Sunningdale takes 2 (singles) or 4 (2v2)'
       : g==='skins' ? 'Skins takes 2 to 4 players'
       : 'Wolf needs exactly 4');
   }
@@ -7178,7 +7265,7 @@ $('#teeOffBtn').addEventListener('click', async ()=>{
   syncTeeInputs();
   /* the stake is declared at tee-off and locked (spec §13.2) — $0 = bragging.
      match: per side · wolf: per point · skins: per skin */
-  const stake = (game==='match'||game==='wolf'||game==='skins')
+  const stake = (game==='match'||game==='wolf'||game==='skins'||game==='sunningdale')
     ? Math.max(0, parseFloat($('#lrStake')?.value)||0) : 0;
   /* wolf order: server-less shuffle at tee-off, locked (§3.1) */
   const wolfOrder = game==='wolf'
@@ -7210,6 +7297,8 @@ $('#teeOffBtn').addEventListener('click', async ()=>{
         ? { stake, order:(wolfOrder||[]).map(p=>LIVE[p].n), si_estimated:!!SIEST }
         : game==='skins'
         ? { stake, si_estimated:!!SIEST }
+        : game==='sunningdale'
+        ? { unit:stake, side_a:MTEAMS[0].map(i=>LIVE[i].n), side_b:MTEAMS[1].map(i=>LIVE[i].n) }   /* no handicaps — no SI flag */
         : {};
       const args = {
         p_league:CS.league.id, p_course_id:null, p_tee_id:null,
@@ -7283,6 +7372,7 @@ function gameResult(){
   if(state.live.game==='match') return matchResult();
   if(state.live.game==='wolf'  && LIVE.length===4) return wolfResult();
   if(state.live.game==='skins' && LIVE.length>=2) return skinsResult();
+  if(state.live.game==='sunningdale' && (LIVE.length===2||LIVE.length===4)) return sunnResult();
   return null;
 }
 function finishRealLiveRound(){

@@ -2294,6 +2294,49 @@ machinery-already-exists. ⚑ marks the points still needing an owner call.*
   scores posted rounds via their differential, which D72 already stores at
   18-equivalent value.
 
+### D74 · Sunningdale — the live game for groups without handicaps
+- **Current:** the tee sheet runs three games (Match Play, Wolf, Skins), all
+  handicap-driven: strokes off the low man, allocated by stroke index. A group
+  with unestablished or distrusted indexes (sandbaggers, guests, new golfers)
+  has no game that feels fair.
+- **Problem:** the pilot asked for Sunningdale (Golf Digest, 2026-07-21) — the
+  match-play variant built for exactly that group: NO handicaps, the equalizer
+  is positional. Enter a hole 2 down and you get 1 stroke on it; 3 down, 2
+  strokes; N down, N−1. The match can never run away.
+- **Rule interpretation (the article leaves one point implicit):** "the very
+  first time one side goes two down… a stroke on the next hole" scales per its
+  own examples (3 down → two strokes, 4 down → three). We implement the only
+  reading that satisfies the stated goal ("never lets you get in a hole you
+  can't crawl out of"): on EVERY hole, the trailing side receives
+  max(0, deficit − 1) strokes, deficit measured entering the hole. A one-time
+  stroke would let the match run away again the hole after. In teams (2v2 best
+  ball), each player on the trailing side receives the stroke(s).
+- **The bank (the money layer, from the article's variation):** the stake is a
+  UNIT. A side that wins a hole AND is strictly ahead after winning banks one
+  unit; a qualifying win by the other side pulls one unit back out (through
+  zero into their own favor). Wins that square the match or narrow a deficit
+  bank nothing. One signed integer models it: +N = side A holds N units.
+  Settled at finish alongside the match result; $0 = bragging rights, same as
+  every game.
+- **Not shipped (future dials):** the Nassau overlay (front/back/overall — our
+  Match Play doesn't do Nassau either) and the "Colonel Dallmeyer" variation
+  (strokes only at 3 up, until back to 1 up).
+- **Scope:** client engine + UI alongside match/wolf/skins, one migration
+  widening live_rounds' game CHECK ('sunningdale'). 9-hole aware (D73:
+  closeout against liveHoles()). Handicaps deliberately ignored — no
+  recomputeStrokes, no SI; that's the game's whole identity.
+- **Principle served:** meet golfers where they play — the no-handicap group is
+  exactly the guest-heavy, index-less foursome the guest-claim funnel courts ·
+  §2.2 the first-tee argument, settled: the strokes are on the scoreboard, not
+  negotiated.
+- **Benefit:** the one game every mixed group can play fairly on day one, before
+  a single index exists.
+- **Tradeoffs:** a fourth game on the picker (seg gets tighter on small
+  phones); the bank's owner semantics are subtle — the status card must always
+  name who holds it and what a win does.
+- **CONFLICT check:** none. Live games never touch season scoring (§13.2);
+  cards still post as ordinary rounds through the same finish path.
+
 ### Casing policy · the SQL de-shout is paid down OPPORTUNISTICALLY (2026-07-24)
 - **The principle stands (D66):** the scoreboard voice belongs to typography,
   not to stored data — capitals-as-data destroy proper nouns ("SANDY WEDGE" →
