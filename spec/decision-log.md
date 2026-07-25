@@ -2337,6 +2337,36 @@ machinery-already-exists. ⚑ marks the points still needing an owner call.*
 - **CONFLICT check:** none. Live games never touch season scoring (§13.2);
   cards still post as ordinary rounds through the same finish path.
 
+### D75 · Everyone for themselves — the 4-player solo modes
+- **Current:** four players picking Match Play or Sunningdale are silently a
+  2v2 (D74's court). The pilot: "2v2 or everyone v everyone" — the choice
+  itself was missing.
+- **Recommendation:** with 4 players and a team-capable game, an explicit mode
+  choice — **2v2 teams** (the court) or **Everyone for themselves**:
+  · **Match play solo = round-robin singles.** Six simultaneous 1v1 matches
+    (every pairing), each scored hole-by-hole NET exactly like today's singles
+    (strokes off the group's low man, SI allocation), none close out early.
+    The card is a ladder (per-player matches up/down); each mini-match settles
+    at the stake, winner from loser. The established real-world 4-way format.
+  · **Sunningdale solo = deficit strokes vs the leader.** Own ball; a hole is
+    won by OUTRIGHT low net (any tie halves to nobody). Entering a hole, each
+    player gets max(0, gap_to_leader − 1) strokes. The bank keeps its
+    single-owner walk: a qualifying win (you lead outright after winning)
+    grows your bank or pulls one unit from the current holder, through zero.
+    Liability is per player: at settle, each non-owner owes bank × unit.
+  · **⚑ OURS, flagged:** the article defines Sunningdale as strictly 2-sided.
+    The solo variant is OUR extension of its principle (the match that never
+    runs away). Faithful in spirit; the rules above are the house's.
+- **Principle:** §2.2 — the first-tee argument settled on the scoreboard ·
+  meet the group as it actually bets (a 4-ball is not always two teams).
+- **Tradeoffs:** the RR card is a ladder, not a single banner — six tallies
+  compressed to per-player records with the pair detail behind the numbers.
+  Solo Sunningdale's per-player bank liability is steep (3 payers) and is
+  therefore stated on the card, never discovered at settle.
+- **CONFLICT check:** none — live games never touch season scoring (§13.2);
+  cards post through the same finish path; mode rides game_config (no schema
+  change, no new game enum value).
+
 ### Casing policy · the SQL de-shout is paid down OPPORTUNISTICALLY (2026-07-24)
 - **The principle stands (D66):** the scoreboard voice belongs to typography,
   not to stored data — capitals-as-data destroy proper nouns ("SANDY WEDGE" →

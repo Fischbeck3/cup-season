@@ -1251,7 +1251,9 @@ html[data-theme="light"] .momrow{background:rgba(21,116,63,.06);}
 /* the court (pairing pick A): for a 4-player team game the slots BECOME the two
    team zones — drag a player across (or tap-tap) and the sides auto-balance.
    Replaces both the old per-slot swap arrows and the pairing button list. */
-.slot4.court{display:flex; gap:8px;}
+.slot4.court{display:block;}
+.slot4 #modeSeg{grid-column:1/-1;}
+.crtrow{display:flex; gap:8px;}
 .crtzone{flex:1; border:1.5px dashed var(--line2); border-radius:13px; padding:8px;
   min-height:116px; display:flex; flex-direction:column; gap:8px;
   transition:border-color .15s, background .15s;}
@@ -6430,9 +6432,13 @@ const strokeOn=(pi,h)=>{
 };
 
 function freshLive(){
-  return {stage:'setup', active:false, game:'score', hole:0, holes:18, rating9:false, pairing:0,
+  return {stage:'setup', active:false, game:'score', hole:0, holes:18, rating9:false, pairing:0, mode:'teams',
     scores:LIVE.map(()=>Array(18).fill(null)), wolf:Array(18).fill(null)};
 }
+/* D75: with four players a team-capable game asks HOW — 2v2 (the court) or
+   everyone for themselves (match = round-robin singles · sunningdale = solo,
+   deficit strokes vs the leader). Two players are singles; nothing asked. */
+function liveSolo(){ return state.live.mode==='solo'; }
 /* 2v2 pairings (pilot: "we should be able to select how these are grouped") —
    four players split three ways. Design pick A ("the court"): the four slots
    BECOME the two team zones — drag a player across (or tap one, then another)
@@ -6477,10 +6483,12 @@ function renderCourt(slots){
     });
     return z;
   };
-  slots.appendChild(zoneEl(0,'Team A'));
+  const row=document.createElement('div'); row.className='crtrow';
+  row.appendChild(zoneEl(0,'Team A'));
   const vs=document.createElement('div'); vs.className='crtvs'; vs.textContent='VS';
-  slots.appendChild(vs);
-  slots.appendChild(zoneEl(1,'Team B'));
+  row.appendChild(vs);
+  row.appendChild(zoneEl(1,'Team B'));
+  slots.appendChild(row);
 }
 function courtDrag(chip){
   chip.addEventListener('pointerdown', e=>{
@@ -6615,7 +6623,7 @@ function buildLiveSnapshot(){
   const L=state.live;
   return { v:2, lr:L.lr, league_id:L.league_id||null, ts:Date.now(),
     game:L.game, stake:L.stake||0, wolfOrder:L.wolfOrder||null,
-    holes:L.holes||18, rating9:!!L.rating9,   /* D73: a resumed nine stays a nine */
+    holes:L.holes||18, rating9:!!L.rating9, mode:L.mode||'teams',   /* D73/D75: a resumed nine stays a nine; a solo game stays solo */
     pmap:L.pmap||null, guestTokens:L.guestTokens||{},
     scores:L.scores, wolf:L.wolf, hole:L.hole,
     teams: (typeof MTEAMS!=='undefined' && MTEAMS) ? MTEAMS.map(t=>t.slice()) : null,
@@ -6670,7 +6678,7 @@ function applyLiveSnapshot(s){
   const holes = s.holes===9 ? 9 : 18;   /* D73 */
   const hole = Number.isInteger(s.hole) ? Math.max(0,Math.min(holes-1,s.hole)) : 0;
   state.live = { stage:'live', active:true, game:s.game||'score', stake:Number(s.stake)||0,
-    wolfOrder:s.wolfOrder||null, holes, rating9:!!s.rating9, hole, scores, wolf, lr:s.lr, league_id:s.league_id||null,
+    wolfOrder:s.wolfOrder||null, holes, rating9:!!s.rating9, mode:s.mode||'teams', hole, scores, wolf, lr:s.lr, league_id:s.league_id||null,
     pmap:s.pmap||null, guestTokens:s.guestTokens||{} };
   recomputeStrokes();   /* re-run now that holes is known (a nine halves the handicap) */
   rosterPrimed=true;
@@ -6717,7 +6725,8 @@ function applyServerRound(mine, myPid){
   }
   const _srvHoles = snap.holes===9 ? 9 : 18;   /* D73: the started round's hole count rides the server snapshot */
   state.live = { stage:'live', active:true, game, stake:Number(cfg.stake ?? cfg.unit)||0, wolfOrder,   /* sunningdale's cfg calls it unit */
-    holes:_srvHoles, rating9:false, hole:0, scores:LIVE.map(()=>Array(18).fill(null)), wolf:Array(18).fill(null),
+    holes:_srvHoles, rating9:false, mode:(cfg.mode==='solo'?'solo':'teams'),   /* D75: a solo game resumes solo */
+    hole:0, scores:LIVE.map(()=>Array(18).fill(null)), wolf:Array(18).fill(null),
     lr:mine.id, league_id:mine.league_id||null, pmap:players.map(p=>p.id), guestTokens:{} };
   recomputeStrokes();   /* holes is known now — a nine halves the handicap */
   try{
@@ -6949,8 +6958,48 @@ function sunnEngine(inp){
   return {a,b,played,closed,bank,strokes};
 }
 /* thin wrappers over the pure engine — live-round globals in, engine out */
+/* D75 · solo Sunningdale (everyone for themselves) — OUR extension of the
+   2-sided game, flagged in the log. Own ball; a hole is won by OUTRIGHT low
+   net (ties halve to nobody). Entering a hole each player gets
+   max(0, gapToLeader−1) strokes. The bank keeps its single-owner walk: a
+   qualifying win (outright leader AFTER winning) grows your bank, or pulls
+   one unit from the current holder, through zero to a new owner. PURE —
+   tested in tests/sunningdale.test.mjs (TDD, red first). */
+function sunnSoloEngine(inp){
+  const scores=inp.scores, H=inp.holes||18, n=scores.length;
+  const wins=Array(n).fill(0);
+  let played=0, bankOwner=0, bankUnits=0;
+  const leadOf=()=>Math.max(...wins);
+  for(let h=0;h<H;h++){
+    if(scores.some(s=>!s || s[h]==null)) break;
+    const lead=leadOf();
+    const str=wins.map(w=>Math.max(0,(lead-w)-1));
+    const nets=scores.map((s,i)=>s[h]-str[i]);
+    const mn=Math.min(...nets);
+    const winners=nets.reduce((a,v,i)=>{ if(v===mn)a.push(i); return a; },[]);
+    played=h+1;
+    if(winners.length===1){
+      const w=winners[0]; wins[w]++;
+      const outright = wins[w] > Math.max(...wins.filter((_,i)=>i!==w));
+      if(outright){
+        if(bankUnits===0 || bankOwner===w) { bankOwner=w; bankUnits++; }
+        else bankUnits--;   /* pull one unit out of the holder's bank */
+      }
+    }
+  }
+  const lead=leadOf();
+  const strokes=wins.map(w=>Math.max(0,(lead-w)-1));
+  return { wins, played, strokes, bank:{ owner:bankOwner, units:bankUnits } };
+}
 function sunnCalc(){
   return sunnEngine({ scores:state.live.scores, teams:MTEAMS, holes:liveHoles() });
+}
+function sunnSoloCalc(){
+  return sunnSoloEngine({ scores:state.live.scores, holes:liveHoles() });
+}
+function sunnSoloStrokesAt(h){
+  const cut=state.live.scores.map(a=>a.map((v,k)=> k<h ? v : null));
+  return sunnSoloEngine({ scores:cut, holes:liveHoles() }).strokes;
 }
 /* strokes ON a given hole = deficit entering it — run the engine on the card
    truncated to the holes before h (cheap; H<=18) */
@@ -6974,6 +7023,55 @@ function sunnResult(){
   return { game:'sunningdale', winner: winner==null?null:String(winner), status,
            a:m.a, b:m.b, thru:m.played, bank:m.bank, unit,
            side_a:names(0), side_b:names(1), story };
+}
+
+/* D75 · round-robin singles (match play, everyone for themselves): every
+   pairing is its own 1v1, scored hole-by-hole NET exactly like singles
+   (strokes off the group's low man), none close out early. */
+function rrCalc(){
+  const H=liveHoles(), n=LIVE.length, pairs=[];
+  for(let i=0;i<n;i++) for(let j=i+1;j<n;j++){
+    let a=0,b=0,played=0;
+    for(let h=0;h<H;h++){
+      if(state.live.scores[i][h]==null || state.live.scores[j][h]==null) break;
+      const ni=netOf(i,h), nj=netOf(j,h);
+      if(ni<nj)a++; else if(nj<ni)b++;
+      played=h+1;
+    }
+    pairs.push({i,j,a,b,played});
+  }
+  return pairs;
+}
+function rrRecords(pairs){
+  const rec=LIVE.map(()=>({w:0,l:0,h:0}));
+  pairs.forEach(p=>{
+    if(p.a>p.b){ rec[p.i].w++; rec[p.j].l++; }
+    else if(p.b>p.a){ rec[p.j].w++; rec[p.i].l++; }
+    else { rec[p.i].h++; rec[p.j].h++; }
+  });
+  return rec;
+}
+function rrResult(){
+  const pairs=rrCalc(), rec=rrRecords(pairs), stake=state.live.stake||0;
+  const line=LIVE.map((p,i)=>`${p.n} ${rec[i].w}-${rec[i].l}${rec[i].h?`-${rec[i].h}`:''}`).join(', ');
+  return { game:'match', mode:'solo', stake,
+    players:LIVE.map((p,i)=>({name:p.n, w:rec[i].w, l:rec[i].l, h:rec[i].h})),
+    pairs:pairs.map(p=>({a:LIVE[p.i]?.n, b:LIVE[p.j]?.n, up:p.a-p.b, thru:p.played})),
+    story:`Round robin: ${line}${stake>0?` · $${stake} a match`:''}` };
+}
+/* D75 · solo Sunningdale result — the bank names its owner; liability is per
+   player (each other player owes bank × unit), stated on the card, never
+   discovered at settle */
+function sunnSoloResult(){
+  const m=sunnSoloCalc(), unit=state.live.stake||0;
+  const order=[...m.wins.keys()].sort((a,b)=>m.wins[b]-m.wins[a]);
+  const line=order.map(i=>`${LIVE[i]?.n} ${m.wins[i]}`).join(', ');
+  const bankTxt = m.bank.units===0 ? 'bank empty'
+    : `bank: ${LIVE[m.bank.owner]?.n}${unit>0?` $${m.bank.units*unit} (each owes)`:` ${m.bank.units} unit${m.bank.units===1?'':'s'}`}`;
+  return { game:'sunningdale', mode:'solo', unit, thru:m.played,
+    players:LIVE.map((p,i)=>({name:p.n, wins:m.wins[i]})),
+    bank:m.bank,
+    story:`Sunningdale, everyone for themselves: ${line} · no handicaps · ${bankTxt}` };
 }
 
 /* minimized transfer set from a net-zero points ledger — data first, HTML on
@@ -7079,7 +7177,8 @@ function renderPlay(){
       <span class="sw" style="background:${p.guest?'var(--dim)':SQHEX[p.ci]}"></span>
       <div class="nm"><b>${esc(p.n)} ${p.guest?'<span class="gtag">GUEST</span>':''}${'<span class="strokedot" title="stroke here"></span>'.repeat(
         state.live.game==='sunningdale'
-          ? (sunnStrokesAt(h)[MTEAMS[0].includes(pi)?0:1]||0)   /* D74: positional strokes, not SI */
+          ? (liveSolo() ? (sunnSoloStrokesAt(h)[pi]||0)
+                        : (sunnStrokesAt(h)[MTEAMS[0].includes(pi)?0:1]||0))   /* D74/D75: positional strokes, not SI */
           : strokeOn(pi,h))}</b>
       <small>${state.live.game==='sunningdale' ? 'NO HCP · STRAIGHT UP' : `${p.est?'EST ':(p.guest?'SELF ':'')}${fmtIdx(p.i)} IDX · ${STROKES[pi]} STK`}</small></div>
       <div class="tot">${done.length? gross+' THRU '+done.length+'<br>'+(vp>=0?'+':'')+vp : '—'}</div>
@@ -7101,7 +7200,18 @@ function renderPlay(){
 
   /* match card = match-only. A 3-player skins game has no LIVE[3] and the net-
      best-ball line assumed 4 — never run the ladder math for skins/wolf/score. */
-  if(state.live.game==='match'){
+  /* D75: everyone-for-themselves match = the round-robin ladder */
+  if(state.live.game==='match' && liveSolo() && LIVE.length===4){
+    const pairs=rrCalc(), rec=rrRecords(pairs);
+    const thru=Math.min(...pairs.map(p=>p.played));
+    $('#matchTeams').textContent='Match play \u00b7 round robin \u00b7 everyone for themselves';
+    const order=[...rec.keys()].sort((a,b)=>(rec[b].w-rec[b].l)-(rec[a].w-rec[a].l));
+    $('#matchStatus').textContent=order.map(i=>`${(LIVE[i]?.n||'').toUpperCase()} ${rec[i].w}-${rec[i].l}${rec[i].h?`-${rec[i].h}`:''}`).join(' \u00b7 ');
+    $('#matchMeta').textContent=`THRU ${thru} \u00b7 6 MATCHES \u00b7 STROKES OFF LOW MAN`
+      + (state.live.stake>0?` \u00b7 $${state.live.stake} A MATCH`:'')
+      + (SIEST?' \u00b7 EST. CARD':'');
+  }
+  else if(state.live.game==='match'){
   /* teams read MTEAMS \u2014 the CHOSEN pairing \u2014 never slot order (the status line
      names the winner from these, so slot order announced the wrong side) */
   const teamA=MTEAMS[0].map(i=>LIVE[i]?.n).filter(Boolean).join(' & ').toUpperCase();
@@ -7123,6 +7233,18 @@ function renderPlay(){
 
   }
 
+  /* D75: solo Sunningdale — the leaderboard, the field's strokes, the bank */
+  if(state.live.game==='sunningdale' && liveSolo() && LIVE.length===4){
+    const m=sunnSoloCalc(), unit=state.live.stake||0;
+    $('#matchTeams').textContent='Sunningdale · everyone for themselves';
+    const order=[...m.wins.keys()].sort((a,b)=>m.wins[b]-m.wins[a]);
+    $('#matchStatus').textContent=order.map(i=>`${(LIVE[i]?.n||'').toUpperCase()} ${m.wins[i]}`).join(' · ');
+    const sTxt=m.strokes.map((s,i)=>s>0?`${(LIVE[i]?.n||'').toUpperCase()} +${s}`:null).filter(Boolean).join(', ');
+    const bTxt=m.bank.units===0?'BANK EMPTY'
+      :`BANK: ${(LIVE[m.bank.owner]?.n||'').toUpperCase()}${unit>0?` $${m.bank.units*unit} · EACH OWES`:` ${m.bank.units}U`}`;
+    $('#matchMeta').textContent=`THRU ${m.played} · NO HANDICAPS${sTxt?` · ${sTxt} NEXT`:''} · ${bTxt}`;
+  }
+  else
   /* D74: Sunningdale shares the match card — same shape, different law. The
      meta line always names the bank's holder and what's coming. */
   if(state.live.game==='sunningdale'){
@@ -7281,8 +7403,22 @@ function renderRoster(){
   /* the court (pairing pick A): a 4-player team game turns the slots into the
      two team zones — the grouping IS the layout. Everything else keeps the
      flat four slots. */
-  const courtMode = (state.live.game==='match'||state.live.game==='sunningdale')
+  const teamable = (state.live.game==='match'||state.live.game==='sunningdale')
     && sel.length===4 && state.live.stage!=='live';
+  /* D75: the mode seg rides above the slots whenever teams are possible */
+  if(teamable){
+    const seg=document.createElement('div');
+    seg.className='seg'; seg.id='modeSeg'; seg.style.marginBottom='8px';
+    seg.innerHTML=`<button type="button" data-mode="teams" class="${liveSolo()?'':'on'}">2v2 teams</button>
+      <button type="button" data-mode="solo" class="${liveSolo()?'on':''}">Everyone for themselves</button>`;
+    seg.querySelectorAll('[data-mode]').forEach(b=>b.addEventListener('click',()=>{
+      state.live.mode=b.dataset.mode==='solo'?'solo':'teams';
+      _crtPicked=null;
+      renderRoster();
+    }));
+    slots.appendChild(seg);
+  }
+  const courtMode = teamable && !liveSolo();
   slots.classList.toggle('court', courtMode);
   if(courtMode){ renderCourt(slots); }
   else {
@@ -7444,9 +7580,12 @@ $('#teeOffBtn').addEventListener('click', async ()=>{
   const game=g;
   LIVE=sel.map(i=>ROSTER[i]);
   setMatchTeams();
-  /* the chosen 2v2 pairing overrides slot order for the team games */
+  /* the chosen 2v2 pairing overrides slot order for the team games; solo mode
+     (everyone for themselves) has no sides at all */
   const _pairing=(state.live&&state.live.pairing)||0;
-  if((game==='match'||game==='sunningdale') && LIVE.length===4){
+  const _mode=((game==='match'||game==='sunningdale') && LIVE.length===4)
+    ? ((state.live&&state.live.mode)||'teams') : 'teams';
+  if((game==='match'||game==='sunningdale') && LIVE.length===4 && _mode!=='solo'){
     const P=PAIRINGS[_pairing]||PAIRINGS[0];
     MTEAMS=[P[0].slice(),P[1].slice()];
   }
@@ -7460,7 +7599,7 @@ $('#teeOffBtn').addEventListener('click', async ()=>{
     ? [0,1,2,3].map(v=>[Math.random(),v]).sort((a,b)=>a[0]-b[0]).map(x=>x[1])
     : null;
   const _holes=liveHoles(), _rating9=!!(state.live&&state.live.rating9);   /* carry the setup's holes choice into the live round */
-  state.live={stage:'live', active:true, game, stake, wolfOrder, holes:_holes, rating9:_rating9, pairing:_pairing,
+  state.live={stage:'live', active:true, game, stake, wolfOrder, holes:_holes, rating9:_rating9, pairing:_pairing, mode:_mode,
     hole:0, scores:LIVE.map(()=>Array(18).fill(null)), wolf:Array(18).fill(null),
     lr:null, league_id:(window.CS?.league?.id||null), pmap:null, guestTokens:{}};
   /* real accounts persist the live round now (guests get claim tokens);
@@ -7480,14 +7619,18 @@ $('#teeOffBtn').addEventListener('click', async ()=>{
         label:($('#lrCourse').value||'').trim(), tee:($('#lrTee').value||'').trim() };
       const players=LIVE.map(p=> p.guest ? {guest_name:p.n, guest_index:(p.est?null:p.i)} : {member_id:p.mid});
       const cfg = game==='match'
-        ? { stake, side_a:MTEAMS[0].map(i=>LIVE[i].n), side_b:MTEAMS[1].map(i=>LIVE[i].n),
-            si_estimated:!!SIEST }
+        ? (_mode==='solo'
+            ? { stake, mode:'solo', si_estimated:!!SIEST }   /* D75: round robin — no sides */
+            : { stake, side_a:MTEAMS[0].map(i=>LIVE[i].n), side_b:MTEAMS[1].map(i=>LIVE[i].n),
+                si_estimated:!!SIEST })
         : game==='wolf'
         ? { stake, order:(wolfOrder||[]).map(p=>LIVE[p].n), si_estimated:!!SIEST }
         : game==='skins'
         ? { stake, si_estimated:!!SIEST }
         : game==='sunningdale'
-        ? { unit:stake, side_a:MTEAMS[0].map(i=>LIVE[i].n), side_b:MTEAMS[1].map(i=>LIVE[i].n) }   /* no handicaps — no SI flag */
+        ? (_mode==='solo'
+            ? { unit:stake, mode:'solo' }                    /* D75: everyone for themselves */
+            : { unit:stake, side_a:MTEAMS[0].map(i=>LIVE[i].n), side_b:MTEAMS[1].map(i=>LIVE[i].n) })   /* no handicaps — no SI flag */
         : {};
       const args = {
         p_league:CS.league.id, p_course_id:null, p_tee_id:null,
@@ -7558,6 +7701,8 @@ function skinsResult(){
     story:`Skins: ${line}${val>0?` · $${val} a skin`:''}${sk.carry>1?` · ${sk.carry-1} carried died`:''}` };
 }
 function gameResult(){
+  if(state.live.game==='match' && liveSolo() && LIVE.length===4) return rrResult();
+  if(state.live.game==='sunningdale' && liveSolo() && LIVE.length===4) return sunnSoloResult();
   if(state.live.game==='match') return matchResult();
   if(state.live.game==='wolf'  && LIVE.length===4) return wolfResult();
   if(state.live.game==='skins' && LIVE.length>=2) return skinsResult();
