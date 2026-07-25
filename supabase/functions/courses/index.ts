@@ -77,6 +77,55 @@ function flattenTees(course: any) {
   return out;
 }
 
+// fetch a course from the API and store it whole — the ONE writer for the
+// dataset, shared by the foreground miss path and the background refresh.
+// api_* tables: the original `courses`/`course_tees`/`course_holes` names
+// collided with a legacy uuid schema, so upserts silently failed (text ids
+// into uuid columns). See 20260714050000_course_cache_reconcile.
+async function fetchAndStore(admin: any, id: string): Promise<string> {
+  const data = await gca(`/v1/courses/${encodeURIComponent(id)}`);
+  const c = data?.course ?? data;
+  const cid = String(c.id ?? id);
+  await admin.from("api_courses").upsert({
+    id: cid,
+    club_name: c.club_name ?? null,
+    course_name: c.course_name ?? null,
+    city: c.location?.city ?? null,
+    state: c.location?.state ?? null,
+    country: c.location?.country ?? null,
+    latitude: c.location?.latitude ?? null,
+    longitude: c.location?.longitude ?? null,
+    raw: c,
+    cached_at: new Date().toISOString(),
+  });
+  // replace tees + holes so a re-cache is a clean refresh
+  await admin.from("api_course_tees").delete().eq("course_id", cid);
+  for (const te of flattenTees(c)) {
+    const { data: teeRow, error } = await admin
+      .from("api_course_tees")
+      .insert({
+        course_id: cid,
+        gender: te.gender,
+        tee_name: te.tee_name,
+        course_rating: te.course_rating,
+        slope_rating: te.slope_rating,
+        bogey_rating: te.bogey_rating,
+        par_total: te.par_total,
+        total_yards: te.total_yards,
+        number_of_holes: te.number_of_holes,
+      })
+      .select("id")
+      .single();
+    if (error || !teeRow) continue;
+    if (te.holes?.length) {
+      await admin
+        .from("api_course_holes")
+        .insert(te.holes.map((h: any) => ({ tee_id: teeRow.id, ...h })));
+    }
+  }
+  return cid;
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: cors });
   if (!KEY) return json({ error: "GOLFCOURSE_API_KEY not set" }, 500);
@@ -142,14 +191,17 @@ Deno.serve(async (req) => {
     if (action === "cache") {
       const id = String(body.id ?? "").trim();
       if (!id) return json({ error: "id required" }, 400);
-      // Pull from the dataset when we have it: a course cached in the last 90
-      // days with its hole rows intact is served as-is — no API spend, and a
-      // repeat tee pick keeps working through an upstream 429. Course data
-      // moves on a yearly cadence (re-rates); 90 days is comfortably fresh.
+      // Serve-always, refresh quietly (owner ruling): a course in our dataset
+      // NEVER goes stale from the user's view — the tee pick answers from
+      // cache instantly, whatever its age and whatever the API's health. Past
+      // the refresh window we ALSO kick a background re-fetch after the
+      // response is sent; if that fails (429, outage), nobody notices —
+      // freshness is a background concern, never a foreground one. Re-rates
+      // move on a multi-year cadence, so 180 days catches them comfortably.
+      const REFRESH_MS = 180 * 24 * 3600 * 1000;
       const { data: hit } = await admin
         .from("api_courses").select("id, cached_at").eq("id", id).maybeSingle();
-      if (hit?.cached_at &&
-          Date.now() - new Date(hit.cached_at).getTime() < 90 * 24 * 3600 * 1000) {
+      if (hit) {
         const { data: teeIds } = await admin
           .from("api_course_tees").select("id").eq("course_id", id);
         let holeCount = 0;
@@ -160,56 +212,24 @@ Deno.serve(async (req) => {
           holeCount = count ?? 0;
         }
         if (holeCount > 0) {
-          console.log(`[courses] cache hit for ${id} — no API call`);
+          const age = Date.now() - new Date(hit.cached_at ?? 0).getTime();
+          if (age > REFRESH_MS) {
+            console.log(`[courses] cache hit for ${id} — refreshing in background (age ${Math.round(age / 86400000)}d)`);
+            const refresh = fetchAndStore(admin, id)
+              .then(() => console.log(`[courses] background refresh ok for ${id}`))
+              .catch((e) => console.error(`[courses] background refresh failed for ${id} :: ${String((e as Error)?.message ?? e)}`));
+            // waitUntil keeps the isolate alive past the response; without it
+            // (older runtime) the promise is fire-and-forget — cache still serves
+            (globalThis as any).EdgeRuntime?.waitUntil?.(refresh);
+          } else {
+            console.log(`[courses] cache hit for ${id} — no API call`);
+          }
           return json({ ok: true, id, from_cache: true });
         }
       }
-      const data = await gca(`/v1/courses/${encodeURIComponent(id)}`);
-      const c = data?.course ?? data;
-      const cid = String(c.id ?? id);
-      // admin client created at the top (caller-gated + capped)
-
-      // api_* tables: the original `courses`/`course_tees`/`course_holes`
-      // names collided with a legacy uuid schema, so upserts silently failed
-      // (text ids into uuid columns). See 20260714050000_course_cache_reconcile.
-      await admin.from("api_courses").upsert({
-        id: cid,
-        club_name: c.club_name ?? null,
-        course_name: c.course_name ?? null,
-        city: c.location?.city ?? null,
-        state: c.location?.state ?? null,
-        country: c.location?.country ?? null,
-        latitude: c.location?.latitude ?? null,
-        longitude: c.location?.longitude ?? null,
-        raw: c,
-        cached_at: new Date().toISOString(),
-      });
-
-      // replace tees + holes so a re-cache is a clean refresh
-      await admin.from("api_course_tees").delete().eq("course_id", cid);
-      for (const te of flattenTees(c)) {
-        const { data: teeRow, error } = await admin
-          .from("api_course_tees")
-          .insert({
-            course_id: cid,
-            gender: te.gender,
-            tee_name: te.tee_name,
-            course_rating: te.course_rating,
-            slope_rating: te.slope_rating,
-            bogey_rating: te.bogey_rating,
-            par_total: te.par_total,
-            total_yards: te.total_yards,
-            number_of_holes: te.number_of_holes,
-          })
-          .select("id")
-          .single();
-        if (error || !teeRow) continue;
-        if (te.holes?.length) {
-          await admin
-            .from("api_course_holes")
-            .insert(te.holes.map((h: any) => ({ tee_id: teeRow.id, ...h })));
-        }
-      }
+      // not in the dataset (or hole rows missing): this is the pull that
+      // BUILDS the dataset — fetch, store, answer
+      const cid = await fetchAndStore(admin, id);
       return json({ ok: true, id: cid });
     }
 
