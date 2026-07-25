@@ -1266,6 +1266,13 @@ html[data-theme="light"] .momrow{background:rgba(21,116,63,.06);}
 .crtchip small{display:block; font-family:var(--mono); font-size:8.5px; letter-spacing:.1em; color:var(--dim);}
 .crtchip.dragging{opacity:.35;}
 .crtchip.picked{outline:2px solid var(--brand); outline-offset:1px;}
+/* the swap TARGET: exactly one chip lights while you drag (or after a tap-pick)
+   — you always see who you're trading with before you let go */
+.crtchip.swaptar{outline:2px solid var(--gold); outline-offset:1px; background:var(--bg1);}
+.crtchip.swaptar::after{content:'⇄'; position:absolute; right:7px; top:50%;
+  transform:translateY(-50%); font-size:14px; color:var(--gold); font-weight:700;}
+.crtchip.cantrade::after{content:'⇄'; position:absolute; right:7px; top:50%;
+  transform:translateY(-50%); font-size:12px; color:var(--dim);}
 .crtghost{position:fixed; z-index:1200; pointer-events:none;
   transform:translate(-50%,-56%) rotate(2deg) scale(1.04);
   box-shadow:0 10px 26px rgba(10,25,15,.30); opacity:.95;}
@@ -6457,7 +6464,10 @@ function renderCourt(slots){
     T[zi].forEach(k=>{
       const idx=sel[k], p=ROSTER[idx];
       const c=document.createElement('div');
-      c.className='crtchip'+(k===_crtPicked?' picked':'');
+      /* after a tap-pick, everyone you could trade with wears the ⇄ hint */
+      const tradeable = _crtPicked!==null && _crtPicked!==k
+        && (T[0].includes(_crtPicked)) !== (T[0].includes(k));
+      c.className='crtchip'+(k===_crtPicked?' picked':'')+(tradeable?' cantrade':'');
       c.dataset.pos=k;
       c.innerHTML=`<div><b>${p.guest?`<span class="gtag">${p.buddy?'B':'G'}</span>`:`<span style="width:8px;height:8px;border-radius:3px;background:${SQHEX[p.ci]};display:inline-block;"></span>`}${esc(p.n)}</b>
         <small>${p.est?'EST ':''}${fmtIdx(p.i)} IDX</small></div>
@@ -6478,7 +6488,26 @@ function courtDrag(chip){
     let ghost=null, moved=false;
     const startX=e.clientX, startY=e.clientY;
     try{ chip.setPointerCapture(e.pointerId); }catch(_){}
-    const zones=()=>document.querySelectorAll('#fourSlots .crtzone');
+    /* the trade target is a CHIP, never a zone — while you drag over the far
+       side, the nearest opposing player lights with a ⇄ and THAT is who you
+       swap with. No more "it randomly pulled one of them" (pilot). */
+    const myZone = courtTeams()[0].includes(+chip.dataset.pos) ? 0 : 1;
+    const targetsOf=()=>[...document.querySelectorAll(`#fourSlots .crtzone[data-zone="${1-myZone}"] .crtchip`)];
+    const markTarget=ev=>{
+      const zr=document.querySelector(`#fourSlots .crtzone[data-zone="${1-myZone}"]`).getBoundingClientRect();
+      const inside = ev.clientX>=zr.left&&ev.clientX<=zr.right&&ev.clientY>=zr.top&&ev.clientY<=zr.bottom;
+      let best=null, bestD=Infinity;
+      targetsOf().forEach(t=>{
+        t.classList.remove('swaptar');
+        if(!inside) return;
+        const r=t.getBoundingClientRect();
+        const d=Math.hypot(ev.clientX-(r.left+r.width/2), ev.clientY-(r.top+r.height/2));
+        if(d<bestD){ bestD=d; best=t; }
+      });
+      if(best) best.classList.add('swaptar');
+      const z=document.querySelector(`#fourSlots .crtzone[data-zone="${1-myZone}"]`);
+      z.classList.toggle('hot', inside);
+    };
     const move=ev=>{
       if(!moved && Math.hypot(ev.clientX-startX, ev.clientY-startY)<7) return;
       if(!moved){
@@ -6489,10 +6518,7 @@ function courtDrag(chip){
         chip.classList.add('dragging');
       }
       ghost.style.left=ev.clientX+'px'; ghost.style.top=ev.clientY+'px';
-      zones().forEach(z=>{
-        const r=z.getBoundingClientRect();
-        z.classList.toggle('hot', ev.clientX>=r.left&&ev.clientX<=r.right&&ev.clientY>=r.top&&ev.clientY<=r.bottom);
-      });
+      markTarget(ev);
     };
     const up=ev=>{
       chip.removeEventListener('pointermove', move);
@@ -6500,19 +6526,18 @@ function courtDrag(chip){
       chip.removeEventListener('pointercancel', up);
       if(ghost){ ghost.remove(); ghost=null; }
       chip.classList.remove('dragging');
-      const hot=document.querySelector('#fourSlots .crtzone.hot');
+      const tar=document.querySelector('#fourSlots .crtchip.swaptar');
+      document.querySelectorAll('#fourSlots .crtchip.swaptar').forEach(t=>t.classList.remove('swaptar'));
       document.querySelectorAll('#fourSlots .crtzone').forEach(z=>z.classList.remove('hot'));
       const pos=+chip.dataset.pos;
-      const T=courtTeams();
-      if(moved && hot){
-        const to=+hot.dataset.zone, from=T[0].includes(pos)?0:1;
-        if(from!==to) courtSwap(pos, T[to][T[to].length-1]);   /* auto-balance: swap with the far side's last */
+      if(moved && tar){
+        courtSwap(pos, +tar.dataset.pos);   /* trade exactly the lit player */
       } else if(!moved){
         /* tap-tap: pick, then tap someone across the line to trade places */
         if(_crtPicked===null){ _crtPicked=pos; renderRoster(); }
         else if(_crtPicked===pos){ _crtPicked=null; renderRoster(); }
         else {
-          const other=_crtPicked;
+          const other=_crtPicked, T=courtTeams();
           const sameZone = (T[0].includes(other))===(T[0].includes(pos));
           if(sameZone){ _crtPicked=pos; renderRoster(); }
           else courtSwap(other, pos);
