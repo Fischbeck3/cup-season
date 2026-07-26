@@ -567,26 +567,29 @@ img.face{border-radius:50%; object-fit:cover; vertical-align:-4px; border:1px so
 .hsfoot{background:var(--bg1); color:var(--ink); padding:8px 12px; border-top:1px solid var(--line2);}
 /* moments sit quiet — clearly not a round */
 .hfcard.quiet{background:var(--bg2); border-style:dashed; cursor:default;}
-/* Tour Card — C4 credential (owner pick, boards round 2, 2026-07-23): the
-   card is one pine OBJECT — face, index, trophies engraved on it — floating
-   in the sheet. Ceremony colors are theme-agnostic (champagne = earned). */
-.cred{position:relative; overflow:hidden; border-radius:16px; color:#ECEEF2; padding:16px;
-  background:linear-gradient(165deg, #114A2D 0%, var(--pine) 70%);
-  box-shadow:0 10px 30px rgba(14,59,36,.35), 0 2px 8px rgba(14,59,36,.28);}
+/* Tour Card — C4 credential, refaced charcoal (D76): one flat #17191C
+   OBJECT, ember heat top-right, ivory ink; trophies stay champagne (earned
+   metal — the two-metals rule). Fixed hexes: same face for every viewer,
+   light theme included. Structure/geometry untouched. */
+.cred{position:relative; isolation:isolate; overflow:hidden; border-radius:16px; color:#F0F2F3; padding:16px;
+  background:#17191C; border:1px solid rgba(255,255,255,.07);
+  box-shadow:0 10px 30px rgba(0,0,0,.4), 0 2px 8px rgba(0,0,0,.3);}
+.cred::before{content:""; position:absolute; inset:0; z-index:-1; pointer-events:none;
+  background:radial-gradient(closest-side at 82% 0%, rgba(255,90,46,.16), transparent 70%);}
 .cred .cwm{position:absolute; right:-30px; bottom:-34px; width:150px; height:150px; opacity:.1; pointer-events:none;}
-.cred .cwm svg{width:100%; height:100%; stroke:#ECEEF2; fill:none; stroke-width:1.2; stroke-linecap:round; stroke-linejoin:round;}
+.cred .cwm svg{width:100%; height:100%; stroke:#F0F2F3; fill:none; stroke-width:1.2; stroke-linecap:round; stroke-linejoin:round;}
 .cred .ctop{display:flex; align-items:center; gap:12px;}
 .cred b.cnm{display:block; font-size:17px; font-weight:700; letter-spacing:-.02em;}
-.cred small.chd{display:block; font-family:var(--mono); font-size:10px; letter-spacing:.1em; text-transform:uppercase; opacity:.72; margin-top:2px;}
+.cred small.chd{display:block; font-family:var(--mono); font-size:10px; letter-spacing:.1em; text-transform:uppercase; color:#8E979E; margin-top:2px;}
 .cred .csplit{display:flex; align-items:flex-end; justify-content:space-between; gap:12px; margin-top:16px;}
 .cred .cidx b{font-family:var(--serif); font-size:42px; line-height:.95; font-weight:400;}
 .cred .cidx small{display:block; font-family:var(--mono); font-size:9px; letter-spacing:.18em; opacity:.65; text-transform:uppercase; margin-top:3px;}
 .cred .ctros{text-align:right; font-family:var(--mono); font-size:10.5px; color:#D8B25A; line-height:1.9; min-width:0;}
-.cred .fc{background:rgba(236,238,242,.08); border-color:rgba(236,238,242,.3); color:#ECEEF2;}
-.cred .fc .fmk{background:var(--pine); border-color:rgba(236,238,242,.3); color:#D8B25A;}
-.cred a{color:#D8B25A;}
-.cred .mini{background:rgba(236,238,242,.1); color:#ECEEF2; border-color:rgba(236,238,242,.3);}
-.cred .cvs{margin-top:14px; display:inline-block; font-family:var(--mono); font-size:11px; font-weight:600; letter-spacing:.06em; color:#ECEEF2; background:rgba(236,238,242,.1); border:1px solid rgba(236,238,242,.28); border-radius:8px; padding:6px 10px; cursor:pointer;}
+.cred .fc{background:rgba(240,242,243,.08); border-color:rgba(240,242,243,.3); color:#F0F2F3;}
+.cred .fc .fmk{background:#101214; border-color:rgba(240,242,243,.3); color:#D8B25A;}
+.cred a{color:#FF5A2E;}
+.cred .mini{background:rgba(240,242,243,.1); color:#F0F2F3; border-color:rgba(240,242,243,.3);}
+.cred .cvs{margin-top:14px; display:inline-block; font-family:var(--mono); font-size:11px; font-weight:600; letter-spacing:.06em; color:#F0F2F3; background:rgba(240,242,243,.1); border:1px solid rgba(240,242,243,.28); border-radius:8px; padding:6px 10px; cursor:pointer;}
 /* pilot: "Save card is hard to find when a change is made" — the button ARMS
    the moment the card changes: fairway fill, one soft rise. Disarms on save. */
 .mini.armed{background:var(--brand); color:#fff; border-color:var(--brand); font-weight:700; animation:csRise .35s var(--roll) both;}
@@ -1473,7 +1476,7 @@ html[data-theme="light"] .momrow{background:rgba(21,116,63,.06);}
   .onboard .ob-hero p{font-size:16.5px;}
 }
 .onboard.hide{opacity:0; visibility:hidden;}
-/* iPhone PWA freeze fix: the splash has an infinite SVG ring (csRing). Once the
+/* iPhone PWA freeze fix: the splash has an infinite ember pulse (csRing). Once the
    door is dismissed, freeze ALL its animation immediately — belt to enterApp's
    display:none, and a net for any boot that errors before enterApp runs, so a
    perpetual compositing loop can never sit behind the app. */
@@ -1489,11 +1492,35 @@ html[data-theme="light"] .momrow{background:rgba(21,116,63,.06);}
   .ob-fgrid{display:grid; grid-template-columns:1fr minmax(0,480px) 1fr; align-items:center; justify-items:center; gap:clamp(18px, 3vw, 56px);}
   .onboard .ob-in{margin-top:0; margin-bottom:0;}
 }
-/* the crest: tracers dive from both wings into one centered hole */
-.ob-crest{width:min(64vw, 300px); margin:0 auto 4px; pointer-events:none;}
-.ob-crest svg{width:100%; height:auto; display:block;}
-@media(min-width:760px){ .ob-crest{width:min(76vw, 420px);} }
-@media(min-width:760px) and (max-height:820px){ .ob-crest{width:min(60vw, 340px);} }
+/* the crest is a DEPARTURE BOARD (D76/SF-6): static split-flap cells spell
+   CUP SEASON. Decoys ride ::before (data-d) — the DOM text IS the settled
+   word. Base state = settled (translateY(-75%)); sfFlip animates decoy →
+   letter, so the board reads whole with every animation disabled (the
+   forceReveal contract: nothing rests at opacity 0). */
+.ob-crest{width:100%; margin:0 auto 12px; pointer-events:none;}
+.obfb{--fw:clamp(26px, calc((100vw - 78px)/9), 44px);
+  display:flex; justify-content:center; align-items:center; gap:2px;}
+.obfc{position:relative; overflow:hidden; flex:none; width:var(--fw); height:calc(var(--fw)*1.3);
+  background:linear-gradient(180deg,#1B1E22,#101214); border:1px solid rgba(255,255,255,.08);
+  border-radius:5px; box-shadow:inset 0 1px 0 rgba(255,255,255,.05), 0 2px 6px rgba(0,0,0,.35);}
+.obfc::after{content:""; position:absolute; left:0; right:0; top:50%; height:1px;
+  background:rgba(0,0,0,.45);}  /* the flap hinge */
+.obfc > i{display:block; font-style:normal; white-space:pre; text-align:center;
+  font-family:var(--mono); font-weight:600; font-size:calc(var(--fw)*.6);
+  line-height:calc(var(--fw)*1.3); color:#F0F2F3;
+  transform:translateY(-75%);   /* settled = the real letter */
+  animation:sfFlip .55s steps(3,end) both; animation-delay:var(--d,0s);}
+.obfc > i::before{content:attr(data-d);}
+.obfg{flex:none; width:calc(var(--fw)*.32);}
+/* the ember rule draws in after the last flap — transform-only, rests full */
+.obfr{display:block; width:min(64%, 300px); height:2px; margin:14px auto 0; border-radius:1px;
+  background:linear-gradient(90deg, rgba(255,90,46,0), #FF5A2E 18%, #FF5A2E 82%, rgba(255,90,46,0));
+  animation:obRule .4s ease-out 1.8s both;}
+@keyframes obRule{from{transform:scaleX(0);} to{transform:scaleX(1);}}
+/* the splash's ONE allowed pulse (reused csRing) — rests as a visible ring */
+.obfp{display:block; width:96px; height:14px; margin:10px auto 0;
+  border:1.5px solid rgba(255,90,46,.35); border-radius:50%;
+  animation:csRing 2.8s ease-out 2.6s infinite;}
 .ob-ticks{display:flex; gap:5px; margin-bottom:14px;}
 .ob-ticks i{width:22px; height:4px; border-radius:2px;}
 .ob-splash{position:absolute; inset:0; z-index:5; pointer-events:none;}
@@ -1511,24 +1538,12 @@ html[data-theme="light"] .momrow{background:rgba(21,116,63,.06);}
 .ob-wing.ob-wr{animation-delay:1.65s;}
 .ob-more{animation:csUp .7s ease 1.7s both;}
 @keyframes csWipe{from{transform:translateY(0);} to{transform:translateY(-103%);}}
-@keyframes csDraw{from{stroke-dashoffset:620;} to{stroke-dashoffset:0;}}
 @keyframes csUp{from{opacity:0; transform:translateY(14px);} to{opacity:1; transform:none;}}
 @keyframes csPulse{0%,100%{opacity:1; transform:scale(1);} 50%{opacity:.55; transform:scale(1.35);}}
 @keyframes csRing{0%{transform:scale(.6); opacity:.8;} 100%{transform:scale(2.6); opacity:0;}}
 @keyframes csFade{from{opacity:0;} to{opacity:1;}}
-/* C1 - the last ten feet: the flag PLANTS (a stick pushed into turf, 2px
-   overshoot), the pennant answers with one waggle, the last ball drops at the
-   lip, the ground answers ONCE, and each squad wipe deposits its scoreline
-   tick as it clears. All of it lands inside the existing 0-2.05s door budget
-   by overlap - hero/door/caption delays are untouched. */
-@keyframes csPlant{0%{opacity:0; transform:translateY(12px);} 55%{opacity:1; transform:translateY(-2px);} 100%{opacity:1; transform:translateY(0);}}
-@keyframes csWag{0%,100%{transform:rotate(0);} 35%{transform:rotate(-6deg);} 70%{transform:rotate(2.5deg);}}
-@keyframes csBallIn{0%{opacity:0; transform:translateY(-9px) scale(1);} 30%{opacity:1;} 100%{opacity:0; transform:translateY(2px) scale(.55);}}
+/* C1 residue kept: each squad wipe deposits its scoreline tick as it clears */
 @keyframes csTick{from{opacity:0; transform:scaleX(0);} to{opacity:1; transform:scaleX(1);}}
-.obflag{transform-box:fill-box; transform-origin:50% 100%; animation:csPlant .55s var(--roll) 1.45s both;}
-.obpen{transform-box:fill-box; transform-origin:0% 50%; animation:csWag .5s ease 2.0s both;}
-.obball{transform-box:fill-box; transform-origin:center; opacity:0; animation:csBallIn .24s ease-in 1.73s both;}
-.obring1{transform-box:fill-box; transform-origin:center; opacity:0; animation:csRing .9s ease-out 1.8s both;}
 .ob-ticks i{transform-origin:left center; animation:csTick .16s var(--roll) both;}
 .ob-ticks i:nth-child(1){animation-delay:1.12s;}
 .ob-ticks i:nth-child(2){animation-delay:.88s;}
@@ -1537,7 +1552,6 @@ html[data-theme="light"] .momrow{background:rgba(21,116,63,.06);}
 @media(prefers-reduced-motion:reduce){
   .onboard *{animation:none !important; transition:none !important;}
   .ob-splash{display:none;}
-  .ob-crest path[stroke-dasharray]{stroke-dashoffset:0 !important;}
 }
 .ob-hero{margin-bottom:26px;}
 .ob-mark{
@@ -2259,36 +2273,24 @@ html[data-theme="light"] .room-dusk .btn:not(.dark):not(.gold):not(.apple){color
     <div class="ob-feed" id="obFeed"></div>
   </aside>
   <div class="ob-in">
-    <div class="ob-crest" aria-hidden="true">
-      <!-- the crest: four shot tracers dive from both wings into one centered
-           flagged hole; the ground answers with ember radar rings (D76) -->
-      <svg viewBox="0 0 460 300" fill="none">
-        <defs>
-          <radialGradient id="obGlow" cx="50%" cy="50%" r="50%">
-            <stop offset="0%" stop-color="#FF5A2E" stop-opacity=".26"/>
-            <stop offset="55%" stop-color="#FF5A2E" stop-opacity=".08"/>
-            <stop offset="100%" stop-color="#FF5A2E" stop-opacity="0"/>
-          </radialGradient>
-        </defs>
-        <g style="animation:csFade 1.2s ease 1.0s both">
-          <ellipse cx="230" cy="238" rx="150" ry="44" fill="url(#obGlow)"/>
-          <ellipse cx="230" cy="236" rx="118" ry="32" stroke="#FF5A2E" stroke-opacity=".10" stroke-width="1.5"/>
-          <ellipse cx="230" cy="233" rx="78" ry="22" stroke="#FF5A2E" stroke-opacity=".18" stroke-width="1.5"/>
-          <ellipse cx="230" cy="230" rx="44" ry="13" stroke="#FF5A2E" stroke-opacity=".30" stroke-width="1.5"/>
-        </g>
-        <path class="obtr" d="M-24 96 C 80 118, 160 176, 224 224" stroke="#57A8FF" stroke-width="2.6" opacity=".85" stroke-linecap="round" stroke-dasharray="560" style="stroke-dashoffset:560; animation:csDraw 1.05s ease .20s forwards"></path>
-        <path class="obtr" d="M96 -20 C 140 66, 190 160, 227 222" stroke="#A78BFA" stroke-width="2.6" opacity=".85" stroke-linecap="round" stroke-dasharray="560" style="stroke-dashoffset:560; animation:csDraw 1.05s ease .36s forwards"></path>
-        <path class="obtr" d="M364 -20 C 320 66, 270 160, 233 222" stroke="#FB8B4B" stroke-width="2.6" opacity=".85" stroke-linecap="round" stroke-dasharray="560" style="stroke-dashoffset:560; animation:csDraw 1.05s ease .52s forwards"></path>
-        <path class="obtr" d="M484 96 C 380 118, 300 176, 236 224" stroke="#2FD3BE" stroke-width="2.6" opacity=".85" stroke-linecap="round" stroke-dasharray="560" style="stroke-dashoffset:560; animation:csDraw 1.05s ease .68s forwards"></path>
-        <g class="obflag">
-          <ellipse cx="230" cy="226" rx="15" ry="5.5" fill="#0A0B0D" stroke="#332018" stroke-width="2"></ellipse>
-          <path d="M236 223V120" stroke="#F4F7F4" stroke-width="4" stroke-linecap="round"></path>
-          <path class="obpen" d="M236 120l38 13-38 13z" fill="#FF5A2E"></path>
-        </g>
-        <circle class="obball" cx="230" cy="224" r="4.5" fill="#F4F7F4"></circle>
-        <ellipse class="obring1" cx="230" cy="226" rx="15" ry="5.5" stroke="#FF5A2E" stroke-width="1.5"></ellipse>
-        <ellipse cx="230" cy="226" rx="15" ry="5.5" stroke="#FF5A2E" stroke-width="1.5" style="transform-box:fill-box; transform-origin:center; animation:csRing 2.8s ease-out 3.6s infinite"></ellipse>
-      </svg>
+    <div class="ob-crest">
+      <!-- the departure board (D76/SF-6): static split-flap spelling CUP
+           SEASON — no JS. Decoys ride data-d (::before, sfWrap's formula);
+           the settled DOM text reads the word. Cascade: 80ms steps, L→R. -->
+      <div class="obfb" role="img" aria-label="Cup Season">
+        <span class="obfc"><i style="--d:.55s" data-d="J&#10;Q&#10;X&#10;">C</i></span>
+        <span class="obfc"><i style="--d:.63s" data-d="E&#10;L&#10;S&#10;">U</i></span>
+        <span class="obfc"><i style="--d:.71s" data-d="C&#10;J&#10;Q&#10;">P</i></span>
+        <span class="obfg"> </span>
+        <span class="obfc"><i style="--d:.79s" data-d="L&#10;T&#10;Z&#10;">S</i></span>
+        <span class="obfc"><i style="--d:.87s" data-d="A&#10;H&#10;O&#10;">E</i></span>
+        <span class="obfc"><i style="--d:.95s" data-d="Z&#10;G&#10;N&#10;">A</i></span>
+        <span class="obfc"><i style="--d:1.03s" data-d="U&#10;B&#10;I&#10;">S</i></span>
+        <span class="obfc"><i style="--d:1.11s" data-d="T&#10;A&#10;H&#10;">O</i></span>
+        <span class="obfc"><i style="--d:1.19s" data-d="V&#10;C&#10;J&#10;">N</i></span>
+      </div>
+      <i class="obfr" aria-hidden="true"></i>
+      <i class="obfp" aria-hidden="true"></i>
     </div>
     <div class="ob-ticks" aria-hidden="true" style="justify-content:center"><i style="background:var(--sq3)"></i><i style="background:var(--sq2)"></i><i style="background:var(--sq1)"></i><i style="background:var(--sq0)"></i></div>
     <div class="ob-hero">
@@ -11282,9 +11284,9 @@ async function openTourCard(profileId){
   const hasFace = !!(window.avatarUrl && window.avatarUrl[profileId]);
   const reportLine = (hasFace && profileId !== CS.user?.id)
     ? `<div class="fine" style="padding:2px 0 0"><a href="#" id="tcReport" style="color:var(--dim)">Report photo</a></div>` : '';
-  /* C4 credential (owner pick, boards round 2): the Tour Card is one pine
-     OBJECT — face, index, and trophies engraved on it; the golfer's marker
-     as its watermark; vs-you rides the card as a chip. */
+  /* C4 credential (owner pick, boards round 2; charcoal reface D76): the
+     Tour Card is one charcoal OBJECT — face, index, and trophies engraved
+     on it; the golfer's marker as its watermark; vs-you rides as a chip. */
   let vsChip='';
   if(vs && (vs.wins+vs.losses+vs.ties)>0){
     const rec2 = `${vs.wins}–${vs.losses}${vs.ties?'–'+vs.ties:''}`;
