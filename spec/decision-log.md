@@ -2449,3 +2449,53 @@ machinery-already-exists. ⚑ marks the points still needing an owner call.*
 - **Benefit:** a points-only league reads as a first-class choice.
 - **Tradeoffs:** none of consequence — purely display; every scoring and
   standings surface is identical. CONFLICT check: none.
+
+### D76 · Charcoal — the identity goes dark, and heat becomes a semantic
+- **Current:** light-first UI (D35: "daylight is where golf happens"), gold-
+  forward brand accent (v23.106 pass), dark available one tap away in
+  Appearance. Momentum and pressure exist in the data (deltas, streaks, month
+  close, carries) but have no visual dimension — a ▲2 week and a ▼2 week dress
+  identically.
+- **Problem:** the App Store home-screen exploration (2026-07-26, artifact
+  studies) landed on an identity the current skin can't express: "Charcoal" —
+  near-black ground, slate greys for everything stable, heat (amber→ember→red)
+  as the ONLY color, reserved for momentum and pressure. Pilot owner approved
+  it platform-wide after four palette studies and a theme study.
+- **Recommendation:** three linked changes.
+  1. **Charcoal default.** Ground #0C0D0F (already the meta/favicon/legal
+     value — the three coexisting dark grounds converge here), cards #17191C,
+     elevated #1F2226, ink #F0F2F3, slate #8E979E. Light theme SURVIVES intact
+     one tap away; only the shipped default flips (cs_theme default 'light' →
+     'dark').
+  2. **Two metals.** Ember #FF5A2E / amber #E9A23B = LIVE heat: momentum
+     chips, streak tags, carry banners, the pressure meter, action surfaces
+     (post round, live CTAs). Gold #E9BE62 keeps its meaning = EARNED honor:
+     trophies, settlements, recap artifacts, ceremony faces. Heat cools into
+     gold when it's banked. The D30 artifact face stays gold on charcoal.
+  3. **Heat grammar (new visible mechanics).** Temperature is semantic, never
+     decorative: stable = slate; momentum ramps warm→hot; cooling reads slate,
+     never red-means-bad. Ships as: heat-coded weekly deltas on standings,
+     streak tags on round stories ("3 under his number"), a month-pressure
+     burn-down meter on the number-to-beat surface, carry-heat on live skins.
+     One pulse per screen, reserved for the hottest thing. All computed from
+     existing data (rounds, month_rank, close dates) — no schema change.
+  Ceremonies: .room-dusk becomes the EMBER-LIT room (same charcoal family,
+  warmer + deeper) so entering an honor surface still feels like crossing a
+  threshold when the utility theme is also dark. Serif stays the existing
+  Charter/Iowan/Palatino slot ("memory & honor") — no new font, no CSP change.
+- **Principle served:** everything shows its work (§16) extended to time —
+  the app now shows not just where you stand but where you're HEADED, and the
+  season's pressure curve (month close → Cup Final) becomes something you can
+  see. One identity, ownable in the category.
+- **Benefit:** the standings breathe between rounds; the shareable artifacts
+  (already circulating in PIGL) keep their earned-gold face while the app
+  around them sharpens; dark default = the evening-scroll and OLED case.
+- **Tradeoffs:** third accent era in a month (green → gold → ember+gold) —
+  accepted as the cost of finding the identity before launch scale; a mid-beta
+  visual flip for PIGL testers — mitigated by the icons/og already needing
+  regen (still green-era art). Light theme retained costs double-maintenance
+  on new surfaces — accepted, D35's daylight rationale still real on course.
+- **CONFLICT (named):** SUPERSEDES D35's light-FIRST default (light-AVAILABLE
+  survives — the tap remains, the direction flips). AMENDS the v23.106
+  gold-forward pass: gold narrows from "the brand accent" to "the earned
+  metal"; ember takes the live layer. Both deliberate, neither silent.
