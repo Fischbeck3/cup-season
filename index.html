@@ -1722,6 +1722,20 @@ body::before{
 }
 @media(prefers-reduced-motion:reduce){ .pressmeter .fill::after, .carryhot{animation:none;} }
 
+/* D76/SF-6 — split-flap: ONE-SHOT departure-board flip. 3 decoys then the real
+   glyph; steps(3) snaps card-to-card. Decoys live in data-d (::before), never
+   DOM text — readers/copy see only the settled value. Em-sized: inherits context. */
+.sfw{display:inline-flex; gap:2px; vertical-align:middle;}
+.sfc{overflow:hidden; height:1.25em; line-height:1.25em; min-width:.74em;
+  background:var(--bg2); border:1px solid var(--line); border-radius:4px;
+  padding:0 .08em; font-variant-numeric:tabular-nums; text-align:center;}
+.sfc > i{display:block; font-style:normal; white-space:pre;}
+.sfc > i::before{content:attr(data-d);}
+.sfc.go > i{animation:sfFlip .55s steps(3,end) forwards; animation-delay:var(--d,0s);}
+@keyframes sfFlip{from{transform:translateY(0)}to{transform:translateY(-75%)}}
+/* reduced motion: rest on the real glyph — settled = truth, instantly */
+@media(prefers-reduced-motion:reduce){ .sfc > i{animation:none; transform:translateY(-75%);} }
+
 /* machined surfaces: light falls from above (charcoal family, D76) */
 .card, .stat{
   background:linear-gradient(180deg, #191C20 0%, #141619 100%);
@@ -4009,6 +4023,29 @@ function flipRows(el, keyAttr, apply){
     requestAnimationFrame(()=>{ r.style.transition='transform .55s var(--roll)'; r.style.transform=''; });
   });
 }
+/* D76/SF-6 — split-flap markup: per char a .sfc cell whose column is 3 decoys
+   (data-d, ::before — never DOM text) + the real glyph. Digits draw digit
+   decoys, letters A–Z; anything else rides flat. Deterministic (char-code
+   offsets) — render paths stay Math.random-free. */
+function sfWrap(text){
+  return '<span class="sfw">'+String(text).split('').map((ch,i)=>{
+    let pool=null, base=0;
+    if(ch>='0'&&ch<='9'){ pool='0123456789'; base=ch.charCodeAt(0)-48; }
+    else{ const u=ch.toUpperCase(); if(u>='A'&&u<='Z'){ pool='ABCDEFGHIJKLMNOPQRSTUVWXYZ'; base=u.charCodeAt(0)-65; } }
+    if(!pool) return '<span>'+esc(ch)+'</span>';
+    const d=[1,2,3].map(k=>{ let x=(base+k*7+i*3)%pool.length; if(x===base) x=(x+1)%pool.length; return pool[x]; }).join('&#10;');
+    return '<span class="sfc"><i data-d="'+d+'&#10;">'+esc(ch)+'</i></span>';
+  }).join('')+'</span>';
+}
+/* arm the cells — .go lands SYNCHRONOUSLY (content never waits on rAF; the
+   dead-compositor rule), var(--d) staggers ~80ms per char. One-shot: only
+   un-armed cells arm, and callers clear their trigger flag after this. */
+function sfGo(box){
+  if(!box) return;
+  box.querySelectorAll('.sfc:not(.go)').forEach((c,i)=>{
+    c.style.setProperty('--d',(i*0.08).toFixed(2)+'s'); c.classList.add('go');
+  });
+}
 function renderStandings(){
   const el=$('#standings');
   const story=$('#standingsStory');
@@ -4019,6 +4056,9 @@ function renderStandings(){
     return;
   }
   const solo = teams[0]?.solo;   /* individual race — rows are players, not squads */
+  /* SF-6: rank flips only on a FRESH data load (flag set by loadStandingsAndFeed),
+     consumed here so a mere re-render stays static */
+  const sfFresh = !!window._sfStandingsFresh; window._sfStandingsFresh = false;
   const priorRank={};
   const hist=(!state.demo && window.seasonHistory) ? window.seasonHistory : [];
   if(hist.length){
@@ -4051,8 +4091,11 @@ function renderStandings(){
       mv = d===0 ? `<span class="rkmove fl" title="held this week">&ndash;</span>`
          : `<span class="rkmove ${d>=2?'up2':d>0?'up':'dn'}" title="${d>0?'up':'down'} ${Math.abs(d)} this week">${d>0?'▲':'▼'}${Math.abs(d)}</span>`;
     }
+    /* SF-6: the climb — a rank that moved since the last snapshot flips in */
+    const rk0=String(i+1).padStart(2,'0');
+    const rkH=(sfFresh && pr!=null && pr!==i) ? sfWrap(rk0) : rk0;
     html+=`<tr class="${i===0?'lead':''} tap" data-squad="${esc(t.name)}">
-      <td class="rk mono">${String(i+1).padStart(2,'0')}${mv}</td>
+      <td class="rk mono">${rkH}${mv}</td>
       <td><div style="display:flex;align-items:center;gap:10px"><span class="sw" style="background:${SQHEX[t.ci]}"></span><div><div class="tn">${esc(t.name)}</div><div class="tc">${solo ? (t.sub||0)+' ROUND'+(t.sub===1?'':'S') : 'CAPT. '+esc(t.cap).toUpperCase()}</div></div></div></td>
       <td>${arr.length>1?sparkline(arr,t.ci):'<span class="fine" style="padding:0;color:var(--dim)">WK 1</span>'}</td>
       <td class="num"><span class="dw" style="color:${dwk>=12?'var(--pos)':dwk<0?'var(--neg)':'var(--mut)'}">${dwk>0?'+':''}${dwk}</span></td>
@@ -4065,6 +4108,7 @@ function renderStandings(){
       html+=`<tr class="cutrow"><td colspan="5">Cut line · top 2 advance</td></tr>`;
   });
   flipRows(el, 'data-squad', ()=>{ el.innerHTML=html; });
+  sfGo(el);   /* SF-6: arm any freshly wrapped ranks — no-op on a static render */
   /* receipts from the table itself: squads open the squad math, solo rows
      open the player's rounds — no points figure without its rounds (§16) */
   el.querySelectorAll('[data-squad]').forEach(r=>
@@ -4634,19 +4678,25 @@ function renderFeed(){
       return;
     }
     const up=f.pvi>=0;
+    /* SF-6: the arrival (local echo/demo) — the tag is one-shot: read, deleted,
+       gross flips this render only; the card is static forever after */
+    const sfNew=f.sf; if(sfNew) delete f.sf;
+    let metaH=esc(f.meta);
+    if(sfNew){ const m=/^(\d+)([\s\S]*)$/.exec(f.meta||''); if(m) metaH=sfWrap(m[1])+esc(m[2]); }
     const card=document.createElement('div'); card.className='fcard';
     card.innerHTML=`
       <div class="round">
         <span class="bar" style="background:${SQHEX[f.ci]}"></span>
         <div class="body">
           <div class="l1 tap" data-fp="${esc(f.who)}">${esc(f.who)} <span>· ${esc(f.team)}</span></div>
-          <div class="l2">${esc(f.meta)}</div>
+          <div class="l2">${metaH}</div>
         </div>
         <span class="pvi ${up?'up':'dn'}">${up?'+':''}${f.pvi.toFixed(1)}</span>
         <div class="pts">${f.pts}<small>PTS</small></div>
       </div>
       ${socialBar(f,fi)}`;
     el.appendChild(card);
+    if(sfNew) sfGo(card);
   });
   el.querySelectorAll('[data-fp]').forEach(b=>b.addEventListener('click',()=>{
     if(HIST[b.dataset.fp]) showPlayer(b.dataset.fp);
@@ -4684,6 +4734,7 @@ function renderFeedFull(force){
   const dg=boardDigestHtml();
   if(dg) el.insertAdjacentHTML('beforeend', dg);
   let lastD=null;
+  let sfHit=false;   /* SF-6: did the just-posted round's card render this pass */
   feed.forEach((f,fi)=>{
     if(f.d!==lastD){ el.insertAdjacentHTML('beforeend',`<div class="datesep">${f.d}</div>`); lastD=f.d; }
     if(f.roundpost){
@@ -4708,13 +4759,16 @@ function renderFeedFull(force){
            ternaries fall to '', so both opening tags are byte-for-byte
            <div class="fcard"><div class="round"> as before this change. */
         const stk=roundStreak(r);   /* D76: streak heat off the board's own cache */
+        /* SF-6: the arrival — YOUR just-posted gross flips in, once */
+        const sfNew = window._sfRid && f.rid===window._sfRid;
+        if(sfNew) sfHit=true;
         el.insertAdjacentHTML('beforeend',`
         <div class="fcard${r.photo_url?' has-photo':''}"><div class="round${r.photo_url?' has-photo room-dusk tap':''}"${r.photo_url?` data-rcpt="${r.id}" aria-label="${esc(f.who||'—')} — open the round" style="background-image:url('${esc(r.photo_url)}')"`:''}>
           <span class="bar" style="background:${SQHEX[f.ci]}"></span>
           <div class="body">
             <div class="l1" style="display:flex; align-items:center; gap:8px">${window.face?window.face(r.profile_id, memberMarker(r.profile_id), 22):''}<span>${esc(f.who||'—')}</span></div>
             <div class="l2">${esc(r.course_label||'somewhere out there')} · ${r.holes_played||18} holes · ${r.played_on||''}</div>
-            <div class="rline">${r.gross} GROSS${r.pvi!=null?` · ${(r.profile_id && r.profile_id===window.CS?.user?.id ? bandName(Number(r.pvi)) : theirs(bandName(Number(r.pvi)))).toUpperCase()}`:''}</div>
+            <div class="rline">${sfNew?sfWrap(String(r.gross)):r.gross} GROSS${r.pvi!=null?` · ${(r.profile_id && r.profile_id===window.CS?.user?.id ? bandName(Number(r.pvi)) : theirs(bandName(Number(r.pvi)))).toUpperCase()}`:''}</div>
             <div class="rline">${counting}</div>
             ${stk>=2?`<div class="rline"><span class="streaktag ${stk>=3?'heathot':'heatwarm'}">${stk} STRAIGHT UNDER</span></div>`:''}
           </div>
@@ -4762,6 +4816,8 @@ function renderFeedFull(force){
      ~line 9558) — a tab left open past that hour opens a 403 on tap. Same
      staleness the card's own <img> background already carries; not new,
      not changed here. */
+  /* SF-6: arm the arrival flip and retire the flag — later renders are static */
+  if(sfHit){ sfGo(el); window._sfRid=null; }
   /* photos arc 2: the photo card opens the round's receipt (photo + facts),
      not a bare image tab — the photo stays attached to what it proves */
   el.querySelectorAll('[data-rcpt]').forEach(c=>c.addEventListener('click',()=>{
@@ -5657,6 +5713,10 @@ $('#postBtn').addEventListener('click', async ()=>{
         ({ data:rrow, error } = await sb.from('rounds').insert(payload).select('id').single());
       }
       if(error) throw error;
+      /* SF-6: the arrival — this round's gross flips in on its FIRST card
+         render (home story card or full board), then the flag dies there.
+         Stepper + gross-only both land here — one success path, one flag. */
+      window._sfRid = rrow?.id || null;
       /* decision #5: a hole-by-hole card writes its strokes to round_holes, so
          the round carries hole detail (feeds stats, moments, match receipts).
          Best-effort — a round_holes hiccup never un-posts the round. */
@@ -5756,7 +5816,9 @@ $('#postBtn').addEventListener('click', async ()=>{
     finally { btn.disabled=false; }
     return;
   }
-  feed.push({d:TODAY, sess:true, who:(state.demo?DEMO_ME:'You'),team:(state.demo?'Mudsharks':'\u2014'),ci:(state.demo?0:1),meta:`${label} · ${$('#inCourse').value.toUpperCase()}`,pvi:vs,pts,kud:0,mine:false,cm:[]});
+  /* SF-6: sf tags THIS push as the arrival — renderFeed flips its gross once,
+     then deletes the tag, so every re-render (and the diorama) stays static */
+  feed.push({d:TODAY, sess:true, sf:1, who:(state.demo?DEMO_ME:'You'),team:(state.demo?'Mudsharks':'\u2014'),ci:(state.demo?0:1),meta:`${label} · ${$('#inCourse').value.toUpperCase()}`,pvi:vs,pts,kud:0,mine:false,cm:[]});
   const snd=teams.find(t=>t.name==='Mudsharks');
   if(snd) snd.pts+=pts;   /* demo: my squad banks the points */
   teams.sort((a,b)=>b.pts-a.pts);
@@ -8486,6 +8548,10 @@ function feedRow(r, idx){
   const social = rx ? `<div class="hrx">${rxChipsHtml(rx,'data-hrx',idx)}<button class="rxadd" data-hadd="${idx}" title="More reactions" aria-label="More reactions" aria-expanded="false"><svg class="ic" aria-hidden="true"><use href="#i-plus"/></svg></button></div>
     <div class="rxpalette h" id="hrxp${idx}">${rxPaletteHtml('data-hpick',idx)}</div>` : '';
   const mkSvg = window.mkr ? (window.mkr(r.marker||'saguaro') || window.mkr('saguaro')) : '';
+  /* SF-6: the arrival — the round just posted renders its gross as split-flap
+     cells; renderHomeFeed arms them and retires the flag after insertion */
+  const sfNew = window._sfRid && r.round_id===window._sfRid && r.gross!=null;
+  const grossH = sfNew ? sfWrap(String(r.gross)) : (r.gross??'');
 
   if(r.photo_url){
     /* B1: the round as a story card — dusk wash, serif gross, marker medal */
@@ -8496,7 +8562,7 @@ function feedRow(r, idx){
         <div class="hsid"><b>${whoTag}</b><small>${course} · ${dfmtShort(r.played_on)}${milestone?' · '+milestone:''}</small></div>
       </div>
       <div class="hsbot">
-        <div class="hsg">${r.gross??''}${vp?`<small>${vp}</small>`:''}</div>
+        <div class="hsg">${grossH}${vp?`<small>${vp}</small>`:''}</div>
         <span class="hsmedal" aria-hidden="true">${mkSvg}</span>
       </div>
       ${social?`<div class="hsfoot">${social}</div>`:''}</div>`;
@@ -8506,7 +8572,7 @@ function feedRow(r, idx){
     <div class="hfhead">
       <span class="hffacew"${r.profile_id?` data-tc="${r.profile_id}"`:''}>${face(r.profile_id, r.marker, 44)}</span>
       <div class="hfid"><b>${whoTag}</b>${(milestone||vpCap)?`<small class="hfphrase">${milestone||vpCap}</small>`:''}</div>
-      ${r.gross!=null?`<div class="hfgross"><b>${r.gross}</b><small>gross</small></div>`:''}
+      ${r.gross!=null?`<div class="hfgross"><b>${grossH}</b><small>gross</small></div>`:''}
     </div>
     <div class="hfmeta">${course} · ${dfmtShort(r.played_on)}</div>
     ${social}</div>`;
@@ -8735,6 +8801,8 @@ function renderHomeFeed(){
     : '<p class="fine" style="padding:0">No rounds from your crew yet. Post one, or <a href="#" data-gopeople style="color:var(--brand)">add golf buddies</a>.</p>';
   wireHomeSocial(box);
   wireFeedReceipts(box);
+  /* SF-6: the just-posted card landed here first — arm it, retire the flag */
+  if(box.querySelector('.sfc:not(.go)')){ sfGo(box); window._sfRid=null; }
 }
 /* Up Next — what's coming, one glance: next declared round, invites waiting,
    the month-close clock. Hides entirely when there's nothing coming. */
@@ -12344,7 +12412,10 @@ async function loadStandingsAndFeed(){
     series = teams.map(()=> []);
   }
 
-  if(CS.season){ renderClimb(); renderStandings(); renderStats(); }
+  if(CS.season){
+    window._sfStandingsFresh = true;   /* SF-6: fresh data behind this render — moved ranks may flip once */
+    renderClimb(); renderStandings(); renderStats();
+  }
   renderPhase(); renderIndStats(); renderPot(); renderBylaws();
   renderFeed();
 }
