@@ -1,0 +1,126 @@
+
+# ============================================================================
+# CI — the automated half of the pre-push ritual.
+#
+# WHY: tests/preflight.mjs and tests/sunningdale.test.mjs already encode the
+# lessons this codebase paid for (missing RPC grants, silent window.* bridge
+# misses, the stale dist allowlist, the 8-digit OTP trap, the Sunningdale
+# engine contract). Until now they only ran when someone remembered. A push
+# that skips them ships the regression straight to cupseason.app, because
+# Netlify builds whatever lands on main.
+#
+# Scope: the CLIENT half only. This workflow never touches the database — no
+# secrets, no connection string, nothing that can mutate prod. The live half
+# stays tests/db-checks.sql, run by a human against Supabase after any
+# grant-touching `supabase db push` (CLAUDE.md, deploy discipline).
+#
+# The repo is public, so every job here runs on free minutes.
+# ============================================================================
+
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+# A second push to the same branch cancels the first — no point verifying a
+# commit that is already superseded.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  client:
+    name: Client invariants
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # Node 24 matches the dev machine. Both suites are plain .mjs with zero
+      # dependencies — there is no package.json and none is needed.
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+
+      # Static invariants: version placeholders, RPC grant coverage, the
+      # window.* bridge, the dist allowlist, OTP maxlength, script-block parse.
+      - name: preflight
+        run: node tests/preflight.mjs
+
+      # The Sunningdale engine contract (D74), extracted from index.html and
+      # evaluated with no DOM.
+      - name: sunningdale engine
+        run: node tests/sunningdale.test.mjs
+
+      # Run the REAL Netlify build command. stamp-version.sh fails hard on a
+      # surviving __CS_VERSION__ placeholder, on an empty shell, and on any
+      # allowlisted asset missing from the repo — so a broken deploy is caught
+      # here instead of on the deploy that serves a blank site.
+      - name: build (stamp-version.sh)
+        env:
+          COMMIT_REF: ${{ github.sha }}
+        run: bash ./stamp-version.sh
+
+      # dist/ is gitignored build output. If it ever appears in a commit, the
+      # working tree and the deploy disagree about what ships.
+      - name: dist stays untracked
+        run: |
+          if git ls-files --error-unmatch dist >/dev/null 2>&1; then
+            echo "::error::dist/ is tracked in git — it is build output, remove it from the index"
+            exit 1
+          fi
+          echo "ok — dist/ untracked"
+
+  migrations:
+    name: Migration hygiene
+    runs-on: ubuntu-latest
+    steps:
+      # Full history: this job diffs against the base commit.
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      # CLAUDE.md non-negotiable #2: migrations are timestamp-named and NEVER
+      # edited after they run in production. A fix is a NEW migration. Editing
+      # one that already shipped means prod and the repo describe different
+      # schemas, and nothing in the deploy would ever tell you.
+      #
+      # "Already on main" is the proxy for "already ran" — imperfect (a merged
+      # migration may not be pushed yet) but it catches the real failure mode:
+      # a parallel session amending history instead of adding a file.
+      - name: no edits to existing migrations
+        env:
+          BASE: ${{ github.event_name == 'pull_request' && github.event.pull_request.base.sha || github.event.before }}
+        run: |
+          set -euo pipefail
+          # First push to a branch, or a force-push, reports an all-zero base.
+          if [ -z "${BASE:-}" ] || [ "$BASE" = "0000000000000000000000000000000000000000" ]; then
+            echo "no usable base ref — skipping diff"
+            exit 0
+          fi
+          # M = modified, D = deleted, R = renamed. Added (A) is the whole point.
+          touched=$(git diff --name-only --diff-filter=MDR "$BASE" HEAD -- supabase/migrations || true)
+          if [ -n "$touched" ]; then
+            echo "::error::existing migration(s) modified or deleted — a fix is a NEW timestamped migration:"
+            echo "$touched"
+            exit 1
+          fi
+          echo "ok — no existing migration touched"
+
+      # Timestamp-named: YYYYMMDDHHMMSS_slug.sql. An out-of-convention name
+      # sorts wrong and `supabase db push` applies it in the wrong order.
+      - name: migration filenames follow YYYYMMDDHHMMSS_slug.sql
+        run: |
+          set -euo pipefail
+          bad=$(ls supabase/migrations | grep -vE '^[0-9]{14}_[a-z0-9_]+\.sql$' || true)
+          if [ -n "$bad" ]; then
+            echo "::error::migration filename(s) off-convention (want YYYYMMDDHHMMSS_slug.sql):"
+            echo "$bad"
+            exit 1
+          fi
+          echo "ok — $(ls supabase/migrations | wc -l) migrations named correctly"
