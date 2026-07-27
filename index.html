@@ -49,6 +49,10 @@
   --dawn:#7FA6C9;        /* links & live states — cooled to slate-blue */
   /* D76 heat axis — temperature is semantic, never decorative. Stable=slate,
      momentum ramps warm→hot→fire; cooling reads slate, never red-means-bad. */
+  --focus:#FF8A4C;       /* focus rings ONLY — was --pos (green), which is a
+                            SEMANTIC (performance up); a focused field is not
+                            a good score. Lifted off --hot so the ring reads
+                            against ember fills too. */
   --warm:#E9A23B;        /* building: streaks forming, deadlines near */
   --hot:#FF5A2E;         /* burning: carries riding, gaps closing */
   --fire:#FF3B1A;        /* peak: the pressure meter's tip */
@@ -83,6 +87,7 @@ html[data-theme="light"]{
   --sq0:#2C7CD3; --sq1:#DE6A22; --sq2:#7A58DE; --sq3:#0D9E8F;
   --glow:rgba(201,78,31,.12);
   --warm:#B97A1E; --hot:#C94E1F; --fire:#B03014; --cool:#6E7A84;  /* heat axis on paper */
+  --focus:#C0431A;   /* focus ring, ink-dark enough for paper (3:1 vs #EFF2EE) */
 }
 html[data-theme="light"] body::before{opacity:.3;}
 /* the design layer machines dark surfaces by hand — light counterparts */
@@ -139,7 +144,7 @@ button{font-family:var(--sans); touch-action:manipulation; color:var(--ink);}
 .navitem svg{width:19px; height:19px; stroke:currentColor; fill:none; stroke-width:1.8; stroke-linecap:round; stroke-linejoin:round;}
 .navitem.active{color:var(--ink); background:var(--bg2); border-left-color:var(--brand);}
 .navitem:hover{color:var(--ink);}
-.navitem:focus-visible{outline:2px solid var(--pos); outline-offset:-2px;}
+.navitem:focus-visible{outline:2px solid var(--focus); outline-offset:-2px;}
 .side .foot{margin-top:auto; padding:12px 10px 4px; border-top:1px solid var(--line);}
 .side .foot .lg{font-size:12.5px; font-weight:700;}
 .side .foot .sm{font-family:var(--mono); font-size:11.5px; color:var(--dim); letter-spacing:.08em; text-transform:uppercase; margin-top:2px;}
@@ -376,7 +381,7 @@ tr.cutrow td{
   transition:border-color .12s ease;
 }
 .pool-row:hover{border-color:var(--line2);}
-.pool-row:focus-visible{outline:2px solid var(--pos); outline-offset:2px;}
+.pool-row:focus-visible{outline:2px solid var(--focus); outline-offset:2px;}
 .pool-row .nm{flex:1; font-size:13.5px; font-weight:600;}
 .pool-row .hcp{font-family:var(--mono); font-size:12.5px; color:var(--mut);}
 .pool-row .go{
@@ -400,7 +405,7 @@ input.f, textarea.f, select.f{
   background:var(--bg2); border:1px solid var(--line2); border-radius:var(--rc);
   padding:11px 12px; min-height:44px;
 }
-input.f:focus-visible, textarea.f:focus-visible, select.f:focus-visible{outline:2px solid var(--pos); outline-offset:1px;}
+input.f:focus-visible, textarea.f:focus-visible, select.f:focus-visible{outline:2px solid var(--focus); outline-offset:1px;}
 /* iOS date inputs ship an intrinsic min-width that ignores width:100% and
    pokes past the container (the pilot's protruding date selector). Width
    clamps everywhere; the appearance flattening is iOS-only (desktop Chrome
@@ -475,7 +480,7 @@ input.f::-webkit-outer-spin-button, input.f::-webkit-inner-spin-button{-webkit-a
   padding:11px 13px; margin-bottom:7px; cursor:pointer;
   font-size:13px; font-weight:600; min-height:44px;
 }
-.payer:focus-visible{outline:2px solid var(--pos); outline-offset:2px;}
+.payer:focus-visible{outline:2px solid var(--focus); outline-offset:2px;}
 .payer .tick{
   width:22px; height:22px; border-radius:6px; flex:none;
   border:1.5px solid var(--line2);
@@ -505,7 +510,7 @@ input.f::-webkit-outer-spin-button, input.f::-webkit-inner-spin-button{-webkit-a
   cursor:pointer; border-radius:9px; color:var(--mut);
 }
 .setrow .ctl button:hover{color:var(--ink);}
-.setrow .ctl button:focus-visible{outline:2px solid var(--pos); outline-offset:-2px;}
+.setrow .ctl button:focus-visible{outline:2px solid var(--focus); outline-offset:-2px;}
 .seg{display:flex; gap:4px; background:var(--bg2); border:1px solid var(--line2); border-radius:11px; padding:4px; margin-bottom:8px;}
 .seg button{
   flex:1; border:none; background:none; cursor:pointer;
@@ -517,7 +522,7 @@ input.f::-webkit-outer-spin-button, input.f::-webkit-inner-spin-button{-webkit-a
 #albumGrid{display:grid; grid-template-columns:repeat(3,1fr); gap:6px;}
 #albumGrid .almonth{grid-column:1/-1; font-family:var(--mono); font-size:10.5px; letter-spacing:.14em; text-transform:uppercase; color:var(--dim); padding:10px 2px 2px;}
 #albumGrid .alcell{aspect-ratio:1; border:1px solid var(--line2); border-radius:10px; background-size:cover; background-position:center; cursor:pointer; padding:0;}
-#albumGrid .alcell:focus-visible{outline:2px solid var(--pos); outline-offset:2px;}
+#albumGrid .alcell:focus-visible{outline:2px solid var(--focus); outline-offset:2px;}
 .rcpt-hero{margin:0 0 12px;}
 .rcpt-hero img{width:100%; max-height:260px; object-fit:cover; border-radius:12px; border:1px solid var(--line2); display:block;}
 .digest .dgthumb{float:right; width:44px; height:44px; border-radius:10px; object-fit:cover; margin-left:10px; border:1px solid var(--line2);}
@@ -536,7 +541,7 @@ img.face{border-radius:50%; object-fit:cover; vertical-align:-4px; border:1px so
 /* identity-led home feed — A2 scorecard rail + B1 photo-story takeover (owner
    pick off the feed boards, 2026-07-23) */
 .hfcard{background:var(--bg1); border:1px solid var(--line2); border-radius:14px; padding:12px 14px; margin:0 0 10px; cursor:pointer;}
-.hfcard:focus-visible{outline:2px solid var(--pos); outline-offset:2px;}
+.hfcard:focus-visible{outline:2px solid var(--focus); outline-offset:2px;}
 .hfhead{display:flex; align-items:center; gap:11px;}
 .hfid{flex:1; min-width:0;}
 .hfid b{display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; font-size:15px; font-weight:650; letter-spacing:-.02em; line-height:1.3;}
@@ -612,13 +617,13 @@ img.face{border-radius:50%; object-fit:cover; vertical-align:-4px; border:1px so
 .hfcard .hrx{margin-top:8px;}
 .mkstamp{position:absolute; right:10px; bottom:10px; width:26px; height:26px; display:flex; align-items:center; justify-content:center; border-radius:50%; background:rgba(8,9,11,.55); color:#ECEEF2; backdrop-filter:blur(2px);}
 .rcpt-hero{position:relative;}
-.seg button:focus-visible{outline:2px solid var(--pos); outline-offset:-2px;}
+.seg button:focus-visible{outline:2px solid var(--focus); outline-offset:-2px;}
 .preset{
   width:100%; text-align:left; cursor:pointer;
   background:var(--bg1); border:1px solid var(--line); border-radius:12px;
   padding:13px 14px; margin-bottom:8px;
 }
-.preset:focus-visible{outline:2px solid var(--pos); outline-offset:2px;}
+.preset:focus-visible{outline:2px solid var(--focus); outline-offset:2px;}
 .preset h4{font-size:14px; font-weight:700; display:flex; align-items:center; gap:8px;}
 .preset .ok{
   margin-left:auto; width:20px; height:20px; border-radius:6px; flex:none;
@@ -663,7 +668,7 @@ img.face{border-radius:50%; object-fit:cover; vertical-align:-4px; border:1px so
   background:var(--bg2); font-size:16px; cursor:pointer; color:var(--mut); flex:none;
 }
 .holehdr button:hover{color:var(--ink);}
-.holehdr button:focus-visible{outline:2px solid var(--pos);}
+.holehdr button:focus-visible{outline:2px solid var(--focus);}
 .holedots{display:flex; gap:3px; margin-top:8px; flex-wrap:wrap;}
 .holedots i{width:11px; height:11px; border-radius:3px; background:var(--bg2); border:1px solid var(--line);}
 .holedots i.done{background:var(--dim); border-color:transparent;}
@@ -682,7 +687,7 @@ img.face{border-radius:50%; object-fit:cover; vertical-align:-4px; border:1px so
 .step{display:flex; align-items:center; gap:2px; background:var(--bg2); border:1px solid var(--line2); border-radius:10px; flex:none;}
 .step button{width:36px; height:36px; border:none; background:none; font-size:16px; font-weight:600; color:var(--mut); cursor:pointer; border-radius:9px;}
 .step button:hover{color:var(--ink);}
-.step button:focus-visible{outline:2px solid var(--pos); outline-offset:-2px;}
+.step button:focus-visible{outline:2px solid var(--focus); outline-offset:-2px;}
 .step .sv{font-family:var(--mono); font-size:15px; font-weight:600; min-width:26px; text-align:center; font-variant-numeric:tabular-nums;}
 /* Batch C: the old scorecard notation — under par draws a gold birdie circle */
 .step .sv.birdie{width:28px; height:28px; line-height:28px; min-width:28px; border-radius:50%;
@@ -702,7 +707,7 @@ img.face{border-radius:50%; object-fit:cover; vertical-align:-4px; border:1px so
   font-weight:600; color:var(--mut); cursor:pointer;
 }
 .wolfbtns button.on{color:var(--bg0); background:var(--brand); border-color:var(--brand);}
-.wolfbtns button:focus-visible{outline:2px solid var(--pos); outline-offset:2px;}
+.wolfbtns button:focus-visible{outline:2px solid var(--focus); outline-offset:2px;}
 .wolftally{display:grid; grid-template-columns:repeat(4,1fr); gap:6px; margin-top:12px;}
 .wolftally .wt{background:var(--bg2); border:1px solid var(--line); border-radius:9px; padding:8px 4px; text-align:center;}
 .wolftally .wt b{display:block; font-family:var(--mono); font-size:14px; font-variant-numeric:tabular-nums;}
@@ -723,7 +728,7 @@ img.face{border-radius:50%; object-fit:cover; vertical-align:-4px; border:1px so
 .gchip small{font-family:var(--mono); font-size:10.5px; color:var(--dim); letter-spacing:.06em;}
 .gchip.add{border-style:dashed; color:var(--mut); background:none; cursor:pointer;}
 .gchip.add:hover{color:var(--ink);}
-.gchip.add:focus-visible{outline:2px solid var(--pos); outline-offset:2px;}
+.gchip.add:focus-visible{outline:2px solid var(--focus); outline-offset:2px;}
 .gtag{
   font-family:var(--mono); font-size:9.5px; font-weight:600; letter-spacing:.1em;
   color:var(--bg0); background:var(--mut); border-radius:4px; padding:2.5px 5px; flex:none;
@@ -744,7 +749,7 @@ img.face{border-radius:50%; object-fit:cover; vertical-align:-4px; border:1px so
 }
 .optcard::before{content:""; position:absolute; left:0; top:0; bottom:0; width:3.5px; background:var(--acc,var(--brand));}
 .optcard:hover{border-color:var(--line2); filter:brightness(1.08);}
-.optcard:focus-visible{outline:2px solid var(--pos); outline-offset:2px;}
+.optcard:focus-visible{outline:2px solid var(--focus); outline-offset:2px;}
 .optcard h4{font-size:15px; font-weight:700;}
 .optcard p{font-family:var(--mono); font-size:12px; color:var(--mut); margin-top:5px; line-height:1.7; letter-spacing:.02em;}
 .optcard .go{position:absolute; right:16px; top:50%; transform:translateY(-50%); color:var(--dim); font-size:16px;}
@@ -760,7 +765,7 @@ img.face{border-radius:50%; object-fit:cover; vertical-align:-4px; border:1px so
 .coursedd button{display:block; width:100%; text-align:left; background:none; border:none; border-bottom:1px solid var(--line); padding:9px 12px; cursor:pointer; color:var(--ink);}
 .coursedd button:last-child{border-bottom:none;}
 .coursedd button:hover{background:var(--bg1);}
-.coursedd button.kbd{background:var(--bg1); outline:2px solid var(--pos); outline-offset:-2px;}
+.coursedd button.kbd{background:var(--bg1); outline:2px solid var(--focus); outline-offset:-2px;}
 .coursedd button b{display:block; font-size:13px; font-weight:600; line-height:1.3;}
 .coursedd button span{font-family:var(--mono); font-size:11.5px; color:var(--mut); letter-spacing:.03em;}
 .coursedd .coursedd-msg{padding:9px 12px; font-family:var(--mono); font-size:11.5px; color:var(--dim); letter-spacing:.03em;}
@@ -798,7 +803,7 @@ img.face{border-radius:50%; object-fit:cover; vertical-align:-4px; border:1px so
   border-radius:var(--rc); padding:9px 14px; cursor:pointer; flex:none;
 }
 .mini:hover{border-color:var(--dim);}
-.mini:focus-visible{outline:2px solid var(--pos); outline-offset:2px;}
+.mini:focus-visible{outline:2px solid var(--focus); outline-offset:2px;}
 /* F6: the one icon-chrome class — sized/aligned for inline use next to text */
 .ic{width:14px; height:14px; vertical-align:-2px; pointer-events:none;}
 .ic.flip{transform:rotate(180deg);}
@@ -870,7 +875,7 @@ img.face{border-radius:50%; object-fit:cover; vertical-align:-4px; border:1px so
 .startdoor small{font-family:var(--mono); font-size:9.5px; letter-spacing:.1em; text-transform:uppercase; color:var(--dim);}
 .startjoin{display:flex; align-items:center; justify-content:center; gap:8px; width:100%; margin-top:10px; padding:11px; background:var(--bg2); border:1px solid var(--line2); border-radius:12px; font-weight:600; font-size:13px; cursor:pointer; color:var(--ink);}
 @media(hover:hover){ .startdoor:hover, .startjoin:hover{border-color:var(--brand);} }
-.startdoor:focus-visible, .startjoin:focus-visible{outline:2px solid var(--pos); outline-offset:2px;}
+.startdoor:focus-visible, .startjoin:focus-visible{outline:2px solid var(--focus); outline-offset:2px;}
 /* D41: run-it-back — the settled season, gold-washed, above the cold-start doors */
 .runback{border:1px solid color-mix(in srgb, var(--gold) 42%, var(--line2)); border-radius:14px; padding:14px; margin-bottom:12px;
   background:linear-gradient(180deg, color-mix(in srgb, var(--gold) 10%, transparent), transparent 72%);}
@@ -1110,7 +1115,7 @@ img.face{border-radius:50%; object-fit:cover; vertical-align:-4px; border:1px so
 }
 .rxadd[data-rxadd], .rxadd[data-hadd]{min-width:44px; min-height:44px; padding:0 14px;}
 .rxadd:hover, .rxcm:hover{color:var(--ink);}
-.rxadd:focus-visible, .rxcm:focus-visible{outline:2px solid var(--pos); outline-offset:2px;}
+.rxadd:focus-visible, .rxcm:focus-visible{outline:2px solid var(--focus); outline-offset:2px;}
 .rxpalette{
   display:none; gap:5px; flex-wrap:wrap; margin-top:8px; padding:8px;
   background:var(--bg2); border:1px solid var(--line); border-radius:12px;
@@ -1121,7 +1126,7 @@ img.face{border-radius:50%; object-fit:cover; vertical-align:-4px; border:1px so
   border:1px solid transparent; border-radius:10px; padding:5px 7px; cursor:pointer;
 }
 .rxpalette button:hover{border-color:var(--line2); background:var(--bg1);}
-.rxpalette button:focus-visible{outline:2px solid var(--pos); outline-offset:2px;}
+.rxpalette button:focus-visible{outline:2px solid var(--focus); outline-offset:2px;}
 /* Home's circle rows are denser than board cards — the strip shrinks to fit
    under the round line and never opens a thread (comments stay a board thing).
    The quick-tap heater and the + still hold the 44px floor (bullet 5) here
@@ -1212,7 +1217,7 @@ html[data-theme="light"] .momrow{background:rgba(21,116,63,.06);}
 }
 .selchip.on{color:var(--bg0); background:var(--brand); border-color:var(--brand);}
 .selchip.on .gtag{background:var(--bg0); color:var(--brand);}
-.selchip:focus-visible{outline:2px solid var(--pos); outline-offset:2px;}
+.selchip:focus-visible{outline:2px solid var(--focus); outline-offset:2px;}
 .selchip[disabled]{opacity:.45; cursor:default;}
 .livebanner{
   display:none; width:100%; text-align:left; cursor:pointer;
@@ -1244,7 +1249,7 @@ html[data-theme="light"] .momrow{background:rgba(21,116,63,.06);}
   cursor:pointer; vertical-align:middle; padding:0; text-transform:lowercase;
 }
 .ibtn:hover{color:var(--ink); border-color:var(--dim);}
-.ibtn:focus-visible{outline:2px solid var(--pos); outline-offset:2px;}
+.ibtn:focus-visible{outline:2px solid var(--focus); outline-offset:2px;}
 .ibtn[aria-expanded="true"]{color:var(--pos); border-color:var(--pos);}
 .ihelp{
   display:none; font-size:12px; color:var(--mut); line-height:1.65;
@@ -1309,7 +1314,7 @@ html[data-theme="light"] .momrow{background:rgba(21,116,63,.06);}
   color:var(--dim); font-size:14px; cursor:pointer; padding:2px 4px;
 }
 .pslot .sx:hover{color:var(--neg);}
-.pslot .sx:focus-visible{outline:2px solid var(--pos); border-radius:6px;}
+.pslot .sx:focus-visible{outline:2px solid var(--focus); border-radius:6px;}
 
 /* ============ v23: drill-down sheet, draft, quick-enter card ============ */
 .sheet{
@@ -1445,7 +1450,7 @@ html[data-theme="light"] .momrow{background:rgba(21,116,63,.06);}
 }
 .tab svg{width:21px; height:21px; stroke:currentColor; fill:none; stroke-width:1.8; stroke-linecap:round; stroke-linejoin:round;}
 .tab.active{color:var(--brand);}
-.tab:focus-visible{outline:2px solid var(--pos); outline-offset:-2px;}
+.tab:focus-visible{outline:2px solid var(--focus); outline-offset:-2px;}
 
 /* ============ toast ============ */
 .toast{
@@ -1544,8 +1549,6 @@ html[data-theme="light"] .momrow{background:rgba(21,116,63,.06);}
   border-radius:50%; background:#FF3B1A; box-shadow:0 0 12px 2px rgba(255,59,26,.8);
   opacity:0; animation:obFuse 1.1s ease-out 3.15s both;}
 @keyframes obFuse{0%{left:0; opacity:0;} 6%{opacity:1;} 88%{opacity:1;} 100%{left:100%; opacity:0;}}
-.ob-ticks{display:flex; gap:5px; margin-bottom:14px;}
-.ob-ticks i{width:22px; height:4px; border-radius:2px;}
 /* ignition (D76): the ember floor-glow — a low radiance warming in from the
    bottom edge. Base state is VISIBLE (the animation only fades it up, `both`
    rests it ON), it sits under all content and never takes input. Nothing
@@ -1563,14 +1566,6 @@ html[data-theme="light"] .momrow{background:rgba(21,116,63,.06);}
 @keyframes csUp{from{opacity:0; transform:translateY(14px);} to{opacity:1; transform:none;}}
 @keyframes csRing{0%{transform:scale(.6); opacity:.8;} 100%{transform:scale(2.6); opacity:0;}}
 @keyframes csFade{from{opacity:0;} to{opacity:1;}}
-/* the league-identity dashes spark in L→R AFTER the fuse (Entry V4) — squad
-   colors' only surviving splash appearance */
-@keyframes csTick{from{opacity:0; transform:scaleX(0);} to{opacity:1; transform:scaleX(1);}}
-.ob-ticks i{transform-origin:left center; animation:csTick .16s var(--roll) both;}
-.ob-ticks i:nth-child(1){animation-delay:4.3s;}
-.ob-ticks i:nth-child(2){animation-delay:4.38s;}
-.ob-ticks i:nth-child(3){animation-delay:4.46s;}
-.ob-ticks i:nth-child(4){animation-delay:4.54s;}
 @media(prefers-reduced-motion:reduce){
   .onboard *{animation:none !important; transition:none !important;}
 }
@@ -1590,13 +1585,13 @@ html[data-theme="light"] .momrow{background:rgba(21,116,63,.06);}
 #obCodeIn{letter-spacing:.3em;}
 .joinbox input.email{
   text-align:left; text-transform:none; letter-spacing:0;
-  font-family:var(--sans); font-weight:500; caret-color:var(--pos);
+  font-family:var(--sans); font-weight:500; caret-color:var(--focus);
 }
 .joinbox input::placeholder{
   color:var(--dim); opacity:.55; font-weight:400;
   letter-spacing:.02em; text-transform:none;
 }
-.joinbox input:focus-visible{outline:2px solid var(--pos);}
+.joinbox input:focus-visible{outline:2px solid var(--focus);}
 .joinbox .btn{width:auto; padding:0 22px; margin:0;}
 
 /* ---- the wings: live showcases beside the centered door (>=1100px only).
@@ -1658,7 +1653,7 @@ html[data-theme="light"] .momrow{background:rgba(21,116,63,.06);}
   font-size:12.5px; color:var(--dim); text-decoration:underline; text-underline-offset:3px;
 }
 .cs-tskip:hover{color:var(--mut);}
-.cs-tskip:focus-visible{outline:2px solid var(--pos); outline-offset:2px;}
+.cs-tskip:focus-visible{outline:2px solid var(--focus); outline-offset:2px;}
 
 
 
@@ -2027,7 +2022,7 @@ html[data-theme="light"] .btn:not(.dark):not(.gold):not(.apple){color:#FFFFFF;}
   --line:#252C24; --line2:#30372E;
   --ink:#ECEEF2; --mut:#98A29A; --dim:#5E665E;
   --pos:#43E07C; --neg:#FF5F56; --gold:#D8B25A;
-  --pine:#0E3B24; --brand:#2FA46A; --dawn:#63ADFF;
+  --pine:#0E3B24; --brand:#2FA46A; --dawn:#63ADFF; --focus:#FF8A4C;
   --sq0:#57A8FF; --sq1:#FB8B4B; --sq2:#A78BFA; --sq3:#2FD3BE;
   --glow:rgba(47,164,106,.20);
   color:var(--ink);
@@ -2342,11 +2337,9 @@ html[data-theme="light"] .room-dusk .btn:not(.dark):not(.gold):not(.apple){color
     <!-- the seared wordmark IS the wordmark (Entry V4) — groups (C,U)(P,S)(E,A)(S,O,N) land with the tracers -->
     <div class="obsw" role="img" aria-label="Cup Season"><b style="--d:1.35s">C</b><b style="--d:1.45s">U</b><b style="--d:1.9s">P</b><i class="obsg"></i><b style="--d:2s">S</b><b style="--d:2.45s">E</b><b style="--d:2.55s">A</b><b style="--d:3s">S</b><b style="--d:3.1s">O</b><b style="--d:3.2s">N</b></div>
     <span class="obfw" aria-hidden="true"><i class="obfr"></i><i class="obfz"></i></span>
-    <div class="ob-ticks" aria-hidden="true" style="justify-content:center"><i style="background:var(--sq3)"></i><i style="background:var(--sq2)"></i><i style="background:var(--sq1)"></i><i style="background:var(--sq0)"></i></div>
     <div class="ob-hero">
       <!-- Entry V4: the mark row is gone — the seared wordmark above is the wordmark -->
       <h1>Rally your crew.<br>Post real rounds.<br><em>Take the cup.</em></h1>
-      <p>Fantasy golf where every stat is a round somebody actually played.</p>
     </div>
     <div id="obDoor">
     <button class="btn" id="obEmail">Continue with email</button>
@@ -3451,7 +3444,7 @@ let toastT;
     /* C1/D76/V4 additions ride the same net: ticks, flag, glow, seared
        letters, and the fuse rule end visible; the transient ball/ring/comets/
        sparks/fuse-dot end gone - never the other way */
-    document.querySelectorAll('.ob-ticks i, .obflag, .ob-ember, .obsw b, .obfr').forEach(el=>{ el.style.animation='none'; el.style.opacity='1'; });
+    document.querySelectorAll('.obflag, .ob-ember, .obsw b, .obfr').forEach(el=>{ el.style.animation='none'; el.style.opacity='1'; });
     document.querySelectorAll('.obtr').forEach(el=>{ el.style.animation='none'; });   /* rest = drawn (inline dashoffset 0, attr opacity) */
     document.querySelectorAll('.obball, .obring1, .ob-comet, .obspark, .obfz').forEach(el=>{ el.style.animation='none'; el.style.opacity='0'; });
   }
