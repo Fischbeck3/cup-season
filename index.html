@@ -590,6 +590,14 @@ img.face{border-radius:50%; object-fit:cover; vertical-align:-4px; border:1px so
 .cred a{color:#FF5A2E;}
 .cred .mini{background:rgba(240,242,243,.1); color:#F0F2F3; border-color:rgba(240,242,243,.3);}
 .cred .cvs{margin-top:14px; display:inline-block; font-family:var(--mono); font-size:11px; font-weight:600; letter-spacing:.06em; color:#F0F2F3; background:rgba(240,242,243,.1); border:1px solid rgba(240,242,243,.28); border-radius:8px; padding:6px 10px; cursor:pointer;}
+/* D76 — FORM L5: the last five rounds as coals, oldest→newest; ember = beat
+   your number. Hardcoded like the rest of .cred — the card is charcoal in
+   every theme (same reason .cred a is literal #FF5A2E). */
+.cred .cform{display:flex; align-items:center; gap:6px; margin-top:14px;}
+.cred .cform .cfl{font-family:var(--mono); font-size:9px; letter-spacing:.18em; color:#8E979E; margin-right:2px;}
+.cred .cform i{flex:none; width:9px; height:9px; border-radius:50%; background:rgba(255,255,255,.14);}
+.cred .cform i.on{background:#FF5A2E; box-shadow:0 0 7px rgba(255,90,46,.55);}
+.cred .cform .streaktag{margin-left:4px;}
 /* pilot: "Save card is hard to find when a change is made" — the button ARMS
    the moment the card changes: fairway fill, one soft rise. Disarms on save. */
 .mini.armed{background:var(--brand); color:#fff; border-color:var(--brand); font-weight:700; animation:csRise .35s var(--roll) both;}
@@ -1515,43 +1523,40 @@ html[data-theme="light"] .momrow{background:rgba(21,116,63,.06);}
 /* the ember rule draws in after the last flap — transform-only, rests full */
 .obfr{display:block; width:min(64%, 300px); height:2px; margin:14px auto 0; border-radius:1px;
   background:linear-gradient(90deg, rgba(255,90,46,0), #FF5A2E 18%, #FF5A2E 82%, rgba(255,90,46,0));
-  animation:obRule .4s ease-out 1.8s both;}
+  animation:obRule .4s ease-out 1.5s both;}
 @keyframes obRule{from{transform:scaleX(0);} to{transform:scaleX(1);}}
 /* the splash's ONE allowed pulse (reused csRing) — rests as a visible ring */
 .obfp{display:block; width:96px; height:14px; margin:10px auto 0;
   border:1.5px solid rgba(255,90,46,.35); border-radius:50%;
-  animation:csRing 2.8s ease-out 2.6s infinite;}
+  animation:csRing 2.8s ease-out 2.05s infinite;}
 .ob-ticks{display:flex; gap:5px; margin-bottom:14px;}
 .ob-ticks i{width:22px; height:4px; border-radius:2px;}
-.ob-splash{position:absolute; inset:0; z-index:5; pointer-events:none;}
-/* the color flash, v2: four squad columns lift center-out, doors opening.
-   Same csWipe physics; the last column clears by 1.2s (was 1.35s). */
-.ob-splash i{position:absolute; top:0; bottom:0; width:25.5%;}
-.ob-splash i:nth-child(1){left:0;     background:var(--sq3); animation:csWipe .5s cubic-bezier(.7,0,.3,1) .62s both;}
-.ob-splash i:nth-child(2){left:25%;   background:var(--sq2); animation:csWipe .5s cubic-bezier(.7,0,.3,1) .38s both;}
-.ob-splash i:nth-child(3){left:50%;   background:var(--sq1); animation:csWipe .5s cubic-bezier(.7,0,.3,1) .46s both;}
-.ob-splash i:nth-child(4){left:74.6%; background:var(--sq0); animation:csWipe .5s cubic-bezier(.7,0,.3,1) .70s both;}
+/* ignition (D76): the ember floor-glow — a low radiance warming in from the
+   bottom edge. Base state is VISIBLE (the animation only fades it up, `both`
+   rests it ON), it sits under all content and never takes input. Nothing
+   covers the charcoal ground, ever — the squad-color wipes are gone. */
+.ob-ember{position:fixed; left:0; right:0; bottom:0; height:42vh; z-index:0; pointer-events:none;
+  background:radial-gradient(120% 100% at 50% 100%, rgba(255,90,46,.16), rgba(255,90,46,.05) 45%, transparent 72%);
+  animation:obEmber 1.2s ease-out both;}
+@keyframes obEmber{from{opacity:0;} to{opacity:1;}}
 .onboard .ob-hero{animation:csUp .7s ease 1.1s both;}
 #obDoor{animation:csUp .7s ease 1.35s both;}
 #obCaption{animation:csUp .7s ease 1.5s both;}
 .ob-wing{animation:csUp .7s ease 1.5s both;}
 .ob-wing.ob-wr{animation-delay:1.65s;}
 .ob-more{animation:csUp .7s ease 1.7s both;}
-@keyframes csWipe{from{transform:translateY(0);} to{transform:translateY(-103%);}}
 @keyframes csUp{from{opacity:0; transform:translateY(14px);} to{opacity:1; transform:none;}}
-@keyframes csPulse{0%,100%{opacity:1; transform:scale(1);} 50%{opacity:.55; transform:scale(1.35);}}
 @keyframes csRing{0%{transform:scale(.6); opacity:.8;} 100%{transform:scale(2.6); opacity:0;}}
 @keyframes csFade{from{opacity:0;} to{opacity:1;}}
-/* C1 residue kept: each squad wipe deposits its scoreline tick as it clears */
+/* the league-identity dashes spark in L→R under the board (ignition, D76) */
 @keyframes csTick{from{opacity:0; transform:scaleX(0);} to{opacity:1; transform:scaleX(1);}}
 .ob-ticks i{transform-origin:left center; animation:csTick .16s var(--roll) both;}
-.ob-ticks i:nth-child(1){animation-delay:1.12s;}
-.ob-ticks i:nth-child(2){animation-delay:.88s;}
-.ob-ticks i:nth-child(3){animation-delay:.96s;}
-.ob-ticks i:nth-child(4){animation-delay:1.2s;}
+.ob-ticks i:nth-child(1){animation-delay:.95s;}
+.ob-ticks i:nth-child(2){animation-delay:1.03s;}
+.ob-ticks i:nth-child(3){animation-delay:1.11s;}
+.ob-ticks i:nth-child(4){animation-delay:1.19s;}
 @media(prefers-reduced-motion:reduce){
   .onboard *{animation:none !important; transition:none !important;}
-  .ob-splash{display:none;}
 }
 .ob-hero{margin-bottom:26px;}
 .ob-mark{
@@ -1749,6 +1754,19 @@ body::before{
 @keyframes sfFlip{from{transform:translateY(0)}to{transform:translateY(-75%)}}
 /* reduced motion: rest on the real glyph — settled = truth, instantly */
 @media(prefers-reduced-motion:reduce){ .sfc > i{animation:none; transform:translateY(-75%);} }
+/* D76 — the /?share= round card: the gross flips in at hero scale. Entry-board
+   pattern, not .sfc's: base state SETTLED (translateY(-75%)) + `both` fill, so
+   with animations disabled the real digits rest on screen. Sized in em — the
+   share template sets the font. */
+.svfw{display:inline-flex; gap:5px; justify-content:center; vertical-align:baseline;}
+.svfc{position:relative; overflow:hidden; flex:none; width:.72em; height:1.18em;
+  background:linear-gradient(180deg,#1B1E22,#101214); border:1px solid rgba(255,255,255,.08);
+  border-radius:8px; box-shadow:inset 0 1px 0 rgba(255,255,255,.05), 0 2px 6px rgba(0,0,0,.35);}
+.svfc::after{content:""; position:absolute; left:0; right:0; top:50%; height:1px; background:rgba(0,0,0,.45);}
+.svfc > i{display:block; font-style:normal; white-space:pre; text-align:center; line-height:1.18;
+  transform:translateY(-75%); animation:sfFlip .55s steps(3,end) both; animation-delay:var(--d,0s);}
+.svfc > i::before{content:attr(data-d);}
+@media(prefers-reduced-motion:reduce){ .svfc > i{animation:none;} }
 
 /* machined surfaces: light falls from above (charcoal family, D76) */
 .card, .stat{
@@ -2265,7 +2283,8 @@ html[data-theme="light"] .room-dusk .btn:not(.dark):not(.gold):not(.apple){color
 
 <!-- ============ ONBOARDING ============ -->
 <div class="onboard" id="onboard" role="dialog" aria-modal="true" aria-label="Cup Season sign-in">
-  
+  <!-- ignition (D76): ember floor-glow, first child so everything paints over it -->
+  <i class="ob-ember" aria-hidden="true"></i>
   <div class="ob-fold">
   <div class="ob-fgrid">
   <aside class="ob-wing ob-wl" aria-hidden="true">
@@ -2276,18 +2295,19 @@ html[data-theme="light"] .room-dusk .btn:not(.dark):not(.gold):not(.apple){color
     <div class="ob-crest">
       <!-- the departure board (D76/SF-6): static split-flap spelling CUP
            SEASON — no JS. Decoys ride data-d (::before, sfWrap's formula);
-           the settled DOM text reads the word. Cascade: 80ms steps, L→R. -->
+           the settled DOM text reads the word. Cascade: 80ms steps, L→R,
+           opening at .25s — ignition reads glow → flaps → ember rule → pulse. -->
       <div class="obfb" role="img" aria-label="Cup Season">
-        <span class="obfc"><i style="--d:.55s" data-d="J&#10;Q&#10;X&#10;">C</i></span>
-        <span class="obfc"><i style="--d:.63s" data-d="E&#10;L&#10;S&#10;">U</i></span>
-        <span class="obfc"><i style="--d:.71s" data-d="C&#10;J&#10;Q&#10;">P</i></span>
+        <span class="obfc"><i style="--d:.25s" data-d="J&#10;Q&#10;X&#10;">C</i></span>
+        <span class="obfc"><i style="--d:.33s" data-d="E&#10;L&#10;S&#10;">U</i></span>
+        <span class="obfc"><i style="--d:.41s" data-d="C&#10;J&#10;Q&#10;">P</i></span>
         <span class="obfg"> </span>
-        <span class="obfc"><i style="--d:.79s" data-d="L&#10;T&#10;Z&#10;">S</i></span>
-        <span class="obfc"><i style="--d:.87s" data-d="A&#10;H&#10;O&#10;">E</i></span>
-        <span class="obfc"><i style="--d:.95s" data-d="Z&#10;G&#10;N&#10;">A</i></span>
-        <span class="obfc"><i style="--d:1.03s" data-d="U&#10;B&#10;I&#10;">S</i></span>
-        <span class="obfc"><i style="--d:1.11s" data-d="T&#10;A&#10;H&#10;">O</i></span>
-        <span class="obfc"><i style="--d:1.19s" data-d="V&#10;C&#10;J&#10;">N</i></span>
+        <span class="obfc"><i style="--d:.49s" data-d="L&#10;T&#10;Z&#10;">S</i></span>
+        <span class="obfc"><i style="--d:.57s" data-d="A&#10;H&#10;O&#10;">E</i></span>
+        <span class="obfc"><i style="--d:.65s" data-d="Z&#10;G&#10;N&#10;">A</i></span>
+        <span class="obfc"><i style="--d:.73s" data-d="U&#10;B&#10;I&#10;">S</i></span>
+        <span class="obfc"><i style="--d:.81s" data-d="T&#10;A&#10;H&#10;">O</i></span>
+        <span class="obfc"><i style="--d:.89s" data-d="V&#10;C&#10;J&#10;">N</i></span>
       </div>
       <i class="obfr" aria-hidden="true"></i>
       <i class="obfp" aria-hidden="true"></i>
@@ -2383,8 +2403,7 @@ html[data-theme="light"] .room-dusk .btn:not(.dark):not(.gold):not(.apple){color
 
 
 
-  <div class="ob-splash" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
-  
+
 </div>
 
 <div class="shell">
@@ -2494,6 +2513,8 @@ html[data-theme="light"] .room-dusk .btn:not(.dark):not(.gold):not(.apple){color
             <div class="cidx"><b id="youIdx">—</b><small>Handicap index</small></div>
             <div class="ctros" id="youTros"></div>
           </div>
+          <!-- D76 FORM L5 — filled by renderCareer via formRowHtml; empty = no row -->
+          <div id="youForm"></div>
         </div>
         <!-- F8: feedback pill retired from floating chrome (de-AI scrub) — same
              handler (window.openFeedback via #pilotChip id), quiet row right by
@@ -3394,26 +3415,25 @@ const $$=s=>document.querySelectorAll(s);
 const fmt$=n=>'$'+n.toLocaleString();
 let toastT;
 
-/* ---- reveal safety net (never let the splash trap the screen) ----
-   The intro splash and the entrance fades use CSS animations with fill:both.
-   Browsers PAUSE animations in a backgrounded/throttled tab (PWA cold start,
-   load-while-switched-away, slow first paint). If the timeline never completes,
-   the splash panels stay covering the screen (z-index:5) and the sign-in door
-   stays at opacity:0 — the site is blank. Animations must never gate whether
-   critical content is visible: force the end-state in JS, on a timer and the
-   moment the page becomes visible, independent of any animation running. */
+/* ---- reveal safety net (nothing on the splash may gate on animation) ----
+   Ignition (D76) covers nothing — the squad-color wipes are gone and the
+   charcoal ground is visible from first paint — but the entrance fades and
+   the ember glow still use CSS animations with fill:both, and browsers PAUSE
+   animations in a backgrounded/throttled tab (PWA cold start, slow first
+   paint). A frozen 0% frame would hold the door at opacity:0. So: force every
+   end-state in JS, on a timer and the moment the page becomes visible,
+   independent of any animation running. */
 (function(){
   function forceReveal(){
-    document.querySelectorAll('.ob-splash').forEach(s=>{ s.style.display='none'; });
     /* a running (even frozen) animation with fill:both overrides inline styles,
        so clearing opacity isn't enough — kill the animation, then the base
        style (opacity:1, no transform) takes over and the element is visible */
     ['obDoor','obCaption'].forEach(id=>{ const e=document.getElementById(id); if(e){ e.style.animation='none'; e.style.opacity='1'; } });
     document.querySelectorAll('.onboard .ob-hero').forEach(h=>{ h.style.animation='none'; h.style.opacity='1'; });
     document.querySelectorAll('.ob-wing').forEach(el=>{ el.style.animation='none'; el.style.opacity='1'; });
-    /* C1 additions ride the same net: ticks and flag end visible, the
-       transient ball/ring/comets end gone - never the other way around */
-    document.querySelectorAll('.ob-ticks i, .obflag').forEach(el=>{ el.style.animation='none'; el.style.opacity='1'; });
+    /* C1/D76 additions ride the same net: ticks, flag, and the ember glow end
+       visible, the transient ball/ring/comets end gone - never the other way */
+    document.querySelectorAll('.ob-ticks i, .obflag, .ob-ember').forEach(el=>{ el.style.animation='none'; el.style.opacity='1'; });
     document.querySelectorAll('.obball, .obring1, .ob-comet').forEach(el=>{ el.style.animation='none'; el.style.opacity='0'; });
   }
   /* after the intended animation window (chain ends ~2.35s: wings 1.65+.7);
@@ -9258,15 +9278,36 @@ function renderCareerRecord(){
 }
 window.renderCareerRecord = renderCareerRecord;
 
+/* D76 — FORM L5: the card runs a temperature. Dots read oldest→newest; ember
+   = beat your number (`beat` per round: server-computed on tour_card, derived
+   locally where index_at_post/differential are in hand). SKEW-SAFE: a payload
+   whose entries carry NO `beat` key (pre-migration tour_card) renders nothing
+   at all — no row, no error. Empty recent: same. */
+function formRowHtml(recent){
+  if(!Array.isArray(recent) || !recent.length) return '';
+  const last5 = recent.slice(0,5);                       /* newest first */
+  if(!last5.some(r => r && ('beat' in r))) return '';    /* old DB — no row */
+  let stk = 0;
+  for(const r of last5){ if(r && r.beat === true) stk++; else break; }
+  const dots = last5.slice().reverse().map(r => `<i class="${r && r.beat === true ? 'on' : ''}"></i>`).join('');
+  const tag = stk >= 2 ? `<span class="streaktag ${stk >= 3 ? 'heathot' : 'heatwarm'}">${stk} STRAIGHT UNDER</span>` : '';
+  return `<div class="cform" role="img" aria-label="Form, last ${last5.length} rounds${stk >= 2 ? `, ${stk} straight under` : ''}"><span class="cfl">FORM</span>${dots}${tag}</div>`;
+}
+window.formRowHtml = formRowHtml;
+
 function renderCareer(){
+  /* diorama form is fabricated coherently (index 12.4: beat = 12.4−diff ≥ 1) */
   const c = state.demo
     ? { rounds:42, best:4.8, avg:1.2, played:3, recent:[
-        {played_on:'2026-06-30', course_label:'Papago GC',    gross:82, differential:9.1,  holes_played:18},
-        {played_on:'2026-06-22', course_label:'Ken McDonald', gross:88, differential:13.4, holes_played:18},
-        {played_on:'2026-06-14', course_label:'Grayhawk',      gross:80, differential:7.8,  holes_played:18} ] }
+        {played_on:'2026-06-30', course_label:'Papago GC',    gross:82, differential:9.1,  holes_played:18, beat:true},
+        {played_on:'2026-06-22', course_label:'Ken McDonald', gross:86, differential:11.2, holes_played:18, beat:true},
+        {played_on:'2026-06-14', course_label:'Grayhawk',      gross:80, differential:7.8,  holes_played:18, beat:true},
+        {played_on:'2026-06-07', course_label:'Encanto',       gross:93, differential:14.6, holes_played:18, beat:false},
+        {played_on:'2026-05-31', course_label:'Aguila',        gross:84, differential:10.3, holes_played:18, beat:true} ] }
     : window.career;
   const set = (id,v)=>{ const el=$(id); if(el) el.textContent=v; };
   const sign = v => (v>=0?'+':'') + v.toFixed(1);
+  const yf=$('#youForm'); if(yf) yf.innerHTML = c ? formRowHtml(c.recent) : '';
   if(!c){ ['#clR','#clBest','#clAvg','#clPlayed'].forEach(id=>set(id,'—')); const yr=$('#youRecent'); if(yr) yr.innerHTML=''; return; }
   set('#clR', c.rounds);
   set('#clBest', c.best!=null ? sign(c.best) : '—');
@@ -11312,6 +11353,7 @@ async function openTourCard(profileId){
       <div class="cidx"><b>${idx}</b><small>Handicap index</small></div>
       ${trosLines.length?`<div class="ctros">${trosLines.join('<br>')}</div>`:''}
     </div>
+    ${window.formRowHtml ? window.formRowHtml(rec) : ''}
     ${vsChip}
   </div>${reportLine}`;
   const trHtml='';
@@ -14204,7 +14246,12 @@ async function loadCareer(){
       best:  vals.length ? Math.max(...vals) : null,
       avg:   vals.length ? vals.reduce((a,b)=>a+b,0)/vals.length : null,
       played:(CS.memberships||[]).length + ((window.myEvents||[]).length),
-      recent: rows.slice(0,5),
+      /* D76 FORM: derive `beat` the way the named bands do (pvi ≥ 1). 9-hole
+         differentials are already 18-equivalized by score_round(), so the
+         same floor is honest; missing pieces stay null (slate dot). */
+      recent: rows.slice(0,5).map(r => ({ ...r,
+        beat: (r.index_at_post!=null && r.differential!=null)
+          ? (Number(r.index_at_post) - Number(r.differential)) >= 1 : null })),
     };
   }catch(e){ window.career = window.career || null; }
   if(window.renderCareer) window.renderCareer();
@@ -15119,14 +15166,15 @@ if(unsubParam){
     try{ const { error } = await sb.rpc('email_unsubscribe', { p_token: unsubParam.trim() }); ok = !error; }
     catch(_){ ok = false; }
     const w = document.createElement('div');
-    w.style.cssText = 'position:fixed;inset:0;z-index:99999;background:#0C100D;color:#E8ECE9;display:flex;align-items:center;justify-content:center;padding:24px;text-align:center;font-family:ui-monospace,Menlo,monospace';
+    /* D76: charcoal ground; the CTA is an app action → ember, never gold */
+    w.style.cssText = 'position:fixed;inset:0;z-index:99999;background:#0C0D0F;color:#F0F2F3;display:flex;align-items:center;justify-content:center;padding:24px;text-align:center;font-family:ui-monospace,Menlo,monospace';
     w.innerHTML = `<div style="max-width:340px">
-      <div style="letter-spacing:.22em;font-size:12px;color:#98A29A">CUP SEASON</div>
+      <div style="letter-spacing:.22em;font-size:12px;color:#8E979E">CUP SEASON</div>
       <div style="font-family:Georgia,serif;font-size:26px;margin:16px 0 8px">${ok?'You&rsquo;re unsubscribed':'That link has expired'}</div>
-      <p style="color:#98A29A;font-size:13px;line-height:1.6;margin:0 0 20px">${ok
+      <p style="color:#8E979E;font-size:13px;line-height:1.6;margin:0 0 20px">${ok
         ? 'No more season-end emails. Your league and your rounds are untouched — this only stops the mail.'
         : 'Nothing changed. You can turn season emails off any time from the app.'}</p>
-      <a href="/" style="display:inline-block;padding:12px 20px;border-radius:11px;background:#E8622C;color:#1C1208;font-family:-apple-system,Segoe UI,sans-serif;font-weight:600;text-decoration:none;font-size:14px">Open Cup Season</a>
+      <a href="/" style="display:inline-block;padding:12px 20px;border-radius:11px;background:#FF5A2E;color:#1C1208;font-family:-apple-system,Segoe UI,sans-serif;font-weight:600;text-decoration:none;font-size:14px">Open Cup Season</a>
     </div>`;
     document.body.appendChild(w);
   })();
@@ -15136,7 +15184,10 @@ const shareParam = new URLSearchParams(window.location.search).get('share');
 if(shareParam){ window._csShareView = true; renderShareView(shareParam.trim()); }
 window._csShareRender = renderShareView;   /* QA hook: drive the view with a token or a stub payload */
 async function renderShareView(tok, _testInfo){
-  const C = { bg:'#0C100D', panel:'#10150F', ink:'#E8ECE9', mut:'#98A29A', gold:'#E9BE62' };
+  /* D76: the GROUND converges to charcoal (identity, not metals) — every
+     branch. Gold stays the earned face (settlement/recap); rounds are the
+     live layer and speak ember/warm. */
+  const C = { bg:'#0C0D0F', panel:'#121417', ink:'#F0F2F3', mut:'#8E979E', gold:'#E9BE62', hot:'#FF5A2E', warm:'#E9A23B' };
   const MONO = "'IBM Plex Mono',ui-monospace,Menlo,monospace";
   const SERIF = "'Charter','Iowan Old Style','Palatino Linotype',Georgia,serif";
   const wrap = document.createElement('div');
@@ -15157,11 +15208,11 @@ async function renderShareView(tok, _testInfo){
     const DW=['SUN','MON','TUE','WED','THU','FRI','SAT'], MO=['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'];
     return `${DW[d.getDay()]} · ${MO[d.getMonth()]} ${d.getDate()}`;
   };
-  const markerSvg = (mk) => {
+  const markerSvg = (mk) => {   /* round-branch only — the live layer wears ember (D76) */
     const m = (window.MARKERS || {})[mk];
     if(!m) return '';
-    return `<div style="width:76px;height:76px;margin:0 auto 14px;border:2px solid rgba(233,190,98,.4);border-radius:50%;display:flex;align-items:center;justify-content:center">
-      <svg viewBox="0 0 24 24" width="44" height="44" fill="none" stroke="${C.gold}" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="${m.p}"/></svg></div>`;
+    return `<div style="width:76px;height:76px;margin:0 auto 14px;border:2px solid rgba(255,90,46,.4);border-radius:50%;display:flex;align-items:center;justify-content:center">
+      <svg viewBox="0 0 24 24" width="44" height="44" fill="none" stroke="${C.hot}" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="${m.p}"/></svg></div>`;
   };
   let info = _testInfo || null;
   if(!info) try{
@@ -15169,8 +15220,9 @@ async function renderShareView(tok, _testInfo){
     if(!error) info = data;
   }catch(_){}
   const card = wrap.querySelector('#svCard'), foot = wrap.querySelector('#svFoot');
+  /* the CTA is an app action, not an earned face — ember on every branch (D76) */
   foot.innerHTML = `<div style="color:${C.mut};font-size:12px;letter-spacing:.08em;margin-bottom:12px">Built with Cup Season — real rounds, real crews</div>
-    <a href="/" style="display:block;background:${C.gold};color:#141810;text-decoration:none;border-radius:12px;padding:14px 12px;font-weight:600;letter-spacing:.04em">Start your crew's season</a>`;
+    <a href="/" style="display:block;background:${C.hot};color:#1C1208;text-decoration:none;border-radius:12px;padding:14px 12px;font-weight:600;letter-spacing:.04em">Start your crew's season</a>`;
   if(!info || !info.kind){
     card.innerHTML = `<div style="font-size:15px;line-height:1.6;color:${C.ink};padding:16px 0 6px">Nothing here.</div>
       <div style="color:${C.mut};font-size:13px;line-height:1.6;padding-bottom:12px">This link may have been revoked, or never was. Cup Season is season-long fantasy golf for real friend groups.</div>`;
@@ -15179,27 +15231,37 @@ async function renderShareView(tok, _testInfo){
   if(info.kind === 'round'){
     const pviSane = info.pvi != null && isFinite(info.pvi) && Math.abs(Number(info.pvi)) <= 30;
     document.title = `${info.name} — ${info.gross} at ${info.course} · Cup Season`;
+    card.style.borderColor = 'rgba(255,90,46,.38)';   /* live layer: ember frame (D76) */
+    /* SF-6 at share scale: the gross flips in — hand-authored cells on the
+       entry-board pattern (settled base + `both`), deterministic decoys, no JS
+       after render. sfFlip keyframes live in the app CSS this page shares. */
+    const flap = (s) => '<span class="svfw">' + String(s).split('').map((ch, i) => {
+      if(ch < '0' || ch > '9') return '<span>' + esc(ch) + '</span>';
+      const b = ch.charCodeAt(0) - 48;
+      const d = [1,2,3].map(k => { let x = (b + k*7 + i*3) % 10; if(x === b) x = (x+1) % 10; return x; }).join('&#10;');
+      return `<span class="svfc"><i style="--d:${(0.15 + i*0.08).toFixed(2)}s" data-d="${d}&#10;">` + esc(ch) + '</i></span>';
+    }).join('') + '</span>';
     /* D60: a traveled photo becomes the card's ground — dark wash for the ink,
        the marker as a corner medallion (it replaces the big top circle). The
        payload is URL-free; the page builds the public path from its own token. */
     const pub = info.photo ? `${SUPABASE_URL}/storage/v1/object/public/shared/${encodeURIComponent(String(tok||''))}.jpg` : null;
     const m2 = (window.MARKERS || {})[info.marker];
-    const medal = pub && m2 ? `<span style="position:absolute;right:12px;bottom:12px;width:30px;height:30px;border-radius:50%;background:rgba(12,16,13,.55);display:flex;align-items:center;justify-content:center">
-      <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="${C.gold}" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="${m2.p}"/></svg></span>` : '';
+    const medal = pub && m2 ? `<span style="position:absolute;right:12px;bottom:12px;width:30px;height:30px;border-radius:50%;background:rgba(12,13,15,.55);display:flex;align-items:center;justify-content:center">
+      <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="${C.hot}" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="${m2.p}"/></svg></span>` : '';
     const inner = `
       ${pub ? '' : markerSvg(info.marker)}
       <div style="letter-spacing:.18em;font-size:16px;font-weight:600">${esc(String(info.name).toUpperCase())}</div>
-      <div style="font-family:${SERIF};font-size:104px;font-weight:700;line-height:1.15;margin:10px 0 2px">${esc(String(info.gross))}</div>
+      <div style="font-family:${SERIF};font-size:104px;font-weight:700;line-height:1.15;margin:10px 0 2px">${flap(String(info.gross))}</div>
       ${info.holes === 9 ? `<div style="font-size:11px;color:${C.mut};letter-spacing:.14em">NINE HOLES</div>` : ''}
-      ${pviSane ? `<div style="color:${C.gold};letter-spacing:.16em;font-size:14.5px;font-weight:600;margin-top:10px">${esc(theirs(bandName(Number(info.pvi))).toUpperCase())}</div>
-      <div style="font-family:${SERIF};color:${pub ? 'rgba(232,236,233,.85)' : C.mut};font-size:14px;margin-top:6px">${esc(theirs(vsPhrase(Number(info.pvi))))}</div>` : ''}
+      ${pviSane ? `<div style="color:${C.hot};letter-spacing:.16em;font-size:14.5px;font-weight:600;margin-top:10px">${esc(theirs(bandName(Number(info.pvi))).toUpperCase())}</div>
+      <div style="font-family:${SERIF};color:${pub ? 'rgba(240,242,243,.85)' : C.mut};font-size:14px;margin-top:6px">${esc(theirs(vsPhrase(Number(info.pvi))))}</div>` : ''}
       <div style="border-top:1px solid rgba(255,255,255,.14);margin:18px 40px 0"></div>
       <div style="letter-spacing:.12em;font-size:13px;margin-top:16px">${esc(String(info.course || 'A ROUND').toUpperCase())}</div>
-      <div style="color:${pub ? 'rgba(232,236,233,.75)' : C.mut};font-size:11.5px;letter-spacing:.12em;margin-top:8px">${esc(fmtD(info.played_on))}${info.points != null ? ` · ${esc(String(info.points))} PTS` : ''}</div>`;
+      <div style="color:${pub ? 'rgba(240,242,243,.75)' : C.mut};font-size:11.5px;letter-spacing:.12em;margin-top:8px">${esc(fmtD(info.played_on))}${info.points != null ? ` · <span style="color:${C.warm}">${esc(String(info.points))} PTS</span>` : ''}</div>`;
     if(pub){
       card.style.position = 'relative'; card.style.overflow = 'hidden'; card.style.padding = '30px 18px';
       card.innerHTML = `<img src="${pub}" alt="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover">
-        <div style="position:absolute;inset:0;background:linear-gradient(180deg,rgba(12,16,13,.82),rgba(12,16,13,.58) 45%,rgba(12,16,13,.86))"></div>
+        <div style="position:absolute;inset:0;background:linear-gradient(180deg,rgba(12,13,15,.82),rgba(12,13,15,.58) 45%,rgba(12,13,15,.86))"></div>
         <div style="position:relative">${inner}</div>${medal}`;
     } else {
       card.innerHTML = inner;
