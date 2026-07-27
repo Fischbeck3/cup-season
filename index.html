@@ -11,9 +11,14 @@
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 96 96'%3E%3Crect width='96' height='96' rx='21' fill='%230C0D0F'/%3E%3Cg stroke-width='8' stroke-linecap='round' fill='none'%3E%3Cpath d='M61.9 73.8 A33 13 0 0 1 18.1 67.5' stroke='%23FF5A2E'/%3E%3Cpath d='M16.1 65.4 A33 13 0 0 1 29.1 51.4' stroke='%2357A8FF'/%3E%3Cpath d='M34.1 50.2 A33 13 0 0 1 64.5 50.7' stroke='%23A78BFA'/%3E%3Cpath d='M71.3 52.8 A33 13 0 0 1 76.6 68.5' stroke='%23FB8B4B'/%3E%3C/g%3E%3Cellipse cx='48' cy='62' rx='10' ry='4' stroke='%23F4F7F4' stroke-width='5' fill='none'/%3E%3Cpath d='M48 60V14' stroke='%23F4F7F4' stroke-width='7' stroke-linecap='round'/%3E%3Cpath d='M48 12l21 8-21 8z' fill='%23F4F7F4'/%3E%3C/svg%3E">
 <link rel="manifest" href="/manifest.webmanifest">
 <link rel="apple-touch-icon" href="/apple-touch-icon.png">
-<meta name="description" content="Season-long fantasy golf for your real crew — draft squads, post the rounds you actually play from any course, and settle it in a Cup Final. Every dollar of the pot on the books.">
+<!-- D77: these are the DEFAULTS. A /?share= link gets per-token tags rewritten
+     at the edge (netlify/edge-functions/share-preview.ts); this is what a
+     stranger sees landing on the root, so it has to work in one breath. The old
+     copy was a 170-character paragraph listing mechanics before saying what the
+     thing is for. -->
+<meta name="description" content="Rally your crew. Post real rounds. Take the cup. Season-long golf with the people you already play with — points, pot, pressure.">
 <meta property="og:title" content="Cup Season — season-long fantasy golf for your crew">
-<meta property="og:description" content="Rally your crew and post the real rounds you already play. Captains draft squads, points build for months, the endgame settles it — and the pot stays on the books.">
+<meta property="og:description" content="The round, the result, and who owes who. Season-long golf with your own crew.">
 <meta property="og:url" content="https://cupseason.app">
 <meta property="og:type" content="website">
 <meta property="og:image" content="https://cupseason.app/og-image.png?v=3">
@@ -15691,11 +15696,16 @@ async function renderShareView(tok, _testInfo){
   }catch(_){}
   const card = wrap.querySelector('#svCard'), foot = wrap.querySelector('#svFoot');
   /* the CTA is an app action, not an earned face — ember on every branch (D76) */
-  foot.innerHTML = `<div style="color:${C.mut};font-size:12px;letter-spacing:.08em;margin-bottom:12px">Built with Cup Season — real rounds, real crews</div>
-    <a href="/" style="display:block;background:${C.hot};color:#1C1208;text-decoration:none;border-radius:12px;padding:14px 12px;font-weight:600;letter-spacing:.04em">Start your crew's season</a>`;
+  /* D77: "Built with" is builder-speak on a page whose reader has never heard
+     of us, and "Start your crew's season" asks a stranger for a commitment
+     before they know what the thing is. The CTA points at what they just saw. */
+  foot.innerHTML = `<div style="color:${C.mut};font-size:12px;letter-spacing:.08em;margin-bottom:12px">Cup Season — real rounds, real crews</div>
+    <a href="/" style="display:block;background:${C.hot};color:#1C1208;text-decoration:none;border-radius:12px;padding:14px 12px;font-weight:600;letter-spacing:.04em">Play this with your crew</a>`;
   if(!info || !info.kind){
-    card.innerHTML = `<div style="font-size:15px;line-height:1.6;color:${C.ink};padding:16px 0 6px">Nothing here.</div>
-      <div style="color:${C.mut};font-size:13px;line-height:1.6;padding-bottom:12px">This link may have been revoked, or never was. Cup Season is season-long fantasy golf for real friend groups.</div>`;
+    /* "Nothing here." reads as a broken app to someone who was sent a link in
+       good faith. Say what happened and what to do about it. */
+    card.innerHTML = `<div style="font-size:15px;line-height:1.6;color:${C.ink};padding:16px 0 6px">This link is dead.</div>
+      <div style="color:${C.mut};font-size:13px;line-height:1.6;padding-bottom:12px">Whoever sent it can share a fresh one from the round. Cup Season is season-long golf with your own crew.</div>`;
     return;
   }
   if(info.kind === 'round'){
@@ -15748,12 +15758,21 @@ async function renderShareView(tok, _testInfo){
     const story = r.story
       || (r.winner != null
           ? `${(r.winner === '0' ? r.side_a : r.side_b) || 'Winners'} def. ${(r.winner === '0' ? r.side_b : r.side_a) || 'the other side'} ${r.status || ''}`
-          : (r.side_a ? `${r.side_a} and ${r.side_b} halved the match` : 'Settled on the course'));
+          /* comma, not "and": two "A & B" sides joined by "and" parsed as four
+             separate people (the same fix as the recap sheet and the board) */
+          : (r.side_a ? `All square — ${r.side_a}, ${r.side_b}` : 'Settled on the course'));
+    /* D77: 'Bragging rights only' is a CLAIM, and on Sunningdale Rules it was a
+       false one. That game settles a BANK (units × unit stake), which share_info
+       does not carry — so `stake` is undefined and this card told the crew no
+       money was on a round where $15 had changed hands, directly contradicting
+       the story line above it. Assert nothing we cannot see: no stake key means
+       no money line, not a denial. */
+    const knowsStake = r.stake != null && String(r.stake) !== '';
     const money = Number(r.stake) > 0
       ? ((r.transfers || []).length
           ? r.transfers.map(t => `${t.from} pays ${t.to} $${t.amt}`).join(' · ')
           : `$${r.stake} on the line`)
-      : 'Bragging rights only';
+      : knowsStake ? 'Bragging rights only' : '';
     /* D78 · the hole strip. "3&2" is the margin; this is the shape of it — the
        run, the collapse, the hole it ended on. Reads r.holes, which the client
        has written into game_result since D78 but which share_info only returns
@@ -15774,7 +15793,7 @@ async function renderShareView(tok, _testInfo){
     card.innerHTML = `
       <div style="color:${C.gold};letter-spacing:.2em;font-size:12px;font-weight:600">${esc(GAME[info.game] || 'SETTLED')}</div>
       <div style="font-family:${SERIF};font-size:26px;line-height:1.35;margin:16px 6px 4px">${esc(story)}</div>
-      <div style="color:${C.mut};font-size:12.5px;letter-spacing:.08em;margin-top:10px">${esc(money)}</div>
+      ${money ? `<div style="color:${C.mut};font-size:12.5px;letter-spacing:.08em;margin-top:10px">${esc(money)}</div>` : ''}
       ${strip}
       ${(info.players || []).length ? `<div style="border-top:1px solid rgba(255,255,255,.1);margin:18px 40px"></div>
       ${info.players.map(p => `<div style="display:flex;justify-content:space-between;padding:5px 12px;font-size:13.5px"><span>${esc(p.name)}</span><span style="color:${C.mut}">${p.gross != null ? esc(String(p.gross)) : '—'}</span></div>`).join('')}` : ''}
@@ -15782,18 +15801,22 @@ async function renderShareView(tok, _testInfo){
       <div style="letter-spacing:.12em;font-size:12.5px;margin-top:14px">${esc(String(info.course || '').toUpperCase())}</div>
       <div style="color:${C.mut};font-size:11.5px;letter-spacing:.12em;margin-top:8px">${esc(fmtD(info.played_on))}</div>`;
   } else if(info.kind === 'recap'){
-    document.title = `${info.league || 'A league'} — the season · Cup Season`;
+    /* "— the season" is a section header, not news. The champion is the news;
+       past tense works for a squad name and a solo golfer alike. */
+    document.title = info.champion
+      ? `${info.champion} took the ${info.league || ''} cup · Cup Season`.replace(/\s+/g, ' ')
+      : `${info.league || 'A league'} — the table so far · Cup Season`;
     const rows = (info.rows || []).map((q, i) =>
       `<div style="display:flex;justify-content:space-between;align-items:baseline;padding:7px 12px;font-size:14px;${i === 0 ? `color:${C.gold};font-weight:600` : ''}">
          <span>${i + 1} · ${esc(q.name)}</span><span style="font-family:${SERIF};font-size:16px">${esc(String(q.points))} pts</span></div>`).join('');
     card.innerHTML = `
       <div style="letter-spacing:.18em;font-size:16px;font-weight:600">${esc(String(info.league || 'A LEAGUE').toUpperCase())}</div>
-      <div style="color:${C.mut};font-size:11.5px;letter-spacing:.14em;margin-top:8px">THE SEASON · ${esc(fmtD(info.starts_on))} — ${esc(fmtD(info.ends_on))}</div>
-      ${info.champion ? `<div style="color:${C.gold};letter-spacing:.14em;font-size:13px;font-weight:600;margin-top:14px">🏆 ${esc(String(info.champion).toUpperCase())} TAKE THE CUP</div>` : ''}
+      <div style="color:${C.mut};font-size:11.5px;letter-spacing:.14em;margin-top:8px">${esc(fmtD(info.starts_on))} — ${esc(fmtD(info.ends_on))}</div>
+      ${info.champion ? `<div style="color:${C.gold};letter-spacing:.14em;font-size:13px;font-weight:600;margin-top:14px">🏆 ${esc(String(info.champion).toUpperCase())} TOOK THE CUP</div>` : ''}
       ${info.points_king ? `<div style="color:${C.mut};font-size:12px;letter-spacing:.1em;margin-top:6px">POINTS KING · ${esc(String(info.points_king).toUpperCase())}</div>` : ''}
       <div style="border-top:1px solid rgba(255,255,255,.1);margin:16px 30px 8px"></div>
-      ${rows || `<div style="color:${C.mut};font-size:13px;padding:10px 0">The table is warming up.</div>`}
-      <div style="color:${C.mut};font-size:11px;letter-spacing:.1em;margin-top:12px">${info.status === 'complete' ? 'FINAL' : 'STILL BEING PLAYED'}</div>`;
+      ${rows || `<div style="color:${C.mut};font-size:13px;padding:10px 0">Nobody has posted a round yet.</div>`}
+      <div style="color:${C.mut};font-size:11px;letter-spacing:.1em;margin-top:12px">${info.status === 'complete' ? 'FINAL' : 'IN PLAY'}</div>`;
   }
 }
 
@@ -15812,8 +15835,10 @@ if(joinParam){
     if(!data) return;
     localStorage.setItem('cs_code_name', data);
     const st = document.getElementById('obStatus');
-    if(st && /You're invited: code /.test(st.textContent))
-      st.textContent = `You're invited to ${data}. Enter your email and you'll join automatically.`;
+    /* matches the GENERIC line only — it must track the string at ~15900, or
+       the league name silently stops warming it up (the F1 fix this guards) */
+    if(st && /^You're invited\. /.test(st.textContent))
+      st.textContent = `You're invited to ${data}. Enter your email and you're in.`;
   }).catch(() => {});
 }
 
@@ -15879,8 +15904,11 @@ async function safeBoot(force){
   const pendName = localStorage.getItem('cs_code_name');
   if(!CS.user && pend){
     openEmailBox($('#obJoin'), pendName
-      ? `You're invited to ${pendName}. Enter your email and you'll join automatically.`
-      : `You're invited: code ${pend}. Enter your email and you'll join the league automatically.`);
+      ? `You're invited to ${pendName}. Enter your email and you're in.`
+      /* the raw code is plumbing — the recipient never types it on this path,
+         the link carries it (F1). Saying it invites them to wonder what to do
+         with it. */
+      : `You're invited. Enter your email and you're in.`);
   }
   /* guest claim: the round is waiting at the door (anon-readable by token) */
   let claimTok=null; try{ claimTok=localStorage.getItem('cs_claim'); }catch(_){}
@@ -15895,9 +15923,21 @@ async function safeBoot(force){
         catch(_){}
       }
       if(data && !data.claimed){
+        /* D77: the first sentence a brand-new golfer ever reads from us. It was
+           three clauses long and ended on a raw ISO date ('· 2026-07-25'), which
+           is a database value, not a date anyone writes. Name the round, then
+           ask for the one thing needed. */
+        /* manual y,m-1,d — new Date('YYYY-MM-DD') is UTC midnight and renders
+           the PREVIOUS day in Phoenix */
+        const when = (() => {
+          const m = String(data.played_on || '').match(/^(\d{4})-(\d{2})-(\d{2})$/);
+          if(!m) return '';
+          return ', ' + new Date(+m[1], +m[2]-1, +m[3])
+            .toLocaleDateString(undefined, { weekday:'short', month:'short', day:'numeric' });
+        })();
         openEmailBox($('#obJoin'),
           `${data.guest_name || 'Your card'} — ${data.gross ? data.gross+' at ' : ''}${data.course_label || 'the course'}`
-          + `${data.played_on ? ' · '+data.played_on : ''}. Enter your email, save your golfer card, and the round is yours for good.`);
+          + `${when}. Enter your email to keep it.`);
       } else if(data && data.claimed){
         try{ localStorage.removeItem('cs_claim'); }catch(_){}
       } else {
