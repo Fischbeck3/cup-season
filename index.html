@@ -5153,9 +5153,15 @@ const CARD_BADGE = {
   sub_100:'BROKE 100', streak_4:'4 WEEKS RUNNING', streak_8:'8 WEEKS RUNNING',
   streak_12:'12 WEEKS RUNNING', first_round:'FIRST ROUND ON THE BOARD',
 };
+/* Palette is D76 Charcoal as of 2026-07-27. This card and drawMajorCard were
+   the last two surfaces still wearing the pre-D76 green-tinted dark (#0C100D),
+   which only became visible once drawSettlementCard shipped on charcoal — three
+   artifacts circulating in the same group thread that did not match each other.
+   Gold is unchanged: D76 narrows it to the EARNED metal, which is exactly what
+   these cards are. */
 function drawRecapCard(d){
   const W=1080, H=1350;
-  const BG='#0C100D', PANEL='#10150F', INK='#E8ECE9', MUT='#98A29A', GOLD='#E9BE62';
+  const BG='#0C0D0F', PANEL='#17191C', INK='#F0F2F3', MUT='#8E979E', GOLD='#E9BE62';
   const cv=document.createElement('canvas'); cv.width=W; cv.height=H;
   const x=cv.getContext('2d');
   const MONO="'IBM Plex Mono',ui-monospace,Menlo,monospace";
@@ -5172,10 +5178,10 @@ function drawRecapCard(d){
     if(iw&&ih){
       const s=Math.max(W/iw,H/ih), dw=iw*s, dh=ih*s;
       x.drawImage(d._img,(W-dw)/2,(H-dh)/2,dw,dh);
-      x.fillStyle='rgba(12,16,13,.78)'; x.fillRect(0,0,W,H);
+      x.fillStyle='rgba(12,13,15,.78)'; x.fillRect(0,0,W,H);   /* D76 ground */
     }
   }
-  x.fillStyle = d._img ? 'rgba(16,21,15,.58)' : PANEL;
+  x.fillStyle = d._img ? 'rgba(23,25,28,.58)' : PANEL;   /* D76 card over photo */
   x.beginPath(); x.roundRect(36,36,W-72,H-72,28); x.fill();
   x.strokeStyle='rgba(233,190,98,.35)'; x.lineWidth=2;
   x.beginPath(); x.roundRect(36,36,W-72,H-72,28); x.stroke();
@@ -5257,10 +5263,9 @@ async function shareRecapCard(d){
    scaling (the canvas is detached and only ever encoded — backing pixels ARE
    output pixels), ctr() copied in rather than hoisted, per the house pattern.
 
-   One deliberate divergence: this card wears the D76 CHARCOAL palette, not the
-   green-tinted dark the older two still carry (#0C100D, pre-D76). A new
-   artifact ships on the ratified identity; re-skinning the other two is its
-   own pass and would change every existing card mid-beta.
+   All three cards wear the D76 CHARCOAL palette. This one shipped on it first;
+   drawRecapCard and drawMajorCard were brought over on 2026-07-27, once three
+   artifacts circulating in the same group thread visibly failed to match.
 
    The margin is the hero — "3&2" at 300px, because that is the thing the pilot
    could not find. The strip runs underneath it: same ledger, same colors as the
@@ -7523,7 +7528,15 @@ function rrResult(){
   const hd = f => rank[0].w===0 ? 'Nobody won a match'
     : co.length>1 ? `${co.map(x=>f(x.n)).join(' and ')} split it, ${rank[0].w} win${rank[0].w===1?'':'s'} each`
     : `${f(rank[0].n)} won the round robin, ${rank[0].w}-${rank[0].l}`;
+  /* D79 · settle per match. "$5 a match" was printed on the board and then no
+     money moved — this was the only settlement builder returning no transfers.
+     A golfer's net is (wins − losses) × stake, halves move nothing, and because
+     every pairing contributes +1 to one player and −1 to another the ledger is
+     net-zero by construction. That is exactly the shape settleTransfers() wants,
+     so Wolf and Skins' minimized-transfer helper does the work unchanged. */
+  const pts = LIVE.map((_,i)=> rec[i].w - rec[i].l);
   return { game:'match', mode:'solo', stake,
+    transfers: settleTransfers(pts, stake),
     players:LIVE.map((p,i)=>({name:p.n, w:rec[i].w, l:rec[i].l, h:rec[i].h})),
     pairs:pairs.map(p=>({a:LIVE[p.i]?.n, b:LIVE[p.j]?.n, up:p.a-p.b, thru:p.played})),
     story:`${hd(String)} · ${line}${stake>0?` · $${stake} a match`:''}`,
@@ -8382,12 +8395,9 @@ function showLiveRecap(d, result, lrId){
       : result.stake>0
       ? ((result.transfers||[]).length
           ? result.transfers.map(t=>`${t.from.toUpperCase()} PAYS ${t.to.toUpperCase()} $${t.amt}`).join(' · ')+' · SETTLE UP'
-          /* round robin computes no transfer set, so the generic "all square"
-             claimed nobody owed anything on a round where everybody did.
-             State the rate and let them settle rather than assert a lie. */
-          : result.mode==='solo' && result.game==='match'
-            ? `$${result.stake} A MATCH · SETTLE UP`
-            : 'ALL SQUARE — NO MONEY MOVES')
+          /* D79 retired the stopgap here: round robin computes its transfers
+             now, so an empty set genuinely means every pairing halved. */
+          : 'ALL SQUARE — NO MONEY MOVES')
       : 'BRAGGING RIGHTS ONLY';
     /* D77: the headline was the feed row — up to 159 chars of ledger inside a
        <b>, which is not a headline. Take `share` (the result) and leave the
@@ -11070,9 +11080,10 @@ function renderMajorRoom(el, E){
 }
 
 /* the jug card — the Major's share artifact (D46; D30's canvas pattern) */
+/* D76 Charcoal — see the note on drawRecapCard */
 function drawMajorCard(d){
   const W=1080, H=1350;
-  const BG='#0C100D', PANEL='#10150F', INK='#E8ECE9', MUT='#98A29A', GOLD='#E9BE62';
+  const BG='#0C0D0F', PANEL='#17191C', INK='#F0F2F3', MUT='#8E979E', GOLD='#E9BE62';
   const cv=document.createElement('canvas'); cv.width=W; cv.height=H;
   const x=cv.getContext('2d');
   const MONO="'IBM Plex Mono',ui-monospace,Menlo,monospace";

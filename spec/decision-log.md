@@ -2582,6 +2582,52 @@ machinery-already-exists. ⚑ marks the points still needing an owner call.*
   (push, email, share sheet, clipboard, link previews), where it was never
   explicitly enforced and where three of the worst violations shipped.
 
+### D79 · Round robin settles per match — $5 a match means $5 a match
+- **Current:** the 4-player solo Match Play variant (D75) scores six 1v1
+  pairings, records a W-L-H per golfer, accepts a stake, and prints "$5 a
+  match" on the board — then moves no money. `rrResult()` is the only
+  settlement builder that returns no `transfers`, so the finish sheet had
+  nothing to show. Until 2026-07-27 it fell through to Wolf's ledger branch and
+  rendered "ALL SQUARE — NO MONEY MOVES" on staked rounds where everybody owed
+  somebody; that now states the rate instead, which is honest but still leaves
+  the group doing the arithmetic on a napkin.
+- **Problem:** the app takes a stake, tells the league the rate, and then
+  declines to say who owes whom — on the one game where the answer is least
+  obvious, because six overlapping results have to be reconciled. Every other
+  game on the tee sheet settles itself. §16 says nothing shows a figure without
+  a path to the rounds behind it; here there is no figure at all.
+- **Recommendation:** each pairing is its own bet at the declared stake. A
+  golfer's net is `(wins − losses) × stake`; halved pairings move nothing.
+  - Chosen because it is what the phrase already on the board MEANS. "$5 a
+    match" is not a rate for something else — it is the whole rule, and the
+    copy and the math finally agree.
+  - It is net-zero by construction: every pairing contributes +1 to one player
+    and −1 to another, so the ledger sums to zero across the group with no
+    balancing step. That drops it straight into `settleTransfers(pts, val)`,
+    the same minimized-transfer helper Wolf and Skins already use — no new
+    settlement engine, no new rounding rule, nothing new to get wrong.
+- **Rejected:** paying out on overall RECORD like a tournament (top two, or
+  champion-takes-all). It needs a payout table, a tie rule, and a judgement
+  about whether 3-0-0 should beat 2-0-1 by more than one unit — a lot of new
+  mechanic for a casual side game, and nobody at a first tee says "we'll pay
+  out top two on record." Also rejected: settling per HOLE, which is Skins.
+- **Principle served:** everything shows its work (§16) — a settlement is a
+  claim about who owes whom, and this game was making the claim's premise (a
+  stake) without ever producing the claim. Also meet golfers where they play:
+  per-match is how the bet is actually spoken.
+- **Benefit:** the one tee-sheet game that took money and stayed silent now
+  produces the same settlement card as every other game.
+- **Tradeoffs:** a golfer can lose every pairing and be down 3× the stake,
+  which is a bigger swing than the headline "$5 a match" suggests to someone
+  who has not thought it through — the finish sheet states the transfers
+  explicitly, which is the mitigation. No hole strip: six simultaneous matches
+  have six different answers per hole, so any single 18-cell row would be a lie
+  about which match it depicts (D78's ledger stays deliberately absent here; if
+  round robin ever wants a visual it is a 4×4 grid of who beat whom, decided on
+  its own merits).
+- **CONFLICT check:** none. Does not touch scoring, the season, or any other
+  game's settlement. Live games never reach season points (§13.2).
+
 ### D78 · The settlement becomes an artifact — the hole strip and the card
 - **Current:** a settled game leaves the app as text plus a URL. The link opens
   a page that states the result in a sentence and lists four gross scores. Two
