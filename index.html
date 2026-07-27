@@ -5130,6 +5130,13 @@ function vsPhrase(vs){
    owner's voice only; a stranger reading "2.4 over your number" can't tell
    whose (pilot). Always they/them — never guess pronouns from a name. */
 const theirs = s => String(s||'').replace(/YOUR/g,'THEIR').replace(/Your/g,'Their').replace(/your/g,'their');
+/* D77 · first names leave the app, full names stay in it. A feed row has the
+   app's context around it and can carry "Jerecho Fischbeck"; a text message in
+   a group thread cannot — nobody writes a friend's legal name to that friend's
+   group. One reducer, never ad-hoc in a template, so every builder shortens the
+   same way. Falls back rather than emptying: a blank name would silently
+   delete the subject of the sentence. */
+const fn1 = n => String(n||'').trim().split(/\s+/)[0] || 'Someone';
 /* ---- the Round Recap Card (#18) — the peak becomes a shareable artifact ----
    A canvas-rendered PNG in the brand's fixed dark identity (the card ignores
    the viewer's theme — an artifact has ONE face). D2's law holds on the way
@@ -7181,12 +7188,28 @@ function sunnResult(){
   const unit=state.live.stake||0;
   const bankTxt = m.bank===0 ? 'bank empty'
     : `bank: ${names(m.bank>0?0:1)}${unit>0?` $${Math.abs(m.bank)*unit}`:` ${Math.abs(m.bank)} unit${Math.abs(m.bank)===1?'':'s'}`}`;
+  /* D77 · two strings, two jobs. `story` is the league feed row: full names,
+     the bank, the app's own context around it. `share` is what lands in
+     someone else's thread — the result first, first names, ASCII only, and no
+     leading "Word:" (iOS parses that as a URI scheme and percent-encodes the
+     rest of the message; see the D74 amendment). Dropped from both: "no
+     handicaps", a config echo — Sunningdale Rules already means scratch.
+     Dropped from `share` alone: the bank clause, which repeated the winners'
+     names a second time and spent a third of the message on something no
+     reader could act on. Where money is real it survives as the one number
+     they actually want. "and" between two "A & B" sides parsed as four
+     separate people — the sides are comma-separated now. */
+  const fnSide = t => MTEAMS[t].map(i=>fn1(LIVE[i]?.n)).filter(Boolean).join(' & ');
+  const pot = Math.abs(m.bank)*unit;
   const story = winner==null
-    ? `Sunningdale Rules: ${names(0)} and ${names(1)} halved it · ${bankTxt}`
-    : `Sunningdale Rules: ${names(winner)} def. ${names(winner===0?1:0)} ${status} · no handicaps · ${bankTxt}`;
+    ? `All square — ${names(0)}, ${names(1)}. Sunningdale Rules · ${bankTxt}`
+    : `${names(winner)} def. ${names(winner===0?1:0)} ${status}. Sunningdale Rules · ${bankTxt}`;
+  const share = winner==null
+    ? `All square - ${fnSide(0)}, ${fnSide(1)}`
+    : `${fnSide(winner)} beat ${fnSide(winner===0?1:0)} ${status}${pot>0?` for $${pot}`:''}`;
   return { game:'sunningdale', winner: winner==null?null:String(winner), status,
            a:m.a, b:m.b, thru:m.played, bank:m.bank, unit,
-           side_a:names(0), side_b:names(1), story };
+           side_a:names(0), side_b:names(1), story, share };
 }
 
 /* D75 · round-robin singles (match play, everyone for themselves): every
@@ -7218,10 +7241,21 @@ function rrRecords(pairs){
 function rrResult(){
   const pairs=rrCalc(), rec=rrRecords(pairs), stake=state.live.stake||0;
   const line=LIVE.map((p,i)=>`${p.n} ${rec[i].w}-${rec[i].l}${rec[i].h?`-${rec[i].h}`:''}`).join(', ');
+  /* D77: this shipped a standings table and called it a result — and when two
+     players tied at 2-1 the line could not even resolve who to congratulate.
+     One headline builder, parameterised by the name formatter, so the feed row
+     and the text message can never drift apart. `String` is the identity
+     formatter (full names); `fn1` shortens. */
+  const rank=LIVE.map((p,i)=>({n:p.n, w:rec[i].w, l:rec[i].l})).sort((a,b)=>b.w-a.w);
+  const co=rank.filter(x=>x.w===rank[0].w);
+  const hd = f => rank[0].w===0 ? 'Nobody won a match'
+    : co.length>1 ? `${co.map(x=>f(x.n)).join(' and ')} split it, ${rank[0].w} win${rank[0].w===1?'':'s'} each`
+    : `${f(rank[0].n)} won the round robin, ${rank[0].w}-${rank[0].l}`;
   return { game:'match', mode:'solo', stake,
     players:LIVE.map((p,i)=>({name:p.n, w:rec[i].w, l:rec[i].l, h:rec[i].h})),
     pairs:pairs.map(p=>({a:LIVE[p.i]?.n, b:LIVE[p.j]?.n, up:p.a-p.b, thru:p.played})),
-    story:`Round robin: ${line}${stake>0?` · $${stake} a match`:''}` };
+    story:`${hd(String)} · ${line}${stake>0?` · $${stake} a match`:''}`,
+    share:hd(fn1) };
 }
 /* D75 · solo Sunningdale result — the bank names its owner; liability is per
    player (each other player owes bank × unit), stated on the card, never
@@ -7232,10 +7266,26 @@ function sunnSoloResult(){
   const line=order.map(i=>`${LIVE[i]?.n} ${m.wins[i]}`).join(', ');
   const bankTxt = m.bank.units===0 ? 'bank empty'
     : `bank: ${LIVE[m.bank.owner]?.n}${unit>0?` $${m.bank.units*unit} (each owes)`:` ${m.bank.units} unit${m.bank.units===1?'':'s'}`}`;
+  /* D77: the longest story the app could emit, and it never said who won — it
+     printed four numbers and left the reader to compare them. At 158 chars it
+     also truncated at the share sheet's cap, cutting the bank owner's name
+     mid-word: the single most important name in the sentence. */
+  const top=order[0], tied=order.length>1 && m.wins[order[1]]===m.wins[top];
+  const lead=(tied || !(m.wins[top]>0)) ? null : top;
+  const pot=m.bank.units*unit;
   return { game:'sunningdale', mode:'solo', unit, thru:m.played,
     players:LIVE.map((p,i)=>({name:p.n, wins:m.wins[i]})),
     bank:m.bank,
-    story:`Sunningdale Rules, everyone for themselves: ${line} · no handicaps · ${bankTxt}` };
+    story: lead==null
+      ? `Nobody broke away — ${line}. Sunningdale Rules · ${bankTxt}`
+      : `${LIVE[lead]?.n} took it, ${m.wins[lead]} holes. Sunningdale Rules · ${line} · ${bankTxt}`,
+    share: lead==null
+      ? 'Nobody broke away'
+      /* the count and the money together read as a number pileup ("the most
+         holes, 3 and $30 from each") — money is the stronger fact and the
+         count is on the card, so they never both appear */
+      : pot>0 ? `${fn1(LIVE[lead]?.n)} won the most holes and $${pot} from each`
+              : `${fn1(LIVE[lead]?.n)} won the most holes, ${m.wins[lead]}` };
 }
 
 /* minimized transfer set from a net-zero points ledger — data first, HTML on
@@ -7840,32 +7890,74 @@ function matchResult(){
   if(m.closed){ winner=m.closed.winner; status=`${m.closed.lead}&${m.closed.rem}`; }
   else if(m.a!==m.b){ winner=m.a>m.b?0:1; status=`${Math.abs(m.a-m.b)} UP THRU ${m.played}`; }
   else status='HALVED';
+  /* D77 · the worst of the settlement builders: it shipped NO story and NO
+     share, so the flagship tee-sheet game went out as "side_a vs side_b" —
+     no winner, no score — while `winner` and `status` sat right here unused.
+     `status` is upper-cased for the live card ("2 UP THRU 17"); outbound it
+     lowercases, because a shouted clause in a text thread reads as a
+     different voice. Adding `story` also takes over the board row: the server
+     prefers a client story when present (20260726120000) and otherwise
+     composes its own "Match play: …" label-first line. */
+  const fnSide = t => MTEAMS[t].map(i=>fn1(LIVE[i]?.n)).filter(Boolean).join(' & ');
+  const stake = state.live.stake||0;
+  const st = String(status).toLowerCase();
   return { game:'match', winner: winner==null?null:String(winner), status,
-           a:m.a, b:m.b, thru:m.played, stake:state.live.stake||0,
-           side_a:names(0), side_b:names(1) };
+           a:m.a, b:m.b, thru:m.played, stake,
+           side_a:names(0), side_b:names(1),
+           story: winner==null
+             ? `All square — ${names(0)}, ${names(1)}${stake>0?' · nobody pays':''}`
+             : `${names(winner)} def. ${names(winner===0?1:0)} ${st}${stake>0?` · $${stake} on the line`:''}`,
+           share: winner==null
+             ? `All square - ${fnSide(0)}, ${fnSide(1)}`
+             : `${fnSide(winner)} beat ${fnSide(winner===0?1:0)} ${st}${stake>0?` for $${stake}`:''}` };
 }
 /* wolf + skins outcomes — same shape discipline: ledger, transfers, and a
    one-line story the server posts to the board (upcased + capped there) */
 function wolfResult(){
   const val=state.live.stake||0;
   const pts=wolfPoints();
+  /* ASCII '-' here, not U+2212: this line reaches a text message, and a
+     typographic minus is one more character the receiving app can mangle */
   const line=LIVE.map((p,i)=> val>0
-    ? `${p.n} ${pts[i]>=0?'+':'−'}$${Math.abs(pts[i]*val)}`
+    ? `${p.n} ${pts[i]>=0?'+':'-'}$${Math.abs(pts[i]*val)}`
     : `${p.n} ${pts[i]>=0?'+':''}${pts[i]}`).join(', ');
+  /* D77: a four-name signed-integer ledger is not a result — the reader had to
+     scan it for the largest number to find out who won. Declare the winner;
+     the ledger and the rate stay behind the link, which is what it is for. */
+  const rank=pts.map((v,i)=>({v,i})).sort((a,b)=>b.v-a.v);
+  const tied=rank.length>1 && rank[1].v===rank[0].v;
+  const lead=(tied || !(rank[0]?.v>0)) ? null : rank[0];
   return { game:'wolf', stake:val,
     players:LIVE.map((p,i)=>({name:p.n, pts:pts[i]})),
     transfers:settleTransfers(pts, val),
-    story:`Wolf: ${line}${val>0?` · $${val}/pt`:' pts'}` };
+    story: lead==null
+      ? `Wolf ended level · ${line}${val>0?` · $${val}/pt`:' pts'}`
+      : `${LIVE[lead.i]?.n} took Wolf${val>0?`, up $${lead.v*val}`:`, ${lead.v} pts`} · ${line}${val>0?` · $${val}/pt`:''}`,
+    share: lead==null
+      ? 'Wolf ended level'
+      : `${fn1(LIVE[lead.i]?.n)} took Wolf${val>0?`, up $${lead.v*val}`:''}` };
 }
 function skinsResult(){
   const val=state.live.stake||0;
   const sk=skinsCalc();
-  const winners=LIVE.map((p,i)=>({name:p.n, skins:sk.won[i]})).filter(x=>x.skins>0);
+  const P=LIVE.map((p,i)=>({name:p.n, skins:sk.won[i], pts:sk.pts[i]}));
+  const winners=P.filter(x=>x.skins>0);
   const line=winners.length? winners.map(x=>`${x.name} ${x.skins}`).join(', ') : 'nobody took a skin';
+  /* D77: the reader learned the RATE ($5 a skin) and never the money — the one
+     number they came for. Money is pts × rate, not skins × rate: a skin won
+     against three players is worth three units. */
+  const died=sk.carry>1?` · ${sk.carry-1} carried died`:'';
+  const rank=winners.slice().sort((a,b)=>b.skins-a.skins);
+  const lead=(rank.length && !(rank[1] && rank[1].skins===rank[0].skins)) ? rank[0] : null;
+  const took=(f,t)=>`${f(t.name)} took ${t.skins} skin${t.skins===1?'':'s'}${val>0&&t.pts>0?` and $${t.pts*val}`:''}`;
   return { game:'skins', stake:val, thru:sk.thru, carried_died:Math.max(0, sk.carry-1),
-    players:LIVE.map((p,i)=>({name:p.n, skins:sk.won[i], pts:sk.pts[i]})),
+    players:P,
     transfers:settleTransfers(sk.pts, val),
-    story:`Skins: ${line}${val>0?` · $${val} a skin`:''}${sk.carry>1?` · ${sk.carry-1} carried died`:''}` };
+    story: lead ? `${took(String,lead)} · ${line}${val>0?` · $${val} a skin`:''}${died}`
+         : winners.length ? `The skins split — ${line}${val>0?` · $${val} a skin`:''}${died}`
+         : `Nobody took a skin${died}`,
+    share: lead ? took(fn1,lead)
+         : winners.length ? 'The skins split' : 'Nobody took a skin' };
 }
 function gameResult(){
   if(state.live.game==='match' && liveSolo() && LIVE.length===4) return rrResult();
@@ -7951,14 +8043,27 @@ function showLiveRecap(d, result, lrId){
      the recap never said who won. It fits the rows that already exist: the team
      game IS a match (winner, status, two sides), the solo game is a ledger like
      Wolf. Route it rather than growing a third branch. */
+  /* round robin returns game:'match' with mode:'solo' and NO sides, so it fell
+     into the match row and rendered "undefined and undefined halved the match"
+     — it belongs with the ledger games. One rule for both: a settlement has
+     two sides unless it is a solo mode. */
   const isSunnTeam = !!result && result.game==='sunningdale' && result.mode!=='solo';
-  if(result && (result.game==='match' || isSunnTeam)){
+  const isTeamMatch = !!result && result.mode!=='solo' && (result.game==='match' || isSunnTeam);
+  /* a two-man side takes a plural verb — every team game rendered
+     "WILL & ISAAK PAYS" until this existed, and singles rendered
+     "JERECHO TAKE THE BANK" */
+  const isPair  = s => /\s&\s/.test(String(s||''));
+  const payVerb = s => isPair(s) ? 'PAY'  : 'PAYS';
+  const takeVerb= s => isPair(s) ? 'TAKE' : 'TAKES';
+  if(isTeamMatch){
     const won=result.winner!=null;
     const wSide=result.winner==='0'?result.side_a:result.side_b;
     const lSide=result.winner==='0'?result.side_b:result.side_a;
     const line = won
       ? `${wSide} def. ${lSide} ${result.status}`
-      : `${result.side_a} and ${result.side_b} halved the match`;
+      /* comma, not "and": two "A & B" sides joined by "and" parsed as four
+         separate people — the reader could not see where one side ended */
+      : `All square — ${result.side_a}, ${result.side_b}`;
     /* Sunningdale settles a BANK of units, and its holder is decided by the
        bank's sign — not by who won the match. Name the holder instead of
        reusing the match's payer/payee template, which would be wrong on any
@@ -7966,16 +8071,17 @@ function showLiveRecap(d, result, lrId){
     const sunnBank = isSunnTeam ? Math.abs(Number(result.bank)||0) * (Number(result.unit)||0) : 0;
     const money = isSunnTeam
       ? (sunnBank>0
-          ? `${String((Number(result.bank)>0 ? result.side_a : result.side_b)||'').toUpperCase()} TAKE THE BANK - $${sunnBank}`
+          ? (bankSide => `${bankSide.toUpperCase()} ${takeVerb(bankSide)} THE BANK - $${sunnBank}`)(String((Number(result.bank)>0 ? result.side_a : result.side_b)||''))
           : 'BRAGGING RIGHTS ONLY')
       : result.stake>0
-      ? (won ? `${lSide.toUpperCase()} PAYS ${wSide.toUpperCase()} $${result.stake} · SETTLE UP`
+      ? (won ? `${lSide.toUpperCase()} ${payVerb(lSide)} ${wSide.toUpperCase()} $${result.stake} · SETTLE UP`
              : 'ALL SQUARE — NO MONEY MOVES')
       : 'BRAGGING RIGHTS ONLY';
     rows.push(`<div class="check"><span class="num">⚔️</span><div class="tt"><b>${esc(line)}</b><small>${esc(money)}</small></div></div>`);
-  } else if(result && (result.game==='wolf' || result.game==='skins' || result.game==='sunningdale')){
-    /* only SOLO Sunningdale reaches here — the team game took the match row */
-    const icon=result.game==='wolf'?'🐺':result.game==='sunningdale'?'⚔️':'💰';
+  } else if(result && (result.game==='wolf' || result.game==='skins' || result.mode==='solo')){
+    /* the ledger games: Wolf, Skins, and both solo modes (round robin and
+       everyone-for-themselves Sunningdale), which the team row cannot hold */
+    const icon=result.game==='wolf'?'🐺':result.game==='skins'?'💰':'⚔️';
     /* solo Sunningdale has no transfer set: one player holds the bank and every
        other player owes it, which is stated on the card all round (D75) and
        must be stated the same way at settle */
@@ -7988,9 +8094,19 @@ function showLiveRecap(d, result, lrId){
       : result.stake>0
       ? ((result.transfers||[]).length
           ? result.transfers.map(t=>`${t.from.toUpperCase()} PAYS ${t.to.toUpperCase()} $${t.amt}`).join(' · ')+' · SETTLE UP'
-          : 'ALL SQUARE — NO MONEY MOVES')
+          /* round robin computes no transfer set, so the generic "all square"
+             claimed nobody owed anything on a round where everybody did.
+             State the rate and let them settle rather than assert a lie. */
+          : result.mode==='solo' && result.game==='match'
+            ? `$${result.stake} A MATCH · SETTLE UP`
+            : 'ALL SQUARE — NO MONEY MOVES')
       : 'BRAGGING RIGHTS ONLY';
-    rows.push(`<div class="check"><span class="num">${icon}</span><div class="tt"><b>${esc(result.story||'')}</b><small>${esc(money)}</small></div></div>`);
+    /* D77: the headline was the feed row — up to 159 chars of ledger inside a
+       <b>, which is not a headline. Take `share` (the result) and leave the
+       ledger to the settlement page one tap away — the §16 bargain everywhere
+       else in the app. `story` stays the fallback for any builder that has
+       not grown a `share` yet. */
+    rows.push(`<div class="check"><span class="num">${icon}</span><div class="tt"><b>${esc(result.share||result.story||'')}</b><small>${esc(money)}</small></div></div>`);
   }
   posted.forEach(x=>rows.push(`<div class="check"><span class="num">⛳</span><div class="tt"><b>${esc(x.name)} · ${x.gross}</b><small>POSTED · ${x.holes} HOLES · ✓ ATTESTED</small></div></div>`));
   skipped.forEach(x=>rows.push(`<div class="check"><span class="num">—</span><div class="tt"><b>${esc(x.name)}</b><small>NOT POSTED · ${esc(String(x.reason||'')).toUpperCase()}</small></div></div>`));
@@ -8008,8 +8124,13 @@ function showLiveRecap(d, result, lrId){
     try{ navigator.clipboard?.writeText(b.dataset.copylink); toast('Recap link copied'); }
     catch(_){ toast('Copy failed'); }
   }));
+  /* D77: this read `story` — a feed row, composed for a screen that already
+     shows the league around it — and then cut it at 120 chars, which amputated
+     the tail where the result lives. It reads `share` now, and the fallback is
+     a sentence rather than "side_a vs side_b", which shipped no result at all.
+     The 70 is a policy backstop; nothing authored comes close to it. */
   document.getElementById('lrShareLink')?.addEventListener('click',()=>csShareLink('settlement', lrId,
-    (result?.story || `${result?.side_a || 'The match'} vs ${result?.side_b || ''}`).slice(0,120)));
+    (result?.share || 'The match is settled').slice(0,70)));
   document.getElementById('lrShareRevoke')?.addEventListener('click',()=>csRevokeLink('settlement', lrId));
 }
 /* pilot: "Live round needs a discard button." Two-tap confirm, then: close the
