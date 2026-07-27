@@ -95,11 +95,20 @@ sections (§2.2, §14.0) when making competition-model decisions.
   `email_unsubscribe` — D68: an unsubscribe that demands a login is not an
   unsubscribe; it is fail-closed, takes an unguessable token, and can only
   ever flip one boolean OFF). A new
-  RPC that "silently 403s in prod" is almost always a missing grant. Since
-  `20260724150000` anon holds ZERO relation privileges in `public` and the
-  table/sequence default-privilege auto-grant to anon is gone (db-checks
-  check 10 guards it) — never grant anon table access; extend an anon flow
-  with a SECURITY DEFINER RPC instead. Also killed
+  RPC that "silently 403s in prod" is almost always a missing grant. **anon
+  holds ZERO relation privileges in `public`** and the table/sequence
+  default-privilege auto-grant to anon is gone — never grant anon table access;
+  extend an anon flow with a SECURITY DEFINER RPC instead. This was claimed
+  from `20260724150000` onward but was NOT TRUE until `20260727220000`: an
+  audit on 2026-07-27 found 64 of 73 relations still carrying `anon=arwdDxtm`,
+  including profiles, rounds, posts and device_tokens. Nothing was exposed —
+  probed live with only the publishable key, every table returned zero rows and
+  RLS held alone — but grants and RLS are two layers and only one was working.
+  The sweep migration RAISES rather than reporting success if any relation is
+  left, so the claim is now self-enforcing. Lesson worth keeping: a grant
+  assertion in this file is worth nothing until something fails on it, and
+  `has_table_privilege()` / `information_schema.role_table_grants` both mislead
+  here — read `pg_class.relacl`, then prove it with a real anon client. Also killed
   in D37 and never to be reintroduced: the `members_self` UPDATE policy (let a
   member self-promote to commissioner) and `rounds_owner_update` (let an owner
   rewrite a posted round — §16 says rounds are immutable; deletion is

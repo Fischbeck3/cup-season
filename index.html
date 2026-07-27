@@ -4362,7 +4362,13 @@ function socialBar(f, fi, opts){
   </div>`;
 }
 /* who am I on the board */
-function myBoardName(){ return state.demo ? DEMO_ME : (window.CS?.member ? memName(window.CS.member.id) : 'You'); }
+/* F-007 was only half-fixed: window.memName was bridged, but these three
+   classic call sites still named it BARE, so they resolve through the global
+   object and work ONLY because the module happens to have run first. That is
+   execution order, not a guarantee — CLAUDE.md's rule is that a classic
+   reference to a module export is guarded with window.X?.. On WebKit this threw
+   "Can't find variable: memName" twice in prod. */
+function myBoardName(){ return state.demo ? DEMO_ME : (window.CS?.member ? (window.memName?.(window.CS.member.id) ?? 'You') : 'You'); }
 /* flip one reaction state on/off for `me` — the optimistic half, and its revert */
 function rxFlip(cur, me, on){
   if(on){ cur.me=true;  cur.n++; (cur.who||(cur.who=[])).push(me); }
@@ -4430,9 +4436,9 @@ async function fetchSocial(pids){
   (kud||[]).forEach(k=>{
     const e=k.emoji||'🔥';
     const s=((rxBy[k.post_id]||={})[e]||={n:0, me:false, who:[]});
-    s.n++; if(k.member_id===mine) s.me=true; s.who.push(memName(k.member_id));
+    s.n++; if(k.member_id===mine) s.me=true; s.who.push(window.memName?.(k.member_id) ?? 'Someone');
   });
-  (cmt||[]).forEach(c=>{ (cmBy[c.post_id]||=[]).push({ w:memName(c.member_id), t:c.body }); });
+  (cmt||[]).forEach(c=>{ (cmBy[c.post_id]||=[]).push({ w:window.memName?.(c.member_id) ?? 'Someone', t:c.body }); });
   feed.forEach(f=>{ if(f.post_id){ f.rx = rxBy[f.post_id] || {}; f.cm = cmBy[f.post_id] || []; } });
 }
 /* realtime nudge: a reaction/comment landed elsewhere — re-pull just the
