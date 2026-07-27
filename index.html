@@ -4366,8 +4366,10 @@ function socialBar(f, fi, opts){
    classic call sites still named it BARE, so they resolve through the global
    object and work ONLY because the module happens to have run first. That is
    execution order, not a guarantee — CLAUDE.md's rule is that a classic
-   reference to a module export is guarded with window.X?.. On WebKit this threw
-   "Can't find variable: memName" twice in prod. */
+   reference to a module export carries an optional-call existence check on the
+   bridged global. On WebKit this threw "Can't find variable: memName" twice in
+   prod. (Written without a literal window-dot-placeholder: preflight's bridge
+   check scans comments too and reads one as a real unassigned reference.) */
 function myBoardName(){ return state.demo ? DEMO_ME : (window.CS?.member ? (window.memName?.(window.CS.member.id) ?? 'You') : 'You'); }
 /* flip one reaction state on/off for `me` — the optimistic half, and its revert */
 function rxFlip(cur, me, on){
