@@ -29,6 +29,14 @@
     # future injected script from exfiltrating a token off-origin).
     Content-Security-Policy-Report-Only = "default-src 'self'; script-src 'self' 'unsafe-inline' https://esm.sh; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob: https://*.supabase.co; connect-src 'self' https://*.supabase.co wss://*.supabase.co; frame-ancestors 'none'; base-uri 'self'; object-src 'none'; form-action 'self'"
 
+# Edge functions are NOT declared here. netlify/edge-functions/*.ts each export
+# their own `config` (the modern API) and Netlify discovers them from the repo,
+# not from the publish directory — which is why share-preview.ts is deliberately
+# absent from stamp-version.sh's dist allowlist: it is executed, never served.
+# Declaring a path here as well would collide with the in-file config.
+#   share-preview.ts — per-token OG tags on /?share=TOKEN (D77/D78). Fails open:
+#   any error serves the untouched origin HTML.
+
 # The service worker must never be cached — it's how new builds reach users.
 [[headers]]
   for = "/sw.js"

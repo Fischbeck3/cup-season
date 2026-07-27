@@ -5392,7 +5392,7 @@ window.shareSettlementCard = shareSettlementCard;
    create_share verifies ownership at the database and re-mints the same live
    token per artifact; the page at /?share=TOKEN needs no account. Never called
    in demo (callers gate) — the diorama publishes nothing. */
-async function csShareLink(kind, ref, text){
+async function csShareLink(kind, ref, text, card){
   if(!window.sb || !ref){ toast('Sharing needs your real league'); return; }
   try{
     const { data, error } = await sb.rpc('create_share', { p_kind: kind, p_ref: ref });
@@ -5402,6 +5402,28 @@ async function csShareLink(kind, ref, text){
        holds read access to the original; the page needs no signing). Best
        effort — the link works photo-less if any step misses. The copy is a
        snapshot: revoke kills it, a fresh mint republishes. */
+    /* D78/OG · the settlement card travels too. A link preview is rendered by a
+       scraper that runs no JavaScript, so the canvas the phone can draw is
+       invisible to it — the PNG has to exist at a public URL before the message
+       is sent. Mint time is that moment. Same shape as the photo travel below:
+       best effort, never blocks the share, and the edge function HEADs the
+       object before pointing a scraper at it, so a failure here costs the brand
+       preview and nothing more. Named .png against the same token the photo
+       path uses for .jpg — one token, one object per kind, no collision. */
+    if(kind === 'settlement' && card){
+      try{
+        const { data: head } = await sb.storage.from('shared').list('', { search: data + '.png', limit: 1 });
+        const already = Array.isArray(head) && head.some(o => o.name === data + '.png');
+        if(!already){
+          const png = await new Promise(res => drawSettlementCard(card).toBlob(res, 'image/png'));
+          if(png){
+            const up = await sb.storage.from('shared')
+              .upload(data + '.png', png, { contentType:'image/png', upsert:false });
+            if(up.error && !/exists|duplicate/i.test(up.error.message||'')) throw up.error;
+          }
+        }
+      }catch(e){ try{ console.warn('[share card] link ships card-less:', e.message||e); }catch(_){} }
+    }
     if(kind === 'round'){
       try{
         const { data: rr } = await sb.from('rounds').select('photo_path').eq('id', ref).maybeSingle();
@@ -8415,7 +8437,12 @@ function showLiveRecap(d, result, lrId){
     game: GAME_LABEL[result?.game] || 'SETTLED',
     course: ($('#lrCourse')?.value || ''), date: new Date() }));
   document.getElementById('lrShareLink')?.addEventListener('click',()=>csShareLink('settlement', lrId,
-    (result?.share || 'The match is settled').slice(0,70)));
+    (result?.share || 'The match is settled').slice(0,70),
+    /* the same card the button above shares as a file — published at mint time
+       so the LINK's preview is the card too, not the generic brand image */
+    result ? { result, money: settleMoney,
+               game: GAME_LABEL[result?.game] || 'SETTLED',
+               course: ($('#lrCourse')?.value || ''), date: new Date() } : null));
   document.getElementById('lrShareRevoke')?.addEventListener('click',()=>csRevokeLink('settlement', lrId));
 }
 /* pilot: "Live round needs a discard button." Two-tap confirm, then: close the

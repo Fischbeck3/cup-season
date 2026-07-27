@@ -2643,3 +2643,30 @@ machinery-already-exists. ⚑ marks the points still needing an owner call.*
   changes — the strip reports what the engines already decided. EXTENDS D77:
   that entry said the link carries the detail and the message carries the hook;
   this decides what "the detail" is made of.
+- **AMENDMENT 2026-07-27 · the preview is the card.** D77 named link previews
+  as an outbound surface and nothing was done about them: every share link
+  served the same seven static head tags, so a settled match, a career round
+  and a whole season previewed identically as the brand image. A scraper runs
+  no JavaScript, so `document.title` set at render time reaches nobody — the
+  tags have to be right in the bytes we serve. A Netlify Edge Function
+  (`netlify/edge-functions/share-preview.ts`) rewrites them per token on
+  `/?share=`, reading the same anon `share_info` the public page calls.
+  Fail-open by construction: bad token, dead RPC, revoked share or any thrown
+  error serves the untouched origin HTML, and a request without the parameter
+  returns before any work — a broken preview is a bad day, a broken app is an
+  outage.
+  **The privacy call, made deliberately:** for the image to exist for a
+  scraper it must be at a public URL BEFORE the message is sent, so tapping
+  "Share the settlement" now publishes the rendered card to the public bucket
+  at `shared/{token}.png`. This is the same bargain D60 already struck for
+  round photos travelling with a share, and the same escape hatch applies —
+  `revoke_share` kills the token, a fresh share mints a new one, and revoked
+  copies stay dark. It is opt-in per share and it is the act of sharing that
+  publishes; nothing is uploaded by settling a round. A card that fails to
+  upload costs the brand preview and nothing else, because the edge function
+  HEADs the object before pointing a scraper at it — a 404 og:image renders
+  as a BROKEN preview, which is worse than a generic one.
+  Side names reach an HTML attribute here, so everything interpolated is
+  attribute-escaped at the edge; the anon key is parsed from the HTML rather
+  than hardcoded so it can never drift from the client, and the service-role
+  key must never appear in an edge function.
