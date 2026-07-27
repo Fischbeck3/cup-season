@@ -2690,7 +2690,7 @@ html[data-theme="light"] .room-dusk .btn:not(.dark):not(.gold):not(.apple){color
               <button data-g="match">Match play</button>
               <button data-g="wolf">Wolf</button>
               <button data-g="skins">Skins</button>
-              <button data-g="sunningdale">Sunningdale</button>
+              <button data-g="sunningdale">Sunningdale Rules</button>
             </div>
             <p class="fine" id="gameNote">Stroke play — your card, your pace. One to four players; post when you’re done.</p>
             <div id="matchSetup" style="display:none; margin-top:12px; border-top:0.5px solid var(--line); padding-top:12px;">
@@ -7008,7 +7008,7 @@ function renderResumeBanner(){
   if(state.demo || !L || !L.active || !L.lr || L.stage!=='live'){ el.style.display='none'; el.innerHTML=''; return; }
   let thru=0; for(let k=0;k<18;k++){ if(holeDone(k)) thru=k+1; else break; }
   const course=($('#lrCourse')?.value||'Your round');
-  const gl={score:'Stroke play', match:'Match play', wolf:'Wolf', skins:'Skins'}[L.game]||'Live round';
+  const gl={score:'Stroke play', match:'Match play', wolf:'Wolf', skins:'Skins', sunningdale:'Sunningdale Rules'}[L.game]||'Live round';
   el.style.display='block';
   el.innerHTML=`<button class="livebanner" id="resumeGo" style="width:100%">
     <div class="lk"><span class="dot"></span>Continue your round</div>
@@ -7182,8 +7182,8 @@ function sunnResult(){
   const bankTxt = m.bank===0 ? 'bank empty'
     : `bank: ${names(m.bank>0?0:1)}${unit>0?` $${Math.abs(m.bank)*unit}`:` ${Math.abs(m.bank)} unit${Math.abs(m.bank)===1?'':'s'}`}`;
   const story = winner==null
-    ? `Sunningdale: ${names(0)} and ${names(1)} halved it · ${bankTxt}`
-    : `Sunningdale: ${names(winner)} def. ${names(winner===0?1:0)} ${status} · no handicaps · ${bankTxt}`;
+    ? `Sunningdale Rules: ${names(0)} and ${names(1)} halved it · ${bankTxt}`
+    : `Sunningdale Rules: ${names(winner)} def. ${names(winner===0?1:0)} ${status} · no handicaps · ${bankTxt}`;
   return { game:'sunningdale', winner: winner==null?null:String(winner), status,
            a:m.a, b:m.b, thru:m.played, bank:m.bank, unit,
            side_a:names(0), side_b:names(1), story };
@@ -7235,7 +7235,7 @@ function sunnSoloResult(){
   return { game:'sunningdale', mode:'solo', unit, thru:m.played,
     players:LIVE.map((p,i)=>({name:p.n, wins:m.wins[i]})),
     bank:m.bank,
-    story:`Sunningdale, everyone for themselves: ${line} · no handicaps · ${bankTxt}` };
+    story:`Sunningdale Rules, everyone for themselves: ${line} · no handicaps · ${bankTxt}` };
 }
 
 /* minimized transfer set from a net-zero points ledger — data first, HTML on
@@ -7400,7 +7400,7 @@ function renderPlay(){
   /* D75: solo Sunningdale — the leaderboard, the field's strokes, the bank */
   if(state.live.game==='sunningdale' && liveSolo() && LIVE.length===4){
     const m=sunnSoloCalc(), unit=state.live.stake||0;
-    $('#matchTeams').textContent='Sunningdale · everyone for themselves';
+    $('#matchTeams').textContent='Sunningdale Rules · everyone for themselves';
     const order=[...m.wins.keys()].sort((a,b)=>m.wins[b]-m.wins[a]);
     $('#matchStatus').textContent=order.map(i=>`${(LIVE[i]?.n||'').toUpperCase()} ${m.wins[i]}`).join(' · ');
     const sTxt=m.strokes.map((s,i)=>s>0?`${(LIVE[i]?.n||'').toUpperCase()} +${s}`:null).filter(Boolean).join(', ');
@@ -7416,8 +7416,8 @@ function renderPlay(){
     const teamA=nmOf(0), teamB=nmOf(1);
     const sideStr=t=>MTEAMS[t].map(i=>LIVE[i]?.n).filter(Boolean).join(' + ');   /* the CHOSEN pairing, never slot order */
     $('#matchTeams').textContent = LIVE.length===2
-      ? `Sunningdale · singles · ${LIVE[0]?.n||''} vs ${LIVE[1]?.n||''}`
-      : `Sunningdale · 2v2 best ball · ${sideStr(0)} vs ${sideStr(1)}`;
+      ? `Sunningdale Rules · singles · ${LIVE[0]?.n||''} vs ${LIVE[1]?.n||''}`
+      : `Sunningdale Rules · 2v2 best ball · ${sideStr(0)} vs ${sideStr(1)}`;
     const m=sunnCalc();
     $('#matchStatus').textContent = m.closed
       ? `${m.closed.winner===0?teamA:teamB} WIN ${m.closed.lead}&${m.closed.rem}`
@@ -7520,7 +7520,7 @@ function renderMatchPrev(){
     /* D74: no handicaps, so no strokes table — the game IS the equalizer */
     prev.innerHTML = (sel.length===2 || sel.length===4)
       ? 'Straight up — nobody gets a shot for their index. Go 2 down and you get a stroke on each hole until you climb inside 1. Win a hole while ahead and you bank a unit; their comeback wins pull it back out.'
-      : 'Sunningdale takes 2 (singles) or 4 (2v2 best ball).';
+      : 'Sunningdale Rules takes 2 (singles) or 4 (2v2 best ball).';
     return;
   }
   if(g==='wolf'){
@@ -7740,7 +7740,7 @@ $('#teeOffBtn').addEventListener('click', async ()=>{
   if(bad){
     return toast(g==='score' ? 'Pick at least yourself'
       : g==='match' ? 'Match play takes 2 (singles) or 4 (2v2)'
-      : g==='sunningdale' ? 'Sunningdale takes 2 (singles) or 4 (2v2)'
+      : g==='sunningdale' ? 'Sunningdale Rules takes 2 (singles) or 4 (2v2)'
       : g==='skins' ? 'Skins takes 2 to 4 players'
       : 'Wolf needs exactly 4');
   }
@@ -7946,21 +7946,46 @@ function showLiveRecap(d, result, lrId){
   const posted=d.posted||[], guests=d.guests||[], skipped=d.skipped||[];
   const rows=[];
   /* the game settles first — the settlement card is the recap's headline */
-  if(result && result.game==='match'){
+  /* D74 amendment: Sunningdale matched NEITHER branch below, so the finish
+     sheet rendered no settlement headline — the players closed out a match and
+     the recap never said who won. It fits the rows that already exist: the team
+     game IS a match (winner, status, two sides), the solo game is a ledger like
+     Wolf. Route it rather than growing a third branch. */
+  const isSunnTeam = !!result && result.game==='sunningdale' && result.mode!=='solo';
+  if(result && (result.game==='match' || isSunnTeam)){
     const won=result.winner!=null;
     const wSide=result.winner==='0'?result.side_a:result.side_b;
     const lSide=result.winner==='0'?result.side_b:result.side_a;
     const line = won
       ? `${wSide} def. ${lSide} ${result.status}`
       : `${result.side_a} and ${result.side_b} halved the match`;
-    const money = result.stake>0
+    /* Sunningdale settles a BANK of units, and its holder is decided by the
+       bank's sign — not by who won the match. Name the holder instead of
+       reusing the match's payer/payee template, which would be wrong on any
+       round where the comeback pulls units back but not the match. */
+    const sunnBank = isSunnTeam ? Math.abs(Number(result.bank)||0) * (Number(result.unit)||0) : 0;
+    const money = isSunnTeam
+      ? (sunnBank>0
+          ? `${String((Number(result.bank)>0 ? result.side_a : result.side_b)||'').toUpperCase()} TAKE THE BANK - $${sunnBank}`
+          : 'BRAGGING RIGHTS ONLY')
+      : result.stake>0
       ? (won ? `${lSide.toUpperCase()} PAYS ${wSide.toUpperCase()} $${result.stake} · SETTLE UP`
              : 'ALL SQUARE — NO MONEY MOVES')
       : 'BRAGGING RIGHTS ONLY';
     rows.push(`<div class="check"><span class="num">⚔️</span><div class="tt"><b>${esc(line)}</b><small>${esc(money)}</small></div></div>`);
-  } else if(result && (result.game==='wolf' || result.game==='skins')){
-    const icon=result.game==='wolf'?'🐺':'💰';
-    const money = result.stake>0
+  } else if(result && (result.game==='wolf' || result.game==='skins' || result.game==='sunningdale')){
+    /* only SOLO Sunningdale reaches here — the team game took the match row */
+    const icon=result.game==='wolf'?'🐺':result.game==='sunningdale'?'⚔️':'💰';
+    /* solo Sunningdale has no transfer set: one player holds the bank and every
+       other player owes it, which is stated on the card all round (D75) and
+       must be stated the same way at settle */
+    const soloBank = result.game==='sunningdale'
+      ? (Number(result.bank?.units)||0) * (Number(result.unit)||0) : 0;
+    const money = result.game==='sunningdale'
+      ? (soloBank>0
+          ? `${String((result.players||[])[result.bank?.owner]?.name||'').toUpperCase()} HOLDS THE BANK - $${soloBank} FROM EACH`
+          : 'BRAGGING RIGHTS ONLY')
+      : result.stake>0
       ? ((result.transfers||[]).length
           ? result.transfers.map(t=>`${t.from.toUpperCase()} PAYS ${t.to.toUpperCase()} $${t.amt}`).join(' · ')+' · SETTLE UP'
           : 'ALL SQUARE — NO MONEY MOVES')
@@ -15280,7 +15305,12 @@ async function renderShareView(tok, _testInfo){
     }
   } else if(info.kind === 'settlement'){
     const r = info.result || {};
-    const GAME = { match:'MATCH PLAY', wolf:'WOLF', skins:'SKINS', none:'THE ROUND' };
+    /* D74 amendment: the mode was absent from this map, so every Sunningdale
+       settlement the crew tapped showed the fallback — eyebrow "SETTLED", tab
+       title "Settlement at <course>". The page never named the game it was
+       reporting. Any new game MUST land here in the same commit. */
+    const GAME = { match:'MATCH PLAY', wolf:'WOLF', skins:'SKINS', none:'THE ROUND',
+                   sunningdale:'SUNNINGDALE RULES' };
     document.title = `${GAME[info.game] || 'Settlement'} at ${info.course} · Cup Season`;
     const story = r.story
       || (r.winner != null

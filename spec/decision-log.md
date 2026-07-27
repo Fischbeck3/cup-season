@@ -2336,6 +2336,24 @@ machinery-already-exists. ⚑ marks the points still needing an owner call.*
   name who holds it and what a win does.
 - **CONFLICT check:** none. Live games never touch season scoring (§13.2);
   cards still post as ordinary rounds through the same finish path.
+- **AMENDMENT 2026-07-27 · the display name is "Sunningdale Rules."** The bare
+  word shipped as the label everywhere, and in the pilot's own group thread it
+  read as the VENUE: the settlement message opened "Sunningdale:" while the
+  card's footer said ARIZONA BILTMORE CC. Sunningdale is a real and famous
+  course; a mode named only after it will be misread forever. Second, sharper
+  reason: iOS data detectors parse `Word:` at the head of a message as a URI
+  scheme and percent-encode everything after it — the pilot's text arrived as
+  `Sunningdale:%20Jerecho%20Fischbeck%20&%20Jade%20def.…`, reproduced exactly
+  from the rule (space → %20, `·` → %C2%B7, `&` legal so it survived, the
+  second colon → %3A). A two-word name contains a space, which is illegal in a
+  scheme, so the rename also defuses the mangle. UI-level change: the stored
+  key stays `'sunningdale'` in live_rounds.game, in the game CHECK constraint
+  (20260725220000), and inside game_result JSONB, which finish_live_round
+  branches on. No migration — a database migration for a display string would
+  be a bad trade, and posted board rows are immutable (§16) so history could
+  never be back-renamed anyway. Logged here rather than as its own entry
+  because the mechanic is untouched; recorded so a future session doesn't
+  "fix" the label back.
 
 ### D75 · Everyone for themselves — the 4-player solo modes
 - **Current:** four players picking Match Play or Sunningdale are silently a
@@ -2499,3 +2517,67 @@ machinery-already-exists. ⚑ marks the points still needing an owner call.*
   survives — the tap remains, the direction flips). AMENDS the v23.106
   gold-forward pass: gold narrows from "the brand accent" to "the earned
   metal"; ember takes the live layer. Both deliberate, neither silent.
+
+### D77 · The result outranks the names on every settlement artifact
+- **Current:** one string carries every settlement everywhere. A game builder
+  returns `story`, and that single value is (a) the board row, (b) the OS
+  share-sheet body, and (c) the push notification body. Its shape is uniform
+  across all five games: `FORMAT: full name, full name, full name · config
+  echo · ledger`. The result — who won, by how much — arrives last or, in
+  three builders, not at all. Each consumer then truncates the tail: the share
+  sheet at `.slice(0,120)`, the board at `left(…,200)`, push at
+  `body.slice(0,140)` (implemented twice, independently). The tail is where
+  the result lives, so the machinery amputates precisely the payload.
+- **Problem observed (pilot, 2026-07-26 Biltmore round, then a full sweep):**
+  the owner texted a settled 2v2 to his group and neither the message nor the
+  page it opened answered "who won and by how much." The message was 115
+  characters, named four people by full legal name (two of them twice), led
+  with a course-sounding label, and buried `3&2` in the middle. The sweep
+  found the same defect in 128 outbound strings across five surfaces, and
+  three worse cases behind it: plain Match Play ships a settlement with NO
+  winner and NO score while `winner` and `status` sit unused two lines above
+  it (index.html:7843); solo Sunningdale runs 158 characters and truncates
+  mid-word through the bank owner's name; and the round-robin story is a
+  standings table that cannot resolve a tie. This is not a copy problem that
+  copy can fix — one string cannot serve a feed row (which has the app's
+  context around it) and a text message (which has none).
+- **Recommendation:** rank every settlement artifact by what the reader came
+  for, and split the string by destination.
+  1. **Result first, always.** Winner and margin lead the sentence. Format
+     labels, configuration echoes ("no handicaps"), and ledgers follow or are
+     dropped. `Jerecho & Jade beat Will & Isaak 3&2` — not `Sunningdale:
+     Jerecho Fischbeck & Jade def. …`.
+  2. **`story` and `share` are different fields.** `story` stays the feed row
+     and keeps full names and the ledger. `share` is authored for someone
+     else's thread: first names, ASCII only, one clause, under ~60 chars, no
+     leading `Word:`. Push gets its own authored `push_title` (the result) and
+     `push_body` (the context) rather than forwarding a feed row to a lock
+     screen. No consumer truncates an authored string, so the caps become
+     backstops instead of editors.
+  3. **First names leave the app; full names stay in it.** A shared helper on
+     each side of the wire (client `fn1()`, SQL `first_name()`), never
+     ad-hoc in a template.
+  4. **Engine vocabulary is banned outbound.** "DIFF 18.9", "bank: 6 units",
+     "no handicaps", "fewest rounds used", "PvI" — none of these reach a
+     recipient. They are receipts, and receipts live behind the link.
+  5. **The link carries the detail; the message carries the hook.** A share
+     body that restates the card is spending the reader's attention twice.
+- **Principle served:** everything shows its work (§16) — a settlement is a
+  claim about who owes whom, and a claim nobody can read is not shown work.
+  Also the product-vision filter: the shareable artifact is the entire
+  marketing surface, and it currently arrives as a percent-encoded run-on.
+- **Benefit:** the answer lands in the first three words on every surface a
+  friend sees. The share stops being something the sender has to explain.
+- **Tradeoffs:** two fields where there was one — a new builder that forgets
+  `share` falls back to a feed row, so the fallback must itself be a sentence
+  ("The match is settled"), never `side_a vs side_b`. Board rows get shorter
+  and lose the inline ledger; the receipt is one tap away, which is the §16
+  bargain everywhere else in the app. Push and email fixes need migrations
+  (authored columns, a SQL first-name helper); the client half ships alone
+  and is worth shipping alone.
+- **CONFLICT check:** none upward. Does not touch scoring, settlement math, or
+  the immutability of posted rows — historical board posts keep their original
+  text by design (§16) and are not rewritten. AMENDS D2's ban on engine
+  vocabulary by extending it from in-app surfaces to every outbound channel
+  (push, email, share sheet, clipboard, link previews), where it was never
+  explicitly enforced and where three of the worst violations shipped.
