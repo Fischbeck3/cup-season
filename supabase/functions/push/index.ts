@@ -24,6 +24,58 @@ webpush.setVapidDetails(
   Deno.env.get('VAPID_PRIVATE_KEY')!,
 );
 
+/* ---- lock-screen copy (D77) -----------------------------------------------
+ * ONE budget, declared once. It used to be an inline `.slice(0, 140)` in the
+ * web-push builder AND a second one in the APNs builder, so a fix to either
+ * missed the other — and a hard slice cuts mid-word, which on the old feed-row
+ * bodies meant cutting through somebody's name.
+ */
+const TITLE_MAX = 80;
+const BODY_MAX = 140;
+
+/* truncate on a word boundary and say so, rather than stopping mid-name */
+function clamp(s: string, max: number): string {
+  const t = String(s ?? '').replace(/\s+/g, ' ').trim();
+  if (t.length <= max) return t;
+  const cut = t.slice(0, max - 1);
+  const sp = cut.lastIndexOf(' ');
+  return (sp > max * 0.6 ? cut.slice(0, sp) : cut).trimEnd() + '…';
+}
+
+const firstName = (n: string | null | undefined) =>
+  String(n ?? '').trim().split(/\s+/)[0] || 'Someone';
+
+/* Since the D77 SQL pass, a board row is an authored, result-first sentence
+ * ("Jerecho posted 92 at Encanto GC."). So the headline is already written —
+ * it is the first sentence. Split there: the result becomes the bold line, the
+ * league or event name becomes the context underneath. This is why no
+ * push_title/push_body columns are needed: the generators already say the
+ * right thing first, and forwarding the whole row was what buried it.
+ */
+function split(body: string, context: string): { title: string; body: string } {
+  const t = String(body ?? '').replace(/\s+/g, ' ').trim();
+  if (!t) return { title: '', body: '' };                 /* caller skips */
+  const m = t.match(/^(.{1,90}?[.!?])(?:\s|$)/);
+  const head = (m ? m[1] : t).replace(/[.]+$/, '');
+  const rest = m ? t.slice(m[1].length).trim() : '';
+  return {
+    title: clamp(head, TITLE_MAX),
+    body: clamp(rest ? `${context} · ${rest}` : context, BODY_MAX),
+  };
+}
+
+/* every exit is named, so a misroute is distinguishable from a no-op — the
+ * D68 landmine: this function answered a bare `ok` on six different paths, so
+ * a webhook pointed at the WRONG function logged HTTP 200 `ok` and looked
+ * exactly like success while the intended function showed zero invocations */
+const reply = (reason: string, extra: Record<string, unknown> = {}) => {
+  console.log(`[push] exit reason=${reason} ${JSON.stringify(extra)}`);
+  return new Response(JSON.stringify({ ok: reason === 'sent', reason, ...extra }), {
+    status: reason === 'no-record' ? 400 : 200,
+    headers: { 'content-type': 'application/json' },
+  });
+};
+
 async function sendTo(profileIds: string[], title: string, body: string) {
   if (!profileIds.length) return;
   const { data: subs } = await sb
@@ -32,7 +84,12 @@ async function sendTo(profileIds: string[], title: string, body: string) {
     .in('profile_id', profileIds);
   if (!subs?.length) { console.log('[push] no subs for recipients'); return; }
 
-  const payload = JSON.stringify({ title, body: body.slice(0, 140), url: '/' });
+  /* clamp ONCE, here, so web push and APNs below carry identical text */
+  title = clamp(title, TITLE_MAX);
+  body = clamp(body, BODY_MAX);
+  /* url stays '/' deliberately: nothing routes a per-post deep link yet, and a
+     link that lands somewhere wrong is worse than one that lands home */
+  const payload = JSON.stringify({ title, body, url: '/' });
   const dead: string[] = [];
   let sent = 0;
   await Promise.all(subs.map(async (s) => {
@@ -84,7 +141,8 @@ async function sendApns(profileIds: string[], title: string, body: string) {
   if (!toks?.length) return;
   const host = Deno.env.get('APNS_SANDBOX') ? 'https://api.sandbox.push.apple.com' : 'https://api.push.apple.com';
   const topic = Deno.env.get('APNS_TOPIC') ?? 'app.cupseason.ios';
-  const payload = JSON.stringify({ aps: { alert: { title, body: body.slice(0, 140) }, sound: 'default' } });
+  /* already clamped by sendTo — no second, divergent budget here */
+  const payload = JSON.stringify({ aps: { alert: { title, body }, sound: 'default' } });
   const dead: string[] = [];
   let sent = 0;
   await Promise.all(toks.map(async (t) => {
@@ -136,13 +194,15 @@ async function sendEmail(toEmail: string, toName: string, subject: string, html:
   }
 }
 
-function friendRequestEmail(toName: string, fromName: string, fromHandle: string) {
-  const greeting = toName ? `Hi ${toName},` : 'Hi,';
-  const who = fromHandle ? `${fromName} (@${fromHandle})` : fromName;
+/* the handle in parentheses was plumbing leaking into a sentence, and the full
+   legal name is not how a friend refers to a friend (D77) */
+function friendRequestEmail(toName: string, fromName: string) {
+  const greeting = toName ? `Hi ${firstName(toName)},` : 'Hi,';
+  const who = firstName(fromName);
   return `<div style="font-family:-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;max-width:480px;margin:0 auto;color:#1a2620">
     <p style="font-size:16px;line-height:1.5">${greeting}</p>
-    <p style="font-size:16px;line-height:1.5"><strong>${who}</strong> added you as a golf buddy on Cup Season.</p>
-    <p style="font-size:16px;line-height:1.5">Open the app to accept and you'll see each other's rounds and scores.</p>
+    <p style="font-size:16px;line-height:1.5"><strong>${who}</strong> wants in your crew on Cup Season.</p>
+    <p style="font-size:16px;line-height:1.5">Accept and their rounds land in your feed, all season.</p>
     <p style="margin:24px 0">
       <a href="https://cupseason.app" style="background:#E9BE62;color:#1c1503;text-decoration:none;font-weight:600;padding:12px 22px;border-radius:10px;display:inline-block">Open Cup Season</a>
     </p>
@@ -156,7 +216,10 @@ Deno.serve(async (req) => {
   }
 
   const { type, table, record, old_record } = await req.json().catch(() => ({}));
-  if (!record) return new Response('ok');
+  /* log EVERY invocation before branching: a webhook created against the wrong
+     function is otherwise invisible (D68 — it cost several round trips) */
+  console.log(`[push] invoked table=${table ?? '?'} type=${type ?? '?'} kind=${record?.kind ?? '-'}`);
+  if (!record) return reply('no-record');
 
   if (table === 'friendships') {
     const who = async (id: string) => {
@@ -164,45 +227,59 @@ Deno.serve(async (req) => {
         .select('display_name, handle, email').eq('id', id).maybeSingle();
       return data;
     };
+    /* the title was the literal app name on both of these — which the OS
+       already prints above every notification next to the icon, so the bold
+       line carried nothing. The news goes in the title now (D77). */
     if (type === 'INSERT' && record.status === 'pending') {
       const [p, a] = await Promise.all([who(record.requester), who(record.addressee)]);
+      const from = firstName(p?.display_name ?? 'A golfer');
       console.log('[push] kind=friend-request');
-      await sendTo([record.addressee], 'Cup Season',
-        `${p?.display_name ?? 'A golfer'} (@${p?.handle ?? '?'}) wants to be golf buddies`);
+      await sendTo([record.addressee], `${from} wants in your crew`, 'Tap to accept');
       // Requests only (pilot decision) — email the person who was added.
       await sendEmail(
         a?.email ?? '', a?.display_name ?? '',
-        `${p?.display_name ?? 'A golfer'} added you on Cup Season`,
-        friendRequestEmail(a?.display_name ?? '', p?.display_name ?? 'A golfer', p?.handle ?? ''),
+        `${from} wants in your crew`,
+        friendRequestEmail(a?.display_name ?? '', p?.display_name ?? 'A golfer'),
       );
+      return reply('sent', { kind: 'friend-request' });
     } else if (type === 'UPDATE' && record.status === 'accepted' && old_record?.status === 'pending') {
       const p = await who(record.addressee);
       console.log('[push] kind=friend-accept');
-      await sendTo([record.requester], 'Cup Season',
-        `${p?.display_name ?? 'Your buddy'} accepted — you're golf buddies`);
+      await sendTo([record.requester], `${firstName(p?.display_name ?? 'Your buddy')} is in your crew`,
+        "You'll see their rounds now");
+      return reply('sent', { kind: 'friend-accept' });
     }
-    return new Response('ok');
+    return reply('friendship-no-op', { type, status: record.status });
   }
 
   // opt-in duel taunts (the Ryder, batch-3 #17): one row = one recipient
   if (table === 'push_nudges') {
+    /* the one genuinely personalised notification on the surface — one row per
+       recipient, title and body authored by the generator. Nothing to rewrite;
+       it only needed the empty-body guard the others needed. */
+    const nb = String(record.body ?? '').trim();
+    if (!nb) return reply('empty-body', { kind: 'nudge' });
     console.log('[push] kind=nudge');
-    await sendTo([record.profile_id], record.title ?? 'The Ryder', String(record.body ?? ''));
-    return new Response('ok');
+    await sendTo([record.profile_id], String(record.title ?? 'The Ryder'), nb);
+    return reply('sent', { kind: 'nudge' });
   }
 
   // event board posts (the Ryder): fan to the event's players
   if (!record.league_id) {
-    if (!record.event_id) return new Response('ok');
+    if (!record.event_id) return reply('no-league-or-event', { post: record.id });
     const [{ data: evt }, { data: eps }] = await Promise.all([
       sb.from('events').select('name').eq('id', record.event_id).maybeSingle(),
       sb.from('event_players').select('profile_id').eq('event_id', record.event_id),
     ]);
     const recipients = (eps ?? []).map((e) => e.profile_id);
+    /* the event name was the title and the whole feed row was the body; the
+       row's own first sentence is the headline (D77) and the event name is
+       the context under it */
+    const n = split(String(record.body ?? ''), evt?.name ?? 'The Ryder');
+    if (!n.title) return reply('empty-body', { kind: record.kind, post: record.id });
     console.log(`[push] kind=${record.kind} event recipients=${recipients.length}`);
-    await sendTo(recipients, evt?.name ?? 'The Ryder',
-      String(record.body ?? 'Something happened in your event'));
-    return new Response('ok');
+    await sendTo(recipients, n.title, n.body);
+    return reply('sent', { kind: record.kind, recipients: recipients.length });
   }
 
   const [{ data: lg }, { data: members }] = await Promise.all([
@@ -223,9 +300,13 @@ Deno.serve(async (req) => {
     .filter((m) => m.id !== record.member_id) // never ping the author
     .filter((m) => wants(m.profiles))
     .map((m) => m.profile_id);
+  /* the highest-volume notification in the product, and it had no copy of its
+     own: the league name was the title and the whole feed row was the body.
+     'Something happened on the board' was worse than silence — it woke a phone
+     to say nothing — so an empty body is now a skip, not a filler. */
+  const n = split(String(record.body ?? ''), lg?.name ?? 'Cup Season');
+  if (!n.title) return reply('empty-body', { kind: record.kind, post: record.id });
   console.log(`[push] kind=${record.kind} recipients=${recipients.length}`);
-  await sendTo(recipients, lg?.name ?? 'Cup Season',
-    String(record.body ?? 'Something happened on the board'));
-
-  return new Response('ok');
+  await sendTo(recipients, n.title, n.body);
+  return reply('sent', { kind: record.kind, recipients: recipients.length });
 });
