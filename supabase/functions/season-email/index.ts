@@ -242,7 +242,13 @@ Deno.serve(async (req) => {
   const gap = p.champion_score != null && p.runnerup_score != null
     ? Math.round((p.champion_score - p.runnerup_score) * 10) / 10
     : null;
-  const subject = `The Cup goes to ${p.champion}${gap && gap > 0 ? ` by ${num(gap)}` : ''} — ${p.league}`;
+  /* `solo` (added 20260727240000) is the only thing that can tell a squad name
+     from a person's, and without it this had to print a full legal name to
+     avoid shortening "Mudsharks" to "Mudshark". First names go in the SUBJECT,
+     where inbox previews truncate hardest; the headline inside keeps the full
+     name, because that one is an honour line and wants the whole of it. */
+  const champ = p.solo ? String(p.champion ?? '').trim().split(/\s+/)[0] || p.champion : p.champion;
+  const subject = `The Cup goes to ${champ}${gap && gap > 0 ? ` by ${num(gap)}` : ''} — ${p.league}`;
 
   let sent = 0, failed = 0;
   for (const r of p.recipients || []) {

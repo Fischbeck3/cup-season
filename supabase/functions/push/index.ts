@@ -52,6 +52,15 @@ const firstName = (n: string | null | undefined) =>
  * push_title/push_body columns are needed: the generators already say the
  * right thing first, and forwarding the whole row was what buried it.
  */
+/* One entry point for both cases: an authored title when the generator gave us
+   one (settlements — see posts.push_title), otherwise the first-sentence split
+   below. Kept together so no emit site can use one and forget the other. */
+function headline(authored: unknown, body: unknown, context: string): { title: string; body: string } {
+  const a = String(authored ?? '').replace(/\s+/g, ' ').trim();
+  if (a) return { title: clamp(a, TITLE_MAX), body: clamp(context, BODY_MAX) };
+  return split(String(body ?? ''), context);
+}
+
 function split(body: string, context: string): { title: string; body: string } {
   const t = String(body ?? '').replace(/\s+/g, ' ').trim();
   if (!t) return { title: '', body: '' };                 /* caller skips */
@@ -275,7 +284,7 @@ Deno.serve(async (req) => {
     /* the event name was the title and the whole feed row was the body; the
        row's own first sentence is the headline (D77) and the event name is
        the context under it */
-    const n = split(String(record.body ?? ''), evt?.name ?? 'The Ryder');
+    const n = headline(record.push_title, record.body, evt?.name ?? 'The Ryder');
     if (!n.title) return reply('empty-body', { kind: record.kind, post: record.id });
     console.log(`[push] kind=${record.kind} event recipients=${recipients.length}`);
     await sendTo(recipients, n.title, n.body);
@@ -304,7 +313,11 @@ Deno.serve(async (req) => {
      own: the league name was the title and the whole feed row was the body.
      'Something happened on the board' was worse than silence — it woke a phone
      to say nothing — so an empty body is now a skip, not a filler. */
-  const n = split(String(record.body ?? ''), lg?.name ?? 'Cup Season');
+  /* a settlement carries an authored push_title (20260727240000) — the client's
+     short `share` string, first names and all. Prefer it: deriving from the
+     feed row is right for every other kind, but a 2v2 board row keeps FULL
+     names by design and a lock screen may cut before the score. */
+  const n = headline(record.push_title, record.body, lg?.name ?? 'Cup Season');
   if (!n.title) return reply('empty-body', { kind: record.kind, post: record.id });
   console.log(`[push] kind=${record.kind} recipients=${recipients.length}`);
   await sendTo(recipients, n.title, n.body);
