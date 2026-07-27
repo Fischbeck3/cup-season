@@ -2581,3 +2581,65 @@ machinery-already-exists. ⚑ marks the points still needing an owner call.*
   vocabulary by extending it from in-app surfaces to every outbound channel
   (push, email, share sheet, clipboard, link previews), where it was never
   explicitly enforced and where three of the worst violations shipped.
+
+### D78 · The settlement becomes an artifact — the hole strip and the card
+- **Current:** a settled game leaves the app as text plus a URL. The link opens
+  a page that states the result in a sentence and lists four gross scores. Two
+  canvas artifacts exist and neither covers this: `drawRecapCard` renders a
+  ROUND, `drawMajorCard` renders the major jug. Match play, Wolf, Skins and
+  Sunningdale Rules — every game the tee sheet actually runs — have no image at
+  all. The per-hole record that every engine computes is discarded at finish:
+  `game_result` stores the outcome and the ledger, never the shape of the round.
+- **Problem observed (pilot, 2026-07-26):** "hard to tell who won and by how
+  much… less words and more visuals." D77 fixed the words and stopped there:
+  the result now leads every string, but a settlement is still ONLY strings. The
+  deeper miss is that "by how much" is a poor summary of a match — 3&2 says the
+  margin and nothing about the round. The group played sixteen holes with a
+  four-hole swing in the middle and none of that survives the finish. Meanwhile
+  the shareable artifact is the app's entire marketing surface (D77, product
+  vision) and for the flagship game it is a hyperlink.
+- **Recommendation:** two artifacts over one new piece of stored data.
+  1. **The hole ledger is snapshotted at finish.** Each engine already walks the
+     holes; the winner of each hole is a byproduct it currently throws away.
+     The engines return it, the result builders put it in `game_result.holes`,
+     and it is written once and never recomputed. NOT re-derived by a new
+     helper reading `netOf`/`holeDone` — that would be the second source of
+     truth CLAUDE.md forbids, and it would silently disagree with the engine
+     the moment a game's rules change (Sunningdale's positional strokes make
+     this concrete: hole winners there are net of a deficit the engine tracks).
+     Shape is game-agnostic: cells of `a` | `b` | `h` | null for two-sided
+     games, a player index for the solo modes, plus the hole the match closed.
+  2. **The hole strip.** Eighteen cells reading left to right: heat for the
+     side that took the hole, slate for the other, hollow for halved, faded for
+     never played, with the closeout marked. It renders on the public
+     settlement page and in the finish recap sheet. This is where "by how much"
+     stops being a number and becomes a shape — the run of four, the collapse,
+     the hole it ended on. Highlights ("won four straight, 5–8") are derived at
+     render from the same cells, never stored: a stored highlight is a second
+     source of truth about a round nobody can re-examine.
+  3. **The settlement card.** A canvas PNG in the family of the existing two,
+     same fixed dark face (an artifact ignores the viewer's theme — D30), the
+     margin at hero scale, the two sides, the strip, and the money. Shared as a
+     file through the same `navigator.share({files})` path the round recap uses.
+- **Principle served:** everything shows its work (§16) — a settlement asserts
+  who owes whom, and until now the evidence lived only on the phone that kept
+  score. The strip is the receipt for the margin. Also the Cup Season Test: the
+  artifact has to be worth sending on its own, without the sender explaining it.
+- **Benefit:** the answer to "who won and by how much" is visible before a word
+  is read; the round gets a memory beyond its final number; the funnel gains the
+  one artifact the flagship game never had.
+- **Tradeoffs:** `game_result` grows by roughly 18 cells per round — trivial in
+  a JSONB column already holding the ledger. **`share_info` curates the
+  settlement payload through an explicit key list (`20260723230000`, v_res),
+  so the public page cannot see `holes` until a migration widens it** — the
+  in-app strip ships client-only, the public strip needs a db push, and the two
+  halves must be skew-safe in both orders (the page renders strip-less when the
+  key is absent; the client writes the key whether or not the page can read it
+  yet). Rounds settled BEFORE this ships have no ledger and never will — every
+  surface degrades to the current text rather than rendering an empty strip.
+  A third canvas card is a third thing to keep on-brand when the identity moves
+  (it already moved twice this month — D76).
+- **CONFLICT check:** none. No scoring, no standings, no settlement math
+  changes — the strip reports what the engines already decided. EXTENDS D77:
+  that entry said the link carries the detail and the message carries the hook;
+  this decides what "the detail" is made of.

@@ -5246,6 +5246,148 @@ async function shareRecapCard(d){
     toast(humanError(e, 'Could not make the card.'));
   }
 }
+/* ---- D78 · the settlement card ---------------------------------------------
+   The third canvas artifact, same skeleton as drawRecapCard/drawMajorCard:
+   1080×1350 (4:5, the tallest a thread preview renders uncropped), no DPR
+   scaling (the canvas is detached and only ever encoded — backing pixels ARE
+   output pixels), ctr() copied in rather than hoisted, per the house pattern.
+
+   One deliberate divergence: this card wears the D76 CHARCOAL palette, not the
+   green-tinted dark the older two still carry (#0C100D, pre-D76). A new
+   artifact ships on the ratified identity; re-skinning the other two is its
+   own pass and would change every existing card mid-beta.
+
+   The margin is the hero — "3&2" at 300px, because that is the thing the pilot
+   could not find. The strip runs underneath it: same ledger, same colors as the
+   DOM strip, drawn as rects because canvas has no DOM to reuse.               */
+function drawSettlementCard(d){
+  const W=1080, H=1350;
+  const BG='#0C0D0F', PANEL='#17191C', INK='#F0F2F3', MUT='#8E979E',
+        GOLD='#E9BE62', HOT='#FF5A2E', SLATE='#66707A';
+  const cv=document.createElement('canvas'); cv.width=W; cv.height=H;
+  const x=cv.getContext('2d');
+  const MONO="'IBM Plex Mono',ui-monospace,Menlo,monospace";
+  const SERIF="'Charter','Iowan Old Style','Palatino Linotype',Georgia,serif";
+  const ctr=(txt,y,font,fill,ls)=>{ x.font=font; x.fillStyle=fill;
+    try{ x.letterSpacing=(ls||0)+'px'; }catch(e){}
+    x.textAlign='center'; x.fillText(txt,W/2,y);
+    try{ x.letterSpacing='0px'; }catch(e){} };
+  /* side names are user data of unknown length ("Jerecho Fischbeck & Jade
+     Smith" is 30 chars) — shrink to fit rather than letting the canvas run the
+     text off the panel, which is silent and unrecoverable in a PNG */
+  const fit=(txt,y,size,font,fill,ls,max,weight)=>{
+    let s=size; const wt=weight||600;
+    for(;s>16;s-=2){ x.font=`${wt} ${s}px ${font}`; if(x.measureText(txt).width<=(max||W-220)) break; }
+    ctr(txt,y,`${wt} ${s}px ${font}`,fill,ls);
+  };
+  x.fillStyle=BG; x.fillRect(0,0,W,H);
+  x.fillStyle=PANEL;
+  x.beginPath(); x.roundRect(36,36,W-72,H-72,28); x.fill();
+  x.strokeStyle='rgba(233,190,98,.35)'; x.lineWidth=2;
+  x.beginPath(); x.roundRect(36,36,W-72,H-72,28); x.stroke();
+
+  const r=d.result||{}, HL=r.holes||null;
+  const won=r.winner!=null;
+  const wSide=r.winner==='0'?r.side_a:r.side_b, lSide=r.winner==='0'?r.side_b:r.side_a;
+
+  ctr((d.game||'SETTLED').toUpperCase(), 170, `600 32px ${MONO}`, GOLD, 8);
+
+  /* the hero. Two-sided games have a margin and it leads at full scale; the
+     ledger games have no single margin, so their one-line result takes the
+     slot at a size that still reads from a thumbnail. */
+  const twoSided = !!(r.side_a && r.side_b);
+  if(twoSided && won){
+    /* "3&2" is two glyphs and belongs at full scale; "2 up thru 16" is five
+       words and ran off both edges of the panel at 260px. Split it — the
+       margin is the hero, the state of play is its subline — and fit-shrink
+       whatever is left, because a canvas clips silently and a clipped PNG is
+       not recoverable once it is in someone's thread. */
+    let hero=String(r.status||'').toUpperCase(), heroSub='';
+    const upThru=hero.match(/^(\d+)\s*UP\s*THRU\s*(\d+)$/);
+    if(upThru){ hero=upThru[1]+' UP'; heroSub='THRU '+upThru[2]; }
+    fit(hero, 440, 260, SERIF, INK, 0, W-240, 700);
+    if(heroSub) ctr(heroSub, 500, `500 30px ${MONO}`, MUT, 8);
+    fit(String(wSide||'').toUpperCase(), heroSub?570:560, 44, MONO, INK, 6);
+    ctr('DEF.', heroSub?622:612, `500 26px ${MONO}`, MUT, 8);
+    fit(String(lSide||'').toUpperCase(), heroSub?674:664, 40, MONO, MUT, 6);
+  } else if(twoSided){
+    ctr('ALL', 390, `700 150px ${SERIF}`, INK);
+    ctr('SQUARE', 520, `700 150px ${SERIF}`, INK);
+    fit(String(r.side_a||'').toUpperCase(), 600, 40, MONO, INK, 6);
+    fit(String(r.side_b||'').toUpperCase(), 655, 40, MONO, INK, 6);
+  } else {
+    fit(String(r.share||'SETTLED'), 470, 76, SERIF, INK, 0, W-200);
+    fit(String(d.game||'').toUpperCase(), 600, 32, MONO, MUT, 8);
+  }
+
+  /* the strip — the same ledger the DOM strip draws, in rects */
+  if(HL && Array.isArray(HL.cells) && HL.cells.length){
+    const n=Math.max(1, HL.n||18), L=150, R=W-150, gap=6;
+    const cw=((R-L)-gap*(n-1))/n, top=790, hgt=46;
+    for(let i=0;i<n;i++){
+      const v = i<HL.cells.length ? HL.cells[i] : null;
+      const isClose = HL.closed && (i+1)===HL.closed;
+      const cx=L+i*(cw+gap), ch=isClose?hgt+10:hgt, cy=top+(hgt-ch);
+      x.globalAlpha = v==null ? .28 : 1;
+      if(v==null || v==='h' || v==='c'){
+        x.strokeStyle='rgba(255,255,255,.42)'; x.lineWidth=2;
+        x.beginPath(); x.roundRect(cx,cy,cw,ch,4); x.stroke();
+      } else {
+        x.fillStyle = String(v)===String(HL.hot) ? HOT : SLATE;
+        x.beginPath(); x.roundRect(cx,cy,cw,ch,4); x.fill();
+      }
+      x.globalAlpha=1;
+    }
+    ctr(HL.closed ? `CLOSED ON ${HL.closed}` : `THRU ${HL.played||HL.cells.length}`,
+        902, `500 26px ${MONO}`, HL.closed?HOT:MUT, 6);
+    /* the legend is a swatch and a name — "took the ember holes" was internal
+       vocabulary on an artifact headed for people who have never seen the app */
+    if(HL.legend){
+      x.font=`500 24px ${MONO}`; x.textAlign='left';
+      const label=String(HL.legend).toUpperCase();
+      const tw=x.measureText(label).width, sw=20, sgap=12;
+      const startX=(W-(tw+sw+sgap))/2;
+      x.fillStyle=HOT;
+      x.beginPath(); x.roundRect(startX, 928, sw, sw, 4); x.fill();
+      x.fillStyle=MUT; x.fillText(label, startX+sw+sgap, 946);
+      x.textAlign='center';
+    }
+  }
+
+  ctr(String(d.money||'').toUpperCase(), 1010, `600 30px ${MONO}`, GOLD, 5);
+  x.strokeStyle='rgba(255,255,255,.1)'; x.lineWidth=1;
+  x.beginPath(); x.moveTo(280,1060); x.lineTo(W-280,1060); x.stroke();
+  ctr((d.course||'A ROUND').toUpperCase(), 1124, `600 34px ${MONO}`, INK, 4);
+  const DW=['SUN','MON','TUE','WED','THU','FRI','SAT'], MO=['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'];
+  const dt=d.date||new Date();
+  ctr(`${DW[dt.getDay()]} · ${MO[dt.getMonth()]} ${dt.getDate()}`, 1174, `500 27px ${MONO}`, MUT, 4);
+  ctr('Cup Season', 1268, `600 50px ${SERIF}`, INK);
+  ctr('cupseason.app', 1312, `500 25px ${MONO}`, MUT, 4);
+  return cv;
+}
+/* same five moves as shareRecapCard: blob, file, capability gate, share,
+   download+clipboard fallback. AbortError is a user cancel, never an error. */
+async function shareSettlementCard(d){
+  try{
+    const blob=await new Promise(res=>drawSettlementCard(d).toBlob(res,'image/png'));
+    const file=new File([blob],'cup-season-settlement.png',{type:'image/png'});
+    const text=d.result?.share || 'Settled on the course';
+    if(navigator.canShare && navigator.canShare({files:[file]})){
+      await navigator.share({files:[file], text});
+      return;
+    }
+    const a=document.createElement('a');
+    a.href=URL.createObjectURL(blob); a.download='cup-season-settlement.png'; a.click();
+    setTimeout(()=>URL.revokeObjectURL(a.href),5000);
+    try{ await navigator.clipboard?.writeText(text); toast('Card downloaded · caption copied'); }
+    catch(e){ toast('Card downloaded'); }
+  }catch(e){
+    if(e && e.name==='AbortError') return;
+    toast('Could not make the card.');
+  }
+}
+window.shareSettlementCard = shareSettlementCard;
+
 /* ---- D57 · public share links — mint lazily, share like the invite link ----
    create_share verifies ownership at the database and re-mints the same live
    token per artifact; the page at /?share=TOKEN needs no account. Never called
@@ -7032,17 +7174,23 @@ const netOf=(pi,h)=>state.live.scores[pi][h]-strokeOn(pi,h);
 
 function matchCalc(){
   let a=0,b=0,played=0,closed=null;
+  /* D78 · the hole ledger. Every engine already decides who took each hole and
+     then throws it away; `cells` keeps it. Collected HERE, inside the engine
+     that owns the rule, never re-derived by a helper reading netOf() — that
+     would be the second source of truth CLAUDE.md forbids, and it would drift
+     silently the day a game's law changes. */
+  const cells=[];
   const H=liveHoles();   /* D73: a 4&3 on nine closes at rem against 9, not 18 */
   for(let h=0;h<H;h++){
     if(!holeDone(h)) break;
     const na=Math.min(...MTEAMS[0].map(p=>netOf(p,h)));
     const nb=Math.min(...MTEAMS[1].map(p=>netOf(p,h)));
-    if(na<nb)a++; else if(nb<na)b++;
+    if(na<nb){a++; cells.push('a');} else if(nb<na){b++; cells.push('b');} else cells.push('h');
     played=h+1;
     const lead=Math.abs(a-b), rem=H-played;
     if(lead>rem && lead>0){closed={winner:a>b?0:1, lead, rem}; break;}
   }
-  return {a,b,played,closed};
+  return {a,b,played,closed,cells};
 }
 
 /* who's the wolf on hole h: the shuffled-at-tee-off order rotates 1–16;
@@ -7058,18 +7206,24 @@ function wolfAt(h){
   [0,1,2,3].forEach(p=>{ if(pts[p]<pts[worst]) worst=p; });
   return worst;
 }
-function wolfPointsThrough(limit){
+/* D78 · `cells` is an optional sink for the hole ledger — the recursive calls
+   from wolfAt() pass nothing and pay nothing, and only the one full-length run
+   at finish collects. A hole with no pick, an unplayed hole, and a halved hole
+   are three different states and the strip draws them differently, so all
+   three are pushed rather than skipped: cells stays index-aligned with holes. */
+function wolfPointsThrough(limit, cells){
   const pts=[0,0,0,0];
   for(let h=0;h<limit;h++){
     const pick=state.live.wolf[h];
-    if(!pick||!holeDone(h)) continue;
+    if(!pick||!holeDone(h)){ if(cells) cells.push(null); continue; }
     const w=wolfAt(h);
     const side = pick.mode==='lone' ? [w] : [w,pick.partner];
     const opp=[0,1,2,3].filter(p=>!side.includes(p));
     const ns=Math.min(...side.map(p=>netOf(p,h)));
     const no=Math.min(...opp.map(p=>netOf(p,h)));
-    if(ns===no) continue;
+    if(ns===no){ if(cells) cells.push('h'); continue; }
     const win=ns<no;
+    if(cells) cells.push(win?'w':'o');
     if(pick.mode==='lone'){
       if(win){pts[w]+=3; opp.forEach(p=>pts[p]-=1);}
       else{pts[w]-=3; opp.forEach(p=>pts[p]+=1);}
@@ -7081,6 +7235,88 @@ function wolfPointsThrough(limit){
   return pts;
 }
 function wolfPoints(){ return wolfPointsThrough(liveHoles()); }
+/* the ledger-collecting run, used once at finish (D78) */
+function wolfCells(){ const c=[]; wolfPointsThrough(liveHoles(), c); return c; }
+/* D78 · the shape that travels: one envelope every game fills the same way, so
+   the strip renderer never branches on which game it is drawing.
+     mode 'sides'   — cells are 'a' | 'b' | 'h'      (match play, Sunningdale Rules)
+     mode 'players' — cells are a player index | 'h' | 'c'  (solo modes, skins)
+     mode 'wolf'    — cells are 'w' | 'o' | 'h'      (the wolf's side, or the field)
+   null anywhere means the hole was never played. `closed` is the hole the match
+   ended on, which is the one cell the strip marks.
+
+   `hot` and `legend` travel WITH the ledger rather than being re-derived at
+   render: the public share page receives this JSONB and has no roster, no
+   engines and no way to work out whose holes the heat belongs to. A
+   self-describing payload also means a future surface renders it correctly
+   without knowing the game exists. */
+function holeLedger(mode, cells, played, closedOut, hot, legend){
+  const c = Array.isArray(cells) ? cells.slice(0, liveHoles()) : [];
+  return { n: liveHoles(), played: played||c.length, mode, cells: c,
+           closed: closedOut ? (played||c.length) : null,
+           hot: hot==null ? null : hot, legend: legend||null };
+}
+
+/* ---- D78 · the hole strip -------------------------------------------------
+   "3&2" states a margin; the strip states the SHAPE — the run of four, the
+   collapse, the hole it ended on. One renderer for every game because the
+   ledger arrives in one envelope (holeLedger above).
+
+   Heat is the subject's holes, slate is everyone else's, hollow is a hole that
+   halved or carried, faded is a hole never played. Which key is hot is the
+   caller's call: the winning side on the public card, YOUR side in the recap.
+
+   Inline styles, deliberately: the /?share= page renders into a bare container
+   and must not depend on a class surviving a CSS refactor. Returns a string —
+   callers own their own escaping (nothing user-authored reaches this).       */
+const STRIP_HOT='#FF5A2E', STRIP_COOL='#8E979E';
+function renderHoleStrip(H, opts){
+  if(!H || !Array.isArray(H.cells) || !H.cells.length) return '';
+  const o=opts||{}, n=Math.max(1, H.n||18), hot=String(o.hot);
+  const hotC=o.hotColor||STRIP_HOT, coolC=o.coolColor||STRIP_COOL, mut=o.mutedColor||STRIP_COOL;
+  const cells=[];
+  for(let i=0;i<n;i++){
+    const v = i<H.cells.length ? H.cells[i] : null;
+    const isClose = H.closed && (i+1)===H.closed;
+    let bg='transparent', bd='rgba(140,150,160,.30)', op=1;
+    if(v==null) op=.28;                                     /* never played */
+    else if(v==='h'||v==='c') bd='rgba(255,255,255,.42)';   /* halved, or the skin carried */
+    else if(String(v)===hot){ bg=hotC; bd=hotC; }
+    else { bg=coolC; bd=coolC; }
+    cells.push(`<span title="Hole ${i+1}" style="flex:1 1 0;min-width:0;height:${isClose?20:14}px;`
+      + `border-radius:2px;background:${bg};border:1px solid ${bd};opacity:${op}"></span>`);
+  }
+  const foot = H.closed
+    ? `<span style="color:${hotC}">CLOSED ON ${H.closed}</span>`
+    : `<span>THRU ${H.played||H.cells.length}</span>`;
+  return `<div style="margin:${o.margin||'14px 0 0'}">
+    <div style="display:flex;gap:3px;align-items:flex-end">${cells.join('')}</div>
+    <div style="display:flex;justify-content:space-between;align-items:baseline;margin-top:7px;
+                font-size:10px;letter-spacing:.14em;color:${mut}">
+      <span>1</span>${foot}<span>${n}</span>
+    </div>
+  </div>`;
+}
+window.renderHoleStrip = renderHoleStrip;   /* the /?share= page lives in the module block */
+
+/* the strip shows the shape; these name it. Derived at render from the same
+   cells, never stored — a stored highlight is a claim about a round nobody can
+   re-examine (§16). Returns at most three, longest-run first. */
+function holeHighlights(H, opts){
+  if(!H || !Array.isArray(H.cells) || !H.cells.length) return [];
+  const hot=String((opts||{}).hot), out=[];
+  let best=0, bestEnd=-1, run=0;
+  H.cells.forEach((v,i)=>{
+    if(v!=null && String(v)===hot){ run++; if(run>best){ best=run; bestEnd=i; } }
+    else run=0;
+  });
+  if(best>=3) out.push(`WON ${best} STRAIGHT · ${bestEnd-best+2}-${bestEnd+1}`);
+  const halved=H.cells.filter(v=>v==='h').length;
+  if(halved>=4) out.push(`${halved} HOLES HALVED`);
+  if(H.closed) out.push(`CLOSED OUT ON ${H.closed}`);
+  return out.slice(0,3);
+}
+window.holeHighlights = holeHighlights;
 
 /* skins: lowest NET takes the hole's skin(s); ties carry the pot forward
    (decision-log D9). Works 2–4 players; carried skins die at 18 (v1). */
@@ -7088,19 +7324,20 @@ function skinsCalc(){
   const n=LIVE.length;
   const won=LIVE.map(()=>0);
   let carry=1, thru=0;
+  const cells=[];   /* D78 · the hole ledger: the player index, or 'c' when the skin carried */
   for(let h=0;h<liveHoles();h++){   /* D73: a carried skin dies at the last hole played (9 or 18) */
     if(!holeDone(h)) break;
     const nets=LIVE.map((_,pi)=>netOf(pi,h));
     const mn=Math.min(...nets);
     const winners=nets.reduce((a,v,i)=>{ if(v===mn)a.push(i); return a; },[]);
-    if(winners.length===1){ won[winners[0]]+=carry; carry=1; }
-    else carry++;
+    if(winners.length===1){ won[winners[0]]+=carry; carry=1; cells.push(winners[0]); }
+    else { carry++; cells.push('c'); }
     thru=h+1;
   }
   /* net-zero ledger: each skin pays the winner (n−1) and everyone else −1 */
   const total=won.reduce((a,b)=>a+b,0);
   const pts=won.map(w=>w*n-total);
-  return {won, pts, carry, thru};
+  return {won, pts, carry, thru, cells};
 }
 
 /* Sunningdale (D74): match play with NO handicaps — the equalizer is
@@ -7114,19 +7351,21 @@ function sunnEngine(inp){
   const scores=inp.scores, teams=inp.teams, H=inp.holes||18;
   const done=h=>teams.every(t=>t.every(p=>scores[p] && scores[p][h]!=null));
   let a=0,b=0,played=0,closed=null,bank=0;
+  const cells=[];   /* D78 · the hole ledger, decided by the engine that owns the rule */
   for(let h=0;h<H;h++){
     if(!done(h)) break;
     const dA=Math.max(0,(b-a)-1), dB=Math.max(0,(a-b)-1);   /* strokes ON this hole */
     const na=Math.min(...teams[0].map(p=>scores[p][h]-dA));
     const nb=Math.min(...teams[1].map(p=>scores[p][h]-dB));
     played=h+1;
-    if(na<nb){ a++; if(a>b) bank++; }
-    else if(nb<na){ b++; if(b>a) bank--; }
+    if(na<nb){ a++; if(a>b) bank++; cells.push('a'); }
+    else if(nb<na){ b++; if(b>a) bank--; cells.push('b'); }
+    else cells.push('h');
     const lead=Math.abs(a-b), rem=H-played;
     if(lead>rem && lead>0){ closed={winner:a>b?0:1, lead, rem}; break; }
   }
   const strokes=closed?[0,0]:[Math.max(0,(b-a)-1),Math.max(0,(a-b)-1)];
-  return {a,b,played,closed,bank,strokes};
+  return {a,b,played,closed,bank,strokes,cells};
 }
 /* thin wrappers over the pure engine — live-round globals in, engine out */
 /* D75 · solo Sunningdale (everyone for themselves) — OUR extension of the
@@ -7140,6 +7379,7 @@ function sunnSoloEngine(inp){
   const scores=inp.scores, H=inp.holes||18, n=scores.length;
   const wins=Array(n).fill(0);
   let played=0, bankOwner=0, bankUnits=0;
+  const cells=[];   /* D78 · the hole ledger: the player index, or 'h' when it halved to nobody */
   const leadOf=()=>Math.max(...wins);
   for(let h=0;h<H;h++){
     if(scores.some(s=>!s || s[h]==null)) break;
@@ -7151,16 +7391,18 @@ function sunnSoloEngine(inp){
     played=h+1;
     if(winners.length===1){
       const w=winners[0]; wins[w]++;
+      cells.push(w);
       const outright = wins[w] > Math.max(...wins.filter((_,i)=>i!==w));
       if(outright){
         if(bankUnits===0 || bankOwner===w) { bankOwner=w; bankUnits++; }
         else bankUnits--;   /* pull one unit out of the holder's bank */
       }
     }
+    else cells.push('h');
   }
   const lead=leadOf();
   const strokes=wins.map(w=>Math.max(0,(lead-w)-1));
-  return { wins, played, strokes, bank:{ owner:bankOwner, units:bankUnits } };
+  return { wins, played, strokes, bank:{ owner:bankOwner, units:bankUnits }, cells };
 }
 function sunnCalc(){
   return sunnEngine({ scores:state.live.scores, teams:MTEAMS, holes:liveHoles() });
@@ -7209,7 +7451,10 @@ function sunnResult(){
     : `${fnSide(winner)} beat ${fnSide(winner===0?1:0)} ${status}${pot>0?` for $${pot}`:''}`;
   return { game:'sunningdale', winner: winner==null?null:String(winner), status,
            a:m.a, b:m.b, thru:m.played, bank:m.bank, unit,
-           side_a:names(0), side_b:names(1), story, share };
+           side_a:names(0), side_b:names(1), story, share,
+           holes: holeLedger('sides', m.cells, m.played, !!m.closed,
+                             winner==null?null:(winner===0?'a':'b'),
+                             winner==null?null:names(winner)) };
 }
 
 /* D75 · round-robin singles (match play, everyone for themselves): every
@@ -7276,6 +7521,8 @@ function sunnSoloResult(){
   return { game:'sunningdale', mode:'solo', unit, thru:m.played,
     players:LIVE.map((p,i)=>({name:p.n, wins:m.wins[i]})),
     bank:m.bank,
+    holes: holeLedger('players', m.cells, m.played, false,
+                      lead==null?null:lead, lead==null?null:LIVE[lead]?.n),
     story: lead==null
       ? `Nobody broke away — ${line}. Sunningdale Rules · ${bankTxt}`
       : `${LIVE[lead]?.n} took it, ${m.wins[lead]} holes. Sunningdale Rules · ${line} · ${bankTxt}`,
@@ -7904,6 +8151,9 @@ function matchResult(){
   return { game:'match', winner: winner==null?null:String(winner), status,
            a:m.a, b:m.b, thru:m.played, stake,
            side_a:names(0), side_b:names(1),
+           holes: holeLedger('sides', m.cells, m.played, !!m.closed,
+                             winner==null?null:(winner===0?'a':'b'),
+                             winner==null?null:names(winner)),
            story: winner==null
              ? `All square — ${names(0)}, ${names(1)}${stake>0?' · nobody pays':''}`
              : `${names(winner)} def. ${names(winner===0?1:0)} ${st}${stake>0?` · $${stake} on the line`:''}`,
@@ -7930,6 +8180,9 @@ function wolfResult(){
   return { game:'wolf', stake:val,
     players:LIVE.map((p,i)=>({name:p.n, pts:pts[i]})),
     transfers:settleTransfers(pts, val),
+    /* wolf's heat is the WOLF'S SIDE, which is a different pair every hole —
+       the legend says so rather than implying it belongs to one player */
+    holes: holeLedger('wolf', wolfCells(), 0, false, 'w', "the wolf's side"),
     story: lead==null
       ? `Wolf ended level · ${line}${val>0?` · $${val}/pt`:' pts'}`
       : `${LIVE[lead.i]?.n} took Wolf${val>0?`, up $${lead.v*val}`:`, ${lead.v} pts`} · ${line}${val>0?` · $${val}/pt`:''}`,
@@ -7953,6 +8206,8 @@ function skinsResult(){
   return { game:'skins', stake:val, thru:sk.thru, carried_died:Math.max(0, sk.carry-1),
     players:P,
     transfers:settleTransfers(sk.pts, val),
+    holes: holeLedger('players', sk.cells, sk.thru, false,
+                      lead?P.indexOf(lead):null, lead?lead.name:null),
     story: lead ? `${took(String,lead)} · ${line}${val>0?` · $${val} a skin`:''}${died}`
          : winners.length ? `The skins split — ${line}${val>0?` · $${val} a skin`:''}${died}`
          : `Nobody took a skin${died}`,
@@ -8052,6 +8307,11 @@ function showLiveRecap(d, result, lrId){
   /* a two-man side takes a plural verb — every team game rendered
      "WILL & ISAAK PAYS" until this existed, and singles rendered
      "JERECHO TAKE THE BANK" */
+  /* the settlement card needs the same money line the sheet shows, and it is
+     computed inside whichever branch runs — hoisted so the button can reach it */
+  let settleMoney='';
+  const GAME_LABEL={match:'MATCH PLAY', wolf:'WOLF', skins:'SKINS',
+                    sunningdale:'SUNNINGDALE RULES', none:'THE ROUND'};
   const isPair  = s => /\s&\s/.test(String(s||''));
   const payVerb = s => isPair(s) ? 'PAY'  : 'PAYS';
   const takeVerb= s => isPair(s) ? 'TAKE' : 'TAKES';
@@ -8077,6 +8337,7 @@ function showLiveRecap(d, result, lrId){
       ? (won ? `${lSide.toUpperCase()} ${payVerb(lSide)} ${wSide.toUpperCase()} $${result.stake} · SETTLE UP`
              : 'ALL SQUARE — NO MONEY MOVES')
       : 'BRAGGING RIGHTS ONLY';
+    settleMoney = money;
     rows.push(`<div class="check"><span class="num">⚔️</span><div class="tt"><b>${esc(line)}</b><small>${esc(money)}</small></div></div>`);
   } else if(result && (result.game==='wolf' || result.game==='skins' || result.mode==='solo')){
     /* the ledger games: Wolf, Skins, and both solo modes (round robin and
@@ -8106,7 +8367,23 @@ function showLiveRecap(d, result, lrId){
        ledger to the settlement page one tap away — the §16 bargain everywhere
        else in the app. `story` stays the fallback for any builder that has
        not grown a `share` yet. */
+    settleMoney = money;
     rows.push(`<div class="check"><span class="num">${icon}</span><div class="tt"><b>${esc(result.share||result.story||'')}</b><small>${esc(money)}</small></div></div>`);
+  }
+  /* D78 · the strip, once, under whichever settlement row rendered above. The
+     recap sheet wears .room-dusk (a fixed dark ceremony surface for every
+     viewer), so the strip's own colors land correctly in either theme. */
+  if(result?.holes?.cells?.length){
+    const hl = holeHighlights(result.holes, { hot: result.holes.hot });
+    rows.push(`<div style="padding:2px 2px 0">
+      ${renderHoleStrip(result.holes, { hot: result.holes.hot, margin:'6px 0 0' })}
+      ${result.holes.legend ? `<div style="margin-top:9px;font-size:10.5px;letter-spacing:.12em;color:#8E979E">
+           <span style="display:inline-block;width:9px;height:9px;border-radius:2px;background:#FF5A2E;margin-right:6px;vertical-align:middle"></span>${esc(String(result.holes.legend).toUpperCase())}
+         </div>` : ''}
+      ${hl.length ? `<div style="margin-top:8px;display:flex;flex-wrap:wrap;gap:6px">${
+        hl.map(t=>`<span style="font-size:10px;letter-spacing:.1em;color:#E9BE62;border:1px solid rgba(233,190,98,.35);border-radius:999px;padding:3px 9px">${esc(t)}</span>`).join('')
+      }</div>` : ''}
+    </div>`);
   }
   posted.forEach(x=>rows.push(`<div class="check"><span class="num">⛳</span><div class="tt"><b>${esc(x.name)} · ${x.gross}</b><small>POSTED · ${x.holes} HOLES · ✓ ATTESTED</small></div></div>`));
   skipped.forEach(x=>rows.push(`<div class="check"><span class="num">—</span><div class="tt"><b>${esc(x.name)}</b><small>NOT POSTED · ${esc(String(x.reason||'')).toUpperCase()}</small></div></div>`));
@@ -8114,7 +8391,8 @@ function showLiveRecap(d, result, lrId){
     rows.push(`<div class="check"><span class="num">🎟️</span><div class="tt"><b>${esc(g.name||'Guest')}</b><small>GUEST RECAP — SHARE THE LINK</small></div><button class="mini" data-copylink="${esc(url)}" style="flex:none">Copy</button></div>`); });
   /* D57: the settlement travels as a page, not just a sheet — audit F5 */
   if(result && lrId && !state.demo)
-    rows.push(`<button class="btn dark" id="lrShareLink" style="width:100%;margin-top:10px">Share the settlement — no account needed</button>
+    rows.push(`<button class="btn" id="lrShareCard" style="width:100%;margin-top:14px">Share the card</button>
+      <button class="btn dark" id="lrShareLink" style="width:100%;margin-top:10px">Share the settlement — no account needed</button>
       <button class="cs-tskip" id="lrShareRevoke" type="button" style="width:100%;margin-top:6px">Revoke a shared link</button>`);
   openSheet(d.casual?'Casual — nothing posted':'Round posted',
     `${posted.length} CARD${posted.length===1?'':'S'} TO THE SEASON`,
@@ -8129,6 +8407,13 @@ function showLiveRecap(d, result, lrId){
      the tail where the result lives. It reads `share` now, and the fallback is
      a sentence rather than "side_a vs side_b", which shipped no result at all.
      The 70 is a policy backstop; nothing authored comes close to it. */
+  /* D78: two artifacts, the epilogue's established pair — the PNG on the solid
+     button, the no-account link below it. The image needs nothing from the
+     server: everything on it came back from the engines a moment ago. */
+  document.getElementById('lrShareCard')?.addEventListener('click',()=>shareSettlementCard({
+    result, money: settleMoney,
+    game: GAME_LABEL[result?.game] || 'SETTLED',
+    course: ($('#lrCourse')?.value || ''), date: new Date() }));
   document.getElementById('lrShareLink')?.addEventListener('click',()=>csShareLink('settlement', lrId,
     (result?.share || 'The match is settled').slice(0,70)));
   document.getElementById('lrShareRevoke')?.addEventListener('click',()=>csRevokeLink('settlement', lrId));
@@ -15442,10 +15727,28 @@ async function renderShareView(tok, _testInfo){
           ? r.transfers.map(t => `${t.from} pays ${t.to} $${t.amt}`).join(' · ')
           : `$${r.stake} on the line`)
       : 'Bragging rights only';
+    /* D78 · the hole strip. "3&2" is the margin; this is the shape of it — the
+       run, the collapse, the hole it ended on. Reads r.holes, which the client
+       has written into game_result since D78 but which share_info only returns
+       once its migration lands: the whole block is absent-safe in BOTH deploy
+       orders, and every round settled before D78 has no ledger and never will,
+       so a strip-less card stays a first-class render rather than an empty
+       row of grey. renderHoleStrip is bridged from the classic block. */
+    const HL = r.holes;
+    const strip = (HL?.cells?.length && window.renderHoleStrip)
+      ? `<div style="margin:18px 10px 0">
+           ${window.renderHoleStrip(HL, { hot: HL.hot, mutedColor: C.mut, margin:'0' })}
+           ${HL.legend ? `<div style="margin-top:10px;font-size:10.5px;letter-spacing:.12em;color:${C.mut}">
+              <span style="display:inline-block;width:9px;height:9px;border-radius:2px;background:${C.hot};margin-right:6px;vertical-align:middle"></span>${esc(String(HL.legend).toUpperCase())}</div>` : ''}
+           ${(window.holeHighlights ? window.holeHighlights(HL, { hot: HL.hot }) : []).map(t =>
+              `<span style="display:inline-block;margin:9px 5px 0 0;font-size:10px;letter-spacing:.1em;color:${C.gold};border:1px solid rgba(233,190,98,.35);border-radius:999px;padding:3px 9px">${esc(t)}</span>`).join('')}
+         </div>`
+      : '';
     card.innerHTML = `
       <div style="color:${C.gold};letter-spacing:.2em;font-size:12px;font-weight:600">${esc(GAME[info.game] || 'SETTLED')}</div>
       <div style="font-family:${SERIF};font-size:26px;line-height:1.35;margin:16px 6px 4px">${esc(story)}</div>
       <div style="color:${C.mut};font-size:12.5px;letter-spacing:.08em;margin-top:10px">${esc(money)}</div>
+      ${strip}
       ${(info.players || []).length ? `<div style="border-top:1px solid rgba(255,255,255,.1);margin:18px 40px"></div>
       ${info.players.map(p => `<div style="display:flex;justify-content:space-between;padding:5px 12px;font-size:13.5px"><span>${esc(p.name)}</span><span style="color:${C.mut}">${p.gross != null ? esc(String(p.gross)) : '—'}</span></div>`).join('')}` : ''}
       <div style="border-top:1px solid rgba(255,255,255,.1);margin:14px 40px 0"></div>
