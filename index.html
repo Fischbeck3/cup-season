@@ -3319,16 +3319,33 @@ html[data-theme="light"] .room-dusk .btn:not(.dark):not(.gold):not(.apple){color
     b.style.display='block';
     b.textContent='⚠ '+msg+'  — screenshot this and send it';
   }
+  /* Both handlers used to record only the MESSAGE and throw the stack away,
+     which is why "a boot-time async rejection (reading 'n')" sat in CLAUDE.md
+     for weeks as an untraceable ghost — there was never an origin to chase, and
+     a 2026-07-27 investigation found no such rejection in a cold boot or
+     anywhere in prod telemetry. Keep the stack and the boot step: the next one
+     is diagnosable from the first occurrence instead of the tenth.
+     Stacks here are same-origin file/line only — no user data rides along. */
+  function trace(err){
+    var s=(err && err.stack) ? String(err.stack) : '';
+    return s.split('\n').slice(0,4).map(function(l){ return l.trim(); }).join(' <- ').slice(0,400);
+  }
   window.addEventListener('error', function(e){
     var m=(e.message||'script error')+' @ '+(e.filename||'').split('/').pop()+':'+(e.lineno||'?');
+    var st=trace(e.error);
+    console.error('[cs] error', m, st);
     show(m);
-    try{ if(typeof qaEvent==='function') qaEvent('client_error', { kind:'error', msg:String(m).slice(0,300) }); }catch(_){}
+    try{ if(typeof qaEvent==='function') qaEvent('client_error',
+      { kind:'error', msg:String(m).slice(0,300), stack:st, step:(typeof bootStep!=='undefined'?String(bootStep):null) }); }catch(_){}
   });
   window.addEventListener('unhandledrejection', function(e){
     var r=e.reason||{};
     var m='async: '+(r.message||String(r));
+    var st=trace(r);
+    console.error('[cs] rejection', m, st);
     show(m);
-    try{ if(typeof qaEvent==='function') qaEvent('client_error', { kind:'rejection', msg:String(m).slice(0,300) }); }catch(_){}
+    try{ if(typeof qaEvent==='function') qaEvent('client_error',
+      { kind:'rejection', msg:String(m).slice(0,300), stack:st, step:(typeof bootStep!=='undefined'?String(bootStep):null) }); }catch(_){}
   });
 })();
 (function(){
@@ -15540,6 +15557,13 @@ $('#wOut').addEventListener('click', async () => {
 
 /* ---------- boot: session check, then route ---------- */
 let bootStep = 'init';
+/* The error handlers are a classic-block IIFE and cannot see this module-scope
+   binding, so the boot step they recorded was always null. A getter bridges it
+   without touching the six assignment sites below, and stays current by
+   construction — knowing a rejection fired at [profile] rather than [reveal] is
+   half the diagnosis. Before the module runs the property is absent and the
+   handlers' typeof guard records null, which is the honest answer then. */
+try{ Object.defineProperty(window, 'bootStep', { get: () => bootStep, configurable: true }); }catch(_){}
 async function boot(){
   const watchdog = setTimeout(() => {
     if(bootStep !== 'reveal'){

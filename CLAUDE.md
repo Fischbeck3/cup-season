@@ -270,10 +270,28 @@ reports on the founder desk. The demo diorama still never fabricates faces.
 See `spec/photos-arc-2.md`.
 
 **Honest edges / not yet done:** the captains-pick + snake-draft *engines* (wizard shows
-the built two + roster-fit guidance; server-side draft engines unbuilt) · a
-pre-existing boot-time async rejection ("reading 'n'") + repeated boot (own
-task, in progress) · the TIMED pre-launch QA run (needs prod deployed + human
-testers — see `spec/prelaunch-qa-2026-07-13.md`).
+the built two + roster-fit guidance; server-side draft engines unbuilt) · the
+TIMED pre-launch QA run (needs prod deployed + human testers — see
+`spec/prelaunch-qa-2026-07-13.md`).
+
+**CLOSED 2026-07-27 — the boot rejection and the "repeated boot" were both
+ghosts.** They sat here for weeks and cost a full investigation, so the evidence
+is recorded rather than the claim deleted:
+- *Repeated boot* was fixed when `bootResolved` landed; the fix and its
+  rationale are commented at the bottom of the module block. An instrumented
+  cold boot shows `safeBoot()` CALLED twice (INITIAL_SESSION at ~230ms, the
+  3s transport-stall fallback) and `boot()` entered ONCE — the guard doing
+  exactly its job. Two calls is the design, not a bug.
+- *"reading 'n'"* could not be reproduced and is in no telemetry. A cold
+  signed-out boot raises zero unhandled rejections; `client_events` holds four
+  distinct client errors in its entire history (`memName` ×2, `prompt() is not
+  supported`, a clipboard focus error, one injected-script error) and none since
+  2026-07-22. Coverage caveat, measured: RLS lets only `authenticated` insert
+  there, so telemetry is blind to signed-out sessions — which is the exact path
+  the local probe covered.
+- Root cause of the ghost's longevity: both error handlers recorded the message
+  and DISCARDED the stack, so there was never an origin to chase. They now keep
+  a 4-frame stack and the `bootStep`. Don't remove that.
 
 **Near-term work lives in the task list, not here** — this file stays
 architecture + rules. For "what's next," read the tasks; for "why a mechanic is
