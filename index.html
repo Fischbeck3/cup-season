@@ -9083,7 +9083,7 @@ function renderHomeHero(){
 
   /* 1 · the wrapped season — the record leads (absorbs D41's runback card) */
   if(force==='complete' || (!force && done && !active.length)){
-    let fig='', line=`The table is settled. <em>The recap has the whole story.</em>`;
+    let fig='', line=`<em>The table is settled.</em>`;
     if(window.CS.league?.id===done?.league?.id && teams.length){
       /* the completed league is the loaded one — position is in memory */
       const solo = state.structure==='solo';
@@ -9096,8 +9096,8 @@ function renderHomeHero(){
       if(i>=0){
         const ord=climbOrd(i+1).replace(String(i+1),'');
         fig=`<div class="hh-fig"><span class="hh-pos">${i+1}</span><span class="hh-ord">${ord}</span></div>`;
-        line = i===0 ? `<em>Your name goes on the cup.</em> The recap has the whole story.`
-             : `${teams[0]?`<b>${esc(teams[0].name)}</b> took it — `:''}<em>the recap has the whole story.</em>`;
+        line = i===0 ? `<em>Your name goes on the cup.</em>`
+             : (teams[0] ? `<b>${esc(teams[0].name)}</b> took it.` : `<em>The table is settled.</em>`);
       }
     }
     seen('complete');
@@ -9150,7 +9150,7 @@ function renderHomeHero(){
     seen('forming');
     box.innerHTML = heroCard('', `${esc(window.CS.league?.name||'Your league')} · ${starter?'season live':'forming'}`,
       dd!=null && !starter ? `<div class="hh-fig"><span class="hh-pos">${dd}</span><span class="hh-ord">day${dd===1?'':'s'}</span></div>` : '',
-      starter ? `The season's on. <em>First rounds build the table</em> — it speaks at three.`
+      starter ? `The season's on. <em>Rounds count from today.</em>`
               : `${dd!=null?'to first tee. ':''}<b>${n} golfer${n===1?'':'s'} in.</b> <em>The bylaws lock at the tee.</em>`,
       n?`<span>Roster</span><span class="hh-bar"><i style="width:${Math.min(100, Math.round(n/12*100))}%"></i></span><span>${n} in</span>`:'');
     return;
@@ -9235,7 +9235,7 @@ function heroMyRung(){
     const up=teams[i-1], d=up.pts-me.pts;
     gapLine = d===0 ? `Level with <b>${esc(up.name)}</b>. <em>Your next round breaks the tie.</em>`
       : moved>0 ? `You passed ${teams[i+1]?`<b>${esc(teams[i+1].name)}</b>`:'a squad'} this week. <em>${d} back</em> of <b>${esc(up.name)}</b>.`
-      : `<em>${d} point${d===1?'':'s'}</em> back of <b>${esc(up.name)}</b>. A good Saturday takes it.`;
+      : `<em>${d} point${d===1?'':'s'}</em> back of <b>${esc(up.name)}</b>.`;
   }
   return {pos, ord, moveChip, gapLine};
 }
