@@ -7563,6 +7563,20 @@ window.liveRecvState = function(d){
 function liveRoundEndedRemotely(status){
   const L=state.live; if(!L || !L.active) return;
   if(state.liveGuest){
+    /* D87: a SIGNED-IN visitor needs no reload — they have an app to go back
+       to. Drop the pencil, claim the card they just played, land them home. */
+    if(state.liveGuest.signedIn){
+      window.liveSync?.leave();
+      state.liveGuest=null;
+      state.live.active=false; state.live.stage='setup';
+      renderPlay(); renderResumeBanner();
+      if(status==='final'){
+        toast('Round finished — putting your card on your record');
+        window.claimPendingRound?.();
+      } else toast('That round was scrapped');
+      switchView('home');
+      return;
+    }
     /* the guest's link now points at a finished round — a clean reload lands
        on the existing claim door (cs_claim is still set) */
     window.location.replace(window.location.pathname);
@@ -7590,9 +7604,18 @@ window.liveSyncBadge = function(){
   el.textContent = `${n} on the sheet · ${q ? q+' queued' : 'synced'}`;
 };
 /* the guest pencil: a claim link opened MID-ROUND. Token is identity — no
-   account, no name pick. The same link claims the card after the finish. */
-function enterGuestLive(d, token){
+   account, no name pick. The same link claims the card after the finish.
+
+   D87 · it is NOT only for the account-less. A golfer who has the app but is
+   not in this league can only ride the tee sheet as a guest (start_live_round
+   rejects a member_id from another league) — so the token is their pencil too,
+   and gating this on signed-OUT gave a real account a WORSE round than a
+   stranger got. Signed in, they keep their whole app: nav, tabs, their own
+   leagues. Only the round's own controls (finish, scrap, setup) are theirs to
+   lose, because the round belongs to a league they are not in. */
+function enterGuestLive(d, token, opts){
   if(!d || !d.round || !Array.isArray(d.players) || !d.players.length) return false;
+  const signedIn = !!(opts && opts.signedIn);
   state.demo=false;
   const players=d.players.slice().sort((a,b)=>a.position-b.position);
   LIVE = players.map(pl=> pl.member_id
@@ -7627,13 +7650,20 @@ function enterGuestLive(d, token){
     holes:_holes, rating9:false, mode:(cfg.mode==='solo'?'solo':'teams'),
     hole:0, scores:LIVE.map(()=>Array(18).fill(null)), wolf:Array(18).fill(null),
     scts:LIVE.map(()=>Array(18).fill(0)), wcts:Array(18).fill(0), code:d.round.join_code||null,
+    /* D87: never "Continue your round" — it is someone else's tee sheet. A
+       signed-in visitor who wanders off to their own app gets the invite face
+       on Home as the way back in; the kiosk guest never sees Home at all. */
+    mine:false, host:null,
     lr:d.round.id, league_id:d.round.league_id||null, pmap:players.map(p=>p.id), guestTokens:{} };
-  state.liveGuest={ token, me:d.me };
+  state.liveGuest={ token, me:d.me, signedIn };
   state.liveName=(LIVE.find(p=>p.me)||{}).n||'Guest';   /* presence name on the channel */
   recomputeStrokes();
   rosterPrimed=true;
   document.getElementById('onboard')?.classList.add('hide');
-  document.body.classList.add('guestlive');
+  /* D87: the chrome-less kiosk is for a phone with no account. A signed-in
+     golfer keeps their app — hiding it would strand a real user behind a
+     one-way door (nothing removes .guestlive but a reload). */
+  if(!signedIn) document.body.classList.add('guestlive');
   switchView('play');
   window.liveRecvState(d);   /* the pull came with the door — merge its scores now */
   /* open on the first hole still being played */
@@ -16906,6 +16936,10 @@ if(claimParam){
 async function claimPendingRound(){
   let tok=null; try{ tok=localStorage.getItem('cs_claim'); }catch(_){}
   if(!tok || !CS.user || !CS.profile?.marker) return;
+  /* D87: they are scoring that very round right now — claiming is what happens
+     when it FINISHES, and firing it here would only toast "they're still out
+     there" over the top of the pencil they are holding. */
+  if(state.liveGuest && state.liveGuest.token===tok) return;
   /* one /?claim= funnel, two sources: tee-sheet guest cards first, then
      scanned-scorecard partner rows (photos arc) — same UX either way */
   let data=null, firstErr=null;
@@ -16943,6 +16977,7 @@ async function claimPendingRound(){
   }
   else toast('Round claimed — the card was incomplete, so nothing posted');
 }
+window.claimPendingRound = claimPendingRound;   /* D87: the classic side claims when a guest-scored round finishes */
 
 if(new URLSearchParams(window.location.search).has('exit')){
   sb.auth.signOut().finally(() => window.location.replace(window.location.pathname));
@@ -16982,6 +17017,24 @@ async function safeBoot(force){
     try{
       const { data, error } = await sb.rpc('guest_live_state', { p_token: claimTok });
       if(!error && data?.round?.status==='live' && window.enterGuestLive(data, claimTok)) return;
+    }catch(_){}
+  }
+  /* D87: the same pencil for a SIGNED-IN golfer who isn't in this league — the
+     only way they can ride someone else's tee sheet is as a guest row, so the
+     token is their pencil too. Runs AFTER boot has entered their own league, so
+     the app behind it is fully theirs. Two guards: never over an active round
+     of their own (that one is theirs to finish), and only while the round is
+     live — a finished one belongs to claimPendingRound below. guest_live_state
+     is member_id-null only (D86), so this can never hijack a member's row. */
+  if(CS.user && claimTok && window.enterGuestLive
+     && !(state.live && state.live.active && state.live.lr)){
+    try{
+      const { data, error } = await sb.rpc('guest_live_state', { p_token: claimTok });
+      if(!error && data?.round?.status==='live'
+         && window.enterGuestLive(data, claimTok, { signedIn:true })){
+        toast('You’re on this tee sheet — score your own card');
+        return;
+      }
     }catch(_){}
   }
   if(!CS.user && claimTok){

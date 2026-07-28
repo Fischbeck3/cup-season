@@ -3033,3 +3033,43 @@ machinery-already-exists. ⚑ marks the points still needing an owner call.*
   `claim_round` refused a still-live round, which permanently orphaned the
   card of a guest who signed up mid-round; the token now survives and the
   message tells the truth.
+
+### D87 · The pencil is for the golfer, not for the account-less
+- **Current:** D85's guest pencil (a `/?claim=` link that scores a live round)
+  is gated on being signed OUT: `if(!CS.user && claimTok …)`. The assumption
+  baked into that line was "guest = no account."
+- **Problem observed (2026-07-28, tracing a real upcoming round):** the owner
+  is playing with a golfer who HAS the app but is not in his league. That
+  golfer can only ride the tee sheet as a GUEST ROW — `start_live_round`
+  rejects a `member_id` belonging to another league, and the roster search adds
+  any non-mate as `guest:true` — so the claim token is her only pencil. And the
+  signed-out gate meant her link fell through to `claimPendingRound()`, the
+  server refused ("Round is still live"), and she could enter nothing. Having
+  an account bought her a WORSE round than a stranger got. Cross-league play is
+  not an edge case; it is the friend group the product is for.
+- **Recommendation:** the token, not the session, is the authorization. Let a
+  signed-in golfer open the pencil with it, after boot has entered their own
+  league. Two guards: never over an ACTIVE round of their own (that one is
+  theirs to finish), and only while the round is live (a finished one belongs
+  to the claim path). They keep their whole app — nav, tabs, their leagues —
+  because `.guestlive` is a kiosk for a phone with no account and nothing but a
+  reload removes it; stranding a real user behind that is a worse bug than the
+  one being fixed. They lose only the round's OWN controls (finish, scrap,
+  setup), which belong to a league they are not in. On finish they need no
+  reload: the pencil drops, the card claims itself, they land home.
+- **Depends on D86's guard:** `guest_live_*` now key on `claim_token AND
+  member_id is null`, so this path can never hijack a member's row. Without
+  that guard, opening this to signed-in users would have been a real hole.
+- **Principle:** #1 the group plays together — the round is the unit, not the
+  league roster; Real Golf — the people at your course are who you played with,
+  whatever app rows say. Also the guest-funnel principle held: her card still
+  posts to her own profile at the finish, and because rounds belong to profiles
+  and leagues are lenses, it scores in HER league automatically.
+- **Benefit:** a cross-league foursome is now four phones, not three plus a
+  spectator.
+- **Tradeoffs:** a signed-in visitor's pencil is authorized by a link, so
+  anyone she forwards it to can score that round as her (unchanged from the
+  guest model, and the round is a friend group's card, not a bank). She gets
+  no D86 doorbell — the nudge is roster-members-only and the broadcast rides a
+  league channel she is not on — so the link remains how she is invited. A
+  targeted invite for non-member players is the obvious follow-up.
