@@ -73,8 +73,14 @@ sections (§2.2, §14.0) when making competition-model decisions.
 
 ## Architecture
 
-- **Client:** single-file PWA (`index.html`), light-first UI (dark one tap
-  away in Appearance — D35), deployed on Netlify.
+- **Client:** single-file PWA (`index.html`), **dark-first UI** (light one tap
+  away in Appearance), deployed on Netlify. D76 "Charcoal" SUPERSEDED D35's
+  light-first default — the pre-paint script at the top of the body reads
+  `cs_theme` and falls back to `'dark'`, so a brand-new user lands in charcoal.
+  `'auto'` is the third option and matches the device. Verify the default from
+  the code, not from memory: this line said "light-first" for weeks after it
+  stopped being true, and a theme audit is worthless if it starts from the
+  wrong baseline.
   Three script blocks: two classic, one `type="module"` (Supabase client, auth,
   data layer). **Classic ↔ module boundary is a landmine** — module top-level
   names are NOT visible to classic scripts; bridge explicitly via `window.*`

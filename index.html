@@ -798,7 +798,7 @@ img.face{border-radius:50%; object-fit:cover; vertical-align:-4px; border:1px so
 /* notifications banner — pending invites, act in line */
 #notifBanner:not(:empty){margin-bottom:12px; display:flex; flex-direction:column; gap:8px;}
 .notifrow{display:flex; align-items:center; gap:10px; padding:11px 13px; border-radius:12px;
-  background:linear-gradient(90deg, rgba(78,197,132,.10), rgba(78,197,132,.02)); border:1px solid rgba(78,197,132,.35);}
+  background:linear-gradient(90deg, var(--glow), transparent); border:1px solid var(--brand);}
 .notifrow .tt{flex:1; min-width:0;}
 .notifrow .tt b{font-size:13.5px; display:block;}
 .notifrow .tt small{font-family:var(--mono); font-size:11px; letter-spacing:.06em; color:var(--mut);}
@@ -853,7 +853,9 @@ img.face{border-radius:50%; object-fit:cover; vertical-align:-4px; border:1px so
 .nextcard .nt{font-size:13px; font-weight:600; margin-top:3px;}
 .wizdots{display:flex; gap:6px; margin-bottom:14px;}
 .wizdots i{height:4px; flex:1; border-radius:99px; background:var(--bg2);}
-.wizdots i.on{background:var(--pos);}
+/* D76 sweep: progress is momentum, not an outcome — the rail is ember, never
+   --pos. (--pos is the pre-D76 accent; it was doing generic chrome duty.) */
+.wizdots i.on{background:var(--brand);}
 /* Stage 3a: desktop wizard — steps left, a live "your league so far" panel on
    the right that fills in as the Pro turns the dials. Mobile is untouched: the
    aside hides and the bylaws live in step 3's review as before. */
@@ -1255,10 +1257,12 @@ html[data-theme="light"] .momrow{background:rgba(21,116,63,.06);}
 }
 .ibtn:hover{color:var(--ink); border-color:var(--dim);}
 .ibtn:focus-visible{outline:2px solid var(--focus); outline-offset:2px;}
-.ibtn[aria-expanded="true"]{color:var(--pos); border-color:var(--pos);}
+/* D76 sweep: open/closed is an interaction state, not an outcome — ember, not
+   --pos. Toggle and panel move together or an opened help shows two metals. */
+.ibtn[aria-expanded="true"]{color:var(--brand); border-color:var(--brand);}
 .ihelp{
   display:none; font-size:12px; color:var(--mut); line-height:1.65;
-  background:var(--bg1); border:1px solid var(--line); border-left:3px solid var(--pos);
+  background:var(--bg1); border:1px solid var(--line); border-left:3px solid var(--brand);
   border-radius:10px; padding:11px 13px; margin:2px 0 10px;
 }
 .ihelp.open{display:block; animation:vin .18s ease both;}
@@ -1802,16 +1806,22 @@ body::before{
 html[data-theme="light"] .btn:not(.dark):not(.gold):not(.apple){color:#FFFFFF;}
 .btn, .mini, .tab, .navitem{transition:filter .12s ease, transform .1s ease, box-shadow .15s ease;}
 .btn:active, .mini:active{transform:scale(.98);}
+/* D76 sweep: the file's one focus rule that wasn't on --focus. It hardcoded
+   rgba(233,190,98,.55) — a pre-token gold matching NEITHER theme's --gold —
+   and its outline:none beat the fallback, so this was the whole treatment. */
 .mini:focus-visible, .f:focus-visible{
-  outline:none; border-color:rgba(233,190,98,.55);
+  outline:none; border-color:var(--focus);
   box-shadow:0 0 0 3px var(--glow);
 }
 
-/* header: the chip wears the brand ring */
+/* header: the chip wears the brand ring.
+   D76 sweep: it said "brand ring" and painted --pos — pre-D76 green, frozen as
+   rgba so it couldn't take the theme either. The :active below was already
+   ember (--glow), so the chip flipped metals on tap. Now both are ember. */
 .hdr .who{
-  border-color:rgba(78,197,132,.4);
-  box-shadow:0 0 0 2px rgba(78,197,132,.1);
-  color:var(--pos); transition:box-shadow .15s ease;
+  border-color:var(--brand);
+  box-shadow:0 0 0 2px var(--glow);
+  color:var(--brand); transition:box-shadow .15s ease;
 }
 .hdr .who:active{box-shadow:0 0 0 4px var(--glow);}
 
@@ -2356,10 +2366,10 @@ html[data-theme="light"] .room-dusk .btn:not(.dark):not(.gold):not(.apple){color
         <path class="obtr" d="M-24 96 C 80 118, 160 176, 224 224" stroke="#E9A23B" stroke-width="2.6" opacity=".85" stroke-linecap="round" stroke-dasharray="560" style="stroke-dashoffset:0; animation:csDraw 1.05s ease .3s both"></path>
         <path class="obtr" d="M96 -20 C 140 66, 190 160, 227 222" stroke="#FF5A2E" stroke-width="2.6" opacity=".85" stroke-linecap="round" stroke-dasharray="560" style="stroke-dashoffset:0; animation:csDraw 1.05s ease .85s both"></path>
         <path class="obtr" d="M364 -20 C 320 66, 270 160, 233 222" stroke="#FF3B1A" stroke-width="2.6" opacity=".85" stroke-linecap="round" stroke-dasharray="560" style="stroke-dashoffset:0; animation:csDraw 1.05s ease 1.4s both"></path>
-        <path class="obtr" d="M484 96 C 380 118, 300 176, 236 224" stroke="#F4F7F4" stroke-width="2.6" opacity=".85" stroke-linecap="round" stroke-dasharray="560" style="stroke-dashoffset:0; animation:csDraw 1.05s ease 1.95s both"></path>
+        <path class="obtr" d="M484 96 C 380 118, 300 176, 236 224" stroke="var(--ink)" stroke-width="2.6" opacity=".85" stroke-linecap="round" stroke-dasharray="560" style="stroke-dashoffset:0; animation:csDraw 1.05s ease 1.95s both"></path>
         <g class="obflag">
           <ellipse cx="230" cy="226" rx="15" ry="5.5" fill="#0A0B0D" stroke="#332018" stroke-width="2"></ellipse>
-          <path d="M236 223V120" stroke="#F4F7F4" stroke-width="4" stroke-linecap="round"></path>
+          <path d="M236 223V120" stroke="var(--ink)" stroke-width="4" stroke-linecap="round"></path>
           <path class="obpen" d="M236 120l38 13-38 13z" fill="#FF5A2E"></path>
         </g>
         <circle class="obball" cx="230" cy="224" r="4.5" fill="#F4F7F4"></circle>
@@ -2913,7 +2923,7 @@ html[data-theme="light"] .room-dusk .btn:not(.dark):not(.gold):not(.apple){color
             <div id="commishChip" class="prow" style="margin-top:6px; cursor:default">
               <span class="pmk">◆</span>
               <span class="pmeta"><b>You</b><small>You run this league</small></span>
-              <span class="ptag" style="color:var(--gold)">THE PRO</span>
+              <span class="ptag" style="color:var(--brand)">THE PRO</span>
             </div>
           </div>
         </div>
@@ -2963,7 +2973,7 @@ html[data-theme="light"] .room-dusk .btn:not(.dark):not(.gold):not(.apple){color
             <button data-s="squads4" class="on">4 Squads</button>
           </div>
           <p class="fine" id="structNote">4 squads · the full cup experience for 8+ players.</p>
-          <p class="fine" id="structFit" style="padding-top:0; color:var(--gold)"></p>
+          <p class="fine" id="structFit" style="padding-top:0; color:var(--warm)"></p>
           <div class="eyebrow">How teams fill <button class="ibtn" data-i="draft" aria-expanded="false" aria-label="About how teams fill">i</button></div>
           <div class="ihelp" id="ih-draft">How squads get filled. <b>Blind draw</b> shuffles everyone server-side and announces the reveal to the board, so nobody can rig the hat. <b>Pro assign</b> lets you place players yourself, for groups who picked teams in the group chat. Live draft night with picks and a clock is on the Pro Shop roadmap.</div>
           <div class="seg" id="draftSeg">
@@ -10474,7 +10484,7 @@ function wizPortrait(){
   let blocks=''; for(let i=0;i<mo;i++) blocks += `<rect x="${i*41}" y="12" width="36" height="22" rx="5" fill="none" stroke="var(--line2)" stroke-width="1.2"/>`;
   const fx = mo*41;
   const finalSeg = canCup
-    ? `<rect x="${fx}" y="12" width="24" height="22" rx="5" stroke="var(--brand)" fill="var(--glow)" stroke-width="1.6"/><text x="${fx+12}" y="8" font-size="6" letter-spacing="1" text-anchor="middle" fill="var(--brand)" style="font-family:var(--mono)">FINAL 4</text><path d="M${fx+22} 12V4" stroke="#F4F7F4" stroke-width="1.5" stroke-linecap="round"/><path d="M${fx+22} 4l7 2.4-7 2.4z" fill="var(--gold)"/>`
+    ? `<rect x="${fx}" y="12" width="24" height="22" rx="5" stroke="var(--brand)" fill="var(--glow)" stroke-width="1.6"/><text x="${fx+12}" y="8" font-size="6" letter-spacing="1" text-anchor="middle" fill="var(--brand)" style="font-family:var(--mono)">FINAL 4</text><path d="M${fx+22} 12V4" stroke="var(--ink)" stroke-width="1.5" stroke-linecap="round"/><path d="M${fx+22} 4l7 2.4-7 2.4z" fill="var(--gold)"/>`
     : '';
   const bandW = fx + (canCup?30:6);
   const seasonRow = `<div class="wizp-row"><span class="k">Season</span><svg viewBox="0 0 ${bandW} 40" width="${Math.min(210,bandW)}" aria-hidden="true">${blocks}${finalSeg}</svg><span style="font-family:var(--mono);font-size:9.5px;color:var(--mut)">${durLabel(state.durWeeks)}${canCup?'':' · POINTS TABLE'}</span></div>`;
@@ -10483,8 +10493,8 @@ function wizPortrait(){
       <svg viewBox="0 0 100 52" width="80" aria-hidden="true">
         <path d="M4 10 C 30 18, 42 30, 48 42" stroke="var(--sq0)" stroke-width="1.8" fill="none" stroke-linecap="round"/>
         <path d="M96 10 C 70 18, 58 30, 52 42" stroke="var(--sq1)" stroke-width="1.8" fill="none" stroke-linecap="round"/>
-        <ellipse cx="50" cy="43" rx="7" ry="2.6" fill="#04110A" stroke="#0F3520" stroke-width="1.4"/>
-        <path d="M53 41V16" stroke="#F4F7F4" stroke-width="2" stroke-linecap="round"/><path d="M53 16l14 5-14 5z" fill="var(--gold)"/>
+        <ellipse cx="50" cy="43" rx="7" ry="2.6" fill="#0A0B0D" stroke="#332018" stroke-width="1.4"/>
+        <path d="M53 41V16" stroke="var(--ink)" stroke-width="2" stroke-linecap="round"/><path d="M53 16l14 5-14 5z" fill="var(--gold)"/>
       </svg>
       <div><b>${esc(name)}</b><small>Forming · locks at first tee</small></div>
     </div>
@@ -11537,7 +11547,7 @@ function showProfileGate(){
   grid.setAttribute('role','radiogroup');
   grid.setAttribute('aria-label','Ball marker');
   grid.innerHTML = Object.keys(MARKERS).map(k =>
-    `<button class="mini" data-mk="${k}" role="radio" aria-checked="${k===pfMarker}" tabindex="${k===pfMarker?0:-1}" style="display:flex;flex-direction:column;align-items:center;gap:4px;padding:10px 4px;${k===pfMarker?'border-color:var(--pos);color:var(--pos);':''}">${mkr(k)}<span style="font-size:10.5px;letter-spacing:.06em">${MARKERS[k].n.toUpperCase()}</span></button>`).join('');
+    `<button class="mini" data-mk="${k}" role="radio" aria-checked="${k===pfMarker}" tabindex="${k===pfMarker?0:-1}" style="display:flex;flex-direction:column;align-items:center;gap:4px;padding:10px 4px;${k===pfMarker?'border-color:var(--brand);color:var(--brand);':''}">${mkr(k)}<span style="font-size:10.5px;letter-spacing:.06em">${MARKERS[k].n.toUpperCase()}</span></button>`).join('');
   grid.querySelectorAll('[data-mk]').forEach(b => b.addEventListener('click', () => {
     pfMarker = b.dataset.mk;
     try{ if(navigator.vibrate) navigator.vibrate(10); }catch(_){}
@@ -12434,7 +12444,7 @@ function renderProChip(){
     `<span class="pmk">${p.marker ? mkr(p.marker) : '◆'}</span>
      <span class="pmeta"><b>${esc(p.display_name || 'You')}</b>
        <small>${esc(handle)} · you run this league</small></span>
-     <span class="ptag" style="color:var(--gold)">THE PRO</span>`;
+     <span class="ptag" style="color:var(--brand)">THE PRO</span>`;
 }
 window.renderProChip = renderProChip;
 /* the wizard's "Add golfers" opens the one People Picker (invite mode) and
@@ -15388,7 +15398,7 @@ window.openScoringHelp = openScoringHelp;
    at the door — shown once, right after joining, when they matter most */
 function openLeagueWelcome(name){
   openSheet('Welcome to '+(name||'the league'), 'THREE THINGS TO KNOW', `
-    <p class="fine" style="padding:0 0 10px"><b style="color:var(--pos)">You can't hurt your squad by playing badly.</b> Only by not playing. Every posted round scores — a rough day is still points on the board.</p>
+    <p class="fine" style="padding:0 0 10px"><b>You can't hurt your squad by playing badly.</b> Only by not playing. Every posted round scores — a rough day is still points on the board.</p>
     <p class="fine" style="padding:0 0 10px"><b>Rounds score against your own number.</b> Beat your handicap and it's a big day, whatever you shot. Your best rounds each month count; a better round always bumps your worst.</p>
     <p class="fine" style="padding:0 0 12px"><b>The pot lives on the books.</b> Cup Season keeps the tab and shows who owes what; money moves between you.</p>
     <p class="fine" style="padding:0 0 12px"><a href="#" onclick="openScoringHelp();return false" style="color:var(--brand)">How scoring works →</a></p>
