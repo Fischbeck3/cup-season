@@ -1305,6 +1305,16 @@ html[data-theme="light"] .momrow{background:rgba(21,116,63,.06);}
 .livebanner .ln{font-size:22px; font-weight:700; letter-spacing:-.01em; margin:8px 0 3px;}
 .livebanner .lm{font-family:var(--mono); font-size:12px; color:var(--mut); letter-spacing:.06em;}
 .livebanner .go{position:absolute; right:16px; top:50%; transform:translateY(-50%); color:var(--dim); font-size:16px;}
+/* D86 · the invitation face: someone else's tee sheet, calling you to it.
+   Ember (the live layer's colour — gold stays the earned face) and a JOIN
+   word instead of the resume arrow. */
+.livebanner.invite::before{background:var(--brand);}
+.livebanner.invite .lk, .livebanner.invite .dot{color:var(--brand); background:none;}
+.livebanner.invite .dot{background:var(--brand);}
+.livebanner.invite .go{
+  color:var(--brand); font-family:var(--mono); font-size:11px; font-weight:600;
+  letter-spacing:.16em; border:1px solid var(--brand); border-radius:8px; padding:5px 9px;
+}
 #rosterChips{display:flex; flex-wrap:wrap; align-items:center;}
 #rosterChips .gchip{margin:0 6px 6px 0;}
 .rlab{
@@ -7185,6 +7195,7 @@ function buildLiveSnapshot(){
     holes:L.holes||18, rating9:!!L.rating9, mode:L.mode||'teams',   /* D73/D75: a resumed nine stays a nine; a solo game stays solo */
     pmap:L.pmap||null, guestTokens:L.guestTokens||{},
     code:L.code||null, scts:L.scts||null, wcts:L.wcts||null,   /* D85: channel key + per-cell write clocks ride the snapshot */
+    mine:L.mine!==false, host:L.host||null,   /* D86: whose round — the banner's two faces survive a refresh */
     scores:L.scores, wolf:L.wolf, hole:L.hole,
     teams: (typeof MTEAMS!=='undefined' && MTEAMS) ? MTEAMS.map(t=>t.slice()) : null,
     course:{ label:($('#lrCourse')?.value||''), tee:($('#lrTee')?.value||''),
@@ -7244,6 +7255,7 @@ function applyLiveSnapshot(s){
     wolfOrder:s.wolfOrder||null, holes, rating9:!!s.rating9, mode:s.mode||'teams', hole, scores, wolf, lr:s.lr, league_id:s.league_id||null,
     pmap:s.pmap||null, guestTokens:s.guestTokens||{},
     code:s.code||null,   /* D85 */
+    mine:s.mine!==false, host:s.host||null,   /* D86 */
     scts:(Array.isArray(s.scts)&&s.scts.length===n)?s.scts.map(a=>{const r=Array(18).fill(0);(Array.isArray(a)?a:[]).forEach((v,k)=>{if(k<18)r[k]=Number(v)||0;});return r;}):LIVE.map(()=>Array(18).fill(0)),
     wcts:(Array.isArray(s.wcts)&&s.wcts.length===18)?s.wcts.map(v=>Number(v)||0):Array(18).fill(0) };
   recomputeStrokes();   /* re-run now that holes is known (a nine halves the handicap) */
@@ -7294,6 +7306,13 @@ function applyServerRound(mine, myPid){
     holes:_srvHoles, rating9:false, mode:(cfg.mode==='solo'?'solo':'teams'),   /* D75: a solo game resumes solo */
     hole:0, scores:LIVE.map(()=>Array(18).fill(null)), wolf:Array(18).fill(null),
     scts:LIVE.map(()=>Array(18).fill(0)), wcts:Array(18).fill(0), code:mine.join_code||null,   /* D85 */
+    /* D86: whose round is this? started_by is a league_members.id — resolve it
+       through the round's OWN player rows (cross-league safe: CS.member is the
+       booted league's membership and would be the wrong id here). */
+    mine: (()=>{ const st=players.find(p=>p.id && p.member_id===mine.started_by);
+                 return st ? st.member?.profile_id===myPid : true; })(),
+    host: (()=>{ const st=players.find(p=>p.member_id===mine.started_by);
+                 return st?.member?.profile?.display_name || null; })(),
     lr:mine.id, league_id:mine.league_id||null, pmap:players.map(p=>p.id), guestTokens:{} };
   recomputeStrokes();   /* holes is known now — a nine halves the handicap */
   try{
@@ -7358,7 +7377,9 @@ async function rehydrateLiveRound(){
     if(typeof renderPlay==='function') renderPlay();
     renderResumeBanner();
     liveJoinIfAble();   /* D85: back on the group channel + reconcile pull */
-    toast('Continue your round — tap the banner on Home');
+    toast(state.live.mine===false
+      ? 'You’re on a live tee sheet — tap the banner on Home'
+      : 'Continue your round — tap the banner on Home');
   }
 
   /* 2) SERVER — validate / cover a fresh device. Never let a transient error
@@ -7367,7 +7388,7 @@ async function rehydrateLiveRound(){
   if(!sb || !CS){ return; }
   let rounds=null;
   try{
-    const _cols = jc => `id, league_id, game, game_config, ${jc?'join_code, ':''}course_snapshot, course_label, started_at, live_round_players(id, member_id, guest_name, guest_index, index_source, position, member:league_members(profile_id, profile:profiles(display_name, index_current)))`;
+    const _cols = jc => `id, league_id, game, game_config, ${jc?'join_code, ':''}started_by, course_snapshot, course_label, started_at, live_round_players(id, member_id, guest_name, guest_index, index_source, position, member:league_members(profile_id, profile:profiles(display_name, index_current)))`;
     let { data, error } = await sb.from('live_rounds')
       .select(_cols(true)).eq('status','live').order('started_at',{ ascending:false });
     /* deploy skew: an old DB has no join_code yet — retry on ANY error (the
@@ -7417,7 +7438,10 @@ async function rehydrateLiveRound(){
     if(typeof renderPlay==='function') renderPlay();
     renderResumeBanner();
     liveJoinIfAble();   /* D85: a fresh device joins the group channel too */
-    toast('Continue your round — tap the banner on Home');
+    toast(state.live.mine===false
+      ? (state.live.host ? `${fn1(state.live.host)} put you on the tee sheet — tap the banner on Home`
+                         : 'You’re on a live tee sheet — tap the banner on Home')
+      : 'Continue your round — tap the banner on Home');
   } else if(!mine){
     clearLiveCache(null);
   }
@@ -7432,12 +7456,22 @@ function renderResumeBanner(){
   let thru=0; for(let k=0;k<18;k++){ if(holeDone(k)) thru=k+1; else break; }
   const course=($('#lrCourse')?.value||'Your round');
   const gl={score:'Stroke play', match:'Match play', wolf:'Wolf', skins:'Skins', sunningdale:'Sunningdale Rules'}[L.game]||'Live round';
+  /* D86 · two faces. Someone else's round is an INVITATION ("Marcus put you on
+     the tee sheet"), not a resumption — "Continue your round" was a lie on a
+     round you had never opened. Named host when we have it, unnamed otherwise;
+     a round nobody has scored yet says so instead of "THRU 0". */
+  const invite = L.mine===false;
+  const kicker = invite
+    ? (L.host ? `${fn1(L.host)} put you on the tee sheet` : `You're on a tee sheet`)
+    : 'Continue your round';
+  const meta = thru>0 ? `HOLE ${L.hole+1} · THRU ${thru}`
+    : (invite ? 'JUST TEED OFF · NOTHING SCORED YET' : `HOLE ${L.hole+1}`);
   el.style.display='block';
-  el.innerHTML=`<button class="livebanner" id="resumeGo" style="width:100%">
-    <div class="lk"><span class="dot"></span>Continue your round</div>
+  el.innerHTML=`<button class="livebanner${invite?' invite':''}" id="resumeGo" style="width:100%">
+    <div class="lk"><span class="dot"></span>${esc(kicker)}</div>
     <div class="ln">${esc(course.toUpperCase())} · ${esc(gl.toUpperCase())}</div>
-    <div class="lm">HOLE ${L.hole+1} · THRU ${thru}</div>
-    <span class="go">→</span>
+    <div class="lm">${esc(meta)}</div>
+    <span class="go">${invite?'JOIN':'→'}</span>
   </button>`;
   document.getElementById('resumeGo')?.addEventListener('click',()=>switchView('play'));
 }
@@ -8638,7 +8672,11 @@ $('#teeOffBtn').addEventListener('click', async ()=>{
       const byPos=(data.players||[]).slice().sort((a,b)=>a.position-b.position);
       state.live.pmap = byPos.map(pl=>pl.id);
       byPos.forEach(pl=>{ if(pl.guest_name) state.live.guestTokens[pl.position]=pl.claim_token; });
+      state.live.mine = true;   /* D86: I teed this off — the banner resumes, it doesn't invite */
       liveJoinIfAble();
+      /* D86: ring the doorbell on the league channel every open app holds.
+         The pocket half (push_nudges) fired server-side inside the RPC. */
+      window.liveAnnounceOpen?.(state.live.lr);
     }catch(e){
       toast(humanError(e, 'Could not start the round.'));
       state.live.active=false; state.live.stage='setup'; btn.disabled=false; renderPlay(); return;
@@ -13993,6 +14031,16 @@ async function subscribeLeague(){
       })
     .on('postgres_changes', { event:'*', schema:'public', table:'post_kudos' }, nudgeSocial)
     .on('postgres_changes', { event:'*', schema:'public', table:'post_comments' }, nudgeSocial)
+    /* D86 · the doorbell. Tee-off broadcasts here; every open app in the league
+       already holds this channel. We do NOT trust the payload to say who is
+       invited — we re-run rehydrateLiveRound(), whose roster filter has always
+       been the one authority on that. So the message is a nudge to look, not a
+       claim, and a spoofed one can only cause a redundant query. */
+    .on('broadcast', { event:'live_open' }, ({ payload })=>{
+      if(state.demo) return;
+      if(payload && payload.lr && state.live?.active && state.live.lr===payload.lr) return;   /* already in it */
+      window.rehydrateLiveRound?.().catch(()=>{});
+    })
     .subscribe((status, err) => {
       /* keep failures loud in the breadcrumbs — silence cost a full session */
       console.log('[realtime]', status, err || '');
@@ -14111,6 +14159,15 @@ const liveSync = {
   }
 };
 window.liveSync = liveSync;
+/* D86 · tee-off's doorbell: one broadcast on the LEAGUE channel (CS.chan),
+   which every open app in the league already subscribes to. Deliberately not
+   the round channel — the people being invited don't know its join_code yet;
+   that is the whole point of the invitation. Fire-and-forget: a member who is
+   offline gets the push instead, and a cold open still rehydrates as always. */
+window.liveAnnounceOpen = function(lr){
+  try{ CS.chan?.send({ type:'broadcast', event:'live_open', payload:{ lr } }); }
+  catch(e){ console.warn('[livesync] announce', e); }
+};
 /* phone back from a pocket: drain the queue, then pull truth */
 document.addEventListener('visibilitychange', ()=>{
   if(document.visibilityState==='visible' && liveSync.chan){ liveSync.flush(); liveSync.reconcile(); }
@@ -16863,6 +16920,16 @@ async function claimPendingRound(){
       if(r2.error) throw r2.error;
       data = r2.data;
     }catch(e2){
+      /* D86: a STILL-LIVE round is not a failed claim, it is an early one —
+         the group hasn't finished yet. Keep the token (deleting it orphaned
+         the card of a guest who signed up mid-round: the claim would have
+         worked an hour later, but the link was already gone) and say the true
+         thing. Every other failure still retires the token as before. */
+      const msg=String((firstErr&&firstErr.message)||(e2&&e2.message)||'');
+      if(/still live|not live/i.test(msg)){
+        toast('They’re still out there — your card lands here when the round finishes');
+        return;
+      }
       try{ localStorage.removeItem('cs_claim'); }catch(_){}
       toast(humanError((firstErr||e2), 'Claim failed.'));
       return;

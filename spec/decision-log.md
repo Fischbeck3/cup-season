@@ -2984,3 +2984,52 @@ machinery-already-exists. ⚑ marks the points still needing an owner call.*
   carries first names + scores (durable writes still re-auth; acceptable for a
   friend group's card). LWW can visibly correct a cell after an offline race.
   One more table and seven new functions on the grant-audit surface.
+
+### D86 · The tee sheet calls you to it (round invite) — and the arrival is live
+- **Current:** D85 gave every player a pencil but no DOORBELL. `start_live_round`
+  writes `live_rounds` + `live_round_players` and returns — no board post, no
+  push, no realtime event. `rehydrateLiveRound()` has exactly ONE call site,
+  inside `enterLeague()`, so the "Continue your round" banner appears only on a
+  cold boot or a league switch. Measured 2026-07-28 by tracing every call site,
+  every visibilitychange handler, the posts realtime handler and every
+  setInterval: a phone already open when the Pro tees off receives literally
+  nothing, and the player has to reload before the round exists to them.
+- **Problem:** the pencil is only as good as the invitation. A group standing
+  on the first tee cannot be told "everyone force-refresh." And the round's
+  own players are the one audience with a legitimate claim on a lock screen —
+  they are about to play.
+- **Recommendation:** two signals, each scoped to the people it concerns.
+  (1) IN-APP, live: the starter broadcasts `live_open` on the league channel
+  every open app already subscribes to (`lg-<league_id>`, D34's realtime
+  spine). Receivers call `rehydrateLiveRound()`, which re-runs the existing
+  roster filter — so the client never decides who is invited; the same server
+  query that has always decided it decides it here too. Zero new tables, zero
+  writes, no polling. (2) POCKET: `start_live_round` inserts one `push_nudges`
+  row per MEMBER player except the starter — the existing per-recipient push
+  path (D40, the Ryder taunt), which fans to exactly one profile. The board
+  post was REJECTED for this: `posts` fans push league-wide, so eight people
+  who aren't playing get woken to hear that four people teed off.
+  The banner learns a second face: when `started_by` is not you it reads as an
+  invitation ("Marcus put you on the tee sheet") rather than a resumption.
+- **Principle:** #1 the group plays together — an invitation is the social act
+  the feature was missing; "only meaningful ones, no spam" (the push rule) —
+  the notified set is exactly the roster, never the league.
+- **Benefit:** teeing off now reaches the group in the two states a phone is
+  ever in: open (instant banner) or pocketed (one push). Cold open already
+  worked.
+- **Tradeoffs:** broadcast reaches only apps whose CURRENT league is the
+  round's league — a cross-league round still waits for the push or the next
+  boot. Accepted: the push covers it, and cross-league live rounds are rare by
+  construction. The nudge is not user-mutable yet (no per-user off switch);
+  it fires only for a round you were personally rostered into, which is the
+  narrowest audience in the product.
+- **Also fixed here (found by the same trace, both latent):** the D85 guest
+  RPCs keyed on `claim_token` alone, while the older funnel keys on
+  `claim_token AND member_id is null` — and the baseline defaults a token onto
+  EVERY player row, members included. No member token reaches any surface
+  today (tee-off stores tokens only for rows carrying a `guest_name`), so
+  nothing was exposed, but a member row must never be scoreable by token:
+  the guard is added. And `claimPendingRound()` deleted `cs_claim` when
+  `claim_round` refused a still-live round, which permanently orphaned the
+  card of a guest who signed up mid-round; the token now survives and the
+  message tells the truth.
