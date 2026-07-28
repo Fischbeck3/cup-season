@@ -19,15 +19,17 @@ select '1 · pg_cron jobs' as check_name,
       (select count(*) from cron.job where active)::text end as status,
   (select string_agg(jobname, ' · ' order by jobname) from cron.job where active) as detail
 
--- 2 · anon can execute EXACTLY the seven public endpoints (D57 share_info; setup-QA join_covenant_info; D68 email_unsubscribe)
+-- 2 · anon can execute EXACTLY the ten public endpoints (D57 share_info;
+--     setup-QA join_covenant_info; D68 email_unsubscribe; D85 the guest live
+--     pencil trio — token-keyed, fail-closed)
 union all
 select '2 · anon function surface',
   case when missing = '' and extra = '' then 'PASS'
     else 'FAIL — missing: [' || missing || '] unexpected: [' || extra || ']' end,
-  'expected claim_round_info, scan_claim_info, league_by_code, founder_id, share_info, join_covenant_info, email_unsubscribe'
+  'expected claim_round_info, scan_claim_info, league_by_code, founder_id, share_info, join_covenant_info, email_unsubscribe, guest_live_state, guest_live_set_score, guest_live_set_wolf'
 from (
   select
-    (select coalesce(string_agg(f, ', '), '') from unnest(array['claim_round_info','scan_claim_info','league_by_code','founder_id','share_info','join_covenant_info','email_unsubscribe']) f
+    (select coalesce(string_agg(f, ', '), '') from unnest(array['claim_round_info','scan_claim_info','league_by_code','founder_id','share_info','join_covenant_info','email_unsubscribe','guest_live_state','guest_live_set_score','guest_live_set_wolf']) f
       where not exists (select 1 from pg_proc p join pg_namespace n on n.oid = p.pronamespace
         where n.nspname = 'public' and p.proname = f
           and has_function_privilege('anon', p.oid, 'execute'))) as missing,
@@ -35,19 +37,19 @@ from (
       join pg_namespace n on n.oid = p.pronamespace
       where n.nspname = 'public'
         and has_function_privilege('anon', p.oid, 'execute')
-        and p.proname not in ('claim_round_info','scan_claim_info','league_by_code','founder_id','share_info','join_covenant_info','email_unsubscribe')) as extra
+        and p.proname not in ('claim_round_info','scan_claim_info','league_by_code','founder_id','share_info','join_covenant_info','email_unsubscribe','guest_live_state','guest_live_set_score','guest_live_set_wolf')) as extra
 ) t
 
--- 3 · every client-called RPC is executable by authenticated (the 93)
+-- 3 · every client-called RPC is executable by authenticated (the 96)
 union all
 select '3 · authenticated RPC grants',
-  case when missing = '' then 'PASS — all 93 granted'
+  case when missing = '' then 'PASS — all 96 granted'
     else 'FAIL — not granted: ' || missing end,
-  '93 names extracted from the client'
+  '96 names extracted from the client'
 from (
   select coalesce(string_agg(f, ', '), '') as missing
   from unnest(array[
-    'abandon_live_round','add_event_player','add_round_comment','announce','assign_player','claim_round','claim_round_info','claim_scan_round','create_event','create_league','create_major','create_scan_claim','create_share','declare_round','delete_account','delete_event','delete_league','delete_round','enter_major','event_session_targets','finish_live_round','form_squads','founder_desk','founder_id','founder_note','friend_request','friend_respond','generate_pairings','home_feed','invite_golfer','join_league','league_by_code','league_pulse','major_leaderboard','mark_buy_in','my_achievements','my_friends','my_invites','my_rivalries','my_schedule','my_trophies','open_major','randomize_squads','remove_member','report_content','resolve_session','respond_invite','retag_round','revoke_share','rivalry_weeks','round_detail','round_epilogue','scan_claim_info','scratch_round','search_golfers','season_scenarios','set_discoverable','set_event_notify','set_event_team','set_handle','set_index','set_league_finish','set_member_bye','set_member_index','set_notify_chat','set_notify_rounds','set_profile','set_rivalry_name','set_round_rsvp','settle_major','share_info','start_live_round','start_season','submit_feedback','tour_card','transfer_pro','set_mute','my_mutes','register_device_token','join_covenant_info','set_league_marker','event_lineage','last_round_with','create_forfeit','settle_forfeit','scrap_forfeit','career_record','set_email_recap','email_unsubscribe','request_league_cancel','vote_league_cancel','withdraw_league_cancel','league_cancel_status'
+    'abandon_live_round','add_event_player','add_round_comment','announce','assign_player','claim_round','claim_round_info','claim_scan_round','create_event','create_league','create_major','create_scan_claim','create_share','declare_round','delete_account','delete_event','delete_league','delete_round','enter_major','event_session_targets','finish_live_round','form_squads','founder_desk','founder_id','founder_note','friend_request','friend_respond','generate_pairings','home_feed','invite_golfer','join_league','league_by_code','league_pulse','major_leaderboard','mark_buy_in','my_achievements','my_friends','my_invites','my_rivalries','my_schedule','my_trophies','open_major','randomize_squads','remove_member','report_content','resolve_session','respond_invite','retag_round','revoke_share','rivalry_weeks','round_detail','round_epilogue','scan_claim_info','scratch_round','search_golfers','season_scenarios','set_discoverable','set_event_notify','set_event_team','set_handle','set_index','set_league_finish','set_member_bye','set_member_index','set_notify_chat','set_notify_rounds','set_profile','set_rivalry_name','set_round_rsvp','settle_major','share_info','start_live_round','start_season','submit_feedback','tour_card','transfer_pro','set_mute','my_mutes','register_device_token','join_covenant_info','set_league_marker','event_lineage','last_round_with','create_forfeit','settle_forfeit','scrap_forfeit','career_record','set_email_recap','email_unsubscribe','request_league_cancel','vote_league_cancel','withdraw_league_cancel','league_cancel_status','live_set_score','live_set_wolf','live_state'
   ]) f
   where not exists (select 1 from pg_proc p join pg_namespace n on n.oid = p.pronamespace
     where n.nspname = 'public' and p.proname = f
@@ -87,10 +89,10 @@ from (
 union all
 select '6 · RLS enabled',
   case when off = '' then 'PASS' else 'FAIL — RLS off: ' || off end,
-  'profiles, rounds, league_members, posts, post_comments, trophies, events, pilot_feedback, content_reports, scheduled_rounds'
+  'profiles, rounds, league_members, posts, post_comments, trophies, events, pilot_feedback, content_reports, scheduled_rounds, live_scores'
 from (
   select coalesce(string_agg(t, ', '), '') as off
-  from unnest(array['profiles','rounds','league_members','posts','post_comments','trophies','events','pilot_feedback','content_reports','scheduled_rounds']) t
+  from unnest(array['profiles','rounds','league_members','posts','post_comments','trophies','events','pilot_feedback','content_reports','scheduled_rounds','live_scores']) t
   where not exists (select 1 from pg_class c join pg_namespace n on n.oid = c.relnamespace
     where n.nspname = 'public' and c.relname = t and c.relrowsecurity)
 ) t

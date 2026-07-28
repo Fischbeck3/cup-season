@@ -662,6 +662,34 @@ img.face{border-radius:50%; object-fit:cover; vertical-align:-4px; border:1px so
 @media(min-width:960px){
   .playgrid{display:grid; grid-template-columns:minmax(0,1.35fr) minmax(0,1fr); gap:22px; align-items:start;}
 }
+/* D85 · the scoreboard: game first, strokes under, always on screen. Sticky
+   with a compact "stuck" face — class-toggled size only, NEVER visibility
+   (the animation-gated-reveal landmine). */
+.scoreboard{
+  position:sticky; top:0; z-index:60;
+  background:var(--bg1); border:1px solid var(--line2); border-radius:var(--r);
+  padding:12px 14px; margin-bottom:12px;
+  box-shadow:0 6px 18px rgba(0,0,0,.18);
+}
+.scoreboard .sb-hero{font-family:var(--mono); font-size:17px; font-weight:600; letter-spacing:.02em;}
+.scoreboard .sb-chips{display:flex; gap:6px; flex-wrap:wrap; margin-top:8px;}
+.scoreboard .sbchip{
+  display:flex; align-items:center; gap:6px; background:var(--bg2);
+  border:1px solid var(--line); border-radius:9px; padding:5px 8px;
+  font-family:var(--mono); font-size:11.5px; color:var(--mut);
+  font-variant-numeric:tabular-nums;
+}
+.scoreboard .sbchip b{color:var(--ink); font-weight:600;}
+.scoreboard .sbchip .lv{width:6px; height:6px; border-radius:50%; background:var(--pos); flex:none;}
+.scoreboard .sbchip.lead{border-color:var(--gold);}
+.scoreboard .sbchip.lead b{color:var(--gold);}
+.scoreboard .sb-sub{font-family:var(--mono); font-size:10.5px; color:var(--dim); letter-spacing:.1em; text-transform:uppercase; margin-top:8px;}
+.scoreboard.stuck{padding:8px 12px;}
+.scoreboard.stuck .sb-hero{font-size:13.5px;}
+.scoreboard.stuck .sb-sub{display:none;}
+/* the guest pencil: only the live round exists — no nav, no tabs, no chrome */
+body.guestlive header.hdr, body.guestlive nav.tabbar{display:none !important;}
+body.guestlive #onboard{display:none !important;}
 .holehdr{
   display:flex; align-items:center; justify-content:space-between; gap:10px;
   background:var(--bg1); border:1px solid var(--line); border-radius:var(--r); padding:12px 14px;
@@ -2824,6 +2852,15 @@ html[data-theme="light"] .room-dusk .btn:not(.dark):not(.gold):not(.apple){color
         </div>
 
         <div id="playLive">
+        <!-- D85: the scoreboard owns the top — game status is the hero, the
+             player chips answer "who's up" without a scroll. Sticky: it stays
+             while the entry rows move. -->
+        <div id="sbSentinel" aria-hidden="true"></div>
+        <div class="scoreboard" id="scoreBoard">
+          <div class="sb-hero" id="sbHero">&mdash;</div>
+          <div class="sb-chips" id="sbChips"></div>
+          <div class="sb-sub" id="sbSub"></div>
+        </div>
         <div class="playgrid">
           <div>
             <div class="eyebrow"><span id="lrEyebrowTxt">Live round · Encanto GC — Blue · 70.2/123</span> <a href="#" id="backToSetup">Change setup</a></div>
@@ -2837,6 +2874,7 @@ html[data-theme="light"] .room-dusk .btn:not(.dark):not(.gold):not(.apple){color
             </div>
             <div class="holedots" id="holeDots" aria-hidden="true"></div>
             <div id="playerRows"></div>
+            <button class="mini" id="groupShareBtn" style="margin-top:8px">Group phones — everyone can score</button>
             <div style="height:12px"></div>
             <button class="btn" id="finishBtn">Finish round & post to season</button>
             <p class="fine">Scores entered together are <b>auto-attested</b>: the group verifies everyone's round just by playing it. <b>Guests need no account:</b> they play every side game, appear in the settlement, and get a recap text with their scorecard and an invite when you finish. Only league members' rounds post to the season.</p>
@@ -7142,10 +7180,11 @@ const liveKey = lr => 'cs.live.' + lr;
 /* the whole round, everything needed to repaint it with no server round-trip */
 function buildLiveSnapshot(){
   const L=state.live;
-  return { v:2, lr:L.lr, league_id:L.league_id||null, ts:Date.now(),
+  return { v:3, lr:L.lr, league_id:L.league_id||null, ts:Date.now(),
     game:L.game, stake:L.stake||0, wolfOrder:L.wolfOrder||null,
     holes:L.holes||18, rating9:!!L.rating9, mode:L.mode||'teams',   /* D73/D75: a resumed nine stays a nine; a solo game stays solo */
     pmap:L.pmap||null, guestTokens:L.guestTokens||{},
+    code:L.code||null, scts:L.scts||null, wcts:L.wcts||null,   /* D85: channel key + per-cell write clocks ride the snapshot */
     scores:L.scores, wolf:L.wolf, hole:L.hole,
     teams: (typeof MTEAMS!=='undefined' && MTEAMS) ? MTEAMS.map(t=>t.slice()) : null,
     course:{ label:($('#lrCourse')?.value||''), tee:($('#lrTee')?.value||''),
@@ -7155,7 +7194,10 @@ function buildLiveSnapshot(){
 }
 function persistLive(){
   const L=state.live;
-  if(state.demo || !L || !L.active || !L.lr) return;
+  /* D85: a guest phone never snapshots — its re-entry is the claim link + the
+     server pull, and a stray snapshot would haunt a later sign-up on this
+     browser as a resumable round they can't own */
+  if(state.demo || state.liveGuest || !L || !L.active || !L.lr) return;
   try{ localStorage.setItem(liveKey(L.lr), JSON.stringify(buildLiveSnapshot())); }catch(_){}
 }
 window.persistLive = persistLive;
@@ -7200,7 +7242,10 @@ function applyLiveSnapshot(s){
   const hole = Number.isInteger(s.hole) ? Math.max(0,Math.min(holes-1,s.hole)) : 0;
   state.live = { stage:'live', active:true, game:s.game||'score', stake:Number(s.stake)||0,
     wolfOrder:s.wolfOrder||null, holes, rating9:!!s.rating9, mode:s.mode||'teams', hole, scores, wolf, lr:s.lr, league_id:s.league_id||null,
-    pmap:s.pmap||null, guestTokens:s.guestTokens||{} };
+    pmap:s.pmap||null, guestTokens:s.guestTokens||{},
+    code:s.code||null,   /* D85 */
+    scts:(Array.isArray(s.scts)&&s.scts.length===n)?s.scts.map(a=>{const r=Array(18).fill(0);(Array.isArray(a)?a:[]).forEach((v,k)=>{if(k<18)r[k]=Number(v)||0;});return r;}):LIVE.map(()=>Array(18).fill(0)),
+    wcts:(Array.isArray(s.wcts)&&s.wcts.length===18)?s.wcts.map(v=>Number(v)||0):Array(18).fill(0) };
   recomputeStrokes();   /* re-run now that holes is known (a nine halves the handicap) */
   rosterPrimed=true;
   return true;
@@ -7248,6 +7293,7 @@ function applyServerRound(mine, myPid){
   state.live = { stage:'live', active:true, game, stake:Number(cfg.stake ?? cfg.unit)||0, wolfOrder,   /* sunningdale's cfg calls it unit */
     holes:_srvHoles, rating9:false, mode:(cfg.mode==='solo'?'solo':'teams'),   /* D75: a solo game resumes solo */
     hole:0, scores:LIVE.map(()=>Array(18).fill(null)), wolf:Array(18).fill(null),
+    scts:LIVE.map(()=>Array(18).fill(0)), wcts:Array(18).fill(0), code:mine.join_code||null,   /* D85 */
     lr:mine.id, league_id:mine.league_id||null, pmap:players.map(p=>p.id), guestTokens:{} };
   recomputeStrokes();   /* holes is known now — a nine halves the handicap */
   try{
@@ -7258,6 +7304,11 @@ function applyServerRound(mine, myPid){
           (Array.isArray(a)?a:[]).forEach((v,k)=>{ if(k<18 && v!=null) r[k]=v; }); return r; });
       }
       if(Array.isArray(cc.wolf) && cc.wolf.length===18) state.live.wolf=cc.wolf.slice();
+      /* D85: carry the local write clocks too, so the reconcile pull can't
+         undo edits this phone made while offline */
+      if(Array.isArray(cc.scts) && cc.scts.length===LIVE.length)
+        state.live.scts = cc.scts.map(a=>{const r=Array(18).fill(0);(Array.isArray(a)?a:[]).forEach((v,k)=>{if(k<18)r[k]=Number(v)||0;});return r;});
+      if(Array.isArray(cc.wcts) && cc.wcts.length===18) state.live.wcts=cc.wcts.map(v=>Number(v)||0);
       if(cc.holes===9) state.live.holes=9;   /* D73: local snapshot may know the nine before the server snap is read */
       if(Number.isInteger(cc.hole)) state.live.hole=Math.max(0,Math.min(state.live.holes-1,cc.hole));
     }
@@ -7306,6 +7357,7 @@ async function rehydrateLiveRound(){
     resumed=true;
     if(typeof renderPlay==='function') renderPlay();
     renderResumeBanner();
+    liveJoinIfAble();   /* D85: back on the group channel + reconcile pull */
     toast('Continue your round — tap the banner on Home');
   }
 
@@ -7315,9 +7367,15 @@ async function rehydrateLiveRound(){
   if(!sb || !CS){ return; }
   let rounds=null;
   try{
-    const { data, error } = await sb.from('live_rounds')
-      .select('id, league_id, game, game_config, course_snapshot, course_label, started_at, live_round_players(id, member_id, guest_name, guest_index, index_source, position, member:league_members(profile_id, profile:profiles(display_name, index_current)))')
-      .eq('status','live').order('started_at',{ ascending:false });
+    const _cols = jc => `id, league_id, game, game_config, ${jc?'join_code, ':''}course_snapshot, course_label, started_at, live_round_players(id, member_id, guest_name, guest_index, index_source, position, member:league_members(profile_id, profile:profiles(display_name, index_current)))`;
+    let { data, error } = await sb.from('live_rounds')
+      .select(_cols(true)).eq('status','live').order('started_at',{ ascending:false });
+    /* deploy skew: an old DB has no join_code yet — retry on ANY error (the
+       42501 lesson: column errors never name the column), sync just stays off */
+    if(error){
+      ({ data, error } = await sb.from('live_rounds')
+        .select(_cols(false)).eq('status','live').order('started_at',{ ascending:false }));
+    }
     if(error) throw error;
     rounds=data||[];
   }catch(e){
@@ -7340,7 +7398,14 @@ async function rehydrateLiveRound(){
     localLr:(local?local.lr:null), serverLr:(mine?mine.id:null) };
 
   if(resumed){
-    if(state.live.lr && openIds.has(state.live.lr)) return;   /* local matches an open round — done */
+    if(state.live.lr && openIds.has(state.live.lr)){
+      /* D85: a pre-sync snapshot has no channel key — the server row does */
+      if(!state.live.code){
+        const srv=mineList.find(r=>r.id===state.live.lr);
+        if(srv && srv.join_code){ state.live.code=srv.join_code; persistLive(); liveJoinIfAble(); }
+      }
+      return;   /* local matches an open round — done */
+    }
     /* the local round is finished / gone — retire it, then fall through */
     clearLiveCache(null); state.live=freshLive();
     if(typeof renderPlay==='function') renderPlay(); renderResumeBanner();
@@ -7351,6 +7416,7 @@ async function rehydrateLiveRound(){
     clearLiveCache(mine.id);
     if(typeof renderPlay==='function') renderPlay();
     renderResumeBanner();
+    liveJoinIfAble();   /* D85: a fresh device joins the group channel too */
     toast('Continue your round — tap the banner on Home');
   } else if(!mine){
     clearLiveCache(null);
@@ -7376,6 +7442,175 @@ function renderResumeBanner(){
   document.getElementById('resumeGo')?.addEventListener('click',()=>switchView('play'));
 }
 window.renderResumeBanner = renderResumeBanner;
+
+/* ==== D85 · everyone's phone scores the round — the classic side ============
+   Transport (channel, queue, RPCs) lives module-side as window.liveSync; this
+   side owns the game state. Rules that keep the two honest:
+   - every local edit stamps a write clock (scts/wcts, ms) BEFORE it travels
+   - every arriving edit (broadcast or reconcile pull) applies ONLY if newer —
+     LWW per cell, so replays and stale queue flushes can never regress a card
+   - sync off (no code / demo / no module bridge) degrades to the solo pencil */
+function ensureSyncTs(){
+  const L=state.live; if(!L) return;
+  if(!Array.isArray(L.scts) || L.scts.length!==LIVE.length) L.scts=LIVE.map(()=>Array(18).fill(0));
+  if(!Array.isArray(L.wcts) || L.wcts.length!==18) L.wcts=Array(18).fill(0);
+}
+function liveSendable(){ return !state.demo && state.live && state.live.active && state.live.code && window.liveSync; }
+function liveMarkScore(pi, h){
+  ensureSyncTs();
+  const L=state.live; L.scts[pi][h]=Date.now();
+  if(!liveSendable()) return;
+  const pid=L.pmap?.[pi]; if(!pid) return;
+  window.liveSync.send({ t:'score', pid, h:h+1, s:L.scores[pi][h], cts:L.scts[pi][h] });
+}
+function liveMarkWolf(h){
+  ensureSyncTs();
+  const L=state.live; L.wcts[h]=Date.now();
+  if(!liveSendable()) return;
+  window.liveSync.send({ t:'wolf', h:h+1, w:L.wolf[h], cts:L.wcts[h] });
+}
+function liveJoinIfAble(){
+  const L=state.live;
+  if(state.demo || !L || !L.active || !L.lr || !L.code) return;
+  window.liveSync?.join(L.lr, L.code, state.liveGuest?.token||null);
+}
+window.liveJoinIfAble = liveJoinIfAble;
+/* a broadcast arrives — one cell, apply if newer */
+window.liveRecv = function(m){
+  const L=state.live; if(!L || !L.active || !m) return;
+  if(m.t==='finish' || m.t==='gone'){ liveRoundEndedRemotely(m.status||'final'); return; }
+  ensureSyncTs();
+  const cts=Number(m.cts)||0;
+  if(m.t==='score'){
+    const pi = L.pmap ? L.pmap.indexOf(m.pid) : -1;
+    const h=(m.h|0)-1;
+    if(pi<0 || h<0 || h>17) return;
+    if((L.scts[pi][h]||0) >= cts) return;
+    L.scores[pi][h] = m.s==null ? null : Number(m.s);
+    L.scts[pi][h]=cts;
+  } else if(m.t==='wolf'){
+    const h=(m.h|0)-1;
+    if(h<0 || h>17) return;
+    if((L.wcts[h]||0) >= cts) return;
+    L.wolf[h] = m.w || null;
+    L.wcts[h]=cts;
+  } else return;
+  renderPlay();
+  renderResumeBanner();
+};
+/* the reconcile pull — the whole round, merged cell by cell */
+window.liveRecvState = function(d){
+  const L=state.live;
+  if(!L || !L.active || !d || !d.round || d.round.id!==L.lr) return;
+  if(d.round.status!=='live'){ liveRoundEndedRemotely(d.round.status); return; }
+  ensureSyncTs();
+  (d.scores||[]).forEach(s=>{
+    const pi = L.pmap ? L.pmap.indexOf(s.player_id) : -1;
+    const h=(s.hole|0)-1;
+    if(pi<0 || h<0 || h>17) return;
+    const cts=Number(s.cts)||0;
+    if((L.scts[pi][h]||0) >= cts) return;
+    L.scores[pi][h] = s.strokes==null ? null : Number(s.strokes);
+    L.scts[pi][h]=cts;
+  });
+  const gs=d.round.game_state||{};
+  Object.keys(gs).forEach(k=>{
+    const h=parseInt(k.slice(1),10)-1;
+    if(!(h>=0 && h<18) || !gs[k]) return;
+    const cts=Date.parse(gs[k].cts)||0;
+    if((L.wcts[h]||0) >= cts) return;
+    L.wolf[h]=gs[k].v||null;
+    L.wcts[h]=cts;
+  });
+  renderPlay();
+  renderResumeBanner();
+};
+/* the round closed on ANOTHER phone (finish, scrap, or reconcile discovery) */
+function liveRoundEndedRemotely(status){
+  const L=state.live; if(!L || !L.active) return;
+  if(state.liveGuest){
+    /* the guest's link now points at a finished round — a clean reload lands
+       on the existing claim door (cs_claim is still set) */
+    window.location.replace(window.location.pathname);
+    return;
+  }
+  try{ localStorage.removeItem('cs.live.'+L.lr); }catch(_){}
+  window.liveSync?.leave();
+  state.live.active=false; state.live.stage='setup';
+  renderPlay(); renderResumeBanner();
+  toast(status==='final' ? 'Round finished from another phone — the cards posted' : 'That round was scrapped');
+  if(window.CS?.league && window.loadStandingsAndFeed) loadStandingsAndFeed();
+}
+/* presence + the sync line under the scoreboard */
+window.liveRecvPresence = function(names){
+  state.livePresence = Array.isArray(names)?names:[];
+  window.liveSyncBadge?.();
+};
+window.liveSyncBadge = function(){
+  const el=document.getElementById('sbSub'); if(!el) return;
+  const L=state.live;
+  if(state.demo || !L || !L.active){ el.textContent=''; return; }
+  if(!L.code){ el.textContent='Solo pencil · scores live on this phone'; return; }
+  const n=Math.max(1,(state.livePresence||[]).length);
+  const q=window.liveSync?.queued?.()||0;
+  el.textContent = `${n} on the sheet · ${q ? q+' queued' : 'synced'}`;
+};
+/* the guest pencil: a claim link opened MID-ROUND. Token is identity — no
+   account, no name pick. The same link claims the card after the finish. */
+function enterGuestLive(d, token){
+  if(!d || !d.round || !Array.isArray(d.players) || !d.players.length) return false;
+  state.demo=false;
+  const players=d.players.slice().sort((a,b)=>a.position-b.position);
+  LIVE = players.map(pl=> pl.member_id
+    ? { n:(pl.display_name||'Member'), i:Number(pl.index_current)||18, ci:1, team:'—',
+        guest:false, mid:pl.member_id, pid:null, me:false }
+    : { n:(pl.guest_name||'Guest'), i:Number(pl.guest_index)||18, ci:-1, team:null,
+        guest:true, est:pl.index_source==='estimated', pid:null, me:pl.id===d.me });
+  const snap=d.round.course_snapshot||{};
+  if(Array.isArray(snap.pars) && snap.pars.length===18) PAR=snap.pars.map(Number);
+  if(Array.isArray(snap.si) && snap.si.length===18){ SI=snap.si.map(Number); SIEST=!!(d.round.game_config && d.round.game_config.si_estimated); }
+  else estimateSI();
+  if(snap.rating!=null) CRATE=Number(snap.rating)||CRATE;
+  if(snap.slope!=null)  CSLOPE=Number(snap.slope)||CSLOPE;
+  if($('#lrCourse')) $('#lrCourse').value = snap.label||d.round.course_label||'';
+  if($('#lrTee'))    $('#lrTee').value    = snap.tee||'';
+  recomputeStrokes();
+  const cfg=d.round.game_config||{};
+  const game = d.round.game==='none' ? 'score' : d.round.game;
+  const idxByName=nm=>LIVE.findIndex(p=>p.n===nm);
+  if(game==='match' || game==='sunningdale'){
+    const a=(cfg.side_a||[]).map(idxByName).filter(i=>i>=0);
+    const b=(cfg.side_b||[]).map(idxByName).filter(i=>i>=0);
+    if(a.length && b.length) MTEAMS=[a,b]; else setMatchTeams();
+  } else setMatchTeams();
+  let wolfOrder=null;
+  if(game==='wolf'){
+    const ord=(cfg.order||[]).map(idxByName).filter(i=>i>=0);
+    wolfOrder = ord.length===LIVE.length ? ord : [0,1,2,3];
+  }
+  const _holes = snap.holes===9 ? 9 : 18;
+  state.live = { stage:'live', active:true, game, stake:Number(cfg.stake ?? cfg.unit)||0, wolfOrder,
+    holes:_holes, rating9:false, mode:(cfg.mode==='solo'?'solo':'teams'),
+    hole:0, scores:LIVE.map(()=>Array(18).fill(null)), wolf:Array(18).fill(null),
+    scts:LIVE.map(()=>Array(18).fill(0)), wcts:Array(18).fill(0), code:d.round.join_code||null,
+    lr:d.round.id, league_id:d.round.league_id||null, pmap:players.map(p=>p.id), guestTokens:{} };
+  state.liveGuest={ token, me:d.me };
+  state.liveName=(LIVE.find(p=>p.me)||{}).n||'Guest';   /* presence name on the channel */
+  recomputeStrokes();
+  rosterPrimed=true;
+  document.getElementById('onboard')?.classList.add('hide');
+  document.body.classList.add('guestlive');
+  switchView('play');
+  window.liveRecvState(d);   /* the pull came with the door — merge its scores now */
+  /* open on the first hole still being played */
+  let firstOpen=0; for(let k=0;k<liveHoles();k++){ if(!holeDone(k)){ firstOpen=k; break; } }
+  state.live.hole=firstOpen;
+  renderPlay();
+  liveJoinIfAble();
+  return true;
+}
+window.enterGuestLive = enterGuestLive;
+/* ==== end D85 classic side ================================================ */
 
 const holeDone=h=>LIVE.every((_,pi)=>state.live.scores[pi][h]!==null);
 const netOf=(pi,h)=>state.live.scores[pi][h]-strokeOn(pi,h);
@@ -7871,6 +8106,7 @@ function renderPlay(){
       const pi=+b.dataset.pi, d=+b.dataset.d;
       const cur=state.live.scores[pi][h];
       state.live.scores[pi][h] = cur===null ? PAR[h] : Math.max(1,cur+d);
+      liveMarkScore(pi, h);   /* D85: stamp the write clock + tell the group */
       renderPlay();
     });
   });
@@ -7961,19 +8197,19 @@ function renderPlay(){
     const b=document.createElement('button');
     b.textContent='+ '+(LIVE[p]?.n||'').toUpperCase();
     if(pick&&pick.mode==='partner'&&pick.partner===p)b.classList.add('on');
-    b.addEventListener('click',()=>{state.live.wolf[h]={mode:'partner',partner:p};renderPlay();});
+    b.addEventListener('click',()=>{state.live.wolf[h]={mode:'partner',partner:p};liveMarkWolf(h);renderPlay();});
     wb.appendChild(b);
   });
   const lone=document.createElement('button');
   lone.textContent='LONE WOLF';
   if(pick&&pick.mode==='lone')lone.classList.add('on');
-  lone.addEventListener('click',()=>{state.live.wolf[h]={mode:'lone'};renderPlay();});
+  lone.addEventListener('click',()=>{state.live.wolf[h]={mode:'lone'};liveMarkWolf(h);renderPlay();});
   wb.appendChild(lone);
   if(pick){
     /* catch-up/undo (batch-3 #16): any hole's call is re-enterable */
     const clr=document.createElement('button');
     clr.textContent='CLEAR';
-    clr.addEventListener('click',()=>{state.live.wolf[h]=null;renderPlay();});
+    clr.addEventListener('click',()=>{state.live.wolf[h]=null;liveMarkWolf(h);renderPlay();});
     wb.appendChild(clr);
   }
 
@@ -8011,7 +8247,79 @@ function renderPlay(){
     }
     $('#settle').innerHTML=settleRows(sk.pts, state.live.stake);
   }
+  /* D85: the guest pencil scores but never finishes, scraps, or re-configures */
+  {const _g=!!state.liveGuest;
+   ['finishBtn','discardBtn','backToSetup'].forEach(id=>{
+     const e=document.getElementById(id); if(e) e.style.display=_g?'none':''; });
+   const gsb=document.getElementById('groupShareBtn');
+   if(gsb) gsb.style.display=(_g||state.demo)?'none':'';}
+  renderScoreboard();
   renderLiveBanner();
+}
+/* ---- D85 · the scoreboard: game first, strokes under -----------------------
+   Runs at the END of renderPlay so the game cards' status text is already
+   computed — the hero line borrows the same words the cards speak. */
+function _sbPm(v){ return (v>0?'+':'')+v; }
+function netParThru(pi){
+  let gross=0, par=0, net=0, thru=0;
+  const noH = state.live.game==='sunningdale';   /* D74: no handicaps there */
+  for(let h=0;h<liveHoles();h++){
+    const s=state.live.scores[pi][h]; if(s==null) continue;
+    thru++; gross+=s; par+=PAR[h];
+    net += s - PAR[h] - (noH?0:strokeOn(pi,h));
+  }
+  return {gross, par, net, thru, toPar:gross-par};
+}
+function renderScoreboard(){
+  const hero=$('#sbHero'), chips=$('#sbChips'); if(!hero||!chips) return;
+  const g=state.live.game;
+  let heroTxt='';
+  if(g==='match'||g==='sunningdale') heroTxt=$('#matchStatus')?.textContent||'';
+  else if(g==='wolf' && LIVE.length===4){
+    const pts=wolfPoints();
+    heroTxt=[...pts.keys()].sort((a,b)=>pts[b]-pts[a])
+      .map(i=>`${fn1(LIVE[i]?.n||'').toUpperCase()} ${_sbPm(pts[i])}`).join(' · ');
+  }
+  else if(g==='skins' && LIVE.length>=2){
+    const sk=skinsCalc();
+    const won=LIVE.map((p,i)=>({n:fn1(p.n).toUpperCase(),w:sk.won[i]})).filter(x=>x.w>0)
+      .sort((a,b)=>b.w-a.w).map(x=>`${x.n} ${x.w}`).join(' · ');
+    heroTxt = won || 'NO SKINS CLAIMED YET';
+    if(sk.thru<liveHoles() && sk.carry>1) heroTxt += ` · ${sk.carry} RIDING`;
+  }
+  else {
+    const rows=LIVE.map((p,i)=>({p,i,s:netParThru(i)})).filter(x=>x.s.thru>0);
+    if(!rows.length) heroTxt='ALL TO PLAY';
+    else{
+      rows.sort((a,b)=>a.s.net-b.s.net);
+      const tie=rows.length>1 && rows[1].s.net===rows[0].s.net;
+      heroTxt = tie ? `ALL SQUARE THRU ${Math.min(...rows.map(x=>x.s.thru))}`
+        : `${fn1(rows[0].p.n).toUpperCase()} LEADS · ${_sbPm(rows[0].s.net)} NET THRU ${rows[0].s.thru}`;
+    }
+  }
+  hero.textContent=heroTxt||'—';
+  const stats=LIVE.map((p,i)=>({p,i,s:netParThru(i)}));
+  const scored=stats.filter(x=>x.s.thru>0);
+  const best=scored.length?Math.min(...scored.map(x=>x.s.net)):null;
+  const on=new Set((state.livePresence||[]).map(String));
+  chips.innerHTML=stats.map(({p,s})=>{
+    const lead = best!=null && scored.length>1 && s.thru>0 && s.net===best;
+    return `<div class="sbchip${lead?' lead':''}">${on.has(p.n)?'<span class="lv"></span>':''}<b>${esc(fn1(p.n))}</b><span>${
+      s.thru ? `${_sbPm(s.net)} net · ${s.gross} thru ${s.thru}` : '—'
+    }</span></div>`;
+  }).join('');
+  window.liveSyncBadge?.();
+  /* sticky compact face — size only, never visibility (the animation-gated-
+     reveal landmine: nothing here can trap the content) */
+  if(!window._sbObs && 'IntersectionObserver' in window){
+    const sent=document.getElementById('sbSentinel');
+    if(sent){
+      window._sbObs=new IntersectionObserver(es=>{
+        document.getElementById('scoreBoard')?.classList.toggle('stuck', !es[0].isIntersecting);
+      });
+      window._sbObs.observe(sent);
+    }
+  }
 }
 $('#holePrev').addEventListener('click',()=>{state.live.hole=Math.max(0,state.live.hole-1);renderPlay();});
 $('#holeNext').addEventListener('click',()=>{state.live.hole=Math.min(liveHoles()-1,state.live.hole+1);renderPlay();});
@@ -8281,6 +8589,7 @@ $('#teeOffBtn').addEventListener('click', async ()=>{
   const _holes=liveHoles(), _rating9=!!(state.live&&state.live.rating9);   /* carry the setup's holes choice into the live round */
   state.live={stage:'live', active:true, game, stake, wolfOrder, holes:_holes, rating9:_rating9, pairing:_pairing, mode:_mode,
     hole:0, scores:LIVE.map(()=>Array(18).fill(null)), wolf:Array(18).fill(null),
+    scts:LIVE.map(()=>Array(18).fill(0)), wcts:Array(18).fill(0), code:null,   /* D85: per-cell write clocks + the channel key */
     lr:null, league_id:(window.CS?.league?.id||null), pmap:null, guestTokens:{}};
   /* real accounts persist the live round now (guests get claim tokens);
      scoring stays client-side until finish (checkpoint 1 spine) */
@@ -8325,9 +8634,11 @@ $('#teeOffBtn').addEventListener('click', async ()=>{
       }
       if(error) throw error;
       state.live.lr = data.live_round_id;
+      state.live.code = data.join_code || null;   /* D85: null on an old DB — sync quietly off, the pencil still works */
       const byPos=(data.players||[]).slice().sort((a,b)=>a.position-b.position);
       state.live.pmap = byPos.map(pl=>pl.id);
       byPos.forEach(pl=>{ if(pl.guest_name) state.live.guestTokens[pl.position]=pl.claim_token; });
+      liveJoinIfAble();
     }catch(e){
       toast(humanError(e, 'Could not start the round.'));
       state.live.active=false; state.live.stage='setup'; btn.disabled=false; renderPlay(); return;
@@ -8489,6 +8800,9 @@ function finishRealLiveRound(){
         ({ data, error } = await sb.rpc('finish_live_round', args));
       }
       if(error) throw error;
+      /* D85: flip every other phone to done, then leave the channel */
+      if(liveSendable()) window.liveSync.send({ t:'finish', status:'final', cts:Date.now() }, true);
+      window.liveSync?.leave();
       try{ localStorage.removeItem('cs.live.'+state.live.lr); }catch(_){}   /* round posted → drop its resume cache */
       closeSheet();
       const lrId = state.live.lr;   /* D57: the settlement link needs the id past the reset */
@@ -8643,6 +8957,22 @@ function showLiveRecap(d, result, lrId){
    local clear still proceeds — worst case the round reappears once and the
    user scraps it again after the db push. */
 let discardArm=0;
+/* D85 · the group sheet: how the other phones get their pencils */
+$('#groupShareBtn')?.addEventListener('click', ()=>{
+  const L=state.live;
+  const gRows = LIVE.map((p,i)=>({p,i})).filter(x=>x.p.guest && L.guestTokens && L.guestTokens[x.i])
+    .map(x=>`<div class="check"><div class="tt" style="flex:1"><b>${esc(x.p.n)}</b><small>No account needed — the link is their pencil now and their recap after</small></div>
+      <button class="mini" data-ctok="${L.guestTokens[x.i]}">Copy link</button></div>`).join('');
+  openSheet('Group phones', 'EVERYONE SCORES · IT ALL SYNCS',
+    `<p class="fine" style="padding-top:0">League members just open the app — a <b>Continue your round</b> banner is waiting on Home. ${L.code?'':'<b>Sync is off for this round</b> (it started before the update) — one phone keeps the card. '}Any phone can fix any score; the newest edit wins.</p>
+     ${gRows || '<p class="fine">No guests in this round.</p>'}`);
+  document.querySelectorAll('[data-ctok]').forEach(b=>b.addEventListener('click', async ()=>{
+    try{
+      await navigator.clipboard?.writeText(`${location.origin}/?claim=${b.dataset.ctok}`);
+      b.textContent='Copied ✓';
+    }catch(_){ toast('Copy failed — try again'); }
+  }));
+});
 $('#discardBtn')?.addEventListener('click', async ()=>{
   const btn=$('#discardBtn');
   if(Date.now()-discardArm>4000){
@@ -8653,6 +8983,9 @@ $('#discardBtn')?.addEventListener('click', async ()=>{
     return;
   }
   discardArm=0; btn.disabled=true;
+  /* D85: tell the group before the state resets — their pencils close too */
+  if(liveSendable()) window.liveSync.send({ t:'gone', status:'abandoned', cts:Date.now() }, true);
+  window.liveSync?.leave();
   if(!state.demo && state.live.lr && window.sb){
     try{
       const { error } = await window.sb.rpc('abandon_live_round', { p_live_round: state.live.lr });
@@ -13668,6 +14001,121 @@ async function subscribeLeague(){
     });
 }
 
+/* ---------- D85 · live-round sync transport ----------------------------------
+   Broadcast on `live-<round>-<code>` (rtClient — the dedicated realtime client,
+   never sb) + a durable localStorage queue flushed through the RPCs. Guests
+   ride the SAME transport with the anon key: broadcast needs no table read
+   (which anon can never have — D37), and the writes re-auth per call via the
+   claim token. The channel is a rumor mill; the DB stays the record. */
+const liveSync = {
+  chan:null, lr:null, code:null, guest:null, subStatus:null, _flushing:false,
+  qKey(){ return 'cs.liveq.' + this.lr; },
+  q(){ try{ return JSON.parse(localStorage.getItem(this.qKey())||'[]'); }catch(_){ return []; } },
+  saveQ(q){ try{ localStorage.setItem(this.qKey(), JSON.stringify(q.slice(-300))); }catch(_){} },
+  queued(){ return this.lr ? this.q().length : 0; },
+  async join(lr, code, guestTok){
+    if(!lr || !code) return;
+    if(this.chan && this.lr===lr) return;   /* already on this round's channel */
+    this.leave();
+    this.lr=lr; this.code=code; this.guest=guestTok||null;
+    try{
+      if(!rtClient) rtClient = createClient(SUPABASE_URL, SUPABASE_KEY,
+        { auth: { persistSession:false, autoRefreshToken:false, lock:(_n,_t,fn)=>fn() } });
+      if(!this.guest){
+        const { data:{ session } } = await sb.auth.getSession();
+        if(session) rtClient.realtime.setAuth(session.access_token);
+      }
+    }catch(e){ console.warn('[livesync] setup', e); }
+    const name = window.state?.liveName || window.CS?.profile?.display_name || 'A player';
+    const pkey = this.guest || window.CS?.user?.id || ('p'+Math.random().toString(36).slice(2));
+    this.chan = rtClient.channel('live-'+lr+'-'+code,
+        { config:{ broadcast:{ self:false }, presence:{ key: pkey } } })
+      .on('broadcast', { event:'live' }, ({ payload })=>{
+        try{ window.liveRecv?.(payload); }catch(e){ console.warn('[livesync] recv', e); }
+      })
+      .on('presence', { event:'sync' }, ()=>{
+        try{
+          const st=this.chan.presenceState();
+          window.liveRecvPresence?.(Object.values(st).flat().map(m=>m.n).filter(Boolean));
+        }catch(_){}
+      })
+      .subscribe((status, err)=>{
+        /* breadcrumb discipline: a silent CHANNEL_ERROR cost a full session */
+        console.log('[livesync]', status, err||'');
+        this.subStatus=status;
+        if(status==='SUBSCRIBED'){
+          try{ this.chan.track({ n:name }); }catch(_){}
+          this.flush(); this.reconcile();
+        }
+      });
+  },
+  leave(){
+    if(this.chan){ try{ rtClient.removeChannel(this.chan); }catch(_){} }
+    this.chan=null; this.lr=null; this.code=null; this.guest=null; this.subStatus=null;
+    window.liveRecvPresence?.([]);
+  },
+  /* broadcast now; queue the durable write unless bcastOnly (finish/gone —
+     the RPC that matters already ran or is about to) */
+  send(msg, bcastOnly){
+    if(this.chan){ try{ this.chan.send({ type:'broadcast', event:'live', payload:msg }); }catch(_){} }
+    if(bcastOnly || !this.lr) return;
+    const q=this.q(); q.push(msg); this.saveQ(q);
+    this.flush();
+  },
+  async flush(){
+    if(this._flushing || !this.lr) return;
+    this._flushing=true;
+    try{
+      let q=this.q();
+      while(q.length){
+        const m=q[0];
+        let r=null;
+        try{
+          const cts=new Date(m.cts||Date.now()).toISOString();
+          if(m.t==='score') r = this.guest
+            ? await sb.rpc('guest_live_set_score',{ p_token:this.guest, p_player:m.pid, p_hole:m.h, p_strokes:m.s, p_client_ts:cts })
+            : await sb.rpc('live_set_score',{ p_live_round:this.lr, p_player:m.pid, p_hole:m.h, p_strokes:m.s, p_client_ts:cts });
+          else if(m.t==='wolf') r = this.guest
+            ? await sb.rpc('guest_live_set_wolf',{ p_token:this.guest, p_hole:m.h, p_wolf:m.w, p_client_ts:cts })
+            : await sb.rpc('live_set_wolf',{ p_live_round:this.lr, p_hole:m.h, p_wolf:m.w, p_client_ts:cts });
+          if(r && r.error){
+            /* permanently un-landable: the round closed, or the args are bad —
+               drop it. (Includes deploy skew: an old DB has no RPC yet.) */
+            if(/not live|final|No such|not in this|function|schema cache/i.test(r.error.message||'')){
+              q.shift(); this.saveQ(q); continue;
+            }
+            throw r.error;
+          }
+          q.shift(); this.saveQ(q);
+        }catch(e){
+          /* network — keep the entry, back off until the next trigger. A
+             poisoned write must not dam the queue forever. */
+          m.tries=(m.tries||0)+1;
+          if(m.tries>40) q.shift();
+          this.saveQ(q);
+          break;
+        }
+      }
+    } finally { this._flushing=false; }
+    window.liveSyncBadge?.();
+  },
+  async reconcile(){
+    if(!this.lr) return;
+    try{
+      const r = this.guest
+        ? await sb.rpc('guest_live_state', { p_token:this.guest })
+        : await sb.rpc('live_state', { p_live_round:this.lr });
+      if(r.error) throw r.error;
+      if(r.data) window.liveRecvState?.(r.data);
+    }catch(e){ console.warn('[livesync] reconcile', e); }
+  }
+};
+window.liveSync = liveSync;
+/* phone back from a pocket: drain the queue, then pull truth */
+document.addEventListener('visibilitychange', ()=>{
+  if(document.visibilityState==='visible' && liveSync.chan){ liveSync.flush(); liveSync.reconcile(); }
+});
+
 
 /* ---------- create a league ---------- */
 async function createLeague(){
@@ -16460,6 +16908,15 @@ async function safeBoot(force){
   }
   /* guest claim: the round is waiting at the door (anon-readable by token) */
   let claimTok=null; try{ claimTok=localStorage.getItem('cs_claim'); }catch(_){}
+  /* D85: a claim link opened MID-ROUND is a live pencil, not a waiting card —
+     the guest scores from their own phone, no account. Fail-open: any error
+     (dead token, old DB) falls through to the door card below. */
+  if(!CS.user && claimTok && window.enterGuestLive){
+    try{
+      const { data, error } = await sb.rpc('guest_live_state', { p_token: claimTok });
+      if(!error && data?.round?.status==='live' && window.enterGuestLive(data, claimTok)) return;
+    }catch(_){}
+  }
   if(!CS.user && claimTok){
     try{
       /* the door card serves both claim sources (live guests + scan partners) */

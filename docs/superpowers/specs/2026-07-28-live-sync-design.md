@@ -157,6 +157,24 @@ Game cards leave the main flow (the scroll destination dies).
 Jerecho + Jade, real round, PIGL. Host scores some holes, Jade scores her own
 and fixes one of his; both leaderboards agree; finish posts once.
 
+## Build notes (deviations from the section above, 2026-07-28)
+
+- `find_my_live_round` was NOT built: `rehydrateLiveRound`'s existing
+  RLS-scoped select already surfaces every open round the member plays in, on
+  every device — it just learned the `join_code` column (with an any-error
+  retry for deploy skew). The member "join banner" IS the existing Continue
+  banner; one machine, not two.
+- Game cards did NOT move into a tap-in sheet: Wolf's partner/lone buttons are
+  a required per-hole ACTION living in those cards, not detail. The sticky
+  scoreboard alone kills the scroll-bounce (standings never leave the screen);
+  the sheet is future polish if the page still feels long in play.
+- Added: a "Group phones" sheet on the live screen — per-guest copy-link (their
+  claim link, now a live pencil) and the member instruction (open the app,
+  tap Continue).
+- `finish_live_round` keeps its existing authorization (starter or any member
+  player) with the new row lock; the design's "any member player may finish"
+  was already true on the server.
+
 ## Non-goals (v2.x candidates)
 
 Mid-round roster adds · guest live-join upgrade to account mid-round · forced
