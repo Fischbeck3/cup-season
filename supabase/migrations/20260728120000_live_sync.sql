@@ -34,21 +34,26 @@
 --   two could pass the status check together and double-post every card. The
 --   `for update` serializes them; the loser sees 'final' and gets already_final.
 --
--- No table grants move: live_scores has RLS on and NO policies — RPC-only.
+-- live_scores ends RPC-only: the baseline's open-to-members policy and its
+-- authenticated table grant retire here (anon's fell in 20260727220000).
 -- ============================================================================
 
-create table if not exists public.live_scores (
-  live_round_id uuid not null references public.live_rounds(id) on delete cascade,
-  player_id     uuid not null references public.live_round_players(id) on delete cascade,
-  hole          smallint not null check (hole between 1 and 18),
-  strokes       smallint check (strokes is null or strokes between 1 and 30),
-  client_ts     timestamptz not null,
-  updated_at    timestamptz not null default now(),
-  updated_by    uuid references public.league_members(id),
-  primary key (live_round_id, player_id, hole)
-);
-alter table public.live_scores enable row level security;
--- no policies, no grants: every read/write goes through the RPCs below
+-- The baseline SHIPPED live_scores for exactly this feature and the ckpt-1
+-- spine bypassed it (scores stayed client-side until finish). Reuse it as-is
+-- (live_round_id, player_id, hole_number, strokes; PK player_id+hole_number —
+-- a player belongs to one round, so the PK is sufficient) and add the sync
+-- columns. strokes is NOT NULL 1..15 there: "cleared" = row deleted.
+alter table public.live_scores
+  add column if not exists client_ts  timestamptz,
+  add column if not exists updated_at timestamptz not null default now(),
+  add column if not exists updated_by uuid references public.league_members(id);
+-- The table becomes load-bearing now, so it follows the doctrine: writes with
+-- game consequences go through RPCs, never direct table access. The baseline's
+-- open-to-members policy + grant retire (anon's went in 20260727220000).
+drop policy if exists lives_all on public.live_scores;
+revoke all on table public.live_scores from authenticated, anon;
+-- RLS stays enabled with zero policies: RPC-only, and the baseline's
+-- supabase_realtime membership delivers nothing (no read policy)
 
 alter table public.live_rounds add column if not exists join_code text;
 alter table public.live_rounds add column if not exists game_state jsonb;
@@ -145,12 +150,22 @@ begin
   select m.id into v_by
     from live_rounds lr join league_members m on m.league_id = lr.league_id and m.profile_id = v
    where lr.id = p_live_round;
-  insert into live_scores (live_round_id, player_id, hole, strokes, client_ts, updated_by)
-  values (p_live_round, p_player, p_hole, p_strokes, coalesce(p_client_ts, now()), v_by)
-  on conflict (live_round_id, player_id, hole) do update
+  if p_strokes is null then
+    -- cleared cell: the row goes, but only if this clear is the newest word
+    delete from live_scores
+     where player_id = p_player and hole_number = p_hole
+       and (client_ts is null or client_ts < coalesce(p_client_ts, now()));
+    return;
+  end if;
+  insert into live_scores (live_round_id, player_id, hole_number, strokes, client_ts, updated_by)
+  values (p_live_round, p_player, p_hole,
+          least(greatest(p_strokes, 1), 15),   -- baseline check is 1..15
+          coalesce(p_client_ts, now()), v_by)
+  on conflict (player_id, hole_number) do update
     set strokes = excluded.strokes, client_ts = excluded.client_ts,
         updated_at = now(), updated_by = excluded.updated_by
-    where excluded.client_ts > live_scores.client_ts;   -- LWW: older queue flushes never clobber
+    where live_scores.client_ts is null
+       or excluded.client_ts > live_scores.client_ts;   -- LWW: older queue flushes never clobber
 end $$;
 revoke all on function public.live_set_score(uuid, uuid, int, int, timestamptz) from public, anon;
 grant execute on function public.live_set_score(uuid, uuid, int, int, timestamptz) to authenticated;
@@ -201,8 +216,8 @@ returns jsonb language sql stable security definer set search_path = public as $
       left join profiles pr on pr.id = m.profile_id
       where p.live_round_id = p_live_round),
     'scores', (select coalesce(jsonb_agg(jsonb_build_object(
-        'player_id', s.player_id, 'hole', s.hole, 'strokes', s.strokes,
-        'cts', extract(epoch from s.client_ts) * 1000)), '[]'::jsonb)
+        'player_id', s.player_id, 'hole', s.hole_number, 'strokes', s.strokes,
+        'cts', coalesce(extract(epoch from s.client_ts) * 1000, 0))), '[]'::jsonb)
       from live_scores s where s.live_round_id = p_live_round));
 $$;
 -- UNGUARDED by design (its callers guard) — so no API role may ever reach it
@@ -244,12 +259,21 @@ begin
   if not exists (select 1 from live_round_players where id = p_player and live_round_id = v_lr) then
     raise exception 'No such player in this round';
   end if;
-  insert into live_scores (live_round_id, player_id, hole, strokes, client_ts, updated_by)
-  values (v_lr, p_player, p_hole, p_strokes, coalesce(p_client_ts, now()), null)
-  on conflict (live_round_id, player_id, hole) do update
+  if p_strokes is null then
+    delete from live_scores
+     where player_id = p_player and hole_number = p_hole
+       and (client_ts is null or client_ts < coalesce(p_client_ts, now()));
+    return;
+  end if;
+  insert into live_scores (live_round_id, player_id, hole_number, strokes, client_ts, updated_by)
+  values (v_lr, p_player, p_hole,
+          least(greatest(p_strokes, 1), 15),
+          coalesce(p_client_ts, now()), null)
+  on conflict (player_id, hole_number) do update
     set strokes = excluded.strokes, client_ts = excluded.client_ts,
         updated_at = now(), updated_by = null
-    where excluded.client_ts > live_scores.client_ts;
+    where live_scores.client_ts is null
+       or excluded.client_ts > live_scores.client_ts;
 end $$;
 revoke all on function public.guest_live_set_score(uuid, uuid, int, int, timestamptz) from public;
 grant execute on function public.guest_live_set_score(uuid, uuid, int, int, timestamptz) to anon, authenticated;
