@@ -3693,11 +3693,14 @@ setInterval(function(){
 }, 8000);
 
 /* ---- desktop-arc: the door wings ----
-   A hand-authored diorama (the door is pre-auth — no real data). Loops:
-   never start under reduced motion or below 1100px, pause while the tab is
-   hidden, die for good once the onboard is dismissed (.hide). The welcome
-   tour this used to hand off to is retired (F7, 2026-07-20): the door stays
-   one screen: the demo season peek now carries the teaching. */
+   Hand-authored ambient art (the door is pre-auth — anon holds zero table
+   privileges, so real data is not available here). Loops: never start under
+   reduced motion or below 1100px, pause while the tab is hidden, die for
+   good once the onboard is dismissed (.hide).
+   D83 note: this comment used to end "the demo season peek now carries the
+   teaching" — that peek was retired with the demo season, so the door is
+   now one screen with no hand-off at all. The wings are the last authored
+   fiction in the app; if they ever bother anyone, that is the reason. */
 (function(){
   const rm = matchMedia('(prefers-reduced-motion: reduce)').matches;
   const ob = document.getElementById('onboard');
@@ -3719,7 +3722,14 @@ setInterval(function(){
     {n:'Cart Path Only', sq:'--sq2', p:166}
   ];
   const SLOT=88;
-  let fi=0, live=[], order=[0,1,2,3], lbRows=[], loopA=null, loopB=null, dead=false;
+  /* D84: the board is bounded and every rung moves. Before this, lbTick only
+     ever swapped the top TWO rows and each swap set the chaser to leader+4..7
+     with no ceiling — so rows 3 and 4 sat frozen at their seed values forever
+     while the leaders ran away: 184 -> 515 by five minutes, 957 by twelve, a
+     790-point gap to a third place that had never moved. A sign-in screen is
+     a page people leave open. */
+  const LB_CEIL=232, LB_BASE=181;
+  let fi=0, live=[], order=[0,1,2,3], lbRows=[], loopA=null, loopB=null, dead=false, lbSwaps=0;
   function gone(){ return !ob || ob.classList.contains('hide'); }
   function cardEl(r){
     const el=document.createElement('div'); el.className='ob-pcard';
@@ -3758,7 +3768,22 @@ setInterval(function(){
     const iv=setInterval(()=>{
       if(dead || gone()){ clearInterval(iv); return; }
       k++; LBT[chaser].p=Math.round(from+(target-from)*(k/steps)); el.textContent=LBT[chaser].p;
-      if(k>=steps){ clearInterval(iv); order=[chaser,leader].concat(order.slice(2)); slotLb(); }
+      if(k>=steps){
+        clearInterval(iv);
+        order=[chaser,leader].concat(order.slice(2));
+        /* every third swap the back of the board gets a turn — otherwise the
+           bottom two rows never contend and never move (D84) */
+        if(++lbSwaps % 3 === 0 && order.length>2) order.splice(1, 0, order.pop());
+        /* and rebase the whole board when the leader tops out, preserving the
+           spread — the numbers breathe inside a plausible season instead of
+           climbing to four figures on an idle tab (D84) */
+        if(LBT[order[0]].p > LB_CEIL){
+          const drop = LBT[order[0]].p - LB_BASE - Math.floor(Math.random()*7);
+          LBT.forEach(t => { t.p = Math.max(12, t.p - drop); });
+          lbRows.forEach((row,i) => { const pt=row.querySelector('.pt'); if(pt) pt.textContent=LBT[i].p; });
+        }
+        slotLb();
+      }
     }, 46);
   }
   function stop(){ clearInterval(loopA); clearInterval(loopB); loopA=loopB=null; }

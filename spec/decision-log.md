@@ -2906,3 +2906,43 @@ machinery-already-exists. ⚑ marks the points still needing an owner call.*
   "peek at a live season" now points at nothing — the 2026-07-12 demo
   instructions are obsolete and should not be re-sent. Prospects lose the
   poke-around preview; the walkthrough artifacts carry that job now.
+
+### D84 · The door wings stay, bounded — and the fiction is named as debt
+- **Current:** the sign-in door's two desktop wings are hand-authored fiction:
+  a feed of invented golfers on real Phoenix municipal courses (MARCUS ·
+  PAPAGO GC · 82 · +9 PTS) and a four-squad leaderboard whose second place
+  counts up and overtakes the leader every 5.2s.
+- **Problem observed (2026-07-27):** two real defects, measured by replaying
+  the shipped arithmetic. (a) RUNAWAY INFLATION — each swap set the chaser to
+  `leader + 4..7` with no ceiling, so an idle tab climbed 184 → 515 by five
+  minutes and 957 by twelve. (b) A DEAD BACK HALF — `order=[chaser,leader]
+  .concat(order.slice(2))` only ever permuted the top two, so rows 3 and 4
+  sat frozen at their seed values forever, leaving a 790-point gap to a third
+  place that had never moved. A sign-in screen is a page people leave open.
+- **Recommendation:** keep the art, bound the arithmetic. Every third swap
+  rotates the back of the board forward so all four rungs contend; when the
+  leader passes a ceiling the whole board rebases by a constant, preserving
+  the spread. Verified over 1200 simulated ticks (~104 minutes): every value
+  stayed in 138–232, max spread 48, all four rows moved.
+- **CONFLICT (named, NOT resolved — logged as debt):** D83 retired the demo
+  season citing Principle 3 (no simulations, no fake scoring, no fantasy
+  players). These wings are the same species of fiction and they survive it.
+  The defensible line is that the demo was an INTERACTIVE second product that
+  had to stay coherent with real mechanics, while the wings are ambient,
+  aria-hidden, desktop-only decoration that cannot be entered. That line is
+  real but thin — and the wings are arguably worse on one axis the demo never
+  touched: they attach invented scores to REAL named courses. Recorded here
+  rather than settled, because the owner likes the art and launch week is not
+  when to rebuild a pre-auth decoration.
+- **Successor, if the debt is ever paid:** "The Heat and the Fuse" (the
+  direction that won the principles lens of the 2026-07-27 panel) — the left
+  wing becomes the real scoring bands drawn as a heat ramp, the right wing
+  the actual current month drawn as the crest's fuse burnt down to today's
+  date. Zero invention: every figure is either an existing constant
+  (`pointsFor`/`bandName`) or a reading of the device clock, and it is
+  different art every day of the month. Do not rebuild the wings as a
+  different fiction.
+- **Principle:** #5 (alive — but honestly alive); #3 flagged, see CONFLICT.
+- **Benefit:** the art the owner likes survives, and stops embarrassing
+  itself on any tab left open longer than a minute.
+- **Tradeoffs:** the fiction remains on the one surface every prospect sees.
