@@ -11867,8 +11867,22 @@ async function openTourCard(profileId){
   if(!profileId) return;
   if(state.demo || !CS.user){ toast('Sign in to see Tour Cards'); return; }
   openSheet('Tour Card', 'LOADING…', '<p class="fine" style="padding:8px 0">Pulling the card…</p>');
-  let card=null;
-  try{ const {data}=await sb.rpc('tour_card',{p_profile:profileId}); card=data; }catch(_){ card=null; }
+  let card=null, tcRel='none', tcFid=null;
+  /* D80 rider: the card is where you land when you tap a name, so the add
+     action belongs HERE — it used to dead-end (a stale comment claimed the
+     card "just links" to the buddy surface; no such link was ever rendered).
+     The relationship is derived from my_friends rather than added to the
+     tour_card RPC: no migration, so no deploy-skew window. Fetched alongside
+     the card, not after it, so the sheet is no slower than before. */
+  try{
+    const [cr, fr] = await Promise.all([
+      sb.rpc('tour_card',{p_profile:profileId}),
+      psFriends()
+    ]);
+    card = cr.data;
+    const f = (fr||[]).find(x => x.profile_id === profileId);
+    if(f){ tcFid = f.friendship_id; tcRel = f.status==='accepted' ? 'friend' : (f.incoming ? 'incoming' : 'requested'); }
+  }catch(_){ card=null; }
   if(!card || !card.visible){
     openSheet('Tour Card','PRIVATE','<p class="fine" style="padding:8px 0">This golfer keeps their card private, or you don’t share a league yet.</p>');
     return;
@@ -11938,7 +11952,34 @@ async function openTourCard(profileId){
     const muted = window.MUTED instanceof Set && window.MUTED.has(profileId);
     muteHtml = `<button class="mini" id="tcMute" style="margin-top:16px; color:var(--mut)">${muted?'🔈 Unmute — show their posts again':'🔇 Mute — hide their posts from your boards'}</button>`;
   }
-  openSheet(p.is_me?'Your Tour Card':'Tour Card', p.is_me?'THIS IS HOW YOUR BUDDIES SEE YOU':(p.handle?'@'+p.handle.toUpperCase():''), header+trHtml+stats+recHtml+muteHtml);
+  /* the buddy action rides directly under the credential — it is the reason
+     most people opened this sheet. Settled states render as a tag, not a
+     button, so there is nothing to tap that cannot do anything. */
+  let addHtml='';
+  if(!p.is_me){
+    addHtml = tcRel==='friend'
+      ? `<div style="margin-top:12px"><span class="ptag ok">Buddies</span></div>`
+      : tcRel==='requested'
+      ? `<div style="margin-top:12px"><span class="ptag">Requested</span></div>`
+      : `<button class="btn dark" id="tcAdd" style="margin-top:12px">${tcRel==='incoming'?'Accept buddy request':'Add buddy'}</button>`;
+  }
+  openSheet(p.is_me?'Your Tour Card':'Tour Card', p.is_me?'THIS IS HOW YOUR BUDDIES SEE YOU':(p.handle?'@'+p.handle.toUpperCase():''), header+addHtml+trHtml+stats+recHtml+muteHtml);
+  const ab=document.getElementById('tcAdd');
+  if(ab) ab.addEventListener('click', async()=>{
+    ab.disabled=true;
+    if(tcRel==='incoming' && tcFid){
+      const {error}=await sb.rpc('friend_respond',{p_id:tcFid, p_accept:true});
+      if(error){ toast(humanError(error,'Could not accept.')); ab.disabled=false; return; }
+      toast('Golf buddies ✓');
+      ab.outerHTML='<span class="ptag ok">Buddies</span>';
+    } else {
+      const {data:rr, error}=await sb.rpc('friend_request',{p_profile:profileId});
+      if(error){ toast(humanError(error,'Could not send.')); ab.disabled=false; return; }
+      toast(rr==='friend'?'Golf buddies ✓':'Request sent');
+      ab.outerHTML=`<span class="ptag ${rr==='friend'?'ok':''}">${rr==='friend'?'Buddies':'Requested'}</span>`;
+    }
+    window.renderCrewPeople?.(); window.loadHome?.();
+  });
   const vb=document.getElementById('tcVs');
   if(vb) vb.addEventListener('click', ()=> openRivalrySheet(profileId, p.display_name||'them',
     `${vs.wins}–${vs.losses}${vs.ties?'–'+vs.ties:''}`));
@@ -12302,7 +12343,10 @@ function openProfileHub(){
     CS.profile.discoverable = b.dataset.disc; discPaint();
   }));
 
-  /* golf buddies live in Crew › People now — the Tour Card just links there */
+  /* D80: buddies live on the You tab, and the Tour Card carries its own add
+     action (see openTourCard). This comment previously claimed the card
+     "just links there" — it never rendered such a link, and that dead end
+     is what the rider in D80 was about. */
 
   /* appearance: highlight the saved mode, switch on tap */
   const themeBox = $('#phTheme');
