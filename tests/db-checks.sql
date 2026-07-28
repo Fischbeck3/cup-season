@@ -7,7 +7,11 @@
 -- Generated 2026-07-21 against the v23 client; refreshed 2026-07-22 (D57
 -- public shares: anon list 4 → 5, authenticated list gains the share trio);
 -- refreshed 2026-07-24 (anon table seal 20260724150000: check 10; scoreboard
--- security_invoker 20260725210000: check 11).
+-- security_invoker 20260725210000: check 11); refreshed 2026-07-28 (D85 live
+-- sync: anon list 7 → 10, authenticated 93 → 96, live_scores in check 6 —
+-- AND the suite's FIRST clean run: check 8 referenced meta->>'month', a
+-- column that never existed, so every prior paste errored whole. Fixed, plus
+-- check 10's default-acl branch scoped to postgres, see comment there).
 -- ============================================================================
 
 with checks as (
@@ -116,7 +120,10 @@ from (
   select
     (select count(*) from rounds r where r.profile_id is null) as orphans,
     (select count(*) from (
-      select member_id, meta->>'month' as m, count(*)
+      -- month is a real date column (fixed 2026-07-28: the suite said
+      -- meta->>'month', a column that never existed — the check 42703'd the
+      -- WHOLE query, so no check in this file had ever actually run)
+      select member_id, month, count(*)
       from season_adjustments where kind = 'month_closed'
       group by 1, 2 having count(*) > 1) d) as dupes
 ) t
@@ -165,13 +172,20 @@ from (
   where n.nspname = 'public' and att.attnum > 0 and not att.attisdropped
     and (a.grantee = 0 or a.grantee = 'anon'::regrole)
   union all
+  -- scoped to postgres (2026-07-28, the suite's first real run): Supabase's
+  -- PLATFORM defaults ("for role supabase_admin in schema public grant all to
+  -- anon", same pattern in graphql/graphql_public/supabase_functions) also
+  -- live here. They fire only for objects supabase_admin creates — platform
+  -- objects, never app tables (migrations + SQL editor run as postgres) — and
+  -- postgres cannot alter another role's default acls, so they are both
+  -- unreachable and benign. Unscoped, they made this check a permanent FAIL.
   select 'default-acl (' || d.defaclobjtype::text || ') for role ' || d.defaclrole::regrole::text
   from pg_default_acl d
   left join pg_namespace n on n.oid = d.defaclnamespace
   cross join lateral aclexplode(d.defaclacl) a
   where d.defaclobjtype in ('r','S')
-    and (n.nspname = 'public'
-         or (d.defaclnamespace = 0 and d.defaclrole = 'postgres'::regrole))
+    and d.defaclrole = 'postgres'::regrole
+    and (n.nspname = 'public' or d.defaclnamespace = 0)
     and (a.grantee = 0 or a.grantee = 'anon'::regrole)
 ) t
 
