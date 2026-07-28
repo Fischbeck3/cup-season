@@ -7196,6 +7196,7 @@ function buildLiveSnapshot(){
     pmap:L.pmap||null, guestTokens:L.guestTokens||{},
     code:L.code||null, scts:L.scts||null, wcts:L.wcts||null,   /* D85: channel key + per-cell write clocks ride the snapshot */
     mine:L.mine!==false, host:L.host||null,   /* D86: whose round — the banner's two faces survive a refresh */
+    visitor:!!L.visitor,   /* D88 */
     scores:L.scores, wolf:L.wolf, hole:L.hole,
     teams: (typeof MTEAMS!=='undefined' && MTEAMS) ? MTEAMS.map(t=>t.slice()) : null,
     course:{ label:($('#lrCourse')?.value||''), tee:($('#lrTee')?.value||''),
@@ -7256,6 +7257,7 @@ function applyLiveSnapshot(s){
     pmap:s.pmap||null, guestTokens:s.guestTokens||{},
     code:s.code||null,   /* D85 */
     mine:s.mine!==false, host:s.host||null,   /* D86 */
+    visitor:!!s.visitor,   /* D88 */
     scts:(Array.isArray(s.scts)&&s.scts.length===n)?s.scts.map(a=>{const r=Array(18).fill(0);(Array.isArray(a)?a:[]).forEach((v,k)=>{if(k<18)r[k]=Number(v)||0;});return r;}):LIVE.map(()=>Array(18).fill(0)),
     wcts:(Array.isArray(s.wcts)&&s.wcts.length===18)?s.wcts.map(v=>Number(v)||0):Array(18).fill(0) };
   recomputeStrokes();   /* re-run now that holes is known (a nine halves the handicap) */
@@ -7274,8 +7276,13 @@ function applyServerRound(mine, myPid){
                ci:1, team:'—', guest:false, mid:pl.member_id, pid,
                me:pid===myPid, locked:pid===myPid };
     }
+    /* D88: a known guest carries their profile — that is how a visitor's own
+       phone recognises which row is theirs (a member row is matched by
+       member.profile_id; this is the guest-side equivalent). */
+    const gpid=pl.guest_profile_id||null;
     return { n:(pl.guest_name||'Guest'), i:Number(pl.guest_index)||18, ci:-1, team:null,
-             guest:true, est:pl.index_source==='estimated', pid:null };
+             guest:true, est:pl.index_source==='estimated', pid:gpid,
+             me:!!(gpid && gpid===myPid) };
   });
   const snap=mine.course_snapshot||{};
   if(Array.isArray(snap.pars) && snap.pars.length===18) PAR=snap.pars.map(Number);
@@ -7311,6 +7318,8 @@ function applyServerRound(mine, myPid){
        booted league's membership and would be the wrong id here). */
     mine: (()=>{ const st=players.find(p=>p.id && p.member_id===mine.started_by);
                  return st ? st.member?.profile_id===myPid : true; })(),
+    /* D88: a round in a league I'm not in. I score it; I don't end it. */
+    visitor: !!mine.visitor,
     host: (()=>{ const st=players.find(p=>p.member_id===mine.started_by);
                  return st?.member?.profile?.display_name || null; })(),
     lr:mine.id, league_id:mine.league_id||null, pmap:players.map(p=>p.id), guestTokens:{} };
@@ -7404,6 +7413,19 @@ async function rehydrateLiveRound(){
     window.__liveResumeDiag={ ok:false, err:String(e&&e.message||e), local:resumed };
     return;   /* keep any local resume */
   }
+  /* D88 · the visitor's door. live_rounds RLS is is_league_member(league_id),
+     so a round in someone else's league is INVISIBLE to the query above — a
+     known guest could never find it, which made the doorbell a dead end. This
+     definer read returns exactly the rounds where I am a known guest, in the
+     same shape, so everything downstream is unchanged. Fail-open: on any error
+     (old DB without the RPC) the member path stands on its own. */
+  try{
+    const { data:vis, error:vErr } = await sb.rpc('my_visitor_rounds');
+    if(!vErr && Array.isArray(vis) && vis.length){
+      const seen=new Set(rounds.map(r=>r.id));
+      vis.forEach(r=>{ if(r && r.id && !seen.has(r.id)) rounds.push(r); });
+    }
+  }catch(_){}
   /* pilot: "I joined a league and an in-progress round from days ago appeared."
      A golf round is hours, not days — a still-'live' round older than 2 days is
      an abandoned one, not something to resurface. Don't auto-resume it (the play
@@ -7411,7 +7433,8 @@ async function rehydrateLiveRound(){
   const LIVE_MAX_AGE = 2*24*3600*1000;
   const mineList=rounds.filter(r =>
     !deadIds.has(r.id)   /* a scrapped-but-undelivered round is dead, not resumable */
-    && (r.live_round_players||[]).some(p=>p.member?.profile_id===myPid)
+    /* D88: I am in this round as a member player OR as a known guest */
+    && (r.live_round_players||[]).some(p=>p.member?.profile_id===myPid || p.guest_profile_id===myPid)
     && (!r.started_at || (Date.now() - new Date(r.started_at).getTime()) < LIVE_MAX_AGE));
   const openIds=new Set(mineList.map(r=>r.id));
   const mine=mineList[0]||null;
@@ -7582,11 +7605,18 @@ function liveRoundEndedRemotely(status){
     window.location.replace(window.location.pathname);
     return;
   }
+  const wasVisitor = !!L.visitor;
   try{ localStorage.removeItem('cs.live.'+L.lr); }catch(_){}
   window.liveSync?.leave();
   state.live.active=false; state.live.stage='setup';
   renderPlay(); renderResumeBanner();
-  toast(status==='final' ? 'Round finished from another phone — the cards posted' : 'That round was scrapped');
+  /* D88: "the cards posted" is true for the league's members — NOT for a
+     visitor, whose card is saved against their guest row and reaches their
+     record through the claim link. Don't tell them a round landed when it
+     didn't. (Auto-posting a known visitor's card is the obvious follow-up.) */
+  toast(status!=='final' ? 'That round was scrapped'
+    : wasVisitor ? 'Round finished — ask them for your scorecard link to keep it'
+    : 'Round finished from another phone — the cards posted');
   if(window.CS?.league && window.loadStandingsAndFeed) loadStandingsAndFeed();
 }
 /* presence + the sync line under the scoreboard */
@@ -8311,8 +8341,10 @@ function renderPlay(){
     }
     $('#settle').innerHTML=settleRows(sk.pts, state.live.stake);
   }
-  /* D85: the guest pencil scores but never finishes, scraps, or re-configures */
-  {const _g=!!state.liveGuest;
+  /* D85/D88: a pencil scores but never finishes, scraps, or re-configures —
+     whether it arrived by claim link (guest) or by identity in a league I'm
+     not in (visitor). The round's own controls belong to its league. */
+  {const _g=!!state.liveGuest || !!state.live.visitor;
    ['finishBtn','discardBtn','backToSetup'].forEach(id=>{
      const e=document.getElementById(id); if(e) e.style.display=_g?'none':''; });
    const gsb=document.getElementById('groupShareBtn');
@@ -8670,7 +8702,12 @@ $('#teeOffBtn').addEventListener('click', async ()=>{
       const snap={ rating:_r, slope:parseInt($('#lrSlope').value)||null,
         nine_rating:_nine9, holes:_holes, pars:PAR.slice(), si:(SI?SI.slice():null),
         label:($('#lrCourse').value||'').trim(), tee:($('#lrTee').value||'').trim() };
-      const players=LIVE.map(p=> p.guest ? {guest_name:p.n, guest_index:(p.est?null:p.i)} : {member_id:p.mid});
+      /* D88: a guest we searched up in the app IS a known golfer — carry the
+         profile so the server can ring them and their app can find the round.
+         An account-less guest still travels as a bare name. */
+      const players=LIVE.map(p=> p.guest
+        ? {guest_name:p.n, guest_index:(p.est?null:p.i), guest_profile:(p.pid||null)}
+        : {member_id:p.mid});
       const cfg = game==='match'
         ? (_mode==='solo'
             ? { stake, mode:'solo', si_estimated:!!SIEST }   /* D75: round robin — no sides */

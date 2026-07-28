@@ -3073,3 +3073,47 @@ machinery-already-exists. ⚑ marks the points still needing an owner call.*
   no D86 doorbell — the nudge is roster-members-only and the broadcast rides a
   league channel she is not on — so the link remains how she is invited. A
   targeted invite for non-member players is the obvious follow-up.
+
+### D88 · The visitor gets a doorbell AND a door
+- **Current:** D87 let a signed-in golfer from outside the league score with a
+  claim link. But the link was the ONLY way in: `live_rounds` RLS is
+  `is_league_member(league_id)`, so a visitor's app literally cannot SELECT the
+  round, and the D86 doorbell skipped them entirely (the nudge fans to member
+  players; the broadcast rides a league channel they are not on). The root
+  cause sat one line up the stack: the tee-off client searched the golfer up by
+  PROFILE (`#rosterFind` stores `pid`) and then threw it away, sending the
+  server a bare name.
+- **Problem:** the Pro has to remember to send a link before teeing off, and if
+  he forgets, the player standing next to him cannot join the round he is
+  standing in. A notification alone would have been worse than nothing — a
+  doorbell that opens onto a wall.
+- **Recommendation:** carry the identity. `live_round_players.guest_profile_id`
+  makes a guest a KNOWN golfer; `start_live_round` stores it and the push-nudge
+  fan-out now covers members and visitors alike (nothing to deploy —
+  `push_nudges` already delivers one row to one profile and the service worker
+  opens the app on tap). `my_visitor_rounds()` is the door: a definer read that
+  returns exactly the rounds where I am a known guest, in the SAME shape the
+  client's own resume query returns, so every path downstream is untouched.
+  `_live_member_can` accepts a `guest_profile_id` match, so the visitor scores
+  through the ordinary `live_*` RPCs — identity, not a token. The link keeps
+  working (D87's path stands, and an account-less guest has nothing else), but
+  it is no longer REQUIRED for anyone the app can recognise.
+- **Boundary held:** `finish_live_round` still admits only the starter or a
+  member player, and the client hides finish/scrap/setup behind the same
+  `visitor` flag. A visitor scores the round; they do not end it.
+- **Principle:** #1 the group plays together — the round is the unit, not the
+  league roster. "Only meaningful ones, no spam" survives: the notified set is
+  still exactly the people on the tee sheet.
+- **Benefit:** a cross-league foursome is four phones that all get told, all
+  find the round on their own, and all keep their own app.
+- **Tradeoffs:** a guest row now stores a profile id, so the round is legible
+  as "these two golfers played together" outside either league — correct (they
+  did) but it is a new link between a profile and a league it is not in.
+- **KNOWN GAP, deliberately not closed here:** a visitor's card still does not
+  post at the finish — it saves against the guest row and reaches their record
+  only through the claim link, so the Pro must still share it afterwards. Now
+  that the server knows the profile, `finish_live_round` could post it directly
+  (stamping `claimed_profile` so the link cannot double-post). That is the
+  right completion and it is a posting-path change, so it gets its own pass
+  rather than riding a notification build. Until then the finish toast tells
+  the visitor the truth instead of claiming their round landed.
