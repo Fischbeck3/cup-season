@@ -897,24 +897,13 @@ img.face{border-radius:50%; object-fit:cover; vertical-align:-4px; border:1px so
   #view-wizard .wiz-aside{display:block; position:sticky; top:88px;}
   #view-wizard #bylawsReview{display:none;}   /* the sticky aside IS the review on desktop */
 }
-/* Stage 3b: desktop Home — feed/story in the main column, a glance-and-act rail
-   (coming up · pulse · start something) on the right. The greeting stays full
-   width on top. Mobile keeps a single column in source order (greeting, feed,
-   then the rail blocks) — no interleave to preserve, renderers target ids. */
+/* D81: the Home grid/rail is RETIRED — one lane in source order on every
+   breakpoint. Stage 3b's desktop rail and 3b.1's mobile order:-1 hoist are
+   both gone; the hoist was the single biggest fold cost (the cold-start
+   doors rode above the feed for members in week 17). On desktop the lane
+   caps its measure instead of splitting columns. */
 @media(min-width:1100px){
-  #view-home .home-grid{display:grid; grid-template-columns:minmax(0,1fr) 320px; gap:28px; align-items:start;}
-  #view-home .home-main{min-width:0;}
-  #view-home .home-rail{display:flex; flex-direction:column; gap:6px;}
-}
-/* Stage 3b.1 (pilot follow-up, revised): on PHONES the rail — coming up · pulse
-   · Start something — hoists above the feed for EVERYONE, restoring the original
-   mobile order (glance-and-act, then the feed). Members were left feed-first at
-   first, but Start dead-last at the very bottom read as buried (pilot). Desktop
-   is untouched — the grid two-column only applies >=1100px, so both stay
-   visible side by side there. */
-@media(max-width:1099px){
-  #view-home .home-grid{display:flex; flex-direction:column;}
-  #view-home .home-rail{order:-1;}
+  #homeHub{max-width:640px;}
 }
 /* Stage 3c: desktop League Room — Standings and the Board side by side (the
    board is the alive spine, worth keeping in view). Only the standings segment
@@ -2190,7 +2179,7 @@ html[data-theme="light"] .room-dusk .btn:not(.dark):not(.gold):not(.apple){color
 .stat .v, .calc .big, .purse .amt, .ontheline .oa, .phasehero .n{
   font-family:var(--serif); font-variant-numeric:tabular-nums;
 }
-.ob-hero h1, #homeGreeting b{ font-family:var(--serif); letter-spacing:-.01em; }
+.ob-hero h1{ font-family:var(--serif); letter-spacing:-.01em; }
 .mono, .tbl, .bands, .trio b, .codebox{ font-variant-numeric:tabular-nums; }
 
 /* F14 2.3: hero numbers — the pot total and your index step up from the
@@ -2529,27 +2518,23 @@ html[data-theme="light"] .room-dusk .btn:not(.dark):not(.gold):not(.apple){color
         <div id="homeRequests"></div>
         <!-- ONE home (IA P1): the same tree serves league-less and member states.
              The quick-post card is gone — the + tab is the only score entry. -->
+        <!-- D81: ONE lane, one hero slot. The grid/rail split is gone — the
+             mobile order:-1 flip was the single biggest fold cost. The hero
+             slot dispatches on lifecycle (R2); the greeting and the recap
+             block are deleted (Clubhouse owns the league list); the doors
+             render only for members as a quiet row (league-less get the
+             ladder hero). Feed stays WHOLE — it is the merged cross-group
+             stream, not the board (D81 correction). -->
         <div id="homeHub">
-          <div id="homeGreeting"></div>
-          <!-- the up-next strip is time-sensitive and glanceable: full width,
-               right under the greeting, BOTH breakpoints (hides when empty) -->
+          <div id="homeHero"></div>
           <div id="homeUpNext"></div>
-          <div class="home-grid">
-          <div class="home-main">
-          <div class="eyebrow">Your leagues</div>
-          <div id="homeRecap"></div>
-          <div class="eyebrow">Around your crew</div>
+          <div id="homePulse"></div>
+          <div class="eyebrow" id="homeFeedHead">Around your buddies</div>
           <div id="homeDigest"></div>
           <div id="homeFeed"></div>
-          </div>
-          <aside class="home-rail" aria-label="At a glance">
-          <div class="eyebrow" id="homeRoundsHead" style="display:none">Coming up</div>
+          <div class="eyebrow" id="homeRoundsHead" style="display:none">Upcoming golf</div>
           <div id="homeRounds"></div>
-          <div id="homePulse"></div>
-          <div class="eyebrow" style="margin-top:0">Start something</div>
           <div id="homeStart"></div>
-          </aside>
-          </div>
         </div>
       </section>
 
@@ -8880,14 +8865,9 @@ function renderClubGroups(){
   box.querySelectorAll('[data-cgev]').forEach(b=>b.addEventListener('click',()=>{ if(window.openEvent) window.openEvent(b.dataset.cgev); }));
 }
 
-/* ---------- Home: greeting + start + league recap + the circle feed ---------- */
-function renderGreeting(){
-  const g=$('#homeGreeting'); if(!g) return;
-  const name = state.demo ? 'Jerecho' : (window.CS?.profile?.display_name || 'there');
-  const h = new Date().getHours();
-  const part = h<12?'Good morning':h<18?'Good afternoon':'Good evening';
-  g.innerHTML = `<div style="padding:2px 0 12px"><b style="font-size:23px; color:var(--ink)">${part}, ${esc(name)}.</b></div>`;
-}
+/* ---------- Home: start + the circle feed (D81: greeting and the league
+   recap are DELETED — the hero slot welcomes you with a fact, and the
+   Clubhouse switcher owns the league list) ---------- */
 function renderHomeStart(){
   const box=$('#homeStart'); if(!box) return;
   /* D41: a settled season leads — run it back before the cold-start doors */
@@ -8909,7 +8889,10 @@ function renderHomeStart(){
      rounds fan into their league; this is for someone who hasn't joined one
      yet and might otherwise read "Start something" as a gate on posting). */
   const leagueless = !state.demo && !(window.CS?.memberships||[]).length;
-  box.innerHTML = rb + `
+  /* D81: the doors are no longer wallpaper. League-less keeps the full grid
+     (until the R2 ladder hero absorbs it); a MEMBER gets one quiet row —
+     they know the doors exist, and their fold belongs to the feed. */
+  const doors = leagueless || state.demo ? `
     <div class="startgrid">
       <button class="startdoor" data-hgnew type="button">
         <svg viewBox="0 0 60 40" aria-hidden="true">
@@ -8927,38 +8910,20 @@ function renderHomeStart(){
         <b>Start an event</b><small>The weekend battle</small></button>
     </div>
     <button class="startjoin" data-hgjoin type="button"><svg class="ic" aria-hidden="true"><use href="#i-key"/></svg> Join with a code</button>
-    ${leagueless ? '<p class="fine" style="padding:8px 0 0">Post a round — it counts on your card. Leagues score it when you join one.</p>' : ''}`;
+    <p class="fine" style="padding:8px 0 0">Post a round — it counts on your card. Leagues score it when you join one.</p>` : `
+    <div class="startgrid" style="grid-template-columns:1fr 1fr">
+      <button class="startjoin" data-hgnew type="button" style="margin:0">Start a league</button>
+      <button class="startjoin" data-hgjoin type="button" style="margin:0">Join with a code</button>
+    </div>`;
+  box.innerHTML = rb + doors;
   box.querySelector('[data-hgnew]')?.addEventListener('click', () => document.getElementById('wCreate')?.click());
   box.querySelector('[data-hgnewev]')?.addEventListener('click', () => window.openEventPicker?.());
   box.querySelector('[data-hgjoin]')?.addEventListener('click', () => window.openJoinSheet?.());
   if(done) box.querySelector('[data-runback]')?.addEventListener('click', () => window.runItBack?.(done.league));
 }
-function recapRow(title, sub, icon, attr){
-  return `<div class="check${attr?' tap':''}" ${attr||''} style="${attr?'cursor:pointer;':''}"><span class="num">${icon}</span>
-    <div class="tt"><b>${title}</b><small>${sub}</small></div>${attr?'<span class="fine" style="padding:0; color:var(--dim)">→</span>':''}</div>`;
-}
-function renderHomeRecap(){
-  const box=$('#homeRecap'); if(!box) return;
-  if(state.demo){
-    box.innerHTML = recapRow('The Sunday Cup','Season ends Sat, Aug 29 · Wk 18 / 24','⛳','')
-      + recapRow('Your declared round','In 2 days · Papago GC','🗓️','');
-    return;
-  }
-  const rows = (CS.memberships||[]).map(m => {
-    const end = (window.leagueEnds||{})[m.league.id];
-    /* #2: a finished league read "Season ends <a date in the past>" — the row
-       falls back to the phase label, which now names 'complete'. */
-    const sub = m.league.phase==='complete' ? 'Season complete'
-      : end ? 'Season ends '+dfmt(end) : leaguePhaseLabel(m);
-    return recapRow(esc(m.league.name), sub, '⛳', `data-hglg="${m.league.id}"`);
-  });
-  upcomingFromSchedule().slice(0,2).forEach(i => {
-    const when = i.when.charAt(0)+i.when.slice(1).toLowerCase();
-    rows.push(recapRow(esc(i.what), when + (i.who?' · '+esc(i.who):''), '🗓️', ''));
-  });
-  box.innerHTML = rows.length ? rows.join('') : '<p class="fine" style="padding:0">No leagues yet — start or join one above.</p>';
-  box.querySelectorAll('[data-hglg]').forEach(b=>b.addEventListener('click',()=>{ const id=b.dataset.hglg; switchView('hub'); if(window.CS?.league?.id!==id) window.enterLeagueById?.(id, false); }));
-}
+/* D81: recapRow + renderHomeRecap DELETED. The league list lives on the
+   Clubhouse switcher chips (its one home); the hero slot names the active
+   league itself; upcoming rounds have their own "Upcoming golf" rows. */
 /* relative dates spread across the feed's time buckets: today / this week /
    earlier — so the diorama shows all three and never reads stale */
 const DEMO_FEED = [
@@ -9496,16 +9461,15 @@ function renderHomeRequests(){
 }
 function renderHomeHub(){
   renderResumeBanner();   /* an in-progress live round is the first thing you see */
-  renderGreeting();
+  if(typeof renderHomeHero==='function') renderHomeHero();   /* D81: the one hero slot (R2) */
   renderUpNext();
-  renderHomeRounds();   /* Stage 6: the crew's next rounds as tap-in cards */
-  renderPulse();
+  renderPulse();          /* R1: still its own card; folds into the season hero in R2 */
   renderHomeRequests();
-  renderHomeStart();
-  renderHomeRecap();
-  renderHomeDigest();   /* the quiet-day frame rides above the feed it frames */
+  renderHomeDigest();     /* the quiet-day frame rides above the feed it frames */
   renderHomeFeed();
-  renderClubGroups();   /* keep the Clubhouse switcher in sync */
+  renderHomeRounds();     /* "Upcoming golf" — below the feed now (D81) */
+  renderHomeStart();      /* doors for the league-less, one quiet row for members */
+  renderClubGroups();     /* keep the Clubhouse switcher in sync */
 }
 /* role-aware Home (events-doc §6): the month's participation, spoken to your
    role — the Pro sees who's short of the floor, the golfer sees their own line. */

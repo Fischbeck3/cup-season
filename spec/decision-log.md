@@ -2799,3 +2799,78 @@ machinery-already-exists. ⚑ marks the points still needing an owner call.*
   should be its own entry if it is ever wanted.
   Also kept: "friend-to-friend" in the pot copy (D39's money posture — money
   moving between people, not the buddy feature) and `is_friend` in schema.
+
+### D81 · Home becomes a state machine — one hero slot, one lane
+- **Current:** `renderHomeHub` calls 11 children unconditionally; only ONE
+  gates on lifecycle at all (`renderPulse`, index.html:9595). Home therefore
+  renders the union of every state: a member in week 17 scrolls past the
+  cold-start doors every morning, the greeting spends the first 40px on the
+  time of day, and mobile's `order:-1` floats the desktop rail above the fold
+  — eight blocks before the feed. Two of Home's surfaces duplicate the
+  Clubhouse (`homeRecap` vs the switcher chips, `homeStart` vs
+  `hubLeagueless`). The lifecycle switch the app DOES own (`renderPhase`,
+  index.html:10660) lives in the League Room, not Home.
+- **Problem observed:** the fold audit (2026-07-27). At 390×844 the first
+  screen of a season-live member is "Start a league" wallpaper; the standing
+  and the feed — the two things Principle 5 says should greet them — are two
+  scrolls down. For a league-less user the same stack renders as a short
+  orphan page with three permanent CTAs nobody reads twice.
+- **CORRECTION recorded en route:** the first draft of this redesign claimed
+  `homeFeed` duplicated the Clubhouse board and should crop to 3. False —
+  the mapping proved `homeFeed` is the MERGED cross-group stream (buddy
+  rounds + league moments), which exists nowhere else; the board is
+  per-league. The feed stays whole. The duplications are only recap and the
+  doors.
+- **Recommendation:** Home = **one hero slot + one lane**, dispatched on
+  lifecycle. Hero by state: league-less climbs a ladder of next-unmet-facts
+  (0-of-3 index → "nobody's seen it" → "four makes a league, you have six"),
+  forming = countdown + roster fill, season = the standing MOVE, cup_final =
+  seed, complete = the record (position + purse, champagne) with run-it-back.
+  Below: the up-next chips, then the merged feed. Deleted: the greeting, the
+  recap block, the unconditional doors (they fold into the ladder for the
+  league-less and a quiet row otherwise), three of four eyebrows, and the
+  mobile `order:-1` rail flip. An OCCASION card (~6 client-side date windows
+  keyed to real golf's calendar, every nod oblique per the famous-golf-wing
+  rule) rides under the hero when a window is open. Weather enrichment uses
+  fields the Home fetch already discards. Hero CTA taps are instrumented.
+- **CONFLICT (named, resolved):** "where do I stand" as a hero is a
+  STATISTIC at rest — Principle 4 says memory > statistics and Principle 5
+  says opening the app should reveal something new; a static rank is
+  pixel-identical to yesterday. Resolution: **the standing is a verb** — the
+  hero always renders the MOVE and its cause ("Danny's 78 Saturday dropped
+  him behind you"), and on quiet days points forward ("beat your number by 3
+  Saturday and you take 2nd"). Data verified free: rank from
+  season_scenarios, gap from rows already fetched, arrow from week
+  snapshots; the movement chip is omissible by design (week 1 has no
+  snapshot; snapshots are Sunday-only).
+- **Principle:** #5 (alive), #4 (the move is a story, not a stat), #2 (the
+  ladder shows one next thing, never a chore list), #1 (the league-less
+  golfer's card is the hero, not the product's sign-up funnel).
+- **Benefit:** the whole home above the fold in every state; the first
+  screen answers "what's new and what's next" instead of advertising doors.
+- **Tradeoffs:** Home's renderers grow a dispatcher (more branches to test —
+  mitigated by per-state verification); the occasion table is maintained by
+  hand (~6 rows/year); cup_final/complete heroes ship before any user can
+  reach them (accepted — they are small and the first season will).
+
+### D82 · Orientation: one screen after the golfer card, depth at the doors
+- **Current:** after the golfer card, a brand-new user lands on Home with no
+  model of the app. The walkthrough audit (2026-07-27) found the vocabulary
+  couldn't even be taught (fixed by D80), and CLAUDE.md itself carried the
+  wrong posting model ("stepper is default" — it is not; the composer
+  defaults to front/back gross, D34 hid the toggle).
+- **Recommendation:** ONE skippable orientation screen after the golfer
+  card, teaching exactly two things: the four places (Home / Clubhouse / ⊕ /
+  You) and the two ways to play ("the long game" / "the short game" — the
+  app's own switcher copy). "See it with a live season" hands off to the
+  existing demo diorama. A "How it works" group in the You tab reopens the
+  same content forever (six short reads incl. scoring + the demo). Depth
+  stays AT the doors: the ⊕ chooser and event picker already explain
+  themselves. Seen-flag in localStorage (`cs_oriented`) — re-showing on a
+  new device is acceptable; no migration.
+- **Principle:** #2 — one tap of friction, spent exactly once, against the
+  no-tutorial metric failing outright.
+- **Benefit:** the mental model survives first contact; the doors stay
+  self-explaining for everyone who skips.
+- **Tradeoffs:** one more screen before first Home (skippable in one tap);
+  guide copy is a second place the model is described and must be kept true.
