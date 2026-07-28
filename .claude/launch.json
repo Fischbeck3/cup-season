@@ -6,6 +6,18 @@
       "runtimeExecutable": "python",
       "runtimeArgs": ["-m", "http.server", "8642", "--bind", "127.0.0.1"],
       "port": 8642
+    },
+    {
+      "name": "static-8646",
+      "runtimeExecutable": "python",
+      "runtimeArgs": ["-m", "http.server", "8646", "--bind", "127.0.0.1"],
+      "port": 8646
+    },
+    {
+      "name": "static-8791",
+      "runtimeExecutable": "python",
+      "runtimeArgs": ["-m", "http.server", "8791", "--bind", "127.0.0.1"],
+      "port": 8791
     }
   ]
 }
