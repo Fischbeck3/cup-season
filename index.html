@@ -2558,7 +2558,7 @@ html[data-theme="light"] .room-dusk .btn:not(.dark):not(.gold):not(.apple){color
 
       <!-- STATS -->
       <section class="view" id="view-stats">
-        <!-- C4: your own credential — same object the crew sees on your Tour Card -->
+        <!-- C4: your own credential — same object your buddies see on your Tour Card -->
         <div class="cred" id="youCard" style="margin-bottom:14px; text-align:left;">
           <div class="cwm" id="youWm" aria-hidden="true"></div>
           <div class="ctop">
@@ -2614,8 +2614,10 @@ html[data-theme="light"] .room-dusk .btn:not(.dark):not(.gold):not(.apple){color
         <button class="btn" id="youPost" style="margin-top:10px">Post a round</button>
 
         <!-- IA P5: buddies live here now (the Crew · People segment retired).
-             Search + requests + your crew — the People surface, one home. -->
-        <div class="eyebrow">Your crew</div>
+             Search + requests + your buddies — the People surface, one home.
+             D80: "crew" retired as the relationship noun; buddies is the one
+             word for a person, a collection, and the round-card tag. -->
+        <div class="eyebrow">Your buddies</div>
         <div id="youPeople" style="text-align:left"></div>
 
         <!-- Events engine ckpt 4: lifetime head-to-head, weekly-clash (§3). -->
@@ -8036,7 +8038,7 @@ function renderRoster(){
   const groups=[
     {label: state.demo ? 'Your squad · Mudsharks' : 'You', test:p=>!p.guest && p.team===homeTeam},
     {label:'League', test:p=>!p.guest && p.team!==homeTeam},
-    {label:'Crew', test:p=>p.guest && p.buddy},
+    {label:'Buddies', test:p=>p.guest && p.buddy},
     {label:'Guests', test:p=>p.guest && !p.buddy},
   ];
   let any=false;
@@ -9372,7 +9374,7 @@ function renderHomeFeed(){
     .slice(0,30);
   box.innerHTML = items.length
     ? feedBuckets(items)
-    : '<p class="fine" style="padding:0">No rounds from your crew yet. Post one, or <a href="#" data-gopeople style="color:var(--brand)">add golf buddies</a>.</p>';
+    : '<p class="fine" style="padding:0">No rounds from your buddies yet. Post one, or <a href="#" data-gopeople style="color:var(--brand)">add some buddies</a>.</p>';
   wireHomeSocial(box);
   wireFeedReceipts(box);
   /* SF-6: the just-posted card landed here first — arm it, retire the flag */
@@ -9397,7 +9399,7 @@ function renderUpNext(){
       const w = watch[0], d = localDate(w.play_on);
       const n = Math.round((d - new Date().setHours(0,0,0,0))/864e5);
       const when = n===0?'today':n===1?'tomorrow':DOW[d.getDay()].toLowerCase();
-      chips.push(upChip("Crew's playing", (w.display_name||'A buddy').split(' ')[0] + ' · ' + when));
+      chips.push(upChip("Buddy's playing", (w.display_name||'A buddy').split(' ')[0] + ' · ' + when));
     }
     const needs = (window.myInvites||[]).length + (window.homeRequests||[]).length;
     if(needs) chips.push(upChip('Needs you', needs + (needs===1?' invite':' invites')));
@@ -9467,7 +9469,7 @@ function renderHomeRequests(){
   const list = state.demo ? DEMO_REQUESTS : (window.homeRequests||[]);
   if(!list.length){ box.innerHTML=''; return; }
   box.innerHTML =
-    `<div class="eyebrow" style="margin-top:0; color:var(--brand)">Friend request${list.length>1?'s':''}</div>` +
+    `<div class="eyebrow" style="margin-top:0; color:var(--brand)">Buddy request${list.length>1?'s':''}</div>` +
     list.map(f=>{
       const mk = face(f.profile_id, f.marker, 36);
       const name = esc(f.display_name||'A golfer');
@@ -11734,7 +11736,7 @@ async function psFriends(){ try{ const {data}=await sb.rpc('my_friends'); return
 
 async function renderCrewPeople(){
   const box = document.getElementById('youPeople'); if(!box) return;   /* IA P5: buddies on You */
-  if(!CS.user){ box.innerHTML = '<p class="fine" style="padding:0">Sign in to add golf buddies and see requests.</p>'; return; }
+  if(!CS.user){ box.innerHTML = '<p class="fine" style="padding:0">Sign in to add buddies and see requests.</p>'; return; }
   box.innerHTML = `
     <input class="f" id="crFind" placeholder="Find golfers by name or @handle" autocomplete="off" style="font-family:var(--sans)">
     <div id="crResults" style="margin-top:10px"></div>
@@ -11749,9 +11751,9 @@ async function renderCrewPeople(){
       ? `<div class="eyebrow" style="color:var(--brand)">Requests · ${reqs.length}</div>`+reqs.map(f=>psRow(f,
          `<span class="pact"><button class="mini" data-facc="${f.friendship_id}">Accept</button><button class="mini" data-fdec="${f.friendship_id}" aria-label="Decline"><svg class="ic" aria-hidden="true"><use href="#i-close"/></svg></button></span>`)).join('') : '';
     document.getElementById('crBud').innerHTML =
-      `<div class="eyebrow">Crew${buds.length?' · '+buds.length:''}</div>`+
+      `<div class="eyebrow">Buddies${buds.length?' · '+buds.length:''}</div>`+
       (buds.length ? buds.map(f=>psRow(f,'<span class="ptag ok">Buddies</span>')).join('')
-        : '<p class="fine" style="padding:0">No buddies yet. Search up top to add your crew.</p>')+
+        : '<p class="fine" style="padding:0">No buddies yet. Search up top to add them.</p>')+
       (out.length ? `<div class="eyebrow">Requested</div>`+out.map(f=>psRow(f,'<span class="ptag">Requested</span>')).join('') : '');
     box.querySelectorAll('[data-facc],[data-fdec]').forEach(b=>b.addEventListener('click', async()=>{
       b.disabled=true; const acc=b.hasAttribute('data-facc');
@@ -11936,7 +11938,7 @@ async function openTourCard(profileId){
     const muted = window.MUTED instanceof Set && window.MUTED.has(profileId);
     muteHtml = `<button class="mini" id="tcMute" style="margin-top:16px; color:var(--mut)">${muted?'🔈 Unmute — show their posts again':'🔇 Mute — hide their posts from your boards'}</button>`;
   }
-  openSheet(p.is_me?'Your Tour Card':'Tour Card', p.is_me?'THIS IS HOW YOUR CREW SEES YOU':(p.handle?'@'+p.handle.toUpperCase():''), header+trHtml+stats+recHtml+muteHtml);
+  openSheet(p.is_me?'Your Tour Card':'Tour Card', p.is_me?'THIS IS HOW YOUR BUDDIES SEE YOU':(p.handle?'@'+p.handle.toUpperCase():''), header+trHtml+stats+recHtml+muteHtml);
   const vb=document.getElementById('tcVs');
   if(vb) vb.addEventListener('click', ()=> openRivalrySheet(profileId, p.display_name||'them',
     `${vs.wins}–${vs.losses}${vs.ties?'–'+vs.ties:''}`));
@@ -12039,10 +12041,10 @@ function openProfileHub(){
     `<div class="byrow"><span>${esc(m.league.name)}</span><b>${m.role==='commissioner'?'PRO':'PLAYER'} · ${esc(m.league.code)}</b></div>`).join('')
     || '<p class="fine">No leagues yet. Start one or join with a code.</p>';
   /* You-tab audit (pilot, 2026-07-17): one sheet, two intents, split by
-     segment — YOUR CARD (identity: what the crew sees) | SETTINGS (this
+     segment — YOUR CARD (identity: what your buddies see) | SETTINGS (this
      device & account). The old single scroll buried notifications and
      sign-out under ten sections of identity fields. */
-  openSheet('Card & settings', 'Your card is what the crew sees · settings run the app', `
+  openSheet('Card & settings', 'Your card is what your buddies see · settings run the app', `
     <div class="seg" id="phSeg" style="margin-bottom:14px">
       <button data-ph="card" class="on">Your card</button>
       <button data-ph="settings">Settings</button>
@@ -12067,7 +12069,7 @@ function openProfileHub(){
       <div><label class="f" for="phHandle">Handle · moves once / 60 days</label><input class="f" id="phHandle" style="font-family:var(--sans)"></div>
       <div><label class="f">Findable by</label><div id="phDisc" style="display:flex; gap:6px; margin-top:6px;">
         <button class="mini" data-disc="everyone">All</button>
-        <button class="mini" data-disc="friends">Crew</button>
+        <button class="mini" data-disc="friends">Buddies</button>
         <button class="mini" data-disc="nobody">Nobody</button>
       </div></div>
     </div>
@@ -14649,7 +14651,7 @@ window.openRyderPlayers = async function(){
   const E=window.CS_EVENT; if(!E) return;
   const A=E.teams.find(t=>t.slot===0), B=E.teams.find(t=>t.slot===1);
   const cand=await ryderCandidates(E);
-  if(!cand.size){ openSheet('Add players','NO ONE TO ADD', `<p class="fine">Add golf buddies from your profile first${E.event.league_id?" — everyone in the attached league is already in":''}.</p>`); return; }
+  if(!cand.size){ openSheet('Add players','NO ONE TO ADD', `<p class="fine">Add buddies from the You tab first${E.event.league_id?" — everyone in the attached league is already in":''}.</p>`); return; }
   const rows=[...cand.entries()].map(([pid,c])=>`
     <div class="check"><span class="num">${window.mkr?.(c.mk||'saguaro')||'⛳'}</span>
       <div class="tt"><b>${esc(c.name)}</b></div>
@@ -15042,7 +15044,7 @@ async function openDeclareSheet(prefillISO, opts){
      <input class="f" id="drNote" maxlength="140" placeholder="buddies trip, looking for a 4th" style="font-family:var(--sans)">
      ${chips ? `<label class="f" style="margin-top:12px; display:block">Tag your group · <span id="drTagN">${tagged.size}</span> tagged</label>
      <div style="margin-top:8px">${chips}</div>`
-     : `<p class="fine" style="padding-top:10px">No one to tag yet. Add golf buddies from your profile, or invite the league.</p>`}
+     : `<p class="fine" style="padding-top:10px">No one to tag yet. Add buddies from the You tab, or invite the league.</p>`}
      <button class="btn" id="drGo" style="margin-top:14px">${opts.hostName ? "I'm in" : 'On the tee sheet'}</button>
      <p class="fine" style="padding-top:8px">Posts to your leagues' boards: tagged golfers are named. Scratch it any time from the calendar.</p>`);
   bindTagChips('drtag', tagged);
@@ -15207,7 +15209,7 @@ async function openRetagSheet(id){
   const chips = tagChipHtml(cand, 'rttag');
   const d = new Date(sr.play_on + 'T00:00:00');
   openSheet('Tag your group', `${DOW[d.getDay()]} ${MOS[d.getMonth()]} ${d.getDate()}${sr.course_label ? ' · ' + sr.course_label.toUpperCase() : ''}`,
-    (chips || '<p class="fine">No one to tag yet. Add golf buddies from your profile.</p>')
+    (chips || '<p class="fine">No one to tag yet. Add buddies from the You tab.</p>')
     + `<div style="margin-top:6px"><span class="fine" style="padding:0"><span id="drTagN">${tagged.size}</span> tagged</span></div>
        <button class="btn" id="rtGo" style="margin-top:14px">Save the group</button>`);
   bindTagChips('rttag', tagged);
@@ -15297,7 +15299,7 @@ async function openMembersSheet(){
         if(CS.member) CS.member.marker = k;
         const me = CS.members.find(m => m.id === CS.member?.id);
         if(me){ me.marker = k; me.mk = k || me.profile?.marker || 'saguaro'; }
-        toast(k ? 'Marker set for this league' : 'Back to your profile marker');
+        toast(k ? 'Marker set for this league' : 'Back to your card marker');
         closeSheet(); openMembersSheet();
       }catch(err){ b.disabled=false; toast(humanError(err, 'Could not set the marker.')); }
     }));
@@ -15448,7 +15450,7 @@ function showWelcome(){
     : 'No league yet, your golf still counts';
   const chev = $('#lgChev'); if(chev) chev.style.display = 'block';
   const sl = $('#sideLeague'); if(sl) sl.textContent = 'Your golf';
-  const sm = $('#sideMeta'); if(sm) sm.textContent = 'Rounds & crew';
+  const sm = $('#sideMeta'); if(sm) sm.textContent = 'Rounds & buddies';
   const bs = $('#brandSeason'); if(bs) bs.textContent = 'cupseason.app';
   /* the You tab must not show demo players to a league-less golfer — and the
      demo's season frame must not paint ghost league dates on the calendar */

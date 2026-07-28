@@ -11,7 +11,8 @@ is logged as a CONFLICT with a proposed resolution, never silently adopted.
 2. **Product principles** — the five principles, five-question filter, Cup
    Season Test (§ of the vision doc)
 3. **Information architecture** — the IA blueprint (four questions;
-   Home / Crew / ⊕ / You)
+   Home / Clubhouse / ⊕ / You — IA P5 retired the Crew tab and moved buddies
+   into You; cite the SHIPPED bar, not this line's earlier draft of it)
 4. **Gameplay mechanics** — `spec-v1.0.md`, `gameplay-modes-working.md`
 5. **UI** — the shipped client
 6. **Implementation** — schema, migrations, code
@@ -2716,3 +2717,85 @@ machinery-already-exists. ⚑ marks the points still needing an owner call.*
   attribute-escaped at the edge; the anon key is parsed from the HTML rather
   than hardcoded so it can never drift from the client, and the service-role
   key must never appear in an edge function.
+
+---
+
+## Batch 14 — 2026-07-27, the pre-launch vocabulary lane (UX)
+
+### D80 · One noun for the golfer-to-golfer bond: buddies
+- **Current:** the mutual, accepted tie between two golfers ships under four
+  names, sometimes two on one screen. Home calls the pending state a
+  **"Friend request"** (index.html:9470); the settled state chip says
+  **"Buddies"** (index.html:11728); the section that lists them is headed
+  **"Your crew"** (index.html:2618); the push says **"wants in your crew"**.
+  The empty state manages both at once — "No buddies yet. Search up top to add
+  your crew." The Tour Card's own subtitle is "THIS IS HOW YOUR CREW SEES YOU"
+  (index.html:11939) and Card & settings says "Your card is what the crew
+  sees" (index.html:12045). Underneath, the schema calls it `is_friend` and
+  the round-card tag reads `BUDDY`. A separate stray: four live strings send
+  the user to the fourth tab as **"your profile"** (index.html:14652, 15045,
+  15210, and an unnamed jump at 9375) — a fifth name for a surface the nav
+  labels "You".
+- **Problem observed (orientation design pass, 2026-07-27):** the work that
+  surfaced this was writing the welcome walkthrough. An orientation has to
+  name the relationship once, and there is no name to pick — whichever of the
+  four it uses, it contradicts three shipped screens on the way to the tab it
+  is pointing at. That is the no-tutorial metric failing in the most literal
+  way available: the tutorial itself cannot be written. The four names are not
+  regional variants of one idea either; "friend" is the social-network frame
+  the product has otherwise refused, and "crew" is load-bearing elsewhere.
+- **CONFLICT (resolved by expiry, not by overruling):** D11 ruled "crew = the
+  people" and beat the panel's proposal to kill the noun, explicitly on level-3
+  IA authority — **because Crew was a nav tab**. It no longer is. IA P5 retired
+  the Crew tab and moved buddies into You; the shipped bar reads Home /
+  Clubhouse / ⊕ / You. D11's ruling is not overturned here, it is spent: the
+  premise that made "crew" win has expired, so the noun reverts to open. Note
+  this log's own hierarchy line (§3, "Home / Crew / ⊕ / You") was stale and is
+  corrected in the same commit — a decision that cites an IA must cite the
+  shipped one.
+- **Recommendation:** **buddies**, everywhere, in all three grammatical jobs —
+  a person ("a buddy"), a collection ("your buddies"), and the round-card tag
+  (`BUDDY`, already correct). Retire "crew" wherever it NAMES THE RELATIONSHIP
+  or labels the buddy list. Retire "friend request" for "buddy request". Retire the four
+  "your profile" strays for the nav's own word. `is_friend` stays — schema
+  words are not user words (D12's rule) and a column rename buys nothing.
+  Chosen over "regulars" and "playing partners" because it is the only
+  candidate already in the product: it is the shipped round-card tag, and it
+  is the vision doc's own word for persona 3, the buddies trip. The fix is
+  therefore a **deletion of three strays, not a migration to a fifth name** —
+  the cheapest possible resolution and the only one that touches no tag.
+- **Principle:** #2 Low Friction (the no-tutorial metric); D11's own law that
+  each noun means one thing; the anti-generic canon, which is the reason
+  "friend" loses.
+- **Benefit:** the relationship can be taught in one sentence, which is the
+  precondition for the orientation screen existing at all. Every screen agrees
+  with the one before it.
+- **Tradeoffs:** copy sweep only — no schema, no routes, no tags. "Buddies"
+  reads a shade more casual than "the Pro" and "the long war"; accepted, on
+  the grounds that it is what golfers actually say and that the alternative is
+  a word the product does not already own.
+- **Rider — the noun is half the fix.** Tapping a golfer's name opens their
+  Tour Card, which has **no add action at all** (index.html:11899-11939); the
+  comment at index.html:12303 claims it "just links there" and the rendered
+  sheet contains no such link. So the obvious gesture dead-ends, and the copy
+  must route people to the header magnifier or the You tab instead. Renaming
+  the noun without fixing that leaves the sentence true and the gesture broken.
+- **AMENDMENT 2026-07-27, from doing the sweep.** The draft above said retire
+  "crew" from copy *entirely*. Reading all 163 candidate lines showed that
+  overstates it: "crew" does two jobs, and only one is the defect.
+  **Retired (the relationship sense):** it named the buddy list and the buddy
+  bond — `Your crew`, the `Crew · N` section head, `THIS IS HOW YOUR CREW SEES
+  YOU`, "what the crew sees", the Findable-by option, "add your crew",
+  "Crew's playing", "Rounds & crew". Two names for one list is the whole
+  defect, and these are now buddies.
+  **Kept (the collective sense):** "crew" as the colloquial word for the people
+  you play with, which never names the feature — the product TAGLINE ("Rally
+  your crew", which is also the `<title>`, `og:title`, `twitter:title` and meta
+  description), Home's "Around your crew" feed heading, "Invite the crew" in
+  league setup, "in your crew's plans", "Same crew, same bylaws", "the crew's
+  board", "real rounds, real crews". These read as register, not vocabulary,
+  and the tagline in particular is a brand and share-surface decision that a
+  copy sweep has no authority to make. Changing them is a separate call and
+  should be its own entry if it is ever wanted.
+  Also kept: "friend-to-friend" in the pot copy (D39's money posture — money
+  moving between people, not the buddy feature) and `is_friend` in schema.
