@@ -1051,6 +1051,34 @@ img.face{border-radius:50%; object-fit:cover; vertical-align:-4px; border:1px so
 .managebar2{display:flex; gap:8px; margin-top:16px;}
 .mbtn2{flex:1; text-align:center; font-size:12px; font-weight:600; color:var(--mut); border:1px solid var(--line); border-radius:9px; padding:9px;}
 .mbtn2.warn{color:var(--neg); border-color:rgba(255,90,90,.3);}
+/* D81 hero — ONE card, dispatched on lifecycle. Ember spine = live states,
+   champagne spine + figure = earned (rank 1, the wrapped season). The figure
+   is the serif number idiom the standings already speak. */
+.hhero{position:relative; overflow:hidden; text-align:left; padding:15px 16px; margin:0 0 12px;
+  background:var(--panel); border:1px solid var(--line); border-radius:var(--r);}
+.hhero::before{content:''; position:absolute; left:0; top:0; bottom:0; width:3px; background:var(--brand);}
+.hhero.earned::before{background:var(--gold);}
+.hhero .hh-top{font-family:var(--mono); font-size:10.5px; letter-spacing:.12em; text-transform:uppercase; color:var(--mut); margin-bottom:10px;}
+.hhero .hh-fig{display:flex; align-items:baseline; gap:9px; margin-bottom:2px;}
+.hhero .hh-pos{font-family:var(--serif); font-size:44px; font-weight:700; line-height:.9; letter-spacing:-.02em; color:var(--ink); font-variant-numeric:tabular-nums;}
+.hhero.earned .hh-pos{color:var(--gold);}
+.hhero .hh-ord{font-family:var(--serif); font-size:19px; font-weight:700; color:var(--dim); align-self:flex-start; margin-top:3px;}
+.hhero .hh-move{display:inline-flex; align-items:center; gap:4px; border-radius:99px; padding:3px 9px; margin-left:auto;
+  font-family:var(--mono); font-size:10.5px; font-weight:600; letter-spacing:.06em; background:rgba(78,197,132,.13); color:var(--pos);}
+.hhero .hh-move.dn{background:rgba(255,95,86,.12); color:var(--neg);}
+.hhero .hh-move.flat{background:var(--bg2); color:var(--dim);}
+.hhero .hh-line{font-size:13.5px; line-height:1.5; color:var(--ink); margin:10px 0 0;}
+.hhero .hh-line em{font-style:normal; color:var(--brand); font-weight:600;}
+.hhero.earned .hh-line em{color:var(--gold);}
+.hhero .hh-foot{display:flex; align-items:center; gap:9px; margin-top:12px; padding-top:11px; border-top:1px solid var(--line);
+  font-family:var(--mono); font-size:10px; letter-spacing:.07em; text-transform:uppercase; color:var(--dim);}
+.hhero .hh-bar{flex:1; height:5px; border-radius:99px; background:var(--bg2); overflow:hidden;}
+.hhero .hh-bar i{display:block; height:100%; border-radius:99px; background:var(--brand);}
+.hhero .hh-bar i.ok{background:var(--pos);}
+.hhero .hh-cta{display:flex; align-items:center; justify-content:center; min-height:44px; margin-top:12px;
+  border-radius:var(--rc); background:var(--brand); color:#fff; font-size:14px; font-weight:600; width:100%;
+  box-shadow:0 8px 22px -12px var(--glow), inset 0 1px 0 rgba(255,255,255,.2);}
+.hhero .hh-cta.q{background:var(--bg2); color:var(--ink); border:1px solid var(--line2); box-shadow:none;}
 /* Home "Coming up" rich cards (round-object arc Stage 6) */
 .hround{display:flex; align-items:center; gap:10px; padding:11px 12px; margin-bottom:7px; background:var(--panel); border:1px solid var(--line); border-radius:11px;}
 .hround.tap{cursor:pointer;} .hround.tap:active{transform:scale(.99);}
@@ -3445,6 +3473,9 @@ const state = {
   finish:'cup_final',   /* the endgame dial (008): cup_final | points_table */
   payout:[60,25,15],    /* champ / runner-up / points king — sums 100 */
 };
+window.state = state;   /* D81: QA bridge — the hero dev walk (CS_HOME_STATE)
+  and the browser-MCP drills need to read/flip state from the console. Same
+  object, shared reference; matches the window.CS / window.sb bridge idiom. */
 const STAKES=[0,25,50,75,100,150,200], LENGTHS=[6,9,12], CAPS=['Best 2','Best 4','Best 6','Unlimited'];
 /* season length ladder in WEEKS — short casual seasons ("a quick 3-round run
    before it's cold") through full multi-month leagues. Flexible start (§14.0
@@ -8889,10 +8920,11 @@ function renderHomeStart(){
      rounds fan into their league; this is for someone who hasn't joined one
      yet and might otherwise read "Start something" as a gate on posting). */
   const leagueless = !state.demo && !(window.CS?.memberships||[]).length;
-  /* D81: the doors are no longer wallpaper. League-less keeps the full grid
-     (until the R2 ladder hero absorbs it); a MEMBER gets one quiet row —
-     they know the doors exist, and their fold belongs to the feed. */
-  const doors = leagueless || state.demo ? `
+  /* D81 R2: the ladder hero absorbed the league-less doors — EVERY real
+     account now gets the quiet three-button row (the hero carries the loud
+     CTA; Join and events stay one tap away, never wallpaper). The demo
+     diorama keeps the full grid: it is a shop window for prospects. */
+  const doors = state.demo ? `
     <div class="startgrid">
       <button class="startdoor" data-hgnew type="button">
         <svg viewBox="0 0 60 40" aria-hidden="true">
@@ -8911,10 +8943,12 @@ function renderHomeStart(){
     </div>
     <button class="startjoin" data-hgjoin type="button"><svg class="ic" aria-hidden="true"><use href="#i-key"/></svg> Join with a code</button>
     <p class="fine" style="padding:8px 0 0">Post a round — it counts on your card. Leagues score it when you join one.</p>` : `
-    <div class="startgrid" style="grid-template-columns:1fr 1fr">
+    <div class="startgrid" style="grid-template-columns:1fr 1fr 1fr">
       <button class="startjoin" data-hgnew type="button" style="margin:0">Start a league</button>
-      <button class="startjoin" data-hgjoin type="button" style="margin:0">Join with a code</button>
-    </div>`;
+      <button class="startjoin" data-hgnewev type="button" style="margin:0">Start an event</button>
+      <button class="startjoin" data-hgjoin type="button" style="margin:0">Join a league</button>
+    </div>
+    ${leagueless ? '<p class="fine" style="padding:8px 0 0">Post a round — it counts on your card. Leagues score it when you join one.</p>' : ''}`;
   box.innerHTML = rb + doors;
   box.querySelector('[data-hgnew]')?.addEventListener('click', () => document.getElementById('wCreate')?.click());
   box.querySelector('[data-hgnewev]')?.addEventListener('click', () => window.openEventPicker?.());
@@ -8924,6 +8958,215 @@ function renderHomeStart(){
 /* D81: recapRow + renderHomeRecap DELETED. The league list lives on the
    Clubhouse switcher chips (its one home); the hero slot names the active
    league itself; upcoming rounds have their own "Upcoming golf" rows. */
+
+/* ============ D81: the hero slot ============
+   One card, dispatched on lifecycle — first match wins (spec/home-arc.md §2):
+   complete → cup_final → season (the standing MOVE) → forming → the
+   league-less ladder (buddies → visibility → first rounds). Every fact is
+   already in memory; the hero never fetches. The standing is a VERB (the
+   D81 conflict resolution): always the move and its cause, and on quiet
+   days it points forward. window.CS_HOME_STATE forces a state for dev
+   walks (real accounts only — the demo renders its fixed diorama hero). */
+function heroCard(cls, top, figHtml, lineHtml, footHtml, ctaHtml){
+  return `<div class="hhero${cls?' '+cls:''}">
+    <div class="hh-top">${top}</div>
+    ${figHtml||''}${lineHtml?`<p class="hh-line">${lineHtml}</p>`:''}
+    ${footHtml?`<div class="hh-foot">${footHtml}</div>`:''}${ctaHtml||''}</div>`;
+}
+function heroFloorFoot(){
+  /* the pulse card retired into this foot (D81) — same data, one line.
+     Empty until league_pulse arrives; renderPulse re-renders the hero. */
+  const rows = window.leaguePulse||[];
+  if(!rows.length || rows[0].partial) return '';
+  const isPro = window.CS?.member?.role==='commissioner';
+  const floor = rows[0].floor ?? 2;
+  const now=new Date(), eom=new Date(now.getFullYear(), now.getMonth()+1, 0);
+  const days=Math.max(0, Math.round((eom-now)/864e5));
+  const closes = days===0?'today':days+'d';
+  if(isPro){
+    const short=rows.filter(r=>!r.at_floor);
+    const pct=rows.length?(rows.length-short.length)/rows.length:1;
+    return `<span>${MOS[now.getMonth()]} floor</span><span class="hh-bar"><i class="${short.length?'':'ok'}" style="width:${Math.round(pct*100)}%"></i></span>
+      <span>${short.length?short.length+' short · '+closes:'all clear'}</span>`;
+  }
+  const me=rows.find(r=>r.is_me); if(!me) return '';
+  const cr=Number(me.credits), need=Math.max(0, floor-cr);
+  const pct=Math.max(0, Math.min(1, floor?cr/floor:1));
+  return `<span>${MOS[now.getMonth()]} floor ${cr%1?cr.toFixed(1):cr}/${floor}</span>
+    <span class="hh-bar"><i class="${need?'':'ok'}" style="width:${Math.round(pct*100)}%"></i></span>
+    <span>${need?(need%1?need.toFixed(1):need)+' more · '+closes:'cleared'}</span>`;
+}
+function renderHomeHero(){
+  const box=$('#homeHero'); if(!box) return;
+  const wire=(sel,fn)=>{ const b=box.querySelector(sel); if(b&&fn) b.addEventListener('click',fn); };
+
+  /* demo: the diorama's fixed hero — Mudsharks lead, week 18 */
+  if(state.demo){
+    box.innerHTML = heroCard('earned', 'The Sunday Cup · week 18 of 24',
+      `<div class="hh-fig"><span class="hh-pos">1</span><span class="hh-ord">st</span><span class="hh-move">▲ UP 1</span></div>`,
+      `Logan's <b>79 at Aguila</b> put the Mudsharks clear. <em>25 points</em> on the Sandbaggers.`,
+      `<span>Jul floor 2/2</span><span class="hh-bar"><i class="ok" style="width:100%"></i></span><span>cleared</span>`);
+    return;
+  }
+  if(!window.CS?.user){ box.innerHTML=''; return; }
+
+  const ships = window.CS.memberships||[];
+  const active = ships.filter(m => m.league?.phase!=='complete');
+  const done   = ships.find(m => m.league?.phase==='complete');
+  const force  = window.CS_HOME_STATE||null;
+
+  /* 1 · the wrapped season — the record leads (absorbs D41's runback card) */
+  if(force==='complete' || (!force && done && !active.length)){
+    let fig='', line=`The table is settled. <em>The recap has the whole story.</em>`;
+    if(window.CS.league?.id===done?.league?.id && teams.length){
+      /* the completed league is the loaded one — position is in memory */
+      const solo = state.structure==='solo';
+      let myId=null;
+      if(window.CS.member){
+        if(solo) myId=window.CS.member.id;
+        else { const q=(window.CS.squads||[]).find(q=>(q.squad_members||[]).some(x=>x.member_id===window.CS.member.id)); myId=q?q.id:null; }
+      }
+      const i = myId!=null ? teams.findIndex(t=>t.id===myId) : -1;
+      if(i>=0){
+        const ord=climbOrd(i+1).replace(String(i+1),'');
+        fig=`<div class="hh-fig"><span class="hh-pos">${i+1}</span><span class="hh-ord">${ord}</span></div>`;
+        line = i===0 ? `<em>Your name goes on the cup.</em> The recap has the whole story.`
+             : `${teams[0]?`<b>${esc(teams[0].name)}</b> took it — `:''}<em>the recap has the whole story.</em>`;
+      }
+    }
+    box.innerHTML = heroCard('earned', `Season wrapped · ${esc(done?.league?.name||'your league')}`,
+      fig, line, `<span class="tap" data-hrecap style="cursor:pointer">Season recap →</span>`,
+      `<button class="hh-cta" data-hrunback type="button">Run it back — Season 2</button>`);
+    wire('[data-hrunback]', ()=> window.runItBack?.(done.league));
+    wire('[data-hrecap]',  ()=> { switchView('hub'); });
+    return;
+  }
+
+  const inSeason = window.CS.league && state.phase==='season';
+
+  /* 2 · cup final — the last four weeks, scored fresh */
+  if(force==='cup_final' || (!force && inSeason && typeof isCupFinal==='function' && isCupFinal())){
+    const me=heroMyRung();
+    const wksLeft=Math.max(1, Math.ceil((seasonE()-new Date())/6048e5));
+    box.innerHTML = heroCard('', `${esc(window.CS.league?.name||'')} · cup final`,
+      me ? `<div class="hh-fig"><span class="hh-pos">${me.pos}</span><span class="hh-ord">seed</span>${me.moveChip}</div>` : '',
+      me && me.gapLine ? me.gapLine : `Four weeks, scored fresh. <em>Whoever's hottest takes the cup.</em>`,
+      `<span>${wksLeft} week${wksLeft===1?'':'s'} left</span>`);
+    return;
+  }
+
+  /* 3 · season live, past the starter — the standing MOVE */
+  if(force==='season' || (!force && inSeason && !(typeof atStarter==='function' && atStarter()))){
+    const me=heroMyRung();
+    if(me){
+      /* seasonWeeks is the TOTAL (a number, 13145); the current week comes
+         from the season start — same arithmetic renderPhase uses */
+      const total = window.seasonWeeks||null;
+      const wkNow = total ? Math.max(1, Math.min(total, Math.floor((new Date()-seasonS())/6048e5)+1)) : null;
+      const wk = total ? ` · week ${wkNow} of ${total}` : '';
+      box.innerHTML = heroCard(me.pos===1?'earned':'', `${esc(window.CS.league?.name||'')}${wk}`,
+        `<div class="hh-fig"><span class="hh-pos">${me.pos}</span><span class="hh-ord">${me.ord}</span>${me.moveChip}</div>`,
+        me.gapLine, heroFloorFoot());
+      return;
+    }
+    box.innerHTML=''; return;   /* standings not in yet — the feed leads */
+  }
+
+  /* 4 · forming (setup/draft) or the season's first days */
+  if(force==='forming' || (!force && window.CS.league)){
+    const n=(window.CS.members||[]).length;
+    const tee = state.startISO ? localDate(state.startISO) : (state.seasonStart ? seasonS() : null);
+    const dd = tee ? Math.max(0, Math.round((tee - new Date().setHours(0,0,0,0))/864e5)) : null;
+    const starter = state.phase==='season';
+    box.innerHTML = heroCard('', `${esc(window.CS.league?.name||'Your league')} · ${starter?'season live':'forming'}`,
+      dd!=null && !starter ? `<div class="hh-fig"><span class="hh-pos">${dd}</span><span class="hh-ord">day${dd===1?'':'s'}</span></div>` : '',
+      starter ? `The season's on. <em>First rounds build the table</em> — it speaks at three.`
+              : `${dd!=null?'to first tee. ':''}<b>${n} golfer${n===1?'':'s'} in.</b> <em>The bylaws lock at the tee.</em>`,
+      n?`<span>Roster</span><span class="hh-bar"><i style="width:${Math.min(100, Math.round(n/12*100))}%"></i></span><span>${n} in</span>`:'');
+    return;
+  }
+
+  /* the league-less ladder — one next-unmet fact, never a chore list */
+  const rounds = Number(window.career?.rounds||0);
+  const buddies = Number(window.buddyCount||0);
+  const idx = window.CS.profile?.index_current;
+
+  if(force==='rung7' || (!force && rounds===0)){
+    box.innerHTML = heroCard('', 'Your card',
+      '', `Three rounds and your index goes live. <em>Nothing else needed.</em>`,
+      `<span>Index</span><span class="hh-bar"><i style="width:3%"></i></span><span>0 of 3</span>`,
+      `<button class="hh-cta" data-hpost type="button">Post your first round</button>`);
+    wire('[data-hpost]', ()=> switchView('record'));
+    return;
+  }
+  if(force==='rung6' || (!force && buddies===0)){
+    const est = idx!=null;
+    box.innerHTML = heroCard('', `Your card · ${rounds} round${rounds===1?'':'s'}`,
+      est?`<div class="hh-fig"><span class="hh-pos">${fmtIdx(idx)}</span><span class="hh-ord">index</span></div>`:'',
+      est ? `Established. <em>Nobody's seen it</em> — you haven't added a buddy yet.`
+          : `${3-Math.min(rounds,2)} more and your index is live. <em>Play anywhere.</em>`,
+      est?'':`<span>Index</span><span class="hh-bar"><i style="width:${Math.round(Math.min(rounds,3)/3*100)}%"></i></span><span>${Math.min(rounds,3)} of 3</span>`,
+      `<button class="hh-cta${est?'':' q'}" data-hbud type="button">${est?'Find your buddies':'Post a round'}</button>`);
+    wire('[data-hbud]', ()=> est ? (window.goCrewPeople?window.goCrewPeople():switchView('stats')) : switchView('record'));
+    return;
+  }
+  /* rung 5 — buddies exist; four fills a league */
+  const enough = buddies>=4;
+  box.innerHTML = heroCard('', 'Your buddies',
+    `<div class="hh-fig"><span class="hh-pos">${buddies}</span><span class="hh-ord">${enough?`budd${buddies===1?'y':'ies'}`:'of 4'}</span></div>`,
+    enough ? `<b>Four makes a league.</b> <em>You have ${buddies}.</em>`
+           : `<b>Four makes a league.</b> ${4-buddies} more and <em>your rounds start counting for something.</em>`,
+    `<span>Roster</span><span class="hh-bar"><i class="${enough?'ok':''}" style="width:${Math.min(100, Math.round(buddies/4*100))}%"></i></span><span>${enough?'enough':buddies+' of 4'}</span>`,
+    enough?`<button class="hh-cta" data-hlg type="button">Start a league</button>`:'');
+  wire('[data-hlg]', ()=> document.getElementById('wCreate')?.click());
+}
+function heroMyRung(){
+  /* the viewer's rung: rank from season_scenarios (real tie semantics),
+     gap from the rows already fetched, arrow from the week snapshots —
+     the movement chip is OMISSIBLE (week 1 has no snapshot; captures are
+     Sunday-only, so it can be a week stale — never fake freshness). */
+  if(!teams.length) return null;
+  const solo = state.structure==='solo';
+  let myId=null;
+  if(window.CS?.member){
+    if(solo) myId=window.CS.member.id;
+    else { const q=(window.CS.squads||[]).find(q=>(q.squad_members||[]).some(x=>x.member_id===window.CS.member.id)); myId=q?q.id:null; }
+  }
+  const i = myId!=null ? teams.findIndex(t=>t.id===myId) : -1;
+  if(i<0) return null;
+  const sc = window.scenarios && (window.scenarios.rows||[]).find(r=>r.id===myId);
+  const pos = sc?.rank || (i+1);
+  const ord = climbOrd(pos).replace(String(pos),'');
+  /* movement vs the latest snapshot */
+  let moveChip='', moved=0;
+  const hist = window.seasonHistory||[];
+  if(hist.length){
+    const snap = hist.reduce((a,b)=> (b.week_no>(a?.week_no??-1)?b:a), null);
+    const arr = snap?.standings && (solo?snap.standings.individuals:snap.standings.squads);
+    if(arr && arr.length){
+      const prior={};
+      arr.slice().sort((a,b)=>(Number(b.points)||0)-(Number(a.points)||0))
+        .forEach((row,idx)=>{ prior[solo?row.member_id:row.squad_id]=idx; });
+      if(prior[myId]!=null){ moved = prior[myId]-i;
+        moveChip = moved>0 ? `<span class="hh-move">▲ UP ${moved}</span>`
+                 : moved<0 ? `<span class="hh-move dn">▼ DOWN ${-moved}</span>`
+                 : `<span class="hh-move flat">— HELD</span>`; }
+    }
+  }
+  /* the cause, or the forward line — the hero always says something */
+  const me=teams[i]; let gapLine='';
+  if(i===0){
+    const d = teams[1] ? me.pts-teams[1].pts : 0;
+    gapLine = teams[1] ? `You lead by <em>${d} point${d===1?'':'s'}</em> over <b>${esc(teams[1].name)}</b>.` : `<em>You lead.</em>`;
+  } else {
+    const up=teams[i-1], d=up.pts-me.pts;
+    gapLine = d===0 ? `Level with <b>${esc(up.name)}</b>. <em>Your next round breaks the tie.</em>`
+      : moved>0 ? `You passed ${teams[i+1]?`<b>${esc(teams[i+1].name)}</b>`:'a squad'} this week. <em>${d} back</em> of <b>${esc(up.name)}</b>.`
+      : `<em>${d} point${d===1?'':'s'}</em> back of <b>${esc(up.name)}</b>. A good Saturday takes it.`;
+  }
+  return {pos, ord, moveChip, gapLine};
+}
+window.renderHomeHero = renderHomeHero;
 /* relative dates spread across the feed's time buckets: today / this week /
    earlier — so the diorama shows all three and never reads stale */
 const DEMO_FEED = [
@@ -9501,6 +9744,22 @@ function pulseGauge(credits, floor, top, bodyHtml){
 }
 function renderPulse(){
   const box=$('#homePulse'); if(!box) return;
+  /* D81: the season hero's foot owns the floor now. league_pulse lands
+     async, AFTER the hero first painted — so this handler's job is to
+     hand the fresh data back to the hero, not to render its own card.
+     The card form survives only where no season hero rendered (none today;
+     kept as the fallback so a future state can't silently lose the floor). */
+  if(document.querySelector('#homeHero .hh-foot') || (window.CS?.league && state.phase==='season' && typeof renderHomeHero==='function')){
+    renderHomeHero();
+    /* #5 (pilot) survives the hand-off: the hero foot shows the COUNT, this
+       line still states the RULE. #homePulse sits right under the chips, so
+       it reads as the hero's fine print. Same gates as before. */
+    const penTxt = ['', "your squad loses 5 points for every round you're short", 'you forfeit the month'][state.preset] || '';
+    box.innerHTML = (state.structure!=='solo' && state.floor>0 && penTxt && !state.demo)
+      ? `<p class="fine" style="padding:0 2px 6px; line-height:1.45">Monthly floor · <b>${state.floor} round${state.floor===1?'':'s'} a month</b>. Miss it and ${penTxt}. Short months are waived.</p>`
+      : '';
+    return;
+  }
   const rows=(!state.demo && window.leaguePulse) || [];
   if(state.demo || !CS.user || !CS.league || !rows.length){ box.innerHTML=''; return; }
   /* setup-QA SX-01: the floor gauge demanded "0/2 · post 2 more" from a league
@@ -14938,7 +15197,12 @@ async function loadHome(){
       window.csLearnNames?.((allm||[]).map(m=>m.profile?.display_name));
     }
   } catch(_){ /* names stay half-cased — purely cosmetic */ }
-  try { const { data } = await sb.rpc('my_friends'); window.homeRequests = (data||[]).filter(f => f.status==='pending' && f.incoming); }
+  try { const { data } = await sb.rpc('my_friends');
+    window.homeRequests = (data||[]).filter(f => f.status==='pending' && f.incoming);
+    /* D81: the accepted count was fetched and thrown away — the ladder hero
+       (rung 5/6) runs on it. One line, no new call. */
+    window.buddyCount = (data||[]).filter(f => f.status==='accepted').length;
+  }
   catch(e){ window.homeRequests = window.homeRequests||[]; }
   if(window.renderHomeHub) window.renderHomeHub();
 }
