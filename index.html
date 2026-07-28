@@ -3535,6 +3535,13 @@ const state = {
 window.state = state;   /* D81: QA bridge — the hero dev walk (CS_HOME_STATE)
   and the browser-MCP drills need to read/flip state from the console. Same
   object, shared reference; matches the window.CS / window.sb bridge idiom. */
+/* D81: the hero's dev override. null in every real session; set it from the
+   console ('season' | 'cup_final' | 'complete' | 'forming' | 'rung5' |
+   'rung6' | 'rung7') to force a hero state during a QA walk. Declared here
+   rather than left implicit because preflight check 3 is right: a window.*
+   name that is read but never assigned is the silent-demo-mode landmine, and
+   an intentional read-only hook has to say so out loud. */
+window.CS_HOME_STATE = window.CS_HOME_STATE || null;
 const STAKES=[0,25,50,75,100,150,200], LENGTHS=[6,9,12], CAPS=['Best 2','Best 4','Best 6','Unlimited'];
 /* season length ladder in WEEKS — short casual seasons ("a quick 3-round run
    before it's cold") through full multi-month leagues. Flexible start (§14.0
