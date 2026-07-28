@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 240" role="img" aria-labelledby="title desc">
+<title id="title">Legacy Ember Orbit Control</title>
+<desc id="desc">The existing flag-in-cup orbit evolved into the D76 palette as the required legacy control.</desc>
+<circle cx="120" cy="120" r="104" fill="#0C0D0F"/>
+<path d="M155 177c-41 15-93 1-107-23" fill="none" stroke="#8E979E" stroke-width="16" stroke-linecap="round"/>
+<path d="M48 154c-10-19 3-41 25-52" fill="none" stroke="#E9A23B" stroke-width="16" stroke-linecap="round"/>
+<path d="M82 98c30-14 69-11 92 6" fill="none" stroke="#FF5A2E" stroke-width="16" stroke-linecap="round"/>
+<path d="M181 111c16 20 13 44-8 59" fill="none" stroke="#E9A23B" stroke-width="16" stroke-linecap="round"/>
+<ellipse cx="120" cy="148" rx="29" ry="11" fill="none" stroke="#EFF2EE" stroke-width="10"/>
+<rect x="115" y="47" width="11" height="99" rx="5.5" fill="#EFF2EE"/>
+<path d="M126 49l50 19-50 21z" fill="#EFF2EE"/>
+<circle cx="173" cy="170" r="10" fill="#FF5A2E"/>
+</svg>

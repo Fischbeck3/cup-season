@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 240" role="img" aria-labelledby="title desc">
+<title id="title">Cup, Held</title>
+<desc id="desc">A trophy cup doubles as the golf hole while a rising flag carries ember momentum.</desc>
+<path d="M54 62h132v24c0 48-25 76-57 82v18h31v18H80v-18h31v-18c-32-6-57-34-57-82z" fill="#0C0D0F"/>
+<path d="M54 78H28c0 40 18 64 52 67v-18c-20-4-30-17-32-31h18zm132 0h26c0 40-18 64-52 67v-18c20-4 30-17 32-31h-18z" fill="#8E979E"/>
+<ellipse cx="120" cy="91" rx="42" ry="15" fill="#EFF2EE"/>
+<rect x="116" y="35" width="9" height="60" rx="4.5" fill="#E9A23B"/>
+<path d="M125 38l45 16-45 17z" fill="#FF5A2E"/>
+<path d="M95 128h50l-7 15h-36z" fill="#E9A23B"/>
+</svg>

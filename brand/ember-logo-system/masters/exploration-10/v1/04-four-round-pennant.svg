@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 240" role="img" aria-labelledby="title desc">
+<title id="title">Four-Round Pennant</title>
+<desc id="desc">Four nested season rounds build toward a flag planted in a golf cup.</desc>
+<path d="M35 184h170l-20-32H55z" fill="#0C0D0F"/>
+<path d="M49 146h142l-19-29H68z" fill="#8E979E"/>
+<path d="M66 111h108l-18-27H84z" fill="#E9A23B"/>
+<path d="M87 78h66l-16-25h-34z" fill="#FF5A2E"/>
+<ellipse cx="120" cy="169" rx="28" ry="9" fill="#EFF2EE"/>
+<ellipse cx="120" cy="169" rx="14" ry="4.5" fill="#0C0D0F"/>
+<rect x="116" y="45" width="9" height="121" rx="4.5" fill="#EFF2EE"/>
+<path d="M125 48l43 16-43 17z" fill="#FF5A2E"/>
+</svg>

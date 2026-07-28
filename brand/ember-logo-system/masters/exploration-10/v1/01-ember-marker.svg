@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 240" role="img" aria-labelledby="title desc">
+<title id="title">Ember Marker</title>
+<desc id="desc">A golf ball marker coin containing a flag, cup, season steps, and ember.</desc>
+<circle cx="120" cy="120" r="100" fill="#0C0D0F"/>
+<circle cx="120" cy="120" r="78" fill="none" stroke="#EFF2EE" stroke-width="10"/>
+<path d="M82 162c20 14 56 14 76 0l-8 22H90z" fill="#EFF2EE"/>
+<rect x="116" y="55" width="10" height="108" rx="5" fill="#EFF2EE"/>
+<path d="M126 60l47 17-47 18z" fill="#FF5A2E"/>
+<circle cx="73" cy="116" r="7" fill="#8E979E"/><circle cx="80" cy="92" r="7" fill="#E9A23B"/><circle cx="94" cy="73" r="7" fill="#FF5A2E"/>
+</svg>

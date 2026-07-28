@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 240" role="img" aria-labelledby="title desc">
+<title id="title">Rollout Loop</title>
+<desc id="desc">A putt travels through four season checkpoints and settles into a cup with a finite ember tail.</desc>
+<circle cx="120" cy="120" r="104" fill="#0C0D0F"/>
+<path d="M63 151c-19-34 2-73 40-79 42-7 79 17 78 51-1 31-28 49-59 42" fill="none" stroke="#EFF2EE" stroke-width="15" stroke-linecap="round"/>
+<circle cx="64" cy="150" r="13" fill="#FF5A2E"/>
+<circle cx="87" cy="86" r="7" fill="#8E979E"/><circle cx="117" cy="72" r="7" fill="#E9A23B"/><circle cx="150" cy="83" r="7" fill="#FF5A2E"/>
+<path d="M101 158c10 12 29 18 45 8l-5 21c-15 8-37 2-47-11z" fill="#EFF2EE"/>
+<rect x="137" y="119" width="9" height="52" rx="4.5" fill="#E9A23B"/>
+</svg>

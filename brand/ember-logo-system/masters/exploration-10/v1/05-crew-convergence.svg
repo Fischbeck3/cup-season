@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 240" role="img" aria-labelledby="title desc">
+<title id="title">Crew Convergence</title>
+<desc id="desc">Two crews advance around a shared season ring and meet at the cup in ember rivalry.</desc>
+<circle cx="120" cy="120" r="100" fill="#0C0D0F"/>
+<path d="M51 145a73 73 0 0 1 55-94l5 23a49 49 0 0 0-37 63z" fill="#8E979E"/>
+<path d="M129 50a73 73 0 0 1 61 91l-23-6a49 49 0 0 0-41-61z" fill="#E9A23B"/>
+<path d="M70 153c13 28 41 42 70 34l-6-22c-18 5-35-4-43-20z" fill="#EFF2EE"/>
+<path d="M165 148c-7 17-22 25-39 20l-6 22c31 9 57-10 66-35z" fill="#FF5A2E"/>
+<ellipse cx="120" cy="139" rx="25" ry="9" fill="#EFF2EE"/><ellipse cx="120" cy="139" rx="12" ry="4" fill="#0C0D0F"/>
+<path d="M116 72h9v65h-9zM125 74l37 14-37 15z" fill="#FF5A2E"/>
+</svg>

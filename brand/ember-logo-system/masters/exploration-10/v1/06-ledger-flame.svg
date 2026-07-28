@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 240" role="img" aria-labelledby="title desc">
+<title id="title">Ledger Flame</title>
+<desc id="desc">Season record bars stack into a golf cup while an ember rises from the final entry.</desc>
+<path d="M48 58h144v124c0 15-12 27-27 27H75c-15 0-27-12-27-27z" fill="#0C0D0F"/>
+<rect x="69" y="82" width="70" height="13" rx="6.5" fill="#8E979E"/>
+<rect x="69" y="108" width="91" height="13" rx="6.5" fill="#E9A23B"/>
+<rect x="69" y="134" width="112" height="13" rx="6.5" fill="#FF5A2E"/>
+<path d="M83 169h74l-11 22H94z" fill="#EFF2EE"/>
+<ellipse cx="120" cy="169" rx="37" ry="11" fill="#EFF2EE"/><ellipse cx="120" cy="169" rx="18" ry="5" fill="#0C0D0F"/>
+<path d="M157 111c22-25 8-44-5-55 2 16-17 20-12 39 3 10 8 15 17 16z" fill="#FF5A2E"/>
+</svg>

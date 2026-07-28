@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 240" role="img" aria-labelledby="title desc">
+<title id="title">Season Dial</title>
+<desc id="desc">A ball-marker dial records four season phases around a central flag and golf cup.</desc>
+<circle cx="120" cy="120" r="103" fill="#0C0D0F"/>
+<path d="M120 28a92 92 0 0 1 65 27l-18 18a66 66 0 0 0-47-19z" fill="#8E979E"/>
+<path d="M185 55a92 92 0 0 1 27 65h-26a66 66 0 0 0-19-47z" fill="#E9A23B"/>
+<path d="M212 120a92 92 0 0 1-27 65l-18-18a66 66 0 0 0 19-47z" fill="#FF5A2E"/>
+<path d="M185 185a92 92 0 0 1-65 27v-26a66 66 0 0 0 47-19z" fill="#EFF2EE"/>
+<ellipse cx="120" cy="151" rx="31" ry="10" fill="#EFF2EE"/><ellipse cx="120" cy="151" rx="15" ry="5" fill="#0C0D0F"/>
+<rect x="116" y="71" width="9" height="79" rx="4.5" fill="#EFF2EE"/><path d="M125 73l39 15-39 16z" fill="#FF5A2E"/>
+</svg>

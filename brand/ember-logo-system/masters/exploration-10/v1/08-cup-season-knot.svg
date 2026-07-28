@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 240" role="img" aria-labelledby="title desc">
+<title id="title">Cup Season Knot</title>
+<desc id="desc">A continuous C-shaped season track curls into an S-shaped putt and finishes in the cup.</desc>
+<circle cx="120" cy="120" r="104" fill="#0C0D0F"/>
+<path d="M165 67c-35-27-92-8-99 39-8 55 44 89 88 65" fill="none" stroke="#EFF2EE" stroke-width="22" stroke-linecap="round"/>
+<path d="M157 75c-30 4-44 18-40 34 5 19 39 13 42 34 2 15-11 26-31 29" fill="none" stroke="#E9A23B" stroke-width="13" stroke-linecap="round"/>
+<circle cx="158" cy="74" r="10" fill="#FF5A2E"/>
+<path d="M105 169c11 12 31 17 47 7l-7 22c-17 7-40 0-50-13z" fill="#EFF2EE"/>
+<circle cx="76" cy="91" r="6" fill="#8E979E"/><circle cx="68" cy="120" r="6" fill="#E9A23B"/><circle cx="77" cy="150" r="6" fill="#FF5A2E"/>
+</svg>

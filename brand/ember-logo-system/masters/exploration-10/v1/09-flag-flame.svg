@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 240" role="img" aria-labelledby="title desc">
+<title id="title">Flag Flame</title>
+<desc id="desc">An ember silhouette encloses a planted flag, golf cup, and four season notches.</desc>
+<path d="M120 20c18 36 63 53 63 112 0 43-27 78-63 88-36-10-63-45-63-88 0-40 24-61 43-82-2 25 9 35 20 41 11-21 8-44 0-71z" fill="#FF5A2E"/>
+<path d="M120 72c12 24 37 38 37 69 0 27-17 48-37 57-20-9-37-30-37-57 0-22 12-36 24-50-1 16 6 24 13 28 7-14 5-29 0-47z" fill="#0C0D0F"/>
+<ellipse cx="120" cy="162" rx="28" ry="9" fill="#EFF2EE"/><ellipse cx="120" cy="162" rx="13" ry="4" fill="#0C0D0F"/>
+<rect x="116" y="100" width="9" height="61" rx="4.5" fill="#EFF2EE"/><path d="M125 102l31 12-31 14z" fill="#E9A23B"/>
+<rect x="63" y="111" width="15" height="7" rx="3.5" fill="#8E979E"/><rect x="61" y="126" width="15" height="7" rx="3.5" fill="#E9A23B"/><rect x="63" y="141" width="15" height="7" rx="3.5" fill="#EFF2EE"/>
+</svg>
