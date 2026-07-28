@@ -1079,6 +1079,24 @@ img.face{border-radius:50%; object-fit:cover; vertical-align:-4px; border:1px so
   border-radius:var(--rc); background:var(--brand); color:#fff; font-size:14px; font-weight:600; width:100%;
   box-shadow:0 8px 22px -12px var(--glow), inset 0 1px 0 rgba(255,255,255,.2);}
 .hhero .hh-cta.q{background:var(--bg2); color:var(--ink); border:1px solid var(--line2); box-shadow:none;}
+/* D81 R3 — the occasion card: golf's real calendar as the quiet second
+   voice under the hero. Smaller than the hero, one action, dismissable.
+   Champagne spine = a Major window; ember = everything live. The marker
+   art carries the wink (famous-golf-wing rule: oblique, never named). */
+.hocc{position:relative; overflow:hidden; text-align:left; padding:13px 14px; margin:0 0 12px;
+  background:var(--panel); border:1px solid var(--line); border-radius:var(--r);}
+.hocc::before{content:''; position:absolute; left:0; top:0; bottom:0; width:3px; background:var(--brand);}
+.hocc.earned::before{background:var(--gold);}
+.hocc .ho-k{font-family:var(--mono); font-size:10px; letter-spacing:.13em; text-transform:uppercase; color:var(--brand); margin-bottom:7px;}
+.hocc.earned .ho-k{color:var(--gold);}
+.hocc h4{font-family:var(--serif); font-size:18px; font-weight:700; margin:0 0 5px; color:var(--ink); line-height:1.2; letter-spacing:-.01em;}
+.hocc p{margin:0; font-size:12.5px; line-height:1.5; color:var(--mut);}
+.hocc .ho-act{display:flex; align-items:center; justify-content:space-between; margin-top:11px; padding-top:10px; border-top:1px solid var(--line);
+  font-size:13px; font-weight:600; color:var(--brand); cursor:pointer; width:100%; background:none; border-left:0; border-right:0; border-bottom:0; text-align:left; font-family:var(--sans);}
+.hocc.earned .ho-act{color:var(--gold);}
+.hocc .ho-mk{position:absolute; right:34px; top:12px; width:30px; height:30px; opacity:.3; pointer-events:none;}
+.hocc .ho-mk svg{width:100%; height:100%; stroke:var(--gold); fill:none; stroke-width:1.4; stroke-linecap:round; stroke-linejoin:round;}
+.hocc .ho-x{position:absolute; right:8px; top:8px; width:24px; height:24px; border-radius:50%; border:none; background:none; color:var(--dim); font-size:14px; line-height:1; cursor:pointer;}
 /* Home "Coming up" rich cards (round-object arc Stage 6) */
 .hround{display:flex; align-items:center; gap:10px; padding:11px 12px; margin-bottom:7px; background:var(--panel); border:1px solid var(--line); border-radius:11px;}
 .hround.tap{cursor:pointer;} .hround.tap:active{transform:scale(.99);}
@@ -2555,6 +2573,7 @@ html[data-theme="light"] .room-dusk .btn:not(.dark):not(.gold):not(.apple){color
              stream, not the board (D81 correction). -->
         <div id="homeHub">
           <div id="homeHero"></div>
+          <div id="homeOccasion"></div>
           <div id="homeUpNext"></div>
           <div id="homePulse"></div>
           <div class="eyebrow" id="homeFeedHead">Around your buddies</div>
@@ -8998,7 +9017,12 @@ function heroFloorFoot(){
 }
 function renderHomeHero(){
   const box=$('#homeHero'); if(!box) return;
-  const wire=(sel,fn)=>{ const b=box.querySelector(sel); if(b&&fn) b.addEventListener('click',fn); };
+  /* every CTA tap and each state's first paint per session go to
+     client_events (qaEvent: demo never emits, failures swallowed) — the
+     "does the empty space incite?" question is empirical, and launch week
+     is the one clean baseline we will ever get. */
+  const wire=(sel,fn)=>{ const b=box.querySelector(sel); if(b&&fn) b.addEventListener('click',()=>{ qaEvent('home_hero_tap',{cta:sel.replace(/[^a-z]/g,'')}); fn(); }); };
+  const seen=(tag)=>{ if(window.__heroSeen!==tag){ window.__heroSeen=tag; qaEvent('home_hero_state',{state:tag}); } };
 
   /* demo: the diorama's fixed hero — Mudsharks lead, week 18 */
   if(state.demo){
@@ -9034,6 +9058,7 @@ function renderHomeHero(){
              : `${teams[0]?`<b>${esc(teams[0].name)}</b> took it — `:''}<em>the recap has the whole story.</em>`;
       }
     }
+    seen('complete');
     box.innerHTML = heroCard('earned', `Season wrapped · ${esc(done?.league?.name||'your league')}`,
       fig, line, `<span class="tap" data-hrecap style="cursor:pointer">Season recap →</span>`,
       `<button class="hh-cta" data-hrunback type="button">Run it back — Season 2</button>`);
@@ -9048,6 +9073,7 @@ function renderHomeHero(){
   if(force==='cup_final' || (!force && inSeason && typeof isCupFinal==='function' && isCupFinal())){
     const me=heroMyRung();
     const wksLeft=Math.max(1, Math.ceil((seasonE()-new Date())/6048e5));
+    seen('cup_final');
     box.innerHTML = heroCard('', `${esc(window.CS.league?.name||'')} · cup final`,
       me ? `<div class="hh-fig"><span class="hh-pos">${me.pos}</span><span class="hh-ord">seed</span>${me.moveChip}</div>` : '',
       me && me.gapLine ? me.gapLine : `Four weeks, scored fresh. <em>Whoever's hottest takes the cup.</em>`,
@@ -9064,6 +9090,7 @@ function renderHomeHero(){
       const total = window.seasonWeeks||null;
       const wkNow = total ? Math.max(1, Math.min(total, Math.floor((new Date()-seasonS())/6048e5)+1)) : null;
       const wk = total ? ` · week ${wkNow} of ${total}` : '';
+      seen('season');
       box.innerHTML = heroCard(me.pos===1?'earned':'', `${esc(window.CS.league?.name||'')}${wk}`,
         `<div class="hh-fig"><span class="hh-pos">${me.pos}</span><span class="hh-ord">${me.ord}</span>${me.moveChip}</div>`,
         me.gapLine, heroFloorFoot());
@@ -9078,6 +9105,7 @@ function renderHomeHero(){
     const tee = state.startISO ? localDate(state.startISO) : (state.seasonStart ? seasonS() : null);
     const dd = tee ? Math.max(0, Math.round((tee - new Date().setHours(0,0,0,0))/864e5)) : null;
     const starter = state.phase==='season';
+    seen('forming');
     box.innerHTML = heroCard('', `${esc(window.CS.league?.name||'Your league')} · ${starter?'season live':'forming'}`,
       dd!=null && !starter ? `<div class="hh-fig"><span class="hh-pos">${dd}</span><span class="hh-ord">day${dd===1?'':'s'}</span></div>` : '',
       starter ? `The season's on. <em>First rounds build the table</em> — it speaks at three.`
@@ -9092,6 +9120,7 @@ function renderHomeHero(){
   const idx = window.CS.profile?.index_current;
 
   if(force==='rung7' || (!force && rounds===0)){
+    seen('rung7');
     box.innerHTML = heroCard('', 'Your card',
       '', `Three rounds and your index goes live. <em>Nothing else needed.</em>`,
       `<span>Index</span><span class="hh-bar"><i style="width:3%"></i></span><span>0 of 3</span>`,
@@ -9101,6 +9130,7 @@ function renderHomeHero(){
   }
   if(force==='rung6' || (!force && buddies===0)){
     const est = idx!=null;
+    seen('rung6');
     box.innerHTML = heroCard('', `Your card · ${rounds} round${rounds===1?'':'s'}`,
       est?`<div class="hh-fig"><span class="hh-pos">${fmtIdx(idx)}</span><span class="hh-ord">index</span></div>`:'',
       est ? `Established. <em>Nobody's seen it</em> — you haven't added a buddy yet.`
@@ -9112,6 +9142,7 @@ function renderHomeHero(){
   }
   /* rung 5 — buddies exist; four fills a league */
   const enough = buddies>=4;
+  seen('rung5');
   box.innerHTML = heroCard('', 'Your buddies',
     `<div class="hh-fig"><span class="hh-pos">${buddies}</span><span class="hh-ord">${enough?`budd${buddies===1?'y':'ies'}`:'of 4'}</span></div>`,
     enough ? `<b>Four makes a league.</b> <em>You have ${buddies}.</em>`
@@ -9167,6 +9198,83 @@ function heroMyRung(){
   return {pos, ord, moveChip, gapLine};
 }
 window.renderHomeHero = renderHomeHero;
+
+/* ============ D81 R3: the occasion engine ============
+   Golf's real calendar is the one fact source that works on day one — it
+   needs nothing from the user. Six windows, all copy OBLIQUE per the
+   famous-golf-wing rule (the wink IS the feature; obliqueness is also the
+   legal safe zone) — the marker art carries the nod, never a name.
+   Weekend CLUSTERING preempts the calendar: four buddies out on one date
+   is a better occasion than any date table. Dismiss is per-window-per-year
+   (localStorage), so next spring the azaleas come back. */
+const OCCASIONS = [
+  {key:'opener',  w:[3,28, 4,13],  earned:true,  k:'The first one of the year', h:'Azaleas are blooming somewhere.',
+   p:'One window, every card on one board, one name on the jug.', act:'Put a jug up', go:'event', mk:'azalea'},
+  {key:'test',    w:[6,8,  6,22],  earned:true,  k:'The hardest test', h:'Somewhere out there, par is winning.',
+   p:'A championship window — two to four days, best card takes it.', act:'Set the Major', go:'event', mk:'no2'},
+  {key:'oldest',  w:[7,10, 7,24],  earned:true,  k:'The oldest one', h:'Links weather is a state of mind.',
+   p:'One window, every card on one board, one name on the jug.', act:'Name the jug', go:'event', mk:'jug'},
+  {key:'teams',   w:[9,18, 10,5],  earned:false, k:'The big team match', h:'Two teams. One cup. You know the one.',
+   p:'Weekly duels, first past half the points. Yours can start the same weekend.', act:'Run your own', go:'event', mk:null},
+  {key:'fall',    w:[10,1, 11,20], earned:true,  k:"The season's turning", h:'Cool mornings, empty tee sheets.',
+   p:'A fall Major — two to four days, best card takes it.', act:'Name the jug', go:'event', mk:null},
+  {key:'fresh',   w:[12,27, 1,15], earned:false, k:'A fresh table', h:"Nobody's ahead yet.",
+   p:'A season scores the rounds you’re already playing. Nothing changes about how you post.', act:'Start a league', go:'league', mk:null, leaguelessOnly:true},
+];
+function occInWindow(w, d){
+  const m=d.getMonth()+1, day=d.getDate();
+  const after =(m>w[0] || (m===w[0] && day>=w[1]));
+  const before=(m<w[2] || (m===w[2] && day<=w[3]));
+  return w[0]<=w[2] ? (after && before) : (after || before);   /* Dec→Jan wraps */
+}
+function occCard(o, k, h, p, act, mkKey){
+  const mk = mkKey && typeof MARKERS!=='undefined' && MARKERS[mkKey]
+    ? `<span class="ho-mk" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="${MARKERS[mkKey].p}"/></svg></span>`
+    : (o && o.key==='teams' ? `<span class="ho-mk" aria-hidden="true"><svg viewBox="0 0 24 24" style="stroke:var(--brand)"><path d="M7 21V4M7 4l7 2.3L7 8.6"/><path d="M17 21V7M17 7l-6 2 6 2"/></svg></span>` : '');
+  return `<div class="hocc${o&&o.earned?' earned':''}">
+    <div class="ho-k">${k}</div>${mk}
+    <h4>${h}</h4><p>${p}</p>
+    <button class="ho-act" data-hoccgo type="button"><span>${act}</span><span>→</span></button>
+    <button class="ho-x" data-hoccx type="button" aria-label="Dismiss">✕</button></div>`;
+}
+function renderOccasion(){
+  const box=$('#homeOccasion'); if(!box) return;
+  if(state.demo || !window.CS?.user){ box.innerHTML=''; return; }
+  const today=new Date(), yr=today.getFullYear();
+
+  /* clustering first — the calendar yields to an actual weekend forming */
+  const soon={};
+  (window.watchAll||[]).forEach(r=>{
+    if(!r.play_on) return;
+    const d=localDate(r.play_on), n=(d-new Date().setHours(0,0,0,0))/864e5;
+    if(n<0 || n>7) return;
+    (soon[r.play_on]=soon[r.play_on]||new Set()).add(r.display_name||(r.mine?'You':'?'));
+  });
+  const busy=Object.entries(soon).map(([d,s])=>({d, n:s.size})).sort((a,b)=>b.n-a.n)[0];
+  if(busy && busy.n>=4 && !localStorage.getItem('cs_occ_cluster_'+busy.d)){
+    const dd=localDate(busy.d);
+    box.innerHTML=occCard({earned:true,key:'cluster'}, 'This weekend',
+      `${busy.n} of you out ${DOW[dd.getDay()]}.`, 'One window, every card on one board. That’s a Major.',
+      'Put a jug on it', null);
+    box.querySelector('[data-hoccgo]')?.addEventListener('click',()=>{ qaEvent('home_occasion_tap',{win:'cluster'}); window.openEventPicker?.(); });
+    box.querySelector('[data-hoccx]')?.addEventListener('click',()=>{ localStorage.setItem('cs_occ_cluster_'+busy.d,'1'); renderOccasion(); });
+    return;
+  }
+
+  const leagueless=!(window.CS.memberships||[]).length;
+  const o=OCCASIONS.find(o=> occInWindow(o.w,today) && !(o.leaguelessOnly && !leagueless)
+    && !localStorage.getItem('cs_occ_'+o.key+'_'+yr));
+  if(!o){ box.innerHTML=''; return; }
+  box.innerHTML=occCard(o, o.k, o.h, o.p, o.act, o.mk);
+  box.querySelector('[data-hoccgo]')?.addEventListener('click',()=>{
+    qaEvent('home_occasion_tap',{win:o.key});
+    if(o.go==='league') document.getElementById('wCreate')?.click();
+    else window.openEventPicker?.();
+  });
+  box.querySelector('[data-hoccx]')?.addEventListener('click',()=>{ localStorage.setItem('cs_occ_'+o.key+'_'+yr,'1'); renderOccasion(); });
+}
+window.renderOccasion = renderOccasion;
+window.OCCASIONS = OCCASIONS; window.occInWindow = occInWindow;   /* QA bridge — the window table must be probeable from the console */
 /* relative dates spread across the feed's time buckets: today / this week /
    earlier — so the diorama shows all three and never reads stale */
 const DEMO_FEED = [
@@ -9666,7 +9774,11 @@ async function fillHomeWeather(sr){
     const { data } = await window.sb.functions.invoke('weather', { body:{ course_id:sr.course_id, date:sr.play_on } });
     if(!data || data.unavailable || !data.weather) return;
     const el=document.getElementById('hrwx-'+sr.id); if(!el) return;
-    el.textContent=`☀ ${data.weather.hi}°`; el.style.display='';
+    /* D81 R3: the function already returned lo/wind/summary and the chip
+       threw them away — richer glance costs zero fetches. Compact form:
+       "☀ 71° · 9mph" (summary drops on the chip; the round object has it). */
+    const w=data.weather;
+    el.textContent=`☀ ${w.hi}°${w.wind?` · ${w.wind}mph`:''}`; el.style.display='';
   }catch(_){ /* no glance is fine — never a blank */ }
 }
 const DEMO_REQUESTS = [{friendship_id:'demo', display_name:'Marco', handle:'marco_v', marker:'weebridge'}];
@@ -9705,6 +9817,7 @@ function renderHomeRequests(){
 function renderHomeHub(){
   renderResumeBanner();   /* an in-progress live round is the first thing you see */
   if(typeof renderHomeHero==='function') renderHomeHero();   /* D81: the one hero slot (R2) */
+  if(typeof renderOccasion==='function') renderOccasion();   /* D81 R3: the calendar's second voice */
   renderUpNext();
   renderPulse();          /* R1: still its own card; folds into the season hero in R2 */
   renderHomeRequests();
