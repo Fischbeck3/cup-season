@@ -2946,3 +2946,41 @@ machinery-already-exists. ⚑ marks the points still needing an owner call.*
 - **Benefit:** the art the owner likes survives, and stops embarrassing
   itself on any tab left open longer than a minute.
 - **Tradeoffs:** the fiction remains on the one surface every prospect sees.
+
+### D85 · Everyone's phone scores the live round (sync v2) + scoreboard-first layout
+- **Current:** the tee sheet is one scorekeeper phone (gameplay-modes flag #16
+  corollary, deliberate v1). Scores live in `state.live` + localStorage only
+  until finish; `live_rounds`/`live_round_players` exist server-side but hold
+  no in-round scores. The play screen buries game status in cards below the
+  entry rows — the group scrolls up and down to learn who's up.
+- **Problem:** playing partners want to input their own scores and watch the
+  standings move (the 18Birdies table stake, minus our games). And the real
+  screen complaint is scroll-bounce, not clicks: standings and entry never
+  share a viewport.
+- **Recommendation:** broadcast-first, RPC-durable sync — Realtime broadcast on
+  `live:<round_id>:<join_code>` (rtClient), durable writes through
+  SECURITY DEFINER RPCs, new `live_scores` cell table (LWW by writer
+  timestamp), local-first snapshot stays the backbone so scoring never blocks
+  on signal. Anyone in the group edits any cell (keeps flag #16's catch-up rule
+  true when a phone dies). Members join via Home banner
+  (`find_my_live_round`); guests join mid-round through their EXISTING claim
+  link — token is identity, no account, anon-callable `guest_live_*` RPCs
+  (fail-closed, extends the D57/D68 anon-endpoint list). Layout: scoreboard
+  block tops the play screen — game hero line, player net/gross chips —
+  collapsing to a sticky strip; game detail moves to a tap-in sheet.
+  `finish_live_round` gains a row lock (two phones can't double-post).
+- **AMENDS flag #16 (corollary only):** "one scorekeeper phone is v1 primary;
+  everyone's-phone live sync is v2" — this is that v2, on schedule. The body
+  of #16 (every state enterable after the fact; catch-up over lock) stays
+  binding and picked the write model.
+- **Principle:** #1 the group plays together (co-play is the product's spine);
+  #16-spec every figure keeps its receipt (scores land server-side with
+  attribution); Real Golf — the guest funnel deepens (same link scores the
+  round, then claims it).
+- **Benefit:** the round becomes a shared object while it's being played; the
+  screen answers "who's up" at a glance; guests get the full experience from
+  one link.
+- **Tradeoffs:** a public-broadcast channel keyed by an unguessable code
+  carries first names + scores (durable writes still re-auth; acceptable for a
+  friend group's card). LWW can visibly correct a cell after an offline race.
+  One more table and seven new functions on the grant-audit surface.
