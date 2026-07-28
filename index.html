@@ -2441,7 +2441,7 @@ html[data-theme="light"] .room-dusk .btn:not(.dark):not(.gold):not(.apple){color
       <input id="joinCode" placeholder="LEAGUE CODE" maxlength="8" autocomplete="off">
       <button class="btn" id="joinGo">Join</button>
     </div>
-    <button class="btn dark" id="obDemo" style="margin-top:10px">Peek at a live season</button>
+<!-- D83: the demo season retired — the door sells with its own splash -->
     <p class="fine" style="text-align:center; margin-top:16px; opacity:.7">By continuing you agree to the <a href="/legal.html#terms" target="_blank" rel="noopener" style="color:var(--mut); text-decoration:underline">Terms</a> &amp; <a href="/legal.html#privacy" target="_blank" rel="noopener" style="color:var(--mut); text-decoration:underline">Privacy Policy</a>.</p>
     </div>
     <div id="obProfile" style="display:none">
@@ -2505,8 +2505,7 @@ html[data-theme="light"] .room-dusk .btn:not(.dark):not(.gold):not(.apple){color
           <b>An event</b><small>A weekend or a few weeks. Its own little trophy.</small></div>
       </div>
       <p class="fine" style="padding:0 2px 12px">You can run both at once. An event stands alone, or attaches to a league.</p>
-      <button class="btn" id="orDemo">See it with a live season</button>
-      <button class="btn dark" id="orGo">Take me in</button>
+      <button class="btn" id="orGo">Take me in</button>
       <p class="fine" style="text-align:center; padding-top:10px; opacity:.7">Reopen this any time from You › How it works.</p>
     </div>
     <div class="ob-caption" id="obCaption"><span style="opacity:.5">v23 · __CS_VERSION__</span></div>
@@ -2708,7 +2707,6 @@ html[data-theme="light"] .room-dusk .btn:not(.dark):not(.gold):not(.apple){color
           <div class="check tap" data-guide="posting" style="cursor:pointer"><span class="num">✎</span><div class="tt"><b>Posting a round</b><small>Basic, live, and the scan</small></div><span class="fine" style="padding:0; color:var(--dim)">→</span></div>
           <div class="check tap" data-guide="buddies" style="cursor:pointer"><span class="num">◆</span><div class="tt"><b>Buddies, invites and claims</b><small>Three different links, three jobs</small></div><span class="fine" style="padding:0; color:var(--dim)">→</span></div>
           <div class="check tap" data-guide="scoring" style="cursor:pointer"><span class="num">◷</span><div class="tt"><b>How scoring works</b><small>How rounds become points</small></div><span class="fine" style="padding:0; color:var(--dim)">→</span></div>
-          <div class="check tap" data-guide="demo" style="cursor:pointer"><span class="num">▦</span><div class="tt"><b>Peek at a live season</b><small>A sample season — poke anything</small></div><span class="fine" style="padding:0; color:var(--dim)">→</span></div>
         </div>
       </section>
 
@@ -3121,7 +3119,7 @@ html[data-theme="light"] .room-dusk .btn:not(.dark):not(.gold):not(.apple){color
         <input id="wCode" placeholder="LEAGUE CODE" autocomplete="off">
         <button class="btn" id="wCodeGo">Join</button>
       </div>
-      <button class="btn dark" id="wDemo" style="margin-top:10px">Peek at a live season</button>
+<!-- D83: #wDemo retired with the demo season -->
       <button class="btn dark" id="wFind" style="margin-top:10px">Add golfers</button>
       <button class="btn dark" id="wOut" style="margin-top:10px">Sign out</button>
       <div class="ob-caption">No code? Any league member can share an invite link.</div>
@@ -8981,29 +8979,11 @@ function renderHomeStart(){
      rounds fan into their league; this is for someone who hasn't joined one
      yet and might otherwise read "Start something" as a gate on posting). */
   const leagueless = !state.demo && !(window.CS?.memberships||[]).length;
-  /* D81 R2: the ladder hero absorbed the league-less doors — EVERY real
-     account now gets the quiet three-button row (the hero carries the loud
-     CTA; Join and events stay one tap away, never wallpaper). The demo
-     diorama keeps the full grid: it is a shop window for prospects. */
-  const doors = state.demo ? `
-    <div class="startgrid">
-      <button class="startdoor" data-hgnew type="button">
-        <svg viewBox="0 0 60 40" aria-hidden="true">
-          <rect x="2" y="6" width="56" height="11" rx="4" fill="none" stroke="var(--line2)" stroke-width="1.3"/>
-          <rect x="32" y="7.5" width="25" height="8" rx="3" fill="var(--glow)" stroke="var(--brand)" stroke-width="1.1"/>
-          <rect x="2" y="23" width="56" height="11" rx="4" fill="none" stroke="var(--line2)" stroke-width="1.3"/>
-          <rect x="3.5" y="24.5" width="20" height="8" rx="3" fill="var(--glow)" stroke="var(--brand)" stroke-width="1.1"/>
-        </svg>
-        <b>Start a league</b><small>The long war</small></button>
-      <button class="startdoor" data-hgnewev type="button">
-        <svg viewBox="0 0 60 40" aria-hidden="true">
-          <path d="M18 36V8" stroke="var(--mut)" stroke-width="2" stroke-linecap="round"/><path d="M18 8l17 5.5L18 19z" fill="var(--sq0)"/>
-          <path d="M42 36V8" stroke="var(--mut)" stroke-width="2" stroke-linecap="round"/><path d="M42 8L25 13.5 42 19z" fill="var(--sq1)"/>
-        </svg>
-        <b>Start an event</b><small>The weekend battle</small></button>
-    </div>
-    <button class="startjoin" data-hgjoin type="button"><svg class="ic" aria-hidden="true"><use href="#i-key"/></svg> Join with a code</button>
-    <p class="fine" style="padding:8px 0 0">Post a round — it counts on your card. Leagues score it when you join one.</p>` : `
+  /* D81 R2: the ladder hero absorbed the league-less doors — EVERY account
+     gets the quiet three-button row (the hero carries the loud CTA; Join and
+     events stay one tap away, never wallpaper). D83: the demo shop-window
+     grid that lived here retired with the demo season. */
+  const doors = `
     <div class="startgrid" style="grid-template-columns:1fr 1fr 1fr">
       <button class="startjoin" data-hgnew type="button" style="margin:0">Start a league</button>
       <button class="startjoin" data-hgnewev type="button" style="margin:0">Start an event</button>
@@ -9066,15 +9046,9 @@ function renderHomeHero(){
   const wire=(sel,fn)=>{ const b=box.querySelector(sel); if(b&&fn) b.addEventListener('click',()=>{ qaEvent('home_hero_tap',{cta:sel.replace(/[^a-z]/g,'')}); fn(); }); };
   const seen=(tag)=>{ if(window.__heroSeen!==tag){ window.__heroSeen=tag; qaEvent('home_hero_state',{state:tag}); } };
 
-  /* demo: the diorama's fixed hero — Mudsharks lead, week 18 */
-  if(state.demo){
-    box.innerHTML = heroCard('earned', 'The Sunday Cup · week 18 of 24',
-      `<div class="hh-fig"><span class="hh-pos">1</span><span class="hh-ord">st</span><span class="hh-move">▲ UP 1</span></div>`,
-      `Logan's <b>79 at Aguila</b> put the Mudsharks clear. <em>25 points</em> on the Sandbaggers.`,
-      `<span>Jul floor 2/2</span><span class="hh-bar"><i class="ok" style="width:100%"></i></span><span>cleared</span>`);
-    return;
-  }
-  if(!window.CS?.user){ box.innerHTML=''; return; }
+  /* D83: the demo hero retired with the demo season; the !CS.user guard
+     covers every signed-out render (state.demo's default rides behind it) */
+  if(state.demo || !window.CS?.user){ box.innerHTML=''; return; }
 
   const ships = window.CS.memberships||[];
   const active = ships.filter(m => m.league?.phase!=='complete');
@@ -9744,10 +9718,8 @@ function upChip(k,v){ return `<span class="upchip"><span class="k">${k}</span><b
 function renderUpNext(){
   const box=$('#homeUpNext'); if(!box) return;
   const chips=[];
-  if(state.demo){
-    chips.push(upChip('Next round','Papago GC · in 2 days'));
-    chips.push(upChip('The Sunday Cup','Wk 18 / 24'));
-  } else {
+  if(state.demo){ box.innerHTML=''; return; }   /* D83: demo chips retired */
+  {
     const up = (typeof upcomingFromSchedule==='function') ? upcomingFromSchedule() : [];
     if(up.length) chips.push(upChip('Next round', up[0].what + ' · ' + up[0].when.toLowerCase()));
     /* the crew's plans echo Home → the Watch List is one tap from the nudge */
@@ -11993,9 +11965,9 @@ $('#pfSave').addEventListener('click', async () => {
   } finally { btn.disabled = false; btn.textContent = 'Save my card'; }
 });
 /* D82: the orientation screen — shown once, then only ever by request.
-   "See it live" enters the demo diorama via the same sequence as #wDemo;
-   "Take me in" resumes the interrupted boot path. The flag is set on SHOW
-   (not on dismiss), so a crash mid-screen never traps a user in it. */
+   "Take me in" resumes the interrupted boot path (D83 retired the demo
+   CTA). The flag is set on SHOW (not on dismiss), so a crash mid-screen
+   never traps a user in it. */
 function showOrientation(){
   try { localStorage.setItem('cs_oriented','1'); } catch(_){}
   $('#obOrient').style.display = 'block';
@@ -12004,10 +11976,8 @@ $('#orGo').addEventListener('click', async () => {
   $('#obOrient').style.display = 'none';
   await resumeAfterProfile();
 });
-$('#orDemo').addEventListener('click', () => {
-  $('#obOrient').style.display = 'none';
-  document.getElementById('wDemo')?.click();   /* the hub's demo entry — signed-in safe */
-});
+/* D83: the orientation's demo CTA retired with the demo season — the two
+   teachings stand on their own and "Take me in" is the one door. */
 /* D82: the guide sheets — the orientation's content, reopenable forever.
    Copy is grounded in the shipped labels; the model taught here must never
    drift from the doors that teach themselves. */
@@ -12034,7 +12004,6 @@ document.getElementById('youGuide')?.addEventListener('click', (e) => {
   const row = e.target.closest('[data-guide]'); if(!row) return;
   const k = row.dataset.guide;
   if(k==='scoring'){ window.openScoringHelp?.(); return; }
-  if(k==='demo'){ document.getElementById('wDemo')?.click(); return; }
   const g = GUIDE[k]; if(g) openSheet(g[0], g[1], g[2]);
 });
 
@@ -13985,21 +13954,12 @@ $('#obJoin').addEventListener('click', () => {
   $('#joinCode').focus();
 });
 
-/* F7 follow-up (1.2): the demo diorama returns to the door. Retired in
-   v23.137 when the real pilot went live ("no longer offers a fake league"),
-   but the task's actual intent was always to let a not-yet-signed-in visitor
-   — the next Pro deciding whether to bother — preview a live season before
-   creating an account. Same restored sequence as the hub's #wDemo (F7); see
-   that handler's comment for why state.demo is set explicitly even though
-   it's already the page's cold-boot default. Nothing here touches the
-   network — boot()'s own no-session path (a few lines down) no-ops
-   regardless of whether this fires first. Exit back to a real sign-in: any
-   reload, or the ?exit hatch if a stale session needs clearing too. */
-$('#obDemo').addEventListener('click', () => {
-  state.demo = true; state.phase = 'season';
-  enterApp(); renderPhase(); switchView('home');
-  toast('Demo league: The Sunday Cup. Nothing here saves.');
-});
+/* D83: the door-side demo entry lived here (F7 restored it in 1.2, v23.137
+   had retired it once before). Retired FOR GOOD with the demo season — the
+   history above matters because this door has flip-flopped: do not restore
+   it a third time without a new decision-log entry. */
+/* D83: the demo season's door-side entry retired. state.demo stays as the
+   boot default + write-guard; no user path sets it true any more. */
 
 /* setup-QA S3-01: money never surprises anybody. When a league carries a
    buy-in, a signed-in join pauses on a one-tap covenant that names the stake
@@ -15981,17 +15941,9 @@ $('#wCodeGo').addEventListener('click', async () => {
   }
 });
 
-/* F7: "Peek at a live season" — the demo diorama's entry path (retired from
-   the door in v23.137 as a DEMO join-code shortcut; restored here as its own
-   button since the caption alone buried it). state.demo defaults true at
-   load, but showWelcome() flips it false to reach this league-less screen,
-   so it's reset explicitly. Nothing this enters ever writes to the DB. */
-$('#wDemo').addEventListener('click', () => {
-  document.body.classList.remove('noleague');
-  state.demo = true; state.phase = 'season';
-  enterApp(); renderPhase(); switchView('home');
-  toast('Demo league: The Sunday Cup. Nothing here saves.');
-});
+/* D83: the hub-side demo entry (#wDemo, F7's restoration) retired with the
+   demo season. The state.demo default and every !state.demo write-guard
+   stay — dead gates are inert; a missing gate is the landmine. */
 
 $('#wCreate').addEventListener('click', () => {
   if(state.demo || !CS.user){

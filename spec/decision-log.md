@@ -2874,3 +2874,35 @@ machinery-already-exists. ⚑ marks the points still needing an owner call.*
   self-explaining for everyone who skips.
 - **Tradeoffs:** one more screen before first Home (skippable in one tap);
   guide copy is a second place the model is described and must be kept true.
+
+### D83 · The demo season retires — the app has real things to show now
+- **Current:** a full interactive diorama ("Peek at a live season" — The
+  Sunday Cup, seven fictional players) reachable from the signed-out door
+  (#obDemo), the league-less Clubhouse (#wDemo), the D82 orientation's "See
+  it with a live season", and the D82 guide's sixth row. Demo coherence was
+  once release-blocking (launch instructions of 2026-07-12 walked testers
+  through it).
+- **Problem:** pre-launch simplification (owner call, 2026-07-27). The
+  diorama is a second product to keep coherent — its dates, names and copy
+  have drifted before — and every real surface added since (the ladder
+  hero, the occasion engine, claim links, the covenant) does the same
+  "show, don't tell" job with real objects.
+- **Recommendation:** remove every USER PATH to the demo: both entry
+  buttons and their handlers, the orientation's demo CTA (single "Take me
+  in" remains), the guide's demo row, and the demo render branches in the
+  D81 surfaces (hero, up-next, home-start). The internal `state.demo`
+  plumbing STAYS — it is the write-guard that keeps any demo-shaped code
+  path from touching the database, and `demo:true` is the boot default
+  before sign-in. Dead gates are inert; a missing gate is a landmine
+  (CLAUDE.md: "gate every real-data path with !state.demo").
+- **AMENDS D82:** the orientation loses its worked example. The screen's
+  two teachings stand on their own; the guide drops to five rows.
+- **Principle:** #3 Real Golf — no simulations; the demo was the one
+  deliberate exception and its job is done. #2 — one less door on the
+  sign-in screen.
+- **Benefit:** nothing left to keep coherent; the signed-out door sells
+  with its own splash, not a fiction.
+- **Tradeoffs:** any outstanding tester link or instruction that says
+  "peek at a live season" now points at nothing — the 2026-07-12 demo
+  instructions are obsolete and should not be re-sent. Prospects lose the
+  poke-around preview; the walkthrough artifacts carry that job now.
