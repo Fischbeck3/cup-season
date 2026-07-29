@@ -3324,3 +3324,51 @@ machinery-already-exists. ⚑ marks the points still needing an owner call.*
   more clearly "this league" and less a catch-all — intended, but it is a
   visible change to a screen pilots know. Deep links to a routed view do not
   restore the Clubhouse segment state they came from.
+
+### D94 · Home leads with the doors, then the hero, then three tiles, then the feed
+- **Current:** D81 made Home one lane with a lifecycle hero, put the three
+  cold-start doors at the FOOT as a quiet row, and hung an "Upcoming golf" list
+  below the feed. Since then D93 turned the schedule, buddies and the board into
+  real destinations — so Home was carrying partial echoes of places that now
+  exist properly.
+- **Problem:** two things, both observed rather than assumed. The doors at the
+  foot are below everything on a phone, so "start a league" — the action a young
+  product most needs — is the last thing a visitor reaches. And the "Upcoming
+  golf" list is a five-row echo of a calendar that is now one tap away, which
+  means two surfaces answering one question and neither authoritative.
+- **Recommendation (option B of three drawn at a true 390 × 844):** keep ONE
+  lane and change what leads it. Order becomes doors → hero → tiles → feed.
+  The three tiles are league · next round · board — one fact each, each a real
+  door into what D93 built. "Upcoming golf" retires into the Next tile plus the
+  calendar destination.
+- **Rejected, with the mockups to show it:** a four-quadrant Home (A). It fits
+  390 × 844 — measured, 844 of 844, nothing scrolls — but it gives a number that
+  changes weekly the same room as a round happening now, and it leaves NO room
+  for the feed. Also rejected: two quadrants over a feed (C), a fair cheaper
+  fallback if the hero ever proves too much machinery.
+- **AMENDS D81** on two points, deliberately and not silently: the doors move
+  from foot to head, and the Upcoming-golf block retires. **D81's correction
+  survives untouched — the feed STAYS WHOLE.** That was the one thing D81
+  protected by name, and it is the reason B was chosen over A: the merged
+  cross-group stream exists nowhere else in the app, so a Home without it stops
+  answering "what happened?" and only answers "where do I go?".
+- **Principle:** #2 fewer doors — one authoritative surface per question, so the
+  five-row echo yields to the calendar it was echoing; D27 never opens on
+  nothing — every tile has an empty state that still opens, and none invents
+  content to fill itself.
+- **Benefit:** the first screen now offers a move (start/join), then the state of
+  play, then the three places, then the story — in the order a returning golfer
+  actually wants them.
+- **Tradeoffs:** Home opens on "make something" rather than "here's what
+  happened", which is a real change of voice and the thing to watch in use. The
+  doors are also now above the hero for members who will never tap them again.
+- **A REGRESSION FIXED HERE, SHIPPED IN D93:** D93's CSS was inserted before the
+  first `.sysrow{` in the file — which is NOT the component rule but the one
+  inside `html[data-theme="light"] .msgrow, html[data-theme="light"] .sysrow{…}`.
+  That split the selector: the light-theme background was lost and a stray
+  global `.sysrow{background:#FBFCFA;}` was left behind (harmless only because a
+  later rule overrides it). Light theme has been serving system and chat rows on
+  the wrong ground since that push. Both blocks are re-homed after the real
+  component rule, anchored on a string asserted to occur exactly once.
+  **Rule earned: never anchor an insert on a selector fragment — `.sysrow{`
+  matches a theme override before it matches the component.**

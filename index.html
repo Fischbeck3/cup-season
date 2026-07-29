@@ -106,17 +106,7 @@ html[data-theme="light"] .card, html[data-theme="light"] .stat{
 }
 html[data-theme="light"] .hdr{background:rgba(239,242,238,.86);}
 html[data-theme="light"] .tabbar{background:rgba(239,242,238,.92); border-top:1px solid var(--line);}
-html[data-theme="light"] .msgrow, html[data-theme="light"] /* D93 · a section head that carries a way through. renderHomeRounds clears the
-   head's inline display, so the flex must live in a rule or the link loses its
-   right edge the moment the section is shown. */
-.eyebrow.withgo{display:flex; align-items:center; gap:10px;}
-.eyebrow.withgo a{
-  margin-left:auto; flex:none; font-size:11px; letter-spacing:.12em;
-  color:var(--gold); text-decoration:none;
-}
-.eyebrow.withgo a:hover{color:var(--ink);}
-.eyebrow.withgo a:focus-visible{outline:2px solid var(--focus); outline-offset:2px;}
-.sysrow{background:#FBFCFA;}
+html[data-theme="light"] .msgrow, html[data-theme="light"] .sysrow{background:#FBFCFA;}
 *{box-sizing:border-box; margin:0; padding:0;}
 html{height:100%;}
 body{
@@ -1238,6 +1228,35 @@ html[data-theme="light"] .digest{background:#FBFCFA;}
 /* v23.65: the feed loosens up — league notices read like a clubhouse note,
    not a terminal. Sans, sentence-sized, quiet gold accent instead of the
    dashed mono banner. */
+/* D94 · the tile row: three destinations, one glance each. Deliberately small —
+   they are doors, not dashboards. The hero above them carries the loud move;
+   these carry the quiet "where do I go". */
+.hometiles{display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px; margin:10px 0 4px;}
+.htile{
+  background:var(--bg1); border:1px solid var(--line2); border-radius:14px;
+  padding:10px 9px; text-align:left; cursor:pointer; position:relative; overflow:hidden;
+  display:flex; flex-direction:column; gap:5px; min-width:0;
+}
+.htile::before{content:""; position:absolute; left:0; top:10px; bottom:10px; width:2px;
+  border-radius:2px; background:var(--acc,var(--dim));}
+.htile .t{font-family:var(--mono); font-size:8.5px; letter-spacing:.14em;
+  text-transform:uppercase; color:var(--dim);}
+.htile .v{font-family:var(--serif); font-size:17px; color:var(--ink); line-height:1;
+  white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+.htile .s{font-family:var(--mono); font-size:9px; letter-spacing:.1em; color:var(--mut);
+  white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+.htile:hover{border-color:var(--acc,var(--line2));}
+.htile:focus-visible{outline:2px solid var(--focus); outline-offset:2px;}
+/* D93 · a section head that carries a way through. renderHomeRounds clears the
+   head's inline display, so the flex must live in a rule or the link loses its
+   right edge the moment the section is shown. */
+.eyebrow.withgo{display:flex; align-items:center; gap:10px;}
+.eyebrow.withgo a{
+  margin-left:auto; flex:none; font-size:11px; letter-spacing:.12em;
+  color:var(--gold); text-decoration:none;
+}
+.eyebrow.withgo a:hover{color:var(--ink);}
+.eyebrow.withgo a:focus-visible{outline:2px solid var(--focus); outline-offset:2px;}
 .sysrow{
   font-family:var(--sans); font-size:12.5px; letter-spacing:.01em; line-height:1.5;
   color:var(--mut); text-align:left; padding:10px 13px; margin-bottom:8px;
@@ -2210,7 +2229,7 @@ html[data-theme="light"] .room-dusk .btn:not(.dark):not(.gold):not(.apple){color
 .recgrid{display:flex; flex-wrap:wrap; gap:8px;}
 .rec{flex:1 1 84px; min-width:84px; padding:9px 10px; border:1px solid var(--line);
   border-radius:10px; background:var(--bg1); text-align:center;}
-.rec b{display:block; font-family:var(--serif,Georgia,serif); font-size:26px;
+.rec b{display:block; font-family:var(--serif); font-size:26px;
   line-height:1; color:var(--gold);}
 .rec span{display:block; margin-top:4px; font-family:var(--mono); font-size:9px;
   letter-spacing:.12em; text-transform:uppercase; color:var(--mut);}
@@ -2242,7 +2261,7 @@ html[data-theme="light"] .room-dusk .btn:not(.dark):not(.gold):not(.apple){color
 .cerwrap{text-align:center; padding:6px 2px 2px;}
 .cerkick{font-family:var(--mono); font-size:10px; letter-spacing:.16em;
   text-transform:uppercase; color:var(--mut); margin-bottom:10px;}
-.cerchamp{font-family:var(--serif,Georgia,serif); font-size:40px; line-height:1.04;
+.cerchamp{font-family:var(--serif); font-size:40px; line-height:1.04;
   color:var(--gold); text-wrap:balance; margin:0 0 4px;}
 .cersub{font-size:14px; color:var(--ink); opacity:.86; margin-bottom:12px;}
 .cermargin{font-family:var(--mono); font-size:22px; color:var(--ink); letter-spacing:.02em;}
@@ -2679,17 +2698,23 @@ html[data-theme="light"] .room-dusk .btn:not(.dark):not(.gold):not(.apple){color
              render only for members as a quiet row (league-less get the
              ladder hero). Feed stays WHOLE — it is the merged cross-group
              stream, not the board (D81 correction). -->
+        <!-- D94: the lane keeps its order but changes what leads. The three
+             doors come up from the foot to the head (Home opens on "make
+             something"), the hero keeps its lifecycle slot, and a row of three
+             tiles carries the destinations D93 made real — league, next round,
+             board. The "Upcoming golf" list retired into the Next tile + the
+             calendar destination; the feed still STAYS WHOLE (D81's correction
+             survives this). -->
         <div id="homeHub">
+          <div id="homeStart"></div>
           <div id="homeHero"></div>
+          <div id="homeTiles"></div>
           <div id="homeOccasion"></div>
           <div id="homeUpNext"></div>
           <div id="homePulse"></div>
           <div class="eyebrow withgo" id="homeFeedHead">Around your buddies<a href="#" data-go="board" id="homeBoardGo">THE BOARD ↗</a></div>
           <div id="homeDigest"></div>
           <div id="homeFeed"></div>
-          <div class="eyebrow withgo" id="homeRoundsHead" style="display:none">Upcoming golf<a href="#" data-go="schedule">CALENDAR ↗</a></div>
-          <div id="homeRounds"></div>
-          <div id="homeStart"></div>
         </div>
       </section>
 
@@ -9548,6 +9573,60 @@ function renderClubGroups(){
 /* ---------- Home: start + the circle feed (D81: greeting and the league
    recap are DELETED — the hero slot welcomes you with a fact, and the
    Clubhouse switcher owns the league list) ---------- */
+/* ==== D94 · the tile row ====================================================
+   Three doors to the three places D93 made real. Each shows ONE fact and goes
+   somewhere: the league room, the calendar, the board. Rules:
+   · never fabricate — a tile with nothing to say says so and still opens
+     (D27: Home never opens on nothing, and never invents content to fill).
+   · the data is already in memory (teams / watchAll / homePosts); no fetch. */
+function renderHomeTiles(){
+  const box=$('#homeTiles'); if(!box) return;
+  if(state.demo || !window.CS?.user){ box.innerHTML=''; return; }
+
+  /* 1 · the league — your rung if the standings are in, else the room itself */
+  const rung = (typeof heroMyRung==='function') ? heroMyRung() : null;
+  const lgName = window.CS.league?.name || '';
+  const league = !lgName
+    ? { t:'League', v:'None yet', s:'JOIN OR START', go:()=>switchView('hub'), acc:'var(--dim)' }
+    : rung
+      ? { t:'League', v:`${rung.pos}${rung.ord}`, s:esc(lgName.toUpperCase()), go:()=>switchView('hub'), acc:'var(--gold)' }
+      : { t:'League', v:esc(lgName), s:'OPEN THE ROOM', go:()=>switchView('hub'), acc:'var(--gold)' };
+
+  /* 2 · next round — the same source the retired Upcoming list read, so the
+     tile is a summary of the calendar rather than a second opinion */
+  const today=new Date(); today.setHours(0,0,0,0);
+  const src=(window.watchAll&&window.watchAll.length)?window.watchAll:(window.mySchedule||[]);
+  const next=(src||[])
+    .filter(sr=>{ const d=sr.play_on?localDate(sr.play_on):null; return d && !isNaN(d) && d>=today; })
+    .sort((a,b)=>String(a.play_on).localeCompare(String(b.play_on)))[0];
+  const DOWS=['SUN','MON','TUE','WED','THU','FRI','SAT'];
+  const nextT = next
+    ? { t:'Next', v:DOWS[localDate(next.play_on).getDay()],
+        s:esc(((next.tee_time?String(next.tee_time).slice(0,5)+' · ':'')+(next.course_label||'')).toUpperCase()),
+        go:()=>switchView('schedule'), acc:'var(--warm)' }
+    : { t:'Next', v:'Open', s:'PLAN A ROUND', go:()=>switchView('schedule'), acc:'var(--warm)' };
+
+  /* 3 · the board — how much has landed since yesterday, never a fake badge */
+  const since=Date.now()-24*3600*1000;
+  const fresh=(window.homePosts||[]).filter(p=>new Date(p.created_at).getTime()>since).length;
+  const board = !lgName
+    ? { t:'Board', v:'—', s:'LEAGUE ONLY', go:null, acc:'var(--dim)' }
+    : { t:'Board', v: fresh?String(fresh):'Open', s: fresh?'NEW TODAY':'THE LEAGUE',
+        go:()=>switchView('board'), acc:'var(--dim)' };
+
+  const tiles=[league, nextT, board];
+  box.innerHTML=`<div class="hometiles">${tiles.map((x,i)=>
+    `<button class="htile" data-htile="${i}" type="button" style="--acc:${x.acc}"${x.go?'':' disabled'}>
+       <span class="t">${x.t}</span><span class="v">${x.v}</span><span class="s">${x.s}</span>
+     </button>`).join('')}</div>`;
+  box.querySelectorAll('[data-htile]').forEach(b=>{
+    const x=tiles[+b.dataset.htile];
+    if(x.go) b.addEventListener('click', x.go);
+  });
+}
+window.renderHomeTiles = renderHomeTiles;
+/* ==== end D94 ============================================================== */
+
 function renderHomeStart(){
   const box=$('#homeStart'); if(!box) return;
   /* D41: a settled season leads — run it back before the cold-start doors */
@@ -10568,8 +10647,10 @@ function renderHomeHub(){
   renderHomeRequests();
   renderHomeDigest();     /* the quiet-day frame rides above the feed it frames */
   renderHomeFeed();
-  renderHomeRounds();     /* "Upcoming golf" — below the feed now (D81) */
-  renderHomeStart();      /* doors for the league-less, one quiet row for members */
+  renderHomeRounds();     /* D94: its elements retired — the call is a safe no-op
+                             kept so nothing else that fires it has to change */
+  renderHomeTiles();      /* D94: league · next · board, the three destinations */
+  renderHomeStart();      /* D94: the doors now render at the HEAD of the lane */
   renderClubGroups();     /* keep the Clubhouse switcher in sync */
 }
 /* role-aware Home (events-doc §6): the month's participation, spoken to your
