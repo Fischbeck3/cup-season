@@ -3272,3 +3272,55 @@ machinery-already-exists. ⚑ marks the points still needing an owner call.*
   round in the league finished. Dry-run on prod: two settlements matched, the
   handicap post correctly excluded. The pilot's own "4&3" post — the one that
   prompted this — opens on day one rather than staying a dead end forever.
+
+### D93 · Three things that were sections become places
+- **Current (measured 2026-07-29):** of the four objects a golfer actually
+  returns for, exactly ONE has a destination. Leagues have the Clubhouse tab.
+  The other three are sections inside other screens:
+  · **Buddies** — one `#youPeople` div mid-page on the You tab, below the Tour
+    card, trophy case, last-round-with, career record and recent rounds. The
+    "go to buddies" function is literally `switchView('stats')`. Requests were
+    split onto Home and search into a header overlay: THREE places for one
+    relationship.
+  · **The board** — 1 of 6 segments inside Clubhouse. Its full-screen form
+    already exists (`#boardFull`) but only opens from an `OPEN ↗` link inside
+    that segment; nothing in `switchView` reaches it.
+  · **The schedule** — another of those 6, plus a 5-row echo on Home.
+- **Problem:** the schedule case is not just buried, it is structurally wrong.
+  `my_schedule` returns buddies' plans, league mates' and rounds you were
+  tagged in — it spans leagues BY DESIGN — yet its only full view (watch list,
+  month calendar, tee sheet, declare button) sits inside a per-league room, and
+  `body.noleague` collapses `#view-hub` entirely. A league-less golfer with
+  buddies has plans to see and no calendar to see them in.
+- **Recommendation:** promote, do not rebuild. All three surfaces are complete
+  DOM subtrees with renderers keyed to their IDs, so moving the nodes into real
+  `.view` sections keeps every renderer working untouched:
+  · `#room-schedule` leaves the room and becomes `view-schedule` — outside
+    `#view-hub`, so it survives for a league-less user.
+  · `#youPeople` leaves the You tab and becomes `view-people`, with search and
+    requests reachable from it: one home for the relationship.
+  · the board keeps `#room-board` (desktop pairs it beside standings via
+    `#roomGrid[data-room="standings"]`) and gains a ROUTE to the full-screen
+    form it already has.
+  The Clubhouse segments for schedule now route to the destination instead of
+  toggling a pane, so there is one place per thing rather than two.
+- **NAV UNCHANGED — and that is the point.** The blueprint's four slots
+  (Home · Clubhouse · ⊕ · You) stay exactly as shipped. These are destinations
+  reached from where people already look, not new tabs, so nothing here
+  contradicts the level-3 IA. **The quadrant Home was considered and rejected**
+  in the same conversation: it would have overridden "the home IS the feed,
+  full stop", and D81 had already deleted Home's grid as the single biggest
+  fold cost. The diagnosis behind it was right — three of four things ARE
+  buried — so the fix goes to the buried things instead of to Home.
+- **AMENDS IA P5** (which retired the Crew tab and scattered buddies into
+  three places). Buddies gets one home again. It is NOT a nav slot, so the
+  four-tab bar P5 established still holds.
+- **Principle:** #1 the group plays together — buddies and the schedule are the
+  social spine and were the hardest things to reach; #2 fewer doors — each of
+  these had two half-doors and now has one real one.
+- **Benefit:** a league-less golfer finally has a calendar. Buddies stop being
+  a scroll target. The board is one tap from anywhere instead of three.
+- **Tradeoffs:** Clubhouse loses two of its six segments, which makes the room
+  more clearly "this league" and less a catch-all — intended, but it is a
+  visible change to a screen pilots know. Deep links to a routed view do not
+  restore the Clubhouse segment state they came from.

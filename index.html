@@ -106,7 +106,17 @@ html[data-theme="light"] .card, html[data-theme="light"] .stat{
 }
 html[data-theme="light"] .hdr{background:rgba(239,242,238,.86);}
 html[data-theme="light"] .tabbar{background:rgba(239,242,238,.92); border-top:1px solid var(--line);}
-html[data-theme="light"] .msgrow, html[data-theme="light"] .sysrow{background:#FBFCFA;}
+html[data-theme="light"] .msgrow, html[data-theme="light"] /* D93 · a section head that carries a way through. renderHomeRounds clears the
+   head's inline display, so the flex must live in a rule or the link loses its
+   right edge the moment the section is shown. */
+.eyebrow.withgo{display:flex; align-items:center; gap:10px;}
+.eyebrow.withgo a{
+  margin-left:auto; flex:none; font-size:11px; letter-spacing:.12em;
+  color:var(--gold); text-decoration:none;
+}
+.eyebrow.withgo a:hover{color:var(--ink);}
+.eyebrow.withgo a:focus-visible{outline:2px solid var(--focus); outline-offset:2px;}
+.sysrow{background:#FBFCFA;}
 *{box-sizing:border-box; margin:0; padding:0;}
 html{height:100%;}
 body{
@@ -2674,10 +2684,10 @@ html[data-theme="light"] .room-dusk .btn:not(.dark):not(.gold):not(.apple){color
           <div id="homeOccasion"></div>
           <div id="homeUpNext"></div>
           <div id="homePulse"></div>
-          <div class="eyebrow" id="homeFeedHead">Around your buddies</div>
+          <div class="eyebrow withgo" id="homeFeedHead">Around your buddies<a href="#" data-go="board" id="homeBoardGo">THE BOARD ↗</a></div>
           <div id="homeDigest"></div>
           <div id="homeFeed"></div>
-          <div class="eyebrow" id="homeRoundsHead" style="display:none">Upcoming golf</div>
+          <div class="eyebrow withgo" id="homeRoundsHead" style="display:none">Upcoming golf<a href="#" data-go="schedule">CALENDAR ↗</a></div>
           <div id="homeRounds"></div>
           <div id="homeStart"></div>
         </div>
@@ -2743,12 +2753,15 @@ html[data-theme="light"] .room-dusk .btn:not(.dark):not(.gold):not(.apple){color
         <div class="card" style="text-align:left; padding:10px 12px"><div id="youRecent"></div></div>
         <button class="btn" id="youPost" style="margin-top:10px">Post a round</button>
 
-        <!-- IA P5: buddies live here now (the Crew · People segment retired).
-             Search + requests + your buddies — the People surface, one home.
-             D80: "crew" retired as the relationship noun; buddies is the one
-             word for a person, a collection, and the round-card tag. -->
+        <!-- D93: buddies left this page. IA P5 put them here and split the
+             relationship three ways (list on You, requests on Home, search in
+             the header). The list is now view-people; this is the door to it. -->
         <div class="eyebrow">Your buddies</div>
-        <div id="youPeople" style="text-align:left"></div>
+        <button class="check tap" id="youPeopleGo" style="width:100%; text-align:left">
+          <span class="num"><svg class="ic" aria-hidden="true"><use href="#i-users"/></svg></span>
+          <div class="tt"><b>Your buddies</b><small id="youPeopleCount">Find golfers, see who you play with</small></div>
+          <span class="go" aria-hidden="true">→</span>
+        </button>
 
         <!-- Events engine ckpt 4: lifetime head-to-head, weekly-clash (§3). -->
         <div class="eyebrow league-only" id="youRivalsHead">Rivalries · your record</div>
@@ -3347,31 +3360,10 @@ html[data-theme="light"] .room-dusk .btn:not(.dark):not(.gold):not(.apple){color
         <div id="roomFooter" class="league-only"></div>
         </div><!-- /room-standings -->
 
-        <div class="roompane" id="room-schedule">
-        <div class="eyebrow" id="calWatchHead" style="margin-top:0; display:none">In your crew's plans</div>
-        <div id="calWatch" style="display:none; margin-bottom:6px"></div>
-        <div class="eyebrow" style="display:flex; align-items:center; margin-top:0">The calendar
-          <span style="margin-left:auto; display:flex; gap:8px; align-items:center;">
-            <button class="mini" id="calPrev" aria-label="Previous month">←</button>
-            <b class="mono" id="calTitle" style="font-size:12.5px; letter-spacing:.1em; min-width:72px; text-align:center">—</b>
-            <button class="mini" id="calNext" aria-label="Next month">→</button>
-          </span>
-        </div>
-        <div class="card" style="text-align:left; padding:12px">
-          <div class="calgrid" id="calGrid"></div>
-          <div class="fine" style="padding:8px 0 0; display:flex; gap:12px; flex-wrap:wrap">
-            <span><i class="caldot rd"></i> ON THE TEE SHEET</span>
-            <span><i class="caldot lgm"></i> LEAGUE MATE</span>
-            <span><i class="caldot lg"></i> SEASON DATE</span>
-          </div>
-        </div>
-        <p class="fine" style="text-align:center; padding:9px 0 2px">Tap any day to put a round on the tee sheet.</p>
-        <button class="btn" id="calDeclare" style="margin-top:8px">Put a round on the tee sheet</button>
-        <div class="eyebrow">On the tee sheet</div>
-        <div id="calList"></div>
-        <div class="eyebrow" id="calWeeksHead">Week by week</div>
-        <div class="card" id="calWeeks" style="text-align:left"></div>
-        </div><!-- /room-schedule -->
+        <!-- D93: the schedule left this room. Its data spans leagues
+             (my_schedule = buddies + league mates + tagged), so it cannot live
+             inside a per-league pane that body.noleague collapses. It is now
+             view-schedule; the segment button routes there. -->
 
         <div class="roompane" id="room-pot">
         <div class="potgrid">
@@ -3440,6 +3432,46 @@ html[data-theme="light"] .room-dusk .btn:not(.dark):not(.gold):not(.apple){color
         </div><!-- /room-grid -->
       </section>
 
+
+
+      <!-- BUDDIES (D93) — one home for the relationship -->
+      <section class="view" id="view-people">
+        <a href="#" class="backlink" data-go="stats">← You</a>
+        <div class="eyebrow" style="margin-top:0">Your buddies</div>
+        <button class="btn dark" id="peopleFind" style="margin-bottom:12px">Find a golfer</button>
+        <div id="peopleRequests" style="text-align:left"></div>
+        <div id="youPeople" style="text-align:left"></div>
+      </section>
+      <!-- SCHEDULE (D93) — a destination, not a segment -->
+      <section class="view" id="view-schedule">
+        <a href="#" class="backlink" data-go="home">← Home</a>
+        <div class="eyebrow" style="margin-top:0">Your golf calendar · yours, your buddies’, your leagues’</div>
+        <div id="room-schedule">
+        <div class="eyebrow" id="calWatchHead" style="margin-top:0; display:none">In your crew's plans</div>
+        <div id="calWatch" style="display:none; margin-bottom:6px"></div>
+        <div class="eyebrow" style="display:flex; align-items:center; margin-top:0">The calendar
+          <span style="margin-left:auto; display:flex; gap:8px; align-items:center;">
+            <button class="mini" id="calPrev" aria-label="Previous month">←</button>
+            <b class="mono" id="calTitle" style="font-size:12.5px; letter-spacing:.1em; min-width:72px; text-align:center">—</b>
+            <button class="mini" id="calNext" aria-label="Next month">→</button>
+          </span>
+        </div>
+        <div class="card" style="text-align:left; padding:12px">
+          <div class="calgrid" id="calGrid"></div>
+          <div class="fine" style="padding:8px 0 0; display:flex; gap:12px; flex-wrap:wrap">
+            <span><i class="caldot rd"></i> ON THE TEE SHEET</span>
+            <span><i class="caldot lgm"></i> LEAGUE MATE</span>
+            <span><i class="caldot lg"></i> SEASON DATE</span>
+          </div>
+        </div>
+        <p class="fine" style="text-align:center; padding:9px 0 2px">Tap any day to put a round on the tee sheet.</p>
+        <button class="btn" id="calDeclare" style="margin-top:8px">Put a round on the tee sheet</button>
+        <div class="eyebrow">On the tee sheet</div>
+        <div id="calList"></div>
+        <div class="eyebrow" id="calWeeksHead">Week by week</div>
+        <div class="card" id="calWeeks" style="text-align:left"></div>
+        </div>
+      </section>
     </div>
   </div>
 </div>
@@ -3951,10 +3983,15 @@ function backToDoor(){ const ob = $('#onboard'); ob.style.display = ''; ob.class
 /* ================= nav ================= */
 /* League Room segment switcher (IA P2) — Standings | Board | Schedule | Pot | League */
 function setRoomSeg(r){
+  /* D93: the schedule is a destination now, not a pane. The segment button
+     stays where pilots know it and routes there instead of toggling — one
+     place per thing, rather than the same calendar in two. */
+  if(r==='schedule'){ switchView('schedule'); return; }
   $$('#roomSeg [data-room]').forEach(x=>x.classList.toggle('on', x.dataset.room===r));
   $$('.roompane').forEach(p=>p.classList.toggle('on', p.id==='room-'+r));
   const rg=$('#roomGrid'); if(rg) rg.dataset.room=r;   /* Stage 3c: the desktop standings+board split keys off this */
-  if(r==='schedule' && typeof renderCalendar==='function') renderCalendar();
+  /* (the schedule branch returned above — D93 moved that pane to view-schedule,
+     which renders the calendar on entry instead) */
   if(r==='pot' && typeof renderPot==='function') renderPot();
   if(r==='pot') window.loadStakes?.();      /* D64: refresh the forfeit ledger (module-side — guard) */
   if(r==='album') window.renderAlbum?.();   /* module-side (needs sb) — guard the boundary */
@@ -3964,8 +4001,12 @@ function switchView(v){
   if(v==='feed') v='home'; /* v23.55: the board lives on Home */
   /* Calendar tab + pot page retired (IA P2) — both live in the League Room now.
      Old links keep working via these maps. */
-  if(v==='cal'){ v='hub'; setRoomSeg('schedule'); }
+  if(v==='cal') v='schedule';            /* D93: the old calendar route now lands on the real one */
   if(v==='pot'){ v='hub'; setRoomSeg('pot'); }
+  /* D93: the board is reachable from anywhere. It keeps its full-screen form
+     (a dialog that returns you where you were) rather than becoming a lane —
+     #room-board still rides beside standings on desktop and is untouched. */
+  if(v==='board'){ if(typeof openBoardFull==='function') openBoardFull(); return; }
   if(v==='draft' && state.phase==='setup'){ toast('Lock settings first: the draft opens after setup'); v='wizard'; }
   /* IA P4: real accounts get the full ⊕ triptych. Play now is a shared
      PENCIL for real accounts — it scores games and settle-ups live but
@@ -4002,6 +4043,10 @@ function switchView(v){
       window.loadLeagueData();
   }
   if(v==='stats'){ window.renderCrewPeople?.(); window.renderRivalries?.(); }   /* IA P5: buddies + rivalries live on You */
+  /* D93: the two promoted destinations render on entry, exactly as their old
+     segment/tab did. Both are module-side — guard the classic boundary. */
+  if(v==='schedule' && typeof renderCalendar==='function') renderCalendar();
+  if(v==='people'){ window.renderCrewPeople?.(); renderPeopleRequests(); }
 }
 $$('.tab, .navitem').forEach(b=>b.addEventListener('click',()=>switchView(b.dataset.v)));
 
@@ -8642,6 +8687,22 @@ $('#gAdd').addEventListener('click',()=>{
 /* pilot: the foursome fills through the SAME People Picker the events use —
    search anyone on the app; they land as a non-posting player (identity
    pre-filled), exactly like a buddy row. Guest-by-name stays the fallback. */
+/* D93 · the buddies destination: the You row is the door, and finding a golfer
+   is the first thing offered inside it rather than a magnifier in the header. */
+$('#youPeopleGo')?.addEventListener('click',()=>switchView('people'));
+$('#peopleFind')?.addEventListener('click',()=>{
+  if(state.demo){ toast('Demo — sign in to add real buddies'); return; }
+  if(!window.openPeoplePicker){ toast('Still loading — try again in a second'); return; }
+  /* NO mode and NO onPick on purpose: the picker's DEFAULT branch already
+     renders Add / Accept per row against the real relationship state and calls
+     friend_request itself. mode:'invite' is the roster-staging branch — wrong
+     job here, and an onPick would reimplement (badly: the arg is p_profile,
+     not p_target) what the picker already does correctly. */
+  window.openPeoplePicker({
+    title:'Find a golfer',
+    sub:'Search anyone on the app by name or @handle',
+  });
+});
 $('#rosterFind')?.addEventListener('click',()=>{
   if(state.demo){ toast('Demo round — search works in your real tee sheet'); return; }
   if(!window.openPeoplePicker){ toast('Still loading — try again in a second'); return; }
@@ -10455,8 +10516,14 @@ async function fillHomeWeather(sr){
 const DEMO_REQUESTS = [{friendship_id:'demo', display_name:'Marco', handle:'marco_v', marker:'weebridge'}];
 /* incoming friend requests, front and center on Home — used to hide in the
    Tour Card and nobody found them. */
-function renderHomeRequests(){
-  const box=$('#homeRequests'); if(!box) return;
+/* D93: one renderer, two homes. Requests stay on Home (D81 put them there and
+   they get acted on), AND appear on the buddies destination — the relationship
+   should be complete in the place that is named after it. */
+function renderHomeRequests(){ renderRequestsInto($('#homeRequests')); }
+function renderPeopleRequests(){ renderRequestsInto($('#peopleRequests')); }
+window.renderPeopleRequests = renderPeopleRequests;
+function renderRequestsInto(box){
+  if(!box) return;
   const list = state.demo ? DEMO_REQUESTS : (window.homeRequests||[]);
   if(!list.length){ box.innerHTML=''; return; }
   box.innerHTML =
@@ -10482,10 +10549,17 @@ function renderHomeRequests(){
       if(error) throw error;
       toast(accept?'Golf buddies ✓':'Request declined');
       window.loadHome?.();
+      /* D93: refresh whichever copy is on screen, not just Home's */
+      window.renderCrewPeople?.();
     }catch(e){ b.disabled=false; toast(humanError(e)); }
   }));
 }
 function renderHomeHub(){
+  /* D93: the board is league-scoped; the `league-only` class LOOKS like a
+     gate but has no CSS rule and no JS behind it (21 uses, all inert), so
+     the link is gated here instead of trusting it. */
+  {const bg=document.getElementById('homeBoardGo');
+   if(bg) bg.style.display = (!state.demo && window.CS?.league) ? '' : 'none';}
   renderResumeBanner();   /* an in-progress live round is the first thing you see */
   if(typeof renderHomeHero==='function') renderHomeHero();   /* D81: the one hero slot (R2) */
   if(typeof renderOccasion==='function') renderOccasion();   /* D81 R3: the calendar's second voice */
