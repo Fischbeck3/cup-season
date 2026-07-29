@@ -5576,8 +5576,13 @@ function drawSettlementCard(d){
       }
       x.globalAlpha=1;
     }
-    ctr(HL.closed ? `CLOSED ON ${HL.closed}` : `THRU ${HL.played||HL.cells.length}`,
-        902, `500 26px ${MONO}`, HL.closed?HOT:MUT, 6);
+    /* D90: the caption is GONE. "CLOSED ON 15" put a third number (4, 3, 15)
+       on a card that offers no key to any of them — and it is derivable from
+       the hero (18 − 3) and simply WRONG-looking on a nine, where 4&3 closes
+       on the 6th. The strip already says it: three hollow cells ARE the "&3".
+       The unclosed "THRU n" goes with it — a full strip states the same thing.
+       (The in-app hole strip keeps its footer: that surface has room and
+       context; this one is an artifact a stranger reads in a text thread.) */
     /* the legend is a swatch and a name — "took the ember holes" was internal
        vocabulary on an artifact headed for people who have never seen the app */
     if(HL.legend){

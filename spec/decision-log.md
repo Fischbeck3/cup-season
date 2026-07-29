@@ -3152,3 +3152,63 @@ machinery-already-exists. ⚑ marks the points still needing an owner call.*
 - **Lesson (recorded, it will recur):** an upload path whose every failure is
   swallowed needs ONE thing that fails loudly — a check, a test, or a probe.
   The photo path shipped `.jpg`, succeeded, and made the bucket look healthy.
+
+### D90 · The settlement card stops counting to three
+- **Current:** the settlement card printed `CLOSED ON 15` under the `4&3` hero.
+- **Problem:** three numbers (4, 3, 15) on an artifact that offers a key to
+  none of them, and the third is derivable from the first two — 18 − 3 = 15.
+  Worse, it is only true on eighteen holes: a 4&3 on a nine closes on the 6th,
+  and the card never states the hole count, so the line reads as arithmetic the
+  reader cannot check. "Closed" is also insider usage on the one artifact that
+  routinely reaches people who have never played.
+- **Recommendation:** delete the caption. The strip already says it — three
+  hollow cells ARE the "&3" — and the unclosed `THRU n` variant goes with it,
+  since a full strip states the same thing. Considered and rejected:
+  `4 UP WITH 3 TO PLAY` (decodes the notation, but the owner's call was that
+  the card is stronger with hero + strip alone).
+- **Measured, not guessed:** removing a row from an absolutely-positioned
+  canvas leaves a hole, so the layout was measured rather than eyeballed. The
+  card's section gaps run 87 / 84 / 116 / 91 / 90 px; with the caption gone the
+  strip-to-legend gap lands at 91, inside that family. It had been a cramped
+  54-then-18 pair. Nothing was repositioned — the measurement said don't.
+- **Scope:** the CARD only. The in-app hole strip keeps its footer; that
+  surface has room and context around it, and is read by people already inside
+  the product.
+- **Principle:** §16 — every figure shows its work, and a figure that cannot be
+  checked is worse than no figure.
+- **Tradeoffs:** nothing on the artifact now explains the `4&3` notation to a
+  stranger. Accepted deliberately: the card is a scoreboard, not a lesson.
+
+### D91 · The crest is the key visual; the flag is the mark
+- **Current:** the sign-in door has carried the CREST since D76 (Entry V4) —
+  four tracers on the heat ramp landing on a flagged cup, rings spreading from
+  the strike. Meanwhile D89 put the ember flag on every icon, favicon and link
+  preview. Two good pieces of art, no stated relationship between them.
+- **Problem observed:** a settlement card shared into a text thread showed the
+  flag lockup in the link preview; opening the app showed the crest. Same
+  product, two faces, in the space of one tap. The owner proposed promoting the
+  crest to the logo.
+- **Recommendation:** keep both, and say which does which job. The **crest is
+  the key visual** — the door, and now the 1200×630 link preview. The **ember
+  flag stays the mark** — every icon, favicon, apple-touch, maskable tile.
+  This is the ordinary shape of an identity system (a mark holds at 16px, a key
+  visual carries the story), and it needed stating rather than inventing.
+- **Why the crest cannot be the mark — tested, not asserted:** rendered at
+  icon sizes on both grounds, its tracers are 2.6px strokes on a 460-wide
+  field. They thin to nothing by 32px and vanish at 16px, leaving a flag and a
+  smudge. Thickening them to survive (roughly 3×, two ripples deleted, the fan
+  compressed into a square) produces a legible mark that is no longer the
+  drawing that was proposed. Both versions were built and compared before
+  deciding; the gap between them IS the reason for the split.
+- **Also:** `brand/…/converge/v1/crest-static.svg` is a static extraction of
+  the door's exact geometry, so preview and door are one drawing rather than
+  two that resemble each other. `tools/make-og-image.py` regenerates the PNG
+  and lives outside `brand/` on purpose — `stamp-version.sh` copies `brand/`
+  wholesale into `dist/`, so a script there would be world-readable.
+- **Principle:** #5 alive — the door's best moment now reaches the one surface
+  a stranger sees first; D89's "one mark everywhere" is unbroken, because the
+  crest was never competing to be the mark.
+- **Tradeoffs:** the link preview is now atmosphere rather than a legible
+  lockup at thumbnail size — the wordmark carries it where the tracers fade.
+  The retired-ring `lockup-dark.png` / `lockup-light.png` are still stale and
+  still need regenerating; this pass did not touch them.
