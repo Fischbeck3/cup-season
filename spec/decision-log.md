@@ -3212,3 +3212,63 @@ machinery-already-exists. ⚑ marks the points still needing an owner call.*
   lockup at thumbnail size — the wordmark carries it where the tracers fade.
   The retired-ring `lockup-dark.png` / `lockup-light.png` are still stale and
   still need regenerating; this pass did not touch them.
+
+### D92 · The settlement post opens the scorecard
+- **Current:** a settled game posts one line to the board — "Match play: Jerecho
+  Fischbeck def. Jade 4&3" — and that line is inert. Traced 2026-07-29: system
+  rows render as `.sysrow` divs with no data attribute, no role, no tabindex and
+  no handler, in BOTH board renderers and on Home. Round posts ARE tappable (they
+  open a receipt); the one post kind that reports a RESULT is the one that
+  dead-ends. A real user asked for exactly this: "I'd like to be able to click in
+  and see the scorecard."
+- **Problem:** §16 says nothing shows a figure without a path to the rounds that
+  produced it, and "4&3" is a figure. Two things block the path, both measured:
+  1. `finish_live_round` inserts the settlement post with FOUR columns —
+     `league_id, kind, member_id, body`. `round_id` is NULL and no live-round
+     reference is written, so the row carries no way back to what produced it.
+  2. NOTHING in the product reads `round_holes`. Per-hole strokes are written at
+     post time and never fetched again — no RPC selects them. The only
+     hole-by-hole grid that renders is the demo's, and its holes are FABRICATED.
+     There is no scorecard surface for a real round anywhere on disk.
+- **Recommendation:** `posts` gains `live_round_id` and the settlement insert
+  sets it — the live round, not `round_id`, because a settlement is about the
+  GROUP's round, not one card. A new SECURITY DEFINER `live_round_card()`
+  returns the whole sheet: course, tee, date, game, result, every player and
+  their strokes by hole. The client makes the settlement row a real button and
+  draws par/SI, a column per hole, a row per player, and the match ledger over
+  the top — reusing the `holeLedger` vocabulary the strip already speaks.
+- **Where the card lives (the useful discovery):** D85 made `live_scores`
+  durable and nothing deletes it, so after the round the whole group's
+  hole-by-hole — members AND guests, one table — is still there keyed by
+  `live_round_id`. That is the read source. The RPC falls back per player to
+  `round_holes` (members) and `live_round_players.guest_strokes` (guests) so
+  rounds finished BEFORE D85 shipped still open.
+- **Why definer, not RLS:** the `rholes_read` policy gates hole detail on the
+  round's `season_id` → your league. But `rounds.season_id` is never set by ANY
+  server-side insert (the live finalize omits the column, as do the scan and
+  sandbox paths); only the client's manual post supplies it, and only when a
+  season is in scope. So under RLS the holes of most rounds are unreadable EVEN
+  BY THEIR OWNER. A definer RPC with its own guard sidesteps that entirely.
+  **The NULL `season_id` is logged as separate debt** — it is not this arc's to
+  fix and it may be affecting more than hole reads.
+- **Principle:** §16 shows its work — the receipt rule finally reaches the games;
+  #1 the group plays together — a settlement is the group's artifact, so the card
+  shows every player, not just yours.
+- **Benefit:** the sentence a friend group actually screenshots becomes a door.
+- **Tradeoffs:** the card is only as good as what was entered — a group that
+  scored one player's column leaves gaps, and the sheet shows them rather than
+  hiding them.
+- **AMENDED before shipping — the old settlements ARE backfilled.** This entry
+  first said no backfill, on the grounds that joining a body string to a round is
+  guesswork. Measured against prod, it is not: the settlement insert and
+  `update live_rounds set finished_at = now()` run in ONE transaction, and
+  `now()` is the transaction timestamp — so `posts.created_at` is byte-identical
+  to `finished_at` (delta 0.000000 on every settled round on disk). One trap
+  found in the same read: a handicap-change post fires from a trigger inside that
+  same transaction and carries the identical instant, so timestamp equality alone
+  mis-attributes it. The backfill therefore also requires the body to be the
+  settlement the round recorded ('Match play: …', or exactly
+  `left(game_result->>'story',200)`), and refuses any instant where more than one
+  round in the league finished. Dry-run on prod: two settlements matched, the
+  handicap post correctly excluded. The pilot's own "4&3" post — the one that
+  prompted this — opens on day one rather than staying a dead end forever.

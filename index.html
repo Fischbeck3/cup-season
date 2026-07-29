@@ -1234,6 +1234,35 @@ html[data-theme="light"] .digest{background:#FBFCFA;}
   border:1px solid var(--line); border-left:3px solid rgba(233,190,98,.5);
   border-radius:12px; background:var(--bg1);
 }
+/* D92 · a settled game is a door. The row keeps its quiet clubhouse-note voice
+   and earns one affordance: a gold chevron and a pressable state. Only rows
+   that actually carry a round get it — the class is added, never assumed. */
+.sysrow.opens{
+  cursor:pointer; position:relative; padding-right:34px;
+  border-left-color:var(--gold);
+}
+.sysrow.opens::after{
+  content:"›"; position:absolute; right:14px; top:50%; transform:translateY(-50%);
+  color:var(--gold); font-size:17px; line-height:1;
+}
+.sysrow.opens:hover{ background:var(--bg2); }
+.sysrow.opens:focus-visible{ outline:2px solid var(--focus); outline-offset:2px; }
+/* the scorecard sheet: a real card, so it scrolls sideways rather than reflows */
+.scwrap{overflow-x:auto; -webkit-overflow-scrolling:touch; margin:0 -4px; padding:0 4px;}
+.sccard{border-collapse:separate; border-spacing:0; font-family:var(--mono); font-size:12px;
+  font-variant-numeric:tabular-nums; min-width:100%;}
+.sccard th, .sccard td{padding:6px 0; text-align:center; min-width:26px; border-bottom:1px solid var(--line);}
+.sccard th.who, .sccard td.who{
+  text-align:left; padding-right:12px; min-width:96px; position:sticky; left:0;
+  background:var(--bg1); z-index:1; white-space:nowrap;
+}
+.sccard thead th{color:var(--dim); font-size:10px; letter-spacing:.1em; font-weight:600;}
+.sccard tr.par td, .sccard tr.si td{color:var(--dim); font-size:10.5px;}
+.sccard td.tot{font-weight:700; color:var(--ink); padding-left:10px; min-width:38px;}
+.sccard td.won{color:var(--bg0); background:var(--gold); border-radius:4px; font-weight:700;}
+.sccard td.gap{color:var(--dim);}
+.sccard td.bird{color:var(--gold); font-weight:700;}
+.sccard .nine{border-right:1px solid var(--line2);}
 .momrow{
   font-family:var(--sans); font-size:12.5px; letter-spacing:.01em; line-height:1.5;
   color:var(--ink); text-align:left; padding:10px 13px; margin-bottom:8px;
@@ -4898,6 +4927,27 @@ function boardDigestHtml(){
   if(!lines.length) return _bdCache='';
   return _bdCache = `<div class="digest"><span class="dk">SINCE YOU WERE HERE</span>${lines.join('<br>')}</div>`;
 }
+/* D92 · one system row, two states. A settled game carries `lrid` (the live
+   round it reported) and becomes a button; every other notice stays the inert
+   clubhouse note it has always been. Both board renderers and Home draw through
+   this, so the affordance can never appear in one place and not another. */
+function sysRowHtml(f){
+  const body = `◆ ${esc(easeCaps(f.txt||''))}`;
+  if(!f || !f.lrid) return `<div class="sysrow">${body}</div>`;
+  return `<div class="sysrow opens" data-card="${esc(f.lrid)}" role="button" tabindex="0"`
+       + ` aria-label="${esc(easeCaps(f.txt||''))} — open the scorecard">${body}</div>`;
+}
+/* one delegated listener for every board surface: rows are re-rendered
+   constantly (realtime, digest, filters) and per-row handlers leaked. */
+document.addEventListener('click', e=>{
+  const row = e.target.closest?.('[data-card]');
+  if(row) window.openScorecard?.(row.dataset.card);
+});
+document.addEventListener('keydown', e=>{
+  if(e.key!=='Enter' && e.key!==' ') return;
+  const row = e.target.closest?.('[data-card]');
+  if(row){ e.preventDefault(); window.openScorecard?.(row.dataset.card); }
+});
 function renderFeed(){
   const el=$('#feedList');
   const uiS=socialUiCapture(el);
@@ -4934,7 +4984,7 @@ function renderFeed(){
     }
     if(f.sys){
       /* sys bodies can carry user-composed fragments (declared-round notes) — escape */
-      el.insertAdjacentHTML('beforeend',`<div class="sysrow">◆ ${esc(easeCaps(f.txt||''))}</div>`);
+      el.insertAdjacentHTML('beforeend', sysRowHtml(f));
       return;
     }
     if(f.msg){
@@ -5045,12 +5095,12 @@ function renderFeedFull(force){
         </div>${socialBar(f,fi,{ns:'f-'})}</div>`);
         return;
       }
-      el.insertAdjacentHTML('beforeend',`<div class="sysrow">◆ ${esc(easeCaps(f.txt||''))}</div>`);
+      el.insertAdjacentHTML('beforeend', sysRowHtml(f));
       return;
     }
     if(f.ann){ el.insertAdjacentHTML('beforeend',`<div class="annrow"><b>📣 FROM THE PRO</b>${esc(f.txt)}</div>`); return; }
     if(f.moment){ el.insertAdjacentHTML('beforeend',`<div class="momrow"><b>✦</b>${esc(easeCaps(f.txt||''))}</div>`); return; }
-    if(f.sys){ el.insertAdjacentHTML('beforeend',`<div class="sysrow">◆ ${esc(easeCaps(f.txt||''))}</div>`); return; }
+    if(f.sys){ el.insertAdjacentHTML('beforeend', sysRowHtml(f)); return; }
     if(f.msg){
       el.insertAdjacentHTML('beforeend',
         `<div class="msgrow"><span class="bar" style="background:${SQHEX[f.ci]}"></span><div class="mtxt"><b>${esc(f.who)}${founderTag(f.pid, f.who)}</b>${esc(f.txt)}${socialBar(f,fi,{comments:false,ns:'f-'})}</div></div>`);
@@ -9982,11 +10032,139 @@ function postRow(p){
   const ageMs = p.created_at ? (Date.now()-new Date(p.created_at).getTime()) : Infinity;
   const closed = /\bclosed\b/i.test(p.body||'');
   const sealCls = (p.kind!=='announce' && ageMs<48*3600*1000 ? ' sealin' : '') + (closed ? ' sealed' : '');
-  return `<div class="hfcard quiet${sealCls}">
+  /* D92: a settlement on Home is the same door it is on the board — same
+     data-card contract, so the one delegated listener serves both. */
+  const card = p.live_round_id
+    ? ` data-card="${esc(p.live_round_id)}" role="button" tabindex="0"` : '';
+  return `<div class="hfcard quiet${sealCls}${p.live_round_id?' opens':''}"${card}>
     <div class="hfhead">${av}
-      <div class="hfid"><b>${esc(easeCaps(p.body||''))}</b><small>${lg?esc(lg)+' · ':''}${dfmtShort((p.created_at||'').slice(0,10))}</small></div>
+      <div class="hfid"><b>${esc(easeCaps(p.body||''))}</b><small>${lg?esc(lg)+' · ':''}${dfmtShort((p.created_at||'').slice(0,10))}${p.live_round_id?' · <span style="color:var(--gold)">SCORECARD ›</span>':''}</small></div>
     </div></div>`;
 }
+/* ==== D92 · the scorecard =====================================================
+   The first read-back of hole detail in the product. Every stroke ever entered
+   has been written and never shown; this is the surface that shows it.
+
+   Rules it keeps:
+   · an unscored hole is a FACT — it renders as a gap, never as a zero and never
+     hidden. A group that only scored one column should see that they did.
+   · the match ledger is drawn from the ROUND'S OWN result (game_result.holes),
+     never recomputed here. Re-deriving who won a hole would be a second source
+     of truth for a rule that lives in the engines (CLAUDE.md).
+   · par and SI come from the course snapshot taken at tee-off, so the card
+     reads the way the course played that day even if the cache later changes. */
+async function openScorecard(lrid){
+  if(!lrid || !window.sb){ toast('That card isn’t available'); return; }
+  openSheet('Scorecard', 'LOADING…', `<div class="scwrap">${skeletonRows(3)}</div>`);
+  let d=null;
+  try{
+    const { data, error } = await sb.rpc('live_round_card', { p_live_round: lrid });
+    if(error) throw error;
+    d = data;
+  }catch(e){
+    closeSheet();
+    /* deploy skew: client shipped before the migration — say so plainly rather
+       than blaming the user's tap */
+    toast(/function|schema cache/i.test(e.message||'')
+      ? 'The scorecard needs the latest update — try again shortly'
+      : humanError(e, 'Could not open that card.'));
+    return;
+  }
+  if(!d || !d.round){ closeSheet(); toast('That card isn’t available'); return; }
+
+  const R = d.round, P = (d.players||[]);
+  const snap = R.course_snapshot || {};
+  const PARS = Array.isArray(snap.pars) && snap.pars.length===18 ? snap.pars.map(Number) : null;
+  const SIS  = Array.isArray(snap.si)   && snap.si.length===18   ? snap.si.map(Number)   : null;
+  const N    = snap.holes===9 ? 9 : 18;
+
+  /* the ledger the engine already decided, if this game kept one */
+  const led  = (R.game_result && R.game_result.holes) || null;
+  const cells = led && Array.isArray(led.cells) ? led.cells : null;
+  /* led.hot is the SHARE card's emphasis key (whose holes to draw hot on a
+     public artifact). The in-app card highlights per row instead, so it is
+     deliberately not read here — see keyFor() below. */
+
+  const head = h => `<th class="${h===9?'nine':''}">${h+1}</th>`;
+  const sum = (a,from,to) => { let t=0,any=false;
+    for(let i=from;i<to;i++){ if(a[i]!=null){ t+=a[i]; any=true; } } return any?t:null; };
+
+  /* Which ledger key belongs to THIS row? The ledger speaks three dialects
+     (holeLedger): 'sides' cells are 'a'/'b', 'players' cells are a player
+     index, 'wolf' cells are the wolf's side — which is a different pair every
+     hole and therefore belongs to no single row. Getting this wrong lights
+     every row on the winner's holes (it did, first pass), so each mode is
+     resolved explicitly and anything unrecognised simply doesn't highlight. */
+  const cfg = R.game_config || {};
+  const sideOf = name => {
+    const inA = (cfg.side_a||[]).some(n=>String(n)===String(name));
+    const inB = (cfg.side_b||[]).some(n=>String(n)===String(name));
+    return inA ? 'a' : (inB ? 'b' : null);
+  };
+  const keyFor = (pl, i) => {
+    if(!led) return null;
+    if(led.mode==='sides')   return sideOf(pl.name);
+    if(led.mode==='players') return String(i);
+    return null;   /* wolf: the side rotates — no row owns it */
+  };
+
+  const rows = P.map((pl,pi)=>{
+    const s = (pl.strokes||[]).slice(0,18).map(v=> v==null?null:Number(v));
+    const out = sum(s,0,9), inn = sum(s,9,18), tot = sum(s,0,N);
+    const myKey = keyFor(pl, pi);
+    const tds = [];
+    for(let h=0;h<N;h++){
+      const v = s[h];
+      /* this row took the hole only if the ledger's cell IS this row's key */
+      const mine = cells && myKey!=null && cells[h]!=null && String(cells[h])===String(myKey);
+      const bird = PARS && v!=null && v < PARS[h];
+      const cls = [h===8?'nine':'', v==null?'gap':'', mine?'won':(bird?'bird':'')].filter(Boolean).join(' ');
+      tds.push(`<td class="${cls}">${v==null?'·':v}</td>`);
+    }
+    return `<tr>
+      <td class="who">${esc(pl.name||'A golfer')}${pl.guest?' <span class="gtag">G</span>':''}</td>
+      ${tds.join('')}
+      ${N===18?`<td class="tot">${out==null?'·':out}</td><td class="tot">${inn==null?'·':inn}</td>`:''}
+      <td class="tot">${tot==null?'·':tot}</td>
+    </tr>`;
+  }).join('');
+
+  const hdrCells=[]; for(let h=0;h<N;h++) hdrCells.push(head(h));
+  const parCells=[], siCells=[];
+  for(let h=0;h<N;h++){
+    parCells.push(`<td class="${h===8?'nine':''}">${PARS?PARS[h]:'·'}</td>`);
+    siCells.push(`<td class="${h===8?'nine':''}">${SIS?SIS[h]:'·'}</td>`);
+  }
+
+  const gl = {none:'Stroke play', match:'Match play', wolf:'Wolf', skins:'Skins',
+              sunningdale:'Sunningdale Rules'}[R.game] || 'The round';
+  const when = (R.finished_at||R.started_at||'').slice(0,10);
+  const result = R.game_result && R.game_result.story ? R.game_result.story : '';
+  /* an incomplete column is worth saying out loud, once, under the card */
+  const gaps = P.filter(pl=>{
+    const s=pl.strokes||[]; for(let h=0;h<N;h++) if(s[h]==null) return true; return false;
+  }).map(pl=>pl.name);
+
+  openSheet('Scorecard', `${gl.toUpperCase()} · ${esc((R.course_label||'').toUpperCase())}`,
+    `${result?`<p class="fine" style="padding-top:0"><b>${esc(result)}</b></p>`:''}
+     <div class="scwrap"><table class="sccard">
+       <thead><tr><th class="who">HOLE</th>${hdrCells.join('')}
+         ${N===18?'<th class="tot">OUT</th><th class="tot">IN</th>':''}<th class="tot">TOT</th></tr></thead>
+       <tbody>
+         <tr class="par"><td class="who">Par</td>${parCells.join('')}
+           ${N===18?`<td class="tot">${PARS?sum(PARS,0,9):'·'}</td><td class="tot">${PARS?sum(PARS,9,18):'·'}</td>`:''}
+           <td class="tot">${PARS?sum(PARS,0,N):'·'}</td></tr>
+         <tr class="si"><td class="who">SI</td>${siCells.join('')}
+           ${N===18?'<td class="tot"></td><td class="tot"></td>':''}<td class="tot"></td></tr>
+         ${rows}
+       </tbody>
+     </table></div>
+     <p class="fine">${when?esc(dfmtShort(when))+' · ':''}${cells?'Gold marks the holes that decided it. ':''}${
+       gaps.length?`<span style="color:var(--neg)">Not every hole was scored — ${esc(gaps.join(', '))} ${gaps.length===1?'has':'have'} gaps.</span>`:'Every hole scored.'}</p>`);
+}
+window.openScorecard = openScorecard;
+/* ==== end D92 =============================================================== */
+
 function skeletonRows(n){
   let h='';
   for(let i=0;i<n;i++) h+=`<div class="skrow"><span class="skb" style="width:26px;height:26px;border-radius:50%"></span>`
@@ -13792,9 +13970,18 @@ async function loadStandingsAndFeed(){
   }
 
   /* feed: the posts table is the board */
-  const { data: posts } = await sb.from('posts')
-    .select('id, kind, body, created_at, member_id, round_id').eq('league_id', CS.league.id)
-    .order('created_at', { ascending:true }).limit(120);
+  /* D92: live_round_id is what makes a settlement row openable. Retry without
+     it on ANY error — an un-migrated DB must still render a board (the 42501
+     lesson: a column error never names the column). */
+  let posts=null;
+  {
+    const COLS = lr => `id, kind, body, created_at, member_id, round_id${lr?', live_round_id':''}`;
+    let r = await sb.from('posts').select(COLS(true)).eq('league_id', CS.league.id)
+      .order('created_at', { ascending:true }).limit(120);
+    if(r.error) r = await sb.from('posts').select(COLS(false)).eq('league_id', CS.league.id)
+      .order('created_at', { ascending:true }).limit(120);
+    posts = r.data;
+  }
   const memCi = id => {
     const i = CS.squads.findIndex(q => (q.squad_members||[]).some(x => x.member_id === id));
     return i >= 0 ? i % 4 : 1;
@@ -13811,7 +13998,8 @@ async function loadStandingsAndFeed(){
     else if(p.kind === 'announce') feed.push({ d: ds, ts, ann:true, txt:p.body });
     else if(p.kind === 'round' && p.round_id) feed.push({ d: ds, ts, roundpost:true, post_id:p.id, rid: p.round_id, who: memName(p.member_id), ci: memCi(p.member_id), txt: p.body });
     else if(p.kind === 'moment') feed.push({ d: ds, ts, moment:true, txt:p.body });
-    else feed.push({ d: ds, ts, sys:true, txt:p.body });
+    /* D92: a settlement carries its live round, so the row can open the card */
+    else feed.push({ d: ds, ts, sys:true, txt:p.body, lrid:p.live_round_id||null });
   });
 
   /* season history: the weekly snapshots the cron spine records */
@@ -15955,11 +16143,16 @@ async function loadHome(){
          deleted round takes its "PERSONAL BEST" headline with it — pilot bug),
          and they must keep showing here. kind='round' stays out (home_feed
          already carries every circle round; board round-posts would double). */
-      const { data: ps } = await sb.from('posts')
-        .select('id, league_id, kind, member_id, body, created_at')
+      /* D92: carry live_round_id so a settlement card on Home opens too; retry
+         without it on ANY error so an un-migrated DB still fills the feed */
+      const HCOLS = lr => `id, league_id, kind, member_id, body, created_at${lr?', live_round_id':''}`;
+      let hr = await sb.from('posts').select(HCOLS(true))
         .in('league_id', ids).neq('kind','chat').neq('kind','round')
         .order('created_at', { ascending:false }).limit(20);
-      window.homePosts = ps || [];
+      if(hr.error) hr = await sb.from('posts').select(HCOLS(false))
+        .in('league_id', ids).neq('kind','chat').neq('kind','round')
+        .order('created_at', { ascending:false }).limit(20);
+      window.homePosts = hr.data || [];
     } else window.homePosts = [];
   } catch(e){ window.homePosts = window.homePosts||[]; }
   /* #11: the unified Home feed carries moment posts from ALL your leagues, but
