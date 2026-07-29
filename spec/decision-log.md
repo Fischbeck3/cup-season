@@ -3372,3 +3372,49 @@ machinery-already-exists. ⚑ marks the points still needing an owner call.*
   component rule, anchored on a string asserted to occur exactly once.
   **Rule earned: never anchor an insert on a selector fragment — `.sysrow{`
   matches a theme override before it matches the component.**
+
+### D95 · A posted round shows its work, and the cant means something again
+- **Current:** opening a round gave "86 gross · SOMEWHERE OUT THERE · 18 HOLES"
+  over "-11.5 — POSTED ANYWAY". Three separate defects sat behind that one
+  screen, all confirmed against prod.
+- **Problem 1 — the figure had no working.** That round is Arizona Biltmore
+  Links · Copper, **rating 64.9 / slope 111** — a short, easy course — so an 86
+  differentials to 21.5 against an index of 10.0, and −11.5 is exactly right.
+  But the sheet showed the verdict and hid every input, so a TRUE number read
+  as an accusation. §16 says no figure appears without a path to its work.
+- **Problem 2 — "somewhere out there" was a field-name mismatch, not missing
+  data.** `home_feed` returns the column aliased `course`; the receipt read
+  `course_label`; the fallback filled the hole. The round had a course all
+  along.
+- **Problem 3 — the cant was leaking.** C5 gave month-close cards a 1.4° cant
+  ("a hand set this"). But `.sealin` runs `csSeal` with fill `both`, and that
+  keyframe set ENDED on rotate(-1.4deg) — so every post under 48 hours old kept
+  the tilt permanently, "joined the league" included. The intent was that fresh
+  cards land with the thock and settle straight.
+- **Recommendation:** `round_card(round)` — one definer read carrying the course
+  AND its rating/slope/tee, the differential arithmetic, index at post, points,
+  counting rank, who attested it, and `live_round_id` so the sheet hands off to
+  D92's hole-by-hole. The receipt opens instantly with whatever the caller held
+  and enriches in place. `csSeal` settles straight; a new `.stamped` carries the
+  cant and goes on POSTED ROUNDS — the one thing on the board a hand set down.
+- **Kept, deliberately:** the month-close cant. `.sealed` needed the
+  keep-variant of the arrival, because an animation's fill beats a static
+  transform — without it, fixing the leak would have flattened the chapter
+  close D81 gave the cant to in the first place.
+- **Principle:** §16 shows its work — the receipt finally earns its verdict;
+  #2 fewer doors — the round sheet now leads INTO the scorecard rather than
+  competing with it.
+- **Benefit:** "POSTED ANYWAY" stops being an accusation once you can see the
+  course was a pushover. And the cant becomes information again instead of
+  noise on every recent row.
+- **Tradeoffs:** one extra read per round open (guarded, cached by nothing —
+  acceptable for a tap-through). The arithmetic row is dense; it is deliberately
+  quieter than the verdict it explains.
+- **Also fixed — a duplicate the board has been showing:** `respond_invite`
+  inserted the member row with `on conflict do nothing` and then posted
+  "X JOINED THE LEAGUE" **unconditionally**. `join_league` got that guard in
+  20260714040000; `respond_invite` never did, so joining by code and then
+  accepting a pending invite for the same league announced you twice — which is
+  exactly what prod held, ten seconds apart. Guard added, and the orphaned
+  duplicate is deleted (narrowly: the earliest announcement per league+body
+  survives; a dry-run against prod matched exactly one row).

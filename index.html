@@ -617,10 +617,21 @@ img.face{border-radius:50%; object-fit:cover; vertical-align:-4px; border:1px so
 @media (prefers-reduced-motion: reduce){ .mini.armed{animation:none;} }
 /* month-seal motion carries over from the .check rows (C5) */
 .hfcard.sealin .hfid > b{transform-origin:center; animation:csSeal .6s var(--roll) both;}
-.hfcard.sealed .hfid > b{transform:rotate(-1.4deg);}
+/* D95 · .stamped is the mark of a POSTED ROUND — the one thing on the board a
+   hand actually set down. It keeps the cant (and keeps it through the arrival
+   animation, which is why the keep-variant exists); notices settle straight. */
+.hfcard.stamped .hfid > b,
+.hfcard.stamped .hsid > b{display:inline-block; transform:rotate(-1.4deg);}
+/* a card that KEEPS its cant must animate to the canted end-state: an
+   animation's fill beats a static transform, so .sealed/.stamped would
+   otherwise be flattened by the settling arrival they share. */
+.hfcard.stamped.sealin .hfid > b,
+.hfcard.sealed.sealin .hfid > b{animation:csSealKeep .6s var(--roll) both;}
+.hfcard.sealed .hfid > b{display:inline-block; transform:rotate(-1.4deg);}
 @media (prefers-reduced-motion: reduce){
   .hfcard.sealin .hfid > b{animation:none; transform:none;}
-  .hfcard.sealed .hfid > b{transform:rotate(-1.4deg);}
+  .hfcard.stamped .hfid > b{animation:none; transform:rotate(-1.4deg);}
+  .hfcard.sealed .hfid > b{transform:rotate(-1.4deg);}   /* the cant is information */
 }
 .hfcard .hrx{margin-top:8px;}
 .mkstamp{position:absolute; right:10px; bottom:10px; width:26px; height:26px; display:flex; align-items:center; justify-content:center; border-radius:50%; background:rgba(8,9,11,.55); color:#ECEEF2; backdrop-filter:blur(2px);}
@@ -1512,6 +1523,14 @@ html[data-theme="light"] .momrow{background:rgba(21,116,63,.06);}
 .mathrow.tot b{font-size:15px;}
 .mathrow.neg b{color:var(--neg);}
 .mathrow.pos b{color:var(--pos);}
+/* D95 · the working, shown under the claim it produces. Quieter than a fact
+   row because it is the arithmetic, not the verdict — but present, because a
+   figure with no visible working is what made a true -11.5 read as an
+   accusation (§16). */
+.mathrow.sub{font-size:11.5px; color:var(--dim); padding-top:7px; padding-bottom:7px;}
+.mathrow.sub b{color:var(--mut); font-weight:600; font-family:var(--mono); font-size:11px;
+  letter-spacing:.06em;}
+.mathrow.sub span{font-family:var(--mono); font-size:11px; letter-spacing:.04em;}
 .rdrow{
   display:flex; align-items:center; gap:10px; width:100%; text-align:left;
   background:none; border:none; border-top:1px solid var(--line); padding:10px 2px; cursor:pointer;
@@ -2110,7 +2129,19 @@ html[data-theme="light"] .btn:not(.dark):not(.gold):not(.apple){color:#FFFFFF;}
    canted 1.4deg like a hand set it. Fresh league-event cards arrive with the
    thock; cards whose body says a month closed keep the cant (information - a
    hand set this - so reduced motion keeps it too). */
+/* D95: the arrival SETTLES STRAIGHT. This used to end on rotate(-1.4deg), and
+   because it runs with fill `both` the final keyframe stuck — so every post
+   under 48h stayed permanently canted, notices included. The cant is now
+   carried by .stamped alone, which is applied to the thing that earned it. */
 @keyframes csSeal{
+  0%{opacity:0; transform:scale(1.35) rotate(-1.4deg);}
+  22%{opacity:1; transform:scale(.965) rotate(-1.1deg);}
+  38%{transform:scale(1.012) rotate(-.6deg);}
+  55%{transform:scale(1) rotate(-.2deg);}
+  100%{opacity:1; transform:scale(1) rotate(0deg);}
+}
+/* the stamped arrival keeps its cant, because a posted round IS the stamp */
+@keyframes csSealKeep{
   0%{opacity:0; transform:scale(1.35) rotate(-1.4deg);}
   22%{opacity:1; transform:scale(.965) rotate(-1.4deg);}
   38%{transform:scale(1.012) rotate(-1.4deg);}
@@ -2118,6 +2149,9 @@ html[data-theme="light"] .btn:not(.dark):not(.gold):not(.apple){color:#FFFFFF;}
   100%{opacity:1; transform:scale(1) rotate(-1.4deg);}
 }
 .check.sealin > .tt > b{display:inline-block; transform-origin:center; animation:csSeal .6s var(--roll) both;}
+.check.stamped > .tt > b{display:inline-block; transform:rotate(-1.4deg);}
+.check.stamped.sealin > .tt > b,
+.check.sealed.sealin > .tt > b{animation:csSealKeep .6s var(--roll) both;}
 .check.sealed > .tt > b{display:inline-block; transform:rotate(-1.4deg);}
 /* C4 - the engraver: a new trophy takes its name the afternoon it's won. An
    opaque cover (plate-matched ground) slides off left-to-right; the leading
@@ -10132,7 +10166,7 @@ function feedRow(r, idx){
 
   if(r.photo_url){
     /* B1: the round as a story card — dusk wash, serif gross, marker medal */
-    return `<div class="hfcard hfstory"${idx!==undefined?` data-hfr="${idx}"`:''} role="button" tabindex="0" aria-label="${who} — ${r.gross??''} at ${course}">
+    return `<div class="hfcard hfstory stamped"${idx!==undefined?` data-hfr="${idx}"`:''} role="button" tabindex="0" aria-label="${who} — ${r.gross??''} at ${course}">
       <img class="hsbg" src="${esc(r.photo_url)}" alt="" loading="lazy">
       <div class="hstop">
         <span class="hffacew"${r.profile_id?` data-tc="${r.profile_id}"`:''}>${face(r.profile_id, r.marker, 40)}</span>
@@ -10145,7 +10179,7 @@ function feedRow(r, idx){
       ${social?`<div class="hsfoot">${social}</div>`:''}</div>`;
   }
 
-  return `<div class="hfcard hfrail${milestone?' gold':''}"${idx!==undefined?` data-hfr="${idx}"`:''} role="button" tabindex="0" aria-label="${who} — ${r.gross??''} at ${course}">
+  return `<div class="hfcard hfrail stamped${milestone?' gold':''}"${idx!==undefined?` data-hfr="${idx}"`:''} role="button" tabindex="0" aria-label="${who} — ${r.gross??''} at ${course}">
     <div class="hfhead">
       <span class="hffacew"${r.profile_id?` data-tc="${r.profile_id}"`:''}>${face(r.profile_id, r.marker, 44)}</span>
       <div class="hfid"><b>${whoTag}</b>${(milestone||vpCap)?`<small class="hfphrase">${milestone||vpCap}</small>`:''}</div>
@@ -11172,9 +11206,92 @@ function openMemberHist(p){
    the board, the You tab, or the album shows its photo full-bleed above the
    facts. Accepts a roundCache id or a row object; a row with photo_path but
    no signed URL signs on demand (silent skip on failure — facts still show). */
+/* D95 · the body of the round card, rendered from whatever facts are present.
+   Called twice: once with the row the caller had (instant), once with the full
+   round_card payload. Anything missing is simply absent — a receipt never
+   guesses at a number it does not hold. */
+function roundCardBody(r, pvi, capN){
+  const mine = r.is_mine!=null ? !!r.is_mine
+             : (!r.profile_id || r.profile_id===window.CS?.user?.id);
+  const rows=[];
+
+  /* THE COURSE AND ITS TEETH. This is the fix: an 86 means nothing until you
+     know the course was 64.9/111. Rating and slope are what turn a gross into
+     a differential, so they belong beside it, not hidden in the arithmetic. */
+  if(r.rating!=null && r.slope!=null){
+    rows.push(`<div class="mathrow"><span>The course</span><b>${Number(r.rating).toFixed(1)} / ${r.slope}</b></div>`);
+  }
+
+  /* the arithmetic, shown rather than asserted (§16). Recomputed here from the
+     stored inputs — if it ever disagrees with the stored differential, the
+     stored one is displayed and this line just explains where it came from. */
+  if(r.differential!=null && r.rating!=null && r.slope!=null && r.gross!=null){
+    const holes = r.holes_played===9 ? 9 : 18;
+    const rt = holes===9 && r.nine_rating!=null ? Number(r.nine_rating) : Number(r.rating);
+    rows.push(`<div class="mathrow sub"><span>${r.gross} − ${rt.toFixed(1)} × 113 ⁄ ${r.slope}</span><b>${Number(r.differential).toFixed(1)} DIFFERENTIAL</b></div>`);
+  }
+  if(r.index_at_post!=null){
+    rows.push(`<div class="mathrow sub"><span>${mine?'Your':'Their'} number that day</span><b>${Number(r.index_at_post).toFixed(1)}</b></div>`);
+  }
+  if(pvi!=null){
+    rows.push(`<div class="mathrow"><span>${mine?'Against your number':'Against their number'}</span><b>${pvi>=0?'+':''}${pvi.toFixed(1)} — ${(mine?bandName(pvi):theirs(bandName(pvi))).toUpperCase()}</b></div>`);
+  }
+  if(r.points!=null) rows.push(`<div class="mathrow"><span>Points</span><b>${r.points}</b></div>`);
+  if(r.month_rank!=null){
+    const cap = r.counting_cap!=null ? Number(r.counting_cap) : capN;
+    rows.push(`<div class="mathrow"><span>This month</span><b>${r.month_rank<=cap?'COUNTING #'+r.month_rank:'BUMPED'}</b></div>`);
+  }
+  if(r.holes_played===9) rows.push(`<div class="mathrow"><span>Nine holes</span><b>HALF VALUE · HALF A ROUND</b></div>`);
+  if(r.attested) rows.push(`<div class="mathrow"><span>Attested</span><b>PLAYED WITH THE GROUP</b></div>`);
+
+  /* who was there — the round was a social act, so the card says so */
+  const mates = Array.isArray(r.played_with) ? r.played_with.filter(Boolean) : [];
+  if(mates.length){
+    rows.push(`<p class="fine" style="padding-top:10px">Played with <b>${mates.map(esc).join(', ')}</b></p>`);
+  }
+  /* the hand-off: this round came out of a live round, so the card exists */
+  if(r.live_round_id){
+    rows.push(`<button class="btn dark" data-rcard="${esc(r.live_round_id)}" style="margin-top:12px">See the scorecard</button>`);
+  }
+  return rows.join('');
+}
+/* the second pass: one read, then redraw in place */
+async function enrichRoundReceipt(rid, seed){
+  try{
+    const { data, error } = await window.sb.rpc('round_card', { p_round: rid });
+    if(error || !data) return;                    /* deploy skew — keep the instant view */
+    const r = Object.assign({}, seed, data);
+    const pvi = r.pvi!=null ? Number(r.pvi)
+      : (r.index_at_post!=null && r.differential!=null ? Number(r.index_at_post)-Number(r.differential) : null);
+    const body=document.getElementById('rcptBody');
+    if(!body) return;                             /* sheet already closed */
+    body.innerHTML = roundCardBody(r, pvi, [2,4,6,Infinity][state.cap]);
+    /* the header learns the course it was missing */
+    const sub=document.getElementById('shSub');
+    if(sub && r.course_label){
+      sub.textContent=[r.course_label, (r.holes_played||18)+' holes', r.played_on||'']
+        .filter(Boolean).join(' · ').toUpperCase();
+    }
+    const ttl=document.getElementById('shTitle');
+    if(ttl && r.gross!=null) ttl.textContent=r.gross+' gross';
+    body.querySelector('[data-rcard]')?.addEventListener('click', e=>{
+      window.openScorecard?.(e.currentTarget.dataset.rcard);
+    });
+  }catch(_){ /* never let the enrich break the sheet that already opened */ }
+}
+/* D95 · the round card. The sheet used to render whatever the calling surface
+   happened to hold, which is why a real round read "SOMEWHERE OUT THERE": the
+   Home feed row calls the column `course`, this read `course_label`, and the
+   fallback filled the gap. Worse, no surface carried rating/slope — so a true
+   -11.5 looked like an accusation instead of "an 86 on a 64.9/111 course".
+   Now: open instantly with what we have, then enrich from round_card(). */
 function openRoundReceipt(x){
   const r = (x && typeof x==='object') ? x : (window.roundCache||{})[x];
   if(!r) return;
+  /* the alias fix, applied everywhere a row reaches this sheet */
+  if(r.course_label==null && r.course!=null) r.course_label=r.course;
+  const rid = r.id || r.round_id || (typeof x==='string' ? x : null);
+  if(rid && window.sb && !state.demo) enrichRoundReceipt(rid, r);
   const pvi = r.pvi!=null ? Number(r.pvi)
     : (r.index_at_post!=null && r.differential!=null ? Number(r.index_at_post)-Number(r.differential) : null);
   const capN=[2,4,6,Infinity][state.cap];
@@ -11184,11 +11301,7 @@ function openRoundReceipt(x){
     ? `<span class="mkstamp">${window.mkr(memberMarker(r.profile_id))}</span>` : '';
   openSheet(r.gross!=null ? r.gross+' gross' : 'The round', line.toUpperCase(), `
     <div class="rcpt-hero" id="rcptHero" style="${r.photo_url?'':'display:none'}">${r.photo_url?`<img src="${esc(r.photo_url)}" alt="Round photo">${stampOf()}`:''}</div>
-    ${pvi!=null?(()=>{ const mine = !r.profile_id || r.profile_id===window.CS?.user?.id;
-      return `<div class="mathrow"><span>${mine?'Against your number':'Against their number'}</span><b>${pvi>=0?'+':''}${pvi.toFixed(1)} — ${(mine?bandName(pvi):theirs(bandName(pvi))).toUpperCase()}</b></div>`; })():''}
-    ${r.points!=null?`<div class="mathrow"><span>Points</span><b>${r.points}</b></div>`:''}
-    ${r.month_rank!=null?`<div class="mathrow"><span>This month</span><b>${r.month_rank<=capN?'COUNTING #'+r.month_rank:'BUMPED'}</b></div>`:''}
-    ${r.holes_played===9?`<div class="mathrow"><span>Nine holes</span><b>HALF VALUE · HALF A ROUND</b></div>`:''}`);
+    <div id="rcptBody">${roundCardBody(r, pvi, capN)}</div>`);
   if(!r.photo_url && r.photo_path && window.sb && !state.demo){
     window.sb.storage.from('media').createSignedUrl(r.photo_path, 3600).then(({data})=>{
       const hb=document.getElementById('rcptHero');
