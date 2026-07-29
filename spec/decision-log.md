@@ -3117,3 +3117,38 @@ machinery-already-exists. ⚑ marks the points still needing an owner call.*
   right completion and it is a posting-path change, so it gets its own pass
   rather than riding a notification build. Until then the finish toast tells
   the visitor the truth instead of claiming their round landed.
+
+### D89 · One mark, and a settlement card that can actually travel
+- **Current:** two independent inconsistencies, both found by reading a real
+  shared result out of the pilot's iMessage thread.
+  (a) The `shared` storage bucket was created `allowed_mime_types =
+  {image/jpeg}`; the settlement card is a PNG. Every card upload since D78 was
+  refused AT THE BUCKET. (b) The ember flag had replaced the four-arc orbit
+  mark on the install icons, the apple-touch icon and the og-image — but the
+  ring survived in the favicon, the in-app header, and `brand/*.svg`.
+- **Problem:** (a) a shared settlement previewed with the generic brand card
+  instead of its own 4&3 artifact — the one moment the product is most worth
+  looking at, and the picture was a house ad. It failed INVISIBLY three layers
+  deep: the client catches the upload error ("link ships card-less", best
+  effort by design), and the edge function HEADs the object and falls back
+  rather than pointing a scraper at a 404. Three correct safety nets summing to
+  a feature that had never once succeeded — `storage.objects` for that bucket
+  was empty all-time. (b) the app's own header disagreed with the card it
+  texts you.
+- **Recommendation:** (a) teach the bucket PNG rather than downgrade the card —
+  it is flat-colour type on a dark ground and JPEG rings the letterforms; the
+  migration RAISES if the mime list does not take, so the claim is
+  self-enforcing. (b) retire the ring everywhere it survived; `brand/mark.svg`
+  and `mark-light.svg` are redrawn as the ember flag and the README says which
+  PNG lockups are now stale.
+- **Principle:** #4 everything shows its work — a settlement's receipt is the
+  artifact, and a preview that hides it is the same failure as a points figure
+  with no path to its rounds. Identity: one mark or it isn't one.
+- **Benefit:** the next shared result previews as itself; the tab, the header,
+  the home-screen icon and the text-message card finally agree.
+- **Tradeoffs:** `lockup-dark.png` / `lockup-light.png` still carry the ring
+  and are flagged stale rather than regenerated — they are canvas-rendered
+  assets and this pass had no image toolchain. Nothing ships them today.
+- **Lesson (recorded, it will recur):** an upload path whose every failure is
+  swallowed needs ONE thing that fails loudly — a check, a test, or a probe.
+  The photo path shipped `.jpg`, succeeded, and made the bucket look healthy.

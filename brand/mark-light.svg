@@ -1,12 +1,12 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96" fill="none">
-  <!-- Light-background version: ink flag, ring colors deepened one step. -->
-  <g stroke-width="6" stroke-linecap="round" fill="none">
-    <path d="M61.9 73.8 A33 13 0 0 1 18.1 67.5" stroke="#0E9B51"/>
-    <path d="M16.1 65.4 A33 13 0 0 1 29.1 51.4" stroke="#2C7CD3"/>
-    <path d="M34.1 50.2 A33 13 0 0 1 64.5 50.7" stroke="#7A58DE"/>
-    <path d="M71.3 52.8 A33 13 0 0 1 76.6 68.5" stroke="#DE6A22"/>
-  </g>
-  <ellipse cx="48" cy="62" rx="10" ry="4" stroke="#1A2620" stroke-width="4.5"/>
-  <path d="M48 60V16" stroke="#1A2620" stroke-width="5.5" stroke-linecap="round"/>
-  <path d="M48 14l20 7.5L48 29z" fill="#1A2620"/>
+  <!-- Cup Season mark for WHITE / light backgrounds (D89). Same ember flag as
+       mark.svg; the pole takes ink so it reads on paper and in email. -->
+  <defs>
+    <linearGradient id="emberLight" x1="45" y1="21" x2="77" y2="53" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#E08A22"/>
+      <stop offset="1" stop-color="#E8431A"/>
+    </linearGradient>
+  </defs>
+  <path d="M45 21 L77 37 L45 53 Z" fill="url(#emberLight)"/>
+  <rect x="36" y="18" width="9" height="60" rx="4.5" fill="#0C0D0F"/>
 </svg>

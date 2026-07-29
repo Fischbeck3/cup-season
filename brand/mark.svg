@@ -1,15 +1,15 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96" fill="none">
-  <!-- Cup Season master mark — the flag in the cup, a four-color orbit
-       lying on the green (elliptical, in perspective). The back arc passes
-       BEHIND the pole; the front arc sweeps in front of the cup.
+  <!-- Cup Season master mark (D89) — the ember flag. Supersedes the four-arc
+       orbit mark: the install icons, apple-touch icon and og-image had already
+       moved to this flag, and the ring survived only in the favicon, the app
+       header and this file — so the product disagreed with itself.
        Dark-background version. -->
-  <g stroke-width="6" stroke-linecap="round" fill="none">
-    <path d="M61.9 73.8 A33 13 0 0 1 18.1 67.5" stroke="#43E07C"/>
-    <path d="M16.1 65.4 A33 13 0 0 1 29.1 51.4" stroke="#57A8FF"/>
-    <path d="M34.1 50.2 A33 13 0 0 1 64.5 50.7" stroke="#A78BFA"/>
-    <path d="M71.3 52.8 A33 13 0 0 1 76.6 68.5" stroke="#FB8B4B"/>
-  </g>
-  <ellipse cx="48" cy="62" rx="10" ry="4" stroke="#F4F7F4" stroke-width="4.5"/>
-  <path d="M48 60V16" stroke="#F4F7F4" stroke-width="5.5" stroke-linecap="round"/>
-  <path d="M48 14l20 7.5L48 29z" fill="#F4F7F4"/>
+  <defs>
+    <linearGradient id="ember" x1="45" y1="21" x2="77" y2="53" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#F2A03D"/>
+      <stop offset="1" stop-color="#FF5A2E"/>
+    </linearGradient>
+  </defs>
+  <path d="M45 21 L77 37 L45 53 Z" fill="url(#ember)"/>
+  <rect x="36" y="18" width="9" height="60" rx="4.5" fill="#F4F7F4"/>
 </svg>
