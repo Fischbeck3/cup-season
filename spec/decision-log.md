@@ -3457,3 +3457,35 @@ machinery-already-exists. ⚑ marks the points still needing an owner call.*
   nothing while `lockBylaws` still reads it. Harmless today because inviting
   moved to the post-lock share, but it is dead machinery that reads as a live
   invite path to anyone touching the wizard next. Worth a cleanup pass.
+
+### D97 · The dead wizard invite path comes out
+- **Current:** the wizard used to stage in-app golfers before the lock — an
+  "Add golfers" button (`#wzAdd`) that opened the People Picker, a chip list
+  (`#wzPicked`), and `state.wizInvitees` holding the staged crew until
+  `lockBylaws` fired `invite_golfer` for each.
+- **Problem:** both elements were DELETED from the markup on 2026-07-21
+  (`5cf7a80`, "wizard collapses to three steps"), and inviting moved to the
+  share screen `openLockShare` opens right after the lock. The JavaScript
+  stayed. `renderWizPicked()` returned at its first line, the `#wzAdd` wiring
+  never ran, nothing could write to `state.wizInvitees` — so the lock's
+  staged-invitee loop iterated an array that was permanently empty, and three
+  separate roster/pot calculations added a constant zero. None of it broke
+  anything; all of it read as a live invite path to the next person in the file.
+  Found while building D96, when a CTA aimed at `#wzAdd` and hit nothing.
+- **Recommendation:** delete the machinery, keep every live part.
+  Removed: `renderWizPicked()`, `renderWizAddGolfers()` and its window bridge,
+  `state.wizInvitees` and its three constant-zero readers, the staged-invitee
+  loop in `lockBylaws`, and the header comment describing the staging flow.
+  Kept and re-pointed: `renderProChip()` — `#commishChip` is still in step 0
+  and the Pro identity still renders; the three call sites that reached for
+  `renderWizAddGolfers` now call it directly, since that was its only surviving
+  effect. Kept untouched: `updateInviteNote()` (`#inviteNote` exists),
+  `invite_golfer` (the members sheet still calls it), and the email fallback.
+- **Principle:** the codebase should not describe a feature it does not have —
+  dead UI wiring is a false map, and the next person to touch the wizard would
+  have read it as the invite path.
+- **Benefit:** 60 lines out, 20 in. The wizard's remaining invite story is one
+  story: lock, then share.
+- **Tradeoffs:** if pre-lock staging ever returns it must be rebuilt rather
+  than re-enabled — deliberate, because what was here could not have been
+  re-enabled anyway without its markup.

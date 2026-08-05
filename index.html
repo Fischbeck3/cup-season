@@ -3699,7 +3699,7 @@ const state = {
   draft:{pick:0, pool:[...poolSeed], rosters:[[],[]], order:[0,1, 1,0, 0], meCaptain:0, isCommish:true},
   payers:payersSeed.map(p=>({name:p[0], paid:!!p[1]})),
   stake:75, months:6, cap:1, floor:2, myIndex:12.4,
-  phase:'season', wiz:0, preset:1, fmt:0, emails:[], wizInvitees:[], showOthers:false, structure:'squads2', demo:true, startOffset:0, durWeeks:26, startISO:'',
+  phase:'season', wiz:0, preset:1, fmt:0, emails:[], showOthers:false, structure:'squads2', demo:true, startOffset:0, durWeeks:26, startISO:'',
   draftType:'random',
   finish:'cup_final',   /* the endgame dial (008): cup_final | points_table */
   payout:[60,25,15],    /* champ / runner-up / points king — sums 100 */
@@ -4092,7 +4092,7 @@ function switchView(v){
   }
   /* the wizard's buddy picker renders lazily — every entry path (welcome
      "Start a league", the lock-fallback) lands here, so fire it here once */
-  if(v==='wizard' && !state.demo) window.renderWizAddGolfers?.();
+  if(v==='wizard' && !state.demo) window.renderProChip?.();
   if(v==='home' && typeof renderHomeHub==='function') renderHomeHub();
   if(v==='hub'){
     if(typeof renderClubGroups==='function') renderClubGroups();
@@ -6915,7 +6915,7 @@ function renderPot(){
        table. The Pro taps a name as money moves — mark_buy_in RPC,
        commissioner-gated at the database, posts the tally to the board. */
     const ms=(window.CS?.members)||[];
-    const invited=[...new Set(state.emails.map(e=>e.trim().toLowerCase()))].filter(e=>e.includes('@') && e!==((window.CS?.user?.email)||'').toLowerCase()).length + (state.wizInvitees?.length||0);
+    const invited=[...new Set(state.emails.map(e=>e.trim().toLowerCase()))].filter(e=>e.includes('@') && e!==((window.CS?.user?.email)||'').toLowerCase()).length;
     const players=Math.max(ms.length, invited+1, 1);
     const total=state.stake*players;
     const bi=window.buyIns||{};
@@ -11739,8 +11739,9 @@ const STRUCT_NOTES={
    not blocks — more golfers join by code after the lock. */
 const STRUCT_MIN={solo:2, squads2:4, squads3:6, squads4:8};
 function wizRoster(){
-  return 1 + ((state.wizInvitees||[]).length)
-    + (state.emails||[]).filter(e=>e.includes('@')).length;
+  /* D97: the staged-invitee term is gone with the staging itself — the
+     roster the wizard can see is you plus the emails typed into it. */
+  return 1 + (state.emails||[]).filter(e=>e.includes('@')).length;
 }
 function renderStructFit(){
   const n=wizRoster();
@@ -11869,7 +11870,7 @@ function renderBylaws(){
       /* one source of player count everywhere the pot shows: demo = the crew,
          real = the actual roster (the 16 fallback made the tile lie vs the pot page) */
       const n = state.demo ? state.payers.length
-        : (window.CS?.members?.length || Math.max(1, state.emails.filter(e=>e.includes('@')).length + (state.wizInvitees?.length||0) + 1));
+        : (window.CS?.members?.length || Math.max(1, state.emails.filter(e=>e.includes('@')).length + 1));
       const total=state.stake*n;
       const [pc,pr,pk]=state.payout||[60,25,15];
       la.textContent=fmt$(total);
@@ -12636,7 +12637,7 @@ function renderWizard(){
   $('#wizBack').style.display   = state.wiz===0 ? 'none':'flex';
   $('#wizCancel').style.display = state.wiz===0 ? 'flex':'none';   /* step 0: Cancel replaces Back */
   $('#wizNext').style.display = state.wiz===2 ? 'none':'flex';
-  if(state.wiz===0 && !state.demo) window.renderWizAddGolfers?.();
+  if(state.wiz===0 && !state.demo) window.renderProChip?.();
 }
 $('#wizBack').addEventListener('click',()=>{state.wiz=Math.max(0,state.wiz-1);renderWizard();});
 $('#wizNext').addEventListener('click',()=>{state.wiz=Math.min(2,state.wiz+1);renderWizard();});
@@ -13798,11 +13799,13 @@ $('#annBtn')?.addEventListener('click', async () => {
   btn.disabled = false;
 });
 
-/* ---------- wizard: stage in-app golfers to invite (fired at lock) ----------
-   No league row exists until lock, so we can't send invites yet: the picker
-   STAGES golfers into state.wizInvitees (chips), and lockBylaws fires an
-   invite_golfer for each once the league is created. Email stays the
-   not-on-the-app fallback. */
+/* ---------- wizard reset ------------------------------------------------
+   D97: the pre-lock invite staging that used to live here is GONE. The
+   wizard collapsed to three steps on 2026-07-21 (5cf7a80) and took #wzAdd
+   and #wzPicked with it; inviting moved to the share screen openLockShare
+   opens right after the lock. renderWizPicked and the picker wiring were
+   still here, calling for elements that no longer existed — they no-oped
+   silently and read as a live invite path. Removed. */
 /* a brand-new league starts from a clean slate — never inherit a discarded
    league's name, staged players, or emails (pilot feedback: both carried over
    between a cancelled and a freshly-minted league). Called on fresh create and
@@ -13810,30 +13813,14 @@ $('#annBtn')?.addEventListener('click', async () => {
 function resetWizard(){
   state.wiz = 0;
   state.emails = [''];
-  state.wizInvitees = [];
   /* setup-QA S2-03: state.stake's $75 default belongs to the demo diorama —
      a REAL league starts at bragging rights; the Pro dials money up on
      purpose ("$0 = bragging rights" is the dial's own promise). */
   state.stake = 0;
   const nm = document.getElementById('setName'); if(nm) nm.value = '';
-  renderWizPicked();
   if(typeof updateInviteNote === 'function') updateInviteNote();
 }
 window.resetWizard = resetWizard;
-function renderWizPicked(){
-  const box = $('#wzPicked'); if(!box) return;
-  const picked = state.wizInvitees || [];
-  box.innerHTML = picked.map(p => `
-    <div class="byrow" style="align-items:center; gap:8px;">
-      <span>${mkr(p.marker || 'saguaro')} ${esc(p.name || '—')}
-        <span class="fine" style="padding:0">@${esc(p.handle || '?')}</span></span>
-      <button class="mini" data-wzrm="${p.id}">Remove</button>
-    </div>`).join('');
-  box.querySelectorAll('[data-wzrm]').forEach(b => b.addEventListener('click', () => {
-    state.wizInvitees = (state.wizInvitees||[]).filter(x => x.id !== b.dataset.wzrm);
-    renderWizPicked(); updateInviteNote();
-  }));
-}
 /* the Pro is always the creator — show it as a fixed identity, not a dead
    email field (pilot feedback: "Pro-you won't let me type"). */
 function renderProChip(){
@@ -13847,28 +13834,6 @@ function renderProChip(){
      <span class="ptag" style="color:var(--brand)">THE PRO</span>`;
 }
 window.renderProChip = renderProChip;
-/* the wizard's "Add golfers" opens the one People Picker (invite mode) and
-   stages into state.wizInvitees; lockBylaws fires the invites at lock. */
-function renderWizAddGolfers(){
-  renderProChip();
-  renderWizPicked();
-  const btn = $('#wzAdd');
-  if(btn && !btn._wired){
-    btn._wired = true;
-    btn.addEventListener('click', () => openPeoplePicker({
-      mode:'invite', title:'Add golfers to the league',
-      sub:'They get an invite to accept when you lock',
-      excludeIds: (state.wizInvitees||[]).map(x=>x.id),
-      onPick: (r) => {
-        state.wizInvitees = state.wizInvitees || [];
-        if(!state.wizInvitees.some(x => x.id === r.profile_id))
-          state.wizInvitees.push({ id:r.profile_id, name:r.display_name, handle:r.handle, marker:r.marker });
-        renderWizPicked(); updateInviteNote();
-      }
-    }));
-  }
-}
-window.renderWizAddGolfers = renderWizAddGolfers;   /* classic renderWizard reaches across the boundary */
 
 /* ---------- invite links: share sheet over the league code ---------- */
 async function shareInvite(){
@@ -14234,7 +14199,7 @@ async function loadLeagueData(){
      data is in (squads + members are the settlement's inputs). Never blocks
      the app — it's a sheet, it dismisses, and the League Room can re-open it. */
   if(CS.season?.status === 'complete') setTimeout(()=>window.openSeasonCeremony?.(false), 400);
-  if(CS.league?.phase === 'setup' || state.phase === 'setup') renderWizAddGolfers();
+  if(CS.league?.phase === 'setup' || state.phase === 'setup') renderProChip();
 }
 
 const memName = id => {
@@ -14818,14 +14783,10 @@ async function lockBylaws(){
     );
   }
 
-  /* in-app golfers staged in the wizard → consent invites (they accept in
-     their notifications). invite_golfer raises if already a member; swallow
-     so a retap after a partial lock doesn't blow up the whole lock. */
-  const staged = state.wizInvitees || [];
-  for(const g of staged){
-    try{ await sb.rpc('invite_golfer', { p_league: CS.league.id, p_event: null, p_profile: g.id }); }
-    catch(e){}
-  }
+  /* D97: the wizard used to stage in-app golfers here and fire invite_golfer
+     for each at lock. That staging UI was deleted on 2026-07-21 and inviting
+     moved to the post-lock share screen, so this loop had nothing to iterate.
+     invite_golfer itself is untouched — the members sheet still calls it. */
 
   const starts = seasonStartDate();
   const ends   = seasonEndDate();
@@ -15141,7 +15102,6 @@ $('#lockBtn').addEventListener('click', async () => {
     }
     const { emails, invited, nextPhase } = await lockBylaws();
     window.qaEvent?.('lock_ok', { next_phase: nextPhase });
-    state.wizInvitees = [];   /* sent — don't re-stage on re-entry */
     await loadMemberships();
     switchView('home');
     toast('Bylaws locked');
