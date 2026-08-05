@@ -3418,3 +3418,42 @@ machinery-already-exists. ⚑ marks the points still needing an owner call.*
   exactly what prod held, ten seconds apart. Guard added, and the orphaned
   duplicate is deleted (narrowly: the earliest announcement per league+body
   survives; a dry-run against prod matched exactly one row).
+
+### D96 · The forming hero gets the move it never had
+- **Current:** every hero state offers a move except the one that needs it most.
+  `complete` offers "Run it back", the league-less rungs offer "Post your first
+  round" — `forming` passed no CTA at all. It described a half-built league
+  ("My Cup · forming · 1 golfer in") and gave the user nothing to press.
+- **Problem, measured 2026-08-04:** seven pilots created a league and stopped.
+  All seven are CARDED, six have an index, three had already posted rounds —
+  they cleared identity, the hardest part, and then hit a dead end. Every one
+  of the seven leagues has 0 invites, 0 posts, 0 seasons, 1 member. Six are
+  still sitting there. Coming back showed them a status line and no next step.
+- **Recommendation:** the forming hero names the step that is ACTUALLY blocking
+  and goes there. Unnamed (or still called "My Cup") → "Name your league",
+  wizard step 0, cursor in the name field. Named → "Lock it in and invite your
+  crew", wizard step 2 — because inviting has no pre-lock step: it lives on the
+  share screen `openLockShare` opens immediately after the lock (2026-07-17,
+  "the wizard's last screen is the invite link"). The copy stops reporting
+  "1 golfer in" as though it were a standing and says the league is a scaffold.
+- **NOT the fix for the seven:** the scaffold-name wall itself was already
+  closed — the name gate landed 2026-07-22 (`108db9e`) and every league created
+  since has been named, seated and played (1 for 1). This is the RECOVERY path
+  the gate never had: it protects anyone who bails mid-setup, including the six
+  who already did.
+- **Principle:** D27 Home never opens on nothing — a hero that states a problem
+  and offers no move is the same failure in a different costume; #2 fewer doors
+  — one button that knows which step is blocking beats a wizard the user has to
+  re-navigate from memory.
+- **Benefit:** an abandoned setup becomes recoverable by the person who
+  abandoned it, without anyone reaching out.
+- **Tradeoffs:** the CTA guesses the blocking step from name + member count.
+  A league that is named and crewed but deliberately unlocked will be told to
+  lock every time it opens Home — correct, but insistent.
+- **FOUND WHILE BUILDING, NOT FIXED HERE:** `renderWizAddGolfers()` still wires
+  `#wzAdd` and `renderWizPicked()` still fills `#wzPicked` — both elements were
+  DELETED from the markup on 2026-07-21 (`5cf7a80`, "wizard collapses to three
+  steps"). Both functions no-op silently, and `state.wizInvitees` is staged by
+  nothing while `lockBylaws` still reads it. Harmless today because inviting
+  moved to the post-lock share, but it is dead machinery that reads as a live
+  invite path to anyone touching the wizard next. Worth a cleanup pass.

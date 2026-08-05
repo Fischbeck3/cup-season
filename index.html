@@ -9825,11 +9825,43 @@ function renderHomeHero(){
     const dd = tee ? Math.max(0, Math.round((tee - new Date().setHours(0,0,0,0))/864e5)) : null;
     const starter = state.phase==='season';
     seen('forming');
-    box.innerHTML = heroCard('', `${esc(window.CS.league?.name||'Your league')} · ${starter?'season live':'forming'}`,
+    /* D96 · the forming hero had NO cta. Every other hero state offers a move;
+       this one described a half-built league and left the user nothing to
+       press. Seven pilots created a league and stopped, six are still alone in
+       it — measured 2026-08-04 — and the reason they stayed stopped is that
+       coming back showed them "forming · 1 golfer in" and no way to continue.
+       The CTA names the step that is ACTUALLY blocking, in the order the
+       wizard blocks on it: name it → invite someone → lock the bylaws. */
+    const lgName = window.CS.league?.name || '';
+    const unnamed = !lgName || /^my cup$/i.test(lgName.trim());
+    const solo = n <= 1;
+    /* The wizard is three steps: 0 name · 1 house rules · 2 review+lock. There
+       is NO pre-lock invite step — inviting moved to the share screen that
+       openLockShare opens right after the lock ("the wizard's last screen is
+       the invite link", 2026-07-17). So a named league's only real next move
+       is LOCK, and the crew arrives immediately after it.
+       (Two wrong turns caught here: a first pass sent "invite" to step 1, which
+       is the preset picker; a second pointed it at #wzAdd, a control deleted
+       from the markup on 2026-07-21 when the wizard collapsed.) */
+    const toWiz = (step, focus) => () => {
+      state.wiz = step; renderWizard(); switchView('wizard');
+      if(focus) setTimeout(()=>{ const el=$(focus);
+        el?.scrollIntoView?.({block:'center'}); el?.focus?.(); }, 80);
+    };
+    const nextStep = unnamed ? { label:'Name your league', go:toWiz(0, '#setName') }
+                             : { label:'Lock it in and invite your crew', go:toWiz(2, null) };
+    box.innerHTML = heroCard('', `${esc(lgName||'Your league')} · ${starter?'season live':'forming'}`,
       dd!=null && !starter ? `<div class="hh-fig"><span class="hh-pos">${dd}</span><span class="hh-ord">day${dd===1?'':'s'}</span></div>` : '',
       starter ? `The season's on. <em>Rounds count from today.</em>`
-              : `${dd!=null?'to first tee. ':''}<b>${n} golfer${n===1?'':'s'} in.</b> <em>The bylaws lock at the tee.</em>`,
-      n?`<span>Roster</span><span class="hh-bar"><i style="width:${Math.min(100, Math.round(n/12*100))}%"></i></span><span>${n} in</span>`:'');
+              /* an unnamed, one-person league is a half-finished thing and the
+                 copy says so plainly rather than reporting "1 golfer in" as if
+                 that were a standing */
+              : unnamed ? `Your league is still a scaffold. <em>Name it, and it's real.</em>`
+              : solo    ? `<b>Just you so far.</b> <em>Lock the bylaws and the invite link is yours.</em>`
+              : `${dd!=null?'to first tee. ':''}<b>${n} golfers in.</b> <em>The bylaws lock at the tee.</em>`,
+      n?`<span>Roster</span><span class="hh-bar"><i style="width:${Math.min(100, Math.round(n/12*100))}%"></i></span><span>${n} in</span>`:'',
+      starter ? '' : `<button class="hh-cta" data-hform type="button">${nextStep.label}</button>`);
+    if(!starter) wire('[data-hform]', nextStep.go);
     return;
   }
 
