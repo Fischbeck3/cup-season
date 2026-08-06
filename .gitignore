@@ -16,3 +16,7 @@ dist/
 # Handoff PDF exports — regenerable binaries; their HTML sources are tracked
 # alongside in spec/handoffs/.
 spec/handoffs/*.pdf
+
+# IBM Plex Mono (OFL) — fetched by tools/make-icons.py's instructions, only
+# needed to regenerate the brand lockups. Binaries stay out of the repo.
+tools/fonts/

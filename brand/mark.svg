@@ -1,15 +1,13 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96" fill="none">
-  <!-- Cup Season master mark (D89) — the ember flag. Supersedes the four-arc
-       orbit mark: the install icons, apple-touch icon and og-image had already
-       moved to this flag, and the ring survived only in the favicon, the app
-       header and this file — so the product disagreed with itself.
-       Dark-background version. -->
-  <defs>
-    <linearGradient id="ember" x1="45" y1="21" x2="77" y2="53" gradientUnits="userSpaceOnUse">
-      <stop offset="0" stop-color="#F2A03D"/>
-      <stop offset="1" stop-color="#FF5A2E"/>
-    </linearGradient>
-  </defs>
-  <path d="M45 21 L77 37 L45 53 Z" fill="url(#ember)"/>
-  <rect x="36" y="18" width="9" height="60" rx="4.5" fill="#F4F7F4"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96">
+  <!-- Cup Season master mark — the Tracer (2026-08-06). One shot falls out of
+       the sky and lands in the flagged cup: the tapered comet is the ball
+       flight, the pin stands proud, the cup catches both. Chosen because the
+       sign-in door literally manufactures this frame (the Forge). Bare mark,
+       dark grounds. Flat ember only — no gradient, ever. -->
+  <g fill="#F4712E">
+    <path d="M88 12 C 82 36, 70 59, 54 73 C 51 76, 47 75, 46 72 C 60 60, 73 38, 83 13 C 84 10, 87 9, 88 12 Z"/>
+    <ellipse cx="38" cy="79" rx="17" ry="6.5"/>
+    <rect x="27" y="13" width="10" height="68" rx="5"/>
+    <path d="M36 13 L74 26 L36 39 Z"/>
+  </g>
 </svg>

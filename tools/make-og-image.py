@@ -79,31 +79,40 @@ for r_x, r_y, cyy, alpha in ((118, 32, 236, 32), (78, 22, 233, 58), (44, 13, 230
     d.ellipse([ex - r_x * S, ey - r_y * S, ex + r_x * S, ey + r_y * S],
               outline=EMBER + (alpha,), width=2)
 
-# ---- the four tracers, on the heat ramp -------------------------------------
+# ---- three thin tracers, on the heat ramp -----------------------------------
+# The FIRE tracer is gone from this list: in the V5 door it is the survivor
+# that becomes the mark's comet, and this card is the forge's moment — three
+# flights still in the air, the fourth already forged.
 TRACERS = [
     (((-24, 96), (80, 118), (160, 176), (224, 224)), AMBER),
     (((96, -20), (140, 66), (190, 160), (227, 222)), EMBER),
-    (((364, -20), (320, 66), (270, 160), (233, 222)), FIRE),
     (((484, 96), (380, 118), (300, 176), (236, 224)), INK),
 ]
 for pts, colour in TRACERS:
     curve = bezier(*[P(*p) for p in pts])
     d.line(curve, fill=colour + (217,), width=4, joint="curve")
 
-# ---- the cup, and the flag standing in it -----------------------------------
-ex, ey = P(230, 226)
-d.ellipse([ex - 15 * S, ey - 5.5 * S, ex + 15 * S, ey + 5.5 * S],
-          fill=(10, 11, 13, 255), outline=(51, 32, 24, 255), width=3)
+# ---- the mark, icon weight — the forge's rest frame (2026-08-06) ------------
+# Same placement as the door: mark space -> crest space is translate(150 46)
+# scale(2.15); P() then lifts crest space to the canvas. Flat ember #F4712E —
+# the mark never takes the gradient.
+EMBERF = (244, 113, 46)
 
-px, py1 = P(236, 223)
-_, py2 = P(236, 120)
-d.line([(px, py1), (px, py2)], fill=INK + (255,), width=6)
-d.polygon([P(236, 120), P(274, 133), P(236, 146)], fill=EMBER + (255,))
 
-bx, by = P(230, 224)
-d.ellipse([bx - 6.75, by - 6.75, bx + 6.75, by + 6.75], fill=PAPER + (255,))
-d.ellipse([ex - 15 * S, ey - 5.5 * S, ex + 15 * S, ey + 5.5 * S],
-          outline=EMBER + (255,), width=2)
+def M(x, y):
+    return P(150 + x * 2.15, 46 + y * 2.15)
+
+
+comet = []
+for seg in (((88, 12), (82, 36), (70, 59), (54, 73)),
+            ((54, 73), (51, 76), (47, 75), (46, 72)),
+            ((46, 72), (60, 60), (73, 38), (83, 13)),
+            ((83, 13), (84, 10), (87, 9), (88, 12))):
+    comet += bezier(*[M(*p) for p in seg], n=80)
+d.polygon(comet, fill=EMBERF + (255,))
+d.ellipse([*M(21, 72.5), *M(55, 85.5)], fill=EMBERF + (255,))
+d.rounded_rectangle([*M(27, 13), *M(37, 81)], radius=5 * 2.15 * S, fill=EMBERF + (255,))
+d.polygon([M(36, 13), M(74, 26), M(36, 39)], fill=EMBERF + (255,))
 
 img = Image.alpha_composite(img, layer).convert("RGB")
 

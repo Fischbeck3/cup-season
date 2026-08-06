@@ -1,6 +1,8 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96">
-  <!-- The Tracer for WHITE / light grounds — same geometry as mark.svg, the
-       mark takes ink. Never an opacity trick. -->
+  <!-- 1024x1024 App Store master — square, opaque, NO rounding: Apple applies
+       its own mask and rejects alpha. Also the source for apple-touch-icon
+       (iOS masks it itself; a pre-rounded source double-rounds into notches). -->
+  <rect width="96" height="96" fill="#F4712E"/>
   <g fill="#0C0D0F">
     <path d="M88 12 C 82 36, 70 59, 54 73 C 51 76, 47 75, 46 72 C 60 60, 73 38, 83 13 C 84 10, 87 9, 88 12 Z"/>
     <ellipse cx="38" cy="79" rx="17" ry="6.5"/>

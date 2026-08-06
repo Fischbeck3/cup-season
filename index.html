@@ -8,10 +8,10 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Cup Season">
-<!-- D89: the ember flag, matching icon-192/512, apple-touch-icon and og-image.
-     The four-arc ring mark retired here last — a browser tab is the one place
-     a stale logo hides in plain sight. -->
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 96 96'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='45' y1='21' x2='77' y2='53' gradientUnits='userSpaceOnUse'%3E%3Cstop offset='0' stop-color='%23F2A03D'/%3E%3Cstop offset='1' stop-color='%23FF5A2E'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='96' height='96' rx='21' fill='%230C0D0F'/%3E%3Cpath d='M45 21 L77 37 L45 53 Z' fill='url(%23g)'/%3E%3Crect x='36' y='18' width='9' height='60' rx='4.5' fill='%23F4F7F4'/%3E%3C/svg%3E">
+<!-- The Tracer (2026-08-06), matching icon-192/512, apple-touch-icon and the
+     door's rest frame. A browser tab is the one place a stale logo hides in
+     plain sight — this must always equal brand/mark-tile.svg. -->
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 96 96'%3E%3Crect width='96' height='96' rx='21' fill='%23F4712E'/%3E%3Cg fill='%230C0D0F'%3E%3Cpath d='M88 12 C 82 36, 70 59, 54 73 C 51 76, 47 75, 46 72 C 60 60, 73 38, 83 13 C 84 10, 87 9, 88 12 Z'/%3E%3Cellipse cx='38' cy='79' rx='17' ry='6.5'/%3E%3Crect x='27' y='13' width='10' height='68' rx='5'/%3E%3Cpath d='M36 13 L74 26 L36 39 Z'/%3E%3C/g%3E%3C/svg%3E">
 <link rel="manifest" href="/manifest.webmanifest">
 <link rel="apple-touch-icon" href="/apple-touch-icon.png">
 <!-- D77: these are the DEFAULTS. A /?share= link gets per-token tags rewritten
@@ -1665,10 +1665,15 @@ html[data-theme="light"] .momrow{background:rgba(21,116,63,.06);}
   .ob-fgrid{display:grid; grid-template-columns:1fr minmax(0,480px) 1fr; align-items:center; justify-items:center; gap:clamp(18px, 3vw, 56px);}
   .onboard .ob-in{margin-top:0; margin-bottom:0;}
 }
-/* Entry V4 (D76) — SEAR-IN: the crest scene (tracers diving into the flagged
-   hole over ember radar rings) fires on the heat ramp — amber, ember, fire,
-   white-hot — and every landing strikes a spark at the cup. Tracers rest
-   DRAWN (inline dashoffset 0; csDraw's `both` hides them only pre-delay). */
+/* Entry V5 — THE FORGE: V4's sear-in show plays whole (tracers on the heat
+   ramp, sparks, seared wordmark, fuse), then at ~4.6s the forge — the radar
+   and three tracers burn off, the survivor hands its line to the icon-weight
+   mark, and the door RESTS ON THE LOGO. The rest frame IS the brand mark +
+   wordmark; the app icon is that frame tiled. Tracers now rest FADED (csGone
+   rides after csDraw), the old illustration flag rests faded, the mark rests
+   visible. Return visits skip the ceremony: the html.ob-fast scope (set
+   pre-paint from cs_forge) stamps the finished mark in ~1.5s instead —
+   same rest frame, tenth of the wait. ?forge in the URL replays the show. */
 .ob-crest{width:min(64vw, 300px); margin:0 auto 4px; pointer-events:none;}
 .ob-crest svg{width:100%; height:auto; display:block;}
 @media(min-width:760px){ .ob-crest{width:min(76vw, 420px);} }
@@ -1677,7 +1682,7 @@ html[data-theme="light"] .momrow{background:rgba(21,116,63,.06);}
 @keyframes csPlant{0%{opacity:0; transform:translateY(12px);} 55%{opacity:1; transform:translateY(-2px);} 100%{opacity:1; transform:translateY(0);}}
 @keyframes csWag{0%,100%{transform:rotate(0);} 35%{transform:rotate(-6deg);} 70%{transform:rotate(2.5deg);}}
 @keyframes csBallIn{0%{opacity:0; transform:translateY(-9px) scale(1);} 30%{opacity:1;} 100%{opacity:0; transform:translateY(2px) scale(.55);}}
-.obflag{transform-box:fill-box; transform-origin:50% 100%; animation:csPlant .55s var(--roll) 1.95s both;}
+.obflag{transform-box:fill-box; transform-origin:50% 100%; animation:csPlant .55s var(--roll) 1.95s both, csGone .6s ease 4.8s forwards;}
 .obpen{transform-box:fill-box; transform-origin:0% 50%; animation:csWag .5s ease 2.5s both;}
 .obball{transform-box:fill-box; transform-origin:center; opacity:0; animation:csBallIn .24s ease-in 3s both;}
 .obring1{transform-box:fill-box; transform-origin:center; opacity:0; animation:csRing .9s ease-out 3.06s both;}
@@ -1711,6 +1716,49 @@ html[data-theme="light"] .momrow{background:rgba(21,116,63,.06);}
   border-radius:50%; background:#FF3B1A; box-shadow:0 0 12px 2px rgba(255,59,26,.8);
   opacity:0; animation:obFuse 1.1s ease-out 3.15s both;}
 @keyframes obFuse{0%{left:0; opacity:0;} 6%{opacity:1;} 88%{opacity:1;} 100%{left:100%; opacity:0;}}
+/* THE FORGE (V5) — the show's burn-off and the mark's arrival. csGone is the
+   one exit ramp every show element takes; the mark group is the ONLY element
+   whose base state is visible, because the rest frame must survive with
+   animations off (forceReveal / reduced motion — nothing gates on animation).
+   The mark's positioning transform lives on an OUTER group; only the inner
+   .ob-mark animates, so killing its animation can never unseat the placement
+   (a CSS transform animation REPLACES the transform attribute — learned the
+   hard way with csSealKeep). */
+@keyframes csGone{to{opacity:0;}}
+@keyframes csForge{0%{opacity:0; transform:scale(.94);} 60%{opacity:1; transform:scale(1.015);} 100%{opacity:1; transform:scale(1);}}
+.ob-amb{animation:csFade 1.2s ease 1s both, csGone .8s ease 4.6s forwards;}
+.ob-mark{transform-box:fill-box; transform-origin:40% 70%;
+  animation:csForge .9s var(--roll) 4.7s both;}
+.ob-pulse{transform-box:fill-box; transform-origin:center;
+  animation:csRing 2.8s ease-out 5.8s infinite;}
+.ob-stampring{transform-box:fill-box; transform-origin:center; opacity:0;}
+/* THE STAMP (return visits) — html.ob-fast, decided pre-paint from cs_forge.
+   The whole show is silenced (!important beats the tracers' inline styles);
+   the finished mark slams in white-hot and cools to ember; every sear/rise
+   delay compresses to x0.3 through one calc. Same rest frame as the forge. */
+@keyframes csStamp{0%{opacity:0; transform:scale(1.5); fill:#FFFFFF;}
+  35%{opacity:1; transform:scale(.985); fill:#FF5A2E;}
+  60%{transform:scale(1.02);} 100%{opacity:1; transform:scale(1); fill:#F4712E;}}
+@keyframes csRingOnce{0%{opacity:0; transform:scale(.6);} 30%{opacity:.9; transform:scale(1.1);} 100%{opacity:0; transform:scale(2);}}
+html.ob-fast .ob-amb, html.ob-fast .obtr, html.ob-fast .obflag,
+html.ob-fast .obball, html.ob-fast .obring1, html.ob-fast .obspark{animation:none !important; opacity:0 !important;}
+html.ob-fast .ob-mark{animation:csStamp .85s cubic-bezier(.2,1.4,.4,1) .15s both;}
+html.ob-fast .ob-stampring{animation:csRingOnce .6s ease-out .55s both;}
+html.ob-fast .ob-pulse{animation-delay:1.6s;}
+html.ob-fast .obsw b{animation-delay:calc(var(--d,0s)*.3);}
+html.ob-fast .obfr, html.ob-fast .obfz{animation-delay:.95s;}
+html.ob-fast .onboard .ob-hero{animation-delay:.33s;}
+html.ob-fast #obDoor{animation-delay:.4s;}
+html.ob-fast #obCaption, html.ob-fast .ob-wing{animation-delay:.45s;}
+html.ob-fast .ob-wing.ob-wr, html.ob-fast .ob-more{animation-delay:.5s;}
+/* animations off entirely: the rest frame, directly */
+@media (prefers-reduced-motion: reduce){
+  .obtr, .obflag, .ob-amb, .ob-stampring, .ob-pulse{animation:none !important; opacity:0 !important;}
+  .ob-mark{animation:none !important; opacity:1 !important;}
+}
+/* the header mark: ember on charcoal, ink on light (the mark-light rule) */
+.hdrmark{color:#F4712E;}
+html[data-theme="light"] .hdrmark{color:#0C0D0F;}
 /* ignition (D76): the ember floor-glow — a low radiance warming in from the
    bottom edge. Base state is VISIBLE (the animation only fades it up, `both`
    rests it ON), it sits under all content and never takes input. Nothing
@@ -2450,6 +2498,14 @@ html[data-theme="light"] .room-dusk .btn:not(.dark):not(.gold):not(.apple){color
   try {
     matchMedia('(prefers-color-scheme: light)').addEventListener('change', window.applyTheme);
   } catch(_){}
+  /* V5: the forge is a once-per-device ceremony. First door showing plays the
+     full show; every later visit gets the stamp (html.ob-fast, read here so
+     the choice lands before first paint). ?forge in the URL replays the show. */
+  try {
+    if (location.search.indexOf('forge') < 0 && localStorage.getItem('cs_forge'))
+      document.documentElement.classList.add('ob-fast');
+    localStorage.setItem('cs_forge', '1');
+  } catch(_){}
 })();
 </script>
 </head>
@@ -2513,10 +2569,12 @@ html[data-theme="light"] .room-dusk .btn:not(.dark):not(.gold):not(.apple){color
   </aside>
   <div class="ob-in">
     <div class="ob-crest" aria-hidden="true">
-      <!-- Entry V4 (D76): four tracers fire on the heat ramp — amber, ember,
-           fire, white-hot — into the flagged hole; each landing strikes a
-           spark at the cup while the wordmark below sears in on the same
-           beats, then the fuse burns the rule L-to-R. One infinite pulse. -->
+      <!-- Entry V5 (Forge): V4's show — four tracers on the heat ramp, sparks,
+           sears, fuse — then the forge: three tracers and the radar burn off,
+           the survivor (fire, re-bent to the comet's approach) hands off to
+           the icon-weight mark, and the door rests ON the logo. The mark group
+           is positioned by the OUTER g and animated on the INNER — never
+           collapse them (a transform animation replaces the attribute). -->
       <svg viewBox="0 0 460 300" fill="none">
         <defs>
           <radialGradient id="obGlow" cx="50%" cy="50%" r="50%">
@@ -2525,16 +2583,16 @@ html[data-theme="light"] .room-dusk .btn:not(.dark):not(.gold):not(.apple){color
             <stop offset="100%" stop-color="#FF5A2E" stop-opacity="0"/>
           </radialGradient>
         </defs>
-        <g style="animation:csFade 1.2s ease 1.0s both">
+        <g class="ob-amb">
           <ellipse cx="230" cy="238" rx="150" ry="44" fill="url(#obGlow)"/>
           <ellipse cx="230" cy="236" rx="118" ry="32" stroke="#FF5A2E" stroke-opacity=".10" stroke-width="1.5"/>
           <ellipse cx="230" cy="233" rx="78" ry="22" stroke="#FF5A2E" stroke-opacity=".18" stroke-width="1.5"/>
           <ellipse cx="230" cy="230" rx="44" ry="13" stroke="#FF5A2E" stroke-opacity=".30" stroke-width="1.5"/>
         </g>
-        <path class="obtr" d="M-24 96 C 80 118, 160 176, 224 224" stroke="#E9A23B" stroke-width="2.6" opacity=".85" stroke-linecap="round" stroke-dasharray="560" style="stroke-dashoffset:0; animation:csDraw 1.05s ease .3s both"></path>
-        <path class="obtr" d="M96 -20 C 140 66, 190 160, 227 222" stroke="#FF5A2E" stroke-width="2.6" opacity=".85" stroke-linecap="round" stroke-dasharray="560" style="stroke-dashoffset:0; animation:csDraw 1.05s ease .85s both"></path>
-        <path class="obtr" d="M364 -20 C 320 66, 270 160, 233 222" stroke="#FF3B1A" stroke-width="2.6" opacity=".85" stroke-linecap="round" stroke-dasharray="560" style="stroke-dashoffset:0; animation:csDraw 1.05s ease 1.4s both"></path>
-        <path class="obtr" d="M484 96 C 380 118, 300 176, 236 224" stroke="var(--ink)" stroke-width="2.6" opacity=".85" stroke-linecap="round" stroke-dasharray="560" style="stroke-dashoffset:0; animation:csDraw 1.05s ease 1.95s both"></path>
+        <path class="obtr" d="M-24 96 C 80 118, 160 176, 224 224" stroke="#E9A23B" stroke-width="2.6" opacity=".85" stroke-linecap="round" stroke-dasharray="560" style="stroke-dashoffset:0; animation:csDraw 1.05s ease .3s both, csGone .8s ease 4.6s forwards"></path>
+        <path class="obtr" d="M96 -20 C 140 66, 190 160, 227 222" stroke="#FF5A2E" stroke-width="2.6" opacity=".85" stroke-linecap="round" stroke-dasharray="560" style="stroke-dashoffset:0; animation:csDraw 1.05s ease .85s both, csGone .8s ease 4.6s forwards"></path>
+        <path class="obtr" d="M372 -16 C 352 44, 310 150, 249 199" stroke="#FF3B1A" stroke-width="2.6" opacity=".85" stroke-linecap="round" stroke-dasharray="560" style="stroke-dashoffset:0; animation:csDraw 1.05s ease 1.4s both, csGone .6s ease 4.8s forwards"></path>
+        <path class="obtr" d="M484 96 C 380 118, 300 176, 236 224" stroke="var(--ink)" stroke-width="2.6" opacity=".85" stroke-linecap="round" stroke-dasharray="560" style="stroke-dashoffset:0; animation:csDraw 1.05s ease 1.95s both, csGone .8s ease 4.6s forwards"></path>
         <g class="obflag">
           <ellipse cx="230" cy="226" rx="15" ry="5.5" fill="#0A0B0D" stroke="#332018" stroke-width="2"></ellipse>
           <path d="M236 223V120" stroke="var(--ink)" stroke-width="4" stroke-linecap="round"></path>
@@ -2546,7 +2604,19 @@ html[data-theme="light"] .room-dusk .btn:not(.dark):not(.gold):not(.apple){color
         <ellipse class="obspark" cx="230" cy="226" rx="12" ry="4.5" stroke="#FF5A2E" stroke-width="1.5" style="--d:1.9s"></ellipse>
         <ellipse class="obspark" cx="230" cy="226" rx="12" ry="4.5" stroke="#FF3B1A" stroke-width="1.5" style="--d:2.45s"></ellipse>
         <ellipse class="obspark" cx="230" cy="226" rx="12" ry="4.5" stroke="#F4F7F4" stroke-width="1.5" style="--d:3s"></ellipse>
-        <ellipse cx="230" cy="226" rx="15" ry="5.5" stroke="#FF5A2E" stroke-width="1.5" style="transform-box:fill-box; transform-origin:center; animation:csRing 2.8s ease-out 4.9s infinite"></ellipse>
+        <!-- V5: the mark, icon weight — what the forge leaves behind. Outer g
+             positions (never animated), inner .ob-mark animates. Base state
+             VISIBLE: with animations off this IS the door. -->
+        <g transform="translate(150 46) scale(2.15)">
+          <g class="ob-mark" fill="#F4712E">
+            <path d="M88 12 C 82 36, 70 59, 54 73 C 51 76, 47 75, 46 72 C 60 60, 73 38, 83 13 C 84 10, 87 9, 88 12 Z"/>
+            <ellipse cx="38" cy="79" rx="17" ry="6.5"/>
+            <rect x="27" y="13" width="10" height="68" rx="5"/>
+            <path d="M36 13 L74 26 L36 39 Z"/>
+          </g>
+        </g>
+        <ellipse class="ob-stampring" cx="232" cy="216" rx="46" ry="16" stroke="#FF5A2E" stroke-width="2"></ellipse>
+        <ellipse class="ob-pulse" cx="232" cy="216" rx="37" ry="14" stroke="#FF5A2E" stroke-width="1.5" opacity="0"></ellipse>
       </svg>
     </div>
     <!-- the seared wordmark IS the wordmark (Entry V4) — groups (C,U)(P,S)(E,A)(S,O,N) land with the tracers -->
@@ -2699,17 +2769,17 @@ html[data-theme="light"] .room-dusk .btn:not(.dark):not(.gold):not(.apple){color
           <div class="sub" id="phaseSub">Wk 18 / 36</div>
         </div>
         <button class="hdrlogo" id="hdrLogo" aria-label="Cup Season — home" style="margin-left:auto; display:flex; align-items:center; gap:8px; background:none; border:0; cursor:pointer; padding:6px 0;">
-          <!-- D89: the ember flag — the SAME mark the install icons, the
-               apple-touch icon and every link preview already carry. The old
-               four-arc ring survived here and in the favicon long after the
-               icons moved on, so the app's own header disagreed with the card
-               it texts you. One mark, everywhere. -->
-          <svg viewBox="0 0 96 96" fill="none" style="width:24px; height:24px; flex:none" aria-hidden="true">
-            <defs><linearGradient id="hdrFlag" x1="45" y1="22" x2="76" y2="52" gradientUnits="userSpaceOnUse">
-              <stop offset="0" stop-color="#F2A03D"/><stop offset="1" stop-color="#FF5A2E"/>
-            </linearGradient></defs>
-            <path d="M45 21 L77 37 L45 53 Z" fill="url(#hdrFlag)"/>
-            <rect x="36" y="18" width="9" height="60" rx="4.5" fill="var(--ink)"/>
+          <!-- The Tracer (2026-08-06) — the SAME mark the icons, favicon and
+               the door's rest frame carry. One mark, everywhere. Ember on the
+               charcoal theme, ink on light (mark-light rule): currentColor,
+               set by the .hdrmark rules below the theme tokens. -->
+          <svg class="hdrmark" viewBox="0 0 96 96" style="width:24px; height:24px; flex:none" aria-hidden="true">
+            <g fill="currentColor">
+              <path d="M88 12 C 82 36, 70 59, 54 73 C 51 76, 47 75, 46 72 C 60 60, 73 38, 83 13 C 84 10, 87 9, 88 12 Z"/>
+              <ellipse cx="38" cy="79" rx="17" ry="6.5"/>
+              <rect x="27" y="13" width="10" height="68" rx="5"/>
+              <path d="M36 13 L74 26 L36 39 Z"/>
+            </g>
           </svg>
           <b style="font-size:15px; color:var(--ink); letter-spacing:.01em">Cup Season</b>
         </button>
@@ -3761,16 +3831,17 @@ let toastT;
     ['obDoor','obCaption'].forEach(id=>{ const e=document.getElementById(id); if(e){ e.style.animation='none'; e.style.opacity='1'; } });
     document.querySelectorAll('.onboard .ob-hero').forEach(h=>{ h.style.animation='none'; h.style.opacity='1'; });
     document.querySelectorAll('.ob-wing').forEach(el=>{ el.style.animation='none'; el.style.opacity='1'; });
-    /* C1/D76/V4 additions ride the same net: ticks, flag, glow, seared
-       letters, and the fuse rule end visible; the transient ball/ring/comets/
-       sparks/fuse-dot end gone - never the other way */
-    document.querySelectorAll('.obflag, .ob-ember, .obsw b, .obfr').forEach(el=>{ el.style.animation='none'; el.style.opacity='1'; });
-    document.querySelectorAll('.obtr').forEach(el=>{ el.style.animation='none'; });   /* rest = drawn (inline dashoffset 0, attr opacity) */
-    document.querySelectorAll('.obball, .obring1, .ob-comet, .obspark, .obfz').forEach(el=>{ el.style.animation='none'; el.style.opacity='0'; });
+    /* V5 rest frame: the MARK, the ember glow, the seared letters and the
+       fuse rule end visible; EVERYTHING ELSE from the show — tracers, the
+       illustration flag, the radar, ball/rings/comets/sparks/fuse-dot — ends
+       gone. Never the other way: the rest frame is the logo. */
+    document.querySelectorAll('.ob-mark, .ob-ember, .obsw b, .obfr').forEach(el=>{ el.style.animation='none'; el.style.opacity='1'; });
+    document.querySelectorAll('.obtr, .obflag, .ob-amb, .obball, .obring1, .ob-comet, .obspark, .obfz, .ob-stampring').forEach(el=>{ el.style.animation='none'; el.style.opacity='0'; });
   }
-  /* after the intended animation window (Entry V4 chain ends ~4.7s: ticks
-     4.54+.16); and instantly whenever the tab is shown */
-  setTimeout(forceReveal, 5000);
+  /* after the intended animation window (V5 forge chain ends ~5.6s; the
+     stamp ends ~1.5s and the snap is a no-op); and instantly whenever the
+     tab is shown */
+  setTimeout(forceReveal, 6200);
   document.addEventListener('visibilitychange', ()=>{ if(!document.hidden) forceReveal(); });
 })();
 
@@ -3782,6 +3853,7 @@ let toastT;
    forceReveal net above can kill it. */
 (function(){
   if(matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  if(document.documentElement.classList.contains('ob-fast')) return;   /* V5: the stamp has no flights */
   var ob=document.querySelector('.onboard');
   if(!ob || ob.classList.contains('hide')) return;
   var svg=ob.querySelector('.ob-crest svg'); if(!svg) return;
