@@ -18,6 +18,8 @@ const root = new URL('..', import.meta.url).pathname.replace(/^\/([A-Za-z]:)/, '
 const html = readFileSync(join(root, 'index.html'), 'utf8');
 const sw = readFileSync(join(root, 'sw.js'), 'utf8');
 const stamp = readFileSync(join(root, 'stamp-version.sh'), 'utf8');
+const capBundle = JSON.parse(
+  readFileSync(join(root, 'ios-wrapper', 'capacitor.config.json'), 'utf8')).appId;
 const migDir = join(root, 'supabase', 'migrations');
 const migs = readdirSync(migDir).filter(f => f.endsWith('.sql'))
   .map(f => readFileSync(join(migDir, f), 'utf8')).join('\n');
@@ -50,7 +52,7 @@ const warn = (name, note) => { warns++; console.log(`~ WARN  ${name} — ${note}
 
 /* 3 · classic->module bridge coverage -------------------------------------- */
 {
-  const BUILTINS = new Set(['location','localStorage','sessionStorage','history','navigator','matchMedia','open','scrollTo','scrollY','innerWidth','innerHeight','addEventListener','removeEventListener','dispatchEvent','requestAnimationFrame','setTimeout','setInterval','clearTimeout','clearInterval','getComputedStyle','fetch','alert','confirm','prompt','print','focus','close','postMessage','crypto','indexedDB','caches','screen','devicePixelRatio','onerror','onunhandledrejection','performance','CSS','Notification','PushManager','visualViewport','structuredClone','queueMicrotask','origin','name','parent','top','frames','opener','isSecureContext','trustedTypes','speechSynthesis','getSelection','pageYOffset','event']);
+  const BUILTINS = new Set(['location','localStorage','sessionStorage','history','navigator','matchMedia','open','scrollTo','scrollY','innerWidth','innerHeight','addEventListener','removeEventListener','dispatchEvent','requestAnimationFrame','setTimeout','setInterval','clearTimeout','clearInterval','getComputedStyle','fetch','alert','confirm','prompt','print','focus','close','postMessage','crypto','indexedDB','caches','screen','devicePixelRatio','onerror','onunhandledrejection','performance','CSS','Notification','PushManager','visualViewport','structuredClone','queueMicrotask','origin','name','parent','top','frames','opener','isSecureContext','trustedTypes','speechSynthesis','getSelection','pageYOffset','event','Capacitor']);
   const used = new Set([...html.matchAll(/window\.([A-Za-z_$][\w$]*)/g)].map(m => m[1])
     .filter(n => !BUILTINS.has(n)));
   const assigned = new Set([...html.matchAll(/window\.([A-Za-z_$][\w$]*)\s*=[^=]/g)].map(m => m[1]));
@@ -124,6 +126,47 @@ const warn = (name, note) => { warns++; console.log(`~ WARN  ${name} — ${note}
   missing.length === 0
     ? pass('dist allowlist files exist', `${names.length} files`)
     : fail('dist allowlist files exist', `allowlisted but missing from repo: ${missing.join(', ')}`);
+}
+
+/* 9 · universal-links AASA is real, modern, and query-scoped -------------
+   Three lessons in one check. The file shipped for weeks with a literal
+   TEAMID placeholder and preflight passed 8/8 over it. It also used the
+   legacy appID+paths form, where `?` is a SINGLE-CHARACTER WILDCARD and
+   `paths` cannot see a query string at all - while every link the app cares
+   about is query-carried (/?claim=, /?join=). And a component with no query
+   matcher silently swallows all of cupseason.app, so tapping any link opens
+   the app. Apple fetches this from the LIVE domain, so a mistake here is only
+   ever discovered on a device, days later. */
+{
+  const aasaPath = join(root, '.well-known', 'apple-app-site-association');
+  if (!existsSync(aasaPath)) {
+    fail('aasa universal links', 'missing .well-known/apple-app-site-association');
+  } else {
+    const raw = readFileSync(aasaPath, 'utf8');
+    let j = null, problems = [];
+    try { j = JSON.parse(raw); } catch (e) { problems.push(`not valid JSON: ${e.message}`); }
+    if (j) {
+      const details = j?.applinks?.details;
+      if (!Array.isArray(details) || !details.length) problems.push('applinks.details is empty');
+      for (const d of details || []) {
+        if (d.paths || d.appID) problems.push('legacy appID/paths form cannot match a query string — use appIDs + components');
+        const ids = d.appIDs || [];
+        if (!ids.length) problems.push('a details entry has no appIDs');
+        for (const id of ids) {
+          if (!/^[A-Z0-9]{10}\./.test(id)) problems.push(`appID "${id}" has no real 10-char Team ID prefix`);
+          const bundle = id.split('.').slice(1).join('.');
+          if (bundle !== capBundle) problems.push(`appID bundle "${bundle}" != capacitor.config appId "${capBundle}"`);
+        }
+        for (const c of d.components || []) {
+          if (!c['?']) problems.push(`component ${JSON.stringify(c['/'] ?? '')} has no query matcher — it would swallow every link on the domain`);
+        }
+      }
+    }
+    if (!/apple-app-site-association/.test(stamp)) problems.push('not copied into dist/ by stamp-version.sh — Apple would 404 it');
+    problems.length === 0
+      ? pass('aasa universal links', `${(j.applinks.details[0].appIDs || []).join(', ')}`)
+      : fail('aasa universal links', problems.join(' · '));
+  }
 }
 
 console.log(`\n${fails ? 'FAIL' : 'PASS'} — ${fails} failure(s), ${warns} warning(s)`);

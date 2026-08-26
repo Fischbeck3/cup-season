@@ -76,10 +76,22 @@ self.addEventListener('push', (e) => {
 
 self.addEventListener('notificationclick', (e) => {
   e.notification.close();
+  const url = (e.notification.data && e.notification.data.url) || '/';
   e.waitUntil(
     clients.matchAll({ type: 'window', includeUncontrolled: true }).then((list) => {
-      for (const c of list) { if ('focus' in c) return c.focus(); }
-      return clients.openWindow((e.notification.data && e.notification.data.url) || '/');
+      for (const c of list) {
+        if (!('focus' in c)) continue;
+        /* focus() alone DISCARDED the target: an already-open tab stayed exactly
+           where it was, so a notification's url was honoured only when no tab
+           was open. Navigate first when it differs, then focus. A no-op today
+           (every payload carries '/'), correct the moment one does not. */
+        const target = new URL(url, self.location.origin).href;
+        const go = (c.url !== target && 'navigate' in c)
+          ? c.navigate(url).catch(() => c)
+          : Promise.resolve(c);
+        return go.then((t) => (t || c).focus());
+      }
+      return clients.openWindow(url);
     })
   );
 });

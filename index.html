@@ -13979,12 +13979,69 @@ function urlB64ToUint8Array(s){
   const raw = atob((s + pad).replace(/-/g, '+').replace(/_/g, '/'));
   return Uint8Array.from([...raw].map(c => c.charCodeAt(0)));
 }
+/* ---------- native shell (iOS wrapper): APNs, not web push ----------
+   A Capacitor WKWebView cannot receive web push at all, so inside the shell the
+   SAME toggle drives APNs: one control, two transports, no second notification
+   surface to keep in sync. window.Capacitor is injected by the native bridge
+   and is simply absent in a browser, so each guard below is also the browser
+   guard - nothing here changes a single code path on the web. */
+const APNS_KEY = 'cs_apns_token';
+const nativePush = () => (window.Capacitor?.isNativePlatform?.()
+  ? (window.Capacitor?.Plugins?.PushNotifications || null) : null);
+
+/* the plugin answers the token on an EVENT, not a promise, and answers nothing
+   at all when the device is offline or the push entitlement is missing - so
+   this settles either way instead of leaving the toggle spinning forever */
+async function apnsToken(P){
+  await P.removeAllListeners().catch(() => {});
+  return new Promise((resolve) => {
+    let done = false;
+    const finish = (v) => { if(!done){ done = true; resolve(v || ''); } };
+    P.addListener('registration', (t) => finish(t?.value));
+    P.addListener('registrationError', () => finish(''));
+    P.register();
+    setTimeout(() => finish(''), 10000);
+  });
+}
+
+/* APNs reissues tokens (restore, reinstall, OS upgrade) and a stale row is a
+   phone that silently stops buzzing. Re-register on every signed-in boot when
+   permission ALREADY stands - never prompt here, that is the toggle's job.
+   Idempotent: register_device_token upserts on the token primary key. */
+async function syncNativePush(){
+  const P = nativePush();
+  if(!P || !CS.user) return;
+  try {
+    const perm = await P.checkPermissions();
+    if(perm.receive !== 'granted') return;
+    const tok = await apnsToken(P);
+    if(!tok) return;
+    const { error } = await sb.rpc('register_device_token', { p_token: tok, p_platform: 'ios' });
+    if(!error) localStorage.setItem(APNS_KEY, tok);
+  } catch(_){ /* push must never be able to fail a boot */ }
+}
+
 async function getPushSub(){
+  /* native state is the stored token, so the toggle's label logic is unchanged */
+  if(nativePush()) return localStorage.getItem(APNS_KEY) || null;
   if(!('serviceWorker' in navigator) || !('PushManager' in window)) return null;
   const reg = await navigator.serviceWorker.ready;
   return reg.pushManager.getSubscription();
 }
 async function enablePush(){
+  const P = nativePush();
+  if(P){
+    let perm = await P.checkPermissions();
+    if(perm.receive !== 'granted') perm = await P.requestPermissions();
+    if(perm.receive !== 'granted'){ toast('Notifications blocked: allow them in Settings'); return false; }
+    const tok = await apnsToken(P);
+    if(!tok){ toast('Could not get a device token from Apple. Try again.'); return false; }
+    const { error } = await sb.rpc('register_device_token', { p_token: tok, p_platform: 'ios' });
+    if(error){ toast(humanError(error, 'Could not save this device.')); return false; }
+    localStorage.setItem(APNS_KEY, tok);
+    toast('Notifications on. The board will find you.');
+    return true;
+  }
   if(VAPID_PUBLIC.startsWith('PASTE_')){ toast('Push not wired up yet: key pending'); return false; }
   if(!('serviceWorker' in navigator) || !('PushManager' in window)){
     toast('Notifications need the installed app: add to home screen first'); return false;
@@ -14007,6 +14064,22 @@ async function enablePush(){
   return true;
 }
 async function disablePush(){
+  const P = nativePush();
+  if(P){
+    const tok = localStorage.getItem(APNS_KEY) || '';
+    /* the row must go or the phone keeps buzzing after the toggle says off */
+    if(tok){
+      const { error } = await sb.rpc('unregister_device_token', { p_token: tok });
+      /* deploy skew: this client can land before its migration. Local state
+         still clears and syncNativePush stops re-registering, so the orphan
+         row ages out on the next APNs 410 prune rather than buzzing forever. */
+      if(error) console.warn('[push] unregister failed:', error.message);
+    }
+    localStorage.removeItem(APNS_KEY);
+    await P.removeAllListeners().catch(() => {});
+    toast('Notifications off on this device');
+    return;
+  }
   const sub = await getPushSub();
   if(sub){
     await sb.from('push_subscriptions').delete().eq('endpoint', sub.endpoint);
@@ -17177,6 +17250,10 @@ async function boot(){
     bootStep = 'memberships';
     await loadMemberships();
 
+    /* native shell only: refresh the APNs token when permission already
+       stands. Deliberately NOT awaited - push must never stall a boot. */
+    syncNativePush();
+
     const pend = localStorage.getItem('cs_code');
     if(pend){
       localStorage.removeItem('cs_code');
@@ -17243,6 +17320,10 @@ async function resumeAfterProfile(){
     }
     bootStep = 'memberships';
     await loadMemberships();
+
+    /* native shell only: refresh the APNs token when permission already
+       stands. Deliberately NOT awaited - push must never stall a boot. */
+    syncNativePush();
     if(CS.memberships.length === 0){ showWelcome(); return { inLeague:false, viaInvite }; }
     bootStep = 'enterLeague';
     const lastId2 = ls('cs_last_league');
