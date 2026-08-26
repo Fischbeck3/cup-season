@@ -1,10 +1,20 @@
 {
   "applinks": {
-    "apps": [],
     "details": [
       {
-        "appID": "TEAMID.app.cupseason.ios",
-        "paths": ["/", "/?*"]
+        "appIDs": ["3F7BK4WVH8.app.cupseason.ios"],
+        "components": [
+          {
+            "/": "/",
+            "?": { "claim": "?*" },
+            "comment": "Guest claim links open the app so a round can be adopted natively."
+          },
+          {
+            "/": "/",
+            "?": { "join": "?*" },
+            "comment": "League invite links open the app straight into the join covenant."
+          }
+        ]
       }
     ]
   }
