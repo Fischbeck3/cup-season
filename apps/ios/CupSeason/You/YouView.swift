@@ -10,6 +10,10 @@ struct YouView: View {
   @Environment(\.cs) private var cs
   @Environment(\.csAppearance) private var appearance
   @State private var armed = false
+  @State private var showFeedback = false
+  @State private var showDesk = false
+  @State private var showNote = false
+  @State private var founderId: UUID?
 
   var body: some View {
     ScrollView {
@@ -35,6 +39,28 @@ struct YouView: View {
               }
             }
           }
+        }
+
+        NavigationLink { CardAndSettingsScreen() } label: {
+          CSCard { HStack { Text("Card & settings").font(CSFont.button).foregroundStyle(cs.ink); Spacer(); Image(systemName: "chevron.right").foregroundStyle(cs.mut) } }
+        }
+        .buttonStyle(.plain)
+
+        Button { showFeedback = true } label: {
+          CSCard(spine: cs.brand) { VStack(alignment: .leading, spacing: 4) {
+            Text("Tell us how it's going").font(CSFont.button).foregroundStyle(cs.ink)
+            Text("What helped, what confused you, what you would change").font(CSFont.footnote).foregroundStyle(cs.mut)
+          } }
+        }
+        .buttonStyle(.plain)
+
+        if let fid = founderId, fid == store.session?.user.id {
+          Text("Founder's desk").csEyebrow().padding(.top, 8)
+          HStack(spacing: 10) {
+            Button("Field note") { showNote = true }
+            Button("Open the desk") { showDesk = true }
+          }
+          .font(CSFont.button).foregroundStyle(cs.dawn)
         }
 
         Text("Appearance").csEyebrow().padding(.top, 8)
@@ -73,5 +99,9 @@ struct YouView: View {
     .background(cs.bg0)
     .navigationTitle("You")
     .navigationBarTitleDisplayMode(.inline)
+    .sheet(isPresented: $showFeedback) { FeedbackSheet(screen: "you", leagueId: store.preferredLeague, leagueName: store.me?.memberships.first { $0.league_id == store.preferredLeague }?.name) }
+    .sheet(isPresented: $showDesk) { FounderDeskSheet() }
+    .sheet(isPresented: $showNote) { FounderNoteSheet() }
+    .task { founderId = await ProfileRepository().founderId() }
   }
 }

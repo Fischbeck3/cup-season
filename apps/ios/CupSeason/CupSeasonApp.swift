@@ -6,8 +6,10 @@ import CupSeasonKit
 
 @main
 struct CupSeasonApp: App {
+  @UIApplicationDelegateAdaptor(AppDelegate.self) private var delegate
   @State private var store = SessionStore()
   @State private var appearance = CSAppearance.load()
+  @State private var toasts = CSToastCenter()
 
   var body: some Scene {
     WindowGroup {
@@ -16,7 +18,9 @@ struct CupSeasonApp: App {
         .environment(\.csAppearance, $appearance)
         .preferredColorScheme(appearance.colorScheme)
         .csTheme()
+        .csToasts(toasts)
         .task { store.start() }
+        .task { await PushService.shared.syncOnLaunch() }
     }
   }
 }

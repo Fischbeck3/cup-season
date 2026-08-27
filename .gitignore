@@ -20,3 +20,4 @@ spec/handoffs/*.pdf
 # IBM Plex Mono (OFL) — fetched by tools/make-icons.py's instructions, only
 # needed to regenerate the brand lockups. Binaries stay out of the repo.
 tools/fonts/
+.claude/worktrees/
