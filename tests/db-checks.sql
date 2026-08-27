@@ -11,7 +11,11 @@
 -- sync: anon list 7 → 10, authenticated 93 → 96, live_scores in check 6 —
 -- AND the suite's FIRST clean run: check 8 referenced meta->>'month', a
 -- column that never existed, so every prior paste errored whole. Fixed, plus
--- check 10's default-acl branch scoped to postgres, see comment there).
+-- check 10's default-acl branch scoped to postgres, see comment there);
+-- refreshed 2026-08-27 (IOS-009 batch 1: authenticated list 99 → 102 with
+-- handle_available / round_holes_of / native_home; check 12 pins the engine
+-- functions close_month / award_*_trophies OFF the API surface — the
+-- close_month grant had crept back via 20260727160000:341).
 -- ============================================================================
 
 with checks as (
@@ -44,16 +48,17 @@ from (
         and p.proname not in ('claim_round_info','scan_claim_info','league_by_code','founder_id','share_info','join_covenant_info','email_unsubscribe','guest_live_state','guest_live_set_score','guest_live_set_wolf')) as extra
 ) t
 
--- 3 · every client-called RPC is executable by authenticated (the 99)
+-- 3 · every client-called RPC is executable by authenticated (the 102:
+--     99 from the web client + the IOS-009 batch-1 trio the phone calls)
 union all
 select '3 · authenticated RPC grants',
-  case when missing = '' then 'PASS — all 99 granted'
+  case when missing = '' then 'PASS — all 102 granted'
     else 'FAIL — not granted: ' || missing end,
-  '99 names extracted from the client'
+  '99 names extracted from the web client + handle_available, round_holes_of, native_home (IOS-009)'
 from (
   select coalesce(string_agg(f, ', '), '') as missing
   from unnest(array[
-    'abandon_live_round','add_event_player','add_round_comment','announce','assign_player','claim_round','claim_round_info','claim_scan_round','create_event','create_league','create_major','create_scan_claim','create_share','declare_round','delete_account','delete_event','delete_league','delete_round','enter_major','event_session_targets','finish_live_round','form_squads','founder_desk','founder_id','founder_note','friend_request','friend_respond','generate_pairings','home_feed','invite_golfer','join_league','league_by_code','league_pulse','major_leaderboard','mark_buy_in','my_achievements','my_friends','my_invites','my_rivalries','my_schedule','my_trophies','open_major','randomize_squads','remove_member','report_content','resolve_session','respond_invite','retag_round','revoke_share','rivalry_weeks','round_detail','round_epilogue','scan_claim_info','scratch_round','search_golfers','season_scenarios','set_discoverable','set_event_notify','set_event_team','set_handle','set_index','set_league_finish','set_member_bye','set_member_index','set_notify_chat','set_notify_rounds','set_profile','set_rivalry_name','set_round_rsvp','settle_major','share_info','start_live_round','start_season','submit_feedback','tour_card','transfer_pro','set_mute','my_mutes','register_device_token','join_covenant_info','set_league_marker','event_lineage','last_round_with','create_forfeit','settle_forfeit','scrap_forfeit','career_record','set_email_recap','email_unsubscribe','request_league_cancel','vote_league_cancel','withdraw_league_cancel','league_cancel_status','live_set_score','live_set_wolf','live_state','my_visitor_rounds','live_round_card','round_card'
+    'abandon_live_round','add_event_player','add_round_comment','announce','assign_player','claim_round','claim_round_info','claim_scan_round','create_event','create_league','create_major','create_scan_claim','create_share','declare_round','delete_account','delete_event','delete_league','delete_round','enter_major','event_session_targets','finish_live_round','form_squads','founder_desk','founder_id','founder_note','friend_request','friend_respond','generate_pairings','home_feed','invite_golfer','join_league','league_by_code','league_pulse','major_leaderboard','mark_buy_in','my_achievements','my_friends','my_invites','my_rivalries','my_schedule','my_trophies','open_major','randomize_squads','remove_member','report_content','resolve_session','respond_invite','retag_round','revoke_share','rivalry_weeks','round_detail','round_epilogue','scan_claim_info','scratch_round','search_golfers','season_scenarios','set_discoverable','set_event_notify','set_event_team','set_handle','set_index','set_league_finish','set_member_bye','set_member_index','set_notify_chat','set_notify_rounds','set_profile','set_rivalry_name','set_round_rsvp','settle_major','share_info','start_live_round','start_season','submit_feedback','tour_card','transfer_pro','set_mute','my_mutes','register_device_token','join_covenant_info','set_league_marker','event_lineage','last_round_with','create_forfeit','settle_forfeit','scrap_forfeit','career_record','set_email_recap','email_unsubscribe','request_league_cancel','vote_league_cancel','withdraw_league_cancel','league_cancel_status','live_set_score','live_set_wolf','live_state','my_visitor_rounds','live_round_card','round_card','handle_available','round_holes_of','native_home'
   ]) f
   where not exists (select 1 from pg_proc p join pg_namespace n on n.oid = p.pronamespace
     where n.nspname = 'public' and p.proname = f
@@ -214,6 +219,28 @@ from (
     and coalesce(so.v, 'false') not in ('true', 'on', '1', 'yes')
     and (has_table_privilege('anon', c.oid, 'select')
       or has_table_privilege('authenticated', c.oid, 'select'))
+) t
+
+-- 12 · the season/trophy engines stay OFF the API surface (IOS-009 batch 1,
+--      20260827130000). close_month's only guard is the month_closed
+--      sentinel, so a member who could call it would close last month early
+--      and block the cron's real close; its grant crept back in
+--      20260727160000:341 after the C3 revoke. Cron runs as postgres and the
+--      trophy minters are reached through definer functions/triggers, so
+--      neither API role needs any of these.
+union all
+select '12 · engine functions unreachable',
+  case when leaked = '' then 'PASS'
+    else 'FAIL — executable by an API role: ' || leaked end,
+  'close_month · award_event_trophies · award_season_trophies — no execute for anon/authenticated'
+from (
+  select coalesce(string_agg(p.proname || ' (' || r.role_name || ')', ', ' order by p.proname, r.role_name), '') as leaked
+  from pg_proc p
+  join pg_namespace n on n.oid = p.pronamespace
+  cross join (values ('anon'), ('authenticated')) r(role_name)
+  where n.nspname = 'public'
+    and p.proname in ('close_month', 'award_event_trophies', 'award_season_trophies')
+    and has_function_privilege(r.role_name, p.oid, 'execute')
 ) t
 )
 select * from checks order by check_name;

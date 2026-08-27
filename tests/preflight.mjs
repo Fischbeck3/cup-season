@@ -208,7 +208,10 @@ const warn = (name, note) => { warns++; console.log(`~ WARN  ${name} — ${note}
     for (const name of gotDark.keys()) if (!want.has(name)) problems.push(`--${name} is in index.html but not tokens.json`);
   }
   try { execFileSync('node', [join(root, 'tools', 'build-tokens.mjs'), '--check'], { stdio: 'pipe' }); }
-  catch { problems.push('generated tokens.css/tokens.ts are stale — run tools/build-tokens.mjs'); }
+  catch { problems.push('generated tokens.css/tokens.ts/Tokens.swift are stale — run tools/build-tokens.mjs'); }
+  /* D99: the 14 markers reach the phone the same way the tokens do */
+  try { execFileSync('node', [join(root, 'tools', 'build-markers.mjs'), '--check'], { stdio: 'pipe' }); }
+  catch { problems.push('generated Markers.swift is stale — run tools/build-markers.mjs'); }
   problems.length === 0
     ? pass('design tokens single-source', `${want.size} tokens agree with the client`)
     : fail('design tokens single-source', problems.slice(0, 4).join(' · ') + (problems.length > 4 ? ` (+${problems.length - 4} more)` : ''));
@@ -238,6 +241,207 @@ const warn = (name, note) => { warns++; console.log(`~ WARN  ${name} — ${note}
   else if (stale) fail('rpc exists in database', 'packages/db/rpc.ts is stale — run tools/build-db.mjs');
   else pass('rpc exists in database', `${called.size} client RPCs, ${inProd.size} in the snapshot`);
   if (pending.length) warn('rpc pending deploy', `in a migration but not yet in prod — owe a db push: ${pending.join(', ')}`);
+}
+
+/* ---------------------------------------------------------------------------
+ * 12-14 · the native surface (D98 Phase B).
+ *
+ * apps/mobile/ is a second client against the same backend, which means it can
+ * make every mistake index.html already made. These three checks are the same
+ * lessons pointed at the phone. They are skipped, not failed, when the app is
+ * absent, so a clone without it still runs clean.
+ * ------------------------------------------------------------------------ */
+const appDir = join(root, 'apps', 'mobile');
+const appSrc = [];
+if (existsSync(appDir)) {
+  /* These three checks are about CODE, not prose. Comments are stripped before
+     matching, so a doc comment can quote the very thing being forbidden —
+     which is the only way to explain why it is forbidden. Line comments are
+     recognised only when `//` is not preceded by a colon, so the `https://` in
+     a URL string survives. */
+  const decomment = (src) => src
+    .replace(/\/\*[\s\S]*?\*\//g, '')
+    .split('\n').map(l => l.replace(/(^|[^:])\/\/.*$/, '$1')).join('\n');
+
+  const walk = (dir) => {
+    for (const e of readdirSync(dir, { withFileTypes: true })) {
+      if (e.name === 'node_modules' || e.name.startsWith('.')) continue;
+      const full = join(dir, e.name);
+      if (e.isDirectory()) walk(full);
+      else if (/\.tsx?$/.test(e.name))
+        appSrc.push([full.slice(appDir.length + 1), decomment(readFileSync(full, 'utf8'))]);
+    }
+  };
+  walk(appDir);
+}
+
+/* 12 · the phone names no colour of its own -------------------------------
+   The native mirror of check 10. index.html is held to tokens.json by that
+   check; nothing held the phone to anything, and a second client that mixes
+   its own charcoal is exactly the drift Phase A exists to prevent. Every
+   colour on the phone comes from packages/tokens through src/theme.ts, which
+   converts CSS-shaped tokens into RN values and is forbidden — by this check,
+   with no exemption — from inventing one. */
+if (!appSrc.length) pass('native palette purity', 'apps/mobile absent — skipped');
+else {
+  const HEX = /#[0-9a-f]{3,8}\b/i;
+  const FUNC = /\brgba?\s*\(/i;
+  const hits = [];
+  for (const [rel, src] of appSrc) {
+    /* src/theme.ts is the conversion boundary itself: it parses `rgba(...)`
+       back out of a shadow token and reassembles it in RN's shape, so the
+       functional form is a reconstruction there, not a choice. It is still
+       held to the hex rule, which is the form an invented colour would
+       actually take, and it is 150 readable lines. */
+    const pats = rel === 'src/theme.ts' ? [HEX] : [HEX, FUNC];
+    src.split('\n').forEach((line, i) => {
+      for (const pat of pats) {
+        const m = line.match(pat);
+        if (m) { hits.push(`${rel}:${i + 1} ${m[0]}`); break; }
+      }
+    });
+  }
+  hits.length === 0
+    ? pass('native palette purity', `${appSrc.length} files, every colour from packages/tokens`)
+    : fail('native palette purity', `hardcoded colour on the phone: ${hits.slice(0, 3).join(' · ')}${hits.length > 3 ? ` (+${hits.length - 3})` : ''}`);
+}
+
+/* 13 · the phone cannot reinvent the OTP landmines ------------------------
+   Three separate bugs, each already paid for: a magic link that Gmail's
+   scanner consumed before the user clicked, a six-character code input for an
+   eight-digit code, and an auth call made synchronously inside
+   onAuthStateChange that deadlocked with no error output. The defence is not
+   "remember these" — it is that the app calls packages/db/auth.ts, whose
+   signatures make all three unrepresentable. So this check enforces the
+   routing rather than sniffing for the symptoms. */
+if (!appSrc.length) pass('native otp discipline', 'apps/mobile absent — skipped');
+else {
+  const bad = [];
+  for (const [rel, src] of appSrc) {
+    if (rel === 'src/supabase.ts') continue;   /* the one file that builds the client */
+    for (const [pat, why] of [
+      [/emailRedirectTo/, 'emailRedirectTo — Gmail eats single-use link tokens'],
+      [/\.auth\.signInWithOtp|\.auth\.verifyOtp/, 'calls Supabase auth directly — use requestEmailCode / verifyEmailCode'],
+      [/\.auth\.onAuthStateChange/, 'subscribes directly — use onAuth, which defers the handler'],
+      [/maxLength\s*[=:]\s*\{?\s*6\b/, 'a 6-character code input — Supabase issues 8'],
+    ]) if (pat.test(src)) bad.push(`${rel}: ${why}`);
+  }
+  bad.length === 0
+    ? pass('native otp discipline', 'auth routed through packages/db')
+    : fail('native otp discipline', bad.slice(0, 3).join(' · '));
+}
+
+/* 14 · every RPC the phone calls has its grant ----------------------------
+   Check 2 does this for index.html and reads only index.html, so the phone
+   was invisible to it. D37 made grants explicit: a new RPC without
+   `grant execute … to authenticated` does not error at build, at typecheck or
+   in review — it 403s silently in prod, on a device, in front of a person. */
+if (!appSrc.length) pass('native rpc grants', 'apps/mobile absent — skipped');
+else {
+  const raw = [];
+  const names = new Set();
+  for (const [rel, src] of appSrc) {
+    for (const m of src.matchAll(/\.rpc\(\s*['"]([a-z0-9_]+)['"]/g)) {
+      if (rel !== 'src/supabase.ts') raw.push(`${rel}: .rpc('${m[1]}') — call it through call() from @cs/db`);
+    }
+    for (const m of src.matchAll(/\bcall\(\s*\w+\s*,\s*['"]([a-z0-9_]+)['"]/g)) names.add(m[1]);
+  }
+  const granted = new Set(
+    [...migs.matchAll(/grant\s+(?:all|execute)\s+on\s+function\s+(?:"?public"?\.)?"?([a-z0-9_]+)"?/gi)].map(m => m[1].toLowerCase()));
+  const missing = [...names].filter(f => !granted.has(f));
+
+  if (raw.length) fail('native rpc grants', raw.slice(0, 3).join(' · '));
+  else if (missing.length) fail('native rpc grants', `no grant found for: ${missing.join(', ')} (silent 403 on the phone)`);
+  else pass('native rpc grants', `${names.size} phone RPCs, all granted, none raw`);
+}
+
+/* ---------------------------------------------------------------------------
+ * 15-17 · the Swift phone (D99).
+ *
+ * The same three lessons as 12-14, pointed at apps/ios. Generated/ is the
+ * conversion boundary (Tokens.swift, Markers.swift, Rpc.swift) and is exempt
+ * by construction: it is held to its sources by checks 10 and 11.
+ * ------------------------------------------------------------------------ */
+const iosDir = join(root, 'apps', 'ios');
+const iosSrc = [];
+if (existsSync(iosDir)) {
+  const decomment = (src) => src
+    .replace(/\/\*[\s\S]*?\*\//g, '')
+    .split('\n').map(l => l.replace(/(^|[^:])\/\/.*$/, '$1')).join('\n');
+  const walk = (dir) => {
+    for (const e of readdirSync(dir, { withFileTypes: true })) {
+      if (e.name.startsWith('.') || e.name.endsWith('.xcodeproj') || e.name === 'DerivedData') continue;
+      const full = join(dir, e.name);
+      if (e.isDirectory()) walk(full);
+      else if (e.name.endsWith('.swift')) iosSrc.push([full.slice(iosDir.length + 1), decomment(readFileSync(full, 'utf8'))]);
+    }
+  };
+  walk(iosDir);
+}
+const isGenerated = (rel) => rel.includes('/Generated/');
+
+/* 15 · the phone names no colour of its own ------------------------------
+   A hex literal outside Generated/ is allowed ONLY if the same hex appears in
+   index.html — that makes it a conversion of something the web already
+   renders (the dusk ground, the gold button's ink), never an invention. */
+if (!iosSrc.length) pass('swift palette purity', 'apps/ios absent — skipped');
+else {
+  const webHexes = new Set([...html.matchAll(/#([0-9a-f]{6})\b/gi)].map(m => m[1].toUpperCase()));
+  const hits = [];
+  for (const [rel, src] of iosSrc) {
+    if (isGenerated(rel)) continue;
+    src.split('\n').forEach((line, i) => {
+      for (const m of line.matchAll(/0x([0-9A-Fa-f]{6})\b|#([0-9A-Fa-f]{6})\b/g)) {
+        const hex = (m[1] || m[2]).toUpperCase();
+        if (!webHexes.has(hex)) hits.push(`${rel}:${i + 1} ${hex}`);
+      }
+      if (/Color\(\s*(red|\.sRGB|hue)/.test(line)) hits.push(`${rel}:${i + 1} Color(red/hue…)`);
+    });
+  }
+  hits.length === 0
+    ? pass('swift palette purity', `${iosSrc.length} files; every colour is a token or a web-verbatim conversion`)
+    : fail('swift palette purity', `invented colour on the phone: ${hits.slice(0, 3).join(' · ')}${hits.length > 3 ? ` (+${hits.length - 3})` : ''}`);
+}
+
+/* 16 · the phone cannot reinvent the OTP landmines ------------------------
+   Auth calls live in SupabaseService.swift and the auth stream in
+   SessionStore.swift; nothing else may touch them, and no redirect URL may
+   exist anywhere. */
+if (!iosSrc.length) pass('swift otp discipline', 'apps/ios absent — skipped');
+else {
+  const bad = [];
+  for (const [rel, src] of iosSrc) {
+    const isAuthHome = rel.endsWith('SupabaseService.swift') || rel.endsWith('SessionStore.swift');
+    for (const [pat, why, exempt] of [
+      [/redirectTo|emailRedirectTo/, 'a redirect URL — Gmail eats single-use link tokens', false],
+      [/\.auth\.(signInWithOTP|verifyOTP|signIn\(|signOut|authStateChanges|session\b)/, 'calls auth directly — go through SupabaseService', true],
+      [/\.rpc\(\s*"/, 'raw .rpc("…") — call it through SupabaseService.call(Rpc.…)', true],
+      [/otpLength\s*=\s*6|prefix\(6\)/, 'a six-digit code — Supabase issues 8', false],
+    ]) if (pat.test(src) && !(exempt && isAuthHome)) bad.push(`${rel}: ${why}`);
+  }
+  bad.length === 0
+    ? pass('swift otp discipline', 'auth routed through SupabaseService')
+    : fail('swift otp discipline', bad.slice(0, 3).join(' · '));
+}
+
+/* 17 · every RPC the phone calls has its grant ----------------------------
+   Generated/Rpc.swift only emits granted functions, so `Rpc.x` cannot name an
+   ungranted one. This catches the other door: a hand-declared RpcCall (the
+   documented exception while a migration awaits its snapshot refresh). */
+if (!iosSrc.length) pass('swift rpc grants', 'apps/ios absent — skipped');
+else {
+  const names = new Set();
+  for (const [rel, src] of iosSrc) {
+    if (isGenerated(rel)) continue;
+    for (const m of src.matchAll(/\bRpc\.([a-z0-9_]+)\s*\(/g)) names.add(m[1]);
+    for (const m of src.matchAll(/static\s+let\s+name\s*=\s*"([a-z0-9_]+)"/g)) names.add(m[1]);
+  }
+  const granted = new Set(
+    [...migs.matchAll(/grant\s+(?:all|execute)\s+on\s+function\s+(?:"?public"?\.)?"?([a-z0-9_]+)"?/gi)].map(m => m[1].toLowerCase()));
+  const missing = [...names].filter(f => !granted.has(f));
+  missing.length === 0
+    ? pass('swift rpc grants', `${names.size} phone RPCs, all granted`)
+    : fail('swift rpc grants', `no grant found for: ${missing.join(', ')} (silent 403 on the phone)`);
 }
 
 console.log(`\n${fails ? 'FAIL' : 'PASS'} — ${fails} failure(s), ${warns} warning(s)`);

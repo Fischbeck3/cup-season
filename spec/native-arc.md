@@ -1,3 +1,10 @@
+> **AMENDED 2026-08-27 by D99.** The phone is **Swift / SwiftUI** (`apps/ios/`),
+> not Expo; its scope is the golfer's whole life plus the Pro's pocket tools
+> (IOS-007); milestones follow `docs/ios/IOS-005-roadmap.md` (M0–M7), not the
+> `native/b1…b6` branches below. Phase C (Android) is re-opened as a Year-2
+> question. Phase A, the standing guardrails, and every product decision here
+> hold. The Phase B/C sections are kept as the record of D98.
+
 # Native arc — three surfaces, one stack
 
 Decided 2026-08-26 (D98). **Supersedes `spec/ios-wrapper-arc.md` entire** —

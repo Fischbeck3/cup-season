@@ -113,7 +113,7 @@ sections (§2.2, §14.0) when making competition-model decisions.
   **Grants are now explicit (D37, migration `20260718172300`).** Default
   privileges no longer auto-grant EXECUTE to `anon`/`authenticated`, so **every
   new migration MUST `grant execute on function … to authenticated`** for any
-  client-called RPC (and to `anon` only for the seven public endpoints:
+  client-called RPC (and to `anon` only for the ten public endpoints — the seven below plus the `guest_live_state` / `guest_live_set_score` / `guest_live_set_wolf` trio from D86:
   `claim_round_info`, `scan_claim_info`, `league_by_code`, `founder_id`,
   `share_info` — D57, `join_covenant_info` — setup-QA S3-01,
   `email_unsubscribe` — D68: an unsubscribe that demands a login is not an
@@ -241,6 +241,23 @@ edge months** (blanket rule, decided). League timezone default
   v23.39; every classic-side DB write (chat, quick post) local-echoed and
   looked exactly like "not saving." When classic code references `window.X`,
   grep for the `window.X =` assignment in the module before trusting it.
+
+## The phone (D99, 2026-08-27)
+
+- **`apps/ios/` is the native app — SwiftUI, Swift 6, iOS 17+.** XcodeGen
+  manifest (`project.yml` → gitignored `.xcodeproj`); two local packages,
+  `CSDesign` and `CupSeasonKit`. Run/verify from `apps/ios/README.md`.
+- **`packages/` stays the shared source; Swift artifacts are GENERATED** into
+  the packages by `tools/build-tokens.mjs` (Tokens.swift), `build-markers.mjs`
+  (Markers.swift, from the `MARKERS` table in index.html) and `build-db.mjs`
+  (Rpc.swift — only functions granted to authenticated/anon get a Swift name,
+  so D37 is enforced by the compiler). Never hand-edit them; preflight checks
+  10/11 fail the push if they are stale, and checks 15–17 are the Swift
+  siblings of 12–14 (palette purity, OTP discipline, RPC grants).
+- **Native work runs LOCALLY** (rule 6 still holds). Decisions, roadmap and
+  the audit behind them: `docs/ios/`. The web client is the behavioural
+  reference; the phone owns operating the league, the desk owns authoring it
+  (IOS-007). `apps/mobile/` (Expo B1) and `ios-wrapper/` are retired by D99.
 
 ## Environments & commands
 

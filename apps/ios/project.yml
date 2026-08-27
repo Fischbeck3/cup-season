@@ -1,0 +1,109 @@
+# Cup Season — the phone (D99). XcodeGen manifest; `xcodegen generate` writes
+# CupSeason.xcodeproj, which is gitignored — this file is the project.
+#
+# Two local packages carry everything that is not a screen:
+#   Packages/CSDesign      the design system (generated tokens + markers,
+#                          typography, components)
+#   Packages/CupSeasonKit  domain + data (generated RPC contract, the
+#                          Supabase service with the encoded rules, session,
+#                          repositories)
+# The app target holds only views and the composition root.
+name: CupSeason
+options:
+  bundleIdPrefix: app.cupseason
+  deploymentTarget:
+    iOS: "17.0"
+  createIntermediateGroups: true
+  generateEmptyDirectories: true
+  xcodeVersion: "26.0"
+
+packages:
+  CSDesign:
+    path: Packages/CSDesign
+  CupSeasonKit:
+    path: Packages/CupSeasonKit
+
+settings:
+  base:
+    # The App ID, the APNs key and the AASA already carry this team (D98 "what
+    # survives"). Automatic signing needs only that it is SET — the one thing
+    # the failed expo run:ios was missing.
+    DEVELOPMENT_TEAM: 3F7BK4WVH8
+    CODE_SIGN_STYLE: Automatic
+    SWIFT_VERSION: "6.0"
+    SWIFT_STRICT_CONCURRENCY: complete
+    ENABLE_USER_SCRIPT_SANDBOXING: YES
+    IPHONEOS_DEPLOYMENT_TARGET: "17.0"
+
+targets:
+  CupSeason:
+    type: application
+    platform: iOS
+    sources:
+      - path: CupSeason
+        excludes: ["Info.plist"]
+    dependencies:
+      - package: CSDesign
+      - package: CupSeasonKit
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: app.cupseason.ios
+        PRODUCT_NAME: CupSeason
+        MARKETING_VERSION: "1.0.0"
+        CURRENT_PROJECT_VERSION: "1"
+        TARGETED_DEVICE_FAMILY: "1"          # iPhone only — IOS-014
+        INFOPLIST_KEY_UILaunchScreen_Generation: YES
+        INFOPLIST_KEY_UISupportedInterfaceOrientations: UIInterfaceOrientationPortrait
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+    info:
+      path: CupSeason/Info.plist
+      properties:
+        CFBundleDisplayName: Cup Season
+        CFBundleName: Cup Season
+        UILaunchScreen: {}
+        UISupportedInterfaceOrientations: [UIInterfaceOrientationPortrait]
+        ITSAppUsesNonExemptEncryption: false
+        UIAppFonts:
+          - IBMPlexMono-Regular.ttf
+          - IBMPlexMono-Medium.ttf
+          - IBMPlexMono-SemiBold.ttf
+        CFBundleURLTypes:
+          - CFBundleURLName: app.cupseason.ios
+            CFBundleURLSchemes: [cupseason]
+        # The build stamp the door and Settings show — CLAUDE.md rule 2's
+        # native equivalent. Set by CI/Xcode; never hand-edited in code.
+        CSBuild: $(CURRENT_PROJECT_VERSION)
+    entitlements:
+      path: CupSeason/CupSeason.entitlements
+      properties:
+        # /?claim= and /?join= — the AASA on cupseason.app already lists this
+        # app id (preflight check 9). ?share= is deliberately NOT claimed.
+        com.apple.developer.associated-domains:
+          - applinks:cupseason.app
+        # APNs — the server side (device_tokens + the push function's APNs
+        # branch) is built; M4 lights it.
+        aps-environment: development
+
+  CupSeasonTests:
+    type: bundle.unit-test
+    platform: iOS
+    sources: [CupSeasonTests]
+    dependencies:
+      - target: CupSeason
+    settings:
+      base:
+        GENERATE_INFOPLIST_FILE: YES
+
+schemes:
+  CupSeason:
+    build:
+      targets:
+        CupSeason: all
+    run:
+      config: Debug
+    test:
+      config: Debug
+      targets:
+        - CupSeasonTests
+        - package: CSDesign/CSDesignTests
+        - package: CupSeasonKit/CupSeasonKitTests

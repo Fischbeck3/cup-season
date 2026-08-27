@@ -3576,3 +3576,56 @@ timing conflict. Supersedes `spec/ios-wrapper-arc.md` in full.)*
   the gap that let the largest architecture commitment in the product sit
   unexamined for five weeks.
 
+
+### D99 · The phone is Swift — and it owns operating the league, not authoring it
+*(2026-08-27, owner decision. ARCHITECTURE + IA, level 5-6. Amends D98's
+implementation half; D98's product half — three surfaces, one Postgres, no
+purchase UI, email-OTP-only — stands. Full record: `docs/ios/DECISIONS.md`
+IOS-006 and IOS-007; the Phase 1 audit behind it is `docs/ios/audit/`.)*
+- **Current:** D98 chose Expo / React Native for the phone, reasoning from
+  Android-from-one-codebase (Phase C) and one language family across three
+  surfaces. It also drew the surface line at "the phone is for the tee box":
+  scoring, posting, the board, push, standings read — with the wizard, draft,
+  roster, ledger and founder desk desk-only.
+- **Problem:** (a) The two features D98 itself named as the reason to go
+  native — a live match on the lock screen and scoring on a watch — are Swift
+  regardless of stack; on Expo they become extension targets bridged to JS,
+  the part most likely to break on each SDK upgrade, on a project already
+  pinned down an SDK to match the phone's Expo Go. The phone's scope is small
+  (~10–15 screens over ~40 of 156 RPCs), which is where the shared-component
+  argument for RN is weakest. Nothing in `gtm-year1.md`, the App Store runbook
+  or CLAUDE.md plans for Android users. (b) The surface line was drawn one
+  screen too far: the 2026-08-27 audit (`docs/ios/audit/02`, `06` §10) found
+  the pot READ and mark-paid, the blind draw, "Start the season", byes and the
+  ceremony are phone moments — money changes hands in the parking lot, the
+  draw is the league's one appointment — while the wizard's twelve dials, the
+  lock sequence, Pro-assign and ledger overrides are genuinely desk.
+- **Decision (owner):** (1) **The phone is SwiftUI in Xcode.** `apps/ios/`
+  replaces `apps/mobile/`; `packages/` (tokens, RPC contract, the encoded
+  rules) stays the shared source and gains Swift emitters so preflight guards
+  the Swift artifacts exactly as it guards the TS ones. (2) **The phone owns
+  the golfer's whole life plus the Pro's pocket tools** — join with the
+  covenant, quick-start league creation (name · preset · stake), create a
+  Ryder or Major, the draw and Start, pot summary + mark-paid + forfeits +
+  ceremony from `season_payouts` + the D71 vote, announce, starter index, bye,
+  endgame dial, make Pro, invite, draft reveal read-only. The desk keeps
+  authoring: full bylaw dials, the lock, Pro-assign, the pick clock, ledger
+  overrides, report resolution, flags, sandbox, the founder dashboard.
+- **Principle:** **#1 Golf First** — the phone serves the golfer mid-round
+  *and* between rounds; **#2 Low Friction** — the Pro's four-taps-a-season
+  should not require a laptop; the honest split is *authoring* on the desk,
+  *operating* and *reading everything* on the phone.
+- **Benefit:** Live Activity, widgets, App Intents and the Watch share one
+  round-state model with no bridge; one toolchain for a solo builder; the
+  directive's definition of done ("create or join a competition, track the
+  pot") is met with real backend data.
+- **Tradeoffs:** Android is no longer from this codebase — D98 Phase C is
+  re-opened as a Year-2 question, not scheduled. The desktop React rewrite
+  (Phase D) shares tokens and the contract, not components. The ~600-line
+  Expo scaffold is retired (its ideas — Keychain sessions, a converting theme
+  adapter — survive as built-ins and generated code).
+- **CONFLICT (named):** collides with D98's stack choice and its "Owns"
+  table (`spec/native-arc.md`); resolved by this entry — D98's product
+  decisions are upheld verbatim, its implementation choice is replaced, and
+  its Phase C/D sequencing is re-opened. Milestones now follow
+  `docs/ios/IOS-005-roadmap.md` (M0–M7), not `native/b1…b6`.
