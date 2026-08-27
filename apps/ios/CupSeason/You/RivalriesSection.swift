@@ -13,29 +13,29 @@ struct RivalriesSection: View {
 
   var body: some View {
     if !rivalries.isEmpty {
-      Text("Rivalries · your record").csEyebrow()
-      VStack(spacing: 8) {
-        ForEach(rivalries) { r in
-          Button { openTourCard(r.opponent) } label: {
-            HStack(spacing: 12) {
-              CSMarkerView(key: r.marker, size: 22).foregroundStyle(cs.ink).frame(width: 28)
-              VStack(alignment: .leading, spacing: 2) {
-                if let named = r.rivalryName {
-                  Text(named).csEyebrow(cs.gold)   // M3: a christened rivalry wears its name in gold
+      CSSectionHead("Rivalries · your record")
+      VStack(spacing: 0) {
+        ForEach(Array(rivalries.enumerated()), id: \.element.id) { i, r in
+          CSRow(last: i == rivalries.count - 1) {
+            Button { openTourCard(r.opponent) } label: {
+              HStack(spacing: 12) {
+                CSMarkerView(key: r.marker, size: 22).foregroundStyle(cs.ink).frame(width: 28)
+                VStack(alignment: .leading, spacing: 2) {
+                  if let named = r.rivalryName {
+                    Text(named).csEyebrow(cs.gold)   // M3: a christened rivalry wears its name in gold
+                  }
+                  Text(r.name).font(CSFont.subhead.weight(.semibold)).foregroundStyle(cs.ink)
+                  if !r.facets.isEmpty { Text(r.facets).font(CSFont.label).tracking(0.6).foregroundStyle(cs.dimText) }
                 }
-                Text(r.name).font(CSFont.subhead.weight(.semibold)).foregroundStyle(cs.ink)
-                if !r.facets.isEmpty { Text(r.facets).font(CSFont.label).tracking(0.6).foregroundStyle(cs.dimText) }
+                .frame(maxWidth: .infinity, alignment: .leading)
+                Text(r.record).font(CSFont.monoMediumBody).csTabular().foregroundStyle(recordColor(r.lead))
               }
-              .frame(maxWidth: .infinity, alignment: .leading)
-              Text(r.record).font(CSFont.monoMediumBody).csTabular().foregroundStyle(recordColor(r.lead))
+              .frame(minHeight: 44)
+              .contentShape(Rectangle())
             }
-            .padding(.horizontal, 14).padding(.vertical, 11)
-            .frame(minHeight: 44)
-            .background(cs.bg1, in: RoundedRectangle(cornerRadius: CSTokens.Radius.r, style: .continuous))
-            .overlay(RoundedRectangle(cornerRadius: CSTokens.Radius.r, style: .continuous).stroke(cs.line, lineWidth: 1))
+            .buttonStyle(.plain)
+            .accessibilityElement(children: .combine)
           }
-          .buttonStyle(.plain)
-          .accessibilityElement(children: .combine)
         }
       }
     }

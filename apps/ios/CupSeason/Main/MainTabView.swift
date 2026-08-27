@@ -6,6 +6,20 @@ import SwiftUI
 import CSDesign
 import CupSeasonKit
 
+/// Developer hatches (DEBUG only; the shipped build has no such door):
+/// `-cs_dev_open <place>` lands a simulator on a screen, `-cs_dev_bottom`
+/// opens Home / You scrolled to the foot so the lower half can be seen
+/// without a finger. Neither exists in Release.
+enum CSDevHatch {
+  static var bottom: Bool {
+    #if DEBUG
+    ProcessInfo.processInfo.arguments.contains("-cs_dev_bottom")
+    #else
+    false
+    #endif
+  }
+}
+
 enum HomeRoute: Hashable { case schedule, people, league(UUID) }
 enum ClubRoute: Hashable { case board(UUID), schedule, album(UUID) }
 enum YouRoute: Hashable { case people, settings }
@@ -64,7 +78,7 @@ struct MainTabView: View {
       .tag(Tab.clubhouse)
 
       Color.clear
-        .tabItem { Label("Post", systemImage: "plus.circle.fill") }
+        .tabItem { Label { Text("Post") } icon: { Image(uiImage: emberPlus) } }
         .tag(Tab.post)
 
       NavigationStack(path: $youPath) {
@@ -163,6 +177,14 @@ struct MainTabView: View {
                                      openPeople: { presenter.showPost = false; tab = .you; youPath.append(YouRoute.people) }))
     }
     .fullScreenCover(isPresented: $presenter.showLive) { LiveRoundHost(links: liveLinks) }
+  }
+
+  /// The ⊕ wears the live metal whether or not it is selected (IOS-003: ember = the ⊕).
+  /// An original-rendering UIImage is the one way to colour a tab glyph without a custom bar.
+  private var emberPlus: UIImage {
+    let cfg = UIImage.SymbolConfiguration(pointSize: 24, weight: .semibold)
+    return UIImage(systemName: "plus.circle.fill", withConfiguration: cfg)?
+      .withTintColor(UIColor(cs.brand), renderingMode: .alwaysOriginal) ?? UIImage()
   }
 
   // MARK: links

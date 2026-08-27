@@ -40,9 +40,11 @@ struct ScoringHelpSheet: View {
 struct HowItWorks: View {
   let open: (GuideCopy.Row) -> Void
   var body: some View {
-    VStack(spacing: 8) {
-      ForEach(GuideCopy.rows) { r in
-        CheckDoor(glyph: Text(r.glyph), title: r.title, sub: r.sub) { open(r) }
+    VStack(spacing: 0) {
+      ForEach(Array(GuideCopy.rows.enumerated()), id: \.element.id) { i, r in
+        CSRow(last: i == GuideCopy.rows.count - 1) {
+          YouDoorRow(glyph: Text(r.glyph), title: r.title, sub: r.sub, action: { open(r) })
+        }
       }
     }
   }
