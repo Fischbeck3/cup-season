@@ -17,7 +17,12 @@ struct ClubhouseView: View {
   var body: some View {
     if let me = store.me, !me.memberships.isEmpty,
        let current = me.memberships.first(where: { $0.league_id == (leagueId ?? store.preferredLeague) }) ?? me.memberships.first {
-      LeagueRoomScreen(leagueId: current.league_id, links: links(for: current))
+      VStack(spacing: 0) {
+        EventChips(leagueId: current.league_id, links: EventLinks(openEvent: { presenter.event = $0 },
+                                                                   openReceipt: { presenter.receipt = $0 },
+                                                                   openTourCard: { presenter.tourCard = $0 }))
+        LeagueRoomScreen(leagueId: current.league_id, links: links(for: current))
+      }
         .id(current.league_id)
         .toolbar {
           if me.memberships.count > 1 {
@@ -44,7 +49,7 @@ struct ClubhouseView: View {
         LeaguelessDoors(links: WizardLinks(
           onLocked: { id in store.preferredLeague = id; Task { await store.reload() } },
           onCancelled: { Task { await store.reload() } },
-          startEvent: { presenter.handoff = .event },
+          startEvent: { presenter.showEventPicker = true },
           onJoined: { id in store.preferredLeague = id; Task { await store.reload() } }))
         NavigationLink(value: HomeRoute.people) {
           Text("Add golfers").font(CSFont.button).frame(maxWidth: .infinity, minHeight: 50).foregroundStyle(cs.ink)

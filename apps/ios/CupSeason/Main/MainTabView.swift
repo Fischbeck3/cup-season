@@ -104,7 +104,13 @@ struct MainTabView: View {
       PeoplePickerSheet(mode: .invite(.league(lid), share: m.flatMap { mm in mm.code.map { (name: mm.name, code: $0) } }),
                         onDone: { presenter.inviteTo = nil })
     }
-    .sheet(item: $presenter.handoff) { HandoffSheet(kind: $0) }
+    .sheet(isPresented: $presenter.showEventPicker) { EventPickerSheet(links: eventLinks) }
+    .fullScreenCover(item: $presenter.event) { eid in
+      NavigationStack {
+        EventRoomScreen(eventId: eid, links: eventLinks)
+          .toolbar { ToolbarItem(placement: .cancellationAction) { Button("Close") { presenter.event = nil } } }
+      }
+    }
     .fullScreenCover(item: $presenter.wizard) { t in
       WizardScreen(existingLeagueId: t.existingLeagueId, links: wizardLinks, initialStep: t.initialStep)
     }
@@ -140,8 +146,14 @@ struct MainTabView: View {
     WizardLinks(
       onLocked: { id in presenter.wizard = nil; presenter.runBack = nil; store.preferredLeague = id; Task { await store.reload() }; tab = .clubhouse },
       onCancelled: { presenter.wizard = nil; Task { await store.reload() } },
-      startEvent: { presenter.handoff = .event },
+      startEvent: { presenter.wizard = nil; presenter.showEventPicker = true },
       onJoined: { id in store.preferredLeague = id; Task { await store.reload() }; tab = .clubhouse })
+  }
+
+  private var eventLinks: EventLinks {
+    EventLinks(openEvent: { presenter.showEventPicker = false; presenter.event = $0 },
+               openReceipt: { presenter.receipt = $0 },
+               openTourCard: { presenter.tourCard = $0 })
   }
 
   private var boardLinks: BoardLinks {
@@ -165,30 +177,3 @@ struct MainTabView: View {
 }
 
 /// Wave 5/6 hand-off (the wizard, the event picker): honest, and a real
-/// action — the web does it today.
-struct HandoffSheet: View {
-  @Environment(\.dismiss) private var dismiss
-  @Environment(\.cs) private var cs
-  let kind: Presenter.Handoff
-  var body: some View {
-    NavigationStack {
-      VStack(alignment: .leading, spacing: 14) {
-        Text(kind == .league ? "Start a league" : "Start an event").csEyebrow()
-        Text(kind == .league ? "The wizard lands on the phone in wave 5." : "Events land on the phone in wave 6.")
-          .font(CSFont.title).foregroundStyle(cs.ink)
-        Text(kind == .league
-             ? "Until then, name your league at cupseason.app — three steps, lock it, and the invite link is yours."
-             : "Until then, start a Ryder or a Major at cupseason.app; it shows up here the moment it exists.")
-          .font(CSFont.body).foregroundStyle(cs.mut)
-        Link(destination: CSConfig.webOrigin) {
-          Text("Open cupseason.app").font(CSFont.button).frame(maxWidth: .infinity, minHeight: 50)
-            .foregroundStyle(cs.bg0).background(cs.brand, in: RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous))
-        }
-        Spacer()
-      }
-      .padding(24).background(cs.bg0)
-      .toolbar { ToolbarItem(placement: .cancellationAction) { Button("Close") { dismiss() } } }
-    }
-    .presentationDetents([.medium])
-  }
-}

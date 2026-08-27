@@ -27,11 +27,9 @@ final class Presenter {
   var draft: UUID?
   var runBack: UUID?
   struct WizardTarget: Identifiable { let existingLeagueId: UUID?; var initialStep = 0; var id: String { (existingLeagueId?.uuidString ?? "new") + "·\(initialStep)" } }
-  /// Wave 5/6 hand-offs: the league wizard and the event picker are not on
-  /// the phone yet; these present the honest web hand-off.
-  var handoff: Handoff?
-
-  enum Handoff: String, Identifiable { case league, event; var id: String { rawValue } }
+  /// Events (wave 6): the picker, and a room.
+  var showEventPicker = false
+  var event: UUID?
 
   func join(code: String?) { joinCode = code; showJoin = true }
 }

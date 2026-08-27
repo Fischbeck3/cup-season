@@ -29,7 +29,7 @@ struct HomeView: View {
           HomeHero(mode: mode, me: me)
 
           if let o = vm.occasion {
-            OccasionCard(o: o, onGo: { if o.go == .league { presenter.wizard = .init(existingLeagueId: nil) } else { presenter.handoff = .event } },
+            OccasionCard(o: o, onGo: { if o.go == .league { presenter.wizard = .init(existingLeagueId: nil) } else { presenter.showEventPicker = true } },
                          onDismiss: { Occasion.dismiss(o); vm.occasion = nil })
           }
 
@@ -76,7 +76,7 @@ struct HomeView: View {
       ToolbarItem(placement: .topBarTrailing) {
         Menu {
           Button { presenter.wizard = .init(existingLeagueId: nil) } label: { Label("Start a league", systemImage: "flag") }
-          Button { presenter.handoff = .event } label: { Label("Start an event", systemImage: "trophy") }
+          Button { presenter.showEventPicker = true } label: { Label("Start an event", systemImage: "trophy") }
           Button { presenter.join(code: nil) } label: { Label("Join with a code", systemImage: "key") }
           NavigationLink(value: HomeRoute.schedule) { Label("Your golf calendar", systemImage: "calendar") }
           NavigationLink(value: HomeRoute.people) { Label("Find golfers", systemImage: "magnifyingglass") }
