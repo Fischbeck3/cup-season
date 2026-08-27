@@ -11,6 +11,7 @@ The iOS app's own record: five founding artifacts, a decision log, and the audit
 | `IOS-004-opportunity-map.md` | Where iOS intentionally improves on the web, ranked, with what must stay intact. |
 | `IOS-005-roadmap.md` | Milestones M0–M7 with gates and effort; what unblocks first. |
 | `audit/` | The nine read-only audit slices (2026-08-27), line-number-cited. Reference, not canon; line numbers drift. |
+| `pricing-surfaces.md` | IOS-021 / D56 — the `app_flags.pricing` seed, the three pass cards, their mount points, the flag states, and the push the owner runs. |
 
 Working rules for this directory:
 - A decision is never overwritten; a new entry references the old one.
