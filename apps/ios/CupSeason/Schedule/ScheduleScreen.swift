@@ -38,7 +38,7 @@ struct ScheduleScreen: View {
         Text("Tap any day to put a round on the tee sheet.").font(CSFont.footnote).foregroundStyle(cs.dimText)
           .frame(maxWidth: .infinity).multilineTextAlignment(.center)
         CSButton("Put a round on the tee sheet") { declare = DeclarePrefill() }
-        Text("On the tee sheet").csEyebrow().padding(.top, 6)
+        CSSectionHead("On the tee sheet")
         list
         weeks
       }
@@ -72,11 +72,11 @@ struct ScheduleScreen: View {
     let all = vm.watchRows
     let rows = Array(all[..<min(all.count, 6)])   // the web shows six (15768)
     if !rows.isEmpty {
-      Text("In your crew's plans").csEyebrow()
+      CSSectionHead("In your crew's plans")
       ForEach(rows) { sr in
         let rel = sr.is_friend == true ? "BUDDY" : "LEAGUE MATE"
-        CSCheckRow(marker: sr.marker, title: Text(sr.display_name ?? "A golfer") + Text("  \(rel)").font(CSFont.label).foregroundStyle(cs.dimText),
-                   sub: watchBits(sr)) {
+        RoomLineRow(marker: sr.marker, title: Text(sr.display_name ?? "A golfer") + Text("  \(rel)").font(CSFont.label).foregroundStyle(cs.dimText),
+                    sub: watchBits(sr)) {
           if sr.tagged_me == true { Text("ON THE TEE SHEET").font(CSFont.label).foregroundStyle(cs.gold) }
           else {
             CSMini("I’m in") {
@@ -235,7 +235,7 @@ struct ScheduleScreen: View {
       CSFine("Nothing on the tee sheet for \(vm.month.monthName). Put one up: league mates and buddies see it the moment you do.")
     } else {
       ForEach(rows) { sr in
-        CSCheckRow(marker: sr.marker, title: rowTitle(sr), sub: Text(listBits(sr))) {
+        RoomLineRow(marker: sr.marker, title: rowTitle(sr), sub: Text(listBits(sr))) {
           HStack(spacing: 6) {
             Text(sr.play_on.map { ScheduleDates.whenDays($0, today: vm.today) } ?? "").font(CSFont.label).tracking(0.6).foregroundStyle(cs.mut)
             if sr.isMine, let id = sr.id {
@@ -264,19 +264,19 @@ struct ScheduleScreen: View {
 
   @ViewBuilder private var weeks: some View {
     if vm.inLeague {
-      Text("Week by week").csEyebrow().padding(.top, 6)
-      CSCard {
-        if vm.weekLines.isEmpty {
-          CSFine(WeekLine.empty)
-        } else {
-          VStack(spacing: 0) {
-            ForEach(vm.weekLines) { w in
+      CSSectionHead("Week by week")
+      if vm.weekLines.isEmpty {
+        CSFine(WeekLine.empty)
+      } else {
+        // rows on ground with hairlines, not a card (IOS-019 rule 2)
+        VStack(spacing: 0) {
+          ForEach(Array(vm.weekLines.enumerated()), id: \.element.id) { i, w in
+            CSRow(last: i == vm.weekLines.count - 1) {
               HStack(spacing: 10) {
                 Text(w.text).font(CSFont.footnote).foregroundStyle(cs.dimText)
                 Spacer()
                 Text(w.points).font(CSFont.monoSmall).foregroundStyle(cs.ink).csTabular()
               }
-              .padding(.vertical, 5)
             }
           }
         }

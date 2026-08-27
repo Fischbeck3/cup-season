@@ -79,7 +79,7 @@ struct PeopleScreen: View {
 
   @ViewBuilder private var requests: some View {
     if !vm.lists.requests.isEmpty {
-      Text("Requests · \(vm.lists.requests.count)").csEyebrow(cs.brand).padding(.top, 6)
+      CSSectionHead("Requests · \(vm.lists.requests.count)")
       ForEach(vm.lists.requests) { f in
         PersonRow(person: f, subline: "\(f.handle.map { "@\($0) · " } ?? "")wants to be golf buddies", spine: cs.brand, links: links) {
           HStack(spacing: 6) {
@@ -95,7 +95,7 @@ struct PeopleScreen: View {
   // MARK: buddies (13181–13184)
 
   @ViewBuilder private var buddies: some View {
-    Text(vm.lists.buddies.isEmpty ? "Buddies" : "Buddies · \(vm.lists.buddies.count)").csEyebrow().padding(.top, 6)
+    CSSectionHead(vm.lists.buddies.isEmpty ? "Buddies" : "Buddies · \(vm.lists.buddies.count)")
     if vm.loaded && vm.lists.buddies.isEmpty {
       CSFine("No buddies yet. Search up top to add them.")
     } else {
@@ -107,7 +107,7 @@ struct PeopleScreen: View {
 
   @ViewBuilder private var requested: some View {
     if !vm.lists.requested.isEmpty {
-      Text("Requested").csEyebrow().padding(.top, 6)
+      CSSectionHead("Requested")
       ForEach(vm.lists.requested) { f in
         PersonRow(person: f, links: links) { CSTag(text: "Requested") }
       }
@@ -117,8 +117,8 @@ struct PeopleScreen: View {
   // MARK: findable by (13541–13545, 13763–13770)
 
   private var findable: some View {
-    VStack(alignment: .leading, spacing: 8) {
-      Text("Findable by").csEyebrow().padding(.top, 10)
+    VStack(alignment: .leading, spacing: 10) {
+      CSSectionHead("Findable by")
       HStack(spacing: 6) {
         ForEach(Discoverable.allCases, id: \.self) { d in
           CSMini(d.label, tone: vm.discoverable == d ? cs.pos : nil) { Task { await vm.setDiscoverable(d) } }
@@ -139,7 +139,7 @@ struct PersonRow<Action: View>: View {
   @State private var founder: UUID? = nil
 
   var body: some View {
-    CSCheckRow(marker: person.marker, title: title, sub: Text(subline ?? person.subline), spine: spine) { action }
+    RoomLineRow(marker: person.marker, title: title, sub: Text(subline ?? person.subline), spine: spine) { action }
       .contentShape(Rectangle())
       .onTapGesture { links.openTourCard?(person.id) }
       .task { founder = await FounderBadge.shared.id() }

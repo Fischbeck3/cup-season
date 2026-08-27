@@ -19,7 +19,8 @@ struct PotPane: View {
     let free = b.stake == 0
     let trio = PotMath.trioDollars(total: model.potTotal, payout: b.payout)
     VStack(alignment: .leading, spacing: 14) {
-      Text("Season stakes").csEyebrow()
+      CSSectionHead("Season stakes")
+      // the purse: gold is the pot's own metal (earned); a free league wears no spine
       CSCard(spine: free ? nil : cs.gold, padding: 18) {
         VStack(alignment: .leading, spacing: 6) {
           Text("The pot").csEyebrow(free ? nil : cs.gold)
@@ -29,19 +30,25 @@ struct PotPane: View {
             .font(CSFont.label).tracking(1.0).foregroundStyle(cs.dimText)
         }
       }
-      HStack(spacing: 10) {
-        trioTile(free ? "—" : PotMath.dollars(trio.champ), "Cup champs")
-        trioTile(free ? "—" : PotMath.dollars(trio.runner), "Runner-up")
-        trioTile(free ? "—" : PotMath.dollars(trio.king), "Points king")
+      // the payout trio as one band on ground — hairline above and below
+      VStack(spacing: 0) {
+        CSHairline()
+        HStack(alignment: .top, spacing: 10) {
+          trioTile(free ? "—" : PotMath.dollars(trio.champ), "Cup champs")
+          trioTile(free ? "—" : PotMath.dollars(trio.runner), "Runner-up")
+          trioTile(free ? "—" : PotMath.dollars(trio.king), "Points king")
+        }
+        .padding(.vertical, 10)
+        CSHairline()
       }
       Text((try? AttributedString(markdown: "**Cup Season keeps the books.** Buy-ins and payouts move friend-to-friend. We just make sure nobody argues at the bar.")) ?? "")
         .font(CSFont.footnote).foregroundStyle(cs.dimText).fixedSize(horizontal: false, vertical: true)
 
-      Text("Buy-ins · \(free ? "Bragging rights" : "\(model.paidCount)/\(model.potPlayers)") in").csEyebrow()
+      CSSectionHead("Buy-ins · \(free ? "Bragging rights" : "\(model.paidCount)/\(model.potPlayers)") in")
       if free {
         RoomFine("No buy-ins — this league plays for bragging rights.")
       } else {
-        VStack(spacing: 8) {
+        VStack(spacing: 0) {
           ForEach(model.members) { m in payer(m) }
           if model.members.isEmpty { payerRow(name: model.viewer?.displayName ?? "You", paid: false, busy: false) {} }
         }
@@ -60,9 +67,7 @@ struct PotPane: View {
       Text(b).font(CSFont.sentenceBold).csTabular().foregroundStyle(b == "—" ? cs.ink : cs.gold)
       Text(sub).font(CSFont.label).tracking(0.6).foregroundStyle(cs.dimText)
     }
-    .padding(12).frame(maxWidth: .infinity, alignment: .leading)
-    .background(cs.bg1, in: RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous))
-    .overlay(RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous).stroke(cs.line, lineWidth: 1))
+    .frame(maxWidth: .infinity, alignment: .leading)
   }
 
   /// `.payer` — the Pro taps a name as money moves; anyone else hears why not.
@@ -88,10 +93,10 @@ struct PotPane: View {
           Text("✓").font(CSFont.monoMediumBody).foregroundStyle(paid ? cs.pos : cs.dim).opacity(paid ? 1 : 0.5)
         }
       }
-      .padding(.horizontal, 14).frame(minHeight: 48)
-      .background(cs.bg1, in: RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous))
-      .overlay(RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous).stroke(paid ? cs.pos.opacity(0.5) : cs.line, lineWidth: 1))
+      .padding(.horizontal, 4).frame(minHeight: 48)
       .contentShape(Rectangle())
+      // a row, not a card: the hairline warms to `pos` once the money is in
+      .overlay(alignment: .bottom) { Rectangle().fill(paid ? cs.pos.opacity(0.45) : cs.line).frame(height: 1) }
     }
     .buttonStyle(.plain)
     .disabled(busy)
@@ -111,16 +116,11 @@ struct ForfeitLedgerView: View {
     if let S = model.forfeits {
       let open = S.filter { $0.status == "open" }, done = S.filter { $0.status == "settled" }
       VStack(alignment: .leading, spacing: 8) {
-        HStack {
-          Text("The other stakes · pride, on the books").csEyebrow()
-          Spacer()
-          RoomMini("Post a stake") { router.open(.forfeitCreate) }
-        }
-        .padding(.top, 6)
+        CSSectionHead("The other stakes · pride, on the books", trailing: "Post a stake") { router.open(.forfeitCreate) }
         if open.isEmpty { RoomFine("No stakes on the books. The cookout isn't going to bet itself.") }
         ForEach(open) { row($0) }
         if !done.isEmpty {
-          Text("The archive").csEyebrow().padding(.top, 8)
+          CSSectionHead("The archive")
           ForEach(done.prefix(8)) { row($0) }
         }
       }

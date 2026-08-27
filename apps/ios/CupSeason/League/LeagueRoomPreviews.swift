@@ -55,6 +55,20 @@ enum LeagueRoomSample {
     .csTheme()
 }
 
+#Preview("League · rules open") {
+  ScrollView { LeaguePane().padding(20) }
+    .environment(LeagueRoomSample.model()).environment(RoomRouter()).environment(\.roomLinks, LeagueRoomSample.links)
+    .csTheme()
+}
+
+#Preview("Wrapped · gold hero") {
+  ScrollView {
+    VStack(alignment: .leading, spacing: 14) { LeagueHeaderCard(loading: false); StandingsPane() }.padding(20)
+  }
+  .environment(LeagueRoomSample.model(status: "complete", today: "2026-10-01")).environment(RoomRouter()).environment(\.roomLinks, LeagueRoomSample.links)
+  .csTheme()
+}
+
 #Preview("Ceremony · preview math") {
   SeasonCeremonyView()
     .environment(LeagueRoomSample.model(status: "complete", today: "2026-10-01")).environment(RoomRouter()).environment(\.roomLinks, LeagueRoomSample.links)

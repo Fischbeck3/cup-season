@@ -101,6 +101,37 @@ struct CSCheckRow<Trailing: View>: View {
   }
 }
 
+/// The list row (IOS-019 rule 2): a marker, a bold line, a small line, a
+/// trailing slot — on ground, parted from the next by a hairline. An optional
+/// spine on the leading edge (a request wears ember). The bordered
+/// `CSCheckRow` stays for sheets and pickers; lists use this.
+struct RoomLineRow<Trailing: View>: View {
+  @Environment(\.cs) private var cs
+  let marker: String?
+  let title: Text
+  let sub: Text?
+  var spine: Color? = nil
+  @ViewBuilder let trailing: Trailing
+
+  var body: some View {
+    HStack(alignment: .center, spacing: 12) {
+      CSFace(marker: marker, size: 36)
+      VStack(alignment: .leading, spacing: 3) {
+        title.font(CSFont.subhead.weight(.semibold)).foregroundStyle(cs.ink)
+        if let sub { sub.font(CSFont.monoSmall).foregroundStyle(cs.mut).fixedSize(horizontal: false, vertical: true) }
+      }
+      .frame(maxWidth: .infinity, alignment: .leading)
+      trailing
+    }
+    .padding(.vertical, 10).padding(.horizontal, 4)
+    .frame(minHeight: 56)
+    .overlay(alignment: .leading) {
+      if let spine { RoundedRectangle(cornerRadius: 2).fill(spine).frame(width: 3.5).padding(.vertical, 12).padding(.leading, -6) }
+    }
+    .overlay(alignment: .bottom) { CSHairline() }
+  }
+}
+
 /// `.fine` — helper copy in `mut` (the web's `dim` → `cs.dimText`).
 struct CSFine: View {
   @Environment(\.cs) private var cs

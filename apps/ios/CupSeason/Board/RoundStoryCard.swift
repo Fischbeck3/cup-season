@@ -32,7 +32,9 @@ struct RoundStoryCard: View {
     }
     .padding(.horizontal, 13).padding(.vertical, 12)
     .background(cs.bg1, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+    // a door (tap → the receipt): the one card kind on the board that keeps its line
     .overlay(RoundedRectangle(cornerRadius: 14, style: .continuous).stroke(cs.line, lineWidth: 1))
+    .padding(.vertical, 6)
   }
 
   private var face: some View {

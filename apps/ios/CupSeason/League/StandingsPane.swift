@@ -1,7 +1,10 @@
 // Cup Season — `#room-standings` (index.html 3435–3496), phase-dispatched by
 // `renderPhase` (11985): the setup checklist · the formation hero · the
-// season body (kickoff hero · stats strip · press meter · next up · on the
-// line · the climb · the table · the individual race).
+// season body (kickoff hero · the season strip · press meter · next up · on
+// the line · the climb · the table · the individual race).
+//
+// IOS-019: the four stat tiles are ONE season strip (no KPI grid); sections
+// are an eyebrow over a hairline; rows sit on ground, not in borders.
 
 import SwiftUI
 import CSDesign
@@ -27,7 +30,7 @@ struct StandingsPane: View {
 
   private var setupChecklist: some View {
     VStack(alignment: .leading, spacing: 0) {
-      Text("League setup · three steps to first tee").csEyebrow()
+      CSSectionHead("League setup · three steps to first tee")
       RoomCheckRow("Season settings", sub: "Stakes · rules · format") { num("1") } trail: {
         if model.isPro { RoomMini("Continue") { links.openWizard() } } else { Text("THE PRO").csEyebrow(cs.gold) }
       }
@@ -84,15 +87,17 @@ struct StandingsPane: View {
     if c.isCupFinal && !model.isComplete {
       PhaseHero(k: "Cup Final", n: "Four weeks, scored fresh.", m: "FRESH SLATE · \(model.clock.daysLeft) DAY\(model.clock.daysLeft == 1 ? "" : "S") LEFT · WHOEVER'S HOTTEST TAKES THE CUP") { EmptyView() }
     }
-    StatsStrip()
-    if !(c.done || c.atStarter || c.isCupFinal) { PressMeter() }
+    VStack(alignment: .leading, spacing: 10) {
+      RoomSeasonStrip()
+      if !(c.done || c.atStarter || c.isCupFinal) { PressMeter() }
+    }
     NextCard()
     if model.bylaws.stake > 0 { onTheLine }
-    Text("Season race · the climb").csEyebrow()
-    CSCard { ClimbView() }
-    Text("Standings").csEyebrow()
+    CSSectionHead("Season race · the climb").id("room-climb")
+    ClimbView()
+    CSSectionHead("Standings").id("room-standings")
     StandingsTableView()
-    Text("The individual race · every player").csEyebrow()
+    CSSectionHead("The individual race · every player").id("room-race")
     IndividualRaceView()
     if c.phase == .season && !model.isComplete {
       // #14: once the season is live, setup tools live down here
@@ -105,6 +110,7 @@ struct StandingsPane: View {
         }
         RoomMini("Add golfers") { links.addGolfers() }
       }
+      .padding(.top, 4)
     }
   }
 
@@ -125,29 +131,31 @@ struct StandingsPane: View {
     }
   }
 
-  /// `.ontheline` (3446–3453) → the Pot pane.
+  /// `.ontheline` (3446–3453) → the Pot pane. A door, so it keeps its line;
+  /// the gold is earned — it is the pot.
   private var onTheLine: some View {
     Button { router.pane = .pot; CSHaptic.selection() } label: {
-      HStack(alignment: .center, spacing: 12) {
-        VStack(alignment: .leading, spacing: 4) {
-          Text("On the line").csEyebrow(cs.gold)
-          Text(PotMath.dollars(model.potTotal)).font(CSFont.heroSmall).csTabular().foregroundStyle(cs.gold)
+      CSCard(spine: cs.gold) {
+        HStack(alignment: .center, spacing: 12) {
+          VStack(alignment: .leading, spacing: 4) {
+            Text("On the line").csEyebrow(cs.gold)
+            Text(PotMath.dollars(model.potTotal)).font(CSFont.heroSmall).csTabular().foregroundStyle(cs.gold)
+          }
+          Spacer()
+          Text(LeagueCopy.lineSplit(total: model.potTotal, payout: model.bylaws.payout))
+            .font(CSFont.label).tracking(0.8).foregroundStyle(cs.mut).multilineTextAlignment(.trailing)
+          Text("→").font(CSFont.mono).foregroundStyle(cs.gold)
         }
-        Spacer()
-        Text(LeagueCopy.lineSplit(total: model.potTotal, payout: model.bylaws.payout))
-          .font(CSFont.label).tracking(0.8).foregroundStyle(cs.mut).multilineTextAlignment(.trailing)
-        Text("→").font(CSFont.mono).foregroundStyle(cs.gold)
       }
-      .padding(16)
-      .background(cs.bg1, in: RoundedRectangle(cornerRadius: CSTokens.Radius.r, style: .continuous))
-      .overlay(RoundedRectangle(cornerRadius: CSTokens.Radius.r, style: .continuous).stroke(cs.gold.opacity(0.45), lineWidth: 1))
     }
     .buttonStyle(.plain)
   }
 }
 
-/// `.stats` — the four tiles (3459–3464, `renderStats` 9406–9495).
-struct StatsStrip: View {
+/// `.stats` (3459–3464, `renderStats` 9406–9495) — the four figures as ONE
+/// season strip: a hairline above and below, four mono columns, the month's
+/// fill meter under the counting figure. Not a grid of tiles (IOS-003 §4).
+struct RoomSeasonStrip: View {
   @Environment(LeagueRoomModel.self) private var model
   @Environment(\.cs) private var cs
 
@@ -158,21 +166,21 @@ struct StatsStrip: View {
     let capN = b.capN
     let credits = model.myMonth?.credits ?? 0
     let used = min(Double(model.myMonth?.counting ?? 0), Double(capN == Int.max ? Int.max : capN))
-    VStack(spacing: 10) {
-      HStack(spacing: 10) {
-        tile("Season", value: LeagueCopy.weekValue(c), small: "/ \(c.totalWeeks)", sub: dl.text, subTone: dl.gold ? cs.gold : cs.mut)
-        tile("The pot", value: b.stake == 0 ? "None" : PotMath.dollars(model.potTotal), small: nil,
-             sub: b.stake == 0 ? "Bragging rights" : "\(model.paidCount)/\(model.potPlayers) buy-ins in", tone: b.stake == 0 ? cs.ink : cs.gold)
-      }
-      HStack(spacing: 10) {
-        tile("Your index", value: est ? "\(min(model.viewer?.roundsCount ?? 0, 3)) of 3" : CSCopy.index(model.viewer?.indexCurrent), small: nil,
-             sub: LeagueCopy.indexSub(established: !est, delta: model.myIndexDelta),
-             subTone: (model.myIndexDelta ?? 0) < -0.05 && !est ? cs.pos : cs.mut)
-        VStack(alignment: .leading, spacing: 6) {
-          Text("Counting rounds").font(CSFont.label).tracking(1.2).textCase(.uppercase).foregroundStyle(cs.dimText)
-          HStack(alignment: .firstTextBaseline, spacing: 4) {
+    VStack(alignment: .leading, spacing: 0) {
+      HStack(alignment: .top, spacing: 8) {
+        column("Season", value: LeagueCopy.weekValue(c), small: "/ \(c.totalWeeks)",
+               sub: dl.text, subTone: dl.gold ? cs.gold : cs.mut)
+        column("The pot", value: b.stake == 0 ? "None" : PotMath.dollars(model.potTotal), small: nil,
+               sub: b.stake == 0 ? "Bragging rights" : "\(model.paidCount)/\(model.potPlayers) buy-ins in",
+               tone: b.stake == 0 ? cs.ink : cs.gold)
+        column("Your index", value: est ? "\(min(model.viewer?.roundsCount ?? 0, 3)) of 3" : CSCopy.index(model.viewer?.indexCurrent), small: nil,
+               sub: LeagueCopy.indexSub(established: !est, delta: model.myIndexDelta),
+               subTone: (model.myIndexDelta ?? 0) < -0.05 && !est ? cs.pos : cs.mut)
+        VStack(alignment: .leading, spacing: 5) {
+          label("Counting rounds")
+          HStack(alignment: .firstTextBaseline, spacing: 3) {
             Text(capN == Int.max ? LeagueCopy.fmtN(credits) : LeagueCopy.fmtN(used)).font(CSFont.stat).csTabular().foregroundStyle(cs.ink)
-            Text(capN == Int.max ? "rounds" : "/ \(capN)").font(CSFont.monoSmall).foregroundStyle(cs.mut)
+            Text(capN == Int.max ? "rounds" : "/ \(capN)").font(CSFont.label).foregroundStyle(cs.mut)
           }
           if capN != Int.max {
             // D3: the month is a fill meter — slots you can see filling
@@ -184,29 +192,34 @@ struct StatsStrip: View {
             }
             .accessibilityLabel("\(LeagueCopy.fmtN(used)) of \(capN) counting rounds")
           }
-          Text(LeagueCopy.countingSub(month: LeagueDates.monthLong(c.today), capN: capN)).font(CSFont.monoSmall).foregroundStyle(cs.mut)
+          Text(LeagueCopy.countingSub(month: LeagueDates.monthLong(c.today), capN: capN))
+            .font(CSFont.label).foregroundStyle(cs.mut).fixedSize(horizontal: false, vertical: true)
         }
-        .padding(.vertical, 14).padding(.horizontal, 14)
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .background(cs.bg1, in: RoundedRectangle(cornerRadius: CSTokens.Radius.r, style: .continuous))
-        .overlay(RoundedRectangle(cornerRadius: CSTokens.Radius.r, style: .continuous).stroke(cs.line, lineWidth: 1))
+        .frame(maxWidth: .infinity, alignment: .topLeading)
       }
+      .padding(.vertical, 12)
+      CSHairline()
     }
+    .accessibilityElement(children: .contain)
   }
 
-  private func tile(_ label: String, value: String, small: String?, sub: String, tone: Color? = nil, subTone: Color? = nil) -> some View {
-    VStack(alignment: .leading, spacing: 6) {
-      Text(label).font(CSFont.label).tracking(1.2).textCase(.uppercase).foregroundStyle(cs.dimText)
-      HStack(alignment: .firstTextBaseline, spacing: 4) {
-        Text(value).font(CSFont.stat).csTabular().foregroundStyle(tone ?? cs.ink)
-        if let small { Text(small).font(CSFont.monoSmall).foregroundStyle(cs.mut) }
+  /// Two lines of room, bottom-aligned, so the four figures sit on one baseline whatever the label's length.
+  private func label(_ s: String) -> some View {
+    Text(s).font(CSFont.label).tracking(1.0).textCase(.uppercase).foregroundStyle(cs.dimText)
+      .lineLimit(2).fixedSize(horizontal: false, vertical: true)
+      .frame(minHeight: 30, alignment: .bottomLeading)
+  }
+
+  private func column(_ k: String, value: String, small: String?, sub: String, tone: Color? = nil, subTone: Color? = nil) -> some View {
+    VStack(alignment: .leading, spacing: 5) {
+      label(k)
+      HStack(alignment: .firstTextBaseline, spacing: 3) {
+        Text(value).font(CSFont.stat).csTabular().foregroundStyle(tone ?? cs.ink).lineLimit(1).minimumScaleFactor(0.7)
+        if let small { Text(small).font(CSFont.label).foregroundStyle(cs.mut) }
       }
-      Text(sub).font(CSFont.monoSmall).foregroundStyle(subTone ?? cs.mut).fixedSize(horizontal: false, vertical: true)
+      Text(sub).font(CSFont.label).foregroundStyle(subTone ?? cs.mut).fixedSize(horizontal: false, vertical: true)
     }
-    .padding(.vertical, 14).padding(.horizontal, 14)
-    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
-    .background(cs.bg1, in: RoundedRectangle(cornerRadius: CSTokens.Radius.r, style: .continuous))
-    .overlay(RoundedRectangle(cornerRadius: CSTokens.Radius.r, style: .continuous).stroke(cs.line, lineWidth: 1))
+    .frame(maxWidth: .infinity, alignment: .topLeading)
   }
 }
 
@@ -232,7 +245,8 @@ struct PressMeter: View {
   }
 }
 
-/// `.nextcard` — "Next up · this month" + Live round.
+/// `.nextcard` — "Next up · this month" + Live round. The ember spine, no
+/// wash — the hero has the wash.
 struct NextCard: View {
   @Environment(LeagueRoomModel.self) private var model
   @Environment(\.roomLinks) private var links

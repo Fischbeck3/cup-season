@@ -1,7 +1,10 @@
 // Cup Season — the League Room (`#view-hub`, index.html 3333–3620; IA P2 "one
-// door, five segments"). Header card · the D71 cancel banner · Standings /
-// Board / Schedule / Pot / Album / League. Board and Schedule are other
-// slices — this screen calls their links.
+// door, five segments"). The hero · the D71 cancel banner · the tab strip ·
+// Standings / Board / Schedule / Pot / Album / League. Board and Schedule are
+// other slices — this screen calls their links.
+//
+// IOS-019: one hero with the wash opens the scroll; the panes are a tab
+// strip, not pills; everything under it sits on ground, not in borders.
 
 import SwiftUI
 import CSDesign
@@ -20,6 +23,21 @@ struct LeagueRoomScreen: View {
   }
 
   var body: some View {
+    ScrollViewReader { proxy in
+      room
+        #if DEBUG
+        // Developer hatch: `-cs_dev_scroll <anchor>` (climb · standings · race) scrolls a simulator there.
+        .task(id: model.loaded) {
+          let a = ProcessInfo.processInfo.arguments
+          guard model.loaded, let i = a.firstIndex(of: "-cs_dev_scroll"), i + 1 < a.count else { return }
+          try? await Task.sleep(for: .seconds(1))
+          proxy.scrollTo("room-" + a[i + 1], anchor: .top)
+        }
+        #endif
+    }
+  }
+
+  private var room: some View {
     ScrollView {
       VStack(alignment: .leading, spacing: 14) {
         if let err = model.error, !model.loaded {
@@ -32,19 +50,21 @@ struct LeagueRoomScreen: View {
           }
         } else if !model.loaded {
           LeagueHeaderCard(loading: true)
-          Text("Loading the room…").csEyebrow()
         } else {
           LeagueHeaderCard(loading: false)
           CancelBanner()
-          roomSeg
-          switch router.pane {
-          case .standings: StandingsPane()
-          case .board: EmptyView()
-          case .schedule: EmptyView()
-          case .pot: PotPane()
-          case .album: RoomAlbumPane()
-          case .league: LeaguePane()
+          roomTabs
+          Group {
+            switch router.pane {
+            case .standings: StandingsPane()
+            case .board: EmptyView()
+            case .schedule: EmptyView()
+            case .pot: PotPane()
+            case .album: RoomAlbumPane()
+            case .league: LeaguePane()
+            }
           }
+          .animation(CSMotion.roll, value: router.pane)
         }
       }
       .padding(.horizontal, 20).padding(.top, 8).padding(.bottom, 32)
@@ -87,37 +107,31 @@ struct LeagueRoomScreen: View {
     }
   }
 
-  /// `#roomSeg` — six segments; the Pot tab hides at $0 (D70).
-  private var roomSeg: some View {
-    ScrollView(.horizontal, showsIndicators: false) {
-      HStack(spacing: 6) {
-        ForEach(RoomPane.allCases) { p in
-          if p == .pot && model.bylaws.stake == 0 { EmptyView() } else {
-            Button {
-              CSHaptic.selection()
-              switch p {
-              case .board: links.openBoard()
-              case .schedule: links.openSchedule()
-              default: router.pane = p
-              }
-            } label: {
-              Text(p.rawValue).font(CSFont.monoSmall)
-                .foregroundStyle(router.pane == p ? cs.bg0 : cs.ink)
-                .padding(.horizontal, 12).frame(minHeight: 36)
-                .background(router.pane == p ? cs.ink : cs.bg2, in: Capsule())
-                .overlay(Capsule().stroke(cs.line2, lineWidth: router.pane == p ? 0 : 1))
-                .frame(minHeight: 44)
-            }
-            .buttonStyle(.plain)
-            .accessibilityAddTraits(router.pane == p ? [.isSelected] : [])
-          }
+  /// `#roomSeg` — six segments as a tab strip (IOS-019 rule 4); the Pot tab
+  /// hides at $0 (D70). Board and Schedule are doors, not panes: their taps
+  /// navigate and the strip's selection never lands on them.
+  private var roomTabs: some View {
+    let items: [(RoomPane, String)] = RoomPane.allCases
+      .filter { !($0 == .pot && model.bylaws.stake == 0) }
+      .map { ($0, $0.rawValue) }
+    let selection = Binding<RoomPane>(
+      get: { router.pane },
+      set: { p in
+        switch p {
+        case .board: links.openBoard()
+        case .schedule: links.openSchedule()
+        default: router.pane = p
         }
-      }
-    }
+      })
+    return CSTabStrip(items, selection: selection)
+      .padding(.horizontal, -20)   // the strip and its hairline run edge to edge
   }
 }
 
-/// `#hubHeader` — name, phase, the code, the span, THE PRO, Add golfers, the danger link.
+/// `#hubHeader` — the room's ONE hero (IOS-019 rule 1): the name in the honor
+/// voice, the phase line, the meta as a mono eyebrow, the code as a chip on
+/// the trailing edge, "Add golfers" as a quiet link, the danger link. The
+/// spine is gold only once the season is wrapped (earned); ember while live.
 struct LeagueHeaderCard: View {
   @Environment(LeagueRoomModel.self) private var model
   @Environment(RoomRouter.self) private var router
@@ -127,47 +141,68 @@ struct LeagueHeaderCard: View {
   let loading: Bool
 
   var body: some View {
-    CSCard(spine: model.isComplete ? cs.gold : nil, padding: 16) {
+    CSHero(spine: model.isComplete ? cs.gold : cs.brand, padding: 20) {
       VStack(alignment: .leading, spacing: 6) {
-        HStack(alignment: .top, spacing: 10) {
-          VStack(alignment: .leading, spacing: 2) {
-            Text(model.league?.name ?? "—").font(CSFont.title).foregroundStyle(cs.ink)
-            Text(loading ? "Loading the room…" : LeagueCopy.phaseHeader(model.clock)).font(CSFont.footnote).foregroundStyle(cs.mut)
-          }
+        // the name takes the whole line; the code chip rides the phase line's trailing edge
+        Text(model.league?.name ?? "—").font(CSFont.heroSmall).foregroundStyle(cs.ink)
+          .fixedSize(horizontal: false, vertical: true)
+        HStack(alignment: .center, spacing: 12) {
+          Text(loading ? "Loading the room…" : LeagueCopy.phaseHeader(model.clock))
+            .font(CSFont.sentence).foregroundStyle(model.isComplete ? cs.gold : cs.mut)
           Spacer(minLength: 8)
           if let code = model.league?.code, let url = model.inviteURL {
             // `.copycode` (12727): in a real league the tap IS the share sheet
             ShareLink(item: url, subject: Text("Cup Season"), message: Text(model.inviteText)) {
-              Text("Code · ").font(CSFont.monoSmall).foregroundStyle(cs.ink) + Text(code).font(CSFont.monoMediumBody).foregroundStyle(cs.ink)
+              RoomCodeChip(code: code)
             }
-            .padding(.horizontal, 12).frame(minHeight: 36)
-            .background(cs.bg2, in: Capsule()).overlay(Capsule().stroke(cs.line2, lineWidth: 1))
-            .frame(minHeight: 44)
+            .accessibilityLabel("Code \(code) — share the invite")
           }
         }
         if !loading {
           Text(LeagueCopy.phaseSub(model.clock, b: model.bylaws, code: model.league?.code, members: model.members.count))
-            .font(CSFont.label).tracking(1.2).foregroundStyle(cs.dimText).padding(.top, 4)
-          Text(model.clock.spanText).font(CSFont.footnote).foregroundStyle(cs.mut).padding(.top, 2)
-          Text("THE PRO · \(model.proName.uppercased())").font(CSFont.label).tracking(1.2).foregroundStyle(cs.dimText)
-          HStack(spacing: 8) {
-            RoomMini("Add golfers") { links.addGolfers() }
-          }
-          .padding(.top, 6)
-          // D71: the Pro can end a league in ANY phase but 'complete' (the record book)
-          if model.isPro && !model.isComplete {
-            let d = LeagueCopy.danger(model.clock)
-            HStack(alignment: .firstTextBaseline, spacing: 6) {
+            .font(CSFont.label).tracking(1.2).textCase(.uppercase).foregroundStyle(cs.dimText)
+            .fixedSize(horizontal: false, vertical: true).padding(.top, 8)
+          Text("\(model.clock.spanText) · THE PRO · \(model.proName.uppercased())")
+            .font(CSFont.label).tracking(0.8).foregroundStyle(cs.mut)
+            .fixedSize(horizontal: false, vertical: true)
+          HStack(alignment: .firstTextBaseline, spacing: 16) {
+            Button { links.addGolfers() } label: {
+              Text("Add golfers").font(CSFont.monoMediumBody).foregroundStyle(cs.dawn).frame(minHeight: 44)
+            }
+            .buttonStyle(.plain)
+            // D71: the Pro can end a league in ANY phase but 'complete' (the record book)
+            if model.isPro && !model.isComplete {
+              let d = LeagueCopy.danger(model.clock)
               Button(d.link) {
                 if d.preTee { Task { router.open(.deleteLeague(others: await model.othersCount())) } } else { router.open(.cancelLeague) }
               }
               .font(CSFont.footnote).foregroundStyle(cs.neg).frame(minHeight: 44)
-              Text(d.note).font(CSFont.footnote).foregroundStyle(cs.dimText)
+              .accessibilityHint(d.note)
             }
+          }
+          .padding(.top, 2)
+          if model.isPro && !model.isComplete {
+            Text(LeagueCopy.danger(model.clock).note).font(CSFont.footnote).foregroundStyle(cs.dimText)
+              .fixedSize(horizontal: false, vertical: true).padding(.top, -8)
           }
         }
       }
     }
+  }
+}
+
+/// The league code as a small mono chip — `bg2` ground, no border.
+struct RoomCodeChip: View {
+  @Environment(\.cs) private var cs
+  let code: String
+  var body: some View {
+    HStack(spacing: 0) {
+      Text("Code · ").font(CSFont.label).tracking(0.6).foregroundStyle(cs.mut)
+      Text(code).font(CSFont.monoMediumBody).foregroundStyle(cs.ink)
+    }
+    .padding(.horizontal, 10).frame(minHeight: 32)
+    .background(cs.bg2.opacity(0.85), in: Capsule())
+    .frame(minHeight: 44)
   }
 }
 

@@ -13,7 +13,7 @@ struct RoomAlbumPane: View {
 
   var body: some View {
     VStack(alignment: .leading, spacing: 10) {
-      Text("The album · every round photo this season").csEyebrow()
+      CSSectionHead("The album · every round photo this season")
       if let items = model.album {
         if items.isEmpty {
           RoomFine("Photos land here when rounds carry them — add one from the Post card.")

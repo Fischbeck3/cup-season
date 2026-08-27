@@ -15,28 +15,28 @@ struct BylawsCard: View {
 
   var body: some View {
     VStack(alignment: .leading, spacing: 10) {
-      CSCard {
-        VStack(spacing: 0) {
-          ForEach(LeagueCopy.bylawsRows(model.bylaws, clock: model.clock)) { r in
-            HStack(alignment: .firstTextBaseline, spacing: 12) {
-              Text(r.k).font(CSFont.label).tracking(1.0).textCase(.uppercase).foregroundStyle(cs.dimText).frame(width: 118, alignment: .leading)
-              Text(r.v).font(CSFont.subhead).foregroundStyle(cs.ink).frame(maxWidth: .infinity, alignment: .leading).fixedSize(horizontal: false, vertical: true)
-            }
-            .padding(.vertical, 7)
-            .overlay(alignment: .bottom) { Rectangle().fill(cs.line).frame(height: 1) }
+      // rows on ground with hairlines — never a card inside a section (IOS-019 rule 2)
+      VStack(spacing: 0) {
+        ForEach(LeagueCopy.bylawsRows(model.bylaws, clock: model.clock)) { r in
+          HStack(alignment: .firstTextBaseline, spacing: 12) {
+            Text(r.k).font(CSFont.label).tracking(1.0).textCase(.uppercase).foregroundStyle(cs.dimText).frame(width: 118, alignment: .leading)
+            Text(r.v).font(CSFont.subhead).foregroundStyle(cs.ink).frame(maxWidth: .infinity, alignment: .leading).fixedSize(horizontal: false, vertical: true)
           }
-          // the endgame dial (migration 008): flippable until the final window opens — after that it's settled, argue never
-          if model.isPro && model.clock.phase == .season && !model.clock.isCupFinal && !model.isComplete {
-            let d = LeagueCopy.finishDial(current: model.bylaws.finish)
-            RoomMini(d.label, busy: busy) {
-              busy = true
-              Task {
-                defer { busy = false }
-                do { try await model.setFinish(d.next); toast.show(d.toast) } catch { toast.show(roomError(error)) }
-              }
+          .padding(.vertical, 9)
+          .overlay(alignment: .bottom) { CSHairline() }
+        }
+        // the endgame dial (migration 008): flippable until the final window opens — after that it's settled, argue never
+        if model.isPro && model.clock.phase == .season && !model.clock.isCupFinal && !model.isComplete {
+          let d = LeagueCopy.finishDial(current: model.bylaws.finish)
+          RoomMini(d.label, busy: busy) {
+            busy = true
+            Task {
+              defer { busy = false }
+              do { try await model.setFinish(d.next); toast.show(d.toast) } catch { toast.show(roomError(error)) }
             }
-            .padding(.top, 8)
           }
+          .padding(.top, 8)
+          .frame(maxWidth: .infinity, alignment: .leading)
         }
       }
       RoomMini("How scoring & handicaps work →") { router.open(.scoringHelp) }
