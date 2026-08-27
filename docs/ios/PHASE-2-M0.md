@@ -1,6 +1,6 @@
 # Phase 2 · M0 Foundation — status artifact
 
-*2026-08-27 · first pass complete on the Mac · branch `native/b1-scaffold` (all uncommitted)*
+*2026-08-27 · first pass complete on the Mac · branch `native/m0-foundation` (committed 2026-08-27)*
 
 ## Completed
 
