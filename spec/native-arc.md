@@ -79,6 +79,36 @@ prod — check 11 catching a real owed `db push` on its first run). Checks 10 an
 11 were each negative-tested against the failure they exist to catch. If the shared layer cannot serve the client that already
 exists, it will not serve the two that do not.
 
+## How the work is organised
+
+**Where sessions run.** Native work is local — Claude Code on the Mac, which
+can run Expo, drive a simulator, read the actual crash and build to a phone.
+Remote sessions keep migrations, specs, decisions and the web client. See
+CLAUDE.md rule 6 for the one-branch-one-machine rule that follows from having
+two clones of this repo.
+
+**One branch per milestone, not one per phase.** A single `native` branch for
+all of Phase B becomes a months-long diff that cannot be reviewed or reverted
+and drifts from main the whole time. Instead:
+
+```
+native/b1-scaffold    boots · real palette · real sign-in
+native/b2-round       live scoring, the tee sheet
+native/b3-offline     the liveSync port
+native/b4-board       feed + realtime
+native/b5-push        APNs through the existing RPCs
+native/b6-standings   read + receipts
+```
+
+Each is cut from `main` and merged back the moment its gate passes.
+
+**Merging native code to main early is safe here**, which is not true of most
+projects. `stamp-version.sh` is a strict allowlist: Netlify publishes
+`index.html`, `legal.html`, `sw.js`, the manifest, the icons, `brand/` and the
+AASA, and nothing else. `apps/mobile/` is invisible to the website. So main
+stays the single source of truth with no risk to the live site, and there is no
+reason to hold native work on a long-lived integration branch.
+
 ## Phase B · The phone app (iOS)
 
 Built against the shared layer, not against a copy of it.
@@ -101,6 +131,9 @@ Built against the shared layer, not against a copy of it.
 
 **GATE:** a PIGL member plays a full round on the phone app, in a dead zone,
 and the card lands complete. Not a demo — a real round.
+
+**B1 has its own brief:** `spec/native-b1-brief.md` — written to be the first
+thing the local session reads, so it starts from decisions already made.
 
 ## Phase C · Android
 

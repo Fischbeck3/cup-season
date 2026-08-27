@@ -40,6 +40,15 @@ sections (§2.2, §14.0) when making competition-model decisions.
    + a named CONFLICT line if it collides with a higher level) BEFORE it's built.
    The hierarchy: vision → principles → IA → mechanics → UI → implementation;
    lower levels never silently contradict higher ones.
+6. **One branch, one machine.** There are two clones of this repo now — the
+   Mac and the remote Claude sandbox — and a branch is owned by exactly one of
+   them at a time. Pull at the start of a session, push at the end, never run a
+   remote and a local session on the same branch. The version-line collisions
+   in this repo's history were one symptom of parallel sessions; the build
+   stamp fixed that symptom, not the general problem.
+   **Native work runs LOCALLY** (D98 Phase B): a remote session cannot run
+   `npx expo start`, drive a simulator, read the real crash, or build to a
+   phone. Remote sessions keep migrations, specs, decisions and the web client.
 
 ## Deploy & verify discipline (non-negotiable)
 
