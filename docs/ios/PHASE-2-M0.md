@@ -25,7 +25,7 @@
 - **The gate:** sign in on the owner's iPhone with a real code → Home hero shows the real PIGL standing → kill, relaunch straight to Home from the Keychain. Needs a device build: open `apps/ios/CupSeason.xcodeproj`, Signing & Capabilities → Team `3F7BK4WVH8` (already in the project; automatic signing should register the App ID's associated-domains and push capabilities — if it refuses, untick those two capabilities for the first build), plug in, run.
 - **`db push` of batch 1** (owner): `./tools/ship.sh` → confirm `push` → refresh `contract.psv` with the query in its header → `node tools/build-db.mjs` (moves `native_home`/`handle_available`/`round_holes_of` into `Rpc.swift`; the hand-declared `NativeHomeCall` in `MeRepository.swift` is then replaced) → run `tests/db-checks.sql`, expect checks 3 and 12 to pass. Until then the app uses the fallback bootstrap (7 reads) and Home has no `prev_rank`/`pulse`.
 - Not in this pass: the Forge animation (M6), the leagueless rung 5 (buddy count needs `native_home`), the `handle_available` live check on the card (RPC not yet in the contract), the Debug menu, `client_events` telemetry, offline cache.
-- `apps/mobile/` (Expo B1) still in the tree — IOS-017 says commit it once as the record, then remove. `ios-wrapper/` likewise.
+- `apps/mobile/` (Expo B1) and `ios-wrapper/` removed (IOS-017) — the B1 record is the commit before D99's.
 
 ## Decisions made
 
