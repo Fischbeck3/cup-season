@@ -3489,3 +3489,90 @@ machinery-already-exists. ⚑ marks the points still needing an owner call.*
 - **Tradeoffs:** if pre-lock staging ever returns it must be rebuilt rather
   than re-enabled — deliberate, because what was here could not have been
   re-enabled anyway without its markup.
+
+### D98 · The wrapper comes out — three named surfaces, one React stack
+*(2026-08-26, owner decision. ARCHITECTURE, level 5-6, with a named level-1-2
+timing conflict. Supersedes `spec/ios-wrapper-arc.md` in full.)*
+- **Current:** since 2026-07-21 the iOS plan has been a Capacitor shell in
+  remote-URL mode — the app loads cupseason.app, so client updates keep riding
+  Netlify pushes with no store re-release. W1-W7 all shipped; Apple enrollment
+  landed today (Team ID `3F7BK4WVH8`) and the shell was roughly two days from
+  submission.
+- **Problem:** three things, found while auditing the shell rather than
+  theorised.
+  (a) **The wrapper's ceiling is permanent.** The two features that justify
+  being on a phone at all — scoring on a watch during the round, and a live
+  match on the lock screen — are structurally unreachable from a WKWebView.
+  No amount of shell polish gets there; only a second, native project does.
+  (b) **The wrapper's best argument was already spent.** Offline scoring in a
+  dead zone is the strongest case for going native, and D85 already solved it
+  in the web client: `window.liveSync` carries a durable localStorage queue,
+  LWW by the writer's clock, poisoned-write protection and drain-on-resume.
+  Native would have rebuilt that, not improved it. What was left was speed to
+  the store, bought with a throwaway codebase.
+  (c) **The surfaces were never named.** The web client was being treated as
+  the thing native replaces. It is not: it holds the most-built commissioner
+  machinery in the product (draft 117 client references, roster 97, wizard 56,
+  ledger 49) and already carries 13 breakpoints at `min-width:960px`, five at
+  `1100px`, and an 1120px container. It has been a desktop app for months and
+  nobody called it one.
+- **Decision (owner):** adopt the **Strava shape** — three surfaces, one
+  account, one Postgres — and abandon the wrapper. iOS waits for the real app.
+  1. **Phone — Expo / React Native, iOS first, then Android from the same
+     codebase.** Owns what happens standing on a tee box: live scoring, posting
+     a round, the board, push, standings read. It does NOT carry the wizard or
+     the draft board; those are desk work.
+  2. **Desktop — the web client, rewritten in React shortly after iOS ships.**
+     Owns the Pro's desk: wizard, draft, roster, ledger, month closes, deep
+     standings, receipts, founder desk. Keeps the ten `anon` endpoints that
+     make claim / join / share links work for people with no account — that
+     funnel is why this surface can never be retired.
+  3. **Apple Watch — Swift, after the phone app, timing deliberately
+     unfixed.** Scoring during play. Designed for in the phone app's round
+     state model so it attaches later without a re-architecture; NOT built
+     first.
+- **Principle:** **#1 Golf First** — the phone and the watch serve the golfer
+  mid-round, the desk serves the person running the league, and conflating
+  them is exactly the "optimize for league management" failure the principle
+  names. **#2 Low Friction Wins** — a draft run on a 6" screen is friction
+  invented by pretending one surface fits every job. Also persona-clean:
+  Persona 1 (the Commissioner) is a desktop user and always was; Persona 2
+  (the Competitive Weekend Golfer) is the phone and the watch.
+- **Benefit:** the two features that justify a native app become reachable
+  instead of permanently out of reach. The desktop surface stops being treated
+  as legacy and starts being invested in on purpose. Android arrives from the
+  same codebase rather than as a third rewrite. And the whole stack lands on
+  one language and one framework family, which for a solo builder is the
+  difference between three clients and three copies of the same client.
+- **Tradeoffs:** **iOS slips from days to months, and that is the real cost.**
+  Until the phone app ships, the PWA at cupseason.app is the entire mobile
+  story — PIGL gets no app icon this season. The Capacitor project
+  (`ios-wrapper/`) and today's Capacitor client wiring become dead code. A
+  React rewrite of a live 17,767-line client must run in parallel with a
+  cutover, never in place, because the web client is serving real leagues
+  throughout. Accepted deliberately: the owner's framing was "iOS waits until
+  we do it right."
+- **What survives the reversal** (most of it): Team ID, App ID, bundle id
+  `app.cupseason.ios`, the APNs key and its secrets, the App Store Connect
+  record, the corrected AASA, `device_tokens` +
+  `register_device_token` / `unregister_device_token`, preflight check 9, the
+  reviewer door, mute, report, account deletion, and every listing decision in
+  `spec/appstore-runbook.md` — its Phases 0, 1, 4, 5 and all nine decision
+  items hold verbatim. Only Phases 2-3 (Xcode/Capacitor mechanics) are
+  rewritten.
+- **CONFLICT (named):** **collides with D56**, which anchors the visible
+  pricing model to "iOS launch" and reasons from a mid-August date that no
+  longer exists. **Proposed resolution: re-anchor D56 to the web client, not
+  to iOS.** D56's actual mechanism is that a Pro sees the model BEFORE the
+  season-2 renewal ask, and the three surfaces it names — the wizard pot step,
+  the You-tab membership card, the League Room Pro view — are all live web
+  surfaces today. Nothing in D56 required an app; it required a deadline, and
+  the web client can carry the same deadline. D56's substance stands unchanged;
+  only its trigger moves. **Upholds:** D39 pot posture · D37 grant discipline ·
+  no purchase UI in any app (now a cross-store rule, not an iOS workaround) ·
+  email-OTP-only sign-in, which is what keeps Sign in with Apple optional.
+  **Supersedes:** `spec/ios-wrapper-arc.md` entire, and the unlogged
+  2026-07-21 wrapper decision it recorded — which never had an entry here,
+  the gap that let the largest architecture commitment in the product sit
+  unexamined for five weeks.
+

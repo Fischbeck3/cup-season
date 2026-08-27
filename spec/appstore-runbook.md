@@ -5,6 +5,14 @@ still need making. Companion to `spec/ios-wrapper-arc.md` (why the wrapper is
 shaped this way) and `spec/appstore-launch-kit.md` (the listing copy itself).
 This file is the ORDER; the kit is the CONTENT.
 
+> **Amended 2026-08-26 by D98.** The Capacitor wrapper is abandoned; the phone
+> app is Expo / React Native and iOS waits for it. **Phases 0, 1, 4 and 5 and
+> all nine decision items below hold verbatim** — the portal work, the listing,
+> the reviewer account, the pot posture and the privacy answers are all
+> client-agnostic. **Phases 2 and 3 are superseded**: substitute the Expo build
+> and device pass from `spec/native-arc.md`. D1 (iPad vs iPhone-only) now also
+> governs the RN target.
+
 **Where we are:** Apple Developer enrollment is live (Team ID `3F7BK4WVH8`),
 the Mac has arrived, and every Windows-phase item W1–W7 is done. What is left
 is three browser sessions in Apple's portals, one Xcode session, a device pass,

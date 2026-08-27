@@ -1,3 +1,9 @@
+> **SUPERSEDED 2026-08-26 by D98 and `spec/native-arc.md`.** The Capacitor
+> wrapper is abandoned; iOS waits for a real Expo/React Native app. Kept for
+> the record because most of the portal work it drove — Team ID, App ID, APNs
+> key, the AASA, `device_tokens` and its RPCs — carries straight into the
+> native arc. Do not build from this file.
+
 # iOS wrapper arc — Capacitor shell to the App Store (target mid-Aug)
 
 *Decisions settled with the owner 2026-07-21: Capacitor wrapper built in this
