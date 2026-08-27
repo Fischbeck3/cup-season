@@ -2,7 +2,7 @@ import Testing
 import Foundation
 @testable import CupSeasonKit
 
-@Suite struct BandTests {
+@Suite struct BoardBandTests {
   @Test func bandsAreTheWebsVerbatim() {
     #expect(CSBands.bandName(3.0) == "Torched it")
     #expect(CSBands.bandName(1.0) == "Beat your number")
