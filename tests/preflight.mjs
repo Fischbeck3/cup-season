@@ -169,5 +169,76 @@ const warn = (name, note) => { warns++; console.log(`~ WARN  ${name} — ${note}
   }
 }
 
+/* 10 · design tokens: one source, and the live client still agrees --------
+   D98 Phase A1. packages/tokens/tokens.json is the source of truth; the RN
+   and React clients build from it. index.html keeps its own inlined copy
+   because it is a single-file PWA by design — so the ONLY thing standing
+   between one palette and two is this check. A colour changed in the client
+   and not the JSON (or the reverse) fails here rather than shipping as a
+   surface that is subtly the wrong ember. */
+{
+  const doc = JSON.parse(readFileSync(join(root, 'packages', 'tokens', 'tokens.json'), 'utf8'));
+  const want = new Map();
+  for (const g of Object.values(doc.groups))
+    for (const [name, spec] of Object.entries(g.tokens)) want.set(name, spec);
+
+  /* read the client's own declarations out of its two theme surfaces */
+  const cssBlock = (sel, from = 0) => {
+    const i = html.indexOf(sel + '{', from);
+    if (i < 0) return null;
+    const s2 = i + sel.length + 1;
+    return { body: html.slice(s2, html.indexOf('\n}', s2)), end: html.indexOf('\n}', s2) };
+  };
+  const decls = (body) => new Map(
+    [...body.matchAll(/--([\w-]+)\s*:\s*([^;]+);/g)].map(m => [m[1], m[2].trim()]));
+  const r1 = cssBlock(':root');
+  const r2 = r1 && cssBlock(':root', r1.end);
+  const lt = cssBlock('html[data-theme="light"]');
+  const problems = [];
+  if (!r1 || !r2 || !lt) problems.push('could not find the :root / light theme blocks in index.html');
+  else {
+    const gotDark = new Map([...decls(r1.body), ...decls(r2.body)]);
+    const gotLight = decls(lt.body);
+    for (const [name, spec] of want) {
+      if (spec.dark !== undefined && gotDark.get(name) !== spec.dark)
+        problems.push(`--${name} dark: client ${gotDark.get(name) ?? '(absent)'} != tokens.json ${spec.dark}`);
+      if (spec.light !== undefined && gotLight.get(name) !== spec.light)
+        problems.push(`--${name} light: client ${gotLight.get(name) ?? '(absent)'} != tokens.json ${spec.light}`);
+    }
+    for (const name of gotDark.keys()) if (!want.has(name)) problems.push(`--${name} is in index.html but not tokens.json`);
+  }
+  try { execFileSync('node', [join(root, 'tools', 'build-tokens.mjs'), '--check'], { stdio: 'pipe' }); }
+  catch { problems.push('generated tokens.css/tokens.ts are stale — run tools/build-tokens.mjs'); }
+  problems.length === 0
+    ? pass('design tokens single-source', `${want.size} tokens agree with the client`)
+    : fail('design tokens single-source', problems.slice(0, 4).join(' · ') + (problems.length > 4 ? ` (+${problems.length - 4} more)` : ''));
+}
+
+/* 11 · every client RPC exists in the database (or is pending deploy) -----
+   D98 Phase A2. Check 2 proves a grant exists SOMEWHERE in the migrations.
+   This is the other half: the function actually exists in prod, spelled the
+   way the client spells it. A typo'd RPC name is a 404 that only ever shows
+   up as a dead button, and the two halves miss different bugs. Functions
+   present in a local migration but not in the snapshot are reported as a
+   deploy-skew WARN — that is a `supabase db push` you owe, not an error. */
+{
+  const psv = readFileSync(join(root, 'packages', 'db', 'contract.psv'), 'utf8');
+  const inProd = new Set(psv.split('\n').filter(l => l.trim() && !l.startsWith('#')).map(l => l.split('|')[0]));
+  const inMigrations = new Set(
+    [...migs.matchAll(/create\s+(?:or\s+replace\s+)?function\s+(?:"?public"?\.)?"?([a-z0-9_]+)"?/gi)].map(m => m[1].toLowerCase()));
+  const called = new Set([...html.matchAll(/\.rpc\(\s*['"]([a-z0-9_]+)['"]/g)].map(m => m[1]));
+
+  const ghosts = [...called].filter(f => !inProd.has(f) && !inMigrations.has(f));
+  const pending = [...called].filter(f => !inProd.has(f) && inMigrations.has(f));
+  let stale = false;
+  try { execFileSync('node', [join(root, 'tools', 'build-db.mjs'), '--check'], { stdio: 'pipe' }); }
+  catch { stale = true; }
+
+  if (ghosts.length) fail('rpc exists in database', `client calls a function that is in neither prod nor a migration: ${ghosts.join(', ')}`);
+  else if (stale) fail('rpc exists in database', 'packages/db/rpc.ts is stale — run tools/build-db.mjs');
+  else pass('rpc exists in database', `${called.size} client RPCs, ${inProd.size} in the snapshot`);
+  if (pending.length) warn('rpc pending deploy', `in a migration but not yet in prod — owe a db push: ${pending.join(', ')}`);
+}
+
 console.log(`\n${fails ? 'FAIL' : 'PASS'} — ${fails} failure(s), ${warns} warning(s)`);
 process.exit(fails ? 1 : 0);

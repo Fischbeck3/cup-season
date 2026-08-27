@@ -37,23 +37,46 @@ whole reason this is affordable.
 Before a second client exists, decide what the two of them share. Doing this
 after the fact means two clients that drifted for six months.
 
-- **A1 · Design tokens.** `--bg0`, `--bg1`, `--ink`, `--mut`, `--brand`,
-  `--gold`, `--pos`, `--neg` and their light/dark pairs already exist as CSS
-  custom properties in `index.html`. Extract to one JSON source the web CSS
-  and the RN theme both build from.
-- **A2 · Generated types.** 103 distinct RPCs. Generate TypeScript from the
-  live schema and commit it; typing them once beats typing them twice, and it
-  catches the D37 grant class of error at compile time instead of as a silent
-  403.
-- **A3 · The data layer.** One typed module wrapping the Supabase client, the
-  RPC calls, and the skew-retry convention (drop the new field on any error —
-  never sniff the message; see the `photo_path` landmine).
-- **A4 · Repo shape.** The single-file client becomes one workspace among
-  several. Decide now whether that is a monorepo in this repo or separate
-  repos — it is cheap today and expensive in three months.
+- **A1 · Design tokens — DONE.** 34 tokens across 11 groups extracted from
+  `index.html` (D76 rationale comments preserved) into
+  `packages/tokens/tokens.json`, which generates `tokens.css` and `tokens.ts`.
+  One deviation from the original plan, made deliberately: the live
+  `index.html` is *verified against* the JSON rather than *built from* it.
+  It is a single-file PWA whose deploy pipeline has no build step, and putting
+  one in front of a client serving real leagues buys nothing that preflight
+  check 10 does not already guarantee — which is that a token cannot differ
+  between the JSON and the client, in either theme, in either direction.
+  Phase D's React client imports the generated files directly.
+- **A2 · The RPC contract — DONE.** `packages/db/contract.psv` is a verbatim
+  `pg_proc` snapshot (169 rows, refresh query in its header); it generates
+  `packages/db/rpc.ts` — 155 callable functions as typed `{args, returns}`,
+  triggers excluded, overloads collapsed to the widest signature, and the ten
+  anon-reachable endpoints named as a list. Verified by negative test: a wrong
+  arg name, a wrong arg type, an unknown RPC name and a missing required arg
+  are each rejected by `tsc --strict`, and valid usage compiles.
+  Full table/view row types still want `supabase gen types typescript` from
+  the Mac — the CLI is not in the sandbox — and are not blocking Phase B.
+- **A3 · The data layer — DONE.** `packages/db/client.ts`, dependency-free by
+  design (it takes a structural view of a Supabase client rather than importing
+  one, so three surfaces can upgrade supabase-js on different days). It encodes
+  the rules this codebase already paid for, rather than documenting them:
+  skew-retry that fires on ANY error and never sniffs the message (the
+  `photo_path` 42501 never named its column), realtime bound to a dedicated
+  client, `deferAuthWork` so no auth call runs synchronously inside
+  `onAuthStateChange`, and `localDate`/`isoDate` so no calendar date is ever
+  built through `new Date('YYYY-MM-DD')`.
+- **A4 · Repo shape — DECIDED.** Monorepo in this repo, under `packages/`.
+  The root `package.json` is deliberately deferred to Phase B: Netlify runs an
+  automatic dependency install when it detects a root manifest, and this site
+  has no dependencies. Every tool stays zero-dependency Node, as
+  `tests/preflight.mjs` already was. See `packages/README.md`.
 
-**GATE:** the existing web client consumes A1 and A2 without a visual or
-behavioural change. If the shared layer cannot serve the client that already
+**GATE — MET 2026-08-26.** The existing web client is byte-unchanged: Phase A
+added files and preflight checks and edited `index.html` not at all, so there
+is no visual or behavioural change to verify away. Preflight is 11/11 with one
+deliberate warning (`unregister_device_token` is in a migration and not yet in
+prod — check 11 catching a real owed `db push` on its first run). Checks 10 and
+11 were each negative-tested against the failure they exist to catch. If the shared layer cannot serve the client that already
 exists, it will not serve the two that do not.
 
 ## Phase B · The phone app (iOS)
