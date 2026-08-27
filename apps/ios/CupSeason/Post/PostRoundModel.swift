@@ -275,6 +275,32 @@ final class PostRoundModel {
   }
 }
 
+#if DEBUG
+extension PostRoundModel {
+  /// `-cs_dev_post_seed <total|strip|scan>` — a filled card for a simulator
+  /// without a finger (IOS-020's "look" step). DEBUG-only; never posts.
+  ///   total · 41 out, 43 in on Papago Blue
+  ///   strip · the scorecard strip open with a few holes off par
+  ///   scan  · the strip as the scan's confirm surface: two unread cells, one partner row
+  func devSeed(_ kind: String) {
+    card.course = "Papago Golf Course · Blue"; card.rating = "71.2"; card.slope = "128"
+    switch kind {
+    case "strip", "scan":
+      card.mode = .holes
+      card.plus(0); card.plus(3); card.minus(5); card.plus(10); card.plus(10); card.minus(12); card.minus(12); card.plus(16)
+      if kind == "scan" {
+        var read = card.scores; read[7] = 0; read[14] = 0
+        card.scan = PostScanContext(read: read, others: [PostScanPlayer(name: "Ed", holes: Array(repeating: 4, count: 18), total: 72, holes_read: 18)])
+      }
+    default:
+      card.f9 = "41"; card.b9 = "43"
+    }
+  }
+  /// The strip's opening selection under the seed: hole 7, so the ring shows.
+  static var devSelectedHole: Int { ProcessInfo.processInfo.arguments.contains("-cs_dev_post_seed") ? 6 : 0 }
+}
+#endif
+
 /// What the epilogue sheet needs (`showEpilogue(epi, course, firstEver, roundId)`).
 struct PostEpilogueShow: Identifiable {
   let epilogue: PostEpilogue

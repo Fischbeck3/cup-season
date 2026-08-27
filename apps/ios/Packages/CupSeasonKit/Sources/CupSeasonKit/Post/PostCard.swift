@@ -433,3 +433,42 @@ public enum PostSeasonRule {
     return played >= s.starts_on && played <= s.ends_on
   }
 }
+
+// MARK: - the scorecard strip (IOS-020)
+
+/// The pure arithmetic behind the strip: Out and In rows of nine, a total
+/// cell at the end of each, and one selected hole the big stepper drives.
+/// The selection lives in the view — this only answers what the next hole is.
+public enum PostStrip {
+  /// The nine holes of a row: `0` = OUT (1–9), `1` = IN (10–18).
+  public static func row(_ r: Int) -> Range<Int> { r == 0 ? 0..<9 : 9..<18 }
+
+  /// The strokes on a row: cells at 0 count as nothing (an unread scan cell).
+  public static func total(_ scores: [Int], row r: Int) -> Int {
+    row(r).reduce(0) { $0 + (scores.indices.contains($1) ? max(0, scores[$1]) : 0) }
+  }
+  /// The par a row adds up to.
+  public static func par(_ pars: [Int], row r: Int) -> Int {
+    row(r).reduce(0) { $0 + (pars.indices.contains($1) ? pars[$1] : 0) }
+  }
+
+  /// "Next hole →": one forward, OUT wraps into IN, the last hole wraps to the first.
+  public static func next(after i: Int, side: Int) -> Int {
+    let n = side == 9 ? 9 : 18
+    return (max(0, i) + 1) % n
+  }
+
+  /// A selection that survives a side flip: 18 → 9 pulls a back-nine hole onto the front.
+  public static func clamp(_ i: Int, side: Int) -> Int {
+    let n = side == 9 ? 9 : 18
+    return min(max(0, i), n - 1)
+  }
+
+  /// "Hole 7, par 4, 5 strokes" — the cell's VoiceOver line.
+  public static func cellLabel(hole i: Int, par: Int, score: Int) -> String {
+    "Hole \(i + 1), par \(par), \(score) stroke\(score == 1 ? "" : "s")"
+  }
+
+  /// "HOLE 7 · PAR 4" — the stepper's eyebrow.
+  public static func stepperEyebrow(hole i: Int, par: Int) -> String { "HOLE \(i + 1) · PAR \(par)" }
+}

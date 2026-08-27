@@ -317,3 +317,40 @@ import Foundation
     #expect(PostEpilogue(json: .null) == nil)
   }
 }
+
+@Suite struct PostStripTests {
+  @Test func rowsAndTotals() {
+    var scores = PostCard.parStd
+    scores[0] = 5; scores[17] = 3
+    #expect(PostStrip.row(0) == 0..<9 && PostStrip.row(1) == 9..<18)
+    #expect(PostStrip.total(scores, row: 0) == 37)
+    #expect(PostStrip.total(scores, row: 1) == 34)
+    #expect(PostStrip.par(PostCard.parStd, row: 0) == 36 && PostStrip.par(PostCard.parStd, row: 1) == 36)
+  }
+
+  @Test func unreadCellsCountNothing() {
+    var scores = Array(repeating: 5, count: 18); scores[3] = 0
+    #expect(PostStrip.total(scores, row: 0) == 40)
+    #expect(PostStrip.total(Array(repeating: 5, count: 9), row: 1) == 0)
+  }
+
+  @Test func nextHoleWrapsOutIntoInAndAround() {
+    #expect(PostStrip.next(after: 0, side: 18) == 1)
+    #expect(PostStrip.next(after: 8, side: 18) == 9)
+    #expect(PostStrip.next(after: 17, side: 18) == 0)
+    #expect(PostStrip.next(after: 8, side: 9) == 0)
+    #expect(PostStrip.next(after: 17, side: 9) == 0)
+  }
+
+  @Test func selectionSurvivesASideFlip() {
+    #expect(PostStrip.clamp(14, side: 9) == 8)
+    #expect(PostStrip.clamp(14, side: 18) == 14)
+    #expect(PostStrip.clamp(-3, side: 18) == 0)
+  }
+
+  @Test func theVoiceOverLines() {
+    #expect(PostStrip.cellLabel(hole: 6, par: 4, score: 5) == "Hole 7, par 4, 5 strokes")
+    #expect(PostStrip.cellLabel(hole: 0, par: 3, score: 1) == "Hole 1, par 3, 1 stroke")
+    #expect(PostStrip.stepperEyebrow(hole: 6, par: 4) == "HOLE 7 · PAR 4")
+  }
+}

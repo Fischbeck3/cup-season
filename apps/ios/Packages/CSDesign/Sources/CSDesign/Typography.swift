@@ -37,6 +37,8 @@ public enum CSFont {
 
   /// Hero numbers: rank, index, the pot.
   public static let hero = Font.custom(serifBold, size: 40, relativeTo: .largeTitle)
+  /// The one figure a screen is about — the live gross on the composer (IOS-020).
+  public static let figure = Font.custom(serifBold, size: 64, relativeTo: .largeTitle)
   public static let heroSmall = Font.custom(serifBold, size: 28, relativeTo: .title)
   /// The standings sentence, the band line — a sentence in the honor voice.
   public static let sentence = Font.custom(serifRegular, size: 17, relativeTo: .callout)
