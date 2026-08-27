@@ -47,6 +47,9 @@ struct WizardPresetStep: View {
   @Environment(\.cs) private var cs
   @Bindable var model: WizardModel
   @State private var help: Set<String> = []
+  /// D56 / IOS-021: the season-pass card under the pot preview. `.hidden`
+  /// until the flag loads; renders nothing while `pricing.visible` is false.
+  @State private var pricing = PricingFlags.hidden
 
   var body: some View {
     VStack(alignment: .leading, spacing: 12) {
@@ -68,6 +71,8 @@ struct WizardPresetStep: View {
       .accessibilityAddTraits(model.showDials ? [.isSelected] : [])
       if model.showDials { dials }
       WizardPortraitCard(portrait: model.portrait)
+        .task { pricing = await PricingFlags.load() }
+      PricingPassCard(flags: pricing, roster: model.roster, buyInCents: model.dials.stake * 100)
     }
   }
 
