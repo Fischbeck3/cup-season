@@ -37,14 +37,15 @@ struct ClubhouseView: View {
     }
   }
 
-  /// `#hubLeagueless` — Start a league · I have an invite code · Add golfers.
+  /// `#hubLeagueless` — Start a league · I have an invite code · Add golfers (wave 5's doors).
   private var leagueless: some View {
     ScrollView {
       VStack(alignment: .leading, spacing: 12) {
-        Text("No league yet, your golf still counts").csEyebrow()
-        Text("Your leagues are a tap away.").font(CSFont.title).foregroundStyle(cs.ink)
-        CSButton("Start a league") { presenter.handoff = .league }
-        CSButton("I have an invite code", style: .quiet) { presenter.join(code: nil) }
+        LeaguelessDoors(links: WizardLinks(
+          onLocked: { id in store.preferredLeague = id; Task { await store.reload() } },
+          onCancelled: { Task { await store.reload() } },
+          startEvent: { presenter.handoff = .event },
+          onJoined: { id in store.preferredLeague = id; Task { await store.reload() } }))
         NavigationLink(value: HomeRoute.people) {
           Text("Add golfers").font(CSFont.button).frame(maxWidth: .infinity, minHeight: 50).foregroundStyle(cs.ink)
             .background(cs.bg2, in: RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous))
@@ -66,13 +67,13 @@ struct ClubhouseView: View {
     return LeagueRoomLinks(
       openBoard: { board(lid) },
       openSchedule: { schedule() },
-      openWizard: { p.handoff = .league },
-      openDraft: { p.handoff = .league },
+      openWizard: { p.wizard = .init(existingLeagueId: lid) },
+      openDraft: { p.draft = lid },
       openReceipt: { p.receipt = $0 },
       openTourCard: { p.tourCard = $0 },
       addGolfers: { add(lid) },
       openRecord: { p.showPost = true },
-      runItBack: { p.handoff = .league },
+      runItBack: { p.runBack = lid },
       leagueGone: { Task { await store.reload() } }
     )
   }

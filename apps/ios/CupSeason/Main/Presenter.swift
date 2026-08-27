@@ -22,6 +22,11 @@ final class Presenter {
   var declare: DeclarePrefill?
   /// "Add golfers" for a league — the people picker in invite mode.
   var inviteTo: UUID?
+  /// The wizard (wave 5): nil league = a new one; `initialStep: 2` = "Lock it in".
+  var wizard: WizardTarget?
+  var draft: UUID?
+  var runBack: UUID?
+  struct WizardTarget: Identifiable { let existingLeagueId: UUID?; var initialStep = 0; var id: String { (existingLeagueId?.uuidString ?? "new") + "·\(initialStep)" } }
   /// Wave 5/6 hand-offs: the league wizard and the event picker are not on
   /// the phone yet; these present the honest web hand-off.
   var handoff: Handoff?

@@ -105,6 +105,26 @@ struct MainTabView: View {
                         onDone: { presenter.inviteTo = nil })
     }
     .sheet(item: $presenter.handoff) { HandoffSheet(kind: $0) }
+    .fullScreenCover(item: $presenter.wizard) { t in
+      WizardScreen(existingLeagueId: t.existingLeagueId, links: wizardLinks, initialStep: t.initialStep)
+    }
+    .fullScreenCover(item: $presenter.draft) { lid in
+      NavigationStack {
+        DraftNightScreen(leagueId: lid, links: DraftLinks(
+          onSeasonStarted: { id in presenter.draft = nil; store.preferredLeague = id; Task { await store.reload() }; tab = .home },
+          openWizard: { presenter.draft = nil; presenter.wizard = .init(existingLeagueId: lid) },
+          addGolfers: { presenter.inviteTo = lid }))
+        .toolbar { ToolbarItem(placement: .cancellationAction) { Button("Close") { presenter.draft = nil } } }
+      }
+    }
+    .sheet(item: $presenter.runBack) { lid in
+      NavigationStack {
+        ScrollView { RunItBackCard(leagueId: lid, links: wizardLinks).padding(20) }
+          .background(cs.bg0)
+          .toolbar { ToolbarItem(placement: .cancellationAction) { Button("Close") { presenter.runBack = nil } } }
+      }
+      .presentationDetents([.medium, .large])
+    }
     .fullScreenCover(isPresented: $presenter.showPost) { PostCoverView() }
   }
 
@@ -114,6 +134,14 @@ struct MainTabView: View {
     CSLinks(openTourCard: { presenter.tourCard = $0 },
             openRound: nil,      // a nil openRound presents the scheduled-round sheet in place
             openLeague: { id in store.preferredLeague = id; tab = .clubhouse })
+  }
+
+  private var wizardLinks: WizardLinks {
+    WizardLinks(
+      onLocked: { id in presenter.wizard = nil; presenter.runBack = nil; store.preferredLeague = id; Task { await store.reload() }; tab = .clubhouse },
+      onCancelled: { presenter.wizard = nil; Task { await store.reload() } },
+      startEvent: { presenter.handoff = .event },
+      onJoined: { id in store.preferredLeague = id; Task { await store.reload() }; tab = .clubhouse })
   }
 
   private var boardLinks: BoardLinks {
