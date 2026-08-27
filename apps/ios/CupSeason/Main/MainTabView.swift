@@ -18,6 +18,9 @@ struct MainTabView: View {
   @State private var homePath = NavigationPath()
   @State private var clubPath = NavigationPath()
   @State private var youPath = NavigationPath()
+  #if DEBUG
+  @State private var devOpened = false
+  #endif
   enum Tab: Hashable { case home, clubhouse, post, you }
 
   var body: some View {
@@ -78,6 +81,29 @@ struct MainTabView: View {
     }
     .tint(cs.brand)
     .environment(\.presenter, presenter)
+    #if DEBUG
+    // Developer hatch: `-cs_dev_open <place>` lands a simulator on a screen
+    // without a finger. DEBUG-only; the shipped build has no such door.
+    .task(id: store.me?.generated_at) {
+      let a = ProcessInfo.processInfo.arguments
+      guard !devOpened, store.me != nil, let i = a.firstIndex(of: "-cs_dev_open"), i + 1 < a.count else { return }
+      try? await Task.sleep(for: .seconds(2))
+      devOpened = true
+      switch a[i + 1] {
+      case "clubhouse": tab = .clubhouse
+      case "you": tab = .you
+      case "board": tab = .clubhouse; if let l = store.preferredLeague { clubPath.append(ClubRoute.board(l)) }
+      case "schedule": tab = .clubhouse; clubPath.append(ClubRoute.schedule)
+      case "settings": tab = .you; youPath.append(YouRoute.settings)
+      case "people": tab = .you; youPath.append(YouRoute.people)
+      case "post", "postround": presenter.showPost = true
+      case "live": presenter.showLive = true
+      case "wizard": presenter.wizard = .init(existingLeagueId: nil)
+      case "events": presenter.showEventPicker = true
+      default: break
+      }
+    }
+    #endif
     .onChange(of: tab) { old, new in
       // the ⊕ is a verb, not a place: it presents, and the selection snaps back
       if new == .post { presenter.showPost = true; tab = old == .post ? .home : old }
@@ -131,10 +157,19 @@ struct MainTabView: View {
       }
       .presentationDetents([.medium, .large])
     }
-    .fullScreenCover(isPresented: $presenter.showPost) { PostCoverView() }
+    .fullScreenCover(isPresented: $presenter.showPost) {
+      PostCoverView(links: PostLinks(openLive: { presenter.showLive = true },
+                                     openReceipt: { presenter.receipt = $0 },
+                                     openPeople: { presenter.showPost = false; tab = .you; youPath.append(YouRoute.people) }))
+    }
+    .fullScreenCover(isPresented: $presenter.showLive) { LiveRoundHost(links: liveLinks) }
   }
 
   // MARK: links
+
+  private var liveLinks: LiveLinks {
+    LiveLinks(openReceipt: { presenter.receipt = $0 }, openTourCard: { presenter.tourCard = $0 }, done: { presenter.showLive = false })
+  }
 
   private var csLinks: CSLinks {
     CSLinks(openTourCard: { presenter.tourCard = $0 },

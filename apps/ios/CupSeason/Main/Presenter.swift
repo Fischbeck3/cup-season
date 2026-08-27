@@ -15,6 +15,8 @@ final class Presenter {
   var showJoin = false
   var joinCode: String?
   var showPost = false
+  /// The tee sheet (wave 4): setup → live → recap, over whichever tab.
+  var showLive = false
   var showFeedback = false
   var feedbackScreen = "home"
   var showDesk = false

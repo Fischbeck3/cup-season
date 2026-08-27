@@ -9,12 +9,10 @@ import SwiftUI
 import CSDesign
 import CupSeasonKit
 
-/// The doors out of the ⊕. The host wires them; a nil `openLive` means the
-/// live round is not on this phone yet and the card presents the honest
-/// hand-off (the web scores the group live today) — never a dead button.
+/// The doors out of the ⊕. The host wires them.
 struct PostLinks {
-  /// "Play now" — the live round (its own slice).
-  var openLive: (() -> Void)? = nil
+  /// "Play now" — the tee sheet (`LiveRoundHost`).
+  var openLive: () -> Void = {}
   var openReceipt: (UUID) -> Void = { _ in }
   var openPeople: () -> Void = {}
 }
@@ -26,7 +24,6 @@ struct PostCoverView: View {
   let links: PostLinks
   @State private var path = NavigationPath()
   @State private var showPlan = false
-  @State private var showLiveHandoff = false
 
   init(links: PostLinks = PostLinks()) { self.links = links }
 
@@ -41,7 +38,7 @@ struct PostCoverView: View {
                          sub: "Gross + tee, 20 seconds · counts on your card and in every league") { path.append(Route.post) }
           PostOptionCard(spine: cs.sq0, title: "Play now — score the group live",
                          sub: "A shared pencil: match play, Wolf & the settle-up. Post your gross after — the finish screen hands it to you.") {
-            if let live = links.openLive { dismiss(); live() } else { showLiveHandoff = true }
+            dismiss(); links.openLive()
           }
           PostOptionCard(spine: cs.gold, title: "Plan a tee time — before",
                          sub: "Put a round on the tee sheet · your buddies and leagues see it the moment you post") { showPlan = true }
@@ -56,33 +53,10 @@ struct PostCoverView: View {
       }
       .toolbar { ToolbarItem(placement: .cancellationAction) { Button("Close") { dismiss() }.foregroundStyle(cs.mut) } }
       .sheet(isPresented: $showPlan) { DeclareRoundSheet(leagueId: store.preferredLeague) { _ in dismiss() } }
-      .sheet(isPresented: $showLiveHandoff) { PostLiveHandoffSheet() }
+      #if DEBUG
+      .task { if ProcessInfo.processInfo.arguments.contains("postround") { path.append(Route.post) } }
+      #endif
     }
-  }
-}
-
-/// Wave 4 hand-off: the shared pencil is not on the phone yet. Honest, and a
-/// real action — the web scores the group live today.
-struct PostLiveHandoffSheet: View {
-  @Environment(\.dismiss) private var dismiss
-  @Environment(\.cs) private var cs
-  var body: some View {
-    NavigationStack {
-      VStack(alignment: .leading, spacing: 14) {
-        Text("Play now — score the group live").csEyebrow()
-        Text("The shared pencil lands on the phone in wave 4.").font(CSFont.title).foregroundStyle(cs.ink)
-        Text("Until then, score the group live at cupseason.app — match play, Wolf & the settle-up. Post your gross after; the finish screen hands it to you.")
-          .font(CSFont.body).foregroundStyle(cs.mut)
-        Link(destination: CSConfig.webOrigin) {
-          Text("Open cupseason.app").font(CSFont.button).frame(maxWidth: .infinity, minHeight: 50)
-            .foregroundStyle(cs.bg0).background(cs.brand, in: RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous))
-        }
-        Spacer()
-      }
-      .padding(24).background(cs.bg0)
-      .toolbar { ToolbarItem(placement: .cancellationAction) { Button("Close") { dismiss() } } }
-    }
-    .presentationDetents([.medium])
   }
 }
 

@@ -24,7 +24,9 @@ struct HomeView: View {
         VStack(alignment: .leading, spacing: 14) {
           InvitesBanner { id in store.preferredLeague = id; Task { await store.reload() } }
 
-          if let live = me.live_round { LiveRoundBanner(round: live) }
+          LiveResumeBanner(links: LiveLinks(openReceipt: { presenter.receipt = $0 }, openTourCard: { presenter.tourCard = $0 },
+                                            done: { presenter.showLive = false }),
+                           open: { presenter.showLive = true })
 
           HomeHero(mode: mode, me: me)
 
@@ -143,24 +145,6 @@ final class HomeModel {
       st.flip(me: name, on: had)
       social.rx[t.postId, default: [:]][emoji] = st
       return AuthRules.human(error, fallback: "Reaction did not save.")
-    }
-  }
-}
-
-// MARK: - live round banner (renderResumeBanner 7710–7735)
-
-private struct LiveRoundBanner: View {
-  @Environment(\.cs) private var cs
-  let round: Me.LiveRound
-  var body: some View {
-    CSCard(spine: cs.pos) {
-      VStack(alignment: .leading, spacing: 4) {
-        Text(round.mine == true ? "Continue your round" : "You're on the tee sheet").csEyebrow(cs.pos)
-        Text([round.course_label, round.league_name].compactMap { $0 }.joined(separator: " · ")).font(CSFont.sentence).foregroundStyle(cs.ink)
-        Text("Live scoring lands on the phone in wave 4 — score it at cupseason.app for now.")
-          .font(CSFont.footnote).foregroundStyle(cs.mut)
-        Link("Open the pencil", destination: CSConfig.webOrigin).font(CSFont.button).foregroundStyle(cs.brand)
-      }
     }
   }
 }

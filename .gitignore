@@ -21,3 +21,4 @@ spec/handoffs/*.pdf
 # needed to regenerate the brand lockups. Binaries stay out of the repo.
 tools/fonts/
 .claude/worktrees/
+apps/ios/build/

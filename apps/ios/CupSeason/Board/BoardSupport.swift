@@ -73,6 +73,9 @@ extension View {
 @MainActor
 func makeBoardStore(leagueId: UUID, session: SessionStore) -> BoardStore {
   let m = session.me?.memberships.first { $0.league_id == leagueId }
-  return BoardStore(leagueId: leagueId, leagueName: m?.name ?? "", membership: m,
-                    profileId: session.me?.profile?.id ?? session.session?.user.id)
+  let s = BoardStore(leagueId: leagueId, leagueName: m?.name ?? "", membership: m,
+                     profileId: session.me?.profile?.id ?? session.session?.user.id)
+  // D86 doorbell: a `live_open` broadcast nudges the tee sheet to look
+  s.onLiveOpen = { payload in LiveRoundStore.shared.handleLiveOpen(lr: LiveRoundSession.liveOpenId(payload)) }
+  return s
 }

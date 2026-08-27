@@ -7,7 +7,10 @@ import CupSeasonKit
 struct RootView: View {
   @Environment(SessionStore.self) private var store
   @Environment(\.cs) private var cs
+  @Environment(\.toast) private var toast
   @State private var pendingJoin: String?
+  /// A guest pencil's "keep it" tap: show the door over the pending claim.
+  @State private var guestDoor = false
 
   var body: some View {
     ZStack {
@@ -16,12 +19,18 @@ struct RootView: View {
       case .restoring:
         BootingView(step: "Restoring your session")
       case .signedOut:
-        DoorView()
+        if let t = ClaimIntent.pending(), !guestDoor {
+          GuestPencilScreen(token: t, onDoor: { guestDoor = true })
+        } else {
+          DoorView()
+        }
       case .cardGate(let me):
         CardGateView(me: me)
       case .ready:
         MainTabView()
           .onAppear { if let j = JoinIntent.pending() { pendingJoin = j.code; JoinIntent.clear() } }
+          // a claim link that came in signed-out lands the card now (D88)
+          .task(id: store.me?.profile?.id) { guestDoor = false; await LiveClaimAfterAuth.run(toast: toast) }
           .sheet(item: $pendingJoin) { code in
             JoinLeagueFlow(code: code) { id in store.preferredLeague = id; Task { await store.reload() } }
           }

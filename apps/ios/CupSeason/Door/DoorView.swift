@@ -38,6 +38,12 @@ struct DoorView: View {
     }
     .scrollDismissesKeyboard(.interactively)
     .onAppear { focus = .email }
+    #if DEBUG
+    // The developer hatch (the web's `/?exit` family): a simulator cannot type.
+    // `-cs_dev_email a@b` requests the code; add `-cs_dev_code 12345678` on the
+    // next launch to verify it. Code-only, DEBUG-only, never in a shipped build.
+    .task { await vm.devHatch(ProcessInfo.processInfo.arguments) }
+    #endif
   }
 
   // MARK: crest
@@ -211,6 +217,15 @@ final class DoorModel {
     do { try await svc.signInReviewer(email: email, password: password) }
     catch { note = Note(text: AuthRules.human(error, fallback: "That did not take."), tone: .neg) }
   }
+
+  #if DEBUG
+  func devHatch(_ args: [String]) async {
+    func arg(_ k: String) -> String? { args.firstIndex(of: k).flatMap { $0 + 1 < args.count ? args[$0 + 1] : nil } }
+    guard let e = arg("-cs_dev_email") else { return }
+    email = e
+    if let c = arg("-cs_dev_code") { stage = .code; code = c; await verify() } else { await send() }
+  }
+  #endif
 
   func backToEmail() {
     stage = .email; code = ""; password = ""; note = nil

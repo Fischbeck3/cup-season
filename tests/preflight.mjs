@@ -372,7 +372,7 @@ if (existsSync(iosDir)) {
     .split('\n').map(l => l.replace(/(^|[^:])\/\/.*$/, '$1')).join('\n');
   const walk = (dir) => {
     for (const e of readdirSync(dir, { withFileTypes: true })) {
-      if (e.name.startsWith('.') || e.name.endsWith('.xcodeproj') || e.name === 'DerivedData') continue;
+      if (e.name.startsWith('.') || e.name.endsWith('.xcodeproj') || e.name === 'DerivedData' || e.name === 'build') continue;   // `build/` = local derived data (gitignored), carries SDK example sources
       const full = join(dir, e.name);
       if (e.isDirectory()) walk(full);
       else if (e.name.endsWith('.swift')) iosSrc.push([full.slice(iosDir.length + 1), decomment(readFileSync(full, 'utf8'))]);
