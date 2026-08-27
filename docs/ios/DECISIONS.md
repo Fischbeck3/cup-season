@@ -171,3 +171,17 @@ Owner-facing questions that fell out of the nine slices, collected so nothing is
 - Band edge at PvI = −1.0: server 6, client 7 (audit 03 §5.2) — pick the server's rule.
 - `set_profile` cannot clear city/home course (audit 01 Q2) — bug or intended.
 - Guest identity on native: App Clip for the account-less pencil (IOS-004 #12) — scope.
+
+---
+
+## IOS-018 · Full web parity on the phone first; the web is rethought after — **P0 · DECIDED 2026-08-27 (owner)**
+
+**Decision.** Supersedes the scope half of IOS-007. The phone builds *everything the web has* — including the wizard's dials and the lock, Pro-assign and the draft board, ledger and pot in full, the founder desk, feedback, reports, the sandbox controls — walked row by row from the IOS-001 parity matrix, in the web's own copy and behaviour. Only after parity is real does the ecosystem question get asked: what the web should be as a standalone product next to the phone (a later decision, not this one).
+
+**Context.** The owner's read of the M0 build: "still like 25% of what it should be." The audit's opinionated "do differently" items (IOS-004) remain valid but are *sequenced after* parity — a native improvement is measured against a working port, not a plan.
+
+**Consequences.** IOS-005's milestones are re-cut as parity waves (see the roadmap amendment); D99's "operating vs authoring" split no longer bounds the phone; `spec/native-arc.md`'s "Owns" table is historical. Nothing in D98/D99 about the backend, the guardrails (no purchase UI, email-OTP-only, immutable rounds, D37 grants) changes.
+
+**Reversibility.** EASY — screens are additive.
+
+**Action.** Proceeding. Logged upstream as D100.

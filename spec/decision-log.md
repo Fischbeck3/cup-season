@@ -3629,3 +3629,31 @@ IOS-006 and IOS-007; the Phase 1 audit behind it is `docs/ios/audit/`.)*
   decisions are upheld verbatim, its implementation choice is replaced, and
   its Phase C/D sequencing is re-opened. Milestones now follow
   `docs/ios/IOS-005-roadmap.md` (M0–M7), not `native/b1…b6`.
+
+### D100 · The phone gets the whole web first; the web is rethought after
+*(2026-08-27, owner decision. SCOPE / IA, level 3-5. Supersedes the surface
+split in D98 and the scope half of D99 (IOS-007); upholds everything else in
+both. Record: `docs/ios/DECISIONS.md` IOS-018.)*
+- **Current:** D98/D99 drew a line — the phone operates the league, the desk
+  authors it (wizard dials, lock, assign, overrides, founder desk stay web).
+- **Problem:** the first native build read as a quarter of the product, and a
+  line drawn before the phone exists is a line drawn from theory. The web is
+  the functional truth today; a native surface that lacks any of it cannot
+  be judged against it, and the "what should the web be" question cannot be
+  answered while the phone is the smaller of the two.
+- **Decision (owner):** build the phone to **full parity with the web** —
+  every row of the IOS-001 matrix, in the web's own copy and behaviour —
+  before native departures, then decide what the web is as a standalone
+  product in the Cup Season ecosystem.
+- **Principle:** **#5 The app should feel alive** — on the phone, the whole
+  product, not a scaffold of it; and the hierarchy of truth: the surface split
+  is IA (level 3) and was being decided at level 6 (implementation) by
+  default.
+- **Benefit:** one complete phone product to measure against; the desk
+  conversation happens with two real surfaces in hand.
+- **Tradeoffs:** more phone screens than D98 wanted (the wizard on a 6"
+  screen, the draft clock); the native-advantage work (IOS-004) waits behind
+  parity. Accepted.
+- **CONFLICT (named):** D98 "the phone is for the tee box" and D99's
+  operating/authoring split — resolved by this entry; the guardrails and
+  the backend decisions in both stand verbatim.

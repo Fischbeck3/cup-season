@@ -14,6 +14,10 @@ Priority = **product impact × user frequency × technical dependency ÷ effort*
 | b | **Decide IOS-006 / IOS-007** (stack; phone scope). | Owner | M0 scaffolds the wrong thing otherwise. |
 | c | **Backend batch 1** (IOS-009 items 10, 6, 1, 3, 8): the `close_month` revoke, `min_ios_build`, `native_home`, `round_holes_of`, `handle_available`. | Migration session + owner `db push` | M0/M1 read them; all additive, web unaffected. |
 
+## 0b. Amendment 2026-08-27 — IOS-018: parity waves
+
+The milestones below are re-cut as **parity waves** over the IOS-001 matrix; each wave ports the web's behaviour and copy first, native departures (IOS-004) after. Wave 1 (now, in parallel): standings & the league room · the board · rounds read + You + Tour Card · people, invites, join, the calendar · card/settings/founder desk. Wave 2: Home in full (needs wave 1). Wave 3: post a round. Wave 4: the live round. Wave 5: league creation — the wizard in full, lock, draw/assign/draft board, Pro tools, cancellation, pot. Wave 6: the Ryder and the Major. Wave 7: push, sharing, notifications. Wave 8: polish + the parity audit. The "what is the web" decision follows wave 8.
+
 ## 1. Milestones
 
 ### M0 · Foundation — `native/m0-foundation` (Phase 2) — **first pass built 2026-08-27, gate pending the device build; see `PHASE-2-M0.md`**
