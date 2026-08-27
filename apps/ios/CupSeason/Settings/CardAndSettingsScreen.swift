@@ -311,7 +311,7 @@ private struct SettingsPane: View {
   var body: some View {
     VStack(alignment: .leading, spacing: 10) {
       Text("Notifications").csEyebrow()
-      FlowRow {
+      PillFlow {
         pill(push.enabled ? "Disable on this device" : "Enable on this device") {
           Task { toast.show(push.enabled ? await push.disable() : await push.enable()) }
         }
@@ -386,7 +386,7 @@ private struct SettingsPane: View {
 }
 
 /// A wrapping HStack for pills.
-struct FlowRow<Content: View>: View {
+struct PillFlow<Content: View>: View {
   @ViewBuilder let content: Content
   var body: some View {
     LazyVGrid(columns: [GridItem(.adaptive(minimum: 150), spacing: 8, alignment: .leading)], alignment: .leading, spacing: 8) { content }

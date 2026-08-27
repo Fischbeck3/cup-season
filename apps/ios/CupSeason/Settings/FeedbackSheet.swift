@@ -23,7 +23,7 @@ struct FeedbackSheet: View {
     NavigationStack {
       VStack(alignment: .leading, spacing: 12) {
         Text("What helped, what confused you, what you would change").csEyebrow()
-        FlowRow {
+        PillFlow {
           ForEach([("confusing", "Confusing"), ("friction", "Friction"), ("idea", "Idea"), ("bug", "Bug")], id: \.0) { key, title in
             let on = category == key
             Button { category = on ? "" : key } label: {
