@@ -20,6 +20,8 @@ final class Presenter {
   var showDesk = false
   var showNote = false
   var declare: DeclarePrefill?
+  /// "Add golfers" for a league — the people picker in invite mode.
+  var inviteTo: UUID?
   /// Wave 5/6 hand-offs: the league wizard and the event picker are not on
   /// the phone yet; these present the honest web hand-off.
   var handoff: Handoff?

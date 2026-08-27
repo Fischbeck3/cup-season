@@ -61,11 +61,11 @@ struct MembersSheet: View {
           Text(sub.isEmpty ? "GOLFER" : sub).font(CSFont.label).tracking(0.6).foregroundStyle(cs.dimText)
         }
         Spacer(minLength: 6)
-        if isMe { CSMini("Marker here") { markerOpen.toggle() } }
+        if isMe { RoomMini("Marker here") { markerOpen.toggle() } }
       }
       if model.isPro && !isMe {
         HStack(spacing: 6) {
-          CSMini("Set index") { setIndexFor = m }
+          RoomMini("Set index") { setIndexFor = m }
           if model.league?.phase == "setup" {
             ArmedMini("Remove", armedLabel: "Sure? Remove", busy: busy == m.id) {
               run(m.id) { try await model.removeMember(m.id); toast.show("Removed. The board knows."); dismiss() }
@@ -118,7 +118,7 @@ struct LeagueMarkerPicker: View {
           .accessibilityLabel(mk.name)
         }
       }
-      CSMini("Use my profile marker") { set(nil) }
+      RoomMini("Use my profile marker") { set(nil) }
     }
     .padding(.vertical, 6)
     .disabled(busy != nil)
@@ -143,7 +143,7 @@ struct SetIndexSheet: View {
   @State private var busy = false
   var body: some View {
     SheetFrame("Starter index", sub: "A NUMBER TO START FROM") {
-      Fine("A starting number for \(member.name). Once they post 3 rounds, their own scores take over.")
+      RoomFine("A starting number for \(member.name). Once they post 3 rounds, their own scores take over.")
       CSField("e.g. 12.4", text: $text).keyboardType(.numbersAndPunctuation)
       CSButton("Set the index", busy: busy) {
         guard let idx = Double(text.replacingOccurrences(of: ",", with: ".")), idx >= -10, idx <= 54 else { toast.show("Index looks off: expected -10 to 54"); return }

@@ -24,11 +24,20 @@ struct MainTabView: View {
     TabView(selection: $tab) {
       NavigationStack(path: $homePath) {
         HomeView(links: csLinks)
+          .navigationDestination(for: ClubRoute.self) { r in
+            switch r {
+            case .board(let id): BoardScreen(leagueId: id, links: boardLinks)
+            case .schedule: ScheduleScreen(links: csLinks)
+            case .album(let id): AlbumScreen(leagueId: id)
+            }
+          }
           .navigationDestination(for: HomeRoute.self) { r in
             switch r {
             case .schedule: ScheduleScreen(links: csLinks)
             case .people: PeopleScreen(links: csLinks)
-            case .league(let id): ClubhouseView(leagueId: id)
+            case .league(let id): ClubhouseView(leagueId: id, onOpenBoard: { homePath.append(ClubRoute.board($0)) },
+                                                onOpenSchedule: { homePath.append(HomeRoute.schedule) },
+                                                onAddGolfers: { presenter.inviteTo = $0 })
             }
           }
       }
@@ -36,7 +45,10 @@ struct MainTabView: View {
       .tag(Tab.home)
 
       NavigationStack(path: $clubPath) {
-        ClubhouseView(leagueId: store.preferredLeague)
+        ClubhouseView(leagueId: store.preferredLeague,
+                      onOpenBoard: { clubPath.append(ClubRoute.board($0)) },
+                      onOpenSchedule: { clubPath.append(ClubRoute.schedule) },
+                      onAddGolfers: { presenter.inviteTo = $0 })
           .navigationDestination(for: ClubRoute.self) { r in
             switch r {
             case .board(let id): BoardScreen(leagueId: id, links: boardLinks)
@@ -87,6 +99,11 @@ struct MainTabView: View {
     }
     .sheet(isPresented: $presenter.showDesk) { FounderDeskSheet() }
     .sheet(isPresented: $presenter.showNote) { FounderNoteSheet() }
+    .sheet(item: $presenter.inviteTo) { lid in
+      let m = store.me?.memberships.first { $0.league_id == lid }
+      PeoplePickerSheet(mode: .invite(.league(lid), share: m.flatMap { mm in mm.code.map { (name: mm.name, code: $0) } }),
+                        onDone: { presenter.inviteTo = nil })
+    }
     .sheet(item: $presenter.handoff) { HandoffSheet(kind: $0) }
     .fullScreenCover(isPresented: $presenter.showPost) { PostCoverView() }
   }

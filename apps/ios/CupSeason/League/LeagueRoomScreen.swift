@@ -42,7 +42,7 @@ struct LeagueRoomScreen: View {
           case .board: EmptyView()
           case .schedule: EmptyView()
           case .pot: PotPane()
-          case .album: AlbumScreen()
+          case .album: RoomAlbumPane()
           case .league: LeaguePane()
           }
         }
@@ -70,7 +70,7 @@ struct LeagueRoomScreen: View {
         switch s {
         case .squad(let t): SquadReceiptSheet(team: t)
         case .member(let r): MemberHistorySheet(row: r)
-        case .scoringHelp: ScoringHelpSheet()
+        case .scoringHelp: RoomScoringHelpSheet()
         case .ceremony: SeasonCeremonyView()
         case .members: MembersSheet()
         case .forfeitCreate: ForfeitCreateSheet()
@@ -151,7 +151,7 @@ struct LeagueHeaderCard: View {
           Text(model.clock.spanText).font(CSFont.footnote).foregroundStyle(cs.mut).padding(.top, 2)
           Text("THE PRO · \(model.proName.uppercased())").font(CSFont.label).tracking(1.2).foregroundStyle(cs.dimText)
           HStack(spacing: 8) {
-            CSMini("Add golfers") { links.addGolfers() }
+            RoomMini("Add golfers") { links.addGolfers() }
           }
           .padding(.top, 6)
           // D71: the Pro can end a league in ANY phase but 'complete' (the record book)
@@ -184,17 +184,17 @@ struct CancelBanner: View {
       CSCard(spine: cs.neg) {
         VStack(alignment: .leading, spacing: 6) {
           Text("The Pro wants to cancel \(model.league?.name ?? "the league").").font(CSFont.subhead.weight(.semibold)).foregroundStyle(cs.ink)
-          Fine(((cr.you_refund_cents ?? 0) > 0 ? "You get back \(PotMath.money(cr.you_refund_cents!)) — your buy-in. " : "")
+          RoomFine(((cr.you_refund_cents ?? 0) > 0 ? "You get back \(PotMath.money(cr.you_refund_cents!)) — your buy-in. " : "")
                + "The season won't be played; nobody won and every buy-in comes back. Your rounds stay on your card.")
           HStack(spacing: 8) {
             if cr.is_pro == true {
-              CSMini("Call it off", busy: busy) { run { try await model.withdrawCancel(); toast.show("Cancellation called off.") } }
+              RoomMini("Call it off", busy: busy) { run { try await model.withdrawCancel(); toast.show("Cancellation called off.") } }
               Text("\(cr.approved ?? 0) of \(cr.members ?? 0) approved").font(CSFont.footnote).foregroundStyle(cs.dimText)
             } else if cr.you_approved == true {
               Text("You approved — waiting on the rest (\(cr.approved ?? 0) of \(cr.members ?? 0)).").font(CSFont.footnote).foregroundStyle(cs.dimText)
             } else {
-              CSMini("Approve", busy: busy) { vote(true) }
-              CSMini("Decline", busy: busy) { vote(false) }
+              RoomMini("Approve", busy: busy) { vote(true) }
+              RoomMini("Decline", busy: busy) { vote(false) }
               Text("\(cr.approved ?? 0) of \(cr.members ?? 0) approved").font(CSFont.footnote).foregroundStyle(cs.dimText)
             }
           }

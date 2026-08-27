@@ -31,7 +31,7 @@ struct IndividualRaceView: View {
       }
       VStack(spacing: 0) {
         if rows.isEmpty {
-          Fine("The race fills in once your league season is live and rounds land.").padding(12)
+          RoomFine("The race fills in once your league season is live and rounds land.").padding(12)
         } else {
           HStack(spacing: 10) {
             Text("").frame(width: 26)
@@ -73,7 +73,7 @@ struct IndividualRaceView: View {
       }
       .background(cs.bg1, in: RoundedRectangle(cornerRadius: CSTokens.Radius.r, style: .continuous))
       .overlay(RoundedRectangle(cornerRadius: CSTokens.Radius.r, style: .continuous).stroke(cs.line, lineWidth: 1))
-      Fine("Points King takes \(model.bylaws.payout[2])% of the pot at season's end. Most Improved is index drop since Week 1; Iron Man is most rounds posted. All three run in parallel with the squad race — bylaws §4.")
+      RoomFine("Points King takes \(model.bylaws.payout[2])% of the pot at season's end. Most Improved is index drop since Week 1; Iron Man is most rounds posted. All three run in parallel with the squad race — bylaws §4.")
     }
   }
 

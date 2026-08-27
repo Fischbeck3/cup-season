@@ -19,7 +19,7 @@ struct StandingsTableView: View {
     let solo = teams.first?.solo ?? false
     VStack(alignment: .leading, spacing: 10) {
       StoryLine(story: model.story)
-      if model.isComplete { CSMini("See how it ended") { router.open(.ceremony) } }
+      if model.isComplete { RoomMini("See how it ended") { router.open(.ceremony) } }
       VStack(spacing: 0) {
         header(solo: solo)
         if teams.isEmpty {

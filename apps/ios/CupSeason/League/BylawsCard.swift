@@ -28,7 +28,7 @@ struct BylawsCard: View {
           // the endgame dial (migration 008): flippable until the final window opens — after that it's settled, argue never
           if model.isPro && model.clock.phase == .season && !model.clock.isCupFinal && !model.isComplete {
             let d = LeagueCopy.finishDial(current: model.bylaws.finish)
-            CSMini(d.label, busy: busy) {
+            RoomMini(d.label, busy: busy) {
               busy = true
               Task {
                 defer { busy = false }
@@ -39,12 +39,12 @@ struct BylawsCard: View {
           }
         }
       }
-      CSMini("How scoring & handicaps work →") { router.open(.scoringHelp) }
+      RoomMini("How scoring & handicaps work →") { router.open(.scoringHelp) }
     }
   }
 }
 
-struct ScoringHelpSheet: View {
+struct RoomScoringHelpSheet: View {
   @Environment(\.cs) private var cs
   var body: some View {
     SheetFrame("How scoring works", sub: "HANDICAPS · CUP POINTS · THE MONEY") {

@@ -39,7 +39,7 @@ struct PotPane: View {
 
       Text("Buy-ins · \(free ? "Bragging rights" : "\(model.paidCount)/\(model.potPlayers)") in").csEyebrow()
       if free {
-        Fine("No buy-ins — this league plays for bragging rights.")
+        RoomFine("No buy-ins — this league plays for bragging rights.")
       } else {
         VStack(spacing: 8) {
           ForEach(model.members) { m in payer(m) }
@@ -114,10 +114,10 @@ struct ForfeitLedgerView: View {
         HStack {
           Text("The other stakes · pride, on the books").csEyebrow()
           Spacer()
-          CSMini("Post a stake") { router.open(.forfeitCreate) }
+          RoomMini("Post a stake") { router.open(.forfeitCreate) }
         }
         .padding(.top, 6)
-        if open.isEmpty { Fine("No stakes on the books. The cookout isn't going to bet itself.") }
+        if open.isEmpty { RoomFine("No stakes on the books. The cookout isn't going to bet itself.") }
         ForEach(open) { row($0) }
         if !done.isEmpty {
           Text("The archive").csEyebrow().padding(.top, 8)
@@ -131,13 +131,13 @@ struct ForfeitLedgerView: View {
     let meP = model.viewer?.id
     let vs = s.party_b.map { "\(model.stakeName(s.party_a)) vs \(model.stakeName($0))" } ?? "\(model.stakeName(s.party_a)) vs the field"
     let mine = meP != nil && (s.party_a == meP || s.party_b == meP || s.created_by == meP)
-    return CheckRow(s.name, sub: "\(vs) · \(s.terms)" + (s.hangs_on.map { " · rides on \($0)" } ?? "")) {
+    return RoomCheckRow(s.name, sub: "\(vs) · \(s.terms)" + (s.hangs_on.map { " · rides on \($0)" } ?? "")) {
       Text("🤝").font(.system(size: 16))
     } trail: {
       if s.status == "open" {
         if mine {
           HStack(spacing: 6) {
-            CSMini("Settle") { router.open(.forfeitSettle(s)) }
+            RoomMini("Settle") { router.open(.forfeitSettle(s)) }
             if s.created_by == meP {
               ArmedMini("✕", armedLabel: "Sure? Scrap", busy: scrapping == s.id) {
                 scrapping = s.id
@@ -204,7 +204,7 @@ struct ForfeitCreateSheet: View {
         }
       }
       .padding(.top, 6)
-      Fine("Stakes settle on a party's tap and archive into the record. The pot stays money; this never is.")
+      RoomFine("Stakes settle on a party's tap and archive into the record. The pot stays money; this never is.")
     }
   }
   private func label(_ s: String) -> some View { Text(s).csEyebrow().padding(.top, 4) }
@@ -245,10 +245,10 @@ struct ForfeitSettleSheet: View {
     let opts: [(UUID, String)] = forfeit.party_b.map { [(forfeit.party_a, model.stakeName(forfeit.party_a)), ($0, model.stakeName($0))] }
       ?? model.members.map { ($0.profile_id, $0.name) }
     SheetFrame("Settle the stake", sub: "\(forfeit.name) · \(forfeit.terms)") {
-      Fine(forfeit.party_b != nil ? "Who took it?" : "Who hit it? Anyone in the crew.")
+      RoomFine(forfeit.party_b != nil ? "Who took it?" : "Who hit it? Anyone in the crew.")
       LazyVGrid(columns: [GridItem(.adaptive(minimum: 120), spacing: 6)], alignment: .leading, spacing: 6) {
         ForEach(opts, id: \.0) { pid, name in
-          CSMini(name, busy: busy == pid) {
+          RoomMini(name, busy: busy == pid) {
             busy = pid
             Task {
               defer { busy = nil }

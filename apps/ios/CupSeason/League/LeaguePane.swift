@@ -21,14 +21,14 @@ struct LeaguePane: View {
     let n = model.members.count
     VStack(alignment: .leading, spacing: 0) {
       Text("League").csEyebrow()
-      CheckRow("Members & invites", sub: "\(n) player\(n == 1 ? "" : "s")") {
+      RoomCheckRow("Members & invites", sub: "\(n) player\(n == 1 ? "" : "s")") {
         Image(systemName: "flag").font(.system(size: 15, weight: .regular)).foregroundStyle(cs.ink)
-      } trail: { CSMini("View") { router.open(.members) } }
-      CheckRow("Share the season", sub: "A public page — the standings so far, no account needed") {
+      } trail: { RoomMini("View") { router.open(.members) } }
+      RoomCheckRow("Share the season", sub: "A public page — the standings so far, no account needed") {
         Text("🔗").font(.system(size: 15))
       } trail: {
         HStack(spacing: 6) {
-          CSMini("Link", busy: sharing) {
+          RoomMini("Link", busy: sharing) {
             if model.season == nil { toast.show("The season page opens at first tee"); return }
             sharing = true
             Task { defer { sharing = false }; do { shareURL = try await model.seasonShareURL() } catch { toast.show(roomError(error, "Could not make the link.")) } }
@@ -40,9 +40,9 @@ struct LeaguePane: View {
           .accessibilityLabel("Turn off this link — the page stops working for everyone who has it")
         }
       }
-      CheckRow("Squads", sub: LeagueCopy.squadsSub(model.clock, solo: model.solo)) {
+      RoomCheckRow("Squads", sub: LeagueCopy.squadsSub(model.clock, solo: model.solo)) {
         Image(systemName: "person.2").font(.system(size: 15, weight: .regular)).foregroundStyle(cs.ink)
-      } trail: { CSMini("View") { links.openDraft() } }
+      } trail: { RoomMini("View") { links.openDraft() } }
 
       DisclosureGroup(isExpanded: $rulesOpen) {
         VStack(alignment: .leading, spacing: 10) {
@@ -98,7 +98,7 @@ struct CancelLeagueSheet: View {
   var body: some View {
     let nm = model.league?.name ?? "the league"
     SheetFrame("Cancel \(nm)?", sub: "THE SEASON IS UNDER WAY") {
-      Fine("A free league cancels now. If there's a buy-in, every member must approve and each gets their buy-in back. Either way the league, its board and pot go — but every posted round stays on its golfer's card.")
+      RoomFine("A free league cancels now. If there's a buy-in, every member must approve and each gets their buy-in back. Either way the league, its board and pot go — but every posted round stays on its golfer's card.")
       Button {
         busy = true
         Task {
@@ -135,9 +135,9 @@ struct DeleteLeagueSheet: View {
     let nm = model.league?.name ?? "the league"
     SheetFrame("Delete \(nm)?", sub: others == 0 ? "ONLY POSSIBLE BEFORE THE FIRST TEE" : "THIS TAKES EVERYONE’S SEAT") {
       if others == 0 {
-        Fine("It's just you in it — the league, its board and settings go completely. Rounds stay on your golfer card.")
+        RoomFine("It's just you in it — the league, its board and settings go completely. Rounds stay on your golfer card.")
       } else {
-        Fine("This deletes \(nm) for everyone in it: members, board, pot sheet, squads. Rounds stay on every golfer's profile. Type the league name to confirm.")
+        RoomFine("This deletes \(nm) for everyone in it: members, board, pot sheet, squads. Rounds stay on every golfer's profile. Type the league name to confirm.")
         CSField(nm, text: $typed, font: CSFont.body)
       }
       Button {

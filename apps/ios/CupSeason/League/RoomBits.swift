@@ -6,13 +6,9 @@ import SwiftUI
 import CSDesign
 import CupSeasonKit
 
-extension CSPalette {
-  /// `SQHEX[ci]` → the squad token.
-  func squad(_ i: Int) -> Color { [sq0, sq1, sq2, sq3][max(0, min(3, i))] }
-}
 
 /// `.mini` — a small bordered capsule, mono, 36pt tall, 44pt hit target.
-struct CSMini: View {
+struct RoomMini: View {
   @Environment(\.cs) private var cs
   let label: String
   var tone: Color? = nil
@@ -54,7 +50,7 @@ struct ArmedMini: View {
     self.label = label; self.armedLabel = armedLabel; self.busy = busy; self.action = action
   }
   var body: some View {
-    CSMini(armed ? armedLabel : label, tone: armed ? cs.neg : nil, busy: busy) {
+    RoomMini(armed ? armedLabel : label, tone: armed ? cs.neg : nil, busy: busy) {
       if armed {
         armed = false; disarm?.cancel(); action()
       } else {
@@ -68,7 +64,7 @@ struct ArmedMini: View {
 }
 
 /// `.check` — number/icon · title + small · trailing control.
-struct CheckRow<Lead: View, Trail: View>: View {
+struct RoomCheckRow<Lead: View, Trail: View>: View {
   @Environment(\.cs) private var cs
   let title: String
   let sub: String?
@@ -116,7 +112,7 @@ struct PhaseHero<Content: View>: View {
 }
 
 /// `.mathrow` — label · value, with the receipt's tones.
-struct MathRow: View {
+struct RoomMathRow: View {
   @Environment(\.cs) private var cs
   let k: String
   let v: String
@@ -134,7 +130,7 @@ struct MathRow: View {
 }
 
 /// `.fine` — the helper paragraph.
-struct Fine: View {
+struct RoomFine: View {
   @Environment(\.cs) private var cs
   let text: String
   init(_ text: String) { self.text = text }

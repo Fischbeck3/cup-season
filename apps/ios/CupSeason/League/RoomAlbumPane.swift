@@ -6,7 +6,7 @@ import SwiftUI
 import CSDesign
 import CupSeasonKit
 
-struct AlbumScreen: View {
+struct RoomAlbumPane: View {
   @Environment(LeagueRoomModel.self) private var model
   @Environment(\.roomLinks) private var links
   @Environment(\.cs) private var cs
@@ -16,7 +16,7 @@ struct AlbumScreen: View {
       Text("The album · every round photo this season").csEyebrow()
       if let items = model.album {
         if items.isEmpty {
-          Fine("Photos land here when rounds carry them — add one from the Post card.")
+          RoomFine("Photos land here when rounds carry them — add one from the Post card.")
         } else {
           ForEach(months(items), id: \.key) { mo in
             Text(mo.label).font(CSFont.sentence).foregroundStyle(cs.mut).padding(.top, 6)
@@ -43,7 +43,7 @@ struct AlbumScreen: View {
           }
         }
       } else {
-        Fine("Opening the album…")
+        RoomFine("Opening the album…")
       }
     }
     .task { if model.album == nil { await model.loadAlbum() } }

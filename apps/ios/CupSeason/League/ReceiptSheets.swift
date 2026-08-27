@@ -20,18 +20,18 @@ struct SquadReceiptSheet: View {
     let ledger = model.ledger(squad: team.id)
     SheetFrame(team.name, sub: "\(team.cap.isEmpty ? "" : "CAPT. \(team.cap.uppercased()) · ")\(rows.count) PLAYERS · \(CSCopy.points(team.pts)) PTS") {
       VStack(alignment: .leading, spacing: 0) {
-        MathRow(k: "Counting rounds", v: CSCopy.points(fromRounds))
+        RoomMathRow(k: "Counting rounds", v: CSCopy.points(fromRounds))
         if ledger.isEmpty {
-          if adj != 0 { MathRow(k: "Bonuses & penalties · the ledger", v: (adj > 0 ? "+" : "") + CSCopy.points(adj), tone: adj > 0 ? cs.pos : cs.neg) }
+          if adj != 0 { RoomMathRow(k: "Bonuses & penalties · the ledger", v: (adj > 0 ? "+" : "") + CSCopy.points(adj), tone: adj > 0 ? cs.pos : cs.neg) }
         } else {
           ForEach(ledger) { a in
-            MathRow(k: ledgerLabel(a), v: (a.points > 0 ? "+" : "") + String(a.points), tone: a.points > 0 ? cs.pos : a.points < 0 ? cs.neg : cs.mut)
+            RoomMathRow(k: ledgerLabel(a), v: (a.points > 0 ? "+" : "") + String(a.points), tone: a.points > 0 ? cs.pos : a.points < 0 ? cs.neg : cs.mut)
           }
           if ledger.reduce(0, { $0 + Double($1.points) }) != adj {
-            MathRow(k: "Bonuses & penalties · the ledger", v: (adj > 0 ? "+" : "") + CSCopy.points(adj), tone: adj > 0 ? cs.pos : cs.neg)
+            RoomMathRow(k: "Bonuses & penalties · the ledger", v: (adj > 0 ? "+" : "") + CSCopy.points(adj), tone: adj > 0 ? cs.pos : cs.neg)
           }
         }
-        MathRow(k: "Total", v: CSCopy.points(team.pts), total: true)
+        RoomMathRow(k: "Total", v: CSCopy.points(team.pts), total: true)
       }
       Text("Who built it").csEyebrow().padding(.top, 6)
       VStack(spacing: 0) {
@@ -52,9 +52,9 @@ struct SquadReceiptSheet: View {
           }
           .buttonStyle(.plain)
         }
-        if rows.isEmpty { Fine("No rounds posted yet — the squad is waiting on its first counter.").padding(.vertical, 8) }
+        if rows.isEmpty { RoomFine("No rounds posted yet — the squad is waiting on its first counter.").padding(.vertical, 8) }
       }
-      Fine("Squad points = everyone's counting rounds + the ledger. Tap any player for the rounds behind their number.").padding(.top, 6)
+      RoomFine("Squad points = everyone's counting rounds + the ledger. Tap any player for the rounds behind their number.").padding(.top, 6)
     }
   }
 
@@ -100,10 +100,10 @@ struct MemberHistorySheet: View {
           }
         }
         if row.hist.contains(where: { !$0.counting }) {
-          Fine("Bumped rounds still happened — a better round took their monthly slot. A better round always bumps your worst counter.").padding(.top, 10)
+          RoomFine("Bumped rounds still happened — a better round took their monthly slot. A better round always bumps your worst counter.").padding(.top, 10)
         }
         if let pid = row.profileId {
-          CSMini("Tour Card") { dismiss(); links.openTourCard(pid) }.padding(.top, 6)
+          RoomMini("Tour Card") { dismiss(); links.openTourCard(pid) }.padding(.top, 6)
         }
       }
     }

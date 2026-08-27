@@ -28,13 +28,13 @@ struct StandingsPane: View {
   private var setupChecklist: some View {
     VStack(alignment: .leading, spacing: 0) {
       Text("League setup · three steps to first tee").csEyebrow()
-      CheckRow("Season settings", sub: "Stakes · rules · format") { num("1") } trail: {
-        if model.isPro { CSMini("Continue") { links.openWizard() } } else { Text("THE PRO").csEyebrow(cs.gold) }
+      RoomCheckRow("Season settings", sub: "Stakes · rules · format") { num("1") } trail: {
+        if model.isPro { RoomMini("Continue") { links.openWizard() } } else { Text("THE PRO").csEyebrow(cs.gold) }
       }
-      CheckRow("Invite the crew", sub: "One link fills the league — it opens the moment you lock") { num("2") } trail: {
+      RoomCheckRow("Invite the crew", sub: "One link fills the league — it opens the moment you lock") { num("2") } trail: {
         Text("At lock").font(CSFont.monoSmall).foregroundStyle(cs.dimText)
       }
-      CheckRow("Squad formation", sub: "Unlocks when settings lock") { num("3") } trail: {
+      RoomCheckRow("Squad formation", sub: "Unlocks when settings lock") { num("3") } trail: {
         Text("Locked").font(CSFont.monoSmall).foregroundStyle(cs.dimText)
       }
       Text(LeagueCopy.seatFill(code: model.league?.code, members: model.members.count, min: model.bylaws.structMin))
@@ -59,7 +59,7 @@ struct StandingsPane: View {
               .overlay(RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous).stroke(cs.line2, lineWidth: 1))
           }
         }
-        if joinsQuiet { Fine("Joins have gone quiet — a nudge in the group chat usually does it.") }
+        if joinsQuiet { RoomFine("Joins have gone quiet — a nudge in the group chat usually does it.") }
       }
       .padding(.top, 8)
     }
@@ -103,7 +103,7 @@ struct StandingsPane: View {
               .background(cs.bg2, in: Capsule()).overlay(Capsule().stroke(cs.line2, lineWidth: 1)).frame(minHeight: 44)
           }
         }
-        CSMini("Add golfers") { links.addGolfers() }
+        RoomMini("Add golfers") { links.addGolfers() }
       }
     }
   }
@@ -119,7 +119,7 @@ struct StandingsPane: View {
         if let s1 = st?.s1, let s2 = st?.s2 {
           Text("\(PotMath.score(s1))–\(PotMath.score(s2))").font(CSFont.stat).csTabular().foregroundStyle(cs.gold)
         }
-        CSMini("See how it ended") { router.open(.ceremony) }.padding(.top, 6)
+        RoomMini("See how it ended") { router.open(.ceremony) }.padding(.top, 6)
         if let rb = links.runItBack { CSButton("Run it back — Season 2", style: .gold) { rb() }.padding(.top, 4) }
       }
     }
@@ -246,7 +246,7 @@ struct NextCard: View {
           Text(n.text).font(CSFont.subhead).foregroundStyle(cs.ink).fixedSize(horizontal: false, vertical: true)
         }
         Spacer(minLength: 0)
-        if let go = links.openRecord { CSMini("Live round") { go() } }
+        if let go = links.openRecord { RoomMini("Live round") { go() } }
       }
     }
   }
