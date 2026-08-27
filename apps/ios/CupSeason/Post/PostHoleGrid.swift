@@ -1,10 +1,13 @@
-// Cup Season — the hole-by-hole card (`renderPostHoles` 6131–6162, the pars
-// sheet `openPostParsSheet` 6272–6323, the even-par guard 6325–6337, the
-// 18/9 seg 3120–3123).
+// Cup Season — the hole-by-hole card as a scorecard strip (IOS-020;
+// `renderPostHoles` 6131–6162, the pars sheet `openPostParsSheet` 6272–6323,
+// the even-par guard 6325–6337, the 18/9 seg 3120–3123).
 //
-// "Each hole starts on par — tap to adjust only what you didn't." Cells colour
-// by result — eagle gold, birdie `pos`, bogey muted — and every ± is a 44pt
-// target with a selection tick (IOS-003 §2.8).
+// "Each hole starts on par — tap to adjust only what you didn't." A real card:
+// an OUT row of nine cells and an IN row of nine, a total cell at the end of
+// each; tap a cell to select it, and ONE big − / + under the strip drives the
+// selected hole. Cells colour by result — eagle gold, birdie `pos`, bogey
+// muted — exactly as the web's grid did. The selection is the view's; the
+// card (`PostCard`) never knows which hole is under the thumb.
 
 import SwiftUI
 import CSDesign
@@ -34,22 +37,29 @@ struct PostSeg<T: Hashable>: View {
   }
 }
 
-struct PostHoleGrid: View {
+// MARK: - the strip
+
+struct PostScorecardStrip: View {
   @Environment(\.cs) private var cs
   @Bindable var model: PostRoundModel
+  @State private var selected: Int
 
-  private let columns = [GridItem(.adaptive(minimum: 104), spacing: 6)]
+  init(model: PostRoundModel, selected: Int = 0) {
+    self.model = model
+    _selected = State(initialValue: selected)
+  }
 
   var body: some View {
-    VStack(alignment: .leading, spacing: 6) {
-      side(0..<9)
-      if model.card.side == 18 { side(9..<18).padding(.top, 2) }
-      HStack(spacing: 0) {
-        Text("Each hole starts on par — tap to adjust only what you didn't. ").font(CSFont.footnote).foregroundStyle(cs.dimText)
-        Button("Set the pars →") { model.showPars = true }.font(CSFont.footnote).foregroundStyle(cs.brand)
+    VStack(alignment: .leading, spacing: 12) {
+      card
+      stepper
+      VStack(alignment: .leading, spacing: 0) {
+        CSFine("Each hole starts on par — tap to adjust only what you didn't.")
+        Button { model.showPars = true } label: {
+          Text("Set the pars →").font(CSFont.footnote).foregroundStyle(cs.brand).frame(minHeight: 44)
+        }
+        .buttonStyle(.plain)
       }
-      .padding(.top, 6)
-      .fixedSize(horizontal: false, vertical: true)
       if model.card.scan != nil {
         // the scan's escape hatch: a bad read never traps anyone in the grid
         Button { model.scrapScan() } label: {
@@ -63,45 +73,117 @@ struct PostHoleGrid: View {
         .frame(minHeight: 44)
       }
     }
+    .onChange(of: model.card.side) { _, s in selected = PostStrip.clamp(selected, side: s) }
   }
 
-  private func side(_ r: Range<Int>) -> some View {
-    LazyVGrid(columns: columns, spacing: 6) {
-      ForEach(Array(r), id: \.self) { i in cell(i) }
+  // MARK: the card — OUT and IN, hairlines between the cells
+
+  private var card: some View {
+    VStack(spacing: 1) {
+      row(0)
+      if model.card.side == 18 { row(1) }
+    }
+    .padding(1)
+    .background(cs.line, in: RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous))
+    .clipShape(RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous))
+  }
+
+  private func row(_ r: Int) -> some View {
+    HStack(spacing: 1) {
+      ForEach(Array(PostStrip.row(r)), id: \.self) { i in cell(i) }
+      totalCell(r)
     }
   }
 
-  private func cell(_ i: Int) -> some View {
-    let par = model.card.pars[i], sc = model.card.scores[i]
-    let tone: Color = switch model.card.result(at: i) {
+  private func tone(_ i: Int) -> Color {
+    switch model.card.result(at: i) {
     case .eagle: cs.gold
     case .birdie: cs.pos
     case .bogey: cs.mut
     case .par: cs.ink
     }
-    return VStack(spacing: 2) {
-      Text("\(i + 1) · P\(par)").font(CSFont.label).tracking(0.4).foregroundStyle(cs.dimText)
-      HStack(spacing: 3) {
+  }
+
+  private func cell(_ i: Int) -> some View {
+    let par = model.card.pars[i], sc = model.card.scores[i]
+    let on = selected == i
+    return Button {
+      withAnimation(CSMotion.rise) { selected = i }
+      CSHaptic.selection()
+    } label: {
+      VStack(spacing: 3) {
+        Text("\(i + 1)").font(CSFont.label).foregroundStyle(on ? cs.brand : cs.dimText)
+        Text("\(sc)").font(CSFont.stat).csTabular().foregroundStyle(tone(i))
+          .lineLimit(1).minimumScaleFactor(0.7)
+          .contentTransition(.numericText())
+        Text("P\(par)").font(CSFont.label).foregroundStyle(cs.dimText)
+      }
+      .frame(maxWidth: .infinity, minHeight: 66)
+      .background(cs.bg1)
+      .overlay {
+        if on {
+          RoundedRectangle(cornerRadius: 4, style: .continuous).stroke(cs.brand, lineWidth: 2).padding(2)
+        }
+      }
+      .contentShape(Rectangle())
+    }
+    .buttonStyle(.plain)
+    .accessibilityLabel(PostStrip.cellLabel(hole: i, par: par, score: sc))
+    .accessibilityAddTraits(on ? [.isSelected] : [])
+    .accessibilityHint("Selects the hole for the stepper")
+  }
+
+  private func totalCell(_ r: Int) -> some View {
+    let total = PostStrip.total(model.card.scores, row: r)
+    let par = PostStrip.par(model.card.pars, row: r)
+    return VStack(spacing: 3) {
+      Text(r == 0 ? "OUT" : "IN").font(CSFont.label).tracking(0.8).foregroundStyle(cs.mut)
+      Text("\(total)").font(CSFont.stat).csTabular().foregroundStyle(cs.ink)
+        .lineLimit(1).minimumScaleFactor(0.7)
+        .contentTransition(.numericText())
+      Text("P\(par)").font(CSFont.label).foregroundStyle(cs.dimText)
+    }
+    .frame(maxWidth: .infinity, minHeight: 66)
+    .background(cs.bg2)
+    .accessibilityElement(children: .combine)
+    .accessibilityLabel("\(r == 0 ? "Out" : "In"), \(total) strokes, par \(par)")
+    .accessibilityAddTraits(.updatesFrequently)
+  }
+
+  // MARK: the stepper — one for the whole card
+
+  private var stepper: some View {
+    let i = PostStrip.clamp(selected, side: model.card.side)
+    let par = model.card.pars[i], sc = model.card.scores[i]
+    return VStack(spacing: 4) {
+      HStack(spacing: 14) {
         step("−", "Minus hole \(i + 1)") { model.minus(i) }
-        Text("\(sc)").font(CSFont.monoMediumBody.weight(.semibold)).csTabular().foregroundStyle(tone).frame(minWidth: 22)
+        VStack(spacing: 0) {
+          Text(PostStrip.stepperEyebrow(hole: i, par: par)).csEyebrow()
+          Text("\(sc)").font(CSFont.hero).csTabular().foregroundStyle(tone(i))
+            .contentTransition(.numericText())
+        }
+        .frame(maxWidth: .infinity)
+        .accessibilityElement(children: .combine)
+        .accessibilityAddTraits(.updatesFrequently)
         step("+", "Plus hole \(i + 1)") { model.plus(i) }
       }
+      Button {
+        withAnimation(CSMotion.rise) { selected = PostStrip.next(after: i, side: model.card.side) }
+        CSHaptic.selection()
+      } label: {
+        Text("Next hole →").font(CSFont.footnote).foregroundStyle(cs.dawn).frame(maxWidth: .infinity, minHeight: 44)
+      }
+      .buttonStyle(.plain)
     }
-    .padding(.vertical, 5).padding(.horizontal, 2)
-    .frame(maxWidth: .infinity)
-    .background(cs.bg2, in: RoundedRectangle(cornerRadius: 9, style: .continuous))
-    .overlay(RoundedRectangle(cornerRadius: 9, style: .continuous).stroke(cs.line, lineWidth: 0.5))
-    .accessibilityElement(children: .contain)
-    .accessibilityLabel("Hole \(i + 1), par \(par), \(sc) strokes")
   }
 
   private func step(_ glyph: String, _ label: String, _ action: @escaping () -> Void) -> some View {
     Button(action: action) {
-      Text(glyph).font(.system(size: 15)).foregroundStyle(cs.ink)
-        .frame(width: 30, height: 30)
-        .background(cs.bg0, in: RoundedRectangle(cornerRadius: 6, style: .continuous))
-        .overlay(RoundedRectangle(cornerRadius: 6, style: .continuous).stroke(cs.line, lineWidth: 0.5))
-        .frame(width: 44, height: 44)
+      Text(glyph).font(.system(size: 26, weight: .medium)).foregroundStyle(cs.ink)
+        .frame(width: 60, height: 60)
+        .background(cs.bg2, in: RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous))
+        .overlay(RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous).stroke(cs.line2, lineWidth: 1))
         .contentShape(Rectangle())
     }
     .buttonStyle(.plain)
