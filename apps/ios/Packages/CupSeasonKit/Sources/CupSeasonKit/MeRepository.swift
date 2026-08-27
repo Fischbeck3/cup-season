@@ -1,17 +1,15 @@
 // Cup Season — the bootstrap read (IOS-002 §3, §4).
 //
-// One round trip via `native_home()` once IOS-009 batch 1 is pushed. Until
-// the contract snapshot carries it, the call is declared here rather than in
-// Generated/Rpc.swift — the ONE hand-declared RPC, and a documented exception
-// to "the phone cannot name a function the database has not granted". When
-// the function is missing (PGRST202), the repository assembles the same shape
-// from the reads the web client makes, so M0 renders a real standing either way.
+// One round trip via `native_home()` (IOS-009 batch 1, pushed 2026-08-27 —
+// `Rpc.native_home` exists in Generated/Rpc.swift with a `JSONValue` return).
+// This typed twin decodes straight into `Me` through the SDK's decoder; it is
+// the same function and the same grant. The legacy fallback stays for a
+// database that is behind this build (a store build cannot be re-pushed).
 
 import Foundation
 import Supabase
 
-/// Temporary hand declaration — moves to Generated/Rpc.swift on the next
-/// `contract.psv` refresh after `20260827130400_native_home.sql` is pushed.
+/// Typed twin of `Rpc.native_home` (jsonb → `Me` instead of `JSONValue`).
 struct NativeHomeCall: RpcCall {
   static let name = "native_home"
   static let optionalArgs: [String] = []

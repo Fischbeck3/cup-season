@@ -19,8 +19,7 @@
 #     from pg_proc p join pg_namespace n on n.oid=p.pronamespace
 #     where n.nspname='public' and p.prokind='f') s;
 #
-# Snapshot taken 2026-08-26, refreshed the same day once 20260826120000 was
-# pushed. That function was absent from the first snapshot on purpose - check 11
+# Snapshot taken 2026-08-26; refreshed 2026-08-27 after the IOS-009 batch-1 push (20260827130000..130400). That function was absent from the first snapshot on purpose - check 11
 # reported it as a deploy owed, which is exactly its job. Lesson kept: after a
 # db push that adds or re-signs a function, refresh this file, or the check
 # keeps reporting a deploy you already made.
@@ -33,7 +32,7 @@ add_round_comment|p_round uuid, p_body text|void|definer|auth
 announce|p_league uuid, p_body text|void|definer|auth
 assert_sandbox|p_league uuid, p_need_flag boolean|void|definer|none
 assign_player|p_squad uuid, p_member uuid|void|definer|auth
-award_event_trophies|p_event uuid|void|definer|auth
+award_event_trophies|p_event uuid|void|definer|none
 award_season_trophies|p_season uuid|void|definer|none
 can_see_media|p_owner text|boolean|definer|auth
 can_see_round|p_round uuid|boolean|definer|auth
@@ -42,7 +41,7 @@ career_record||jsonb|definer|auth
 claim_round_info|p_token uuid|jsonb|definer|anon,auth
 claim_round|p_token uuid|jsonb|definer|auth
 claim_scan_round|p_token uuid|jsonb|definer|auth
-close_month|p_season uuid, p_month date|void|definer|auth
+close_month|p_season uuid, p_month date|void|definer|none
 close_season|p_season uuid|void|definer|none
 create_event|p_name text, p_starts_on date, p_sessions integer, p_session_weeks integer, p_draw_rule text, p_team_a text, p_team_b text, p_league uuid DEFAULT NULL::uuid, p_tz text DEFAULT NULL::text, p_lineage uuid DEFAULT NULL::uuid|uuid|definer|auth
 create_forfeit|p_league uuid, p_name text, p_terms text, p_kind text DEFAULT 'custom'::text, p_other uuid DEFAULT NULL::uuid, p_hangs text DEFAULT NULL::text|uuid|definer|auth
@@ -79,6 +78,7 @@ guest_live_set_wolf|p_token uuid, p_hole integer, p_wolf jsonb, p_client_ts time
 guest_live_state|p_token uuid|jsonb|definer|anon,auth
 handicap_index_asof|p_profile uuid, p_before_date date, p_before_id uuid|numeric|definer|auth
 handicap_index|p_profile uuid|numeric|definer|auth
+handle_available|p_handle text|boolean|definer|auth
 handle_new_user||trigger|definer|auth
 home_feed|p_days integer DEFAULT 21|TABLE(round_id uuid, profile_id uuid, golfer text, marker text, handle text, gross integer, pvi numeric, played_on date, created_at timestamp with time zone, course text, is_pr boolean, is_first boolean, is_sub80 boolean, is_me boolean, photo_path text)|definer|auth
 invite_golfer|p_league uuid, p_event uuid, p_profile uuid|uuid|definer|auth
@@ -118,6 +118,7 @@ my_rivalries||TABLE(opponent uuid, display_name text, handle text, marker text, 
 my_schedule|p_from date, p_to date|TABLE(id uuid, profile_id uuid, display_name text, marker text, play_on date, course_label text, note text, tee_time time without time zone, mine boolean, is_friend boolean, shared_league boolean, tagged_names text[], tagged_me boolean, course_id text, rsvp_in integer, my_rsvp text, comment_n integer)|definer|auth
 my_trophies||TABLE(id uuid, kind text, title text, subtitle text, placement text, season_year integer, earned_on date)|definer|auth
 my_visitor_rounds||jsonb|definer|auth
+native_home||jsonb|definer|auth
 nth_up|n integer|text|invoker|none
 open_major|p_session uuid|void|definer|auth
 playerlabel|p_profile uuid|text|definer|auth
@@ -135,6 +136,7 @@ round_card|p_round uuid|jsonb|definer|auth
 round_detail|p_round uuid|jsonb|definer|auth
 round_duel_nudge||trigger|definer|auth
 round_epilogue|p_round uuid|jsonb|definer|auth
+round_holes_of|p_round uuid|TABLE(hole_number integer, strokes integer)|definer|auth
 round_major_story||trigger|definer|none
 round_moments||trigger|definer|none
 round_refresh_index||trigger|definer|auth
