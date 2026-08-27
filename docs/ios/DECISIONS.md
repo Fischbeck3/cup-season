@@ -185,3 +185,53 @@ Owner-facing questions that fell out of the nine slices, collected so nothing is
 **Reversibility.** EASY — screens are additive.
 
 **Action.** Proceeding. Logged upstream as D100.
+
+## IOS-019 · The visual pass — depth from ground, not from borders — **P2 · PROCEEDING 2026-08-27**
+
+**Decision.** The parity build (waves 1–6) transplanted the web's card grammar one-to-one and the phone reads flat: every surface is a `bg1` box with a 1px `line`, the hero and a footnote carry the same weight, and iOS 26's glass toolbar clips the wordmark into a "— C" pill. The pass keeps the identity contract (IOS-003 §1: palette, the two metals, three type voices, the spine, the roll) and changes **how surfaces sit**, on four rules:
+
+1. **One hero, one lane, per screen** (IOS-003 §4 "no dashboard grid"). The hero gets **the wash** — a radial of its spine colour at ≤14% opacity from the top-leading corner (ember = live, gold = earned, `pos` = on the tee, dusk = ceremony) — and nothing else on the screen gets one. The Clubhouse's 2×2 stat grid becomes one season strip inside the hero.
+2. **Borders retreat, hierarchy comes from ground.** Cards keep `bg1`; the 1px `line` stays on interactive cards only; rows inside a section separate with a hairline, never nest cards in cards. Section heads are the eyebrow plus a hairline rule.
+3. **The page header lives in the scroll, not the toolbar.** Home opens on the gradient tick + the serif wordmark + a mono date eyebrow ("THU · AUG 27"); the toolbar keeps only the `+`. Clubhouse and You get the same header shape with the league name / "You".
+4. **Panes are a tab strip, not pills.** Mono uppercase labels with an ember underline that slides on the roll; the pills read as filter chips and they are navigation.
+
+The ⊕'s composer is its own decision (IOS-020). Ceremonies, the finish, the settlement and share cards are untouched (they already sit on dusk).
+
+**Context.** Owner, 2026-08-27, on the wave 1–6 build: "improve upon the visuals." Screens read from the simulator signed in to the owner's account.
+
+**Options.** (a) keep the web grammar verbatim — rejected, the phone must not inherit "boxes all the way down" (IOS-004 §"web behaviours the phone must not inherit"); (b) a full re-skin with new colours — rejected, it stops being Cup Season and preflight 15 (palette purity) forbids invented hex; (c) **the four rules above** — chosen: every colour still comes from tokens.json; the wash is a token colour at an opacity.
+
+**Reversibility.** EASY — layout and modifiers, no data, no copy.
+
+**Action.** Proceeding. `CSDesign/Surfaces.swift` adds `CSWash`, `CSPageHeader`, `CSSectionHead`, `CSTabStrip`, `CSHairline`; the screens adopt them.
+
+## IOS-020 · The card — the composer as a scorecard, not a form — **P2 · PROCEEDING 2026-08-27**
+
+**Decision.** "Post a round" keeps every mechanic and every line of web copy (D32 two boxes default, D34 grid opt-in, the even-par guard, `touched`, half-value nines, rating/slope always editable, course memory, scan with the exact soft-failure paths, draft autosave, ceremony → epilogue → partners) and changes its **shape**:
+
+- **The gross is the hero and it is live.** The serif figure (Charter, 64) sits at the top on a dusk wash with the band phrase under it ("beat your number by 2") and a points chip through the open league's lens; it updates as you type. "How this round scores" stops trailing the form (IOS-004 §2).
+- **Where** — remembered courses are rows (course · tee · rating/slope), not clipped chips; search sits above them; rating/slope collapse to one mono line ("72.1 / 128") that expands to two fields on tap.
+- **Your card** — the 18/9 seg; front and back as two large mono figures with the sum between them; "Enter your card" opens **the scorecard strip**: a real card — Out and In rows of nine cells (hole, par small, score large, coloured by result), tap a cell to select, one big − / + stepper under the strip that advances to the next hole. Eighteen tiny ± pairs go away.
+- **Details** — date, photo, scan as pills in one row; the photo preview under them.
+- **The bottom bar** — "Post round" pinned in a safe-area inset with the gross line above it, so the tap is always one thumb away on a long card.
+- **Point bands** — a "How points work" disclosure, not a table on every open.
+
+**Context.** Owner, 2026-08-27: "create the post score section." The wave-3 composer is a faithful port of `#view-post` and reads as a long web form on the phone (simulator screenshot: memory chips overflow and clip, the preview is below the fold).
+
+**Reversibility.** EASY — same model (`PostRoundModel`, `PostCard`), same RPCs; the view is replaced.
+
+**Action.** Proceeding in `Post/`. The scan confirm surface (the D34 grid's job) is the same strip.
+
+## IOS-021 · Pay-to-play on the phone — the visible model ships, checkout stays on the web — **P1 · RECOMMENDED 2026-08-27**
+
+**Decision (recommended).** Integrate D56 exactly as decided — **visible model, no checkout** — on the phone now: `app_flags.pricing` (the kill switch + bands), the wizard's pot-step pass card, the You-tab membership card (Founding / free season / paid states), the League Room pot pane's Pro card, and the store metadata line "there are no in-app purchases." Close the two open items with a recommendation: **$79 anchor, banded flat $49 / $79 / $99 at ≤9 / 10–13 / 14+, fixed at roster lock; Founding cap 10, numbered.** Checkout, when it opens at the first season-2 "run it back," is **Stripe on cupseason.app** with the phone showing pass status and (while US rules allow) a "Renew at cupseason.app" link — never IAP-first (discovery §6.3).
+
+**Why P1 not P2.** The price point was left to the focus-group script (D56); shipping a number on the phone closes it by default. The owner should confirm the $79 anchor or say "range" (the deck's fallback framing) before the surfaces go live — the flag makes either a one-row change, not a rebuild.
+
+**Context.** Owner, 2026-08-27: "finalize pay to play plan and integrate." No pricing surface was ever built on the web (grep: 0 hits; no `pricing` flag in prod as of today).
+
+**Options.** (a) IAP now — rejected: 15–30% on a $79 desk purchase, App Review exposure, and D56 said checkout waits for season 2; (b) Stripe checkout on the phone now — rejected: same timing argument, plus link-out rules are before SCOTUS; (c) **visible model now, Stripe on the web at season 2** — chosen.
+
+**Reversibility.** EASY — one flag write hides every surface.
+
+**Action.** Plan + surfaces built behind `pricing.visible` (seeded `false` in the migration so nothing shows until the owner flips it). Owner decides: the anchor, and the flip.
