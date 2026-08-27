@@ -12,7 +12,10 @@ struct PotPane: View {
   @Environment(RoomRouter.self) private var router
   @Environment(\.toast) private var toast
   @Environment(\.cs) private var cs
+  @Environment(SessionStore.self) private var store
   @State private var busy: UUID?
+  /// D56 / IOS-021: the Pro's season-pass card + the fine print; hidden until the flag says otherwise
+  @State private var pricing = PricingFlags.hidden
 
   var body: some View {
     let b = model.bylaws
@@ -41,8 +44,11 @@ struct PotPane: View {
         .padding(.vertical, 10)
         CSHairline()
       }
-      Text((try? AttributedString(markdown: "**Cup Season keeps the books.** Buy-ins and payouts move friend-to-friend. We just make sure nobody argues at the bar.")) ?? "")
-        .font(CSFont.footnote).foregroundStyle(cs.dimText).fixedSize(horizontal: false, vertical: true)
+      if let m = store.me?.memberships.first(where: { $0.league_id == model.leagueId }) {
+        PotPassCard(flags: pricing, league: m, isPro: model.isPro, seasonEndsOn: model.season?.ends_on, roster: model.potPlayers)
+      }
+      PricingPotFinePrint(flags: pricing)
+        .task { pricing = await PricingFlags.load() }
 
       CSSectionHead("Buy-ins · \(free ? "Bragging rights" : "\(model.paidCount)/\(model.potPlayers)") in")
       if free {
