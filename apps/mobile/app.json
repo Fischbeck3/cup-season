@@ -1,0 +1,34 @@
+{
+  "expo": {
+    "name": "Cup Season",
+    "slug": "cup-season",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "scheme": "cupseason",
+    "userInterfaceStyle": "dark",
+    "ios": {
+      "supportsTablet": false,
+      "bundleIdentifier": "app.cupseason.ios"
+    },
+    "android": {
+      "package": "app.cupseason.android",
+      "adaptiveIcon": {
+        "backgroundColor": "#0C0D0F",
+        "foregroundImage": "./assets/android-icon-foreground.png",
+        "backgroundImage": "./assets/android-icon-background.png",
+        "monochromeImage": "./assets/android-icon-monochrome.png"
+      },
+      "predictiveBackGestureEnabled": false
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    },
+    "plugins": [
+      "expo-router",
+      "expo-secure-store",
+      "expo-status-bar",
+      "expo-font"
+    ]
+  }
+}

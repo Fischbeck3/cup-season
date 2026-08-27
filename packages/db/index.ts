@@ -2,3 +2,4 @@
 export type { Json, Rpc, RpcName } from './rpc';
 export { anonCallable } from './rpc';
 export * from './client';
+export * from './auth';
