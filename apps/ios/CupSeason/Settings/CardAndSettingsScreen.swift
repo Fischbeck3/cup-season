@@ -307,6 +307,7 @@ private struct SettingsPane: View {
   @Environment(\.csAppearance) private var appearance
   @Bindable var vm: CardSettingsModel
   @State private var push = PushService.shared
+  @State private var pricing = PricingFlags.hidden
 
   var body: some View {
     VStack(alignment: .leading, spacing: 10) {
@@ -332,10 +333,9 @@ private struct SettingsPane: View {
       .onChange(of: appearance.wrappedValue) { _, new in new.save() }
 
       Text("Membership & billing").csEyebrow().padding(.top, 14)
-      HStack { Text("PLAN").font(CSFont.label).foregroundStyle(cs.mut); Spacer(); Text("FREE · PILOT").font(CSFont.monoMediumBody).foregroundStyle(cs.ink) }
-        .padding(.vertical, 8)
-      Text("Cup Season membership lands at launch. Nothing to pay during the pilot.")
-        .font(CSFont.footnote).foregroundStyle(cs.dimText)
+      // D56 / IOS-021: Founding · free season · (paid, future) — the PILOT stub verbatim while hidden
+      MembershipCard(flags: pricing, memberships: store.me?.memberships ?? [], proNames: nil)
+        .task { pricing = await PricingFlags.load() }
 
       CSButton("Sign out", style: .quiet) { Task { await store.signOut() } }.padding(.top, 12)
 
