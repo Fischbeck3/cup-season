@@ -292,7 +292,6 @@ struct DaySheet: Identifiable {
   var id: String { iso }
 }
 
-extension UUID: @retroactive Identifiable { public var id: UUID { self } }
 
 @MainActor
 @Observable

@@ -200,7 +200,7 @@ struct LeagueWelcomeSheet: View {
     .background(cs.bg0)
     .presentationDetents([.large])
     .presentationDragIndicator(.visible)
-    .sheet(isPresented: $scoring) { ScoringHelpSheet() }
+    .sheet(isPresented: $scoring) { JoinScoringHelpSheet() }
   }
 
   private func rule(_ b: String, _ rest: String) -> some View {
@@ -209,7 +209,7 @@ struct LeagueWelcomeSheet: View {
 }
 
 /// `openScoringHelp` (17020): the disclaimer, reachable from the welcome.
-struct ScoringHelpSheet: View {
+struct JoinScoringHelpSheet: View {
   @Environment(\.cs) private var cs
   var body: some View {
     ScrollView {
