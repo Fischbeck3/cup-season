@@ -112,7 +112,7 @@ Format per entry: ID · date · priority · decision · options · recommendatio
 
 **Reversibility.** EASY (new migrations; D37 grant discipline; `contract.psv` refreshed after each push).
 
-**Action.** Batch 1 WRITTEN 2026-08-27 (`supabase/migrations/20260827130000…130400`, libpg-query-parsed, `tests/db-checks.sql` check 12 added); awaiting the owner's `supabase db push` and a `contract.psv` refresh. The `close_month` revoke should go first regardless of iOS.
+**Action.** Batch 1 WRITTEN 2026-08-27 (`supabase/migrations/20260827130000…130400`, libpg-query-parsed, `tests/db-checks.sql` check 12 added); **PUSHED 2026-08-27** (owner-authorised, run from the local session); snapshot refreshed; `Rpc.swift` carries the three new functions. The `close_month` revoke should go first regardless of iOS.
 
 **Affects.** `supabase/migrations/`, `supabase/functions/push`, `packages/db/contract.psv`, `tests/db-checks.sql`.
 

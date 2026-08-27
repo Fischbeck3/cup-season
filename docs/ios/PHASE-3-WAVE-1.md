@@ -19,7 +19,7 @@
 - Home reactions (`fetchHomeSocial` — reactions on circle rounds through the shared-league post) and the digest's mentions line.
 - Toast hosts: slices B, C, D each mount their own; consolidate on `CSToastCenter` (installed at the root).
 - Generator gaps noted by D: nullable scalar returns and nullable non-defaulted uuid args in `build-db.mjs` (two hand-declared calls exist meanwhile).
-- `native_home` still unpushed → Home has no `prev_rank`/`pulse`; buddy-count rung 5 not shown.
+- ~~`native_home` still unpushed~~ — IOS-009 batch 1 pushed 2026-08-27 (`close_month` revoke held; snapshot refreshed; db-checks 11/12 — check 8 flags one pre-existing duplicate `month_closed` sentinel to look at in the SQL editor). Home reactions + digest mentions landed (`05618fc`).
 
 ## Next
 Waves 3–6 launched in parallel 2026-08-27: post a round · the live round · league creation + draft + Pro tools · the Ryder and the Major.
