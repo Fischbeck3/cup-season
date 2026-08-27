@@ -7,6 +7,7 @@ import CupSeasonKit
 struct RootView: View {
   @Environment(SessionStore.self) private var store
   @Environment(\.cs) private var cs
+  @State private var pendingJoin: String?
 
   var body: some View {
     ZStack {
@@ -20,6 +21,10 @@ struct RootView: View {
         CardGateView(me: me)
       case .ready:
         MainTabView()
+          .onAppear { if let j = JoinIntent.pending() { pendingJoin = j.code; JoinIntent.clear() } }
+          .sheet(item: $pendingJoin) { code in
+            JoinLeagueFlow(code: code) { id in store.preferredLeague = id; Task { await store.reload() } }
+          }
       case .mustUpdate(let min):
         MustUpdateView(minBuild: min)
       case .failed(let message):
@@ -82,3 +87,5 @@ struct MustUpdateView: View {
     .padding(28)
   }
 }
+
+extension String: @retroactive Identifiable { public var id: String { self } }
