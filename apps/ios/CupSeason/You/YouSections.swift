@@ -19,9 +19,8 @@ struct FeedbackChip: View {
         Spacer()
         Text("→").font(CSFont.subhead).foregroundStyle(cs.dimText)
       }
-      .padding(.horizontal, 14).padding(.vertical, 12).frame(minHeight: 44)
-      .background(cs.bg1, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
-      .overlay(RoundedRectangle(cornerRadius: 12, style: .continuous).stroke(cs.line, lineWidth: 1))
+      .frame(minHeight: 44)
+      .contentShape(Rectangle())
     }
     .buttonStyle(.plain)
   }
@@ -29,19 +28,18 @@ struct FeedbackChip: View {
 
 // MARK: - the founder's desk (owner only; the SERVER is the gate)
 
-struct FounderDeskCard: View {
+/// A quiet row group under its own eyebrow (IOS-019 rule 2), not a card.
+struct FounderDeskRows: View {
   let openDesk: () -> Void
   let fieldNote: (() -> Void)?
   var body: some View {
-    CSCard {
-      VStack(alignment: .leading, spacing: 8) {
-        Text("Founder's desk").csEyebrow()
-        HStack(spacing: 8) {
-          if let fieldNote { MiniButton(label: "✏️ Field note", action: fieldNote) }
-          MiniButton(label: "📈 Open the desk", action: openDesk)
-        }
-        Fine("Notes land in the feedback ledger · the desk shows signups, activity, errors, feedback.")
+    CSSectionHead("Founder's desk")
+    VStack(spacing: 0) {
+      if let fieldNote {
+        CSRow { YouDoorRow(glyph: Text("✏️"), title: "Field note", action: fieldNote) }
       }
+      CSRow(last: true) { YouDoorRow(glyph: Text("📈"), title: "Open the desk", action: openDesk) }
+      Fine("Notes land in the feedback ledger · the desk shows signups, activity, errors, feedback.").padding(.top, 6)
     }
   }
 }
@@ -79,41 +77,32 @@ struct CareerRecordView: View {
   @Environment(\.cs) private var cs
   let record: CareerRecord?
   var body: some View {
-    CSCard(padding: 14) {
-      if let r = record {
-        VStack(alignment: .leading, spacing: 0) {
-          if r.items.isEmpty {
-            Fine(CareerRecord.noSilverware)
-          } else {
-            LazyVGrid(columns: [GridItem(.adaptive(minimum: 84), spacing: 8)], spacing: 8) {
-              ForEach(r.items) { i in
-                VStack(spacing: 4) {
-                  Text(String(i.n)).font(CSFont.heroSmall).foregroundStyle(cs.gold).csTabular()   // EARNED
-                  Text(i.label).font(CSFont.label).tracking(1.2).textCase(.uppercase).foregroundStyle(cs.mut)
-                }
-                .padding(.vertical, 9).padding(.horizontal, 10).frame(maxWidth: .infinity)
-                .background(cs.bg1, in: RoundedRectangle(cornerRadius: 10, style: .continuous))
-                .overlay(RoundedRectangle(cornerRadius: 10, style: .continuous).stroke(cs.line, lineWidth: 1))
-                .accessibilityElement(children: .combine)
-              }
-            }
-          }
-          if let money = r.moneyLine {
-            HStack(alignment: .firstTextBaseline) {
+    // the silverware as one strip of gold figures, then the money as a row (IOS-019: no card in a card)
+    if let r = record {
+      VStack(alignment: .leading, spacing: 0) {
+        if r.items.isEmpty {
+          Fine(CareerRecord.noSilverware).padding(.vertical, 6)
+        } else {
+          HStack(alignment: .top, spacing: 0) {
+            ForEach(r.items) { i in
               VStack(alignment: .leading, spacing: 2) {
-                Text(money.amount).font(CSFont.stat).csTabular().foregroundStyle(cs.ink)
-                Text(money.sub).font(CSFont.label).tracking(1.0).textCase(.uppercase).foregroundStyle(cs.mut)
+                Text(String(i.n)).font(CSFont.heroSmall).foregroundStyle(cs.gold).csTabular()   // EARNED
+                Text(i.label).font(CSFont.label).tracking(1.2).textCase(.uppercase).foregroundStyle(cs.mut).lineLimit(1).minimumScaleFactor(0.85)
               }
+              .frame(maxWidth: .infinity, alignment: .leading)
+              .accessibilityElement(children: .combine)
             }
-            .padding(.top, 10).padding(.top, 2)
-            .overlay(alignment: .top) { Rectangle().fill(cs.line).frame(height: 1) }
-            .padding(.top, 12)
-            Fine(CareerRecord.moneyNote).padding(.top, 8)
           }
+          .padding(.vertical, 8)
         }
-      } else {
-        Fine(CareerRecord.emptyLine)
+        if let money = r.moneyLine {
+          CSHairline()
+          YouStatRow(label: money.sub, value: money.amount).padding(.vertical, 10)
+          Fine(CareerRecord.moneyNote)
+        }
       }
+    } else {
+      Fine(CareerRecord.emptyLine).padding(.vertical, 6)
     }
   }
 }
@@ -123,11 +112,11 @@ struct CareerRecordView: View {
 struct LifetimeTiles: View {
   let career: Career?
   var body: some View {
-    LazyVGrid(columns: [GridItem(.flexible(), spacing: 10), GridItem(.flexible(), spacing: 10)], spacing: 10) {
-      CSStat("Rounds posted", value: career?.roundsText ?? "—", sub: "All time")
-      CSStat("Lowest differential", value: career?.bestText ?? "—", sub: "Career best")
-      CSStat("Avg vs index", value: career?.avgText ?? "—", sub: "vs your index")
-      CSStat("Cups & events", value: career?.playedText ?? "—", sub: "Played in")
+    VStack(spacing: 0) {
+      CSRow { YouStatRow(label: "Rounds posted", value: career?.roundsText ?? "—", sub: "All time") }
+      CSRow { YouStatRow(label: "Lowest differential", value: career?.bestText ?? "—", sub: "Career best") }
+      CSRow { YouStatRow(label: "Avg vs index", value: career?.avgText ?? "—", sub: "vs your index") }
+      CSRow(last: true) { YouStatRow(label: "Cups & events", value: career?.playedText ?? "—", sub: "Played in") }
     }
   }
 }
@@ -144,7 +133,7 @@ struct RecentRoundsList: View {
   @State private var deleting: UUID?
 
   var body: some View {
-    CSCard(padding: 12) {
+    Group {
       if recent.isEmpty {
         CSEmptyState(icon: "⛳", line: "No rounds yet — your card fills as you play.", cta: "Post your first round", action: postFirst)
       } else {
@@ -209,12 +198,12 @@ struct SeasonStatsStrip: View {
   let stats: SeasonStats?
   let leagueName: String
   var body: some View {
-    Text("This season · \(leagueName)").csEyebrow()
-    LazyVGrid(columns: [GridItem(.flexible(), spacing: 10), GridItem(.flexible(), spacing: 10)], spacing: 10) {
-      CSStat("Rounds posted", value: stats?.roundsText ?? "—", sub: "This season")
-      CSStat("Avg vs index", value: stats?.avgText ?? "—", sub: "vs your index")
-      CSStat("Best round", value: stats?.bestText ?? "—", sub: "vs index · season")
-      CSStat("Index move", value: stats?.deltaText ?? "—", sub: "Season to date")
+    CSSectionHead("This season · \(leagueName)")
+    VStack(spacing: 0) {
+      CSRow { YouStatRow(label: "Rounds posted", value: stats?.roundsText ?? "—", sub: "This season") }
+      CSRow { YouStatRow(label: "Avg vs index", value: stats?.avgText ?? "—", sub: "vs your index") }
+      CSRow { YouStatRow(label: "Best round", value: stats?.bestText ?? "—", sub: "vs index · season") }
+      CSRow(last: true) { YouStatRow(label: "Index move", value: stats?.deltaText ?? "—", sub: "Season to date") }
     }
   }
 }
@@ -225,10 +214,10 @@ struct LeagueRecordView: View {
   let rows: [LeagueRecordRow]
   var body: some View {
     if !rows.isEmpty {
-      Text("League record").csEyebrow()
-      VStack(spacing: 8) {
-        ForEach(rows) { r in
-          CheckRow(glyph: Text(Image(systemName: "flag")), title: r.name, sub: r.sub) { EmptyView() }
+      CSSectionHead("League record")
+      VStack(spacing: 0) {
+        ForEach(Array(rows.enumerated()), id: \.element.id) { i, r in
+          CSRow(last: i == rows.count - 1) { YouDoorRow(glyph: Text(Image(systemName: "flag")), title: r.name, sub: r.sub) }
         }
       }
     }

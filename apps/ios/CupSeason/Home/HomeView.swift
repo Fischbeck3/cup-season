@@ -22,6 +22,9 @@ struct HomeView: View {
       if let me = store.me {
         let mode = HomeMode.of(me, preferredLeague: store.preferredLeague)
         VStack(alignment: .leading, spacing: 14) {
+          // IOS-019 rule 3: the wordmark lives in the scroll, where the glass toolbar cannot clip it
+          CSPageHeader("Cup Season", eyebrow: CSHeaderDate.today()).padding(.bottom, 2)
+
           InvitesBanner { id in store.preferredLeague = id; Task { await store.reload() } }
 
           LiveResumeBanner(links: LiveLinks(openReceipt: { presenter.receipt = $0 }, openTourCard: { presenter.tourCard = $0 },
@@ -37,16 +40,15 @@ struct HomeView: View {
 
           UpNextChips(leagueId: mode.membership?.league_id, links: links)
 
-          HStack {
-            Text("Around your buddies").csEyebrow()
-            Spacer()
+          // the section head: eyebrow + hairline (IOS-019 rule 2); THE BOARD ↗ is a push, so the
+          // trailing slot is a NavigationLink rather than CSSectionHead's action closure
+          HomeSectionHead("Around your buddies") {
             if let lid = mode.membership?.league_id {
               NavigationLink(value: HomeRoute.league(lid)) { Text("THE BOARD ↗").csEyebrow(cs.dawn) }
             }
           }
-          .padding(.top, 6)
 
-          if let d = vm.digest { HomeDigestCard(digest: d, openReceipt: { presenter.receipt = $0 }) }
+          if let d = vm.digest { CSRow(last: !vm.buckets.isEmpty) { HomeDigestRow(digest: d, openReceipt: { presenter.receipt = $0 }) } }
 
           if vm.loading && vm.buckets.isEmpty {
             ForEach(0..<3, id: \.self) { _ in skeleton }
@@ -55,26 +57,22 @@ struct HomeView: View {
               Text("No rounds from your buddies yet. Post one, or").font(CSFont.footnote).foregroundStyle(cs.mut)
               NavigationLink(value: HomeRoute.people) { Text("add some buddies.").font(CSFont.footnote).foregroundStyle(cs.brand) }
             }
+            .padding(.top, 4)
           } else {
             ForEach(vm.buckets) { b in FeedBucketView(bucket: b, presenter: presenter, vm: vm) }
           }
 
           UpcomingRoundsSection(links: links)
         }
-        .padding(.horizontal, 20).padding(.top, 8).padding(.bottom, 32)
+        .padding(.horizontal, 20).padding(.top, 4).padding(.bottom, 32)
       }
     }
     .background(cs.bg0)
+    .defaultScrollAnchor(CSDevHatch.bottom ? .bottom : .top)
     .refreshable { await store.reload(); await vm.load(me: store.me) }
     .task(id: store.me?.generated_at) { await vm.load(me: store.me) }
     .navigationTitle("")
     .toolbar {
-      ToolbarItem(placement: .topBarLeading) {
-        HStack(spacing: 8) {
-          Rectangle().fill(LinearGradient(colors: CSTokens.gradStops, startPoint: .leading, endPoint: .trailing)).frame(width: 18, height: 3)
-          Text("Cup Season").font(CSFont.sentenceBold).foregroundStyle(cs.ink)
-        }
-      }
       ToolbarItem(placement: .topBarTrailing) {
         Menu {
           Button { presenter.wizard = .init(existingLeagueId: nil) } label: { Label("Start a league", systemImage: "flag") }
@@ -91,8 +89,26 @@ struct HomeView: View {
 
   private var skeleton: some View {
     RoundedRectangle(cornerRadius: CSTokens.Radius.r, style: .continuous).fill(cs.bg1).frame(height: 76)
-      .overlay(RoundedRectangle(cornerRadius: CSTokens.Radius.r, style: .continuous).stroke(cs.line, lineWidth: 1))
       .redacted(reason: .placeholder)
+  }
+}
+
+/// A section head whose trailing slot is a view (a NavigationLink), not a closure —
+/// the same eyebrow + hairline shape as `CSSectionHead`.
+private struct HomeSectionHead<Trailing: View>: View {
+  let title: String
+  @ViewBuilder let trailing: () -> Trailing
+  init(_ title: String, @ViewBuilder trailing: @escaping () -> Trailing) { self.title = title; self.trailing = trailing }
+  var body: some View {
+    VStack(alignment: .leading, spacing: 8) {
+      HStack(alignment: .firstTextBaseline) {
+        Text(title).csEyebrow()
+        Spacer()
+        trailing()
+      }
+      CSHairline()
+    }
+    .padding(.top, 10)
   }
 }
 
@@ -179,28 +195,26 @@ private struct OccasionCard: View {
 
 // MARK: - digest
 
-private struct HomeDigestCard: View {
+/// The digest as a row in the section (IOS-019 rule 2) — no card of its own.
+private struct HomeDigestRow: View {
   @Environment(\.cs) private var cs
   let digest: HomeDigest
   let openReceipt: (UUID) -> Void
   var body: some View {
-    HStack(alignment: .top, spacing: 10) {
+    HStack(alignment: .top, spacing: 12) {
       if let u = digest.photoURL, let id = digest.roundId {
         Button { openReceipt(id) } label: {
           AsyncImage(url: u) { $0.resizable().scaledToFill() } placeholder: { cs.bg2 }
-            .frame(width: 44, height: 44).clipShape(RoundedRectangle(cornerRadius: 8))
+            .frame(width: 44, height: 44).clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
         }
         .buttonStyle(.plain)
       }
-      VStack(alignment: .leading, spacing: 2) {
-        Text(digest.label).csEyebrow()
+      VStack(alignment: .leading, spacing: 3) {
+        Text(digest.label).font(CSFont.label).tracking(1.2).textCase(.uppercase).foregroundStyle(cs.dimText)
         Text(digest.body).font(CSFont.subhead).foregroundStyle(cs.ink)
       }
     }
-    .padding(12)
     .frame(maxWidth: .infinity, alignment: .leading)
-    .background(cs.bg1, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
-    .overlay(RoundedRectangle(cornerRadius: 12, style: .continuous).stroke(cs.line, lineWidth: 1))
   }
 }
 
@@ -217,20 +231,24 @@ private struct FeedBucketView: View {
     let cap = HomeBuckets.cap
     let showAll = bucket.label == "Earlier" ? expanded : (expanded || bucket.items.count <= cap + 1)
     let shown = showAll ? bucket.items : Array(bucket.items.prefix(cap))
-    VStack(alignment: .leading, spacing: 10) {
+    VStack(alignment: .leading, spacing: 0) {
       if bucket.label == "Earlier" && !expanded {
         Button("Show earlier · \(bucket.items.count)") { expanded = true }.font(CSFont.footnote).foregroundStyle(cs.dawn)
+          .padding(.vertical, 6)
       } else {
-        Text(bucket.label).font(CSFont.label).tracking(1.2).textCase(.uppercase).foregroundStyle(cs.dimText)
+        CSSectionHead(bucket.label)
         ForEach(shown) { item in
           switch item {
-          case .round(let r, let url): FeedRoundCard(r: r, photoURL: url, presenter: presenter, vm: vm)
-          case .post(let p, let league): FeedPostCard(p: p, leagueName: league, presenter: presenter)
+          case .round(let r, let url):
+            FeedRoundCard(r: r, photoURL: url, presenter: presenter, vm: vm).padding(.vertical, 6)
+          case .post(let p, let league):
+            CSRow { FeedPostRow(p: p, leagueName: league, presenter: presenter) }
           }
         }
         if !showAll {
           Button("Show \(bucket.items.count - cap) more · \(bucket.label.lowercased())") { expanded = true }
             .font(CSFont.footnote).foregroundStyle(cs.dawn)
+            .padding(.vertical, 6)
         }
       }
     }
@@ -246,14 +264,20 @@ private struct FeedRoundCard: View {
   let presenter: Presenter
   let vm: HomeModel
 
+  private var reactions: [String: ReactionState]? { r.round_id.flatMap { vm.social.state(for: $0) } }
+  private var canReact: Bool { reactions != nil }
+
+  /// Chips only when at least one reaction exists — never a lone "+" (IOS-019).
   @ViewBuilder private var strip: some View {
-    if let rid = r.round_id, let state = vm.social.state(for: rid) {
-      HomeReactionStrip(state: state) { emoji in
-        Task {
-          guard let me = store.me else { return }
-          if let e = await vm.toggle(round: r, emoji: emoji, me: me, name: me.profile?.display_name ?? "You") { toast.show(e) }
-        }
-      }
+    if let state = reactions, CSReactions.all.contains(where: { (state[$0.emoji]?.n ?? 0) > 0 }) {
+      HomeReactionStrip(state: state, onToggle: toggle)
+    }
+  }
+
+  private func toggle(_ emoji: String) {
+    Task {
+      guard let me = store.me else { return }
+      if let e = await vm.toggle(round: r, emoji: emoji, me: me, name: me.profile?.display_name ?? "You") { toast.show(e) }
     }
   }
 
@@ -317,7 +341,19 @@ private struct FeedRoundCard: View {
       }
     }
     .buttonStyle(.plain)
+    .contextMenu {
+      // "add a reaction" — the six named emoji, on a long press (rxPaletteHtml); same write path
+      if let state = reactions {
+        ForEach(CSReactions.all) { rx in
+          Button { toggle(rx.emoji) } label: {
+            Label { Text(rx.label) } icon: { Text(rx.emoji) }
+          }
+          .disabled(state[rx.emoji]?.me == true)
+        }
+      }
+    }
     .accessibilityLabel("\(who) — \(r.gross.map(String.init) ?? "") at \(r.course ?? "a round")")
+    .accessibilityHint(canReact ? "Long press to add a reaction" : "")
   }
 
   private func faceButton(size: CGFloat) -> some View {
@@ -328,7 +364,8 @@ private struct FeedRoundCard: View {
   }
 }
 
-private struct FeedPostCard: View {
+/// A league post as a row in the section (IOS-019 rule 2): glyph, the body, the league line.
+private struct FeedPostRow: View {
   @Environment(\.cs) private var cs
   let p: HomePost
   let leagueName: String?
@@ -337,9 +374,10 @@ private struct FeedPostCard: View {
     let fresh = (p.created_at.map { Date().timeIntervalSince($0) } ?? .infinity) < 48 * 3600
     let closed = (p.body ?? "").range(of: "\\bclosed\\b", options: [.regularExpression, .caseInsensitive]) != nil
     Button { if let lr = p.live_round_id { presenter.scorecard = lr } } label: {
-      HStack(alignment: .top, spacing: 10) {
-        Text(p.kind == "announce" ? "📣" : "🏁").font(.system(size: 20))
-          .frame(width: 44, height: 44).background(cs.bg2, in: Circle())
+      HStack(alignment: .top, spacing: 12) {
+        Text(p.kind == "announce" ? "📣" : "🏁").font(.system(size: 18))
+          .frame(width: 40, height: 40).background(cs.bg2, in: Circle())
+          .overlay(Circle().stroke(fresh ? cs.line2 : .clear, lineWidth: 1))
         VStack(alignment: .leading, spacing: 3) {
           Text(HomeCopy.easeCaps(p.body ?? "")).font(CSFont.subhead).foregroundStyle(cs.ink)
           HStack(spacing: 4) {
@@ -348,12 +386,9 @@ private struct FeedPostCard: View {
             if p.live_round_id != nil { Text("· SCORECARD ›").font(CSFont.label).foregroundStyle(cs.gold) }
           }
         }
-        Spacer()
+        Spacer(minLength: 0)
       }
-      .padding(12)
       .frame(maxWidth: .infinity, alignment: .leading)
-      .background(cs.bg1, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
-      .overlay(RoundedRectangle(cornerRadius: 12, style: .continuous).stroke(fresh ? cs.line2 : cs.line, lineWidth: 1))
       .rotationEffect(.degrees(closed ? 1.4 : 0))   // the month seal keeps its cant — a hand set it
     }
     .buttonStyle(.plain)
@@ -368,27 +403,31 @@ struct HomeHero: View {
   let me: Me
 
   var body: some View {
-    CSCard(spine: spine, padding: 18) {
-      VStack(alignment: .leading, spacing: 8) {
+    // IOS-019 rule 1: the one hero on the screen wears the wash — gold when earned, ember otherwise
+    CSHero(spine: spine, padding: 20) {
+      VStack(alignment: .leading, spacing: 10) {
         Text(eyebrow).csEyebrow(earned ? cs.gold : nil)
-        HStack(alignment: .firstTextBaseline, spacing: 10) {
-          Text(figure).font(CSFont.hero).foregroundStyle(cs.ink).csTabular()
+        HStack(alignment: .firstTextBaseline, spacing: 12) {
+          Text(figure).font(CSFont.hero).foregroundStyle(earned ? cs.gold : cs.ink).csTabular()
           if let move { moveChip(move) }
         }
         Text(line).font(CSFont.sentence).foregroundStyle(cs.ink)
-        if let foot { Text(foot).font(CSFont.monoSmall).foregroundStyle(cs.mut).padding(.top, 4) }
+        if let foot { Text(foot).font(CSFont.monoSmall).foregroundStyle(cs.mut).padding(.top, 2) }
       }
+      .padding(.leading, 6)
     }
+    .accessibilityElement(children: .combine)
   }
 
-  private var earned: Bool { if case .season(let m) = mode { return m.standing?.rank == 1 }; return false }
-  private var spine: Color? {
+  /// Gold is EARNED only: the lead this season, the lead into the final, or your name on the cup.
+  private var earned: Bool {
     switch mode {
-    case .season: earned ? cs.gold : cs.brand
-    case .cupFinal, .wrapped: cs.gold
-    default: cs.brand
+    case .season(let m), .cupFinal(let m): return m.standing?.rank == 1
+    case .wrapped(let m): return m.season?.champion_squad_id != nil && m.season?.champion_squad_id == m.squad?.id
+    default: return false
     }
   }
+  private var spine: Color { earned ? cs.gold : cs.brand }
 
   private var eyebrow: String {
     switch mode {
@@ -469,8 +508,9 @@ struct HomeHero: View {
   }
 }
 
-/// The reaction strip on a Home round (rxChipsHtml + rxPaletteHtml 4695–4740):
-/// chips for reactions present, mine highlighted; a "+" tray with the six.
+/// The reaction strip on a Home round (rxChipsHtml 4695–4740): chips for the
+/// reactions present, mine highlighted. Rendered only when one exists — the
+/// tray of six lives on the card's long press (IOS-019).
 private struct HomeReactionStrip: View {
   @Environment(\.cs) private var cs
   let state: [String: ReactionState]
@@ -485,6 +525,7 @@ private struct HomeReactionStrip: View {
             Text("\(st.n)").font(CSFont.label).csTabular()
           }
           .padding(.horizontal, 8).padding(.vertical, 5)
+          .frame(minHeight: 30)
           .background(cs.bg2, in: Capsule())
           .overlay(Capsule().stroke(st.me ? cs.brand : cs.line2, lineWidth: 1))
           .foregroundStyle(st.me ? cs.brand : cs.ink)
@@ -492,15 +533,6 @@ private struct HomeReactionStrip: View {
         .buttonStyle(.plain)
         .accessibilityLabel("\(rx.label), \(st.n)\(st.me ? ", yours" : "")")
       }
-      Menu {
-        ForEach(CSReactions.all) { rx in
-          Button { onToggle(rx.emoji) } label: { Text("\(rx.emoji)  \(rx.label)") }.disabled(state[rx.emoji]?.me == true)
-        }
-      } label: {
-        Image(systemName: "plus").font(.caption.weight(.semibold)).foregroundStyle(cs.mut)
-          .frame(width: 28, height: 28).background(cs.bg2, in: Circle())
-      }
-      .accessibilityLabel("More reactions")
     }
     .padding(.top, 6)
   }

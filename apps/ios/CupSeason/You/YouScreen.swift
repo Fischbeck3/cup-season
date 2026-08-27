@@ -61,33 +61,38 @@ struct YouScreen: View {
     ScrollView {
       if let me = store.me, let p = me.profile {
         VStack(alignment: .leading, spacing: 14) {
-          credential(me, p)
-          FeedbackChip(action: links.openFeedback)
-          if model.data.isFounder { FounderDeskCard(openDesk: links.openFounderDesk, fieldNote: links.founderNote) }
+          // IOS-019 rule 3: the page header lives in the scroll
+          CSPageHeader("You").padding(.bottom, 2)
 
-          Text("Your display case").csEyebrow()
+          hero(me, p)
+          CSRow(last: true) { FeedbackChip(action: links.openFeedback) }
+          if model.data.isFounder { FounderDeskRows(openDesk: links.openFounderDesk, fieldNote: links.founderNote) }
+
+          CSSectionHead("Your display case")
           TrophyCaseView(trophies: model.data.trophies, achievements: model.data.achievements, userId: uid)
 
           if let lrw = model.data.lastRoundWith {
             LastRoundWithCard(lrw: lrw, stage: links.stageRound) { if let uid { model.dismissLRW(uid: uid) } }
           }
 
-          Text("The record").csEyebrow()
+          CSSectionHead("The record")
           CareerRecordView(record: model.data.careerRecord)
 
-          Text("Lifetime").csEyebrow()
+          CSSectionHead("Lifetime")
           LifetimeTiles(career: model.data.career)
 
-          Text("Recent rounds").csEyebrow()
+          CSSectionHead("Recent rounds")
           RecentRoundsList(recent: model.data.career?.recent ?? [], open: { r in
             Task { await ReceiptCache.shared.put(r.seed(marker: p.marker, isMine: true)); links.openReceipt(r.id) }
           }, delete: { r in
             if let uid { _ = await model.deleteRound(r, me: me, uid: uid, leagueId: leagueId) }
           }, postFirst: links.postRound)
-          CSButton("Post a round", action: links.postRound)
+          CSButton("Post a round", action: links.postRound).padding(.top, 4)
 
-          Text("Your buddies").csEyebrow()
-          CheckDoor(glyph: Text(Image(systemName: "person.2")), title: "Your buddies", sub: "Find golfers, see who you play with", action: links.openBuddies)
+          CSSectionHead("Your buddies")
+          CSRow(last: true) {
+            YouDoorRow(glyph: Text(Image(systemName: "person.2")), title: "Your buddies", sub: "Find golfers, see who you play with", action: links.openBuddies)
+          }
 
           if league != nil {
             RivalriesSection(rivalries: model.data.rivalries, openTourCard: links.openTourCard)
@@ -95,17 +100,25 @@ struct YouScreen: View {
           }
           LeagueRecordView(rows: model.data.leagueRecord)
 
-          Text("How it works").csEyebrow()
+          CSSectionHead("How it works")
           HowItWorks { row in
             if row.key == "scoring" { sheet = .scoring } else if let g = GuideCopy.sheets[row.key] { sheet = .guide(g) }
           }
         }
-        .padding(20)
+        .padding(.horizontal, 20).padding(.top, 4).padding(.bottom, 32)
       }
     }
     .background(cs.bg0)
-    .navigationTitle("You")
+    .defaultScrollAnchor(CSDevHatch.bottom ? .bottom : .top)
+    .navigationTitle("")
     .navigationBarTitleDisplayMode(.inline)
+    .toolbar {
+      // the same chrome as Home: one glyph, trailing — the ⚙ is the door to "Card & settings"
+      ToolbarItem(placement: .topBarTrailing) {
+        Button(action: links.openSettings) { Image(systemName: "gearshape").foregroundStyle(cs.ink) }
+          .accessibilityLabel("Card & settings")
+      }
+    }
     .sliceToastHost()
     .refreshable { await reload() }
     .task(id: store.me?.profile?.id) { await reload() }
@@ -122,32 +135,32 @@ struct YouScreen: View {
     await model.load(me: me, uid: uid, leagueId: leagueId)
   }
 
-  /// C4: your own credential — the same object your buddies see on your Tour Card.
-  private func credential(_ me: Me, _ p: Me.Profile) -> some View {
+  /// C4: your own credential — the same facts your buddies see on your Tour Card,
+  /// as the screen's one hero (IOS-019).
+  private func hero(_ me: Me, _ p: Me.Profile) -> some View {
     let x = model.data.extras
     let since = (x?.createdAt ?? p.member_since).map { "Member since " + TourCard.monthYear($0) }
     let meta = [p.handle.map { "@\($0)" }, p.city, p.home_course].compactMap { $0 }.filter { !$0.isEmpty }.joined(separator: " · ")
     let rounds = model.data.career?.rounds ?? p.rounds_count ?? 0
-    let dark = CSTokens.dark
-    return CredentialCard(
+    let lines = TrophyMeta.credLines(model.data.achievements, max: 3, moreSuffix: " more in the case")
+    let more = model.data.achievements.count > 3 ? lines.last : nil
+    return YouHero(
       photoURL: x?.avatarURL, marker: p.marker, name: p.display_name ?? "Your card", meta: meta,
       indexCurrent: p.index_current, rounds: rounds,
-      trophyLines: TrophyMeta.credLines(model.data.achievements, max: 3, moreSuffix: " more in the case"),
+      trophyChips: more == nil ? lines : Array(lines.dropLast()), moreChip: more,
       form: FormRow.from(beats: (model.data.career?.recent ?? []).map(\.beat)),
       anchor: {
         if let g = x?.ghinNumber, !g.isEmpty {
-          Text(["GHIN \(g)", since].compactMap { $0 }.joined(separator: " · ")).font(CSFont.footnote).foregroundStyle(dark.mut)
+          Text(["GHIN \(g)", since].compactMap { $0 }.joined(separator: " · ")).font(CSFont.footnote).foregroundStyle(cs.mut)
         } else {
           HStack(spacing: 0) {
-            if let since { Text(since + " · ").font(CSFont.footnote).foregroundStyle(dark.mut) }
+            if let since { Text(since + " · ").font(CSFont.footnote).foregroundStyle(cs.mut) }
             Button("add your GHIN") { (links.addGhin ?? links.openSettings)() }
-              .font(CSFont.footnote).foregroundStyle(dark.brand).buttonStyle(.plain)
+              .font(CSFont.footnote).foregroundStyle(cs.brand).buttonStyle(.plain)
           }
           .frame(minHeight: 28)
         }
-      },
-      extra: { EmptyView() },
-      settings: links.openSettings)
+      })
   }
 }
 

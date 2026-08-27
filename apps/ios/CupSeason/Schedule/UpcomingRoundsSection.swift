@@ -20,7 +20,7 @@ struct UpcomingRoundsSection: View {
     Group {
       if !vm.rounds.isEmpty {
         VStack(alignment: .leading, spacing: 8) {
-          Text("Coming up").csEyebrow()
+          CSSectionHead("Coming up")
           ForEach(vm.rounds) { sr in
             HomeRoundCard(sr: sr, weather: sr.id.flatMap { vm.weather[$0] })
               .contentShape(Rectangle())
