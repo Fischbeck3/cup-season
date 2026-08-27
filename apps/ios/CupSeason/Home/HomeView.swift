@@ -54,7 +54,7 @@ struct HomeView: View {
               NavigationLink(value: HomeRoute.people) { Text("add some buddies.").font(CSFont.footnote).foregroundStyle(cs.brand) }
             }
           } else {
-            ForEach(vm.buckets) { b in FeedBucketView(bucket: b, presenter: presenter) }
+            ForEach(vm.buckets) { b in FeedBucketView(bucket: b, presenter: presenter, vm: vm) }
           }
 
           UpcomingRoundsSection(links: links)
@@ -101,9 +101,14 @@ final class HomeModel {
   var digest: HomeDigest?
   var occasion: Occasion?
   var loading = false
+  var social = HomeSocial.Snapshot()
   private var markRead = false
   private var mark: Date?
+  private var rounds: [HomeFeedRow] = []
+  private var posts: [HomePost] = []
+  private var urls: [UUID: URL] = [:]
   private let repo = HomeStreamRepository()
+  private let socialRepo = HomeSocial()
 
   func load(me: Me?) async {
     guard let me else { return }
@@ -112,10 +117,33 @@ final class HomeModel {
     occasion = Occasion.current(leagueless: me.memberships.isEmpty)
     let r = await repo.load(memberships: me.memberships)
     buckets = HomeBuckets.bucket(r.items)
+    rounds = r.rounds; posts = r.posts
     if !markRead { mark = HomeDigest.readAndMark(profile: me.profile?.id); markRead = true }
-    var urls: [UUID: URL] = [:]
+    urls = [:]
     for case .round(let row, let u) in r.items { if let id = row.round_id, let u { urls[id] = u } }
-    digest = HomeDigest.make(rounds: r.rounds, posts: r.posts, photoURLs: urls, mark: mark)
+    digest = HomeDigest.make(rounds: rounds, posts: posts, photoURLs: urls, mark: mark)
+    // circle reactions ride the rounds just loaded (round → shared-league post)
+    social = await socialRepo.load(rounds: rounds, memberships: me.memberships, currentLeague: preferred(me))
+    if let mark { digest = HomeDigest.make(rounds: rounds, posts: posts, photoURLs: urls, mark: mark, mentions: social.mentions(rounds: rounds, since: mark)) }
+  }
+
+  private func preferred(_ me: Me) -> UUID? {
+    UserDefaults.standard.string(forKey: CSConfig.lastLeagueKey).flatMap(UUID.init) ?? me.memberships.first?.league_id
+  }
+
+  /// `toggleHomeRx` — optimistic flip, one write path, revert + toast on failure.
+  func toggle(round: HomeFeedRow, emoji: String, me: Me, name: String) async -> String? {
+    guard let rid = round.round_id, let t = social.targets[rid] else { return nil }
+    var st = social.rx[t.postId, default: [:]][emoji, default: ReactionState()]
+    let had = st.me
+    st.flip(me: name, on: !had)
+    social.rx[t.postId, default: [:]][emoji] = st
+    do { try await socialRepo.write(target: t, memberships: me.memberships, emoji: emoji, had: had); return nil }
+    catch {
+      st.flip(me: name, on: had)
+      social.rx[t.postId, default: [:]][emoji] = st
+      return AuthRules.human(error, fallback: "Reaction did not save.")
+    }
   }
 }
 
@@ -198,6 +226,7 @@ private struct FeedBucketView: View {
   @Environment(\.cs) private var cs
   let bucket: HomeBucket
   let presenter: Presenter
+  let vm: HomeModel
   @State private var expanded = false
 
   var body: some View {
@@ -211,7 +240,7 @@ private struct FeedBucketView: View {
         Text(bucket.label).font(CSFont.label).tracking(1.2).textCase(.uppercase).foregroundStyle(cs.dimText)
         ForEach(shown) { item in
           switch item {
-          case .round(let r, let url): FeedRoundCard(r: r, photoURL: url, presenter: presenter)
+          case .round(let r, let url): FeedRoundCard(r: r, photoURL: url, presenter: presenter, vm: vm)
           case .post(let p, let league): FeedPostCard(p: p, leagueName: league, presenter: presenter)
           }
         }
@@ -226,9 +255,23 @@ private struct FeedBucketView: View {
 
 private struct FeedRoundCard: View {
   @Environment(\.cs) private var cs
+  @Environment(SessionStore.self) private var store
+  @Environment(\.toast) private var toast
   let r: HomeFeedRow
   let photoURL: URL?
   let presenter: Presenter
+  let vm: HomeModel
+
+  @ViewBuilder private var strip: some View {
+    if let rid = r.round_id, let state = vm.social.state(for: rid) {
+      HomeReactionStrip(state: state) { emoji in
+        Task {
+          guard let me = store.me else { return }
+          if let e = await vm.toggle(round: r, emoji: emoji, me: me, name: me.profile?.display_name ?? "You") { toast.show(e) }
+        }
+      }
+    }
+  }
 
   private var who: String { HomeCopy.who(r) }
   private var milestone: String? { HomeCopy.milestone(r) }
@@ -261,6 +304,7 @@ private struct FeedRoundCard: View {
               Spacer()
               CSMarkerView(key: r.marker, size: 22).foregroundStyle(CSTokens.dark.ink)
             }
+            strip
           }
           .padding(14)
         }
@@ -283,6 +327,7 @@ private struct FeedRoundCard: View {
               }
             }
             Text(meta).font(CSFont.monoSmall).foregroundStyle(cs.mut)
+            strip
           }
         }
       }
@@ -437,5 +482,42 @@ struct HomeHero: View {
     }
     if let cap = m.settings?.counting_cap { return "Best \(cap) rounds a month count" }
     return nil
+  }
+}
+
+/// The reaction strip on a Home round (rxChipsHtml + rxPaletteHtml 4695–4740):
+/// chips for reactions present, mine highlighted; a "+" tray with the six.
+private struct HomeReactionStrip: View {
+  @Environment(\.cs) private var cs
+  let state: [String: ReactionState]
+  let onToggle: (String) -> Void
+  var body: some View {
+    HStack(spacing: 6) {
+      ForEach(CSReactions.all.filter { (state[$0.emoji]?.n ?? 0) > 0 }) { rx in
+        let st = state[rx.emoji] ?? ReactionState()
+        Button { CSHaptic.selection(); onToggle(rx.emoji) } label: {
+          HStack(spacing: 4) {
+            Text(rx.emoji)
+            Text("\(st.n)").font(CSFont.label).csTabular()
+          }
+          .padding(.horizontal, 8).padding(.vertical, 5)
+          .background(cs.bg2, in: Capsule())
+          .overlay(Capsule().stroke(st.me ? cs.brand : cs.line2, lineWidth: 1))
+          .foregroundStyle(st.me ? cs.brand : cs.ink)
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel("\(rx.label), \(st.n)\(st.me ? ", yours" : "")")
+      }
+      Menu {
+        ForEach(CSReactions.all) { rx in
+          Button { onToggle(rx.emoji) } label: { Text("\(rx.emoji)  \(rx.label)") }.disabled(state[rx.emoji]?.me == true)
+        }
+      } label: {
+        Image(systemName: "plus").font(.caption.weight(.semibold)).foregroundStyle(cs.mut)
+          .frame(width: 28, height: 28).background(cs.bg2, in: Circle())
+      }
+      .accessibilityLabel("More reactions")
+    }
+    .padding(.top, 6)
   }
 }

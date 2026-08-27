@@ -4,10 +4,8 @@
 // last visit, or on a genuinely quiet day resurfaces the best recent thing.
 // The seen-mark is per profile and read ONCE per load so a re-render
 // mid-session cannot erase the digest you are reading.
-//
-// Not yet ported: `dgMentions` — reactions/comments on YOUR rounds since the
-// mark. That needs the Home reaction map (round → shared-league post), which
-// lands with Home reactions in a later wave-2 pass.
+// Mentions (reactions/comments on YOUR rounds since the mark) come from
+// `HomeSocial.Snapshot.mentions` — a 🔥 at 11pm is news at 7am.
 
 import Foundation
 
@@ -72,17 +70,23 @@ public struct HomeDigest: Sendable, Equatable {
 
   /// nil = nothing to frame (first visit, or truly nothing).
   public static func make(rounds: [HomeFeedRow], posts: [HomePost], photoURLs: [UUID: URL] = [:], mark: Date?,
-                          now: Date = Date(), calendar: Calendar = .current) -> HomeDigest? {
+                          mentions: [HomeSocial.Mention] = [], now: Date = Date(), calendar: Calendar = .current) -> HomeDigest? {
     guard let mark else { return nil }   // first visit — the feed IS the reveal
     let freshRounds = rounds.filter { ($0.created_at ?? CSDate.local($0.played_on ?? "") ?? .distantPast) > mark }
     let freshPosts = posts.filter { ($0.created_at ?? .distantPast) > mark }
-    if !freshRounds.isEmpty || !freshPosts.isEmpty {
+    // mentions can RESCUE a quiet day — a reaction on your round IS something new
+    if !freshRounds.isEmpty || !freshPosts.isEmpty || !mentions.isEmpty {
       var bits: [String] = []
       if !freshRounds.isEmpty { bits.append("\(freshRounds.count) round\(freshRounds.count > 1 ? "s" : "")") }
       if let pr = freshRounds.first(where: { $0.is_pr == true }) { bits.append("a personal best from \(who(pr))") }
       if let s = freshRounds.first(where: { $0.is_sub80 == true }) { bits.append("\(who(s)) broke 80") }
       if let f = freshRounds.first(where: { $0.is_first == true }) { bits.append("\(who(f))'s first round") }
       if !freshPosts.isEmpty { bits.append("\(freshPosts.count) league note\(freshPosts.count > 1 ? "s" : "")") }
+      if let m = mentions.first {
+        let g = m.gross.map(String.init) ?? "round"
+        bits.append(m.emoji.map { "\(m.who) \($0)’d your \(g)" } ?? "\(m.who) chimed in on your \(g)")
+        if mentions.count > 1 { bits.append("\(mentions.count - 1) more chimed in on your rounds") }
+      }
       guard !bits.isEmpty else { return nil }
       return HomeDigest(kind: .since, label: "Since you were here", body: join(bits) + ".", roundId: nil, photoURL: nil)
     }
