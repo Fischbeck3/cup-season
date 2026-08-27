@@ -35,6 +35,10 @@
 	<string>$(CURRENT_PROJECT_VERSION)</string>
 	<key>ITSAppUsesNonExemptEncryption</key>
 	<false/>
+	<key>NSCameraUsageDescription</key>
+	<string>Cup Season reads your scorecard from a photo so you can post a round in seconds.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Cup Season attaches a photo to your round or your card. The marker always backs it up.</string>
 	<key>UIAppFonts</key>
 	<array>
 		<string>IBMPlexMono-Regular.ttf</string>
