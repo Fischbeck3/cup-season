@@ -19,9 +19,11 @@
 #     from pg_proc p join pg_namespace n on n.oid=p.pronamespace
 #     where n.nspname='public' and p.prokind='f') s;
 #
-# Snapshot taken 2026-08-26. `unregister_device_token` is deliberately ABSENT:
-# its migration (20260826120000) has not been pushed yet, which is exactly the
-# deploy-skew that preflight check 11 reports.
+# Snapshot taken 2026-08-26, refreshed the same day once 20260826120000 was
+# pushed. That function was absent from the first snapshot on purpose - check 11
+# reported it as a deploy owed, which is exactly its job. Lesson kept: after a
+# db push that adds or re-signs a function, refresh this file, or the check
+# keeps reporting a deploy you already made.
 _live_member_can|p_live_round uuid|boolean|definer|none
 _live_state_of|p_live_round uuid|jsonb|definer|none
 abandon_live_round|p_live_round uuid|jsonb|definer|auth
@@ -189,5 +191,6 @@ transfer_pro|p_member uuid|void|definer|auth
 trg_event_complete||trigger|definer|auth
 undo_pick|p_draft uuid|void|definer|auth
 unfriend|p_profile uuid|void|definer|auth
+unregister_device_token|p_token text|void|definer|auth
 vote_league_cancel|p_league uuid, p_approve boolean|text|definer|auth
 withdraw_league_cancel|p_league uuid|text|definer|auth
