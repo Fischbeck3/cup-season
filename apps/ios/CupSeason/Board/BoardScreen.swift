@@ -60,7 +60,7 @@ struct BoardScreen: View {
   private func content(_ store: BoardStore) -> some View {
     ScrollViewReader { proxy in
       ScrollView {
-        LazyVStack(alignment: .leading, spacing: 8) {
+        LazyVStack(alignment: .leading, spacing: 0) {
           if store.hasEarlier {
             Button {
               Task { await store.loadEarlier() }
@@ -153,7 +153,7 @@ struct BoardCompactList: View {
   var body: some View {
     Group {
       if let store {
-        LazyVStack(alignment: .leading, spacing: 8) {
+        LazyVStack(alignment: .leading, spacing: 0) {
           if let pin = store.pinnedIndex { AnnounceRow(text: store.items[pin].text, pinned: true) }
           if let lines = store.digest { DigestCard(lines: lines) }
           if !store.loaded, store.loading { BoardSkeleton() }

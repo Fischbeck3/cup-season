@@ -169,6 +169,16 @@ enum RoomSheet: Identifiable {
 @MainActor @Observable final class RoomRouter {
   var sheet: RoomSheet?
   var pane: RoomPane = .standings
+  init() {
+    #if DEBUG
+    // Developer hatch: `-cs_dev_pane pot|album|league` lands a simulator on a pane without a finger.
+    let a = ProcessInfo.processInfo.arguments
+    if let i = a.firstIndex(of: "-cs_dev_pane"), i + 1 < a.count,
+       let p = RoomPane.allCases.first(where: { $0.rawValue.lowercased() == a[i + 1].lowercased() }), p != .board, p != .schedule {
+      pane = p
+    }
+    #endif
+  }
   func open(_ s: RoomSheet) { sheet = s }
 }
 

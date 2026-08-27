@@ -13,14 +13,19 @@ struct LeaguePane: View {
   @Environment(\.roomLinks) private var links
   @Environment(\.toast) private var toast
   @Environment(\.cs) private var cs
+  #if DEBUG
+  // Developer hatch: `-cs_dev_rules` opens the bylaws disclosure on a simulator without a finger.
+  @State private var rulesOpen = ProcessInfo.processInfo.arguments.contains("-cs_dev_rules")
+  #else
   @State private var rulesOpen = false
+  #endif
   @State private var shareURL: URL?
   @State private var sharing = false
 
   var body: some View {
     let n = model.members.count
     VStack(alignment: .leading, spacing: 0) {
-      Text("League").csEyebrow()
+      CSSectionHead("League")
       RoomCheckRow("Members & invites", sub: "\(n) player\(n == 1 ? "" : "s")") {
         Image(systemName: "flag").font(.system(size: 15, weight: .regular)).foregroundStyle(cs.ink)
       } trail: { RoomMini("View") { router.open(.members) } }
@@ -46,24 +51,29 @@ struct LeaguePane: View {
 
       DisclosureGroup(isExpanded: $rulesOpen) {
         VStack(alignment: .leading, spacing: 10) {
-          Text("The bylaws · locked at first tee").csEyebrow().padding(.top, 10)
+          CSSectionHead("The bylaws · locked at first tee")
           BylawsCard()
-          Text("The Pro Shop").csEyebrow().padding(.top, 6)
-          CSCard {
-            VStack(alignment: .leading, spacing: 8) {
-              Text("Pro Shop").font(CSFont.title).foregroundStyle(cs.ink)
-              Text("CUP SEASON MEMBERSHIP · COMING AT LAUNCH · THE PILOT RIDES FREE").font(CSFont.label).tracking(1.2).foregroundStyle(cs.dimText)
-              ForEach(["Custom rules, every dial unlocked", "Live draft night with pick timer", "Trades & waiver wire", "Multi-season history & records"], id: \.self) { s in
-                HStack(spacing: 8) {
-                  Text("SOON").font(CSFont.label).tracking(1.0).foregroundStyle(cs.brand)
-                    .padding(.horizontal, 6).padding(.vertical, 2).overlay(Capsule().stroke(cs.brand.opacity(0.6), lineWidth: 1))
-                  Text(s).font(CSFont.subhead).foregroundStyle(cs.mut)
+          CSSectionHead("The Pro Shop")
+          // rows on ground, not a card in a disclosure (IOS-019 rule 2)
+          VStack(alignment: .leading, spacing: 8) {
+            Text("Pro Shop").font(CSFont.sentenceBold).foregroundStyle(cs.ink)
+            Text("CUP SEASON MEMBERSHIP · COMING AT LAUNCH · THE PILOT RIDES FREE").font(CSFont.label).tracking(1.2).foregroundStyle(cs.dimText)
+              .fixedSize(horizontal: false, vertical: true)
+            VStack(spacing: 0) {
+              let perks = ["Custom rules, every dial unlocked", "Live draft night with pick timer", "Trades & waiver wire", "Multi-season history & records"]
+              ForEach(Array(perks.enumerated()), id: \.element) { i, s in
+                CSRow(last: i == perks.count - 1) {
+                  HStack(spacing: 10) {
+                    Text("SOON").font(CSFont.label).tracking(1.0).foregroundStyle(cs.brand)
+                      .padding(.horizontal, 6).padding(.vertical, 2).overlay(Capsule().stroke(cs.brand.opacity(0.6), lineWidth: 1))
+                    Text(s).font(CSFont.subhead).foregroundStyle(cs.mut)
+                  }
                 }
               }
-              Text("Coming at launch").font(CSFont.button).foregroundStyle(cs.dimText).frame(maxWidth: .infinity, minHeight: 50)
-                .background(cs.bg2.opacity(0.55), in: RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous))
-                .accessibilityLabel("Coming at launch")
             }
+            Text("Coming at launch").font(CSFont.button).foregroundStyle(cs.dimText).frame(maxWidth: .infinity, minHeight: 50)
+              .background(cs.bg2.opacity(0.55), in: RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous))
+              .accessibilityLabel("Coming at launch")
           }
         }
       } label: {

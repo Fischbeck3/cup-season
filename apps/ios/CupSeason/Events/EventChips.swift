@@ -3,6 +3,8 @@
 // crew's attached events I have not joined (the Major's enter path). The
 // Clubhouse's league chips are the switcher menu on the phone; these are
 // the events beside it. Nothing to show → nothing drawn.
+//
+// IOS-019: small mono chips in the tab strip's voice — no borders.
 
 import SwiftUI
 import CSDesign
@@ -23,14 +25,14 @@ struct EventChips: View {
           HStack(spacing: 8) {
             ForEach(ordered) { e in
               Button { links.openEvent(e.id) } label: {
-                VStack(alignment: .leading, spacing: 2) {
-                  Text(e.name).font(CSFont.subhead.weight(.semibold)).foregroundStyle(cs.ink).lineLimit(1)
-                  Text(EventCopy.chipSub(e)).font(CSFont.label).tracking(0.5).textCase(.uppercase).foregroundStyle(cs.mut).lineLimit(1)
+                HStack(spacing: 0) {
+                  Text(e.name).font(CSFont.eyebrow).tracking(1.2).textCase(.uppercase).foregroundStyle(cs.ink).lineLimit(1)
+                  Text(" · " + EventCopy.chipSub(e)).font(CSFont.eyebrow).tracking(1.2).textCase(.uppercase).foregroundStyle(cs.mut).lineLimit(1)
                 }
-                .padding(.horizontal, 12).padding(.vertical, 8)
+                .padding(.horizontal, 12).frame(minHeight: 32)
+                .background(cs.bg2, in: Capsule())
                 .frame(minHeight: 44)
-                .background(cs.bg2, in: RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous))
-                .overlay(RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous).stroke(cs.line, lineWidth: 1))
+                .contentShape(Rectangle())
               }
               .buttonStyle(.plain)
               .accessibilityLabel("\(e.name) — \(EventCopy.chipSub(e))")

@@ -37,8 +37,9 @@ struct AnnounceRow: View {
     .background(LinearGradient(colors: [cs.gold.opacity(0.10), cs.gold.opacity(0.02)], startPoint: .leading, endPoint: .trailing),
                 in: RoundedRectangle(cornerRadius: 12, style: .continuous))
     .background(pinned ? cs.bg1 : .clear, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
-    .overlay(RoundedRectangle(cornerRadius: 12, style: .continuous).stroke(cs.gold.opacity(0.35), lineWidth: 1))
-    .padding(.vertical, pinned ? 0 : 2)
+    // the Pro's word wears the gold spine, not a border (IOS-019 rule 2)
+    .overlay(alignment: .leading) { RoundedRectangle(cornerRadius: 2).fill(cs.gold).frame(width: 3.5).padding(.vertical, 8) }
+    .padding(.vertical, pinned ? 4 : 6)
   }
 }
 
@@ -55,8 +56,8 @@ struct MomentRow: View {
     .frame(maxWidth: .infinity, alignment: .leading)
     .background(LinearGradient(colors: [cs.brand.opacity(0.10), cs.brand.opacity(0.03)], startPoint: .top, endPoint: .bottom),
                 in: RoundedRectangle(cornerRadius: 12, style: .continuous))
-    .overlay(RoundedRectangle(cornerRadius: 12, style: .continuous).stroke(cs.brand.opacity(0.32), lineWidth: 1))
-    .overlay(alignment: .leading) { RoundedRectangle(cornerRadius: 2).fill(cs.brand).frame(width: 3).padding(.vertical, 6) }
+    .overlay(alignment: .leading) { RoundedRectangle(cornerRadius: 2).fill(cs.brand).frame(width: 3.5).padding(.vertical, 6) }
+    .padding(.vertical, 6)
   }
 }
 
@@ -79,20 +80,23 @@ struct SystemRow: View {
       }
     }
   }
+  /// A quiet note sits on ground with its spine; a door keeps `bg1` and its line (it is interactive).
   private var row: some View {
     Text("◆ " + text).font(CSFont.subhead).foregroundStyle(cs.mut)
       .padding(.horizontal, 13).padding(.vertical, 10)
       .frame(maxWidth: .infinity, minHeight: opens == nil ? 0 : 44, alignment: .leading)
-      .background(cs.bg1, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
-      .overlay(RoundedRectangle(cornerRadius: 12, style: .continuous).stroke(cs.line, lineWidth: 1))
+      .background(opens == nil ? .clear : cs.bg1, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+      .overlay(RoundedRectangle(cornerRadius: 12, style: .continuous).stroke(opens == nil ? .clear : cs.line, lineWidth: 1))
       .overlay(alignment: .leading) {
-        RoundedRectangle(cornerRadius: 2).fill(opens == nil ? cs.gold.opacity(0.5) : cs.gold).frame(width: 3).padding(.vertical, 6)
+        RoundedRectangle(cornerRadius: 2).fill(opens == nil ? cs.gold.opacity(0.5) : cs.gold).frame(width: 3.5).padding(.vertical, 6)
       }
+      .padding(.vertical, 4)
   }
 }
 
 /// `.msgrow` — the squad-colour bar beside a text column. Chat carries the
 /// name (+ the founder tag); a compact round line carries its eased body.
+/// A row on ground, parted from the next by a hairline (IOS-019 rule 2).
 struct MessageRow<Content: View>: View {
   @Environment(\.cs) private var cs
   let ci: Int
@@ -102,9 +106,8 @@ struct MessageRow<Content: View>: View {
       RoundedRectangle(cornerRadius: 2).fill(cs.squad(ci)).frame(width: 3.5)
       VStack(alignment: .leading, spacing: 4) { content }.frame(maxWidth: .infinity, alignment: .leading)
     }
-    .padding(.horizontal, 13).padding(.vertical, 11)
-    .background(cs.bg1, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
-    .overlay(RoundedRectangle(cornerRadius: 14, style: .continuous).stroke(cs.line, lineWidth: 1))
+    .padding(.horizontal, 6).padding(.vertical, 12)
+    .overlay(alignment: .bottom) { CSHairline() }
   }
 }
 
@@ -156,9 +159,8 @@ struct DigestCard: View {
     .padding(.horizontal, 13).padding(.vertical, 10)
     .frame(maxWidth: .infinity, alignment: .leading)
     .background(cs.bg1, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
-    .overlay(RoundedRectangle(cornerRadius: 12, style: .continuous).stroke(cs.line, lineWidth: 1))
-    .overlay(alignment: .leading) { RoundedRectangle(cornerRadius: 2).fill(cs.brand).frame(width: 3).padding(.vertical, 6) }
-    .padding(.bottom, 10)
+    .overlay(alignment: .leading) { RoundedRectangle(cornerRadius: 2).fill(cs.brand).frame(width: 3.5).padding(.vertical, 6) }
+    .padding(.top, 4).padding(.bottom, 10)
     .accessibilityElement(children: .combine)
   }
 }

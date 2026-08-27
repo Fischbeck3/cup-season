@@ -41,9 +41,7 @@ struct StandingsTableView: View {
         }
         .animation(.timingCurve(0.16, 0.84, 0.36, 1, duration: 0.55), value: teams.map(\.id))
       }
-      .background(cs.bg1, in: RoundedRectangle(cornerRadius: CSTokens.Radius.r, style: .continuous))
-      .overlay(RoundedRectangle(cornerRadius: CSTokens.Radius.r, style: .continuous).stroke(cs.line, lineWidth: 1))
-      ScenarioLineView(parts: ScenarioLine.parts(model.scenarios))
+      ScenarioLineView(parts: ScenarioLine.parts(model.scenarios)).padding(.top, 4)
     }
     .onAppear {
       // SF-6: rank flips only on a FRESH data load, consumed here so a re-render stays static
@@ -65,8 +63,8 @@ struct StandingsTableView: View {
       Text("Pts").frame(width: 44, alignment: .trailing)
     }
     .font(CSFont.label).tracking(1.0).textCase(.uppercase).foregroundStyle(cs.dimText)
-    .padding(.horizontal, 10).padding(.vertical, 8)
-    .overlay(alignment: .bottom) { Rectangle().fill(cs.line).frame(height: 1) }
+    .padding(.horizontal, 4).padding(.vertical, 8)
+    .overlay(alignment: .bottom) { CSHairline() }
   }
 
   private func row(_ i: Int, _ t: Team, solo: Bool) -> some View {
@@ -104,10 +102,11 @@ struct StandingsTableView: View {
         Text(CSCopy.points(t.pts)).font(CSFont.monoMediumBody).csTabular().foregroundStyle(i == 0 && t.pts > 0 ? cs.gold : cs.ink)
           .frame(width: 44, alignment: .trailing)
       }
-      .padding(.horizontal, 10).padding(.vertical, 10)
+      .padding(.horizontal, 4).padding(.vertical, 10)
       .frame(minHeight: 52)
       .contentShape(Rectangle())
-      .overlay(alignment: .bottom) { Rectangle().fill(cs.line).frame(height: 1) }
+      // IOS-003 §2.10: the leader's rank hairline is gold — the one earned rule in the table
+      .overlay(alignment: .bottom) { Rectangle().fill(i == 0 && t.pts > 0 ? cs.gold.opacity(0.55) : cs.line).frame(height: 1) }
     }
     .buttonStyle(.plain)
     .accessibilityLabel("\(CSCopy.ordinal(i + 1)) — \(t.name), \(CSCopy.points(t.pts)) points" + (mv.map { ", \($0.title)" } ?? ""))
