@@ -18,8 +18,10 @@ const root = new URL('..', import.meta.url).pathname.replace(/^\/([A-Za-z]:)/, '
 const html = readFileSync(join(root, 'index.html'), 'utf8');
 const sw = readFileSync(join(root, 'sw.js'), 'utf8');
 const stamp = readFileSync(join(root, 'stamp-version.sh'), 'utf8');
-const capBundle = JSON.parse(
-  readFileSync(join(root, 'ios-wrapper', 'capacitor.config.json'), 'utf8')).appId;
+/* the phone's bundle id, from the XcodeGen manifest (D99) — the AASA must
+   name exactly this app or /?claim and /?join open Safari instead of the app */
+const capBundle = (readFileSync(join(root, 'apps', 'ios', 'project.yml'), 'utf8')
+  .match(/PRODUCT_BUNDLE_IDENTIFIER:\s*([\w.]+)/) || [])[1] || '(no PRODUCT_BUNDLE_IDENTIFIER in apps/ios/project.yml)';
 const migDir = join(root, 'supabase', 'migrations');
 const migs = readdirSync(migDir).filter(f => f.endsWith('.sql'))
   .map(f => readFileSync(join(migDir, f), 'utf8')).join('\n');
@@ -155,7 +157,7 @@ const warn = (name, note) => { warns++; console.log(`~ WARN  ${name} — ${note}
         for (const id of ids) {
           if (!/^[A-Z0-9]{10}\./.test(id)) problems.push(`appID "${id}" has no real 10-char Team ID prefix`);
           const bundle = id.split('.').slice(1).join('.');
-          if (bundle !== capBundle) problems.push(`appID bundle "${bundle}" != capacitor.config appId "${capBundle}"`);
+          if (bundle !== capBundle) problems.push(`appID bundle "${bundle}" != apps/ios/project.yml bundle "${capBundle}"`);
         }
         for (const c of d.components || []) {
           if (!c['?']) problems.push(`component ${JSON.stringify(c['/'] ?? '')} has no query matcher — it would swallow every link on the domain`);
