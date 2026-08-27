@@ -56,6 +56,15 @@ sections (§2.2, §14.0) when making competition-model decisions.
   Netlify build.) A change touching both layers needs BOTH pushes; a
   pure-migration change needs no client push, a pure-client change needs no db
   push.
+- **`./tools/ship.sh` is the deploy prompt** (Mac, from the repo root). It runs
+  preflight, refuses to ship anything if preflight fails, then reports all THREE
+  layers separately — database / edge functions / client — and confirms each one
+  on its own. `supabase db push` is confirmed by typing the word `push`, not a
+  keystroke, because it mutates prod and a human stays at that wheel. Underneath
+  it, `node tools/deploy-status.mjs` answers "what do I owe?" on its own, and a
+  Stop hook in `.claude/settings.json` runs it after every session — silent
+  unless something is genuinely owed. The Supabase CLI is NOT in a remote Claude
+  session, and the report says "unknown", never "clean", when it cannot look.
 - **Deploy-skew safety.** Netlify may serve a new client before its migration
   is pushed (or vice-versa). New RPC args / columns get a client-side retry that
   drops the new field on the "column/function/schema cache" error, and new SQL

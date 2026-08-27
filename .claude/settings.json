@@ -31,7 +31,23 @@
       "mcp__claude-in-chrome__browser_batch",
       "mcp__e53a1856-471c-4eaa-8ed0-dbf8f9817a96__search_threads",
       "mcp__e53a1856-471c-4eaa-8ed0-dbf8f9817a96__list_drafts",
-      "mcp__012559ad-3344-4914-8f75-4105636e56e4__get_fontkit_embed_url"
+      "mcp__012559ad-3344-4914-8f75-4105636e56e4__get_fontkit_embed_url",
+      "Bash(node tools/deploy-status.mjs*)",
+      "Bash(supabase functions list*)"
+    ]
+  },
+  "hooks": {
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"${CLAUDE_PROJECT_DIR:-.}/tools/deploy-status.mjs\" --hook 2>/dev/null || true",
+            "timeout": 30,
+            "statusMessage": "Checking what's owed a deploy"
+          }
+        ]
+      }
     ]
   }
 }
