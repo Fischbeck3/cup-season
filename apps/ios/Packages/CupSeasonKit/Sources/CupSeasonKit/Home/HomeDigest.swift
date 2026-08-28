@@ -19,6 +19,8 @@ public struct HomeDigest: Sendable, Equatable {
   /// For the quiet frame: the resurfaced round, so a thumb can open its receipt.
   public let roundId: UUID?
   public let photoURL: URL?
+  /// Substrings of `body` the web sets in `<b>` (10538–10600): the count, the name.
+  public var strong: [String] = []
 
   private static func key(profile: UUID?) -> String { "cs.seen.\(profile?.uuidString.lowercased() ?? "anon")" }
 
@@ -76,8 +78,8 @@ public struct HomeDigest: Sendable, Equatable {
     let freshPosts = posts.filter { ($0.created_at ?? .distantPast) > mark }
     // mentions can RESCUE a quiet day — a reaction on your round IS something new
     if !freshRounds.isEmpty || !freshPosts.isEmpty || !mentions.isEmpty {
-      var bits: [String] = []
-      if !freshRounds.isEmpty { bits.append("\(freshRounds.count) round\(freshRounds.count > 1 ? "s" : "")") }
+      var bits: [String] = [], strong: [String] = []
+      if !freshRounds.isEmpty { bits.append("\(freshRounds.count) round\(freshRounds.count > 1 ? "s" : "")"); strong.append(bits[0]) }
       if let pr = freshRounds.first(where: { $0.is_pr == true }) { bits.append("a personal best from \(who(pr))") }
       if let s = freshRounds.first(where: { $0.is_sub80 == true }) { bits.append("\(who(s)) broke 80") }
       if let f = freshRounds.first(where: { $0.is_first == true }) { bits.append("\(who(f))'s first round") }
@@ -85,14 +87,15 @@ public struct HomeDigest: Sendable, Equatable {
       if let m = mentions.first {
         let g = m.gross.map(String.init) ?? "round"
         bits.append(m.emoji.map { "\(m.who) \($0)’d your \(g)" } ?? "\(m.who) chimed in on your \(g)")
+        strong.append(m.who)
         if mentions.count > 1 { bits.append("\(mentions.count - 1) more chimed in on your rounds") }
       }
       guard !bits.isEmpty else { return nil }
-      return HomeDigest(kind: .since, label: "Since you were here", body: join(bits) + ".", roundId: nil, photoURL: nil)
+      return HomeDigest(kind: .since, label: "Since you were here", body: join(bits) + ".", roundId: nil, photoURL: nil, strong: strong)
     }
     guard let b = best(rounds, now: now) else { return nil }
     let t = b.created_at ?? CSDate.local(b.played_on ?? "") ?? now
     return HomeDigest(kind: .quiet, label: "Quiet since your last visit", body: "\(day(t, now: now, calendar: calendar)) — \(line(b))",
-                      roundId: b.round_id, photoURL: b.round_id.flatMap { photoURLs[$0] })
+                      roundId: b.round_id, photoURL: b.round_id.flatMap { photoURLs[$0] }, strong: [who(b)])
   }
 }

@@ -86,7 +86,7 @@ private struct PostCoverStack: View {
             PostOptionRow(tick: cs.brand, title: "Post a round — after you play",
                           sub: "Gross + tee, 20 seconds · counts on your card and in every league") { path.append(PostCoverView.Route.post) }
             PostOptionRow(tick: cs.sq0, title: "Play now — score the group live",
-                          sub: "A shared pencil: match play, Wolf & the settle-up. Post your gross after — the finish screen hands it to you.") {
+                          sub: "A shared pencil: hole-by-hole, match play, Wolf & the settle-up · guests welcome") {
               close(); links.openLive()
             }
             PostOptionRow(tick: cs.gold, title: "Plan a tee time — before",

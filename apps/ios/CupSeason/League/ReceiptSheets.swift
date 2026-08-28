@@ -32,6 +32,17 @@ struct SquadReceiptSheet: View {
           }
         }
         RoomMathRow(k: "Total", v: CSCopy.points(team.pts), total: true)
+        // the table's Trend column (web 4547) lives here on the phone, as promised in StandingsTableView
+        if let s = model.series[team.id], s.count >= 2 {
+          HStack {
+            Text("Trend").font(CSFont.label).tracking(0.8).foregroundStyle(cs.dimText)
+            Spacer()
+            RoomSpark(values: s, color: team.solo ? nil : cs.squad(team.ci))
+          }
+          .padding(.vertical, 8)
+          .accessibilityElement(children: .ignore)
+          .accessibilityLabel("Trend, \(s.suffix(7).map { CSCopy.points($0) }.joined(separator: ", ")) over the last \(min(7, s.count)) weeks")
+        }
       }
       Text("Who built it").csEyebrow().padding(.top, 6)
       VStack(spacing: 0) {
@@ -86,7 +97,8 @@ struct MemberHistorySheet: View {
               if let id = h.round_id { dismiss(); links.openReceipt(id) }
             } label: {
               HStack(alignment: .firstTextBaseline, spacing: 10) {
-                Text(h.played_on + (h.holes_played == 9 ? " · 9 HOLES" : "") + (h.counting ? "" : " · BUMPED"))
+                // the web prints the ISO string here (11303); a label row reads the calendar date
+                Text(LeagueDates.monDay(h.played_on).uppercased() + (h.holes_played == 9 ? " · 9 HOLES" : "") + (h.counting ? "" : " · BUMPED"))
                   .font(CSFont.label).tracking(0.6).foregroundStyle(h.counting ? cs.mut : cs.dimText)
                 Spacer()
                 Text("\(StandingsMath.sgn(h.pvi)) vs index · \(CSCopy.points(h.points)) PTS")

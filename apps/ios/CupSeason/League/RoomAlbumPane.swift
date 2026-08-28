@@ -16,7 +16,9 @@ struct RoomAlbumPane: View {
       CSSectionHead("The album · every round photo this season")
       if let items = model.album {
         if items.isEmpty {
-          RoomFine("Photos land here when rounds carry them — add one from the Post card.")
+          // the web's sentence (16464) names the Post card; on the phone the sentence ends in the door
+          CSEmptyState(icon: "📷", line: "Photos land here when rounds carry them — add one from the Post card.",
+                       cta: links.openRecord == nil ? nil : "Post a round") { links.openRecord?() }
         } else {
           ForEach(months(items), id: \.key) { mo in
             Text(mo.label).font(CSFont.sentence).foregroundStyle(cs.mut).padding(.top, 6)

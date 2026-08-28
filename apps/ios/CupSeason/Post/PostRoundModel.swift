@@ -60,7 +60,10 @@ final class PostRoundModel {
   }
   var myIndex: Double? { profile?.index_current }
   /// "Post a round · your index 12.4" — the REAL number (landmine 7.12).
-  var eyebrow: String { "Post a round · your index " + CSCopy.index(myIndex) }
+  /// No minted number = say "building", not a dash (web 14242, setup-QA S6-03).
+  var eyebrow: String {
+    myIndex == nil ? "Post a round · your index builds at 3 rounds" : "Post a round · your index " + CSCopy.index(myIndex)
+  }
 
   // MARK: - open (`switchView('post')`, 4159)
 

@@ -17,6 +17,7 @@ struct MajorRoomView: View {
   let room: EventRoom
   let links: EventLinks
   @State private var invite = false
+  @State private var scrapArmed = false
   @State private var runBack: MajorPrefill?
 
   private var me: UUID? { store.session?.user.id }
@@ -79,7 +80,9 @@ struct MajorRoomView: View {
         }
         // escape hatch: only while nothing has been scored (the RPC re-validates)
         if !f.horn {
-          CSArmedButton(label: "Scrap", armedLabel: "Sure? Scrap it", busy: model.isBusy("scrap")) { scrap() }
+          CSArmedButton(label: "Scrap", armedLabel: "Sure? Scrap it", busy: model.isBusy("scrap"), onArm: { scrapArmed = $0 }) { scrap() }
+          // the web's confirm() sentence (16265) rides the arm
+          if scrapArmed { CSFine(RyderMath.scrapQuestion(room.event.name)).transition(.opacity) }
         }
       }
     }

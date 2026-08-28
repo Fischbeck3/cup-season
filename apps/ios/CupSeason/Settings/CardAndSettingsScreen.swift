@@ -268,7 +268,7 @@ private struct CardEditorPane: View {
         .font(CSFont.footnote).foregroundStyle(cs.dimText)
 
       HStack(spacing: 12) {
-        Button { Task { await vm.save() } } label: { MiniPill(text: vm.saving ? "Saving…" : (vm.dirty ? "Save changes" : "Save card"), accent: vm.dirty) }
+        Button { Task { await vm.save(); if vm.status?.1 == .pos { toast.show("Card saved") } } } label: { MiniPill(text: vm.saving ? "Saving…" : (vm.dirty ? "Save changes" : "Save card"), accent: vm.dirty) }
           .disabled(vm.saving)
         if let s = vm.status { CSNote(s.0, tone: s.1).font(CSFont.footnote) }
       }
@@ -285,7 +285,7 @@ private struct CardEditorPane: View {
 
       Text("Your leagues").csEyebrow().padding(.top, 16)
       if vm.leagues.isEmpty {
-        Text("No league yet.").font(CSFont.footnote).foregroundStyle(cs.dimText)
+        Text("No leagues yet. Start one or join with a code.").font(CSFont.footnote).foregroundStyle(cs.dimText)
       } else {
         ForEach(vm.leagues) { row in
           HStack {

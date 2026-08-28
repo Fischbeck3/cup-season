@@ -149,6 +149,8 @@ struct CSArmedButton: View {
   let label: String
   let armedLabel: String
   var busy = false
+  /// The arm state, for a caller that shows the web's `confirm()` sentence while armed.
+  var onArm: ((Bool) -> Void)? = nil
   let action: () -> Void
   @State private var armed = false
 
@@ -157,6 +159,7 @@ struct CSArmedButton: View {
       if armed { action() } else { armed = true; CSHaptic.warning() }
     }
     .task(id: armed) {
+      onArm?(armed)
       guard armed else { return }
       try? await Task.sleep(for: .seconds(4))
       armed = false

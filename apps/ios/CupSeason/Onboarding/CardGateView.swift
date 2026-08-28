@@ -22,6 +22,9 @@ struct CardGateView: View {
   @State private var ghin = ""
   @State private var busy = false
   @State private var note: (String, CSTone)? = nil
+  @State private var handleCheck: (String, CSTone)? = nil
+  @State private var handleTask: Task<Void, Never>? = nil
+  private let claiming = ClaimIntent.pending() != nil
 
   private let svc = SupabaseService.shared
   private let columns = Array(repeating: GridItem(.flexible(), spacing: 10), count: 4)
@@ -39,6 +42,10 @@ struct CardGateView: View {
         Text("Your card").csEyebrow()
         Text(title).font(CSFont.title).foregroundStyle(cs.ink)
         Text(sub).font(CSFont.subhead).foregroundStyle(cs.mut)
+        // the claim thread (web 2906): a guest who arrived by a claim link is told the card is the last step
+        if claiming {
+          Text("Saving your card attaches the round you’re claiming.").font(CSFont.subhead).foregroundStyle(cs.gold)
+        }
 
         switch step {
         case 0: nameStep
@@ -87,13 +94,49 @@ struct CardGateView: View {
         .onChange(of: handle) { _, new in
           let clean = new.lowercased().filter { $0.isLetter || $0.isNumber || $0 == "_" }
           if clean != new { handle = clean } else if !clean.isEmpty { handleTouched = true }
+          checkHandle(clean)
         }
       Text("3–20 letters, numbers or _. It changes once every 60 days.")
         .font(CSFont.footnote).foregroundStyle(cs.dimText)
+      if let handleCheck {
+        Text(handleCheck.0).font(CSFont.footnote)
+          .foregroundStyle(handleCheck.1 == .pos ? cs.pos : handleCheck.1 == .neg ? cs.neg : cs.mut)
+          .accessibilityAddTraits(.updatesFrequently)
+      }
+    }
+  }
+
+  /// The web's `pfCheckHandle` (index.html 13043): a shape check at once, then
+  /// 360 ms after the last keystroke the server answers "is it free?" —
+  /// `handle_available` is the one RPC the gate calls before Save.
+  private func checkHandle(_ h: String) {
+    handleTask?.cancel()
+    guard !h.isEmpty else { handleCheck = nil; return }
+    guard h.range(of: "^[a-z0-9_]{3,20}$", options: .regularExpression) != nil else {
+      handleCheck = ("Handle: 3–20 letters, numbers or underscores.", .mut); return
+    }
+    if h == me.profile?.handle { handleCheck = nil; return }   // it is already yours
+    handleCheck = ("Checking @\(h)…", .mut)
+    handleTask = Task {
+      try? await Task.sleep(for: .milliseconds(360))
+      guard !Task.isCancelled else { return }
+      do {
+        let free = try await svc.call(Rpc.handle_available(p_handle: h))
+        guard !Task.isCancelled, handle == h else { return }
+        handleCheck = free ? ("@\(h) is available ✓", .pos) : ("@\(h) is taken — tap to edit it.", .neg)
+      } catch { if !Task.isCancelled, handle == h { handleCheck = nil } }
     }
   }
 
   private var markerStep: some View {
+    VStack(alignment: .leading, spacing: 10) {
+      markerGrid
+      Text("City and home course live on your card — add them any time from the You tab.")
+        .font(CSFont.footnote).foregroundStyle(cs.dimText)
+    }
+  }
+
+  private var markerGrid: some View {
     LazyVGrid(columns: columns, spacing: 10) {
       ForEach(CSMarkers.all) { m in
         Button {
@@ -120,7 +163,9 @@ struct CardGateView: View {
       Text("Starter index").csEyebrow()
       CSField("e.g. 12.4", text: $index).keyboardType(.decimalPad)
       Text("GHIN (a reference on your card — we never resell or verify it)").csEyebrow().padding(.top, 6)
-      CSField("optional", text: $ghin).keyboardType(.numberPad)
+      CSField("GHIN # · e.g. 1234567", text: $ghin).keyboardType(.numberPad)
+      Text("Links your USGA record — that's identity, not your number. Your index still comes from your posted scores.")
+        .font(CSFont.footnote).foregroundStyle(cs.dimText)
     }
   }
 
@@ -149,6 +194,8 @@ struct CardGateView: View {
       guard handle.range(of: "^[a-z0-9_]{3,20}$", options: .regularExpression) != nil else {
         note = ("A handle is 3–20 letters, numbers or underscores.", .neg); return
       }
+      // a known-taken handle does not advance; an unanswered check still does (the server refuses at Save)
+      if handleCheck?.1 == .neg { note = (handleCheck!.0, .neg); return }
       step = 1
     case 1:
       guard marker != nil else { note = ("Pick your ball marker — it's your face here.", .neg); return }

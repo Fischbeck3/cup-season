@@ -223,7 +223,8 @@ final class LiveRoundStore {
   func teeOff() async {
     let g = state.game
     if let problem = g.teeOffProblem(players: sel.count) { toast(problem); return }
-    guard let league = leagueId else { toast("No active season to post into"); return }
+    // the web runs a local pencil without a league (8952); the phone does not yet — say why, honestly
+    guard let league = leagueId else { toast("The tee sheet posts into a league — join or start one first"); return }
     let players = picked
     var s = state
     s.players = players

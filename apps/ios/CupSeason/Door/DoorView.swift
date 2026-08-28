@@ -17,6 +17,7 @@ struct DoorView: View {
   @State private var playForge: Bool? = nil
   @State private var risen = false
   @State private var flags = DoorFlags.closed
+  @State private var toasts = CSToastCenter()   // the door sits above the tab host, so it carries its own
   @FocusState private var focus: Field?
   enum Field { case email, code, password }
 
@@ -48,6 +49,7 @@ struct DoorView: View {
       .padding(.bottom, 40)
     }
     .scrollDismissesKeyboard(.interactively)
+    .csToasts(toasts)
     .onAppear {
       if playForge == nil {
         let play = ForgeState.shouldPlay(reduceMotion: reduceMotion)
@@ -121,6 +123,7 @@ struct DoorView: View {
         .multilineTextAlignment(.center)
         .keyboardType(.numberPad)
         .textContentType(.oneTimeCode)   // iOS lifts the code out of the Mail notification
+        .accessibilityLabel("The \(AuthRules.otpLength) digits")
         .padding(.vertical, 12)
         .frame(maxWidth: .infinity, minHeight: 64)
         .background(cs.bg2, in: RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous))
@@ -149,8 +152,10 @@ struct DoorView: View {
   private var passwordStage: some View {
     VStack(alignment: .leading, spacing: 10) {
       Text("Password").csEyebrow()
-      SecureField("", text: $vm.password)
+      SecureField("REVIEW PASSWORD", text: $vm.password)
         .font(CSFont.mono)
+        .textContentType(.password)
+        .accessibilityLabel("Review password")
         .padding(.horizontal, 14).frame(minHeight: 48)
         .background(cs.bg2, in: RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous))
         .focused($focus, equals: .password)
@@ -164,18 +169,29 @@ struct DoorView: View {
 
   private var legal: some View {
     VStack(alignment: .leading, spacing: 6) {
-      HStack(spacing: 14) {
-        Link("Terms", destination: CSConfig.legal("terms"))
-        Link("Privacy", destination: CSConfig.legal("privacy"))
+      // the web's door line, verbatim: the two words are the links
+      HStack(spacing: 0) {
+        Text("By continuing you agree to the ").foregroundStyle(cs.mut)
+        Link("Terms", destination: CSConfig.legal("terms")).foregroundStyle(cs.dawn)
+        Text(" & ").foregroundStyle(cs.mut)
+        Link("Privacy Policy", destination: CSConfig.legal("privacy")).foregroundStyle(cs.dawn)
+        Text(".").foregroundStyle(cs.mut)
       }
-      .font(CSFont.footnote).foregroundStyle(cs.dawn)
+      .font(CSFont.footnote)
       Text("v1 · build \(SessionStore.bundleBuild())").font(CSFont.monoSmall).foregroundStyle(cs.dimText)
     }
   }
 
   // MARK: actions
 
-  private func send() { Task { await vm.send() ; if vm.stage == .code { focus = .code } else if vm.stage == .password { focus = .password } } }
+  private func send() {
+    Task {
+      let was = vm.stage
+      await vm.send()
+      if vm.stage == .code { focus = .code; if was == .email { toasts.show("Code sent") } }
+      else if vm.stage == .password { focus = .password }
+    }
+  }
   private func verify() { Task { await vm.verify() } }
   private func resend() { Task { await vm.resend() } }
   private func reviewer() { Task { await vm.reviewer() } }
@@ -195,11 +211,16 @@ final class DoorModel {
   var note: Note? = nil
   var resendIn = 0
   private var ticker: Task<Void, Never>?
+  private var spamHint: Task<Void, Never>?
   private let svc = SupabaseService.shared
 
   func send() async {
     guard !busy else { return }
-    if AuthRules.isReviewer(email) { stage = .password; note = nil; return }
+    if AuthRules.isReviewer(email) {
+      stage = .password
+      note = Note(text: "Review access: enter the password from the notes.", tone: .pos)
+      return
+    }
     guard AuthRules.looksLikeEmail(email) else { note = Note(text: "That does not look like an email address.", tone: .neg); return }
     busy = true; note = Note(text: "Sending your code…", tone: .mut)
     defer { busy = false }
@@ -207,7 +228,7 @@ final class DoorModel {
       try await svc.requestEmailCode(email)
       stage = .code; code = ""
       note = Note(text: "Sent to \(AuthRules.normalizeEmail(email)). Type the \(AuthRules.otpLength) digits from the newest email.", tone: .pos)
-      startCooldown()
+      startCooldown(); scheduleSpamHint()
     } catch {
       note = Note(text: AuthRules.human(error, fallback: "Could not send the code."), tone: .neg)
     }
@@ -236,19 +257,24 @@ final class DoorModel {
     do {
       try await svc.requestEmailCode(email)
       code = ""
-      note = Note(text: "Fresh code sent — the newest email wins.", tone: .pos)
-      startCooldown()
+      note = Note(text: "Fresh code sent to \(AuthRules.normalizeEmail(email)) — the newest email wins.", tone: .pos)
+      startCooldown(); scheduleSpamHint()
     } catch {
       note = Note(text: AuthRules.human(error, fallback: "Could not resend."), tone: .neg)
     }
   }
 
   func reviewer() async {
-    guard !busy, !password.isEmpty else { return }
+    guard !busy else { return }
+    // the web's floor (15015): a short string is a typo, not a sign-in attempt
+    guard password.count >= 8 else { note = Note(text: "Enter the review password from the notes.", tone: .neg); return }
     busy = true; note = nil
     defer { busy = false }
-    do { try await svc.signInReviewer(email: email, password: password) }
-    catch { note = Note(text: AuthRules.human(error, fallback: "That did not take."), tone: .neg) }
+    do {
+      try await svc.signInReviewer(email: email, password: password)
+      note = Note(text: "Signed in, loading…", tone: .pos)
+    }
+    catch { note = Note(text: AuthRules.human(error, fallback: "That password didn’t take."), tone: .neg) }
   }
 
   /// Sign in with Apple (IOS-023). Same shape as `verify`: no navigation here —
@@ -284,6 +310,19 @@ final class DoorModel {
 
   func backToEmail() {
     stage = .email; code = ""; password = ""; note = nil
+    spamHint?.cancel()
+  }
+
+  /// The web's `scheduleSpamHint` (index.html 15085): twenty seconds with the
+  /// code box open and empty, and no error showing, earns one gentle pointer
+  /// at the spam folder. Cancelled by a typed digit, a verify, or a resend.
+  private func scheduleSpamHint() {
+    spamHint?.cancel()
+    spamHint = Task { [weak self] in
+      try? await Task.sleep(for: .seconds(20))
+      guard let self, !Task.isCancelled, self.stage == .code, self.code.isEmpty, self.note?.tone != .neg else { return }
+      self.note = Note(text: "No code yet? Check spam for the newest Cup Season email — older codes retire when a new one sends.", tone: .mut)
+    }
   }
 
   private func startCooldown() {

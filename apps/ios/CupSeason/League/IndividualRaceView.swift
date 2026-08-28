@@ -10,6 +10,7 @@ import CupSeasonKit
 struct IndividualRaceView: View {
   @Environment(LeagueRoomModel.self) private var model
   @Environment(RoomRouter.self) private var router
+  @Environment(\.roomLinks) private var links
   @Environment(\.cs) private var cs
 
   var body: some View {
@@ -36,7 +37,10 @@ struct IndividualRaceView: View {
       .overlay(alignment: .bottom) { CSHairline() }
       VStack(spacing: 0) {
         if rows.isEmpty {
-          RoomFine("The race fills in once your league season is live and rounds land.").padding(.vertical, 8)
+          // the web's sentence (11258), ending in the one move that fills it
+          CSEmptyState(icon: "⛳", line: "The race fills in once your league season is live and rounds land.",
+                       cta: links.openRecord == nil ? nil : "Post a round") { links.openRecord?() }
+            .padding(.vertical, 8)
         } else {
           HStack(spacing: 10) {
             Text("").frame(width: 26)

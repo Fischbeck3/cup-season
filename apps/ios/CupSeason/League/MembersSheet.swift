@@ -14,6 +14,7 @@ struct MembersSheet: View {
   @Environment(\.dismiss) private var dismiss
   @Environment(\.cs) private var cs
   @State private var busy: UUID?
+  @State private var reason: (UUID, String)? = nil   // the armed control's confirm sentence
   @State private var setIndexFor: LeagueRoom.Member?
   @State private var markerOpen = false
   @State private var pending: [String] = []
@@ -64,23 +65,34 @@ struct MembersSheet: View {
         if isMe { RoomMini("Marker here") { markerOpen.toggle() } }
       }
       if model.isPro && !isMe {
+        // the web's three confirm() bodies (16959 · 16974 · 16988) ride the arm: the reason shows while it is armed
+        let removeWhy = "Their profile and rounds are untouched. They just leave this league."
+        let byeWhy = "Their one season bye — it waives this month's floor. (A missed floor auto-uses it anyway; this is for a known absence.)"
+        let proWhy = "You become a player. Only they can hand it back."
         HStack(spacing: 6) {
           RoomMini("Set index") { setIndexFor = m }
           if model.league?.phase == "setup" {
-            ArmedMini("Remove", armedLabel: "Sure? Remove", busy: busy == m.id) {
+            ArmedMini("Remove", armedLabel: "Sure? Remove", busy: busy == m.id, onArm: { reason = $0 ? (m.id, removeWhy) : nil }) {
               run(m.id) { try await model.removeMember(m.id); toast.show("Removed. The board knows."); dismiss() }
             }
+            .accessibilityHint(removeWhy)
           } else {
             let mon = LeagueDates.monthLong(model.clock.today)
-            ArmedMini("Bye", armedLabel: "Sure? Bye for \(String(mon.prefix(3)))", busy: busy == m.id) {
+            ArmedMini("Bye", armedLabel: "Sure? Bye for \(String(mon.prefix(3)))", busy: busy == m.id, onArm: { reason = $0 ? (m.id, byeWhy) : nil }) {
               run(m.id) { try await model.setMemberBye(member: m.id, month: LeagueDates.firstOfMonth(model.clock.today)); toast.show("Bye granted — posted to the board"); dismiss() }
             }
+            .accessibilityHint(byeWhy)
           }
-          ArmedMini("Make Pro", armedLabel: "Sure? Hand it off", busy: busy == m.id) {
-            run(m.id) { try await model.transferPro(to: m.id); toast.show("The shop has a new Pro"); dismiss() }
+          ArmedMini("Make Pro", armedLabel: "Sure? Hand it off", busy: busy == m.id, onArm: { reason = $0 ? (m.id, proWhy) : nil }) {
+            // the web reloads here (16995): a role change reshapes the whole room
+            run(m.id) { try await model.transferPro(to: m.id); toast.show("The shop has a new Pro"); await model.refresh(); dismiss() }
           }
+          .accessibilityHint(proWhy)
         }
         .padding(.leading, 48).padding(.top, 4)
+        if let reason, reason.0 == m.id {
+          RoomFine(reason.1).padding(.leading, 48).padding(.top, 2).transition(.opacity)
+        }
       }
     }
     .padding(.vertical, 10)
