@@ -421,7 +421,7 @@ refetch (§4) and the eventual parse cost as the file grows past ~15k lines.
 - [ ] SEC-C5 revoke default EXECUTE-to-anon on functions; re-grant intended surface
 - [ ] SEC-C6 `esc()` the ~18 unescaped sinks + add CSP
 - [ ] SEC-H1 drop `profiles_read`; scrub email/GHIN on tombstone
-- [ ] SEC-H2 remove/gate `test-seed` in prod
+- [x] SEC-H2 gate `test-seed` in prod — founder-only, deployed + verified 2026-08-27 (IOS-024)
 - [ ] SEC-H3 drop `finish_live_round(uuid)`
 - [ ] OPS-C7 scope the Netlify publish dir + add security headers
 - [ ] REL-C1 widen `season_adjustments_kind_check` (month-close bomb)
