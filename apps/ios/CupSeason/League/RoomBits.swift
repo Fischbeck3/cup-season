@@ -94,15 +94,17 @@ struct RoomCheckRow<Lead: View, Trail: View>: View {
 /// `.phasehero` — the k / n / m stack in the honor voice.
 struct PhaseHero<Content: View>: View {
   @Environment(\.cs) private var cs
+  @Environment(\.csLookAccent) private var la
   let k: String
   let n: String
   let m: String
   @ViewBuilder let content: Content
   init(k: String, n: String, m: String, @ViewBuilder content: () -> Content) { self.k = k; self.n = n; self.m = m; self.content = content() }
   var body: some View {
-    CSCard(spine: cs.brand, padding: 20) {
+    // D103b: a live card's spine and eyebrow wear the room's look; ember when none
+    CSCard(spine: la.spine(earned: false), padding: 20) {
       VStack(alignment: .leading, spacing: 8) {
-        Text(k).csEyebrow(cs.brand)
+        Text(k).csEyebrow(la.accent)
         Text(n).font(CSFont.heroSmall).foregroundStyle(cs.ink).fixedSize(horizontal: false, vertical: true)
         Text(m).font(CSFont.label).tracking(1.2).foregroundStyle(cs.dimText).fixedSize(horizontal: false, vertical: true)
         content

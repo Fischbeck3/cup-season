@@ -117,7 +117,7 @@ struct YouScreen: View {
         .padding(.horizontal, 20).padding(.top, 4).padding(.bottom, 32)
       }
     }
-    .background(cs.bg0)
+    .csLookGround()   // D103b: bg0 with the sky behind the page header
     .environment(\.csLook, looks.personalLook())   // IOS-025: You is the person's, so it wears the personal dial
     .defaultScrollAnchor(CSDevHatch.bottom ? .bottom : .top)
     .navigationTitle("")
