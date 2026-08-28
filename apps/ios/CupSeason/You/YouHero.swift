@@ -33,7 +33,8 @@ struct YouHero<Anchor: View>: View {
   private var established: Bool { indexCurrent != nil }
 
   var body: some View {
-    CSHero(spine: established ? cs.gold : cs.brand, padding: 20) {
+    // gold once the index is established (earned); otherwise the personal look's accent, ember when none (IOS-025)
+    CSHero(spine: established ? cs.gold : nil, padding: 20) {
       VStack(alignment: .leading, spacing: 0) {
           // the marker's name as the eyebrow — the web's `.cred` watermark, said out loud
           Text(CSMarkers.marker(marker).name).csEyebrow().padding(.bottom, 12)

@@ -49,6 +49,9 @@ struct LeaguePane: View {
         Image(systemName: "person.2").font(.system(size: 15, weight: .regular)).foregroundStyle(cs.ink)
       } trail: { RoomMini("View") { links.openDraft() } }
 
+      // IOS-025 / D103a: the Pro dresses the room; members read the choice
+      LookRoomSection(leagueId: model.leagueId, isPro: model.isPro)
+
       DisclosureGroup(isExpanded: $rulesOpen) {
         VStack(alignment: .leading, spacing: 10) {
           CSSectionHead("The bylaws · locked at first tee")

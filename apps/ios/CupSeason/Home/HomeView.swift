@@ -14,12 +14,14 @@ import CupSeasonKit
 
 struct HomeView: View {
   @Environment(SessionStore.self) private var store
+  @Environment(LookStore.self) private var looks
   @Environment(\.presenter) private var presenter
   @Environment(\.cs) private var cs
   let links: CSLinks
   @State private var vm = HomeModel()
 
   var body: some View {
+    // IOS-025: Home wears the PERSONAL dial; the hero alone follows its league (phase ≻ the Pro's look ≻ personal)
     ScrollView {
       if let me = store.me {
         let mode = HomeMode.of(me, preferredLeague: store.preferredLeague)
@@ -34,6 +36,7 @@ struct HomeView: View {
                            open: { presenter.showLive = true })
 
           HomeHero(mode: mode, me: me)
+            .environment(\.csLook, looks.look(for: mode.membership))
 
           if let o = vm.occasion {
             OccasionCard(o: o, onGo: { if o.go == .league { presenter.wizard = .init(existingLeagueId: nil) } else { presenter.showEventPicker = true } },
@@ -70,6 +73,7 @@ struct HomeView: View {
       }
     }
     .background(cs.bg0)
+    .environment(\.csLook, looks.personalLook())
     .defaultScrollAnchor(CSDevHatch.bottom ? .bottom : .top)
     .refreshable { await store.reload(); await vm.load(me: store.me) }
     .task(id: store.me?.generated_at) { await vm.load(me: store.me) }
@@ -174,14 +178,20 @@ final class HomeModel {
 
 private struct OccasionCard: View {
   @Environment(\.cs) private var cs
+  @Environment(\.csLookAccent) private var la
   let o: Occasion
   let onGo: () -> Void
   let onDismiss: () -> Void
+  /// IOS-025: under a calendar look the eyebrow carries the look's motif ("🌬 The oldest one").
+  private var eyebrow: String {
+    if let l = la.look, l.window != nil { return "\(l.motif) \(o.k)" }
+    return o.k
+  }
   var body: some View {
-    CSCard(spine: o.earned ? cs.gold : cs.brand) {
+    CSCard(spine: la.spine(earned: o.earned)) {
       VStack(alignment: .leading, spacing: 6) {
         HStack(alignment: .top) {
-          Text(o.k).csEyebrow(o.earned ? cs.gold : nil)
+          Text(eyebrow).csEyebrow(o.earned ? cs.gold : nil)
           Spacer()
           if let m = o.marker { CSMarkerView(key: m, size: 22).foregroundStyle(o.earned ? cs.gold : cs.ink) }
           Button(action: onDismiss) { Image(systemName: "xmark").font(.caption).foregroundStyle(cs.mut) }
@@ -414,8 +424,9 @@ struct HomeHero: View {
   let me: Me
 
   var body: some View {
-    // IOS-019 rule 1: the one hero on the screen wears the wash — gold when earned, ember otherwise
-    CSHero(spine: spine, padding: 20) {
+    // IOS-019 rule 1: the one hero on the screen wears the wash — gold when earned; otherwise the
+    // look's accent from the environment, ember when none (IOS-025: a look never overrides gold)
+    CSHero(spine: earned ? cs.gold : nil, padding: 20) {
       VStack(alignment: .leading, spacing: 10) {
         Text(eyebrow).csEyebrow(earned ? cs.gold : nil)
         HStack(alignment: .firstTextBaseline, spacing: 12) {
@@ -438,8 +449,6 @@ struct HomeHero: View {
     default: return false
     }
   }
-  private var spine: Color { earned ? cs.gold : cs.brand }
-
   private var eyebrow: String {
     switch mode {
     case .leagueless: return "Your card"

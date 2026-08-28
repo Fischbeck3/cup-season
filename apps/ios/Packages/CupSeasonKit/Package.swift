@@ -10,11 +10,14 @@ let package = Package(
   dependencies: [
     // The official SDK: OTP auth, Keychain session storage, PostgREST, Realtime v2, Storage.
     .package(url: "https://github.com/supabase/supabase-swift", from: "2.55.1"),
+    // IOS-025: the looks catalogue (generated `CSLookSpec`) — the resolver hands
+    // back a spec, so the Kit reads the catalogue. Still no views in here.
+    .package(path: "../CSDesign"),
   ],
   targets: [
     .target(
       name: "CupSeasonKit",
-      dependencies: [.product(name: "Supabase", package: "supabase-swift")],
+      dependencies: [.product(name: "Supabase", package: "supabase-swift"), .product(name: "CSDesign", package: "CSDesign")],
       path: "Sources/CupSeasonKit"
     ),
     .testTarget(name: "CupSeasonKitTests", dependencies: ["CupSeasonKit"], path: "Tests/CupSeasonKitTests"),

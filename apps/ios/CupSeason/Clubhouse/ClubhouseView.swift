@@ -9,6 +9,7 @@ import CupSeasonKit
 
 struct ClubhouseView: View {
   @Environment(SessionStore.self) private var store
+  @Environment(LookStore.self) private var looks
   @Environment(\.presenter) private var presenter
   @Environment(\.cs) private var cs
   let leagueId: UUID?
@@ -27,6 +28,8 @@ struct ClubhouseView: View {
                                                                    openTourCard: { presenter.tourCard = $0 }))
         LeagueRoomScreen(leagueId: current.league_id, links: links(for: current))
       }
+        // IOS-025: the room wears its league's look — phase ≻ the Pro's choice ≻ the person's dial
+        .environment(\.csLook, looks.look(for: current))
         .id(current.league_id)
         .task(id: me.generated_at) {
           if let st = current.standing, let prev = st.prev_rank, st.rank < prev { rankUps += 1 }

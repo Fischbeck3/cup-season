@@ -131,7 +131,8 @@ struct LeagueRoomScreen: View {
 /// `#hubHeader` — the room's ONE hero (IOS-019 rule 1): the name in the honor
 /// voice, the phase line, the meta as a mono eyebrow, the code as a chip on
 /// the trailing edge, "Add golfers" as a quiet link, the danger link. The
-/// spine is gold only once the season is wrapped (earned); ember while live.
+/// spine is gold only once the season is wrapped (earned); while live it is the
+/// room's look from the environment — ember when none (IOS-025).
 struct LeagueHeaderCard: View {
   @Environment(LeagueRoomModel.self) private var model
   @Environment(RoomRouter.self) private var router
@@ -141,7 +142,7 @@ struct LeagueHeaderCard: View {
   let loading: Bool
 
   var body: some View {
-    CSHero(spine: model.isComplete ? cs.gold : cs.brand, padding: 20) {
+    CSHero(spine: model.isComplete ? cs.gold : nil, padding: 20) {
       VStack(alignment: .leading, spacing: 6) {
         // the name takes the whole line; the code chip rides the phase line's trailing edge
         Text(model.league?.name ?? "—").font(CSFont.heroSmall).foregroundStyle(cs.ink)
