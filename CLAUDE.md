@@ -113,7 +113,7 @@ sections (§2.2, §14.0) when making competition-model decisions.
   **Grants are now explicit (D37, migration `20260718172300`).** Default
   privileges no longer auto-grant EXECUTE to `anon`/`authenticated`, so **every
   new migration MUST `grant execute on function … to authenticated`** for any
-  client-called RPC (and to `anon` only for the ten public endpoints — the seven below plus the `guest_live_state` / `guest_live_set_score` / `guest_live_set_wolf` trio from D86:
+  client-called RPC (and to `anon` only for the eleven public endpoints — the seven below, the `guest_live_state` / `guest_live_set_score` / `guest_live_set_wolf` trio from D86, and `door_flags` — IOS-023, one boolean for the signed-out door:
   `claim_round_info`, `scan_claim_info`, `league_by_code`, `founder_id`,
   `share_info` — D57, `join_covenant_info` — setup-QA S3-01,
   `email_unsubscribe` — D68: an unsubscribe that demands a login is not an

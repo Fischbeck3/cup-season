@@ -13,6 +13,7 @@
 // prod. `-cs_dev_apple` (DEBUG) forces it open for a look.
 
 import Foundation
+import Supabase
 import CupSeasonKit
 
 struct DoorFlags: Decodable, Sendable, Equatable {
@@ -37,8 +38,21 @@ struct DoorFlags: Decodable, Sendable, Equatable {
     (try? JSONDecoder().decode(DoorFlags.self, from: data)) ?? .closed
   }
 
-  /// `app_flags.ios`. Never throws.
+  /// `door_flags()` — hand-declared (migration 20260827190000; anon-callable,
+  /// returns only `apple_sign_in`). The generator picks it up on the next
+  /// contract refresh.
+  struct Call: RpcCall {
+    static let name = "door_flags"
+    static let optionalArgs: [String] = []
+    typealias Returns = JSONValue
+  }
+
+  /// The door is signed out, so the RPC is the real path; the table read
+  /// only works for a signed-in re-render. Never throws; closed on anything.
   static func load(_ svc: SupabaseService = .shared) async -> DoorFlags {
+    if let json = try? await svc.call(Call()), let on = json["apple_sign_in"]?.bool {
+      return DoorFlags(appleSignIn: on)
+    }
     guard let rows: [Row] = try? await svc.client.from("app_flags").select("value").eq("key", value: "ios").limit(1).execute().value,
           let flags = rows.first?.value else { return .closed }
     return flags
