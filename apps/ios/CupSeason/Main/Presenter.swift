@@ -34,6 +34,25 @@ final class Presenter {
   var event: UUID?
 
   func join(code: String?) { joinCode = code; showJoin = true }
+
+  /// Is any sheet or cover on stage? The push ask waits for a clear stage;
+  /// a routed tap clears it first (D104).
+  var anythingUp: Bool {
+    tourCard != nil || receipt != nil || scorecard != nil || scheduledRound != nil || showJoin || showPost || showLive ||
+      showFeedback || showDesk || showNote || declare != nil || inviteTo != nil || wizard != nil || draft != nil || runBack != nil ||
+      showEventPicker || event != nil
+  }
+
+  /// Take everything down. Returns true if anything was up (the caller
+  /// waits for the curtain before raising the next sheet).
+  @discardableResult
+  func dismissAll() -> Bool {
+    let was = anythingUp
+    tourCard = nil; receipt = nil; scorecard = nil; scheduledRound = nil; showJoin = false; showPost = false; showLive = false
+    showFeedback = false; showDesk = false; showNote = false; declare = nil; inviteTo = nil; wizard = nil; draft = nil; runBack = nil
+    showEventPicker = false; event = nil
+    return was
+  }
 }
 
 private struct PresenterKey: EnvironmentKey {

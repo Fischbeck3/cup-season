@@ -170,6 +170,7 @@ struct CardGateView: View {
                                          p_ghin: ghin.isEmpty ? nil : ghin))
       CSTelemetry.product(.cardSet)   // IOS-024: the gate's successful save
       CSHaptic.success()
+      PushAsk.shared.request(.cardSaved)   // D104 §6: the ask follows the moment, once Home is up
       await store.reload()
     } catch {
       note = (AuthRules.human(error, fallback: "Save failed."), .neg)

@@ -65,8 +65,12 @@ struct MainTabView: View {
   @Environment(LookStore.self) private var looks
   @Environment(\.cs) private var cs
   @Environment(\.colorScheme) private var scheme
+  @Environment(\.scenePhase) private var scenePhase
   @State private var tab: Tab = .home
   @State private var presenter = Presenter()
+  /// D104: the tapped-notification route waiting to land, and the contextual ask.
+  @State private var router = PushRouter.shared
+  @State private var ask = PushAsk.shared
   @State private var homePath = NavigationPath()
   @State private var clubPath = NavigationPath()
   @State private var youPath = NavigationPath()
@@ -155,7 +159,32 @@ struct MainTabView: View {
       default: break
       }
     }
+    // `-cs_dev_push '<json>'` / `-cs_dev_push_prompt` / `-cs_dev_push_ids` (PushDev): the
+    // simulator receives no APNs, so a launch argument stands in for the tap.
+    .task(id: store.me?.generated_at) {
+      guard store.me != nil else { return }
+      if PushDev.printIds { await PushDev.dumpIds(me: store.me, preferred: store.preferredLeague) }
+      try? await Task.sleep(for: .seconds(2))
+      if let p = PushDev.payload { router.open(p) }
+      if PushDev.forcePrompt { ask.force() }
+    }
     #endif
+    // ---- D104: a tapped notification lands here once the session is ready ----
+    .task(id: router.pending) {
+      guard let route = router.pending, store.me != nil else { return }
+      router.pending = nil
+      await apply(route)
+    }
+    // ---- D104 §4: the badge is the actionable count; recompute on foreground and around the live round ----
+    .onChange(of: scenePhase) { _, phase in if phase == .active { Task { await PushBadge.refresh() } } }
+    .onChange(of: presenter.showLive) { _, _ in Task { await PushBadge.refresh() } }
+    // ---- D104 §6: the contextual ask, raised only on a clear stage ----
+    .task(id: ask.pending) { await drainAsk() }
+    .onChange(of: presenter.anythingUp) { _, up in
+      guard !up else { return }
+      Task { try? await Task.sleep(for: .milliseconds(500)); await drainAsk() }   // let the curtain close first
+    }
+    .sheet(item: $ask.presented) { PushPromptSheet(reason: $0) }
     .onChange(of: tab) { old, new in
       // the ⊕ is a verb, not a place: it presents, and the selection snaps back (IOS-022 item 3: with a haptic)
       if new == .post { CSHaptic.present(); presenter.showPost = true; tab = old == .post ? .home : old }
@@ -227,6 +256,48 @@ struct MainTabView: View {
       .withTintColor(UIColor(tint), renderingMode: .alwaysOriginal) ?? UIImage()
   }
 
+  // MARK: push (D104)
+
+  /// One function lands every route (push-contract §2). Whatever is on stage
+  /// comes down first, so the destination can rise; unknown → Home, never a
+  /// blank.
+  private func apply(_ route: PushRoute) async {
+    if case .live = route {} else if presenter.dismissAll() {
+      try? await Task.sleep(for: .milliseconds(450))   // the curtain closes before the next sheet
+    }
+    switch route {
+    case .receipt(let id): presenter.receipt = id
+    case .scorecard(let id): presenter.scorecard = id
+    case .board(let league):
+      store.preferredLeague = league
+      tab = .clubhouse
+      clubPath = NavigationPath()
+      clubPath.append(ClubRoute.board(league))
+    case .live(let lr):
+      LiveRoundStore.shared.handleLiveOpen(lr: lr)
+      presenter.showLive = true
+    case .event(let id): presenter.event = id
+    case .invites:
+      tab = .home
+      homePath = NavigationPath()   // the banner sits at the top of Home
+    case .requests:
+      tab = .home
+      homePath = NavigationPath()
+      homePath.append(HomeRoute.people)
+    case .scheduledRound(let id): presenter.scheduledRound = id
+    case .home:
+      tab = .home
+      homePath = NavigationPath()
+    }
+  }
+
+  /// The ask rises only when nothing else is presented (§6: never inside
+  /// another sheet's presentation).
+  private func drainAsk() async {
+    guard ask.pending != nil, !presenter.anythingUp, ask.presented == nil, router.pending == nil else { return }
+    await ask.presentIfDue()
+  }
+
   // MARK: links
 
   private var liveLinks: LiveLinks {
@@ -244,7 +315,7 @@ struct MainTabView: View {
       onLocked: { id in presenter.wizard = nil; presenter.runBack = nil; store.preferredLeague = id; Task { await store.reload() }; tab = .clubhouse },
       onCancelled: { presenter.wizard = nil; Task { await store.reload() } },
       startEvent: { presenter.wizard = nil; presenter.showEventPicker = true },
-      onJoined: { id in store.preferredLeague = id; Task { await store.reload() }; tab = .clubhouse })
+      onJoined: { id in PushAsk.shared.request(.leagueJoined); store.preferredLeague = id; Task { await store.reload() }; tab = .clubhouse })
   }
 
   private var eventLinks: EventLinks {

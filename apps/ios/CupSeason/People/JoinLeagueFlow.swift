@@ -48,7 +48,7 @@ struct JoinLeagueFlow: View {
       .sheet(item: $vm.covenant) { c in
         CovenantSheet(covenant: c, onJoin: { vm.covenant = nil; Task { await vm.join() } }, onNo: { vm.covenant = nil })
       }
-      .sheet(item: $vm.welcome, onDismiss: { if let id = vm.joinedId { onJoined(id); dismiss() } }) { w in
+      .sheet(item: $vm.welcome, onDismiss: { if let id = vm.joinedId { PushAsk.shared.request(.leagueJoined); onJoined(id); dismiss() } }) { w in
         LeagueWelcomeSheet(welcome: w)
       }
       .task(id: vm.joinedId) {
