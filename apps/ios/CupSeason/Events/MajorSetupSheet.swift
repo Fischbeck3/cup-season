@@ -39,6 +39,7 @@ struct MajorPrefill: Identifiable {
 struct MajorSetupSheet: View {
   @Environment(\.cs) private var cs
   @Environment(\.dismiss) private var dismiss
+  @Environment(\.dynamicTypeSize) private var typeSize
   @Environment(SessionStore.self) private var store
   @State private var toasts = CSToastCenter()
   @State private var name = ""
@@ -75,7 +76,7 @@ struct MajorSetupSheet: View {
   var body: some View {
     SheetFrame("Start a Major", sub: "One window · every card on one board · one name on the jug") {
       EventFieldLabel(text: "Name the jug")
-      CSField("The PIGL Championship", text: $name, font: CSFont.body)
+      CSField("The PIGL Championship", text: $name, font: CSFont.body).accessibilityLabel("Name the jug")
       EventFieldLabel(text: "The final day")
       DatePicker("The final day", selection: $final, displayedComponents: .date).labelsHidden().tint(cs.brand)
         .frame(maxWidth: .infinity, alignment: .leading)
@@ -83,7 +84,7 @@ struct MajorSetupSheet: View {
       EventSeg(options: [2, 3, 4].map { ($0, "\($0) days") }, selection: $days)
       if let when = MajorMath.whenLine(finalOn: finalISO, days: days) { CSFine(when) }
       EventFieldLabel(text: "Buy-in per player", hint: "($0 = bragging rights)")
-      CSField("0", text: $buy, font: CSFont.mono).keyboardType(.numberPad)
+      CSField("0", text: $buy, font: CSFont.mono).keyboardType(.numberPad).accessibilityLabel("Buy-in per player, dollars")
       if buyIn > 0 {
         EventFieldLabel(text: "The pot pays")
         EventSeg(options: [("places", "Top 3 · 60/25/15"), ("wta", "Winner takes all")], selection: $split)
@@ -95,8 +96,8 @@ struct MajorSetupSheet: View {
       ForEach(staged) { p in EventStagedRow(person: p) { staged.removeAll { $0.id == p.id } } }
       EventFineCard(markdown: "**How it plays.** Everyone posts inside the window — any course, any day it's open. Your **best 18-hole card**, scored against *your own* number, is your score; post as many as the weekend allows. An established number (3 posted rounds) contends for the jug; newer golfers play **exhibition** — on the board, official by the next one. Ties settle on countback: second-best card, then earliest posted, then a logged coin flip.")
         .padding(.top, 6)
-      HStack(spacing: 8) {
-        CSButton("Cancel", style: .quiet) { dismiss() }.frame(maxWidth: 120)
+      A11yStack(spacing: 8) {
+        CSButton("Cancel", style: .quiet) { dismiss() }.frame(maxWidth: typeSize.isA11y ? .infinity : 120)
         CSButton("Set the Major", busy: busy) { create() }
       }
       .padding(.top, 6)

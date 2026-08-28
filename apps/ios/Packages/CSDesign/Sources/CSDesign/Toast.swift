@@ -38,6 +38,7 @@ public extension EnvironmentValues {
 
 private struct CSToastHost: ViewModifier {
   @Environment(\.cs) private var cs
+  @Environment(\.accessibilityReduceMotion) private var reduceMotion
   let center: CSToastCenter
   func body(content: Content) -> some View {
     content
@@ -50,7 +51,8 @@ private struct CSToastHost: ViewModifier {
             .padding(.horizontal, 16).padding(.vertical, 10)
             .background(cs.ink, in: Capsule())
             .padding(.bottom, 92)
-            .transition(.move(edge: .bottom).combined(with: .opacity))
+            // reduced motion: the pill fades in place — no roll (IOS-003 §2.7)
+            .transition(reduceMotion ? .opacity : .move(edge: .bottom).combined(with: .opacity))
             .id(item.id)
             .accessibilityAddTraits(.updatesFrequently)
         }

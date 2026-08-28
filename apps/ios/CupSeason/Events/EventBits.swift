@@ -17,6 +17,8 @@ struct EventHeaderRow: View {
       Spacer(minLength: 8)
       Text(chip).font(CSFont.label).tracking(0.8).foregroundStyle(cs.gold).multilineTextAlignment(.trailing)
     }
+    .accessibilityElement(children: .combine)
+    .accessibilityAddTraits(.isHeader)
   }
 }
 
@@ -51,7 +53,8 @@ struct EventSeg<T: Hashable>: View {
   let options: [(T, String)]
   @Binding var selection: T
   var body: some View {
-    HStack(spacing: 6) {
+    // one row of pills; a column at the accessibility sizes
+    A11yStack(spacing: 6) {
       ForEach(options, id: \.0) { k, l in
         Button { selection = k; CSHaptic.selection() } label: {
           Text(l).font(CSFont.monoSmall).foregroundStyle(selection == k ? cs.bg0 : cs.ink)
@@ -88,12 +91,14 @@ struct EventStagedRow: View {
   let person: Person
   let remove: () -> Void
   var body: some View {
-    HStack(spacing: 8) {
-      CSMarkerView(key: person.marker, size: 18).foregroundStyle(cs.ink)
-      Text(person.name).font(CSFont.subhead).foregroundStyle(cs.ink)
-      Text("@\(person.handle ?? "?")").font(CSFont.monoSmall).foregroundStyle(cs.dimText)
+    A11yStack(spacing: 8, columnSpacing: 4) {
+      HStack(spacing: 8) {
+        CSMarkerView(key: person.marker, size: 18).foregroundStyle(cs.ink).accessibilityHidden(true)
+        Text(person.name).font(CSFont.subhead).foregroundStyle(cs.ink)
+        Text("@\(person.handle ?? "?")").font(CSFont.monoSmall).foregroundStyle(cs.dimText)
+      }
       Spacer()
-      CSMini("Remove", action: remove)
+      CSMini("Remove", action: remove).accessibilityLabel("Remove \(person.name)")
     }
     .frame(minHeight: 44)
   }
@@ -111,6 +116,7 @@ struct EventLeaguePicker: View {
     }
     .pickerStyle(.menu)
     .tint(cs.ink)
+    .accessibilityLabel("League")
     .frame(maxWidth: .infinity, minHeight: 48, alignment: .leading)
     .padding(.horizontal, 8)
     .background(cs.bg2, in: RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous))

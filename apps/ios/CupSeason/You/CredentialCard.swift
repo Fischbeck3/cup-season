@@ -12,6 +12,7 @@ import CupSeasonKit
 
 struct CredentialCard<Anchor: View, Extra: View>: View {
   private let p = CSTokens.dark
+  @Environment(\.dynamicTypeSize) private var typeSize
 
   let photoURL: URL?
   let marker: String?
@@ -56,7 +57,8 @@ struct CredentialCard<Anchor: View, Extra: View>: View {
         }
       }
 
-      HStack(alignment: .bottom, spacing: 12) {
+      // the index beside the engraved trophies; the trophies drop under it at the accessibility sizes
+      A11yStack(rowAlignment: .bottom, spacing: 12, columnSpacing: 8) {
         VStack(alignment: .leading, spacing: 3) {
           if let idx = indexCurrent {
             Text(CSCopy.index(idx)).font(CSFont.hero).foregroundStyle(p.gold).csTabular()   // EARNED: the number, once established
@@ -69,9 +71,11 @@ struct CredentialCard<Anchor: View, Extra: View>: View {
         .accessibilityHint(indexCurrent == nil ? "Building your number — your index appears at 3 posted rounds" : "")
         Spacer(minLength: 8)
         if !trophyLines.isEmpty {
-          VStack(alignment: .trailing, spacing: 3) {
-            ForEach(trophyLines, id: \.self) { Text($0).font(CSFont.label).foregroundStyle(p.gold).lineLimit(1) }
+          VStack(alignment: typeSize.isA11y ? .leading : .trailing, spacing: 3) {
+            ForEach(trophyLines, id: \.self) { Text($0).font(CSFont.label).foregroundStyle(p.gold).lineLimit(typeSize.isA11y ? nil : 1) }
           }
+          .accessibilityElement(children: .combine)
+          .accessibilityLabel("Trophies: " + trophyLines.joined(separator: ", "))
         }
       }
       .padding(.top, 16)

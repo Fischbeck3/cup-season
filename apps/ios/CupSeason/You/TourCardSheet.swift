@@ -100,6 +100,7 @@ struct TourCardSheet: View {
         MiniButton(label: muted ? "🔈 Unmute — show their posts again" : "🔇 Mute — hide their posts from your boards",
                    tone: cs.mut, busy: busyMute) { Task { await toggleMute() } }
           .padding(.top, 8)
+          .accessibilityLabel(muted ? "Unmute, show their posts again" : "Mute, hide their posts from your boards")
       }
     }
   }
@@ -118,6 +119,7 @@ struct TourCardSheet: View {
     }
     .buttonStyle(.plain)
     .disabled(report == .sending || report == .done)
+    .accessibilityHint(report == .idle ? "Asks once more before it sends" : "")
   }
   private var reportLabel: String {
     switch report {

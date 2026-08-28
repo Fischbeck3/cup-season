@@ -11,6 +11,7 @@ struct RyderRoomView: View {
   @Environment(\.cs) private var cs
   @Environment(\.toast) private var toast
   @Environment(\.dismiss) private var dismiss
+  @Environment(\.dynamicTypeSize) private var typeSize
   @Environment(SessionStore.self) private var store
   let model: EventRoomModel
   let room: EventRoom
@@ -29,15 +30,15 @@ struct RyderRoomView: View {
 
     EventHeaderRow(name: room.event.name, chip: RyderMath.statusChip(room))
 
-    // the scoreboard card
+    // the scoreboard card — A · score · B across; a column at the accessibility sizes
     CSCard(padding: 16) {
       VStack(spacing: 10) {
-        HStack(alignment: .center, spacing: 14) {
+        A11yStack(alignment: .center, spacing: 14, columnSpacing: 6) {
           HStack(spacing: 8) {
             EventTeamSwatch(colorIndex: A.colorIndex)
-            Text(A.name).font(CSFont.subhead.weight(.semibold)).foregroundStyle(cs.ink).lineLimit(1)
+            Text(A.name).font(CSFont.subhead.weight(.semibold)).foregroundStyle(cs.ink).lineLimit(typeSize.isA11y ? nil : 1)
           }
-          .frame(maxWidth: .infinity, alignment: .trailing)
+          .frame(maxWidth: .infinity, alignment: typeSize.isA11y ? .center : .trailing)
           HStack(spacing: 6) {
             Text(RyderMath.evHalf(aP)).font(CSFont.stat).csTabular().foregroundStyle(cs.ink)
             Text("–").font(CSFont.stat).foregroundStyle(cs.dimText)
@@ -45,10 +46,10 @@ struct RyderRoomView: View {
           }
           .fixedSize()
           HStack(spacing: 8) {
-            Text(B.name).font(CSFont.subhead.weight(.semibold)).foregroundStyle(cs.ink).lineLimit(1)
+            Text(B.name).font(CSFont.subhead.weight(.semibold)).foregroundStyle(cs.ink).lineLimit(typeSize.isA11y ? nil : 1)
             EventTeamSwatch(colorIndex: B.colorIndex)
           }
-          .frame(maxWidth: .infinity, alignment: .leading)
+          .frame(maxWidth: .infinity, alignment: typeSize.isA11y ? .center : .leading)
         }
         Text(RyderMath.clinchLine(room)).font(CSFont.label).tracking(1.0).foregroundStyle(cs.mut)
           .multilineTextAlignment(.center)
@@ -56,6 +57,8 @@ struct RyderRoomView: View {
       .frame(maxWidth: .infinity)
     }
     .accessibilityElement(children: .combine)
+    .accessibilityLabel("\(A.name) \(RyderMath.evHalf(aP)), \(B.name) \(RyderMath.evHalf(bP)). \(RyderMath.clinchLine(room))")
+    .accessibilityAddTraits(.updatesFrequently)
 
     // D62: the series line — editions counted, the cup defended
     if let series = RyderMath.seriesLine(lineage: room.lineage, eventId: room.event.id, status: room.event.status, aName: A.name, bName: B.name) {
@@ -80,7 +83,7 @@ struct RyderRoomView: View {
 
     // organizer controls — the event's creator runs the roster + sessions
     if iAmOrg {
-      HStack(spacing: 8) {
+      FlowRow(spacing: 8) {
         CSMini("Invite players", systemImage: "plus") { invite = true }
         if !room.event.isComplete && !room.anyClosed {
           CSArmedButton(label: "Scrap", armedLabel: "Sure? Scrap it", busy: model.isBusy("scrap")) { scrap() }
@@ -120,6 +123,9 @@ struct RyderRoomView: View {
           }
           .contentShape(Rectangle())
           .onTapGesture { if let pid = p.profileId { links.openTourCard(pid) } }
+          .accessibilityElement(children: .combine)
+          .accessibilityAddTraits(p.profileId == nil ? [] : .isButton)
+          .accessibilityHint(p.profileId == nil ? "" : "Opens the Tour Card")
         }
       }
     }
@@ -175,19 +181,21 @@ struct RyderRoomView: View {
 
   private func duelRow(_ d: EventDuel, a: EventPlayer, b: EventPlayer, chip: String?) -> some View {
     let aw = d.result == "a", bw = d.result == "b", hv = d.result == "halve"
-    return HStack(spacing: 8) {
+    let ax = typeSize.isA11y
+    // a · vs · b · chip across; one under the other at the accessibility sizes
+    return A11yStack(spacing: 8, columnSpacing: 4) {
       HStack(spacing: 4) {
         CSMarkerView(key: a.marker, size: 14).foregroundStyle(cs.ink)
-        Text(a.name).font(aw ? CSFont.footnote.weight(.bold) : CSFont.footnote).foregroundStyle(cs.ink).lineLimit(1)
+        Text(a.name).font(aw ? CSFont.footnote.weight(.bold) : CSFont.footnote).foregroundStyle(cs.ink).lineLimit(ax ? nil : 1)
       }
       .frame(maxWidth: .infinity, alignment: .leading)
       Text(RyderMath.mid(d.result)).font(CSFont.label).tracking(0.6)
         .foregroundStyle(hv ? cs.gold : cs.dimText).fontWeight(hv ? .bold : .regular).fixedSize()
       HStack(spacing: 4) {
-        Text(b.name).font(bw ? CSFont.footnote.weight(.bold) : CSFont.footnote).foregroundStyle(cs.ink).lineLimit(1)
+        Text(b.name).font(bw ? CSFont.footnote.weight(.bold) : CSFont.footnote).foregroundStyle(cs.ink).lineLimit(ax ? nil : 1)
         CSMarkerView(key: b.marker, size: 14).foregroundStyle(cs.ink)
       }
-      .frame(maxWidth: .infinity, alignment: .trailing)
+      .frame(maxWidth: .infinity, alignment: ax ? .leading : .trailing)
       if let chip {
         let rose = model.risen.contains(d.id)
         Text(chip).font(CSFont.label).csTabular().foregroundStyle(rose ? cs.warm : cs.mut).fixedSize()

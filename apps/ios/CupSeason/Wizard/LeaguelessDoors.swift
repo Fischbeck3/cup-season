@@ -22,7 +22,8 @@ struct LeaguelessDoors: View {
       if let done = store.me?.memberships.first(where: { $0.phase == "complete" }) {
         RunItBackCard(leagueId: done.league_id, links: links)
       }
-      HStack(spacing: 8) {
+      // three doors across; a column at the accessibility sizes so no label is scaled down to fit
+      A11yStack(spacing: 8) {
         door(WizardCopy.startLeague) { wizard = true }
         door(WizardCopy.startEvent) { links.startEvent() }
         door(WizardCopy.joinLeague) { join = true }
@@ -50,6 +51,7 @@ struct LeaguelessDoors: View {
         .padding(.horizontal, 6).frame(maxWidth: .infinity, minHeight: 50)
         .background(cs.bg2, in: RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous))
         .overlay(RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous).stroke(cs.line2, lineWidth: 1))
+        .contentShape(Rectangle())
     }
     .buttonStyle(.plain)
   }
@@ -70,12 +72,13 @@ struct RunItBackCard: View {
     CSCard(spine: cs.gold) {
       VStack(alignment: .leading, spacing: 10) {
         HStack(spacing: 12) {
-          Image(systemName: "trophy").font(.system(size: 26, weight: .regular)).foregroundStyle(cs.gold).frame(width: 34)
+          Image(systemName: "trophy").font(.system(size: 26, weight: .regular)).foregroundStyle(cs.gold).frame(width: 34).accessibilityHidden(true)
           VStack(alignment: .leading, spacing: 2) {
             Text(WizardCopy.runBackK).csEyebrow()
             Text(m?.name ?? "Your league").font(CSFont.sentenceBold).foregroundStyle(cs.ink)
           }
         }
+        .accessibilityElement(children: .combine)
         CSButton(WizardCopy.runBack, style: .gold, busy: busy) { start(name: m?.name ?? "") }
         CSFine(WizardCopy.runBackSub)
       }

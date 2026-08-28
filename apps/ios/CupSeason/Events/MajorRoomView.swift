@@ -36,7 +36,7 @@ struct MajorRoomView: View {
     // the card
     CSCard(padding: 16) {
       VStack(spacing: 4) {
-        Text("🏆").font(.system(size: 34))
+        Text("🏆").font(.system(size: 34)).accessibilityHidden(true)
         let lines = MajorMath.cardLines(days: f.days, when: f.when, field: f.field, contenders: f.contenders, buyIn: f.buyIn, pot: f.pot, potSplit: ev.pot_split)
         Text(lines[0]).font(CSFont.monoSmall).tracking(1.8).foregroundStyle(cs.gold).padding(.top, 2)
         Text(lines[1]).font(CSFont.footnote).foregroundStyle(cs.dimText).padding(.top, 2)
@@ -148,7 +148,7 @@ struct MajorRoomView: View {
         let sub = [r.champGross.map { "\($0)" }, r.champPvi.map { MajorMath.vs($0) }, r.eventId == priors.last?.eventId ? "DEFENDING" : nil]
           .compactMap { $0 }.joined(separator: " · ")
         HStack(spacing: 12) {
-          Text(r.year.map { String($0) } ?? "—").font(CSFont.label).foregroundStyle(cs.dimText).frame(width: 40, alignment: .center)
+          Text(r.year.map { String($0) } ?? "—").font(CSFont.label).foregroundStyle(cs.dimText).frame(minWidth: 40, alignment: .center)
           VStack(alignment: .leading, spacing: 3) {
             Text(r.champion ?? "—").font(CSFont.subhead.weight(.semibold)).foregroundStyle(cs.ink)
             if !sub.isEmpty { Text(sub).font(CSFont.monoSmall).foregroundStyle(cs.mut) }
@@ -158,6 +158,7 @@ struct MajorRoomView: View {
         .padding(.vertical, 8).padding(.horizontal, 12).frame(minHeight: 52)
         .background(cs.bg1, in: RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous))
         .overlay(RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous).stroke(cs.line, lineWidth: 1))
+        .accessibilityElement(children: .combine)
       }
     }
 
@@ -205,14 +206,18 @@ struct MajorRoomView: View {
     .overlay(RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous).stroke(cs.line, lineWidth: 1))
     .contentShape(Rectangle())
 
+    let said = "\(pos == "🏆" ? "Champion" : pos == "EX" ? "Exhibition" : pos == "—" ? "" : pos), \(name), \(line)" + (pvi.map { ", \(MajorMath.vs($0))" } ?? "")
     return Group {
       if let round {
         Button { links.openReceipt(round) } label: { row }.buttonStyle(.plain)
+          .accessibilityLabel(said)
           .accessibilityHint("Opens the round receipt")
       } else if let profile {
         Button { links.openTourCard(profile) } label: { row }.buttonStyle(.plain)
+          .accessibilityLabel(said)
+          .accessibilityHint("Opens the Tour Card")
       } else {
-        row
+        row.accessibilityElement(children: .combine).accessibilityLabel(said)
       }
     }
   }

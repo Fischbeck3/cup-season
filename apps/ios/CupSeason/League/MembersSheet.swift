@@ -13,6 +13,7 @@ struct MembersSheet: View {
   @Environment(\.toast) private var toast
   @Environment(\.dismiss) private var dismiss
   @Environment(\.cs) private var cs
+  @Environment(\.dynamicTypeSize) private var typeSize
   @State private var busy: UUID?
   @State private var setIndexFor: LeagueRoom.Member?
   @State private var markerOpen = false
@@ -27,7 +28,10 @@ struct MembersSheet: View {
       if markerOpen { LeagueMarkerPicker(busy: $busy) }
       if !pending.isEmpty {
         Text("Invites out").csEyebrow()
-        ForEach(pending, id: \.self) { e in Text("✉ \(e) · WAITING").font(CSFont.footnote).foregroundStyle(cs.dimText) }
+        ForEach(pending, id: \.self) { e in
+          Text("✉ \(e) · WAITING").font(CSFont.footnote).foregroundStyle(cs.dimText)
+            .accessibilityLabel("\(e), invite waiting")
+        }
       }
       if model.isPro { CSButton("Add golfers") { dismiss(); links.addGolfers() }.padding(.top, 8) }
       if let url = model.inviteURL {
@@ -48,23 +52,28 @@ struct MembersSheet: View {
                m.profile?.index_current.map { "INDEX \(CSCopy.index($0))" },
                model.squadName(m.id).isEmpty ? nil : model.squadName(m.id).uppercased()].compactMap { $0 }.joined(separator: " · ")
     return VStack(alignment: .leading, spacing: 0) {
-      HStack(spacing: 12) {
-        Button { dismiss(); links.openTourCard(m.profile_id) } label: {
-          CSFace(photoURL: model.avatarURL[m.profile_id], marker: m.mk, size: 36)
-        }
-        .buttonStyle(.plain).accessibilityLabel("\(m.name)'s Tour Card")
-        VStack(alignment: .leading, spacing: 2) {
-          HStack(spacing: 6) {
-            Text(m.name).font(CSFont.subhead.weight(.semibold)).foregroundStyle(cs.ink)
-            if m.isPro { Text("THE PRO").csEyebrow(cs.gold) }
+      // face + name across; "Marker here" drops under them at the accessibility sizes
+      A11yStack(spacing: 12, columnSpacing: 6) {
+        HStack(spacing: 12) {
+          Button { dismiss(); links.openTourCard(m.profile_id) } label: {
+            CSFace(photoURL: model.avatarURL[m.profile_id], marker: m.mk, size: 36).a11yHitSlop(vertical: 4, horizontal: 4)
           }
-          Text(sub.isEmpty ? "GOLFER" : sub).font(CSFont.label).tracking(0.6).foregroundStyle(cs.dimText)
+          .buttonStyle(.plain).accessibilityLabel("\(m.name)'s Tour Card")
+          VStack(alignment: .leading, spacing: 2) {
+            HStack(alignment: .firstTextBaseline, spacing: 6) {
+              Text(m.name).font(CSFont.subhead.weight(.semibold)).foregroundStyle(cs.ink)
+              if m.isPro { Text("THE PRO").csEyebrow(cs.gold).fixedSize() }
+            }
+            Text(sub.isEmpty ? "GOLFER" : sub).font(CSFont.label).tracking(0.6).foregroundStyle(cs.dimText)
+          }
+          .frame(maxWidth: .infinity, alignment: .leading)
         }
         Spacer(minLength: 6)
-        if isMe { RoomMini("Marker here") { markerOpen.toggle() } }
+        if isMe { RoomMini("Marker here") { markerOpen.toggle() }.accessibilityHint("Your marker in this league") }
       }
       if model.isPro && !isMe {
-        HStack(spacing: 6) {
+        // the Pro's tools wrap rather than clip (three pills never fit one line at the accessibility sizes)
+        FlowRow(spacing: 6) {
           RoomMini("Set index") { setIndexFor = m }
           if model.league?.phase == "setup" {
             ArmedMini("Remove", armedLabel: "Sure? Remove", busy: busy == m.id) {
@@ -80,7 +89,7 @@ struct MembersSheet: View {
             run(m.id) { try await model.transferPro(to: m.id); toast.show("The shop has a new Pro"); dismiss() }
           }
         }
-        .padding(.leading, 48).padding(.top, 4)
+        .padding(.leading, typeSize.isA11y ? 0 : 48).padding(.top, 4)
       }
     }
     .padding(.vertical, 10)
@@ -98,11 +107,12 @@ struct LeagueMarkerPicker: View {
   @Environment(LeagueRoomModel.self) private var model
   @Environment(\.toast) private var toast
   @Environment(\.cs) private var cs
+  @Environment(\.dynamicTypeSize) private var typeSize
   @Binding var busy: UUID?
   var body: some View {
     let cur = model.myMember?.marker ?? model.viewer?.marker
     VStack(spacing: 8) {
-      LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 8), count: 4), spacing: 8) {
+      LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 8), count: typeSize.isA11y ? 2 : 4), spacing: 8) {
         ForEach(CSMarkers.all) { mk in
           Button { set(mk.key) } label: {
             VStack(spacing: 4) {
@@ -116,6 +126,7 @@ struct LeagueMarkerPicker: View {
           }
           .buttonStyle(.plain)
           .accessibilityLabel(mk.name)
+          .accessibilityAddTraits(cur == mk.key ? .isSelected : [])
         }
       }
       RoomMini("Use my profile marker") { set(nil) }

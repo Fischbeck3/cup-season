@@ -51,7 +51,7 @@ struct RoundReceiptSheet: View {
       }
       let rows = ReceiptRows.build(r, capN: capN, viewerId: store.session?.user.id)
       if rows.isEmpty && !enriched {
-        Text("Pulling the card…").font(CSFont.subhead).foregroundStyle(cs.dimText)
+        Text("Pulling the card…").font(CSFont.subhead).foregroundStyle(cs.dimText).accessibilityAddTraits(.updatesFrequently)
       }
       VStack(spacing: 0) {
         ForEach(rows) { row in
@@ -61,6 +61,7 @@ struct RoundReceiptSheet: View {
           case .playedWith(let mates):
             (Text("Played with ").foregroundStyle(cs.dimText) + Text(mates.joined(separator: ", ")).foregroundStyle(cs.mut).bold())
               .font(CSFont.subhead).frame(maxWidth: .infinity, alignment: .leading).padding(.top, 10)
+              .fixedSize(horizontal: false, vertical: true)
           case .scorecard(let live):
             if let openScorecard {
               CSButton("See the scorecard", style: .quiet) { openScorecard(live) }.padding(.top, 12)

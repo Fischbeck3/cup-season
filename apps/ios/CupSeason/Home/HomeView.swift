@@ -58,9 +58,10 @@ struct HomeView: View {
           if vm.loading && vm.buckets.isEmpty {
             ForEach(0..<3, id: \.self) { _ in skeleton }
           } else if vm.buckets.isEmpty {
-            HStack(spacing: 4) {
+            // the sentence and its link share a line where they fit; the link is a 44pt target either way
+            A11yStack(alignment: .leading, rowAlignment: .firstTextBaseline, spacing: 4) {
               Text("No rounds from your buddies yet. Post one, or").font(CSFont.footnote).foregroundStyle(cs.mut)
-              NavigationLink(value: HomeRoute.people) { Text("add some buddies.").font(CSFont.footnote).foregroundStyle(cs.brand) }
+              NavigationLink(value: HomeRoute.people) { Text("add some buddies.").font(CSFont.footnote).foregroundStyle(cs.brand).a11yHitSlop() }
             }
             .padding(.top, 4)
           } else {
@@ -193,15 +194,18 @@ private struct OccasionCard: View {
         HStack(alignment: .top) {
           Text(eyebrow).csEyebrow(o.earned ? cs.gold : nil)
           Spacer()
-          if let m = o.marker { CSMarkerView(key: m, size: 22).foregroundStyle(o.earned ? cs.gold : cs.ink) }
-          Button(action: onDismiss) { Image(systemName: "xmark").font(.caption).foregroundStyle(cs.mut) }
+          if let m = o.marker { CSMarkerView(key: m, size: 22).foregroundStyle(o.earned ? cs.gold : cs.ink).accessibilityHidden(true) }
+          Button(action: onDismiss) { Image(systemName: "xmark").font(.caption).foregroundStyle(cs.mut).a11yHitSlop(vertical: 14, horizontal: 14) }
+            .buttonStyle(.plain)
             .accessibilityLabel("Dismiss")
         }
         Text(o.h).font(CSFont.sentenceBold).foregroundStyle(cs.ink)
         Text(o.p).font(CSFont.subhead).foregroundStyle(cs.mut)
         Button(action: onGo) {
-          HStack { Text(o.act); Text("→") }.font(CSFont.button).foregroundStyle(cs.brand)
+          HStack { Text(o.act); Text("→") }.font(CSFont.button).foregroundStyle(cs.brand).a11yHitSlop()
         }
+        .buttonStyle(.plain)
+        .accessibilityLabel(o.act)
         .padding(.top, 4)
       }
     }
@@ -248,8 +252,10 @@ private struct FeedBucketView: View {
     let shown = showAll ? bucket.items : Array(bucket.items.prefix(cap))
     VStack(alignment: .leading, spacing: 0) {
       if bucket.label == "Earlier" && !expanded {
-        Button("Show earlier · \(bucket.items.count)") { expanded = true }.font(CSFont.footnote).foregroundStyle(cs.dawn)
-          .padding(.vertical, 6)
+        Button { expanded = true } label: {
+          Text("Show earlier · \(bucket.items.count)").font(CSFont.footnote).foregroundStyle(cs.dawn).frame(minHeight: 44).contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
       } else {
         CSSectionHead(bucket.label)
         ForEach(shown) { item in
@@ -261,9 +267,11 @@ private struct FeedBucketView: View {
           }
         }
         if !showAll {
-          Button("Show \(bucket.items.count - cap) more · \(bucket.label.lowercased())") { expanded = true }
-            .font(CSFont.footnote).foregroundStyle(cs.dawn)
-            .padding(.vertical, 6)
+          Button { expanded = true } label: {
+            Text("Show \(bucket.items.count - cap) more · \(bucket.label.lowercased())")
+              .font(CSFont.footnote).foregroundStyle(cs.dawn).frame(minHeight: 44).contentShape(Rectangle())
+          }
+          .buttonStyle(.plain)
         }
       }
     }
@@ -309,11 +317,8 @@ private struct FeedRoundCard: View {
   var body: some View {
     Button { if let id = r.round_id { presenter.receipt = id } } label: {
       if let photoURL {
-        ZStack(alignment: .bottomLeading) {
-          AsyncImage(url: photoURL) { $0.resizable().scaledToFill() } placeholder: { CSDusk.surface }
-            .frame(height: 220).clipped()
-          LinearGradient(colors: [.clear, CSDusk.ground.opacity(0.85)], startPoint: .top, endPoint: .bottom)
-          VStack(alignment: .leading, spacing: 6) {
+        // the photo is the GROUND: the text decides the height (220 at least), so nothing overflows at the accessibility sizes
+        VStack(alignment: .leading, spacing: 6) {
             HStack(spacing: 8) {
               faceButton(size: 36)
               VStack(alignment: .leading, spacing: 1) {
@@ -328,26 +333,35 @@ private struct FeedRoundCard: View {
               Text(r.gross.map(String.init) ?? "").font(CSFont.hero).foregroundStyle(CSTokens.dark.ink)
               if let phrase { Text(phrase.lowercased()).font(CSFont.footnote).foregroundStyle(CSTokens.dark.mut) }
               Spacer()
-              CSMarkerView(key: r.marker, size: 22).foregroundStyle(CSTokens.dark.ink)
+              CSMarkerView(key: r.marker, size: 22).foregroundStyle(CSTokens.dark.ink).accessibilityHidden(true)
             }
             strip
+        }
+        .padding(14)
+        .frame(maxWidth: .infinity, minHeight: 220, alignment: .bottomLeading)
+        .background {
+          ZStack {
+            AsyncImage(url: photoURL) { $0.resizable().scaledToFill() } placeholder: { CSDusk.surface }
+            LinearGradient(colors: [.clear, CSDusk.ground.opacity(0.85)], startPoint: .top, endPoint: .bottom)
           }
-          .padding(14)
         }
         .clipShape(RoundedRectangle(cornerRadius: CSTokens.Radius.r, style: .continuous))
       } else {
         CSCard(spine: milestone != nil ? cs.gold : nil) {
           VStack(alignment: .leading, spacing: 6) {
-            HStack(spacing: 10) {
-              faceButton(size: 44)
-              VStack(alignment: .leading, spacing: 2) {
-                HStack(alignment: .firstTextBaseline, spacing: 6) {
-                  Text(who).font(CSFont.button).foregroundStyle(cs.ink)
-                  FoundingTag(badge: store.founding.badge(for: r.profile_id))
+            // face + name across; the gross drops under them at the accessibility sizes
+            A11yStack(spacing: 10) {
+              HStack(spacing: 10) {
+                faceButton(size: 44)
+                VStack(alignment: .leading, spacing: 2) {
+                  HStack(alignment: .firstTextBaseline, spacing: 6) {
+                    Text(who).font(CSFont.button).foregroundStyle(cs.ink)
+                    FoundingTag(badge: store.founding.badge(for: r.profile_id))
+                  }
+                  if let line = milestone ?? phrase { Text(line).font(CSFont.footnote).foregroundStyle(milestone != nil ? cs.gold : cs.mut) }
                 }
-                if let line = milestone ?? phrase { Text(line).font(CSFont.footnote).foregroundStyle(milestone != nil ? cs.gold : cs.mut) }
               }
-              Spacer()
+              Spacer(minLength: 0)
               if let g = r.gross {
                 VStack(alignment: .trailing, spacing: 0) {
                   Text(String(g)).font(CSFont.heroSmall).foregroundStyle(cs.ink).csTabular()
@@ -373,8 +387,11 @@ private struct FeedRoundCard: View {
         }
       }
     }
-    .accessibilityLabel("\(who) — \(r.gross.map(String.init) ?? "") at \(r.course ?? "a round")")
-    .accessibilityHint(canReact ? "Long press to add a reaction" : "")
+    .accessibilityLabel("\(who) — \(r.gross.map(String.init) ?? "") at \(r.course ?? "a round")" + (phrase.map { ", \($0.lowercased())" } ?? ""))
+    .accessibilityHint("Opens the round")
+    // VoiceOver reaches the nested doors through the rotor: the Tour Card and the six reactions
+    .accessibilityAction(named: "\(who)'s Tour Card") { if let p = r.profile_id { presenter.tourCard = p } }
+    .modifier(A11yReactionActions(enabled: canReact, toggle: toggle))
   }
 
   private func faceButton(size: CGFloat) -> some View {
@@ -385,20 +402,51 @@ private struct FeedRoundCard: View {
   }
 }
 
+/// The six reactions as VoiceOver actions on a Home round (the tray is a long press for the eye).
+private struct A11yReactionActions: ViewModifier {
+  let enabled: Bool
+  let toggle: (String) -> Void
+  func body(content: Content) -> some View {
+    if enabled {
+      content
+        .accessibilityAction(named: CSReactions.all[0].label) { toggle(CSReactions.all[0].emoji) }
+        .accessibilityAction(named: CSReactions.all[1].label) { toggle(CSReactions.all[1].emoji) }
+        .accessibilityAction(named: CSReactions.all[2].label) { toggle(CSReactions.all[2].emoji) }
+        .accessibilityAction(named: CSReactions.all[3].label) { toggle(CSReactions.all[3].emoji) }
+        .accessibilityAction(named: CSReactions.all[4].label) { toggle(CSReactions.all[4].emoji) }
+        .accessibilityAction(named: CSReactions.all[5].label) { toggle(CSReactions.all[5].emoji) }
+    } else {
+      content
+    }
+  }
+}
+
 /// A league post as a row in the section (IOS-019 rule 2): glyph, the body, the league line.
 private struct FeedPostRow: View {
   @Environment(\.cs) private var cs
   let p: HomePost
   let leagueName: String?
   let presenter: Presenter
+  private var fresh: Bool { (p.created_at.map { Date().timeIntervalSince($0) } ?? .infinity) < 48 * 3600 }
+  private var closed: Bool { (p.body ?? "").range(of: "\\bclosed\\b", options: [.regularExpression, .caseInsensitive]) != nil }
+
   var body: some View {
-    let fresh = (p.created_at.map { Date().timeIntervalSince($0) } ?? .infinity) < 48 * 3600
-    let closed = (p.body ?? "").range(of: "\\bclosed\\b", options: [.regularExpression, .caseInsensitive]) != nil
-    Button { if let lr = p.live_round_id { presenter.scorecard = lr } } label: {
+    // a row with a scorecard is a door; one without is a note — never a dimmed button
+    if let lr = p.live_round_id {
+      Button { presenter.scorecard = lr } label: { row }
+        .buttonStyle(.plain)
+        .accessibilityHint("Opens the scorecard")
+    } else {
+      row.accessibilityElement(children: .combine)
+    }
+  }
+
+  private var row: some View {
       HStack(alignment: .top, spacing: 12) {
         Text(p.kind == "announce" ? "📣" : "🏁").font(.system(size: 18))
           .frame(width: 40, height: 40).background(cs.bg2, in: Circle())
           .overlay(Circle().stroke(fresh ? cs.line2 : .clear, lineWidth: 1))
+          .accessibilityHidden(true)
         VStack(alignment: .leading, spacing: 3) {
           Text(HomeCopy.easeCaps(p.body ?? "")).font(CSFont.subhead).foregroundStyle(cs.ink)
           HStack(spacing: 4) {
@@ -411,9 +459,6 @@ private struct FeedPostRow: View {
       }
       .frame(maxWidth: .infinity, alignment: .leading)
       .rotationEffect(.degrees(closed ? 1.4 : 0))   // the month seal keeps its cant — a hand set it
-    }
-    .buttonStyle(.plain)
-    .disabled(p.live_round_id == nil)
   }
 }
 
@@ -549,9 +594,11 @@ private struct HomeReactionStrip: View {
           .background(cs.bg2, in: Capsule())
           .overlay(Capsule().stroke(st.me ? cs.brand : cs.line2, lineWidth: 1))
           .foregroundStyle(st.me ? cs.brand : cs.ink)
+          .a11yHitSlop(vertical: 7, horizontal: 0)   // a 30pt chip, a 44pt target
         }
         .buttonStyle(.plain)
         .accessibilityLabel("\(rx.label), \(st.n)\(st.me ? ", yours" : "")")
+        .accessibilityValue(st.me ? "on" : "off")
       }
     }
     .padding(.top, 6)

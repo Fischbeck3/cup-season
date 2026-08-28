@@ -46,6 +46,8 @@ struct BoardScreen: View {
           Text("THE BOARD").font(CSFont.label).tracking(1.6).foregroundStyle(cs.pos)
           Text((store?.leagueName ?? "").uppercased()).font(CSFont.label).tracking(1.2).foregroundStyle(cs.dimText)
         }
+        .accessibilityElement(children: .combine)
+        .accessibilityAddTraits(.isHeader)
       }
     }
     .task(id: leagueId) {
@@ -66,10 +68,11 @@ struct BoardScreen: View {
               Task { await store.loadEarlier() }
             } label: {
               Text(store.loadingEarlier ? "Loading…" : "Earlier").font(CSFont.monoMediumBody).foregroundStyle(cs.mut)
-                .frame(maxWidth: .infinity, minHeight: 44)
+                .frame(maxWidth: .infinity, minHeight: 44).contentShape(Rectangle())
             }
             .buttonStyle(.plain)
             .disabled(store.loadingEarlier)
+            .accessibilityLabel("Load earlier posts")
           }
           if !store.loaded, store.loading { BoardSkeleton() }
           if let pin = store.pinnedIndex { AnnounceRow(text: store.items[pin].text, pinned: true) }
@@ -91,10 +94,12 @@ struct BoardScreen: View {
     }
   }
 
-  /// `.composer` — "Message the league…" · 📣 (the Pro) · Send.
+  /// `.composer` — "Message the league…" · 📣 (the Pro) · Send. At the accessibility
+  /// sizes the field takes the full width and the two buttons sit under it.
   private func composer(_ store: BoardStore) -> some View {
-    HStack(spacing: 8) {
+    A11yStack(alignment: .trailing, spacing: 8) {
       TextField("Message the league…", text: $draft, axis: .vertical)
+        .accessibilityLabel("Message the league")
         .font(CSFont.body)
         .foregroundStyle(cs.ink)
         .lineLimit(1...4)
@@ -105,23 +110,27 @@ struct BoardScreen: View {
           .stroke(composing ? cs.focus : cs.line, lineWidth: composing ? 2 : 1))
         .focused($composing)
         .submitLabel(.send)
-      if store.isPro {
-        Button { announcing = true } label: {
-          Text("📣").font(.system(size: 18)).frame(minWidth: 44, minHeight: 44)
-            .background(cs.bg2, in: RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous))
-            .overlay(RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous).stroke(cs.line2, lineWidth: 1))
+        .frame(maxWidth: .infinity)
+      HStack(spacing: 8) {
+        if store.isPro {
+          Button { announcing = true } label: {
+            Text("📣").font(.system(size: 18)).frame(minWidth: 44, minHeight: 44)
+              .background(cs.bg2, in: RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous))
+              .overlay(RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous).stroke(cs.line2, lineWidth: 1))
+          }
+          .buttonStyle(.plain)
+          .accessibilityLabel("Announce to the league")
+        }
+        Button { send(store) } label: {
+          Text("Send").font(CSFont.button).foregroundStyle(cs.bg0)
+            .padding(.horizontal, 18).frame(minHeight: 44)
+            .background(cs.brand, in: RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous))
         }
         .buttonStyle(.plain)
-        .accessibilityLabel("Announce to the league")
+        .disabled(sending || draft.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+        .opacity(draft.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? 0.6 : 1)
+        .accessibilityLabel("Send")
       }
-      Button { send(store) } label: {
-        Text("Send").font(CSFont.button).foregroundStyle(cs.bg0)
-          .padding(.horizontal, 18).frame(minHeight: 44)
-          .background(cs.brand, in: RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous))
-      }
-      .buttonStyle(.plain)
-      .disabled(sending || draft.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
-      .opacity(draft.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? 0.6 : 1)
     }
     .padding(.horizontal, 16).padding(.vertical, 10)
     .background(cs.bg0)

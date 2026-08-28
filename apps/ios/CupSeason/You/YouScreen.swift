@@ -157,10 +157,13 @@ struct YouScreen: View {
         if let g = x?.ghinNumber, !g.isEmpty {
           Text(["GHIN \(g)", since].compactMap { $0 }.joined(separator: " · ")).font(CSFont.footnote).foregroundStyle(cs.mut)
         } else {
-          HStack(spacing: 0) {
+          A11yStack(rowAlignment: .firstTextBaseline, spacing: 0, columnSpacing: 2) {
             if let since { Text(since + " · ").font(CSFont.footnote).foregroundStyle(cs.mut) }
-            Button("add your GHIN") { (links.addGhin ?? links.openSettings)() }
-              .font(CSFont.footnote).foregroundStyle(cs.brand).buttonStyle(.plain)
+            Button { (links.addGhin ?? links.openSettings)() } label: {
+              Text("add your GHIN").font(CSFont.footnote).foregroundStyle(cs.brand).a11yHitSlop()
+            }
+            .buttonStyle(.plain)
+            .accessibilityLabel("Add your GHIN")
           }
           .frame(minHeight: 28)
         }

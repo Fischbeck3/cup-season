@@ -54,8 +54,8 @@ struct CSMini: View {
       .background(cs.bg2, in: Capsule())
       .overlay(Capsule().stroke(tone ?? cs.line2, lineWidth: 1))
       .opacity(busy ? 0.5 : 1)
+      .frame(minWidth: 44, minHeight: 44)   // accessibility: an icon-only mini is still a 44pt target
       .contentShape(Rectangle())
-      .frame(minHeight: 44)
     }
     .buttonStyle(.plain)
     .disabled(busy)

@@ -115,6 +115,7 @@ struct DoorView: View {
     VStack(alignment: .leading, spacing: 10) {
       Text("The \(AuthRules.otpLength) digits").csEyebrow()
       TextField("", text: $vm.code)
+        .accessibilityLabel("The \(AuthRules.otpLength) digit code")
         .font(CSFont.code)
         .foregroundStyle(cs.ink)
         .kerning(6)
@@ -134,14 +135,22 @@ struct DoorView: View {
         }
       CSButton("Verify", busy: vm.busy) { verify() }
         .padding(.top, 6)
-      HStack {
-        Button(vm.resendIn > 0 ? "Resend in \(vm.resendIn)s" : "Resend the code") { resend() }
-          .disabled(vm.resendIn > 0 || vm.busy)
+      // two text links side by side at reading sizes, stacked at the accessibility sizes; 44pt each
+      A11yStack(spacing: 12) {
+        Button { resend() } label: {
+          Text(vm.resendIn > 0 ? "Resend in \(vm.resendIn)s" : "Resend the code").frame(minHeight: 44).contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .disabled(vm.resendIn > 0 || vm.busy)
+        .accessibilityHint(vm.resendIn > 0 ? "Available in \(vm.resendIn) seconds" : "")
         Spacer()
-        Button("Change email") { vm.backToEmail(); focus = .email }
+        Button { vm.backToEmail(); focus = .email } label: {
+          Text("Change email").frame(minHeight: 44).contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
       }
       .font(CSFont.subhead).foregroundStyle(cs.mut)
-      .padding(.top, 8)
+      .padding(.top, 2)
     }
     .onAppear { focus = .code }
   }
@@ -150,14 +159,17 @@ struct DoorView: View {
     VStack(alignment: .leading, spacing: 10) {
       Text("Password").csEyebrow()
       SecureField("", text: $vm.password)
+        .accessibilityLabel("Password")
         .font(CSFont.mono)
         .padding(.horizontal, 14).frame(minHeight: 48)
         .background(cs.bg2, in: RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous))
         .focused($focus, equals: .password)
         .onSubmit { reviewer() }
       CSButton("Sign in", busy: vm.busy) { reviewer() }
-      Button("Change email") { vm.backToEmail(); focus = .email }
-        .font(CSFont.subhead).foregroundStyle(cs.mut).padding(.top, 8)
+      Button { vm.backToEmail(); focus = .email } label: {
+        Text("Change email").font(CSFont.subhead).foregroundStyle(cs.mut).frame(minHeight: 44).contentShape(Rectangle())
+      }
+      .buttonStyle(.plain).padding(.top, 2)
     }
     .onAppear { focus = .password }
   }
@@ -165,8 +177,8 @@ struct DoorView: View {
   private var legal: some View {
     VStack(alignment: .leading, spacing: 6) {
       HStack(spacing: 14) {
-        Link("Terms", destination: CSConfig.legal("terms"))
-        Link("Privacy", destination: CSConfig.legal("privacy"))
+        Link(destination: CSConfig.legal("terms")) { Text("Terms").frame(minHeight: 44) }
+        Link(destination: CSConfig.legal("privacy")) { Text("Privacy").frame(minHeight: 44) }
       }
       .font(CSFont.footnote).foregroundStyle(cs.dawn)
       Text("v1 · build \(SessionStore.bundleBuild())").font(CSFont.monoSmall).foregroundStyle(cs.dimText)

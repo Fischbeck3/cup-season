@@ -28,8 +28,8 @@ struct RoomMini: View {
       .frame(minHeight: 36)
       .background(cs.bg2, in: Capsule())
       .overlay(Capsule().stroke(tone?.opacity(0.6) ?? cs.line2, lineWidth: 1))
+      .frame(minWidth: 44, minHeight: 44)   // a one-glyph mini ("✕") is still a 44pt target
       .contentShape(Rectangle())
-      .frame(minHeight: 44)
     }
     .buttonStyle(.plain)
     .disabled(busy)
@@ -74,13 +74,18 @@ struct RoomCheckRow<Lead: View, Trail: View>: View {
     self.title = title; self.sub = sub; self.lead = lead(); self.trail = trail()
   }
   var body: some View {
-    HStack(spacing: 12) {
-      lead.frame(width: 36, height: 36)
-        .background(cs.bg2, in: Circle())
-        .overlay(Circle().stroke(cs.line, lineWidth: 1))
-      VStack(alignment: .leading, spacing: 2) {
-        Text(title).font(CSFont.subhead.weight(.semibold)).foregroundStyle(cs.ink)
-        if let sub { Text(sub).font(CSFont.label).tracking(0.6).foregroundStyle(cs.dimText).fixedSize(horizontal: false, vertical: true) }
+    // lead + text across; the trailing control drops under them at the accessibility sizes
+    A11yStack(spacing: 12, columnSpacing: 8) {
+      HStack(spacing: 12) {
+        lead.frame(width: 36, height: 36)
+          .background(cs.bg2, in: Circle())
+          .overlay(Circle().stroke(cs.line, lineWidth: 1))
+          .accessibilityHidden(true)
+        VStack(alignment: .leading, spacing: 2) {
+          Text(title).font(CSFont.subhead.weight(.semibold)).foregroundStyle(cs.ink)
+          if let sub { Text(sub).font(CSFont.label).tracking(0.6).foregroundStyle(cs.dimText).fixedSize(horizontal: false, vertical: true) }
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
       }
       Spacer(minLength: 8)
       trail
@@ -119,13 +124,14 @@ struct RoomMathRow: View {
   var tone: Color? = nil
   var total = false
   var body: some View {
-    HStack(alignment: .firstTextBaseline) {
+    A11yStack(rowAlignment: .firstTextBaseline, columnSpacing: 2) {
       Text(k).font(total ? CSFont.subhead.weight(.semibold) : CSFont.subhead).foregroundStyle(total ? cs.ink : cs.mut)
       Spacer()
       Text(v).font(total ? CSFont.stat : CSFont.monoMediumBody).csTabular().foregroundStyle(tone ?? cs.ink)
     }
     .padding(.vertical, 8)
     .overlay(alignment: .top) { if total { Rectangle().fill(cs.line2).frame(height: 1) } }
+    .accessibilityElement(children: .combine)
   }
 }
 

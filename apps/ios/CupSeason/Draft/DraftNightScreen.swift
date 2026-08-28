@@ -239,7 +239,7 @@ struct DraftNightScreen: View {
   private func proAdmin(_ d: DraftRow?) -> some View {
     VStack(alignment: .leading, spacing: 8) {
       Text(DraftCopy.proEyebrow).csEyebrow()
-      HStack(spacing: 6) {
+      FlowRow(spacing: 6) {
         RoomMini(DraftCopy.randomizeOrder, busy: board.busy) {
           if let d, d.current_pick > 0 { toast.show(DraftCopy.orderLocked); return }
           guard let s = room.season else { return }

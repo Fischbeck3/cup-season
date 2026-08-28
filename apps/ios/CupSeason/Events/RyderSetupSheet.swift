@@ -38,6 +38,7 @@ struct RyderPrefill: Identifiable {
 struct RyderSetupSheet: View {
   @Environment(\.cs) private var cs
   @Environment(\.dismiss) private var dismiss
+  @Environment(\.dynamicTypeSize) private var typeSize
   @Environment(SessionStore.self) private var store
   @State private var toasts = CSToastCenter()
   @State private var name = ""
@@ -75,15 +76,15 @@ struct RyderSetupSheet: View {
   var body: some View {
     SheetFrame("Start a Ryder", sub: "Two teams · vs-index duels · first to the clinch") {
       EventFieldLabel(text: "Event name")
-      CSField("The Grudge Match", text: $name, font: CSFont.body)
-      HStack(spacing: 10) {
+      CSField("The Grudge Match", text: $name, font: CSFont.body).accessibilityLabel("Event name")
+      A11yStack(spacing: 10) {
         VStack(alignment: .leading, spacing: 6) {
           EventFieldLabel(text: "Team A")
-          CSField("Red", text: $teamA, font: CSFont.body)
+          CSField("Red", text: $teamA, font: CSFont.body).accessibilityLabel("Team A name")
         }
         VStack(alignment: .leading, spacing: 6) {
           EventFieldLabel(text: "Team B")
-          CSField("Blue", text: $teamB, font: CSFont.body)
+          CSField("Blue", text: $teamB, font: CSFont.body).accessibilityLabel("Team B name")
         }
       }
       EventFieldLabel(text: "Sessions")
@@ -104,8 +105,8 @@ struct RyderSetupSheet: View {
       ForEach(staged) { p in EventStagedRow(person: p) { staged.removeAll { $0.id == p.id } } }
       EventFineCard(markdown: "**How it plays.** Two teams, one **session** a week. Each session you're paired 1‑on‑1 with someone on the other team; your best round that week — scored by how far you beat *your own* index — faces theirs. **Win a duel = 1 point, tie = ½ each.** First team past half the points takes the cup. Points scale to team size: 6‑a‑side over 3 weeks is 18 points, first to 9½.")
         .padding(.top, 6)
-      HStack(spacing: 8) {
-        CSButton("Cancel", style: .quiet) { dismiss() }.frame(maxWidth: 120)
+      A11yStack(spacing: 8) {
+        CSButton("Cancel", style: .quiet) { dismiss() }.frame(maxWidth: typeSize.isA11y ? .infinity : 120)
         CSButton("Create the event", busy: busy) { create() }
       }
       .padding(.top, 6)

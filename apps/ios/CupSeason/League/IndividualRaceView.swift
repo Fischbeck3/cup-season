@@ -11,14 +11,16 @@ struct IndividualRaceView: View {
   @Environment(LeagueRoomModel.self) private var model
   @Environment(RoomRouter.self) private var router
   @Environment(\.cs) private var cs
+  @Environment(\.dynamicTypeSize) private var typeSize
 
   var body: some View {
     let rows = model.indRows
+    let ax = typeSize.isA11y
     VStack(alignment: .leading, spacing: 10) {
-      // the trio as one band — three columns on ground, a hairline under (IOS-019 rule 2)
+      // the trio as one band — three columns on ground, a hairline under (IOS-019 rule 2); stacked at the accessibility sizes
       VStack(alignment: .leading, spacing: 6) {
         if let aw = model.awards {
-          HStack(alignment: .top, spacing: 10) {
+          A11yStack(rowAlignment: .top, spacing: 10, columnSpacing: 0) {
             tile(kingName(aw), sub: kingSub(aw), gold: true)
             tile(aw.improved, sub: aw.improvedSub)
             tile(aw.iron, sub: aw.ironSub)
@@ -27,7 +29,7 @@ struct IndividualRaceView: View {
             Text("PROJECTED — THE ENGINE CROWNS AT CLOSE").font(CSFont.label).tracking(1.2).foregroundStyle(cs.dimText)
           }
         } else {
-          HStack(alignment: .top, spacing: 10) {
+          A11yStack(rowAlignment: .top, spacing: 10, columnSpacing: 0) {
             tile("—", sub: "Points King", gold: true); tile("—", sub: "Most Improved"); tile("—", sub: "Iron Man")
           }
         }
@@ -38,32 +40,44 @@ struct IndividualRaceView: View {
         if rows.isEmpty {
           RoomFine("The race fills in once your league season is live and rounds land.").padding(.vertical, 8)
         } else {
-          HStack(spacing: 10) {
-            Text("").frame(width: 26)
-            Text("Player").frame(maxWidth: .infinity, alignment: .leading)
-            Text("R").frame(width: 28, alignment: .trailing)
-            Text("Avg vs index").frame(width: 70, alignment: .trailing)
-            Text("Pts").frame(width: 40, alignment: .trailing)
+          if !ax {
+            HStack(spacing: 10) {
+              Text("").frame(width: 26)
+              Text("Player").frame(maxWidth: .infinity, alignment: .leading)
+              Text("R").frame(width: 28, alignment: .trailing)
+              Text("Avg vs index").frame(width: 70, alignment: .trailing)
+              Text("Pts").frame(width: 40, alignment: .trailing)
+            }
+            .font(CSFont.label).tracking(1.0).textCase(.uppercase).foregroundStyle(cs.dimText)
+            .padding(.horizontal, 4).padding(.vertical, 8)
+            .overlay(alignment: .bottom) { CSHairline() }
+            .accessibilityHidden(true)
           }
-          .font(CSFont.label).tracking(1.0).textCase(.uppercase).foregroundStyle(cs.dimText)
-          .padding(.horizontal, 4).padding(.vertical, 8)
-          .overlay(alignment: .bottom) { CSHairline() }
           ForEach(Array(rows.enumerated()), id: \.element.id) { i, p in
             Button { router.open(.member(p)) } label: {
-              HStack(spacing: 10) {
-                Text(String(format: "%02d", i + 1)).font(CSFont.monoSmall).csTabular().foregroundStyle(cs.mut).frame(width: 26, alignment: .leading)
-                HStack(spacing: 8) {
-                  RoundedRectangle(cornerRadius: 3).fill(cs.squad(p.ci)).frame(width: 10, height: 10)
-                  VStack(alignment: .leading, spacing: 1) {
-                    Text(p.n).font(CSFont.subhead).foregroundStyle(cs.ink).lineLimit(1)
-                    Text(p.sq).font(CSFont.label).tracking(0.8).foregroundStyle(cs.dimText)
+              // five columns at reading sizes; the figures take a second line at the accessibility sizes, each named
+              A11yStack(spacing: 10, columnSpacing: 4) {
+                HStack(spacing: 10) {
+                  Text(String(format: "%02d", i + 1)).font(CSFont.monoSmall).csTabular().foregroundStyle(cs.mut).frame(minWidth: 26, alignment: .leading)
+                  HStack(spacing: 8) {
+                    RoundedRectangle(cornerRadius: 3).fill(cs.squad(p.ci)).frame(width: 10, height: 10)
+                    VStack(alignment: .leading, spacing: 1) {
+                      Text(p.n).font(CSFont.subhead).foregroundStyle(cs.ink).lineLimit(ax ? nil : 1)
+                      Text(p.sq).font(CSFont.label).tracking(0.8).foregroundStyle(cs.dimText)
+                    }
                   }
+                  .frame(maxWidth: .infinity, alignment: .leading)
                 }
-                .frame(maxWidth: .infinity, alignment: .leading)
-                Text("\(p.r)").font(CSFont.monoSmall).csTabular().foregroundStyle(cs.mut).frame(width: 28, alignment: .trailing)
-                Text(p.r > 0 ? StandingsMath.sgn(p.avg) : "—").font(CSFont.monoSmall).csTabular()
-                  .foregroundStyle(p.avg >= 0 ? cs.pos : cs.neg).frame(width: 70, alignment: .trailing)
-                Text(CSCopy.points(p.pts)).font(CSFont.monoMediumBody).csTabular().foregroundStyle(cs.ink).frame(width: 40, alignment: .trailing)
+                HStack(spacing: 10) {
+                  if ax { Text("R").font(CSFont.label).tracking(1.0).foregroundStyle(cs.dimText) }
+                  Text("\(p.r)").font(CSFont.monoSmall).csTabular().foregroundStyle(cs.mut).frame(minWidth: ax ? nil : 28, alignment: .trailing)
+                  if ax { Text("· VS INDEX").font(CSFont.label).tracking(1.0).foregroundStyle(cs.dimText) }
+                  Text(p.r > 0 ? StandingsMath.sgn(p.avg) : "—").font(CSFont.monoSmall).csTabular()
+                    .foregroundStyle(p.avg >= 0 ? cs.pos : cs.neg).frame(minWidth: ax ? nil : 70, alignment: .trailing)
+                  if ax { Text("· PTS").font(CSFont.label).tracking(1.0).foregroundStyle(cs.dimText) }
+                  Text(CSCopy.points(p.pts)).font(CSFont.monoMediumBody).csTabular().foregroundStyle(cs.ink).frame(minWidth: ax ? nil : 40, alignment: .trailing)
+                }
+                .padding(.leading, ax ? 22 : 0)
               }
               .padding(.horizontal, 4).padding(.vertical, 10)
               .frame(minHeight: 48)
@@ -73,7 +87,8 @@ struct IndividualRaceView: View {
               .overlay(alignment: .bottom) { Rectangle().fill(i == 0 && p.pts > 0 ? cs.gold.opacity(0.55) : cs.line).frame(height: 1) }
             }
             .buttonStyle(.plain)
-            .accessibilityLabel("\(CSCopy.ordinal(i + 1)) — \(p.n), \(p.r) rounds, \(CSCopy.points(p.pts)) points")
+            .accessibilityLabel("\(CSCopy.ordinal(i + 1)), \(p.n), \(p.r) round\(p.r == 1 ? "" : "s"), \(CSCopy.points(p.pts)) points")
+            .accessibilityHint("Opens their rounds")
           }
         }
       }
@@ -94,7 +109,7 @@ struct IndividualRaceView: View {
   /// One column of the trio — the name in the honor voice, gold only on the King (earned).
   private func tile(_ b: String, sub: String, gold: Bool = false) -> some View {
     VStack(alignment: .leading, spacing: 4) {
-      Text(b).font(CSFont.sentenceBold).foregroundStyle(gold && b != "—" ? cs.gold : cs.ink).lineLimit(1).minimumScaleFactor(0.8)
+      Text(b).font(CSFont.sentenceBold).foregroundStyle(gold && b != "—" ? cs.gold : cs.ink).lineLimit(typeSize.isA11y ? nil : 1).minimumScaleFactor(0.8)
       Text(sub).font(CSFont.label).tracking(0.6).foregroundStyle(cs.dimText).fixedSize(horizontal: false, vertical: true)
     }
     .padding(.vertical, 8)

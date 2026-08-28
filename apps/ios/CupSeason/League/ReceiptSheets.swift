@@ -11,6 +11,7 @@ struct SquadReceiptSheet: View {
   @Environment(LeagueRoomModel.self) private var model
   @Environment(RoomRouter.self) private var router
   @Environment(\.cs) private var cs
+  @Environment(\.dynamicTypeSize) private var typeSize
   let team: Team
 
   var body: some View {
@@ -37,20 +38,25 @@ struct SquadReceiptSheet: View {
       VStack(spacing: 0) {
         ForEach(rows) { p in
           Button { router.open(.member(p)) } label: {
-            HStack(spacing: 10) {
-              RoundedRectangle(cornerRadius: 3).fill(cs.squad(p.ci)).frame(width: 10, height: 10)
-              VStack(alignment: .leading, spacing: 2) {
-                Text(p.n).font(CSFont.subhead.weight(.semibold)).foregroundStyle(cs.ink)
-                Text("\(p.r) ROUND\(p.r == 1 ? "" : "S") · AVG vs index \(p.r > 0 ? StandingsMath.sgn(p.avg) : "—")")
-                  .font(CSFont.label).tracking(0.8).foregroundStyle(cs.dimText)
+            A11yStack(spacing: 10, columnSpacing: 4) {
+              HStack(spacing: 10) {
+                RoundedRectangle(cornerRadius: 3).fill(cs.squad(p.ci)).frame(width: 10, height: 10)
+                VStack(alignment: .leading, spacing: 2) {
+                  Text(p.n).font(CSFont.subhead.weight(.semibold)).foregroundStyle(cs.ink)
+                  Text("\(p.r) ROUND\(p.r == 1 ? "" : "S") · AVG vs index \(p.r > 0 ? StandingsMath.sgn(p.avg) : "—")")
+                    .font(CSFont.label).tracking(0.8).foregroundStyle(cs.dimText)
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
               }
               Spacer()
-              Text(CSCopy.points(p.pts)).font(CSFont.monoMediumBody).csTabular().foregroundStyle(cs.ink)
+              Text(CSCopy.points(p.pts) + (typeSize.isA11y ? " PTS" : "")).font(CSFont.monoMediumBody).csTabular().foregroundStyle(cs.ink)
             }
             .padding(.vertical, 10).frame(minHeight: 48).contentShape(Rectangle())
             .overlay(alignment: .bottom) { Rectangle().fill(cs.line).frame(height: 1) }
           }
           .buttonStyle(.plain)
+          .accessibilityLabel("\(p.n), \(p.r) round\(p.r == 1 ? "" : "s"), \(CSCopy.points(p.pts)) points")
+          .accessibilityHint("Opens their rounds")
         }
         if rows.isEmpty { RoomFine("No rounds posted yet — the squad is waiting on its first counter.").padding(.vertical, 8) }
       }
@@ -72,6 +78,7 @@ struct MemberHistorySheet: View {
   @Environment(\.roomLinks) private var links
   @Environment(\.dismiss) private var dismiss
   @Environment(\.cs) private var cs
+  @Environment(\.dynamicTypeSize) private var typeSize
   let row: IndRow
 
   var body: some View {
@@ -85,18 +92,21 @@ struct MemberHistorySheet: View {
             Button {
               if let id = h.round_id { dismiss(); links.openReceipt(id) }
             } label: {
-              HStack(alignment: .firstTextBaseline, spacing: 10) {
+              A11yStack(rowAlignment: .firstTextBaseline, spacing: 10, columnSpacing: 2) {
                 Text(h.played_on + (h.holes_played == 9 ? " · 9 HOLES" : "") + (h.counting ? "" : " · BUMPED"))
                   .font(CSFont.label).tracking(0.6).foregroundStyle(h.counting ? cs.mut : cs.dimText)
                 Spacer()
                 Text("\(StandingsMath.sgn(h.pvi)) vs index · \(CSCopy.points(h.points)) PTS")
-                  .font(CSFont.monoSmall).csTabular().foregroundStyle(h.counting ? cs.ink : cs.mut).lineLimit(1)
+                  .font(CSFont.monoSmall).csTabular().foregroundStyle(h.counting ? cs.ink : cs.mut).lineLimit(typeSize.isA11y ? nil : 1)
               }
               .padding(.vertical, 10).frame(minHeight: 44).contentShape(Rectangle())
               .overlay(alignment: .bottom) { Rectangle().fill(cs.line).frame(height: 1) }
             }
             .buttonStyle(.plain)
             .disabled(h.round_id == nil)
+            .accessibilityElement(children: .combine)
+            .accessibilityLabel("\(h.played_on)\(h.holes_played == 9 ? ", 9 holes" : ""), \(StandingsMath.sgn(h.pvi)) versus index, \(CSCopy.points(h.points)) points\(h.counting ? "" : ", bumped")")
+            .accessibilityHint(h.round_id == nil ? "" : "Opens the round")
           }
         }
         if row.hist.contains(where: { !$0.counting }) {

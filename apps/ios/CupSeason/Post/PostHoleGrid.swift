@@ -31,6 +31,7 @@ struct PostSeg<T: Hashable>: View {
             .frame(minHeight: 44)
         }
         .buttonStyle(.plain)
+        .accessibilityLabel(l)
         .accessibilityAddTraits(on ? .isSelected : [])
       }
     }
@@ -65,13 +66,15 @@ struct PostScorecardStrip: View {
         // the scan's escape hatch: a bad read never traps anyone in the grid
         Button { model.scrapScan() } label: {
           Label("Scrap the scan — type front & back instead", systemImage: "xmark").font(CSFont.footnote).foregroundStyle(cs.mut)
+            .frame(minHeight: 44).contentShape(Rectangle())
         }
-        .frame(minHeight: 44)
+        .buttonStyle(.plain)
       } else {
         Button { model.setMode(.total) } label: {
-          Text("Front & back").font(CSFont.footnote).foregroundStyle(cs.mut)
+          Text("Front & back").font(CSFont.footnote).foregroundStyle(cs.mut).frame(minHeight: 44).contentShape(Rectangle())
         }
-        .frame(minHeight: 44)
+        .buttonStyle(.plain)
+        .accessibilityHint("Switches to two gross figures")
       }
     }
     .onChange(of: model.card.side) { _, s in selected = PostStrip.clamp(selected, side: s) }
@@ -195,7 +198,7 @@ struct PostScorecardStrip: View {
   private func step(_ glyph: String, _ label: String, _ action: @escaping () -> Void) -> some View {
     Button(action: action) {
       Text(glyph).font(.system(size: 26, weight: .medium)).foregroundStyle(cs.ink)
-        .frame(width: 60, height: 60)
+        .frame(minWidth: 60, minHeight: 60)
         .background(cs.bg2, in: RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous))
         .overlay(RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous).stroke(cs.line2, lineWidth: 1))
         .contentShape(Rectangle())
@@ -231,6 +234,8 @@ struct PostParsSheet: View {
             let ok = PostPars.validSide(front) && (nine || PostPars.validSide(back))
             Text(ok ? "\(PostPars.sum(front) + (nine ? 0 : PostPars.sum(back)))" : "—").font(CSFont.stat).csTabular().foregroundStyle(ok ? cs.pos : cs.mut)
           }
+          .accessibilityElement(children: .combine)
+          .accessibilityAddTraits(.updatesFrequently)
           CSFine("Nine digits a side, 3–6. \(nine ? "Front nine only." : "Type it once.") Only matters if this course isn't par 72 — exact stroke index arrives with the course database.")
           CSButton("Done") { if model.setPars(front: front, back: back) { dismiss() } }.padding(.top, 4)
         }
@@ -259,6 +264,7 @@ struct PostParsSheet: View {
         Text(sum).font(CSFont.monoMediumBody).foregroundStyle(v.isEmpty ? cs.mut : (PostPars.validSide(v) ? cs.pos : cs.neg))
       }
       TextField(f == .front ? "453453543" : "434445345", text: text)
+        .accessibilityLabel("\(label) pars, nine digits")
         .font(CSFont.code).csTabular().keyboardType(.numberPad)
         .foregroundStyle(bad ? cs.neg : cs.ink)
         .padding(.horizontal, 14).frame(minHeight: 56)
