@@ -52,7 +52,7 @@ public enum AuthRules {
       return "That code has expired. Codes expire when a new one is sent — use the newest email."
     }
     if s.contains("rate limit") || s.contains("too many") || s.contains("429") {
-      return "Too many sign-in emails for now — the mailer limits sends per hour."
+      return "Too many sign-in emails for now — the mailer limits sends per hour. Give it a few minutes."
     }
     // Sign in with Apple (IOS-023): the provider not yet enabled in Supabase,
     // a nonce that did not line up, or Apple's own sheet giving up.

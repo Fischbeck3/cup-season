@@ -38,20 +38,28 @@ struct TourCardSheet: View {
           SliceSheet(title: "Tour Card", sub: "PRIVATE") { Fine(TourCard.privateLine) }
         }
       } else if failed {
-        SliceSheet(title: "Tour Card", sub: "PRIVATE") { Fine(TourCard.privateLine) }
+        // a load failure is not privacy — say so, and offer the retry
+        SliceSheet(title: "Tour Card", sub: "COULD NOT LOAD") {
+          VStack(alignment: .leading, spacing: 10) {
+            Fine("Could not pull the card — check your signal and try again.")
+            Button("Try again") { failed = false; Task { await fetch() } }.font(CSFont.subhead).foregroundStyle(cs.dawn)
+          }
+        }
       } else {
         SliceSheet(title: "Tour Card", sub: "LOADING…") { Fine("Pulling the card…") }
       }
     }
-    .task {
-      do {
-        let l = try await repo.load(profileId)
-        relation = l.relation; muted = l.muted; load = l
-      } catch { failed = true }
-    }
+    .task { await fetch() }
     .sheet(item: $rivalry) { r in
       RivalrySheet(opponentId: r.opponent, name: r.name, record: r.record, rivalryName: r.rivalryName)
     }
+  }
+
+  private func fetch() async {
+    do {
+      let l = try await repo.load(profileId)
+      relation = l.relation; muted = l.muted; load = l
+    } catch { failed = true }
   }
 
   private func card(_ l: TourCardLoad) -> some View {

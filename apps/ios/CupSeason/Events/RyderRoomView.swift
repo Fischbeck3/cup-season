@@ -16,6 +16,7 @@ struct RyderRoomView: View {
   let room: EventRoom
   let links: EventLinks
   @State private var invite = false
+  @State private var scrapArmed = false
   @State private var runBack: RyderPrefill?
 
   private var me: UUID? { store.session?.user.id }
@@ -83,9 +84,11 @@ struct RyderRoomView: View {
       HStack(spacing: 8) {
         CSMini("Invite players", systemImage: "plus") { invite = true }
         if !room.event.isComplete && !room.anyClosed {
-          CSArmedButton(label: "Scrap", armedLabel: "Sure? Scrap it", busy: model.isBusy("scrap")) { scrap() }
+          CSArmedButton(label: "Scrap", armedLabel: "Sure? Scrap it", busy: model.isBusy("scrap"), onArm: { scrapArmed = $0 }) { scrap() }
         }
       }
+      // the web's confirm() sentence (16265) rides the arm
+      if scrapArmed { CSFine(RyderMath.scrapQuestion(room.event.name)).transition(.opacity) }
       let unassigned = room.unassigned
       if !unassigned.isEmpty {
         Text("Unassigned").csEyebrow().padding(.top, 4)

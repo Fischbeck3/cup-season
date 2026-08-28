@@ -317,6 +317,10 @@ private struct PostRoundBody: View {
           ForEach(Array(Self.bands.enumerated()), id: \.offset) { i, band in
             PostBandRow(label: band.0, value: band.1, last: i == Self.bands.count - 1)
           }
+          // the fine print under the bands (web 3198)
+          Text("Every posted round scores. Your best 4 each month count toward your squad — a better round always replaces your lowest, in real time.")
+            .font(CSFont.footnote).foregroundStyle(cs.dimText)
+            .frame(maxWidth: .infinity, alignment: .leading).padding(.top, 8)
         }
         .transition(.opacity)
       }

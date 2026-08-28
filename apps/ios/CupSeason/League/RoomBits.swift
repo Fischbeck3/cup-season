@@ -44,22 +44,47 @@ struct ArmedMini: View {
   let armedLabel: String
   var busy = false
   let action: () -> Void
+  /// The arm state, for a caller that shows the web's `confirm()` sentence while armed.
+  var onArm: ((Bool) -> Void)? = nil
   @State private var armed = false
   @State private var disarm: Task<Void, Never>?
-  init(_ label: String, armedLabel: String, busy: Bool = false, action: @escaping () -> Void) {
-    self.label = label; self.armedLabel = armedLabel; self.busy = busy; self.action = action
+  init(_ label: String, armedLabel: String, busy: Bool = false, onArm: ((Bool) -> Void)? = nil, action: @escaping () -> Void) {
+    self.label = label; self.armedLabel = armedLabel; self.busy = busy; self.onArm = onArm; self.action = action
   }
   var body: some View {
     RoomMini(armed ? armedLabel : label, tone: armed ? cs.neg : nil, busy: busy) {
       if armed {
-        armed = false; disarm?.cancel(); action()
+        armed = false; onArm?(false); disarm?.cancel(); action()
       } else {
-        armed = true; CSHaptic.warning()
+        armed = true; onArm?(true); CSHaptic.warning()
         disarm?.cancel()
-        disarm = Task { try? await Task.sleep(for: .seconds(3)); if !Task.isCancelled { armed = false } }
+        disarm = Task { try? await Task.sleep(for: .seconds(3)); if !Task.isCancelled { armed = false; onArm?(false) } }
       }
     }
     .animation(.easeOut(duration: 0.2), value: armed)
+  }
+}
+
+/// The web's `sparkline()` (index.html 4462): the last seven points on a 60×16
+/// stage, min–max normalised. Decoration — the numbers beside it are the story.
+struct RoomSpark: View {
+  @Environment(\.cs) private var cs
+  let values: [Double]
+  var color: Color? = nil
+  var body: some View {
+    let last = Array(values.suffix(7))
+    Canvas { ctx, size in
+      guard last.count >= 2, let mn = last.min(), let mx = last.max() else { return }
+      var p = Path()
+      for (i, v) in last.enumerated() {
+        let x = CGFloat(i) / CGFloat(last.count - 1) * size.width
+        let y = size.height - CGFloat((v - mn) / max(1, mx - mn)) * (size.height - 2) - 1
+        if i == 0 { p.move(to: CGPoint(x: x, y: y)) } else { p.addLine(to: CGPoint(x: x, y: y)) }
+      }
+      ctx.stroke(p, with: .color(color ?? cs.brand), style: StrokeStyle(lineWidth: 1.5, lineCap: .round, lineJoin: .round))
+    }
+    .frame(width: 60, height: 16)
+    .accessibilityHidden(true)
   }
 }
 

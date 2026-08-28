@@ -39,8 +39,15 @@ struct HomeView: View {
             .environment(\.csLook, looks.look(for: mode.membership))
 
           if let o = vm.occasion {
-            OccasionCard(o: o, onGo: { if o.go == .league { presenter.wizard = .init(existingLeagueId: nil) } else { presenter.showEventPicker = true } },
-                         onDismiss: { Occasion.dismiss(o); vm.occasion = nil })
+            // web 10082/10093: the wink's tap is an event, either way it goes
+            OccasionCard(o: o, onGo: {
+                           CSTelemetry.event("home_occasion_tap", ["win": .string(o.key), "act": .string("go"), "platform": .string("ios")])
+                           if o.go == .league { presenter.wizard = .init(existingLeagueId: nil) } else { presenter.showEventPicker = true }
+                         },
+                         onDismiss: {
+                           CSTelemetry.event("home_occasion_tap", ["win": .string(o.key), "act": .string("dismiss"), "platform": .string("ios")])
+                           Occasion.dismiss(o); vm.occasion = nil
+                         })
           }
 
           UpNextChips(leagueId: mode.membership?.league_id, links: links)
@@ -64,7 +71,7 @@ struct HomeView: View {
             }
             .padding(.top, 4)
           } else {
-            ForEach(vm.buckets) { b in FeedBucketView(bucket: b, presenter: presenter, vm: vm) }
+            ForEach(vm.buckets) { b in FeedBucketView(bucket: b, presenter: presenter, vm: vm, only: vm.buckets.count == 1) }
           }
 
           UpcomingRoundsSection(links: links)
@@ -226,10 +233,19 @@ private struct HomeDigestRow: View {
       }
       VStack(alignment: .leading, spacing: 3) {
         Text(digest.label).font(CSFont.label).tracking(1.2).textCase(.uppercase).foregroundStyle(cs.dimText)
-        Text(digest.body).font(CSFont.subhead).foregroundStyle(cs.ink)
+        Text(attributed).font(CSFont.subhead).foregroundStyle(cs.ink)
       }
     }
     .frame(maxWidth: .infinity, alignment: .leading)
+  }
+
+  /// The web's `<b>` on the count and the name (10538–10600).
+  private var attributed: AttributedString {
+    var a = AttributedString(digest.body)
+    for s in digest.strong {
+      if let r = a.range(of: s) { a[r].font = CSFont.subhead.weight(.semibold) }
+    }
+    return a
   }
 }
 
@@ -240,14 +256,16 @@ private struct FeedBucketView: View {
   let bucket: HomeBucket
   let presenter: Presenter
   let vm: HomeModel
+  /// Web 10479: when Today and This week are empty, Earlier opens on its own so the feed never looks empty.
+  var only = false
   @State private var expanded = false
 
   var body: some View {
     let cap = HomeBuckets.cap
-    let showAll = bucket.label == "Earlier" ? expanded : (expanded || bucket.items.count <= cap + 1)
+    let showAll = bucket.label == "Earlier" ? (expanded || only) : (expanded || bucket.items.count <= cap + 1)
     let shown = showAll ? bucket.items : Array(bucket.items.prefix(cap))
     VStack(alignment: .leading, spacing: 0) {
-      if bucket.label == "Earlier" && !expanded {
+      if bucket.label == "Earlier" && !expanded && !only {
         Button("Show earlier · \(bucket.items.count)") { expanded = true }.font(CSFont.footnote).foregroundStyle(cs.dawn)
           .padding(.vertical, 6)
       } else {
@@ -282,9 +300,10 @@ private struct FeedRoundCard: View {
   private var reactions: [String: ReactionState]? { r.round_id.flatMap { vm.social.state(for: $0) } }
   private var canReact: Bool { reactions != nil }
 
-  /// Chips only when at least one reaction exists — never a lone "+" (IOS-019).
+  /// The chips present plus the bare 🔥 — F11 3.1: the heater is the one-thumb
+  /// chip, always on the card face (rxChipsHtml 4708). Never a lone "+".
   @ViewBuilder private var strip: some View {
-    if let state = reactions, CSReactions.all.contains(where: { (state[$0.emoji]?.n ?? 0) > 0 }) {
+    if let state = reactions {
       HomeReactionStrip(state: state, onToggle: toggle)
     }
   }
@@ -552,6 +571,18 @@ private struct HomeReactionStrip: View {
         }
         .buttonStyle(.plain)
         .accessibilityLabel("\(rx.label), \(st.n)\(st.me ? ", yours" : "")")
+      }
+      // the bare heater: nobody has fired yet, the chip is still there to fire (web 4708–4710)
+      if (state[CSReactions.quick]?.n ?? 0) == 0 {
+        Button { CSHaptic.selection(); onToggle(CSReactions.quick) } label: {
+          Text(CSReactions.quick)
+            .padding(.horizontal, 8).padding(.vertical, 5)
+            .frame(minHeight: 30)
+            .background(cs.bg2, in: Capsule())
+            .overlay(Capsule().stroke(cs.line2, lineWidth: 1))
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel(CSReactions.all.first { $0.emoji == CSReactions.quick }?.label ?? "heater")
       }
     }
     .padding(.top, 6)

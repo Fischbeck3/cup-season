@@ -60,6 +60,10 @@ struct ClimbView: View {
               .overlay(Capsule().stroke(b == "LOCKED" ? cs.gold : cs.cool, lineWidth: 1))
           }
           Spacer(minLength: 6)
+          // the web's climbSpark on your own rung (4421)
+          if r.isMe, let s = model.series[r.team.id], s.count >= 2 {
+            RoomSpark(values: s, color: r.team.solo ? nil : cs.squad(r.team.ci))
+          }
           Text(CSCopy.points(r.team.pts)).font(CSFont.monoMediumBody).csTabular().foregroundStyle(r.isLead ? cs.gold : cs.ink)
           Text(r.gap).font(CSFont.monoSmall).csTabular().foregroundStyle(cs.mut).frame(minWidth: 34, alignment: .trailing)
         }

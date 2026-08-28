@@ -28,6 +28,8 @@ struct PotPane: View {
         VStack(alignment: .leading, spacing: 6) {
           Text("The pot").csEyebrow(free ? nil : cs.gold)
           Text(free ? "None" : PotMath.dollars(model.potTotal)).font(CSFont.hero).csTabular().foregroundStyle(free ? cs.ink : cs.gold)
+            .contentTransition(.numericText())   // the web's odometer (csOdo, 7000)
+            .animation(CSMotion.roll, value: model.potTotal)
           Text(free ? "Bragging rights · no money in play"
                : "\(model.potPlayers) × \(PotMath.dollars(b.stake)) buy-in · \(collected) collected")
             .font(CSFont.label).tracking(1.0).foregroundStyle(cs.dimText)

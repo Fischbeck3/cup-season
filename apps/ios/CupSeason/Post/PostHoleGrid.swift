@@ -121,6 +121,8 @@ struct PostScorecardStrip: View {
   private func cell(_ i: Int) -> some View {
     let par = model.card.pars[i], sc = model.card.scores[i]
     let on = selected == i
+    // the scan's confidence per cell: a hole the model could not read sits on par and wears a warm hairline
+    let unread = model.card.scan.map { $0.read.indices.contains(i) && $0.read[i] == 0 } ?? false
     return Button {
       withAnimation(CSMotion.rise) { selected = i }
       CSHaptic.selection()
@@ -137,12 +139,14 @@ struct PostScorecardStrip: View {
       .overlay {
         if on {
           RoundedRectangle(cornerRadius: 4, style: .continuous).stroke(cs.brand, lineWidth: 2).padding(2)
+        } else if unread {
+          RoundedRectangle(cornerRadius: 4, style: .continuous).stroke(cs.warm, style: StrokeStyle(lineWidth: 1, dash: [3, 2])).padding(2)
         }
       }
       .contentShape(Rectangle())
     }
     .buttonStyle(.plain)
-    .accessibilityLabel(PostStrip.cellLabel(hole: i, par: par, score: sc))
+    .accessibilityLabel(PostStrip.cellLabel(hole: i, par: par, score: sc) + (unread ? ", not read from the card — check it" : ""))
     .accessibilityAddTraits(on ? [.isSelected] : [])
     .accessibilityHint("Selects the hole for the stepper")
   }
