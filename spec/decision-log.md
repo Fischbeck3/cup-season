@@ -3825,3 +3825,20 @@ Executes IOS-009 batch 2 and IOS-004 §4.)*
   league, so the default stays on.
 - **CONFLICT:** none. Upholds the server-enforced `notify_*` prefs, D68 (every
   push exit is named), D37 grants.
+
+### D103b · Fescue deepened; a look reaches further
+*(2026-08-28, owner: "let's make our palette shine through more, changing is
+hardly noticeable." UI level.)*
+- **Problem:** D103a's Fescue values sat within a few RGB points of charcoal
+  (`#0B100E` vs `#0C0D0F`) — the green never read; and a look showed only as
+  a 14% wash and a 3.5pt spine.
+- **Decision:** the ground ladder becomes an unmistakable green-black —
+  `bg0 #0B1410 · bg1 #131D17 · bg2 #1A2820 · line #24352B · line2 #34493D`
+  (ink/mut unchanged; contrast holds). A look now tints, in order of reach:
+  the page-header tick (accent→accent2), every eyebrow and section head, the
+  tab-strip underline, the ⊕ halo, the spine of every live card (not only
+  the hero), the hero wash at ~30% (was 14%), and an ambient "sky" — a band
+  of accent fading down behind the page header. Still untouched by any look:
+  ground and ink, primary buttons (ember), gold and its meaning, `pos`/`neg`,
+  the heat ramp, the squads, ceremonies and share cards.
+- **CONFLICT:** none; refines D103a's values and reach.

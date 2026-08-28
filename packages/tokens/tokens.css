@@ -2,12 +2,12 @@
    Do not edit — edit the JSON and re-run. D103a Fescue (2026-08-27) over D76 Charcoal bones, extracted 2026-08-26 under D98 (Phase A1) */
 
 :root{
-  /* ground — Surfaces, darkest to raised. D103a Fescue: green-black ground (dusk over the links), slate-green greys for everything stable. */
-  --bg0:#0B100E;  /* page — fescue (green-black; converges meta/favicon/legal) */
-  --bg1:#151C18;  /* surface */
-  --bg2:#1C2520;  /* raised / inputs */
-  --line:#243029;
-  --line2:#33413A;
+  /* ground — Surfaces, darkest to raised. D103b Fescue, deepened: an unmistakable green-black ground (dusk over the links), moss-slate greys for everything stable. */
+  --bg0:#0B1410;  /* page — fescue (green-black; converges meta/favicon/legal) */
+  --bg1:#131D17;  /* surface */
+  --bg2:#1A2820;  /* raised / inputs */
+  --line:#24352B;
+  --line2:#34493D;
 
   /* text */
   --ink:#F0F2F3;

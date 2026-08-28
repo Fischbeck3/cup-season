@@ -44,11 +44,11 @@ public enum CSTokens {
   public static let defaultTheme: CSTheme = .dark
 
   public static let dark = CSPalette(
-    bg0: Color(hex: 0x0B100E),
-    bg1: Color(hex: 0x151C18),
-    bg2: Color(hex: 0x1C2520),
-    line: Color(hex: 0x243029),
-    line2: Color(hex: 0x33413A),
+    bg0: Color(hex: 0x0B1410),
+    bg1: Color(hex: 0x131D17),
+    bg2: Color(hex: 0x1A2820),
+    line: Color(hex: 0x24352B),
+    line2: Color(hex: 0x34493D),
     ink: Color(hex: 0xF0F2F3),
     mut: Color(hex: 0x8E979E),
     dim: Color(hex: 0x5C646B),

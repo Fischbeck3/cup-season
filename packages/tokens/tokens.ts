@@ -45,11 +45,11 @@ export type TokenName = (typeof tokenNames)[number];
 /* A token with no `light` value is theme-independent by design (radii, type, motion, shadows, the heat gradient) and must NOT be given one without a decision-log entry. */
 export const themes: Record<ThemeName, Record<TokenName, string>> = {
   dark: {
-    "bg0": "#0B100E",
-    "bg1": "#151C18",
-    "bg2": "#1C2520",
-    "line": "#243029",
-    "line2": "#33413A",
+    "bg0": "#0B1410",
+    "bg1": "#131D17",
+    "bg2": "#1A2820",
+    "line": "#24352B",
+    "line2": "#34493D",
     "ink": "#F0F2F3",
     "mut": "#8E979E",
     "dim": "#5C646B",
