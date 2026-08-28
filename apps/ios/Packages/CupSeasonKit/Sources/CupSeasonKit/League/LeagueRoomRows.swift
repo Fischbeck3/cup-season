@@ -72,13 +72,18 @@ public enum LeagueRoom {
     public let champion_score: Double?
     public let runnerup_score: Double?
     public let tiebreak_rung: String?
+    /// D106: stamped at close (and re-stamped by a late mark_buy_in). nil on a pre-D106 database or before close.
+    public let pot_cents: Int?
+    public let collected_cents: Int?
     public init(id: UUID, number: Int? = 1, starts_on: String, ends_on: String, status: String, champion_squad_id: UUID? = nil,
                 champion_member_id: UUID? = nil, runnerup_squad_id: UUID? = nil, runnerup_member_id: UUID? = nil,
-                points_king_member_id: UUID? = nil, champion_score: Double? = nil, runnerup_score: Double? = nil, tiebreak_rung: String? = nil) {
+                points_king_member_id: UUID? = nil, champion_score: Double? = nil, runnerup_score: Double? = nil, tiebreak_rung: String? = nil,
+                pot_cents: Int? = nil, collected_cents: Int? = nil) {
       self.id = id; self.number = number; self.starts_on = starts_on; self.ends_on = ends_on; self.status = status
       self.champion_squad_id = champion_squad_id; self.champion_member_id = champion_member_id; self.runnerup_squad_id = runnerup_squad_id
       self.runnerup_member_id = runnerup_member_id; self.points_king_member_id = points_king_member_id
       self.champion_score = champion_score; self.runnerup_score = runnerup_score; self.tiebreak_rung = tiebreak_rung
+      self.pot_cents = pot_cents; self.collected_cents = collected_cents
     }
   }
 

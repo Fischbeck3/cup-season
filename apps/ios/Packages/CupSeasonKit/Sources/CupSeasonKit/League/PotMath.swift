@@ -53,6 +53,10 @@ public enum PotMath {
 
   public struct Settlement: Sendable, Equatable {
     public let potCents: Int
+    /// D106: the cash that exists; equals `potCents` when everyone paid or on the preview path.
+    public let collectedCents: Int
+    /// D106: who still owes the pot (names), only when the ledger is short.
+    public let owing: [String]
     public let rows: [SettlementRow]
     public let champName: String
     public let runName: String
@@ -63,15 +67,22 @@ public enum PotMath {
     public let rung: String?
     /// true when the rows came from `season_payouts`; false = client math, labelled "preview".
     public let fromLedger: Bool
-    public var unclaimedCents: Int { max(0, potCents - rows.reduce(0) { $0 + $1.cents }) }
+    /// a share with no eligible finisher — measured against what was actually split (collected)
+    public var unclaimedCents: Int { max(0, collectedCents - rows.reduce(0) { $0 + $1.cents }) }
+    /// D106: what the roster still owes the pot.
+    public var stillOwedCents: Int { max(0, potCents - collectedCents) }
   }
 
   static let reasonOrder = ["Cup champion", "Runner-up", "Points king"]
 
   /// `csSettlement()` (11479–11508), with the server's rows preferred when they exist.
   public static func settlement(season: LeagueRoom.Season, members: [LeagueRoom.Member], squads: [LeagueRoom.Squad], solo: Bool,
-                                stakeDollars: Int, payout: [Int], payouts: [LeagueRoom.Payout], myProfileId: UUID?) -> Settlement {
-    let potCents = jsRound(Double(stakeDollars) * 100) * members.count
+                                stakeDollars: Int, payout: [Int], payouts: [LeagueRoom.Payout], myProfileId: UUID?,
+                                owing: [String] = []) -> Settlement {
+    // D106: the server's two numbers when the season closed on a D106 database; the roster × stake preview otherwise
+    let fromLedger = !payouts.isEmpty
+    let potCents = (fromLedger ? season.pot_cents : nil) ?? jsRound(Double(stakeDollars) * 100) * members.count
+    let collectedCents = (fromLedger ? season.collected_cents : nil) ?? potCents
     let byId = { (id: UUID?) -> LeagueRoom.Member? in id.flatMap { i in members.first { $0.id == i } } }
     let byPid = { (pid: UUID) -> LeagueRoom.Member? in members.first { $0.profile_id == pid } }
     let sqName = { (sid: UUID?) -> String in sid.flatMap { s in squads.first { $0.id == s } }?.name ?? "" }
@@ -80,7 +91,6 @@ public enum PotMath {
     }
 
     var rows: [SettlementRow]
-    let fromLedger = !payouts.isEmpty
     if fromLedger {
       var tally: [UUID: SettlementRow] = [:]
       var order: [UUID] = []
@@ -115,7 +125,7 @@ public enum PotMath {
     rows.sort { $0.cents > $1.cents }
 
     return Settlement(
-      potCents: potCents, rows: rows,
+      potCents: potCents, collectedCents: collectedCents, owing: collectedCents < potCents ? owing : [], rows: rows,
       champName: solo ? (byId(season.champion_member_id)?.profile?.display_name ?? "The champion") : (sqName(season.champion_squad_id).isEmpty ? "The champion" : sqName(season.champion_squad_id)),
       runName: solo ? (byId(season.runnerup_member_id)?.profile?.display_name ?? "") : sqName(season.runnerup_squad_id),
       kingName: byId(season.points_king_member_id)?.profile?.display_name ?? "",

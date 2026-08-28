@@ -7020,7 +7020,11 @@ function renderPot(){
     const [pc,pr,pk]=state.payout||[60,25,15];
     csOdo($('#potAmt'), fmt$(total));   /* C6: the books absorb the entry */
     $('#chipPot').textContent=fmt$(total);
-    $('#potMath').textContent=`${players} × ${fmt$(state.stake)} buy-in · ${fmt$(collected)} collected`;
+    /* D106: two numbers, never blended — the pot is what the roster owes,
+       collected is the cash; "K still owe" only when they differ */
+    const stillOwe=Math.max(0, players-paidN);
+    $('#potMath').textContent=`${players} × ${fmt$(state.stake)} · ${fmt$(collected)} collected`
+      + (stillOwe>0 && collected<total ? ` · ${stillOwe} still owe` : '');
     $('#pay1').textContent=fmt$(Math.round(total*pc/100));
     $('#pay2').textContent=fmt$(Math.round(total*pr/100));
     $('#pay3').textContent=fmt$(Math.round(total*pk/100));
@@ -11504,7 +11508,12 @@ function csSettlement(){
   const S=window.CS?.season; if(!S) return null;
   const members=window.CS?.members||[], squads=window.CS?.squads||[];
   const solo=(state.structure==='solo');
-  const potCents=Math.round((state.stake||0)*100)*members.length;
+  /* D106: the server's two numbers when the season closed on a D106 database;
+     the old local math (roster × stake) when it didn't — deploy-skew safe */
+  const ledger=window.CS?.payouts||[];
+  const fromLedger=ledger.length>0 && S.collected_cents!=null;
+  const potCents=fromLedger ? Number(S.pot_cents||0) : Math.round((state.stake||0)*100)*members.length;
+  const collectedCents=fromLedger ? Number(S.collected_cents||0) : potCents;
   const pay=state.payout||[60,25,15];
   const runnerC=Math.round(potCents*(pay[1]||0)/100);
   const kingC  =Math.round(potCents*(pay[2]||0)/100);
@@ -11520,15 +11529,24 @@ function csSettlement(){
     row.cents+=cents; if(why && !row.why.includes(why)) row.why.push(why);
     tally.set(k,row);
   };
-  const champIds = solo ? (S.champion_member_id?[S.champion_member_id]:[]) : sqIds(S.champion_squad_id);
-  const runIds   = solo ? (S.runnerup_member_id?[S.runnerup_member_id]:[]) : sqIds(S.runnerup_squad_id);
-  csSplitCents(champC, champIds.length).forEach((c,i)=>add(champIds[i],c,'Cup champion'));
-  csSplitCents(runnerC, runIds.length).forEach((c,i)=>add(runIds[i],c,'Runner-up'));
-  if(S.points_king_member_id) add(S.points_king_member_id, kingC, 'Points king');
+  if(fromLedger){
+    /* rows straight from season_payouts (profile-keyed), summed per person */
+    const byPid=pid=>members.find(m=>m.profile_id===pid);
+    ledger.forEach(r=>{ const m=byPid(r.profile_id); if(m) add(m.id, Number(r.cents)||0, r.reason); });
+  } else {
+    const champIds = solo ? (S.champion_member_id?[S.champion_member_id]:[]) : sqIds(S.champion_squad_id);
+    const runIds   = solo ? (S.runnerup_member_id?[S.runnerup_member_id]:[]) : sqIds(S.runnerup_squad_id);
+    csSplitCents(champC, champIds.length).forEach((c,i)=>add(champIds[i],c,'Cup champion'));
+    csSplitCents(runnerC, runIds.length).forEach((c,i)=>add(runIds[i],c,'Runner-up'));
+    if(S.points_king_member_id) add(S.points_king_member_id, kingC, 'Points king');
+  }
   const meId=window.CS?.user?.id;
   const rows=[...tally.values()].sort((a,b)=>b.cents-a.cents);
+  const bi=window.buyIns||{};
+  const owing=fromLedger && collectedCents<potCents
+    ? members.filter(m=>!bi[m.id]?.paid).map(m=>m.profile?.display_name||'A golfer') : [];
   return {
-    potCents, rows,
+    potCents, collectedCents, fromLedger, owing, rows,
     champName: solo ? (byId(S.champion_member_id)?.profile?.display_name||'The champion')
                     : (sqName(S.champion_squad_id)||'The champion'),
     runName:   solo ? (byId(S.runnerup_member_id)?.profile?.display_name||'')
@@ -11552,17 +11570,20 @@ function openSeasonCeremony(force){
          <small>${margin>0?`by ${n(margin)}`:'level — the ladder decided it'}</small></div>` : '';
   const payHtml = st.rows.length && st.potCents>0 ? `
     <div class="cerblock">
-      <h4>The pot — ${csMoney(st.potCents)}</h4>
-      <p class="fine">${(window.CS?.members||[]).length} golfers · what each is owed</p>
+      <h4>The pot — ${csMoney(st.potCents)}${st.collectedCents<st.potCents?` · collected ${csMoney(st.collectedCents)}`:''}</h4>
+      <p class="fine">${(window.CS?.members||[]).length} golfers · ${st.collectedCents<st.potCents?'paid from what was collected':'what each is owed'}</p>
       ${st.rows.map(r=>`<div class="cerpay"><div class="who">${esc(r.name)}
         <span class="why">${r.why.map(esc).join(' + ')}</span></div>
         <div class="amt">${csMoney(r.cents)}</div></div>`).join('')}
       ${(()=>{ /* a share with no eligible finisher (an empty squad) must not
           silently vanish — the parts always visibly add up to the pot (§16) */
-        const paid=st.rows.reduce((a,r)=>a+r.cents,0), short=st.potCents-paid;
+        const paid=st.rows.reduce((a,r)=>a+r.cents,0), short=st.collectedCents-paid;
         return short>0 ? `<div class="cerpay"><div class="who">Unclaimed
           <span class="why">no eligible finisher</span></div>
           <div class="amt">${csMoney(short)}</div></div>` : ''; })()}
+      ${st.collectedCents<st.potCents ? `<div class="cerpay"><div class="who">Still owed to the pot
+        <span class="why">${esc(st.owing.join(', '))}</span></div>
+        <div class="amt">${csMoney(st.potCents-st.collectedCents)}</div></div>` : ''}
       <p class="fine" style="margin:10px 0 0">Cup Season keeps the books. Money moves
         friend-to-friend — we just make sure nobody argues at the bar.</p>
     </div>` : '';
@@ -11970,7 +11991,11 @@ function renderBylaws(){
       const total=state.stake*n;
       const [pc,pr,pk]=state.payout||[60,25,15];
       la.textContent=fmt$(total);
-      $('#lineSplit').textContent=`CHAMPS ${fmt$(Math.round(total*pc/100))} · RUNNER-UP ${fmt$(Math.round(total*pr/100))} · POINTS KING ${fmt$(Math.round(total*pk/100))}`;
+      /* D106: the bar says what was collected when it is short of the pot */
+      const biL=window.buyIns||{};
+      const colL=state.demo ? total : (window.CS?.members||[]).reduce((a,m)=>a+(biL[m.id]?.paid ? (biL[m.id].amount_cents!=null ? biL[m.id].amount_cents/100 : state.stake) : 0),0);
+      $('#lineSplit').textContent=`CHAMPS ${fmt$(Math.round(total*pc/100))} · RUNNER-UP ${fmt$(Math.round(total*pr/100))} · POINTS KING ${fmt$(Math.round(total*pk/100))}`
+        + (colL<total ? ` · ${fmt$(colL)} COLLECTED` : '');
     }
   }
 }
@@ -14248,10 +14273,17 @@ async function enterLeague(m, nav=true){
        missing column on a sealed table doesn't name itself). */
     const SEASON_COLS = 'id, number, starts_on, ends_on, status, champion_squad_id, '
       + 'champion_member_id, runnerup_squad_id, runnerup_member_id, points_king_member_id, '
-      + 'champion_score, runnerup_score, tiebreak_rung';
+      + 'champion_score, runnerup_score, tiebreak_rung, pot_cents, collected_cents';
     let { data: season, error: sErr } = await sb.from('seasons')
       .select(SEASON_COLS).eq('league_id', m.league.id)
       .order('number', { ascending:false }).limit(1).maybeSingle();
+    if(sErr){
+      /* D106 skew: a DB without pot_cents/collected_cents still has the D66
+         result columns — retry without the two new ones before going legacy */
+      ({ data: season, error: sErr } = await sb.from('seasons')
+        .select(SEASON_COLS.replace(', pot_cents, collected_cents','')).eq('league_id', m.league.id)
+        .order('number', { ascending:false }).limit(1).maybeSingle());
+    }
     if(sErr){
       try{ console.warn('[season] result columns unavailable, retrying legacy:', sErr.message||sErr); }catch(_){}
       ({ data: season } = await sb.from('seasons')
@@ -14260,6 +14292,14 @@ async function enterLeague(m, nav=true){
     }
     if(season){
       CS.season = season;
+      /* D106: the payout ledger, read never recomputed; absent on an old DB
+         or before close — csSettlement falls back to the local preview */
+      CS.payouts = [];
+      if(season.status==='complete'){
+        const { data: pays } = await sb.from('season_payouts')
+          .select('profile_id, cents, reason').eq('season_id', season.id);
+        CS.payouts = pays||[];
+      }
       state.seasonStart = season.starts_on; state.seasonEnd = season.ends_on;
       renderPhase(); renderStats();
     }

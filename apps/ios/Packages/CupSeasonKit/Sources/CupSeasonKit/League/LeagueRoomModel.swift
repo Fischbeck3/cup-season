@@ -137,11 +137,21 @@ public final class LeagueRoomModel {
       return acc + (b.amount_cents.map { Double($0) / 100 } ?? Double(bylaws.stake))
     }
   }
+  /// D106: roster members without a paid buy-in — "K still owe".
+  public var stillOweCount: Int { members.filter { buyIns[$0.id]?.paid != true }.count }
+  /// D106: `collectedDollars` as `fmt$` text ("$450" / "$75.50").
+  public var collectedText: String {
+    let c = collectedDollars
+    return c == c.rounded() ? "$\(Int(c))" : String(format: "$%.2f", c)
+  }
+  /// D106: true when the cash on hand is short of what the roster owes.
+  public var collectedShort: Bool { collectedDollars < Double(potTotal) }
 
   public var settlement: PotMath.Settlement? {
     guard let season else { return nil }
     return PotMath.settlement(season: season, members: members, squads: squads, solo: solo, stakeDollars: bylaws.stake,
-                              payout: bylaws.payout, payouts: payouts, myProfileId: viewer?.id)
+                              payout: bylaws.payout, payouts: payouts, myProfileId: viewer?.id,
+                              owing: members.filter { buyIns[$0.id]?.paid != true }.map(\.name))
   }
 
   public static func ceremonyKey(_ seasonId: UUID) -> String { "cs_cer_\(seasonId.uuidString.lowercased())" }
@@ -258,12 +268,16 @@ public final class LeagueRoomModel {
 
   private func loadSeason() async throws -> LeagueRoom.Season? {
     let db = svc.client
-    let cols = "id, number, starts_on, ends_on, status, champion_squad_id, champion_member_id, runnerup_squad_id, runnerup_member_id, points_king_member_id, champion_score, runnerup_score, tiebreak_rung"
+    let d66 = "id, number, starts_on, ends_on, status, champion_squad_id, champion_member_id, runnerup_squad_id, runnerup_member_id, points_king_member_id, champion_score, runnerup_score, tiebreak_rung"
+    let cols = d66 + ", pot_cents, collected_cents"   // D106
     do {
       let rows: [LeagueRoom.Season] = try await db.from("seasons").select(cols).eq("league_id", value: leagueId)
         .order("number", ascending: false).limit(1).execute().value
       return rows.first
     } catch {
+      // D106 skew: a database without the two pot columns still has the D66 result columns
+      if let rows: [LeagueRoom.Season] = try? await db.from("seasons").select(d66).eq("league_id", value: leagueId)
+        .order("number", ascending: false).limit(1).execute().value { return rows.first }
       // D66 skew: ANY error drops back to the legacy shape (never sniff the message)
       let rows: [LeagueRoom.Season] = try await db.from("seasons").select("id, number, starts_on, ends_on, status").eq("league_id", value: leagueId)
         .order("number", ascending: false).limit(1).execute().value

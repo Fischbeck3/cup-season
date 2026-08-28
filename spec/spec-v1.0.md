@@ -154,7 +154,7 @@ badged until established. See decision log.)*
 
 ## 7. Stakes structure
 
-Buy-in $25–$200 (default $75) · Payout split 60/25/15 (Champs/Runner-up/Points King) · optional side pots. **Track, never hold.** Money moves friend-to-friend; the ledger is the product.
+Buy-in $25–$200 (default $75) · Payout split 60/25/15 (Champs/Runner-up/Points King) · optional side pots. **Track, never hold.** Money moves friend-to-friend; the ledger is the product. The pot is what the roster owes; payouts are made from what was collected (D106).
 
 ---
 

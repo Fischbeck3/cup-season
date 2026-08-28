@@ -145,7 +145,9 @@ struct StandingsPane: View {
             Text(PotMath.dollars(model.potTotal)).font(CSFont.heroSmall).csTabular().foregroundStyle(cs.gold)
           }
           Spacer()
-          Text(LeagueCopy.lineSplit(total: model.potTotal, payout: model.bylaws.payout))
+          // D106: the bar says what was collected when it is short of the pot
+          Text(LeagueCopy.lineSplit(total: model.potTotal, payout: model.bylaws.payout)
+               + (model.collectedShort ? " · \(model.collectedText.uppercased()) COLLECTED" : ""))
             .font(CSFont.label).tracking(0.8).foregroundStyle(cs.mut).multilineTextAlignment(typeSize.isA11y ? .leading : .trailing)
           Text("→").font(CSFont.mono).foregroundStyle(cs.gold).accessibilityHidden(true)
         }

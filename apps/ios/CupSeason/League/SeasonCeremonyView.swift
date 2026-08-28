@@ -49,13 +49,17 @@ struct SeasonCeremonyView: View {
         if !st.rows.isEmpty && st.potCents > 0 {
           block {
             HStack {
-              Text("The pot — \(PotMath.money(st.potCents))").font(CSFont.title).foregroundStyle(d.ink)
+              // D106: the pot is what the roster owes; collected is the cash the split was paid from
+              Text("The pot — \(PotMath.money(st.potCents))" + (st.stillOwedCents > 0 ? " · collected \(PotMath.money(st.collectedCents))" : ""))
+                .font(CSFont.title).foregroundStyle(d.ink)
               if !st.fromLedger { Text("PREVIEW").csEyebrow(d.warm) }
             }
-            Text("\(model.members.count) golfers · what each is owed").font(CSFont.footnote).foregroundStyle(d.mut)
+            Text("\(model.members.count) golfers · \(st.stillOwedCents > 0 ? "paid from what was collected" : "what each is owed")").font(CSFont.footnote).foregroundStyle(d.mut)
             ForEach(st.rows) { r in payRow(r.name, r.why.joined(separator: " + "), r.cents) }
             // a share with no eligible finisher (an empty squad) must not silently vanish (§16)
             if st.unclaimedCents > 0 { payRow("Unclaimed", "no eligible finisher", st.unclaimedCents) }
+            // D106: the truth about the shortfall, by name
+            if st.stillOwedCents > 0 { payRow("Still owed to the pot", st.owing.joined(separator: ", "), st.stillOwedCents) }
             Text("Cup Season keeps the books. Money moves friend-to-friend — we just make sure nobody argues at the bar.")
               .font(CSFont.footnote).foregroundStyle(d.mut).padding(.top, 6).fixedSize(horizontal: false, vertical: true)
           }

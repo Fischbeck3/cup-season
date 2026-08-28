@@ -156,6 +156,21 @@ private func team(_ id: UUID, _ name: String, _ pts: Double, ci: Int = 0) -> Tea
     #expect(st.rows.map(\.cents) == [23625, 15750, 13125] && st.mine?.name == "Al" && st.mine?.why == ["Runner-up"])
     #expect(PotMath.score(112) == "112" && PotMath.score(98.5) == "98.5")
   }
+  @Test func theCeremonyPaysFromWhatWasCollected() {
+    // D106: two unpaid on a $175 × 3 roster — the server split $350 (not $525) and stamped both numbers
+    let short = LeagueRoom.Season(id: c, starts_on: "2026-05-03", ends_on: "2026-09-26", status: "complete", champion_squad_id: a, runnerup_squad_id: b,
+                                  points_king_member_id: m1, champion_score: 112, runnerup_score: 98.5, pot_cents: 52500, collected_cents: 35000)
+    let payouts = [LeagueRoom.Payout(profile_id: p1, cents: 10500, reason: "Cup champion"), LeagueRoom.Payout(profile_id: p2, cents: 10500, reason: "Cup champion"),
+                   LeagueRoom.Payout(profile_id: p1, cents: 5250, reason: "Points king"), LeagueRoom.Payout(profile_id: p3, cents: 8750, reason: "Runner-up")]
+    let st = PotMath.settlement(season: short, members: members, squads: squads, solo: false, stakeDollars: 175, payout: [60, 25, 15], payouts: payouts, myProfileId: p1, owing: ["Joe", "Al"])
+    #expect(st.fromLedger && st.potCents == 52500 && st.collectedCents == 35000 && st.stillOwedCents == 17500)
+    #expect(st.unclaimedCents == 0 && st.owing == ["Joe", "Al"] && st.mine?.cents == 15750)
+    // all paid: the two numbers collapse and nobody is named
+    let full = LeagueRoom.Season(id: c, starts_on: "2026-05-03", ends_on: "2026-09-26", status: "complete", champion_squad_id: a, runnerup_squad_id: b,
+                                 points_king_member_id: m1, pot_cents: 52500, collected_cents: 52500)
+    let st2 = PotMath.settlement(season: full, members: members, squads: squads, solo: false, stakeDollars: 175, payout: [60, 25, 15], payouts: payouts, myProfileId: nil, owing: ["Joe"])
+    #expect(st2.stillOwedCents == 0 && st2.owing.isEmpty)
+  }
   @Test func anEmptySquadLeavesAnUnclaimedShare() {
     let s2 = LeagueRoom.Season(id: c, starts_on: "2026-05-03", ends_on: "2026-09-26", status: "complete", champion_squad_id: a, runnerup_squad_id: d, points_king_member_id: nil)
     let st = PotMath.settlement(season: s2, members: members, squads: squads, solo: false, stakeDollars: 175, payout: [60, 25, 15], payouts: [], myProfileId: nil)

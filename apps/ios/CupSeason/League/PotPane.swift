@@ -30,8 +30,10 @@ struct PotPane: View {
           Text(free ? "None" : PotMath.dollars(model.potTotal)).font(CSFont.hero).csTabular().foregroundStyle(free ? cs.ink : cs.gold)
             .contentTransition(.numericText())   // the web's odometer (csOdo, 7000)
             .animation(CSMotion.roll, value: model.potTotal)
+          // D106: two numbers, never blended — the pot is what the roster owes, collected is the cash
           Text(free ? "Bragging rights · no money in play"
-               : "\(model.potPlayers) × \(PotMath.dollars(b.stake)) buy-in · \(collected) collected")
+               : "\(model.potPlayers) × \(PotMath.dollars(b.stake)) · \(collected) collected"
+                 + (model.collectedShort && model.stillOweCount > 0 ? " · \(model.stillOweCount) still owe" : ""))
             .font(CSFont.label).tracking(1.0).foregroundStyle(cs.dimText)
         }
       }
