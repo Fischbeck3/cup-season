@@ -345,9 +345,21 @@ Deno.serve(async (req) => {
   console.log(`[test-seed] caller=${user.id} action=${body?.action ?? "?"} allowed=${allowed}${profErr ? ` reason=${profErr.message}` : ""}`);
   if (!allowed) return json({ error: "founder only" }, 403);
 
+  // The founder may seed or reset ANOTHER account — the App Review reviewer's
+  // (runbook D4: "the reviewer lands in the sandbox league, pre-seeded"). The
+  // target is resolved by email with the service client; nothing the caller
+  // sends is trusted beyond the address itself.
+  let subject = user.id;
+  if (typeof body?.target_email === "string" && body.target_email.trim()) {
+    const { data: t } = await admin.from("profiles").select("id").eq("email", body.target_email.trim().toLowerCase()).maybeSingle();
+    if (!t?.id) return json({ error: "no such profile" }, 404);
+    subject = t.id;
+    console.log(`[test-seed] target=${subject} (by email) action=${body?.action ?? "?"}`);
+  }
+
   try {
-    if (body.action === "reset") return json({ ok: true, removed: await reset(admin, user.id) });
-    if (body.action === "seed") return json(await seed(admin, user.id));
+    if (body.action === "reset") return json({ ok: true, removed: await reset(admin, subject) });
+    if (body.action === "seed") return json(await seed(admin, subject));
     return json({ error: "unknown action (use seed|reset)" }, 400);
   } catch (e) {
     return json({ error: String((e as Error)?.message ?? e) }, 500);
