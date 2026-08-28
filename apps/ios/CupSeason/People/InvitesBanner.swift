@@ -18,6 +18,7 @@ final class InvitesCount {
   func load() async {
     invites = (try? await people.invites()) ?? []
     loaded = true
+    await PushBadge.refresh()   // seeing the invites clears the badge (D104 §4)
   }
 }
 
@@ -83,7 +84,7 @@ struct InvitesBanner: View {
     guard await vm.respond(i, accept: accept) else { return }
     if accept {
       await store.reload()
-      if i.isLeague, let id = i.containerId { onJoined(id) }
+      if i.isLeague, let id = i.containerId { PushAsk.shared.request(.leagueJoined); onJoined(id) }
     }
   }
 }

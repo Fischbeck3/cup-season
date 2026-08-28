@@ -41,6 +41,8 @@ final class EventRoomModel {
       names.learn(r.teams.map(\.name) + [r.event.name])
       room = r
       error = nil
+      await PushDuelReminder.sync(room: r)   // D104 §7: tonight's reminder, planned from this load
+
     } catch {
       if room == nil { self.error = BoardText.humanError(error) }
     }

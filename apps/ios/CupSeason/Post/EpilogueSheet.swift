@@ -47,6 +47,13 @@ struct EpilogueSheet: View {
     .presentationDetents([.medium, .large])
     .presentationDragIndicator(.visible)
     .sheet(item: $share) { PostShareSheet(items: $0.items) }
+    // D104: the first posted round is one of the three moments the ask may follow
+    // (raised once this sheet and the composer are down); any posted round
+    // makes tonight's duel reminder moot (§7).
+    .onAppear {
+      if show.firstEver { PushAsk.shared.request(.firstRound) }
+      Task { await PushDuelReminder.cancelAll() }
+    }
   }
 
   private func recap(_ gross: Int) -> PostRecap {

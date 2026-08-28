@@ -44,7 +44,7 @@ struct PeopleScreen: View {
     .navigationTitle("Your buddies")
     .navigationBarTitleDisplayMode(.inline)
     .refreshable { await vm.paint() }
-    .task { await vm.paint(); await vm.loadDiscoverable() }
+    .task { await vm.paint(); await vm.loadDiscoverable(); await PushBadge.refresh() }   // seeing the requests clears the badge (D104 §4)
     .task(id: vm.query) { await vm.search() }
     .csToasts(toasts)
     .sheet(isPresented: $finding, onDismiss: { Task { await vm.paint() } }) {
