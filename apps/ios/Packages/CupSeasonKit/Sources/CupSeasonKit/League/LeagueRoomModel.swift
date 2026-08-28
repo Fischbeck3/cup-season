@@ -74,6 +74,8 @@ public final class LeagueRoomModel {
   public private(set) var payouts: [LeagueRoom.Payout] = []
   public private(set) var pulse: [Rpc.league_pulse.Row] = []
   public private(set) var scenarios: SeasonScenarios?
+  /// D105: the Cup Final race from the server; nil until the window opens (or on skew).
+  public private(set) var cupRace: CupFinalRace?
   public private(set) var cancel: CancelStatus?
   /// Signed avatar URLs by profile id (one batched signing per load, an hour).
   public private(set) var avatarURL: [UUID: URL] = [:]
@@ -224,6 +226,7 @@ public final class LeagueRoomModel {
     await withTaskGroup(of: Void.self) { g in
       g.addTask { await self.loadPulse() }
       g.addTask { await self.loadScenarios() }
+      g.addTask { await self.loadCupRace() }
       g.addTask { await self.refreshCancelStatus() }
       g.addTask { await self.loadForfeits() }
       g.addTask { await self.signAvatars() }
@@ -324,6 +327,16 @@ public final class LeagueRoomModel {
   private func loadPulse() async {
     pulse = (try? await svc.call(Rpc.league_pulse(p_league: leagueId))) ?? []
   }
+
+  private func loadCupRace() async {
+    guard let s = season, s.status == "cup_final" || s.status == "complete" else { cupRace = nil; return }
+    let r = await CupFinalRace.fetch(season: s.id, svc: svc)
+    cupRace = (r?.status == "pending") ? nil : r
+  }
+  /// The seed a standings row carries once the Final's seeds are locked (nil otherwise).
+  public func seedOf(_ teamId: UUID) -> Int? { cupRace?.seed(for: teamId) }
+  /// Tests and previews: the race without the network.
+  public func seedCupRace(_ r: CupFinalRace?) { cupRace = r }
 
   private func loadScenarios() async {
     guard let s = season else { scenarios = nil; return }

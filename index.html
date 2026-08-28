@@ -3462,7 +3462,12 @@ html[data-theme="light"] .room-dusk .btn:not(.dark):not(.gold):not(.apple){color
           </div>
 
           <div>
-            <div class="eyebrow">Standings</div>
+            <div class="eyebrow" id="standingsEyebrow">Standings</div>
+            <!-- D105: the Cup Final race leads the room while the window is open;
+                 the full-season table drops beneath it as "the regular season" -->
+            <div class="tblwrap" id="cupRaceWrap" style="display:none;margin-bottom:12px">
+              <table class="tbl" id="cupRace"></table>
+            </div>
             <div class="tblwrap">
               <div class="standStory" id="standingsStory"></div>
               <table class="tbl" id="standings"></table>
@@ -4510,6 +4515,56 @@ function sfGo(box){
     c.style.setProperty('--d',(i*0.08).toFixed(2)+'s'); c.classList.add('go');
   });
 }
+/* D105: THE CUP FINAL block — seeds, the +10 as its own line, window points of
+   the cap, days left, the rung that seeded. Fed by cup_final_race(); the same
+   rows close_season crowns from, so this table and the ceremony cannot
+   disagree (§16). Hidden unless the window is open and the server answered. */
+function renderCupRace(){
+  const wrap=$('#cupRaceWrap'), el=$('#cupRace'), eb=$('#standingsEyebrow');
+  if(!wrap||!el) return;
+  const race=(!state.demo && window.cupRace && window.cupRace.status==='live'
+              && window.CS?.season?.status==='cup_final') ? window.cupRace : null;
+  if(!race){ wrap.style.display='none'; if(eb) eb.textContent='Standings'; return; }
+  if(eb) eb.textContent='The regular season \u2014 final';
+  const fins=(race.finalists||[]).slice()
+    .sort((a,b)=>(Number(b.total)-Number(a.total)) || (a.seed-b.seed));
+  const dl=Number(race.days_left)||0;
+  const capTxt=(race.cap_n && Number(race.cap_n)<10000) ? ' OF '+race.cap_n : '';
+  let html=`<tr><th colspan="3" style="text-align:left">THE CUP FINAL \u00b7 ${dl} DAY${dl===1?'':'S'} LEFT${race.seed_rung?` \u00b7 SEEDED BY ${esc(String(race.seed_rung).toUpperCase())}`:''}</th></tr>`;
+  fins.forEach((f,i)=>{
+    const id=f.squad_id||f.member_id, t=teams.find(x=>x.id===id);
+    const ci=t?t.ci:(i%4), name=t?t.name:(f.name||'\u2014');
+    const head=Number(f.head_start)||0, wp=Number(f.window_points)||0, tot=Number(f.total)||0, ru=Number(f.rounds_used)||0;
+    html+=`<tr class="tap ${i===0&&tot>0?'lead':''}" data-fin="${f.seed}">
+      <td class="rk mono">S${f.seed}</td>
+      <td><div style="display:flex;align-items:center;gap:10px"><span class="sw" style="background:${SQHEX[ci]}"></span><div><div class="tn">${esc(name)}</div><div class="tc">${head?`STARTS +${head} \u00b7 TOP SEED \u00b7 `:''}WINDOW ${wp} PTS \u00b7 ${ru} ROUND${ru===1?'':'S'}${capTxt}</div></div></div></td>
+      <td class="num pts">${tot}</td>
+    </tr>`;
+  });
+  el.innerHTML=html; wrap.style.display='';
+  el.querySelectorAll('[data-fin]').forEach(r=>r.addEventListener('click',()=>{
+    const f=fins.find(x=>String(x.seed)===r.dataset.fin); if(f) showFinalist(f);
+  }));
+}
+/* a finalist's receipt: head start + the window rounds = the total on the table */
+function showFinalist(f){
+  const sgn=v=>(v>=0?'+':'')+Number(v).toFixed(1);
+  const id=f.squad_id||f.member_id, t=teams.find(x=>x.id===id);
+  const name=t?t.name:(f.name||'\u2014');
+  const head=Number(f.head_start)||0, wp=Number(f.window_points)||0, tot=Number(f.total)||0;
+  const rounds=(f.rounds||[]);
+  let h='';
+  if(head) h+=`<div class="mathrow pos"><span>Head start \u00b7 top seed</span><b>+${head}</b></div>`;
+  h+=`<div class="mathrow"><span>Window rounds \u00b7 scored fresh</span><b>${wp}</b></div>`;
+  if(f.seed_rung) h+=`<div class="mathrow"><span>Seeded by</span><b>${esc(String(f.seed_rung).toUpperCase())}</b></div>`;
+  h+=`<div class="mathrow tot"><span>Total in the Final</span><b>${tot}</b></div>`;
+  h+=`<div class="eyebrow" style="margin-top:18px">The rounds</div>`;
+  h+= rounds.length
+    ? rounds.map(r=>`<div class="fine" style="display:flex;justify-content:space-between;gap:10px;padding:4px 0"><span>${esc(String(r.played_on))}${r.holes_played===9?' \u00b7 9 HOLES':''}${f.squad_id?' \u00b7 '+esc(String(r.golfer||'')).toUpperCase():''}</span><b class="mono" style="white-space:nowrap">${sgn(r.pvi)} vs index \u00b7 ${r.points} PTS</b></div>`).join('')
+    : `<p class="fine">No counting rounds in the window yet \u2014 the slate is still clean.</p>`;
+  h+=`<p class="fine" style="padding-top:12px">Only rounds inside the four-week window count here, up to the monthly cap. The regular season is the seed; this is the race.</p>`;
+  openSheet(name, `SEED ${f.seed} \u00b7 ${tot} PTS IN THE FINAL`, h);
+}
 function renderStandings(){
   const el=$('#standings');
   const story=$('#standingsStory');
@@ -4520,6 +4575,8 @@ function renderStandings(){
     return;
   }
   const solo = teams[0]?.solo;   /* individual race — rows are players, not squads */
+  renderCupRace();               /* D105: the Final leads the room while its window is open */
+  const seedOf = id => { const f=(!state.demo && window.cupRace?.finalists||[]).find(x=>(x.squad_id||x.member_id)===id); return f ? Number(f.seed) : null; };
   /* SF-6: rank flips only on a FRESH data load (flag set by loadStandingsAndFeed),
      consumed here so a mere re-render stays static */
   const sfFresh = !!window._sfStandingsFresh; window._sfStandingsFresh = false;
@@ -4560,7 +4617,7 @@ function renderStandings(){
     const rkH=(sfFresh && pr!=null && pr!==i) ? sfWrap(rk0) : rk0;
     html+=`<tr class="${i===0?'lead':''} tap" data-squad="${esc(t.name)}">
       <td class="rk mono">${rkH}${mv}</td>
-      <td><div style="display:flex;align-items:center;gap:10px"><span class="sw" style="background:${SQHEX[t.ci]}"></span><div><div class="tn">${esc(t.name)}</div><div class="tc">${solo ? (t.sub||0)+' ROUND'+(t.sub===1?'':'S') : 'CAPT. '+esc(t.cap).toUpperCase()}</div></div></div></td>
+      <td><div style="display:flex;align-items:center;gap:10px"><span class="sw" style="background:${SQHEX[t.ci]}"></span><div><div class="tn">${esc(t.name)}</div><div class="tc">${seedOf(t.id)?'SEED '+seedOf(t.id)+' \u00b7 ':''}${solo ? (t.sub||0)+' ROUND'+(t.sub===1?'':'S') : 'CAPT. '+esc(t.cap).toUpperCase()}</div></div></div></td>
       <td>${arr.length>1?sparkline(arr,t.ci):'<span class="fine" style="padding:0;color:var(--dim)">WK 1</span>'}</td>
       <td class="num"><span class="dw" style="color:${dwk>=12?'var(--pos)':dwk<0?'var(--neg)':'var(--mut)'}">${dwk>0?'+':''}${dwk}</span></td>
       <td class="num pts">${t.pts}</td>
@@ -14447,6 +14504,14 @@ async function loadStandingsAndFeed(){
   }));
   teams.sort((a,b) => b.pts - a.pts);
   series = teams.map(() => []);
+  /* D105: the window race is a server figure — never computed here. Any error
+     (an un-migrated DB, a non-member) leaves the block hidden and the table
+     rendering exactly as before. */
+  window.cupRace = null;
+  if(CS.season.status === 'cup_final' || CS.season.status === 'complete'){
+    const { data: race, error: er } = await sb.rpc('cup_final_race', { p_season: CS.season.id });
+    if(!er && race && race.status !== 'pending') window.cupRace = race;
+  }
   }
 
   /* feed: the posts table is the board */

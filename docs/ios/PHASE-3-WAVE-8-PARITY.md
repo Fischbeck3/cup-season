@@ -122,7 +122,7 @@ Status after this wave. `web` = index.html line(s). Rows not listed under "fix" 
 | Standings sentence/climb/table/split-flap/scenario | **parity** (fixed) | Trend restored on the receipt and the climb |
 | Individual race | **parity** (improved) | stored king once complete |
 | Squad receipt, member history | **parity** (improved; fixed date) | ledger rows carry reasons |
-| Cup Final state | **partial** → carried L | reads `seasons.status` (good) but `cup_finalists` is never read — seeds, head start and the fresh-slate window race are invisible. Web has the same hole |
+| Cup Final state | **built** (D105, 2026-08-28) | `cup_final_race()` is the one window expression for the live race AND `close_season`; seeds carry the §14.3 ladder with `seed_rung`; `CupFinalRaceView` leads Standings during the Final, receipt sheet per finalist. Web ships the same block |
 | Trophy Room / ceremony / run it back | **parity** (improved) | renders from `season_payouts` |
 | Bylaws card | **parity** | |
 | Wizard | **parity** | IOS-018 supersedes IOS-007's 🖥 |
@@ -236,7 +236,7 @@ Phone-only: the Board's synthetic "\<League\> is live — post the first round" 
 | League-less live round (local pencil) | **M** | 6.5 | confirm intent first — the web's own league-less finish dead-ends |
 | Event-board realtime + reactions | **M** | 6.5 | net-new; wants `notify_board` |
 | Stats → three insight surfaces (IOS-016) | **M–L** | 6.7 | ⏳ "best" definition |
-| Cup Final seeds, head start, fresh-slate race (`cup_finalists`) | **L** | 6.3 | unbuilt on web too |
+| Cup Final seeds, head start, fresh-slate race (`cup_finalists`) | **done** | 6.3 | D105 — both clients read `cup_final_race()` |
 | Live Activity / Dynamic Island | **L** | 6.5 | new widget target |
 | Doorbell mute | **L** | 6.6 | migration on `push_nudges` |
 | Group-phone batch write `live_set_scores` | backend | 6.5 | not in `contract.psv` (IOS-009 batch 2) |

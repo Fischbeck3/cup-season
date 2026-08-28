@@ -92,7 +92,7 @@ struct StandingsTableView: View {
             RoundedRectangle(cornerRadius: 3).fill(cs.squad(t.ci)).frame(width: 10, height: 10)
             VStack(alignment: .leading, spacing: 1) {
               Text(t.name).font(CSFont.subhead.weight(i == 0 ? .semibold : .regular)).foregroundStyle(cs.ink).lineLimit(ax ? nil : 1)
-              Text(solo ? "\(t.sub) ROUND\(t.sub == 1 ? "" : "S")" : "CAPT. \(t.cap.uppercased())")
+              Text((model.seedOf(t.id).map { "SEED \($0) · " } ?? "") + (solo ? "\(t.sub) ROUND\(t.sub == 1 ? "" : "S")" : "CAPT. \(t.cap.uppercased())"))
                 .font(CSFont.label).tracking(0.8).foregroundStyle(cs.dimText).lineLimit(ax ? nil : 1)
             }
           }

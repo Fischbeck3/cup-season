@@ -90,6 +90,7 @@ struct LeagueRoomScreen: View {
         switch s {
         case .squad(let t): SquadReceiptSheet(team: t)
         case .member(let r): MemberHistorySheet(row: r)
+        case .finalist(let f): FinalistReceiptSheet(finalist: f)
         case .scoringHelp: RoomScoringHelpSheet()
         case .ceremony: SeasonCeremonyView()
         case .members: MembersSheet()

@@ -382,3 +382,43 @@ private func team(_ id: UUID, _ name: String, _ pts: Double, ci: Int = 0) -> Tea
     #expect(LeagueRoomModel.ceremonyKey(d) == "cs_cer_\(d.uuidString.lowercased())")
   }
 }
+
+
+// MARK: D105 · cup_final_race (migration 20260828170100)
+
+@Suite struct CupFinalRaceTests {
+  static let squadA = UUID(), squadB = UUID()
+  static let json = """
+  {"status":"live","season_status":"cup_final","solo":false,"window_start":"2026-08-09","window_end":"2026-09-05",
+   "cap_n":10000,"days_left":8,"seed_rung":"months won",
+   "finalists":[
+     {"seed":1,"head_start":10,"seed_rung":null,"squad_id":"\(squadA.uuidString.lowercased())","member_id":null,"name":"Coyotes","color":0,
+      "window_points":21,"rounds_used":3,"last_round_on":"2026-08-27","total":31,
+      "rounds":[{"round_id":"\(UUID().uuidString.lowercased())","played_on":"2026-08-27","points":8,"month_rank":1,"pvi":1.2,"holes_played":18,"member_id":null,"golfer":"Galen"}]},
+     {"seed":2,"head_start":0,"seed_rung":"months won","squad_id":"\(squadB.uuidString.lowercased())","member_id":null,"name":"Scorpions","color":1,
+      "window_points":41,"rounds_used":7,"last_round_on":"2026-08-28","total":41,"rounds":[]}
+   ]}
+  """
+  @Test func decodesTheServerShape() throws {
+    let v = try JSONDecoder().decode(JSONValue.self, from: Data(Self.json.utf8))
+    let race = try #require(CupFinalRace.decode(v))
+    #expect(race.isLive)
+    #expect(race.days_left == 8)
+    #expect(race.seed_rung == "months won")
+    #expect(race.finalists.map(\.seed) == [1, 2])
+    #expect(race.finalists[0].total == 31 && race.finalists[0].head_start == 10)
+    #expect(race.finalists[0].rounds.first?.golfer == "Galen")
+  }
+  @Test func raceOrderIsTheLeaderFirstNotTheSeed() throws {
+    let v = try JSONDecoder().decode(JSONValue.self, from: Data(Self.json.utf8))
+    let race = try #require(CupFinalRace.decode(v))
+    #expect(race.race.map(\.seed) == [2, 1])          // the 2-seed leads the Final
+    #expect(race.seed(for: Self.squadB) == 2 && race.seed(for: Self.squadA) == 1)
+    #expect(race.seed(for: UUID()) == nil)
+  }
+  @Test func pendingIsNotARace() throws {
+    let v = try JSONDecoder().decode(JSONValue.self, from: Data(#"{"status":"pending","finalists":[],"seed_rung":null}"#.utf8))
+    let race = try #require(CupFinalRace.decode(v))
+    #expect(!race.isLive && race.finalists.isEmpty)
+  }
+}

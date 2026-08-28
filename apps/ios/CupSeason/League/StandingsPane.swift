@@ -97,7 +97,14 @@ struct StandingsPane: View {
     if model.bylaws.stake > 0 { onTheLine }
     CSSectionHead("Season race · the climb").id("room-climb")
     ClimbView()
-    CSSectionHead("Standings").id("room-standings")
+    if c.isCupFinal && !model.isComplete && (model.cupRace?.isLive ?? false) {
+      // D105: the race leads the room; the full-season table is the seed beneath it
+      CSSectionHead("The Cup Final").id("room-standings")
+      CupFinalRaceView()
+      CSSectionHead("The regular season — final")
+    } else {
+      CSSectionHead("Standings").id("room-standings")
+    }
     StandingsTableView()
     CSSectionHead("The individual race · every player").id("room-race")
     IndividualRaceView()

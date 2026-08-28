@@ -177,6 +177,7 @@ struct RoomFine: View {
 enum RoomSheet: Identifiable {
   case squad(Team)
   case member(IndRow)
+  case finalist(CupFinalRace.Finalist)   // D105: the window rounds behind a Final total
   case scoringHelp
   case ceremony
   case members
@@ -188,6 +189,7 @@ enum RoomSheet: Identifiable {
     switch self {
     case .squad(let t): "squad-\(t.id)"
     case .member(let r): "member-\(r.mid)"
+    case .finalist(let f): "finalist-\(f.seed)"
     case .scoringHelp: "help"
     case .ceremony: "ceremony"
     case .members: "members"
