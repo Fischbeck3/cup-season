@@ -286,18 +286,19 @@ struct PressMeter: View {
   }
 }
 
-/// `.nextcard` — "Next up · this month" + Live round. The ember spine, no
-/// wash — the hero has the wash.
+/// `.nextcard` — "Next up · this month" + Live round. The live spine (the
+/// room's look, ember when none — D103b), no wash — the hero has the wash.
 struct NextCard: View {
   @Environment(LeagueRoomModel.self) private var model
   @Environment(\.roomLinks) private var links
   @Environment(\.cs) private var cs
+  @Environment(\.csLookAccent) private var la
   var body: some View {
     let n = LeagueCopy.nextUp(model.clock, b: model.bylaws, credits: model.myMonth?.credits ?? 0, partial: model.partialMonth)
-    CSCard(spine: cs.brand) {
+    CSCard(spine: la.spine(earned: false)) {
       HStack(alignment: .center, spacing: 12) {
         VStack(alignment: .leading, spacing: 4) {
-          Text(n.k).csEyebrow(cs.brand)
+          Text(n.k).csEyebrow(la.accent)
           Text(n.text).font(CSFont.subhead).foregroundStyle(cs.ink).fixedSize(horizontal: false, vertical: true)
         }
         Spacer(minLength: 0)

@@ -69,7 +69,7 @@ struct LeagueRoomScreen: View {
       }
       .padding(.horizontal, 20).padding(.top, 8).padding(.bottom, 32)
     }
-    .background(cs.bg0)
+    .csLookGround()   // D103b: bg0 with the sky behind the league hero
     .navigationTitle(model.league?.name ?? "League")
     .navigationBarTitleDisplayMode(.inline)
     .environment(model)

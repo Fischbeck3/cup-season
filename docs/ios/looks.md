@@ -2,9 +2,12 @@
 
 Fescue is home. A **look** is a bounded override — `accent`, `accent2`, a
 motif and an eyebrow word — that a calendar window or a league phase turns
-on. It touches the hero spine + wash, the ⊕ halo, the occasion card's eyebrow
-and nothing else. Never ground, ink, `pos`/`neg`, the heat ramp, the squads
-or gold's meaning. **Gold is earned; a look never replaces it.**
+on. Its reach (D103b, in order): the sky behind the page header / league
+hero, the page header's tick (accent → accent2), every eyebrow and section
+head at full strength, the tab strip's underline, the ⊕ halo, the spine of
+every live card, the hero wash at 30% (14% on homebase). Never ground, ink,
+primary buttons, `pos`/`neg`, the heat ramp, the squads or gold's meaning.
+**Gold is earned; a look never replaces it.**
 
 The catalogue lives in `packages/tokens/tokens.json` (`looks[]`) and is
 generated into `CSDesign/Generated/Looks.swift` (`CSLooks.all / .calendar /
@@ -40,9 +43,18 @@ gold never taken, the catalogue's shape).
 
 - `EnvironmentValues.csLook: CSLookSpec?` — nil = homebase. `\.csLookAccent`
   gives `accent` · `accent2` · `wash` for the current look and theme, ember
-  when none, and `spine(earned:)` which returns gold when earned.
-- `CSHero(spine: nil)` (the default) wears the look's accent; a caller that
-  passes `cs.gold` keeps it.
+  when none, and `spine(earned:)` which returns gold when earned. D103b adds
+  `washStrength` (0.30 / 0.14), `skyStrength` (0.22 / 0.10), `tick`
+  (accent→accent2 / `CSTokens.gradStops`) and `eyebrow` (accent / nil = mut).
+- `CSLookSky` — the band at the top; `.csLookGround()` is `bg0` + the sky
+  and replaces `.background(cs.bg0)` on Home, You and the league room's
+  scroll. Homebase = ember at 10%. Never on the door, ceremonies, settlement,
+  share cards or the pot pane.
+- `CSHero(spine: nil)` (the default) wears the look's accent and a 30% wash;
+  a caller that passes `cs.gold` keeps gold and the 14% wash.
+- `CSPageHeader`'s tick, `CSSectionHead`'s title and `CSTabStrip`'s underline
+  read `\.csLookAccent`; a screen's own eyebrows (`HomeHero`, `YouHero`,
+  `OccasionCard`, `NextCard`, `PhaseHero`) pass `la.eyebrow` / `la.accent`.
 - Home (`HomeView`) sits under the personal look; `HomeHero` alone sits under
   `looks.look(for: membership)`. `OccasionCard` prefixes its eyebrow with the
   look's motif under a calendar look.

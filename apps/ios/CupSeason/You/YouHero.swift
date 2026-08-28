@@ -13,6 +13,7 @@ import CupSeasonKit
 
 struct YouHero<Anchor: View>: View {
   @Environment(\.cs) private var cs
+  @Environment(\.csLookAccent) private var la
   @Environment(SessionStore.self) private var session
 
   let photoURL: URL?
@@ -37,7 +38,8 @@ struct YouHero<Anchor: View>: View {
     CSHero(spine: established ? cs.gold : nil, padding: 20) {
       VStack(alignment: .leading, spacing: 0) {
           // the marker's name as the eyebrow — the web's `.cred` watermark, said out loud
-          Text(CSMarkers.marker(marker).name).csEyebrow().padding(.bottom, 12)
+          // D103b: the hero eyebrow wears the personal look's accent; mut on homebase (gold stays the number's)
+          Text(CSMarkers.marker(marker).name).csEyebrow(la.eyebrow).padding(.bottom, 12)
             .accessibilityLabel("Marker: \(CSMarkers.marker(marker).name)")
           HStack(alignment: .center, spacing: 12) {
             CSFace(photoURL: photoURL, marker: marker, size: 56)

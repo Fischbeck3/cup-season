@@ -72,7 +72,7 @@ struct HomeView: View {
         .padding(.horizontal, 20).padding(.top, 4).padding(.bottom, 32)
       }
     }
-    .background(cs.bg0)
+    .csLookGround()   // D103b: bg0 with the sky behind the page header
     .environment(\.csLook, looks.personalLook())
     .defaultScrollAnchor(CSDevHatch.bottom ? .bottom : .top)
     .refreshable { await store.reload(); await vm.load(me: store.me) }
@@ -105,13 +105,14 @@ struct HomeView: View {
 /// A section head whose trailing slot is a view (a NavigationLink), not a closure —
 /// the same eyebrow + hairline shape as `CSSectionHead`.
 private struct HomeSectionHead<Trailing: View>: View {
+  @Environment(\.csLookAccent) private var la
   let title: String
   @ViewBuilder let trailing: () -> Trailing
   init(_ title: String, @ViewBuilder trailing: @escaping () -> Trailing) { self.title = title; self.trailing = trailing }
   var body: some View {
     VStack(alignment: .leading, spacing: 8) {
       HStack(alignment: .firstTextBaseline) {
-        Text(title).csEyebrow()
+        Text(title).csEyebrow(la.eyebrow)   // D103b: the look's accent, mut on homebase
         Spacer()
         trailing()
       }
@@ -191,7 +192,7 @@ private struct OccasionCard: View {
     CSCard(spine: la.spine(earned: o.earned)) {
       VStack(alignment: .leading, spacing: 6) {
         HStack(alignment: .top) {
-          Text(eyebrow).csEyebrow(o.earned ? cs.gold : nil)
+          Text(eyebrow).csEyebrow(o.earned ? cs.gold : la.eyebrow)
           Spacer()
           if let m = o.marker { CSMarkerView(key: m, size: 22).foregroundStyle(o.earned ? cs.gold : cs.ink) }
           Button(action: onDismiss) { Image(systemName: "xmark").font(.caption).foregroundStyle(cs.mut) }
@@ -272,6 +273,7 @@ private struct FeedBucketView: View {
 
 private struct FeedRoundCard: View {
   @Environment(\.cs) private var cs
+  @Environment(\.csLookAccent) private var la
   @Environment(SessionStore.self) private var store
   @Environment(\.toast) private var toast
   let r: HomeFeedRow
@@ -336,7 +338,8 @@ private struct FeedRoundCard: View {
         }
         .clipShape(RoundedRectangle(cornerRadius: CSTokens.Radius.r, style: .continuous))
       } else {
-        CSCard(spine: milestone != nil ? cs.gold : nil) {
+        // a milestone is gold; under a look every live card wears the accent's spine (D103b); no spine on homebase
+        CSCard(spine: milestone != nil ? cs.gold : (la.active ? la.accent : nil)) {
           VStack(alignment: .leading, spacing: 6) {
             HStack(spacing: 10) {
               faceButton(size: 44)
@@ -420,6 +423,7 @@ private struct FeedPostRow: View {
 /// The hero: the standing MOVE (D81 "the standing is a verb").
 struct HomeHero: View {
   @Environment(\.cs) private var cs
+  @Environment(\.csLookAccent) private var la
   let mode: HomeMode
   let me: Me
 
@@ -428,7 +432,7 @@ struct HomeHero: View {
     // look's accent from the environment, ember when none (IOS-025: a look never overrides gold)
     CSHero(spine: earned ? cs.gold : nil, padding: 20) {
       VStack(alignment: .leading, spacing: 10) {
-        Text(eyebrow).csEyebrow(earned ? cs.gold : nil)
+        Text(eyebrow).csEyebrow(earned ? cs.gold : la.eyebrow)   // D103b: the eyebrow wears the look
         HStack(alignment: .firstTextBaseline, spacing: 12) {
           Text(figure).font(CSFont.hero).foregroundStyle(earned ? cs.gold : cs.ink).csTabular()
           if let move { moveChip(move) }

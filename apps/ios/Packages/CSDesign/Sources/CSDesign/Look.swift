@@ -41,9 +41,22 @@ public struct CSLookAccent: Sendable {
   public var accent: Color { look?.accent(theme) ?? cs.brand }
   /// The partner colour — the swatch's second half, a chip's stroke.
   public var accent2: Color { look?.accent2(theme) ?? cs.brand }
-  /// The wash is the spine at ≤14% — `CSWash(la.wash)`.
+  /// The wash colour — `CSWash(la.wash, strength: la.washStrength)`.
   public var wash: Color { accent }
 
   /// The spine a surface should wear: gold when EARNED (never overridden), else the accent.
   public func spine(earned: Bool) -> Color { earned ? cs.gold : accent }
+
+  // MARK: D103b — how far a look reaches
+
+  /// The hero wash: 30% under a look, the homebase 14% otherwise.
+  public var washStrength: Double { active ? 0.30 : 0.14 }
+  /// The sky's top: 22% of the accent under a look; ember at 10% on homebase,
+  /// so Fescue-only still has warmth at the top of the page.
+  public var skyStrength: Double { active ? 0.22 : 0.10 }
+  /// The page header's gradient tick: accent → accent2 under a look, ember → amber otherwise.
+  public var tick: [Color] { active ? [accent, accent2] : CSTokens.gradStops }
+  /// An eyebrow or section head's colour: the accent at full strength under a
+  /// look; nil = `.csEyebrow()`'s default `mut`. Gold eyebrows are the caller's.
+  public var eyebrow: Color? { active ? accent : nil }
 }

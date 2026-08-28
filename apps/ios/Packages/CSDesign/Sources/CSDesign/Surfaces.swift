@@ -9,9 +9,9 @@ import SwiftUI
 
 // MARK: - The wash
 
-/// A radial of the spine colour, ≤14% at the top-leading corner, fading to
-/// nothing. Ember = live, gold = earned, `pos` = on the tee, dusk = ceremony.
-/// Exactly one per screen.
+/// A radial of the spine colour, 14% at the top-leading corner fading to
+/// nothing (30% when a hero wears a look — D103b). Ember = live, gold =
+/// earned, `pos` = on the tee, dusk = ceremony. Exactly one per screen.
 public struct CSWash: View {
   let color: Color
   let strength: Double
@@ -30,7 +30,8 @@ public struct CSWash: View {
 ///
 /// `spine: nil` (the default) wears the look's accent from `\.csLook`, or
 /// ember when no look applies. A caller that passes gold keeps gold — a look
-/// never overrides the earned metal (D103a).
+/// never overrides the earned metal (D103a). Under a look the wash the accent
+/// wears is 30%, not 14% (D103b); a passed spine (gold) keeps the 14%.
 public struct CSHero<Content: View>: View {
   @Environment(\.cs) private var cs
   @Environment(\.csLookAccent) private var la
@@ -41,6 +42,7 @@ public struct CSHero<Content: View>: View {
     self.spine = spine; self.padding = padding; self.content = content()
   }
   private var spineColor: Color { spine ?? la.accent }
+  private var washStrength: Double { spine == nil ? la.washStrength : 0.14 }
   public var body: some View {
     content
       .padding(padding)
@@ -48,7 +50,7 @@ public struct CSHero<Content: View>: View {
       .background {
         ZStack {
           RoundedRectangle(cornerRadius: CSTokens.Radius.r, style: .continuous).fill(cs.bg1)
-          CSWash(spineColor)
+          CSWash(spineColor, strength: washStrength)
         }
         .clipShape(RoundedRectangle(cornerRadius: CSTokens.Radius.r, style: .continuous))
       }
@@ -90,6 +92,7 @@ public struct CSDuskCard<Content: View>: View {
 /// navigation bar). Lives in the scroll so the glass toolbar never clips it.
 public struct CSPageHeader<Trailing: View>: View {
   @Environment(\.cs) private var cs
+  @Environment(\.csLookAccent) private var la
   let title: String
   let eyebrow: String?
   let sub: String?
@@ -101,7 +104,8 @@ public struct CSPageHeader<Trailing: View>: View {
     VStack(alignment: .leading, spacing: 8) {
       HStack(alignment: .lastTextBaseline) {
         VStack(alignment: .leading, spacing: 8) {
-          Rectangle().fill(LinearGradient(colors: CSTokens.gradStops, startPoint: .leading, endPoint: .trailing))
+          // D103b: accent → accent2 under a look; ember → amber on homebase
+          Rectangle().fill(LinearGradient(colors: la.tick, startPoint: .leading, endPoint: .trailing))
             .frame(width: 28, height: 3)
           Text(title).font(CSFont.heroSmall).foregroundStyle(cs.ink).lineLimit(2).minimumScaleFactor(0.8)
         }
@@ -140,9 +144,12 @@ public struct CSHairline: View {
   public var body: some View { Rectangle().fill(cs.line).frame(height: 1) }
 }
 
-/// An eyebrow over a hairline, with an optional trailing link in `dawn`.
+/// An eyebrow over a hairline, with an optional trailing link in `dawn`. The
+/// title wears the look's accent at full strength under a look (D103b), `mut`
+/// on homebase.
 public struct CSSectionHead: View {
   @Environment(\.cs) private var cs
+  @Environment(\.csLookAccent) private var la
   let title: String
   let trailing: String?
   let action: (() -> Void)?
@@ -152,7 +159,7 @@ public struct CSSectionHead: View {
   public var body: some View {
     VStack(alignment: .leading, spacing: 8) {
       HStack(alignment: .firstTextBaseline) {
-        Text(title).csEyebrow()
+        Text(title).csEyebrow(la.eyebrow)
         Spacer()
         if let trailing {
           if let action {
@@ -183,9 +190,11 @@ public struct CSRow<Content: View>: View {
 
 // MARK: - The tab strip
 
-/// Panes: mono uppercase labels, an ember underline that slides on the roll.
+/// Panes: mono uppercase labels, an underline that slides on the roll — the
+/// look's accent under a look, ember on homebase (D103b).
 public struct CSTabStrip<T: Hashable>: View {
   @Environment(\.cs) private var cs
+  @Environment(\.csLookAccent) private var la
   let items: [(T, String)]
   @Binding var selection: T
   @Namespace private var ns
@@ -205,7 +214,7 @@ public struct CSTabStrip<T: Hashable>: View {
               ZStack {
                 Rectangle().fill(.clear).frame(height: 2)
                 if on {
-                  Rectangle().fill(cs.brand).frame(height: 2)
+                  Rectangle().fill(la.accent).frame(height: 2)
                     .matchedGeometryEffect(id: "underline", in: ns)
                 }
               }
