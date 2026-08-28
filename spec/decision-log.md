@@ -3795,3 +3795,33 @@ Closes D103's open questions. UI level.)*
 - **CONFLICT:** none. Supersedes D76's charcoal *values* (not its dark-first
   rule). The logo brief in the artifact changes one line: the mark sits on
   Fescue `#0B100E`, not charcoal.
+
+### D104 · Push that means something — routed, actionable, mute-aware, badge for the actionable only
+*(2026-08-27, owner: "do wave 7." NOTIFICATION level (UI/IA); scoring untouched.
+Executes IOS-009 batch 2 and IOS-004 §4.)*
+- **Current:** every push carries title + body and `url:'/'`; `system` posts push
+  unconditionally; muting a member does not stop their pushes; `invite_golfer`
+  promises a notification and sends none; the phone asks permission only from
+  a Settings button; no badge discipline.
+- **Decision:** (1) every APNs payload carries `kind` + the ids the phone needs
+  to land on the right screen (receipt · scorecard · board · live round ·
+  requests · invites · event room) and a `thread-id` per league; (2) three
+  actionable categories — buddy request Accept/Decline, tee-time RSVP In/Out,
+  league invite Accept — answered from the lock screen through the same RPCs
+  the app uses; (3) recipients exclude anyone who muted the author, and
+  `system` board posts push only when the league's Pro has not curated them
+  off (`leagues.notify_system`, default on); (4) `invite_golfer` fans an
+  invite nudge into `push_nudges`; (5) the badge counts ONLY actionable items
+  — pending requests + open invites + live rounds you are on — never chat
+  volume, and clears when the list is seen; (6) the permission ask is
+  contextual — after the card is saved, the first round is posted, or a league
+  is joined — with a one-screen explainer first, never on launch; (7) a local
+  reminder for an open Ryder duel the evening its session closes.
+- **Principle:** memory over noise — a notification is a sentence someone
+  would say to you at the bar, not a metric; no engagement bait, no streak
+  shame (product vision).
+- **Tradeoffs:** a muted member's pushes vanish silently for the muter (that is
+  what mute means); the Pro's curation flag hides floors/closes for the whole
+  league, so the default stays on.
+- **CONFLICT:** none. Upholds the server-enforced `notify_*` prefs, D68 (every
+  push exit is named), D37 grants.
