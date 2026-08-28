@@ -6,7 +6,9 @@
 // the band line from the one phrase producer, and the points line in
 // champagne ONLY when league points exist — "COUNTS ON YOUR CARD" otherwise.
 // The stagger is the web's (band at 2.03s, points at 2.21s, the buttons at
-// 2.55s); reduced motion lands on the rest frame at once.
+// 2.55s); reduced motion lands on the rest frame at once. The thock —
+// `.success` through `sensoryFeedback` — fires as the screen appears
+// (IOS-003 §2.8, IOS-022 item 6).
 
 import SwiftUI
 import CSDesign
@@ -19,6 +21,7 @@ struct FinishCeremonyView: View {
   let onBack: () -> Void
 
   @State private var stage = 0
+  @State private var thock = false
   @State private var share: PostShareItem?
   @ScaledMetric(relativeTo: .largeTitle) private var grossSize: CGFloat = 88
 
@@ -64,7 +67,8 @@ struct FinishCeremonyView: View {
       .padding(.horizontal, 24)
       .frame(maxWidth: 440)
     }
-    .onAppear { run() }
+    .onAppear { run(); thock = true }
+    .csFeedback(.posted, trigger: thock)
     .sheet(item: $share) { PostShareSheet(items: $0.items) }
     .accessibilityAddTraits(.isModal)
   }

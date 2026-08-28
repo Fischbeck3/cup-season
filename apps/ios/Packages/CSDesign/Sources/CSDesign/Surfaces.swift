@@ -78,15 +78,18 @@ public struct CSDuskCard<Content: View>: View {
 
 // MARK: - The page header
 
-/// The gradient tick, a serif title, an optional mono eyebrow on the right.
-/// Lives in the scroll so the glass toolbar never clips it.
-public struct CSPageHeader: View {
+/// The gradient tick, a serif title, an optional mono eyebrow on the right,
+/// and an optional trailing control (the `+` on Home, the ⚙ on You — IOS-022
+/// item 1: the screen's one action rides the header row, not an empty
+/// navigation bar). Lives in the scroll so the glass toolbar never clips it.
+public struct CSPageHeader<Trailing: View>: View {
   @Environment(\.cs) private var cs
   let title: String
   let eyebrow: String?
   let sub: String?
-  public init(_ title: String, eyebrow: String? = nil, sub: String? = nil) {
-    self.title = title; self.eyebrow = eyebrow; self.sub = sub
+  let trailing: Trailing
+  public init(_ title: String, eyebrow: String? = nil, sub: String? = nil, @ViewBuilder trailing: () -> Trailing) {
+    self.title = title; self.eyebrow = eyebrow; self.sub = sub; self.trailing = trailing()
   }
   public var body: some View {
     VStack(alignment: .leading, spacing: 8) {
@@ -96,13 +99,21 @@ public struct CSPageHeader: View {
             .frame(width: 28, height: 3)
           Text(title).font(CSFont.heroSmall).foregroundStyle(cs.ink).lineLimit(2).minimumScaleFactor(0.8)
         }
+        .accessibilityElement(children: .combine)
         Spacer(minLength: 8)
         if let eyebrow { Text(eyebrow).csEyebrow() }
+        // the control is its own accessibility element — never folded into the title
+        trailing.frame(minWidth: 44, minHeight: 44).padding(.trailing, -8)
       }
       if let sub { Text(sub).font(CSFont.sentence).foregroundStyle(cs.mut) }
     }
     .frame(maxWidth: .infinity, alignment: .leading)
-    .accessibilityElement(children: .combine)
+  }
+}
+
+public extension CSPageHeader where Trailing == EmptyView {
+  init(_ title: String, eyebrow: String? = nil, sub: String? = nil) {
+    self.init(title, eyebrow: eyebrow, sub: sub) { EmptyView() }
   }
 }
 
@@ -197,10 +208,12 @@ public struct CSTabStrip<T: Hashable>: View {
             .contentShape(Rectangle())
           }
           .buttonStyle(.plain)
+          .accessibilityLabel(label)
           .accessibilityAddTraits(on ? [.isSelected] : [])
         }
       }
     }
+    // the strip scrolls sideways at every type size (IOS-022 item 9): a tab is never clipped, only off to the right
     .overlay(alignment: .bottom) { CSHairline() }
   }
 }
@@ -211,4 +224,14 @@ public struct CSTabStrip<T: Hashable>: View {
 public enum CSMotion {
   public static let roll = Animation.timingCurve(0.16, 0.84, 0.36, 1, duration: 0.32)
   public static let rise = Animation.timingCurve(0.16, 0.84, 0.36, 1, duration: 0.26)
+}
+
+#Preview("Tab strip · accessibility3") {
+  VStack(alignment: .leading, spacing: 20) {
+    CSPageHeader("Cup Season", eyebrow: "THU · AUG 27") { Image(systemName: "plus").frame(width: 44, height: 44) }
+    CSTabStrip([("a", "Standings"), ("b", "Board"), ("c", "Schedule"), ("d", "Pot"), ("e", "Album"), ("f", "League")], selection: .constant("a"))
+  }
+  .padding(20)
+  .environment(\.dynamicTypeSize, .accessibility3)
+  .csTheme()
 }

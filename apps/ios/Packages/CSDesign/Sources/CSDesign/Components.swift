@@ -192,9 +192,39 @@ public struct CSNote: View {
   }
 }
 
-// MARK: - Haptics (IOS-003 §2.8)
+// MARK: - Haptics (IOS-003 §2.8, IOS-022 item 6)
 
+/// The whole vocabulary lives here. Imperative calls (`CSHaptic.success()`)
+/// for handlers; `.csFeedback(_:trigger:)` — `sensoryFeedback` (iOS 17) —
+/// for moments a view state announces (a ceremony appearing, a rank moving
+/// on load, the tee-off). No haptic on scroll, on navigation, or on errors
+/// that already toast.
 public enum CSHaptic {
+  /// One case per moment, so a screen names the MOMENT, never a generator.
+  public enum Kind: Sendable {
+    /// Stroke ±, reaction tap, marker pick, a pane switch.
+    case selection
+    /// Rank moved up on open (light) · hole complete, the tee-off, the ⊕ presenting (medium) · skins carry ≥2 (rigid).
+    case rankUp, holeComplete, teeOff, present, skinsCarry
+    /// POSTED ✓ / the finish ceremony — the thock.
+    case posted
+    /// Two-tap destructive arm ("Sure?").
+    case armed
+
+    public var sensory: SensoryFeedback {
+      switch self {
+      case .selection: .selection
+      case .rankUp: .impact(weight: .light)
+      case .holeComplete, .teeOff, .present: .impact(weight: .medium)
+      case .skinsCarry: .impact(flexibility: .rigid)
+      case .posted: .success
+      case .armed: .warning
+      }
+    }
+  }
+
+  /// The ⊕ presenting over a tab (IOS-022 item 3).
+  public static func present() { impact(.medium) }
   /// Stroke ±, reaction tap, marker pick.
   public static func selection() {
     #if canImport(UIKit)
@@ -224,5 +254,12 @@ public enum CSHaptic {
     #if canImport(UIKit)
     UINotificationFeedbackGenerator().notificationOccurred(.warning)
     #endif
+  }
+}
+
+public extension View {
+  /// `sensoryFeedback` through the one vocabulary: fires when `trigger` changes.
+  func csFeedback<T: Equatable>(_ kind: CSHaptic.Kind, trigger: T) -> some View {
+    sensoryFeedback(kind.sensory, trigger: trigger)
   }
 }

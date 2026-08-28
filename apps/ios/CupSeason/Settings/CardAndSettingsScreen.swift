@@ -1,5 +1,8 @@
 // Cup Season — "Card & settings" (audit 01 §1.6; index.html 13504–13840).
 // Two panes, as the web: Your card (identity) · Settings (device & account).
+// A long press on the build line opens the Developer section (IOS-022 item
+// 8): the feedback door for everyone, the founder's desk and field note only
+// when the server says founder.
 
 import SwiftUI
 import PhotosUI
@@ -10,7 +13,7 @@ struct CardAndSettingsScreen: View {
   @Environment(SessionStore.self) private var store
   @Environment(\.cs) private var cs
   @State private var vm = CardSettingsModel()
-  @State private var pane = 0
+  @State private var pane = CSDevHatch.settingsPane
   var openScoringHelp: () -> Void = {}
 
   var body: some View {
@@ -31,6 +34,7 @@ struct CardAndSettingsScreen: View {
       .padding(20)
     }
     .background(cs.bg0)
+    .defaultScrollAnchor(CSDevHatch.bottom ? .bottom : .top)
     .navigationTitle("Card & settings")
     .navigationBarTitleDisplayMode(.inline)
     .scrollDismissesKeyboard(.interactively)
@@ -305,9 +309,12 @@ private struct SettingsPane: View {
   @Environment(\.cs) private var cs
   @Environment(\.toast) private var toast
   @Environment(\.csAppearance) private var appearance
+  @Environment(\.presenter) private var presenter
   @Bindable var vm: CardSettingsModel
   @State private var push = PushService.shared
   @State private var pricing = PricingFlags.hidden
+  /// The Developer section, revealed by a long press on the build line.
+  @State private var developer = CSDevHatch.developer
 
   var body: some View {
     VStack(alignment: .leading, spacing: 10) {
@@ -362,6 +369,23 @@ private struct SettingsPane: View {
       }
 
       Text("Cup Season · v1 · build \(store.build)").font(CSFont.footnote).foregroundStyle(cs.dimText).padding(.top, 20)
+        .frame(minHeight: 44, alignment: .bottomLeading)
+        .contentShape(Rectangle())
+        .onLongPressGesture(minimumDuration: 1) {
+          guard !developer else { return }
+          CSHaptic.impact(.medium)
+          withAnimation(CSMotion.roll) { developer = true }
+        }
+        .accessibilityAddTraits(.isButton)
+        .accessibilityHint("Press and hold for the Developer section")
+      if developer {
+        PolishDeveloperSection(
+          isFounder: store.founding.badge(for: store.me?.profile?.id) == .founder,
+          openDesk: { presenter.showDesk = true },
+          fieldNote: { presenter.showNote = true },
+          feedback: { presenter.feedbackScreen = "settings"; presenter.showFeedback = true })
+        .transition(.opacity)
+      }
       HStack(spacing: 10) {
         Link("Privacy", destination: CSConfig.legal("privacy"))
         Text("·")
@@ -403,5 +427,29 @@ private struct MiniPill: View {
       .padding(.horizontal, 14).padding(.vertical, 9)
       .background(accent ? cs.brand : cs.bg2, in: RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous))
       .overlay(RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous).stroke(accent ? .clear : cs.line2, lineWidth: 1))
+  }
+}
+
+// MARK: - Developer (IOS-022 item 8)
+
+/// Exactly the rows that left the You tab: the desk and the field note when
+/// the SERVER says founder (`founding_ids()`), the feedback door for everyone.
+private struct PolishDeveloperSection: View {
+  let isFounder: Bool
+  let openDesk: () -> Void
+  let fieldNote: () -> Void
+  let feedback: () -> Void
+  var body: some View {
+    VStack(alignment: .leading, spacing: 0) {
+      CSSectionHead("Developer")
+      if isFounder {
+        CSRow { YouDoorRow(glyph: Text("📈"), title: "Open the desk", action: openDesk) }
+        CSRow { YouDoorRow(glyph: Text("✏️"), title: "Field note", action: fieldNote) }
+      }
+      CSRow(last: true) { YouDoorRow(glyph: Text("💬"), title: "Tell us how it's going", action: feedback) }
+      if isFounder {
+        Fine("Notes land in the feedback ledger · the desk shows signups, activity, errors, feedback.").padding(.top, 6)
+      }
+    }
   }
 }

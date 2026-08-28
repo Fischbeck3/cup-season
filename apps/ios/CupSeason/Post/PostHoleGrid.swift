@@ -41,6 +41,7 @@ struct PostSeg<T: Hashable>: View {
 
 struct PostScorecardStrip: View {
   @Environment(\.cs) private var cs
+  @Environment(\.dynamicTypeSize) private var typeSize
   @Bindable var model: PostRoundModel
   @State private var selected: Int
 
@@ -78,20 +79,33 @@ struct PostScorecardStrip: View {
 
   // MARK: the card — OUT and IN, hairlines between the cells
 
-  private var card: some View {
+  /// At accessibility sizes the ten cells cannot share the width without
+  /// clipping a figure, so the card scrolls sideways under a fixed cell width
+  /// (IOS-022 item 9) — a scorecard is a strip, and a strip reads left to right.
+  @ViewBuilder private var card: some View {
+    if typeSize.isAccessibilitySize {
+      ScrollView(.horizontal, showsIndicators: false) { cardBody(cellWidth: 72) }
+        .padding(.horizontal, -20)
+        .contentMargins(.horizontal, 20, for: .scrollContent)
+    } else {
+      cardBody(cellWidth: nil)
+    }
+  }
+
+  private func cardBody(cellWidth: CGFloat?) -> some View {
     VStack(spacing: 1) {
-      row(0)
-      if model.card.side == 18 { row(1) }
+      row(0, cellWidth: cellWidth)
+      if model.card.side == 18 { row(1, cellWidth: cellWidth) }
     }
     .padding(1)
     .background(cs.line, in: RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous))
     .clipShape(RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous))
   }
 
-  private func row(_ r: Int) -> some View {
+  private func row(_ r: Int, cellWidth: CGFloat?) -> some View {
     HStack(spacing: 1) {
-      ForEach(Array(PostStrip.row(r)), id: \.self) { i in cell(i) }
-      totalCell(r)
+      ForEach(Array(PostStrip.row(r)), id: \.self) { i in cell(i).frame(width: cellWidth) }
+      totalCell(r).frame(width: cellWidth)
     }
   }
 

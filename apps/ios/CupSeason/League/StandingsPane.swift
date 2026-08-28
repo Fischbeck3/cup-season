@@ -158,6 +158,7 @@ struct StandingsPane: View {
 struct RoomSeasonStrip: View {
   @Environment(LeagueRoomModel.self) private var model
   @Environment(\.cs) private var cs
+  @Environment(\.dynamicTypeSize) private var typeSize
 
   var body: some View {
     let c = model.clock, b = model.bylaws
@@ -167,7 +168,9 @@ struct RoomSeasonStrip: View {
     let credits = model.myMonth?.credits ?? 0
     let used = min(Double(model.myMonth?.counting ?? 0), Double(capN == Int.max ? Int.max : capN))
     VStack(alignment: .leading, spacing: 0) {
-      HStack(alignment: .top, spacing: 8) {
+      // IOS-022 item 9: four across at reading sizes; at accessibility sizes the strip
+      // wraps to two by two, so a figure is never clipped — each cell is one VoiceOver element
+      PolishWrapRow(wrap: typeSize.isAccessibilitySize) {
         column("Season", value: LeagueCopy.weekValue(c), small: "/ \(c.totalWeeks)",
                sub: dl.text, subTone: dl.gold ? cs.gold : cs.mut)
         column("The pot", value: b.stake == 0 ? "None" : PotMath.dollars(model.potTotal), small: nil,
@@ -196,6 +199,7 @@ struct RoomSeasonStrip: View {
             .font(CSFont.label).foregroundStyle(cs.mut).fixedSize(horizontal: false, vertical: true)
         }
         .frame(maxWidth: .infinity, alignment: .topLeading)
+        .accessibilityElement(children: .combine)
       }
       .padding(.vertical, 12)
       CSHairline()
@@ -220,6 +224,43 @@ struct RoomSeasonStrip: View {
       Text(sub).font(CSFont.label).foregroundStyle(subTone ?? cs.mut).fixedSize(horizontal: false, vertical: true)
     }
     .frame(maxWidth: .infinity, alignment: .topLeading)
+    .accessibilityElement(children: .combine)
+  }
+}
+
+/// Four cells in a row, or two by two when `wrap` — the season strip at
+/// accessibility sizes (IOS-022 item 9). A `Layout`, so the cells stay the
+/// same views either way.
+struct PolishWrapRow: Layout {
+  let wrap: Bool
+  let spacing: CGFloat = 8
+
+  func sizeThatFits(proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) -> CGSize {
+    let width = proposal.width ?? 0
+    let perRow = wrap ? 2 : max(1, subviews.count)
+    let cellW = max(0, (width - spacing * CGFloat(perRow - 1)) / CGFloat(perRow))
+    var height: CGFloat = 0
+    for start in stride(from: 0, to: subviews.count, by: perRow) {
+      let row = subviews[start..<min(start + perRow, subviews.count)]
+      let h = row.map { $0.sizeThatFits(ProposedViewSize(width: cellW, height: nil)).height }.max() ?? 0
+      height += h + (start == 0 ? 0 : spacing)
+    }
+    return CGSize(width: width, height: height)
+  }
+
+  func placeSubviews(in bounds: CGRect, proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) {
+    let perRow = wrap ? 2 : max(1, subviews.count)
+    let cellW = max(0, (bounds.width - spacing * CGFloat(perRow - 1)) / CGFloat(perRow))
+    var y = bounds.minY
+    for start in stride(from: 0, to: subviews.count, by: perRow) {
+      let row = subviews[start..<min(start + perRow, subviews.count)]
+      let h = row.map { $0.sizeThatFits(ProposedViewSize(width: cellW, height: nil)).height }.max() ?? 0
+      for (i, v) in row.enumerated() {
+        v.place(at: CGPoint(x: bounds.minX + CGFloat(i) * (cellW + spacing), y: y), anchor: .topLeading,
+                proposal: ProposedViewSize(width: cellW, height: h))
+      }
+      y += h + spacing
+    }
   }
 }
 

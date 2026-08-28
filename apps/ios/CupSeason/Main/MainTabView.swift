@@ -18,6 +18,22 @@ enum CSDevHatch {
     false
     #endif
   }
+  /// `-cs_dev_settings_pane 1` opens Card & settings on the Settings pane.
+  static var settingsPane: Int {
+    #if DEBUG
+    let a = ProcessInfo.processInfo.arguments
+    if let i = a.firstIndex(of: "-cs_dev_settings_pane"), i + 1 < a.count { return Int(a[i + 1]) ?? 0 }
+    #endif
+    return 0
+  }
+  /// `-cs_dev_developer` reveals the Developer section as the long press would (IOS-022 item 8).
+  static var developer: Bool {
+    #if DEBUG
+    ProcessInfo.processInfo.arguments.contains("-cs_dev_developer")
+    #else
+    false
+    #endif
+  }
 }
 
 enum HomeRoute: Hashable { case schedule, people, league(UUID) }
@@ -119,8 +135,8 @@ struct MainTabView: View {
     }
     #endif
     .onChange(of: tab) { old, new in
-      // the ⊕ is a verb, not a place: it presents, and the selection snaps back
-      if new == .post { presenter.showPost = true; tab = old == .post ? .home : old }
+      // the ⊕ is a verb, not a place: it presents, and the selection snaps back (IOS-022 item 3: with a haptic)
+      if new == .post { CSHaptic.present(); presenter.showPost = true; tab = old == .post ? .home : old }
     }
     .sheet(item: $presenter.tourCard) { TourCardSheet(profileId: $0, links: youLinks) }
     .sheet(item: $presenter.receipt) { RoundReceiptSheet(roundId: $0, seed: nil, openScorecard: { presenter.scorecard = $0 }) }

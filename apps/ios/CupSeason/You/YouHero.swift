@@ -1,8 +1,11 @@
 // Cup Season — the You hero (IOS-019 rule 1): your credential as the one
 // hero on the screen. Same bones as `.cred` (index.html 585–613) — face,
 // name, the index in gold once EARNED, the trophies engraved on it, the
-// marker as its watermark, the form row — on the CSHero wash, in the
-// screen's own theme. The Tour Card keeps `CredentialCard` (fixed dark face).
+// marker NAMED as the mono eyebrow, the form row — on the CSHero wash, in
+// the screen's own theme. The Tour Card keeps `CredentialCard` (fixed dark
+// face). IOS-022 item 2: the 220pt watermark went — at 10% it was a smudge
+// on charcoal and a stain on paper; "THE SAGUARO" in the scorer's voice says
+// the same thing legibly, in a screenshot and to VoiceOver.
 
 import SwiftUI
 import CSDesign
@@ -31,14 +34,10 @@ struct YouHero<Anchor: View>: View {
 
   var body: some View {
     CSHero(spine: established ? cs.gold : cs.brand, padding: 20) {
-      ZStack(alignment: .bottomTrailing) {
-        // the watermark: bottom-trailing, beneath the type, clipped by the card
-        CSMarkerView(key: marker, size: 220, lineWidth: 0.4)
-          .foregroundStyle(cs.ink).opacity(0.22)
-          .offset(x: 96, y: 104)
-          .accessibilityHidden(true)
-
-        VStack(alignment: .leading, spacing: 0) {
+      VStack(alignment: .leading, spacing: 0) {
+          // the marker's name as the eyebrow — the web's `.cred` watermark, said out loud
+          Text(CSMarkers.marker(marker).name).csEyebrow().padding(.bottom, 12)
+            .accessibilityLabel("Marker: \(CSMarkers.marker(marker).name)")
           HStack(alignment: .center, spacing: 12) {
             CSFace(photoURL: photoURL, marker: marker, size: 56)
             VStack(alignment: .leading, spacing: 3) {
@@ -84,7 +83,6 @@ struct YouHero<Anchor: View>: View {
           }
 
           if let form { FormRowView(form: form, palette: cs) }
-        }
       }
     }
     .clipShape(RoundedRectangle(cornerRadius: CSTokens.Radius.r, style: .continuous))
