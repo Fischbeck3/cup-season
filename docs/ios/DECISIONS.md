@@ -249,3 +249,7 @@ The ⊕'s composer is its own decision (IOS-020). Ceremonies, the finish, the se
 ## IOS-024 · Reliability floor — MetricKit, five events, `test-seed` gated — **P2 · PROCEEDING 2026-08-27**
 
 **Decision.** (1) MetricKit crash/hang diagnostics land in `client_events` (fire-and-forget, 4-frame stack kept — the ghost lesson); (2) five product events: `signed_in`, `card_set`, `league_created`, `league_locked`, `round_posted`; (3) `test-seed` requires the caller to be the founder (`profiles.is_founder`) — SEC-H2 closes. **Reversibility.** EASY.
+
+## IOS-025 · Looks on the phone — the resolver, the two pickers, the surfaces — **P2 · PROCEEDING 2026-08-27 (D103a)**
+
+**Decision.** `CSLooks` (generated) + a `LookResolver` in the Kit: `resolve(date:, leaguePhase:, leagueLook:, personal:)` with the D103a precedence. Personal dial in Settings → Appearance ("Palette": Follow the calendar · Fescue only · each look, with its dates). The Pro's dial on the League pane ("Dress the room": Follow the calendar · each look) writing `set_league_look()`; `league_looks()` read once per session. Surfaces: the Home hero and the Clubhouse hero take the resolved look's accent as spine + wash; the ⊕ halo tints; the occasion card and empty states take the motif and eyebrow. Ceremonies, the pot, share cards, the founding tag ignore looks. **Reversibility.** EASY — `none` on both dials is homebase. **Action.** Proceeding.

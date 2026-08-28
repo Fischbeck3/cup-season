@@ -201,7 +201,7 @@ struct LiveSettlementCard: View {
   let date: Date
 
   private let W: CGFloat = 1080, H: CGFloat = 1350
-  private let bg = Color(hex: 0x0C0D0F), panel = Color(hex: 0x17191C), ink = Color(hex: 0xF0F2F3), mut = Color(hex: 0x8E979E)
+  private let bg = CSTokens.dark.bg0, panel = CSTokens.dark.bg1, ink = Color(hex: 0xF0F2F3), mut = Color(hex: 0x8E979E)
   private let gold = Color(hex: 0xE9BE62), hot = Color(hex: 0xFF5A2E), slate = Color(hex: 0x66707A)
 
   private func mono(_ size: CGFloat, _ weight: Font.Weight = .semibold) -> Font {

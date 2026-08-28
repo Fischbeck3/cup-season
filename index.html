@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<meta name="theme-color" content="#0C0D0F">
+<meta name="theme-color" content="#0B100E">
 <meta name="color-scheme" content="light dark">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -41,11 +41,11 @@
      ember = LIVE (momentum, pressure, actions), champagne gold = EARNED
      (unchanged). The old dusk-green palette is not deleted — it retires into
      .room-dusk and the artifact faces: ceremonies keep the trophy room. */
-  --bg0:#0C0D0F;         /* page — charcoal (converges meta/favicon/legal) */
-  --bg1:#17191C;         /* surface */
-  --bg2:#1F2226;         /* raised / inputs */
-  --line:#262A2F;
-  --line2:#333840;
+  --bg0:#0B100E;         /* page — charcoal (converges meta/favicon/legal) */
+  --bg1:#151C18;         /* surface */
+  --bg2:#1C2520;         /* raised / inputs */
+  --line:#243029;
+  --line2:#33413A;
   --ink:#F0F2F3;
   --mut:#8E979E;
   --dim:#5C646B;
@@ -580,12 +580,12 @@ img.face{border-radius:50%; object-fit:cover; vertical-align:-4px; border:1px so
 .hsfoot{background:var(--bg1); color:var(--ink); padding:8px 12px; border-top:1px solid var(--line2);}
 /* moments sit quiet — clearly not a round */
 .hfcard.quiet{background:var(--bg2); border-style:dashed; cursor:default;}
-/* Tour Card — C4 credential, refaced charcoal (D76): one flat #17191C
+/* Tour Card — C4 credential, refaced charcoal (D76): one flat #151C18
    OBJECT, ember heat top-right, ivory ink; trophies stay champagne (earned
    metal — the two-metals rule). Fixed hexes: same face for every viewer,
    light theme included. Structure/geometry untouched. */
 .cred{position:relative; isolation:isolate; overflow:hidden; border-radius:16px; color:#F0F2F3; padding:16px;
-  background:#17191C; border:1px solid rgba(255,255,255,.07);
+  background:#151C18; border:1px solid rgba(255,255,255,.07);
   box-shadow:0 10px 30px rgba(0,0,0,.4), 0 2px 8px rgba(0,0,0,.3);}
 .cred::before{content:""; position:absolute; inset:0; z-index:-1; pointer-events:none;
   background:radial-gradient(closest-side at 82% 0%, rgba(255,90,46,.16), transparent 70%);}
@@ -1758,7 +1758,7 @@ html.ob-fast .ob-wing.ob-wr, html.ob-fast .ob-more{animation-delay:.5s;}
 }
 /* the header mark: ember on charcoal, ink on light (the mark-light rule) */
 .hdrmark{color:#F4712E;}
-html[data-theme="light"] .hdrmark{color:#0C0D0F;}
+html[data-theme="light"] .hdrmark{color:#0B100E;}
 /* ignition (D76): the ember floor-glow — a low radiance warming in from the
    bottom edge. Base state is VISIBLE (the animation only fades it up, `both`
    rests it ON), it sits under all content and never takes input. Nothing
@@ -2256,7 +2256,7 @@ html[data-theme="light"] .btn:not(.dark):not(.gold):not(.apple){color:#FFFFFF;}
    utility theme is also dark.
 
    The rule that makes it feel like a room: the GROUND family is warmed and
-   dropped — where the utility charcoal runs faintly blue (#0C0D0F is B>R), the
+   dropped — where the utility charcoal runs faintly blue (#0B100E is B>R), the
    room runs faintly warm (R>B), as if lit by coals rather than daylight — and
    NOTHING semantic moves with it. Gold still means earned, ember still means
    live, --pos still means up. A token that changes meaning between rooms is a
@@ -2488,7 +2488,7 @@ html[data-theme="light"] .room-dusk .btn:not(.dark):not(.gold):not(.apple){color
     document.documentElement.dataset.theme = t;
     document.documentElement.style.colorScheme = t;   /* native controls (date pickers, selects) follow the active theme */
     var m = document.querySelector('meta[name="theme-color"]');
-    if(m) m.content = t === 'light' ? '#EFF2EE' : '#0C0D0F';
+    if(m) m.content = t === 'light' ? '#EFF2EE' : '#0B100E';
   };
   window.setTheme = function(mode){
     try { localStorage.setItem('cs_theme', mode); } catch(_){}
@@ -5615,7 +5615,7 @@ const CARD_BADGE = {
    these cards are. */
 function drawRecapCard(d){
   const W=1080, H=1350;
-  const BG='#0C0D0F', PANEL='#17191C', INK='#F0F2F3', MUT='#8E979E', GOLD='#E9BE62';
+  const BG='#0B100E', PANEL='#151C18', INK='#F0F2F3', MUT='#8E979E', GOLD='#E9BE62';
   const cv=document.createElement('canvas'); cv.width=W; cv.height=H;
   const x=cv.getContext('2d');
   const MONO="'IBM Plex Mono',ui-monospace,Menlo,monospace";
@@ -5726,7 +5726,7 @@ async function shareRecapCard(d){
    DOM strip, drawn as rects because canvas has no DOM to reuse.               */
 function drawSettlementCard(d){
   const W=1080, H=1350;
-  const BG='#0C0D0F', PANEL='#17191C', INK='#F0F2F3', MUT='#8E979E',
+  const BG='#0B100E', PANEL='#151C18', INK='#F0F2F3', MUT='#8E979E',
         GOLD='#E9BE62', HOT='#FF5A2E', SLATE='#66707A';
   const cv=document.createElement('canvas'); cv.width=W; cv.height=H;
   const x=cv.getContext('2d');
@@ -12532,7 +12532,7 @@ function renderMajorRoom(el, E){
 /* D76 Charcoal — see the note on drawRecapCard */
 function drawMajorCard(d){
   const W=1080, H=1350;
-  const BG='#0C0D0F', PANEL='#17191C', INK='#F0F2F3', MUT='#8E979E', GOLD='#E9BE62';
+  const BG='#0B100E', PANEL='#151C18', INK='#F0F2F3', MUT='#8E979E', GOLD='#E9BE62';
   const cv=document.createElement('canvas'); cv.width=W; cv.height=H;
   const x=cv.getContext('2d');
   const MONO="'IBM Plex Mono',ui-monospace,Menlo,monospace";
@@ -17377,7 +17377,7 @@ if(unsubParam){
     catch(_){ ok = false; }
     const w = document.createElement('div');
     /* D76: charcoal ground; the CTA is an app action → ember, never gold */
-    w.style.cssText = 'position:fixed;inset:0;z-index:99999;background:#0C0D0F;color:#F0F2F3;display:flex;align-items:center;justify-content:center;padding:24px;text-align:center;font-family:ui-monospace,Menlo,monospace';
+    w.style.cssText = 'position:fixed;inset:0;z-index:99999;background:#0B100E;color:#F0F2F3;display:flex;align-items:center;justify-content:center;padding:24px;text-align:center;font-family:ui-monospace,Menlo,monospace';
     w.innerHTML = `<div style="max-width:340px">
       <div style="letter-spacing:.22em;font-size:12px;color:#8E979E">CUP SEASON</div>
       <div style="font-family:Georgia,serif;font-size:26px;margin:16px 0 8px">${ok?'You&rsquo;re unsubscribed':'That link has expired'}</div>
@@ -17397,7 +17397,7 @@ async function renderShareView(tok, _testInfo){
   /* D76: the GROUND converges to charcoal (identity, not metals) — every
      branch. Gold stays the earned face (settlement/recap); rounds are the
      live layer and speak ember/warm. */
-  const C = { bg:'#0C0D0F', panel:'#121417', ink:'#F0F2F3', mut:'#8E979E', gold:'#E9BE62', hot:'#FF5A2E', warm:'#E9A23B' };
+  const C = { bg:'#0B100E', panel:'#121417', ink:'#F0F2F3', mut:'#8E979E', gold:'#E9BE62', hot:'#FF5A2E', warm:'#E9A23B' };
   const MONO = "'IBM Plex Mono',ui-monospace,Menlo,monospace";
   const SERIF = "'Charter','Iowan Old Style','Palatino Linotype',Georgia,serif";
   const wrap = document.createElement('div');

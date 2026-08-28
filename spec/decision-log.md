@@ -3765,3 +3765,33 @@ level. Nothing built until the owner picks — the proposal is the artifact
 - **Open for the owner:** approve the homebase as-is or ask for a warmer /
   cooler neutral; pick the looks; decide whether a look is automatic
   (calendar) or a per-league toggle for the Pro.
+
+### D103a · DECIDED — Fescue is home; leagues wear a look; people pick a look or follow the calendar
+*(2026-08-27, owner: "make fescue the default for now, but give the user the
+ability to apply a curated palette to a league so they are differentiated,
+and users can select a palette or opt for 'follow the calendar palette'."
+Closes D103's open questions. UI level.)*
+- **Homebase = Fescue.** The ground ladder moves from charcoal to green-black
+  (`bg0 #0B100E · bg1 #151C18 · bg2 #1C2520 · line #243029 · line2 #33413A`);
+  ink, the two metals, the semantic pair, the heat ramp and the squads are
+  unchanged, and the light theme is unchanged (its paper was already
+  green-tinted). One edit in `tokens.json`, mirrored into `index.html`'s
+  `:root` so preflight 10 holds; the phone regenerates.
+- **Looks are a catalogue in `tokens.json`** (top-level `looks[]`, outside
+  `groups` so the token lint and the web CSS are untouched): nine calendar
+  looks with the windows from the "Homebase & the Looks" artifact (the
+  Ryder only in odd years) and two league-phase looks (Cup Final · the
+  Wrap). Generated to `CSDesign/Generated/Looks.swift`.
+- **Three dials, one precedence.** (1) A league's phase look (Cup Final, the
+  Wrap) wins in that league's room. (2) A league's curated look — the Pro
+  sets it (`leagues.look`, `set_league_look()`, commissioner only) — dresses
+  that league's room and its hero on Home. (3) The person's own dial —
+  device-local like the theme (`cs_look`: `calendar` (default) · a look key ·
+  `none`) — dresses Home, You and everything not owned by a league. Homebase
+  is what shows when nothing applies.
+- **What a look touches / never touches:** unchanged from D103 — spine, wash,
+  ⊕ halo tint, occasion card, eyebrow word, motif; never ground, ink, the
+  semantic pair, the heat ramp, the squads or gold's meaning.
+- **CONFLICT:** none. Supersedes D76's charcoal *values* (not its dark-first
+  rule). The logo brief in the artifact changes one line: the mark sits on
+  Fescue `#0B100E`, not charcoal.
