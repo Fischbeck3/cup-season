@@ -41,6 +41,11 @@ struct RootView: View {
       }
     }
     .animation(.easeOut(duration: 0.26), value: stateKey)
+    #if DEBUG
+    // `-cs_dev_door`: the door over the root whatever the session is, so a
+    // simulator signed in to a real account can show it without signing out.
+    .overlay { if DoorDev.forced { DoorView().background(cs.bg0.ignoresSafeArea()) } }
+    #endif
   }
 
   private var stateKey: String {

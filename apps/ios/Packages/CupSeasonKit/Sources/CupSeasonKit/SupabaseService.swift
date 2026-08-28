@@ -91,6 +91,16 @@ public final class SupabaseService: Sendable {
     _ = try await client.auth.signIn(email: AuthRules.normalizeEmail(email), password: password)
   }
 
+  /// Sign in with Apple (IOS-023): Apple's identity token and the RAW nonce
+  /// whose SHA-256 rode the request. Nothing else — no redirect URL exists on
+  /// this path either; the token round-trips inside the app.
+  public func signInWithApple(idToken: String, nonce: String) async throws {
+    guard !idToken.isEmpty, !nonce.isEmpty else {
+      throw RpcError(name: "signInWithApple", underlying: "Apple did not hand back a token.", droppedArgs: [])
+    }
+    _ = try await client.auth.signInWithIdToken(credentials: OpenIDConnectCredentials(provider: .apple, idToken: idToken, nonce: nonce))
+  }
+
   public func currentSession() async -> Session? {
     try? await client.auth.session
   }
