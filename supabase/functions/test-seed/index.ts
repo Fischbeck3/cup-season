@@ -12,6 +12,13 @@
 // leagues/events, and the FK cascades wipe everything else. Rounds you posted
 // as yourself are never touched. Caller-scoped: only ever seeds the signed-in
 // account. Requires SUPABASE_URL / SERVICE_ROLE_KEY / ANON_KEY (auto-injected).
+//
+// FOUNDER ONLY (IOS-024, closes SEC-H2). This function acts with the service
+// role, so "signed in" was never enough: any account could burn MAU with eight
+// bot users or hard-delete every @cupseason.test user. The caller's
+// `profiles.is_founder` is read with the service client after the JWT check;
+// anyone else gets 403 `{error:"founder only"}`. Every invocation is logged
+// with the caller id and the verdict — a misroute must never read as a no-op.
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
@@ -328,8 +335,15 @@ Deno.serve(async (req) => {
   // caller identity (only ever act on the signed-in account)
   const authClient = createClient(SB_URL, ANON, { global: { headers: { Authorization: req.headers.get("Authorization") ?? "" } } });
   const { data: { user } } = await authClient.auth.getUser();
-  if (!user) return json({ error: "not signed in" }, 401);
+  if (!user) { console.log(`[test-seed] caller=none action=${body?.action ?? "?"} allowed=false reason=not-signed-in`); return json({ error: "not signed in" }, 401); }
   const admin = createClient(SB_URL, SERVICE);
+
+  // authorization (SEC-H2): the founder, and only the founder — read from the
+  // database with the service client, never from anything the caller sent
+  const { data: prof, error: profErr } = await admin.from("profiles").select("is_founder").eq("id", user.id).maybeSingle();
+  const allowed = !profErr && prof?.is_founder === true;
+  console.log(`[test-seed] caller=${user.id} action=${body?.action ?? "?"} allowed=${allowed}${profErr ? ` reason=${profErr.message}` : ""}`);
+  if (!allowed) return json({ error: "founder only" }, 403);
 
   try {
     if (body.action === "reset") return json({ ok: true, removed: await reset(admin, user.id) });

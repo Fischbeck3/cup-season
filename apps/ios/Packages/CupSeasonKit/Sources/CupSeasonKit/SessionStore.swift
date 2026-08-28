@@ -34,6 +34,9 @@ public final class SessionStore {
   private let repo: any MeRepository
   private var listener: Task<Void, Never>?
   public let build: Int
+  /// IOS-024 `signed_in`: set by a SIGNED_IN event, cleared by the first
+  /// `.ready` after it — a Keychain restore (INITIAL_SESSION) never fires it.
+  private var signInPending = false
 
   public init(svc: SupabaseService = .shared, repo: any MeRepository = SupabaseMeRepository(), build: Int = SessionStore.bundleBuild()) {
     self.svc = svc; self.repo = repo; self.build = build
@@ -62,6 +65,7 @@ public final class SessionStore {
     case .initialSession, .signedIn:
       if session != nil {
         if case .ready = state, event == .signedIn { return }   // already in; a re-emit
+        if event == .signedIn { signInPending = true }
         await reload()
       } else {
         state = .signedOut
@@ -90,6 +94,7 @@ public final class SessionStore {
       } else {
         if preferredLeague == nil { preferredLeague = me.memberships.first?.league_id }
         state = .ready(me)
+        if signInPending { signInPending = false; CSTelemetry.product(.signedIn) }
       }
     } catch {
       state = .failed(AuthRules.human(error, fallback: "Could not load your card."))

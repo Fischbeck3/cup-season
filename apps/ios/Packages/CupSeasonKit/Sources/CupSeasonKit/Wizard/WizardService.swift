@@ -27,13 +27,10 @@ public struct WizardService: Sendable {
 
   public enum Event: String, Sendable { case league_create, lock_attempt, lock_blocked, lock_ok, invite_open }
 
-  private struct EventRow: Encodable { let event: String; let props: JSONValue }
-
-  /// Fire-and-forget; a breadcrumb must never break a lock.
+  /// Fire-and-forget; a breadcrumb must never break a lock. One writer since
+  /// IOS-024: `CSTelemetry` (dedupes, swallows, never blocks).
   public func track(_ event: Event, _ props: [String: JSONValue] = [:]) {
-    let db = svc.client
-    let row = EventRow(event: event.rawValue, props: .object(props))
-    Task.detached { _ = try? await db.from("client_events").insert(row).execute() }
+    CSTelemetry.event(event.rawValue, props)
   }
 
   // MARK: create (`createLeague`)
@@ -54,6 +51,7 @@ public struct WizardService: Sendable {
       throw RpcError(name: "create_league", underlying: "The league was created but its id did not come back.", droppedArgs: [])
     }
     track(.league_create, ["named": .bool(finalName != "My Cup")])
+    CSTelemetry.product(.leagueCreated, leagueId: id)   // IOS-024
     return Created(leagueId: id, name: data["league"]?["name"]?.string ?? finalName,
                    code: data["league"]?["code"]?.string ?? code,
                    memberId: data["member"]?["id"]?.string.flatMap(UUID.init))
@@ -143,6 +141,7 @@ public struct WizardService: Sendable {
     try await db.from("leagues").update(LeaguePhase(phase: nextPhase, name: name)).eq("id", value: leagueId).execute()
 
     track(.lock_ok, ["next_phase": .string(nextPhase)])
+    CSTelemetry.product(.leagueLocked, leagueId: leagueId)   // IOS-024
     return Locked(nextPhase: nextPhase, seasonId: seasonRow.id, startsOn: seasonRow.starts_on, endsOn: seasonRow.ends_on)
   }
 

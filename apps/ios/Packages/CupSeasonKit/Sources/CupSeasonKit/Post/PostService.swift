@@ -82,6 +82,7 @@ public struct PostService: Sendable {
 
   private func insert(_ p: PostPayload) async throws -> UUID {
     let row: IdRow = try await db.from("rounds").insert(p).select("id").single().execute().value
+    CSTelemetry.product(.roundPosted)   // IOS-024: the insert is the fact; holes/photo are garnish
     return row.id
   }
 
@@ -93,12 +94,10 @@ public struct PostService: Sendable {
 
   // MARK: - breadcrumbs (`qaEvent`, 6099–6105)
 
-  private struct EventRow: Encodable { let event: String; let props: JSONValue }
-
   /// Fire-and-forget into `client_events`; every failure is swallowed — a
-  /// breadcrumb must never break a post. `profile_id` defaults server-side.
+  /// breadcrumb must never break a post. One writer since IOS-024: `CSTelemetry`.
   public func event(_ name: String, _ props: [String: JSONValue] = [:]) {
-    Task { _ = try? await db.from("client_events").insert(EventRow(event: name, props: .object(props))).execute() }
+    CSTelemetry.event(name, props)
   }
 
   // MARK: - after the post

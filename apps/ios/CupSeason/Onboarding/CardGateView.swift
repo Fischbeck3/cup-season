@@ -168,6 +168,7 @@ struct CardGateView: View {
       try await svc.call(Rpc.set_handle(p_handle: handle))
       try await svc.call(Rpc.set_profile(p_name: name.trimmingCharacters(in: .whitespaces), p_index: idx, p_marker: marker,
                                          p_ghin: ghin.isEmpty ? nil : ghin))
+      CSTelemetry.product(.cardSet)   // IOS-024: the gate's successful save
       CSHaptic.success()
       await store.reload()
     } catch {
