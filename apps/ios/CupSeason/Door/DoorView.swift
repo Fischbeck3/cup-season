@@ -277,6 +277,7 @@ final class DoorModel {
     func arg(_ k: String) -> String? { args.firstIndex(of: k).flatMap { $0 + 1 < args.count ? args[$0 + 1] : nil } }
     guard let e = arg("-cs_dev_email") else { return }
     email = e
+    if let pw = arg("-cs_dev_password"), AuthRules.isReviewer(e) { stage = .password; password = pw; await reviewer(); return }
     if let c = arg("-cs_dev_code") { stage = .code; code = c; await verify() } else { await send() }
   }
   #endif
