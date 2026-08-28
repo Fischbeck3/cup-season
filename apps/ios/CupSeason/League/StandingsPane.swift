@@ -62,6 +62,7 @@ struct StandingsPane: View {
               .foregroundStyle(cs.ink).background(cs.bg2, in: RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous))
               .overlay(RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous).stroke(cs.line2, lineWidth: 1))
           }
+          .simultaneousGesture(TapGesture().onEnded { CSGrowth.log(.artifactShared, kind: "join", token: model.league?.code, league: model.league?.id) })
         }
         if joinsQuiet { RoomFine("Joins have gone quiet — a nudge in the group chat usually does it.") }
       }
@@ -108,6 +109,7 @@ struct StandingsPane: View {
             Text("Code · \(code)").font(CSFont.monoSmall).foregroundStyle(cs.ink).padding(.horizontal, 12).frame(minHeight: 36)
               .background(cs.bg2, in: Capsule()).overlay(Capsule().stroke(cs.line2, lineWidth: 1)).frame(minHeight: 44)
           }
+          .simultaneousGesture(TapGesture().onEnded { CSGrowth.log(.artifactShared, kind: "join", token: code, league: model.league?.id) })
         }
         RoomMini("Add golfers") { links.addGolfers() }
       }

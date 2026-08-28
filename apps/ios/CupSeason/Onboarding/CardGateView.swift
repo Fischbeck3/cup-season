@@ -224,6 +224,7 @@ struct CardGateView: View {
       try await svc.call(Rpc.set_profile(p_name: name.trimmingCharacters(in: .whitespaces), p_index: idx, p_marker: marker,
                                          p_ghin: ghin.isEmpty ? nil : ghin))
       CSTelemetry.product(.cardSet)   // IOS-024: the gate's successful save
+      CSGrowth.profileCreated()       // growth funnel node 4, attributed to the pending claim / join
       CSHaptic.success()
       PushAsk.shared.request(.cardSaved)   // D104 §6: the ask follows the moment, once Home is up
       await store.reload()

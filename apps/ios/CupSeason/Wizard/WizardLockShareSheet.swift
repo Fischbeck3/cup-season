@@ -45,6 +45,7 @@ struct WizardLockShareSheet: View {
             Text(WizardCopy.shareInvite).font(CSFont.button).frame(maxWidth: .infinity, minHeight: 50)
               .foregroundStyle(cs.bg0).background(cs.brand, in: RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous))
           }
+          .simultaneousGesture(TapGesture().onEnded { CSGrowth.log(.artifactShared, kind: "join", token: share.code, league: share.leagueId) })
           .padding(.top, 4)
         }
         CSButton("Add golfers", style: .quiet) { picker = true }

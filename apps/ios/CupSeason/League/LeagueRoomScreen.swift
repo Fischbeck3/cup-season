@@ -158,6 +158,7 @@ struct LeagueHeaderCard: View {
             ShareLink(item: url, subject: Text("Cup Season"), message: Text(model.inviteText)) {
               RoomCodeChip(code: code)
             }
+            .simultaneousGesture(TapGesture().onEnded { CSGrowth.log(.artifactShared, kind: "join", token: code, league: model.league?.id) })
             .accessibilityLabel("Code \(code) — share the invite")
           }
         }

@@ -113,7 +113,7 @@ sections (§2.2, §14.0) when making competition-model decisions.
   **Grants are now explicit (D37, migration `20260718172300`).** Default
   privileges no longer auto-grant EXECUTE to `anon`/`authenticated`, so **every
   new migration MUST `grant execute on function … to authenticated`** for any
-  client-called RPC (and to `anon` only for the eleven public endpoints — the seven below, the `guest_live_state` / `guest_live_set_score` / `guest_live_set_wolf` trio from D86, and `door_flags` — IOS-023, one boolean for the signed-out door:
+  client-called RPC (and to `anon` only for the twelve public endpoints — the seven below, the `guest_live_state` / `guest_live_set_score` / `guest_live_set_wolf` trio from D86, `door_flags` — IOS-023, one boolean for the signed-out door, and `log_growth_event` — 20260828160000: signed-out may log only a real link being opened; a made-up token logs nothing and returns the same void:
   `claim_round_info`, `scan_claim_info`, `league_by_code`, `founder_id`,
   `share_info` — D57, `join_covenant_info` — setup-QA S3-01,
   `email_unsubscribe` — D68: an unsubscribe that demands a login is not an
@@ -241,6 +241,18 @@ edge months** (blanket rule, decided). League timezone default
   v23.39; every classic-side DB write (chat, quick post) local-echoed and
   looked exactly like "not saving." When classic code references `window.X`,
   grep for the `window.X =` assignment in the module before trusting it.
+- **supabase-js NEVER throws on a database error** — `await sb.from(t).insert(x)`
+  returns `{ error }` and resolves. A direct write without `const { error } =`
+  is a silent failure that the UI then narrates as success (2026-08-28 found
+  four on consequential paths: lock-league, wizard invites, round_holes,
+  push-off). Every direct write destructures and throws; better still, it is
+  an RPC. The phone has no direct writes at all — that is the model.
+- **The "Supabase Casa" MCP is bound to a DIFFERENT project** (casa-contenta,
+  `dloqhozuxrmgmwmibfbx`). Its advisors/cron/trigger answers are not about
+  Cup Season. Verify prod with `supabase db query --linked "<sql>"` (read-only,
+  no Docker needed); wrap a migration in `begin; … rollback;` to dry-run it.
+  Also: CLI ≥2.116 emits JSON when piped — `deploy-status.mjs` passes
+  `--output-format text` or every layer reads "unknown" (it did, silently).
 
 ## The phone (D99, 2026-08-27)
 
@@ -290,8 +302,9 @@ edge months** (blanket rule, decided). League timezone default
 card → league-less home → create league via the rebuilt **wizard** (roster-aware
 structure, endgame dial, pot split, fine-print disclosure) → lock → join by code
 / invite link (with the join covenant) → blind draw / assign → season. Posting:
-the **hole-by-hole stepper is default** (par-prefilled grid, writes
-`round_holes`), gross-only is the escape hatch. Scoring: the **auto-handicap
+the **quick post is two boxes** (front/back gross — D34, after two of two
+pilot users stumbled on the grid; the hole-by-hole grid is DORMANT, per-hole
+data comes from live scoring and scorecard scan). Scoring: the **auto-handicap
 engine** derives the index from scores (WHS-lite, establishes at 3 rounds; a
 manual index is a starter that scores overtake); round cards speak the **named
 bands** ("beat your number by X"), never PvI/differential; **receipts** tap from

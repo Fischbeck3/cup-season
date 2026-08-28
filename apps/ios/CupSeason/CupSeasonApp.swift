@@ -27,8 +27,8 @@ struct CupSeasonApp: App {
         .task { await PushService.shared.syncOnLaunch() }
         // Universal Links: /?join=CODE and /?claim=TOKEN (the AASA claims only these two).
         .onOpenURL { url in
-          if let code = JoinIntent.code(from: url) { JoinIntent.store(code) ; Task { await store.reload() } }
-          else if let claim = ClaimIntent.token(from: url) { ClaimIntent.store(claim) }   // consumed by the tee sheet (wave 4)
+          if let code = JoinIntent.code(from: url) { JoinIntent.store(code); CSGrowth.log(.linkOpened, kind: "join", token: code); Task { await store.reload() } }
+          else if let claim = ClaimIntent.token(from: url) { ClaimIntent.store(claim); CSGrowth.log(.linkOpened, kind: "claim", token: claim) }   // consumed by the tee sheet (wave 4)
         }
     }
   }

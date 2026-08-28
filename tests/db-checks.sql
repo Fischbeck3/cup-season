@@ -31,17 +31,18 @@ select '1 · pg_cron jobs' as check_name,
       (select count(*) from cron.job where active)::text end as status,
   (select string_agg(jobname, ' · ' order by jobname) from cron.job where active) as detail
 
--- 2 · anon can execute EXACTLY the ten public endpoints (D57 share_info;
+-- 2 · anon can execute EXACTLY the twelve public endpoints (D57 share_info;
 --     setup-QA join_covenant_info; D68 email_unsubscribe; D85 the guest live
---     pencil trio — token-keyed, fail-closed)
+--     pencil trio — token-keyed, fail-closed; 20260828160000 log_growth_event —
+--     signed-out may log only a real link being opened, void either way)
 union all
 select '2 · anon function surface',
   case when missing = '' and extra = '' then 'PASS'
     else 'FAIL — missing: [' || missing || '] unexpected: [' || extra || ']' end,
-  'expected claim_round_info, scan_claim_info, league_by_code, founder_id, share_info, join_covenant_info, email_unsubscribe, guest_live_state, guest_live_set_score, guest_live_set_wolf, door_flags'
+  'expected claim_round_info, scan_claim_info, league_by_code, founder_id, share_info, join_covenant_info, email_unsubscribe, guest_live_state, guest_live_set_score, guest_live_set_wolf, door_flags, log_growth_event'
 from (
   select
-    (select coalesce(string_agg(f, ', '), '') from unnest(array['claim_round_info','scan_claim_info','league_by_code','founder_id','share_info','join_covenant_info','email_unsubscribe','guest_live_state','guest_live_set_score','guest_live_set_wolf','door_flags']) f
+    (select coalesce(string_agg(f, ', '), '') from unnest(array['claim_round_info','scan_claim_info','league_by_code','founder_id','share_info','join_covenant_info','email_unsubscribe','guest_live_state','guest_live_set_score','guest_live_set_wolf','door_flags','log_growth_event']) f
       where not exists (select 1 from pg_proc p join pg_namespace n on n.oid = p.pronamespace
         where n.nspname = 'public' and p.proname = f
           and has_function_privilege('anon', p.oid, 'execute'))) as missing,
@@ -49,7 +50,7 @@ from (
       join pg_namespace n on n.oid = p.pronamespace
       where n.nspname = 'public'
         and has_function_privilege('anon', p.oid, 'execute')
-        and p.proname not in ('claim_round_info','scan_claim_info','league_by_code','founder_id','share_info','join_covenant_info','email_unsubscribe','guest_live_state','guest_live_set_score','guest_live_set_wolf','door_flags')) as extra
+        and p.proname not in ('claim_round_info','scan_claim_info','league_by_code','founder_id','share_info','join_covenant_info','email_unsubscribe','guest_live_state','guest_live_set_score','guest_live_set_wolf','door_flags','log_growth_event')) as extra
 ) t
 
 -- 3 · every client-called RPC is executable by authenticated (the 105:

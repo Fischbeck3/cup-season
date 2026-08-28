@@ -41,6 +41,7 @@ struct MembersSheet: View {
             .foregroundStyle(cs.ink).background(cs.bg2, in: RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous))
             .overlay(RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous).stroke(cs.line2, lineWidth: 1))
         }
+        .simultaneousGesture(TapGesture().onEnded { CSGrowth.log(.artifactShared, kind: "join", token: model.league?.code, league: model.league?.id) })
       }
     }
     .sheet(item: $setIndexFor) { m in SetIndexSheet(member: m).environment(model).presentationDetents([.medium]) }

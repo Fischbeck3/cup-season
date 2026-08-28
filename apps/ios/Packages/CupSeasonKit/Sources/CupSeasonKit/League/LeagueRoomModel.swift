@@ -473,6 +473,7 @@ public final class LeagueRoomModel {
   public func seasonShareURL() async throws -> URL {
     guard let s = season else { throw RpcError(name: "create_share", underlying: "The season page opens at first tee", droppedArgs: []) }
     let token = try await svc.call(Rpc.create_share(p_kind: "recap", p_ref: s.id))
+    CSGrowth.log(.artifactShared, kind: "recap", token: token.uuidString.lowercased(), league: league?.id)
     return URL(string: "\(CSConfig.webOrigin.absoluteString)/?share=\(token.uuidString.lowercased())")!
   }
   public func revokeSeasonShare() async throws {

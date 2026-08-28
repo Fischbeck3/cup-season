@@ -5913,6 +5913,7 @@ async function csShareLink(kind, ref, text, card){
       }catch(e){ try{ console.warn('[share photo] link ships photo-less:', e.message||e); }catch(_){} }
     }
     const url = location.origin + '/?share=' + data;
+    growthEvent('artifact_shared', kind==='round' ? 'share' : kind, data, null, window.CS?.league?.id);
     if(navigator.share){
       try{ await navigator.share({ title:'Cup Season', text, url }); return; }
       catch(e){ if(e && e.name==='AbortError') return; }
@@ -6108,6 +6109,19 @@ function qaEvent(event, props){
    threw "Can't find variable: memName" (F-007). Bridge it explicitly and call
    it as window.qaEvent?.() over there, so a breadcrumb can never break lock. */
 window.qaEvent = qaEvent;
+/* The growth funnel (spec/claim-loop-instrumentation.md): five nodes, one
+   anon-safe RPC. Unlike qaEvent this MUST work signed-out — `link_opened` is
+   the whole point — so it goes through log_growth_event(), which is fail-closed
+   server-side (a made-up token logs nothing and says nothing). Fire-and-forget:
+   never blocks, never toasts, swallows a missing function during deploy skew. */
+function growthEvent(node, kind, token, props, league){
+  try{
+    if(state.demo || !window.sb) return;
+    window.sb.rpc('log_growth_event', { p_node: node, p_kind: kind||null, p_token: token||null,
+      p_props: props||{}, p_league: league||null }).then(null, ()=>{});
+  }catch(_){}
+}
+window.growthEvent = growthEvent;
 
 /* ---- quick-post entry (D32: front & back is the default; the hole-by-hole
    card from decision #5 stays as the opt-in, still par-prefilled) ---- */
@@ -6406,6 +6420,7 @@ $('#postBtn').addEventListener('click', async ()=>{
           }
         }
       }
+      growthEvent('first_round_posted');   /* server no-ops unless this is the golfer's first round */
       /* D33: gate 3 measured on every real post — composer-open → posted */
       qaEvent('post_submit', {
         mode:  holesMode ? 'holes' : 'total',
@@ -6688,6 +6703,7 @@ function scanPartnersSheet(ctx){
       await navigator.clipboard?.writeText(`${location.origin}/?claim=${p._token}`);
       b.textContent='Copied ✓';
       qaEvent('scan_claim_minted');
+      growthEvent('artifact_shared', 'claim', p._token);
     }catch(err){ toast(humanError(err, 'Could not make the link.')); b.disabled=false; }
   }));
 }
@@ -9333,6 +9349,7 @@ $('#groupShareBtn')?.addEventListener('click', ()=>{
     try{
       await navigator.clipboard?.writeText(`${location.origin}/?claim=${b.dataset.ctok}`);
       b.textContent='Copied ✓';
+      growthEvent('artifact_shared', 'claim', b.dataset.ctok, null, window.CS?.league?.id);
     }catch(_){ toast('Copy failed — try again'); }
   }));
 });
@@ -12988,6 +13005,10 @@ $('#pfSave').addEventListener('click', async () => {
       p_ghin: (($('#pfGhin')?.value) || '').trim() || null,   /* GHIN B: identity, optional; null = keep (none on a new profile) */
     });
     if(error) throw error;
+    { let via='direct', tok=null;
+      try{ const c=localStorage.getItem('cs_code'), k=localStorage.getItem('cs_claim');
+           if(k){ via='claim'; tok=k; } else if(c){ via='join'; tok=c; } }catch(_){}
+      window.growthEvent?.('profile_created', via==='direct'?null:via, tok, { via }); }
     await loadProfile();
     $('#obProfile').style.display = 'none';
     toast(`Card saved. Welcome, ${name}.`);
@@ -13920,6 +13941,7 @@ async function shareInvite(){
   if(!code) return;
   const url = 'https://cupseason.app/?join=' + encodeURIComponent(code);
   const text = `You're invited to ${CS.league.name} on Cup Season`;
+  window.growthEvent?.('artifact_shared', 'join', code, null, CS.league.id);
   if(navigator.share){
     try { await navigator.share({ title: 'Cup Season', text, url }); return; }
     catch(e){ if(e && e.name === 'AbortError') return; }
@@ -17416,7 +17438,7 @@ if(unsubParam){
 }
 
 const shareParam = new URLSearchParams(window.location.search).get('share');
-if(shareParam){ window._csShareView = true; renderShareView(shareParam.trim()); }
+if(shareParam){ window._csShareView = true; window.growthEvent?.('link_opened', 'share', shareParam.trim()); renderShareView(shareParam.trim()); }
 window._csShareRender = renderShareView;   /* QA hook: drive the view with a token or a stub payload */
 async function renderShareView(tok, _testInfo){
   /* D76: the GROUND converges to charcoal (identity, not metals) — every
@@ -17587,6 +17609,7 @@ if(joinParam){
   const jc = joinParam.trim().toUpperCase();
   try { localStorage.setItem('cs_code', jc); } catch(_){}
   history.replaceState(null, '', window.location.pathname);
+  window.growthEvent?.('link_opened', 'join', jc);
   /* F1 (shareability audit): the LINK path never resolved the league name —
      only manual code entry did — so recipients were greeted with the raw code.
      Resolve it now (league_by_code is one of the anon endpoints) and, if the
@@ -17609,6 +17632,7 @@ const claimParam = new URLSearchParams(window.location.search).get('claim');
 if(claimParam){
   try{ localStorage.setItem('cs_claim', claimParam.trim()); }catch(_){}
   history.replaceState(null, '', window.location.pathname);
+  window.growthEvent?.('link_opened', 'claim', claimParam.trim());
 }
 async function claimPendingRound(){
   let tok=null; try{ tok=localStorage.getItem('cs_claim'); }catch(_){}
@@ -17725,6 +17749,7 @@ async function safeBoot(force){
         catch(_){}
       }
       if(data && !data.claimed){
+        window.growthEvent?.('claim_started', 'claim', claimTok);
         /* D77: the first sentence a brand-new golfer ever reads from us. It was
            three clauses long and ended on a raw ISO date ('· 2026-07-25'), which
            is a database value, not a date anyone writes. Name the round, then

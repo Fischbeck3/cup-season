@@ -83,6 +83,7 @@ public struct PostService: Sendable {
   private func insert(_ p: PostPayload) async throws -> UUID {
     let row: IdRow = try await db.from("rounds").insert(p).select("id").single().execute().value
     CSTelemetry.product(.roundPosted)   // IOS-024: the insert is the fact; holes/photo are garnish
+    CSGrowth.log(.firstRoundPosted)     // the server no-ops unless this was the golfer's first
     return row.id
   }
 
@@ -126,6 +127,7 @@ public struct PostService: Sendable {
   public func shareLink(round id: UUID, compress: @Sendable (Data) async -> Data?) async throws -> URL {
     let token = try await svc.call(Rpc.create_share(p_kind: "round", p_ref: id))
     let name = token.uuidString.lowercased()
+    CSGrowth.log(.artifactShared, kind: "share", token: name)   // the share ACTION, not a render
     do {
       let rows: [PhotoRow] = try await db.from("rounds").select("photo_path").eq("id", value: id).limit(1).execute().value
       if let path = rows.first?.photo_path {
@@ -192,9 +194,11 @@ public struct PostService: Sendable {
 
   /// `create_scan_claim` — the token behind `/?claim=`.
   public func mintClaim(_ p: PostScanPlayer, ctx: ClaimContext) async throws -> UUID {
-    try await svc.call(Rpc.create_scan_claim(
+    let token: UUID = try await svc.call(Rpc.create_scan_claim(
       p_name: p.name ?? "", p_gross: p.total ?? 0, p_strokes: .array(p.holes.map { .number(Double($0)) }),
       p_course: ctx.courseLabel ?? "", p_rating: ctx.rating, p_slope: ctx.slope, p_played: ctx.playedOn, p_holes: ctx.holes))
+    CSGrowth.log(.artifactShared, kind: "claim", token: token.uuidString.lowercased())
+    return token
   }
 
   public static func claimURL(_ token: UUID) -> URL { URL(string: "https://cupseason.app/?claim=\(token.uuidString.lowercased())")! }

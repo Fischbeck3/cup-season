@@ -3842,3 +3842,126 @@ hardly noticeable." UI level.)*
   ground and ink, primary buttons (ember), gold and its meaning, `pos`/`neg`,
   the heat ramp, the squads, ceremonies and share cards.
 - **CONFLICT:** none; refines D103a's values and reach.
+
+### D105 · The Cup Final you can see — the window race is a server view, seeds carry the crown's ladder
+*(2026-08-28, from the holistic launch review. Mechanic level (seeding
+tiebreak) + UI level (the race surface). PROPOSED — talk first; nothing built
+until the owner says so. Sources: spec §14.0/§14.3, `enter_cup_final`
+(baseline:287–327), `close_season` (20260724230000:24+), audit 02 §7.7–7.8.)*
+- **Current:** §14.0 says "the final four weeks, scored fresh" and §14.3 locks
+  the top-2 seeds at `ends_on − 27`. The server does this: `enter_cup_final`
+  writes `cup_finalists` and posts "FRESH SLATE, FOUR WEEKS"; `close_season`
+  scores the window in an inline CTE (`played_on between ends_on−27 and
+  ends_on`, `month_rank ≤ cap`, + `head_start`) and crowns through the
+  four-rung ladder, storing the rung. But `v_squad_standings` /
+  `v_individual_standings` have no date predicate, so during `cup_final` both
+  clients keep rendering FULL-SEASON totals under a header that says "fresh
+  slate"; the phone never reads `cup_finalists` at all. And `enter_cup_final`
+  seeds with `order by points desc limit 2` — a tie at the cut (or for the
+  squads2 +10 seed) is decided by Postgres row order, with no rung stored.
+- **Problem:** the flagship moment of the product is invisible — the leader
+  watches a lead "vanish" behind a table that still shows it (D4's rug-pull,
+  half-fixed: foreshadow shipped, the race itself never did). A tie for a seed
+  is unexplainable, which breaks §16 at the one moment the whole season
+  points to. The window arithmetic lives only inside `close_season`, so any
+  client that computes its own race can drift from the crown.
+- **Recommendation:**
+  1. **One expression, shared.** Extract the window score into
+     `cup_final_race(p_season)` (security definer, authenticated, member-gated)
+     returning per finalist: `seed`, `head_start`, `window_points`,
+     `rounds_used`, `last_round_on`, `total` (= head_start + window_points),
+     and the per-round receipt rows behind it. `close_season` calls the SAME
+     function for the crown, so the live race and the ceremony cannot
+     disagree (§16: the figure and its receipt are one path).
+  2. **Seeds carry the crown's ladder.** `enter_cup_final` orders by
+     `points desc, months_won desc, best_month desc, rounds_used asc, coin`
+     — the §14.3 ladder applied to the regular season to date — and stores
+     the deciding rung on `cup_finalists.seed_rung` (null when points alone
+     decided). The board post names it: "SEEDS ARE LOCKED — #2 BY MONTHS
+     WON". One ladder, learned once, used twice.
+  3. **The race leads the room.** During `cup_final`, Standings opens on the
+     Cup Final race: the finalists, `window_points`, the +10 head start as
+     its own visible line ("starts +10 · top seed"), rounds used of the cap,
+     days left. The regular-season table drops beneath, titled "The regular
+     season — final", seeds badged. Non-finalists keep their races (Points
+     King, Iron Man, Most Improved) exactly as §14.3 says. Foreshadow (D4,
+     `season_scenarios`) is unchanged.
+  4. Both clients read the view; neither computes the race locally.
+- **Principle served:** §16 (every figure shows its work) · #4 Memory over
+  statistics (the Cup Final IS the story) · success metric "understand
+  standings in ten seconds".
+- **Benefit:** the lead doesn't vanish — it converts into a seed and a head
+  start you can see; ties at the cut are explainable in the ladder's own
+  words; the ceremony and the live race are provably the same number.
+- **Tradeoffs:** one RPC + one column (`seed_rung`) + a re-created
+  `enter_cup_final`; the ladder's `months_won`/`best_month` for seeding use
+  the months closed so far (the crown's ladder keeps using the full season
+  as it does today — unchanged, noted). Solo leagues seed top-2 individuals
+  by the same ladder.
+- **CONFLICT:** spec §4 (:122) still carries an older Cup Final tiebreak
+  ("combined squad PvI for the window; then a playoff round between
+  captains"). §14.0 declares §14 supersedes on conflict; this entry retires
+  §4's tiebreak formally — the §14.3 ladder is the only one, for seeds and
+  for the crown. Vision/principles: none.
+
+### D106 · The pot has two numbers — owed is the roster, collected is the cash, and the ceremony pays from the cash
+*(2026-08-28, from the holistic launch review. Closes the ⚑ carried in
+`docs/ios/DECISIONS.md:168` and `PHASE-3-WAVE-8-PARITY.md:244` ("needs a
+decision-log line before it goes into a store listing"). Mechanic level.
+PROPOSED — talk first. Sources: spec §7, `mark_buy_in`
+(20260712130000:20–62), `award_season_trophies` (20260725190000:73),
+`close_season` payout math, audit 02 §7.6, audit 06 §9.3/§9.7.)*
+- **Current:** every surface computes **the pot = buy-in × roster**: the Pot
+  tab (`renderPot`, `LeagueRoomModel.potTotal`), the on-the-line bar, the
+  covenant ("joining puts you on the pot sheet for $X"), and — decisively —
+  `award_season_trophies` / `close_season`, which split buy-in × ALL members
+  60/25/15 into `season_payouts` and post "The pot: $X". `buy_ins.paid` is
+  bookkeeping only: it drives the "n/N collected" chip and cancellation
+  refunds, nothing else. A member who never paid still inflates every
+  "You're owed" line in the ceremony (audit 06: "'You're owed' can exceed
+  collected cash").
+- **Problem:** the ledger promises a truth it doesn't keep. "Owed to the
+  pot" and "in the pot" are different facts and the app blends them into
+  one number, so at the exact moment money is supposed to move, the champion
+  is told a figure that may not exist. Pick one number and you lose either
+  the Pro's collection tool (sum-of-paid hides who hasn't paid) or the
+  ceremony's honesty (stake × roster overstates the cash).
+- **Recommendation — two numbers, always both, never blended:**
+  1. **The pot** = stake × roster: what the league agreed to. The roster is
+     `league_members` at any moment (join = onto the sheet, per the
+     covenant; `remove_member` already deletes the buy-in row). Unchanged.
+  2. **Collected** = `sum(amount_cents) where paid`. Already computed for
+     the chip; becomes a first-class figure next to the pot everywhere the
+     pot appears ("$600 pot · $450 collected · 2 still owe").
+  3. **The ceremony pays from collected.** `award_season_trophies` splits
+     COLLECTED 60/25/15 (pennies to the champion as today) into
+     `season_payouts`, and writes `seasons.pot_cents` and
+     `seasons.collected_cents`. The settlement post reads "The pot: $600 ·
+     collected $450 · champs $270 · runner-up $112.50 · points king $67.50 ·
+     still owed: $150 (Metz, Ed)". "You're owed" can never exceed cash that
+     exists. When collected = pot the two lines collapse into one.
+  4. **A late payment re-runs the split.** `mark_buy_in` after `complete`
+     deletes and re-inserts that season's `season_payouts` from the new
+     collected total (idempotent, same function), and posts the delta. The
+     ceremony re-renders from the ledger; nothing is hand-edited (§16).
+  5. **Clients read, never compute.** The web ceremony (`csSettlement`)
+     switches to `season_payouts` + the two stored figures, as the phone
+     already does (`PotMath.fromLedger`); the Pot tab and on-the-line bar
+     show both numbers from `buy_ins` (no new read).
+  6. $0 leagues: D70 unchanged — no pot surfaces at all.
+- **Principle served:** §7 "track, never hold — the ledger is the product" ·
+  §16 show your work · Principle #3 Real golf, real money between friends,
+  no fiction.
+- **Benefit:** the settlement card is true on the day it's shared (it is
+  the product's best marketing artifact — a false one costs a league); the
+  Pro keeps a collection tool that names who still owes; store-listing copy
+  ("keeps the pot's books") becomes literally accurate.
+- **Tradeoffs:** a champion with a deadbeat teammate sees a smaller payout
+  until the Pro marks the payment — that is the truth, and the "still owed"
+  line says exactly whose. Two columns on `seasons`, one re-created
+  `award_season_trophies`, one branch in `mark_buy_in`, a client read swap.
+  Cancellation refunds already use `paid` — consistent.
+- **CONFLICT:** none. D39 (ledger, never held) is served, not changed; D70
+  untouched; D101 (the league pass paid to Cup Season) is a separate ledger
+  and unaffected. Spec §7 gains one sentence: "The pot is what the roster
+  owes; payouts are made from what was collected."
