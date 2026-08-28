@@ -13,19 +13,12 @@
 import Foundation
 import UserNotifications
 
-/// `my_actionable_count()` — authenticated, `auth.uid()`-scoped, one integer.
-struct PushBadgeCountCall: RpcCall {
-  static let name = "my_actionable_count"
-  static let optionalArgs: [String] = []
-  typealias Returns = Int
-}
-
 public enum PushBadge {
   /// Ask the server, set the badge. Silent on any failure.
   @MainActor
   public static func refresh(_ svc: SupabaseService = .shared) async {
     guard await svc.currentSession() != nil else { return }
-    guard let n = try? await svc.call(PushBadgeCountCall()) else { return }
+    guard let n = try? await svc.call(Rpc.my_actionable_count()) else { return }
     try? await UNUserNotificationCenter.current().setBadgeCount(max(0, n))
   }
 }

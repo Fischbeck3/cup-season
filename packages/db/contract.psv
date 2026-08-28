@@ -19,13 +19,14 @@
 #     from pg_proc p join pg_namespace n on n.oid=p.pronamespace
 #     where n.nspname='public' and p.prokind='f') s;
 #
-# Snapshot taken 2026-08-26; refreshed 2026-08-27 (late) after the league_look push (20260827200000). That function was absent from the first snapshot on purpose - check 11
+# Snapshot taken 2026-08-26; refreshed 2026-08-27 (late) after the wave-7 push (20260827210000). That function was absent from the first snapshot on purpose - check 11
 # reported it as a deploy owed, which is exactly its job. Lesson kept: after a
 # db push that adds or re-signs a function, refresh this file, or the check
 # keeps reporting a deploy you already made.
 _live_member_can|p_live_round uuid|boolean|definer|none
 _live_state_of|p_live_round uuid|jsonb|definer|none
 abandon_live_round|p_live_round uuid|jsonb|definer|auth
+actionable_count_of|p_profile uuid|integer|definer|none
 add_event_player|p_event uuid, p_profile uuid|uuid|definer|auth
 add_friend_to_league|p_league uuid, p_profile uuid|void|definer|auth
 add_round_comment|p_round uuid, p_body text|void|definer|auth
@@ -113,6 +114,7 @@ mark_email_sent|p_id uuid, p_error text DEFAULT NULL::text|void|definer|none
 mj_money|n numeric|text|invoker|none
 mj_vs|n numeric|text|invoker|none
 my_achievements||TABLE(kind text, label text, earned_on date, meta jsonb)|definer|auth
+my_actionable_count||integer|definer|auth
 my_friends||TABLE(friendship_id uuid, profile_id uuid, handle text, display_name text, city text, marker text, index_current numeric, status text, incoming boolean)|definer|auth
 my_invites||TABLE(id uuid, kind text, container_id uuid, container_name text, inviter text, starts_on date, created_at timestamp with time zone)|definer|auth
 my_member_id|p_league uuid|uuid|definer|auth
