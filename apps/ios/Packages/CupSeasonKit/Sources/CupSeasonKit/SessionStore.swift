@@ -21,6 +21,8 @@ public enum AppState: Sendable {
 @Observable
 public final class SessionStore {
   public private(set) var state: AppState = .restoring
+  /// D102 — who is the founder, who are the founding members (one read per load).
+  public private(set) var founding = FoundingIds()
   public private(set) var session: Session?
   public private(set) var loading = false
   /// The league Home leads with (the web's `cs_last_league`).
@@ -78,7 +80,9 @@ public final class SessionStore {
     loading = true
     defer { loading = false }
     do {
+      async let ids = FoundingIds.load(svc)
       let me = try await repo.load(userId: uid)
+      founding = await ids
       if let min = me.minIOSBuild, build > 0, build < min {
         state = .mustUpdate(minBuild: min)
       } else if me.needsCard {

@@ -63,7 +63,7 @@ struct TourCardSheet: View {
     let form = FormRow.from(beats: c.recent.map(\.beat))
     return SliceSheet(title: p.isMe ? "Your Tour Card" : "Tour Card",
                       sub: p.isMe ? "THIS IS HOW YOUR BUDDIES SEE YOU" : (p.handle.map { "@" + $0.uppercased() } ?? "")) {
-      CredentialCard(photoURL: l.avatarURL, marker: p.marker, name: p.displayName ?? "—", meta: meta,
+      CredentialCard(photoURL: l.avatarURL, marker: p.marker, name: p.displayName ?? "—", badge: store.founding.badge(for: profileId), meta: meta,
                      indexCurrent: p.indexCurrent, rounds: c.career.rounds,
                      trophyLines: TrophyMeta.credLines(c.trophies, max: 4, moreSuffix: " more"), form: form,
                      anchor: { EmptyView() },

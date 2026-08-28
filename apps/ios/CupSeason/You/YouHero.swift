@@ -10,6 +10,7 @@ import CupSeasonKit
 
 struct YouHero<Anchor: View>: View {
   @Environment(\.cs) private var cs
+  @Environment(SessionStore.self) private var session
 
   let photoURL: URL?
   let marker: String?
@@ -42,6 +43,7 @@ struct YouHero<Anchor: View>: View {
             CSFace(photoURL: photoURL, marker: marker, size: 56)
             VStack(alignment: .leading, spacing: 3) {
               Text(name).font(CSFont.title).foregroundStyle(cs.ink).lineLimit(2)
+              FoundingTag(badge: session.founding.badge(for: session.me?.profile?.id)).padding(.vertical, 2)
               if !meta.isEmpty {
                 Text(meta).font(CSFont.label).tracking(1.0).textCase(.uppercase).foregroundStyle(cs.mut)
               }

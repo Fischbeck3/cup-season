@@ -16,6 +16,8 @@ struct CredentialCard<Anchor: View, Extra: View>: View {
   let photoURL: URL?
   let marker: String?
   let name: String
+  /// D102 — `✦ Founder` / `✦ Founding member`, beside the name.
+  var badge: FoundingBadge? = nil
   /// "@handle · city · home course" / "@handle · city · est. Aug 2026"
   let meta: String
   let indexCurrent: Double?
@@ -32,7 +34,10 @@ struct CredentialCard<Anchor: View, Extra: View>: View {
       HStack(alignment: .center, spacing: 12) {
         CSFace(photoURL: photoURL, marker: marker, size: 56).environment(\.cs, p)
         VStack(alignment: .leading, spacing: 2) {
-          Text(name).font(CSFont.title).foregroundStyle(p.ink).lineLimit(2)
+          HStack(alignment: .firstTextBaseline, spacing: 8) {
+            Text(name).font(CSFont.title).foregroundStyle(p.ink).lineLimit(2)
+            FoundingTag(badge: badge).environment(\.cs, p)
+          }
           if !meta.isEmpty {
             Text(meta).font(CSFont.label).tracking(1.0).textCase(.uppercase).foregroundStyle(p.mut)
           }

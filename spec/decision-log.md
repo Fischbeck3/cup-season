@@ -3708,3 +3708,60 @@ the unit and the numbers change, nothing else in the model moves.)*
   `founding`), `PricingFlags` (`firstYearFree`, `unit`, legacy key read),
   the three cards' copy, `docs/ios/pricing-surfaces.md` amendment, the
   launch-kit FAQ line, the Season Pass Plan artifact.
+
+### D102 · Founder and Founding Member — two earned tags on the golfer, not the league
+*(2026-08-27, owner: "I want my profile to remain tagged as Founder and I may
+have some friends as founding member." IDENTITY/UI level; no scoring touched.)*
+- **Current:** the web tags the founder's name with `✦ Founder` (`ftag`,
+  `founder_id()` RPC, `profiles.is_founder`); the phone reads `founder_id()`
+  only to gate the founder's desk. Founding LEAGUES (D56) carry a numbered
+  gold badge on the pricing surfaces; people carry nothing.
+- **Decision:** two profile-level tags, both earned, both gold. **Founder**
+  (exactly one — `is_founder`) and **Founding Member** (a hand-picked set —
+  new `profiles.founding_member`, set by the owner in the SQL editor, never
+  self-service). One RPC `founding_ids()` returns `{founder, members}` so the
+  phone tags a name wherever it appears (the You hero, the Tour Card, the
+  feed) with one lookup per session. Copy: `✦ FOUNDER` · `✦ FOUNDING MEMBER`.
+- **Principle:** memory & honor — the people who were there first are part
+  of the record; gold is for the earned; identity is a fact on the profile,
+  not a toggle in a menu.
+- **Benefit:** the owner's name is the founder's name in every league;
+  friends who help build it are visibly first; the tag survives leagues,
+  seasons and the pricing model (a Founding Member is a person; a Founding
+  League is a league — the two can be held together or apart).
+- **Tradeoffs:** a hand-set column, so the owner is the only writer (the
+  intent). Deploy-skew: a phone that calls `founding_ids()` before the
+  migration lands falls back to `founder_id()` and shows only the founder.
+- **CONFLICT:** none. Upholds D37 (explicit grants, `revoke … from public,
+  anon`; the column gets its `grant select` in the same file) and the
+  no-silhouette / no-fabrication rules.
+
+### D103 · Homebase palette + seasonal looks — PROPOSED (talk first)
+*(2026-08-27, owner: "rethink color schema while I outsource a logo redesign;
+a homebase palette so I can add seasonal looks around majors, holidays." UI
+level. Nothing built until the owner picks — the proposal is the artifact
+"Homebase & the Looks".)*
+- **Current:** one palette (D76 Charcoal) in `packages/tokens/tokens.json`,
+  generated into `tokens.css` and `Tokens.swift`; preflight 10/15 enforce
+  that every colour on either client comes from it. The Home `Occasion`
+  calendar already knows the majors (opener · test · oldest · teams · fall ·
+  fresh) but only changes a card's copy.
+- **Proposal:** (1) **Homebase stays charcoal + ember + champagne** — the
+  three non-negotiables of the identity contract — with a defined
+  *neutral* ladder and the metals' roles written down for the logo designer.
+  (2) A **look** is a small, bounded override set that a calendar window (or
+  a league phase) turns on: `accent`, `accent2`, a `wash` pair, a `motif`
+  glyph and an eyebrow word. A look may NEVER touch ground, ink, the
+  semantic pair (`pos`/`neg`), the heat ramp, the squad colours, or gold's
+  meaning — so contrast, meaning and the earned metal are constant across
+  every look. (3) Six calendar looks (the Masters · the PGA · the US Open ·
+  the Open · the Ryder · the Holidays) plus two phase looks (Cup Final · the
+  Wrap) and the Fourth. (4) Looks live in `tokens.json` under a new
+  `looks` group and generate to both clients; preflight 15 learns to accept
+  a look's hexes from tokens.json (the source of truth), not only from
+  `index.html`.
+- **Principle:** one identity, many occasions — the way a clubhouse hangs
+  bunting for the member-guest and is the same clubhouse in the morning.
+- **Open for the owner:** approve the homebase as-is or ask for a warmer /
+  cooler neutral; pick the looks; decide whether a look is automatic
+  (calendar) or a per-league toggle for the Pro.

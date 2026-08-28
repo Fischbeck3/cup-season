@@ -237,3 +237,15 @@ The ⊕'s composer is its own decision (IOS-020). Ceremonies, the finish, the se
 **Action.** Plan + surfaces built behind `pricing.visible` (seeded `false` in the migration so nothing shows until the owner flips it). Owner decides: the anchor, and the flip.
 
 **Amended 2026-08-27 (evening) — owner: "build the annual recommendation; look at competitors and reduce 25%."** The unit is now the **league-year** (one pass, every season the league runs in twelve months; first year free), and the bands are set 25% under the per-league comps — Golf League Tracker $119/season (≤365 days), Fantrax premium league $130, MyFantasyLeague ~$110, LeagueLobster $228/yr, League Golfer $10–20/player/yr — giving **$59 ≤9 · $89 10–13 · $109 14+ a year** (≈ $6.50–$7.80 a player a year at every banded roster). Logged upstream as **D101**. The anchor question is closed; the flip stays the owner's.
+
+## IOS-022 · The polish list — **P2 · PROCEEDING 2026-08-27 (owner: "follow your rec for all")**
+
+**Decision.** From the professional review: (1) the empty navigation bar above Home's wordmark goes — `+` moves into the header row; (2) the You hero's marker watermark drops to 10% or gains a label; (3) the ⊕ presents with a rise on the roll and a haptic; (4) the composer's rating/slope row expands only on tap (a picked tee fills it); (5) copy density — every fine-print line appears once per screen; (6) a haptics vocabulary via `sensoryFeedback` on post, tee-off, lead change; (7) the Major's door is hidden behind a flag for v1 (the code stays); (8) the Founder's Desk, feedback ledger and QA surfaces leave the You tab and live behind a long-press on the build line in Settings; (9) a Dynamic Type / VoiceOver pass on the season strip, the scorecard strip and the tab strip; (10) a real light-theme pass. **Reversibility.** EASY. **Action.** Proceeding.
+
+## IOS-023 · Sign in with Apple beside the code — **P1 · DECIDED 2026-08-27 (owner)**
+
+**Decision.** Supersedes the email-OTP-only guardrail (IOS-018's list) for the door only: Apple sign-in is offered as a second door, code-only email stays the first. Client: `SupabaseService.signInWithApple(idToken:nonce:)` through the service (preflight 16 still forbids direct auth calls and any redirect URL); the button renders only when `app_flags.ios.apple_sign_in` is true, so the owner enables it after the Apple portal + Supabase provider are configured. **Why P1.** Apple requires it if any other third-party login ever ships, and the OTP delay is a measured drop-off. **Owner owes:** the Sign in with Apple capability on the App ID, the Services ID/key in Supabase Auth → Providers → Apple, then the flag. **Reversibility.** EASY (flag).
+
+## IOS-024 · Reliability floor — MetricKit, five events, `test-seed` gated — **P2 · PROCEEDING 2026-08-27**
+
+**Decision.** (1) MetricKit crash/hang diagnostics land in `client_events` (fire-and-forget, 4-frame stack kept — the ghost lesson); (2) five product events: `signed_in`, `card_set`, `league_created`, `league_locked`, `round_posted`; (3) `test-seed` requires the caller to be the founder (`profiles.is_founder`) — SEC-H2 closes. **Reversibility.** EASY.

@@ -302,7 +302,10 @@ private struct FeedRoundCard: View {
             HStack(spacing: 8) {
               faceButton(size: 36)
               VStack(alignment: .leading, spacing: 1) {
-                Text(who).font(CSFont.button).foregroundStyle(CSTokens.dark.ink)
+                HStack(alignment: .firstTextBaseline, spacing: 6) {
+                  Text(who).font(CSFont.button).foregroundStyle(CSTokens.dark.ink)
+                  FoundingTag(badge: store.founding.badge(for: r.profile_id)).environment(\.cs, CSTokens.dark)
+                }
                 Text(meta + (milestone.map { " · \($0)" } ?? "")).font(CSFont.footnote).foregroundStyle(CSTokens.dark.mut)
               }
             }
@@ -323,7 +326,10 @@ private struct FeedRoundCard: View {
             HStack(spacing: 10) {
               faceButton(size: 44)
               VStack(alignment: .leading, spacing: 2) {
-                Text(who).font(CSFont.button).foregroundStyle(cs.ink)
+                HStack(alignment: .firstTextBaseline, spacing: 6) {
+                  Text(who).font(CSFont.button).foregroundStyle(cs.ink)
+                  FoundingTag(badge: store.founding.badge(for: r.profile_id))
+                }
                 if let line = milestone ?? phrase { Text(line).font(CSFont.footnote).foregroundStyle(milestone != nil ? cs.gold : cs.mut) }
               }
               Spacer()
