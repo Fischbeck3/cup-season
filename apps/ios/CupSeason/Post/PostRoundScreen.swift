@@ -362,7 +362,7 @@ private struct PostHeroContent: View {
     VStack(alignment: .leading, spacing: 8) {
       Text(model.eyebrow).csEyebrow()
       HStack(alignment: .firstTextBaseline, spacing: 10) {
-        Text(p.map { "\($0.gross)" } ?? "—").font(CSFont.figure).csTabular().foregroundStyle(cs.ink)
+        Text(p.map { "\($0.gross)" } ?? "—").font(CSFont.figure).csTabular().foregroundStyle(p == nil ? cs.dimText : cs.ink)   // the empty dash is quiet, not a bar
           .contentTransition(.numericText())
         Text(p.map { $0.holes == 9 ? "9 holes · half value" : "18 holes" } ?? "gross").font(CSFont.monoSmall).foregroundStyle(cs.mut)
       }
