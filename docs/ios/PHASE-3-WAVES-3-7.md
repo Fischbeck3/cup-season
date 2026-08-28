@@ -106,3 +106,9 @@ Head after merges: 314 tests, preflight 17/17. Owner owes: `supabase db push` (f
 - **Receiver** (`Kit/Push/`, `CupSeason/Push/`): `PushRouter` (cold start + foreground), the three lock-screen categories → the app's own RPCs, badge discipline (actionable only), the contextual permission ask with the explainer (14-day snooze), the 18:00 duel reminder. `-cs_dev_push '<json>'` and `xcrun simctl push` for testing without APNs.
 - **Owner owes:** `supabase db push` (the wave-7 migration), the APNs key → `supabase secrets set APNS_P8 APNS_KEY_ID APNS_TEAM_ID` (+ `APNS_SANDBOX=1` while tethered), `supabase functions deploy push --no-verify-jwt`. Then refresh the snapshot so `Rpc.my_actionable_count` is generated.
 - Tests 344, preflight 17/17. Docs: `push-contract.md`, `push-sender.md`, `push-receiver.md`.
+
+## 2026-08-28 — push verified, TestFlight submitted
+
+- **First APNs notification received on the owner's phone** (a `CS_REQUEST` nudge, Accept/Decline on the lock screen) after the second `push` deploy picked up all four APNs secrets. Chain: `friend_request()` → `push_nudges` → webhook → `push` → APNs sandbox.
+- **TestFlight build 559** uploaded via `tools/ios-archive.sh --upload`, processed VALID, external group **Friends** (first tester added), test info + Beta App Review contact/demo account set through the App Store Connect API (`scratchpad/asc.py` pattern), submitted — `WAITING_FOR_REVIEW`. Build number bug fixed for the next upload (Info.plist now reads `$(CURRENT_PROJECT_VERSION)`).
+- Pending: migration `20260828010000_device_token_env.sql` (owner `push db`), then `supabase secrets unset APNS_SANDBOX`; PIGL group after Galen; reseed the reviewer sandbox + reshoot screenshots before store submission.
