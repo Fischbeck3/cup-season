@@ -19,7 +19,7 @@
 #     from pg_proc p join pg_namespace n on n.oid=p.pronamespace
 #     where n.nspname='public' and p.prokind='f') s;
 #
-# Snapshot taken 2026-08-26; refreshed 2026-08-27 after the IOS-009 batch-1 push (20260827130000..130400). That function was absent from the first snapshot on purpose - check 11
+# Snapshot taken 2026-08-26; refreshed 2026-08-27 (late) after the pricing / founding / door_flags pushes (20260827160000..190000). That function was absent from the first snapshot on purpose - check 11
 # reported it as a deploy owed, which is exactly its job. Lesson kept: after a
 # db push that adds or re-signs a function, refresh this file, or the check
 # keeps reporting a deploy you already made.
@@ -57,6 +57,7 @@ delete_account||void|definer|auth
 delete_event|p_event uuid|void|definer|auth
 delete_league|p_league uuid|void|definer|auth
 delete_round|p_round uuid|void|definer|auth
+door_flags||jsonb|definer|anon,auth
 email_unsubscribe|p_token uuid|boolean|definer|anon,auth
 enter_cup_final|p_season uuid|void|definer|none
 enter_major|p_event uuid|uuid|definer|auth
@@ -70,6 +71,7 @@ form_squads|p_season uuid|void|definer|auth
 founder_desk||jsonb|definer|auth
 founder_id||uuid|definer|anon,auth
 founder_note|p_body text|uuid|definer|auth
+founding_ids||jsonb|definer|auth
 friend_request|p_profile uuid|text|definer|auth
 friend_respond|p_id uuid, p_accept boolean|void|definer|auth
 generate_pairings|p_session uuid|integer|definer|auth
