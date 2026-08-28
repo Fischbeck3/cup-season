@@ -42,6 +42,7 @@ final class YouModel {
 
 struct YouScreen: View {
   @Environment(SessionStore.self) private var store
+  @Environment(LookStore.self) private var looks
   @Environment(\.cs) private var cs
   let leagueId: UUID?
   let links: YouLinks
@@ -117,6 +118,7 @@ struct YouScreen: View {
       }
     }
     .background(cs.bg0)
+    .environment(\.csLook, looks.personalLook())   // IOS-025: You is the person's, so it wears the personal dial
     .defaultScrollAnchor(CSDevHatch.bottom ? .bottom : .top)
     .navigationTitle("")
     // the same chrome as Home: no bar; the ⚙ (the door to "Card & settings") rides the header row

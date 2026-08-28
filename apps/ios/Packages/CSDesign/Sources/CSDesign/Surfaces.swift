@@ -27,14 +27,20 @@ public struct CSWash: View {
 }
 
 /// The hero card: `bg1`, the spine, the wash, radius `r`, no border.
+///
+/// `spine: nil` (the default) wears the look's accent from `\.csLook`, or
+/// ember when no look applies. A caller that passes gold keeps gold — a look
+/// never overrides the earned metal (D103a).
 public struct CSHero<Content: View>: View {
   @Environment(\.cs) private var cs
-  let spine: Color
+  @Environment(\.csLookAccent) private var la
+  let spine: Color?
   let padding: CGFloat
   let content: Content
-  public init(spine: Color, padding: CGFloat = 20, @ViewBuilder content: () -> Content) {
+  public init(spine: Color? = nil, padding: CGFloat = 20, @ViewBuilder content: () -> Content) {
     self.spine = spine; self.padding = padding; self.content = content()
   }
+  private var spineColor: Color { spine ?? la.accent }
   public var body: some View {
     content
       .padding(padding)
@@ -42,12 +48,12 @@ public struct CSHero<Content: View>: View {
       .background {
         ZStack {
           RoundedRectangle(cornerRadius: CSTokens.Radius.r, style: .continuous).fill(cs.bg1)
-          CSWash(spine)
+          CSWash(spineColor)
         }
         .clipShape(RoundedRectangle(cornerRadius: CSTokens.Radius.r, style: .continuous))
       }
       .overlay(alignment: .leading) {
-        RoundedRectangle(cornerRadius: 2).fill(spine).frame(width: 3.5).padding(.vertical, 14)
+        RoundedRectangle(cornerRadius: 2).fill(spineColor).frame(width: 3.5).padding(.vertical, 14)
       }
   }
 }

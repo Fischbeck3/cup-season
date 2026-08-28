@@ -10,11 +10,15 @@ struct CupSeasonApp: App {
   @State private var store = SessionStore()
   @State private var appearance = CSAppearance.load()
   @State private var toasts = CSToastCenter()
+  /// The looks (IOS-025): the personal dial + every league's curated look, one read per session.
+  @State private var looks = CSDevHatch.lookStore()
 
   var body: some Scene {
     WindowGroup {
       RootView()
         .environment(store)
+        .environment(looks)
+        .task(id: store.session?.user.id) { await looks.load(userId: store.session?.user.id) }
         .environment(\.csAppearance, $appearance)
         .preferredColorScheme(appearance.colorScheme)
         .csTheme()

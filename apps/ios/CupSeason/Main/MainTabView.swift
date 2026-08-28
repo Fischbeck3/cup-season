@@ -34,6 +34,26 @@ enum CSDevHatch {
     false
     #endif
   }
+  /// `-cs_dev_dress` opens the Pro's "Dress the room" disclosure on the League pane.
+  static var dress: Bool {
+    #if DEBUG
+    ProcessInfo.processInfo.arguments.contains("-cs_dev_dress")
+    #else
+    false
+    #endif
+  }
+  /// The looks store with its two hatches (IOS-025): `-cs_dev_look <key|calendar|none>`
+  /// sets the personal dial for this run only (UserDefaults untouched);
+  /// `-cs_dev_date 2026-07-15` pins the resolver's date so a window can be seen out of season.
+  @MainActor static func lookStore() -> LookStore {
+    let s = LookStore()
+    #if DEBUG
+    let a = ProcessInfo.processInfo.arguments
+    if let i = a.firstIndex(of: "-cs_dev_look"), i + 1 < a.count { s.setPersonalTransient(PersonalLook(rawValue: a[i + 1])) }
+    if let i = a.firstIndex(of: "-cs_dev_date"), i + 1 < a.count, let d = CSDate.local(a[i + 1]) { s.pinnedDate = d }
+    #endif
+    return s
+  }
 }
 
 enum HomeRoute: Hashable { case schedule, people, league(UUID) }
@@ -42,7 +62,9 @@ enum YouRoute: Hashable { case people, settings }
 
 struct MainTabView: View {
   @Environment(SessionStore.self) private var store
+  @Environment(LookStore.self) private var looks
   @Environment(\.cs) private var cs
+  @Environment(\.colorScheme) private var scheme
   @State private var tab: Tab = .home
   @State private var presenter = Presenter()
   @State private var homePath = NavigationPath()
@@ -197,10 +219,12 @@ struct MainTabView: View {
 
   /// The ⊕ wears the live metal whether or not it is selected (IOS-003: ember = the ⊕).
   /// An original-rendering UIImage is the one way to colour a tab glyph without a custom bar.
+  /// IOS-025: under a personal look the halo tints to the look's accent (100%); ember when none.
   private var emberPlus: UIImage {
     let cfg = UIImage.SymbolConfiguration(pointSize: 24, weight: .semibold)
+    let tint = looks.personalLook()?.accent(scheme == .light ? .light : .dark) ?? cs.brand
     return UIImage(systemName: "plus.circle.fill", withConfiguration: cfg)?
-      .withTintColor(UIColor(cs.brand), renderingMode: .alwaysOriginal) ?? UIImage()
+      .withTintColor(UIColor(tint), renderingMode: .alwaysOriginal) ?? UIImage()
   }
 
   // MARK: links
