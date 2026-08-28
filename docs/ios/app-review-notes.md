@@ -51,9 +51,9 @@ contest run by Cup Season, and no money moves through the app or any payment
 rail. The app keeps a *ledger* — who has paid the group's organiser and who
 is owed — exactly like a shared spreadsheet, and the group settles among
 themselves outside the app. The screen is **Clubhouse → Pot** ("Cup Season
-keeps the books. Buy-ins and payouts move friend-to-friend."). A league can
-also run with no pot at all ("bragging rights"), which is what the review
-league does.
+keeps the books. Buy-ins and payouts move friend-to-friend."). The review
+account's league, Sunset Match, keeps a $450 pot so you can see the ledger
+itself; a league can also run with no pot at all ("bragging rights").
 
 ## No in-app purchases
 
