@@ -112,3 +112,12 @@ Head after merges: 314 tests, preflight 17/17. Owner owes: `supabase db push` (f
 - **First APNs notification received on the owner's phone** (a `CS_REQUEST` nudge, Accept/Decline on the lock screen) after the second `push` deploy picked up all four APNs secrets. Chain: `friend_request()` → `push_nudges` → webhook → `push` → APNs sandbox.
 - **TestFlight build 559** uploaded via `tools/ios-archive.sh --upload`, processed VALID, external group **Friends** (first tester added), test info + Beta App Review contact/demo account set through the App Store Connect API (`scratchpad/asc.py` pattern), submitted — `WAITING_FOR_REVIEW`. Build number bug fixed for the next upload (Info.plist now reads `$(CURRENT_PROJECT_VERSION)`).
 - Pending: migration `20260828010000_device_token_env.sql` (owner `push db`), then `supabase secrets unset APNS_SANDBOX`; PIGL group after Galen; reseed the reviewer sandbox + reshoot screenshots before store submission.
+
+## 2026-08-28 — wave 8 merged (D103b · IOS-027)
+
+- **The palette shines (D103b):** Fescue deepened to a real green-black (`#0B1410` ground); a look now reaches the sky band, the header tick, eyebrows and section heads, the tab-strip underline, every live spine and a 30% hero wash; five dark accents lifted to AA. `CSDesign/LookSky.swift`, `Look.swift`.
+- **Parity audit:** 97 matrix rows walked, 33 small fixes across 19 rows (live handle check, the reviewer door's copy, Members-sheet confirms on the two-tap arm, the trend sparkline, empty states ending in a next move…); carried gaps sized in `docs/ios/PHASE-3-WAVE-8-PARITY.md` (7 S · 12 M · 3 L).
+- **Accessibility day:** `CSDesign/A11y.swift` (`A11yStack`, hit slop, min targets); Dynamic Type AX3/AX5 fixes across the room, board, composer, live setup, standings; VoiceOver labels and rotor actions; reduce-motion rest frames; `docs/ios/accessibility.md`.
+- **Store:** `docs/ios/app-store-listing.md` (name, subtitle "Run your golf season", keywords, description, privacy answers, age rating); the Pro's "League notices" switch; routing payloads for the two older nudges.
+- **Owner owes:** `supabase db push` (20260828020000 · 030000 · 040000); `supabase secrets unset APNS_SANDBOX`; the reviewer sandbox seed (blocked on a founder sign-in code that stopped delivering — check Authentication → Logs); the store screenshots reshoot on the sandbox.
+- Tests 346, preflight 17/17.
