@@ -4,6 +4,8 @@
 // hero, "where" is rows, the card is two big figures or the scorecard strip,
 // details are pills, Post is pinned in the bottom bar, the bands fold away.
 // "How this round scores" previews at 100%; the server scores the round.
+// IOS-022: the rating/slope row opens only on "edit" and a picked tee fills
+// it (item 4); the scoring fine print says itself once, in the hero (item 5).
 
 import SwiftUI
 import PhotosUI
@@ -134,11 +136,14 @@ private struct PostRoundBody: View {
   private var whereSection: some View {
     VStack(alignment: .leading, spacing: 0) {
       CSSectionHead("Course & tees").padding(.top, 8)
-      PostCourseSearchField(text: $model.card.course, courseId: $model.card.courseId) { model.teePicked(course: $0, tee: $1) }
+      PostCourseSearchField(text: $model.card.course, courseId: $model.card.courseId) { c, t in
+        model.teePicked(course: c, tee: t)
+        withAnimation(CSMotion.roll) { ratingOpen = false }   // the tee filled the line; the fields fold
+      }
         .padding(.top, 12).padding(.bottom, 2)
       // course memory as rows — course on the left, rating/slope in mono on the right; the whole row fills the card
       ForEach(model.memory) { m in
-        Button { model.fill(m) } label: {
+        Button { model.fill(m); withAnimation(CSMotion.roll) { ratingOpen = false } } label: {
           CSRow {
             HStack(alignment: .firstTextBaseline, spacing: 10) {
               Text(m.label).font(CSFont.subhead).foregroundStyle(cs.ink).multilineTextAlignment(.leading)
@@ -152,7 +157,8 @@ private struct PostRoundBody: View {
         .accessibilityLabel("\(m.label), rating \(m.ratingText), slope \(m.slope)")
         .accessibilityHint("Fills the course, rating and slope")
       }
-      // rating/slope: one mono line that opens into the two fields — always editable (D72)
+      // rating/slope: one mono line that opens into the two fields on "edit" — always editable (D72);
+      // an empty card shows "— / —" and stays folded (IOS-022 item 4)
       Button { withAnimation(CSMotion.roll) { ratingOpen.toggle() } } label: {
         CSRow(last: !ratingFieldsShown) {
           HStack(alignment: .firstTextBaseline, spacing: 8) {
@@ -179,8 +185,8 @@ private struct PostRoundBody: View {
     }
   }
 
-  /// The fields stay open until there is a number to collapse onto.
-  private var ratingFieldsShown: Bool { ratingOpen || (model.card.rating.isEmpty && model.card.slope.isEmpty) }
+  /// Open only on "edit"; a picked tee or a course-memory row folds them back.
+  private var ratingFieldsShown: Bool { ratingOpen }
   private var ratingLine: String { "\(model.card.rating.isEmpty ? "—" : model.card.rating) / \(model.card.slope.isEmpty ? "—" : model.card.slope)" }
 
   private func field<C: View>(_ label: String, @ViewBuilder _ content: () -> C) -> some View {
@@ -311,7 +317,6 @@ private struct PostRoundBody: View {
           ForEach(Array(Self.bands.enumerated()), id: \.offset) { i, band in
             PostBandRow(label: band.0, value: band.1, last: i == Self.bands.count - 1)
           }
-          CSFine("Every posted round scores. Your best 4 each month count toward your squad — a better round always replaces your lowest, in real time.").padding(.top, 10)
         }
         .transition(.opacity)
       }
@@ -458,6 +463,12 @@ private struct PostDateSheet: View {
 
 #Preview("the strip") {
   NavigationStack { PostRoundScreenPreview(model: previewModel("strip")) }.environment(SessionStore()).csTheme()
+}
+
+/// IOS-022 item 9: the scorecard strip scrolls sideways under fixed cells — no figure clips.
+#Preview("the strip · accessibility3") {
+  NavigationStack { PostRoundScreenPreview(model: previewModel("strip")) }.environment(SessionStore())
+    .environment(\.dynamicTypeSize, .accessibility3).csTheme()
 }
 
 #Preview("scan confirm") {

@@ -1,6 +1,8 @@
 // Cup Season — You: "your card, your record, your trophies and your buddies"
 // (index.html `#view-stats` 2829–2917). The You page IS the public profile —
-// card, case, record. Everything editable + app settings live behind the ⚙.
+// card, case, record. Everything editable + app settings live behind the ⚙,
+// which rides the header row (IOS-022 item 1). The feedback door and the
+// founder's desk live behind the build line in Settings (item 8).
 
 import SwiftUI
 import CSDesign
@@ -62,11 +64,17 @@ struct YouScreen: View {
       if let me = store.me, let p = me.profile {
         VStack(alignment: .leading, spacing: 14) {
           // IOS-019 rule 3: the page header lives in the scroll
-          CSPageHeader("You").padding(.bottom, 2)
+          CSPageHeader("You") {
+            Button(action: links.openSettings) {
+              Image(systemName: "gearshape").font(.system(size: 20, weight: .semibold)).foregroundStyle(cs.ink)
+                .frame(width: 44, height: 44).contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
+            .accessibilityLabel("Card & settings")
+          }
+          .padding(.bottom, 2)
 
           hero(me, p)
-          CSRow(last: true) { FeedbackChip(action: links.openFeedback) }
-          if model.data.isFounder { FounderDeskRows(openDesk: links.openFounderDesk, fieldNote: links.founderNote) }
 
           CSSectionHead("Your display case")
           TrophyCaseView(trophies: model.data.trophies, achievements: model.data.achievements, userId: uid)
@@ -111,14 +119,8 @@ struct YouScreen: View {
     .background(cs.bg0)
     .defaultScrollAnchor(CSDevHatch.bottom ? .bottom : .top)
     .navigationTitle("")
-    .navigationBarTitleDisplayMode(.inline)
-    .toolbar {
-      // the same chrome as Home: one glyph, trailing — the ⚙ is the door to "Card & settings"
-      ToolbarItem(placement: .topBarTrailing) {
-        Button(action: links.openSettings) { Image(systemName: "gearshape").foregroundStyle(cs.ink) }
-          .accessibilityLabel("Card & settings")
-      }
-    }
+    // the same chrome as Home: no bar; the ⚙ (the door to "Card & settings") rides the header row
+    .toolbar(.hidden, for: .navigationBar)
     .sliceToastHost()
     .refreshable { await reload() }
     .task(id: store.me?.profile?.id) { await reload() }

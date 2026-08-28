@@ -17,6 +17,8 @@ struct LiveSetupView: View {
   @State private var stakeText = ""
   @State private var ratingText = ""
   @State private var slopeText = ""
+  /// Counts tee-off taps — the trigger for the `.impact` (IOS-022 item 6).
+  @State private var teeOffTaps = 0
 
   var body: some View {
     ScrollView {
@@ -26,10 +28,11 @@ struct LiveSetupView: View {
         courseCard
         foursomeCard
         gameCard
-        CSButton("Tee off →", busy: store.busy) { Task { await store.teeOff() } }
+        CSButton("Tee off →", busy: store.busy) { teeOffTaps += 1; Task { await store.teeOff() } }
       }
       .padding(20)
     }
+    .csFeedback(.teeOff, trigger: teeOffTaps)
     .scrollDismissesKeyboard(.interactively)
     .navigationTitle("Play now")
     .navigationBarTitleDisplayMode(.inline)

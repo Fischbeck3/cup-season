@@ -49,6 +49,20 @@ enum LeagueRoomSample {
   .csTheme()
 }
 
+/// IOS-022 item 9: the season strip wraps two by two and the tab strip scrolls — nothing clips.
+#Preview("Standings · accessibility3") {
+  ScrollView {
+    VStack(alignment: .leading, spacing: 14) {
+      CSTabStrip(RoomPane.allCases.map { ($0, $0.rawValue) }, selection: .constant(.standings))
+      StandingsPane()
+    }
+    .padding(20)
+  }
+  .environment(LeagueRoomSample.model()).environment(RoomRouter()).environment(\.roomLinks, LeagueRoomSample.links)
+  .environment(\.dynamicTypeSize, .accessibility3)
+  .csTheme()
+}
+
 #Preview("Pot") {
   ScrollView { PotPane().padding(20) }
     .environment(LeagueRoomSample.model()).environment(RoomRouter()).environment(\.roomLinks, LeagueRoomSample.links)

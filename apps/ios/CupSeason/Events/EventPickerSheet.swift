@@ -1,6 +1,7 @@
 // Cup Season — the event-style menu (`openEventPicker` 15293–15312): Ryder
-// is live, the Major is live, the Bracket is the roadmap. Keeps the Ryder
-// from being the lone hard-coded event: it's the first of a category.
+// is live, the Major is live behind `app_flags.ios.major` (IOS-022 item 7 —
+// hidden for v1, the code stays), the Bracket is the roadmap. Keeps the
+// Ryder from being the lone hard-coded event: it's the first of a category.
 
 import SwiftUI
 import CSDesign
@@ -13,6 +14,8 @@ struct EventPickerSheet: View {
   @State private var toasts = CSToastCenter()
   @State private var ryder = false
   @State private var major = false
+  /// `app_flags.ios.major` — false until the read says otherwise (fail closed).
+  @State private var majorDoor = false
   let links: EventLinks
 
   var body: some View {
@@ -22,7 +25,9 @@ struct EventPickerSheet: View {
           CSSheetHeader(title: "Start an event", sub: "Short form · its own little trophy")
           style("⚔️", "The Ryder", "Two teams · weekly vs-index duels · first to the clinch", live: true) { ryder = true }
           style("🥊", "Bracket", "Knockout · seeded · last golfer standing", live: false) { toasts.show("Bracket lands right after the pilot") }
-          style("🏆", "A Major", "A championship window · best card takes the jug", live: true) { major = true }
+          if majorDoor {
+            style("🏆", "A Major", "A championship window · best card takes the jug", live: true) { major = true }
+          }
           CSFine("Every event mints a trophy for your display case. More styles land after the pilot.")
         }
         .padding(20)
@@ -30,6 +35,7 @@ struct EventPickerSheet: View {
       .background(cs.bg0)
       .toolbar { ToolbarItem(placement: .cancellationAction) { Button("Close") { dismiss() }.foregroundStyle(cs.brand) } }
       .csToasts(toasts)
+      .task { majorDoor = await EventFlags.majorEnabled() }
       .sheet(isPresented: $ryder) {
         RyderSetupSheet(leagueId: store.preferredLeague) { id in dismiss(); links.openEvent(id) }
       }

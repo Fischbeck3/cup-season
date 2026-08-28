@@ -4,7 +4,9 @@
 // Slots, top to bottom: invites banner → live-round banner → buddy requests
 // (inside the banner) → hero → occasion → Up Next → digest → the one feed →
 // coming up. The doors (start a league · start an event · join with a code)
-// live in the toolbar `+`.
+// live in the header's `+` (IOS-022 item 1: the navigation bar is hidden on
+// Home, so the wordmark sits at the top of the safe area; pushed screens
+// keep their back bar — visibility is per destination).
 
 import SwiftUI
 import CSDesign
@@ -23,7 +25,7 @@ struct HomeView: View {
         let mode = HomeMode.of(me, preferredLeague: store.preferredLeague)
         VStack(alignment: .leading, spacing: 14) {
           // IOS-019 rule 3: the wordmark lives in the scroll, where the glass toolbar cannot clip it
-          CSPageHeader("Cup Season", eyebrow: CSHeaderDate.today()).padding(.bottom, 2)
+          CSPageHeader("Cup Season", eyebrow: CSHeaderDate.today()) { plusMenu }.padding(.bottom, 2)
 
           InvitesBanner { id in store.preferredLeague = id; Task { await store.reload() } }
 
@@ -72,19 +74,22 @@ struct HomeView: View {
     .refreshable { await store.reload(); await vm.load(me: store.me) }
     .task(id: store.me?.generated_at) { await vm.load(me: store.me) }
     .navigationTitle("")
-    .toolbar {
-      ToolbarItem(placement: .topBarTrailing) {
-        Menu {
-          Button { presenter.wizard = .init(existingLeagueId: nil) } label: { Label("Start a league", systemImage: "flag") }
-          Button { presenter.showEventPicker = true } label: { Label("Start an event", systemImage: "trophy") }
-          Button { presenter.join(code: nil) } label: { Label("Join with a code", systemImage: "key") }
-          NavigationLink(value: HomeRoute.schedule) { Label("Your golf calendar", systemImage: "calendar") }
-          NavigationLink(value: HomeRoute.people) { Label("Find golfers", systemImage: "magnifyingglass") }
-        } label: {
-          Image(systemName: "plus").foregroundStyle(cs.brand)
-        }
-      }
+    .toolbar(.hidden, for: .navigationBar)
+  }
+
+  /// The doors, as the header row's trailing control (IOS-022 item 1).
+  private var plusMenu: some View {
+    Menu {
+      Button { presenter.wizard = .init(existingLeagueId: nil) } label: { Label("Start a league", systemImage: "flag") }
+      Button { presenter.showEventPicker = true } label: { Label("Start an event", systemImage: "trophy") }
+      Button { presenter.join(code: nil) } label: { Label("Join with a code", systemImage: "key") }
+      NavigationLink(value: HomeRoute.schedule) { Label("Your golf calendar", systemImage: "calendar") }
+      NavigationLink(value: HomeRoute.people) { Label("Find golfers", systemImage: "magnifyingglass") }
+    } label: {
+      Image(systemName: "plus").font(.system(size: 20, weight: .semibold)).foregroundStyle(cs.brand)
+        .frame(width: 44, height: 44).contentShape(Rectangle())
     }
+    .accessibilityLabel("Start or join")
   }
 
   private var skeleton: some View {

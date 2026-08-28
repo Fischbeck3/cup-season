@@ -5,7 +5,9 @@
 // is a verb, not a place: it presents over whichever tab you were on, and
 // "Post" is the 90% case — so the ⊕ opens ON the composer (IOS-004 §2) and
 // this cover is one back-tap away. A golfer with a live round open lands
-// here instead, where "Play now" is the door back in.
+// here instead, where "Play now" is the door back in. The cover rises 6pt
+// and fades in on `CSMotion.rise` (IOS-003 §2.7; IOS-022 item 3) — the one
+// place, so whichever page opens first wears it.
 
 import SwiftUI
 import CSDesign
@@ -30,6 +32,7 @@ struct PostCoverView: View {
 
   var body: some View {
     PostCoverStack(links: links, startOnPost: (store.me?.live_round == nil && !Self.forcedCover) || Self.forcedOpen, close: { dismiss() })
+      .modifier(PostCoverRise())
   }
 
   #if DEBUG
@@ -41,6 +44,21 @@ struct PostCoverView: View {
   private static let forcedOpen = false
   private static let forcedCover = false
   #endif
+}
+
+/// 6pt rise + fade, 0.26s, on the roll (IOS-003 §2.7). Reduced motion lands
+/// on the rest frame at once.
+private struct PostCoverRise: ViewModifier {
+  @Environment(\.accessibilityReduceMotion) private var reduceMotion
+  @State private var risen = false
+  func body(content: Content) -> some View {
+    content
+      .opacity(risen ? 1 : 0)
+      .offset(y: risen ? 0 : 6)
+      .onAppear {
+        if reduceMotion { risen = true } else { withAnimation(CSMotion.rise) { risen = true } }
+      }
+  }
 }
 
 /// The stack, with its opening page decided before the first frame — no push
@@ -62,7 +80,8 @@ private struct PostCoverStack: View {
     NavigationStack(path: $path) {
       ScrollView {
         VStack(alignment: .leading, spacing: 0) {
-          CSPageHeader("Golf", eyebrow: "before · during · after")
+          // the web's cover line, verbatim, as the header's sub (IOS-022 item 4)
+          CSPageHeader("Golf", sub: "Golf · before, during and after the round")
           VStack(spacing: 0) {
             PostOptionRow(tick: cs.brand, title: "Post a round — after you play",
                           sub: "Gross + tee, 20 seconds · counts on your card and in every league") { path.append(PostCoverView.Route.post) }

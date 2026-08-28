@@ -1,48 +1,11 @@
-// Cup Season — the You tab's blocks (index.html 2829–2917): the feedback
-// chip, the founder's desk, last round with (D63), the record (D67), the
-// lifetime tiles, recent rounds with the owner's delete, the season strip, the
-// league record (D4).
+// Cup Season — the You tab's blocks (index.html 2829–2917): last round with
+// (D63), the record (D67), the lifetime tiles, recent rounds with the owner's
+// delete, the season strip, the league record (D4). The feedback chip and the
+// founder's desk moved behind the build line in Settings (IOS-022 item 8).
 
 import SwiftUI
 import CSDesign
 import CupSeasonKit
-
-// MARK: - the feedback chip (F8)
-
-struct FeedbackChip: View {
-  @Environment(\.cs) private var cs
-  let action: () -> Void
-  var body: some View {
-    Button(action: action) {
-      HStack(spacing: 9) {
-        Text("💬 Tell us how it's going").font(CSFont.subhead.weight(.semibold)).foregroundStyle(cs.ink)
-        Spacer()
-        Text("→").font(CSFont.subhead).foregroundStyle(cs.dimText)
-      }
-      .frame(minHeight: 44)
-      .contentShape(Rectangle())
-    }
-    .buttonStyle(.plain)
-  }
-}
-
-// MARK: - the founder's desk (owner only; the SERVER is the gate)
-
-/// A quiet row group under its own eyebrow (IOS-019 rule 2), not a card.
-struct FounderDeskRows: View {
-  let openDesk: () -> Void
-  let fieldNote: (() -> Void)?
-  var body: some View {
-    CSSectionHead("Founder's desk")
-    VStack(spacing: 0) {
-      if let fieldNote {
-        CSRow { YouDoorRow(glyph: Text("✏️"), title: "Field note", action: fieldNote) }
-      }
-      CSRow(last: true) { YouDoorRow(glyph: Text("📈"), title: "Open the desk", action: openDesk) }
-      Fine("Notes land in the feedback ledger · the desk shows signups, activity, errors, feedback.").padding(.top, 6)
-    }
-  }
-}
 
 // MARK: - D63: last round with — the reunion whisper
 

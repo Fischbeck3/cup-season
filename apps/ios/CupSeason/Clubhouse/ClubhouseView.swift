@@ -1,5 +1,7 @@
 // Cup Season — the Clubhouse tab: the league room for the open league
-// (IOS-002 §5), with the league switcher and the league-less doors.
+// (IOS-002 §5), with the league switcher and the league-less doors. A rank
+// that moved UP since the last load gets one `.impact(.light)` as the room
+// opens (IOS-003 §2.8 "rank moved up on open"; IOS-022 item 6).
 
 import SwiftUI
 import CSDesign
@@ -13,6 +15,8 @@ struct ClubhouseView: View {
   var onOpenBoard: (UUID) -> Void = { _ in }
   var onOpenSchedule: () -> Void = {}
   var onAddGolfers: (UUID) -> Void = { _ in }
+  /// Bumps once per load in which the standing's rank beat `prev_rank`.
+  @State private var rankUps = 0
 
   var body: some View {
     if let me = store.me, !me.memberships.isEmpty,
@@ -24,6 +28,10 @@ struct ClubhouseView: View {
         LeagueRoomScreen(leagueId: current.league_id, links: links(for: current))
       }
         .id(current.league_id)
+        .task(id: me.generated_at) {
+          if let st = current.standing, let prev = st.prev_rank, st.rank < prev { rankUps += 1 }
+        }
+        .csFeedback(.rankUp, trigger: rankUps)
         .toolbar {
           if me.memberships.count > 1 {
             ToolbarItem(placement: .topBarTrailing) {
