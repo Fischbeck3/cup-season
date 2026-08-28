@@ -12,6 +12,15 @@ Password: `<<REVIEWER PASSWORD>>` — the sign-in screen shows a password field
 as soon as this address is typed (every other user signs in with an emailed
 8-digit code; Sign in with Apple is also offered).
 
+**Before every submission (founder, from the terminal — the seed lasts until the next `reset`):**
+```
+# founder token via the emailed code, then:
+curl -s -X POST https://zddbfcokmvneltrgukzf.supabase.co/functions/v1/test-seed \
+  -H "apikey: <publishable key>" -H "Authorization: Bearer <founder token>" -H "Content-Type: application/json" \
+  -d '{"action":"seed","target_email":"reviewer@cupseason.app"}'
+```
+The reviewer profile's card must be set or the account lands on the card gate (done 2026-08-28: `Sam Reviewer · @reviewer · The Saguaro · Phoenix, AZ`; re-apply with `update profiles set display_name='Sam Reviewer', handle='reviewer', marker='saguaro' where email='reviewer@cupseason.app'` if it is ever cleared).
+
 The reviewer account is pre-loaded with a season in progress: a league of
 eight golfers, standings, a board with posts, a settled live game with its
 scorecard, and a Ryder-style event. Nothing in it is a real person.
