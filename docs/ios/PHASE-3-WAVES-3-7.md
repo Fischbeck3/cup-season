@@ -99,3 +99,10 @@ Owner's session after the professional review ("follow your rec for all"):
 - **IOS-024 · the reliability floor** — MetricKit crash/hang → `client_events` (4-frame stacks), five product events, `test-seed` founder-gated (`supabase functions deploy test-seed` — **owner runs**). `docs/ios/reliability.md`.
 
 Head after merges: 314 tests, preflight 17/17. Owner owes: `supabase db push` (founding + door_flags), `supabase functions deploy test-seed`, the Apple provider setup, the homebase/looks picks, `pricing.visible`, PIGL's founding badge id.
+
+## Addendum — wave 7 (D104 / IOS-026), 2026-08-27 late
+
+- **Sender** (`supabase/functions/push/index.ts` + `20260827210000_push_wave7.sql`): routed APNs payloads (`cs {v, kind, ids}`, `thread-id`, `category`, per-recipient `badge`), mute-aware recipients, `leagues.notify_system` curation, invite / request / RSVP nudges fanned from `invite_golfer`, `friend_request`, `declare_round`, `retag_round`; `my_actionable_count()` + `actionable_count_of()`. Web push unchanged.
+- **Receiver** (`Kit/Push/`, `CupSeason/Push/`): `PushRouter` (cold start + foreground), the three lock-screen categories → the app's own RPCs, badge discipline (actionable only), the contextual permission ask with the explainer (14-day snooze), the 18:00 duel reminder. `-cs_dev_push '<json>'` and `xcrun simctl push` for testing without APNs.
+- **Owner owes:** `supabase db push` (the wave-7 migration), the APNs key → `supabase secrets set APNS_P8 APNS_KEY_ID APNS_TEAM_ID` (+ `APNS_SANDBOX=1` while tethered), `supabase functions deploy push --no-verify-jwt`. Then refresh the snapshot so `Rpc.my_actionable_count` is generated.
+- Tests 344, preflight 17/17. Docs: `push-contract.md`, `push-sender.md`, `push-receiver.md`.
