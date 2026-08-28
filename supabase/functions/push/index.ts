@@ -243,9 +243,14 @@ async function sendApns(profileIds: string[], title: string, body: string, r: Ro
   const jwt = await apnsToken();
   if (!jwt) return; // dormant until the APNS_* secrets exist
   const { data: toks } = await sb.from('device_tokens')
-    .select('token, profile_id').in('profile_id', profileIds);
+    .select('token, profile_id, platform').in('profile_id', profileIds);
   if (!toks?.length) { console.log(`[apns] kind=${r.cs.kind} no device tokens`); return; }
-  const host = Deno.env.get('APNS_SANDBOX') ? 'https://api.sandbox.push.apple.com' : 'https://api.push.apple.com';
+  /* each token goes to ITS host: a Debug build registers `ios-sandbox`, a
+     TestFlight/App Store build registers `ios`. APNS_SANDBOX=1 remains a global
+     override (everything to the sandbox host) for the pre-20260828010000 rows. */
+  const forceSandbox = !!Deno.env.get('APNS_SANDBOX');
+  const hostFor = (platform?: string | null) =>
+    forceSandbox || platform === 'ios-sandbox' ? 'https://api.sandbox.push.apple.com' : 'https://api.push.apple.com';
   const topic = Deno.env.get('APNS_TOPIC') ?? 'app.cupseason.ios';
 
   /* the badge is the recipient's actionable count at send time (§4) — one
@@ -268,7 +273,7 @@ async function sendApns(profileIds: string[], title: string, body: string, r: Ro
     /* already clamped by sendTo — no second, divergent budget here */
     const payload = apnsPayload(title, body, r, badges.get(String(t.profile_id)));
     try {
-      const res = await fetch(`${host}/3/device/${t.token}`, { method: 'POST', headers, body: payload });
+      const res = await fetch(`${hostFor(t.platform)}/3/device/${t.token}`, { method: 'POST', headers, body: payload });
       if (res.ok) { sent++; return; }
       const txt = await res.text().catch(() => '');
       console.error(`[apns] status=${res.status} body=${txt.slice(0, 120)}`);
@@ -278,7 +283,8 @@ async function sendApns(profileIds: string[], title: string, body: string, r: Ro
     }
   }));
   if (dead.length) await sb.from('device_tokens').delete().in('token', dead);
-  console.log(`[apns] kind=${r.cs.kind} thread=${r.thread} category=${r.category ?? '-'} tokens=${toks.length} sent=${sent} pruned=${dead.length}`);
+  const sandboxN = toks.filter((t) => hostFor(t.platform).includes('sandbox')).length;
+  console.log(`[apns] kind=${r.cs.kind} thread=${r.thread} category=${r.category ?? '-'} tokens=${toks.length} sandbox=${sandboxN} sent=${sent} pruned=${dead.length}`);
 }
 
 // Transactional email via Brevo. No-op (logs and returns) when BREVO_API_KEY

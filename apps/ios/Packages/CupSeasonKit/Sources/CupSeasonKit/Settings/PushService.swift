@@ -20,6 +20,15 @@ import UIKit
 public final class PushService {
   public static let shared = PushService()
   public static let tokenKey = "cs_apns_token"   // the web's APNS_KEY
+  /// A Debug build holds a SANDBOX APNs token; TestFlight / App Store builds
+  /// hold production ones. The sender routes each token to its own host
+  /// (migration 20260828010000) — so a tethered dev phone and a TestFlight
+  /// phone receive push side by side.
+  #if DEBUG
+  public static let platform = "ios-sandbox"
+  #else
+  public static let platform = "ios"
+  #endif
 
   public private(set) var enabled: Bool
   public private(set) var busy = false
@@ -59,7 +68,7 @@ public final class PushService {
     guard settings.authorizationStatus == .authorized else { return }
     guard let tok = await requestAppleToken() else { return }
     do {
-      try await svc.call(Rpc.register_device_token(p_token: tok, p_platform: "ios"))
+      try await svc.call(Rpc.register_device_token(p_token: tok, p_platform: Self.platform))
       UserDefaults.standard.set(tok, forKey: Self.tokenKey)
       enabled = true
     } catch {}
@@ -78,7 +87,7 @@ public final class PushService {
     guard status == .authorized else { return "Notifications blocked: allow them in Settings" }
     guard let tok = await requestAppleToken() else { return "Could not get a device token from Apple. Try again." }
     do {
-      try await svc.call(Rpc.register_device_token(p_token: tok, p_platform: "ios"))
+      try await svc.call(Rpc.register_device_token(p_token: tok, p_platform: Self.platform))
     } catch {
       return AuthRules.human(error, fallback: "Could not save this device.")
     }

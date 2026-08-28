@@ -112,7 +112,7 @@ cancelled when the round posts or the session resolves. One per session.
 1. Apple Developer → Keys → new key with **Apple Push Notifications service**
    → download `.p8`, note the Key ID. Team ID `3F7BK4WVH8`.
 2. `supabase secrets set APNS_P8="$(cat AuthKey_XXXX.p8)" APNS_KEY_ID=XXXX APNS_TEAM_ID=3F7BK4WVH8`
-   (+ `APNS_SANDBOX=1` ONLY while a tethered dev build is under test — unset before TestFlight; runbook D5).
+   `APNS_SANDBOX` is no longer needed: since 20260828010000 a Debug build registers its token as `ios-sandbox` and the sender routes each token to its own host, so a tethered dev phone and a TestFlight phone receive push side by side. (Setting it still forces everything to the sandbox host.)
 3. `supabase db push` (the wave-7 migration), `supabase functions deploy push`.
 4. Verify: post a chat line from the web as a second account; the phone shows
    the banner; tapping lands on the Board. `[push] kind=chat recipients=N`
