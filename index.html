@@ -6397,7 +6397,14 @@ $('#postBtn').addEventListener('click', async ()=>{
       if(holesMode && rrow?.id){
         const nH = nine ? 9 : 18, rh=[];
         for(let i=0;i<nH;i++){ const s=+state.post.scores[i]; if(s>0) rh.push({ round_id:rrow.id, hole_number:i+1, strokes:s }); }
-        if(rh.length){ try{ await sb.from('round_holes').insert(rh); }catch(_){} }
+        if(rh.length){
+          let eh = null;
+          try{ ({ error: eh } = await sb.from('round_holes').insert(rh)); }catch(e){ eh = e; }
+          if(eh){
+            qaEvent('round_holes_fail', { msg: String(eh?.message || eh).slice(0, 160), holes: rh.length });
+            toast("Round posted \u2014 hole detail didn't save");
+          }
+        }
       }
       /* D33: gate 3 measured on every real post — composer-open → posted */
       qaEvent('post_submit', {
@@ -14082,7 +14089,8 @@ async function disablePush(){
   }
   const sub = await getPushSub();
   if(sub){
-    await sb.from('push_subscriptions').delete().eq('endpoint', sub.endpoint);
+    const { error } = await sb.from('push_subscriptions').delete().eq('endpoint', sub.endpoint);
+    if(error){ toast(humanError(error, "Couldn't turn notifications off.")); return; }
     await sub.unsubscribe();
   }
   toast('Notifications off on this device');
@@ -14883,7 +14891,7 @@ async function createLeague(){
 const CAPVALS = [2,4,6,null];
 async function lockBylaws(){
   if(!CS.league) throw new Error('no league');
-  const emails = state.emails.filter(e => e.includes('@'));
+  let emails = state.emails.filter(e => e.includes('@'));
 
   const { error: e1 } = await sb.from('league_settings').update({
     preset:              ['casual','standard','cutthroat'][state.preset],
@@ -14923,9 +14931,14 @@ async function lockBylaws(){
   } else if(e1) throw e1;
 
   if(emails.length){
-    await sb.from('invites').insert(
+    const { error: eInv } = await sb.from('invites').insert(
       emails.map(email => ({ league_id: CS.league.id, email }))
     );
+    if(eInv){
+      /* the lock still stands; the addresses just didn't land */
+      toast(humanError(eInv, "Invites didn't send \u2014 add them from the roster."));
+      emails = [];
+    }
   }
 
   /* D97: the wizard used to stage in-app golfers here and fire invite_golfer
@@ -14963,7 +14976,10 @@ async function lockBylaws(){
 
   const nextPhase = state.structure === 'solo' ? 'season' : 'draft';
   const name = ($('#setName').value || '').trim() || CS.league.name;
-  await sb.from('leagues').update({ phase: nextPhase, name }).eq('id', CS.league.id);
+  /* supabase-js never throws on a DB error: a dropped {error} here left the
+     Pro looking at a "locked" league that reverted to setup on next boot. */
+  const { error: e4 } = await sb.from('leagues').update({ phase: nextPhase, name }).eq('id', CS.league.id);
+  if(e4) throw e4;
   CS.league.name = name;
   $('#leagueName').textContent = name;
   $('#sideLeague').textContent = name;
@@ -15253,7 +15269,10 @@ $('#lockBtn').addEventListener('click', async () => {
     /* growth (2026-07-17): creation ends on the SHARE moment, not a Done
        toast — a league is only real once the crew is in it */
     openLockShare(nextPhase, (invited||0) + (emails||0));
-  } catch(err){ toast(humanError(err, 'Lock failed.')); }
+  } catch(err){
+    window.qaEvent?.('lock_fail', { msg: String(err?.message || err).slice(0, 160) });
+    toast(humanError(err, 'Lock failed.'));
+  }
   finally { btn.disabled = false; }
 });
 
@@ -17314,8 +17333,14 @@ async function resumeAfterProfile(){
     if(pend){
       try{ localStorage.removeItem('cs_code'); localStorage.removeItem('cs_code_name'); }catch(_){}
       try{
-        const { error } = await sb.rpc('join_league', { p_code: pend });
-        if(error) throw error;
+        /* S3-01: the stake is shown BEFORE join_league on this path too — the
+           invite-link signup is the path most recipients take. */
+        if(await covenantGate(pend)){
+          const { error } = await sb.rpc('join_league', { p_code: pend });
+          if(error) throw error;
+        } else {
+          toast('Not joined \u2014 use code ' + pend + ' whenever you\u2019re ready.');
+        }
       }catch(e){ toast(humanError(e, 'Auto-join failed.')); }
     }
     bootStep = 'memberships';
@@ -17560,7 +17585,7 @@ async function renderShareView(tok, _testInfo){
 const joinParam = new URLSearchParams(window.location.search).get('join');
 if(joinParam){
   const jc = joinParam.trim().toUpperCase();
-  localStorage.setItem('cs_code', jc);
+  try { localStorage.setItem('cs_code', jc); } catch(_){}
   history.replaceState(null, '', window.location.pathname);
   /* F1 (shareability audit): the LINK path never resolved the league name —
      only manual code entry did — so recipients were greeted with the raw code.

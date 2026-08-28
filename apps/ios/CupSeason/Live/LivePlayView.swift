@@ -333,7 +333,9 @@ struct LiveGroupSheet: View {
         CSFine("No guests in this round.")
       } else {
         ForEach(guests, id: \.self) { i in
-          let url = ClaimIntent.url(L.guestTokens[String(i)]!)
+          // the filter above proves the token exists; `if let` keeps that a fact, not an unwrap
+          if let tok = L.guestTokens[String(i)] {
+          let url = ClaimIntent.url(tok)
           A11yStack(spacing: 10, columnSpacing: 6) {
             VStack(alignment: .leading, spacing: 2) {
               Text(L.players[i].n).font(CSFont.subhead.weight(.semibold)).foregroundStyle(cs.ink)
@@ -352,6 +354,7 @@ struct LiveGroupSheet: View {
             }
           }
           .padding(.vertical, 6)
+          }
         }
       }
     }

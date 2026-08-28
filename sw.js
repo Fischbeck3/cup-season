@@ -38,11 +38,15 @@ self.addEventListener('fetch', (e) => {
     e.respondWith(
       fetch(e.request)
         .then((res) => {
-          const copy = res.clone();
-          caches.open(CACHE).then((c) => c.put('/', copy));
+          // Only the app shell is cached under '/': a legal page or a 5xx body
+          // used to overwrite the offline shell.
+          if (res.ok && url.pathname === '/') {
+            const copy = res.clone();
+            caches.open(CACHE).then((c) => c.put('/', copy));
+          }
           return res;
         })
-        .catch(() => caches.match('/'))
+        .catch(() => (url.pathname === '/' ? caches.match('/') : Response.error()))
     );
     return;
   }

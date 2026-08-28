@@ -60,6 +60,12 @@ targets:
       properties:
         CFBundleDisplayName: Cup Season
         CFBundleName: Cup Season
+        # Without these two lines the generated plist carries the literal
+        # `1` / `1.0`: ios-archive.sh's CURRENT_PROJECT_VERSION only reached
+        # CSBuild, so every TestFlight upload after the first was rejected as a
+        # duplicate build. Both now follow the build settings, like CSBuild.
+        CFBundleVersion: $(CURRENT_PROJECT_VERSION)
+        CFBundleShortVersionString: $(MARKETING_VERSION)
         UILaunchScreen: {}
         UISupportedInterfaceOrientations: [UIInterfaceOrientationPortrait]
         ITSAppUsesNonExemptEncryption: false

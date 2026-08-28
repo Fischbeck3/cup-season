@@ -15,7 +15,11 @@
 -- refreshed 2026-08-27 (IOS-009 batch 1: authenticated list 99 → 102 with
 -- handle_available / round_holes_of / native_home; check 12 pins the engine
 -- functions close_month / award_*_trophies OFF the API surface — the
--- close_month grant had crept back via 20260727160000:341).
+-- close_month grant had crept back via 20260727160000:341); refreshed
+-- 2026-08-28 (launch review: check 8 scoped by season_id — the NULL-member
+-- sentinel false-failed across two seasons; check 13 pins profiles as
+-- server-owned (20260828150000, the founder self-promote hole); check 14 pins
+-- the four live tables read-only + claim_token sealed (20260828150100)).
 -- ============================================================================
 
 with checks as (
@@ -128,9 +132,11 @@ from (
       -- month is a real date column (fixed 2026-07-28: the suite said
       -- meta->>'month', a column that never existed — the check 42703'd the
       -- WHOLE query, so no check in this file had ever actually run)
-      select member_id, month, count(*)
+      -- scoped by season (2026-08-28): sentinels carry a NULL member_id, so
+      -- two seasons closing the same month collided as a "duplicate"
+      select season_id, member_id, month, count(*)
       from season_adjustments where kind = 'month_closed'
-      group by 1, 2 having count(*) > 1) d) as dupes
+      group by 1, 2, 3 having count(*) > 1) d) as dupes
 ) t
 
 -- 9 · the email column stays sealed — AND every other profiles column stays
@@ -241,6 +247,60 @@ from (
   where n.nspname = 'public'
     and p.proname in ('close_month', 'award_event_trophies', 'award_season_trophies')
     and has_function_privilege(r.role_name, p.oid, 'execute')
+) t
+
+-- 13 · profiles is SERVER-OWNED (20260828150000). authenticated held a
+--      table-level UPDATE and the policies scoped only by row, so any golfer
+--      could PATCH their own is_founder / index_current. No API role may hold
+--      any write privilege (table or column) and no write policy may exist;
+--      every change goes through a SECURITY DEFINER RPC.
+union all
+select '13 · profiles server-owned',
+  case when leaks = '' then 'PASS' else 'FAIL — ' || leaks end,
+  'no insert/update/delete grant (table or column) to anon/authenticated · no write policy on profiles'
+from (
+  select coalesce(string_agg(o, ' · '), '') as leaks from (
+    select r.role_name || ' table ' || pv.p
+    from (values ('anon'), ('authenticated')) r(role_name)
+    cross join (values ('insert'), ('update'), ('delete')) pv(p)
+    where has_table_privilege(r.role_name, 'public.profiles', pv.p)
+    union all
+    select a.grantee::regrole::text || ' column ' || att.attname || ' ' || a.privilege_type
+    from pg_attribute att
+    cross join lateral aclexplode(att.attacl) a
+    where att.attrelid = 'public.profiles'::regclass and att.attnum > 0 and not att.attisdropped
+      and a.grantee in ('anon'::regrole, 'authenticated'::regrole)
+      and a.privilege_type <> 'SELECT'
+    union all
+    select 'policy ' || polname
+    from pg_policy where polrelid = 'public.profiles'::regclass and polcmd in ('w','a','d','*')
+  ) x
+) t
+
+-- 14 · live-round tables are READ-ONLY to the API (20260828150100): no write
+--      grant, no write policy on live_rounds / live_round_players /
+--      game_results / live_scores, and live_round_players.claim_token is
+--      sealed (its column list is frozen like profiles' — a new column needs
+--      its own grant or the phone's open-rounds select fails 42501).
+union all
+select '14 · live tables read-only',
+  case when leaks = '' then 'PASS' else 'FAIL — ' || leaks end,
+  'no write grant/policy for authenticated on the four live tables · claim_token unreadable'
+from (
+  select coalesce(string_agg(o, ' · '), '') as leaks from (
+    select t || ' ' || pv.p
+    from unnest(array['live_rounds','live_round_players','game_results','live_scores']) t
+    cross join (values ('insert'), ('update'), ('delete')) pv(p)
+    where has_table_privilege('authenticated', 'public.' || t, pv.p)
+    union all
+    select c.relname || ' policy ' || p.polname
+    from pg_policy p join pg_class c on c.oid = p.polrelid
+    where c.relname in ('live_rounds','live_round_players','game_results','live_scores')
+      and p.polcmd in ('w','a','d','*')
+    union all
+    select 'claim_token readable'
+    where has_column_privilege('authenticated', 'public.live_round_players', 'claim_token', 'select')
+  ) x
 ) t
 )
 select * from checks order by check_name;

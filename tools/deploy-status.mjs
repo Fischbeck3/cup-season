@@ -33,6 +33,9 @@ const run = (cmd, args, ms = 20000) => {
   try { return execFileSync(cmd, args, { cwd: root, encoding: 'utf8', timeout: ms, stdio: ['ignore', 'pipe', 'pipe'] }).trim(); }
   catch { return null; }
 };
+/* CLI ≥2.116 prints JSON when stdout is not a TTY; the parsers below read
+   the pipe table, so ask for it explicitly or every layer reads `unknown`
+   (it did, silently, until 2026-08-28). */
 const haveCli = run('supabase', ['--version'], 8000) !== null;
 
 /* ---- database ----------------------------------------------------------- */
@@ -43,7 +46,7 @@ function database() {
 
   if (!haveCli) return { state: 'unknown', reason: 'no supabase CLI in this environment', local: local.length };
 
-  const out = run('supabase', ['migration', 'list']);
+  const out = run('supabase', ['migration', 'list', '--output-format', 'text']);
   if (out === null) return { state: 'unknown', reason: '`supabase migration list` failed (not linked, or no network)', local: local.length };
 
   /* pipe table: | Local | Remote | Time |. A row with a Local version and an
@@ -73,7 +76,7 @@ function functions() {
   const names = readdirSync(dir, { withFileTypes: true }).filter(d => d.isDirectory()).map(d => d.name);
 
   if (!haveCli) return { state: 'unknown', reason: 'no supabase CLI in this environment', functions: names.length };
-  const out = run('supabase', ['functions', 'list']);
+  const out = run('supabase', ['functions', 'list', '--output-format', 'text']);
   if (out === null) return { state: 'unknown', reason: '`supabase functions list` failed', functions: names.length };
 
   /* deployed-at per function, parsed loosely: any ISO-ish timestamp on the row */
