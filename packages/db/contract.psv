@@ -19,7 +19,7 @@
 #     from pg_proc p join pg_namespace n on n.oid=p.pronamespace
 #     where n.nspname='public' and p.prokind='f') s;
 #
-# Snapshot taken 2026-08-26; refreshed 2026-08-27 (late) after the wave-7 push (20260827210000). That function was absent from the first snapshot on purpose - check 11
+# Snapshot taken 2026-08-26; refreshed 2026-08-27 (late) after the 20260828 pushes (device env · league notify · nudge payloads). That function was absent from the first snapshot on purpose - check 11
 # reported it as a deploy owed, which is exactly its job. Lesson kept: after a
 # db push that adds or re-signs a function, refresh this file, or the check
 # keeps reporting a deploy you already made.
@@ -176,6 +176,7 @@ set_index|p_index numeric|void|definer|auth
 set_league_finish|p_league uuid, p_finish text|void|definer|auth
 set_league_look|p_league uuid, p_look text|void|definer|auth
 set_league_marker|p_league uuid, p_marker text|void|definer|auth
+set_league_notify_system|p_league uuid, p_on boolean|void|definer|auth
 set_member_bye|p_member uuid, p_month date, p_on boolean|void|definer|auth
 set_member_index|p_member uuid, p_index numeric|void|definer|auth
 set_mute|p_profile uuid, p_on boolean|void|definer|auth
