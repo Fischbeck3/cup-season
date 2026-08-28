@@ -20,8 +20,11 @@ struct PotPassCard: View {
   let flags: PricingFlags
   let league: Me.Membership
   let isPro: Bool
-  /// "YYYY-MM-DD"; the pane's own season row. Nil → the static half only.
-  let seasonEndsOn: String?
+  /// "YYYY-MM-DD" — the first tee of the league's year; the free year runs
+  /// twelve months from it. The pass table owns this once checkout exists;
+  /// until then the host passes the current season's `starts_on`. Nil → the
+  /// static line only.
+  let yearStartsOn: String?
   /// The pane's `potPlayers`, when the host passes it; else the reference roster.
   var roster: Int? = nil
 
@@ -29,7 +32,7 @@ struct PotPassCard: View {
     if flags.visible && isPro {
       CSCard(padding: 16) {
         VStack(alignment: .leading, spacing: 8) {
-          Text("Season pass · Pro only").csEyebrow()
+          Text("League pass · Pro only").csEyebrow()
           if let n = flags.foundingNumber(leagueId: league.league_id) {
             PricingFoundingBadge(number: n)
             PricingMarkdown("**\(league.name)** — free forever.", font: CSFont.sentence, color: cs.ink)
@@ -38,13 +41,13 @@ struct PotPassCard: View {
             let band = flags.passFor(roster: r)
             let price = PricingFlags.dollars(band.cents)
             HStack(alignment: .firstTextBaseline, spacing: 8) {
-              Text("Season \(league.season?.number ?? 1) — free.").font(CSFont.sentenceBold).foregroundStyle(cs.ink)
+              Text("Year 1 — free.").font(CSFont.sentenceBold).foregroundStyle(cs.ink)
               Text(price).font(CSFont.monoMediumBody).strikethrough().foregroundStyle(cs.dimText)
                 .accessibilityLabel("\(price), waived")
             }
             Text(endsLine).font(CSFont.label).tracking(0.6).foregroundStyle(cs.dimText)
               .fixedSize(horizontal: false, vertical: true)
-            Text("Next season: \(price) from the pot · ≈ \(PricingFlags.perPlayer(cents: band.cents, roster: r)) a player")
+            Text("Next year: \(price) from the pot · ≈ \(PricingFlags.perPlayer(cents: band.cents, roster: r)) a player · every season included")
               .font(CSFont.subhead).foregroundStyle(cs.mut)
               .fixedSize(horizontal: false, vertical: true)
           }
@@ -55,8 +58,8 @@ struct PotPassCard: View {
   }
 
   private var endsLine: String {
-    if let iso = seasonEndsOn { return "Season ends \(PricingDate.long(iso)) · run-it-back opens with the recap" }
-    return "Run-it-back opens with the recap"
+    if let start = yearStartsOn, let end = PricingDate.yearAfter(start) { return "Your year runs to \(PricingDate.long(end)) · every season till then is covered" }
+    return "Every season you run this year is covered"
   }
 }
 
@@ -76,7 +79,7 @@ struct PricingPotFinePrint: View {
   PricingPreview(.dark) {
     VStack(alignment: .leading, spacing: 14) {
       PricingPotFinePrint(flags: PricingSample.visible)
-      PotPassCard(flags: PricingSample.visible, league: PricingSample.membership(), isPro: true, seasonEndsOn: "2026-09-26", roster: 12)
+      PotPassCard(flags: PricingSample.visible, league: PricingSample.membership(), isPro: true, yearStartsOn: "2026-05-03", roster: 12)
     }
   }
 }
@@ -84,25 +87,25 @@ struct PricingPotFinePrint: View {
   PricingPreview(.light) {
     VStack(alignment: .leading, spacing: 14) {
       PricingPotFinePrint(flags: PricingSample.visible)
-      PotPassCard(flags: PricingSample.visible, league: PricingSample.membership(), isPro: true, seasonEndsOn: "2026-09-26", roster: 12)
+      PotPassCard(flags: PricingSample.visible, league: PricingSample.membership(), isPro: true, yearStartsOn: "2026-05-03", roster: 12)
     }
   }
 }
 #Preview("Pot pass · Founding · dark") {
   PricingPreview(.dark) {
-    PotPassCard(flags: PricingSample.founding, league: PricingSample.membership(id: PricingSample.pigl, name: "PIGL"), isPro: true, seasonEndsOn: "2026-09-26")
+    PotPassCard(flags: PricingSample.founding, league: PricingSample.membership(id: PricingSample.pigl, name: "PIGL"), isPro: true, yearStartsOn: "2026-05-03")
   }
 }
 #Preview("Pot pass · Founding · light") {
   PricingPreview(.light) {
-    PotPassCard(flags: PricingSample.founding, league: PricingSample.membership(id: PricingSample.pigl, name: "PIGL"), isPro: true, seasonEndsOn: "2026-09-26")
+    PotPassCard(flags: PricingSample.founding, league: PricingSample.membership(id: PricingSample.pigl, name: "PIGL"), isPro: true, yearStartsOn: "2026-05-03")
   }
 }
 #Preview("Pot pass · member (nothing) + today's fine print") {
   PricingPreview(.dark) {
     VStack(alignment: .leading, spacing: 14) {
       PricingPotFinePrint(flags: .hidden)
-      PotPassCard(flags: PricingSample.visible, league: PricingSample.membership(role: "player"), isPro: false, seasonEndsOn: "2026-09-26")
+      PotPassCard(flags: PricingSample.visible, league: PricingSample.membership(role: "player"), isPro: false, yearStartsOn: "2026-05-03")
     }
   }
 }

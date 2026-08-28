@@ -45,7 +45,7 @@ struct PotPane: View {
         CSHairline()
       }
       if let m = store.me?.memberships.first(where: { $0.league_id == model.leagueId }) {
-        PotPassCard(flags: pricing, league: m, isPro: model.isPro, seasonEndsOn: model.season?.ends_on, roster: model.potPlayers)
+        PotPassCard(flags: pricing, league: m, isPro: model.isPro, yearStartsOn: model.season?.starts_on, roster: model.potPlayers)
       }
       PricingPotFinePrint(flags: pricing)
         .task { pricing = await PricingFlags.load() }

@@ -1,6 +1,11 @@
 // Cup Season — the visible pricing model (IOS-021 executing D56).
 //
-// One `app_flags` row keyed `pricing` (migration 20260827160000) drives the
+// D101 (2026-08-27): the unit is the LEAGUE-YEAR — one pass covers every
+// season a league runs in twelve months, first year free — and the numbers
+// sit 25% under the per-league comps (Golf League Tracker $119, Fantrax
+// $130, MyFantasyLeague ~$110, LeagueLobster $228/yr): $59 · $89 · $109.
+//
+// One `app_flags` row keyed `pricing` (migration 20260827170000) drives the
 // three launch surfaces: the wizard's pass card, the You-tab membership card,
 // the pot pane's Pro card. This file is the whole contract — the bands, the
 // per-player line, the Founding lookup, and the read. NO checkout, no Stripe,
@@ -48,11 +53,15 @@ public struct PricingFlags: Decodable, Sendable, Equatable {
   public let visible: Bool
   public let anchorCents: Int
   public let bands: [Band]
-  public let season1Free: Bool
+  /// Every league's first YEAR is on us (D101; was `season1_free` under D56).
+  public let firstYearFree: Bool
   public let founding: Founding
+  /// What the pass covers: "year" (D101). Carried so a future unit change is
+  /// a flag write, not a build.
+  public let unit: String
 
-  public init(visible: Bool, anchorCents: Int, bands: [Band], season1Free: Bool, founding: Founding) {
-    self.visible = visible; self.anchorCents = anchorCents; self.bands = bands; self.season1Free = season1Free; self.founding = founding
+  public init(visible: Bool, anchorCents: Int, bands: [Band], firstYearFree: Bool, founding: Founding, unit: String = "year") {
+    self.visible = visible; self.anchorCents = anchorCents; self.bands = bands; self.firstYearFree = firstYearFree; self.founding = founding; self.unit = unit
   }
 
   /// Lenient on purpose: every key defaults, so a partial row (an owner who
@@ -64,29 +73,31 @@ public struct PricingFlags: Decodable, Sendable, Equatable {
     anchorCents = try c.decodeIfPresent(Int.self, forKey: .anchorCents) ?? Self.defaultAnchorCents
     let decoded = try c.decodeIfPresent([Band].self, forKey: .bands) ?? []
     bands = decoded.isEmpty ? Self.defaultBands : decoded
-    season1Free = try c.decodeIfPresent(Bool.self, forKey: .season1Free) ?? true
+    firstYearFree = try c.decodeIfPresent(Bool.self, forKey: .firstYearFree) ?? c.decodeIfPresent(Bool.self, forKey: .season1Free) ?? true
     founding = try c.decodeIfPresent(Founding.self, forKey: .founding) ?? Founding()
+    unit = try c.decodeIfPresent(String.self, forKey: .unit) ?? "year"
   }
   enum CodingKeys: String, CodingKey {
-    case visible, bands, founding
+    case visible, bands, founding, unit
     case anchorCents = "anchor_cents"
-    case season1Free = "season1_free"
+    case firstYearFree = "first_year_free"
+    case season1Free = "season1_free"   // the D56 key; read for compatibility, never written
   }
 
   // MARK: - The constants (discovery §2, IOS-021)
 
-  public static let defaultAnchorCents = 7900
-  /// $49 ≤9 · $79 10–13 · $99 14+.
-  public static let defaultBands: [Band] = [Band(maxRoster: 9, cents: 4900), Band(maxRoster: 13, cents: 7900), Band(maxRoster: 99, cents: 9900)]
+  public static let defaultAnchorCents = 8900
+  /// $59 ≤9 · $89 10–13 · $109 14+ — a year, every season included (D101).
+  public static let defaultBands: [Band] = [Band(maxRoster: 9, cents: 5900), Band(maxRoster: 13, cents: 8900), Band(maxRoster: 99, cents: 10900)]
   /// The roster the anchor is quoted against when a surface has no roster
   /// of its own (a membership row with no count): the standard band's middle.
   public static let referenceRoster = 12
 
   /// What every failure decodes to. Surfaces render today's copy.
-  public static let hidden = PricingFlags(visible: false, anchorCents: defaultAnchorCents, bands: defaultBands, season1Free: true, founding: Founding())
+  public static let hidden = PricingFlags(visible: false, anchorCents: defaultAnchorCents, bands: defaultBands, firstYearFree: true, founding: Founding())
   /// The plan's seed with the switch ON — previews and tests, never prod
   /// (prod's row is seeded `visible:false`; the owner flips it).
-  public static let seed = PricingFlags(visible: true, anchorCents: defaultAnchorCents, bands: defaultBands, season1Free: true, founding: Founding())
+  public static let seed = PricingFlags(visible: true, anchorCents: defaultAnchorCents, bands: defaultBands, firstYearFree: true, founding: Founding())
 
   // MARK: - Bands and formatting
 
@@ -98,22 +109,22 @@ public struct PricingFlags: Decodable, Sendable, Equatable {
     return bands.last ?? Band(maxRoster: Int.max, cents: anchorCents)
   }
 
-  /// "$79" — whole dollars stay whole; anything else shows cents ("$79.50").
+  /// "$89" — whole dollars stay whole; anything else shows cents ("$89.50").
   public static func dollars(_ cents: Int) -> String {
     cents % 100 == 0 ? "$\(cents / 100)" : String(format: "$%.2f", Double(cents) / 100)
   }
 
   /// The per-head figure: 2 decimals under $10, else round (plan §1). Under
-  /// $10 it rounds to the DIME — the plan quotes "$6.60" for the standard
-  /// band (7900 / 12 = 6.583), and the figure wears "about" / "≈" wherever
-  /// it appears, so a dime is the honest precision.
+  /// $10 it rounds to the DIME — the standard band reads "$7.40" a year
+  /// (8900 / 12 = 7.416), and the figure wears "about" / "≈" wherever it
+  /// appears, so a dime is the honest precision.
   public static func perPlayer(cents: Int, roster: Int) -> String {
     let each = Double(cents) / 100 / Double(max(1, roster))
     if each < 10 { return String(format: "$%.2f", (each * 10).rounded() / 10) }
     return "$\(Int(each.rounded()))"
   }
 
-  /// "about $6.60 a player" / "about $10 a player".
+  /// "about $7.40 a player" / "about $10 a player".
   public static func perPlayerLine(cents: Int, roster: Int) -> String {
     "about \(perPlayer(cents: cents, roster: roster)) a player"
   }
@@ -161,17 +172,17 @@ public struct PricingPaid: Sendable, Equatable {
 public enum PricingMembershipState: Sendable, Equatable {
   /// State A — gold badge, free forever.
   case founding(number: Int)
-  /// State B — this season is free; the chips carry next season's number.
-  case freeSeason(seasonNumber: Int, cents: Int, roster: Int)
+  /// State B — this year is free; the chips carry next year's number.
+  case freeYear(cents: Int, roster: Int)
   /// State C — paid through a date (future).
   case paid(PricingPaid)
 
   /// Founding beats paid beats free — a Founding league never renders a
   /// price, whatever else is on file.
-  public static func of(_ flags: PricingFlags, leagueId: UUID, seasonNumber: Int?, roster: Int?, paid: PricingPaid?) -> PricingMembershipState {
+  public static func of(_ flags: PricingFlags, leagueId: UUID, roster: Int?, paid: PricingPaid?) -> PricingMembershipState {
     if let n = flags.foundingNumber(leagueId: leagueId) { return .founding(number: n) }
     if let paid { return .paid(paid) }
     let r = roster ?? PricingFlags.referenceRoster
-    return .freeSeason(seasonNumber: seasonNumber ?? 1, cents: flags.passFor(roster: r).cents, roster: r)
+    return .freeYear(cents: flags.passFor(roster: r).cents, roster: r)
   }
 }

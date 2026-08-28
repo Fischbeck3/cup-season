@@ -46,8 +46,7 @@ struct MembershipCard: View {
 
   @ViewBuilder
   private func row(_ m: Me.Membership) -> some View {
-    let state = PricingMembershipState.of(flags, leagueId: m.league_id, seasonNumber: m.season?.number,
-                                          roster: rosters[m.league_id], paid: paid[m.league_id])
+    let state = PricingMembershipState.of(flags, leagueId: m.league_id, roster: rosters[m.league_id], paid: paid[m.league_id])
     VStack(alignment: .leading, spacing: 8) {
       switch state {
       case .founding(let n):
@@ -55,16 +54,16 @@ struct MembershipCard: View {
         PricingMarkdown("**\(m.name)** — free forever.", font: CSFont.sentence, color: cs.ink)
         Text("One of the ten. Thanks for building this with us.").font(CSFont.footnote).foregroundStyle(cs.dimText)
 
-      case .freeSeason(let season, let cents, let roster):
-        PricingMarkdown("**\(m.name) · Season \(season)** — **This season is free.** Every league's first season is on us.",
+      case .freeYear(let cents, let roster):
+        PricingMarkdown("**\(m.name) · Year 1** — **This year is free.** Every league's first year is on us, every season included.",
                         font: CSFont.sentence, color: cs.ink)
-        PricingChipRow(chips: ["After season 1 · \(PricingFlags.dollars(cents))/season",
+        PricingChipRow(chips: ["After year 1 · \(PricingFlags.dollars(cents))/year",
                                "≈ \(PricingFlags.perPlayer(cents: cents, roster: roster)) a player",
                                "Paid by the Pro, from the pot"])
 
       case .paid(let p):
         Text(m.name).csEyebrow()
-        PricingMarkdown("Season pass · paid through \(PricingDate.long(p.paidThrough)) · \(PricingFlags.dollars(p.cents)) · renewed by \(proName(m)) (the Pro) · from the pot.",
+        PricingMarkdown("League pass · paid through \(PricingDate.long(p.paidThrough)) · \(PricingFlags.dollars(p.cents)) · renewed by \(proName(m)) (the Pro) · from the pot.",
                         font: CSFont.subhead, color: cs.ink)
       }
     }
@@ -109,7 +108,7 @@ struct MembershipCard: View {
 #Preview("Membership · paid (future) · dark") {
   PricingPreview(.dark) {
     MembershipCard(flags: PricingSample.visible, memberships: [PricingSample.membership(seasonNumber: 2)], proNames: [PricingSample.other: "Jerecho"],
-                   paid: [PricingSample.other: PricingPaid(paidThrough: "2027-09-26", cents: 7900)])
+                   paid: [PricingSample.other: PricingPaid(paidThrough: "2027-09-26", cents: 8900)])
   }
 }
 #Preview("Membership · paid (future) · light") {

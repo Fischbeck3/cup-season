@@ -1,4 +1,15 @@
-# Pricing surfaces on the phone — IOS-021 executing D56
+# Pricing surfaces on the phone — IOS-021 executing D56, amended by D101
+
+> **D101 (2026-08-27 evening) — the unit is the league-year.** One pass covers
+> every season a league runs in twelve months; the first year is free; the
+> numbers are 25% under the per-league comps: **$59 ≤9 · $89 10–13 · $109 14+**
+> a year. Migration `20260827170000_pricing_annual.sql` rewrites the flag
+> (`unit:"year"`, `first_year_free`, the new bands; `visible` and `founding`
+> are preserved from any hand-written value). Copy on the three cards says
+> "league pass", "year 1", "next year"; `PotPassCard` takes `yearStartsOn:`
+> (the season's `starts_on` until the pass table owns the anniversary). Where
+> this file still says "$79", "season pass" or "season1_free", read the D101
+> values — the mount points and states are unchanged.
 
 The visible model, **no checkout**. One `app_flags` row, one Kit struct, three
 self-contained cards in `apps/ios/CupSeason/Pricing/`. Nothing here is

@@ -235,3 +235,5 @@ The ⊕'s composer is its own decision (IOS-020). Ceremonies, the finish, the se
 **Reversibility.** EASY — one flag write hides every surface.
 
 **Action.** Plan + surfaces built behind `pricing.visible` (seeded `false` in the migration so nothing shows until the owner flips it). Owner decides: the anchor, and the flip.
+
+**Amended 2026-08-27 (evening) — owner: "build the annual recommendation; look at competitors and reduce 25%."** The unit is now the **league-year** (one pass, every season the league runs in twelve months; first year free), and the bands are set 25% under the per-league comps — Golf League Tracker $119/season (≤365 days), Fantrax premium league $130, MyFantasyLeague ~$110, LeagueLobster $228/yr, League Golfer $10–20/player/yr — giving **$59 ≤9 · $89 10–13 · $109 14+ a year** (≈ $6.50–$7.80 a player a year at every banded roster). Logged upstream as **D101**. The anchor question is closed; the flip stays the owner's.

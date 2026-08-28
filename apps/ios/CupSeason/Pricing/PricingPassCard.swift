@@ -28,19 +28,19 @@ struct PricingPassCard: View {
       let bragging = (buyInCents ?? 0) == 0
       CSCard(padding: 16) {
         VStack(alignment: .leading, spacing: 10) {
-          Text("The season pass").csEyebrow()
+          Text("The league pass").csEyebrow()
           VStack(alignment: .leading, spacing: 4) {
-            Text("One pass, whole league, all season —").font(CSFont.sentence).foregroundStyle(cs.ink)
+            Text("One pass, the whole league, every season you run for a year —").font(CSFont.sentence).foregroundStyle(cs.ink)
             HStack(alignment: .firstTextBaseline, spacing: 6) {
               Text(price).font(CSFont.stat).csTabular().foregroundStyle(cs.ink)
               Text(bragging ? "· ≈ \(each) a player · split it on Venmo — less than a sleeve each"
-                            : "· ≈ \(each) a player · one line on the buy-in")
+                            : "· ≈ \(each) a player a year · one line on the buy-in")
                 .font(CSFont.label).tracking(0.6).foregroundStyle(cs.dimText)
                 .fixedSize(horizontal: false, vertical: true)
             }
           }
           .accessibilityElement(children: .combine)
-          PricingFreeLine("**Your first season is free.** The pass starts if you run it back.")
+          PricingFreeLine("**Your first year is free.** The pass starts if you're still running it a year from your first tee.")
           PricingMarkdown("**Where the money goes:** the pass is paid to Cup Season. The pot never is — buy-ins and payouts move friend-to-friend, and the app keeps the books so nobody argues at the bar.")
         }
       }

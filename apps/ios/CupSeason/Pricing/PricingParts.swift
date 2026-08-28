@@ -89,6 +89,12 @@ enum PricingDate {
     f.setLocalizedDateFormatFromTemplate("MMM d yyyy")
     return f.string(from: d)
   }
+
+  /// The same calendar date one year on ("2026-05-03" → "2027-05-03"), by parts.
+  static func yearAfter(_ iso: String, calendar: Calendar = .current) -> String? {
+    guard let d = CSDate.local(iso, calendar: calendar), let n = calendar.date(byAdding: .year, value: 1, to: d) else { return nil }
+    return CSDate.iso(n, calendar: calendar)
+  }
 }
 
 // MARK: - Preview fixtures (nothing here reaches the network)
@@ -101,7 +107,7 @@ enum PricingSample {
   static let visible = PricingFlags.seed
   /// The same, with PIGL as Founding League № 1.
   static let founding = PricingFlags(visible: true, anchorCents: PricingFlags.defaultAnchorCents, bands: PricingFlags.defaultBands,
-                                     season1Free: true, founding: .init(cap: 10, closed: false, ids: [pigl.uuidString.lowercased(): 1]))
+                                     firstYearFree: true, founding: .init(cap: 10, closed: false, ids: [pigl.uuidString.lowercased(): 1]))
 
   /// A membership row as `native_home()` would hand it over — decoded from
   /// JSON because `Me.Membership` has no memberwise init outside the Kit.

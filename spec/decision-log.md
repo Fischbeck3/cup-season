@@ -3657,3 +3657,54 @@ both. Record: `docs/ios/DECISIONS.md` IOS-018.)*
 - **CONFLICT (named):** D98 "the phone is for the tee box" and D99's
   operating/authoring split — resolved by this entry; the guardrails and
   the backend decisions in both stand verbatim.
+
+### D101 · The league pass is a year, priced under the comps
+*(2026-08-27, owner decision in session. BUSINESS level (1–2). Refines D56;
+the unit and the numbers change, nothing else in the model moves.)*
+- **Current:** D56 — a per-league SEASON pass paid by the Pro out of the pot,
+  $49 / $79 / $99 by roster band, first season free, Founding free forever,
+  checkout on the web at season 2. Built on the phone 2026-08-27 behind
+  `app_flags.pricing.visible = false`.
+- **Problem:** "$80 for one season which could be a few months seems steep"
+  (owner). The sticker is compared to consumer subscriptions before the
+  per-head division lands; a crew that runs spring + fall is asked twice a
+  year, and every "run it back" becomes a price moment — the renewal-mistrust
+  failure D56 exists to avoid. A pack (N seasons) was considered and rejected:
+  credits, breakage, "how many do I have left", and it reads as the
+  SaaS-per-seat framing the canon forbids.
+- **Recommendation → decision:** the unit is the **league-year**. One pass
+  covers every season a league runs in twelve months, the Ryder and Majors
+  included; the ask lands once, on the anniversary. Numbers are anchored to the
+  per-league comps and cut 25% because the product is new and unproven —
+  Golf League Tracker $119/season (≤365 days, multi-league $89–109), Fantrax
+  premium league $129.95, MyFantasyLeague ~$110, LeagueLobster $19/mo ($228/yr),
+  League Golfer $10–20 per regular per year (a 12-man = $120–240): median ≈
+  $120 → **$89** for the standard roster, banded **$59 ≤9 · $89 10–13 · $109
+  14+**, fixed at the first roster lock of the year. Per head at every band:
+  $6.50–$7.80 a year (vs $50–90 a year per golfer for TheGrint Pro / 18Birdies
+  / Golfshot — the handicap is still never resold). First YEAR free (was first
+  season). The Pro's sentence: *"The app's $89 for the year out of the pot —
+  call it seven bucks a man — and it covers every season we run."*
+- **Principle served:** priced against the pot, one number said out loud;
+  charge-after-proven-value (a year of it); golf-honest — the price a Pro hears
+  at the wizard is the price at the anniversary, and it is lower than every
+  comp they can look up.
+- **Benefit:** the sticker objection is answered by the unit, not by a
+  discount; a two-season crew pays ~$45 a season; revenue per league is equal
+  or better; one Stripe product per band, one checkout a year; the
+  run-it-back moment goes back to being a celebration.
+- **Tradeoffs:** a one-season-a-year league pays for months it does not use —
+  the tradeoff of every annual product; they are still under $8 a head and the
+  between-season app (rounds, index, the tee sheet) is live all year. The
+  anniversary needs a date the pass table will own; until checkout exists the
+  phone reads the current season's first tee.
+- **CONFLICT (named):** none above business level. Upholds D39 (the pass is
+  paid TO Cup Season, the pot is never held BY it), Founding free forever,
+  golfer free forever, no pricing on the front door, Stripe parked until the
+  first real anniversary. Supersedes D56's unit ("season") and numbers
+  ($49/$79/$99); D56's surfaces, kill switch and web-checkout posture stand.
+- **Implementation:** migration `20260827170000_pricing_annual.sql`
+  (`unit:"year"`, `first_year_free`, the bands; preserves `visible` and
+  `founding`), `PricingFlags` (`firstYearFree`, `unit`, legacy key read),
+  the three cards' copy, `docs/ios/pricing-surfaces.md` amendment, the
+  launch-kit FAQ line, the Season Pass Plan artifact.

@@ -149,10 +149,10 @@ the money moves between friends, not through the app. No wagering, no
 deposits, no payouts. · How is handicapping fair? — The number derives from
 posted scores and shows its work; it is not an official handicap and never
 claims to be. · What does it cost? — Free to download, and every golfer's
-profile, index, and record are free forever. A league's first season is
-free; after that the league runs on a season pass (about $79/season, paid by
-the Pro out of the pot — around $6 a player). There are no in-app purchases.
-*(D56 / IOS-021 — the "no in-app purchases" sentence stays VERBATIM true until
+profile, index, and record are free forever. A league's first year is
+free; after that the league runs on a league pass (about $89 a year, paid by
+the Pro out of the pot — around $7 a player, every season included). There are no in-app purchases.
+*(D56 / IOS-021, numbers per D101 — the "no in-app purchases" sentence stays VERBATIM true until
 the Stripe phase ships; discovery §6.2.)*
 
 **Assets folder:** current lockups from `brand/` · og-image · 3–5 artifact
