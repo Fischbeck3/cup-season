@@ -86,3 +86,16 @@ simulator signed in to the owner's account, look-only.
   decision (IOS-018's second half).
 - Web pricing surfaces (the July handoff's `index.html` insertions) are held
   until the web's role is decided; the flag serves both.
+
+## Addendum — 2026-08-27, late evening
+
+Owner's session after the professional review ("follow your rec for all"):
+
+- **D101 · the league pass is a year** — $59 / $89 / $109 by roster band, every season and event included, first year free; 25% under the per-league comps. Both pricing migrations PUSHED; `pricing.visible` still false.
+- **D102 · Founder / Founding Member** — gold `✦ FOUNDER` / `✦ FOUNDING MEMBER` on the You hero, the Tour Card, the feed. Migration `20260827180000_founding_members.sql` (column + `founding_ids()`) — **not yet pushed**; the phone falls back to `founder_id()` meanwhile.
+- **D103 · Homebase & the Looks** — PROPOSED, artifact published; nothing built until the owner picks.
+- **IOS-022 · the polish list** — all ten: `+`/⚙ in the header row (no empty nav bar), marker name eyebrow instead of the watermark, ⊕ rise + haptic, rating row folds, one fine-print line per screen, the haptics vocabulary (`CSHaptic.Kind`), the Major hidden behind `app_flags.ios.major`, founder's desk behind a 1s long-press on the build line in Settings, Dynamic Type pass on the strips, light theme verified.
+- **IOS-023 · the Forge + Sign in with Apple** — the door animation from the web's keyframes (once per device, reduced-motion rests), the Apple button behind `app_flags.ios.apple_sign_in`; `door_flags()` anon RPC (migration `20260827190000_door_flags.sql`, **not yet pushed**). Owner: Apple portal capability + Services ID/key → Supabase Apple provider → flag write.
+- **IOS-024 · the reliability floor** — MetricKit crash/hang → `client_events` (4-frame stacks), five product events, `test-seed` founder-gated (`supabase functions deploy test-seed` — **owner runs**). `docs/ios/reliability.md`.
+
+Head after merges: 314 tests, preflight 17/17. Owner owes: `supabase db push` (founding + door_flags), `supabase functions deploy test-seed`, the Apple provider setup, the homebase/looks picks, `pricing.visible`, PIGL's founding badge id.
