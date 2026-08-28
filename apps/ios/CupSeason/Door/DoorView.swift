@@ -2,7 +2,9 @@
 //
 // Email in, eight digits back, signed in. Code-only, structurally: the service
 // takes an email and nothing else. The reviewer address takes a password.
-// The full Forge (tracers, seared wordmark) lands in M6; M0 rests on the mark.
+// The crest is the Forge's rest frame (ForgeView) — first run plays the show
+// and hands off to the email stage; every run after rests on the mark.
+// Sign in with Apple (IOS-023) is a second door behind `app_flags.ios.apple_sign_in`.
 
 import SwiftUI
 import CSDesign
@@ -10,7 +12,11 @@ import CupSeasonKit
 
 struct DoorView: View {
   @Environment(\.cs) private var cs
+  @Environment(\.accessibilityReduceMotion) private var reduceMotion
   @State private var vm = DoorModel()
+  @State private var playForge: Bool? = nil
+  @State private var risen = false
+  @State private var flags = DoorFlags.closed
   @FocusState private var focus: Field?
   enum Field { case email, code, password }
 
@@ -21,23 +27,41 @@ struct DoorView: View {
           .padding(.top, 48)
           .padding(.bottom, 36)
 
-        switch vm.stage {
-        case .email: emailStage
-        case .code: codeStage
-        case .password: passwordStage
-        }
+        if risen {
+          Group {
+            switch vm.stage {
+            case .email: emailStage
+            case .code: codeStage
+            case .password: passwordStage
+            }
 
-        if let note = vm.note {
-          CSNote(note.text, tone: note.tone).padding(.top, 18)
-        }
+            if let note = vm.note {
+              CSNote(note.text, tone: note.tone).padding(.top, 18)
+            }
 
-        legal.padding(.top, 36)
+            legal.padding(.top, 36)
+          }
+          .transition(.opacity.combined(with: .offset(y: 10)))
+        }
       }
       .padding(.horizontal, 24)
       .padding(.bottom, 40)
     }
     .scrollDismissesKeyboard(.interactively)
-    .onAppear { focus = .email }
+    .onAppear {
+      if playForge == nil {
+        let play = ForgeState.shouldPlay(reduceMotion: reduceMotion)
+        if play { ForgeState.markPlayed() }
+        playForge = play
+      }
+    }
+    // the flag never blocks the email field: it lands whenever it lands
+    .task {
+      #if DEBUG
+      if DoorDev.forceApple { flags = DoorFlags(appleSignIn: true); return }
+      #endif
+      flags = await DoorFlags.load()
+    }
     #if DEBUG
     // The developer hatch (the web's `/?exit` family): a simulator cannot type.
     // `-cs_dev_email a@b` requests the code; add `-cs_dev_code 12345678` on the
@@ -46,15 +70,17 @@ struct DoorView: View {
     #endif
   }
 
-  // MARK: crest
+  // MARK: crest — the Forge, or its rest frame
 
-  private var crest: some View {
-    VStack(alignment: .leading, spacing: 10) {
-      Rectangle().fill(LinearGradient(colors: CSTokens.gradStops, startPoint: .leading, endPoint: .trailing))
-        .frame(width: 44, height: 3)
-      Text("Cup Season").font(CSFont.wordmark).foregroundStyle(cs.ink)
-      Text("Rally your crew. Post real rounds.").font(CSFont.sentence).foregroundStyle(cs.mut)
-      Text("Take the cup.").font(CSFont.sentenceBold).italic().foregroundStyle(cs.ink)
+  @ViewBuilder private var crest: some View {
+    if let playForge {
+      ForgeView(play: playForge) {
+        withAnimation(playForge ? CSMotion.roll : nil) { risen = true }
+        if focus == nil { focus = .email }
+      }
+    } else {
+      // one frame before appearance decides; the rest frame keeps the layout
+      ForgeFrame(t: ForgeTimeline.rest)
     }
   }
 
@@ -73,6 +99,13 @@ struct DoorView: View {
         .onSubmit { send() }
       CSButton("Continue with email", busy: vm.busy) { send() }
         .padding(.top, 6)
+      if flags.appleSignIn {
+        DoorAppleButton(
+          onToken: { token, nonce in Task { await vm.apple(idToken: token, nonce: nonce) } },
+          onFailure: { error in vm.appleFailed(error) })
+          .padding(.top, 4)
+          .disabled(vm.busy)
+      }
       Text("One code, no password. Codes come from the newest email.")
         .font(CSFont.footnote).foregroundStyle(cs.dimText).padding(.top, 4)
     }
@@ -216,6 +249,27 @@ final class DoorModel {
     defer { busy = false }
     do { try await svc.signInReviewer(email: email, password: password) }
     catch { note = Note(text: AuthRules.human(error, fallback: "That did not take."), tone: .neg) }
+  }
+
+  /// Sign in with Apple (IOS-023). Same shape as `verify`: no navigation here —
+  /// the session store hears SIGNED_IN and RootView switches.
+  func apple(idToken: String, nonce: String) async {
+    guard !busy else { return }
+    busy = true; note = Note(text: "Checking with Apple…", tone: .mut)
+    defer { busy = false }
+    do {
+      try await svc.signInWithApple(idToken: idToken, nonce: nonce)
+      note = Note(text: "Signed in, loading…", tone: .pos)
+      CSHaptic.success()
+    } catch {
+      note = Note(text: AuthRules.human(error, fallback: "Apple did not sign you in. Your email still works."), tone: .neg)
+    }
+  }
+
+  /// Apple's sheet failed before a token existed. A close is not an error.
+  func appleFailed(_ error: any Error) {
+    if DoorAppleError.isCancel(error) { note = nil; return }
+    note = Note(text: AuthRules.human(error, fallback: "Apple did not sign you in. Your email still works."), tone: .neg)
   }
 
   #if DEBUG

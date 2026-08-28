@@ -85,6 +85,10 @@ targets:
         # APNs — the server side (device_tokens + the push function's APNs
         # branch) is built; M4 lights it.
         aps-environment: development
+        # Sign in with Apple (IOS-023). The App ID capability + the Supabase
+        # provider are the owner's; the button renders only behind the flag.
+        com.apple.developer.applesignin:
+          - Default
 
   CupSeasonTests:
     type: bundle.unit-test

@@ -54,6 +54,17 @@ public enum AuthRules {
     if s.contains("rate limit") || s.contains("too many") || s.contains("429") {
       return "Too many sign-in emails for now — the mailer limits sends per hour."
     }
+    // Sign in with Apple (IOS-023): the provider not yet enabled in Supabase,
+    // a nonce that did not line up, or Apple's own sheet giving up.
+    if s.contains("provider") && (s.contains("not enabled") || s.contains("unsupported") || s.contains("disabled")) {
+      return "Apple sign-in is not open yet. Your email still works."
+    }
+    if s.contains("nonce") || s.contains("id token") || s.contains("id_token") {
+      return "That Apple sign-in did not line up. Try once more, or use your email."
+    }
+    if s.contains("authorizationerror") || s.contains("com.apple.authenticationservices") {
+      return "Apple could not sign you in on this device. Your email still works."
+    }
     if s.contains("network") || s.contains("offline") || s.contains("timed out") || s.contains("could not connect") {
       return "Connection hiccup — check your signal and try again."
     }
