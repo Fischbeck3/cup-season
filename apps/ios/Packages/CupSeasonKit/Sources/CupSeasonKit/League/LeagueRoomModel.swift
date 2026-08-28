@@ -28,6 +28,17 @@ public struct RoomViewer: Sendable, Equatable {
   }
 }
 
+/// `set_league_notify_system(p_league, p_on)` — migration 20260828030000.
+/// Hand-declared (the LiveRepository pattern) until the RPC snapshot is
+/// refreshed and Generated/Rpc.swift names it; preflight 17 holds it to its grant.
+struct SetLeagueNotifyCall: RpcCall {
+  static let name = "set_league_notify_system"
+  static let optionalArgs: [String] = []
+  typealias Returns = RpcVoid
+  let p_league: UUID
+  let p_on: Bool
+}
+
 public struct AlbumItem: Sendable, Identifiable, Equatable {
   public let round: LeagueRoom.AlbumRound
   public let url: URL
@@ -151,7 +162,7 @@ public final class LeagueRoomModel {
     let db = svc.client
     do {
       // the league, its bylaws, its latest season — three independent reads
-      async let leagueQ: [LeagueRoom.League] = db.from("leagues").select("id, name, code, phase, commissioner_id").eq("id", value: leagueId).execute().value
+      async let leagueQ: [LeagueRoom.League] = loadLeagueRows()
       async let settingsQ: [LeagueRoom.Settings] = db.from("league_settings")
         .select("league_id, preset, handicap_allowance, verification, counting_cap, participation_floor, floor_penalty, season_format, buyin_cents, season_months, locked_at, structure, draft_type, payout_champ, payout_runnerup, payout_king, finish")
         .eq("league_id", value: leagueId).execute().value
@@ -233,6 +244,17 @@ public final class LeagueRoomModel {
     freshStandings = season != nil
   }
   private var todayOverride: String?
+
+  /// The league row. `notify_system` arrived in 20260827210000; ANY error drops
+  /// back to the legacy column list (deploy skew — never sniff the message).
+  private func loadLeagueRows() async throws -> [LeagueRoom.League] {
+    let db = svc.client
+    do {
+      return try await db.from("leagues").select("id, name, code, phase, commissioner_id, notify_system").eq("id", value: leagueId).execute().value
+    } catch {
+      return try await db.from("leagues").select("id, name, code, phase, commissioner_id").eq("id", value: leagueId).execute().value
+    }
+  }
 
   private func loadSeason() async throws -> LeagueRoom.Season? {
     let db = svc.client
@@ -384,6 +406,15 @@ public final class LeagueRoomModel {
   public func transferPro(to member: UUID) async throws {
     _ = try await svc.call(Rpc.transfer_pro(p_member: member))
     await refresh()
+  }
+
+  /// The Pro's "League notices" switch (push wave 7): `system` board posts —
+  /// floors, closes, season notices — reach the crew's phones only while on.
+  /// The server re-checks is_commissioner; the row is re-read so the pane
+  /// shows what the database holds, not what was asked for.
+  public func setNotifySystem(_ on: Bool) async throws {
+    _ = try await svc.call(SetLeagueNotifyCall(p_league: leagueId, p_on: on))
+    if let lg = try? await loadLeagueRows().first { league = lg }
   }
 
   /// nil = back to the profile marker (the server takes '' as null).

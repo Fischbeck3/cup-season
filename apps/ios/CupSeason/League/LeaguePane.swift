@@ -52,6 +52,9 @@ struct LeaguePane: View {
       // IOS-025 / D103a: the Pro dresses the room; members read the choice
       LookRoomSection(leagueId: model.leagueId, isPro: model.isPro)
 
+      // push wave 7: the Pro curates league notices; members read the setting
+      NoticesRoomSection()
+
       DisclosureGroup(isExpanded: $rulesOpen) {
         VStack(alignment: .leading, spacing: 10) {
           CSSectionHead("The bylaws · locked at first tee")
@@ -88,6 +91,70 @@ struct LeaguePane: View {
     .sheet(item: $shareURL) { url in
       ActivityView(items: [url, "\(model.league?.name ?? "Our league") on Cup Season — the season so far"]).presentationDetents([.medium, .large])
     }
+  }
+}
+
+/// The Pro's "League notices" switch (`leagues.notify_system`, push wave 7).
+/// On: floors, closes and season notices reach the crew's phones. Off: only
+/// rounds, chat and the board — each golfer's own pings are untouched. The
+/// server checks is_commissioner; a member sees the setting as a line.
+struct NoticesRoomSection: View {
+  @Environment(LeagueRoomModel.self) private var model
+  @Environment(\.toast) private var toast
+  @Environment(\.cs) private var cs
+  @State private var busy = false
+
+  private var on: Bool { model.league?.noticesOn ?? true }
+
+  var body: some View {
+    if model.isPro {
+      RoomCheckRow("League notices", sub: NoticesCopy.sub(on)) {
+        Image(systemName: "bell").font(.system(size: 15, weight: .regular)).foregroundStyle(cs.ink)
+      } trail: {
+        Toggle("League notices", isOn: Binding(get: { on }, set: { set($0) }))
+          .labelsHidden()
+          .tint(cs.brand)
+          .disabled(busy)
+          .accessibilityLabel("League notices")
+          .accessibilityHint(NoticesCopy.sub(on))
+      }
+    } else {
+      HStack(spacing: 10) {
+        Image(systemName: on ? "bell" : "bell.slash").font(.system(size: 13, weight: .regular)).foregroundStyle(cs.dimText)
+        Text(NoticesCopy.memberLine(on)).font(CSFont.label).tracking(0.6).foregroundStyle(cs.dimText)
+          .fixedSize(horizontal: false, vertical: true)
+      }
+      .frame(minHeight: 44)
+      .accessibilityElement(children: .combine)
+    }
+  }
+
+  /// The toast speaks in voice on success and carries the server's words on refusal.
+  private func set(_ next: Bool) {
+    guard !busy, next != on else { return }
+    CSHaptic.selection()
+    busy = true
+    Task {
+      defer { busy = false }
+      do {
+        try await model.setNotifySystem(next)
+        toast.show(NoticesCopy.toast(model.league?.noticesOn ?? next))
+      } catch {
+        toast.show(roomError(error, "Could not change league notices."))
+      }
+    }
+  }
+}
+
+enum NoticesCopy {
+  static func sub(_ on: Bool) -> String {
+    on ? "Floors, closes and season notices reach the crew's phones" : "Only rounds, chat and the board"
+  }
+  static func memberLine(_ on: Bool) -> String {
+    on ? "League notices reach your phone — floors, closes, season news" : "League notices are off — only rounds, chat and the board"
+  }
+  static func toast(_ on: Bool) -> String {
+    on ? "Notices are on — floors, closes and season news reach the crew" : "Notices are off — only rounds, chat and the board ring"
   }
 }
 
