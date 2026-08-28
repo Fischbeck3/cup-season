@@ -261,7 +261,7 @@ select '13 · profiles server-owned',
   'no insert/update/delete grant (table or column) to anon/authenticated · no write policy on profiles'
 from (
   select coalesce(string_agg(o, ' · '), '') as leaks from (
-    select r.role_name || ' table ' || pv.p
+    select r.role_name || ' table ' || pv.p as o
     from (values ('anon'), ('authenticated')) r(role_name)
     cross join (values ('insert'), ('update'), ('delete')) pv(p)
     where has_table_privilege(r.role_name, 'public.profiles', pv.p)
@@ -289,7 +289,7 @@ select '14 · live tables read-only',
   'no write grant/policy for authenticated on the four live tables · claim_token unreadable'
 from (
   select coalesce(string_agg(o, ' · '), '') as leaks from (
-    select t || ' ' || pv.p
+    select t || ' ' || pv.p as o
     from unnest(array['live_rounds','live_round_players','game_results','live_scores']) t
     cross join (values ('insert'), ('update'), ('delete')) pv(p)
     where has_table_privilege('authenticated', 'public.' || t, pv.p)
