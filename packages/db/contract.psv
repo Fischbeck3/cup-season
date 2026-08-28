@@ -19,10 +19,11 @@
 #     from pg_proc p join pg_namespace n on n.oid=p.pronamespace
 #     where n.nspname='public' and p.prokind='f') s;
 #
-# Snapshot taken 2026-08-26; refreshed 2026-08-27 (late) after the 20260828 pushes (device env · league notify · nudge payloads). That function was absent from the first snapshot on purpose - check 11
+# Snapshot taken 2026-08-26; refreshed 2026-08-28 after the seven 20260828 pushes (pass 1 hardening · growth_events · D106 · D105). Earlier note kept below:
 # reported it as a deploy owed, which is exactly its job. Lesson kept: after a
 # db push that adds or re-signs a function, refresh this file, or the check
 # keeps reporting a deploy you already made.
+_cup_window_rounds|p_season uuid|TABLE(member_id uuid, round_id uuid, profile_id uuid, played_on date, points integer, month_rank bigint, pvi numeric, holes_played integer)|definer|none
 _live_member_can|p_live_round uuid|boolean|definer|none
 _live_state_of|p_live_round uuid|jsonb|definer|none
 abandon_live_round|p_live_round uuid|jsonb|definer|auth
@@ -50,6 +51,7 @@ create_league|p_name text, p_code text|json|definer|auth
 create_major|p_name text, p_final_on date, p_days integer DEFAULT 4, p_buy_in numeric DEFAULT 0, p_pot_split text DEFAULT 'places'::text, p_league uuid DEFAULT NULL::uuid, p_tz text DEFAULT NULL::text, p_lineage uuid DEFAULT NULL::uuid|uuid|definer|auth
 create_scan_claim|p_name text, p_gross integer, p_strokes jsonb, p_course text, p_rating numeric, p_slope integer, p_played date, p_holes integer DEFAULT 18|uuid|definer|auth
 create_share|p_kind text, p_ref uuid|uuid|definer|auth
+cup_final_race|p_season uuid|jsonb|definer|auth
 cup_points|p_pvi numeric|integer|invoker|auth
 daily_season_tick||void|definer|none
 declare_round|p_play_on date, p_course text, p_note text, p_tagged uuid[] DEFAULT '{}'::uuid[], p_tee time without time zone DEFAULT NULL::time without time zone, p_course_id text DEFAULT NULL::text|uuid|definer|auth
@@ -102,6 +104,7 @@ live_round_card|p_live_round uuid|jsonb|definer|auth
 live_set_score|p_live_round uuid, p_player uuid, p_hole integer, p_strokes integer, p_client_ts timestamp with time zone|void|definer|auth
 live_set_wolf|p_live_round uuid, p_hole integer, p_wolf jsonb, p_client_ts timestamp with time zone|void|definer|auth
 live_state|p_live_round uuid|jsonb|definer|auth
+log_growth_event|p_node text, p_kind text DEFAULT NULL::text, p_token text DEFAULT NULL::text, p_props jsonb DEFAULT '{}'::jsonb, p_league uuid DEFAULT NULL::uuid|void|definer|anon,auth
 major_board|p_event uuid|TABLE(player_id uuid, profile_id uuid, display_name text, marker text, exhibition boolean, round_id uuid, gross integer, pvi numeric, cards integer, best_posted_at timestamp with time zone)|definer|none
 major_contender|p_profile uuid|boolean|definer|none
 major_final_day|p_session uuid|void|definer|none
@@ -128,6 +131,7 @@ nth_up|n integer|text|invoker|none
 open_major|p_session uuid|void|definer|auth
 playerlabel|p_profile uuid|text|definer|auth
 randomize_squads|p_season uuid|void|definer|auth
+recompute_season_payouts|p_season uuid|jsonb|definer|none
 register_device_token|p_token text, p_platform text DEFAULT 'ios'::text|void|definer|auth
 remove_member|p_member uuid|void|definer|auth
 report_content|p_post uuid DEFAULT NULL::uuid, p_reason text DEFAULT NULL::text, p_kind text DEFAULT 'post'::text, p_profile uuid DEFAULT NULL::uuid|void|definer|auth
