@@ -73,7 +73,23 @@ struct DraftSquadCard: View {
     }
     .buttonStyle(.plain)
     .allowsHitTesting(selected)
+    .accessibilityElement(children: .combine)
+    .accessibilityLabel(a11yLabel)
     .accessibilityHint(selected ? "Seats the selected player here" : "")
+    .accessibilityRemoveTraits(selected ? [] : .isButton)
+  }
+
+  /// "The Pines, 3 players: Ed (captain), Mitch, Logan" — the card in one breath.
+  private var a11yLabel: String {
+    var s = squad.name + ", " + DraftCopy.players(squad.squad_members.count).lowercased()
+    if squad.squad_members.isEmpty { return s + ", empty" }
+    var seats: [String] = []
+    for seat in squad.squad_members {
+      let n = name(seat.member_id)
+      seats.append(squad.captain_member_id == seat.member_id ? n + " (captain)" : n)
+    }
+    s += ": " + seats.joined(separator: ", ")
+    return s
   }
 }
 
@@ -119,6 +135,7 @@ struct DraftSnakeSquadCard: View {
       Spacer()
       Text(b).font(CSFont.label).tracking(0.8).foregroundStyle(cs.mut)
     }
+    .accessibilityElement(children: .combine)
   }
 }
 
@@ -157,11 +174,13 @@ struct DraftPoolRow: View {
   let tap: () -> Void
   var body: some View {
     Button(action: tap) {
-      HStack(spacing: 10) {
+      A11yStack(spacing: 10, columnSpacing: 2) {
         Text(name).font(CSFont.subhead.weight(.semibold)).foregroundStyle(cs.ink)
         Spacer()
-        Text(idx).font(CSFont.label).tracking(0.8).foregroundStyle(cs.mut)
-        Text(allowed ? DraftCopy.draftTag : DraftCopy.lockedTag).font(CSFont.label).tracking(1.0).foregroundStyle(allowed ? cs.brand : cs.dimText)
+        HStack(spacing: 10) {
+          Text(idx).font(CSFont.label).tracking(0.8).foregroundStyle(cs.mut)
+          Text(allowed ? DraftCopy.draftTag : DraftCopy.lockedTag).font(CSFont.label).tracking(1.0).foregroundStyle(allowed ? cs.brand : cs.dimText)
+        }
       }
       .padding(.horizontal, 14).frame(minHeight: 48)
       .background(CSDusk.surface, in: RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous))
@@ -170,6 +189,8 @@ struct DraftPoolRow: View {
       .contentShape(Rectangle())
     }
     .buttonStyle(.plain)
+    .accessibilityLabel("\(name), \(idx)")
+    .accessibilityHint(allowed ? "Drafts them" : "Not your pick")
   }
 }
 
@@ -187,6 +208,7 @@ struct DraftLockBadge: View {
     .padding(.horizontal, 12).padding(.vertical, 8)
     .background(tone.opacity(mine ? 0.06 : 0.08), in: Capsule())
     .overlay(Capsule().stroke(tone.opacity(mine ? 0.3 : 0.25), lineWidth: 1))
+    .accessibilityElement(children: .combine)
     .accessibilityAddTraits(.updatesFrequently)
   }
 }

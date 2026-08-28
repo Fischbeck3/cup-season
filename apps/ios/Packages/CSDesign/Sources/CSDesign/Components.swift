@@ -153,10 +153,13 @@ public struct CSEmptyState: View {
 
   public var body: some View {
     VStack(spacing: 12) {
-      Text(icon).font(.system(size: 28))
+      Text(icon).font(.system(size: 28)).accessibilityHidden(true)
       Text(line).font(CSFont.subhead).foregroundStyle(cs.mut).multilineTextAlignment(.center)
       if let cta, let action {
-        Button(cta, action: action).font(CSFont.button).foregroundStyle(cs.brand)
+        Button(action: action) {
+          Text(cta).font(CSFont.button).foregroundStyle(cs.brand).a11yMinTarget()
+        }
+        .buttonStyle(.plain)
       }
     }
     .frame(maxWidth: .infinity)

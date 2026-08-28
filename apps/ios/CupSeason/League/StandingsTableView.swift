@@ -12,6 +12,7 @@ struct StandingsTableView: View {
   @Environment(LeagueRoomModel.self) private var model
   @Environment(RoomRouter.self) private var router
   @Environment(\.cs) private var cs
+  @Environment(\.dynamicTypeSize) private var typeSize
   @State private var flipOnce = false
 
   var body: some View {
@@ -21,7 +22,8 @@ struct StandingsTableView: View {
       StoryLine(story: model.story)
       if model.isComplete { RoomMini("See how it ended") { router.open(.ceremony) } }
       VStack(spacing: 0) {
-        header(solo: solo)
+        // the column heads mean nothing once the columns stack (accessibility sizes) — each row says its own
+        if !typeSize.isA11y { header(solo: solo) }
         if teams.isEmpty {
           let e = LeagueCopy.standingsEmpty(solo: model.solo)
           VStack(alignment: .leading, spacing: 6) {
@@ -73,34 +75,44 @@ struct StandingsTableView: View {
     let pr = model.priorRank[t.id]
     let mv = StandingsMath.move(prior: pr, now: i)
     let flips = flipOnce && pr != nil && pr != i
+    let ax = typeSize.isA11y
     return Button {
       if solo, let row = model.indRow(t.id) { router.open(.member(row)) } else { router.open(.squad(t)) }
     } label: {
-      HStack(spacing: 10) {
-        HStack(alignment: .firstTextBaseline, spacing: 4) {
-          RankFlipText(text: String(format: "%02d", i + 1), flip: flips, tone: i == 0 ? cs.gold : cs.mut)
-          if let mv { moveChip(mv) }
-        }
-        .frame(width: 58, alignment: .leading)
-        HStack(spacing: 8) {
-          RoundedRectangle(cornerRadius: 3).fill(cs.squad(t.ci)).frame(width: 10, height: 10)
-          VStack(alignment: .leading, spacing: 1) {
-            Text(t.name).font(CSFont.subhead.weight(i == 0 ? .semibold : .regular)).foregroundStyle(cs.ink).lineLimit(1)
-            Text(solo ? "\(t.sub) ROUND\(t.sub == 1 ? "" : "S")" : "CAPT. \(t.cap.uppercased())")
-              .font(CSFont.label).tracking(0.8).foregroundStyle(cs.dimText).lineLimit(1)
+      // four columns at reading sizes; at the accessibility sizes the rank+name line sits over a "Δ wk · pts" line
+      A11yStack(spacing: 10, columnSpacing: 4) {
+        // rank + move beside the name; at the accessibility sizes the rank block takes its own line too
+        A11yStack(spacing: 10, columnSpacing: 2) {
+          HStack(alignment: .firstTextBaseline, spacing: 4) {
+            RankFlipText(text: String(format: "%02d", i + 1), flip: flips, tone: i == 0 ? cs.gold : cs.mut)
+            if let mv { moveChip(mv) }
           }
-        }
-        .frame(maxWidth: .infinity, alignment: .leading)
-        Group {
-          if arr.count > 1 {
-            Text((dwk > 0 ? "+" : "") + CSCopy.points(dwk)).foregroundStyle(dwk >= 12 ? cs.pos : dwk < 0 ? cs.neg : cs.mut)
-          } else {
-            Text("WK 1").foregroundStyle(cs.dimText)
+          .frame(minWidth: ax ? nil : 58, alignment: .leading)
+          HStack(spacing: 8) {
+            RoundedRectangle(cornerRadius: 3).fill(cs.squad(t.ci)).frame(width: 10, height: 10)
+            VStack(alignment: .leading, spacing: 1) {
+              Text(t.name).font(CSFont.subhead.weight(i == 0 ? .semibold : .regular)).foregroundStyle(cs.ink).lineLimit(ax ? nil : 1)
+              Text(solo ? "\(t.sub) ROUND\(t.sub == 1 ? "" : "S")" : "CAPT. \(t.cap.uppercased())")
+                .font(CSFont.label).tracking(0.8).foregroundStyle(cs.dimText).lineLimit(ax ? nil : 1)
+            }
           }
+          .frame(maxWidth: .infinity, alignment: .leading)
         }
-        .font(CSFont.monoSmall).csTabular().frame(width: 48, alignment: .trailing)
-        Text(CSCopy.points(t.pts)).font(CSFont.monoMediumBody).csTabular().foregroundStyle(i == 0 && t.pts > 0 ? cs.gold : cs.ink)
-          .frame(width: 44, alignment: .trailing)
+        HStack(spacing: 10) {
+          if ax { Text("Δ WK").font(CSFont.label).tracking(1.0).foregroundStyle(cs.dimText) }
+          Group {
+            if arr.count > 1 {
+              Text((dwk > 0 ? "+" : "") + CSCopy.points(dwk)).foregroundStyle(dwk >= 12 ? cs.pos : dwk < 0 ? cs.neg : cs.mut)
+            } else {
+              Text("WK 1").foregroundStyle(cs.dimText)
+            }
+          }
+          .font(CSFont.monoSmall).csTabular().frame(minWidth: ax ? nil : 48, alignment: .trailing)
+          if ax { Text("· PTS").font(CSFont.label).tracking(1.0).foregroundStyle(cs.dimText) }
+          Text(CSCopy.points(t.pts)).font(CSFont.monoMediumBody).csTabular().foregroundStyle(i == 0 && t.pts > 0 ? cs.gold : cs.ink)
+            .frame(minWidth: ax ? nil : 44, alignment: .trailing)
+        }
+        .padding(.leading, ax ? 22 : 0)
       }
       .padding(.horizontal, 4).padding(.vertical, 10)
       .frame(minHeight: 52)
@@ -109,7 +121,9 @@ struct StandingsTableView: View {
       .overlay(alignment: .bottom) { Rectangle().fill(i == 0 && t.pts > 0 ? cs.gold.opacity(0.55) : cs.line).frame(height: 1) }
     }
     .buttonStyle(.plain)
-    .accessibilityLabel("\(CSCopy.ordinal(i + 1)) — \(t.name), \(CSCopy.points(t.pts)) points" + (mv.map { ", \($0.title)" } ?? ""))
+    // "1st, Galen, 27 points, up 1 this week" — the row in one breath
+    .accessibilityLabel("\(CSCopy.ordinal(i + 1)), \(t.name), \(CSCopy.points(t.pts)) points" + (mv.map { ", \($0.title)" } ?? ""))
+    .accessibilityHint(solo ? "Opens their rounds" : "Opens the squad receipt")
   }
 
   /// `.rkmove` — D76 heat: climbing warm, climbing 2+ hot; falling cools to slate.

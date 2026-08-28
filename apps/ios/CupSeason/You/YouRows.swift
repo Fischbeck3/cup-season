@@ -14,7 +14,8 @@ struct YouStatRow: View {
   var sub: String? = nil
   var tone: Color? = nil
   var body: some View {
-    HStack(alignment: .firstTextBaseline, spacing: 12) {
+    // label + sub beside the figure; the figure drops under them at the accessibility sizes
+    A11yStack(rowAlignment: .firstTextBaseline, spacing: 12, columnSpacing: 2) {
       VStack(alignment: .leading, spacing: 2) {
         Text(label).font(CSFont.subhead).foregroundStyle(cs.ink)
         if let sub { Text(sub).font(CSFont.label).tracking(0.8).textCase(.uppercase).foregroundStyle(cs.dimText) }
@@ -60,12 +61,13 @@ struct YouDoorRow<Trailing: View>: View {
         .frame(minWidth: 30, minHeight: 30)
         .padding(.horizontal, 2)
         .background(cs.bg2, in: RoundedRectangle(cornerRadius: 8, style: .continuous))
+        .accessibilityHidden(true)
       VStack(alignment: .leading, spacing: 2) {
         Text(title).font(CSFont.subhead.weight(.semibold)).foregroundStyle(cs.ink)
         if let sub, !sub.isEmpty { Text(sub).font(CSFont.label).tracking(0.8).foregroundStyle(subColor ?? cs.dimText) }
       }
       .frame(maxWidth: .infinity, alignment: .leading)
-      trailing().foregroundStyle(cs.dimText)
+      trailing().foregroundStyle(cs.dimText).accessibilityHidden(true)
     }
     .frame(minHeight: 44)
     .contentShape(Rectangle())

@@ -11,19 +11,23 @@ struct BylawsCard: View {
   @Environment(RoomRouter.self) private var router
   @Environment(\.toast) private var toast
   @Environment(\.cs) private var cs
+  @Environment(\.dynamicTypeSize) private var typeSize
   @State private var busy = false
 
   var body: some View {
     VStack(alignment: .leading, spacing: 10) {
-      // rows on ground with hairlines — never a card inside a section (IOS-019 rule 2)
+      // rows on ground with hairlines — never a card inside a section (IOS-019 rule 2);
+      // the key sits over its value at the accessibility sizes instead of beside it
       VStack(spacing: 0) {
         ForEach(LeagueCopy.bylawsRows(model.bylaws, clock: model.clock)) { r in
-          HStack(alignment: .firstTextBaseline, spacing: 12) {
-            Text(r.k).font(CSFont.label).tracking(1.0).textCase(.uppercase).foregroundStyle(cs.dimText).frame(width: 118, alignment: .leading)
+          A11yStack(rowAlignment: .firstTextBaseline, spacing: 12, columnSpacing: 3) {
+            Text(r.k).font(CSFont.label).tracking(1.0).textCase(.uppercase).foregroundStyle(cs.dimText)
+              .frame(width: typeSize.isA11y ? nil : 118, alignment: .leading)
             Text(r.v).font(CSFont.subhead).foregroundStyle(cs.ink).frame(maxWidth: .infinity, alignment: .leading).fixedSize(horizontal: false, vertical: true)
           }
           .padding(.vertical, 9)
           .overlay(alignment: .bottom) { CSHairline() }
+          .accessibilityElement(children: .combine)
         }
         // the endgame dial (migration 008): flippable until the final window opens — after that it's settled, argue never
         if model.isPro && model.clock.phase == .season && !model.clock.isCupFinal && !model.isComplete {
@@ -72,11 +76,11 @@ struct RoomScoringHelpSheet: View {
   private func para(_ md: String) -> some View {
     Text((try? AttributedString(markdown: md)) ?? AttributedString(md)).font(CSFont.footnote).foregroundStyle(cs.mut).fixedSize(horizontal: false, vertical: true)
   }
+  /// One Text, so the line wraps as prose at every size instead of three cells fighting for width.
   private func band(_ a: String, _ b: String, _ c: String) -> some View {
-    HStack(spacing: 4) {
-      Text(a).font(CSFont.footnote.weight(.semibold)).foregroundStyle(cs.ink)
-      Text("· \(b) ·").font(CSFont.footnote).foregroundStyle(cs.mut)
-      Text(c).font(CSFont.footnote.weight(.semibold)).foregroundStyle(cs.ink)
-    }
+    (Text(a).font(CSFont.footnote.weight(.semibold)).foregroundStyle(cs.ink)
+      + Text(" · \(b) · ").font(CSFont.footnote).foregroundStyle(cs.mut)
+      + Text(c).font(CSFont.footnote.weight(.semibold)).foregroundStyle(cs.ink))
+      .fixedSize(horizontal: false, vertical: true)
   }
 }

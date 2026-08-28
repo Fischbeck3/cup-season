@@ -34,6 +34,7 @@ struct WizardScreen: View {
   @Environment(SessionStore.self) private var store
   @Environment(\.toast) private var toast
   @Environment(\.cs) private var cs
+  @Environment(\.accessibilityReduceMotion) private var reduceMotion
   @State private var model: WizardModel
   let links: WizardLinks
 
@@ -109,13 +110,13 @@ struct WizardScreen: View {
         .padding(.horizontal, 20).padding(.top, 8).padding(.bottom, 32)
       }
       .scrollDismissesKeyboard(.interactively)
-      .onChange(of: model.step) { _, _ in withAnimation(.timingCurve(0.16, 0.84, 0.36, 1, duration: 0.26)) { proxy.scrollTo("top", anchor: .top) } }
+      .onChange(of: model.step) { _, _ in withAnimation(reduceMotion ? nil : .timingCurve(0.16, 0.84, 0.36, 1, duration: 0.26)) { proxy.scrollTo("top", anchor: .top) } }
     }
   }
 
-  /// `.wiznav` — step 0: Cancel replaces Back; step 2: Next hides.
+  /// `.wiznav` — step 0: Cancel replaces Back; step 2: Next hides. Two across; stacked at the accessibility sizes.
   private var nav: some View {
-    HStack(spacing: 10) {
+    A11yStack(spacing: 10) {
       if model.step == 0 {
         WizardCancelButton(busy: model.busy) { discard() }
       } else {
@@ -156,12 +157,13 @@ struct WizardScreen: View {
 /// `.wizdots` — three dots, lit up to the current step, in ember.
 struct WizardDots: View {
   @Environment(\.cs) private var cs
+  @Environment(\.accessibilityReduceMotion) private var reduceMotion
   let step: Int
   var body: some View {
     HStack(spacing: 6) {
       ForEach(0..<3, id: \.self) { i in
         Capsule().fill(i <= step ? cs.brand : cs.line2).frame(width: i == step ? 22 : 8, height: 4)
-          .animation(.timingCurve(0.16, 0.84, 0.36, 1, duration: 0.26), value: step)
+          .animation(reduceMotion ? nil : .timingCurve(0.16, 0.84, 0.36, 1, duration: 0.26), value: step)
       }
     }
     .accessibilityElement(children: .ignore)

@@ -12,6 +12,7 @@ import CupSeasonKit
 struct CardGateView: View {
   @Environment(SessionStore.self) private var store
   @Environment(\.cs) private var cs
+  @Environment(\.dynamicTypeSize) private var typeSize
   let me: Me
   @State private var step = 0
   @State private var name = ""
@@ -27,7 +28,8 @@ struct CardGateView: View {
   private let claiming = ClaimIntent.pending() != nil
 
   private let svc = SupabaseService.shared
-  private let columns = Array(repeating: GridItem(.flexible(), spacing: 10), count: 4)
+  /// Four across at reading sizes; two at the accessibility sizes so a marker's name is never clipped.
+  private var columns: [GridItem] { Array(repeating: GridItem(.flexible(), spacing: 10), count: typeSize.isA11y ? 2 : 4) }
 
   var body: some View {
     ScrollView {
@@ -38,6 +40,8 @@ struct CardGateView: View {
           }
         }
         .padding(.top, 20)
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel("Step \(step + 1) of 3")
 
         Text("Your card").csEyebrow()
         Text(title).font(CSFont.title).foregroundStyle(cs.ink)
@@ -58,7 +62,10 @@ struct CardGateView: View {
         CSButton(step < 2 ? "Next" : "Save my card", busy: busy) { advance() }
           .padding(.top, 6)
         if step > 0 {
-          Button("Back") { step -= 1; note = nil }.font(CSFont.subhead).foregroundStyle(cs.mut)
+          Button { step -= 1; note = nil } label: {
+            Text("Back").font(CSFont.subhead).foregroundStyle(cs.mut).frame(minHeight: 44).contentShape(Rectangle())
+          }
+          .buttonStyle(.plain)
         }
       }
       .padding(.horizontal, 24).padding(.bottom, 40)
@@ -144,7 +151,8 @@ struct CardGateView: View {
         } label: {
           VStack(spacing: 8) {
             CSMarkerView(m, size: 34).foregroundStyle(marker == m.key ? cs.brand : cs.ink)
-            Text(m.name).font(CSFont.label).foregroundStyle(cs.mut).lineLimit(1).minimumScaleFactor(0.7)
+            Text(m.name).font(CSFont.label).foregroundStyle(cs.mut).lineLimit(typeSize.isA11y ? 2 : 1).minimumScaleFactor(0.7)
+              .multilineTextAlignment(.center)
           }
           .frame(maxWidth: .infinity, minHeight: 78)
           .background(cs.bg1, in: RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous))

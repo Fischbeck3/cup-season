@@ -99,18 +99,22 @@ struct CheckRow<Trailing: View>: View {
   }
 
   var body: some View {
-    HStack(spacing: 12) {
-      glyph
-        .font(CSFont.monoSmall).foregroundStyle(cs.mut)
-        .frame(minWidth: 26, minHeight: 26)
-        .padding(.horizontal, 2)
-        .background(cs.bg2, in: RoundedRectangle(cornerRadius: 8, style: .continuous))
-        .overlay(RoundedRectangle(cornerRadius: 8, style: .continuous).stroke(cs.line2, lineWidth: 1))
-      VStack(alignment: .leading, spacing: 2) {
-        Text(title).font(CSFont.subhead.weight(.semibold)).foregroundStyle(cs.ink)
-        if let sub, !sub.isEmpty { Text(sub).font(CSFont.label).tracking(0.8).foregroundStyle(subColor ?? cs.dimText) }
+    // glyph + text across; the trailing control drops under them at the accessibility sizes
+    A11yStack(spacing: 12, columnSpacing: 8) {
+      HStack(spacing: 12) {
+        glyph
+          .font(CSFont.monoSmall).foregroundStyle(cs.mut)
+          .frame(minWidth: 26, minHeight: 26)
+          .padding(.horizontal, 2)
+          .background(cs.bg2, in: RoundedRectangle(cornerRadius: 8, style: .continuous))
+          .overlay(RoundedRectangle(cornerRadius: 8, style: .continuous).stroke(cs.line2, lineWidth: 1))
+          .accessibilityHidden(true)
+        VStack(alignment: .leading, spacing: 2) {
+          Text(title).font(CSFont.subhead.weight(.semibold)).foregroundStyle(cs.ink)
+          if let sub, !sub.isEmpty { Text(sub).font(CSFont.label).tracking(0.8).foregroundStyle(subColor ?? cs.dimText) }
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
       }
-      .frame(maxWidth: .infinity, alignment: .leading)
       trailing()
     }
     .padding(.horizontal, 14).padding(.vertical, 13)
@@ -152,14 +156,15 @@ struct MathRow: View {
   let value: String
   var sub = false
   var tone: Color? = nil
+  @Environment(\.dynamicTypeSize) private var typeSize
   var body: some View {
-    HStack(alignment: .firstTextBaseline, spacing: 10) {
+    A11yStack(rowAlignment: .firstTextBaseline, spacing: 10, columnSpacing: 2) {
       Text(label).font(sub ? CSFont.monoSmall : CSFont.subhead).foregroundStyle(cs.dimText)
       Spacer(minLength: 8)
       Text(value)
         .font(sub ? CSFont.monoMediumBody : CSFont.subhead.weight(.semibold))
         .foregroundStyle(tone ?? (sub ? cs.mut : cs.ink))
-        .multilineTextAlignment(.trailing)
+        .multilineTextAlignment(typeSize.isA11y ? .leading : .trailing)
     }
     .padding(.vertical, sub ? 7 : 9)
     .overlay(alignment: .top) { Rectangle().fill(cs.line).frame(height: 1) }
@@ -249,6 +254,7 @@ struct MarkerStamp: View {
       .frame(width: 26, height: 26)
       .background(cs.bg0.opacity(0.55), in: Circle())
       .padding(10)
+      .accessibilityHidden(true)
   }
 }
 

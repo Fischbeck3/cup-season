@@ -15,6 +15,7 @@ struct StandingsPane: View {
   @Environment(RoomRouter.self) private var router
   @Environment(\.roomLinks) private var links
   @Environment(\.cs) private var cs
+  @Environment(\.dynamicTypeSize) private var typeSize
 
   var body: some View {
     VStack(alignment: .leading, spacing: 14) {
@@ -100,8 +101,8 @@ struct StandingsPane: View {
     CSSectionHead("The individual race · every player").id("room-race")
     IndividualRaceView()
     if c.phase == .season && !model.isComplete {
-      // #14: once the season is live, setup tools live down here
-      HStack(spacing: 8) {
+      // #14: once the season is live, setup tools live down here (stacked at the accessibility sizes)
+      A11yStack(spacing: 8) {
         if let url = model.inviteURL, let code = model.league?.code {
           ShareLink(item: url, subject: Text("Cup Season"), message: Text(model.inviteText)) {
             Text("Code · \(code)").font(CSFont.monoSmall).foregroundStyle(cs.ink).padding(.horizontal, 12).frame(minHeight: 36)
@@ -136,19 +137,21 @@ struct StandingsPane: View {
   private var onTheLine: some View {
     Button { router.pane = .pot; CSHaptic.selection() } label: {
       CSCard(spine: cs.gold) {
-        HStack(alignment: .center, spacing: 12) {
+        A11yStack(spacing: 12, columnSpacing: 6) {
           VStack(alignment: .leading, spacing: 4) {
             Text("On the line").csEyebrow(cs.gold)
             Text(PotMath.dollars(model.potTotal)).font(CSFont.heroSmall).csTabular().foregroundStyle(cs.gold)
           }
           Spacer()
           Text(LeagueCopy.lineSplit(total: model.potTotal, payout: model.bylaws.payout))
-            .font(CSFont.label).tracking(0.8).foregroundStyle(cs.mut).multilineTextAlignment(.trailing)
-          Text("→").font(CSFont.mono).foregroundStyle(cs.gold)
+            .font(CSFont.label).tracking(0.8).foregroundStyle(cs.mut).multilineTextAlignment(typeSize.isA11y ? .leading : .trailing)
+          Text("→").font(CSFont.mono).foregroundStyle(cs.gold).accessibilityHidden(true)
         }
       }
     }
     .buttonStyle(.plain)
+    .accessibilityElement(children: .combine)
+    .accessibilityHint("Opens the pot")
   }
 }
 
@@ -296,7 +299,7 @@ struct NextCard: View {
   var body: some View {
     let n = LeagueCopy.nextUp(model.clock, b: model.bylaws, credits: model.myMonth?.credits ?? 0, partial: model.partialMonth)
     CSCard(spine: la.spine(earned: false)) {
-      HStack(alignment: .center, spacing: 12) {
+      A11yStack(spacing: 12, columnSpacing: 8) {
         VStack(alignment: .leading, spacing: 4) {
           Text(n.k).csEyebrow(la.accent)
           Text(n.text).font(CSFont.subhead).foregroundStyle(cs.ink).fixedSize(horizontal: false, vertical: true)

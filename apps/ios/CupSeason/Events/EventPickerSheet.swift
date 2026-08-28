@@ -53,6 +53,7 @@ struct EventPickerSheet: View {
       HStack(spacing: 12) {
         Text(emoji).font(.system(size: 22)).frame(width: 36, height: 36)
           .background(cs.bg2, in: Circle()).overlay(Circle().stroke(cs.line, lineWidth: 1))
+          .accessibilityHidden(true)
         VStack(alignment: .leading, spacing: 3) {
           Text(name).font(CSFont.subhead.weight(.semibold)).foregroundStyle(cs.ink)
           Text(line).font(CSFont.monoSmall).foregroundStyle(cs.mut)
@@ -67,6 +68,7 @@ struct EventPickerSheet: View {
       .contentShape(Rectangle())
     }
     .buttonStyle(.plain)
-    .accessibilityLabel("\(name) — \(line) — \(live ? "live" : "soon")")
+    .accessibilityLabel("\(name), \(line)\(live ? "" : ", coming soon")")
+    .accessibilityHint(live ? "Starts the setup" : "")
   }
 }

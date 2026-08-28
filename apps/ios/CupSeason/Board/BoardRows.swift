@@ -30,8 +30,10 @@ struct AnnounceRow: View {
   var body: some View {
     VStack(alignment: .leading, spacing: 4) {
       Text(pinned ? "📌 FROM THE PRO" : "📣 FROM THE PRO").font(CSFont.label).tracking(1.5).foregroundStyle(cs.gold)
+        .accessibilityLabel(pinned ? "Pinned, from the Pro" : "From the Pro")
       Text(text).font(CSFont.subhead).foregroundStyle(cs.ink)
     }
+    .accessibilityElement(children: .combine)
     .padding(.horizontal, 14).padding(.vertical, 11)
     .frame(maxWidth: .infinity, alignment: .leading)
     .background(LinearGradient(colors: [cs.gold.opacity(0.10), cs.gold.opacity(0.02)], startPoint: .leading, endPoint: .trailing),
@@ -49,9 +51,11 @@ struct MomentRow: View {
   let text: String
   var body: some View {
     HStack(alignment: .firstTextBaseline, spacing: 6) {
-      Text("✦").font(CSFont.subhead.weight(.semibold)).foregroundStyle(cs.brand)
+      Text("✦").font(CSFont.subhead.weight(.semibold)).foregroundStyle(cs.brand).accessibilityHidden(true)
       Text(text).font(CSFont.subhead).foregroundStyle(cs.ink)
     }
+    .accessibilityElement(children: .combine)
+    .accessibilityLabel("A moment: \(text)")
     .padding(.horizontal, 13).padding(.vertical, 10)
     .frame(maxWidth: .infinity, alignment: .leading)
     .background(LinearGradient(colors: [cs.brand.opacity(0.10), cs.brand.opacity(0.03)], startPoint: .top, endPoint: .bottom),
@@ -83,6 +87,7 @@ struct SystemRow: View {
   /// A quiet note sits on ground with its spine; a door keeps `bg1` and its line (it is interactive).
   private var row: some View {
     Text("◆ " + text).font(CSFont.subhead).foregroundStyle(cs.mut)
+      .accessibilityLabel(text)
       .padding(.horizontal, 13).padding(.vertical, 10)
       .frame(maxWidth: .infinity, minHeight: opens == nil ? 0 : 44, alignment: .leading)
       .background(opens == nil ? .clear : cs.bg1, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
@@ -120,10 +125,12 @@ struct ChatRow: View {
     MessageRow(ci: item.ci) {
       HStack(spacing: 6) {
         Button { if let p = item.profileId { links.openTourCard(p) } } label: {
-          Text(item.who).font(CSFont.subhead.weight(.semibold)).foregroundStyle(cs.ink)
+          Text(item.who).font(CSFont.subhead.weight(.semibold)).foregroundStyle(cs.ink).a11yHitSlop()   // the name is a 44pt door
         }
         .buttonStyle(.plain)
         .disabled(item.profileId == nil)
+        .accessibilityLabel(item.who)
+        .accessibilityHint(item.profileId == nil ? "" : "Opens the Tour Card")
         if item.profileId != nil, item.profileId == store.founderId { FounderTag() }
       }
       Text(item.text).font(CSFont.subhead).foregroundStyle(cs.ink).lineSpacing(3)
@@ -151,7 +158,7 @@ struct DigestCard: View {
   let lines: [String]
   var body: some View {
     VStack(alignment: .leading, spacing: 4) {
-      Text("SINCE YOU WERE HERE").font(CSFont.label).tracking(1).foregroundStyle(cs.mut.opacity(0.7))
+      Text("SINCE YOU WERE HERE").font(CSFont.label).tracking(1).foregroundStyle(cs.dimText)   // `mut` at 70% fell under AA (IOS-013)
       ForEach(Array(lines.enumerated()), id: \.offset) { _, l in
         Text(l).font(CSFont.subhead).foregroundStyle(cs.mut)
       }

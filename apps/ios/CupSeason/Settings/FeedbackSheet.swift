@@ -31,11 +31,14 @@ struct FeedbackSheet: View {
                 .padding(.horizontal, 12).padding(.vertical, 8)
                 .background(cs.bg2, in: RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous))
                 .overlay(RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous).stroke(on ? cs.brand : cs.line2, lineWidth: 1))
+                .a11yHitSlop(vertical: 5, horizontal: 0)
             }
             .buttonStyle(.plain)
+            .accessibilityAddTraits(on ? .isSelected : [])
           }
         }
         TextEditor(text: $body_)
+          .accessibilityLabel("Your note")
           .font(CSFont.body).foregroundStyle(cs.ink).scrollContentBackground(.hidden)
           .frame(minHeight: 120)
           .padding(10)
@@ -96,6 +99,7 @@ struct FounderNoteSheet: View {
       VStack(alignment: .leading, spacing: 12) {
         Text("Straight into the feedback ledger, tagged founder").csEyebrow()
         TextEditor(text: $body_)
+          .accessibilityLabel("Field note")
           .font(CSFont.body).foregroundStyle(cs.ink).scrollContentBackground(.hidden)
           .frame(minHeight: 120).padding(10)
           .background(cs.bg2, in: RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous))

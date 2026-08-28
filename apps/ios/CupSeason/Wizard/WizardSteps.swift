@@ -45,6 +45,7 @@ struct WizardNameStep: View {
 struct WizardPresetStep: View {
   @Environment(\.toast) private var toast
   @Environment(\.cs) private var cs
+  @Environment(\.accessibilityReduceMotion) private var reduceMotion
   @Bindable var model: WizardModel
   @State private var help: Set<String> = []
   /// D56 / IOS-021: the season-pass card under the pot preview. `.hidden`
@@ -58,7 +59,7 @@ struct WizardPresetStep: View {
       CSFine(model.dials.presetSummaryText)
       CSButton(WizardCopy.fastPath) { CSHaptic.selection(); model.step = 2 }
       Button {
-        withAnimation(.timingCurve(0.16, 0.84, 0.36, 1, duration: 0.26)) { model.showDials.toggle() }
+        withAnimation(reduceMotion ? nil : .timingCurve(0.16, 0.84, 0.36, 1, duration: 0.26)) { model.showDials.toggle() }
       } label: {
         HStack(spacing: 6) {
           Text(model.showDials ? WizardCopy.hideOptions : WizardCopy.customize).font(CSFont.monoMediumBody)
@@ -68,7 +69,7 @@ struct WizardPresetStep: View {
         .background(cs.bg2, in: Capsule()).overlay(Capsule().stroke(cs.line2, lineWidth: 1))
       }
       .buttonStyle(.plain)
-      .accessibilityAddTraits(model.showDials ? [.isSelected] : [])
+      .accessibilityValue(model.showDials ? "expanded" : "collapsed")
       if model.showDials { dials }
       WizardPortraitCard(portrait: model.portrait)
         .task { pricing = await PricingFlags.load() }
@@ -100,7 +101,8 @@ struct WizardPresetStep: View {
       .contentShape(Rectangle())
     }
     .buttonStyle(.plain)
-    .accessibilityAddTraits(on ? [.isSelected] : [])
+    .accessibilityElement(children: .combine)
+    .accessibilityAddTraits(on ? [.isButton, .isSelected] : [.isButton])
   }
 
   /// `#wizDials` — every dial, in the web's order.
@@ -113,7 +115,7 @@ struct WizardPresetStep: View {
                    downLabel: "Shorter season", upLabel: "Longer season",
                    down: { model.dials.stepLength(-1) }, up: { model.dials.stepLength(1) })
       // first tee — any day (§14.0 v1.1); the small line is the REAL weekday span
-      HStack(alignment: .center, spacing: 10) {
+      A11yStack(spacing: 10, columnSpacing: 6) {
         VStack(alignment: .leading, spacing: 2) {
           Text(WizardCopy.firstTee.0).font(CSFont.subhead.weight(.semibold)).foregroundStyle(cs.ink)
           Text(model.dials.spanText()).font(CSFont.label).tracking(0.6).foregroundStyle(cs.dimText)
@@ -183,6 +185,7 @@ struct WizardPresetStep: View {
 
 struct WizardReviewStep: View {
   @Environment(\.cs) private var cs
+  @Environment(\.dynamicTypeSize) private var typeSize
   @Bindable var model: WizardModel
   let lock: () -> Void
 
@@ -192,13 +195,14 @@ struct WizardReviewStep: View {
       CSCard {
         VStack(spacing: 0) {
           ForEach(model.dials.bylawsRows()) { r in
-            HStack(alignment: .firstTextBaseline, spacing: 12) {
+            A11yStack(rowAlignment: .firstTextBaseline, spacing: 12, columnSpacing: 2) {
               Text(r.k).font(CSFont.label).tracking(1.0).textCase(.uppercase).foregroundStyle(cs.dimText)
               Spacer(minLength: 8)
-              Text(r.v).font(CSFont.subhead.weight(.semibold)).foregroundStyle(cs.ink).multilineTextAlignment(.trailing)
+              Text(r.v).font(CSFont.subhead.weight(.semibold)).foregroundStyle(cs.ink).multilineTextAlignment(typeSize.isA11y ? .leading : .trailing)
             }
             .padding(.vertical, 7)
             .overlay(alignment: .bottom) { Rectangle().fill(cs.line).frame(height: 1) }
+            .accessibilityElement(children: .combine)
           }
         }
       }
@@ -225,7 +229,8 @@ struct WizardSetRow: View {
 
   var body: some View {
     VStack(alignment: .leading, spacing: 6) {
-      HStack(alignment: .center, spacing: 10) {
+      // label + small, then value + the two steppers; the second group takes its own line at the accessibility sizes
+      A11yStack(spacing: 10, columnSpacing: 6) {
         VStack(alignment: .leading, spacing: 2) {
           HStack(spacing: 6) {
             Text(lab).font(CSFont.subhead.weight(.semibold)).foregroundStyle(cs.ink)
@@ -233,11 +238,16 @@ struct WizardSetRow: View {
           }
           Text(small).font(CSFont.label).tracking(0.6).foregroundStyle(cs.dimText)
         }
+        .frame(maxWidth: .infinity, alignment: .leading)
         Spacer(minLength: 8)
-        Text(val).font(CSFont.monoMediumBody).csTabular().foregroundStyle(cs.ink)
-        HStack(spacing: 4) {
-          stepButton("−", downLabel, down)
-          stepButton("+", upLabel, up)
+        HStack(spacing: 10) {
+          Text(val).font(CSFont.monoMediumBody).csTabular().foregroundStyle(cs.ink)
+            .accessibilityLabel("\(lab), \(val)")
+            .accessibilityAddTraits(.updatesFrequently)
+          HStack(spacing: 4) {
+            stepButton("−", downLabel, down)
+            stepButton("+", upLabel, up)
+          }
         }
       }
       if open, let help { CSFine(help.text) }
@@ -267,7 +277,8 @@ struct WizardSeg: View {
   let pick: (String) -> Void
 
   var body: some View {
-    HStack(spacing: 6) {
+    // one row of pills; a column at the accessibility sizes, where three labels cannot share the width
+    A11yStack(spacing: 6) {
       ForEach(options, id: \.key) { o in
         let on = o.key == selected
         Button { CSHaptic.selection(); pick(o.key) } label: {
@@ -280,6 +291,7 @@ struct WizardSeg: View {
         }
         .buttonStyle(.plain)
         .accessibilityAddTraits(on ? [.isSelected] : [])
+        .accessibilityHint(dimmed(o.key) && !on ? "A stretch for your roster — still yours to pick" : "")
       }
     }
   }
@@ -302,7 +314,7 @@ struct WizardInfoButton: View {
     }
     .buttonStyle(.plain)
     .accessibilityLabel(label)
-    .accessibilityAddTraits(open ? [.isSelected] : [])
+    .accessibilityValue(open ? "expanded" : "collapsed")
   }
 }
 
@@ -320,10 +332,11 @@ struct WizardPortraitCard: View {
           HStack(spacing: 12) {
             flag.frame(width: 64, height: 34)
             VStack(alignment: .leading, spacing: 2) {
-              Text(portrait.name).font(CSFont.sentenceBold).foregroundStyle(cs.ink).lineLimit(1)
+              Text(portrait.name).font(CSFont.sentenceBold).foregroundStyle(cs.ink).lineLimit(2)
               Text(portrait.sub).font(CSFont.footnote).foregroundStyle(cs.mut)
             }
           }
+          .accessibilityElement(children: .combine)
           row("Squads") {
             HStack(spacing: 5) {
               if portrait.squads > 0 {
@@ -367,11 +380,12 @@ struct WizardPortraitCard: View {
   }
 
   private func row<C: View>(_ k: String, @ViewBuilder _ c: () -> C) -> some View {
-    HStack(alignment: .center, spacing: 10) {
-      Text(k).font(CSFont.label).tracking(1.0).textCase(.uppercase).foregroundStyle(cs.dimText).frame(width: 64, alignment: .leading)
+    A11yStack(spacing: 10, columnSpacing: 4) {
+      Text(k).font(CSFont.label).tracking(1.0).textCase(.uppercase).foregroundStyle(cs.dimText).frame(minWidth: 64, alignment: .leading)
       c()
       Spacer(minLength: 0)
     }
+    .accessibilityElement(children: .combine)
   }
 
   private func chip(_ t: String, on: Bool) -> some View {
@@ -379,6 +393,7 @@ struct WizardPortraitCard: View {
       .foregroundStyle(on ? cs.brand : cs.mut)
       .padding(.horizontal, 8).padding(.vertical, 4)
       .overlay(Capsule().stroke(on ? cs.brand : cs.line2, lineWidth: 1))
+      .accessibilityLabel(on ? "\(t), chosen" : t)
   }
 
   /// Three segments in ember at 1 · .55 · .3, widths from the split.
@@ -399,11 +414,10 @@ struct WizardPortraitCard: View {
         RoundedRectangle(cornerRadius: 4).stroke(cs.line2, lineWidth: 1.2).frame(width: 26, height: 16)
       }
       if portrait.canCup {
-        VStack(spacing: 1) {
-          Text("FINAL 4").font(.system(size: 7, design: .monospaced)).tracking(0.8).foregroundStyle(cs.brand)
-          RoundedRectangle(cornerRadius: 4).fill(CSTokens.glow).frame(width: 18, height: 16)
-            .overlay(RoundedRectangle(cornerRadius: 4).stroke(cs.brand, lineWidth: 1.4))
-        }
+        // the final block, then its name at a readable size — a 7pt caption over the block fell under the 11pt floor (IOS-003 §2.1)
+        RoundedRectangle(cornerRadius: 4).fill(CSTokens.glow).frame(width: 18, height: 16)
+          .overlay(RoundedRectangle(cornerRadius: 4).stroke(cs.brand, lineWidth: 1.4))
+        Text("FINAL 4").font(CSFont.label).tracking(0.8).foregroundStyle(cs.brand).fixedSize()
       }
     }
     .accessibilityHidden(true)

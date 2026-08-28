@@ -75,6 +75,7 @@ enum PostPickPurpose { case photo, scan }
 
 private struct PostRoundBody: View {
   @Environment(\.cs) private var cs
+  @Environment(\.dynamicTypeSize) private var typeSize
   @Bindable var model: PostRoundModel
   let links: PostLinks
   let pickPhoto: () -> Void
@@ -117,6 +118,7 @@ private struct PostRoundBody: View {
         Button { onDone(); links.openLive() } label: {
           Text("Play now").font(CSFont.subhead.weight(.semibold)).foregroundStyle(cs.dawn)
         }
+        .accessibilityHint("Opens the tee sheet to score a round live")
       }
     }
     .sheet(isPresented: $showDate) { PostDateSheet(day: $model.day) }
@@ -145,7 +147,7 @@ private struct PostRoundBody: View {
       ForEach(model.memory) { m in
         Button { model.fill(m); withAnimation(CSMotion.roll) { ratingOpen = false } } label: {
           CSRow {
-            HStack(alignment: .firstTextBaseline, spacing: 10) {
+            A11yStack(rowAlignment: .firstTextBaseline, spacing: 10, columnSpacing: 2) {
               Text(m.label).font(CSFont.subhead).foregroundStyle(cs.ink).multilineTextAlignment(.leading)
               Spacer(minLength: 8)
               Text("\(m.ratingText) / \(m.slope)").font(CSFont.monoSmall).foregroundStyle(cs.mut).csTabular()
@@ -161,12 +163,14 @@ private struct PostRoundBody: View {
       // an empty card shows "— / —" and stays folded (IOS-022 item 4)
       Button { withAnimation(CSMotion.roll) { ratingOpen.toggle() } } label: {
         CSRow(last: !ratingFieldsShown) {
-          HStack(alignment: .firstTextBaseline, spacing: 8) {
+          A11yStack(rowAlignment: .firstTextBaseline, spacing: 8, columnSpacing: 2) {
             Text("Rating / slope").font(CSFont.subhead).foregroundStyle(cs.mut)
             Spacer(minLength: 8)
-            Text(ratingLine).font(CSFont.monoSmall).foregroundStyle(cs.ink).csTabular()
-            Text("·").font(CSFont.monoSmall).foregroundStyle(cs.dimText)
-            Text(ratingFieldsShown ? "done" : "edit").font(CSFont.monoSmall).foregroundStyle(cs.dawn)
+            HStack(alignment: .firstTextBaseline, spacing: 8) {
+              Text(ratingLine).font(CSFont.monoSmall).foregroundStyle(cs.ink).csTabular()
+              Text("·").font(CSFont.monoSmall).foregroundStyle(cs.dimText)
+              Text(ratingFieldsShown ? "done" : "edit").font(CSFont.monoSmall).foregroundStyle(cs.dawn)
+            }
           }
         }
         .contentShape(Rectangle())
@@ -175,9 +179,9 @@ private struct PostRoundBody: View {
       .accessibilityLabel("Rating \(model.card.rating.isEmpty ? "not set" : model.card.rating), slope \(model.card.slope.isEmpty ? "not set" : model.card.slope)")
       .accessibilityHint(ratingFieldsShown ? "Hides the fields" : "Opens the rating and slope fields")
       if ratingFieldsShown {
-        HStack(alignment: .top, spacing: 10) {
-          field("Rating") { numberField("72.1", Binding(get: { model.card.rating }, set: { model.typedRating($0) }), decimal: true) }
-          field("Slope") { numberField("128", $model.card.slope, decimal: false) }
+        A11yStack(rowAlignment: .top, spacing: 10) {
+          field("Rating") { numberField("72.1", Binding(get: { model.card.rating }, set: { model.typedRating($0) }), decimal: true).accessibilityLabel("Rating") }
+          field("Slope") { numberField("128", $model.card.slope, decimal: false).accessibilityLabel("Slope") }
         }
         .padding(.top, 10)
         .transition(.opacity)
@@ -206,10 +210,12 @@ private struct PostRoundBody: View {
   private var cardSection: some View {
     VStack(alignment: .leading, spacing: 0) {
       VStack(alignment: .leading, spacing: 8) {
-        HStack(alignment: .center, spacing: 8) {
+        // the eyebrow and the 18/9 seg share a line; at the accessibility sizes the seg takes the full width under it
+        A11yStack(spacing: 8) {
           Text("Your card").csEyebrow()
           Spacer(minLength: 8)
-          PostSeg(options: [(18, "18 holes"), (9, "9 holes")], selection: model.card.side) { model.setSide($0) }.frame(maxWidth: 200)
+          PostSeg(options: [(18, "18 holes"), (9, "9 holes")], selection: model.card.side) { model.setSide($0) }
+            .frame(maxWidth: typeSize.isA11y ? .infinity : 200)
         }
         CSHairline()
       }
@@ -236,7 +242,8 @@ private struct PostRoundBody: View {
     let (f, b) = model.card.inputs
     let sum = f + b
     return VStack(alignment: .leading, spacing: 10) {
-      HStack(alignment: .top, spacing: 10) {
+      // two big figures beside the sum; stacked at the accessibility sizes so a 28pt+ mono figure never clips
+      A11yStack(rowAlignment: .top, spacing: 10) {
         bigField(nine ? "9-hole gross" : "Front 9 gross", "41", $model.card.f9)
         if !nine { bigField("Back 9 gross", "43", $model.card.b9) }
         VStack(alignment: .leading, spacing: 6) {
@@ -251,16 +258,17 @@ private struct PostRoundBody: View {
       CSFine("How most golfers keep it — 41 out, 43 in. Played just one nine? Fill that side only and it posts at half value, half a round.")
       // D34: the grid is opt-in — the seg stays hidden; this is its one door
       Button { model.setMode(.holes) } label: {
-        Text("Enter your card").font(CSFont.footnote).foregroundStyle(cs.brand)
+        Text("Enter your card").font(CSFont.footnote).foregroundStyle(cs.brand).frame(minHeight: 44).contentShape(Rectangle())
       }
-      .frame(minHeight: 44)
+      .buttonStyle(.plain)
+      .accessibilityHint("Opens the hole-by-hole card")
     }
   }
 
   private func bigField(_ label: String, _ placeholder: String, _ text: Binding<String>) -> some View {
     VStack(alignment: .leading, spacing: 6) {
       Text(label).font(CSFont.label).tracking(1.2).textCase(.uppercase).foregroundStyle(cs.dimText)
-      CSField(placeholder, text: text, font: CSFont.code).keyboardType(.numberPad)
+      CSField(placeholder, text: text, font: CSFont.code).keyboardType(.numberPad).accessibilityLabel(label)
     }
     .frame(maxWidth: .infinity, alignment: .leading)
   }
@@ -285,7 +293,7 @@ private struct PostRoundBody: View {
           .frame(maxWidth: .infinity).frame(height: 180).clipped()
           .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
           .overlay(RoundedRectangle(cornerRadius: 10, style: .continuous).stroke(cs.line2, lineWidth: 1))
-          .accessibilityLabel("Round photo")
+          .accessibilityLabel("Round photo, attached")
       }
     }
   }
@@ -311,6 +319,7 @@ private struct PostRoundBody: View {
         .contentShape(Rectangle())
       }
       .buttonStyle(.plain)
+      .accessibilityLabel("How points work")
       .accessibilityValue(bandsOpen ? "expanded" : "collapsed")
       if bandsOpen {
         VStack(spacing: 0) {
@@ -406,7 +415,7 @@ private struct PostHeroContent: View {
   }
 
   private func chip(_ text: String, tone: Color) -> some View {
-    Text(text).font(CSFont.monoMediumBody).csTabular().foregroundStyle(tone)
+    Text(text).font(CSFont.monoMediumBody).csTabular().foregroundStyle(tone).fixedSize(horizontal: false, vertical: true)
       .padding(.horizontal, 10).padding(.vertical, 6)
       .background(tone.opacity(0.12), in: RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous))
   }

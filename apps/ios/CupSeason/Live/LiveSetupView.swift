@@ -9,6 +9,7 @@ import CupSeasonKit
 struct LiveSetupView: View {
   @Environment(\.cs) private var cs
   @Environment(\.toast) private var toast
+  @Environment(\.dynamicTypeSize) private var typeSize
   @Bindable var store: LiveRoundStore
   @State private var guestName = ""
   @State private var guestIdx = ""
@@ -78,16 +79,17 @@ struct LiveSetupView: View {
           }
         }
         fieldLabel("Tee & rating — off the scorecard")
-        HStack(spacing: 8) {
+        // three fields across; stacked (and the tee field full-width) at the accessibility sizes
+        A11yStack(spacing: 8) {
           CSField("Tee", text: Binding(get: { store.state.course.tee }, set: { store.state.course.tee = $0 }), font: CSFont.body)
-            .frame(width: 96)
-          CSField("Rating", text: $ratingText).keyboardType(.decimalPad)
+            .frame(width: typeSize.isA11y ? nil : 96).accessibilityLabel("Tee")
+          CSField("Rating", text: $ratingText).keyboardType(.decimalPad).accessibilityLabel("Rating")
             .onChange(of: ratingText) { _, v in store.state.course.rating = Double(v.replacingOccurrences(of: ",", with: ".")) }
-          CSField("Slope", text: $slopeText).keyboardType(.numberPad)
+          CSField("Slope", text: $slopeText).keyboardType(.numberPad).accessibilityLabel("Slope")
             .onChange(of: slopeText) { _, v in store.state.course.slope = Int(v) }
         }
         LiveSeg(options: [(18, "18 holes"), (9, "9 holes")], selected: store.state.holes) { store.setHoles($0) }
-          .frame(maxWidth: 220, alignment: .leading)
+          .frame(maxWidth: typeSize.isA11y ? .infinity : 220, alignment: .leading)
         CSFine(store.state.course.note ?? LiveCourseCard.standardNote)
         CSMini("Enter the pars") { showCard = true }
       }
@@ -112,9 +114,9 @@ struct LiveSetupView: View {
         chips
         CSMini("Search the app — add any golfer", systemImage: "person.2") { showPicker = true }
         fieldLabel("Add a guest").padding(.top, 4)
-        HStack(spacing: 8) {
-          CSField("Name", text: $guestName, font: CSFont.body)
-          CSField("Index", text: $guestIdx).keyboardType(.decimalPad).frame(width: 96)
+        A11yStack(spacing: 8) {
+          CSField("Name", text: $guestName, font: CSFont.body).accessibilityLabel("Guest name")
+          CSField("Index", text: $guestIdx).keyboardType(.decimalPad).frame(width: typeSize.isA11y ? nil : 96).accessibilityLabel("Guest index")
           CSMini("Add") {
             store.addGuest(name: guestName, index: Double(guestIdx.replacingOccurrences(of: ",", with: ".")))
             if !guestName.trimmingCharacters(in: .whitespaces).isEmpty { guestName = ""; guestIdx = "" }
@@ -126,7 +128,7 @@ struct LiveSetupView: View {
   }
 
   private var slots: some View {
-    LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 8) {
+    LazyVGrid(columns: Array(repeating: GridItem(.flexible()), count: typeSize.isA11y ? 1 : 2), spacing: 8) {
       ForEach(0..<4, id: \.self) { k in
         if k < store.sel.count, store.sel[k] < store.roster.count {
           let idx = store.sel[k]
@@ -134,10 +136,11 @@ struct LiveSetupView: View {
         } else {
           VStack(alignment: .leading, spacing: 2) {
             Text("Open slot").font(CSFont.subhead).foregroundStyle(cs.dimText)
-            Text("TAP A PLAYER BELOW").font(CSFont.label).tracking(1).foregroundStyle(cs.dim)
+            Text("TAP A PLAYER BELOW").font(CSFont.label).tracking(1).foregroundStyle(cs.dimText)   // text never in `dim` (IOS-013)
           }
           .padding(10).frame(maxWidth: .infinity, minHeight: 56, alignment: .leading)
           .overlay(RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous).stroke(cs.line2, style: StrokeStyle(lineWidth: 1, dash: [4, 3])))
+          .accessibilityElement(children: .combine)
         }
       }
     }
@@ -169,9 +172,11 @@ struct LiveSetupView: View {
                 .padding(.horizontal, 10).frame(minHeight: 36)
                 .background(cs.bg2, in: Capsule())
                 .overlay(Capsule().stroke(cs.line2, lineWidth: 1))
+                .frame(minHeight: 44).contentShape(Rectangle())   // the 44pt frame must be INSIDE the label to count
               }
               .buttonStyle(.plain)
-              .frame(minHeight: 44)
+              .accessibilityLabel("\(p.n), index \(LiveFmt.idx(p.i))\(p.guest ? (p.buddy ? ", buddy" : ", guest") : "")")
+              .accessibilityHint("Adds them to the foursome")
             }
           }
         }
@@ -193,16 +198,17 @@ struct LiveSetupView: View {
                 .foregroundStyle(store.state.game == g ? cs.bg0 : cs.ink)
                 .padding(.horizontal, 12).frame(minHeight: 40)
                 .background(store.state.game == g ? cs.brand : cs.bg2, in: RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous))
+                .frame(minHeight: 44).contentShape(Rectangle())
             }
             .buttonStyle(.plain)
-            .frame(minHeight: 44)
+            .accessibilityAddTraits(store.state.game == g ? .isSelected : [])
           }
         }
         CSFine(store.state.game.note)
         if store.state.game.money {
           Divider().overlay(cs.line)
           fieldLabel(store.state.game.stakeLabel)
-          CSField("0", text: $stakeText).keyboardType(.decimalPad).frame(width: 110)
+          CSField("0", text: $stakeText).keyboardType(.decimalPad).frame(width: 110).accessibilityLabel(store.state.game.stakeLabel)
             .onChange(of: stakeText) { _, v in store.setStake(Double(v.replacingOccurrences(of: ",", with: ".")) ?? 0) }
           if let prev = LiveCopy.preview(game: store.state.game, picked: store.picked, pairing: store.state.pairing, course: store.state.course, holes: store.state.liveHoles) {
             Text(LiveMarkdown.bold(prev)).font(CSFont.footnote).foregroundStyle(cs.dimText).fixedSize(horizontal: false, vertical: true)
@@ -244,6 +250,7 @@ struct LiveSlotChip: View {
         Button(action: remove) {
           Image(systemName: "xmark").font(.system(size: 11, weight: .semibold)).foregroundStyle(cs.mut)
             .frame(width: 28, height: 28).background(cs.bg2, in: Circle())
+            .a11yHitSlop(vertical: 8, horizontal: 8)   // a 28pt glyph, a 44pt target
         }
         .buttonStyle(.plain)
         .accessibilityLabel("Remove \(player.n)")
@@ -252,6 +259,8 @@ struct LiveSlotChip: View {
     .padding(10).frame(maxWidth: .infinity, minHeight: 56, alignment: .leading)
     .background(cs.bg2, in: RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous))
     .overlay(RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous).stroke(picked ? cs.brand : cs.line2, lineWidth: picked ? 2 : 1))
+    .accessibilityElement(children: .contain)
+    .accessibilityLabel("\(player.n), \(player.est ? "estimated " : "")index \(LiveFmt.idx(player.i))\(player.guest ? (player.buddy ? ", buddy" : ", guest") : "")\(picked ? ", selected" : "")")
   }
 }
 
@@ -260,13 +269,15 @@ struct LiveSlotChip: View {
 /// auto-balance. The trade target is a CHIP, never a zone.
 struct LiveCourtView: View {
   @Environment(\.cs) private var cs
+  @Environment(\.dynamicTypeSize) private var typeSize
   @Bindable var store: LiveRoundStore
 
   var body: some View {
     let T = store.courtTeams
-    HStack(alignment: .top, spacing: 8) {
+    // the two zones side by side; one over the other at the accessibility sizes (a seat chip needs the width)
+    A11yStack(alignment: .center, rowAlignment: .top, spacing: 8) {
       zone(0, "Team A", T[0])
-      Text("VS").font(CSFont.label).tracking(1.4).foregroundStyle(cs.dimText).padding(.top, 28)
+      Text("VS").font(CSFont.label).tracking(1.4).foregroundStyle(cs.dimText).padding(.top, typeSize.isA11y ? 0 : 28)
       zone(1, "Team B", T[1])
     }
   }
@@ -282,6 +293,8 @@ struct LiveCourtView: View {
           LiveSlotChip(player: p, picked: store.crtPicked == k, tradeable: tradeable, remove: p.locked ? nil : { store.remove(idx) })
             .contentShape(Rectangle())
             .onTapGesture { store.courtTap(k) }
+            .accessibilityAddTraits(.isButton)
+            .accessibilityHint(store.crtPicked == nil ? "Double tap to pick, then a player on the other team to swap" : (tradeable ? "Double tap to swap" : ""))
             .draggable(String(k))
             .dropDestination(for: String.self) { items, _ in
               guard let s = items.first, let from = Int(s) else { return false }
@@ -306,16 +319,17 @@ struct LiveSeg<V: Hashable>: View {
   let pick: (V) -> Void
 
   var body: some View {
-    HStack(spacing: 4) {
+    A11yStack(spacing: 4) {
       ForEach(options, id: \.0) { v, label in
         Button { pick(v) } label: {
           Text(label).font(CSFont.monoMediumBody)
             .foregroundStyle(selected == v ? cs.bg0 : cs.ink)
             .padding(.horizontal, 12).frame(maxWidth: .infinity, minHeight: 40)
             .background(selected == v ? cs.brand : .clear, in: RoundedRectangle(cornerRadius: 8, style: .continuous))
+            .frame(minHeight: 44).contentShape(Rectangle())
         }
         .buttonStyle(.plain)
-        .frame(minHeight: 44)
+        .accessibilityAddTraits(selected == v ? .isSelected : [])
       }
     }
     .padding(3)
@@ -552,7 +566,7 @@ struct LiveRosterPickerSheet: View {
                 }
                 Spacer()
                 if store.pickerExcluded.contains(r.id) { CSTag(text: "In", tone: cs.pos) }
-                else { CSMini("Add") { store.addFromPicker(profileId: r.id, name: r.displayName, index: r.index); CSHaptic.selection() } }
+                else { CSMini("Add") { store.addFromPicker(profileId: r.id, name: r.displayName, index: r.index); CSHaptic.selection() }.accessibilityLabel("Add \(r.name)") }
               }
               .padding(.vertical, 6)
             }

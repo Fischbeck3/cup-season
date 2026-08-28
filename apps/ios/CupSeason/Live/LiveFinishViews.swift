@@ -57,6 +57,7 @@ struct LiveRecapSheet: View {
               RoundedRectangle(cornerRadius: 2).fill(Color(hex: 0xFF5A2E)).frame(width: 9, height: 9)
               Text(legend.uppercased()).font(CSFont.label).tracking(1.2).foregroundStyle(mut)
             }
+            .accessibilityElement(children: .combine)
           }
           let hl = H.highlights
           if !hl.isEmpty {
@@ -77,11 +78,12 @@ struct LiveRecapSheet: View {
         checkRow("—", x.name, "NOT POSTED · \(x.reason.uppercased())")
       }
       ForEach(Array(d.guests.enumerated()), id: \.offset) { _, g in
-        HStack(spacing: 10) {
+        A11yStack(spacing: 10, columnSpacing: 6) {
           checkRow("🎟️", g.name, "GUEST RECAP — SHARE THE LINK")
           if let t = g.token {
             CSMini("Copy") { UIPasteboard.general.string = ClaimIntent.url(t).absoluteString; toast.show("Recap link copied") }
               .environment(\.cs, CSTokens.dark)
+              .accessibilityLabel("Copy \(g.name)'s recap link")
           }
         }
       }
@@ -89,8 +91,10 @@ struct LiveRecapSheet: View {
         VStack(spacing: 10) {
           CSButton("Share the card", busy: busy) { shareCard(r) }
           CSButton("Share the settlement — no account needed", style: .quiet, busy: busy) { Task { await shareLink(r) } }
-          Button("Revoke a shared link") { Task { await revoke() } }
-            .font(CSFont.footnote).foregroundStyle(mut).frame(minHeight: 44)
+          Button { Task { await revoke() } } label: {
+            Text("Revoke a shared link").font(CSFont.footnote).foregroundStyle(mut).frame(maxWidth: .infinity, minHeight: 44).contentShape(Rectangle())
+          }
+          .buttonStyle(.plain)
         }
         .environment(\.cs, CSTokens.dark)
         .padding(.top, 8)
@@ -106,6 +110,7 @@ struct LiveRecapSheet: View {
     HStack(spacing: 12) {
       Text(icon).font(CSFont.monoSmall).foregroundStyle(mut).frame(minWidth: 26, minHeight: 26)
         .background(CSDusk.surface, in: RoundedRectangle(cornerRadius: 8, style: .continuous))
+        .accessibilityHidden(true)
       VStack(alignment: .leading, spacing: 2) {
         Text(line).font(CSFont.subhead.weight(.semibold)).foregroundStyle(ink)
         Text(sub).font(CSFont.label).tracking(0.8).foregroundStyle(mut)
@@ -113,6 +118,7 @@ struct LiveRecapSheet: View {
       Spacer(minLength: 0)
     }
     .frame(maxWidth: .infinity, alignment: .leading)
+    .accessibilityElement(children: .combine)
   }
 
   private func card(_ r: LiveResult) -> LiveSettlementCard {

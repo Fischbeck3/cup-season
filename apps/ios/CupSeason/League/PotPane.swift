@@ -38,7 +38,8 @@ struct PotPane: View {
       // the payout trio as one band on ground — hairline above and below
       VStack(spacing: 0) {
         CSHairline()
-        HStack(alignment: .top, spacing: 10) {
+        // three across; stacked at the accessibility sizes so a figure is never squeezed
+        A11yStack(rowAlignment: .top, spacing: 10, columnSpacing: 8) {
           trioTile(free ? "—" : PotMath.dollars(trio.champ), "Cup champs")
           trioTile(free ? "—" : PotMath.dollars(trio.runner), "Runner-up")
           trioTile(free ? "—" : PotMath.dollars(trio.king), "Points king")
@@ -76,6 +77,7 @@ struct PotPane: View {
       Text(sub).font(CSFont.label).tracking(0.6).foregroundStyle(cs.dimText)
     }
     .frame(maxWidth: .infinity, alignment: .leading)
+    .accessibilityElement(children: .combine)
   }
 
   /// `.payer` — the Pro taps a name as money moves; anyone else hears why not.
@@ -98,7 +100,8 @@ struct PotPane: View {
         Text(name).font(CSFont.subhead).foregroundStyle(cs.ink)
         Spacer()
         if busy { ProgressView().tint(cs.mut) } else {
-          Text("✓").font(CSFont.monoMediumBody).foregroundStyle(paid ? cs.pos : cs.dim).opacity(paid ? 1 : 0.5)
+          // the unpaid tick is a disabled glyph — `dim` is allowed there (IOS-003 §2.2); the row's label carries the state
+          Text("✓").font(CSFont.monoMediumBody).foregroundStyle(paid ? cs.pos : cs.dim).opacity(paid ? 1 : 0.5).accessibilityHidden(true)
         }
       }
       .padding(.horizontal, 4).frame(minHeight: 48)
@@ -109,6 +112,7 @@ struct PotPane: View {
     .buttonStyle(.plain)
     .disabled(busy)
     .accessibilityLabel("\(name), \(paid ? "buy-in in" : "buy-in not in")")
+    .accessibilityHint(model.isPro ? "Marks the buy-in \(paid ? "not in" : "in")" : "The Pro marks buy-ins")
   }
 }
 
@@ -167,6 +171,7 @@ struct ForfeitCreateSheet: View {
   @Environment(\.toast) private var toast
   @Environment(\.dismiss) private var dismiss
   @Environment(\.cs) private var cs
+  @Environment(\.dynamicTypeSize) private var typeSize
   static let kinds: [(String, String)] = [("hosts", "Loser hosts"), ("course_pick", "Winner picks the course"), ("strokes", "Strokes next time"), ("bounty", "Standing bounty"), ("custom", "Name your own")]
   static let terms = ["hosts": "Loser hosts the cookout", "course_pick": "Winner picks the next course", "strokes": "Loser gives 2 a side next time", "bounty": "First ace: steak dinner from everyone", "custom": ""]
   @State private var name = ""
@@ -193,12 +198,13 @@ struct ForfeitCreateSheet: View {
         ForEach(others) { m in Text(m.name).tag(UUID?.some(m.profile_id)) }
       }
       .pickerStyle(.menu).tint(cs.ink)
+      .accessibilityLabel("Against")
       .padding(.horizontal, 14).frame(minHeight: 48).frame(maxWidth: .infinity, alignment: .leading)
       .background(cs.bg2, in: RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous))
       label("Rides on (optional)")
       CSField("Sunday's duel · first ace · the Cup Final", text: $hangs, font: CSFont.body)
-      HStack(spacing: 8) {
-        CSButton("Cancel", style: .quiet) { dismiss() }.frame(width: 110)
+      A11yStack(spacing: 8) {
+        CSButton("Cancel", style: .quiet) { dismiss() }.frame(maxWidth: typeSize.isA11y ? .infinity : 110)
         CSButton("Put it on the books", busy: busy) {
           busy = true
           Task {

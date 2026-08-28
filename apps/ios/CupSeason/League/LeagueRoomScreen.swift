@@ -144,12 +144,14 @@ struct LeagueHeaderCard: View {
   var body: some View {
     CSHero(spine: model.isComplete ? cs.gold : nil, padding: 20) {
       VStack(alignment: .leading, spacing: 6) {
-        // the name takes the whole line; the code chip rides the phase line's trailing edge
+        // the name takes the whole line; the code chip rides the phase line's trailing edge —
+        // and its own line at the accessibility sizes, so neither the phase nor the code breaks mid-word
         Text(model.league?.name ?? "—").font(CSFont.heroSmall).foregroundStyle(cs.ink)
           .fixedSize(horizontal: false, vertical: true)
-        HStack(alignment: .center, spacing: 12) {
+        A11yStack(spacing: 12, columnSpacing: 8) {
           Text(loading ? "Loading the room…" : LeagueCopy.phaseHeader(model.clock))
             .font(CSFont.sentence).foregroundStyle(model.isComplete ? cs.gold : cs.mut)
+            .fixedSize(horizontal: false, vertical: true)
           Spacer(minLength: 8)
           if let code = model.league?.code, let url = model.inviteURL {
             // `.copycode` (12727): in a real league the tap IS the share sheet
@@ -166,18 +168,20 @@ struct LeagueHeaderCard: View {
           Text("\(model.clock.spanText) · THE PRO · \(model.proName.uppercased())")
             .font(CSFont.label).tracking(0.8).foregroundStyle(cs.mut)
             .fixedSize(horizontal: false, vertical: true)
-          HStack(alignment: .firstTextBaseline, spacing: 16) {
+          A11yStack(rowAlignment: .firstTextBaseline, spacing: 16, columnSpacing: 0) {
             Button { links.addGolfers() } label: {
-              Text("Add golfers").font(CSFont.monoMediumBody).foregroundStyle(cs.dawn).frame(minHeight: 44)
+              Text("Add golfers").font(CSFont.monoMediumBody).foregroundStyle(cs.dawn).frame(minHeight: 44).contentShape(Rectangle())
             }
             .buttonStyle(.plain)
             // D71: the Pro can end a league in ANY phase but 'complete' (the record book)
             if model.isPro && !model.isComplete {
               let d = LeagueCopy.danger(model.clock)
-              Button(d.link) {
+              Button {
                 if d.preTee { Task { router.open(.deleteLeague(others: await model.othersCount())) } } else { router.open(.cancelLeague) }
+              } label: {
+                Text(d.link).font(CSFont.footnote).foregroundStyle(cs.neg).frame(minHeight: 44).contentShape(Rectangle())
               }
-              .font(CSFont.footnote).foregroundStyle(cs.neg).frame(minHeight: 44)
+              .buttonStyle(.plain)
               .accessibilityHint(d.note)
             }
           }
@@ -197,13 +201,13 @@ struct RoomCodeChip: View {
   @Environment(\.cs) private var cs
   let code: String
   var body: some View {
-    HStack(spacing: 0) {
-      Text("Code · ").font(CSFont.label).tracking(0.6).foregroundStyle(cs.mut)
-      Text(code).font(CSFont.monoMediumBody).foregroundStyle(cs.ink)
-    }
-    .padding(.horizontal, 10).frame(minHeight: 32)
-    .background(cs.bg2.opacity(0.85), in: Capsule())
-    .frame(minHeight: 44)
+    // one Text, so the chip never breaks "Code ·" from its code; the code itself stays on one line
+    (Text("Code · ").font(CSFont.label).tracking(0.6).foregroundStyle(cs.mut)
+      + Text(code).font(CSFont.monoMediumBody).foregroundStyle(cs.ink))
+      .lineLimit(1).minimumScaleFactor(0.7)
+      .padding(.horizontal, 10).frame(minHeight: 32)
+      .background(cs.bg2.opacity(0.85), in: Capsule())
+      .frame(minHeight: 44)
   }
 }
 
@@ -222,7 +226,7 @@ struct CancelBanner: View {
           Text("The Pro wants to cancel \(model.league?.name ?? "the league").").font(CSFont.subhead.weight(.semibold)).foregroundStyle(cs.ink)
           RoomFine(((cr.you_refund_cents ?? 0) > 0 ? "You get back \(PotMath.money(cr.you_refund_cents!)) — your buy-in. " : "")
                + "The season won't be played; nobody won and every buy-in comes back. Your rounds stay on your card.")
-          HStack(spacing: 8) {
+          FlowRow(spacing: 8) {
             if cr.is_pro == true {
               RoomMini("Call it off", busy: busy) { run { try await model.withdrawCancel(); toast.show("Cancellation called off.") } }
               Text("\(cr.approved ?? 0) of \(cr.members ?? 0) approved").font(CSFont.footnote).foregroundStyle(cs.dimText)

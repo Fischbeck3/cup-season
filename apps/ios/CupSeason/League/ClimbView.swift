@@ -12,6 +12,7 @@ struct ClimbView: View {
   @Environment(RoomRouter.self) private var router
   @Environment(\.cs) private var cs
   @Environment(\.accessibilityReduceMotion) private var reduceMotion
+  @Environment(\.dynamicTypeSize) private var typeSize
 
   var body: some View {
     let items = ClimbMath.items(teams: model.teams, meId: model.myTeamId, scenarios: model.scenarios)
@@ -44,28 +45,35 @@ struct ClimbView: View {
       if r.team.solo, let row = model.indRow(r.team.id) { router.open(.member(row)) } else { router.open(.squad(r.team)) }
     } label: {
       VStack(alignment: .leading, spacing: 2) {
-        HStack(spacing: 10) {
-          Text(String(format: "%02d", r.index + 1)).font(CSFont.monoMediumBody).csTabular()
-            .foregroundStyle(r.isLead ? cs.gold : cs.mut).frame(width: 26, alignment: .leading)
-          if r.team.solo {
-            CSMarkerView(key: r.team.mk, size: 18).foregroundStyle(cs.ink)
-          } else {
-            RoundedRectangle(cornerRadius: 3).fill(cs.squad(r.team.ci)).frame(width: 10, height: 10)
-          }
-          Text(r.isMe ? "You · \(r.team.name)" : r.team.name).font(r.isMe ? CSFont.subhead.weight(.semibold) : CSFont.subhead)
-            .foregroundStyle(cs.ink).lineLimit(1)
-          if let b = r.badge {
-            Text(b).font(CSFont.label).tracking(1.0).foregroundStyle(b == "LOCKED" ? cs.gold : cs.cool)
-              .padding(.horizontal, 6).padding(.vertical, 2)
-              .overlay(Capsule().stroke(b == "LOCKED" ? cs.gold : cs.cool, lineWidth: 1))
+        // rank · swatch · name · badge, then the points; at the accessibility sizes the points take their own line
+        A11yStack(spacing: 10, columnSpacing: 4) {
+          HStack(spacing: 10) {
+            Text(String(format: "%02d", r.index + 1)).font(CSFont.monoMediumBody).csTabular()
+              .foregroundStyle(r.isLead ? cs.gold : cs.mut).frame(minWidth: 26, alignment: .leading)
+            if r.team.solo {
+              CSMarkerView(key: r.team.mk, size: 18).foregroundStyle(cs.ink).accessibilityHidden(true)
+            } else {
+              RoundedRectangle(cornerRadius: 3).fill(cs.squad(r.team.ci)).frame(width: 10, height: 10)
+            }
+            Text(r.isMe ? "You · \(r.team.name)" : r.team.name).font(r.isMe ? CSFont.subhead.weight(.semibold) : CSFont.subhead)
+              .foregroundStyle(cs.ink).lineLimit(typeSize.isA11y ? nil : 1)
+            if let b = r.badge {
+              Text(b).font(CSFont.label).tracking(1.0).foregroundStyle(b == "LOCKED" ? cs.gold : cs.cool)
+                .padding(.horizontal, 6).padding(.vertical, 2)
+                .overlay(Capsule().stroke(b == "LOCKED" ? cs.gold : cs.cool, lineWidth: 1))
+                .fixedSize()
+            }
           }
           Spacer(minLength: 6)
           // the web's climbSpark on your own rung (4421)
           if r.isMe, let s = model.series[r.team.id], s.count >= 2 {
             RoomSpark(values: s, color: r.team.solo ? nil : cs.squad(r.team.ci))
           }
-          Text(CSCopy.points(r.team.pts)).font(CSFont.monoMediumBody).csTabular().foregroundStyle(r.isLead ? cs.gold : cs.ink)
-          Text(r.gap).font(CSFont.monoSmall).csTabular().foregroundStyle(cs.mut).frame(minWidth: 34, alignment: .trailing)
+          HStack(spacing: 10) {
+            Text(CSCopy.points(r.team.pts)).font(CSFont.monoMediumBody).csTabular().foregroundStyle(r.isLead ? cs.gold : cs.ink)
+            Text(r.gap).font(CSFont.monoSmall).csTabular().foregroundStyle(cs.mut).frame(minWidth: 34, alignment: .trailing)
+          }
+          .padding(.leading, typeSize.isA11y ? 36 : 0)
         }
         if let v = r.voice {
           Text(v.text).font(CSFont.sentence).foregroundStyle(cs.mut).padding(.leading, 36)

@@ -41,6 +41,7 @@ struct ReactionBar: View {
             Text("⚑").font(CSFont.monoSmall).frame(minWidth: 36, minHeight: 36)
               .foregroundStyle(cs.mut)
               .background(cs.bg2, in: Capsule()).overlay(Capsule().stroke(cs.line2, lineWidth: 1))
+              .a11yHitSlop(vertical: 4, horizontal: 4)   // 36pt chip, 44pt target
           }
           .buttonStyle(.plain)
           .accessibilityLabel("Report this post")
@@ -56,9 +57,11 @@ struct ReactionBar: View {
             .foregroundStyle(cs.mut)
             .padding(.horizontal, 10).frame(minWidth: 36, minHeight: 36)
             .background(cs.bg2, in: Capsule()).overlay(Capsule().stroke(cs.line2, lineWidth: 1))
+            .a11yHitSlop(vertical: 4, horizontal: 4)
           }
           .buttonStyle(.plain)
-          .accessibilityLabel("Comments")
+          .accessibilityLabel(item.comments.isEmpty ? "Comments" : "Comments, \(item.comments.count)")
+          .accessibilityHint(threadOpen ? "Hides the thread" : "Shows the thread")
           .accessibilityAddTraits(threadOpen ? [.isSelected] : [])
         }
       }
@@ -89,6 +92,7 @@ struct ReactionBar: View {
       .foregroundStyle(r.me ? cs.bg0 : cs.mut)
       .background(r.me ? cs.brand : cs.bg2, in: Capsule())
       .overlay(Capsule().stroke(r.me ? cs.brand : cs.line2, lineWidth: 1))
+      .a11yHitSlop(vertical: quick ? 0 : 4, horizontal: quick ? 0 : 4)
     }
     .buttonStyle(.plain)
     .simultaneousGesture(quick ? LongPressGesture(minimumDuration: 0.35).onEnded { _ in
@@ -97,6 +101,8 @@ struct ReactionBar: View {
     } : nil)
     .accessibilityLabel(title)
     .accessibilityValue(r.me ? "on" : "off")
+    .accessibilityHint(quick ? "Double tap to toggle, or use the More reactions action" : "")
+    .accessibilityAction(named: "More reactions") { store.openTray = item.id }
   }
 
   private func iconButton(_ symbol: String, label: String, expanded: Bool, action: @escaping () -> Void) -> some View {
@@ -105,6 +111,7 @@ struct ReactionBar: View {
         .frame(minWidth: 36, minHeight: 36)
         .foregroundStyle(cs.mut)
         .background(cs.bg2, in: Capsule()).overlay(Capsule().stroke(cs.line2, lineWidth: 1))
+        .a11yHitSlop(vertical: 4, horizontal: 4)
     }
     .buttonStyle(.plain)
     .accessibilityLabel(label)
@@ -143,6 +150,7 @@ struct ReactionBar: View {
       }
       HStack(spacing: 8) {
         TextField("Talk your talk…", text: $draft)
+          .accessibilityLabel("Comment")
           .font(CSFont.subhead.weight(.medium))
           .foregroundStyle(cs.ink)
           .padding(.horizontal, 12)

@@ -17,16 +17,19 @@ struct LastRoundWithCard: View {
   var body: some View {
     let line = lrw.line()
     CSCard {
-      HStack(alignment: .center, spacing: 12) {
-        CSMarkerView(key: lrw.marker, size: 24).foregroundStyle(cs.ink)
-        VStack(alignment: .leading, spacing: 2) {
-          (Text(line.lead) + Text(line.name).bold() + Text(line.tail))
-            .font(CSFont.sentence).foregroundStyle(cs.ink)
-          Text(lrw.sub).font(CSFont.footnote).foregroundStyle(cs.dimText)
+      A11yStack(spacing: 12, columnSpacing: 10) {
+        HStack(alignment: .center, spacing: 12) {
+          CSMarkerView(key: lrw.marker, size: 24).foregroundStyle(cs.ink).accessibilityHidden(true)
+          VStack(alignment: .leading, spacing: 2) {
+            (Text(line.lead) + Text(line.name).bold() + Text(line.tail))
+              .font(CSFont.sentence).foregroundStyle(cs.ink)
+            Text(lrw.sub).font(CSFont.footnote).foregroundStyle(cs.dimText)
+          }
+          .frame(maxWidth: .infinity, alignment: .leading)
+          .accessibilityElement(children: .combine)
         }
-        .frame(maxWidth: .infinity, alignment: .leading)
-        VStack(spacing: 6) {
-          if let stage { MiniButton(label: "Stage it") { stage(LastRoundWith.nextSaturday(), lrw.profileId) } }
+        HStack(spacing: 6) {
+          if let stage { MiniButton(label: "Stage it") { stage(LastRoundWith.nextSaturday(), lrw.profileId) }.accessibilityHint("Puts a round with \(line.name) on the tee sheet") }
           MiniButton(label: "Later", action: later).accessibilityLabel("Quiet for a while")
         }
       }
@@ -38,6 +41,7 @@ struct LastRoundWithCard: View {
 
 struct CareerRecordView: View {
   @Environment(\.cs) private var cs
+  @Environment(\.dynamicTypeSize) private var typeSize
   let record: CareerRecord?
   var body: some View {
     // the silverware as one strip of gold figures, then the money as a row (IOS-019: no card in a card)
@@ -46,11 +50,12 @@ struct CareerRecordView: View {
         if r.items.isEmpty {
           Fine(CareerRecord.noSilverware).padding(.vertical, 6)
         } else {
-          HStack(alignment: .top, spacing: 0) {
+          // the silverware across; one figure per line at the accessibility sizes
+          A11yStack(rowAlignment: .top, spacing: 0, columnSpacing: 8) {
             ForEach(r.items) { i in
               VStack(alignment: .leading, spacing: 2) {
                 Text(String(i.n)).font(CSFont.heroSmall).foregroundStyle(cs.gold).csTabular()   // EARNED
-                Text(i.label).font(CSFont.label).tracking(1.2).textCase(.uppercase).foregroundStyle(cs.mut).lineLimit(1).minimumScaleFactor(0.85)
+                Text(i.label).font(CSFont.label).tracking(1.2).textCase(.uppercase).foregroundStyle(cs.mut).lineLimit(typeSize.isA11y ? nil : 1).minimumScaleFactor(0.85)
               }
               .frame(maxWidth: .infinity, alignment: .leading)
               .accessibilityElement(children: .combine)
@@ -88,6 +93,7 @@ struct LifetimeTiles: View {
 
 struct RecentRoundsList: View {
   @Environment(\.cs) private var cs
+  @Environment(\.dynamicTypeSize) private var typeSize
   let recent: [RoundRow]
   let open: (RoundRow) -> Void
   let delete: (RoundRow) async -> Void
@@ -105,26 +111,29 @@ struct RecentRoundsList: View {
             VStack(alignment: .leading, spacing: 6) {
               HStack(spacing: 12) {
                 Button { open(r) } label: {
-                  HStack(spacing: 8) {
+                  A11yStack(spacing: 8, columnSpacing: 2) {
                     Text("\(r.played_on ?? "") · \((r.course_label ?? "").isEmpty ? "ROUND" : (r.course_label ?? "").uppercased())\(r.holes_played == 9 ? " · 9" : "")")
-                      .font(CSFont.footnote).foregroundStyle(cs.dimText).lineLimit(1)
+                      .font(CSFont.footnote).foregroundStyle(cs.dimText).lineLimit(typeSize.isA11y ? nil : 1)
                     Spacer(minLength: 6)
-                    if r.photo_path != nil || r.photo_url != nil {
-                      Image(systemName: "photo").font(.system(size: 13)).foregroundStyle(cs.dimText).accessibilityLabel("Round photo")
+                    HStack(spacing: 8) {
+                      if r.photo_path != nil || r.photo_url != nil {
+                        Image(systemName: "photo").font(.system(size: 13)).foregroundStyle(cs.dimText).accessibilityLabel("Round photo")
+                      }
+                      Text("\(r.gross.map(String.init) ?? "—") · \(SliceFormat.raw(r.differential))")
+                        .font(CSFont.monoMediumBody).csTabular().foregroundStyle(cs.ink)
                     }
-                    Text("\(r.gross.map(String.init) ?? "—") · \(SliceFormat.raw(r.differential))")
-                      .font(CSFont.monoMediumBody).csTabular().foregroundStyle(cs.ink)
                   }
-                  .frame(minHeight: 44)
+                  .frame(maxWidth: .infinity, minHeight: 44, alignment: .leading).contentShape(Rectangle())
                 }
                 .buttonStyle(.plain)
-                .accessibilityLabel("Open the round")
+                .accessibilityLabel("\(r.played_on ?? ""), \((r.course_label ?? "").isEmpty ? "a round" : r.course_label!)\(r.holes_played == 9 ? ", 9 holes" : ""), \(r.gross.map(String.init) ?? "no gross") gross, differential \(SliceFormat.raw(r.differential))")
+                .accessibilityHint("Opens the round")
                 Button {
                   if armed == r.id { Task { await confirmDelete(r) } } else { armed = r.id; CSHaptic.warning() }
                 } label: {
                   Image(systemName: "xmark").font(.system(size: 13, weight: .semibold))
                     .foregroundStyle(armed == r.id ? cs.neg : cs.dimText)
-                    .frame(width: 36, height: 44)
+                    .frame(width: 44, height: 44).contentShape(Rectangle())
                 }
                 .buttonStyle(.plain)
                 .disabled(deleting == r.id)

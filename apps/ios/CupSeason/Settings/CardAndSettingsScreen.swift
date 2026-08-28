@@ -20,11 +20,12 @@ struct CardAndSettingsScreen: View {
     ScrollView {
       VStack(alignment: .leading, spacing: 14) {
         Text("Your card is what your buddies see · settings run the app").csEyebrow()
-        Picker("", selection: $pane) {
+        Picker("Pane", selection: $pane) {
           Text("Your card").tag(0)
           Text("Settings").tag(1)
         }
         .pickerStyle(.segmented)
+        .accessibilityLabel("Your card or settings")
         if pane == 0 {
           CardEditorPane(vm: vm, openScoringHelp: openScoringHelp)
         } else {
@@ -184,18 +185,20 @@ final class CardSettingsModel {
 private struct CardEditorPane: View {
   @Environment(\.cs) private var cs
   @Environment(\.toast) private var toast
+  @Environment(\.dynamicTypeSize) private var typeSize
   @Bindable var vm: CardSettingsModel
   let openScoringHelp: () -> Void
   @State private var pick: PhotosPickerItem?
-  private let columns = Array(repeating: GridItem(.flexible(), spacing: 8), count: 4)
+  /// Four across at reading sizes; two at the accessibility sizes so a marker's name is never clipped.
+  private var columns: [GridItem] { Array(repeating: GridItem(.flexible(), spacing: 8), count: typeSize.isA11y ? 2 : 4) }
 
   var body: some View {
     VStack(alignment: .leading, spacing: 10) {
       label("Name on the card")
-      CSField("", text: $vm.name, font: CSFont.body).textContentType(.name).onChange(of: vm.name) { vm.dirty = true }
-      HStack(spacing: 10) {
-        VStack(alignment: .leading, spacing: 6) { label("City"); CSField("", text: $vm.city, font: CSFont.body).onChange(of: vm.city) { vm.dirty = true } }
-        VStack(alignment: .leading, spacing: 6) { label("Home course"); CSField("", text: $vm.home, font: CSFont.body).onChange(of: vm.home) { vm.dirty = true } }
+      CSField("", text: $vm.name, font: CSFont.body).textContentType(.name).onChange(of: vm.name) { vm.dirty = true }.accessibilityLabel("Name on the card")
+      A11yStack(spacing: 10) {
+        VStack(alignment: .leading, spacing: 6) { label("City"); CSField("", text: $vm.city, font: CSFont.body).onChange(of: vm.city) { vm.dirty = true }.accessibilityLabel("City") }
+        VStack(alignment: .leading, spacing: 6) { label("Home course"); CSField("", text: $vm.home, font: CSFont.body).onChange(of: vm.home) { vm.dirty = true }.accessibilityLabel("Home course") }
       }
 
       label("Ball marker").padding(.top, 4)
@@ -204,7 +207,7 @@ private struct CardEditorPane: View {
           Button { vm.marker = m.key; vm.dirty = true; CSHaptic.selection() } label: {
             VStack(spacing: 6) {
               CSMarkerView(m, size: 28).foregroundStyle(vm.marker == m.key ? cs.brand : cs.ink)
-              Text(m.name).font(CSFont.label).foregroundStyle(cs.mut).lineLimit(1).minimumScaleFactor(0.7)
+              Text(m.name).font(CSFont.label).foregroundStyle(cs.mut).lineLimit(typeSize.isA11y ? 2 : 1).minimumScaleFactor(0.7).multilineTextAlignment(.center)
             }
             .frame(maxWidth: .infinity, minHeight: 66)
             .background(cs.bg1, in: RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous))
@@ -218,14 +221,18 @@ private struct CardEditorPane: View {
       }
 
       label("Your photo · the marker always backs it up").padding(.top, 4)
-      HStack(spacing: 10) {
+      A11yStack(spacing: 10) {
         CSFace(photoURL: vm.avatar, marker: vm.marker ?? vm.profile?.marker, size: 56)
-        PhotosPicker(selection: $pick, matching: .images) {
-          MiniPill(text: vm.photoBusy ? "Uploading…" : (vm.avatar == nil ? "Add a photo" : "Change photo"))
-        }
-        .disabled(vm.photoBusy)
-        if vm.avatar != nil {
-          Button { Task { toast.show(await vm.removePhoto()) } } label: { MiniPill(text: "Remove") }.disabled(vm.photoBusy)
+          .accessibilityLabel(vm.avatar == nil ? "Your marker, no photo yet" : "Your photo")
+        HStack(spacing: 10) {
+          PhotosPicker(selection: $pick, matching: .images) {
+            MiniPill(text: vm.photoBusy ? "Uploading…" : (vm.avatar == nil ? "Add a photo" : "Change photo"))
+          }
+          .disabled(vm.photoBusy)
+          if vm.avatar != nil {
+            Button { Task { toast.show(await vm.removePhoto()) } } label: { MiniPill(text: "Remove") }.disabled(vm.photoBusy)
+              .accessibilityLabel("Remove the photo")
+          }
         }
       }
       .onChange(of: pick) { _, item in
@@ -239,14 +246,15 @@ private struct CardEditorPane: View {
         }
       }
 
-      HStack(alignment: .top, spacing: 10) {
+      A11yStack(rowAlignment: .top, spacing: 10) {
         VStack(alignment: .leading, spacing: 6) {
           label("Handle · moves once / 60 days")
           CSField("@handle", text: $vm.handle).textInputAutocapitalization(.never).autocorrectionDisabled().onChange(of: vm.handle) { vm.dirty = true }
+            .accessibilityLabel("Handle")
         }
         VStack(alignment: .leading, spacing: 6) {
           label("Findable by")
-          HStack(spacing: 6) {
+          FlowRow(spacing: 6) {
             ForEach([("everyone", "All"), ("friends", "Buddies"), ("nobody", "Nobody")], id: \.0) { mode, title in
               let on = (vm.profile?.discoverable ?? "everyone") == mode
               Button { Task { if let e = await vm.setDiscoverable(mode) { toast.show(e) } } } label: {
@@ -254,8 +262,11 @@ private struct CardEditorPane: View {
                   .padding(.horizontal, 10).padding(.vertical, 8)
                   .background(cs.bg2, in: RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous))
                   .overlay(RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous).stroke(on ? cs.pos : cs.line2, lineWidth: 1))
+                  .a11yHitSlop(vertical: 5, horizontal: 0)
               }
               .buttonStyle(.plain)
+              .accessibilityLabel("Findable by \(title.lowercased())")
+              .accessibilityAddTraits(on ? .isSelected : [])
             }
           }
         }
@@ -263,11 +274,11 @@ private struct CardEditorPane: View {
       .padding(.top, 4)
 
       label("GHIN # · optional").padding(.top, 4)
-      CSField("e.g. 1234567", text: $vm.ghin).keyboardType(.numberPad).frame(maxWidth: 200).onChange(of: vm.ghin) { vm.dirty = true }
+      CSField("e.g. 1234567", text: $vm.ghin).keyboardType(.numberPad).frame(maxWidth: 200).onChange(of: vm.ghin) { vm.dirty = true }.accessibilityLabel("GHIN number, optional")
       Text("A reference on your card — we never resell or verify it. Leave it blank if you'd rather not.")
         .font(CSFont.footnote).foregroundStyle(cs.dimText)
 
-      HStack(spacing: 12) {
+      A11yStack(spacing: 12) {
         Button { Task { await vm.save(); if vm.status?.1 == .pos { toast.show("Card saved") } } } label: { MiniPill(text: vm.saving ? "Saving…" : (vm.dirty ? "Save changes" : "Save card"), accent: vm.dirty) }
           .disabled(vm.saving)
         if let s = vm.status { CSNote(s.0, tone: s.1).font(CSFont.footnote) }
@@ -275,25 +286,30 @@ private struct CardEditorPane: View {
       .padding(.top, 6)
 
       Text("Handicap index").csEyebrow().padding(.top, 16)
-      HStack(spacing: 10) {
-        CSField("", text: $vm.index).keyboardType(.decimalPad).frame(maxWidth: 110)
+      A11yStack(spacing: 10) {
+        CSField("", text: $vm.index).keyboardType(.decimalPad).frame(maxWidth: 110).accessibilityLabel("Handicap index")
         Button { Task { toast.show(await vm.updateIndex()) } } label: { MiniPill(text: vm.indexBusy ? "Updating…" : "Update index") }.disabled(vm.indexBusy)
       }
       Text("Your index builds automatically from your posted scores (best of your recent rounds, WHS-style) — it appears once you've posted 3. Set it here to seed a starter; once you have 3 rounds your scores take over. Changes are announced on your league boards, crew-policed.")
         .font(CSFont.footnote).foregroundStyle(cs.dimText)
-      Button("How scoring works →", action: openScoringHelp).font(CSFont.footnote).foregroundStyle(cs.dawn)
+      Button(action: openScoringHelp) {
+        Text("How scoring works →").font(CSFont.footnote).foregroundStyle(cs.dawn).frame(minHeight: 44).contentShape(Rectangle())
+      }
+      .buttonStyle(.plain)
+      .accessibilityLabel("How scoring works")
 
       Text("Your leagues").csEyebrow().padding(.top, 16)
       if vm.leagues.isEmpty {
         Text("No leagues yet. Start one or join with a code.").font(CSFont.footnote).foregroundStyle(cs.dimText)
       } else {
         ForEach(vm.leagues) { row in
-          HStack {
+          A11yStack(columnSpacing: 2) {
             Text(row.leagues?.name ?? "League").font(CSFont.body).foregroundStyle(cs.ink)
             Spacer()
             Text("\(row.role == "commissioner" ? "PRO" : "PLAYER") · \(row.leagues?.code ?? "")").font(CSFont.label).foregroundStyle(cs.mut)
           }
           .padding(.vertical, 6)
+          .accessibilityElement(children: .combine)
         }
       }
     }
@@ -352,11 +368,15 @@ private struct SettingsPane: View {
 
       Text("Danger zone").csEyebrow().padding(.top, 18)
       if !vm.deleteArmed {
-        Button("Delete my account") { vm.deleteArmed = true; CSHaptic.warning() }.font(CSFont.footnote).foregroundStyle(cs.neg)
+        Button { vm.deleteArmed = true; CSHaptic.warning() } label: {
+          Text("Delete my account").font(CSFont.footnote).foregroundStyle(cs.neg).frame(minHeight: 44).contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .accessibilityHint("Asks once more before anything happens")
       } else {
         Text("This can't be undone. Your name and profile are removed and your login is closed for good. Rounds you've posted stay in the record so nobody else's standings or pot break — you'll just show as \"Former member\".")
           .font(CSFont.footnote).foregroundStyle(cs.mut)
-        HStack(spacing: 8) {
+        A11yStack(spacing: 8) {
           Button {
             Task {
               if let e = await vm.deleteAccount() { toast.show(e) } else { await store.signOut() }
@@ -368,7 +388,10 @@ private struct SettingsPane: View {
               .background(cs.neg, in: RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous))
           }
           .buttonStyle(.plain).disabled(vm.deleting)
-          Button("Cancel") { vm.deleteArmed = false }.font(CSFont.subhead).foregroundStyle(cs.mut)
+          Button { vm.deleteArmed = false } label: {
+            Text("Cancel").font(CSFont.subhead).foregroundStyle(cs.mut).padding(.horizontal, 12).frame(minHeight: 46).contentShape(Rectangle())
+          }
+          .buttonStyle(.plain)
         }
       }
 
@@ -391,11 +414,11 @@ private struct SettingsPane: View {
         .transition(.opacity)
       }
       HStack(spacing: 10) {
-        Link("Privacy", destination: CSConfig.legal("privacy"))
-        Text("·")
-        Link("Terms", destination: CSConfig.legal("terms"))
-        Text("·")
-        Link("Prize pool", destination: CSConfig.legal("pot"))
+        Link(destination: CSConfig.legal("privacy")) { Text("Privacy").frame(minHeight: 44) }
+        Text("·").accessibilityHidden(true)
+        Link(destination: CSConfig.legal("terms")) { Text("Terms").frame(minHeight: 44) }
+        Text("·").accessibilityHidden(true)
+        Link(destination: CSConfig.legal("pot")) { Text("Prize pool").frame(minHeight: 44) }
       }
       .font(CSFont.footnote).foregroundStyle(cs.mut)
     }
@@ -407,6 +430,7 @@ private struct SettingsPane: View {
         .padding(.horizontal, 12).padding(.vertical, 9)
         .background(cs.bg2, in: RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous))
         .overlay(RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous).stroke(cs.line2, lineWidth: 1))
+        .a11yHitSlop(vertical: 5, horizontal: 0)   // a 35pt pill, a 44pt target
     }
     .buttonStyle(.plain)
     .disabled(push.busy)
@@ -431,6 +455,7 @@ private struct MiniPill: View {
       .padding(.horizontal, 14).padding(.vertical, 9)
       .background(accent ? cs.brand : cs.bg2, in: RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous))
       .overlay(RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous).stroke(accent ? .clear : cs.line2, lineWidth: 1))
+      .a11yHitSlop(vertical: 5, horizontal: 0)   // a 35pt pill, a 44pt target
   }
 }
 

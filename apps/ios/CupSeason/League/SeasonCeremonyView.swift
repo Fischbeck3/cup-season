@@ -61,7 +61,10 @@ struct SeasonCeremonyView: View {
           }
         }
         if let rb = links.runItBack { CSButton("Run it back — Season 2", style: .gold) { dismiss(); rb() }.padding(.top, 8) }
-        Button("Close") { dismiss() }.font(CSFont.subhead).foregroundStyle(d.mut).frame(maxWidth: .infinity, minHeight: 44)
+        Button { dismiss() } label: {
+          Text("Close").font(CSFont.subhead).foregroundStyle(d.mut).frame(maxWidth: .infinity, minHeight: 44).contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
       } else {
         Text("The result posts once the season closes.").font(CSFont.body).foregroundStyle(d.mut)
       }
@@ -75,14 +78,15 @@ struct SeasonCeremonyView: View {
       .background(CSDusk.surface, in: RoundedRectangle(cornerRadius: CSTokens.Radius.r, style: .continuous))
   }
   private func cerRow(_ k: String, _ v: String, gold: Bool) -> some View {
-    HStack {
+    A11yStack(columnSpacing: 2) {
       Text(k).font(CSFont.label).tracking(1.0).textCase(.uppercase).foregroundStyle(d.mut)
       Spacer()
       Text(v).font(CSFont.sentenceBold).foregroundStyle(gold ? d.gold : d.ink)
     }
+    .accessibilityElement(children: .combine)
   }
   private func payRow(_ who: String, _ why: String, _ cents: Int) -> some View {
-    HStack(alignment: .firstTextBaseline) {
+    A11yStack(rowAlignment: .firstTextBaseline, columnSpacing: 2) {
       VStack(alignment: .leading, spacing: 1) {
         Text(who).font(CSFont.subhead).foregroundStyle(d.ink)
         Text(why).font(CSFont.label).tracking(0.6).foregroundStyle(d.mut)
@@ -91,5 +95,6 @@ struct SeasonCeremonyView: View {
       Text(PotMath.money(cents)).font(CSFont.monoMediumBody).csTabular().foregroundStyle(d.gold)
     }
     .padding(.vertical, 4)
+    .accessibilityElement(children: .combine)
   }
 }

@@ -163,7 +163,8 @@ public struct CSSectionHead: View {
         Spacer()
         if let trailing {
           if let action {
-            Button(action: action) { Text(trailing).csEyebrow(cs.dawn) }.buttonStyle(.plain)
+            // accessibility: the eyebrow link keeps its look and gains a 44pt hit area
+            Button(action: action) { Text(trailing).csEyebrow(cs.dawn).a11yHitSlop() }.buttonStyle(.plain)
           } else {
             Text(trailing).csEyebrow(cs.dawn)
           }

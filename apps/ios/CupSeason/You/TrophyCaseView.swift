@@ -20,6 +20,7 @@ private enum DuskInk {
 
 struct TrophyCaseView: View {
   @Environment(\.cs) private var cs
+  @Environment(\.dynamicTypeSize) private var typeSize
   let trophies: [Rpc.my_trophies.Row]
   let achievements: [Rpc.my_achievements.Row]
   let userId: UUID?
@@ -34,7 +35,8 @@ struct TrophyCaseView: View {
       if tiles.isEmpty {
         CSCard { Fine(TrophyCase.emptyLine) }
       } else {
-        LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 8), count: 3), spacing: 8) {
+        // three tiles across; two at the accessibility sizes, where a title needs the width to say itself
+        LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 8), count: typeSize.isA11y ? 2 : 3), spacing: 8) {
           ForEach(tiles) { t in TrophyTileView(tile: t, engrave: fresh.contains(t.id)) }
         }
         .padding(10)
@@ -59,6 +61,7 @@ struct TrophyCaseView: View {
 
 struct TrophyTileView: View {
   @Environment(\.accessibilityReduceMotion) private var reduceMotion
+  @Environment(\.dynamicTypeSize) private var typeSize
   let tile: TrophyTile
   let engrave: Bool
   @State private var coverGone = false
@@ -67,7 +70,7 @@ struct TrophyTileView: View {
   var body: some View {
     VStack(spacing: 0) {
       Text(tile.icon).font(.system(size: 26)).lineLimit(1)
-      Text(tile.title).font(CSFont.footnote.weight(.semibold)).foregroundStyle(DuskInk.ink).lineLimit(1)
+      Text(tile.title).font(CSFont.footnote.weight(.semibold)).foregroundStyle(DuskInk.ink).lineLimit(typeSize.isA11y ? 3 : 1).multilineTextAlignment(.center)
         .padding(.top, 6)
         .overlay {
           if engrave && !reduceMotion {
@@ -82,7 +85,7 @@ struct TrophyTileView: View {
           }
         }
         .clipped()
-      Text(tile.sub).font(CSFont.label).foregroundStyle(DuskInk.mut).lineLimit(1).padding(.top, 1)
+      Text(tile.sub).font(CSFont.label).foregroundStyle(DuskInk.mut).lineLimit(typeSize.isA11y ? 2 : 1).multilineTextAlignment(.center).padding(.top, 1)
     }
     .padding(.vertical, 12).padding(.horizontal, 6)
     .frame(maxWidth: .infinity)

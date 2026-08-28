@@ -60,17 +60,26 @@ struct ScorecardSheet: View {
     let n = card.holes
     return ScrollView(.horizontal, showsIndicators: false) {
       Grid(alignment: .center, horizontalSpacing: 0, verticalSpacing: 0) {
+        // VoiceOver: the head row and the par/SI rows are said per cell ("Hole 7, par 4, stroke index 3");
+        // a player's cell says "Hole 7, par 4, 5 strokes"; the head labels alone are hidden (the cells say it)
         GridRow {
           head("HOLE", who: true)
-          ForEach(0..<n, id: \.self) { h in head("\(h + 1)", nine: h == 8) }
+          ForEach(0..<n, id: \.self) { h in head("\(h + 1)", nine: h == 8).accessibilityHidden(true) }
           if n == 18 { head("OUT", tot: true); head("IN", tot: true) }
           head("TOT", tot: true)
         }
+        .accessibilityHidden(true)
         GridRow {
-          cell("Par", who: true, dim: true)
-          ForEach(0..<n, id: \.self) { h in cell(card.par(h), dim: true, nine: h == 8) }
-          if n == 18 { cell(card.parOut, tot: true); cell(card.parIn, tot: true) }
-          cell(card.parTot, tot: true)
+          cell("Par", who: true, dim: true).accessibilityHidden(true)
+          ForEach(0..<n, id: \.self) { h in
+            cell(card.par(h), dim: true, nine: h == 8)
+              .accessibilityLabel("Hole \(h + 1), par \(card.par(h)), stroke index \(card.si(h))")
+          }
+          if n == 18 {
+            cell(card.parOut, tot: true).accessibilityLabel("Out, par \(card.parOut)")
+            cell(card.parIn, tot: true).accessibilityLabel("In, par \(card.parIn)")
+          }
+          cell(card.parTot, tot: true).accessibilityLabel("Total par \(card.parTot)")
         }
         GridRow {
           cell("SI", who: true, dim: true)
@@ -78,6 +87,7 @@ struct ScorecardSheet: View {
           if n == 18 { cell("", tot: true); cell("", tot: true) }
           cell("", tot: true)
         }
+        .accessibilityHidden(true)
         ForEach(Array(card.rows.enumerated()), id: \.offset) { _, row in
           GridRow {
             HStack(spacing: 4) {
@@ -86,6 +96,9 @@ struct ScorecardSheet: View {
             }
             .frame(width: 96, alignment: .leading).padding(.vertical, 6)
             .overlay(alignment: .bottom) { Rectangle().fill(cs.line).frame(height: 1) }
+            .accessibilityElement(children: .ignore)
+            .accessibilityLabel(row.name + (row.guest ? ", guest" : ""))
+            .accessibilityAddTraits(.isHeader)
             ForEach(Array(row.cells.enumerated()), id: \.offset) { h, c in
               Text(c.text).font(CSFont.monoSmall.weight(c.state == .plain || c.state == .gap ? .regular : .bold)).csTabular()
                 .foregroundStyle(color(c.state))
@@ -93,13 +106,28 @@ struct ScorecardSheet: View {
                 .background(c.state == .won ? cs.gold : .clear, in: RoundedRectangle(cornerRadius: 4))
                 .overlay(alignment: .trailing) { if h == 8 { Rectangle().fill(cs.line2).frame(width: 1) } }
                 .overlay(alignment: .bottom) { Rectangle().fill(cs.line).frame(height: 1) }
+                .accessibilityLabel(Self.cellLabel(hole: h, par: card.par(h), cell: c))
             }
-            if n == 18 { cell(row.out, tot: true); cell(row.inn, tot: true) }
-            cell(row.tot, tot: true)
+            if n == 18 {
+              cell(row.out, tot: true).accessibilityLabel("Out, \(row.out.isEmpty ? "no score" : row.out)")
+              cell(row.inn, tot: true).accessibilityLabel("In, \(row.inn.isEmpty ? "no score" : row.inn)")
+            }
+            cell(row.tot, tot: true).accessibilityLabel("Total, \(row.tot.isEmpty ? "no score" : row.tot)")
           }
         }
       }
       .padding(.vertical, 4)
+    }
+  }
+
+  /// "Hole 7, par 4, 5 strokes" — a gap is "not scored", a won hole says so, a birdie says so.
+  static func cellLabel(hole h: Int, par: String, cell c: Scorecard.Cell) -> String {
+    let base = "Hole \(h + 1), par \(par), "
+    switch c.state {
+    case .gap: return base + "not scored"
+    case .won: return base + "\(c.text) stroke\(c.text == "1" ? "" : "s"), won the hole"
+    case .bird: return base + "\(c.text) stroke\(c.text == "1" ? "" : "s"), under par"
+    case .plain: return base + "\(c.text) stroke\(c.text == "1" ? "" : "s")"
     }
   }
 

@@ -9,6 +9,7 @@ import CupSeasonKit
 struct LivePlayView: View {
   @Environment(\.cs) private var cs
   @Environment(\.toast) private var toast
+  @Environment(\.dynamicTypeSize) private var typeSize
   @Bindable var store: LiveRoundStore
   let links: LiveLinks
   @State private var showFinish = false
@@ -22,11 +23,14 @@ struct LivePlayView: View {
       scoreboard
       ScrollView {
         VStack(alignment: .leading, spacing: 14) {
-          HStack(alignment: .firstTextBaseline) {
-            Text(s.course.eyebrow).csEyebrow().lineLimit(2)
+          A11yStack(rowAlignment: .firstTextBaseline, columnSpacing: 4) {
+            Text(s.course.eyebrow).csEyebrow().lineLimit(typeSize.isA11y ? nil : 2)
             Spacer()
             if !store.isPencilOnly {
-              Button("Change setup") { store.backToSetup() }.font(CSFont.footnote).foregroundStyle(cs.dawn)
+              Button { store.backToSetup() } label: {
+                Text("Change setup").font(CSFont.footnote).foregroundStyle(cs.dawn).a11yHitSlop()
+              }
+              .buttonStyle(.plain)
             }
           }
           holeHeader
@@ -78,6 +82,7 @@ struct LivePlayView: View {
     .background(cs.bg1)
     .overlay(alignment: .bottom) { Rectangle().fill(cs.line).frame(height: 1) }
     .accessibilityElement(children: .combine)
+    .accessibilityAddTraits(.updatesFrequently)   // the scoreboard moves as the group scores
   }
 
   // MARK: hole header + dots
@@ -95,6 +100,8 @@ struct LivePlayView: View {
         Text(h.num).font(CSFont.heroSmall).foregroundStyle(cs.ink)
         Text(h.meta).font(CSFont.label).tracking(1.2).foregroundStyle(cs.dimText)
       }
+      .accessibilityElement(children: .combine)
+      .accessibilityAddTraits(.isHeader)
       Spacer()
       Button { store.nextHole() } label: {
         Image(systemName: "arrow.right").font(.system(size: 16, weight: .semibold)).foregroundStyle(cs.ink).frame(width: 44, height: 44)
@@ -122,30 +129,45 @@ struct LivePlayView: View {
   private func playerRow(_ pi: Int) -> some View {
     let r = LiveCopy.playerRow(s, pi)
     let p = s.players[pi]
-    return HStack(spacing: 10) {
-      RoundedRectangle(cornerRadius: 2).fill(p.guest ? cs.dim : cs.squad(p.ci)).frame(width: 4, height: 40)
-      VStack(alignment: .leading, spacing: 3) {
-        HStack(spacing: 4) {
-          Text(r.name).font(CSFont.subhead.weight(.semibold)).foregroundStyle(cs.ink).lineLimit(1)
-          if r.guest { Text("GUEST").font(CSFont.label).foregroundStyle(cs.dimText) }
-          ForEach(0..<r.strokeDots, id: \.self) { _ in Circle().fill(cs.gold).frame(width: 6, height: 6) }
+    let scoreText = r.score.map(String.init) ?? "–"
+    // name + sub, then the totals and the stepper — on one line, or two at the accessibility sizes
+    return A11yStack(spacing: 10, columnSpacing: 6) {
+      HStack(spacing: 10) {
+        RoundedRectangle(cornerRadius: 2).fill(p.guest ? cs.dim : cs.squad(p.ci)).frame(width: 4, height: 40)
+        VStack(alignment: .leading, spacing: 3) {
+          HStack(spacing: 4) {
+            Text(r.name).font(CSFont.subhead.weight(.semibold)).foregroundStyle(cs.ink).lineLimit(typeSize.isA11y ? nil : 1)
+            if r.guest { Text("GUEST").font(CSFont.label).foregroundStyle(cs.dimText) }
+            ForEach(0..<r.strokeDots, id: \.self) { _ in Circle().fill(cs.gold).frame(width: 6, height: 6) }
+          }
+          Text(r.sub).font(CSFont.label).tracking(0.8).foregroundStyle(cs.dimText)
         }
-        Text(r.sub).font(CSFont.label).tracking(0.8).foregroundStyle(cs.dimText)
+        .frame(maxWidth: .infinity, alignment: .leading)
       }
+      .accessibilityElement(children: .combine)
+      .accessibilityLabel("\(r.name)\(r.guest ? ", guest" : ""), \(r.sub)" + (r.strokeDots > 0 ? ", \(r.strokeDots) stroke\(r.strokeDots == 1 ? "" : "s") here" : ""))
       Spacer(minLength: 4)
-      VStack(alignment: .trailing, spacing: 0) {
-        Text(r.total ?? "—").font(CSFont.label).foregroundStyle(cs.mut)
-        if let tp = r.toPar { Text(tp).font(CSFont.label).foregroundStyle(cs.mut) }
+      HStack(spacing: 10) {
+        VStack(alignment: .trailing, spacing: 0) {
+          Text(r.total ?? "—").font(CSFont.label).foregroundStyle(cs.mut)
+          if let tp = r.toPar { Text(tp).font(CSFont.label).foregroundStyle(cs.mut) }
+        }
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel("Total \(r.total ?? "none")" + (r.toPar.map { ", \($0)" } ?? ""))
+        .accessibilityAddTraits(.updatesFrequently)
+        HStack(spacing: 0) {
+          Button { store.step(pi, -1) } label: { Text("−").font(CSFont.title).frame(minWidth: 44, minHeight: 44).contentShape(Rectangle()) }
+            .buttonStyle(.plain).accessibilityLabel("Minus, \(p.n)")
+          Text(scoreText).font(CSFont.stat).csTabular().foregroundStyle(r.birdie ? cs.gold : cs.ink).frame(minWidth: 34)
+            .accessibilityLabel("Hole \(s.hole + 1), \(r.score.map { "\($0) stroke\($0 == 1 ? "" : "s")" } ?? "not scored")\(r.birdie ? ", under par" : "")")
+            .accessibilityAddTraits(.updatesFrequently)
+          Button { store.step(pi, 1) } label: { Text("+").font(CSFont.title).frame(minWidth: 44, minHeight: 44).contentShape(Rectangle()) }
+            .buttonStyle(.plain).accessibilityLabel("Plus, \(p.n)")
+        }
+        .foregroundStyle(cs.ink)
+        .background(cs.bg2, in: RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous))
       }
-      HStack(spacing: 0) {
-        Button { store.step(pi, -1) } label: { Text("−").font(CSFont.title).frame(width: 44, height: 44) }
-          .buttonStyle(.plain).accessibilityLabel("Minus \(p.n)")
-        Text(r.score.map(String.init) ?? "–").font(CSFont.stat).csTabular().foregroundStyle(r.birdie ? cs.gold : cs.ink).frame(width: 34)
-        Button { store.step(pi, 1) } label: { Text("+").font(CSFont.title).frame(width: 44, height: 44) }
-          .buttonStyle(.plain).accessibilityLabel("Plus \(p.n)")
-      }
-      .foregroundStyle(cs.ink)
-      .background(cs.bg2, in: RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous))
+      .padding(.leading, typeSize.isA11y ? 14 : 0)
     }
     .padding(.vertical, 6)
     .overlay(alignment: .bottom) { Rectangle().fill(cs.line).frame(height: 1) }
@@ -195,6 +217,7 @@ struct LivePlayView: View {
             Spacer()
             Text(r.amount).font(CSFont.monoMediumBody).foregroundStyle(cs.gold)
           }
+          .accessibilityElement(children: .combine)
         }
       }
       .padding(14).frame(maxWidth: .infinity, alignment: .leading)
@@ -218,22 +241,41 @@ struct LivePlayView: View {
         .padding(.horizontal, 10).frame(minHeight: 36)
         .background(on ? cs.gold : cs.bg2, in: Capsule())
         .overlay(Capsule().stroke(on ? cs.gold : cs.line2, lineWidth: 1))
+        .frame(minHeight: 44).contentShape(Rectangle())
     }
     .buttonStyle(.plain)
-    .frame(minHeight: 44)
+    .accessibilityAddTraits(on ? .isSelected : [])
   }
 
+  /// Four figures across; at the accessibility sizes one "name · figure" line per player, so a name is never truncated.
   private func tally(_ items: [(String, String, Color)]) -> some View {
-    HStack(spacing: 12) {
-      ForEach(Array(items.enumerated()), id: \.offset) { _, it in
-        VStack(spacing: 2) {
-          Text(it.1).font(CSFont.stat).csTabular().foregroundStyle(it.2)
-          Text(it.0.uppercased()).font(CSFont.label).tracking(0.6).foregroundStyle(cs.dimText).lineLimit(1)
+    Group {
+      if typeSize.isA11y {
+        VStack(alignment: .leading, spacing: 4) {
+          ForEach(Array(items.enumerated()), id: \.offset) { _, it in
+            HStack(spacing: 8) {
+              Text(it.0.uppercased()).font(CSFont.label).tracking(0.6).foregroundStyle(cs.dimText)
+              Spacer()
+              Text(it.1).font(CSFont.stat).csTabular().foregroundStyle(it.2)
+            }
+            .accessibilityElement(children: .combine)
+          }
         }
-        .frame(maxWidth: .infinity)
+      } else {
+        HStack(spacing: 12) {
+          ForEach(Array(items.enumerated()), id: \.offset) { _, it in
+            VStack(spacing: 2) {
+              Text(it.1).font(CSFont.stat).csTabular().foregroundStyle(it.2)
+              Text(it.0.uppercased()).font(CSFont.label).tracking(0.6).foregroundStyle(cs.dimText).lineLimit(1)
+            }
+            .frame(maxWidth: .infinity)
+            .accessibilityElement(children: .combine)
+          }
+        }
       }
     }
     .padding(.top, 6)
+    .accessibilityAddTraits(.updatesFrequently)
   }
 
   // MARK: scrap (two-tap; 9332)
@@ -292,18 +334,22 @@ struct LiveGroupSheet: View {
       } else {
         ForEach(guests, id: \.self) { i in
           let url = ClaimIntent.url(L.guestTokens[String(i)]!)
-          HStack(spacing: 10) {
+          A11yStack(spacing: 10, columnSpacing: 6) {
             VStack(alignment: .leading, spacing: 2) {
               Text(L.players[i].n).font(CSFont.subhead.weight(.semibold)).foregroundStyle(cs.ink)
               Text("No account needed — the link is their pencil now and their recap after").font(CSFont.label).foregroundStyle(cs.dimText)
             }
+            .frame(maxWidth: .infinity, alignment: .leading)
             Spacer()
+            HStack(spacing: 10) {
             CSMini("Copy") { UIPasteboard.general.string = url.absoluteString; toast.show("Recap link copied") }
+              .accessibilityLabel("Copy \(L.players[i].n)'s link")
             ShareLink(item: url, message: Text("Your pencil for today's round on Cup Season")) {
               Image(systemName: "square.and.arrow.up").font(.system(size: 14, weight: .semibold)).foregroundStyle(cs.ink)
                 .frame(width: 44, height: 44).background(cs.bg2, in: Circle())
             }
             .accessibilityLabel("Share \(L.players[i].n)'s link")
+            }
           }
           .padding(.vertical, 6)
         }
