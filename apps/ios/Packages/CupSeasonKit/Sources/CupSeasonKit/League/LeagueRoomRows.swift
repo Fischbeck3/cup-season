@@ -15,9 +15,15 @@ public enum LeagueRoom {
     public let code: String?
     public let phase: String
     public let commissioner_id: UUID?
-    public init(id: UUID, name: String, code: String?, phase: String, commissioner_id: UUID?) {
+    /// The Pro's curation flag for `system` board posts (push wave 7). nil = the
+    /// column is not there yet (deploy skew) — read as on, the server's default.
+    public let notify_system: Bool?
+    public init(id: UUID, name: String, code: String?, phase: String, commissioner_id: UUID?, notify_system: Bool? = nil) {
       self.id = id; self.name = name; self.code = code; self.phase = phase; self.commissioner_id = commissioner_id
+      self.notify_system = notify_system
     }
+    /// `notify_system` as the phone shows it: on unless the Pro turned it off.
+    public var noticesOn: Bool { notify_system ?? true }
   }
 
   /// `league_settings` — the bylaws (audit 02 §3.2).
