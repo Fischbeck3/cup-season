@@ -85,7 +85,7 @@ public final class SessionStore {
     defer { loading = false }
     do {
       async let ids = FoundingIds.load(svc)
-      let me = try await repo.load(userId: uid)
+      let me = try await loadWithSkewRetry(uid)
       founding = await ids
       if let min = me.minIOSBuild, build > 0, build < min {
         state = .mustUpdate(minBuild: min)
@@ -98,6 +98,19 @@ public final class SessionStore {
       }
     } catch {
       state = .failed(AuthRules.human(error, fallback: "Could not load your card."))
+    }
+  }
+
+  /// PGRST303 "JWT issued at future": a freshly refreshed token whose `iat`
+  /// is a second or two ahead of PostgREST's clock (device clock drift). It
+  /// clears itself; one retry after a beat beats a "boot stalled" screen.
+  private func loadWithSkewRetry(_ uid: UUID) async throws -> Me {
+    do { return try await repo.load(userId: uid) }
+    catch {
+      let text = String(describing: error)
+      guard text.contains("PGRST303") || text.localizedCaseInsensitiveContains("issued at future") else { throw error }
+      try? await Task.sleep(for: .seconds(2.5))
+      return try await repo.load(userId: uid)
     }
   }
 
