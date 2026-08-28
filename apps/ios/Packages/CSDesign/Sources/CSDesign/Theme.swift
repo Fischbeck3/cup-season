@@ -18,7 +18,7 @@ public enum CSAppearance: String, CaseIterable, Sendable {
 
   public var label: String {
     switch self {
-    case .charcoal: "Charcoal"
+    case .charcoal: "Fescue"
     case .light: "Light"
     case .device: "Match device"
     }
