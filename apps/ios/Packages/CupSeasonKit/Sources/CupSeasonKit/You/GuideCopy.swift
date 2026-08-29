@@ -53,7 +53,7 @@ public enum GuideCopy {
     ]),
     "buddies": GuideSheet(key: "buddies", title: "Buddies, invites and claims", sub: "THREE LINKS, THREE JOBS", paragraphs: [
       "**A buddy** is mutual — the magnifier up top finds golfers by name or @handle. Buddies see each other's rounds and share a tee sheet. Nothing to do with leagues or points.",
-      "**An invite link** carries a league's code — whoever opens it joins that league.",
+      "**An invite link** carries a league's code — whoever opens it reviews the league and joins if they're in.",
       "**A claim link** hands one round to a guest you played with, so the score lands on their card. No league, no buddy — just the round.",
     ]),
   ]

@@ -851,3 +851,41 @@ Roughly 60 sessions. That is honest, not fast: Phase 0 alone is 45 items. The fi
 ---
 
 *Companions: `plan/t1-organizer-setup-and-invite.md` · `plan/t2-joining-and-consent.md` · `plan/t3-member-home-and-roles.md` · `plan/t4-first-round-truth.md` · `plan/t5-endgame-rivalry-money.md` · `plan/t6-positioning-live-layer-terms-ios.md` · `plan/t7-measurement-monetization-gate.md` · the audit's own record `blind-ux-audit.md`, `critical-findings.md`, `issues.json`, `raw/synthesis-and-validation-results.json`.*
+
+---
+
+## 8. Phase 0 progress — 2026-08-29
+
+Built and verified this session. Item ids are §2's.
+
+| Item | State | Verified by |
+|---|---|---|
+| Q-01 lock succeeds and says so | **done** | real league created + locked; `lock_attempt → lock_ok(draft) → invite_open` in 1.1 s, 0 `lock_fail` |
+| Q-02 harness preserved | **partial** — copied to `docs/audit/blind-ux-2026-08-29/tools/harness/`; the move to `tools/blind/` and the exact-name click fix are still open | — |
+| Q-03 the wipe | **ready, not run** — `tools/wipe.sql`, dry-run clean; OWNER runs it before 2026-09-05 07:20 UTC | dry run (rollback) x3 |
+| Q-04 free-identifier lint | **done** (preflight 18) | reintroduced `staged` → FAIL naming `index.html:15254`; removed → PASS |
+| Q-06 db-checks 15–17 | **done** | 15 and 16 correctly FAIL on the audit's own residue; 17 PASS |
+| Q-07 lock app-tests | **done** | 3 assertions; `lockBylaws` itself noted as not browser-testable |
+| Q-08 errors say what the server said | **done** | 5 humanError cases incl. clipboard and the draw sentence |
+| Q-09 hero knows a locked league | **done** | Pro of a locked solo league sees "Share the invite link" |
+| Q-10 wizard gated at the choke point | **done** | as a real member: wizard bounces, no lock, no discard |
+| Q-11 formation read-only + a way back | **done** | member: no seat/draw controls, "← Clubhouse" present |
+| Q-12 Schedule returns where it came from | **done** | Clubhouse → Schedule → "← Clubhouse"; Home → "← Home" |
+| Q-13 install nudge off the tee | **done** | hides on 4 full-screen views; tee takes its own taps |
+| Q-14 consent on every join path | **done** (+ preflight 19) | fresh account: covenant → "Not now" keeps the invite → re-offered → accept joins |
+| Q-15 landing copy | **done** | invite link reads "review the league before you join" |
+| Q-16 one code noun | **done** | no user-facing "invite code" in either client |
+| Q-17 Guide truth pass | **partial** — email-invite claim, "whoever opens it joins", "captains draft squads" fixed (web + phone); the rest of the Guide sweep is open | grep |
+| Q-18 door stops stacking | **done** | one branch at a time, Back restores both |
+| Q-20 bands agree with the engine | **done** | −1.0 scores 6 and is named for it; property test across −6…+6, both clients |
+| Q-21 blank date names itself | **done** | audit's exact sequence: "Pick the date you played", nothing sent |
+| Q-22 no invented differential | **done** | blank rating → no points, no score, Post blocked |
+| Q-23 sign sweep (phase 1) | **done** | `vsShort` on form, standings ×2, member tile, receipt |
+| Q-24 dead course search says so | **partial** — message + re-render verified; the retry BUTTON's click is unverified in a signed-out harness | broken-endpoint simulation |
+| Q-26 tie line, ceiling, §4 citation | **done** | §14.3 ladder named; both clients |
+| Q-27 one floor sentence | **done** | 6 shapes incl. solo (engine-verified: no penalty target) |
+| Q-28 pot trio sums | **done** | 8 pot sizes × 4 splits |
+
+**Not started** (the rest of Phase 0): Q-05 event registry · Q-19 legal support address (blocked on §6 Q-10 — does `hello@cupseason.app` exist?) · Q-25 preflight 22/23 · Q-29 help sections · Q-30 head-to-head · Q-31–Q-33 the restoration sweep and the retired-vocabulary lint · Q-34–Q-36 telemetry events + funnel views · Q-37–Q-45 the iOS wave and housekeeping.
+
+**QC discipline note.** A service worker served a cached build partway through this session and briefly made verifications untrustworthy (CLAUDE.md's landmine). Clear the SW and caches at the START of every verification run, not after a result looks wrong.

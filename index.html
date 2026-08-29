@@ -13457,7 +13457,7 @@ const GUIDE = {
     <p class="fine" style="padding:0 0 12px"><b>Before:</b> put a tee time on the sheet. Your buddies see it and tap in.</p>`],
   buddies: ['Buddies, invites and claims','THREE LINKS, THREE JOBS', `
     <p class="fine" style="padding:0 0 10px"><b>A buddy</b> is mutual — the magnifier up top finds golfers by name or @handle. Buddies see each other's rounds and share a tee sheet. Nothing to do with leagues or points.</p>
-    <p class="fine" style="padding:0 0 10px"><b>An invite link</b> carries a league's code — whoever opens it joins that league.</p>
+    <p class="fine" style="padding:0 0 10px"><b>An invite link</b> carries a league's code — whoever opens it reviews the league and joins if they're in.</p>
     <p class="fine" style="padding:0 0 12px"><b>A claim link</b> hands one round to a guest you played with, so the score lands on their card. No league, no buddy — just the round.</p>`],
 };
 document.getElementById('youGuide')?.addEventListener('click', (e) => {
@@ -15495,6 +15495,28 @@ function openEmailBox(afterEl, msg){
   $('#codebox').insertAdjacentElement('afterend', $('#obStatus'));
   const rs = $('#obResend'); if(rs) $('#obStatus').insertAdjacentElement('afterend', rs);
   box.classList.add('open');
+  /* Q-18 · once a branch is open the OTHER door is dead weight that pushes the
+     code box below the fold — the audit's joiner had six stacked controls and
+     had to scroll to find "CODE FROM EMAIL". Hide it, and offer one way back. */
+  const other = $('#obJoin'); if(other) other.style.display = 'none';
+  const chooser = $('#obEmail'); if(chooser) chooser.style.display = 'none';
+  let back = $('#obBack');
+  if(!back){
+    back = document.createElement('button');
+    back.id = 'obBack'; back.type = 'button'; back.className = 'cs-tskip';
+    back.textContent = '← Back';
+    back.addEventListener('click', () => {
+      $('#emailbox')?.classList.remove('open');
+      $('#codebox')?.classList.remove('open');
+      $('#joinbox')?.classList.remove('open');
+      if(other) other.style.display = '';
+      if(chooser) chooser.style.display = '';
+      back.style.display = 'none';
+      authStatus('');
+    });
+    box.insertAdjacentElement('beforebegin', back);
+  }
+  back.style.display = '';
   $('#obEmailIn').focus();
   authStatus(msg || '');
 }
@@ -15647,6 +15669,11 @@ $('#obEmailGo').addEventListener('click', async () => {
    new users automatically after verify. */
 
 $('#obJoin').addEventListener('click', () => {
+  /* Q-18 · same rule the other way: the email door hides while the code door
+     is open, so the golfer sees one path, not four rows of choices — and the
+     same Back returns, so neither branch is a one-way street. */
+  const em = $('#obEmail'); if(em) em.style.display = 'none';
+  const bk = $('#obBack'); if(bk) bk.style.display = '';
   $('#emailbox').classList.remove('open');   /* don't stack the two input rows */
   $('#codebox').classList.remove('open');
   const rs=$('#obResend'); if(rs) rs.style.display='none';

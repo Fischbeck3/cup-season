@@ -11,7 +11,7 @@ between friends.
 
 Most golf apps track your handicap or a single round. Cup Season tracks a whole
 season with your friends. Everyone logs real, handicapped rounds wherever they
-play. Points build month over month. Captains draft squads, the months pass, and
+play. Points build month over month. Squads are drawn, the months pass, and
 the endgame settles it.
 
 Two rules make it work:
@@ -104,7 +104,7 @@ in the post form.
 ### Start a league
 
 From **Home**, tap **Start a league**. Name it, add golfers (find them by name
-or @handle, or invite by email), set the buy-in, the season length, the format
+or @handle), set the buy-in, the season length, the format
 and the endgame, then **Lock it**. Squads form, everyone joins with the league
 code or an invite link, and play begins at the first tee.
 
