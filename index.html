@@ -2882,7 +2882,7 @@ html[data-theme="light"] .room-dusk .btn:not(.dark):not(.gold):not(.apple){color
         <div class="stats">
           <div class="stat"><div class="k">Rounds posted</div><div class="v" id="clR">—</div><div class="d fl">All time</div></div>
           <div class="stat"><div class="k">Best vs index</div><div class="v" id="clBest">—</div><div class="d fl">Career best</div></div>
-          <div class="stat"><div class="k">Avg vs index</div><div class="v" id="clAvg">—</div><div class="d fl">vs your index</div></div>
+          <div class="stat"><div class="k">Avg vs your number</div><div class="v" id="clAvg">—</div><div class="d fl">across counting rounds</div></div>
           <div class="stat"><div class="k">Cups &amp; events</div><div class="v" id="clPlayed">—</div><div class="d fl">Played in</div></div>
         </div>
 
@@ -2908,7 +2908,7 @@ html[data-theme="light"] .room-dusk .btn:not(.dark):not(.gold):not(.apple){color
           <div class="eyebrow">This season · <span id="youSeasonLg">your league</span></div>
           <div class="stats">
             <div class="stat"><div class="k">Rounds posted</div><div class="v" id="msR">—</div><div class="d fl">This season</div></div>
-            <div class="stat"><div class="k">Avg vs index</div><div class="v" id="msAvg">—</div><div class="d fl">vs your index</div></div>
+            <div class="stat"><div class="k">Avg vs your number</div><div class="v" id="msAvg">—</div><div class="d fl">across counting rounds</div></div>
             <div class="stat"><div class="k">Best round</div><div class="v" id="msBest">—</div><div class="d fl">vs index · season</div></div>
             <div class="stat"><div class="k">Index move</div><div class="v" id="msDelta">—</div><div class="d up">Season to date</div></div>
           </div>
@@ -3123,8 +3123,8 @@ html[data-theme="light"] .room-dusk .btn:not(.dark):not(.gold):not(.apple){color
                 </div>
               </div>
               <div class="frow" style="margin-top:10px">
-                <div><label class="f" for="inRating">Rating</label><input class="f" id="inRating" type="number" step="0.1" placeholder="72.1" inputmode="decimal"></div>
-                <div><label class="f" for="inSlope">Slope</label><input class="f" id="inSlope" type="number" placeholder="128" inputmode="numeric"></div>
+                <div><label class="f" for="inRating">Rating</label><input class="f" id="inRating" type="number" step="0.1" placeholder="—" inputmode="decimal"></div>
+                <div><label class="f" for="inSlope">Slope</label><input class="f" id="inSlope" type="number" placeholder="—" inputmode="numeric"></div>
               </div>
               <div style="margin-top:12px; display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
                 <label class="f" style="margin:0">Your card</label>
@@ -3156,8 +3156,8 @@ html[data-theme="light"] .room-dusk .btn:not(.dark):not(.gold):not(.apple){color
               <!-- default: front & back gross — how golfers keep score (D32) -->
               <div id="postTotalWrap" style="margin-top:10px">
                 <div class="frow">
-                  <div><label class="f" for="inF9">Front 9 gross</label><input class="f" id="inF9" type="number" placeholder="41" inputmode="numeric"></div>
-                  <div><label class="f" for="inB9">Back 9 gross</label><input class="f" id="inB9" type="number" placeholder="43" inputmode="numeric"></div>
+                  <div><label class="f" for="inF9">Front 9 gross</label><input class="f" id="inF9" type="number" placeholder="front" inputmode="numeric"></div>
+                  <div><label class="f" for="inB9">Back 9 gross</label><input class="f" id="inB9" type="number" placeholder="back" inputmode="numeric"></div>
                 </div>
                 <p class="fine" style="padding-top:6px">How most golfers keep it — 41 out, 43 in. Played just one nine? Fill that side only and it posts at half value, half a round.</p>
               </div>
@@ -3196,7 +3196,7 @@ html[data-theme="light"] .room-dusk .btn:not(.dark):not(.gold):not(.apple){color
               <div class="msg" id="calcMsg">Enter at least one nine to see the points.</div>
               <div class="trio">
                 <div><b id="calcGross">–</b><span>Gross</span></div>
-                <div><b id="calcVs">–</b><span>vs your index</span></div>
+                <div><b id="calcVs">–</b><span>your number</span></div>
               </div>
               <p class="fine" style="padding:8px 0 0">No league yet? The round still counts on your card — points apply in any league you join.</p>
             </div>
@@ -5782,6 +5782,22 @@ function bandName(vs){
   if(vs>=-3) return 'A little loose';
   return 'Posted anyway';
 }
+/* Q-23 · the compact form of vsPhrase, for tiles and chips. The signed number
+   it replaces read backwards to every golfer who met it: minus means WORSE
+   here, while a minus in golf means better. Six of seven blind testers
+   misread it, and the same round appeared as "-3.7", "3.7 over" and "+0.0"
+   on three consecutive screens. One vocabulary, no signs. */
+function vsShort(v){
+  /* null/undefined/'' must NOT become 0 — Number(null) is 0, which would have
+     rendered a MISSING average as "played to it", i.e. an absent number
+     reading as a decent round. Caught in QC before it shipped. */
+  if(v===null || v===undefined || v==='') return '—';
+  const vs=Number(v);
+  if(!isFinite(vs)) return '—';
+  if(vs>=1)  return 'beat by '+vs.toFixed(1);
+  if(vs>-1)  return 'played to it';
+  return Math.abs(vs).toFixed(1)+' over';
+}
 function vsPhrase(vs){
   vs=Number(vs);
   if(!isFinite(vs)) return '';
@@ -6384,6 +6400,18 @@ function recalc(){
   const rating=parseFloat($('#inRating').value)||0;
   const slope=parseFloat($('#inSlope').value)||113;
   const {f9,b9}=postInputs();
+  /* Q-22 · a BLANK rating used to fall to 0 and be scored as one, so a 91 with
+     no tee picked previewed "-75.8 vs your index · 5 pts" and Post stayed
+     live. A course with no rating cannot be scored; say so instead of
+     inventing a differential from zero. */
+  if((f9>0 || b9>0) && (!(rating>0) || !(slope>0))){
+    $('#calcPts').textContent='–';
+    $('#calcMsg').textContent='Pick a tee — or type the rating and slope — to see the points.';
+    $('#calcGross').textContent=String(Math.round((f9||0)+(b9||0)) || '–');
+    $('#calcVs').textContent='—';
+    const glr=$('#postGrossLine'); if(glr) glr.textContent='Rating and slope set the score — pick a tee.';
+    state.lastPost=null; return;
+  }
   let diff, vs, pts, msg, gross, label;
   if(f9>0 && b9>0){
     gross=f9+b9;
@@ -6412,8 +6440,8 @@ function recalc(){
     state.lastPost=null; return;
   }
   $('#calcGross').textContent=Math.round(gross);
-  $('#calcVs').textContent=(vs>=0?'+':'')+vs.toFixed(1);
-  $('#calcVs').style.color = vs>=0 ? 'var(--pos)' : 'var(--neg)';
+  $('#calcVs').textContent=vsShort(vs);   /* Q-23: words, not a sign */
+  $('#calcVs').style.color = vs>-1 ? 'var(--pos)' : 'var(--neg)';
   $('#calcPts').textContent=pts;
   $('#calcMsg').textContent=msg;
   const gl=$('#postGrossLine');
@@ -6977,6 +7005,19 @@ $('#postScanBack')?.addEventListener('click',e=>{
 function attachCourseSearch(courseSel, ratingSel, slopeSel, onTee){
   const input=$(courseSel); if(!input) return;
   const dd=document.createElement('div'); dd.className='coursedd'; dd.style.display='none';
+  /* Q-24 · the retry is delegated from the container, attached ONCE here.
+     Attaching it inside the failure branch tied a listener to markup that any
+     later render replaces — the button would still be drawn and would quietly
+     stop working. mousedown (not click) because the input's blur hides the
+     dropdown before a click can land — the same reason every other button in
+     here uses mousedown. */
+  dd.addEventListener('mousedown', ev => {
+    const b = ev.target.closest?.('[data-csretry]');
+    if(!b) return;
+    ev.preventDefault();
+    const q = (input.value||'').trim();
+    if(q.length >= 3) run(q);
+  });
   input.insertAdjacentElement('afterend', dd);
   const ra=$(ratingSel), sl=$(slopeSel);
   const hide=()=>{ dd.style.display='none'; dd.innerHTML=''; dd.dataset.stage=''; };
@@ -7055,11 +7096,26 @@ function attachCourseSearch(courseSel, ratingSel, slopeSel, onTee){
       const remote = (data?.courses||[]).map(c=>shapeCourse(c, c.tees)).filter(c=>c.tees.length);
       const seen = new Set(local.map(c=>c.id));
       const merged = [...local, ...remote.filter(c=>!seen.has(c.id))].slice(0,12);
-      if(fresh() && merged.length){ courses=merged; showCourses(); }
+      /* Q-24 · re-render on ANY successful response, not only a non-empty one.
+         `merged` includes the local hits, so empty here means both sides were
+         empty and "No match" is the honest answer — whereas skipping the render
+         left the previous "Course search is down" on screen after the search
+         had come back, which is a worse lie than the original silence. */
+      if(fresh()){ courses=merged; showCourses(); }
     } catch(e){
-      /* API unavailable: cached results stand. Only fall back to manual entry
-         when we have nothing at all to offer. */
-      if(!local.length && fresh()) hide();
+      /* API unavailable: cached results stand (pilot rule — never yank a hit
+         the golfer can already see).
+         Q-24 · but when there is NOTHING to show this used to hide()  — a
+         silent nothing. The audit's competitive golfer typed "TPC Scottsdale"
+         three times and got no list, no spinner and no error (five 502s in the
+         console), then posted with a blank rating. Say it, and offer a retry. */
+      window.qaEvent?.('course_search_fail', { q_len: q.length, msg: String(e?.message||e).slice(0,80) });
+      if(!local.length && fresh()){
+        dd.dataset.stage='courses';
+        dd.innerHTML = '<div class="coursedd-msg">Course search is down — type the course, rating and slope by hand.</div>'
+          + '<button type="button" data-csretry><b>Try again</b></button>';
+        dd.style.display='block';   /* the retry is delegated at setup — see above */
+      }
     }
   }
   input.addEventListener('input', ()=>{
@@ -11522,7 +11578,7 @@ function renderIndStats(){
 
   const me=rows.find(p=>p.me) || rows.find(p=>p.n==='You') || rows[0];
   $('#msR').textContent=me.r;
-  $('#msAvg').textContent=(me.avg>=0?'+':'')+me.avg.toFixed(1);
+  $('#msAvg').textContent=vsShort(me.avg);   /* Q-23 */
   $('#msBest').textContent='+'+me.best.toFixed(1);
   $('#msDelta').textContent='▼ '+Math.abs(me.d).toFixed(1);
 
@@ -11533,13 +11589,13 @@ function renderIndStats(){
   $('#awImp').textContent=imp.n;    $('#awImpS').textContent='Most Improved · ▼'+Math.abs(imp.d).toFixed(1);
   $('#awIron').textContent=iron.n;  $('#awIronS').textContent='Iron Man · '+iron.r+' rds';
 
-  let html=`<tr><th></th><th>Player</th><th class="num">R</th><th class="num">Avg vs index</th><th class="num">Pts</th></tr>`;
+  let html=`<tr><th></th><th>Player</th><th class="num">R</th><th class="num">Avg vs your number</th><th class="num">Pts</th></tr>`;
   rows.forEach((p,i)=>{
     html+=`<tr class="tap" data-pl="${p.n}"${(p.me||p.n==='You')?' style="background:var(--bg2)"':''}>
       <td class="rk mono">${String(i+1).padStart(2,'0')}</td>
       <td><div style="display:flex;align-items:center;gap:10px"><span class="sw" style="background:${SQHEX[p.ci]}"></span><div><div class="tn">${p.n}</div><div class="tc">${p.sq}</div></div></div></td>
       <td class="num" style="font-family:var(--mono);font-size:12px">${p.r}</td>
-      <td class="num dw" style="color:${p.avg>=0?'var(--pos)':'var(--neg)'}">${p.avg>=0?'+':''}${p.avg.toFixed(1)}</td>
+      <td class="num dw" style="color:${p.avg>-1?'var(--pos)':'var(--neg)'}">${vsShort(p.avg)}</td>
       <td class="num pts">${p.pts}</td></tr>`;
   });
   $('#indTable').innerHTML=html;
@@ -11580,7 +11636,7 @@ function renderIndStatsReal(){
   $('#awIron').textContent=iron.r>0?fn(iron.n):'—';
   $('#awIronS').textContent='Iron Man'+(iron.r>0?' · '+iron.r+' rds':'');
 
-  let html=`<tr><th></th><th>Player</th><th class="num">R</th><th class="num">Avg vs index</th><th class="num">Pts</th></tr>`;
+  let html=`<tr><th></th><th>Player</th><th class="num">R</th><th class="num">Avg vs your number</th><th class="num">Pts</th></tr>`;
   rows.forEach((p,i)=>{
     html+=`<tr class="tap" data-ri="${i}"${p.me?' style="background:var(--bg2)"':''}>
       <td class="rk mono">${String(i+1).padStart(2,'0')}</td>
@@ -11640,7 +11696,10 @@ function roundCardBody(r, pvi, capN){
     rows.push(`<div class="mathrow sub"><span>${mine?'Your':'Their'} number that day</span><b>${Number(r.index_at_post).toFixed(1)}</b></div>`);
   }
   if(pvi!=null){
-    rows.push(`<div class="mathrow"><span>${mine?'Against your number':'Against their number'}</span><b>${pvi>=0?'+':''}${pvi.toFixed(1)} — ${(mine?bandName(pvi):theirs(bandName(pvi))).toUpperCase()}</b></div>`);
+    /* Q-23 · the receipt is the one place the signed figure is legitimate —
+       it is showing its work — but it leads with the words now, so the number
+       explains the phrase rather than contradicting the card. */
+    rows.push(`<div class="mathrow"><span>${mine?'Against your number':'Against their number'}</span><b>${mine?vsShort(pvi):theirs(vsShort(pvi))} — ${(mine?bandName(pvi):theirs(bandName(pvi))).toUpperCase()}</b></div>`);
   }
   if(r.points!=null) rows.push(`<div class="mathrow"><span>Points</span><b>${r.points}</b></div>`);
   if(r.month_rank!=null){
