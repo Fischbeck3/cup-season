@@ -2942,6 +2942,9 @@ html[data-theme="light"] .room-dusk .btn:not(.dark):not(.gold):not(.apple){color
 
       <!-- DRAFT -->
       <section class="view room-dusk" id="view-draft">
+        <!-- Q-11: the formation screen was a dead end — a member who tapped
+             "See the squads" had no way back but the browser. -->
+        <a href="#" class="backlink" data-go="hub">← Clubhouse</a>
         <div class="draftgrid">
           <div>
             <div class="eyebrow" id="draftEyebrow">Draft night · snake</div>
@@ -3724,9 +3727,14 @@ html[data-theme="light"] .room-dusk .btn:not(.dark):not(.gold):not(.apple){color
   </div>
 </div>
 
-<div id="installNudge" style="display:none; position:fixed; left:12px; right:12px; bottom:76px; z-index:60; background:var(--bg2); border:1px solid var(--line2); border-radius:14px; padding:12px 14px; align-items:center; gap:10px;">
+<!-- Q-13: this sat at bottom:76px / z-index:60 — directly over the floating
+     tee (the ⊕), above the tab bar. Two taps on the ⊕ timed out during the
+     blind audit and elementFromPoint at its centre returned this banner. It
+     lives at the TOP now and below the bar in the stack, so it cannot take a
+     tap meant for the one control every round starts from. -->
+<div id="installNudge" style="display:none; position:fixed; left:12px; right:12px; top:calc(env(safe-area-inset-top) + 8px); bottom:auto; z-index:24; background:var(--bg2); border:1px solid var(--line2); border-radius:14px; padding:12px 14px; align-items:center; gap:10px;">
   <span style="flex:1; font-size:13px;">Get the full-screen app: add Cup Season to your home screen.</span>
-  <button class="mini" id="nudgeGo">Add</button>
+  <button class="mini" id="nudgeGo">Add to Home Screen</button>
   <button class="mini" id="nudgeX" aria-label="Not now"><svg class="ic" aria-hidden="true"><use href="#i-close"/></svg></button>
 </div>
 
@@ -4114,9 +4122,34 @@ function humanError(e, prefix){
   else if(/schema cache|does not exist|could not find the|no function matches|column .* does not/.test(m)) msg = 'Just updated — give it a second and try again.';
   else if(/can rsvp to this round|only the host and tagged/.test(m)) msg = 'Only the host and the players they tagged can RSVP.';   /* #5: D69 skew — surface the real reason, not a generic failure */
   else if(/duplicate key|already exists|unique constraint/.test(m)) msg = 'That already exists.';
+  /* Q-08 · the blind audit watched a Pro read "Draw failed. Something went
+     wrong — please try again." while the SERVER had said "Not enough golfers
+     to cover every squad — 1 in, 2 squads. Share the invite link first." Our
+     own RPCs raise sentences written for golfers; swallowing them and printing
+     a shrug is the bug. Two gates, in order: an allowlist of the sentences we
+     know we wrote, then a shape test (looks like prose, contains none of the
+     Postgres/PostgREST tells above). Anything else still gets the shrug. */
+  else if(/not enough golfers|minimum four|still in the pool|is empty — draw again|is empty — draw again|only the pro|commissioner only|isn't open yet|is still being set up|has wrapped|season is finished/i.test(raw))
+    msg = /only the pro|commissioner only/i.test(raw) ? 'Only the Pro can do that.' : raw.trim();
+  /* a clipboard denial is not an expired session — the audit's tester was told
+     to "sign in again" 18 minutes after signing in, while signed in */
+  else if(/clipboard|writetext|document is not focused|not allowed to write/.test(m))
+    msg = "Copy didn't work — the link is on screen to copy by hand.";
   else if(/violates|constraint|not-null|null value|invalid input/.test(m)) msg = "That didn't go through — please try again.";
+  else if(looksLikeOurSentence(raw)) msg = raw.trim();
   else msg = 'Something went wrong — please try again.';
   return prefix ? (prefix + ' ' + msg) : msg;
+}
+
+/* A sentence one of our own `raise exception` lines wrote, rather than a
+   database's internals leaking: starts like prose, ends like prose, no jargon
+   and no identifiers. Deliberately conservative — when in doubt, the shrug. */
+function looksLikeOurSentence(raw){
+  const s = String(raw || '').trim();
+  if(s.length < 12 || s.length > 200) return false;
+  if(!/^[A-Z]/.test(s) || !/\s/.test(s)) return false;
+  if(/[_{}<>]|::|\bpg_|\brelation\b|\bcolumn\b|\bconstraint\b|\bschema\b|\bsql\b|\berror\b|\bexception\b|^[a-z0-9_]+\(/i.test(s)) return false;
+  return true;
 }
 
 /* ================= onboarding (LIVE — Supabase) ================= */
@@ -4140,7 +4173,11 @@ function setRoomSeg(r){
   /* D93: the schedule is a destination now, not a pane. The segment button
      stays where pilots know it and routes there instead of toggling — one
      place per thing, rather than the same calendar in two. */
-  if(r==='schedule'){ switchView('schedule'); return; }
+  /* Q-12 · remember the room, so Schedule's back link returns to it. The
+     audit's observer tapped Schedule from inside the Clubhouse and landed on
+     a full-screen calendar whose only exit was "← Home" — the league chips
+     and segments vanished and the room had to be re-entered by hand. */
+  if(r==='schedule'){ window._schedFrom = 'hub'; switchView('schedule'); return; }
   $$('#roomSeg [data-room]').forEach(x=>x.classList.toggle('on', x.dataset.room===r));
   $$('.roompane').forEach(p=>p.classList.toggle('on', p.id==='room-'+r));
   const rg=$('#roomGrid'); if(rg) rg.dataset.room=r;   /* Stage 3c: the desktop standings+board split keys off this */
@@ -4153,6 +4190,22 @@ function setRoomSeg(r){
 $$('#roomSeg [data-room]').forEach(b=>b.addEventListener('click',()=>setRoomSeg(b.dataset.room)));
 function switchView(v){
   if(v==='feed') v='home'; /* v23.55: the board lives on Home */
+  /* Q-10 · D40 restored at the choke point. D40 ruled "a member must never see
+     the Pro's configuration tool" and built the guarantee as ONE route check
+     (enterLeague); D96 later added a Home CTA that walked around it, and the
+     blind audit's joiner landed in "CREATE YOUR LEAGUE · REVIEW THE BYLAWS,
+     THEN LOCK IT IN" — live Lock button, and a Cancel offering to discard a
+     league he did not own. Only the server refused him. A guarantee that lives
+     on one route is not a guarantee: it belongs where every route passes.
+     (D119 builds the full role × stage hero; this is the floor under it.) */
+  if(v==='wizard'){
+    const proHere = state.demo || !CS.league || CS.member?.role === 'commissioner';
+    if(!proHere){
+      window.qaEvent?.('wizard_gate_bounce', { phase: CS.league?.phase || state.phase || null });
+      toast('Only the Pro edits the bylaws');
+      v = 'home';
+    }
+  }
   /* Calendar tab + pot page retired (IA P2) — both live in the League Room now.
      Old links keep working via these maps. */
   if(v==='cal') v='schedule';            /* D93: the old calendar route now lands on the real one */
@@ -4170,10 +4223,22 @@ function switchView(v){
      shown without a loaded event, render the empty-state ("No event loaded.")
      instead of leaving a blank shell with just the back link. */
   if(v==='event') window.renderEvent?.();
+  /* Q-12 · point the schedule's back link at wherever it was opened from
+     (setRoomSeg sets 'hub'; every other entry point means Home). */
+  if(v==='schedule'){
+    const back = document.querySelector('#view-schedule .backlink');
+    if(back){
+      const from = window._schedFrom === 'hub' ? 'hub' : 'home';
+      back.dataset.go = from;
+      back.textContent = from === 'hub' ? '\u2190 Clubhouse' : '\u2190 Home';
+    }
+    window._schedFrom = null;   /* one trip only — the next entry decides again */
+  }
   gateLiveRound();
   $$('.tab').forEach(t=>t.classList.toggle('active',t.dataset.v===v));
   $$('.navitem').forEach(t=>t.classList.toggle('active',t.dataset.v===v));
   $$('.view').forEach(x=>x.classList.toggle('active',x.id==='view-'+v));
+  window.csHideInstallNudge?.();   /* Q-13: after the swap — busy() reads the view that is now on */
   window.scrollTo({top:0});
   /* D33: gate 3's clock starts when the composer opens (qaEvent hoists) */
   if(v==='post'){
@@ -12973,7 +13038,16 @@ $$('.copycode').forEach(b=>b.addEventListener('click',async ()=>{
   var n = document.getElementById('installNudge');
   var deferred = null, shown = false;
   function eligible(){ try{ return !standalone && !localStorage.getItem('cs_nudge_done'); }catch(_){ return !standalone; } }
-  function show(){ if(shown || !eligible() || !n) return; shown = true; n.style.display = 'flex'; }
+  /* never over a full-screen working surface: the live round, the composer,
+     the wizard and squad formation each own the whole viewport */
+  var BUSY = ['view-play','view-record','view-wizard','view-draft'];
+  function busy(){ return BUSY.some(function(id){ var v=document.getElementById(id); return v && v.classList.contains('active'); }); }
+  function show(){ if(shown || !eligible() || !n || busy()) return; shown = true; n.style.display = 'flex'; }
+  window.csHideInstallNudge = function(){
+    if(!n) return;
+    if(busy()) n.style.display = 'none';
+    else if(shown) n.style.display = 'flex';
+  };
   function dismiss(){ try{ localStorage.setItem('cs_nudge_done','1'); }catch(_){}; if(n) n.style.display = 'none'; }
   window.addEventListener('beforeinstallprompt', function(e){ e.preventDefault(); deferred = e; });  /* hold — don't show until earned */
   window.csEarnInstallNudge = function(){ show(); };
@@ -14885,11 +14959,22 @@ function renderFormation(){
   $('#clock').innerHTML = `<span class="accent" style="background:var(--pos)"></span>
     <div class="k">Form squads</div>
     <div class="n">${pool.length ? pool.length + ' in the pool' : 'Everyone has a squad'}</div>
-    <div class="m">${state.draftType === 'assign'
+    <div class="m">${
+      /* Q-11 \u00b7 a member reading this screen is not running it. The Pro's
+         instructions ("tap a player, then tap a squad") and the engine-room
+         line about the hat both read as things the viewer should be doing. */
+      !isC ? `The Pro forms the squads${state.draftType === 'assign' ? '' : ' \u2014 the draw is random and runs on the server, so nobody can rig it'}. You'll see them here the moment they're set.`
+      : state.draftType === 'assign'
       ? 'Tap a player, then tap a squad'
-      : 'THE HAT SHUFFLES SERVER-SIDE \u2014 NOBODY RIGS THE DRAW'}</div>
+      : 'The draw is random and runs on the server \u2014 nobody can rig it'}</div>
     ${isC && pool.length && state.draftType !== 'assign'
-      ? '<button class="mini" id="fmDraw" style="margin-top:10px">Draw squads</button>' : ''}
+      /* Q-08 · the draw needs at least one golfer per squad. The server has
+         always said so; the client used to offer the button anyway and then
+         report "Something went wrong". Say it before the tap. */
+      ? (pool.length < (CS.squads||[]).length
+          ? `<button class="mini" id="fmDraw" style="margin-top:10px" disabled>Draw squads</button>
+             <div class="fine" style="padding:6px 0 0">${pool.length} in · need ${(CS.squads||[]).length} to cover the squads — share the invite link first.</div>`
+          : '<button class="mini" id="fmDraw" style="margin-top:10px">Draw squads</button>') : ''}
     ${isC && !pool.length && CS.squads.length
       ? '<button class="mini" id="fmStart" style="margin-top:10px">Start the season \u2192</button>' : ''}`;
 
@@ -14903,9 +14988,12 @@ function renderFormation(){
         `<div class="fine" style="padding:2px 0">${memMk(x.member_id)} ${esc(memName(x.member_id))}${q.captain_member_id===x.member_id?' \u00b7 C':''}</div>`).join('') || '<div class="fine" style="padding:2px 0; color:var(--dim)">Empty</div>'}</div>
     </div>`).join('');
 
+  /* Q-11 \u00b7 only the Pro seats players, so only the Pro gets buttons. A member
+     tapping a name that does nothing reads as a broken screen. */
   $('#pool').innerHTML = pool.length
-    ? '<div class="eyebrow">The pool</div>' + pool.map(m =>
-        `<button class="mini" data-mem="${m.id}" style="margin:0 6px 6px 0; ${CS.sel===m.id?'border-color:var(--pos);color:var(--pos);':''}">${mkr(m.profile?.marker||'saguaro')} ${esc(m.profile?.display_name || '\u2014')}</button>`).join('')
+    ? '<div class="eyebrow">The pool</div>' + pool.map(m => isC
+        ? `<button class="mini" data-mem="${m.id}" style="margin:0 6px 6px 0; ${CS.sel===m.id?'border-color:var(--pos);color:var(--pos);':''}">${mkr(m.profile?.marker||'saguaro')} ${esc(m.profile?.display_name || '\u2014')}</button>`
+        : `<span class="mini" style="margin:0 6px 6px 0; display:inline-block">${mkr(m.profile?.marker||'saguaro')} ${esc(m.profile?.display_name || '\u2014')}</span>`).join('')
     : '<p class="fine">Pool is empty. Players appear here as they join with the league code.</p>';
 
   const draw = $('#fmDraw');
@@ -15607,6 +15695,14 @@ function goClubhouse(){
 /* wizard step-0 Cancel: the league row already exists (created on "Start a
    league"), so abandoning discards it — delete_league is setup/draft-only. */
 document.getElementById('wizCancel')?.addEventListener('click', async () => {
+  /* Q-10 · belt to switchView's braces. A member who reached this button was
+     offered "discards it completely" about someone else's league; only
+     delete_league's commissioner check refused him, and the audit logged the
+     console line. Never offer a destructive confirm you know will be refused. */
+  if(!state.demo && CS.league && CS.member?.role !== 'commissioner'){
+    toast('Only the Pro can do that.');
+    return switchView('home');
+  }
   if(!confirm("Cancel this league? It hasn't started, so this discards it completely.")) return;
   try {
     if(!state.demo && CS.league?.id){

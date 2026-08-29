@@ -25,7 +25,8 @@ insert into _audit_emails values
   ('jerecho+blind4@fischbeck3.com'),  -- competitive "Priya Nair"
   ('jerecho+blind5@fischbeck3.com'),  -- novice "Dana Whitfield"
   ('jerecho+blind6@fischbeck3.com'),  -- skeptic "Sam Kowalski"
-  ('jerecho+q01a@fischbeck3.com');    -- Q-01 lock verification, 2026-08-29
+  ('jerecho+q01a@fischbeck3.com'),    -- Q-01 lock verification, 2026-08-29
+  ('jerecho+q10m@fischbeck3.com');    -- Q-10 member-gate verification, 2026-08-29
 
 create temporary table _audit_profiles as
   select id from profiles where email in (select email from _audit_emails);
