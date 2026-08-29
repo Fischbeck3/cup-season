@@ -137,11 +137,20 @@ public enum LiveRehydrator {
     s.leagueId = row["league_id"]?.string.flatMap(UUID.init)
     s.pmap = players.compactMap { $0["id"]?.string.flatMap(UUID.init) }
     s.visitor = row["visitor"]?.bool ?? false
-    // D86: whose round? started_by is a league_members.id — resolve it through the round's OWN player rows
+    // D107: starter_profile_id is authoritative when present (league-less rounds
+    // have started_by null — null==null used to match the first guest seat).
+    // D86's member-row walk stays as the pre-D107 fallback.
     let startedBy = row["started_by"]?.string.flatMap(UUID.init)
     let starter = players.first { $0["member_id"]?.string.flatMap(UUID.init) == startedBy && startedBy != nil }
-    if let starter { s.mine = starter["member"]?["profile_id"]?.string.flatMap(UUID.init) == myPid } else { s.mine = true }
-    s.host = starter?["member"]?["profile"]?["display_name"]?.string
+    if let starterPid = row["starter_profile_id"]?.string.flatMap(UUID.init) {
+      s.mine = starterPid == myPid
+      if s.leagueId == nil && !s.mine { s.visitor = true }   // participant, not starter, no league: scores, never finishes
+      s.host = starter?["member"]?["profile"]?["display_name"]?.string
+        ?? players.first { $0["guest_profile_id"]?.string.flatMap(UUID.init) == starterPid }?["guest_name"]?.string
+    } else {
+      if let starter { s.mine = starter["member"]?["profile_id"]?.string.flatMap(UUID.init) == myPid } else { s.mine = true }
+      s.host = starter?["member"]?["profile"]?["display_name"]?.string
+    }
     configure(&s, cfg: cfg)
     return s
   }

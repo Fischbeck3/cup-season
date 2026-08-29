@@ -223,8 +223,9 @@ final class LiveRoundStore {
   func teeOff() async {
     let g = state.game
     if let problem = g.teeOffProblem(players: sel.count) { toast(problem); return }
-    // the web runs a local pencil without a league (8952); the phone does not yet — say why, honestly
-    guard let league = leagueId else { toast("The tee sheet posts into a league — join or start one first"); return }
+    // D107: the tee sheet is the free door — no league required. A league-less
+    // round seats every player on the guest_profile_id rail below.
+    let league = leagueId
     let players = picked
     var s = state
     s.players = players
@@ -247,7 +248,7 @@ final class LiveRoundStore {
     await repo.drainAbandons(disk: disk)
     let snap = s.course.snapshot(holes: s.liveHoles, rating9: s.rating9)
     let playersJSON: JSONValue = .array(players.map { p in
-      p.guest
+      (p.guest || league == nil)   // D107: no member tags without a league — everyone is a known golfer by profile
         ? .object(["guest_name": .string(p.n), "guest_index": p.est ? .null : .number(p.i),
                    "guest_profile": p.pid.map { .string($0.uuidString.lowercased()) } ?? .null])
         : .object(["member_id": p.mid.map { .string($0.uuidString.lowercased()) } ?? .null])
@@ -279,7 +280,7 @@ final class LiveRoundStore {
       state = s
       await disk.save(state)
       await joinSync()
-      await session.announceOpen(league: league, lr: out.lr)
+      if let league { await session.announceOpen(league: league, lr: out.lr) }   // D107: no league channel to ring
       toast("On the tee, good luck everybody")
     } catch {
       toast(HumanError.text(error, prefix: "Could not start the round."))

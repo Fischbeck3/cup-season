@@ -3468,6 +3468,12 @@ html[data-theme="light"] .room-dusk .btn:not(.dark):not(.gold):not(.apple){color
             <div class="tblwrap" id="cupRaceWrap" style="display:none;margin-bottom:12px">
               <table class="tbl" id="cupRace"></table>
             </div>
+            <!-- D108: the weekly clash — the spotlight pairing over the table;
+                 hidden until a row exists (demo, pre-season, and a database
+                 without week_clashes yet all render nothing) -->
+            <div class="tblwrap" id="clashWrap" style="display:none;margin-bottom:12px">
+              <table class="tbl" id="clashTbl"></table>
+            </div>
             <div class="tblwrap">
               <div class="standStory" id="standingsStory"></div>
               <table class="tbl" id="standings"></table>
@@ -4144,11 +4150,9 @@ function switchView(v){
      #room-board still rides beside standings on desktop and is untouched. */
   if(v==='board'){ if(typeof openBoardFull==='function') openBoardFull(); return; }
   if(v==='draft' && state.phase==='setup'){ toast('Lock settings first: the draft opens after setup'); v='wizard'; }
-  /* IA P4: real accounts get the full ⊕ triptych. Play now is a shared
-     PENCIL for real accounts — it scores games and settle-ups live but
-     persists nothing; the finish handler walks your gross into Quick post
-     so the round counts. No silent data loss possible (task #11 makes the
-     pencil itself persist). */
+  /* IA P4 → D107: real accounts get the full ⊕ triptych. Play now is the
+     real tee sheet — it persists server-side at tee-off (league or not) and
+     one finish posts every complete card to its golfer. */
   if(v==='play' && !state.demo) primeRealRoster();
   /* F-005: the event room renders from CS_EVENT via loadEvent; if view-event is
      shown without a loaded event, render the empty-state ("No event loaded.")
@@ -4209,8 +4213,8 @@ $$('.tab, .navitem').forEach(b=>b.addEventListener('click',()=>switchView(b.data
   stamp(document.body);
 })();
 
-/* The live-round chooser card: interactive in the demo, honestly "coming
-   soon" for real leagues until its posting path is wired (task #11). */
+/* The live-round chooser card: live for everyone — the demo dioramas it;
+   real accounts tee off server-side, league or not (D107). */
 function gateLiveRound(){
   const card=document.getElementById('optLive'); if(!card) return;
   const h=card.querySelector('h4'), p=card.querySelector('p'), go=card.querySelector('.go');
@@ -4220,11 +4224,11 @@ function gateLiveRound(){
     if(p) p.textContent='Hole-by-hole · match play & Wolf · auto-attested · guests welcome, no account needed';
     if(go) go.textContent='→';
   } else {
-    /* IA P4: the pencil opens for real accounts. Copy stays honest — games
-       and settle-ups score live; the round itself posts via Quick post. */
+    /* D107: the tee sheet is the free door — no league required; every
+       complete card posts to its golfer at the finish. */
     card.classList.remove('soon'); card.disabled=false; card.dataset.go='play';
     if(h) h.textContent='Play now — score the group live';
-    if(p) p.textContent='A shared pencil: match play, Wolf & the settle-up. Post your gross after — the finish screen hands it to you.';
+    if(p) p.textContent='Hole-by-hole · match play, Wolf & the settle-up · every complete card posts at the finish. Guests welcome, no account needed.';
     if(go) go.textContent='→';
   }
 }
@@ -4565,7 +4569,64 @@ function showFinalist(f){
   h+=`<p class="fine" style="padding-top:12px">Only rounds inside the four-week window count here, up to the monthly cap. The regular season is the seed; this is the race.</p>`;
   openSheet(name, `SEED ${f.seed} \u00b7 ${tot} PTS IN THE FINAL`, h);
 }
+/* D108: the weekly clash — one spotlighted pairing per season week, as a chip
+   over the standings table. Mid-week it carries each side's best COUNTING
+   round so far (the same pick settle_week_clash makes — the BAND decides, D2);
+   a settled week reads the archived a_best/b_best. Receipts tap through (§16).
+   Renders nothing without a row: demo, pre-season, a database without the
+   table, and a quiet settled week (both idle — D52's honesty rule). */
+function renderClash(){
+  const wrap=$('#clashWrap'), el=$('#clashTbl');
+  if(!wrap||!el) return;
+  const wc=(!state.demo && window.weekClash && window.CS?.season) ? window.weekClash : null;
+  if(!wc || (wc.settled_at && !wc.a_best && !wc.b_best)){ wrap.style.display='none'; el.innerHTML=''; return; }
+  const meId=window.CS?.member?.id;
+  const nm=id=> id===meId ? 'you' : fn1(window.memName?.(id)||'');
+  const d0=localDate(window.CS.season.starts_on);
+  const iso=d=>`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+  const ws=new Date(d0.getFullYear(), d0.getMonth(), d0.getDate()+(wc.week_no-1)*7);
+  const we=new Date(d0.getFullYear(), d0.getMonth(), d0.getDate()+wc.week_no*7-1);
+  const wsI=iso(ws), weI=iso(we);
+  const settled=!!wc.settled_at;
+  /* mid-week best-so-far mirrors the settle pick: highest-points counting
+     round in the window; pvi, then the earlier date, break the tie */
+  const bestOf=mid=>{
+    const rows=((window.indRows||[]).find(r=>r.mid===mid)?.hist||[])
+      .filter(h=>h.counting && h.played_on>=wsI && h.played_on<=weI);
+    rows.sort((a,b)=>(b.points-a.points)||(b.pvi-a.pvi)||(a.played_on<b.played_on?-1:1));
+    return rows[0]||null;
+  };
+  const aB=settled?wc.a_best:bestOf(wc.a_member), bB=settled?wc.b_best:bestOf(wc.b_member);
+  const head = settled
+    ? (wc.winner_member
+        ? `THE CLASH \u00b7 ${esc(nm(wc.winner_member).toUpperCase())} TOOK THE WEEK`
+        : `THE CLASH \u00b7 ${esc(nm(wc.a_member).toUpperCase())} v ${esc(nm(wc.b_member).toUpperCase())} \u00b7 ALL SQUARE`)
+    : `THE CLASH \u00b7 ${esc(nm(wc.a_member).toUpperCase())} v ${esc(nm(wc.b_member).toUpperCase())} \u00b7 THROUGH ${DOW[we.getDay()].toUpperCase()}`;
+  const side=(id,b,key)=>{
+    const won=settled && wc.winner_member===id;
+    const band=b ? (b.band || bandName(Number(b.pvi))) : null;
+    const sub=b
+      ? `${esc(String(id===meId?band:theirs(band)).toUpperCase())} \u00b7 ${DOW[localDate(String(b.played_on)).getDay()].toUpperCase()}`
+      : (settled?'IDLE \u2014 NO ROUND':'NO ROUND YET');
+    return `<tr class="${b&&b.round_id?'tap':''}" ${b&&b.round_id?`data-clash="${key}"`:''}>
+      <td class="rk mono">${won?'W':''}</td>
+      <td><div class="tn">${esc(nm(id))}</div><div class="tc">${sub}</div></td>
+      <td class="num pts">${b?Number(b.points):'\u2014'}</td>
+    </tr>`;
+  };
+  el.innerHTML=`<tr><th colspan="3" style="text-align:left">${head}</th></tr>`
+    + side(wc.a_member,aB,'a') + side(wc.b_member,bB,'b');
+  wrap.style.display='';
+  /* receipts: every figure taps to the round that produced it (§16). Open with
+     what the row holds; round_card() enriches the sheet in place. */
+  el.querySelectorAll('[data-clash]').forEach(r=>r.addEventListener('click',()=>{
+    const b=r.dataset.clash==='a'?aB:bB;
+    if(b&&b.round_id&&typeof openRoundReceipt==='function')
+      openRoundReceipt({ id:b.round_id, round_id:b.round_id, played_on:b.played_on, points:Number(b.points), pvi:Number(b.pvi) });
+  }));
+}
 function renderStandings(){
+  renderClash();               /* D108: the clash chip rides the standings column */
   const el=$('#standings');
   const story=$('#standingsStory');
   if(!teams.length){
@@ -7470,6 +7531,8 @@ function primeRealRoster(){
                   est: m.profile?.index_current==null,
                   ci:1, team:'—', guest:false, mid:m.id, pid:m.profile_id });
   });
+  /* D107: no league is a fine tee sheet — YOU alone; guests (#gAdd) and app
+     golfers (#rosterFind) fill the group, riding guest_profile_id at tee-off. */
   rosterPrimed=true;
   sel=[0];
   LIVE=sel.map(i=>ROSTER[i]);
@@ -7632,15 +7695,22 @@ function applyServerRound(mine, myPid){
     holes:_srvHoles, rating9:false, mode:(cfg.mode==='solo'?'solo':'teams'),   /* D75: a solo game resumes solo */
     hole:0, scores:LIVE.map(()=>Array(18).fill(null)), wolf:Array(18).fill(null),
     scts:LIVE.map(()=>Array(18).fill(0)), wcts:Array(18).fill(0), code:mine.join_code||null,   /* D85 */
-    /* D86: whose round is this? started_by is a league_members.id — resolve it
-       through the round's OWN player rows (cross-league safe: CS.member is the
-       booted league's membership and would be the wrong id here). */
-    mine: (()=>{ const st=players.find(p=>p.id && p.member_id===mine.started_by);
+    /* D107: starter_profile_id is authoritative when the server sends it (a
+       league-less round has started_by null, and null===null used to match the
+       first guest seat). D86's member-row walk stays as the pre-D107 fallback. */
+    mine: (()=>{ if(mine.starter_profile_id) return mine.starter_profile_id===myPid;
+                 const st=players.find(p=>p.id && p.member_id===mine.started_by);
                  return st ? st.member?.profile_id===myPid : true; })(),
-    /* D88: a round in a league I'm not in. I score it; I don't end it. */
-    visitor: !!mine.visitor,
+    /* D88: a round in a league I'm not in — I score it; I don't end it. A
+       league-less participant who is not the starter is a visitor the same way. */
+    visitor: !!mine.visitor || !!(!mine.league_id && mine.starter_profile_id && mine.starter_profile_id!==myPid),
     host: (()=>{ const st=players.find(p=>p.member_id===mine.started_by);
-                 return st?.member?.profile?.display_name || null; })(),
+                 if(st) return st.member?.profile?.display_name || null;
+                 if(mine.starter_profile_id){
+                   const g=players.find(p=>p.guest_profile_id===mine.starter_profile_id);
+                   return g?.guest_name || null;
+                 }
+                 return null; })(),
     lr:mine.id, league_id:mine.league_id||null, pmap:players.map(p=>p.id), guestTokens:{} };
   recomputeStrokes();   /* holes is known now — a nine halves the handicap */
   try{
@@ -7716,15 +7786,16 @@ async function rehydrateLiveRound(){
   if(!sb || !CS){ return; }
   let rounds=null;
   try{
-    const _cols = jc => `id, league_id, game, game_config, ${jc?'join_code, ':''}started_by, course_snapshot, course_label, started_at, live_round_players(id, member_id, guest_name, guest_index, index_source, position, member:league_members(profile_id, profile:profiles(display_name, index_current)))`;
-    let { data, error } = await sb.from('live_rounds')
-      .select(_cols(true)).eq('status','live').order('started_at',{ ascending:false });
-    /* deploy skew: an old DB has no join_code yet — retry on ANY error (the
-       42501 lesson: column errors never name the column), sync just stays off */
-    if(error){
-      ({ data, error } = await sb.from('live_rounds')
-        .select(_cols(false)).eq('status','live').order('started_at',{ ascending:false }));
-    }
+    const _cols = (jc, sp) => `id, league_id, game, game_config, ${jc?'join_code, ':''}${sp?'starter_profile_id, ':''}started_by, course_snapshot, course_label, started_at, live_round_players(id, member_id, guest_name, guest_index, index_source, position, guest_profile_id, member:league_members(profile_id, profile:profiles(display_name, index_current)))`;
+    const _sel = (jc, sp) => sb.from('live_rounds')
+      .select(_cols(jc, sp)).eq('status','live').order('started_at',{ ascending:false });
+    let { data, error } = await _sel(true, true);
+    /* deploy skew, two rungs — retry on ANY error (the 42501 lesson: column
+       errors never name the column): an old DB has no starter_profile_id
+       (D107) yet, an ancient one no join_code; labeling/sync just degrade.
+       guest_profile_id shipped with D88 and is in every prod DB. */
+    if(error){ ({ data, error } = await _sel(true, false)); }
+    if(error){ ({ data, error } = await _sel(false, false)); }
     if(error) throw error;
     rounds=data||[];
   }catch(e){
@@ -8882,7 +8953,9 @@ function renderRoster(){
   });
   if(!any && !state.demo){
     const h=document.createElement('p'); h.className='fine'; h.style.padding='2px 0';
-    h.textContent='No league mates to tap yet — search the app or add a guest below.';
+    h.textContent=window.CS?.league
+      ? 'No league mates to tap yet — search the app or add a guest below.'
+      : 'No league needed — search the app or add a guest below; every complete card posts to its golfer.';
     wrap.appendChild(h);
   }
 
@@ -8924,7 +8997,7 @@ $('#rosterFind')?.addEventListener('click',()=>{
   window.openPeoplePicker({
     mode:'invite',
     title:'Add to the foursome',
-    sub:'League mates and buddies are below — search anyone on the app',
+    sub:window.CS?.league ? 'League mates and buddies are below — search anyone on the app' : 'Buddies are below — search anyone on the app; their card posts to their own profile',
     excludeIds: ROSTER.map(r=>r.pid).filter(Boolean),
     onPick:(r)=>{
       if(ROSTER.some(x=>x.pid && x.pid===r.profile_id)){ toast(r.display_name+' is already in the picker'); return; }
@@ -9023,8 +9096,10 @@ $('#teeOffBtn').addEventListener('click', async ()=>{
     scts:LIVE.map(()=>Array(18).fill(0)), wcts:Array(18).fill(0), code:null,   /* D85: per-cell write clocks + the channel key */
     lr:null, league_id:(window.CS?.league?.id||null), pmap:null, guestTokens:{}};
   /* real accounts persist the live round now (guests get claim tokens);
-     scoring stays client-side until finish (checkpoint 1 spine) */
-  if(!state.demo && window.sb && window.CS?.league){
+     scoring stays client-side until finish (checkpoint 1 spine).
+     D107: no league required — a league-less round seats every player on the
+     guest_profile_id rail and every complete card posts to its golfer. */
+  if(!state.demo && window.sb){
     const btn=$('#teeOffBtn'); btn.disabled=true;
     drainAbandons();   /* clear any scrapped-but-undelivered rounds before opening a new one */
     try{
@@ -9039,8 +9114,11 @@ $('#teeOffBtn').addEventListener('click', async ()=>{
         label:($('#lrCourse').value||'').trim(), tee:($('#lrTee').value||'').trim() };
       /* D88: a guest we searched up in the app IS a known golfer — carry the
          profile so the server can ring them and their app can find the round.
-         An account-less guest still travels as a bare name. */
-      const players=LIVE.map(p=> p.guest
+         An account-less guest still travels as a bare name. D107: without a
+         league there are no member tags — every seat (the starter included)
+         rides the guest_profile_id rail. */
+      const _lgId = window.CS?.league?.id || null;
+      const players=LIVE.map(p=> (p.guest || !_lgId)
         ? {guest_name:p.n, guest_index:(p.est?null:p.i), guest_profile:(p.pid||null)}
         : {member_id:p.mid});
       const cfg = game==='match'
@@ -9058,7 +9136,7 @@ $('#teeOffBtn').addEventListener('click', async ()=>{
             : { unit:stake, side_a:MTEAMS[0].map(i=>LIVE[i].n), side_b:MTEAMS[1].map(i=>LIVE[i].n) })   /* no handicaps — no SI flag */
         : {};
       const args = {
-        p_league:CS.league.id, p_course_id:null, p_tee_id:null,
+        p_league:_lgId, p_course_id:null, p_tee_id:null,
         p_course_label:snap.label, p_snapshot:snap,
         p_game:(game==='score'?'none':game), p_players:players, p_config:cfg };
       let { data, error } = await sb.rpc('start_live_round', args);
@@ -9210,9 +9288,12 @@ function finishRealLiveRound(){
   const missingOf = i => { const a=state.live.scores[i]||[];
     const out=[]; for(let h=0;h<liveHoles();h++) if(a[h]==null) out.push(h+1); return out; };   /* D73: a nine's holes 10-18 are legitimately empty — never "missing" */
   const seats = LIVE.map((p,i)=>({p,i})).filter(x=>state.live.pmap?.[x.i]);
-  const done  = seats.filter(x=>!x.p.guest && cardHoles(x.i)>0);
+  /* D107: league-less, an app golfer's complete card posts to their own
+     profile — count it; only account-less guests ride the claim-link path. */
+  const _lg = !!(window.CS?.league);
+  const done  = seats.filter(x=>(_lg ? !x.p.guest : (!x.p.guest || x.p.pid)) && cardHoles(x.i)>0);
   const open  = seats.filter(x=>cardHoles(x.i)===0);
-  const guestN = LIVE.filter(p=>p.guest).length;
+  const guestN = LIVE.filter(p=>p.guest && (_lg || !p.pid)).length;
   const warn = open.length
     ? `<p class="fine" style="padding-top:0;color:var(--neg)">${open.map(x=>{
          const m=missingOf(x.i); const shown=m.slice(0,5).join(', ');
@@ -9220,12 +9301,12 @@ function finishRealLiveRound(){
        }).join(' · ')}. ${open.length===1?'That card':'Those cards'} won’t post — go back and fill in, or finish without.</p>`
     : '';
   const result = gameResult();
-  openSheet('Finish the round', 'ONE FINISH — EVERY MEMBER’S CARD POSTS',
-    `<p class="fine" style="padding-top:0">Complete cards post to the season, attested by the group${guestN?`; ${guestN} guest${guestN===1?'':'s'} get${guestN===1?'s':''} a recap to claim`:''}. A partial card is skipped, not lost.</p>
+  openSheet('Finish the round', _lg ? 'ONE FINISH — EVERY MEMBER’S CARD POSTS' : 'ONE FINISH — EVERY CARD POSTS TO ITS GOLFER',
+    `<p class="fine" style="padding-top:0">${_lg?'Complete cards post to the season':'Every complete card posts to its golfer'}, attested by the group${guestN?`; ${guestN} guest${guestN===1?'':'s'} get${guestN===1?'s':''} a recap to claim`:''}. A partial card is skipped, not lost.</p>
      ${warn}
      <button class="btn" id="lrPost" style="margin-top:12px">${done.length
-       ? `Post ${done.length} card${done.length===1?'':'s'} to the season`
-       : 'Finish — no complete member card to post'}</button>
+       ? `Post ${done.length} card${done.length===1?'':'s'}${_lg?' to the season':' — each to its golfer'}`
+       : (_lg ? 'Finish — no complete member card to post' : 'Finish — no complete card to post')}</button>
      <button class="btn dark" id="lrCasual" style="margin-top:8px">This one was casual — post nothing</button>`);
   const go = async (casual) => {
     const pb=document.getElementById('lrPost'), cb=document.getElementById('lrCasual');
@@ -9362,7 +9443,7 @@ function showLiveRecap(d, result, lrId){
       <button class="btn dark" id="lrShareLink" style="width:100%;margin-top:10px">Share the settlement — no account needed</button>
       <button class="cs-tskip" id="lrShareRevoke" type="button" style="width:100%;margin-top:6px">Revoke a shared link</button>`);
   openSheet(d.casual?'Casual — nothing posted':'Round posted',
-    `${posted.length} CARD${posted.length===1?'':'S'} TO THE SEASON`,
+    `${posted.length} CARD${posted.length===1?'':'S'}${window.CS?.league?' TO THE SEASON':' POSTED'}`,
     rows.join('') || '<p class="fine" style="padding-top:0">Nothing to post.</p>');
   $('#sheet').classList.add('room-dusk');   /* the post-round settlement is a ceremony - dusk for every viewer, like #finish */
   document.querySelectorAll('#shBody [data-copylink]').forEach(b=>b.addEventListener('click',()=>{
@@ -9448,10 +9529,11 @@ $('#discardBtn')?.addEventListener('click', async ()=>{
   toast('Round scrapped — nothing posted');
 });
 $('#finishBtn').addEventListener('click',()=>{
-  /* real accounts: the live round posts every member's card at once (§13.1),
-     hole detail and all — through finish_live_round (checkpoint 1). */
+  /* real accounts: one finish posts every complete card at once (§13.1) —
+     members to the season, app golfers to their own profiles (D107, league
+     or not), hole detail and all — through finish_live_round (checkpoint 1).
+     state.live.lr always exists now: tee-off persists with or without a league. */
   if(!state.demo){
-    if(!state.live.lr){ toast('This round was not started on the server — tee off again'); return; }
     finishRealLiveRound();
     return;
   }
@@ -14512,6 +14594,16 @@ async function loadStandingsAndFeed(){
     const { data: race, error: er } = await sb.rpc('cup_final_race', { p_season: CS.season.id });
     if(!er && race && race.status !== 'pending') window.cupRace = race;
   }
+  /* D108: the weekly clash — one row, the latest week, a plain member-scoped
+     select. ANY error (a database without the table yet — the 42501 lesson:
+     never sniff the message) just leaves the chip unrendered. */
+  window.weekClash = null;
+  {
+    const wq = await sb.from('week_clashes')
+      .select('id, week_no, a_member, b_member, opened_at, settled_at, winner_member, a_best, b_best')
+      .eq('season_id', CS.season.id).order('week_no', { ascending:false }).limit(1);
+    if(!wq.error) window.weekClash = (wq.data||[])[0] || null;
+  }
   }
 
   /* feed: the posts table is the board */
@@ -14613,7 +14705,7 @@ async function loadStandingsAndFeed(){
       const capN=[2,4,6,Infinity][state.cap];
       const [{ data: rr }, { data: ind }] = await Promise.all([
         sb.from('v_rounds_ranked')
-          .select('member_id, pvi, points, month_rank, floor_credit, played_on, index_at_post, holes_played')
+          .select('member_id, round_id, pvi, points, month_rank, floor_credit, played_on, index_at_post, holes_played')
           .eq('season_id', CS.season.id),
         sb.from('v_individual_standings')
           .select('member_id, points, rounds_posted')

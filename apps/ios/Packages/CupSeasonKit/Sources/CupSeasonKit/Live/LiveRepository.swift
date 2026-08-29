@@ -11,12 +11,13 @@
 import Foundation
 import Supabase
 
-/// `start_live_round` with the two nullable uuids encoded as explicit nulls.
+/// `start_live_round` with the nullable uuids encoded as explicit nulls —
+/// p_league included (D107: null = a league-less round).
 struct LiveStartCall: RpcCall {
   static let name = "start_live_round"
   static let optionalArgs: [String] = ["p_config"]
   typealias Returns = JSONValue
-  let p_league: UUID
+  let p_league: UUID?
   let p_course_label: String
   let p_snapshot: JSONValue
   let p_game: String
@@ -165,7 +166,7 @@ public struct LiveRepository: Sendable {
 
   // MARK: the round
 
-  public func start(league: UUID, label: String, snapshot: JSONValue, game: LiveGame, players: JSONValue, config: JSONValue) async throws -> LiveStartOutcome {
+  public func start(league: UUID?, label: String, snapshot: JSONValue, game: LiveGame, players: JSONValue, config: JSONValue) async throws -> LiveStartOutcome {
     let v = try await svc.call(LiveStartCall(p_league: league, p_course_label: label, p_snapshot: snapshot, p_game: game.server, p_players: players, p_config: config))
     guard let out = LiveStartOutcome(v) else {
       throw RpcError(name: "start_live_round", underlying: "The round did not come back with an id.", droppedArgs: [])
@@ -209,19 +210,26 @@ public struct LiveRepository: Sendable {
 
   // MARK: resume (`rehydrateLiveRound` 7620–7650)
 
-  static func cols(joinCode: Bool) -> String {
-    "id, league_id, game, game_config, \(joinCode ? "join_code, " : "")started_by, course_snapshot, course_label, started_at, live_round_players(id, member_id, guest_name, guest_index, index_source, position, guest_profile_id, member:league_members(profile_id, profile:profiles(display_name, index_current)))"
+  static func cols(joinCode: Bool, starter: Bool = true) -> String {
+    "id, league_id, game, game_config, \(joinCode ? "join_code, " : "")\(starter ? "starter_profile_id, " : "")started_by, course_snapshot, course_label, started_at, live_round_players(id, member_id, guest_name, guest_index, index_source, position, guest_profile_id, member:league_members(profile_id, profile:profiles(display_name, index_current)))"
   }
 
-  /// Open rounds I can see as a member (RLS), newest first. Deploy skew: an
-  /// old DB has no join_code — retry on ANY error, sync just stays off.
+  /// Open rounds I can see (member RLS, or a D107 participant), newest first.
+  /// Deploy skew, two rungs — retry on ANY error (column errors never name the
+  /// column): an old DB has no starter_profile_id (D107) yet, an ancient one
+  /// no join_code; labeling/sync just degrade.
   public func openRounds() async throws -> [JSONValue] {
     do {
-      return try await svc.client.from("live_rounds").select(LiveRepository.cols(joinCode: true)).eq("status", value: "live")
+      return try await svc.client.from("live_rounds").select(LiveRepository.cols(joinCode: true, starter: true)).eq("status", value: "live")
         .order("started_at", ascending: false).execute().value
     } catch {
-      return try await svc.client.from("live_rounds").select(LiveRepository.cols(joinCode: false)).eq("status", value: "live")
-        .order("started_at", ascending: false).execute().value
+      do {
+        return try await svc.client.from("live_rounds").select(LiveRepository.cols(joinCode: true, starter: false)).eq("status", value: "live")
+          .order("started_at", ascending: false).execute().value
+      } catch {
+        return try await svc.client.from("live_rounds").select(LiveRepository.cols(joinCode: false, starter: false)).eq("status", value: "live")
+          .order("started_at", ascending: false).execute().value
+      }
     }
   }
 

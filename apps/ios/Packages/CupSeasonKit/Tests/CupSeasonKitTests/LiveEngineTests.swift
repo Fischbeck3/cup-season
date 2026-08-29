@@ -36,6 +36,7 @@ private func round(_ names: [String], indices: [Double], scores: [[Int?]], game:
   if let wolf { s.wolf = wolf }
   s.pmap = players.map { _ in UUID() }
   s.lr = UUID()
+  s.leagueId = UUID()   // D107 split the finish copy by league; these fixtures assert the league voice
   return s
 }
 

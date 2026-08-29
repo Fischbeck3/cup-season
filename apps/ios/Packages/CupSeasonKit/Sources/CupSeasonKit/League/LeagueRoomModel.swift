@@ -76,6 +76,9 @@ public final class LeagueRoomModel {
   public private(set) var scenarios: SeasonScenarios?
   /// D105: the Cup Final race from the server; nil until the window opens (or on skew).
   public private(set) var cupRace: CupFinalRace?
+  /// D108: the latest clash row; nil pre-season, on deploy skew (the table not
+  /// pushed yet), or in a league too small to pair — the card hides, like the web.
+  public private(set) var weekClash: LeagueRoom.WeekClash? = nil
   public private(set) var cancel: CancelStatus?
   /// Signed avatar URLs by profile id (one batched signing per load, an hour).
   public private(set) var avatarURL: [UUID: URL] = [:]
@@ -227,6 +230,7 @@ public final class LeagueRoomModel {
       g.addTask { await self.loadPulse() }
       g.addTask { await self.loadScenarios() }
       g.addTask { await self.loadCupRace() }
+      g.addTask { await self.loadWeekClash() }
       g.addTask { await self.refreshCancelStatus() }
       g.addTask { await self.loadForfeits() }
       g.addTask { await self.signAvatars() }
@@ -337,6 +341,19 @@ public final class LeagueRoomModel {
   public func seedOf(_ teamId: UUID) -> Int? { cupRace?.seed(for: teamId) }
   /// Tests and previews: the race without the network.
   public func seedCupRace(_ r: CupFinalRace?) { cupRace = r }
+
+  /// D108: the weekly clash — one member-scoped select, the latest week. `try?`
+  /// on the whole read: an un-migrated database (deploy skew) renders no card,
+  /// and the 42501 lesson holds — ANY error, never a sniffed message.
+  private func loadWeekClash() async {
+    guard let s = season else { weekClash = nil; return }
+    let rows: [LeagueRoom.WeekClash]? = try? await svc.client.from("week_clashes")
+      .select("id, week_no, a_member, b_member, opened_at, settled_at, winner_member, a_best, b_best")
+      .eq("season_id", value: s.id).order("week_no", ascending: false).limit(1).execute().value
+    weekClash = rows.flatMap(LeagueRoom.WeekClash.latest)
+  }
+  /// Tests and previews: the clash without the network.
+  public func seedWeekClash(_ wc: LeagueRoom.WeekClash?) { weekClash = wc }
 
   private func loadScenarios() async {
     guard let s = season else { scenarios = nil; return }

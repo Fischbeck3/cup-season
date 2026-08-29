@@ -16,7 +16,7 @@ struct LiveFinishSheet: View {
 
   var body: some View {
     let f = LiveCopy.finishSheet(store.state)
-    SheetFrame("Finish the round", sub: "ONE FINISH — EVERY MEMBER’S CARD POSTS") {
+    SheetFrame("Finish the round", sub: store.state.leagueId == nil ? "ONE FINISH — EVERY CARD POSTS TO ITS GOLFER" : "ONE FINISH — EVERY MEMBER’S CARD POSTS") {
       CSFine(f.intro)
       if let w = f.warning { Text(w).font(CSFont.footnote).foregroundStyle(cs.neg).fixedSize(horizontal: false, vertical: true) }
       CSButton(f.primary, busy: store.busy) { Task { if await store.finish(casual: false) { dismiss() } } }
@@ -43,7 +43,7 @@ struct LiveRecapSheet: View {
   var body: some View {
     let d = data.outcome
     let title = d.casual ? "Casual — nothing posted" : "Round posted"
-    let sub = "\(d.posted.count) CARD\(d.posted.count == 1 ? "" : "S") TO THE SEASON"
+    let sub = "\(d.posted.count) CARD\(d.posted.count == 1 ? "" : "S")\(store.leagueId == nil ? " POSTED" : " TO THE SEASON")"
     let empty = data.result == nil && d.posted.isEmpty && d.skipped.isEmpty && d.guests.isEmpty
     SheetFrame(title, sub: sub, dusk: true) {
       if empty { Text("Nothing to post.").font(CSFont.footnote).foregroundStyle(mut) }

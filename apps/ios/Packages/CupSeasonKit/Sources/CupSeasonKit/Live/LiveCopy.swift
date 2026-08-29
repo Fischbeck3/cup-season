@@ -344,9 +344,12 @@ public enum LiveCopy {
 
   public static func finishSheet(_ s: LiveRoundState) -> FinishSheet {
     let seats = s.players.indices.filter { s.pmap != nil && $0 < s.pmap!.count }
-    let done = seats.filter { !s.players[$0].guest && cardHoles(s.scores[$0]) > 0 }
+    // D107: league-less, an app golfer's complete card posts to their own
+    // profile — count it; only account-less guests ride the claim-link path.
+    let leagueless = s.leagueId == nil
+    let done = seats.filter { (leagueless ? (!s.players[$0].guest || s.players[$0].pid != nil) : !s.players[$0].guest) && cardHoles(s.scores[$0]) > 0 }
     let open = seats.filter { cardHoles(s.scores[$0]) == 0 }
-    let guestN = s.players.filter(\.guest).count
+    let guestN = s.players.filter { $0.guest && (!leagueless || $0.pid == nil) }.count
     var warning: String?
     if !open.isEmpty {
       let parts = open.map { i -> String in
@@ -356,9 +359,10 @@ public enum LiveCopy {
       }
       warning = parts.joined(separator: " · ") + ". \(open.count == 1 ? "That card" : "Those cards") won’t post — go back and fill in, or finish without."
     }
-    let intro = "Complete cards post to the season, attested by the group\(guestN > 0 ? "; \(guestN) guest\(guestN == 1 ? "" : "s") get\(guestN == 1 ? "s" : "") a recap to claim" : ""). A partial card is skipped, not lost."
+    let intro = "\(leagueless ? "Every complete card posts to its golfer" : "Complete cards post to the season"), attested by the group\(guestN > 0 ? "; \(guestN) guest\(guestN == 1 ? "" : "s") get\(guestN == 1 ? "s" : "") a recap to claim" : ""). A partial card is skipped, not lost."
     return FinishSheet(intro: intro, warning: warning,
-                       primary: done.isEmpty ? "Finish — no complete member card to post" : "Post \(done.count) card\(done.count == 1 ? "" : "s") to the season",
+                       primary: done.isEmpty ? (leagueless ? "Finish — no complete card to post" : "Finish — no complete member card to post")
+                                             : "Post \(done.count) card\(done.count == 1 ? "" : "s")\(leagueless ? " — each to its golfer" : " to the season")",
                        secondary: "This one was casual — post nothing", completeCards: done.count, guests: guestN)
   }
 

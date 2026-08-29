@@ -105,6 +105,7 @@ struct StandingsPane: View {
     } else {
       CSSectionHead("Standings").id("room-standings")
     }
+    ClashCard()
     StandingsTableView()
     CSSectionHead("The individual race · every player").id("room-race")
     IndividualRaceView()
@@ -319,5 +320,81 @@ struct NextCard: View {
         if let go = links.openRecord { RoomMini("Live round") { go() } }
       }
     }
+  }
+}
+
+/// D108: the weekly clash — the spotlight pairing as a compact card over the
+/// table, mirroring the web chip (`renderClash`): "THE CLASH · YOU v MARCUS ·
+/// THROUGH SAT" with each side's best counting round so far mid-week (the
+/// same pick `settle_week_clash` makes — the BAND decides, D2), the result
+/// once settled. Receipts tap through (§16). Hidden without a row — deploy
+/// skew, pre-season, and a quiet settled week (both idle) all render nothing.
+struct ClashCard: View {
+  @Environment(LeagueRoomModel.self) private var model
+  @Environment(\.roomLinks) private var links
+  @Environment(\.cs) private var cs
+  @Environment(\.csLookAccent) private var la
+
+  var body: some View {
+    if let wc = model.weekClash, let s = model.season,
+       !(wc.settled && wc.a_best == nil && wc.b_best == nil) {   // both idle settles quiet (D52)
+      let win = ClashMath.window(startsOn: s.starts_on, week: wc.week_no)
+      let aB = wc.settled ? wc.a_best : ClashMath.bestSoFar(model.rankedRounds, member: wc.a_member, window: win, capN: model.bylaws.capN)
+      let bB = wc.settled ? wc.b_best : ClashMath.bestSoFar(model.rankedRounds, member: wc.b_member, window: win, capN: model.bylaws.capN)
+      CSCard(spine: la.spine(earned: false)) {
+        VStack(alignment: .leading, spacing: 4) {
+          Text(headline(wc, weekEnd: win.end)).csEyebrow(la.accent)
+          sideRow(wc.a_member, best: aB, won: wc.settled && wc.winner_member == wc.a_member, settled: wc.settled)
+          sideRow(wc.b_member, best: bB, won: wc.settled && wc.winner_member == wc.b_member, settled: wc.settled)
+        }
+      }
+    }
+  }
+
+  /// First names in the chip (D77); "you" when the viewer is in the spotlight.
+  private func first(_ id: UUID) -> String {
+    if model.myMember?.id == id { return "you" }
+    let n = model.memName(id)
+    return n.split(separator: " ").first.map(String.init) ?? n
+  }
+
+  private func headline(_ wc: LeagueRoom.WeekClash, weekEnd: String) -> String {
+    if wc.settled {
+      if let w = wc.winner_member { return "The clash · \(first(w)) took the week" }
+      return "The clash · \(first(wc.a_member)) v \(first(wc.b_member)) · all square"
+    }
+    return "The clash · \(first(wc.a_member)) v \(first(wc.b_member)) · through \(ClashMath.dowShort(weekEnd))"
+  }
+
+  @ViewBuilder
+  private func sideRow(_ id: UUID, best: LeagueRoom.WeekClash.Best?, won: Bool, settled: Bool) -> some View {
+    let mine = model.myMember?.id == id
+    let sub: String = {
+      guard let b = best else { return settled ? "Idle — no round" : "No round yet" }
+      // named bands, never raw differential (D1/D2); they/them for anyone else
+      let band = b.band ?? b.pvi.map(CSBands.bandName) ?? ""
+      let voiced = mine ? band : CSBands.theirs(band)
+      let day = b.played_on.map { ClashMath.dowShort($0) } ?? ""
+      return day.isEmpty ? voiced : "\(voiced) · \(day)"
+    }()
+    Button {
+      if let rid = best?.round_id { links.openReceipt(rid) }
+    } label: {
+      HStack(spacing: 10) {
+        Text(won ? "W" : "").font(CSFont.monoSmall).csTabular().foregroundStyle(cs.gold).frame(width: 14, alignment: .leading)
+        VStack(alignment: .leading, spacing: 1) {
+          Text(first(id)).font(CSFont.subhead.weight(won ? .semibold : .regular)).foregroundStyle(cs.ink)
+          Text(sub.uppercased()).font(CSFont.label).tracking(0.8).foregroundStyle(cs.dimText)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        Text(best?.points.map { CSCopy.points($0) } ?? "—").font(CSFont.monoMediumBody).csTabular().foregroundStyle(cs.ink)
+      }
+      .padding(.vertical, 6)
+      .contentShape(Rectangle())
+    }
+    .buttonStyle(.plain)
+    .disabled(best?.round_id == nil)
+    .accessibilityElement(children: .combine)
+    .accessibilityHint(best?.round_id == nil ? "" : "Opens the round")
   }
 }

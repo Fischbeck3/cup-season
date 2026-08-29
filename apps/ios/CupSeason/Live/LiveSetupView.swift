@@ -110,7 +110,7 @@ struct LiveSetupView: View {
           LiveSeg(options: [(LiveMode.teams, "2v2 teams"), (LiveMode.solo, "Everyone for themselves")], selected: store.state.mode) { store.setMode($0) }
         }
         if store.courtMode { LiveCourtView(store: store) } else { slots }
-        fieldLabel("Tap to fill a slot · league").padding(.top, 6)
+        fieldLabel(store.leagueId == nil ? "Tap to fill a slot" : "Tap to fill a slot · league").padding(.top, 6)
         chips
         CSMini("Search the app — add any golfer", systemImage: "person.2") { showPicker = true }
         fieldLabel("Add a guest").padding(.top, 4)
@@ -122,7 +122,9 @@ struct LiveSetupView: View {
             if !guestName.trimmingCharacters(in: .whitespaces).isEmpty { guestName = ""; guestIdx = "" }
           }
         }
-        CSFine("Pick who plays with who under the game — pairings, stakes, the lot. League members post to the season; guests play every game, post nothing, no account needed. Leave index blank for an estimated 18.")
+        CSFine(store.leagueId == nil
+          ? "Pick who plays with who under the game — pairings, stakes, the lot. Every complete card posts to its golfer at the finish; account-less guests play every game, post nothing. Leave index blank for an estimated 18."
+          : "Pick who plays with who under the game — pairings, stakes, the lot. League members post to the season; guests play every game, post nothing, no account needed. Leave index blank for an estimated 18.")
       }
     }
   }
@@ -181,7 +183,14 @@ struct LiveSetupView: View {
           }
         }
       }
-      if !any { CSFine("No league mates to tap yet — search the app or add a guest below.") }
+      if !any {
+        if store.leagueId == nil {
+          // D107: no league is a fine tee sheet — the add-golfer door leads
+          CSMini("Bring your group — search the app", systemImage: "person.2") { showPicker = true }
+        } else {
+          CSFine("No league mates to tap yet — search the app or add a guest below.")
+        }
+      }
     }
   }
 
@@ -549,7 +558,7 @@ struct LiveRosterPickerSheet: View {
     NavigationStack {
       ScrollView {
         VStack(alignment: .leading, spacing: 12) {
-          CSSheetHeader(title: "Add to the foursome", sub: "League mates and buddies are below — search anyone on the app")
+          CSSheetHeader(title: "Add to the foursome", sub: store.leagueId == nil ? "Buddies are below — search anyone on the app" : "League mates and buddies are below — search anyone on the app")
           CSField("Find golfers by name or @handle", text: $query, font: CSFont.body)
             .textInputAutocapitalization(.never).autocorrectionDisabled()
           if rows.isEmpty {
