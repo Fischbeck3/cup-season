@@ -20,6 +20,14 @@
 -- sentinel false-failed across two seasons; check 13 pins profiles as
 -- server-owned (20260828150000, the founder self-promote hole); check 14 pins
 -- the four live tables read-only + claim_token sealed (20260828150100)).
+-- Refreshed 2026-08-29 (blind UX audit): checks 15-17 added — 15 lock health
+-- (the ratio nobody was watching while `staged is not defined` told every Pro
+-- "Lock failed" for 25 days), 16 the §15 formation invariant (the audit's own
+-- second league sat in prod as phase=season with two empty squads), 17 the
+-- band boundaries the web and the engine disagreed on at exactly -1.0.
+-- NOTE: 15 and 16 FAIL until the audit's test footprint is wiped
+-- (docs/audit/blind-ux-2026-08-29/tools/wipe.sql) — they are failing on the
+-- evidence they were written from, which is the point.
 -- ============================================================================
 
 with checks as (
@@ -303,5 +311,72 @@ from (
     where has_column_privilege('authenticated', 'public.live_round_players', 'claim_token', 'select')
   ) x
 ) t
+
+-- 15 · lock health: the client's bylaws lock is succeeding
+--     The `staged` remnant (D97, 2026-08-04) made lockBylaws throw AFTER the
+--     server had committed, so every Pro was told "Lock failed" about a league
+--     that was live. It ran 25 days because nobody was watching this ratio:
+--     prod held ONE lock_ok all-time against eleven lock_fail. A lock_fail
+--     naming a JS reference error is never a user problem — it is a bug that
+--     is live right now.
+union all
+select '15 · lock health',
+  case
+    when js_errs > 0 then 'FAIL — ' || js_errs::text ||
+      ' lock_fail(s) carrying a JavaScript reference error in 7d — a shipped bug: ' || coalesce(sample, '?')
+    when attempts >= 3 and fails > oks then 'FAIL — ' || fails::text || ' lock_fail vs ' ||
+      oks::text || ' lock_ok in 7d'
+    else 'PASS' end,
+  'lock_ok ' || oks::text || ' · lock_fail ' || fails::text || ' · 7 days'
+from (
+  select
+    count(*) filter (where event = 'lock_ok')   as oks,
+    count(*) filter (where event = 'lock_fail') as fails,
+    count(*) filter (where event in ('lock_ok','lock_fail')) as attempts,
+    count(*) filter (where event = 'lock_fail'
+      and props->>'msg' ~* '(is not defined|is not a function|undefined is not|cannot read propert)') as js_errs,
+    (select props->>'msg' from client_events where event = 'lock_fail'
+       and created_at > now() - interval '7 days'
+       and props->>'msg' ~* '(is not defined|is not a function|undefined is not|cannot read propert)'
+     order by created_at desc limit 1) as sample
+  from client_events where created_at > now() - interval '7 days'
+) t
+
+-- 16 · §15 formation invariant: no league is in season with empty squads
+--     Desert Dogs (the blind audit's second league) sat in prod as
+--     structure=squads2 · phase=season · two EMPTY squads · one member — a
+--     state spec §15 forbids and nothing detected.
+union all
+select '16 · formation invariant',
+  case when bad = 0 then 'PASS'
+    else 'FAIL — ' || bad::text || ' league(s) in season with an empty squad or an unseated member' end,
+  'leagues in phase=season whose squads do not cover the roster'
+from (
+  select count(*) as bad from (
+    select l.id
+    from leagues l
+    join seasons s on s.league_id = l.id
+    join squads q on q.season_id = s.id
+    where l.phase = 'season'
+    group by l.id
+    having count(*) filter (
+      where not exists (select 1 from squad_members sm where sm.squad_id = q.id)) > 0
+  ) x
+) t
+
+-- 17 · the point bands agree between the web and the engine
+--     The client's pointsFor() and the server's cup_points() are two
+--     implementations of one rule (§2.2). They disagreed at exactly -1.0 (the
+--     web said 7, the engine 6) — a boundary a golfer lands on constantly.
+union all
+select '17 · band boundaries',
+  case when cup_points(-1.0) = 6 and cup_points(-0.9) = 7
+        and cup_points(3.0) = 12 and cup_points(0) = 7
+    then 'PASS'
+    else 'FAIL — cup_points(-1.0)=' || cup_points(-1.0)::text ||
+         ' (want 6) · (-0.9)=' || cup_points(-0.9)::text ||
+         ' (want 7) · (3.0)=' || cup_points(3.0)::text || ' (want 12)' end,
+  'cup_points half-open bands, §2.2'
+
 )
 select * from checks order by check_name;

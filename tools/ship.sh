@@ -22,6 +22,13 @@ step() { printf '\n%s==>%s %s\n' "$BOLD" "$OFF" "$*"; }
 
 # --- gate 1: preflight must pass ------------------------------------------
 step "preflight"
+# The free-identifier check (the `staged` lint, added after that name shipped
+# and told every Pro "Lock failed" for 25 days) needs two dev-only packages.
+# Without them it WARNs rather than passing — but say so here, or a fresh
+# clone ships with the check quietly sitting out.
+if [[ ! -d node_modules ]] && [[ -f package.json ]]; then
+  say "${DIM}node_modules missing — run 'npm ci' to enable the free-identifier check.${OFF}"
+fi
 if ! node tests/preflight.mjs; then
   say ""
   say "${RED}Preflight is failing. Nothing ships until it passes.${OFF}"

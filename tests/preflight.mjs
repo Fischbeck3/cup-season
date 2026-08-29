@@ -446,5 +446,106 @@ else {
     : fail('swift rpc grants', `no grant found for: ${missing.join(', ')} (silent 403 on the phone)`);
 }
 
+/* 18 · free identifiers (the `staged` lint) --------------------------------
+   `node --check` (check 6) parses every block and is BLIND to a name that was
+   never declared — which is how `invited: staged.length` survived D97's
+   deletion of `staged`, shipped on 2026-08-04 and told every Pro "Lock failed"
+   about a league the server had just locked. Twenty-five days, one lock_ok in
+   prod telemetry against eleven lock_fail. This is the second time a free
+   identifier reached production (F-007 was the first), so it gets a check.
+
+   Method: parse each <script> block with acorn, resolve scopes with
+   eslint-scope, and report every unresolved reference that is not (a) a
+   browser/global builtin, (b) declared at the top level of ANOTHER classic
+   block — they share one global scope — (c) bridged onto `window.*`
+   somewhere in the file, or (d) the operand of a `typeof` guard.
+   Dev-only deps; WARN (never PASS) when they are absent so a fresh clone
+   cannot mistake "not installed" for "clean". */
+{
+  let acorn = null, escope = null;
+  try { acorn = await import('acorn'); escope = await import('eslint-scope'); } catch { /* not installed */ }
+
+  if (!acorn || !escope) {
+    warn('free identifiers', 'acorn / eslint-scope not installed — run `npm ci` (dev-only; nothing is bundled or served)');
+  } else {
+    const BROWSER = new Set(`
+      window document navigator location history screen console localStorage sessionStorage indexedDB caches
+      fetch Request Response Headers FormData URL URLSearchParams Blob File FileReader AbortController
+      setTimeout clearTimeout setInterval clearInterval queueMicrotask requestAnimationFrame cancelAnimationFrame
+      requestIdleCallback alert confirm prompt getComputedStyle matchMedia scrollTo scrollBy open close
+      Notification ServiceWorker PushManager BroadcastChannel MessageChannel Worker WebSocket EventSource
+      Image Audio Option Event CustomEvent MouseEvent KeyboardEvent TouchEvent PointerEvent DragEvent
+      Element HTMLElement Node NodeList DOMParser XMLSerializer MutationObserver IntersectionObserver ResizeObserver
+      Object Array String Number Boolean Symbol BigInt Math JSON Date RegExp Error TypeError RangeError SyntaxError
+      Map Set WeakMap WeakSet Promise Proxy Reflect Intl Function ArrayBuffer DataView Uint8Array Int8Array
+      Uint16Array Int16Array Uint32Array Int32Array Float32Array Float64Array TextEncoder TextDecoder
+      parseInt parseFloat isNaN isFinite encodeURIComponent decodeURIComponent encodeURI decodeURI
+      atob btoa structuredClone crypto performance globalThis undefined NaN Infinity self top parent frames
+      CSS AbortSignal ReadableStream WritableStream Element SVGElement customElements HTMLCanvasElement Path2D
+      createImageBitmap OffscreenCanvas ImageData ClipboardItem MediaQueryList visualViewport speechSynthesis
+      IntersectionObserverEntry getSelection Range Selection FontFace WeakRef FinalizationRegistry
+    `.trim().split(/\s+/).filter(Boolean));
+
+    /* names the module block hands to the classic ones (CLAUDE.md: the
+       classic <-> module boundary is bridged explicitly through window.*) */
+    const bridged = new Set([...html.matchAll(/window\.([A-Za-z_$][\w$]*)\s*=/g)].map(m => m[1]));
+
+    const parseBlock = (code, isModule) => acorn.parse(code, {
+      ecmaVersion: 'latest', sourceType: isModule ? 'module' : 'script',
+      allowAwaitOutsideFunction: true, allowReturnOutsideFunction: true, locations: true,
+      ranges: true,   /* eslint-scope reads node.range — without it every analyze() throws */
+    });
+
+    const scan = (label, code, isModule, sharedGlobals, lineOffset = 0) => {
+      const guarded = new Set([...code.matchAll(/typeof\s+([A-Za-z_$][\w$]*)/g)].map(m => m[1]));
+      const ast = parseBlock(code, isModule);
+      const sm = escope.analyze(ast, {
+        ecmaVersion: 2024, sourceType: isModule ? 'module' : 'script', ignoreEval: true,
+      });
+      const out = [];
+      for (const ref of sm.globalScope.through) {
+        const name = ref.identifier.name;
+        if (BROWSER.has(name) || bridged.has(name) || sharedGlobals.has(name)) continue;
+        /* `typeof X !== 'undefined'` is the codebase's deliberate guard for a
+           name another script block may not have defined yet — and the whole
+           point of the guard is that the next line then USES the name. So a
+           name guarded anywhere in this block is guarded for the block. */
+        if (guarded.has(name)) continue;
+        out.push({ name, line: lineOffset + ref.identifier.loc.start.line, label });
+      }
+      return out;
+    };
+
+    /* every top-level name of every CLASSIC block is a global the others see */
+    const blocks = [...html.matchAll(/<script(\s+type="module")?\s*>([\s\S]*?)<\/script>/g)]
+      .filter(m => m[2].trim().length > 100)
+      .map(m => ({
+        isModule: !!m[1], code: m[2],
+        line: html.slice(0, m.index).split('\n').length,   // 1-based line of <script>
+      }));
+    const sharedGlobals = new Set();
+    for (const b of blocks.filter(b => !b.isModule)) {
+      const sm = escope.analyze(parseBlock(b.code, false), { ecmaVersion: 2024, sourceType: 'script', ignoreEval: true });
+      for (const v of sm.globalScope.variables) sharedGlobals.add(v.name);
+    }
+
+    const found = blocks.flatMap(b => scan('index.html', b.code, b.isModule, sharedGlobals, b.line));
+
+    /* self-test: the fixture carries the real bug and three non-bugs */
+    let selfTest = 'ok';
+    const fixture = join(root, 'tests', 'fixtures', 'no-undef-staged.js');
+    if (existsSync(fixture)) {
+      const hits = scan('fixture', readFileSync(fixture, 'utf8'), false, new Set(['STRUCT_MIN'])).map(h => h.name);
+      if (!hits.includes('staged')) selfTest = 'BROKEN — the fixture\'s `staged` was not detected';
+      else if (hits.length !== 1) selfTest = `noisy — fixture also flagged ${hits.filter(h => h !== 'staged').join(', ')}`;
+    } else selfTest = 'no fixture';
+
+    if (selfTest !== 'ok') fail('free identifiers', `the checker itself is not trustworthy: ${selfTest}`);
+    else if (found.length) fail('free identifiers',
+      `${found.length} name(s) referenced but never declared — ${found.slice(0, 6).map(f => `${f.name} @ index.html:${f.line}`).join(', ')}`);
+    else pass('free identifiers', `${blocks.length} blocks, no undeclared name (self-test ok)`);
+  }
+}
+
 console.log(`\n${fails ? 'FAIL' : 'PASS'} — ${fails} failure(s), ${warns} warning(s)`);
 process.exit(fails ? 1 : 0);

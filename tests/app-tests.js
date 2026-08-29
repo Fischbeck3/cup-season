@@ -48,11 +48,51 @@
     csOdo(el, '$525');
     t('csOdo: first set instant', el.textContent, '$525');
     csOdo(el, '$600');
-    t('csOdo: builds one strip per digit', el.querySelectorAll('.odostrip').length, 3);
+    /* csOdo deliberately sets the text and skips the strips under
+       prefers-reduced-motion (index.html:3913). Asserting 3 strips there fails
+       for the RIGHT behaviour — which is what a headless browser run
+       (Playwright defaults many contexts to reduce) reports. Assert the
+       contract that holds in both worlds, and the strips only when animating. */
+    const rm = matchMedia('(prefers-reduced-motion:reduce)').matches;
+    t('csOdo: shows the new value', el.textContent.replace(/\s/g,'').includes('600'), true);
+    if (!rm) t('csOdo: builds one strip per digit', el.querySelectorAll('.odostrip').length, 3);
     t('csOdo: dataset carries target', el.dataset.odo, '$600');
     csOdo(el, '$600');
     t('csOdo: same value is a no-op', el.dataset.odo, '$600');
     el.remove();
+  })();
+
+  /* the lock — Q-01. The bylaws lock committed four writes and THEN threw on a
+     dead reference, so the Pro was told "Lock failed" about a league the server
+     had just locked (25 days in prod; one lock_ok against eleven lock_fail).
+     What is testable HERE is the half the Pro actually reads: openLockShare()
+     must print the join URL as selectable text — that sheet is the only place
+     in the file a Pro can read the link, and it is what never opened.
+     lockBylaws() itself cannot be unit-tested in the browser: the module's `sb`
+     is a const binding that no window.* bridge can stub, so its guarantee is
+     covered by preflight's free-identifier check (the `staged` lint) and by
+     driving a real lock. Self-cleaning: CS.league is restored. */
+  (function(){
+    const bridged = typeof window.lockBylaws === 'function' && typeof window.openLockShare === 'function';
+    t('lock: lockBylaws + openLockShare bridged for QA', bridged, true);
+    if (!bridged || !window.CS) return;
+
+    const realLeague = window.CS.league, realDemo = window.state?.demo;
+    window.CS.league = { id: 'l1', name: 'Test Cup', code: 'TESTCODE' };
+    if (window.state) window.state.demo = false;
+
+    Promise.resolve(window.openLockShare('draft', 0)).then(() => {
+      const txt = document.querySelector('#sheet')?.innerText || '';
+      t('lock: share sheet prints the join URL as text', /\?join=TESTCODE/.test(txt), true);
+      t('lock: share sheet names the league', /Test Cup/.test(txt), true);
+      document.querySelector('#sheet')?.classList.remove('open');
+    }).catch(e => {
+      t('lock: share sheet opens without throwing', String(e?.message || e), '(no throw)');
+    }).finally(() => {
+      window.CS.league = realLeague;
+      if (window.state) window.state.demo = realDemo;
+      console.log('  (the two lock lines are async — they print after the summary)');
+    });
   })();
 
   const fails = R.filter(r => !r.ok);
