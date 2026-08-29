@@ -889,3 +889,13 @@ Built and verified this session. Item ids are §2's.
 **Not started** (the rest of Phase 0): Q-05 event registry · Q-19 legal support address (blocked on §6 Q-10 — does `hello@cupseason.app` exist?) · Q-25 preflight 22/23 · Q-29 help sections · Q-30 head-to-head · Q-31–Q-33 the restoration sweep and the retired-vocabulary lint · Q-34–Q-36 telemetry events + funnel views · Q-37–Q-45 the iOS wave and housekeeping.
 
 **QC discipline note.** A service worker served a cached build partway through this session and briefly made verifications untrustworthy (CLAUDE.md's landmine). Clear the SW and caches at the START of every verification run, not after a result looks wrong.
+
+### Owner ruling — §6 Q-10 (the support address), 2026-08-29
+
+`hello@cupseason.app` does not exist yet. **Ruling: keep `jerecho@fischbeck3.com`
+on `legal.html` until a Cup Season mailbox is stood up.** Q-19's address swap is
+therefore deferred, not declined — it is a one-line change in two places
+(`legal.html:63`, `:75`) plus the iOS `DoorView` legal links when the mailbox
+exists. No NEW surface exposes the personal address in the meantime (the
+audit's M-163 "no code yet, email us" line waits for the same mailbox), so the
+exposure stays exactly where it already is rather than spreading.
