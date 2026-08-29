@@ -3965,3 +3965,124 @@ PROPOSED — talk first. Sources: spec §7, `mark_buy_in`
   untouched; D101 (the league pass paid to Cup Season) is a separate ledger
   and unaffected. Spec §7 gains one sentence: "The pot is what the roster
   owes; payouts are made from what was collected."
+
+### D107 · The tee sheet is the free door — live rounds work without a league
+*(2026-08-28, owner: "live rounds/wolf/match play should absolutely work
+absent a league and membership. The pay product is the league and events
+ecosystem." DECIDED — this entry is the build contract. Mechanic level.
+Sources: start_live_round (20260828040000:24), live_sync (20260728120000),
+visitor_rounds (20260728220000/D88), client gates index.html:9027/:9453,
+LiveRoundStore.swift:227.)*
+- **Current:** spec §13.4 says live rounds ship free as the acquisition
+  surface, and the guest-claim funnel is the marketing engine — yet the door
+  requires the paid product three times over: `start_live_round` demands
+  league membership, an active season, and league-member tags;
+  `live_rounds.league_id`/`season_id` are NOT NULL; `started_by` is a
+  `league_members.id`; every read policy is `is_league_member`; the
+  settlement board post needs `posts.league_id`. The web lets a league-less
+  golfer score 18 as a local pencil then dead-ends at finish ("tee off
+  again", :9453); the phone refuses at tee-off. D87/D88 already carry
+  identity for account-less guests (claim tokens) and signed-in visitors
+  (`guest_profile_id`) — the free door is two-thirds built.
+- **Decision — the free tier is: any signed-in golfer starts a live game
+  (Match Play / Wolf / Skins) with anyone.**
+  1. `live_rounds.league_id` and `season_id` become NULLABLE; new
+     `starter_profile_id uuid not null` (backfilled from `started_by`'s
+     member row; `started_by` stays for member rounds). Position cap and
+     game set unchanged.
+  2. `start_live_round(p_league := null)`: with a league, byte-identical
+     behaviour. Without: seats are the starter + guests + app golfers by
+     @handle/buddy (all ride the D88 `guest_profile_id` rail); no member
+     tags, no season check. Sync join_code, claim tokens, push nudges (to
+     seated app golfers only) unchanged.
+  3. Access: `_live_member_can` gains the starter-by-profile match;
+     SELECT policies gain a participant arm (starter_profile_id = auth.uid()
+     OR seated guest_profile_id = auth.uid()) so league-less rounds are
+     readable by their players and nobody else. Tables stay RPC-write-only
+     (20260828150100 discipline).
+  4. Finish: every COMPLETE card posts to its golfer's PROFILE — rounds are
+     profile facts already, and `v_rounds_ranked` then scores them in every
+     league that golfer belongs to, exactly like a typed post. **This closes
+     D88's known gap: a claimed visitor's card now posts at finish** (the
+     D88 boundary stands — a visitor scores the round, only the starter ends
+     it). Account-less guests still get the recap/claim link, never an
+     unwanted account.
+  5. No league → no board: the settlement story lives as the share card
+     (already league-free, "no account needed") and each golfer's own round
+     posts fan to their own leagues via `round_to_board` as usual. The
+     wolf/skins ledger (`game_results`) gets the same participant read arm.
+  6. Clients: web `#teeOffBtn` persists server-side without `CS.league`
+     (drop the :9027 gate; :9453 dead-end disappears); iOS drops the
+     LiveRoundStore:227 guard; both setups seat guests + @handle search when
+     no league roster exists. The ⊕ door copy already promises this.
+- **Principle served:** §13.4 (live games lean free — the acquisition
+  surface) · #2 Low Friction · the guest-claim funnel, now measured by
+  `growth_events` (D-instrumentation 2026-08-28).
+- **Benefit:** the most shareable thing in the product stops requiring the
+  thing it is supposed to sell. A Wolf game at a bachelor party becomes four
+  claim links, and the funnel is finally observable end to end.
+- **Tradeoffs:** two columns go nullable on a table hardened yesterday
+  (mitigated: writes stay RPC-only, reads participant-scoped); a league-less
+  round has no board story (the share card is the story — accepted); free
+  riders can play forever without paying (that is the model: the pay product
+  is the league + events ecosystem, owner's words above).
+- **CONFLICT:** none upward — fulfils §13.4 against the shipped behaviour
+  that contradicted it. Amends D88 (the known gap closes); supersedes the
+  three league checks in `start_live_round`.
+
+### D108 · The weekly clash — D52's build packet
+*(2026-08-28, owner: "Yes on weekly clash." D52 (2026-07-21) DECIDED the
+mechanic and mandated it for launch; this entry is the build plan
+gameplay-modes §9b promised. Mechanic level, additive, §5 parallel-ledger
+law intact.)*
+- **Engine.** New table `week_clashes(id, season_id, week_no, a_member,
+  b_member, opened_at, settled_at, winner_member null, a_best jsonb,
+  b_best jsonb, unique (season_id, week_no))`. `open_week_clash(p_season)`
+  picks the pairing exactly per D52: named rivalry (D21) → closest table
+  gap → least-recently-featured (rotation guarantee); both must be active
+  members. `settle_week_clash(p_season, p_week)` scores **best
+  band-of-week**: each side's highest-points counting-eligible round with
+  `played_on` inside the week window; winner takes a headline W into the
+  faceted rivalry record ("weekly clash 3–2"); ties are ALL SQUARE (no W);
+  both idle settles quiet — row settled, no post (D52's honesty rule).
+  **Never cup points.**
+- **Cadence rides the daily tick, not the Sunday cron.** §14.0 weeks start
+  on the league's real first-tee weekday, so `daily_season_tick` (already
+  daily, timezone-aware) detects a week rollover per season
+  (`floor((local_date - starts_on)/7)` increments), settles week N−1, opens
+  week N. The Sunday `run_week_snapshots` job is untouched (standings
+  history is its job, the clash is not).
+- **The two posts a week** (D52's "two guaranteed stories"): open — "THIS
+  WEEK: JERECHO v MARCUS — THE CLASH" (kind `system`); settle — "MARCUS
+  TOOK THE WEEK — beat his number by 3.1 Thursday", with the receipt path
+  to both counting rounds. Push rides the curated rails, opt-in, muteable
+  (D23's fence).
+- **Clients.** A clash chip on the league hero/Standings ("THE CLASH · you
+  v Marcus · through Sat"), the pair + best-round-so-far mid-week, the
+  result woven into the rivalry facet both clients already render. Receipts
+  tap through. Solo and squad leagues both pair INDIVIDUALS; squads are
+  irrelevant to the clash.
+- **Grants:** engine functions execute-revoked from client roles (the
+  12/13/14 discipline); clients read `week_clashes` via a member-scoped
+  SELECT policy; all writes through the tick.
+- **CONFLICT:** none — D52 already cleared it upward and named the
+  surface-count cost as an owner call.
+
+### D109 · ⚑ PROPOSED — the match play tournament (bracket season format)
+*(2026-08-28, owner: "a match play tournament format could be cool btw."
+Logged, not scheduled. Gameplay-modes §7 item 3 currently says "semifinal
+brackets: rejected for now"; the Bracket event tile has said SOON since
+July. This entry supersedes neither — it parks the idea with a shape so
+the next gameplay session can pick it up.)*
+- **Sketch:** an EVENT type (short game, like the Ryder/Major), not a
+  league format: 8/16 golfers seeded by index or standings; one live Match
+  Play round per bracket window (the D107 free-door engine is the scoring
+  surface); winners advance, single elim, optional consolation; the jug
+  posts like a Major. Zero cup points; pot optional via the event ledger
+  when events grow one (§R12.4, still unbuilt).
+- **Why parked:** three event surfaces already ship; D52 (the clash) is the
+  committed next mechanic; the five-question filter wants evidence a crew
+  would run one — the Ryder's usage after the PIGL TestFlight weekend is
+  that evidence.
+- **Decision needed before build:** seeding rule, window length, walkover
+  rule for idle golfers.
