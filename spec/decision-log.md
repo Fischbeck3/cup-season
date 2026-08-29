@@ -4086,3 +4086,20 @@ the next gameplay session can pick it up.)*
   that evidence.
 - **Decision needed before build:** seeding rule, window length, walkover
   rule for idle golfers.
+
+### D110 · The live door leads and wears ember
+*(2026-08-29, owner: "the post round and play now can be differentiated
+better" — picked "Live leads, ember" from three treatments. UI level.)*
+- **Current:** the ⊕ door was three identical rows told apart by a 3.5-pt
+  colour tick — and the ticks broke the metals contract: POST wore ember
+  (the live metal) while Play now wore squad blue. The composer's "Play
+  now" was a dawn text button that read as navigation.
+- **Decision:** Play now is the hero — first, taller, ember spine, a
+  breathing LIVE word (stilled under reduced-motion), richer sub naming the
+  three games and "guests welcome, no account" (it is the D107 free door).
+  Post and Plan become quiet neutral-tick rows. The composer pill gains the
+  ember dot. Both clients identical.
+- **Principle:** the tokens contract (ember = LIVE, gold = EARNED — Plan
+  loses a gold it never earned) · D82's three tenses kept.
+- **CONFLICT:** none; corrects an accidental inversion of D76/D103's metal
+  roles.

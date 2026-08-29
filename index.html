@@ -800,6 +800,14 @@ body.guestlive #onboard{display:none !important;}
 .optcard h4{font-size:15px; font-weight:700;}
 .optcard p{font-family:var(--mono); font-size:12px; color:var(--mut); margin-top:5px; line-height:1.7; letter-spacing:.02em;}
 .optcard .go{position:absolute; right:16px; top:50%; transform:translateY(-50%); color:var(--dim); font-size:16px;}
+/* D110: the live door is the hero — ember spine, LIVE word, room to breathe */
+.optcard.live{padding:22px 40px 22px 18px; border-color:var(--line2);}
+.optcard.live h4{font-size:17px;}
+.optcard.live .go{color:var(--brand);}
+.optcard .liveword{display:flex; align-items:center; gap:7px; font-family:var(--mono); font-size:11px; font-weight:600; letter-spacing:.14em; color:var(--brand); margin-bottom:7px;}
+.optcard .livedot{width:7px; height:7px; border-radius:50%; background:var(--brand); animation:cs-livedot 2.2s ease-in-out infinite;}
+@keyframes cs-livedot{0%,100%{opacity:1;} 50%{opacity:.35;}}
+@media (prefers-reduced-motion: reduce){.optcard .livedot{animation:none;}}
 /* live scoring is a diorama until task #11 wires it to real posting — for real
    leagues the card reads "coming soon" and does nothing, so nobody trusts a
    round that would never leave the device. Quick post is the real path. */
@@ -2957,17 +2965,20 @@ html[data-theme="light"] .room-dusk .btn:not(.dark):not(.gold):not(.apple){color
       <!-- ⊕ GOLF (IA P4): golf's three tenses in one door — after, during, before -->
       <section class="view" id="view-record">
         <div class="eyebrow">Golf · before, during and after the round</div>
-        <button class="optcard" style="--acc:var(--brand)" data-go="post">
+        <!-- D110: the live game leads and wears ember (the live metal); posting and
+             planning are quiet errand rows. Ember was on POST before — backwards. -->
+        <button class="optcard live" id="optLive" style="--acc:var(--brand)" data-go="play">
+          <span class="liveword"><i class="livedot"></i>LIVE</span>
+          <h4>Play now — score the group</h4>
+          <p>Hole-by-hole on every phone · Match Play, Wolf & Skins · the settle-up at the end · guests welcome, no account</p>
+          <span class="go">→</span>
+        </button>
+        <button class="optcard" style="--acc:var(--line2)" data-go="post">
           <h4>Post a round — after you play</h4>
           <p>Gross + tee, 20 seconds · counts on your card and in every league</p>
           <span class="go">→</span>
         </button>
-        <button class="optcard" id="optLive" style="--acc:var(--sq0)" data-go="play">
-          <h4>Play now — score the group live</h4>
-          <p>A shared pencil: hole-by-hole, match play, Wolf & the settle-up · guests welcome</p>
-          <span class="go">→</span>
-        </button>
-        <button class="optcard" id="optPlan" style="--acc:var(--gold)">
+        <button class="optcard" id="optPlan" style="--acc:var(--line2)">
           <h4>Plan a tee time — before</h4>
           <p>Put a round on the tee sheet · your buddies and leagues see it the moment you post</p>
           <span class="go">→</span>

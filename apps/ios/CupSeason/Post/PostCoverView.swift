@@ -82,14 +82,17 @@ private struct PostCoverStack: View {
         VStack(alignment: .leading, spacing: 0) {
           // the web's cover line, verbatim, as the header's sub (IOS-022 item 4)
           CSPageHeader("Golf", sub: "Golf · before, during and after the round")
+          // D110: the live game leads and wears ember (the live metal, per the
+          // tokens contract); posting and planning are quiet errand rows. Before
+          // this, POST wore ember and the live door a squad blue — backwards.
           VStack(spacing: 0) {
-            PostOptionRow(tick: cs.brand, title: "Post a round — after you play",
-                          sub: "Gross + tee, 20 seconds · counts on your card and in every league") { path.append(PostCoverView.Route.post) }
-            PostOptionRow(tick: cs.sq0, title: "Play now — score the group live",
-                          sub: "A shared pencil: hole-by-hole, match play, Wolf & the settle-up · guests welcome") {
+            PostLiveHeroRow(title: "Play now — score the group",
+                            sub: "Hole-by-hole on every phone · Match Play, Wolf & Skins · the settle-up at the end · guests welcome, no account") {
               close(); links.openLive()
             }
-            PostOptionRow(tick: cs.gold, title: "Plan a tee time — before",
+            PostOptionRow(tick: cs.line2, title: "Post a round — after you play",
+                          sub: "Gross + tee, 20 seconds · counts on your card and in every league") { path.append(PostCoverView.Route.post) }
+            PostOptionRow(tick: cs.line2, title: "Plan a tee time — before",
                           sub: "Put a round on the tee sheet · your buddies and leagues see it the moment you post", last: true) { showPlan = true }
           }
           .padding(.top, 12)
@@ -104,6 +107,44 @@ private struct PostCoverStack: View {
       }
       .toolbar { ToolbarItem(placement: .cancellationAction) { Button("Close") { close() }.foregroundStyle(cs.mut) } }
       .sheet(isPresented: $showPlan) { DeclareRoundSheet(leagueId: store.preferredLeague) { _ in close() } }
+    }
+  }
+}
+
+/// D110 hero — the live door: ember spine, a breathing LIVE word, taller.
+struct PostLiveHeroRow: View {
+  @Environment(\.cs) private var cs
+  let title: String
+  let sub: String
+  let action: () -> Void
+  @State private var breathe = false
+  var body: some View {
+    Button(action: action) {
+      CSRow {
+        HStack(alignment: .center, spacing: 14) {
+          RoundedRectangle(cornerRadius: 2).fill(cs.brand).frame(width: 3.5).padding(.vertical, 4)
+          VStack(alignment: .leading, spacing: 5) {
+            HStack(spacing: 7) {
+              Circle().fill(cs.brand).frame(width: 7, height: 7).opacity(breathe ? 0.35 : 1)
+              Text("LIVE").font(CSFont.monoSmall.weight(.semibold)).foregroundStyle(cs.brand).tracking(1.6)
+            }
+            Text(title).font(CSFont.title).foregroundStyle(cs.ink).multilineTextAlignment(.leading)
+            Text(sub).font(CSFont.subhead).foregroundStyle(cs.mut).multilineTextAlignment(.leading)
+          }
+          .frame(maxWidth: .infinity, alignment: .leading)
+          Text("→").font(CSFont.title).foregroundStyle(cs.brand)
+        }
+        .fixedSize(horizontal: false, vertical: true)
+        .padding(.vertical, 6)
+      }
+      .contentShape(Rectangle())
+    }
+    .buttonStyle(.plain)
+    .accessibilityElement(children: .combine)
+    .accessibilityLabel("Live: \(title). \(sub)")
+    .onAppear {
+      guard !UIAccessibility.isReduceMotionEnabled else { return }
+      withAnimation(.easeInOut(duration: 1.1).repeatForever(autoreverses: true)) { breathe = true }
     }
   }
 }

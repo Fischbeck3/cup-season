@@ -116,7 +116,13 @@ private struct PostRoundBody: View {
       ToolbarItem(placement: .topBarTrailing) {
         // "Play now" — the tee sheet stays one tap away from the composer (IOS-004 §2)
         Button { onDone(); links.openLive() } label: {
-          Text("Play now").font(CSFont.subhead.weight(.semibold)).foregroundStyle(cs.dawn)
+          // D110: the live door wears ember + the dot, so "Play now" reads as a
+          // different MOMENT, not a nav link (was a quiet dawn text button)
+          HStack(spacing: 6) {
+            Circle().fill(cs.brand).frame(width: 6, height: 6)
+            Text("Play now").font(CSFont.subhead.weight(.semibold))
+          }
+          .foregroundStyle(cs.brand)
         }
         .accessibilityHint("Opens the tee sheet to score a round live")
       }
