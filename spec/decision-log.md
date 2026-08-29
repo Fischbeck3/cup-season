@@ -4103,3 +4103,12 @@ better" — picked "Live leads, ember" from three treatments. UI level.)*
   loses a gold it never earned) · D82's three tenses kept.
 - **CONFLICT:** none; corrects an accidental inversion of D76/D103's metal
   roles.
+
+**D110 addendum (2026-08-29, owner stuck in the field):** two escapes were
+missing. (1) The live SETUP screen was a full-screen cover with no toolbar —
+no way out but the app switcher; it now wears Close (before tee-off there is
+nothing to abandon; the live stage keeps its own finish/recap exits). (2) The
+⊕ opened the composer directly (old rule: cover only when a round was live),
+so the three doors D110 just designed were nearly unreachable — the ⊕ and the
+Clubhouse record door now ALWAYS open the cover; only explicit "post a round"
+CTAs (Home/You links, the postround deep link) jump straight to the composer.

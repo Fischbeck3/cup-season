@@ -27,7 +27,13 @@ struct LiveRoundHost: View {
       if store.state.stage == .live, store.state.active {
         LivePlayView(store: store, links: links)
       } else {
-        LiveSetupView(store: store)
+        // D110 addendum: setup had NO exit — a full-screen cover with no toolbar
+        // (the owner got stuck; only the app switcher freed them). Close leaves
+        // nothing behind: before tee-off there is no server round to abandon.
+        NavigationStack {
+          LiveSetupView(store: store)
+            .toolbar { ToolbarItem(placement: .cancellationAction) { Button("Close") { links.done() }.foregroundStyle(cs.mut) } }
+        }
       }
     }
     .background(cs.bg0)

@@ -88,7 +88,7 @@ struct ClubhouseView: View {
       openReceipt: { p.receipt = $0 },
       openTourCard: { p.tourCard = $0 },
       addGolfers: { add(lid) },
-      openRecord: { p.showPost = true },
+      openRecord: { p.postOnComposer = false; p.showPost = true },
       runItBack: { p.runBack = lid },
       leagueGone: { Task { await store.reload() } }
     )

@@ -25,13 +25,19 @@ struct PostCoverView: View {
   @Environment(SessionStore.self) private var store
   @Environment(\.dismiss) private var dismiss
   let links: PostLinks
+  let startOnComposer: Bool
 
-  init(links: PostLinks = PostLinks()) { self.links = links }
+  /// D110 addendum: the ⊕ opens the three-door COVER (the owner tapped ⊕ and
+  /// never saw the doors); only an explicit "post a round" CTA lands on the
+  /// composer. The old rule (composer unless a round is live) is retired.
+  init(startOnComposer: Bool = false, links: PostLinks = PostLinks()) {
+    self.startOnComposer = startOnComposer; self.links = links
+  }
 
   enum Route: Hashable { case post }
 
   var body: some View {
-    PostCoverStack(links: links, startOnPost: (store.me?.live_round == nil && !Self.forcedCover) || Self.forcedOpen, close: { dismiss() })
+    PostCoverStack(links: links, startOnPost: (startOnComposer && !Self.forcedCover) || Self.forcedOpen, close: { dismiss() })
       .modifier(PostCoverRise())
   }
 

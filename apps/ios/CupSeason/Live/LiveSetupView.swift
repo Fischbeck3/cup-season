@@ -110,7 +110,7 @@ struct LiveSetupView: View {
           LiveSeg(options: [(LiveMode.teams, "2v2 teams"), (LiveMode.solo, "Everyone for themselves")], selected: store.state.mode) { store.setMode($0) }
         }
         if store.courtMode { LiveCourtView(store: store) } else { slots }
-        fieldLabel(store.leagueId == nil ? "Tap to fill a slot" : "Tap to fill a slot · league").padding(.top, 6)
+        fieldLabel("Tap to fill a slot").padding(.top, 6)   // the chip groups carry their own LEAGUE header — saying it twice read as a glitch
         chips
         CSMini("Search the app — add any golfer", systemImage: "person.2") { showPicker = true }
         fieldLabel("Add a guest").padding(.top, 4)

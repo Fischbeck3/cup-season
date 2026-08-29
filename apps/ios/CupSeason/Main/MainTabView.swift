@@ -152,7 +152,8 @@ struct MainTabView: View {
       case "schedule": tab = .clubhouse; clubPath.append(ClubRoute.schedule)
       case "settings": tab = .you; youPath.append(YouRoute.settings)
       case "people": tab = .you; youPath.append(YouRoute.people)
-      case "post", "postround": presenter.showPost = true
+      case "post": presenter.postOnComposer = false; presenter.showPost = true
+      case "postround": presenter.postOnComposer = true; presenter.showPost = true
       case "live": presenter.showLive = true
       case "wizard": presenter.wizard = .init(existingLeagueId: nil)
       case "events": presenter.showEventPicker = true
@@ -187,7 +188,7 @@ struct MainTabView: View {
     .sheet(item: $ask.presented) { PushPromptSheet(reason: $0) }
     .onChange(of: tab) { old, new in
       // the ⊕ is a verb, not a place: it presents, and the selection snaps back (IOS-022 item 3: with a haptic)
-      if new == .post { CSHaptic.present(); presenter.showPost = true; tab = old == .post ? .home : old }
+      if new == .post { CSHaptic.present(); presenter.postOnComposer = false; presenter.showPost = true; tab = old == .post ? .home : old }
     }
     .sheet(item: $presenter.tourCard) { TourCardSheet(profileId: $0, links: youLinks) }
     .sheet(item: $presenter.receipt) { RoundReceiptSheet(roundId: $0, seed: nil, openScorecard: { presenter.scorecard = $0 }) }
@@ -239,7 +240,7 @@ struct MainTabView: View {
       .presentationDetents([.medium, .large])
     }
     .fullScreenCover(isPresented: $presenter.showPost) {
-      PostCoverView(links: PostLinks(openLive: { presenter.showLive = true },
+      PostCoverView(startOnComposer: presenter.postOnComposer, links: PostLinks(openLive: { presenter.showLive = true },
                                      openReceipt: { presenter.receipt = $0 },
                                      openPeople: { presenter.showPost = false; tab = .you; youPath.append(YouRoute.people) }))
     }
@@ -334,7 +335,7 @@ struct MainTabView: View {
       openSettings: { tab = .you; youPath.append(YouRoute.settings) },
       openFeedback: { presenter.feedbackScreen = "you"; presenter.showFeedback = true },
       openFounderDesk: { presenter.showDesk = true },
-      postRound: { presenter.showPost = true },
+      postRound: { presenter.postOnComposer = true; presenter.showPost = true },
       openTourCard: { presenter.tourCard = $0 },
       openReceipt: { presenter.receipt = $0 },
       addGhin: { tab = .you; youPath.append(YouRoute.settings) },

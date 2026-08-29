@@ -15,6 +15,9 @@ final class Presenter {
   var showJoin = false
   var joinCode: String?
   var showPost = false
+  /// D110 addendum: true = jump straight to the composer (a "post a round" CTA);
+  /// false = the ⊕ shows the three-door cover.
+  var postOnComposer = false
   /// The tee sheet (wave 4): setup → live → recap, over whichever tab.
   var showLive = false
   var showFeedback = false
