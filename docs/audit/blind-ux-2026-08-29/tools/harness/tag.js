@@ -1,0 +1,1 @@
+(()=>{const names=['Standings','Board','Schedule','Pot','Album','League'];const out=[];for(const n of names){const b=[...document.querySelectorAll('button')].find(b=>b.textContent.trim()===n && b.offsetParent!==null);if(b){b.setAttribute('data-bx','tab-'+n.toLowerCase());out.push(n)}}return out.join(',')})()

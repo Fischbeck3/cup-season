@@ -3324,6 +3324,7 @@ html[data-theme="light"] .room-dusk .btn:not(.dark):not(.gold):not(.apple){color
           <div class="card" id="bylawsReview" style="margin-bottom:10px"></div>
           <p class="fine" id="inviteNote" style="padding-bottom:10px">Lock opens the invite link — one link fills the league; anyone can also join later with the league code. Minimum four to tee off.</p>
           <button class="btn" id="lockBtn">Lock the bylaws & form the squads</button>
+          <p class="fine" id="lockErr" role="alert" hidden style="padding:8px 0 0; color:var(--neg)"></p>
         </div>
 
         <div class="wiznav">
@@ -7797,7 +7798,13 @@ async function rehydrateLiveRound(){
   if(!sb || !CS){ return; }
   let rounds=null;
   try{
-    const _cols = (jc, sp) => `id, league_id, game, game_config, ${jc?'join_code, ':''}${sp?'starter_profile_id, ':''}started_by, course_snapshot, course_label, started_at, live_round_players(id, member_id, guest_name, guest_index, index_source, position, guest_profile_id, member:league_members(profile_id, profile:profiles(display_name, index_current)))`;
+    /* M-085: name the FK. `live_scores` and `game_results` both carry columns
+       to live_rounds AND live_round_players, so PostgREST sees a junction path
+       beside the direct one and refuses: "more than one relationship was found
+       for 'live_rounds' and 'live_round_players'". Every boot after a live
+       round logged that, the resume list came back empty, and "Continue your
+       round" never appeared (D86's doorbell). The hint is the whole fix. */
+    const _cols = (jc, sp) => `id, league_id, game, game_config, ${jc?'join_code, ':''}${sp?'starter_profile_id, ':''}started_by, course_snapshot, course_label, started_at, live_round_players!live_round_players_live_round_id_fkey(id, member_id, guest_name, guest_index, index_source, position, guest_profile_id, member:league_members(profile_id, profile:profiles(display_name, index_current)))`;
     const _sel = (jc, sp) => sb.from('live_rounds')
       .select(_cols(jc, sp)).eq('status','live').order('started_at',{ ascending:false });
     let { data, error } = await _sel(true, true);
@@ -10098,8 +10105,26 @@ function renderHomeHero(){
       if(focus) setTimeout(()=>{ const el=$(focus);
         el?.scrollIntoView?.({block:'center'}); el?.focus?.(); }, 80);
     };
-    const nextStep = unnamed ? { label:'Name your league', go:toWiz(0, '#setName') }
-                             : { label:'Lock it in and invite your crew', go:toWiz(2, null) };
+    /* Q-09 (blind audit TOP-1 + TOP-3). D96 wrote this CTA for one reader: the
+       Pro of an UNLOCKED league. It had no phase test, so a Pro whose league
+       the server had already locked was still told "Lock it in" (the audit's
+       organizer tapped it six times), and no role test, so four of four player
+       personas met the Pro's lock button as the biggest thing on their own
+       Home — two refused to press it, one walked into a Cancel offering to
+       discard the friend's league. This keeps D96's CTA for the Pro of an
+       unlocked league and gives everyone else the move that is actually
+       theirs. The full role × stage matrix is C-02 (D119); this is the guard. */
+    const phase  = window.CS.league?.phase || state.phase;
+    const locked = !!phase && phase !== 'setup';
+    const isPro  = window.CS.member?.role === 'commissioner';
+    const need   = Math.max(0, ((typeof STRUCT_MIN!=='undefined' ? STRUCT_MIN : {})[state.structure] || 4) - n);
+    const nextStep =
+        !locked && !isPro            ? null                                                   /* never the Pro's tool */
+      : !locked && unnamed           ? { label:'Name your league',            go:toWiz(0, '#setName') }
+      : !locked                      ? { label:'Lock it in and invite your crew', go:toWiz(2, null) }
+      : need                         ? { label:'Share the invite link',       go:()=>shareInvite() }
+      : (isPro && phase === 'draft') ? { label:'Form the squads',             go:()=>switchView('draft') }
+      :                                null;
     box.innerHTML = heroCard('', `${esc(lgName||'Your league')} · ${starter?'season live':'forming'}`,
       dd!=null && !starter ? `<div class="hh-fig"><span class="hh-pos">${dd}</span><span class="hh-ord">day${dd===1?'':'s'}</span></div>` : '',
       starter ? `The season's on. <em>Rounds count from today.</em>`
@@ -10107,11 +10132,15 @@ function renderHomeHero(){
                  copy says so plainly rather than reporting "1 golfer in" as if
                  that were a standing */
               : unnamed ? `Your league is still a scaffold. <em>Name it, and it's real.</em>`
+              /* locked: the bylaws are fixed, so the sentence is about the crew */
+              : locked && solo ? `<b>Just you so far.</b> <em>One link fills the league.</em>`
+              : locked && need ? `<b>${n} in.</b> <em>${need} more to tee off.</em>`
+              : locked         ? `<b>${n} in</b> — enough to tee off. <em>${isPro ? 'Squads next.' : 'The Pro seats the squads.'}</em>`
               : solo    ? `<b>Just you so far.</b> <em>Lock the bylaws and the invite link is yours.</em>`
               : `${dd!=null?'to first tee. ':''}<b>${n} golfers in.</b> <em>The bylaws lock at the tee.</em>`,
       n?`<span>Roster</span><span class="hh-bar"><i style="width:${Math.min(100, Math.round(n/12*100))}%"></i></span><span>${n} in</span>`:'',
-      starter ? '' : `<button class="hh-cta" data-hform type="button">${nextStep.label}</button>`);
-    if(!starter) wire('[data-hform]', nextStep.go);
+      (starter || !nextStep) ? '' : `<button class="hh-cta" data-hform type="button">${nextStep.label}</button>`);
+    if(!starter && nextStep) wire('[data-hform]', nextStep.go);
     return;
   }
 
@@ -15215,7 +15244,13 @@ async function lockBylaws(){
   $('#sideLeague').textContent = name;
   state.phase = nextPhase;
   renderPhase();
-  return { emails: emails.length, invited: staged.length, nextPhase };
+  /* D97 deleted the staged-invitee array but left `invited: staged.length`
+     here. Because every write above had already COMMITTED, the ReferenceError
+     landed in the caller's catch and told the Pro "Lock failed" about a league
+     the server had just locked — for 25 days, in prod (blind audit TOP-1,
+     `lock_ok` = 1 all-time vs 11 `lock_fail`). Never return a value the
+     function does not own; the caller asks the server what happened. */
+  return { emails: emails.length, nextPhase };
 }
 
 /* ---------- wire the UI ---------- */
@@ -15485,26 +15520,73 @@ $('#lockBtn').addEventListener('click', async () => {
     return;
   }
   btn.disabled = true;
+  lockErr(null);
+
+  /* Q-01 (blind audit TOP-1). The commit and the celebration are two separate
+     tries. lockBylaws() commits four writes before it returns, so an exception
+     out of it proves NOTHING about the league's state — only the server does.
+     And an exception AFTER the commit (a render, the share sheet) must never
+     be narrated as a failed lock. Three outcomes, three different truths. */
+  let locked = null;                       /* { nextPhase, emails } once committed */
   try {
     // If the wizard was reached without a league row (fresh signup), create it now.
     if(!CS.league){
       if(!CS.user) throw new Error('not signed in');
       await createLeague();
     }
-    const { emails, invited, nextPhase } = await lockBylaws();
-    window.qaEvent?.('lock_ok', { next_phase: nextPhase });
-    await loadMemberships();
-    switchView('home');
-    toast('Bylaws locked');
-    /* growth (2026-07-17): creation ends on the SHARE moment, not a Done
-       toast — a league is only real once the crew is in it */
-    openLockShare(nextPhase, (invited||0) + (emails||0));
+    locked = await lockBylaws();
   } catch(err){
-    window.qaEvent?.('lock_fail', { msg: String(err?.message || err).slice(0, 160) });
-    toast(humanError(err, 'Lock failed.'));
+    const phase = await lockedPhase();     /* ask the server, not the exception */
+    if(phase){
+      /* the league IS locked; the client tripped on the way home */
+      window.qaEvent?.('lock_recovered', { phase, msg: errMsg(err), stack: errStack(err) });
+      locked = { nextPhase: phase, emails: 0 };
+    } else {
+      window.qaEvent?.('lock_fail', { msg: errMsg(err), stack: errStack(err) });
+      lockErr(humanError(err, 'Lock failed.'));
+    }
   }
-  finally { btn.disabled = false; }
+
+  if(locked){
+    window.qaEvent?.('lock_ok', { next_phase: locked.nextPhase });
+    try {
+      await loadMemberships();
+      switchView('home');
+      toast('Bylaws locked');
+      /* growth (2026-07-17): creation ends on the SHARE moment, not a Done
+         toast — a league is only real once the crew is in it */
+      await openLockShare(locked.nextPhase, locked.emails || 0);
+    } catch(err2){
+      /* past this line the bylaws are locked. Say nothing about the lock. */
+      window.qaEvent?.('lock_ui_fail', { msg: errMsg(err2), stack: errStack(err2) });
+      console.error('[cs] lock tail', err2);
+    }
+  }
+  btn.disabled = false;
 });
+
+const errMsg   = e => String(e?.message || e).slice(0, 160);
+const errStack = e => String(e?.stack || '').split('\n').slice(0,4).map(l=>l.trim()).join(' <- ').slice(0,400);
+
+/* The lock's error is persistent, not a 1.7s toast: both audit organizers
+   tapped six times because the toast had faded before they looked up. */
+function lockErr(msg){
+  const el = $('#lockErr'); if(!el) return void (msg && toast(msg));
+  el.textContent = msg || ''; el.hidden = !msg;
+}
+
+/* Did the server actually lock? `phase` leaves 'setup' in the same statement
+   that ends the lock, so it is the honest probe — if the throw happened before
+   that write we correctly report a failure. */
+async function lockedPhase(){
+  if(!CS.league || state.demo) return null;
+  try {
+    const { data } = await sb.from('leagues').select('phase').eq('id', CS.league.id).maybeSingle();
+    const p = data?.phase;
+    return (p && p !== 'setup') ? p : null;
+  } catch(_){ return null; }
+}
+window.lockBylaws = lockBylaws; window.openLockShare = openLockShare; window.lockedPhase = lockedPhase;
 
 /* league switcher — the header name (and sidebar) opens the sheet.
    Every membership, the clubhouse, and start/join live one tap away. */

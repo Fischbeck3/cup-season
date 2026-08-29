@@ -1,0 +1,3 @@
+# Evidence screenshots (~ 96M) are kept out of git by default; remove this file to commit them.
+*
+!.gitignore

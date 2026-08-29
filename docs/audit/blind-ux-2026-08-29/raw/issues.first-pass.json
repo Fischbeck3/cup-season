@@ -1,0 +1,2480 @@
+[
+  {
+    "id": "M-001",
+    "agent": "A5-organizer;A3-novice",
+    "screen": "Wizard step 3 'Review the bylaws' / Home 'Lock it in and invite your crew'",
+    "journey": "C — Create a league",
+    "observation": "Tapping 'Lock the bylaws & form the squads' shows a 1.5 s toast 'Lock failed. Something went wrong — please try again.' (or nothing visible) on every attempt; console '[cs] error: Lock failed. staged is not defined'. Six attempts each by two organizers. After a reload the league was in fact locked with the FIRST attempt's structure (2 squads); a later Solo choice was silently discarded. Clubhouse showed no league until reload.",
+    "expected": "One tap locks, the success/share screen opens with the invite link, and structural choices made before the successful tap are what get saved.",
+    "actual": "Server commits (form_squads + phase update) then the client throws in lockBylaws()'s return; the user is told it failed, retries, and the post-lock share sheet (the only invite moment per D40) never opens.",
+    "severity": "P0",
+    "category": "gameplay",
+    "recommendation": "Delete the dangling `staged.length` in lockBylaws()'s return (index.html:15218, left behind by D97); on any post-commit exception re-read league state and render success; never show a retry toast after a committed write; add a preflight test for the lock path.",
+    "confidence": 10,
+    "evidence": "screenshots/org/31-after-lock.jpg, 32-lock-retry-toast.jpg, 36-lock-from-home.jpg; screenshots/nov/33-lock-fail-toast.jpg (toast visible), 34-reload-home.jpg ('SEASON LIVE' after reload); console ×12 across two sessions; index.html:15218 `return { emails: emails.length, invited: staged.length, nextPhase }`",
+    "stage": "activation",
+    "dedupedFrom": [
+      "ORG-01",
+      "N-01"
+    ]
+  },
+  {
+    "id": "M-002",
+    "agent": "A5-organizer;A3-novice",
+    "screen": "Add golfers sheet / Members & invites",
+    "journey": "C — Invite friends",
+    "observation": "'Add golfers' offers only 'Find golfers by name or @handle'. Typing a friend's email returns 'No golfers found. Invite links still work for everyone else.' No email/phone field exists. No invitation email ever reached any invitee (Gmail searched by three testers); the only mail was the generic sign-in code. The Guide claims 'add golfers (find them by name or @handle, or invite by email)'.",
+    "expected": "Enter friends' emails/phones and have the app send an invitation naming the league, the Pro, dates, buy-in and the link.",
+    "actual": "Only existing app users are addable; friends without accounts can only be reached by relaying a code by hand outside the app.",
+    "severity": "P0",
+    "category": "onboarding",
+    "recommendation": "Ship invite-by-email/SMS with a prewritten message (league, Pro, dates, buy-in, link + code, 'three things to know'); show pending/joined state in Members & invites; make the sign-in email league-aware when a join is pending. Fix the Guide until then.",
+    "confidence": 10,
+    "evidence": "screenshots/org/41-add-golfers.jpg, 42-add-golfers-email.jpg; screenshots/nov/46-add-golfers.jpg, 47-search-email.jpg; Gmail searches by A6 (15:22Z), A2, A4; Cup-Season-Guide.md 'or invite by email'",
+    "stage": "activation",
+    "dedupedFrom": [
+      "ORG-02",
+      "N-05",
+      "J-13"
+    ]
+  },
+  {
+    "id": "M-004",
+    "agent": "A5-organizer;A3-novice",
+    "screen": "Wizard step 2 — Customize (collapsed by default)",
+    "journey": "C — Create a league",
+    "observation": "The Standard card and the primary button 'Use these defaults →' never mention money. Only after tapping 'Customize' does 'Buy-in · Per player · $0 = bragging rights · $75' appear as the pre-set value (with Season length 6 mo). Ladder: None/$25/$50/$75/$100/$150/$200.",
+    "expected": "Money is a visible, first-class decision with a $0 default (decision log D46: 'the create step surfaces the choice so it's seen, not buried').",
+    "actual": "An organizer trusting 'defaults' commits every friend to $75 unseen; the joiner's covenant then reads 'You're on the pot sheet: $75 buy-in'.",
+    "severity": "P0",
+    "category": "monetization",
+    "recommendation": "Show buy-in, season length and first tee above the fold (or as their own step); default $0; restate the money line on the lock confirmation. Root: state seed `stake:75` (index.html:3793) survives into the real wizard.",
+    "confidence": 10,
+    "evidence": "screenshots/org/21-customize-open.jpg, 22-cust-buyin.jpg; screenshots/nov/18-wizard-customize.jpg, 19-wizard-customize-full.jpg ($75 under 'Hide options'); index.html:3793",
+    "stage": "monetization",
+    "dedupedFrom": [
+      "ORG-04",
+      "N-02"
+    ]
+  },
+  {
+    "id": "M-023",
+    "agent": "A6-joiner;A2-competitive;A1-casual;A4-skeptic",
+    "screen": "'Before you join …' consent sheet / invite-link door",
+    "journey": "Join",
+    "observation": "The only pre-commit description of the league is four rows: 'BUY-IN $50 / player · on the pot sheet', 'PRESET Standard', 'PARTICIPATION FLOOR 2 rounds / mo', 'FINISH Cup Final · final 4 weeks', then 'Join — I'm in for $50'. No roster, no organizer name, no dates, no scoring, no payment path. The door before it says only 'You're invited to The Papago Grind.' The $50 is first disclosed after account creation.",
+    "expected": "Before agreeing to $50: who is in, who runs it, when it starts/ends, how a round scores, what the pot pays, how money moves.",
+    "actual": "All of that exists only after joining, across Clubhouse tabs and a collapsed disclosure; a cautious invitee can't decide, a trusting one commits blind; the skeptic's likeliest bail point ('fifty bucks for what?').",
+    "severity": "P0",
+    "category": "onboarding",
+    "recommendation": "Put roster (with 'Casey invited you · THE PRO'), date range, point bands and pot split on the consent sheet and a league card on the invite door; link 'Standard' to the bylaws. Root: covenantGate() renders only buyin/preset/floor/finish (index.html:15422–15440).",
+    "confidence": 10,
+    "evidence": "screenshots/join/11-J-after-take-me-in.jpg, 22-Q-clubhouse.jpg; screenshots/comp/11-join-link.jpg, 13-after-verify.jpg; screenshots/cas/11-A02-join-link-cold.jpg, 11-C01-after-take-me-in.jpg; screenshots/skep/03-join-link.jpg, 05-after-verify.jpg",
+    "stage": "activation",
+    "dedupedFrom": [
+      "J-01",
+      "C-02",
+      "A23",
+      "SK-03"
+    ]
+  },
+  {
+    "id": "M-030",
+    "agent": "A6-joiner;A1-casual;A2-competitive;A4-skeptic",
+    "screen": "Member Home hero → Create-league wizard",
+    "journey": "Post-join / navigation",
+    "observation": "For a plain PLAYER (Settings: 'The Papago Grind PLAYER'; League tab: 'THE PRO · CASEY') the Home hero's only CTA is a full-width orange 'Lock it in and invite your crew' with 'The bylaws lock at the tee.' Tapping it opens 'CREATE YOUR LEAGUE · Review the bylaws, then lock it in' with a live 'Lock the bylaws & form the squads' button pre-filled with the friend's bylaws; '← Back' walks deeper into the wizard ('League name · Pro — that's you · Marcus'); 'Cancel' prompts 'Cancel this league? … discards it completely.' and fails only because the server refuses ('commissioner only').",
+    "expected": "A non-organizer never sees a lock/discard path; players get 'Casey locks the bylaws at first tee · squads drawn then · post from Sep 5'.",
+    "actual": "The organizer's configuration tool is the biggest button on every member's Home — the exact failure D40 was written to prevent; members are afraid to touch it or nearly delete the friend's league.",
+    "severity": "P0",
+    "category": "navigation",
+    "recommendation": "Gate the forming-hero CTA and the wizard view on role (index.html:10102 `nextStep` has no isPro check; D40's backstop only covers enterLeague at 14500); render a read-only forming card for players; server-verify lock.",
+    "confidence": 10,
+    "evidence": "screenshots/join/39-U-lock-it-in.jpg, 56-AI-you-escape.jpg, console 15:43:24 'commissioner only'; screenshots/cas/19-C02b-home-full.jpg; screenshots/comp/18-home-full.jpg, 19-lock-tap.jpg, 20-league-room.jpg; screenshots/skep/50-lock-page.jpg; decision-log D40",
+    "stage": "engagement",
+    "dedupedFrom": [
+      "J-02",
+      "A2",
+      "C-03",
+      "SK-08"
+    ]
+  },
+  {
+    "id": "M-040",
+    "agent": "A5-organizer;A3-novice;A6-joiner;A1-casual;A2-competitive;A4-skeptic",
+    "screen": "Post a round form → Round posted sheet → Standings / You tab / player row sheet",
+    "journey": "D — First round",
+    "observation": "Six of six web testers posted a round 7 days before first tee (Sep 5). The form preview said 'LEAGUE POINTS THIS ROUND 5' (or 6, or 12 — 'You torched your number by 5.0'). The posted sheet said only 'COUNTS ON YOUR CARD'. Standings then showed 'R 0 · Pts 0'; the player's own row sheet said 'No rounds this season yet — post one and you're on the board.'; You said 'THIS SEASON · Rounds posted 0' beside 'LIFETIME · Rounds posted 1'. The only pre-season hint on the form was 'No league yet?' (wrong — they were members). Home simultaneously said 'SEASON LIVE — Rounds count from today' (A3) while the Clubhouse said 'PRACTICE ROUNDS HIT YOUR CARD, NOT THE SEASON'; the feed showed league mates' rounds while every standings row was 0; 'COUNTING ROUNDS 0 / 4 · August' counted a month before the season.",
+    "expected": "If the round date is outside the active season the form, the posted card and the receipt say 'Season starts Sat Sep 5 — this round builds your number; no league points yet', and the standings row says 'practice · not scored'.",
+    "actual": "Points promised, none delivered, no sentence anywhere explains why; the first thing the app promised a new member didn't happen and every tester had to guess (two believed the post had failed).",
+    "severity": "P0",
+    "category": "comprehension",
+    "recommendation": "Compute the preview per league against the season window (index.html:6339–6341 uses only `vs`); replace the points panel with the season-status line pre-season; echo status on the posted card and the receipt; never show 'post one and you're on the board' to someone with a posted round; single season-state string used on Home, Clubhouse and the form.",
+    "confidence": 10,
+    "evidence": "screenshots/org/68-round-filled.jpg, 72-standings-after-round.jpg, 73-you-tab.jpg; screenshots/nov/34-reload-home.jpg, 35-clubhouse-1.jpg, 71-pre-post2.jpg, 78-standings-after.jpg; screenshots/join/46-Z-preview.jpg, 47-AA-posted.jpg, 51-AD-standings-after.jpg, 52-AE-marcus-row.jpg, 57-AJ-you-real.jpg; screenshots/cas/51-F08-tee-white-picked.jpg, 53-G01-after-post.jpg, 57-H01-standings-after.jpg, 58-H02-you-after.jpg; screenshots/comp/35-preview-74.jpg, 38-posted-74.jpg, 40-standings-after74.jpg, 41-standings-priya-tap.jpg; screenshots/skep/32-pre-post.jpg, 33-posted.jpg, 37-standings-after.jpg; index.html:3198, 6339",
+    "stage": "engagement",
+    "dedupedFrom": [
+      "ORG-05",
+      "N-03",
+      "J-03",
+      "A3",
+      "C-05",
+      "SK-09",
+      "J-11",
+      "N-16",
+      "SK-33"
+    ]
+  },
+  {
+    "id": "M-003",
+    "agent": "A5-organizer;A3-novice;A6-joiner;A1-casual;A4-skeptic",
+    "screen": "'Share the invite link' / 'Code · XXXX' chip / 'Share an invite link instead' (Standings, Members, welcome sheet, Add golfers)",
+    "journey": "C — Invite friends",
+    "observation": "Every share control produced only a transient status/toast 'Invite code: THEPTCQ5' (sometimes invisible in screenshots 1.5 s later). No link text was ever rendered, no 'Copied' confirmation, no share sheet (headless: navigator.share undefined). The DOM holds the template 'https://cupseason.app/?join='.",
+    "expected": "The full link and code visible as text with an explicit Copy, a prewritten share message, and a confirmation — regardless of navigator.share/clipboard availability.",
+    "actual": "The button says 'link' and gives a code; on any platform without share/clipboard the invite is effectively lost.",
+    "severity": "P1",
+    "category": "navigation",
+    "recommendation": "Always render the URL + code as selectable text with Copy and share text; do not rely on the catch-fallback toast (index.html:14127). Treat this as part of the invite path that M-001 currently prevents from opening at all.",
+    "confidence": 9,
+    "evidence": "screenshots/org/38-share-invite.jpg, 40-code-chip.jpg, 44-share-link-instead.jpg; screenshots/nov/45-share-link.jpg, 48-share-instead.jpg; screenshots/join/60-AK-share-invite2.jpg; screenshots/cas/82-J03-share-invite.jpg; screenshots/skep/51-share-invite.jpg; index.html:14117–14127",
+    "stage": "activation",
+    "dedupedFrom": [
+      "ORG-03",
+      "N-05",
+      "J-27",
+      "A22",
+      "SK-17"
+    ]
+  },
+  {
+    "id": "M-006",
+    "agent": "A5-organizer",
+    "screen": "Wizard header / step 1 sheet / step 3 / Home / League tab",
+    "journey": "C — Create a league",
+    "observation": "'CREATE YOUR LEAGUE · LOCKS AT FIRST TEE' (header), 'rename it any time before the bylaws lock' (name sheet), 'Lock the bylaws & form the squads' (button, now), 'Lock opens the invite link' (step 3), 'The bylaws · locked at first tee' (League tab), and the endgame is still switchable after lock. The code THEPTCQ5 existed before any lock.",
+    "expected": "One named moment when rules freeze, and a separate 'open the league / invites on' action.",
+    "actual": "Three lock moments and a false dependency between lock and invites; the organizer hesitates at the most consequential tap ('will this draw squads with only me?').",
+    "severity": "P1",
+    "category": "comprehension",
+    "recommendation": "Split into 'Open the league (invites on)' now and 'Rules lock automatically at first tee'; drop 'form the squads' from the button while under the minimum.",
+    "confidence": 9,
+    "evidence": "screenshots/org/15-wizard-1.jpg, 17-wizard-3.jpg, 30-wizard-step3.jpg, 35-home-after-failed-lock.jpg, 45-league-tab.jpg, 37-league-room-forming.jpg; screenshots/nov/40-rules-expanded.jpg ('Finish: Cup Final — switch to points table')",
+    "stage": "activation",
+    "dedupedFrom": [
+      "ORG-08"
+    ]
+  },
+  {
+    "id": "M-007",
+    "agent": "A3-novice",
+    "screen": "Wizard step 3 — Review footer",
+    "journey": "C — Create a league",
+    "observation": "'Minimum four to tee off.' is the first mention of a minimum, on the last step. The league then locked with 1 player; Home said 'SEASON LIVE', Standings 'SQUADS LOCKED'.",
+    "expected": "Minimum stated on step 1 and on Home ('1 of 4 in'); enforced or clearly staged.",
+    "actual": "Revealed last, then contradicted.",
+    "severity": "P1",
+    "category": "rules",
+    "recommendation": "State the minimum up front; block or clearly stage the season until met (spec §: min 4 players).",
+    "confidence": 9,
+    "evidence": "screenshots/nov/28-wizard-step3.jpg, 34-reload-home.jpg, 36-clubhouse-full.jpg; spec-v1.0.md:179",
+    "stage": "activation",
+    "dedupedFrom": [
+      "N-06"
+    ]
+  },
+  {
+    "id": "M-008",
+    "agent": "A3-novice;A5-organizer",
+    "screen": "Wizard Customize — Teams",
+    "journey": "C — Create a league",
+    "observation": "'2 Squads' is highlighted, the caption reads '4 squads · the full cup experience for 8+ players.', and an orange note says '1 golfer staged — solo fits.' Three contradictory signals on one control at first paint.",
+    "expected": "Caption describes the selected option; the staged-count hint recommends rather than contradicts.",
+    "actual": "Organizer cannot tell what structure is chosen.",
+    "severity": "P1",
+    "category": "comprehension",
+    "recommendation": "Bind the caption to the selection; turn the hint into a recommendation line.",
+    "confidence": 9,
+    "evidence": "screenshots/nov/19-wizard-customize-full.jpg (DOM: '2 Squads | class=on'); screenshots/org/23-cust-teams.jpg",
+    "stage": "activation",
+    "dedupedFrom": [
+      "N-07",
+      "ORG-14"
+    ]
+  },
+  {
+    "id": "M-009",
+    "agent": "A5-organizer;A3-novice",
+    "screen": "Wizard — Teams / How it ends / Pot split (i)",
+    "journey": "C — Create a league",
+    "observation": "For 7 players the app suggests '2 squads · fits 4–7 … regular-season leader carries a +10 head start'; the endgame copy says 'top seeds only'; the pot split says 'champ 60%'. Nothing explains 3-v-4 scoring, what a seed is, +10 of what, how many seeds, what non-seeds do, or how a squad divides 60%.",
+    "expected": "A worked example for the chosen player count ('With 7: 3 v 4, squads compared by …; both reach the Final; champ squad splits $X each').",
+    "actual": "Structural consequences left to inference; organizer can't answer friends' first fairness question.",
+    "severity": "P1",
+    "category": "rules",
+    "recommendation": "Add per-structure worked examples under Teams, How it ends and Pot split; define seed once.",
+    "confidence": 9,
+    "evidence": "screenshots/org/23-cust-teams.jpg, 28-teams-state.jpg, 54-tab-Pot.jpg; screenshots/nov/20-cust-a.jpg; spec §14.3 has the seed rules the UI omits",
+    "stage": "activation",
+    "dedupedFrom": [
+      "ORG-14",
+      "N-18"
+    ]
+  },
+  {
+    "id": "M-010",
+    "agent": "A5-organizer;A3-novice",
+    "screen": "Wizard step 2 — preset cards and (i)",
+    "journey": "C — Create a league",
+    "observation": "Cards read '100% hcp · honor scores · any course · unlimited counting · no floor' / '95% hcp · GHIN rounds · best 4 / mo count · 2-round floor' / '90% hcp · verified + attested · rated tees · best 4 / mo · 3-round floor'. The (i) repeats the tokens and adds 'Every individual dial unlocks with Pro Shop' while a Customize button sits beneath.",
+    "expected": "Plain-English presets; each token tappable for a one-line definition.",
+    "actual": "Seven undefined jargon tokens per card; 'pick once, argue never' becomes 'pick blind'.",
+    "severity": "P1",
+    "category": "comprehension",
+    "recommendation": "Rewrite each preset as two plain sentences; define tokens on tap; remove 'Pro Shop' from the explainer.",
+    "confidence": 9,
+    "evidence": "screenshots/org/18-wizard-step2.jpg, 19-comp-info.jpg, 20-comp-info2.jpg; screenshots/nov/15-wizard-step2.jpg, 17-wizard-step2-info.jpg",
+    "stage": "activation",
+    "dedupedFrom": [
+      "ORG-13"
+    ]
+  },
+  {
+    "id": "M-011",
+    "agent": "A5-organizer;A3-novice",
+    "screen": "Wizard step 2 cards → step 3 review → League tab bylaws → live scoring",
+    "journey": "C — Create a league",
+    "observation": "Standard = 'GHIN rounds' on the card, 'VERIFICATION Attested' in the review/bylaws; Cutthroat = 'verified + attested · rated tees'. 'Attested' is defined only on the live scoring screen ('Scores entered together are auto-attested'). The golfer card says GHIN is 'identity, not your number'.",
+    "expected": "One word per verification level with a one-line definition where it is chosen.",
+    "actual": "Three vocabularies; the Pro cannot say what friends must do to post; friends without GHIN may think they can't play.",
+    "severity": "P1",
+    "category": "terminology",
+    "recommendation": "Define each level on its card ('Attested = scored live by your group or confirmed by a partner'); align preset → review → bylaws wording (spec §: Standard = Attested).",
+    "confidence": 9,
+    "evidence": "screenshots/org/18-wizard-step2.jpg, 30-wizard-step3.jpg, 45-league-tab.jpg, 88-live-scoring.jpg; screenshots/nov/15-wizard-step2.jpg, 28-wizard-step3.jpg, 90-live-scoring.jpg; spec-v1.0.md:149,167",
+    "stage": "activation",
+    "dedupedFrom": [
+      "ORG-07",
+      "N-11"
+    ]
+  },
+  {
+    "id": "M-017",
+    "agent": "A5-organizer;A3-novice",
+    "screen": "Form squads · blind draw → 'Draw squads'; League tab 'Share the season → Link'; wizard Cancel",
+    "journey": "C — Squads",
+    "observation": "'Draw squads' shows 'Draw failed. Something went wrong — please try again.' while the server said 'Not enough golfers to cover every squad — 1 in, 2 squads. Share the invite link first.' 'Share the season → Link' said 'Could not make the link. Please sign in again.' when the real error was a clipboard write-permission denial. A member's wizard Cancel said 'Could not discard. Something went wrong' when the server said 'commissioner only'.",
+    "expected": "User-facing server messages shown verbatim; honest client errors.",
+    "actual": "humanError() maps everything unrecognised to one generic sentence and misdiagnoses permission errors as sign-in problems.",
+    "severity": "P1",
+    "category": "gameplay",
+    "recommendation": "Pass through RPC messages that are written for users; separate 'link creation' from 'copy'; disable Draw with the reason while under the minimum. Root: index.html:4104–4118.",
+    "confidence": 10,
+    "evidence": "screenshots/org/53-draw-squads-tap.jpg, 60-season-share-tap.jpg; screenshots/nov/53-after-draw.jpg; console 13:39:56 (nov), 13:44 (org), 15:43:24 (join)",
+    "stage": "activation",
+    "dedupedFrom": [
+      "ORG-12",
+      "N-09",
+      "ORG-26"
+    ]
+  },
+  {
+    "id": "M-018",
+    "agent": "A5-organizer;A3-novice",
+    "screen": "Any screen with the 'Get the full-screen app' banner; Live setup",
+    "journey": "D / Side games",
+    "observation": "The install banner sits exactly over the floating ⊕ (document.elementFromPoint at the ⊕ centre returned the banner); two taps did nothing until 'Not now'. On Live setup the banner's 'Add' sits beside the guest 'Add', and the wrong one was hit.",
+    "expected": "The primary action is never covered; no two identical 'Add' buttons on one screen.",
+    "actual": "New users who ignore the banner cannot post, play live, or plan; a guest entry is lost.",
+    "severity": "P1",
+    "category": "navigation",
+    "recommendation": "Anchor the nudge above the nav or move it to Settings; suppress it on task screens; label 'Add guest'.",
+    "confidence": 10,
+    "evidence": "screenshots/org/84-live-door2.jpg, 81-edit-back-step2.jpg; screenshots/nov/85-live-1.jpg, 88-live-scoring.jpg",
+    "stage": "activation",
+    "dedupedFrom": [
+      "ORG-09",
+      "N-27"
+    ]
+  },
+  {
+    "id": "M-019",
+    "agent": "A5-organizer",
+    "screen": "Add golfers / Add to the foursome search; Card & settings 'Findable by'",
+    "journey": "C / Side games",
+    "observation": "Searching '@jerecho' returned two strangers ('Jerecho Fischbeck ✦ Founder', 'jerechosb') each with [Add]. Settings show 'Findable by: All' selected by default.",
+    "expected": "Private friend groups; strangers not addable into a money league without confirmation.",
+    "actual": "Global directory; default discoverable to everyone.",
+    "severity": "P1",
+    "category": "social",
+    "recommendation": "Default Findable to Buddies; require exact handle for non-buddies; label relationship; confirm before adding a non-buddy to a league with a pot.",
+    "confidence": 9,
+    "evidence": "screenshots/org/43-add-golfers-search.jpg, 77-card-settings.jpg",
+    "stage": "activation",
+    "dedupedFrom": [
+      "ORG-15"
+    ]
+  },
+  {
+    "id": "M-024",
+    "agent": "A6-joiner",
+    "screen": "Invite link landing / door",
+    "journey": "Join",
+    "observation": "Landing copy: 'You're invited to The Papago Grind. Enter your email and you're in.' then 'you'll join … the moment your sign-in code lands.' The real flow is code → golfer card → orientation → $50 consent sheet.",
+    "expected": "Copy that matches the flow.",
+    "actual": "Promises instant membership; withholds the consent.",
+    "severity": "P1",
+    "category": "onboarding",
+    "recommendation": "'Sign in to see The Papago Grind — you'll review the details before you join.'",
+    "confidence": 9,
+    "evidence": "screenshots/join/02-B-join-link-landing.jpg, 04-D-after-code-join.jpg, 06-F-after-verify.jpg, 11-J-after-take-me-in.jpg",
+    "stage": "activation",
+    "dedupedFrom": [
+      "J-05"
+    ]
+  },
+  {
+    "id": "M-025",
+    "agent": "A6-joiner",
+    "screen": "Consent sheet → Home (league-less) → Join with a code; URL",
+    "journey": "Join",
+    "observation": "'Not now' on the consent sheet drops the invite: Home shows 'LEAGUE · None yet'; the Join sheet's code box is empty and the code had to be retyped; the only trace was an a11y status never seen on screen. Opening /?join=CODE immediately rewrites the URL to '/'.",
+    "expected": "A visible 'Invite pending: The Papago Grind · Review' card; code pre-filled; invite survives reload.",
+    "actual": "Invite vanishes; re-entry required.",
+    "severity": "P1",
+    "category": "retention",
+    "recommendation": "Persist the pending invite as a Home card; pre-fill the code; keep the param until the join completes.",
+    "confidence": 9,
+    "evidence": "screenshots/join/12-K-not-now.jpg, 13-L-join-a-league.jpg; url output 15:22:08",
+    "stage": "activation",
+    "dedupedFrom": [
+      "J-06",
+      "J-29"
+    ]
+  },
+  {
+    "id": "M-026",
+    "agent": "A6-joiner;A2-competitive;A4-skeptic;A1-casual",
+    "screen": "Consent sheet / bylaws / wizard / Clubhouse header (iOS 'STANDARD RULES')",
+    "journey": "Join / Rules",
+    "observation": "'PRESET · Standard' / 'STANDARD RULES' appears on the consent sheet, the bylaws, the leaked wizard and the iOS Clubhouse header; it is never defined or linked.",
+    "expected": "Inline: 'Standard · 95% allowance, best 4 / mo, 2-round floor, attested' or a tap-through.",
+    "actual": "Undefined at the decision moment.",
+    "severity": "P1",
+    "category": "comprehension",
+    "recommendation": "Define presets inline wherever named; make bylaw rows tappable.",
+    "confidence": 9,
+    "evidence": "screenshots/join/11-J-after-take-me-in.jpg, 30-R-tab-League.jpg; screenshots/ios/03-clubhouse.jpg",
+    "stage": "activation",
+    "dedupedFrom": [
+      "J-07",
+      "IOS-16"
+    ]
+  },
+  {
+    "id": "M-031",
+    "agent": "A1-casual;A2-competitive;A6-joiner",
+    "screen": "Bottom nav 'You' from Home (member of a forming league)",
+    "journey": "Navigation",
+    "observation": "From Home, tapping 'You' opened the 'Create your league · Review the bylaws' wizard 3/3 times (A1: 15:22, 15:58, 15:59; A2: 15:22, 15:45; A6: twice). From Clubhouse the same tab opens the profile.",
+    "expected": "'You' always opens my card.",
+    "actual": "A player is one tap from an organizer-only action and cannot reach their profile from Home.",
+    "severity": "P1",
+    "category": "navigation",
+    "recommendation": "Scope/clear wizard view state; the You tab must always render the profile regardless of league phase or role.",
+    "confidence": 9,
+    "evidence": "screenshots/cas/02-R01-you-tab.jpg, 90-K07-home-then-you.jpg; screenshots/comp/02-you-tab.jpg, 49-you-after.jpg; screenshots/join/54-AG-you.jpg",
+    "stage": "engagement",
+    "dedupedFrom": [
+      "A1",
+      "C-04",
+      "J-02"
+    ]
+  },
+  {
+    "id": "M-033",
+    "agent": "A7-observer;A4-skeptic;A1-casual;A6-joiner",
+    "screen": "Home top row (member / mid-season)",
+    "journey": "What do I do now",
+    "observation": "The first row on every member's Home is three equal pills 'Start a league · Start an event · Join a league' ('Join a league' highlighted after joining); no member-facing 'what to do next'; posting is behind an unlabeled '+'.",
+    "expected": "My standing and this week's action first; creation in an overflow.",
+    "actual": "The screen reads like a setup tool; suggests I haven't joined.",
+    "severity": "P1",
+    "category": "visual-hierarchy",
+    "recommendation": "Demote creation for members; role-aware hero with 'Your next step: post 2 rounds between Sep 5 and Sep 30'; label the +.",
+    "confidence": 9,
+    "evidence": "screenshots/obs/05-home-full.jpg; screenshots/skep/08-home-after-close.jpg, 09-home-full.jpg; screenshots/cas/19-C02b-home-full.jpg; screenshots/join/20-P-home-member.jpg",
+    "stage": "engagement",
+    "dedupedFrom": [
+      "R7-06",
+      "SK-07",
+      "A34",
+      "J-26"
+    ]
+  },
+  {
+    "id": "M-041",
+    "agent": "A5-organizer;A3-novice;A6-joiner;A1-casual;A2-competitive;A4-skeptic",
+    "screen": "Home tile / league room header / Standings / League sub-tab / Board / Squads card",
+    "journey": "After setup / post-join",
+    "observation": "The same unlocked or forming league is 'FORMING' (Home), 'Squad formation' (room header), 'SQUADS ARE FORMING · The Pro has the list' (Standings), 'Squads · LIVE NOW — CAPTAINS READY' or 'Complete · rosters locked' (League tab card), '◆ … is live — post the first round' (Board), 'SQUADS LOCKED' (Clubhouse banner) — while the Form-squads screen shows both squads 'Empty'. 'Captains' exist nowhere else.",
+    "expected": "One league state machine (Forming → Open → Locked → Live → Cup Final → Closed) with one label rendered from it.",
+    "actual": "Four to six contradictory statuses; neither the Pro nor a joiner can say what stage the league is in or whether squads exist.",
+    "severity": "P1",
+    "category": "comprehension",
+    "recommendation": "Derive every status string from one state; delete the hard-coded strings at index.html:3553, 12231–12232, 3428.",
+    "confidence": 10,
+    "evidence": "screenshots/org/35-home-after-failed-lock.jpg, 37-league-room-forming.jpg, 45-league-tab.jpg, 58-tab-Board2.jpg; screenshots/nov/37-club-league.jpg, 52-form-squads.jpg; screenshots/join/22-Q-clubhouse.jpg, 30-R-tab-League.jpg, 33-S-see-squads.jpg; screenshots/cas/21-D01b-clubhouse-full.jpg, 27-D05-tab-league.jpg; screenshots/comp/24-league-tab.jpg, 21-league-room.jpg; screenshots/skep/10-league-room.jpg, 13-tab-League.jpg",
+    "stage": "engagement",
+    "dedupedFrom": [
+      "ORG-10",
+      "N-10",
+      "J-09",
+      "A12",
+      "C-14",
+      "SK-15"
+    ]
+  },
+  {
+    "id": "M-044",
+    "agent": "A3-novice;A1-casual;A5-organizer",
+    "screen": "Round posted card / round receipt",
+    "journey": "D — First round",
+    "observation": "Posted card: '91 · 3.7 over your number · COUNTS ON YOUR CARD'; the receipt shows the differential formula but no points, no band-to-points link, no league mention, no allowance, ISO date. The '-9.8' on the form is not tappable.",
+    "expected": "'5 pts to Squad 1' or 'Practice — season starts Sep 5' on the card; receipt line 'League points: 6' and 'index used: 14.2 × 95% = 13.5' (spec §16: receipts show the allowance snapshot).",
+    "actual": "'Counts on your card' reads as 'counted'; the 'show its work' promise stops one line short; Q10 'what did I earn' is unanswerable without visiting Standings.",
+    "severity": "P1",
+    "category": "comprehension",
+    "recommendation": "State points, band and season status on the posted card and receipt; make preview numbers tappable; format the date.",
+    "confidence": 9,
+    "evidence": "screenshots/nov/72-posted.jpg, 77-round-detail.jpg; screenshots/cas/53-G01-after-post.jpg, 56-G04-round-receipt.jpg, 52-F09-tap-vsindex.jpg; screenshots/org/71-round-detail.jpg; spec-v1.0.md:264",
+    "stage": "engagement",
+    "dedupedFrom": [
+      "N-26",
+      "A18",
+      "ORG-37"
+    ]
+  },
+  {
+    "id": "M-045",
+    "agent": "A5-organizer;A3-novice;A6-joiner;A1-casual;A7-observer;A4-skeptic;A2-competitive",
+    "screen": "Post form preview / posted card / receipt / You tab 'Best vs index' / standings 'Avg vs index'",
+    "journey": "D — First round",
+    "observation": "One round shown as '-3.7 VS YOUR INDEX' (red) on the form, '3.7 over your number' on the posted card, 'Against your number -3.7 — POSTED ANYWAY' on the receipt, and 'Best vs index -3.7 · Career best' on You. Minus means WORSE (index − differential); golfers read minus as under/better. Standings show 'AVG VS INDEX -4.0' in red for a leader whose rounds 'beat the number'. Seven of eight testers logged it.",
+    "expected": "One convention with words: 'beat by 2.6' / '3.7 over'; never a bare signed number; colour, sign and wording agree.",
+    "actual": "Golfers misread their own results ('I beat my index by 3.7 — why only 5 points?'); 'career best -3.7' for a bottom-band round is nonsensical.",
+    "severity": "P1",
+    "category": "terminology",
+    "recommendation": "Render pvi through vsPhrase() everywhere (index.html:5710–5714 already has the words); retire the `sgn()` helpers (4566, 11440, 11478, 12495) and the `(vs>=0?'+':'')` sites (6339, 11519, 11830–11890).",
+    "confidence": 10,
+    "evidence": "screenshots/org/68-round-filled.jpg, 69-after-post.jpg, 71-round-detail.jpg; screenshots/nov/71-pre-post2.jpg, 77-round-detail.jpg, 79-you-tab.jpg, 72-posted.jpg; screenshots/join/46-Z-preview.jpg, 48-AA-posted-viewport.jpg, 53-AF-receipt.jpg; screenshots/cas/51-F08-tee-white-picked.jpg, 53-G01-after-post.jpg, 56-G04-round-receipt.jpg; screenshots/obs/10-my-row.jpg, 44-jade-row.jpg, 09-club-mid.jpg; screenshots/skep/32-pre-post.jpg, 36-round-receipt.jpg, 21-you-full.jpg; screenshots/comp/35-preview-74.jpg, 45-preview-84b.jpg, 50-you-after2.jpg",
+    "stage": "engagement",
+    "dedupedFrom": [
+      "ORG-06",
+      "N-04",
+      "J-04",
+      "A4",
+      "R7-11",
+      "SK-10",
+      "C-08"
+    ]
+  },
+  {
+    "id": "M-046",
+    "agent": "A2-competitive;A4-skeptic;A3-novice",
+    "screen": "How scoring works sheet / post-form point bands / receipt",
+    "journey": "Rules hunt",
+    "observation": "'Torched it · beat it by 3+ · 12' never says 3 of WHAT; the receipt reveals index − differential (slope-adjusted), not strokes vs course handicap (~18% different at slope 133). Band edges overlap ('by 3+' vs 'by 1–3'; 'within 1' vs '1–3 over'). The same band is worded three ways ('Rough day, posted anyway' / 'Posted anyway · rough day' / 'POSTED ANYWAY') and the post form uses a fourth table wording.",
+    "expected": "Half-open ranges ('≥3.0', '1.0–2.9', '−0.9 to 0.9'), the unit stated once ('differential vs index'), one canonical wording.",
+    "actual": "A points dispute waiting at the boundary that matters most (12 vs 9); golfers assume strokes.",
+    "severity": "P1",
+    "category": "rules",
+    "recommendation": "Define the unit in the bands table and on the preview ('differential 1.4 vs index 6.4'); one vocabulary list enforced across sheet/form/receipt.",
+    "confidence": 9,
+    "evidence": "screenshots/comp/14-scoring-works.jpg, 35-preview-74.jpg, 48-round-74-detail.jpg; screenshots/skep/06-how-scoring.jpg, 28-post-form.jpg; screenshots/nov/42-scoring-a.jpg, 65-post-form.jpg, 77-round-detail.jpg",
+    "stage": "engagement",
+    "dedupedFrom": [
+      "C-07",
+      "SK-05",
+      "N-37"
+    ]
+  },
+  {
+    "id": "M-047",
+    "agent": "A7-observer",
+    "screen": "Home round card vs receipt vs You (mid-season)",
+    "journey": "E",
+    "observation": "Home card for the Aug 16 round: 'Beat your number by 3.3'. Receipt: '+2.6 vs index · 9 PTS'. You: 'Best vs index +3.3 · Career best' and 'Best round +2.6 vs index · season'. By the band table 3.3 = 12 pts, 2.6 = 9 pts.",
+    "expected": "One measure per round with its band printed next to it.",
+    "actual": "Two numbers for one round straddling a band boundary; the rule looks rigged ('I beat it by 3.3, why 9?').",
+    "severity": "P1",
+    "category": "rules",
+    "recommendation": "Single baseline (index vs 95% allowance?) labelled and used everywhere.",
+    "confidence": 9,
+    "evidence": "screenshots/obs/04-home-first.jpg, 10-my-row.jpg, 22-how-scoring2.jpg, 29-you-full.jpg",
+    "stage": "retention",
+    "dedupedFrom": [
+      "R7-03"
+    ]
+  },
+  {
+    "id": "M-051",
+    "agent": "A2-competitive;A4-skeptic;A3-novice",
+    "screen": "Card & settings → Handicap index; How scoring works; golfer card GHIN copy",
+    "journey": "Sign-up / rules",
+    "observation": "'Your index builds automatically from your posted scores… Set it here to seed a starter; once you have 3 rounds your scores take over.' A real 6.4 GHIN or an 18Birdies 15 is a 'starter' the app overwrites with a 3-round number; the only entry point is a field at the bottom of a settings sheet after the scoring sheet said 'no typing'. GHIN copy on the card: 'that's identity, not your number' (the settings wording is clearer).",
+    "expected": "State which number the league scores against and the precedence; ask for an existing index at join; reuse the clear GHIN wording.",
+    "actual": "Serious golfers' handicaps treated as placeholders with no explanation of the switch.",
+    "severity": "P1",
+    "category": "rules",
+    "recommendation": "State precedence (GHIN vs computed) in the sheet; let the Pro choose 'use GHIN' per league; ask 'Have a handicap already?' on the golfer card; reuse settings GHIN copy on the card.",
+    "confidence": 8,
+    "evidence": "screenshots/comp/08-settings5.jpg, 14-scoring-works.jpg; screenshots/skep/06-how-scoring.jpg, 38-settings.jpg; screenshots/nov/07-ghin.jpg, 81-settings.jpg",
+    "stage": "activation",
+    "dedupedFrom": [
+      "C-34",
+      "SK-23",
+      "N-30"
+    ]
+  },
+  {
+    "id": "M-054",
+    "agent": "A5-organizer;A3-novice;A2-competitive;A4-skeptic;A6-joiner",
+    "screen": "Clubhouse → League sub-tab → collapsed '▶ LEAGUE RULES & PRO SHOP' → 'How scoring & handicaps work →'; You tab bottom",
+    "journey": "Rules",
+    "observation": "The bylaws table and the (excellent) 'How scoring works' explainer are reachable only via Clubhouse → room → League sub-tab → expand a collapsed panel → link (4 taps), or the five 'How it works' cards at the very bottom of the You tab. Not linked from the wizard, Home, Standings, the post form's bands, or the consent sheet; the scoring sheet says 'Your league's exact numbers are in League rules' with no link. Organizer found it 18 minutes in, by accident.",
+    "expected": "A first-class 'Rules' surface one tap from Standings; 'How scoring works' linked from wizard step 2, the Home rules chip, the post-form bands and the consent sheet; help entry points where confusion happens.",
+    "actual": "The best copy in the product is undiscoverable at the moment of confusion; friends will ask the Pro verbally.",
+    "severity": "P1",
+    "category": "navigation",
+    "recommendation": "Promote 'Rules' to a sub-tab; link the explainer from every surface that shows a points number; put 'How it works' on Home for the first week.",
+    "confidence": 9,
+    "evidence": "screenshots/org/45-league-tab.jpg, 48-rules-expanded.jpg, 49-scoring-help2.jpg; screenshots/nov/38-club-league-full.jpg, 40-rules-expanded.jpg, 42-scoring-a.jpg; screenshots/comp/24-league-tab.jpg, 29-rules-open2.jpg; screenshots/skep/13-tab-League.jpg, 21-you-full.jpg; screenshots/join/57-AJ-you-real.jpg, 19-O-how-scoring-full.jpg",
+    "stage": "engagement",
+    "dedupedFrom": [
+      "ORG-11",
+      "N-08",
+      "C-19",
+      "SK-20",
+      "J-31",
+      "SK-24"
+    ]
+  },
+  {
+    "id": "M-055",
+    "agent": "A7-observer;A2-competitive;A3-novice;iOS-survey;A1-casual;A6-joiner;A4-skeptic",
+    "screen": "Home hero / Standings / bylaws row 'CUP FINAL · Final 4 weeks · scored fresh' / 'Leagues vs events' sheet",
+    "journey": "E / F — how do I win",
+    "observation": "Home says 'You lead by 22 points over Jade.' The only statement that the title is decided by a fresh-scored four-week Cup Final is one bylaw row behind a collapsed disclosure (4 taps + disclosure, ~5 min). Nobody found who plays the Final, whether the first weeks matter, what 'scored fresh' does to accumulated points, what a seed / 'LOCKED' / 'EVERYONE ADVANCES — 2 CONTENDERS, 2 SEATS' / 'TOP 1 ADVANCE' means, or whether 'Cup champs $150' is a person or a squad. The word in the product's name is never defined in the product. Empty standings show 'TOP SEED · +10', 'PROJECTED UNDER A GENEROUS CEILING' for squads with no players.",
+    "expected": "The endgame on the hero and the standings ('Top 2 seed into a 4-week Cup Final from Dec 22 — scored fresh; the leader carries +10'), with a countdown, tappable bylaw rows and an 'Endgame' section in How scoring works. (Spec §14.3 has all of this.)",
+    "actual": "'What do I need to do to win?' is unanswered anywhere; a member could coast on a lead that decides nothing; the finale arrives unannounced.",
+    "severity": "P1",
+    "category": "rules",
+    "recommendation": "One endgame sentence on Home/Standings + countdown; define seeds/advance inline; hide projections until data exists; add ties/seeds/final to the explainer.",
+    "confidence": 10,
+    "evidence": "screenshots/obs/04-home-first.jpg, 21-bylaws-open.jpg, 08-club-top.jpg; screenshots/comp/29-rules-open2.jpg, 25-pot-tab.jpg; screenshots/nov/20-cust-a.jpg, 36-clubhouse-full.jpg; screenshots/ios/03-clubhouse.jpg; spec-v1.0.md:245",
+    "stage": "retention",
+    "dedupedFrom": [
+      "R7-01",
+      "C-12",
+      "R7-13",
+      "N-13",
+      "IOS-17",
+      "N-18"
+    ]
+  },
+  {
+    "id": "M-056",
+    "agent": "A2-competitive",
+    "screen": "Standings / bylaws / How scoring works",
+    "journey": "Rules hunt",
+    "observation": "No tiebreak rule anywhere for squad points, Points King, Most Improved, Iron Man, skins or match play.",
+    "expected": "Ties explained where standings live (spec §14.3 ladder: h2h months → best month → fewest rounds → logged coin flip).",
+    "actual": "Absent in the product.",
+    "severity": "P1",
+    "category": "rules",
+    "recommendation": "Add a 'Ties' line to the standings footnote and the bylaws.",
+    "confidence": 9,
+    "evidence": "screenshots/comp/21-league-room.jpg, 29-rules-open2.jpg; spec-v1.0.md:245",
+    "stage": "retention",
+    "dedupedFrom": [
+      "C-11"
+    ]
+  },
+  {
+    "id": "M-057",
+    "agent": "A6-joiner;A3-novice;A2-competitive",
+    "screen": "Home / How scoring works / bylaws / wizard (i)",
+    "journey": "Rules",
+    "observation": "Floor penalty explained three ways: Home 'Miss it and your squad loses 5 points for every round you're short. Short months are waived.'; scoring sheet 'Miss it once and your season bye covers you automatically — the floor bites from the second miss.'; bylaws '2 / mo · −5 sqd pts / round short'; wizard (i) 'One Pro-approved bye month per season'.",
+    "expected": "One rule stated once, including the bye and who approves it.",
+    "actual": "Cannot tell whether the first miss is free or Pro-approved.",
+    "severity": "P1",
+    "category": "rules",
+    "recommendation": "Single source string reused everywhere; reconcile 'automatic' vs 'Pro-approved' (spec: auto-bye forgives the first miss).",
+    "confidence": 9,
+    "evidence": "screenshots/join/20-P-home-member.jpg, 19-O-how-scoring-full.jpg, 30-R-tab-League.jpg; screenshots/nov/24-cust-top.jpg",
+    "stage": "engagement",
+    "dedupedFrom": [
+      "J-08"
+    ]
+  },
+  {
+    "id": "M-058",
+    "agent": "A4-skeptic;A6-joiner;A1-casual",
+    "screen": "Door / welcome sheet / scoring sheet / League tab bylaws",
+    "journey": "Join / Rules",
+    "observation": "That this is a TEAM game with two randomly drawn squads is stated only in the collapsed bylaws on the sixth tab ('STRUCTURE 2 squads · Squad formation Blind draw'); 'squad' is used on the welcome sheet and Home before being defined; joiners never learn which squad is theirs or who triggers the draw.",
+    "expected": "'You'll be drawn into one of two squads when Casey locks the league' on the welcome sheet and Standings while forming.",
+    "actual": "Changes the whole mental model (my bad rounds cost teammates) after ~10 minutes.",
+    "severity": "P1",
+    "category": "rules",
+    "recommendation": "State structure and draw trigger on the covenant, welcome sheet and forming standings; define 'squad' on first use.",
+    "confidence": 9,
+    "evidence": "screenshots/skep/13-tab-League.jpg; screenshots/join/16-N-after-join.jpg, 22-Q-clubhouse.jpg; screenshots/cas/15-B03b-welcome-full.jpg",
+    "stage": "activation",
+    "dedupedFrom": [
+      "SK-06",
+      "J-09",
+      "A10"
+    ]
+  },
+  {
+    "id": "M-059",
+    "agent": "A7-observer;iOS-survey",
+    "screen": "Home hero / Clubhouse tiles",
+    "journey": "E",
+    "observation": "Pills and captions 'HELD', 'AUG FLOOR 1/2 ▬▬ 1 MORE · 2D', 'MONTH CLOSES in 2 days', 'LOCKED', 'Partial month · floors waived', 'no floor to clear' have no explanation and are not tappable.",
+    "expected": "Each term explains itself or opens an explanation ('Held 1st since last week', 'August minimum: 1 of 2 posted — 2 days left or −5 pts').",
+    "actual": "Three to four undefined status words in the first 10 seconds; the deadline's cost is unknown.",
+    "severity": "P1",
+    "category": "terminology",
+    "recommendation": "Tap-to-explain or plain copy on the hero.",
+    "confidence": 9,
+    "evidence": "screenshots/obs/04-home-first.jpg; screenshots/ios/01-door.jpg, 03-clubhouse.jpg",
+    "stage": "retention",
+    "dedupedFrom": [
+      "R7-05",
+      "IOS-11"
+    ]
+  },
+  {
+    "id": "M-070",
+    "agent": "A5-organizer;A7-observer;A6-joiner;A1-casual;A2-competitive;A4-skeptic;iOS-survey",
+    "screen": "Clubhouse segmented control → Schedule (web); Clubhouse tabs vs pushed Board/Schedule (iOS)",
+    "journey": "E / navigation",
+    "observation": "Five sub-tabs switch in place; 'Schedule' navigates to a full-screen global 'YOUR GOLF CALENDAR' whose only exit is '← HOME'; the league chips and tab strip vanish; subsequent Board/Album taps silently failed because the room was gone. iOS has Board/Schedule both as tabs and as pushed screens with different titles.",
+    "expected": "A tab stays in the room and returns to it; one route per concept.",
+    "actual": "Disorientation; the league's own schedule can't be found; 1–3 failed taps to recover.",
+    "severity": "P1",
+    "category": "navigation",
+    "recommendation": "Render the calendar inside the tab or style it as an outbound link that returns to the Clubhouse; unify iOS routes.",
+    "confidence": 10,
+    "evidence": "screenshots/org/55-tab-Schedule.jpg, 56-tab-Board.jpg; screenshots/obs/13-sub-Schedule.jpg, 34-next-tile.jpg; screenshots/join/24-R-tab-Schedule.jpg; screenshots/cas/28-D05-tab-schedule.jpg; screenshots/comp/26-schedule-tab.jpg; screenshots/skep/14-tab-Schedule.jpg; screenshots/ios/03-clubhouse.jpg, 04-board.jpg, 05-schedule.jpg",
+    "stage": "engagement",
+    "dedupedFrom": [
+      "ORG-18",
+      "R7-07",
+      "J-12",
+      "A14",
+      "C-18",
+      "SK-14",
+      "IOS-24"
+    ]
+  },
+  {
+    "id": "M-072",
+    "agent": "A7-observer",
+    "screen": "Home (member of two leagues)",
+    "journey": "E",
+    "observation": "Home's hero shows exactly one league — the last one opened in the Clubhouse. On first load it showed Fellas (1st); only after visiting 'Who's the bitch?' did the hero read '2nd — HELD · 10 points back of Galen'. No switcher exists on Home; a hidden status says 'Switch groups anytime from Home'. The floor bar shown for one league is absent for the other despite the same bylaws.",
+    "expected": "Every league's standing visible on Home with a visible switcher.",
+    "actual": "The deficit that should pull the member back is hidden until they go looking (discovered by accident after 10 min).",
+    "severity": "P1",
+    "category": "navigation",
+    "recommendation": "Stack a compact row per league; add a visible switcher.",
+    "confidence": 9,
+    "evidence": "screenshots/obs/04-home-first.jpg vs 36-home-earlier.jpg; tree status text",
+    "stage": "retention",
+    "dedupedFrom": [
+      "R7-04"
+    ]
+  },
+  {
+    "id": "M-076",
+    "agent": "A1-casual;A2-competitive;iOS-survey",
+    "screen": "Post a round form",
+    "journey": "D — First round",
+    "observation": "Rating/Slope placeholders '72.1 / 128' (and '41'/'43' in the nines on iOS) read as filled values; typing the nines closed the tee list; with blank rating/slope the preview showed '-79.0 vs your index' (or '-77.6 · 5 pts') and 'Post round' stayed enabled. 'Start over' wiped the recent-course chips. Four attempts to get a tee selected.",
+    "expected": "Tee selection required or clearly pending; rating/slope hidden until set; 'Pick a course to see the score' instead of a nonsense number; recents persist.",
+    "actual": "A casual golfer will post rounds with no rating/slope or be baffled by −79.0.",
+    "severity": "P1",
+    "category": "visual-hierarchy",
+    "recommendation": "Guard the preview on rating+slope; require a tee; neutral placeholders ('—'); keep recents after clear.",
+    "confidence": 9,
+    "evidence": "screenshots/cas/48-F06-scores-entered.jpg, 42-F02-post-form.jpg; screenshots/comp/42-preview-84.jpg; screenshots/ios/09-post.jpg",
+    "stage": "engagement",
+    "dedupedFrom": [
+      "A5",
+      "C-20",
+      "IOS-07"
+    ]
+  },
+  {
+    "id": "M-080",
+    "agent": "A5-organizer;A3-novice;A1-casual;A2-competitive;A6-joiner",
+    "screen": "Round receipt / posted card / You → Recent rounds ✕",
+    "journey": "D — Wrong score",
+    "observation": "The receipt and posted card have no edit/delete. The only correction is a small unlabeled ✕ ('Delete round') on the You tab, firing a native browser confirm 'Delete this round? It leaves your card and any league standings it counted toward.' with no undo. No edit exists; nothing says rounds are re-posted, not edited.",
+    "expected": "'Fix this round' on the receipt → delete + re-post with prefilled fields; in-app confirm; undo toast.",
+    "actual": "Q9 'what if something goes wrong' has no discoverable answer at the point of need; hard to find, easy to hit once found.",
+    "severity": "P1",
+    "category": "gameplay",
+    "recommendation": "Add a labelled correction path on the receipt/card; app-styled confirm with undo; explain immutability (spec §16).",
+    "confidence": 9,
+    "evidence": "screenshots/org/71-round-detail.jpg, 76-delete-confirm.jpg; screenshots/nov/77-round-detail.jpg, 79-you-tab.jpg; screenshots/cas/61-H05-tap-x.jpg; console '[dialog:confirm]' (org, cas, comp); screenshots/join/57-AJ-you-real.jpg",
+    "stage": "engagement",
+    "dedupedFrom": [
+      "ORG-35",
+      "N-12",
+      "A26",
+      "C-22",
+      "J-28"
+    ]
+  },
+  {
+    "id": "M-084",
+    "agent": "A1-casual;iOS-survey",
+    "screen": "Clubhouse › Board (web) / The Board (iOS)",
+    "journey": "E",
+    "observation": "Header 'THE BOARD · ROUNDS LAND HERE AUTOMATICALLY' but none of the posted rounds appear on the league Board (only on Home's feed); the iOS Board shows only '◆ Your league is live — post the first round' under TODAY while Home shows a round from Aug 23 and 'Show earlier · 18', with no league name on the screen.",
+    "expected": "The board carries the same activity Home summarises, or the empty state says what it excludes and which league it is.",
+    "actual": "The social spine looks dead and contradicts Home on both platforms.",
+    "severity": "P1",
+    "category": "social",
+    "recommendation": "Post rounds to the Board as promised (or change the header to 'from first tee'); name the league on pushed screens; fix the iOS load/empty state.",
+    "confidence": 8,
+    "evidence": "screenshots/cas/33-D07-tab-board.jpg vs 19-C02b-home-full.jpg; screenshots/ios/04-board.jpg vs 01-door.jpg",
+    "stage": "engagement",
+    "dedupedFrom": [
+      "A16",
+      "IOS-03"
+    ]
+  },
+  {
+    "id": "M-085",
+    "agent": "A1-casual;A3-novice;A7-observer;A6-joiner;A2-competitive;A4-skeptic;A5-organizer",
+    "screen": "Home / Group phones sheet / console on every boot",
+    "journey": "Side games / reliability",
+    "observation": "'Group phones' says 'a Continue your round banner is waiting on Home' — no banner ever appeared; every signed-in (and signed-out) boot logs '[live-resume] server query failed: Could not embed because more than one relationship was found for live_rounds and live_round_players'; a 'Your unposted round came back — it's waiting in Post a round' toast appeared on fresh sessions with no such round visible. Only ⊕ → Play now resumes a round.",
+    "expected": "The banner on Home; a clean resume query; toasts only for real state.",
+    "actual": "On-course, the promised way back to the scorecard is missing; a real query fails on every load.",
+    "severity": "P1",
+    "category": "gameplay",
+    "recommendation": "Disambiguate the PostgREST embed (name the FK); show the banner; gate the draft toast on a real draft.",
+    "confidence": 9,
+    "evidence": "screenshots/cas/73-I06-group-phones.jpg, 92-L02-final-home.jpg; console (cas 15:21/15:29/15:59; obs 13:32; comp 15:26–16:01; join 15:27:49; skep 15:22–15:49; nov 14:04; org 14:05); screenshots/skep/01-door.jpg toast",
+    "stage": "engagement",
+    "dedupedFrom": [
+      "A8",
+      "C-32",
+      "R7-32",
+      "J-32",
+      "SK-31",
+      "N-28"
+    ]
+  },
+  {
+    "id": "M-090",
+    "agent": "A1-casual",
+    "screen": "Live round",
+    "journey": "Side games",
+    "observation": "'Scrap this round' (#discardBtn, enabled) does nothing — UI click and JS click, no confirm, no toast, no console error. (A3's session saw a working two-tap 'Tap again to scrap' — behaviour differs by state.)",
+    "expected": "Abandon the live round after a confirm.",
+    "actual": "A half-started $5 match persists; a wrong setup can't be abandoned.",
+    "severity": "P1",
+    "category": "gameplay",
+    "recommendation": "Wire/verify the discard handler in all states (member-only rounds vs guest rounds).",
+    "confidence": 8,
+    "evidence": "screenshots/cas/93-L03-scrap-test.jpg, 77-I10-after-scrap.jpg; contrast screenshots/nov/93-scrap-confirm.jpg",
+    "stage": "engagement",
+    "dedupedFrom": [
+      "A6"
+    ]
+  },
+  {
+    "id": "M-093",
+    "agent": "A2-competitive;A1-casual",
+    "screen": "Finish the round → Round posted; Home feed / receipt of another member",
+    "journey": "Side games / consent",
+    "observation": "One phone tapped 'Post 4 cards to the season' and posted Casey 93, Marcus 89, Jordan 103 to their cards, each marked '✓ ATTESTED' — nobody else confirmed anything. On the other side, 'You · Played to your number · 103 gross' appeared on Jordan's card from someone else's skins game with no notification, no 'That was me / That wasn't me', and the index counter moved.",
+    "expected": "Attestation requires a second party (their phone or a tap to accept), or the label says 'entered by Priya · unconfirmed'; the affected golfer is notified and can dispute.",
+    "actual": "Undermines the 'Attested' bylaw and invites sandbagging/pranks; to a casual golfer someone just wrote a 103 on their record.",
+    "severity": "P1",
+    "category": "rules",
+    "recommendation": "Require per-member confirmation before 'attested'; notify group-entered rounds with accept/dispute (spec §12: 'a playing partner taps confirm').",
+    "confidence": 9,
+    "evidence": "screenshots/comp/57-live-finish.jpg, 58-live-posted.jpg; screenshots/cas/85-K02-start-event.jpg, 86-K03-103-receipt.jpg, 87-K04-scorecard.jpg; spec-v1.0.md:149",
+    "stage": "engagement",
+    "dedupedFrom": [
+      "C-29",
+      "A7"
+    ]
+  },
+  {
+    "id": "M-102",
+    "agent": "iOS-survey",
+    "screen": "Live (iOS) 'SET UP THE ROUND'",
+    "journey": "information-hierarchy",
+    "observation": "No nav title, no back/close, no game name; copy 'Pick who plays with who under the game — pairings, stakes, the lot.'; 'The stepper opens on each hole's par'; button 'Enter the pars'; 'TAP TO FILL A SLOT · LEAGUE' followed by another 'LEAGUE' header.",
+    "expected": "Title the screen with the format, a visible Close, what happens on start; no widget names in copy.",
+    "actual": "Neither purpose nor exit visible; developer language.",
+    "severity": "P1",
+    "category": "comprehension",
+    "recommendation": "Title + Close + game chooser above the fold; rewrite without 'stepper'; drop the duplicate header.",
+    "confidence": 8,
+    "evidence": "screenshots/ios/11-live.jpg",
+    "stage": "engagement",
+    "dedupedFrom": [
+      "IOS-06",
+      "IOS-28"
+    ]
+  },
+  {
+    "id": "M-110",
+    "agent": "A6-joiner;A1-casual;A2-competitive;A7-observer",
+    "screen": "Pot tab / consent sheet / welcome sheet",
+    "journey": "Money",
+    "observation": "'THE POT $250 · 5 × $50 · $0 collected · 5 still owe'; 'Cup Season keeps the books. Buy-ins and payouts move friend-to-friend.' Buy-in rows look like checkboxes; tapping only toasts 'The Pro marks buy-ins as money moves between you' (invisible 1.5 s later). Mid-season: '0/2 in · 2 still owe' above '[Jade ✓] [Jerecho ✓]', '$0 COLLECTED' six weeks into a $75 season, no money on Home, no nudge path. Nowhere: who to pay, how (Venmo? cash?), by when.",
+    "expected": "'Pay Casey $50 by Sep 5 (Venmo @casey); he'll tick you off here.' Member rows read-only; explicit owes/paid states; a nudge path; stakes visible on Home.",
+    "actual": "Amount known, action unknown; fake affordance; stakes read as fiction ('stakes' scored 3/10 mid-season).",
+    "severity": "P1",
+    "category": "monetization",
+    "recommendation": "Let the Pro set a payment note/handle and deadline; render member rows as status; show unpaid buy-ins on Home; let members ping the Pro.",
+    "confidence": 9,
+    "evidence": "screenshots/join/29-R-tab-Pot.jpg, 55-AH-pot-after-tap.jpg; screenshots/cas/25-D04b-pot-full.jpg, 37-E03-pot-after-tap.jpg; screenshots/comp/60-pot-after-skins.jpg; screenshots/obs/12-on-the-line.jpg, 04-home-first.jpg; screenshots/skep/52-pot-after-tap.jpg",
+    "stage": "monetization",
+    "dedupedFrom": [
+      "J-10",
+      "A15",
+      "C-17",
+      "R7-09",
+      "R7-31"
+    ]
+  },
+  {
+    "id": "M-120",
+    "agent": "A7-observer",
+    "screen": "Clubhouse › Board vs Standings vs You (mid-season)",
+    "journey": "E",
+    "observation": "Board: 'Thu · Aug 27 — Jerecho posted 83 at Cave Creek GC.' and '…85 at Encanto GC.' Standings: 'you've posted 1' this month; Home: 'AUG FLOOR 1/2 · 1 MORE'; the receipt's newest round is Aug 16; You lists Encanto 85 as 2026-07-24; the Cave Creek 83 appears nowhere else. Board says the Raven round was Jul 28; the receipt says Jul 29.",
+    "expected": "Board posts show the played date and label late posts ('posted Aug 27 · played Jul 24'); counts agree.",
+    "actual": "A member who thinks he has met the floor may be penalised; trust in the standings erodes.",
+    "severity": "P1",
+    "category": "comprehension",
+    "recommendation": "Show played date on board posts; make counts agree across surfaces.",
+    "confidence": 9,
+    "evidence": "screenshots/obs/19-sub-Board.jpg, 07-league-full.jpg, 29-you-full.jpg",
+    "stage": "retention",
+    "dedupedFrom": [
+      "R7-02"
+    ]
+  },
+  {
+    "id": "M-123",
+    "agent": "A2-competitive;A7-observer",
+    "screen": "Standings / Home / player rows / Find golfers",
+    "journey": "Rivalry",
+    "observation": "Standings is a flat table; tapping a row shows '0 ROUNDS · 0 PTS'. No head-to-head, no gap to leader, no 'you vs Casey', no projection ('if you post X…', 'if Jade doesn't post by Sunday: −10'); only MY floor is shown, never a rival's. Home's only forward signal is 'NEXT · SAT 07:30 · PAPAGO'. The only rivalry in the league was a pride stake the tester typed herself.",
+    "expected": "A gap-to-leader and head-to-head per member; a one-line reason to play this week (counter slot, floor, rival's lead); rival floor state.",
+    "actual": "'Next round matters because…' never appears; no trash-talk fuel; the season is a participation contest.",
+    "severity": "P1",
+    "category": "retention",
+    "recommendation": "Add gap/head-to-head/what-if lines on Home and standings.",
+    "confidence": 9,
+    "evidence": "screenshots/comp/40-standings-after74.jpg, 41-standings-priya-tap.jpg, 67-find-casey3.jpg, 73-home-after-tee2.jpg; screenshots/obs/07-league-full.jpg, 44-jade-row.jpg",
+    "stage": "retention",
+    "dedupedFrom": [
+      "C-33",
+      "R7-16"
+    ]
+  },
+  {
+    "id": "M-129",
+    "agent": "A7-observer;iOS-survey",
+    "screen": "Standings (web and iOS)",
+    "journey": "E",
+    "observation": "Two players are shown three times (the climb, the standings table, the individual-race table) and the race sits below chips + season card + segmented control + gradient bar + four tiles + a 'next up' card; on iOS the user's name is truncated 'You · Jerech…' beside a LOCKED badge and the gap line '10 back of Galen' is drawn under Galen's row, not the viewer's.",
+    "expected": "The race above the fold, once; the gap line on the viewer's row.",
+    "actual": "Competition pushed down by chrome; the one sentence that tells me my deficit reads as if Galen is 10 back of himself.",
+    "severity": "P1",
+    "category": "visual-hierarchy",
+    "recommendation": "Collapse the season card; merge tables for small leagues; fix the gap-line row on iOS.",
+    "confidence": 9,
+    "evidence": "screenshots/obs/07-league-full.jpg, 08-club-top.jpg; screenshots/ios/03-clubhouse.jpg (y≈1630)",
+    "stage": "retention",
+    "dedupedFrom": [
+      "R7-25",
+      "IOS-18",
+      "IOS-04"
+    ]
+  },
+  {
+    "id": "M-143",
+    "agent": "A5-organizer;A1-casual;A2-competitive;A4-skeptic;A3-novice;A6-joiner",
+    "screen": "Cold sign-in door / Terms page",
+    "journey": "A — Discovery",
+    "observation": "The signed-out door is a logo, 'Rally your crew. Post real rounds. Take the cup.', two buttons and Terms/Privacy. No 'how it works', no example, no length, no cost, no learn-more; 'season', 'league' and 'cup' are undefined. The Prize Pool Disclaimer on the legal page ('a golf league management app for private groups who play real, handicapped golf together … does not collect, hold, transfer, or distribute money') explains the product better than the door. The 'Leagues vs events' guide sentence — the first sentence anywhere that says what a season is — lives at the bottom of the You tab.",
+    "expected": "One concrete sentence before sign-up (a season, any course, every round vs your own number, a cup final) and a 'How it works' link; the money posture on the door.",
+    "actual": "Sign-up depends entirely on the friend's nagging, not the product; a skeptic would close the tab.",
+    "severity": "P1",
+    "category": "onboarding",
+    "recommendation": "Put the guide sentence and a three-card 'how it works' (or a demo league link) on the door.",
+    "confidence": 9,
+    "evidence": "screenshots/org/01-door.jpg, 04-legal.jpg; screenshots/cas/09-R05-after-signout.jpg, 10-A01-door-scrolled.jpg; screenshots/comp/10-cold-door.jpg; screenshots/skep/02-cold-door.jpg; screenshots/nov/01-door.jpg; screenshots/join/01-A-cold-door.jpg",
+    "stage": "activation",
+    "dedupedFrom": [
+      "ORG-40",
+      "A29",
+      "C-01",
+      "SK-01"
+    ]
+  },
+  {
+    "id": "M-144",
+    "agent": "iOS-survey",
+    "screen": "iOS Home / all main screens",
+    "journey": "information-hierarchy",
+    "observation": "Home leads with 'WHO'S THE BITCH? · WEEK 4 OF 14', a huge '2nd', '— held', '10 points back of the lead.' Nothing on any of 11 screens says what a point is, how a round becomes points, or how the season is won; the leader isn't named on Home and '2nd' of an unstated 2 reads as a podium when it is last place; the post preview says 'A preview at 100% of your number — your league's own math scores it on the books.'",
+    "expected": "A tappable 'How points work' under the rank card; '2nd of 2 · 10 back of Galen'; plain preview copy ('This estimate uses your full handicap; your league's rules may score it differently').",
+    "actual": "An invitee sees a rank and a gap with no way to act on either; the organizer must explain verbally.",
+    "severity": "P1",
+    "category": "comprehension",
+    "recommendation": "One-line definition on first session; name the leader and field size; rewrite the preview line.",
+    "confidence": 9,
+    "evidence": "screenshots/ios/01-door.jpg, 14-home-again.jpg, 03-clubhouse.jpg, 09-post.jpg",
+    "stage": "activation",
+    "dedupedFrom": [
+      "IOS-01",
+      "IOS-12",
+      "IOS-08"
+    ]
+  },
+  {
+    "id": "M-145",
+    "agent": "iOS-survey",
+    "screen": "iOS Home + Clubhouse",
+    "journey": "information-hierarchy",
+    "observation": "Home says 'WEEK 4 OF 14'; Clubhouse says 'WK 4 / 13', '13 wks', tile 'W4 / 13'.",
+    "expected": "One season length everywhere.",
+    "actual": "The most basic season fact is inconsistent between the two most-visited screens; every other number loses credibility.",
+    "severity": "P1",
+    "category": "rules",
+    "recommendation": "Single source for week count (likely the §14.0 whole-week snap vs a ceil); fix whichever is wrong.",
+    "confidence": 10,
+    "evidence": "screenshots/ios/01-door.jpg vs 03-clubhouse.jpg",
+    "stage": "retention",
+    "dedupedFrom": [
+      "IOS-02"
+    ]
+  },
+  {
+    "id": "M-005",
+    "agent": "A3-novice",
+    "screen": "Wizard Customize — Buy-in stepper",
+    "journey": "C — Create a league",
+    "observation": "Stepping −/+ yields None → $25 → $50 → $75 → $100 → $150 → $200; one − from $75 goes straight to None.",
+    "expected": "Free entry or $5 steps so friendly $10/$20 stakes exist.",
+    "actual": "Cannot set $10 or $20.",
+    "severity": "P2",
+    "category": "monetization",
+    "recommendation": "Numeric input with presets.",
+    "confidence": 9,
+    "evidence": "DOM readout 13:28–13:29 (nov); screenshots/nov/19-wizard-customize-full.jpg",
+    "stage": "monetization",
+    "dedupedFrom": [
+      "N-19"
+    ]
+  },
+  {
+    "id": "M-012",
+    "agent": "A5-organizer;A3-novice;A1-casual;A4-skeptic",
+    "screen": "Wizard (i) / League tab 'The Pro Shop' / Settings 'Membership & billing'",
+    "journey": "Money",
+    "observation": "'Every individual dial unlocks with Pro Shop' and 'Live draft night… on the Pro Shop roadmap' (wizard); 'CUP SEASON MEMBERSHIP · COMING AT LAUNCH · THE PILOT RIDES FREE' (League tab); 'PLAN FREE · PILOT — membership lands at launch. Nothing to pay during the pilot.' (Settings). No price, no payer, no scope, no relation to the buy-in.",
+    "expected": "One sentence: who pays, roughly how much, never mid-season; and that the buy-in is the league's pot, not the app's fee.",
+    "actual": "An undefined paid tier referenced three times before definition; organizer collecting $50 can't answer 'will we get charged?'.",
+    "severity": "P2",
+    "category": "monetization",
+    "recommendation": "Drop 'Pro Shop' from the wizard; state the intended model once in the money step and in Settings, or remove the teaser until priced.",
+    "confidence": 9,
+    "evidence": "screenshots/org/20-comp-info2.jpg, 45-league-tab.jpg, 80-settings-segment2.jpg; screenshots/nov/17-wizard-step2-info.jpg, 40-rules-expanded.jpg; screenshots/cas/08-R04-settings-tab.jpg; screenshots/skep/13-tab-League.jpg, 47-settings-6.jpg",
+    "stage": "monetization",
+    "dedupedFrom": [
+      "ORG-17",
+      "N-14",
+      "A32",
+      "SK-22"
+    ]
+  },
+  {
+    "id": "M-014",
+    "agent": "A3-novice;iOS-survey",
+    "screen": "Name sheet → wizard (web and iOS)",
+    "journey": "C — Create a league",
+    "observation": "Button says 'Start the league'; the result is a 3-step wizard and a toast 'Desert Dogs is on the books — set the bylaws' (the league already exists). iOS: one field, 'You can rename it any time before the bylaws lock.', no step count, 80% empty screen.",
+    "expected": "'Next: set the rules', a step indicator, one line on what a league involves.",
+    "actual": "Label overpromises; league exists before any rule is set; 'bylaws lock' undefined.",
+    "severity": "P2",
+    "category": "terminology",
+    "recommendation": "Rename the button; add '1 of 3' and a one-line description; or create the league row at lock.",
+    "confidence": 9,
+    "evidence": "screenshots/nov/14-wizard-3.jpg; screenshots/ios/12-wizard.jpg",
+    "stage": "activation",
+    "dedupedFrom": [
+      "N-32",
+      "IOS-22"
+    ]
+  },
+  {
+    "id": "M-016",
+    "agent": "A5-organizer",
+    "screen": "Wizard steps 2–3; Form squads (organizer)",
+    "journey": "C — Create a league",
+    "observation": "Wizard steps 2–3 have Back but no Cancel/close (Cancel on step 1 only); Form squads has no back/close/done. Only the bottom nav exits.",
+    "expected": "A persistent close/back on every full-screen flow.",
+    "actual": "Dead-end screens; users bail via nav and lose context.",
+    "severity": "P2",
+    "category": "navigation",
+    "recommendation": "Add '← League' on Form squads and a close on every wizard step.",
+    "confidence": 10,
+    "evidence": "screenshots/org/51-squads-view.jpg, 18-wizard-step2.jpg, 30-wizard-step3.jpg",
+    "stage": "activation",
+    "dedupedFrom": [
+      "ORG-19"
+    ]
+  },
+  {
+    "id": "M-020",
+    "agent": "A5-organizer",
+    "screen": "Invite flow vs join covenant (/?join=CODE)",
+    "journey": "C — what a friend sees",
+    "observation": "The Pro is never shown the covenant invitees see ('Welcome to The Papago Grind · THREE THINGS TO KNOW', incl. 'You're on the pot sheet: $50 buy-in'); found only by opening the join URL manually.",
+    "expected": "'Preview what your friends will see' on the invite sheet.",
+    "actual": "Organizer can't vouch for what friends are told about money.",
+    "severity": "P2",
+    "category": "onboarding",
+    "recommendation": "Add a preview to Add golfers / Share.",
+    "confidence": 9,
+    "evidence": "screenshots/org/95-join-link-view.jpg",
+    "stage": "activation",
+    "dedupedFrom": [
+      "ORG-28"
+    ]
+  },
+  {
+    "id": "M-021",
+    "agent": "A5-organizer",
+    "screen": "League room → Standings (forming)",
+    "journey": "After setup",
+    "observation": "'SQUADS ARE FORMING · The Pro has the list. · 1 PLAYER IN THE POOL · 3 SEATS OPEN'.",
+    "expected": "'1 in · need 4 to tee off · room for up to N'.",
+    "actual": "'3 seats open' reads as capacity 4 for a 7-person league; 'the list' is never shown.",
+    "severity": "P2",
+    "category": "comprehension",
+    "recommendation": "Rewrite around the minimum and the structure's fit; remove or show 'the list'.",
+    "confidence": 9,
+    "evidence": "screenshots/org/37-league-room-forming.jpg",
+    "stage": "activation",
+    "dedupedFrom": [
+      "ORG-20"
+    ]
+  },
+  {
+    "id": "M-022",
+    "agent": "A3-novice",
+    "screen": "Clubhouse league card (forming)",
+    "journey": "Empty-league state",
+    "observation": "'Cancel & delete this league (only possible before the first tee)' in red is the third line of the league card; 'Code · DESEUU0K' and 'Add golfers' are the last elements of a very long Standings page. No 'invited · joined · N needed' tracker exists anywhere.",
+    "expected": "Invite is the primary action until 4 have joined; a visible roster tracker.",
+    "actual": "Delete outranks invite; the empty league feels dead.",
+    "severity": "P2",
+    "category": "visual-hierarchy",
+    "recommendation": "Put Code + Share + '1 of 4 in' at the top until the minimum is met; demote delete.",
+    "confidence": 9,
+    "evidence": "screenshots/nov/36-clubhouse-full.jpg",
+    "stage": "activation",
+    "dedupedFrom": [
+      "N-29",
+      "N-05"
+    ]
+  },
+  {
+    "id": "M-027",
+    "agent": "A6-joiner;A3-novice",
+    "screen": "Door / Join sheet / Clubhouse chip / toast",
+    "journey": "Join",
+    "observation": "The same 8-char code is 'invite code' (button), 'LEAGUE CODE' (field), 'Invite code: THEPTCQ5' (toast), 'Code · THEPTCQ5' (chip); 'invite link' vs 'invite code' elsewhere.",
+    "expected": "One name (decision log D47 already chose 'league code').",
+    "actual": "Four names.",
+    "severity": "P2",
+    "category": "terminology",
+    "recommendation": "Use 'league code' everywhere; 'link' only when a link is shown.",
+    "confidence": 9,
+    "evidence": "screenshots/join/03-C-invite-code-tap.jpg, 13-L-join-a-league.jpg, 37-T-code-chip.jpg",
+    "stage": "activation",
+    "dedupedFrom": [
+      "J-15",
+      "N-37"
+    ]
+  },
+  {
+    "id": "M-028",
+    "agent": "A6-joiner;A1-casual;A4-skeptic",
+    "screen": "Door (sign-in) after invite link",
+    "journey": "Sign-in",
+    "observation": "After Go the door shows two big buttons plus stacked rows (code+Join, email+Go, CODE FROM EMAIL+Verify); the 'Sent to … Type the sign-in code' status and 'Resend code' sit below the fold; 'Continue with email' / 'I have an invite code' stay above the auto-opened email box.",
+    "expected": "One step visible at a time with its instruction next to it.",
+    "actual": "Had to scroll to learn a code was sent; 'do I still press these?'",
+    "severity": "P2",
+    "category": "visual-hierarchy",
+    "recommendation": "Collapse completed rows; hide chooser buttons once a branch is active; keep status above the fold.",
+    "confidence": 9,
+    "evidence": "screenshots/join/05-E-after-go.jpg; screenshots/cas/11-A02-join-link-cold.jpg, 12-B01-after-go.jpg; screenshots/skep/03-join-link.jpg",
+    "stage": "activation",
+    "dedupedFrom": [
+      "J-14",
+      "A27",
+      "SK-30"
+    ]
+  },
+  {
+    "id": "M-029",
+    "agent": "A4-skeptic;A3-novice",
+    "screen": "Sign-in email",
+    "journey": "Sign-in",
+    "observation": "Subject 'Confirm your email address' (first-ever) / 'Your Cup Season sign-in code' (returning) while the screen says 'sign-in code'; identical subjects thread 20+ codes into one Gmail conversation so the newest was buried (~3.5 min + a Resend to sign in). Body says nothing about the league or the friend.",
+    "expected": "A findable subject; league/friend named when a join is pending.",
+    "actual": "Generic OTP mail; inbox-hunting friction.",
+    "severity": "P2",
+    "category": "onboarding",
+    "recommendation": "Vary the subject (code suffix/timestamp); mention the league when arriving via invite.",
+    "confidence": 8,
+    "evidence": "Gmail thread 1a04394290f11a7c (skep, 15:23:47/15:25:40); screenshots/skep/04-after-go.jpg; nov email 13:19:51",
+    "stage": "activation",
+    "dedupedFrom": [
+      "SK-28",
+      "N-36"
+    ]
+  },
+  {
+    "id": "M-032",
+    "agent": "A2-competitive;A4-skeptic;A1-casual;A6-joiner",
+    "screen": "'See the squads' → Form squads · blind draw (as a player)",
+    "journey": "League room",
+    "observation": "Opens the Pro's 'FORM SQUADS · BLIND DRAW · 5 in the pool · THE HAT SHUFFLES SERVER-SIDE — NOBODY RIGS THE DRAW' with two 'Empty' squad cards and five tappable player chips, no back control, no explanation of who draws or when; chips do nothing.",
+    "expected": "A read-only 'Casey draws the squads on Sep 5 — it's random' sheet with a close.",
+    "actual": "Admin tool exposed and dead-ended, with developer language.",
+    "severity": "P2",
+    "category": "navigation",
+    "recommendation": "Role-gate; add a back link; plain copy and a date for players.",
+    "confidence": 9,
+    "evidence": "screenshots/comp/22-squads.jpg; screenshots/skep/19-squads.jpg, 20-squads-full.jpg; screenshots/cas/22-D02-see-squads.jpg, 23-D03-tap-squad1.jpg; screenshots/join/33-S-see-squads.jpg, 34-T-chip-marcus.jpg",
+    "stage": "engagement",
+    "dedupedFrom": [
+      "C-15",
+      "SK-18",
+      "A13",
+      "J-19"
+    ]
+  },
+  {
+    "id": "M-042",
+    "agent": "A5-organizer;A3-novice;A1-casual;A2-competitive;A4-skeptic",
+    "screen": "Home (league-less and pre-season)",
+    "journey": "Onboarding / What do I do now",
+    "observation": "'MONTH CLOSES in 2 days' and 'Monthly floor · 2 rounds a month. Miss it and your squad loses 5 points for every round you're short. Short months are waived.' shown with NO league (org, nov, cas) and 7 days before first tee (cas, comp, skep); 'COUNTING ROUNDS 0 / 4 · August' for a September season.",
+    "expected": "No floor/month-close pressure before a season starts or before the user is in a squad; 'short month' defined.",
+    "actual": "First screen introduces floor, squad and short months context-free; competitive players read 'I owe two rounds by Monday'.",
+    "severity": "P2",
+    "category": "comprehension",
+    "recommendation": "Suppress until in a league AND the season has started; label the first counting month; define 'short month'.",
+    "confidence": 9,
+    "evidence": "screenshots/org/14-home-empty-full.jpg; screenshots/nov/10-home-empty.jpg, 36-clubhouse-full.jpg; screenshots/cas/19-C02b-home-full.jpg, 12-C02-not-now-home.jpg; screenshots/comp/18-home-full.jpg; screenshots/skep/08-home-after-close.jpg",
+    "stage": "engagement",
+    "dedupedFrom": [
+      "ORG-23",
+      "N-15",
+      "A9",
+      "C-06",
+      "SK-12",
+      "N-16"
+    ]
+  },
+  {
+    "id": "M-043",
+    "agent": "A5-organizer;A6-joiner;A1-casual;A4-skeptic;A7-observer",
+    "screen": "Post a round form 'How this round scores'",
+    "journey": "D",
+    "observation": "'No league yet? The round still counts on your card — points apply in any league you join.' shown to members of one or two live leagues.",
+    "expected": "Copy keyed to membership: 'Counts for The Papago Grind from Sep 5' / 'counts in Fellas and Who's the bitch?'.",
+    "actual": "Wrong-state boilerplate; makes members doubt they are in the league.",
+    "severity": "P2",
+    "category": "comprehension",
+    "recommendation": "Condition on membership and season window (index.html:3198).",
+    "confidence": 10,
+    "evidence": "screenshots/org/62-post-round-form.jpg; screenshots/join/41-W-post-form.jpg; screenshots/cas/42-F02-post-form.jpg; screenshots/skep/28-post-form.jpg; screenshots/obs/40-settings.jpg",
+    "stage": "engagement",
+    "dedupedFrom": [
+      "ORG-22",
+      "J-18",
+      "A24",
+      "SK-27",
+      "R7-28"
+    ]
+  },
+  {
+    "id": "M-048",
+    "agent": "A1-casual;A2-competitive",
+    "screen": "Round receipt / board card (member with <3 rounds or estimated index)",
+    "journey": "D",
+    "observation": "'97 − 68.7 × 113 ⁄ 115 = 27.8 DIFFERENTIAL · YOUR NUMBER THAT DAY 27.8 · Against your number +0.0 — PLAYED TO IT' (same on the 103: 28.0/28.0/+0.0). Board card: 'Jordan · Played to their number · 103 gross' while Jordan was 'EST 18.0 IDX' (a 28 differential is ~10 over an 18).",
+    "expected": "An honest 'building your number (2 of 3)' state; 113 explained in words; band computed against the index actually used.",
+    "actual": "Circular math; every early round 'played to it'; wrong-looking band for estimated indexes.",
+    "severity": "P2",
+    "category": "comprehension",
+    "recommendation": "Show 'no number yet' instead of a comparison until 3 rounds; check band computation for estimated/absent indexes.",
+    "confidence": 8,
+    "evidence": "screenshots/cas/56-G04-round-receipt.jpg, 86-K03-103-receipt.jpg; screenshots/comp/59-home-after-skins.jpg",
+    "stage": "engagement",
+    "dedupedFrom": [
+      "A19",
+      "C-30",
+      "A4"
+    ]
+  },
+  {
+    "id": "M-049",
+    "agent": "A2-competitive;A6-joiner;A5-organizer",
+    "screen": "Bylaws 'HANDICAP ALLOWANCE 95%' vs preview / receipt / live strokes",
+    "journey": "Rules hunt",
+    "observation": "The post preview scored against the raw 6.4; the receipt says 'YOUR NUMBER THAT DAY 6.4'; live strokes ('Casey gets 9') match ~100% off the low man. Nothing shows where 95% applies.",
+    "expected": "The allowance visibly applied (or stated as season-only) in the calculation it affects (spec §16: receipts show the allowance snapshot; spec: Playing Index = Index × allowance).",
+    "actual": "A bylaw with no visible effect; the Pro can't reproduce a points number by hand.",
+    "severity": "P2",
+    "category": "rules",
+    "recommendation": "Show 'index used: 14.2 × 95% = 13.5' on preview and receipt; state whether live games use it.",
+    "confidence": 8,
+    "evidence": "screenshots/comp/29-rules-open2.jpg, 52-live-skins-setup.jpg, 53-live-hole1.jpg; screenshots/org/68-round-filled.jpg; spec-v1.0.md:38,264",
+    "stage": "engagement",
+    "dedupedFrom": [
+      "C-26",
+      "J-23",
+      "ORG-06"
+    ]
+  },
+  {
+    "id": "M-050",
+    "agent": "A5-organizer;A3-novice;A1-casual",
+    "screen": "Golfer card → Home 'YOUR CARD' → Members & invites → You tab / Clubhouse",
+    "journey": "B / C",
+    "observation": "Typed 14.2 (18.2) on the golfer card. Home: 'INDEX ●—— 0 OF 3 · Three rounds and your index goes live.' Members/You/Clubhouse/post form: '14.2'. Members list shows nothing for a player with no starter and a 'Marker here' button with no copy.",
+    "expected": "'14.2 (starter) · 0 of 3 rounds until your scores take over' everywhere; 'index building (2 of 3)' for players without one.",
+    "actual": "A 20-year golfer thinks the app threw away their handicap; trust in the engine dips from minute one.",
+    "severity": "P2",
+    "category": "comprehension",
+    "recommendation": "One representation of a starter index on every surface.",
+    "confidence": 10,
+    "evidence": "screenshots/org/14-home-empty-full.jpg, 50-members-view.jpg, 73-you-tab.jpg; screenshots/nov/08-card-filled.jpg, 10-home-empty.jpg, 36-clubhouse-full.jpg; screenshots/cas/35-E01-members.jpg",
+    "stage": "activation",
+    "dedupedFrom": [
+      "ORG-16",
+      "N-17",
+      "A31"
+    ]
+  },
+  {
+    "id": "M-052",
+    "agent": "A2-competitive",
+    "screen": "How scoring works (bands)",
+    "journey": "Strategy",
+    "observation": "'a 22-index beating their number is worth exactly what a 6-index beating theirs is' — same 12/9/7/6/5 bands for everyone; only the 12 ceiling is mentioned as anti-padding.",
+    "expected": "Acknowledge that variance scales with index, or normalise band widths; show each member's 'torch rate'.",
+    "actual": "A low-index competitor has no reason to believe the season is fair (the product's own §2.2 intent is equality-by-number, which the UI never argues for).",
+    "severity": "P2",
+    "category": "gameplay",
+    "recommendation": "Explain the design choice in the sheet; consider index-scaled bands as a bylaw dial; log a decision either way.",
+    "confidence": 7,
+    "evidence": "screenshots/comp/14-scoring-works.jpg",
+    "stage": "retention",
+    "dedupedFrom": [
+      "C-10"
+    ]
+  },
+  {
+    "id": "M-060",
+    "agent": "A1-casual;A2-competitive;A4-skeptic;A6-joiner;A7-observer;A5-organizer",
+    "screen": "Welcome sheet, bylaws table, standings footnote, settings, board",
+    "journey": "All",
+    "observation": "Undefined at point of use: the Pro, squad, pot sheet, the books, bylaws, your number, HANDICAP ALLOWANCE 95%, VERIFICATION Attested, COUNTING CAP, PARTICIPATION FLOOR, scored fresh, 'bylaws §4' (no §4 exists in-app), Points King, Iron Man, Most Improved, 'king', 'sqd pts', column 'R', differential, SI, WHS-style, net best ball, strokes off the low man, Sunningdale Rules, crew-policed, season bye, moments, reveals, 'The Pro has the list', 'THE PILOT RIDES FREE', 'Diff 17.8', 'Ledger posted', 'bank … 6 units'.",
+    "expected": "Plain-English definitions where each term appears; tappable bylaw rows; a glossary.",
+    "actual": "League jargon throughout; the organizer must translate in the parking lot.",
+    "severity": "P2",
+    "category": "terminology",
+    "recommendation": "Tap-to-define chips on every bylaw row and status word; plain secondary lines; delete '§4'; label the R column 'Rounds'.",
+    "confidence": 9,
+    "evidence": "screenshots/cas/15-B03b-welcome-full.jpg, 27-D05-tab-league.jpg, 21-D01b-clubhouse-full.jpg, 70-I03-setup-done.jpg; screenshots/comp/21-league-room.jpg, 29-rules-open2.jpg; screenshots/skep/05-after-verify.jpg, 06-how-scoring.jpg, 13-tab-League.jpg, 47-settings-6.jpg, 11-league-room-full.jpg; screenshots/join/30-R-tab-League.jpg, 23-Q-clubhouse-full.jpg; screenshots/obs/19-sub-Board.jpg",
+    "stage": "engagement",
+    "dedupedFrom": [
+      "A10",
+      "C-13",
+      "SK-13",
+      "J-23",
+      "R7-14",
+      "SK-33"
+    ]
+  },
+  {
+    "id": "M-061",
+    "agent": "A4-skeptic;iOS-survey;A1-casual",
+    "screen": "Feed / Post / You / Settings / Live",
+    "journey": "All",
+    "observation": "'Card' means: your record ('counts on your card', 'First round on the card'), the scorecard ('Scan the card', 'YOUR CARD 18 holes'), your profile ('Your card is what your buddies see'), a settlement card, and the post form ('the Post card'). Decision log D47 already ruled 'card never unqualified'.",
+    "expected": "One meaning per noun.",
+    "actual": "Five meanings; 'counts on your card' reads as 'counted'.",
+    "severity": "P2",
+    "category": "terminology",
+    "recommendation": "Rename the record ('your log'), the profile ('your profile'); keep 'scorecard' explicit.",
+    "confidence": 9,
+    "evidence": "screenshots/skep/33-posted.jpg, 28-post-form.jpg, 38-settings.jpg, 18-tab-Album.jpg; screenshots/ios/07-settings.jpg, 09-post.jpg",
+    "stage": "engagement",
+    "dedupedFrom": [
+      "SK-34",
+      "IOS-32",
+      "A10"
+    ]
+  },
+  {
+    "id": "M-062",
+    "agent": "A5-organizer;A3-novice",
+    "screen": "Wizard buy-in / Pot tab / Live setup stake / Post a stake",
+    "journey": "Money",
+    "observation": "'Buy-in' (wizard), 'The pot' + 'Post a stake · Pride, on the books — never money' (Pot tab), 'Stake per side · $0 = bragging rights' (live match play, real money), '$5 on the line' (board).",
+    "expected": "Distinct names for money vs pride bets.",
+    "actual": "'Stake' means money on one screen and explicitly not-money on another; four money nouns with different rules.",
+    "severity": "P2",
+    "category": "terminology",
+    "recommendation": "Rename pride bets ('Bounty'/'Wager of pride'); note on the Pot tab that side-game cash settles off-ledger.",
+    "confidence": 9,
+    "evidence": "screenshots/org/54-tab-Pot.jpg, 87-live-matchplay-setup.jpg, 94-post-stake.jpg, 93-board-after-live.jpg; screenshots/nov/97-stake-form.jpg",
+    "stage": "monetization",
+    "dedupedFrom": [
+      "ORG-24"
+    ]
+  },
+  {
+    "id": "M-063",
+    "agent": "A3-novice;A5-organizer;A1-casual",
+    "screen": "LIVE set up — Game for this round",
+    "journey": "Side games",
+    "observation": "Wolf: 'A round of Wolf — needs four. We run the rotation and the side tally' (web); Sunningdale Rules: '…go 2 down and you get a stroke… bank a unit.' No how-to-play; no (i); each game's player-count rule and stake field appear only after selecting it; Nassau absent.",
+    "expected": "3-line rules per game visible before selection.",
+    "actual": "A 20-year golfer who never played Wolf can't pick it; trial-and-error selection.",
+    "severity": "P2",
+    "category": "rules",
+    "recommendation": "Add an (i) per game with a 3-line how-to; show player counts up front; consider Nassau.",
+    "confidence": 9,
+    "evidence": "screenshots/nov/86-live-games.jpg; screenshots/org/85-live-door3.jpg, 87-live-matchplay-setup.jpg; screenshots/cas/69-I02-games.jpg",
+    "stage": "engagement",
+    "dedupedFrom": [
+      "N-23",
+      "ORG-39",
+      "A10"
+    ]
+  },
+  {
+    "id": "M-064",
+    "agent": "A1-casual;A2-competitive",
+    "screen": "Live setup / live round / board card",
+    "journey": "Side games",
+    "observation": "Nowhere states in one place that side-game results don't affect season points while the gross score does; only hints: 'Scores still post' / 'every complete card posts at the finish'. The board card never links the game to standings.",
+    "expected": "'Your score posts to the season; the match/skins result is just between you.'",
+    "actual": "Inferred, not stated; 'does winning the match matter for the Cup?' unanswerable.",
+    "severity": "P2",
+    "category": "comprehension",
+    "recommendation": "One sentence on the live setup and the settlement sheet.",
+    "confidence": 8,
+    "evidence": "screenshots/cas/69-I02-games.jpg, 71-I04-live.jpg; screenshots/comp/59-home-after-skins.jpg",
+    "stage": "engagement",
+    "dedupedFrom": [
+      "A36",
+      "C-28"
+    ]
+  },
+  {
+    "id": "M-071",
+    "agent": "A5-organizer;A3-novice;A7-observer",
+    "screen": "Every scrolling screen (Home, wizard step 2, Clubhouse, calendar, board, live sticky bar)",
+    "journey": "Visual",
+    "observation": "The orange ⊕ overlaps content everywhere: 'Standard: 95% handicap, [⊕]osted rounds…', 'EVERYONE ADVANCES — [⊕] ONTENDERS, 2 SEATS', 'MOST IMPROVED · N[⊕] 2+', calendar cells, 'LONE TREE GOLF CLUB [⊕] · AUG 23'; the live 'NO SKINS CLAIMED YET' sticky bar overlaps the attest paragraph.",
+    "expected": "Content never hidden under fixed elements.",
+    "actual": "Key explanatory sentences partially unreadable; constant low-grade unreadability.",
+    "severity": "P2",
+    "category": "visual-hierarchy",
+    "recommendation": "Reserve bottom padding on scroll containers; hide the FAB during the wizard or on scroll.",
+    "confidence": 10,
+    "evidence": "screenshots/org/19-comp-info.jpg, 22-cust-buyin.jpg; screenshots/nov/10-home-empty.jpg, 15-wizard-step2.jpg, 90-live-scoring.jpg; screenshots/obs/08-club-top.jpg, 09-club-mid.jpg, 13-sub-Schedule.jpg, 04-home-first.jpg",
+    "stage": "engagement",
+    "dedupedFrom": [
+      "ORG-25",
+      "N-34",
+      "R7-08"
+    ]
+  },
+  {
+    "id": "M-073",
+    "agent": "A7-observer",
+    "screen": "Clubhouse › Board",
+    "journey": "E",
+    "observation": "Feed is oldest-first (Jul 20 at top, Aug 27 at bottom) with 'Message the league…' pinned under the newest post.",
+    "expected": "Newest first (or auto-scroll to newest).",
+    "actual": "New news is buried.",
+    "severity": "P2",
+    "category": "navigation",
+    "recommendation": "Reverse order or auto-scroll.",
+    "confidence": 9,
+    "evidence": "screenshots/obs/19-sub-Board.jpg, 25-wtb-Board.jpg",
+    "stage": "retention",
+    "dedupedFrom": [
+      "R7-15"
+    ]
+  },
+  {
+    "id": "M-074",
+    "agent": "A3-novice;iOS-survey",
+    "screen": "Home tile 'NEXT · Open · PLAN A ROUND'; Post tab / + / Play now / Live round / Put a round on the tee sheet",
+    "journey": "Schedule / navigation",
+    "observation": "'NEXT · Open' was read for 20 minutes as 'the next league round is open'; it opens the calendar. The phone offers five round entry points (Post tab, + on Home, Play now on Post, Live round on Clubhouse, Put a round on the tee sheet) with no shared vocabulary; 'tee sheet' appears five times on one screen and is never defined.",
+    "expected": "One verb per concept (Post a score / Play live / Plan a round) and a self-describing tile ('TEE SHEET · nothing planned · PLAN ONE').",
+    "actual": "Misleads about league structure; a first-timer can't tell posting from playing from planning.",
+    "severity": "P2",
+    "category": "terminology",
+    "recommendation": "Consistent labels and one hub for round actions; define 'tee sheet' once.",
+    "confidence": 9,
+    "evidence": "screenshots/nov/10-home-empty.jpg, 95-plan-round.jpg; screenshots/ios/01-door.jpg, 09-post.jpg, 03-clubhouse.jpg, 05-schedule.jpg",
+    "stage": "engagement",
+    "dedupedFrom": [
+      "N-20",
+      "IOS-23",
+      "IOS-05"
+    ]
+  },
+  {
+    "id": "M-075",
+    "agent": "A3-novice",
+    "screen": "App boot (cold open / return from legal page)",
+    "journey": "Retention",
+    "observation": "A signed-in user sees the sign-in door for ~6–8 s before Home appears; console '[cs] Boot stalled at [league-data] — network or auth hang'.",
+    "expected": "A loading state, not the sign-in screen.",
+    "actual": "Every cold open reads as 'signed out'.",
+    "severity": "P2",
+    "category": "onboarding",
+    "recommendation": "Show a splash/loading state until the session resolves.",
+    "confidence": 8,
+    "evidence": "screenshots/nov/99-final-home.jpg, 100-boot-stall.jpg, 101-reload2.jpg; console 14:04:22–14:04:57",
+    "stage": "retention",
+    "dedupedFrom": [
+      "N-28"
+    ]
+  },
+  {
+    "id": "M-077",
+    "agent": "A5-organizer;A3-novice;A6-joiner;A1-casual;A2-competitive",
+    "screen": "Post a round / Live setup → course search",
+    "journey": "D / Side games",
+    "observation": "'Papago' returns two identical rows 'Papago Golf Course · Phoenix, AZ · 13 tees'; the first pick logged a 502 and showed no tees, the second listed 13.",
+    "expected": "One result; tees on first tap; a retry message on failure.",
+    "actual": "Hesitation on every post; a silent failure.",
+    "severity": "P2",
+    "category": "gameplay",
+    "recommendation": "Dedupe by course id; surface tee-fetch failures.",
+    "confidence": 9,
+    "evidence": "screenshots/org/65-course-search3.jpg; screenshots/join/43-X-course-search.jpg, 44-Y-tees.jpg, 45-Y-tees2.jpg, console 15:38:01; shots/comp text dump 15:47; nov 13:57; cas 15:50",
+    "stage": "engagement",
+    "dedupedFrom": [
+      "ORG-33",
+      "N-35",
+      "J-22",
+      "A25",
+      "C-31"
+    ]
+  },
+  {
+    "id": "M-078",
+    "agent": "A3-novice;A6-joiner;A2-competitive;A5-organizer",
+    "screen": "After Post round",
+    "journey": "D — First round",
+    "observation": "Two or three stacked sheets: 'Round posted' → 'Get the full-screen app… [Add]' → 'Welcome to the season ⛳' with 'Your first round is on the board' listed twice and a '[Turn off this link] — The page stops working for everyone who has it' control for a link never created; 'Welcome to the season' a week before the season.",
+    "expected": "One celebration; share secondary; no destructive link control in a welcome; 'season' language only once live.",
+    "actual": "Dialog pile-up; slightly alarming; contradicts the standings.",
+    "severity": "P2",
+    "category": "visual-hierarchy",
+    "recommendation": "Merge into one card; move link management to the share flow; dedupe rows.",
+    "confidence": 9,
+    "evidence": "screenshots/nov/72-posted.jpg, 73-welcome-season.jpg; screenshots/join/47-AA-posted.jpg, 48-AA-posted-viewport.jpg; screenshots/comp/38-posted-74.jpg; screenshots/org/69-after-post.jpg",
+    "stage": "engagement",
+    "dedupedFrom": [
+      "N-25",
+      "J-25",
+      "C-24",
+      "ORG-21"
+    ]
+  },
+  {
+    "id": "M-079",
+    "agent": "A5-organizer;A6-joiner;A4-skeptic;A2-competitive;iOS-survey;A3-novice",
+    "screen": "Post result sheet / You tab display case",
+    "journey": "D — First round",
+    "observation": "A first-ever 87 mints '🏆 You broke 90 for the first time · Pinned to your card' AND '🏆 You broke 100 for the first time'; a 91 by a 15-index gets 'Broke 100'; one 88 credits both 'Broke 100' and 'Broke 90' on iOS. The You tab then says 'YOUR DISPLAY CASE · No hardware yet'. After deleting both rounds the 'Broke 80/90/100 · 74 gross' badges survived with Lifetime 'Rounds posted 0', and were credited to the wrong (later) round.",
+    "expected": "Only the best threshold crossed, gated on a baseline; the display case reflects pinned items; badges recomputed on delete.",
+    "actual": "Trivial, duplicate, stale and mis-attributed trophies; first celebration reads as the app not knowing the golfer.",
+    "severity": "P2",
+    "category": "gameplay",
+    "recommendation": "Award the highest milestone per round; gate 'broke N' on prior history; reconcile the display case; recompute on delete/insert by date.",
+    "confidence": 9,
+    "evidence": "screenshots/org/69-after-post.jpg, 73-you-tab.jpg; screenshots/join/47-AA-posted.jpg, 57-AJ-you-real.jpg; screenshots/skep/21-you-full.jpg; screenshots/comp/37-delete-confirm.jpg, 50-you-after2.jpg; screenshots/ios/06-you.jpg; screenshots/nov/79-you-tab.jpg",
+    "stage": "engagement",
+    "dedupedFrom": [
+      "ORG-21",
+      "J-21",
+      "SK-29",
+      "C-21",
+      "IOS-25",
+      "N-33"
+    ]
+  },
+  {
+    "id": "M-082",
+    "agent": "A1-casual;A3-novice;A2-competitive;A5-organizer",
+    "screen": "Home feed round cards",
+    "journey": "D",
+    "observation": "After a second round the new one is labelled '🎉 First round on the card' and the earlier one '🔥 Personal best'; the summary reads 'You's first round'; the gross renders as two digit tiles read as '9 7 gross' (odometer; a11y tree reads 'nine one').",
+    "expected": "Correct badge logic for the viewer's own rounds; proper possessive; a simple accessible name.",
+    "actual": "Wrong badges and grammar on the user's own items; screen readers read garbage.",
+    "severity": "P2",
+    "category": "visual-hierarchy",
+    "recommendation": "Fix badge ordering by date; 'Your first round'; aria-label the odometer.",
+    "confidence": 9,
+    "evidence": "screenshots/cas/53-G01-after-post.jpg, 55-G03-back-to-board.jpg; screenshots/nov/74-home-after-post.jpg; screenshots/comp/13-after-verify.jpg; org tree 'shows 5 2 9 8 8 4 1 7 gross'",
+    "stage": "engagement",
+    "dedupedFrom": [
+      "A17",
+      "N-35",
+      "C-37"
+    ]
+  },
+  {
+    "id": "M-086",
+    "agent": "A1-casual;A2-competitive;A4-skeptic",
+    "screen": "Post round / Finish round / On the tee sheet (console)",
+    "journey": "Reliability",
+    "observation": "'Failed to load resource: 502' ×3 during Post round (cas 15:43, 15:59), ×2 at 'Finish round' (comp 15:55), ×1 at 'On the tee sheet' (comp 16:01), ×1 on post (skep 15:38:14). Nothing shown to the user.",
+    "expected": "No server errors on core paths; failures surfaced or retried with telemetry.",
+    "actual": "Something server-side fails on the highest-value writes; effect unknown.",
+    "severity": "P2",
+    "category": "retention",
+    "recommendation": "Identify the failing endpoint (likely an Edge Function/webhook); surface or retry.",
+    "confidence": 8,
+    "evidence": "console logs cited",
+    "stage": "engagement",
+    "dedupedFrom": [
+      "A28",
+      "C-32",
+      "SK-31"
+    ]
+  },
+  {
+    "id": "M-087",
+    "agent": "A4-skeptic",
+    "screen": "You › Recent rounds",
+    "journey": "D",
+    "observation": "Row reads '2026-08-29 · PAPAGO GOLF COURSE · WHITE 91 · 19.7'; the 19.7 has no label; the row is not tappable (only ✕).",
+    "expected": "Label the differential; the row opens the receipt.",
+    "actual": "Unlabeled number; receipt reachable only from the Home feed.",
+    "severity": "P2",
+    "category": "comprehension",
+    "recommendation": "'diff 19.7' and tap-to-receipt.",
+    "confidence": 9,
+    "evidence": "screenshots/skep/21-you-full.jpg, 22-round-detail.jpg",
+    "stage": "engagement",
+    "dedupedFrom": [
+      "SK-11"
+    ]
+  },
+  {
+    "id": "M-091",
+    "agent": "A5-organizer;A3-novice",
+    "screen": "Live scoring stepper",
+    "journey": "Side games",
+    "observation": "The stepper shows '–'; the first '+' sets the hole to par (5 on a par 5), each further tap +1. Six taps on a par 5 produced 10.",
+    "expected": "Par visible as a ghost value before the first tap, or 'tap + to start at par'.",
+    "actual": "Wrong hole-1 scores in real rounds; the most common live-scoring error.",
+    "severity": "P2",
+    "category": "gameplay",
+    "recommendation": "Render par in the box before the first tap.",
+    "confidence": 9,
+    "evidence": "screenshots/org/89-live-hole3.jpg; screenshots/nov/91-live-h1.jpg, 92-live-h2.jpg",
+    "stage": "engagement",
+    "dedupedFrom": [
+      "ORG-38",
+      "N-22"
+    ]
+  },
+  {
+    "id": "M-092",
+    "agent": "A1-casual",
+    "screen": "Live round → Finish the round sheet",
+    "journey": "Side games",
+    "observation": "Two buttons 'Finish — no complete member card to post' and 'This one was casual — post nothing' with no discernible difference.",
+    "expected": "One clear primary plus 'Keep scoring'.",
+    "actual": "On the 18th green nobody will know which to press.",
+    "severity": "P2",
+    "category": "gameplay",
+    "recommendation": "Collapse to one; explain what 'finish' does when nothing posts.",
+    "confidence": 8,
+    "evidence": "screenshots/cas/75-I08-finish-attempt.jpg",
+    "stage": "engagement",
+    "dedupedFrom": [
+      "A20"
+    ]
+  },
+  {
+    "id": "M-094",
+    "agent": "A1-casual",
+    "screen": "Live setup",
+    "journey": "Side games",
+    "observation": "A player with no index is shown as 'Jordan · EST 18.0 IDX'; match strokes ('Jordan gets 4: holes 3, 6, 16, 18') derive from that; no explanation or way to adjust.",
+    "expected": "'No number yet — using 18.0; tap to change'.",
+    "actual": "A silent default decides a $5 match.",
+    "severity": "P2",
+    "category": "gameplay",
+    "recommendation": "Explain and allow adjusting the estimate.",
+    "confidence": 8,
+    "evidence": "screenshots/cas/68-I01-live-start.jpg, 70-I03-setup-done.jpg",
+    "stage": "engagement",
+    "dedupedFrom": [
+      "A21"
+    ]
+  },
+  {
+    "id": "M-095",
+    "agent": "A3-novice;A2-competitive",
+    "screen": "Live settlement / Pot tab 'The other stakes'",
+    "journey": "Side games / money",
+    "observation": "Live settlement 'JORDAN → PRIYA $60 · JORDAN → MARCUS $20 · CASEY → MARCUS $20' exists only as a board card; the Pot tab still says '$0 collected' and 'THE OTHER STAKES' lists only pride bets. 'Cup Season keeps the books' is true for the pot and false for the games.",
+    "expected": "A running side-game ledger per member (who owes whom) with a settle tap, or an up-front statement that the app won't keep it.",
+    "actual": "The bar argument the app promises to prevent is exactly the one it doesn't record.",
+    "severity": "P2",
+    "category": "monetization",
+    "recommendation": "Archive live settlements into the record/Pot under a 'Side games' ledger (D39 posture: a record, never a bank).",
+    "confidence": 8,
+    "evidence": "screenshots/nov/92-live-h2.jpg, 97-stake-form.jpg; screenshots/comp/60-pot-after-skins.jpg, 59-home-after-skins.jpg",
+    "stage": "retention",
+    "dedupedFrom": [
+      "N-24",
+      "C-28"
+    ]
+  },
+  {
+    "id": "M-096",
+    "agent": "A5-organizer",
+    "screen": "Live round settlement sheet",
+    "journey": "Side games",
+    "observation": "Headline 'Round posted · 0 CARDS TO THE SEASON' with 'Casey · NOT POSTED · INCOMPLETE CARD'.",
+    "expected": "'Round finished — nothing posted'.",
+    "actual": "Player may believe an incomplete round was posted.",
+    "severity": "P2",
+    "category": "comprehension",
+    "recommendation": "Conditional headline.",
+    "confidence": 10,
+    "evidence": "screenshots/org/92-settlement.jpg",
+    "stage": "engagement",
+    "dedupedFrom": [
+      "ORG-27"
+    ]
+  },
+  {
+    "id": "M-097",
+    "agent": "A2-competitive",
+    "screen": "Live scorer settlement / Round posted sheet",
+    "journey": "Side games",
+    "observation": "'DONE · 2 SKINS DIED CARRIED' and netted lines 'JORDAN → PRIYA $60' with no breakdown (7 × $15 won − 9 × $5 owed); the '1 THRU 18 18 · PRIYA' hole strip is unlabeled.",
+    "expected": "Per-player gross (won/owed) then net; readable wording.",
+    "actual": "Correct math that doesn't show its work.",
+    "severity": "P2",
+    "category": "gameplay",
+    "recommendation": "'Priya: +7 skins ($105) − 9 skins ($45) = +$60'; '2 skins unclaimed at 18'.",
+    "confidence": 8,
+    "evidence": "screenshots/comp/56-live-hole18.jpg, 58-live-posted.jpg",
+    "stage": "engagement",
+    "dedupedFrom": [
+      "C-27"
+    ]
+  },
+  {
+    "id": "M-099",
+    "agent": "A1-casual",
+    "screen": "Pot tab → Post a stake / stake card",
+    "journey": "Pride stakes",
+    "observation": "Either party sees 'Settle' ('Stakes settle on a party's tap'); the prefilled terms 'Loser hosts the cookout' were posted under a differently named bet.",
+    "expected": "Empty terms field; two-party settle with a winner selection.",
+    "actual": "Who won and who decides is unclear; easy to post unintended terms.",
+    "severity": "P2",
+    "category": "rules",
+    "recommendation": "Clear terms; settle asks the other party.",
+    "confidence": 8,
+    "evidence": "screenshots/cas/38-E04-post-stake.jpg, 40-E06-stake-posted.jpg",
+    "stage": "engagement",
+    "dedupedFrom": [
+      "A30"
+    ]
+  },
+  {
+    "id": "M-100",
+    "agent": "A2-competitive;A4-skeptic",
+    "screen": "Round posted sheet → Share the card",
+    "journey": "Social",
+    "observation": "Tapping 'Share the card' produced no visible change; a hidden role=status read 'Card downloaded' (headless: navigator.share unavailable, no visible fallback).",
+    "expected": "A share sheet, or a visible 'Saved to Photos' / copied-link toast.",
+    "actual": "Silent download; a person taps twice and gives up.",
+    "severity": "P2",
+    "category": "social",
+    "recommendation": "Visible confirmation inside the sheet; copy-link fallback.",
+    "confidence": 7,
+    "evidence": "screenshots/comp/39-share-card.jpg; screenshots/skep/34-share-card.jpg, DOM status 15:38:59",
+    "stage": "engagement",
+    "dedupedFrom": [
+      "C-23",
+      "SK-16"
+    ]
+  },
+  {
+    "id": "M-111",
+    "agent": "A5-organizer;A2-competitive;A4-skeptic",
+    "screen": "Pot tab",
+    "journey": "Money",
+    "observation": "'THE POT $250 · $150 Cup champs · $63 Runner-up · $38 Points king' (= $251); '$30 / $13 / $8' on $50 (= $51). 'Cup champs' plural; how a squad divides its 60% is never stated; the ☐ next to a name is unlabeled.",
+    "expected": "Amounts that add up; 'per squad member' figures; a labelled 'paid' state.",
+    "actual": "Money screen invites nitpicks; 'what you'd win' unknown.",
+    "severity": "P2",
+    "category": "monetization",
+    "recommendation": "Exact cents or 'about'; 'split across the squad ($x each)'; label the checkbox.",
+    "confidence": 9,
+    "evidence": "screenshots/org/54-tab-Pot.jpg; screenshots/comp/25-pot-tab.jpg; screenshots/skep/12-tab-Pot.jpg",
+    "stage": "monetization",
+    "dedupedFrom": [
+      "ORG-32",
+      "C-16",
+      "SK-21"
+    ]
+  },
+  {
+    "id": "M-121",
+    "agent": "A7-observer",
+    "screen": "Standings tile, You tab, Board",
+    "journey": "E",
+    "observation": "Index change told three ways: 'YOUR INDEX 11.3 · ▼ 1.1 this season' (green), You 'Index move ▲ 1.2 · Season to date' (green), board '12.2 → 12.6'.",
+    "expected": "One direction, one number; red for up, green for down.",
+    "actual": "'Am I improving?' can't be trusted.",
+    "severity": "P2",
+    "category": "comprehension",
+    "recommendation": "Single source for index delta.",
+    "confidence": 9,
+    "evidence": "screenshots/obs/09-club-mid.jpg, 29-you-full.jpg, 19-sub-Board.jpg",
+    "stage": "retention",
+    "dedupedFrom": [
+      "R7-20"
+    ]
+  },
+  {
+    "id": "M-122",
+    "agent": "A7-observer;A3-novice;iOS-survey",
+    "screen": "Standings table 'Δ WK'; calendar Sunday dots / 'WEEK BY WEEK' / 'Week closes — snapshot recorded'",
+    "journey": "E / Schedule",
+    "observation": "'Δ WK +10' although the newest counted round was two weeks earlier. Season starts Saturday, weeks close Sunday ('snapshot'), caps/floors are monthly; Sunday dots labelled 'SEASON DATE' with no explanation; 'WEEK BY WEEK' lists WK 4…WK 1 with nothing beside them; 'Nothing on the tee sheet for Aug' sits under a card labelled 'ON THE TEE SHEET'; a week-close marker counts as '1 ON THE SHEET'; legend dots indistinguishable on the dark grid.",
+    "expected": "One explanation of season/week/month; labelled windows; no empty rows or contradictory tee-sheet messaging.",
+    "actual": "Three clocks nowhere explained; movement signal unreadable; dead UI on the planning screen.",
+    "severity": "P2",
+    "category": "comprehension",
+    "recommendation": "A 'How the calendar works' line; label the Δ window; hide empty week rows; 'Week closes' instead of 'Season date'; distinct legend colours.",
+    "confidence": 8,
+    "evidence": "screenshots/obs/07-league-full.jpg, 13-sub-Schedule.jpg, 34-next-tile.jpg; screenshots/nov/59-cal-sep.jpg, 60-cal-day6.jpg; screenshots/ios/05-schedule.jpg",
+    "stage": "retention",
+    "dedupedFrom": [
+      "R7-21",
+      "N-21",
+      "R7-22",
+      "IOS-15"
+    ]
+  },
+  {
+    "id": "M-124",
+    "agent": "A7-observer",
+    "screen": "Home, Standings, You",
+    "journey": "F / G",
+    "observation": "No countdown or preview of the Cup Final anywhere; 'THE RECORD · No silverware yet — every season starts level'; both leagues 'SEASON I'; no past seasons; a two-player league where 'everyone advances' is structurally hollow and the app never warns the Pro.",
+    "expected": "A finale rail (weeks to the final, seeds, stakes, settlement preview) that grows as it nears; something to defend.",
+    "actual": "The season peters out; 'the database reached its final row'.",
+    "severity": "P2",
+    "category": "retention",
+    "recommendation": "Finale rail + countdown; a pre-lock warning when the structure makes the final trivial.",
+    "confidence": 8,
+    "evidence": "screenshots/obs/21-bylaws-open.jpg, 29-you-full.jpg, 08-club-top.jpg",
+    "stage": "retention",
+    "dedupedFrom": [
+      "R7-17"
+    ]
+  },
+  {
+    "id": "M-125",
+    "agent": "A7-observer;iOS-survey",
+    "screen": "Scorecards, round cards, milestone stories",
+    "journey": "Social",
+    "observation": "The match-play scorecard (gold deciding holes), the '79 gross' round card with the differential math, and 'Galen broke 80 … That one goes on the wall' are screenshot-worthy; none has a share/export control (only a 🔥 reaction). The only shares are the invite link and a buried public standings page.",
+    "expected": "One-tap share on the object.",
+    "actual": "No social objects leave the app on their own.",
+    "severity": "P2",
+    "category": "social",
+    "recommendation": "Share on scorecards, round cards, settlement cards and milestone stories.",
+    "confidence": 8,
+    "evidence": "screenshots/obs/42-matchplay.jpg, 37-round-card.jpg, 18-sub-League.jpg; screenshots/ios/01-door.jpg",
+    "stage": "retention",
+    "dedupedFrom": [
+      "R7-18",
+      "IOS-29"
+    ]
+  },
+  {
+    "id": "M-126",
+    "agent": "A7-observer",
+    "screen": "Inbox",
+    "journey": "Retention",
+    "observation": "Gmail search for noreply@cupseason.app excluding sign-in codes over 60 days returned nothing for a member with 'Month closes in 2 days' and an unmet floor.",
+    "expected": "A deadline nudge and a weekly digest worth opening.",
+    "actual": "Silence outside the app.",
+    "severity": "P2",
+    "category": "retention",
+    "recommendation": "Weekly digest + floor-deadline nudge (Season email exists as a toggle; verify it sends).",
+    "confidence": 7,
+    "evidence": "Gmail search 13:46 UTC (obs)",
+    "stage": "retention",
+    "dedupedFrom": [
+      "R7-19"
+    ]
+  },
+  {
+    "id": "M-127",
+    "agent": "A7-observer;iOS-survey",
+    "screen": "Calendar plan card; You › Rivalries",
+    "journey": "E",
+    "observation": "'Galen BUDDY · FRI SEP 4 · … · you lead 1–0 · YOU'RE IN · \"Major\"' and 'Jade · 2 weeks head-to-head · 2–0' — 'lead 1–0' (in what?), 'weeks head-to-head', 'Major', 'BUDDY', 'YOU'RE IN' unexplained.",
+    "expected": "'Head-to-head vs Galen: 1–0', 'You're confirmed', a labelled nickname.",
+    "actual": "The one rivalry feature is half-legible.",
+    "severity": "P2",
+    "category": "terminology",
+    "recommendation": "Spell out the record; link to the matches.",
+    "confidence": 8,
+    "evidence": "screenshots/obs/13-sub-Schedule.jpg, 29-you-full.jpg; screenshots/ios/05-schedule.jpg",
+    "stage": "retention",
+    "dedupedFrom": [
+      "R7-23",
+      "IOS-14"
+    ]
+  },
+  {
+    "id": "M-128",
+    "agent": "A7-observer;A6-joiner;A2-competitive",
+    "screen": "Boards and Home feed",
+    "journey": "E",
+    "observation": "'Match play: Jerecho def. Jade 4&3' appears on a board whose league Jade is not in; Will & Isaak (guests) appear on the Fellas board; 'Match play: Casey def. Marco' where Marco is not a member (Marcus is); the same personal-best story posted twice on Home (once per league); Home says '5 golfers in' while six names appear in the feed.",
+    "expected": "Each board shows its own members; guests tagged; one story per event on Home.",
+    "actual": "Who's actually in this league becomes unclear.",
+    "severity": "P2",
+    "category": "comprehension",
+    "recommendation": "Fan out live-game posts only where participants are members; tag guests; dedupe cross-league stories.",
+    "confidence": 8,
+    "evidence": "screenshots/obs/25-wtb-Board.jpg, 19-sub-Board.jpg, 36-home-earlier.jpg; screenshots/join/21-P-home-member-full.jpg, 35-T-members.jpg; screenshots/comp/30-board-tab.jpg",
+    "stage": "retention",
+    "dedupedFrom": [
+      "R7-24",
+      "J-24",
+      "C-35"
+    ]
+  },
+  {
+    "id": "M-130",
+    "agent": "A7-observer",
+    "screen": "Bylaws, How scoring works, composer, WTB standings (solo / no-pot league)",
+    "journey": "E",
+    "observation": "'STRUCTURE Individual — no squads' next to 'Squad formation · Blind draw' and '−5 sqd pts / round short'; the explainer says 'your squad' four times; the composer says 'count toward your squad'; the no-pot league still says 'Points King takes 15% of the pot'.",
+    "expected": "Copy adapted to this league's bylaws.",
+    "actual": "Rules read as belonging to a different game.",
+    "severity": "P2",
+    "category": "terminology",
+    "recommendation": "Conditional copy on structure and buy-in.",
+    "confidence": 9,
+    "evidence": "screenshots/obs/21-bylaws-open.jpg, 22-how-scoring2.jpg, 40-settings.jpg, 28-wtb-standings2.jpg",
+    "stage": "retention",
+    "dedupedFrom": [
+      "R7-10"
+    ]
+  },
+  {
+    "id": "M-131",
+    "agent": "A7-observer",
+    "screen": "Clubhouse › Board (system posts)",
+    "journey": "E",
+    "observation": "Posts read 'Diff 17.8', 'July closed — Ledger posted · Partial month, floors waived', 'Sunningdale: … bank: … 6 units', 'number now comes from their scores — 12.2 → 12.6'; two formats for the same 'posted' event.",
+    "expected": "Plain-language stories in the voice of the personal-best story.",
+    "actual": "The social spine reads like a changelog.",
+    "severity": "P2",
+    "category": "terminology",
+    "recommendation": "Rewrite system posts; one round-post format.",
+    "confidence": 8,
+    "evidence": "screenshots/obs/19-sub-Board.jpg",
+    "stage": "retention",
+    "dedupedFrom": [
+      "R7-14"
+    ]
+  },
+  {
+    "id": "M-132",
+    "agent": "A7-observer",
+    "screen": "Player receipt sheet (standings row)",
+    "journey": "E",
+    "observation": "Lists 'YYYY-MM-DD · ±x vs index · N PTS' only — no course, no gross, no total line; the member added 9+5+5+6+7 by hand to confirm 32.",
+    "expected": "Course, score, band and a sum that ties to the standings.",
+    "actual": "The 'shows its work' promise half kept.",
+    "severity": "P2",
+    "category": "comprehension",
+    "recommendation": "Add course/gross/band per line and a 'counting total' footer.",
+    "confidence": 9,
+    "evidence": "screenshots/obs/10-my-row.jpg",
+    "stage": "retention",
+    "dedupedFrom": [
+      "R7-12"
+    ]
+  },
+  {
+    "id": "M-133",
+    "agent": "A4-skeptic;A2-competitive",
+    "screen": "Whole product, pre-season (Home feed, Standings, League tab)",
+    "journey": "C / G — value",
+    "observation": "What is visible on day one duplicates what the group already has: a chat (group text), a pot ledger (Venmo + text), gross scores (18Birdies), a calendar. The differentiator — a season race vs your own index with squads, floor, cap and a Cup Final, from any course — exists only in the bylaws and is never demonstrated. Every feed round card shows 'NN GROSS' only; no points, band or table movement.",
+    "expected": "Show the race: a worked example ('post 4 rounds at your number this month = 28 pts'), a demo season, and round cards that say what the round DID once live.",
+    "actual": "Zero-filled tables and a gross-score ticker; the value is real and hidden ('I'd stay in the group text').",
+    "severity": "P2",
+    "category": "retention",
+    "recommendation": "Pre-season 'what happens on Sep 5' explainer with a worked example; ship the squad draw + first-week table as the aha; band + points + movement on feed cards.",
+    "confidence": 9,
+    "evidence": "screenshots/skep/37-standings-after.jpg, 09-home-full.jpg, 13-tab-League.jpg; screenshots/comp/40-standings-after74.jpg",
+    "stage": "activation",
+    "dedupedFrom": [
+      "SK-35",
+      "SK-26"
+    ]
+  },
+  {
+    "id": "M-136",
+    "agent": "A4-skeptic",
+    "screen": "Settings › Notifications",
+    "journey": "E",
+    "observation": "'[Enable on this device]' beside 'Round pings: ON · Chat pings: ON · Season email: ON'; nothing was enabled on the device; 'Moments, reveals, and month closes always come through' — moments/reveals undefined.",
+    "expected": "Toggles read as preferences (device not enabled) or are disabled until enabled.",
+    "actual": "ON while the master is off.",
+    "severity": "P2",
+    "category": "comprehension",
+    "recommendation": "Label as preferences; define categories.",
+    "confidence": 8,
+    "evidence": "screenshots/skep/47-settings-6.jpg",
+    "stage": "retention",
+    "dedupedFrom": [
+      "SK-32"
+    ]
+  },
+  {
+    "id": "M-137",
+    "agent": "A4-skeptic",
+    "screen": "Board (chat)",
+    "journey": "E",
+    "observation": "Under a message: [🔥] ('heater'), [+] 'More reactions', [⚑] 'Report this post' — the report flag looks like a third reaction.",
+    "expected": "Report hidden behind a long-press or overflow.",
+    "actual": "One slip reports a buddy's trash talk.",
+    "severity": "P2",
+    "category": "social",
+    "recommendation": "Move report into an overflow menu; label it.",
+    "confidence": 9,
+    "evidence": "screenshots/skep/42-full-board.jpg",
+    "stage": "retention",
+    "dedupedFrom": [
+      "SK-19"
+    ]
+  },
+  {
+    "id": "M-138",
+    "agent": "A6-joiner",
+    "screen": "Standings › player row (another member)",
+    "journey": "Social",
+    "observation": "Tapping Casey opens 'Casey · 0 ROUNDS · 0 PTS · No rounds this season yet — post one and you're on the board. · [Post a round]' — no index, no profile; the CTA reads as posting on Casey's behalf.",
+    "expected": "The member's card (index, THE PRO, record, buddy button); 'Post a round' only on my own row.",
+    "actual": "An empty state with my action inside his sheet.",
+    "severity": "P2",
+    "category": "social",
+    "recommendation": "Show the profile; scope the CTA.",
+    "confidence": 8,
+    "evidence": "screenshots/join/38-T-casey-row.jpg",
+    "stage": "engagement",
+    "dedupedFrom": [
+      "J-20"
+    ]
+  },
+  {
+    "id": "M-139",
+    "agent": "A6-joiner;A1-casual;iOS-survey;A5-organizer",
+    "screen": "Golfer card 'BALL MARKER' grid / Members 'Marker here' / Settings",
+    "journey": "Onboarding",
+    "observation": "14 tiles (THE SAGUARO, THE ISLAND, THE POSTAGE STAMP, NO. 2…) with no explanation; every member shows the identical cactus; the members list has a 'Marker here' button with no copy; Settings says 'YOUR PHOTO · THE MARKER ALWAYS BACKS IT UP'; on iOS the marker name 'NO. 2' sits top-left of the You card while the user is literally in 2nd place.",
+    "expected": "'Pick a marker — it's your icon on the board (your photo replaces it)'; a labelled per-league override; no rank-like marker label on the card.",
+    "actual": "Unexplained; everyone looks the same; mystery button; a label that reads as rank.",
+    "severity": "P2",
+    "category": "onboarding",
+    "recommendation": "One caption under the grid; label 'Use a different marker in this league'; prefix or drop the marker name on the card.",
+    "confidence": 9,
+    "evidence": "screenshots/join/07-G-card-markers.jpg, 35-T-members.jpg; screenshots/cas/35-E01-members.jpg; screenshots/ios/06-you.jpg, 07-settings.jpg; screenshots/org/09-golfer-card-2.jpg",
+    "stage": "activation",
+    "dedupedFrom": [
+      "J-17",
+      "A31",
+      "IOS-20",
+      "IOS-10"
+    ]
+  },
+  {
+    "id": "M-146",
+    "agent": "iOS-survey",
+    "screen": "iOS Schedule",
+    "journey": "information-hierarchy",
+    "observation": "The AUG 2026 grid has an empty first row and its second row starts at 6; Aug 1 2026 is a Saturday; days 1–5 are absent while past days 6–8 are drawn dim.",
+    "expected": "Every day renders (dimmed if past).",
+    "actual": "Five days missing; looks broken; can't plan on 1–5.",
+    "severity": "P2",
+    "category": "visual-hierarchy",
+    "recommendation": "Render 1–5.",
+    "confidence": 9,
+    "evidence": "screenshots/ios/05-schedule.jpg",
+    "stage": "engagement",
+    "dedupedFrom": [
+      "IOS-09"
+    ]
+  },
+  {
+    "id": "M-147",
+    "agent": "iOS-survey",
+    "screen": "iOS Home 'THIS WEEK' / 'QUIET SINCE YOUR LAST VISIT'",
+    "journey": "information-hierarchy",
+    "observation": "Section 'THIS WEEK' contains a card dated 'Sun, Aug 23' on Sat Aug 29 (week 3 closed Aug 23); 'QUIET SINCE YOUR LAST VISIT' is immediately followed by an item.",
+    "expected": "Section labels match contents.",
+    "actual": "Last week's round under 'This week'; 'quiet' over a non-empty list.",
+    "severity": "P2",
+    "category": "comprehension",
+    "recommendation": "'Latest' / align with the league week; reword the quiet line.",
+    "confidence": 7,
+    "evidence": "screenshots/ios/01-door.jpg, 03-clubhouse.jpg",
+    "stage": "retention",
+    "dedupedFrom": [
+      "IOS-13"
+    ]
+  },
+  {
+    "id": "M-148",
+    "agent": "iOS-survey",
+    "screen": "iOS Your buddies",
+    "journey": "information-hierarchy",
+    "observation": "A full-width 'Find a golfer' button sits directly above a search field; every row carries a 'BUDDIES' pill under a 'BUDDIES · 6' header; 'REQUESTED' gives no direction and no accept/decline.",
+    "expected": "One find control; pills only where informative; actionable requests.",
+    "actual": "Redundant controls; ambiguous requests.",
+    "severity": "P2",
+    "category": "social",
+    "recommendation": "Single search; drop per-row pill; 'They asked you' vs 'You asked' with actions.",
+    "confidence": 8,
+    "evidence": "screenshots/ios/08-people.jpg",
+    "stage": "engagement",
+    "dedupedFrom": [
+      "IOS-19"
+    ]
+  },
+  {
+    "id": "M-149",
+    "agent": "iOS-survey;A1-casual",
+    "screen": "Start an event sheet (iOS and web)",
+    "journey": "information-hierarchy",
+    "observation": "'⚔ The Ryder — Two teams · weekly vs-index duels · first to the clinch — LIVE'; '🥊 Bracket — Knockout · seeded · last golfer standing — SOON'; '🏆 A Major · best card takes the jug'; 'Every event mints a trophy… More styles land after the pilot.'",
+    "expected": "Plain one-sentence blurbs; 'Available' / 'Coming soon'; how events relate to my league.",
+    "actual": "'vs-index duels', 'the clinch', 'mints', 'the pilot' are jargon; LIVE is ambiguous.",
+    "severity": "P2",
+    "category": "terminology",
+    "recommendation": "Rewrite blurbs; replace LIVE/SOON; drop 'pilot'.",
+    "confidence": 8,
+    "evidence": "screenshots/ios/13-events.jpg; screenshots/cas/85-K02-start-event.jpg",
+    "stage": "engagement",
+    "dedupedFrom": [
+      "IOS-21",
+      "A33"
+    ]
+  },
+  {
+    "id": "M-150",
+    "agent": "iOS-survey",
+    "screen": "iOS Post a round",
+    "journey": "information-hierarchy",
+    "observation": "'Post round' is full orange with an empty card; 'Play now' sits in the nav bar with no caption; three recent-course rows have no 'Recent' header and their '72.1 / 142' figures are unlabeled until the row beneath; no date visible.",
+    "expected": "Disabled state visible; competing CTA explained; numbers labelled; date visible.",
+    "actual": "Ambiguous enablement and unlabeled numbers.",
+    "severity": "P2",
+    "category": "visual-hierarchy",
+    "recommendation": "Dim the CTA until valid; caption 'Play now — live scoring'; 'Recent · rating / slope'.",
+    "confidence": 8,
+    "evidence": "screenshots/ios/09-post.jpg",
+    "stage": "engagement",
+    "dedupedFrom": [
+      "IOS-27"
+    ]
+  },
+  {
+    "id": "M-153",
+    "agent": "iOS-survey",
+    "screen": "iOS Clubhouse header / Next-up card",
+    "journey": "information-hierarchy",
+    "observation": "A 'Live round' button sits inside the 'NEXT UP · AUGUST' card whose text is about floors; section header 'SEASON RACE · THE CLIMB'; ⇄ icon in the nav bar with no label; 'Code · WHOS84L9' and 'Add golfers' during a live season with no instruction; 'THE PRO · GALEN' undefined.",
+    "expected": "Buttons where their purpose is clear; labelled icons; 'Organizer: Galen'; 'Invite code — share to join'.",
+    "actual": "Unrelated CTA placement; 'The Climb' and ⇄ unexplained.",
+    "severity": "P2",
+    "category": "navigation",
+    "recommendation": "Move 'Live round' to the round hub; label the switcher; explain or drop 'The Climb'.",
+    "confidence": 8,
+    "evidence": "screenshots/ios/03-clubhouse.jpg",
+    "stage": "engagement",
+    "dedupedFrom": [
+      "IOS-33",
+      "IOS-16"
+    ]
+  },
+  {
+    "id": "M-013",
+    "agent": "A5-organizer;A3-novice",
+    "screen": "Name your league sheet; Live setup 'Add a guest'",
+    "journey": "C / Side games",
+    "observation": "'Start the league' with an empty name does nothing (no message, no shake); guest 'Add' with an empty name does nothing.",
+    "expected": "Inline validation or a disabled button.",
+    "actual": "Silent no-ops; feels broken.",
+    "severity": "P3",
+    "category": "comprehension",
+    "recommendation": "Disable until valid or show 'Give it a name'.",
+    "confidence": 10,
+    "evidence": "screenshots/org/16-wizard-2.jpg, 86-live-setup-filled.jpg; screenshots/nov/12-wizard-1.jpg vs 13-wizard-2.jpg (identical)",
+    "stage": "activation",
+    "dedupedFrom": [
+      "ORG-30",
+      "N-31"
+    ]
+  },
+  {
+    "id": "M-015",
+    "agent": "A5-organizer",
+    "screen": "Wizard step 2 re-entered",
+    "journey": "Mistakes",
+    "observation": "After customizing, 'Use these defaults →' advanced to review with the $50 / 4 mo choices intact.",
+    "expected": "Label matches behavior.",
+    "actual": "Implies a reset; behaves as Next; organizer fears losing settings.",
+    "severity": "P3",
+    "category": "terminology",
+    "recommendation": "Relabel 'Next →' once anything is customized.",
+    "confidence": 10,
+    "evidence": "screenshots/org/82-after-use-defaults.jpg",
+    "stage": "activation",
+    "dedupedFrom": [
+      "ORG-36"
+    ]
+  },
+  {
+    "id": "M-053",
+    "agent": "A2-competitive",
+    "screen": "Post preview",
+    "journey": "D",
+    "observation": "'You torched your number by 5.0. Sandbagger alert.' on a legitimate 74.",
+    "expected": "Celebration for the exact behaviour the app wants.",
+    "actual": "Copy accuses the player.",
+    "severity": "P3",
+    "category": "terminology",
+    "recommendation": "Reserve the joke for the board; say 'career day' here (index.html:5693).",
+    "confidence": 7,
+    "evidence": "screenshots/comp/35-preview-74.jpg",
+    "stage": "engagement",
+    "dedupedFrom": [
+      "C-09"
+    ]
+  },
+  {
+    "id": "M-081",
+    "agent": "A5-organizer;A3-novice;A4-skeptic",
+    "screen": "You tab / league record",
+    "journey": "Retention",
+    "observation": "'CUPS & EVENTS · 1 · Played in' with zero played (persists after deleting the only round); 'FIRST TEE SUN SEP 5' though Sep 5 is a Saturday (every other screen says Sat).",
+    "expected": "Accurate counters; weekday derived from the real date.",
+    "actual": "Record looks padded; three wrong facts on the profile.",
+    "severity": "P3",
+    "category": "comprehension",
+    "recommendation": "Count only events/leagues actually played; fix the weekday.",
+    "confidence": 9,
+    "evidence": "screenshots/org/73-you-tab.jpg, 76-delete-confirm.jpg; screenshots/nov/79-you-tab.jpg; screenshots/skep/21-you-full.jpg",
+    "stage": "retention",
+    "dedupedFrom": [
+      "ORG-34",
+      "N-33",
+      "SK-29"
+    ]
+  },
+  {
+    "id": "M-083",
+    "agent": "A7-observer;A6-joiner;A5-organizer",
+    "screen": "Sheets, receipts, You recent rounds, cards, composer",
+    "journey": "E",
+    "observation": "Dates appear as '2026-08-23' (sheets/receipts/You), 'Aug 23' (cards/board), '08/29/2026' (composer), 'Sat Aug 29' (posted card).",
+    "expected": "One human date format.",
+    "actual": "Machine-y feel in the most personal screens.",
+    "severity": "P3",
+    "category": "visual-hierarchy",
+    "recommendation": "'Sat Aug 23' everywhere.",
+    "confidence": 9,
+    "evidence": "screenshots/obs/37-round-card.jpg, 29-you-full.jpg, 40-settings.jpg; screenshots/join/53-AF-receipt.jpg; screenshots/org/71-round-detail.jpg",
+    "stage": "engagement",
+    "dedupedFrom": [
+      "R7-29",
+      "J-28",
+      "ORG-37"
+    ]
+  },
+  {
+    "id": "M-098",
+    "agent": "A2-competitive;A4-skeptic",
+    "screen": "Board → match-play Scorecard sheet / Home feed",
+    "journey": "Side games",
+    "observation": "'Priya def. Casey 2 up thru 3 · $5 on the line' is posted as a completed result after three holes while the card says in red 'Not every hole was scored — Priya, Casey have gaps'; the card shows Par and SI but no strokes given for a 14.2 vs 6.4 match.",
+    "expected": "Partial matches labelled 'abandoned thru 3' and not posted as 'def.'; stroke holes marked on the card.",
+    "actual": "Looks like a result / a test artifact; handicap invisible.",
+    "severity": "P3",
+    "category": "gameplay",
+    "recommendation": "Threshold for posting 'def.'; net dots on the card.",
+    "confidence": 8,
+    "evidence": "screenshots/comp/32-matchplay-card.jpg; screenshots/skep/45-matchplay2.jpg, 09-home-full.jpg",
+    "stage": "engagement",
+    "dedupedFrom": [
+      "C-25",
+      "SK-25"
+    ]
+  },
+  {
+    "id": "M-101",
+    "agent": "A1-casual",
+    "screen": "Live round steppers",
+    "journey": "Side games",
+    "observation": "In a burst of taps the first player's + registered (5) but the second player's five + taps registered nothing.",
+    "expected": "Both rows register.",
+    "actual": "Possibly dropped taps (automation timing; low confidence).",
+    "severity": "P3",
+    "category": "gameplay",
+    "recommendation": "Verify re-render doesn't drop rapid taps on the second row.",
+    "confidence": 4,
+    "evidence": "screenshots/cas/74-I07-live-viewport.jpg",
+    "stage": "engagement",
+    "dedupedFrom": [
+      "A35"
+    ]
+  },
+  {
+    "id": "M-134",
+    "agent": "A7-observer",
+    "screen": "Home feed stories",
+    "journey": "Social",
+    "observation": "Story text runs into the league signature: 'That one goes on the wall. Who's the bitch? · Aug 24'.",
+    "expected": "Signature visually separated.",
+    "actual": "The league name reads as a taunt in the sentence.",
+    "severity": "P3",
+    "category": "terminology",
+    "recommendation": "League tag on its own line/pill.",
+    "confidence": 8,
+    "evidence": "screenshots/obs/05-home-full.jpg",
+    "stage": "retention",
+    "dedupedFrom": [
+      "R7-27"
+    ]
+  },
+  {
+    "id": "M-135",
+    "agent": "A7-observer;iOS-survey",
+    "screen": "You tab",
+    "journey": "G",
+    "observation": "'Personal best' badge carries a 📉 icon; 'FORM ●●●●●' dots unexplained (which end is now? grey vs orange?); 'Cups & events 2 · Played in' unlinked; 'Diff 9.3'; sections DISPLAY CASE / THE RECORD / LIFETIME overlap; '✦ FOUNDER' pill undefined; the 'Founder's desk' admin block sits above the record and rivalries.",
+    "expected": "Badges that read as wins; labelled dots; distinct sections; admin tooling behind ⚙.",
+    "actual": "Identity/progression signals muddled.",
+    "severity": "P3",
+    "category": "visual-hierarchy",
+    "recommendation": "Fix the icon; caption Form and Diff; merge sections; tooltip Founder; move founder tools.",
+    "confidence": 8,
+    "evidence": "screenshots/obs/29-you-full.jpg; screenshots/ios/06-you.jpg",
+    "stage": "retention",
+    "dedupedFrom": [
+      "R7-30",
+      "IOS-25",
+      "IOS-26"
+    ]
+  },
+  {
+    "id": "M-140",
+    "agent": "A5-organizer;iOS-survey",
+    "screen": "Golfer card → Card & settings (handle)",
+    "journey": "B",
+    "observation": "Handle prefilled '@jerechoblind1' silently became '@casey' as the name was typed; Settings later say 'Handle · moves once / 60 days' (iOS: 'HANDLE · MOVES ONCE / 60 DAYS').",
+    "expected": "'Handle follows your name until you edit it · changeable once per 60 days' on the card.",
+    "actual": "Silent auto-change and an undisclosed lock.",
+    "severity": "P3",
+    "category": "onboarding",
+    "recommendation": "Disclose on the card; plain label in settings.",
+    "confidence": 9,
+    "evidence": "screenshots/org/07-after-verify.jpg, 11-ghin-open.jpg, 77-card-settings.jpg; screenshots/ios/07-settings.jpg",
+    "stage": "activation",
+    "dedupedFrom": [
+      "ORG-29",
+      "IOS-32"
+    ]
+  },
+  {
+    "id": "M-141",
+    "agent": "A3-novice;A2-competitive",
+    "screen": "Card & settings",
+    "journey": "Onboarding",
+    "observation": "Button reads 'Save card' until you type, then 'Save changes'; tapping 'Save card' with untouched fields toasts 'Card saved'. City/home course are never offered during onboarding, live two levels deep, and were empty for two personas; the 'Settings' segment took four attempts to switch in the harness (ambiguous accessible names).",
+    "expected": "Stable button, disabled until dirty; city/home course asked on the golfer card; unique segment labels.",
+    "actual": "Label swap, no-op success toast, hard-to-set home course.",
+    "severity": "P3",
+    "category": "onboarding",
+    "recommendation": "One label; add optional city/home course to onboarding; aria-label the segments.",
+    "confidence": 7,
+    "evidence": "screenshots/nov/81-settings.jpg, 83-settings-save.jpg, 84-you-final.jpg; screenshots/comp/05-settings2.jpg, 06-settings3.jpg, 08-settings5.jpg",
+    "stage": "activation",
+    "dedupedFrom": [
+      "N-38",
+      "C-38"
+    ]
+  },
+  {
+    "id": "M-142",
+    "agent": "A5-organizer;A3-novice;A7-observer;A6-joiner;A2-competitive;A4-skeptic;A1-casual",
+    "screen": "Sign-in door footer; Settings footer",
+    "journey": "A",
+    "observation": "'v23 · __CS_VERSION__' — a raw template placeholder — is the last line of the first screen every tester saw, and of Settings.",
+    "expected": "A stamped version or nothing (CLAUDE.md: unstamped = local build).",
+    "actual": "Reads as unfinished software to an organizer about to recruit six people.",
+    "severity": "P3",
+    "category": "visual-hierarchy",
+    "recommendation": "Fall back to 'dev' or hide when unstamped.",
+    "confidence": 10,
+    "evidence": "screenshots/org/01-door.jpg, 80-settings-segment2.jpg; screenshots/nov/01-door.jpg; screenshots/obs/01-door.jpg; screenshots/join/01-A-cold-door.jpg; screenshots/comp/10-cold-door.jpg; screenshots/skep/02-cold-door.jpg, 47-settings-6.jpg; screenshots/cas/09-R05-after-signout.jpg",
+    "stage": "activation",
+    "dedupedFrom": [
+      "ORG-31",
+      "N-36",
+      "R7-26",
+      "J-30",
+      "C-36",
+      "SK-02",
+      "A29"
+    ]
+  },
+  {
+    "id": "M-151",
+    "agent": "iOS-survey",
+    "screen": "iOS You / Settings",
+    "journey": "information-hierarchy",
+    "observation": "The You card shows 'GHIN 12828189'; Settings says 'YOUR CARD IS WHAT YOUR BUDDIES SEE'.",
+    "expected": "An ID number not shown to buddies by default.",
+    "actual": "GHIN number on the buddy-visible card.",
+    "severity": "P3",
+    "category": "social",
+    "recommendation": "Hide or make opt-in.",
+    "confidence": 7,
+    "evidence": "screenshots/ios/06-you.jpg, 07-settings.jpg",
+    "stage": "retention",
+    "dedupedFrom": [
+      "IOS-30"
+    ]
+  },
+  {
+    "id": "M-152",
+    "agent": "iOS-survey",
+    "screen": "iOS all screens",
+    "journey": "information-hierarchy",
+    "observation": "Three type families; buttons monospace on some screens and sans on others; the 18/9 toggle is white-selected on Post and orange-selected on Live; page content ghosts through the translucent tab bar on five screens.",
+    "expected": "One button style; one selected-state colour; no readable text bleeding through the tab bar.",
+    "actual": "Inconsistent; the ghosting reads as a glitch.",
+    "severity": "P3",
+    "category": "visual-hierarchy",
+    "recommendation": "Unify typography/toggles; opaque or heavier-blur tab bar.",
+    "confidence": 8,
+    "evidence": "screenshots/ios/03,05,06,07,08,09,11",
+    "stage": "engagement",
+    "dedupedFrom": [
+      "IOS-31"
+    ]
+  },
+  {
+    "id": "M-154",
+    "agent": "A3-novice",
+    "screen": "Wizard Customize — Season length",
+    "journey": "C",
+    "observation": "Season-length label read '2 mo' for both 'Sat Sep 5 – Sat Nov 14' and 'Sat Sep 5 – Sat Oct 31'.",
+    "expected": "Label in weeks under 3 months.",
+    "actual": "Two different end dates, one label.",
+    "severity": "P3",
+    "category": "visual-hierarchy",
+    "recommendation": "Show weeks when months collide.",
+    "confidence": 8,
+    "evidence": "stepper readout 13:29 (nov)",
+    "stage": "activation",
+    "dedupedFrom": [
+      "N-35"
+    ]
+  },
+  {
+    "id": "M-155",
+    "agent": "A6-joiner;A1-casual;A4-skeptic;A2-competitive;A5-organizer",
+    "screen": "'Welcome to The Papago Grind' sheet (post-join / after sign-in) and the How scoring works sheet",
+    "journey": "Post-join",
+    "observation": "Eyebrow 'THREE THINGS TO KNOW' is followed by four bold items ('You're on the pot sheet', 'You can't hurt your squad…', 'Rounds score against your own number', 'The pot lives on the books') — items 1 and 4 both say 'money moves between you'. The scoring sheet says 'Your league's exact numbers are in League rules' — not a link.",
+    "expected": "Three things, and a tappable 'League rules'.",
+    "actual": "The first thing a joiner reads is miscounted; the reference is dead.",
+    "severity": "P3",
+    "category": "comprehension",
+    "recommendation": "Merge the two pot items; link 'League rules'.",
+    "confidence": 10,
+    "evidence": "screenshots/join/17-N-after-join-full.jpg, 19-O-how-scoring-full.jpg; screenshots/cas/15-B03b-welcome-full.jpg; screenshots/skep/05-after-verify.jpg; screenshots/comp/13-after-verify.jpg; screenshots/org/95-join-link-view.jpg",
+    "stage": "activation",
+    "dedupedFrom": [
+      "J-16",
+      "A11",
+      "SK-04",
+      "C-37",
+      "ORG-28"
+    ]
+  }
+]
