@@ -4385,3 +4385,54 @@ notes.
 - **Benefit:** the price lands on a product that has demonstrated the sentence it is selling; the owner has a dashboard answer to "are we ready" instead of a feeling; a founding league cannot be surprised.
 - **Tradeoffs:** delays revenue until at least one real season closes (PIGL's first close is the earliest date); eight conditions is a lot of process for a one-person company — mitigated by making every item a row on the founder desk and a `db-checks` line, not a meeting.
 - **CONFLICT:** none upward. Amends IOS-021's trigger sentence ("after confirming the anchor" → "after the gate is green and the anchor is confirmed"); D101's dates and numbers untouched; D56's deck becomes gate item 7 rather than a prerequisite to build the surfaces.
+
+### D136 · The open questions of the blind-audit batch, answered
+*(2026-08-29. Owner accepted the recommended answer to each of §6's open
+questions in `docs/audit/blind-ux-2026-08-29/remediation-plan.md`. Recorded
+here because several are mechanic- or IA-level and the builds depend on them;
+each remains reversible on its own line.)*
+
+- **Stage vocabulary (D120 · §6 Q-14):** six words — *Forming · Squads drawing ·
+  Before first tee · Season live (Week n of N) · Cup Final · Season complete.*
+  "Forming" means SETUP only; testers read it as "squads forming", so the
+  squads-drawing stage gets its own word.
+- **The member's first verb (D119 · Q-15/Q-16):** "Plan a round" leads before
+  first tee, "Post a practice round — it builds your number" second; the three
+  Start/Start/Join doors collapse to one quiet "Start something…" link for
+  members (D94 named this the thing to watch; the audit watched it).
+- **The covenant's reach (D115 · Q-08/Q-09/Q-11):** roster NAMES only after
+  sign-in (a league code escapes the group chat; the Pro's name and the head
+  count are enough to decide); a $0 league DOES get a decision sheet — the same
+  rows minus the stake and a plain "Join" — because D70 forbids pot *surfaces*,
+  not disclosure, and today a bragging-rights league shows nothing at all.
+- **The pot's payment path (D129 · Q-27):** fail-closed — before joining, the
+  sheet says only that the Pro has posted how to pay; the note itself appears
+  once you are in. Default due date when the Pro sets none: *before first tee*.
+- **The endgame (D126/D127 · Q-23/Q-25/Q-26):** the clinched badge word is
+  **IN** ("SEEDED" collides with seeds 1/2, which only exist once the window
+  opens). The Points King tie ladder is NOT built yet — the surface states "a
+  tie stands as a shared crown" until a real tie happens. At a roster too small
+  to fill the Final the Pro is WARNED; no automatic fall-back to the points
+  table (that would change the endgame under a league mid-season).
+- **Contact invites (Q-07):** not scheduled. The link plus a prewritten Copy
+  message is the invite; the Guide's false claim is already corrected. Revisit
+  only if a real Pro asks.
+- **Repo posture (Q-40):** commit `docs/audit/` after a redaction pass (the
+  observer's report names real league members); `screenshots/` stays ignored.
+- **First-tee default (Q-29):** UNCHANGED — next Saturday, 1–7 days out. The
+  audit's "my round earned nothing" confusion is a COPY failure, fixed by
+  D122's season-window sentence; moving a date default has knock-on effects on
+  month boundaries and floors and would not have prevented the confusion. The
+  sketched "≥ 7 days out" is declined for now.
+- **Spec §9's seven-day posting window (Q-28):** struck as unenforced. Nothing
+  has ever enforced it, backdated entry is legitimate (scorecard scan, guest
+  claims, a round posted the following week), and enforcing it now would break
+  those paths to solve a problem nobody has reported. The date field's own
+  prominence (Q-21) is the control.
+- **Telemetry names (Q-37):** the WEB's names win where the clients differ
+  (`league_create`, `lock_ok`) — they carry prod history; the phone's
+  `league_created` / `league_locked` retire.
+- **CONFLICT:** none upward. D136 answers questions the batch left open; where
+  an answer narrows an entry (D115's roster reach, D126's ladder) the narrower
+  reading governs.
+

@@ -28,13 +28,14 @@ insert into _audit_emails values
   ('jerecho+q01a@fischbeck3.com'),    -- Q-01 lock verification, 2026-08-29
   ('jerecho+q10m@fischbeck3.com'),    -- Q-10 member-gate verification, 2026-08-29
   ('jerecho+q14@fischbeck3.com'),     -- Q-14 covenant verification, 2026-08-29
-  ('jerecho+q14b@fischbeck3.com');    -- Q-14 covenant verification, 2026-08-29
+  ('jerecho+q14b@fischbeck3.com'),    -- Q-14 covenant verification, 2026-08-29
+  ('jerecho+skew1@fischbeck3.com');   -- D111 deploy-skew verification, 2026-08-29
 
 create temporary table _audit_profiles as
   select id from profiles where email in (select email from _audit_emails);
 
 create temporary table _audit_leagues as
-  select id, code, name from leagues where code in ('THEPTCQ5','DESEUU0K','QLOCS15V');
+  select id, code, name from leagues where code in ('THEPTCQ5','DESEUU0K','QLOCS15V','SKEWE0TQ');
 
 -- Guard: refuse to run if any league we are about to delete is run by someone
 -- who is NOT an audit account, or if a real golfer ever joined one.
@@ -99,7 +100,7 @@ delete from leagues where id in (select id from _audit_leagues);
 delete from auth.users where email in (select email from _audit_emails);
 
 -- What is left (all four must be 0 before you commit).
-select 'leagues'  as what, count(*) from leagues  where code in ('THEPTCQ5','DESEUU0K','QLOCS15V')
+select 'leagues'  as what, count(*) from leagues  where code in ('THEPTCQ5','DESEUU0K','QLOCS15V','SKEWE0TQ')
 union all select 'auth users', count(*) from auth.users where email in (select email from _audit_emails)
 union all select 'profiles',   count(*) from profiles   where email in (select email from _audit_emails)
 union all select 'rounds',     count(*) from rounds     where profile_id in (select id from _audit_profiles);

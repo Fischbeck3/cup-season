@@ -15362,6 +15362,59 @@ async function createLeague(){
 const CAPVALS = [2,4,6,null];
 async function lockBylaws(){
   if(!CS.league) throw new Error('no league');
+  /* D111 · one server transaction. The four writes below are what this
+     function used to do from the client, and any failure between them left a
+     half-locked league (prod held one in exactly that state). lock_league()
+     does all four atomically and is idempotent on locked_at, so a retry after
+     an ambiguous failure returns the standing truth instead of minting a
+     second season. The old path stays as the fallback for deploy skew — a
+     client on Netlify can reach a database that has not taken the migration
+     yet, and must still lock (CLAUDE.md: neither order breaks a live user). */
+  const lockViaRpc = async () => {
+    const starts = seasonStartDate(), ends = seasonEndDate();
+    const { data, error } = await sb.rpc('lock_league', {
+      p_league: CS.league.id,
+      p_name: ($('#setName').value || '').trim() || CS.league.name,
+      p_preset:              ['casual','standard','cutthroat'][state.preset],
+      p_handicap_allowance:  [100,95,90][state.preset],
+      p_verification:        ['honor','attested','ghin'][state.preset],
+      p_counting_cap:        CAPVALS[state.cap],
+      p_participation_floor: state.floor,
+      p_floor_penalty:       ['none','deduct','forfeit'][state.preset],
+      p_season_format:       ['points','h2h','hybrid'][state.fmt],
+      p_structure:           state.structure,
+      p_buyin_cents:         state.stake * 100,
+      p_season_months:       durMonths(state.durWeeks),
+      p_draft_type:          state.draftType,
+      p_finish:              state.finish || 'cup_final',
+      p_payout_champ:        (state.payout||[60,25,15])[0],
+      p_payout_runnerup:     (state.payout||[60,25,15])[1],
+      p_payout_king:         (state.payout||[60,25,15])[2],
+      /* isoOf(), not the `iso` const declared further down this function —
+         that one is in its temporal dead zone when this closure runs, and the
+         first real lock after this change died on exactly that. */
+      p_starts_on: isoOf(starts), p_ends_on: isoOf(ends),
+    });
+    if(error) throw error;
+    CS.season = data?.season || CS.season;
+    state.seasonStart = isoOf(starts); state.seasonEnd = isoOf(ends);
+    const name = ($('#setName').value || '').trim() || CS.league.name;
+    CS.league.name = name; CS.league.phase = data?.phase || CS.league.phase;
+    $('#leagueName').textContent = name; $('#sideLeague').textContent = name;
+    state.phase = data?.phase || state.phase;
+    renderPhase();
+    return { emails: 0, nextPhase: data?.phase };
+  };
+  try {
+    return await lockViaRpc();
+  } catch(err){
+    /* only fall back when the FUNCTION is missing (skew). A real refusal —
+       "Only the Pro can lock the bylaws." — must reach the golfer, not be
+       retried through a path with weaker checks. */
+    const m = String(err?.message || err).toLowerCase();
+    if(!/schema cache|could not find the|does not exist|no function matches/.test(m)) throw err;
+    window.qaEvent?.('lock_rpc_absent', { msg: String(err?.message||err).slice(0,120) });
+  }
   let emails = state.emails.filter(e => e.includes('@'));
 
   const { error: e1 } = await sb.from('league_settings').update({
