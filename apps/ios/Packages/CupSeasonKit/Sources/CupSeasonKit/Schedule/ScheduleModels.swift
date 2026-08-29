@@ -499,6 +499,17 @@ public struct CourseTee: Sendable, Equatable, Identifiable, Decodable {
   public init(tee_name: String?, gender: String?, course_rating: Double?, slope_rating: Int?, number_of_holes: Int?) {
     self.tee_name = tee_name; self.gender = gender; self.course_rating = course_rating; self.slope_rating = slope_rating; self.number_of_holes = number_of_holes
   }
+  // Tolerate a JSON float for the integer fields (slope 128.0, holes 18.0): the API has shipped both,
+  // and a strict Int decode would throw the whole SearchReply, which reads downstream as "search is dead".
+  private enum CodingKeys: String, CodingKey { case tee_name, gender, course_rating, slope_rating, number_of_holes }
+  public init(from d: Decoder) throws {
+    let c = try d.container(keyedBy: CodingKeys.self)
+    tee_name = try c.decodeIfPresent(String.self, forKey: .tee_name)
+    gender = try c.decodeIfPresent(String.self, forKey: .gender)
+    course_rating = try c.decodeIfPresent(Double.self, forKey: .course_rating)
+    slope_rating = (try? c.decodeIfPresent(Int.self, forKey: .slope_rating)) ?? (try? c.decodeIfPresent(Double.self, forKey: .slope_rating)).map { $0.map(Int.init) } ?? nil
+    number_of_holes = (try? c.decodeIfPresent(Int.self, forKey: .number_of_holes)) ?? (try? c.decodeIfPresent(Double.self, forKey: .number_of_holes)).map { $0.map(Int.init) } ?? nil
+  }
   /// "Blue · Women’s"
   public var title: String { (tee_name ?? "Tee") + (gender == "female" ? " · Women’s" : "") }
   /// "Rating 71.2 · Slope 131"

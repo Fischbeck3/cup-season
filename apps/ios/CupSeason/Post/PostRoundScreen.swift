@@ -143,8 +143,12 @@ private struct PostRoundBody: View {
         withAnimation(CSMotion.roll) { ratingOpen = false }   // the tee filled the line; the fields fold
       }
         .padding(.top, 12).padding(.bottom, 2)
-      // course memory as rows — course on the left, rating/slope in mono on the right; the whole row fills the card
-      ForEach(model.memory) { m in
+      // course memory — ONLY while the search field is empty, so recents never read as stuck search results (they used to sit
+      // under the field unconditionally and, with a failed search above them, looked exactly like a broken dropdown)
+      if model.card.course.isEmpty && !model.memory.isEmpty {
+        Text("Recent courses").csEyebrow().padding(.top, 6)
+      }
+      ForEach(model.card.course.isEmpty ? model.memory : []) { m in
         Button { model.fill(m); withAnimation(CSMotion.roll) { ratingOpen = false } } label: {
           CSRow {
             A11yStack(rowAlignment: .firstTextBaseline, spacing: 10, columnSpacing: 2) {

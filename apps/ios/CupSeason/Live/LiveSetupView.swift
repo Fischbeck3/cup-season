@@ -462,9 +462,11 @@ final class LiveCourseSearchModel {
     do {
       let remote = try await sched.searchRemote(q)
       let merged = ScheduleService.merge(local: local, remote: remote)
-      if fresh(), !merged.isEmpty { courses = merged; stage = .courses }
+      // show the list even when empty — the empty state IS the "type it by hand" row, so a no-match never looks like a dead field
+      if fresh() { courses = merged; stage = .courses }
     } catch {
-      if fresh(), local.isEmpty { stage = .hidden }
+      // upstream down: cached hits stand; with nothing cached, still open the list so the manual-entry row answers (never silently .hidden)
+      if fresh(), local.isEmpty { courses = []; stage = .courses }
     }
   }
 }
