@@ -55,7 +55,13 @@ function flattenTees(course: any) {
   const out: any[] = [];
   const t = course?.tees ?? {};
   for (const gender of ["male", "female"]) {
-    for (const te of t[gender] ?? []) {
+    // 2026-08-28: the upstream SEARCH payload changed — `tees.male` became a COUNT
+    // (the number 8), and `?? []` does not guard a number, so this loop threw
+    // "number 8 is not iterable" and every search 502'd for 12 days. Iterate
+    // only real arrays; a count (or anything else) simply yields no tees here —
+    // the search branch below then fills tees from our own cache / a detail fetch.
+    const arr = Array.isArray(t[gender]) ? t[gender] : [];
+    for (const te of arr) {
       out.push({
         gender,
         tee_name: te.tee_name ?? null,
@@ -176,15 +182,58 @@ Deno.serve(async (req) => {
       const data = await gca(
         `/v1/search?search_query=${encodeURIComponent(q)}`,
       );
-      const courses = (data?.courses ?? []).map((c: any) => ({
-        id: String(c.id),
-        club_name: c.club_name ?? null,
-        course_name: c.course_name ?? null,
-        city: c.location?.city ?? null,
-        state: c.location?.state ?? null,
-        // omit per-hole detail in the picker payload — keep it light
-        tees: flattenTees(c).map(({ holes: _h, ...t }) => t),
-      }));
+      const courses: any[] = [];
+      for (const c of data?.courses ?? []) {
+        // one malformed course must never 502 the whole search
+        try {
+          courses.push({
+            id: String(c.id),
+            club_name: c.club_name ?? null,
+            course_name: c.course_name ?? null,
+            city: c.location?.city ?? null,
+            state: c.location?.state ?? null,
+            // omit per-hole detail in the picker payload — keep it light
+            tees: flattenTees(c).map(({ holes: _h, ...t }) => t),
+          });
+        } catch (e) {
+          console.error(`[courses] search map skipped ${String(c?.id ?? "?")} :: ${String((e as Error)?.message ?? e)}`);
+        }
+      }
+      // The search payload no longer carries tee arrays (counts since ~2026-08-16),
+      // so fill tees from OUR dataset for known courses, then detail-fetch a
+      // bounded few unknowns (which also caches them — the dataset builds itself).
+      try {
+        const bare = courses.filter((c) => c.tees.length === 0);
+        if (bare.length) {
+          const { data: cachedTees } = await admin
+            .from("api_course_tees")
+            .select("course_id, gender, tee_name, course_rating, slope_rating, bogey_rating, par_total, total_yards, number_of_holes")
+            .in("course_id", bare.map((c) => c.id));
+          for (const c of bare) {
+            c.tees = (cachedTees ?? []).filter((t) => t.course_id === c.id)
+              .map(({ course_id: _cid, ...t }) => t);
+          }
+          let fetches = 0;
+          for (const c of courses) {
+            if (c.tees.length || fetches >= 3) continue;
+            fetches++;
+            try {
+              await fetchAndStore(admin, c.id);
+              const { data: fresh } = await admin
+                .from("api_course_tees")
+                .select("gender, tee_name, course_rating, slope_rating, bogey_rating, par_total, total_yards, number_of_holes")
+                .eq("course_id", c.id);
+              c.tees = fresh ?? [];
+            } catch (e) {
+              console.error(`[courses] search detail fetch failed for ${c.id} :: ${String((e as Error)?.message ?? e)}`);
+            }
+          }
+        }
+      } catch (e) {
+        // enrichment is best-effort: bare courses still answer, the client's
+        // manual-entry row covers the rest
+        console.error(`[courses] search enrichment failed :: ${String((e as Error)?.message ?? e)}`);
+      }
       return json({ courses });
     }
 
