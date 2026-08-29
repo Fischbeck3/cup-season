@@ -4135,6 +4135,10 @@ function humanError(e, prefix){
      to "sign in again" 18 minutes after signing in, while signed in */
   else if(/clipboard|writetext|document is not focused|not allowed to write/.test(m))
     msg = "Copy didn't work — the link is on screen to copy by hand.";
+  /* Q-21 · a not-null on played_on is a missing DATE, and the golfer can fix it
+     in one tap — but only if we say so. The generic sentence sent the audit's
+     tester into a retry loop that could only fail identically. */
+  else if(/played_on/.test(m)) msg = 'Pick the date you played.';
   else if(/violates|constraint|not-null|null value|invalid input/.test(m)) msg = "That didn't go through — please try again.";
   else if(looksLikeOurSentence(raw)) msg = raw.trim();
   else msg = 'Something went wrong — please try again.';
@@ -5757,9 +5761,15 @@ $('#dPickFor').addEventListener('click',()=>{
 
 /* ================= post ================= */
 function pointsFor(vs){
+  /* Q-20 · these bands are ONE rule (§2.2) with two implementations, and they
+     disagreed at exactly -1.0: the engine's cup_points() reads `> -1` (so -1.0
+     scores 6) while this read `>= -1` (7). A golfer lands on that boundary
+     constantly, and the server writes the row — so the screen was promising a
+     point the table would not pay. Half-open, engine-side, everywhere.
+     db-checks 17 pins cup_points; app-tests pin this. */
   if(vs>=3)  return [12,'You torched your number by '+vs.toFixed(1)+'. Sandbagger alert.'];
   if(vs>=1)  return [9,'You beat your number by '+vs.toFixed(1)+'. Nice round.'];
-  if(vs>=-1) return [7,'Right on your number. Steady points.'];
+  if(vs>-1)  return [7,'Right on your number. Steady points.'];
   if(vs>=-3) return [6,'A little loose, still cash in the bank.'];
   return [5,'Rough one, but posted rounds always score.'];
 }
@@ -5768,7 +5778,7 @@ function pointsFor(vs){
 function bandName(vs){
   if(vs>=3)  return 'Torched it';
   if(vs>=1)  return 'Beat your number';
-  if(vs>=-1) return 'Played to it';
+  if(vs>-1)  return 'Played to it';   /* Q-20: half-open, matching cup_points */
   if(vs>=-3) return 'A little loose';
   return 'Posted anyway';
 }
@@ -5776,7 +5786,7 @@ function vsPhrase(vs){
   vs=Number(vs);
   if(!isFinite(vs)) return '';
   if(vs>=1)  return 'beat your number by '+vs.toFixed(1);
-  if(vs>=-1) return 'played to your number';
+  if(vs>-1)  return 'played to your number';   /* Q-20 */
   return vs.toFixed(1).replace('-','')+' over your number';
 }
 /* third-person form for surfaces that show SOMEONE ELSE's round — the share
@@ -6527,6 +6537,19 @@ function openPostParsSheet(){
 }
 $('#postBtn').addEventListener('click', async ()=>{
   if(!state.lastPost){toast('Enter at least one nine first');return;}
+  /* Q-21 · never let the round leave without a date. The server's NOT NULL was
+     the only thing catching this, and its message ("please try again") sent the
+     golfer round a loop that could not succeed. Say it here, mark the field. */
+  const dEl = $('#inDate');
+  if(dEl && !dEl.value){
+    dEl.setAttribute('aria-invalid','true');
+    dEl.classList.add('bad');
+    dEl.scrollIntoView?.({block:'center'}); dEl.focus?.();
+    toast('Pick the date you played');
+    window.qaEvent?.('post_blocked', { reason: 'no_date' });
+    return;
+  }
+  dEl?.removeAttribute('aria-invalid'); dEl?.classList.remove('bad');
   /* F2 soft block: an untouched hole grid is still every-hole-par — a rushed
      Post would bank an accidental even-par. Intercept once; the golfer either
      enters their card or confirms even-par on purpose (astronomically rare,
@@ -6910,6 +6933,13 @@ function scanPartnersSheet(ctx){
    Scrap the scan = just the model's numbers go; course/date/photo stay. */
 function resetPostComposer(){
   ['inF9','inB9','inRating','inSlope','inCourse','inDate'].forEach(id=>{ const e=$('#'+id); if(e) e.value=''; });
+  /* Q-21 · boot defaults the date to today; "Start over" used to blank it and
+     nothing put it back, so the next Post failed on a NOT NULL played_on and
+     the golfer was told "That didn't go through — please try again" with no
+     field marked. Restore the default the same way boot does. */
+  const dEl = $('#inDate');
+  if(dEl && !dEl.value){ const d=new Date();
+    dEl.value = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; }
   const ic=$('#inCourse'); if(ic) ic.dataset.courseId='';
   const chips=$('#courseChips'); if(chips) chips.innerHTML='';
   state.post.mode='total';

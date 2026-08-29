@@ -34,6 +34,23 @@
   t('bandName: hot round differs from rough day', bandName(-6) === bandName(6), false);
   t('vsPhrase: mentions the number', /number/i.test(vsPhrase(-2.4)), true);
 
+  /* Q-20 · one rule, three implementations (web pointsFor, web bandName,
+     server cup_points) — they disagreed at exactly -1.0, where the client
+     promised 7 points and the table paid 6. The engine is authoritative and
+     half-open; these pin the client to it. db-checks 17 pins the engine. */
+  t('bands: -1.0 scores 6, like cup_points', pointsFor(-1.0)[0], 6);
+  t('bands: -1.0 is named for the points it pays', bandName(-1.0), 'A little loose');
+  t('bands: -0.99 is still played-to-it', [pointsFor(-0.99)[0], bandName(-0.99)], [7, 'Played to it']);
+  t('bands: the phrase agrees at the edge', /over your number/.test(vsPhrase(-1.0)), true);
+  (function(){
+    /* the split that shipped was name-vs-points; assert they never diverge */
+    const NAME = {12:'Torched it', 9:'Beat your number', 7:'Played to it', 6:'A little loose', 5:'Posted anyway'};
+    let bad = null;
+    for(let v = -600; v <= 600; v++){ const vs = v/100;
+      if(bandName(vs) !== NAME[pointsFor(vs)[0]]){ bad = vs; break; } }
+    t('bands: name and points agree across the range', bad, null);
+  })();
+
   /* fmtIdx — plus-handicaps render golf-style (never minus) */
   t('fmtIdx: plus index renders +', fmtIdx(-1.7), '+1.7');
   t('fmtIdx: normal index plain', fmtIdx(12.4), '12.4');

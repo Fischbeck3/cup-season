@@ -7,10 +7,26 @@ import Foundation
     #expect(CSBands.bandName(3.0) == "Torched it")
     #expect(CSBands.bandName(1.0) == "Beat your number")
     #expect(CSBands.bandName(0.99) == "Played to it")
-    #expect(CSBands.bandName(-1.0) == "Played to it")
+    // Q-20 (2026-08-29): −1.0 used to read "Played to it" while scoring 6 —
+    // the 7-point band's name on a 6-point round. Half-open now, like the engine.
+    #expect(CSBands.bandName(-1.0) == "A little loose")
+    #expect(CSBands.bandName(-0.99) == "Played to it")
     #expect(CSBands.bandName(-1.01) == "A little loose")
     #expect(CSBands.bandName(-3.0) == "A little loose")
     #expect(CSBands.bandName(-3.01) == "Posted anyway")
+  }
+
+  /// The split that shipped: the NAME and the POINTS were computed by two
+  /// different thresholds, so a round could be called one band and paid
+  /// another. Assert they agree across the whole range, not just at the edge.
+  @Test func bandNameAlwaysAgreesWithThePoints() {
+    let nameForPoints = [12: "Torched it", 9: "Beat your number", 7: "Played to it",
+                         6: "A little loose", 5: "Posted anyway"]
+    for step in stride(from: -6.0, through: 6.0, by: 0.01) {
+      let vs = (step * 100).rounded() / 100
+      #expect(CSBands.bandName(vs) == nameForPoints[CSBands.cupPoints(vs)],
+              "band name and points disagree at vs=\(vs)")
+    }
   }
 
   @Test func pointsFollowTheServerRuleAtMinusOne() {

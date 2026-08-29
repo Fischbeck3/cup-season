@@ -5,12 +5,12 @@
 // "your number". Nothing here is authoritative — the server's `cup_points`
 // scores the round; this only phrases it.
 //
-// The −1.0 edge, documented: the web's `pointsFor` says `vs >= -1 → 7`, the
-// server's `cup_points` says `p_pvi > -1 → 7, >= -3 → 6`. At exactly −1.0 the
-// database awards 6. The phone follows the SERVER rule for the number so a
-// preview can never disagree with the points that land (CLAUDE.md: nothing
-// authoritative computed here), and pairs it with the matching sentence.
-// `bandName` is display language and keeps the web's thresholds verbatim.
+// The −1.0 edge, RESOLVED 2026-08-29 (Q-20). This file used to follow the
+// server for the number while keeping the web's `>= -1` for the NAME, so a
+// round at exactly −1.0 scored 6 and was called "Played to it" — the 7-point
+// band's name. The web has since been corrected to the engine's half-open
+// rule, so all three (points, band name, phrase) now read `> -1` on both
+// clients and in `cup_points`. db-checks 17 pins the engine.
 
 import Foundation
 
@@ -42,7 +42,7 @@ public enum CSBands {
   public static func bandName(_ vs: Double) -> String {
     if vs >= 3 { return "Torched it" }
     if vs >= 1 { return "Beat your number" }
-    if vs >= -1 { return "Played to it" }
+    if vs > -1 { return "Played to it" }   // Q-20: half-open, matching cup_points
     if vs >= -3 { return "A little loose" }
     return "Posted anyway"
   }
@@ -50,7 +50,7 @@ public enum CSBands {
   public static func vsPhrase(_ v: Double?) -> String {
     guard let vs = v, vs.isFinite else { return "" }
     if vs >= 1 { return "beat your number by \(fixed1(vs))" }
-    if vs >= -1 { return "played to your number" }
+    if vs > -1 { return "played to your number" }   // Q-20
     return fixed1(vs).replacingOccurrences(of: "-", with: "") + " over your number"
   }
 
