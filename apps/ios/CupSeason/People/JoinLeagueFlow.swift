@@ -28,7 +28,7 @@ struct JoinLeagueFlow: View {
     NavigationStack {
       ScrollView {
         VStack(alignment: .leading, spacing: 14) {
-          CSSheetHeader(title: "Join a league", sub: "I HAVE AN INVITE CODE")
+          CSSheetHeader(title: "Join a league", sub: "I HAVE A LEAGUE CODE")   // Q-16: one noun for the code (D47)
           if vm.presetCode == nil {
             CSField("League code", text: $vm.code)
               .textInputAutocapitalization(.characters).autocorrectionDisabled()

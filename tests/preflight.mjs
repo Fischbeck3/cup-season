@@ -547,5 +547,20 @@ else {
   }
 }
 
+/* 19 · every join passes the covenant (Q-14 / D116) -----------------------
+   Whether a golfer saw the terms they were agreeing to used to depend on
+   which of five doors they came through: three called covenantGate first,
+   two seated them straight away — including the invite-link boot path, the
+   one that matters most. A comment cannot hold that; this can. */
+{
+  const joins = [...html.matchAll(/rpc\(\s*'join_league'/g)].length;
+  const gates = [...html.matchAll(/covenantGate\s*\(/g)].length - 1;   // minus the declaration
+  joins === 0
+    ? warn('join paths carry consent', 'no join_league call found — did the RPC get renamed?')
+    : gates >= joins
+      ? pass('join paths carry consent', `${joins} join path(s), ${gates} covenant gate(s)`)
+      : fail('join paths carry consent', `${joins} join_league call(s) but only ${gates} covenantGate() — a golfer can be seated without seeing the terms`);
+}
+
 console.log(`\n${fails ? 'FAIL' : 'PASS'} — ${fails} failure(s), ${warns} warning(s)`);
 process.exit(fails ? 1 : 0);

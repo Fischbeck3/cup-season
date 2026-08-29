@@ -2647,7 +2647,7 @@ html[data-theme="light"] .room-dusk .btn:not(.dark):not(.gold):not(.apple){color
     <div class="ob-status" id="obStatus" role="status" aria-live="polite"></div>
     <button class="cs-tskip" id="obResend" type="button" style="display:none">Resend code</button>
 
-    <button class="btn dark" id="obJoin">I have an invite code</button>
+    <button class="btn dark" id="obJoin">I have a league code</button>
       <div class="joinbox" id="joinbox">
       <input id="joinCode" placeholder="LEAGUE CODE" maxlength="8" autocomplete="off">
       <button class="btn" id="joinGo">Join</button>
@@ -3352,7 +3352,7 @@ html[data-theme="light"] .room-dusk .btn:not(.dark):not(.gold):not(.apple){color
         <div id="hubLeagueless">
           <div class="eyebrow" style="margin-top:0">League play — cup season</div>
           <button class="btn" id="wCreate">Start a league</button>
-      <button class="btn dark" id="wJoin" style="margin-top:10px">I have an invite code</button>
+      <button class="btn dark" id="wJoin" style="margin-top:10px">I have a league code</button>
       <div class="joinbox" id="wJoinBox">
         <input id="wCode" placeholder="LEAGUE CODE" autocomplete="off">
         <button class="btn" id="wCodeGo">Join</button>
@@ -13053,7 +13053,7 @@ $$('.copycode').forEach(b=>b.addEventListener('click',async ()=>{
      literal is demo scenery only */
   const code=(!state.demo && window.CS?.league?.code) || 'SNDYCUP';
   try{ await navigator.clipboard.writeText(code); }catch(e){}
-  toast(`Invite code ${code} copied: text it to the group`);
+  toast(`League code ${code} copied — text it to the group`);
 }));
 
 /* ---------- PWA install nudge ---------- */
@@ -14257,7 +14257,7 @@ async function shareInvite(){
   try {
     await navigator.clipboard.writeText(text + ': ' + url);
     toast('Invite link copied: text it to the group');
-  } catch(e){ toast('Invite code: ' + code); }
+  } catch(e){ toast('League code: ' + code); }
 }
 window.shareInvite = shareInvite;
 
@@ -15604,8 +15604,8 @@ $('#joinGo').addEventListener('click', async () => {
     localStorage.setItem('cs_code', code);
     if(name) localStorage.setItem('cs_code_name', name); else localStorage.removeItem('cs_code_name');
     openEmailBox($('#joinbox'), name
-      ? `Enter your email \u2014 you'll join ${name} the moment your sign-in code lands.`
-      : `Enter your email \u2014 we'll auto-join ${code} the moment your sign-in code lands.`);
+      ? `Enter your email \u2014 ${name} is one step away; you'll review it before you're in.`
+      : `Enter your email \u2014 you'll review ${code} before you're in.`);   /* Q-15 */
     return;
   }
   try {
@@ -15770,7 +15770,7 @@ function openEventPicker(){
 /* join-by-code, self-contained — the hub's join box hides for members, so the
    Clubhouse sheet carries its own */
 function openJoinSheet(){
-  openSheet('Join with a code', 'Got an invite code?', `
+  openSheet('Join with a code', 'Got a league code?', `
     <input class="f" id="jCode" placeholder="LEAGUE CODE" autocomplete="off" style="font-family:var(--sans); text-transform:uppercase">
     <button class="btn" id="jGo" style="margin-top:12px">Join</button>
     <p class="fine">No code? Any member can share an invite link — or you'll see an invite here when someone adds you.</p>
@@ -15962,7 +15962,7 @@ async function openLeagueSwitcher(){
     + '<div class="eyebrow">Start something</div>'
     + startCard('__newleague', '⛳', 'Start a league', 'A full season · squads · a Cup Final', true)
     + startCard('__event', '🏆', 'Start an event', 'Short form · Ryder, Bracket, a Major', true)
-    + startCard('__join', '🔑', 'Join with a code', 'Got an invite code?', false));
+    + startCard('__join', '🔑', 'Join with a code', 'Got a league code?', false));
   $('#shBody').querySelectorAll('[data-lgsw]').forEach(b => b.addEventListener('click', async () => {
     const v = b.dataset.lgsw;
     if(v === '__newleague'){ closeSheet(); document.getElementById('wCreate')?.click(); return; }
@@ -17592,6 +17592,10 @@ $('#wJoin').addEventListener('click', () => {
 $('#wCodeGo').addEventListener('click', async () => {
   const code = $('#wCode').value.trim().toUpperCase();
   if(!code) return toast('Enter the league code');
+  /* Q-14 (D116) · consent on EVERY join path. Three of the five join_league
+     calls passed the covenant and two did not, so whether a golfer saw the
+     terms they were agreeing to depended on which door they came through. */
+  if(!(await covenantGate(code))) return;
   try {
     const { error } = await sb.rpc('join_league', { p_code: code });
     if(error) throw error;
@@ -17713,6 +17717,15 @@ async function boot(){
 
     const pend = localStorage.getItem('cs_code');
     if(pend){
+      /* Q-14 (D116) · this path used to seat a golfer straight off an invite
+         link with no terms shown at all — the one door where consent mattered
+         most. It also deleted the pending code BEFORE trying, so any failure
+         (or a "not now") threw the invite away and left no way back to it.
+         Show the covenant first; keep the code unless the join is attempted. */
+      if(!(await covenantGate(pend))){
+        window.qaEvent?.('covenant_declined', { via: 'link' });
+        /* a decline is a state, not a loss — the code stays for Home to offer */
+      } else {
       localStorage.removeItem('cs_code');
       localStorage.removeItem('cs_code_name');
       try {
@@ -17722,6 +17735,7 @@ async function boot(){
         const m = CS.memberships.find(x => x.league.code === pend);
         if(m){ await enterLeague(m); toast('Joined ' + m.league.name); openLeagueWelcome(m.league.name); return; }
       } catch(e){ toast(humanError(e, 'Auto-join failed.')); }
+      }
     }
 
     /* profile-first (v23.36): the old cs_intent shortcut that auto-created a
@@ -17769,15 +17783,22 @@ async function resumeAfterProfile(){
        code is removed before the attempt (as in boot()) so a failure can't loop. */
     const pend = ls('cs_code');
     if(pend){
-      try{ localStorage.removeItem('cs_code'); localStorage.removeItem('cs_code_name'); }catch(_){}
       try{
         /* S3-01: the stake is shown BEFORE join_league on this path too — the
            invite-link signup is the path most recipients take. */
         if(await covenantGate(pend)){
+          /* Q-14 (D116) · the code used to be deleted BEFORE the attempt, which
+             made the decline message a lie: "use code X whenever you're ready"
+             about a code we had just thrown away. The audit's joiner re-typed
+             it from his text message. Clear it only once we are committing. */
+          try{ localStorage.removeItem('cs_code'); localStorage.removeItem('cs_code_name'); }catch(_){}
           const { error } = await sb.rpc('join_league', { p_code: pend });
           if(error) throw error;
         } else {
-          toast('Not joined \u2014 use code ' + pend + ' whenever you\u2019re ready.');
+          /* a decline is a state, not a loss — the code stays, and Home can
+             still offer it */
+          window.qaEvent?.('covenant_declined', { via: 'signup' });
+          toast('Not joined \u2014 the invite is still here when you\u2019re ready.');
         }
       }catch(e){ toast(humanError(e, 'Auto-join failed.')); }
     }
@@ -18037,7 +18058,10 @@ if(joinParam){
     /* matches the GENERIC line only — it must track the string at ~15900, or
        the league name silently stops warming it up (the F1 fix this guards) */
     if(st && /^You're invited\. /.test(st.textContent))
-      st.textContent = `You're invited to ${data}. Enter your email and you're in.`;
+      /* Q-15 · "and you're in" promised the opposite of what happens: the
+         golfer still reviews the league and confirms before anything is final
+         (D116). Say what the next screen actually does. */
+      st.textContent = `You're invited to ${data}. Sign in to review the league before you join.`;
   }).catch(() => {});
 }
 
@@ -18119,7 +18143,7 @@ async function safeBoot(force){
   const pendName = localStorage.getItem('cs_code_name');
   if(!CS.user && pend){
     openEmailBox($('#obJoin'), pendName
-      ? `You're invited to ${pendName}. Enter your email and you're in.`
+      ? `You're invited to ${pendName}. Sign in to review the league before you join.`   /* Q-15 */
       /* the raw code is plumbing — the recipient never types it on this path,
          the link carries it (F1). Saying it invites them to wonder what to do
          with it. */
