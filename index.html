@@ -3318,7 +3318,7 @@ html[data-theme="light"] .room-dusk .btn:not(.dark):not(.gold):not(.apple){color
             <div class="val" id="floorVal">2 / mo</div>
             <div class="ctl"><button id="floorDown" aria-label="Lower floor">−</button><button id="floorUp" aria-label="Raise floor">+</button></div>
           </div>
-          <div class="ihelp" id="ih-floor">The anti-ghosting rule. Every player must post at least this many rounds a month, or the squad takes a penalty: −5 points per round short under Standard rules. One Pro-approved bye month per season covers vacations and injuries.</div>
+          <div class="ihelp" id="ih-floor">The anti-ghosting rule. Everyone posts at least this many rounds a month. Miss once and your season bye covers it <b>automatically</b> — no asking, no approval (D14); from the second miss the squad takes the penalty: −5 points per round short under Standard rules. Short months are waived.</div>
           </div><!-- /wizDials -->
         </div>
 
@@ -3507,7 +3507,7 @@ html[data-theme="light"] .room-dusk .btn:not(.dark):not(.gold):not(.apple){color
         <div class="tblwrap league-only">
           <table class="tbl" id="indTable"></table>
         </div>
-        <p class="fine league-only">Points King takes <span id="kingPct">15</span>% of the pot at season's end. Most Improved is index drop since Week 1; Iron Man is most rounds posted. All three run in parallel with the squad race — bylaws §4.</p>
+        <p class="fine league-only">Points King takes <span id="kingPct">15</span>% of the pot at season's end. Most Improved is index drop since Week 1; Iron Man is most rounds posted. All three run in parallel with the squad race — see <b>How scoring works</b>.</p>
         <!-- #14: once the season is live, setup tools live down here. The join
              code and Add golfers are MOVED into this footer (never cloned — the
              same nodes keep their handlers) and moved back if the room returns
@@ -4546,7 +4546,9 @@ function renderClimb(){
   applyClimb(box, html);
   if(note){
     if(K>=n) note.textContent=`EVERYONE ADVANCES — ${n} CONTENDER${n===1?'':'S'}, ${K} SEAT${K===1?'':'S'}`;
-    else if(meta) note.textContent=`TOP ${K} ${meta.finish==='points_table'?'— THE POINTS CROWN':'ADVANCE'} · PROJECTED UNDER A GENEROUS CEILING`;
+    /* Q-26 · "PROJECTED UNDER A GENEROUS CEILING" was jargon nobody decoded —
+       and it sat over two EMPTY squads on a league that had not teed off. */
+    else if(meta) note.textContent=`TOP ${K} ${meta.finish==='points_table'?'— THE POINTS CROWN':'ADVANCE TO THE CUP FINAL'}`;
     else note.textContent=`TOP ${K} ADVANCE TO THE CUP FINAL`;
   }
 }
@@ -5797,6 +5799,30 @@ function vsShort(v){
   if(vs>=1)  return 'beat by '+vs.toFixed(1);
   if(vs>-1)  return 'played to it';
   return Math.abs(vs).toFixed(1)+' over';
+}
+/* Q-27 · THE floor sentence. It was written three different ways: Home said
+   "Miss it and your squad loses 5 points for every round you're short" (no
+   mention of the bye), the help sheet said "Miss it once and your season bye
+   covers you automatically — the floor bites from the second miss", and the
+   wizard's (i) called the bye "One Pro-approved bye month" when D14 made it
+   automatic. A golfer who read two of the three learned the rule wrong.
+   Solo, verified in the engine: close_month drives its penalty loop from
+   squad_members and form_squads returns before seating a solo league, so no
+   floor penalty can fire there — the sentence says so rather than threatening
+   a squad that does not exist. */
+function floorSentence(o){
+  o = o || {};
+  const n    = Number(o.floor ?? state.floor) || 0;
+  const pre  = o.preset ?? state.preset;
+  const str  = o.structure ?? state.structure;
+  if(!n) return 'No floor — every round counts, and nothing is owed.';
+  const rounds = `${n} round${n===1?'':'s'} a month`;
+  if(str === 'solo')
+    return `Post ${rounds}. In a solo league that is a habit, not a penalty — there's no squad to dock.`;
+  const pen = ['', "your squad loses 5 points for every round you're short",
+                   "the month's counting rounds are forfeited"][pre] || '';
+  if(!pen) return `Post ${rounds}. Nothing is docked if you miss — it's a habit, not a penalty.`;
+  return `Post ${rounds}. Miss once and your season bye covers it automatically; from the second miss ${pen}. Short months are waived.`;
 }
 function vsPhrase(vs){
   vs=Number(vs);
@@ -7306,9 +7332,16 @@ function renderPot(){
     const stillOwe=Math.max(0, players-paidN);
     $('#potMath').textContent=`${players} × ${fmt$(state.stake)} · ${fmt$(collected)} collected`
       + (stillOwe>0 && collected<total ? ` · ${stillOwe} still owe` : '');
-    $('#pay1').textContent=fmt$(Math.round(total*pc/100));
-    $('#pay2').textContent=fmt$(Math.round(total*pr/100));
-    $('#pay3').textContent=fmt$(Math.round(total*pk/100));
+    /* Q-28 · three independent Math.rounds do not add up to the pot: a $250
+       pot at 60/25/15 printed $150 + $63 + $38 = $251, and the audit's testers
+       were asked to trust a ledger whose own tiles out-summed it. The champion
+       absorbs the rounding (D106's penny rule), so the three tiles always
+       total the pot exactly. */
+    const runnerUp = Math.round(total*pr/100);
+    const king     = Math.round(total*pk/100);
+    $('#pay1').textContent=fmt$(total - runnerUp - king);
+    $('#pay2').textContent=fmt$(runnerUp);
+    $('#pay3').textContent=fmt$(king);
     const el=$('#payers'); el.innerHTML='';
     (ms.length?ms:[null]).forEach(m=>{
       const paid=m ? !!bi[m.id]?.paid : false;
@@ -10372,7 +10405,11 @@ function heroMyRung(){
     gapLine = teams[1] ? `You lead by <em>${d} point${d===1?'':'s'}</em> over <b>${esc(teams[1].name)}</b>.` : `<em>You lead.</em>`;
   } else {
     const up=teams[i-1], d=up.pts-me.pts;
-    gapLine = d===0 ? `Level with <b>${esc(up.name)}</b>. <em>Your next round breaks the tie.</em>`
+    /* Q-26 · "your next round breaks the tie" is not the rule. Spec §14.3's
+       ladder is h2h months won -> best single month -> fewest rounds used ->
+       a logged coin flip; a single round breaks nothing by itself. Name the
+       first rung, which is the one a golfer can still act on. */
+    gapLine = d===0 ? `Level with <b>${esc(up.name)}</b>. <em>Months won breaks the tie.</em>`
       : moved>0 ? `You passed ${teams[i+1]?`<b>${esc(teams[i+1].name)}</b>`:'a squad'} this week. <em>${d} back</em> of <b>${esc(up.name)}</b>.`
       : `<em>${d} point${d===1?'':'s'}</em> back of <b>${esc(up.name)}</b>.`;
   }
@@ -11189,9 +11226,8 @@ function renderPulse(){
     /* #5 (pilot) survives the hand-off: the hero foot shows the COUNT, this
        line still states the RULE. #homePulse sits right under the chips, so
        it reads as the hero's fine print. Same gates as before. */
-    const penTxt = ['', "your squad loses 5 points for every round you're short", 'you forfeit the month'][state.preset] || '';
-    box.innerHTML = (state.structure!=='solo' && state.floor>0 && penTxt && !state.demo)
-      ? `<p class="fine" style="padding:0 2px 6px; line-height:1.45">Monthly floor · <b>${state.floor} round${state.floor===1?'':'s'} a month</b>. Miss it and ${penTxt}. Short months are waived.</p>`
+    box.innerHTML = (state.floor>0 && !state.demo)
+      ? `<p class="fine" style="padding:0 2px 6px; line-height:1.45">Monthly floor · ${floorSentence()}</p>`
       : '';
     return;
   }
@@ -11238,10 +11274,9 @@ function renderPulse(){
      short-month waiver — sourced from state so it matches the bylaws exactly.
      Squad leagues only (the penalty is squad points), and only when a miss
      actually costs something (skipped for the casual preset and solo). */
-  const penTxt = ['', "your squad loses 5 points for every round you're short", 'you forfeit the month'][state.preset] || '';
-  if(state.structure!=='solo' && state.floor>0 && penTxt){
+  if(state.floor>0){
     box.insertAdjacentHTML('beforeend',
-      `<p class="fine" style="padding:7px 2px 0; line-height:1.45">Monthly floor · <b>${state.floor} round${state.floor===1?'':'s'} a month</b>. Miss it and ${penTxt}. Short months are waived.</p>`);
+      `<p class="fine" style="padding:7px 2px 0; line-height:1.45">Monthly floor · ${floorSentence()}</p>`);
   }
 }
 async function loadPulse(){

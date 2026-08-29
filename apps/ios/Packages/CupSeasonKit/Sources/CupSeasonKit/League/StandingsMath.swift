@@ -402,7 +402,9 @@ public enum ClimbMath {
     let meta = scenarios?.meta
     let K = max(1, cut(meta).K)
     if K >= n { return "EVERYONE ADVANCES — \(n) CONTENDER\(n == 1 ? "" : "S"), \(K) SEAT\(K == 1 ? "" : "S")" }
-    if let meta { return "TOP \(K) \(meta.finish == "points_table" ? "— THE POINTS CROWN" : "ADVANCE") · PROJECTED UNDER A GENEROUS CEILING" }
+    // Q-26: "PROJECTED UNDER A GENEROUS CEILING" was jargon nobody decoded, and
+    // it sat over two EMPTY squads on a league that had not teed off.
+    if let meta { return "TOP \(K) \(meta.finish == "points_table" ? "— THE POINTS CROWN" : "ADVANCE TO THE CUP FINAL")" }
     return "TOP \(K) ADVANCE TO THE CUP FINAL"
   }
 }

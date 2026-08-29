@@ -571,7 +571,9 @@ struct HomeHero: View {
       guard let st = m.standing else { return "Standings start at the first posted round." }
       if st.rank == 1 {
         if let g = st.gap_to_next, g > 0 { return "You lead by \(CSCopy.points(g)) points." }
-        return "Level at the top. Your next round breaks the tie."
+        // Q-26: spec §14.3's ladder is months won -> best single month -> fewest
+        // rounds -> a coin flip. One round breaks nothing by itself.
+        return "Level at the top. Months won breaks the tie."
       }
       if let g = st.gap_to_leader { return g == 0 ? "Level with the lead." : "\(CSCopy.points(g)) points back of the lead." }
       return "In the race."

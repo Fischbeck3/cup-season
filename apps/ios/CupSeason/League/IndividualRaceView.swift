@@ -96,7 +96,7 @@ struct IndividualRaceView: View {
           }
         }
       }
-      RoomFine("Points King takes \(model.bylaws.payout[2])% of the pot at season's end. Most Improved is index drop since Week 1; Iron Man is most rounds posted. All three run in parallel with the squad race — bylaws §4.")
+      RoomFine("Points King takes \(model.bylaws.payout[2])% of the pot at season's end. Most Improved is index drop since Week 1; Iron Man is most rounds posted. All three run in parallel with the squad race — see How scoring works.")
     }
   }
 

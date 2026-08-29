@@ -214,7 +214,7 @@ private func team(_ id: UUID, _ name: String, _ pts: Double, ci: Int = 0) -> Tea
     #expect(ClimbMath.cut(two) == ClimbCut(K: 1, line: "TOP SEED · +10"))
     #expect(ClimbMath.cut(nil) == ClimbCut(K: 2, line: "CUT LINE"))
     let sc = SeasonScenarios(meta: pt, rows: [])
-    #expect(ClimbMath.note(teams: teams, scenarios: sc) == "TOP 1 — THE POINTS CROWN · PROJECTED UNDER A GENEROUS CEILING")
+    #expect(ClimbMath.note(teams: teams, scenarios: sc) == "TOP 1 — THE POINTS CROWN")
     #expect(ClimbMath.note(teams: [teams[0]], scenarios: nil) == "EVERYONE ADVANCES — 1 CONTENDER, 2 SEATS")
     #expect(ClimbMath.items(teams: [], meId: nil, scenarios: nil).isEmpty)
   }
