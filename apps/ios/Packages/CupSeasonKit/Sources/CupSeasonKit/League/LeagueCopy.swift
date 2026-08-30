@@ -208,7 +208,7 @@ public enum LeagueCopy {
   /// `#phaseSub` (12008–12020).
   public static func phaseSub(_ c: RoomClock, b: Bylaws, code: String?, members: Int) -> String {
     switch c.phase {
-    case .setup: return "SETUP · CODE \(code ?? "—") · \(members) JOINED"
+    case .setup: return "SETUP · LOCK THE BYLAWS TO OPEN INVITES"
     case .draft: return "\(Stage.drawing.label) · rosters pending"
     case .season:
       if c.atStarter { return "BEFORE FIRST TEE · \(c.firstTeeText.uppercased()) · \(c.daysToTee) DAY\(c.daysToTee == 1 ? "" : "S")" }
@@ -220,9 +220,11 @@ public enum LeagueCopy {
   public static func players(_ k: Int) -> String { "\(k) PLAYER\(k == 1 ? "" : "S")" }
 
   /// `#setupInviteSub` (12640–12643).
-  public static func seatFill(code: String?, members n: Int, min: Int) -> String {
+  public static func seatFill(code: String?, members n: Int, min: Int, locked: Bool = true) -> String {
     let short = max(0, min - n)
-    return "CODE \(code ?? "—") · " + (short > 0 ? "\(n) OF \(min) IN — \(short) SEAT\(short == 1 ? "" : "S") OPEN" : "\(n) JOINED — ENOUGH FOR THE DRAW")
+    // D161 · in setup the code admits nobody, so it is not shown as if it did
+    return (locked ? "CODE \(code ?? "—") · " : "JOINS OPEN AT THE LOCK · ")
+      + (short > 0 ? "\(n) OF \(min) IN — \(short) SEAT\(short == 1 ? "" : "S") OPEN" : "\(n) JOINED — ENOUGH FOR THE DRAW")
   }
 
   /// `#draftPoolSub` (12647–12648).

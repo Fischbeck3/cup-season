@@ -154,7 +154,9 @@ struct LeagueHeaderCard: View {
             .font(CSFont.sentence).foregroundStyle(model.isComplete ? cs.gold : cs.mut)
             .fixedSize(horizontal: false, vertical: true)
           Spacer(minLength: 8)
-          if let code = model.league?.code, let url = model.inviteURL {
+          // D161 · the code opens nothing during setup — a visible code that
+          // refuses everyone who types it is worse than no code
+          if let code = model.league?.code, let url = model.inviteURL, model.clock.phase != .setup {
             // `.copycode` (12727): in a real league the tap IS the share sheet
             ShareLink(item: url, subject: Text("Cup Season"), message: Text(model.inviteText)) {
               RoomCodeChip(code: code)

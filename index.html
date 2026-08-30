@@ -4288,7 +4288,7 @@ function humanError(e, prefix){
      a shrug is the bug. Two gates, in order: an allowlist of the sentences we
      know we wrote, then a shape test (looks like prose, contains none of the
      Postgres/PostgREST tells above). Anything else still gets the shrug. */
-  else if(/not enough golfers|minimum four|still in the pool|is empty — draw again|is empty — draw again|only the pro|commissioner only|isn't open yet|is still being set up|has wrapped|season is finished/i.test(raw))
+  else if(/not enough golfers|minimum four|still in the pool|is empty — draw again|is empty — draw again|only the pro|commissioner only|isn't open yet|is still being set up|has wrapped|season is finished|season's underway|past the halfway turn/i.test(raw))
     msg = /only the pro|commissioner only/i.test(raw) ? 'Only the Pro can do that.' : raw.trim();
   /* a clipboard denial is not an expired session — the audit's tester was told
      to "sign in again" 18 minutes after signing in, while signed in */
@@ -13289,7 +13289,7 @@ function renderPhase(){
     else       { park(codeBtn, cs);   park(addBtn, as);   }
   }
   $('#phaseSub').textContent = p==='setup'
-    ? (L ? `SETUP · CODE ${L.code} · ${nMem} JOINED` : 'SETUP · CODE SNDYCUP · 9 OF 16 JOINED')
+    ? (L ? `SETUP · LOCK THE BYLAWS TO OPEN INVITES` : 'SETUP · CODE SNDYCUP · 9 OF 16 JOINED')
     : p==='draft' ? `${STAGE_LABEL.drawing} · rosters pending`
     : state.demo
       ? `Wk ${currentWeek()} / ${totalWeeks()} · ${FMT_NAMES[state.fmt]} · ${PRESETS[state.preset].name} rules`
@@ -13922,7 +13922,7 @@ function renderLeagueMeta(){
      target; short of it, every count reads as seats to fill, not a census */
   const min=STRUCT_MIN[state.structure]||4, short=Math.max(0,min-n);
   const si=$('#setupInviteSub');
-  if(si) si.textContent=`CODE ${L.code} · `+(short
+  if(si) si.textContent=(state.phase==='setup' ? 'JOINS OPEN AT THE LOCK · ' : `CODE ${L.code} · `)+(short
     ? `${n} OF ${min} IN — ${short} SEAT${short===1?'':'S'} OPEN`
     : `${n} JOINED — ENOUGH FOR THE DRAW`);
   const seated=new Set();
@@ -13953,9 +13953,12 @@ function renderLeagueMeta(){
   if($('#hubHeader')){
     $('#hhName').textContent=L.name;
     $('#hhCode').textContent=L.code;
+    /* D161 · the code opens nothing during setup — a visible code that refuses
+       everyone who types it is worse than no code */
+    { const _cs=$('#hhCodeSlot'); if(_cs) _cs.style.display = state.phase==='setup' ? 'none' : ''; }
     /* week lives on the Season tile — the header just names the phase */
     $('#hhPhase').textContent =
-      state.phase==='setup' ? 'Setup — invites open'
+      state.phase==='setup' ? 'Setup — not open yet'
       : state.phase==='draft' ? 'Squad formation'
       : (!state.demo && window.CS?.season?.status==='complete') ? 'Season complete'   /* #2: a finished league isn't "live" */
       : atStarter() ? `Before first tee — ${firstTeeText()}`

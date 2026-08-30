@@ -41,7 +41,7 @@ struct StandingsPane: View {
       RoomCheckRow("Squad formation", sub: "Unlocks when settings lock") { num("3") } trail: {
         Text("Locked").font(CSFont.monoSmall).foregroundStyle(cs.dimText)
       }
-      Text(LeagueCopy.seatFill(code: model.league?.code, members: model.members.count, min: model.bylaws.structMin))
+      Text(LeagueCopy.seatFill(code: model.league?.code, members: model.members.count, min: model.bylaws.structMin, locked: model.clock.phase != .setup))
         .font(CSFont.label).tracking(1.2).foregroundStyle(cs.dimText).padding(.top, 10)
     }
   }

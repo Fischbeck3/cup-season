@@ -35,8 +35,13 @@
 # 2026-08-30 (final): 194 functions, all four of the day's unpushed migrations
 # applied inside a ROLLED-BACK transaction. Adds live_join (D125a); set_handle and
 # handle_available re-signed by D159.
+#
+# 2026-08-30 (v2): 196 functions, the day's five unpushed migrations applied in a
+# ROLLED-BACK transaction. D161 adds _join_gate/_late_squad (internal, no grants).
 
 _cup_window_rounds|p_season uuid|TABLE(member_id uuid, round_id uuid, profile_id uuid, played_on date, points integer, month_rank bigint, pvi numeric, holes_played integer)|definer|none
+_join_gate|p_league uuid, p_via_pro boolean|void|definer|none
+_late_squad|p_league uuid, p_member uuid|text|definer|none
 _live_member_can|p_live_round uuid|boolean|definer|none
 _live_participant|p_live_round uuid|boolean|definer|auth
 _live_state_of|p_live_round uuid|jsonb|definer|none

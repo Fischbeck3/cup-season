@@ -321,7 +321,7 @@ private func team(_ id: UUID, _ name: String, _ pts: Double, ci: Int = 0) -> Tea
     let b = Bylaws.from(season)
     #expect(LeagueCopy.phaseSub(clock("2026-05-10"), b: b, code: "PIGL", members: 8) == "Wk 2 / 21 · Points Race · Standard rules")
     #expect(LeagueCopy.phaseSub(clock("2026-04-30"), b: b, code: "PIGL", members: 8) == "BEFORE FIRST TEE · SUN MAY 3 · 3 DAYS")
-    #expect(LeagueCopy.phaseSub(clock("2026-05-10", phase: .setup), b: b, code: "PIGL", members: 8) == "SETUP · CODE PIGL · 8 JOINED")
+    #expect(LeagueCopy.phaseSub(clock("2026-05-10", phase: .setup), b: b, code: "PIGL", members: 8) == "SETUP · LOCK THE BYLAWS TO OPEN INVITES")
     #expect(LeagueCopy.kickoff(clock("2026-05-02")) == ("First tee Sun May 3", "KICKS OFF IN 1 DAY · SQUADS LOCKED · PRACTICE ROUNDS HIT YOUR CARD, NOT THE SEASON"))
     #expect(LeagueCopy.seatFill(code: "PIGL", members: 5, min: 8) == "CODE PIGL · 5 OF 8 IN — 3 SEATS OPEN")
     #expect(LeagueCopy.draftPoolSub(pool: 2, members: 8, min: 8) == "2 PLAYERS IN THE POOL")
