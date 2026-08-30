@@ -19,10 +19,9 @@
 #     from pg_proc p join pg_namespace n on n.oid=p.pronamespace
 #     where n.nspname='public' and p.prokind='f') s;
 #
-# Snapshot taken 2026-08-26; refreshed 2026-08-29 after the D107/D108 push (leagueless live rounds · weekly clash), and again 2026-08-29 after the D111 push (lock_league).
-# reported it as a deploy owed, which is exactly its job. Lesson kept: after a
-# db push that adds or re-signs a function, refresh this file, or the check
-# keeps reporting a deploy you already made.
+# Snapshot taken 2026-08-26; refreshed 2026-08-29 after the D107/D108 push (leagueless live rounds · weekly clash), again 2026-08-29 after the D111 push (lock_league), and again 2026-08-30 to clear a STALE entry: preflight was warning that set_buy_in_terms owed a db push when it had already shipped (20260830040000 is recorded applied). A stale snapshot that cries wolf is worse than none.
+# NOTE: the D144-D148 migrations (20260830150000..210000) are NOT in this snapshot yet — refresh again after that db push, because lock_league's arg list carries its DEFAULTs.
+#
 _cup_window_rounds|p_season uuid|TABLE(member_id uuid, round_id uuid, profile_id uuid, played_on date, points integer, month_rank bigint, pvi numeric, holes_played integer)|definer|none
 _live_member_can|p_live_round uuid|boolean|definer|none
 _live_participant|p_live_round uuid|boolean|definer|auth
@@ -174,6 +173,7 @@ search_golfers|p_q text|TABLE(profile_id uuid, handle text, display_name text, c
 season_email_on_complete||trigger|definer|none
 season_email_payload|p_season uuid|jsonb|definer|auth
 season_scenarios|p_season uuid|jsonb|definer|auth
+set_buy_in_terms|p_league uuid, p_note text DEFAULT NULL::text, p_due_on date DEFAULT NULL::date|json|definer|auth
 set_discoverable|p_mode text|void|definer|auth
 set_email_recap|p_on boolean DEFAULT NULL::boolean|boolean|definer|auth
 set_event_notify|p_event uuid, p_on boolean|void|definer|auth
