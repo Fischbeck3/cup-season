@@ -3219,7 +3219,7 @@ html[data-theme="light"] .room-dusk .btn:not(.dark):not(.gold):not(.apple){color
                 <tr><td>Over by 1–3</td><td>6</td></tr>
                 <tr><td>Rough day, posted anyway</td><td>5</td></tr>
               </table>
-              <p class="fine">Every posted round scores. Your best 4 each month count toward your squad — a better round always replaces your lowest, in real time.</p>
+              <p class="fine">Every posted round scores. Your best few each month count toward your squad — a better round always replaces your lowest, in real time.</p>
             </div>
           </div>
         </div>
@@ -3260,12 +3260,12 @@ html[data-theme="light"] .room-dusk .btn:not(.dark):not(.gold):not(.apple){color
           <button class="preset sel" data-p="1">
             <h4>Standard <span class="ok" aria-hidden="true">✓</span></h4>
             <p class="lead">Weekly-golfer fair, light guardrails</p>
-            <p><b>95% hcp</b> · GHIN rounds · best 4 / mo count · 2-round floor</p>
+            <p><b>95% hcp</b> · GHIN rounds · best 3 / mo count · 2-round floor</p>
           </button>
           <button class="preset" data-p="2">
             <h4>Cutthroat <span class="ok" aria-hidden="true">✓</span></h4>
             <p class="lead">Tournament-tight, receipts required</p>
-            <p><b>90% hcp</b> · verified + attested · rated tees · best 4 / mo · 3-round floor</p>
+            <p><b>90% hcp</b> · verified + attested · rated tees · best 2 / mo · 3-round floor</p>
           </button>
           <p class="fine" id="presetSummary" style="padding-top:2px"></p>
           <button class="btn" id="wizFastPath" style="margin-top:10px">Use these defaults →</button>
@@ -3281,6 +3281,7 @@ html[data-theme="light"] .room-dusk .btn:not(.dark):not(.gold):not(.apple){color
             <div class="val" id="lenVal">6 mo</div>
             <div class="ctl"><button id="lenDown" aria-label="Shorter season">−</button><button id="lenUp" aria-label="Longer season">+</button></div>
           </div>
+          <p class="fine" id="wholeMonthNote" style="display:none;padding:0 0 6px"></p>
           <div class="setrow">
             <div class="lab">First tee<small id="seasonSpan">Pick any day</small></div>
             <input class="f" id="startDate" type="date" style="max-width:160px; padding:9px 11px; font-family:var(--sans);">
@@ -3318,11 +3319,11 @@ html[data-theme="light"] .room-dusk .btn:not(.dark):not(.gold):not(.apple){color
           </div>
           <p class="fine" id="payNote">Balanced: champ 60% · runner-up 25% · Points King 15%.</p>
           <div class="setrow">
-            <div class="lab">Counting cap <button class="ibtn" data-i="cap" aria-expanded="false" aria-label="About counting cap">i</button><small>Best N rounds / month</small></div>
-            <div class="val" id="capVal">Best 4</div>
+            <div class="lab">Counting cap <button class="ibtn" data-i="cap" aria-expanded="false" aria-label="About counting cap">i</button><small>Best N rounds / month · the quality dial</small></div>
+            <div class="val" id="capVal">Best 3</div>
             <div class="ctl"><button id="capDown" aria-label="Lower counting cap">−</button><button id="capUp" aria-label="Raise counting cap">+</button></div>
           </div>
-          <div class="ihelp" id="ih-cap">The core fairness dial. Only your best N rounds each month score for the squad, so the retiree who plays daily can't bury the dad who plays weekly. A better round automatically replaces your worst counter, so posting never stops mattering.</div>
+          <div class="ihelp" id="ih-cap">The dial that decides what a point means. Only your best N rounds each month score, so the retiree who plays daily can't bury the dad who plays weekly — and, just as much, so a good round is worth more than another round. Set it low and the table ranks how you played; set it high and it ranks how often you showed up. A better round always replaces your worst counter, so posting never stops mattering.</div>
           <div class="setrow">
             <div class="lab">Participation floor <button class="ibtn" data-i="floor" aria-expanded="false" aria-label="About participation floor">i</button><small>MIN ROUNDS / MONTH · −5 SQD PTS SHORT</small></div>
             <div class="val" id="floorVal">2 / mo</div>
@@ -3828,17 +3829,30 @@ window.state = state;   /* D81: QA bridge — the hero dev walk (CS_HOME_STATE)
    name that is read but never assigned is the silent-demo-mode landmine, and
    an intentional read-only hook has to say so out loud. */
 window.CS_HOME_STATE = window.CS_HOME_STATE || null;
-const STAKES=[0,25,50,75,100,150,200], LENGTHS=[6,9,12], CAPS=['Best 2','Best 4','Best 6','Unlimited'];
+const STAKES=[0,25,50,75,100,150,200], LENGTHS=[6,9,12],
+      CAPS=['Best 2','Best 3','Best 4','Best 6','Unlimited'];
+/* D142 · the counting cap had SEVEN inline copies of its value list
+   ([2,4,6,Infinity] / [2,4,6,99]) plus CAPVALS for the database. One rule,
+   eight producers — the exact shape the 2026-08-30 code audit named. These
+   two arrays are now the only ones; CAPS indexes them by the wizard's
+   picker position. `3` is new: the season sim measured the cap as the only
+   lever that decides whether a point means golf or attendance (bottom two
+   bands 47% at cap 2, 64% at cap 4, 71% at cap 8), and 3 is the setting
+   that makes a good round matter without making a fourth round worthless. */
+const CAP_N=[2,3,4,6,Infinity];      /* client math */
+const CAP_DB=[2,3,4,6,null];         /* league_settings.counting_cap */
 /* season length ladder in WEEKS — short casual seasons ("a quick 3-round run
    before it's cold") through full multi-month leagues. Flexible start (§14.0
    v1.1: Sunday-start no longer required — caps/floors stay calendar-month). */
 const DURS=[2,3,4,5,6,8,10,13,17,22,26,39,52];
 const durLabel = w => w<8 ? `${w} wk` : `${Math.round(w/4.345)} mo`;
-/* season_months is a coarse, stored-only settings field; the real season length
-   is week-based (durWeeks → seasons.starts_on/ends_on). The DB caps it to 3..12
-   (league_settings_season_months_check), so clamp here or a short/long season
-   fails to lock. */
-const durMonths = w => Math.min(12, Math.max(3, Math.round(w/4.345)));
+/* D143 · season_months only DESCRIBES the window; the real length is week-based
+   (durWeeks → seasons.starts_on/ends_on). It used to be clamped to 3 here
+   because the DB CHECK was 3..12, which meant a 2-week season stored "3 months"
+   and the bylaw quietly contradicted the dates. The CHECK is 1..12 now and
+   lock_league derives the months from the dates it is given, so this is only a
+   hint — but it should still be honest. */
+const durMonths = w => Math.min(12, Math.max(1, Math.round(w/4.345)));
 const WEEKS=18;
 /* the demo rides a real Sunday-season frame (spec §14.0): first tee 17 whole
    weeks back — today is always W18 of 24 — ending on a Saturday. Every date
@@ -5489,7 +5503,7 @@ function renderFeedFull(force){
         const up=(r.pvi??0)>=0;
         /* D2: no differential/index jargon on the story card — the round reads
            as a sentence; the math lives in the receipts sheet */
-        const capN=[2,4,6,Infinity][state.cap];
+        const capN=CAP_N[state.cap];
         const counting = r.month_rank==null
           ? `<span class="dim">PRE-SEASON · NOT COUNTING</span>`
           : r.month_rank<=capN
@@ -6382,7 +6396,7 @@ const EPI_ACH = {
 };
 function epiCounting(rank){
   if(rank==null) return '';
-  const capN=[2,4,6,Infinity][state.cap ?? 3];
+  const capN=CAP_N[state.cap ?? 2];
   if(rank<=capN) return capN===Infinity ? ' · counts this month' : ` · counts #${rank} this month`;
   return ` · outside your best ${capN} this month, for now`;
 }
@@ -7617,8 +7631,8 @@ function renderPot(){
 /* ================= league setup ================= */
 const PRESET_SUMMARY=[
   'Casual: 100% handicap, honor-system scores, any course. Beer-league friendly — everything counts, nobody’s benched.',
-  'Standard: 95% handicap, GHIN-posted rounds, your best 4 a month count, post 2 or the squad feels it. The default for a reason.',
-  'Cutthroat: 90% handicap, attested + rated tees, best 4 a month, a 3-round floor. For crews that want the screws tight.',
+  'Standard: 95% handicap, GHIN-posted rounds, your best 3 a month count, post 2 or the squad feels it. The default for a reason.',
+  'Cutthroat: 90% handicap, attested + rated tees, best 2 a month, a 3-round floor. For crews that want the screws tight.',
 ];
 function syncWizSegs(){
   /* reflect state onto the segments (a loaded league, or a preset change).
@@ -7638,10 +7652,38 @@ function renderSetup(){
   $('#capVal').textContent=CAPS[state.cap];
   $('#floorVal').textContent=state.floor+' / mo';
   $('#wkTotal2').textContent=state.durWeeks;
+  const wmn=$('#wholeMonthNote');
+  if(wmn){
+    const wm = wholeMonthsInSeason();
+    const floorBites = state.floor>0 && state.structure!=='solo';
+    if(wm===0 && floorBites){
+      wmn.style.display=''; wmn.style.color='var(--gold)';
+      wmn.textContent='Heads up — this season doesn\u2019t contain a whole calendar month, so the '
+        + state.floor + '-round floor is never assessed. Floors are waived in part-months.';
+    } else if(wm===0 && state.floor>0){
+      wmn.style.display=''; wmn.style.color='var(--mut)';
+      wmn.textContent='This season contains no whole calendar month. In a solo league the floor is a habit anyway \u2014 nothing is docked.';
+    } else { wmn.style.display='none'; }
+  }
   renderSeasonDates();
   if(typeof renderStructFit==='function') renderStructFit();
   if(typeof syncWizSegs==='function') syncWizSegs();
   renderPhase(); renderBylaws(); renderStats();
+}
+/* D143 · the participation floor is assessed only in WHOLE calendar months —
+   close_month waives any month the season starts inside or ends inside. A short
+   season can therefore contain none at all, and the floor a Pro just set never
+   fires once. Say so at the moment they set it, not in a post-mortem. */
+function wholeMonthsInSeason(){
+  const s=seasonStartDate(), e=seasonEndDate();
+  let n=0, m=new Date(s.getFullYear(), s.getMonth(), 1);
+  if(m < s) m=new Date(s.getFullYear(), s.getMonth()+1, 1);
+  while(true){
+    const last=new Date(m.getFullYear(), m.getMonth()+1, 0);
+    if(last > e) break;
+    n++; m=new Date(m.getFullYear(), m.getMonth()+1, 1);
+  }
+  return n;
 }
 const WD=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
 function defaultStart(){                       // next upcoming Saturday — a natural first tee
@@ -7721,9 +7763,9 @@ document.getElementById('wizCustomize')?.addEventListener('click',()=>{
 });
 
 const PRESETS=[
-  {cap:3, floor:0, name:'Casual'},
-  {cap:1, floor:2, name:'Standard'},
-  {cap:1, floor:3, name:'Cutthroat'},
+  {cap:4, floor:0, name:'Casual'},      /* every round counts */
+  {cap:1, floor:2, name:'Standard'},    /* best 3 a month */
+  {cap:0, floor:3, name:'Cutthroat'},   /* best 2 — the tightest quality filter */
 ];
 $$('.preset').forEach(p=>{
   p.addEventListener('click',()=>{
@@ -9998,7 +10040,7 @@ function yourMonthCredits(){
   }, 0);
 }
 function renderStats(){
-  const capN=[2,4,6,Infinity][state.cap];
+  const capN=CAP_N[state.cap];
   /* real leagues read the view-backed month numbers (window.myMonth, set by
      the module) — the demo's feed-scrape (who==='You') never matches real
      display names and would pin every real user at zero */
@@ -12094,7 +12136,7 @@ async function enrichRoundReceipt(rid, seed){
       : (r.index_at_post!=null && r.differential!=null ? Number(r.index_at_post)-Number(r.differential) : null);
     const body=document.getElementById('rcptBody');
     if(!body) return;                             /* sheet already closed */
-    body.innerHTML = roundCardBody(r, pvi, [2,4,6,Infinity][state.cap]);
+    body.innerHTML = roundCardBody(r, pvi, CAP_N[state.cap]);
     /* the header learns the course it was missing */
     const sub=document.getElementById('shSub');
     if(sub && r.course_label){
@@ -12123,7 +12165,7 @@ function openRoundReceipt(x){
   if(rid && window.sb && !state.demo) enrichRoundReceipt(rid, r);
   const pvi = r.pvi!=null ? Number(r.pvi)
     : (r.index_at_post!=null && r.differential!=null ? Number(r.index_at_post)-Number(r.differential) : null);
-  const capN=[2,4,6,Infinity][state.cap];
+  const capN=CAP_N[state.cap];
   const line=[r.course_label||'somewhere out there', (r.holes_played||18)+' holes', r.played_on||''].filter(Boolean).join(' · ');
   /* D59 (2c): the poster's marker medallion rides the photo — attribution */
   const stampOf = () => r.profile_id && window.mkr
@@ -12173,7 +12215,7 @@ function seedHistory(){
 }
 /* which rounds counted, per the counting cap, per month */
 function markCounting(rows){
-  const capN=[2,4,6,99][state.cap];
+  const capN=CAP_N[state.cap];
   const byMonth={};
   rows.forEach(r=>{ (byMonth[r.month] ||= []).push(r); });
   Object.values(byMonth).forEach(list=>{
@@ -12413,7 +12455,7 @@ function showPlayer(name){
   const rows=markCounting([...(HIST[name]||[])]).sort((a,b)=>b.pts-a.pts);
   const counting=rows.filter(r=>r.counts);
   const cut=rows.filter(r=>!r.counts);
-  const capN=[2,4,6,99][state.cap];
+  const capN=CAP_N[state.cap];
 
   let h=`<div class="mathrow"><span>Rounds posted</span><b>${p.r}</b></div>
     <div class="mathrow"><span>Counting (${CAPS[state.cap].toLowerCase()} / mo)</span><b>${counting.length}</b></div>
@@ -14956,7 +14998,7 @@ function applyBylaws(b){
      such columns and these are simply undefined, which renders as "the Pro
      hasn't posted how to pay yet". */
   CS.settings = b;
-  const CAPMAP = { 2:0, 4:1, 6:2 };
+  const CAPMAP = { 2:0, 3:1, 4:2, 6:3 };
   state.stake     = Math.round(b.buyin_cents/100);
   state.months    = b.season_months;
   /* prefer the real season span if it's loaded; else approx from months */
@@ -14965,7 +15007,7 @@ function applyBylaws(b){
     : Math.max(2, Math.round((b.season_months||6) * 4.345));
   if(state.seasonStart) state.startISO = state.seasonStart;
   state.floor     = b.participation_floor;
-  state.cap       = b.counting_cap === null ? 3 : (CAPMAP[b.counting_cap] ?? 1);
+  state.cap       = b.counting_cap === null ? 4 : (CAPMAP[b.counting_cap] ?? 1);
   state.preset    = ['casual','standard','cutthroat'].indexOf(b.preset) >= 0
                     ? ['casual','standard','cutthroat'].indexOf(b.preset) : 1;
   /* legacy/null season_format would indexOf to -1 → FMT_NAMES[-1] renders
@@ -15322,7 +15364,7 @@ async function loadStandingsAndFeed(){
      with \u2014 no demo-shaped math anywhere near a real league */
   if(CS.season){
     try {
-      const capN=[2,4,6,Infinity][state.cap];
+      const capN=CAP_N[state.cap];
       const [{ data: rr }, { data: ind }] = await Promise.all([
         sb.from('v_rounds_ranked')
           .select('member_id, round_id, pvi, points, month_rank, floor_credit, played_on, index_at_post, holes_played')
@@ -15741,7 +15783,7 @@ async function createLeague(){
 }
 
 /* ---------- lock the bylaws ---------- */
-const CAPVALS = [2,4,6,null];
+const CAPVALS = CAP_DB;
 async function lockBylaws(){
   if(!CS.league) throw new Error('no league');
   /* D111 · one server transaction. The four writes below are what this
