@@ -297,6 +297,13 @@ button{font-family:var(--sans); touch-action:manipulation; color:var(--ink);}
 .rivrec.up{color:var(--pos);} .rivrec.dn{color:var(--dim);} .rivrec.ev{color:var(--mut);}
 #youRivals .prow.tap{cursor:pointer;}
 [data-tc]{cursor:pointer;}
+/* D150 · the shared-course line. It sits directly under the credential because
+   it is the reason you opened a stranger's card at all. Gold rule, not a filled
+   card: it is a fact about the two of you, not another stat block. */
+.cboth{margin:10px 0 0; padding:9px 12px; border-left:2px solid var(--gold);
+  background:color-mix(in srgb, var(--gold) 7%, transparent); border-radius:0 8px 8px 0;}
+.cboth b{display:block; font-size:12px; letter-spacing:.04em; text-transform:uppercase; color:var(--gold);}
+.cboth small{display:block; margin-top:2px; color:var(--ink); font-size:13px; line-height:1.45;}
 
 /* ============ standings table ============ */
 .tbl{width:100%; border-collapse:collapse;}
@@ -3128,7 +3135,8 @@ html[data-theme="light"] .room-dusk .btn:not(.dark):not(.gold):not(.apple){color
               <div class="frow one">
                 <div>
                   <label class="f" for="inCourse">Course & tees</label>
-                  <input class="f" id="inCourse" placeholder="Search a course, or type your own" autocomplete="off" style="font-family:var(--sans)">
+                  <input class="f" id="inCourse" placeholder="Search for the course you played" autocomplete="off" style="font-family:var(--sans)">
+                  <p class="fine" id="inCourseHint" style="display:none;padding:2px 0 0"></p>
                   <div id="courseChips" style="margin-top:8px"></div>
                 </div>
               </div>
@@ -6743,6 +6751,7 @@ function restorePostDraft(){
 }
 window.restorePostDraft = restorePostDraft;   /* module boot calls it after sign-in */
 ['inCourse','inDate'].forEach(id=>$('#'+id)?.addEventListener('input',savePostDraft));
+$('#inCourse')?.addEventListener('input', paintCourseHint);
 /* mode + side toggles for the quick-post card */
 $$('#postMode button').forEach(b=>b.addEventListener('click',()=>{
   $$('#postMode button').forEach(x=>x.classList.remove('on')); b.classList.add('on');
@@ -7152,7 +7161,15 @@ function scanApply(scan, idx){
   state.post.scores = me.holes.map((v,i)=> v>0 ? v : state.post.pars[i]);
   state.post.touched = true;
   state.post.scan = { read: me.holes.slice(), others: scan.players.filter((_,i)=>i!==idx) };
-  if(scan.course_name && !$('#inCourse').value.trim()) $('#inCourse').value=scan.course_name;
+  /* D150 · the scan used to drop its detected course name in as plain text, so
+     every scanned round was born unlisted. Run the picker's own search on it —
+     one tap binds it, and the hint explains it if the catalogue has no match. */
+  if(scan.course_name && !$('#inCourse').value.trim()){
+    const ic = $('#inCourse');
+    ic.value = scan.course_name;
+    if(typeof ic.__csSearch === 'function') ic.__csSearch(scan.course_name);
+    if(typeof paintCourseHint === 'function') paintCourseHint();
+  }
   /* the date WRITTEN ON THE CARD beats the composer's "today" default —
      scans often happen at the 19th or the morning after (still editable) */
   if(scan.date) $('#inDate').value=scan.date;
@@ -7244,9 +7261,29 @@ $('#postScanBack')?.addEventListener('click',e=>{
    lookup runs through the `courses` Edge Function that holds the GolfCourseAPI
    key server-side. Manual entry is always the fallback — rating/slope stay
    editable. Selecting a tee stamps course_id onto the input for the insert. */
+/* D150 · free text still posts — a muni the catalogue lacks, a friend's club —
+   but it is DEMOTED, not equal: a typed course cannot feed course history or
+   the "you've both played here" line, because a string is not an identity (our
+   own data held Papago under three spellings). Say so at the moment of typing,
+   and be explicit that the ROUND is unaffected: points, floors and the index
+   all count exactly the same. The golfer is not punished; the claim about where
+   they played is just not made. */
+function paintCourseHint(){
+  const el = document.getElementById('inCourse'), hint = document.getElementById('inCourseHint');
+  if(!el || !hint) return;
+  const typed = (el.value||'').trim();
+  const picked = !!el.dataset.courseId;
+  if(!typed || picked){ hint.style.display='none'; return; }
+  hint.style.display='';
+  hint.style.color='var(--mut)';
+  hint.innerHTML = 'Unlisted course — the round counts in full. It just won\u2019t show on your card or match you with other golfers who\u2019ve played it.';
+}
 function attachCourseSearch(courseSel, ratingSel, slopeSel, onTee){
   const input=$(courseSel); if(!input) return;
   const dd=document.createElement('div'); dd.className='coursedd'; dd.style.display='none';
+  /* D150 · other paths (the scorecard scan) need to run this same search so a
+     detected course name can become a real pick instead of a typed string. */
+  input.__csSearch = q => { input.value = q; run(q); };
   /* Q-24 · the retry is delegated from the container, attached ONCE here.
      Attaching it inside the failure branch tied a listener to markup that any
      later render replaces — the button would still be drawn and would quietly
@@ -7279,6 +7316,7 @@ function attachCourseSearch(courseSel, ratingSel, slopeSel, onTee){
       const t=c.tees[+b.dataset.ti];
       input.value = c.label + (t.tee_name ? ' · '+t.tee_name : '');
       input.dataset.courseId = c.id;
+      if(typeof paintCourseHint==='function') paintCourseHint();
       if(ra) ra.value=t.course_rating; if(sl) sl.value=t.slope_rating;
       /* programmatic .value never fires 'input' — the live sheet's rate/slope
          listeners (syncTeeInputs) need the event to recompute strokes */
@@ -7299,6 +7337,7 @@ function attachCourseSearch(courseSel, ratingSel, slopeSel, onTee){
       e.preventDefault();
       const ci=+b.dataset.ci;
       input.value=courses[ci].label; input.dataset.courseId=courses[ci].id; /* course picked; tee next */
+      if(typeof paintCourseHint==='function') paintCourseHint();
       showTees(ci);
     }));
   }
@@ -7362,6 +7401,7 @@ function attachCourseSearch(courseSel, ratingSel, slopeSel, onTee){
   }
   input.addEventListener('input', ()=>{
     input.dataset.courseId='';            /* manual edit invalidates the last pick */
+    if(typeof paintCourseHint==='function') paintCourseHint();
     const q=input.value.trim();
     clearTimeout(timer);
     if(q.length<3 || state.demo || !window.CS?.user){ hide(); return; }
@@ -9604,16 +9644,27 @@ $('#teeOffBtn').addEventListener('click', async ()=>{
             ? { unit:stake, mode:'solo' }                    /* D75: everyone for themselves */
             : { unit:stake, side_a:MTEAMS[0].map(i=>LIVE[i].n), side_b:MTEAMS[1].map(i=>LIVE[i].n) })   /* no handicaps — no SI flag */
         : {};
+      /* D150 · the setup screen ran the course picker and has been holding the
+         catalogue id in the DOM this whole time; it was never sent, so a live
+         round -- a foursome at a real place together, the best "where did you
+         play" signal in the product -- recorded no course identity at all.
+         p_course_id/p_tee_id stay null: they point at the legacy `courses`
+         table, which has zero rows and always has. */
       const args = {
         p_league:_lgId, p_course_id:null, p_tee_id:null,
         p_course_label:snap.label, p_snapshot:snap,
-        p_game:(game==='score'?'none':game), p_players:players, p_config:cfg };
+        p_game:(game==='score'?'none':game), p_players:players, p_config:cfg,
+        p_api_course_id: ($('#lrCourse')?.dataset.courseId || null) };
       let { data, error } = await sb.rpc('start_live_round', args);
       /* Netlify ships this client before `db push` — old RPC has no p_config;
          drop it and retry so a tee-off never fails on deploy skew */
-      if(error && /p_config|function|schema cache/i.test(error.message||'')){
-        delete args.p_config;
+      if(error && /p_config|p_api_course_id|function|schema cache/i.test(error.message||'')){
+        delete args.p_api_course_id;              /* D150 · shed the newest arg first */
         ({ data, error } = await sb.rpc('start_live_round', args));
+        if(error && /p_config|function|schema cache/i.test(error.message||'')){
+          delete args.p_config;
+          ({ data, error } = await sb.rpc('start_live_round', args));
+        }
       }
       if(error) throw error;
       state.live.lr = data.live_round_id;
@@ -14116,6 +14167,7 @@ async function openTourCard(profileId){
     return;
   }
   const p=card.profile||{}, c=card.career||{}, vs=card.vs_you, tr=card.trophies||[], rec=card.recent||[];
+  const crs=card.courses||[], shr=card.shared_courses||[];
   const idx = p.index_current!=null ? fmtIdx(p.index_current) : '—';
   /* D59: the card gets a face (marker floor); a visible photo that isn't
      yours can be reported — two-tap, lands on the founder desk */
@@ -14162,6 +14214,28 @@ async function openTourCard(profileId){
       <div class="mathrow"><span>Avg vs index</span><b>${avg}</b></div>
       ${p.home_course?`<div class="mathrow"><span>Home course</span><b>${esc(p.home_course)}</b></div>`:''}
       ${p.ghin?`<div class="mathrow"><span>GHIN</span><b>${esc(p.ghin)}</b></div>`:''}`;
+  /* D150 · the two questions the card could not answer. `shared` leads, because
+     "you have both played Papago" is the reason two strangers start talking —
+     the courses list underneath is the evidence for it. Only PICKED courses
+     appear: a free-typed round has no identity and makes no claim. */
+  let shrHtml='';
+  if(shr.length){
+    const names = shr.slice(0,3).map(x=>esc(x.name)).join(' · ');
+    const more = shr.length>3 ? ` +${shr.length-3} more` : '';
+    shrHtml = `<div class="cboth"><b>You've both played</b><small>${names}${more}</small></div>`;
+  }
+  let crsHtml='';
+  if(crs.length){
+    const shrKeys = new Set(shr.map(x=>x.name));
+    crsHtml = `<div class="eyebrow" style="margin-top:16px">Courses played · ${crs.length}</div>`
+      + crs.slice(0,8).map(x=>{
+          const d = x.last_played ? localDate(x.last_played) : null;
+          const when = d ? `${MOS[d.getMonth()].toUpperCase()} ${String(d.getFullYear()).slice(2)}` : '';
+          const both = shrKeys.has(x.name) ? '<span class="ptag ok" style="margin-left:6px">BOTH</span>' : '';
+          return `<div class="mathrow"><span>${esc(x.name)}${both}</span><b>${x.rounds}${when?` <small style="color:var(--mut);font-weight:400">· ${when}</small>`:''}</b></div>`;
+        }).join('')
+      + (crs.length>8 ? `<p class="fine" style="padding:4px 0 0">+${crs.length-8} more</p>` : '');
+  }
   let recHtml='';
   if(rec.length){
     recHtml = `<div class="eyebrow" style="margin-top:16px">Recent rounds</div>`
@@ -14191,7 +14265,7 @@ async function openTourCard(profileId){
       ? `<div style="margin-top:12px"><span class="ptag">Requested</span></div>`
       : `<button class="btn dark" id="tcAdd" style="margin-top:12px">${tcRel==='incoming'?'Accept buddy request':'Add buddy'}</button>`;
   }
-  openSheet(p.is_me?'Your Tour Card':'Tour Card', p.is_me?'THIS IS HOW YOUR BUDDIES SEE YOU':(p.handle?'@'+p.handle.toUpperCase():''), header+addHtml+trHtml+stats+recHtml+muteHtml);
+  openSheet(p.is_me?'Your Tour Card':'Tour Card', p.is_me?'THIS IS HOW YOUR BUDDIES SEE YOU':(p.handle?'@'+p.handle.toUpperCase():''), header+shrHtml+addHtml+trHtml+stats+crsHtml+recHtml+muteHtml);
   const ab=document.getElementById('tcAdd');
   if(ab) ab.addEventListener('click', async()=>{
     ab.disabled=true;

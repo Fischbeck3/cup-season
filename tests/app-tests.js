@@ -24,9 +24,14 @@
   t('localDate: local not UTC', localDate('2026-07-21').getDate(), 21);
   t('localDate: month index', localDate('2026-01-02').getMonth(), 0);
 
-  /* durMonths — the lock bug clamp (league_settings months 3..12) */
+  /* durMonths — season_months DESCRIBES the window (D143). It used to be
+     clamped up to 3 because the CHECK was 3..12, which meant a 2-week season
+     stored "3 months" and the stored bylaw contradicted the real dates. The
+     CHECK is 1..12 now and lock_league derives the months from the dates, so a
+     short season finally describes itself honestly. */
   t('durMonths: 18wk season', durMonths(18), 4);
-  t('durMonths: clamps floor', durMonths(4), 3);
+  t('durMonths: short season is honest', durMonths(4), 1);
+  t('durMonths: never zero', durMonths(1), 1);
   t('durMonths: clamps ceiling', durMonths(80), 12);
 
   /* the named bands — UI speaks bands, never PvI */
