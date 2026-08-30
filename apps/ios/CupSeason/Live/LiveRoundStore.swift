@@ -82,10 +82,36 @@ final class LiveRoundStore {
     myIndex = me?.profile?.index_current
     myMemberId = m?.member_id
     leagueId = m?.league_id
+    #if DEBUG
+    if CSDevHatch.live, !state.active { seedDevRound(); return }
+    #endif
     if !rehydrated { rehydrated = true; await rehydrate() }
     if !rosterPrimed || rosterLeague != leagueId { await primeRoster() }
     if plan == nil, !planDismissed { plan = await repo.todaysPlan() }
   }
+
+  #if DEBUG
+  /// `-cs_dev_live` — a match-play round, four players, fourteen holes in, with
+  /// a real stroke index so the card's SI row is the honest one. Local only.
+  private func seedDevRound() {
+    let players = [("You", 8.4, 0, false), ("Danny", 12.1, 1, false),
+                   ("Chuck", 6.2, 2, false), ("Gary", 18.0, 3, true)]
+      .map { LivePlayer(id: $0.0, n: $0.0, i: $0.1, ci: $0.3 ? -1 : $0.2, guest: $0.3) }
+    var course = LiveCourseCard()
+    course.pars = [4,4,3,5,4,4,3,4,5, 4,3,4,5,4,4,3,4,5]
+    course.si   = [5,11,17,1,7,13,15,3,9, 6,18,12,2,8,14,16,4,10]
+    course.siEst = false
+    course.label = "Encanto GC — Blue"
+    var st = LiveRoundState.fresh(players: players, course: course)
+    st.stage = .live; st.active = true; st.game = .match; st.hole = 14
+    st.teams = [[0, 1], [2, 3]]
+    st.scores = [[4,3,3,5,4,5,3,4,5, 4,3,3,5,4,nil,nil,nil,nil],
+                 [5,4,3,6,4,4,2,4,5, 4,3,4,6,4,nil,nil,nil,nil],
+                 [4,4,4,5,3,4,3,4,5, 4,3,4,5,5,nil,nil,nil,nil],
+                 [5,5,3,5,4,4,4,5,5, 4,4,4,5,4,nil,nil,nil,nil]]
+    state = st
+  }
+  #endif
 
   /// IA P4: a real account's tee sheet starts as YOU + league mates + guests.
   func primeRoster() async {

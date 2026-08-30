@@ -20,6 +20,17 @@ final class AppDelegate: NSObject, UIApplicationDelegate {
     }
     return true
   }
+  /// D152 · landscape is declared in the Info.plist but handed out only while a
+  /// live round is on screen (OrientationGate). Every other screen answers
+  /// portrait, so none of them had to be audited for a rotation they will never
+  /// be asked to perform. UIKit re-asks this on every rotation attempt, so the
+  /// gate flipping is enough — no hosting-controller subclass needed.
+  @MainActor
+  func application(_ application: UIApplication,
+                   supportedInterfaceOrientationsFor window: UIWindow?) -> UIInterfaceOrientationMask {
+    OrientationGate.shared.landscapeAllowed ? [.portrait, .landscapeLeft, .landscapeRight] : .portrait
+  }
+
   func application(_ application: UIApplication, didRegisterForRemoteNotificationsWithDeviceToken deviceToken: Data) {
     Task { @MainActor in PushService.shared.didRegister(deviceToken: deviceToken) }
   }

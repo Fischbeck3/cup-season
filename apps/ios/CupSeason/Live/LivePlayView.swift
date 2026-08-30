@@ -15,12 +15,40 @@ struct LivePlayView: View {
   @State private var showFinish = false
   @State private var showGroup = false
   @State private var scrapArmed = false
+  /// D152 · portrait enters, landscape reads. Offered only when the window is
+  /// wide enough for eighteen columns to be legible; a rotation back to portrait
+  /// drops it, so nobody can be stranded on a view they cannot leave.
+  #if DEBUG
+  @State private var cardView = OrientationGate.forceLandscapeForReview
+  #else
+  @State private var cardView = false
+  #endif
+  @Environment(\.horizontalSizeClass) private var hSize
+  @Environment(\.verticalSizeClass) private var vSize
 
   private var s: LiveRoundState { store.state }
+  /// D152 · "is this window wide enough to read eighteen columns".
+  /// NOT horizontalSizeClass: an iPhone in landscape is still `.compact`
+  /// horizontally on every model except the Max, so gating on that would have
+  /// hidden the card on exactly the devices it was built for. A COMPACT
+  /// VERTICAL class is the reliable "phone is sideways" signal; `.regular`
+  /// horizontal picks up iPad and any genuinely wide window.
+  private var canShowCard: Bool {
+    #if DEBUG
+    if OrientationGate.forceLandscapeForReview { return true }   // headless review
+    #endif
+    return vSize == .compact || hSize == .regular
+  }
 
   var body: some View {
     VStack(spacing: 0) {
       scoreboard
+      if cardView && canShowCard {
+        LiveCardView(s: s) { h in
+          store.state.hole = h
+          cardView = false
+        }
+      } else {
       ScrollView {
         VStack(alignment: .leading, spacing: 14) {
           A11yStack(rowAlignment: .firstTextBaseline, columnSpacing: 4) {
@@ -47,8 +75,12 @@ struct LivePlayView: View {
         }
         .padding(20)
       }
+      }
     }
     .background(cs.bg0)
+    // D152 · a rotation back to portrait must never strand anyone on a view the
+    // toggle no longer offers.
+    .onChange(of: canShowCard) { _, wide in if !wide { cardView = false } }
     .navigationTitle("Live round")
     .navigationBarTitleDisplayMode(.inline)
     .sheet(isPresented: $showFinish) { LiveFinishSheet(store: store) }
@@ -60,7 +92,15 @@ struct LivePlayView: View {
   private var scoreboard: some View {
     let sb = LiveCopy.scoreboard(s, presence: store.presence)
     return VStack(alignment: .leading, spacing: 8) {
-      Text(sb.hero).font(CSFont.monoMediumBody).tracking(0.6).foregroundStyle(cs.ink).lineLimit(2)
+      HStack(alignment: .firstTextBaseline) {
+        Text(sb.hero).font(CSFont.monoMediumBody).tracking(0.6).foregroundStyle(cs.ink).lineLimit(2)
+        Spacer(minLength: 8)
+        if canShowCard { viewToggle }
+      }
+      // D152 · in CARD view the chips are restated by the table underneath —
+      // every score, every total, hole by hole — so they stand down and give
+      // their height back. A landscape phone has ~390pt to spend.
+      if !(cardView && canShowCard) {
       ScrollView(.horizontal, showsIndicators: false) {
         HStack(spacing: 6) {
           ForEach(Array(sb.chips.enumerated()), id: \.offset) { _, c in
@@ -76,13 +116,36 @@ struct LivePlayView: View {
         }
       }
       Text(LiveCopy.syncBadge(s, presence: store.presence, queued: store.queued)).font(CSFont.label).tracking(0.8).foregroundStyle(cs.dimText)
+      }
     }
-    .padding(.horizontal, 20).padding(.vertical, 12)
+    .padding(.horizontal, 20).padding(.vertical, cardView && canShowCard ? 7 : 12)
     .frame(maxWidth: .infinity, alignment: .leading)
     .background(cs.bg1)
     .overlay(alignment: .bottom) { Rectangle().fill(cs.line).frame(height: 1) }
     .accessibilityElement(children: .combine)
     .accessibilityAddTraits(.updatesFrequently)   // the scoreboard moves as the group scores
+  }
+
+  /// D152 · HOLE / CARD. Named for what each shows, not for the orientation —
+  /// a wide window on any device can read the card, and the phrase "landscape"
+  /// means nothing to someone holding one.
+  private var viewToggle: some View {
+    HStack(spacing: 0) {
+      ForEach([false, true], id: \.self) { isCard in
+        Button { cardView = isCard } label: {
+          Text(isCard ? "CARD" : "HOLE")
+            .font(CSFont.label).tracking(0.8)
+            .foregroundStyle(cardView == isCard ? cs.bg0 : cs.dim)
+            .padding(.horizontal, 9).padding(.vertical, 4)
+            .background(cardView == isCard ? cs.brand : .clear)
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel(isCard ? "Show the whole card" : "Show this hole")
+        .accessibilityAddTraits(cardView == isCard ? [.isSelected] : [])
+      }
+    }
+    .clipShape(RoundedRectangle(cornerRadius: 7))
+    .overlay(RoundedRectangle(cornerRadius: 7).stroke(cs.line2, lineWidth: 1))
   }
 
   // MARK: hole header + dots

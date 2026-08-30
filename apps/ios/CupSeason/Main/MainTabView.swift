@@ -26,6 +26,16 @@ enum CSDevHatch {
     #endif
     return 0
   }
+  /// `-cs_dev_live` seeds a live match-play round, 14 holes in, so the tee
+  /// sheet — and D152's landscape card — can be seen without signing in and
+  /// playing one. DEBUG only; it never touches the server.
+  static var live: Bool {
+    #if DEBUG
+    ProcessInfo.processInfo.arguments.contains("-cs_dev_live")
+    #else
+    false
+    #endif
+  }
   /// `-cs_dev_developer` reveals the Developer section as the long press would (IOS-022 item 8).
   static var developer: Bool {
     #if DEBUG

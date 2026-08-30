@@ -45,6 +45,12 @@ struct RootView: View {
     // `-cs_dev_door`: the door over the root whatever the session is, so a
     // simulator signed in to a real account can show it without signing out.
     .overlay { if DoorDev.forced { DoorView().background(cs.bg0.ignoresSafeArea()) } }
+    // `-cs_dev_live`: the tee sheet over the root whatever the session is, the
+    // same trick for the same reason — the live round (and D152's landscape
+    // card) can be reviewed without an account, a league and a played round.
+    // LiveRoundStore seeds itself from the same flag and never touches the
+    // server, so nothing here can create or mutate a real round.
+    .overlay { if CSDevHatch.live { LiveRoundHost(links: LiveLinks()).background(cs.bg0.ignoresSafeArea()) } }
     #endif
   }
 

@@ -37,6 +37,9 @@ struct LiveRoundHost: View {
       }
     }
     .background(cs.bg0)
+    // D152 · the ONE screen allowed to rotate. Everything else answers portrait,
+    // so no other view had to be audited for a rotation it never performs.
+    .csAllowsLandscape()
     .task {
       store.toasts = toast
       await store.configure(me: session.me, preferredLeague: session.preferredLeague)
