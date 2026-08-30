@@ -83,6 +83,7 @@ final class LiveRoundStore {
     myMemberId = m?.member_id
     leagueId = m?.league_id
     #if DEBUG
+    if CSDevHatch.nearby, !state.active { seedDevNearby(); return }
     if CSDevHatch.live, !state.active { seedDevRound(); LiveActivityHost.start(state); return }
     #endif
     if !rehydrated { rehydrated = true; await rehydrate() }
@@ -93,6 +94,32 @@ final class LiveRoundStore {
   #if DEBUG
   /// `-cs_dev_live` — a match-play round, four players, fourteen holes in, with
   /// a real stroke index so the card's SI row is the honest one. Local only.
+  /// `-cs_dev_nearby` — the setup screen with one golfer already resolved as
+  /// nearby, plus a fake invitation two seconds later, so both halves of D158's
+  /// handshake can be looked at on one simulator. Nothing here touches the
+  /// server or the Bluetooth transport.
+  private func seedDevNearby() {
+    var me = LivePlayer(n: "You", i: 8.4, ci: 1, guest: false, me: true, locked: true, team: "—")
+    me.pid = UUID()
+    let jade = LivePlayer(id: "p:jade", n: "Jade", i: 11.2, ci: -1, guest: true, buddy: true,
+                          pid: UUID(), team: nil, regular: 0, nearby: true)
+    roster = [me, jade]
+    sel = [0]
+    rosterPrimed = true
+    var fresh = LiveRoundState.fresh()
+    fresh.course.label = "Bajamar Golf Club"
+    state = fresh
+    // …and the receiving half only when asked for, so the ask-chip can be seen
+    // on its own: `-cs_dev_nearby -cs_dev_nearby_invite`
+    if ProcessInfo.processInfo.arguments.contains("-cs_dev_nearby_invite") {
+      Task { @MainActor in
+        try? await Task.sleep(for: .seconds(2))
+        self.incoming = NearbyInvite(from: UUID(), name: "Jerecho",
+                                     course: "Bajamar Golf Club", game: "Match play")
+      }
+    }
+  }
+
   private func seedDevRound() {
     let players = [("You", 8.4, 0, false), ("Danny", 12.1, 1, false),
                    ("Chuck", 6.2, 2, false), ("Gary", 18.0, 3, true)]
@@ -148,15 +175,57 @@ final class LiveRoundStore {
           newValue ? startNearby() : nearby.stop() }
   }
 
+  /// D158 · profiles we have ASKED and not heard back from.
+  var asking: Set<UUID> = []
+  /// D158 · an invitation waiting on this phone.
+  var incoming: NearbyInvite?
+
   func startNearby() {
     guard nearbyOn, let me = myPid, !state.active else { return }
     nearby.onChange = { [weak self] ids in
       Task { @MainActor in await self?.resolveNearby(ids) }
     }
+    nearby.onInvite = { [weak self] inv in self?.incoming = inv }
+    nearby.onReply = { [weak self] who, ok in self?.answered(who, ok) }
     nearby.start(myProfile: me)
   }
 
-  func stopNearby() { nearby.stop() }
+  func stopNearby() { nearby.stop(); asking = []; incoming = nil }
+
+  /// D158 · a nearby chip ASKS. Proximity proposes an identity; only the golfer
+  /// holding that phone can confirm it, so the tap that seats them happens over
+  /// there, not here. Every other add path is untouched — a league mate or a
+  /// regular asserts nothing about who is standing here, and needs no witness.
+  func askNearby(_ i: Int) {
+    guard i < roster.count, let pid = roster[i].pid else { return }
+    guard sel.count < 4 else { toast("Foursome is full: remove someone first"); return }
+    asking.insert(pid)
+    nearby.invite(pid,
+                  name: myName ?? "A golfer",
+                  course: state.course.label.isEmpty ? "a round" : state.course.label,
+                  game: state.game.banner)
+    toast("Asked \(roster[i].n)")
+  }
+
+  private func answered(_ who: UUID, _ ok: Bool) {
+    asking.remove(who)
+    guard let i = roster.firstIndex(where: { $0.pid == who }) else { return }
+    guard ok else {
+      // a decline takes the chip away rather than leaving it to be re-tapped
+      roster[i].nearby = nil
+      toast("\(roster[i].n) is not playing")
+      return
+    }
+    if !sel.contains(i), sel.count < 4 { sel.append(i) }
+    toast("\(roster[i].n) is in")
+  }
+
+  /// D158 · this phone's answer to someone else's tee.
+  func answerIncoming(_ ok: Bool) {
+    guard let inv = incoming else { return }
+    incoming = nil
+    nearby.reply(to: inv.from, ok: ok)
+  }
 
   /// The server does the naming, and only for people you already know. A
   /// stranger's phone resolves to nothing and never reaches the picker.

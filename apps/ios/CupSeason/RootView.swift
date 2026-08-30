@@ -62,7 +62,7 @@ struct RootView: View {
     // calls the same dead closure. Only the app switcher freed you. A review
     // hatch that cannot exercise the exit is a hatch that hides exit bugs.
     .overlay {
-      if CSDevHatch.live && devLive {
+      if (CSDevHatch.live || CSDevHatch.nearby) && devLive {
         LiveRoundHost(links: LiveLinks(done: { devLive = false }))
           .background(cs.bg0.ignoresSafeArea())
       }

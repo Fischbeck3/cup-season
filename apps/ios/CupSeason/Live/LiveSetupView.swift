@@ -38,6 +38,18 @@ struct LiveSetupView: View {
     // background mode; leaving stops it, and tee-off stops it too.
     .onAppear { store.startNearby() }
     .onDisappear { store.stopNearby() }
+    // D158 · someone on this tee wants you in their round. "Not me" is not a
+    // decline of the golf — it is the honest answer when the name on the other
+    // phone is not actually you.
+    .alert("Join this round?", isPresented: Binding(get: { store.incoming != nil },
+                                                    set: { if !$0 { store.answerIncoming(false) } })) {
+      Button("Join") { store.answerIncoming(true) }
+      Button("Not me", role: .cancel) { store.answerIncoming(false) }
+    } message: {
+      if let inv = store.incoming {
+        Text("\(inv.name) wants you in a round at \(inv.course)\(inv.game.isEmpty ? "" : " · \(inv.game)").")
+      }
+    }
     .csFeedback(.teeOff, trigger: teeOffTaps)
     .scrollDismissesKeyboard(.interactively)
     .navigationTitle("Play now")
@@ -198,11 +210,18 @@ struct LiveSetupView: View {
           LiveFlow(spacing: 6) {
             ForEach(items, id: \.self) { i in
               let p = store.roster[i]
-              Button { store.pick(i) } label: {
+              // D158 · a NEARBY chip asks; every other chip adds. Proximity
+              // proposes an identity, so the tap that seats them belongs on
+              // their phone, not this one.
+              let isNear = p.nearby == true
+              let waiting = isNear && p.pid.map { store.asking.contains($0) } == true
+              Button { isNear ? store.askNearby(i) : store.pick(i) } label: {
                 HStack(spacing: 6) {
                   if p.guest { Text(p.buddy ? "BUDDY" : "GUEST").font(CSFont.label).foregroundStyle(cs.dimText) }
                   else { RoundedRectangle(cornerRadius: 3).fill(cs.squad(p.ci)).frame(width: 8, height: 8) }
                   Text("\(p.n) · \(LiveFmt.idx(p.i))").font(CSFont.monoSmall).foregroundStyle(cs.ink)
+                  if waiting { Text("ASKING…").font(CSFont.label).foregroundStyle(cs.gold) }
+                  else if isNear { Text("ASK").font(CSFont.label).foregroundStyle(cs.brand) }
                 }
                 .padding(.horizontal, 10).frame(minHeight: 36)
                 .background(cs.bg2, in: Capsule())
@@ -210,8 +229,10 @@ struct LiveSetupView: View {
                 .frame(minHeight: 44).contentShape(Rectangle())   // the 44pt frame must be INSIDE the label to count
               }
               .buttonStyle(.plain)
-              .accessibilityLabel("\(p.n), index \(LiveFmt.idx(p.i))\(p.guest ? (p.buddy ? ", buddy" : ", guest") : "")")
-              .accessibilityHint("Adds them to the foursome")
+              .disabled(waiting)
+              .accessibilityLabel("\(p.n), index \(LiveFmt.idx(p.i))\(p.guest ? (p.buddy ? ", buddy" : ", guest") : "")\(waiting ? ", asked, waiting for them" : "")")
+              .accessibilityHint(isNear ? "Asks them to join — they confirm on their own phone"
+                                        : "Adds them to the foursome")
             }
           }
         }

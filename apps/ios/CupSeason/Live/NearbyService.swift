@@ -27,6 +27,31 @@ import MultipeerConnectivity
 /// 1–15 chars, lowercase ASCII + hyphens — Bonjour's rule, not ours.
 private let kServiceType = "cs-tee"
 
+/// D158 · everything that crosses the wire. Three beats: HELLO (here is my
+/// profile id), INVITE (come play), REPLY (yes / not me). Codable + Sendable so
+/// it can cross the actor boundary the transport sits behind.
+public struct NearbyMessage: Codable, Sendable, Equatable {
+  public enum Kind: String, Codable, Sendable { case hello, invite, reply }
+  public var t: Kind
+  /// the SENDER's profile id, always
+  public var from: UUID
+  /// invite only — who is asking, and to what
+  public var name: String?
+  public var course: String?
+  public var game: String?
+  /// reply only
+  public var ok: Bool?
+}
+
+/// An invitation as the receiving phone sees it.
+public struct NearbyInvite: Identifiable, Sendable, Equatable {
+  public var id: UUID { from }
+  public let from: UUID
+  public let name: String
+  public let course: String
+  public let game: String
+}
+
 /// The MultipeerConnectivity side, kept OFF the main actor on purpose.
 ///
 /// MC is a pre-concurrency delegate API: `MCPeerID`, `MCSession` and the
@@ -42,11 +67,13 @@ private final class NearbyTransport: NSObject, @unchecked Sendable {
   private let session: MCSession
   private let advertiser: MCNearbyServiceAdvertiser
   private let browser: MCNearbyServiceBrowser
-  private let found: @Sendable (UUID) -> Void
+  private let heard: @Sendable (NearbyMessage) -> Void
+  /// profile id -> the peer holding it. Touched only on `q`.
+  private var peers: [UUID: MCPeerID] = [:]
 
-  init(me: UUID, found: @escaping @Sendable (UUID) -> Void) {
+  init(me: UUID, heard: @escaping @Sendable (NearbyMessage) -> Void) {
     self.me = me
-    self.found = found
+    self.heard = heard
     // a random display name: the peer id is broadcast in the CLEAR, so it
     // carries nothing about the golfer holding the phone
     peer = MCPeerID(displayName: String(UUID().uuidString.prefix(8)))
@@ -68,7 +95,22 @@ private final class NearbyTransport: NSObject, @unchecked Sendable {
       advertiser.stopAdvertisingPeer()
       browser.stopBrowsingForPeers()
       session.disconnect()
+      peers.removeAll()
     }
+  }
+
+  /// D158 · send to the phone that claimed `to`. Silently does nothing if that
+  /// peer has gone — a nearby add that cannot be asked is one that does not
+  /// happen, which is the correct outcome.
+  func send(_ m: NearbyMessage, to: UUID) {
+    q.async { [self] in
+      guard let peer = peers[to], let data = try? JSONEncoder().encode(m) else { return }
+      try? session.send(data, toPeers: [peer], with: .reliable)
+    }
+  }
+
+  private func remember(_ id: UUID, _ peer: MCPeerID) {
+    q.async { [self] in peers[id] = peer }
   }
 }
 
@@ -77,11 +119,16 @@ extension NearbyTransport: MCSessionDelegate {
     guard state == .connected else { return }
     // the profile id goes out only INSIDE the encrypted session, after both
     // sides chose to connect
-    try? s.send(Data(me.uuidString.utf8), toPeers: [peerID], with: .reliable)
+    guard let hello = try? JSONEncoder().encode(NearbyMessage(t: .hello, from: me)) else { return }
+    try? s.send(hello, toPeers: [peerID], with: .reliable)
   }
   func session(_ s: MCSession, didReceive data: Data, fromPeer peerID: MCPeerID) {
-    guard let text = String(data: data, encoding: .utf8), let id = UUID(uuidString: text), id != me else { return }
-    found(id)
+    guard let m = try? JSONDecoder().decode(NearbyMessage.self, from: data), m.from != me else { return }
+    // D158 · the peer that SPOKE is the peer we answer. An invitation goes back
+    // down the connection it arrived on, never to a claimed id resolved some
+    // other way — so a faker can only ever fool the phone it is talking to.
+    remember(m.from, peerID)
+    heard(m)
   }
   func session(_ s: MCSession, didReceive stream: InputStream, withName: String, fromPeer: MCPeerID) {}
   func session(_ s: MCSession, didStartReceivingResourceWithName: String, fromPeer: MCPeerID, with: Progress) {}
@@ -114,17 +161,43 @@ final class NearbyService {
 
   /// Raised whenever `seen` grows, so the caller can ask the server for names.
   var onChange: (@MainActor ([UUID]) -> Void)?
+  /// D158 · someone on this tee wants you in their round.
+  var onInvite: (@MainActor (NearbyInvite) -> Void)?
+  /// D158 · they answered.
+  var onReply: (@MainActor (UUID, Bool) -> Void)?
 
   private var transport: NearbyTransport?
+  private var me: UUID?
 
   func start(myProfile: UUID) {
     guard !running else { return }
-    let t = NearbyTransport(me: myProfile) { [weak self] id in
-      Task { @MainActor in self?.note(id) }
+    me = myProfile
+    let t = NearbyTransport(me: myProfile) { [weak self] m in
+      Task { @MainActor in self?.heard(m) }
     }
     transport = t
     t.start()
     running = true
+  }
+
+  /// D158 · ask, do not add. The tap that matters is on the OTHER phone.
+  func invite(_ who: UUID, name: String, course: String, game: String) {
+    guard let me else { return }
+    transport?.send(NearbyMessage(t: .invite, from: me, name: name, course: course, game: game), to: who)
+  }
+
+  func reply(to who: UUID, ok: Bool) {
+    guard let me else { return }
+    transport?.send(NearbyMessage(t: .reply, from: me, ok: ok), to: who)
+  }
+
+  private func heard(_ m: NearbyMessage) {
+    switch m.t {
+    case .hello:  note(m.from)
+    case .invite: onInvite?(NearbyInvite(from: m.from, name: m.name ?? "A golfer",
+                                         course: m.course ?? "a round", game: m.game ?? ""))
+    case .reply:  onReply?(m.from, m.ok == true)
+    }
   }
 
   func stop() {
@@ -132,6 +205,7 @@ final class NearbyService {
     transport = nil
     running = false
     seen = []
+    me = nil
   }
 
   private func note(_ id: UUID) {

@@ -36,6 +36,16 @@ enum CSDevHatch {
     false
     #endif
   }
+  /// `-cs_dev_nearby` opens the live SETUP screen with one seeded NEARBY golfer,
+  /// so D158's ask-chip and its prompt can be reviewed without a second phone.
+  /// DEBUG only; the seed never touches the server and never leaves setup.
+  static var nearby: Bool {
+    #if DEBUG
+    ProcessInfo.processInfo.arguments.contains("-cs_dev_nearby")
+    #else
+    false
+    #endif
+  }
   /// `-cs_dev_developer` reveals the Developer section as the long press would (IOS-022 item 8).
   static var developer: Bool {
     #if DEBUG
