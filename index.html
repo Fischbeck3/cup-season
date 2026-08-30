@@ -3198,7 +3198,7 @@ html[data-theme="light"] .room-dusk .btn:not(.dark):not(.gold):not(.apple){color
                 <div><b id="calcGross">–</b><span>Gross</span></div>
                 <div><b id="calcVs">–</b><span>your number</span></div>
               </div>
-              <p class="fine" style="padding:8px 0 0">No league yet? The round still counts on your card — points apply in any league you join.</p>
+              <p class="fine" id="calcSeason" style="padding:8px 0 0">No league yet? The round still counts on your card — points apply in any league you join.</p>
             </div>
             <div class="eyebrow">Point bands</div>
             <div class="card">
@@ -5789,6 +5789,79 @@ function bandName(vs){
    here, while a minus in golf means better. Six of seven blind testers
    misread it, and the same round appeared as "-3.7", "3.7 over" and "+0.0"
    on three consecutive screens. One vocabulary, no signs. */
+/* D120 · ONE league stage, one vocabulary.
+   The blind audit found the same league described five different ways in one
+   session — "FORMING" on Home, "Squad formation" in the room, "Squads · LIVE
+   NOW — CAPTAINS READY" on the League tab, "SEASON LIVE — rounds count from
+   today" on the hero and "BEFORE FIRST TEE — practice rounds hit your card,
+   not the season" in the Clubhouse ten seconds later. Every one of those was
+   hand-derived at its own call site, so they could not agree.
+   Six stages, one producer, and every status string reads from it (D136).
+   "Forming" means SETUP only — testers read the old label as "squads
+   forming", which is now its own stage. */
+const STAGE_LABEL = {
+  forming:   'Forming',
+  drawing:   'Squads drawing',
+  preseason: 'Before first tee',
+  season:    'Season live',
+  final:     'Cup Final',
+  complete:  'Season complete',
+};
+function leagueStage(m){
+  const lg = m ? m.league : (window.CS && CS.league);
+  const p  = lg ? lg.phase : state.phase;
+  if(p === 'setup')    return 'forming';
+  if(p === 'draft')    return 'drawing';
+  if(p === 'complete') return 'complete';
+  /* season phase splits three ways, and only the CURRENT league can answer
+     the last two (they read the loaded season's dates) */
+  const isCurrent = !m || (window.CS && CS.league && m.league.id === CS.league.id);
+  if(!isCurrent) return 'season';
+  try { if(typeof atStarter === 'function' && atStarter()) return 'preseason'; } catch(_){}
+  try { if(typeof isCupFinal === 'function' && isCupFinal()) return 'final'; } catch(_){}
+  return 'season';
+}
+/* The stage as a short chip — "Season live · Wk 4 / 26" where a week exists. */
+function stageLabel(m, opts){
+  const st = leagueStage(m);
+  const base = STAGE_LABEL[st];
+  if(opts && opts.bare) return base;
+  const isCurrent = !m || (window.CS && CS.league && m.league.id === CS.league.id);
+  if((st === 'season' || st === 'final') && isCurrent){
+    try { return `${base} · Wk ${currentWeek()} / ${totalWeeks()}`; } catch(_){ return base; }
+  }
+  if(st === 'preseason'){
+    try { const d = daysToTee(); return `${base} · ${firstTeeText()}${d!=null?` · ${d} day${d===1?'':'s'}`:''}`; }
+    catch(_){ return base; }
+  }
+  return base;
+}
+/* D122 · a round scores for a league only inside its season window. The audit's
+   testers were promised 5, 6 or 12 league points a week before first tee and
+   then shown zero, with no sentence anywhere connecting the two facts. One
+   phrase family, so the form, the posted card, the receipt and the empty
+   standings row tell the same story. */
+function seasonState(){
+  const st = leagueStage();
+  if(!window.CS || !CS.league) return 'no_league';
+  if(st === 'forming' || st === 'drawing' || st === 'preseason') return 'pre';
+  if(st === 'complete') return 'over';
+  return 'live';
+}
+function seasonNote(kind){
+  const ss = seasonState();
+  if(ss === 'live') return '';
+  if(ss === 'no_league')
+    return kind === 'short' ? 'On your card' : 'This round lands on your card — join a league and it scores there too.';
+  if(ss === 'over')
+    return kind === 'short' ? 'Season complete' : 'The season is over — this round lands on your card.';
+  let when = '';
+  try { when = firstTeeText(); } catch(_){}
+  return kind === 'short'
+    ? (when ? `Practice · season starts ${when}` : 'Practice round')
+    : (when ? `Practice — the season starts ${when}. This round builds your number; it earns league points from then on.`
+            : 'Practice — the season has not started. This round builds your number; it earns league points once it does.');
+}
 function vsShort(v){
   /* null/undefined/'' must NOT become 0 — Number(null) is 0, which would have
      rendered a MISSING average as "played to it", i.e. an absent number
@@ -6306,7 +6379,10 @@ function finishCeremony(o){
     pl.textContent=`+${o.points} PTS`+(o.squad ? ` · COUNTS FOR ${String(o.squad).toUpperCase()}` : ' · COUNTS THIS SEASON');
   } else {
     pl.className='finish-pts card';
-    pl.textContent='COUNTS ON YOUR CARD';
+    /* D122 · "COUNTS ON YOUR CARD" is true but not the question the golfer is
+       asking, which is why it did not count for the league. */
+    const note = seasonNote('short');
+    pl.textContent = note ? note.toUpperCase() : 'COUNTS ON YOUR CARD';
   }
   /* stash the exact payload the recap-card path expects (matches the epilogue) */
   _finishShare={
@@ -6466,10 +6542,18 @@ function recalc(){
     state.lastPost=null; return;
   }
   $('#calcGross').textContent=Math.round(gross);
+  /* D122 · outside the season window this round earns NO league points, and
+     the audit watched six of six testers be promised 5/6/12 here and shown a
+     zero afterwards with nothing connecting the two. Say it where the promise
+     used to be, and stop calling it "League points this round" when it is not. */
+  const _ss = seasonState();
+  const _k = document.querySelector('.calc .k');
+  if(_k) _k.textContent = _ss === 'live' ? 'League points this round' : 'This round';
+  const _sn = $('#calcSeason'); if(_sn) _sn.textContent = seasonNote('long') || 'Counts in every league you\u2019re in.';
   $('#calcVs').textContent=vsShort(vs);   /* Q-23: words, not a sign */
   $('#calcVs').style.color = vs>-1 ? 'var(--pos)' : 'var(--neg)';
-  $('#calcPts').textContent=pts;
-  $('#calcMsg').textContent=msg;
+  $('#calcPts').textContent = _ss === 'live' ? pts : '—';
+  $('#calcMsg').textContent = _ss === 'live' ? msg : (msg + ' ' + seasonNote('short') + '.');
   const gl=$('#postGrossLine');
   if(gl) gl.textContent = `Gross ${gross} · ${label.includes('9 HOLES')?'9 holes · half value':'18 holes'}`;
   state.lastPost={pts, vs, label};
@@ -9986,10 +10070,9 @@ function renderLeagueRecord(){
    (module-bridged). "Coming up" reads the schedule already loaded for the
    calendar. Deeper digest (buddies' scores with faces) lands in part 2. */
 function leaguePhaseLabel(m){
-  const p = m.league.phase;
-  if(p==='setup') return 'Setup · invites open';
-  if(p==='draft') return 'Squad formation';
-  return m.role==='commissioner' ? 'In season · you are the Pro' : 'In season';
+  /* D120 · one producer; the Pro's badge rides alongside, not instead of */
+  const base = stageLabel(m);
+  return m.role==='commissioner' ? `${base} · you are the Pro` : base;
 }
 function hubGroupRow(icon,name,sub,here){
   return `<div class="check" style="${here?'border-color:var(--pos);':''}"><span class="num">${icon}</span>
@@ -12424,7 +12507,7 @@ function renderPhase(){
   }
   $('#phaseSub').textContent = p==='setup'
     ? (L ? `SETUP · CODE ${L.code} · ${nMem} JOINED` : 'SETUP · CODE SNDYCUP · 9 OF 16 JOINED')
-    : p==='draft' ? 'Squad formation · rosters pending'
+    : p==='draft' ? `${STAGE_LABEL.drawing} · rosters pending`
     : state.demo
       ? `Wk ${currentWeek()} / ${totalWeeks()} · ${FMT_NAMES[state.fmt]} · ${PRESETS[state.preset].name} rules`
       : atStarter()
@@ -15931,13 +16014,9 @@ window.lockBylaws = lockBylaws; window.openLockShare = openLockShare; window.loc
 /* league switcher — the header name (and sidebar) opens the sheet.
    Every membership, the clubhouse, and start/join live one tap away. */
 function switcherChip(m){
-  if(m.league.phase === 'setup') return 'Setup — invites open';
-  if(m.league.phase === 'draft') return 'Squad formation';
-  if(CS.league && m.league.id === CS.league.id){
-    if(atStarter()) return 'BEFORE FIRST TEE';
-    return isCupFinal() ? 'CUP FINAL' : `WK ${currentWeek()} / ${totalWeeks()}`;
-  }
-  return 'In season';
+  /* D120 · one producer. "Setup — invites open" also contradicted D112, which
+     refuses a join until the bylaws lock. */
+  return stageLabel(m);
 }
 function goClubhouse(){
   CS.league = null; CS.season = null; CS.member = null;
