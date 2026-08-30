@@ -1,0 +1,80 @@
+{
+  "slug": "r4-shared",
+  "posts": 9,
+  "teams": [
+    {
+      "name": "Saguaros",
+      "slot": 0,
+      "points": 7.5,
+      "players": 4
+    },
+    {
+      "name": "Coyotes",
+      "slot": 1,
+      "points": 8.5,
+      "players": 4
+    }
+  ],
+  "config": {
+    "players": 8,
+    "sessions": 4,
+    "allowance": 100,
+    "draw_rule": "shared",
+    "session_weeks": 1
+  },
+  "shared": false,
+  "status": "complete",
+  "winner": "Coyotes",
+  "sessions": [
+    {
+      "no": 1,
+      "duels": 4,
+      "status": "closed",
+      "results": {
+        "a": 3,
+        "b": 1
+      },
+      "opens_on": "2026-07-26",
+      "closes_on": "2026-08-01"
+    },
+    {
+      "no": 2,
+      "duels": 4,
+      "status": "closed",
+      "results": {
+        "a": 1,
+        "b": 2,
+        "halve": 1
+      },
+      "opens_on": "2026-08-02",
+      "closes_on": "2026-08-08"
+    },
+    {
+      "no": 3,
+      "duels": 4,
+      "status": "closed",
+      "results": {
+        "a": 2,
+        "b": 2
+      },
+      "opens_on": "2026-08-09",
+      "closes_on": "2026-08-15"
+    },
+    {
+      "no": 4,
+      "duels": 4,
+      "status": "closed",
+      "results": {
+        "a": 1,
+        "b": 3
+      },
+      "opens_on": "2026-08-16",
+      "closes_on": "2026-08-22"
+    }
+  ],
+  "trophies": 4,
+  "walkovers": 0,
+  "duels_total": 16,
+  "halved_empty": 0,
+  "duels_resolved": 16
+}

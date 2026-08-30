@@ -1,0 +1,30 @@
+{
+  "name": "Nobody Played",
+  "sessions": 2,
+  "session_weeks": 1,
+  "draw_rule": "team_pvi",
+  "team_a": "Saguaros",
+  "team_b": "Coyotes",
+  "cast": [
+    {
+      "name": "Ray Fairway",
+      "marker": "saguaro",
+      "index": 15.5,
+      "archetype": "ghost",
+      "skill": 15.0,
+      "vol": 4.0,
+      "freq": 0.0,
+      "trend": 0
+    },
+    {
+      "name": "Cal Bunker",
+      "marker": "shark",
+      "index": 15.5,
+      "archetype": "ghost",
+      "skill": 15.0,
+      "vol": 4.0,
+      "freq": 0.0,
+      "trend": 0
+    }
+  ]
+}

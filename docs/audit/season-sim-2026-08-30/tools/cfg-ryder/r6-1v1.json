@@ -1,0 +1,30 @@
+{
+  "name": "Head To Head",
+  "sessions": 4,
+  "session_weeks": 1,
+  "draw_rule": "team_pvi",
+  "team_a": "Saguaros",
+  "team_b": "Coyotes",
+  "cast": [
+    {
+      "name": "Ray Fairway",
+      "archetype": "pro-grinder",
+      "skill": 6.5,
+      "vol": 3.0,
+      "freq": 1.9,
+      "trend": 0,
+      "marker": "saguaro",
+      "index": 7.0
+    },
+    {
+      "name": "Cal Bunker",
+      "archetype": "steady",
+      "skill": 11.0,
+      "vol": 3.5,
+      "freq": 1.3,
+      "trend": 0,
+      "marker": "shark",
+      "index": 11.5
+    }
+  ]
+}

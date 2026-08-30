@@ -1,0 +1,90 @@
+{
+  "name": "The Defence",
+  "sessions": 4,
+  "session_weeks": 1,
+  "draw_rule": "defender",
+  "team_a": "Saguaros",
+  "team_b": "Coyotes",
+  "cast": [
+    {
+      "name": "Ray Fairway",
+      "marker": "saguaro",
+      "index": 11.5,
+      "archetype": "steady",
+      "skill": 11.0,
+      "vol": 0.4,
+      "freq": 2.0,
+      "trend": 0
+    },
+    {
+      "name": "Cal Bunker",
+      "marker": "shark",
+      "index": 11.5,
+      "archetype": "steady",
+      "skill": 11.0,
+      "vol": 0.4,
+      "freq": 2.0,
+      "trend": 0
+    },
+    {
+      "name": "Dot Mulligan",
+      "marker": "dunes",
+      "index": 11.5,
+      "archetype": "steady",
+      "skill": 11.0,
+      "vol": 0.4,
+      "freq": 2.0,
+      "trend": 0
+    },
+    {
+      "name": "Gus Ghost",
+      "marker": "lonetree",
+      "index": 11.5,
+      "archetype": "steady",
+      "skill": 11.0,
+      "vol": 0.4,
+      "freq": 2.0,
+      "trend": 0
+    },
+    {
+      "name": "Vic Slice",
+      "marker": "island",
+      "index": 11.5,
+      "archetype": "steady",
+      "skill": 11.0,
+      "vol": 0.4,
+      "freq": 2.0,
+      "trend": 0
+    },
+    {
+      "name": "Hank Chip",
+      "marker": "pews",
+      "index": 11.5,
+      "archetype": "steady",
+      "skill": 11.0,
+      "vol": 0.4,
+      "freq": 2.0,
+      "trend": 0
+    },
+    {
+      "name": "Sal Birdie",
+      "marker": "beer",
+      "index": 11.5,
+      "archetype": "steady",
+      "skill": 11.0,
+      "vol": 0.4,
+      "freq": 2.0,
+      "trend": 0
+    },
+    {
+      "name": "Moe Duffer",
+      "marker": "lighthouse",
+      "index": 11.5,
+      "archetype": "steady",
+      "skill": 11.0,
+      "vol": 0.4,
+      "freq": 2.0,
+      "trend": 0
+    }
+  ]
+}

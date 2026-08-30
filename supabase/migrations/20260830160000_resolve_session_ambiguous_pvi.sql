@@ -58,6 +58,15 @@ begin
   if auth.uid() is not null and not is_event_organizer(v_event) then
     raise exception 'organizer only';
   end if;
+  -- spec R6: idempotent — a re-run on a closed session is a no-op. Without this
+  -- a second call re-reads rounds, re-stamps resolved_at, re-posts the session
+  -- story and re-runs the clinch, and can RETRO-FLIP an already-decided duel if
+  -- a round was voided or posted late (which R10 forbids). settle_major has had
+  -- exactly this guard since 20260727160000; the Ryder never got it, and the
+  -- function is granted to authenticated with a client button behind it.
+  if (select status from event_sessions where id = p_session) = 'closed' then
+    return;
+  end if;
 
   for dl in select * from event_duels where session_id = p_session loop
     select r.id, (r.index_at_post * v_allow / 100.0) - r.differential
@@ -207,5 +216,8 @@ begin
   -- the board voice this is built on must still be here
   if position('after session' in v_src) = 0 then
     raise exception 'D144: the 20260727180000 session voice was lost — wrong base';
+  end if;
+  if position('= ''closed'' then' in v_src) = 0 then
+    raise exception 'D144: resolve_session is not idempotent';
   end if;
 end $chk$;
