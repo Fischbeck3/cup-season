@@ -167,9 +167,12 @@ struct LivePlayView: View {
         gameCards
         Spacer(minLength: 0)
         if !store.isPencilOnly {
-          let ready = LiveCopy.roundReadyToPost(s)
-          CSButton(ready ? "Finish & post" : "End early",
-                   style: ready ? .primary : .quiet,
+          let done = LiveCopy.roundComplete(s)
+          if let line = LiveCopy.finishStatus(s) {
+            Text(line).csEyebrow(done ? cs.gold : cs.dimText)
+          }
+          CSButton(done ? "Finish & post" : "Finish round",
+                   style: done ? .primary : .quiet,
                    busy: store.busy) { showFinish = true }
         }
       }
@@ -400,18 +403,22 @@ struct LivePlayView: View {
     .accessibilityAddTraits(.updatesFrequently)
   }
 
-  /// D153 · prominence tracks the round, not availability. Finishing early is
-  /// legitimate — rained out, quit after nine — and the sheet handles it well
-  /// (it names the missing holes and skips partial cards rather than losing
-  /// them), so the button must stay reachable at every hole. What changes is
-  /// its volume: quiet while cards are still open, brand once every seated card
-  /// would post. Readiness is `LiveCopy.roundReadyToPost` — the same rule the
-  /// sheet uses, so the screen can never promote a button the sheet refuses.
-  private var finishButton: some View {
-    let ready = LiveCopy.roundReadyToPost(s)
-    return CSButton(ready ? "Finish round & post to season" : "End the round early",
-                    style: ready ? .primary : .quiet,
-                    busy: store.busy) { showFinish = true }
+  /// D153b · prominence tracks the round, wording does not editorialise about
+  /// it. Finishing early is legitimate — rained out, quit after nine — and the
+  /// sheet already handles it (it names the missing holes and skips partial
+  /// cards rather than losing them), so the button stays reachable at every
+  /// hole and stays neutrally worded. "End the round early" passed judgement on
+  /// a decision that is usually just weather. What moves is the volume, and the
+  /// LINE ABOVE it, which carries the state the wording used to try to carry.
+  @ViewBuilder private var finishButton: some View {
+    let done = LiveCopy.roundComplete(s)
+    if let line = LiveCopy.finishStatus(s) {
+      Text(line).csEyebrow(done ? cs.gold : cs.dimText)
+        .accessibilityAddTraits(.updatesFrequently)
+    }
+    CSButton(done ? "Finish round & post to season" : "Finish round",
+             style: done ? .primary : .quiet,
+             busy: store.busy) { showFinish = true }
   }
 
   // MARK: scrap (two-tap; 9332)

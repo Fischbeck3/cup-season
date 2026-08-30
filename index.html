@@ -3233,6 +3233,7 @@ html[data-theme="light"] .room-dusk .btn:not(.dark):not(.gold):not(.apple){color
           <div class="pgfinish">
             <button class="mini" id="groupShareBtn" style="margin-top:8px">Group phones — everyone can score</button>
             <div style="height:12px"></div>
+            <div class="eyebrow" id="finishStatus" style="display:none" aria-live="polite"></div>
             <button class="btn" id="finishBtn">Finish round &amp; post to season</button>
             <p class="fine" id="finishFine">Scores entered together are <b>auto-attested</b>: the group verifies everyone's round just by playing it. <b>Guests need no account:</b> they play every side game, appear in the settlement, and get a recap text with their scorecard and an invite when you finish. Only league members' rounds post to the season.</p>
             <button class="mini" id="discardBtn" style="margin-top:6px; color:var(--dim)">Scrap this round</button>
@@ -8003,11 +8004,54 @@ function liveCardHoles(i){
   const anyB = [...Array(9)].some((_,k)=>a[k+9]!=null);
   return (f9&&b9) ? 18 : (f9&&!anyB) ? 9 : 0;
 }
-/* D153 · every seated card would post — i.e. the finish sheet would raise no
-   warning. Sibling of LiveCopy.roundReadyToPost on the phone. */
-function liveReadyToPost(){
-  const seats = LIVE.map((p,i)=>i).filter(i=>state.live?.pmap?.[i]);
+/* every seated card would post — the finish sheet raises no warning. */
+function liveEveryCardPostable(){
+  const seats = liveSeats();
   return seats.length > 0 && seats.every(i => liveCardHoles(i) > 0);
+}
+function liveSeats(){ return LIVE.map((p,i)=>i).filter(i=>state.live?.pmap?.[i]); }
+/* D153b · every seated card has every hole IN PLAY. THIS is what promotes the
+   finish button, not postability: liveCardHoles() scores a clean front nine as
+   9 whether or not the round was set up as eighteen, so promoting on
+   postability turned the button brand at the TURN and quiet again on hole 10.
+   The `everyCardPostable` conjunct closes a real hole — a NINE carrying stray
+   back-nine scores (start an 18, score the back, Change setup → 9) reads as
+   done here but is refused by cardHoles, which mirrors finish_live_round.
+   Sibling of LiveCopy.roundComplete. */
+function liveRoundComplete(){
+  const seats = liveSeats(), n = liveHoles();
+  if(!seats.length || !liveEveryCardPostable()) return false;
+  return seats.every(i => { const a = state.live.scores[i]||[];
+    for(let h=0; h<n; h++) if(a[h]==null) return false; return true; });
+}
+/* D153b · the line above the finish button — the one thing there that changes
+   every hole, which lets the button stay neutrally worded. Sibling of
+   LiveCopy.finishStatus. Empty before the first score, where the first-round
+   teaching copy speaks instead. */
+function liveFinishStatus(){
+  const seats = liveSeats(), n = liveHoles();
+  if(!liveAnyScored() || !seats.length) return '';
+  const cards = seats.filter(i => liveCardHoles(i) > 0).length;
+  const ready = `${cards} CARD${cards===1?'':'S'} READY`;
+  if(liveRoundComplete()) return `ALL ${n} IN · ${ready}`;
+  const sc = i => state.live.scores[i]||[];
+  /* SHORT means a card SKIPPED a hole — a gap before its own last score. Not
+     "behind the leader": somebody always enters first, and calling the other
+     three short on every hole would make this line flicker all round. */
+  const short = seats.filter(i => { const a=sc(i);
+    let last=-1; for(let h=0; h<n; h++) if(a[h]!=null) last=h;
+    if(last<0) return false;
+    for(let h=0; h<last; h++) if(a[h]==null) return true; return false; });
+  if(short.length === 1){ const nm = LIVE[short[0]]?.n || ''; return (nm ? nm.toUpperCase()+'’S CARD' : 'A CARD') + ' IS SHORT'; }
+  if(short.length) return `${short.length} CARDS ARE SHORT`;
+  let doneAll = 0; for(let h=0; h<n; h++) if(seats.every(i=>sc(i)[h]!=null)) doneAll++;
+  /* every hole in play filled and it STILL will not post — the stray back-nine
+     case. "0 to play" would be true and useless. */
+  if(doneAll === n) return `A CARD HAS SCORES PAST HOLE ${n}`;
+  /* every seat postable but the round is not over — a clean nine of an
+     eighteen. Say both facts at once rather than pretending it is done. */
+  if(liveEveryCardPostable()) return `THRU ${doneAll} · ${ready} IF YOU STOP HERE`;
+  return `THRU ${doneAll} · ${n - doneAll} TO PLAY`;
 }
 /* has anyone put a single number on this card yet? gates the teaching copy */
 function liveAnyScored(){
@@ -9355,16 +9399,21 @@ function renderPlay(){
   $('#holeNum').textContent='HOLE '+(h+1);
   $('#holeMeta').textContent=`PAR ${PAR[h]}` + (SI ? ` · SI ${SI[h]}` : '');
 
-  /* D153 · prominence tracks the round, not availability. Finishing early is
-     legitimate — rained out, quit after nine — and the sheet handles it well
-     (it names the missing holes and skips partial cards rather than losing
-     them), so the button stays reachable at every hole; only its volume moves.
-     Readiness is liveReadyToPost(), the same rule the sheet warns on, so the
-     screen can never promote a button the sheet then refuses. */
-  {const _fb=$('#finishBtn'), _ff=$('#finishFine');
-   if(_fb){ const _ready=liveReadyToPost();
-     _fb.textContent = _ready ? 'Finish round & post to season' : 'End the round early';
-     _fb.classList.toggle('dark', !_ready); }   /* .btn.dark IS the web's quiet */
+  /* D153b · prominence tracks the round; the wording does not editorialise
+     about it. Finishing early is legitimate — rained out, quit after nine —
+     and the sheet handles it (it names what is missing and skips partial cards
+     rather than losing them), so the button stays reachable at every hole and
+     stays neutrally worded. "End the round early" passed judgement on a
+     decision that is usually just weather. What moves is the volume, and the
+     LINE ABOVE it, which carries the state the wording used to try to carry. */
+  {const _fb=$('#finishBtn'), _ff=$('#finishFine'), _fs=$('#finishStatus');
+   const _done=liveRoundComplete();
+   if(_fs){ const _line=liveFinishStatus();
+     _fs.textContent=_line; _fs.style.display=_line?'':'none';
+     _fs.style.color=_done?'var(--gold)':'var(--dim)'; }
+   if(_fb){
+     _fb.textContent = _done ? 'Finish round & post to season' : 'Finish round';
+     _fb.classList.toggle('dark', !_done); }   /* .btn.dark IS the web's quiet */
    /* the teaching copy speaks ONCE, before the first score. It is restated
       where it has consequence: the finish sheet opens with "Complete cards post
       to the season, attested by the group… A partial card is skipped, not lost." */
@@ -10116,11 +10165,20 @@ function finishRealLiveRound(){
   const done  = seats.filter(x=>(_lg ? !x.p.guest : (!x.p.guest || x.p.pid)) && cardHoles(x.i)>0);
   const open  = seats.filter(x=>cardHoles(x.i)===0);
   const guestN = LIVE.filter(p=>p.guest && (_lg || !p.pid)).length;
+  /* D153b · an unpostable card with NOTHING missing in play is the stray
+     back-nine case: an eighteen scored past the turn and then switched to nine.
+     cardHoles reads all eighteen because it mirrors finish_live_round, so it
+     refuses the card — and this line used to render the nonsense "missing
+     holes ." with an empty list. "Fill in" is also the wrong instruction when
+     the problem is EXTRA scores. */
+  const anyStray = open.some(x => missingOf(x.i).length === 0);
   const warn = open.length
     ? `<p class="fine" style="padding-top:0;color:var(--neg)">${open.map(x=>{
-         const m=missingOf(x.i); const shown=m.slice(0,5).join(', ');
-         return `${esc(x.p.n||'A player')} — missing hole${m.length===1?'':'s'} ${shown}${m.length>5?` +${m.length-5} more`:''}`;
-       }).join(' · ')}. ${open.length===1?'That card':'Those cards'} won’t post — go back and fill in, or finish without.</p>`
+         const who=esc(x.p.n||'A player');
+         const m=missingOf(x.i); if(!m.length) return `${who} — has scores past hole ${liveHoles()}`;
+         const shown=m.slice(0,5).join(', ');
+         return `${who} — missing hole${m.length===1?'':'s'} ${shown}${m.length>5?` +${m.length-5} more`:''}`;
+       }).join(' · ')}. ${open.length===1?'That card':'Those cards'} won’t post — go back and ${anyStray?'fix it':'fill in'}, or finish without.</p>`
     : '';
   const result = gameResult();
   openSheet('Finish the round', _lg ? 'ONE FINISH — EVERY MEMBER’S CARD POSTS' : 'ONE FINISH — EVERY CARD POSTS TO ITS GOLFER',

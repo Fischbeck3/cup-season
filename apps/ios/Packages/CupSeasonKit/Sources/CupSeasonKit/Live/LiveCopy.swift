@@ -350,12 +350,72 @@ public enum LiveCopy {
     s.players.indices.filter { s.pmap != nil && $0 < s.pmap!.count }
   }
 
-  /// D153 · every seated card can post — i.e. the finish sheet would raise no
-  /// warning. `cardHoles` is the rule (18 | 9 | 0, same as `finish_live_round`),
-  /// so a clean front nine counts as done and a half-played back nine does not.
-  public static func roundReadyToPost(_ s: LiveRoundState) -> Bool {
+  /// Every seated card would post — the finish sheet raises no warning.
+  public static func everyCardPostable(_ s: LiveRoundState) -> Bool {
     let seats = seatIndices(s)
     return !seats.isEmpty && seats.allSatisfy { cardHoles(s.scores[$0]) > 0 }
+  }
+
+  /// D153b · every seated card has every hole IN PLAY. THIS is what promotes
+  /// the finish button — not postability.
+  ///
+  /// `cardHoles` returns 9 for a clean front nine whether or not the round was
+  /// set up as eighteen, so promoting on postability made the button turn brand
+  /// at the TURN and go quiet again the moment someone scored hole 10. Being
+  /// able to post is not the same as being done, and the button speaks about
+  /// being done. Strictly stronger than the sheet's test, so it can never
+  /// promote a button the sheet would then warn about.
+  /// The conjunction is not belt-and-braces, it closes a real hole: a NINE-hole
+  /// round can carry stray back-nine scores (start an eighteen, score the back,
+  /// Change setup → 9). `cardHoles` reads all eighteen because it mirrors the
+  /// server's `finish_live_round`, so it scores that card 0 and the sheet
+  /// rightly refuses it — while "every hole in play is filled" says done. A
+  /// swept test caught the pair disagreeing; without `everyCardPostable` the
+  /// button would promote on a card the server will not take.
+  public static func roundComplete(_ s: LiveRoundState) -> Bool {
+    let seats = seatIndices(s)
+    guard !seats.isEmpty, everyCardPostable(s) else { return false }
+    return seats.allSatisfy { i in
+      i < s.scores.count && (0..<s.liveHoles).allSatisfy { $0 < s.scores[i].count && s.scores[i][$0] != nil }
+    }
+  }
+
+  /// D153b · the line above the finish button. It fills the space with the one
+  /// thing there that changes every hole, and it lets the button stay neutrally
+  /// worded — "End the round early" editorialised about a decision that is
+  /// usually just weather. Nil before the first score, where the first-round
+  /// teaching copy speaks instead.
+  public static func finishStatus(_ s: LiveRoundState) -> String? {
+    let seats = seatIndices(s)
+    guard s.anyScored, !seats.isEmpty else { return nil }
+    let n = s.liveHoles
+    let cards = seats.filter { cardHoles(s.scores[$0]) > 0 }.count
+    let ready = "\(cards) CARD\(cards == 1 ? "" : "S") READY"
+
+    if roundComplete(s) { return "ALL \(n) IN · \(ready)" }
+
+    // SHORT means a card SKIPPED a hole — a gap before its own last score.
+    // Not "behind the leader": somebody always enters first, and calling the
+    // other three short on every hole would make this line flicker all round.
+    let short = seats.filter { i in
+      guard let last = (0..<n).last(where: { s.scores[i][$0] != nil }) else { return false }
+      return (0..<last).contains { s.scores[i][$0] == nil }
+    }
+    if short.count == 1 {
+      let nm = s.players[short[0]].n
+      return "\((nm.isEmpty ? "A CARD" : nm.uppercased() + "’S CARD")) IS SHORT"
+    }
+    if short.count > 1 { return "\(short.count) CARDS ARE SHORT" }
+
+    // holes the WHOLE group has finished
+    let doneAll = (0..<n).filter { h in seats.allSatisfy { s.scores[$0][h] != nil } }.count
+    // every hole in play is filled and it STILL will not post — the stray
+    // back-nine case. "0 to play" would be true and useless.
+    if doneAll == n { return "A CARD HAS SCORES PAST HOLE \(n)" }
+    // every seat postable but the round is not over — a clean nine of an
+    // eighteen. Say what is true of both facts at once.
+    if everyCardPostable(s) { return "THRU \(doneAll) · \(ready) IF YOU STOP HERE" }
+    return "THRU \(doneAll) · \(n - doneAll) TO PLAY"
   }
 
   public static func finishSheet(_ s: LiveRoundState) -> FinishSheet {
@@ -368,12 +428,21 @@ public enum LiveCopy {
     let guestN = s.players.filter { $0.guest && (!leagueless || $0.pid == nil) }.count
     var warning: String?
     if !open.isEmpty {
+      // "fill in" is the wrong instruction when the problem is EXTRA scores
+      let anyStray = open.contains { i in (0..<s.liveHoles).allSatisfy { s.scores[i][$0] != nil } }
       let parts = open.map { i -> String in
+        let who = s.players[i].n.isEmpty ? "A player" : s.players[i].n
         let m = (0..<s.liveHoles).filter { s.scores[i][$0] == nil }.map { $0 + 1 }
+        // D153b · an unpostable card with NOTHING missing in play is the stray
+        // back-nine case: an eighteen scored past the turn and then switched to
+        // nine. `cardHoles` reads all eighteen because it mirrors
+        // `finish_live_round`, so it refuses the card — and this line used to
+        // render the nonsense "missing holes ." with an empty list.
+        guard !m.isEmpty else { return "\(who) — has scores past hole \(s.liveHoles)" }
         let shown = m.prefix(5).map(String.init).joined(separator: ", ")
-        return "\(s.players[i].n.isEmpty ? "A player" : s.players[i].n) — missing hole\(m.count == 1 ? "" : "s") \(shown)\(m.count > 5 ? " +\(m.count - 5) more" : "")"
+        return "\(who) — missing hole\(m.count == 1 ? "" : "s") \(shown)\(m.count > 5 ? " +\(m.count - 5) more" : "")"
       }
-      warning = parts.joined(separator: " · ") + ". \(open.count == 1 ? "That card" : "Those cards") won’t post — go back and fill in, or finish without."
+      warning = parts.joined(separator: " · ") + ". \(open.count == 1 ? "That card" : "Those cards") won’t post — go back and \(anyStray ? "fix it" : "fill in"), or finish without."
     }
     let intro = "\(leagueless ? "Every complete card posts to its golfer" : "Complete cards post to the season"), attested by the group\(guestN > 0 ? "; \(guestN) guest\(guestN == 1 ? "" : "s") get\(guestN == 1 ? "s" : "") a recap to claim" : ""). A partial card is skipped, not lost."
     return FinishSheet(intro: intro, warning: warning,
