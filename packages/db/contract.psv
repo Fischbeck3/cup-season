@@ -31,6 +31,10 @@
 #
 # 2026-08-30 (later still): 194 functions. Taken with 20260830260000/270000/
 # 280000 applied inside a ROLLED-BACK transaction. Adds live_join (D125).
+#
+# 2026-08-30 (final): 194 functions, all four of the day's unpushed migrations
+# applied inside a ROLLED-BACK transaction. Adds live_join (D125a); set_handle and
+# handle_available re-signed by D159.
 
 _cup_window_rounds|p_season uuid|TABLE(member_id uuid, round_id uuid, profile_id uuid, played_on date, points integer, month_rank bigint, pvi numeric, holes_played integer)|definer|none
 _live_member_can|p_live_round uuid|boolean|definer|none

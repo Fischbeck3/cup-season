@@ -737,6 +737,13 @@ table.hcard td.nm{text-align:left; font-family:var(--sans); font-size:12px; font
 table.hcard td.si, table.hcard td.parc{color:var(--dim); font-size:10px;}
 table.hcard td.bird{color:var(--pos); font-weight:600;}
 table.hcard td.bog{color:var(--mut);}
+.hchg-row{display:flex; align-items:center; gap:10px; font-family:var(--mono); font-size:17px; padding:2px 0 10px;}
+.hchg-was{color:var(--mut); text-decoration:line-through;}
+.hchg-arrow{color:var(--dim);}
+.hchg-now{color:var(--brand);}
+.hchg-list{margin:0 0 14px; padding:0 0 0 18px; color:var(--ink); font-size:13px; line-height:1.55;}
+.hchg-list li{margin:0 0 7px;}
+.hchg-list b{font-weight:600;}
 table.hcard td.vsp{color:var(--mut); font-size:11px;}
 table.hcard th.vsp{color:var(--dim);}
 /* D152 · where this golfer gets a shot, marked the way a paper card marks it.
@@ -12817,6 +12824,38 @@ function openSeasonCeremony(force){
 }
 window.openSeasonCeremony=openSeasonCeremony;
 
+/* D159 · the formal change process, said plainly before it happens.
+   Four consequences, in the golfer's terms: what it becomes, that it is locked
+   for 60 days, that the old name is HELD and cannot become someone else, and
+   that every league is told. Resolves true only on an explicit confirm — the
+   backdrop, Escape and Keep all resolve false, because the safe answer to a
+   sheet you did not mean to open is "change nothing". */
+function confirmHandleChange(oldH, newH){
+  return new Promise(resolve => {
+    let done = false;
+    const finish = v => { if(done) return; done = true; closeSheet(); resolve(v); };
+    openSheet('Change your @handle', 'THIS IS HOW GOLFERS FIND YOU', `
+      <div class="hchg">
+        <div class="hchg-row"><span class="hchg-was">@${esc(oldH)}</span><span class="hchg-arrow">→</span><b class="hchg-now">@${esc(newH)}</b></div>
+        <ul class="hchg-list">
+          <li><b>Buddies find you by this name.</b> Anyone searching @${esc(oldH)} will not find you.</li>
+          <li><b>It is locked for 60 days</b> after this change.</li>
+          <li><b>@${esc(oldH)} stays yours.</b> It is held, so nobody else can take it — and you can move back to it.</li>
+          <li><b>Every league you are in is told</b> — a line on the board reads "IS NOW @${esc(newH)}".</li>
+        </ul>
+        <button class="btn" id="hchgGo">Change to @${esc(newH)}</button>
+        <button class="btn dark" id="hchgNo" style="margin-top:8px">Keep @${esc(oldH)}</button>
+      </div>`);
+    $('#hchgGo')?.addEventListener('click', () => finish(true));
+    $('#hchgNo')?.addEventListener('click', () => finish(false));
+    /* the sheet can also be dismissed by the backdrop or Escape — watch for it
+       closing without an answer and treat that as "keep" */
+    const el = $('#sheet');
+    const obs = new MutationObserver(() => { if(!el.classList.contains('open')) { obs.disconnect(); finish(false); } });
+    obs.observe(el, { attributes: true, attributeFilter: ['class'] });
+  });
+}
+
 function openSheet(title, sub, bodyHtml){
   $('#shTitle').textContent=title;
   $('#shSub').textContent=sub;
@@ -15031,6 +15070,13 @@ function openProfileHub(){
       /* handle is its own step (unique + 60-day cooldown) — report but don't lose the card */
       const hnd = $('#phHandle').value.trim().replace(/^@/, '').toLowerCase();
       if(hnd && hnd !== (CS.profile?.handle || '')){
+        /* D159 · changing an EXISTING handle is a formal act with four
+           consequences, and the golfer agrees to them before it happens. A
+           FIRST claim (no handle yet) is not a change and skips the sheet. */
+        if(CS.profile?.handle && !(await confirmHandleChange(CS.profile.handle, hnd))){
+          $('#phStatus').textContent = 'Card saved · @handle unchanged';
+          await loadProfile(); refreshWhoChip(); return;
+        }
         const { error: he } = await sb.rpc('set_handle', { p_handle: hnd });
         if(he){ await loadProfile(); refreshWhoChip(); $('#phStatus').textContent = 'Card saved · handle: ' + he.message; return; }
       }

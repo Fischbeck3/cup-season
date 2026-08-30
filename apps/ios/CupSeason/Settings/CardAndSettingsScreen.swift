@@ -39,6 +39,23 @@ struct CardAndSettingsScreen: View {
     .navigationTitle("Card & settings")
     .navigationBarTitleDisplayMode(.inline)
     .scrollDismissesKeyboard(.interactively)
+    // D159 · the formal change process, said plainly BEFORE it happens. Four
+    // consequences in the golfer's terms: what it becomes, that it is locked
+    // for 60 days, that the old name is HELD and cannot become someone else,
+    // and that every league is told. Sibling of confirmHandleChange() on the
+    // web. Cancel is the default role, so a dismissal keeps the old name.
+    .alert("Change your @handle?", isPresented: Binding(
+      get: { vm.pendingHandle != nil },
+      set: { if !$0 { Task { await vm.resolveHandle(false) } } }
+    ), presenting: vm.pendingHandle) { p in
+      Button("Change to @\(p.new)") { Task { await vm.resolveHandle(true) } }
+      Button("Keep @\(p.old)", role: .cancel) { Task { await vm.resolveHandle(false) } }
+    } message: { p in
+      Text("Buddies find you by this name — anyone searching @\(p.old) will not find you.\n"
+           + "It is locked for 60 days after this change.\n"
+           + "@\(p.old) stays yours: it is held, so nobody else can take it, and you can move back to it.\n"
+           + "Every league you are in is told.")
+    }
     .task { await vm.load(userId: store.session?.user.id) }
   }
 }
@@ -56,6 +73,9 @@ final class CardSettingsModel {
 
   // card fields
   var name = ""; var city = ""; var home = ""; var handle = ""; var ghin = ""; var marker: String? = nil
+  /// D159 · set when a save would CHANGE an existing handle; the view puts the
+  /// four consequences in front of the golfer before anything happens.
+  var pendingHandle: HandleChange?
   var index = ""
   var dirty = false
   var saving = false
@@ -98,6 +118,15 @@ final class CardSettingsModel {
                               marker: marker, ghin: ghin.trimmingCharacters(in: .whitespaces))
       let h = handle.trimmingCharacters(in: .whitespaces).replacingOccurrences(of: "^@", with: "", options: .regularExpression).lowercased()
       if !h.isEmpty, h != (profile?.handle ?? "") {
+        // D159 · changing an EXISTING handle is a formal act with four
+        // consequences, and the golfer agrees to them before it happens. A
+        // FIRST claim is not a change and goes straight through.
+        if let old = profile?.handle, !old.isEmpty {
+          await load(userId: userId)
+          pendingHandle = HandleChange(old: old, new: h)
+          status = ("Card saved · confirm the @handle change", .mut)
+          return
+        }
         do { try await repo.setHandle(h) }
         catch {
           await load(userId: userId)
@@ -109,6 +138,31 @@ final class CardSettingsModel {
       status = ("Card saved ✓", .pos)
     } catch {
       status = (AuthRules.human(error, fallback: "Save failed."), .neg)
+    }
+  }
+
+  /// D159 · a handle change awaiting the golfer's confirmation.
+  struct HandleChange: Identifiable, Equatable {
+    var id: String { new }
+    let old: String
+    let new: String
+  }
+
+  /// D159 · commit or abandon. "Keep" restores the field, so the card does not
+  /// sit there showing a name the golfer declined.
+  func resolveHandle(_ go: Bool) async {
+    guard let p = pendingHandle else { return }
+    pendingHandle = nil
+    guard go else {
+      handle = "@" + p.old
+      status = ("@handle unchanged", .mut)
+      return
+    }
+    do { try await repo.setHandle(p.new); await load(userId: userId); status = ("Now @\(p.new)", .pos) }
+    catch {
+      await load(userId: userId)
+      handle = "@" + p.old
+      status = (AuthRules.human(error, fallback: "Handle not changed."), .neg)
     }
   }
 
