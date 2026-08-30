@@ -3479,7 +3479,7 @@ html[data-theme="light"] .room-dusk .btn:not(.dark):not(.gold):not(.apple){color
 
         <div class="homegrid">
           <div>
-            <div class="eyebrow">Season race · the climb</div>
+            <div class="eyebrow" id="climbEyebrow">Season race · the climb</div>
             <div class="card">
               <div class="climb" id="climb" role="list" aria-label="The climb — your place in the season race"></div>
               <div class="chart-note" id="climbNote"></div>
@@ -4473,6 +4473,18 @@ function renderClimb(){
   const WKS=real ? Math.max(2, window.seasonWeeks || 18) : WEEKS;
   if(real) buildRealSeries(WKS); else buildSeries();   /* populate series aligned to teams (feeds the self-sparkline) */
   const solo=teams[0]?.solo;
+  /* D139 · a settled season is not a race. Once close_season has crowned, a cut
+     line, an "IN"/"OUT" badge and a race eyebrow are all describing a contest
+     that ended — and the champion may not even be top of this table, because in
+     a Cup Final league the crown comes from the 28-day window (season sim
+     2026-08-30 showed a finished league still drawing "CUT LINE · 15 BACK" with
+     the actual champion sitting second and unmarked). When settled, the ladder
+     becomes the final table and the only badge is the cup. */
+  const seasonRow = (!state.demo && window.CS?.season) || null;
+  const settled = seasonRow?.status === 'complete';
+  const champCid = settled ? (solo ? seasonRow.champion_member_id : seasonRow.champion_squad_id) : null;
+  const eb=$('#climbEyebrow');
+  if(eb) eb.textContent = settled ? 'The final table' : 'Season race · the climb';
   const sc=(!state.demo && window.scenarios && window.scenarios.meta) ? window.scenarios : null;
   const meta=sc?sc.meta:null;
   const cut=climbCut(meta);
@@ -4514,7 +4526,7 @@ function renderClimb(){
       const hid=i-prev-1, pad=Math.min(16, 3+hid*1.5);   /* distance looks like distance */
       html+=`<div class="climb-ellip" data-cid="e${prev}" role="listitem" aria-label="${hid} more between" style="padding:${pad.toFixed(1)}px 0">··· ${hid} more ···</div>`;
     }
-    if(K<n && !cutDrawn && i>=K) drawCut();
+    if(!settled && K<n && !cutDrawn && i>=K) drawCut();
     const t=teams[i], row=scById[t.id], isMe=(i===meIdx);
     const swatch = solo
       ? `<span class="mk">${t.mk||'⛳'}</span>`
@@ -4522,9 +4534,13 @@ function renderClimb(){
     /* the two rungs you race speak; everyone else keeps the bare number */
     let gap='', voice='';
     if(me && i===meIdx-1){
+      /* This voice renders INSIDE the row above the viewer, so it must be
+         written from that row's point of view. "N back of <that row's name>"
+         printed on that very row read as "Dot Mulligan is 1 back of Dot
+         Mulligan" (season sim 2026-08-30). The gap is the viewer's; say so. */
       const d=t.pts-me.pts;
-      voice = d===0 ? `level with <b>${esc(t.name)}</b>` : `<b>${d}</b> back of <b>${esc(t.name)}</b>`;
-      if(meIdx>=K && i===K-1) voice+=` <span class="stake">— ${stakeTxt}</span>`;
+      voice = d===0 ? `level with you` : `<b>${d}</b> ahead of you`;
+      if(!settled && meIdx>=K && i===K-1) voice+=` <span class="stake">— ${stakeTxt}</span>`;
     } else if(me && i===meIdx+1){
       const d=me.pts-t.pts;
       voice = d===0 ? `<b>${esc(t.name)}</b> level with you` : `<b>${esc(t.name)}</b> ${d} behind you`;
@@ -4534,7 +4550,8 @@ function renderClimb(){
     /* D126/D136 · "LOCKED" on a standings row read as locked OUT to testers —
        it is the opposite: a seat secured. "SEEDED" collides with seeds 1/2,
        which only exist once the window opens. IN. */
-    if(row && row.clinched) badge='<span class="badge lock">IN</span>';
+    if(settled) badge = (champCid!=null && t.id===champCid) ? '<span class="badge lock">CUP</span>' : '';
+    else if(row && row.clinched) badge='<span class="badge lock">IN</span>';
     else if(row && row.eliminated) badge='<span class="badge out">OUT</span>';
     const spark = isMe ? climbSpark(series[i]) : '';
     /* what a screen reader hears for this rung */
@@ -4542,7 +4559,8 @@ function renderClimb(){
                   : `${climbOrd(i+1)} — ${esc(t.name)}, ${t.pts} points`;
     if(me && !isMe){ const d=t.pts-me.pts; al += d===0?', level with you':(d>0?`, ${d} ahead of you`:`, ${-d} behind you`); }
     else if(!me && i>0){ al += `, ${teams[0].pts-t.pts} behind the leader`; }
-    if(row && row.clinched) al+=', clinched'; else if(row && row.eliminated) al+=', eliminated';
+    if(settled){ if(champCid!=null && t.id===champCid) al+=', took the cup'; }
+    else if(row && row.clinched) al+=', clinched'; else if(row && row.eliminated) al+=', eliminated';
     const cls='climb-rung'
       + (isMe?' me':'')
       + (i===0?' lead':'')
@@ -4567,11 +4585,23 @@ function renderClimb(){
        D127 · when the roster cannot fill more seats than it has contenders the
        Final is hollow; say so rather than printing "EVERYONE ADVANCES" as if
        it were a standing. */
+    /* D139 · once the season is settled the seat line and the endgame sentence
+       are both future-tense descriptions of a race that has been run ("TOP 2
+       ADVANCE ... from Wed Jul 29" on a league that finished in August). Say
+       what happened instead. */
+    if(settled){
+      const champName = (typeof csSettlement === 'function' ? (csSettlement()||{}).champName : '') || '';
+      note.innerHTML = `${esc('SEASON COMPLETE')}<span class="endgame-line">`
+        + esc(champName ? `${champName} took it. The table below is how the season finished.`
+                        : 'The table below is how the season finished.')
+        + `</span>`;
+    } else {
     const seatLine = K>=n
       ? (n<=1 ? 'NOBODY TO RACE YET' : `EVERYONE ADVANCES — ${n} CONTENDER${n===1?'':'S'}, ${K} SEAT${K===1?'':'S'}`)
       : `TOP ${K} ${meta && meta.finish==='points_table' ? '— THE POINTS CROWN' : 'ADVANCE TO THE CUP FINAL'}`;
     note.innerHTML = `${esc(seatLine)}<span class="endgame-line">${esc(endgameLine(meta||{}))}</span>`
       + (K>=n && n>1 ? '<span class="endgame-line">Every contender already has a seat, so the Final is a formality until more golfers join.</span>' : '');
+    }
   }
 }
 
@@ -10390,9 +10420,19 @@ function heroFloorFoot(){
   const me=rows.find(r=>r.is_me); if(!me) return '';
   const cr=Number(me.credits), need=Math.max(0, floor-cr);
   const pct=Math.max(0, Math.min(1, floor?cr/floor:1));
+  /* D140 · in a SOLO league close_month cannot assess the floor at all — it
+     walks squad_members, and there are none, so no penalty, forfeit or
+     auto-bye can ever fire (verified across 25 completed solo seasons, season
+     sim 2026-08-30). The bar is still worth keeping as a habit tracker, but
+     the "· 3d" deadline borrowed urgency from a consequence that does not
+     exist. Solo tracks the habit; it does not run a clock. */
+  const soloFloor = state.structure==='solo';
+  const tail = need
+    ? ((need%1?need.toFixed(1):need)+' more'+(soloFloor?'':' · '+closes))
+    : 'cleared';
   return `<span>${MOS[now.getMonth()]} floor ${cr%1?cr.toFixed(1):cr}/${floor}</span>
     <span class="hh-bar"><i class="${need?'':'ok'}" style="width:${Math.round(pct*100)}%"></i></span>
-    <span>${need?(need%1?need.toFixed(1):need)+' more · '+closes:'cleared'}</span>`;
+    <span>${tail}</span>`;
 }
 function renderHomeHero(){
   const box=$('#homeHero'); if(!box) return;
@@ -10427,8 +10467,22 @@ function renderHomeHero(){
       if(i>=0){
         const ord=climbOrd(i+1).replace(String(i+1),'');
         fig=`<div class="hh-fig"><span class="hh-pos">${i+1}</span><span class="hh-ord">${ord}</span></div>`;
-        line = i===0 ? `<em>Your name goes on the cup.</em>`
-             : (teams[0] ? `<b>${esc(teams[0].name)}</b> took it.` : `<em>The table is settled.</em>`);
+        /* D137: the crown comes from the SEASON ROW, never from the top of the
+           points table. In a Cup Final league those are different races — the
+           champion is decided by the 28-day window, and the table leader may
+           not be the champion at all. Reading teams[0] here named the wrong
+           winner on the one screen a whole league is guaranteed to open
+           (season sim 2026-08-30: the engine crowned Vic Slice 28-26 and this
+           card said "Ray Fairway took it"), and told the table leader "your
+           name goes on the cup" when it did not. csSettlement() resolves both
+           from seasons.champion_* — the same source the ceremony uses. */
+        const S = window.CS?.season || {};
+        const set = (typeof csSettlement === 'function' ? csSettlement() : null);
+        const champId = solo ? S.champion_member_id : S.champion_squad_id;
+        const iWon = champId != null && myId === champId;
+        const champ = set && set.champName ? set.champName : (teams[0] ? teams[0].name : '');
+        line = iWon ? `<em>Your name goes on the cup.</em>`
+             : (champ ? `<b>${esc(champ)}</b> took it.` : `<em>The table is settled.</em>`);
       }
     }
     seen('complete');
@@ -10446,9 +10500,35 @@ function renderHomeHero(){
   if(force==='cup_final' || (!force && inSeason && typeof isCupFinal==='function' && isCupFinal())){
     const me=heroMyRung();
     const wksLeft=Math.max(1, Math.ceil((seasonE()-new Date())/6048e5));
+    /* D138 · the Final is a field of TWO. Everyone else lost the crown the
+       moment enter_cup_final locked cup_finalists, weeks before this renders.
+       Calling a non-finalist's table rank a "seed" and handing them a gap to
+       chase invited eight of ten golfers in a solo league to grind for a place
+       that no longer exists (season sim 2026-08-30 — third place was shown
+       "5 points back · 2 weeks left" with the field already cut to two).
+       A non-finalist now gets their PLACE and the truth about who the cup is
+       between. The table gap stays, because that race IS real: 72% of adjacent
+       places finish within one good round. */
+    const soloL = state.structure==='solo';
+    let myCid=null;
+    if(window.CS?.member){
+      if(soloL) myCid=window.CS.member.id;
+      else { const q=(window.CS.squads||[]).find(q=>(q.squad_members||[]).some(x=>x.member_id===window.CS.member.id)); myCid=q?q.id:null; }
+    }
+    const fins=(!state.demo && window.cupRace?.finalists) || [];
+    const finName=f=>{ const id=f.squad_id||f.member_id; const t=teams.find(x=>x.id===id); return t?t.name:(f.name||''); };
+    const myFin = myCid!=null ? fins.find(f=>(f.squad_id||f.member_id)===myCid) : null;
     seen('cup_final');
+    if(me && fins.length>=2 && !myFin){
+      const vs = fins.slice().sort((a,b)=>a.seed-b.seed).map(finName).filter(Boolean);
+      box.innerHTML = heroCard('', `${esc(window.CS.league?.name||'')} · cup final`,
+        `<div class="hh-fig"><span class="hh-pos">${me.pos}</span><span class="hh-ord">${me.ord}</span>${me.moveChip}</div>`,
+        `<b>${esc(vs[0]||'')}</b> v <b>${esc(vs[1]||'')}</b> for the cup. Your place on the table is still live — ${me.gapLine}`,
+        `<span>${wksLeft} week${wksLeft===1?'':'s'} left</span>`);
+      return;
+    }
     box.innerHTML = heroCard('', `${esc(window.CS.league?.name||'')} · cup final`,
-      me ? `<div class="hh-fig"><span class="hh-pos">${me.pos}</span><span class="hh-ord">seed</span>${me.moveChip}</div>` : '',
+      me ? `<div class="hh-fig"><span class="hh-pos">${myFin?myFin.seed:me.pos}</span><span class="hh-ord">seed</span>${me.moveChip}</div>` : '',
       me && me.gapLine ? me.gapLine : `Four weeks, scored fresh. <em>Whoever's hottest takes the cup.</em>`,
       `<span>${wksLeft} week${wksLeft===1?'':'s'} left</span>`);
     return;
@@ -18190,8 +18270,10 @@ async function boot(){
 
     bootStep = 'profile';
     await loadProfile();
-    /* gate on marker: display_name can be auto-filled by the m001 signup
-       trigger; marker exists only once the golfer card has been saved */
+    /* gate on marker AND handle: display_name can be auto-filled by the m001
+       signup trigger, so it proves nothing; marker and handle are both set
+       only by the golfer card. Keep the two in step — a seeder that sets just
+       one sends every user it makes back through onboarding. */
     if(!CS.profile || !CS.profile.marker || !CS.profile.handle){
       bootTrace('no golfer card yet — profile gate');
       showProfileGate();

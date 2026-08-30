@@ -4436,3 +4436,71 @@ each remains reversible on its own line.)*
   an answer narrows an entry (D115's roster reach, D126's ladder) the narrower
   reading governs.
 
+### D137 · The runoff, answered — placement is the consolation; there is no toilet bowl
+*(2026-08-30, season simulation study `docs/audit/season-sim-2026-08-30/` — 64 seasons, 26 configs, 3 replicates, 8,624 counting rounds. MECHANIC level (4), and the UI level (5) beneath it. Owner's question: "Do we need runoff competition? Example, play for third/fourth/fifth? Thinking like in fantasy football, the championship may be out of reach but you want to avoid being last place.")*
+- **Current mechanic:** a season pays three prizes — champion 60 %, runner-up 25 %, points king 15 % — and in a Cup Final league `enter_cup_final` cuts the field to exactly two rows in `cup_finalists`. Nothing else is a named outcome. Home named the winner by reading the top of the points table (`teams[0]`), which in a Cup Final league is a **different race** from the crown.
+- **Problem:** two, compounding. (a) Home named the WRONG champion: in `Encanto Ten` the engine crowned Vic Slice 28–26 and the card said "Ray Fairway took it"; the same block tells the table leader "Your name goes on the cup" when they did not win it. (b) In a ten-player solo league only **2 of 10 are alive** in the last 28 days and only **2 of 10 are paid**; the other eight have no named outcome at all, which is exactly the owner's instinct.
+- **Evidence for the runoff question:** the middle of the table is a real race and the bottom is not. Mean final gap between adjacent places: 2→3 **3.2**, 3→4 **3.4**, 4→5 **3.6**, 5→6 **3.2**, 6→7 6.8, 7→8 10.3 — then 8→9 **21.6** and 9→10 **27.9**. **72 % of all adjacent pairs finish within 7 points**, one good round. But last place sits **34.0 points** adrift of second-last and was within one round of it in only **4 of 25** seasons. A non-finalist won Points King in **3 of 13** solo cup seasons, so places 3+ do already hold a live prize — invisibly.
+- **Recommendation:** **placement becomes a stated outcome for every seat; there is no last-place mechanic.** Built now: (1) the crown is read from `seasons.champion_*`, never inferred from standings; (2) a settled season renders **the final table** — no cut line, no IN/OUT, the champion marked `CUP` — so 4th is a recorded fact rather than a leftover; (3) a non-finalist in the cup window is told who the cup is actually between and pointed at the place race that is still live. **Deferred to its own decision** once a real season has closed: paying 3rd, or a consolation bracket over the final four weeks. **Declined outright:** a last-place punishment or "toilet bowl" — the fantasy-football analogy does not transfer, because there last place is an unlucky full roster and here it is someone who stopped posting, 34 points adrift. A mechanic aimed at them would shame precisely the golfer the auto-bye (D14) was written to be gentle with.
+- **Principle served:** §16 (no figure without its work — the crown must come from the ledger that decided it) · #5 the app should feel alive (eight of ten golfers need something true to play for) · D14's posture toward the person who missed a month.
+- **Benefit:** the finale stops lying; every seat below the cut gets a real, tight race (3-point gaps) named and visible; the pot question stays open on evidence rather than being pre-empted by a punishment nobody asked for.
+- **Tradeoffs:** placement without money is a weaker hook than a paid 3rd — deliberately, until a real season shows whether the mid-table race holds attention; the "CUP" badge adds a fourth badge state to the climb.
+- **CONFLICT (named):** none upward. Narrows D126/D136's badge vocabulary (IN/OUT are race states and do not survive the close).
+
+### D138 · The Cup Final's silent field — a non-finalist is told the truth
+*(2026-08-30, season sim. UI level (5) under D137.)*
+- **Current mechanic:** during `cup_final` the Home hero shows every member a figure labelled **"seed"** with their points-table rank, plus a gap to the golfer above.
+- **Problem:** the field was cut to two weeks earlier. A ten-player solo league shows eight golfers a "3 seed", a "5 points back" and "2 weeks left" for a place that no longer exists — an invitation to grind for a sealed outcome. The clubhouse already says `OUT` and "the regular season — final"; Home contradicted it on the same data.
+- **Recommendation:** a member with no row in `cup_finalists` gets their **place** (not a seed), the names of the two golfers actually contesting the cup, and the table gap — which stays, because that race is real (D137's 72 %). A finalist's card is unchanged and now shows their true `cup_finalists.seed` rather than their table rank.
+- **Principle served:** §16 · #2 honest competition — never show a chase that cannot be run.
+- **Benefit:** the eight keep a true reason to post; the two keep their duel.
+- **Tradeoffs:** the non-finalist card is longer; it names two other people on your own home screen.
+- **CONFLICT:** none. Upholds D105 (the Final leads the room) by making the room honest for everyone not in it.
+
+### D139 · A settled season is not a race
+*(2026-08-30, season sim. UI level (5).)*
+- **Current mechanic:** the climb renders a cut line, `IN`/`OUT` badges and a recent-form column from `season_scenarios`, regardless of season status.
+- **Problem:** a finished league still drew "CUT LINE · 15 BACK" with the actual champion sitting second and unmarked. The race UI outlived the race, and disagreed with the crown.
+- **Recommendation:** when `seasons.status = 'complete'` the ladder becomes **the final table** — eyebrow "The final table", no cut row, no clinch/eliminate badges, and the champion carries a `CUP` badge read from the season row.
+- **Principle served:** §16 · IA (a settled thing is described in the past tense).
+- **Benefit:** the last screen a season shows agrees with the ceremony and the ledger.
+- **Tradeoffs:** one more branch in `renderClimb`.
+- **CONFLICT:** none.
+
+### D140 · The solo floor tracks a habit; it does not run a clock
+*(2026-08-30, season sim — verified across all 25 completed solo seasons. MECHANIC-adjacent (4/5): no rule changes, the claim does.)*
+- **Current mechanic:** `close_month` assesses the participation floor by walking `squad_members`. A solo league has no squads, so **no floor penalty, forfeit or auto-bye can ever fire**. The copy is already honest ("in a solo league that is a habit, not a penalty — there's no squad to dock"), but the Home foot rendered a progress bar and a "· 1d" countdown.
+- **Problem:** the countdown borrows urgency from a consequence that does not exist. That is the same class of untruth as D138's phantom seed, in miniature.
+- **Recommendation:** keep the bar (habit tracking is legitimate and motivating); drop the deadline in solo leagues. The floor keeps its teeth wherever squads exist. **Left open:** whether a solo league should have an enforceable floor at all — that is a rule change and wants its own decision, informed by whether the pilot's drifters actually drift.
+- **Principle served:** §16 · never manufacture stakes.
+- **Benefit:** the one number a solo golfer sees every day stops implying a penalty that cannot arrive.
+- **Tradeoffs:** removes a nudge; if solo participation sags in the pilot, the honest fix is a real rule, not a fake clock.
+- **CONFLICT:** none. Consistent with the D122/D136 floor sentence already shipped.
+
+### D141 · `sandbox_scrap` clears its children
+*(2026-08-30, season sim, migration `20260830150000`. Implementation level (6).)*
+- **Current mechanic:** D65's `sandbox_scrap` deletes the league first, commenting that the cascade "clears every no-action member_id reference before the users go".
+- **Problem:** it does not. Fourteen tables reference `league_members` with `ON DELETE NO ACTION`, and `seasons` carries champion/runner-up/points-king pointers. The moment a sandbox league closes a month with a floor penalty — i.e. the moment it becomes worth looking at — the scrap fails `23503`. The founder tool for throwing a diorama away could not throw away any diorama that had run long enough to be interesting.
+- **Recommendation:** clear children in dependency order (season pointers → `season_adjustments`/payouts/snapshots/clashes/finalists/buy-ins/lead → posts and comments → league graph → bots). Same signature, same founder gate, same return shape. Self-enforcing `do` block asserts the two clauses are present.
+- **Principle served:** a tool that cannot clean up is a tool that stops being used.
+- **Benefit:** the sandbox is disposable again.
+- **Tradeoffs:** the delete list must be extended whenever a new table references `league_members`.
+- **CONFLICT:** none.
+
+### D142 · ⚑ OPEN — the counting cap is the quality dial, and today it is set to "attendance"
+*(2026-08-30, season sim. MECHANIC level (4). NOT built — this needs an owner ruling.)*
+- **Current mechanic:** `counting_cap` caps how many rounds count per calendar month; `lock_league` defaults it to **4**. The wizard presents it as a fairness guard ("your best N count"), not as a competitive lever.
+- **Problem:** measured within each league, season points correlate **+0.96 with rounds counted** and **+0.04 with points-per-round**, and rounds-counted is the stronger driver in **61 of 61** leagues. 64 % of all rounds land in the bottom two bands, so the best golfer in a league out-scores the worst by **1.83 points per round** while one extra posted round is worth **6.6**. Showing up once more is worth ~3.6× being the best player on the course. The cause is the handicap engine working correctly — across 576 golfers the WHS-lite index settled **4.7 strokes below** true ability, so a lower index makes every band harder; volatile golfers lose most (improvers −6.8, steady −3.5). The sim is *flattering* (35.5 % of rounds reach "played to it or better" vs 20–25 % in real golf), so the real effect is stronger.
+- **The lever, measured:** the cap is the only thing that changes this. At **cap 2** the bottom two bands fall to 47.5 %; at cap 4, 64 %; at **cap 8**, 71.4 %, and the workflow's independent pass found the points/quality relationship *inverts* at cap 8. At cap 4, **83 %** of golfer-months sit at or above the cap, so the marginal round is already worthless to a regular and the spread comes almost entirely from who missed months.
+- **Recommendation (for ruling):** decide what a point is meant to mean, then set the default to match. If Cup Season sells "post your rounds and stay in it with your friends", the current behaviour is correct and the **copy should stop implying skill**. If it sells "the best golfer over a season wins", the default cap should drop to **2 or 3** and the wizard should name it as the quality dial. My recommendation for the pilot is **3** with the wizard sentence rewritten; it keeps a missed week survivable while making a good round matter.
+- **Principle served:** product-vision "Real Golf" · §16 (the table should mean what it says).
+- **Tradeoffs:** a tighter cap shortens the grind and reduces the reward for enthusiasm — which is the point, but it is a real change in who wins; it also makes a single bad month cheaper.
+- **CONFLICT (named):** potentially with §2.2's band design — if the bands are meant to be the skill signal, they are too compressed at the bottom to be one, and the cap is compensating for that. Naming it here rather than silently tuning around it.
+
+### D143 · ⚑ OPEN — the three-month floor on season length
+*(2026-08-30, season sim. MECHANIC level (4). NOT built.)*
+- **Current mechanic:** `league_settings_season_months_check` is `>= 3 AND <= 12`. `lock_league` also takes explicit `starts_on`/`ends_on`, so the stored bylaw and the real window can disagree without anything complaining.
+- **Problem:** a four- or six-week trial season cannot be expressed, which is exactly the shape a first pilot wants. And in any season without a **whole** calendar month the participation floor is never assessed at all (partial edge months are waived), so a short season silently has no floor — a second, quieter disagreement between what the bylaws say and what the engine does.
+- **Recommendation (for ruling):** either lower the floor to 1 month and make the wizard warn that floors need a whole month, or keep 3 and have `lock_league` reject dates that contradict `season_months` so the two can never drift. Doing neither leaves a constraint that blocks the honest case and permits the dishonest one.
+- **Tradeoffs:** allowing very short seasons invites leagues that end before the engine's monthly machinery does anything, which is its own confusion.
+- **CONFLICT:** none upward; touches §14.0's season shape.

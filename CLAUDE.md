@@ -216,7 +216,13 @@ edge months** (blanket rule, decided). League timezone default
   Same for writing: build ISO strings by hand, never `toISOString().slice()`.
 - **The m001 signup trigger auto-creates profiles rows** with `display_name`
   derived from the email and a NOT NULL `email` column. Gate onboarding on
-  `marker` (only the golfer card sets it). `set_profile()` supplies email from
+  `marker` AND `handle` — both are set only by the golfer card, and the live
+  test is `!CS.profile || !CS.profile.marker || !CS.profile.handle`. This line
+  said "marker" alone for weeks after `handle` joined the gate (caught by the
+  season sim, 2026-08-30, when a seeded profile carrying a marker was still
+  bounced to the card). No real profile is affected — 0 of 44 carry a marker
+  without a handle — but a seeder or a backfill that sets only `marker` will
+  send every one of its users back through onboarding. `set_profile()` supplies email from
   `auth.users` itself — never assume the row exists or doesn't.
 - **Postgres drops fail on dependent RLS policies** (e.g. `rholes_add` on
   `round_holes` referenced `rounds.member_id`). Tear down policies before
