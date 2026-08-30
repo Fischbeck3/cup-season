@@ -1251,3 +1251,204 @@ delete-account button measures 2.66:1 (IOS-A09).
 * **O32 — `legal.html` is off the design system** (TT-11). A different dark family from `tokens.json`,
   calling the `hot` token "gold". Preflight 10 reads `index.html` only, so the repo's other shipped page is
   unchecked.
+
+---
+
+## 4 · Refuted and by-design
+
+Four P1 findings did not survive. This section exists so the same false positives are not re-reported.
+
+| id | Claim | Verdict | Why it fails |
+|---|---|---|---|
+| **POST-B-02** | Post-success steps run inside the try whose catch says "Post failed.", so a render throw makes a saved round read as a failure and the golfer posts a duplicate | **REFUTED** ×1, **ALREADY_HANDLED** ×1 | The structural observation is correct and the failure is not reachable. `finishCeremony(...)` fires at `:6893`, **before** the awaited `loadStandingsAndFeed()`, and it opens `#finish` — a `position:fixed; inset:0` opaque curtain at `z-index:1100` over the toast's `z-index:1000`. The golfer sees the ceremony, not the toast, so the duplicate-post scenario cannot start. Separately, the DB calls inside `loadStandingsAndFeed` return `{error}` rather than rejecting. |
+| **IDX11-01** | `resetToBlank()` leaves `state.startISO` behind, so a second league inherits the first league's first-tee date and is created with a season five months in the past | **REFUTED** ×2 | The mechanism does not exist. `applyBylaws:14862` writes `startISO` only `if(state.seasonStart)`, and **every** `applyBylaws` call site is preceded by `resetToBlank` nulling `seasonStart`, with `enterLeague` loading the season row only afterwards. So that line is dead on every reaching path and `startISO` can only hold the boot default (next Saturday) or the current wizard's own dial. The prod seasons whose `starts_on` predates `created_at` are explained otherwise. |
+| **DB-06** | `settle_week_clash` decides the W on points but labels the card by band, so a 9-hole round loses to an 18-hole round with the identical band | **BY_DESIGN** ×2 | The arithmetic is right and the diagnosis is inverted. Spec §2.4 makes half-value points (`points ÷ 2`, round up) a **league bylaw** for nines, made a first-class post by D72, and every points comparison in the engine is in that currency. The band string is display; the W is correctly decided on points. The reviewer's fix would invert the rule. The residual real defect at those lines is the closed `>= -1` boundary — filed separately as **B24 / DBE-02 / DB-07**. |
+| **TT-01** | `db-checks` 16 misses 3 leagues with zero squads and 4 with an unseated member — its own message names the second case and the SQL never evaluates it | **REFUTED** ×2 | The counts are real and none of the seven rows is a violation: **all three zero-squad leagues are `structure='solo'`**, where zero squads is the *designed* terminal state — `lock_league` routes solo straight to `phase='season'` and skips `form_squads`, and `start_season` wraps its total/loose/empty raises in `if st.structure <> 'solo'`. The unseated members are in those same solo leagues. So the inner join is the correct scope, not blindness. What survives is a copy nit: the failure message promises "or an unseated member" and the SQL does not evaluate it. |
+
+Two more things checked and deliberately **not** filed, recorded here for the same reason:
+
+* **Solo leagues can never take a floor penalty.** Verified against the engine: `close_month` drives its
+  loop from `squad_members ⋈ squads`, and `form_squads` returns early for `structure='solo'`, so the loop
+  body never runs. This session documented it in `floorSentence` and the documentation is **correct**. The
+  residual oddity is that the wizard still stores `participation_floor` and `floor_penalty` for solo
+  leagues.
+* **`booting`/`bootResolved` double-call.** An instrumented cold boot shows `safeBoot()` called twice and
+  `boot()` entered once — the guard doing its job, as CLAUDE.md already records. Not re-litigated.
+
+---
+
+## 5 · Coverage and blind spots
+
+### Read line by line
+
+* **`index.html` — all 18,706 lines**, in 13 slices, each read in full with the call sites outside it
+  opened where a finding depended on them. The head/stylesheet (1–2493) was read as CSS and tokens, with
+  every `--x:` definition diffed against every `var(--x)` reference.
+* **`supabase/migrations/`** — the two migrations this session wrote (`20260829220000_lock_league.sql`,
+  `20260830040000_buy_in_terms.sql`) line by line, plus **every migration from 2026-08-20 onward** in full
+  or in its load-bearing function bodies.
+* **The scoring & settlement engine, read LIVE from prod** (`pg_get_functiondef` / `pg_get_viewdef` /
+  `pg_get_constraintdef` / `pg_policy` / `pg_class.relacl` / `cron.job`) and matched back to the migration
+  that last wrote each one: `cup_points`, both `score_round` overloads, `v_rounds_ranked`,
+  `v_squad_standings`, `v_individual_standings`, `close_month`, `close_season`, `enter_cup_final`,
+  `_cup_window_rounds`, `cup_final_race`, `form_squads`, `randomize_squads`, `assign_player`,
+  `start_season`, `lock_league`, `award_season_trophies`, `recompute_season_payouts`, `mark_buy_in`,
+  `set_buy_in_terms`, `snapshot_week`, `run_month_closes`, `run_week_snapshots`, `daily_season_tick`,
+  `open_week_clash`, `settle_week_clash`, `create_league` — plus the four cron schedules and the RLS
+  policies and table ACLs on every table those functions write.
+* **`supabase/functions/` — all 1,765 lines** across `courses`, `push`, `scan`, `season-email`,
+  `test-seed`, `weather`. Every `Deno.env.get` site traced; webhook trigger targets verified from the
+  database rather than the dashboard.
+* **`apps/ios/Packages/CupSeasonKit/Sources/`** and **`apps/ios/CupSeason/`** — the shared logic package
+  and the app target.
+* **`tests/preflight.mjs`, `tests/db-checks.sql`, `tests/app-tests.js`, `tools/*.mjs`, `tools/ship.sh`,
+  `stamp-version.sh`, `netlify.toml`, `sw.js`, `manifest.webmanifest`, `legal.html` — 2,240 lines**, and
+  every one of them **run**: `node tests/preflight.mjs` (PASS, 0 failures, 1 warning),
+  `./tools/ship.sh --dry-run`, `node tools/deploy-status.mjs --hook`, and `db-checks.sql` against prod
+  (17 checks, 2 FAIL — 15 lock health and 16 formation invariant, both failing honestly).
+* **`git diff 34d20b6..HEAD`** hunk by hunk, then each changed function opened in its file, then the ten
+  items the session's commit messages claim re-derived against the engine and against prod.
+
+### Sampled, not read line by line
+
+* **The ~110 migrations before 2026-08-20.** Covered by grep sweeps chosen for the landmine classes
+  CLAUDE.md names — grants, `search_path`, anon reach, `current_date`, swallowing exception handlers,
+  `security_invoker` — plus the live-database checks above. A logic bug in an older migration that none of
+  those patterns touches would not have surfaced.
+* **`brand/`** — enumerated for the publish-surface finding (TT-12), not reviewed as code.
+
+### What nobody could assess, and why
+
+1. **Nothing was run in a browser or a simulator.** This was a read-only audit with no server and no
+   device. Every contrast ratio is computed by hand from the token hexes; every tap-target size is computed
+   from the CSS box model; every overlay geometry (the install nudge over the header, the scoreboard over
+   the header) is reasoned, not measured. Screen-reader rotor behaviour is inferred from the markup.
+2. **No RPC was executed as a mutation.** Every "an attacker can" claim is read from the function body plus
+   a live ACL/constraint check. The two exceptions are deliberate and were done inside rolled-back
+   transactions: `season_email_payload` as role `authenticated` (DB-01) and `enter_cup_final` on a 4-week
+   fixture (KIT-04).
+3. **No Edge Function could be invoked.** Every failure scenario in that slice is reasoned from the code
+   plus verified schema. In particular, EF-01's trigger (a tee-less **detail** payload) was inferred from
+   the file's own history of the same drift on the search endpoint — and then found in prod data by a
+   verifier, which is stronger evidence than the reviewer had.
+4. **`close_month` / `close_season` were never executed against a fixture season.** The two arithmetic
+   claims that decide severity — the −1.0 band split and the $450→$451 pot line — were both run as bare
+   SELECTs in prod.
+5. **`tests/app-tests.js` runtime behaviour is unobserved.** It needs a served app and a browser. The
+   reasoning about the async summary (TT-06 / SD-17) is from the source plus confirming every global it
+   names exists at the right scope.
+6. **Two engines were out of scope entirely**: the Ryder/event scoring functions (`award_event_trophies`,
+   `run_event_sessions`) and the handicap-engine internals (`handicap_index_asof`, `round_refresh_index`),
+   which were read only far enough to confirm `score_round()`'s index-snapshot chain.
+7. **Prod data provenance is uncertain in places.** Several odd-looking rows (5 leagues on a non-`points`
+   `season_format`, the 121-post Ridgeline Cup, the 3 zero-squad leagues) cluster around 2026-08-28 13:51
+   and are probably the blind-audit fixture footprint the `db-checks` header says is unwiped. Where a
+   finding's severity depended on that, it is said so in the finding.
+8. **Whether `supabase functions list`'s timestamp column is UTC** could not be checked without a deploy;
+   `deploy-status.mjs:88` appends a `Z`, and if the CLI prints local time every function reads ~7 h stale
+   in Phoenix. It is advisory and currently reports "none look stale", so it was left alone.
+
+### One thing the audit is confident about, stated plainly
+
+**No secrets, keys or third-party PII are in the served surface.** Every served file was grepped for
+service-role keys, Stripe keys, `ANTHROPIC_API_KEY`, Brevo/`xkeysib`, VAPID and JWTs: clean. Every email
+address in the 663 tracked files is the owner's own or a `+blind` test alias. `.gitignore` correctly
+quarantines root-level `*.sql` dumps, `.env` and `node_modules/` (0 tracked files). The Report-Only CSP was
+traced against every origin the app can reach and **would survive being flipped to enforcing today** — the
+only cross-origin script is the `esm.sh` Supabase import, fonts are exactly one Google family, and there is
+no `eval`, no `new Function`, no `Worker`, no `importScripts`, no `<iframe>` and no `<form>`. Two latent
+traps if you do flip it: `font-src` omits `'self'` (which self-hosting Plex Mono would break silently), and
+`media-src`/`manifest-src` fall back to `default-src 'self'`.
+
+---
+
+## 6 · Prioritised backlog
+
+Every item traceable to a finding id in `findings.json`. **[S]** marks session code.
+
+### P0 — before the next client deploy
+
+| # | Item | Findings |
+|---|---|---|
+| 1 | Resolve `covenantGate`'s promise on any sheet close (hook from `closeSheet`); no `await` in `boot()` may depend on a dismissable button **[S]** | SD-01, B-01 |
+| 2 | New migration: revoke `season_email_payload` from `public, anon, authenticated`, re-assert `service_role`, add the self-enforcing `DO` block **and** the db-check | DB-01 |
+| 3 | Board fetch: `ascending:false` + client-side reverse, on the primary and the skew retry | IDX12-01 |
+| 4 | Clear `CS.season`/`CS.squads`/`CS.payouts` in `resetToBlank`, before the seasons query | IDX12-02 |
+| 5 | Move `sideA`/`sideB` into the `.match`/`.sunningdale` cases; fix `defaultTeams`; add a `teeOff()` test per game at its minimum count *(before the first TestFlight, not before the next web deploy)* | IOS-A01 |
+
+### P1 — this cycle
+
+| # | Item | Findings |
+|---|---|---|
+| 6 | **Build D123 whole**: league allowance in `recalc`, engine-matching rounding, `playing_index` on the receipt with the `× 95%` row, league lens on `home_feed`/`round_card` | POST-B-01, IDX10-01, idx05-01, DBE-08 |
+| 7 | Freeze the comeback wolf on the pick; guard the degenerate self-partner. Fix `LiveEngines.swift` in the same change | F01 |
+| 8 | Re-rank inside the Cup Final window (and decide whether the window has one cap or a monthly cap); give `enter_cup_final`'s seed ladder the same treatment | DBE-01 |
+| 9 | Settlement post: champion-absorbs (or print cents) in `close_season` **and** `mark_buy_in` | DBE-03 |
+| 10 | Formation guard: compare roster to squad count, keep the Start gate as is **[S]** | SD-02 |
+| 11 | Delete `starter` from the D119 hero; branch on `stage`; parenthesise the CTA + sub concatenation **[S]** | idx09-01, idx09-02, SD-05 |
+| 12 | `esc(e.name)` in the switcher — or escape inside `row()` | B-02 |
+| 13 | Gate `guest_profile` on a relationship or an exact @handle (or require a `seen_at` stamp before auto-posting) | DB-03 |
+| 14 | Lift `retag_round`'s two guards into `declare_round`; cap `p_course`; extract `_assert_taggable()` | DB-02 |
+| 15 | Drop `||113`; add a `/slope/` branch to `humanError` **[S]** | POST-B-03 |
+| 16 | `holes: (nine ? 9 : 18)` in `scanCtx`, plus the 18-hole-equivalent rating | POST-B-04 |
+| 17 | Null-safe index helper on all ten `Number(...)||18` sites; preflight grep | IDX07-01 |
+| 18 | Sub-6-week leagues: force `points_table` in the payload **and** guard `daily_season_tick` on season length | KIT-04 |
+| 19 | `> -1` in `settle_week_clash` ×3, then `band_name()` as the single SQL producer | DBE-02, DB-07, IDX04-05, KIT-03 |
+| 20 | `shown = false` in `dismiss()`; `z-index:19` on the nudge; `view-post` in `BUSY` **[S]** | IDX11-02, IDX11-03, IDX11-04, SD-04 |
+| 21 | iOS: Close on the wizard cover and the live cover; make `backToSetup` non-destructive; `teeOff` refuses a second round; `day = Date()` in `startOver` | IOS-A02, IOS-A03, IOS-A17, IOS-A04 |
+| 22 | `vsShort` in `renderIndStatsReal` and the career tile, with the `> -1` colour threshold **[S]** | IDX10-03, SD-03 |
+| 23 | `endgameShape(meta)` — one producer for K, seats, cut label and sentence **[S]** | idx03-10, IDX04-01, idx03-02, IDX04-02, IDX04-03, idx03-03 |
+| 24 | Gate hero blocks 1–3 on `leagueStage()` | idx09-03 |
+| 25 | Move the wizard gate below `switchView`'s remaps **[S]** | idx03-01, SD-25 |
+| 26 | `league_pulse`: derive the month from `seasons.timezone` (new migration) | DB-04 |
+| 27 | Gate `close_month` on month/season overlap and `enter_cup_final` on `leagues.phase` **[S]** | DBE-04 |
+| 28 | `courses`: compute `flattenTees` before any write; destructure both `{error}`s *(deadline ≈ 2027-01-16)* | EF-01 |
+| 29 | iOS: rating/slope guard in `PostCalc.preview`; delete `RoundCopy`'s band ladder and forward to `CSBands` | KIT-01, KIT-02 |
+| 30 | Make `tests/app-tests.js` await its async assertions, and add pure-function tests for the session's new producers **[S]** | TT-06, SD-17, SD-18, idx05-13 |
+| 31 | `db-checks` 3: add the `extra` arm, generate the RPC array | TT-05, TT-04 |
+| 32 | `--untracked-files=no` in `deploy-status` and `ship.sh`; non-zero exit when a layer is skipped by refusal | TT-08, TT-09 |
+| 33 | Preflight: flatten the `cp` continuations for check 8; scope check 18's `bridged` per block kind; gate check 20 on the directory | TT-02, TT-03, TT-14 |
+
+### P2 — next cycle (unverified; all reviewer-confidence)
+
+Grouped, not enumerated — see `findings.json` for the full list of 129.
+
+* **One-producer work not yet listed:** the pot split's third producer (SD-08, IDX07-02), the league-stage
+  call sites (IDX11-08, SD-11, idx09-14, idx05-10), the floor sentence's three remaining wordings (SD-13),
+  `totalWeeks` (IDX11-07, KIT-05), and the error-prose marker (idx03-04, idx03-05, idx03-06, SD-14, SD-15).
+* **Silent failures that narrate a fact the code does not know:** `fetchSocial` wiping every reaction
+  before it checks the read (IDX04-04), the season ceremony naming every member as owing (IDX10-06), the
+  squad receipt attributing a whole total to "the ledger" (IDX10-11), the group sheet's "No guests in this
+  round" (F10), the live-round wipe that says "already finished" (IDX07-03), the Tour Card's "keeps their
+  card private" (IDX12-08), `lockedPhase()`'s dropped `{error}` (IDX11-13), and `insertHoles`' swallowed
+  write (KIT-06).
+* **Copy that contradicts the bylaws or the engine:** the bands table promising 7 at −1.0 (IDX02-04,
+  IOS-A08), "best 4 each month" regardless of the cap (IDX02-05), the solo empty state promising a Cup
+  Final (IDX04-09), the D119 stage strings on the phone hero (IOS-A07), and `easeCaps` writing
+  "welcome to The league" (IDX04-08).
+* **Dates and timezones:** the UTC-truncated feed and scorecard dates (idx09-08, idx09-09, IDX10-09),
+  `dgDay`'s elapsed-hours bug (IDX10-05), `#statFinal`'s hardcoded Sunday (F08), `native_home`'s UTC window
+  (DB-05), `declare_round` refusing today after 17:00 (DB-09), and `weather`'s UTC-midnight range check
+  (EF-13).
+* **Cost control and hardening in the functions:** the advisory `courses` cap (EF-03, EF-04), `scan`'s
+  fail-open gates and its reservation accounting (EF-05, EF-06), the unescaped friend-request email
+  (EF-07), the six `authenticated=arwdDxtm` service-role-only tables (EF-08), and `season-email`'s dead
+  duplicate-send guard (EF-09).
+* **Money-adjacent database work:** the untiebroken Points King (DBE-13), the arbitrary hybrid +15 and the
+  `'hybrid'` default D48 retired (DBE-05, DBE-06), `v_rounds_ranked`'s missing join-date gate (DBE-12), the
+  never-closed final month (DBE-11), the pre-insertable `month_closed` sentinel (DBE-09), `assign_player`'s
+  missing league check (DBE-10), and `lock_league`'s ignored `p_season_months` (DBE-14).
+* **Accessibility:** O27 and O28 above, plus the div-with-click rows and the keyboard-blocked marker grid
+  (IDX02-07, IDX11-10, IDX12-06).
+
+### P3 — hygiene, do opportunistically
+
+151 findings. The clusters worth a single dedicated pass: **dead code** (~150 lines, O21), **the 44px
+floor** (eight rules, O28), **the light-theme token contrast** (CSS-08, CSS-06, CSS-10, CSS-09), and
+**comment/decision drift** — three cases where a comment now documents a state that no longer exists
+(idx05-14, IOS-A11, F20) and one where the decision log reads as though a feature shipped to three surfaces
+when it shipped to one (F20 / D126).
+
+---
+
+*Prepared 2026-08-30. Findings, verdicts and slice attributions: `findings.json` (327 entries).*
