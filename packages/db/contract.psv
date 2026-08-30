@@ -19,7 +19,7 @@
 #     from pg_proc p join pg_namespace n on n.oid=p.pronamespace
 #     where n.nspname='public' and p.prokind='f') s;
 #
-# Snapshot taken 2026-08-26; refreshed 2026-08-29 after the D107/D108 push (leagueless live rounds · weekly clash).
+# Snapshot taken 2026-08-26; refreshed 2026-08-29 after the D107/D108 push (leagueless live rounds · weekly clash), and again 2026-08-29 after the D111 push (lock_league).
 # reported it as a deploy owed, which is exactly its job. Lesson kept: after a
 # db push that adds or re-signs a function, refresh this file, or the check
 # keeps reporting a deploy you already made.
@@ -105,6 +105,7 @@ live_round_card|p_live_round uuid|jsonb|definer|auth
 live_set_score|p_live_round uuid, p_player uuid, p_hole integer, p_strokes integer, p_client_ts timestamp with time zone|void|definer|auth
 live_set_wolf|p_live_round uuid, p_hole integer, p_wolf jsonb, p_client_ts timestamp with time zone|void|definer|auth
 live_state|p_live_round uuid|jsonb|definer|auth
+lock_league|p_league uuid, p_name text DEFAULT NULL::text, p_preset text DEFAULT 'standard'::text, p_handicap_allowance integer DEFAULT 95, p_verification text DEFAULT 'attested'::text, p_counting_cap integer DEFAULT 4, p_participation_floor integer DEFAULT 2, p_floor_penalty text DEFAULT 'deduct'::text, p_season_format text DEFAULT 'points'::text, p_structure text DEFAULT 'squads2'::text, p_buyin_cents integer DEFAULT 0, p_season_months integer DEFAULT 6, p_draft_type text DEFAULT 'random'::text, p_finish text DEFAULT 'cup_final'::text, p_payout_champ integer DEFAULT 60, p_payout_runnerup integer DEFAULT 25, p_payout_king integer DEFAULT 15, p_starts_on date DEFAULT NULL::date, p_ends_on date DEFAULT NULL::date|json|definer|auth
 log_growth_event|p_node text, p_kind text DEFAULT NULL::text, p_token text DEFAULT NULL::text, p_props jsonb DEFAULT '{}'::jsonb, p_league uuid DEFAULT NULL::uuid|void|definer|anon,auth
 major_board|p_event uuid|TABLE(player_id uuid, profile_id uuid, display_name text, marker text, exhibition boolean, round_id uuid, gross integer, pvi numeric, cards integer, best_posted_at timestamp with time zone)|definer|none
 major_contender|p_profile uuid|boolean|definer|none
