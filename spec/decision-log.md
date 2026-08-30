@@ -4771,3 +4771,24 @@ each remains reversible on its own line.)*
 - **Benefit:** a rename stops being a silent hazard; the golfer is told what they are agreeing to before they agree to it.
 - **Tradeoffs:** handles are consumed permanently, so a golfer who churns through three names holds four. Acceptable at this scale, and reversible later by adding a release window to a table that already records the dates. The confirmation sheet adds a beat to a rare action, which is the point.
 - **CONFLICT:** none. Completes D151 item 5.
+
+### D160 · The copy says what happens to you, not what the system does — four surfaces rewritten
+*(2026-08-30. UI level (5), copy only, no mechanic. Owner, before the pilot push: "it needs some organic elements… lots of choppy AI language", with four named examples.)*
+- **The pattern being removed, named so it stops coming back:** middot chains standing in for sentences ("Hole-by-hole on every phone · Match Play, Wolf & Skins · … · guests welcome, no account") and aphorisms that name a rule without saying what it means to the reader ("pick once, argue never" · "locks at first tee" · "every season starts level"). Feature lists read as written by the system; a person explains the consequence.
+- **Rewritten, on BOTH clients (the strings live once in `WizardCopy`/`CareerRecord` on the phone):**
+  · The Golf hub's header now says what the page is for: "Play one live, post one you just finished, or plan the next."
+  · The live door: "Everyone scores from their own phone — Match Play, Wolf or Skins — and it settles up at the end. Friends without the app just play; their card is waiting when they want it." (The demo diorama's variant matches.)
+  · The wizard: eyebrow "Create your league — set the rules once, lock them in"; the competitiveness step asks "How serious is your league?" and its help now carries the why: "…Deciding this before anyone tees off is what keeps October friendly." The aside hint explains the lock instead of naming it; "Forming · locks at first tee" → "Forming — the rules aren't locked in yet"; the bylaws hub header → "The bylaws — the rules this league plays by."
+  · The trophy case: "The case is empty — for now. Cups, crowns and event wins hang here when you take them."
+- **Principle served:** D82's "copy must be kept true" and the product canon's plain-spokenness; a label is for the reader, not the schema.
+- **Tradeoffs:** longer lines on three surfaces. Accepted — the middot chains were short because they were lists.
+- **CONFLICT:** none.
+
+### D161 ⚑ · Mid-season joins are ungoverned — D112 is ruled and unbuilt, and the spec's own halfway rule is unbuilt too
+*(2026-08-30, PARKED for the owner's queue. Owner: "why can I add players to Who's the Bitch which is a few weeks into the season?")*
+- **Why it happens, precisely:** neither `join_league` nor `add_friend_to_league` checks league phase at all — verified against the live function bodies. The code path admits into ANY phase; the Pro's add-a-buddy path checks only commissioner + friendship + not-already-member. "Who's the Bitch?" is `phase='season'` (Aug 3 → Nov 2), so both doors are open.
+- **This is two unbuilt things, not one bug:**
+  1. **D112 (ruled 2026-08-29, unbuilt):** join paths must refuse `setup` ("the Pro is still setting the bylaws") and `complete` ("ask the Pro to run it back"). One migration, sentences already written.
+  2. **The mid-season rule the spec already has:** §15 — "Mid-season joins until halfway (provisional scoring; floor prorates)… late joiners assigned to the thinnest squad, logged." So a join a few weeks in is *per spec* — what is missing is the HALFWAY CUTOFF, the floor proration, and the thinnest-squad assignment. None are built; today a late joiner lands ungoverned and un-prorated, which is worse than either allowing or refusing properly.
+- **Decision needed from the owner:** build D112's refusals as ruled, and then either (a) build §15's halfway rule as specced, or (b) simplify: joins close at first tee, full stop (amends §15). (b) is less machinery; (a) is what the spec promises.
+- **CONFLICT if (b) is chosen:** amends spec §15's mid-season-joins sentence — must be logged as such.

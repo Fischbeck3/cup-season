@@ -3092,13 +3092,13 @@ html[data-theme="light"] .room-dusk .btn:not(.dark):not(.gold):not(.apple){color
 
       <!-- ⊕ GOLF (IA P4): golf's three tenses in one door — after, during, before -->
       <section class="view" id="view-record">
-        <div class="eyebrow">Golf · before, during and after the round</div>
+        <div class="eyebrow">Golf — play one live, post one you just finished, or plan the next</div>
         <!-- D110: the live game leads and wears ember (the live metal); posting and
              planning are quiet errand rows. Ember was on POST before — backwards. -->
         <button class="optcard live" id="optLive" style="--acc:var(--brand)" data-go="play">
           <span class="liveword"><i class="livedot"></i>LIVE</span>
           <h4>Play now — score the group</h4>
-          <p>Hole-by-hole on every phone · Match Play, Wolf & Skins · the settle-up at the end · guests welcome, no account</p>
+          <p>Everyone scores from their own phone — Match Play, Wolf or Skins — and it settles up at the end. Friends without the app just play; their card is waiting when they want it.</p>
           <span class="go">→</span>
         </button>
         <button class="optcard" style="--acc:var(--line2)" data-go="post">
@@ -3364,7 +3364,7 @@ html[data-theme="light"] .room-dusk .btn:not(.dark):not(.gold):not(.apple){color
       <section class="view" id="view-wizard">
         <div class="wiz-grid">
         <div class="wiz-main">
-        <div class="eyebrow">Create your league · locks at first tee</div>
+        <div class="eyebrow">Create your league — set the rules once, lock them in</div>
         <div class="wizdots"><i class="on"></i><i></i><i></i></div>
 
         <div class="wizstep on" data-step="0">
@@ -3382,8 +3382,8 @@ html[data-theme="light"] .room-dusk .btn:not(.dark):not(.gold):not(.apple){color
         </div>
 
         <div class="wizstep" data-step="1">
-          <div class="eyebrow" style="margin-top:0">Competitiveness — pick once, argue never <button class="ibtn" data-i="preset" aria-expanded="false" aria-label="About competitiveness presets">i</button></div>
-          <div class="ihelp" id="ih-preset">One pick that bundles the fairness rules: handicap allowance, score verification, and eligible courses. <b>Casual</b> is honor-system beer league, <b>Standard</b> wants GHIN-posted rounds, <b>Cutthroat</b> adds attestation and rated tees. Every individual dial unlocks with Pro Shop.</div>
+          <div class="eyebrow" style="margin-top:0">How serious is your league? <button class="ibtn" data-i="preset" aria-expanded="false" aria-label="About competitiveness presets">i</button></div>
+          <div class="ihelp" id="ih-preset">One pick, made now, that sets the fairness rules for the whole season — handicap allowance, how scores are verified, which courses count. <b>Casual</b> is an honor-system beer league. <b>Standard</b> wants GHIN-posted rounds. <b>Cutthroat</b> wants receipts: attested scores on rated tees. Deciding this before anyone tees off is what keeps October friendly. Every individual dial unlocks with Pro Shop.</div>
           <button class="preset" data-p="0">
             <h4>Casual <span class="ok" aria-hidden="true">✓</span></h4>
             <p class="lead">Honor scores, everything counts</p>
@@ -3482,7 +3482,7 @@ html[data-theme="light"] .room-dusk .btn:not(.dark):not(.gold):not(.apple){color
         <aside class="wiz-aside" aria-label="Your league so far">
           <div class="wiz-aside-h">Your league so far</div>
           <div class="card" id="wizAside"></div>
-          <p class="fine" id="wizAsideHint">Turn the dials — the bylaws fill in here. Everything locks at the first tee.</p>
+          <p class="fine" id="wizAsideHint">Turn the dials and watch the bylaws fill in. When you lock the league, these become the season's rules — set once, so there is nothing to argue about in October.</p>
         </aside>
         </div><!-- /wiz-grid -->
       </section>
@@ -3704,7 +3704,7 @@ html[data-theme="light"] .room-dusk .btn:not(.dark):not(.gold):not(.apple){color
 
         <details class="hubmore league-only" style="margin-bottom:14px">
           <summary style="cursor:pointer; font-family:var(--mono); font-size:12.5px; letter-spacing:.14em; text-transform:uppercase; color:var(--dim); padding:8px 0;">League rules &amp; Pro Shop</summary>
-          <div class="eyebrow" style="margin-top:10px">The bylaws · locked at first tee</div>
+          <div class="eyebrow" style="margin-top:10px">The bylaws — the rules this league plays by</div>
           <div class="card" id="bylawsHub" style="margin-bottom:10px"></div>
           <button class="mini" id="rulesScoreHelp" style="margin-bottom:14px">How scoring &amp; handicaps work →</button>
 
@@ -4461,7 +4461,7 @@ function gateLiveRound(){
   if(state.demo){
     card.classList.remove('soon'); card.disabled=false; card.dataset.go='play';
     if(h) h.textContent="Live round — the group's here";
-    if(p) p.textContent='Hole-by-hole · match play & Wolf · auto-attested · guests welcome, no account needed';
+    if(p) p.textContent='Hole-by-hole with the group — it settles up at the end. Friends without the app just play.';
     if(go) go.textContent='→';
   } else {
     /* D107: the tee sheet is the free door — no league required; every
@@ -12345,7 +12345,7 @@ function renderCareerRecord(){
   const titles = items.length
     ? `<div class="recgrid">${items.map(i=>
         `<div class="rec"><b>${i.n}</b><span>${esc(i.n===1?i.one:i.many)}</span></div>`).join('')}</div>`
-    : `<p class="fine" style="margin:0">No silverware yet — every season starts level.</p>`;
+    : `<p class="fine" style="margin:0">The case is empty — for now. Cups, crowns and event wins hang here when you take them.</p>`;
   const cents = Number(r.earnings_cents||0);
   const done  = Number(r.seasons_done||0);
   /* D39 verbatim posture: a record of what friends settled between themselves.
@@ -13157,7 +13157,7 @@ function wizPortrait(){
         <ellipse cx="50" cy="43" rx="7" ry="2.6" fill="#0A0B0D" stroke="#332018" stroke-width="1.4"/>
         <path d="M53 41V16" stroke="var(--ink)" stroke-width="2" stroke-linecap="round"/><path d="M53 16l14 5-14 5z" fill="var(--gold)"/>
       </svg>
-      <div><b>${esc(name)}</b><small>Forming · locks at first tee</small></div>
+      <div><b>${esc(name)}</b><small>Forming — the rules aren't locked in yet</small></div>
     </div>
     <div class="wizp-row"><span class="k">Squads</span>${dots}<span style="font-family:var(--mono);font-size:10px;color:var(--mut)">${structLine}</span></div>
     <div class="wizp-row"><span class="k">Endgame</span><span class="wizp-chip ${cup?'on':''}">Cup Final</span><span class="wizp-chip ${cup?'':'on'}">Points table</span></div>

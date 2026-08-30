@@ -242,7 +242,7 @@ public struct WizardPortrait: Sendable, Equatable {
     durLabel = LeagueDates.durLabel(d.durWeeks)
   }
 
-  public var sub: String { "Forming · locks at first tee" }
+  public var sub: String { "Forming — the rules aren’t locked in yet" }
   /// "$75 / player · 3 in so far · 60/25/15"
   public var potSub: String { "\(PotMath.dollars(stake)) / player · \(roster) in so far · \(payout.map(String.init).joined(separator: "/"))" }
   /// The split bar widths, proportional (the web's `p*1.36`, min 5 of 150).
@@ -338,7 +338,7 @@ public struct WizardLockPayload: Encodable, Sendable, Equatable {
 // MARK: - Copy the screens print
 
 public enum WizardCopy {
-  public static let eyebrow = "Create your league · locks at first tee"
+  public static let eyebrow = "Create your league — set the rules once, lock them in"
   public static let namePlaceholder = "The Big Slice, The Sunday Cup, Dew Sweepers…"
   public static let nameLabel = "League name"
   public static let proLabel = "Pro — that's you"
@@ -357,8 +357,8 @@ public enum WizardCopy {
   public static let signInFirst = "Sign in to start your league."
 
   // step 1
-  public static let presetEyebrow = "Competitiveness — pick once, argue never"
-  public static let presetHelp = "One pick that bundles the fairness rules: handicap allowance, score verification, and eligible courses. Casual is honor-system beer league, Standard wants GHIN-posted rounds, Cutthroat adds attestation and rated tees. Every individual dial unlocks with Pro Shop."
+  public static let presetEyebrow = "How serious is your league?"
+  public static let presetHelp = "One pick, made now, that sets the fairness rules for the whole season — handicap allowance, how scores are verified, which courses count. Casual is an honor-system beer league. Standard wants GHIN-posted rounds. Cutthroat wants receipts: attested scores on rated tees. Deciding this before anyone tees off is what keeps October friendly. Every individual dial unlocks with Pro Shop."
   public static let fastPath = "Use these defaults →"
   public static let customize = "Customize"
   public static let hideOptions = "Hide options"

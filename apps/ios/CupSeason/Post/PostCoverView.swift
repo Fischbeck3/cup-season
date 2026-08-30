@@ -87,13 +87,13 @@ private struct PostCoverStack: View {
       ScrollView {
         VStack(alignment: .leading, spacing: 0) {
           // the web's cover line, verbatim, as the header's sub (IOS-022 item 4)
-          CSPageHeader("Golf", sub: "Golf · before, during and after the round")
+          CSPageHeader("Golf", sub: "Play one live, post one you just finished, or plan the next")
           // D110: the live game leads and wears ember (the live metal, per the
           // tokens contract); posting and planning are quiet errand rows. Before
           // this, POST wore ember and the live door a squad blue — backwards.
           VStack(spacing: 0) {
             PostLiveHeroRow(title: "Play now — score the group",
-                            sub: "Hole-by-hole on every phone · Match Play, Wolf & Skins · the settle-up at the end · guests welcome, no account") {
+                            sub: "Everyone scores from their own phone — Match Play, Wolf or Skins — and it settles up at the end. Friends without the app just play; their card is waiting when they want it.") {
               close(); links.openLive()
             }
             PostOptionRow(tick: cs.line2, title: "Post a round — after you play",
