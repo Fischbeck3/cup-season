@@ -15,6 +15,9 @@ TAIL="rollback;"
 SQL="begin;
 $(cat ../../../../supabase/migrations/20260830160000_resolve_session_ambiguous_pvi.sql)
 $(cat ../../../../supabase/migrations/20260830170000_shared_cup_trophy_scope.sql)
+$(cat ../../../../supabase/migrations/20260830190000_ryder_dials.sql)
+$(cat ../../../../supabase/migrations/20260830200000_event_teams_rls_and_consent.sql)
+$(cat ../../../../supabase/migrations/20260830210000_ryder_decided_by.sql)
 $(cat 10-sim-schema.sql)
 $(cat 40-sim-ryder.sql)
 select sim.ryder('${SLUG}', \$cfg\$${JSON}\$cfg\$::jsonb) is not null as built;

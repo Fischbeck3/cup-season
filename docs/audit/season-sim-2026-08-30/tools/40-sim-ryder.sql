@@ -77,6 +77,14 @@ begin
                        (c->>'freq')::numeric, coalesce((c->>'trend')::numeric, 0),
                        coalesce(c->>'marker','shark'), (c->>'index')::numeric,
                        c->>'email');
+    -- D148: an organiser may only add a league-mate or a buddy. A standalone
+    -- event has no league, so the cast are the organiser's buddies — which is
+    -- what they would really be. This is the sim obeying the new consent gate,
+    -- not working around it: anyone else has to be invited and accept.
+    insert into public.friendships (requester, addressee, status, responded_at)
+    values (v_org, v_uid, 'accepted', now())
+    on conflict do nothing;
+
     perform sim.as_user(v_org);
     perform public.add_event_player(v_event, v_uid);
     select id into v_pid from public.event_players
@@ -101,13 +109,10 @@ begin
 
   for s in select * from public.event_sessions
             where event_id = v_event order by session_no loop
-    -- run_event_sessions only loops events with status in ('setup','live'), so
-    -- the moment resolve_session clinches the cup the tick stops touching this
-    -- event and every remaining session is left where it stands. Mirror that
-    -- exactly — driving sessions past the clinch would hide what really happens
-    -- to them.
-    exit when (select status from public.events where id = v_event)
-              not in ('setup','live');
+    -- D146: the tick now scans 'complete' too, so a clinched event's remaining
+    -- sessions still open and resolve for the record. resolve_session refuses
+    -- to re-decide a settled event, so the cup cannot move. Before D146 the
+    -- loop exited here and the rest of the calendar was stranded.
 
     -- the tick's first arm: the window has opened and both sides have players
     perform sim.as_user((select profile_id from sim.actors where run_id = v_run and seat = 0));

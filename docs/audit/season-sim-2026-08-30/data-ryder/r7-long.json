@@ -1,17 +1,17 @@
 {
   "slug": "r7-long",
-  "posts": 15,
+  "posts": 17,
   "teams": [
     {
       "name": "Saguaros",
       "slot": 0,
-      "points": 17,
+      "points": 20,
       "players": 4
     },
     {
       "name": "Coyotes",
       "slot": 1,
-      "points": 11,
+      "points": 12,
       "players": 4
     }
   ],
@@ -105,16 +105,19 @@
     },
     {
       "no": 8,
-      "duels": 0,
-      "status": "upcoming",
-      "results": null,
+      "duels": 4,
+      "status": "closed",
+      "results": {
+        "a": 3,
+        "b": 1
+      },
       "opens_on": "2026-08-16",
       "closes_on": "2026-08-22"
     }
   ],
   "trophies": 4,
-  "walkovers": 7,
-  "duels_total": 28,
+  "walkovers": 8,
+  "duels_total": 32,
   "halved_empty": 0,
-  "duels_resolved": 28
+  "duels_resolved": 32
 }

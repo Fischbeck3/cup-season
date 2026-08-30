@@ -1,11 +1,11 @@
 {
   "slug": "r2-lopsided",
-  "posts": 7,
+  "posts": 9,
   "teams": [
     {
       "name": "Saguaros",
       "slot": 0,
-      "points": 11,
+      "points": 15,
       "players": 4
     },
     {
@@ -59,16 +59,18 @@
     },
     {
       "no": 4,
-      "duels": 0,
-      "status": "upcoming",
-      "results": null,
+      "duels": 4,
+      "status": "closed",
+      "results": {
+        "a": 4
+      },
       "opens_on": "2026-08-16",
       "closes_on": "2026-08-22"
     }
   ],
   "trophies": 4,
-  "walkovers": 9,
-  "duels_total": 12,
+  "walkovers": 12,
+  "duels_total": 16,
   "halved_empty": 0,
-  "duels_resolved": 12
+  "duels_resolved": 16
 }
