@@ -1,0 +1,427 @@
+<title>Turning the Phone Sideways</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,400;6..72,500;6..72,600&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+:root{
+  --paper:#F2F5F2; --card:#FFFFFF; --ink:#14201A; --muted:#5A6862; --rule:#DDE4DE;
+  --ember:#C4441A; --gold:#8A6612; --good:#0E7A44; --warn:#A8570B;
+  /* the app's own charcoal, so a mockup is an honest preview and not a sketch */
+  --app-bg:#0E1512; --app-panel:#141C18; --app-ink:#F0F2F3; --app-mut:#8E979E;
+  --app-dim:#5C646B; --app-line:#24352B; --app-brand:#E8622C; --app-gold:#D8B25A;
+  --app-pos:#4EC584; --app-sq0:#57A8FF; --app-sq1:#FB8B4B;
+  --shadow:0 1px 2px rgba(20,32,26,.06), 0 14px 34px -18px rgba(20,32,26,.30);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --paper:#0B100D; --card:#131A16; --ink:#E9EDE9; --muted:#94A099; --rule:#232C27;
+    --ember:#F97316; --gold:#D8B25A; --good:#4ADE80; --warn:#FBBF24;
+    --shadow:0 1px 2px rgba(0,0,0,.5), 0 16px 40px -20px rgba(0,0,0,.8);
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#0B100D; --card:#131A16; --ink:#E9EDE9; --muted:#94A099; --rule:#232C27;
+  --ember:#F97316; --gold:#D8B25A; --good:#4ADE80; --warn:#FBBF24;
+  --shadow:0 1px 2px rgba(0,0,0,.5), 0 16px 40px -20px rgba(0,0,0,.8);
+}
+*{box-sizing:border-box}
+body{margin:0; background:var(--paper); color:var(--ink);
+  font-family:"IBM Plex Sans",-apple-system,BlinkMacSystemFont,sans-serif;
+  font-size:17px; line-height:1.62; -webkit-font-smoothing:antialiased;}
+.wrap{max-width:1000px; margin:0 auto; padding:0 22px 110px}
+h1,h2,h3{font-family:"Newsreader",Georgia,serif; text-wrap:balance; line-height:1.12; margin:0;}
+h1{font-size:clamp(2.4rem,6.2vw,3.7rem); font-weight:500; letter-spacing:-.015em;}
+h2{font-size:clamp(1.5rem,3.4vw,2rem); font-weight:500; margin:0 0 4px;}
+h3{font-size:1.1rem; font-weight:600; margin:0 0 6px; font-family:"IBM Plex Sans",sans-serif;}
+p{margin:0 0 15px}
+.eyebrow{font-family:"IBM Plex Mono",monospace; font-size:.7rem; letter-spacing:.16em;
+  text-transform:uppercase; color:var(--muted); margin:0 0 12px;}
+header{padding:72px 0 6px; border-bottom:1px solid var(--rule); margin-bottom:34px;}
+header .sub{font-size:1.14rem; color:var(--muted); max-width:64ch; margin:18px 0 26px;}
+.facts{display:flex; flex-wrap:wrap; gap:6px 26px; font-family:"IBM Plex Mono",monospace;
+  font-size:.75rem; color:var(--muted); padding-bottom:26px;}
+.facts b{color:var(--ink); font-weight:500}
+
+.callout{border-left:2px solid var(--ember); background:color-mix(in srgb,var(--ember) 6%,transparent);
+  padding:14px 18px; border-radius:0 9px 9px 0; margin:24px 0;}
+.callout p{margin:0; font-size:.97rem}
+
+/* ---- option blocks ---- */
+.opt{margin:52px 0 0; padding:26px 0 0; border-top:1px solid var(--rule);}
+.opt-head{display:flex; align-items:baseline; gap:14px; flex-wrap:wrap; margin-bottom:6px;}
+.tag{font-family:"IBM Plex Mono",monospace; font-size:.68rem; letter-spacing:.14em;
+  text-transform:uppercase; padding:3px 9px; border-radius:5px; border:1px solid currentColor; font-weight:500;}
+.tag.rec{color:var(--good)} .tag.cheap{color:var(--gold)} .tag.no{color:var(--muted)}
+.opt .lede{color:var(--muted); max-width:66ch; margin-bottom:22px;}
+
+/* ---- the phone ---- */
+.phone{background:#000; border-radius:26px; padding:9px; box-shadow:var(--shadow);
+  width:100%; max-width:860px; margin:0 auto;}
+.screen{background:var(--app-bg); border-radius:18px; overflow:hidden;
+  aspect-ratio:844/390; display:flex; flex-direction:column;
+  font-family:"IBM Plex Sans",sans-serif; color:var(--app-ink); position:relative;}
+.cap{font-family:"IBM Plex Mono",monospace; font-size:.7rem; color:var(--muted);
+  text-align:center; margin:10px auto 0; max-width:70ch; line-height:1.5;}
+
+/* app chrome bits */
+.sb{display:flex; align-items:center; gap:10px; padding:7px 12px;
+  border-bottom:.5px solid var(--app-line); background:var(--app-panel); flex:none;}
+.sb .hero{font-family:"IBM Plex Mono",monospace; font-size:.62rem; letter-spacing:.1em;
+  color:var(--app-gold); font-weight:600;}
+.sb .sub{font-family:"IBM Plex Mono",monospace; font-size:.55rem; color:var(--app-dim);
+  letter-spacing:.08em; margin-left:auto;}
+
+/* option A — the card grid */
+.grid18{flex:1; overflow:hidden; padding:8px 10px;}
+table.card18{width:100%; border-collapse:collapse; font-family:"IBM Plex Mono",monospace;}
+table.card18 th, table.card18 td{padding:2.5px 0; text-align:center; font-size:.56rem;
+  border-bottom:.5px solid rgba(36,53,43,.7);}
+table.card18 th{color:var(--app-dim); font-weight:500; letter-spacing:.04em;}
+table.card18 td.nm{text-align:left; color:var(--app-ink); font-family:"IBM Plex Sans",sans-serif;
+  font-size:.6rem; font-weight:600; white-space:nowrap; padding-right:6px; width:74px;}
+table.card18 td.tot{color:var(--app-gold); font-weight:600; font-size:.6rem;}
+table.card18 td.par{color:var(--app-dim);}
+.bird{color:var(--app-pos); font-weight:600;}
+.bogey{color:var(--app-mut);}
+.sw{width:6px; height:6px; border-radius:2px; display:inline-block; margin-right:4px;}
+/* the view toggle, sitting in the scoreboard where the round's chrome lives */
+.vtog{display:flex; margin-left:auto; border:.5px solid var(--app-line); border-radius:6px; overflow:hidden;}
+.vtog span{font-family:"IBM Plex Mono",monospace; font-size:.5rem; letter-spacing:.1em;
+  padding:3px 8px; color:var(--app-dim);}
+.vtog span.on{background:var(--app-brand); color:#0E1512; font-weight:600;}
+/* the hole ledger, drawn exactly as the settlement card draws it:
+   filled = that side took the hole, hollow = halved or carried */
+td.led{padding:0 1px;}
+td.led i{display:block; height:9px; border-radius:2px; border:1px solid rgba(255,255,255,.34);}
+td.led i.win{background:var(--app-brand); border-color:var(--app-brand);}
+td.led i.them{background:var(--app-dim); border-color:var(--app-dim);}
+td.led i.none{opacity:.3}
+tr.ledrow td{border-bottom:none; padding-top:4px;}
+tr.ledrow td.nm{color:var(--app-dim); font-family:"IBM Plex Mono",monospace; font-size:.48rem;
+  letter-spacing:.06em; font-weight:500;}
+td.si{color:var(--app-dim); font-size:.5rem;}
+
+/* option B — two-up */
+.twoup{flex:1; display:grid; grid-template-columns:1.35fr 1fr; gap:0; overflow:hidden;}
+.twoup .L{padding:8px 10px; border-right:.5px solid var(--app-line); overflow:hidden;}
+.twoup .R{padding:8px 10px; overflow:hidden;}
+.holehdr{display:flex; align-items:center; justify-content:center; gap:12px; margin-bottom:6px;}
+.holehdr .n{font-family:"IBM Plex Mono",monospace; font-size:.72rem; font-weight:600; letter-spacing:.08em;}
+.holehdr .m{font-family:"IBM Plex Mono",monospace; font-size:.52rem; color:var(--app-dim); letter-spacing:.06em;}
+.holehdr .arrow{width:17px; height:17px; border-radius:5px; border:.5px solid var(--app-line);
+  display:grid; place-items:center; color:var(--app-mut); font-size:.6rem;}
+.prow{display:flex; align-items:center; gap:7px; padding:4px 0; border-bottom:.5px solid rgba(36,53,43,.6);}
+.prow .nm{flex:1; min-width:0}
+.prow .nm b{display:block; font-size:.63rem; font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+.prow .nm small{display:block; font-family:"IBM Plex Mono",monospace; font-size:.47rem; color:var(--app-dim); letter-spacing:.05em;}
+.prow .tot{font-family:"IBM Plex Mono",monospace; font-size:.5rem; color:var(--app-mut); text-align:right; line-height:1.3;}
+.step{display:flex; align-items:center; gap:5px;}
+.step b{width:20px; height:20px; border-radius:6px; border:.5px solid var(--app-line);
+  display:grid; place-items:center; color:var(--app-mut); font-size:.66rem; font-weight:400;}
+.step .v{font-family:"IBM Plex Mono",monospace; font-size:.82rem; font-weight:600; width:16px; text-align:center;}
+.gcard{border:.5px solid var(--app-line); border-left:2px solid var(--app-sq0); border-radius:7px;
+  padding:5px 8px; margin-bottom:5px; background:rgba(20,28,24,.6);}
+.gcard.g{border-left-color:var(--app-gold)} .gcard.b{border-left-color:var(--app-brand)}
+.gcard .k{font-size:.5rem; color:var(--app-dim); letter-spacing:.04em;}
+.gcard .s{font-family:"IBM Plex Mono",monospace; font-size:.66rem; font-weight:600; letter-spacing:.06em;}
+
+/* option C — wide hole */
+.wide{flex:1; display:flex; flex-direction:column; padding:8px 10px; overflow:hidden;}
+.cols{display:grid; grid-template-columns:repeat(4,1fr); gap:8px; flex:1;}
+.pcol{border:.5px solid var(--app-line); border-radius:9px; padding:7px 6px;
+  display:flex; flex-direction:column; align-items:center; gap:5px; background:rgba(20,28,24,.55);}
+.pcol .nm{font-size:.62rem; font-weight:600; white-space:nowrap;}
+.pcol .sub{font-family:"IBM Plex Mono",monospace; font-size:.46rem; color:var(--app-dim); letter-spacing:.04em;}
+.pcol .big{font-family:"IBM Plex Mono",monospace; font-size:1.5rem; font-weight:600; line-height:1;}
+.pcol .pm{display:flex; gap:6px;}
+.pcol .pm span{width:26px; height:22px; border-radius:6px; border:.5px solid var(--app-line);
+  display:grid; place-items:center; color:var(--app-mut); font-size:.8rem;}
+.strip{display:flex; gap:6px; margin-top:7px; flex:none;}
+.strip div{flex:1; border:.5px solid var(--app-line); border-radius:6px; padding:3px 6px;
+  font-family:"IBM Plex Mono",monospace; font-size:.5rem; color:var(--app-mut); text-align:center;}
+
+/* pro/con */
+.pc{display:grid; gap:16px; margin-top:22px;}
+@media(min-width:700px){.pc{grid-template-columns:1fr 1fr}}
+.pc div{background:var(--card); border:1px solid var(--rule); border-radius:11px; padding:16px 18px;}
+.pc h3{font-size:.72rem; font-family:"IBM Plex Mono",monospace; letter-spacing:.14em;
+  text-transform:uppercase; color:var(--muted); margin-bottom:9px;}
+.pc ul{margin:0; padding-left:18px} .pc li{margin-bottom:7px; font-size:.94rem}
+.pc .yes{color:var(--good)} .pc .no{color:var(--warn)}
+
+table.cmp{width:100%; border-collapse:collapse; font-size:.9rem; margin:18px 0 0;}
+table.cmp th, table.cmp td{padding:11px 12px; border-bottom:1px solid var(--rule); text-align:left;}
+table.cmp thead th{font-family:"IBM Plex Mono",monospace; font-size:.65rem; letter-spacing:.1em;
+  text-transform:uppercase; color:var(--muted); font-weight:500;}
+table.cmp td:not(:first-child){text-align:center; font-family:"IBM Plex Mono",monospace; font-size:.82rem;}
+.tablewrap{overflow-x:auto; border:1px solid var(--rule); border-radius:11px; background:var(--card); margin-top:20px;}
+code{font-family:"IBM Plex Mono",monospace; font-size:.86em; background:var(--rule); padding:1px 5px; border-radius:4px;}
+hr{border:none; border-top:1px solid var(--rule); margin:48px 0;}
+.foot{color:var(--muted); font-size:.9rem}
+</style>
+
+<div class="wrap">
+
+<header>
+  <p class="eyebrow">Cup Season · design options · 30 August 2026</p>
+  <h1>Turning the phone sideways.</h1>
+  <p class="sub">Live scoring is the one screen in Cup Season whose natural shape is wider than
+  it is tall. Drawn at a real phone's landscape proportions, in the app's own charcoal — so
+  what you are looking at is a preview, not a sketch. <b>Decided:</b> rotate into <b>B</b>, with
+  a toggle to <b>A</b> for the whole round — including where the points were won.</p>
+  <div class="facts">
+    <span><b>844×390</b> the canvas</span>
+    <span><b>0</b> landscape rules today</span>
+    <span><b>portrait-locked</b> on iOS</span>
+    <span><b>92.6%</b> of cached holes carry a stroke index</span>
+    <span><b>D78</b> already keeps the hole ledger</span>
+  </div>
+</header>
+
+<h2>What's true right now</h2>
+<p>Nothing supports landscape. There is not a single <code>orientation: landscape</code> rule in
+the client, and iOS pins the app to portrait in two places in <code>project.yml</code>. So this
+is a green field — but there is one trap worth knowing before choosing.</p>
+
+<div class="callout"><p><b>The two-column layout you already own doesn't fire on a phone.</b>
+<code>.playgrid</code> becomes two columns at <code>min-width:960px</code>. A phone in landscape is
+844–932px wide. So if rotation were simply allowed today, you would get the <em>stacked</em>
+portrait layout crushed into a 390px-tall window — the worst of both. Any option below has to
+move that breakpoint.</p></div>
+
+<div class="callout" style="border-left-color:var(--good); background:color-mix(in srgb,var(--good) 6%,transparent)">
+<p><b>Two things already exist that make this cheaper than it looks.</b><br>
+<b>The hole ledger.</b> D78 made every game engine keep <code>cells</code> — who took each hole —
+with a comment saying the engines "already decide who took each hole and then throw it away."
+Match play returns <code>'a'/'b'/'h'</code>, skins returns the winner or <code>'c'</code> for a carry.
+Where the points were won needs <em>no new maths</em>, and no second source of truth.<br>
+<b>The stroke index.</b> <code>api_course_holes.handicap</code> is cached for <b>5,652 of 6,102</b>
+holes across 341 tees — 92.6%. The client already loads it into <code>SI_LOADED</code> and sets
+<code>SIEST=true</code> when it has to guess, so the card can show SI <em>and</em> be honest about
+when it is estimated.</p></div>
+
+<p>It also matters that live scoring is <b>hole-by-hole</b>, not a grid: a hole header with
+arrows, then one row per player with a −/+ stepper. That already suits a tall screen. So the
+question is not "how do we fit this sideways" — it is <b>what does turning the phone earn you
+that portrait cannot give.</b></p>
+
+<!-- ============ OPTION A ============ -->
+<div class="opt">
+  <div class="opt-head"><h2>A · The card</h2><span class="tag rec">Toggle to this</span></div>
+  <p class="lede">Rotating shows the whole scorecard — every player, all eighteen holes, the way
+  the paper card in your back pocket works. Portrait stays the place you <em>enter</em> a score;
+  landscape becomes the place you <em>read</em> the round.</p>
+
+  <div class="phone"><div class="screen">
+    <div class="sb"><span class="hero">MATCH · 2 UP THRU 14</span>
+      <span class="sub">ENCANTO GC — BLUE · 70.2/123</span>
+      <span class="vtog"><span>HOLE</span><span class="on">CARD</span></span></div>
+    <div class="grid18">
+      <table class="card18">
+        <thead><tr><th></th>
+          <th>1</th><th>2</th><th>3</th><th>4</th><th>5</th><th>6</th><th>7</th><th>8</th><th>9</th>
+          <th style="color:var(--app-gold)">OUT</th>
+          <th>10</th><th>11</th><th>12</th><th>13</th><th>14</th><th>15</th><th>16</th><th>17</th><th>18</th>
+          <th style="color:var(--app-gold)">IN</th><th style="color:var(--app-gold)">TOT</th></tr></thead>
+        <tbody>
+          <tr><td class="nm si">SI</td>
+            <td class="si">5</td><td class="si">11</td><td class="si">17</td><td class="si">1</td><td class="si">7</td><td class="si">13</td><td class="si">15</td><td class="si">3</td><td class="si">9</td><td class="si">—</td>
+            <td class="si">6</td><td class="si">18</td><td class="si">12</td><td class="si">2</td><td class="si">8</td><td class="si">14</td><td class="si">16</td><td class="si">4</td><td class="si">10</td><td class="si">—</td><td class="si">—</td></tr>
+          <tr><td class="nm par">PAR</td>
+            <td class="par">4</td><td class="par">4</td><td class="par">3</td><td class="par">5</td><td class="par">4</td><td class="par">4</td><td class="par">3</td><td class="par">4</td><td class="par">5</td><td class="par">36</td>
+            <td class="par">4</td><td class="par">3</td><td class="par">4</td><td class="par">5</td><td class="par">4</td><td class="par">4</td><td class="par">3</td><td class="par">4</td><td class="par">5</td><td class="par">36</td><td class="par">72</td></tr>
+          <tr><td class="nm"><span class="sw" style="background:var(--app-sq0)"></span>You</td>
+            <td>4</td><td class="bird">3</td><td>3</td><td>5</td><td>4</td><td class="bogey">5</td><td>3</td><td>4</td><td>5</td><td class="tot">36</td>
+            <td>4</td><td>3</td><td class="bird">3</td><td>5</td><td>4</td><td>–</td><td>–</td><td>–</td><td>–</td><td class="tot">19</td><td class="tot">55</td></tr>
+          <tr><td class="nm"><span class="sw" style="background:var(--app-sq1)"></span>Danny</td>
+            <td>5</td><td>4</td><td>3</td><td class="bogey">6</td><td>4</td><td>4</td><td class="bird">2</td><td>4</td><td>5</td><td class="tot">37</td>
+            <td>4</td><td>3</td><td>4</td><td class="bogey">6</td><td>4</td><td>–</td><td>–</td><td>–</td><td>–</td><td class="tot">21</td><td class="tot">58</td></tr>
+          <tr><td class="nm"><span class="sw" style="background:var(--app-gold)"></span>Chuck</td>
+            <td>4</td><td>4</td><td class="bogey">4</td><td>5</td><td class="bird">3</td><td>4</td><td>3</td><td>4</td><td>5</td><td class="tot">36</td>
+            <td>4</td><td>3</td><td>4</td><td>5</td><td class="bogey">5</td><td>–</td><td>–</td><td>–</td><td>–</td><td class="tot">21</td><td class="tot">57</td></tr>
+          <tr><td class="nm"><span class="sw" style="background:var(--app-dim)"></span>Gary <span style="color:var(--app-dim);font-size:.5rem">GUEST</span></td>
+            <td>5</td><td>5</td><td>3</td><td>5</td><td>4</td><td>4</td><td>4</td><td class="bogey">5</td><td>5</td><td class="tot">40</td>
+            <td>4</td><td>4</td><td>4</td><td>5</td><td>4</td><td>–</td><td>–</td><td>–</td><td>–</td><td class="tot">21</td><td class="tot">61</td></tr>
+          <tr class="ledrow"><td class="nm">MATCH</td>
+            <td class="led"><i class="win"></i></td><td class="led"><i class="none"></i></td><td class="led"><i class="them"></i></td><td class="led"><i class="win"></i></td><td class="led"><i class="none"></i></td><td class="led"><i class="them"></i></td><td class="led"><i class="win"></i></td><td class="led"><i class="none"></i></td><td class="led"><i class="win"></i></td><td class="led"></td>
+            <td class="led"><i class="win"></i></td><td class="led"><i class="none"></i></td><td class="led"><i class="win"></i></td><td class="led"><i class="them"></i></td><td class="led"><i class="win"></i></td><td class="led"><i class="none" style="opacity:.14"></i></td><td class="led"><i class="none" style="opacity:.14"></i></td><td class="led"><i class="none" style="opacity:.14"></i></td><td class="led"><i class="none" style="opacity:.14"></i></td><td class="led"></td><td class="led"></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div></div>
+  <p class="cap">Landscape = the card. Birdies green, bogeys grey, OUT/IN/TOT in gold, stroke
+  index above the pars. The bottom strip is <b>where the points were won</b> — ember you, grey
+  them, hollow halved — drawn from the ledger D78 already keeps, in the same language the
+  settlement card uses.</p>
+
+  <div class="pc">
+    <div><h3>Why</h3><ul>
+      <li><span class="yes">✓</span> It is the only option that shows you something portrait <em>cannot</em>. Rotating earns information, which is the only honest reason to rotate.</li>
+      <li><span class="yes">✓</span> It is the mental model golfers already have: the card lives sideways in your pocket.</li>
+      <li><span class="yes">✓</span> Read-only sidesteps the 390px height problem entirely — no tap targets to protect.</li>
+      <li><span class="yes">✓</span> Answers "how is everyone doing" in one glance, which is the question a foursome actually asks.</li>
+    </ul></div>
+    <div><h3>Cost</h3><ul>
+      <li><span class="no">!</span> A second scoring surface to build, and one more thing that can disagree with the first.</li>
+      <li><span class="no">!</span> Wants the dormant D34 grid brought back, or something close to it.</li>
+      <li><span class="no">!</span> Nine-hole rounds need their own column set.</li>
+    </ul></div>
+  </div>
+</div>
+
+<!-- ============ OPTION B ============ -->
+<div class="opt">
+  <div class="opt-head"><h2>B · Two-up</h2><span class="tag rec">Rotate into this</span></div>
+  <p class="lede">Move the <code>.playgrid</code> breakpoint down and let the layout you already
+  built engage on a landscape phone: hole entry on the left, the side games on the right instead
+  of buried below the fold.</p>
+
+  <div class="phone"><div class="screen">
+    <div class="sb"><span class="hero">MATCH · 2 UP THRU 14</span>
+      <span class="sub">HOLE 15 · PAR 4 · SI 5</span>
+      <span class="vtog"><span class="on">HOLE</span><span>CARD</span></span></div>
+    <div class="twoup">
+      <div class="L">
+        <div class="holehdr"><span class="arrow">←</span>
+          <div style="text-align:center"><div class="n">HOLE 15</div><div class="m">PAR 4 · SI 5</div></div>
+          <span class="arrow">→</span></div>
+        <div class="prow"><span class="sw" style="background:var(--app-sq0)"></span>
+          <div class="nm"><b>You</b><small>8.4 IDX · 6 STK</small></div>
+          <div class="tot">55 THRU 14<br>+3</div>
+          <div class="step"><b>−</b><span class="v">4</span><b>+</b></div></div>
+        <div class="prow"><span class="sw" style="background:var(--app-sq1)"></span>
+          <div class="nm"><b>Danny</b><small>12.1 IDX · 9 STK</small></div>
+          <div class="tot">58 THRU 14<br>+6</div>
+          <div class="step"><b>−</b><span class="v">5</span><b>+</b></div></div>
+        <div class="prow"><span class="sw" style="background:var(--app-gold)"></span>
+          <div class="nm"><b>Chuck</b><small>6.2 IDX · 4 STK</small></div>
+          <div class="tot">57 THRU 14<br>+5</div>
+          <div class="step"><b>−</b><span class="v">4</span><b>+</b></div></div>
+        <div class="prow" style="border:none"><span class="sw" style="background:var(--app-dim)"></span>
+          <div class="nm"><b>Gary</b><small>SELF 18.0 IDX · 14 STK</small></div>
+          <div class="tot">61 THRU 14<br>+9</div>
+          <div class="step"><b>−</b><span class="v">5</span><b>+</b></div></div>
+      </div>
+      <div class="R">
+        <div class="gcard"><div class="k">Match play · net best ball</div><div class="s">YOU +DANNY 2 UP</div></div>
+        <div class="gcard g"><div class="k">Wolf</div><div class="s">CHUCK IS THE WOLF</div></div>
+        <div class="gcard g"><div class="k">Skins · ties carry</div><div class="s">HOLE 15 WORTH 3</div></div>
+        <div class="gcard b"><div class="k">Settlement · live</div><div class="s">YOU +$14</div></div>
+      </div>
+    </div>
+  </div></div>
+  <p class="cap">The desktop layout, unlocked one breakpoint lower. Nothing new is drawn — the
+  side games simply stop being a scroll away.</p>
+
+  <div class="pc">
+    <div><h3>Why</h3><ul>
+      <li><span class="yes">✓</span> Cheapest by a distance — one media query and the rotation lock. The layout already exists and is already tested.</li>
+      <li><span class="yes">✓</span> Side games become glanceable, which is where the money and the arguing live.</li>
+      <li><span class="yes">✓</span> Zero new surfaces to keep in sync.</li>
+    </ul></div>
+    <div><h3>Cost</h3><ul>
+      <li><span class="no">!</span> 390px of height is not much once the sticky scoreboard and hole header take their cut — four player rows fit, but only just.</li>
+      <li><span class="no">!</span> You still only see one hole. Rotating gains convenience, not knowledge.</li>
+      <li><span class="no">!</span> A desktop layout squeezed onto a phone tends to feel like exactly that.</li>
+    </ul></div>
+  </div>
+</div>
+
+<!-- ============ OPTION C ============ -->
+<div class="opt">
+  <div class="opt-head"><h2>C · Wide hole</h2><span class="tag no">Declined</span></div>
+  <p class="lede">One hole, but the players become columns across the width, with big steppers
+  sized for a hand on a green in the sun. Side games compress to a strip along the bottom.</p>
+
+  <div class="phone"><div class="screen">
+    <div class="sb"><span class="hero">HOLE 15 · PAR 4 · SI 5</span><span class="sub">MATCH · 2 UP THRU 14</span></div>
+    <div class="wide">
+      <div class="cols">
+        <div class="pcol"><div class="nm">You</div><div class="sub">8.4 IDX · 6 STK</div>
+          <div class="big">4</div><div class="pm"><span>−</span><span>+</span></div>
+          <div class="sub">55 THRU 14 · +3</div></div>
+        <div class="pcol"><div class="nm">Danny</div><div class="sub">12.1 IDX · 9 STK</div>
+          <div class="big">5</div><div class="pm"><span>−</span><span>+</span></div>
+          <div class="sub">58 THRU 14 · +6</div></div>
+        <div class="pcol"><div class="nm">Chuck</div><div class="sub">6.2 IDX · 4 STK</div>
+          <div class="big">4</div><div class="pm"><span>−</span><span>+</span></div>
+          <div class="sub">57 THRU 14 · +5</div></div>
+        <div class="pcol"><div class="nm">Gary</div><div class="sub">SELF 18.0 · 14 STK</div>
+          <div class="big">5</div><div class="pm"><span>−</span><span>+</span></div>
+          <div class="sub">61 THRU 14 · +9</div></div>
+      </div>
+      <div class="strip"><div>MATCH · YOU +DANNY 2 UP</div><div>WOLF · CHUCK</div><div>SKINS · 3 CARRIED</div><div>SETTLE · YOU +$14</div></div>
+    </div>
+  </div></div>
+  <p class="cap">Biggest tap targets of the three. But the screen says exactly what the portrait
+  screen says.</p>
+
+  <div class="pc">
+    <div><h3>Why</h3><ul>
+      <li><span class="yes">✓</span> Best ergonomics for the actual moment — four scores, gloved hands, bright sun.</li>
+      <li><span class="yes">✓</span> Reads as designed-for-landscape rather than adapted.</li>
+    </ul></div>
+    <div><h3>Cost</h3><ul>
+      <li><span class="no">!</span> It is a rearrangement, not a gain. Nothing here is unavailable in portrait, so nobody has a reason to turn the phone.</li>
+      <li><span class="no">!</span> A third scoring layout to maintain alongside portrait and whatever else ships.</li>
+      <li><span class="no">!</span> Falls apart at two players or five.</li>
+    </ul></div>
+  </div>
+</div>
+
+<hr>
+
+<h2>Side by side</h2>
+<div class="tablewrap">
+<table class="cmp">
+  <thead><tr><th>&nbsp;</th><th>A · The card</th><th>B · Two-up</th><th>C · Wide hole</th></tr></thead>
+  <tbody>
+    <tr><td>Shows something portrait can't</td><td class="yes">yes</td><td>no</td><td>no</td></tr>
+    <tr><td>New surface to maintain</td><td>one</td><td class="yes">none</td><td>one</td></tr>
+    <tr><td>Survives a 390px-tall window</td><td class="yes">easily</td><td>tightly</td><td>tightly</td></tr>
+    <tr><td>Works at 2 or 5 players</td><td class="yes">yes</td><td class="yes">yes</td><td>no</td></tr>
+    <tr><td>Needs the D34 grid revived</td><td>yes</td><td class="yes">no</td><td class="yes">no</td></tr>
+    <tr><td>Rough build size</td><td>medium</td><td class="yes">small</td><td>medium</td></tr>
+  </tbody>
+</table>
+</div>
+
+<h2 style="margin-top:44px">The decision</h2>
+<p><b>Rotate into B. Toggle to A.</b> They stop being rivals the moment they share a screen:
+turning the phone gives you the hole you are standing on <em>plus</em> the side games that were
+buried below the fold, and one tap on <code>HOLE / CARD</code> opens the whole round — where
+everybody stands and, when a game is on, which holes paid.</p>
+
+<p>Three things make this cheaper than it first looked, and all three already exist:</p>
+<ul>
+  <li><b>The layout.</b> B is one media query — <code>.playgrid</code> moving from 960px down to
+  around 740 so it engages on a landscape phone instead of just a laptop.</li>
+  <li><b>The ledger.</b> D78 already has every engine keep <code>cells</code> — who took each
+  hole — precisely so a view like this never has to re-derive it. Match play hands back
+  <code>'a'/'b'/'h'</code>; skins hands back the winner or a carry. "Where the points were won"
+  is a render, not a calculation.</li>
+  <li><b>The visual language.</b> The filled/hollow strip is already how the settlement card and
+  the in-app hole strip say this. A reuses it rather than inventing a second grammar for the
+  same fact.</li>
+</ul>
+
+<p>The stroke index rides along because it is already there — <code>api_course_holes.handicap</code>
+is cached for 92.6% of holes, and the client already knows the difference between a real SI and
+one it estimated (<code>SIEST</code>). The card shows it, and says when it is a guess rather than
+quietly printing a number as fact.</p>
+
+<div class="callout"><p><b>Scope: live rounds only.</b> Every other screen is designed
+portrait-first, and unlocking rotation app-wide means auditing the wizard, every sheet and every
+hero card for a feature nobody asked for there. On iOS that is one view overriding its
+orientation rather than removing the portrait lock from <code>project.yml</code>.</p></div>
+
+<div class="callout" style="border-left-color:var(--gold); background:color-mix(in srgb,var(--gold) 7%,transparent)">
+<p><b>One thing the card cannot honestly show.</b> Season points are scored per <em>round</em>,
+not per hole — the bands read a whole round's differential against your index. So the strip
+marks where the <em>side game</em> paid: match holes, skins, wolf. On a "just score" round there
+is no strip, because nothing was won hole by hole and drawing one would invent a competition
+that is not being played.</p></div>
+
+<p class="foot" style="margin-top:34px">Mockups are live HTML at 844×390, the app's own tokens
+and type. They are honest about proportion and density; they are not pixel-for-pixel the
+shipped components.</p>
+
+</div>

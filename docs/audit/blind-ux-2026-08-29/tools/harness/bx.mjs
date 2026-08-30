@@ -130,6 +130,15 @@ async function daemon(session, desktop) {
     switch (cmd) {
       case 'ping': return 'pong';
       case 'goto': { await page.goto(args[0], { waitUntil: 'load', timeout: 20000 }); await settle(); return 'ok ' + page.url(); }
+      /* viewport WxH — landscape phone previews (D152). 844x390 is an iPhone
+         15 Pro on its side; the app's landscape rules key off width. */
+      case 'viewport': {
+        const [w, h] = String(args[0] || '').split('x').map(Number);
+        if (!w || !h) return 'ERR: viewport WxH (e.g. 844x390)';
+        await page.setViewportSize({ width: w, height: h });
+        await settle(400);
+        return 'ok ' + w + 'x' + h;
+      }
       case 'url': return page.url();
       case 'back': { await page.goBack({ timeout: 10000 }).catch(() => { }); await settle(600); return 'ok ' + page.url(); }
       case 'wait': { await settle(Number(args[0]) || 500); return 'ok'; }

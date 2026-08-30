@@ -680,9 +680,64 @@ img.face{border-radius:50%; object-fit:cover; vertical-align:-4px; border:1px so
 
 /* ============ live round (play) ============ */
 .playgrid{display:block;}
-@media(min-width:960px){
+/* D152 · 960 was a laptop breakpoint. A phone in landscape is 844-932px wide, so
+   rotating gave you the STACKED layout crushed into a 390px-tall window — worse
+   than not rotating at all. At 740 the two-up engages on a landscape phone and
+   on a portrait tablet, and still cannot fire on a phone held upright (390-430). */
+@media(min-width:740px){
   .playgrid{display:grid; grid-template-columns:minmax(0,1.35fr) minmax(0,1fr); gap:22px; align-items:start;}
 }
+/* D152 · the card view. Read-only by design: nothing here needs to be
+   thumb-sized, which is what makes an 18-column grid honest in 390px of height.
+   Below 740 the toggle is not offered at all — eighteen columns cannot be read
+   on a phone held upright, and a control that leads somewhere useless is worse
+   than no control. */
+#holeCard{display:none;}
+body.cardview #holeCard{display:block; padding-bottom:76px;}
+body.cardview #playEntry{display:none;}
+/* D152 · 390px of height is not much, and the scoreboard was taking more than
+   half of it. In CARD view the player chips and the sub-line are literally
+   restated by the table underneath — every score, every total, hole by hole —
+   so they stand down and the hero keeps the game state. Measured on a real
+   844x390 render: this is the difference between four visible player rows and
+   one. */
+body.cardview .sb-chips, body.cardview .sb-sub{display:none;}
+body.cardview .scoreboard{padding-top:6px; padding-bottom:6px;}
+/* the centre action is "post a round" — meaningless while reading a card mid
+   round, and it lands squarely on the OUT column. */
+body.cardview nav.tabbar .tab[data-v="record"]{visibility:hidden;}
+/* the app header is ~150px of a 390px landscape screen — more than a third,
+   spent on a wordmark you are not looking for while reading a scorecard. Guest
+   live already sets this precedent (body.guestlive hides the header and the
+   tab bar); the card takes the header only, so the tab bar still gets you out
+   and the HOLE toggle is always one tap away in the scoreboard. Portrait is
+   untouched: the rule is scoped to the width where the card can exist at all. */
+@media(min-width:740px){
+  body.cardview header.hdr{display:none;}
+  body.cardview .backlink{display:none;}
+}
+.vtog{display:none; margin-left:auto; border:.5px solid var(--line); border-radius:7px; overflow:hidden;}
+@media(min-width:740px){ .vtog{display:flex;} }
+.vtog button{font-family:var(--mono); font-size:9.5px; letter-spacing:.1em; padding:4px 9px;
+  color:var(--dim); background:none; border:0; cursor:pointer;}
+.vtog button.on{background:var(--brand); color:#0E1512; font-weight:600;}
+.cardwrap{overflow-x:auto; -webkit-overflow-scrolling:touch;}
+table.hcard{width:100%; border-collapse:collapse; font-family:var(--mono); min-width:600px;}
+table.hcard th, table.hcard td{padding:4px 0; text-align:center; font-size:11px;
+  border-bottom:.5px solid var(--line); white-space:nowrap;}
+table.hcard th{color:var(--dim); font-weight:500; letter-spacing:.04em; font-size:10px;}
+table.hcard th.brk, table.hcard td.brk{color:var(--gold);}
+table.hcard td.nm{text-align:left; font-family:var(--sans); font-size:12px; font-weight:600;
+  padding-right:8px; color:var(--ink);}
+table.hcard td.si, table.hcard td.parc{color:var(--dim); font-size:10px;}
+table.hcard td.bird{color:var(--pos); font-weight:600;}
+table.hcard td.bog{color:var(--mut);}
+table.hcard tr.ledrow td{border-bottom:none; padding-top:6px;}
+table.hcard tr.ledrow td.nm{color:var(--dim); font-family:var(--mono); font-size:10px; font-weight:500;}
+.ledc{display:block; height:11px; margin:0 1px; border-radius:2px; border:1px solid var(--line);}
+.ledc.me{background:var(--brand); border-color:var(--brand);}
+.ledc.them{background:var(--dim); border-color:var(--dim);}
+.ledc.pend{opacity:.22}
 /* D85 · the scoreboard: game first, strokes under, always on screen. Sticky
    with a compact "stuck" face — class-toggled size only, NEVER visibility
    (the animation-gated-reveal landmine). */
@@ -3108,8 +3163,15 @@ html[data-theme="light"] .room-dusk .btn:not(.dark):not(.gold):not(.apple){color
           <div class="sb-hero" id="sbHero">&mdash;</div>
           <div class="sb-chips" id="sbChips"></div>
           <div class="sb-sub" id="sbSub"></div>
+          <!-- D152 · portrait enters, landscape reads. Only offered at >=740px,
+               where eighteen columns are actually legible. -->
+          <div class="vtog" id="viewTog" role="group" aria-label="Scoring view">
+            <button type="button" data-vw="hole" class="on">HOLE</button>
+            <button type="button" data-vw="card">CARD</button>
+          </div>
         </div>
-        <div class="playgrid">
+        <div id="holeCard"></div>
+        <div class="playgrid" id="playEntry">
           <div>
             <div class="eyebrow"><span id="lrEyebrowTxt">Live round · Encanto GC — Blue · 70.2/123</span> <a href="#" id="backToSetup">Change setup</a></div>
             <div class="holehdr">
@@ -8788,6 +8850,141 @@ window.holeHighlights = holeHighlights;
 
 /* skins: lowest NET takes the hole's skin(s); ties carry the pot forward
    (decision-log D9). Works 2–4 players; carried skins die at 18 (v1). */
+/* ================= D152 · the card view =================
+   The whole round, read-only. Everything here is READ from the engine that owns
+   the rule — never recomputed. D78 made match/skins/wolf each keep a `cells`
+   ledger of who took every hole precisely so a surface like this could exist
+   without becoming the second source of truth CLAUDE.md forbids.
+
+   What it deliberately does NOT draw: season points. Those score per ROUND
+   (§2.2 bands read a whole round's differential against the index), so there is
+   no per-hole season figure. On a "just score" round there is no strip at all —
+   nothing was won hole by hole, and drawing one would invent a competition
+   nobody is playing. */
+function holeLedger(){
+  const g = state.live?.game;
+  if(g === 'match' || g === 'sunningdale'){
+    const m = matchCalc();
+    const mine = MTEAMS[0].includes(0) ? 'a' : 'b';       /* "me" = whichever side I am on */
+    return { label: g === 'sunningdale' ? 'SUNNINGDALE' : 'MATCH',
+             cells: (m.cells||[]).map(v => v === 'h' ? 'h' : (v === mine ? 'me' : 'them')) };
+  }
+  if(g === 'skins'){
+    const k = skinsCalc();
+    return { label:'SKINS',
+             cells: (k.cells||[]).map(v => v === 'c' ? 'h' : (v === 0 ? 'me' : 'them')) };
+  }
+  if(g === 'wolf'){
+    const cells = [];
+    wolfPointsThrough(liveHoles(), cells);
+    return { label:'WOLF',
+             cells: cells.map(v => v == null ? null : (v === 'h' ? 'h' : (v === 'w' ? 'me' : 'them'))) };
+  }
+  return null;   /* just score — no hole was "won" */
+}
+function renderHoleCard(){
+  const box = document.getElementById('holeCard');
+  if(!box || !state.live) return;
+  const H = liveHoles(), half = H === 9 ? 9 : 9;
+  const par = PAR.slice(0, H);
+  const siReal = !SIEST && Array.isArray(SI);
+  const led = holeLedger();
+
+  const nums = [];
+  for(let h = 0; h < H; h++){
+    nums.push(`<th>${h+1}</th>`);
+    if(h === half - 1) nums.push(`<th class="brk">${H === 9 ? 'TOT' : 'OUT'}</th>`);
+  }
+  if(H > 9) nums.push('<th class="brk">IN</th><th class="brk">TOT</th>');
+
+  const spanRow = (cls, cellFor, outFor, label) => {
+    let r = `<td class="nm ${cls==='si'?'si':''}">${label}</td>`;
+    for(let h = 0; h < H; h++){
+      r += cellFor(h);
+      if(h === half - 1) r += outFor(0, half);
+    }
+    if(H > 9){ r += outFor(9, 18); r += outFor(0, 18); }
+    return r;
+  };
+
+  const sum = (arr, a, b) => arr.slice(a, b).reduce((x, y) => x + (Number(y)||0), 0);
+
+  let html = `<div class="eyebrow" style="margin-top:4px">The card · ${esc(state.live.courseLabel || $('#lrCourse')?.value || 'this round')}</div>
+    <div class="cardwrap"><table class="hcard"><thead><tr><th style="text-align:left">HOLE</th>${nums.join('')}</tr></thead><tbody>`;
+
+  /* stroke index — shown only when it is REAL. SIEST means the app guessed the
+     order from par, and printing a guess as "SI 5" is the kind of quiet lie §16
+     exists to stop. */
+  if(siReal){
+    html += '<tr>' + spanRow('si',
+      h => `<td class="si">${SI[h] ?? '—'}</td>`,
+      () => '<td class="si">—</td>', 'SI') + '</tr>';
+  }
+  html += '<tr>' + spanRow('par',
+    h => `<td class="parc">${par[h]}</td>`,
+    (a,b) => `<td class="parc brk">${sum(par,a,b)}</td>`, 'PAR') + '</tr>';
+
+  LIVE.forEach((pl, pi) => {
+    const sc = state.live.scores[pi];
+    html += '<tr><td class="nm"><span class="sw" style="background:' +
+      (pl.guest ? 'var(--dim)' : SQHEX[pl.ci]) + '"></span>' + esc(pl.n) + '</td>';
+    for(let h = 0; h < H; h++){
+      const v = sc[h];
+      const cls = v == null ? '' : (v < par[h] ? 'bird' : (v > par[h] ? 'bog' : ''));
+      html += `<td class="${cls}">${v == null ? '–' : v}</td>`;
+      if(h === half - 1) html += `<td class="brk">${sum(sc,0,half) || '–'}</td>`;
+    }
+    if(H > 9){
+      html += `<td class="brk">${sum(sc,9,18) || '–'}</td>`;
+      html += `<td class="brk">${sum(sc,0,18) || '–'}</td>`;
+    }
+    html += '</tr>';
+  });
+
+  if(led && (led.cells||[]).some(v => v)){
+    html += '<tr class="ledrow"><td class="nm">' + led.label + '</td>';
+    for(let h = 0; h < H; h++){
+      const v = led.cells[h];
+      const k = v === 'me' ? 'me' : v === 'them' ? 'them' : v === 'h' ? '' : 'pend';
+      html += `<td><i class="ledc ${k}"></i></td>`;
+      if(h === half - 1) html += '<td></td>';
+    }
+    if(H > 9) html += '<td></td><td></td>';
+    html += '</tr>';
+  }
+
+  html += '</tbody></table></div>';
+  html += `<p class="fine" style="padding-top:8px">${
+    led ? 'The strip is the side game — filled took the hole, hollow halved or carried. '
+        : ''}${siReal ? '' : 'Stroke index is estimated for this card, so it is not shown. '}Tap a hole number to jump there.</p>`;
+  box.innerHTML = html;
+
+  box.querySelectorAll('thead th').forEach((th, i) => {
+    if(i === 0 || !/^\d+$/.test(th.textContent)) return;
+    th.style.cursor = 'pointer';
+    th.addEventListener('click', () => {
+      state.live.hole = Number(th.textContent) - 1;
+      setCardView(false); renderPlay();
+    });
+  });
+}
+function setCardView(on){
+  document.body.classList.toggle('cardview', !!on);
+  document.querySelectorAll('#viewTog button').forEach(b =>
+    b.classList.toggle('on', (b.dataset.vw === 'card') === !!on));
+  if(on) renderHoleCard();
+}
+document.getElementById('viewTog')?.addEventListener('click', e => {
+  const b = e.target.closest('button[data-vw]'); if(!b) return;
+  setCardView(b.dataset.vw === 'card');
+  window.qaEvent?.('live_view', { view: b.dataset.vw });
+});
+/* a narrow window can never sit in the card: the toggle is hidden there, so a
+   rotation back to portrait must not strand anyone on a view they cannot leave */
+window.addEventListener('resize', () => {
+  if(document.body.classList.contains('cardview') && window.innerWidth < 740) setCardView(false);
+});
+
 function skinsCalc(){
   const n=LIVE.length;
   const won=LIVE.map(()=>0);
@@ -9075,11 +9272,17 @@ function renderPlanBridge(){
 }
 function renderPlay(){
   const setup = state.live.stage==='setup';
+  if(setup && document.body.classList.contains('cardview')) setCardView(false);
   $('#playSetup').style.display = setup ? 'block':'none';
   $('#playLive').style.display  = setup ? 'none':'block';
   if(setup){ renderPlanBridge(); renderRoster(); renderLiveBanner(); return; }
 
   persistLive();   /* every live repaint follows a state.live mutation → snapshot the card so a refresh resumes it */
+  /* D152 · the card is a VIEW of this same state, so it repaints on the same
+     beat as the hole. The ledger helpers read the engines directly and do not
+     depend on the rest of this function, so calling here is safe and keeps the
+     two views from ever disagreeing about a score. */
+  if(document.body.classList.contains('cardview')) renderHoleCard();
   /* setup-QA S6-04: the picked course label already ends "· Blue" — appending
      the tee again read "BLUE — BLUE". Only append when it adds anything. */
   {const _c=($('#lrCourse').value||'Course'), _t=($('#lrTee').value||'').trim();

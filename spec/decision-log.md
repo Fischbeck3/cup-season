@@ -4596,3 +4596,21 @@ each remains reversible on its own line.)*
 - **Tradeoffs:** one more screen between signup and the app — mitigated by showing it only to golfers with no invite, only once, and giving it a quiet skip. Two more optional fields lengthen the card, which is why both stay optional and sit below the marker.
 - **CONFLICT (named):** brushes v23.55's "no foyer" — resolved above: signup step, not a room. Nothing upward.
 
+### D152 · Landscape scoring — rotate into the two-up, toggle to the card
+*(2026-08-30. UI level (5), no mechanic changes. Owner picked the shape: "default to B but you can toggle A to get a whole round view, see where points were earned if applicable"; hole handicap confirmed available.)*
+- **Current mechanic:** live scoring is hole-by-hole — a hole header with arrows, one row per player with a −/+ stepper — and the side games sit in a second column that only exists at `min-width:960px`. There is not one `orientation: landscape` rule in the client, and iOS pins the app to portrait in two places in `project.yml`.
+- **Problem:** rotating today would be WORSE than not rotating. `.playgrid` becomes two columns at 960px and a phone in landscape is 844–932px wide, so a rotated phone gets the STACKED portrait layout crushed into a 390px-tall window. And the deeper question stands: a golfer turns a phone sideways to see MORE, and re-arranging one hole earns nothing.
+- **Recommendation:** **rotate into two-up, toggle to the card.**
+  · **Two-up** is `.playgrid`'s breakpoint moving 960 → 740 so the layout that already exists engages on a landscape phone: hole entry left, the side games that were below the fold on the right. One media query.
+  · **The card** is a `HOLE / CARD` toggle in the scoreboard opening the whole round — every player, all eighteen holes, OUT/IN/TOT, the stroke index above the pars, and a ledger strip showing **which holes the side game paid on**.
+  · **Scope: live rounds only.** Every other screen is portrait-first; unlocking rotation app-wide means auditing the wizard, every sheet and every hero for a feature nobody asked for there.
+- **Three things already existed, which is why this is small:**
+  1. **The ledger.** D78 made every engine keep `cells` — who took each hole — with a comment saying the engines "already decide who took each hole and then throw it away… never re-derived by a helper reading netOf(), that would be the second source of truth CLAUDE.md forbids." `matchCalc` returns `'a'/'b'/'h'`, `skinsCalc` the winner's index or `'c'`, `wolfPointsThrough(limit, cells)` `'w'/'o'/'h'`. Where the points were won is a RENDER, not a calculation.
+  2. **The visual grammar.** Filled = took the hole, hollow = halved or carried, is already how the in-app strip and the shareable settlement card say this. The card reuses it rather than inventing a second way to state the same fact.
+  3. **The stroke index.** `api_course_holes.handicap` is cached for **5,652 of 6,102 holes across 341 tees (92.6 %)**, the client already loads it into `SI_LOADED`, and `SIEST` records when it had to estimate instead. The card prints SI and says when it is a guess.
+- **The one thing the card must NOT show:** season points. They are scored per ROUND — the §2.2 bands read a whole round's differential against the index — so there is no per-hole season figure to draw. The strip is the SIDE GAME only, and a "just score" round gets no strip at all, because nothing was won hole by hole and drawing one would invent a competition nobody is playing.
+- **Principle served:** §16 (every mark on the card traces to the engine that owns the rule) · #5 the app should feel alive (the card is what a foursome actually passes around).
+- **Benefit:** rotating earns information rather than rearranging it; the side games stop being a scroll away; the question "where does everyone stand" gets a one-glance answer.
+- **Tradeoffs:** one new read-only surface. Mitigated by it being read-only — no tap targets to protect in a 390px-tall window, and no second entry path to keep in sync with the first. iOS is a SEPARATE piece of work: this decision covers the web client, and the native portrait lock stands until someone does the SwiftUI half.
+- **CONFLICT:** none. D78's ledger is consumed exactly as its author intended.
+
