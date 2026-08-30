@@ -3552,7 +3552,7 @@ html[data-theme="light"] .room-dusk .btn:not(.dark):not(.gold):not(.apple){color
         <div class="roompane on" id="room-standings">
         <div id="homeSetup" style="display:none">
           <div class="eyebrow">League setup · three steps to first tee</div>
-          <div class="check"><span class="num">1</span><div class="tt"><b>Season settings</b><small>Stakes · rules · format</small></div><button class="mini" data-go="wizard">Continue</button></div>
+          <div class="check"><span class="num">1</span><div class="tt"><b>Season settings</b><small>The stakes, the rules, the format</small></div><button class="mini" data-go="wizard">Continue</button></div>
           <div class="check"><span class="num">2</span><div class="tt"><b>Invite the crew</b><small>One link fills the league — it opens the moment you lock</small></div><button class="mini" disabled style="opacity:.4">At lock</button></div>
           <div class="check"><span class="num">3</span><div class="tt"><b>Squad formation</b><small>Unlocks when settings lock</small></div><button class="mini" disabled style="opacity:.4">Locked</button></div>
         </div>
@@ -16114,7 +16114,7 @@ function renderFormation(){
         <span class="fine" style="padding:0; margin-left:auto">${(q.squad_members||[]).length} PLAYER${(q.squad_members||[]).length===1?'':'S'}</span>
       </div>
       <div style="margin-top:6px">${(q.squad_members||[]).map(x =>
-        `<div class="fine" style="padding:2px 0">${memMk(x.member_id)} ${esc(memName(x.member_id))}${q.captain_member_id===x.member_id?' \u00b7 C':''}</div>`).join('') || '<div class="fine" style="padding:2px 0; color:var(--dim)">Empty</div>'}</div>
+        `<div class="fine" style="padding:2px 0">${memMk(x.member_id)} ${esc(memName(x.member_id))}${q.captain_member_id===x.member_id?' \u00b7 C':''}</div>`).join('') || '<div class="fine" style="padding:2px 0; color:var(--dim)">No one yet</div>'}</div>
     </div>`).join('');
 
   /* Q-11 \u00b7 only the Pro seats players, so only the Pro gets buttons. A member
@@ -16943,13 +16943,13 @@ document.getElementById('wizCancel')?.addEventListener('click', async () => {
 function openEventPicker(){
   openSheet('Start an event', 'Short form · its own little trophy', `
     <div class="check tap" data-evstyle="ryder" style="cursor:pointer; border-color:var(--pos)">
-      <span class="num">⚔️</span><div class="tt"><b>The Ryder</b><small>Two teams · weekly vs-index duels · first to the clinch</small></div>
+      <span class="num">⚔️</span><div class="tt"><b>The Ryder</b><small>Two teams trade weekly duels against their own numbers — first to the clinch takes it</small></div>
       <span class="fine" style="padding:0; color:var(--pos)">LIVE</span></div>
     <div class="check tap" data-evstyle="bracket" style="cursor:pointer">
-      <span class="num">🥊</span><div class="tt"><b>Bracket</b><small>Knockout · seeded · last golfer standing</small></div>
+      <span class="num">🥊</span><div class="tt"><b>Bracket</b><small>Seeded knockout — lose and you're out, last golfer standing</small></div>
       <span class="fine" style="padding:0; color:var(--dim)">SOON</span></div>
     <div class="check tap" data-evstyle="major" style="cursor:pointer; border-color:var(--pos)">
-      <span class="num">🏆</span><div class="tt"><b>A Major</b><small>A championship window · best card takes the jug</small></div>
+      <span class="num">🏆</span><div class="tt"><b>A Major</b><small>A championship window — the best card takes the jug</small></div>
       <span class="fine" style="padding:0; color:var(--pos)">LIVE</span></div>
     <p class="fine">Every event mints a trophy for your display case. More styles land after the pilot.</p>
   `);

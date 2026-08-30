@@ -74,7 +74,7 @@ struct RyderSetupSheet: View {
   private var memberships: [Me.Membership] { store.me?.memberships ?? [] }
 
   var body: some View {
-    SheetFrame("Start a Ryder", sub: "Two teams · vs-index duels · first to the clinch") {
+    SheetFrame("Start a Ryder", sub: "Two teams trade weekly duels against their own numbers — first to the clinch takes it") {
       EventFieldLabel(text: "Event name")
       CSField("The Grudge Match", text: $name, font: CSFont.body).accessibilityLabel("Event name")
       A11yStack(spacing: 10) {

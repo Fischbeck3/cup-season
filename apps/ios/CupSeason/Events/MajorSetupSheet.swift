@@ -74,7 +74,7 @@ struct MajorSetupSheet: View {
   private var memberships: [Me.Membership] { store.me?.memberships ?? [] }
 
   var body: some View {
-    SheetFrame("Start a Major", sub: "One window · every card on one board · one name on the jug") {
+    SheetFrame("Start a Major", sub: "A championship window — every card on one board, one name on the jug") {
       EventFieldLabel(text: "Name the jug")
       CSField("The PIGL Championship", text: $name, font: CSFont.body).accessibilityLabel("Name the jug")
       EventFieldLabel(text: "The final day")

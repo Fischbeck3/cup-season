@@ -32,7 +32,7 @@ struct StandingsPane: View {
   private var setupChecklist: some View {
     VStack(alignment: .leading, spacing: 0) {
       CSSectionHead("League setup · three steps to first tee")
-      RoomCheckRow("Season settings", sub: "Stakes · rules · format") { num("1") } trail: {
+      RoomCheckRow("Season settings", sub: "The stakes, the rules, the format") { num("1") } trail: {
         if model.isPro { RoomMini("Continue") { links.openWizard() } } else { Text("THE PRO").csEyebrow(cs.gold) }
       }
       RoomCheckRow("Invite the crew", sub: "One link fills the league — it opens the moment you lock") { num("2") } trail: {

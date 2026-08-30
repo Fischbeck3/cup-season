@@ -47,7 +47,7 @@ struct PotPassCard: View {
             }
             Text(endsLine).font(CSFont.label).tracking(0.6).foregroundStyle(cs.dimText)
               .fixedSize(horizontal: false, vertical: true)
-            Text("Next year: \(price) from the pot · ≈ \(PricingFlags.perPlayer(cents: band.cents, roster: r)) a player · every season included")
+            Text("Next year it’s \(price), paid from the pot — about \(PricingFlags.perPlayer(cents: band.cents, roster: r)) a player, with every season included.")
               .font(CSFont.subhead).foregroundStyle(cs.mut)
               .fixedSize(horizontal: false, vertical: true)
           }
