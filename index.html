@@ -1129,6 +1129,12 @@ body.guestlive #onboard{display:none !important;}
   border-radius:var(--rc); background:var(--brand); color:#fff; font-size:14px; font-weight:600; width:100%;
   box-shadow:0 8px 22px -12px var(--glow), inset 0 1px 0 rgba(255,255,255,.2);}
 .hhero .hh-cta.q{background:var(--bg2); color:var(--ink); border:1px solid var(--line2); box-shadow:none;}
+/* D119 · the member's second move: present, but never competing with the hero's
+   one action (D27/D81 — a hero has ONE move; this is a quiet link under it). */
+.hhero .hh-sub{display:flex; align-items:center; justify-content:center; min-height:38px; margin-top:8px;
+  width:100%; background:transparent; border:0; color:var(--mut); font-size:12.5px; text-decoration:underline;
+  text-underline-offset:3px;}
+.hhero .hh-sub:hover{color:var(--ink);}
 /* D81 R3 — the occasion card: golf's real calendar as the quiet second
    voice under the hero. Smaller than the hero, one action, dismissable.
    Champagne spine = a Major window; ember = everything live. The marker
@@ -10210,7 +10216,16 @@ function renderHomeStart(){
      gets the quiet three-button row (the hero carries the loud CTA; Join and
      events stay one tap away, never wallpaper). D83: the demo shop-window
      grid that lived here retired with the demo season. */
-  const doors = `
+  /* D119(4) / D136 · for someone who is ALREADY in a league the three doors
+     are the loudest thing on their Home and none of them is their next move —
+     the audit's mid-season observer met "Start a league · Start an event ·
+     Join a league" as row one. They collapse to one quiet link; a league-less
+     account still gets the full row, because there they ARE the next move.
+     (D94 named this the thing to watch. The audit watched it.) */
+  const inALeague = (window.CS?.memberships||[]).some(m => m.league?.phase !== 'complete');
+  const doors = inALeague ? `
+    <p class="fine" style="padding:8px 0 0"><a href="#" data-hgmore style="color:var(--mut); text-decoration:underline; text-underline-offset:3px">Start something else…</a></p>`
+    : `
     <div class="startgrid" style="grid-template-columns:1fr 1fr 1fr">
       <button class="startjoin" data-hgnew type="button" style="margin:0">Start a league</button>
       <button class="startjoin" data-hgnewev type="button" style="margin:0">Start an event</button>
@@ -10221,6 +10236,16 @@ function renderHomeStart(){
   box.querySelector('[data-hgnew]')?.addEventListener('click', () => document.getElementById('wCreate')?.click());
   box.querySelector('[data-hgnewev]')?.addEventListener('click', () => window.openEventPicker?.());
   box.querySelector('[data-hgjoin]')?.addEventListener('click', () => window.openJoinSheet?.());
+  box.querySelector('[data-hgmore]')?.addEventListener('click', (e) => {
+    e.preventDefault();
+    openSheet('Start something else', 'YOU CAN RUN MORE THAN ONE', `
+      <button class="btn" id="hgmNew">Start a league</button>
+      <button class="btn dark" id="hgmEv" style="margin-top:8px">Start an event</button>
+      <button class="btn dark" id="hgmJoin" style="margin-top:8px">Join a league</button>`);
+    document.getElementById('hgmNew')?.addEventListener('click', ()=>{ closeSheet(); document.getElementById('wCreate')?.click(); });
+    document.getElementById('hgmEv')?.addEventListener('click', ()=>{ closeSheet(); window.openEventPicker?.(); });
+    document.getElementById('hgmJoin')?.addEventListener('click', ()=>{ closeSheet(); window.openJoinSheet?.(); });
+  });
   if(done) box.querySelector('[data-runback]')?.addEventListener('click', () => window.runItBack?.(done.league));
 }
 /* D81: recapRow + renderHomeRecap DELETED. The league list lives on the
@@ -10372,42 +10397,65 @@ function renderHomeHero(){
       if(focus) setTimeout(()=>{ const el=$(focus);
         el?.scrollIntoView?.({block:'center'}); el?.focus?.(); }, 80);
     };
-    /* Q-09 (blind audit TOP-1 + TOP-3). D96 wrote this CTA for one reader: the
-       Pro of an UNLOCKED league. It had no phase test, so a Pro whose league
-       the server had already locked was still told "Lock it in" (the audit's
-       organizer tapped it six times), and no role test, so four of four player
-       personas met the Pro's lock button as the biggest thing on their own
-       Home — two refused to press it, one walked into a Cancel offering to
-       discard the friend's league. This keeps D96's CTA for the Pro of an
-       unlocked league and gives everyone else the move that is actually
-       theirs. The full role × stage matrix is C-02 (D119); this is the guard. */
-    const phase  = window.CS.league?.phase || state.phase;
-    const locked = !!phase && phase !== 'setup';
+    /* D119 · the hero is a role × stage matrix.
+       D96 wrote this CTA for ONE reader — the Pro of an unlocked league — and
+       gave it no role test and no stage test. Four of four player personas met
+       the Pro's lock button as the biggest thing on their own Home; two
+       refused to press it, one walked into a Cancel offering to discard the
+       friend's league. A Pro whose league the server had already locked was
+       still told "Lock it in".
+       Members are 80–90% of every league and this is their first screen, so
+       every cell now names a move the VIEWER can make. The Pro's cells keep
+       D96's intent; the member's cells name the Pro, the date, and the thing
+       the member can actually do (D136: "Plan a round" leads, the practice
+       round second). Stage comes from leagueStage() so this cannot drift from
+       the rest of the app (D120). */
+    const stage  = leagueStage();
     const isPro  = window.CS.member?.role === 'commissioner';
     const need   = Math.max(0, ((typeof STRUCT_MIN!=='undefined' ? STRUCT_MIN : {})[state.structure] || 4) - n);
+    const proName = (window.CS.members||[]).find(m => m.role === 'commissioner')?.profile?.display_name || 'the Pro';
+    const planRound  = { label:'Plan a round',  go:()=>switchView('schedule') };
     const nextStep =
-        !locked && !isPro            ? null                                                   /* never the Pro's tool */
-      : !locked && unnamed           ? { label:'Name your league',            go:toWiz(0, '#setName') }
-      : !locked                      ? { label:'Lock it in and invite your crew', go:toWiz(2, null) }
-      : need                         ? { label:'Share the invite link',       go:()=>shareInvite() }
-      : (isPro && phase === 'draft') ? { label:'Form the squads',             go:()=>switchView('draft') }
-      :                                null;
-    box.innerHTML = heroCard('', `${esc(lgName||'Your league')} · ${starter?'season live':'forming'}`,
+      /* ---- the Pro ---- */
+        isPro && stage === 'forming' && unnamed  ? { label:'Name your league', go:toWiz(0, '#setName') }
+      : isPro && stage === 'forming'             ? { label:'Lock it in and invite your crew', go:toWiz(2, null) }
+      : isPro && stage === 'drawing' && need     ? { label:'Share the invite link', go:()=>shareInvite() }
+      : isPro && stage === 'drawing'             ? { label:'Draw the squads', go:()=>switchView('draft') }
+      : isPro && stage === 'preseason'           ? planRound
+      /* ---- everyone else ---- */
+      : !isPro && (stage === 'forming' || stage === 'drawing' || stage === 'preseason') ? planRound
+      :                                            null;
+    /* the member's second move, offered quietly under the hero rather than
+       competing with it */
+    const subStep = (!isPro && stage !== 'season' && stage !== 'final' && stage !== 'complete')
+      ? { label:'Post a practice round — it builds your number', go:()=>switchView('record') } : null;
+    box.innerHTML = heroCard('', `${esc(lgName||'Your league')} · ${STAGE_LABEL[stage].toLowerCase()}`,
       dd!=null && !starter ? `<div class="hh-fig"><span class="hh-pos">${dd}</span><span class="hh-ord">day${dd===1?'':'s'}</span></div>` : '',
       starter ? `The season's on. <em>Rounds count from today.</em>`
               /* an unnamed, one-person league is a half-finished thing and the
                  copy says so plainly rather than reporting "1 golfer in" as if
                  that were a standing */
               : unnamed ? `Your league is still a scaffold. <em>Name it, and it's real.</em>`
-              /* locked: the bylaws are fixed, so the sentence is about the crew */
-              : locked && solo ? `<b>Just you so far.</b> <em>One link fills the league.</em>`
-              : locked && need ? `<b>${n} in.</b> <em>${need} more to tee off.</em>`
-              : locked         ? `<b>${n} in</b> — enough to tee off. <em>${isPro ? 'Squads next.' : 'The Pro seats the squads.'}</em>`
+              /* D119 · a member is told who is doing what and by when, rather
+                 than being handed the Pro's job description */
+              : !isPro && stage === 'forming'
+                  ? `<b>${esc(proName)}</b> is setting the bylaws. <em>You'll see them the moment they lock.</em>`
+              : !isPro && stage === 'drawing'
+                  ? `<b>${n} in.</b> <em>${esc(proName)} draws the squads${dd!=null?` before first tee`:''} — it's random.</em>`
+              : !isPro && stage === 'preseason'
+                  ? `<b>${n} in.</b> <em>First tee ${esc(firstTeeText())}. Rounds before it build your number.</em>`
+              : stage === 'drawing' && solo ? `<b>Just you so far.</b> <em>One link fills the league.</em>`
+              : stage === 'drawing' && need ? `<b>${n} in.</b> <em>${need} more to tee off.</em>`
+              : stage === 'drawing'         ? `<b>${n} in</b> — enough to tee off. <em>Squads next.</em>`
+              : stage === 'preseason'       ? `<b>${n} in.</b> <em>First tee ${esc(firstTeeText())}.</em>`
               : solo    ? `<b>Just you so far.</b> <em>Lock the bylaws and the invite link is yours.</em>`
               : `${dd!=null?'to first tee. ':''}<b>${n} golfers in.</b> <em>The bylaws lock at the tee.</em>`,
       n?`<span>Roster</span><span class="hh-bar"><i style="width:${Math.min(100, Math.round(n/12*100))}%"></i></span><span>${n} in</span>`:'',
-      (starter || !nextStep) ? '' : `<button class="hh-cta" data-hform type="button">${nextStep.label}</button>`);
+      (starter || !nextStep) ? '' : `<button class="hh-cta" data-hform type="button">${nextStep.label}</button>`
+      + (subStep ? `<button class="hh-sub" data-hsub type="button">${subStep.label}</button>` : ''));
     if(!starter && nextStep) wire('[data-hform]', nextStep.go);
+    if(subStep) wire('[data-hsub]', subStep.go);
+    window.qaEvent?.('home_hero_state', { stage, role: isPro ? 'pro' : 'player', cta: nextStep?.label || null });
     return;
   }
 
@@ -11146,7 +11194,11 @@ function renderUpNext(){
     }
     const needs = (window.myInvites||[]).length + (window.homeRequests||[]).length;
     if(needs) chips.push(upChip('Needs you', needs + (needs===1?' invite':' invites')));
-    if((window.CS?.memberships||[]).length){
+    /* D122 · a month close only means something once rounds are scoring. The
+       audit's Home showed "MONTH CLOSES in 2 days" beside "7 days to first
+       tee", which reads as a deadline the golfer is already missing — two
+       testers logged it as the app contradicting itself. */
+    if((window.CS?.memberships||[]).length && seasonState() === 'live'){
       const now=new Date(); const eom=new Date(now.getFullYear(), now.getMonth()+1, 0);
       const days=Math.max(0, Math.round((eom-now)/86400000));
       if(days<=10) chips.push(upChip('Month closes', days===0?'today':'in '+days+' day'+(days===1?'':'s')));
