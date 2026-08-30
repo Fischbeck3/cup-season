@@ -355,7 +355,8 @@ final class LiveRoundStore {
       cfg = .object([:])
     }
     do {
-      let out = try await repo.start(league: league, label: s.course.label.trimmingCharacters(in: .whitespaces), snapshot: snap, game: g, players: playersJSON, config: cfg)
+      let out = try await repo.start(league: league, label: s.course.label.trimmingCharacters(in: .whitespaces), snapshot: snap, game: g, players: playersJSON, config: cfg,
+                                     apiCourseId: s.course.courseId)
       s.lr = out.lr
       s.code = out.code   // D85: nil on an old DB — sync quietly off, the pencil still works
       s.pmap = out.seats.map(\.id)

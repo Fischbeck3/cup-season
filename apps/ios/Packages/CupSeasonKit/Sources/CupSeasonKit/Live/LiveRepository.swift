@@ -15,7 +15,10 @@ import Supabase
 /// p_league included (D107: null = a league-less round).
 struct LiveStartCall: RpcCall {
   static let name = "start_live_round"
-  static let optionalArgs: [String] = ["p_config"]
+  // D150 repair · p_api_course_id is OPTIONAL so `call()`'s skew retry can drop
+  // it against a database that predates D150 — the round still starts, it just
+  // starts without a course identity, exactly as it did before.
+  static let optionalArgs: [String] = ["p_config", "p_api_course_id"]
   typealias Returns = JSONValue
   let p_league: UUID?
   let p_course_label: String
@@ -23,7 +26,11 @@ struct LiveStartCall: RpcCall {
   let p_game: String
   let p_players: JSONValue
   let p_config: JSONValue?
-  enum Keys: String, CodingKey { case p_league, p_course_id, p_tee_id, p_course_label, p_snapshot, p_game, p_players, p_config }
+  /// `api_courses.id` — the phone HAS this (it queries api_course_tees with it)
+  /// and never sent it, so every iOS live round landed with no course identity
+  /// and every card it posted fell out of the Tour Card's shared courses.
+  let p_api_course_id: String?
+  enum Keys: String, CodingKey { case p_league, p_course_id, p_tee_id, p_course_label, p_snapshot, p_game, p_players, p_config, p_api_course_id }
   func encode(to encoder: Encoder) throws {
     var c = encoder.container(keyedBy: Keys.self)
     try c.encode(p_league, forKey: .p_league)
@@ -34,6 +41,7 @@ struct LiveStartCall: RpcCall {
     try c.encode(p_game, forKey: .p_game)
     try c.encode(p_players, forKey: .p_players)
     if let p_config { try c.encode(p_config, forKey: .p_config) }
+    if let p_api_course_id { try c.encode(p_api_course_id, forKey: .p_api_course_id) }
   }
 }
 
@@ -166,8 +174,10 @@ public struct LiveRepository: Sendable {
 
   // MARK: the round
 
-  public func start(league: UUID?, label: String, snapshot: JSONValue, game: LiveGame, players: JSONValue, config: JSONValue) async throws -> LiveStartOutcome {
-    let v = try await svc.call(LiveStartCall(p_league: league, p_course_label: label, p_snapshot: snapshot, p_game: game.server, p_players: players, p_config: config))
+  public func start(league: UUID?, label: String, snapshot: JSONValue, game: LiveGame, players: JSONValue, config: JSONValue,
+                    apiCourseId: String? = nil) async throws -> LiveStartOutcome {
+    let v = try await svc.call(LiveStartCall(p_league: league, p_course_label: label, p_snapshot: snapshot, p_game: game.server,
+                                             p_players: players, p_config: config, p_api_course_id: apiCourseId))
     guard let out = LiveStartOutcome(v) else {
       throw RpcError(name: "start_live_round", underlying: "The round did not come back with an id.", droppedArgs: [])
     }
