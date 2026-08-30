@@ -16,10 +16,10 @@ tracing control flow, one searching intent and precedent — each trying to refu
 106 of them (32%) are in code this session wrote or touched.
 
 **47 P0/P1 findings went through verification. 43 survived; 4 were dropped.**
-No finding survived on one lens alone — every survivor was confirmed by both skeptics, and the pass
-corrected the severity of 21 of them (almost always downward, occasionally with a sharper failure
-scenario than the reviewer had). P2/P3 findings were **not** verified and are labelled unverified
-throughout; treat their confidence figures as the reviewer's own.
+No finding survived on one lens alone: 41 were CONFIRMED by both skeptics and 2 (IDX04-02, EF-01) carry
+one CONFIRMED and one PLAUSIBLE. The pass corrected the severity of **25** survivors — almost always
+downward, and usually with a sharper failure scenario than the reviewer had. P2/P3 findings were **not**
+verified and are labelled unverified throughout; treat their confidence figures as the reviewer's own.
 
 ### Health by area
 

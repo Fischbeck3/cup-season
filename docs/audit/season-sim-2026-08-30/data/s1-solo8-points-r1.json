@@ -1,0 +1,257 @@
+{
+  "pot": {
+    "split": [
+      60,
+      25,
+      15
+    ],
+    "payouts": [
+      {
+        "who": "Sal Birdie",
+        "cents": 24000,
+        "reason": "Cup champion"
+      },
+      {
+        "who": "Ray Fairway",
+        "cents": 10000,
+        "reason": "Runner-up"
+      },
+      {
+        "who": "Sal Birdie",
+        "cents": 6000,
+        "reason": "Points king"
+      }
+    ],
+    "pot_cents": 40000,
+    "buyin_cents": 5000,
+    "collected_cents": 40000
+  },
+  "slug": "s1-solo8-points-r1",
+  "bands": {
+    "09_beat": 10,
+    "05_rough": 31,
+    "06_loose": 24,
+    "12_torched": 10,
+    "07_played_to": 16
+  },
+  "weeks": 13,
+  "config": {
+    "floor": 2,
+    "weeks": 13,
+    "finish": "points_table",
+    "players": 8,
+    "allowance": 95,
+    "structure": "solo",
+    "counting_cap": 4,
+    "floor_penalty": "deduct",
+    "season_format": "points",
+    "season_months_stored": 3
+  },
+  "months": [
+    {
+      "month": "2026-05-01T00:00:00+00:00",
+      "whole": false,
+      "closed": true
+    },
+    {
+      "month": "2026-06-01T00:00:00+00:00",
+      "whole": true,
+      "closed": true
+    },
+    {
+      "month": "2026-07-01T00:00:00+00:00",
+      "whole": true,
+      "closed": true
+    },
+    {
+      "month": "2026-08-01T00:00:00+00:00",
+      "whole": false,
+      "closed": false
+    }
+  ],
+  "season": {
+    "status": "complete",
+    "ends_on": "2026-08-25",
+    "champion": "Sal Birdie",
+    "starts_on": "2026-05-27",
+    "points_king": "Sal Birdie",
+    "tiebreak_rung": null,
+    "champion_score": 99,
+    "runnerup_score": 97
+  },
+  "members": [
+    {
+      "ppr": 6.62,
+      "name": "Cal Bunker",
+      "points": 86,
+      "rounds": 18,
+      "seated": false,
+      "counting": 13,
+      "archetype": "steady",
+      "index_end": 5.9,
+      "true_skill": 11.0,
+      "index_start": 11.5
+    },
+    {
+      "ppr": 6.38,
+      "name": "Dot Mulligan",
+      "points": 83,
+      "rounds": 13,
+      "seated": false,
+      "counting": 13,
+      "archetype": "weekender",
+      "index_end": 8.7,
+      "true_skill": 14.0,
+      "index_start": 14.5
+    },
+    {
+      "ppr": 6.33,
+      "name": "Gus Ghost",
+      "points": 19,
+      "rounds": 3,
+      "seated": false,
+      "counting": 3,
+      "archetype": "ghost",
+      "index_end": 12.0,
+      "true_skill": 15.0,
+      "index_start": 15.5
+    },
+    {
+      "ppr": 6.08,
+      "name": "Hank Chip",
+      "points": 79,
+      "rounds": 15,
+      "seated": false,
+      "counting": 13,
+      "archetype": "streaky",
+      "index_end": 11.2,
+      "true_skill": 13.0,
+      "index_start": 13.5
+    },
+    {
+      "ppr": 6.89,
+      "name": "Moe Duffer",
+      "points": 62,
+      "rounds": 9,
+      "seated": false,
+      "counting": 9,
+      "archetype": "lurker",
+      "index_end": 9.8,
+      "true_skill": 16.0,
+      "index_start": 16.5
+    },
+    {
+      "ppr": 7.46,
+      "name": "Ray Fairway",
+      "points": 97,
+      "rounds": 25,
+      "seated": false,
+      "counting": 13,
+      "archetype": "pro-grinder",
+      "index_end": 3.0,
+      "true_skill": 6.5,
+      "index_start": 7.0
+    },
+    {
+      "ppr": 7.07,
+      "name": "Sal Birdie",
+      "points": 99,
+      "rounds": 22,
+      "seated": false,
+      "counting": 14,
+      "archetype": "scratch",
+      "index_end": 0.5,
+      "true_skill": 3.0,
+      "index_start": 3.5
+    },
+    {
+      "ppr": 7.38,
+      "name": "Vic Slice",
+      "points": 96,
+      "rounds": 18,
+      "seated": false,
+      "counting": 13,
+      "archetype": "improver",
+      "index_end": 11.7,
+      "true_skill": 18.0,
+      "index_start": 18.5
+    }
+  ],
+  "cup_seeds": null,
+  "cup_table": null,
+  "snapshots": 13,
+  "margin_pct": 2.0,
+  "adjustments": [
+    {
+      "n": 1,
+      "kind": "month_closed",
+      "month": "2026-05-01",
+      "total": 0,
+      "reason": "Partial edge month \u00e2\u0080\u0094 floors waived"
+    },
+    {
+      "n": 1,
+      "kind": "month_closed",
+      "month": "2026-06-01",
+      "total": 0,
+      "reason": "Month closed"
+    },
+    {
+      "n": 1,
+      "kind": "month_closed",
+      "month": "2026-07-01",
+      "total": 0,
+      "reason": "Month closed"
+    }
+  ],
+  "board_posts": 171,
+  "lead_changes": 3,
+  "wire_to_wire": false,
+  "points_margin": 2,
+  "cup_flipped_result": false,
+  "points_table_final": [
+    {
+      "rank": 1,
+      "label": "Sal Birdie",
+      "points": 99
+    },
+    {
+      "rank": 2,
+      "label": "Ray Fairway",
+      "points": 97
+    },
+    {
+      "rank": 3,
+      "label": "Vic Slice",
+      "points": 96
+    },
+    {
+      "rank": 4,
+      "label": "Cal Bunker",
+      "points": 86
+    },
+    {
+      "rank": 5,
+      "label": "Dot Mulligan",
+      "points": 83
+    },
+    {
+      "rank": 6,
+      "label": "Hank Chip",
+      "points": 79
+    },
+    {
+      "rank": 7,
+      "label": "Moe Duffer",
+      "points": 62
+    },
+    {
+      "rank": 8,
+      "label": "Gus Ghost",
+      "points": 19
+    }
+  ],
+  "head_start_decisive": false,
+  "led_outright_from_week": 4,
+  "weeks_led_unchallenged": 10
+}

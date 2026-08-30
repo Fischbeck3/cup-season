@@ -1,0 +1,200 @@
+{
+  "pot": {
+    "split": [
+      60,
+      25,
+      15
+    ],
+    "payouts": null,
+    "pot_cents": null,
+    "buyin_cents": 5000,
+    "collected_cents": null
+  },
+  "slug": "obs-squad-mid",
+  "bands": {
+    "09_beat": 9,
+    "05_rough": 19,
+    "06_loose": 4,
+    "12_torched": 7,
+    "07_played_to": 11
+  },
+  "weeks": 13,
+  "config": {
+    "floor": 2,
+    "weeks": 13,
+    "finish": "cup_final",
+    "players": 8,
+    "allowance": 95,
+    "structure": "squads2",
+    "counting_cap": 4,
+    "floor_penalty": "deduct",
+    "season_format": "points",
+    "season_months_stored": 3
+  },
+  "months": [
+    {
+      "month": "2026-07-01T00:00:00+00:00",
+      "whole": false,
+      "closed": true
+    },
+    {
+      "month": "2026-08-01T00:00:00+00:00",
+      "whole": true,
+      "closed": true
+    },
+    {
+      "month": "2026-09-01T00:00:00+00:00",
+      "whole": true,
+      "closed": false
+    },
+    {
+      "month": "2026-10-01T00:00:00+00:00",
+      "whole": false,
+      "closed": false
+    }
+  ],
+  "season": {
+    "status": "active",
+    "ends_on": "2026-10-14",
+    "champion": null,
+    "starts_on": "2026-07-16",
+    "points_king": null,
+    "tiebreak_rung": null,
+    "champion_score": null,
+    "runnerup_score": null
+  },
+  "members": [
+    {
+      "ppr": 6.29,
+      "name": "Cal Bunker",
+      "points": 44,
+      "rounds": 8,
+      "seated": true,
+      "counting": 7,
+      "archetype": "steady",
+      "index_end": 9.3,
+      "true_skill": 11.0,
+      "index_start": 11.5
+    },
+    {
+      "ppr": 7.5,
+      "name": "Dot Mulligan",
+      "points": 45,
+      "rounds": 7,
+      "seated": true,
+      "counting": 6,
+      "archetype": "weekender",
+      "index_end": 8.9,
+      "true_skill": 14.0,
+      "index_start": 14.5
+    },
+    {
+      "ppr": 9.67,
+      "name": "Gus Ghost",
+      "points": 29,
+      "rounds": 3,
+      "seated": true,
+      "counting": 3,
+      "archetype": "ghost",
+      "index_end": 1.9,
+      "true_skill": 15.0,
+      "index_start": 15.5
+    },
+    {
+      "ppr": 6.71,
+      "name": "Hank Chip",
+      "points": 47,
+      "rounds": 10,
+      "seated": true,
+      "counting": 7,
+      "archetype": "streaky",
+      "index_end": 7.7,
+      "true_skill": 13.0,
+      "index_start": 13.5
+    },
+    {
+      "ppr": 10.0,
+      "name": "Moe Duffer",
+      "points": 30,
+      "rounds": 3,
+      "seated": true,
+      "counting": 3,
+      "archetype": "lurker",
+      "index_end": 8.7,
+      "true_skill": 16.0,
+      "index_start": 16.5
+    },
+    {
+      "ppr": 7.63,
+      "name": "Ray Fairway",
+      "points": 61,
+      "rounds": 14,
+      "seated": true,
+      "counting": 8,
+      "archetype": "pro-grinder",
+      "index_end": 2.1,
+      "true_skill": 6.5,
+      "index_start": 7.0
+    },
+    {
+      "ppr": 7.25,
+      "name": "Sal Birdie",
+      "points": 58,
+      "rounds": 13,
+      "seated": true,
+      "counting": 8,
+      "archetype": "scratch",
+      "index_end": -0.3,
+      "true_skill": 3.0,
+      "index_start": 3.5
+    },
+    {
+      "ppr": 5.88,
+      "name": "Vic Slice",
+      "points": 47,
+      "rounds": 11,
+      "seated": true,
+      "counting": 8,
+      "archetype": "improver",
+      "index_end": 11.8,
+      "true_skill": 18.0,
+      "index_start": 18.5
+    }
+  ],
+  "cup_seeds": null,
+  "cup_table": null,
+  "snapshots": 7,
+  "margin_pct": null,
+  "adjustments": [
+    {
+      "n": 1,
+      "kind": "month_closed",
+      "month": "2026-07-01",
+      "total": 0,
+      "reason": "Partial edge month \u00e2\u0080\u0094 floors waived"
+    },
+    {
+      "n": 1,
+      "kind": "bye",
+      "month": "2026-08-01",
+      "total": 0,
+      "reason": "Auto-bye \u00e2\u0080\u0094 first missed floor. Life happens; the season's one bye."
+    },
+    {
+      "n": 1,
+      "kind": "month_closed",
+      "month": "2026-08-01",
+      "total": 0,
+      "reason": "Month closed"
+    }
+  ],
+  "board_posts": 116,
+  "lead_changes": 1,
+  "wire_to_wire": true,
+  "points_margin": 0,
+  "cup_flipped_result": false,
+  "points_table_final": null,
+  "head_start_decisive": false,
+  "led_outright_from_week": 1,
+  "weeks_led_unchallenged": 13
+}

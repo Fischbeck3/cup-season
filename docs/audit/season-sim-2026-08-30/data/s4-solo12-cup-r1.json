@@ -1,0 +1,353 @@
+{
+  "pot": {
+    "split": [
+      60,
+      25,
+      15
+    ],
+    "payouts": [
+      {
+        "who": "Vic Slice",
+        "cents": 36000,
+        "reason": "Cup champion"
+      },
+      {
+        "who": "Hank Chip",
+        "cents": 15000,
+        "reason": "Runner-up"
+      },
+      {
+        "who": "Vic Slice",
+        "cents": 9000,
+        "reason": "Points king"
+      }
+    ],
+    "pot_cents": 60000,
+    "buyin_cents": 5000,
+    "collected_cents": 60000
+  },
+  "slug": "s4-solo12-cup-r1",
+  "bands": {
+    "09_beat": 16,
+    "05_rough": 58,
+    "06_loose": 29,
+    "12_torched": 11,
+    "07_played_to": 21
+  },
+  "weeks": 13,
+  "config": {
+    "floor": 2,
+    "weeks": 13,
+    "finish": "cup_final",
+    "players": 12,
+    "allowance": 95,
+    "structure": "solo",
+    "counting_cap": 4,
+    "floor_penalty": "deduct",
+    "season_format": "points",
+    "season_months_stored": 3
+  },
+  "months": [
+    {
+      "month": "2026-05-01T00:00:00+00:00",
+      "whole": false,
+      "closed": true
+    },
+    {
+      "month": "2026-06-01T00:00:00+00:00",
+      "whole": true,
+      "closed": true
+    },
+    {
+      "month": "2026-07-01T00:00:00+00:00",
+      "whole": true,
+      "closed": true
+    },
+    {
+      "month": "2026-08-01T00:00:00+00:00",
+      "whole": false,
+      "closed": false
+    }
+  ],
+  "season": {
+    "status": "complete",
+    "ends_on": "2026-08-25",
+    "champion": "Vic Slice",
+    "starts_on": "2026-05-27",
+    "points_king": "Vic Slice",
+    "tiebreak_rung": null,
+    "champion_score": 24,
+    "runnerup_score": 20
+  },
+  "members": [
+    {
+      "ppr": 6.08,
+      "name": "Bud Shank",
+      "points": 79,
+      "rounds": 19,
+      "seated": false,
+      "counting": 13,
+      "archetype": "improver",
+      "index_end": 15.1,
+      "true_skill": 18.0,
+      "index_start": 18.5
+    },
+    {
+      "ppr": 6.62,
+      "name": "Cal Bunker",
+      "points": 86,
+      "rounds": 16,
+      "seated": false,
+      "counting": 13,
+      "archetype": "steady",
+      "index_end": 8.4,
+      "true_skill": 11.0,
+      "index_start": 11.5
+    },
+    {
+      "ppr": 6.67,
+      "name": "Dot Mulligan",
+      "points": 80,
+      "rounds": 13,
+      "seated": false,
+      "counting": 12,
+      "archetype": "weekender",
+      "index_end": 8.8,
+      "true_skill": 14.0,
+      "index_start": 14.5
+    },
+    {
+      "ppr": null,
+      "name": "Gus Ghost",
+      "points": 0,
+      "rounds": 0,
+      "seated": false,
+      "counting": 0,
+      "archetype": "ghost",
+      "index_end": 15.5,
+      "true_skill": 15.0,
+      "index_start": 15.5
+    },
+    {
+      "ppr": 6.69,
+      "name": "Hank Chip",
+      "points": 87,
+      "rounds": 17,
+      "seated": false,
+      "counting": 13,
+      "archetype": "streaky",
+      "index_end": 7.0,
+      "true_skill": 13.0,
+      "index_start": 13.5
+    },
+    {
+      "ppr": 6.25,
+      "name": "Ida Ace",
+      "points": 75,
+      "rounds": 13,
+      "seated": false,
+      "counting": 12,
+      "archetype": "weekender",
+      "index_end": 11.4,
+      "true_skill": 14.0,
+      "index_start": 14.5
+    },
+    {
+      "ppr": 6.0,
+      "name": "Moe Duffer",
+      "points": 48,
+      "rounds": 8,
+      "seated": false,
+      "counting": 8,
+      "archetype": "lurker",
+      "index_end": 14.4,
+      "true_skill": 16.0,
+      "index_start": 16.5
+    },
+    {
+      "ppr": 6.62,
+      "name": "Ray Fairway",
+      "points": 86,
+      "rounds": 24,
+      "seated": false,
+      "counting": 13,
+      "archetype": "pro-grinder",
+      "index_end": 4.9,
+      "true_skill": 6.5,
+      "index_start": 7.0
+    },
+    {
+      "ppr": 6.54,
+      "name": "Rex Divot",
+      "points": 85,
+      "rounds": 18,
+      "seated": false,
+      "counting": 13,
+      "archetype": "steady",
+      "index_end": 8.6,
+      "true_skill": 11.0,
+      "index_start": 11.5
+    },
+    {
+      "ppr": 6.54,
+      "name": "Sal Birdie",
+      "points": 85,
+      "rounds": 21,
+      "seated": false,
+      "counting": 13,
+      "archetype": "scratch",
+      "index_end": 1.1,
+      "true_skill": 3.0,
+      "index_start": 3.5
+    },
+    {
+      "ppr": 6.58,
+      "name": "Tio Wedge",
+      "points": 79,
+      "rounds": 13,
+      "seated": false,
+      "counting": 12,
+      "archetype": "high-index",
+      "index_end": 18.6,
+      "true_skill": 24.0,
+      "index_start": 24.5
+    },
+    {
+      "ppr": 7.46,
+      "name": "Vic Slice",
+      "points": 97,
+      "rounds": 19,
+      "seated": false,
+      "counting": 13,
+      "archetype": "improver",
+      "index_end": 10.8,
+      "true_skill": 18.0,
+      "index_start": 18.5
+    }
+  ],
+  "cup_seeds": [
+    {
+      "seed": 1,
+      "label": "Vic Slice",
+      "seed_rung": null,
+      "head_start": 0
+    },
+    {
+      "seed": 2,
+      "label": "Hank Chip",
+      "seed_rung": null,
+      "head_start": 0
+    }
+  ],
+  "cup_table": [
+    {
+      "seed": 1,
+      "label": "Vic Slice",
+      "total": 24,
+      "head_start": 0,
+      "window_points": 24
+    },
+    {
+      "seed": 2,
+      "label": "Hank Chip",
+      "total": 20,
+      "head_start": 0,
+      "window_points": 20
+    }
+  ],
+  "snapshots": 13,
+  "margin_pct": 10.3,
+  "adjustments": [
+    {
+      "n": 1,
+      "kind": "month_closed",
+      "month": "2026-05-01",
+      "total": 0,
+      "reason": "Partial edge month \u00e2\u0080\u0094 floors waived"
+    },
+    {
+      "n": 1,
+      "kind": "month_closed",
+      "month": "2026-06-01",
+      "total": 0,
+      "reason": "Month closed"
+    },
+    {
+      "n": 1,
+      "kind": "month_closed",
+      "month": "2026-07-01",
+      "total": 0,
+      "reason": "Month closed"
+    }
+  ],
+  "board_posts": 246,
+  "lead_changes": 1,
+  "wire_to_wire": false,
+  "points_margin": 10,
+  "cup_flipped_result": false,
+  "points_table_final": [
+    {
+      "rank": 1,
+      "label": "Vic Slice",
+      "points": 97
+    },
+    {
+      "rank": 2,
+      "label": "Hank Chip",
+      "points": 87
+    },
+    {
+      "rank": 3,
+      "label": "Cal Bunker",
+      "points": 86
+    },
+    {
+      "rank": 3,
+      "label": "Ray Fairway",
+      "points": 86
+    },
+    {
+      "rank": 5,
+      "label": "Sal Birdie",
+      "points": 85
+    },
+    {
+      "rank": 5,
+      "label": "Rex Divot",
+      "points": 85
+    },
+    {
+      "rank": 7,
+      "label": "Dot Mulligan",
+      "points": 80
+    },
+    {
+      "rank": 8,
+      "label": "Bud Shank",
+      "points": 79
+    },
+    {
+      "rank": 8,
+      "label": "Tio Wedge",
+      "points": 79
+    },
+    {
+      "rank": 10,
+      "label": "Ida Ace",
+      "points": 75
+    },
+    {
+      "rank": 11,
+      "label": "Moe Duffer",
+      "points": 48
+    },
+    {
+      "rank": 12,
+      "label": "Gus Ghost",
+      "points": 0
+    }
+  ],
+  "head_start_decisive": false,
+  "led_outright_from_week": 2,
+  "weeks_led_unchallenged": 12
+}

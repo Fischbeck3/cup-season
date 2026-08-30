@@ -5933,7 +5933,13 @@ function endgameLine(opts){
     return `The points table crowns it${ends ? ` on ${ends}` : ''} — every round counts to the last day. Level on points? Months won breaks it.`;
   }
   const who = structure === 'solo' ? `The top ${seats} golfers` : `The top ${seats} squads`;
-  return `${who} seed into a four-week Cup Final${when ? ` from ${when}` : ''} — scored fresh, so the regular season sets the seeds, not the winner. The leader carries +10 in. Level on points? Months won breaks it.`;
+  /* The +10 head start is a squads2-ONLY rule: enter_cup_final sets
+     head_start = case when structure = 'squads2' then 10 else 0 end.
+     Solo, squads3 and squads4 leaders carry nothing, so promising them a head
+     start states a rule the engine does not have. Found by the season sim
+     2026-08-30, in a solo league that really did seed both finalists at 0. */
+  const head = structure === 'squads2' ? ' The leader carries +10 in.' : '';
+  return `${who} seed into a four-week Cup Final${when ? ` from ${when}` : ''} — scored fresh, so the regular season sets the seeds, not the winner.${head} Level on points? Months won breaks it.`;
 }
 function vsShort(v){
   /* null/undefined/'' must NOT become 0 — Number(null) is 0, which would have

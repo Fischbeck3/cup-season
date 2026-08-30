@@ -1,0 +1,352 @@
+{
+  "pot": {
+    "split": [
+      60,
+      25,
+      15
+    ],
+    "payouts": [
+      {
+        "who": "Bud Shank",
+        "cents": 5000,
+        "reason": "Runner-up"
+      },
+      {
+        "who": "Vic Slice",
+        "cents": 12000,
+        "reason": "Cup champion"
+      },
+      {
+        "who": "Vic Slice",
+        "cents": 9000,
+        "reason": "Points king"
+      },
+      {
+        "who": "Tio Wedge",
+        "cents": 5000,
+        "reason": "Runner-up"
+      },
+      {
+        "who": "Sal Birdie",
+        "cents": 5000,
+        "reason": "Runner-up"
+      },
+      {
+        "who": "Rex Divot",
+        "cents": 12000,
+        "reason": "Cup champion"
+      },
+      {
+        "who": "Dot Mulligan",
+        "cents": 12000,
+        "reason": "Cup champion"
+      }
+    ],
+    "pot_cents": 60000,
+    "buyin_cents": 5000,
+    "collected_cents": 60000
+  },
+  "slug": "h-4sq-cup-r2",
+  "bands": {
+    "09_beat": 19,
+    "05_rough": 70,
+    "06_loose": 38,
+    "12_torched": 13,
+    "07_played_to": 37
+  },
+  "weeks": 17,
+  "config": {
+    "floor": 2,
+    "weeks": 17,
+    "finish": "cup_final",
+    "players": 12,
+    "allowance": 95,
+    "structure": "squads4",
+    "counting_cap": 4,
+    "floor_penalty": "deduct",
+    "season_format": "points",
+    "season_months_stored": 4
+  },
+  "months": [
+    {
+      "month": "2026-04-01T00:00:00+00:00",
+      "whole": false,
+      "closed": true
+    },
+    {
+      "month": "2026-05-01T00:00:00+00:00",
+      "whole": true,
+      "closed": true
+    },
+    {
+      "month": "2026-06-01T00:00:00+00:00",
+      "whole": true,
+      "closed": true
+    },
+    {
+      "month": "2026-07-01T00:00:00+00:00",
+      "whole": true,
+      "closed": true
+    },
+    {
+      "month": "2026-08-01T00:00:00+00:00",
+      "whole": false,
+      "closed": false
+    }
+  ],
+  "season": {
+    "status": "complete",
+    "ends_on": "2026-08-25",
+    "champion": "Squad 1",
+    "starts_on": "2026-04-29",
+    "points_king": "Vic Slice",
+    "tiebreak_rung": null,
+    "champion_score": 89,
+    "runnerup_score": 82
+  },
+  "members": [
+    {
+      "ppr": 6.44,
+      "name": "Bud Shank",
+      "points": 103,
+      "rounds": 24,
+      "seated": true,
+      "counting": 16,
+      "archetype": "improver",
+      "index_end": 12.2,
+      "true_skill": 18.0,
+      "index_start": 18.5
+    },
+    {
+      "ppr": 6.33,
+      "name": "Cal Bunker",
+      "points": 95,
+      "rounds": 21,
+      "seated": true,
+      "counting": 15,
+      "archetype": "steady",
+      "index_end": 9.0,
+      "true_skill": 11.0,
+      "index_start": 11.5
+    },
+    {
+      "ppr": 6.12,
+      "name": "Dot Mulligan",
+      "points": 104,
+      "rounds": 17,
+      "seated": true,
+      "counting": 17,
+      "archetype": "weekender",
+      "index_end": 9.0,
+      "true_skill": 14.0,
+      "index_start": 14.5
+    },
+    {
+      "ppr": 5.86,
+      "name": "Gus Ghost",
+      "points": 41,
+      "rounds": 7,
+      "seated": true,
+      "counting": 7,
+      "archetype": "ghost",
+      "index_end": 14.3,
+      "true_skill": 15.0,
+      "index_start": 15.5
+    },
+    {
+      "ppr": 6.94,
+      "name": "Hank Chip",
+      "points": 111,
+      "rounds": 23,
+      "seated": true,
+      "counting": 16,
+      "archetype": "streaky",
+      "index_end": 7.5,
+      "true_skill": 13.0,
+      "index_start": 13.5
+    },
+    {
+      "ppr": 5.88,
+      "name": "Ida Ace",
+      "points": 94,
+      "rounds": 17,
+      "seated": true,
+      "counting": 16,
+      "archetype": "weekender",
+      "index_end": 12.4,
+      "true_skill": 14.0,
+      "index_start": 14.5
+    },
+    {
+      "ppr": 6.67,
+      "name": "Moe Duffer",
+      "points": 60,
+      "rounds": 9,
+      "seated": true,
+      "counting": 9,
+      "archetype": "lurker",
+      "index_end": 10.5,
+      "true_skill": 16.0,
+      "index_start": 16.5
+    },
+    {
+      "ppr": 6.88,
+      "name": "Ray Fairway",
+      "points": 110,
+      "rounds": 31,
+      "seated": true,
+      "counting": 16,
+      "archetype": "pro-grinder",
+      "index_end": 2.9,
+      "true_skill": 6.5,
+      "index_start": 7.0
+    },
+    {
+      "ppr": 6.75,
+      "name": "Rex Divot",
+      "points": 108,
+      "rounds": 21,
+      "seated": true,
+      "counting": 16,
+      "archetype": "steady",
+      "index_end": 7.9,
+      "true_skill": 11.0,
+      "index_start": 11.5
+    },
+    {
+      "ppr": 7.31,
+      "name": "Sal Birdie",
+      "points": 117,
+      "rounds": 24,
+      "seated": true,
+      "counting": 16,
+      "archetype": "scratch",
+      "index_end": 0.2,
+      "true_skill": 3.0,
+      "index_start": 3.5
+    },
+    {
+      "ppr": 5.82,
+      "name": "Tio Wedge",
+      "points": 99,
+      "rounds": 18,
+      "seated": true,
+      "counting": 17,
+      "archetype": "high-index",
+      "index_end": 16.5,
+      "true_skill": 24.0,
+      "index_start": 24.5
+    },
+    {
+      "ppr": 7.63,
+      "name": "Vic Slice",
+      "points": 122,
+      "rounds": 25,
+      "seated": true,
+      "counting": 16,
+      "archetype": "improver",
+      "index_end": 10.2,
+      "true_skill": 18.0,
+      "index_start": 18.5
+    }
+  ],
+  "cup_seeds": [
+    {
+      "seed": 1,
+      "label": "Squad 1",
+      "seed_rung": null,
+      "head_start": 0
+    },
+    {
+      "seed": 2,
+      "label": "Squad 4",
+      "seed_rung": null,
+      "head_start": 0
+    }
+  ],
+  "cup_table": [
+    {
+      "seed": 1,
+      "label": "Squad 1",
+      "total": 89,
+      "head_start": 0,
+      "window_points": 89
+    },
+    {
+      "seed": 2,
+      "label": "Squad 4",
+      "total": 82,
+      "head_start": 0,
+      "window_points": 82
+    }
+  ],
+  "snapshots": 17,
+  "margin_pct": 4.5,
+  "adjustments": [
+    {
+      "n": 1,
+      "kind": "month_closed",
+      "month": "2026-04-01",
+      "total": 0,
+      "reason": "Partial edge month \u00e2\u0080\u0094 floors waived"
+    },
+    {
+      "n": 1,
+      "kind": "month_closed",
+      "month": "2026-05-01",
+      "total": 0,
+      "reason": "Month closed"
+    },
+    {
+      "n": 1,
+      "kind": "bye",
+      "month": "2026-06-01",
+      "total": 0,
+      "reason": "Auto-bye \u00e2\u0080\u0094 first missed floor. Life happens; the season's one bye."
+    },
+    {
+      "n": 1,
+      "kind": "month_closed",
+      "month": "2026-06-01",
+      "total": 0,
+      "reason": "Month closed"
+    },
+    {
+      "n": 1,
+      "kind": "month_closed",
+      "month": "2026-07-01",
+      "total": 0,
+      "reason": "Month closed"
+    }
+  ],
+  "board_posts": 333,
+  "lead_changes": 2,
+  "wire_to_wire": false,
+  "points_margin": 15,
+  "cup_flipped_result": false,
+  "points_table_final": [
+    {
+      "rank": 1,
+      "label": "Squad 1",
+      "points": 334
+    },
+    {
+      "rank": 2,
+      "label": "Squad 4",
+      "points": 319
+    },
+    {
+      "rank": 3,
+      "label": "Squad 3",
+      "points": 264
+    },
+    {
+      "rank": 4,
+      "label": "Squad 2",
+      "points": 247
+    }
+  ],
+  "head_start_decisive": false,
+  "led_outright_from_week": 16,
+  "weeks_led_unchallenged": 2
+}

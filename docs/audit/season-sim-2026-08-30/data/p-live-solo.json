@@ -1,0 +1,217 @@
+{
+  "pot": {
+    "split": [
+      60,
+      25,
+      15
+    ],
+    "payouts": null,
+    "pot_cents": null,
+    "buyin_cents": 5000,
+    "collected_cents": null
+  },
+  "slug": "p-live-solo",
+  "bands": {
+    "09_beat": 8,
+    "05_rough": 18,
+    "06_loose": 20,
+    "12_torched": 10,
+    "07_played_to": 13
+  },
+  "weeks": 17,
+  "config": {
+    "floor": 2,
+    "weeks": 17,
+    "finish": "points_table",
+    "players": 10,
+    "allowance": 95,
+    "structure": "solo",
+    "counting_cap": 4,
+    "floor_penalty": "deduct",
+    "season_format": "points",
+    "season_months_stored": 4
+  },
+  "months": [
+    {
+      "month": "2026-07-01T00:00:00+00:00",
+      "whole": false,
+      "closed": true
+    },
+    {
+      "month": "2026-08-01T00:00:00+00:00",
+      "whole": true,
+      "closed": true
+    },
+    {
+      "month": "2026-09-01T00:00:00+00:00",
+      "whole": true,
+      "closed": false
+    },
+    {
+      "month": "2026-10-01T00:00:00+00:00",
+      "whole": false,
+      "closed": false
+    }
+  ],
+  "season": {
+    "status": "active",
+    "ends_on": "2026-10-28",
+    "champion": null,
+    "starts_on": "2026-07-02",
+    "points_king": null,
+    "tiebreak_rung": null,
+    "champion_score": null,
+    "runnerup_score": null
+  },
+  "members": [
+    {
+      "ppr": 7.25,
+      "name": "Cal Bunker",
+      "points": 58,
+      "rounds": 13,
+      "seated": false,
+      "counting": 8,
+      "archetype": "steady",
+      "index_end": 6.6,
+      "true_skill": 11.0,
+      "index_start": 11.5
+    },
+    {
+      "ppr": 6.63,
+      "name": "Dot Mulligan",
+      "points": 53,
+      "rounds": 9,
+      "seated": false,
+      "counting": 8,
+      "archetype": "weekender",
+      "index_end": 9.0,
+      "true_skill": 14.0,
+      "index_start": 14.5
+    },
+    {
+      "ppr": 8.5,
+      "name": "Gus Ghost",
+      "points": 17,
+      "rounds": 2,
+      "seated": false,
+      "counting": 2,
+      "archetype": "ghost",
+      "index_end": 15.5,
+      "true_skill": 15.0,
+      "index_start": 15.5
+    },
+    {
+      "ppr": 6.75,
+      "name": "Hank Chip",
+      "points": 54,
+      "rounds": 9,
+      "seated": false,
+      "counting": 8,
+      "archetype": "streaky",
+      "index_end": 4.9,
+      "true_skill": 13.0,
+      "index_start": 13.5
+    },
+    {
+      "ppr": 7.67,
+      "name": "Moe Duffer",
+      "points": 23,
+      "rounds": 3,
+      "seated": false,
+      "counting": 3,
+      "archetype": "lurker",
+      "index_end": 12.2,
+      "true_skill": 16.0,
+      "index_start": 16.5
+    },
+    {
+      "ppr": 7.38,
+      "name": "Ray Fairway",
+      "points": 59,
+      "rounds": 18,
+      "seated": false,
+      "counting": 8,
+      "archetype": "pro-grinder",
+      "index_end": 3.2,
+      "true_skill": 6.5,
+      "index_start": 7.0
+    },
+    {
+      "ppr": 7.5,
+      "name": "Rex Divot",
+      "points": 60,
+      "rounds": 12,
+      "seated": false,
+      "counting": 8,
+      "archetype": "steady",
+      "index_end": 6.7,
+      "true_skill": 11.0,
+      "index_start": 11.5
+    },
+    {
+      "ppr": 6.75,
+      "name": "Sal Birdie",
+      "points": 54,
+      "rounds": 14,
+      "seated": false,
+      "counting": 8,
+      "archetype": "scratch",
+      "index_end": -0.2,
+      "true_skill": 3.0,
+      "index_start": 3.5
+    },
+    {
+      "ppr": 7.25,
+      "name": "Tio Wedge",
+      "points": 58,
+      "rounds": 10,
+      "seated": false,
+      "counting": 8,
+      "archetype": "high-index",
+      "index_end": 16.9,
+      "true_skill": 24.0,
+      "index_start": 24.5
+    },
+    {
+      "ppr": 7.13,
+      "name": "Vic Slice",
+      "points": 57,
+      "rounds": 14,
+      "seated": false,
+      "counting": 8,
+      "archetype": "improver",
+      "index_end": 11.4,
+      "true_skill": 18.0,
+      "index_start": 18.5
+    }
+  ],
+  "cup_seeds": null,
+  "cup_table": null,
+  "snapshots": 9,
+  "margin_pct": null,
+  "adjustments": [
+    {
+      "n": 1,
+      "kind": "month_closed",
+      "month": "2026-07-01",
+      "total": 0,
+      "reason": "Partial edge month \u00e2\u0080\u0094 floors waived"
+    },
+    {
+      "n": 1,
+      "kind": "month_closed",
+      "month": "2026-08-01",
+      "total": 0,
+      "reason": "Month closed"
+    }
+  ],
+  "board_posts": 148,
+  "lead_changes": 4,
+  "wire_to_wire": true,
+  "points_margin": 0,
+  "cup_flipped_result": false,
+  "points_table_final": null,
+  "head_start_decisive": false,
+  "led_outright_from_week": 1,
+  "weeks_led_unchallenged": 17
+}

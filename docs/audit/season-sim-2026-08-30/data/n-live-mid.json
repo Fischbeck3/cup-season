@@ -1,0 +1,193 @@
+{
+  "pot": {
+    "split": [
+      60,
+      25,
+      15
+    ],
+    "payouts": null,
+    "pot_cents": null,
+    "buyin_cents": 5000,
+    "collected_cents": null
+  },
+  "slug": "n-live-mid",
+  "bands": {
+    "09_beat": 7,
+    "05_rough": 21,
+    "06_loose": 16,
+    "12_torched": 10,
+    "07_played_to": 4
+  },
+  "weeks": 17,
+  "config": {
+    "floor": 2,
+    "weeks": 17,
+    "finish": "cup_final",
+    "players": 8,
+    "allowance": 95,
+    "structure": "squads2",
+    "counting_cap": 4,
+    "floor_penalty": "deduct",
+    "season_format": "points",
+    "season_months_stored": 4
+  },
+  "months": [
+    {
+      "month": "2026-07-01T00:00:00+00:00",
+      "whole": false,
+      "closed": true
+    },
+    {
+      "month": "2026-08-01T00:00:00+00:00",
+      "whole": true,
+      "closed": true
+    },
+    {
+      "month": "2026-09-01T00:00:00+00:00",
+      "whole": true,
+      "closed": false
+    },
+    {
+      "month": "2026-10-01T00:00:00+00:00",
+      "whole": false,
+      "closed": false
+    }
+  ],
+  "season": {
+    "status": "active",
+    "ends_on": "2026-10-28",
+    "champion": null,
+    "starts_on": "2026-07-02",
+    "points_king": null,
+    "tiebreak_rung": null,
+    "champion_score": null,
+    "runnerup_score": null
+  },
+  "members": [
+    {
+      "ppr": 7.25,
+      "name": "Cal Bunker",
+      "points": 58,
+      "rounds": 11,
+      "seated": true,
+      "counting": 8,
+      "archetype": "steady",
+      "index_end": 4.5,
+      "true_skill": 11.0,
+      "index_start": 11.5
+    },
+    {
+      "ppr": 6.0,
+      "name": "Dot Mulligan",
+      "points": 48,
+      "rounds": 9,
+      "seated": true,
+      "counting": 8,
+      "archetype": "weekender",
+      "index_end": 10.7,
+      "true_skill": 14.0,
+      "index_start": 14.5
+    },
+    {
+      "ppr": 8.75,
+      "name": "Gus Ghost",
+      "points": 35,
+      "rounds": 4,
+      "seated": true,
+      "counting": 4,
+      "archetype": "ghost",
+      "index_end": 0.1,
+      "true_skill": 15.0,
+      "index_start": 15.5
+    },
+    {
+      "ppr": 7.38,
+      "name": "Hank Chip",
+      "points": 59,
+      "rounds": 10,
+      "seated": true,
+      "counting": 8,
+      "archetype": "streaky",
+      "index_end": 4.6,
+      "true_skill": 13.0,
+      "index_start": 13.5
+    },
+    {
+      "ppr": 6.5,
+      "name": "Moe Duffer",
+      "points": 39,
+      "rounds": 7,
+      "seated": true,
+      "counting": 6,
+      "archetype": "lurker",
+      "index_end": 7.9,
+      "true_skill": 16.0,
+      "index_start": 16.5
+    },
+    {
+      "ppr": 7.38,
+      "name": "Ray Fairway",
+      "points": 59,
+      "rounds": 18,
+      "seated": true,
+      "counting": 8,
+      "archetype": "pro-grinder",
+      "index_end": 3.3,
+      "true_skill": 6.5,
+      "index_start": 7.0
+    },
+    {
+      "ppr": 6.88,
+      "name": "Sal Birdie",
+      "points": 55,
+      "rounds": 13,
+      "seated": true,
+      "counting": 8,
+      "archetype": "scratch",
+      "index_end": 1.5,
+      "true_skill": 3.0,
+      "index_start": 3.5
+    },
+    {
+      "ppr": 7.38,
+      "name": "Vic Slice",
+      "points": 59,
+      "rounds": 9,
+      "seated": true,
+      "counting": 8,
+      "archetype": "improver",
+      "index_end": 11.1,
+      "true_skill": 18.0,
+      "index_start": 18.5
+    }
+  ],
+  "cup_seeds": null,
+  "cup_table": null,
+  "snapshots": 9,
+  "margin_pct": null,
+  "adjustments": [
+    {
+      "n": 1,
+      "kind": "month_closed",
+      "month": "2026-07-01",
+      "total": 0,
+      "reason": "Partial edge month \u00e2\u0080\u0094 floors waived"
+    },
+    {
+      "n": 1,
+      "kind": "month_closed",
+      "month": "2026-08-01",
+      "total": 0,
+      "reason": "Month closed"
+    }
+  ],
+  "board_posts": 115,
+  "lead_changes": 0,
+  "wire_to_wire": true,
+  "points_margin": 0,
+  "cup_flipped_result": false,
+  "points_table_final": null,
+  "head_start_decisive": false,
+  "led_outright_from_week": 1,
+  "weeks_led_unchallenged": 17
+}

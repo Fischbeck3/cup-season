@@ -1,0 +1,421 @@
+<title>Sixty-Four Seasons</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+:root{
+  --ground:#FBFAF7; --raised:#FFFFFF; --ink:#14181A; --muted:#5B6560;
+  --rule:#E4E6E0; --accent:#C2410C; --accent-soft:#FDEDE4;
+  --crit:#B91C1C; --warn:#B45309; --good:#15803D; --info:#3F5E52;
+  --shadow:0 1px 2px rgba(20,24,26,.05), 0 8px 24px -12px rgba(20,24,26,.14);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --ground:#0E1211; --raised:#151A18; --ink:#E9EBE6; --muted:#94A099;
+    --rule:#242B28; --accent:#F97316; --accent-soft:#2A1A10;
+    --crit:#F87171; --warn:#FBBF24; --good:#4ADE80; --info:#9DBAAC;
+    --shadow:0 1px 2px rgba(0,0,0,.4), 0 10px 30px -14px rgba(0,0,0,.7);
+  }
+}
+:root[data-theme="dark"]{
+  --ground:#0E1211; --raised:#151A18; --ink:#E9EBE6; --muted:#94A099;
+  --rule:#242B28; --accent:#F97316; --accent-soft:#2A1A10;
+  --crit:#F87171; --warn:#FBBF24; --good:#4ADE80; --info:#9DBAAC;
+  --shadow:0 1px 2px rgba(0,0,0,.4), 0 10px 30px -14px rgba(0,0,0,.7);
+}
+*{box-sizing:border-box}
+body{
+  margin:0; background:var(--ground); color:var(--ink);
+  font-family:"IBM Plex Sans",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+  font-size:17px; line-height:1.62; -webkit-font-smoothing:antialiased;
+}
+.wrap{max-width:760px; margin:0 auto; padding:0 22px 96px}
+h1,h2,h3{font-family:"Fraunces",Georgia,serif; text-wrap:balance; line-height:1.14; margin:0}
+h1{font-size:clamp(2.5rem,7vw,3.9rem); font-weight:600; letter-spacing:-.02em}
+h2{font-size:clamp(1.6rem,4vw,2.1rem); font-weight:600; margin:64px 0 6px; letter-spacing:-.015em}
+h3{font-size:1.18rem; font-weight:600; margin:0 0 6px}
+p{margin:0 0 16px}
+a{color:var(--accent)}
+.eyebrow{
+  font-family:"IBM Plex Mono",monospace; font-size:.72rem; letter-spacing:.16em;
+  text-transform:uppercase; color:var(--muted); margin:0 0 14px
+}
+header{padding:76px 0 8px; border-bottom:1px solid var(--rule); margin-bottom:40px}
+header .sub{font-size:1.16rem; color:var(--muted); margin:20px 0 34px; max-width:62ch}
+.meta{
+  display:flex; flex-wrap:wrap; gap:8px 28px; font-family:"IBM Plex Mono",monospace;
+  font-size:.76rem; color:var(--muted); padding-bottom:30px
+}
+.meta b{color:var(--ink); font-weight:500}
+
+/* the two answers */
+.answers{display:grid; gap:16px; margin:0 0 12px}
+@media(min-width:660px){.answers{grid-template-columns:1fr 1fr}}
+.ans{
+  background:var(--raised); border:1px solid var(--rule); border-radius:12px;
+  padding:22px 22px 18px; box-shadow:var(--shadow); position:relative; overflow:hidden
+}
+.ans::before{content:""; position:absolute; inset:0 auto 0 0; width:3px; background:var(--verdict,var(--accent))}
+.ans.good{--verdict:var(--good)} .ans.mixed{--verdict:var(--warn)}
+.ans h3{font-family:"IBM Plex Mono",monospace; font-size:.72rem; letter-spacing:.14em;
+  text-transform:uppercase; color:var(--muted); font-weight:500; margin-bottom:10px}
+.ans .verdict{font-family:"Fraunces",Georgia,serif; font-size:1.5rem; font-weight:600;
+  color:var(--verdict); display:block; margin-bottom:8px; line-height:1.2}
+.ans p{font-size:.95rem; color:var(--muted); margin:0}
+
+/* data */
+.tablewrap{overflow-x:auto; margin:22px 0 8px; border:1px solid var(--rule); border-radius:10px; background:var(--raised)}
+table{border-collapse:collapse; width:100%; font-size:.88rem; min-width:440px}
+th,td{text-align:right; padding:11px 14px; border-bottom:1px solid var(--rule); white-space:nowrap}
+th:first-child,td:first-child{text-align:left}
+thead th{
+  font-family:"IBM Plex Mono",monospace; font-size:.68rem; letter-spacing:.1em;
+  text-transform:uppercase; color:var(--muted); font-weight:500; background:var(--ground)
+}
+tbody tr:last-child td{border-bottom:none}
+td.num{font-family:"IBM Plex Mono",monospace; font-variant-numeric:tabular-nums}
+tr.hi td{background:var(--accent-soft)}
+tr.hi td:first-child{font-weight:600}
+caption{caption-side:bottom; text-align:left; padding:12px 14px; font-size:.82rem; color:var(--muted)}
+
+/* bands */
+.bars{margin:22px 0; display:grid; gap:9px}
+.bar{display:grid; grid-template-columns:minmax(140px,auto) 1fr 52px; gap:12px; align-items:center; font-size:.86rem}
+.bar .lbl{color:var(--muted)}
+.bar .track{height:9px; background:var(--rule); border-radius:5px; overflow:hidden}
+.bar .fill{height:100%; background:var(--accent); border-radius:5px}
+.bar .fill.dim{background:var(--muted); opacity:.5}
+.bar .pct{font-family:"IBM Plex Mono",monospace; font-variant-numeric:tabular-nums; text-align:right; color:var(--muted)}
+
+/* findings */
+.finding{
+  background:var(--raised); border:1px solid var(--rule); border-left:3px solid var(--sev,var(--muted));
+  border-radius:10px; padding:22px 22px 8px; margin:22px 0; box-shadow:var(--shadow)
+}
+.finding.p0{--sev:var(--crit)} .finding.p1{--sev:var(--warn)}
+.finding.p2{--sev:var(--info)} .finding.p3{--sev:var(--muted)}
+.finding.win{--sev:var(--good)}
+.sev{
+  font-family:"IBM Plex Mono",monospace; font-size:.66rem; letter-spacing:.12em; text-transform:uppercase;
+  color:var(--sev); border:1px solid currentColor; border-radius:4px; padding:2px 7px;
+  display:inline-block; margin-bottom:10px; font-weight:500
+}
+.finding p:last-child{margin-bottom:16px}
+.fixed{color:var(--good); font-weight:600}
+
+blockquote{
+  margin:18px 0; padding:14px 18px; border-left:2px solid var(--accent);
+  background:var(--accent-soft); border-radius:0 8px 8px 0; font-size:.95rem
+}
+blockquote p{margin:0}
+code{font-family:"IBM Plex Mono",monospace; font-size:.86em; background:var(--rule);
+  padding:1px 5px; border-radius:4px}
+
+/* screenshots */
+figure{margin:26px 0}
+.shots{display:grid; gap:18px}
+@media(min-width:640px){.shots.two{grid-template-columns:1fr 1fr}}
+.shot{margin:0}
+.shot img{
+  width:100%; height:auto; display:block; border-radius:12px;
+  border:1px solid var(--rule); box-shadow:var(--shadow); background:#0E1211
+}
+figcaption{font-size:.83rem; color:var(--muted); margin-top:10px; line-height:1.5}
+figcaption b{color:var(--ink); font-weight:600}
+.tag{
+  font-family:"IBM Plex Mono",monospace; font-size:.64rem; letter-spacing:.1em;
+  text-transform:uppercase; padding:2px 6px; border-radius:4px; margin-right:7px;
+  border:1px solid currentColor
+}
+.tag.bad{color:var(--crit)} .tag.ok{color:var(--good)}
+
+ul,ol{margin:0 0 16px; padding-left:22px}
+li{margin-bottom:8px}
+hr{border:none; border-top:1px solid var(--rule); margin:56px 0}
+.foot{font-size:.86rem; color:var(--muted)}
+.foot code{font-size:.9em}
+</style>
+
+<div class="wrap">
+
+<header>
+  <p class="eyebrow">Cup Season · simulation study · 30 August 2026</p>
+  <h1>Sixty-four seasons,<br>played in an afternoon.</h1>
+  <p class="sub">You can't run a season start to finish to find out whether the game holds up.
+  So I ran sixty-four of them against the real engine — every structure, both endgames,
+  nine weeks to thirty-nine — and watched the finish from inside the app.</p>
+  <div class="meta">
+    <span><b>64</b> seasons</span>
+    <span><b>26</b> configurations</span>
+    <span><b>3</b> replicates each</span>
+    <span><b>8,624</b> counting rounds</span>
+    <span><b>576</b> golfers</span>
+  </div>
+</header>
+
+<div class="answers">
+  <div class="ans good">
+    <h3>Is the play sound?</h3>
+    <span class="verdict">Yes — for your shape</span>
+    <p>Solo at 10–12 golfers gave the closest racing of anything tested: 4–5% final margins,
+    five lead changes a season, and <b>zero runaways in nineteen runs</b>. Two-squad leagues
+    went wire-to-wire 70% of the time.</p>
+  </div>
+  <div class="ans mixed">
+    <h3>Is the finish exciting?</h3>
+    <span class="verdict">For two people</span>
+    <p>The Cup Final reversed the regular season in 5 of 13 solo runs — real drama. But when
+    seeds lock, <b>eight of your ten friends can no longer win</b>, with four weeks to play.
+    And one screen names the wrong champion outright.</p>
+  </div>
+</div>
+
+<p class="foot" style="margin-top:22px">Every league was born through the real
+<code>create_league</code> and <code>lock_league</code>, drawn by the real
+<code>randomize_squads</code>, and scored by the real <code>close_month</code>,
+<code>enter_cup_final</code> and <code>close_season</code>. Rounds were inserted exactly the
+way the client inserts them. Sixty of the sixty-four ran inside transactions that were rolled
+back; four were committed so these screenshots could be taken.</p>
+
+<h2>The shape of a season</h2>
+<p>The single strongest result in the study is that <b>more contenders means closer racing</b>,
+and the effect is not subtle. A two-squad league is a coin flip settled in week one; a
+ten-player individual league goes to the wire every time.</p>
+
+<div class="tablewrap">
+<table>
+  <caption>“Wire-to-wire” means the eventual winner led from week one and was never caught.
+  Margin is the winner's lead as a share of their own total.</caption>
+  <thead><tr><th>Contenders in the table</th><th>Seasons</th><th>Wire-to-wire</th><th>Mean margin</th><th>Lead changes</th></tr></thead>
+  <tbody>
+    <tr><td>2 &nbsp;<span style="color:var(--muted)">two squads</span></td><td class="num">27</td><td class="num">70%</td><td class="num">23%</td><td class="num">1.1</td></tr>
+    <tr><td>3 &nbsp;<span style="color:var(--muted)">three squads</span></td><td class="num">3</td><td class="num">67%</td><td class="num">12%</td><td class="num">0.3</td></tr>
+    <tr><td>4 &nbsp;<span style="color:var(--muted)">four squads</span></td><td class="num">3</td><td class="num">0%</td><td class="num">5%</td><td class="num">3.3</td></tr>
+    <tr><td>8 &nbsp;<span style="color:var(--muted)">solo</span></td><td class="num">6</td><td class="num">33%</td><td class="num">10%</td><td class="num">1.5</td></tr>
+    <tr class="hi"><td>10 &nbsp;<span style="color:var(--muted)">solo — your pilot</span></td><td class="num">13</td><td class="num">0%</td><td class="num">4%</td><td class="num">5.1</td></tr>
+    <tr><td>12 &nbsp;<span style="color:var(--muted)">solo</span></td><td class="num">6</td><td class="num">0%</td><td class="num">5%</td><td class="num">4.7</td></tr>
+  </tbody>
+</table>
+</div>
+
+<p>Ten is meaningfully better than eight. If you can get to ten or twelve, do.</p>
+
+<h2>What a point actually measures</h2>
+<p>Every round scores in one of five bands. Across 8,624 counting rounds, the distribution is
+heavily bottom-weighted:</p>
+
+<div class="bars">
+  <div class="bar"><span class="lbl">12 · Torched it</span><span class="track"><span class="fill" style="width:21.5%"></span></span><span class="pct">9.2%</span></div>
+  <div class="bar"><span class="lbl">9 · Beat your number</span><span class="track"><span class="fill" style="width:24.8%"></span></span><span class="pct">10.6%</span></div>
+  <div class="bar"><span class="lbl">7 · Played to your index</span><span class="track"><span class="fill" style="width:37.9%"></span></span><span class="pct">16.2%</span></div>
+  <div class="bar"><span class="lbl">6 · A little loose</span><span class="track"><span class="fill dim" style="width:49.5%"></span></span><span class="pct">21.2%</span></div>
+  <div class="bar"><span class="lbl">5 · Rough day, posted anyway</span><span class="track"><span class="fill dim" style="width:100%"></span></span><span class="pct">42.8%</span></div>
+</div>
+
+<p>Sixty-four percent of all rounds land on 5 or 6. The consequence is arithmetic:</p>
+
+<blockquote><p>The <b>best golfer in a league out-scores the worst by 1.83 points per
+round</b>. One extra posted round is worth <b>6.6 points</b>. Showing up once more is worth
+about three and a half times being the best player on the course.</p></blockquote>
+
+<p>Measured inside each league separately — so this is not an artefact of pooling leagues of
+different sizes — season points correlate <b>+0.96 with rounds counted</b> and <b>+0.04 with
+how well you played</b>. Rounds-counted was the stronger driver in <b>61 of 61</b> leagues.
+Unanimous.</p>
+
+<p>The cause is the handicap engine doing its job. Across 576 golfers the WHS-lite index
+settled <b>4.7 strokes below</b> true playing ability, because it averages your best few
+differentials. Volatile golfers lose most — improvers and streaky players dropped 6.6–6.8
+strokes, steady players 3.5. Since a point comes from <code>playing_index − differential</code>,
+a lower index makes every band harder to reach. <b>A golfer gets worse at this game by playing
+it well.</b></p>
+
+<p class="foot">This result is conservative. The simulated golfers reach “played to your index
+or better” in 35.5% of rounds; real golf is 20–25%. The true distribution would be more
+bottom-heavy, not less.</p>
+
+<h2>The bug at the most important moment</h2>
+
+<div class="finding p0">
+  <span class="sev">P0 · wrong answer</span>
+  <h3>Home names the wrong champion</h3>
+  <p>The season-wrapped card picks the winner as the top of the <b>points table</b>. The real
+  champion is <code>seasons.champion_member_id</code>, decided by the Cup Final — a different
+  race entirely. In the simulated league <i>Encanto Ten</i>, the database crowned <b>Vic
+  Slice</b> 28–26. Home said <b>“Ray Fairway took it.”</b></p>
+  <p>The same block renders <i>“Your name goes on the cup”</i> when you are top of the points
+  table — so the player who did <b>not</b> win the Cup Final can be told that they did. Here,
+  the table was even tied at 99, so the client broke a tie the engine breaks with a documented
+  ladder.</p>
+</div>
+
+<div class="shots two">
+  <figure class="shot">
+    {{IMG:p0-home-wrong-champion}}
+    <figcaption><span class="tag bad">wrong</span><b>Home.</b> “Ray Fairway took it.” He did
+    not. He was tied on the points table, which is not the race that crowns anyone.</figcaption>
+  </figure>
+  <figure class="shot">
+    {{IMG:ceremony-correct}}
+    <figcaption><span class="tag ok">correct</span><b>The ceremony, one layer above.</b> Vic
+    Slice, 28–26, runner-up, Points King and the pot split to the dollar. Two producers of
+    “who won”; only this one is right.</figcaption>
+  </figure>
+</div>
+
+<p>This is precisely the failure the code audit named yesterday — <i>a rule with more than one
+producer</i>. The champion now has two. The fix is to read the crown from the season row and
+never infer it from standings.</p>
+
+<h2>The eight who can't win</h2>
+
+<div class="finding p1">
+  <span class="sev">P1 · misleading</span>
+  <h3>Non-finalists are shown a race that is already sealed</h3>
+  <p>When <code>enter_cup_final</code> runs, <code>cup_finalists</code> holds exactly two rows,
+  and <code>close_season</code> crowns only from those two. In a ten-player solo league, eight
+  golfers are mathematically eliminated from the title with four weeks still to play — and Home
+  does not say so.</p>
+</div>
+
+<div class="shots two">
+  <figure class="shot">
+    {{IMG:eliminated-player-home}}
+    <figcaption><span class="tag bad">misleading</span><b>Third place, Home.</b> “5 points back
+    of Cal Bunker · 2 weeks left”, under a <b>CUP FINAL</b> header and a <b>“3 seed”</b> that
+    does not exist — there are only two seeds. He cannot win. It reads like he can.</figcaption>
+  </figure>
+  <figure class="shot">
+    {{IMG:eliminated-player-clubhouse}}
+    <figcaption><span class="tag ok">honest</span><b>The same player, Clubhouse.</b> <code>OUT</code>,
+    a cut line, his own row highlighted, and “The regular season — final”. This screen tells the
+    truth. Home contradicts it.</figcaption>
+  </figure>
+</div>
+
+<p>The number itself is real — he <i>is</i> five points off on the points table, which is still
+live and still worth the Points King share of the pot. It is the framing that lies: a
+cup-final header wrapped around points-table numbers.</p>
+
+<h2>What already works</h2>
+
+<div class="finding win">
+  <span class="sev">Working</span>
+  <h3>The mid-season view for someone who is losing</h3>
+  <p>The golfer in last place is pointed at the person <b>one place ahead</b> — “3 points back
+  of Moe Duffer” — not at the leader, plus a concrete floor nudge. That is the right target to
+  hand someone in tenth, and it is the difference between a league they keep opening and one
+  they don't.</p>
+</div>
+
+<div class="shots two">
+  <figure class="shot">
+    {{IMG:drifter-mid-season}}
+    <figcaption><span class="tag ok">good</span><b>Tenth of ten, week 7.</b> A reachable target
+    and an honest floor line: “in a solo league that is a habit, not a penalty — there's no squad
+    to dock.”</figcaption>
+  </figure>
+  <figure class="shot">
+    {{IMG:cupweek-leader}}
+    <figcaption><span class="tag ok">good</span><b>The leader in cup week.</b> “1 seed — HELD ·
+    You lead by 7 points over Cal Bunker · 2 weeks left.” Exactly the right tension — for the two
+    people entitled to feel it.</figcaption>
+  </figure>
+</div>
+
+<h2>The rest of the findings</h2>
+
+<div class="finding p2">
+  <span class="sev">P2 · fixed today</span>
+  <h3>The app promised solo leagues a +10 head start that doesn't exist</h3>
+  <p>The endgame explainer stated “The leader carries +10 in” unconditionally. The engine grants
+  it only for two-squad leagues — solo, three-squad and four-squad leaders carry nothing. Your
+  solo pilot would have read a rule the engine does not have, in the copy meant to teach the
+  endgame. I introduced that line yesterday. <span class="fixed">Fixed and verified in a live
+  solo league; preflight passes.</span></p>
+</div>
+
+<div class="finding p2">
+  <span class="sev">P2</span>
+  <h3>A finished season still renders as a live race</h3>
+  <p>Opening a completed league shows “SEASON RACE · THE CLIMB” with IN/OUT badges and a
+  “CUT LINE · 15 BACK” — on a season that is settled — while the actual champion sits at #2 with
+  nothing marking him as the winner.</p>
+</div>
+
+<figure class="shot" style="max-width:400px">
+  {{IMG:complete-season-as-live-race}}
+  <figcaption><span class="tag bad">stale</span>A settled season, still drawing a cut line.</figcaption>
+</figure>
+
+<div class="finding p2">
+  <span class="sev">P2</span>
+  <h3>No season can be shorter than three months</h3>
+  <p><code>season_months</code> is constrained to 3–12, so a four- or six-week trial season cannot
+  be created. Worth knowing a week out from a pilot. Note also that <code>lock_league</code> takes
+  explicit dates, so the stored bylaw and the real window can silently disagree.</p>
+</div>
+
+<div class="finding p3">
+  <span class="sev">P3</span>
+  <h3>The participation floor is structurally inert in solo leagues</h3>
+  <p><code>close_month</code> walks squad members, and solo leagues have no squads — so no floor
+  penalty, forfeit or auto-bye can ever fire. Confirmed across all 25 completed solo seasons. The
+  copy is honest about it, but Home still renders a progress bar and a “2 MORE · 1D” countdown for
+  something with no consequence.</p>
+</div>
+
+<div class="finding p3">
+  <span class="sev">P3</span>
+  <h3><code>sandbox_scrap</code> can't scrap a league that closed a month</h3>
+  <p>Fourteen tables reference <code>league_members</code> with <code>ON DELETE NO ACTION</code>.
+  The shipped teardown deletes the league first, on the assumption that the cascade clears those
+  references — it doesn't, once a floor penalty exists. My own teardown hit this and now clears
+  children in dependency order.</p>
+</div>
+
+<hr>
+
+<h2>What I'd change before the 6th</h2>
+
+<ol>
+  <li><b>Fix the champion bug.</b> It fires on the single most important screen in the product,
+  at the one moment a league is guaranteed to be watching.</li>
+  <li><b>Run season one on the points table, not the Cup Final.</b> See below.</li>
+  <li><b>Aim for ten or twelve golfers, not eight.</b> Eight-player leagues went wire-to-wire in
+  one of three; ten never did.</li>
+  <li><b>Decide what a point should mean.</b> If the table should rank golf rather than
+  attendance, the lever is the counting cap — at a cap of two, the bottom bands fell from 64% to
+  47%, because only your best rounds count. It's one field in the wizard.</li>
+  <li><b>Decide whether the solo floor should have teeth</b> — or stop drawing a countdown for
+  something that cannot bite.</li>
+</ol>
+
+<h3 style="margin-top:34px">The endgame choice, for ten solo golfers</h3>
+<div class="tablewrap">
+<table>
+  <thead><tr><th></th><th>Points table</th><th>Cup Final</th></tr></thead>
+  <tbody>
+    <tr><td>Still alive at the end</td><td class="num"><b>all 10</b></td><td class="num">2</td></tr>
+    <tr><td>Wire-to-wire runaways</td><td class="num">0 of 12</td><td class="num">2 of 13</td></tr>
+    <tr><td>Lead changes</td><td class="num">3.6</td><td class="num">4.6</td></tr>
+    <tr><td>Final margin</td><td class="num">6%</td><td class="num">5%</td></tr>
+    <tr><td>Reversed the regular season</td><td class="num">—</td><td class="num">5 of 13</td></tr>
+  </tbody>
+</table>
+</div>
+
+<p>The Cup Final is the better <i>story</i>: it overturned months of golf in 38% of runs, which is
+exactly the drama an endgame is for. But it buys that story by benching eight of your ten friends
+for the final month of a first pilot — precisely when you most need them still posting. Run season
+one on the points table, and introduce the Cup Final in season two once the habit exists. If you
+want the Cup Final anyway, fix the non-finalist card first.</p>
+
+<hr>
+
+<p class="foot"><b>The test footprint.</b> Four simulated leagues are committed in production so
+these screenshots could be taken, with their cast on the unroutable
+<code>@sim.cupseason.test</code> domain and five observer seats. Every league is flagged
+<code>sandbox</code>. The other sixty seasons rolled back and left nothing. Remove all of it with
+<code>tools/00-teardown.sql</code> — change the final <code>rollback;</code> to <code>commit;</code>.
+It rehearses clean and reports zero on every counter.</p>
+
+</div>
