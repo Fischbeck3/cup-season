@@ -223,7 +223,8 @@ private func team(_ id: UUID, _ name: String, _ pts: Double, ci: Int = 0) -> Tea
     let sc = SeasonScenarios(meta: meta, rows: [.init(id: a, name: "S1", points: 80, max_final: 120, clinched: true, eliminated: false, needs: 0),
                                                 .init(id: p1, name: "S8", points: 10, max_final: 50, clinched: false, eliminated: true, needs: 70)])
     let items = ClimbMath.items(teams: teams, meId: p1, scenarios: sc)   // me = S8, last
-    if case .rung(let r) = items[0] { #expect(r.badge == "LOCKED" && r.accessibility.hasSuffix(", clinched")) }
+    // D126/D136: a clinched seat reads IN, not LOCKED (testers read the old word as locked OUT).
+    if case .rung(let r) = items[0] { #expect(r.badge == "IN" && r.accessibility.hasSuffix(", clinched")) }
     if case .rung(let r) = items.last(where: { if case .rung = $0 { return true }; return false })! { #expect(r.badge == "OUT") }
   }
 }

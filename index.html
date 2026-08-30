@@ -1131,6 +1131,10 @@ body.guestlive #onboard{display:none !important;}
 .hhero .hh-cta.q{background:var(--bg2); color:var(--ink); border:1px solid var(--line2); box-shadow:none;}
 /* D119 · the member's second move: present, but never competing with the hero's
    one action (D27/D81 — a hero has ONE move; this is a quiet link under it). */
+/* D126 · the endgame sentence under the seat line — a second voice, not a
+   second headline (D94: one fact per tile; this explains the fact above it). */
+.chart-note .endgame-line{display:block; margin-top:5px; font-family:var(--fs); font-size:11.5px;
+  line-height:1.45; letter-spacing:0; text-transform:none; color:var(--mut);}
 .hhero .hh-sub{display:flex; align-items:center; justify-content:center; min-height:38px; margin-top:8px;
   width:100%; background:transparent; border:0; color:var(--mut); font-size:12.5px; text-decoration:underline;
   text-underline-offset:3px;}
@@ -3543,6 +3547,9 @@ html[data-theme="light"] .room-dusk .btn:not(.dark):not(.gold):not(.apple){color
             <p class="fine"><b>Cup Season keeps the books.</b> Buy-ins and payouts move friend-to-friend. We just make sure nobody argues at the bar.</p>
           </div>
           <div>
+            <!-- D129: how to pay comes BEFORE the ledger of who has -->
+            <div class="eyebrow">How to pay</div>
+            <p class="fine" id="payHow" style="padding:0 0 12px"></p>
             <div class="eyebrow">Buy-ins · <span id="paidCount">5/7</span> in</div>
             <div id="payers"></div>
           </div>
@@ -4524,7 +4531,10 @@ function renderClimb(){
     } else if(me && !isMe){ const d=t.pts-me.pts; gap = d>0?`+${d}`:`${d}`; }
     else if(!me && i>0){ gap=`-${teams[0].pts-t.pts}`; }   /* spectator: behind the leader */
     let badge='';
-    if(row && row.clinched) badge='<span class="badge lock">LOCKED</span>';
+    /* D126/D136 · "LOCKED" on a standings row read as locked OUT to testers —
+       it is the opposite: a seat secured. "SEEDED" collides with seeds 1/2,
+       which only exist once the window opens. IN. */
+    if(row && row.clinched) badge='<span class="badge lock">IN</span>';
     else if(row && row.eliminated) badge='<span class="badge out">OUT</span>';
     const spark = isMe ? climbSpark(series[i]) : '';
     /* what a screen reader hears for this rung */
@@ -4551,11 +4561,17 @@ function renderClimb(){
   }
   applyClimb(box, html);
   if(note){
-    if(K>=n) note.textContent=`EVERYONE ADVANCES — ${n} CONTENDER${n===1?'':'S'}, ${K} SEAT${K===1?'':'S'}`;
-    /* Q-26 · "PROJECTED UNDER A GENEROUS CEILING" was jargon nobody decoded —
-       and it sat over two EMPTY squads on a league that had not teed off. */
-    else if(meta) note.textContent=`TOP ${K} ${meta.finish==='points_table'?'— THE POINTS CROWN':'ADVANCE TO THE CUP FINAL'}`;
-    else note.textContent=`TOP ${K} ADVANCE TO THE CUP FINAL`;
+    /* D126 · the seat line, then the sentence that says what the seats are FOR.
+       The observer led his league by 22 points and could not say how the title
+       was decided — the only statement of it lived in a collapsed disclosure.
+       D127 · when the roster cannot fill more seats than it has contenders the
+       Final is hollow; say so rather than printing "EVERYONE ADVANCES" as if
+       it were a standing. */
+    const seatLine = K>=n
+      ? (n<=1 ? 'NOBODY TO RACE YET' : `EVERYONE ADVANCES — ${n} CONTENDER${n===1?'':'S'}, ${K} SEAT${K===1?'':'S'}`)
+      : `TOP ${K} ${meta && meta.finish==='points_table' ? '— THE POINTS CROWN' : 'ADVANCE TO THE CUP FINAL'}`;
+    note.innerHTML = `${esc(seatLine)}<span class="endgame-line">${esc(endgameLine(meta||{}))}</span>`
+      + (K>=n && n>1 ? '<span class="endgame-line">Every contender already has a seat, so the Final is a formality until more golfers join.</span>' : '');
   }
 }
 
@@ -5867,6 +5883,57 @@ function seasonNote(kind){
     ? (when ? `Practice · season starts ${when}` : 'Practice round')
     : (when ? `Practice — the season starts ${when}. This round builds your number; it earns league points from then on.`
             : 'Practice — the season has not started. This round builds your number; it earns league points once it does.');
+}
+/* D126 · the endgame is a sentence you can always see.
+   The blind audit's observer led his league by 22 points and could not say how
+   the title was decided; the only statement of it was a row inside a collapsed
+   "▸ LEAGUE RULES & PRO SHOP" disclosure. D4 ordered a season-long foreshadow
+   of the Cup Final reset back in July, so the leader's lead "lands as a
+   playoff, not a theft" — what shipped was one line in a shared
+   nearest-deadline slot that "Week closes Sun" beats on all but the last few
+   days of a season. This is the sentence, and it does not compete for space.
+   Ties: §14.3's ladder is h2h months won → best single month → fewest rounds
+   → a logged coin flip. The Points King ladder is NOT built (D136), so where
+   that crown can tie we say so plainly rather than implying a rule. */
+/* D129 · the Pro's own words on how the crew pays them. Instructions, never a
+   rail: the app has never held money and this does not change that (D39). */
+async function openBuyInTerms(){
+  if(!CS.league || state.demo) return;
+  const cur = CS.settings?.buy_in_note || '';
+  const due = CS.settings?.buy_in_due_on || '';
+  openSheet('How the crew pays you', 'THE APP KEEPS THE BOOKS, NOT THE MONEY', `
+    <label class="f" for="biNote">Your words — a handle, an app, cash at the turn</label>
+    <input class="f" id="biNote" maxlength="140" placeholder="Venmo @casey" value="${esc(cur)}">
+    <label class="f" for="biDue" style="margin-top:10px">In by (optional)</label>
+    <input class="f" id="biDue" type="date" value="${esc(due)}">
+    <p class="fine" style="padding:8px 0 0">Every member sees this on the Pot tab. Cup Season never touches the money — it just stops the arguing at the bar.</p>
+    <button class="btn" id="biSave" style="margin-top:10px">Save</button>`);
+  document.getElementById('biSave')?.addEventListener('click', async () => {
+    const note = document.getElementById('biNote').value.trim();
+    const d    = document.getElementById('biDue').value || null;
+    try {
+      const { error } = await sb.rpc('set_buy_in_terms', { p_league: CS.league.id, p_note: note || null, p_due_on: d });
+      if(error) throw error;
+      CS.settings = { ...(CS.settings||{}), buy_in_note: note || null, buy_in_due_on: d };
+      closeSheet(); renderPot(); toast('Saved — the crew can see it on the pot sheet');
+    } catch(e){ toast(humanError(e, 'Could not save.')); }
+  });
+}
+window.openBuyInTerms = openBuyInTerms;
+function endgameLine(opts){
+  const o = opts || {};
+  const finish = o.finish || state.finish || 'cup_final';
+  const structure = o.structure || state.structure || 'squads2';
+  const seats = structure === 'solo' ? 2 : (structure === 'squads2' ? 2 : 2);
+  let when = '';
+  try { const cf = cupFinalStart(); if(cf) when = `${DOW[cf.getDay()]} ${MOS[cf.getMonth()]} ${cf.getDate()}`; } catch(_){}
+  if(finish === 'points_table'){
+    let ends = '';
+    try { const e = new Date(seasonE()); ends = `${MOS[e.getMonth()]} ${e.getDate()}`; } catch(_){}
+    return `The points table crowns it${ends ? ` on ${ends}` : ''} — every round counts to the last day. Level on points? Months won breaks it.`;
+  }
+  const who = structure === 'solo' ? `The top ${seats} golfers` : `The top ${seats} squads`;
+  return `${who} seed into a four-week Cup Final${when ? ` from ${when}` : ''} — scored fresh, so the regular season sets the seeds, not the winner. The leader carries +10 in. Level on points? Months won breaks it.`;
 }
 function vsShort(v){
   /* null/undefined/'' must NOT become 0 — Number(null) is 0, which would have
@@ -7432,15 +7499,38 @@ function renderPot(){
     $('#pay1').textContent=fmt$(total - runnerUp - king);
     $('#pay2').textContent=fmt$(runnerUp);
     $('#pay3').textContent=fmt$(king);
+    /* D129 · how to pay, before the ledger of who has. The audit's Pot tab said
+       "$150 · $0 collected · 2 still owe" six weeks into a real season and not
+       one tester — including the member who had been there the whole time —
+       could say who to pay, how, or by when. The app moves no money (D39);
+       these are the Pro's own instructions, like the spreadsheet they replace. */
+    const payBox = $('#payHow');
+    if(payBox){
+      const note = window.CS?.settings?.buy_in_note || '';
+      const due  = window.CS?.settings?.buy_in_due_on || '';
+      const dueTxt = due ? (()=>{ try{ const d=localDate(due); return `${DOW[d.getDay()]} ${MOS[d.getMonth()]} ${d.getDate()}`; }catch(_){ return due; } })() : '';
+      if(note){
+        payBox.innerHTML = `<b>${esc(note)}</b>${dueTxt?` · by ${esc(dueTxt)}`:''}`
+          + (isPro ? ' <a href="#" data-payedit style="color:var(--mut); text-decoration:underline">edit</a>' : '');
+      } else if(isPro){
+        payBox.innerHTML = `<a href="#" data-payedit style="color:var(--brand); text-decoration:underline">Say how the crew pays you</a> — they can't guess.`;
+      } else {
+        payBox.innerHTML = `The Pro hasn't posted how to pay yet — ask them in the board.`;
+      }
+      payBox.querySelector('[data-payedit]')?.addEventListener('click', (e)=>{ e.preventDefault(); openBuyInTerms(); });
+    }
     const el=$('#payers'); el.innerHTML='';
     (ms.length?ms:[null]).forEach(m=>{
       const paid=m ? !!bi[m.id]?.paid : false;
-      const row=document.createElement('button');
+      /* D129 · a member's row is STATUS, not a control. It used to look
+         tappable and refuse everyone but the Pro. */
+      const row=document.createElement(isPro ? 'button' : 'div');
       row.className='payer'+(paid?' paid':'');
       row.innerHTML=`<span>${esc(m ? (m.profile?.display_name||'—') : ((window.CS?.profile?.display_name)||'You'))}</span><span class="tick">✓</span>`;
+      if(!isPro){ el.appendChild(row); return; }
       row.addEventListener('click', async ()=>{
         if(!m) return;
-        if(!isPro){ toast('The Pro marks buy-ins as money moves between you'); return; }
+        if(!window.CS?.season?.id){ toast('Buy-ins open once the bylaws lock'); return; }
         if(!window.CS?.season?.id){ toast('Buy-ins open once the bylaws lock'); return; }
         row.disabled=true;
         try{
@@ -14757,6 +14847,11 @@ async function loadBylaws(leagueId){
 
 /* map DB bylaws -> the prototype's state object, then re-render */
 function applyBylaws(b){
+  /* D129 · keep the raw row: the payment terms are read straight off it, and
+     `select *` already brings them. Deploy skew — an older database has no
+     such columns and these are simply undefined, which renders as "the Pro
+     hasn't posted how to pay yet". */
+  CS.settings = b;
   const CAPMAP = { 2:0, 4:1, 6:2 };
   state.stake     = Math.round(b.buyin_cents/100);
   state.months    = b.season_months;
@@ -15219,7 +15314,7 @@ function renderScenarioLine(){
   /* Cup Final already running → seeds are settled facts */
   if(meta.locked){
     const seeds = rows.slice(0, meta.k).map(r=>up(r.name));
-    box.innerHTML = `<span class="clinch">SEEDS LOCKED</span> — ${seeds.join(' · ')} INTO THE CUP FINAL`;
+    box.innerHTML = `<span class="clinch">SEEDS SET</span> — ${seeds.join(' · ')} INTO THE CUP FINAL`;   /* D126 */
     box.style.display='block'; return;
   }
   /* seed race closed (window past) but not yet flipped, or nothing to project */
@@ -15230,7 +15325,7 @@ function renderScenarioLine(){
   const leadHeadroom = Number(lead.max_final) - Number(lead.points);   /* what the leader can still add */
   const parts = [];
   if(lead.clinched){
-    parts.push(`<b>${up(lead.name)}</b> HAS LOCKED ${sw}`);
+    parts.push(`<b>${up(lead.name)}</b> IS IN ${sw}`);   /* D126 */
   } else if(capped && lead.needs>0 && lead.needs <= leadHeadroom){
     parts.push(`<b>${up(lead.name)}</b> · ${lead.needs} MORE LOCKS ${sw}`);
   }

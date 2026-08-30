@@ -379,7 +379,8 @@ public enum ClimbMath {
         gap = "-\(CSCopy.points(teams[0].pts - t.pts))"
       }
       var badge: String? = nil
-      if row?.clinched == true { badge = "LOCKED" } else if row?.eliminated == true { badge = "OUT" }
+      // D126/D136: "LOCKED" read as locked OUT; a clinched seat is IN.
+      if row?.clinched == true { badge = "IN" } else if row?.eliminated == true { badge = "OUT" }
       var al = isMe ? "You — \(ordinal(i + 1)), \(CSCopy.points(t.pts)) points" : "\(ordinal(i + 1)) — \(t.name), \(CSCopy.points(t.pts)) points"
       if let me, !isMe {
         let d = t.pts - me.pts

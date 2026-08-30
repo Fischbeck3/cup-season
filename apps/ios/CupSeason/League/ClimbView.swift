@@ -58,9 +58,9 @@ struct ClimbView: View {
             Text(r.isMe ? "You · \(r.team.name)" : r.team.name).font(r.isMe ? CSFont.subhead.weight(.semibold) : CSFont.subhead)
               .foregroundStyle(cs.ink).lineLimit(typeSize.isA11y ? nil : 1)
             if let b = r.badge {
-              Text(b).font(CSFont.label).tracking(1.0).foregroundStyle(b == "LOCKED" ? cs.gold : cs.cool)
+              Text(b).font(CSFont.label).tracking(1.0).foregroundStyle(b == "IN" ? cs.gold : cs.cool)
                 .padding(.horizontal, 6).padding(.vertical, 2)
-                .overlay(Capsule().stroke(b == "LOCKED" ? cs.gold : cs.cool, lineWidth: 1))
+                .overlay(Capsule().stroke(b == "IN" ? cs.gold : cs.cool, lineWidth: 1))
                 .fixedSize()
             }
           }
