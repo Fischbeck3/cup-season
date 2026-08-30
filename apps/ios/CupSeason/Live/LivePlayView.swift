@@ -19,7 +19,7 @@ struct LivePlayView: View {
   /// wide enough for eighteen columns to be legible; a rotation back to portrait
   /// drops it, so nobody can be stranded on a view they cannot leave.
   #if DEBUG
-  @State private var cardView = OrientationGate.forceLandscapeForReview
+  @State private var cardView = OrientationGate.startsInCardView
   #else
   @State private var cardView = false
   #endif
@@ -48,6 +48,14 @@ struct LivePlayView: View {
           store.state.hole = h
           cardView = false
         }
+      } else if canShowCard {
+        // D152 · sideways, the HOLE view must fit on one screen. The portrait
+        // stack — eyebrow, header, dots, four rows, two buttons, the
+        // auto-attest paragraph, scrap, then the side games — is far taller
+        // than 390pt, so rotating used to hand you a scroll. Two columns, and
+        // the teaching copy stands down: it is a first-round explanation, not
+        // something anyone reads standing over a putt.
+        landscapeHole
       } else {
       ScrollView {
         VStack(alignment: .leading, spacing: 14) {
@@ -97,10 +105,14 @@ struct LivePlayView: View {
         Spacer(minLength: 8)
         if canShowCard { viewToggle }
       }
-      // D152 · in CARD view the chips are restated by the table underneath —
-      // every score, every total, hole by hole — so they stand down and give
-      // their height back. A landscape phone has ~390pt to spend.
-      if !(cardView && canShowCard) {
+      // D152 · sideways, the chips stand down in BOTH views. In CARD they are
+      // restated by the table underneath — every score, every total, hole by
+      // hole. In HOLE they are restated by the four rows, which carry the same
+      // name / thru / net. A landscape phone has ~380pt to spend and the chips
+      // cost 40 of them; spent there, the last player's row falls off the
+      // bottom (it did — SwiftUI overflows a too-tall VStack symmetrically, so
+      // the toggle went off the TOP at the same time and read as "missing").
+      if !canShowCard {
       ScrollView(.horizontal, showsIndicators: false) {
         HStack(spacing: 6) {
           ForEach(Array(sb.chips.enumerated()), id: \.offset) { _, c in
@@ -115,15 +127,43 @@ struct LivePlayView: View {
           }
         }
       }
-      Text(LiveCopy.syncBadge(s, presence: store.presence, queued: store.queued)).font(CSFont.label).tracking(0.8).foregroundStyle(cs.dimText)
+      }
+      if !(cardView && canShowCard) {
+        Text(LiveCopy.syncBadge(s, presence: store.presence, queued: store.queued)).font(CSFont.label).tracking(0.8).foregroundStyle(cs.dimText)
       }
     }
-    .padding(.horizontal, 20).padding(.vertical, cardView && canShowCard ? 7 : 12)
+    .padding(.horizontal, 20).padding(.vertical, canShowCard ? 7 : 12)
     .frame(maxWidth: .infinity, alignment: .leading)
     .background(cs.bg1)
     .overlay(alignment: .bottom) { Rectangle().fill(cs.line).frame(height: 1) }
     .accessibilityElement(children: .combine)
     .accessibilityAddTraits(.updatesFrequently)   // the scoreboard moves as the group scores
+  }
+
+  /// D152 · the hole, sideways: entry left, the games right, nothing scrolling.
+  private var landscapeHole: some View {
+    HStack(alignment: .top, spacing: 16) {
+      VStack(alignment: .leading, spacing: 6) {
+        holeHeader
+        holeDots
+        ForEach(s.players.indices, id: \.self) { pi in playerRow(pi) }
+        Spacer(minLength: 0)
+      }
+      .frame(maxWidth: .infinity, alignment: .leading)
+
+      VStack(alignment: .leading, spacing: 8) {
+        gameCards
+        Spacer(minLength: 0)
+        if !store.isPencilOnly {
+          CSButton("Finish & post", busy: store.busy) { showFinish = true }
+        }
+      }
+      .frame(width: 290)
+    }
+    .padding(.horizontal, 20)
+    .padding(.top, 10)
+    .padding(.bottom, 12)
+    .frame(maxHeight: .infinity, alignment: .top)
   }
 
   /// D152 · HOLE / CARD. Named for what each shows, not for the orientation —
@@ -215,6 +255,10 @@ struct LivePlayView: View {
           Text(r.total ?? "—").font(CSFont.label).foregroundStyle(cs.mut)
           if let tp = r.toPar { Text(tp).font(CSFont.label).foregroundStyle(cs.mut) }
         }
+        // sideways the name takes the slack first and wrapped "55 THRU / 14";
+        // the running total is one line or it is not a running total
+        .lineLimit(canShowCard ? 1 : nil)
+        .fixedSize(horizontal: canShowCard, vertical: false)
         .accessibilityElement(children: .combine)
         .accessibilityLabel("Total \(r.total ?? "none")" + (r.toPar.map { ", \($0)" } ?? ""))
         .accessibilityAddTraits(.updatesFrequently)
@@ -232,7 +276,7 @@ struct LivePlayView: View {
       }
       .padding(.leading, typeSize.isA11y ? 14 : 0)
     }
-    .padding(.vertical, 6)
+    .padding(.vertical, canShowCard ? 4 : 6)
     .overlay(alignment: .bottom) { Rectangle().fill(cs.line).frame(height: 1) }
   }
 

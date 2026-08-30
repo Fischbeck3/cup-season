@@ -732,6 +732,15 @@ table.hcard td.nm{text-align:left; font-family:var(--sans); font-size:12px; font
 table.hcard td.si, table.hcard td.parc{color:var(--dim); font-size:10px;}
 table.hcard td.bird{color:var(--pos); font-weight:600;}
 table.hcard td.bog{color:var(--mut);}
+table.hcard td.vsp{color:var(--mut); font-size:11px;}
+table.hcard th.vsp{color:var(--dim);}
+/* D152 · where this golfer gets a shot, marked the way a paper card marks it.
+   The allocation is strokeOn()'s — the engine that owns it — never re-derived. */
+table.hcard td.stk{position:relative;}
+table.hcard td.stk::after{content:''; position:absolute; top:2px; right:3px;
+  width:3px; height:3px; border-radius:50%; background:var(--gold);}
+table.hcard td.stk2::before{content:''; position:absolute; top:2px; right:8px;
+  width:3px; height:3px; border-radius:50%; background:var(--gold);}
 table.hcard tr.ledrow td{border-bottom:none; padding-top:6px;}
 table.hcard tr.ledrow td.nm{color:var(--dim); font-family:var(--mono); font-size:10px; font-weight:500;}
 .ledc{display:block; height:11px; margin:0 1px; border-radius:2px; border:1px solid var(--line);}
@@ -8861,7 +8870,11 @@ window.holeHighlights = holeHighlights;
    no per-hole season figure. On a "just score" round there is no strip at all —
    nothing was won hole by hole, and drawing one would invent a competition
    nobody is playing. */
-function holeLedger(){
+/* D152 · NAMED cardLedger, not holeLedger: a six-arg holeLedger() already
+   exists above and builds the settlement/board strips. A second declaration of
+   that name hoists over the first and every settlement card silently gets the
+   wrong shape back. */
+function cardLedger(){
   const g = state.live?.game;
   if(g === 'match' || g === 'sunningdale'){
     const m = matchCalc();
@@ -8888,7 +8901,7 @@ function renderHoleCard(){
   const H = liveHoles(), half = H === 9 ? 9 : 9;
   const par = PAR.slice(0, H);
   const siReal = !SIEST && Array.isArray(SI);
-  const led = holeLedger();
+  const led = cardLedger();
 
   const nums = [];
   for(let h = 0; h < H; h++){
@@ -8896,6 +8909,7 @@ function renderHoleCard(){
     if(h === half - 1) nums.push(`<th class="brk">${H === 9 ? 'TOT' : 'OUT'}</th>`);
   }
   if(H > 9) nums.push('<th class="brk">IN</th><th class="brk">TOT</th>');
+  nums.push('<th class="vsp">+/-</th>');
 
   const spanRow = (cls, cellFor, outFor, label) => {
     let r = `<td class="nm ${cls==='si'?'si':''}">${label}</td>`;
@@ -8904,7 +8918,7 @@ function renderHoleCard(){
       if(h === half - 1) r += outFor(0, half);
     }
     if(H > 9){ r += outFor(9, 18); r += outFor(0, 18); }
-    return r;
+    return r + '<td class="vsp"></td>';
   };
 
   const sum = (arr, a, b) => arr.slice(a, b).reduce((x, y) => x + (Number(y)||0), 0);
@@ -8928,16 +8942,25 @@ function renderHoleCard(){
     const sc = state.live.scores[pi];
     html += '<tr><td class="nm"><span class="sw" style="background:' +
       (pl.guest ? 'var(--dim)' : SQHEX[pl.ci]) + '"></span>' + esc(pl.n) + '</td>';
+    let gross = 0, parPlayed = 0;
     for(let h = 0; h < H; h++){
       const v = sc[h];
       const cls = v == null ? '' : (v < par[h] ? 'bird' : (v > par[h] ? 'bog' : ''));
-      html += `<td class="${cls}">${v == null ? '–' : v}</td>`;
+      /* pips come off the SI. When SIEST the order is a GUESS, and the SI row
+         above already refuses to print a guess — the pips refuse for the same
+         reason rather than quietly asserting a shot on the wrong hole. */
+      const st = siReal ? strokeOn(pi, h) : 0;
+      const stc = st > 1 ? ' stk stk2' : st > 0 ? ' stk' : '';
+      html += `<td class="${cls}${stc}">${v == null ? '–' : v}</td>`;
+      if(v != null){ gross += v; parPlayed += par[h]; }
       if(h === half - 1) html += `<td class="brk">${sum(sc,0,half) || '–'}</td>`;
     }
     if(H > 9){
       html += `<td class="brk">${sum(sc,9,18) || '–'}</td>`;
       html += `<td class="brk">${sum(sc,0,18) || '–'}</td>`;
     }
+    const d = gross - parPlayed;
+    html += `<td class="vsp">${!parPlayed ? '–' : d === 0 ? 'E' : (d > 0 ? '+' + d : d)}</td>`;
     html += '</tr>';
   });
 
@@ -8950,13 +8973,13 @@ function renderHoleCard(){
       if(h === half - 1) html += '<td></td>';
     }
     if(H > 9) html += '<td></td><td></td>';
-    html += '</tr>';
+    html += '<td></td></tr>';
   }
 
   html += '</tbody></table></div>';
   html += `<p class="fine" style="padding-top:8px">${
     led ? 'The strip is the side game — filled took the hole, hollow halved or carried. '
-        : ''}${siReal ? '' : 'Stroke index is estimated for this card, so it is not shown. '}Tap a hole number to jump there.</p>`;
+        : ''}${siReal ? 'A gold pip marks a hole you get a shot on. ' : 'Stroke index is estimated for this card, so it is not shown. '}Tap a hole number to jump there.</p>`;
   box.innerHTML = html;
 
   box.querySelectorAll('thead th').forEach((th, i) => {

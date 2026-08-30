@@ -43,6 +43,11 @@ final class OrientationGate {
   static var forceLandscapeForReview: Bool {
     ProcessInfo.processInfo.arguments.contains("-cs_dev_landscape")
   }
+  /// `-cs_dev_hole` opens the sideways HOLE view instead of the card, so both
+  /// landscape layouts can be reviewed without a rotate keystroke.
+  static var startsInCardView: Bool {
+    forceLandscapeForReview && !ProcessInfo.processInfo.arguments.contains("-cs_dev_hole")
+  }
   static func requestLandscape() {
     guard let scene = UIApplication.shared.connectedScenes
       .compactMap({ $0 as? UIWindowScene }).first(where: { $0.activationState == .foregroundActive })

@@ -33,15 +33,17 @@ struct LiveCardView: View {
 
   var body: some View {
     ScrollView([.horizontal, .vertical]) {
-      Grid(alignment: .trailing, horizontalSpacing: 0, verticalSpacing: 0) {
+      Grid(alignment: .trailing, horizontalSpacing: 0, verticalSpacing: 5) {
         holeRow
         if !s.course.siEst { siRow }          // a guessed order is not shown at all
         parRow
         ForEach(s.players.indices, id: \.self) { pi in scoreRow(pi) }
         if let led = ledger, led.cells.contains(where: { $0 != nil }) { ledgerRow(led) }
       }
-      .padding(.horizontal, 16)
+      .padding(.horizontal, 10)
+      .padding(.top, 6)
       .padding(.bottom, 12)
+      .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
     }
     .background(cs.bg0)
   }
@@ -50,7 +52,7 @@ struct LiveCardView: View {
 
   private var holeRow: some View {
     GridRow {
-      cell("HOLE", w: 72, align: .leading).foregroundStyle(cs.dim)
+      cell("HOLE", w: nameW, align: .leading).foregroundStyle(cs.dim)
       ForEach(0..<holes, id: \.self) { h in
         Button { onPickHole(h) } label: { cell("\(h + 1)").foregroundStyle(cs.dim) }
           .buttonStyle(.plain)
@@ -58,25 +60,27 @@ struct LiveCardView: View {
         if h == half - 1 { cell(holes == 9 ? "TOT" : "OUT").foregroundStyle(cs.gold) }
       }
       if holes > 9 { cell("IN").foregroundStyle(cs.gold); cell("TOT").foregroundStyle(cs.gold) }
+      cell("+/-").foregroundStyle(cs.dim)
     }
-    .font(CSFont.label)
+    .font(CSFont.monoSmall)
   }
 
   private var siRow: some View {
     GridRow {
-      cell("SI", w: 72, align: .leading).foregroundStyle(cs.dim)
+      cell("SI", w: nameW, align: .leading).foregroundStyle(cs.dim)
       ForEach(0..<holes, id: \.self) { h in
         cell(h < s.course.si.count ? "\(s.course.si[h])" : "—").foregroundStyle(cs.dim)
         if h == half - 1 { cell("—").foregroundStyle(cs.dim) }
       }
       if holes > 9 { cell("—").foregroundStyle(cs.dim); cell("—").foregroundStyle(cs.dim) }
+      cell("").foregroundStyle(cs.dim)
     }
-    .font(CSFont.label)
+    .font(CSFont.monoSmall)
   }
 
   private var parRow: some View {
     GridRow {
-      cell("PAR", w: 72, align: .leading).foregroundStyle(cs.mut)
+      cell("PAR", w: nameW, align: .leading).foregroundStyle(cs.mut)
       ForEach(0..<holes, id: \.self) { h in
         cell("\(par(h))").foregroundStyle(cs.dim)
         if h == half - 1 { cell("\(parSum(0, half))").foregroundStyle(cs.gold) }
@@ -85,13 +89,20 @@ struct LiveCardView: View {
         cell("\(parSum(9, 18))").foregroundStyle(cs.gold)
         cell("\(parSum(0, 18))").foregroundStyle(cs.gold)
       }
+      cell("").foregroundStyle(cs.dim)
     }
-    .font(CSFont.label)
+    .font(CSFont.monoSmall)
   }
 
   private func scoreRow(_ pi: Int) -> some View {
     let sc = pi < s.scores.count ? s.scores[pi] : []
     let p = s.players[pi]
+    // D152 · where this golfer gets a shot, marked the way a paper card marks
+    // it. The allocation is the engine's (strokeTable, off the real SI), not a
+    // second opinion computed here.
+    // …and only when the SI is real: `siRow` already refuses to print a guessed
+    // order, so the pips refuse too rather than assert a shot on the wrong hole.
+    let stk: [Int] = (!s.course.siEst && pi < s.strokeTable.count) ? s.strokeTable[pi] : []
     return GridRow {
       HStack(spacing: 5) {
         RoundedRectangle(cornerRadius: 2)
@@ -100,25 +111,39 @@ struct LiveCardView: View {
         Text(p.n).font(CSFont.footnote).foregroundStyle(cs.ink).lineLimit(1)
         Spacer(minLength: 0)
       }
-      .frame(width: 72, alignment: .leading)
+      .frame(width: nameW, alignment: .leading)
       ForEach(0..<holes, id: \.self) { h in
         let v = h < sc.count ? sc[h] : nil
         cell(v.map(String.init) ?? "–")
           .foregroundStyle(v == nil ? cs.dim : (v! < par(h) ? cs.pos : (v! > par(h) ? cs.mut : cs.ink)))
+          .overlay(alignment: .topTrailing) {
+            if h < stk.count, stk[h] > 0 {
+              HStack(spacing: 1) {
+                ForEach(0..<min(stk[h], 2), id: \.self) { _ in
+                  Circle().fill(cs.gold).frame(width: 3, height: 3)
+                }
+              }
+              .padding(.trailing, 3)
+              .accessibilityHidden(true)
+            }
+          }
         if h == half - 1 { cell(total(sc, 0, half)).foregroundStyle(cs.gold) }
       }
       if holes > 9 {
         cell(total(sc, 9, 18)).foregroundStyle(cs.gold)
         cell(total(sc, 0, 18)).foregroundStyle(cs.gold)
       }
+      // D152 · the number a golfer actually reads off a card: where they stand
+      // against par, right now, on the holes they have finished.
+      cell(vsPar(sc)).foregroundStyle(cs.mut)
     }
-    .font(CSFont.label)
+    .font(CSFont.mono)
   }
 
   private func ledgerRow(_ led: Ledger) -> some View {
     GridRow {
-      Text(led.label).font(CSFont.label).foregroundStyle(cs.dim)
-        .frame(width: 72, alignment: .leading)
+      Text(led.label).font(CSFont.monoSmall).foregroundStyle(cs.dim)
+        .frame(width: nameW, alignment: .leading)
       ForEach(0..<holes, id: \.self) { h in
         ledgerCell(h < led.cells.count ? led.cells[h] : nil)
         if h == half - 1 { Color.clear.frame(width: cellW, height: 1) }
@@ -127,6 +152,7 @@ struct LiveCardView: View {
         Color.clear.frame(width: cellW, height: 1)
         Color.clear.frame(width: cellW, height: 1)
       }
+      Color.clear.frame(width: cellW, height: 1)
     }
     .padding(.top, 5)
   }
@@ -134,7 +160,7 @@ struct LiveCardView: View {
   private func ledgerCell(_ v: Side?) -> some View {
     RoundedRectangle(cornerRadius: 2)
       .fill(v == .me ? cs.brand : v == .them ? cs.dim : .clear)
-      .frame(width: cellW - 3, height: 11)
+      .frame(width: cellW - 3, height: 13)
       .overlay(RoundedRectangle(cornerRadius: 2).stroke(cs.line2, lineWidth: v == nil || v == .halved ? 1 : 0))
       .opacity(v == nil ? 0.25 : 1)
       .frame(width: cellW)
@@ -174,9 +200,18 @@ struct LiveCardView: View {
 
   // MARK: bits
 
-  private let cellW: CGFloat = 26
+  private let cellW: CGFloat = 32
+  private let nameW: CGFloat = 64
   private func par(_ h: Int) -> Int { h < s.course.pars.count ? s.course.pars[h] : 4 }
   private func parSum(_ a: Int, _ b: Int) -> Int { s.course.pars[safe: a..<b].reduce(0, +) }
+  /// vs par over the holes actually finished — "–" until one is.
+  private func vsPar(_ sc: [Int?]) -> String {
+    var gross = 0, p = 0
+    for h in 0..<min(holes, sc.count) where sc[h] != nil { gross += sc[h]!; p += par(h) }
+    guard p > 0 else { return "–" }
+    let d = gross - p
+    return d == 0 ? "E" : (d > 0 ? "+\(d)" : "\(d)")
+  }
   private func total(_ sc: [Int?], _ a: Int, _ b: Int) -> String {
     let t = sc[safe: a..<b].compactMap { $0 }.reduce(0, +)
     return t == 0 ? "–" : "\(t)"
