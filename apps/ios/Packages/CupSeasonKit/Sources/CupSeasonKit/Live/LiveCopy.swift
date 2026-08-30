@@ -342,8 +342,24 @@ public enum LiveCopy {
     return (f9 && b9) ? 18 : (f9 && !anyB) ? 9 : 0
   }
 
+  /// The seats that can post at all — a player mapped into the round.
+  /// ONE definition, shared by the finish sheet and by the play view's sense of
+  /// "is this round done"; two notions of finished is how a screen ends up
+  /// promoting a button the sheet then refuses.
+  public static func seatIndices(_ s: LiveRoundState) -> [Int] {
+    s.players.indices.filter { s.pmap != nil && $0 < s.pmap!.count }
+  }
+
+  /// D153 · every seated card can post — i.e. the finish sheet would raise no
+  /// warning. `cardHoles` is the rule (18 | 9 | 0, same as `finish_live_round`),
+  /// so a clean front nine counts as done and a half-played back nine does not.
+  public static func roundReadyToPost(_ s: LiveRoundState) -> Bool {
+    let seats = seatIndices(s)
+    return !seats.isEmpty && seats.allSatisfy { cardHoles(s.scores[$0]) > 0 }
+  }
+
   public static func finishSheet(_ s: LiveRoundState) -> FinishSheet {
-    let seats = s.players.indices.filter { s.pmap != nil && $0 < s.pmap!.count }
+    let seats = seatIndices(s)
     // D107: league-less, an app golfer's complete card posts to their own
     // profile — count it; only account-less guests ride the claim-link path.
     let leagueless = s.leagueId == nil

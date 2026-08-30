@@ -686,6 +686,11 @@ img.face{border-radius:50%; object-fit:cover; vertical-align:-4px; border:1px so
    on a portrait tablet, and still cannot fire on a phone held upright (390-430). */
 @media(min-width:740px){
   .playgrid{display:grid; grid-template-columns:minmax(0,1.35fr) minmax(0,1fr); gap:22px; align-items:start;}
+  /* D153 · wide is unchanged from D152: entry and finish stack in the left
+     column, the side games take the right one for the full height. */
+  .playgrid > .pgentry {grid-column:1; grid-row:1;}
+  .playgrid > .pgfinish{grid-column:1; grid-row:2;}
+  .playgrid > .pggames {grid-column:2; grid-row:1 / span 2;}
 }
 /* D152 · the card view. Read-only by design: nothing here needs to be
    thumb-sized, which is what makes an 18-column grid honest in 390px of height.
@@ -3181,7 +3186,7 @@ html[data-theme="light"] .room-dusk .btn:not(.dark):not(.gold):not(.apple){color
         </div>
         <div id="holeCard"></div>
         <div class="playgrid" id="playEntry">
-          <div>
+          <div class="pgentry">
             <div class="eyebrow"><span id="lrEyebrowTxt">Live round · Encanto GC — Blue · 70.2/123</span> <a href="#" id="backToSetup">Change setup</a></div>
             <div class="holehdr">
               <button id="holePrev" aria-label="Previous hole">←</button>
@@ -3193,13 +3198,14 @@ html[data-theme="light"] .room-dusk .btn:not(.dark):not(.gold):not(.apple){color
             </div>
             <div class="holedots" id="holeDots" aria-hidden="true"></div>
             <div id="playerRows"></div>
-            <button class="mini" id="groupShareBtn" style="margin-top:8px">Group phones — everyone can score</button>
-            <div style="height:12px"></div>
-            <button class="btn" id="finishBtn">Finish round & post to season</button>
-            <p class="fine">Scores entered together are <b>auto-attested</b>: the group verifies everyone's round just by playing it. <b>Guests need no account:</b> they play every side game, appear in the settlement, and get a recap text with their scorecard and an invite when you finish. Only league members' rounds post to the season.</p>
-            <button class="mini" id="discardBtn" style="margin-top:6px; color:var(--dim)">Scrap this round</button>
           </div>
-          <div>
+          <!-- D153 · three grid children, not two. Narrow (a phone in portrait)
+               takes them in SOURCE order — entry, then the side games, then the
+               finish block — because the side games are the only thing here that
+               changes every hole, and they used to sit below a full-width brand
+               button and five lines of teaching copy. Wide puts finish back
+               under the entry column and the games alongside, unchanged. -->
+          <div class="pggames">
             <div class="eyebrow">Side games · tracked live, settled between you</div>
             <div class="gamecard" id="matchCard" style="--acc:var(--sq0)">
               <div class="gk" id="matchTeams">Match play · net best ball · You + Danny vs Chuck + Gary</div>
@@ -3223,6 +3229,13 @@ html[data-theme="light"] .room-dusk .btn:not(.dark):not(.gold):not(.apple){color
               <div class="gk">Round settlement · live</div>
               <div class="settle" id="settle"></div>
             </div>
+          </div>
+          <div class="pgfinish">
+            <button class="mini" id="groupShareBtn" style="margin-top:8px">Group phones — everyone can score</button>
+            <div style="height:12px"></div>
+            <button class="btn" id="finishBtn">Finish round &amp; post to season</button>
+            <p class="fine" id="finishFine">Scores entered together are <b>auto-attested</b>: the group verifies everyone's round just by playing it. <b>Guests need no account:</b> they play every side game, appear in the settlement, and get a recap text with their scorecard and an invite when you finish. Only league members' rounds post to the season.</p>
+            <button class="mini" id="discardBtn" style="margin-top:6px; color:var(--dim)">Scrap this round</button>
           </div>
         </div>
         </div>
@@ -7978,6 +7991,28 @@ function recomputeStrokes(){
   STROKES=CHS.map(c=>c-LOWCH);
 }
 recomputeStrokes();
+/* 18 | 9 | 0 — same rule as finish_live_round, and the ONE definition of
+   "this card can post". The finish sheet reads it to decide what to warn
+   about; renderPlay reads it to decide whether the finish button has earned
+   the brand. Two notions of "done" is how a screen promotes a button the
+   sheet then refuses. */
+function liveCardHoles(i){
+  const a = state.live?.scores?.[i] || [];
+  const f9   = [...Array(9)].every((_,k)=>a[k]!=null);
+  const b9   = [...Array(9)].every((_,k)=>a[k+9]!=null);
+  const anyB = [...Array(9)].some((_,k)=>a[k+9]!=null);
+  return (f9&&b9) ? 18 : (f9&&!anyB) ? 9 : 0;
+}
+/* D153 · every seated card would post — i.e. the finish sheet would raise no
+   warning. Sibling of LiveCopy.roundReadyToPost on the phone. */
+function liveReadyToPost(){
+  const seats = LIVE.map((p,i)=>i).filter(i=>state.live?.pmap?.[i]);
+  return seats.length > 0 && seats.every(i => liveCardHoles(i) > 0);
+}
+/* has anyone put a single number on this card yet? gates the teaching copy */
+function liveAnyScored(){
+  return (state.live?.scores||[]).some(a => (a||[]).some(v => v != null));
+}
 /* strokes on a hole — proper match-play allocation: 19+ strokes wrap around
    the card (28 given = 1 every hole + a 2nd on the 10 hardest) */
 const strokeOn=(pi,h)=>{
@@ -9320,6 +9355,21 @@ function renderPlay(){
   $('#holeNum').textContent='HOLE '+(h+1);
   $('#holeMeta').textContent=`PAR ${PAR[h]}` + (SI ? ` · SI ${SI[h]}` : '');
 
+  /* D153 · prominence tracks the round, not availability. Finishing early is
+     legitimate — rained out, quit after nine — and the sheet handles it well
+     (it names the missing holes and skips partial cards rather than losing
+     them), so the button stays reachable at every hole; only its volume moves.
+     Readiness is liveReadyToPost(), the same rule the sheet warns on, so the
+     screen can never promote a button the sheet then refuses. */
+  {const _fb=$('#finishBtn'), _ff=$('#finishFine');
+   if(_fb){ const _ready=liveReadyToPost();
+     _fb.textContent = _ready ? 'Finish round & post to season' : 'End the round early';
+     _fb.classList.toggle('dark', !_ready); }   /* .btn.dark IS the web's quiet */
+   /* the teaching copy speaks ONCE, before the first score. It is restated
+      where it has consequence: the finish sheet opens with "Complete cards post
+      to the season, attested by the group… A partial card is skipped, not lost." */
+   if(_ff) _ff.style.display = liveAnyScored() ? 'none' : '';}
+
   const dots=$('#holeDots'); dots.innerHTML='';
   for(let k=0;k<liveHoles();k++){   /* D73: a nine shows nine dots, not eighteen */
     const d=document.createElement('i');
@@ -10056,13 +10106,7 @@ function finishRealLiveRound(){
      round vanished behind a sheet that said it would post. Mirror the server's
      completeness rule here, count only complete cards, and name the holes that
      are still open before the finish becomes final. */
-  const cardHoles = i => {                 /* 18 | 9 | 0 — same rule as finish_live_round */
-    const a = state.live.scores[i]||[];
-    const f9  = [...Array(9)].every((_,k)=>a[k]!=null);
-    const b9  = [...Array(9)].every((_,k)=>a[k+9]!=null);
-    const anyB= [...Array(9)].some((_,k)=>a[k+9]!=null);
-    return (f9&&b9) ? 18 : (f9&&!anyB) ? 9 : 0;
-  };
+  const cardHoles = liveCardHoles;
   const missingOf = i => { const a=state.live.scores[i]||[];
     const out=[]; for(let h=0;h<liveHoles();h++) if(a[h]==null) out.push(h+1); return out; };   /* D73: a nine's holes 10-18 are legitimately empty — never "missing" */
   const seats = LIVE.map((p,i)=>({p,i})).filter(x=>state.live.pmap?.[x.i]);

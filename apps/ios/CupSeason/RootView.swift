@@ -11,6 +11,10 @@ struct RootView: View {
   @State private var pendingJoin: String?
   /// A guest pencil's "keep it" tap: show the door over the pending claim.
   @State private var guestDoor = false
+  #if DEBUG
+  /// `-cs_dev_live`'s way out — see the overlay below.
+  @State private var devLive = true
+  #endif
 
   var body: some View {
     ZStack {
@@ -50,7 +54,19 @@ struct RootView: View {
     // card) can be reviewed without an account, a league and a played round.
     // LiveRoundStore seeds itself from the same flag and never touches the
     // server, so nothing here can create or mutate a real round.
-    .overlay { if CSDevHatch.live { LiveRoundHost(links: LiveLinks()).background(cs.bg0.ignoresSafeArea()) } }
+    //
+    // `done` MUST dismiss, exactly as MainTabView's real `liveLinks` does. It
+    // was `LiveLinks()` — whose `done` is an empty closure — and that made the
+    // hatch a room with no door: scrapping the round calls done(), nothing
+    // happened, the host fell through to LiveSetupView, and setup's own Close
+    // calls the same dead closure. Only the app switcher freed you. A review
+    // hatch that cannot exercise the exit is a hatch that hides exit bugs.
+    .overlay {
+      if CSDevHatch.live && devLive {
+        LiveRoundHost(links: LiveLinks(done: { devLive = false }))
+          .background(cs.bg0.ignoresSafeArea())
+      }
+    }
     #endif
   }
 

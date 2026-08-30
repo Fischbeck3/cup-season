@@ -72,14 +72,26 @@ struct LivePlayView: View {
           holeHeader
           holeDots
           ForEach(s.players.indices, id: \.self) { pi in playerRow(pi) }
-          if !store.isPencilOnly {
-            CSMini("Group phones — everyone can score") { showGroup = true }
-            CSButton("Finish round & post to season", busy: store.busy) { showFinish = true }
-            CSFine("Scores entered together are auto-attested: the group verifies everyone's round just by playing it. Guests need no account: they play every side game, appear in the settlement, and get a recap text with their scorecard and an invite when you finish. Only league members' rounds post to the season.")
-            scrapButton
-          }
+          // D153 · the side games come BEFORE the finish block. They are the
+          // only thing down here that changes every hole, and they used to sit
+          // under a full-width brand button plus five lines of teaching copy —
+          // so the one question a golfer has mid-round ("where does the match
+          // stand") was the one thing they had to scroll for. Landscape already
+          // had this right by accident (D152 put them in the right column).
           Text("Side games · tracked live, settled between you").csEyebrow().padding(.top, 8)
           gameCards
+          if !store.isPencilOnly {
+            CSMini("Group phones — everyone can score") { showGroup = true }
+            finishButton
+            // …and the teaching copy speaks ONCE, before the first score. It is
+            // restated where it has consequence — the finish sheet opens with
+            // "Complete cards post to the season, attested by the group; N
+            // guests get a recap to claim. A partial card is skipped, not lost."
+            if !s.anyScored {
+              CSFine("Scores entered together are auto-attested: the group verifies everyone's round just by playing it. Guests need no account: they play every side game, appear in the settlement, and get a recap text with their scorecard and an invite when you finish. Only league members' rounds post to the season.")
+            }
+            scrapButton
+          }
         }
         .padding(20)
       }
@@ -155,7 +167,10 @@ struct LivePlayView: View {
         gameCards
         Spacer(minLength: 0)
         if !store.isPencilOnly {
-          CSButton("Finish & post", busy: store.busy) { showFinish = true }
+          let ready = LiveCopy.roundReadyToPost(s)
+          CSButton(ready ? "Finish & post" : "End early",
+                   style: ready ? .primary : .quiet,
+                   busy: store.busy) { showFinish = true }
         }
       }
       .frame(width: 290)
@@ -383,6 +398,20 @@ struct LivePlayView: View {
     }
     .padding(.top, 6)
     .accessibilityAddTraits(.updatesFrequently)
+  }
+
+  /// D153 · prominence tracks the round, not availability. Finishing early is
+  /// legitimate — rained out, quit after nine — and the sheet handles it well
+  /// (it names the missing holes and skips partial cards rather than losing
+  /// them), so the button must stay reachable at every hole. What changes is
+  /// its volume: quiet while cards are still open, brand once every seated card
+  /// would post. Readiness is `LiveCopy.roundReadyToPost` — the same rule the
+  /// sheet uses, so the screen can never promote a button the sheet refuses.
+  private var finishButton: some View {
+    let ready = LiveCopy.roundReadyToPost(s)
+    return CSButton(ready ? "Finish round & post to season" : "End the round early",
+                    style: ready ? .primary : .quiet,
+                    busy: store.busy) { showFinish = true }
   }
 
   // MARK: scrap (two-tap; 9332)

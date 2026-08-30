@@ -387,6 +387,9 @@ public struct LiveRoundState: Codable, Sendable, Equatable {
     return LiveEngines.strokeOn(stk: s[pi], si: course.si, h: h, holes: liveHoles)
   }
   public func holeDone(_ h: Int) -> Bool { LiveEngines.holeDone(scores, h) }
+  /// D153 · has anyone put a single number on this card yet? Gates the
+  /// first-round teaching copy, which is an explanation, not a running label.
+  public var anyScored: Bool { scores.contains { $0.contains { $0 != nil } } }
   /// `thru` — holes every player has finished, counted from the first (7716).
   public var thru: Int {
     var t = 0
