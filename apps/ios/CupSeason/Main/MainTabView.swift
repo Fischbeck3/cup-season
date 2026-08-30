@@ -147,6 +147,10 @@ struct MainTabView: View {
     }
     .tint(cs.brand)
     .environment(\.presenter, presenter)
+    // D155 · tapping the Dynamic Island or the lock-screen card opens the round
+    .onReceive(NotificationCenter.default.publisher(for: .csOpenLiveRound)) { _ in
+      presenter.showLive = true
+    }
     #if DEBUG
     // Developer hatch: `-cs_dev_open <place>` lands a simulator on a screen
     // without a finger. DEBUG-only; the shipped build has no such door.

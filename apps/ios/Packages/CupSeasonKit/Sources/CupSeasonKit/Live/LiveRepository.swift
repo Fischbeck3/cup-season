@@ -267,6 +267,52 @@ public struct LiveRepository: Sendable {
     return rows.map { LiveRosterRow(memberId: $0.id, profileId: $0.profile_id, displayName: $0.profile?.display_name, indexCurrent: $0.profile?.index_current) }
   }
 
+  // MARK: D154 / D156 · who you actually play with, and who is standing here
+
+  /// A golfer the picker may offer. Both sources are held to the same
+  /// disclosure envelope as `search_golfers`; the RPCs hold that line, and
+  /// these rows are the generated ones mapped, never a parallel decode.
+  public struct PartnerRow: Sendable, Identifiable, Equatable {
+    public let id: UUID
+    public let name: String
+    public let handle: String?
+    public let city: String?
+    public let homeCourse: String?
+    public let marker: String?
+    public let index: Double?
+    public let rel: String?
+    /// nil for a nearby hit — proximity says "here", not "how often"
+    public let lastPlayed: Date?
+    public let roundsTogether: Int?
+  }
+
+  /// D154 · the regulars, most recent first. Never throws into the caller's
+  /// face: an empty list is a fine answer, and the league chips sit underneath.
+  public func recentPartners(limit: Int = 12) async -> [PartnerRow] {
+    let rows = (try? await svc.call(Rpc.recent_partners(p_limit: limit))) ?? []
+    return rows.compactMap { r in
+      guard let id = r.id else { return nil }
+      return PartnerRow(id: id, name: r.display_name ?? "Golfer", handle: r.handle,
+                        city: r.city, homeCourse: r.home_course, marker: r.marker,
+                        index: r.index_current, rel: r.rel,
+                        lastPlayed: r.last_played, roundsTogether: r.rounds_together)
+    }
+  }
+
+  /// D156 · of profile ids handed over a local Bluetooth session, only the ones
+  /// already a buddy or a league mate. A stranger's phone resolves to nothing.
+  public func nearbyResolve(_ ids: [UUID]) async -> [PartnerRow] {
+    guard !ids.isEmpty else { return [] }
+    let rows = (try? await svc.call(Rpc.nearby_resolve(p_profiles: ids))) ?? []
+    return rows.compactMap { r in
+      guard let id = r.id else { return nil }
+      return PartnerRow(id: id, name: r.display_name ?? "Golfer", handle: r.handle,
+                        city: r.city, homeCourse: r.home_course, marker: r.marker,
+                        index: r.index_current, rel: r.rel,
+                        lastPlayed: nil, roundsTogether: nil)
+    }
+  }
+
   // MARK: the plan bridge (8349)
 
   /// A round of mine on the tee sheet today, if any.

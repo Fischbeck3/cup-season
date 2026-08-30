@@ -27,7 +27,12 @@ struct CupSeasonApp: App {
         .task { await PushService.shared.syncOnLaunch() }
         // Universal Links: /?join=CODE and /?claim=TOKEN (the AASA claims only these two).
         .onOpenURL { url in
-          if let code = JoinIntent.code(from: url) { JoinIntent.store(code); CSGrowth.log(.linkOpened, kind: "join", token: code); Task { await store.reload() } }
+          // D155 · the Live Activity's own scheme — the one tap back from a
+          // locked phone. Checked first: it carries no query to misread.
+          if url.scheme == "cupseason", url.host == CSRoundActivityLink.host {
+            NotificationCenter.default.post(name: .csOpenLiveRound, object: nil)
+          }
+          else if let code = JoinIntent.code(from: url) { JoinIntent.store(code); CSGrowth.log(.linkOpened, kind: "join", token: code); Task { await store.reload() } }
           else if let claim = ClaimIntent.token(from: url) { ClaimIntent.store(claim); CSGrowth.log(.linkOpened, kind: "claim", token: claim) }   // consumed by the tee sheet (wave 4)
         }
     }

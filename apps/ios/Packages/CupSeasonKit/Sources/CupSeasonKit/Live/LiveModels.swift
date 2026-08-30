@@ -117,11 +117,22 @@ public struct LivePlayer: Codable, Sendable, Equatable, Identifiable {
   public var me: Bool
   public var locked: Bool
   public var team: String?
+  /// D154 · you have played live rounds with this golfer; the integer is the
+  /// order `recent_partners` returned (recency, then frequency). D156 sets it
+  /// too — a nearby phone is a regular you can see. OPTIONAL on purpose: this
+  /// struct is inside the persisted round snapshot, and a synthesised Decodable
+  /// demands every non-Optional key, so a plain `Bool` would make every
+  /// snapshot written before today fail to decode and lose someone's round.
+  public var regular: Int?
+  /// D156 · resolved over a local Bluetooth session, right now
+  public var nearby: Bool?
 
   public init(id: String = UUID().uuidString, n: String, i: Double, ci: Int, guest: Bool, est: Bool = false, buddy: Bool = false,
-              mid: UUID? = nil, pid: UUID? = nil, me: Bool = false, locked: Bool = false, team: String? = nil) {
+              mid: UUID? = nil, pid: UUID? = nil, me: Bool = false, locked: Bool = false, team: String? = nil,
+              regular: Int? = nil, nearby: Bool? = nil) {
     self.id = id; self.n = n; self.i = i; self.ci = ci; self.guest = guest; self.est = est; self.buddy = buddy
     self.mid = mid; self.pid = pid; self.me = me; self.locked = locked; self.team = team
+    self.regular = regular; self.nearby = nearby
   }
 
   /// `fn1` (5598): the first name, or 'Someone'.

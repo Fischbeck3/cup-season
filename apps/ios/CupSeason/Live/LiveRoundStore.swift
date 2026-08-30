@@ -83,7 +83,7 @@ final class LiveRoundStore {
     myMemberId = m?.member_id
     leagueId = m?.league_id
     #if DEBUG
-    if CSDevHatch.live, !state.active { seedDevRound(); return }
+    if CSDevHatch.live, !state.active { seedDevRound(); LiveActivityHost.start(state); return }
     #endif
     if !rehydrated { rehydrated = true; await rehydrate() }
     if !rosterPrimed || rosterLeague != leagueId { await primeRoster() }
@@ -135,6 +135,62 @@ final class LiveRoundStore {
     fresh.course = LiveCourseCard()   // the search leads; rating/slope fall back to 72/113
     fresh.leagueId = leagueId
     state = fresh
+    await markRegulars()
+  }
+
+  // MARK: D156 · who is standing on this tee
+
+  let nearby = NearbyService()
+  /// Opt-in, remembered per device. Off until the golfer says yes.
+  var nearbyOn: Bool {
+    get { UserDefaults.standard.bool(forKey: "cs.nearby.on") }
+    set { UserDefaults.standard.set(newValue, forKey: "cs.nearby.on")
+          newValue ? startNearby() : nearby.stop() }
+  }
+
+  func startNearby() {
+    guard nearbyOn, let me = myPid, !state.active else { return }
+    nearby.onChange = { [weak self] ids in
+      Task { @MainActor in await self?.resolveNearby(ids) }
+    }
+    nearby.start(myProfile: me)
+  }
+
+  func stopNearby() { nearby.stop() }
+
+  /// The server does the naming, and only for people you already know. A
+  /// stranger's phone resolves to nothing and never reaches the picker.
+  private func resolveNearby(_ ids: [UUID]) async {
+    let rows = await repo.nearbyResolve(ids)
+    guard !rows.isEmpty else { return }
+    for r in rows {
+      if let i = roster.firstIndex(where: { $0.pid == r.id }) {
+        roster[i].nearby = true
+      } else {
+        roster.append(LivePlayer(id: "p:\(r.id.uuidString)", n: r.name, i: r.index ?? 18, ci: -1,
+                                 guest: true, est: r.index == nil, buddy: true,
+                                 pid: r.id, team: nil, nearby: true))
+      }
+    }
+  }
+
+  /// D154 · fold the people you actually play with into the roster you already
+  /// have. A regular who is ALSO a league mate is marked, not duplicated — the
+  /// point is ordering, and a name in two lists is a worse picker, not a better
+  /// one. A regular from outside the league is appended exactly as the app-wide
+  /// search appends one, so nothing downstream has a new shape to handle.
+  func markRegulars() async {
+    let partners = await repo.recentPartners()
+    guard !partners.isEmpty else { return }
+    for (rank, p) in partners.enumerated() {
+      if let i = roster.firstIndex(where: { $0.pid == p.id }) {
+        roster[i].regular = rank
+      } else {
+        roster.append(LivePlayer(id: "p:\(p.id.uuidString)", n: p.name, i: p.index ?? 18, ci: -1,
+                                 guest: true, est: p.index == nil, buddy: true,
+                                 pid: p.id, team: nil, regular: rank))
+      }
+    }
   }
 
   var picked: [LivePlayer] { sel.compactMap { $0 < roster.count ? roster[$0] : nil } }
@@ -247,6 +303,7 @@ final class LiveRoundStore {
   // MARK: - tee off (8902–9006)
 
   func teeOff() async {
+    stopNearby()          // D156 · the tee sheet is set; stop advertising
     let g = state.game
     if let problem = g.teeOffProblem(players: sel.count) { toast(problem); return }
     // D107: the tee sheet is the free door — no league required. A league-less
@@ -307,6 +364,7 @@ final class LiveRoundStore {
       await disk.save(state)
       await joinSync()
       if let league { await session.announceOpen(league: league, lr: out.lr) }   // D107: no league channel to ring
+      LiveActivityHost.start(state)   // D155 · one tap back from a locked phone
       toast("On the tee, good luck everybody")
     } catch {
       toast(HumanError.text(error, prefix: "Could not start the round."))
@@ -316,7 +374,7 @@ final class LiveRoundStore {
 
   func backToSetup() {
     state.stage = .setup; state.active = false
-    Task { await session.leave() }
+    Task { await LiveActivityHost.end(); await session.leave() }
   }
 
   // MARK: - scoring (8433–8441, 7751–7757)
@@ -332,6 +390,7 @@ final class LiveRoundStore {
 
   private func markScore(_ pi: Int, _ h: Int) {
     state.ensureClocks()
+    LiveActivityHost.update(state)   // D155 · the island follows the card
     let now = LiveFmt.now()
     state.scts[pi][h] = now
     persist()
@@ -353,8 +412,9 @@ final class LiveRoundStore {
     Task { await session.send(m) }
   }
 
-  func prevHole() { state.hole = max(0, state.hole - 1); persist() }
-  func nextHole() { state.hole = min(state.liveHoles - 1, state.hole + 1); persist() }
+  // D155 · walking holes moves the island too — it shows the hole you are on
+  func prevHole() { state.hole = max(0, state.hole - 1); persist(); LiveActivityHost.update(state) }
+  func nextHole() { state.hole = min(state.liveHoles - 1, state.hole + 1); persist(); LiveActivityHost.update(state) }
 
   private var sendable: Bool { state.active && state.code != nil }
 
@@ -449,6 +509,9 @@ final class LiveRoundStore {
       rosterPrimed = false
     }
     if let t = out.toast, out.state?.lr != nil || out.retired { toast(t) }
+    // D155 · a crash or force-quit can leave an island with no round behind it
+    await LiveActivityHost.clearStale(hasLiveRound: state.active && state.stage == .live)
+    if state.active, state.stage == .live { LiveActivityHost.start(state) }
     queued = await session.queued()
   }
 
@@ -474,6 +537,7 @@ final class LiveRoundStore {
 
   func finish(casual: Bool) async -> Bool {
     guard let lr = state.lr else { toast("This round was not started on the server — tee off again"); return false }
+    await LiveActivityHost.end()          // D155 · nothing outlives its round
     busy = true
     defer { busy = false }
     let result = LiveResultBuilder.gameResult(state)
@@ -498,6 +562,7 @@ final class LiveRoundStore {
   // MARK: - scrap (9332)
 
   func scrap() async {
+    await LiveActivityHost.end()          // D155 · nothing outlives its round
     if sendable { await session.send(.gone(cts: LiveFmt.now()), broadcastOnly: true) }
     await session.leave()
     if let lr = state.lr {

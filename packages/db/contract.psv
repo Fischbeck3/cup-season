@@ -25,6 +25,10 @@
 # events.decided_by). lock_league's argument list moved because D142 changed a DEFAULT,
 # which is exactly the kind of drift this file exists to catch.
 #
+# 2026-08-30 (later): 193 functions. Taken with 20260830250000 applied inside a
+# ROLLED-BACK transaction — prod is clean through 20260830240000, so this is
+# exactly what the push produces. recent_partners (D154) + nearby_resolve (D156).
+
 _cup_window_rounds|p_season uuid|TABLE(member_id uuid, round_id uuid, profile_id uuid, played_on date, points integer, month_rank bigint, pvi numeric, holes_played integer)|definer|none
 _live_member_can|p_live_round uuid|boolean|definer|none
 _live_participant|p_live_round uuid|boolean|definer|auth
@@ -48,6 +52,8 @@ claim_round|p_token uuid|jsonb|definer|auth
 claim_scan_round|p_token uuid|jsonb|definer|auth
 close_month|p_season uuid, p_month date|void|definer|none
 close_season|p_season uuid|void|definer|none
+course_key|p_api_id text, p_label text|text|invoker|auth
+course_name_of|p_api_id text, p_label text|text|invoker|auth
 create_event|p_name text, p_starts_on date, p_sessions integer, p_session_weeks integer, p_draw_rule text, p_team_a text, p_team_b text, p_league uuid DEFAULT NULL::uuid, p_tz text DEFAULT NULL::text, p_lineage uuid DEFAULT NULL::uuid|uuid|definer|auth
 create_forfeit|p_league uuid, p_name text, p_terms text, p_kind text DEFAULT 'custom'::text, p_other uuid DEFAULT NULL::uuid, p_hangs text DEFAULT NULL::text|uuid|definer|auth
 create_league|p_name text, p_code text|json|definer|auth
@@ -131,11 +137,13 @@ my_schedule|p_from date, p_to date|TABLE(id uuid, profile_id uuid, display_name 
 my_trophies||TABLE(id uuid, kind text, title text, subtitle text, placement text, season_year integer, earned_on date)|definer|auth
 my_visitor_rounds||jsonb|definer|auth
 native_home||jsonb|definer|auth
+nearby_resolve|p_profiles uuid[]|TABLE(id uuid, handle text, display_name text, city text, home_course text, marker text, index_current numeric, rel text)|definer|auth
 nth_up|n integer|text|invoker|none
 open_major|p_session uuid|void|definer|auth
 open_week_clash|p_season uuid|uuid|definer|none
 playerlabel|p_profile uuid|text|definer|auth
 randomize_squads|p_season uuid|void|definer|auth
+recent_partners|p_limit integer DEFAULT 12|TABLE(id uuid, handle text, display_name text, city text, home_course text, marker text, index_current numeric, rel text, last_played timestamp with time zone, rounds_together integer)|definer|auth
 recompute_season_payouts|p_season uuid|jsonb|definer|none
 register_device_token|p_token text, p_platform text DEFAULT 'ios'::text|void|definer|auth
 remove_member|p_member uuid|void|definer|auth
@@ -202,7 +210,7 @@ share_info|p_token uuid|jsonb|definer|anon,auth
 snapshot_week|p_season uuid|void|definer|none
 squad_lead_moments||trigger|definer|auth
 start_draft|p_season uuid, p_shuffle boolean DEFAULT true|uuid|definer|auth
-start_live_round|p_league uuid DEFAULT NULL::uuid, p_course_id uuid DEFAULT NULL::uuid, p_tee_id uuid DEFAULT NULL::uuid, p_course_label text DEFAULT NULL::text, p_snapshot jsonb DEFAULT NULL::jsonb, p_game text DEFAULT NULL::text, p_players jsonb DEFAULT NULL::jsonb, p_config jsonb DEFAULT '{}'::jsonb|jsonb|definer|auth
+start_live_round|p_league uuid DEFAULT NULL::uuid, p_course_id uuid DEFAULT NULL::uuid, p_tee_id uuid DEFAULT NULL::uuid, p_course_label text DEFAULT NULL::text, p_snapshot jsonb DEFAULT NULL::jsonb, p_game text DEFAULT NULL::text, p_players jsonb DEFAULT NULL::jsonb, p_config jsonb DEFAULT '{}'::jsonb, p_api_course_id text DEFAULT NULL::text|jsonb|definer|auth
 start_season|p_season uuid|void|definer|auth
 submit_feedback|p_category text, p_body text, p_context jsonb DEFAULT '{}'::jsonb|uuid|definer|auth
 tag_founder||trigger|definer|auth

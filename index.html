@@ -8196,6 +8196,30 @@ state.live=freshLive();
 /* IA P4: a real account's tee sheet starts as YOU + add guests — never the
    demo crew. Runs once per session, on first entry to Play. */
 let rosterPrimed=false;
+/* D154 · fold the people you actually play with into the roster you already
+   have. A regular who is ALSO a league mate is MARKED, not duplicated — the
+   point is ordering, and a name in two lists is a worse picker, not a better
+   one. A regular from outside the league is appended exactly as #rosterFind
+   appends one, so nothing downstream has a new shape to handle.
+
+   Sibling of LiveRoundStore.markRegulars() on the phone. The RPC holds the
+   disclosure line (same columns and the same `discoverable` gate as
+   search_golfers, for a strictly narrower set of people). */
+async function markRegulars(){
+  if(state.demo || !window.sb) return;
+  const { data, error } = await window.sb.rpc('recent_partners', { p_limit: 12 });
+  if(error || !Array.isArray(data) || !data.length) return;
+  if(state.live && state.live.active) return;      /* a round teed off while we asked */
+  data.forEach((r, rank) => {
+    const at = ROSTER.findIndex(x => x.pid === r.id);
+    if(at >= 0){ ROSTER[at].regular = rank; return; }
+    ROSTER.push({ n: r.display_name || 'Golfer', i: Number(r.index_current) || 18,
+                  est: r.index_current == null, ci: -1, team: null,
+                  guest: true, buddy: true, pid: r.id, regular: rank });
+  });
+  if(typeof renderRoster === 'function') renderRoster();
+}
+
 function primeRealRoster(){
   if(state.demo) return;
   if(state.live && state.live.active) return;   /* never wipe an in-progress round */
@@ -8219,6 +8243,7 @@ function primeRealRoster(){
   /* D107: no league is a fine tee sheet — YOU alone; guests (#gAdd) and app
      golfers (#rosterFind) fill the group, riding guest_profile_id at tee-off. */
   rosterPrimed=true;
+  markRegulars();          /* D154 · the people you actually play with, first */
   sel=[0];
   LIVE=sel.map(i=>ROSTER[i]);
   /* a real account never inherits the demo course's stroke index — estimate
@@ -9802,16 +9827,22 @@ function renderRoster(){
     wrap.appendChild(b);
   };
   const homeTeam = state.demo ? 'Mudsharks' : 'Your squad';
+  /* D154 · the regulars lead. A golfer appears in exactly ONE group, so the
+     later tests exclude anyone an earlier one already claimed — a name in two
+     lists is a worse picker, not a better one. */
+  const reg = p => p.regular != null;
   const groups=[
     {label: state.demo ? 'Your squad · Mudsharks' : 'You', test:p=>!p.guest && p.team===homeTeam},
-    {label:'League', test:p=>!p.guest && p.team!==homeTeam},
-    {label:'Buddies', test:p=>p.guest && p.buddy},
+    {label:'You play with', test:p=>reg(p) && !(!p.guest && p.team===homeTeam)},
+    {label:'League', test:p=>!p.guest && p.team!==homeTeam && !reg(p)},
+    {label:'Buddies', test:p=>p.guest && p.buddy && !reg(p)},
     {label:'Guests', test:p=>p.guest && !p.buddy},
   ];
   let any=false;
   groups.forEach(gr=>{
     const items=[];
     ROSTER.forEach((p,i)=>{ if(gr.test(p) && !sel.includes(i)) items.push([p,i]); });
+    items.sort((a,b)=>(a[0].regular ?? 1e9)-(b[0].regular ?? 1e9));
     if(!items.length) return;
     addLabel(gr.label);
     items.forEach(([p,i])=>addChip(p,i));

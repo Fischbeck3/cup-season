@@ -29,10 +29,15 @@ struct LiveSetupView: View {
         courseCard
         foursomeCard
         gameCard
+        nearbyCard
         CSButton("Tee off →", busy: store.busy) { teeOffTaps += 1; Task { await store.teeOff() } }
       }
       .padding(20)
     }
+    // D156 · advertising runs ONLY while this screen is up. There is no
+    // background mode; leaving stops it, and tee-off stops it too.
+    .onAppear { store.startNearby() }
+    .onDisappear { store.stopNearby() }
     .csFeedback(.teeOff, trigger: teeOffTaps)
     .scrollDismissesKeyboard(.interactively)
     .navigationTitle("Play now")
@@ -148,18 +153,46 @@ struct LiveSetupView: View {
     }
   }
 
+  /// D156 · the opt-in. Off until the golfer says yes, and it says plainly what
+  /// it does and does not do — "local network" is a scary-sounding prompt and
+  /// the honest answer to it is short.
+  @ViewBuilder private var nearbyCard: some View {
+    CSCard {
+      VStack(alignment: .leading, spacing: 8) {
+        HStack {
+          VStack(alignment: .leading, spacing: 2) {
+            Text("Who's on this tee").font(CSFont.subhead.weight(.semibold)).foregroundStyle(cs.ink)
+            Text(store.nearbyOn ? "Looking for buddies nearby" : "Fill the foursome from the phones next to you")
+              .font(CSFont.label).foregroundStyle(cs.dimText)
+          }
+          Spacer()
+          Toggle("", isOn: Binding(get: { store.nearbyOn }, set: { store.nearbyOn = $0 }))
+            .labelsHidden().tint(cs.brand)
+            .accessibilityLabel("Find buddies on this tee")
+        }
+        CSFine("Bluetooth only — never your location, and nothing about where you are leaves your phone. A golfer who is not already your buddy or league mate stays invisible, and you still tap to add anyone.")
+      }
+    }
+  }
+
   /// The pick lists — only unselected players show (8770–8805).
   private var chips: some View {
+    // D154 · the regulars lead. A golfer appears in exactly ONE group, so the
+    // later tests exclude anyone the earlier ones already claimed — a name in
+    // two lists is a worse picker, not a better one.
     let groups: [(String, (LivePlayer) -> Bool)] = [
       ("You", { !$0.guest && $0.me }),
-      ("League", { !$0.guest && !$0.me }),
-      ("Buddies", { $0.guest && $0.buddy }),
-      ("Guests", { $0.guest && !$0.buddy }),
+      ("Nearby", { $0.nearby == true && !$0.me }),
+      ("You play with", { $0.regular != nil && $0.nearby != true && !$0.me }),
+      ("League", { !$0.guest && !$0.me && $0.regular == nil && $0.nearby != true }),
+      ("Buddies", { $0.guest && $0.buddy && $0.regular == nil && $0.nearby != true }),
+      ("Guests", { $0.guest && !$0.buddy && $0.nearby != true }),
     ]
     let any = store.roster.indices.contains { !store.sel.contains($0) }
     return VStack(alignment: .leading, spacing: 8) {
       ForEach(groups, id: \.0) { label, test in
         let items = store.roster.indices.filter { !store.sel.contains($0) && test(store.roster[$0]) }
+          .sorted { (store.roster[$0].regular ?? .max) < (store.roster[$1].regular ?? .max) }
         if !items.isEmpty {
           Text(label).font(CSFont.label).tracking(1.2).textCase(.uppercase).foregroundStyle(cs.dimText)
           LiveFlow(spacing: 6) {

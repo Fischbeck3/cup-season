@@ -385,6 +385,30 @@ public enum LiveCopy {
   /// worded — "End the round early" editorialised about a decision that is
   /// usually just weather. Nil before the first score, where the first-round
   /// teaching copy speaks instead.
+  /// D155 · the three facts the Live Activity draws. Produced HERE, beside the
+  /// scoreboard and the card, so the Dynamic Island can never disagree with the
+  /// screen it is a shortcut to.
+  ///
+  /// `game` is nil for a "just score" round — nothing is being won hole by hole
+  /// and inventing a line would invent a competition nobody is playing. Season
+  /// points never appear, for the reason the card gives: they score per ROUND.
+  public struct ActivityFacts: Sendable, Equatable {
+    public let course: String
+    public let hole: Int          // 1-based, for display
+    public let par: Int?
+    public let thru: Int
+    public let holes: Int
+    public let game: String?
+  }
+
+  public static func activity(_ s: LiveRoundState) -> ActivityFacts {
+    let h = min(max(s.hole, 0), s.liveHoles - 1)
+    let par = h < s.course.pars.count ? s.course.pars[h] : nil
+    let game: String? = s.game == .score ? nil : scoreboard(s, presence: []).hero
+    return ActivityFacts(course: s.course.label.isEmpty ? "Your round" : s.course.label,
+                         hole: h + 1, par: par, thru: s.thru, holes: s.liveHoles, game: game)
+  }
+
   public static func finishStatus(_ s: LiveRoundState) -> String? {
     let seats = seatIndices(s)
     guard s.anyScored, !seats.isEmpty else { return nil }

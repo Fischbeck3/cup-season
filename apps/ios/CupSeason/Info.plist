@@ -35,10 +35,19 @@
 	<string>$(CURRENT_PROJECT_VERSION)</string>
 	<key>ITSAppUsesNonExemptEncryption</key>
 	<false/>
+	<key>NSBonjourServices</key>
+	<array>
+		<string>_cs-tee._tcp</string>
+		<string>_cs-tee._udp</string>
+	</array>
 	<key>NSCameraUsageDescription</key>
 	<string>Cup Season reads your scorecard from a photo so you can post a round in seconds.</string>
+	<key>NSLocalNetworkUsageDescription</key>
+	<string>Cup Season can see which of your golf buddies are standing on this tee, so the foursome fills itself. It never uses your location, and a phone that is not already your buddy or league mate stays invisible.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>Cup Season attaches a photo to your round or your card. The marker always backs it up.</string>
+	<key>NSSupportsLiveActivities</key>
+	<true/>
 	<key>UIAppFonts</key>
 	<array>
 		<string>IBMPlexMono-Regular.ttf</string>

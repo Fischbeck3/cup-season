@@ -45,6 +45,7 @@ targets:
     dependencies:
       - package: CSDesign
       - package: CupSeasonKit
+      - target: CupSeasonWidgets
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: app.cupseason.ios
@@ -72,8 +73,17 @@ targets:
         UILaunchScreen: {}
         UISupportedInterfaceOrientations: [UIInterfaceOrientationPortrait, UIInterfaceOrientationLandscapeLeft, UIInterfaceOrientationLandscapeRight]
         ITSAppUsesNonExemptEncryption: false
+        # D155 · the round on the lock screen and in the Dynamic Island.
+        NSSupportsLiveActivities: true
         NSCameraUsageDescription: Cup Season reads your scorecard from a photo so you can post a round in seconds.
         NSPhotoLibraryUsageDescription: Cup Season attaches a photo to your round or your card. The marker always backs it up.
+        # D156 · proximity is Bluetooth, never location. Advertising runs ONLY
+        # while the Add-players screen is open and only after an explicit
+        # opt-in; there is no background mode and there must never be one.
+        NSLocalNetworkUsageDescription: Cup Season can see which of your golf buddies are standing on this tee, so the foursome fills itself. It never uses your location, and a phone that is not already your buddy or league mate stays invisible.
+        NSBonjourServices:
+          - _cs-tee._tcp
+          - _cs-tee._udp
         UIAppFonts:
           - IBMPlexMono-Regular.ttf
           - IBMPlexMono-Medium.ttf
@@ -99,6 +109,36 @@ targets:
         com.apple.developer.applesignin:
           - Default
 
+  # D155 · the Live Activity's home. It depends on CSDesign ONLY — the palette
+  # comes from the same generated tokens the app uses, and an extension that
+  # draws three facts has no business holding a Supabase client. The attributes
+  # file is compiled into BOTH targets rather than living in a package, for the
+  # same reason.
+  CupSeasonWidgets:
+    type: app-extension
+    platform: iOS
+    sources:
+      - path: CupSeasonWidgets
+      - path: CupSeason/Live/CSRoundActivity.swift
+    dependencies:
+      - package: CSDesign
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: app.cupseason.ios.widgets
+        PRODUCT_NAME: CupSeasonWidgets
+        MARKETING_VERSION: "1.0.0"
+        CURRENT_PROJECT_VERSION: "1"
+        TARGETED_DEVICE_FAMILY: "1"
+        SKIP_INSTALL: YES
+    info:
+      path: CupSeasonWidgets/Info.plist
+      properties:
+        CFBundleDisplayName: Cup Season
+        CFBundleVersion: $(CURRENT_PROJECT_VERSION)
+        CFBundleShortVersionString: $(MARKETING_VERSION)
+        NSExtension:
+          NSExtensionPointIdentifier: com.apple.widgetkit-extension
+
   CupSeasonTests:
     type: bundle.unit-test
     platform: iOS
@@ -114,6 +154,7 @@ schemes:
     build:
       targets:
         CupSeason: all
+        CupSeasonWidgets: all
     run:
       config: Debug
     test:
