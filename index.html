@@ -2683,7 +2683,14 @@ html[data-theme="light"] .room-dusk .btn:not(.dark):not(.gold):not(.apple){color
       <div style="height:12px"></div>
       <label class="f" for="pfHandle">Your handle — how buddies find you</label>
       <input class="f" id="pfHandle" autocomplete="off" placeholder="@jerecho" style="font-family:var(--sans); font-size:16px;">
-      <p class="fine" style="margin:6px 2px 0; padding:0; color:var(--dim)">A starting handle — tap to change it.</p>
+      <p class="fine" style="margin:6px 2px 0; padding:0; color:var(--dim)">Pick it now — this is how buddies find you. It can be changed later, but only once every 60 days, and your leagues are told when it does.</p>
+      <div style="height:14px"></div>
+      <label class="f" for="pfHome">Home course <span style="color:var(--dim); font-weight:400">· optional</span></label>
+      <input class="f" id="pfHome" autocomplete="off" placeholder="Where you play most" style="font-family:var(--sans); font-size:16px;">
+      <div style="height:12px"></div>
+      <label class="f" for="pfCity">City <span style="color:var(--dim); font-weight:400">· optional</span></label>
+      <input class="f" id="pfCity" autocomplete="off" placeholder="Tempe, AZ" style="font-family:var(--sans); font-size:16px;">
+      <p class="fine" style="margin:6px 2px 0; padding:0; color:var(--dim)">These are how buddies recognise you in search — and how someone spots that you play their course.</p>
       <div style="height:12px"></div>
       <label class="f" for="pfIdx">Handicap index <span style="color:var(--dim); font-weight:400">· optional</span></label>
       <input class="f" id="pfIdx" type="number" step="0.1" inputmode="decimal" placeholder="e.g. 12.4">
@@ -2696,10 +2703,35 @@ html[data-theme="light"] .room-dusk .btn:not(.dark):not(.gold):not(.apple){color
       <div style="height:14px"></div>
       <label class="f">Ball marker</label>
       <div id="pfMarkers" style="display:grid; grid-template-columns:repeat(4,1fr); gap:8px; margin-top:8px;"></div>
-      <p class="fine" style="margin:10px 2px 0; padding:0; color:var(--dim)">City and home course live on your card — add them any time from the You tab.</p>
       <div style="height:16px"></div>
       <button class="btn" id="pfSave">Save my card</button>
       <div class="ob-caption" id="pfStatus" style="margin-top:10px"></div>
+    </div>
+    <!-- D151 · the crew step. Signup used to end on a menu whose first tile was
+         "Start a league", and the measured result was a league of one: 20 of 23
+         golfers finished a card, 4 ever reached a league with another human in
+         it, six are still sitting alone in one they made. This asks the question
+         that decides whether they come back, at the moment intent is highest.
+         Shown ONCE, and never to an invited golfer — they are already joining. -->
+    <div id="obCrew" style="display:none">
+      <div class="ob-hero" style="margin-bottom:18px">
+        <div class="lockbadge" style="color:var(--pos); border-color:rgba(78,197,132,.35); background:rgba(78,197,132,.07)">✓ CARD SAVED</div>
+        <h1 style="font-size:30px">Who are you <em>playing with?</em></h1>
+        <p style="margin-top:10px">Cup Season is a game you play with people you know. Bring them now and your first round already counts for something.</p>
+      </div>
+      <label class="f" for="obCrewCode">Got a league code?</label>
+      <div class="joinbox" style="display:flex">
+        <input id="obCrewCode" placeholder="LEAGUE CODE" maxlength="8" autocomplete="off">
+        <button class="btn" id="obCrewJoin" type="button">Join</button>
+      </div>
+      <p class="fine" style="margin:6px 2px 0; padding:0; color:var(--dim)">A buddy texted you one? This is where it goes.</p>
+      <div class="ob-status" id="obCrewStatus" role="status" aria-live="polite"></div>
+      <div style="height:18px"></div>
+      <button class="btn dark" id="obCrewFind" type="button">Find your buddies</button>
+      <p class="fine" style="margin:6px 2px 0; padding:0; color:var(--dim)">Search by name or @handle — buddies see each other's rounds and share a tee sheet.</p>
+      <div style="height:18px"></div>
+      <button class="mini" id="obCrewStart" type="button" style="width:100%">Start a league instead</button>
+      <button class="cs-tskip" id="obCrewSkip" type="button" style="margin-top:10px">I'll do this later</button>
     </div>
     <div id="obWelcome" style="display:none">
       <div class="ob-hero" style="margin-bottom:22px">
@@ -10455,9 +10487,13 @@ function renderHomeStart(){
     <p class="fine" style="padding:8px 0 0"><a href="#" data-hgmore style="color:var(--mut); text-decoration:underline; text-underline-offset:3px">Start something else…</a></p>`
     : `
     <div class="startgrid" style="grid-template-columns:1fr 1fr 1fr">
+      <!-- D151 · Join leads. "Start a league" led for months and the measured
+           result was a league of one: six of the ten golfers who reached a
+           league are still alone in the one they made. Joining an existing
+           crew is the move that actually works, so it is offered first. -->
+      <button class="startjoin" data-hgjoin type="button" style="margin:0">Join a league</button>
       <button class="startjoin" data-hgnew type="button" style="margin:0">Start a league</button>
       <button class="startjoin" data-hgnewev type="button" style="margin:0">Start an event</button>
-      <button class="startjoin" data-hgjoin type="button" style="margin:0">Join a league</button>
     </div>
     ${leagueless ? '<p class="fine" style="padding:8px 0 0">Post a round — it counts on your card. Leagues score it when you join one.</p>' : ''}`;
   box.innerHTML = rb + doors;
@@ -13816,14 +13852,17 @@ $('#pfSave').addEventListener('click', async () => {
   try {
     const { error: he } = await sb.rpc('set_handle', { p_handle: hnd });
     if(he) throw he;
-    /* the card asks for name + handle + marker + an OPTIONAL starting index.
-       City and home course stay deferred to the You-tab editor (#phCity/#phHome);
-       a brand-new profile has them null, so passing null clobbers nothing. The
-       index is a starter your scores overtake (WHS-lite, established at 3). */
+    /* D151 · home course and city are asked HERE now, not deferred to a You-tab
+       editor most golfers never open (43% / 39% filled). They are the two
+       fields that make a stranger worth adding, search_golfers already returns
+       both, and after D150 the home course anchors course history. Both stay
+       optional; blank sends null, and set_profile coalesces, so an empty box
+       never clobbers a value someone already had. The index is a starter your
+       own scores overtake (WHS-lite, established at 3 rounds). */
     const { error } = await sb.rpc('set_profile', {
       p_name: name,
-      p_city: null,
-      p_home: null,
+      p_city: (($('#pfCity')?.value) || '').trim() || null,
+      p_home: (($('#pfHome')?.value) || '').trim() || null,
       p_index: isNaN(idx) ? null : idx,
       p_marker: pfMarker,
       p_ghin: (($('#pfGhin')?.value) || '').trim() || null,   /* GHIN B: identity, optional; null = keep (none on a new profile) */
@@ -13841,7 +13880,7 @@ $('#pfSave').addEventListener('click', async () => {
     let oriented = true;
     try { oriented = !!localStorage.getItem('cs_oriented'); } catch(_){}
     if(!oriented){ showOrientation(); }
-    else await resumeAfterProfile();
+    else await continueAfterCard();
   } catch(e){
     $('#pfStatus').textContent = humanError(e, 'Save failed.');
   } finally { btn.disabled = false; btn.textContent = 'Save my card'; }
@@ -13856,8 +13895,52 @@ function showOrientation(){
 }
 $('#orGo').addEventListener('click', async () => {
   $('#obOrient').style.display = 'none';
-  await resumeAfterProfile();
+  await continueAfterCard();
 });
+
+/* D151 · the crew step sits between the card and the app, for COLD arrivals
+   only. An invited golfer (cs_code) or a guest claiming a round (cs_claim) is
+   already being carried somewhere by resumeAfterProfile — asking them who they
+   play with would be noise. Shown once; the flag is set on SHOW, like D82's,
+   so a crash mid-screen can never trap anyone in it. */
+async function continueAfterCard(){
+  const ls = k => { try{ return localStorage.getItem(k); }catch(_){ return null; } };
+  const invited = !!(ls('cs_code') || ls('cs_claim'));
+  const seen    = !!ls('cs_crew');
+  if(invited || seen){ await resumeAfterProfile(); return; }
+  try { localStorage.setItem('cs_crew','1'); } catch(_){}
+  window.qaEvent?.('crew_step_shown', {});
+  $('#obCrew').style.display = 'block';
+}
+async function leaveCrewStep(how, then){
+  window.qaEvent?.('crew_step_done', { how });
+  $('#obCrew').style.display = 'none';
+  await resumeAfterProfile();
+  if(typeof then === 'function') setTimeout(then, 260);
+}
+$('#obCrewJoin')?.addEventListener('click', async () => {
+  const el = $('#obCrewCode'), st = $('#obCrewStatus');
+  const code = (el?.value || '').trim().toUpperCase();
+  if(code.length < 4){ st.textContent = 'That code looks too short.'; return; }
+  const b = $('#obCrewJoin'); b.disabled = true; b.textContent = '…';
+  try{
+    /* the covenant is shown BEFORE join_league here exactly as it is on the
+       invite-link path (S3-01) — the stake is never a surprise */
+    if(await covenantGate(code)){
+      const { error } = await sb.rpc('join_league', { p_code: code });
+      if(error) throw error;
+      await leaveCrewStep('code');
+    } else {
+      st.textContent = 'Not joined — the code still works whenever you are.';
+    }
+  }catch(e){ st.textContent = humanError(e, 'Could not join with that code.'); }
+  finally { b.disabled = false; b.textContent = 'Join'; }
+});
+$('#obCrewFind')?.addEventListener('click', () =>
+  leaveCrewStep('buddies', () => window.openPeoplePicker?.({ title:'Find golfers', sub:'Search by name or @handle to add buddies' })));
+$('#obCrewStart')?.addEventListener('click', () =>
+  leaveCrewStep('league', () => { try{ switchView('wizard'); }catch(_){} }));
+$('#obCrewSkip')?.addEventListener('click', () => leaveCrewStep('skip'));
 /* D83: the orientation's demo CTA retired with the demo season — the two
    teachings stand on their own and "Take me in" is the one door. */
 /* D82: the guide sheets — the orientation's content, reopenable forever.
@@ -14001,9 +14084,18 @@ function renderPhMarkers(){
    my_friends / friend_request / friend_respond (+ invite via onPick).
    ============================================================ */
 function psRow(r, actionHTML){
+  /* D151 · search_golfers has always RETURNED home_course and index_current and
+     this row rendered neither — the two facts that answer "is this stranger
+     worth adding" were fetched and thrown away. The index leads (it is the
+     credential), the home course follows (it is the reason you might have met). */
+  const idx  = (r.index_current!=null && typeof fmtIdx==='function') ? fmtIdx(r.index_current)
+             : (r.index_current!=null ? String(r.index_current) : null);
+  const line2 = ['@'+esc(r.handle||'?'), idx ? esc(idx)+' idx' : null, r.city?esc(r.city):null]
+                  .filter(Boolean).join(' · ');
+  const home = r.home_course ? `<small style="color:var(--dim)">${esc(r.home_course)}</small>` : '';
   return `<div class="prow"><span class="pmk" data-tc="${r.profile_id}">${window.face ? window.face(r.profile_id, r.marker, 36) : mkr(r.marker||'saguaro')}</span>
     <span class="pmeta" data-tc="${r.profile_id}"><b>${esc(r.display_name||'—')}${founderTag(r.profile_id, r.display_name)}</b>
-      <small>@${esc(r.handle||'?')}${r.city?' · '+esc(r.city):''}</small></span>${actionHTML}</div>`;
+      <small>${line2}</small>${home}</span>${actionHTML}</div>`;
 }
 function psFriendTag(rel){
   return rel==='friend' ? '<span class="ptag ok">Buddies</span>'
