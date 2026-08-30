@@ -14338,22 +14338,68 @@ function renderProChip(){
 window.renderProChip = renderProChip;
 
 /* ---------- invite links: share sheet over the league code ---------- */
-async function shareInvite(){
-  const code = CS.league?.code;
-  if(!code) return;
-  const url = 'https://cupseason.app/?join=' + encodeURIComponent(code);
-  const text = `You're invited to ${CS.league.name} on Cup Season`;
-  window.growthEvent?.('artifact_shared', 'join', code, null, CS.league.id);
-  if(navigator.share){
-    try { await navigator.share({ title: 'Cup Season', text, url }); return; }
-    catch(e){ if(e && e.name === 'AbortError') return; }
-  }
+/* D114 · ONE invite surface, reachable from every share control.
+   The blind audit's organizer never saw a link at all: every share button
+   called navigator.share (absent on his browser) and fell through to a
+   1.5-second toast reading "Invite code: THEPTCQ5". He found the code by
+   accident in the league room, and the joiner re-typed it from a text message.
+   The URL is now always on screen as selectable text — a share sheet that
+   fails, a clipboard that refuses, a browser with neither: in every case the
+   golfer can still read the link and type it.
+   One producer for the message so the native share, Copy message and the
+   phone's ShareLink cannot drift apart. */
+function inviteUrl(L){
+  return 'https://cupseason.app/?join=' + encodeURIComponent((L||CS.league).code);
+}
+function inviteMessage(L){
+  L = L || CS.league;
+  const lines = [`You're invited to ${L.name} on Cup Season.`];
+  const pro = (window.CS && CS.profile && CS.member?.role === 'commissioner')
+    ? (CS.profile.display_name || '') : '';
+  if(pro) lines.push(`${pro} is running it.`);
   try {
-    await navigator.clipboard.writeText(text + ': ' + url);
-    toast('Invite link copied: text it to the group');
-  } catch(e){ toast('League code: ' + code); }
+    if(state.seasonStart || state.startISO) lines.push(`First tee ${firstTeeText()}.`);
+  } catch(_){}
+  lines.push(Number(state.stake) ? `$${state.stake} in — the app keeps the tab, money moves between you.`
+                                 : 'No buy-in — bragging rights.');
+  lines.push('Post real rounds from any course; every round scores against your own number, so a bad day still counts.');
+  lines.push(inviteUrl(L));
+  return lines.join('\n');
+}
+function openInviteSheet(L){
+  L = L || CS.league;
+  if(!L || state.demo){ if(state.demo) toast('Demo league — invites work in your real league'); return; }
+  const url = inviteUrl(L);
+  window.growthEvent?.('artifact_shared', 'join', L.code, null, L.id);
+  window.qaEvent?.('invite_open', { code: L.code });
+  openSheet('Invite your crew', 'ONE LINK FILLS THE LEAGUE', `
+    <div class="card" style="text-align:left; padding:12px; margin-bottom:12px">
+      <div class="fine" style="padding:0 0 6px">Anyone who opens this reviews the league, then joins.</div>
+      <div class="mono" id="invUrl" style="word-break:break-all; user-select:all; -webkit-user-select:all; font-size:12.5px">${esc(url)}</div>
+    </div>
+    <button class="btn" id="invCopyLink">Copy link</button>
+    <button class="btn dark" id="invCopyMsg" style="margin-top:8px">Copy a message to send</button>
+    ${navigator.share ? '<button class="btn dark" id="invShare" style="margin-top:8px">Share…</button>' : ''}
+    <p class="fine" style="padding-top:10px">Or read them the league code: <b class="mono">${esc(L.code)}</b></p>`);
+  const copy = async (text, okMsg) => {
+    try { await navigator.clipboard.writeText(text); toast(okMsg); }
+    /* never blame the session for a clipboard refusal — the link is on screen */
+    catch(e){ toast('Copy didn\u2019t work — the link is on screen to copy by hand.'); }
+  };
+  document.getElementById('invCopyLink')?.addEventListener('click', () => copy(url, 'Link copied — text it to the group'));
+  document.getElementById('invCopyMsg')?.addEventListener('click', () => copy(inviteMessage(L), 'Message copied — paste it in the group chat'));
+  document.getElementById('invShare')?.addEventListener('click', async () => {
+    try { await navigator.share({ title: 'Cup Season', text: inviteMessage(L), url }); }
+    catch(e){ if(e && e.name !== 'AbortError') toast('Share didn\u2019t open — the link is on screen.'); }
+  });
+}
+async function shareInvite(){
+  if(!CS.league?.code) return;
+  openInviteSheet(CS.league);
 }
 window.shareInvite = shareInvite;
+window.openInviteSheet = openInviteSheet;
+window.inviteMessage = inviteMessage;
 
 /* growth (2026-07-17): the wizard's last screen is the invite link. Seat math
    comes from the structure the Pro just picked (STRUCT_MIN/NAMES are classic
@@ -14383,13 +14429,15 @@ async function openLockShare(nextPhase, sent){
            : `${n} in — enough for ${struct}. ${state.draftType==='assign'?'Seat the squads':'Run the draw'} whenever you're ready.`;
   openSheet('Bylaws locked ⛳', 'One link fills the league', `
     <p class="fine" style="padding:0 0 10px">${esc(line)}${sent ? ` (${sent} already invited.)` : ''}</p>
-    <div class="card" style="text-align:left; padding:10px 12px; margin-bottom:12px">
-      <div class="fine" style="padding:0">You're invited to <b>${esc(L.name)}</b> on Cup Season<br>
-      <span class="mono">cupseason.app/?join=${esc(L.code)}</span></div>
+    <div class="card" style="text-align:left; padding:12px; margin-bottom:12px">
+      <div class="fine" style="padding:0 0 6px">Anyone who opens this reviews <b>${esc(L.name)}</b>, then joins.</div>
+      <div class="mono" style="word-break:break-all; user-select:all; -webkit-user-select:all; font-size:12.5px">${esc(inviteUrl(L))}</div>
     </div>
-    <button class="btn" id="lkShare">Share the invite link</button>
+    <button class="btn" id="lkShare">Copy link, share, or read out the code</button>
     <button class="btn dark" id="lkLater" style="margin-top:10px">Later — it lives in the league room</button>`);
-  document.getElementById('lkShare')?.addEventListener('click', () => shareInvite());
+  /* D114 · the celebration and the room open the SAME invite surface, so the
+     link is never a moment the Pro can miss and then not find again. */
+  document.getElementById('lkShare')?.addEventListener('click', () => openInviteSheet(L));
   document.getElementById('lkLater')?.addEventListener('click', () => closeSheet());
 }
 
