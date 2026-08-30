@@ -266,6 +266,37 @@ import Foundation
     #expect(solo.pointsLine == "+9 PTS · COUNTS THIS SEASON")
     let card = PostCeremony(course: "", date: "2026-08-22", gross: 84, vs: -71.6, points: nil, squad: nil, inLeague: false, name: "J", marker: "saguaro", leagueName: nil)
     #expect(!card.earned && card.pointsLine == "COUNTS ON YOUR CARD" && card.band == "" && card.eyebrow == "A ROUND · SAT AUG 22")
+
+    // D122 · the audit's exact scenario: a league whose first tee is a week
+    // out. The golfer was promised league points and shown zero with nothing
+    // connecting the two facts; the card must now say WHY.
+    let preseason = PostCeremony(course: "Papago", date: "2026-08-29", gross: 84, vs: 2.4, points: nil,
+                                 squad: nil, inLeague: false, name: "You", marker: "saguaro", leagueName: "The Papago Grind",
+                                 seasonNote: "Practice · season starts Sat Sep 5")
+    #expect(preseason.pointsLine == "PRACTICE · SEASON STARTS SAT SEP 5")
+    #expect(!preseason.earned)
+    // a round that DOES count is untouched
+    #expect(PostCeremony(course: "P", date: "2026-08-22", gross: 84, vs: 2.4, points: 9, squad: "The Pines",
+                         inLeague: true, name: "You", marker: "saguaro", leagueName: "L",
+                         seasonNote: "").pointsLine == "+9 PTS · COUNTS FOR THE PINES")
+  }
+
+  @Test func seasonNoteSaysWhyARoundDidNotScore() {
+    let season = Me.Season(id: UUID(), number: 1, starts_on: "2026-09-05", ends_on: "2027-01-02", status: "active",
+                           timezone: nil, grace_hours: nil, champion_squad_id: nil, champion_member_id: nil,
+                           points_king_member_id: nil, tiebreak_rung: nil)
+    // before first tee — practice, and it names the date
+    let pre = PostSeasonRule.note(playedOn: "2026-08-29", season: season, hasLeague: true, today: "2026-08-29")
+    #expect(pre.contains("Practice") && pre.contains("Sat Sep 5"))
+    // inside the window there is nothing to explain
+    #expect(PostSeasonRule.note(playedOn: "2026-10-01", season: season, hasLeague: true, today: "2026-10-01") == "")
+    // after the window
+    #expect(PostSeasonRule.note(playedOn: "2027-02-01", season: season, hasLeague: true, today: "2027-02-01").contains("Season complete"))
+    // no league at all
+    #expect(PostSeasonRule.note(playedOn: "2026-08-29", season: nil, hasLeague: false, today: "2026-08-29") == LeagueCopy.noLeagueNoteShort)
+    // the long form is a full sentence for the form, not a chip
+    let long = PostSeasonRule.note(playedOn: "2026-08-29", season: season, hasLeague: true, today: "2026-08-29", short: false)
+    #expect(long.contains("builds your number") && long.hasSuffix("."))
   }
 
   @Test func theRecapSpeaksInTheThirdPerson() {

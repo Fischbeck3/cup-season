@@ -562,5 +562,29 @@ else {
       : fail('join paths carry consent', `${joins} join_league call(s) but only ${gates} covenantGate() — a golfer can be seated without seeing the terms`);
 }
 
+/* 20 · the two clients share one stage vocabulary (D120) ------------------
+   The blind audit found the same league described five different ways in one
+   session, partly because the web and the phone each invented their own
+   status strings. Six words, one meaning each, and neither client may drift:
+   this compares index.html's STAGE_LABEL to CupSeasonKit's Stage.label. */
+{
+  const webTable = (html.match(/const STAGE_LABEL = \{([\s\S]*?)\};/) || [])[1] || '';
+  const web = Object.fromEntries([...webTable.matchAll(/(\w+)\s*:\s*'([^']+)'/g)].map(m => [m[1], m[2]]));
+  const copyPath = join(root, 'apps', 'ios', 'Packages', 'CupSeasonKit', 'Sources', 'CupSeasonKit', 'League', 'LeagueCopy.swift');
+  if (!existsSync(copyPath)) pass('stage vocabulary shared', 'apps/ios absent — skipped');
+  else {
+    const swiftSrc = readFileSync(copyPath, 'utf8');
+    const swiftBlock = (swiftSrc.match(/public var label: String \{([\s\S]*?)\n {4}\}/) || [])[1] || '';
+    const swift = Object.fromEntries([...swiftBlock.matchAll(/case \.(\w+):\s*return "([^"]+)"/g)].map(m => [m[1], m[2]]));
+    const keys = [...new Set([...Object.keys(web), ...Object.keys(swift)])];
+    const drift = keys.filter(k => web[k] !== swift[k])
+      .map(k => `${k}: web ${JSON.stringify(web[k] ?? null)} vs phone ${JSON.stringify(swift[k] ?? null)}`);
+    if (!keys.length) fail('stage vocabulary shared', 'neither table found — did STAGE_LABEL or Stage.label get renamed?');
+    else drift.length === 0
+      ? pass('stage vocabulary shared', `${keys.length} stages agree across both clients`)
+      : fail('stage vocabulary shared', drift.join(' · '));
+  }
+}
+
 console.log(`\n${fails ? 'FAIL' : 'PASS'} — ${fails} failure(s), ${warns} warning(s)`);
 process.exit(fails ? 1 : 0);

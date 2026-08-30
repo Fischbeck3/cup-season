@@ -520,8 +520,14 @@ struct HomeHero: View {
   private var eyebrow: String {
     switch mode {
     case .leagueless: return "Your card"
-    case .forming(let m): return "\(m.name) · forming"
-    case .preseason(let m): return "\(m.name) · season live"
+    /* D120 · the shared stage vocabulary. `forming` here covers setup AND
+       draft (SeasonPhase does not split them), so it reports the one the
+       league is actually in; `preseason` said "season live", which is the
+       exact contradiction the audit logged on the web — a hero claiming the
+       season was on while the Clubhouse said practice rounds do not count. */
+    case .forming(let m):
+      return "\(m.name) · \((m.phase == "draft" ? LeagueCopy.Stage.drawing : .forming).label.lowercased())"
+    case .preseason(let m): return "\(m.name) · \(LeagueCopy.Stage.preseason.label.lowercased())"
     case .season(let m):
       if case .season(let w, let of) = SeasonPhase.of(m) { return "\(m.name) · week \(w) of \(of)" }
       return m.name
@@ -558,15 +564,34 @@ struct HomeHero: View {
       .overlay(Capsule().stroke(m.1.opacity(0.5), lineWidth: 1))
   }
 
+  /// D119 · the Pro by name where the copy names them; "the Pro" when the
+  /// server has not sent one, never a guess.
+  private func proName(_ m: Me.Membership) -> String {
+    let n = (m.commissioner_name ?? "").trimmingCharacters(in: .whitespaces)
+    return n.isEmpty ? "The Pro" : n
+  }
+
   private var line: String {
     switch mode {
     case .leagueless(let rung):
       return rung == 7 ? "Three rounds and your index goes live. Nothing else needed."
                        : "Established. Nobody's seen it yet — you haven't joined a league."
+    /* D119 · a member is told who is doing what and by when, not handed the
+       Pro's job description. Four of four player personas met the Pro's lock
+       button on their own Home in the audit. */
     case .forming(let m):
-      return m.isPro ? "Your league is still forming. Lock the bylaws and the invite link is yours."
-                     : "The bylaws lock at the tee."
-    case .preseason: return "The season's on. Rounds count from first tee."
+      if m.isPro {
+        return m.phase == "draft" ? "Bylaws locked. Draw the squads when the crew is in."
+                                  : "Your league is still forming. Lock the bylaws and the invite link is yours."
+      }
+      if m.phase == "draft" { return "\(proName(m)) draws the squads before first tee — it's random." }
+      return "\(proName(m)) is setting the bylaws. You'll see them the moment they lock."
+    /* D122 · "The season's on" before first tee is the contradiction itself */
+    case .preseason(let m):
+      guard let s = m.season, let d = CSDate.days(from: CSDate.today(), to: s.starts_on), d >= 0 else {
+        return "Rounds before first tee build your number."
+      }
+      return "First tee in \(d) day\(d == 1 ? "" : "s"). Rounds before it build your number."
     case .season(let m):
       guard let st = m.standing else { return "Standings start at the first posted round." }
       if st.rank == 1 {

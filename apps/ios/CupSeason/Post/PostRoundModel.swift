@@ -244,7 +244,9 @@ final class PostRoundModel {
     let counts = PostSeasonRule.counts(playedOn: payload.played_on, season: m?.season, hasLeague: m != nil)
     ceremony = PostCeremony(course: course ?? "A round", date: payload.played_on ?? CSDate.today(), gross: payload.gross, vs: preview.vs,
                             points: counts ? preview.points : nil, squad: m?.squad?.name, inLeague: counts,
-                            name: profile?.display_name ?? "You", marker: profile?.marker ?? "saguaro", leagueName: m?.name)
+                            name: profile?.display_name ?? "You", marker: profile?.marker ?? "saguaro", leagueName: m?.name,
+                            /* D122 · why it did not score for the league, in words */
+                            seasonNote: PostSeasonRule.note(playedOn: payload.played_on, season: m?.season, hasLeague: m != nil))
     CSHaptic.success()
 
     // clear the form so a posted round never reads as "didn't submit"

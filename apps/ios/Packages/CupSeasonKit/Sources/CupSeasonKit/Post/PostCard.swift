@@ -432,6 +432,32 @@ public enum PostSeasonRule {
     let played = playedOn ?? today
     return played >= s.starts_on && played <= s.ends_on
   }
+
+  /// D122 · the same rule, but saying WHY when it does not count. The phone
+  /// knew `counts` and told the golfer only "COUNTS ON YOUR CARD"; the audit
+  /// watched six of six testers be promised league points a week before first
+  /// tee and then shown zero with nothing connecting the two facts.
+  /// Empty string when the round DOES count — there is nothing to explain.
+  public static func note(playedOn: String?, season: Me.Season?, hasLeague: Bool,
+                          today: String = CSDate.today(), short: Bool = true) -> String {
+    if counts(playedOn: playedOn, season: season, hasLeague: hasLeague, today: today) { return "" }
+    guard hasLeague, let s = season, !s.starts_on.isEmpty, !s.ends_on.isEmpty else {
+      return short ? LeagueCopy.noLeagueNoteShort : LeagueCopy.noLeagueNote
+    }
+    let played = playedOn ?? today
+    /* before the window is "practice"; after it the season is simply over */
+    let st: LeagueCopy.Stage = played < s.starts_on ? .preseason : .complete
+    let tee = PostCeremony.when(s.starts_on).capitalizedFirstWords
+    return LeagueCopy.seasonNote(st, firstTee: tee, short: short)
+  }
+}
+
+extension String {
+  /// "SAT SEP 5" -> "Sat Sep 5" — the ceremony's date helper shouts; the
+  /// sentence around it should not.
+  var capitalizedFirstWords: String {
+    split(separator: " ").map { $0.prefix(1).uppercased() + $0.dropFirst().lowercased() }.joined(separator: " ")
+  }
 }
 
 // MARK: - the scorecard strip (IOS-020)

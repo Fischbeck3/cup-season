@@ -142,23 +142,74 @@ public enum LeagueCopy {
 
   // MARK: the header (12668–12704)
 
-  public static func phaseHeader(_ c: RoomClock) -> String {
-    switch c.phase {
-    case .setup: return "Setup — invites open"
-    case .draft: return "Squad formation"
-    case .season:
-      if c.done { return "Season complete" }
-      if c.atStarter { return "Before first tee — \(c.firstTeeText)" }
-      if c.isCupFinal { return "Cup Final" }
-      return "Season live"
+  /// D120 · ONE league stage, one vocabulary — the Swift half of the web's
+  /// `STAGE_LABEL` / `leagueStage()`. The blind audit found the same league
+  /// described five different ways in a single session across the two clients;
+  /// these six strings are the whole vocabulary and `tests/preflight.mjs`
+  /// check 20 fails the push if they stop matching index.html.
+  /// "Forming" means SETUP only — testers read the old "Squad formation" label
+  /// as the setup stage, so the drawing stage gets its own word. The retired
+  /// "Setup — invites open" also contradicted D112: nothing opens until lock.
+  public enum Stage: String, CaseIterable, Sendable {
+    case forming, drawing, preseason, season, final, complete
+    public var label: String {
+      switch self {
+      case .forming:   return "Forming"
+      case .drawing:   return "Squads drawing"
+      case .preseason: return "Before first tee"
+      case .season:    return "Season live"
+      case .final:     return "Cup Final"
+      case .complete:  return "Season complete"
+      }
     }
+  }
+
+  public static func stage(_ c: RoomClock) -> Stage {
+    switch c.phase {
+    case .setup: return .forming
+    case .draft: return .drawing
+    case .season:
+      if c.done { return .complete }
+      if c.atStarter { return .preseason }
+      if c.isCupFinal { return .final }
+      return .season
+    }
+  }
+
+  /// D122 · a round scores for a league only inside its season window. The web
+  /// half is `seasonNote()`; these are the same sentences so a golfer who posts
+  /// on the phone and reads the receipt on the web is told one story.
+  /// The audit's testers were promised 5/6/12 league points a week before first
+  /// tee and shown zero afterwards, with nothing connecting the two facts.
+  public static func seasonNote(_ st: Stage, firstTee: String?, short: Bool = false) -> String {
+    switch st {
+    case .season, .final: return ""
+    case .complete:
+      return short ? "Season complete" : "The season is over — this round lands on your card."
+    case .forming, .drawing, .preseason:
+      guard let when = firstTee, !when.isEmpty else {
+        return short ? "Practice round"
+                     : "Practice — the season has not started. This round builds your number; it earns league points once it does."
+      }
+      return short ? "Practice · season starts \(when)"
+                   : "Practice — the season starts \(when). This round builds your number; it earns league points from then on."
+    }
+  }
+
+  /// The no-league case, which is not a stage — the golfer simply has no league.
+  public static let noLeagueNote = "This round lands on your card — join a league and it scores there too."
+  public static let noLeagueNoteShort = "On your card"
+
+  public static func phaseHeader(_ c: RoomClock) -> String {
+    let st = stage(c)
+    return st == .preseason ? "\(st.label) — \(c.firstTeeText)" : st.label
   }
 
   /// `#phaseSub` (12008–12020).
   public static func phaseSub(_ c: RoomClock, b: Bylaws, code: String?, members: Int) -> String {
     switch c.phase {
     case .setup: return "SETUP · CODE \(code ?? "—") · \(members) JOINED"
-    case .draft: return "Squad formation · rosters pending"
+    case .draft: return "\(Stage.drawing.label) · rosters pending"
     case .season:
       if c.atStarter { return "BEFORE FIRST TEE · \(c.firstTeeText.uppercased()) · \(c.daysToTee) DAY\(c.daysToTee == 1 ? "" : "S")" }
       if c.isCupFinal { return "CUP FINAL · Wk \(c.currentWeek) / \(c.totalWeeks) · fresh slate · \(b.presetName) rules" }

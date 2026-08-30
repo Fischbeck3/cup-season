@@ -128,10 +128,16 @@ public struct PostCeremony: Sendable, Equatable, Identifiable {
   public let name: String
   public let marker: String
   public let leagueName: String?
+  /// D122 · WHY this round earned no league points, in the golfer's words —
+  /// "Practice · season starts Sat Sep 5" rather than the technically-true but
+  /// unhelpful "COUNTS ON YOUR CARD". Defaulted so older callers still compile;
+  /// `LeagueCopy.seasonNote(_:firstTee:short:)` is the producer.
+  public let seasonNote: String?
 
-  public init(course: String, date: String, gross: Int, vs: Double?, points: Int?, squad: String?, inLeague: Bool, name: String, marker: String, leagueName: String?) {
+  public init(course: String, date: String, gross: Int, vs: Double?, points: Int?, squad: String?, inLeague: Bool, name: String, marker: String, leagueName: String?, seasonNote: String? = nil) {
     self.course = course; self.date = date; self.gross = gross; self.vs = vs; self.points = points; self.squad = squad
     self.inLeague = inLeague; self.name = name; self.marker = marker; self.leagueName = leagueName
+    self.seasonNote = seasonNote
   }
 
   public static let dow = ["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"]
@@ -151,7 +157,11 @@ public struct PostCeremony: Sendable, Equatable, Identifiable {
   public var earned: Bool { inLeague && (points ?? 0) > 0 }
   /// `+9 PTS · COUNTS FOR THE PINES` / `+9 PTS · COUNTS THIS SEASON` / `COUNTS ON YOUR CARD`
   public var pointsLine: String {
-    guard earned, let points else { return "COUNTS ON YOUR CARD" }
+    guard earned, let points else {
+      /* D122 · say WHY it did not score for the league when we know */
+      if let n = seasonNote, !n.isEmpty { return n.uppercased() }
+      return "COUNTS ON YOUR CARD"
+    }
     return "+\(points) PTS" + (squad.map { " · COUNTS FOR \($0.uppercased())" } ?? " · COUNTS THIS SEASON")
   }
   public static let shareLabel = "Share the card"

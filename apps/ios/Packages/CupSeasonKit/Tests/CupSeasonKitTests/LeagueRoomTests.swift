@@ -310,8 +310,9 @@ private func team(_ id: UUID, _ name: String, _ pts: Double, ci: Int = 0) -> Tea
     #expect(LeagueCopy.weekValue(clock("2026-04-30")) == "—" && LeagueCopy.weekValue(clock("2026-05-10")) == "W2" && LeagueCopy.weekValue(clock("2026-10-01", status: "complete")) == "21")
   }
   @Test func thePhaseStrings() {
-    #expect(LeagueCopy.phaseHeader(clock("2026-06-01", phase: .setup)) == "Setup — invites open")
-    #expect(LeagueCopy.phaseHeader(clock("2026-06-01", phase: .draft)) == "Squad formation")
+    // D120: one stage vocabulary; "Setup — invites open" also contradicted D112.
+    #expect(LeagueCopy.phaseHeader(clock("2026-06-01", phase: .setup)) == "Forming")
+    #expect(LeagueCopy.phaseHeader(clock("2026-06-01", phase: .draft)) == "Squads drawing")
     #expect(LeagueCopy.phaseHeader(clock("2026-04-30")) == "Before first tee — Sun May 3")
     #expect(LeagueCopy.phaseHeader(clock("2026-09-01", status: "cup_final")) == "Cup Final")
     #expect(LeagueCopy.phaseHeader(clock("2026-10-01", status: "complete")) == "Season complete")
