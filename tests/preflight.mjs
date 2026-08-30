@@ -235,12 +235,24 @@ const warn = (name, note) => { warns++; console.log(`~ WARN  ${name} — ${note}
 
   const ghosts = [...called].filter(f => !inProd.has(f) && !inMigrations.has(f));
   const pending = [...called].filter(f => !inProd.has(f) && inMigrations.has(f));
-  let stale = false;
+  /* build-db --check verifies BOTH generated artifacts (rpc.ts and the Swift
+     Rpc.swift, which lives under apps/ios/). This used to swallow its output
+     and report a hardcoded "rpc.ts is stale", so when the SWIFT artifact was
+     the stale one — the likelier miss, because it sits outside packages/db and
+     a `git add packages/db` leaves it behind — the message sent you to the
+     wrong file. It did exactly that on 09e08da. Name what is actually stale. */
+  let stale = false, staleWhich = '';
   try { execFileSync('node', [join(root, 'tools', 'build-db.mjs'), '--check'], { stdio: 'pipe' }); }
-  catch { stale = true; }
+  catch (e) {
+    stale = true;
+    staleWhich = String(e.stdout || '').split('\n')
+      .filter(l => l.includes('STALE'))
+      .map(l => l.replace(/^\s*X STALE\s+/, '').split(' \u2014')[0].trim())
+      .join(', ');
+  }
 
   if (ghosts.length) fail('rpc exists in database', `client calls a function that is in neither prod nor a migration: ${ghosts.join(', ')}`);
-  else if (stale) fail('rpc exists in database', 'packages/db/rpc.ts is stale — run tools/build-db.mjs');
+  else if (stale) fail('rpc exists in database', `${staleWhich || 'a generated artifact'} is stale — run tools/build-db.mjs (it writes rpc.ts AND apps/ios/.../Rpc.swift)`);
   else pass('rpc exists in database', `${called.size} client RPCs, ${inProd.size} in the snapshot`);
   if (pending.length) warn('rpc pending deploy', `in a migration but not yet in prod — owe a db push: ${pending.join(', ')}`);
 }

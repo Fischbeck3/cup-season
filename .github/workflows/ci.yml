@@ -41,11 +41,20 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      # Node 24 matches the dev machine. Both suites are plain .mjs with zero
-      # dependencies — there is no package.json and none is needed.
+      # Node 24 matches the dev machine.
       - uses: actions/setup-node@v4
         with:
           node-version: '24'
+          cache: npm
+
+      # preflight's free-identifier check (the one that catches an undeclared
+      # name before it reaches a user as a blank screen) needs acorn and
+      # eslint-scope. Without them the check DEGRADES TO A WARNING and silently
+      # never runs — which is what happened from the day it was added until
+      # 2026-08-30: a guard that only worked on one laptop. Dev-only; nothing
+      # here is bundled or served.
+      - name: install dev deps
+        run: npm ci
 
       # Static invariants: version placeholders, RPC grant coverage, the
       # window.* bridge, the dist allowlist, OTP maxlength, script-block parse.
