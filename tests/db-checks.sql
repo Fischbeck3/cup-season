@@ -351,17 +351,32 @@ select '16 · formation invariant',
   case when bad = 0 then 'PASS'
     else 'FAIL — ' || bad::text || ' league(s) in season with an empty squad or an unseated member' end,
   'leagues in phase=season whose squads do not cover the roster'
+-- Widened 2026-08-30 (code audit TT-01). The first version JOINed squads, so a
+-- non-solo league with NO squads formed was structurally invisible, and it never
+-- tested the unseated member its own failure message advertises.
+-- NOTE, honestly: the review claimed this hid 4 live violations and it does not.
+-- Three of those four are SOLO leagues, which correctly have no squads
+-- (form_squads returns early for solo), and the fourth is the same league already
+-- caught. Prod has exactly one violation before and after this change. The widening
+-- is still worth it — the two uncovered cases are real and would have been missed —
+-- but the check was not under-reporting. Verified by counting each case separately.
 from (
-  select count(*) as bad from (
-    select l.id
-    from leagues l
-    join seasons s on s.league_id = l.id
-    join squads q on q.season_id = s.id
-    where l.phase = 'season'
-    group by l.id
-    having count(*) filter (
-      where not exists (select 1 from squad_members sm where sm.squad_id = q.id)) > 0
-  ) x
+  select count(*) as bad from leagues l
+  where l.phase = 'season'
+    and exists (select 1 from seasons s where s.league_id = l.id)
+    and (
+      -- structure says squads, but none were ever formed
+      (coalesce((select ls.structure from league_settings ls where ls.league_id = l.id), 'squads2') <> 'solo'
+       and not exists (select 1 from squads q join seasons s on s.id = q.season_id where s.league_id = l.id))
+      -- a squad exists with nobody in it
+      or exists (select 1 from squads q join seasons s on s.id = q.season_id
+                  where s.league_id = l.id
+                    and not exists (select 1 from squad_members sm where sm.squad_id = q.id))
+      -- a member of a squads league is seated in no squad
+      or (coalesce((select ls.structure from league_settings ls where ls.league_id = l.id), 'squads2') <> 'solo'
+          and exists (select 1 from league_members m where m.league_id = l.id
+                       and not exists (select 1 from squad_members sm where sm.member_id = m.id)))
+    )
 ) t
 
 -- 17 · the point bands agree between the web and the engine

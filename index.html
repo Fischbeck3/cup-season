@@ -6620,12 +6620,21 @@ function recalc(){
      zero afterwards with nothing connecting the two. Say it where the promise
      used to be, and stop calling it "League points this round" when it is not. */
   const _ss = seasonState();
+  /* Code audit 2026-08-30 · a golfer with NO league is not a golfer whose round
+     will not score — it is the golfer we most want to show the number to. D122
+     swept `no_league` in with `pre`/`over` and turned the headline figure into
+     an em dash for every account without a league, which is most new accounts,
+     deleting exactly the number the old copy ("points apply in any league you
+     join") existed to make true and motivating. Only a league whose window is
+     shut suppresses the figure. */
+  const _shows = (_ss === 'live' || _ss === 'no_league');
   const _k = document.querySelector('.calc .k');
-  if(_k) _k.textContent = _ss === 'live' ? 'League points this round' : 'This round';
+  if(_k) _k.textContent = _ss === 'live' ? 'League points this round'
+                        : _ss === 'no_league' ? 'This round would score' : 'This round';
   const _sn = $('#calcSeason'); if(_sn) _sn.textContent = seasonNote('long') || 'Counts in every league you\u2019re in.';
   $('#calcVs').textContent=vsShort(vs);   /* Q-23: words, not a sign */
   $('#calcVs').style.color = vs>-1 ? 'var(--pos)' : 'var(--neg)';
-  $('#calcPts').textContent = _ss === 'live' ? pts : '—';
+  $('#calcPts').textContent = _shows ? pts : '—';
   $('#calcMsg').textContent = _ss === 'live' ? msg : (msg + ' ' + seasonNote('short') + '.');
   const gl=$('#postGrossLine');
   if(gl) gl.textContent = `Gross ${gross} · ${label.includes('9 HOLES')?'9 holes · half value':'18 holes'}`;
@@ -10462,7 +10471,16 @@ function renderHomeHero(){
     const n=(window.CS.members||[]).length;
     const tee = state.startISO ? localDate(state.startISO) : (state.seasonStart ? seasonS() : null);
     const dd = tee ? Math.max(0, Math.round((tee - new Date().setHours(0,0,0,0))/864e5)) : null;
-    const starter = state.phase==='season';
+    /* Code audit 2026-08-30 (SD-05/idx09-02) · `starter` meant "phase is season",
+       but branch 3 above already owns every league whose season has ACTUALLY
+       started (`inSeason && !atStarter()`). So inside this branch `starter` was
+       true precisely when the season had NOT started — printing "The season's
+       on. Rounds count from today." to a golfer a week before first tee, and
+       (via the `(starter || !nextStep) ? '' : …` guard) swallowing the CTA and
+       the sub-CTA with it. D120's correct eyebrow only made the older
+       contradiction visible. A forced 'forming' render of a live season keeps
+       the old copy; a real preseason league now gets the D119 cells. */
+    const starter = state.phase==='season' && !(typeof atStarter==='function' && atStarter());
     seen('forming');
     /* D96 · the forming hero had NO cta. Every other hero state offers a move;
        this one described a half-built league and left the user nothing to
@@ -16038,8 +16056,26 @@ async function covenantGate(code){
       <p class="fine" style="padding-top:10px">Joining puts you on the pot sheet for $${usd}. Cup Season keeps the tab; money moves between you.</p>
       <button class="btn" id="covJoin" style="margin-top:10px">Join — I’m in for $${usd}</button>
       <button class="btn dark" id="covNo" style="margin-top:8px">Not now</button>`);
-    document.getElementById('covJoin')?.addEventListener('click',()=>res(true));
-    document.getElementById('covNo')?.addEventListener('click',()=>{ closeSheet(); res(false); });
+    /* Code audit 2026-08-30 (SD-01) · this promise used to settle ONLY on these
+       two buttons. The sheet has three other ways out — the X, the backdrop and
+       Escape — and none of them touched it. While the gate lived behind a click
+       that was a stuck button; once Q-14 moved it into boot() it became a HUNG
+       BOOT: the 8s watchdog only REPORTS the stall, `clearTimeout` sits after
+       this await, and the pending code now survives a decline, so the reload
+       lands on the same sheet. An invited golfer who tapped X instead of "Not
+       now" had a dead app, every time.
+       Watching the class is deliberate: it settles on every dismissal that
+       exists today AND any added later, rather than on the three I can see. */
+    let done = false;
+    const sheet = document.getElementById('sheet');
+    let obs = null;
+    const settle = v => { if(done) return; done = true; try{ obs?.disconnect(); }catch(_){} res(v); };
+    if(sheet && typeof MutationObserver === 'function'){
+      obs = new MutationObserver(() => { if(!sheet.classList.contains('open')) settle(false); });
+      obs.observe(sheet, { attributes: true, attributeFilter: ['class'] });
+    }
+    document.getElementById('covJoin')?.addEventListener('click',()=>settle(true));
+    document.getElementById('covNo')?.addEventListener('click',()=>{ closeSheet(); settle(false); });
   });
 }
 
