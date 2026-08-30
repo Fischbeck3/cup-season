@@ -8636,6 +8636,16 @@ function liveJoinIfAble(){
   const L=state.live;
   if(state.demo || !L || !L.active || !L.lr || !L.code) return;
   window.liveSync?.join(L.lr, L.code, state.liveGuest?.token||null);
+  /* D125 · and record it server-side. Presence is ephemeral; `attested` needs a
+     fact that outlives the socket — live_join marks only the CALLER's own seat,
+     and finish_live_round reads it to decide whether a card was vouched for or
+     merely typed by whoever held the phone. A guest pencil has no account to
+     stamp and stays on the claim-link path, exactly as before.
+     Fire-and-forget: a failed join costs attestation, never the round. */
+  if(!state.liveGuest?.token && window.sb){
+    window.sb.rpc('live_join', { p_live_round: L.lr })
+      .then(({ error }) => { if(error) console.warn('live_join', error.message); });
+  }
 }
 window.liveJoinIfAble = liveJoinIfAble;
 /* a broadcast arrives — one cell, apply if newer */

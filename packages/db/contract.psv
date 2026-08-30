@@ -28,6 +28,9 @@
 # 2026-08-30 (later): 193 functions. Taken with 20260830250000 applied inside a
 # ROLLED-BACK transaction — prod is clean through 20260830240000, so this is
 # exactly what the push produces. recent_partners (D154) + nearby_resolve (D156).
+#
+# 2026-08-30 (later still): 194 functions. Taken with 20260830260000/270000/
+# 280000 applied inside a ROLLED-BACK transaction. Adds live_join (D125).
 
 _cup_window_rounds|p_season uuid|TABLE(member_id uuid, round_id uuid, profile_id uuid, played_on date, points integer, month_rank bigint, pvi numeric, holes_played integer)|definer|none
 _live_member_can|p_live_round uuid|boolean|definer|none
@@ -109,6 +112,7 @@ league_cancel_status|p_league uuid|jsonb|definer|auth
 league_looks||jsonb|definer|auth
 league_pulse|p_league uuid|TABLE(profile_id uuid, display_name text, marker text, credits numeric, floor integer, at_floor boolean, is_me boolean, partial boolean)|definer|auth
 lineage_root|p_event uuid|uuid|definer|none
+live_join|p_live_round uuid|void|definer|auth
 live_round_card|p_live_round uuid|jsonb|definer|auth
 live_set_score|p_live_round uuid, p_player uuid, p_hole integer, p_strokes integer, p_client_ts timestamp with time zone|void|definer|auth
 live_set_wolf|p_live_round uuid, p_hole integer, p_wolf jsonb, p_client_ts timestamp with time zone|void|definer|auth

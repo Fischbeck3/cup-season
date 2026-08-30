@@ -502,6 +502,10 @@ final class LiveRoundStore {
     let name = state.meIndex.map { state.players[$0].n } ?? myName ?? "A player"
     let key = guest?.token.uuidString.lowercased() ?? myPid?.uuidString.lowercased() ?? "p" + UUID().uuidString.lowercased().prefix(8)
     await session.join(lr: lr, code: code, guest: guest?.token, name: name, presenceKey: key)
+    // D125 · and record it server-side. Presence is ephemeral; `attested` needs
+    // a fact that outlives the socket. A guest pencil has no account to stamp,
+    // so it stays on the claim-link path exactly as before.
+    if guest == nil { await repo.liveJoin(lr) }
   }
 
   /// Phone back from a pocket: drain the queue, then pull truth.

@@ -277,6 +277,17 @@ public struct LiveRepository: Sendable {
     return rows.map { LiveRosterRow(memberId: $0.id, profileId: $0.profile_id, displayName: $0.profile?.display_name, indexCurrent: $0.profile?.index_current) }
   }
 
+  /// D125 · tell the server this phone is in the round. Marks only the CALLER's
+  /// own seat — there is no player argument, so no phone can claim another
+  /// golfer was present. It is what `attested` is computed from at finish, so a
+  /// card kept entirely by someone else's phone posts UNCONFIRMED instead of
+  /// wearing a vouch nobody gave.
+  ///
+  /// Fire-and-forget: a failed join costs attestation, never the round.
+  public func liveJoin(_ lr: UUID) async {
+    _ = try? await svc.call(Rpc.live_join(p_live_round: lr))
+  }
+
   // MARK: D154 / D156 · who you actually play with, and who is standing here
 
   /// A golfer the picker may offer. Both sources are held to the same
