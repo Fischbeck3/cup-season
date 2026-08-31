@@ -4887,3 +4887,39 @@ each remains reversible on its own line.)*
 - **Principle served:** proximity's promise is *"I'll put the round together, just join when prompted"* (the owner's own words). A prompt you can only receive on one screen is not a prompt.
 - **Method note worth keeping:** three consecutive guesses cost a two-phone testing session each. One `print()` behind `devicectl --console` cost four minutes and named the answer. When a user reports the same sentence twice, stop reasoning and instrument.
 - **CONFLICT:** none. Completes D158's handshake across D168/D170's surface.
+
+### D176 · The lead card, and the clash finally reaches the two people in it
+*(2026-08-31. Owner, after the Home artifact: "Lets do C building on A like you propose." Copy rulings in the same message — "tonight" → "today", "Next" → "Next round", an empty calendar says "Put a round on the calendar".)*
+
+**Current mechanic:** Home ran the same ten slots in the same fixed order every day. Sunday looked like Wednesday; the last day of the month looked like the first. The only variance on the whole screen was the hero's ▲ chip and the occasion card's seasonal wink — and the occasion card is about the *calendar*, never about your season. Meanwhile `UpNextChips` stated four facts and offered no tap at all: **"Month closes in 1 day" — the difference between points counting and points evaporating — was inert**, and so was "Needs you · 2 invites", which is a person waiting on you. The calendar's only door was item four of five inside a `+` menu, and a plus sign reads *make something*, not *go somewhere*.
+
+**Built — A (the floor, ships regardless):**
+- **Every chip names a destination.** `UpChip.Go` on the phone, `data-upgo` on the web: next round → the round, buddy's playing → the round, needs you → your buddies, month closes → the league room where the arithmetic lives. A chevron is the only visual change.
+- **"Coming up" gets `THE CALENDAR ↗`** — the identical pattern "Around your buddies" has used for the board all along. No new vocabulary.
+- **The section no longer VANISHES when nothing is booked**, which was exactly the moment a golfer needs the calendar most. It shows *"Put a round on the calendar"* instead (the owner's own words; the web's Next tile said "PLAN A ROUND", which is the app talking to itself).
+- **Amber is spent where it means something.** The month chip appeared at ten days out wearing warm the whole time; it is plain until three days, then warm. Amber that is always on says nothing.
+
+**Built — C (the lead card):** ONE slot above the hero that changes with what is true today, on a **fixed, documented ladder**, first match wins, one card, never a stack:
+1. **the clash** — the only rung with a hard deadline *and* a named opponent
+2. **the floor** — also a deadline, but arithmetic rather than a duel; skipped entirely when `partial` (§14.0 waives floors in edge months, and asking for a waived floor is the exact contradiction the audit logged elsewhere)
+3. **your move** — it happened, it is worth telling, nothing is owed
+4. **a buddy's milestone, today** — someone else's news; the feed carries it anyway, so this only lifts it when nothing of yours is pressing
+5. **nothing** — and **no card is the resting state.** The hero below is already a good one.
+
+The two rules that keep a changing screen learnable: one card at a time, and the ladder never reorders. The hero says where you stand; the lead card says what today is asking. Everything it reads was already loaded — rank, `prev_rank`, the month floor, the feed — except the clash.
+
+**Built — the clash's missing beats.** The clash was a duel announced to an empty room: `open_week_clash` named two people and stopped. No stakes, no deadline, and **the two named were never told they were named.**
+- **Beat 1 · the open post carries the mechanic**: *"The clash: Galen v Jerecho. Best round of the week takes it."* A named rivalry (D21) earns the headline — *"'The Cactus Cup' is on again"* — the one line all season where that name belongs.
+- **Beat 2 · the two get told** — the lead card, for them only. A clash you are *not* in belongs on the board, not on your Home (ruling).
+- **Beat 3 · `clash_last_call`**, the owner's own instinct, on the window's final day, from the tick that already runs at 00:20 local: *"The clash closes today. Neither of them has posted."* / *"…Galen has answered. Jerecho has not."* / *"…Galen leads it. One round to change that."* **"today", never "tonight"** — the window closes at the end of the calendar day and hardly anyone plays golf in the dark. Both clients say it the same way, and a check in the migration RAISES if the word "tonight" ever appears in that function.
+- **Beat 4 · settle** was already good and is untouched but for all-square, which re-announced the pairing instead of stating the result: → *"All square in the clash. Nothing settled."*
+
+**`home_clash(p_league)` is an RPC, not an embed, for two reasons.** Home does not load `v_rounds_ranked`, so "best so far" on the client would be a **second implementation of the settle's pick** and the card and the result would drift. And `week_clashes` carries TWO FK paths to `league_members` (`a_member`, `b_member`) — the D171 PGRST201 trap exactly. One SECURITY DEFINER function, granted to `authenticated` only, null unless you are in the clash.
+
+**Verified against prod in a rolled-back transaction, not asserted:** the owner in the clash gets the card; a league-mate who is not in it gets NULL; a non-member gets NULL; last call writes the right sentence and is idempotent (one row after two calls); the open post reads as intended.
+
+**Also — the buddies door moved.** On You it sat **seventh**, under five sections of record, and it is the only DOOR on a page that is otherwise all reading. You do not scroll past your own trophy case to reach a person. It now sits directly under the hero; everything below that line is the record. (The full You reorganisation — grouping *your golf* and *in this league* — is NOT in this decision; it is the next one.)
+
+**Principle served:** #5, everything shows its work — a figure with a deadline is worth nothing if the deadline is never stated. And the product vision's "make ordinary moments feel like stories": a weekly duel nobody is told about is not a story.
+
+**CONFLICT:** none. D108 built the clash engine and its Clubhouse card; this gives it a voice and a home. D94's web tile row already carried the calendar door the phone lacked — the two clients had diverged, and A closes the gap from the phone's side.

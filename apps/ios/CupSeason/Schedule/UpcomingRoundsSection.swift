@@ -17,15 +17,41 @@ struct UpcomingRoundsSection: View {
   init(links: CSLinks = CSLinks()) { self.links = links }
 
   var body: some View {
-    Group {
-      if !vm.rounds.isEmpty {
-        VStack(alignment: .leading, spacing: 8) {
-          CSSectionHead("Coming up")
-          ForEach(vm.rounds) { sr in
-            HomeRoundCard(sr: sr, weather: sr.id.flatMap { vm.weather[$0] })
-              .contentShape(Rectangle())
-              .onTapGesture { if let id = sr.id { if let f = links.openRound { f(id) } else { openRoundId = id } } }
+    // D176 · this section used to VANISH when nothing was booked, which is
+    // exactly the moment a golfer needs the calendar most — and even when it
+    // showed, it listed rounds and never once offered the calendar itself,
+    // though "Around your buddies" three slots up has offered THE BOARD ↗ all
+    // along. Same pattern, same place, no new vocabulary.
+    VStack(alignment: .leading, spacing: 8) {
+      VStack(alignment: .leading, spacing: 8) {
+        HStack(alignment: .firstTextBaseline) {
+          Text("Coming up").csEyebrow(cs.mut)
+          Spacer()
+          NavigationLink(value: HomeRoute.schedule) { Text("THE CALENDAR ↗").csEyebrow(cs.dawn).a11yHitSlop() }
+        }
+        CSHairline()
+      }
+      .padding(.top, 10)
+
+      if vm.rounds.isEmpty {
+        NavigationLink(value: HomeRoute.schedule) {
+          HStack(spacing: 10) {
+            Image(systemName: "calendar.badge.plus").font(.system(size: 16)).foregroundStyle(cs.brand)
+            Text("Put a round on the calendar").font(CSFont.subhead).foregroundStyle(cs.ink)
+            Spacer()
+            Text("→").font(CSFont.subhead).foregroundStyle(cs.brand)
           }
+          .padding(12)
+          .frame(minHeight: 44)
+          .background(cs.bg1, in: RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous))
+          .overlay(RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous).stroke(cs.line, lineWidth: 1))
+        }
+        .buttonStyle(.plain)
+      } else {
+        ForEach(vm.rounds) { sr in
+          HomeRoundCard(sr: sr, weather: sr.id.flatMap { vm.weather[$0] })
+            .contentShape(Rectangle())
+            .onTapGesture { if let id = sr.id { if let f = links.openRound { f(id) } else { openRoundId = id } } }
         }
       }
     }

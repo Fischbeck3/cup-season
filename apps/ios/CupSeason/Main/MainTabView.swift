@@ -117,7 +117,7 @@ struct MainTabView: View {
   private var tabs: some View {
     TabView(selection: $tab) {
       NavigationStack(path: $homePath) {
-        HomeView(links: csLinks)
+        HomeView(links: csLinks, push: { homePath.append($0) })
           .navigationDestination(for: ClubRoute.self) { r in
             switch r {
             case .board(let id): BoardScreen(leagueId: id, links: boardLinks)

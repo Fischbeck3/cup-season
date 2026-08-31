@@ -54,6 +54,17 @@ public enum CSBands {
     return fixed1(vs).replacingOccurrences(of: "-", with: "") + " over your number"
   }
 
+  /// D176 · the compact form for a card that has no room for a sentence:
+  /// "+2.4" / "level" / "-1.8", against your number. Same half-open boundary
+  /// as `bandName` and `cup_points`, so the short form and the long form can
+  /// never disagree about which side of "played to it" a round sits on.
+  public static func vsShort(_ v: Double?) -> String {
+    guard let vs = v, vs.isFinite else { return "" }
+    if vs >= 1 { return "+" + fixed1(vs) }
+    if vs > -1 { return "level" }   // Q-20
+    return fixed1(vs)
+  }
+
   /// Third-person form for SOMEONE ELSE's round. Always they/them — never a
   /// pronoun guessed from a name.
   public static func theirs(_ s: String?) -> String {

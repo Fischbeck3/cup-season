@@ -18,6 +18,10 @@ struct HomeView: View {
   @Environment(\.presenter) private var presenter
   @Environment(\.cs) private var cs
   let links: CSLinks
+  /// D176 · a chip is a door. The tap pushes onto the tab's own path — the same
+  /// pattern the Clubhouse destinations already use, rather than a second
+  /// `navigationDestination` restating routes MainTabView already owns.
+  var push: (HomeRoute) -> Void = { _ in }
   @State private var vm = HomeModel()
 
   var body: some View {
@@ -35,6 +39,14 @@ struct HomeView: View {
                                             done: { presenter.showLive = false }),
                            open: { presenter.showLive = true })
 
+          // D176 · the lead card. One slot, a fixed ladder, one card at a time —
+          // and NO card is the resting state, because the hero below is already
+          // a good one. It sits above the hero on purpose: the hero says where
+          // you stand, the lead card says what today is asking of you.
+          if let lead = vm.lead {
+            HomeLeadCard(lead: lead) { take(lead, league: mode.membership?.league_id) }
+          }
+
           HomeHero(mode: mode, me: me)
             .environment(\.csLook, looks.look(for: mode.membership))
 
@@ -50,7 +62,14 @@ struct HomeView: View {
                          })
           }
 
-          UpNextChips(leagueId: mode.membership?.league_id, links: links)
+          UpNextChips(leagueId: mode.membership?.league_id, links: links, go: { go in
+            switch go {
+            case .round(let id):  presenter.scheduledRound = id
+            case .calendar:       push(.schedule)
+            case .people:         push(.people)
+            case .standings:      if let l = mode.membership?.league_id { push(.league(l)) }
+            }
+          })
 
           // the section head: eyebrow + hairline (IOS-019 rule 2); THE BOARD ↗ is a push, so the
           // trailing slot is a NavigationLink rather than CSSectionHead's action closure
@@ -87,6 +106,24 @@ struct HomeView: View {
     .task(id: store.me?.generated_at) { await vm.load(me: store.me) }
     .navigationTitle("")
     .toolbar(.hidden, for: .navigationBar)
+  }
+
+  /// D176 · the lead card's one action. Each face leads exactly one place, and
+  /// never to a dead end: the clash sends you to the composer unless the round
+  /// that would answer it already exists, in which case it opens that receipt.
+  private func take(_ lead: HomeLead, league: UUID?) {
+    switch lead {
+    case .clash(let c):
+      if c.mine == nil || c.edge != .me { presenter.postOnComposer = true; presenter.showPost = true }
+      else if let r = c.mine?.roundId { presenter.receipt = r }
+      else { presenter.postOnComposer = true; presenter.showPost = true }
+    case .floor:
+      presenter.postOnComposer = true; presenter.showPost = true
+    case .move:
+      if let l = league { push(.league(l)) }
+    case .milestone(_, _, let rid, _):
+      if let rid { presenter.receipt = rid }
+    }
   }
 
   /// The doors, as the header row's trailing control (IOS-022 item 1).
@@ -136,6 +173,8 @@ final class HomeModel {
   var buckets: [HomeBucket] = []
   var digest: HomeDigest?
   var occasion: Occasion?
+  /// D176 · the one card above the hero, or none. `HomeLead.choose` decides.
+  var lead: HomeLead?
   var loading = false
   var social = HomeSocial.Snapshot()
   private var markRead = false
@@ -161,6 +200,27 @@ final class HomeModel {
     // circle reactions ride the rounds just loaded (round → shared-league post)
     social = await socialRepo.load(rounds: rounds, memberships: me.memberships, currentLeague: preferred(me))
     if let mark { digest = HomeDigest.make(rounds: rounds, posts: posts, photoURLs: urls, mark: mark, mentions: social.mentions(rounds: rounds, since: mark)) }
+    await loadLead(me: me)
+  }
+
+  /// D176 · everything the ladder reads is already in hand but the clash, which
+  /// is one RPC. It runs LAST so a slow or skewed clash read never delays the
+  /// feed — the card simply appears a moment after the rest of Home.
+  private func loadLead(me: Me) async {
+    let lid = preferred(me)
+    let m = me.memberships.first { $0.league_id == lid } ?? me.memberships.first
+    let today = CSDate.today()
+    let days = CSDate.days(from: today, to: ScheduleDates.endOfMonth(today)).map { max(0, $0) }
+    // someone else's news, today, worth lifting out of the river
+    let mile = rounds.first { $0.is_me != true && $0.played_on == today && HomeCopy.milestone($0) != nil }
+    lead = HomeLead.choose(clash: await repo.clash(league: m?.league_id),
+                           pulse: m?.pulse,
+                           monthDaysLeft: days,
+                           standing: m?.standing,
+                           milestone: mile.map { (who: HomeCopy.who($0),
+                                                  line: HomeCopy.milestone($0) ?? "",
+                                                  roundId: $0.round_id,
+                                                  marker: $0.marker) })
   }
 
   private func preferred(_ me: Me) -> UUID? {

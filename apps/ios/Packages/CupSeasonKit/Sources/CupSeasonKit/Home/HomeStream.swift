@@ -82,6 +82,14 @@ public struct HomeStreamRepository: Sendable {
     public let posts: [HomePost]
   }
 
+  /// D176 · the lead card's clash rung. One RPC, `try?` on the whole read: an
+  /// un-migrated database (deploy skew) renders no card, and the 42501 lesson
+  /// holds — ANY error, never a sniffed message.
+  public func clash(league: UUID?) async -> HomeClash? {
+    guard let league else { return nil }
+    return HomeClash.decode(try? await svc.call(Rpc.home_clash(p_league: league)))
+  }
+
   public func load(memberships: [Me.Membership]) async -> Result {
     let ids = memberships.map(\.league_id)
     let names = Dictionary(uniqueKeysWithValues: memberships.map { ($0.league_id, $0.name) })

@@ -324,10 +324,21 @@ public struct WeekLine: Sendable, Equatable, Identifiable {
 // MARK: - Up Next (10653–10681)
 
 public struct UpChip: Sendable, Equatable, Identifiable {
+  /// D176 · a chip that states a fact and goes nowhere is a dead end, and the
+  /// worst offender was the one that mattered most: "Month closes in 1 day" is
+  /// the difference between points counting and points evaporating, and it was
+  /// inert. Every chip now names a destination.
+  public enum Go: Sendable, Equatable {
+    case round(UUID)   // the scheduled-round sheet
+    case calendar      // your golf calendar
+    case people        // buddies + the invites waiting on you
+    case standings     // the league room, where the month's arithmetic lives
+  }
   public let k: String
   public let v: String
+  public let go: Go?
   public var id: String { k }
-  public init(_ k: String, _ v: String) { self.k = k; self.v = v }
+  public init(_ k: String, _ v: String, _ go: Go? = nil) { self.k = k; self.v = v; self.go = go }
 }
 
 public enum UpNext {
@@ -341,20 +352,22 @@ public enum UpNext {
     let mine = src.filter { $0.mine != false && ($0.play_on ?? "") >= today && $0.play_on != nil }
       .sorted { ($0.play_on ?? "") < ($1.play_on ?? "") }
     if let up = mine.first, let p = up.play_on {
-      chips.append(UpChip("Next round", "\(up.course_label ?? "Declared round") · \(ScheduleDates.whenIn(p, today: today).lowercased())"))
+      chips.append(UpChip("Next round", "\(up.course_label ?? "Declared round") · \(ScheduleDates.whenIn(p, today: today).lowercased())",
+                          up.id.map(UpChip.Go.round) ?? .calendar))
     }
     // Buddy's playing — the crew's plans echo Home (10662)
     let crew = watch.filter { $0.mine == false && ($0.is_friend == true || $0.shared_league == true) && $0.tagged_me != true }
       .sorted { ($0.play_on ?? "") < ($1.play_on ?? "") }
     if let w = crew.first, let p = w.play_on {
       let first = (w.display_name ?? "A buddy").split(separator: " ").first.map(String.init) ?? "A buddy"
-      chips.append(UpChip("Buddy's playing", "\(first) · \(ScheduleDates.whenLower(p, today: today))"))
+      chips.append(UpChip("Buddy's playing", "\(first) · \(ScheduleDates.whenLower(p, today: today))",
+                          w.id.map(UpChip.Go.round) ?? .calendar))
     }
     let needs = invites + requests
-    if needs > 0 { chips.append(UpChip("Needs you", "\(needs) \(needs == 1 ? "invite" : "invites")")) }
+    if needs > 0 { chips.append(UpChip("Needs you", "\(needs) \(needs == 1 ? "invite" : "invites")", .people)) }
     if hasMemberships, let days = CSDate.days(from: today, to: ScheduleDates.endOfMonth(today)) {
       let d = max(0, days)
-      if d <= 10 { chips.append(UpChip("Month closes", d == 0 ? "today" : "in \(d) day\(d == 1 ? "" : "s")")) }
+      if d <= 10 { chips.append(UpChip("Month closes", d == 0 ? "today" : "in \(d) day\(d == 1 ? "" : "s")", .standings)) }
     }
     return chips
   }

@@ -77,6 +77,15 @@ struct YouScreen: View {
 
           hero(me, p)
 
+          // D176 · buddies sat SEVENTH, under five sections of record — and it
+          // is the only DOOR on a page that is otherwise all reading. You do
+          // not scroll past your trophy case to reach a person. Everything
+          // below this line is the record; this is the way out of it.
+          CSSectionHead("Your buddies")
+          CSRow(last: true) {
+            YouDoorRow(glyph: Text(Image(systemName: "person.2")), title: "Your buddies", sub: "Find golfers, see who you play with", action: links.openBuddies)
+          }
+
           CSSectionHead("Your display case")
           TrophyCaseView(trophies: model.data.trophies, achievements: model.data.achievements, userId: uid)
 
@@ -97,11 +106,6 @@ struct YouScreen: View {
             if let uid { _ = await model.deleteRound(r, me: me, uid: uid, leagueId: leagueId) }
           }, postFirst: links.postRound)
           CSButton("Post a round", action: links.postRound).padding(.top, 4)
-
-          CSSectionHead("Your buddies")
-          CSRow(last: true) {
-            YouDoorRow(glyph: Text(Image(systemName: "person.2")), title: "Your buddies", sub: "Find golfers, see who you play with", action: links.openBuddies)
-          }
 
           if league != nil {
             RivalriesSection(rivalries: model.data.rivalries, openTourCard: links.openTourCard)

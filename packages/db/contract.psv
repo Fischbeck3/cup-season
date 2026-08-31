@@ -38,7 +38,11 @@
 #
 # 2026-08-30 (v2): 196 functions, the day's five unpushed migrations applied in a
 # ROLLED-BACK transaction. D161 adds _join_gate/_late_squad (internal, no grants).
-
+#
+# 2026-08-31: 199 functions. Taken with 20260831150000 + 20260831160000 applied
+# inside a ROLLED-BACK transaction — prod is clean through 20260831140000, so this
+# is exactly what the push produces. home_clash (D176, the lead card's clash rung,
+# the only one granted) + clash_last_call (cron-only, no grant).
 _cup_window_rounds|p_season uuid|TABLE(member_id uuid, round_id uuid, profile_id uuid, played_on date, points integer, month_rank bigint, pvi numeric, holes_played integer)|definer|none
 _join_gate|p_league uuid, p_via_pro boolean|void|definer|none
 _late_squad|p_league uuid, p_member uuid|text|definer|none
@@ -62,6 +66,7 @@ career_record||jsonb|definer|auth
 claim_round_info|p_token uuid|jsonb|definer|anon,auth
 claim_round|p_token uuid|jsonb|definer|auth
 claim_scan_round|p_token uuid|jsonb|definer|auth
+clash_last_call|p_season uuid|uuid|definer|none
 close_month|p_season uuid, p_month date|void|definer|none
 close_season|p_season uuid|void|definer|none
 course_key|p_api_id text, p_label text|text|invoker|auth
@@ -106,6 +111,7 @@ handicap_index_asof|p_profile uuid, p_before_date date, p_before_id uuid|numeric
 handicap_index|p_profile uuid|numeric|definer|auth
 handle_available|p_handle text|boolean|definer|auth
 handle_new_user||trigger|definer|auth
+home_clash|p_league uuid|jsonb|definer|auth
 home_feed|p_days integer DEFAULT 21|TABLE(round_id uuid, profile_id uuid, golfer text, marker text, handle text, gross integer, pvi numeric, played_on date, created_at timestamp with time zone, course text, is_pr boolean, is_first boolean, is_sub80 boolean, is_me boolean, photo_path text)|definer|auth
 invite_golfer|p_league uuid, p_event uuid, p_profile uuid|uuid|definer|auth
 is_commissioner|p_league uuid|boolean|definer|auth
@@ -155,6 +161,7 @@ nth_up|n integer|text|invoker|none
 open_major|p_session uuid|void|definer|auth
 open_week_clash|p_season uuid|uuid|definer|none
 playerlabel|p_profile uuid|text|definer|auth
+post_week_comeback|p_season uuid, p_week integer|void|definer|auth
 randomize_squads|p_season uuid|void|definer|auth
 recent_partners|p_limit integer DEFAULT 12|TABLE(id uuid, handle text, display_name text, city text, home_course text, marker text, index_current numeric, rel text, last_played timestamp with time zone, rounds_together integer)|definer|auth
 recompute_season_payouts|p_season uuid|jsonb|definer|none

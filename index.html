@@ -1991,6 +1991,32 @@ body:not(.noleague) #hubLeagueless{display:none;}
   background:var(--bg2); border-radius:99px; padding:7px 13px; white-space:nowrap;}
 .upchip .k{font-family:var(--mono); font-size:10.5px; letter-spacing:.09em; color:var(--mut); text-transform:uppercase;}
 .upchip b{font-size:12.5px; font-weight:600; color:var(--ink);}
+/* D176: a chip is a button now. Min-height keeps the tap target honest on a
+   phone; amber is spent only inside three days, where it means something. */
+.upchip{min-height:36px; cursor:pointer; font-family:var(--sans); text-align:left;}
+.upchip[data-upgo]:hover{border-color:var(--line2);}
+.upchip .ch{color:var(--brand); font-size:14px; line-height:1; margin-left:-2px;}
+.upchip.hot{border-color:color-mix(in srgb, var(--warm) 70%, transparent);}
+.upchip.hot .k{color:var(--warm);}
+/* D176: the lead card — ember, because every face of it is something still
+   running (a clash mid-week, a month not yet closed, a table that just moved).
+   Gold would be wrong: nothing on this card is earned yet. */
+#homeLead:not(:empty){margin:0 0 14px;}
+.leadcard{background:var(--bg1); border:1px solid var(--line); border-left:3px solid var(--brand);
+  border-radius:var(--r); padding:13px 15px; text-align:left;}
+.leadcard .eb{font-family:var(--mono); font-size:11px; letter-spacing:.13em; text-transform:uppercase;
+  color:var(--brand); display:block; margin-bottom:6px;}
+.leadcard .ln{font-size:15px; font-weight:600; color:var(--ink); line-height:1.35;}
+.leadcard .sides{display:flex; align-items:flex-start; gap:12px; margin-top:9px;}
+.leadcard .sd{flex:1; min-width:0;}
+.leadcard .sd.r{text-align:right;}
+.leadcard .sd .nm{font-size:13px; font-weight:600; color:var(--ink);}
+.leadcard .sd .bs{font-family:var(--mono); font-size:11px; color:var(--mut); margin-top:2px;}
+.leadcard .sd.ahead .bs{color:var(--pos);}
+.leadcard .vs{font-family:var(--mono); font-size:11px; letter-spacing:.12em; color:var(--dim); padding-top:3px;}
+.leadcard .act{display:inline-flex; align-items:center; gap:6px; margin-top:10px; min-height:34px;
+  background:none; border:0; padding:0; cursor:pointer;
+  font-family:var(--sans); font-size:13.5px; font-weight:600; color:var(--brand);}
 /* the calendar is SOCIAL, not league-gated — friends' rounds show either way */
 .calgrid{display:grid; grid-template-columns:repeat(7,1fr); gap:3px;}
 .calhd{font-family:var(--mono); font-size:10.5px; letter-spacing:.08em; color:var(--dim); text-align:center; padding:2px 0 6px;}
@@ -2945,6 +2971,11 @@ html[data-theme="light"] .room-dusk .btn:not(.dark):not(.gold):not(.apple){color
              survives this). -->
         <div id="homeHub">
           <div id="homeStart"></div>
+          <!-- D176: the lead card. One slot, a fixed ladder, one card at a
+               time, and NO card is the resting state — the hero below is
+               already a good one. It sits ABOVE the hero on purpose: the hero
+               says where you stand, the lead card says what today is asking. -->
+          <div id="homeLead"></div>
           <div id="homeHero"></div>
           <div id="homeTiles"></div>
           <div id="homeOccasion"></div>
@@ -10821,7 +10852,9 @@ function renderHomeTiles(){
     ? { t:'Next', v:DOWS[localDate(next.play_on).getDay()],
         s:esc(((next.tee_time?String(next.tee_time).slice(0,5)+' · ':'')+(next.course_label||'')).toUpperCase()),
         go:()=>switchView('schedule'), acc:'var(--warm)' }
-    : { t:'Next', v:'Open', s:'PLAN A ROUND', go:()=>switchView('schedule'), acc:'var(--warm)' };
+    /* D176 · "PLAN A ROUND" was the app talking to itself. Say the thing the
+       golfer would actually do: put one on the calendar. */
+    : { t:'Next', v:'Open', s:'PUT A ROUND ON THE CALENDAR', go:()=>switchView('schedule'), acc:'var(--warm)' };
 
   /* 3 · the board — how much has landed since yesterday, never a fake badge */
   const since=Date.now()-24*3600*1000;
@@ -11891,7 +11924,138 @@ function renderHomeFeed(){
 }
 /* Up Next — what's coming, one glance: next declared round, invites waiting,
    the month-close clock. Hides entirely when there's nothing coming. */
-function upChip(k,v){ return `<span class="upchip"><span class="k">${k}</span><b>${esc(v)}</b></span>`; }
+/* D176 · a chip that states a fact and goes nowhere is a dead end, and the
+   worst offender was the one that mattered most: "MONTH CLOSES in 1 day" is
+   the difference between points counting and points evaporating, and it was
+   inert. Every chip now names a destination, and the one urgent chip earns
+   amber only inside three days — amber that is always on says nothing. */
+function upChip(k,v,go,hot){
+  return `<button type="button" class="upchip${hot?' hot':''}"${go?` data-upgo="${esc(go)}"`:''}>`
+       + `<span class="k">${k}</span><b>${esc(v)}</b>${go?'<span class="ch">\u203A</span>':''}</button>`;
+}
+/* ─────────────────────────────────────────────────────────────────────────
+   D176 · the lead card. Home ran the same ten slots in the same order every
+   day, so Sunday looked like Wednesday and the last day of the month looked
+   like the first — the only variance on the screen was the hero's move chip.
+
+   THE LADDER is fixed and documented, and only ONE card ever renders. Both
+   rules exist so that a screen which changes does not become a screen you
+   cannot learn: the same state always produces the same card, nothing rotates,
+   nothing is random, and the resting state is NO card at all.
+
+     1. the clash   — the only rung with a hard deadline AND a named opponent
+     2. the floor   — also a deadline, but arithmetic rather than a duel
+     3. your move   — it happened, worth telling, nothing owed
+     4. a milestone — someone else's news; the feed carries it anyway, so this
+                      only lifts it when nothing of yours is pressing
+
+   `home_clash` is the one server read: computing "best so far" here would mean
+   a second implementation of the settle's own pick, and the two would drift.
+   ───────────────────────────────────────────────────────────────────────── */
+window.homeClash = null;
+async function loadHomeClash(){
+  window.homeClash = null;
+  if(state.demo || !window.sb || !window.CS?.league) return;
+  try{
+    const { data, error } = await window.sb.rpc('home_clash', { p_league: CS.league.id });
+    if(!error && data) window.homeClash = data;
+  }catch(_){ /* skew: an un-migrated database renders no card, never an error */ }
+}
+/* the compact band form — "+2.4" / "level" / "-1.8". Same half-open boundary as
+   cup_points, so the short form and the named band can never disagree. */
+function vsShort(v){
+  if(v==null || !isFinite(v)) return '';
+  const n=Math.round(v*10)/10;
+  if(n>=1) return '+'+n.toFixed(1);
+  if(n>-1) return 'level';
+  return n.toFixed(1);
+}
+function clashSide(name, best, ahead, right){
+  let d='Nothing posted';
+  if(best){
+    const bits=[];
+    if(best.gross!=null) bits.push(String(best.gross));
+    const vs=vsShort(best.pvi); if(vs) bits.push(vs);
+    if(best.played_on) bits.push(DOW[localDate(best.played_on).getDay()].toUpperCase());
+    d = bits.length?bits.join(' \u00b7 '):'Posted';
+  }
+  return `<div class="sd${ahead?' ahead':''}${right?' r':''}"><div class="nm">${esc(name)}</div><div class="bs">${esc(d)}</div></div>`;
+}
+function homeLead(){
+  /* 1 · the clash */
+  const c = window.homeClash;
+  if(c && c.week_no!=null){
+    const mine=c.mine, theirs=c.theirs;
+    const mp = mine?Number(mine.points||0):null, tp = theirs?Number(theirs.points||0):null;
+    const edge = (mp==null&&tp==null) ? 0 : tp==null ? 1 : mp==null ? -1 : mp>tp ? 1 : tp>mp ? -1 : 0;
+    const nm = (c.rivalry||'').trim() || 'The clash';
+    /* "today", never "tonight": the window closes at the end of the calendar
+       day and hardly anyone plays golf in the dark (owner ruling, D176). The
+       server says the same thing in clash_last_call. */
+    const when = c.closes_today ? 'closes today'
+               : c.days_left===1 ? 'one day left' : `${c.days_left} days left`;
+    const them = (c.them_name||'').split(' ')[0] || 'them';
+    const act = !mine ? 'Post a round' : edge>0 ? 'See the receipt' : 'Post a better one';
+    return { eb:`${nm} \u00b7 ${when}`,
+             ln:`You v ${esc(them)}. Best round of the week takes it.`,
+             sides: clashSide('You', mine, edge>0, false)
+                  + '<div class="vs">V</div>'
+                  + clashSide(them, theirs, edge<0, true),
+             act, go:()=> (!mine || edge<=0) ? switchView('post')
+                        : (mine.round_id && window.openRoundSheet ? window.openRoundSheet(mine.round_id) : switchView('post')) };
+  }
+  /* 2 · the floor. `partial` = an edge month with floors WAIVED (§14.0's
+     blanket rule) — asking for a floor that is waived is the exact
+     contradiction the audit logged elsewhere, so it is excluded. */
+  const row = (!state.demo && (window.leaguePulse||[]).find(r=>r.member_id===CS.member?.id)) || null;
+  if(row && !row.partial && state.phase==='season'){
+    const floor=Number(row.floor||0), credits=Number(row.credits||0);
+    const now=new Date(), eom=new Date(now.getFullYear(), now.getMonth()+1, 0);
+    const days=Math.max(0, Math.round((eom-now)/86400000));
+    if(floor>0 && credits<floor && days<=3){
+      const short=Math.round((floor-credits)*10)/10;
+      return { eb: days===0?'The month closes today':days===1?'The month closes tomorrow':`The month closes in ${days} days`,
+               ln:`You're ${short%1?short.toFixed(1):short} short of the floor. One round covers it.`,
+               act:'Post a round', go:()=>switchView('post') };
+    }
+  }
+  /* 3 · your move — heroMyRung already computed it against the week snapshot */
+  const rung = (typeof heroMyRung==='function') ? heroMyRung() : null;
+  if(rung && rung.moveChip && !/HELD/.test(rung.moveChip)){
+    const up=/UP (\d+)/.exec(rung.moveChip), dn=/DOWN (\d+)/.exec(rung.moveChip);
+    if(up || dn){
+      return { eb: up?`Up ${up[1]}`:`Down ${dn[1]}`,
+               ln: `${rung.pos}${rung.ord}` + (rung.pos===1 ? ' overall. A new leader.' : ' overall.'),
+               act:'See the table', go:()=>switchView('hub') };
+    }
+  }
+  /* 4 · a buddy's milestone, today */
+  /* localDate/dAgo, never toISOString — a UTC slice renders the previous day
+     in Phoenix, which is the landmine this file already records. */
+  const nowD=new Date(), pad2=n=>String(n).padStart(2,'0');
+  const today=`${nowD.getFullYear()}-${pad2(nowD.getMonth()+1)}-${pad2(nowD.getDate())}`;
+  const m=(window.homeFeedRows||[]).find(r=>!r.is_me && r.played_on===today && (r.is_pr||r.is_sub80||r.is_first));
+  if(m){
+    const line = m.is_pr?'\ud83d\udd25 Personal best' : m.is_sub80?'\u26f3 Broke 80 \u2014 first time' : '\ud83c\udf89 First round on the card';
+    return { eb:'Around your buddies', ln:`${esc((m.golfer||'A golfer').split(' ')[0])} \u2014 ${line}`,
+             act:'See the round', go:()=> m.round_id && window.openRoundSheet ? window.openRoundSheet(m.round_id) : switchView('home') };
+  }
+  return null;
+}
+function renderHomeLead(){
+  const box=$('#homeLead'); if(!box) return;
+  if(state.demo || !CS?.user){ box.innerHTML=''; return; }
+  const L=homeLead();
+  if(!L){ box.innerHTML=''; return; }
+  box.innerHTML = `<div class="leadcard">
+    <span class="eb">${esc(L.eb)}</span>
+    <div class="ln">${L.ln}</div>
+    ${L.sides?`<div class="sides">${L.sides}</div>`:''}
+    <button type="button" class="act" id="leadAct">${esc(L.act)} <span>\u2192</span></button>
+  </div>`;
+  const b=document.getElementById('leadAct'); if(b) b.addEventListener('click', L.go);
+}
+window.renderHomeLead = renderHomeLead;
 function renderUpNext(){
   const box=$('#homeUpNext'); if(!box) return;
   const chips=[];
@@ -11909,7 +12073,7 @@ function renderUpNext(){
       chips.push(upChip("Buddy's playing", (w.display_name||'A buddy').split(' ')[0] + ' · ' + when));
     }
     const needs = (window.myInvites||[]).length + (window.homeRequests||[]).length;
-    if(needs) chips.push(upChip('Needs you', needs + (needs===1?' invite':' invites')));
+    if(needs) chips.push(upChip('Needs you', needs + (needs===1?' invite':' invites'), 'people'));
     /* D122 · a month close only means something once rounds are scoring. The
        audit's Home showed "MONTH CLOSES in 2 days" beside "7 days to first
        tee", which reads as a deadline the golfer is already missing — two
@@ -11917,10 +12081,11 @@ function renderUpNext(){
     if((window.CS?.memberships||[]).length && seasonState() === 'live'){
       const now=new Date(); const eom=new Date(now.getFullYear(), now.getMonth()+1, 0);
       const days=Math.max(0, Math.round((eom-now)/86400000));
-      if(days<=10) chips.push(upChip('Month closes', days===0?'today':'in '+days+' day'+(days===1?'':'s')));
+      if(days<=10) chips.push(upChip('Month closes', days===0?'today':'in '+days+' day'+(days===1?'':'s'), 'hub', days<=3));
     }
   }
   box.innerHTML = chips.join('');
+  box.querySelectorAll('[data-upgo]').forEach(b=>b.addEventListener('click',()=>switchView(b.dataset.upgo)));
 }
 /* Stage 6 of the round-object arc: Home surfaces the next few rounds (yours +
    your circle — Home keeps buddies, D38) as rich cards that tap into the round
@@ -12024,6 +12189,7 @@ function renderHomeHub(){
   {const bg=document.getElementById('homeBoardGo');
    if(bg) bg.style.display = (!state.demo && window.CS?.league) ? '' : 'none';}
   renderResumeBanner();   /* an in-progress live round is the first thing you see */
+  renderHomeLead();       /* D176: the one card that knows what day it is */
   if(typeof renderHomeHero==='function') renderHomeHero();   /* D81: the one hero slot (R2) */
   if(typeof renderOccasion==='function') renderOccasion();   /* D81 R3: the calendar's second voice */
   renderUpNext();
@@ -12135,6 +12301,10 @@ async function loadPulse(){
   try{ const {data}=await sb.rpc('league_pulse',{p_league:CS.league.id}); window.leaguePulse=data||[]; }
   catch(_){ window.leaguePulse=window.leaguePulse||[]; }
   if(window.renderPulse) renderPulse();
+  /* D176: the floor rung reads the same rows the pulse does, so the lead card
+     is redrawn the moment they land. The clash is its own read. */
+  loadHomeClash().then(()=>{ if(window.renderHomeLead) renderHomeLead(); });
+  if(window.renderHomeLead) renderHomeLead();
 }
 window.renderPulse=renderPulse; window.loadPulse=loadPulse;
 /* the display case — real trophies come from window.trophies (module loader);
