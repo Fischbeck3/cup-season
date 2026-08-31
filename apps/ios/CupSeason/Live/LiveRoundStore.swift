@@ -554,10 +554,27 @@ final class LiveRoundStore {
   /// Phone back from a pocket: drain the queue, then pull truth.
   func foregrounded() {
     Task {
+      // D167 · LOOK AGAIN. `rehydrate()` was latched to run once per process
+      // (`if !rehydrated`), so a round that started while this app was already
+      // running was never discovered: no banner, no bar, and a tapped push
+      // landed on the empty tee sheet. The starter never noticed because their
+      // own phone resumes from its LOCAL snapshot; only the invited golfer,
+      // who has no snapshot and depends entirely on the server, saw nothing.
+      if !(state.active && state.stage == .live) { await refreshLive() }
       if await session.isJoined { await session.flush(); await session.reconcile() }
       else { await joinSync() }
       queued = await session.queued()
     }
+  }
+
+  /// D167 · ask the server whether a round is waiting, ignoring the once-per-
+  /// process latch. Safe to call often: it no-ops while a round is already up,
+  /// and `LiveRehydrator` prefers a local snapshot over the network anyway.
+  func refreshLive() async {
+    guard myPid != nil else { return }
+    guard !(state.active && state.stage == .live) else { return }
+    await rehydrate()
+    if state.active, state.stage == .live { LiveActivityHost.start(state) }
   }
 
   private func handle(_ e: LiveRoundSession.Event) {
@@ -610,7 +627,16 @@ final class LiveRoundStore {
   /// The league channel's `live_open` doorbell (14713): re-read unless already in it.
   func handleLiveOpen(lr: UUID?) {
     if let lr, state.active, state.lr == lr { return }
-    Task { await rehydrate() }
+    Task {
+      // D167 · a push can land before `configure()` has set myPid on a cold
+      // start, and the rehydrator returns empty-handed without it. Try, and if
+      // identity was not ready yet, try once more after it is.
+      await refreshLive()
+      if !(state.active && state.stage == .live) {
+        try? await Task.sleep(for: .milliseconds(600))
+        await refreshLive()
+      }
+    }
   }
 
   /// `rehydrateLiveRound` (7604).
