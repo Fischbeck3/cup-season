@@ -69,6 +69,10 @@ public struct NearbyInvite: Identifiable, Sendable, Equatable {
 /// with one internal queue serialising every touch — and the ONLY thing that
 /// ever crosses back out is a `UUID`, which is Sendable.
 private let nearbyLog = Logger(subsystem: "app.cupseason.ios", category: "nearby")
+/// D170 · os.Logger needs a log archive to read back; a plain print reaches
+/// `devicectl device process launch --console`, which is the tool that works
+/// when a golfer is standing on a tee and the answer is needed now.
+func nearbyPrint(_ s: String) { print("[cs-nearby] \(s)") }
 
 private final class NearbyTransport: NSObject, @unchecked Sendable {
   private let q = DispatchQueue(label: "cs.nearby")
@@ -121,21 +125,21 @@ private final class NearbyTransport: NSObject, @unchecked Sendable {
   func send(_ m: NearbyMessage, to: UUID) {
     q.async { [self] in
       guard let peer = peers[to] else {
-        nearbyLog.error("send \(m.t.rawValue, privacy: .public): no peer known for that golfer")
+        nearbyPrint("send-fail"); nearbyLog.error("send \(m.t.rawValue, privacy: .public): no peer known for that golfer")
         undeliverable(to); return
       }
       // a peer we heard from once may have wandered off since; MCSession keeps
       // the handle but will not carry a message to it
       guard session.connectedPeers.contains(peer) else {
-        nearbyLog.error("send \(m.t.rawValue, privacy: .public): peer no longer connected")
+        nearbyPrint("send-fail"); nearbyLog.error("send \(m.t.rawValue, privacy: .public): peer no longer connected")
         peers.removeValue(forKey: to); undeliverable(to); return
       }
       guard let data = try? JSONEncoder().encode(m) else { undeliverable(to); return }
       do {
         try session.send(data, toPeers: [peer], with: .reliable)
-        nearbyLog.info("sent \(m.t.rawValue, privacy: .public)")
+        nearbyPrint("sent"); nearbyLog.info("sent \(m.t.rawValue, privacy: .public)")
       } catch {
-        nearbyLog.error("send \(m.t.rawValue, privacy: .public) failed: \(error.localizedDescription, privacy: .public)")
+        nearbyPrint("send-fail"); nearbyLog.error("send \(m.t.rawValue, privacy: .public) failed: \(error.localizedDescription, privacy: .public)")
         undeliverable(to)
       }
     }
@@ -148,6 +152,7 @@ private final class NearbyTransport: NSObject, @unchecked Sendable {
 
 extension NearbyTransport: MCSessionDelegate {
   func session(_ s: MCSession, peer peerID: MCPeerID, didChange state: MCSessionState) {
+    nearbyPrint("peer \(peerID.displayName) -> \(state.rawValue)")
     nearbyLog.info("peer \(peerID.displayName, privacy: .public) -> \(String(describing: state), privacy: .public)")
     // D168 · a peer that leaves must leave the map too, or every later send
     // fails against a handle MCSession will never carry anything to

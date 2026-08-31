@@ -220,8 +220,23 @@ public struct LiveRepository: Sendable {
 
   // MARK: resume (`rehydrateLiveRound` 7620–7650)
 
+  /// M-085 / D171 · NAME THE FK. `live_scores` and `game_results` both carry
+  /// columns to live_rounds AND live_round_players, so PostgREST sees a
+  /// junction path beside the direct one and refuses the embed outright:
+  ///   PGRST201 "more than one relationship was found" — HTTP 300.
+  ///
+  /// The web hit this and fixed it (index.html:8503, with a comment describing
+  /// exactly this symptom); the phone was ported without the hint, so EVERY
+  /// server-side round discovery on iOS has returned 300 and the resume list
+  /// has always come back empty. The starter never noticed — their phone
+  /// resumes from its local snapshot — so only an INVITED golfer could see it,
+  /// and the failure was invisible until a device console was attached:
+  ///   [live-resume] server query failed: Status Code: 300 … PGRST201
+  ///
+  /// The three retry rungs below do NOT help: they vary the columns, and all
+  /// three carried the same ambiguous embed.
   static func cols(joinCode: Bool, starter: Bool = true) -> String {
-    "id, league_id, game, game_config, \(joinCode ? "join_code, " : "")\(starter ? "starter_profile_id, " : "")started_by, course_snapshot, course_label, started_at, live_round_players(id, member_id, guest_name, guest_index, index_source, position, guest_profile_id, member:league_members(profile_id, profile:profiles(display_name, index_current)))"
+    "id, league_id, game, game_config, \(joinCode ? "join_code, " : "")\(starter ? "starter_profile_id, " : "")started_by, course_snapshot, course_label, started_at, live_round_players!live_round_players_live_round_id_fkey(id, member_id, guest_name, guest_index, index_source, position, guest_profile_id, member:league_members(profile_id, profile:profiles(display_name, index_current)))"
   }
 
   /// Open rounds I can see (member RLS, or a D107 participant), newest first.

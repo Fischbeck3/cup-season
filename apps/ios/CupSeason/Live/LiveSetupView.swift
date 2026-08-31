@@ -512,7 +512,23 @@ final class LiveCourseSearchModel {
     task?.cancel()
     let q = q.trimmingCharacters(in: .whitespaces)
     lastQ = q
-    guard q.count >= 3, q != pickedLabel else { stage = .hidden; courses = []; return }
+    // D172 · these are TWO different outcomes and merging them broke the tee
+    // picker. Too short → hide the dropdown. Same query as the label we just
+    // picked → do NOTHING, because that write came from the pick itself.
+    //
+    // Tapping a course row does `text = c.label`, and SwiftUI's .onChange is a
+    // VALUE observer, so that programmatic write re-fires this very closure —
+    // with q equal to pickedLabel. Merged into one guard, the else branch ran
+    // and set `stage = .hidden`, wiping the `.tees(c)` stage the tap had just
+    // set two statements earlier. The golfer got the course name in the field
+    // and no tee list, which is exactly the report.
+    //
+    // The web never had this because a programmatic `input.value =` fires no
+    // input event — index.html:7445 says so out loud. The port lost that
+    // invariant, and the web's own two-branch shape (index.html:7531 hides on
+    // a short query; :7532 RETURNS on a repeat) is restored here.
+    guard q.count >= 3 else { stage = .hidden; courses = []; return }
+    guard q != pickedLabel else { return }
     task = Task { [weak self] in
       try? await Task.sleep(for: .milliseconds(320))
       guard !Task.isCancelled, let self else { return }

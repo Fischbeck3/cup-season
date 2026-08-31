@@ -180,7 +180,16 @@ struct MainTabView: View {
       default: break
       }
     }
-    .task { LiveRoundStore.shared.startNearby() }
+    // D170 · keyed on IDENTITY, not on the view appearing. startNearby() bails
+    // when myPid is nil, and a bare .task fires long before the session has
+    // loaded — so nearby never actually started until the golfer opened the tee
+    // sheet, whose onAppear called it again. That is why both phones still had
+    // to be on the same screen after D168 said they would not.
+    .task(id: store.me?.profile?.id) {
+      guard store.me?.profile?.id != nil else { return }
+      await LiveRoundStore.shared.configure(me: store.me, preferredLeague: store.preferredLeague)
+      LiveRoundStore.shared.startNearby()
+    }
     // D163 · a round you ACCEPTED has teed off — land in it without a tap. This
     // is the whole point of the handshake: you said yes, so the app takes you
     // there rather than leaving you to discover it.

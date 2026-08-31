@@ -205,6 +205,8 @@ final class LiveRoundStore {
   }
 
   func stopNearby() { nearby.stop(); asking = []; accepted = []; incoming = nil }
+  /// D169 · the wait is over one way or another — stop asking.
+  func stopWaiting() { watcher?.cancel(); watcher = nil; awaitingFrom = nil }
 
   /// D158 · a nearby chip ASKS. Proximity proposes an identity; only the golfer
   /// holding that phone can confirm it, so the tap that seats them happens over
@@ -259,8 +261,38 @@ final class LiveRoundStore {
     // D163 · say what happens next. At THIS moment there is no round — the
     // starter is still on the setup screen — so the honest thing is to say we
     // are waiting, not to open an empty screen. `onTeed` lands us in it.
-    if ok { awaitingFrom = inv.name; toast("You're in — waiting for \(LiveFmt.fn1(inv.name)) to tee off") }
+    if ok {
+      awaitingFrom = inv.name
+      toast("You're in — waiting for \(LiveFmt.fn1(inv.name)) to tee off")
+      watchForRound()
+    }
   }
+
+  /// D169 · while a golfer is waiting on a round they have already agreed to
+  /// play, THIS phone asks the server for it. The Bluetooth doorbell is an
+  /// optimisation; it must never be the only thing that works. The waiter is
+  /// standing there with the screen on, so a short bounded poll is honest —
+  /// and it stops the moment the round arrives, the wait is abandoned, or ten
+  /// minutes pass without a tee-off.
+  private func watchForRound() {
+    watcher?.cancel()
+    watcher = Task { @MainActor [weak self] in
+      for tick in 0..<150 {                    // 150 × 4s = 10 minutes
+        try? await Task.sleep(for: .seconds(4))
+        nearbyPrint("waiting tick \(tick) — myPid=\(self?.myPid != nil) active=\(self?.state.active == true)")
+        guard let self, self.awaitingFrom != nil, !Task.isCancelled else { return }
+        await self.refreshLive()
+        if self.state.active, self.state.stage == .live {
+          self.awaitingFrom = nil
+          self.openRequested = true
+          CSHaptic.impact(.medium)
+          return
+        }
+      }
+      self?.awaitingFrom = nil
+    }
+  }
+  private var watcher: Task<Void, Never>?
 
   /// D163 · set between accepting an invitation and the round actually starting.
   /// The top bar reads it, so the wait is visible instead of being nothing.
@@ -272,6 +304,7 @@ final class LiveRoundStore {
   /// the Bluetooth message is not a second source of truth, it is a doorbell
   /// that saves us waiting for a foreground or a launch.
   func enterInvited(_ lr: UUID) async {
+    watcher?.cancel(); watcher = nil
     awaitingFrom = nil
     await rehydrate()
     if state.active, state.stage == .live {
@@ -495,8 +528,21 @@ final class LiveRoundStore {
       // then stop advertising. The stop used to be the first line of teeOff(),
       // which killed the wire before there was anything to announce on it: the
       // accepters were left holding a yes and nothing else.
-      if !accepted.isEmpty { nearby.teedOff(out.lr, to: Array(accepted)) }
-      stopNearby()
+      // D169 · announce, THEN let the wire settle. `send` only queues the
+      // bytes — MultipeerConnectivity transmits asynchronously — so calling
+      // stopNearby() on the next line tore the session down microseconds later
+      // and the `teed` doorbell never left the phone. That is why the invited
+      // golfer saw the ask, said yes, and then watched nothing happen.
+      if !accepted.isEmpty {
+        let who = Array(accepted)
+        nearby.teedOff(out.lr, to: who)
+        Task { @MainActor [weak self] in
+          try? await Task.sleep(for: .seconds(3))
+          self?.stopNearby()
+        }
+      } else {
+        stopNearby()
+      }
       LiveActivityHost.start(state)   // D155 · one tap back from a locked phone
       toast("On the tee, good luck everybody")
     } catch {

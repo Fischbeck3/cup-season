@@ -598,5 +598,29 @@ else {
   }
 }
 
+// ---- 21 · PostgREST embeds name their FK -----------------------------------
+// D171: `game_results` and `live_scores` both carry columns to live_rounds AND
+// live_round_players, so PostgREST sees a junction path beside the direct one
+// and refuses the embed with HTTP 300 / PGRST201. The web hit this and fixed it
+// (M-085); the phone was ported WITHOUT the hint, so every server-side round
+// discovery on iOS returned 300 and the invited golfer never found the round.
+// It was invisible for weeks because the starter resumes from a local snapshot.
+{
+  const offenders = [];
+  for (const [label, file] of [
+    ['web', join(root, 'index.html')],
+    ['phone', join(root, 'apps', 'ios', 'Packages', 'CupSeasonKit', 'Sources', 'CupSeasonKit', 'Live', 'LiveRepository.swift')],
+  ]) {
+    if (!existsSync(file)) continue;
+    for (const m of readFileSync(file, 'utf8').matchAll(/live_round_players(!?)([A-Za-z_]*)\s*\(/g)) {
+      if (m[1] !== '!' || !m[2]) offenders.push(`${label}: live_round_players( without !fk`);
+    }
+  }
+  offenders.length === 0
+    ? pass('postgrest embeds name their FK', 'live_round_players embeds are disambiguated')
+    : fail('postgrest embeds name their FK', [...new Set(offenders)].join(' · ') +
+        ' — PostgREST returns 300 PGRST201; use live_round_players!live_round_players_live_round_id_fkey(...)');
+}
+
 console.log(`\n${fails ? 'FAIL' : 'PASS'} — ${fails} failure(s), ${warns} warning(s)`);
 process.exit(fails ? 1 : 0);
