@@ -18,7 +18,8 @@ final class InvitesCount {
   func load() async {
     invites = (try? await people.invites()) ?? []
     loaded = true
-    await PushBadge.refresh()   // seeing the invites clears the badge (D104 §4)
+    // D179 · same rule as the buddy requests: an empty banner was not seen.
+    if invites.isEmpty { await PushBadge.refresh() } else { await PushBadge.markSeen() }
   }
 }
 

@@ -43,6 +43,12 @@
 # inside a ROLLED-BACK transaction — prod is clean through 20260831140000, so this
 # is exactly what the push produces. home_clash (D176, the lead card's clash rung,
 # the only one granted) + clash_last_call (cron-only, no grant).
+#
+# 2026-08-31 (later): 200 functions. Taken with 20260831170000 +
+# 20260831180000 applied inside a ROLLED-BACK transaction — prod is clean
+# through 20260831160000, so this is exactly what the push produces.
+# mark_actionable_seen (D179, the badge's "I looked" marker, granted to
+# authenticated); actionable_count_of keeps its service_role-only grant.
 _cup_window_rounds|p_season uuid|TABLE(member_id uuid, round_id uuid, profile_id uuid, played_on date, points integer, month_rank bigint, pvi numeric, holes_played integer)|definer|none
 _join_gate|p_league uuid, p_via_pro boolean|void|definer|none
 _late_squad|p_league uuid, p_member uuid|text|definer|none
@@ -140,6 +146,7 @@ major_final_day|p_session uuid|void|definer|none
 major_leaderboard|p_event uuid|TABLE(player_id uuid, profile_id uuid, display_name text, marker text, exhibition boolean, round_id uuid, gross integer, pvi numeric, cards integer, best_posted_at timestamp with time zone)|definer|auth
 major_post|p_event uuid, p_body text|void|definer|none
 make_pick|p_draft uuid, p_member uuid|void|definer|auth
+mark_actionable_seen||integer|definer|auth
 mark_buy_in|p_season uuid, p_member uuid, p_paid boolean|void|definer|auth
 mark_cancellation_sent|p_id uuid, p_error text DEFAULT NULL::text|void|definer|none
 mark_email_sent|p_id uuid, p_error text DEFAULT NULL::text|void|definer|none

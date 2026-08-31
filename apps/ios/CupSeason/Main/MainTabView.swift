@@ -260,7 +260,10 @@ struct MainTabView: View {
     }
     // ---- D104 §4: the badge is the actionable count; recompute on foreground and around the live round ----
     .onChange(of: scenePhase) { _, phase in if phase == .active { Task { await PushBadge.refresh() } } }
-    .onChange(of: presenter.showLive) { _, _ in Task { await PushBadge.refresh() } }
+    // D179 · opening the live round IS seeing it; closing it just recounts.
+    .onChange(of: presenter.showLive) { _, up in
+      Task { up ? await PushBadge.markSeen() : await PushBadge.refresh() }
+    }
     // ---- D104 §6: the contextual ask, raised only on a clear stage ----
     .task(id: ask.pending) { await drainAsk() }
     .onChange(of: presenter.anythingUp) { _, up in

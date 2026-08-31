@@ -2006,6 +2006,13 @@ body:not(.noleague) #hubLeagueless{display:none;}
   text-transform:uppercase; color:var(--brand); margin:26px 0 7px;
   padding-bottom:7px; border-bottom:1px solid var(--line2);}
 .grouphead:first-child{margin-top:0;}
+/* D179 · the pre-lock warning: amber, an icon, and room to breathe. It states
+   a consequence the Pro chose, so it must not look like an error. */
+.warnrow{display:flex; gap:8px; align-items:flex-start; padding:10px 12px 10px 11px;
+  margin:0 0 10px; border-radius:var(--rc); line-height:1.45;
+  background:color-mix(in srgb, var(--warm) 9%, transparent);
+  border:1px solid color-mix(in srgb, var(--warm) 45%, transparent); color:var(--ink);}
+.warnrow > span:first-child{color:var(--warm); flex:none;}
 /* D177 · the buddies invite-link door */
 .pdoorlink{display:flex; flex-direction:column; align-items:flex-start; gap:2px; width:100%;
   background:var(--bg1); border:1px solid var(--line); border-radius:var(--rc);
@@ -13436,6 +13443,7 @@ function renderBylaws(){
       : `<div class="byrow"><span>FINISH</span><b>Points table crowns it · whole season, one race</b></div>`}`;
   const hub=$('#bylawsHub'); if(hub) hub.innerHTML=rows;
   const rev=$('#bylawsReview'); if(rev) rev.innerHTML=rows;
+  paintFirstTeeWarning();   /* D179: a first tee of today kills the code at lock */
   const asd=$('#wizAside'); if(asd) asd.innerHTML=wizPortrait();   /* Stage 3d: the desktop live portrait */
   /* the endgame dial (migration 008): the Pro can flip the finish until the
      final window opens — after that it's settled, argue never */
@@ -13484,6 +13492,44 @@ function renderBylaws(){
     }
   }
 }
+/* ─────────────────────────────────────────────────────────────────────────
+   D179 · say what a first tee of TODAY costs, before the Pro locks on it.
+
+   The join window (D161) opens the code at lock and closes it at first tee —
+   `_join_gate` is `if v_today < v_starts then return`, strictly less than. So
+   a first tee of today makes the code dead the instant lock completes, and a
+   date in the past makes it dead AND the season retroactively underway.
+
+   Backdating is deliberate and worth keeping: a group three weeks into a
+   season they are already playing on paper wants those weeks to count. So the
+   picker stays unbounded (owner ruling) and the review states the consequence
+   instead — and names the way out in the same breath, because a warning that
+   only takes something away is a scold.
+
+   It never fires on the default: `defaultStart()` is the next upcoming
+   Saturday and skips today even when today IS Saturday.
+   ───────────────────────────────────────────────────────────────────────── */
+function firstTeeIsToday(){
+  const s = seasonStartDate();
+  const t = new Date(); t.setHours(0,0,0,0);
+  return s <= t;
+}
+function paintFirstTeeWarning(){
+  const note = $('#inviteNote'); if(!note) return;
+  const wrap = note.parentElement; if(!wrap) return;
+  let el = document.getElementById('firstTeeWarn');
+  if(!firstTeeIsToday()){ if(el) el.remove(); return; }
+  const s = seasonStartDate(), t = new Date(); t.setHours(0,0,0,0);
+  const when = s.getTime() === t.getTime()
+    ? 'First tee is today, so the join code closes the moment you lock.'
+    : `First tee is ${WD[s.getDay()]} ${MOS[s.getMonth()]} ${s.getDate()} — already past, so the join code closes the moment you lock.`;
+  const html = `<p class="fine warnrow" id="firstTeeWarn" role="status">
+    <span aria-hidden="true">\u26a0</span>
+    <span>${when} You'll add golfers yourself from the Clubhouse \u2014 the Pro's door stays open to the halfway turn.</span></p>`;
+  if(el) el.outerHTML = html; else note.insertAdjacentHTML('beforebegin', html);
+}
+window.paintFirstTeeWarning = paintFirstTeeWarning;
+
 const MIN_LEAGUE=4;                    /* foursome floor — spec §8 v0.7 */
 if(state.emails.length===0) state.emails=[''];   /* one line; "+ Add email" grows it */
 function updateInviteNote(){

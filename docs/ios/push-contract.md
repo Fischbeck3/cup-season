@@ -75,6 +75,11 @@ me + live rounds I am on that are still open. Never chat, never rounds.
   scoped) on foreground and after any action/view of Requests, Invites, or
   the live round → `UNUserNotificationCenter.setBadgeCount`. Seeing the list
   clears it — acting is not required.
+- **D179 (2026-08-31):** this sentence was aspirational for three months.
+  `actionable_count_of` had no notion of "seen", so the badge only moved when
+  you ACTED. It now reads `profiles.actionable_seen_at`, and
+  `mark_actionable_seen()` is what the phone calls when a list actually
+  renders rows — an empty list was not seen, it was absent.
 
 ## 5. Recipients (server)
 

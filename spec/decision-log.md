@@ -4980,3 +4980,25 @@ Both restored; verified in a rolled-back prod transaction: 2 board posts written
 **Deliberately NOT in this build:** reaction bars on moments and settlement cards — 130 of 356 prod posts (37%) are unreactable, including every settlement card, but it is pre-existing, a few hours across two clients, and belongs with the next binary rather than delaying this one.
 
 **CONFLICT:** none. This is defect repair; the only judgement call is the 45-minute stale window, which is stated in the code with its reasoning.
+
+### D179 · The two calls before TestFlight — a warned lock, and a badge that means unseen
+*(2026-08-31. Owner ruled both from rendered options: "warn, then let them" on the join code; "unseen — build seen_at" on the badge. The badge ruling went AGAINST my recommendation, which was to keep "unanswered" and fix the doc; the owner's reading is the one built.)*
+
+**1 · A first tee of today makes the join code dead at lock, and nothing said so.**
+- D161's window is `_join_gate`'s `if v_today < v_starts then return` — **strictly less than.** `lock_league` takes `coalesce(p_starts_on, current_date)` as given. So a first tee of *today* kills the code the instant lock completes; a date in the past kills it and makes the season retroactively underway.
+- **The default was never the problem**: `defaultStart()` is the next upcoming Saturday and skips today even when today IS Saturday. The exposure is the picker — a bare `<input type="date">` with no `min`, under a label reading *"First tee — Pick any day."*
+- **Backdating is kept on purpose.** A group three weeks into a season they are already playing on paper wants those weeks to count; bounding the picker would take that from them to prevent a mistake the default already prevents. The review states the consequence instead, and names the way out in the same breath — *"You'll add golfers yourself from the Clubhouse — the Pro's door stays open to the halfway turn"* — because a warning that only takes something away is a scold.
+- Fires only when the chosen date is today or earlier. Web only: the phone does not lock leagues (IOS-007 — the desk owns authoring).
+
+**2 · The badge means UNSEEN now, and the SQL finally matches the document.**
+- `actionable_count_of` counted pending friendships + invites + open live rounds with **no notion of having looked**, so the number only moved when you ACTED. `docs/ios/push-contract.md` §4 has said *"Seeing the list clears it — acting is not required"* for three months, and **three call sites quote that line in their comments.** The SQL said "unanswered", the contract said "unseen", and nobody could tell because prod holds exactly **one push-registered device**.
+- Built the contract's version: `profiles.actionable_seen_at`, consulted by `actionable_count_of`; `mark_actionable_seen()` returns the count AFTER marking, so the phone can never paint a number the server has already superseded.
+- **ONE timestamp, not three.** The badge is one number over three sources and the contract's own clause is coarse the same way ("Requests, Invites, or the live round"). Three columns would let the number disagree with itself.
+- **An empty list was not seen — it was absent.** `BuddyRequests` and `InvitesBanner` mark only when they render rows; otherwise they merely recount. Marking on an empty render would silence an invite sitting on another surface. Opening the live round marks; closing it recounts.
+- The `profiles` column seal bit again in advance: `actionable_seen_at` ships with its own `grant select` in the same migration, because a column added without one fails 42501 with a message that never names the column — weeks later, on boot.
+- The migration's self-check is **behavioural, not structural**: it finds a real pending friendship, proves the count is non-zero before the look and zero after, then inserts a request dated one second later and proves the badge comes back. All verified against prod and rolled back.
+- The doc keeps its sentence and gains a dated note saying it was aspirational until today — the claim was worth nothing until something failed on it (CLAUDE.md's own lesson about assertions in prose).
+
+**Recorded because I was overruled and the reasoning matters:** I argued for "unanswered" — that a friend request is an open loop with a person on the other end, and Cup Season's whole posture is that these things matter. The owner's counter is the stronger one: a badge you cannot clear by looking is one people learn to ignore, and an ignored badge misses the next real thing. The open loop does not vanish — the request is still a row with two buttons on Home and on the buddies screen. Only the icon nag stands down.
+
+**CONFLICT:** none. D104 §4 wrote the contract; this is the first time the database has obeyed it.

@@ -30,7 +30,9 @@ final class BuddyRequestsModel {
   func load() async {
     if let l = try? await people.friends() { requests = l.requests }
     loaded = true
-    await PushBadge.refresh()   // seeing them clears the badge (D104 §4)
+    // D179 · seeing the rows clears the badge; an EMPTY list was not seen, it
+    // was absent — marking then would silence an invite on another surface.
+    if requests.isEmpty { await PushBadge.refresh() } else { await PushBadge.markSeen() }
   }
 
   /// Returns the toast to show, or nil when nothing happened.

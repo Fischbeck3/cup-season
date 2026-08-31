@@ -21,4 +21,21 @@ public enum PushBadge {
     guard let n = try? await svc.call(Rpc.my_actionable_count()) else { return }
     try? await UNUserNotificationCenter.current().setBadgeCount(max(0, n))
   }
+
+  /// D179 · "I have seen the list." The badge means UNSEEN (owner ruling), so
+  /// LOOKING clears it — acting is not required, exactly as push-contract §4
+  /// has always said. The SQL disagreed with that sentence until now.
+  ///
+  /// Call this only where a golfer can actually READ the rows: a list that
+  /// rendered empty was not seen, it was absent, and marking it would silence
+  /// an invite sitting on another surface. The RPC returns the count AFTER
+  /// marking, so the phone can never paint a number the server has superseded.
+  ///
+  /// Fail closed, like `refresh`: an error leaves the badge exactly where it was.
+  @MainActor
+  public static func markSeen(_ svc: SupabaseService = .shared) async {
+    guard await svc.currentSession() != nil else { return }
+    guard let n = try? await svc.call(Rpc.mark_actionable_seen()) else { return }
+    try? await UNUserNotificationCenter.current().setBadgeCount(max(0, n))
+  }
 }
