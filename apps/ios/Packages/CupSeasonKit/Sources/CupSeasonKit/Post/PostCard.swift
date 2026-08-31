@@ -4,8 +4,15 @@
 //
 // Everything here is a PREVIEW or a payload. The server scores the round:
 // `score_round()` computes the differential, `v_rounds_ranked` applies the
-// league's allowance and `cup_points()`. The phone previews at 100% with the
-// golfer's own number (landmine 7.3 — the web does the same) and says so.
+// league's allowance and `cup_points()`.
+//
+// D178 · the preview applies THE LEAGUE'S ALLOWANCE. It used to preview at
+// 100% — and this comment used to say the web did the same, which stopped
+// being true the morning D174 landed `pviFor()` there. Every league in prod
+// runs 95% (the wizard's default preset), and 71 of 289 real scored rounds
+// would show a figure in a DIFFERENT points band than the engine pays, always
+// over-promising. A league-less round stays at 100%, which is correct: it is
+// scored against the golfer's own number and nothing else.
 
 import Foundation
 
@@ -193,10 +200,24 @@ public enum PostCalc {
   /// `state.myIndex`'s fallback for a golfer with no number yet (14872).
   public static let fallbackIndex = 18.0
 
-  /// `recalc()` at 100% allowance against `myIndex`. nil = nothing to score.
-  /// Points follow the server rule (`CSBands.cupPoints`) so the preview never
-  /// disagrees with what lands; the sentence is the web's.
-  public static func preview(_ card: PostCard, myIndex: Double?) -> PostPreview? {
+  /// The engine's own expression, from `v_rounds_ranked`:
+  ///
+  ///     round(index_at_post * handicap_allowance / 100.0 - differential, 1)
+  ///
+  /// The WHOLE expression rounds, not the parts — `CSBands.pointsFor` uses
+  /// half-open band edges (≥3, ≥1, >−1, ≥−3), so rounding the pieces
+  /// separately puts boundary rounds in the wrong band. `index.html`'s
+  /// `pviFor()` is the same line; the two must not drift again.
+  public static func pvi(index: Double, differential: Double, allowance: Int?) -> Double {
+    let a = Double(allowance ?? 100)
+    return ((index * a / 100 - differential) * 10).rounded() / 10
+  }
+
+  /// `recalc()` at the LEAGUE'S allowance against `myIndex` (D178; nil = 100%,
+  /// which is what a league-less round is scored at). nil return = nothing to
+  /// score. Points follow the server rule (`CSBands.cupPoints`) so the preview
+  /// never disagrees with what lands; the sentence is the web's.
+  public static func preview(_ card: PostCard, myIndex: Double?, allowance: Int? = nil) -> PostPreview? {
     let idx = myIndex ?? fallbackIndex
     let rating = card.ratingValue
     let slope = card.slopeValue > 0 ? Double(card.slopeValue) : 113
@@ -204,7 +225,7 @@ public enum PostCalc {
     if f9 > 0 && b9 > 0 {
       let gross = f9 + b9
       let diff = (Double(gross) - rating) * 113 / slope
-      let vs = idx - diff
+      let vs = pvi(index: idx, differential: diff, allowance: allowance)
       let (pts, msg) = CSBands.pointsFor(vs)
       return PostPreview(gross: gross, holes: 18, vs: vs, points: pts, message: msg, label: "\(gross) GROSS")
     }
@@ -213,7 +234,7 @@ public enum PostCalc {
       // D72: (nine gross − 9-hole rating) scaled, doubled to an 18-hole equivalent
       let rating9 = card.rating9 ? rating : rating / 2
       let diff = ((Double(g9) - rating9) * 113 / slope) * 2
-      let vs = idx - diff
+      let vs = pvi(index: idx, differential: diff, allowance: allowance)
       let base = CSBands.pointsFor(vs)
       let pts = Int((Double(base.points) / 2).rounded(.up))
       return PostPreview(gross: g9, holes: 9, vs: vs, points: pts, message: "9-hole round, half value. " + base.line, label: "\(g9) GROSS · 9 HOLES")

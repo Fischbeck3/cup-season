@@ -24,9 +24,14 @@ public struct CSRoundActivity: ActivityAttributes {
     /// round — nothing is won hole by hole there, and drawing a line would
     /// invent a competition nobody is playing.
     public var game: String?
+    /// D178 · what the COMPACT island shows, authored by `LiveCopy.activity`
+    /// rather than truncated in the widget. Optional with a default so an
+    /// activity started by an older build still decodes.
+    public var compact: String?
 
-    public init(hole: Int, par: Int?, thru: Int, holes: Int, game: String?) {
-      self.hole = hole; self.par = par; self.thru = thru; self.holes = holes; self.game = game
+    public init(hole: Int, par: Int?, thru: Int, holes: Int, game: String?, compact: String? = nil) {
+      self.hole = hole; self.par = par; self.thru = thru; self.holes = holes
+      self.game = game; self.compact = compact
     }
   }
 

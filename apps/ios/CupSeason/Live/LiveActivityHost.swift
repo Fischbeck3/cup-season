@@ -27,8 +27,22 @@ enum LiveActivityHost {
   private static func facts(_ s: LiveRoundState) -> (CSRoundActivity, CSRoundActivity.ContentState) {
     let f = LiveCopy.activity(s)
     return (CSRoundActivity(course: f.course),
-            .init(hole: f.hole, par: f.par, thru: f.thru, holes: f.holes, game: f.game))
+            .init(hole: f.hole, par: f.par, thru: f.thru, holes: f.holes, game: f.game, compact: f.compact))
   }
+
+  /// D178 · how long a figure on the lock screen is allowed to claim it is
+  /// current. Every update to this activity is main-actor app code, so a phone
+  /// left in a pocket keeps asserting HOLE 4 / THRU 3 with full confidence
+  /// until the app is reopened — and abandoning is the NORM, not the edge:
+  /// prod `live_rounds` is 20 abandoned to 4 final, and nothing server-side
+  /// reaps them (the four cron jobs never touch that table). Past this the
+  /// system greys the card out, which is the honest rendering of "nobody has
+  /// touched this in a while".
+  ///
+  /// 45 minutes is roughly three holes at a normal pace — long enough that a
+  /// slow group never sees it, short enough that a forgotten round stops
+  /// lying before the next one starts.
+  private static let stale: TimeInterval = 45 * 60
 
   /// Tee-off. Idempotent: a second call on a running round updates instead of
   /// stacking a second island.
@@ -40,7 +54,7 @@ enum LiveActivityHost {
       // a denied or unavailable activity is not something the golfer needs to
       // hear about — the round is unaffected and Home still has its banner
       currentID = try Activity.request(attributes: attrs,
-                                       content: .init(state: state, staleDate: nil),
+                                       content: .init(state: state, staleDate: Date().addingTimeInterval(stale)),
                                        pushType: nil).id
     } catch {
       currentID = nil
@@ -80,7 +94,7 @@ enum LiveActivityHost {
 
   private nonisolated static func push(id: String, state: CSRoundActivity.ContentState) async {
     guard let a = Activity<CSRoundActivity>.activities.first(where: { $0.id == id }) else { return }
-    await a.update(ActivityContent(state: state, staleDate: nil))
+    await a.update(ActivityContent(state: state, staleDate: Date().addingTimeInterval(stale)))
   }
 
   private nonisolated static func stop(id: String) async {

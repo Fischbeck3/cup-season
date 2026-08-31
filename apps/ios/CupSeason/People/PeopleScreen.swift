@@ -64,7 +64,13 @@ struct PeopleScreen: View {
       if vm.searching && vm.results.isEmpty {
         CSFine("Searching…")
       } else if vm.results.isEmpty {
-        CSFine("No golfers found under that name. The link below works for anyone.")
+        // D178 · the sentence has to match what is actually under it. The
+        // invite link renders only when a league with a code exists, and the
+        // golfer most likely to search and find nobody is exactly the one
+        // least likely to have one.
+        CSFine(shareable == nil
+               ? "No golfers found under that name. They may not be on Cup Season yet."
+               : "No golfers found under that name. The link below works for anyone.")
       } else {
         ForEach(vm.results) { r in
           PersonRow(person: r, links: links) {
@@ -86,7 +92,9 @@ struct PeopleScreen: View {
   /// named after it AND it reaches you where you already are. Two copies of
   /// this drift; one does not.
   private var requests: some View {
-    BuddyRequests(links: links, head: true, model: reqs)
+    // D178 · repaint the buddies list too: an accepted request moves a person
+    // from one section of this screen into another.
+    BuddyRequests(links: links, head: true, model: reqs, onAnswered: { Task { await vm.paint() } })
   }
 
   /// D177 · the empty search used to say "Invite links still work for everyone
@@ -228,6 +236,12 @@ final class PeopleModel {
     } catch { toast(HumanError.text(error, prefix: "Could not send.")) }
   }
 
+  /// D178 · UNUSED since D177 moved answering into `BuddyRequests`. Kept
+  /// deliberately: `PeoplePickerSheet` and the search results still reach
+  /// `add`/`paint` on this model, and a future surface answering a request
+  /// outside the shared component would want this. If nothing claims it by the
+  /// next sweep, delete it — two paths that both answer a friendship is exactly
+  /// how the two lists fell out of step in the first place.
   func respond(_ f: Person, accept: Bool) async {
     guard let fid = f.friendshipId else { return }
     busy.insert(f.id); defer { busy.remove(f.id) }

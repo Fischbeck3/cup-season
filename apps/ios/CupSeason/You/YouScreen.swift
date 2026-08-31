@@ -131,7 +131,14 @@ struct YouScreen: View {
           // permanent tab one inch below it, and this is a page about the past.
 
           // ── D177 · YOUR SEASONS ──────────────────────────────────────────
-          CSGroupHead("Your seasons")
+          // D178 · gated on its children. All three are conditional — the two
+          // below on `league != nil`, and LeagueRecordView on a non-empty row
+          // set — so a league-less tester's You page ended on a glowing
+          // eyebrow, a rule, and 32pt of nothing. A group head is structure;
+          // structure over an empty room is a bug, not a spine.
+          if league != nil || !model.data.leagueRecord.isEmpty {
+            CSGroupHead("Your seasons")
+          }
 
           if league != nil {
             SeasonStatsStrip(stats: model.data.seasonStats, leagueName: league?.name ?? "your league")

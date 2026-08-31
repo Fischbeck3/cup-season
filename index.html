@@ -7210,6 +7210,7 @@ $('#postBtn').addEventListener('click', async ()=>{
       if(window.loadStandingsAndFeed) await window.loadStandingsAndFeed();
       if(window.loadCareer) window.loadCareer();     /* You-tab recent rounds */
       if(window.loadHome) window.loadHome();         /* the one home feed */
+      if(window.refreshHomeLead) window.refreshHomeLead();   /* D178: the round the card asked for just landed */
       switchView('home'); scrollFeedBottom();
       /* one sheet gets the moment: partner claim links when a scan carried the
          group (the growth loop is time-sensitive — the crew is standing right
@@ -12044,7 +12045,13 @@ function homeLead(){
   /* 2 · the floor. `partial` = an edge month with floors WAIVED (§14.0's
      blanket rule) — asking for a floor that is waived is the exact
      contradiction the audit logged elsewhere, so it is excluded. */
-  const row = (!state.demo && (window.leaguePulse||[]).find(r=>r.member_id===CS.member?.id)) || null;
+  /* D178 · `league_pulse` returns (profile_id, display_name, marker, credits,
+     floor, at_floor, is_me, partial) — there is NO member_id on it, and
+     CS.member.id is a league_members id besides. This find() was always null,
+     so the whole floor rung was dead code and the two clients disagreed about
+     whether you were about to miss a floor. The RPC already answers the
+     question: is_me. (index.html:11012 uses the same idiom.) */
+  const row = (!state.demo && (window.leaguePulse||[]).find(r=>r.is_me)) || null;
   if(row && !row.partial && state.phase==='season'){
     const floor=Number(row.floor||0), credits=Number(row.credits||0);
     const now=new Date(), eom=new Date(now.getFullYear(), now.getMonth()+1, 0);
@@ -12093,6 +12100,16 @@ function renderHomeLead(){
   const b=document.getElementById('leadAct'); if(b) b.addEventListener('click', L.go);
 }
 window.renderHomeLead = renderHomeLead;
+/* D178 · the clash was read ONCE, inside loadPulse, which only runs at boot.
+   So you could post the very round the card asked for, land back on Home, and
+   read "Post a round" again — the card was rendering a boot-time snapshot.
+   Every path that changes what the card would say now re-reads it. Fail-soft
+   by construction: loadHomeClash swallows its own errors and renders nothing. */
+function refreshHomeLead(){
+  if(window.renderHomeLead) renderHomeLead();          /* paint what we have */
+  loadHomeClash().then(()=>{ if(window.renderHomeLead) renderHomeLead(); });
+}
+window.refreshHomeLead = refreshHomeLead;
 function renderUpNext(){
   const box=$('#homeUpNext'); if(!box) return;
   const chips=[];
@@ -12350,8 +12367,7 @@ async function loadPulse(){
   if(window.renderPulse) renderPulse();
   /* D176: the floor rung reads the same rows the pulse does, so the lead card
      is redrawn the moment they land. The clash is its own read. */
-  loadHomeClash().then(()=>{ if(window.renderHomeLead) renderHomeLead(); });
-  if(window.renderHomeLead) renderHomeLead();
+  refreshHomeLead();
 }
 window.renderPulse=renderPulse; window.loadPulse=loadPulse;
 /* the display case — real trophies come from window.trophies (module loader);
@@ -14618,8 +14634,37 @@ document.addEventListener('click', (e) => {
   if(!e.target.closest('#youGuide')) return;
   const row = e.target.closest('[data-guide]'); if(!row) return;
   const k = row.dataset.guide;
-  if(k==='scoring'){ window.openScoringHelp?.(); return; }
-  const g = GUIDE[k]; if(g) openSheet(g[0], g[1], g[2]);
+  /* D178 · there is ONE #sheet on this page, and openSheet overwrites its
+     title, sub and body with no stack and no back control. Before D177 these
+     rows lived on the You PAGE, so there was nothing to clobber; now they live
+     inside the Card & settings sheet, and opening a guide destroyed the sheet
+     it was opened from — reading two of them meant re-opening the hub and
+     re-picking the Settings segment each time.
+
+     The way back REBUILDS the host rather than restoring its innerHTML: that
+     sheet's segment picker, field values, marker grid and avatar editor are
+     all wired in JS after openSheet, so pasting the old HTML back would give
+     you a photograph of a sheet — every control dead. openProfileHub() is
+     idempotent and puts the real one back. */
+  const fromHub = $('#sheet').classList.contains('open')
+               && !!document.getElementById('phSeg');
+  const back = fromHub
+    ? '<button type="button" class="mini" id="guideBack" style="margin-bottom:12px">\u2039 Card &amp; settings</button>'
+    : '';
+  const wireBack = () => {
+    $('#guideBack')?.addEventListener('click', () => {
+      if(window.openProfileHub) window.openProfileHub();
+      /* the settings pane is where the guide lives, so land back on it */
+      setTimeout(()=>document.querySelector('#phSeg [data-ph="settings"]')?.click(), 0);
+    });
+  };
+  if(k==='scoring'){
+    window.openScoringHelp?.();
+    if(fromHub){ $('#shBody')?.insertAdjacentHTML('afterbegin', back); wireBack(); }
+    return;
+  }
+  const g = GUIDE[k];
+  if(g){ openSheet(g[0], g[1], back + g[2]); wireBack(); }
 });
 
 /* live username check — the handle is a real, unique @name (set_handle enforces
@@ -15139,6 +15184,9 @@ function openPeoplePicker(opts){
 }
 window.openPeoplePicker = openPeoplePicker;
 
+/* D178 · exported so the guide's "‹ Card & settings" can rebuild this sheet
+   rather than restore a photograph of it (every control here is wired in JS
+   after openSheet, so pasted innerHTML would come back dead). */
 function openProfileHub(){
   if(!CS.profile){ toast('Demo golfer: sign in to build your own card'); return; }
   const p = CS.profile;
@@ -15493,6 +15541,7 @@ function openProfileHub(){
     });
   }
 }
+window.openProfileHub = openProfileHub;
 $('#whoChip')?.addEventListener('click', openProfileHub);   /* chip retired; guard stays */
 $('#youProfile')?.addEventListener('click', openProfileHub);
 /* "Add golfers" now lands in Crew > People, not the profile editor */

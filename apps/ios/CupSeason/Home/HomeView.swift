@@ -40,7 +40,7 @@ struct HomeView: View {
           // claimed since the port that InvitesBanner carried them "inside the
           // banner"; it never did — that banner is league and Ryder invites
           // only. Costs zero pixels on the days nobody has asked.
-          BuddyRequests(links: links, head: true)
+          BuddyRequests(links: links, head: true, onAnswered: { Task { await store.reload() } })
 
           LiveResumeBanner(links: LiveLinks(openReceipt: { presenter.receipt = $0 }, openTourCard: { presenter.tourCard = $0 },
                                             done: { presenter.showLive = false }),

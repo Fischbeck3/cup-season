@@ -150,6 +150,21 @@ struct MainTabView: View {
             case .album(let id): AlbumScreen(leagueId: id)
             }
           }
+          // D178 · ClubhouseView:65 emits `NavigationLink(value: HomeRoute.people)`
+          // for "Add golfers", and this stack declared only ClubRoute — so the
+          // link was INERT: SwiftUI logs "the link will not work" and the tap
+          // does nothing. The league-less Clubhouse offers four affordances and
+          // the last one was dead, on exactly the screen a brand-new tester
+          // lands on.
+          .navigationDestination(for: HomeRoute.self) { r in
+            switch r {
+            case .schedule: ScheduleScreen(links: csLinks)
+            case .people: PeopleScreen(links: csLinks)
+            case .league(let id): ClubhouseView(leagueId: id, onOpenBoard: { clubPath.append(ClubRoute.board($0)) },
+                                                onOpenSchedule: { clubPath.append(ClubRoute.schedule) },
+                                                onAddGolfers: { presenter.inviteTo = $0 })
+            }
+          }
       }
       .tabItem { Label("Clubhouse", systemImage: "flag") }
       .tag(Tab.clubhouse)

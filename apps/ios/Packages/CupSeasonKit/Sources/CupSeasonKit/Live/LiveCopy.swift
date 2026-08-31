@@ -399,6 +399,14 @@ public enum LiveCopy {
     public let thru: Int
     public let holes: Int
     public let game: String?
+    /// D178 · what the COMPACT island shows, authored here rather than
+    /// truncated there. The widget used to keep the last two words of anything
+    /// over 12 characters, which turned "NO SKINS CLAIMED YET" — the state of
+    /// every skins round until the first skin falls — into "CLAIMED YET", and
+    /// Wolf's four "NAME ±N" pairs into one arbitrary player's total. A
+    /// leaderboard sentence has no meaningful tail; the compact form is a
+    /// different string, not a substring.
+    public let compact: String?
   }
 
   public static func activity(_ s: LiveRoundState) -> ActivityFacts {
@@ -406,7 +414,35 @@ public enum LiveCopy {
     let par = h < s.course.pars.count ? s.course.pars[h] : nil
     let game: String? = s.game == .score ? nil : scoreboard(s, presence: []).hero
     return ActivityFacts(course: s.course.label.isEmpty ? "Your round" : s.course.label,
-                         hole: h + 1, par: par, thru: s.thru, holes: s.liveHoles, game: game)
+                         hole: h + 1, par: par, thru: s.thru, holes: s.liveHoles, game: game,
+                         compact: compactStatus(s))
+  }
+
+  /// D178 · the island has room for about ten characters. Say the STATE of the
+  /// game, never the tail of the sentence describing it.
+  ///
+  /// The hero is a LEADERBOARD — "GALEN 2 · JADE 1", "GALEN +3 · JADE -1 · …",
+  /// "NO SKINS CLAIMED YET". Its last two words are the WORST ten characters in
+  /// it: the tail of a skins round with nothing claimed is "CLAIMED YET", and
+  /// the tail of a wolf round is whoever happens to sort last. The leader is
+  /// the short true thing; a duel's verdict is its own short true thing.
+  static func compactStatus(_ s: LiveRoundState) -> String? {
+    let hero = scoreboard(s, presence: []).hero
+    guard !hero.isEmpty else { return nil }
+    switch s.game {
+    case .score:
+      return nil
+    case .skins, .wolf:
+      // the leader is the first entry; " · N RIDING" and everyone else drop
+      let lead = hero.split(separator: "\u{00B7}").first.map { $0.trimmingCharacters(in: .whitespaces) } ?? hero
+      if lead.hasPrefix("NO SKINS") { return "NO SKINS" }
+      return lead.count <= 12 ? lead : String(lead.prefix(12))
+    case .match, .sunningdale:
+      // "ALL SQUARE" fits whole; "GALEN & JADE 2 UP" keeps its verdict
+      if hero.count <= 12 { return hero }
+      let words = hero.split(separator: " ")
+      return words.count >= 2 ? words.suffix(2).joined(separator: " ") : String(hero.prefix(12))
+    }
   }
 
   public static func finishStatus(_ s: LiveRoundState) -> String? {

@@ -374,7 +374,22 @@ public struct LiveRoundState: Codable, Sendable, Equatable {
   }
 
   /// `setMatchTeams` (7217).
-  public static func defaultTeams(count: Int) -> [[Int]] { count == 2 ? [[0], [1]] : [[0, 1], [2, 3]] }
+  /// D178 · the seats, split into two sides — **and never an index that is not
+  /// a player.** This returned a hardcoded `[[0,1],[2,3]]` for every count that
+  /// was not 2, so a ONE-player round (the default: "Just score", only you
+  /// selected) or a THREE-player skins round produced team indices 1, 2 and 3
+  /// against a one- or three-element array. `teeOff` then read them
+  /// unguarded and the app crashed on the most-tapped button in it.
+  ///
+  /// Teams are meaningless for 1 and 3 anyway — only match play and
+  /// Sunningdale read a side, and both refuse anything but 2 or 4. The job
+  /// here is simply to stay inside the array.
+  public static func defaultTeams(count: Int) -> [[Int]] {
+    let n = max(0, count)
+    if n <= 2 { return [Array(0..<min(1, n)), n > 1 ? [1] : []] }
+    let half = n / 2
+    return [Array(0..<half), Array(half..<n)]
+  }
 
   /// `liveHoles()` (7198).
   public var liveHoles: Int { holes == 9 ? 9 : 18 }

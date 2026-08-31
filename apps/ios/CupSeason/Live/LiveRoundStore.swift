@@ -502,8 +502,21 @@ final class LiveRoundStore {
                    "guest_profile": p.pid.map { .string($0.uuidString.lowercased()) } ?? .null])
         : .object(["member_id": p.mid.map { .string($0.uuidString.lowercased()) } ?? .null])
     })
-    let sideA: JSONValue = .array(s.teams[0].map { .string(players[$0].n) })
-    let sideB: JSONValue = .array(s.teams[1].map { .string(players[$0].n) })
+    // D178 · belt AND braces. These two lines ran UNCONDITIONALLY, before the
+    // per-game switch, and indexed `players` by whatever `defaultTeams` had
+    // returned — which was `[[0,1],[2,3]]` for every count but 2. A round with
+    // one player (the default: "Just score", only you) or three (legal for
+    // skins) crashed here, on the first Tee off a tester ever taps.
+    //
+    // `defaultTeams` is now in-range by construction; this filter is the second
+    // wall, and it matches what LiveResult.swift:111 and LiveCopy.swift:24 have
+    // always done when reading the same array. Only match play and Sunningdale
+    // read a side, and both refuse any count but 2 or 4.
+    func side(_ t: Int) -> JSONValue {
+      guard t < s.teams.count else { return .array([]) }
+      return .array(s.teams[t].compactMap { players.indices.contains($0) ? .string(players[$0].n) : nil })
+    }
+    let sideA = side(0), sideB = side(1)
     let est: JSONValue = .bool(s.course.siEst)
     let cfg: JSONValue
     switch g {
@@ -511,7 +524,11 @@ final class LiveRoundStore {
       cfg = mode == .solo ? .object(["stake": .number(s.stake), "mode": .string("solo"), "si_estimated": est])
                           : .object(["stake": .number(s.stake), "side_a": sideA, "side_b": sideB, "si_estimated": est])
     case .wolf:
-      cfg = .object(["stake": .number(s.stake), "order": .array((s.wolfOrder ?? []).map { .string(players[$0].n) }), "si_estimated": est])
+      // same guard: wolfOrder is [0,1,2,3] and Wolf refuses anything but four,
+      // but a stale order from a rehydrate must not be able to reach past the end
+      cfg = .object(["stake": .number(s.stake),
+                     "order": .array((s.wolfOrder ?? []).compactMap { players.indices.contains($0) ? .string(players[$0].n) : nil }),
+                     "si_estimated": est])
     case .skins:
       cfg = .object(["stake": .number(s.stake), "si_estimated": est])
     case .sunningdale:

@@ -59,6 +59,11 @@ struct BuddyRequests: View {
   /// Hosts that reload around it (the buddies screen) pass their own model.
   @State private var vm = BuddyRequestsModel()
   var model: BuddyRequestsModel? = nil
+  /// D178 · answering a request MOVES someone between two lists, and this view
+  /// owns only one of them. Without this the tester tapped Accept, read
+  /// "Golf buddies ✓", watched the request vanish — and the Buddies section
+  /// directly below still said "No buddies yet."
+  var onAnswered: () -> Void = {}
 
   private var m: BuddyRequestsModel { model ?? vm }
 
@@ -85,6 +90,9 @@ struct BuddyRequests: View {
   }
 
   private func answer(_ p: Person, accept: Bool) {
-    Task { if let t = await m.respond(p, accept: accept) { toast.show(t) } }
+    Task {
+      if let t = await m.respond(p, accept: accept) { toast.show(t) }
+      onAnswered()
+    }
   }
 }

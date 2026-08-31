@@ -3,7 +3,8 @@
 // of the web's copy is kept; the SHAPE is the phone's: the live gross is the
 // hero, "where" is rows, the card is two big figures or the scorecard strip,
 // details are pills, Post is pinned in the bottom bar, the bands fold away.
-// "How this round scores" previews at 100%; the server scores the round.
+// "How this round scores" previews at the league's allowance (D178); the
+// server still scores the round on the books.
 // IOS-022: the rating/slope row opens only on "edit" and a picked tee fills
 // it (item 4); the scoring fine print says itself once, in the hero (item 5).
 
@@ -403,7 +404,8 @@ private struct PostHeroContent: View {
         }
         .padding(.top, 2)
       }
-      CSFine("A preview at 100% of your number — your league's own math scores it on the books.").padding(.top, 4)
+      // D178 · it is no longer a 100% preview, so it must no longer say so.
+      CSFine("A preview — your league's own math scores it on the books.").padding(.top, 4)
       if model.membership == nil {
         CSFine("No league yet? The round still counts on your card — points apply in any league you join.")
       }

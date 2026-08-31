@@ -78,7 +78,9 @@ final class PostRoundModel {
   // MARK: - the preview
 
   private func recalc() {
-    preview = PostCalc.preview(card, myIndex: myIndex)
+    // D178 · at the league's allowance, not at 100%. `membership` is the same
+    // preferred-league pick the rest of the sheet uses; no league = nil = 100%.
+    preview = PostCalc.preview(card, myIndex: myIndex, allowance: membership?.settings?.handicap_allowance)
     if !card.isBlank { typedSomething = true }
   }
   var calcMessage: String { preview?.message ?? (typedSomething ? PostCalc.emptyMessageAfterTyping : PostCalc.emptyMessage) }

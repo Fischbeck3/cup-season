@@ -71,19 +71,15 @@ struct CSRoundLiveActivity: Widget {
   }
 
   private func compact(_ s: CSRoundActivity.ContentState) -> String {
+    // D178 · the app AUTHORS this now (LiveCopy.compactStatus). This used to
+    // keep the last two words of any hero over 12 characters, which are the
+    // worst ten characters in it: "NO SKINS CLAIMED YET" — the state of every
+    // skins round until the first skin falls — rendered as "CLAIMED YET".
+    // `compact` is nil for a plain scorecard and on any activity started by an
+    // older build, so the thru/holes fraction stays the floor.
+    if let c = s.compact, !c.isEmpty { return c }
     guard let g = s.game, !g.isEmpty else { return "\(s.thru)/\(s.holes)" }
-    // "JERECHO & LOGAN 2 UP" would be cut to noise; the verdict is the tail.
-    // 12 fits "ALL SQUARE" whole — at 9 it rendered as "SQUARE", which reads
-    // like a different result than the one the round is actually in.
-    if g.count <= 12 { return g }
-    if let r = g.range(of: " ", options: .backwards, range: g.startIndex..<g.endIndex) {
-      let tail = String(g[g.index(after: r.lowerBound)...])
-      if let r2 = g.range(of: " ", options: .backwards, range: g.startIndex..<r.lowerBound) {
-        return String(g[g.index(after: r2.lowerBound)...])      // "2 UP"
-      }
-      return tail
-    }
-    return String(g.prefix(9))
+    return g.count <= 12 ? g : "\(s.thru)/\(s.holes)"
   }
 
   private func lockScreen(_ a: CSRoundActivity, _ s: CSRoundActivity.ContentState) -> some View {
