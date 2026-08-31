@@ -21,6 +21,43 @@ struct LeaguePane: View {
   #endif
   @State private var shareURL: URL?
   @State private var sharing = false
+  @State private var rosterBusy = false
+
+  /// D180 · "ROSTER OPEN · 5 IN" and, for the Pro, the handle. The sub-line is
+  /// `RosterDoor.line()` — the same three facts `_join_gate` reads, so the
+  /// screen and the server cannot say different things.
+  @ViewBuilder private var rosterRow: some View {
+    let door = model.rosterDoor
+    RoomCheckRow(door.eyebrow(members: model.members.count), sub: door.line()) {
+      Image(systemName: door.isOpen ? "door.left.hand.open" : "door.left.hand.closed")
+        .font(.system(size: 15, weight: .regular))
+        .foregroundStyle(door.isOpen ? cs.brand : cs.mut)
+    } trail: {
+      if model.isPro {
+        if door.isOpen {
+          // armed, because closing it turns off a link the Pro has already
+          // texted to people — recoverable, but not a stray tap
+          ArmedMini("Roster's set", armedLabel: "Sure? The link stops working", busy: rosterBusy) {
+            setRoster(open: false)
+          }
+          .accessibilityHint("Turns off the invite link. You can still add golfers yourself until the halfway turn.")
+        } else {
+          RoomMini("Reopen", busy: rosterBusy) { setRoster(open: true) }
+        }
+      }
+    }
+  }
+
+  private func setRoster(open: Bool) {
+    rosterBusy = true
+    Task {
+      defer { rosterBusy = false }
+      do {
+        try await model.setRoster(open: open)
+        toast.show(open ? "Roster's open — the link works again" : "Roster's set")
+      } catch { toast.show(roomError(error, "Could not change the roster.")) }
+    }
+  }
 
   var body: some View {
     let n = model.members.count
@@ -45,6 +82,11 @@ struct LeaguePane: View {
           .accessibilityLabel("Turn off this link — the page stops working for everyone who has it")
         }
       }
+      // D180 · the roster door. It sits directly under Members & invites
+      // because it governs exactly that: who can still get in with the code.
+      // The Pro gets the handle; a member reads the state and nothing else.
+      rosterRow
+
       RoomCheckRow("Squads", sub: LeagueCopy.squadsSub(model.clock, solo: model.solo)) {
         Image(systemName: "person.2").font(.system(size: 15, weight: .regular)).foregroundStyle(cs.ink)
       } trail: { RoomMini("View") { links.openDraft() } }

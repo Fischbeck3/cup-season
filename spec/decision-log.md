@@ -5002,3 +5002,29 @@ Both restored; verified in a rolled-back prod transaction: 2 board posts written
 **Recorded because I was overruled and the reasoning matters:** I argued for "unanswered" — that a friend request is an open loop with a person on the other end, and Cup Season's whole posture is that these things matter. The owner's counter is the stronger one: a badge you cannot clear by looking is one people learn to ignore, and an ignored badge misses the next real thing. The open loop does not vanish — the request is still a row with two buttons on Home and on the buddies screen. Only the icon nag stands down.
 
 **CONFLICT:** none. D104 §4 wrote the contract; this is the first time the database has obeyed it.
+
+### D180 · The roster has a door, and the Pro holds the handle — superseding D179's warning
+*(2026-08-31. Owner, on the warning I had just shipped: "This is confusing and against our voice, what is the real issue? ... all sounds band aid solution." Then: "or do we add a manual close league". They were right on both counts.)*
+
+**THE EVIDENCE, measured before it was theorised: five of the seven locked leagues in production were born with a DEAD join code.** *Fellas* locked 2026-07-20 with a first tee of 2026-07-20 — **its code has never worked once.** Sunset Match, Fairway Society, Ridgeline Cup and Sandbox the same. This was never an edge case to warn about; it was the majority case.
+
+**The real issue:** D161 wrote the window as `[lock, first tee)` on the assumption that lock precedes first tee, and never handled `lock >= first tee`. The lock screen says *"Lock opens the invite link"* — for those five, **lock closed it.** The app handed the Pro a link and invalidated it in the same action.
+
+**Why D179's warning was the wrong instrument** (and is deleted in the same commit): it explained an incoherence instead of removing it, and it made the app argue with the Pro about a choice the app had made badly. *"You'll add golfers yourself from the Clubhouse"* is the app handing back its own job. The Cup Season Test asks whether a line has quiet confidence; a warning that scolds you for using a date picker as labelled does not.
+
+**The second half, which nobody had named until the owner asked for a manual close: THERE WAS NO WAY TO CLOSE A CODE.** No rotate, no close, nothing in the schema. A league that filled on day one with a first tee a month out had a live link for a month, screenshots and all, and its Pro could do nothing. So a manual close was never an *alternative* to the fix — it was the missing control, and the floor is its backstop.
+
+**Built — the door:**
+- **opens** at lock · **closes** when the Pro closes it, or at first tee if they never do · **floor**: a league locked ON OR AFTER first tee gets a week regardless, so a link is never born dead.
+- The floor is a backstop, not a rule anyone learns: it exists only so *"lock opens the invite link"* is true in every case. It does **not** widen the window for a league locked before first tee — that is D161's ruling, untouched.
+- `close_roster(p_league, p_open)` is commissioner-gated and posts to the board both ways: the roster is one of the season's terms (D112's covenant), so changing it is not a private setting.
+- `RosterDoor.of()` on the phone and `rosterDoor()` on the web read **the same three facts `_join_gate` reads** — the Pro's close, the lock time, first tee — so the screen and the server cannot say different things.
+- The Pro's close is armed (*"Sure? The link stops working"*) because it turns off a link they may already have texted to people. Recoverable, but not a stray tap.
+
+**NAMING, deliberately against the owner's own suggestion of "Tee it up".** The season still starts on `seasons.starts_on`, which drives week numbers, clash windows, month closes and the Cup Final trigger (`ends_on − 27`). A button called *Tee it up* that closed a roster would repeat **the exact two-concepts-one-date conflation that caused this bug.** It is called **"Roster's set"**, and the pane says *ROSTER OPEN · 5 IN*. (The bigger idea — that tee-it-up should also *start the season*, removing the date picker for new leagues — is real and worth its own decision; it reworks the scoring spine and removes backdating, so it must not ride along here.)
+
+**The lock screen now states a fact instead of a warning**, in every case, which it never did before — not even the normal one: *"Lock opens the invite link. It works until first tee — Sat Sep 6. You can close the roster yourself once everyone's in. Four to tee off."* The old line promised *"anyone can also join later with the league code"*, which D161 stopped; it had been wrong since D161 shipped.
+
+**Verified against prod, rolled back — five behaviours, not assertions:** a league locked on its own first tee now admits a code join; eight days later it does not; the Pro's close refuses a code join with the right sentence; the Pro still gets through their own closed roster; and the refusal text is checked, not assumed. Seven client-side assertions mirror them (`RosterDoorTests`) including the Fellas shape by name.
+
+**CONFLICT:** amends D161 (the window gains a floor and a manual close; its first-tee rule is otherwise intact) and **supersedes D179's first half** — the lock warning is deleted. D179's badge ruling is untouched.

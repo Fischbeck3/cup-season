@@ -49,6 +49,11 @@
 # through 20260831160000, so this is exactly what the push produces.
 # mark_actionable_seen (D179, the badge's "I looked" marker, granted to
 # authenticated); actionable_count_of keeps its service_role-only grant.
+#
+# 2026-08-31 (D180): 201 functions. Taken with 20260831170000 +
+# 20260831180000 + 20260831190000 applied inside a ROLLED-BACK
+# transaction — prod is clean through 20260831160000. close_roster is the
+# Pro's handle on the roster door; _join_gate stays revoked from everyone.
 _cup_window_rounds|p_season uuid|TABLE(member_id uuid, round_id uuid, profile_id uuid, played_on date, points integer, month_rank bigint, pvi numeric, holes_played integer)|definer|none
 _join_gate|p_league uuid, p_via_pro boolean|void|definer|none
 _late_squad|p_league uuid, p_member uuid|text|definer|none
@@ -74,6 +79,7 @@ claim_round|p_token uuid|jsonb|definer|auth
 claim_scan_round|p_token uuid|jsonb|definer|auth
 clash_last_call|p_season uuid|uuid|definer|none
 close_month|p_season uuid, p_month date|void|definer|none
+close_roster|p_league uuid, p_open boolean DEFAULT false|timestamp with time zone|definer|auth
 close_season|p_season uuid|void|definer|none
 course_key|p_api_id text, p_label text|text|invoker|auth
 course_name_of|p_api_id text, p_label text|text|invoker|auth

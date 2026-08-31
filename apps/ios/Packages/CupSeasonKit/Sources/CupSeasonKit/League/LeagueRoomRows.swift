@@ -45,15 +45,19 @@ public enum LeagueRoom {
     public let payout_runnerup: Int?
     public let payout_king: Int?
     public let finish: String?
+    /// D180 · when the Pro closed the roster. Non-null = the join CODE is off;
+    /// the Pro can still add people until the halfway turn.
+    public let roster_closed_at: Date?
     public init(league_id: UUID, preset: String? = nil, handicap_allowance: Int? = nil, verification: String? = nil, counting_cap: Int? = nil,
                 participation_floor: Int? = nil, floor_penalty: String? = nil, season_format: String? = nil, buyin_cents: Int? = nil,
                 season_months: Int? = nil, locked_at: Date? = nil, structure: String? = nil, draft_type: String? = nil,
-                payout_champ: Int? = nil, payout_runnerup: Int? = nil, payout_king: Int? = nil, finish: String? = nil) {
+                payout_champ: Int? = nil, payout_runnerup: Int? = nil, payout_king: Int? = nil, finish: String? = nil,
+                roster_closed_at: Date? = nil) {
       self.league_id = league_id; self.preset = preset; self.handicap_allowance = handicap_allowance; self.verification = verification
       self.counting_cap = counting_cap; self.participation_floor = participation_floor; self.floor_penalty = floor_penalty
       self.season_format = season_format; self.buyin_cents = buyin_cents; self.season_months = season_months; self.locked_at = locked_at
       self.structure = structure; self.draft_type = draft_type; self.payout_champ = payout_champ; self.payout_runnerup = payout_runnerup
-      self.payout_king = payout_king; self.finish = finish
+      self.payout_king = payout_king; self.finish = finish; self.roster_closed_at = roster_closed_at
     }
   }
 

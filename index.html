@@ -2006,8 +2006,8 @@ body:not(.noleague) #hubLeagueless{display:none;}
   text-transform:uppercase; color:var(--brand); margin:26px 0 7px;
   padding-bottom:7px; border-bottom:1px solid var(--line2);}
 .grouphead:first-child{margin-top:0;}
-/* D179 · the pre-lock warning: amber, an icon, and room to breathe. It states
-   a consequence the Pro chose, so it must not look like an error. */
+/* D180 · a standing notice row — amber, an icon, room to breathe. Used where
+   the app reports a state the golfer chose, never to scold them for it. */
 .warnrow{display:flex; gap:8px; align-items:flex-start; padding:10px 12px 10px 11px;
   margin:0 0 10px; border-radius:var(--rc); line-height:1.45;
   background:color-mix(in srgb, var(--warm) 9%, transparent);
@@ -3778,6 +3778,10 @@ html[data-theme="light"] .room-dusk .btn:not(.dark):not(.gold):not(.apple){color
         <div class="roompane" id="room-league">
         <div class="eyebrow league-only" style="margin-top:0">League</div>
         <div class="check league-only"><span class="num"><svg class="ic" aria-hidden="true"><use href="#i-flag"/></svg></span><div class="tt"><b>Members & invites</b><small id="hubMembersSub">7 players</small></div><button class="mini" id="hubMembersBtn">View</button></div>
+        <!-- D180: the roster door. Under Members & invites because it governs
+             exactly that — who can still get in with the CODE. The Pro gets the
+             handle; a member reads the state. -->
+        <div class="check league-only" id="rosterRow"><span class="num" id="rosterIcon">🚪</span><div class="tt"><b id="rosterHead">Roster</b><small id="rosterSub"></small></div><span style="display:flex;gap:6px;flex:none" id="rosterAct"></span></div>
         <div class="check league-only"><span class="num">🔗</span><div class="tt"><b>Share the season</b><small>A public page — the standings so far, no account needed</small></div><span style="display:flex;gap:6px;flex:none"><button class="mini" id="hubSeasonShare">Link</button><button class="mini" id="hubSeasonRevoke" title="Turn off this link — the page stops working for everyone who has it">✕</button></span></div>
         <div class="check"><span class="num"><svg class="ic" aria-hidden="true"><use href="#i-users"/></svg></span><div class="tt"><b>Squads</b><small id="hubDraftSub">Complete · rosters locked</small></div><button class="mini" data-go="draft">View</button></div>
 
@@ -13443,7 +13447,7 @@ function renderBylaws(){
       : `<div class="byrow"><span>FINISH</span><b>Points table crowns it · whole season, one race</b></div>`}`;
   const hub=$('#bylawsHub'); if(hub) hub.innerHTML=rows;
   const rev=$('#bylawsReview'); if(rev) rev.innerHTML=rows;
-  paintFirstTeeWarning();   /* D179: a first tee of today kills the code at lock */
+  paintInviteNote();   /* D180: say when the invite link expires */
   const asd=$('#wizAside'); if(asd) asd.innerHTML=wizPortrait();   /* Stage 3d: the desktop live portrait */
   /* the endgame dial (migration 008): the Pro can flip the finish until the
      final window opens — after that it's settled, argue never */
@@ -13493,42 +13497,34 @@ function renderBylaws(){
   }
 }
 /* ─────────────────────────────────────────────────────────────────────────
-   D179 · say what a first tee of TODAY costs, before the Pro locks on it.
+   D180 · when the invite link expires, said as a FACT on the lock screen.
 
-   The join window (D161) opens the code at lock and closes it at first tee —
-   `_join_gate` is `if v_today < v_starts then return`, strictly less than. So
-   a first tee of today makes the code dead the instant lock completes, and a
-   date in the past makes it dead AND the season retroactively underway.
+   This replaces D179's warning, which was a band-aid: it explained an
+   incoherence (a link created and invalidated by the same action) instead of
+   removing it, and made the app argue with the Pro about a choice the app had
+   made badly. The roster door (D180) removes the incoherence; this line just
+   reports the door's closing time, in every case — which the screen never did
+   before, not even in the normal one.
 
-   Backdating is deliberate and worth keeping: a group three weeks into a
-   season they are already playing on paper wants those weeks to count. So the
-   picker stays unbounded (owner ruling) and the review states the consequence
-   instead — and names the way out in the same breath, because a warning that
-   only takes something away is a scold.
-
-   It never fires on the default: `defaultStart()` is the next upcoming
-   Saturday and skips today even when today IS Saturday.
+   At lock, `locked_at` is now, so the rule reduces to: first tee if it is in
+   the future, otherwise a week from today.
    ───────────────────────────────────────────────────────────────────────── */
-function firstTeeIsToday(){
+function inviteWindowText(){
   const s = seasonStartDate();
   const t = new Date(); t.setHours(0,0,0,0);
-  return s <= t;
+  if(s > t) return `It works until first tee \u2014 ${WD[s.getDay()]} ${MOS[s.getMonth()]} ${s.getDate()}.`;
+  const w = new Date(t.getFullYear(), t.getMonth(), t.getDate() + 7);
+  return `It works for a week \u2014 until ${WD[w.getDay()]} ${MOS[w.getMonth()]} ${w.getDate()}.`;
 }
-function paintFirstTeeWarning(){
+function paintInviteNote(){
   const note = $('#inviteNote'); if(!note) return;
-  const wrap = note.parentElement; if(!wrap) return;
-  let el = document.getElementById('firstTeeWarn');
-  if(!firstTeeIsToday()){ if(el) el.remove(); return; }
-  const s = seasonStartDate(), t = new Date(); t.setHours(0,0,0,0);
-  const when = s.getTime() === t.getTime()
-    ? 'First tee is today, so the join code closes the moment you lock.'
-    : `First tee is ${WD[s.getDay()]} ${MOS[s.getMonth()]} ${s.getDate()} — already past, so the join code closes the moment you lock.`;
-  const html = `<p class="fine warnrow" id="firstTeeWarn" role="status">
-    <span aria-hidden="true">\u26a0</span>
-    <span>${when} You'll add golfers yourself from the Clubhouse \u2014 the Pro's door stays open to the halfway turn.</span></p>`;
-  if(el) el.outerHTML = html; else note.insertAdjacentHTML('beforebegin', html);
+  /* the old line promised "anyone can also join later with the league code",
+     which D161 stopped — the code closes at first tee. It has been wrong since
+     D161 shipped. */
+  note.textContent = `Lock opens the invite link. ${inviteWindowText()} You can close the roster yourself once everyone's in. Four to tee off.`;
+  const stale = document.getElementById('firstTeeWarn'); if(stale) stale.remove();
 }
-window.paintFirstTeeWarning = paintFirstTeeWarning;
+window.paintInviteNote = paintInviteNote;
 
 const MIN_LEAGUE=4;                    /* foursome floor — spec §8 v0.7 */
 if(state.emails.length===0) state.emails=[''];   /* one line; "+ Add email" grows it */
@@ -13611,11 +13607,77 @@ function renderPhase(){
     : p==='setup' ? 'OPENS AFTER SETTINGS LOCK'
     : p==='draft' ? 'LIVE NOW — CAPTAINS READY'
     : 'Complete · rosters locked';
+  renderRosterDoor();     /* D180: who can still get in with the code */
   renderLeagueMeta();
   renderCalendar();
   renderLiveBanner();
   gateLiveRound();
 }
+/* ─────────────────────────────────────────────────────────────────────────
+   D180 · the roster door, painted from the same three facts `_join_gate`
+   reads — the Pro's close, the lock time, and first tee — so the screen and
+   the server cannot say different things.
+
+     opens   at lock
+     closes  when the Pro closes it, or at first tee if they never do
+     floor   a league locked ON OR AFTER first tee gets a week regardless,
+             so a link is never born dead (5 of 7 real leagues were)
+   ───────────────────────────────────────────────────────────────────────── */
+function rosterDoor(){
+  const st = window.CS?.settings || {};
+  if(st.roster_closed_at) return { open:false, by:'pro' };
+  const start = window.CS?.season?.starts_on;
+  if(!start) return { open:true, until:null };
+  const today = (()=>{ const n=new Date(), p2=x=>String(x).padStart(2,'0');
+    return `${n.getFullYear()}-${p2(n.getMonth()+1)}-${p2(n.getDate())}`; })();
+  if(today < start) return { open:true, until:start };
+  if(!st.locked_at) return { open:false, by:'time' };
+  const lockISO = (()=>{ const d=new Date(st.locked_at), p2=x=>String(x).padStart(2,'0');
+    return `${d.getFullYear()}-${p2(d.getMonth()+1)}-${p2(d.getDate())}`; })();
+  if(lockISO < start) return { open:false, by:'time' };
+  const l = localDate(lockISO); l.setDate(l.getDate()+7);
+  const p2=x=>String(x).padStart(2,'0');
+  const last = `${l.getFullYear()}-${p2(l.getMonth()+1)}-${p2(l.getDate())}`;
+  return today <= last ? { open:true, until:last, grace:true } : { open:false, by:'time' };
+}
+function renderRosterDoor(){
+  const row=$('#rosterRow'); if(!row) return;
+  if(state.demo || !window.CS?.league){ row.style.display='none'; return; }
+  row.style.display='';
+  const d = rosterDoor();
+  const n = (window.CS?.members||[]).length;
+  const pretty = iso => { const x=localDate(iso); return `${WD[x.getDay()]} ${MOS[x.getMonth()]} ${x.getDate()}`; };
+  $('#rosterHead').textContent = (d.open ? 'Roster open' : 'Roster closed') + (n ? ` · ${n} in` : '');
+  $('#rosterIcon').textContent = d.open ? '🚪' : '🔒';
+  $('#rosterSub').textContent =
+      !d.open && d.by==='pro'  ? 'You closed the roster. Add anyone yourself until the halfway turn.'
+    : !d.open                  ? 'The link has closed. Add anyone yourself until the halfway turn.'
+    : d.until                  ? `Works until you close it, or until ${d.grace?'':'first tee — '}${pretty(d.until)}.`
+    :                            'The invite link works until you close the roster.';
+  const act=$('#rosterAct');
+  const isPro = window.CS?.member?.role==='commissioner';
+  if(!isPro){ act.innerHTML=''; return; }
+  act.innerHTML = d.open
+    ? `<button class="mini" id="rosterClose">Roster's set</button>`
+    : `<button class="mini" id="rosterOpen">Reopen</button>`;
+  const btn = document.getElementById(d.open ? 'rosterClose' : 'rosterOpen');
+  btn?.addEventListener('click', async ()=>{
+    /* closing turns off a link the Pro has already texted to people —
+       recoverable, but not a stray tap */
+    if(d.open && btn.dataset.armed!=='1'){
+      btn.dataset.armed='1'; btn.textContent='Sure? The link stops working'; return;
+    }
+    btn.disabled=true;
+    const { error } = await sb.rpc('close_roster', { p_league: CS.league.id, p_open: !d.open });
+    if(error){ toast(humanError(error,'Could not change the roster.')); btn.disabled=false; return; }
+    toast(d.open ? "Roster's set" : "Roster's open — the link works again");
+    /* re-read the bylaws row so CS.settings.roster_closed_at is authoritative;
+       applyBylaws re-renders, and this repaint is the belt for a skewed load */
+    if(window.loadLeagueData) await window.loadLeagueData();
+    renderRosterDoor();
+  });
+}
+window.renderRosterDoor = renderRosterDoor;
 /* ---------- the calendar tab: month by month, social first ----------
    Days carry (a) rounds on the books — yours, friends', league mates' (the
    my_schedule RPC does the visibility math) and (b) season dates from EVERY

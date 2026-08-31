@@ -108,6 +108,21 @@ public final class LeagueRoomModel {
 
   public var myMember: LeagueRoom.Member? { viewer.flatMap { v in members.first { $0.profile_id == v.id } } }
   public var isPro: Bool { myMember?.isPro ?? false }
+
+  /// D180 · the roster door, from the same three facts `_join_gate` reads.
+  public var rosterDoor: RosterDoor {
+    RosterDoor.of(lockedAt: settings?.locked_at,
+                  closedAt: settings?.roster_closed_at,
+                  startsOn: season?.starts_on)
+  }
+
+  /// D180 · the Pro shuts the door when the crew is in, or opens it again.
+  /// The server posts the board line — the roster is one of the season's terms
+  /// (D112's covenant), so changing it is not a private setting.
+  public func setRoster(open: Bool) async throws {
+    _ = try await svc.call(Rpc.close_roster(p_league: leagueId, p_open: open))
+    await refresh()
+  }
   public var solo: Bool { bylaws.solo }
   public var isComplete: Bool { season?.status == "complete" }
   public var mySquad: LeagueRoom.Squad? { myMember.flatMap { m in squads.first { $0.seats(m.id) } } }
@@ -179,7 +194,7 @@ public final class LeagueRoomModel {
       // the league, its bylaws, its latest season — three independent reads
       async let leagueQ: [LeagueRoom.League] = loadLeagueRows()
       async let settingsQ: [LeagueRoom.Settings] = db.from("league_settings")
-        .select("league_id, preset, handicap_allowance, verification, counting_cap, participation_floor, floor_penalty, season_format, buyin_cents, season_months, locked_at, structure, draft_type, payout_champ, payout_runnerup, payout_king, finish")
+        .select("league_id, preset, handicap_allowance, verification, counting_cap, participation_floor, floor_penalty, season_format, buyin_cents, season_months, locked_at, structure, draft_type, payout_champ, payout_runnerup, payout_king, finish, roster_closed_at")
         .eq("league_id", value: leagueId).execute().value
       let (leagues, settingsRows) = try await (leagueQ, settingsQ)
       guard let lg = leagues.first else { throw RpcError(name: "leagues", underlying: "No league with that id — it may have been deleted.", droppedArgs: []) }
@@ -427,7 +442,7 @@ public final class LeagueRoomModel {
   public func setFinish(_ next: String) async throws {
     _ = try await svc.call(Rpc.set_league_finish(p_league: leagueId, p_finish: next))
     let rows: [LeagueRoom.Settings] = try await svc.client.from("league_settings")
-      .select("league_id, preset, handicap_allowance, verification, counting_cap, participation_floor, floor_penalty, season_format, buyin_cents, season_months, locked_at, structure, draft_type, payout_champ, payout_runnerup, payout_king, finish")
+      .select("league_id, preset, handicap_allowance, verification, counting_cap, participation_floor, floor_penalty, season_format, buyin_cents, season_months, locked_at, structure, draft_type, payout_champ, payout_runnerup, payout_king, finish, roster_closed_at")
       .eq("league_id", value: leagueId).execute().value
     settings = rows.first
     derive()
