@@ -190,13 +190,17 @@ final class LiveRoundStore {
   var incoming: NearbyInvite?
 
   func startNearby() {
-    guard nearbyOn, let me = myPid, !state.active else { return }
+    // D168 · runs from the tab shell now, so it must be safe to call often and
+    // from anywhere: already-running is a no-op, and a live round still stops
+    // advertising (the foursome is set — there is nobody left to ask).
+    guard nearbyOn, let me = myPid, !state.active, !nearby.running else { return }
     nearby.onChange = { [weak self] ids in
       Task { @MainActor in await self?.resolveNearby(ids) }
     }
     nearby.onInvite = { [weak self] inv in self?.incoming = inv }
     nearby.onReply = { [weak self] who, ok in self?.answered(who, ok) }
     nearby.onTeed = { [weak self] lr in Task { @MainActor in await self?.enterInvited(lr) } }
+    nearby.onUndeliverable = { [weak self] who in self?.askFailed(who, "Couldn't reach their phone") }
     nearby.start(myProfile: me)
   }
 
@@ -215,6 +219,22 @@ final class LiveRoundStore {
                   course: state.course.label.isEmpty ? "a round" : state.course.label,
                   game: state.game.banner)
     toast("Asked \(roster[i].n)")
+    // D168 · ASKING is a state you must be able to leave. A phone that has
+    // wandered off, locked, or left the setup screen will never answer, and the
+    // chip used to sit there forever saying nothing. Give up out loud.
+    Task { @MainActor [weak self] in
+      try? await Task.sleep(for: .seconds(20))
+      guard let self, self.asking.contains(pid) else { return }
+      self.askFailed(pid, "No answer")
+    }
+  }
+
+  /// D168 · the ask did not land. Clear the chip and say why, rather than
+  /// leaving a spinner that means nothing.
+  func askFailed(_ who: UUID, _ reason: String) {
+    guard asking.remove(who) != nil else { return }
+    let name = roster.first(where: { $0.pid == who })?.n
+    toast("\(reason) — ask \(name ?? "them") to open the tee sheet")
   }
 
   private func answered(_ who: UUID, _ ok: Bool) {

@@ -23,6 +23,7 @@
 
 import Foundation
 import MultipeerConnectivity
+import os
 
 /// 1–15 chars, lowercase ASCII + hyphens — Bonjour's rule, not ours.
 private let kServiceType = "cs-tee"
@@ -67,6 +68,8 @@ public struct NearbyInvite: Identifiable, Sendable, Equatable {
 /// a strict-concurrency error, so they live here behind `@unchecked Sendable`
 /// with one internal queue serialising every touch — and the ONLY thing that
 /// ever crosses back out is a `UUID`, which is Sendable.
+private let nearbyLog = Logger(subsystem: "app.cupseason.ios", category: "nearby")
+
 private final class NearbyTransport: NSObject, @unchecked Sendable {
   private let q = DispatchQueue(label: "cs.nearby")
   private let me: UUID
@@ -75,12 +78,18 @@ private final class NearbyTransport: NSObject, @unchecked Sendable {
   private let advertiser: MCNearbyServiceAdvertiser
   private let browser: MCNearbyServiceBrowser
   private let heard: @Sendable (NearbyMessage) -> Void
+  /// D168 · raised when a message could NOT be delivered. Every failure here
+  /// used to be swallowed by `guard … else { return }` and `try?`, so a phone
+  /// whose peer had wandered off sat on "ASKING…" forever with nothing said.
+  private let undeliverable: @Sendable (UUID) -> Void
   /// profile id -> the peer holding it. Touched only on `q`.
   private var peers: [UUID: MCPeerID] = [:]
 
-  init(me: UUID, heard: @escaping @Sendable (NearbyMessage) -> Void) {
+  init(me: UUID, heard: @escaping @Sendable (NearbyMessage) -> Void,
+       undeliverable: @escaping @Sendable (UUID) -> Void) {
     self.me = me
     self.heard = heard
+    self.undeliverable = undeliverable
     // a random display name: the peer id is broadcast in the CLEAR, so it
     // carries nothing about the golfer holding the phone
     peer = MCPeerID(displayName: String(UUID().uuidString.prefix(8)))
@@ -111,8 +120,24 @@ private final class NearbyTransport: NSObject, @unchecked Sendable {
   /// happen, which is the correct outcome.
   func send(_ m: NearbyMessage, to: UUID) {
     q.async { [self] in
-      guard let peer = peers[to], let data = try? JSONEncoder().encode(m) else { return }
-      try? session.send(data, toPeers: [peer], with: .reliable)
+      guard let peer = peers[to] else {
+        nearbyLog.error("send \(m.t.rawValue, privacy: .public): no peer known for that golfer")
+        undeliverable(to); return
+      }
+      // a peer we heard from once may have wandered off since; MCSession keeps
+      // the handle but will not carry a message to it
+      guard session.connectedPeers.contains(peer) else {
+        nearbyLog.error("send \(m.t.rawValue, privacy: .public): peer no longer connected")
+        peers.removeValue(forKey: to); undeliverable(to); return
+      }
+      guard let data = try? JSONEncoder().encode(m) else { undeliverable(to); return }
+      do {
+        try session.send(data, toPeers: [peer], with: .reliable)
+        nearbyLog.info("sent \(m.t.rawValue, privacy: .public)")
+      } catch {
+        nearbyLog.error("send \(m.t.rawValue, privacy: .public) failed: \(error.localizedDescription, privacy: .public)")
+        undeliverable(to)
+      }
     }
   }
 
@@ -123,6 +148,15 @@ private final class NearbyTransport: NSObject, @unchecked Sendable {
 
 extension NearbyTransport: MCSessionDelegate {
   func session(_ s: MCSession, peer peerID: MCPeerID, didChange state: MCSessionState) {
+    nearbyLog.info("peer \(peerID.displayName, privacy: .public) -> \(String(describing: state), privacy: .public)")
+    // D168 · a peer that leaves must leave the map too, or every later send
+    // fails against a handle MCSession will never carry anything to
+    if state == .notConnected {
+      q.async { [self] in
+        for (id, p) in peers where p == peerID { peers.removeValue(forKey: id); undeliverable(id) }
+      }
+      return
+    }
     guard state == .connected else { return }
     // the profile id goes out only INSIDE the encrypted session, after both
     // sides chose to connect
@@ -174,6 +208,8 @@ final class NearbyService {
   var onReply: (@MainActor (UUID, Bool) -> Void)?
   /// D163 · the round they accepted has actually teed off. This is the id.
   var onTeed: (@MainActor (UUID) -> Void)?
+  /// D168 · a message could not be delivered to that golfer's phone.
+  var onUndeliverable: (@MainActor (UUID) -> Void)?
 
   private var transport: NearbyTransport?
   private var me: UUID?
@@ -183,6 +219,8 @@ final class NearbyService {
     me = myProfile
     let t = NearbyTransport(me: myProfile) { [weak self] m in
       Task { @MainActor in self?.heard(m) }
+    } undeliverable: { [weak self] who in
+      Task { @MainActor in self?.onUndeliverable?(who) }
     }
     transport = t
     t.start()

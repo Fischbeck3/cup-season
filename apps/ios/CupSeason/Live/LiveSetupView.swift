@@ -34,10 +34,14 @@ struct LiveSetupView: View {
       }
       .padding(20)
     }
-    // D156 · advertising runs ONLY while this screen is up. There is no
-    // background mode; leaving stops it, and tee-off stops it too.
+    // D168 · advertising now follows the APP, not this screen — it starts here
+    // and in the tab shell whenever the app is foreground and the golfer has
+    // opted in. Confining it to this one screen meant everybody had to be on
+    // the same screen at the same time, which defeats the point: one person
+    // builds the round, everyone else should just be asked. Leaving the screen
+    // no longer stops it; backgrounding does (there is still no background
+    // mode, and there must never be one).
     .onAppear { store.startNearby() }
-    .onDisappear { store.stopNearby() }
     // D158 · someone on this tee wants you in their round. "Not me" is not a
     // decline of the golf — it is the honest answer when the name on the other
     // phone is not actually you.

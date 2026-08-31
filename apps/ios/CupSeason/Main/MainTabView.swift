@@ -170,6 +170,17 @@ struct MainTabView: View {
     .onReceive(NotificationCenter.default.publisher(for: .csOpenLiveRound)) { _ in
       presenter.showLive = true
     }
+    // D168 · nearby follows the APP. Foreground and opted in = discoverable to
+    // your buddies; backgrounded = nothing, by construction (MultipeerConnectivity
+    // has no background mode, and this app will never ask for one).
+    .onChange(of: scenePhase) { _, phase in
+      switch phase {
+      case .active:     LiveRoundStore.shared.startNearby()
+      case .background: LiveRoundStore.shared.stopNearby()
+      default: break
+      }
+    }
+    .task { LiveRoundStore.shared.startNearby() }
     // D163 · a round you ACCEPTED has teed off — land in it without a tap. This
     // is the whole point of the handshake: you said yes, so the app takes you
     // there rather than leaving you to discover it.
