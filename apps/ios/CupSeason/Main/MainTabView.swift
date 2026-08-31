@@ -106,6 +106,12 @@ struct MainTabView: View {
       LiveNowBar(presented: presenter.showLive) { presenter.showLive = true }
       tabs
     }
+    // D175 · the doorbell rings wherever you are. Advertising has followed the
+    // app since D168/D170, but the alert that answers it lived only on the tee
+    // sheet — so a golfer was findable on every screen and askable on one. It
+    // stands down while the live cover is up; `LiveSetupView` carries it there,
+    // because an alert cannot present from underneath a full-screen cover.
+    .csNearbyInvite(LiveRoundStore.shared, enabled: !presenter.showLive)
   }
 
   private var tabs: some View {

@@ -42,18 +42,10 @@ struct LiveSetupView: View {
     // no longer stops it; backgrounding does (there is still no background
     // mode, and there must never be one).
     .onAppear { store.startNearby() }
-    // D158 · someone on this tee wants you in their round. "Not me" is not a
-    // decline of the golf — it is the honest answer when the name on the other
-    // phone is not actually you.
-    .alert("Join this round?", isPresented: Binding(get: { store.incoming != nil },
-                                                    set: { if !$0 { store.answerIncoming(false) } })) {
-      Button("Join") { store.answerIncoming(true) }
-      Button("Not me", role: .cancel) { store.answerIncoming(false) }
-    } message: {
-      if let inv = store.incoming {
-        Text("\(inv.name) wants you in a round at \(inv.course)\(inv.game.isEmpty ? "" : " · \(inv.game)").")
-      }
-    }
+    // D175 · the same doorbell the tab shell rings — see `csNearbyInvite`. This
+    // copy exists because an alert cannot present from under a full-screen
+    // cover, and this screen IS that cover.
+    .csNearbyInvite(store)
     .csFeedback(.teeOff, trigger: teeOffTaps)
     .scrollDismissesKeyboard(.interactively)
     .navigationTitle("Play now")

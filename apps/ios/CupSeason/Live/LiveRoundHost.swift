@@ -202,3 +202,41 @@ enum LiveClaimAfterAuth {
     if let t = await ClaimFlow.consume(livePencilToken: pencil).toast { toast.show(t) }
   }
 }
+
+// MARK: - D175 · the doorbell follows the app
+
+/// The nearby invitation, presentable from anywhere.
+///
+/// D168 and D170 moved the RADIO to the app — advertising starts from the tab
+/// shell the moment the session loads, and the device console confirms it
+/// (`startNearby OK — advertising`, before any screen is opened). But the
+/// ALERT — the thing the golfer actually has to tap — stayed pinned to
+/// `LiveSetupView`. So a phone was discoverable everywhere and answerable in
+/// exactly one place, which is why the owner kept reporting the same sentence
+/// after three "fixes": *"it still sits at asking unless I am in the post round
+/// section."* The radio followed the app; the door didn't.
+///
+/// Two hosts, because an alert cannot present from a view that a full-screen
+/// cover is sitting on top of: the tab shell carries it while the cover is
+/// down, and the setup sheet carries it while the cover is up.
+///
+/// The binding's setter is deliberately EMPTY. The obvious `set: { if !$0 {
+/// answerIncoming(false) } }` turns any programmatic dismissal — the cover
+/// going up underneath it, for one — into a silent decline of a round the
+/// golfer never saw. Both buttons clear `incoming` themselves, and an alert
+/// cannot be swiped away, so nothing is lost.
+extension View {
+  func csNearbyInvite(_ store: LiveRoundStore, enabled: Bool = true) -> some View {
+    alert("Join this round?", isPresented: Binding(get: { enabled && store.incoming != nil },
+                                                   set: { _ in })) {
+      // D158 · "Not me" is not a decline of the golf — it is the honest answer
+      // when the name on the other phone is not actually you.
+      Button("Join") { store.answerIncoming(true) }
+      Button("Not me", role: .cancel) { store.answerIncoming(false) }
+    } message: {
+      if let inv = store.incoming {
+        Text("\(inv.name) wants you in a round at \(inv.course)\(inv.game.isEmpty ? "" : " · \(inv.game)").")
+      }
+    }
+  }
+}
