@@ -31,7 +31,7 @@ private let kServiceType = "cs-tee"
 /// profile id), INVITE (come play), REPLY (yes / not me). Codable + Sendable so
 /// it can cross the actor boundary the transport sits behind.
 public struct NearbyMessage: Codable, Sendable, Equatable {
-  public enum Kind: String, Codable, Sendable { case hello, invite, reply }
+  public enum Kind: String, Codable, Sendable { case hello, invite, reply, teed }
   public var t: Kind
   /// the SENDER's profile id, always
   public var from: UUID
@@ -41,6 +41,13 @@ public struct NearbyMessage: Codable, Sendable, Equatable {
   public var game: String?
   /// reply only
   public var ok: Bool?
+  /// teed only — the round now EXISTS, and this is it.
+  ///
+  /// D158 shipped without this and the hole was the whole point: at the moment
+  /// someone accepts, there is no round yet — the starter is still on the setup
+  /// screen. Accepting told the STARTER, and told the accepter nothing. Their
+  /// phone sat there while a round they had agreed to play began somewhere else.
+  public var lr: UUID?
 }
 
 /// An invitation as the receiving phone sees it.
@@ -165,6 +172,8 @@ final class NearbyService {
   var onInvite: (@MainActor (NearbyInvite) -> Void)?
   /// D158 · they answered.
   var onReply: (@MainActor (UUID, Bool) -> Void)?
+  /// D163 · the round they accepted has actually teed off. This is the id.
+  var onTeed: (@MainActor (UUID) -> Void)?
 
   private var transport: NearbyTransport?
   private var me: UUID?
@@ -191,12 +200,21 @@ final class NearbyService {
     transport?.send(NearbyMessage(t: .reply, from: me, ok: ok), to: who)
   }
 
+  /// D163 · tell everyone who said yes that the round is real now.
+  func teedOff(_ lr: UUID, to whom: [UUID]) {
+    guard let me else { return }
+    for who in whom {
+      transport?.send(NearbyMessage(t: .teed, from: me, lr: lr), to: who)
+    }
+  }
+
   private func heard(_ m: NearbyMessage) {
     switch m.t {
     case .hello:  note(m.from)
     case .invite: onInvite?(NearbyInvite(from: m.from, name: m.name ?? "A golfer",
                                          course: m.course ?? "a round", game: m.game ?? ""))
     case .reply:  onReply?(m.from, m.ok == true)
+    case .teed:   if let lr = m.lr { onTeed?(lr) }
     }
   }
 

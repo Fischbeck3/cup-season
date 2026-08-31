@@ -20,7 +20,7 @@ struct SeasonCeremonyView: View {
         VStack(alignment: .center, spacing: 10) {
           Text("Season complete").csEyebrow(d.gold)
           Text(st.champName).font(CSFont.hero).foregroundStyle(d.ink).multilineTextAlignment(.center)
-          Text(cup ? "take the Cup Final" : "take the Cup").font(CSFont.sentence).foregroundStyle(d.mut)
+          Text(cup ? "took the Cup Final" : "took the Cup").font(CSFont.sentence).foregroundStyle(d.mut)
           if let s1 = st.s1, let s2 = st.s2 {
             let margin = ((s1 - s2) * 10).rounded() / 10
             VStack(spacing: 2) {

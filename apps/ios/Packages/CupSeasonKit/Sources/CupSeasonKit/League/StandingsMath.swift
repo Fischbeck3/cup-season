@@ -300,17 +300,27 @@ public struct ClimbRung: Sendable, Equatable {
   public let accessibility: String
 }
 
+/// The line the two rungs NEIGHBOURING the viewer get.
+///
+/// Written from the point of view of the row it renders INSIDE — which is the
+/// whole subtlety. `ClimbView` prints this caption within the neighbour's own
+/// rung, so "12 back of Dot Mulligan" appeared on Dot Mulligan's line and read
+/// as her being 12 back of herself. The web caught this in the season sim on
+/// 2026-08-30 and says "12 ahead of you"; the phone kept the old wording for
+/// two months. The gap belongs to the VIEWER, so the sentence must say "you".
 public enum ClimbVoice: Sendable, Equatable {
-  case levelWith(String, stake: String?)          // "level with NAME"
-  case backOf(Double, String, stake: String?)      // "N back of NAME"
-  case levelWithYou(String)                       // "NAME level with you"
-  case behindYou(String, Double)                  // "NAME N behind you"
+  case levelAbove(stake: String?)                 // on the rung above: "level with you"
+  case aheadOfYou(Double, stake: String?)         // on the rung above: "N ahead of you"
+  case levelWithYou(String)                       // on the rung below: "NAME level with you"
+  case behindYou(String, Double)                  // on the rung below: "NAME, N behind you"
   public var text: String {
     switch self {
-    case .levelWith(let n, let s): "level with \(n)" + (s.map { " — \($0)" } ?? "")
-    case .backOf(let d, let n, let s): "\(CSCopy.points(d)) back of \(n)" + (s.map { " — \($0)" } ?? "")
+    case .levelAbove(let s): "level with you" + (s.map { " — \($0)" } ?? "")
+    case .aheadOfYou(let d, let s): "\(CSCopy.points(d)) ahead of you" + (s.map { " — \($0)" } ?? "")
     case .levelWithYou(let n): "\(n) level with you"
-    case .behindYou(let n, let d): "\(n) \(CSCopy.points(d)) behind you"
+    // the comma is load-bearing: the web parts name from number with bold, and
+    // a flat run reads "Marcus 10 behind you" as one garbled figure
+    case .behindYou(let n, let d): "\(n), \(CSCopy.points(d)) behind you"
     }
   }
 }
@@ -368,7 +378,7 @@ public enum ClimbMath {
       if let me, i == meIdx - 1 {
         let d = t.pts - me.pts
         let stake = (meIdx >= K && i == K - 1) ? stakeTxt : nil
-        voice = d == 0 ? .levelWith(t.name, stake: stake) : .backOf(d, t.name, stake: stake)
+        voice = d == 0 ? .levelAbove(stake: stake) : .aheadOfYou(d, stake: stake)
       } else if let me, i == meIdx + 1 {
         let d = me.pts - t.pts
         voice = d == 0 ? .levelWithYou(t.name) : .behindYou(t.name, d)
@@ -402,7 +412,14 @@ public enum ClimbMath {
     guard n > 0 else { return "" }
     let meta = scenarios?.meta
     let K = max(1, cut(meta).K)
-    if K >= n { return "EVERYONE ADVANCES — \(n) CONTENDER\(n == 1 ? "" : "S"), \(K) SEAT\(K == 1 ? "" : "S")" }
+    // D127 · when the roster cannot fill more seats than it has contenders the
+    // Final is hollow; say so rather than printing "EVERYONE ADVANCES" as if it
+    // were a standing. The web took this fix; the phone announced a race with
+    // one runner for two months.
+    if K >= n {
+      return n <= 1 ? "NOBODY TO RACE YET"
+                    : "EVERYONE ADVANCES — \(n) CONTENDER\(n == 1 ? "" : "S"), \(K) SEAT\(K == 1 ? "" : "S")"
+    }
     // Q-26: "PROJECTED UNDER A GENEROUS CEILING" was jargon nobody decoded, and
     // it sat over two EMPTY squads on a league that had not teed off.
     if let meta { return "TOP \(K) \(meta.finish == "points_table" ? "— THE POINTS CROWN" : "ADVANCE TO THE CUP FINAL")" }

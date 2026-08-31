@@ -61,6 +61,20 @@ struct RootView: View {
     // happened, the host fell through to LiveSetupView, and setup's own Close
     // calls the same dead closure. Only the app switcher freed you. A review
     // hatch that cannot exercise the exit is a hatch that hides exit bugs.
+    // `-cs_dev_bar`: the D163 top bar over the door, so it can be reviewed on a
+    // signed-out simulator (it normally lives above MainTabView's tabs, which
+    // only exist for a signed-in session).
+    .task {
+      if ProcessInfo.processInfo.arguments.contains("-cs_dev_bar") {
+        await LiveRoundStore.shared.configure(me: nil, preferredLeague: nil)
+      }
+    }
+    .overlay(alignment: .top) {
+      if ProcessInfo.processInfo.arguments.contains("-cs_dev_bar") {
+        LiveNowBar(presented: false) {}
+          .padding(.top, 60)
+      }
+    }
     .overlay {
       if (CSDevHatch.live || CSDevHatch.nearby) && devLive {
         LiveRoundHost(links: LiveLinks(done: { devLive = false }))

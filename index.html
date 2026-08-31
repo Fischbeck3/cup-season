@@ -9254,7 +9254,7 @@ function sunnResult(){
   const pot = Math.abs(m.bank)*unit;
   const story = winner==null
     ? `All square — ${names(0)}, ${names(1)}. Sunningdale Rules · ${bankTxt}`
-    : `${names(winner)} def. ${names(winner===0?1:0)} ${status}. Sunningdale Rules · ${bankTxt}`;
+    : `${names(winner)} beat ${names(winner===0?1:0)} ${status}. Sunningdale Rules · ${bankTxt}`;
   const share = winner==null
     ? `All square - ${fnSide(0)}, ${fnSide(1)}`
     : `${fnSide(winner)} beat ${fnSide(winner===0?1:0)} ${status}${pot>0?` for $${pot}`:''}`;
@@ -10126,7 +10126,7 @@ function matchResult(){
                              winner==null?null:names(winner)),
            story: winner==null
              ? `All square — ${names(0)}, ${names(1)}${stake>0?' · nobody pays':''}`
-             : `${names(winner)} def. ${names(winner===0?1:0)} ${st}${stake>0?` · $${stake} on the line`:''}`,
+             : `${names(winner)} beat ${names(winner===0?1:0)} ${st}${stake>0?` · $${stake} on the line`:''}`,
            share: winner==null
              ? `All square - ${fnSide(0)}, ${fnSide(1)}`
              : `${fnSide(winner)} beat ${fnSide(winner===0?1:0)} ${st}${stake>0?` for $${stake}`:''}` };
@@ -10299,7 +10299,7 @@ function showLiveRecap(d, result, lrId){
     const wSide=result.winner==='0'?result.side_a:result.side_b;
     const lSide=result.winner==='0'?result.side_b:result.side_a;
     const line = won
-      ? `${wSide} def. ${lSide} ${result.status}`
+      ? `${wSide} beat ${lSide} ${result.status}`
       /* comma, not "and": two "A & B" sides joined by "and" parsed as four
          separate people — the reader could not see where one side ended */
       : `All square — ${result.side_a}, ${result.side_b}`;
@@ -12796,7 +12796,7 @@ function openSeasonCeremony(force){
     <div class="cerwrap">
       <div class="cerkick">Season complete</div>
       <div class="cerchamp">${esc(st.champName)}</div>
-      <div class="cersub">${cup?'take the Cup Final':'take the Cup'}</div>
+      <div class="cersub">${cup?'took the Cup Final':'took the Cup'}</div>
       ${scoreLine}
       ${st.rung?`<div class="certag">decided on ${esc(st.rung)}</div>`:''}
       <div class="cerblock">
@@ -19174,7 +19174,7 @@ async function renderShareView(tok, _testInfo){
     document.title = `${GAME[info.game] || 'Settlement'} at ${info.course} · Cup Season`;
     const story = r.story
       || (r.winner != null
-          ? `${(r.winner === '0' ? r.side_a : r.side_b) || 'Winners'} def. ${(r.winner === '0' ? r.side_b : r.side_a) || 'the other side'} ${r.status || ''}`
+          ? `${(r.winner === '0' ? r.side_a : r.side_b) || 'Winners'} beat ${(r.winner === '0' ? r.side_b : r.side_a) || 'the other side'} ${r.status || ''}`
           /* comma, not "and": two "A & B" sides joined by "and" parsed as four
              separate people (the same fix as the recap sheet and the board) */
           : (r.side_a ? `All square — ${r.side_a}, ${r.side_b}` : 'Settled on the course'));

@@ -189,7 +189,7 @@ private func team(_ id: UUID, _ name: String, _ pts: Double, ci: Int = 0) -> Tea
     if case .cut(let label) = items[2] { #expect(label == "CUT LINE · 40 BACK") } else { Issue.record("no cut") }
     if case .ellipsis(_, let hid) = items[4] { #expect(hid == 1) } else { Issue.record("no ellipsis") }
     if case .rung(let r) = items[0] { #expect(r.isLead && r.gap == "+50" && r.voice == nil) } else { Issue.record("no leader") }
-    if case .rung(let r) = items[5] { #expect(r.voice == .backOf(10, "S5", stake: nil)) } else { Issue.record("no rung above") }
+    if case .rung(let r) = items[5] { #expect(r.voice == .aheadOfYou(10, stake: nil)) } else { Issue.record("no rung above") }
     if case .rung(let r) = items[6] { #expect(r.isMe && r.accessibility == "You — 6th, 30 points") } else { Issue.record("no me") }
     if case .rung(let r) = items[7] { #expect(r.voice == .behindYou("S7", 10)) } else { Issue.record("no rung below") }
     #expect(ClimbMath.note(teams: teams, scenarios: nil) == "TOP 2 ADVANCE TO THE CUP FINAL")
@@ -199,7 +199,7 @@ private func team(_ id: UUID, _ name: String, _ pts: Double, ci: Int = 0) -> Tea
     if case .cut(let label) = items.first(where: { if case .cut = $0 { return true }; return false })! { #expect(label == "CUT LINE · 20 CLEAR") }
     let on = ClimbMath.items(teams: teams, meId: c, scenarios: nil)   // 3rd, one below the line
     if case .rung(let r) = on.first(where: { if case .rung(let r) = $0 { return r.index == 1 }; return false })! {
-      #expect(r.voice == .backOf(10, "S2", stake: "the top seed"))
+      #expect(r.voice == .aheadOfYou(10, stake: "the top seed"))
     }
   }
   @Test func spectatorsSeeBehindTheLeader() {
@@ -215,7 +215,7 @@ private func team(_ id: UUID, _ name: String, _ pts: Double, ci: Int = 0) -> Tea
     #expect(ClimbMath.cut(nil) == ClimbCut(K: 2, line: "CUT LINE"))
     let sc = SeasonScenarios(meta: pt, rows: [])
     #expect(ClimbMath.note(teams: teams, scenarios: sc) == "TOP 1 — THE POINTS CROWN")
-    #expect(ClimbMath.note(teams: [teams[0]], scenarios: nil) == "EVERYONE ADVANCES — 1 CONTENDER, 2 SEATS")
+    #expect(ClimbMath.note(teams: [teams[0]], scenarios: nil) == "NOBODY TO RACE YET")
     #expect(ClimbMath.items(teams: [], meId: nil, scenarios: nil).isEmpty)
   }
   @Test func badgesComeFromTheServer() {

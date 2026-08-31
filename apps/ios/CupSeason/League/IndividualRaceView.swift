@@ -27,7 +27,7 @@ struct IndividualRaceView: View {
             tile(aw.iron, sub: aw.ironSub)
           }
           if !model.isComplete {
-            Text("PROJECTED — THE ENGINE CROWNS AT CLOSE").font(CSFont.label).tracking(1.2).foregroundStyle(cs.dimText)
+            Text("PROJECTED — SETTLED WHEN THE SEASON CLOSES").font(CSFont.label).tracking(1.2).foregroundStyle(cs.dimText)
           }
         } else {
           A11yStack(rowAlignment: .top, spacing: 10, columnSpacing: 0) {

@@ -84,6 +84,13 @@ final class LiveRoundStore {
     leagueId = m?.league_id
     #if DEBUG
     if CSDevHatch.nearby, !state.active { seedDevNearby(); return }
+    // -cs_dev_bar · the D163 top bar with a round in flight, for review
+    if ProcessInfo.processInfo.arguments.contains("-cs_dev_bar"), !state.active {
+      if ProcessInfo.processInfo.arguments.contains("-cs_dev_bar_waiting") {
+        awaitingFrom = "Jerecho Fischbeck"; return
+      }
+      seedDevRound(); return
+    }
     if CSDevHatch.live, !state.active { seedDevRound(); LiveActivityHost.start(state); return }
     #endif
     if !rehydrated { rehydrated = true; await rehydrate() }
@@ -177,6 +184,8 @@ final class LiveRoundStore {
 
   /// D158 · profiles we have ASKED and not heard back from.
   var asking: Set<UUID> = []
+  /// D163 · profiles who said YES and are waiting for the round to be real.
+  var accepted: Set<UUID> = []
   /// D158 · an invitation waiting on this phone.
   var incoming: NearbyInvite?
 
@@ -187,10 +196,11 @@ final class LiveRoundStore {
     }
     nearby.onInvite = { [weak self] inv in self?.incoming = inv }
     nearby.onReply = { [weak self] who, ok in self?.answered(who, ok) }
+    nearby.onTeed = { [weak self] lr in Task { @MainActor in await self?.enterInvited(lr) } }
     nearby.start(myProfile: me)
   }
 
-  func stopNearby() { nearby.stop(); asking = []; incoming = nil }
+  func stopNearby() { nearby.stop(); asking = []; accepted = []; incoming = nil }
 
   /// D158 · a nearby chip ASKS. Proximity proposes an identity; only the golfer
   /// holding that phone can confirm it, so the tap that seats them happens over
@@ -217,6 +227,7 @@ final class LiveRoundStore {
       return
     }
     if !sel.contains(i), sel.count < 4 { sel.append(i) }
+    accepted.insert(who)          // D163 · tell them when the round is real
     toast("\(roster[i].n) is in")
   }
 
@@ -225,7 +236,34 @@ final class LiveRoundStore {
     guard let inv = incoming else { return }
     incoming = nil
     nearby.reply(to: inv.from, ok: ok)
+    // D163 · say what happens next. At THIS moment there is no round — the
+    // starter is still on the setup screen — so the honest thing is to say we
+    // are waiting, not to open an empty screen. `onTeed` lands us in it.
+    if ok { awaitingFrom = inv.name; toast("You're in — waiting for \(LiveFmt.fn1(inv.name)) to tee off") }
   }
+
+  /// D163 · set between accepting an invitation and the round actually starting.
+  /// The top bar reads it, so the wait is visible instead of being nothing.
+  var awaitingFrom: String?
+
+  /// D163 · the round we accepted is real now. Pull it and open it.
+  ///
+  /// `rehydrate()` already knows how to find a round this phone is seated in —
+  /// the Bluetooth message is not a second source of truth, it is a doorbell
+  /// that saves us waiting for a foreground or a launch.
+  func enterInvited(_ lr: UUID) async {
+    awaitingFrom = nil
+    await rehydrate()
+    if state.active, state.stage == .live {
+      LiveActivityHost.start(state)
+      leaveRequested = false
+      openRequested = true      // the shell presents the round
+      CSHaptic.impact(.medium)
+    }
+  }
+
+  /// D163 · raised when the round should be put on screen without a tap.
+  var openRequested = false
 
   /// The server does the naming, and only for people you already know. A
   /// stranger's phone resolves to nothing and never reaches the picker.
@@ -372,7 +410,6 @@ final class LiveRoundStore {
   // MARK: - tee off (8902–9006)
 
   func teeOff() async {
-    stopNearby()          // D156 · the tee sheet is set; stop advertising
     let g = state.game
     if let problem = g.teeOffProblem(players: sel.count) { toast(problem); return }
     // D107: the tee sheet is the free door — no league required. A league-less
@@ -434,6 +471,12 @@ final class LiveRoundStore {
       await disk.save(state)
       await joinSync()
       if let league { await session.announceOpen(league: league, lr: out.lr) }   // D107: no league channel to ring
+      // D163 · the round is REAL now — tell everyone who accepted over Bluetooth,
+      // then stop advertising. The stop used to be the first line of teeOff(),
+      // which killed the wire before there was anything to announce on it: the
+      // accepters were left holding a yes and nothing else.
+      if !accepted.isEmpty { nearby.teedOff(out.lr, to: Array(accepted)) }
+      stopNearby()
       LiveActivityHost.start(state)   // D155 · one tap back from a locked phone
       toast("On the tee, good luck everybody")
     } catch {

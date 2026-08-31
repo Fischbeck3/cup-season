@@ -132,7 +132,7 @@ struct StandingsPane: View {
       VStack(alignment: .leading, spacing: 8) {
         Text("Season wrapped").csEyebrow(cs.gold)
         Text(st?.champName ?? "The champion").font(CSFont.heroSmall).foregroundStyle(cs.ink)
-        Text(model.bylaws.finish == "cup_final" ? "take the Cup Final" : "take the Cup").font(CSFont.sentence).foregroundStyle(cs.mut)
+        Text(model.bylaws.finish == "cup_final" ? "took the Cup Final" : "took the Cup").font(CSFont.sentence).foregroundStyle(cs.mut)
         if let s1 = st?.s1, let s2 = st?.s2 {
           Text("\(PotMath.score(s1))–\(PotMath.score(s2))").font(CSFont.stat).csTabular().foregroundStyle(cs.gold)
         }

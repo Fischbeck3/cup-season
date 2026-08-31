@@ -100,6 +100,15 @@ struct MainTabView: View {
   enum Tab: Hashable { case home, clubhouse, post, you }
 
   var body: some View {
+    // D163 · the round follows you. The bar sits ABOVE the tab view so it is
+    // present on every tab, and stands down while the round is on screen.
+    VStack(spacing: 0) {
+      LiveNowBar(presented: presenter.showLive) { presenter.showLive = true }
+      tabs
+    }
+  }
+
+  private var tabs: some View {
     TabView(selection: $tab) {
       NavigationStack(path: $homePath) {
         HomeView(links: csLinks)
@@ -159,6 +168,14 @@ struct MainTabView: View {
     .environment(\.presenter, presenter)
     // D155 · tapping the Dynamic Island or the lock-screen card opens the round
     .onReceive(NotificationCenter.default.publisher(for: .csOpenLiveRound)) { _ in
+      presenter.showLive = true
+    }
+    // D163 · a round you ACCEPTED has teed off — land in it without a tap. This
+    // is the whole point of the handshake: you said yes, so the app takes you
+    // there rather than leaving you to discover it.
+    .onChange(of: LiveRoundStore.shared.openRequested) { _, want in
+      guard want else { return }
+      LiveRoundStore.shared.openRequested = false
       presenter.showLive = true
     }
     #if DEBUG
