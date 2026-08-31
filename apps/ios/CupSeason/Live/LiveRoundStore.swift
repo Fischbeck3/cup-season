@@ -193,7 +193,14 @@ final class LiveRoundStore {
     // D168 · runs from the tab shell now, so it must be safe to call often and
     // from anywhere: already-running is a no-op, and a live round still stops
     // advertising (the foursome is set — there is nobody left to ask).
-    guard nearbyOn, let me = myPid, !state.active, !nearby.running else { return }
+    guard nearbyOn, let me = myPid, !state.active, !nearby.running else {
+      // D173 · say WHY it did not start. Three attempts to fix "nearby only
+      // works on the tee sheet" have each been a guess; this prints the actual
+      // failing precondition to `devicectl … --console`.
+      nearbyPrint("startNearby SKIPPED — on=\(nearbyOn) pid=\(myPid != nil) activeRound=\(state.active) alreadyRunning=\(nearby.running)")
+      return
+    }
+    nearbyPrint("startNearby OK — advertising")
     nearby.onChange = { [weak self] ids in
       Task { @MainActor in await self?.resolveNearby(ids) }
     }

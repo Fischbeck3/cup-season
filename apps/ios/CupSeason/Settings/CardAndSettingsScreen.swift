@@ -256,6 +256,9 @@ private struct CardEditorPane: View {
       }
 
       label("Ball marker").padding(.top, 4)
+      // D174 · the marker grid promised nothing and the audit found every member
+      // showing the identical cactus with no explanation. Say what it is FOR.
+      Fine("This is your icon on the board and in the standings until you add a photo.")
       LazyVGrid(columns: columns, spacing: 8) {
         ForEach(CSMarkers.all) { m in
           Button { vm.marker = m.key; vm.dirty = true; CSHaptic.selection() } label: {

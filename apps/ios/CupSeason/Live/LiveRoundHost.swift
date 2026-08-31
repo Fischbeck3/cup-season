@@ -25,7 +25,27 @@ struct LiveRoundHost: View {
   var body: some View {
     Group {
       if store.state.stage == .live, store.state.active {
-        LivePlayView(store: store, links: links)
+        // D173 · the live sheet needs a way out too, and for the same reason
+        // the setup sheet did (D110 addendum, below): this is a full-screen
+        // cover, and a cover with no toolbar is a room with no door. The owner
+        // hit it the moment D163 started pulling an INVITED golfer straight
+        // into a round — they were dropped here and could not reach the rest of
+        // the app. `LivePlayView` even sets .navigationTitle("Live round"),
+        // which did nothing, because nothing wrapped it in a NavigationStack.
+        //
+        // Close DISMISSES, it does not leave the round: the round keeps running
+        // on the server and on the wire, and LiveNowBar (D163) sits above every
+        // tab offering the way back. Scrap and Finish remain the only ways to
+        // actually end it.
+        NavigationStack {
+          LivePlayView(store: store, links: links)
+            .toolbar {
+              ToolbarItem(placement: .cancellationAction) {
+                Button("Close") { links.done() }.foregroundStyle(cs.mut)
+                  .accessibilityHint("Leaves this screen — the round keeps going, and the bar at the top brings you back")
+              }
+            }
+        }
       } else {
         // D110 addendum: setup had NO exit — a full-screen cover with no toolbar
         // (the owner got stuck; only the app switcher freed them). Close leaves

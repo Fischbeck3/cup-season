@@ -2778,6 +2778,7 @@ html[data-theme="light"] .room-dusk .btn:not(.dark):not(.gold):not(.apple){color
       </div>
       <div style="height:14px"></div>
       <label class="f">Ball marker</label>
+      <p class="fine" style="margin:4px 2px 0; padding:0; color:var(--dim)">This is your icon on the board and in the standings until you add a photo.</p>
       <div id="pfMarkers" style="display:grid; grid-template-columns:repeat(4,1fr); gap:8px; margin-top:8px;"></div>
       <div style="height:16px"></div>
       <button class="btn" id="pfSave">Save my card</button>
@@ -5960,6 +5961,22 @@ $('#dPickFor').addEventListener('click',()=>{
 });
 
 /* ================= post ================= */
+/* D174 · the allowance the ENGINE will apply, matching v_rounds_ranked:
+     pvi = round(index_at_post * handicap_allowance/100 - differential, 1)
+   Prefer the league's stored bylaw; fall back to the preset map (what the
+   wizard writes); 100 when there is no league at all, which is correct — a
+   league-less round is scored against the golfer's own number. */
+function leagueAllowance(){
+  if(state.demo) return [100,95,90][state.preset] ?? 100;
+  if(!window.CS?.league) return 100;
+  if(state.allowance != null) return state.allowance;
+  return [100,95,90][state.preset] ?? 100;
+}
+/* the engine rounds the whole expression to 1dp — match it exactly, or the
+   band edges (>=3, >=1, >-1, >=-3) disagree at the boundary */
+function pviFor(index, diff){
+  return Math.round((index * leagueAllowance() / 100 - diff) * 10) / 10;
+}
 function pointsFor(vs){
   /* Q-20 · these bands are ONE rule (§2.2) with two implementations, and they
      disagreed at exactly -1.0: the engine's cup_points() reads `> -1` (so -1.0
@@ -6773,7 +6790,7 @@ function recalc(){
   if(f9>0 && b9>0){
     gross=f9+b9;
     diff=(gross-rating)*113/slope;
-    vs=state.myIndex-diff;
+    vs=pviFor(state.myIndex, diff);          /* D174 · at the league's allowance */
     [pts,msg]=pointsFor(vs);
     label=`${gross} GROSS`;
   } else if(f9>0 || b9>0){
@@ -6785,7 +6802,7 @@ function recalc(){
        when you played a partial nine of an 18-hole course). Slope is used as-is. */
     const rating9 = state.post.rating9 ? rating : rating/2;
     diff=((g9-rating9)*113/slope)*2;
-    vs=state.myIndex-diff;
+    vs=pviFor(state.myIndex, diff);          /* D174 · at the league's allowance */
     const base=pointsFor(vs);
     pts=Math.ceil(base[0]/2);
     msg='9-hole round, half value. '+base[1];
@@ -15591,6 +15608,12 @@ function applyBylaws(b){
     : Math.max(2, Math.round((b.season_months||6) * 4.345));
   if(state.seasonStart) state.startISO = state.seasonStart;
   state.floor     = b.participation_floor;
+  /* D174 · the real bylaw, not a guess from the preset. The composer used to
+     score at 100% while the engine paid the league's allowance (95% by
+     default) — every real 18-hole round in prod showed a figure the engine had
+     not paid, and one in four landed in the wrong points band. Nullable so a
+     league loaded from an older payload falls back to the preset map. */
+  state.allowance = (b.handicap_allowance == null) ? null : Number(b.handicap_allowance);
   state.cap       = b.counting_cap === null ? 4 : (CAPMAP[b.counting_cap] ?? 1);
   state.preset    = ['casual','standard','cutthroat'].indexOf(b.preset) >= 0
                     ? ['casual','standard','cutthroat'].indexOf(b.preset) : 1;

@@ -4859,3 +4859,21 @@ each remains reversible on its own line.)*
 - **Principle served:** the Cup Season Test — a feature that needs five taps from four people is not the feature the sentence describes.
 - **Tradeoffs:** a wider advertising window (any screen, still foreground-only, still opt-in, still resolving only buddies and league mates). D156's disclosure envelope is untouched.
 - **CONFLICT (named):** amends D156 rec 2 ("only while the Add-players screen is open"). Its background prohibition is reaffirmed, not weakened.
+
+### D173 · The live sheet had no door either — D110's bug, one screen over
+*(2026-08-31. Owner, from a two-phone test: "when my phone was pulled into the round I was barred from the rest of the app, no back button… couldn't leave that page within the app".)*
+- **Current mechanic:** `LiveRoundHost` presented `LivePlayView` BARE inside a full-screen cover — no `NavigationStack`, no toolbar, no Close. Its own `.navigationTitle("Live round")` rendered nothing, because nothing wrapped it.
+- **Why it went unseen until now:** the D110 addendum fixed exactly this for the SETUP branch and left a comment three lines below the live branch saying "a full-screen cover with no toolbar (the owner got stuck; only the app switcher freed them)". Nobody had ever ARRIVED at the live view without walking through setup first — until D163 began pulling an invited golfer straight into a running round. The trap was always there; the new door led to it.
+- **Built:** the live branch gets its own `NavigationStack` and a Close. **Close dismisses, it does not leave the round** — the round keeps running on the server and on the wire, and `LiveNowBar` sits above every tab offering the way back. Scrap and Finish remain the only ways to end a round.
+- **Principle served:** a screen a golfer cannot leave is not a screen, it is a trap. #5.
+- **CONFLICT:** none. Completes the D110 addendum, which fixed one of the two branches.
+
+### D174 · Quick wins from the ship audit — the composer stops lying about points
+*(2026-08-31. Owner: "any quick wins we can change from the audit". The audit is `Before First Tee`; these are its cheapest three.)*
+- **THE COMPOSER SCORED AT 100% WHILE THE ENGINE PAID THE LEAGUE'S ALLOWANCE.** `vs = state.myIndex - diff` applied no allowance; every league defaults to **95%**. Measured in prod, not asserted: **11 of 11 real 18-hole scored rounds displayed a figure the engine did not pay, and 4 of them crossed a points band.** The owner's own 2026-08-16 round showed 12 points on screen; the engine paid 9.
+  · Fixed with ONE producer, `pviFor()`, that matches `v_rounds_ranked` exactly — `round(index × allowance/100 − differential, 1)`, rounding the whole expression so the band edges (≥3, ≥1, >−1, ≥−3) agree at the boundary. Verified numerically: 13.6 index, 10.3 differential, 95% → **2.6 → 9 points**, identical to the engine, where the old code showed 3.3 → 12.
+  · `leagueAllowance()` prefers the league's **stored bylaw** (`select('*')` already returns it; the client had never read it back) and falls back to the preset map. **A league-less round stays at 100%, which is correct** — it is scored against the golfer's own number.
+  · This matters beyond arithmetic: the product's promise is that every point has a receipt, and a Pro who cannot reproduce a points figure by hand will not keep the league.
+- **The marker grid now says what it is for.** The blind audit's severity-9 finding hit 7 of 7 personas — "every member shows the identical cactus" — while Settings promised "the marker always backs it up" to people with no photo. One line, both clients: *"This is your icon on the board and in the standings until you add a photo."* This is what that finding actually asked for; it is NOT more photo machinery (see the audit's KEEP BUT DO NOT INVEST ruling).
+- **Six shouted board posts, written hours before D165 landed**, are backfilled by `20260831150000`. `easeCaps` cannot rescue them — the interpolated lowercase " v " breaks its strict-equality guard — and the weekly idempotency guard pins them at the top of the board for about a week. The migration is narrow by construction (system posts, the clash shape, written before D165) and idempotent.
+- **CONFLICT:** none. D123 logged the one-PvI-per-round principle; this builds its client half.
