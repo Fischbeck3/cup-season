@@ -14,7 +14,12 @@ struct RivalriesSection: View {
 
   var body: some View {
     if !rivalries.isEmpty {
-      CSSectionHead("Rivalries · your record")
+      // D177 · say the scope. `my_rivalries()` takes no league argument — this is
+      // your lifetime clash record against everyone you have played, in every
+      // league. Sitting under "Your seasons" beside a season-scoped strip, that
+      // had to be stated or the head would inherit the wrong scope from its
+      // neighbour.
+      CSSectionHead("Rivalries · all leagues")
       VStack(spacing: 0) {
         ForEach(Array(rivalries.enumerated()), id: \.element.id) { i, r in
           CSRow(last: i == rivalries.count - 1) {

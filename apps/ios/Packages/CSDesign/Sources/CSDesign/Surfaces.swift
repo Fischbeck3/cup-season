@@ -176,6 +176,26 @@ public struct CSSectionHead: View {
   }
 }
 
+/// D177 · A GROUP head: one level above `CSSectionHead`, for a page that needs
+/// a spine rather than a list. It wears the brand at rest — a group head is
+/// structure, not an accent moment — sits on a heavier rule, and gets real air
+/// above it so the eye reads a break rather than another section.
+///
+/// Use sparingly. Two on a page is a spine; four is a table of contents.
+public struct CSGroupHead: View {
+  @Environment(\.cs) private var cs
+  let title: String
+  public init(_ title: String) { self.title = title }
+  public var body: some View {
+    VStack(alignment: .leading, spacing: 7) {
+      Text(title).csEyebrow(cs.brand)
+      Rectangle().fill(cs.line2).frame(height: 1)
+    }
+    .padding(.top, 26)
+    .accessibilityAddTraits(.isHeader)
+  }
+}
+
 /// A row inside a section: content, then a hairline. Rows never nest cards.
 public struct CSRow<Content: View>: View {
   let last: Bool

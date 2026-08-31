@@ -1,9 +1,10 @@
 // Cup Season — Home (index.html 2792–2822 slot order; D81 one lane; D94
 // doors; D27 the digest; IOS-012 hero first on the phone).
 //
-// Slots, top to bottom: invites banner → live-round banner → buddy requests
-// (inside the banner) → hero → occasion → Up Next → digest → the one feed →
-// coming up. The doors (start a league · start an event · join with a code)
+// Slots, top to bottom: invites banner → buddy requests (D177 — their OWN
+// row; the banner above carries league and Ryder invites only, whatever this
+// comment used to claim) → live-round banner → lead card (D176) → hero →
+// occasion → Up Next → digest → the one feed → coming up. The doors (start a league · start an event · join with a code)
 // live in the header's `+` (IOS-022 item 1: the navigation bar is hidden on
 // Home, so the wordmark sits at the top of the safe area; pushed screens
 // keep their back bar — visibility is per destination).
@@ -34,6 +35,12 @@ struct HomeView: View {
           CSPageHeader("Cup Season", eyebrow: CSHeaderDate.today()) { plusMenu }.padding(.bottom, 2)
 
           InvitesBanner { id in store.preferredLeague = id; Task { await store.reload() } }
+
+          // D177 · buddy requests reach you HERE. This file's header has
+          // claimed since the port that InvitesBanner carried them "inside the
+          // banner"; it never did — that banner is league and Ryder invites
+          // only. Costs zero pixels on the days nobody has asked.
+          BuddyRequests(links: links, head: true)
 
           LiveResumeBanner(links: LiveLinks(openReceipt: { presenter.receipt = $0 }, openTourCard: { presenter.tourCard = $0 },
                                             done: { presenter.showLive = false }),

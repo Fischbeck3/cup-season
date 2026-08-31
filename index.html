@@ -1998,6 +1998,23 @@ body:not(.noleague) #hubLeagueless{display:none;}
 .upchip .ch{color:var(--brand); font-size:14px; line-height:1; margin-left:-2px;}
 .upchip.hot{border-color:color-mix(in srgb, var(--warm) 70%, transparent);}
 .upchip.hot .k{color:var(--warm);}
+/* D177 · a GROUP head: one level above .eyebrow, for a page that needs a spine
+   rather than a list. Brand at rest (a group head is structure, not an accent
+   moment), a heavier rule, and real air above so the eye reads a break. Two on
+   a page is a spine; four is a table of contents. */
+.grouphead{font-family:var(--mono); font-size:11.5px; letter-spacing:.14em;
+  text-transform:uppercase; color:var(--brand); margin:26px 0 7px;
+  padding-bottom:7px; border-bottom:1px solid var(--line2);}
+.grouphead:first-child{margin-top:0;}
+/* D177 · the buddies invite-link door */
+.pdoorlink{display:flex; flex-direction:column; align-items:flex-start; gap:2px; width:100%;
+  background:var(--bg1); border:1px solid var(--line); border-radius:var(--rc);
+  padding:11px 13px; min-height:44px; cursor:pointer; text-align:left;
+  font-family:var(--sans); color:var(--ink);}
+.pdoorlink span{font-size:13.5px; font-weight:600;}
+.pdoorlink small{font-family:var(--mono); font-size:10px; letter-spacing:.1em; color:var(--mut);}
+.pdoorlink::after{content:'→'; position:absolute; right:13px; color:var(--brand);}
+.pdoorlink{position:relative;}
 /* D176: the lead card — ember, because every face of it is something still
    running (a clash mid-week, a month not yet closed, a table that just moved).
    Gold would be wrong: nothing on this card is earned yet. */
@@ -3025,17 +3042,48 @@ html[data-theme="light"] .room-dusk .btn:not(.dark):not(.gold):not(.apple){color
         <!-- IA P3: the You page IS the public profile — card, case, record.
              Everything editable + app settings live behind the ⚙. The
              "Build your crew" card is gone (redundant with Crew · People). -->
-        <div class="eyebrow" style="margin-top:0">Your display case</div>
-        <div id="trophyCase" class="room-dusk" style="margin-bottom:14px"></div>
+        <!-- D93: buddies left this page. IA P5 put them here and split the
+             relationship three ways (list on You, requests on Home, search in
+             the header). The list is now view-people; this is the door to it.
+             D177 moved it to the TOP: it is the only DOOR on a page that is
+             otherwise all reading, and it sat seventh. You do not scroll past
+             your own trophy case to reach a person. -->
+        <div class="eyebrow" style="margin-top:0">Your buddies</div>
+        <button class="check tap" id="youPeopleGo" style="width:100%; text-align:left">
+          <span class="num"><svg class="ic" aria-hidden="true"><use href="#i-users"/></svg></span>
+          <div class="tt"><b>Your buddies</b><small id="youPeopleCount">Find golfers, see who you play with</small></div>
+          <span class="go" aria-hidden="true">→</span>
+        </button>
+
         <!-- D63: last round with — the reunion whisper. Threshold-fired only,
              one name, in-app only; dismiss is 90 days of quiet (device-local). -->
-        <div id="lrwCard" style="margin-bottom:14px"></div>
-        <!-- D67: the record — what you've WON. Titles lead; the money is a
-             secondary line in D39's frame (a record of what friends settled
-             between themselves, never a balance the app holds). -->
-        <div class="eyebrow">The record</div>
-        <div class="card" id="careerRecord" style="text-align:left; padding:12px 14px; margin-bottom:14px"></div>
-        <div class="eyebrow">Lifetime</div>
+        <div id="lrwCard" style="margin:14px 0"></div>
+
+        <!-- ══ D177 · YOUR GOLF ═══════════════════════════════════════════
+             The page carried FIVE sections about your history under FOUR
+             names, interleaved with people and with the app's manual. Two
+             group heads give it a spine, and they group by SCOPE rather than
+             by league — because only ONE section below is league-scoped.
+             `my_rivalries` takes no league argument and the league record is
+             a row per membership, so an "In <league>" head would have been a
+             lie over two of its three children. -->
+        <div class="grouphead">Your golf</div>
+
+        <!-- D67 + D177: "The record" (silverware counts + the money) and the
+             display case (the same trophies as OBJECTS) were two sections
+             about one subject, adjacent, under different names. The counts are
+             the case's top strip now; the objects sit under them. The money
+             stays D39's frame — what friends settled between themselves,
+             never a balance the app holds. -->
+        <div class="eyebrow">Display case</div>
+        <div class="card" id="careerRecord" style="text-align:left; padding:12px 14px; margin-bottom:10px"></div>
+        <div id="trophyCase" class="room-dusk" style="margin-bottom:14px"></div>
+
+        <!-- "Lifetime" -> "All time": same rows, a name that states the scope
+             out loud. It shares two row LABELS with "This season" below, and
+             until now the only thing telling them apart was a small grey sub
+             four sections away. -->
+        <div class="eyebrow">All time</div>
         <div class="stats">
           <div class="stat"><div class="k">Rounds posted</div><div class="v" id="clR">—</div><div class="d fl">All time</div></div>
           <div class="stat"><div class="k">Best vs index</div><div class="v" id="clBest">—</div><div class="d fl">Career best</div></div>
@@ -3045,21 +3093,11 @@ html[data-theme="light"] .room-dusk .btn:not(.dark):not(.gold):not(.apple){color
 
         <div class="eyebrow">Recent rounds</div>
         <div class="card" style="text-align:left; padding:10px 12px"><div id="youRecent"></div></div>
-        <button class="btn" id="youPost" style="margin-top:10px">Post a round</button>
+        <!-- D177: the "Post a round" button that sat here is gone. The ⊕ is a
+             permanent tab an inch below it, and this is a page about the past. -->
 
-        <!-- D93: buddies left this page. IA P5 put them here and split the
-             relationship three ways (list on You, requests on Home, search in
-             the header). The list is now view-people; this is the door to it. -->
-        <div class="eyebrow">Your buddies</div>
-        <button class="check tap" id="youPeopleGo" style="width:100%; text-align:left">
-          <span class="num"><svg class="ic" aria-hidden="true"><use href="#i-users"/></svg></span>
-          <div class="tt"><b>Your buddies</b><small id="youPeopleCount">Find golfers, see who you play with</small></div>
-          <span class="go" aria-hidden="true">→</span>
-        </button>
-
-        <!-- Events engine ckpt 4: lifetime head-to-head, weekly-clash (§3). -->
-        <div class="eyebrow league-only" id="youRivalsHead">Rivalries · your record</div>
-        <div id="youRivals" class="league-only" style="text-align:left"></div>
+        <!-- ══ D177 · YOUR SEASONS ════════════════════════════════════════ -->
+        <div class="grouphead">Your seasons</div>
 
         <div class="league-only">
           <div class="eyebrow">This season · <span id="youSeasonLg">your league</span></div>
@@ -3071,21 +3109,23 @@ html[data-theme="light"] .room-dusk .btn:not(.dark):not(.gold):not(.apple){color
           </div>
         </div>
 
-        <div class="eyebrow" id="lgRecHead" style="display:none">League record</div>
+        <!-- Events engine ckpt 4: lifetime head-to-head, weekly-clash (§3).
+             D177 names the scope: my_rivalries takes no league argument, so
+             this is every opponent in every league — and it sits beside a
+             season-scoped strip, which would otherwise lend it the wrong one. -->
+        <div class="eyebrow league-only" id="youRivalsHead">Rivalries · all leagues</div>
+        <div id="youRivals" class="league-only" style="text-align:left"></div>
+
+        <!-- D177: "League record" was the THIRD heading here meaning "record",
+             and the only one that was not one — it is a season-by-season list
+             of where you finished, in every league you have played. -->
+        <div class="eyebrow" id="lgRecHead" style="display:none">Every season</div>
         <div id="lgRec" style="display:none; margin-bottom:14px"></div>
 
-        <!-- D82: the orientation, reopenable forever. Six short reads; the
-             last two hand off to surfaces that already exist (scoring help,
-             the demo diorama). Copy never says "the Post tab" — the word is
-             invisible on a phone; it is "the ⊕ in the middle". -->
-        <div class="eyebrow">How it works</div>
-        <div id="youGuide" style="text-align:left">
-          <div class="check tap" data-guide="places" style="cursor:pointer"><span class="num">◱</span><div class="tt"><b>The four places</b><small>Home · Clubhouse · the ⊕ · You</small></div><span class="fine" style="padding:0; color:var(--dim)">→</span></div>
-          <div class="check tap" data-guide="games" style="cursor:pointer"><span class="num">⛳</span><div class="tt"><b>Leagues vs events</b><small>The long game and the short game</small></div><span class="fine" style="padding:0; color:var(--dim)">→</span></div>
-          <div class="check tap" data-guide="posting" style="cursor:pointer"><span class="num">✎</span><div class="tt"><b>Posting a round</b><small>Basic, live, and the scan</small></div><span class="fine" style="padding:0; color:var(--dim)">→</span></div>
-          <div class="check tap" data-guide="buddies" style="cursor:pointer"><span class="num">◆</span><div class="tt"><b>Buddies, invites and claims</b><small>Three different links, three jobs</small></div><span class="fine" style="padding:0; color:var(--dim)">→</span></div>
-          <div class="check tap" data-guide="scoring" style="cursor:pointer"><span class="num">◷</span><div class="tt"><b>How scoring works</b><small>How rounds become points</small></div><span class="fine" style="padding:0; color:var(--dim)">→</span></div>
-        </div>
+                <!-- D177: "How it works" moved off this page into the ⚙ Card &
+             settings sheet (#setGuide). It is reference material — the same
+             rows the Pro reads and a brand-new golfer reads — and it was filed
+             under a page about your own record. -->
       </section>
 
       <!-- CALENDAR tab retired (IA P2): the schedule lives in the League Room.
@@ -3771,7 +3811,12 @@ html[data-theme="light"] .room-dusk .btn:not(.dark):not(.gold):not(.apple){color
       <section class="view" id="view-people">
         <a href="#" class="backlink" data-go="stats">← You</a>
         <div class="eyebrow" style="margin-top:0">Your buddies</div>
-        <button class="btn dark" id="peopleFind" style="margin-bottom:12px">Find a golfer</button>
+        <!-- D177: requests LEAD. A person waiting on you outranks a search
+             box; they were third, under a "Find a golfer" button that opened a
+             picker containing a search field, itself sitting above an inline
+             search field doing the same job. One search survives — the inline
+             one, on the page named after buddies. The picker still serves
+             every other caller. -->
         <div id="peopleRequests" style="text-align:left"></div>
         <div id="youPeople" style="text-align:left"></div>
       </section>
@@ -9940,19 +9985,11 @@ $('#gAdd').addEventListener('click',()=>{
 /* D93 · the buddies destination: the You row is the door, and finding a golfer
    is the first thing offered inside it rather than a magnifier in the header. */
 $('#youPeopleGo')?.addEventListener('click',()=>switchView('people'));
-$('#peopleFind')?.addEventListener('click',()=>{
-  if(state.demo){ toast('Demo — sign in to add real buddies'); return; }
-  if(!window.openPeoplePicker){ toast('Still loading — try again in a second'); return; }
-  /* NO mode and NO onPick on purpose: the picker's DEFAULT branch already
-     renders Add / Accept per row against the real relationship state and calls
-     friend_request itself. mode:'invite' is the roster-staging branch — wrong
-     job here, and an onPick would reimplement (badly: the arg is p_profile,
-     not p_target) what the picker already does correctly. */
-  window.openPeoplePicker({
-    title:'Find a golfer',
-    sub:'Search anyone on the app by name or @handle',
-  });
-});
+/* D177 · #peopleFind is gone. It opened the People Picker — a sheet whose first
+   element is a search field — from directly above an inline search field doing
+   the same job, on the page named after buddies. One search survives, the
+   inline one. The picker is untouched and still serves every other caller
+   (#rosterFind below, the roster stager, the league invite flow). */
 $('#rosterFind')?.addEventListener('click',()=>{
   if(state.demo){ toast('Demo round — search works in your real tee sheet'); return; }
   if(!window.openPeoplePicker){ toast('Still loading — try again in a second'); return; }
@@ -12147,7 +12184,17 @@ const DEMO_REQUESTS = [{friendship_id:'demo', display_name:'Marco', handle:'marc
 /* D93: one renderer, two homes. Requests stay on Home (D81 put them there and
    they get acted on), AND appear on the buddies destination — the relationship
    should be complete in the place that is named after it. */
-function renderHomeRequests(){ renderRequestsInto($('#homeRequests')); }
+/* D177 · the door on You reports before you open it — same as the phone. The
+   count comes from the same rows Home already renders, so it can never
+   disagree with them. */
+function paintBuddyDoor(){
+  const el=$('#youPeopleCount'); if(!el) return;
+  const n=(window.homeRequests||[]).length;
+  el.textContent = n ? `${n} request${n===1?'':'s'} waiting` : 'Find golfers, see who you play with';
+  const btn=$('#youPeopleGo');
+  if(btn) btn.style.borderColor = n ? 'color-mix(in srgb, var(--brand) 55%, transparent)' : '';
+}
+function renderHomeRequests(){ renderRequestsInto($('#homeRequests')); paintBuddyDoor(); }
 function renderPeopleRequests(){ renderRequestsInto($('#peopleRequests')); }
 window.renderPeopleRequests = renderPeopleRequests;
 function renderRequestsInto(box){
@@ -12606,7 +12653,8 @@ function renderCareer(){
     }));
   }
 }
-$('#youPost')?.addEventListener('click', ()=> switchView('record'));
+/* D177 · #youPost is gone from You — the ⊕ is a permanent tab an inch below
+   where that button sat, and You is a page about the past. */
 function renderIndStats(){
   renderTrophyCase();
   renderCareerRecord();
@@ -14563,7 +14611,11 @@ const GUIDE = {
     <p class="fine" style="padding:0 0 10px"><b>An invite link</b> carries a league's code — whoever opens it reviews the league and joins if they're in.</p>
     <p class="fine" style="padding:0 0 12px"><b>A claim link</b> hands one round to a guest you played with, so the score lands on their card. No league, no buddy — just the round.</p>`],
 };
-document.getElementById('youGuide')?.addEventListener('click', (e) => {
+/* D177 · the guide moved into the Card & settings SHEET, which is built at
+   open time — a load-time getElementById would bind to nothing. Delegate from
+   the document so it works wherever the rows are rendered. */
+document.addEventListener('click', (e) => {
+  if(!e.target.closest('#youGuide')) return;
   const row = e.target.closest('[data-guide]'); if(!row) return;
   const k = row.dataset.guide;
   if(k==='scoring'){ window.openScoringHelp?.(); return; }
@@ -14706,11 +14758,32 @@ async function psFriends(){ try{ const {data}=await sb.rpc('my_friends'); return
 async function renderCrewPeople(){
   const box = document.getElementById('youPeople'); if(!box) return;   /* IA P5: buddies on You */
   if(!CS.user){ box.innerHTML = '<p class="fine" style="padding:0">Sign in to add buddies and see requests.</p>'; return; }
+  /* D177: requests above the search; the invite link is a PERMANENT door under
+     the field, not a sentence in a failed-search message — the golfer you most
+     want to add is usually the one without an account yet. */
   box.innerHTML = `
-    <input class="f" id="crFind" placeholder="Find golfers by name or @handle" autocomplete="off" style="font-family:var(--sans)">
+    <div id="crReq" style="margin-bottom:10px"></div>
+    <div class="eyebrow">Find golfers</div>
+    <input class="f" id="crFind" placeholder="Search by name or @handle" autocomplete="off" style="font-family:var(--sans)">
     <div id="crResults" style="margin-top:10px"></div>
-    <div id="crReq" style="margin-top:6px"></div>
+    <div id="crLink" style="margin-top:10px"></div>
     <div id="crBud" style="margin-top:6px"></div>`;
+  {
+    /* the LEAGUE join link is the only invite link that exists — a buddy-invite
+       link is a different mechanic and would need a decision, not a tidy. So:
+       offer what is real, or offer nothing. */
+    const lg=(window.CS?.memberships||[]).find(m=>m.code);
+    const el=document.getElementById('crLink');
+    if(lg && el){
+      el.innerHTML=`<button type="button" class="pdoorlink" id="crLinkBtn">
+        <span>Send an invite link</span><small>WORKS FOR ANYONE, ACCOUNT OR NOT</small></button>`;
+      document.getElementById('crLinkBtn').addEventListener('click', ()=>{
+        const url=`https://cupseason.app/?join=${lg.code}`;
+        if(navigator.share) navigator.share({ title:'Cup Season', text:`You're invited to ${lg.name} on Cup Season`, url }).catch(()=>{});
+        else { navigator.clipboard?.writeText(url); toast('Invite link copied'); }
+      });
+    }
+  }
   const paint = async () => {
     const data = await psFriends();
     const reqs=data.filter(f=>f.status==='pending'&&f.incoming);
@@ -14738,7 +14811,7 @@ async function renderCrewPeople(){
     const res=await psSearch(q);
     rb.innerHTML = res.length ? res.map(r=>psRow(r, (r.rel==='none'||r.rel==='incoming')
         ? `<span class="pact"><button class="mini" data-add="${r.profile_id}">${r.rel==='incoming'?'Accept':'Add'}</button></span>`
-        : psFriendTag(r.rel))).join('') : '<p class="fine">No golfers found. Invite links still work for everyone else.</p>';
+        : psFriendTag(r.rel))).join('') : '<p class="fine">No golfers found under that name. The link below works for anyone.</p>';
     rb.querySelectorAll('[data-add]').forEach(b=>b.addEventListener('click', async()=>{
       b.disabled=true;
       const {data:rr, error}=await sb.rpc('friend_request',{p_profile:b.dataset.add});
@@ -15052,7 +15125,7 @@ function openPeoplePicker(opts){
        invitation to type, not a verdict on nothing */
     const q=(document.getElementById('ppFind')?.value||'').trim();
     listBox.innerHTML = rows.length ? rows.map(r=>psRow(r, actionFor(r))).join('')
-      : (q ? '<p class="fine">No golfers found. Invite links still work for everyone else.</p>'
+      : (q ? '<p class="fine">No golfers found under that name. The link below works for anyone.</p>'
            : '<p class="fine">Type a name or @handle to search — buddies you add appear here.</p>'); wire(); };
   /* empty search = your accepted buddies (pilot walked back the league-mate
      recommendations here — the tee sheet's chips already lead with the league) */
@@ -15160,6 +15233,14 @@ function openProfileHub(){
          never shows once you're pinned + signed in). Stamped at deploy — the
          same __CS_VERSION__ substitution as the caption; NEVER hand-edit. -->
     <p class="fine" style="padding-left:0; margin-top:24px; opacity:.55">Cup Season · v23 · __CS_VERSION__</p>
+    <div class="eyebrow">How it works</div>
+    <div id="youGuide" style="text-align:left; margin-bottom:14px">
+      <div class="check tap" data-guide="places" style="cursor:pointer"><span class="num">◱</span><div class="tt"><b>The four places</b><small>Home · Clubhouse · the ⊕ · You</small></div><span class="fine" style="padding:0; color:var(--dim)">→</span></div>
+      <div class="check tap" data-guide="games" style="cursor:pointer"><span class="num">⛳</span><div class="tt"><b>Leagues vs events</b><small>The long game and the short game</small></div><span class="fine" style="padding:0; color:var(--dim)">→</span></div>
+      <div class="check tap" data-guide="posting" style="cursor:pointer"><span class="num">✎</span><div class="tt"><b>Posting a round</b><small>Basic, live, and the scan</small></div><span class="fine" style="padding:0; color:var(--dim)">→</span></div>
+      <div class="check tap" data-guide="buddies" style="cursor:pointer"><span class="num">◆</span><div class="tt"><b>Buddies, invites and claims</b><small>Three different links, three jobs</small></div><span class="fine" style="padding:0; color:var(--dim)">→</span></div>
+      <div class="check tap" data-guide="scoring" style="cursor:pointer"><span class="num">◷</span><div class="tt"><b>How scoring works</b><small>How rounds become points</small></div><span class="fine" style="padding:0; color:var(--dim)">→</span></div>
+    </div>
     <p class="fine" style="padding-left:0; margin-top:6px; opacity:.55"><a href="/legal.html#privacy" target="_blank" rel="noopener" style="color:var(--mut)">Privacy</a> · <a href="/legal.html#terms" target="_blank" rel="noopener" style="color:var(--mut)">Terms</a> · <a href="/legal.html#pot" target="_blank" rel="noopener" style="color:var(--mut)">Prize pool</a></p>
     </div>
   `);

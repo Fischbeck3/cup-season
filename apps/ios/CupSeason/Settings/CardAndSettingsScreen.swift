@@ -377,7 +377,14 @@ private struct CardEditorPane: View {
 
 // MARK: - Settings
 
+/// D177 · the guide's two sheet faces, carried here with it.
+enum GuideRoute: Identifiable {
+  case guide(GuideSheet), scoring
+  var id: String { if case .guide(let g) = self { return "g:\(g.key)" }; return "scoring" }
+}
+
 private struct SettingsPane: View {
+  @State private var guideSheet: GuideRoute?
   @Environment(SessionStore.self) private var store
   @Environment(\.cs) private var cs
   @Environment(\.toast) private var toast
@@ -470,6 +477,16 @@ private struct SettingsPane: View {
           feedback: { presenter.feedbackScreen = "settings"; presenter.showFeedback = true })
         .transition(.opacity)
       }
+      // D177 · "How it works" moved off the You page. It is reference material
+      // — the same rows the Pro reads and a brand-new golfer reads — and it was
+      // filed under a page about your own record. Settings is already the
+      // drawer for things you consult rather than things you are.
+      CSSectionHead("How it works")
+      HowItWorks { row in
+        if row.key == "scoring" { guideSheet = .scoring }
+        else if let g = GuideCopy.sheets[row.key] { guideSheet = .guide(g) }
+      }
+
       HStack(spacing: 10) {
         Link(destination: CSConfig.legal("privacy")) { Text("Privacy").frame(minHeight: 44) }
         Text("·").accessibilityHidden(true)
@@ -478,6 +495,12 @@ private struct SettingsPane: View {
         Link(destination: CSConfig.legal("pot")) { Text("Prize pool").frame(minHeight: 44) }
       }
       .font(CSFont.footnote).foregroundStyle(cs.mut)
+    }
+    .sheet(item: $guideSheet) { g in
+      switch g {
+      case .guide(let sheet): GuideSheetView(sheet: sheet)
+      case .scoring: ScoringHelpSheet()
+      }
     }
   }
 

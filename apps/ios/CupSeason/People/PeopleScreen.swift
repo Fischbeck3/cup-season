@@ -10,9 +10,10 @@ import CupSeasonKit
 
 struct PeopleScreen: View {
   @Environment(\.cs) private var cs
+  @Environment(SessionStore.self) private var store
   @State private var vm: PeopleModel
   @State private var toasts: CSToastCenter
-  @State private var finding = false
+  @State private var reqs = BuddyRequestsModel()
   let links: CSLinks
 
   init(links: CSLinks = CSLinks()) {
@@ -25,15 +26,22 @@ struct PeopleScreen: View {
   var body: some View {
     ScrollView {
       VStack(alignment: .leading, spacing: 12) {
-        Text("Your buddies").csEyebrow()
-        CSButton("Find a golfer", style: .quiet) { finding = true }
-
-        CSField("Find golfers by name or @handle", text: $vm.query, font: CSFont.body)
-          .textInputAutocapitalization(.never).autocorrectionDisabled()
-          .accessibilityLabel("Find golfers by name or @handle")
-        results
-
+        // D177 · a person waiting on you outranks a search box. Requests sat
+        // THIRD, under two separate search affordances.
         requests
+
+        // D177 · one search, not two. A "Find a golfer" button that opened a
+        // sheet containing a search field sat directly above an inline search
+        // field doing the same job — on the page named after buddies, the
+        // inline field is the real one. The sheet still serves every other
+        // caller; it is only this duplicate entry that goes.
+        CSSectionHead("Find golfers")
+        CSField("Search by name or @handle", text: $vm.query, font: CSFont.body)
+          .textInputAutocapitalization(.never).autocorrectionDisabled()
+          .accessibilityLabel("Search golfers by name or @handle")
+        results
+        inviteLink
+
         buddies
         requested
         findable
@@ -43,14 +51,10 @@ struct PeopleScreen: View {
     .background(cs.bg0)
     .navigationTitle("Your buddies")
     .navigationBarTitleDisplayMode(.inline)
-    .refreshable { await vm.paint() }
-    .task { await vm.paint(); await vm.loadDiscoverable(); await PushBadge.refresh() }   // seeing the requests clears the badge (D104 §4)
+    .refreshable { await vm.paint(); await reqs.load() }
+    .task { await vm.paint(); await reqs.load(); await vm.loadDiscoverable() }   // seeing the requests clears the badge (D104 §4)
     .task(id: vm.query) { await vm.search() }
     .csToasts(toasts)
-    .sheet(isPresented: $finding, onDismiss: { Task { await vm.paint() } }) {
-      // `openFindGolfers` (13853): the one People Picker, befriend mode
-      PeoplePickerSheet(mode: .befriend, title: "Find golfers", sub: "Search by name or @handle to add buddies", onDone: {})
-    }
   }
 
   // MARK: search results (13195–13208)
@@ -60,7 +64,7 @@ struct PeopleScreen: View {
       if vm.searching && vm.results.isEmpty {
         CSFine("Searching…")
       } else if vm.results.isEmpty {
-        CSFine("No golfers found. Invite links still work for everyone else.")
+        CSFine("No golfers found under that name. The link below works for anyone.")
       } else {
         ForEach(vm.results) { r in
           PersonRow(person: r, links: links) {
@@ -77,19 +81,47 @@ struct PeopleScreen: View {
 
   // MARK: requests (13177–13180; 10748–10758)
 
-  @ViewBuilder private var requests: some View {
-    if !vm.lists.requests.isEmpty {
-      CSSectionHead("Requests · \(vm.lists.requests.count)")
-      ForEach(vm.lists.requests) { f in
-        PersonRow(person: f, subline: "\(f.handle.map { "@\($0) · " } ?? "")wants to be golf buddies", spine: cs.brand, links: links) {
-          HStack(spacing: 6) {
-            CSMini("Accept", busy: vm.busy.contains(f.id)) { Task { await vm.respond(f, accept: true) } }
-            CSMini("", systemImage: "xmark", busy: vm.busy.contains(f.id)) { Task { await vm.respond(f, accept: false) } }
-              .accessibilityLabel("Decline")
+  /// D177 · the same renderer Home uses (`BuddyRequests`) — D93's rule, which
+  /// the web has always followed: the relationship is complete in the place
+  /// named after it AND it reaches you where you already are. Two copies of
+  /// this drift; one does not.
+  private var requests: some View {
+    BuddyRequests(links: links, head: true, model: reqs)
+  }
+
+  /// D177 · the empty search used to say "Invite links still work for everyone
+  /// else" and then not hand one over. It does now — and the door is permanent,
+  /// not conditional on a failed search, because the golfer you most want to
+  /// add is usually the one without an account yet.
+  ///
+  /// The link is the LEAGUE's join link, which is the only invite link that
+  /// exists. A buddy-invite link is a different mechanic and would need a
+  /// decision, not a tidy — so this offers what is real, or nothing.
+  @ViewBuilder private var inviteLink: some View {
+    if let s = shareable {
+      ShareLink(item: URL(string: "https://cupseason.app/?join=\(s.code)")!,
+                subject: Text("Cup Season"),
+                message: Text("You're invited to \(s.name) on Cup Season")) {
+        HStack(spacing: 10) {
+          Image(systemName: "link").font(.system(size: 15)).foregroundStyle(cs.brand)
+          VStack(alignment: .leading, spacing: 1) {
+            Text("Send an invite link").font(CSFont.subhead.weight(.semibold)).foregroundStyle(cs.ink)
+            Text("WORKS FOR ANYONE, ACCOUNT OR NOT").font(CSFont.label).tracking(1.1).foregroundStyle(cs.dimText)
           }
+          Spacer()
+          Text("→").font(CSFont.subhead).foregroundStyle(cs.brand)
         }
+        .padding(12)
+        .frame(minHeight: 44)
+        .background(cs.bg1, in: RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous))
+        .overlay(RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous).stroke(cs.line, lineWidth: 1))
       }
     }
+  }
+
+  private var shareable: (name: String, code: String)? {
+    guard let m = store.me?.memberships.first(where: { $0.code != nil }), let c = m.code else { return nil }
+    return (name: m.name, code: c)
   }
 
   // MARK: buddies (13181–13184)
@@ -116,9 +148,14 @@ struct PeopleScreen: View {
 
   // MARK: findable by (13541–13545, 13763–13770)
 
+  /// D177 · a privacy control that lived at the bottom of a people list looking
+  /// like another section of it. It stays here — this is where you think about
+  /// who can reach you — but a rule and a sentence make it read as a SETTING.
   private var findable: some View {
     VStack(alignment: .leading, spacing: 10) {
+      CSHairline().padding(.top, 14)
       CSSectionHead("Findable by")
+      CSFine("Who can find you in search. Invite links always work.")
       HStack(spacing: 6) {
         ForEach(Discoverable.allCases, id: \.self) { d in
           CSMini(d.label, tone: vm.discoverable == d ? cs.pos : nil) { Task { await vm.setDiscoverable(d) } }

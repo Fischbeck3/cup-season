@@ -4923,3 +4923,29 @@ The two rules that keep a changing screen learnable: one card at a time, and the
 **Principle served:** #5, everything shows its work — a figure with a deadline is worth nothing if the deadline is never stated. And the product vision's "make ordinary moments feel like stories": a weekly duel nobody is told about is not a story.
 
 **CONFLICT:** none. D108 built the clash engine and its Clubhouse card; this gives it a voice and a home. D94's web tile row already carried the calendar door the phone lacked — the two clients had diverged, and A closes the gap from the phone's side.
+
+### D177 · Your card and your people — a spine for You, and a request that reaches you
+*(2026-08-31. Owner: "then we fix You and friends interface", then chose grouping by SCOPE with no league picker after I corrected the premise of my own proposal.)*
+
+**A correction first, because it changed the design.** My proposal grouped the bottom of You under an "In ‹league›" head and asked the owner whether that head should be a picker. Reading the loaders showed the premise was wrong: **only one of those three sections is league-scoped.** `my_rivalries()` takes no league argument — it is your lifetime clash record across every league. `loadLeagueRecord(me:)` returns one row per membership, so it spans every league by construction. Only `loadSeasonStats(me:leagueId:)` is scoped, **and its head already names its league.** An "In ‹league›" head would have been a lie over two of its three children. The groups therefore split by **scope**, not by league, and there is no picker — the Clubhouse is where you switch rooms.
+
+**The people findings, which are bugs wearing a design costume:**
+- **A buddy request had NO Home surface on iOS.** `InvitesBanner` carries league and Ryder invites only; the header comment in `HomeView.swift` had claimed since the port that it also carried "buddy requests (inside the banner)". It never did. The web has had `renderHomeRequests` on Home since D81 — the port dropped the row and kept the promise. So a person asking to be your golf buddy incremented a badge, was counted by the "Needs you" chip as an *invite*, and appeared in exactly one place: the buddies screen, third section down, behind a door that sat seventh on You. **Distance was never the problem; silence was.** `BuddyRequests` is now ONE renderer with two homes — D93's rule, which the web already followed — and it costs zero pixels on the days nobody has asked.
+- **Two search entry points, stacked.** A "Find a golfer" button that opens a sheet *whose first element is a search field*, sitting directly above an inline search field doing the same job. On the page named after buddies the inline one is real; the button is gone from both clients. The People Picker is untouched and still serves every other caller.
+- **Requests now LEAD.** A person waiting on you outranks a search box.
+- **The empty search handed nothing over.** *"Invite links still work for everyone else"* named a thing and did not offer it. The link is a permanent door under the field now, because the golfer you most want to add is usually the one without an account. It is the **league** join link — the only invite link that exists; a buddy-invite link is a different mechanic and would need a decision, not a tidy, so this offers what is real or nothing.
+- **"Findable by" reads as a setting** — a rule above it and a sentence saying what it does, rather than looking like another section of the list.
+- **The buddies door reports**: *"1 request waiting"*, with an ember edge, on both clients.
+
+**You, regrouped.** The page carried **five sections about your history under four names**, interleaved with people and with the app's manual:
+- *The record* was silverware counts + money; *Your display case* one section above held the same trophies as objects. **Merged** — the counts are the case's top strip, the objects sit under them.
+- *Lifetime* → **All time**. It shares two row LABELS with *This season* ("Rounds posted", "Avg vs index") and the only thing telling them apart was a small grey sub four sections away.
+- *League record* → **Every season**. It was the third heading meaning "record" and the only one that was not one: it is a season-by-season list of where you finished.
+- *Rivalries · your record* → **Rivalries · all leagues**, because it sits beside a season-scoped strip that would otherwise lend it the wrong scope.
+- Two `CSGroupHead`s — **Your golf** and **Your seasons** — brand at rest, a heavier rule, real air above. New in CSDesign, with the rule written into its doc comment: *two on a page is a spine; four is a table of contents.*
+- **"Post a round" removed.** A primary button two-thirds down a page about the past, competing with a ⊕ that is permanently on screen an inch below it.
+- **"How it works" moved into ⚙ Card & settings** on both clients. It is reference material — the same rows the Pro reads and a brand-new golfer reads — and it was filed under a page about your own record. On the web the click handler had to become a delegated listener: the sheet is built at open time, so the load-time `getElementById` would have bound to nothing.
+
+**Nothing was deleted and no arithmetic moved** — every figure, tap target and receipt is where it was. This is order and naming.
+
+**CONFLICT:** none. D93 split the relationship three ways deliberately (list on You, requests on Home, search in the header) and the phone only ever built two of the three; this completes it.

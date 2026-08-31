@@ -48,12 +48,11 @@ struct YouScreen: View {
   let links: YouLinks
 
   @State private var model = YouModel()
-  @State private var sheet: Sheet?
+  @State private var reqs = BuddyRequestsModel()
 
-  enum Sheet: Identifiable {
-    case guide(GuideSheet), scoring
-    var id: String { if case .guide(let g) = self { return "g:\(g.key)" }; return "scoring" }
-  }
+  // D177 · "How it works" and its sheets moved into ⚙ Card & settings. It is
+  // reference material — the same rows the Pro reads and a brand-new golfer
+  // reads — and it is not part of your card. Settings is already the drawer.
 
   private var uid: UUID? { store.session?.user.id }
   private var league: Me.Membership? {
@@ -81,22 +80,45 @@ struct YouScreen: View {
           // is the only DOOR on a page that is otherwise all reading. You do
           // not scroll past your trophy case to reach a person. Everything
           // below this line is the record; this is the way out of it.
+          // D177 · the door REPORTS. A buddy request now reaches Home on its
+          // own row, and this says so before you open it.
           CSSectionHead("Your buddies")
           CSRow(last: true) {
-            YouDoorRow(glyph: Text(Image(systemName: "person.2")), title: "Your buddies", sub: "Find golfers, see who you play with", action: links.openBuddies)
+            YouDoorRow(glyph: Text(Image(systemName: "person.2")),
+                       title: "Your buddies",
+                       sub: reqs.requests.isEmpty
+                            ? "Find golfers, see who you play with"
+                            : "\(reqs.requests.count) request\(reqs.requests.count == 1 ? "" : "s") waiting",
+                       action: links.openBuddies)
           }
-
-          CSSectionHead("Your display case")
-          TrophyCaseView(trophies: model.data.trophies, achievements: model.data.achievements, userId: uid)
 
           if let lrw = model.data.lastRoundWith {
             LastRoundWithCard(lrw: lrw, stage: links.stageRound) { if let uid { model.dismissLRW(uid: uid) } }
           }
 
-          CSSectionHead("The record")
-          CareerRecordView(record: model.data.careerRecord)
+          // ── D177 · YOUR GOLF ─────────────────────────────────────────────
+          // The page had FIVE sections about your history under FOUR names,
+          // interleaved with people and with the app's manual. Two group heads
+          // give it a spine, and they group by SCOPE rather than by league —
+          // because only ONE section below is league-scoped. `my_rivalries()`
+          // takes no league argument and `loadLeagueRecord` returns a row per
+          // membership; an "In <league>" head would have been a lie over two
+          // of its three children.
+          CSGroupHead("Your golf")
 
-          CSSectionHead("Lifetime")
+          // "The record" (silverware counts + money) and "Your display case"
+          // (the same trophies as objects) were two sections about one subject,
+          // adjacent, under different names. The counts are now the case's top
+          // strip and the objects sit under them.
+          CSSectionHead("Display case")
+          CareerRecordView(record: model.data.careerRecord)
+          TrophyCaseView(trophies: model.data.trophies, achievements: model.data.achievements, userId: uid)
+
+          // "Lifetime" → "All time": the same rows, a name that states the
+          // scope out loud. It shares two row LABELS with "This season" below
+          // ("Rounds posted", "Avg vs index"), and until now the only thing
+          // telling them apart was a small grey sub four sections away.
+          CSSectionHead("All time")
           LifetimeTiles(career: model.data.career)
 
           CSSectionHead("Recent rounds")
@@ -105,18 +127,20 @@ struct YouScreen: View {
           }, delete: { r in
             if let uid { _ = await model.deleteRound(r, me: me, uid: uid, leagueId: leagueId) }
           }, postFirst: links.postRound)
-          CSButton("Post a round", action: links.postRound).padding(.top, 4)
+          // the "Post a round" button that sat here is gone: the ⊕ is a
+          // permanent tab one inch below it, and this is a page about the past.
+
+          // ── D177 · YOUR SEASONS ──────────────────────────────────────────
+          CSGroupHead("Your seasons")
 
           if league != nil {
-            RivalriesSection(rivalries: model.data.rivalries, openTourCard: links.openTourCard)
             SeasonStatsStrip(stats: model.data.seasonStats, leagueName: league?.name ?? "your league")
+            RivalriesSection(rivalries: model.data.rivalries, openTourCard: links.openTourCard)
           }
+          // "League record" → "Every season": it is a season-by-season list of
+          // where you finished, in every league. Calling it a record put a
+          // THIRD "record" on one page.
           LeagueRecordView(rows: model.data.leagueRecord)
-
-          CSSectionHead("How it works")
-          HowItWorks { row in
-            if row.key == "scoring" { sheet = .scoring } else if let g = GuideCopy.sheets[row.key] { sheet = .guide(g) }
-          }
         }
         .padding(.horizontal, 20).padding(.top, 4).padding(.bottom, 32)
       }
@@ -129,13 +153,7 @@ struct YouScreen: View {
     .toolbar(.hidden, for: .navigationBar)
     .sliceToastHost()
     .refreshable { await reload() }
-    .task(id: store.me?.profile?.id) { await reload() }
-    .sheet(item: $sheet) { s in
-      switch s {
-      case .guide(let g): GuideSheetView(sheet: g)
-      case .scoring: ScoringHelpSheet()
-      }
-    }
+    .task(id: store.me?.profile?.id) { await reload(); await reqs.load() }
   }
 
   private func reload() async {

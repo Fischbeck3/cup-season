@@ -186,7 +186,10 @@ struct LeagueRecordView: View {
   let rows: [LeagueRecordRow]
   var body: some View {
     if !rows.isEmpty {
-      CSSectionHead("League record")
+      // D177 · "League record" was the THIRD heading on this page meaning
+      // "record", and the only one that was not one: it is a season-by-season
+      // list of where you finished, in every league you have played.
+      CSSectionHead("Every season")
       VStack(spacing: 0) {
         ForEach(Array(rows.enumerated()), id: \.element.id) { i, r in
           CSRow(last: i == rows.count - 1) { YouDoorRow(glyph: Text(Image(systemName: "flag")), title: r.name, sub: r.sub) }
