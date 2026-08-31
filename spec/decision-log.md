@@ -4826,3 +4826,24 @@ each remains reversible on its own line.)*
 - **Principle served:** the canon's "Confidence without volume" · §16 (every fact each post carried, it still carries: names, numbers, consequences).
 - **Tradeoffs:** 35 functions replaced in one migration — large, but each is a verified fragment patch on its own live body rather than a rewrite. Squad-name plurality ("Frost take the Cup") is still unresolved in `make_pick` and `close_season`; noted for a later pass.
 - **CONFLICT:** none. Supersedes the ALL-CAPS house style wherever it applied to prose.
+
+### D166 · The moments the product never had
+*(2026-08-31. New mechanic: the board gains six events it never observed. Owner: "address missing moments". Implements the gaps named in the D165 audit against `spec/voice-and-tone.md`.)*
+- **Current mechanic:** the board's entire emotional vocabulary was **three lines** — a barrier broken, a personal best, a streak — plus one lead-change post. Everything the canon cares about most was silent.
+- **Problem:** the product's whole premise is that a Saturday round becomes part of a season, and the season could not observe its own turning points. `20260716200000_post_round_peak.sql` opens by promising "the comeback/collapse tag (#23)" and no copy was ever written.
+- **Built, each from data that already exists — nothing here invents a table:**
+  1. **The blown lead.** `squad_lead_moments` posted from the NEW leader's side only; the side that just lost first place — the most story-shaped event in a season — got nothing. It now reads `season_lead.since` and the weekly `standings_snapshots` to say how far the deposed side had been clear, and how long they held it: *"…were 14 points clear at their best. A commanding lead. Formerly."* / *"…held first for 21 days. Once upon a time."* / *"Well. That didn't last long."*
+  2. **The comeback.** New `post_week_comeback(season, week)`, called by `snapshot_week` on a genuine insert.
+  3. **Last place**, at season close only: *"Someone had to complete the field."*
+  4. **The bad round:** *"Not the day X had in mind. We'll leave that one on the scorecard."*
+  5. **Rivalry heat** in the weekly clash: *"Three clashes in a row to X. This is becoming a problem."* / at five, *"Annoyingly good."*
+  6. **Welcome back**, for a golfer returning after six weeks away.
+- **THE GUARDS ARE THE DESIGN**, and each exists because the review found a way the line could hurt someone:
+  · **Last place must never fire inside a Cup Final.** `_ranked` there holds ONLY the finalists, so the bottom row is the **fourth-best team in the league** — naming them "last" is precisely what the canon's punch-at-the-golf rule forbids. `and not v_cup`.
+  · **The bad round must never land on a beginner.** `index_at_post` for a new golfer is a *starter index they guessed at signup*, so someone who typed 12 and shot a 20 differential would trip it on their **first ever posted round**. Requires 5+ prior rounds AND `index_source_at_post = 'app'` (a number the app derived from their own scores), 18 holes, and at most once per 60 days — and every warmer headline outranks it, so a return or a streak wins instead.
+  · **The comeback must not guess.** Nothing before week 4 (`p_week - 3` would read week ≤ 0); silence rather than a guess when a snapshot is missing, or a skipped cron run makes the comparison NULL and the line could re-fire every week; and **no week numbers** — `snapshot_week` computes the week as `floor(days/7.0)` while `open_week_clash` uses `floor(days/7)+1`, so on the same day they disagree by one and "back in week 40" would contradict "the clash this week" on the same board. "Three weeks ago" is safer and better copy.
+  · **Rivalry heat** measures true run length, so it fires once at three and once at five, never every week after.
+- **Verified behaviourally, not by reading:** ten assertions run inside the migration — the comeback stays silent at week 2 and with no snapshot; the bad round is guarded on both history and index source; welcome-back outranks the bad day in the cascade; last place exists AND refuses a Cup Final; the blown lead speaks and no shouting returned; rivalry heat fires at 3 and 5; the new function is not anon-callable. The probe is left in the file as a **gate** — any failure raises and the push stops.
+- **Principle served:** the canon's own priority order for moments; #5 the app should feel alive; §16 (every line states something the data supports).
+- **Tradeoffs:** six new voices on a board that had one. Mitigated by every one being rare by construction and by the cascade ordering, which prefers a warm line to a cold one whenever both qualify.
+- **CONFLICT:** none. Completes the promise in `post_round_peak.sql`.
