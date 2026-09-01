@@ -5279,7 +5279,7 @@ Built: `run_event_sessions` — the job that actually failed — now wraps each 
 
 **CONFLICT:** none. D146's 'complete' inclusion in the session sweep is preserved verbatim.
 
-### D194 · Five hard bounces were scheduled for 2026-09-06
+### D194 · Five hard bounces were scheduled for 2026-09-08
 *(2026-09-01. Found by the merge audit and confirmed in prod the same hour. This one has a date on it.)*
 
 ```
@@ -5297,8 +5297,48 @@ Sunset Match is also the **reviewer's** league. Three more test leagues queue be
 
 Both function bodies in the migration are prod's own `pg_get_functiondef` output with only the two filter lines swapped — generated, not retyped, because a hand-copied 70-line payload function is its own outage. `create or replace` preserves the ACL, so D187's revoke of `season_email_payload` from `authenticated` still stands.
 
-**This is the one item in the whole audit with a deadline attached.** It must be pushed before the daily tick on 2026-09-06.
+**This is the one item in the whole audit with a deadline attached.** The exact hour, re-derived from `daily_season_tick`'s own expression rather than from `ends_on` — it closes when `now() > ((ends_on + 1)::timestamp at time zone timezone + make_interval(hours => grace_hours))`, and TSTSUN carries `grace_hours = 48` in `America/Phoenix` — is **2026-09-08 07:20 UTC**, the first tick past the threshold. Three days later than a reading of `ends_on` alone suggests, which is worth stating precisely: a deadline you have mis-derived is worse than one you have not derived, because you stop checking it.
+
+**There is a second, faster defusal and it is the owner's, not this migration's:** `update leagues set sandbox = true where code like 'TST%'`. `season_email_on_complete()` skips sandbox leagues outright, so that one statement closes TSTSUN *and* the three queued behind it, changes nothing a reviewer sees, and needs no deploy. Do NOT reach for `test-seed reset` instead — `reviewer@cupseason.app` is a member of TSTSUN, and reset would delete the review world that the 2.1 rejection playbook depends on. The migration and the flip are belt and braces; the migration is the one that survives someone seeding a new `.test` bot next month.
 
 **Verified:** the season, its date and its `sandbox=false` read out of prod; the five `seed+bot*@cupseason.test` profiles listed; the live filter read out of `pg_get_functiondef`; the migration parses (5 statements, both bodies as plpgsql); preflight 21/21, 0 warnings. The migration asserts its own rule three ways before it finishes — that `.test` is caught, that `.invalid` still is (D189's tombstone depends on it), and that a real address is **not** — then refuses to succeed if either function still carries the old pattern list.
 
 **CONFLICT:** none. D68's unsubscribe posture and D189's `@cupseason.invalid` tombstone both depend on this predicate and are preserved by it explicitly.
+
+### D195 · The submission documents contradicted themselves, and every screenshot would have been rejected at upload
+*(2026-09-01. Found by the merge audit, which read the files I had just corrected and found the corrections incomplete.)*
+
+**D189 fixed one of three.** It rewrote §4.8 of `app-review-notes.md` to say — correctly — that Guideline 4.8 does not apply, because it governs apps offering a third-party or social login and the only way into Cup Season is a code we email. It left `:13` still telling the reviewer "Sign in with Apple is also offered" in the sign-in instructions, and `:130` still answering the rejection playbook's 4.8 row with "Present." **A document that contradicts itself twenty lines later is worse than one that is uniformly wrong**, because the reviewer cannot tell which half to believe, and the half they disbelieve might be the 5.3.4 paragraph about the pot.
+
+Same shape for the age rating: D192 rewrote `app-store-listing.md` §6 to Contests = yes → **13+**, and `app-review-notes.md:118` still read "no contests. Expected 4+". Two submission documents, opposite answers to the question Apple asks directly.
+
+**The walkthrough was routing the reviewer through a door that bans them.** Step 5 sent them to Settings → Delete account as a 5.1.1(v) demonstration. The reviewer account has posted rounds, so it takes the tombstone branch: profile anonymised, `banned_until = 'infinity'`. A reviewer who followed the walkthrough literally would have ended their own session mid-review, with no way back in from our side inside the window, and the natural next step is a 2.1. The step now says plainly not to complete it, says why, points at the confirm screen as the thing to inspect, and offers a throwaway account on request. **This is a documentation fix, not a server-side exemption** — carving the reviewer out of deletion would mean shipping a code path that behaves differently for one account, which is exactly what nobody should ship to review.
+
+**And all six screenshots carried an alpha channel.** `sips -g hasAlpha` returned yes on every file in `apps/ios/Screenshots/6.9/`; App Store Connect refuses screenshots with transparency at upload. This is the kind of thing discovered standing in the portal at the end of the process, with the submission already in your head as done. Flattened over opaque black — every one was shot on this app's dark ground, so black is the true backdrop rather than a guess — at the correct 1320×2868, and inspected afterwards rather than assumed.
+
+**Verified:** all six now report `hasAlpha: no` at unchanged dimensions, and one was opened and looked at.
+
+**CONFLICT:** none. D189 and D192 are completed here, not reversed.
+
+### D196 · The buy-in nobody chose, and the GHIN nobody published
+*(2026-09-01. Two things a column default decided on a golfer's behalf.)*
+
+**D113 was decided on 2026-08-29 and never built.** It ruled buy-in to $0 at every layer, approved the backfill for setup-phase leagues, and amended spec §7. Three days later `league_settings.buyin_cents` still read `DEFAULT 7500` in prod, so every league created since started at a $75 buy-in its Pro never picked — and `join_covenant_info` served that number to every pre-lock joiner, which means friends were being asked for money on the authority of a schema default. D46's principle, *money is a choice and not a default*, had been true on paper for three days and false in the database the whole time.
+
+The fix is smaller than D113 assumed: `create_league` never mentions `buyin_cents` at all, so it inherits the column default and **moving the default is the whole server fix**. On the client, the renderer already printed "None" for 0 and `resetWizard()` already zeroed it; what remained was the static markup, which is the frame a Pro sees *before* the first render, and the app's own initial `stake:75`.
+
+The **CHECK is the server ceiling D192 did not supply** — that capped `#lrStake`, the per-round side stake, and left the season buy-in unbounded. 0..20000 cents matches the ladder's $200 top and `CS_STAKE_MAX`; prod's range is 0..7500 across 13 rows, so nothing existing violates it. The $25 floor is deliberately **not** encoded: that is a wizard rule about what is sensible, not a database rule about what is possible, and a hard floor would make $0 → $10 an error rather than a choice.
+
+**The GHIN.** `tour_card` returned `p.ghin_number` to anyone who passed its visibility gate, and that gate ends in `coalesce(discoverable,'nobody') = 'everyone'`. `profiles.discoverable` has defaulted to `'everyone'` since `20260712010000_social_graph.sql:16`, where it was born as a **findability** flag for `search_golfers`; `tour_card` later reused the same column as a **readability** gate. Two different questions, one flag — and the settings control still says "Findable by · All / Buddies / Nobody", which tells a golfer nothing about what "All" makes readable.
+
+Measured in prod today: **24 of 39 profiles sit on the default, 4 carry a GHIN, and all four are among the 24.** The help copy calls the GHIN "a reference on your card — we never resell or verify it", which reads as a reassurance while the RPC hands the number to any signed-in stranger. Nobody chose that; a column default chose it for them in July. It is dropped from the payload, and no client change is needed because `index.html` renders that row conditionally — the field simply stops arriving.
+
+**Not done, and logged as the decision that follows:** tiering the whole payload by caller relationship (self / connected / stranger). That is the right long-term design and the wrong fortnight — `city` and `home_course` are already exposed by `search_golfers`, which is what the flag was actually built for, so tiering them silently changes 24 people's cards while fixing nothing. Separately, the settings control's copy still describes findability while gating readability; that wording is a UX decision, not a patch.
+
+Third, while in there: the career block filtered `differential is not null` and the courses block did not, so "Rounds 14" in Career could sit above per-course counts summing to more. Same filter, both places.
+
+`tour_card`'s body in the migration is prod's own `pg_get_functiondef` output with exactly two lines changed — generated, not retyped. **Five migrations touch this function and the newest by filename is not necessarily the one running**, so forking from a file would have been a coin flip.
+
+**Verified:** the default, the 24/4/4 profile counts, the 0..7500 range and `tour_card`'s live body all read out of prod first; the migration parses (6 statements, `tour_card` as plpgsql, no `ghin_number` left in the body); preflight 21/21, 0 warnings; `app-tests.js` 42/42 headless and the wizard's buy-in dial confirmed reading **None** in a real browser.
+
+**CONFLICT:** none — this *discharges* D113's ruling and D46's principle. Spec §7 was already amended by D113.

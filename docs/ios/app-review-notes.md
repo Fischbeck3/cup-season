@@ -10,7 +10,9 @@ Replace the two placeholders. Everything else is final copy.
 Email: `reviewer@cupseason.app`
 Password: `<<REVIEWER PASSWORD>>` — the sign-in screen shows a password field
 as soon as this address is typed (every other user signs in with an emailed
-8-digit code; Sign in with Apple is also offered).
+8-digit code. Sign in with Apple is built but is behind a flag that is off
+in this build — see the 4.8 note below; there is no third-party login to pair
+it against.)
 
 **Before every submission (founder, from the terminal — the seed lasts until the next `reset`):**
 ```
@@ -39,6 +41,13 @@ scorecard, and a Ryder-style event. Nothing in it is a real person.
    hole by hole; finish → the settlement card and the share sheet.
 5. **You** — the golfer's card, trophies, the record. Settings → Appearance,
    Palette, Notifications, and **Delete account** (in-app, Guideline 5.1.1(v)).
+   **Please do not complete the deletion on this account** — it is the review
+   account and the flow is real, not a demo. This account has posted rounds, so
+   it takes the tombstone branch: the profile is anonymised and the login is
+   banned permanently, which would end your session and cannot be undone from
+   our side inside a review window. The confirm screen states exactly what the
+   flow does; that screen is the thing to inspect. If you need to see it
+   complete, tell us and we will provide a second throwaway account.
 6. **Push** — Settings → Notifications → Enable on this device. A board post
    from another member arrives as a routed notification (tap → the board).
 
@@ -115,7 +124,14 @@ appears on the sign-in screen beside the emailed code.
 
 ## Age rating
 
-No gambling, no real-money gaming, no contests. Expected 4+.
+No gambling and no real-money gaming: the app has no payment rail of any
+kind and never touches the money (see the pot note above).
+
+**Contests: yes — expected 13+.** Cup Season is a season-long competition with
+a standings table, a Cup Final and a champion, and Apple's current
+questionnaire (the July 2025 revision) asks about that directly. Answering
+"none" would be answering the retired form. The reasoning is written out in
+`docs/ios/app-store-listing.md` §6.
 
 ---
 
@@ -127,5 +143,5 @@ No gambling, no real-money gaming, no contests. Expected 4+.
 | 2.1 incomplete / cannot evaluate | The reviewer landed in an empty state: the account is re-seeded (`test-seed` with `target_email`) and the walkthrough re-sent. |
 | 1.2 UGC safety | Report + Mute paths above; `report_content` and `set_mute` are server RPCs, reachable from every post and member sheet. |
 | 5.1.1(v) account deletion | In-app path above; `delete_account` RPC. |
-| 4.8 Sign in with Apple | Present. |
+| 4.8 Sign in with Apple | Does not apply: 4.8 governs apps offering a third-party or social login, and the only way in is a code we email. Point at the 4.8 note above. |
 | 4.2 minimum functionality | Not a web wrapper: native SwiftUI, APNs push with lock-screen actions, camera scan, share sheet, MetricKit, universal links, live-round sync with an offline queue. |

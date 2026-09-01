@@ -22,3 +22,11 @@ spec/handoffs/*.pdf
 tools/fonts/
 .claude/worktrees/
 apps/ios/build/
+
+# The 2026-08-31 ship audit's raw output. This repo is PUBLIC. The synthesis
+# names live line numbers, prod identifiers and — in §5 — the owner's personal
+# legal and financial exposure. Its own README forbids publication before the
+# S1/S3 fixes are LIVE, and the redaction question (which applies to all four
+# audit folders, ~25 files of which carry jerecho+blind* aliases) is the
+# owner's call, not a side effect of `git add -A`. Un-ignore deliberately.
+docs/audit/ship-2026-08-31/
