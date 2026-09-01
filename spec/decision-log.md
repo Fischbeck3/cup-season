@@ -5477,3 +5477,48 @@ Rewritten to state what is actually true: scoped to the tables a client embeds, 
 Also narrowed the fix itself. The first draft dropped three audit FKs; only **one** breaks anything, so only `league_members_suspended_by_fkey` goes. `posts`, `post_comments`, `round_comments` and `content_reports` keep theirs: nothing embeds them, and integrity is free where it costs nothing. Churning schema that works, in a migration written to fix schema that does not, is how a second regression gets shipped inside the fix for the first.
 
 **CONFLICT:** none. This corrects D200's guard, not its diagnosis.
+
+### D202 · The photograph owns the card, and the marker owns it when there is none
+*(2026-09-01. Asked for directly: "photo owns and emblem if no photo, maybe a tiny emblem in corner of screen if we have a photo," against a reference card whose picture ran edge to edge with the name riding over its bottom.)*
+
+**Current mechanic.** D199 sized the face by what it holds — 104pt for a photograph, 64 for a marker — and let the name ride over the photo's trailing edge on a narrow scrim. That was the right diagnosis (a marker is a small drawing; a photograph is a face and wants room) treated with the smallest possible cure: the photo was still an avatar, just a bigger one, sitting in a row beside text.
+
+**Problem.** A profile photo is the most specific thing a golfer puts on their card, and it was being rendered as the least specific element on it — a disc, the same shape every app uses. Meanwhile the marker, which this product treats as identity ("ALWAYS the marker otherwise. No silhouette state."), only ever appeared at disc size or as an 11%-opacity watermark. Neither the thing a golfer chose nor the thing we assign them ever got to be the object.
+
+**Built.** `CredentialFace` — one square panel at the top of the card, edge to edge, used by both the Tour Card's `CredentialCard` (fixed dark palette) and the You screen's `YouHero` (screen theme):
+
+- **With a photo:** the photograph fills the panel, and name / founding tag / meta ride over its bottom on a scrim that resolves to **full `bg1`** at its last stop — not 0.94. That last 6% is the whole difference between a photograph that is the card's top half and a picture pasted onto a card; at 0.94 the panel's bottom edge showed as a seam and the crop read as a cut.
+- **With no photo:** the marker is not a fallback, it is the **crest** — drawn at ink on the look's radial wash, at 46% of the panel, owning exactly the space the photo would have.
+- **The marker never disappears.** A photo takes the crest's place, so the glyph rides small in the panel's bottom corner, opposite the name: the crest, or the corner — never neither, never both. The 250pt background emblem now renders **only when there is a photo**, because with a crest up top it would be the same glyph drawn twice on one card.
+- **The accessibility sizes take the identity off the panel entirely**, onto the card's own ground, same trade and same reason as D199. The first cut of this dropped the corner marker with it — a photo card with no glyph anywhere, the one outcome the panel is not allowed to produce. Caught by looking, not by a test.
+
+**Also built: `-cs_dev_cred <photo|crest|hero|herocrest>`** (`CredentialDev.swift`, DEBUG only), joining `-cs_dev_door` and `-cs_dev_live`. The card is the most-reviewed object in the app and the hardest to reach — it needs an account, a season, trophies and a photograph. This renders it with none of them. The stand-in photograph is **drawn, in greyscale**: a nearly-white subject under the name is the worst case the scrim has to survive, and a plausible warm portrait would have flattered it.
+
+**Principle served.** §16 "everything shows its work" applies to identity too — the card should show *who*, at the size that word deserves. And the D199 principle finally taken at face value rather than half-way.
+
+**Tradeoffs.** The Tour Card is now taller before the Career table; the panel is a square, so on a 393pt-wide sheet it costs ~360pt above the fold. Judged worth it: the sheet's job is the person, and the record is one scroll away. A golfer with no photo now gets a large crest rather than a compact row — for the marker system that is a feature, but it does mean the photo-less card is visually heavier than it was.
+
+**Verified by looking**, which is the point: four simulator screenshots (photo/crest × dark card/light hero) plus one at `accessibility-extra-extra-extra-large`. iOS 363 + 28 + 10 green; preflight 21/21.
+
+**CONFLICT:** brushes IOS-022 item 2, which killed a 220pt marker watermark on the You hero — "at 10% it was a smudge on charcoal and a stain on paper." Not a reversal: that was a *smudge behind text*, this is a *crest in its own panel* at ink, and the "THE SAGUARO" eyebrow IOS-022 put in its place stays, moved under the panel where it reads as its caption.
+
+### D203 · The Clubhouse pages between leagues
+*(2026-09-01, same request: "lets also change to swipe between leagues in the clubhouse." Scoped during D199 and left unbuilt; built now.)*
+
+**Current mechanic.** One league room at a time, with a switcher menu in the toolbar when you belong to more than one.
+
+**Problem.** A menu is a fine way to *jump to* a league you already know you have. It is a poor way to *find out* you have another one — the affordance is a small glyph in a corner that says nothing about how many rooms are behind it.
+
+**Built.** The Clubhouse **tab** hosts a paged `TabView` over `me.memberships`, one page per league, each carrying its own look and its own room. A five-pixel dot row sits above the pages: how many rooms there are, and which one you are in, before you touch anything. Swiping writes `store.preferredLeague`, so the rest of the app follows you out of the room. **The menu stays** — swipe is the discovery, the menu is the aim, and VoiceOver keeps the menu either way (the dot row is one element labelled "League 2 of 3").
+
+Three things the paging forced, each a real bug avoided:
+
+- **Only the tab pages.** Pushed in at a named league (Home → a league), the Clubhouse shows that league and nothing beside it — you already chose.
+- **The navigation title is set once, above the pages.** A paged `TabView` hosts its neighbours, so every hosted room was claiming the title; several rooms racing for it has no winner. `LeagueRoomScreen` takes `titled:` and, when false, **does not apply the modifier at all** — an empty title is still a claim.
+- **Only the room in hand may buzz.** The rank-up haptic fires from a `.task` on the room; with neighbours hosted, an off-screen league's promotion would have vibrated the phone for a room you are not looking at.
+
+**Tradeoffs.** Hosting neighbours means the adjacent league's room loads its data when you swipe toward it — one extra RPC per neighbour, paid once per Clubhouse visit. Acceptable at real membership counts (single digits); if someone ever carries a dozen leagues this becomes a reason to lazy-load. Also: with exactly one league nothing changes, correctly — there is nothing to swipe to.
+
+**Principle served.** IOS-002 §5 — the Clubhouse is *the* league room; the leagues are peers, and peers sit side by side.
+
+**CONFLICT:** none.

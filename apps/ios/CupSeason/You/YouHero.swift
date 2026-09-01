@@ -1,11 +1,15 @@
 // Cup Season — the You hero (IOS-019 rule 1): your credential as the one
-// hero on the screen. Same bones as `.cred` (index.html 585–613) — face,
-// name, the index in gold once EARNED, the trophies engraved on it, the
-// marker NAMED as the mono eyebrow, the form row — on the CSHero wash, in
+// hero on the screen. Same bones as `.cred` (index.html 585–613) — the face
+// panel, name, the index in gold once EARNED, the trophies engraved on it,
+// the marker NAMED as the mono eyebrow, the form row — on the CSHero wash, in
 // the screen's own theme. The Tour Card keeps `CredentialCard` (fixed dark
-// face). IOS-022 item 2: the 220pt watermark went — at 10% it was a smudge
-// on charcoal and a stain on paper; "THE SAGUARO" in the scorer's voice says
-// the same thing legibly, in a screenshot and to VoiceOver.
+// face).
+//
+// D202 — the photograph owns the top of the card, or the marker does
+// (`CredentialFace`). IOS-022 item 2 killed a 220pt watermark at 10%, which
+// was a smudge on charcoal and a stain on paper; a crest at ink on the look's
+// wash is the opposite object, and the eyebrow still says the marker's name
+// out loud — under the panel now, where it reads as its caption.
 
 import SwiftUI
 import CSDesign
@@ -15,7 +19,6 @@ struct YouHero<Anchor: View>: View {
   @Environment(\.cs) private var cs
   @Environment(\.csLookAccent) private var la
   @Environment(SessionStore.self) private var session
-  @Environment(\.dynamicTypeSize) private var typeSize
 
   let photoURL: URL?
   let marker: String?
@@ -33,50 +36,23 @@ struct YouHero<Anchor: View>: View {
   @ViewBuilder let anchor: () -> Anchor
 
   private var established: Bool { indexCurrent != nil }
-  /// D199 — same rule as the Tour Card's credential: a marker is a small
-  /// drawing and wants to stay small; a photograph is a FACE and wants room.
-  /// One size for both was the defect.
-  private var faceSize: CGFloat { photoURL != nil ? 104 : 64 }
-  private var riding: Bool { photoURL != nil && !typeSize.isA11y }
 
   var body: some View {
     // gold once the index is established (earned); otherwise the personal look's accent, ember when none (IOS-025)
     CSHero(spine: established ? cs.gold : nil, padding: 20) {
       VStack(alignment: .leading, spacing: 0) {
+          // the panel bleeds to the card's edges — the 20pt hero padding is
+          // for the record below it, not for the face
+          CredentialFace(photoURL: photoURL, marker: marker, name: name,
+                         badge: session.founding.badge(for: session.me?.profile?.id),
+                         meta: meta, p: cs, accent: la.accent,
+                         sub: { anchor() }, trailing: { EmptyView() })
+            .padding(.horizontal, -20).padding(.top, -20)
+
           // the marker's name as the eyebrow — the web's `.cred` watermark, said out loud
           // D103b: the hero eyebrow wears the personal look's accent; mut on homebase (gold stays the number's)
-          Text(CSMarkers.marker(marker).name).csEyebrow(la.eyebrow).padding(.bottom, 12)
+          Text(CSMarkers.marker(marker).name).csEyebrow(la.eyebrow).padding(.top, 16)
             .accessibilityLabel("Marker: \(CSMarkers.marker(marker).name)")
-          HStack(alignment: riding ? .bottom : .center, spacing: riding ? -(faceSize * 0.20) : 12) {
-            CSFace(photoURL: photoURL, marker: marker, size: faceSize, badge: !riding)
-            VStack(alignment: .leading, spacing: 3) {
-              Text(name).font(CSFont.title).foregroundStyle(cs.ink).lineLimit(2)
-              FoundingTag(badge: session.founding.badge(for: session.me?.profile?.id)).padding(.vertical, 2)
-              if !meta.isEmpty {
-                Text(meta).font(CSFont.label).tracking(1.0).textCase(.uppercase).foregroundStyle(cs.mut)
-              }
-              anchor()
-            }
-            .padding(.leading, riding ? 12 : 0)
-            .padding(.bottom, riding ? 6 : 0)
-            /* the scrim is only as wide as the overlap — the name must stay
-               legible where it crosses a photograph, and the hero's own wash
-               must stay visible everywhere else */
-            .background(alignment: .leading) {
-              if riding {
-                LinearGradient(stops: [
-                  .init(color: cs.bg1.opacity(0.95), location: 0.0),
-                  .init(color: cs.bg1.opacity(0.86), location: 0.62),
-                  .init(color: .clear,               location: 1.0)
-                ], startPoint: .leading, endPoint: .trailing)
-                  .frame(width: faceSize * 1.05)
-                  .blur(radius: 10)
-                  .padding(.vertical, -10)
-                  .allowsHitTesting(false)
-              }
-            }
-            .frame(maxWidth: .infinity, alignment: .leading)
-          }
 
           VStack(alignment: .leading, spacing: 4) {
             if let idx = indexCurrent {
@@ -86,7 +62,7 @@ struct YouHero<Anchor: View>: View {
             }
             Text("Handicap index").font(CSFont.label).tracking(1.8).textCase(.uppercase).foregroundStyle(cs.mut)
           }
-          .padding(.top, 18)
+          .padding(.top, 10)
           .accessibilityElement(children: .combine)
           .accessibilityHint(established ? "" : "Building your number — your index appears at 3 posted rounds")
 

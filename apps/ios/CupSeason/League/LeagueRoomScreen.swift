@@ -16,15 +16,27 @@ struct LeagueRoomScreen: View {
   @State private var model: LeagueRoomModel
   @State private var router = RoomRouter()
   let links: LeagueRoomLinks
+  /// A paged Clubhouse hosts several rooms at once and sets the navigation
+  /// title itself — six rooms all claiming it is a race with no winner.
+  let titled: Bool
 
-  init(leagueId: UUID, links: LeagueRoomLinks) {
+  init(leagueId: UUID, links: LeagueRoomLinks, titled: Bool = true) {
     _model = State(initialValue: LeagueRoomModel(leagueId: leagueId))
     self.links = links
+    self.titled = titled
   }
 
   var body: some View {
     ScrollViewReader { proxy in
-      room
+      // an EMPTY navigation title is still a claim on the title — a room that
+      // is not titling the screen must not apply the modifier at all
+      Group {
+        if titled {
+          room.navigationTitle(model.league?.name ?? "League").navigationBarTitleDisplayMode(.inline)
+        } else {
+          room
+        }
+      }
         #if DEBUG
         // Developer hatch: `-cs_dev_scroll <anchor>` (climb · standings · race) scrolls a simulator there.
         .task(id: model.loaded) {
@@ -70,8 +82,6 @@ struct LeagueRoomScreen: View {
       .padding(.horizontal, 20).padding(.top, 8).padding(.bottom, 32)
     }
     .csLookGround()   // D103b: bg0 with the sky behind the league hero
-    .navigationTitle(model.league?.name ?? "League")
-    .navigationBarTitleDisplayMode(.inline)
     .environment(model)
     .environment(router)
     .environment(\.roomLinks, links)

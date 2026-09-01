@@ -75,6 +75,9 @@ struct RootView: View {
           .padding(.top, 60)
       }
     }
+    // `-cs_dev_cred <photo|crest|hero|herocrest>`: the credential itself, over
+    // the root — see CredentialDev.swift.
+    .overlay { if let m = CredDev.mode { CredDevView(mode: m) } }
     .overlay {
       if (CSDevHatch.live || CSDevHatch.nearby) && devLive {
         LiveRoundHost(links: LiveLinks(done: { devLive = false }))

@@ -139,7 +139,7 @@ struct MainTabView: View {
       .tag(Tab.home)
 
       NavigationStack(path: $clubPath) {
-        ClubhouseView(leagueId: store.preferredLeague,
+        ClubhouseView(leagueId: store.preferredLeague, paged: true,
                       onOpenBoard: { clubPath.append(ClubRoute.board($0)) },
                       onOpenSchedule: { clubPath.append(ClubRoute.schedule) },
                       onAddGolfers: { presenter.inviteTo = $0 })
