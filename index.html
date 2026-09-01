@@ -8276,8 +8276,17 @@ function liveCardHoles(i){
   const a = state.live?.scores?.[i] || [];
   const f9   = [...Array(9)].every((_,k)=>a[k]!=null);
   const b9   = [...Array(9)].every((_,k)=>a[k+9]!=null);
-  const anyB = [...Array(9)].some((_,k)=>a[k+9]!=null);
-  return (f9&&b9) ? 18 : (f9&&!anyB) ? 9 : 0;
+  /* D182 · a complete front nine is a NINE whatever was scored after it. This
+     used to require `!anyB` — nothing at all past hole 9 — which is what made a
+     10-hole walk-off report 0 and vanish at finish. The server drops holes 10+
+     by construction; this mirrors it so the sheet tells the truth. */
+  return (f9&&b9) ? 18 : f9 ? 9 : 0;
+}
+/* D182 · how many scored holes will NOT count, so the sheet can name them
+   instead of discarding strokes silently. */
+function liveCardDropped(i){
+  const a = state.live?.scores?.[i] || [];
+  return liveCardHoles(i) === 9 ? [...Array(9)].filter((_,k)=>a[k+9]!=null).length : 0;
 }
 /* every seated card would post — the finish sheet raises no warning. */
 function liveEveryCardPostable(){
@@ -8322,7 +8331,13 @@ function liveFinishStatus(){
   let doneAll = 0; for(let h=0; h<n; h++) if(seats.every(i=>sc(i)[h]!=null)) doneAll++;
   /* every hole in play filled and it STILL will not post — the stray back-nine
      case. "0 to play" would be true and useless. */
-  if(doneAll === n) return `A CARD HAS SCORES PAST HOLE ${n}`;
+  /* D182 · this used to read "A CARD HAS SCORES PAST HOLE n" because such a
+     card would not post at all. It posts now, as a nine, so the line says what
+     will happen rather than warning about it. */
+  if(doneAll === n){
+    const dr = seats.reduce((t,i)=>t+liveCardDropped(i),0);
+    return dr ? `POSTS AS A NINE · ${dr} HOLE${dr===1?'':'S'} WON’T COUNT` : `THRU ${doneAll}`;
+  }
   /* every seat postable but the round is not over — a clean nine of an
      eighteen. Say both facts at once rather than pretending it is done. */
   if(liveEveryCardPostable()) return `THRU ${doneAll} · ${ready} IF YOU STOP HERE`;
@@ -9711,8 +9726,9 @@ function renderPlay(){
 
   /* D153b · prominence tracks the round; the wording does not editorialise
      about it. Finishing early is legitimate — rained out, quit after nine —
-     and the sheet handles it (it names what is missing and skips partial cards
-     rather than losing them), so the button stays reachable at every hole and
+     and the sheet handles it — D182: a complete front nine now POSTS as a nine
+     and the sheet names the holes past it that will not count; only a card
+     without a complete front nine is refused — so the button stays reachable at every hole and
      stays neutrally worded. "End the round early" passed judgement on a
      decision that is usually just weather. What moves is the volume, and the
      LINE ABOVE it, which carries the state the wording used to try to carry. */
@@ -9726,7 +9742,8 @@ function renderPlay(){
      _fb.classList.toggle('dark', !_done); }   /* .btn.dark IS the web's quiet */
    /* the teaching copy speaks ONCE, before the first score. It is restated
       where it has consequence: the finish sheet opens with "Complete cards post
-      to the season, attested by the group… A partial card is skipped, not lost." */
+      to the season, attested by the group…", then D182's honest sentence about
+      what a card that stopped after the turn actually does. */
    if(_ff) _ff.style.display = liveAnyScored() ? 'none' : '';}
 
   const dots=$('#holeDots'); dots.innerHTML='';
@@ -10490,7 +10507,17 @@ function finishRealLiveRound(){
     : '';
   const result = gameResult();
   openSheet('Finish the round', _lg ? 'ONE FINISH — EVERY MEMBER’S CARD POSTS' : 'ONE FINISH — EVERY CARD POSTS TO ITS GOLFER',
-    `<p class="fine" style="padding-top:0">${_lg?'Complete cards post to the season':'Every complete card posts to its golfer'}, attested by the group${guestN?`; ${guestN} guest${guestN===1?'':'s'} get${guestN===1?'s':''} a recap to claim`:''}. A partial card is skipped, not lost.</p>
+    `<p class="fine" style="padding-top:0">${_lg?'Complete cards post to the season':'Every complete card posts to its golfer'}, attested by the group${guestN?`; ${guestN} guest${guestN===1?'':'s'} get${guestN===1?'s':''} a recap to claim`:''}. ${(function(){
+       /* D182 · "A partial card is skipped, not lost" was not true: a 10-hole
+          walk-off posted NOTHING and there is still no door back to the strokes
+          (that is D182 rec 3, deliberately not in this pass). Say exactly what
+          happens now: a complete front nine posts as a nine, and a card without
+          one does not post at all. */
+       const dr = liveSeats().reduce((t,i)=>t+liveCardDropped(i),0);
+       return dr
+         ? `A card that stopped after the turn posts as a <b>nine</b> — ${dr} hole${dr===1?'':'s'} past the ninth won’t count toward it.`
+         : `A card without a complete front nine won’t post.`;
+     })()}</p>
      ${warn}
      <button class="btn" id="lrPost" style="margin-top:12px">${done.length
        ? `Post ${done.length} card${done.length===1?'':'s'}${_lg?' to the season':' — each to its golfer'}`

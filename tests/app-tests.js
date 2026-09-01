@@ -47,6 +47,33 @@
   t('bands: -1.0 is named for the points it pays', bandName(-1.0), 'A little loose');
   t('bands: -0.99 is still played-to-it', [pointsFor(-0.99)[0], bandName(-0.99)], [7, 'Played to it']);
 
+  /* D182 · the round that stops at eleven. liveCardHoles used to require that
+     NOTHING was scored past hole 9 for a front nine to count, so a 10-hole
+     walk-off reported 0 and vanished at finish — the owner lost a real 46-stroke
+     ten that way. A complete front nine is now a nine whatever follows it, and
+     liveCardDropped names what will not count. Server side proven on Postgres
+     16: the same card posts gross 46, holes 9, dropped 1. */
+  (function(){
+    const prev = state.live;
+    const card = a => { state.live = { scores: [a], pmap: { 0: true } }; };
+    const nine = [5,4,6,5,5,4,5,6,6];
+    card(nine.concat([5]));
+    t('liveCardHoles: ten holes is a nine (was 0)', liveCardHoles(0), 9);
+    t('liveCardDropped: names the stray hole', liveCardDropped(0), 1);
+    card(nine.concat([5,4,5,6,5]));
+    t('liveCardHoles: fourteen holes is a nine', liveCardHoles(0), 9);
+    t('liveCardDropped: names all five', liveCardDropped(0), 5);
+    card(nine);
+    t('liveCardHoles: a clean nine is still a nine', liveCardHoles(0), 9);
+    t('liveCardDropped: nothing dropped', liveCardDropped(0), 0);
+    card([5,4,null,5,5,4,5,6,6,5]);
+    t('liveCardHoles: a gap in the front nine still posts nothing', liveCardHoles(0), 0);
+    card([4,4,5,4,5,4,4,5,4,4,4,5,4,5,4,4,5,4]);
+    t('liveCardHoles: eighteen is unchanged', liveCardHoles(0), 18);
+    t('liveCardDropped: eighteen drops nothing', liveCardDropped(0), 0);
+    state.live = prev;
+  })();
+
   /* D187 · rcptPvi — ONE producer for the receipt's signed figure. Two call
      sites each carried their own copy of this ternary at 100% while the engine
      paid at 95%, so the same round could show two different figures and two
