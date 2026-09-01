@@ -54,6 +54,14 @@
 # 20260831180000 + 20260831190000 applied inside a ROLLED-BACK
 # transaction — prod is clean through 20260831160000. close_roster is the
 # Pro's handle on the roster door; _join_gate stays revoked from everyone.
+#
+# 2026-09-01: 208 functions. Taken AFTER the D187-D193 push (20260901100000
+# revoke_house_boilerplate, 120000 the_takedown_path, 140000 delete_means_delete,
+# 160000 the_index_rounds_never_had, 180000 the_cron_that_failed_in_silence).
+# The four house-boilerplate functions lost `auth`; report_content went 4-arg -> 5-arg
+# (the old signature was DROPPED, not kept beside it — a named-argument call would
+# have matched both and raised "function is not unique").
+#
 _cup_window_rounds|p_season uuid|TABLE(member_id uuid, round_id uuid, profile_id uuid, played_on date, points integer, month_rank bigint, pvi numeric, holes_played integer)|definer|none
 _join_gate|p_league uuid, p_via_pro boolean|void|definer|none
 _late_squad|p_league uuid, p_member uuid|text|definer|none
@@ -89,6 +97,7 @@ create_league|p_name text, p_code text|json|definer|auth
 create_major|p_name text, p_final_on date, p_days integer DEFAULT 4, p_buy_in numeric DEFAULT 0, p_pot_split text DEFAULT 'places'::text, p_league uuid DEFAULT NULL::uuid, p_tz text DEFAULT NULL::text, p_lineage uuid DEFAULT NULL::uuid|uuid|definer|auth
 create_scan_claim|p_name text, p_gross integer, p_strokes jsonb, p_course text, p_rating numeric, p_slope integer, p_played date, p_holes integer DEFAULT 18|uuid|definer|auth
 create_share|p_kind text, p_ref uuid|uuid|definer|auth
+cron_health||jsonb|definer|auth
 cup_final_race|p_season uuid|jsonb|definer|auth
 cup_points|p_pvi numeric|integer|invoker|auth
 daily_season_tick||void|definer|none
@@ -122,7 +131,8 @@ guest_live_state|p_token uuid|jsonb|definer|anon,auth
 handicap_index_asof|p_profile uuid, p_before_date date, p_before_id uuid|numeric|definer|auth
 handicap_index|p_profile uuid|numeric|definer|auth
 handle_available|p_handle text|boolean|definer|auth
-handle_new_user||trigger|definer|auth
+handle_new_user||trigger|definer|none
+hide_content|p_kind text, p_id uuid, p_reason text DEFAULT NULL::text|void|definer|auth
 home_clash|p_league uuid|jsonb|definer|auth
 home_feed|p_days integer DEFAULT 21|TABLE(round_id uuid, profile_id uuid, golfer text, marker text, handle text, gross integer, pvi numeric, played_on date, created_at timestamp with time zone, course text, is_pr boolean, is_first boolean, is_sub80 boolean, is_me boolean, photo_path text)|definer|auth
 invite_golfer|p_league uuid, p_event uuid, p_profile uuid|uuid|definer|auth
@@ -158,6 +168,8 @@ mark_cancellation_sent|p_id uuid, p_error text DEFAULT NULL::text|void|definer|n
 mark_email_sent|p_id uuid, p_error text DEFAULT NULL::text|void|definer|none
 mj_money|n numeric|text|invoker|none
 mj_vs|n numeric|text|invoker|none
+moderation_queue||jsonb|definer|auth
+moderator_can|p_league uuid|boolean|definer|none
 my_achievements||TABLE(kind text, label text, earned_on date, meta jsonb)|definer|auth
 my_actionable_count||integer|definer|auth
 my_friends||TABLE(friendship_id uuid, profile_id uuid, handle text, display_name text, city text, marker text, index_current numeric, status text, incoming boolean)|definer|auth
@@ -170,18 +182,20 @@ my_trophies||TABLE(id uuid, kind text, title text, subtitle text, placement text
 my_visitor_rounds||jsonb|definer|auth
 native_home||jsonb|definer|auth
 nearby_resolve|p_profiles uuid[]|TABLE(id uuid, handle text, display_name text, city text, home_course text, marker text, index_current numeric, rel text)|definer|auth
+notify_founder_of_report||trigger|definer|none
 nth_up|n integer|text|invoker|none
 open_major|p_session uuid|void|definer|auth
 open_week_clash|p_season uuid|uuid|definer|none
 playerlabel|p_profile uuid|text|definer|auth
-post_week_comeback|p_season uuid, p_week integer|void|definer|auth
+post_week_comeback|p_season uuid, p_week integer|void|definer|none
 randomize_squads|p_season uuid|void|definer|auth
 recent_partners|p_limit integer DEFAULT 12|TABLE(id uuid, handle text, display_name text, city text, home_course text, marker text, index_current numeric, rel text, last_played timestamp with time zone, rounds_together integer)|definer|auth
 recompute_season_payouts|p_season uuid|jsonb|definer|none
 register_device_token|p_token text, p_platform text DEFAULT 'ios'::text|void|definer|auth
 remove_member|p_member uuid|void|definer|auth
-report_content|p_post uuid DEFAULT NULL::uuid, p_reason text DEFAULT NULL::text, p_kind text DEFAULT 'post'::text, p_profile uuid DEFAULT NULL::uuid|void|definer|auth
+report_content|p_post uuid DEFAULT NULL::uuid, p_reason text DEFAULT NULL::text, p_kind text DEFAULT 'post'::text, p_profile uuid DEFAULT NULL::uuid, p_comment uuid DEFAULT NULL::uuid|void|definer|auth
 request_league_cancel|p_league uuid|text|definer|auth
+resolve_report|p_report uuid, p_resolution text DEFAULT NULL::text|void|definer|auth
 resolve_session|p_session uuid|void|definer|auth
 respond_invite|p_id uuid, p_accept boolean|void|definer|auth
 retag_round|p_id uuid, p_tagged uuid[]|void|definer|auth
@@ -215,7 +229,7 @@ scrap_forfeit|p_id uuid|void|definer|auth
 scratch_round|p_id uuid|void|definer|auth
 search_golfers|p_q text|TABLE(profile_id uuid, handle text, display_name text, city text, home_course text, marker text, index_current numeric, rel text)|definer|auth
 season_email_on_complete||trigger|definer|none
-season_email_payload|p_season uuid|jsonb|definer|auth
+season_email_payload|p_season uuid|jsonb|definer|none
 season_scenarios|p_season uuid|jsonb|definer|auth
 set_buy_in_terms|p_league uuid, p_note text DEFAULT NULL::text, p_due_on date DEFAULT NULL::date|json|definer|auth
 set_discoverable|p_mode text|void|definer|auth
@@ -246,12 +260,13 @@ start_draft|p_season uuid, p_shuffle boolean DEFAULT true|uuid|definer|auth
 start_live_round|p_league uuid DEFAULT NULL::uuid, p_course_id uuid DEFAULT NULL::uuid, p_tee_id uuid DEFAULT NULL::uuid, p_course_label text DEFAULT NULL::text, p_snapshot jsonb DEFAULT NULL::jsonb, p_game text DEFAULT NULL::text, p_players jsonb DEFAULT NULL::jsonb, p_config jsonb DEFAULT '{}'::jsonb, p_api_course_id text DEFAULT NULL::text|jsonb|definer|auth
 start_season|p_season uuid|void|definer|auth
 submit_feedback|p_category text, p_body text, p_context jsonb DEFAULT '{}'::jsonb|uuid|definer|auth
-tag_founder||trigger|definer|auth
+tag_founder||trigger|definer|none
 tour_card|p_profile uuid|jsonb|definer|auth
 transfer_pro|p_member uuid|void|definer|auth
 trg_event_complete||trigger|definer|auth
 undo_pick|p_draft uuid|void|definer|auth
 unfriend|p_profile uuid|void|definer|auth
+unhide_content|p_kind text, p_id uuid|void|definer|auth
 unregister_device_token|p_token text|void|definer|auth
 vote_league_cancel|p_league uuid, p_approve boolean|text|definer|auth
 withdraw_league_cancel|p_league uuid|text|definer|auth
