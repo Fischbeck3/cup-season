@@ -1799,6 +1799,15 @@ html[data-theme="light"] .momrow{background:rgba(21,116,63,.06);}
    same rest frame, tenth of the wait. ?forge in the URL replays the show. */
 .ob-crest{width:min(64vw, 300px); margin:0 auto 4px; pointer-events:none;}
 .ob-crest svg{width:100%; height:auto; display:block;}
+/* D189 · a short phone (a 640px-tall viewport is still common) pushed the
+   "How it works" cue below the fold, so that reader never learned the story was
+   there — which is the whole point of the change. Give the crest less room and
+   tighten the hero; measured at 360x640, the cue then peeks. */
+@media(max-height:700px){
+  .ob-crest{width:min(48vw, 220px);}
+  .ob-hero{margin-bottom:16px;}
+  .ob-hero h1{font-size:30px;}
+}
 @media(min-width:760px){ .ob-crest{width:min(76vw, 420px);} }
 @media(min-width:760px) and (max-height:820px){ .ob-crest{width:min(60vw, 340px);} }
 @keyframes csDraw{from{stroke-dashoffset:620;} to{stroke-dashoffset:0;}}
@@ -1896,6 +1905,28 @@ html[data-theme="light"] .hdrmark{color:#0B1410;}
 .ob-wing{animation:csUp .7s ease 1.5s both;}
 .ob-wing.ob-wr{animation-delay:1.65s;}
 .ob-more{animation:csUp .7s ease 1.7s both;}
+/* D189 · the story below the fold. Tokens only (preflight 12 forbids raw hex),
+   and --mut not --dim for body text: --dim computes ~2.9:1 and fails AA. */
+.ob-cue{
+  display:block; text-align:center; margin:0 auto; padding:14px 0 18px;
+  font-family:var(--mono); font-size:11px; letter-spacing:.14em;
+  text-transform:uppercase; color:var(--mut); text-decoration:none;
+}
+.ob-cue:hover{color:var(--ink);}
+.ob-cue:focus-visible{outline:2px solid var(--brand); outline-offset:3px; border-radius:6px;}
+.ob-cue.up{padding-top:4px;}
+.ob-more{max-width:520px; margin:0 auto; padding:8px 20px 40px;}
+.obm-row{padding:14px 0; border-top:1px solid var(--line);}
+.obm-row:first-child{border-top:0;}
+.obm-row b{
+  display:block; font-family:var(--mono); font-size:11px; letter-spacing:.14em;
+  text-transform:uppercase; color:var(--brand); margin-bottom:6px;
+}
+.obm-row p{font-size:14.5px; line-height:1.6; color:var(--mut); margin:0;}
+.obm-free{
+  margin-top:16px; text-align:center; font-family:var(--mono); font-size:11px;
+  letter-spacing:.06em; color:var(--mut);
+}
 @keyframes csUp{from{opacity:0; transform:translateY(14px);} to{opacity:1; transform:none;}}
 @keyframes csRing{0%{transform:scale(.6); opacity:.8;} 100%{transform:scale(2.6); opacity:0;}}
 @keyframes csFade{from{opacity:0;} to{opacity:1;}}
@@ -2804,6 +2835,11 @@ html[data-theme="light"] .room-dusk .btn:not(.dark):not(.gold):not(.apple){color
     <div class="ob-hero">
       <!-- Entry V4: the mark row is gone — the seared wordmark above is the wordmark -->
       <h1>Rally your crew.<br>Post real rounds.<br><em>Take the cup.</em></h1>
+      <!-- D117/D189 · the one-breath definition, sourced VERBATIM from the
+           <meta name="description"> at the top of this file. D117: "never a
+           third paraphrase". 8 of 8 testers could not say what the product was
+           from the slogan alone; this is the line that answers it. -->
+      <p>Season-long golf with the people you already play with — points, pot, pressure.</p>
     </div>
     <div id="obDoor">
     <button class="btn" id="obEmail">Continue with email</button>
@@ -2885,8 +2921,18 @@ html[data-theme="light"] .room-dusk .btn:not(.dark):not(.gold):not(.apple){color
       <button class="btn dark" id="obCrewFind" type="button">Find your buddies</button>
       <p class="fine" style="margin:6px 2px 0; padding:0; color:var(--dim)">Search by name or @handle — buddies see each other's rounds and share a tee sheet.</p>
       <div style="height:18px"></div>
-      <button class="mini" id="obCrewStart" type="button" style="width:100%">Start a league instead</button>
+      <div style="height:18px"></div>
+      <!-- D189 · every door above this one assumes the stranger already knows
+           somebody on Cup Season: the code needs a buddy who has one, and the
+           picker opens onto an empty graph. A golfer who arrived from a forum
+           has neither. This is the one door that works with nobody: it hands
+           them something to send. No token, no server surface. -->
+      <button class="btn dark" id="obCrewInvite" type="button">Send a Cup Season invite</button>
+      <p class="fine" style="margin:6px 2px 0; padding:0; color:var(--mut)">Nobody here yet? Text a golfer you play with — they land on your card.</p>
+      <div style="height:18px"></div>
+      <button class="mini" id="obCrewStart" type="button" style="width:100%">Start a league — you'll get a link to text them</button>
       <button class="cs-tskip" id="obCrewSkip" type="button" style="margin-top:10px">I'll do this later</button>
+      <p class="fine" style="margin:8px 2px 0; padding:0; color:var(--mut); text-align:center">Your card works alone — post three rounds and your index goes live. Leagues score them when you join one.</p>
     </div>
     <div id="obWelcome" style="display:none">
       <div class="ob-hero" style="margin-bottom:22px">
@@ -2933,7 +2979,35 @@ html[data-theme="light"] .room-dusk .btn:not(.dark):not(.gold):not(.apple){color
     </div>
   </aside>
   </div><!-- /ob-fgrid -->
+  <a class="ob-cue" href="#obMore" id="obCue">How it works <span aria-hidden="true">&darr;</span></a>
   </div><!-- /ob-fold -->
+
+  <!-- D189 · the story the door always reserved room for. .ob-fold has been
+       min-height:calc(100svh - 54px) since it was written, with .ob-more
+       already carrying an entrance animation — and NO element ever used it.
+       The slot was built and never filled.
+       Static markup and CSS on purpose: D117 specced this as a sheet built
+       from GUIDE, but GUIDE and openScoringHelp are module-side, so that sheet
+       is dead in exactly the case a stranger most needs it (see D186). This
+       costs no tap and no request, and survives a boot that never ran. -->
+  <section class="ob-more" id="obMore" aria-label="How Cup Season works">
+    <div class="obm-row"><b>The long game</b>
+      <p>A league is a season with your own crew — weeks or months. Every round you post counts toward a table, the Pro runs it, and the endgame settles it: a Cup Final or the points table.</p></div>
+    <div class="obm-row"><b>Post from anywhere</b>
+      <p>Play any course, any day. Front nine, back nine, pick the course — twenty seconds. Or photograph the scorecard and the app reads the whole group's round off it.</p></div>
+    <div class="obm-row"><b>Your number, not your score</b>
+      <p>Points come from beating your own handicap number, not from shooting low — a 24 and a 6 can win the same week. Your index comes from the scores you post; three rounds sets it, and every points figure taps open to the rounds that made it.</p></div>
+    <div class="obm-row"><b>The pot</b>
+      <p>Whatever the crew puts in is a tracked ledger — who's in, who owes who, settled at the end, with a receipt behind every figure.</p></div>
+    <div class="obm-row"><b>The short game</b>
+      <p>Not ready for a season? Run an event instead — a weekend or a few weeks, two teams or one board, its own little trophy.</p></div>
+    <!-- D183's posture and nothing more. The Founding League offer is a
+         STANDING DECISION to keep off the app's front door (it lives in
+         outreach only), and the 1,000-golfer trigger is an internal number, not
+         a promise to a stranger. "Free" is the only part that is theirs. -->
+    <p class="obm-free">Free while we're small.</p>
+    <a class="ob-cue up" href="#obDoor" id="obCueUp">Back to sign in <span aria-hidden="true">&uarr;</span></a>
+  </section>
 
 
 
@@ -3929,6 +4003,27 @@ html[data-theme="light"] .room-dusk .btn:not(.dark):not(.gold):not(.apple){color
     b.style.display='block';
     b.textContent='⚠ '+msg+'  — screenshot this and send it';
   }
+  /* ---- D189 · the door's story scrolls, and it does it CLASSIC-side ------
+     Everything about this section is deliberately outside the module: markup,
+     CSS and this handler. A stranger who cannot reach the data layer (D186)
+     can still read what the product is. #onboard is the scroller, not the
+     window — it is position:fixed with its own overflow. */
+  (function(){
+    function go(e, id){
+      var t = document.getElementById(id);
+      if(!t) return;
+      e.preventDefault();
+      var reduce = false;
+      try { reduce = matchMedia('(prefers-reduced-motion:reduce)').matches; } catch(_){}
+      t.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'start' });
+    }
+    document.addEventListener('click', function(e){
+      var a = e.target && e.target.closest ? e.target.closest('#obCue, #obCueUp') : null;
+      if(!a) return;
+      go(e, a.id === 'obCue' ? 'obMore' : 'obDoor');
+    });
+  })();
+
   /* Both handlers used to record only the MESSAGE and throw the stack away,
      which is why "a boot-time async rejection (reading 'n')" sat in CLAUDE.md
      for weeks as an untraceable ghost — there was never an origin to chase, and
@@ -4208,6 +4303,9 @@ let toastT;
     ['obDoor','obCaption'].forEach(id=>{ const e=document.getElementById(id); if(e){ e.style.animation='none'; e.style.opacity='1'; } });
     document.querySelectorAll('.onboard .ob-hero').forEach(h=>{ h.style.animation='none'; h.style.opacity='1'; });
     document.querySelectorAll('.ob-wing').forEach(el=>{ el.style.animation='none'; el.style.opacity='1'; });
+    /* D189 · .ob-more animates with fill:both, so without this a throttled or
+       reduced-motion tab leaves the whole story frozen at opacity 0. */
+    document.querySelectorAll('.ob-more').forEach(el=>{ el.style.animation='none'; el.style.opacity='1'; });
     /* V5 rest frame: the MARK, the ember glow, the seared letters and the
        fuse rule end visible; EVERYTHING ELSE from the show — tracers, the
        illustration flag, the radar, ball/rings/comets/sparks/fuse-dot — ends
@@ -14800,6 +14898,11 @@ function showProfileGate(){
   $('#obDoor').style.display = 'none';
   $('#obWelcome').style.display = 'none';
   $('#obCaption').style.display = 'none';
+  /* D189 · the story and its cue belong to the SIGNED-OUT door. Past it they
+     would sit under the golfer card as orphaned marketing. Scroll back up too:
+     a reader who came from the story is 100vh down when the gate opens. */
+  ['obMore','obCue'].forEach(id => { const e = document.getElementById(id); if(e) e.style.display = 'none'; });
+  const ob = document.getElementById('onboard'); if(ob) ob.scrollTop = 0;
   const hero = document.querySelector('.onboard .ob-hero');
   if(hero) hero.style.display = 'none';
   const g = $('#obProfile');
@@ -14968,6 +15071,22 @@ $('#obCrewFind')?.addEventListener('click', () =>
 $('#obCrewStart')?.addEventListener('click', () =>
   leaveCrewStep('league', () => { try{ switchView('wizard'); }catch(_){} }));
 $('#obCrewSkip')?.addEventListener('click', () => leaveCrewStep('skip'));
+/* D189 · the invite that needs nobody. navigator.share where it exists (it is
+   the whole point on a phone), clipboard otherwise. Logged as artifact_shared
+   with a null kind — the CHECK allows it — so the funnel can see whether the
+   solo arrival ever reaches for this. */
+$('#obCrewInvite')?.addEventListener('click', async () => {
+  const handle = window.CS?.profile?.handle;
+  const msg = "I'm playing Cup Season this season — season-long golf with your own crew, real handicapped rounds."
+    + (handle ? ` Grab a card and add me: @${handle}` : ' Grab a card and play with me:')
+    + ' https://cupseason.app';
+  try { window.growthEvent?.('artifact_shared', null, null, { via: 'crew_invite' }); } catch(_){}
+  try {
+    if(navigator.share){ await navigator.share({ title: 'Cup Season', text: msg }); return; }
+  } catch(_){ return; }        /* a dismissed share sheet is not a failure */
+  try { await navigator.clipboard.writeText(msg); toast('Invite copied — paste it in the group chat'); }
+  catch(_){ toast('Copy this: ' + msg); }
+});
 /* D83: the orientation's demo CTA retired with the demo season — the two
    teachings stand on their own and "Take me in" is the one door. */
 /* D82: the guide sheets — the orientation's content, reopenable forever.
@@ -19488,6 +19607,7 @@ function hideWelcome(){
   $('#obWelcome').style.display = 'none';
   $('#obDoor').style.display = 'block';
   $('#obCaption').style.display = 'block';
+  ['obMore','obCue'].forEach(id => { const e = document.getElementById(id); if(e) e.style.display = ''; });   /* D189 */
   const hero = document.querySelector('.onboard .ob-hero');
   if(hero) hero.style.display = 'block';
 }

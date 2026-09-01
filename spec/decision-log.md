@@ -5371,3 +5371,79 @@ returns all six columns and stays unreadable to `anon` and `authenticated`.
 nodes must show a non-zero row. The product question — does the loop convert —
 needs roughly 30 cold arrivals over 2–4 weeks. Baselines to beat: 17% reached a
 league with another human, 30% posted a round.
+
+### D189 · The door fills the slot it always reserved — D117 built, D83 not reopened
+*(2026-09-01, from the blind-audit action plan, phase 1.1. IA/UI, not a
+competition mechanic, but it amends D117's mechanism, declines to promote D84's
+wings, and formally declines to reopen D83 — the comment at the demo's grave
+demands an entry for exactly that, and this is it, saying no.)*
+
+**Current mechanic.** On a phone the signed-out door is the mark, three lines of
+slogan and two buttons. The one-breath definition of the product lived only in
+`<meta name="description">`. The "wings" that preview the game render at
+`min-width:1100px` — desktop only.
+
+**Problem.** D117 measured it: **8 of 8 testers could not define the product**
+from the door, and five of eight called it "a slogan, not a mechanism". The
+audit's own finding was the same one. And the slot to fix it **already existed**:
+`.ob-fold` has been `min-height:calc(100svh − 54px)` since it was written, with
+`.ob-more` already carrying an entrance animation — and **no element in the file
+ever used it**. The story was designed, reserved, and never written.
+
+**Recommendation (built).** D117 rec 1 verbatim: one line under the slogan,
+sourced **verbatim from the meta description** — "never a third paraphrase".
+Then the reserved slot is filled with five short rows (the long game · post from
+anywhere · your number, not your score · the pot · the short game), reached by a
+`How it works ↓` cue at the fold edge.
+
+**One amendment to D117's mechanism, content unchanged.** D117 specced a
+*sheet* built from `GUIDE`. `GUIDE` and `openScoringHelp` are **module-side**, so
+that sheet is dead in precisely the case a stranger most needs it (D186's failure
+mode). This is a static section instead: markup, CSS and a classic-side scroll
+handler. It costs no tap, no request and no JavaScript that can fail to load —
+**verified readable with the data layer blocked**.
+
+**What was declined, and why it is recorded rather than silent.**
+- **D84's wings stay desktop-only.** They attach invented scores to real Phoenix
+  courses, defensible only as ambient, aria-hidden decoration. Promoting fiction
+  to the primary device would cross the line D84 drew rather than pay it down.
+- **D83 is not reopened.** The retired demo would answer the same question at the
+  cost of a second product to keep true. `index.html` says outright not to
+  restore it a third time without an entry. This is that entry. The answer is no.
+- **No worked arithmetic example on the door.** The receipt's own arithmetic was
+  under repair in the same session (D187); a door example that disagreed with the
+  receipt would be a new lie.
+
+**The solo arrival gets a door that needs nobody.** Every existing crew-step door
+assumes the stranger already knows someone on Cup Season — the code needs a buddy
+who has one, the picker opens onto an empty graph, and the invite link only
+exists *after* a league is built. A golfer from a forum has none of the three.
+Added: **Send a Cup Season invite** (share sheet, clipboard fallback, no token and
+no server surface, logged as `artifact_shared` so the funnel can see whether the
+solo arrival reaches for it), a relabelled "Start a league — you'll get a link to
+text them", and one honest line on the skip path: *your card works alone; post
+three rounds and your index goes live.*
+
+**Principle served.** #2 Low Friction — the mechanism is one scroll away and a
+visitor who doesn't want it loses nothing. #3 Real Golf — no fiction returns.
+
+**Benefit.** The door answers "what is this" above the fold and "how does it
+work" without a tap, on a phone, for the first time.
+
+**Tradeoffs.** ~1.1 KB gzipped, no images, no requests. The crest shrinks on
+viewports under 700px tall so the cue still peeks — without that a 360×640 phone
+never learns the story is there, which was measured and fixed.
+
+**Front-door discipline held.** The first draft of the closing line read "Free
+while we're small. Founding leagues play free forever." The Founding League offer
+is a **standing decision to stay off the app's front door** (outreach only), and
+D183's 1,000-golfer trigger is an internal number, not a promise to a stranger.
+The line ships as "Free while we're small." and a regression test now fails if
+either creeps back.
+
+**CONFLICT (named): amends D117** (a section, not a sheet — same words).
+**Does not reopen D83 or D84.**
+
+**Verified** at 390×844, 360×640, and with `/vendor/supabase-js.js` blocked: the
+sentence and both buttons sit above the fold, the cue is visible, and all five
+rows read in every case. app-tests 71/71.

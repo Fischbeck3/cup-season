@@ -47,6 +47,28 @@
   t('bands: -1.0 is named for the points it pays', bandName(-1.0), 'A little loose');
   t('bands: -0.99 is still played-to-it', [pointsFor(-0.99)[0], bandName(-0.99)], [7, 'Played to it']);
 
+  /* D189 · the door's story. .ob-fold has reserved 54px below the viewport
+     since it was written and .ob-more already carried an entrance animation —
+     but NO element ever used it: the slot was built and never filled, and 8 of
+     8 testers could not say what the product was from the slogan alone. The
+     section is static markup so it survives a boot that never ran (D186). */
+  (function(){
+    const more = document.getElementById('obMore');
+    t('door: the story section exists', !!more, true);
+    t('door: five rows', more ? more.querySelectorAll('.obm-row').length : 0, 5);
+    t('door: the cue points at it', (document.getElementById('obCue')||{}).getAttribute?.('href'), '#obMore');
+    /* D117: sourced VERBATIM from the meta description, never a third paraphrase */
+    const meta = (document.querySelector('meta[name="description"]')||{}).content || '';
+    const line = (document.querySelector('.onboard .ob-hero p')||{}).textContent || '';
+    t('door: the sentence is the meta description, verbatim', meta.includes(line.trim()), true);
+    /* the Founding League offer is a standing decision to keep OFF the front
+       door — it lives in outreach only — and the 1,000 trigger is internal. */
+    const txt = more ? more.textContent : '';
+    t('door: no Founding League offer on the front door', /founding/i.test(txt), false);
+    t('door: no internal pricing trigger on the front door', /1,?000/.test(txt), false);
+    t('door: the solo arrival gets a door that needs nobody', !!document.getElementById('obCrewInvite'), true);
+  })();
+
   /* D188 · qaEvent's guard was `state.demo || !window.sb`, and state.demo starts
      TRUE and clears only after the golfer card is saved — so every crew-step
      breadcrumb on the cold-signup path was swallowed. Exactly the shape D185
