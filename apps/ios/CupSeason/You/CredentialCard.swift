@@ -33,7 +33,13 @@ struct CredentialCard<Anchor: View, Extra: View>: View {
   var body: some View {
     VStack(alignment: .leading, spacing: 0) {
       HStack(alignment: .center, spacing: 12) {
-        CSFace(photoURL: photoURL, marker: marker, size: 56).environment(\.cs, p)
+        // IOS-028 E5 · 72 here, 88 on the You hero. The audit asked for both and
+        // the first pass only moved the hero, so the Tour Card — the object a
+        // BUDDY opens, and the face a shared card renders — kept the 56 that was
+        // web parity rather than a size decision. Smaller than the hero because
+        // this is a sheet, not a full screen, and the 150pt marker watermark
+        // behind it already carries weight.
+        CSFace(photoURL: photoURL, marker: marker, size: 72).environment(\.cs, p)
         VStack(alignment: .leading, spacing: 2) {
           HStack(alignment: .firstTextBaseline, spacing: 8) {
             Text(name).font(CSFont.title).foregroundStyle(p.ink).lineLimit(2)
