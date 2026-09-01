@@ -62,6 +62,14 @@
 # (the old signature was DROPPED, not kept beside it — a named-argument call would
 # have matched both and raised "function is not unique").
 #
+#
+# 2026-09-01 (later): 212 functions. Taken AFTER the D194-D197 push
+# (no_mail_to_a_reserved_tld, the_buyin_nobody_chose, suspend_not_remove,
+# the_month_close_that_can_miss). New: is_undeliverable (granted to nobody —
+# it must NOT appear in Rpc.swift), is_suspended, suspend_member,
+# unsuspend_member. tour_card's signature is unchanged; only its body lost
+# the ghin field, which a contract snapshot cannot see.
+#
 _cup_window_rounds|p_season uuid|TABLE(member_id uuid, round_id uuid, profile_id uuid, played_on date, points integer, month_rank bigint, pvi numeric, holes_played integer)|definer|none
 _join_gate|p_league uuid, p_via_pro boolean|void|definer|none
 _late_squad|p_league uuid, p_member uuid|text|definer|none
@@ -141,6 +149,8 @@ is_event_league_member|p_event uuid|boolean|definer|auth
 is_event_member|p_event uuid|boolean|definer|auth
 is_event_organizer|p_event uuid|boolean|definer|auth
 is_league_member|p_league uuid|boolean|definer|auth
+is_suspended|p_league uuid|boolean|definer|auth
+is_undeliverable|p_email text|boolean|invoker|none
 join_covenant_info|p_code text|jsonb|definer|anon,auth
 join_league|p_code text|uuid|definer|auth
 last_round_with||TABLE(profile_id uuid, display_name text, marker text, last_on date, shared_cards integer)|definer|auth
@@ -260,6 +270,7 @@ start_draft|p_season uuid, p_shuffle boolean DEFAULT true|uuid|definer|auth
 start_live_round|p_league uuid DEFAULT NULL::uuid, p_course_id uuid DEFAULT NULL::uuid, p_tee_id uuid DEFAULT NULL::uuid, p_course_label text DEFAULT NULL::text, p_snapshot jsonb DEFAULT NULL::jsonb, p_game text DEFAULT NULL::text, p_players jsonb DEFAULT NULL::jsonb, p_config jsonb DEFAULT '{}'::jsonb, p_api_course_id text DEFAULT NULL::text|jsonb|definer|auth
 start_season|p_season uuid|void|definer|auth
 submit_feedback|p_category text, p_body text, p_context jsonb DEFAULT '{}'::jsonb|uuid|definer|auth
+suspend_member|p_member uuid, p_reason text DEFAULT NULL::text|void|definer|auth
 tag_founder||trigger|definer|none
 tour_card|p_profile uuid|jsonb|definer|auth
 transfer_pro|p_member uuid|void|definer|auth
@@ -268,5 +279,6 @@ undo_pick|p_draft uuid|void|definer|auth
 unfriend|p_profile uuid|void|definer|auth
 unhide_content|p_kind text, p_id uuid|void|definer|auth
 unregister_device_token|p_token text|void|definer|auth
+unsuspend_member|p_member uuid|void|definer|auth
 vote_league_cancel|p_league uuid, p_approve boolean|text|definer|auth
 withdraw_league_cancel|p_league uuid|text|definer|auth
