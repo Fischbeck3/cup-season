@@ -147,15 +147,24 @@ final class PostRoundModel {
   // MARK: - scan (6590–6657)
 
   func scanPicked(_ image: UIImage?) async {
-    guard let image, let shot = PostPhoto.compress(image, maxDim: 2200, quality: 0.9) else { toast.show(PostScan.restingToast); return }
+    // D187 · the tap is recorded before anything can go wrong with it: a scan
+    // that dies in compression is still a golfer who chose the scan.
+    svc.event(PostEvent.scanTap)
+    guard let image, let shot = PostPhoto.compress(image, maxDim: 2200, quality: 0.9) else {
+      svc.event(PostEvent.scanUnavailable, ["reason": .string("no_image")])
+      toast.show(PostScan.restingToast); return
+    }
     scanning = true; defer { scanning = false }
     switch await svc.scan(jpeg: shot) {
     case .unavailable(let reason):
+      svc.event(PostEvent.scanUnavailable, ["reason": .string(reason ?? "unknown")])
       toast.show(reason == "daily_cap" ? PostScan.capToast : PostScan.restingToast)
       if reason == "disabled" { scanEnabled = false }
     case .unreadable:
+      svc.event(PostEvent.scanUnavailable, ["reason": .string("unreadable")])
       toast.show(PostScan.unreadableToast)
     case .read(let scan):
+      svc.event(PostEvent.scanRead, ["players": .number(Double(scan.players.count))])
       pendingScanShot = image
       if scan.players.count == 1 { apply(scan, row: 0) } else { scanToPick = scan }
     }

@@ -229,4 +229,13 @@ public enum PostEvent {
   public static let submit = "post_submit"
   public static let scanPost = "scan_post"
   public static let scanClaimMinted = "scan_claim_minted"
+  /// D187 · the three breadcrumbs at the DOOR. `scanPost` fires only after a
+  /// completed post, so "nobody taps it" and "everyone abandons the confirm"
+  /// were indistinguishable — 92 composer opens and 0 invocations, with no way
+  /// to tell which. The gap from `scanRead` to `scanPost` is the abandonment
+  /// rate; `players` on the read separates "unused" from "nothing to work
+  /// with", because a one-player card can never mint a claim.
+  public static let scanTap = "scan_tap"
+  public static let scanRead = "scan_read"
+  public static let scanUnavailable = "scan_unavailable"
 }

@@ -25,7 +25,11 @@ struct CupSeasonApp: App {
         .csToasts(toasts)
         .task { store.start() }
         .task { await PushService.shared.syncOnLaunch() }
-        // Universal Links: /?join=CODE and /?claim=TOKEN (the AASA claims only these two).
+        // Universal Links: /?join=CODE, /?claim=TOKEN and /?share=TOKEN.
+        // D188 added the third, and it was gated on the phone being able to
+        // RENDER a shared card (SharedCardSheet) — opening the app to Home
+        // from a card link is worse than opening Safari, which shows the card
+        // and takes the tap.
         .onOpenURL { url in
           // D155 · the Live Activity's own scheme — the one tap back from a
           // locked phone. Checked first: it carries no query to misread.
@@ -34,6 +38,16 @@ struct CupSeasonApp: App {
           }
           else if let code = JoinIntent.code(from: url) { JoinIntent.store(code); CSGrowth.log(.linkOpened, kind: "join", token: code); Task { await store.reload() } }
           else if let claim = ClaimIntent.token(from: url) { ClaimIntent.store(claim); CSGrowth.log(.linkOpened, kind: "claim", token: claim) }   // consumed by the tee sheet (wave 4)
+          else if let share = ShareIntent.token(from: url), let tok = UUID(uuidString: share) {
+            // stored first, then raised: a signed-out reader still sees the
+            // card, and the token survives the door if they go and make one.
+            ShareIntent.store(share)
+            // `share` generically, matching the web's own `?share=` open
+            // (index.html:19702) — the KIND is not known until share_info
+            // answers, and the funnel must not guess.
+            CSGrowth.log(.linkOpened, kind: "share", token: share)
+            NotificationCenter.default.post(name: .csOpenSharedCard, object: tok)
+          }
         }
     }
   }

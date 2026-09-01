@@ -261,6 +261,82 @@
     t('share: the image paths have a mint helper', typeof csShareToken, 'function');
   })();
 
+  /* ── D187 · the scan door ────────────────────────────────────────────────
+     The loop was never broken: 92 composer opens since it shipped and 0
+     invocations. These pin the two things that changed — the value is stated
+     where the choice is made, and the tap is finally recorded. */
+  (function scanDoor(){
+    if (typeof refreshPostPhotoUI !== 'function') return;
+    const realDemo = state.demo, realCS = window.CS, realFlag = window.scanFlag, realFrom = window.sb && window.sb.from;
+    state.demo = false;
+    window.CS = Object.assign({}, window.CS, { user: { id: '11111111-1111-1111-1111-111111111111' } });
+
+    window.scanFlag = { enabled: true }; refreshPostPhotoUI();
+    const btn = document.getElementById('postScanBtn'), fine = document.getElementById('postScanFine');
+    t('scan: the button shows when the flag is on', btn && getComputedStyle(btn).display !== 'none', true);
+    t('scan: the group line rides WITH the button', fine && getComputedStyle(fine).display !== 'none', true);
+    t('scan: the line names what you get, not the mechanism',
+      /everyone else on the card/.test(fine ? fine.textContent : ''), true);
+
+    window.scanFlag = { enabled: false }; refreshPostPhotoUI();
+    t('scan: flag off hides the line too, not just the button',
+      fine && getComputedStyle(fine).display, 'none');
+
+    /* the tap is the breadcrumb that did not exist — without it, "nobody taps
+       it" and "everyone abandons the confirm" read identically */
+    if (window.sb) {
+      const seen = [];
+      window.sb.from = (tbl) => ({ insert: (row) => { if (tbl === 'client_events') seen.push(row.event);
+                                                      return { then: (r) => Promise.resolve({}).then(r) }; } });
+      window.scanFlag = { enabled: true }; refreshPostPhotoUI();
+      document.getElementById('postScanBtn')?.click();
+      t('scan: the tap is recorded', seen.indexOf('scan_tap') >= 0, true);
+      window.sb.from = realFrom;
+    }
+    state.demo = realDemo; window.CS = realCS; window.scanFlag = realFlag;
+    refreshPostPhotoUI();
+  })();
+
+  /* ── D188 · the store handoff ────────────────────────────────────────────
+     The CTA must be silent until there IS a listing, and silent on anything
+     that is not an iPhone. A dead App Store link broadcast into a group
+     thread is worse than no link at all. */
+  (function storeCTA(){
+    if (typeof window._csShareRender !== 'function' || !window.sb) return;
+    const realRpc = window.sb.rpc;
+    const render = (flags) => {
+      document.getElementById('shareView')?.remove();
+      window.sb.rpc = (name) => Promise.resolve({ data: name === 'door_flags' ? flags : null, error: null });
+      window._csShareRender('44444444-4444-4444-4444-444444444444', {
+        kind: 'card', name: 'Dana Reyes', marker: 'island', career: { rounds: 12 },
+        trophies: [], recent: [], photo: false,
+      });
+    };
+    const store = () => document.getElementById('svStore');
+
+    render({ app_store_url: 'https://apps.apple.com/app/id123' });
+    // the UA in this harness is desktop Chromium, so the gate must hold
+    t('store: silent on a machine that cannot install it',
+      (store() ? store().innerHTML : '').trim(), '');
+
+    render({ app_store_url: null });
+    t('store: silent with no listing to point at',
+      (store() ? store().innerHTML : '').trim(), '');
+
+    /* caught by driving it: the RPC nullif(trim())s a blank, but a client that
+       trusted that alone rendered href="   " — a dead App Store link in
+       somebody's group thread. Both layers are asserted. */
+    render({ app_store_url: '   ' });
+    t('store: a blank flag is not a link', (store() ? store().innerHTML : '').trim(), '');
+    render({ app_store_url: 'javascript:alert(1)' });
+    t('store: only https ever becomes an href', (store() ? store().innerHTML : '').trim(), '');
+
+    // the box exists on every kind, so the CTA is not a card-only affordance
+    t('store: the slot rides every share kind', !!store(), true);
+    document.getElementById('shareView')?.remove();
+    window.sb.rpc = realRpc;
+  })();
+
   const fails = R.filter(r => !r.ok);
   console.log(`\n${fails.length ? 'FAIL' : 'PASS'} — ${R.length} tests, ${fails.length} failure(s)`);
   return { total: R.length, failures: fails.map(f => f.name) };

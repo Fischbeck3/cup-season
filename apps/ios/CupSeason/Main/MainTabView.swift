@@ -272,6 +272,18 @@ struct MainTabView: View {
       if new == .post { CSHaptic.present(); presenter.postOnComposer = false; presenter.showPost = true; tab = old == .post ? .home : old }
     }
     .sheet(item: $presenter.tourCard) { TourCardSheet(profileId: $0, links: youLinks) }
+    // D188 · a shared card, opened from a link. Raised on launch too, so a
+    // token stored while signed out lands the moment there is a card to
+    // attach a buddy request to.
+    .sheet(item: $presenter.sharedCard) { SharedCardSheet(token: $0) }
+    .onReceive(NotificationCenter.default.publisher(for: .csOpenSharedCard)) { n in
+      if let t = n.object as? UUID { presenter.sharedCard = t }
+    }
+    .task(id: store.me?.profile?.id) {
+      // the pending token replays once the golfer card exists — the same
+      // shape as the claim and the join code before it
+      if store.me?.profile != nil, let t = ShareIntent.pending() { presenter.sharedCard = t }
+    }
     .sheet(item: $presenter.receipt) { RoundReceiptSheet(roundId: $0, seed: nil, openScorecard: { presenter.scorecard = $0 }) }
     .sheet(item: $presenter.scorecard) { ScorecardSheet(liveRoundId: $0) }
     .sheet(item: $presenter.scheduledRound) { ScheduledRoundSheet(roundId: $0, leagueId: store.preferredLeague, links: csLinks) }

@@ -9,6 +9,10 @@ import CupSeasonKit
 @Observable
 final class Presenter {
   var tourCard: UUID?
+  /// D188 · a `?share=` card link, opened natively. Anon-safe: the sheet reads
+  /// `share_info`, which is one of the twelve public endpoints, so a signed-out
+  /// phone still sees the card.
+  var sharedCard: UUID?
   var receipt: UUID?
   var scorecard: UUID?
   var scheduledRound: UUID?
@@ -41,7 +45,7 @@ final class Presenter {
   /// Is any sheet or cover on stage? The push ask waits for a clear stage;
   /// a routed tap clears it first (D104).
   var anythingUp: Bool {
-    tourCard != nil || receipt != nil || scorecard != nil || scheduledRound != nil || showJoin || showPost || showLive ||
+    tourCard != nil || sharedCard != nil || receipt != nil || scorecard != nil || scheduledRound != nil || showJoin || showPost || showLive ||
       showFeedback || showDesk || showNote || declare != nil || inviteTo != nil || wizard != nil || draft != nil || runBack != nil ||
       showEventPicker || event != nil
   }

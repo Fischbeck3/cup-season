@@ -61,16 +61,26 @@ public struct PostService: Sendable {
     } catch { return nil }
   }
 
-  // MARK: - the insert (6378–6388) with the two skew retries
+  // MARK: - the insert (6378–6388) with the three skew retries
 
   private struct IdRow: Decodable { let id: UUID }
 
-  /// `insert into rounds … select id`. On ANY error, drop `api_course_id` and
-  /// retry; on ANY error again, drop `photo_path` and retry; then throw.
+  /// `insert into rounds … select id`. On ANY error, shed one optional field
+  /// and retry — never on the message (CLAUDE.md: skew errors do not name the
+  /// column). Shed order is cheapest-first: the scan provenance, then the
+  /// course link, then the photo. D187 added the first rung: `source = "scan"`
+  /// is a NEW value in `rounds_source_check`, so a client Netlify serves ahead
+  /// of `db push` fails the CHECK — and the provenance is a breadcrumb while
+  /// the round is the fact.
   public func insertRound(_ payload: PostPayload) async throws -> UUID {
     var p = payload
     do { return try await insert(p) } catch {
-      guard p.api_course_id != nil || p.photo_path != nil else { throw error }
+      guard p.source != "quick" || p.api_course_id != nil || p.photo_path != nil else { throw error }
+      if p.source != "quick" {
+        p.source = "quick"
+        do { return try await insert(p) }
+        catch { if p.api_course_id == nil && p.photo_path == nil { throw error } }
+      }
       if p.api_course_id != nil {
         p.api_course_id = nil
         do { return try await insert(p) } catch { if p.photo_path == nil { throw error } }

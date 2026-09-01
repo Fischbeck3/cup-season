@@ -2,17 +2,30 @@
   "applinks": {
     "details": [
       {
-        "appIDs": ["3F7BK4WVH8.app.cupseason.ios"],
+        "appIDs": [
+          "3F7BK4WVH8.app.cupseason.ios"
+        ],
         "components": [
           {
             "/": "/",
-            "?": { "claim": "?*" },
+            "?": {
+              "claim": "?*"
+            },
             "comment": "Guest claim links open the app so a round can be adopted natively."
           },
           {
             "/": "/",
-            "?": { "join": "?*" },
+            "?": {
+              "join": "?*"
+            },
             "comment": "League invite links open the app straight into the join covenant."
+          },
+          {
+            "/": "/",
+            "?": {
+              "share": "?*"
+            },
+            "comment": "D188 - a shared round, settlement, recap or Tour Card opens in the app; SharedCardSheet renders it."
           }
         ]
       }

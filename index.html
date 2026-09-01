@@ -3417,6 +3417,10 @@ html[data-theme="light"] .room-dusk .btn:not(.dark):not(.gold):not(.apple){color
                 <button class="mini" id="postPhotoBtn" type="button"><svg class="ic" aria-hidden="true"><use href="#i-photo"/></svg> Add a photo</button>
                 <button class="mini" id="postPhotoClear" type="button" style="display:none"><svg class="ic" aria-hidden="true"><use href="#i-close"/></svg> Remove</button>
               </div>
+              <!-- D187: the scan's reason to exist, said at the button. It is
+                   MORE work than two boxes for your own round; it is far less
+                   for four. Shown only when the scan button is. -->
+              <p class="fine" id="postScanFine" style="display:none; padding:6px 0 0">One photo posts your round — and sends everyone else on the card a link to claim theirs.</p>
               <div id="postPhotoPrev" style="display:none; margin-top:8px">
                 <img id="postPhotoImg" alt="Round photo" style="max-width:100%; max-height:180px; border-radius:10px; object-fit:cover; border:1px solid var(--line2)">
               </div>
@@ -7180,7 +7184,12 @@ $('#postBtn').addEventListener('click', async ()=>{
            9-hole rating (rating9) — send it straight; an 18-hole course played as
            a nine sends half. Matches recalc() and score_round() exactly. */
         nine_rating: nine ? (state.post.rating9 ? rating : rating/2) : null,
-        slope, holes_played: nine ? 9 : 18, source: 'quick',
+        slope, holes_played: nine ? 9 : 18,
+        /* D187 · provenance, not scoring. Nothing in v_rounds_ranked reads
+           `source`; this exists so scan adoption is measurable at all. Skew:
+           a client ahead of the constraint would 42501 on 'scan', so the
+           insert's existing retry drops to 'quick' — see below. */
+        source: state.post.scan ? 'scan' : 'quick',
         played_on: $('#inDate').value || null,
         course_label: $('#inCourse').value.trim() || null,
         /* soft link to the reconciled cache (text id, no FK — never blocks the
@@ -7210,6 +7219,15 @@ $('#postBtn').addEventListener('click', async ()=>{
       }
       if(error && /photo_path/.test(error.message||'')){
         delete payload.photo_path;
+        ({ data:rrow, error } = await sb.from('rounds').insert(payload).select('id').single());
+      }
+      /* D187 deploy skew, the OTHER shape: Netlify can serve this client before
+         `db push` widens rounds_source_check, and 'scan' is then a CONSTRAINT
+         violation (23514), not a missing column — the retries above never
+         match it. Fall back to 'quick': the provenance is a breadcrumb and the
+         round is the fact. */
+      if(error && /rounds_source_check|source/.test(error.message||'') && payload.source !== 'quick'){
+        payload.source = 'quick';
         ({ data:rrow, error } = await sb.from('rounds').insert(payload).select('id').single());
       }
       if(error) throw error;
@@ -7409,7 +7427,10 @@ function refreshPostPhotoUI(){
   row.style.display = real ? 'flex' : 'none';
   const sBtn=$('#postScanBtn');
   /* flag-gated: no flag row loaded (or enabled:false) = no button. Fail closed. */
-  if(sBtn) sBtn.style.display = (real && window.scanFlag && window.scanFlag.enabled!==false) ? '' : 'none';
+  const scanOn = real && window.scanFlag && window.scanFlag.enabled!==false;
+  if(sBtn) sBtn.style.display = scanOn ? '' : 'none';
+  const sFine=$('#postScanFine');
+  if(sFine) sFine.style.display = scanOn ? '' : 'none';
 }
 let scanFlagLoaded=false;
 async function loadScanFlag(){
@@ -7428,7 +7449,7 @@ $('#postPhotoFile')?.addEventListener('change',async e=>{
   try{ setPostPhoto(await compressPhoto(f,1600,.82)); }
   catch(_){ toast('Couldn’t read that image'); }
 });
-$('#postScanBtn')?.addEventListener('click',()=>$('#postScanFile')?.click());
+$('#postScanBtn')?.addEventListener('click',()=>{ qaEvent('scan_tap'); $('#postScanFile')?.click(); });
 $('#postScanFile')?.addEventListener('change',async e=>{
   const f=e.target.files?.[0]; e.target.value=''; if(!f) return;
   const btn=$('#postScanBtn'); const was=btn.innerHTML;
@@ -7440,17 +7461,23 @@ $('#postScanFile')?.addEventListener('change',async e=>{
       { body:{ image: await b64ofBlob(shot), media_type:'image/jpeg' } });
     if(error) throw error;
     if(data?.unavailable){
+      qaEvent('scan_unavailable', { reason: data.reason || 'unknown' });
       if(data.reason==='daily_cap') toast('Scan limit for today — type your nines in');
       else toast('Scan’s resting — type your nines in');
       if(data.reason==='disabled'){ window.scanFlag={enabled:false}; refreshPostPhotoUI(); }
       return;
     }
     if(!data?.ok || !data.scan?.players?.length){
+      qaEvent('scan_unavailable', { reason: 'unreadable' });
       toast('Couldn’t read the card — type your nines in'); return;
     }
+    /* the player count is the whole question: a 1-player card can never mint a
+       claim, so it separates "the loop is unused" from "the loop has nothing
+       to work with" */
+    qaEvent('scan_read', { players: data.scan.players.length });
     window._scanShot = shot;   /* the scan doubles as the round photo */
     scanPickRow(data.scan);
-  }catch(_){ toast('Scan’s resting — type your nines in'); }
+  }catch(_){ qaEvent('scan_unavailable', { reason: 'threw' }); toast('Scan’s resting — type your nines in'); }
   finally{ btn.disabled=false; btn.innerHTML=was; }
 });
 function scanPickRow(scan){
@@ -19690,6 +19717,7 @@ async function renderShareView(tok, _testInfo){
       <div style="color:${C.mut};font-size:13px;padding:34px 0">Opening the card…</div>
     </div>
     <div id="svFoot" style="margin-top:22px"></div>
+    <div id="svStore" style="margin-top:12px"></div>
   </div>`;
   document.body.appendChild(wrap);
   const fmtD = (iso) => {   /* manual parse — new Date('YYYY-MM-DD') is the UTC landmine */
@@ -19710,6 +19738,27 @@ async function renderShareView(tok, _testInfo){
     return `<div style="width:${d}px;height:${d}px;margin:0 auto 14px;border:2px solid ${ring};border-radius:50%;display:flex;align-items:center;justify-content:center">
       <svg viewBox="0 0 24 24" width="${g}" height="${g}" fill="none" stroke="${c}" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="${m.p}"/></svg></div>`;
   };
+  /* D188 · "Get it on iPhone", but only when there IS a listing and only on a
+     phone that could install it. door_flags() is the anon door's one flag
+     endpoint (already one of the twelve) and returns null until the owner
+     sets app_flags.ios.app_store_url — so a half-configured flag can never
+     render a dead App Store link into somebody's group thread. Best effort in
+     every direction: the page is complete without it. */
+  (async () => {
+    try{
+      const iOS = /iPad|iPhone|iPod/.test(navigator.userAgent)
+        || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+      if(!iOS) return;
+      const { data } = await sb.rpc('door_flags');
+      /* the RPC already nullif(trim(...))s a blank, but the client trims too:
+         this string becomes an href in somebody's group thread, and a dead
+         App Store link is worse than no link. Two layers, one of them ours. */
+      const href = String((data && data.app_store_url) || '').trim();
+      if(!/^https:\/\//.test(href)) return;
+      const box = wrap.querySelector('#svStore');
+      if(box) box.innerHTML = `<a href="${esc(href)}" style="display:block;background:transparent;color:${C.ink};text-decoration:none;border:1px solid rgba(240,242,243,.22);border-radius:12px;padding:13px 12px;font-weight:600;letter-spacing:.04em">Get Cup Season for iPhone</a>`;
+    }catch(_){ }
+  })();
   let info = _testInfo || null;
   if(!info) try{
     const { data, error } = await sb.rpc('share_info', { p_token: tok });

@@ -299,6 +299,13 @@ private struct PostRoundBody: View {
         if model.photo != nil { CSMini("Remove", systemImage: "xmark") { model.setPhoto(nil) } }
       }
       .padding(.top, 2)
+      // D187 · the scan's reason to exist, said at the button. "Scan the card"
+      // describes the mechanism; the only reason to prefer it over two boxes
+      // is that it posts everyone on the card, and that appeared nowhere near
+      // it. 92 composer opens since it shipped, 0 invocations.
+      if model.scanEnabled {
+        Fine(PostScan.groupLine)
+      }
       if let img = model.photo {
         Image(uiImage: img).resizable().scaledToFill()
           .frame(maxWidth: .infinity).frame(height: 180).clipped()

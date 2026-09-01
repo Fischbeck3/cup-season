@@ -338,14 +338,18 @@ mechanics) and **IOS-029** (`docs/ios/DECISIONS.md`, the surface).
 | E5 · the bigger face | **built** — 88pt / 88px | `YouHero`, `#youMk` |
 | E6 · the card travels (call 2 · A) | **built** — `card` share kind, public page, OG case | `20260901120000_share_card.sql`, `share-preview.ts` |
 | E7 · the card is the invite (call 3 · A) | **built** — `share_buddy`, "Add me on Cup Season" | same migration, `renderShareView` |
-| E8 · App Store handoff + `?share=` universal link | **not built** | see below |
-| E9 · why `scan_claims` is zero | **not built** — investigation, unopened | — |
+| E8 · App Store handoff + `?share=` universal link | **built** — the phone renders a shared card, so the link is safe to claim | see D188 |
+| E9 · why `scan_claims` is zero | **answered** — D187: not a defect, an unopened door | `20260901140000_round_source_scan.sql` + breadcrumbs |
 | Scorecard PNG export | **not built** | needs a card renderer, its own pass |
 
-**Why E8 is deliberately not in this pass.** Two halves, both blocked on
-something real: the App Store line needs a listing to point at, and `?share=`
-must not become a Universal Link until the phone can RENDER a shared card —
-opening the app to Home from a card link is worse than opening Safari, which
-shows the card and takes the tap. The phone sends cards; the web receives them.
-`share_buddy` is granted and callable, and `TourCard.swift` records why its
-receiver half is not wired yet.
+**E8 and E9 followed in the same session** (owner: "Now do E8 and E9") and are
+logged as **D188** and **D187**, with IOS-030 recording the pair. Both of E8's
+blockers were cleared rather than worked around: the phone renders a shared card
+now (`SharedCardSheet`), which is what makes `?share=` safe to claim, and the
+store CTA hangs off `door_flags()` so it stays invisible until there is a
+listing. E9 turned out not to be a defect in the loop at all — 92 composer opens
+since the scan shipped and 0 invocations — but it exposed two real ones:
+`source` was hardcoded `'quick'` on both clients, and every scan breadcrumb
+fired too late to answer the question. Both fixed.
+
+The scorecard PNG export remains the one item from this audit not built.

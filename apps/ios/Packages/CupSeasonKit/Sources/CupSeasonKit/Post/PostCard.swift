@@ -281,6 +281,11 @@ public struct PostPayload: Encodable, Sendable, Equatable {
       nine_rating: nine ? (card.rating9 ? rating : rating / 2) : nil,
       slope: card.slopeValue,
       holes_played: nine ? 9 : 18,
+      // D187 · provenance, not scoring. Nothing in v_rounds_ranked reads
+      // `source`; this exists so scan adoption is measurable at all — prod
+      // held 0 rounds from a scan and could never hold one, because the
+      // composer hardcoded "quick" on both clients.
+      source: card.scan != nil ? "scan" : "quick",
       played_on: card.date,
       course_label: label.isEmpty ? nil : label,
       api_course_id: card.courseId,
@@ -441,6 +446,10 @@ public struct PostScan: Sendable, Equatable, Identifiable {
   public static let restingToast = "Scan’s resting — type your nines in"
   public static let unreadableToast = "Couldn’t read the card — type your nines in"
   public static let readingLabel = "Reading the card…"
+  /// D187 · the scan's reason to exist, at the button. It is MORE work than
+  /// two boxes for your own round and far less for four, and nothing said so
+  /// where the choice is made. Verbatim on both clients.
+  public static let groupLine = "One photo posts your round — and sends everyone else on the card a link to claim theirs."
 }
 
 // MARK: - the season window (6428–6440)
