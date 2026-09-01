@@ -112,6 +112,20 @@ public enum ShareIntent {
   }
   public static func clear(defaults: UserDefaults = .standard) { defaults.removeObject(forKey: key) }
 
+  /// D188 · a token the golfer has already ASKED to be added from, tapped while
+  /// signed out. Separate from `key` on purpose: `key` means "show this card",
+  /// this means "and make the buddy link the moment there is an account". The
+  /// web does the same thing with `cs_buddy` and `resumeAfterProfile`.
+  public static let addKey = "cs_share_add"
+
+  public static func storeAdd(_ token: UUID, defaults: UserDefaults = .standard) {
+    defaults.set(token.uuidString, forKey: addKey)
+  }
+  public static func pendingAdd(defaults: UserDefaults = .standard) -> UUID? {
+    defaults.string(forKey: addKey).flatMap { UUID(uuidString: $0) }
+  }
+  public static func clearAdd(defaults: UserDefaults = .standard) { defaults.removeObject(forKey: addKey) }
+
   public static func token(from url: URL) -> String? {
     guard let items = URLComponents(url: url, resolvingAgainstBaseURL: false)?.queryItems,
           let v = items.first(where: { $0.name == "share" })?.value, !v.isEmpty else { return nil }

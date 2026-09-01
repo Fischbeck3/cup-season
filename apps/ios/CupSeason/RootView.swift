@@ -9,6 +9,13 @@ struct RootView: View {
   @Environment(\.cs) private var cs
   @Environment(\.toast) private var toast
   @State private var pendingJoin: String?
+  /// D188 · a `?share=` card, over WHATEVER the root is showing. It has to live
+  /// here and not on the tab shell: MainTabView exists only in `.ready`, so a
+  /// signed-out reader — the common case on a shared link, and the whole reason
+  /// the renderer is anon-safe — would never have seen it.
+  @State private var sharedCard: SharedCardRequest?
+  /// The token and whether the golfer has already asked to be added from it.
+  struct SharedCardRequest: Identifiable { let token: UUID; let autoAdd: Bool; var id: UUID { token } }
   /// A guest pencil's "keep it" tap: show the door over the pending claim.
   @State private var guestDoor = false
   #if DEBUG
@@ -42,6 +49,26 @@ struct RootView: View {
         MustUpdateView(minBuild: min)
       case .failed(let message):
         BootFailedView(message: message)
+      }
+    }
+    .sheet(item: $sharedCard) { r in SharedCardSheet(token: r.token, autoAdd: r.autoAdd) }
+    // a link tapped while the app is already running
+    .onReceive(NotificationCenter.default.publisher(for: .csOpenSharedCard)) { n in
+      if let t = n.object as? UUID { sharedCard = SharedCardRequest(token: t, autoAdd: false) }
+    }
+    // a COLD launch from a link: onOpenURL has already stored the token by the
+    // time this runs, and the sheet is the first thing the reader should see
+    .task {
+      if sharedCard == nil, let t = ShareIntent.pending() {
+        sharedCard = SharedCardRequest(token: t, autoAdd: false)
+      }
+    }
+    // "Add me on Cup Season" was tapped while signed out; the golfer card now
+    // exists, so the buddy link is made without a second tap — the same thing
+    // resumeAfterProfile() does on the web.
+    .task(id: store.me?.profile?.id) {
+      if store.me?.profile != nil, let t = ShareIntent.pendingAdd() {
+        sharedCard = SharedCardRequest(token: t, autoAdd: true)
       }
     }
     .animation(.easeOut(duration: 0.26), value: stateKey)

@@ -27,6 +27,10 @@ struct SharedCardSheet: View {
   @Environment(\.cs) private var cs
   @Environment(\.dismiss) private var dismiss
   let token: UUID
+  /// D188 · the golfer tapped "Add me on Cup Season" while signed out and has
+  /// since made a card. Do the thing they already asked for rather than making
+  /// them ask twice — the same resumption the web does.
+  var autoAdd = false
 
   @State private var card: SharedCard?
   @State private var failed = false
@@ -70,6 +74,10 @@ struct SharedCardSheet: View {
     // consumed on every branch: a token must not follow the golfer around,
     // dead or handed off
     ShareIntent.clear()
+    if autoAdd {
+      ShareIntent.clearAdd()          // cleared BEFORE the attempt, so a failure cannot loop
+      if card != nil, store.session != nil { await add() }
+    }
   }
 
   private func loaded(_ c: SharedCard) -> some View {
@@ -108,7 +116,7 @@ struct SharedCardSheet: View {
       // token is already stored; the door is the next step and the request
       // lands the moment a golfer card exists.
       VStack(alignment: .leading, spacing: 6) {
-        CSButton("Add me on Cup Season") { ShareIntent.store(token.uuidString); dismiss() }
+        CSButton("Add me on Cup Season") { ShareIntent.storeAdd(token); dismiss() }
         Fine("You'll make your golfer card first — name, marker, number.")
       }
       .padding(.top, 10)
