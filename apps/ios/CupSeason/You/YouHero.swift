@@ -15,6 +15,7 @@ struct YouHero<Anchor: View>: View {
   @Environment(\.cs) private var cs
   @Environment(\.csLookAccent) private var la
   @Environment(SessionStore.self) private var session
+  @Environment(\.dynamicTypeSize) private var typeSize
 
   let photoURL: URL?
   let marker: String?
@@ -32,6 +33,11 @@ struct YouHero<Anchor: View>: View {
   @ViewBuilder let anchor: () -> Anchor
 
   private var established: Bool { indexCurrent != nil }
+  /// D199 — same rule as the Tour Card's credential: a marker is a small
+  /// drawing and wants to stay small; a photograph is a FACE and wants room.
+  /// One size for both was the defect.
+  private var faceSize: CGFloat { photoURL != nil ? 104 : 64 }
+  private var riding: Bool { photoURL != nil && !typeSize.isA11y }
 
   var body: some View {
     // gold once the index is established (earned); otherwise the personal look's accent, ember when none (IOS-025)
@@ -41,8 +47,8 @@ struct YouHero<Anchor: View>: View {
           // D103b: the hero eyebrow wears the personal look's accent; mut on homebase (gold stays the number's)
           Text(CSMarkers.marker(marker).name).csEyebrow(la.eyebrow).padding(.bottom, 12)
             .accessibilityLabel("Marker: \(CSMarkers.marker(marker).name)")
-          HStack(alignment: .center, spacing: 12) {
-            CSFace(photoURL: photoURL, marker: marker, size: 56)
+          HStack(alignment: riding ? .bottom : .center, spacing: riding ? -(faceSize * 0.20) : 12) {
+            CSFace(photoURL: photoURL, marker: marker, size: faceSize, badge: !riding)
             VStack(alignment: .leading, spacing: 3) {
               Text(name).font(CSFont.title).foregroundStyle(cs.ink).lineLimit(2)
               FoundingTag(badge: session.founding.badge(for: session.me?.profile?.id)).padding(.vertical, 2)
@@ -50,6 +56,24 @@ struct YouHero<Anchor: View>: View {
                 Text(meta).font(CSFont.label).tracking(1.0).textCase(.uppercase).foregroundStyle(cs.mut)
               }
               anchor()
+            }
+            .padding(.leading, riding ? 12 : 0)
+            .padding(.bottom, riding ? 6 : 0)
+            /* the scrim is only as wide as the overlap — the name must stay
+               legible where it crosses a photograph, and the hero's own wash
+               must stay visible everywhere else */
+            .background(alignment: .leading) {
+              if riding {
+                LinearGradient(stops: [
+                  .init(color: cs.bg1.opacity(0.95), location: 0.0),
+                  .init(color: cs.bg1.opacity(0.86), location: 0.62),
+                  .init(color: .clear,               location: 1.0)
+                ], startPoint: .leading, endPoint: .trailing)
+                  .frame(width: faceSize * 1.05)
+                  .blur(radius: 10)
+                  .padding(.vertical, -10)
+                  .allowsHitTesting(false)
+              }
             }
             .frame(maxWidth: .infinity, alignment: .leading)
           }

@@ -4384,6 +4384,15 @@ window.stampPosted=stampPosted;
    a golfer and to whoever is reading the app on Apple's side. A cap is not a
    rule about what friends may bet; it is a statement about what this product
    is for. */
+/* D39's ledger sentence, VERBATIM, in one place. The voice audit found it
+   written twenty-two ways across the two clients — and on four surfaces it was
+   still the promise D39 RETIRED ("never through us", "never the money", "takes
+   no cut"). The canon calls this line the anti-"betting app" vaccine, and a
+   vaccine retyped per surface is not a vaccine. A law written as a fixed
+   phrase needs a fixed home or it is only a wish: call CS_LEDGER, never retype
+   it, and never soften "between friends" to "between you" — the first names
+   what the transaction IS, the second addresses the reader as a party to it. */
+const CS_LEDGER = 'Cup Season keeps the ledger; the money moves between friends.';
 const CS_STAKE_MAX = 200;
 function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
 /* F-003: users should never read raw Postgres/PostgREST jargon. Map known
@@ -12712,7 +12721,7 @@ function renderCareerRecord(){
     <div class="recmoney">
       <div><b>${csMoney(cents)}</b><small>Settled across ${done} season${done===1?'':'s'}</small></div>
     </div>
-    <p class="fine" style="margin:8px 0 0">What your friends settled with you. Cup Season keeps the books — never the money.</p>` : '';
+    <p class="fine" style="margin:8px 0 0">What your friends settled with you. ${CS_LEDGER}</p>` : '';
   el.innerHTML = titles + money;
 }
 window.renderCareerRecord = renderCareerRecord;

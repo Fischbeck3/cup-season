@@ -13,6 +13,23 @@ import CupSeasonKit
 struct CredentialCard<Anchor: View, Extra: View>: View {
   private let p = CSTokens.dark
   @Environment(\.dynamicTypeSize) private var typeSize
+  /// D199 — the card's wash takes the LOOK's accent. Read as the spec and
+  /// resolved against the DARK palette by hand rather than through
+  /// `\.csLookAccent`: this view forces `colorScheme` to dark at the end of its
+  /// body, so the ambient value is still `.light` while the body is building
+  /// and the environment accessor would hand back the light-theme accent for a
+  /// card that is always dark. With no look in scope the accent is `cs.brand`,
+  /// which is where this card already was.
+  @Environment(\.csLook) private var look
+  private var accent: Color { CSLookAccent(look: look, cs: CSTokens.dark, theme: .dark).accent }
+
+  /// A marker is a small drawing and wants to stay small; a photograph is a
+  /// FACE and wants room. One size for both was the actual defect.
+  private var faceSize: CGFloat { photoURL != nil ? 104 : 64 }
+  /// The name rides over the photo's trailing edge — but only with a photo to
+  /// ride over, and never at accessibility sizes, where the text grows into
+  /// the overlap and legibility beats composition.
+  private var riding: Bool { photoURL != nil && !typeSize.isA11y }
 
   let photoURL: URL?
   let marker: String?
@@ -32,17 +49,41 @@ struct CredentialCard<Anchor: View, Extra: View>: View {
 
   var body: some View {
     VStack(alignment: .leading, spacing: 0) {
-      HStack(alignment: .center, spacing: 12) {
-        CSFace(photoURL: photoURL, marker: marker, size: 56).environment(\.cs, p)
+      HStack(alignment: riding ? .bottom : .center, spacing: riding ? -(faceSize * 0.20) : 12) {
+        CSFace(photoURL: photoURL, marker: marker, size: faceSize, badge: !riding).environment(\.cs, p)
         VStack(alignment: .leading, spacing: 2) {
-          HStack(alignment: .firstTextBaseline, spacing: 8) {
+          if riding {
             Text(name).font(CSFont.title).foregroundStyle(p.ink).lineLimit(2)
-            FoundingTag(badge: badge).environment(\.cs, p)
+            FoundingTag(badge: badge).environment(\.cs, p).padding(.top, 1)
+          } else {
+            HStack(alignment: .firstTextBaseline, spacing: 8) {
+              Text(name).font(CSFont.title).foregroundStyle(p.ink).lineLimit(2)
+              FoundingTag(badge: badge).environment(\.cs, p)
+            }
           }
           if !meta.isEmpty {
             Text(meta).font(CSFont.label).tracking(1.0).textCase(.uppercase).foregroundStyle(p.mut)
           }
           anchor()
+        }
+        .padding(.leading, riding ? 12 : 0)
+        .padding(.bottom, riding ? 6 : 0)
+        /* the scrim, and only as wide as the overlap: the name has to stay
+           legible where it crosses a photograph, and the card's own ground has
+           to stay visible everywhere else — a full-width scrim would paint a
+           rectangle over the wash and the emblem. */
+        .background(alignment: .leading) {
+          if riding {
+            LinearGradient(stops: [
+              .init(color: p.bg1.opacity(0.95), location: 0.0),
+              .init(color: p.bg1.opacity(0.86), location: 0.62),
+              .init(color: .clear,              location: 1.0)
+            ], startPoint: .leading, endPoint: .trailing)
+              .frame(width: faceSize * 1.05)
+              .blur(radius: 10)
+              .padding(.vertical, -10)
+              .allowsHitTesting(false)
+          }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         if let settings {
@@ -92,10 +133,15 @@ struct CredentialCard<Anchor: View, Extra: View>: View {
     .background {
       ZStack(alignment: .bottomTrailing) {
         p.bg1
-        RadialGradient(colors: [p.hot.opacity(0.16), .clear], center: UnitPoint(x: 0.82, y: 0), startRadius: 0, endRadius: 260)
-        CSMarkerView(key: marker, size: 150, lineWidth: 1.2)
-          .foregroundStyle(p.ink).opacity(0.1)
-          .offset(x: 30, y: 34)
+        RadialGradient(colors: [accent.opacity(0.22), .clear], center: UnitPoint(x: 0.82, y: 0), startRadius: 0, endRadius: 300)
+        /* the emblem as a SHADOW rather than a decal. At 320 it crops to a
+           curve instead of a picture, which is what makes it read as depth;
+           the stroke scales with the glyph (lineWidth × size/24 → ~21pt here),
+           and the blur takes the last of the drawn edge off it. */
+        CSMarkerView(key: marker, size: 250, lineWidth: 1.4)
+          .foregroundStyle(p.ink).opacity(0.11)
+          .blur(radius: 2.5)
+          .offset(x: 50, y: 57)
           .accessibilityHidden(true)
       }
     }

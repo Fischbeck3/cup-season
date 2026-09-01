@@ -239,6 +239,10 @@ struct MainTabView: View {
       case "live": presenter.showLive = true
       case "wizard": presenter.wizard = .init(existingLeagueId: nil)
       case "events": presenter.showEventPicker = true
+      // D199: the credential is the one surface that cannot be reached without
+      // a finger — it opens from a name, and a name has to be tapped. Judging a
+      // card design from a screenshot needed a door.
+      case "tourcard": presenter.tourCard = store.me?.profile?.id
       default: break
       }
     }

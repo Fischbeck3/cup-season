@@ -22,7 +22,7 @@ public struct CareerRecord: Sendable, Equatable {
 
   public static let emptyLine = "Your record fills in when a season closes."
   public static let noSilverware = "The case is empty — for now. Cups, crowns and event wins hang here when you take them."
-  public static let moneyNote = "What your friends settled with you. Cup Season keeps the books — never the money."
+  public static let moneyNote = "What your friends settled with you. " + MoneyCopy.ledger
 
   /// "Settled across 3 seasons" — nil when nothing was settled.
   public var moneyLine: (amount: String, sub: String)? {

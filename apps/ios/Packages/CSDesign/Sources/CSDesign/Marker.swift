@@ -35,9 +35,13 @@ public struct CSFace: View {
   public let photoURL: URL?
   public let markerKey: String?
   public let size: CGFloat
+  /// The marker badge rides on a photo so the glyph is not lost. A caller that
+  /// already names the marker — or that lets text ride over the face — turns it
+  /// off, because at large sizes the badge lands in the middle of the copy.
+  public let badge: Bool
 
-  public init(photoURL: URL? = nil, marker: String?, size: CGFloat = 40) {
-    self.photoURL = photoURL; self.markerKey = marker; self.size = size
+  public init(photoURL: URL? = nil, marker: String?, size: CGFloat = 40, badge: Bool = true) {
+    self.photoURL = photoURL; self.markerKey = marker; self.size = size; self.badge = badge
   }
 
   public var body: some View {
@@ -51,7 +55,7 @@ public struct CSFace: View {
         }
         .frame(width: size, height: size)
         .clipShape(Circle())
-        if size >= 32 {
+        if badge && size >= 32 {
           CSMarkerView(key: markerKey, size: size * 0.42, lineWidth: 2)
             .foregroundStyle(cs.ink)
             .padding(3)

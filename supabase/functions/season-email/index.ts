@@ -119,7 +119,7 @@ function buildHtml(p: Payload, r: Recipient) {
     <table style="width:100%;border-collapse:collapse">${table}</table>` : ''}
     <a href="${APP}/" style="display:block;margin-top:22px;padding:13px 18px;border-radius:11px;background:#2FA46A;color:#08120C;font:600 15px -apple-system,Segoe UI,sans-serif;text-align:center;text-decoration:none">See the rounds behind it</a>
     <div style="font:11px -apple-system,Segoe UI,sans-serif;color:#5E665E;margin-top:20px;line-height:1.5">
-      Cup Season keeps the books &mdash; money moves friend-to-friend, never through us.<br>${unsub}
+      Cup Season keeps the ledger; the money moves between friends.<br>${unsub}
     </div>
   </div></body></html>`;
 }
@@ -173,7 +173,7 @@ function buildCancelHtml(league: string, r: { name: string | null; cents: number
     ${owed}
     <div style="font:14px -apple-system,Segoe UI,sans-serif;color:#ECEEF2;opacity:.86;margin-top:16px">Your rounds stay on your card &mdash; all of them.</div>
     <div style="font:11px -apple-system,Segoe UI,sans-serif;color:#5E665E;margin-top:20px;line-height:1.5">
-      Cup Season keeps the books — money moves friend-to-friend, never through us.
+      Cup Season keeps the ledger; the money moves between friends.
     </div>
   </div></body></html>`;
 }

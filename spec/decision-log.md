@@ -5421,3 +5421,38 @@ The fix is in the DATABASE, not in a dozen call sites. Qualifying every embed wo
 - **An audit column with a foreign key is not free.** On a table any client embeds, the FK costs more than it gives.
 
 **CONFLICT:** none. D197's suspend behaviour is unchanged — the columns stay, only the constraints go.
+
+### D201 · The one law written as a fixed phrase was the only law with no home
+*(2026-09-01. The voice audit — 12 surfaces, 25 agents, 165 findings after verification. The owner's instinct was right and his example was not the worst one.)*
+
+**The verdict first: the voice holds.** Across both clients the character the canon describes is actually on screen — "you can't hurt your squad by playing badly, only by not playing", "84 · beat your number by 0.6 → 7 pts", "Your rounds stay on your card — all of them". Nothing in 165 findings is hype, nothing is urgency, and only two lines in the whole product are shame. The owner's own catch names the dominant defect exactly: **the same thing said twice on one screen** is this app's failure mode by a wide margin, 57 of the 165.
+
+**But the worst finding is the sentence the canon marks *verbatim*.** "Cup Season keeps the ledger; the money moves between friends" appears in **twenty-two places, in about a dozen wordings** — three nouns for the thing (books / tab / ledger), two destinations (friend-to-friend / between you), two names for the company (Cup Season / "the app"). And on four of those surfaces it is not drift, it is **the promise D39 explicitly retired**, still live:
+
+- `season-email/index.ts:122` and `:176` — *"money moves friend-to-friend, **never through us**"*, mailed to every member of every finished league. TSTSUN closes 2026-09-08, so that mail was days from sending.
+- `legal.html:82` — *"**takes no fee or cut of any prize pool**"*, on the page linked from the sign-in screen.
+- `index.html` + `CareerRecord.swift:25` — *"Cup Season keeps the books — **never the money**"*, on the one screen where a dollar figure renders.
+
+D39 retired those exact phrases with a reason: *say what is true now, promise nothing structural.* They are structural forever-promises, and D184 (the pot as the business) is PARKED, not closed.
+
+**Why it drifted is structural, not careless, and this is the part worth keeping.** Every *other* law in canon §3 is enforceable by grep — "commissioner", "PvI", "differential", "unlock" are **tokens**, and a token can be found. A **verbatim** law has no violating token. It has only near-misses, and near-misses are invisible to search. So each money surface retyped the sentence slightly better than the last and nothing ever failed. The named bands survived the same twelve months intact because `GuideCopy` holds them and everyone calls them. **A law written as a fixed phrase needs a fixed home, or it is only a wish.**
+
+Built: `CS_LEDGER` in `index.html` and `MoneyCopy.ledger` in the Kit, the three retired-promise surfaces rewritten to the canon line, and both dash encodings in the email caught — `:122` carries `&mdash;` and `:176` a literal em dash, so a single find-and-replace would have fixed one and left the other. **"Between friends" is not softened to "between you"**: the first names what the transaction *is*, the second addresses the reader as a party to it, and this sentence is the canon's anti-"betting app" vaccine, so which of those it says is the entire point.
+
+**`legal.html:82` is deliberately NOT changed.** The audit recommends dropping the clause and is probably right, but that is published legal copy on the page a reviewer opens, and editing it is the owner's call and possibly counsel's — not a side effect of a copy sweep. It is the top of the follow-up list.
+
+**The third pattern is diagnostic and says where to look next:** almost none of these defects are in the `*Copy.swift` files the architecture set aside for copy. They are inline strings in view files and, on the web, strings hand-assembled beside a producer that already exists — `STAGE_LABEL` holds six stage words with a comment recording that they "could not agree" when hand-derived, and one call site hand-derives them anyway, emitting "Squad formation", the exact word the comment records as retired. **Where a producer exists and is called, the copy is right. Where a producer exists and is bypassed, the copy is wrong. There is not one exception in the audit.**
+
+**Proposed for §3, phrased as its laws are** — logged here, not yet written into the canon, because amending the canon is the owner's:
+
+> **One fact, one place.** Every fact on a screen belongs to exactly one element — the one closest to the action. A control names the press; the line above it carries the why; a summary never counts rows already on screen with their answers on them. If two elements can both say it, the one further from the action goes silent.
+
+and an amendment to the existing ledger bullet:
+
+> *…verbatim everywhere money appears — **from one constant per client. A retyped copy is the defect the day it is written, because it is already the version that will drift.***
+
+**Not built:** the other ~18 ledger wordings and the remaining 160 findings. They are drift rather than retired promises, and they want one pass with the owner's eye on the rewrites, not a sweep at the end of a long session. The full dataset is `docs/audit/voice-2026-09-01/`.
+
+**Verified:** preflight 21/21 clean; `app-tests.js` 42/42 with `CS_LEDGER` confirmed live in the page; iOS 363 + 28 + 10 green. `season-email` needs `supabase functions deploy season-email` — it is an edge function and the owner deploys those.
+
+**CONFLICT:** none — this *enforces* D39 rather than changing it.
