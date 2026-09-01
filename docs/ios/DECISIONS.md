@@ -267,3 +267,17 @@ The ⊕'s composer is its own decision (IOS-020). Ceremonies, the finish, the se
 **Owner owes.** App Store Connect: the app record (name, bundle id `app.cupseason.ios`, SKU) and an API key (Users and Access → Integrations, role App Manager; `ASC_KEY_ID`, `ASC_ISSUER_ID`, the `.p8` under `~/.appstoreconnect/private_keys/`). `supabase functions deploy test-seed` (the target_email change). Unset `APNS_SANDBOX` before the first upload. Then `tools/ios-archive.sh --upload`, internal testing to PIGL.
 
 **Reversibility.** EASY. **Why P1.** The four are the owner's calls; each is closed here with a recommendation and nothing ships until they run the upload.
+
+## IOS-028 · The You tab and the sharing surface — **P1 · RECOMMENDED 2026-09-01 (review only, nothing built)**
+
+**Artifact.** `docs/ios/IOS-028-you-card-and-sharing-audit.md` — a magnifying-glass pass over You / the Tour Card / the ⚙ chain, a full inventory of every shareable artifact on both clients, and production counts (read-only, 2026-09-01).
+
+**What it found.** (A) The You hero's face is 56pt on a screen whose only subject is identity, and it is not a tap target. (B) The ⚙ opens `CardAndSettingsScreen` on the **"Your card"** pane, so a settings button lands on a page whose other half is labelled Settings — true on iOS (`CardAndSettingsScreen.swift:16`) and on the web (`openProfileHub`). (C) Nothing in the app ever offers a photo; the hero prompts for the GHIN instead. (D) The Tour Card cannot be shared and there is no `card` share kind. (E) Every round/settlement share lives only in the epilogue or finish sheet — the receipt and the scorecard have no share on either client. (F) Every PNG share ships as image + caption with **no URL**, and none of the image paths log `artifact_shared`. (G) `?share=` is not a Universal Link and no App Store link exists anywhere in the repo. (H) There is no buddy invite that works without a league.
+
+**The numbers.** 39 profiles / **1 photo**; 211 rounds / **1 photo**; **7 shares ever minted** against 211 rounds; 22 buddy links of which 10 are still pending; **0 scan claims ever**; 4 chat posts in 356 board posts.
+
+**Recommendations (E1–E9 in the artifact), in build order.** E1 a permanent share door on the receipt / scorecard / Tour Card (small, highest return) · E2 every image share carries its link and logs the tap (trivial) · E3 the gear means Settings, the card is reached by touching the card (small) · E4 ask for the photo on the hero, on the face, and at card-gate step 2 (small) · E5 face to 88pt on You, 72pt on the Tour Card (trivial) · E6 a `card` share kind + a public golfer page + a `card` case in `share-preview.ts` (medium) · E7 the card page **is** the buddy invite (medium, reuses E6) · E8 an App Store handoff on the share page + `?share` in the AASA (small, gated on the store listing) · E9 investigate why `scan_claims` is zero (check `app_flags.scan` first).
+
+**Owner's calls.** (1) E3 — the full swap (gear → Settings, hero → card editor) or the minimum fix (gear lands on `pane = 1`)? (2) E6 — does a publicly shared Tour Card show the handicap index? Recommendation: yes, gated on `discoverable`, revocable like every other share. (3) E7 — the card page as the invite (recommended) or a dedicated `?buddy=` token?
+
+**Nothing built.** Rule 1. Each item that changes a mechanic (E6, E7) also needs a `spec/decision-log.md` entry before it ships (rule 5); E1–E5 and E8 are surfaces and tap targets, not mechanics. **Reversibility.** EASY throughout.
