@@ -5238,3 +5238,22 @@ A settlement is not one post. Finishing a live round writes the settlement card,
 **Verified:** preflight 21/21 + the expected pending-deploy warning; `app-tests.js` 42/42 headless.
 
 **CONFLICT:** none. D86's doorbell broadcast is untouched.
+
+### D192 · The stake field had no ceiling, and the age rating answered a form Apple retired
+*(2026-09-01. Both found by the ship audit; both are about the same thing — what this product looks like to someone reading it cold.)*
+
+**The stake.** `#lrStake` was `type="number" min="0"` with **no max**, and the read at the other end was `Math.max(0, …)` — a floor and no ceiling. The season buy-in has a ladder that stops at $200; the per-round side stake, which is the surface a golfer actually touches on a Tuesday, would take any number they could type.
+
+Cup Season never handles the money — D39, verified twice in the audit: there is no Stripe, no escrow, no payment rail anywhere, and the only "stripe" in the client is a CSS colour. But an unbounded dollar field is the one place where that posture stops being self-evident, to a golfer *and* to whoever is reading the app on Apple's side. **A cap is not a rule about what friends may bet. It is a statement about what this product is for.** $200 matches the ladder that already exists; the attribute is the affordance and the clamp is the guarantee, because an attribute is a suggestion. **The number is the owner's to change** — the reasoning is what matters, not the two hundred.
+
+**The age rating.** §6 of `app-store-listing.md` was a full answer table for a questionnaire Apple **retired in July 2025**, including categories that no longer exist and a 4+/9+/12+/17+ ladder that is now 4+/9+/13+/16+/18+. Answering the old questions in front of the new form is how a wrong rating gets submitted, so the table is deleted rather than left to be copied, and replaced with the reasoning to carry to the live form.
+
+The consequential answer is **Contests**, which the current form asks about directly: users competing for rankings, rewards or personal goals. Cup Season is a season-long competition with a standings table, a Cup Final and a champion — *that is the whole product* — so the answer is plainly yes, and the rating is **13+**. The instinct to say "None" comes from the old form, where the nearest neighbour was Simulated Gambling and saying yes to that invited the 5.3.4 conversation. These are different questions. 13+ costs nothing commercially, is the truthful answer, and moves the app out of the tier where child-audience scrutiny applies to a product that has **no age gate anywhere in its schema** — no DOB, no attestation, nothing. Claiming 4+ for an app with a chat board, real money owed between adults and no age gate is an answer that surfaces later, in a worse conversation.
+
+Gambling stays **No**, and the two changes above are what make that defensible rather than merely asserted.
+
+**Still open, and the owner's:** an actual age gate. There is no date of birth or attestation anywhere in the schema, so 13+ is a claim the product cannot currently enforce. That is a build, and it is logged here rather than done, because it belongs with the ToS rewrite and the sign-up flow rather than inside a copy change.
+
+**Verified:** preflight 21/21 + the expected pending-deploy warning; `app-tests.js` 42/42 headless; the cap confirmed live in the page (`CS_STAKE_MAX` 200, input `max="200"`).
+
+**CONFLICT:** none against a logged decision. Worth naming though: D39's "the money never moves through us" is *strengthened* by the cap, and anyone who later wants an uncapped stake is arguing against D39, not against this entry.

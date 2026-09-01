@@ -3262,7 +3262,13 @@ html[data-theme="light"] .room-dusk .btn:not(.dark):not(.gold):not(.apple){color
             <p class="fine" id="gameNote">Stroke play — your card, your pace. One to four players; post when you’re done.</p>
             <div id="matchSetup" style="display:none; margin-top:12px; border-top:0.5px solid var(--line); padding-top:12px;">
               <label class="f" for="lrStake">Stake per side · $0 = bragging rights</label>
-              <input class="f" id="lrStake" type="number" min="0" step="1" value="0" inputmode="numeric" style="max-width:110px; margin-top:6px;">
+              <!-- max=200 to match the season buy-in ladder's own ceiling. The
+                   field was unbounded, which made it the one surface in the
+                   product that scales from "a friendly five" to a number that
+                   reads as wagering to anyone who sees it — App Review
+                   included. The attribute is the affordance; lrStakeValue()
+                   does the clamping, because an attribute is a suggestion. -->
+              <input class="f" id="lrStake" type="number" min="0" max="200" step="1" value="0" inputmode="numeric" style="max-width:110px; margin-top:6px;">
               <div id="matchPrev" class="fine" style="padding:10px 0 0"></div>
             </div>
           </div>
@@ -4368,6 +4374,14 @@ function stampPosted(label){
   clearTimeout(stampT); stampT=setTimeout(()=>s.classList.remove('go'), 1150);
 }
 window.stampPosted=stampPosted;
+/* The ceiling on a per-round side stake. Matches the season buy-in ladder,
+   which already stops at $200. Cup Season never touches the money — the pot is
+   a ledger of a friend group's own arrangement (D39) — but an UNBOUNDED dollar
+   field is the single surface where that posture stops being obvious, both to
+   a golfer and to whoever is reading the app on Apple's side. A cap is not a
+   rule about what friends may bet; it is a statement about what this product
+   is for. */
+const CS_STAKE_MAX = 200;
 function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
 /* F-003: users should never read raw Postgres/PostgREST jargon. Map known
    error classes to a plain sentence; the raw text still lands in the console
@@ -10149,7 +10163,7 @@ $('#teeOffBtn').addEventListener('click', async ()=>{
   /* the stake is declared at tee-off and locked (spec §13.2) — $0 = bragging.
      match: per side · wolf: per point · skins: per skin */
   const stake = (game==='match'||game==='wolf'||game==='skins'||game==='sunningdale')
-    ? Math.max(0, parseFloat($('#lrStake')?.value)||0) : 0;
+    ? Math.min(CS_STAKE_MAX, Math.max(0, parseFloat($('#lrStake')?.value)||0)) : 0;
   /* wolf order: server-less shuffle at tee-off, locked (§3.1) */
   const wolfOrder = game==='wolf'
     ? [0,1,2,3].map(v=>[Math.random(),v]).sort((a,b)=>a[0]-b[0]).map(x=>x[1])

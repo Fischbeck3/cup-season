@@ -111,34 +111,69 @@ competitor field says. Nothing in the banned list.
 | Copyright | `2026 Jerecho Fischbeck` | **Flag:** no legal entity is named anywhere in the repo (`legal.html` says "CupSeason", the contact is a personal address). If an LLC exists, its name goes here instead. Apple's format is year then owner, no © needed. |
 | Support contact (App Review "Contact Information") | Jerecho Fischbeck · jerechofischbeck@gmail.com | the launch kit's press contact; `legal.html` lists `jerecho@fischbeck3.com` — pick one and make the two agree |
 
-## 6. Age rating questionnaire (runbook D3 — no gambling flags of any kind)
+## 6. Age rating — REWRITTEN 2026-09-01, because the questionnaire below was retired
 
-Expected rating: **4+**. Every answer below is the honest one from what the
-binary does.
+**The table that stood here answered a form Apple no longer serves.** It was
+written against the pre-2025 questionnaire (Cartoon Violence / Horror Themes /
+Simulated Gambling, and a single 4+ / 9+ / 12+ / 17+ ladder). Apple replaced
+that in **July 2025** with a different set of questions and a five-tier ladder:
+**4+ / 9+ / 13+ / 16+ / 18+**. Answering the old questions from memory in front
+of the new form is how a wrong rating gets submitted, so the old table is gone
+rather than left to be copied.
 
-| Question | Answer |
-|---|---|
-| Cartoon or Fantasy Violence | None |
-| Realistic Violence | None |
-| Prolonged Graphic or Sadistic Realistic Violence | None |
-| Profanity or Crude Humor | None |
-| Mature/Suggestive Themes | None |
-| Horror/Fear Themes | None |
-| Medical/Treatment Information | None |
-| Alcohol, Tobacco, or Drug Use or References | None |
-| Sexual Content or Nudity | None |
-| Graphic Sexual Content and Nudity | None |
-| **Simulated Gambling** | **None** — there is no wagering, no odds, no contest run by Cup Season; the pot is a ledger of a friend group's own arrangement (Guideline 5.3.4 posture, in the Review Notes verbatim) |
-| **Gambling and Contests** (real money) | **No** |
-| Unrestricted Web Access | No — the app opens no browser; the only outbound links are Terms and Privacy |
-| Parental Controls / Made for Kids | No |
-| Loot boxes / random purchase mechanics | No |
-| **User-generated content, messaging or chat** (asked in the 2025 questionnaire revision — name varies by ASC version) | **Yes** — the board is chat between members of a private league; Report and Mute exist on every post and member (Guideline 1.2, in the Review Notes). This answer does not raise the rating. |
-| Advertising | None |
+**Do not fill this in from this document.** Read each question off the live
+form in App Store Connect and answer it. What follows is the reasoning to bring
+with you, not a transcript of the form.
 
-The one answer to be careful with is Simulated Gambling: "None" is correct,
-and answering anything else invites the 5.3.4 conversation the Review Notes
-already pre-empt (runbook D3: pre-empt, do not soften the ledger).
+### The two answers that actually decide the rating
+
+**Contests — answer honestly, and expect 13+.** The current questionnaire asks
+about content where users compete for rankings, rewards or personal goals.
+Cup Season is a season-long competition with a standings table, a Cup Final and
+a champion; that is the entire product. The instinct is to answer "None"
+because the old form's nearest neighbour was Simulated Gambling — but these are
+different questions, and this one is plainly yes.
+
+**13+ costs nothing commercially** and buys two things worth having: it is the
+truthful answer, and it moves the app out of the tier where Apple's child-audience
+scrutiny (and the COPPA-adjacent expectations that ride with it) apply to a
+product that has **no age gate anywhere in its schema** — no date of birth, no
+attestation, nothing. Claiming 4+ for an app with a chat board, real money owed
+between adults and no age gate is the kind of answer that gets noticed later,
+in a worse conversation than this one.
+
+**Gambling — answer No, and know exactly why.** The question is about betting
+or wagering with real money. Cup Season has no payment rail of any kind: no
+Stripe, no escrow, no Venmo/PayPal/Zelle, nothing. Verified in the audit of
+2026-08-31, twice, independently: the only "stripe" in the client is a CSS
+colour. The pot is a **ledger of a friend group's own arrangement**, settled
+between them outside the app, exactly like a shared spreadsheet — the Guideline
+5.3.4 paragraph in the Review Notes says this and is the thing to point at.
+
+Two facts that make that answer defensible rather than merely asserted, both
+true as of 2026-09-01:
+
+- The per-round stake field is **capped at $200** and clamped server-side of
+  the input, matching the season buy-in ladder's own ceiling (D192). It was
+  unbounded, which was the one surface where "this is a ledger, not a book"
+  stopped being obvious.
+- The words **"paid from the pot"** are out of the binary (D187). They were
+  behind a flag that is off, one row-update from rendering, and they were the
+  sentence that would have made Cup Season a beneficiary of the stakes.
+
+### Everything else
+
+None / No, and all of it is true of the binary: no violence of any kind, no
+profanity, no mature or suggestive themes, no horror, no medical content, no
+alcohol/tobacco/drugs, no sexual content, no loot boxes or randomised
+purchases, no advertising, and no unrestricted web access — the app opens no
+browser, and the only outbound links are Terms and Privacy.
+
+**User-generated content / messaging** is **Yes**: the board is chat between
+members of a private league. This does not raise the rating on its own, and
+the app now satisfies all three things Apple looks for alongside that answer —
+report, block, and the developer able to act (D188). The Review Notes' 1.2
+section lists each one and where to find it.
 
 ## 7. App Privacy (nutrition label) — matches `apps/ios/CupSeason/PrivacyInfo.xcprivacy` exactly
 
