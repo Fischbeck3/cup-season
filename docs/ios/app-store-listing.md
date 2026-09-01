@@ -109,7 +109,7 @@ competitor field says. Nothing in the banned list.
 | Marketing URL | `https://cupseason.app` | optional field |
 | Privacy Policy URL | `https://cupseason.app/legal.html#privacy` | the anchor `legal.html` §Privacy Policy; the same link the sign-in screen and Settings use |
 | Copyright | `2026 Jerecho Fischbeck` | **Flag:** no legal entity is named anywhere in the repo (`legal.html` says "CupSeason", the contact is a personal address). If an LLC exists, its name goes here instead. Apple's format is year then owner, no © needed. |
-| Support contact (App Review "Contact Information") | Jerecho Fischbeck · jerechofischbeck@gmail.com | the launch kit's press contact; `legal.html` lists `jerecho@fischbeck3.com` — pick one and make the two agree |
+| Support contact (App Review "Contact Information") | Jerecho Fischbeck · jerecho@fischbeck3.com | the launch kit's press contact; `legal.html` lists `jerecho@fischbeck3.com` — pick one and make the two agree |
 
 ## 6. Age rating — REWRITTEN 2026-09-01, because the questionnaire below was retired
 

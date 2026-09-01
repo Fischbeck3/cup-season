@@ -15260,6 +15260,23 @@ async function openTourCard(profileId){
     const muted = window.MUTED instanceof Set && window.MUTED.has(profileId);
     muteHtml = `<button class="mini" id="tcMute" style="margin-top:16px; color:var(--mut)">${muted?'🔈 Unmute — show their posts again':'🔇 Mute — hide their posts from your boards'}</button>`;
   }
+  /* D197 · the Pro's suspend, directly under Mute — deliberately, because they
+     are the same gesture at two scopes: mute is what a golfer does for
+     themselves, suspend is what the Pro does for the room. It renders only for
+     the Pro of the league you are currently in, never on yourself, and never on
+     another Pro (two Pros suspending each other is a league with no adult in
+     it — that one is a founder call). Two taps, like Report: the first arms,
+     the second sends. */
+  let suspHtml='';
+  const tgtMem = (window.CS?.members||[]).find(m => m.profile_id === profileId);
+  if(!p.is_me && window.CS?.member?.role === 'commissioner' && tgtMem && tgtMem.role !== 'commissioner'){
+    const isSusp = !!tgtMem.suspended_at;
+    suspHtml = `<button class="mini" id="tcSusp" data-armed="0" style="margin-top:10px; color:${isSusp?'var(--pos)':'var(--neg)'}">${
+      isSusp ? 'Lift the suspension' : 'Suspend from ' + esc(window.CS.league?.name || 'this league')}</button>
+      <p class="fine" style="padding:6px 0 0">${isSusp
+        ? 'They can post here again. Nothing they scored while suspended is restored.'
+        : 'They keep reading the league and everything they have already scored stays exactly as it is. They stop posting, and rounds from here on do not count here.'}</p>`;
+  }
   /* the buddy action rides directly under the credential — it is the reason
      most people opened this sheet. Settled states render as a tag, not a
      button, so there is nothing to tap that cannot do anything. */
@@ -15271,7 +15288,7 @@ async function openTourCard(profileId){
       ? `<div style="margin-top:12px"><span class="ptag">Requested</span></div>`
       : `<button class="btn dark" id="tcAdd" style="margin-top:12px">${tcRel==='incoming'?'Accept buddy request':'Add buddy'}</button>`;
   }
-  openSheet(p.is_me?'Your Tour Card':'Tour Card', p.is_me?'THIS IS HOW YOUR BUDDIES SEE YOU':(p.handle?'@'+p.handle.toUpperCase():''), header+shrHtml+addHtml+trHtml+stats+crsHtml+recHtml+muteHtml);
+  openSheet(p.is_me?'Your Tour Card':'Tour Card', p.is_me?'THIS IS HOW YOUR BUDDIES SEE YOU':(p.handle?'@'+p.handle.toUpperCase():''), header+shrHtml+addHtml+trHtml+stats+crsHtml+recHtml+muteHtml+suspHtml);
   const ab=document.getElementById('tcAdd');
   if(ab) ab.addEventListener('click', async()=>{
     ab.disabled=true;
@@ -15291,6 +15308,29 @@ async function openTourCard(profileId){
   const vb=document.getElementById('tcVs');
   if(vb) vb.addEventListener('click', ()=> openRivalrySheet(profileId, p.display_name||'them',
     `${vs.wins}–${vs.losses}${vs.ties?'–'+vs.ties:''}`));
+  const sb2=document.getElementById('tcSusp');
+  if(sb2) sb2.addEventListener('click', async ()=>{
+    const isSusp = !!tgtMem?.suspended_at;
+    if(!isSusp && sb2.dataset.armed !== '1'){
+      sb2.dataset.armed='1';
+      sb2.textContent='Sure? Suspend ' + (p.display_name || 'them');
+      return;
+    }
+    sb2.disabled = true;
+    try{
+      const { error } = isSusp
+        ? await sb.rpc('unsuspend_member', { p_member: tgtMem.id })
+        : await sb.rpc('suspend_member',   { p_member: tgtMem.id, p_reason: null });
+      if(error) throw error;
+      toast(isSusp ? 'Suspension lifted.' : 'Suspended. They can still read the league.');
+      closeSheet();
+      await window.loadLeagueData?.();
+      window.loadStandingsAndFeed?.();
+    }catch(err){
+      sb2.disabled = false; sb2.dataset.armed='0';
+      toast(humanError(err, 'Could not change that.'));
+    }
+  });
   const mb=document.getElementById('tcMute');
   if(mb) mb.addEventListener('click', async ()=>{
     const on = !(window.MUTED instanceof Set && window.MUTED.has(profileId));
@@ -16274,7 +16314,7 @@ async function loadLeagueData(){
   /* photos arc 2 (D59): avatars + the per-league marker override ride the
      member load — retry without both on deploy skew */
   let mq = await sb.from('league_members')
-    .select('id, role, profile_id, joined_at, marker, profile:profiles(display_name, marker, index_current, handle, photo_path)')
+    .select('id, role, profile_id, joined_at, marker, suspended_at, profile:profiles(display_name, marker, index_current, handle, photo_path)')
     .eq('league_id', CS.league.id);
   if(mq.error){
     /* ANY error retries the legacy shape — see loadProfile: missing column

@@ -5342,3 +5342,36 @@ Third, while in there: the career block filtered `differential is not null` and 
 **Verified:** the default, the 24/4/4 profile counts, the 0..7500 range and `tour_card`'s live body all read out of prod first; the migration parses (6 statements, `tour_card` as plpgsql, no `ghin_number` left in the body); preflight 21/21, 0 warnings; `app-tests.js` 42/42 headless and the wizard's buy-in dial confirmed reading **None** in a real browser.
 
 **CONFLICT:** none — this *discharges* D113's ruling and D46's principle. Spec §7 was already amended by D113.
+
+### D197 · Four rulings: suspend not remove, a month close that can miss, an age gate that waits, and one address
+*(2026-09-01. The owner took the decision points one at a time. Two are built here; two are deliberately not.)*
+
+**RULING 1 — ejection splits in two. Suspend is built; remove stays where it is.**
+
+The ship audit filed "an abusive member cannot be removed from a running league" as an App Store 1.2 gap. It is not one: 1.2 asks for a report path, a block, and the developer able to act, and after D188 all three exist. What was genuinely missing is what a **Pro** needs when someone in a running league becomes a problem — and "remove" is four questions wearing one name. Does their squad play short or get a sub? Do their already-scored rounds vanish, moving every other golfer's standings, or stay? Is their pot share paid, owed, or forfeit? Does their board history survive? Every one of those rewrites a competition and a ledger, and §16 says the record shows its work and is never mutated.
+
+**So suspension is the safety action and removal stays the competition action.** A suspended member cannot post to the board or comment in that league; rounds they post *after* the suspension do not score there (they still score in every other league and in their own record — a suspension is a fact about one room, not about a golfer); everything already scored stays exactly where it is; they can still **read** the league, because a person who cannot see what was said about them cannot appeal it; and one call undoes it, with the row recording who and when. `remove_member` keeps its `setup`-phase gate, where rewriting a squad is harmless because nothing has been played into it.
+
+Two implementation notes worth keeping. **The forward-only cut is `r.created_at < lm.suspended_at`, not a live membership filter** — a live filter would erase their past rounds from the standings the instant the Pro clicked, which is precisely what §16 forbids and precisely what would make a moderation decision look like score-tampering to everyone else in the league. And the clause has to live in **`v_rounds_ranked`** rather than in a write guard, because that view fans every round into every league the profile belongs to: a suspended golfer posting a round in *another* league would otherwise still score into this one, and no write policy here could see it. The two write surfaces are gated with a narrow `is_suspended()` helper rather than by making `my_member_id()` return null — thirteen functions call that one, including read paths, and a suspended golfer losing their own view of the league would have been a side effect nobody asked for.
+
+**RULING 2 — the month close isolates per league, and gains a catch-up.**
+
+`run_month_closes` fires at 07:10 on the 1st as a bare loop, so one league that raises rolls back the close for **every** league, with no retry and no catch-up — a single failure permanently losing that month's floor penalties, auto-byes and bonuses across the product, and the ledger behind them is real money. D193 fixed `run_event_sessions` this way and deliberately left this one, because how a money path handles partial failure is a decision rather than a patch.
+
+The decision is safe **specifically because `close_month()` is idempotent, and that was verified rather than assumed**: its first statement returns early when a `month_closed` sentinel already exists for that season and month. That inverts the usual argument. Without idempotency, "skip and continue" leaves a half-closed month nobody can safely re-run and refusing the whole month is the more conservative call; with it, isolation is strictly better, because twelve leagues stop losing their month to one league's bug and the failed league is recoverable on the next tick instead of lost. Each season now attempts the **last three months**, bounded below by the month it started, so two consecutive failures — or a month when nobody noticed pg_cron was paused — heal themselves.
+
+`run_week_snapshots` gets isolation but **not** catch-up: `snapshot_week()` has no equivalent sentinel, so re-running it is not known to be safe, and a missed weekly snapshot costs a chart row rather than a ledger entry. Isolating it is honest; retrying it would be a guess.
+
+**RULING 3 — the age gate and the terms record are built together, after submission. NOT NOW, deliberately.**
+
+There is no date of birth, no attestation, and no `terms_version`/`accepted_at` anywhere in the schema, so **13+ is currently a claim the product cannot enforce and you cannot prove what any of the 40 existing users agreed to.** Apple does not require a gate at 13+, so this blocks nothing. One migration and one signup field closes both, and doing it now would add a field to the funnel in the week the funnel most needs to be stable. Logged here so it survives the submission: it is the first thing after.
+
+**RULING 4 — one support address, everywhere: `jerecho@fischbeck3.com`.**
+
+It existed as three values — the listing named a gmail, `legal.html` named `jerecho@fischbeck3.com`, and `hello@cupseason.app` appeared in neither and has no MX record. A reviewer who mails a published address and gets nothing is a slow rejection. App Store Connect's contact field is private, so a personal address there costs nothing; the owner chose consistency over compartmentalisation. `app-store-listing.md` now matches `legal.html`. `hello@cupseason.app` stays unpublished until it can receive.
+
+**Not built here, and named so it is not forgotten:** the suspend control exists on the web member sheet only. The phone has Mute on the Tour Card and should get this beside it; the Pro's pocket tools are IOS-007's remit and this is one. Also unbuilt: a free-text reason at the moment of suspension — the RPC takes one and the client sends null, because `prompt()` is on this project's landmine list and a proper reason sheet is a UI pass, not a parameter.
+
+**Verified:** both migrations parse with a real PostgreSQL parser (20 and 3 statements; all five function bodies as plpgsql), and each ends by asserting its own effect — the view must mention `suspended_at`, both write policies must mention `is_suspended`, and both cron functions must mention `job_failures`. `close_month`'s idempotency guard was read out of prod before the catch-up was written. Preflight 21/21 plus the expected pending-deploy warning for the two new RPCs; `app-tests.js` 42/42 headless. The member query carries `suspended_at` behind the existing any-error legacy retry, so the client is safe in both deploy orders.
+
+**CONFLICT:** none. §16 is the reason suspension is forward-only rather than retroactive. D188's moderation plane gains the Pro-scoped action it deliberately left out.
