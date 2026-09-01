@@ -53,7 +53,12 @@ alter table public.content_reports add column if not exists resolved_by uuid ref
 alter table public.content_reports add column if not exists resolution  text;
 alter table public.content_reports add column if not exists comment_id  uuid;
 
-create index if not exists content_reports_open_idx
+-- NB: `content_reports_open_idx` is ALREADY TAKEN in prod, by an index on
+-- (resolved, created_at). `create index if not exists` matches on NAME, not on
+-- definition, so reusing that name would have silently created nothing and the
+-- queue would have seq-scanned while the migration reported success. Named for
+-- what it indexes instead.
+create index if not exists content_reports_unresolved_idx
   on public.content_reports (created_at desc) where resolved_at is null;
 create index if not exists posts_hidden_idx
   on public.posts (league_id) where hidden_at is not null;

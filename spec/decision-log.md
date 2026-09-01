@@ -5205,3 +5205,21 @@ Both are rewritten. **4.8 does not apply to this app at all**, which is a strong
 **Verified:** the migration parses with a real PostgreSQL parser (7 statements, both function bodies as plpgsql); preflight 21/21 plus the expected pending-deploy warning; iOS builds and its suites pass with the new copy. **Not executed** — no Docker here, and DDL against prod is the owner's call. The migration re-reads its own `prosrc` at the end and RAISES if `device_tokens`, `storage.objects` or the address tombstone is missing from the function it just installed.
 
 **CONFLICT:** none. §16 holds — a departed golfer's ROUNDS are untouched, which is exactly why the tombstone branch exists; what leaves is every thing that points at a person.
+
+### D190 · Sixty-one million tuples from a table with two hundred and eleven rows
+*(2026-09-01. Measured, not modelled.)*
+
+```
+relname      seq_scan   seq_tup_read   idx_scan   live rows
+rounds        179,244     61,640,344     28,485         211
+```
+
+`rounds` carries exactly two indexes — the primary key and a partial on `api_course_id` — and **nothing on `profile_id`**, which is the column every read of a golfer's record filters by: the Tour Card, the You screen, the differential views, and `native_home()`, already the slowest query in the product, which evaluates two full-rounds-scan views *per membership*. `post_comments` had nothing but its primary key while the board fetches comments for up to 120 posts at once with `.in('post_id', …)`.
+
+At 211 rows Postgres is right to seq-scan and the cost is invisible. **That is the argument for doing it now rather than later:** the plan flips on its own somewhere in the low thousands of rounds, and the first person to notice will be a golfer whose home screen takes four seconds on a Sunday afternoon with the whole league posting at once. Indexes are cheap on a small table and expensive to add to a busy one. `not voided` is in the predicate because every read path already carries it, so the index stays small and is the one the planner will actually choose.
+
+**A bug in my own migration, worth recording because the class recurs.** D188 created `content_reports_open_idx` with `if not exists` — and that name is **already taken in prod**, by an index on `(resolved, created_at)`. `create index if not exists` matches on NAME, not on definition, so it would have created nothing, reported success, and left the moderation queue seq-scanning. This is the same shape as the vacuous preflight check in D187 and the boilerplate grant in D187's migration: **a thing that reports success without doing anything.** The index is renamed for what it indexes, and this migration ends by counting its own four indexes and raising if any is missing.
+
+**Not built, owner's:** `supabase db push`.
+
+**CONFLICT:** none.
