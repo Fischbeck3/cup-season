@@ -5392,3 +5392,32 @@ The guard already existed elsewhere, twice, with the reasoning written out: `swi
 **Verified** by running the real branch ladder, extracted from source, against both states: unloaded preseason renders "First tee Wed Sep 30. Rounds before it build your number." with no count; loaded renders "3 in. First tee…"; "Just you so far." appears only at a *known* n of 1; the default line carries "6 golfers in." only when known. The load-kick was confirmed to fire exactly once on an unknown roster and not at all on a known one. Preflight 21/21, `app-tests.js` 42/42.
 
 **CONFLICT:** none. D119's "tell a member who is doing what by when" is preserved in every branch — only the count clause moves.
+
+### D200 · Two regressions I shipped in D197, and the guard that watched me do it
+*(2026-09-01. Found by reading an iOS test log — every suite was green.)*
+
+```
+[live-resume] server query failed: PGRST201
+Could not embed because more than one relationship was found for
+'league_members' and 'profiles'
+```
+
+**Regression 1 — the roster stopped loading, on both clients.** D197's suspend migration added `league_members.suspended_by uuid references profiles(id)`. `league_members.profile_id` already referenced `profiles`. Two foreign keys to one table, and PostgREST can no longer resolve `profile:profiles(...)` — so **every unqualified embed of profiles on league_members began failing the moment it was pushed**: the league roster, the board's social fetch, the schedule, the live roster, the rounds picker, on the web *and* the phone.
+
+This is precisely the bug the blind audit found on `live_rounds → live_round_players`, and precisely why `tests/preflight.mjs` grew check 21. **That check names `live_round_players` and nothing else. It watched me do the same thing to a different table and printed PASS** — the same failure as D187's `esc()` heuristic, in the guard written to prevent this exact class. A guard that only knows the last instance is a guard that only prevents the last instance.
+
+The fix is in the DATABASE, not in a dozen call sites. Qualifying every embed would mean touching both clients, shipping two deploys, and leaving the trap armed for the next audit column. Dropping the constraint restores one unambiguous relationship everywhere at once, with no client change. What is lost is referential integrity on three audit columns — a real cost and a small one: nothing joins through them, `delete_account` tombstones rather than deletes, and a dangling uuid in an audit trail beats an outage on every roster. `content_reports` turned out to have had **three** since it was created, two of them predating me; it survives only because it is read through `moderation_queue()`, which joins explicitly.
+
+**Regression 2 — and this one is worse.** `db-checks 11 · views run as reader` went red in the same push. D197 rewrote `v_rounds_ranked` with `create or replace view`, **which silently discards the view's reloptions.** It carried `security_invoker = true`; it now carried nothing, so it ran as its OWNER and evaluated RLS on `rounds` and `league_members` as postgres rather than as the golfer reading it. `v_squad_standings` sitting beside it still had the flag, which is what makes the diff obvious in hindsight and invisible in the moment.
+
+`v_rounds_ranked` is granted to `authenticated`. **That is a live cross-league read boundary, not a theoretical one.** The first is an outage; this is a leak.
+
+**What actually caught them, and what did not.** Not the 401 tests — all green. Not preflight — 21/21. Not the migration's own self-enforcing block, which asserted the things I had thought of. A line in a test log, and `db-checks.sql`, which I had not run after writing the migration. **Running `tests/db-checks.sql` after a schema-touching push is not optional, and it is now the thing I do before claiming a migration is done.**
+
+`db-checks` gains check **18 · one relationship per embed**, which fails when any client-embedded table has two foreign keys to the same target. A schema fact cannot be checked from source, which is why preflight's version was always going to be a list of past mistakes.
+
+**Two rules worth carrying:**
+- **`create or replace view` does not preserve options.** Restate `security_invoker` in the same statement, every time.
+- **An audit column with a foreign key is not free.** On a table any client embeds, the FK costs more than it gives.
+
+**CONFLICT:** none. D197's suspend behaviour is unchanged — the columns stay, only the constraints go.

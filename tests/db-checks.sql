@@ -393,5 +393,38 @@ select '17 · band boundaries',
          ' (want 7) · (3.0)=' || cup_points(3.0)::text || ' (want 12)' end,
   'cup_points half-open bands, §2.2'
 
+-- 18 · one relationship per embedded table
+--     D199, learned the expensive way. Adding an audit column with a foreign
+--     key gives a table a SECOND path to the same target, and PostgREST then
+--     refuses every unqualified embed against it with 300 / PGRST201. D197's
+--     `league_members.suspended_by -> profiles` broke the roster, the board's
+--     social fetch, the schedule, the live roster and the rounds picker on
+--     BOTH clients the moment it was pushed — and preflight's check 21, which
+--     exists for exactly this failure, watched it happen and said PASS,
+--     because it names `live_round_players` and nothing else.
+--     A schema fact cannot be checked from source; it is checked here.
+union all
+select '18 · one relationship per embed',
+  case when not exists (
+    select 1 from pg_constraint c
+     where c.contype = 'f' and c.connamespace = 'public'::regnamespace
+       and c.conrelid::regclass::text in
+           ('league_members','posts','post_comments','round_comments','rounds',
+            'squads','squad_members','live_rounds','live_round_players',
+            'event_players','event_teams','content_reports')
+     group by c.conrelid, c.confrelid having count(*) > 1)
+    then 'PASS'
+    else 'FAIL — ' || coalesce((
+      select string_agg(t || ' -> ' || tgt || ' x' || n::text, ', ')
+        from (select c.conrelid::regclass::text t, c.confrelid::regclass::text tgt, count(*) n
+                from pg_constraint c
+               where c.contype='f' and c.connamespace='public'::regnamespace
+                 and c.conrelid::regclass::text in
+                     ('league_members','posts','post_comments','round_comments','rounds',
+                      'squads','squad_members','live_rounds','live_round_players',
+                      'event_players','event_teams','content_reports')
+               group by 1,2 having count(*) > 1) x), '?') end,
+  'a client-embedded table with two paths to one target = PGRST201 on every unqualified embed'
+
 )
 select * from checks order by check_name;
