@@ -101,31 +101,13 @@ struct LeaguePane: View {
         VStack(alignment: .leading, spacing: 10) {
           CSSectionHead("The bylaws · locked at first tee")
           BylawsCard()
-          CSSectionHead("The Pro Shop")
-          // rows on ground, not a card in a disclosure (IOS-019 rule 2)
-          VStack(alignment: .leading, spacing: 8) {
-            Text("Pro Shop").font(CSFont.sentenceBold).foregroundStyle(cs.ink)
-            Text("CUP SEASON MEMBERSHIP · COMING AT LAUNCH · THE PILOT RIDES FREE").font(CSFont.label).tracking(1.2).foregroundStyle(cs.dimText)
-              .fixedSize(horizontal: false, vertical: true)
-            VStack(spacing: 0) {
-              let perks = ["Custom rules, every dial unlocked", "Live draft night with pick timer", "Trades & waiver wire", "Multi-season history & records"]
-              ForEach(Array(perks.enumerated()), id: \.element) { i, s in
-                CSRow(last: i == perks.count - 1) {
-                  HStack(spacing: 10) {
-                    Text("SOON").font(CSFont.label).tracking(1.0).foregroundStyle(cs.brand)
-                      .padding(.horizontal, 6).padding(.vertical, 2).overlay(Capsule().stroke(cs.brand.opacity(0.6), lineWidth: 1))
-                    Text(s).font(CSFont.subhead).foregroundStyle(cs.mut)
-                  }
-                }
-              }
-            }
-            Text("Coming at launch").font(CSFont.button).foregroundStyle(cs.dimText).frame(maxWidth: .infinity, minHeight: 50)
-              .background(cs.bg2.opacity(0.55), in: RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous))
-              .accessibilityLabel("Coming at launch")
-          }
+          // D183 · the Pro Shop teaser is DELETED, not rewritten — four
+          // features under two nouns D132 retired, three of them unbuilt,
+          // behind a "COMING AT LAUNCH" banner that is no longer true of
+          // anything. Free until a thousand golfers: this pane sells nothing.
         }
       } label: {
-        Text("League rules & Pro Shop").csEyebrow().frame(minHeight: 44)
+        Text("League rules").csEyebrow().frame(minHeight: 44)
       }
       .tint(cs.mut)
       .padding(.top, 4)

@@ -358,7 +358,7 @@ public enum WizardCopy {
 
   // step 1
   public static let presetEyebrow = "How serious is your league?"
-  public static let presetHelp = "One pick, made now, that sets the fairness rules for the whole season — handicap allowance, how scores are verified, which courses count. Casual is an honor-system beer league. Standard wants GHIN-posted rounds. Cutthroat wants receipts: attested scores on rated tees. Deciding this before anyone tees off is what keeps October friendly. Every individual dial unlocks with Pro Shop."
+  public static let presetHelp = "One pick, made now, that sets the fairness rules for the whole season — handicap allowance, how scores are verified, which courses count. Casual is an honor-system beer league. Standard wants GHIN-posted rounds. Cutthroat wants receipts: attested scores on rated tees. Deciding this before anyone tees off is what keeps October friendly."
   public static let fastPath = "Use these defaults →"
   public static let customize = "Customize"
   public static let hideOptions = "Hide options"
@@ -368,7 +368,7 @@ public enum WizardCopy {
   public static let teamsEyebrow = "Teams"
   public static let teamsHelp = "How the league is organized. Solo means everyone competes individually: no squads. Squad modes split the league into teams the Pro assigns or draws; more squads want more players (4 squads plays best at 8+)."
   public static let fillEyebrow = "How teams fill"
-  public static let fillHelp = "How squads get filled. Blind draw shuffles everyone server-side and announces the reveal to the board, so nobody can rig the hat. Pro assign lets you place players yourself, for groups who picked teams in the group chat. Live draft night with picks and a clock is on the Pro Shop roadmap."
+  public static let fillHelp = "How squads get filled. Blind draw shuffles everyone server-side and announces the reveal to the board, so nobody can rig the hat. Pro assign lets you place players yourself, for groups who picked teams in the group chat. Live draft night with picks and a clock isn't built yet."
   public static let endsEyebrow = "How it ends"
   public static let endsHelp = "How the champion is crowned. Cup Final resets for the last four weeks — top seeds race fresh, anyone can catch fire, playoff drama. Points table crowns whoever leads when the season ends: the whole year is the race, no reset."
   public static let potEyebrow = "The pot split"

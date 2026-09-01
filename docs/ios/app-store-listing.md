@@ -79,10 +79,10 @@ alternate then.
 > month-close stories, a board where the crew talks, and a season recap worth
 > sharing. A golf life that adds up instead of evaporating into a group chat.
 >
-> **What it costs, plainly.** Free to download. Every golfer's profile,
-> index and record are free forever, and a league's first year is free. After
-> that a league runs on a league pass, paid by the Pro on the web — nothing is
-> sold in this app. There are no in-app purchases.
+> **What it costs, plainly.** Nothing. Every golfer's profile, index and
+> record, and every league, event and round — all free. Nothing is sold in
+> this app or anywhere else, there is no trial, and there are no in-app
+> purchases.
 >
 > **The money, plainly:** Cup Season keeps the ledger; the money moves between
 > friends — not through the app. No wagering, no deposits, no payouts. Just

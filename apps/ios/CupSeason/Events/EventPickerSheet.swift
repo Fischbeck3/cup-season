@@ -24,11 +24,11 @@ struct EventPickerSheet: View {
         VStack(alignment: .leading, spacing: 10) {
           CSSheetHeader(title: "Start an event", sub: "Short form · its own little trophy")
           style("⚔️", "The Ryder", "Two teams · weekly vs-index duels · first to the clinch", live: true) { ryder = true }
-          style("🥊", "Bracket", "Knockout · seeded · last golfer standing", live: false) { toasts.show("Bracket lands right after the pilot") }
+          style("🥊", "Bracket", "Knockout · seeded · last golfer standing", live: false) { toasts.show("Bracket isn't built yet") }
           if majorDoor {
             style("🏆", "A Major", "A championship window · best card takes the jug", live: true) { major = true }
           }
-          CSFine("Every event mints a trophy for your display case. More styles land after the pilot.")
+          CSFine("Every event mints a trophy for your display case.")
         }
         .padding(20)
       }

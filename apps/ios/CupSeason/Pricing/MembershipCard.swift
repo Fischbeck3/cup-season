@@ -1,7 +1,7 @@
 // Cup Season — the You tab's "Membership & billing" card (plan §2b, deck slide 6).
 //
-// Replaces the PLAN · FREE · PILOT stub under the "Membership & billing"
-// eyebrow in CardAndSettingsScreen (the eyebrow stays with the host). One row
+// Replaces the flag-off PLAN · FREE stub under the "Membership" eyebrow in
+// CardAndSettingsScreen (the eyebrow stays with the host). One row
 // per league, a state per league:
 //   A  Founding   — the gold badge, free forever
 //   B  free season — this season is free; three chips carry next season's number
@@ -36,10 +36,12 @@ struct MembershipCard: View {
           .padding(.top, memberships.isEmpty ? 8 : 12)
       }
     } else {
-      // Today's stub — verbatim, so flag-off is pixel-identical (plan §4).
-      HStack { Text("PLAN").font(CSFont.label).foregroundStyle(cs.mut); Spacer(); Text("FREE · PILOT").font(CSFont.monoMediumBody).foregroundStyle(cs.ink) }
+      // The flag-off stub, matching the web verbatim. D183 rewrote it: free
+      // until a thousand golfers, so it says what is true and promises nothing
+      // structural (D39) — no "at launch", no "the pilot" (D132).
+      HStack { Text("PLAN").font(CSFont.label).foregroundStyle(cs.mut); Spacer(); Text("FREE").font(CSFont.monoMediumBody).foregroundStyle(cs.ink) }
         .padding(.vertical, 8)
-      Text("Cup Season membership lands at launch. Nothing to pay during the pilot.")
+      Text("Everything is free — every league, every event, every round. No trial, nothing to enter.")
         .font(CSFont.footnote).foregroundStyle(cs.dimText)
     }
   }

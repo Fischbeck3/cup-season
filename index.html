@@ -3468,7 +3468,7 @@ html[data-theme="light"] .room-dusk .btn:not(.dark):not(.gold):not(.apple){color
 
         <div class="wizstep" data-step="1">
           <div class="eyebrow" style="margin-top:0">How serious is your league? <button class="ibtn" data-i="preset" aria-expanded="false" aria-label="About competitiveness presets">i</button></div>
-          <div class="ihelp" id="ih-preset">One pick, made now, that sets the fairness rules for the whole season — handicap allowance, how scores are verified, which courses count. <b>Casual</b> is an honor-system beer league. <b>Standard</b> wants GHIN-posted rounds. <b>Cutthroat</b> wants receipts: attested scores on rated tees. Deciding this before anyone tees off is what keeps October friendly. Every individual dial unlocks with Pro Shop.</div>
+          <div class="ihelp" id="ih-preset">One pick, made now, that sets the fairness rules for the whole season — handicap allowance, how scores are verified, which courses count. <b>Casual</b> is an honor-system beer league. <b>Standard</b> wants GHIN-posted rounds. <b>Cutthroat</b> wants receipts: attested scores on rated tees. Deciding this before anyone tees off is what keeps October friendly.</div>
           <button class="preset" data-p="0">
             <h4>Casual <span class="ok" aria-hidden="true">✓</span></h4>
             <p class="lead">Honor scores, everything counts</p>
@@ -3514,7 +3514,7 @@ html[data-theme="light"] .room-dusk .btn:not(.dark):not(.gold):not(.apple){color
           <p class="fine" id="structNote">4 squads · the full cup experience for 8+ players.</p>
           <p class="fine" id="structFit" style="padding-top:0; color:var(--warm)"></p>
           <div class="eyebrow">How teams fill <button class="ibtn" data-i="draft" aria-expanded="false" aria-label="About how teams fill">i</button></div>
-          <div class="ihelp" id="ih-draft">How squads get filled. <b>Blind draw</b> shuffles everyone server-side and announces the reveal to the board, so nobody can rig the hat. <b>Pro assign</b> lets you place players yourself, for groups who picked teams in the group chat. Live draft night with picks and a clock is on the Pro Shop roadmap.</div>
+          <div class="ihelp" id="ih-draft">How squads get filled. <b>Blind draw</b> shuffles everyone server-side and announces the reveal to the board, so nobody can rig the hat. <b>Pro assign</b> lets you place players yourself, for groups who picked teams in the group chat. Live draft night with picks and a clock isn't built yet.</div>
           <div class="seg" id="draftSeg">
             <button data-d="random" class="on">Blind draw</button>
             <button data-d="assign">Assign</button>
@@ -3792,23 +3792,16 @@ html[data-theme="light"] .room-dusk .btn:not(.dark):not(.gold):not(.apple){color
         <div class="check"><span class="num"><svg class="ic" aria-hidden="true"><use href="#i-users"/></svg></span><div class="tt"><b>Squads</b><small id="hubDraftSub">Complete · rosters locked</small></div><button class="mini" data-go="draft">View</button></div>
 
         <details class="hubmore league-only" style="margin-bottom:14px">
-          <summary style="cursor:pointer; font-family:var(--mono); font-size:12.5px; letter-spacing:.14em; text-transform:uppercase; color:var(--dim); padding:8px 0;">League rules &amp; Pro Shop</summary>
+          <summary style="cursor:pointer; font-family:var(--mono); font-size:12.5px; letter-spacing:.14em; text-transform:uppercase; color:var(--dim); padding:8px 0;">League rules</summary>
           <div class="eyebrow" style="margin-top:10px">The bylaws — the rules this league plays by</div>
           <div class="card" id="bylawsHub" style="margin-bottom:10px"></div>
           <button class="mini" id="rulesScoreHelp" style="margin-bottom:14px">How scoring &amp; handicaps work →</button>
 
-          <div class="eyebrow">The Pro Shop</div>
-          <div class="pro">
-            <h3>Pro Shop</h3>
-            <div class="pr">CUP SEASON MEMBERSHIP · COMING AT LAUNCH · THE PILOT RIDES FREE</div>
-            <ul>
-              <li><span class="pb">SOON</span> Custom rules, every dial unlocked</li>
-              <li><span class="pb">SOON</span> Live draft night with pick timer</li>
-              <li><span class="pb">SOON</span> Trades & waiver wire</li>
-              <li><span class="pb">SOON</span> Multi-season history & records</li>
-            </ul>
-            <button class="btn dark" disabled style="opacity:.55; cursor:default">Coming at launch</button>
-          </div>
+          <!-- D183 · the Pro Shop teaser is DELETED, not rewritten. It sold
+               four features under two nouns D132 retired, three of which do
+               not exist, behind a "COMING AT LAUNCH" banner that is no longer
+               true of anything. Free until a thousand golfers means the league
+               pane sells nothing at all. -->
         </details>
         </div><!-- /room-league -->
 
@@ -15394,9 +15387,11 @@ function openProfileHub(){
       <button class="mini" data-th="auto">Match device</button>
     </div>
 
-    <div class="eyebrow" style="margin-top:20px">Membership &amp; billing</div>
-    <div class="byrow"><span>PLAN</span><b>FREE · PILOT</b></div>
-    <p class="fine" style="padding-left:0">Cup Season membership lands at launch. Nothing to pay during the pilot.</p>
+    <!-- D183: free until a thousand golfers. Says what is true and promises
+         nothing structural (D39) — no "at launch", no "the pilot" (D132). -->
+    <div class="eyebrow" style="margin-top:20px">Membership</div>
+    <div class="byrow"><span>PLAN</span><b>FREE</b></div>
+    <p class="fine" style="padding-left:0">Everything is free — every league, every event, every round. No trial, nothing to enter.</p>
 
     <button class="btn dark" id="phOut" style="margin-top:16px">Sign out</button>
 
@@ -16069,7 +16064,7 @@ function applyBylaws(b){
    Stash the old league's bylaws + a "· S2" name, then run the normal create
    flow (#wCreate); the handler's hook applies the prefill once the scaffold +
    wizard are up. New league id — continuity by convention; linked multi-season
-   is a later Pro Shop build. No new engine/RPC/schema. */
+   is a later build. No new engine/RPC/schema. */
 async function runItBack(oldLeague){
   if(!oldLeague) return;
   let bylaws=null; try{ bylaws = await loadBylaws(oldLeague.id); }catch(_){}
@@ -17413,13 +17408,13 @@ function openEventPicker(){
     <div class="check tap" data-evstyle="major" style="cursor:pointer; border-color:var(--pos)">
       <span class="num">🏆</span><div class="tt"><b>A Major</b><small>A championship window — the best card takes the jug</small></div>
       <span class="fine" style="padding:0; color:var(--pos)">LIVE</span></div>
-    <p class="fine">Every event mints a trophy for your display case. More styles land after the pilot.</p>
+    <p class="fine">Every event mints a trophy for your display case.</p>
   `);
   $('#shBody').querySelectorAll('[data-evstyle]').forEach(b => b.addEventListener('click', () => {
     const s = b.dataset.evstyle;
     if(s === 'ryder'){ closeSheet(); if(window.openRyderSetup) window.openRyderSetup(); return; }
     if(s === 'major'){ closeSheet(); if(window.openMajorSetup) window.openMajorSetup(); return; }
-    toast('Bracket lands right after the pilot');
+    toast("Bracket isn't built yet");
   }));
 }
 /* join-by-code, self-contained — the hub's join box hides for members, so the

@@ -148,12 +148,13 @@ free today · Founding Leagues program (№1: PIGL).
 the money moves between friends, not through the app. No wagering, no
 deposits, no payouts. · How is handicapping fair? — The number derives from
 posted scores and shows its work; it is not an official handicap and never
-claims to be. · What does it cost? — Free to download, and every golfer's
-profile, index, and record are free forever. A league's first year is
-free; after that the league runs on a league pass (about $89 a year, paid by
-the Pro out of the pot — around $7 a player, every season included). There are no in-app purchases.
-*(D56 / IOS-021, numbers per D101 — the "no in-app purchases" sentence stays VERBATIM true until
-the Stripe phase ships; discovery §6.2.)*
+claims to be. · What does it cost? — Nothing. Cup Season is free: every
+golfer's profile, index and record, and every league, event and round.
+There is nothing to buy, no trial, and there are no in-app purchases.
+*(D183 — free until a thousand onboarded golfers, then the question reopens.
+D101's pass numbers are parked, not retired; the phone's pricing surfaces stay
+dormant behind `app_flags.pricing.visible = false`. The "no in-app purchases"
+sentence is now unambiguously true, which is the point.)*
 
 **Assets folder:** current lockups from `brand/` · og-image · 3–5 artifact
 screenshots (shots 1/4/6/8 above) · one founder photo — **does not exist

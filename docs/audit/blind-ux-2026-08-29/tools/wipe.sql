@@ -29,7 +29,8 @@ insert into _audit_emails values
   ('jerecho+q10m@fischbeck3.com'),    -- Q-10 member-gate verification, 2026-08-29
   ('jerecho+q14@fischbeck3.com'),     -- Q-14 covenant verification, 2026-08-29
   ('jerecho+q14b@fischbeck3.com'),    -- Q-14 covenant verification, 2026-08-29
-  ('jerecho+skew1@fischbeck3.com');   -- D111 deploy-skew verification, 2026-08-29
+  ('jerecho+skew1@fischbeck3.com'),   -- D111 deploy-skew verification, 2026-08-29
+  ('jerecho+walk1@fischbeck3.com');   -- signup-flow walkthrough "Walker", 2026-08-31
 
 create temporary table _audit_profiles as
   select id from profiles where email in (select email from _audit_emails);

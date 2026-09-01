@@ -430,7 +430,8 @@ private struct SettingsPane: View {
       Text("Palette").csEyebrow().padding(.top, 14)
       LookPaletteDial()
 
-      Text("Membership & billing").csEyebrow().padding(.top, 14)
+      // D183: no billing to speak of — the eyebrow matches the web's.
+      Text("Membership").csEyebrow().padding(.top, 14)
       // D56 / IOS-021: Founding · free season · (paid, future) — the PILOT stub verbatim while hidden
       MembershipCard(flags: pricing, memberships: store.me?.memberships ?? [], proNames: nil)
         .task { pricing = await PricingFlags.load() }
