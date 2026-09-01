@@ -5278,3 +5278,27 @@ Built: `run_event_sessions` — the job that actually failed — now wraps each 
 **Verified:** the migration parses (9 statements, both bodies as plpgsql); preflight 21/21 + the expected pending-deploy warning; `app-tests.js` 42/42 headless. Not executed — the owner's push.
 
 **CONFLICT:** none. D146's 'complete' inclusion in the session sweep is preserved verbatim.
+
+### D194 · Five hard bounces were scheduled for 2026-09-06
+*(2026-09-01. Found by the merge audit and confirmed in prod the same hour. This one has a date on it.)*
+
+```
+league          code      status      ends_on      sandbox
+Sunset Match    TSTSUN    cup_final   2026-09-05   false
+```
+
+`daily_season_tick` closes a season past its `ends_on`; `close_season()` fires `seasons_email_on_complete`; that trigger posts to the `season-email` function. **`email_queue` has zero rows, ever** — so 2026-09-06 would have been the first time in this product's life that the season-recap path ran end to end, and it would have run against real Brevo.
+
+`season_email_payload` skipped two address patterns: `%@cupseason.invalid` and `%@sandbox.cupseason.test`. The seeded bots in these leagues are **`seed+bot0..4@cupseason.test`** — which match neither. Five addresses on a reserved TLD, handed to Brevo, **on the same account that delivers every sign-in code in the product**, six days before the App Store submission target. A bounce rate on a shared sending reputation is the kind of damage that cannot be undone inside a week, and it would have arrived in the same week as the submission.
+
+Sunset Match is also the **reviewer's** league. Three more test leagues queue behind it — Ridgeline Cup (2026-12-19), Fairway Society (2027-01-02), Winter Circuit (2027-02-13) — so fixing the one season would not have been the fix.
+
+**The fix is the rule, not the list.** RFC 2606 and RFC 6761 reserve `.test`, `.example`, `.invalid` and `.localhost` precisely so they can never resolve, so excluding the whole class is *strictly correct* rather than a heuristic, and it cannot drift the way a hand-kept list of two patterns just did. `is_undeliverable(text)` is immutable, granted to nobody, and used by both mailing functions. It is the same move as D187's: **a rule copied into two call sites is a rule that will be right in one of them.**
+
+Both function bodies in the migration are prod's own `pg_get_functiondef` output with only the two filter lines swapped — generated, not retyped, because a hand-copied 70-line payload function is its own outage. `create or replace` preserves the ACL, so D187's revoke of `season_email_payload` from `authenticated` still stands.
+
+**This is the one item in the whole audit with a deadline attached.** It must be pushed before the daily tick on 2026-09-06.
+
+**Verified:** the season, its date and its `sandbox=false` read out of prod; the five `seed+bot*@cupseason.test` profiles listed; the live filter read out of `pg_get_functiondef`; the migration parses (5 statements, both bodies as plpgsql); preflight 21/21, 0 warnings. The migration asserts its own rule three ways before it finishes — that `.test` is caught, that `.invalid` still is (D189's tombstone depends on it), and that a real address is **not** — then refuses to succeed if either function still carries the old pattern list.
+
+**CONFLICT:** none. D68's unsubscribe posture and D189's `@cupseason.invalid` tombstone both depend on this predicate and are preserved by it explicitly.
