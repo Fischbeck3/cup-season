@@ -61,11 +61,11 @@ struct MembershipCard: View {
                         font: CSFont.sentence, color: cs.ink)
         PricingChipRow(chips: ["After year 1 · \(PricingFlags.dollars(cents))/year",
                                "≈ \(PricingFlags.perPlayer(cents: cents, roster: roster)) a player",
-                               "Paid by the Pro, from the pot"])
+                               "Renewed by the Pro"   /* never "from the pot" — see PotPassCard.swift */])
 
       case .paid(let p):
         Text(m.name).csEyebrow()
-        PricingMarkdown("League pass · paid through \(PricingDate.long(p.paidThrough)) · \(PricingFlags.dollars(p.cents)) · renewed by \(proName(m)) (the Pro) · from the pot.",
+        PricingMarkdown("League pass · paid through \(PricingDate.long(p.paidThrough)) · \(PricingFlags.dollars(p.cents)) · renewed by \(proName(m)) (the Pro).",
                         font: CSFont.subhead, color: cs.ink)
       }
     }

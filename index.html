@@ -9080,7 +9080,7 @@ function holeLedger(mode, cells, played, closedOut, hot, legend){
 const STRIP_HOT='#FF5A2E', STRIP_COOL='#8E979E';
 function renderHoleStrip(H, opts){
   if(!H || !Array.isArray(H.cells) || !H.cells.length) return '';
-  const o=opts||{}, n=Math.max(1, H.n||18), hot=String(o.hot);
+  const o=opts||{}, n=Math.max(1, Number(H.n)||18), hot=String(o.hot);
   const hotC=o.hotColor||STRIP_HOT, coolC=o.coolColor||STRIP_COOL, mut=o.mutedColor||STRIP_COOL;
   const cells=[];
   for(let i=0;i<n;i++){
@@ -9094,9 +9094,19 @@ function renderHoleStrip(H, opts){
     cells.push(`<span title="Hole ${i+1}" style="flex:1 1 0;min-width:0;height:${isClose?20:14}px;`
       + `border-radius:2px;background:${bg};border:1px solid ${bd};opacity:${op}"></span>`);
   }
-  const foot = H.closed
-    ? `<span style="color:${hotC}">CLOSED ON ${H.closed}</span>`
-    : `<span>THRU ${H.played||H.cells.length}</span>`;
+  /* S2 (ship audit 2026-08-31) · these two reach innerHTML inside the ANON
+     /?share= settlement card, and their source is live_rounds.game_result — a
+     jsonb blob written by the settling client. The audit called this a second
+     stored XSS; that reading is overstated (game_results is read-only to
+     `authenticated` — relacl `rm` — and both fields are server-computed
+     integers), but a fact about a grant is the only thing that was standing
+     between a jsonb string and innerHTML on a page we hand to strangers.
+     Coerce, so the guarantee lives in this function instead of elsewhere. */
+  const nClosed = Number(H.closed) || 0;
+  const nPlayed = Number(H.played) || H.cells.length;
+  const foot = nClosed
+    ? `<span style="color:${hotC}">CLOSED ON ${nClosed}</span>`
+    : `<span>THRU ${nPlayed}</span>`;
   return `<div style="margin:${o.margin||'14px 0 0'}">
     <div style="display:flex;gap:3px;align-items:flex-end">${cells.join('')}</div>
     <div style="display:flex;justify-content:space-between;align-items:baseline;margin-top:7px;
@@ -12594,7 +12604,7 @@ function renderTrophyCase(){
   const fresh = id => _trophySeen!==null && !_trophySeen.has(id);
   const cell = (icon,title,sub,mint) =>
     `<div class="tcell${mint?' mintin':''}" style="border:0.5px solid var(--line); background:var(--bg2); border-radius:12px; padding:12px 6px 10px; text-align:center;">
-      <div style="font-size:26px; line-height:1">${icon}</div>
+      <div style="font-size:26px; line-height:1">${esc(icon)}</div>
       <div style="font-size:12px; font-weight:600; color:var(--ink); margin-top:6px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis">${mint?`<span class="tmint">${esc(title)}<span class="tcover" aria-hidden="true"></span></span>`:esc(title)}</div>
       <div style="font-size:11.5px; color:var(--mut); margin-top:1px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis">${esc(sub)}</div>
     </div>`;
@@ -14131,8 +14141,8 @@ function renderMajorRoom(el, E){
 
   /* ---- the leaderboard ---- */
   const rowHtml=(pos,r,extra,tap)=>`
-    <div class="check${tap?' tap':''}" ${tap?`style="cursor:pointer" data-mjrnd="${tap}"`:''}>
-      <span class="num" style="font-family:var(--mono); font-size:13px; color:var(--dim); min-width:26px; text-align:center">${pos}</span>
+    <div class="check${tap?' tap':''}" ${tap?`style="cursor:pointer" data-mjrnd="${esc(tap)}"`:''}>
+      <span class="num" style="font-family:var(--mono); font-size:13px; color:var(--dim); min-width:26px; text-align:center">${esc(pos)}</span>
       <div class="tt"><b>${window.mkr?.(r.marker||'saguaro')||'⛳'} ${esc(r.display_name)}</b><small>${extra}</small></div>
       ${r.pvi!=null?`<span style="font-family:var(--mono); font-size:13.5px; color:${Number(r.pvi)>0?'var(--pos)':'var(--mut)'}; flex:none">${mjVs(r.pvi)}</span>`:''}
     </div>`;
@@ -14484,7 +14494,13 @@ renderClimb(); renderStandings(); renderFeed(); renderDraft(); renderPot(); rend
      Everything above this line is the UI. This module makes it real.
      ============================================================ -->
 <script type="module">
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+/* PINNED (ship audit 2026-08-31). `@2` is a floating major: esm.sh re-resolves
+   it continuously, so the library under a shipped, unchanged index.html can
+   change without a deploy. The failure mode is the worst one available here —
+   if the module fails to parse, the sign-in button goes inert and NOTHING
+   reports it, because the boot watchdog and #errbar both live inside this same
+   module. Bump this line deliberately, never silently. */
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.112.4';
 
 const SUPABASE_URL  = 'https://zddbfcokmvneltrgukzf.supabase.co';
 const SUPABASE_KEY  = 'sb_publishable_UoORp_4FTRWg6a7foKqxRA_N2f5kHVS';
@@ -14493,6 +14509,13 @@ const sb = createClient(SUPABASE_URL, SUPABASE_KEY, {
     /* pass-through lock: avoids navigator.locks, which is origin-wide across
        tabs — one wedged background tab would otherwise freeze every tab */
     lock: (_name, _timeout, fn) => fn(),
+    /* Session fixation (ship audit 2026-08-31): left at the default `true`,
+       supabase-js reads an access/refresh token pair out of the URL FRAGMENT
+       and adopts it as the session. Cup Season has no link-based auth flow at
+       all — every door is an 8-digit code typed into the page, and Sign in
+       with Apple returns through the SDK, not the URL — so this only ever
+       stood ready to swallow a token somebody else put in a link. */
+    detectSessionInUrl: false,
   },
 });
 
@@ -15590,7 +15613,11 @@ function openProfileHub(){
   $('#phScoreHelp')?.addEventListener('click', (e)=>{ e.preventDefault(); window.openScoringHelp?.(); });
 
   $('#phOut').addEventListener('click', async () => {
-    await sb.auth.signOut();
+    /* scope:'local' — a global signOut revokes every refresh token this golfer
+       holds, so leaving the web tab would silently sign them out of the phone
+       too, and getting back in costs an OTP against a project-wide cap. Sign
+       out of THIS surface. (ship audit 2026-08-31) */
+    await sb.auth.signOut({ scope: 'local' });
     location.reload();
   });
 
@@ -15610,6 +15637,8 @@ function openProfileHub(){
     try {
       const { error } = await sb.rpc('delete_account');
       if(error) throw error;
+      /* deliberately GLOBAL, unlike the other three: the account is being torn
+         down, so every session it holds should die with it. */
       await sb.auth.signOut();
       window.location.replace(window.location.pathname);
     } catch(e) {
@@ -16342,11 +16371,16 @@ async function loadStandingsAndFeed(){
   let posts=null;
   {
     const COLS = lr => `id, kind, body, created_at, member_id, round_id${lr?', live_round_id':''}`;
+    /* ascending:FALSE + reverse, not ascending:true (ship audit 2026-08-31).
+       `limit(120)` on an ascending sort takes the 120 OLDEST posts, so a league
+       that crosses 120 loses its NEWEST ones — one prod league is at 122 and
+       its two most recent posts were already unreachable on a fresh load. Take
+       the newest 120, then flip back to chronological for the feed below. */
     let r = await sb.from('posts').select(COLS(true)).eq('league_id', CS.league.id)
-      .order('created_at', { ascending:true }).limit(120);
+      .order('created_at', { ascending:false }).limit(120);
     if(r.error) r = await sb.from('posts').select(COLS(false)).eq('league_id', CS.league.id)
-      .order('created_at', { ascending:true }).limit(120);
-    posts = r.data;
+      .order('created_at', { ascending:false }).limit(120);
+    posts = (r.data || []).slice().reverse();
   }
   const memCi = id => {
     const i = CS.squads.findIndex(q => (q.squad_members||[]).some(x => x.member_id === id));
@@ -17566,7 +17600,7 @@ window.openFounderDesk = async function(){
     $('#shBody').innerHTML = `<p class="fine">${esc(humanError(err, 'The desk is not deployed yet — push the founder_desk migration.'))}</p>`;
     return;
   }
-  const stat = (k,v) => `<div class="stat"><div class="k">${k}</div><div class="v">${esc(String(v ?? 0))}</div></div>`;
+  const stat = (k,v) => `<div class="stat"><div class="k">${esc(k)}</div><div class="v">${esc(String(v ?? 0))}</div></div>`;
   const rows = (list, fmt) => (Array.isArray(list) && list.length)
     ? list.map(fmt).join('')
     : '<div class="fine" style="padding:4px 0">Nothing yet.</div>';
@@ -17600,10 +17634,18 @@ async function openLeagueSwitcher(){
   await loadMyEvents();   /* always show events created since the last load */
   await loadInvites();    /* and any pending invites */
   const cur = CS.league?.id;
+  /* S1 (ship audit 2026-08-31) · this helper's one caller passes an event NAME.
+     Any league member can author one through create_event(), which checks
+     membership and stores the string verbatim, and loadMyEvents pulls events
+     for EVERY league you belong to — so one planted name ran for every
+     league-mate who opened the switcher, with the refresh token sitting in
+     localStorage beside it. The leagues map two lines below always escaped;
+     this path never did. Escape in the HELPER, not at the call site, so the
+     next caller inherits the fix instead of having to remember it. */
   const row = (attr, icon, title, sub, here) => `
-    <div class="check tap" data-lgsw="${attr}" style="cursor:pointer; ${here?'border-color:var(--pos);':''}">
-      <span class="num">${icon}</span>
-      <div class="tt"><b>${title}</b><small>${sub}</small></div>
+    <div class="check tap" data-lgsw="${esc(attr)}" style="cursor:pointer; ${here?'border-color:var(--pos);':''}">
+      <span class="num">${esc(icon)}</span>
+      <div class="tt"><b>${esc(title)}</b><small>${esc(sub)}</small></div>
       ${here?'<span class="fine" style="padding:0; color:var(--pos)">HERE</span>':''}
     </div>`;
   const leagues = (CS.memberships||[]).map(m => {
@@ -17630,9 +17672,9 @@ async function openLeagueSwitcher(){
       </span></div>`).join('');
   /* the get-started surface: bold, unmissable. Primary two carry the accent. */
   const startCard = (attr, icon, title, sub, accent) => `
-    <div class="check tap" data-lgsw="${attr}" style="cursor:pointer; ${accent?'border-color:var(--pos);':''}">
-      <span class="num">${icon}</span>
-      <div class="tt"><b>${title}</b><small>${sub}</small></div>
+    <div class="check tap" data-lgsw="${esc(attr)}" style="cursor:pointer; ${accent?'border-color:var(--pos);':''}">
+      <span class="num">${esc(icon)}</span>
+      <div class="tt"><b>${esc(title)}</b><small>${esc(sub)}</small></div>
       <span class="fine" style="padding:0; color:var(--dim)">→</span>
     </div>`;
   openSheet('Your leagues', 'EVERYTHING YOU PLAY, AND WHAT TO START NEXT',
@@ -19363,7 +19405,7 @@ $('#wCreate').addEventListener('click', () => {
 });
 
 $('#wOut').addEventListener('click', async () => {
-  await sb.auth.signOut();
+  await sb.auth.signOut({ scope: 'local' });   /* this surface only — see #phOut */
   location.reload();
 });
 
@@ -19814,7 +19856,9 @@ async function claimPendingRound(){
 window.claimPendingRound = claimPendingRound;   /* D87: the classic side claims when a guest-scored round finishes */
 
 if(new URLSearchParams(window.location.search).has('exit')){
-  sb.auth.signOut().finally(() => window.location.replace(window.location.pathname));
+  /* ?exit is the dev/QA reset hatch. Global scope made it a remote logout for
+     every device the golfer owns — including a phone mid-round. */
+  sb.auth.signOut({ scope: 'local' }).finally(() => window.location.replace(window.location.pathname));
 }
 
 let booting = false;

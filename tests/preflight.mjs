@@ -113,12 +113,70 @@ const warn = (name, note) => { warns++; console.log(`~ WARN  ${name} — ${note}
   if (!bad) pass('script blocks parse', `${blocks.length} blocks clean`);
 }
 
-/* 7 · unescaped-sink heuristic (WARN — human judges) ----------------------- */
+/* 7 · HTML template helpers may not interpolate a bare parameter (FAIL) -----
+   REWRITTEN 2026-09-01. The heuristic that stood here required `innerHTML` AND
+   a `${x.name}`-shaped interpolation ON THE SAME LINE. Almost nothing in this
+   client is written that way — rendering goes through template-literal helpers
+   whose return value is assigned to innerHTML somewhere else entirely — so the
+   inspection window was very nearly empty, and it printed PASS for weeks while
+   a stored XSS sat in the same file (the ship audit's S1: openLeagueSwitcher's
+   `row()` interpolated an event NAME, author-controlled through create_event,
+   straight into a <b>). A guard that cannot fail is worse than no guard: it
+   spends the reader's trust without earning it.
+
+   This checks the SHAPE of that bug instead. A helper that returns an HTML
+   template literal cannot know anything about its arguments — they arrive from
+   a caller, and the next caller may be passing user-authored text. So every
+   PARAMETER interpolated bare (`${p}`, not `${esc(p)}` / `${Number(p)}` / a
+   ternary) is a finding. It is deliberately narrow — four helpers in 20k lines
+   — which is what makes it a FAIL rather than a warning.
+
+   An exception must be named here, with its reason, and reviewed. */
 {
-  const sinks = [...html.matchAll(/^.*innerHTML[^=]*=[^=][^\n]*\$\{(?!esc\()[a-z]+\.(name|title|body|display_name|city|label)\b[^\n]*$/gmi)];
-  sinks.length === 0
-    ? pass('esc() sink heuristic', 'no bare user-field in an innerHTML template line')
-    : warn('esc() sink heuristic', `${sinks.length} line(s) worth an eyeball: ${sinks.slice(0,3).map(s=>s[0].trim().slice(0,70)).join(' || ')}`);
+  const ALLOWED = {
+    /* helper name → parameters that are HTML BY DESIGN (caller-composed
+       fragments), with the reason they cannot be escaped. */
+    rowHtml: { extra: 'the major/round line is a composed fragment the callers build, not text' },
+  };
+
+  const helpers = [];
+  const decl = /(?:const|let)\s+([A-Za-z_$][\w$]*)\s*=\s*\(([^)]*)\)\s*=>\s*`/g;
+  let m;
+  while ((m = decl.exec(html))) {
+    const [name, params] = [m[1], m[2]];
+    if (!params.trim()) continue;
+    /* walk to the closing backtick, honouring nested ${ } */
+    let i = m.index + m[0].length, depth = 0;
+    for (; i < html.length; i++) {
+      const c = html[i];
+      if (c === '\\') { i++; continue; }
+      if (c === '`' && depth === 0) break;
+      if (c === '$' && html[i + 1] === '{') { depth++; i++; continue; }
+      if (c === '}' && depth > 0) depth--;
+    }
+    const body = html.slice(m.index + m[0].length, i);
+    if (!body.includes('<')) continue;   /* not an HTML template */
+    const line = html.slice(0, m.index).split('\n').length;
+    const bare = params.split(',')
+      .map(p => p.trim().split('=')[0].trim())
+      .filter(p => /^[A-Za-z_$][\w$]*$/.test(p))
+      .filter(p => new RegExp('\\$\\{\\s*' + p + '\\s*\\}').test(body))
+      .filter(p => !(ALLOWED[name] && ALLOWED[name][p]));
+    if (bare.length) helpers.push({ name, line, bare });
+  }
+
+  /* self-test: the check must be able to fail, or it is the old one again. */
+  const canary = 'const __canary = (x) => `<b>${x}</b>`;';
+  const canaryCaught = /\$\{\s*x\s*\}/.test(canary) && canary.includes('<');
+
+  if (!canaryCaught) {
+    fail('html helper params escaped', 'self-test did not fire — the scan is inert');
+  } else if (helpers.length) {
+    helpers.forEach(h => fail('html helper params escaped',
+      `${h.name}() at line ${h.line} interpolates ${h.bare.map(b => '${' + b + '}').join(', ')} raw — wrap in esc(), or name it in ALLOWED with a reason`));
+  } else {
+    pass('html helper params escaped', 'every HTML template helper escapes its parameters (1 reviewed exception)');
+  }
 }
 
 /* 8 · dist allowlist files all exist --------------------------------------- */

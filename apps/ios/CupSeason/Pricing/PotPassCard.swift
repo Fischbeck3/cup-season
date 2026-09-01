@@ -47,7 +47,13 @@ struct PotPassCard: View {
             }
             Text(endsLine).font(CSFont.label).tracking(0.6).foregroundStyle(cs.dimText)
               .fixedSize(horizontal: false, vertical: true)
-            Text("Next year it’s \(price), paid from the pot — about \(PricingFlags.perPlayer(cents: band.cents, roster: r)) a player, with every season included.")
+            /* The words "paid from the pot" shipped in the binary until 2026-09-01,
+               one boolean flip away from rendering. Arizona’s social-gambling
+               exemption (A.R.S. §13-3301) turns on nobody but the players receiving
+               a benefit from the stakes — so a sentence saying the pot pays Cup
+               Season’s fee is the sentence that makes this a rake. The Pro may
+               still choose to fund it that way; the PRODUCT must not say so. */
+            Text("Next year it’s \(price) for the league — about \(PricingFlags.perPlayer(cents: band.cents, roster: r)) a player, with every season included.")
               .font(CSFont.subhead).foregroundStyle(cs.mut)
               .fixedSize(horizontal: false, vertical: true)
           }
