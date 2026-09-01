@@ -5196,3 +5196,101 @@ client push.
 
 **CONFLICT:** none. iOS is untouched — the phone links its SDK natively and
 never had this dependency.
+
+### D187 · One number, everywhere — the allowance the receipt never showed
+*(2026-09-01, from the blind-audit action plan, phase 0.2. Number reserved in
+D186. A displayed signed figure and a displayed band name change, so this is a
+rule-5 entry, written before the code.)*
+
+**Current mechanic.** The engine pays
+`round(index × allowance/100 − differential, 1)` — 95% under the Standard
+preset. Four surfaces disagree with it:
+1. `home_feed` (`20260723090000:51`) publishes
+   `round(index_at_post − differential, 1)` — **100%**, no allowance.
+2. `round_card` (`20260729180000:134`) falls back to the same 100% expression
+   when a round has no rank row.
+3. `openRoundReceipt` and `enrichRoundReceipt` each carry their own copy of that
+   ternary, so the instant view and the enriched view can print different
+   figures for the same round.
+4. The receipt shows "your number that day: 12.4" and "against your number:
+   +1.5" with the multiplication between them missing, so the arithmetic does
+   not close by hand.
+
+**Problem.** The `home_feed` one is not cosmetic. Because its pvi is **non-null**,
+every client-side fallback is skipped — so Home, the digest, and any receipt
+opened from Home have been rendering a figure the engine did not pay, and where
+the ~0.6 shift crosses a band edge (§2.2 is half-open at ≥3 / ≥1 / >−1 / ≥−3),
+the wrong **band name** too. This is exactly the class D174 fixed in the
+composer and D178 measured on the phone at **71 of 289 real scored rounds**
+landing in a different band than was shown. `round_card` already returns the
+correct `playing_index`; the client has never read it (`grep -c playing_index
+index.html` → 0).
+
+**Recommendation (built).** One producer client-side, the engine's own
+expression server-side, and the missing row:
+- `rcptPvi(r)` replaces both duplicated ternaries; it prefers a supplied `pvi`
+  and otherwise computes at the round's own allowance.
+- `round_card` carries `handicap_allowance` into the payload and applies it to
+  both fallbacks; `home_feed` takes its pvi from `v_rounds_ranked` and keeps the
+  100% expression only for a round in no season.
+- The receipt gains `12.4 × 95% ALLOWANCE → 11.8 PLAYING INDEX`, rendered at
+  100% too so a Casual league learns why its number is unmodified.
+- The bylaws row stops printing `ALLOW[preset]` and prints the stored
+  `handicap_allowance`, which `lock_league`/`set_bylaws` can set independently
+  of the preset.
+- One sentence in the scoring sheet names the step.
+
+**Principle served.** §16 — no points figure without a path to the rounds that
+produced it; the snapshot §16 names includes allowance. D2's receipt carve-out
+(allowance is a never-shown term *except* inside receipts) authorised this row
+and it was never built. D174's rule: a Pro who cannot reproduce a points figure
+by hand will not keep the league.
+
+**Benefit.** The receipt closes on a napkin with no number it does not show,
+and every surface prints one figure and one band.
+
+**Two corrections found while building, both load-bearing.**
+1. *The reconciliation claim as first written was false.* "`playing_index −
+   differential == pvi`, always" does **not** hold: `v_rounds_ranked.playing_index`
+   is rounded to 1 dp for display, while the engine subtracts the **unrounded**
+   product. Index 11.0 at 95% stores a playing index of 10.5, but the table pays
+   `round(10.45 − 11.0, 1) = −0.6`, and 10.5 − 11.0 is −0.5. Showing the stored
+   column would have made the card visibly fail to close — the opposite of this
+   entry's purpose. The receipt therefore shows the **exact** product (10.45),
+   which is at most 3 decimals and reconciles by construction.
+2. *The client's arithmetic disagreed with the engine by a whole 0.1.* Postgres
+   `numeric` is exact decimal and rounds half **away from zero**; JS binary float
+   is neither. `Math.round((11.0 * 95/100 − 7.9) * 10) / 10` gives **2.5** where
+   the table pays **2.6**, because `11*95/100` is `10.449999999999999` in float.
+   At a band edge that is a whole band — the Q-20 failure exactly, the screen
+   promising points the table will not pay. `pviAt()` now works in integers
+   (tenths × integer percent is exact) and rounds half away from zero. `pviFor()`,
+   which D174 shipped, carried the same float bug and now routes through it too.
+   Verified against Postgres 16 over **36,018 combinations** (90/95/100 × index
+   4.0–30.0 × differential 2.0–34.0): **zero** mismatches and **zero** cards
+   failing to close.
+
+**Tradeoffs.** Figures already on screen move for rounds in a 95% league —
+always **down**, and some cross a band. That is the engine's number becoming
+visible, not a new penalty, but it will read as a change and should be said out
+loud on the board. One more line on the receipt.
+
+**A third find, recorded and deliberately NOT fixed here.** `index.html` defines
+`vsShort()` **twice** (6377 and 12178). Both are classic top-level, so the later
+one wins for every caller and the first is dead code that looks live. The live
+one renders anything inside ±1 as the word "level", which broke the last link of
+the receipt chain — a reader doing `12.92 − 12.4` lands on `0.5` and the card
+said "level". The receipt now prints the signed figure directly (Q-23 already
+ruled this is the one surface where the number is legitimate). Making the two
+agree would repaint the board and the clash cards, so it wants its own entry.
+
+**Deliberately unchanged.** `loadCareer`'s lifetime average/best/FORM and
+`tour_card`'s `avg_pvi` stay at 100%: they are global cross-league figures with
+no league lens, as the server comment at `20260716060000:75` already declares.
+Those rows carry no `pvi` key, so tapping one now falls through `rcptPvi` to the
+league allowance correctly.
+
+**CONFLICT:** none. Executes D2's receipt carve-out and D174's principle; D8 is
+untouched (no dial is exposed outside Custom). D144's "allowance stays in the
+table only" is honoured for the *bylaws surface* and superseded only inside the
+receipt, which D2 had already exempted.

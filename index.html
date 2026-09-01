@@ -6178,9 +6178,44 @@ function leagueAllowance(){
   return [100,95,90][state.preset] ?? 100;
 }
 /* the engine rounds the whole expression to 1dp — match it exactly, or the
-   band edges (>=3, >=1, >-1, >=-3) disagree at the boundary */
+   band edges (>=3, >=1, >-1, >=-3) disagree at the boundary.
+
+   D187 · this must be done in INTEGER arithmetic. Postgres `numeric` is exact
+   decimal and rounds half AWAY FROM ZERO; JS binary float is neither, and the
+   two disagreed by a full 0.1 on ordinary inputs — index 11.0 at 95% against a
+   7.9 differential reads 2.6 in the table and 2.5 through `Math.round`, because
+   11*95/100 is 10.449999999999999 in float, not 10.45. That is a whole band at
+   the edges, and it is the Q-20 failure exactly: the screen promising a number
+   the table does not pay. Verified against Postgres 16 across 90/95/100.
+
+   index and differential both carry 1 decimal, and the allowance is an integer
+   percent, so tenths x percent is exact in integers. */
+function csTenths(n){ return Math.round(Number(n) * 10); }   /* 1dp -> integer */
+/* round half away from zero, like numeric */
+function csRound1(numer, denom){
+  const sign = numer < 0 ? -1 : 1;
+  return sign * Math.trunc((Math.abs(numer) + denom / 2) / denom) / 10;
+}
+/* the engine's own expression: round(index * allowance/100 - differential, 1) */
+function pviAt(index, diff, allowance){
+  if(index == null || diff == null) return null;
+  const I = csTenths(index), D = csTenths(diff), a = Math.round(Number(allowance));
+  return csRound1(I * a - D * 100, 100);
+}
+/* the exact product index x allowance% — at most 3dp, and NOT pre-rounded.
+   The receipt shows this, not v_rounds_ranked.playing_index, because the
+   engine subtracts the UNROUNDED product: showing the rounded one makes the
+   card fail to close by hand (11.0 x 95% shows 10.5, but 10.5 - 11.0 = -0.5
+   while the table pays -0.6). */
+function playingIndexExact(index, allowance){
+  if(index == null) return null;
+  return (csTenths(index) * Math.round(Number(allowance))) / 1000;
+}
+function trimNum(n){ return String(Number(n.toFixed(3))); }
+window.pviAt = pviAt; window.playingIndexExact = playingIndexExact;
+
 function pviFor(index, diff){
-  return Math.round((index * leagueAllowance() / 100 - diff) * 10) / 10;
+  return pviAt(index, diff, leagueAllowance());
 }
 function pointsFor(vs){
   /* Q-20 · these bands are ONE rule (§2.2) with two implementations, and they
@@ -12936,6 +12971,22 @@ function openMemberHist(p){
    Called twice: once with the row the caller had (instant), once with the full
    round_card payload. Anything missing is simply absent — a receipt never
    guesses at a number it does not hold. */
+/* D187 · ONE pvi for the receipt. openRoundReceipt and enrichRoundReceipt each
+   carried their own copy of this ternary computed at 100%, so the same round
+   could show two different signed figures — and two different band names — a
+   second apart. Prefers whatever the server sent; otherwise applies the round's
+   OWN allowance (the round_card payload carries it; leagueAllowance() is the
+   fallback for a row that predates the field). Matches the engine exactly:
+   round(index x allowance/100 - differential, 1). */
+function rcptPvi(r){
+  if(r == null) return null;
+  if(r.pvi != null) return Number(r.pvi);
+  if(r.index_at_post == null || r.differential == null) return null;
+  const a = r.handicap_allowance != null ? Number(r.handicap_allowance)
+          : (typeof leagueAllowance === 'function' ? leagueAllowance() : 100);
+  return pviAt(r.index_at_post, r.differential, a);
+}
+window.rcptPvi = rcptPvi;
 function roundCardBody(r, pvi, capN){
   const mine = r.is_mine!=null ? !!r.is_mine
              : (!r.profile_id || r.profile_id===window.CS?.user?.id);
@@ -12959,11 +13010,38 @@ function roundCardBody(r, pvi, capN){
   if(r.index_at_post!=null){
     rows.push(`<div class="mathrow sub"><span>${mine?'Your':'Their'} number that day</span><b>${Number(r.index_at_post).toFixed(1)}</b></div>`);
   }
+  /* D187 · the missing middle step. Without it the receipt shows 12.4 and then
+     +1.5 with no way to get from one to the other, because the engine paid at
+     95%. Rendered at 100% too: it tells a Casual league WHY its number is
+     unmodified, and Sec 16 lists allowance in the snapshot unconditionally.
+     playing_index - differential == pvi exactly, so the card closes by hand. */
+  {
+    const alw = r.handicap_allowance != null ? Number(r.handicap_allowance)
+              : (typeof leagueAllowance === 'function' ? leagueAllowance() : null);
+    if(r.index_at_post != null && alw != null){
+      /* the EXACT product, not v_rounds_ranked.playing_index — that column is
+         rounded to 1dp for display, and the engine subtracts the unrounded
+         value, so showing the rounded one makes the card fail to close. */
+      const pi = playingIndexExact(r.index_at_post, alw);
+      rows.push(`<div class="mathrow sub"><span>${Number(r.index_at_post).toFixed(1)} &times; ${alw}% ALLOWANCE</span><b>${trimNum(pi)} PLAYING INDEX</b></div>`);
+    }
+  }
   if(pvi!=null){
     /* Q-23 · the receipt is the one place the signed figure is legitimate —
        it is showing its work — but it leads with the words now, so the number
        explains the phrase rather than contradicting the card. */
-    rows.push(`<div class="mathrow"><span>${mine?'Against your number':'Against their number'}</span><b>${mine?vsShort(pvi):theirs(vsShort(pvi))} — ${(mine?bandName(pvi):theirs(bandName(pvi))).toUpperCase()}</b></div>`);
+    /* D187 · the receipt prints the SIGNED FIGURE, not vsShort's phrase. Q-23
+       already ruled this is the one surface where the number is legitimate —
+       it is showing its work — and the phrase breaks the chain: the row above
+       says 12.92 and the differential says 12.4, so a reader doing 12.92-12.4
+       must land on the 0.5 printed here, not on the word "level".
+       (Note for whoever comes next: there are TWO vsShort() definitions in this
+       file, 6377 and 12178. Classic scope means the LATER one wins for every
+       caller, so the first is dead code that looks live. Changing which one
+       wins would repaint the board and the clash cards, so it wants its own
+       decision — recorded in D187, deliberately not fixed here.) */
+    const signed = (pvi > 0 ? '+' : pvi < 0 ? '\u2212' : '') + Math.abs(pvi).toFixed(1);
+    rows.push(`<div class="mathrow"><span>${mine?'Against your number':'Against their number'}</span><b>${signed} — ${(mine?bandName(pvi):theirs(bandName(pvi))).toUpperCase()}</b></div>`);
   }
   if(r.points!=null) rows.push(`<div class="mathrow"><span>Points</span><b>${r.points}</b></div>`);
   if(r.month_rank!=null){
@@ -12990,8 +13068,7 @@ async function enrichRoundReceipt(rid, seed){
     const { data, error } = await window.sb.rpc('round_card', { p_round: rid });
     if(error || !data) return;                    /* deploy skew — keep the instant view */
     const r = Object.assign({}, seed, data);
-    const pvi = r.pvi!=null ? Number(r.pvi)
-      : (r.index_at_post!=null && r.differential!=null ? Number(r.index_at_post)-Number(r.differential) : null);
+    const pvi = rcptPvi(r);                       /* D187 · one producer */
     const body=document.getElementById('rcptBody');
     if(!body) return;                             /* sheet already closed */
     body.innerHTML = roundCardBody(r, pvi, CAP_N[state.cap]);
@@ -13021,8 +13098,7 @@ function openRoundReceipt(x){
   if(r.course_label==null && r.course!=null) r.course_label=r.course;
   const rid = r.id || r.round_id || (typeof x==='string' ? x : null);
   if(rid && window.sb && !state.demo) enrichRoundReceipt(rid, r);
-  const pvi = r.pvi!=null ? Number(r.pvi)
-    : (r.index_at_post!=null && r.differential!=null ? Number(r.index_at_post)-Number(r.differential) : null);
+  const pvi = rcptPvi(r);                         /* D187 · one producer */
   const capN=CAP_N[state.cap];
   const line=[r.course_label||'somewhere out there', (r.holes_played||18)+' holes', r.played_on||''].filter(Boolean).join(' · ');
   /* D59 (2c): the poster's marker medallion rides the photo — attribution */
@@ -13566,7 +13642,7 @@ function renderBylaws(){
     <div class="byrow"><span>STRUCTURE</span><b>${STRUCT_NAMES[state.structure]}</b></div>
     <div class="byrow"><span>Squad formation</span><b>${({random:'Blind draw',assign:'Pro assign',snake:'Snake · async',live:'Live · pick clock'})[state.draftType]}</b></div>
     <div class="byrow"><span>PRESET</span><b>${pr.name}</b></div>
-    <div class="byrow"><span>HANDICAP ALLOWANCE</span><b>${ALLOW[state.preset]}%</b></div>
+    <div class="byrow"><span>HANDICAP ALLOWANCE</span><b>${state.allowance ?? ALLOW[state.preset]}%</b></div>
     <div class="byrow"><span>VERIFICATION</span><b>${VERIF[state.preset]}</b></div>
     <div class="byrow"><span>COUNTING CAP</span><b>${CAPS[state.cap]} / mo</b></div>
     <div class="byrow"><span>PARTICIPATION FLOOR</span><b>${state.floor} / mo · ${PENALTY[state.preset]}</b></div>
@@ -19265,6 +19341,15 @@ function openScoringHelp(){
     <p class="fine" style="padding:0 0 10px">You (or the Pro) can set a <b>starter</b> to get going sooner — but once you have 3 posted rounds, your scores take over. Manual changes are announced to your league so the crew keeps everyone honest.</p>
     <div class="eyebrow">Every round → cup points</div>
     <p class="fine" style="padding:0 0 4px">Every round is scored against <b>your own number</b> — a 22-index beating their number is worth exactly what a 6-index beating theirs is:</p>
+    ${(function(){
+      /* D187 · the allowance was disclosed in one bylaws table row and nowhere
+         a golfer reads while learning the game, so a 12.4 index quietly played
+         to 11.8 and their own arithmetic never matched ours. */
+      const a = (typeof leagueAllowance === 'function') ? leagueAllowance() : 100;
+      return a === 100
+        ? `<p class="fine" style="padding:0 0 8px">Your league plays your index straight — nothing taken off it — and every round receipt shows that step.</p>`
+        : `<p class="fine" style="padding:0 0 8px">Your league plays at <b>${a}% of your index</b> — a 12.4 becomes an ${(12.4*a/100).toFixed(1)} — and every round receipt shows that step.</p>`;
+    })()}
     <div class="card" style="text-align:left; padding:10px 12px; margin-bottom:10px">
       <div class="fine" style="padding:2px 0"><b>Torched it</b> · beat it by 3+ · <b>12 pts</b></div>
       <div class="fine" style="padding:2px 0"><b>Beat your number</b> · by 1–3 · <b>9 pts</b></div>

@@ -46,6 +46,62 @@
   t('bands: -1.0 scores 6, like cup_points', pointsFor(-1.0)[0], 6);
   t('bands: -1.0 is named for the points it pays', bandName(-1.0), 'A little loose');
   t('bands: -0.99 is still played-to-it', [pointsFor(-0.99)[0], bandName(-0.99)], [7, 'Played to it']);
+
+  /* D187 · rcptPvi — ONE producer for the receipt's signed figure. Two call
+     sites each carried their own copy of this ternary at 100% while the engine
+     paid at 95%, so the same round could show two different figures and two
+     different band names a second apart. The worked case below is real: it was
+     reproduced end-to-end on Postgres — index 13.6, differential 12.4, a 95%
+     league. At 100% it reads 1.2 and pays 9 ("Beat your number"); the engine
+     paid 0.5 and 7 ("Played to it"). Home published the 9 for the life of the
+     product. */
+  t('rcptPvi: prefers the server figure', rcptPvi({ pvi: 0.5, index_at_post: 13.6, differential: 12.4 }), 0.5);
+  t('rcptPvi: applies the round\'s own allowance',
+    rcptPvi({ index_at_post: 13.6, differential: 12.4, handicap_allowance: 95 }), 0.5);
+  t('rcptPvi: the 100% answer is the OLD wrong one',
+    rcptPvi({ index_at_post: 13.6, differential: 12.4, handicap_allowance: 100 }), 1.2);
+  t('rcptPvi: 95 vs 100 crosses a band', [
+      bandName(rcptPvi({ index_at_post: 13.6, differential: 12.4, handicap_allowance: 95 })),
+      bandName(rcptPvi({ index_at_post: 13.6, differential: 12.4, handicap_allowance: 100 }))
+    ], ['Played to it', 'Beat your number']);
+  t('rcptPvi: 90% allowance is honoured too',
+    rcptPvi({ index_at_post: 13.6, differential: 12.4, handicap_allowance: 90 }), -0.2);
+  t('rcptPvi: null without the inputs', rcptPvi({ index_at_post: null, differential: 12.4 }), null);
+  /* The reconciliation contract, stated correctly. The receipt shows the EXACT
+     product (index x allowance%), not v_rounds_ranked.playing_index, which is
+     rounded to 1dp for display. The engine subtracts the unrounded product, so
+     the rounded one does NOT close: 11.0 x 95% displays 10.5, and 10.5 - 11.0
+     is -0.5, while the table pays -0.6. Shown exactly (10.45) it closes. */
+  (function(){
+    /* The reader does this in exact decimal on a napkin, so the check must too
+       — doing it in binary float is what produced the 0.1 disagreements this
+       whole change exists to remove. Shown product is index x allowance/1000
+       in integer thousandths; the differential is exact tenths. Cross-checked
+       against Postgres 16 over 36,018 combinations (90/95/100 x index 4.0-30.0
+       x differential 2.0-34.0): zero mismatches, zero cards failing to close. */
+    let bad = [];
+    for (const a of [90, 95, 100]) {
+      for (let t = 40; t <= 300; t += 7) {
+        const i = t / 10;
+        for (const dt of [t - 31, t, t + 24, t + 5]) {
+          const d = dt / 10;
+          const shownThousandths = Math.round(playingIndexExact(i, a) * 1000);
+          const byHand = csRound1(shownThousandths - Math.round(d * 10) * 100, 100);
+          const pvi = rcptPvi({ index_at_post: i, differential: d, handicap_allowance: a });
+          if (Math.abs(byHand - pvi) > 1e-9) bad.push([a, i, d, byHand, pvi]);
+        }
+      }
+    }
+    t('receipt closes by hand: shown product - differential === pvi (90/95/100)', bad.length, 0);
+  })();
+  /* the float trap this replaced: 11.0 at 95% against 7.9 read 2.5 through
+     Math.round and 2.6 in the table — a whole band at the edges. */
+  t('rcptPvi: matches Postgres at the .x5 midpoint',
+    rcptPvi({ index_at_post: 11.0, differential: 7.9, handicap_allowance: 95 }), 2.6);
+  t('rcptPvi: half away from zero on the negative side',
+    rcptPvi({ index_at_post: 11.0, differential: 11.0, handicap_allowance: 95 }), -0.6);
+  t('playingIndexExact: exact, not pre-rounded', playingIndexExact(11.0, 95), 10.45);
+  t('playingIndexExact: three decimals when the maths needs them', playingIndexExact(13.7, 95), 13.015);
   t('bands: the phrase agrees at the edge', /over your number/.test(vsPhrase(-1.0)), true);
   (function(){
     /* the split that shipped was name-vs-points; assert they never diverge */
