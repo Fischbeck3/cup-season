@@ -17660,9 +17660,43 @@ window.openFounderDesk = async function(){
       <div class="tt"><b>${esc(r.kind==='profile_photo'?'Photo':'Post')} — ${esc(r.target||'?')}</b><small>${esc(r.reason||'').slice(0,120)} · by ${esc(r.who||'?')} · ${fdWhen(r.at)}</small></div></div>`)}` : ''}
     <div class="eyebrow" style="margin-top:14px">Open reports · act on them</div>
     <div id="fdMod"><p class="fine" style="padding:4px 0">Pulling the queue…</p></div>
+    <div class="eyebrow" style="margin-top:14px">The machine</div>
+    <div id="fdCron"><p class="fine" style="padding:4px 0">Checking the jobs…</p></div>
   `;
   renderModerationQueue();
+  renderCronHealth();
 };
+
+/* A cron job failed in production on 2026-08-30 and nobody knew until an audit
+   found it nine days later, because nothing in this product has ever read
+   `cron.job_run_details`. The four jobs run the month close, the weekly
+   snapshot, the daily tick and the event sessions — which is to say they run
+   the parts of the game nobody is watching. This is the smallest surface that
+   makes a failure visible on the day it happens. */
+async function renderCronHealth(){
+  const box = document.getElementById('fdCron');
+  if(!box) return;
+  let h = null;
+  try{
+    const { data, error } = await sb.rpc('cron_health');
+    if(error) throw error;
+    h = data || {};
+  }catch(err){
+    box.innerHTML = `<p class="fine" style="padding:4px 0">${esc(humanError(err, 'Job health is not deployed yet — push the cron migration.'))}</p>`;
+    return;
+  }
+  const jobs = Array.isArray(h.jobs) ? h.jobs : [];
+  const bad  = [].concat(Array.isArray(h.recent_job_failures) ? h.recent_job_failures : [],
+                         Array.isArray(h.recent_row_failures) ? h.recent_row_failures : []);
+  const jobRow = (j) => `<div class="check"><span class="num">${j.last_status === 'succeeded' ? '\u2713' : j.last_status ? '\u26a0\ufe0f' : '\u00b7'}</span>
+      <div class="tt"><b>${esc(j.job || '?')}</b><small>${esc(j.schedule || '')} · ${j.last_run ? fdWhen(j.last_run) : 'never run'}${j.last_status && j.last_status !== 'succeeded' ? ' · ' + esc(j.last_status) : ''}</small></div></div>`;
+  const badRow = (f) => `<div class="check"><span class="num">\u{1F6A8}</span>
+      <div class="tt"><b>${esc(String(f.job || '?'))}${f.subject ? ' · ' + esc(f.subject) : ''}</b><small>${esc(String(f.message || '').slice(0,160))} · ${fdWhen(f.at)}</small></div></div>`;
+  box.innerHTML = jobs.map(jobRow).join('')
+    + (bad.length
+        ? `<div class="eyebrow" style="margin-top:10px">Failures · last 30 days</div>` + bad.map(badRow).join('')
+        : `<p class="fine" style="padding:6px 0 0">No failures in 30 days.</p>`);
+}
 
 /* The takedown desk. Until this existed, a report landed in a table whose only
    reader rendered it with no buttons — there was no way, from anywhere in the

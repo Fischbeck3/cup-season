@@ -5257,3 +5257,24 @@ Gambling stays **No**, and the two changes above are what make that defensible r
 **Verified:** preflight 21/21 + the expected pending-deploy warning; `app-tests.js` 42/42 headless; the cap confirmed live in the page (`CS_STAKE_MAX` 200, input `max="200"`).
 
 **CONFLICT:** none against a logged decision. Worth naming though: D39's "the money never moves through us" is *strengthened* by the cap, and anyone who later wants an uncapped stake is arguing against D39, not against this entry.
+
+### D193 · A cron job failed in production and nothing said so
+*(2026-09-01.)*
+
+```
+cron.job_run_details, read today:
+  job 4  run_event_sessions  2026-08-30 07:15:00  failed
+  ERROR: column reference "a_pvi" is ambiguous
+```
+
+**The bug is already gone** — `20260830160000_resolve_session_ambiguous_pvi.sql` fixed it later the same day, and prod's `prosrc` no longer contains the ambiguous assignment. What is not gone is the reason nobody knew: **nothing in this repo has ever read `cron.job_run_details`.** An audit found it nine days later, by accident, while looking for something else.
+
+**The second half is worse than the first.** Every cron entry point is a bare `for … loop` with no exception handling, so the whole loop is one transaction: one bad league rolls the batch back for all of them. Survivable for the daily tick, which runs again tomorrow. Not survivable for `run_month_closes` — 07:10 on the 1st, **no catch-up, no retry** — where a single failure permanently loses that month's floor penalties, auto-byes and bonuses for every league in the product, and the ledger behind it is real dollars.
+
+Built: `run_event_sessions` — the job that actually failed — now wraps each session, records what broke in a new `job_failures` table (RLS on, no policy, reachable only through a SECURITY DEFINER function) and carries on to the next one. `cron_health()` reads both books: pg_cron's own record of whole-job failures, and the per-row failures that no longer fail a job and would otherwise vanish. The founder's desk grows a **The machine** section listing every job, its schedule, when it last ran, and anything that failed in thirty days.
+
+**Deliberately not rewritten here: the money paths.** `run_month_closes` and the weekly snapshot keep their bare loops for now. How a month close should behave on a partial failure — skip the league and continue, or refuse the whole month so nothing is half-closed — is a decision about a ledger behind real money, and it deserves its own pass rather than riding along with an events fix. **It is the biggest single-point-of-failure left in the product**, and it is now written down as that rather than sitting unnoticed in a loop.
+
+**Verified:** the migration parses (9 statements, both bodies as plpgsql); preflight 21/21 + the expected pending-deploy warning; `app-tests.js` 42/42 headless. Not executed — the owner's push.
+
+**CONFLICT:** none. D146's 'complete' inclusion in the session sweep is preserved verbatim.
