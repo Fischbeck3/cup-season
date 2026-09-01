@@ -5223,3 +5223,18 @@ At 211 rows Postgres is right to seq-scan and the cost is invisible. **That is t
 **Not built, owner's:** `supabase db push`.
 
 **CONFLICT:** none.
+
+### D191 · The board reloaded nineteen times because nobody debounced the handler beside the one that is debounced
+*(2026-09-01.)*
+
+`realtime.list_changes` is **76% of this database's total time**. The reason is two lines apart in the same function.
+
+`subscribeLeague()` coalesces reactions and comments through `nudgeSocial` — a 250 ms timer, written on purpose so "a flurry of taps doesn't refetch per event". The `posts` INSERT handler directly beside it had **no debounce at all**: every insert ran `loadStandingsAndFeed()` + `loadHome()` (+ `loadLeagueData()` in draft), roughly nineteen queries, on **every open client**.
+
+A settlement is not one post. Finishing a live round writes the settlement card, the moment and the round post within a second or two, and a Sunday evening is a whole league posting at once — so the board recomputed a full league state for each row, N clients over, when the answer only needed computing once the burst stopped. The posts handler now rides the same shape at 400 ms: longer than the social nudge because a board reload is far heavier than a reaction count, and still far under the point where a golfer would call it slow. The draft reveal rides it deliberately — 400 ms is imperceptible next to the animation it triggers.
+
+**The other half is recorded rather than fixed, so nobody "fixes" it wrongly.** The `post_kudos` and `post_comments` subscriptions are unfiltered and *cannot* be filtered: Postgres Changes filters compare a column on the changed row, and neither table carries a `league_id` — RLS is what scopes them. So every reaction anywhere in the product is evaluated against every connected client. The real fix is moving reactions to broadcast, which is a larger change than this one and does not belong in a week with a submission in it. A comment now says so at the subscription.
+
+**Verified:** preflight 21/21 + the expected pending-deploy warning; `app-tests.js` 42/42 headless.
+
+**CONFLICT:** none. D86's doorbell broadcast is untouched.

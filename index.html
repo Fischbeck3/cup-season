@@ -16702,14 +16702,35 @@ async function subscribeLeague(){
      light social refresh so a flurry of taps doesn't refetch per event. */
   let socialT=null;
   const nudgeSocial=()=>{ clearTimeout(socialT); socialT=setTimeout(()=>{ if(window.refreshSocial) window.refreshSocial(); }, 250); };
+  /* The posts handler had NO debounce, sitting right beside one that does.
+     Every INSERT ran a full league reload — standings, feed and Home, ~19
+     queries — on EVERY open client. A settlement is not one post: finishing a
+     live round writes the settlement card, the moment and the round post
+     within a second or two, and a busy Sunday evening is a whole league
+     posting at once. N clients x 19 queries x every row, when the answer only
+     needs computing once the burst has stopped.
+     `realtime.list_changes` is already 76% of this database's total time, so
+     this is a real bill, not a theoretical one. 400ms is longer than the
+     social nudge because a board reload is far heavier than a reaction count,
+     and it is still well under the threshold where a golfer would call it
+     slow. The draft reveal rides the same path deliberately: 400ms is
+     imperceptible next to the animation it triggers. */
+  let boardT=null;
+  const nudgeBoard=()=>{ clearTimeout(boardT); boardT=setTimeout(()=>{
+    loadStandingsAndFeed();
+    if(window.loadHome) window.loadHome();        /* the one home feed (IA P1) */
+    if(state.phase === 'draft') loadLeagueData(); /* board carries the draw reveal */
+  }, 400); };
   CS.chan = rtClient.channel('lg-' + CS.league.id)
     .on('postgres_changes',
       { event:'INSERT', schema:'public', table:'posts', filter:'league_id=eq.' + CS.league.id },
-      () => {
-        loadStandingsAndFeed();
-        if(window.loadHome) window.loadHome();        /* the one home feed (IA P1) */
-        if(state.phase === 'draft') loadLeagueData(); /* board carries the draw reveal */
-      })
+      nudgeBoard)
+    /* These two are deliberately UNFILTERED and cannot be otherwise: Postgres
+       Changes filters compare a column on the changed row, and neither table
+       carries a league_id — RLS is what scopes them (see the comment above).
+       The cost is real (one RLS evaluation per subscriber per row, anywhere in
+       the product) and the fix is not a filter string but moving reactions to
+       broadcast, which is a bigger change than this one. Debounced instead. */
     .on('postgres_changes', { event:'*', schema:'public', table:'post_kudos' }, nudgeSocial)
     .on('postgres_changes', { event:'*', schema:'public', table:'post_comments' }, nudgeSocial)
     /* D86 · the doorbell. Tee-off broadcasts here; every open app in the league
