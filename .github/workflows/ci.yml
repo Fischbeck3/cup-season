@@ -75,6 +75,21 @@ jobs:
           COMMIT_REF: ${{ github.sha }}
         run: bash ./stamp-version.sh
 
+      # Every other check in this repo is static. The failure that prompted this
+      # one was not: the door rendered pixel-perfect while every button on it
+      # silently did nothing, because the data layer came from a CDN a filtered
+      # network could not reach (D186). preflight could not see it, no telemetry
+      # recorded it (the reporter was inside the dead module), and the console
+      # was clean. A human found it by clicking a button.
+      #
+      # This drives the dist/ built one step above — what Netlify actually
+      # publishes — so a missing allowlist entry fails HERE, not in production.
+      - name: install chromium
+        run: npx playwright install --with-deps chromium
+
+      - name: smoke (real browser, real dist)
+        run: node tests/smoke.mjs
+
       # dist/ is gitignored build output. If it ever appears in a commit, the
       # working tree and the deploy disagree about what ships.
       - name: dist stays untracked

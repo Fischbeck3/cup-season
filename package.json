@@ -2,12 +2,14 @@
   "name": "cup-season",
   "private": true,
   "type": "module",
-  "description": "Dev-only tooling for the preflight suite. The client ships as a single static index.html — nothing here is served, bundled or deployed (stamp-version.sh's dist allowlist decides what Netlify publishes).",
+  "description": "Dev-only tooling for the preflight suite. The client ships as a single static index.html \u2014 nothing here is served, bundled or deployed (stamp-version.sh's dist allowlist decides what Netlify publishes).",
   "scripts": {
-    "preflight": "node tests/preflight.mjs"
+    "preflight": "node tests/preflight.mjs",
+    "smoke": "node tests/smoke.mjs"
   },
   "devDependencies": {
     "acorn": "^8.14.0",
-    "eslint-scope": "^8.2.0"
+    "eslint-scope": "^8.2.0",
+    "playwright": "^1.55.0"
   }
 }
