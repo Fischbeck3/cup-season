@@ -17623,8 +17623,68 @@ window.openFounderDesk = async function(){
     ${Array.isArray(d.reports) && d.reports.length ? `<div class="eyebrow" style="margin-top:14px">Content reports · last 15</div>
     ${rows(d.reports, r => `<div class="check"><span class="num">${r.resolved?'✓':'🚩'}</span>
       <div class="tt"><b>${esc(r.kind==='profile_photo'?'Photo':'Post')} — ${esc(r.target||'?')}</b><small>${esc(r.reason||'').slice(0,120)} · by ${esc(r.who||'?')} · ${fdWhen(r.at)}</small></div></div>`)}` : ''}
+    <div class="eyebrow" style="margin-top:14px">Open reports · act on them</div>
+    <div id="fdMod"><p class="fine" style="padding:4px 0">Pulling the queue…</p></div>
   `;
+  renderModerationQueue();
 };
+
+/* The takedown desk. Until this existed, a report landed in a table whose only
+   reader rendered it with no buttons — there was no way, from anywhere in the
+   product, for even the founder to remove a post. (App Store 1.2 wants three
+   things: report, block, and the developer able to ACT. The first two shipped
+   long ago.) Two buttons, because there are only ever two answers: it comes
+   down, or it stays and the report closes.
+
+   Deploy-skew safe in the CLAUDE.md sense: `moderation_queue` does not exist
+   until its migration is pushed, so a missing-function error renders the line
+   that says so rather than breaking the desk that is already on screen. */
+async function renderModerationQueue(){
+  const box = document.getElementById('fdMod');
+  if(!box) return;
+  let q = null;
+  try{
+    const { data, error } = await sb.rpc('moderation_queue');
+    if(error) throw error;
+    q = Array.isArray(data) ? data : [];
+  }catch(err){
+    box.innerHTML = `<p class="fine" style="padding:4px 0">${esc(humanError(err, 'The queue is not deployed yet — push the takedown migration.'))}</p>`;
+    return;
+  }
+  if(!q.length){ box.innerHTML = '<p class="fine" style="padding:4px 0">Nothing open \u2014 the queue is clear.</p>'; return; }
+
+  const modRow = (r) => `
+    <div class="check" style="align-items:flex-start">
+      <span class="num">${r.already_hidden ? '\u2713' : '\u{1F6A9}'}</span>
+      <div class="tt">
+        <b>${esc(r.author || r.reporter || 'Someone')}${r.league ? ' · ' + esc(r.league) : ''}</b>
+        <small>${esc(String(r.kind||'post').replace('_',' '))} · ${esc(String(r.reason||'no reason given').slice(0,140))} · reported by ${esc(r.reporter||'?')} · ${fdWhen(r.created_at)}</small>
+        ${r.body ? `<div class="fine" style="padding:6px 0 0; white-space:pre-wrap">${esc(String(r.body).slice(0,300))}</div>` : ''}
+        ${r.already_hidden ? '<div class="fine" style="padding:4px 0 0; color:var(--pos)">Already down</div>' : ''}
+      </div>
+      <span style="display:flex; gap:6px; flex:none; flex-direction:column">
+        ${r.post_id && !r.already_hidden ? `<button class="mini" data-modhide="${esc(r.id)}" data-modpost="${esc(r.post_id)}">Take it down</button>` : ''}
+        <button class="mini" data-modkeep="${esc(r.id)}">Leave it up</button>
+      </span>
+    </div>`;
+  box.innerHTML = q.map(modRow).join('');
+
+  const settle = async (btn, fn, done) => {
+    btn.disabled = true; const was = btn.textContent; btn.textContent = '…';
+    try{ await fn(); await renderModerationQueue(); toast?.(done); }
+    catch(err){ btn.disabled = false; btn.textContent = was; toast?.(humanError(err, 'That did not go through.')); }
+  };
+  box.querySelectorAll('[data-modhide]').forEach(b => b.addEventListener('click', () => settle(b, async () => {
+    const { error: e1 } = await sb.rpc('hide_content', { p_kind: 'post', p_id: b.dataset.modpost, p_reason: 'Taken down from the founder desk' });
+    if(e1) throw e1;
+    const { error: e2 } = await sb.rpc('resolve_report', { p_report: b.dataset.modhide, p_resolution: 'content hidden' });
+    if(e2) throw e2;
+  }, 'Down, and the report is closed.')));
+  box.querySelectorAll('[data-modkeep]').forEach(b => b.addEventListener('click', () => settle(b, async () => {
+    const { error } = await sb.rpc('resolve_report', { p_report: b.dataset.modkeep, p_resolution: 'reviewed — left up' });
+    if(error) throw error;
+  }, 'Closed. Nothing removed.')));
+}
 (()=>{ const n=document.getElementById('fdNote'), o=document.getElementById('fdOpen');
   if(n) n.addEventListener('click', ()=> window.openFounderNote());
   if(o) o.addEventListener('click', ()=> window.openFounderDesk()); })();
