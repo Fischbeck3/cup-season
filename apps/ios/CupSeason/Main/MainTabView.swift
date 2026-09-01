@@ -18,14 +18,6 @@ enum CSDevHatch {
     false
     #endif
   }
-  /// `-cs_dev_settings_pane 1` opens Card & settings on the Settings pane.
-  static var settingsPane: Int {
-    #if DEBUG
-    let a = ProcessInfo.processInfo.arguments
-    if let i = a.firstIndex(of: "-cs_dev_settings_pane"), i + 1 < a.count { return Int(a[i + 1]) ?? 0 }
-    #endif
-    return 0
-  }
   /// `-cs_dev_live` seeds a live match-play round, 14 holes in, so the tee
   /// sheet — and D152's landscape card — can be seen without signing in and
   /// playing one. DEBUG only; it never touches the server.
@@ -78,7 +70,10 @@ enum CSDevHatch {
 
 enum HomeRoute: Hashable { case schedule, people, league(UUID) }
 enum ClubRoute: Hashable { case board(UUID), schedule, album(UUID) }
-enum YouRoute: Hashable { case people, settings }
+/// IOS-029 call 1 · `settings` is the gear's destination and nothing else;
+/// `card` is reached by touching the credential on You. `card(focusPhoto:)`
+/// carries the hero's "add your photo" straight through to the picker.
+enum YouRoute: Hashable { case people, settings, card(focusPhoto: Bool) }
 
 struct MainTabView: View {
   @Environment(SessionStore.self) private var store
@@ -178,7 +173,8 @@ struct MainTabView: View {
           .navigationDestination(for: YouRoute.self) { r in
             switch r {
             case .people: PeopleScreen(links: csLinks)
-            case .settings: CardAndSettingsScreen()
+            case .settings: CardAndSettingsScreen(pane: .settings)
+            case .card(let focusPhoto): CardAndSettingsScreen(pane: .card, focusPhoto: focusPhoto)
             }
           }
       }
@@ -418,12 +414,13 @@ struct MainTabView: View {
     YouLinks(
       openBuddies: { tab = .you; youPath.append(YouRoute.people) },
       openSettings: { tab = .you; youPath.append(YouRoute.settings) },
+      openCard: { focusPhoto in tab = .you; youPath.append(YouRoute.card(focusPhoto: focusPhoto)) },
       openFeedback: { presenter.feedbackScreen = "you"; presenter.showFeedback = true },
       openFounderDesk: { presenter.showDesk = true },
       postRound: { presenter.postOnComposer = true; presenter.showPost = true },
       openTourCard: { presenter.tourCard = $0 },
       openReceipt: { presenter.receipt = $0 },
-      addGhin: { tab = .you; youPath.append(YouRoute.settings) },
+      addGhin: { tab = .you; youPath.append(YouRoute.card(focusPhoto: false)) },
       founderNote: { presenter.showNote = true },
       stageRound: { playOn, tag in presenter.declare = DeclarePrefill(iso: playOn, tagPids: [tag]) }
     )

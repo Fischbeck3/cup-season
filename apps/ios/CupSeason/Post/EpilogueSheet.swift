@@ -16,6 +16,8 @@ struct EpilogueSheet: View {
   @State private var share: PostShareItem?
   @State private var linking = false
   @State private var revoking = false
+  /// E2 · the card mints its link before the sheet opens.
+  @State private var carding = false
   private let svc = PostService()
 
   private var rows: [PostEpilogueRow] { show.epilogue.rows(cap: show.cap, firstEver: show.firstEver) }
@@ -30,7 +32,7 @@ struct EpilogueSheet: View {
           }
         }
         if let gross = show.epilogue.gross, !show.ceremonyOwnsShare {
-          CSButton(PostEpilogue.shareLabel(firstEver: show.firstEver)) { share = RecapCardView.shareItem(recap(gross), photo: photo) }.padding(.top, 8)
+          CSButton(PostEpilogue.shareLabel(firstEver: show.firstEver), busy: carding) { Task { await shareCard(gross) } }.padding(.top, 8)
         }
         if show.epilogue.gross != nil {
           CSButton(PostEpilogue.linkLabel(photoTravels: show.photoTravels), style: .quiet, busy: linking) { Task { await link() } }.padding(.top, 4)
@@ -61,6 +63,15 @@ struct EpilogueSheet: View {
     return PostRecap(name: p?.display_name ?? "You", marker: p?.marker ?? "saguaro", gross: gross, pvi: show.epilogue.pvi,
                      points: show.epilogue.points.map { Int($0) }, course: show.course ?? "", date: CSDate.today(),
                      badge: show.epilogue.earned.first.flatMap { PostRecap.badges[$0.kind] })
+  }
+
+  /// E2 · the card + the caption + the link, in one share sheet. The mint is
+  /// the same `shareLink` the link button uses, so the photo travels once and
+  /// the funnel sees one `artifact_shared` either way.
+  private func shareCard(_ gross: Int) async {
+    carding = true; defer { carding = false }
+    let url = try? await svc.shareLink(round: show.roundId) { data in PostPhoto.compress(data: data, maxDim: 1600, quality: 0.8) }
+    share = RecapCardView.shareItem(recap(gross), photo: photo, url: url)
   }
 
   /// `csShareLink('round', roundId, text)` — the native share sheet, the clipboard as its fallback.

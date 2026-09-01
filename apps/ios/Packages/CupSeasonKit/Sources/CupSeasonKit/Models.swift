@@ -21,6 +21,10 @@ public struct Me: Decodable, Sendable {
     public let rounds_count: Int?
     public let member_since: Date?
     public let is_founder: Bool?
+    /// D186 · 'everyone' | 'friends' | 'nobody'. Gates whether the card can be
+    /// shared at all — create_share refuses a card at 'nobody', so the button
+    /// is not rendered there either.
+    public let discoverable: String?
   }
 
   public struct Settings: Decodable, Sendable {

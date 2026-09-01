@@ -3029,12 +3029,12 @@ html[data-theme="light"] .room-dusk .btn:not(.dark):not(.gold):not(.apple){color
       <!-- STATS -->
       <section class="view" id="view-stats">
         <!-- C4: your own credential — same object your buddies see on your Tour Card -->
-        <div class="cred" id="youCard" style="margin-bottom:14px; text-align:left;">
+        <div class="cred" id="youCard" style="margin-bottom:14px; text-align:left; cursor:pointer;" role="button" tabindex="0" aria-label="Edit your card">
           <div class="cwm" id="youWm" aria-hidden="true"></div>
           <div class="ctop">
             <span id="youMk" style="display:flex; flex:none"></span>
             <div style="min-width:0; flex:1"><b class="cnm" id="youName">Your card</b><small class="chd" id="youMeta"></small><small class="chd" id="youAnchor" style="opacity:.55; text-transform:none; letter-spacing:.04em"></small></div>
-            <button class="mini" id="youProfile" style="flex:none" aria-label="Card & settings" title="Card & settings">⚙</button>
+            <button class="mini" id="youProfile" style="flex:none" aria-label="Settings" title="Settings">⚙</button>
           </div>
           <div class="csplit">
             <div class="cidx"><b id="youIdx">—</b><small>Handicap index</small></div>
@@ -3043,6 +3043,14 @@ html[data-theme="light"] .room-dusk .btn:not(.dark):not(.gold):not(.apple){color
           <!-- D76 FORM L5 — filled by renderCareer via formRowHtml; empty = no row -->
           <div id="youForm"></div>
         </div>
+        <!-- IOS-029 call 1: the card editor is reached by touching the card.
+             The row is the affordance — the tap target on the card above is
+             real, but an invisible one is a secret, not a door. -->
+        <button type="button" class="check tap" id="youEditCard" style="width:100%; text-align:left; margin-bottom:14px">
+          <span class="num" aria-hidden="true">&#9998;</span>
+          <div class="tt"><b>Edit your card</b><small>NAME &middot; MARKER &middot; PHOTO &middot; HANDLE</small></div>
+          <span class="go" aria-hidden="true">&rarr;</span>
+        </button>
         <!-- F8: feedback pill retired from floating chrome (de-AI scrub) — same
              handler (window.openFeedback via #pilotChip id), quiet row right by
              the card/settings entry instead of hovering over every screen. -->
@@ -6393,23 +6401,38 @@ function recapText(d){
     + (pviSane?` — ${theirs(vsPhrase(Number(d.pvi))).toLowerCase()}`:'')
     + (d.points!=null?` · ${d.points} pts`:'') + ' · cupseason.app';
 }
+/* E2 · mint the artifact's link so an IMAGE share can carry it. Best effort in
+   every direction: no id, no client, or a failed mint all return null and the
+   card still shares exactly as it did before. Logs the share ACTION here, so
+   the funnel finally sees the path people use. */
+async function csShareToken(kind, ref){
+  if(!ref || !window.sb || state.demo) return null;
+  try{
+    const { data, error } = await sb.rpc('create_share', { p_kind: kind, p_ref: ref });
+    if(error || !data) return null;
+    growthEvent('artifact_shared', kind === 'round' ? 'share' : kind, data, null, window.CS?.league?.id);
+    return location.origin + '/?share=' + data;
+  }catch(_){ return null; }
+}
 async function shareRecapCard(d){
   try{
     /* the posted photo rides onto the card when there is one (photos arc) */
     if(d.photo && typeof photoDrawable==='function'){
       try{ d._img = await photoDrawable(d.photo); }catch(_){ d._img=null; }
     }
+    const url=await csShareToken('round', d.roundId);
     const blob=await new Promise(res=>drawRecapCard(d).toBlob(res,'image/png'));
     const file=new File([blob],'cup-season-recap.png',{type:'image/png'});
     const text=recapText(d);
     if(navigator.canShare && navigator.canShare({files:[file]})){
-      await navigator.share({files:[file], text});
+      await navigator.share(url ? {files:[file], text, url} : {files:[file], text});
       return;
     }
     const a=document.createElement('a');
     a.href=URL.createObjectURL(blob); a.download='cup-season-recap.png'; a.click();
     setTimeout(()=>URL.revokeObjectURL(a.href),5000);
-    try{ await navigator.clipboard?.writeText(text); toast('Card downloaded · caption copied'); }
+    try{ await navigator.clipboard?.writeText(url ? text + '\n' + url : text);
+         toast(url ? 'Card downloaded · caption + link copied' : 'Card downloaded · caption copied'); }
     catch(e){ toast('Card downloaded'); }
   }catch(e){
     if(e && e.name==='AbortError') return;   /* golfer closed the share sheet — not an error */
@@ -6544,17 +6567,19 @@ function drawSettlementCard(d){
    download+clipboard fallback. AbortError is a user cancel, never an error. */
 async function shareSettlementCard(d){
   try{
+    const url=await csShareToken('settlement', d.liveRoundId);
     const blob=await new Promise(res=>drawSettlementCard(d).toBlob(res,'image/png'));
     const file=new File([blob],'cup-season-settlement.png',{type:'image/png'});
     const text=d.result?.share || 'Settled on the course';
     if(navigator.canShare && navigator.canShare({files:[file]})){
-      await navigator.share({files:[file], text});
+      await navigator.share(url ? {files:[file], text, url} : {files:[file], text});
       return;
     }
     const a=document.createElement('a');
     a.href=URL.createObjectURL(blob); a.download='cup-season-settlement.png'; a.click();
     setTimeout(()=>URL.revokeObjectURL(a.href),5000);
-    try{ await navigator.clipboard?.writeText(text); toast('Card downloaded · caption copied'); }
+    try{ await navigator.clipboard?.writeText(url ? text + '\n' + url : text);
+         toast(url ? 'Card downloaded · caption + link copied' : 'Card downloaded · caption copied'); }
     catch(e){ toast('Card downloaded'); }
   }catch(e){
     if(e && e.name==='AbortError') return;
@@ -6598,6 +6623,29 @@ async function csShareLink(kind, ref, text, card){
           }
         }
       }catch(e){ try{ console.warn('[share card] link ships card-less:', e.message||e); }catch(_){} }
+    }
+    /* D186 — the card's face travels. A link preview of a golfer with no
+       picture is the brand image, which is the generic card D77 exists to
+       kill. Identical contract to the round photo below: one object per
+       token, best effort, revoke deletes it. */
+    if(kind === 'card'){
+      try{
+        const path = CS.profile?.photo_path;
+        if(path){
+          const { data: head } = await sb.storage.from('shared').list('', { search: data + '.jpg', limit: 1 });
+          const already = Array.isArray(head) && head.some(o => o.name === data + '.jpg');
+          if(!already){
+            const { data: sg } = await sb.storage.from('media').createSignedUrl(path, 60);
+            if(sg?.signedUrl){
+              const blob = await (await fetch(sg.signedUrl)).blob();
+              const jpg = await window.compressPhoto(blob, 1200, .82);
+              const up = await sb.storage.from('shared')
+                .upload(data + '.jpg', jpg, { contentType:'image/jpeg', upsert:false });
+              if(up.error && !/exists|duplicate/i.test(up.error.message||'')) throw up.error;
+            }
+          }
+        }
+      }catch(e){ try{ console.warn('[share card] link ships face-less:', e.message||e); }catch(_){} }
     }
     if(kind === 'round'){
       try{
@@ -6725,6 +6773,7 @@ function showEpilogue(epi, course, firstEver, roundId){
     league: state.demo ? 'The Sunday Cup' : (window.CS?.league?.name || null),
     badge: CARD_BADGE[(epi.earned||[])[0]?.kind] || null,
     photo: window._lastPostPhoto || null,   /* photos arc: the round's photo becomes the card's backdrop */
+    roundId: roundId || null,               /* E2: the card carries its link */
   }));
 }
 /* ============ the finish screen (2.1): a posted round ends in ceremony ============
@@ -6777,6 +6826,7 @@ function finishCeremony(o){
     points:o.points!=null ? Number(o.points) : null,
     course:o.course||'', date:dt, league:o.leagueName||null,
     badge:null, photo:o.photo||null,
+    roundId:o.roundId||null,                /* E2: the card carries its link */
   };
   el.classList.remove('open'); void el.offsetWidth;   /* restart the stagger on a second post */
   el.setAttribute('aria-hidden','false'); el.classList.add('open');
@@ -7234,6 +7284,7 @@ $('#postBtn').addEventListener('click', async ()=>{
           marker: window.CS?.profile?.marker || 'saguaro',
           leagueName: window.CS?.league?.name || null,
           photo: window._lastPostPhoto || null,
+          roundId: rrow?.id || null,        /* E2: the ceremony's card carries its link */
         }); else { stampPosted('POSTED ✓'); toast(`Round posted: ~${pts} pts pending the league's math`); } }
       /* the ceremony IS the confirmation — its toast lives only in the stamp fallback (above),
          never firing behind the z-1100 curtain */
@@ -10523,6 +10574,7 @@ function showLiveRecap(d, result, lrId){
   document.getElementById('lrShareCard')?.addEventListener('click',()=>shareSettlementCard({
     result, money: settleMoney,
     game: GAME_LABEL[result?.game] || 'SETTLED',
+    liveRoundId: lrId,                      /* E2: the card carries its link */
     course: ($('#lrCourse')?.value || ''), date: new Date() }));
   document.getElementById('lrShareLink')?.addEventListener('click',()=>csShareLink('settlement', lrId,
     (result?.share || 'The match is settled').slice(0,70),
@@ -12937,9 +12989,28 @@ function openRoundReceipt(x){
   /* D59 (2c): the poster's marker medallion rides the photo — attribution */
   const stampOf = () => r.profile_id && window.mkr
     ? `<span class="mkstamp">${window.mkr(memberMarker(r.profile_id))}</span>` : '';
+  /* your own posted round only — create_share checks the same thing at the
+     database, so a button that could only ever fail is never rendered */
+  const mine = !state.demo && rid && r.profile_id && CS.user?.id && r.profile_id === CS.user.id;
+  const shareRow = mine ? `
+    <button class="btn" id="rcShare" style="width:100%;margin-top:14px">Share the card</button>
+    <button class="btn dark" id="rcLink" style="width:100%;margin-top:8px">Share a link \u2014 no account needed</button>
+    <button class="cs-tskip" id="rcRevoke" type="button" style="width:100%;margin-top:6px">Turn off this link</button>` : '';
   openSheet(r.gross!=null ? r.gross+' gross' : 'The round', line.toUpperCase(), `
     <div class="rcpt-hero" id="rcptHero" style="${r.photo_url?'':'display:none'}">${r.photo_url?`<img src="${esc(r.photo_url)}" alt="Round photo">${stampOf()}`:''}</div>
-    <div id="rcptBody">${roundCardBody(r, pvi, capN)}</div>`);
+    <div id="rcptBody">${roundCardBody(r, pvi, capN)}</div>${shareRow}`);
+  document.getElementById('rcShare')?.addEventListener('click', () => shareRecapCard({
+    name: CS.profile?.display_name || 'You',
+    marker: CS.profile?.marker || 'saguaro',
+    gross: r.gross, pvi: pvi!=null ? Number(pvi) : null,
+    points: r.points!=null ? Number(r.points) : null,
+    course: r.course_label || '',
+    date: r.played_on ? localDate(r.played_on) : new Date(),
+    photo: r.photo_url || null, roundId: rid,
+  }));
+  document.getElementById('rcLink')?.addEventListener('click', () => csShareLink('round', rid,
+    `${CS.profile?.display_name || 'A round'} \u2014 ${r.gross} at ${r.course_label || 'the course'}`));
+  document.getElementById('rcRevoke')?.addEventListener('click', () => csRevokeLink('round', rid));
   if(!r.photo_url && r.photo_path && window.sb && !state.demo){
     window.sb.storage.from('media').createSignedUrl(r.photo_path, 3600).then(({data})=>{
       const hb=document.getElementById('rcptHero');
@@ -14867,7 +14938,20 @@ function refreshWhoChip(){
     [p.handle ? '@'+p.handle : null, p.city, p.home_course].filter(Boolean).join(' · ');
   if($('#youAnchor')){
     const since = p.created_at ? (()=>{ const d=new Date(p.created_at); return 'Member since '+MOS[d.getMonth()]+' '+d.getFullYear(); })() : null;
-    if(p.ghin_number){
+    const hasPhoto = !!(p.photo_path && String(p.photo_path).trim());
+    if(!hasPhoto){
+      /* IOS-029 call 1: the card gate NAMES the photo ("your face here until
+         you add a photo") and then never offers one, and the only path to it
+         was four taps behind a gear. Prod when this shipped: 1 profile of 39
+         carried a photo. The hero asks for the thing that changes how every
+         other golfer sees you; the GHIN prompt waits its turn below. */
+      $('#youAnchor').innerHTML = (since ? esc(since)+' \u00b7 ' : '')
+        + '<a href="#" id="youAddPhoto" style="color:var(--brand)">add your photo</a>';
+      $('#youAddPhoto')?.addEventListener('click', e => {
+        e.preventDefault(); openProfileHub('card');
+        setTimeout(() => document.getElementById('phPhotoBtn')?.click(), 80);
+      });
+    } else if(p.ghin_number){
       $('#youAnchor').textContent = ['GHIN '+p.ghin_number, since].filter(Boolean).join(' · ');
     } else {
       /* pilot: a new golfer went looking for GHIN at account creation.
@@ -14876,7 +14960,7 @@ function refreshWhoChip(){
       $('#youAnchor').innerHTML = (since ? esc(since)+' · ' : '')
         + '<a href="#" id="youAddGhin" style="color:var(--brand)">add your GHIN</a>';
       $('#youAddGhin')?.addEventListener('click', e => {
-        e.preventDefault(); openProfileHub();
+        e.preventDefault(); openProfileHub('card');
         setTimeout(() => { const g=document.getElementById('phGhin');
           if(g){ g.scrollIntoView({block:'center'}); g.focus({preventScroll:true}); } }, 60);
       });
@@ -14894,7 +14978,7 @@ function refreshWhoChip(){
       $('#youIdx').title = 'Building your number — your index appears at 3 posted rounds';
     }
   }
-  if($('#youMk')) $('#youMk').innerHTML = window.face ? window.face(CS.user?.id, p.marker, 56) : mkr(p.marker || 'saguaro');
+  if($('#youMk')) $('#youMk').innerHTML = window.face ? window.face(CS.user?.id, p.marker, 88) : mkr(p.marker || 'saguaro');
   /* C4 credential dressing: your marker as the card's watermark, your top
      hardware engraved on the face of it */
   const wm = $('#youWm');
@@ -15215,6 +15299,17 @@ async function openTourCard(profileId){
   /* the buddy action rides directly under the credential — it is the reason
      most people opened this sheet. Settled states render as a tag, not a
      button, so there is nothing to tap that cannot do anything. */
+  /* D186 — YOUR card travels. The share mints a `card` token, publishes your
+     face beside it, and the page it opens carries "Add me on Cup Season", so
+     one artifact serves both "look at my card" and "add me". Hidden at
+     discoverable='nobody', because create_share refuses it there and a button
+     that cannot do anything is never rendered. */
+  let shareHtml='';
+  if(p.is_me && !state.demo && (CS.profile?.discoverable||'everyone')!=='nobody'){
+    shareHtml = `<button class="btn" id="tcShare" style="width:100%; margin-top:12px">Share my card</button>
+      <button class="cs-tskip" id="tcRevoke" type="button" style="width:100%; margin-top:6px">Turn off this link</button>
+      <p class="fine" style="margin:4px 0 0; text-align:center">Anyone can open it, no account needed. They can add you from it.</p>`;
+  }
   let addHtml='';
   if(!p.is_me){
     addHtml = tcRel==='friend'
@@ -15223,7 +15318,10 @@ async function openTourCard(profileId){
       ? `<div style="margin-top:12px"><span class="ptag">Requested</span></div>`
       : `<button class="btn dark" id="tcAdd" style="margin-top:12px">${tcRel==='incoming'?'Accept buddy request':'Add buddy'}</button>`;
   }
-  openSheet(p.is_me?'Your Tour Card':'Tour Card', p.is_me?'THIS IS HOW YOUR BUDDIES SEE YOU':(p.handle?'@'+p.handle.toUpperCase():''), header+shrHtml+addHtml+trHtml+stats+crsHtml+recHtml+muteHtml);
+  openSheet(p.is_me?'Your Tour Card':'Tour Card', p.is_me?'THIS IS HOW YOUR BUDDIES SEE YOU':(p.handle?'@'+p.handle.toUpperCase():''), header+shrHtml+shareHtml+addHtml+trHtml+stats+crsHtml+recHtml+muteHtml);
+  document.getElementById('tcShare')?.addEventListener('click', () => csShareLink('card', profileId,
+    `${CS.profile?.display_name||'My'} card on Cup Season`));
+  document.getElementById('tcRevoke')?.addEventListener('click', () => csRevokeLink('card', profileId));
   const ab=document.getElementById('tcAdd');
   if(ab) ab.addEventListener('click', async()=>{
     ab.disabled=true;
@@ -15337,8 +15435,15 @@ window.openPeoplePicker = openPeoplePicker;
 /* D178 · exported so the guide's "‹ Card & settings" can rebuild this sheet
    rather than restore a photograph of it (every control here is wired in JS
    after openSheet, so pasted innerHTML would come back dead). */
-function openProfileHub(){
+/* IOS-029 call 1 · the gear opens SETTINGS; the card editor is reached by
+   touching the card. `pane` defaults to 'settings' because the ONLY caller
+   that is not a card door is the gear, and a gear that lands on a form is the
+   defect this closes. The segment stays on the web (the guide's way back
+   depends on it, and once you are in here the two panes are useful) — what
+   changed is which half you land on, and that the card now has its own door. */
+function openProfileHub(pane){
   if(!CS.profile){ toast('Demo golfer: sign in to build your own card'); return; }
+  const wantCard = pane === 'card';
   const p = CS.profile;
   phMarker = p.marker || 'saguaro';
   const leagues = (CS.memberships||[]).map(m =>
@@ -15350,10 +15455,10 @@ function openProfileHub(){
      sign-out under ten sections of identity fields. */
   openSheet('Card & settings', 'Your card is what your buddies see · settings run the app', `
     <div class="seg" id="phSeg" style="margin-bottom:14px">
-      <button data-ph="card" class="on">Your card</button>
-      <button data-ph="settings">Settings</button>
+      <button data-ph="card"${wantCard?' class="on"':''}>Your card</button>
+      <button data-ph="settings"${wantCard?'':' class="on"'}>Settings</button>
     </div>
-    <div id="phPaneCard">
+    <div id="phPaneCard" style="display:${wantCard?'':'none'}">
     <label class="f" for="phName">Name on the card</label>
     <input class="f" id="phName" style="font-family:var(--sans)">
     <div class="frow" style="margin-top:8px">
@@ -15394,7 +15499,7 @@ function openProfileHub(){
     ${leagues}
 
     </div>
-    <div id="phPaneSettings" style="display:none">
+    <div id="phPaneSettings" style="display:${wantCard?'none':''}">
     <div class="eyebrow" style="margin-top:0">Notifications</div>
     <div style="display:flex; gap:8px; flex-wrap:wrap;">
       <button class="mini" id="phPushTog">Enable on this device</button>
@@ -15695,7 +15800,10 @@ function openProfileHub(){
 }
 window.openProfileHub = openProfileHub;
 $('#whoChip')?.addEventListener('click', openProfileHub);   /* chip retired; guard stays */
-$('#youProfile')?.addEventListener('click', openProfileHub);
+$('#youProfile')?.addEventListener('click', e => { e.stopPropagation(); openProfileHub('settings'); });
+$('#youEditCard')?.addEventListener('click', () => openProfileHub('card'));
+/* the credential itself opens the editor — the gear above stops the bubble */
+$('#youCard')?.addEventListener('click', () => openProfileHub('card'));
 /* "Add golfers" now lands in Crew > People, not the profile editor */
 /* IA P5: "manage my buddies" now lands on the You tab; "add a golfer" opens
    the search overlay (the one People Picker in befriend mode). */
@@ -19447,6 +19555,19 @@ async function boot(){
 async function resumeAfterProfile(){
   claimPendingRound();   /* guest → golfer: attach the waiting round now that the card exists */
   const ls = k => { try{ return localStorage.getItem(k); }catch(_){ return null; } };
+  /* D186 · "Add me on Cup Season" was tapped on a shared card while signed
+     out. The token was stashed then; the buddy link is made now, the moment
+     there is a card to attach it to. Cleared before the attempt so a failure
+     cannot loop, and silent on error — the golfer is mid-signup and a buddy
+     request that missed is not something to interrupt them with. */
+  const pendBuddy = ls('cs_buddy');
+  if(pendBuddy){
+    try{ localStorage.removeItem('cs_buddy'); }catch(_){}
+    try{
+      const { data, error } = await sb.rpc('share_buddy', { p_token: pendBuddy });
+      if(!error) toast(data === 'friend' ? 'Golf buddies \u2713' : 'Buddy request sent \u2713');
+    }catch(_){ }
+  }
   /* arrival intent, captured before we consume it: an invited member (cs_code)
      or guest-claim user (cs_claim) is taught by their league covenant / their
      claimed round, never generic first-run copy. Returned to the caller. */
@@ -19578,11 +19699,16 @@ async function renderShareView(tok, _testInfo){
     const DW=['SUN','MON','TUE','WED','THU','FRI','SAT'], MO=['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'];
     return `${DW[d.getDay()]} · ${MO[d.getMonth()]} ${d.getDate()}`;
   };
-  const markerSvg = (mk) => {   /* round-branch only — the live layer wears ember (D76) */
+  /* D76's two metals: the ROUND is the live layer (ember), the CARD is earned
+     (gold). Same disc, never the same colour. */
+  const markerSvg = (mk, tone) => {
     const m = (window.MARKERS || {})[mk];
     if(!m) return '';
-    return `<div style="width:76px;height:76px;margin:0 auto 14px;border:2px solid rgba(255,90,46,.4);border-radius:50%;display:flex;align-items:center;justify-content:center">
-      <svg viewBox="0 0 24 24" width="44" height="44" fill="none" stroke="${C.hot}" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="${m.p}"/></svg></div>`;
+    const c = tone === 'gold' ? C.gold : C.hot;
+    const ring = tone === 'gold' ? 'rgba(233,190,98,.42)' : 'rgba(255,90,46,.4)';
+    const d = tone === 'gold' ? 96 : 76, g = tone === 'gold' ? 54 : 44;
+    return `<div style="width:${d}px;height:${d}px;margin:0 auto 14px;border:2px solid ${ring};border-radius:50%;display:flex;align-items:center;justify-content:center">
+      <svg viewBox="0 0 24 24" width="${g}" height="${g}" fill="none" stroke="${c}" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="${m.p}"/></svg></div>`;
   };
   let info = _testInfo || null;
   if(!info) try{
@@ -19712,7 +19838,82 @@ async function renderShareView(tok, _testInfo){
       <div style="border-top:1px solid rgba(255,255,255,.1);margin:16px 30px 8px"></div>
       ${rows || `<div style="color:${C.mut};font-size:13px;padding:10px 0">Nobody has posted a round yet.</div>`}
       <div style="color:${C.mut};font-size:11px;letter-spacing:.1em;margin-top:12px">${info.status === 'complete' ? 'FINAL' : 'IN PLAY'}</div>`;
+
+  } else if(info.kind === 'card'){
+    /* D186 — the golfer, as an object. The card is EARNED (gold frame, gold
+       number), not live: the ember of the round branch belongs to the layer
+       that is happening now. The number is absent at discoverable='friends'
+       viewed by a non-buddy — share_info decides that, never this page. */
+    document.title = info.index_current != null
+      ? `${info.name} plays to ${fmtIdx1(info.index_current)} · Cup Season`
+      : `${info.name} is on Cup Season`;
+    card.style.borderColor = 'rgba(233,190,98,.4)';
+    const photo = info.photo ? `${SUPABASE_URL}/storage/v1/object/public/shared/${encodeURIComponent(tok)}.jpg` : null;
+    const faceHtml = photo
+      ? `<div style="width:96px;height:96px;margin:0 auto 14px;border-radius:50%;overflow:hidden;border:2px solid rgba(233,190,98,.45)">
+           <img src="${esc(photo)}" alt="" style="width:100%;height:100%;object-fit:cover"></div>`
+      : markerSvg(info.marker, 'gold');
+    const meta = [info.handle ? '@'+info.handle : null, info.city,
+                  info.member_since ? 'est. '+fmtMY(info.member_since) : null].filter(Boolean).join(' \u00b7 ');
+    const car = info.career || {};
+    const tro = (info.trophies || []).slice(0, 3).map(a => {
+      const m = (typeof ACH_META !== 'undefined' ? ACH_META[a.kind] : null) || { icon:'\ud83c\udfc5', title: a.label || 'Milestone' };
+      const yr = a.earned_on ? " \u00b7 '"+String(a.earned_on).slice(2,4) : '';
+      return `<div style="color:${C.gold};font-size:12.5px;letter-spacing:.04em;padding:2px 0">${m.icon} ${esc(m.title)}${yr}</div>`;
+    }).join('');
+    /* the FORM row, oldest to newest, same coals the app draws */
+    const coals = (info.recent || []).slice().reverse().map(r =>
+      `<span style="display:inline-block;width:16px;height:5px;border-radius:3px;background:${r.beat===true?C.hot:'rgba(240,242,243,.22)'}"></span>`).join('');
+    const mrow = (k, v) => v == null || v === '' ? '' :
+      `<div style="display:flex;justify-content:space-between;align-items:baseline;padding:8px 0;border-top:1px solid rgba(255,255,255,.08);font-size:12px;color:${C.mut};letter-spacing:.08em">
+         <span>${esc(k)}</span><b style="color:${C.ink};font-weight:600">${esc(String(v))}</b></div>`;
+    card.innerHTML = `
+      ${faceHtml}
+      <div style="font-family:${SERIF};font-size:21px;font-weight:700">${esc(info.name)}</div>
+      ${meta ? `<div style="color:${C.mut};font-size:11px;letter-spacing:.12em;text-transform:uppercase;margin-top:6px">${esc(meta)}</div>` : ''}
+      ${info.index_current != null
+        ? `<div style="font-family:${SERIF};font-size:44px;line-height:1;color:${C.gold};margin-top:18px">${esc(fmtIdx1(info.index_current))}</div>
+           <div style="color:${C.mut};font-size:10px;letter-spacing:.2em;margin-top:5px">HANDICAP INDEX</div>`
+        : `<div style="font-family:${SERIF};font-size:36px;line-height:1;margin-top:18px">${esc(String(car.rounds ?? 0))}</div>
+           <div style="color:${C.mut};font-size:10px;letter-spacing:.2em;margin-top:5px">ROUNDS POSTED</div>`}
+      ${tro ? `<div style="margin-top:16px">${tro}</div>` : ''}
+      ${coals ? `<div style="margin-top:14px;display:flex;gap:5px;justify-content:center">${coals}</div>` : ''}
+      <div style="margin-top:16px;text-align:left">
+        ${info.index_current != null ? mrow('ROUNDS', car.rounds) : ''}
+        ${mrow('BEST DIFF', car.best != null ? Number(car.best).toFixed(1) : null)}
+        ${mrow('HOME', info.home_course)}
+      </div>`;
+    /* the one CTA is the INVITE — this is the whole point of the kind (D186
+       call 3). "See what Cup Season is" stays underneath for a reader who
+       does not know the sender well enough to add them yet. */
+    foot.innerHTML = `<button id="svBuddy" style="display:block;width:100%;background:${C.hot};color:#1C1208;border:0;border-radius:12px;padding:14px 12px;font-weight:600;letter-spacing:.04em;font-family:inherit;font-size:14px;cursor:pointer">Add me on Cup Season</button>
+      <a href="/" style="display:block;margin-top:10px;background:transparent;color:${C.ink};text-decoration:none;border:1px solid rgba(240,242,243,.22);border-radius:12px;padding:13px 12px;font-weight:600;letter-spacing:.04em">See what Cup Season is</a>
+      <p style="color:${C.mut};font-size:11.5px;margin:12px 0 0">No account needed to look. One tap to play.</p>`;
+    document.getElementById('svBuddy')?.addEventListener('click', async (e) => {
+      const b = e.currentTarget; b.disabled = true; b.textContent = 'Sending\u2026';
+      try{
+        const { data, error } = await sb.rpc('share_buddy', { p_token: tok });
+        if(error) throw error;
+        b.textContent = data === 'friend' ? 'Golf buddies \u2713'
+                      : data === 'self'   ? 'This is your card'
+                      : 'Request sent \u2713';
+      }catch(err){
+        /* signed out is the COMMON case here, not an error: stash the token,
+           send them to the door, and resumeAfterProfile() finishes the job the
+           moment their golfer card exists. */
+        try{ localStorage.setItem('cs_buddy', tok); }catch(_){}
+        window.location.href = '/';
+      }
+    });
   }
+}
+/* the share page renders outside the app's helpers — these two are its own */
+function fmtIdx1(v){ const n = Number(v); return (n < 0 ? '+' + Math.abs(n).toFixed(1) : n.toFixed(1)); }
+function fmtMY(iso){
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(iso || '');
+  if(!m) return '';
+  const MO = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  return MO[+m[2]-1] + ' ' + m[1];
 }
 
 /* invite links: /?join=CODE rides the existing cs_code auto-join machinery —

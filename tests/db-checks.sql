@@ -61,17 +61,18 @@ from (
         and p.proname not in ('claim_round_info','scan_claim_info','league_by_code','founder_id','share_info','join_covenant_info','email_unsubscribe','guest_live_state','guest_live_set_score','guest_live_set_wolf','door_flags','log_growth_event')) as extra
 ) t
 
--- 3 · every client-called RPC is executable by authenticated (the 105:
---     99 from the web client + the IOS-009 batch-1 trio the phone calls)
+-- 3 · every client-called RPC is executable by authenticated (the 106:
+--     99 from the web client + the IOS-009 batch-1 trio the phone calls
+--     + share_buddy, D186)
 union all
 select '3 · authenticated RPC grants',
-  case when missing = '' then 'PASS — all 105 granted'
+  case when missing = '' then 'PASS — all 106 granted'
     else 'FAIL — not granted: ' || missing end,
-  '99 names extracted from the web client + handle_available, round_holes_of, native_home (IOS-009) + founding_ids, door_flags + my_actionable_count (D104)'
+  '99 names extracted from the web client + handle_available, round_holes_of, native_home (IOS-009) + founding_ids, door_flags + my_actionable_count (D104) + share_buddy (D186)'
 from (
   select coalesce(string_agg(f, ', '), '') as missing
   from unnest(array[
-    'abandon_live_round','add_event_player','add_round_comment','announce','assign_player','claim_round','claim_round_info','claim_scan_round','create_event','create_league','create_major','create_scan_claim','create_share','declare_round','delete_account','delete_event','delete_league','delete_round','enter_major','event_session_targets','finish_live_round','form_squads','founder_desk','founder_id','founder_note','friend_request','friend_respond','generate_pairings','home_feed','invite_golfer','join_league','league_by_code','league_pulse','major_leaderboard','mark_buy_in','my_achievements','my_friends','my_invites','my_rivalries','my_schedule','my_trophies','open_major','randomize_squads','remove_member','report_content','resolve_session','respond_invite','retag_round','revoke_share','rivalry_weeks','round_detail','round_epilogue','scan_claim_info','scratch_round','search_golfers','season_scenarios','set_discoverable','set_event_notify','set_event_team','set_handle','set_index','set_league_finish','set_member_bye','set_member_index','set_notify_chat','set_notify_rounds','set_profile','set_rivalry_name','set_round_rsvp','settle_major','share_info','start_live_round','start_season','submit_feedback','tour_card','transfer_pro','set_mute','my_mutes','register_device_token','join_covenant_info','set_league_marker','event_lineage','last_round_with','create_forfeit','settle_forfeit','scrap_forfeit','career_record','set_email_recap','email_unsubscribe','request_league_cancel','vote_league_cancel','withdraw_league_cancel','league_cancel_status','live_set_score','live_set_wolf','live_state','my_visitor_rounds','live_round_card','round_card','handle_available','round_holes_of','native_home','founding_ids','door_flags','my_actionable_count','league_looks','set_league_look','set_league_notify_system'
+    'abandon_live_round','add_event_player','add_round_comment','announce','assign_player','claim_round','claim_round_info','claim_scan_round','create_event','create_league','create_major','create_scan_claim','create_share','declare_round','delete_account','delete_event','delete_league','delete_round','enter_major','event_session_targets','finish_live_round','form_squads','founder_desk','founder_id','founder_note','friend_request','friend_respond','generate_pairings','home_feed','invite_golfer','join_league','league_by_code','league_pulse','major_leaderboard','mark_buy_in','my_achievements','my_friends','my_invites','my_rivalries','my_schedule','my_trophies','open_major','randomize_squads','remove_member','report_content','resolve_session','respond_invite','retag_round','revoke_share','rivalry_weeks','round_detail','round_epilogue','scan_claim_info','scratch_round','search_golfers','season_scenarios','set_discoverable','set_event_notify','set_event_team','set_handle','set_index','set_league_finish','set_member_bye','set_member_index','set_notify_chat','set_notify_rounds','set_profile','set_rivalry_name','set_round_rsvp','settle_major','share_info','start_live_round','start_season','submit_feedback','tour_card','transfer_pro','set_mute','my_mutes','register_device_token','join_covenant_info','set_league_marker','event_lineage','last_round_with','create_forfeit','settle_forfeit','scrap_forfeit','career_record','set_email_recap','email_unsubscribe','request_league_cancel','vote_league_cancel','withdraw_league_cancel','league_cancel_status','live_set_score','live_set_wolf','live_state','my_visitor_rounds','live_round_card','round_card','handle_available','round_holes_of','native_home','founding_ids','door_flags','my_actionable_count','league_looks','set_league_look','set_league_notify_system','share_buddy'
   ]) f
   where not exists (select 1 from pg_proc p join pg_namespace n on n.oid = p.pronamespace
     where n.nspname = 'public' and p.proname = f
@@ -91,9 +92,9 @@ where (tablename = 'league_members' and policyname = 'members_self')
 -- 5 · constraint widenings hold (the two defused time bombs + founder notes)
 union all
 select '5 · check constraints current',
-  case when ok = 3 then 'PASS'
-    else 'FAIL — ' || (3 - ok)::text || ' constraint(s) missing expected values' end,
-  'season_adjustments kinds · rounds sources · feedback categories'
+  case when ok = 6 then 'PASS'
+    else 'FAIL — ' || (6 - ok)::text || ' constraint(s) missing expected values' end,
+  'season_adjustments kinds · rounds sources · feedback categories · the three D186 card widenings'
 from (
   select count(*) as ok from (
     select 1 from pg_constraint where conname = 'season_adjustments_kind_check'
@@ -104,6 +105,18 @@ from (
     union all
     select 1 from pg_constraint where conname = 'pilot_feedback_category_check'
       and pg_get_constraintdef(oid) like '%founder%'
+    -- D186: the fourth share kind. All three move together or the funnel
+    -- silently drops the node it was given (growth_events) / the attribution
+    -- (profiles) while the share itself succeeds.
+    union all
+    select 1 from pg_constraint where conname = 'shares_kind_check'
+      and pg_get_constraintdef(oid) like '%card%'
+    union all
+    select 1 from pg_constraint where conname = 'growth_events_kind_check'
+      and pg_get_constraintdef(oid) like '%card%'
+    union all
+    select 1 from pg_constraint where conname = 'profiles_came_via_kind_check'
+      and pg_get_constraintdef(oid) like '%card%'
   ) x
 ) t
 

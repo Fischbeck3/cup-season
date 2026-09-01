@@ -121,6 +121,6 @@ Once `Rpc.swift` has them, the two hand-declared structs can go (`Rpc.league_loo
 
 ```
 xcrun simctl launch <UDID> app.cupseason.ios -cs_theme dark -cs_dev_look oldest
-xcrun simctl launch <UDID> app.cupseason.ios -cs_dev_open settings -cs_dev_settings_pane 1
+xcrun simctl launch <UDID> app.cupseason.ios -cs_dev_open settings   # IOS-029: settings IS the gear's pane now; -cs_dev_settings_pane is gone
 xcrun simctl launch <UDID> app.cupseason.ios -cs_dev_open clubhouse -cs_dev_pane league -cs_dev_dress
 ```

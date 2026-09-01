@@ -188,6 +188,53 @@ public struct TourCardRepository: Sendable {
     _ = try await svc.call(Rpc.report_content(p_post: nil, p_reason: "profile photo", p_kind: "profile_photo", p_profile: profileId))
   }
 
+  // MARK: - the card travels (D186)
+
+  /// `create_share('card', <you>)` → the public page's URL, and the face
+  /// published beside it at `shared/{token}.jpg` so a link preview shows the
+  /// golfer rather than the brand image. Identical contract to the round
+  /// photo (D60): one object per token, best effort, revoke deletes it.
+  /// `compress` is the app's JPEG downscale — image work stays out of the Kit.
+  public func shareCard(_ profileId: UUID, compress: @Sendable (Data) async -> Data?) async throws -> URL {
+    let token = try await svc.call(Rpc.create_share(p_kind: "card", p_ref: profileId))
+    let name = token.uuidString.lowercased()
+    CSGrowth.log(.artifactShared, kind: "card", token: name)
+    do {
+      let rows: [PhotoRow] = try await svc.client.from("profiles").select("photo_path").eq("id", value: profileId).limit(1).execute().value
+      if let path = rows.first?.photo_path, !path.isEmpty {
+        let head = try await svc.client.storage.from("shared").list(path: "", options: SearchOptions(limit: 1, search: name + ".jpg"))
+        if !head.contains(where: { $0.name == name + ".jpg" }) {
+          let signed = try await svc.client.storage.from("media").createSignedURL(path: path, expiresIn: 60)
+          let (data, _) = try await URLSession.shared.data(from: signed)
+          if let jpg = await compress(data) {
+            do {
+              _ = try await svc.client.storage.from("shared").upload(name + ".jpg", data: jpg, options: FileOptions(contentType: "image/jpeg", upsert: false))
+            } catch {
+              let m = SupabaseService.describe(error).lowercased()
+              if !(m.contains("exists") || m.contains("duplicate")) { throw error }
+            }
+          }
+        }
+      }
+    } catch { /* the link ships face-less */ }
+    return URL(string: "https://cupseason.app/?share=\(name)")!
+  }
+
+  /// `csRevokeLink`: re-mint the live token, then kill it. A fresh share later
+  /// mints a NEW token — revoked copies stay dark, and the published face goes
+  /// with them (revoke_share deletes the object first).
+  public func revokeCard(_ profileId: UUID) async throws {
+    let token = try await svc.call(Rpc.create_share(p_kind: "card", p_ref: profileId))
+    _ = try await svc.call(Rpc.revoke_share(p_token: token))
+  }
+
+  // D186 call 3 · the RECEIVER half — `share_buddy(token)` — is deliberately
+  // not wired here yet. `?share=` is not a Universal Link (the AASA claims
+  // only ?claim= and ?join=), and it must not become one until the phone can
+  // RENDER a shared card: opening the app to Home from a card link is worse
+  // than opening Safari, which shows the card and takes the tap. The phone
+  // sends cards; the web receives them. Both halves meet at IOS-028 E8.
+
   public func rivalryWeeks(_ opponent: UUID) async throws -> [Rpc.rivalry_weeks.Row] {
     try await svc.call(Rpc.rivalry_weeks(p_opponent: opponent))
   }

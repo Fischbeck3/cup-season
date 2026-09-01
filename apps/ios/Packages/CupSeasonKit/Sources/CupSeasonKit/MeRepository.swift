@@ -37,7 +37,7 @@ public struct SupabaseMeRepository: MeRepository {
   private struct ProfileRow: Decodable {
     let id: UUID; let display_name: String?; let handle: String?; let marker: String?
     let city: String?; let home_course: String?; let index_current: Double?; let index_source: String?
-    let photo_path: String?; let created_at: Date?
+    let photo_path: String?; let created_at: Date?; let discoverable: String?
   }
   private struct LeagueRow: Decodable { let id: UUID; let name: String; let code: String?; let phase: String; let commissioner_id: UUID? }
   private struct MemberRow: Decodable { let id: UUID; let league_id: UUID; let role: String; let marker: String?; let leagues: LeagueRow? }
@@ -57,7 +57,7 @@ public struct SupabaseMeRepository: MeRepository {
 
     // profile — named columns (email is sealed; never select *)
     let profiles: [ProfileRow] = try await db.from("profiles")
-      .select("id, display_name, handle, marker, city, home_course, index_current, index_source, photo_path, created_at")
+      .select("id, display_name, handle, marker, city, home_course, index_current, index_source, photo_path, created_at, discoverable")
       .eq("id", value: userId).execute().value
     let p = profiles.first
     let roundsCount: Int = (try? await db.from("rounds").select("id", head: true, count: .exact)
@@ -65,7 +65,8 @@ public struct SupabaseMeRepository: MeRepository {
 
     let profile = p.map { Me.Profile(id: $0.id, display_name: $0.display_name, handle: $0.handle, marker: $0.marker, city: $0.city,
                                      home_course: $0.home_course, index_current: $0.index_current, index_source: $0.index_source,
-                                     photo_path: $0.photo_path, rounds_count: roundsCount, member_since: $0.created_at, is_founder: nil) }
+                                     photo_path: $0.photo_path, rounds_count: roundsCount, member_since: $0.created_at, is_founder: nil,
+                                     discoverable: $0.discoverable) }
 
     // memberships with their league
     let members: [MemberRow] = try await db.from("league_members")

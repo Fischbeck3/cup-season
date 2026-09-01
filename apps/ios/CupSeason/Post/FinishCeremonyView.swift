@@ -17,6 +17,8 @@ import CupSeasonKit
 struct FinishCeremonyView: View {
   @Environment(\.accessibilityReduceMotion) private var reduceMotion
   let ceremony: PostCeremony
+  /// E2 · when known, the card share carries the round's public link too.
+  var roundId: UUID? = nil
   let photo: UIImage?
   let onBack: () -> Void
 
@@ -52,7 +54,7 @@ struct FinishCeremonyView: View {
           .foregroundStyle(ceremony.earned ? CSTokens.dark.gold : eyebrowInk)
           .multilineTextAlignment(.center).padding(.top, 24).opacity(stage >= 4 ? 1 : 0).offset(y: stage >= 4 ? 0 : 6)
         Rectangle().fill(bandInk.opacity(0.1)).frame(width: 120, height: 1).padding(.top, 22).opacity(stage >= 5 ? 1 : 0)
-        Button { share = RecapCardView.shareItem(ceremony.recap, photo: photo) } label: {
+        Button { Task { await shareCard() } } label: {
           Text(PostCeremony.shareLabel).font(CSFont.button).foregroundStyle(shareInk)
             .frame(minWidth: 220, minHeight: 46).padding(.horizontal, 28)
             .background(shareBg, in: RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous))
@@ -81,6 +83,16 @@ struct FinishCeremonyView: View {
     withAnimation(roll.delay(2.03)) { stage = 3 }
     withAnimation(roll.delay(2.21)) { stage = 4 }
     withAnimation(.easeOut(duration: 0.5).delay(2.55)) { stage = 5 }
+  }
+
+  /// E2 (IOS-028) · the card leaves with its link. Best effort: no round id,
+  /// or a mint that fails, and the card still shares exactly as it did.
+  private func shareCard() async {
+    var url: URL?
+    if let roundId {
+      url = try? await PostService().shareLink(round: roundId) { data in PostPhoto.compress(data: data, maxDim: 1600, quality: 0.8) }
+    }
+    share = RecapCardView.shareItem(ceremony.recap, photo: photo, url: url)
   }
 }
 

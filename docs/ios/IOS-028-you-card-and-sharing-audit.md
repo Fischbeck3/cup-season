@@ -320,3 +320,32 @@ then E6–E7 (the card travels and the card *is* the invite).
 
 Nothing above changes a rule of the competition. Every item is a surface, a link, or a
 tap target.
+
+---
+
+## Status — what shipped, 2026-09-01
+
+The owner ruled all three calls in one line ("B, A, A. Build it!") and the build
+followed in the same session. Logged as **D186** (`spec/decision-log.md`, the
+mechanics) and **IOS-029** (`docs/ios/DECISIONS.md`, the surface).
+
+| Item | State | Where |
+|---|---|---|
+| E1 · a permanent share door | **built** — round receipt, both clients | `RoundReceiptSheet.swift`, `openRoundReceipt` |
+| E2 · every image share carries its link + logs | **built** — recap card, settlement card | `csShareToken`, `RecapCardView.shareItem(url:)` |
+| E3 · the gear means Settings, the card is a door | **built** — both clients | `YouRoute.card`, `openProfileHub('settings')` |
+| E4 · ask for the photo | **built** — hero anchor, tappable face, photo leads the editor | `YouScreen`, `refreshWhoChip` |
+| E5 · the bigger face | **built** — 88pt / 88px | `YouHero`, `#youMk` |
+| E6 · the card travels (call 2 · A) | **built** — `card` share kind, public page, OG case | `20260901120000_share_card.sql`, `share-preview.ts` |
+| E7 · the card is the invite (call 3 · A) | **built** — `share_buddy`, "Add me on Cup Season" | same migration, `renderShareView` |
+| E8 · App Store handoff + `?share=` universal link | **not built** | see below |
+| E9 · why `scan_claims` is zero | **not built** — investigation, unopened | — |
+| Scorecard PNG export | **not built** | needs a card renderer, its own pass |
+
+**Why E8 is deliberately not in this pass.** Two halves, both blocked on
+something real: the App Store line needs a listing to point at, and `?share=`
+must not become a Universal Link until the phone can RENDER a shared card —
+opening the app to Home from a card link is worse than opening Safari, which
+shows the card and takes the tap. The phone sends cards; the web receives them.
+`share_buddy` is granted and callable, and `TourCard.swift` records why its
+receiver half is not wired yet.

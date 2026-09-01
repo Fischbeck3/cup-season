@@ -29,9 +29,37 @@ struct YouHero<Anchor: View>: View {
   /// "+N more in the case" — the last chip, quieter
   let moreChip: String?
   let form: FormRow?
+  /// IOS-029 call 1 · the face is a DOOR: the photo picker when there is no
+  /// photo, the card editor when there is. It was inert — the most obvious
+  /// tap target on the screen did nothing, and 1 profile in 39 had a photo.
+  var onTapFace: (() -> Void)? = nil
   @ViewBuilder let anchor: () -> Anchor
 
   private var established: Bool { indexCurrent != nil }
+
+  /// The face at 88, with the ember `+` when there is no photo yet. Wrapped in
+  /// a Button only when the host gave it somewhere to go, so a preview or a
+  /// read-only host never renders a control that cannot do anything.
+  @ViewBuilder private var faceDoor: some View {
+    let face = ZStack(alignment: .bottomTrailing) {
+      CSFace(photoURL: photoURL, marker: marker, size: 88)
+      if photoURL == nil && onTapFace != nil {
+        Image(systemName: "plus")
+          .font(.system(size: 15, weight: .bold))
+          .foregroundStyle(cs.bg0)
+          .frame(width: 28, height: 28)
+          .background(cs.brand, in: Circle())
+          .overlay(Circle().stroke(cs.bg1, lineWidth: 2))
+      }
+    }
+    if let onTapFace {
+      Button(action: onTapFace) { face }
+        .buttonStyle(.plain)
+        .accessibilityLabel(photoURL == nil ? "Add your photo" : "Edit your card")
+    } else {
+      face
+    }
+  }
 
   var body: some View {
     // gold once the index is established (earned); otherwise the personal look's accent, ember when none (IOS-025)
@@ -41,8 +69,12 @@ struct YouHero<Anchor: View>: View {
           // D103b: the hero eyebrow wears the personal look's accent; mut on homebase (gold stays the number's)
           Text(CSMarkers.marker(marker).name).csEyebrow(la.eyebrow).padding(.bottom, 12)
             .accessibilityLabel("Marker: \(CSMarkers.marker(marker).name)")
-          HStack(alignment: .center, spacing: 12) {
-            CSFace(photoURL: photoURL, marker: marker, size: 56)
+          HStack(alignment: .center, spacing: 14) {
+            // IOS-028 A1 / IOS-029 · 56 was web parity, not a size decision.
+            // On the phone this credential is the ONE hero on a full screen
+            // (IOS-019 rule 1), and the face was the smallest element on it
+            // carrying the largest share of the identity.
+            faceDoor
             VStack(alignment: .leading, spacing: 3) {
               Text(name).font(CSFont.title).foregroundStyle(cs.ink).lineLimit(2)
               FoundingTag(badge: session.founding.badge(for: session.me?.profile?.id)).padding(.vertical, 2)

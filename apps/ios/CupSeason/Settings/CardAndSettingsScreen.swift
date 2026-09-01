@@ -1,5 +1,15 @@
-// Cup Season — "Card & settings" (audit 01 §1.6; index.html 13504–13840).
-// Two panes, as the web: Your card (identity) · Settings (device & account).
+// Cup Season — the card editor and the settings drawer (audit 01 §1.6;
+// index.html 13504–13840).
+//
+// IOS-029 call 1 (owner-ruled 2026-09-01): these were ONE screen behind a
+// segmented control, and the ⚙ landed on the "Your card" half — so a settings
+// button opened a form with a control labelled Settings beside it. A gear
+// means settings on every other app on this phone. It means settings here now,
+// and the card editor is reached by TOUCHING THE CARD (YouScreen's hero).
+// The panes below are unchanged; what went is the segment and the wrong
+// landing. The model is shared because the card's fields and the account's
+// switches are the same profile row.
+//
 // A long press on the build line opens the Developer section (IOS-022 item
 // 8): the feedback door for everyone, the founder's desk and field note only
 // when the server says founder.
@@ -10,24 +20,27 @@ import CSDesign
 import CupSeasonKit
 
 struct CardAndSettingsScreen: View {
+  enum Pane { case card, settings }
   @Environment(SessionStore.self) private var store
   @Environment(\.cs) private var cs
   @State private var vm = CardSettingsModel()
-  @State private var pane = CSDevHatch.settingsPane
+  /// Defaults to `.settings`: the ⚙ is the only caller that is not a card
+  /// door, and a gear that lands on a form is the defect this closes.
+  var pane: Pane = .settings
+  /// IOS-029 · "add your photo" on the hero opens the editor WITH the picker
+  /// raised. The photo is the field that changes how every other golfer sees
+  /// you, and it was four taps and a scroll deep.
+  var focusPhoto = false
   var openScoringHelp: () -> Void = {}
 
   var body: some View {
     ScrollView {
       VStack(alignment: .leading, spacing: 14) {
-        Text("Your card is what your buddies see · settings run the app").csEyebrow()
-        Picker("Pane", selection: $pane) {
-          Text("Your card").tag(0)
-          Text("Settings").tag(1)
-        }
-        .pickerStyle(.segmented)
-        .accessibilityLabel("Your card or settings")
-        if pane == 0 {
-          CardEditorPane(vm: vm, openScoringHelp: openScoringHelp)
+        Text(pane == .card
+             ? "This is what your buddies see"
+             : "Settings run the app on this device").csEyebrow()
+        if pane == .card {
+          CardEditorPane(vm: vm, focusPhoto: focusPhoto, openScoringHelp: openScoringHelp)
         } else {
           SettingsPane(vm: vm)
         }
@@ -36,7 +49,7 @@ struct CardAndSettingsScreen: View {
     }
     .background(cs.bg0)
     .defaultScrollAnchor(CSDevHatch.bottom ? .bottom : .top)
-    .navigationTitle("Card & settings")
+    .navigationTitle(pane == .card ? "Your card" : "Settings")
     .navigationBarTitleDisplayMode(.inline)
     .scrollDismissesKeyboard(.interactively)
     // D159 · the formal change process, said plainly BEFORE it happens. Four
@@ -82,6 +95,9 @@ final class CardSettingsModel {
   var status: (String, CSTone)? = nil
   var photoBusy = false
   var indexBusy = false
+  /// IOS-029 · true once `load()` has answered. The photo picker must not
+  /// raise on a nil avatar that is merely un-fetched.
+  var loadedOnce = false
 
   // settings
   var notifyRounds = true; var notifyChat = true
@@ -106,6 +122,7 @@ final class CardSettingsModel {
       notifyRounds = p.notify_rounds ?? true; notifyChat = p.notify_chat ?? true
     }
     dirty = false
+    loadedOnce = true
   }
 
   func save() async {
@@ -241,8 +258,11 @@ private struct CardEditorPane: View {
   @Environment(\.toast) private var toast
   @Environment(\.dynamicTypeSize) private var typeSize
   @Bindable var vm: CardSettingsModel
+  /// IOS-029 · raise the picker on appear — the hero's "add your photo" lands here.
+  var focusPhoto = false
   let openScoringHelp: () -> Void
   @State private var pick: PhotosPickerItem?
+  @State private var raisePicker = false
   /// Four across at reading sizes; two at the accessibility sizes so a marker's name is never clipped.
   private var columns: [GridItem] { Array(repeating: GridItem(.flexible(), spacing: 8), count: typeSize.isA11y ? 2 : 4) }
 
@@ -253,6 +273,36 @@ private struct CardEditorPane: View {
       A11yStack(spacing: 10) {
         VStack(alignment: .leading, spacing: 6) { label("City"); CSField("", text: $vm.city, font: CSFont.body).onChange(of: vm.city) { vm.dirty = true }.accessibilityLabel("City") }
         VStack(alignment: .leading, spacing: 6) { label("Home course"); CSField("", text: $vm.home, font: CSFont.body).onChange(of: vm.home) { vm.dirty = true }.accessibilityLabel("Home course") }
+      }
+
+      // IOS-029 · the photo leads the editor now. It sat UNDER the twelve-tile
+      // marker grid, below the fold, and 1 profile in 39 carried one. The
+      // marker stays the guaranteed floor (D59) — it just stops being the
+      // first thing asked for.
+      label("Your photo · the marker always backs it up").padding(.top, 4)
+      A11yStack(spacing: 10) {
+        CSFace(photoURL: vm.avatar, marker: vm.marker ?? vm.profile?.marker, size: 72)
+          .accessibilityLabel(vm.avatar == nil ? "Your marker, no photo yet" : "Your photo")
+        HStack(spacing: 10) {
+          PhotosPicker(selection: $pick, matching: .images) {
+            MiniPill(text: vm.photoBusy ? "Uploading…" : (vm.avatar == nil ? "Add a photo" : "Change photo"), accent: vm.avatar == nil)
+          }
+          .disabled(vm.photoBusy)
+          if vm.avatar != nil {
+            Button { Task { toast.show(await vm.removePhoto()) } } label: { MiniPill(text: "Remove") }.disabled(vm.photoBusy)
+              .accessibilityLabel("Remove the photo")
+          }
+        }
+      }
+      .onChange(of: pick) { _, item in
+        guard let item else { return }
+        Task {
+          defer { pick = nil }
+          guard let data = try? await item.loadTransferable(type: Data.self), let jpeg = AvatarCrop.squareJPEG(data, side: 512, quality: 0.85) else {
+            toast.show("Could not add the photo."); return
+          }
+          toast.show(await vm.addPhoto(jpeg))
+        }
       }
 
       label("Ball marker").padding(.top, 4)
@@ -274,32 +324,6 @@ private struct CardEditorPane: View {
           .buttonStyle(.plain)
           .accessibilityLabel(m.name)
           .accessibilityAddTraits(vm.marker == m.key ? .isSelected : [])
-        }
-      }
-
-      label("Your photo · the marker always backs it up").padding(.top, 4)
-      A11yStack(spacing: 10) {
-        CSFace(photoURL: vm.avatar, marker: vm.marker ?? vm.profile?.marker, size: 56)
-          .accessibilityLabel(vm.avatar == nil ? "Your marker, no photo yet" : "Your photo")
-        HStack(spacing: 10) {
-          PhotosPicker(selection: $pick, matching: .images) {
-            MiniPill(text: vm.photoBusy ? "Uploading…" : (vm.avatar == nil ? "Add a photo" : "Change photo"))
-          }
-          .disabled(vm.photoBusy)
-          if vm.avatar != nil {
-            Button { Task { toast.show(await vm.removePhoto()) } } label: { MiniPill(text: "Remove") }.disabled(vm.photoBusy)
-              .accessibilityLabel("Remove the photo")
-          }
-        }
-      }
-      .onChange(of: pick) { _, item in
-        guard let item else { return }
-        Task {
-          defer { pick = nil }
-          guard let data = try? await item.loadTransferable(type: Data.self), let jpeg = AvatarCrop.squareJPEG(data, side: 512, quality: 0.85) else {
-            toast.show("Could not add the photo."); return
-          }
-          toast.show(await vm.addPhoto(jpeg))
         }
       }
 
@@ -370,6 +394,12 @@ private struct CardEditorPane: View {
         }
       }
     }
+    // IOS-029 · arriving from the hero's "add your photo" raises the picker
+    // itself. One tap from the card to the camera roll; it was four and a
+    // scroll. Only when there is no photo yet — a golfer who has one came here
+    // to edit something else.
+    .photosPicker(isPresented: $raisePicker, selection: $pick, matching: .images)
+    .task(id: vm.loadedOnce) { if focusPhoto, vm.loadedOnce, vm.avatar == nil, !raisePicker { raisePicker = true } }
   }
 
   private func label(_ s: String) -> some View { Text(s).font(CSFont.label).tracking(1).textCase(.uppercase).foregroundStyle(cs.dimText) }

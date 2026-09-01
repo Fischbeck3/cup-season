@@ -72,11 +72,19 @@ struct RecapCardView: View {
     return r.uiImage
   }
 
-  /// `shareRecapCard(d)`: the card as a file + the caption; the caption alone if the render fails.
-  @MainActor static func shareItem(_ recap: PostRecap, photo: UIImage?) -> PostShareItem {
+  /// `shareRecapCard(d)`: the card as a file + the caption + its LINK; the
+  /// caption alone if the render fails.
+  ///
+  /// E2 (IOS-028) — the image path was the one with no route back. A picture
+  /// in a group thread is the share people actually make, and it carried no
+  /// URL: `cupseason.app` is printed on the card as ink, and ink is not
+  /// tappable. `url` is best effort at every call site — a mint that failed
+  /// still shares the card, exactly as before.
+  @MainActor static func shareItem(_ recap: PostRecap, photo: UIImage?, url: URL? = nil) -> PostShareItem {
     var items: [Any] = []
     if let img = render(recap, photo: photo) { items.append(img) }
     items.append(recap.caption)
+    if let url { items.append(url) }
     return PostShareItem(items: items)
   }
 }

@@ -8,13 +8,17 @@ import CupSeasonKit
 
 struct YouLinks {
   var openBuddies: () -> Void
+  /// The ⚙ — SETTINGS, and only settings (IOS-029 call 1).
   var openSettings: () -> Void
+  /// The card editor, reached by touching the card. `focusPhoto` raises the
+  /// photo picker on arrival — the hero's "add your photo".
+  var openCard: (_ focusPhoto: Bool) -> Void = { _ in }
   var openFeedback: () -> Void
   var openFounderDesk: () -> Void
   var postRound: () -> Void
   var openTourCard: (UUID) -> Void
   var openReceipt: (UUID) -> Void
-  /// "add your GHIN" — lands on the GHIN field; falls back to `openSettings`.
+  /// "add your GHIN" — lands on the GHIN field; falls back to `openCard`.
   var addGhin: (() -> Void)? = nil
   /// The founder's "✏️ Field note" (`founder_note`); hidden when nil.
   var founderNote: (() -> Void)? = nil
@@ -22,6 +26,6 @@ struct YouLinks {
   /// hidden when nil.
   var stageRound: ((_ playOn: String, _ tag: UUID) -> Void)? = nil
 
-  @MainActor static let none = YouLinks(openBuddies: {}, openSettings: {}, openFeedback: {}, openFounderDesk: {}, postRound: {},
+  @MainActor static let none = YouLinks(openBuddies: {}, openSettings: {}, openCard: { _ in }, openFeedback: {}, openFounderDesk: {}, postRound: {},
                              openTourCard: { _ in }, openReceipt: { _ in })
 }

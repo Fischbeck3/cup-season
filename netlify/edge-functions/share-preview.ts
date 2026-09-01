@@ -57,6 +57,13 @@ const oneLine = (s: unknown, max = 200) => {
   return t.length > max ? t.slice(0, max - 1).trimEnd() + '…' : t;
 };
 
+/* a plus-handicap reads "+2.1"; a normal index reads "12.4" — never a minus */
+const fmtIdx = (v: unknown) => {
+  const n = Number(v);
+  if (!isFinite(n)) return '';
+  return n < 0 ? '+' + Math.abs(n).toFixed(1) : n.toFixed(1);
+};
+
 const DW = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 const MO = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 /* played_on is a bare 'YYYY-MM-DD'. new Date() on that parses as UTC midnight
@@ -119,6 +126,27 @@ function metaFor(info: any, storage: string, token: string): Meta | null {
       desc: [info.course, when, 'Cup Season'].filter(Boolean).join(' · '),
       img: `${storage}/${token}.png`,   /* the settlement card, if it travelled */
       w: '1080', h: '1350',
+    };
+  }
+
+  if (info.kind === 'card') {
+    /* D186 — the golfer as the preview. The number IS the headline: without it
+       the card reads "someone is on Cup Season", which is the generic card
+       this function exists to eliminate. share_info decides whether the number
+       travels (discoverable), so a withheld one falls back to the rounds line
+       rather than guessing. */
+    const name = info.name || 'A golfer';
+    const idx = info.index_current;
+    const rounds = info.career?.rounds;
+    return {
+      title: idx != null ? `${name} plays to ${fmtIdx(idx)}` : `${name} is on Cup Season`,
+      desc: [info.city, rounds != null ? `${rounds} rounds` : '', 'Cup Season']
+        .filter(Boolean).join(' · '),
+      /* the face travelled at mint time (D186, same contract as D60's photo) —
+         when there is one it IS the preview */
+      img: info.photo ? `${storage}/${token}.jpg` : STATIC_IMG,
+      w: info.photo ? '1200' : STATIC_W,
+      h: info.photo ? '1200' : STATIC_H,
     };
   }
 

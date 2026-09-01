@@ -30,6 +30,8 @@ final class PostRoundModel {
   var showEvenPar = false
   var scanToPick: PostScan?
   var ceremony: PostCeremony?
+  /// E2 · the round the curtain is celebrating, so its card can carry a link.
+  var ceremonyRoundId: UUID?
   var epilogue: PostEpilogueShow?
   var partners: PostPartnersShow?
   var pendingEpilogue: PostEpilogueShow?
@@ -249,6 +251,7 @@ final class PostRoundModel {
                             name: profile?.display_name ?? "You", marker: profile?.marker ?? "saguaro", leagueName: m?.name,
                             /* D122 · why it did not score for the league, in words */
                             seasonNote: PostSeasonRule.note(playedOn: payload.played_on, season: m?.season, hasLeague: m != nil))
+    ceremonyRoundId = roundId
     CSHaptic.success()
 
     // clear the form so a posted round never reads as "didn't submit"

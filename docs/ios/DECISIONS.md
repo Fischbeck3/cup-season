@@ -281,3 +281,17 @@ The ⊕'s composer is its own decision (IOS-020). Ceremonies, the finish, the se
 **Owner's calls.** (1) E3 — the full swap (gear → Settings, hero → card editor) or the minimum fix (gear lands on `pane = 1`)? (2) E6 — does a publicly shared Tour Card show the handicap index? Recommendation: yes, gated on `discoverable`, revocable like every other share. (3) E7 — the card page as the invite (recommended) or a dedicated `?buddy=` token?
 
 **Nothing built.** Rule 1. Each item that changes a mechanic (E6, E7) also needs a `spec/decision-log.md` entry before it ships (rule 5); E1–E5 and E8 are surfaces and tap targets, not mechanics. **Reversibility.** EASY throughout.
+
+## IOS-029 · The three calls from IOS-028 — **DECIDED 2026-09-01 (owner: "B, A, A. Build it!")**
+
+**Call 1 · the gear — Option B, the swap.** The ⚙ opens **Settings** and nothing else; the card editor is reached by **touching the card**. Consequences taken: `CardAndSettingsScreen`'s segmented control retires and the two panes become two routes (`YouRoute.settings`, `YouRoute.card`); `YouHero`'s face goes **56 → 88pt** and becomes a button (photo picker when empty, card editor when set); the hero's anchor line prompts for the **photo** when `photo_path` is null and keeps the GHIN prompt only once a photo exists; an "Edit your card" row sits under the hero as the labelled door. Same swap on the web (`#youProfile` → the settings pane; `#youCard` becomes the card door). **Why B over A:** the minimum fix (`pane = 1`) closes the reported symptom and leaves the face inert and the photo four taps down — 1 profile in 39 has one. **Reversibility.** EASY; the pane code stays until the route is proven.
+
+**Call 2 · the public card — Option A, the number travels.** Logged upstream as **D186**. `index_current` rides the shared card, gated on `discoverable` (`nobody` cannot share at all; `friends` shares the card without the number to a non-buddy). **Why A:** without it the link preview loses its only sentence, which is the failure D77/D78 was built to fix.
+
+**Call 3 · the invite — Option A, the card is the invite.** Logged upstream as **D186**. The public card page carries "Add me on Cup Season" → `share_buddy(p_token)`, authenticated, resolving the token server-side into the existing `friend_request` path. **Why A:** no ninth anon endpoint, no second token table, no second revoke path — and an invite with a face beats an invite with a code.
+
+**Not gated on a call, built in the same pass (IOS-028 E1/E2).** A permanent share door on the round receipt, the scorecard and the Tour Card — sharing stops being a thirty-second window; and every image share carries its link and logs `artifact_shared`, so the path people actually use is both reachable and visible to the funnel. These are surfaces, not mechanics.
+
+**Owner owes (the mutating half — CLAUDE.md deploy discipline).** `supabase db push` (the new migration), then `supabase functions deploy` is **not** needed — the OG rewrite is a Netlify edge function and ships with `git push`. Verify the webhook-free path the usual way: `#obCaption` on cupseason.app should read the new SHA.
+
+**Verification split (rule 6).** The migration, the web client, the edge function and the tests were built and run in the remote session. **The Xcode build, the simulator pass and the device check are the owner's, locally** — a remote session cannot compile Swift or drive a simulator. Preflight's Swift checks (15/16/17) do run here and pass.

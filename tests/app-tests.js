@@ -203,6 +203,64 @@
     }
   })();
 
+  /* ── D186 / IOS-029 · the card travels, and the You doors swap ──────────
+     The share view is driven through its QA hook with a STUB payload, so the
+     card branch is exercised with no network and no live token. */
+  (function cardShare(){
+    const kill = () => document.getElementById('shareView')?.remove();
+
+    if (typeof window._csShareRender === 'function') {
+      /* 1 · the number IS the headline when share_info sends one */
+      kill();
+      window._csShareRender('11111111-1111-1111-1111-111111111111', {
+        kind: 'card', name: 'Jerecho Fischbeck', handle: 'jerecho', marker: 'saguaro',
+        city: 'Tempe, AZ', member_since: '2026-07-04', index_current: 12.4,
+        career: { rounds: 211, best: 9.2 }, trophies: [], recent: [{ beat: true }, { beat: false }],
+        photo: false,
+      });
+      const sv = document.getElementById('shareView');
+      const txt = sv ? (sv.innerText || '') : '';
+      t('card share: renders the golfer', /Jerecho Fischbeck/.test(txt), true);
+      t('card share: the number is the headline', /12\.4/.test(txt) && /HANDICAP INDEX/.test(txt), true);
+      t('card share: the invite is the CTA', !!document.getElementById('svBuddy'), true);
+      t('card share: the form row draws a coal per round',
+        sv ? sv.querySelectorAll('span[style*="border-radius:3px"]').length : 0, 2);
+
+      /* 2 · discoverable='friends' seen by a non-buddy: share_info withholds
+         index_current, and the page must NOT invent one. */
+      kill();
+      window._csShareRender('22222222-2222-2222-2222-222222222222', {
+        kind: 'card', name: 'Dana Reyes', marker: 'island',
+        career: { rounds: 46 }, trophies: [], recent: [], photo: false,
+      });
+      const sv2 = document.getElementById('shareView');
+      const txt2 = sv2 ? (sv2.innerText || '') : '';
+      t('card share: no number, no invention', /HANDICAP INDEX/.test(txt2), false);
+      t('card share: falls back to the rounds line', /ROUNDS POSTED/.test(txt2) && /46/.test(txt2), true);
+      t('card share: the invite survives a number-less card', !!document.getElementById('svBuddy'), true);
+
+      /* the dead-token branch is unchanged by D186 and only resolves after an
+         awaited RPC, which this synchronous harness cannot observe — it is
+         covered by tests/share-card-local.sql check 14 instead (a revoked
+         token and a garbage token both answer the identical null). */
+      kill();
+    }
+
+    /* 4 · IOS-029 call 1 — the gear means SETTINGS, and the card has its own
+       labelled door. Both were one control before: a gear that opened a form. */
+    t('you: the gear says settings',
+      document.getElementById('youProfile')?.getAttribute('aria-label'), 'Settings');
+    t('you: the card has a labelled door', !!document.getElementById('youEditCard'), true);
+    t('you: the credential itself is a button',
+      document.getElementById('youCard')?.getAttribute('role'), 'button');
+
+    /* 5 · E2 — the image shares mint a link before they hand the file over.
+       The helper is synchronous to assert only in its existence; its guards
+       (no ref / demo) are covered by the migration's own harness and by the
+       fact that every caller passes a nullable id. */
+    t('share: the image paths have a mint helper', typeof csShareToken, 'function');
+  })();
+
   const fails = R.filter(r => !r.ok);
   console.log(`\n${fails.length ? 'FAIL' : 'PASS'} — ${R.length} tests, ${fails.length} failure(s)`);
   return { total: R.length, failures: fails.map(f => f.name) };

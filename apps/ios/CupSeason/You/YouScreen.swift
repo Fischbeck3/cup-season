@@ -70,11 +70,21 @@ struct YouScreen: View {
                 .frame(width: 44, height: 44).contentShape(Rectangle())
             }
             .buttonStyle(.plain)
-            .accessibilityLabel("Card & settings")
+            .accessibilityLabel("Settings")
           }
           .padding(.bottom, 2)
 
           hero(me, p)
+
+          // IOS-029 call 1 · the card editor's labelled door. The credential
+          // above is tappable, but an invisible door is a secret — this states
+          // it, and names what is behind it.
+          CSRow(last: true) {
+            YouDoorRow(glyph: Text(Image(systemName: "square.and.pencil")),
+                       title: "Edit your card",
+                       sub: "NAME · MARKER · PHOTO · HANDLE",
+                       action: { links.openCard(false) })
+          }
 
           // D176 · buddies sat SEVENTH, under five sections of record — and it
           // is the only DOOR on a page that is otherwise all reading. You do
@@ -182,13 +192,28 @@ struct YouScreen: View {
       indexCurrent: p.index_current, rounds: rounds,
       trophyChips: more == nil ? lines : Array(lines.dropLast()), moreChip: more,
       form: FormRow.from(beats: (model.data.career?.recent ?? []).map(\.beat)),
+      onTapFace: { links.openCard(x?.avatarURL == nil) },
       anchor: {
-        if let g = x?.ghinNumber, !g.isEmpty {
+        // IOS-029 call 1 · the hero asks for the PHOTO first. It used to
+        // prompt for the GHIN — a reference field the product will never
+        // resell or verify — and stay silent about the one field that changes
+        // how every other golfer experiences the app. 1 profile in 39 had one.
+        if x?.avatarURL == nil {
+          A11yStack(rowAlignment: .firstTextBaseline, spacing: 0, columnSpacing: 2) {
+            if let since { Text(since + " · ").font(CSFont.footnote).foregroundStyle(cs.mut) }
+            Button { links.openCard(true) } label: {
+              Text("add your photo").font(CSFont.footnote).foregroundStyle(cs.brand).a11yHitSlop()
+            }
+            .buttonStyle(.plain)
+            .accessibilityLabel("Add your photo")
+          }
+          .frame(minHeight: 28)
+        } else if let g = x?.ghinNumber, !g.isEmpty {
           Text(["GHIN \(g)", since].compactMap { $0 }.joined(separator: " · ")).font(CSFont.footnote).foregroundStyle(cs.mut)
         } else {
           A11yStack(rowAlignment: .firstTextBaseline, spacing: 0, columnSpacing: 2) {
             if let since { Text(since + " · ").font(CSFont.footnote).foregroundStyle(cs.mut) }
-            Button { (links.addGhin ?? links.openSettings)() } label: {
+            Button { if let addGhin = links.addGhin { addGhin() } else { links.openCard(false) } } label: {
               Text("add your GHIN").font(CSFont.footnote).foregroundStyle(cs.brand).a11yHitSlop()
             }
             .buttonStyle(.plain)
