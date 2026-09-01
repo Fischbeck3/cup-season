@@ -8,6 +8,10 @@ const VERSION = '__CS_VERSION__';
 const CACHE = `cupseason-${VERSION}`;
 const SHELL = [
   '/',
+  /* The data layer. Same-origin since 2026-09-01 (it was an esm.sh import, and
+     line 34's cross-origin bypass meant it was NEVER cached — an installed PWA
+     re-fetched it on every cold load and died silently without it). */
+  '/vendor/supabase-js.js',
   '/manifest.webmanifest',
   '/icon-192.png',
   '/icon-512.png',

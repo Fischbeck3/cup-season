@@ -11,6 +11,7 @@
 
 import { readFileSync, readdirSync, writeFileSync, mkdtempSync, rmSync, existsSync } from 'node:fs';
 import { execFileSync } from 'node:child_process';
+import { createHash } from 'node:crypto';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
@@ -58,6 +59,10 @@ const warn = (name, note) => { warns++; console.log(`~ WARN  ${name} — ${note}
   const used = new Set([...html.matchAll(/window\.([A-Za-z_$][\w$]*)/g)].map(m => m[1])
     .filter(n => !BUILTINS.has(n)));
   const assigned = new Set([...html.matchAll(/window\.([A-Za-z_$][\w$]*)\s*=[^=]/g)].map(m => m[1]));
+  /* The vendored data layer defines its global from a same-origin <script src>,
+     so there is no `window.x =` for it to find. Seeded from the manifest so the
+     name and the file that provides it can never drift apart. */
+  try { assigned.add(JSON.parse(readFileSync(join(root, 'vendor', 'manifest.json'), 'utf8')).global); } catch (_) {}
   /* classic top-level function declarations ARE window properties; only
      module-scoped declarations need the explicit bridge (the real landmine) */
   for (const m of html.matchAll(/<script(\s+type="module")?\s*>([\s\S]*?)<\/script>/g)) {
@@ -74,9 +79,12 @@ const warn = (name, note) => { warns++; console.log(`~ WARN  ${name} — ${note}
 /* 4 · sw SHELL list must be inside the dist allowlist ---------------------- */
 {
   const shell = [...(sw.match(/const SHELL = \[([\s\S]*?)\]/) || ['',''])[1]
+    .replace(/\/\*[\s\S]*?\*\//g, '')          /* SHELL carries comments now */
     .matchAll(/'([^']+)'/g)].map(m => m[1]).filter(p => p !== '/');
-  const cpLine = (stamp.match(/^cp (?!-r)(.*)\\\n(.*)$/m) || [null, '', ''])
-    .slice(1).join(' ') || (stamp.match(/^cp (?!-r).*$/gm) || []).join(' ');
+  /* Join continuations FIRST, then take every `cp` line — the allowlist is no
+     longer one statement (vendor/ is copied separately), and a second cp used
+     to be invisible here. */
+  const cpLine = (stamp.replace(/\\\n/g, ' ').match(/^cp (?!-r).*$/gm) || []).join(' ');
   const missing = shell.filter(p => !cpLine.includes(p.replace(/^\//, '')));
   missing.length === 0
     ? pass('sw shell within dist allowlist', `${shell.length} assets`)
@@ -123,7 +131,9 @@ const warn = (name, note) => { warns++; console.log(`~ WARN  ${name} — ${note}
 
 /* 8 · dist allowlist files all exist --------------------------------------- */
 {
-  const names = ((stamp.match(/^cp (?!-r).*$/gm) || []).join(' ').match(/[\w.-]+\.(?:html|js|webmanifest|png)/g) || []);
+  const names = ((stamp.replace(/\\\n/g, ' ').match(/^cp (?!-r).*$/gm) || []).join(' ')
+    .match(/[\w./-]+\.(?:html|js|webmanifest|png)/g) || [])
+    .map(n => n.replace(/^\$?\{?DIST\}?\//, ''));   /* paths, not just basenames */
   const missing = names.filter(n => !existsSync(join(root, n)));
   missing.length === 0
     ? pass('dist allowlist files exist', `${names.length} files`)
@@ -620,6 +630,52 @@ else {
     ? pass('postgrest embeds name their FK', 'live_round_players embeds are disambiguated')
     : fail('postgrest embeds name their FK', [...new Set(offenders)].join(' · ') +
         ' — PostgREST returns 300 PGRST201; use live_round_players!live_round_players_live_round_id_fkey(...)');
+}
+
+/* 22 · the boot path is same-origin and pinned ------------------------------
+   The client used to boot from `import … from 'https://esm.sh/…@2'` — the
+   first line of the ONE module block that holds every door handler and boot
+   itself. Blocked CDN => the module never ran => a perfect-looking door whose
+   every button silently did nothing, with no watchdog (module-side) and no
+   error bar (debug-gated). Demonstrated live in a sandbox, 2026-09-01. Five
+   assertions, because the fix spans five files that must agree. */
+{
+  const bad = [];
+  const man = (() => { try { return JSON.parse(readFileSync(join(root, 'vendor', 'manifest.json'), 'utf8')); } catch (_) { return null; } })();
+  if (!man) bad.push('vendor/manifest.json missing — run node tools/vendor-supabase.mjs');
+
+  // (a) no cross-origin <script src> anywhere
+  for (const m of html.matchAll(/<script[^>]+src="(https?:)?\/\//g)) bad.push('cross-origin <script src> on the boot path');
+  // (b) no absolute-URL import inside a module block
+  for (const m of html.matchAll(/<script\s+type="module"\s*>([\s\S]*?)<\/script>/g)) {
+    if (/\bimport\s[^;]*?['"]https?:\/\//.test(m[1]) || /\bimport\s*\(\s*['"]https?:\/\//.test(m[1]))
+      bad.push('absolute-URL import inside a module block');
+  }
+  if (man) {
+    const path = '/' + man.file;
+    // (c) the vendor tag exists AND precedes the module — ordering is load-bearing
+    const tag = html.indexOf(`<script src="${path}"`);
+    const mod = html.indexOf('<script type="module">');
+    if (tag < 0) bad.push(`index.html does not load ${path}`);
+    else if (mod >= 0 && tag > mod) bad.push('the vendored library loads AFTER the module block');
+    // (d) cached and shipped, or it 404s in prod
+    if (!sw.includes(path)) bad.push(`sw.js SHELL is missing ${path}`);
+    /* Must be an actual `cp`, not just a mention. This assertion MISSED when it
+       read the whole file: the word also appears in a comment and in the
+       non-empty guard loop, so deleting the real cp line still passed — on the
+       one line whose failure mode is a 404 on the file the whole app boots
+       from. Tested by deletion, 2026-09-01. */
+    const cps = (stamp.replace(/\\\n/g, ' ').match(/^\s*cp .*$/gm) || []).join(' ');
+    if (!cps.includes(man.file)) bad.push(`stamp-version.sh has no cp for ${man.file} — it would 404 in prod`);
+    // (e) the bytes are the pinned bytes
+    try {
+      const got = createHash('sha256').update(readFileSync(join(root, man.file))).digest('hex');
+      if (got !== man.sha256) bad.push('vendor/supabase-js.js does not match its manifest sha256');
+    } catch (_) { bad.push(`${man.file} is missing from the repo`); }
+  }
+  bad.length === 0
+    ? pass('boot path same-origin and pinned', man ? `${man.package}@${man.version}, ${man.bytes} bytes` : '')
+    : fail('boot path same-origin and pinned', [...new Set(bad)].join(' · '));
 }
 
 console.log(`\n${fails ? 'FAIL' : 'PASS'} — ${fails} failure(s), ${warns} warning(s)`);

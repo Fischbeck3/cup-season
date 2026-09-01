@@ -5112,3 +5112,87 @@ Both restored; verified in a rolled-back prod transaction: 2 board posts written
 **Verified:** preflight 0/0; `app-tests.js` 42/42 headless, including **seven new regressions** — that `.league-only` hides at all, that the seasons head hides with its children, that the floor line is silent without a league *and still speaks inside one*, and that a breadcrumb survives the diorama guard with the node intact. Clean signed-out boot carries only the GoTrue lock-deprecation warning.
 
 **CONFLICT:** none. Defect repair. The phone is unaffected by 2–4 (its `Growth.log` never had a demo guard, and the other two are web markup); iOS keeps its own gap — no orientation and no crew step — which is P2 and named in the pre-launch list, not here.
+
+### D186 · The one import that could kill the whole door
+*(2026-09-01, from the blind-audit action plan, phase 0.1. Architecture, not a
+competition mechanic — logged because it is the same weight as D37/D76/D99, and
+because the failure it fixes was invisible for the entire life of the product.)*
+
+**Numbering note, so the next sessions do not collide:** two other streams from
+the same plan each independently proposed "D186". They are reserved here —
+**D187** is the allowance/pvi correctness sweep (`home_feed` + `round_card` +
+the client fallbacks), **D188** is the door's below-the-fold story plus the
+funnel widening. D182 and D131 take dated *amendments*, not new numbers.
+
+**Current mechanic.** `index.html` opened its one `<script type="module">` with
+`import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'`. That
+module holds every door handler (`obEmail`, `obJoin`, `joinGo`, `obCodeGo`) and
+`boot()` itself.
+
+**Problem.** If that one fetch fails — a filtered corporate or hotel network, a
+DNS blocklist, a CDN outage — the module never executes and **every button on
+the door silently does nothing**. There is no error, because the 8-second boot
+watchdog is itself inside the dead module and `#errbar` is debug-gated off. The
+service worker made it worse: `sw.js` deliberately never intercepts
+cross-origin, so the library was **never cached** and an installed PWA
+re-fetched it on every cold load. Demonstrated, not theorised: a sandbox whose
+proxy blocked `esm.sh` rendered a pixel-perfect door on which "Continue with
+email" did nothing at all, with a clean console and zero telemetry. The import
+also floated on major `@2`, so two users on the same stamped build could run
+different library code, and whatever `esm.sh` served executed with full access
+to the user's session token.
+
+**Recommendation (built).** Vendor the library, pinned, same-origin:
+`vendor/supabase-js.js` @ 2.112.4 with `vendor/manifest.json` carrying the
+sha256; regenerate with `node tools/vendor-supabase.mjs <version>`. Load it as a
+parser-blocking classic `<script src>` **before** the module, then
+`const { createClient } = window.supabase`. Precache it in the SW `SHELL`, copy
+it in `stamp-version.sh`'s dist allowlist, and revalidate it via a `/vendor/*`
+`no-cache` header. Give a dead boot a voice with two classic-side triggers — a
+synchronous check right after the library tag, and a 12-second poll on
+`window.sb` for every other cause — which writes the door's own status line, an
+**ungated** `#errbar`, a Reload button, and **dims the two door CTAs** so the
+only live control is the one that can help. Add an offline banner. Drop
+`esm.sh` from the CSP's `script-src`.
+
+**Principle served.** §16, everything shows its work — a failure the user can
+see is a failure they can act on. Principle 2 (low friction): the door is the
+first screen a stranger meets and it must never be a beautiful dead end.
+
+**Benefit.** The app's only third-party runtime dependency and its only
+supply-chain exposure are gone in one move; an installed PWA now boots offline;
+the library is reproducible across users and deploys; and no third-party script
+origin remains in the CSP, which was the last blocker to enforcing it.
+
+**Tradeoffs.** 212 KB of vendored code in the repo, and a deliberate manual
+ritual to bump it (one command, two files). A stable filename was chosen over a
+versioned one specifically so a bump does not have to move three coupled
+hand-edited lines — the collision pattern rule 2 killed for the version line.
+
+**Verified.** Built `dist/` with the real `stamp-version.sh` and drove it in a
+browser whose proxy still blocks `esm.sh`: the door boots, `window.sb` bridges,
+the email box opens, and **zero requests reach esm.sh**. Blocking
+`/vendor/supabase-js.js` produces the visible message, the Reload button and the
+dimmed CTAs; killing the module another way trips the 12-second backstop;
+offline, the SW serves both shell and library and the banner appears. Preflight
+adds check 22 (boot path same-origin, correctly ordered, cached, shipped, and
+sha256-matched) and repairs checks 3, 4 and 8, which this change broke.
+
+**One assertion had to be fixed after it lied.** Check 22's allowlist clause
+first read the whole of `stamp-version.sh`, so deleting the real `cp` line still
+passed — the word survived in a comment and in the guard loop. It now matches
+only actual `cp` lines. That was the single highest-consequence line in the
+change (a missing allowlist entry 404s the file the entire app boots from), and
+it is the repo's own lesson again: an assertion is worth nothing until something
+fails on it. All four regressions — allowlist, SW shell, tampered bytes,
+reintroduced cross-origin import — were then proven to fail the build.
+
+**Not done here, deliberately.** The CSP stays **Report-Only**. Removing
+`esm.sh` was the last structural blocker, but the flip is its own change and
+wants one deploy's clean console first, per the standing note in `netlify.toml`.
+The six edge functions still import `supabase-js` from `esm.sh` on the server
+side; pinning them is a separate `functions deploy` and must not ride with a
+client push.
+
+**CONFLICT:** none. iOS is untouched — the phone links its SDK natively and
+never had this dependency.

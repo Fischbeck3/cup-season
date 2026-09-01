@@ -1699,6 +1699,22 @@ html[data-theme="light"] .momrow{background:rgba(21,116,63,.06);}
   padding:10px 14px calc(10px + env(safe-area-inset-bottom)); word-break:break-word;
 }
 
+/* Offline banner. Mirrors #errbar but amber and TOP-anchored: Q-13 moved
+   #installNudge to the top because a bottom banner ate taps meant for the
+   FAB. z-index sits above #installNudge (24) so the two never overlap; the
+   nudge is suppressed while this is up. */
+#offlineBar{
+  /* 998: above the door overlay (.onboard, z-index:50) and every sheet — this
+     sat at 26 and was invisible behind the sign-in screen, the one surface an
+     offline user actually lands on. Below #errbar (999) by one, deliberately:
+     a hard error outranks a connectivity notice. */
+  position:fixed; left:0; right:0; top:0; z-index:998;
+  font-family:var(--mono); font-size:12px; line-height:1.6; letter-spacing:.02em;
+  color:#FFE9C2; background:#3A2A15; border-bottom:1px solid var(--warm);
+  padding:calc(9px + env(safe-area-inset-top)) 14px 9px; text-align:center;
+}
+#installNudge[data-cs-offline]{display:none !important;}
+
 /* ============ tab bar (mobile) ============ */
 .tabbar{
   position:fixed; left:0; right:0; bottom:0; z-index:25;
@@ -3924,6 +3940,81 @@ html[data-theme="light"] .room-dusk .btn:not(.dark):not(.gold):not(.apple){color
     var s=(err && err.stack) ? String(err.stack) : '';
     return s.split('\n').slice(0,4).map(function(l){ return l.trim(); }).join(' <- ').slice(0,400);
   }
+  /* ---- the dead boot gets a voice -------------------------------------
+     Everything that makes the door work lives in the ONE module block. If it
+     never executes — library missing, parse error, a throw at module top level
+     — the door still paints and every button is inert. That failure produced
+     NO signal at all: the 8s boot watchdog is itself module-side, and #errbar
+     is debug-gated. These two triggers are both classic, so they survive the
+     exact failure they report. Written to #obStatus (the door's own live
+     region) and to #errbar UNGATED: a dead boot is the one case where the
+     debug gate would hide the only remaining voice. */
+  window.csDeadBoot = function(why){
+    if(window.__csDead) return; window.__csDead = true;
+    var off = (navigator.onLine === false);
+    var msg = off
+      ? "You're offline. Cup Season needs a connection to sign in — reconnect and reload."
+      : "Cup Season didn't finish loading. Reload to try again.";
+    try {
+      var el = document.getElementById('obStatus');
+      if(el){
+        el.textContent = msg; el.className = 'ob-status err';
+        if(!document.getElementById('csReload')){
+          var btn = document.createElement('button');
+          btn.id='csReload'; btn.type='button'; btn.className='cs-tskip';
+          btn.textContent='Reload';
+          btn.addEventListener('click', function(){ location.reload(); });
+          el.insertAdjacentElement('afterend', btn);
+        }
+      }
+      /* The door's own CTAs are wired inside the module that just failed to
+         run. Leaving them bright and tappable is the original bug wearing a
+         message: dim them so the only live control is Reload. */
+      ['obEmail','obJoin'].forEach(function(id){
+        var n = document.getElementById(id);
+        if(n){ n.setAttribute('disabled',''); n.setAttribute('aria-disabled','true');
+               n.style.opacity='.4'; n.style.pointerEvents='none'; }
+      });
+      var b = document.getElementById('errbar');
+      if(b){ b.style.display='block'; b.textContent='⚠ '+msg; }
+    } catch(_){}
+    console.error('[cs] dead boot:', why);
+  };
+  /* Backstop for every cause the synchronous library check cannot see. Polls
+     for window.sb (the module's first bridge) rather than firing on a one-shot
+     timer, so a slow connection never triggers a false alarm. */
+  (function(){
+    var t0 = Date.now();
+    var iv = setInterval(function(){
+      if(window.sb || window.__csDead){ clearInterval(iv); return; }
+      if(Date.now() - t0 > 12000){ clearInterval(iv); window.csDeadBoot('module'); }
+    }, 500);
+  })();
+
+  /* ---- offline banner --------------------------------------------------
+     Honesty, not offline functionality: the shell and the library are cached,
+     so an installed PWA now BOOTS offline and then fails at the first network
+     read. Without this it looks like the app is broken. Top-anchored — Q-13
+     moved #installNudge up for exactly this reason: a bottom banner eats taps
+     meant for the ⊕ tee. */
+  (function(){
+    var bar;
+    function el(){
+      if(bar) return bar;
+      bar = document.createElement('div');
+      bar.id = 'offlineBar'; bar.setAttribute('role','status');
+      bar.textContent = "You're offline — rounds you post won't save until you reconnect.";
+      bar.hidden = true;
+      document.body.appendChild(bar);
+      return bar;
+    }
+    function show(){ el().hidden = false; var n=document.getElementById('installNudge'); if(n) n.dataset.csOffline='1'; }
+    function hide(){ el().hidden = true; var n=document.getElementById('installNudge'); if(n) delete n.dataset.csOffline; }
+    window.addEventListener('offline', show);
+    window.addEventListener('online', hide);
+    if(navigator.onLine === false) show();
+  })();
+
   window.addEventListener('error', function(e){
     var m=(e.message||'script error')+' @ '+(e.filename||'').split('/').pop()+':'+(e.lineno||'?');
     var st=trace(e.error);
@@ -14475,8 +14566,22 @@ renderClimb(); renderStandings(); renderFeed(); renderDraft(); renderPot(); rend
      CUP SEASON — BACKEND LAYER (pass 1: auth + leagues)
      Everything above this line is the UI. This module makes it real.
      ============================================================ -->
+<!-- The data layer is VENDORED and PINNED (vendor/manifest.json). It used to
+     be `import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'`
+     — the first line of the ONE module block that holds every door handler and
+     boot itself. A filtered network or a CDN outage meant the module never ran:
+     the door rendered perfectly and every button silently did nothing, with no
+     watchdog (module-side) and no error bar (debug-gated off). Reproduced in a
+     sandbox whose proxy blocked esm.sh, 2026-09-01. Now same-origin, cached by
+     the service worker, and pinned so two users on one build run one library.
+     NOT deferred, deliberately: a parser-blocking classic script here costs
+     nothing (only the module follows) and guarantees the check below runs
+     AFTER the library has either executed or failed. Re-vendor with
+     `node tools/vendor-supabase.mjs <version>`. -->
+<script src="/vendor/supabase-js.js"></script>
+<script>if(!window.supabase) window.csDeadBoot('library');</script>
 <script type="module">
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+const { createClient } = window.supabase;
 
 const SUPABASE_URL  = 'https://zddbfcokmvneltrgukzf.supabase.co';
 const SUPABASE_KEY  = 'sb_publishable_UoORp_4FTRWg6a7foKqxRA_N2f5kHVS';

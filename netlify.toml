@@ -27,7 +27,12 @@
     # day; if it's clean, rename this key to `Content-Security-Policy` to enforce
     # (the real value then is the locked connect-src/img-src, which stops a
     # future injected script from exfiltrating a token off-origin).
-    Content-Security-Policy-Report-Only = "default-src 'self'; script-src 'self' 'unsafe-inline' https://esm.sh; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob: https://*.supabase.co; connect-src 'self' https://*.supabase.co wss://*.supabase.co; frame-ancestors 'none'; base-uri 'self'; object-src 'none'; form-action 'self'"
+    # 2026-09-01: https://esm.sh removed from script-src — supabase-js is now
+    # vendored same-origin (vendor/manifest.json), so NO third-party script
+    # origin remains. That was the last blocker to enforcing; flip the key after
+    # one deploy's console comes back clean. 'unsafe-inline' stays forced by the
+    # single-file architecture, so connect-src is where the value is.
+    Content-Security-Policy-Report-Only = "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob: https://*.supabase.co; connect-src 'self' https://*.supabase.co wss://*.supabase.co; frame-ancestors 'none'; base-uri 'self'; object-src 'none'; form-action 'self'"
 
 # Edge functions are NOT declared here. netlify/edge-functions/*.ts each export
 # their own `config` (the modern API) and Netlify discovers them from the repo,
@@ -36,6 +41,15 @@
 # Declaring a path here as well would collide with the in-file config.
 #   share-preview.ts — per-token OG tags on /?share=TOKEN (D77/D78). Fails open:
 #   any error serves the untouched origin HTML.
+
+# The vendored data layer has a STABLE filename (the version lives in
+# vendor/manifest.json), so it must revalidate rather than be pinned in a
+# browser cache across a re-vendor. One cheap 304 per service-worker install;
+# between installs the SW cache serves it with no network at all.
+[[headers]]
+  for = "/vendor/*"
+  [headers.values]
+    Cache-Control = "no-cache"
 
 # The service worker must never be cached — it's how new builds reach users.
 [[headers]]

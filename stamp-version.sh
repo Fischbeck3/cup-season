@@ -38,6 +38,11 @@ mkdir -p "$DIST"
 cp index.html legal.html sw.js manifest.webmanifest apple-touch-icon.png \
    icon-192.png icon-512.png icon-512-maskable.png og-image.png "$DIST/"
 cp -r brand "$DIST/brand"
+# The vendored, pinned data layer. index.html boots from this file: if it is
+# missing from dist/ the whole app is dead on arrival, so preflight asserts the
+# path appears here, in sw.js's SHELL and in the script tag together.
+mkdir -p "$DIST/vendor"
+cp vendor/supabase-js.js "$DIST/vendor/"
 # iOS universal links: Apple fetches this at https://cupseason.app/.well-known/
 # (claim/join links open the app). Team ID placeholder until enrollment lands.
 mkdir -p "$DIST/.well-known"
@@ -55,7 +60,7 @@ fi
 
 # The shell must exist and be non-empty, or the deploy is a blank site. Fail the
 # build (Netlify then keeps the previous good deploy live) rather than ship it.
-for f in index.html sw.js manifest.webmanifest; do
+for f in index.html sw.js manifest.webmanifest vendor/supabase-js.js; do
   if [ ! -s "$DIST/$f" ]; then
     echo "[stamp] ERROR: $DIST/$f is missing or empty" >&2
     exit 1

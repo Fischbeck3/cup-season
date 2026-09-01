@@ -1,0 +1,10 @@
+{
+  "package": "@supabase/supabase-js",
+  "version": "2.112.4",
+  "file": "vendor/supabase-js.js",
+  "bytes": 212426,
+  "sha256": "f8ce7fab799af1916019cbd0b485b39bb80dbdbc6dc062909a751c9e5198e04c",
+  "global": "supabase",
+  "source": "npm dist/umd/supabase.js",
+  "why": "same-origin + pinned; see the header of tools/vendor-supabase.mjs"
+}
