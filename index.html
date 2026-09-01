@@ -11229,6 +11229,21 @@ function renderHomeHero(){
   /* 4 · forming (setup/draft) or the season's first days */
   if(force==='forming' || (!force && window.CS.league)){
     const n=(window.CS.members||[]).length;
+    /* THE ROSTER MAY NOT HAVE LANDED. `CS.members` is empty both when a league
+       genuinely has nobody in it and when the load has not returned — and the
+       hero was printing the second case as though it were the first. A member
+       looking at their own full league saw "0 in.", and because `solo` was
+       `n <= 1`, the drawing stage said "Just you so far." Two different false
+       statements from one missing guard.
+       You are yourself in every league you can see this hero for, so n === 0
+       can ONLY mean "not loaded yet" — which makes it a clean signal rather
+       than an ambiguous one. Say nothing about the count until we have it; the
+       rest of every line is true regardless. And kick the load, the way
+       switchView and the live roster picker already do (~:4541, ~:8435) —
+       "the room must never sit empty" applies to Home first. */
+    const rosterKnown = n > 0;
+    if(!state.demo && window.CS?.league && !rosterKnown && window.loadLeagueData) window.loadLeagueData();
+    const lead = rosterKnown ? `<b>${n} in.</b> ` : '';
     const tee = state.startISO ? localDate(state.startISO) : (state.seasonStart ? seasonS() : null);
     const dd = tee ? Math.max(0, Math.round((tee - new Date().setHours(0,0,0,0))/864e5)) : null;
     /* Code audit 2026-08-30 (SD-05/idx09-02) · `starter` meant "phase is season",
@@ -11251,7 +11266,7 @@ function renderHomeHero(){
        wizard blocks on it: name it → invite someone → lock the bylaws. */
     const lgName = window.CS.league?.name || '';
     const unnamed = !lgName || /^my cup$/i.test(lgName.trim());
-    const solo = n <= 1;
+    const solo = rosterKnown && n <= 1;
     /* The wizard is three steps: 0 name · 1 house rules · 2 review+lock. There
        is NO pre-lock invite step — inviting moved to the share screen that
        openLockShare opens right after the lock ("the wizard's last screen is
@@ -11280,7 +11295,7 @@ function renderHomeHero(){
        the rest of the app (D120). */
     const stage  = leagueStage();
     const isPro  = window.CS.member?.role === 'commissioner';
-    const need   = Math.max(0, ((typeof STRUCT_MIN!=='undefined' ? STRUCT_MIN : {})[state.structure] || 4) - n);
+    const need   = rosterKnown ? Math.max(0, ((typeof STRUCT_MIN!=='undefined' ? STRUCT_MIN : {})[state.structure] || 4) - n) : 0;
     const proName = (window.CS.members||[]).find(m => m.role === 'commissioner')?.profile?.display_name || 'the Pro';
     const planRound  = { label:'Plan a round',  go:()=>switchView('schedule') };
     const nextStep =
@@ -11295,8 +11310,15 @@ function renderHomeHero(){
       :                                            null;
     /* the member's second move, offered quietly under the hero rather than
        competing with it */
+    /* The label is the ACTION and nothing else. It used to read "Post a
+       practice round — it builds your number", which in preseason sat about
+       ten words under a hero line already saying "Rounds before it build your
+       number." The app explained itself twice on one screen, and the button
+       spent its words on the why instead of the what. The why has a better
+       home: the post sheet itself says "Practice — the season starts <date>.
+       This round builds your number" at the exact moment it matters (~:6214). */
     const subStep = (!isPro && stage !== 'season' && stage !== 'final' && stage !== 'complete')
-      ? { label:'Post a practice round — it builds your number', go:()=>switchView('record') } : null;
+      ? { label:'Post a round', go:()=>switchView('record') } : null;
     box.innerHTML = heroCard('', `${esc(lgName||'Your league')} · ${STAGE_LABEL[stage].toLowerCase()}`,
       dd!=null && !starter ? `<div class="hh-fig"><span class="hh-pos">${dd}</span><span class="hh-ord">day${dd===1?'':'s'}</span></div>` : '',
       starter ? `The season's on. <em>Rounds count from today.</em>`
@@ -11309,15 +11331,15 @@ function renderHomeHero(){
               : !isPro && stage === 'forming'
                   ? `<b>${esc(proName)}</b> is setting the bylaws. <em>You'll see them the moment they lock.</em>`
               : !isPro && stage === 'drawing'
-                  ? `<b>${n} in.</b> <em>${esc(proName)} draws the squads${dd!=null?` before first tee`:''} — it's random.</em>`
+                  ? `${lead}<em>${esc(proName)} draws the squads${dd!=null?` before first tee`:''} — it's random.</em>`
               : !isPro && stage === 'preseason'
-                  ? `<b>${n} in.</b> <em>First tee ${esc(firstTeeText())}. Rounds before it build your number.</em>`
+                  ? `${lead}<em>First tee ${esc(firstTeeText())}. Rounds before it build your number.</em>`
               : stage === 'drawing' && solo ? `<b>Just you so far.</b> <em>One link fills the league.</em>`
               : stage === 'drawing' && need ? `<b>${n} in.</b> <em>${need} more to tee off.</em>`
-              : stage === 'drawing'         ? `<b>${n} in</b> — enough to tee off. <em>Squads next.</em>`
-              : stage === 'preseason'       ? `<b>${n} in.</b> <em>First tee ${esc(firstTeeText())}.</em>`
+              : stage === 'drawing' && rosterKnown ? `<b>${n} in</b> — enough to tee off. <em>Squads next.</em>`
+              : stage === 'preseason'       ? `${lead}<em>First tee ${esc(firstTeeText())}.</em>`
               : solo    ? `<b>Just you so far.</b> <em>Lock the bylaws and the invite link is yours.</em>`
-              : `${dd!=null?'to first tee. ':''}<b>${n} golfers in.</b> <em>The bylaws lock at the tee.</em>`,
+              : `${dd!=null?'to first tee. ':''}${rosterKnown?`<b>${n} golfers in.</b> `:''}<em>The bylaws lock at the tee.</em>`,
       n?`<span>Roster</span><span class="hh-bar"><i style="width:${Math.min(100, Math.round(n/12*100))}%"></i></span><span>${n} in</span>`:'',
       (starter || !nextStep) ? '' : `<button class="hh-cta" data-hform type="button">${nextStep.label}</button>`
       + (subStep ? `<button class="hh-sub" data-hsub type="button">${subStep.label}</button>` : ''));
