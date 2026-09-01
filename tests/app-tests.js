@@ -47,6 +47,25 @@
   t('bands: -1.0 is named for the points it pays', bandName(-1.0), 'A little loose');
   t('bands: -0.99 is still played-to-it', [pointsFor(-0.99)[0], bandName(-0.99)], [7, 'Played to it']);
 
+  /* D188 · qaEvent's guard was `state.demo || !window.sb`, and state.demo starts
+     TRUE and clears only after the golfer card is saved — so every crew-step
+     breadcrumb on the cold-signup path was swallowed. Exactly the shape D185
+     fixed for growthEvent, surviving one node deeper. The real precondition is
+     a signed-in user; RLS ce_insert_own is the actual gate. */
+  (function(){
+    const prevSb = window.sb, prevCS = window.CS, prevDemo = state.demo;
+    let sent = [];
+    window.sb = { from: () => ({ insert: r => { sent.push(r); return { then: () => {} }; } }) };
+    state.demo = true;                       /* the diorama flag, as at signup */
+    window.CS = { user: { id: 'u1' } };
+    qaEvent('crew_step_shown', { how: 'code' });
+    t('qaEvent: survives the demo flag when a user is signed in', sent.length, 1);
+    sent = []; window.CS = {};               /* signed out */
+    qaEvent('crew_step_shown');
+    t('qaEvent: still silent with no signed-in user', sent.length, 0);
+    window.sb = prevSb; window.CS = prevCS; state.demo = prevDemo;
+  })();
+
   /* D182 · the round that stops at eleven. liveCardHoles used to require that
      NOTHING was scored past hole 9 for a front nine to count, so a 10-hole
      walk-off reported 0 and vanished at finish — the owner lost a real 46-stroke

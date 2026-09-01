@@ -5300,3 +5300,74 @@ league allowance correctly.
 untouched (no dial is exposed outside Custom). D144's "allowance stays in the
 table only" is honoured for the *bylaws surface* and superseded only inside the
 receipt, which D2 had already exempted.
+
+### D188 · The funnel's middle column, and the crew step nobody could measure
+*(2026-09-01, from the blind-audit action plan, phase 0.4. Number reserved in
+D186. Widens an anon-granted endpoint and adds a funnel node, so it is logged
+before it is built even though no competition mechanic changes.)*
+
+**Current mechanic.** `log_growth_event` is one of the twelve anon endpoints. Its
+signed-out branch accepted exactly one node: `link_opened`.
+
+**Problem.** Two defects, both silent by construction.
+1. **`claim_started` could never be recorded.** The client fires it only from the
+   signed-out branch of the claim door — and the server dropped every anon node
+   that was not `link_opened`. The RPC returned void, the `v_growth_funnel`
+   column stayed zero forever, and nothing complained. The same silent-swallow
+   shape D185 had just diagnosed one node up, surviving a node deeper. The
+   funnel could not show where claim recipients stall, which is the middle of
+   the loop the whole Year-1 plan bets on.
+2. **The 4-of-23 number was unmeasurable.** `index.html` carries it in a comment:
+   20 of 23 golfers finished a card, only **4** ever reached a league containing
+   another human. That is the product's central retention question and nothing
+   recorded it.
+3. **`qaEvent` swallowed the crew step.** Its guard was `state.demo || !window.sb`,
+   and `state.demo` starts **true**, clearing only in `showWelcome()` /
+   `resetToBlank()` — both of which run *after* the golfer card is saved. So every
+   crew-step breadcrumb on the cold-signup path was dropped. D185 deleted this
+   guard from `growthEvent`; the twin in `qaEvent` was missed.
+
+**Recommendation (built).** Anon may log `claim_started`, and **only** on the
+claim door (`kind = 'claim'`), against a token that must resolve to a real
+`scan_claims` / `live_round_players` row. A new `crew_reached` node is decided
+**server-side** — the client may fire it on every join and once at boot; the
+server verifies the membership actually contains another human and dedupes to
+one row per golfer, ever. It is fired from `loadMemberships()`, which every join
+path and boot already calls. `qaEvent`'s guard becomes `!window.sb || !CS.user`;
+RLS `ce_insert_own` (`profile_id = auth.uid()`) is the real gate, so an anon or
+diorama caller physically cannot write a row.
+
+**Principle served.** The growth loop is the Year-1 make-or-break assumption and
+it has never produced a measured conversion rate. A funnel that cannot record
+its own middle is not instrumentation.
+
+**Benefit.** The funnel reads end to end: shared → opened → **claim_started** →
+profile → **crew_reached** → first round. Existing golfers backfill on their
+next visit, so expect a `crew_reached` spike in the week this ships — that is
+history arriving, not a surge.
+
+**Tradeoffs.** One more node on an anon-granted endpoint. All five properties
+that made it safe are preserved and were re-proven: a token stays **mandatory**
+and must resolve to a real row; every path still returns `void` and never
+raises, so a made-up token is indistinguishable from a real one — no oracle; the
+≤20-rows-per-token-per-hour cap now covers both nodes together; props are still
+stripped of PII and capped; and anon still holds **zero** relation privileges,
+so the SECURITY DEFINER remains the only door.
+
+**Deliberately NOT added.** A token-less anon node (a cold-door breadcrumb). The
+rate limit is keyed on the token, so a null-token node would be an **uncapped
+unauthenticated insert**. Cold-door volume belongs in Netlify analytics.
+
+**Verified on Postgres 16** with the full migration history. Signed-out: a real
+claim token logs one row; a **fake** token logs nothing and returns identically;
+`profile_created`, `crew_reached`, and `claim_started` with the wrong kind are
+all refused. Signed-in: `crew_reached` fired three times by a golfer who shares
+a league produced **one** row; a golfer in no league produced **none**. The view
+returns all six columns and stays unreadable to `anon` and `authenticated`.
+
+**CONFLICT:** none. Extends D185's diagnosis rather than revisiting it.
+
+**The measurement gate is not a code gate.** Within a day of the push, all six
+nodes must show a non-zero row. The product question — does the loop convert —
+needs roughly 30 cold arrivals over 2–4 weeks. Baselines to beat: 17% reached a
+league with another human, 30% posted a round.

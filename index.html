@@ -6935,7 +6935,14 @@ function finishDismiss(){
    profile_id defaults to auth.uid() server-side, so nothing is sent here. ---- */
 function qaEvent(event, props){
   try{
-    if(state.demo || !window.sb) return;
+    /* D188 · the guard was `state.demo || !window.sb`, and state.demo starts
+       TRUE — it is cleared only in showWelcome()/resetToBlank(), both of which
+       run AFTER the golfer card is saved. So every crew-step breadcrumb on the
+       cold-signup path was swallowed, which is the exact shape D185 found and
+       fixed for growthEvent() alone; this one survived a node deeper. The real
+       precondition is a signed-in user, and the RLS policy ce_insert_own is the
+       actual gate — an anon or diorama caller physically cannot write a row. */
+    if(!window.sb || !window.CS?.user) return;
     window.sb.from('client_events').insert({ event, props: props||{} }).then(null, ()=>{});
   }catch(_){}
 }
@@ -16242,6 +16249,16 @@ async function loadMemberships(){
     .eq('profile_id', CS.user.id);
   if(error) throw error;
   CS.memberships = data ?? [];
+  /* D188 · crew_reached — the 4-of-23 number, finally measurable. Fired here
+     rather than at each of the four join sites plus boot, because every one of
+     them already calls this. Safe to fire liberally: the SERVER decides it
+     (it checks that the league actually contains another human) and dedupes to
+     one row per golfer ever, so repeat calls are no-ops and existing golfers
+     backfill on their next visit. Once per session is plenty. */
+  if(CS.memberships.length && !CS._crewLogged){
+    CS._crewLogged = true;
+    try { window.growthEvent?.('crew_reached'); } catch(_){}
+  }
   return CS.memberships;
 }
 
