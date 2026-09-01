@@ -147,6 +147,62 @@
       /Barrier broken/.test(dom(momRowHtml(mom, 0)).textContent), true);
   })();
 
+  /* D185 — the three that shipped to every stranger. All self-cleaning. */
+  (function(){
+    /* 1 · `.league-only` must actually hide. It was a class with no rule for
+       as long as it existed; the Clubhouse escaped only because a separate
+       rule hides that whole view. */
+    const had = document.body.classList.contains('noleague');
+    document.body.classList.add('noleague');
+    const marked = [...document.querySelectorAll('.league-only')];
+    t('league-only: the class is used at all', marked.length > 0, true);
+    t('league-only: nothing league-scoped is visible without a league',
+      marked.filter(e => e.offsetParent !== null).length, 0);
+    const head = [...document.querySelectorAll('.grouphead')].find(e => /Your seasons/.test(e.textContent));
+    t('league-only: the "Your seasons" head hides with its children',
+      head ? head.offsetParent === null : 'head missing', true);
+    if (!had) document.body.classList.remove('noleague');
+
+    /* 2 · the monthly floor is a LEAGUE rule. A golfer with no league was told
+       their squad loses 5 points a round, on the first screen after signup. */
+    if (typeof renderPulse === 'function' && document.querySelector('#homePulse')) {
+      const box = $('#homePulse'), realHero = window.renderHomeHero, realLeague = window.CS?.league;
+      const realDemo = state.demo, realFloor = state.floor;
+      window.renderHomeHero = () => {};
+      let hero = document.querySelector('#homeHero'), madeHero = false;
+      if (!hero) { hero = document.createElement('div'); hero.id = 'homeHero'; document.body.appendChild(hero); madeHero = true; }
+      let foot = hero.querySelector('.hh-foot'), madeFoot = false;
+      if (!foot) { foot = document.createElement('div'); foot.className = 'hh-foot'; hero.appendChild(foot); madeFoot = true; }
+      state.demo = false; state.floor = 2;
+      if (window.CS) window.CS.league = null;
+      renderPulse();
+      t('floor line: silent for a golfer with no league', (box.innerText || '').trim(), '');
+      if (window.CS) window.CS.league = { id: 'x', name: 'Test' };
+      try { renderPulse(); t('floor line: still speaks inside a league', /Monthly floor/.test(box.innerText || ''), true); }
+      catch (e) { t('floor line: still speaks inside a league', 'threw ' + e.message, true); }
+      box.innerHTML = '';
+      if (madeFoot) foot.remove();
+      if (madeHero) hero.remove();
+      window.renderHomeHero = realHero;
+      if (window.CS) window.CS.league = realLeague;
+      state.demo = realDemo; state.floor = realFloor;
+    }
+
+    /* 3 · growthEvent must NOT bail on state.demo. It did, and demo is true
+       through the whole of onboarding — which is when profile_created and
+       link_opened fire. Zero rows in thirty signups. */
+    if (typeof window.growthEvent === 'function' && window.sb) {
+      const realRpc = window.sb.rpc, realDemo = state.demo;
+      let called = null;
+      window.sb.rpc = (name, args) => { called = { name, args }; return Promise.resolve({ data: null, error: null }); };
+      state.demo = true;
+      window.growthEvent('link_opened', 'join', 'TESTCODE');
+      t('growth: a breadcrumb survives the diorama guard', called && called.name, 'log_growth_event');
+      t('growth: it carries the node through', called && called.args && called.args.p_node, 'link_opened');
+      window.sb.rpc = realRpc; state.demo = realDemo;
+    }
+  })();
+
   const fails = R.filter(r => !r.ok);
   console.log(`\n${fails.length ? 'FAIL' : 'PASS'} — ${R.length} tests, ${fails.length} failure(s)`);
   return { total: R.length, failures: fails.map(f => f.name) };
