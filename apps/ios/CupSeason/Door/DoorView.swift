@@ -103,7 +103,7 @@ struct DoorView: View {
         .padding(.top, 6)
       if flags.appleSignIn {
         DoorAppleButton(
-          onToken: { token, nonce in Task { await vm.apple(idToken: token, nonce: nonce) } },
+          onToken: { token, nonce, name in Task { await vm.apple(idToken: token, nonce: nonce, appleName: name) } },
           onFailure: { error in vm.appleFailed(error) })
           .padding(.top, 4)
           .disabled(vm.busy)
@@ -291,11 +291,14 @@ final class DoorModel {
 
   /// Sign in with Apple (IOS-023). Same shape as `verify`: no navigation here —
   /// the session store hears SIGNED_IN and RootView switches.
-  func apple(idToken: String, nonce: String) async {
+  func apple(idToken: String, nonce: String, appleName: String? = nil) async {
     guard !busy else { return }
     busy = true; note = Note(text: "Checking with Apple…", tone: .mut)
     defer { busy = false }
     do {
+      // D186 · stash BEFORE the sign-in: SIGNED_IN swaps the root view out from
+      // under us, so anything left until after the await may never run.
+      AppleName.stash(appleName)
       try await svc.signInWithApple(idToken: idToken, nonce: nonce)
       note = Note(text: "Signed in, loading…", tone: .pos)
       CSHaptic.success()

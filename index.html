@@ -3975,7 +3975,13 @@ html[data-theme="light"] .room-dusk .btn:not(.dark):not(.gold):not(.apple){color
      lives at the TOP now and below the bar in the stack, so it cannot take a
      tap meant for the one control every round starts from. -->
 <div id="installNudge" style="display:none; position:fixed; left:12px; right:12px; top:calc(env(safe-area-inset-top) + 8px); bottom:auto; z-index:24; background:var(--bg2); border:1px solid var(--line2); border-radius:14px; padding:12px 14px; align-items:center; gap:10px;">
-  <span style="flex:1; font-size:13px;">Get the full-screen app: add Cup Season to your home screen.</span>
+  <!-- D186 · the nudge now leads with the reason, not the feature. Safari
+       deletes every site's localStorage, IndexedDB and service worker after
+       seven days without a visit; a home-screen app is exempt and keeps its
+       own counter. Golf is weekly, so a golfer in a Safari tab sits exactly on
+       that boundary — miss one weekend and they are signed out. "Full screen"
+       is a nice-to-have; staying signed in is the thing they care about. -->
+  <span style="flex:1; font-size:13px;">Add Cup Season to your home screen — it stays signed in, and opens full screen.</span>
   <button class="mini" id="nudgeGo">Add to Home Screen</button>
   <button class="mini" id="nudgeX" aria-label="Not now"><svg class="ic" aria-hidden="true"><use href="#i-close"/></svg></button>
 </div>
@@ -14449,7 +14455,9 @@ $$('.copycode').forEach(b=>b.addEventListener('click',async ()=>{
     document.getElementById('nudgeGo').addEventListener('click', function(){
       if(deferred){ deferred.prompt(); deferred = null; dismiss(); return; }
       openSheet('Add to your home screen', 'Installs like an app, no App Store needed',
-        '<p style="line-height:1.7">In <b>Safari</b>: tap the <b>Share</b> button (the square with the arrow), scroll down, tap <b>Add to Home Screen</b>.<br><br>Full screen, your icon, your leagues one tap away.</p>');
+        '<p style="line-height:1.7">In <b>Safari</b>: tap the <b>Share</b> button (the square with the arrow), scroll down, tap <b>Add to Home Screen</b>.'
+        + '<br><br>Full screen, your icon, your leagues one tap away — and you stay signed in. '
+        + 'Safari clears a site’s data after a week away; a home-screen app keeps yours.</p>');
       dismiss();
     });
     document.getElementById('nudgeX').addEventListener('click', dismiss);
@@ -19249,6 +19257,15 @@ function showWelcome(){
   loadInvites().then(()=>window.renderNotifications&&window.renderNotifications()).catch(e=>bootTrace('invites: '+(e.message||e)));  /* invite banner */
   enterApp();
   switchView('home');
+  /* D186 · the third earned moment, and the one that matters most now. The
+     other two are "posted your first round" and "joined a league" — a stranger
+     who signs up, finishes their card and does neither for a fortnight sees no
+     nudge at all, and they are exactly the cohort Safari's seven-day wipe
+     takes: no habit yet, so most likely to be away longer than a week. Landing
+     in the app league-less IS a completed step, so it qualifies under the same
+     rule the other two use. show() is still once ever per device, still silent
+     when installed, still silent on a working surface. */
+  setTimeout(() => window.csEarnInstallNudge?.(), 3400);
 }
 function hideWelcome(){
   $('#obWelcome').style.display = 'none';

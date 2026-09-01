@@ -11,8 +11,8 @@ import CSDesign
 
 struct DoorAppleButton: View {
   @Environment(\.colorScheme) private var scheme
-  /// (identity token, raw nonce)
-  let onToken: (String, String) -> Void
+  /// (identity token, raw nonce, the name Apple gave — see `AppleName`)
+  let onToken: (String, String, String?) -> Void
   let onFailure: (any Error) -> Void
   @State private var nonce = ""
 
@@ -28,7 +28,14 @@ struct DoorAppleButton: View {
         guard let cred = auth.credential as? ASAuthorizationAppleIDCredential,
               let data = cred.identityToken, let token = String(data: data, encoding: .utf8), !token.isEmpty
         else { onFailure(DoorAppleError.noToken); return }
-        onToken(token, nonce)
+        // D186 · Apple hands back `fullName` on the FIRST authorization ONLY —
+        // never again, on any later sign-in, unless the person removes the app
+        // from their Apple ID settings. This button requested the scope and
+        // then dropped the result on the floor, so every Apple signup would
+        // have reached the golfer card with an empty name and a relay address
+        // (`…@privaterelay.appleid.com`) as the only thing we knew about them.
+        // Capture it here or it is gone for good.
+        onToken(token, nonce, AppleName.from(cred.fullName))
       case .failure(let error):
         onFailure(error)
       }
@@ -38,6 +45,39 @@ struct DoorAppleButton: View {
     .frame(maxWidth: .infinity, minHeight: 50, maxHeight: 50)
     .clipShape(RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous))
     .accessibilityLabel("Sign in with Apple")
+  }
+}
+
+/// D186 · the one-shot name from Apple, carried from the door to the golfer card.
+///
+/// It is written at the door and read once by `CardGateView`, because sign-in
+/// reloads the app between them — a value held in memory would not survive the
+/// trip. Stored under the same `cs_` convention as the rest of our defaults,
+/// and cleared the moment it is consumed so a second golfer on a shared phone
+/// never inherits the first one's name.
+enum AppleName {
+  static let key = "cs_apple_name"
+
+  /// Apple gives `PersonNameComponents`; we want "First Last" the way the card
+  /// asks for it ("First and last"). Returns nil rather than an empty string
+  /// when Apple withholds it — which it does on every sign-in after the first.
+  static func from(_ components: PersonNameComponents?) -> String? {
+    guard let components else { return nil }
+    let joined = PersonNameComponentsFormatter.localizedString(from: components, style: .default)
+      .trimmingCharacters(in: .whitespacesAndNewlines)
+    return joined.isEmpty ? nil : joined
+  }
+
+  static func stash(_ name: String?) {
+    guard let name, !name.isEmpty else { return }
+    UserDefaults.standard.set(name, forKey: key)
+  }
+
+  /// Read-and-clear: one card gets it, and only one.
+  static func take() -> String? {
+    let name = UserDefaults.standard.string(forKey: key)
+    if name != nil { UserDefaults.standard.removeObject(forKey: key) }
+    return (name?.isEmpty ?? true) ? nil : name
   }
 }
 

@@ -185,6 +185,15 @@ struct CardGateView: View {
        n.lowercased().replacingOccurrences(of: " ", with: "") != email.split(separator: "@").first.map(String.init)?.lowercased() {
       name = n
     }
+    // D186 · Apple's one-shot name wins over the trigger's guess. It is the
+    // only real name we will ever be given for a golfer who signed in with
+    // Apple and hid their address, because the email is then a relay string
+    // and the trigger derives the display name from it. Read-and-clear: it is
+    // consumed here or not at all. Never overrides a name they already typed.
+    if name.isEmpty, let appleName = AppleName.take() {
+      name = appleName
+      if !handleTouched { handle = Self.derive(appleName) }
+    }
     if let h = me.profile?.handle, !h.isEmpty { handle = h; handleTouched = true }
     marker = me.profile?.marker
     if let i = me.profile?.index_current { index = CSCopy.index(i) }

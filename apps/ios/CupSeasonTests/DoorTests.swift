@@ -90,3 +90,44 @@ import Foundation
     #expect(ForgeState.hasPlayed(d) == true)
   }
 }
+
+/// D186 — Apple hands back `fullName` on the FIRST authorization only. The
+/// button requested the scope and dropped the result, so an Apple signup would
+/// have reached the golfer card with an empty name and a relay address as the
+/// only thing we knew. These pin the carry: format it, keep it across the
+/// sign-in reload, and hand it to exactly one card.
+@Suite struct AppleNameTests {
+  @Test func formatsApplesComponentsAndRefusesEmpty() {
+    var c = PersonNameComponents()
+    c.givenName = "Jerecho"; c.familyName = "Fischbeck"
+    #expect(AppleName.from(c) == "Jerecho Fischbeck")
+
+    var first = PersonNameComponents(); first.givenName = "Mitch"
+    #expect(AppleName.from(first) == "Mitch")
+
+    // Apple withholds the name on every sign-in after the first — nil, not "".
+    #expect(AppleName.from(nil) == nil)
+    #expect(AppleName.from(PersonNameComponents()) == nil)
+  }
+
+  @Test func stashIsReadOnceThenGone() {
+    let d = UserDefaults.standard
+    d.removeObject(forKey: AppleName.key)
+
+    // nothing stashed, nothing to take
+    #expect(AppleName.take() == nil)
+
+    AppleName.stash("Priya Nair")
+    #expect(AppleName.take() == "Priya Nair")
+    // read-and-clear: a second golfer on a shared phone must not inherit it
+    #expect(AppleName.take() == nil)
+
+    // a nil or empty name never displaces a real one
+    AppleName.stash("Dana")
+    AppleName.stash(nil)
+    AppleName.stash("")
+    #expect(AppleName.take() == "Dana")
+
+    d.removeObject(forKey: AppleName.key)
+  }
+}
