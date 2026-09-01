@@ -5456,3 +5456,24 @@ and an amendment to the existing ledger bullet:
 **Verified:** preflight 21/21 clean; `app-tests.js` 42/42 with `CS_LEDGER` confirmed live in the page; iOS 363 + 28 + 10 green. `season-email` needs `supabase functions deploy season-email` — it is an edge function and the owner deploys those.
 
 **CONFLICT:** none — this *enforces* D39 rather than changing it.
+
+### D200a · The guard refused its own migration, and was right to
+*(2026-09-01, an hour after D200. `supabase db push` failed at statement 4 — the self-enforcing block — and the whole migration rolled back, so both regressions stayed live.)*
+
+```
+ERROR: [embed] a client-embedded table has more than one path to the same
+table: content_reports → profiles ×2, live_round_players → profiles ×2,
+rounds → profiles ×2
+```
+
+I had written the invariant as **"no client-embedded table has two paths to one target"** and asserted it schema-wide. It is not merely unmet in this database; it is **false by design**. Three more pairs exist among the tables I scoped — `rounds` (`posted_by`, D125a's attestation, plus `profile_id`), `live_round_players` (`claimed_profile` + `guest_profile_id`), `content_reports` (`profile_id` + `reporter`) — and widening the scan to the whole schema turns up fourteen more: `forfeits → profiles ×5`, `rivalry_names → profiles ×3`, `seasons → league_members ×3`. **Every one of them is correct.**
+
+Because a second foreign key is not a fault. It is only a fault where a client embeds that table **without naming the relationship** — and verified by grep across both clients, nothing embeds profiles on `rounds`, on `live_round_players` or on `content_reports`; `content_reports` is read only through `moderation_queue()`, which joins explicitly, and `round_comments` is not queried by either client at all. The only genuine break was `league_members`, which is embedded in five places.
+
+**The lesson is about guards, not about foreign keys.** I wrote D200 criticising preflight's check 21 for knowing only the last instance of a bug — and then replaced it with a rule so broad it condemned a dozen healthy tables. Both mistakes have the same root: **the invariant was guessed from one example instead of measured against the schema.** A guard that fires on things that are fine is worse than the narrow one it replaced, because the narrow guard merely misses the next bug while the broad one teaches people to push past guards.
+
+Rewritten to state what is actually true: scoped to the tables a client embeds, with the four historical pairs **accepted by name and with their reason**, so adding one is a deliberate act that reads "I checked, and nothing embeds it." Dry-run against prod before handing it back — the offending set post-drop is empty.
+
+Also narrowed the fix itself. The first draft dropped three audit FKs; only **one** breaks anything, so only `league_members_suspended_by_fkey` goes. `posts`, `post_comments`, `round_comments` and `content_reports` keep theirs: nothing embeds them, and integrity is free where it costs nothing. Churning schema that works, in a migration written to fix schema that does not, is how a second regression gets shipped inside the fix for the first.
+
+**CONFLICT:** none. This corrects D200's guard, not its diagnosis.

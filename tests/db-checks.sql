@@ -403,6 +403,13 @@ select '17 · band boundaries',
 --     exists for exactly this failure, watched it happen and said PASS,
 --     because it names `live_round_players` and nothing else.
 --     A schema fact cannot be checked from source; it is checked here.
+--     SCOPED to tables a client embeds, and four pairs are ACCEPTED by name:
+--     rounds (posted_by, D125a), live_round_players (guest paths),
+--     content_reports (read only via moderation_queue) and round_comments
+--     (queried by neither client) all carry two paths and none is a fault,
+--     because nothing embeds them. Schema-wide the invariant is FALSE BY
+--     DESIGN — fourteen more healthy pairs exist. A guard that fires on things
+--     that are fine teaches people to push past guards.
 union all
 select '18 · one relationship per embed',
   case when not exists (
@@ -412,6 +419,9 @@ select '18 · one relationship per embed',
            ('league_members','posts','post_comments','round_comments','rounds',
             'squads','squad_members','live_rounds','live_round_players',
             'event_players','event_teams','content_reports')
+       and (c.conrelid::regclass::text, c.confrelid::regclass::text) not in (
+             ('rounds','profiles'), ('live_round_players','profiles'),
+             ('content_reports','profiles'), ('round_comments','profiles'))
      group by c.conrelid, c.confrelid having count(*) > 1)
     then 'PASS'
     else 'FAIL — ' || coalesce((
@@ -423,6 +433,9 @@ select '18 · one relationship per embed',
                      ('league_members','posts','post_comments','round_comments','rounds',
                       'squads','squad_members','live_rounds','live_round_players',
                       'event_players','event_teams','content_reports')
+                 and (c.conrelid::regclass::text, c.confrelid::regclass::text) not in (
+                       ('rounds','profiles'), ('live_round_players','profiles'),
+                       ('content_reports','profiles'), ('round_comments','profiles'))
                group by 1,2 having count(*) > 1) x), '?') end,
   'a client-embedded table with two paths to one target = PGRST201 on every unqualified embed'
 
