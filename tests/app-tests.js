@@ -117,6 +117,36 @@
     });
   })();
 
+  /* D181 — the reaction bar on moments and settlements. The rule that matters
+     is STRUCTURAL: a settled-game row is a role="button" whose click handler
+     reads closest('[data-card]'), so a chip rendered inside it would open the
+     scorecard on every tap. These assert the bar is a sibling, not a child. */
+  (function(){
+    const ok = typeof window.momRowHtml === 'function' && typeof window.sysRowHtml === 'function';
+    t('social: momRowHtml + sysRowHtml bridged for QA', ok, true);
+    if (!ok) return;
+    const dom = h => { const d = document.createElement('div'); d.innerHTML = h; return d; };
+    const mom = { txt: 'Barrier broken', post_id: 'p1' };
+    const set = { txt: 'Skins settled', post_id: 'p2', lrid: 'L1' };
+
+    t('social: a moment with a post row gets a bar',
+      !!dom(momRowHtml(mom, 0)).querySelector('.social'), true);
+    t('social: a settlement gets a bar',
+      !!dom(sysRowHtml(set, 1)).querySelector('.social'), true);
+    /* the whole point: the chips must not live inside the door */
+    t('social: the settlement bar is OUTSIDE the scorecard door',
+      dom(sysRowHtml(set, 1)).querySelector('.social').closest('[data-card]'), null);
+    t('social: the door survives the bar',
+      !!dom(sysRowHtml(set, 1)).querySelector('[data-card]'), true);
+    /* Home and the demo diorama draw the bare row — no index, or no post row */
+    t('social: no bar without a wiring index (Home)',
+      !!dom(sysRowHtml(set)).querySelector('.social'), false);
+    t('social: no bar on a demo item with no post row',
+      !!dom(momRowHtml({ txt: 'Demo moment' }, 0)).querySelector('.social'), false);
+    t('social: the moment still says what it says',
+      /Barrier broken/.test(dom(momRowHtml(mom, 0)).textContent), true);
+  })();
+
   const fails = R.filter(r => !r.ok);
   console.log(`\n${fails.length ? 'FAIL' : 'PASS'} — ${R.length} tests, ${fails.length} failure(s)`);
   return { total: R.length, failures: fails.map(f => f.name) };

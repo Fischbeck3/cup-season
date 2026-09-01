@@ -78,10 +78,14 @@ public struct BoardItem: Sendable, Identifiable, Equatable {
     self.liveRoundId = liveRoundId; self.reactions = reactions; self.comments = comments; self.isEcho = isEcho
   }
 
-  /// Chat lines react but don't thread (`comments:false`, 5160).
+  /// Chat lines react but don't thread (`comments:false`, 5160). Moments and
+  /// settlements are events, not conversations — they react, they don't thread.
   public var threads: Bool { kind == .round }
-  /// Only a real post row carries reactions and a report affordance.
-  public var social: Bool { postId != nil && (kind == .chat || kind == .round) }
+  /// Only a real post row carries reactions and a report affordance. D181: a
+  /// moment and a settlement carry them too — they were 130 of 356 prod posts,
+  /// every settlement card among them, with no way to say anything back. The
+  /// Pro's announcement is the one deliberate exception: a notice, not a story.
+  public var social: Bool { postId != nil && kind != .announce }
 }
 
 /// A member as the board sees them (loadLeagueData 14290–14316).

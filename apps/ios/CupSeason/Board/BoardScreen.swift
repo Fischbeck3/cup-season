@@ -209,15 +209,16 @@ struct BoardRowsList: View {
       if full, let rid = f.roundId, let r = store.rounds[rid], r.gross != nil {
         RoundStoryCard(item: f, round: r, store: store, links: links)
       } else if full {
-        SystemRow(text: BoardText.easeCaps(f.text, names: store.names))
+        SystemRow(text: BoardText.easeCaps(f.text, names: store.names), item: f, store: store)
       } else {
         CompactRoundRow(item: f, store: store)
       }
     case .announce: AnnounceRow(text: f.text, pinned: false)
-    case .moment: MomentRow(text: BoardText.easeCaps(f.text, names: store.names))
+    case .moment: MomentRow(text: BoardText.easeCaps(f.text, names: store.names), item: f, store: store)
     case .system:
       SystemRow(text: BoardText.easeCaps(f.text, names: store.names),
-                opens: f.liveRoundId.map { id in { openScorecard(id) } })
+                opens: f.liveRoundId.map { id in { openScorecard(id) } },
+                item: f, store: store)
     case .chat: ChatRow(item: f, store: store, links: links)
     }
   }

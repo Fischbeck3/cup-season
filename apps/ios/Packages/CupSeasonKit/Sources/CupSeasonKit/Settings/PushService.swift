@@ -32,7 +32,14 @@ public final class PushService {
 
   public private(set) var enabled: Bool
   public private(set) var busy = false
+  /// The toggle says ON off a local key; this says whether the SERVER agrees.
+  /// A launch sync that fails leaves a phone that believes it is registered and
+  /// a `device_tokens` table that has never heard of it — the runbook's
+  /// "permission granted, no token, nothing ever arrives", with nothing said.
+  public private(set) var unconfirmed = false
   private var pendingRegistration: CheckedContinuation<String?, Never>?
+  /// Which ask a resume belongs to — a late timeout must never answer the next one.
+  private var askGeneration = 0
   private let svc = SupabaseService.shared
 
   private init() {
@@ -42,20 +49,38 @@ public final class PushService {
   /// Called by the app delegate with Apple's token.
   public func didRegister(deviceToken: Data) {
     let hex = deviceToken.map { String(format: "%02x", $0) }.joined()
-    pendingRegistration?.resume(returning: hex)
-    pendingRegistration = nil
+    finishAsk(hex)
   }
 
-  public func didFailToRegister(_ error: Error) {
-    pendingRegistration?.resume(returning: nil)
+  public func didFailToRegister(_ error: Error) { finishAsk(nil) }
+
+  /// Exactly one resume per ask, whoever gets here first.
+  private func finishAsk(_ token: String?) {
+    guard let c = pendingRegistration else { return }
     pendingRegistration = nil
+    askGeneration += 1
+    c.resume(returning: token)
   }
 
-  private func requestAppleToken() async -> String? {
+  /// Apple answers on the app delegate; a continuation bridges the gap. Two
+  /// rules, both learned from the shape this had: only ONE ask may be in flight
+  /// (a second overwrote the first continuation, leaking it — a checked
+  /// continuation misuse trap in Debug), and an ask must always END. APNs can
+  /// simply never call back (no network, no APNs socket, a device that has not
+  /// finished waking) and this awaited forever, taking the launch task with it.
+  private func requestAppleToken(timeout: Duration = .seconds(10)) async -> String? {
     #if canImport(UIKit)
-    await withCheckedContinuation { c in
+    guard pendingRegistration == nil else { return nil }   // one ask at a time
+    askGeneration += 1
+    let gen = askGeneration
+    return await withCheckedContinuation { (c: CheckedContinuation<String?, Never>) in
       pendingRegistration = c
       UIApplication.shared.registerForRemoteNotifications()
+      Task { @MainActor in
+        try? await Task.sleep(for: timeout)
+        guard self.askGeneration == gen else { return }    // already answered
+        self.finishAsk(nil)
+      }
     }
     #else
     nil
@@ -63,15 +88,26 @@ public final class PushService {
   }
 
   /// `syncNativePush` — re-register only if permission already stands.
+  /// A cold launch routinely races the network, so one failure is not a verdict:
+  /// try twice, then SAY so rather than swallowing it (`catch {}` was how a
+  /// tester could carry a phone all weekend with the toggle reading ON and no
+  /// row on the server).
   public func syncOnLaunch() async {
     let settings = await UNUserNotificationCenter.current().notificationSettings()
     guard settings.authorizationStatus == .authorized else { return }
-    guard let tok = await requestAppleToken() else { return }
-    do {
-      try await svc.call(Rpc.register_device_token(p_token: tok, p_platform: Self.platform))
-      UserDefaults.standard.set(tok, forKey: Self.tokenKey)
-      enabled = true
-    } catch {}
+    guard let tok = await requestAppleToken() else { unconfirmed = enabled; return }
+    for attempt in 1...2 {
+      do {
+        try await svc.call(Rpc.register_device_token(p_token: tok, p_platform: Self.platform))
+        UserDefaults.standard.set(tok, forKey: Self.tokenKey)
+        enabled = true
+        unconfirmed = false
+        return
+      } catch {
+        if attempt == 1 { try? await Task.sleep(for: .seconds(2)) }
+      }
+    }
+    unconfirmed = true
   }
 
   /// `enablePush` — returns the toast copy to show.
@@ -93,6 +129,7 @@ public final class PushService {
     }
     UserDefaults.standard.set(tok, forKey: Self.tokenKey)
     enabled = true
+    unconfirmed = false
     return "Notifications on. The board will find you."
   }
 
@@ -106,6 +143,7 @@ public final class PushService {
     }
     UserDefaults.standard.removeObject(forKey: Self.tokenKey)
     enabled = false
+    unconfirmed = false
     return "Notifications off on this device"
   }
 }

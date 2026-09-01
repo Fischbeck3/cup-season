@@ -246,11 +246,15 @@ async function sendApns(profileIds: string[], title: string, body: string, r: Ro
     .select('token, profile_id, platform').in('profile_id', profileIds);
   if (!toks?.length) { console.log(`[apns] kind=${r.cs.kind} no device tokens`); return; }
   /* each token goes to ITS host: a Debug build registers `ios-sandbox`, a
-     TestFlight/App Store build registers `ios`. APNS_SANDBOX=1 remains a global
-     override (everything to the sandbox host) for the pre-20260828010000 rows. */
+     TestFlight/App Store build registers `ios`. APNS_SANDBOX=1 decides only the
+     pre-20260828010000 rows, which carry no usable platform — a row that SAYS
+     which environment it came from is believed over the env var. It used to
+     win globally, which meant one forgotten secret sent every TestFlight
+     token to the sandbox host, where APNs answers BadDeviceToken. */
+  const SANDBOX = 'https://api.sandbox.push.apple.com', PROD = 'https://api.push.apple.com';
   const forceSandbox = !!Deno.env.get('APNS_SANDBOX');
   const hostFor = (platform?: string | null) =>
-    forceSandbox || platform === 'ios-sandbox' ? 'https://api.sandbox.push.apple.com' : 'https://api.push.apple.com';
+    platform === 'ios-sandbox' ? SANDBOX : platform === 'ios' ? PROD : (forceSandbox ? SANDBOX : PROD);
   const topic = Deno.env.get('APNS_TOPIC') ?? 'app.cupseason.ios';
 
   /* the badge is the recipient's actionable count at send time (§4) — one
@@ -267,24 +271,60 @@ async function sendApns(profileIds: string[], title: string, body: string, r: Ro
   /* a webhook retry re-sends the same row; the same collapse id folds it */
   if (r.collapseId) headers['apns-collapse-id'] = String(r.collapseId).slice(0, 64);
 
+  /* APNs answers with a JSON `reason`, and only ONE of them means the device is
+     gone. `BadDeviceToken` is the ambiguous one: malformed, or a perfectly good
+     token posted to the wrong environment — which is what a build-type change
+     or a stale APNS_SANDBOX produces. Deleting on it (as this did) turned a
+     routing mistake into a silently unregistered tester who would not get push
+     again until they relaunched the app. Retry the other host instead, and
+     correct the row when that host takes it. */
   const dead: string[] = [];
-  let sent = 0;
+  const rehomed: { token: string; platform: string }[] = [];
+  let sent = 0, misrouted = 0;
+  const reasonOf = (txt: string) => { try { return String(JSON.parse(txt)?.reason ?? ''); } catch { return ''; } };
   await Promise.all(toks.map(async (t) => {
     /* already clamped by sendTo — no second, divergent budget here */
     const payload = apnsPayload(title, body, r, badges.get(String(t.profile_id)));
+    const post = (host: string) => fetch(`${host}/3/device/${t.token}`, { method: 'POST', headers, body: payload });
+    const host = hostFor(t.platform);
     try {
-      const res = await fetch(`${hostFor(t.platform)}/3/device/${t.token}`, { method: 'POST', headers, body: payload });
+      const res = await post(host);
       if (res.ok) { sent++; return; }
       const txt = await res.text().catch(() => '');
-      console.error(`[apns] status=${res.status} body=${txt.slice(0, 120)}`);
-      if (res.status === 410 || txt.includes('BadDeviceToken') || txt.includes('Unregistered')) dead.push(t.token);
+      const reason = reasonOf(txt) || txt.slice(0, 60);
+      if (res.status === 410 || reason === 'Unregistered') {
+        console.log(`[apns] gone reason=${reason || res.status} — pruning`);
+        dead.push(t.token); return;
+      }
+      if (reason === 'BadDeviceToken') {
+        const alt = host === SANDBOX ? PROD : SANDBOX;
+        const res2 = await post(alt);
+        if (res2.ok) {
+          sent++; misrouted++;
+          rehomed.push({ token: t.token, platform: alt === SANDBOX ? 'ios-sandbox' : 'ios' });
+          console.warn(`[apns] MISROUTED platform=${t.platform ?? 'null'} — delivered on ${alt}, row corrected`);
+          return;
+        }
+        const r2 = reasonOf(await res2.text().catch(() => ''));
+        /* refused by BOTH hosts: the token really is malformed */
+        if (res2.status === 410 || r2 === 'Unregistered' || r2 === 'BadDeviceToken') dead.push(t.token);
+        console.error(`[apns] bad on both hosts status=${res2.status} reason=${r2}`);
+        return;
+      }
+      /* 403 InvalidProviderToken, 429, 5xx: our problem or a transient one —
+         never the device's, so the row stays and the next post retries. */
+      console.error(`[apns] status=${res.status} reason=${reason}`);
     } catch (e) {
       console.error(`[apns] failed msg=${(e as Error)?.message ?? e}`);
     }
   }));
+  if (rehomed.length) {
+    await Promise.all(rehomed.map((x) =>
+      sb.from('device_tokens').update({ platform: x.platform }).eq('token', x.token)));
+  }
   if (dead.length) await sb.from('device_tokens').delete().in('token', dead);
-  const sandboxN = toks.filter((t) => hostFor(t.platform).includes('sandbox')).length;
-  console.log(`[apns] kind=${r.cs.kind} thread=${r.thread} category=${r.category ?? '-'} tokens=${toks.length} sandbox=${sandboxN} sent=${sent} pruned=${dead.length}`);
+  const sandboxN = toks.filter((t) => hostFor(t.platform) === SANDBOX).length;
+  console.log(`[apns] kind=${r.cs.kind} thread=${r.thread} category=${r.category ?? '-'} tokens=${toks.length} sandbox=${sandboxN} sent=${sent} misrouted=${misrouted} pruned=${dead.length}`);
 }
 
 // Transactional email via Brevo. No-op (logs and returns) when BREVO_API_KEY

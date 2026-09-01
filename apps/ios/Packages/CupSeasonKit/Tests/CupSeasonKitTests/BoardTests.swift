@@ -239,4 +239,19 @@ import Foundation
     #expect(BoardStore.parseTimestamp("2026-08-27T14:02:11Z") != nil)
     #expect(BoardStore.parseTimestamp("2026-08-27 14:02:11.123456+00") != nil)
   }
+
+  /// D181 — a moment and a settlement react; neither threads. 130 of 356 prod
+  /// posts were unreactable before this, every settlement card among them.
+  @Test func momentsAndSettlementsReactButDoNotThread() {
+    func item(_ k: BoardKind, post: UUID? = UUID()) -> BoardItem {
+      BoardItem(id: "x", postId: post, kind: k, dateLabel: "Sun · Aug 31", ts: nil, text: "…")
+    }
+    #expect(item(.moment).social && !item(.moment).threads)
+    #expect(item(.system).social && !item(.system).threads)
+    #expect(item(.chat).social && !item(.chat).threads)
+    #expect(item(.round).social && item(.round).threads)
+    // the Pro's notice stays a notice, and an echo with no row still cannot write
+    #expect(!item(.announce).social)
+    #expect(!item(.moment, post: nil).social)
+  }
 }

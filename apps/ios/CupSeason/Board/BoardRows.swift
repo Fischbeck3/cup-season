@@ -46,16 +46,24 @@ struct AnnounceRow: View {
 }
 
 /// `.momrow` — "✦ …" a moment (barrier, PB, streak, lead change).
+/// D181: the bar rides inside the box, as it does on the web — a moment is not
+/// a door, so there is nothing for a chip to be swallowed by.
 struct MomentRow: View {
   @Environment(\.cs) private var cs
   let text: String
+  var item: BoardItem? = nil
+  var store: BoardStore? = nil
   var body: some View {
-    HStack(alignment: .firstTextBaseline, spacing: 6) {
-      Text("✦").font(CSFont.subhead.weight(.semibold)).foregroundStyle(cs.brand).accessibilityHidden(true)
-      Text(text).font(CSFont.subhead).foregroundStyle(cs.ink)
+    VStack(alignment: .leading, spacing: 0) {
+      HStack(alignment: .firstTextBaseline, spacing: 6) {
+        Text("✦").font(CSFont.subhead.weight(.semibold)).foregroundStyle(cs.brand).accessibilityHidden(true)
+        Text(text).font(CSFont.subhead).foregroundStyle(cs.ink)
+      }
+      .frame(maxWidth: .infinity, alignment: .leading)
+      .accessibilityElement(children: .combine)
+      .accessibilityLabel("A moment: \(text)")
+      if let item, let store, item.social { ReactionBar(item: item, store: store) }
     }
-    .accessibilityElement(children: .combine)
-    .accessibilityLabel("A moment: \(text)")
     .padding(.horizontal, 13).padding(.vertical, 10)
     .frame(maxWidth: .infinity, alignment: .leading)
     .background(LinearGradient(colors: [cs.brand.opacity(0.10), cs.brand.opacity(0.03)], startPoint: .top, endPoint: .bottom),
@@ -71,8 +79,13 @@ struct SystemRow: View {
   @Environment(\.cs) private var cs
   let text: String
   var opens: (() -> Void)? = nil
+  var item: BoardItem? = nil
+  var store: BoardStore? = nil
   var body: some View {
-    Group {
+    // D181 · the bar is a SIBLING of the row, never inside it: a settled-game
+    // row is a Button, and chips nested in a Button open the scorecard on every
+    // tap. The web keeps them apart with `.sysgrp` for the same reason.
+    VStack(alignment: .leading, spacing: 0) {
       if let opens {
         Button(action: opens) { row.padding(.trailing, 22).overlay(alignment: .trailing) {
           Text("›").font(.system(size: 17)).foregroundStyle(cs.gold).padding(.trailing, 14)
@@ -81,6 +94,9 @@ struct SystemRow: View {
         .accessibilityLabel("\(text) — open the scorecard")
       } else {
         row
+      }
+      if let item, let store, item.social {
+        ReactionBar(item: item, store: store).padding(.horizontal, 13).padding(.bottom, 4)
       }
     }
   }

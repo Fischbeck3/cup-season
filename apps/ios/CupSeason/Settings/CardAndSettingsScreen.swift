@@ -409,6 +409,13 @@ private struct SettingsPane: View {
           pill("Season email: \(mail ? "ON" : "OFF")") { Task { if let e = await vm.toggleEmail() { toast.show(e) } } }
         }
       }
+      // The switch reads off a key on this phone; only the server can say the
+      // device is really registered. When the launch sync could not reach it,
+      // say that here rather than let the switch imply a row that isn't there.
+      if push.enabled && push.unconfirmed {
+        Text("This device is on here, but we haven't been able to confirm it with the server. Reopen the app with signal, or tap Disable then Enable.")
+          .font(CSFont.footnote).foregroundStyle(cs.gold)
+      }
       Text("Moments, reveals, and month closes always come through. Round posts and chat each have their own switch.")
         .font(CSFont.footnote).foregroundStyle(cs.dimText)
 

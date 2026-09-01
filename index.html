@@ -1388,6 +1388,12 @@ html[data-theme="light"] .digest{background:#FBFCFA;}
 }
 .sysrow.opens:hover{ background:var(--bg2); }
 .sysrow.opens:focus-visible{ outline:2px solid var(--focus); outline-offset:2px; }
+/* D181 · a settlement's reaction bar sits below its row, outside the door. The
+   row keeps its own border, so the bar drops the divider it wears elsewhere and
+   indents to the row's text instead. */
+.sysgrp{margin-bottom:8px;}
+.sysgrp>.sysrow{margin-bottom:0;}
+.sysgrp>.social{margin-top:0; padding:8px 13px 0; border-top:0;}
 /* the scorecard sheet: a real card, so it scrolls sideways rather than reflows */
 .scwrap{overflow-x:auto; -webkit-overflow-scrolling:touch; margin:0 -4px; padding:0 4px;}
 .sccard{border-collapse:separate; border-spacing:0; font-family:var(--mono); font-size:12px;
@@ -5594,11 +5600,30 @@ function boardDigestHtml(){
    round it reported) and becomes a button; every other notice stays the inert
    clubhouse note it has always been. Both board renderers and Home draw through
    this, so the affordance can never appear in one place and not another. */
-function sysRowHtml(f){
+/* D181 · a moment's bar rides INSIDE the box: a moment is not a door, so there
+   is no click for a chip to be swallowed by, and `.social`'s rule reads as the
+   card's own. One producer for both board renderers, for the same reason
+   sysRowHtml is one: an affordance must never appear on one surface only. */
+function momRowHtml(f, fi, ns){
+  const bar = (fi==null || !f || !f.post_id) ? '' : socialBar(f, fi, {comments:false, ns});
+  return `<div class="momrow"><b>✦</b>${esc(easeCaps(f.txt||''))}${bar}</div>`;
+}
+/* D181 · the bar rides OUTSIDE the row, never inside it: a settled-game row is
+   itself a role="button" whose delegated click handler reads
+   e.target.closest('[data-card]'), so a chip nested inside it would open the
+   scorecard on every reaction. The wrapper keeps the two apart. */
+function sysWrap(row, f, fi, ns){
+  if(fi==null || !f || !f.post_id) return row;   /* Home and the demo draw the bare row */
+  return `<div class="sysgrp">${row}${socialBar(f, fi, {comments:false, ns})}</div>`;
+}
+/* fi/ns are supplied by the two board renderers (the wiring key + namespace);
+   every other caller draws the row alone. */
+function sysRowHtml(f, fi, ns){
   const body = `◆ ${esc(easeCaps(f.txt||''))}`;
-  if(!f || !f.lrid) return `<div class="sysrow">${body}</div>`;
-  return `<div class="sysrow opens" data-card="${esc(f.lrid)}" role="button" tabindex="0"`
+  const row = (!f || !f.lrid) ? `<div class="sysrow">${body}</div>`
+    : `<div class="sysrow opens" data-card="${esc(f.lrid)}" role="button" tabindex="0"`
        + ` aria-label="${esc(easeCaps(f.txt||''))} — open the scorecard">${body}</div>`;
+  return sysWrap(row, f, fi, ns);
 }
 /* one delegated listener for every board surface: rows are re-rendered
    constantly (realtime, digest, filters) and per-row handlers leaked. */
@@ -5642,12 +5667,12 @@ function renderFeed(){
       return;
     }
     if(f.moment){
-      el.insertAdjacentHTML('beforeend',`<div class="momrow"><b>✦</b>${esc(easeCaps(f.txt||''))}</div>`);
+      el.insertAdjacentHTML('beforeend', momRowHtml(f, fi));
       return;
     }
     if(f.sys){
       /* sys bodies can carry user-composed fragments (declared-round notes) — escape */
-      el.insertAdjacentHTML('beforeend', sysRowHtml(f));
+      el.insertAdjacentHTML('beforeend', sysRowHtml(f, fi));
       return;
     }
     if(f.msg){
@@ -5758,12 +5783,12 @@ function renderFeedFull(force){
         </div>${socialBar(f,fi,{ns:'f-'})}</div>`);
         return;
       }
-      el.insertAdjacentHTML('beforeend', sysRowHtml(f));
+      el.insertAdjacentHTML('beforeend', sysRowHtml(f, fi, 'f-'));
       return;
     }
     if(f.ann){ el.insertAdjacentHTML('beforeend',`<div class="annrow"><b>📣 FROM THE PRO</b>${esc(f.txt)}</div>`); return; }
-    if(f.moment){ el.insertAdjacentHTML('beforeend',`<div class="momrow"><b>✦</b>${esc(easeCaps(f.txt||''))}</div>`); return; }
-    if(f.sys){ el.insertAdjacentHTML('beforeend', sysRowHtml(f)); return; }
+    if(f.moment){ el.insertAdjacentHTML('beforeend', momRowHtml(f, fi, 'f-')); return; }
+    if(f.sys){ el.insertAdjacentHTML('beforeend', sysRowHtml(f, fi, 'f-')); return; }
     if(f.msg){
       el.insertAdjacentHTML('beforeend',
         `<div class="msgrow"><span class="bar" style="background:${SQHEX[f.ci]}"></span><div class="mtxt"><b>${esc(f.who)}${founderTag(f.pid, f.who)}</b>${esc(f.txt)}${socialBar(f,fi,{comments:false,ns:'f-'})}</div></div>`);
@@ -16307,13 +16332,16 @@ async function loadStandingsAndFeed(){
     const ts = d.getTime();  /* F13 (3.3): real instant for the quiet-day digest's freshness check \u2014
                                  already-fetched data (created_at), no new fetch; synthetic/local-echo
                                  pushes elsewhere have no ts and default to "now" at comparison time */
-    /* chat + round posts carry post_id so reactions/comments can attach */
+    /* every real post carries post_id so reactions can attach. D181: moments
+       and settlements carry it too — 130 of 356 prod posts, every settlement
+       card among them, had no way to be reacted to. The Pro's announcement is
+       the one deliberate exception: it is a notice, not a story. */
     if(p.kind === 'chat') feed.push({ d: ds, ts, msg:true, post_id:p.id, who: memName(p.member_id) + ' ', pid: memPid(p.member_id), ci: memCi(p.member_id), txt:p.body });
     else if(p.kind === 'announce') feed.push({ d: ds, ts, ann:true, txt:p.body });
     else if(p.kind === 'round' && p.round_id) feed.push({ d: ds, ts, roundpost:true, post_id:p.id, rid: p.round_id, who: memName(p.member_id), ci: memCi(p.member_id), txt: p.body });
-    else if(p.kind === 'moment') feed.push({ d: ds, ts, moment:true, txt:p.body });
+    else if(p.kind === 'moment') feed.push({ d: ds, ts, moment:true, post_id:p.id, txt:p.body });
     /* D92: a settlement carries its live round, so the row can open the card */
-    else feed.push({ d: ds, ts, sys:true, txt:p.body, lrid:p.live_round_id||null });
+    else feed.push({ d: ds, ts, sys:true, post_id:p.id, txt:p.body, lrid:p.live_round_id||null });
   });
 
   /* season history: the weekly snapshots the cron spine records */
