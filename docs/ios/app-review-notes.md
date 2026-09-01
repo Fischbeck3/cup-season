@@ -64,20 +64,54 @@ described on one informational screen and is not sold in the binary.
 
 ## User content and safety (1.2)
 
-Members can report any post or member (**Report** on the member sheet and on
-every post) and mute any member (**Mute**). Reports land on the founder's desk
-and are actioned within a day. Terms and privacy are linked from the sign-in
-screen and Settings.
+Three things, all in the app:
+
+1. **Report** — every board post has a Report action; a golfer's photo can be
+   reported from their Tour Card; comments on posts and on rounds are
+   reportable. All of it goes through the `report_content` RPC.
+2. **Block** — **Mute** on any golfer's Tour Card. A muted golfer's posts,
+   comments and round comments all disappear from the muter's surfaces; the
+   filter is enforced in the database's row-level security, not in the client.
+3. **Act** — reports land on the founder's desk with two actions on each:
+   **Take it down** (`hide_content`, which removes the post from every reader's
+   view and records who hid it and why) and **Leave it up**, which closes the
+   report. A new report also pushes a notification to the founder, so it is
+   seen rather than queued. Reports are actioned within a day.
+
+Terms and privacy are linked from the sign-in screen and Settings.
 
 ## Account deletion (5.1.1(v))
 
-Settings → Danger zone → **Delete account** — in-app, immediate, removes the
-profile, rounds and device tokens.
+Settings → Danger zone → **Delete account** — in-app, immediate, one tap and a
+confirm. Exactly what it does, because a golfer with a season's history cannot
+be erased the same way a brand-new signup can:
+
+- **A golfer with no posted rounds** is deleted outright: profile, posts,
+  comments, photos, device tokens and the auth record all go.
+- **A golfer who has posted rounds** keeps those rounds, because other people's
+  standings, settled matches and pot ledgers are computed from them and would
+  silently change if they vanished. Everything that identifies the person is
+  removed in the same transaction: name, handle, city, home course, marker,
+  GHIN, **profile photo and every image they uploaded**, and the email address,
+  which is replaced with an unroutable `@cupseason.invalid` tombstone that every
+  send path already excludes. Push tokens — APNs and web — are deleted, so the
+  phone stops. Discovery is set to nobody and the auth record is banned, so the
+  account cannot be signed into again. What remains is an anonymous "Former
+  member" attached to scores, with nothing that points back to a person.
+
+The app says this in the confirm, rather than promising an erasure it cannot
+perform without corrupting other people's seasons.
 
 ## Sign in with Apple (4.8)
 
-Offered on the sign-in screen alongside the emailed code. No other third-party
-login exists.
+**4.8 does not apply to this app.** It governs apps that offer a third-party or
+social login service. Cup Season offers exactly one way in — an 8-digit code
+emailed by us — and no Google, Facebook, Twitter or other third-party sign-in
+anywhere. There is no login service to pair Sign in with Apple against.
+
+Sign in with Apple is nonetheless implemented and ships in this binary behind
+the `ios.apple_sign_in` flag, which is currently off. If it is switched on it
+appears on the sign-in screen beside the emailed code.
 
 ## Age rating
 

@@ -446,7 +446,7 @@ private struct SettingsPane: View {
         .buttonStyle(.plain)
         .accessibilityHint("Asks once more before anything happens")
       } else {
-        Text("This can't be undone. Your name and profile are removed and your login is closed for good. Rounds you've posted stay in the record so nobody else's standings or pot break — you'll just show as \"Former member\".")
+        Text("This can't be undone. Your name, photo, email and profile are removed, notifications stop, and your login is closed for good. Rounds you've posted stay in the record so nobody else's standings or pot break — you'll just show as \"Former member\".")
           .font(CSFont.footnote).foregroundStyle(cs.mut)
         A11yStack(spacing: 8) {
           Button {
