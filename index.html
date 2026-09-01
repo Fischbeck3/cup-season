@@ -141,7 +141,7 @@ button{font-family:var(--sans); touch-action:manipulation; color:var(--ink);}
 }
 .brand .mk svg{width:17px; height:17px;}
 .brand b{font-size:14px; font-weight:700; letter-spacing:.02em;}
-.brand small{display:block; font-family:var(--mono); font-size:11px; color:var(--dim); letter-spacing:.14em; text-transform:uppercase;}
+.brand small{display:block; font-family:var(--mono); font-size:11px; color:var(--mut); letter-spacing:.14em; text-transform:uppercase;}
 .navitem{
   display:flex; align-items:center; gap:11px;
   background:none; border:none; cursor:pointer;
@@ -155,7 +155,7 @@ button{font-family:var(--sans); touch-action:manipulation; color:var(--ink);}
 .navitem:focus-visible{outline:2px solid var(--focus); outline-offset:-2px;}
 .side .foot{margin-top:auto; padding:12px 10px 4px; border-top:1px solid var(--line);}
 .side .foot .lg{font-size:12.5px; font-weight:700;}
-.side .foot .sm{font-family:var(--mono); font-size:11.5px; color:var(--dim); letter-spacing:.08em; text-transform:uppercase; margin-top:2px;}
+.side .foot .sm{font-family:var(--mono); font-size:11.5px; color:var(--mut); letter-spacing:.08em; text-transform:uppercase; margin-top:2px;}
 
 /* ============ main column ============ */
 .main{min-width:0; padding-bottom:140px;} /* clears the tabbar AND the floating Post tee */
@@ -179,7 +179,7 @@ button{font-family:var(--sans); touch-action:manipulation; color:var(--ink);}
 @media(min-width:960px){ .hdr-in{padding:16px 30px 14px;} }
 .hdr .title h1{font-size:19px; font-weight:700; letter-spacing:-.01em; line-height:1.1;}
 .hdr .title .sub{
-  font-family:var(--mono); font-size:11.5px; color:var(--dim);
+  font-family:var(--mono); font-size:11.5px; color:var(--mut);
   letter-spacing:.12em; text-transform:uppercase; margin-top:3px;
 }
 .hdr .who{
@@ -197,7 +197,7 @@ button{font-family:var(--sans); touch-action:manipulation; color:var(--ink);}
 
 .eyebrow{
   font-family:var(--mono); font-size:11.5px; font-weight:500;
-  letter-spacing:.16em; text-transform:uppercase; color:var(--dim);
+  letter-spacing:.16em; text-transform:uppercase; color:var(--mut);
   margin:26px 2px 10px; display:flex; align-items:center; justify-content:space-between;
 }
 .view .eyebrow:first-child{margin-top:4px;}
@@ -215,11 +215,11 @@ button{font-family:var(--sans); touch-action:manipulation; color:var(--ink);}
   background:var(--bg1); border:1px solid var(--line); border-radius:var(--r);
   padding:12px 14px;
 }
-.stat .k{font-family:var(--mono); font-size:11px; letter-spacing:.14em; text-transform:uppercase; color:var(--dim);}
+.stat .k{font-family:var(--mono); font-size:11px; letter-spacing:.14em; text-transform:uppercase; color:var(--mut);}
 .stat .v{font-family:var(--mono); font-size:21px; font-weight:600; margin-top:5px; font-variant-numeric:tabular-nums;}
 .stat .v small{font-size:12px; color:var(--mut); font-weight:500;}
 .stat .d{font-family:var(--mono); font-size:12px; margin-top:3px;}
-.d.up{color:var(--pos);} .d.dn{color:var(--neg);} .d.fl{color:var(--dim);}
+.d.up{color:var(--pos);} .d.dn{color:var(--neg);} .d.fl{color:var(--mut);}
 .stat .v.gold{color:var(--gold);}
 
 /* ============ home grid (desktop) ============ */
@@ -234,7 +234,7 @@ button{font-family:var(--sans); touch-action:manipulation; color:var(--ink);}
 .chart-legend .sw{width:9px; height:9px; border-radius:3px;}
 .chart-legend .pt{font-family:var(--mono); font-size:12.5px; color:var(--ink);}
 #raceChart{width:100%; height:auto; display:block;}
-.chart-note{font-family:var(--mono); font-size:11.5px; color:var(--dim); letter-spacing:.06em; margin-top:10px;}
+.chart-note{font-family:var(--mono); font-size:11.5px; color:var(--mut); letter-spacing:.06em; margin-top:10px;}
 /* ===== the climb — you-centered cup-line ladder (D26 · finish pass D-NN) =====
    Rhythm: margins, not a uniform flex gap — your rung has weight, the rungs
    you race tuck close, the leader stands apart, and the ellipsis stretches
@@ -243,29 +243,29 @@ button{font-family:var(--sans); touch-action:manipulation; color:var(--ink);}
 .climb{display:flex; flex-direction:column; position:relative;}
 .climb-rung{display:flex; align-items:center; flex-wrap:wrap; gap:2px 9px; padding:8px 10px; margin-bottom:7px; border:1px solid var(--line); border-radius:9px; background:var(--bg1);}
 .climb-rung:last-child{margin-bottom:0;}
-.climb-rung .rk{font-family:var(--mono); font-size:11px; color:var(--dim); flex:none; width:18px;}
+.climb-rung .rk{font-family:var(--mono); font-size:11px; color:var(--mut); flex:none; width:18px;}
 .climb-rung .sw{width:10px; height:10px; border-radius:3px; flex:none;}
 .climb-rung .mk{font-size:15px; flex:none; line-height:1;}
 .climb-rung .nm{flex:1; min-width:0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; font-weight:600; font-size:13px;}
 .climb-rung .pts{font-family:var(--mono); font-size:13px; color:var(--ink); flex:none;}
-.climb-rung .gap{font-family:var(--mono); font-size:11px; color:var(--dim); flex:none; min-width:36px; text-align:right;}
+.climb-rung .gap{font-family:var(--mono); font-size:11px; color:var(--mut); flex:none; min-width:36px; text-align:right;}
 .climb-rung .gap:empty{min-width:0;}
 .climb-rung.lead{margin-bottom:14px;}
 .climb-rung.tuck{margin-bottom:3px;}   /* adjacency beats the leader's standoff — declared after .lead on purpose */
 .climb-rung.me{border-color:var(--gold); padding:12px 10px;}
 .climb-rung.me .nm{color:var(--gold); font-size:15px;}
 .climb-rung.me .pts{font-size:15px;}
-.climb-rung .voice{flex:none; flex-basis:100%; min-width:0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; font-family:var(--mono); font-size:11px; letter-spacing:.04em; color:var(--dim); padding-left:46px;}
+.climb-rung .voice{flex:none; flex-basis:100%; min-width:0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; font-family:var(--mono); font-size:11px; letter-spacing:.04em; color:var(--mut); padding-left:46px;}
 .climb-rung .voice b{color:var(--ink); font-weight:600;}
 .climb-rung .voice .stake{color:var(--gold);}
 .climb-rung .badge{font-family:var(--mono); font-size:9.5px; letter-spacing:.08em; padding:1px 5px; border-radius:4px; flex:none;}
 .climb-rung .badge.lock{color:var(--pos); border:1px solid var(--pos);}
-.climb-rung .badge.out{color:var(--dim); border:1px solid var(--line);}
+.climb-rung .badge.out{color:var(--mut); border:1px solid var(--line);}
 .climb-spark{flex:none; margin:0 1px;}
 .climb-cut{display:flex; align-items:center; gap:8px; padding:2px 2px; margin-bottom:6px; font-family:var(--mono); font-size:10px; letter-spacing:.08em; color:var(--gold);}
 .climb-cut .ln{flex:1; height:0; border-top:1px dashed var(--gold); opacity:.55;}
 .climb-cut .lb{flex:none;}
-.climb-ellip{font-family:var(--mono); font-size:10px; color:var(--dim); text-align:center; letter-spacing:.12em; opacity:.7; margin-bottom:7px;}
+.climb-ellip{font-family:var(--mono); font-size:10px; color:var(--mut); text-align:center; letter-spacing:.12em; opacity:.7; margin-bottom:7px;}
 .climb-rung.in{animation:climbIn .22s ease-out;}
 @keyframes climbIn{from{opacity:0}}
 .climb-ghost{position:absolute; left:0; right:0; margin:0; pointer-events:none; transition:opacity .2s ease-out;}
@@ -281,7 +281,7 @@ button{font-family:var(--sans); touch-action:manipulation; color:var(--ink);}
 .climb-roar.go{animation:csRoar .8s ease-out forwards;}
 @keyframes csRoar{0%{opacity:.55; transform:scale(.98,.96);} 100%{opacity:0; transform:scale(1.55,3.4);}}
 @media (prefers-reduced-motion:reduce){ .climb-rung.in{animation:none;} .climb-ghost{display:none;} .climb-roar{display:none;} }
-.climb-empty{font-family:var(--mono); font-size:11px; letter-spacing:.1em; color:var(--dim); text-align:center; padding:26px 10px; line-height:1.9;}
+.climb-empty{font-family:var(--mono); font-size:11px; letter-spacing:.1em; color:var(--mut); text-align:center; padding:26px 10px; line-height:1.9;}
 .climb-empty span{opacity:.7; font-size:10px;}
 .standStory{font-family:var(--serif); font-size:13px; line-height:1.45; color:var(--ink); padding:2px 2px 10px; margin-bottom:2px; border-bottom:1px solid var(--line);}
 .standStory:empty{display:none;}
@@ -289,12 +289,12 @@ button{font-family:var(--sans); touch-action:manipulation; color:var(--ink);}
 /* the clinch/scenario line — the endgame math, quieter than the story above */
 .scenLine{font-family:var(--mono); font-size:11px; letter-spacing:.05em; line-height:1.7; color:var(--mut); padding:9px 2px 3px; border-top:1px solid var(--line);}
 .scenLine .clinch{color:var(--pos);}
-.scenLine .out{color:var(--dim);}
+.scenLine .out{color:var(--mut);}
 .scenLine b{color:var(--ink); font-weight:600;}
 .rkmove{font-family:var(--mono); font-size:9.5px; margin-left:3px; letter-spacing:0;}
-.rkmove.up{color:var(--warm);} .rkmove.up2{color:var(--hot);} .rkmove.dn{color:var(--cool);} .rkmove.fl{color:var(--dim);}  /* D76 heat */
+.rkmove.up{color:var(--warm);} .rkmove.up2{color:var(--hot);} .rkmove.dn{color:var(--cool);} .rkmove.fl{color:var(--mut);}  /* D76 heat */
 .rivrec{font-family:var(--mono); font-size:14px; font-weight:600; letter-spacing:.02em; flex:none;}
-.rivrec.up{color:var(--pos);} .rivrec.dn{color:var(--dim);} .rivrec.ev{color:var(--mut);}
+.rivrec.up{color:var(--pos);} .rivrec.dn{color:var(--mut);} .rivrec.ev{color:var(--mut);}
 #youRivals .prow.tap{cursor:pointer;}
 [data-tc]{cursor:pointer;}
 /* D150 · the shared-course line. It sits directly under the credential because
@@ -309,19 +309,19 @@ button{font-family:var(--sans); touch-action:manipulation; color:var(--ink);}
 .tbl{width:100%; border-collapse:collapse;}
 .tbl th{
   font-family:var(--mono); font-size:11px; font-weight:500; letter-spacing:.14em;
-  text-transform:uppercase; color:var(--dim); text-align:left;
+  text-transform:uppercase; color:var(--mut); text-align:left;
   padding:4px 8px 10px;
 }
 .tbl th.num, .tbl td.num{text-align:right;}
 .tbl td{padding:11px 8px; border-top:1px solid var(--line); vertical-align:middle;}
-.tbl .rk{font-family:var(--mono); font-size:12px; color:var(--dim); width:26px;}
+.tbl .rk{font-family:var(--mono); font-size:12px; color:var(--mut); width:26px;}
 .tbl tr.lead .rk{color:var(--gold);}
 /* Batch B: the leader carries a hairline champagne underline — gold earned */
 .tbl tr.lead td{box-shadow:inset 0 -2px 0 -1px rgba(216,178,90,.55);}
 .tbl tr.lead .pts{color:var(--gold);}
 .tbl .sw{width:9px; height:20px; border-radius:3px; display:inline-block;}
 .tbl .tn{font-size:13.5px; font-weight:600; line-height:1.2;}
-.tbl .tc{font-family:var(--mono); font-size:11.5px; color:var(--dim); margin-top:2px;}
+.tbl .tc{font-family:var(--mono); font-size:11.5px; color:var(--mut); margin-top:2px;}
 .tbl .spark{display:block;}
 .tbl .pts{font-family:var(--mono); font-size:17px; font-weight:600; font-variant-numeric:tabular-nums;}
 .tbl .dw{font-family:var(--mono); font-size:12.5px; font-variant-numeric:tabular-nums;}
@@ -346,7 +346,7 @@ tr.cutrow td{
 .round .bar{width:3.5px; align-self:stretch; border-radius:2px; flex:none;}
 .round .body{flex:1; min-width:0;}
 .round .l1{font-size:13px; font-weight:600;}
-.round .l1 span{color:var(--dim); font-weight:500;}
+.round .l1 span{color:var(--mut); font-weight:500;}
 .round .l2{font-family:var(--mono); font-size:12px; color:var(--mut); margin-top:2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
 .round .pvi{
   font-family:var(--mono); font-size:12.5px; font-weight:600; flex:none;
@@ -357,7 +357,7 @@ tr.cutrow td{
   font-family:var(--mono); font-size:17px; font-weight:600; color:var(--ink);
   flex:none; text-align:right; min-width:44px; font-variant-numeric:tabular-nums;
 }
-.round .pts small{display:block; font-size:10px; color:var(--dim); letter-spacing:.14em;}
+.round .pts small{display:block; font-size:10px; color:var(--mut); letter-spacing:.14em;}
 
 /* ============ draft ============ */
 .draftgrid{display:block;}
@@ -368,7 +368,7 @@ tr.cutrow td{
   background:var(--bg1); border:1px solid var(--line2); border-radius:var(--r);
   padding:18px; text-align:center; position:relative;
 }
-.clock .k{font-family:var(--mono); font-size:11.5px; letter-spacing:.18em; text-transform:uppercase; color:var(--dim);}
+.clock .k{font-family:var(--mono); font-size:11.5px; letter-spacing:.18em; text-transform:uppercase; color:var(--mut);}
 .clock .n{font-size:30px; font-weight:700; letter-spacing:-.01em; margin:5px 0 3px;}
 .clock .m{font-family:var(--mono); font-size:12.5px; color:var(--mut);}
 .clock .accent{position:absolute; left:0; top:0; bottom:0; width:3.5px; border-radius:3px 0 0 3px;}
@@ -388,7 +388,7 @@ tr.cutrow td{
 }
 .squad li em{font-style:normal; font-family:var(--mono); font-size:12.5px; color:var(--mut);}
 .squad li.cap em{color:var(--gold);}
-.squad li.empty{color:var(--dim);}
+.squad li.empty{color:var(--mut);}
 .pool-row{
   display:flex; align-items:center; gap:12px; width:100%;
   background:var(--bg1); border:1px solid var(--line); border-radius:11px;
@@ -410,7 +410,7 @@ tr.cutrow td{
 .frow.one{grid-template-columns:1fr;}
 label.f{
   display:block; font-family:var(--mono); font-size:11px; letter-spacing:.14em;
-  text-transform:uppercase; color:var(--dim); margin-bottom:6px;
+  text-transform:uppercase; color:var(--mut); margin-bottom:6px;
 }
 /* 16px floor on EVERY .f control — iOS Safari auto-zooms any focused field
    under 16px, and textareas/selects weren't covered (pilot: the feedback
@@ -440,7 +440,7 @@ input.f::-webkit-outer-spin-button, input.f::-webkit-inner-spin-button{-webkit-a
   background:var(--bg1); border:1px solid var(--line2); border-radius:var(--r);
   padding:18px; text-align:center;
 }
-.calc .k{font-family:var(--mono); font-size:11.5px; letter-spacing:.18em; text-transform:uppercase; color:var(--dim);}
+.calc .k{font-family:var(--mono); font-size:11.5px; letter-spacing:.18em; text-transform:uppercase; color:var(--mut);}
 .calc .big{
   font-family:var(--mono); font-size:64px; font-weight:600; line-height:1;
   margin:6px 0 4px; font-variant-numeric:tabular-nums;
@@ -451,7 +451,7 @@ input.f::-webkit-outer-spin-button, input.f::-webkit-inner-spin-button{-webkit-a
   margin-top:16px; padding-top:14px; border-top:1px solid var(--line);
 }
 .calc .trio b{display:block; font-family:var(--mono); font-size:17px; font-weight:600; font-variant-numeric:tabular-nums;}
-.calc .trio span{font-family:var(--mono); font-size:10px; letter-spacing:.14em; text-transform:uppercase; color:var(--dim);}
+.calc .trio span{font-family:var(--mono); font-size:10px; letter-spacing:.14em; text-transform:uppercase; color:var(--mut);}
 .bands{width:100%; border-collapse:collapse; font-size:12.5px;}
 .bands td{padding:9px 2px; border-top:1px solid var(--line); color:var(--mut);}
 .bands tr:first-child td{border-top:none;}
@@ -481,14 +481,14 @@ input.f::-webkit-outer-spin-button, input.f::-webkit-inner-spin-button{-webkit-a
   padding:20px; text-align:center; position:relative; overflow:hidden;
 }
 .purse::before{content:""; position:absolute; left:0; top:0; bottom:0; width:3.5px; background:var(--gold);}
-.purse .k{font-family:var(--mono); font-size:11.5px; letter-spacing:.2em; text-transform:uppercase; color:var(--dim);}
+.purse .k{font-family:var(--mono); font-size:11.5px; letter-spacing:.2em; text-transform:uppercase; color:var(--mut);}
 .purse .amt{font-family:var(--mono); font-size:52px; font-weight:600; line-height:1; margin:8px 0 4px; color:var(--gold); font-variant-numeric:tabular-nums;}
 .purse .m{font-family:var(--mono); font-size:12.5px; color:var(--mut);}
 .trip{display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin-top:10px;}
 .trip .p{background:var(--bg1); border:1px solid var(--line); border-radius:12px; padding:12px 8px; text-align:center;}
 .trip .p b{display:block; font-family:var(--mono); font-size:17px; font-weight:600; font-variant-numeric:tabular-nums; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; min-width:0;}
 .trip .p{min-width:0;}
-.trip .p span{font-family:var(--mono); font-size:10px; letter-spacing:.1em; text-transform:uppercase; color:var(--dim);}
+.trip .p span{font-family:var(--mono); font-size:10px; letter-spacing:.1em; text-transform:uppercase; color:var(--mut);}
 .payer{
   display:flex; align-items:center; justify-content:space-between; gap:10px;
   width:100%; background:var(--bg1); border:1px solid var(--line); border-radius:11px;
@@ -502,8 +502,8 @@ input.f::-webkit-outer-spin-button, input.f::-webkit-inner-spin-button{-webkit-a
   display:grid; place-items:center; color:transparent; font-size:12px; font-weight:700;
 }
 .payer.paid .tick{background:var(--pos); border-color:var(--pos); color:var(--bg0);}
-.payer:not(.paid){color:var(--dim);}
-.fine{font-size:13px; color:var(--dim); line-height:1.6; padding:10px 2px 0;}
+.payer:not(.paid){color:var(--mut);}
+.fine{font-size:13px; color:var(--mut); line-height:1.6; padding:10px 2px 0;}
 .fine b{color:var(--mut);}
 
 /* ============ league / settings ============ */
@@ -517,7 +517,7 @@ input.f::-webkit-outer-spin-button, input.f::-webkit-inner-spin-button{-webkit-a
   padding:12px 14px; margin-bottom:8px;
 }
 .setrow .lab{font-size:13px; font-weight:600;}
-.setrow .lab small{display:block; font-family:var(--mono); font-size:11.5px; color:var(--dim); margin-top:2px;}
+.setrow .lab small{display:block; font-family:var(--mono); font-size:11.5px; color:var(--mut); margin-top:2px;}
 .setrow .val{font-family:var(--mono); font-size:15px; font-weight:600; min-width:72px; text-align:center; font-variant-numeric:tabular-nums;}
 .setrow .ctl{display:flex; gap:2px; background:var(--bg2); border-radius:10px; border:1px solid var(--line2);}
 .setrow .ctl button{
@@ -535,7 +535,7 @@ input.f::-webkit-outer-spin-button, input.f::-webkit-inner-spin-button{-webkit-a
 .seg button.on{background:var(--bg1); color:var(--ink); border:1px solid var(--line2);}
 /* photos arc 2 (ckpt 1): album grid · receipt hero · digest thumb */
 #albumGrid{display:grid; grid-template-columns:repeat(3,1fr); gap:6px;}
-#albumGrid .almonth{grid-column:1/-1; font-family:var(--mono); font-size:10.5px; letter-spacing:.14em; text-transform:uppercase; color:var(--dim); padding:10px 2px 2px;}
+#albumGrid .almonth{grid-column:1/-1; font-family:var(--mono); font-size:10.5px; letter-spacing:.14em; text-transform:uppercase; color:var(--mut); padding:10px 2px 2px;}
 #albumGrid .alcell{aspect-ratio:1; border:1px solid var(--line2); border-radius:10px; background-size:cover; background-position:center; cursor:pointer; padding:0;}
 #albumGrid .alcell:focus-visible{outline:2px solid var(--focus); outline-offset:2px;}
 .rcpt-hero{margin:0 0 12px;}
@@ -560,7 +560,7 @@ img.face{border-radius:50%; object-fit:cover; vertical-align:-4px; border:1px so
 .hfhead{display:flex; align-items:center; gap:11px;}
 .hfid{flex:1; min-width:0;}
 .hfid b{display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; font-size:15px; font-weight:650; letter-spacing:-.02em; line-height:1.3;}
-.hfid small{display:block; margin-top:2px; font-family:var(--mono); font-size:10.5px; color:var(--dim); letter-spacing:.05em; text-transform:uppercase;}
+.hfid small{display:block; margin-top:2px; font-family:var(--mono); font-size:10.5px; color:var(--mut); letter-spacing:.05em; text-transform:uppercase;}
 .hfid small.hfphrase{font-family:var(--sans); font-size:12.5px; color:var(--mut); text-transform:none; letter-spacing:0; margin-top:3px;}
 /* A2: the rail + the serif gross — the receipt's number language, pulled home.
    Fairway rail by default; champagne ONLY on milestones (earned). */
@@ -569,8 +569,8 @@ img.face{border-radius:50%; object-fit:cover; vertical-align:-4px; border:1px so
 .hfcard.hfrail.gold::before{background:var(--gold);}
 .hfgross{flex:none; text-align:right;}
 .hfgross b{display:block; font-family:var(--serif); font-size:30px; line-height:1; font-weight:400; color:var(--ink);}
-.hfgross small{font-family:var(--mono); font-size:9.5px; letter-spacing:.14em; color:var(--dim); text-transform:uppercase;}
-.hfmeta{font-family:var(--mono); font-size:10.5px; color:var(--dim); letter-spacing:.06em; text-transform:uppercase; margin-top:9px;}
+.hfgross small{font-family:var(--mono); font-size:9.5px; letter-spacing:.14em; color:var(--mut); text-transform:uppercase;}
+.hfmeta{font-family:var(--mono); font-size:10.5px; color:var(--mut); letter-spacing:.06em; text-transform:uppercase; margin-top:9px;}
 /* B1: a photo-backed round IS the card — dusk wash, serif gross, marker medal */
 .hfcard.hfstory{padding:0; position:relative; overflow:hidden; min-height:220px; display:flex; flex-direction:column; justify-content:space-between; color:#F4F6F2; border:none;}
 .hfcard.hfstory .hsbg{position:absolute; inset:0; width:100%; height:100%; object-fit:cover;}
@@ -724,28 +724,28 @@ body.cardview nav.tabbar .tab[data-v="record"]{visibility:hidden;}
 .vtog{display:none; margin-left:auto; border:.5px solid var(--line); border-radius:7px; overflow:hidden;}
 @media(min-width:740px){ .vtog{display:flex;} }
 .vtog button{font-family:var(--mono); font-size:9.5px; letter-spacing:.1em; padding:4px 9px;
-  color:var(--dim); background:none; border:0; cursor:pointer;}
+  color:var(--mut); background:none; border:0; cursor:pointer;}
 .vtog button.on{background:var(--brand); color:#0E1512; font-weight:600;}
 .cardwrap{overflow-x:auto; -webkit-overflow-scrolling:touch;}
 table.hcard{width:100%; border-collapse:collapse; font-family:var(--mono); min-width:600px;}
 table.hcard th, table.hcard td{padding:4px 0; text-align:center; font-size:11px;
   border-bottom:.5px solid var(--line); white-space:nowrap;}
-table.hcard th{color:var(--dim); font-weight:500; letter-spacing:.04em; font-size:10px;}
+table.hcard th{color:var(--mut); font-weight:500; letter-spacing:.04em; font-size:10px;}
 table.hcard th.brk, table.hcard td.brk{color:var(--gold);}
 table.hcard td.nm{text-align:left; font-family:var(--sans); font-size:12px; font-weight:600;
   padding-right:8px; color:var(--ink);}
-table.hcard td.si, table.hcard td.parc{color:var(--dim); font-size:10px;}
+table.hcard td.si, table.hcard td.parc{color:var(--mut); font-size:10px;}
 table.hcard td.bird{color:var(--pos); font-weight:600;}
 table.hcard td.bog{color:var(--mut);}
 .hchg-row{display:flex; align-items:center; gap:10px; font-family:var(--mono); font-size:17px; padding:2px 0 10px;}
 .hchg-was{color:var(--mut); text-decoration:line-through;}
-.hchg-arrow{color:var(--dim);}
+.hchg-arrow{color:var(--mut);}
 .hchg-now{color:var(--brand);}
 .hchg-list{margin:0 0 14px; padding:0 0 0 18px; color:var(--ink); font-size:13px; line-height:1.55;}
 .hchg-list li{margin:0 0 7px;}
 .hchg-list b{font-weight:600;}
 table.hcard td.vsp{color:var(--mut); font-size:11px;}
-table.hcard th.vsp{color:var(--dim);}
+table.hcard th.vsp{color:var(--mut);}
 /* D152 · where this golfer gets a shot, marked the way a paper card marks it.
    The allocation is strokeOn()'s — the engine that owns it — never re-derived. */
 table.hcard td.stk{position:relative;}
@@ -754,7 +754,7 @@ table.hcard td.stk::after{content:''; position:absolute; top:2px; right:3px;
 table.hcard td.stk2::before{content:''; position:absolute; top:2px; right:8px;
   width:3px; height:3px; border-radius:50%; background:var(--gold);}
 table.hcard tr.ledrow td{border-bottom:none; padding-top:6px;}
-table.hcard tr.ledrow td.nm{color:var(--dim); font-family:var(--mono); font-size:10px; font-weight:500;}
+table.hcard tr.ledrow td.nm{color:var(--mut); font-family:var(--mono); font-size:10px; font-weight:500;}
 .ledc{display:block; height:11px; margin:0 1px; border-radius:2px; border:1px solid var(--line);}
 .ledc.me{background:var(--brand); border-color:var(--brand);}
 .ledc.them{background:var(--dim); border-color:var(--dim);}
@@ -780,7 +780,7 @@ table.hcard tr.ledrow td.nm{color:var(--dim); font-family:var(--mono); font-size
 .scoreboard .sbchip .lv{width:6px; height:6px; border-radius:50%; background:var(--pos); flex:none;}
 .scoreboard .sbchip.lead{border-color:var(--gold);}
 .scoreboard .sbchip.lead b{color:var(--gold);}
-.scoreboard .sb-sub{font-family:var(--mono); font-size:10.5px; color:var(--dim); letter-spacing:.1em; text-transform:uppercase; margin-top:8px;}
+.scoreboard .sb-sub{font-family:var(--mono); font-size:10.5px; color:var(--mut); letter-spacing:.1em; text-transform:uppercase; margin-top:8px;}
 .scoreboard.stuck{padding:8px 12px;}
 .scoreboard.stuck .sb-hero{font-size:13.5px;}
 .scoreboard.stuck .sb-sub{display:none;}
@@ -792,7 +792,7 @@ body.guestlive #onboard{display:none !important;}
   background:var(--bg1); border:1px solid var(--line); border-radius:var(--r); padding:12px 14px;
 }
 .holehdr .hnum{font-family:var(--mono); font-size:22px; font-weight:600; letter-spacing:.04em;}
-.holehdr .hmeta{font-family:var(--mono); font-size:11.5px; color:var(--dim); letter-spacing:.12em; text-transform:uppercase; margin-top:2px;}
+.holehdr .hmeta{font-family:var(--mono); font-size:11.5px; color:var(--mut); letter-spacing:.12em; text-transform:uppercase; margin-top:2px;}
 .holehdr button{
   width:42px; height:42px; border-radius:11px; border:1px solid var(--line2);
   background:var(--bg2); font-size:16px; cursor:pointer; color:var(--mut); flex:none;
@@ -811,7 +811,7 @@ body.guestlive #onboard{display:none !important;}
 .prow .sw{width:9px; height:28px; border-radius:3px; flex:none;}
 .prow .nm{flex:1; min-width:0;}
 .prow .nm b{font-size:13.5px; font-weight:600; display:flex; align-items:center; gap:6px;}
-.prow .nm small{font-family:var(--mono); font-size:11px; color:var(--dim); letter-spacing:.06em;}
+.prow .nm small{font-family:var(--mono); font-size:11px; color:var(--mut); letter-spacing:.06em;}
 .strokedot{width:6px; height:6px; border-radius:50%; background:var(--gold); display:inline-block; flex:none;}
 .prow .tot{font-family:var(--mono); font-size:12px; color:var(--mut); text-align:right; min-width:66px; font-variant-numeric:tabular-nums;}
 .step{display:flex; align-items:center; gap:2px; background:var(--bg2); border:1px solid var(--line2); border-radius:10px; flex:none;}
@@ -827,7 +827,7 @@ body.guestlive #onboard{display:none !important;}
   padding:14px; margin-bottom:10px; position:relative; overflow:hidden;
 }
 .gamecard::before{content:""; position:absolute; left:0; top:0; bottom:0; width:3.5px; background:var(--acc,var(--sq0));}
-.gamecard .gk{font-family:var(--mono); font-size:11px; letter-spacing:.16em; text-transform:uppercase; color:var(--dim);}
+.gamecard .gk{font-family:var(--mono); font-size:11px; letter-spacing:.16em; text-transform:uppercase; color:var(--mut);}
 .gamecard .gs{font-family:var(--mono); font-size:18px; font-weight:600; margin-top:6px;}
 .gamecard .gm{font-family:var(--mono); font-size:12px; color:var(--mut); margin-top:3px;}
 .wolfbtns{display:flex; gap:6px; flex-wrap:wrap; margin-top:10px;}
@@ -841,7 +841,7 @@ body.guestlive #onboard{display:none !important;}
 .wolftally{display:grid; grid-template-columns:repeat(4,1fr); gap:6px; margin-top:12px;}
 .wolftally .wt{background:var(--bg2); border:1px solid var(--line); border-radius:9px; padding:8px 4px; text-align:center;}
 .wolftally .wt b{display:block; font-family:var(--mono); font-size:14px; font-variant-numeric:tabular-nums;}
-.wolftally .wt span{font-family:var(--mono); font-size:10px; color:var(--dim); letter-spacing:.08em;}
+.wolftally .wt span{font-family:var(--mono); font-size:10px; color:var(--mut); letter-spacing:.08em;}
 .settle .srow{
   display:flex; justify-content:space-between; font-family:var(--mono); font-size:13px;
   color:var(--mut); padding:8px 2px; border-top:1px solid var(--line);
@@ -855,7 +855,7 @@ body.guestlive #onboard{display:none !important;}
   padding:7px 12px 7px 9px; font-size:12px; font-weight:600; color:var(--ink);
 }
 .gchip .sw{width:8px; height:8px; border-radius:3px;}
-.gchip small{font-family:var(--mono); font-size:10.5px; color:var(--dim); letter-spacing:.06em;}
+.gchip small{font-family:var(--mono); font-size:10.5px; color:var(--mut); letter-spacing:.06em;}
 .gchip.add{border-style:dashed; color:var(--mut); background:none; cursor:pointer;}
 .gchip.add:hover{color:var(--ink);}
 .gchip.add:focus-visible{outline:2px solid var(--focus); outline-offset:2px;}
@@ -868,7 +868,7 @@ body.guestlive #onboard{display:none !important;}
 .backlink{
   display:inline-flex; align-items:center; gap:6px;
   font-family:var(--mono); font-size:12px; letter-spacing:.1em; text-transform:uppercase;
-  color:var(--dim); text-decoration:none; margin-bottom:12px;
+  color:var(--mut); text-decoration:none; margin-bottom:12px;
 }
 .backlink:hover{color:var(--ink);}
 .optcard{
@@ -882,7 +882,7 @@ body.guestlive #onboard{display:none !important;}
 .optcard:focus-visible{outline:2px solid var(--focus); outline-offset:2px;}
 .optcard h4{font-size:15px; font-weight:700;}
 .optcard p{font-family:var(--mono); font-size:12px; color:var(--mut); margin-top:5px; line-height:1.7; letter-spacing:.02em;}
-.optcard .go{position:absolute; right:16px; top:50%; transform:translateY(-50%); color:var(--dim); font-size:16px;}
+.optcard .go{position:absolute; right:16px; top:50%; transform:translateY(-50%); color:var(--mut); font-size:16px;}
 /* D110: the live door is the hero — ember spine, LIVE word, room to breathe */
 .optcard.live{padding:22px 40px 22px 18px; border-color:var(--line2);}
 .optcard.live h4{font-size:17px;}
@@ -897,7 +897,7 @@ body.guestlive #onboard{display:none !important;}
 .optcard.soon{opacity:.6; cursor:default;}
 .optcard.soon::before{background:var(--dim);}
 .optcard.soon:hover{border-color:var(--line2); filter:none;}
-.optcard.soon .go{font-family:var(--mono); font-size:10.5px; font-weight:600; letter-spacing:.12em; color:var(--dim);}
+.optcard.soon .go{font-family:var(--mono); font-size:10.5px; font-weight:600; letter-spacing:.12em; color:var(--mut);}
 /* course search results — type a course, pick a tee, rating+slope autofill */
 .coursedd{margin:6px 0 2px; border:1px solid var(--line2); border-radius:10px; overflow:hidden; background:var(--bg2); max-height:230px; overflow-y:auto;}
 .coursedd button{display:block; width:100%; text-align:left; background:none; border:none; border-bottom:1px solid var(--line); padding:9px 12px; cursor:pointer; color:var(--ink);}
@@ -906,7 +906,7 @@ body.guestlive #onboard{display:none !important;}
 .coursedd button.kbd{background:var(--bg1); outline:2px solid var(--focus); outline-offset:-2px;}
 .coursedd button b{display:block; font-size:13px; font-weight:600; line-height:1.3;}
 .coursedd button span{font-family:var(--mono); font-size:11.5px; color:var(--mut); letter-spacing:.03em;}
-.coursedd .coursedd-msg{padding:9px 12px; font-family:var(--mono); font-size:11.5px; color:var(--dim); letter-spacing:.03em;}
+.coursedd .coursedd-msg{padding:9px 12px; font-family:var(--mono); font-size:11.5px; color:var(--mut); letter-spacing:.03em;}
 .coursedd .coursedd-back{font-family:var(--mono); font-size:11.5px; font-weight:600; letter-spacing:.06em; color:var(--mut); background:var(--bg1); position:sticky; top:0;}
 .coursedd .coursedd-back:hover{background:var(--bg1); color:var(--ink);}
 /* The Ryder — event scoreboard */
@@ -917,15 +917,15 @@ body.guestlive #onboard{display:none !important;}
 .evteam b{font-size:14px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
 .evteam .sw{width:12px; height:12px; border-radius:3px; flex:none;}
 .evbig{font-family:var(--mono); font-size:30px; font-weight:700; font-variant-numeric:tabular-nums; letter-spacing:.02em; flex:none;}
-.evbig small{color:var(--dim); font-size:20px; margin:0 6px;}
+.evbig small{color:var(--mut); font-size:20px; margin:0 6px;}
 .evclinch{padding:10px 0 0; font-family:var(--mono); font-size:11.5px; letter-spacing:.08em; color:var(--mut);}
 .evsess{margin-top:14px;}
-.evsesshd{display:flex; align-items:center; gap:8px; font-family:var(--mono); font-size:11.5px; letter-spacing:.08em; color:var(--dim); margin:0 0 6px;}
+.evsesshd{display:flex; align-items:center; gap:8px; font-family:var(--mono); font-size:11.5px; letter-spacing:.08em; color:var(--mut); margin:0 0 6px;}
 .evduel{display:flex; align-items:center; gap:8px; padding:6px 10px; border:1px solid var(--line); border-radius:9px; margin-bottom:5px; font-size:12.5px;}
 .evduel .nm{flex:1; min-width:0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
 .evduel .nm.b{text-align:right;}
 .evduel .nm.win{font-weight:700;}
-.evduel .mid{font-family:var(--mono); font-size:11px; letter-spacing:.06em; color:var(--dim); flex:none;}
+.evduel .mid{font-family:var(--mono); font-size:11px; letter-spacing:.06em; color:var(--mut); flex:none;}
 .evduel .pv{font-family:var(--mono); font-size:11.5px; color:var(--mut); flex:none;}
 .evwin{color:var(--gold); font-weight:700;}
 /* notifications banner — pending invites, act in line */
@@ -958,15 +958,15 @@ body.guestlive #onboard{display:none !important;}
 }
 .check .tt{flex:1; min-width:0;}
 .check .tt b{font-size:13.5px; font-weight:600; display:block;}
-.check .tt small{font-family:var(--mono); font-size:11px; color:var(--dim); letter-spacing:.08em; display:block; margin-top:2px;}
+.check .tt small{font-family:var(--mono); font-size:11px; color:var(--mut); letter-spacing:.08em; display:block; margin-top:2px;}
 /* home feed time buckets (pilot: "today, this week, a button for older") */
-.feedsec{font-family:var(--mono); font-size:10.5px; letter-spacing:.14em; text-transform:uppercase; color:var(--dim); margin:16px 2px 8px;}
+.feedsec{font-family:var(--mono); font-size:10.5px; letter-spacing:.14em; text-transform:uppercase; color:var(--mut); margin:16px 2px 8px;}
 .feedsec:first-child{margin-top:2px;}
 .feedmore{margin-top:4px;}
 .feedmore>summary{list-style:none; cursor:pointer; font-family:var(--mono); font-size:11px; letter-spacing:.1em; text-transform:uppercase; color:var(--mut); padding:10px 12px; border:1px solid var(--line); border-radius:var(--r); background:var(--bg1); text-align:center; user-select:none;}
 .feedmore>summary::-webkit-details-marker{display:none;}
 .feedmore>summary:hover{color:var(--ink); border-color:var(--line2);}
-.feedmore[open]>summary{margin-bottom:8px; color:var(--dim);}
+.feedmore[open]>summary{margin-bottom:8px; color:var(--mut);}
 .phasehero{
   background:var(--bg1); border:1px solid var(--line2); border-radius:var(--r);
   padding:22px 20px; position:relative; overflow:hidden;
@@ -974,7 +974,7 @@ body.guestlive #onboard{display:none !important;}
 .phasehero::before{content:""; position:absolute; left:0; top:0; bottom:0; width:3.5px; background:var(--brand);}
 .phasehero .k{font-family:var(--mono); font-size:11.5px; letter-spacing:.2em; text-transform:uppercase; color:var(--brand);}
 .phasehero .n{font-size:24px; font-weight:700; letter-spacing:-.01em; margin:7px 0 4px;}
-.phasehero .m{font-family:var(--mono); font-size:12px; color:var(--dim); letter-spacing:.08em;}
+.phasehero .m{font-family:var(--mono); font-size:12px; color:var(--mut); letter-spacing:.08em;}
 .nextcard{
   display:flex; align-items:center; gap:12px;
   background:var(--bg1); border:1px solid var(--line2); border-radius:var(--r);
@@ -993,26 +993,26 @@ body.guestlive #onboard{display:none !important;}
    the right that fills in as the Pro turns the dials. Mobile is untouched: the
    aside hides and the bylaws live in step 3's review as before. */
 .wiz-aside{display:none;}
-.wiz-aside-h{font-family:var(--mono); font-size:11.5px; letter-spacing:.16em; text-transform:uppercase; color:var(--dim); margin-bottom:10px;}
+.wiz-aside-h{font-family:var(--mono); font-size:11.5px; letter-spacing:.16em; text-transform:uppercase; color:var(--mut); margin-bottom:10px;}
 /* Stage 3d: the wizard aside is a drawn PORTRAIT of the league, live from the
    dials. flex-wrap on rows so a long value never pushes text out of its box. */
 .wizp{display:flex; flex-direction:column; gap:12px;}
 .wizp-h{display:flex; align-items:center; gap:11px;}
 .wizp-h b{font-family:var(--serif); font-size:19px; font-weight:700; line-height:1.12; display:block;}
-.wizp-h small{display:block; font-family:var(--mono); font-size:9px; letter-spacing:.13em; color:var(--dim); text-transform:uppercase; margin-top:3px;}
+.wizp-h small{display:block; font-family:var(--mono); font-size:9px; letter-spacing:.13em; color:var(--mut); text-transform:uppercase; margin-top:3px;}
 .wizp-row{display:flex; align-items:center; gap:8px; font-size:13px; flex-wrap:wrap;}
-.wizp-row .k{font-family:var(--mono); font-size:9px; letter-spacing:.12em; color:var(--dim); text-transform:uppercase; width:62px; flex:none;}
+.wizp-row .k{font-family:var(--mono); font-size:9px; letter-spacing:.12em; color:var(--mut); text-transform:uppercase; width:62px; flex:none;}
 .wizp-dot{width:10px; height:10px; border-radius:3px; display:inline-block; flex:none;}
-.wizp-chip{font-family:var(--mono); font-size:9.5px; letter-spacing:.04em; text-transform:uppercase; padding:3px 9px; border-radius:99px; border:1px solid var(--line2); color:var(--dim); white-space:nowrap;}
+.wizp-chip{font-family:var(--mono); font-size:9.5px; letter-spacing:.04em; text-transform:uppercase; padding:3px 9px; border-radius:99px; border:1px solid var(--line2); color:var(--mut); white-space:nowrap;}
 .wizp-chip.on{border-color:var(--brand); color:var(--brand); background:var(--glow);}
 .wizp-gold{font-family:var(--serif); color:var(--gold); font-weight:700; font-size:24px; font-variant-numeric:tabular-nums;}
-.wizp-sub{font-family:var(--mono); font-size:9px; letter-spacing:.08em; color:var(--dim); text-transform:uppercase; padding-left:70px; margin-top:-4px;}
+.wizp-sub{font-family:var(--mono); font-size:9px; letter-spacing:.08em; color:var(--mut); text-transform:uppercase; padding-left:70px; margin-top:-4px;}
 /* Stage 3d-2: Start something as schema-art doors, competition-forward */
 .startgrid{display:grid; grid-template-columns:1fr 1fr; gap:10px;}
 .startdoor{display:flex; flex-direction:column; align-items:flex-start; gap:7px; text-align:left; padding:13px; background:var(--bg1); border:1px solid var(--line2); border-radius:14px; cursor:pointer; color:var(--ink);}
 .startdoor svg{width:54px; height:36px;}
 .startdoor b{font-family:var(--serif); font-size:16px; font-weight:700;}
-.startdoor small{font-family:var(--mono); font-size:9.5px; letter-spacing:.1em; text-transform:uppercase; color:var(--dim);}
+.startdoor small{font-family:var(--mono); font-size:9.5px; letter-spacing:.1em; text-transform:uppercase; color:var(--mut);}
 .startjoin{display:flex; align-items:center; justify-content:center; gap:8px; width:100%; margin-top:10px; padding:11px; background:var(--bg2); border:1px solid var(--line2); border-radius:12px; font-weight:600; font-size:13px; cursor:pointer; color:var(--ink);}
 @media(hover:hover){ .startdoor:hover, .startjoin:hover{border-color:var(--brand);} }
 .startdoor:focus-visible, .startjoin:focus-visible{outline:2px solid var(--focus); outline-offset:2px;}
@@ -1021,9 +1021,9 @@ body.guestlive #onboard{display:none !important;}
   background:linear-gradient(180deg, color-mix(in srgb, var(--gold) 10%, transparent), transparent 72%);}
 .runback .rb-top{display:flex; align-items:center; gap:11px; margin-bottom:12px;}
 .runback .rb-top svg{flex:none;}
-.runback .rb-k{font-family:var(--mono); font-size:9px; letter-spacing:.14em; text-transform:uppercase; color:var(--dim);}
+.runback .rb-k{font-family:var(--mono); font-size:9px; letter-spacing:.14em; text-transform:uppercase; color:var(--mut);}
 .runback .rb-top b{font-family:var(--serif); font-size:17px; font-weight:700; display:block; line-height:1.15;}
-.runback .rb-sub{font-family:var(--mono); font-size:9px; letter-spacing:.06em; text-transform:uppercase; color:var(--dim); text-align:center; margin-top:8px; line-height:1.5;}
+.runback .rb-sub{font-family:var(--mono); font-size:9px; letter-spacing:.06em; text-transform:uppercase; color:var(--mut); text-align:center; margin-top:8px; line-height:1.5;}
 @media(min-width:1100px){
   #view-wizard .wiz-grid{display:grid; grid-template-columns:minmax(0,1fr) 340px; gap:28px; align-items:start;}
   #view-wizard .wiz-main{min-width:0;}
@@ -1058,7 +1058,7 @@ body.guestlive #onboard{display:none !important;}
 /* quick-post hole grid (decision #5): par-prefilled, adjust only deviations */
 .pgrid{display:grid; grid-template-columns:repeat(auto-fill,minmax(52px,1fr)); gap:6px;}
 .pcell{background:var(--bg2); border:0.5px solid var(--line); border-radius:9px; padding:5px 2px 6px; text-align:center;}
-.pcell .pn{display:block; font-size:9.5px; color:var(--dim); letter-spacing:.04em;}
+.pcell .pn{display:block; font-size:9.5px; color:var(--mut); letter-spacing:.04em;}
 .pcell .prow{display:flex; align-items:center; justify-content:center; gap:3px; margin-top:2px;}
 .pcell .prow button{width:19px; height:19px; border:0.5px solid var(--line); background:var(--bg); border-radius:6px; color:var(--ink); font-size:14px; line-height:1; padding:0; cursor:pointer;}
 .pcell .ps{min-width:18px; font-size:15px; font-weight:600; font-variant-numeric:tabular-nums;}
@@ -1088,7 +1088,7 @@ body.guestlive #onboard{display:none !important;}
 .ontheline .ok{font-family:var(--mono); font-size:11px; letter-spacing:.18em; text-transform:uppercase; color:var(--gold);}
 .ontheline .oa{font-family:var(--mono); font-size:22px; font-weight:600; color:var(--gold); font-variant-numeric:tabular-nums;}
 .ontheline .os{font-family:var(--mono); font-size:11.5px; color:var(--mut); letter-spacing:.06em;}
-.ontheline .go{margin-left:auto; color:var(--dim);}
+.ontheline .go{margin-left:auto; color:var(--mut);}
 .fcard{
   background:var(--bg1); border:1px solid var(--line); border-radius:14px;
   padding:12px 13px; margin-bottom:8px;
@@ -1156,7 +1156,7 @@ body.guestlive #onboard{display:none !important;}
 .rsheet .rs-course{margin:2px 0 10px;}
 .rsheet .rs-course b{font-size:19px; display:block; letter-spacing:-.01em;}
 .rsheet .rs-course .meta{display:block; font-size:11px; color:var(--mut); margin-top:3px; letter-spacing:.02em;}
-.rsheet .rs-course .place{display:block; font-size:11.5px; color:var(--dim); margin-top:1px;}
+.rsheet .rs-course .place{display:block; font-size:11.5px; color:var(--mut); margin-top:1px;}
 .rs-when{display:flex; gap:8px; flex-wrap:wrap; align-items:center;}
 .teechip{font-size:12.5px; font-weight:600; background:var(--bg2); border:1px solid var(--line); border-radius:8px; padding:6px 10px;}
 .wxchip{font-size:12px; color:var(--mut); background:rgba(212,178,62,.12); border:1px solid rgba(212,178,62,.32); border-radius:8px; padding:6px 10px;}
@@ -1164,13 +1164,13 @@ body.guestlive #onboard{display:none !important;}
 .rs-note{font-style:italic; color:var(--mut); font-size:13px; margin-top:10px;}
 .rivchip{margin-top:12px; border:1px solid rgba(212,178,62,.34); background:rgba(212,178,62,.08); border-radius:10px; padding:9px 11px; font-size:13px;}
 .rivchip em{font-style:italic; color:var(--mut);}
-.rs-lbl{font-family:var(--mono); font-size:10px; letter-spacing:.16em; text-transform:uppercase; color:var(--dim); margin:16px 0 8px; display:flex; justify-content:space-between;}
+.rs-lbl{font-family:var(--mono); font-size:10px; letter-spacing:.16em; text-transform:uppercase; color:var(--mut); margin:16px 0 8px; display:flex; justify-content:space-between;}
 .rs-lbl .n{color:var(--pos); font-weight:600;}
 .rsvppill{font-family:var(--mono); font-size:9.5px; letter-spacing:.05em; text-transform:uppercase; font-weight:700; padding:3px 8px; border-radius:99px; flex:none; align-self:center;}
 .rsvppill.in{color:var(--pos); background:rgba(78,197,132,.14);}
 .rsvppill.maybe{color:var(--gold); background:rgba(212,178,62,.16);}
-.rsvppill.out{color:var(--dim); background:var(--bg2);}
-.rsvppill.none{color:var(--dim); background:var(--bg2);}
+.rsvppill.out{color:var(--mut); background:var(--bg2);}
+.rsvppill.none{color:var(--mut); background:var(--bg2);}
 .rsvpset{display:flex; gap:7px; margin-top:10px;}
 .rbtn{flex:1; font-size:12.5px; font-weight:600; color:var(--mut); border:1px solid var(--line); border-radius:9px; padding:9px; background:var(--panel);}
 .rbtn.on.in{color:#fff; background:var(--pos); border-color:var(--pos);}
@@ -1195,16 +1195,16 @@ body.guestlive #onboard{display:none !important;}
 .hhero .hh-fig{display:flex; align-items:baseline; gap:9px; margin-bottom:2px;}
 .hhero .hh-pos{font-family:var(--serif); font-size:44px; font-weight:700; line-height:.9; letter-spacing:-.02em; color:var(--ink); font-variant-numeric:tabular-nums;}
 .hhero.earned .hh-pos{color:var(--gold);}
-.hhero .hh-ord{font-family:var(--serif); font-size:19px; font-weight:700; color:var(--dim); align-self:flex-start; margin-top:3px;}
+.hhero .hh-ord{font-family:var(--serif); font-size:19px; font-weight:700; color:var(--mut); align-self:flex-start; margin-top:3px;}
 .hhero .hh-move{display:inline-flex; align-items:center; gap:4px; border-radius:99px; padding:3px 9px; margin-left:auto;
   font-family:var(--mono); font-size:10.5px; font-weight:600; letter-spacing:.06em; background:rgba(78,197,132,.13); color:var(--pos);}
 .hhero .hh-move.dn{background:rgba(255,95,86,.12); color:var(--neg);}
-.hhero .hh-move.flat{background:var(--bg2); color:var(--dim);}
+.hhero .hh-move.flat{background:var(--bg2); color:var(--mut);}
 .hhero .hh-line{font-size:13.5px; line-height:1.5; color:var(--ink); margin:10px 0 0;}
 .hhero .hh-line em{font-style:normal; color:var(--brand); font-weight:600;}
 .hhero.earned .hh-line em{color:var(--gold);}
 .hhero .hh-foot{display:flex; align-items:center; gap:9px; margin-top:12px; padding-top:11px; border-top:1px solid var(--line);
-  font-family:var(--mono); font-size:10px; letter-spacing:.07em; text-transform:uppercase; color:var(--dim);}
+  font-family:var(--mono); font-size:10px; letter-spacing:.07em; text-transform:uppercase; color:var(--mut);}
 .hhero .hh-bar{flex:1; height:5px; border-radius:99px; background:var(--bg2); overflow:hidden;}
 .hhero .hh-bar i{display:block; height:100%; border-radius:99px; background:var(--brand);}
 .hhero .hh-bar i.ok{background:var(--pos);}
@@ -1239,7 +1239,7 @@ body.guestlive #onboard{display:none !important;}
 .hocc.earned .ho-act{color:var(--gold);}
 .hocc .ho-mk{position:absolute; right:34px; top:12px; width:30px; height:30px; opacity:.3; pointer-events:none;}
 .hocc .ho-mk svg{width:100%; height:100%; stroke:var(--gold); fill:none; stroke-width:1.4; stroke-linecap:round; stroke-linejoin:round;}
-.hocc .ho-x{position:absolute; right:8px; top:8px; width:24px; height:24px; border-radius:50%; border:none; background:none; color:var(--dim); font-size:14px; line-height:1; cursor:pointer;}
+.hocc .ho-x{position:absolute; right:8px; top:8px; width:24px; height:24px; border-radius:50%; border:none; background:none; color:var(--mut); font-size:14px; line-height:1; cursor:pointer;}
 /* Home "Coming up" rich cards (round-object arc Stage 6) */
 .hround{display:flex; align-items:center; gap:10px; padding:11px 12px; margin-bottom:7px; background:var(--panel); border:1px solid var(--line); border-radius:11px;}
 .hround.tap{cursor:pointer;} .hround.tap:active{transform:scale(.99);}
@@ -1249,7 +1249,7 @@ body.guestlive #onboard{display:none !important;}
 .hr-body small{display:block; color:var(--mut); font-size:11.5px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
 .hr-side{display:flex; align-items:center; gap:7px; flex:none;}
 .hr-in{font-family:var(--mono); font-size:10px; font-weight:700; letter-spacing:.04em; color:var(--pos); background:rgba(78,197,132,.14); border-radius:99px; padding:3px 8px;}
-.hr-c{font-size:10.5px; color:var(--dim);}
+.hr-c{font-size:10.5px; color:var(--mut);}
 .hr-wx{font-size:11px; color:var(--mut);}
 .cthread{margin-top:10px;}
 .crow{
@@ -1352,7 +1352,7 @@ html[data-theme="light"] .digest{background:#FBFCFA;}
 .htile::before{content:""; position:absolute; left:0; top:10px; bottom:10px; width:2px;
   border-radius:2px; background:var(--acc,var(--dim));}
 .htile .t{font-family:var(--mono); font-size:8.5px; letter-spacing:.14em;
-  text-transform:uppercase; color:var(--dim);}
+  text-transform:uppercase; color:var(--mut);}
 .htile .v{font-family:var(--serif); font-size:17px; color:var(--ink); line-height:1;
   white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
 .htile .s{font-family:var(--mono); font-size:9px; letter-spacing:.1em; color:var(--mut);
@@ -1403,11 +1403,11 @@ html[data-theme="light"] .digest{background:#FBFCFA;}
   text-align:left; padding-right:12px; min-width:96px; position:sticky; left:0;
   background:var(--bg1); z-index:1; white-space:nowrap;
 }
-.sccard thead th{color:var(--dim); font-size:10px; letter-spacing:.1em; font-weight:600;}
-.sccard tr.par td, .sccard tr.si td{color:var(--dim); font-size:10.5px;}
+.sccard thead th{color:var(--mut); font-size:10px; letter-spacing:.1em; font-weight:600;}
+.sccard tr.par td, .sccard tr.si td{color:var(--mut); font-size:10.5px;}
 .sccard td.tot{font-weight:700; color:var(--ink); padding-left:10px; min-width:38px;}
 .sccard td.won{color:var(--bg0); background:var(--gold); border-radius:4px; font-weight:700;}
-.sccard td.gap{color:var(--dim);}
+.sccard td.gap{color:var(--mut);}
 .sccard td.bird{color:var(--gold); font-weight:700;}
 .sccard .nine{border-right:1px solid var(--line2);}
 .momrow{
@@ -1424,12 +1424,12 @@ html[data-theme="light"] .momrow{background:rgba(21,116,63,.06);}
   font-family:var(--mono); font-size:12.5px; color:var(--ink);
   background:var(--bg2); border:1px solid var(--line2); border-radius:99px; padding:6px 11px;
 }
-.echip button{border:none; background:none; color:var(--dim); cursor:pointer; font-size:12px; padding:0;}
+.echip button{border:none; background:none; color:var(--mut); cursor:pointer; font-size:12px; padding:0;}
 .echip button:hover{color:var(--neg);}
 .byrow{
   display:flex; justify-content:space-between; gap:12px;
   font-family:var(--mono); font-size:12.5px; padding:8px 2px;
-  border-top:1px solid var(--line); color:var(--dim); letter-spacing:.04em;
+  border-top:1px solid var(--line); color:var(--mut); letter-spacing:.04em;
 }
 .byrow:first-child{border-top:none;}
 .byrow b{color:var(--ink); font-weight:600; text-align:right;}
@@ -1437,7 +1437,7 @@ html[data-theme="light"] .momrow{background:rgba(21,116,63,.06);}
 /* ============ v8: message board, live setup, live banner ============ */
 .datesep{
   font-family:var(--mono); font-size:11px; letter-spacing:.2em; text-transform:uppercase;
-  color:var(--dim); text-align:center; margin:18px 0 10px;
+  color:var(--mut); text-align:center; margin:18px 0 10px;
   display:flex; align-items:center; gap:12px;
 }
 .datesep::before,.datesep::after{content:""; flex:1; border-top:1px solid var(--line);}
@@ -1483,7 +1483,7 @@ html[data-theme="light"] .momrow{background:rgba(21,116,63,.06);}
 .livebanner .dot{width:8px; height:8px; border-radius:50%; background:var(--pos);}
 .livebanner .ln{font-size:22px; font-weight:700; letter-spacing:-.01em; margin:8px 0 3px;}
 .livebanner .lm{font-family:var(--mono); font-size:12px; color:var(--mut); letter-spacing:.06em;}
-.livebanner .go{position:absolute; right:16px; top:50%; transform:translateY(-50%); color:var(--dim); font-size:16px;}
+.livebanner .go{position:absolute; right:16px; top:50%; transform:translateY(-50%); color:var(--mut); font-size:16px;}
 /* D86 · the invitation face: someone else's tee sheet, calling you to it.
    Ember (the live layer's colour — gold stays the earned face) and a JOIN
    word instead of the resume arrow. */
@@ -1498,16 +1498,21 @@ html[data-theme="light"] .momrow{background:rgba(21,116,63,.06);}
 #rosterChips .gchip{margin:0 6px 6px 0;}
 .rlab{
   font-family:var(--mono); font-size:10.5px; letter-spacing:.16em; text-transform:uppercase;
-  color:var(--dim); margin:12px 0 8px; width:100%;
+  color:var(--mut); margin:12px 0 8px; width:100%;
 }
 .rlab:first-child{margin-top:0;}
 .ibtn{
   display:inline-grid; place-items:center; width:18px; height:18px; margin-left:6px;
   border-radius:50%; border:1px solid var(--line2); background:var(--bg2);
-  color:var(--dim); font-family:var(--mono); font-size:11.5px; font-weight:600;
+  color:var(--mut); font-family:var(--mono); font-size:11.5px; font-weight:600;
   cursor:pointer; vertical-align:middle; padding:0; text-transform:lowercase;
 }
 .ibtn:hover{color:var(--ink); border-color:var(--dim);}
+/* D190 · .ibtn renders 18x18, under WCAG 2.2 SC 2.5.8's 24x24 AA floor and far
+   under the 44pt HIG target. Grow the HIT AREA with a pseudo-element so not one
+   pixel of layout moves. */
+.ibtn{position:relative;}
+.ibtn::after{content:""; position:absolute; inset:-13px; border-radius:50%;}
 .ibtn:focus-visible{outline:2px solid var(--focus); outline-offset:2px;}
 /* D76 sweep: open/closed is an interaction state, not an outcome — ember, not
    --pos. Toggle and panel move together or an opened help shows two metals. */
@@ -1521,12 +1526,12 @@ html[data-theme="light"] .momrow{background:rgba(21,116,63,.06);}
 .ihelp b{color:var(--ink);}
 .soon{
   font-family:var(--mono); font-size:10px; font-weight:600; letter-spacing:.1em;
-  color:var(--dim); background:var(--bg2); border:1px solid var(--line2);
+  color:var(--mut); background:var(--bg2); border:1px solid var(--line2);
   border-radius:5px; padding:2.5px 6px; margin-left:8px;
 }
 .ob-status{
   font-family:var(--mono); font-size:12.5px; line-height:1.6; letter-spacing:.02em;
-  margin-top:10px; color:var(--dim);
+  margin-top:10px; color:var(--mut);
 }
 .ob-status.ok{color:var(--pos);}
 .ob-status.err{color:var(--neg);}
@@ -1544,12 +1549,12 @@ html[data-theme="light"] .momrow{background:rgba(21,116,63,.06);}
 .crtzone.hot{border-color:var(--brand); background:var(--glow); border-style:solid;}
 .crtzone h5{font-family:var(--mono); font-size:9.5px; letter-spacing:.14em; color:var(--mut);
   text-transform:uppercase; text-align:center; padding:2px 0 0; margin:0; font-weight:500;}
-.crtvs{align-self:center; font-family:var(--mono); font-size:10px; color:var(--dim); padding-top:52px; flex:none;}
+.crtvs{align-self:center; font-family:var(--mono); font-size:10px; color:var(--mut); padding-top:52px; flex:none;}
 .crtchip{position:relative; display:flex; align-items:center; gap:8px; background:var(--bg2);
   border:1px solid var(--line2); border-radius:11px; padding:8px 26px 8px 10px;
   min-height:44px; user-select:none; -webkit-user-select:none; touch-action:none; cursor:grab;}
 .crtchip b{font-size:13px; display:flex; align-items:center; gap:6px;}
-.crtchip small{display:block; font-family:var(--mono); font-size:8.5px; letter-spacing:.1em; color:var(--dim);}
+.crtchip small{display:block; font-family:var(--mono); font-size:8.5px; letter-spacing:.1em; color:var(--mut);}
 .crtchip.dragging{opacity:.35;}
 .crtchip.picked{outline:2px solid var(--brand); outline-offset:1px;}
 /* the swap TARGET: exactly one chip lights while you drag (or after a tap-pick)
@@ -1558,7 +1563,7 @@ html[data-theme="light"] .momrow{background:rgba(21,116,63,.06);}
 .crtchip.swaptar::after{content:'⇄'; position:absolute; right:7px; top:50%;
   transform:translateY(-50%); font-size:14px; color:var(--gold); font-weight:700;}
 .crtchip.cantrade::after{content:'⇄'; position:absolute; right:7px; top:50%;
-  transform:translateY(-50%); font-size:12px; color:var(--dim);}
+  transform:translateY(-50%); font-size:12px; color:var(--mut);}
 .crtghost{position:fixed; z-index:1200; pointer-events:none;
   transform:translate(-50%,-56%) rotate(2deg) scale(1.04);
   box-shadow:0 10px 26px rgba(10,25,15,.30); opacity:.95;}
@@ -1568,11 +1573,11 @@ html[data-theme="light"] .momrow{background:rgba(21,116,63,.06);}
 }
 .pslot.empty{border-style:dashed; background:none;}
 .pslot .sn{font-size:13px; font-weight:700; display:flex; align-items:center; gap:6px;}
-.pslot.empty .sn{color:var(--dim); font-weight:500; font-size:12px;}
-.pslot .si{font-family:var(--mono); font-size:10.5px; color:var(--dim); margin-top:4px; letter-spacing:.06em;}
+.pslot.empty .sn{color:var(--mut); font-weight:500; font-size:12px;}
+.pslot .si{font-family:var(--mono); font-size:10.5px; color:var(--mut); margin-top:4px; letter-spacing:.06em;}
 .pslot .sx{
   position:absolute; top:5px; right:7px; border:none; background:none;
-  color:var(--dim); font-size:14px; cursor:pointer; padding:2px 4px;
+  color:var(--mut); font-size:14px; cursor:pointer; padding:2px 4px;
 }
 .pslot .sx:hover{color:var(--neg);}
 .pslot .sx:focus-visible{outline:2px solid var(--focus); border-radius:6px;}
@@ -1617,8 +1622,8 @@ html[data-theme="light"] .momrow{background:rgba(21,116,63,.06);}
 }
 .sheet .grab{width:36px; height:4px; border-radius:99px; background:var(--line2); margin:0 auto 14px;}
 .sheet h3{font-size:18px; font-weight:700; letter-spacing:-.01em; padding-right:28px;}
-.sheet .sub{font-family:var(--mono); font-size:11.5px; color:var(--dim); letter-spacing:.1em; text-transform:uppercase; margin-top:3px;}
-.sheet .x{position:absolute; top:14px; right:14px; border:none; background:none; color:var(--dim); font-size:20px; cursor:pointer; padding:4px;}
+.sheet .sub{font-family:var(--mono); font-size:11.5px; color:var(--mut); letter-spacing:.1em; text-transform:uppercase; margin-top:3px;}
+.sheet .x{position:absolute; top:14px; right:14px; border:none; background:none; color:var(--mut); font-size:20px; cursor:pointer; padding:4px;}
 .mathrow{
   display:flex; justify-content:space-between; gap:12px; align-items:baseline;
   font-family:var(--mono); font-size:13px; padding:9px 2px; border-top:1px solid var(--line);
@@ -1634,7 +1639,7 @@ html[data-theme="light"] .momrow{background:rgba(21,116,63,.06);}
    row because it is the arithmetic, not the verdict — but present, because a
    figure with no visible working is what made a true -11.5 read as an
    accusation (§16). */
-.mathrow.sub{font-size:11.5px; color:var(--dim); padding-top:7px; padding-bottom:7px;}
+.mathrow.sub{font-size:11.5px; color:var(--mut); padding-top:7px; padding-bottom:7px;}
 .mathrow.sub b{color:var(--mut); font-weight:600; font-family:var(--mono); font-size:11px;
   letter-spacing:.06em;}
 .mathrow.sub span{font-family:var(--mono); font-size:11px; letter-spacing:.04em;}
@@ -1647,11 +1652,11 @@ html[data-theme="light"] .momrow{background:rgba(21,116,63,.06);}
 .rdrow.cut{opacity:.42;}
 .rdrow .rn{flex:1; min-width:0;}
 .rdrow .rn b{font-size:13px; font-weight:600; display:block;}
-.rdrow .rn small{font-family:var(--mono); font-size:11px; color:var(--dim); letter-spacing:.06em;}
+.rdrow .rn small{font-family:var(--mono); font-size:11px; color:var(--mut); letter-spacing:.06em;}
 .rdrow .rp{font-family:var(--mono); font-size:15px; font-weight:600; color:var(--pos);}
-.rdrow.cut .rp{color:var(--dim);}
+.rdrow.cut .rp{color:var(--mut);}
 .cuttag{
-  font-family:var(--mono); font-size:9.5px; letter-spacing:.1em; color:var(--dim);
+  font-family:var(--mono); font-size:9.5px; letter-spacing:.1em; color:var(--mut);
   border:1px solid var(--line2); border-radius:4px; padding:2px 5px; flex:none;
 }
 .tap{cursor:pointer;}
@@ -1671,12 +1676,12 @@ html[data-theme="light"] .momrow{background:rgba(21,116,63,.06);}
   background:var(--bg2); border:1px solid var(--line2); border-radius:11px;
   padding:13px 8px; min-height:52px;
 }
-.cardin::placeholder{letter-spacing:.34em; color:var(--dim); opacity:.4;}
+.cardin::placeholder{letter-spacing:.34em; color:var(--mut); opacity:.4;}
 .cardin.bad{border-color:var(--neg);}
 .cardlbl{
   display:flex; justify-content:space-between; align-items:baseline;
   font-family:var(--mono); font-size:11px; letter-spacing:.12em; text-transform:uppercase;
-  color:var(--dim); margin:12px 0 6px;
+  color:var(--mut); margin:12px 0 6px;
 }
 .cardlbl span.ok, .cardlbl .ok{color:var(--pos);}
 .cardlbl span.no, .cardlbl .no{color:var(--neg);}
@@ -1728,7 +1733,7 @@ html[data-theme="light"] .momrow{background:rgba(21,116,63,.06);}
 }
 @media(min-width:960px){ .tabbar{display:none;} }
 .tab{
-  background:none; border:none; cursor:pointer; color:var(--dim);
+  background:none; border:none; cursor:pointer; color:var(--mut);
   display:flex; flex-direction:column; align-items:center; gap:4px;
   font-family:var(--mono); font-size:10.5px; letter-spacing:.08em; text-transform:uppercase;
   padding:6px 2px; border-radius:10px; min-height:46px;
@@ -1937,7 +1942,7 @@ html[data-theme="light"] .hdrmark{color:#0B1410;}
 .ob-hero h1{font-size:36px; font-weight:700; line-height:1.1; letter-spacing:-.02em; margin-bottom:12px;}
 .ob-hero h1 em{font-style:normal; color:var(--brand);}
 .ob-hero p{font-size:14.5px; color:var(--mut); line-height:1.65; max-width:36ch; margin-left:auto; margin-right:auto;}
-.ob-caption{text-align:center; font-family:var(--mono); font-size:11.5px; color:var(--dim); margin-top:14px; letter-spacing:.04em;}
+.ob-caption{text-align:center; font-family:var(--mono); font-size:11.5px; color:var(--mut); margin-top:14px; letter-spacing:.04em;}
 .joinbox{display:none; gap:8px; margin-top:9px;}
 .joinbox.open{display:flex;}
 .joinbox input{
@@ -1952,7 +1957,7 @@ html[data-theme="light"] .hdrmark{color:#0B1410;}
   font-family:var(--sans); font-weight:500; caret-color:var(--focus);
 }
 .joinbox input::placeholder{
-  color:var(--dim); opacity:.55; font-weight:400;
+  color:var(--mut); opacity:.55; font-weight:400;
   letter-spacing:.02em; text-transform:none;
 }
 .joinbox input:focus-visible{outline:2px solid var(--focus);}
@@ -1966,7 +1971,7 @@ html[data-theme="light"] .hdrmark{color:#0B1410;}
 .ob-wing .wt{
   display:flex; align-items:center; gap:10px;
   font-family:var(--mono); font-size:10.5px; letter-spacing:.16em;
-  text-transform:uppercase; color:var(--dim); margin-bottom:10px;
+  text-transform:uppercase; color:var(--mut); margin-bottom:10px;
 }
 .ob-wing .wt::after{content:""; height:1px; flex:1; background:var(--line);}
 .ob-feed{position:relative; height:250px; overflow:hidden;}
@@ -1981,7 +1986,7 @@ html[data-theme="light"] .hdrmark{color:#0B1410;}
 .ob-pcard .who{
   display:flex; justify-content:space-between; gap:8px;
   font-family:var(--mono); font-size:10px; letter-spacing:.1em;
-  text-transform:uppercase; color:var(--dim); margin-bottom:6px;
+  text-transform:uppercase; color:var(--mut); margin-bottom:6px;
 }
 .ob-pcard .ln{display:flex; align-items:baseline; gap:10px;}
 .ob-pcard .gr{font-family:var(--serif); font-size:26px; font-weight:700; line-height:1; color:var(--ink);}
@@ -2005,7 +2010,7 @@ html[data-theme="light"] .hdrmark{color:#0B1410;}
 .ob-lbrow.lead .nm{color:var(--ink);}
 .ob-lb .lfoot{
   font-family:var(--mono); font-size:9.5px; letter-spacing:.12em; text-transform:uppercase;
-  color:var(--dim); padding-top:8px; border-top:1px solid var(--line); text-align:center;
+  color:var(--mut); padding-top:8px; border-top:1px solid var(--line); text-align:center;
 }
 
 
@@ -2014,7 +2019,7 @@ html[data-theme="light"] .hdrmark{color:#0B1410;}
    D1.2/F7) ---- */
 .cs-tskip{
   display:block; margin:12px auto 0; background:none; border:none; cursor:pointer;
-  font-size:12.5px; color:var(--dim); text-decoration:underline; text-underline-offset:3px;
+  font-size:12.5px; color:var(--mut); text-decoration:underline; text-underline-offset:3px;
 }
 .cs-tskip:hover{color:var(--mut);}
 .cs-tskip:focus-visible{outline:2px solid var(--focus); outline-offset:2px;}
@@ -2096,13 +2101,13 @@ body:not(.noleague) #hubLeagueless{display:none;}
 .leadcard .sd .nm{font-size:13px; font-weight:600; color:var(--ink);}
 .leadcard .sd .bs{font-family:var(--mono); font-size:11px; color:var(--mut); margin-top:2px;}
 .leadcard .sd.ahead .bs{color:var(--pos);}
-.leadcard .vs{font-family:var(--mono); font-size:11px; letter-spacing:.12em; color:var(--dim); padding-top:3px;}
+.leadcard .vs{font-family:var(--mono); font-size:11px; letter-spacing:.12em; color:var(--mut); padding-top:3px;}
 .leadcard .act{display:inline-flex; align-items:center; gap:6px; margin-top:10px; min-height:34px;
   background:none; border:0; padding:0; cursor:pointer;
   font-family:var(--sans); font-size:13.5px; font-weight:600; color:var(--brand);}
 /* the calendar is SOCIAL, not league-gated — friends' rounds show either way */
 .calgrid{display:grid; grid-template-columns:repeat(7,1fr); gap:3px;}
-.calhd{font-family:var(--mono); font-size:10.5px; letter-spacing:.08em; color:var(--dim); text-align:center; padding:2px 0 6px;}
+.calhd{font-family:var(--mono); font-size:10.5px; letter-spacing:.08em; color:var(--mut); text-align:center; padding:2px 0 6px;}
 .calcell{position:relative; aspect-ratio:1; border-radius:8px; background:var(--bg2); display:flex; flex-direction:column; align-items:center; justify-content:center; gap:3px; font-family:var(--mono); font-size:12.5px; color:var(--mut); border:1px solid transparent; cursor:default;}
 .calcell.blank{background:none;}
 .calcell.today{border-color:var(--pos); color:var(--ink);}
@@ -2576,7 +2581,7 @@ html[data-theme="light"] .room-dusk .btn:not(.dark):not(.gold):not(.apple){color
 .cerpay + .cerpay{border-top:1px solid var(--line);}
 .cerpay .who{font-size:14px; color:var(--ink);}
 .cerpay .why{display:block; font-family:var(--mono); font-size:9.5px; letter-spacing:.1em;
-  text-transform:uppercase; color:var(--dim); margin-top:2px;}
+  text-transform:uppercase; color:var(--mut); margin-top:2px;}
 .cerpay .amt{font-family:var(--mono); font-size:15px; color:var(--ink); white-space:nowrap;}
 .ceryou{margin-top:14px; padding:12px 14px; border-radius:12px;
   background:var(--glow); border:1px solid var(--brand); text-align:left;}
@@ -2668,11 +2673,11 @@ html[data-theme="light"] .room-dusk .btn:not(.dark):not(.gold):not(.apple){color
   background:rgba(12,13,15,.9); backdrop-filter:blur(16px);
 }
 .bf-hdr b{font-size:12px; letter-spacing:.14em; color:var(--pos);}
-.bf-hdr small{display:block; font-family:var(--mono); font-size:11.5px; color:var(--dim); letter-spacing:.1em; margin-top:2px;}
+.bf-hdr small{display:block; font-family:var(--mono); font-size:11.5px; color:var(--mut); letter-spacing:.1em; margin-top:2px;}
 #feedListFull{flex:1; overflow-y:auto; padding:6px 16px 12px; overscroll-behavior:contain;}
 .bf-comp{position:static; margin:0; padding:10px 16px calc(12px + env(safe-area-inset-bottom)); border-top:1px solid var(--line); background:var(--bg0);}
 .rline{font-family:var(--mono); font-size:12.5px; color:var(--mut); margin-top:3px; letter-spacing:.02em;}
-.rline .ok{color:var(--pos);} .rline .dim{color:var(--dim);}
+.rline .ok{color:var(--pos);} .rline .dim{color:var(--mut);}
 
 /* views: settle rather than pop */
 .view{animation:vin .26s cubic-bezier(.22,.9,.32,1) both;}
@@ -2844,11 +2849,11 @@ html[data-theme="light"] .room-dusk .btn:not(.dark):not(.gold):not(.apple){color
     <div id="obDoor">
     <button class="btn" id="obEmail">Continue with email</button>
     <div class="joinbox" id="emailbox">
-      <input id="obEmailIn" class="email" type="email" placeholder="you@email.com" autocomplete="email" inputmode="email">
+      <input id="obEmailIn" class="email" type="email" aria-label="Your email address" placeholder="you@email.com" autocomplete="email" inputmode="email">
       <button class="btn" id="obEmailGo">Go</button>
     </div>
     <div class="joinbox" id="codebox">
-      <input id="obCodeIn" inputmode="numeric" maxlength="10" placeholder="CODE FROM EMAIL" autocomplete="one-time-code">
+      <input id="obCodeIn" inputmode="numeric" maxlength="10" aria-label="The code from your email" placeholder="CODE FROM EMAIL" autocomplete="one-time-code">
       <button class="btn" id="obCodeGo">Verify</button>
     </div>
     <div class="ob-status" id="obStatus" role="status" aria-live="polite"></div>
@@ -2856,7 +2861,7 @@ html[data-theme="light"] .room-dusk .btn:not(.dark):not(.gold):not(.apple){color
 
     <button class="btn dark" id="obJoin">I have a league code</button>
       <div class="joinbox" id="joinbox">
-      <input id="joinCode" placeholder="LEAGUE CODE" maxlength="8" autocomplete="off">
+      <input id="joinCode" aria-label="League code" placeholder="LEAGUE CODE" maxlength="8" autocomplete="off">
       <button class="btn" id="joinGo">Join</button>
     </div>
 <!-- D83: the demo season retired — the door sells with its own splash -->
@@ -2873,26 +2878,26 @@ html[data-theme="light"] .room-dusk .btn:not(.dark):not(.gold):not(.apple){color
       <div style="height:12px"></div>
       <label class="f" for="pfHandle">Your handle — how buddies find you</label>
       <input class="f" id="pfHandle" autocomplete="off" placeholder="@jerecho" style="font-family:var(--sans); font-size:16px;">
-      <p class="fine" style="margin:6px 2px 0; padding:0; color:var(--dim)">Pick it now — this is how buddies find you. It can be changed later, but only once every 60 days, and your leagues are told when it does.</p>
+      <p class="fine" style="margin:6px 2px 0; padding:0; color:var(--mut)">Pick it now — this is how buddies find you. It can be changed later, but only once every 60 days, and your leagues are told when it does.</p>
       <div style="height:14px"></div>
-      <label class="f" for="pfHome">Home course <span style="color:var(--dim); font-weight:400">· optional</span></label>
+      <label class="f" for="pfHome">Home course <span style="color:var(--mut); font-weight:400">· optional</span></label>
       <input class="f" id="pfHome" autocomplete="off" placeholder="Where you play most" style="font-family:var(--sans); font-size:16px;">
       <div style="height:12px"></div>
-      <label class="f" for="pfCity">City <span style="color:var(--dim); font-weight:400">· optional</span></label>
+      <label class="f" for="pfCity">City <span style="color:var(--mut); font-weight:400">· optional</span></label>
       <input class="f" id="pfCity" autocomplete="off" placeholder="Tempe, AZ" style="font-family:var(--sans); font-size:16px;">
-      <p class="fine" style="margin:6px 2px 0; padding:0; color:var(--dim)">These are how buddies recognise you in search — and how someone spots that you play their course.</p>
+      <p class="fine" style="margin:6px 2px 0; padding:0; color:var(--mut)">These are how buddies recognise you in search — and how someone spots that you play their course.</p>
       <div style="height:12px"></div>
-      <label class="f" for="pfIdx">Handicap index <span style="color:var(--dim); font-weight:400">· optional</span></label>
+      <label class="f" for="pfIdx">Handicap index <span style="color:var(--mut); font-weight:400">· optional</span></label>
       <input class="f" id="pfIdx" type="number" step="0.1" inputmode="decimal" placeholder="e.g. 12.4">
-      <p class="fine" style="margin:6px 2px 0; padding:0; color:var(--dim)">Know your index? Enter it as a starting point — otherwise your first three rounds set it, and it keeps adjusting as you play.</p>
+      <p class="fine" style="margin:6px 2px 0; padding:0; color:var(--mut)">Know your index? Enter it as a starting point — otherwise your first three rounds set it, and it keeps adjusting as you play.</p>
       <button class="mini" id="pfGhinToggle" type="button" style="margin-top:8px">+ Add your GHIN number</button>
       <div id="pfGhinWrap" style="display:none; margin-top:8px">
         <input class="f" id="pfGhin" inputmode="numeric" autocomplete="off" placeholder="GHIN # · e.g. 1234567" style="font-family:var(--sans); max-width:220px">
-        <p class="fine" style="margin:6px 2px 0; padding:0; color:var(--dim)">Links your USGA record — that's identity, not your number. Your index still comes from your posted scores.</p>
+        <p class="fine" style="margin:6px 2px 0; padding:0; color:var(--mut)">Links your USGA record — that's identity, not your number. Your index still comes from your posted scores.</p>
       </div>
       <div style="height:14px"></div>
       <label class="f">Ball marker</label>
-      <p class="fine" style="margin:4px 2px 0; padding:0; color:var(--dim)">This is your icon on the board and in the standings until you add a photo.</p>
+      <p class="fine" style="margin:4px 2px 0; padding:0; color:var(--mut)">This is your icon on the board and in the standings until you add a photo.</p>
       <div id="pfMarkers" style="display:grid; grid-template-columns:repeat(4,1fr); gap:8px; margin-top:8px;"></div>
       <div style="height:16px"></div>
       <button class="btn" id="pfSave">Save my card</button>
@@ -2912,14 +2917,14 @@ html[data-theme="light"] .room-dusk .btn:not(.dark):not(.gold):not(.apple){color
       </div>
       <label class="f" for="obCrewCode">Got a league code?</label>
       <div class="joinbox" style="display:flex">
-        <input id="obCrewCode" placeholder="LEAGUE CODE" maxlength="8" autocomplete="off">
+        <input id="obCrewCode" aria-label="League code" placeholder="LEAGUE CODE" maxlength="8" autocomplete="off">
         <button class="btn" id="obCrewJoin" type="button">Join</button>
       </div>
-      <p class="fine" style="margin:6px 2px 0; padding:0; color:var(--dim)">A buddy texted you one? This is where it goes.</p>
+      <p class="fine" style="margin:6px 2px 0; padding:0; color:var(--mut)">A buddy texted you one? This is where it goes.</p>
       <div class="ob-status" id="obCrewStatus" role="status" aria-live="polite"></div>
       <div style="height:18px"></div>
       <button class="btn dark" id="obCrewFind" type="button">Find your buddies</button>
-      <p class="fine" style="margin:6px 2px 0; padding:0; color:var(--dim)">Search by name or @handle — buddies see each other's rounds and share a tee sheet.</p>
+      <p class="fine" style="margin:6px 2px 0; padding:0; color:var(--mut)">Search by name or @handle — buddies see each other's rounds and share a tee sheet.</p>
       <div style="height:18px"></div>
       <div style="height:18px"></div>
       <!-- D189 · every door above this one assumes the stranger already knows
@@ -3136,7 +3141,7 @@ html[data-theme="light"] .room-dusk .btn:not(.dark):not(.gold):not(.apple){color
         <!-- F8: feedback pill retired from floating chrome (de-AI scrub) — same
              handler (window.openFeedback via #pilotChip id), quiet row right by
              the card/settings entry instead of hovering over every screen. -->
-        <button type="button" id="pilotChip" style="display:flex; align-items:center; gap:9px; width:100%; text-align:left; background:var(--bg1); border:1px solid var(--line); border-radius:12px; padding:12px 14px; margin-bottom:14px; cursor:pointer; color:var(--ink); font-family:var(--sans); font-size:13.5px; font-weight:600;">💬 Tell us how it's going<span style="margin-left:auto; color:var(--dim); font-weight:400">→</span></button>
+        <button type="button" id="pilotChip" style="display:flex; align-items:center; gap:9px; width:100%; text-align:left; background:var(--bg1); border:1px solid var(--line); border-radius:12px; padding:12px 14px; margin-bottom:14px; cursor:pointer; color:var(--ink); font-family:var(--sans); font-size:13.5px; font-weight:600;">💬 Tell us how it's going<span style="margin-left:auto; color:var(--mut); font-weight:400">→</span></button>
         <!-- the founder's desk: hidden for everyone but the owner; the SERVER
              is the gate (founder_desk/founder_note refuse non-founders) — this
              display toggle is courtesy, not security -->
@@ -3427,7 +3432,7 @@ html[data-theme="light"] .room-dusk .btn:not(.dark):not(.gold):not(.apple){color
             <div class="eyebrow" id="finishStatus" style="display:none" aria-live="polite"></div>
             <button class="btn" id="finishBtn">Finish round &amp; post to season</button>
             <p class="fine" id="finishFine">Scores entered together are <b>auto-attested</b>: the group verifies everyone's round just by playing it. <b>Guests need no account:</b> they play every side game, appear in the settlement, and get a recap text with their scorecard and an invite when you finish. Only league members' rounds post to the season.</p>
-            <button class="mini" id="discardBtn" style="margin-top:6px; color:var(--dim)">Scrap this round</button>
+            <button class="mini" id="discardBtn" style="margin-top:6px; color:var(--mut)">Scrap this round</button>
           </div>
         </div>
         </div>
@@ -3726,7 +3731,7 @@ html[data-theme="light"] .room-dusk .btn:not(.dark):not(.gold):not(.apple){color
           <div class="eyebrow" style="margin-top:0">The board · rounds land here automatically <a href="#" id="bfOpen">OPEN ↗</a></div>
           <div id="feedList" style="max-height:52vh; overflow-y:auto;"></div>
           <div class="composer">
-            <input class="f" id="chatIn" placeholder="Message the league…">
+            <input class="f" id="chatIn" aria-label="Message the league" placeholder="Message the league…">
             <button class="btn dark" id="annBtn" style="display:none; width:auto; padding:0 14px;" title="Announce to the league">📣</button>
             <button class="btn" id="chatSend" style="width:auto; padding:0 18px;">Send</button>
           </div>
@@ -3891,7 +3896,7 @@ html[data-theme="light"] .room-dusk .btn:not(.dark):not(.gold):not(.apple){color
         <div class="check"><span class="num"><svg class="ic" aria-hidden="true"><use href="#i-users"/></svg></span><div class="tt"><b>Squads</b><small id="hubDraftSub">Complete · rosters locked</small></div><button class="mini" data-go="draft">View</button></div>
 
         <details class="hubmore league-only" style="margin-bottom:14px">
-          <summary style="cursor:pointer; font-family:var(--mono); font-size:12.5px; letter-spacing:.14em; text-transform:uppercase; color:var(--dim); padding:8px 0;">League rules</summary>
+          <summary style="cursor:pointer; font-family:var(--mono); font-size:12.5px; letter-spacing:.14em; text-transform:uppercase; color:var(--mut); padding:8px 0;">League rules</summary>
           <div class="eyebrow" style="margin-top:10px">The bylaws — the rules this league plays by</div>
           <div class="card" id="bylawsHub" style="margin-bottom:10px"></div>
           <button class="mini" id="rulesScoreHelp" style="margin-bottom:14px">How scoring &amp; handicaps work →</button>
@@ -3964,14 +3969,14 @@ html[data-theme="light"] .room-dusk .btn:not(.dark):not(.gold):not(.apple){color
 </div>
 
 <!-- ============ TAB BAR (mobile) ============ -->
-<div id="boardFull" role="dialog" aria-label="League board">
+<div id="boardFull" role="dialog" aria-modal="true" aria-label="League board" tabindex="-1">
   <header class="bf-hdr">
     <div><b id="bfTitle" class="mono">THE BOARD</b><small id="bfSub"></small></div>
     <button class="mini" id="bfClose" aria-label="Close"><svg class="ic" aria-hidden="true"><use href="#i-close"/></svg></button>
   </header>
   <div id="feedListFull"></div>
   <div class="composer bf-comp">
-    <input class="f" id="chatInFull" placeholder="Message the league…">
+    <input class="f" id="chatInFull" aria-label="Message the league" placeholder="Message the league…">
     <button class="btn" id="chatSendFull" style="width:auto; padding:0 18px;">Send</button>
   </div>
 </div>
@@ -4166,7 +4171,7 @@ html[data-theme="light"] .room-dusk .btn:not(.dark):not(.gold):not(.apple){color
   <button class="mini" id="nudgeX" aria-label="Not now"><svg class="ic" aria-hidden="true"><use href="#i-close"/></svg></button>
 </div>
 
-<div class="sheet" id="sheet" role="dialog" aria-modal="true" aria-labelledby="shTitle">
+<div class="sheet" id="sheet" role="dialog" aria-modal="true" tabindex="-1" aria-labelledby="shTitle">
   <div class="panel">
     <div class="grab"></div>
     <button class="x" id="shClose" aria-label="Close"><svg class="ic" style="width:18px;height:18px;vertical-align:-4px" aria-hidden="true"><use href="#i-close"/></svg></button>
@@ -4683,8 +4688,17 @@ function switchView(v){
     window._schedFrom = null;   /* one trip only — the next entry decides again */
   }
   gateLiveRound();
-  $$('.tab').forEach(t=>t.classList.toggle('active',t.dataset.v===v));
-  $$('.navitem').forEach(t=>t.classList.toggle('active',t.dataset.v===v));
+  /* D190 · the selected tab was a 4px dot and nothing else: aria-current
+     appeared nowhere in the file, so a screen-reader user heard four identical
+     buttons and could not tell which room they were in. Not role=tab: that
+     obligates roving tabindex, arrow keys and role=tabpanel on twelve views,
+     and a half-built tablist reads worse than plain buttons. */
+  $$('.tab').forEach(t=>{ const on = t.dataset.v===v;
+    t.classList.toggle('active',on);
+    if(on) t.setAttribute('aria-current','page'); else t.removeAttribute('aria-current'); });
+  $$('.navitem').forEach(t=>{ const on = t.dataset.v===v;
+    t.classList.toggle('active',on);
+    if(on) t.setAttribute('aria-current','page'); else t.removeAttribute('aria-current'); });
   $$('.view').forEach(x=>x.classList.toggle('active',x.id==='view-'+v));
   window.csHideInstallNudge?.();   /* Q-13: after the swap — busy() reads the view that is now on */
   window.scrollTo({top:0});
@@ -5198,7 +5212,7 @@ function renderStandings(){
   if(!teams.length){
     if(story) story.innerHTML='';
     const soloTxt = state.structure==='solo' ? 'INDIVIDUAL RACE \u2014 NO SQUADS.<br>STANDINGS START AT THE FIRST POSTED ROUND; TOP 2 MEET IN THE CUP FINAL.' : 'NO ROUNDS YET.<br>SQUADS FORM WHEN THE PRO LOCKS \u2014 STANDINGS START AT THE FIRST POSTED ROUND.';
-    el.innerHTML='<tr><th></th><th>'+(state.structure==='solo'?'Player':'Squad')+'</th><th class="num">Pts</th></tr><tr><td colspan="3" style="padding:18px 6px;color:var(--dim);font-family:var(--mono);font-size:12px;letter-spacing:.08em;line-height:1.8">'+soloTxt+'</td></tr>';
+    el.innerHTML='<tr><th></th><th>'+(state.structure==='solo'?'Player':'Squad')+'</th><th class="num">Pts</th></tr><tr><td colspan="3" style="padding:18px 6px;color:var(--mut);font-family:var(--mono);font-size:12px;letter-spacing:.08em;line-height:1.8">'+soloTxt+'</td></tr>';
     return;
   }
   const solo = teams[0]?.solo;   /* individual race — rows are players, not squads */
@@ -5245,7 +5259,7 @@ function renderStandings(){
     html+=`<tr class="${i===0?'lead':''} tap" data-squad="${esc(t.name)}">
       <td class="rk mono">${rkH}${mv}</td>
       <td><div style="display:flex;align-items:center;gap:10px"><span class="sw" style="background:${SQHEX[t.ci]}"></span><div><div class="tn">${esc(t.name)}</div><div class="tc">${seedOf(t.id)?'SEED '+seedOf(t.id)+' \u00b7 ':''}${solo ? (t.sub||0)+' ROUND'+(t.sub===1?'':'S') : 'CAPT. '+esc(t.cap).toUpperCase()}</div></div></div></td>
-      <td>${arr.length>1?sparkline(arr,t.ci):'<span class="fine" style="padding:0;color:var(--dim)">WK 1</span>'}</td>
+      <td>${arr.length>1?sparkline(arr,t.ci):'<span class="fine" style="padding:0;color:var(--mut)">WK 1</span>'}</td>
       <td class="num"><span class="dw" style="color:${dwk>=12?'var(--pos)':dwk<0?'var(--neg)':'var(--mut)'}">${dwk>0?'+':''}${dwk}</span></td>
       <td class="num pts">${t.pts}</td>
     </tr>`;
@@ -6039,6 +6053,112 @@ function anyOverlayOpen(){
     || document.getElementById('boardFull')?.classList.contains('open')
     || document.getElementById('finish')?.classList.contains('open'));
 }
+/* ---- D190 · focus trap -----------------------------------------------
+   #sheet, #boardFull, #finish and #onboard all declare aria-modal="true",
+   which tells a screen reader the rest of the page is hidden — while keyboard
+   focus stayed on the trigger BEHIND the dialog. A VoiceOver user opening any
+   receipt, settlement or settings sheet was stranded in content their reader
+   had just been told does not exist.
+
+   Design notes that are load-bearing for THIS codebase:
+   - inert on siblings, not aria-hidden: it removes them from the tab order and
+     the a11y tree in one property. #errbar (role=alert) and #toast (role=status)
+     are SKIPPED so live regions can still announce over a dialog.
+   - Frames stack. Only elements THIS frame inerted are restored, and an
+     already-inert sibling is left alone — that is what makes sheet-over-
+     ceremony work (a sheet can open on top of #finish).
+   - The incoming dialog is un-inerted and remembered: #sheet is a sibling of
+     #finish, so it may itself be inert when it opens.
+   - Re-entry guard: openSheet reuses the SAME #sheet element and is called
+     sheet-over-sheet. Without this the restore target becomes the first
+     sheet's own button and focus is stranded in a closed dialog.
+   - focus({preventScroll:true}) everywhere: lockBody freezes the body at
+     position:fixed; top:-Y, and a scrolling focus fights it.
+   - Tab-cycle fallback for Safari <=15.4, which has no inert. */
+var _trapStack = [];
+function trapFocus(el){
+  if(!el || _trapStack.some(function(f){ return f.el === el; })) return;   /* re-entry */
+  var frame = { el: el, prev: document.activeElement, inerted: [], selfWasInert: el.inert === true };
+  if(el.inert) el.inert = false;
+  var SKIP = { ERRBAR:1 };
+  Array.prototype.forEach.call(document.body.children, function(sib){
+    if(sib === el || sib.tagName === 'SCRIPT') return;
+    if(sib.id === 'errbar' || sib.id === 'toast' || sib.id === 'offlineBar') return;   /* live regions */
+    if(sib.inert) return;                                   /* an outer frame owns it */
+    if('inert' in HTMLElement.prototype){ sib.inert = true; frame.inerted.push(sib); }
+  });
+  _trapStack.push(frame);
+  requestAnimationFrame(function(){
+    if(el.contains(document.activeElement)) return;          /* the door focuses its own input */
+    var f = el.querySelector('a[href],button:not([disabled]),input:not([disabled]),select,textarea,[tabindex]:not([tabindex="-1"])');
+    try { (f || el).focus({ preventScroll: true }); } catch(_){ }
+  });
+}
+function releaseFocus(el){
+  var i = -1;
+  for(var k = _trapStack.length - 1; k >= 0; k--) if(_trapStack[k].el === el){ i = k; break; }
+  if(i < 0) return;
+  var frame = _trapStack.splice(i, 1)[0];
+  frame.inerted.forEach(function(sib){ sib.inert = false; });
+  if(frame.selfWasInert) el.inert = true;
+  var prev = frame.prev;
+  /* sheet bodies are re-rendered with innerHTML, so the trigger may be gone */
+  if(prev && document.contains(prev) && prev.offsetParent !== null){
+    try { prev.focus({ preventScroll: true }); } catch(_){ }
+  }
+}
+function trapTop(){ return _trapStack.length ? _trapStack[_trapStack.length - 1].el : null; }
+/* Safari <=15.4 has no inert: keep focus in by cycling Tab at the edges. */
+document.addEventListener('keydown', function(e){
+  if(e.key !== 'Tab' || !_trapStack.length) return;
+  if('inert' in HTMLElement.prototype) return;               /* inert already did it */
+  var el = trapTop();
+  var f = el.querySelectorAll('a[href],button:not([disabled]),input:not([disabled]),select,textarea,[tabindex]:not([tabindex="-1"])');
+  if(!f.length) return;
+  var first = f[0], last = f[f.length - 1];
+  if(e.shiftKey && document.activeElement === first){ e.preventDefault(); last.focus({preventScroll:true}); }
+  else if(!e.shiftKey && document.activeElement === last){ e.preventDefault(); first.focus({preventScroll:true}); }
+});
+
+/* ---- D190 · segmented controls announce their state ---------------------
+   Every .seg carries selection as an `.on` class and nothing else — no
+   aria-pressed, no tablist semantics — across ~24 separate JS sites that
+   toggle it (clubhouse rooms, the wizard, post modes, stake kinds). Mirroring
+   the class with one MutationObserver beats editing 24 call sites and cannot
+   drift from them. Class mutations happen at human rates and the matches()
+   guard makes the callback free. */
+(function(){
+  function sync(root){
+    (root.querySelectorAll ? root.querySelectorAll('.seg button') : []).forEach(function(b){
+      b.setAttribute('aria-pressed', b.classList.contains('on') ? 'true' : 'false');
+    });
+  }
+  function start(){
+    sync(document);
+    /* name the groups: six identical unlabelled buttons is the worst of it */
+    document.querySelectorAll('.seg').forEach(function(g){
+      if(!g.getAttribute('role')) g.setAttribute('role','group');
+    });
+    var seg = document.getElementById('roomSeg');
+    if(seg && !seg.getAttribute('aria-label')) seg.setAttribute('aria-label','League room');
+    new MutationObserver(function(muts){
+      muts.forEach(function(m){
+        if(m.type === 'attributes'){
+          var t = m.target;
+          if(t.matches && t.matches('.seg button'))
+            t.setAttribute('aria-pressed', t.classList.contains('on') ? 'true' : 'false');
+        } else {
+          m.addedNodes && Array.prototype.forEach.call(m.addedNodes, function(n){
+            if(n.nodeType === 1){ sync(n); if(n.matches && n.matches('.seg')) n.setAttribute('role','group'); }
+          });
+        }
+      });
+    }).observe(document.body, { subtree:true, childList:true, attributes:true, attributeFilter:['class'] });
+  }
+  if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start);
+  else start();
+})();
+
 function lockBody(){
   document.body.style.overflow='hidden';
   if(document.body.style.position==='fixed') return;   /* already frozen (stacked overlays) */
@@ -6081,8 +6201,10 @@ function openBoardFull(){
   renderFeedFull(true);
   $('#boardFull').classList.add('open');
   lockBody();
+  trapFocus($('#boardFull'));   /* D190 */
 }
 function closeBoardFull(){
+  releaseFocus($('#boardFull'));   /* D190 */
   $('#boardFull').classList.remove('open');
   unlockBody();
 }
@@ -9841,7 +9963,7 @@ function renderPlay(){
    const _done=liveRoundComplete();
    if(_fs){ const _line=liveFinishStatus();
      _fs.textContent=_line; _fs.style.display=_line?'':'none';
-     _fs.style.color=_done?'var(--gold)':'var(--dim)'; }
+     _fs.style.color=_done?'var(--gold)':'var(--mut)'; }   /* D190 · dim fails AA as text */
    if(_fb){
      _fb.textContent = _done ? 'Finish round & post to season' : 'Finish round';
      _fb.classList.toggle('dark', !_done); }   /* .btn.dark IS the web's quiet */
@@ -10821,7 +10943,7 @@ $('#discardBtn')?.addEventListener('click', async ()=>{
     discardArm=Date.now();
     btn.textContent='Tap again to scrap — nothing posts, for anyone';
     btn.style.color='var(--neg)';
-    setTimeout(()=>{ if(Date.now()-discardArm>=3900){ btn.textContent='Scrap this round'; btn.style.color='var(--dim)'; } }, 4200);
+    setTimeout(()=>{ if(Date.now()-discardArm>=3900){ btn.textContent='Scrap this round'; btn.style.color='var(--mut)'; } }, 4200);   /* D190 */
     return;
   }
   discardArm=0; btn.disabled=true;
@@ -10842,7 +10964,7 @@ $('#discardBtn')?.addEventListener('click', async ()=>{
   }
   clearLiveCache(null);
   state.live=freshLive();
-  btn.disabled=false; btn.textContent='Scrap this round'; btn.style.color='var(--dim)';
+  btn.disabled=false; btn.textContent='Scrap this round'; btn.style.color='var(--mut)';   /* D190 */
   if(typeof renderPlay==='function') renderPlay();
   renderResumeBanner();
   switchView('home');
@@ -11111,7 +11233,7 @@ function leaguePhaseLabel(m){
 function hubGroupRow(icon,name,sub,here){
   return `<div class="check" style="${here?'border-color:var(--pos);':''}"><span class="num">${icon}</span>
     <div class="tt"><b>${name}</b><small>${sub}</small></div>
-    ${here?'<span class="fine" style="padding:0; color:var(--pos)">HERE</span>':'<span class="fine" style="padding:0; color:var(--dim)">→</span>'}</div>`;
+    ${here?'<span class="fine" style="padding:0; color:var(--pos)">HERE</span>':'<span class="fine" style="padding:0; color:var(--mut)">→</span>'}</div>`;
 }
 function upcomingFromSchedule(){
   /* "your next round" is YOURS — the schedule rows carry others' rounds too
@@ -12462,7 +12584,7 @@ function homeRoundCard(sr, demo){
   const inN = sr.rsvp_in||0, cN = sr.comment_n||0;
   return `<div class="hround${demo?'':' tap'}"${demo?'':` data-hround="${sr.id}"`}>
     <span class="num">${M(sr.marker||'saguaro')}</span>
-    <div class="hr-body"><b>${when}${rel?` · <span class="fine" style="padding:0; color:var(--dim)">${rel}</span>`:''}</b>
+    <div class="hr-body"><b>${when}${rel?` · <span class="fine" style="padding:0; color:var(--mut)">${rel}</span>`:''}</b>
       <small>${who}${bits?' · '+bits:''}</small></div>
     <div class="hr-side">${inN?`<span class="hr-in">${inN} in</span>`:''}${cN?`<span class="hr-c"><svg class="ic" aria-hidden="true"><use href="#i-comment"/></svg> ${cN}</span>`:''}<span class="hr-wx mono" id="hrwx-${demo?'demo':sr.id}" style="display:none"></span></div>
   </div>`;
@@ -12762,7 +12884,7 @@ function openStakeSettle(id){
   openSheet('Settle the stake', s.name+' · '+s.terms, `
     <p class="fine" style="padding:0 0 6px">${s.party_b?'Who took it?':'Who hit it? Anyone in the crew.'}</p>
     <div>${opts}</div>
-    <label class="f" style="margin-top:12px" for="stNote">A line for the archive <span style="color:var(--dim)">(optional)</span></label>
+    <label class="f" style="margin-top:12px" for="stNote">A line for the archive <span style="color:var(--mut)">(optional)</span></label>
     <input class="f" id="stNote" placeholder="Settled on the 18th at Papago" style="font-family:var(--sans)">
   `);
   document.querySelectorAll('[data-stw]').forEach(b=>b.addEventListener('click', async ()=>{
@@ -12787,7 +12909,7 @@ function openStakeCreate(){
       <option value="">The field — first to hit it</option>
       ${others.map(m=>`<option value="${m.profile_id}">${esc(m.profile?.display_name||'—')}</option>`).join('')}
     </select>
-    <label class="f" style="margin-top:10px" for="stkHangs">Rides on <span style="color:var(--dim)">(optional)</span></label>
+    <label class="f" style="margin-top:10px" for="stkHangs">Rides on <span style="color:var(--mut)">(optional)</span></label>
     <input class="f" id="stkHangs" placeholder="Sunday's duel · first ace · the Cup Final" autocomplete="off" style="font-family:var(--sans)">
     <div style="display:flex; gap:8px; margin-top:14px">
       <button class="btn dark" id="stkCancel" style="flex:0 0 auto; width:auto; padding:0 16px">Cancel</button>
@@ -12960,7 +13082,7 @@ function renderCareer(){
        owner-only ×, delete_round RPC, standings views recompute on their own */
     const canDel = !state.demo && window.sb;
     yr.innerHTML = (c.recent && c.recent.length)
-      ? c.recent.map((r,ri)=>`<div class="fine" style="padding:3px 0; display:flex; justify-content:space-between; align-items:center; gap:8px;"><span>${r.played_on} · ${esc((r.course_label||'').toUpperCase())||'ROUND'}${r.holes_played===9?' · 9':''}</span><span style="display:flex; align-items:center; gap:12px;">${(r.photo_url||r.photo_path)?`<button data-rcpt-i="${ri}" title="Round photo" aria-label="Open the round" style="background:none; border:none; color:var(--dim); cursor:pointer; padding:2px 2px; line-height:1;"><svg class="ic" aria-hidden="true"><use href="#i-photo"/></svg></button>`:''}<b class="mono">${r.gross} · ${r.differential}</b>${canDel&&r.id?`<button data-delr="${r.id}" title="Delete this round" aria-label="Delete round" style="background:none; border:none; color:var(--dim); cursor:pointer; font-size:16px; line-height:1; padding:2px 4px;"><svg class="ic" aria-hidden="true"><use href="#i-close"/></svg></button>`:''}</span></div>`).join('')
+      ? c.recent.map((r,ri)=>`<div class="fine" style="padding:3px 0; display:flex; justify-content:space-between; align-items:center; gap:8px;"><span>${r.played_on} · ${esc((r.course_label||'').toUpperCase())||'ROUND'}${r.holes_played===9?' · 9':''}</span><span style="display:flex; align-items:center; gap:12px;">${(r.photo_url||r.photo_path)?`<button data-rcpt-i="${ri}" title="Round photo" aria-label="Open the round" style="background:none; border:none; color:var(--mut); cursor:pointer; padding:2px 2px; line-height:1;"><svg class="ic" aria-hidden="true"><use href="#i-photo"/></svg></button>`:''}<b class="mono">${r.gross} · ${r.differential}</b>${canDel&&r.id?`<button data-delr="${r.id}" title="Delete this round" aria-label="Delete round" style="background:none; border:none; color:var(--mut); cursor:pointer; font-size:16px; line-height:1; padding:2px 4px;"><svg class="ic" aria-hidden="true"><use href="#i-close"/></svg></button>`:''}</span></div>`).join('')
       : emptyState({ icon:'⛳', line:'No rounds yet — your card fills as you play.', ctaLabel:'Post your first round', ctaGo:'record' });
     /* photos arc 2: the receipt sheet carries the photo — no bare image tabs */
     yr.querySelectorAll('[data-rcpt-i]').forEach(b=>b.addEventListener('click', ()=>{
@@ -13476,8 +13598,10 @@ function openSheet(title, sub, bodyHtml){
       const [who,idx]=b.dataset.round.split('|');
       showRound(who, +idx);
     }));
+  trapFocus($('#sheet'));   /* D190 · aria-modal was a claim; now it is true */
 }
 function closeSheet(){
+  releaseFocus($('#sheet'));   /* D190 · before the class drops, so the trigger is still findable */
   $('#sheet').classList.remove('open');
   /* drop any keyboard-fit inline sizing so the next open starts clean */
   const p=$('#sheet .panel'); if(p){ p.style.maxHeight=''; p.style.bottom=''; }
@@ -13487,7 +13611,15 @@ $('#shClose').addEventListener('click',closeSheet);
 $('#sheet').addEventListener('click',e=>{ if(e.target.id==='sheet') closeSheet(); });
 /* iOS: a drag that starts on the backdrop must not pan the page behind */
 $('#sheet').addEventListener('touchmove',e=>{ if(e.target.id==='sheet') e.preventDefault(); },{passive:false});
-document.addEventListener('keydown',e=>{ if(e.key==='Escape') closeSheet(); });
+/* D190 · this fired unconditionally, so Escape closed the sheet even when
+   #boardFull sat on top of it. Only the dialog on top of the trap stack
+   answers Escape. */
+document.addEventListener('keydown',e=>{
+  if(e.key!=='Escape') return;
+  const top = typeof trapTop==='function' ? trapTop() : null;
+  if(top && top.id!=='sheet') return;
+  closeSheet();
+});
 
 /* squad → its arithmetic */
 function showSquad(name){
@@ -13743,7 +13875,7 @@ function wizPortrait(){
   const potRow = stake>0
     ? `<div class="wizp-row"><span class="k">The pot</span><span class="wizp-gold">${fmt$(pot)}</span>${bar}</div>
        <div class="wizp-sub">${fmt$(stake)} / player · ${roster} in so far · ${pay.join('/')}</div>`
-    : `<div class="wizp-row"><span class="k">The pot</span><b style="color:var(--ink)">Bragging rights</b><span style="font-family:var(--mono);font-size:10px;color:var(--dim)">$0 STAKE</span></div>`;
+    : `<div class="wizp-row"><span class="k">The pot</span><b style="color:var(--ink)">Bragging rights</b><span style="font-family:var(--mono);font-size:10px;color:var(--mut)">$0 STAKE</span></div>`;
   const mo = Math.max(1, Math.min(6, Math.round(state.durWeeks/4.345)));
   let blocks=''; for(let i=0;i<mo;i++) blocks += `<rect x="${i*41}" y="12" width="36" height="22" rx="5" fill="none" stroke="var(--line2)" stroke-width="1.2"/>`;
   const fx = mo*41;
@@ -14425,7 +14557,7 @@ function renderMajorRoom(el, E){
   /* ---- the leaderboard ---- */
   const rowHtml=(pos,r,extra,tap)=>`
     <div class="check${tap?' tap':''}" ${tap?`style="cursor:pointer" data-mjrnd="${tap}"`:''}>
-      <span class="num" style="font-family:var(--mono); font-size:13px; color:var(--dim); min-width:26px; text-align:center">${pos}</span>
+      <span class="num" style="font-family:var(--mono); font-size:13px; color:var(--mut); min-width:26px; text-align:center">${pos}</span>
       <div class="tt"><b>${window.mkr?.(r.marker||'saguaro')||'⛳'} ${esc(r.display_name)}</b><small>${extra}</small></div>
       ${r.pvi!=null?`<span style="font-family:var(--mono); font-size:13.5px; color:${Number(r.pvi)>0?'var(--pos)':'var(--mut)'}; flex:none">${mjVs(r.pvi)}</span>`:''}
     </div>`;
@@ -14479,7 +14611,7 @@ function renderMajorRoom(el, E){
   if(priors.length){
     html+=`<div class="eyebrow" style="margin-top:14px">The champions roll</div>`;
     priors.forEach(r=>{
-      html+=`<div class="check"><span class="num" style="font-family:var(--mono); font-size:11px; color:var(--dim)">${r.year}</span>
+      html+=`<div class="check"><span class="num" style="font-family:var(--mono); font-size:11px; color:var(--mut)">${r.year}</span>
         <div class="tt"><b>${esc(r.champion)}</b><small>${r.champ_gross!=null?r.champ_gross+' · ':''}${r.champ_pvi!=null?mjVs(r.champ_pvi):''}${r===lastChamp?' · DEFENDING':''}</small></div></div>`;
     });
   }
@@ -15271,7 +15403,7 @@ function psRow(r, actionHTML){
              : (r.index_current!=null ? String(r.index_current) : null);
   const line2 = ['@'+esc(r.handle||'?'), idx ? esc(idx)+' idx' : null, r.city?esc(r.city):null]
                   .filter(Boolean).join(' · ');
-  const home = r.home_course ? `<small style="color:var(--dim)">${esc(r.home_course)}</small>` : '';
+  const home = r.home_course ? `<small style="color:var(--mut)">${esc(r.home_course)}</small>` : '';
   return `<div class="prow"><span class="pmk" data-tc="${r.profile_id}">${window.face ? window.face(r.profile_id, r.marker, 36) : mkr(r.marker||'saguaro')}</span>
     <span class="pmeta" data-tc="${r.profile_id}"><b>${esc(r.display_name||'—')}${founderTag(r.profile_id, r.display_name)}</b>
       <small>${line2}</small>${home}</span>${actionHTML}</div>`;
@@ -15393,7 +15525,7 @@ async function openRivalrySheet(oppId, name, rec){
     const d=new Date(x.wk+'T00:00:00');
     const me=Number(x.my_pvi), th=Number(x.opp_pvi);
     const tag = x.winner==='me'?'<span style="color:var(--pos)">WON</span>'
-              : x.winner==='them'?'<span style="color:var(--dim)">LOST</span>'
+              : x.winner==='them'?'<span style="color:var(--mut)">LOST</span>'
               : '<span style="color:var(--mut)">HALVED</span>';
     return `<div class="check"><span class="num mono" style="font-size:10.5px; line-height:1.25">WK OF<br>${MOS[d.getMonth()].toUpperCase()} ${d.getDate()}</span>
       <div class="tt"><b>${tag} · YOU ${me>=0?'+':''}${me.toFixed(1)} · ${esc(name)} ${th>=0?'+':''}${th.toFixed(1)}</b>
@@ -15465,7 +15597,7 @@ async function openTourCard(profileId){
      yours can be reported — two-tap, lands on the founder desk */
   const hasFace = !!(window.avatarUrl && window.avatarUrl[profileId]);
   const reportLine = (hasFace && profileId !== CS.user?.id)
-    ? `<div class="fine" style="padding:2px 0 0"><a href="#" id="tcReport" style="color:var(--dim)">Report photo</a></div>` : '';
+    ? `<div class="fine" style="padding:2px 0 0"><a href="#" id="tcReport" style="color:var(--mut)">Report photo</a></div>` : '';
   /* C4 credential (owner pick, boards round 2; charcoal reface D76): the
      Tour Card is one charcoal OBJECT — face, index, and trophies engraved
      on it; the golfer's marker as its watermark; vs-you rides as a chip. */
@@ -15769,11 +15901,11 @@ function openProfileHub(){
     <p class="fine" style="padding-left:0; margin-top:24px; opacity:.55">Cup Season · v23 · __CS_VERSION__</p>
     <div class="eyebrow">How it works</div>
     <div id="youGuide" style="text-align:left; margin-bottom:14px">
-      <div class="check tap" data-guide="places" style="cursor:pointer"><span class="num">◱</span><div class="tt"><b>The four places</b><small>Home · Clubhouse · the ⊕ · You</small></div><span class="fine" style="padding:0; color:var(--dim)">→</span></div>
-      <div class="check tap" data-guide="games" style="cursor:pointer"><span class="num">⛳</span><div class="tt"><b>Leagues vs events</b><small>The long game and the short game</small></div><span class="fine" style="padding:0; color:var(--dim)">→</span></div>
-      <div class="check tap" data-guide="posting" style="cursor:pointer"><span class="num">✎</span><div class="tt"><b>Posting a round</b><small>Basic, live, and the scan</small></div><span class="fine" style="padding:0; color:var(--dim)">→</span></div>
-      <div class="check tap" data-guide="buddies" style="cursor:pointer"><span class="num">◆</span><div class="tt"><b>Buddies, invites and claims</b><small>Three different links, three jobs</small></div><span class="fine" style="padding:0; color:var(--dim)">→</span></div>
-      <div class="check tap" data-guide="scoring" style="cursor:pointer"><span class="num">◷</span><div class="tt"><b>How scoring works</b><small>How rounds become points</small></div><span class="fine" style="padding:0; color:var(--dim)">→</span></div>
+      <div class="check tap" data-guide="places" style="cursor:pointer"><span class="num">◱</span><div class="tt"><b>The four places</b><small>Home · Clubhouse · the ⊕ · You</small></div><span class="fine" style="padding:0; color:var(--mut)">→</span></div>
+      <div class="check tap" data-guide="games" style="cursor:pointer"><span class="num">⛳</span><div class="tt"><b>Leagues vs events</b><small>The long game and the short game</small></div><span class="fine" style="padding:0; color:var(--mut)">→</span></div>
+      <div class="check tap" data-guide="posting" style="cursor:pointer"><span class="num">✎</span><div class="tt"><b>Posting a round</b><small>Basic, live, and the scan</small></div><span class="fine" style="padding:0; color:var(--mut)">→</span></div>
+      <div class="check tap" data-guide="buddies" style="cursor:pointer"><span class="num">◆</span><div class="tt"><b>Buddies, invites and claims</b><small>Three different links, three jobs</small></div><span class="fine" style="padding:0; color:var(--mut)">→</span></div>
+      <div class="check tap" data-guide="scoring" style="cursor:pointer"><span class="num">◷</span><div class="tt"><b>How scoring works</b><small>How rounds become points</small></div><span class="fine" style="padding:0; color:var(--mut)">→</span></div>
     </div>
     <p class="fine" style="padding-left:0; margin-top:6px; opacity:.55"><a href="/legal.html#privacy" target="_blank" rel="noopener" style="color:var(--mut)">Privacy</a> · <a href="/legal.html#terms" target="_blank" rel="noopener" style="color:var(--mut)">Terms</a> · <a href="/legal.html#pot" target="_blank" rel="noopener" style="color:var(--mut)">Prize pool</a></p>
     </div>
@@ -16939,7 +17071,7 @@ function renderFormation(){
         <span class="fine" style="padding:0; margin-left:auto">${(q.squad_members||[]).length} PLAYER${(q.squad_members||[]).length===1?'':'S'}</span>
       </div>
       <div style="margin-top:6px">${(q.squad_members||[]).map(x =>
-        `<div class="fine" style="padding:2px 0">${memMk(x.member_id)} ${esc(memName(x.member_id))}${q.captain_member_id===x.member_id?' \u00b7 C':''}</div>`).join('') || '<div class="fine" style="padding:2px 0; color:var(--dim)">No one yet</div>'}</div>
+        `<div class="fine" style="padding:2px 0">${memMk(x.member_id)} ${esc(memName(x.member_id))}${q.captain_member_id===x.member_id?' \u00b7 C':''}</div>`).join('') || '<div class="fine" style="padding:2px 0; color:var(--mut)">No one yet</div>'}</div>
     </div>`).join('');
 
   /* Q-11 \u00b7 only the Pro seats players, so only the Pro gets buttons. A member
@@ -17772,7 +17904,7 @@ function openEventPicker(){
       <span class="fine" style="padding:0; color:var(--pos)">LIVE</span></div>
     <div class="check tap" data-evstyle="bracket" style="cursor:pointer">
       <span class="num">🥊</span><div class="tt"><b>Bracket</b><small>Seeded knockout — lose and you're out, last golfer standing</small></div>
-      <span class="fine" style="padding:0; color:var(--dim)">SOON</span></div>
+      <span class="fine" style="padding:0; color:var(--mut)">SOON</span></div>
     <div class="check tap" data-evstyle="major" style="cursor:pointer; border-color:var(--pos)">
       <span class="num">🏆</span><div class="tt"><b>A Major</b><small>A championship window — the best card takes the jug</small></div>
       <span class="fine" style="padding:0; color:var(--pos)">LIVE</span></div>
@@ -17969,7 +18101,7 @@ async function openLeagueSwitcher(){
     <div class="check tap" data-lgsw="${attr}" style="cursor:pointer; ${accent?'border-color:var(--pos);':''}">
       <span class="num">${icon}</span>
       <div class="tt"><b>${title}</b><small>${sub}</small></div>
-      <span class="fine" style="padding:0; color:var(--dim)">→</span>
+      <span class="fine" style="padding:0; color:var(--mut)">→</span>
     </div>`;
   openSheet('Your leagues', 'EVERYTHING YOU PLAY, AND WHAT TO START NEXT',
     '<div class="eyebrow" style="margin-top:0">Your leagues · the long game</div>'
@@ -18252,7 +18384,7 @@ function renderWatchList(){
       sr.note?'“'+esc(sr.note)+'”':null ].filter(Boolean).join(' · ');
     return `<div class="check tap" data-wopen="${sr.id}">
       <span class="num">${window.mkr?.(sr.marker||'saguaro')||'⛳'}</span>
-      <div class="tt"><b>${esc(sr.display_name)} <span class="fine" style="padding:0; color:var(--dim); letter-spacing:.06em">${rel}</span></b>
+      <div class="tt"><b>${esc(sr.display_name)} <span class="fine" style="padding:0; color:var(--mut); letter-spacing:.06em">${rel}</span></b>
       <small>${bits}</small></div>
       ${sr.tagged_me ? `<span class="fine" style="padding:0; color:var(--gold); flex:none">ON THE TEE SHEET</span>`
         : `<button class="mini" data-imin="${i}" style="flex:none">I’m in</button>`}
@@ -18404,7 +18536,7 @@ async function openRyderSetup(){
     <div class="seg" id="rsCad"><button data-w="1" class="on">Weekly</button><button data-w="2">Every 2 wks</button></div>
     <label class="f" style="margin-top:10px" for="rsStart">First tee (a Sunday)</label>
     <input class="f" id="rsStart" type="date" value="${nextSundayISO()}">
-    <label class="f" style="margin-top:10px" for="rsLeague">Attach to a league <span style="color:var(--dim)">(optional)</span></label>
+    <label class="f" style="margin-top:10px" for="rsLeague">Attach to a league <span style="color:var(--mut)">(optional)</span></label>
     <select class="f" id="rsLeague" style="font-family:var(--sans)"><option value="">Standalone — invite anyone</option>${leagues}</select>
     <label class="f" style="margin-top:12px; display:block">Add players</label>
     <button class="btn dark" id="rsAdd" style="margin-top:6px">Search the app or tap a buddy</button>
@@ -18506,13 +18638,13 @@ async function openMajorSetup(){
     <label class="f" style="margin-top:10px; display:block">Window</label>
     <div class="seg" id="mjDays">${[2,3,4].map(n=>`<button data-n="${n}" class="${n===4?'on':''}">${n} days</button>`).join('')}</div>
     <p class="fine" style="padding:4px 0 0" id="mjWhen"></p>
-    <label class="f" style="margin-top:10px" for="mjBuy">Buy-in per player <span style="color:var(--dim)">($0 = bragging rights)</span></label>
+    <label class="f" style="margin-top:10px" for="mjBuy">Buy-in per player <span style="color:var(--mut)">($0 = bragging rights)</span></label>
     <input class="f" id="mjBuy" type="number" min="0" step="1" value="0" inputmode="numeric" style="font-family:var(--sans)">
     <div id="mjSplitWrap" style="display:none">
       <label class="f" style="margin-top:10px; display:block">The pot pays</label>
       <div class="seg" id="mjSplit"><button data-s="places" class="on">Top 3 · 60/25/15</button><button data-s="wta">Winner takes all</button></div>
     </div>
-    <label class="f" style="margin-top:10px" for="mjLeague">Run it with a league <span style="color:var(--dim)">(optional)</span></label>
+    <label class="f" style="margin-top:10px" for="mjLeague">Run it with a league <span style="color:var(--mut)">(optional)</span></label>
     <select class="f" id="mjLeague" style="font-family:var(--sans)"><option value="">Standalone — invite anyone</option>${leagues}</select>
     <label class="f" style="margin-top:12px; display:block">Add golfers</label>
     <button class="btn dark" id="mjAdd" style="margin-top:6px">Search the app or tap a buddy</button>

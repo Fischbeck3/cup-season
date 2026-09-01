@@ -678,5 +678,61 @@ else {
     : fail('boot path same-origin and pinned', [...new Set(bad)].join(' · '));
 }
 
+/* 23 · text contrast and the aria the wayfinding layer depends on ----------
+   --dim computed 2.43-3.17:1 against the real backgrounds in ALL THREE theme
+   surfaces (:root, the light block, and .room-dusk — which check 10 has never
+   looked at), and it was the colour of every eyebrow, stat label and caption:
+   156 sites, almost all 10-11.5px mono, where AA wants 4.5:1. --mut clears it
+   everywhere (worst case 5.17:1). --dim survives for hairlines, dots and
+   swatches only. The aria assertions cover the other two systemic gaps: a
+   selected tab that was a 4px dot and nothing else, and dialogs that claimed
+   aria-modal while focus sat behind them. */
+{
+  const bad = [];
+  const lum = (hex) => {
+    let h = hex.replace('#','');
+    if (h.length === 3) h = [...h].map(c => c + c).join('');
+    const [r,g,b] = [0,2,4].map(i => parseInt(h.slice(i,i+2),16)/255);
+    const f = c => c <= 0.03928 ? c/12.92 : Math.pow((c+0.055)/1.055, 2.4);
+    return 0.2126*f(r) + 0.7152*f(g) + 0.0722*f(b);
+  };
+  const ratio = (a,b) => { const [x,y] = [lum(a),lum(b)].sort((m,n)=>n-m); return (x+0.05)/(y+0.05); };
+  const blockOf = (sel) => {
+    const i = html.indexOf(sel); if (i < 0) return null;
+    return html.slice(i, html.indexOf('}', i));
+  };
+  const toks = (txt) => Object.fromEntries([...(txt||'').matchAll(/--([\w-]+)\s*:\s*(#[0-9A-Fa-f]{3,8})/g)].map(m => [m[1], m[2]]));
+  const base = toks(blockOf(':root{'));
+  for (const [name, sel] of [['charcoal', ':root{'], ['paper', 'html[data-theme="light"]{'], ['room-dusk', '.room-dusk{']]) {
+    const t = { ...base, ...toks(blockOf(sel)) };
+    for (const bg of ['bg0','bg1','bg2']) {
+      if (!t.mut || !t[bg]) continue;
+      const r = ratio(t.mut, t[bg]);
+      if (r < 4.5) bad.push(`${name}: --mut on --${bg} is ${r.toFixed(2)}:1`);
+    }
+  }
+  // --dim must never be a TEXT colour again (border-color:var(--dim) is fine)
+  const dimText = [...html.matchAll(/(?<!-)color:\s*var\(--dim\)/g)].length
+                + [...html.matchAll(/style\.color\s*=\s*'var\(--dim\)'/g)].length;
+  if (dimText) bad.push(`--dim used as text in ${dimText} place(s) — it fails AA on every surface`);
+  // every aria-modal dialog is actually trapped
+  const modals = [...html.matchAll(/id="(\w+)"[^>]*aria-modal="true"|aria-modal="true"[^>]*id="(\w+)"/g)]
+    .map(m => m[1] || m[2]).filter(Boolean);
+  for (const id of modals) {
+    if (id === 'onboard' || id === 'finish') continue;   // door + ceremony own their own focus
+    if (!html.includes(`trapFocus($('#${id}'))`)) bad.push(`#${id} claims aria-modal but is never trapped`);
+  }
+  /* Match the CALL, not the word. A bare /aria-current/ passed while the only
+     occurrence left was the comment explaining why it matters — the same way
+     check 22's allowlist clause first read a comment instead of a cp line. */
+  if (!/setAttribute\(\s*['"]aria-current['"]/.test(html))
+    bad.push('nothing sets aria-current — the selected tab is visual-only');
+  if (!/setAttribute\(\s*['"]aria-pressed['"]/.test(html))
+    bad.push('nothing sets aria-pressed — segmented controls are visual-only');
+  bad.length === 0
+    ? pass('contrast and state are announced', `--mut clears AA on 3 surfaces; ${modals.length} modals`)
+    : fail('contrast and state are announced', bad.join(' · '));
+}
+
 console.log(`\n${fails ? 'FAIL' : 'PASS'} — ${fails} failure(s), ${warns} warning(s)`);
 process.exit(fails ? 1 : 0);

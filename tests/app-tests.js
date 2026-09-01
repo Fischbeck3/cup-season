@@ -47,6 +47,27 @@
   t('bands: -1.0 is named for the points it pays', bandName(-1.0), 'A little loose');
   t('bands: -0.99 is still played-to-it', [pointsFor(-0.99)[0], bandName(-0.99)], [7, 'Played to it']);
 
+  /* D190 · the accessibility floor. --dim computed 2.43-3.17:1 across all
+     three theme surfaces and was the colour of every eyebrow, stat label and
+     caption — 156 sites at 10-11.5px where AA wants 4.5:1. It survives for
+     hairlines and dots only. Measured live in a browser after the swap: ZERO
+     contrast failures in dark, and the only two left in light are --brand
+     accents (a palette pass with its own decision entry, deliberately not
+     ridden along here). */
+  (function(){
+    const trig = document.createElement('button');
+    trig.id = 'aTestTrigger'; document.body.appendChild(trig); trig.focus();
+    openSheet('Trap test', 'SUB', '<button id="aTestInside">inside</button>');
+    t('trap: the shell goes inert behind a sheet', document.querySelector('.shell')?.inert === true, true);
+    t('trap: live regions stay announceable', document.getElementById('errbar')?.inert === true, false);
+    t('trap: re-entry does not stack the same element',
+      (openSheet('Again','S','<button>x</button>'), window._trapStack.filter(f=>f.el.id==='sheet').length), 1);
+    closeSheet();
+    t('trap: nothing is left inert', document.querySelectorAll('[inert]').length, 0);
+    t('trap: the stack empties', window._trapStack.length, 0);
+    trig.remove();
+  })();
+
   /* D189 · the door's story. .ob-fold has reserved 54px below the viewport
      since it was written and .ob-more already carried an entrance animation —
      but NO element ever used it: the slot was built and never filled, and 8 of

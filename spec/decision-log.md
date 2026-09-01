@@ -5447,3 +5447,87 @@ either creeps back.
 **Verified** at 390×844, 360×640, and with `/vendor/supabase-js.js` blocked: the
 sentence and both buttons sit above the fold, the cue is visible, and all five
 rows read in every case. app-tests 71/71.
+
+### D190 · The accessibility floor — dim stops being a text colour
+*(2026-09-01, from the blind-audit action plan, phase 1.2. UI level. Three
+systemic failures sitting on the app's entire wayfinding and modal layer, for a
+demographic that skews older and plays outdoors in Arizona sun.)*
+
+**Current mechanic.** `--dim` was the colour of every section eyebrow, stat
+label, climb rank, chart note and caption — **156 sites**, almost all at 10–11.5px
+mono. Selection on the tab bar was a 4px dot and nothing else; `aria-current`
+appeared **nowhere** in the file. `#sheet`, `#boardFull`, `#finish` and `#onboard`
+all declared `aria-modal="true"` while keyboard focus stayed on the trigger
+**behind** the dialog.
+
+**Problem, measured rather than asserted.** `--dim` computes:
+
+| surface | vs bg0 | vs bg1 | vs bg2 |
+|---|---|---|---|
+| charcoal `:root` | 3.11 | 2.87 | 2.55 |
+| paper (light) | 2.63 | 2.88 | 2.43 |
+| `.room-dusk` | 3.17 | 2.87 | 2.64 |
+
+AA wants **4.5:1** at that size. `--mut` clears it on every real background in
+all three surfaces, worst case **5.17:1**. And a screen-reader user heard four
+identical tab buttons and six identical room buttons, then got stranded inside
+content their reader had just been told did not exist.
+
+**A third theme surface nobody was checking.** `--dim`/`--mut` are redefined in
+**three** places, not two: `:root`, the light block, and **`.room-dusk`** — the
+ceremony surface, which preflight check 10 has never inspected. Any contrast fix
+that looked at only two would have missed it.
+
+**Recommendation (built).** Retire `--dim` **for text**: 154 CSS sites plus 3
+JS-set `.style.color` sites become `--mut`. `--dim` survives for its other 16
+uses — hairlines, dots, swatches, rail accents — untouched. One `trapFocus` /
+`releaseFocus` utility serves both dialogs. `aria-current="page"` on the tab bar
+and desktop rail; `aria-pressed` mirrored onto every `.seg button` by a single
+MutationObserver rather than 24 hand-edits, with `role="group"` and a real label
+on the room switcher.
+
+**Why not a `--dimText` token.** `CSDesign/Theme.swift` already hand-declares
+`dimText`, so `build-tokens.mjs` would emit a conflicting stored property and
+break a build no remote session can verify (rule 6). The web is converging on
+the rule the phone already ships (IOS-013), not inventing a third one.
+`packages/tokens/tokens.json` is untouched, so no generated Swift goes stale.
+
+**The trap's load-bearing details**, each of which broke something in testing:
+`inert` on siblings but never on `#errbar` / `#toast` / `#offlineBar`, so live
+regions still announce over a dialog; frames stack and restore only what they
+themselves inerted, which is what lets a sheet open over `#finish`; the incoming
+dialog is un-inerted and remembered, because `#sheet` may already be inert; a
+re-entry guard, because `openSheet` reuses the **same** element sheet-over-sheet
+and without it the restore target becomes the first sheet's own button;
+`preventScroll` everywhere, because `lockBody` freezes the body at
+`position:fixed`; and a Tab-cycle fallback for Safari ≤15.4.
+
+**Also fixed:** Escape fired unconditionally, closing the sheet even when
+`#boardFull` sat on top of it. Only the dialog on top of the stack answers now.
+`#boardFull` gains the `aria-modal` it had never claimed — true this time.
+
+**Verified in a browser, both themes.** Dark: **zero** contrast failures. Light:
+two remain, and both are `--brand` accents, not `--dim` — "THE BOARD ↗" at 3.81
+and the active tab at 4.05. Those live in `packages/tokens/tokens.json`, repaint
+**both** clients and need their own design pass and entry; they are recorded
+here and deliberately not ridden along. Stacking proven: sheet-over-sheet keeps
+one frame and restores the *original* trigger; board-over-sheet leaves the sheet
+open under it and Escape reaches the right one; nothing is left inert.
+
+**Preflight check 23** does the contrast maths on the real tokens across all
+three surfaces, refuses `--dim` as a text colour, and asserts every `aria-modal`
+dialog is actually trapped. Its aria clause first passed while the only
+`aria-current` left in the file was the **comment** explaining why it mattered —
+the same failure shape as check 22's allowlist clause. It matches the
+`setAttribute` call now. All five regressions were proven to fail the build.
+
+**Tradeoffs.** `--dim` keeps its name while no longer meaning "dim text", which
+is a small vocabulary wart; the alternative broke the phone's build.
+
+**CONFLICT:** none. Converges the web onto IOS-013's rule.
+
+**Deliberately not ridden along:** the `--brand`/`--gold`/`--warm` active-state
+pairs above, a full `role="tablist"` upgrade (which obligates roving tabindex,
+arrow keys and `role="tabpanel"` on twelve views — a half-built tablist reads
+worse than plain buttons), and auto-hiding the Post FAB, which is a mechanic
+change already litigated once by Q-13.
