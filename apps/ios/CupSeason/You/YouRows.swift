@@ -7,12 +7,17 @@ import CSDesign
 import CupSeasonKit
 
 /// A stat as a row: label + sub on the left, the mono figure on the right.
+/// Vertical rhythm belongs to `CSRow` (Y-35) — this never adds its own.
 struct YouStatRow: View {
   @Environment(\.cs) private var cs
   let label: String
   let value: String
   var sub: String? = nil
   var tone: Color? = nil
+  /// Y-33 · an em dash is a glyph, not a sentence: VoiceOver reads the row's
+  /// value as "not yet" so a golfer is told the figure is missing, not shown
+  /// a pause. The sub beside it says why.
+  private var spokenValue: String { value == "—" ? YouCopy.notYet : value }
   var body: some View {
     // label + sub beside the figure; the figure drops under them at the accessibility sizes
     A11yStack(rowAlignment: .firstTextBaseline, spacing: 12, columnSpacing: 2) {
@@ -24,7 +29,9 @@ struct YouStatRow: View {
       Text(value).font(CSFont.stat).csTabular().foregroundStyle(tone ?? cs.ink)
     }
     .frame(minHeight: 32)
-    .accessibilityElement(children: .combine)
+    .accessibilityElement(children: .ignore)
+    .accessibilityLabel([label, sub].compactMap { $0 }.joined(separator: ", "))
+    .accessibilityValue(spokenValue)
   }
 }
 
@@ -66,6 +73,9 @@ struct YouDoorRow<Trailing: View>: View {
         Text(title).font(CSFont.subhead.weight(.semibold)).foregroundStyle(cs.ink)
         if let sub, !sub.isEmpty { Text(sub).font(CSFont.label).tracking(0.8).foregroundStyle(subColor ?? cs.dimText) }
       }
+      // a Button label pushes a CENTRED alignment down the environment, so a
+      // wrapped sub would centre its second line the moment `action` is set
+      .multilineTextAlignment(.leading)
       .frame(maxWidth: .infinity, alignment: .leading)
       trailing().foregroundStyle(cs.dimText).accessibilityHidden(true)
     }

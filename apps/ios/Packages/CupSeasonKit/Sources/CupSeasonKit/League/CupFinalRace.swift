@@ -47,6 +47,10 @@ public struct CupFinalRace: Decodable, Sendable, Equatable {
   public let window_start: String?
   public let window_end: String?
   public let cap_n: Int?
+  /// D212 · "Best 3 per calendar month still applies — a round posted before
+  /// the window can hold a slot." Server-written (`cup_final_race`), null when
+  /// the league sets no cap; absent entirely until that migration is pushed.
+  public let cap_note: String?
   public let days_left: Int?
   public let finalists: [Finalist]
   public let seed_rung: String?

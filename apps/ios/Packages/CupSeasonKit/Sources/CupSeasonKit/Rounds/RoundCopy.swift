@@ -5,42 +5,24 @@
 // display copy, never authority: the points a round is worth come from the
 // server (`v_rounds_ranked` → `cup_points()`), and the phone only phrases them.
 //
-// ONE KNOWN SEAM, documented rather than hidden: the web's `pointsFor` says
-// `vs >= -1 → 7`, but the server's `cup_points()` (baseline 247) says
-// `p_pvi > -1 → 7`, so a round that lands EXACTLY −1.0 against your number is
-// worth 6 on the books and 7 in this preview. `pointsFor` mirrors the client
-// because it is a preview string; the receipt shows the server's figure.
+// D210 · the band EDGES live in one place, `CSBands` (Q-20: half-open at −1.0,
+// matching `cup_points`). This file used to carry its own `>= -1`, so a round
+// at exactly −1.0 read "Played to it" here and scored 6 on the books; every
+// producer below now reads through `CSBands`, and the seam is gone.
 
 import Foundation
 
 public enum RoundCopy {
   /// The web's `pointsFor(vs)` — a preview (points, sentence) for the post
-  /// composer's calc panel. See the −1.0 seam in the header.
-  public static func pointsFor(_ vs: Double) -> (points: Int, line: String) {
-    if vs >= 3 { return (12, "You torched your number by \(f1(vs)). Sandbagger alert.") }
-    if vs >= 1 { return (9, "You beat your number by \(f1(vs)). Nice round.") }
-    if vs >= -1 { return (7, "Right on your number. Steady points.") }
-    if vs >= -3 { return (6, "A little loose, still cash in the bank.") }
-    return (5, "Rough one, but posted rounds always score.")
-  }
+  /// composer's calc panel. The edges are `CSBands`' (D210).
+  public static func pointsFor(_ vs: Double) -> (points: Int, line: String) { CSBands.pointsFor(vs) }
 
-  /// `bandName(vs)` — the five named bands.
-  public static func bandName(_ vs: Double) -> String {
-    if vs >= 3 { return "Torched it" }
-    if vs >= 1 { return "Beat your number" }
-    if vs >= -1 { return "Played to it" }
-    if vs >= -3 { return "A little loose" }
-    return "Posted anyway"
-  }
+  /// `bandName(vs)` — the five named bands, edges from `CSBands`.
+  public static func bandName(_ vs: Double) -> String { CSBands.bandName(vs) }
 
   /// `vsPhrase(vs)` — "beat your number by 2.4" / "played to your number" /
   /// "1.3 over your number". Empty when there is no finite number.
-  public static func vsPhrase(_ vs: Double?) -> String {
-    guard let vs, vs.isFinite else { return "" }
-    if vs >= 1 { return "beat your number by \(f1(vs))" }
-    if vs >= -1 { return "played to your number" }
-    return f1(vs).replacingOccurrences(of: "-", with: "") + " over your number"
-  }
+  public static func vsPhrase(_ vs: Double?) -> String { CSBands.vsPhrase(vs) }
 
   /// `theirs(s)` — third-person form for SOMEONE ELSE's round. Always
   /// they/them; never guess pronouns from a name.
@@ -63,4 +45,39 @@ public enum RoundCopy {
 
   /// JS `Number(v).toFixed(1)`.
   public static func f1(_ v: Double) -> String { String(format: "%.1f", v) }
+
+  // MARK: - Y-13 · the course label arrives already mangled
+
+  /// Club acronyms. Every one is unpronounceable as a word, so a letter run
+  /// that matches one case-insensitively can only be the acronym — which is
+  /// what makes this list safe to apply without a dictionary behind it.
+  private static let courseAcronyms: Set<String> = ["GC", "CC", "CG", "GCC", "TPC", "PGA", "USGA"]
+
+  /// A course label as it should be READ — the acronyms in their own case,
+  /// and every other character exactly as it was stored.
+  ///
+  /// The label is not ours and it is not consistent: GolfCourseAPI title-cases
+  /// its club names upstream, so a picked course lands in `rounds.course_label`
+  /// as "Arizona Biltmore Cc — Links · Copper" / "Palo Verde Gc · Back" while a
+  /// hand-typed one keeps "Encanto GC" (all three verified in
+  /// `20260830230000_course_key_and_backfill.sql:82-84`). There is no
+  /// title-caser on the phone to turn off — the mangling is in the DATA — so
+  /// the repair is the narrowest one that reads right: fix the acronyms, touch
+  /// nothing else. Re-casing the whole string would break the hand-typed
+  /// labels and every real name with a small word in it ("Lone Tree at the
+  /// Ranch"), which is the bug one level up.
+  public static func course(_ label: String?) -> String {
+    guard let label, !label.isEmpty else { return "" }
+    var out = "", run = ""
+    func flush() {
+      guard !run.isEmpty else { return }
+      out += courseAcronyms.contains(run.uppercased()) ? run.uppercased() : run
+      run = ""
+    }
+    for ch in label {
+      if ch.isLetter { run.append(ch) } else { flush(); out.append(ch) }
+    }
+    flush()
+    return out
+  }
 }

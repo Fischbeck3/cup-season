@@ -57,6 +57,7 @@ struct WizardPresetStep: View {
       eyebrow(WizardCopy.presetEyebrow, help: "preset", text: WizardCopy.presetHelp)
       ForEach(0..<3, id: \.self) { i in presetCard(i) }
       CSFine(model.dials.presetSummaryText)
+      CSFine(WizardCopy.verificationNote)   // M-15: a norm the league holds, not a filter the engine applies
       CSButton(WizardCopy.fastPath) { CSHaptic.selection(); model.step = 2 }
       Button {
         withAnimation(reduceMotion ? nil : .timingCurve(0.16, 0.84, 0.36, 1, duration: 0.26)) { model.showDials.toggle() }
@@ -207,7 +208,7 @@ struct WizardReviewStep: View {
         }
       }
       CSFine(WizardCopy.inviteNote)
-      CSButton(WizardCopy.lockButton, busy: model.busy) { lock() }
+      CSButton(WizardCopy.lockButton(solo: model.dials.solo), busy: model.busy) { lock() }
     }
   }
 }

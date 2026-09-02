@@ -3,9 +3,11 @@
 // `loadLastRoundWith` 16201, `loadCareer` 16409, `loadLeagueRecord` 16587,
 // `renderRivalries` 13215).
 //
-// Everything that is not the profile is best-effort: a missing RPC (deploy
-// skew) leaves that block empty and the rest of the page whole, exactly as
-// each web loader catches its own error.
+// Y-17 · every block loads on its own and REPORTS when it could not: a read
+// that fails leaves its block empty, names itself in `YouData.failed`, and the
+// screen shows one quiet Retry line instead of a record that silently reads
+// as "nothing yet". The founder check and the reunion whisper stay
+// best-effort — neither is a fact about the golfer's card.
 
 import Foundation
 import Supabase
@@ -22,7 +24,7 @@ public struct ProfileExtras: Sendable, Equatable {
 public struct YouData: Sendable {
   public var extras: ProfileExtras?
   public var trophies: [Rpc.my_trophies.Row] = []
-  public var achievements: [Rpc.my_achievements.Row] = []
+  public var achievements: [Achievement] = []
   public var careerRecord: CareerRecord?
   public var lastRoundWith: LastRoundWith?
   public var isFounder = false
@@ -30,6 +32,9 @@ public struct YouData: Sendable {
   public var rivalries: [RivalryLine] = []
   public var leagueRecord: [LeagueRecordRow] = []
   public var seasonStats: SeasonStats?
+  /// Y-17 · the blocks whose read failed, by name; empty when the tab is whole
+  public var failed: [String] = []
+  public var isPartial: Bool { !failed.isEmpty }
   public init() {}
 }
 
@@ -57,31 +62,56 @@ public struct YouRepository: Sendable {
     return ProfileExtras(ghinNumber: row.ghin_number, createdAt: row.created_at, avatarURL: url)
   }
 
-  /// The whole tab. `leagueId` picks the season strip's league.
+  /// Y-17 · one block's read, where **nil means the read FAILED**. An empty
+  /// list is not a failure — it is a golfer with nothing there yet, and the
+  /// whole point of this tab's loading rules is that the two never look alike.
+  /// (`Result<_, any Error>` is not `Sendable`, so it cannot cross an
+  /// `async let`; the optional carries the same fact and does.)
+  private func attempt<T: Sendable>(_ op: @Sendable () async throws -> T) async -> T? {
+    try? await op()
+  }
+
+  /// The whole tab. `leagueId` picks the season strip's league and the lens
+  /// that wins when a round scored in more than one.
   public func load(me: Me, userId: UUID, leagueId: UUID?) async -> YouData {
     async let extras = profileExtras(userId)
-    async let trophies: [Rpc.my_trophies.Row] = (try? await svc.call(Rpc.my_trophies())) ?? []
-    async let achievements: [Rpc.my_achievements.Row] = (try? await svc.call(Rpc.my_achievements())) ?? []
-    async let record: CareerRecord? = (try? await svc.call(Rpc.career_record())).map(CareerRecord.parse)
+    async let trophies = attempt { try await svc.call(Rpc.my_trophies()) }
+    async let achievements = attempt { try await myAchievements() }
+    async let record = attempt { CareerRecord.parse(try await svc.call(Rpc.career_record())) }
     async let lrw: LastRoundWith? = loadLastRoundWith(userId)
     async let founder: Bool = ((try? await svc.call(Rpc.founder_id())) == userId)
-    async let career: Career? = loadCareer(userId, me: me)
-    async let rivalries: [RivalryLine] = ((try? await svc.call(Rpc.my_rivalries())) ?? []).compactMap(RivalryLine.from)
-    async let league: [LeagueRecordRow] = loadLeagueRecord(me: me)
-    async let season: SeasonStats? = loadSeasonStats(me: me, leagueId: leagueId)
+    async let career = attempt { try await loadCareer(userId, me: me, leagueId: leagueId) }
+    async let rivalries = attempt { (try await svc.call(Rpc.my_rivalries())).compactMap(RivalryLine.from) }
+    async let league = attempt { try await loadLeagueRecord(me: me) }
+    async let season = attempt { try await loadSeasonStats(me: me, leagueId: leagueId) }
 
     var d = YouData()
+    // the founder check and the reunion whisper stay best-effort: neither is a
+    // fact about the card, and neither is worth a Retry line
     d.extras = await extras
-    d.trophies = await trophies
-    d.achievements = await achievements
-    d.careerRecord = await record
     d.lastRoundWith = await lrw
     d.isFounder = await founder
-    d.career = await career
-    d.rivalries = await rivalries
-    d.leagueRecord = await league
-    d.seasonStats = await season
+    if let v = await trophies { d.trophies = v } else { d.failed.append("trophies") }
+    if let v = await achievements { d.achievements = v } else { d.failed.append("achievements") }
+    if let v = await record { d.careerRecord = v } else { d.failed.append("record") }
+    if let v = await career {
+      d.career = v.career
+      if v.figuresFailed { d.failed.append("figures") }
+    } else {
+      d.failed.append("career")
+    }
+    if let v = await rivalries { d.rivalries = v } else { d.failed.append("rivalries") }
+    if let v = await league { d.leagueRecord = v } else { d.failed.append("league record") }
+    if let v = await season { d.seasonStats = v } else { d.failed.append("season") }
     return d
+  }
+
+  /// Y-20 · the generated `Rpc.my_achievements.Row` predates `round_id`;
+  /// decoding the same call into `Achievement` keeps the key optional either
+  /// way (the generated file is never hand-edited), so the tile door lights up
+  /// the moment the migration lands and nothing breaks before it.
+  func myAchievements() async throws -> [Achievement] {
+    try await svc.client.rpc(Rpc.my_achievements.name, params: Rpc.my_achievements()).execute().value
   }
 
   func loadLastRoundWith(_ uid: UUID) async -> LastRoundWith? {
@@ -90,29 +120,48 @@ public struct YouRepository: Sendable {
     return LastRoundWith(first)
   }
 
-  public func loadCareer(_ uid: UUID, me: Me) async -> Career? {
-    guard let rows = try? await rounds.myRounds(uid) else { return nil }
-    return Career.compute(rows: rows, memberships: me.memberships.count, events: me.events.count)
+  /// The career with a flag for the one read that may fail without emptying
+  /// the card: the engine's figures. Rounds without them still list.
+  public struct CareerLoad: Sendable {
+    public let career: Career
+    public let figuresFailed: Bool
   }
 
-  public func loadLeagueRecord(me: Me) async -> [LeagueRecordRow] {
+  public func loadCareer(_ uid: UUID, me: Me, leagueId: UUID?) async throws -> CareerLoad {
+    async let rows = rounds.myRounds(uid)
+    async let ranked = attempt { try await rounds.rankedRounds(profileId: uid) }
+    let r = try await rows
+    let rk = await ranked
+    let lens = rk ?? []
+    let preferred = (me.memberships.first { $0.league_id == leagueId } ?? me.memberships.first)?.season?.id
+    let leagues = me.memberships.map { m in
+      Career.LeagueSeen(seasonId: m.season?.id, seasonNumber: m.season?.number, seasonStatus: m.season?.status,
+                        startsOn: m.season?.starts_on, sandbox: m.sandbox == true)
+    }
+    let played = Career.playedIn(leagues: leagues, events: Career.onRoster(me.events),
+                                 rankedSeasons: Set(lens.compactMap(\.season_id)))
+    return CareerLoad(career: Career.compute(rows: r, ranked: lens, preferredSeason: preferred, played: played),
+                      figuresFailed: rk == nil)
+  }
+
+  public func loadLeagueRecord(me: Me) async throws -> [LeagueRecordRow] {
     guard !me.memberships.isEmpty else { return [] }
     let seasonIds = me.memberships.compactMap { $0.season?.id }
-    let standings = (try? await rounds.individualStandings(seasonIds: seasonIds)) ?? []
+    let standings = try await rounds.individualStandings(seasonIds: seasonIds)
     return me.memberships.map { m in
       LeagueRecordRow(id: m.league_id, name: m.name, number: m.season?.number ?? 1,
                       line: LeagueRecord.line(phase: m.phase, season: m.season, standings: standings, myMemberId: m.member_id))
     }
   }
 
-  public func loadSeasonStats(me: Me, leagueId: UUID?) async -> SeasonStats? {
+  public func loadSeasonStats(me: Me, leagueId: UUID?) async throws -> SeasonStats? {
     guard let m = me.memberships.first(where: { $0.league_id == leagueId }) ?? me.memberships.first, let s = m.season else { return nil }
     async let rr = rounds.seasonRounds(seasonId: s.id)
     async let st = rounds.individualStandings(seasonIds: [s.id])
-    guard let rows = try? await rr else { return .empty }
-    let standings = (try? await st) ?? []
+    let (rows, standings) = try await (rr, st)
     return SeasonStats.compute(rows: rows, standings: standings, myMemberId: m.member_id)
   }
 
-  public func deleteRound(_ id: UUID, profile: UUID) async throws { try await rounds.deleteRound(id, profile: profile) }
+  /// `delete_round` — no `handicap_index` chaser behind it (Y-19).
+  public func deleteRound(_ id: UUID) async throws { try await rounds.deleteRound(id) }
 }

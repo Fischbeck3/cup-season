@@ -5,34 +5,51 @@ import Testing
 import Foundation
 @testable import CupSeasonKit
 
-// MARK: presets → dials (7157–7172, PRESET_SUMMARY 7052)
+// MARK: presets → dials (PRESETS 8150–8154, PRESET_SUMMARY 7997–8001)
 
 @Suite struct WizardPresetTests {
+  /// D142: the ladder is [2, 3, 4, 6, ∞]; Standard counts the best 3, Cutthroat the best 2, Casual everything.
   @Test func presetsSetCapAndFloor() {
     var d = WizardDials()
     d.applyPreset(0)
-    #expect(d.cap == 3 && d.floor == 0 && d.capText == "Unlimited" && d.capN == nil)
+    #expect(d.cap == 4 && d.floor == 0 && d.capText == "Unlimited" && d.capN == nil)
     d.applyPreset(1)
-    #expect(d.cap == 1 && d.floor == 2 && d.capText == "Best 4" && d.capN == 4)
+    #expect(d.cap == 1 && d.floor == 2 && d.capText == "Best 3" && d.capN == 3)
     d.applyPreset(2)
-    #expect(d.cap == 1 && d.floor == 3 && d.presetToast == "Cutthroat rules locked for the season")
+    #expect(d.cap == 0 && d.floor == 3 && d.capText == "Best 2" && d.capN == 2 && d.presetToast == "Cutthroat rules locked for the season")
   }
+  @Test func theLadderIsTheWebs() {
+    #expect(WizardDials.caps == ["Best 2", "Best 3", "Best 4", "Best 6", "Unlimited"])
+    #expect(WizardDials.capVals == [2, 3, 4, 6, nil])
+    #expect(WizardDials.presets.map(\.line) == [
+      "100% hcp · honor scores · any course · unlimited counting · no floor",
+      "95% hcp · post what you'd post to GHIN · best 3 / mo count · 2-round floor",
+      "90% hcp · attested where you can · rated tees · best 2 / mo · 3-round floor",
+    ])
+  }
+  /// D206: 13 weeks by default; D142: Standard's Best 3.
   @Test func aRealLeagueStartsAtBraggingRights() {
     let d = WizardDials()
-    #expect(d.stake == 0 && d.stakeText == "None" && d.preset == 1 && d.durWeeks == 26)
+    #expect(d.stake == 0 && d.stakeText == "None" && d.preset == 1 && d.durWeeks == 13 && d.lengthText == "3 mo")
+    #expect(d.cap == 1 && d.capText == "Best 3" && d.floor == 2)
   }
   @Test func steppersWalkTheLadders() {
     var d = WizardDials()
     d.stepStake(1); #expect(d.stake == 25)
     d.stepStake(-1); d.stepStake(-1); #expect(d.stake == 0)
-    d.stepLength(1); #expect(d.durWeeks == 39)
-    d.stepLength(1); d.stepLength(1); #expect(d.durWeeks == 52)
+    d.stepLength(1); #expect(d.durWeeks == 17)
+    d.stepLength(1); d.stepLength(1); #expect(d.durWeeks == 26)
+    d.stepLength(1); d.stepLength(1); d.stepLength(1); #expect(d.durWeeks == 52)
     d.stepFloor(1); d.stepFloor(1); d.stepFloor(1); #expect(d.floor == 4)
     d.stepCap(-1); d.stepCap(-1); #expect(d.cap == 0 && d.capText == "Best 2")
+    d.stepCap(1); d.stepCap(1); d.stepCap(1); d.stepCap(1); d.stepCap(1); #expect(d.cap == 4 && d.capText == "Unlimited")
   }
   @Test func summaryAndNotesAreTheWebs() {
     var d = WizardDials()
-    #expect(d.presetSummaryText.hasPrefix("Standard: 95% handicap"))
+    #expect(d.presetSummaryText.hasPrefix("Standard: 95% handicap, post what you'd post to GHIN, your best 3 a month count"))
+    d.applyPreset(2)
+    #expect(d.presetSummaryText.contains("attested where you can and the Pro rules on the rest") && d.presetSummaryText.contains("best 2 a month"))
+    d.applyPreset(1)
     d.payout = [70, 20, 10]
     #expect(d.payNote == "Winner-heavy: champ 70% · runner-up 20% · Points King 10%.")
     d.finish = "points_table"
@@ -97,12 +114,13 @@ import Foundation
     #expect(d.startDate(today: "2026-08-27") == "2026-09-09")
   }
   @Test func untouchedStartFollowsTheDefault() {
-    let d = WizardDials()
-    #expect(d.startDate(today: "2026-08-27") == "2026-08-29" && d.endDate(today: "2026-08-27") == "2027-02-27")
-    #expect(d.spanText(today: "2026-08-27") == "Sat Aug 29 – Sat Feb 27")
+    let d = WizardDials()   // D206: 13 weeks
+    #expect(d.startDate(today: "2026-08-27") == "2026-08-29" && d.endDate(today: "2026-08-27") == "2026-11-28")
+    #expect(d.spanText(today: "2026-08-27") == "Sat Aug 29 – Sat Nov 28")
   }
-  @Test func seasonMonthsIsClampedForTheCheckConstraint() {
-    #expect(WizardDials.durMonths(2) == 3 && WizardDials.durMonths(26) == 6 && WizardDials.durMonths(52) == 12)
+  /// D143: `season_months` describes the window, 1..12 like the web — never a clamped 3.
+  @Test func seasonMonthsDescribesTheWindow() {
+    #expect(WizardDials.durMonths(2) == 1 && WizardDials.durMonths(13) == 3 && WizardDials.durMonths(26) == 6 && WizardDials.durMonths(52) == 12)
   }
   @Test func bylawsRowsRideThePreviewDates() {
     var d = WizardDials()
@@ -129,32 +147,51 @@ import Foundation
   }
 }
 
-// MARK: the lock payload (14888–14923)
+// MARK: the lock call (lockBylaws → lock_league, 17194–17248)
 
-@Suite struct WizardLockPayloadTests {
-  @Test func writesEveryColumnTheWebWrites() throws {
+@Suite struct WizardLockCallTests {
+  let league = UUID()
+  func json(_ c: WizardLockCall) throws -> [String: Any] {
+    try JSONSerialization.jsonObject(with: JSONEncoder().encode(c)) as? [String: Any] ?? [:]
+  }
+  @Test func sendsEveryArgTheWebSends() throws {
     var d = WizardDials()
-    d.applyPreset(2); d.stake = 50; d.durWeeks = 13; d.structure = "squads3"; d.draftType = "assign"; d.finish = "points_table"; d.payout = [50, 30, 20]
-    let p = WizardLockPayload(d, lockedAt: "2026-08-27T12:00:00Z")
-    #expect(p.preset == "cutthroat" && p.handicap_allowance == 90 && p.verification == "ghin" && p.floor_penalty == "forfeit")
-    #expect(p.counting_cap == 4 && p.participation_floor == 3 && p.buyin_cents == 5000 && p.season_months == 3)
-    #expect(p.season_format == "points")           // the column DEFAULT is 'hybrid' — this write turns the +15 off
-    #expect(p.structure == "squads3" && p.draft_type == "assign" && p.finish == "points_table")
-    #expect(p.payout_champ == 50 && p.payout_runnerup == 30 && p.payout_king == 20 && p.locked_at == "2026-08-27T12:00:00Z")
-    let json = try JSONSerialization.jsonObject(with: JSONEncoder().encode(p)) as? [String: Any]
-    #expect(json?["finish"] as? String == "points_table" && json?["counting_cap"] as? Int == 4)
+    d.applyPreset(2); d.stake = 50; d.durWeeks = 13; d.startISO = "2026-09-05"
+    d.structure = "squads3"; d.draftType = "assign"; d.finish = "points_table"; d.payout = [50, 30, 20]
+    let c = WizardLockCall(d, leagueId: league, name: "PIGL", today: "2026-08-27")
+    let j = try json(c)
+    #expect(j["p_league"] as? String == league.uuidString.lowercased() || j["p_league"] as? String == league.uuidString)
+    #expect(j["p_name"] as? String == "PIGL" && j["p_preset"] as? String == "cutthroat" && j["p_handicap_allowance"] as? Int == 90)
+    #expect(j["p_verification"] as? String == "ghin" && j["p_floor_penalty"] as? String == "forfeit")
+    #expect(j["p_counting_cap"] as? Int == 2 && j["p_participation_floor"] as? Int == 3 && j["p_buyin_cents"] as? Int == 5000)
+    #expect(j["p_season_months"] as? Int == 3)           // 13 weeks say 3, never a clamped minimum
+    #expect(j["p_season_format"] as? String == "points")  // the column DEFAULT is 'hybrid' — this turns the +15 off
+    #expect(j["p_structure"] as? String == "squads3" && j["p_draft_type"] as? String == "assign" && j["p_finish"] as? String == "points_table")
+    #expect(j["p_payout_champ"] as? Int == 50 && j["p_payout_runnerup"] as? Int == 30 && j["p_payout_king"] as? Int == 20)
+    #expect(j["p_starts_on"] as? String == "2026-09-05" && j["p_ends_on"] as? String == "2026-12-05")
+    #expect(j.count == 19)
   }
   @Test func unlimitedCapIsAnExplicitNull() throws {
     var d = WizardDials()
     d.applyPreset(0)
-    let json = try JSONSerialization.jsonObject(with: JSONEncoder().encode(WizardLockPayload(d, lockedAt: "x"))) as? [String: Any]
-    #expect(json?.keys.contains("counting_cap") == true && json?["counting_cap"] is NSNull)
+    let j = try json(WizardLockCall(d, leagueId: league, name: "X"))
+    #expect(j.keys.contains("p_counting_cap") && j["p_counting_cap"] is NSNull)
   }
-  @Test func theSkewRetryDropsFinishOnly() throws {
-    let d = WizardDials()
-    let p = WizardLockPayload(d, lockedAt: "x").withoutFinish
-    let json = try JSONSerialization.jsonObject(with: JSONEncoder().encode(p)) as? [String: Any]
-    #expect(json?["finish"] == nil && json?["draft_type"] as? String == "random" && json?["buyin_cents"] as? Int == 0)
+  @Test func aShortPilotSaysOneMonth() throws {
+    var d = WizardDials()
+    d.durWeeks = 2
+    #expect(try json(WizardLockCall(d, leagueId: league, name: "X"))["p_season_months"] as? Int == 1)
+  }
+  /// The wrapper IS the generated binding by NAME, and drops nothing. The
+  /// Kit's retry sheds every droppable arg at once, so a non-empty list here
+  /// would let a skew retry lock a league on the SQL defaults and still say
+  /// "Bylaws locked" (D206). Every deployed signature since `20260829220000`
+  /// carries all eighteen args, so there is nothing to retry into either.
+  @Test func theWrapperDropsNothingOnASkewRetry() {
+    #expect(WizardLockCall.name == "lock_league" && WizardLockCall.name == Rpc.lock_league.name)
+    #expect(WizardLockCall.optionalArgs.isEmpty)
+    #expect(Set(WizardLockCall.optionalArgs).isSubset(of: Set(Rpc.lock_league.optionalArgs)))
+    #expect(!WizardLockCall.optionalArgs.contains("p_league"))
   }
 }
 
@@ -166,8 +203,20 @@ import Foundation
                                 buyin_cents: 7500, season_months: 9, structure: "squads2", draft_type: "assign",
                                 payout_champ: 70, payout_runnerup: 20, payout_king: 10, finish: "points_table")
     let d = WizardDials.from(s, name: "PIGL · S2")
-    #expect(d.name == "PIGL · S2" && d.preset == 0 && d.cap == 3 && d.floor == 0 && d.stake == 75)
+    #expect(d.name == "PIGL · S2" && d.preset == 0 && d.cap == 4 && d.capText == "Unlimited" && d.floor == 0 && d.stake == 75)
     #expect(d.durWeeks == 39 && d.structure == "squads2" && d.draftType == "assign" && d.finish == "points_table" && d.payout == [70, 20, 10])
+  }
+  /// D142: a stored cap the ladder does not carry still names its number; the
+  /// stepper sits on the nearest rung and a legacy "hybrid" reads as points.
+  @Test func aCapOffTheLadderKeepsItsNumber() {
+    let s = LeagueRoom.Settings(league_id: UUID(), preset: "standard", counting_cap: 5, season_format: "hybrid")
+    let b = Bylaws.from(s)
+    #expect(b.cap == 5 && b.capN == 5 && b.capLabel == "Best 5" && b.capIdx == 2 && b.fmtIdx == 0)
+    #expect(Bylaws.fmtNames[b.fmtIdx] == "Points Race" && Bylaws.fmtNames.count == 2)
+    let d = WizardDials.from(s, name: "X")
+    #expect(d.cap == 2 && d.capText == "Best 4")   // the wizard can only offer its rungs
+    #expect(Bylaws.from(LeagueRoom.Settings(league_id: UUID(), counting_cap: 3)).capIdx == 1)
+    #expect(Bylaws.from(nil).cap == 3 && Bylaws.from(nil).capLabel == "Best 3")
   }
   @Test func aSeasonRowPinsTheRealSpan() {
     let s = LeagueRoom.Settings(league_id: UUID(), season_months: 6)
@@ -193,6 +242,22 @@ import Foundation
     #expect(WizardCopy.lockShareLine(nextPhase: "season", members: 1, structure: "solo", draftType: "random")
             == "Season is live — every golfer you add posts from day one.")
     #expect(WizardCopy.inviteURL("ABCD1234")?.absoluteString == "https://cupseason.app/?join=ABCD1234")
+  }
+  /// P-11: "live" only once first tee has come; a solo league locked ahead names the tee.
+  @Test func liveOnlyOnceFirstTeeHasCome() {
+    #expect(WizardCopy.lockShareLine(nextPhase: "season", members: 1, structure: "solo", draftType: "random", startsOn: "2026-09-05", today: "2026-08-27")
+            == "First tee Sat Sep 5 — every golfer you add posts from day one.")
+    #expect(WizardCopy.lockShareLine(nextPhase: "season", members: 1, structure: "solo", draftType: "random", startsOn: "2026-08-27", today: "2026-08-27")
+            == "Season is live — every golfer you add posts from day one.")
+    #expect(WizardCopy.lockShareLine(nextPhase: "season", members: 3, structure: "solo", draftType: "random", startsOn: "2026-08-01", today: "2026-08-27")
+            == "Season is live — every golfer you add posts from day one.")
+  }
+  /// D205: every minimum derives from `structMin`; a solo league forms no squads.
+  @Test func theReviewStepSpeaksBothMinimums() {
+    #expect(WizardCopy.inviteNote == "Lock opens the invite link — one link fills the league. The code works until first tee, or until you close the roster. Squads need four to tee off; solo tees off at two.")
+    #expect(WizardCopy.lockButton(solo: true) == "Lock the bylaws" && WizardCopy.lockButton(solo: false) == "Lock the bylaws & form the squads")
+    #expect(WizardDials.structNotes["solo"]?.hasPrefix("Individual · every player for himself — works at any size (2+).") == true)
+    #expect(WizardCopy.verificationNote == "Verification is a norm the league holds, not a filter the engine applies.")
   }
 }
 
@@ -223,6 +288,14 @@ import Foundation
     #expect(DraftCopy.startBlocker(members: 5, pool: 0, squads: [full, empty], solo: false) == "Squad 2 is empty — draw again or assign somebody before the season starts")
     #expect(DraftCopy.startBlocker(members: 5, pool: 0, squads: [full], solo: false) == nil)
     #expect(DraftCopy.startBlocker(members: 1, pool: 0, squads: [], solo: true) == nil)
+    // D205 · four is the tee-off minimum for EVERY squad count — `start_season`
+    // raises on `total < 4` whatever the structure, so a 3- or 4-squad league
+    // is clear at four and the phone must not invent six or eight.
+    let seat = { LeagueRoom.Squad(id: UUID(), name: "Squad", color: 0, squad_members: [.init(member_id: UUID())]) }
+    let three = [seat(), seat(), seat()], four = three + [seat()]
+    #expect(DraftCopy.startBlocker(members: 4, pool: 0, squads: three, solo: false) == nil)
+    #expect(DraftCopy.startBlocker(members: 4, pool: 0, squads: four, solo: false) == nil)
+    #expect(DraftCopy.startBlocker(members: 3, pool: 0, squads: three, solo: false) == "Minimum four to tee off — 3 in so far. Share the invite link.")
   }
   @Test func formationCopy() {
     #expect(DraftCopy.eyebrow("assign") == "Form squads · Pro assign" && DraftCopy.eyebrow("random") == "Form squads · blind draw")

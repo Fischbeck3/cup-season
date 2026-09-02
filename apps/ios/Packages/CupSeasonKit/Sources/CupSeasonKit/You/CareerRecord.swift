@@ -5,6 +5,11 @@
 // noughts. The money is an exact sum of recorded payouts, never a
 // recomputation, and it is a record of what friends settled between
 // themselves (D39) — no balance, nothing owed to or by the app.
+//
+// Y-02 · a record with no titles renders NOTHING — the display case under it
+// carries the one empty line (`TrophyCase.emptyLine`), so a new golfer is
+// not told twice that the shelf is bare. The two lines this file used to
+// carry for that are retired.
 
 import Foundation
 
@@ -20,8 +25,6 @@ public struct CareerRecord: Sendable, Equatable {
   public let earningsCents: Int
   public let seasonsDone: Int
 
-  public static let emptyLine = "Your record fills in when a season closes."
-  public static let noSilverware = "The case is empty — for now. Cups, crowns and event wins hang here when you take them."
   public static let moneyNote = "What your friends settled with you. " + MoneyCopy.ledger
 
   /// "Settled across 3 seasons" — nil when nothing was settled.

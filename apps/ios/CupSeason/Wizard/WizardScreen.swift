@@ -139,7 +139,7 @@ struct WizardScreen: View {
     }
   }
 
-  /// `#lockBtn` (15226–15261): telemetry, the D5 unnamed guard, the five writes, the share moment.
+  /// `#lockBtn` (15226–15261): telemetry, the D5 unnamed guard, the one `lock_league` call (D111), the share moment.
   private func lock() {
     Task {
       switch await model.lock() {
@@ -288,7 +288,7 @@ final class WizardModel {
       let n = await svc.memberCount(id)
       svc.track(.invite_open, ["sent": .number(0)])
       share = WizardLockShare(leagueId: id, name: name, code: code ?? "", nextPhase: r.nextPhase, members: n,
-                              structure: dials.structure, draftType: dials.draftType)
+                              structure: dials.structure, draftType: dials.draftType, startsOn: r.startsOn)
       return .locked
     } catch { return .failed(HumanError.text(error, prefix: WizardCopy.lockFailed)) }
   }

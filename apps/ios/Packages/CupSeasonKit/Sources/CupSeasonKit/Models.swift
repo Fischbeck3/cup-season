@@ -81,6 +81,9 @@ public struct Me: Decodable, Sendable {
     public let name: String
     public let code: String?
     public let phase: String
+    /// D208 · `native_home()` has always returned it (20260827130400:300); the
+    /// You card's league count needs it, and one decoded key beats one more read.
+    public let sandbox: Bool?
     public let role: String
     public let member_id: UUID
     public let marker: String?

@@ -60,7 +60,7 @@ struct SeasonCeremonyView: View {
             if st.unclaimedCents > 0 { payRow("Unclaimed", "no eligible finisher", st.unclaimedCents) }
             // D106: the truth about the shortfall, by name
             if st.stillOwedCents > 0 { payRow("Still owed to the pot", st.owing.joined(separator: ", "), st.stillOwedCents) }
-            Text("Cup Season keeps the books. Money moves friend-to-friend — we just make sure nobody argues at the bar.")
+            Text(MoneyCopy.ledger)
               .font(CSFont.footnote).foregroundStyle(d.mut).padding(.top, 6).fixedSize(horizontal: false, vertical: true)
           }
         }

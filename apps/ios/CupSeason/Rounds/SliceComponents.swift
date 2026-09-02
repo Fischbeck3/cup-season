@@ -223,10 +223,26 @@ struct StreakTag: View {
 }
 
 /// `.cform` on the credential: "FORM" · five dots oldest→newest · the streak tag.
+///
+/// `caption` is the dots' visible key (Y-08). Every caller takes it from the
+/// one producer (`YouCopy.formKey` / `YouCopy.formKeyCard`) so the sentence
+/// has ONE home; the credential passes the CARD's short form, in the person
+/// that card is about — it can be somebody else's, and "your playing number"
+/// would be a lie on it.
 struct FormRowView: View {
   let form: FormRow
   let palette: CSPalette
+  var caption: String? = nil
   var body: some View {
+    VStack(alignment: .leading, spacing: 6) {
+      dots
+      if let caption {
+        Text(caption).font(CSFont.footnote).foregroundStyle(palette.mut)
+      }
+    }
+  }
+
+  private var dots: some View {
     HStack(spacing: 6) {
       Text("FORM").font(CSFont.label).tracking(1.6).foregroundStyle(palette.mut).padding(.trailing, 2)
       ForEach(Array(form.dots.enumerated()), id: \.offset) { _, on in

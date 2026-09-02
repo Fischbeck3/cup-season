@@ -74,6 +74,16 @@ public enum RivalryCopy {
   public static func leadLabel(wins: Int, losses: Int) -> String {
     wins > losses ? "YOU LEAD" : wins < losses ? "THEY LEAD" : "ALL SQUARE"
   }
+  /// The same three words for a surface that already holds the resolved lead
+  /// (`my_rivalries` returns `up`/`down`/`even`, not the raw counts). One
+  /// wording for "who is up" wherever it appears.
+  public static func leadLabel(_ lead: RivalryLead) -> String {
+    switch lead {
+    case .up: leadLabel(wins: 1, losses: 0)
+    case .down: leadLabel(wins: 0, losses: 1)
+    case .even: leadLabel(wins: 0, losses: 0)
+    }
+  }
   /// "JUL 6" from "2026-07-06" — by parts, never through an ISO parser.
   public static func monthDay(_ iso: String) -> String {
     let parts = iso.split(separator: "-").compactMap { Int($0) }
@@ -82,8 +92,21 @@ public enum RivalryCopy {
     return "\(mos[parts[1] - 1]) \(parts[2])"
   }
 
-  public static let weekSub = "BEST ROUND VS INDEX THAT WEEK"
-  public static let sheetSub = "WEEKLY CLASH · BETTER ROUND VS INDEX TAKES THE WEEK"
+  /// Y-33 · the same day said out loud: "June 1", never "J U N 1".
+  public static func monthDaySpoken(_ iso: String) -> String {
+    let parts = iso.split(separator: "-").compactMap { Int($0) }
+    let mos = ["January", "February", "March", "April", "May", "June",
+               "July", "August", "September", "October", "November", "December"]
+    guard parts.count == 3, (1...12).contains(parts[1]) else { return "" }
+    return "\(mos[parts[1] - 1]) \(parts[2])"
+  }
+
+  /// D209 · `rivalry_weeks` builds `my_pvi`/`opp_pvi` from `max(rr.pvi)` over
+  /// `v_rounds_ranked` (`20260716010000_rivalries.sql:88-94`) — the ALLOWANCE
+  /// figure. Both captions used to name the 100% lens for a 95% number; the
+  /// words come from `YouCopy.vsPlayingNumber` now, so there is one source.
+  public static let weekSub = "BEST ROUND \(YouCopy.vsPlayingNumber.uppercased()) THAT WEEK"
+  public static let sheetSub = "WEEKLY CLASH · BETTER ROUND \(YouCopy.vsPlayingNumber.uppercased()) TAKES THE WEEK"
   public static let noWeeks = "No head-to-head weeks yet. A clash counts a week you both post."
   public static let nameHelp = "Give it a name your crew would actually say — “The Grudge,” “Border War.” Either of you can change it later."
   public static let namePlaceholder = "The Grudge"

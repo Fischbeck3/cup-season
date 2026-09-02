@@ -78,7 +78,7 @@ struct LivePlayView: View {
           // so the one question a golfer has mid-round ("where does the match
           // stand") was the one thing they had to scroll for. Landscape already
           // had this right by accident (D152 put them in the right column).
-          Text("Side games · tracked live, settled between you").csEyebrow().padding(.top, 8)
+          Text("Side games · tracked live, settled between friends").csEyebrow().padding(.top, 8)
           gameCards
           if !store.isPencilOnly {
             CSMini("Group phones — everyone can score") { showGroup = true }

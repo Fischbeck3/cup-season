@@ -64,7 +64,7 @@ struct TourCardSheet: View {
 
   private func card(_ l: TourCardLoad) -> some View {
     let c = l.card, p = c.profile
-    let est = p.memberSince.map { "est. " + TourCard.monthYear($0) }
+    let est = p.memberSince.map { TourCard.established($0) }
     let meta = [p.handle.map { "@\($0)" }, p.city, est].compactMap { $0 }.joined(separator: " · ")
     let vs = c.vsYou
     let canReport = l.avatarURL != nil && profileId != store.session?.user.id
@@ -73,11 +73,13 @@ struct TourCardSheet: View {
                       sub: p.isMe ? "THIS IS HOW YOUR BUDDIES SEE YOU" : (p.handle.map { "@" + $0.uppercased() } ?? "")) {
       CredentialCard(photoURL: l.avatarURL, marker: p.marker, name: p.displayName ?? "—", badge: store.founding.badge(for: profileId), meta: meta,
                      indexCurrent: p.indexCurrent, rounds: c.career.rounds,
-                     trophyLines: TrophyMeta.credLines(c.trophies, max: 4, moreSuffix: " more"), form: form,
+                     // EVERY line: the card caps them at `credentialChips` and
+                     // opens the rest in place, so "+N more" is a door now
+                     trophyLines: TrophyMeta.credChips(c.trophies), form: form, isMe: p.isMe,
                      anchor: { EmptyView() },
                      extra: {
                        if let vs, vs.total > 0 {
-                         VsChip(text: vs.chip) {
+                         VsChip(text: vs.chip, spokenLabel: "Versus you", spokenValue: "\(vs.record), \(vs.lead.lowercased())") {
                            rivalry = RivalryLine(opponent: profileId, name: p.displayName ?? "them", marker: p.marker, facets: "",
                                                  record: vs.record, lead: .even, rivalryName: nil)
                          }
@@ -86,13 +88,37 @@ struct TourCardSheet: View {
       if canReport { reportLine }
       if !p.isMe { buddyAction }
 
-      Text("Career").csEyebrow().padding(.top, 8)
+      // D209 · ONE lens, and the eyebrow is where it is named — not buried in
+      // each row label. Your own Tour Card and You › All time were printing
+      // the same golfer's average with opposite signs, separated on screen by
+      // the single word "playing". `tour_card()` now RETURNS the allowance
+      // figures (`avg_pvi` corrected to the allowance mean, `best_pvi` added —
+      // migration 20260902180000), so under the lens these rows are the You
+      // tab's rows, word for word.
+      //
+      // The fallback is not only for a pre-push server: a golfer no season has
+      // ever ranked has no allowance figure at all, and for them the block
+      // keeps the 100% average under the 100% label ("Avg vs your number",
+      // which is what `avg_vs_index` honestly is) and the course score under
+      // "Best round vs course". The phone never prints the You tab's words
+      // over a figure that is not the You tab's number.
+      //
+      // D210 · the banned word leaves the card, abbreviated or not, in either
+      // shape.
+      Text(TourCard.careerEyebrow(playingLens: c.playingLens, isMe: p.isMe)).csEyebrow().padding(.top, 8)
       VStack(spacing: 0) {
-        MathRow(label: "Rounds", value: String(c.career.rounds))
-        MathRow(label: "Best diff", value: c.bestText)
-        MathRow(label: "Avg vs index", value: c.avgText)
-        if let hc = p.homeCourse, !hc.isEmpty { MathRow(label: "Home course", value: hc) }
+        MathRow(label: TourCard.roundsLabel, value: String(c.career.rounds))
+        MathRow(label: TourCard.bestLabel(playingLens: c.playingLens), value: c.bestText)
+        MathRow(label: TourCard.avgLabel(playingLens: c.playingLens, isMe: p.isMe), value: c.avgText)
+        if let hc = p.homeCourse, !hc.isEmpty { MathRow(label: "Home course", value: RoundCopy.course(hc)) }
         if let g = p.ghin, !g.isEmpty { MathRow(label: "GHIN", value: g) }
+      }
+      // 8c · the two old figures run opposite ways — a course score where
+      // lower wins, beside a delta where + wins — and no single sign is right
+      // for both. Under the allowance lens they are one measurement, signed
+      // the same way, and this line has nothing left to explain.
+      if !c.playingLens {
+        Fine(TourCard.careerSignsLine(isMe: p.isMe)).padding(.top, 6)
       }
 
       if !c.recent.isEmpty {
@@ -100,7 +126,7 @@ struct TourCardSheet: View {
         ForEach(c.recent) { r in
           CheckRow(glyph: Text(RivalryCopy.monthDay(r.playedOn)),
                    title: "\(r.gross.map(String.init) ?? "—") GROSS\(r.holesPlayed == 9 ? " · 9 HOLES" : "")",
-                   sub: (r.courseLabel.map { $0.uppercased() + " · " } ?? "") + "DIFF " + (r.differential.map(RoundCopy.f1) ?? "—")) { EmptyView() }
+                   sub: (r.courseLabel.map { RoundCopy.course($0).uppercased() + " · " } ?? "") + "VS COURSE " + (r.differential.map(RoundCopy.f1) ?? "—")) { EmptyView() }
         }
       }
 

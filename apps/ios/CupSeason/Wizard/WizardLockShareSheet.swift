@@ -16,8 +16,13 @@ struct WizardLockShare: Identifiable, Equatable {
   let members: Int
   let structure: String
   let draftType: String
+  /// P-11 · the season's `starts_on` as the lock returned it — "Season is live"
+  /// only once first tee has come; before it, the line names the tee.
+  var startsOn: String? = nil
   var id: UUID { leagueId }
-  var line: String { WizardCopy.lockShareLine(nextPhase: nextPhase, members: members, structure: structure, draftType: draftType) }
+  var line: String {
+    WizardCopy.lockShareLine(nextPhase: nextPhase, members: members, structure: structure, draftType: draftType, startsOn: startsOn)
+  }
   var url: URL? { WizardCopy.inviteURL(code) }
 }
 

@@ -36,8 +36,21 @@ struct RivalriesSection: View {
                   }
                   .frame(maxWidth: .infinity, alignment: .leading)
                 }
-                Text(r.record).font(CSFont.monoMediumBody).csTabular().foregroundStyle(recordColor(r.lead))
-                  .padding(.leading, typeSize.isA11y ? 40 : 0)
+                HStack(spacing: 10) {
+                  // Y-08 · "1–0" in green said nothing about WHOSE record it
+                  // was, and the colour was the only thing carrying the
+                  // verdict. The label under it names both, in the Tour Card's
+                  // own words (`RivalryCopy.leadLabel`).
+                  VStack(alignment: .trailing, spacing: 2) {
+                    Text(r.record).font(CSFont.monoMediumBody).csTabular().foregroundStyle(recordColor(r.lead))
+                    Text(RivalryCopy.leadLabel(r.lead)).csEyebrow(cs.mut)
+                  }
+                  // Y-16 · one open-affordance for the tab: this row opens the
+                  // Tour Card and never said so. Same `→` the round rows and
+                  // the season rows wear.
+                  Text("→").font(CSFont.subhead).foregroundStyle(cs.dimText)
+                }
+                .padding(.leading, typeSize.isA11y ? 40 : 0)
               }
               .frame(minHeight: 44)
               .contentShape(Rectangle())
@@ -55,6 +68,7 @@ struct RivalriesSection: View {
   private func recordColor(_ lead: RivalryLead) -> Color {
     switch lead { case .up: cs.pos; case .down: cs.dimText; case .even: cs.mut }
   }
+
 }
 
 /// "You vs NAME" — the receipts behind the record (§16).

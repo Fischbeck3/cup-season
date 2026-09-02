@@ -75,9 +75,17 @@ public struct CSButton: View {
   }
   private var fg: Color {
     switch style {
+    // `bg0` is the ink that turns over with the theme — near-black on the
+    // dark grounds, paper-white on the light one. It is the phone's form of
+    // the web's F1 rule (dark ink on the light-theme ember misses AA; white
+    // ink clears it), and it needs no per-theme branch to say so.
     case .primary: cs.bg0
     case .quiet: cs.ink
-    case .gold: Color(hex: 0x171204)   // the web's gold-button ink, verbatim
+    // D211 stepped the light gold darker for text, which took the web's
+    // near-black gold-button ink (#171204) down to 3.4:1 on it. `bg0` reads
+    // the same on the dark champagne (9.3:1, was 9.3) and clears 4.9:1 on
+    // the light metal.
+    case .gold: cs.bg0
     }
   }
   private var border: Color { style == .quiet ? cs.line2 : .clear }
@@ -266,3 +274,96 @@ public extension View {
     sensoryFeedback(kind.sensory, trigger: trigger)
   }
 }
+
+// MARK: - The floating tab bar
+
+/// How much room a page must leave at its foot for the floating tab bar: what
+/// the pill COVERS, minus what the system already reserves for it. The shell
+/// measures it from the live bar and applies `csTabBarRoom` once, so no screen
+/// has to know the number — but a surface that floats above the bar on its own
+/// (the toast) can read it here rather than carrying a hard-coded gap. Off the
+/// tabs — a cover, the door, the orientation screen — it is 0.
+private struct CSBarInsetKey: EnvironmentKey { static let defaultValue: CGFloat = 0 }
+
+public extension EnvironmentValues {
+  var csBarInset: CGFloat {
+    get { self[CSBarInsetKey.self] }
+    set { self[CSBarInsetKey.self] = newValue }
+  }
+}
+
+public extension View {
+  /// Room at the foot for the floating tab bar. Applied ONCE, by the tab
+  /// shell, to the `TabView` — every tab and every screen pushed inside one
+  /// inherits it, including the screens that paint their own ground and would
+  /// otherwise each have to carry the number.
+  ///
+  /// `inset` is what the shell measured: the pill's footprint less the safe
+  /// area the system already gives tab content. A screen already clear of the
+  /// bar therefore gets nothing added, and cannot be inset twice.
+  func csTabBarRoom(_ inset: CGFloat) -> some View {
+    safeAreaInset(edge: .bottom, spacing: 0) { Color.clear.frame(height: max(0, inset)) }
+      .environment(\.csBarInset, max(0, inset))
+  }
+
+  /// The other half of the same defect: a scroll edge the page cannot be READ
+  /// through. The bar's own background is the system's to draw in the floating
+  /// design — `CSTabBarChrome` still dresses it, and is honoured on the older
+  /// bar and in compatibility mode — so what a page owes it is this. `.hard` is
+  /// the delineated edge: rows fade out under the pill instead of sitting at
+  /// full contrast behind it and around its rounded corners. The pill stays a
+  /// pill; nothing becomes a full-width slab.
+  ///
+  /// Applied per tab STACK, not to the shell, so a full-screen cover — which
+  /// has no tab bar and no floating pill — never inherits it.
+  @ViewBuilder func csTabBarEdge() -> some View {
+    if #available(iOS 26, *) {
+      scrollEdgeEffectStyle(.hard, for: .bottom)
+    } else {
+      self
+    }
+  }
+}
+
+#if canImport(UIKit)
+/// The bar's backdrop. The system pill is TRANSPARENT at a scroll edge by
+/// default, which is why page content — orange section heads, a handle line —
+/// read clean through it and collided with the tab labels. This gives the bar
+/// the system's own material with a raised-token tint over it, on both the
+/// standard and the scroll-edge appearance, in both themes. The system fills
+/// its own shape, so the rounded corners are covered with it.
+///
+/// Honoured on the pre-Liquid-Glass bar and in compatibility mode; the new
+/// floating bar draws its own glass and ignores background customisation, and
+/// there the work is done by `csTabBarEdge`'s hard scroll edge.
+@MainActor public enum CSTabBarChrome {
+  /// Dress the live bar AND the proxy: the proxy catches a bar built later,
+  /// the instance catches the one already on screen. Once only — assigning an
+  /// appearance forces a layout pass, and the shell asks on a poll.
+  private static var dressed = false
+  public static func dress(_ bar: UITabBar) {
+    guard !dressed else { return }
+    dressed = true
+    let a = appearance()
+    bar.standardAppearance = a
+    bar.scrollEdgeAppearance = a
+    UITabBar.appearance().standardAppearance = a
+    UITabBar.appearance().scrollEdgeAppearance = a
+  }
+
+  private static func appearance() -> UITabBarAppearance {
+    let a = UITabBarAppearance()
+    a.configureWithDefaultBackground()      // the system material …
+    a.backgroundColor = tint                // … and the raised ground over it
+    return a
+  }
+
+  /// `bg2` — the raised ground — at the opacity where nothing reads through.
+  /// One dynamic colour so the bar turns over with the appearance on its own.
+  private static let tint: UIColor = {
+    let dark = UIColor(CSTokens.dark.bg2).withAlphaComponent(0.94)
+    let light = UIColor(CSTokens.light.bg2).withAlphaComponent(0.94)
+    return UIColor { $0.userInterfaceStyle == .dark ? dark : light }
+  }()
+}
+#endif

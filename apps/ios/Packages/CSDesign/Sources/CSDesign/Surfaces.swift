@@ -110,6 +110,8 @@ public struct CSPageHeader<Trailing: View>: View {
           Text(title).font(CSFont.heroSmall).foregroundStyle(cs.ink).lineLimit(2).minimumScaleFactor(0.8)
         }
         .accessibilityElement(children: .combine)
+        // Y-33: the page's title is a heading — VoiceOver's rotor lands on it
+        .accessibilityAddTraits(.isHeader)
         Spacer(minLength: 8)
         if let eyebrow { Text(eyebrow).csEyebrow() }
         // the control is its own accessibility element — never folded into the title
@@ -159,7 +161,9 @@ public struct CSSectionHead: View {
   public var body: some View {
     VStack(alignment: .leading, spacing: 8) {
       HStack(alignment: .firstTextBaseline) {
-        Text(title).csEyebrow(la.eyebrow)
+        // Y-33: the trait rides the title, not the row, so the trailing link
+        // stays its own element and never reads as part of the heading
+        Text(title).csEyebrow(la.eyebrow).accessibilityAddTraits(.isHeader)
         Spacer()
         if let trailing {
           if let action {

@@ -20,7 +20,9 @@ public final class BoardStore {
   public let profileId: UUID?
   public let isPro: Bool
   public let seasonId: UUID?
-  public let capIndex: Int
+  /// D142 · the league's ACTUAL counting cap (nil = unlimited), not a stepper
+  /// slot — a cap off the ladder (a stored 5) must bump at 5, not at 4.
+  public let capN: Int?
   private let season: Me.Season?
   private let finish: String?
   private let phase: String
@@ -62,7 +64,7 @@ public final class BoardStore {
     self.season = membership?.season
     self.finish = membership?.settings?.finish
     self.phase = membership?.phase ?? "setup"
-    self.capIndex = CountingCap.index(membership?.settings?.counting_cap)
+    self.capN = membership?.settings?.counting_cap
     self.repo = repo
     self.realtime = realtime
     realtime.onPostInsert = { [weak self] record in self?.applyInsert(record) }

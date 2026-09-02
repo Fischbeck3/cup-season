@@ -58,6 +58,12 @@ struct RoundReceiptSheet: View {
           switch row {
           case .math(let label, let value, let sub):
             MathRow(label: label, value: value, sub: sub)
+          case .note(let line):
+            // D124 (i) — a sentence in the verdict row's place, on the same hairline grid
+            Text(line).font(CSFont.subhead.weight(.semibold)).foregroundStyle(cs.ink)
+              .frame(maxWidth: .infinity, alignment: .leading).padding(.vertical, 9)
+              .overlay(alignment: .top) { Rectangle().fill(cs.line).frame(height: 1) }
+              .fixedSize(horizontal: false, vertical: true)
           case .playedWith(let mates):
             (Text("Played with ").foregroundStyle(cs.dimText) + Text(mates.joined(separator: ", ")).foregroundStyle(cs.mut).bold())
               .font(CSFont.subhead).frame(maxWidth: .infinity, alignment: .leading).padding(.top, 10)
@@ -90,10 +96,20 @@ struct RoundReceiptSheet: View {
   }
 }
 
-#Preview("An 86 on a 64.9 / 111") {
+#Preview("An 86 on a 64.9 / 111 · Standard, 95%") {
   RoundReceiptSheet(roundId: UUID(), seed: ReceiptSeed(
     id: UUID(), gross: 86, differential: 21.5, indexAtPost: 10.0, playedOn: "2026-07-25",
-    courseLabel: "Arizona Biltmore Links · Copper", holesPlayed: 18, rating: 64.9, slope: 111, points: 5, monthRank: 3, countingCap: 4))
+    courseLabel: "Arizona Biltmore Links · Copper", holesPlayed: 18, rating: 64.9, slope: 111, pvi: -12.0, playingIndex: 9.5,
+    points: 5, monthRank: 3, countingCap: 4))
+  .environment(SessionStore())
+  .csTheme()
+}
+
+#Preview("First round — no number yet (D124)") {
+  RoundReceiptSheet(roundId: UUID(), seed: ReceiptSeed(
+    id: UUID(), gross: 94, differential: 27.8, indexAtPost: 27.8, playedOn: "2026-09-03",
+    courseLabel: "Papago GC", holesPlayed: 18, rating: 70.2, slope: 125, pvi: 0, points: 7, monthRank: 1, countingCap: 3,
+    indexProvisional: true, provisionalRound: 1))
   .environment(SessionStore())
   .csTheme()
 }

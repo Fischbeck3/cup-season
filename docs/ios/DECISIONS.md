@@ -146,6 +146,8 @@ Format per entry: ID · date · priority · decision · options · recommendatio
 
 *2026-08-27.* The web says "best" for max PvI on You and min differential on the Tour Card. iOS uses one definition (lowest differential, matching `tour_card`) and labels PvI figures as "vs your number".
 
+*2026-09-01, CONFLICT (named) — brand canon §3 forbids "PvI"/"differential" on any user surface, and this entry used the word as the definition with no CONFLICT line.* The definition stands as an engine fact; the word never appears on a surface — D210. On screen the figure is *"vs your playing number"* (D209: every You figure uses the allowance PvI from `v_rounds_ranked.pvi`), a bare float is always labelled, and `RoundCopy` reads its band edges from `CSBands`.
+
 ## IOS-017 · The Expo B1 scaffold — **P2 · PROCEEDING**
 
 *2026-08-27.* Commit the scaffold on `native/b1-scaffold` as the record of B1 (it passes preflight 14/14) regardless of IOS-006; if IOS-006 = SwiftUI, retire `apps/mobile/` in M0 when its replacement boots. `ios-wrapper/` (Capacitor, dead per D98) is removed in M0. **Status:** the replacement boots (`apps/ios`, 2026-08-27); removal of `apps/mobile/` and `ios-wrapper/` waits on the owner's commit so the record exists first.
@@ -158,8 +160,8 @@ Owner-facing questions that fell out of the nine slices, collected so nothing is
 
 - `transfer_pro` never updates `leagues.commissioner_id`; `delete_account` and `leagues_read` key on it — the original creator can never leave, the new Pro can leave and strand the league (audit 02 §7.2). Server fix; decide which column is "the Pro".
 - Two lifecycle columns with no lockstep: a league stuck in `draft` still gets month closes, a Cup Final and a crown (audit 02 §7.3). Gate the engine on `phase`, or make `start_season` the thing that activates the season?
-- No server event at first tee (`kicked_off` is dead, audit 02 §7.4) — restore the post + push in the tick, or local notification only?
-- Solo leagues are offered floors that never fire (audit 02 §7.12) — assess them or hide the dial?
+- No server event at first tee (`kicked_off` is dead, audit 02 §7.4) — restore the post + push in the tick, or local notification only? **Closed by D204 (2026-09-01):** the tick's kickoff branch is restored (it was deleted by the `20260716170000` rewrite, not by a ruling); "The season is live. Week 1 — counting rounds start now." rides the existing `season` push kind, and `lock_league` posts a line in every structure.
+- Solo leagues are offered floors that never fire (audit 02 §7.12) — assess them or hide the dial? **D205 (2026-09-01) makes the copy structure-aware** — the guide's floor paragraph stops promising a penalty that cannot happen, and the D204 horn appends the floor sentence only for squads; **the floor itself stays open (D140)** — a solo floor tracks a habit and never assesses.
 - Late joiners score retroactively and `join_league` has no phase gate (audit 02 §7.5) — keep, or build §14.1 proration?
 - Weekly clash spotlight (D52) — build it, or leave the phone without a season-side weekly "vs"? (audit 04 Q2)
 - `played_on` for live finishes is stamped in UTC (`current_date`) — Saturday-evening rounds can land on Sunday and miss a Ryder/Major window (audit 04 §7.4). Server fix.

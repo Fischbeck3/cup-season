@@ -11,6 +11,9 @@ struct RootView: View {
   @State private var pendingJoin: String?
   /// A guest pencil's "keep it" tap: show the door over the pending claim.
   @State private var guestDoor = false
+  /// D82: the orientation stands where the tabs will, once, between the card
+  /// and first Home. `OrientedFlag` decides on the way INTO `.ready`.
+  @State private var orienting = false
   #if DEBUG
   /// `-cs_dev_live`'s way out — see the overlay below.
   @State private var devLive = true
@@ -31,13 +34,19 @@ struct RootView: View {
       case .cardGate(let me):
         CardGateView(me: me)
       case .ready:
-        MainTabView()
-          .onAppear { if let j = JoinIntent.pending() { pendingJoin = j.code; JoinIntent.clear() } }
-          // a claim link that came in signed-out lands the card now (D88)
-          .task(id: store.me?.profile?.id) { guestDoor = false; await LiveClaimAfterAuth.run(toast: toast) }
-          .sheet(item: $pendingJoin) { code in
-            JoinLeagueFlow(code: code) { id in store.preferredLeague = id; Task { await store.reload() } }
-          }
+        if orienting {
+          // the web's `showOrientation` (index.html 14779): the one screen,
+          // then `continueAfterCard()` — a pending join or claim resumes below
+          OrientationScreen { orienting = false }
+        } else {
+          MainTabView()
+            .onAppear { if let j = JoinIntent.pending() { pendingJoin = j.code; JoinIntent.clear() } }
+            // a claim link that came in signed-out lands the card now (D88)
+            .task(id: store.me?.profile?.id) { guestDoor = false; await LiveClaimAfterAuth.run(toast: toast) }
+            .sheet(item: $pendingJoin) { code in
+              JoinLeagueFlow(code: code) { id in store.preferredLeague = id; Task { await store.reload() } }
+            }
+        }
       case .mustUpdate(let min):
         MustUpdateView(minBuild: min)
       case .failed(let message):
@@ -45,6 +54,20 @@ struct RootView: View {
       }
     }
     .animation(.easeOut(duration: 0.26), value: stateKey)
+    .animation(.easeOut(duration: 0.26), value: orienting)
+    // D82: decided once per arrival in `.ready` — after the card, or on a
+    // restored session — never on a reload while the tabs are up. The flag is
+    // written on show; a golfer with a league, a round or an event is oriented
+    // by evidence and goes straight in.
+    .onChange(of: stateKey, initial: true) { _, key in
+      // leaving `.ready` (a sign-out) puts the screen down with it, so the
+      // next golfer on this device is judged fresh rather than inheriting it
+      guard key == "ready", let me = store.me else { orienting = false; return }
+      #if DEBUG
+      if OrientationDev.forced { orienting = true; return }
+      #endif
+      if OrientedFlag.take(me) { orienting = true }
+    }
     #if DEBUG
     // `-cs_dev_door`: the door over the root whatever the session is, so a
     // simulator signed in to a real account can show it without signing out.

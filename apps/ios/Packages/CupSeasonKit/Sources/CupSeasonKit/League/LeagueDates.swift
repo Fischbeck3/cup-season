@@ -65,6 +65,16 @@ public enum LeagueDates {
   /// First day of the month that holds `today`, as ISO (the bye's `p_month`).
   public static func firstOfMonth(_ today: String) -> String { monthKey(today) + "-01" }
 
+  /// M-17 / §14.0 · the day the CURRENT clash week closes — the last day of
+  /// the seven-day window that holds `today`, keyed to the season's real
+  /// first-tee weekday (`ClashMath.window`), never a hardcoded Sunday. A
+  /// season that tees off on a Wednesday closes its weeks on Tuesdays.
+  /// Before first tee this is the first week's close.
+  public static func weekClose(start: String, today: String, calendar: Calendar = .current) -> String {
+    let since = max(0, CSDate.days(from: start, to: today, calendar: calendar) ?? 0)
+    return addDays(start, (since / 7) * 7 + 6, calendar: calendar)
+  }
+
   /// Next Sunday on or after `today` (today when it is Sunday).
   public static func nextSunday(_ today: String, calendar: Calendar = .current) -> String {
     guard let d = CSDate.local(today, calendar: calendar) else { return today }

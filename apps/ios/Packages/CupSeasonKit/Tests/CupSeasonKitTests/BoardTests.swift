@@ -114,12 +114,19 @@ import Foundation
   }
 
   @Test func countingLine() {
-    #expect(CountingCap.index(nil) == 3 && CountingCap.index(4) == 1 && CountingCap.index(2) == 0 && CountingCap.index(6) == 2 && CountingCap.index(5) == 1)
-    #expect(BoardLogic.counting(monthRank: nil, capIndex: 1).text == "PRE-SEASON · NOT COUNTING")
-    #expect(BoardLogic.counting(monthRank: 2, capIndex: 1).text == "COUNTING #2 THIS MONTH")
-    #expect(BoardLogic.counting(monthRank: 5, capIndex: 1).text == "BUMPED — OUTSIDE THE BEST 4 THIS MONTH")
-    #expect(BoardLogic.counting(monthRank: 9, capIndex: 3).text == "COUNTING #9 THIS MONTH")    // unlimited never bumps
-    #expect(BoardLogic.counting(monthRank: 2, capIndex: 1).ok)
+    // D142: the ladder is [2, 3, 4, 6, ∞]; a stored 5 sits on the nearest rung.
+    #expect(CountingCap.index(nil) == 4 && CountingCap.index(4) == 2 && CountingCap.index(2) == 0 && CountingCap.index(6) == 3 && CountingCap.index(5) == 2 && CountingCap.index(3) == 1)
+    #expect(CountingCap.n(index: 1) == 3 && CountingCap.n(index: 4) == nil && CountingCap.n(index: 9) == nil)
+    #expect(BoardLogic.counting(monthRank: nil, capN: 3).text == "PRE-SEASON · NOT COUNTING")
+    #expect(BoardLogic.counting(monthRank: 2, capN: 3).text == "COUNTING #2 THIS MONTH")
+    #expect(BoardLogic.counting(monthRank: 4, capN: 3).text == "BUMPED — OUTSIDE THE BEST 3 THIS MONTH")
+    #expect(BoardLogic.counting(monthRank: 9, capN: nil).text == "COUNTING #9 THIS MONTH")    // unlimited never bumps
+    #expect(BoardLogic.counting(monthRank: 2, capN: 3).ok)
+    // the league's ACTUAL counting_cap, no slot in between: a legacy Best 5 bumps the 6th, never the 5th
+    #expect(BoardLogic.counting(monthRank: 5, capN: 5).text == "COUNTING #5 THIS MONTH")
+    #expect(BoardLogic.counting(monthRank: 6, capN: 5).text == "BUMPED — OUTSIDE THE BEST 5 THIS MONTH")
+    #expect(BoardLogic.counting(monthRank: 3, capN: 2).text == "BUMPED — OUTSIDE THE BEST 2 THIS MONTH")
+    #expect(BoardLogic.counting(monthRank: 40, capN: nil).ok)
   }
 
   @Test func grossLineSpeaksBandsInTheRightPerson() {
@@ -172,7 +179,14 @@ import Foundation
     #expect(BoardLogic.seasonDeadline(season: season("active", "2026-05-03", "2026-09-26"), finish: "cup_final", phase: "season", today: aug27, calendar: cal) == "Cup Final · Sun Aug 30 · 3d")
     let sep1 = CSDate.local("2026-09-01", calendar: cal)!
     #expect(BoardLogic.seasonDeadline(season: season("active", "2026-05-03", "2026-09-26"), finish: "cup_final", phase: "season", today: sep1, calendar: cal) == "CUP FINAL LIVE · 25 days left")
-    #expect(BoardLogic.seasonDeadline(season: season("active", "2026-05-03", "2026-12-20"), finish: "points", phase: "season", today: aug27, calendar: cal) == "Week closes Sun · 3d")
+    // M-17: a Sunday tee-off closes its weeks on Saturdays — Aug 29 is 2 days out
+    #expect(BoardLogic.seasonDeadline(season: season("active", "2026-05-03", "2026-12-20"), finish: "points", phase: "season", today: aug27, calendar: cal) == "Week closes Sat · 2d")
+    let aug29 = CSDate.local("2026-08-29", calendar: cal)!
+    #expect(BoardLogic.seasonDeadline(season: season("active", "2026-05-03", "2026-12-20"), finish: "points", phase: "season", today: aug29, calendar: cal) == "Week closes tonight")
+    #expect(BoardLogic.seasonDeadline(season: season("active", "2026-05-03", "2026-09-26"), finish: "cup_final", phase: "season", today: aug29, calendar: cal) == "Cup Final · Sun Aug 30 · 1d")
+    // a Wednesday tee-off closes on Tuesdays (Aug 20 → Tue Aug 25)
+    let aug20 = CSDate.local("2026-08-20", calendar: cal)!
+    #expect(BoardLogic.seasonDeadline(season: season("active", "2026-05-06", "2026-12-22"), finish: "points", phase: "season", today: aug20, calendar: cal) == "Week closes Tue · 5d")
     #expect(BoardLogic.seasonDeadline(season: nil, finish: nil, phase: "setup", today: aug27, calendar: cal) == nil)
   }
 }

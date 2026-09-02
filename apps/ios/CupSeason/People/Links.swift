@@ -25,6 +25,7 @@ struct CSSheetHeader: View {
       Text(title).font(CSFont.title).foregroundStyle(cs.ink)
       if let sub, !sub.isEmpty { Text(sub).csEyebrow() }
     }
+    .multilineTextAlignment(.leading)
     .frame(maxWidth: .infinity, alignment: .leading)
   }
 }
@@ -36,10 +37,13 @@ struct CSMini: View {
   var tone: Color? = nil
   var systemImage: String? = nil
   var busy = false
+  /// Y-33 · a mini standing in a set of choices says which one is chosen; the
+  /// tone alone is only visible.
+  var selected = false
   let action: () -> Void
 
-  init(_ label: String, tone: Color? = nil, systemImage: String? = nil, busy: Bool = false, action: @escaping () -> Void) {
-    self.label = label; self.tone = tone; self.systemImage = systemImage; self.busy = busy; self.action = action
+  init(_ label: String, tone: Color? = nil, systemImage: String? = nil, busy: Bool = false, selected: Bool = false, action: @escaping () -> Void) {
+    self.label = label; self.tone = tone; self.systemImage = systemImage; self.busy = busy; self.selected = selected; self.action = action
   }
 
   var body: some View {
@@ -59,6 +63,7 @@ struct CSMini: View {
     }
     .buttonStyle(.plain)
     .disabled(busy)
+    .accessibilityAddTraits(selected ? [.isSelected] : [])
   }
 }
 
@@ -86,11 +91,17 @@ struct CSCheckRow<Trailing: View>: View {
 
   var body: some View {
     HStack(alignment: .center, spacing: 12) {
-      CSFace(marker: marker, size: 36)
+      // the title names the person; the marker inside the face would name itself too
+      CSFace(marker: marker, size: 36).accessibilityHidden(true)
       VStack(alignment: .leading, spacing: 3) {
         title.font(CSFont.subhead.weight(.semibold)).foregroundStyle(cs.ink)
         if let sub { sub.font(CSFont.monoSmall).foregroundStyle(cs.mut) }
       }
+      // a leading stack says leading OUT LOUD: these rows sit inside sheet and
+      // picker buttons, and a button label hands its children a centred text
+      // alignment — a name or a sub that wraps would set line 2 centred under a
+      // leading line 1 (the invite row on Buddies did exactly that).
+      .multilineTextAlignment(.leading)
       .frame(maxWidth: .infinity, alignment: .leading)
       trailing
     }
@@ -105,22 +116,33 @@ struct CSCheckRow<Trailing: View>: View {
 /// trailing slot — on ground, parted from the next by a hairline. An optional
 /// spine on the leading edge (a request wears ember). The bordered
 /// `CSCheckRow` stays for sheets and pickers; lists use this.
+///
+/// Y-23 · with `onTap`, the face and the two lines are ONE button (the person),
+/// read as one element with `hint`; the trailing slot keeps its own controls.
 struct RoomLineRow<Trailing: View>: View {
   @Environment(\.cs) private var cs
   let marker: String?
   let title: Text
   let sub: Text?
   var spine: Color? = nil
+  var onTap: (() -> Void)? = nil
+  var hint: String? = nil
+  /// Y-33 · what the combined element SAYS, when the drawn title carries a
+  /// glyph VoiceOver would spell out (the founder's ✦). nil = the combined
+  /// children speak for themselves.
+  var label: String? = nil
   @ViewBuilder let trailing: Trailing
 
   var body: some View {
     HStack(alignment: .center, spacing: 12) {
-      CSFace(marker: marker, size: 36)
-      VStack(alignment: .leading, spacing: 3) {
-        title.font(CSFont.subhead.weight(.semibold)).foregroundStyle(cs.ink)
-        if let sub { sub.font(CSFont.monoSmall).foregroundStyle(cs.mut).fixedSize(horizontal: false, vertical: true) }
+      if let onTap {
+        spoken(Button(action: onTap) { lead }
+          .buttonStyle(.plain)
+          .accessibilityElement(children: .combine)
+          .accessibilityHint(hint ?? ""))
+      } else {
+        spoken(lead.accessibilityElement(children: .combine))
       }
-      .frame(maxWidth: .infinity, alignment: .leading)
       trailing
     }
     .padding(.vertical, 10).padding(.horizontal, 4)
@@ -129,6 +151,30 @@ struct RoomLineRow<Trailing: View>: View {
       if let spine { RoundedRectangle(cornerRadius: 2).fill(spine).frame(width: 3.5).padding(.vertical, 12).padding(.leading, -6) }
     }
     .overlay(alignment: .bottom) { CSHairline() }
+  }
+
+  /// `.accessibilityLabel("")` would SILENCE an element rather than leave it
+  /// as combined, so the modifier only goes on when there is a label to say.
+  @ViewBuilder private func spoken(_ v: some View) -> some View {
+    if let label { v.accessibilityLabel(label) } else { v }
+  }
+
+  /// The part of the row that IS the person: face, name, small line.
+  private var lead: some View {
+    HStack(alignment: .center, spacing: 12) {
+      // the title names the person; the marker inside the face would name itself too
+      CSFace(marker: marker, size: 36).accessibilityHidden(true)
+      VStack(alignment: .leading, spacing: 3) {
+        title.font(CSFont.subhead.weight(.semibold)).foregroundStyle(cs.ink)
+        if let sub { sub.font(CSFont.monoSmall).foregroundStyle(cs.mut).fixedSize(horizontal: false, vertical: true) }
+      }
+      // Y-23 made the lead a Button, and a button label's children inherit a
+      // CENTRED alignment: "@handle · City" wrapping would centre its second
+      // line under the name. The stack is leading, and now says so.
+      .multilineTextAlignment(.leading)
+      .frame(maxWidth: .infinity, alignment: .leading)
+    }
+    .contentShape(Rectangle())
   }
 }
 
@@ -139,7 +185,11 @@ struct CSFine: View {
   var tone: Color? = nil
   init(_ text: String, tone: Color? = nil) { self.text = text; self.tone = tone }
   var body: some View {
-    Text(text).font(CSFont.footnote).foregroundStyle(tone ?? cs.dimText).frame(maxWidth: .infinity, alignment: .leading)
+    // the frame is leading, so the wrapped lines are too — helper copy lands
+    // inside button and menu labels, which otherwise centre what they wrap.
+    Text(text).font(CSFont.footnote).foregroundStyle(tone ?? cs.dimText)
+      .multilineTextAlignment(.leading)
+      .frame(maxWidth: .infinity, alignment: .leading)
   }
 }
 

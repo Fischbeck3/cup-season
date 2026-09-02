@@ -23,10 +23,45 @@ public struct TourCard: Sendable {
     public let memberSince: Date?
     public let isMe: Bool
   }
+  /// D209 · ONE lens. `20260902180000_one_lens_on_the_tour_card.sql` moves
+  /// `career.avg_pvi` onto the allowance number the You tab already speaks,
+  /// adds `best_pvi` beside it, and preserves the old 100% average under the
+  /// new name `avg_vs_index`. So the block carries BOTH shapes and says which
+  /// one it is holding.
+  ///
+  /// The switch is the FIGURES, not the keys. A leagueless golfer has no row
+  /// in `v_rounds_ranked` at all, so the new server sends the allowance keys
+  /// as JSON null — four real profiles are in exactly that state — and
+  /// switching on key presence alone would print a dash where a real number
+  /// used to be. `playingLens` is therefore true only when an allowance
+  /// figure actually arrived; otherwise the block falls back to the 100%
+  /// average under the 100% label, and the phone never prints the You tab's
+  /// words over a figure that is not the You tab's number.
   public struct CareerBlock: Sendable, Equatable {
     public let rounds: Int
-    public let best: Double?      // min differential
+    /// `career.best` — the OLD figure: the lowest round against the course
+    /// rating. Lower is better, and it is not a delta against any number.
+    /// Untouched by the migration; still the fallback's "best".
+    public let best: Double?
+    /// `career.avg_pvi` — the average against the PLAYING number. Nil on an
+    /// old payload (where that key held the 100% figure, decoded into
+    /// `avgVsIndex` instead) and nil for a golfer with no ranked rounds.
     public let avgPvi: Double?
+    /// `career.best_pvi` — the best round against the PLAYING number (the max
+    /// of the allowance figures, exactly as `Career.best` computes it on You).
+    public let bestPvi: Double?
+    /// The 100% average, `index_at_post − differential`: `avg_vs_index` on the
+    /// new payload, `avg_pvi` on the old one. This is what the fallback row
+    /// prints, and it is genuinely "vs your number".
+    public let avgVsIndex: Double?
+    /// true when an allowance figure actually arrived — see the note above
+    public let playingLens: Bool
+
+    public init(rounds: Int, best: Double?, avgPvi: Double?, bestPvi: Double? = nil,
+                avgVsIndex: Double? = nil, playingLens: Bool = false) {
+      self.rounds = rounds; self.best = best; self.avgPvi = avgPvi
+      self.bestPvi = bestPvi; self.avgVsIndex = avgVsIndex; self.playingLens = playingLens
+    }
   }
   public struct Recent: Sendable, Equatable, Identifiable {
     public let playedOn: String
@@ -62,7 +97,18 @@ public struct TourCard: Sendable {
       marker: p?["marker"]?.string, city: p?["city"]?.string, homeCourse: p?["home_course"]?.string,
       indexCurrent: p?["index_current"]?.double, ghin: p?["ghin"]?.string,
       memberSince: p?["member_since"]?.string.flatMap(Self.timestamp), isMe: p?["is_me"]?.bool ?? false)
-    let career = CareerBlock(rounds: c?["rounds"]?.int ?? 0, best: c?["best"]?.double, avgPvi: c?["avg_pvi"]?.double)
+    // Which SHAPE the server speaks is key presence; which LENS the card
+    // wears is whether a figure actually came back. On the old payload
+    // `avg_pvi` IS the 100% average, so it is decoded as `avgVsIndex` and the
+    // allowance fields stay nil; on the new one the 100% figure has moved to
+    // its own key and `avg_pvi` means what its name says.
+    let newShape = c?["avg_vs_index"] != nil || c?["best_pvi"] != nil
+    let avgPvi = newShape ? c?["avg_pvi"]?.double : nil
+    let bestPvi = c?["best_pvi"]?.double
+    let career = CareerBlock(rounds: c?["rounds"]?.int ?? 0, best: c?["best"]?.double, avgPvi: avgPvi,
+                             bestPvi: bestPvi,
+                             avgVsIndex: newShape ? c?["avg_vs_index"]?.double : c?["avg_pvi"]?.double,
+                             playingLens: avgPvi != nil || bestPvi != nil)
     let trophies: [Rpc.my_achievements.Row] = (json["trophies"]?.array ?? []).compactMap { t in
       guard let data = try? JSONEncoder().encode(t) else { return nil }
       return try? JSONDecoder().decode(Rpc.my_achievements.Row.self, from: data)
@@ -96,15 +142,65 @@ public struct TourCard: Sendable {
     return nil
   }
 
-  /// "est. Aug 2026" / "Member since Aug 2026" — month + year of an instant.
+  /// "est. Aug 2026" — month + year of an instant. The word is "est." on every
+  /// surface (Y-26); "Member since" is retired.
   public static func monthYear(_ d: Date, calendar: Calendar = .current) -> String {
     let f = DateFormatter(); f.calendar = calendar; f.locale = Locale(identifier: "en_US_POSIX"); f.dateFormat = "MMM yyyy"
-    return f.string(from: d)
+    // non-breaking: "Jul 2026" is one fact and never breaks across two lines
+    return f.string(from: d).replacingOccurrences(of: " ", with: "\u{00A0}")
   }
 
-  // the Career block strings
-  public var bestText: String { career.best.map(RoundCopy.f1) ?? "—" }
-  public var avgText: String { career.avgPvi.map(RoundCopy.signed) ?? "—" }
+  /// "est. Aug 2026" — the one form of the founding date, for the credential
+  /// and for settings alike. A retyped copy is the version that will drift.
+  public static func established(_ d: Date, calendar: Calendar = .current) -> String { "est.\u{00A0}" + monthYear(d, calendar: calendar) }
+
+  // MARK: - the Career block, its figures and the words that name them
+
+  /// D209 · true once the server sends the allowance figures.
+  public var playingLens: Bool { career.playingLens }
+
+  /// The best round. Under the allowance lens it is a delta and signs like
+  /// every other figure on the card; before it, the old course score, which
+  /// runs the other way and is never given a `+`.
+  public var bestText: String {
+    career.playingLens ? (career.bestPvi.map(RoundCopy.signed) ?? "—") : (career.best.map(RoundCopy.f1) ?? "—")
+  }
+  /// Under the lens, the allowance average; before it, the 100% one — which
+  /// is a real number for a golfer no season has ever ranked, and the reason
+  /// this row does not go to a dash the day the migration lands.
+  public var avgText: String {
+    (career.playingLens ? career.avgPvi : career.avgVsIndex).map(RoundCopy.signed) ?? "—"
+  }
+
+  /// D209 · the lens is named ONCE, in the section's eyebrow, instead of being
+  /// buried in every row label. Before the allowance keys arrive the block
+  /// holds two different measurements and there is no single lens to name, so
+  /// the eyebrow stays bare and the rows keep their own words.
+  public static func careerEyebrow(playingLens: Bool, isMe: Bool) -> String {
+    guard playingLens else { return careerTitle }
+    return careerTitle + " · " + (isMe ? YouCopy.vsPlayingNumber : RoundCopy.theirs(YouCopy.vsPlayingNumber))
+  }
+  public static let careerTitle = "Career"
+  public static let roundsLabel = "Rounds"
+
+  /// Under the lens this is the You tab's own row, word for word
+  /// (`YouCopy.bestRound`), so the two surfaces read as one number.
+  public static func bestLabel(playingLens: Bool) -> String {
+    playingLens ? YouCopy.bestRound : "Best round vs course"
+  }
+  /// The tail of "Avg vs your playing number" lives in the eyebrow above it;
+  /// the old figure keeps the whole label, because the old figure is a
+  /// different number.
+  public static func avgLabel(playingLens: Bool, isMe: Bool) -> String {
+    playingLens ? "Avg" : "Avg vs \(isMe ? "your" : "their") number"
+  }
+
+  /// The two OLD figures run opposite ways — a course score where lower wins
+  /// sits beside a delta where `+` wins — and one table cannot sign both the
+  /// same way. So the table says which is which. It goes with them.
+  public static func careerSignsLine(isMe: Bool) -> String {
+    "Lower is better against the course; against \(isMe ? "your" : "their") number, + is better."
+  }
 }
 
 /// The buddy relationship with the card's golfer, from `my_friends`.

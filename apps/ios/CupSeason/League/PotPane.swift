@@ -86,7 +86,7 @@ struct PotPane: View {
   private func payer(_ m: LeagueRoom.Member) -> some View {
     let paid = model.buyIns[m.id]?.paid ?? false
     return payerRow(name: m.name, paid: paid, busy: busy == m.id) {
-      if !model.isPro { toast.show("The Pro marks buy-ins as money moves between you"); return }
+      if !model.isPro { toast.show("The Pro marks buy-ins as the money moves between friends"); return }
       if model.season == nil { toast.show("Buy-ins open once the bylaws lock"); return }
       busy = m.id
       Task {

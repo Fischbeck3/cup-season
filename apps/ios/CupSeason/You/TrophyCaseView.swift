@@ -22,8 +22,11 @@ struct TrophyCaseView: View {
   @Environment(\.cs) private var cs
   @Environment(\.dynamicTypeSize) private var typeSize
   let trophies: [Rpc.my_trophies.Row]
-  let achievements: [Rpc.my_achievements.Row]
+  /// Y-20 · decoded with the optional `round_id`, so a tile can open its round
+  let achievements: [Achievement]
   let userId: UUID?
+  /// Y-20 · the receipt door; a tile with no round, or no door, is inert
+  var openReceipt: ((UUID) -> Void)? = nil
 
   @State private var fresh: Set<String> = []
   @State private var stamped = false
@@ -37,7 +40,15 @@ struct TrophyCaseView: View {
       } else {
         // three tiles across; two at the accessibility sizes, where a title needs the width to say itself
         LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 8), count: typeSize.isA11y ? 2 : 3), spacing: 8) {
-          ForEach(tiles) { t in TrophyTileView(tile: t, engrave: fresh.contains(t.id)) }
+          ForEach(tiles) { t in
+            if let rid = t.roundId, let openReceipt {
+              Button { openReceipt(rid) } label: { TrophyTileView(tile: t, engrave: fresh.contains(t.id)) }
+                .buttonStyle(.plain)
+                .accessibilityHint("Opens the round")
+            } else {
+              TrophyTileView(tile: t, engrave: fresh.contains(t.id))
+            }
+          }
         }
         .padding(10)
         .background(CSDusk.ground, in: RoundedRectangle(cornerRadius: CSTokens.Radius.r, style: .continuous))
@@ -105,12 +116,13 @@ struct TrophyTileView: View {
 
 /// Preview fixtures decoded from the wire shape (the generated rows have no memberwise init).
 private func row<T: Decodable>(_ json: String) -> T { try! JSONDecoder().decode(T.self, from: Data(json.utf8)) }
+private func ach(_ json: String) -> Achievement { row(json) }
 
 #Preview("A case with hardware") {
   TrophyCaseView(
     trophies: [row(#"{"kind":"league","title":"The Sunday Cup","subtitle":"Champion","placement":"winner","season_year":2026}"#)],
-    achievements: [row(#"{"kind":"sub_80","label":"Broke 80","earned_on":"2026-06-14","meta":{"gross":79}}"#),
-                   row(#"{"kind":"first_round","label":"First round","earned_on":"2026-05-03"}"#)],
+    achievements: [ach(#"{"kind":"sub_80","label":"Broke 80","earned_on":"2026-06-14","meta":{"gross":79},"round_id":"5ED6E3F8-0B1E-4E1D-9E8B-0C4B6C4C3E11"}"#),
+                   ach(#"{"kind":"first_round","label":"First round","earned_on":"2026-05-03"}"#)],
     userId: nil)
   .padding(20).csTheme()
 }

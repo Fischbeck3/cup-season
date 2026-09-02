@@ -22,7 +22,7 @@ struct RoundStoryCard: View {
   private var onPhotoInk: Color { Color(hex: 0xECEEF2) }
   private var onPhotoMut: Color { Color(hex: 0xECEEF2, opacity: 0.92) }
   private var streak: Int { BoardLogic.roundStreak(round, cache: store.rounds) }
-  private var counting: BoardLogic.Counting { BoardLogic.counting(monthRank: round.monthRank, capIndex: store.capIndex) }
+  private var counting: BoardLogic.Counting { BoardLogic.counting(monthRank: round.monthRank, capN: store.capN) }
 
   var body: some View {
     VStack(alignment: .leading, spacing: 0) {

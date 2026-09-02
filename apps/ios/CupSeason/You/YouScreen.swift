@@ -12,7 +12,10 @@ import CupSeasonKit
 @Observable
 final class YouModel {
   var data = YouData()
+  /// Y-17 · the first load has returned (whole or partial)
   var loaded = false
+  /// Y-17 · at least one block did not load — the screen offers one Retry
+  var failed: Bool { data.isPartial }
   private let repo = YouRepository()
 
   func load(me: Me, uid: UUID, leagueId: UUID?) async {
@@ -21,10 +24,11 @@ final class YouModel {
     loaded = true
   }
 
-  /// `delete_round`, then the engine re-reads the index; the card reloads.
+  /// `delete_round`, then a full reload of the card — Y-19 dropped the
+  /// `handicap_index` read that used to follow the delete and changed nothing.
   func deleteRound(_ r: RoundRow, me: Me, uid: UUID, leagueId: UUID?) async -> Bool {
     do {
-      try await repo.deleteRound(r.id, profile: uid)
+      try await repo.deleteRound(r.id)
       ToastCenter.shared.show("Round deleted")
       await load(me: me, uid: uid, leagueId: leagueId)
       return true
@@ -58,8 +62,13 @@ struct YouScreen: View {
   private var league: Me.Membership? {
     store.me?.memberships.first { $0.league_id == leagueId } ?? store.me?.memberships.first
   }
+  /// Y-29 · a card with no rounds on it — one empty state stands in for the
+  /// three record sections. Only once the rounds read has ANSWERED: a career
+  /// read that failed is nil too, and a failed read is not an empty card.
+  private var noRounds: Bool { model.loaded && model.data.career.map { $0.rounds == 0 } == true }
 
   var body: some View {
+    ScrollViewReader { proxy in
     ScrollView {
       if let me = store.me, let p = me.profile {
         VStack(alignment: .leading, spacing: 14) {
@@ -82,7 +91,8 @@ struct YouScreen: View {
           // below this line is the record; this is the way out of it.
           // D177 · the door REPORTS. A buddy request now reaches Home on its
           // own row, and this says so before you open it.
-          CSSectionHead("Your buddies")
+          // Y-27 · no CSSectionHead here: the row below already says "Your
+          // buddies", and a head that repeats its one row is one fact twice.
           CSRow(last: true) {
             YouDoorRow(glyph: Text(Image(systemName: "person.2")),
                        title: "Your buddies",
@@ -104,31 +114,57 @@ struct YouScreen: View {
           // takes no league argument and `loadLeagueRecord` returns a row per
           // membership; an "In <league>" head would have been a lie over two
           // of its three children.
-          CSGroupHead("Your golf")
+          CSGroupHead("Your golf").id("you-case")
 
-          // "The record" (silverware counts + money) and "Your display case"
-          // (the same trophies as objects) were two sections about one subject,
-          // adjacent, under different names. The counts are now the case's top
-          // strip and the objects sit under them.
-          CSSectionHead("Display case")
-          CareerRecordView(record: model.data.careerRecord)
-          TrophyCaseView(trophies: model.data.trophies, achievements: model.data.achievements, userId: uid)
+          // Y-17 · one quiet line when a block did not load; the rest of the
+          // page is whole, and this is the way to ask again.
+          if model.failed { retryLine }
 
-          // "Lifetime" → "All time": the same rows, a name that states the
-          // scope out loud. It shares two row LABELS with "This season" below
-          // ("Rounds posted", "Avg vs index"), and until now the only thing
-          // telling them apart was a small grey sub four sections away.
-          CSSectionHead("All time")
-          LifetimeTiles(career: model.data.career)
+          // Y-17 · the RECORD reads as placeholder bars until the first load
+          // answers — never as "nothing yet" while the reads are still out.
+          // The header, the hero and the buddies door render from `store.me`,
+          // which is in memory before this view appears and is never part of
+          // `model.data`; greying them out would be a lie about facts that
+          // were never out.
+          Group {
+            if noRounds {
+              // Y-29 · nothing on the card yet: one empty state, the Post door,
+              // and no three sections each saying "not yet" in its own words.
+              // A case with hardware in it (rare without a round) still hangs.
+              if !TrophyCase.tiles(trophies: model.data.trophies, achievements: model.data.achievements).isEmpty {
+                CSSectionHead("Display case")
+                TrophyCaseView(trophies: model.data.trophies, achievements: model.data.achievements, userId: uid, openReceipt: links.openReceipt)
+              }
+              CSEmptyState(icon: "⛳", line: YouCopy.noRoundsLine, cta: YouCopy.postFirst, action: links.postRound).id("you-recent")
+            } else {
+              // "The record" (silverware counts + money) and "Your display case"
+              // (the same trophies as objects) were two sections about one subject,
+              // adjacent, under different names. The counts are now the case's top
+              // strip and the objects sit under them.
+              CSSectionHead("Display case")
+              CareerRecordView(record: model.data.careerRecord)
+              TrophyCaseView(trophies: model.data.trophies, achievements: model.data.achievements, userId: uid, openReceipt: links.openReceipt)
 
-          CSSectionHead("Recent rounds")
-          RecentRoundsList(recent: model.data.career?.recent ?? [], open: { r in
-            Task { await ReceiptCache.shared.put(r.seed(marker: p.marker, isMine: true)); links.openReceipt(r.id) }
-          }, delete: { r in
-            if let uid { _ = await model.deleteRound(r, me: me, uid: uid, leagueId: leagueId) }
-          }, postFirst: links.postRound)
-          // the "Post a round" button that sat here is gone: the ⊕ is a
-          // permanent tab one inch below it, and this is a page about the past.
+              // "Lifetime" → "All time": the same rows, a name that states the
+              // scope out loud. It shares two row LABELS with "This season" below
+              // ("Rounds posted", "Avg vs your playing number"), and until now the
+              // only thing telling them apart was a small grey sub four sections away.
+              CSSectionHead("All time").id("you-alltime")
+              LifetimeTiles(career: model.data.career, failed: model.data.failed.contains("career"))
+
+              CSSectionHead("Recent rounds").id("you-recent")
+              RecentRoundsList(recent: model.data.career?.recent ?? [], figure: { model.data.career?.figure(for: $0) }, open: { r in
+                Task { await ReceiptCache.shared.put(r.seed(marker: p.marker, isMine: true)); links.openReceipt(r.id) }
+              }, delete: { r in
+                if let uid { _ = await model.deleteRound(r, me: me, uid: uid, leagueId: leagueId) }
+              })
+              // the "Post a round" button that sat here is gone: the ⊕ is a
+              // permanent tab one inch below it, and this is a page about the past.
+              // No "All rounds →" door either: the only list screen the app has is
+              // the season ALBUM (photos), and a door named for rounds cannot open it.
+            }
+          }
+          .redacted(reason: model.loaded ? [] : .placeholder)
 
           // ── D177 · YOUR SEASONS ──────────────────────────────────────────
           // D178 · gated on its children. All three are conditional — the two
@@ -137,17 +173,21 @@ struct YouScreen: View {
           // eyebrow, a rule, and 32pt of nothing. A group head is structure;
           // structure over an empty room is a bug, not a spine.
           if league != nil || !model.data.leagueRecord.isEmpty {
-            CSGroupHead("Your seasons")
+            CSGroupHead("Your seasons").id("you-seasons")
           }
 
-          if league != nil {
-            SeasonStatsStrip(stats: model.data.seasonStats, leagueName: league?.name ?? "your league")
-            RivalriesSection(rivalries: model.data.rivalries, openTourCard: links.openTourCard)
+          Group {
+            if league != nil {
+              SeasonStatsStrip(stats: model.data.seasonStats, leagueName: league?.name ?? "your league",
+                               failed: model.data.failed.contains("season"))
+              RivalriesSection(rivalries: model.data.rivalries, openTourCard: links.openTourCard)
+            }
+            // "League record" → "Every season": it is a season-by-season list of
+            // where you finished, in every league. Calling it a record put a
+            // THIRD "record" on one page.
+            LeagueRecordView(rows: model.data.leagueRecord)
           }
-          // "League record" → "Every season": it is a season-by-season list of
-          // where you finished, in every league. Calling it a record put a
-          // THIRD "record" on one page.
-          LeagueRecordView(rows: model.data.leagueRecord)
+          .redacted(reason: model.loaded ? [] : .placeholder)
         }
         .padding(.horizontal, 20).padding(.top, 4).padding(.bottom, 32)
       }
@@ -161,6 +201,22 @@ struct YouScreen: View {
     .sliceToastHost()
     .refreshable { await reload() }
     .task(id: store.me?.profile?.id) { await reload(); await reqs.load() }
+    #if DEBUG
+    // Developer hatch: `-cs_dev_scroll <anchor>` (case · alltime · recent ·
+    // seasons) scrolls a simulator there — the same door LeagueRoomScreen has,
+    // because a page three screens tall cannot be judged from its top and its
+    // bottom. `case` and `recent` sit on views that render on EVERY card (the
+    // group head and, on an empty card, the empty state); `alltime` and
+    // `seasons` exist only where their sections do — a brand-new golfer has
+    // neither, and the hatch there is a no-op by construction.
+    .task(id: model.loaded) {
+      let a = ProcessInfo.processInfo.arguments
+      guard model.loaded, let i = a.firstIndex(of: "-cs_dev_scroll"), i + 1 < a.count else { return }
+      try? await Task.sleep(for: .seconds(1))
+      proxy.scrollTo("you-" + a[i + 1], anchor: .top)
+    }
+    #endif
+    }
   }
 
   private func reload() async {
@@ -168,20 +224,34 @@ struct YouScreen: View {
     await model.load(me: me, uid: uid, leagueId: leagueId)
   }
 
+  /// Y-17 · "Some of your card did not load. · Retry" — one line, no banner.
+  private var retryLine: some View {
+    A11yStack(rowAlignment: .firstTextBaseline, spacing: 0, columnSpacing: 4) {
+      Text(YouCopy.partialLine + " ").font(CSFont.footnote).foregroundStyle(cs.mut)
+      Button { Task { await reload() } } label: {
+        Text(YouCopy.retry).font(CSFont.footnote).foregroundStyle(cs.brand).a11yHitSlop()
+      }
+      .buttonStyle(.plain)
+      .accessibilityLabel("Retry loading your card")
+    }
+    .frame(minHeight: 28)
+  }
+
   /// C4: your own credential — the same facts your buddies see on your Tour Card,
   /// as the screen's one hero (IOS-019).
   private func hero(_ me: Me, _ p: Me.Profile) -> some View {
     let x = model.data.extras
-    let since = (x?.createdAt ?? p.member_since).map { "Member since " + TourCard.monthYear($0) }
+    // Y-26 · "est. Jul 2026" from the one producer; TourCard.established carries
+    // its own non-breaking spaces, so the phrase never breaks across two lines.
+    let since = (x?.createdAt ?? p.member_since).map { TourCard.established($0) }
     let meta = [p.handle.map { "@\($0)" }, p.city, p.home_course].compactMap { $0 }.filter { !$0.isEmpty }.joined(separator: " · ")
     let rounds = model.data.career?.rounds ?? p.rounds_count ?? 0
-    let lines = TrophyMeta.credLines(model.data.achievements, max: 3, moreSuffix: " more in the case")
-    let more = model.data.achievements.count > 3 ? lines.last : nil
     return YouHero(
       photoURL: x?.avatarURL, marker: p.marker, name: p.display_name ?? "Your card", meta: meta,
       indexCurrent: p.index_current, rounds: rounds,
-      trophyChips: more == nil ? lines : Array(lines.dropLast()), moreChip: more,
-      form: FormRow.from(beats: (model.data.career?.recent ?? []).map(\.beat)),
+      trophyChips: TrophyMeta.credChips(model.data.achievements),
+      // D209 · FORM off the same allowance figures as every other You number
+      form: model.data.career?.form,
       anchor: {
         if let g = x?.ghinNumber, !g.isEmpty {
           Text(["GHIN \(g)", since].compactMap { $0 }.joined(separator: " · ")).font(CSFont.footnote).foregroundStyle(cs.mut)

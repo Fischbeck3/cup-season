@@ -48,39 +48,9 @@ struct BylawsCard: View {
   }
 }
 
-struct RoomScoringHelpSheet: View {
-  @Environment(\.cs) private var cs
-  var body: some View {
-    SheetFrame("How scoring works", sub: "HANDICAPS · CUP POINTS · THE MONEY") {
-      Text("Your number").csEyebrow()
-      para("Your handicap index builds from your scores — no typing. Every round measures how you played against the course's difficulty (rating & slope), and your best recent rounds set your number, WHS-style. It appears once you've posted **3 rounds**; until then it shows as building.")
-      para("You (or the Pro) can set a **starter** to get going sooner — but once you have 3 posted rounds, your scores take over. Manual changes are announced to your league so the crew keeps everyone honest.")
-      Text("Every round → cup points").csEyebrow()
-      para("Every round is scored against **your own number** — a 22-index beating their number is worth exactly what a 6-index beating theirs is:")
-      CSCard(padding: 12) {
-        VStack(alignment: .leading, spacing: 4) {
-          band("Torched it", "beat it by 3+", "12 pts")
-          band("Beat your number", "by 1–3", "9 pts")
-          band("Played to it", "within 1", "7 pts")
-          band("A little loose", "1–3 over", "6 pts")
-          band("Posted anyway", "rough day", "5 pts")
-        }
-      }
-      para("The 12-point ceiling caps what a padded number can buy; the 5-point floor means a posted 98 still beats an unposted 82. **You can't hurt your squad by playing badly — only by not playing.**")
-      Text("What counts").csEyebrow()
-      para("Your best rounds each month count for your squad — a better round always bumps your worst counter — and everyone owes a minimum number of rounds a month so nobody coasts. Miss it once and your **season bye** covers you automatically — life happens; the floor bites from the second miss. Your league's exact numbers are in **League rules**.")
-      Text("The money").csEyebrow()
-      para("The pot is **on the books** — Cup Season keeps the ledger and shows a settlement card; the money moves between you.")
-    }
-  }
-  private func para(_ md: String) -> some View {
-    Text((try? AttributedString(markdown: md)) ?? AttributedString(md)).font(CSFont.footnote).foregroundStyle(cs.mut).fixedSize(horizontal: false, vertical: true)
-  }
-  /// One Text, so the line wraps as prose at every size instead of three cells fighting for width.
-  private func band(_ a: String, _ b: String, _ c: String) -> some View {
-    (Text(a).font(CSFont.footnote.weight(.semibold)).foregroundStyle(cs.ink)
-      + Text(" · \(b) · ").font(CSFont.footnote).foregroundStyle(cs.mut)
-      + Text(c).font(CSFont.footnote.weight(.semibold)).foregroundStyle(cs.ink))
-      .fixedSize(horizontal: false, vertical: true)
-  }
-}
+// Y-25 / D201 · `RoomScoringHelpSheet` is GONE. It was a second, hand-retyped
+// copy of the scoring guide: its bands disagreed with `CSBands` at the edges,
+// it promised a squad floor inside a solo league (D205/D140), and it retyped
+// the ledger sentence with "between you" — the softening brand-canon §3 bans
+// by name. The room now opens the ONE producer, `ScoringHelpSheet`, with its
+// own structure in hand (LeagueRoomScreen `.scoringHelp`).

@@ -30,7 +30,9 @@ public struct RoundRow: Decodable, Sendable, Identifiable, Equatable {
 
   enum CodingKeys: String, CodingKey { case id, profile_id, gross, differential, index_at_post, played_on, course_label, holes_played, photo_path }
 
-  /// `pvi = index_at_post − differential`; nil when either is missing.
+  /// `pvi = index_at_post − differential` at 100% — the Tour Card's own
+  /// figure. NOT the You tab's: D209 reads the allowance figure off
+  /// `v_rounds_ranked` (`Career.figure(for:)`) and never this.
   public var pvi: Double? {
     guard let i = index_at_post, let d = differential else { return nil }
     return i - d
@@ -45,7 +47,10 @@ public struct RoundRow: Decodable, Sendable, Identifiable, Equatable {
   }
 }
 
-/// A `v_rounds_ranked` row, the league's scoring lens on a round.
+/// A `v_rounds_ranked` row, the league's scoring lens on a round. `pvi` is
+/// the ALLOWANCE figure — `playing_index − differential`, the number the
+/// points were scored against (D209) — and it is the only "vs your playing
+/// number" the You tab prints; the phone never re-derives it.
 public struct RankedRound: Decodable, Sendable, Equatable {
   public let member_id: UUID
   public let pvi: Double?
@@ -55,9 +60,15 @@ public struct RankedRound: Decodable, Sendable, Equatable {
   public let played_on: String?
   public let index_at_post: Double?
   public let holes_played: Int?
-  public init(member_id: UUID, pvi: Double?, points: Double?, month_rank: Int?, floor_credit: Double?, played_on: String?, index_at_post: Double?, holes_played: Int?) {
+  /// the round and the season the lens is on — nil on the season-scoped
+  /// reads that never asked for them
+  public let round_id: UUID?
+  public let season_id: UUID?
+  public init(member_id: UUID, pvi: Double?, points: Double?, month_rank: Int?, floor_credit: Double?, played_on: String?, index_at_post: Double?, holes_played: Int?,
+              round_id: UUID? = nil, season_id: UUID? = nil) {
     self.member_id = member_id; self.pvi = pvi; self.points = points; self.month_rank = month_rank; self.floor_credit = floor_credit
     self.played_on = played_on; self.index_at_post = index_at_post; self.holes_played = holes_played
+    self.round_id = round_id; self.season_id = season_id
   }
 }
 
@@ -134,12 +145,14 @@ public struct RoundsRepository: Sendable {
     return rows
   }
 
-  /// `delete_round`, then the engine's re-read of the index (the web's
-  /// standings views recompute on their own; the profile's number is refreshed
-  /// by asking the engine, never computed here).
-  public func deleteRound(_ id: UUID, profile: UUID) async throws {
+  /// `delete_round`. The standings views recompute on their own (they read the
+  /// rounds), and Y-19 removed the `handicap_index(p_profile)` call that used
+  /// to follow it: that function is `stable` and only RETURNS a number — the
+  /// result was discarded, so it refreshed nothing and cost a round trip. The
+  /// profile's stored index is refreshed server-side, inside `delete_round`
+  /// (the migration is Y-19's other half); the caller reloads to read it.
+  public func deleteRound(_ id: UUID) async throws {
     _ = try await svc.call(Rpc.delete_round(p_round: id))
-    _ = try? await svc.call(Rpc.handicap_index(p_profile: profile))
   }
 
   // MARK: - league mates (loadLeagueData 14293)
@@ -184,6 +197,21 @@ public struct RoundsRepository: Sendable {
     try await db.from("v_rounds_ranked")
       .select("member_id, pvi, points, month_rank, floor_credit, played_on, index_at_post, holes_played")
       .eq("season_id", value: seasonId).execute().value
+  }
+
+  /// D209 · every lens the engine has on MY rounds — one row per round per
+  /// league season it scored in. The You tab's figures (All time, FORM, the
+  /// recent rows) read `pvi` off these; a round with no row here is card-only
+  /// and shows no figure rather than a re-derived one.
+  /// The limit has to clear `myRounds`' 400 times the number of league seasons
+  /// a round can score in — one row per lens. At 800 a golfer in three leagues
+  /// lost the figures on their oldest card rounds, and `Career.compute` then
+  /// averaged over a truncated window while the sub still read "across counting
+  /// rounds" — a false statement rather than a missing one.
+  public func rankedRounds(profileId: UUID) async throws -> [RankedRound] {
+    try await db.from("v_rounds_ranked")
+      .select("member_id, season_id, round_id, pvi, points, month_rank, floor_credit, played_on, index_at_post, holes_played")
+      .eq("profile_id", value: profileId).order("played_on", ascending: false).limit(400 * 4).execute().value
   }
 
   public func individualStandings(seasonIds: [UUID]) async throws -> [IndividualStanding] {

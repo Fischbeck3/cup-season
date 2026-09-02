@@ -38,6 +38,9 @@ public extension EnvironmentValues {
 
 private struct CSToastHost: ViewModifier {
   @Environment(\.cs) private var cs
+  /// what the floating tab bar actually covers, measured by `CSTabBarProbe`
+  /// (0 off the tabs — the door, the covers, the ceremonies).
+  @Environment(\.csBarInset) private var barInset
   @Environment(\.accessibilityReduceMotion) private var reduceMotion
   let center: CSToastCenter
   func body(content: Content) -> some View {
@@ -50,7 +53,8 @@ private struct CSToastHost: ViewModifier {
             .foregroundStyle(cs.bg0)
             .padding(.horizontal, 16).padding(.vertical, 10)
             .background(cs.ink, in: Capsule())
-            .padding(.bottom, 92)
+            // 92 is the floor (off the tabs); on a tab it clears the measured pill
+            .padding(.bottom, max(92, barInset + 24))
             // reduced motion: the pill fades in place — no roll (IOS-003 §2.7)
             .transition(reduceMotion ? .opacity : .move(edge: .bottom).combined(with: .opacity))
             .id(item.id)

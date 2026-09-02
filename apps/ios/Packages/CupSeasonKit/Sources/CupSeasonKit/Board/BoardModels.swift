@@ -129,13 +129,13 @@ public struct BoardRound: Sendable, Identifiable, Equatable {
   }
 }
 
-/// The counting cap as the web carries it: `state.cap` 0…3 → [2, 4, 6, ∞].
+/// The counting cap's stepper slot. D142: the ladder lives in one place —
+/// `Bylaws.capVals` [2, 3, 4, 6, nil] — and the NUMBER is the truth; a slot
+/// is only where the wizard's stepper sits. Prefer carrying `counting_cap`
+/// itself (`BoardLogic.counting(monthRank:capN:)`) over a slot.
 public enum CountingCap {
-  /// `applyBylaws` 14154: null → unlimited; 2/4/6 → their slot; anything else → 4.
-  public static func index(_ countingCap: Int?) -> Int {
-    guard let c = countingCap else { return 3 }
-    return [2: 0, 4: 1, 6: 2][c] ?? 1
-  }
+  /// `Bylaws.capIndex`: nil → unlimited (the top rung); an exact rung, else the nearest finite one.
+  public static func index(_ countingCap: Int?) -> Int { Bylaws.capIndex(countingCap) }
   /// `capN` — nil means unlimited.
-  public static func n(index: Int) -> Int? { [2, 4, 6, nil][max(0, min(3, index))] }
+  public static func n(index: Int) -> Int? { Bylaws.capVals[max(0, min(Bylaws.capVals.count - 1, index))] }
 }

@@ -12,21 +12,40 @@ public enum RoomPhase: String, Sendable, Equatable { case setup, draft, season }
 
 /// `applyBylaws` — the bylaws as the renderers read them.
 public struct Bylaws: Sendable, Equatable {
-  public static let capLabels = ["Best 2", "Best 4", "Best 6", "Unlimited"]
-  public static let capVals: [Int?] = [2, 4, 6, nil]
+  /// D142 · the counting-cap ladder the wizard steps through — the web's
+  /// `CAP_DB` [2, 3, 4, 6, null] / `CAPS`. The stored value is the NUMBER
+  /// (nil = unlimited); the slot is only the stepper's position, and a cap the
+  /// ladder does not carry still renders "Best N" from the number.
+  public static let capVals: [Int?] = [2, 3, 4, 6, nil]
+  public static let capLabels: [String] = Self.capVals.map(Self.capLabel)
   public static let presetNames = ["Casual", "Standard", "Cutthroat"]
   public static let allow = [100, 95, 90]
-  public static let verif = ["Honor system", "Attested", "GHIN-verified + attested"]
+  /// M-15 · the VERIFICATION row names the norm, not a filter (web VERIF, 13489).
+  public static let verif = ["Honor system", "Post what you'd post to GHIN", "Attested where you can; the Pro rules on the rest"]
   public static let penalty = ["None", "−5 sqd pts / round short", "Forfeit month"]
-  public static let fmtNames = ["Points Race", "Head-to-Head", "Hybrid"]
+  /// D206 · "Hybrid" left the wizard; a legacy `season_format = 'hybrid'` row
+  /// renders as the points race (`from` clamps it) and never indexes past this.
+  public static let fmtNames = ["Points Race", "Head-to-Head"]
   public static let structNames = ["solo": "Individual — no squads", "squads2": "2 squads", "squads3": "3 squads", "squads4": "4 squads"]
   public static let structMin = ["solo": 2, "squads2": 4, "squads3": 6, "squads4": 8]
   public static let draftNames = ["random": "Blind draw", "assign": "Pro assign", "snake": "Snake · async", "live": "Live · pick clock"]
 
+  /// "Best N" / "Unlimited" — the one producer of the cap's name.
+  public static func capLabel(_ n: Int?) -> String { n.map { "Best \($0)" } ?? "Unlimited" }
+  /// The stepper's slot for a cap: an exact rung, else the nearest finite rung
+  /// (a legacy 5 steps from Best 4; unlimited is the top rung).
+  public static func capIndex(_ n: Int?) -> Int {
+    guard let n else { return capVals.count - 1 }
+    if let i = capVals.firstIndex(of: n) { return i }
+    let finite = capVals.enumerated().compactMap { i, v in v.map { (i, abs($0 - n)) } }
+    return finite.min { $0.1 < $1.1 }?.0 ?? 1
+  }
+
   /// Dollars. 0 = bragging rights.
   public let stake: Int
   public let floor: Int
-  public let capIdx: Int
+  /// `counting_cap` as stored — nil is unlimited.
+  public let cap: Int?
   public let presetIdx: Int
   public let fmtIdx: Int
   public let structure: String
@@ -34,31 +53,34 @@ public struct Bylaws: Sendable, Equatable {
   public let finish: String
   public let draftType: String
 
-  public init(stake: Int = 0, floor: Int = 2, capIdx: Int = 1, presetIdx: Int = 1, fmtIdx: Int = 0, structure: String = "squads2",
+  public init(stake: Int = 0, floor: Int = 2, cap: Int? = 3, presetIdx: Int = 1, fmtIdx: Int = 0, structure: String = "squads2",
               payout: [Int] = [60, 25, 15], finish: String = "cup_final", draftType: String = "random") {
-    self.stake = stake; self.floor = floor; self.capIdx = capIdx; self.presetIdx = presetIdx; self.fmtIdx = fmtIdx
+    self.stake = stake; self.floor = floor; self.cap = cap; self.presetIdx = presetIdx
+    self.fmtIdx = max(0, min(Self.fmtNames.count - 1, fmtIdx))
     self.structure = structure; self.payout = payout; self.finish = finish; self.draftType = draftType
   }
 
   public static func from(_ b: LeagueRoom.Settings?) -> Bylaws {
     guard let b else { return Bylaws() }
-    let capMap: [Int: Int] = [2: 0, 4: 1, 6: 2]
     let presets = ["casual", "standard", "cutthroat"]
     let pi = presets.firstIndex(of: b.preset ?? "") ?? 1
     return Bylaws(
       stake: Int((Double(b.buyin_cents ?? 0) / 100).rounded()),
       floor: b.participation_floor ?? 0,
-      capIdx: b.counting_cap == nil ? 3 : (capMap[b.counting_cap!] ?? 1),
+      cap: b.counting_cap,
       presetIdx: pi,
-      fmtIdx: max(0, ["points", "h2h", "hybrid"].firstIndex(of: b.season_format ?? "") ?? 0),
+      fmtIdx: max(0, ["points", "h2h"].firstIndex(of: b.season_format ?? "") ?? 0),
       structure: b.structure ?? "squads2",
       payout: [b.payout_champ ?? 60, b.payout_runnerup ?? 25, b.payout_king ?? 15],
       finish: b.finish ?? "cup_final",
       draftType: ["random", "assign", "snake", "live"].contains(b.draft_type ?? "") ? b.draft_type! : "random")
   }
 
-  public var capN: Int { Self.capVals[capIdx] ?? Int.max }
-  public var capLabel: String { Self.capLabels[capIdx] }
+  /// The cap as a comparable number — `Int.max` when unlimited.
+  public var capN: Int { cap ?? Int.max }
+  /// The stepper's slot (see `capIndex`).
+  public var capIdx: Int { Self.capIndex(cap) }
+  public var capLabel: String { Self.capLabel(cap) }
   public var presetName: String { Self.presetNames[presetIdx] }
   public var solo: Bool { structure == "solo" }
   public var structMin: Int { Self.structMin[structure] ?? 4 }
@@ -277,14 +299,20 @@ public enum LeagueCopy {
     }
     let today = c.today
     let dTo = { (iso: String) in CSDate.days(from: today, to: iso) ?? 0 }
-    let sun = LeagueDates.nextSunday(today)
+    // M-17: the week closes on the season's own weekday (§14.0), never a hardcoded Sunday.
+    let close = c.startsOn.map { LeagueDates.weekClose(start: $0, today: today) } ?? LeagueDates.nextSunday(today)
     let first = LeagueDates.firstOfNextMonth(today)
     var opts: [(n: Int, pri: Int, gold: Bool, t: String)] = [
-      (dTo(sun), 0, false, dTo(sun) == 0 ? "Week closes tonight" : "Week closes Sun · \(dTo(sun))d"),
+      (dTo(close), 0, false, dTo(close) == 0 ? "Week closes tonight" : "Week closes \(ClashMath.dowShort(close)) · \(dTo(close))d"),
       (dTo(first), 1, false, "Month closes \(LeagueDates.monDay(first).split(separator: " ").first.map(String.init) ?? "") 1 · floors assessed"),
     ]
     if b.finish == "cup_final" {
-      if let cf = c.cupFinalStart, cf >= today { opts.append((dTo(cf), 2, true, "Cup Final · \(LeagueDates.dowMonDay(cf)) · \(dTo(cf))d")) }
+      // The Final tees off the morning after a week closes; that week is the
+      // Final's run-up, so the gold line wins it (ties go to the Final).
+      if let cf = c.cupFinalStart, cf >= today {
+        let n = cf == LeagueDates.addDays(close, 1) ? dTo(close) : dTo(cf)
+        opts.append((n, 2, true, "Cup Final · \(LeagueDates.dowMonDay(cf)) · \(dTo(cf))d"))
+      }
     } else if let en = c.endsOn, en >= today {
       opts.append((dTo(en), 2, true, "Points table crowns it · ends \(LeagueDates.monDay(en)) · \(dTo(en))d"))
     }

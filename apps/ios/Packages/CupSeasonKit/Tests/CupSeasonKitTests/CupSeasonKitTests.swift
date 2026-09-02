@@ -40,7 +40,7 @@ import Foundation
   func membership(phase: String, status: String?, starts: String, ends: String) -> Me.Membership {
     let season = status.map { Me.Season(id: UUID(), number: 1, starts_on: starts, ends_on: ends, status: $0, timezone: nil, grace_hours: nil,
                                         champion_squad_id: nil, champion_member_id: nil, points_king_member_id: nil, tiebreak_rung: nil) }
-    return Me.Membership(league_id: UUID(), name: "PIGL", code: "ABC", phase: phase, role: "player", member_id: UUID(), marker: "saguaro",
+    return Me.Membership(league_id: UUID(), name: "PIGL", code: "ABC", phase: phase, sandbox: false, role: "player", member_id: UUID(), marker: "saguaro",
                          commissioner_name: nil, settings: nil, season: season, squad: nil, standing: nil, pulse: nil)
   }
 

@@ -1,11 +1,11 @@
 // Cup Season — the wizard's dials, ladders and copy, verbatim from index.html:
 //   state + ladders        3768–3800   (STAKES, DURS, CAPS, durLabel, durMonths)
-//   the preset cards       3228–3245   PRESET_SUMMARY 7052, PRESETS 7157
+//   the preset cards       3228–3245   PRESET_SUMMARY 7997, PRESETS 8150
 //   the dials' copy        3248–3312   (setrow labels, ihelp, seg notes)
 //   season dates           7081–7099   (defaultStart, seasonEndDate, renderSeasonDates)
 //   structure fit          11812–11835 (STRUCT_MIN, STRUCT_NOTES, renderStructFit)
 //   the portrait           11847–11890 (wizPortrait)
-//   the lock payload       14888–14923 (lockBylaws)
+//   the lock call          17194–17248 (lockBylaws → lock_league, D111)
 //   applyBylaws            14144–14175 (run it back / an existing league)
 //   codeFor                12815
 // Nothing here talks to the network; WizardService does.
@@ -23,7 +23,7 @@ public struct WizardDials: Sendable, Equatable {
   public static let structNames = Bylaws.structNames
   public static let structMin = Bylaws.structMin
   public static let structNotes = [
-    "solo": "Individual · every player for himself — works at any size (4+). No squads; top 2 players meet in the Cup Final in the final four weeks.",
+    "solo": "Individual · every player for himself — works at any size (2+). No squads; top 2 players meet in the Cup Final in the final four weeks.",
     "squads2": "2 squads · fits 4–7 players. Both squads reach the Cup Final; the regular-season leader carries a +10 head start.",
     "squads3": "3 squads · fits 6+. Cut line after 2nd: top 2 advance.",
     "squads4": "4 squads · the full cup experience for 8+ players.",
@@ -49,26 +49,32 @@ public struct WizardDials: Sendable, Equatable {
     "50,30,20": "Spread it: champ 50% · runner-up 30% · Points King 20%.",
   ]
 
-  /// `PRESETS` (7157): cap index · floor · name.
+  /// `PRESETS` (8150–8154): the cap as a NUMBER (nil = unlimited) · floor · name.
+  /// D142: Standard counts the best 3, Cutthroat the best 2, Casual everything.
   public struct Preset: Sendable, Equatable {
-    public let cap: Int
+    public let cap: Int?
     public let floor: Int
     public let name: String
     public let lead: String
     public let line: String
+    /// The stepper slot for this preset's cap.
+    public var capIdx: Int { Bylaws.capIndex(cap) }
   }
+  /// M-15: verification is described as what the league asks of a golfer,
+  /// never as something the engine checks ("GHIN-verified" was a claim the
+  /// app cannot make — ship audit 2026-08-31).
   public static let presets = [
-    Preset(cap: 3, floor: 0, name: "Casual", lead: "Honor scores, everything counts",
+    Preset(cap: nil, floor: 0, name: "Casual", lead: "Honor scores, everything counts",
            line: "100% hcp · honor scores · any course · unlimited counting · no floor"),
-    Preset(cap: 1, floor: 2, name: "Standard", lead: "Weekly-golfer fair, light guardrails",
-           line: "95% hcp · GHIN rounds · best 4 / mo count · 2-round floor"),
-    Preset(cap: 1, floor: 3, name: "Cutthroat", lead: "Tournament-tight, receipts required",
-           line: "90% hcp · verified + attested · rated tees · best 4 / mo · 3-round floor"),
+    Preset(cap: 3, floor: 2, name: "Standard", lead: "Weekly-golfer fair, light guardrails",
+           line: "95% hcp · post what you'd post to GHIN · best 3 / mo count · 2-round floor"),
+    Preset(cap: 2, floor: 3, name: "Cutthroat", lead: "Tournament-tight, receipts required",
+           line: "90% hcp · attested where you can · rated tees · best 2 / mo · 3-round floor"),
   ]
   public static let presetSummary = [
     "Casual: 100% handicap, honor-system scores, any course. Beer-league friendly — everything counts, nobody’s benched.",
-    "Standard: 95% handicap, GHIN-posted rounds, your best 4 a month count, post 2 or the squad feels it. The default for a reason.",
-    "Cutthroat: 90% handicap, attested + rated tees, best 4 a month, a 3-round floor. For crews that want the screws tight.",
+    "Standard: 95% handicap, post what you'd post to GHIN, your best 3 a month count, post 2 or the squad feels it. The default for a reason.",
+    "Cutthroat: 90% handicap, attested where you can and the Pro rules on the rest, rated tees, best 2 a month, a 3-round floor. For crews that want the screws tight.",
   ]
   /// The DB's own words for the three presets (14890–14895).
   public static let presetKeys = ["casual", "standard", "cutthroat"]
@@ -89,9 +95,12 @@ public struct WizardDials: Sendable, Equatable {
   public var floor: Int
 
   /// `resetWizard` (13885): a REAL league starts at bragging rights (S2-03).
-  public init(name: String = "", preset: Int = 1, stake: Int = 0, durWeeks: Int = 26, startISO: String = "",
+  /// D206: 13 weeks by default (a quarter — one whole calendar month is
+  /// guaranteed, so the floor and the cap both get to matter); D142: the cap
+  /// slot is Standard's "Best 3".
+  public init(name: String = "", preset: Int = 1, stake: Int = 0, durWeeks: Int = 13, startISO: String = "",
               structure: String = "squads2", draftType: String = "random", finish: String = "cup_final",
-              payout: [Int] = [60, 25, 15], cap: Int = 1, floor: Int = 2) {
+              payout: [Int] = [60, 25, 15], cap: Int = Bylaws.capIndex(3), floor: Int = 2) {
     self.name = name; self.preset = preset; self.stake = stake; self.durWeeks = durWeeks; self.startISO = startISO
     self.structure = structure; self.draftType = draftType; self.finish = finish; self.payout = payout
     self.cap = cap; self.floor = floor
@@ -101,7 +110,7 @@ public struct WizardDials: Sendable, Equatable {
 
   public mutating func applyPreset(_ i: Int) {
     let p = Self.presets[max(0, min(2, i))]
-    preset = max(0, min(2, i)); cap = p.cap; floor = p.floor
+    preset = max(0, min(2, i)); cap = p.capIdx; floor = p.floor
   }
   /// `toast(pr.name+' rules locked for the season')`
   public var presetToast: String { "\(Self.presets[preset].name) rules locked for the season" }
@@ -123,9 +132,9 @@ public struct WizardDials: Sendable, Equatable {
   public var stakeText: String { stake == 0 ? "None" : PotMath.dollars(stake) }
   /// `durLabel`
   public var lengthText: String { LeagueDates.durLabel(durWeeks) }
-  public var capText: String { Self.caps[cap] }
+  public var capText: String { Bylaws.capLabel(capN) }
   public var floorText: String { "\(floor) / mo" }
-  public var capN: Int? { Self.capVals[cap] }
+  public var capN: Int? { Self.capVals[max(0, min(Self.capVals.count - 1, cap))] }
   public var solo: Bool { structure == "solo" }
   public var payKey: String { payout.map(String.init).joined(separator: ",") }
   public var structNote: String { Self.structNotes[structure] ?? "" }
@@ -150,8 +159,10 @@ public struct WizardDials: Sendable, Equatable {
   public func spanText(today: String = CSDate.today()) -> String {
     "\(LeagueDates.dowMonDay(startDate(today: today))) – \(LeagueDates.dowMonDay(endDate(today: today)))"
   }
-  /// `durMonths` — `season_months` is stored coarse and the DB checks 3..12.
-  public static func durMonths(_ weeks: Int) -> Int { min(12, max(3, Int((Double(weeks) / 4.345).rounded()))) }
+  /// `durMonths` — `season_months` DESCRIBES the window (D143: the dates are the
+  /// truth and `lock_league` re-derives it from them); 1..12 like the web,
+  /// so 13 weeks says 3 and a 2-week pilot says 1, never a clamped 3.
+  public static func durMonths(_ weeks: Int) -> Int { min(12, max(1, Int((Double(weeks) / 4.345).rounded()))) }
 
   // MARK: structure fit (11812–11835)
 
@@ -178,7 +189,7 @@ public struct WizardDials: Sendable, Equatable {
 
   /// The renderers' shape, for `LeagueCopy.bylawsRows` and the room's card.
   public var bylaws: Bylaws {
-    Bylaws(stake: stake, floor: floor, capIdx: cap, presetIdx: preset, fmtIdx: 0, structure: structure,
+    Bylaws(stake: stake, floor: floor, cap: capN, presetIdx: preset, fmtIdx: 0, structure: structure,
            payout: payout, finish: finish, draftType: draftType)
   }
   public func clock(today: String = CSDate.today()) -> RoomClock {
@@ -197,7 +208,7 @@ public struct WizardDials: Sendable, Equatable {
       d.durWeeks = max(1, Int((Double(CSDate.days(from: s.starts_on, to: s.ends_on) ?? 0) / 7).rounded()))
       d.startISO = s.starts_on
     } else {
-      d.durWeeks = max(2, Int((Double(b.season_months ?? 6) * 4.345).rounded()))
+      d.durWeeks = max(2, Int((Double(b.season_months ?? 3) * 4.345).rounded()))
     }
     d.floor = base.floor
     d.cap = base.capIdx
@@ -265,73 +276,88 @@ public enum WizardCode {
   }
 }
 
-// MARK: - The lock payload (`lockBylaws`, 14888–14905)
+// MARK: - The lock call (`lockBylaws` → `lock_league`, 17194–17248)
 
-/// Exactly the columns the web's `league_settings` UPDATE writes. `season_format`
-/// is `'points'` — the column's DEFAULT is `'hybrid'` and only this write turns
-/// the +15/month off (audit 02 §7.13).
-public struct WizardLockPayload: Encodable, Sendable, Equatable {
-  public let preset: String
-  public let handicap_allowance: Int
-  public let verification: String
-  public let counting_cap: Int?
-  public let participation_floor: Int
-  public let floor_penalty: String
-  public let season_format: String
-  public let structure: String
-  public let buyin_cents: Int
-  public let season_months: Int
-  public let draft_type: String
-  public var finish: String?
-  public let payout_champ: Int
-  public let payout_runnerup: Int
-  public let payout_king: Int
-  public let locked_at: String
+/// D111 · the ONE write the lock makes — `lock_league`, with exactly the args
+/// the web sends. `p_season_format` is `'points'`: the column's DEFAULT is
+/// `'hybrid'` and only this write turns the +15/month off (audit 02 §7.13).
+/// `p_season_months` only DESCRIBES the window — D143 has the RPC re-derive it
+/// from the dates, which are the truth.
+///
+/// This wraps the generated `Rpc.lock_league` for one reason: the generated
+/// binding OMITS a nil arg, which lets the SQL default (Best 3) stand — but an
+/// unlimited cap IS null and must reach the database as an explicit null, the
+/// way the web's `p_counting_cap: null` does (`coalesce(null, counting_cap)`
+/// keeps the fresh row's null). Every arg is written, that one as null.
+public struct WizardLockCall: RpcCall {
+  public static let name = Rpc.lock_league.name
+  /// NOTHING is droppable. `SupabaseService.call(_:)` retries by dropping
+  /// EVERY droppable arg at once, so handing it the generated list would let a
+  /// skew retry lock the league on the SQL defaults — standard · 95 · cap 3 ·
+  /// squads2 · $0 · six months · starts today — and still report "Bylaws
+  /// locked". D206: a bylaw the founder never saw is not a bylaw. There is
+  /// also nothing to retry INTO: every deployed `lock_league` since
+  /// `20260829220000` carries all eighteen args (confirmed against prod
+  /// 2026-09-02), and the web's own skew path (`index.html:17239-17248`) falls
+  /// back only when the FUNCTION is missing, never by shedding arguments —
+  /// "a real refusal must reach the golfer".
+  public static let optionalArgs: [String] = []
+  public typealias Returns = JSONValue
 
-  public init(_ d: WizardDials, lockedAt: String) {
-    preset = WizardDials.presetKeys[d.preset]
-    handicap_allowance = Bylaws.allow[d.preset]
-    verification = WizardDials.verificationKeys[d.preset]
-    counting_cap = d.capN
-    participation_floor = d.floor
-    floor_penalty = WizardDials.penaltyKeys[d.preset]
-    season_format = "points"
-    structure = d.structure
-    buyin_cents = d.stake * 100
-    season_months = WizardDials.durMonths(d.durWeeks)
-    draft_type = d.draftType
-    finish = d.finish
-    payout_champ = d.payout[0]
-    payout_runnerup = d.payout[1]
-    payout_king = d.payout[2]
-    locked_at = lockedAt
+  public let args: Rpc.lock_league
+
+  public init(_ d: WizardDials, leagueId: UUID, name: String, today: String = CSDate.today()) {
+    args = Rpc.lock_league(
+      p_league: leagueId,
+      p_name: name,
+      p_preset: WizardDials.presetKeys[d.preset],
+      p_handicap_allowance: Bylaws.allow[d.preset],
+      p_verification: WizardDials.verificationKeys[d.preset],
+      p_counting_cap: d.capN,
+      p_participation_floor: d.floor,
+      p_floor_penalty: WizardDials.penaltyKeys[d.preset],
+      p_season_format: "points",
+      p_structure: d.structure,
+      p_buyin_cents: d.stake * 100,
+      p_season_months: WizardDials.durMonths(d.durWeeks),
+      p_draft_type: d.draftType,
+      p_finish: d.finish,
+      p_payout_champ: d.payout[0],
+      p_payout_runnerup: d.payout[1],
+      p_payout_king: d.payout[2],
+      p_starts_on: d.startDate(today: today),
+      p_ends_on: d.endDate(today: today))
   }
 
-  /// The skew retry (14906–14921): the same row without `finish`.
-  public var withoutFinish: WizardLockPayload { var c = self; c.finish = nil; return c }
-
-  enum CodingKeys: String, CodingKey {
-    case preset, handicap_allowance, verification, counting_cap, participation_floor, floor_penalty, season_format, structure
-    case buyin_cents, season_months, draft_type, finish, payout_champ, payout_runnerup, payout_king, locked_at
+  struct Key: CodingKey {
+    let stringValue: String
+    var intValue: Int? { nil }
+    init(_ s: String) { stringValue = s }
+    init?(stringValue: String) { self.stringValue = stringValue }
+    init?(intValue: Int) { nil }
   }
+
   public func encode(to encoder: Encoder) throws {
-    var c = encoder.container(keyedBy: CodingKeys.self)
-    try c.encode(preset, forKey: .preset)
-    try c.encode(handicap_allowance, forKey: .handicap_allowance)
-    try c.encode(verification, forKey: .verification)
-    try c.encode(counting_cap, forKey: .counting_cap)          // null = unlimited, written explicitly
-    try c.encode(participation_floor, forKey: .participation_floor)
-    try c.encode(floor_penalty, forKey: .floor_penalty)
-    try c.encode(season_format, forKey: .season_format)
-    try c.encode(structure, forKey: .structure)
-    try c.encode(buyin_cents, forKey: .buyin_cents)
-    try c.encode(season_months, forKey: .season_months)
-    try c.encode(draft_type, forKey: .draft_type)
-    if let finish { try c.encode(finish, forKey: .finish) }
-    try c.encode(payout_champ, forKey: .payout_champ)
-    try c.encode(payout_runnerup, forKey: .payout_runnerup)
-    try c.encode(payout_king, forKey: .payout_king)
-    try c.encode(locked_at, forKey: .locked_at)
+    var c = encoder.container(keyedBy: Key.self)
+    try c.encode(args.p_league, forKey: Key("p_league"))
+    try c.encodeIfPresent(args.p_name, forKey: Key("p_name"))
+    try c.encodeIfPresent(args.p_preset, forKey: Key("p_preset"))
+    try c.encodeIfPresent(args.p_handicap_allowance, forKey: Key("p_handicap_allowance"))
+    try c.encodeIfPresent(args.p_verification, forKey: Key("p_verification"))
+    try c.encode(args.p_counting_cap, forKey: Key("p_counting_cap"))          // null = unlimited, written explicitly
+    try c.encodeIfPresent(args.p_participation_floor, forKey: Key("p_participation_floor"))
+    try c.encodeIfPresent(args.p_floor_penalty, forKey: Key("p_floor_penalty"))
+    try c.encodeIfPresent(args.p_season_format, forKey: Key("p_season_format"))
+    try c.encodeIfPresent(args.p_structure, forKey: Key("p_structure"))
+    try c.encodeIfPresent(args.p_buyin_cents, forKey: Key("p_buyin_cents"))
+    try c.encodeIfPresent(args.p_season_months, forKey: Key("p_season_months"))
+    try c.encodeIfPresent(args.p_draft_type, forKey: Key("p_draft_type"))
+    try c.encodeIfPresent(args.p_finish, forKey: Key("p_finish"))
+    try c.encodeIfPresent(args.p_payout_champ, forKey: Key("p_payout_champ"))
+    try c.encodeIfPresent(args.p_payout_runnerup, forKey: Key("p_payout_runnerup"))
+    try c.encodeIfPresent(args.p_payout_king, forKey: Key("p_payout_king"))
+    try c.encodeIfPresent(args.p_starts_on, forKey: Key("p_starts_on"))
+    try c.encodeIfPresent(args.p_ends_on, forKey: Key("p_ends_on"))
   }
 }
 
@@ -358,7 +384,9 @@ public enum WizardCopy {
 
   // step 1
   public static let presetEyebrow = "How serious is your league?"
-  public static let presetHelp = "One pick, made now, that sets the fairness rules for the whole season — handicap allowance, how scores are verified, which courses count. Casual is an honor-system beer league. Standard wants GHIN-posted rounds. Cutthroat wants receipts: attested scores on rated tees. Deciding this before anyone tees off is what keeps October friendly."
+  public static let presetHelp = "One pick, made now, that sets the fairness rules for the whole season — handicap allowance, how scores are verified, which courses count. Casual is an honor-system beer league. Standard asks you to post what you'd post to GHIN. Cutthroat wants receipts: attested where you can; the Pro rules on the rest. Deciding this before anyone tees off is what keeps October friendly."
+  /// M-15 · the footnote under the preset cards: verification is a norm, not a filter.
+  public static let verificationNote = "Verification is a norm the league holds, not a filter the engine applies."
   public static let fastPath = "Use these defaults →"
   public static let customize = "Customize"
   public static let hideOptions = "Hide options"
@@ -372,7 +400,7 @@ public enum WizardCopy {
   public static let endsEyebrow = "How it ends"
   public static let endsHelp = "How the champion is crowned. Cup Final resets for the last four weeks — top seeds race fresh, anyone can catch fire, playoff drama. Points table crowns whoever leads when the season ends: the whole year is the race, no reset."
   public static let potEyebrow = "The pot split"
-  public static let potHelp = "How the pot pays out at season's end. Every split rewards the champion, the runner-up, and the Points King (best individual all year). The pot lives on the books here — the app keeps the ledger, money moves friend-to-friend."
+  public static let potHelp = "How the pot pays out at season's end. Every split rewards the champion, the runner-up, and the Points King (best individual all year). The pot lives on the books here — " + MoneyCopy.ledger
   public static let countingCap = ("Counting cap", "Best N rounds / month")
   public static let capHelp = "The core fairness dial. Only your best N rounds each month score for the squad, so the retiree who plays daily can't bury the dad who plays weekly. A better round automatically replaces your worst counter, so posting never stops mattering."
   public static let floorRow = ("Participation floor", "MIN ROUNDS / MONTH · −5 SQD PTS SHORT")
@@ -382,8 +410,15 @@ public enum WizardCopy {
 
   // step 2
   public static let reviewEyebrow = "Review the bylaws, then lock it in"
-  public static let inviteNote = "Lock opens the invite link — one link fills the league; anyone can also join later with the league code. Minimum four to tee off."
-  public static let lockButton = "Lock the bylaws & form the squads"
+  /// D205 · every minimum derives from `structMin` (solo → 2, squads → 4).
+  public static let inviteNote = "Lock opens the invite link — one link fills the league. The code works until first tee, or until you close the roster. Squads need \(numberWord(WizardDials.structMin["squads2"] ?? 4)) to tee off; solo tees off at \(numberWord(WizardDials.structMin["solo"] ?? 2))."
+  /// D205 · a solo league has no squads to form (D161's rename of the button itself is deferred).
+  public static func lockButton(solo: Bool) -> String { solo ? "Lock the bylaws" : "Lock the bylaws & form the squads" }
+  /// D205 · "four", "two" — the one place a minimum becomes a word.
+  public static func numberWord(_ n: Int) -> String {
+    let words = ["two", "three", "four", "five", "six", "seven", "eight"]
+    return (2...8).contains(n) ? words[n - 2] : String(n)
+  }
   public static let nameTheLeagueFirst = "Name the league first: top of the wizard"
   public static let bylawsLocked = "Bylaws locked"
   public static let lockFailed = "Lock failed."
@@ -401,12 +436,18 @@ public enum WizardCopy {
   public static let lockShareSub = "One link fills the league"
   public static let shareInvite = "Share the invite link"
   public static let later = "Later — it lives in the league room"
-  public static func lockShareLine(nextPhase: String, members n: Int, structure: String, draftType: String) -> String {
+  /// P-11 · "Season is live" only once first tee has come (`starts_on <= today`);
+  /// a solo league locked ahead of its start names the first tee instead.
+  public static func lockShareLine(nextPhase: String, members n: Int, structure: String, draftType: String,
+                                   startsOn: String? = nil, today: String = CSDate.today()) -> String {
     let min = WizardDials.structMin[structure] ?? 4
     let need = max(0, min - n)
     let structName = (WizardDials.structNames[structure] ?? "the squads").lowercased()
     let forms = draftType == "assign" ? "you seat the squads" : "the draw runs"
-    if nextPhase == "season" { return "Season is live — every golfer you add posts from day one." }
+    if nextPhase == "season" {
+      if let s = startsOn, s > today { return "First tee \(LeagueDates.dowMonDay(s)) — every golfer you add posts from day one." }
+      return "Season is live — every golfer you add posts from day one."
+    }
     if need > 0 { return "\(n) in so far — \(need) more fills \(structName), and \(forms) when the crew is in." }
     return "\(n) in — enough for \(structName). \(draftType == "assign" ? "Seat the squads" : "Run the draw") whenever you're ready."
   }

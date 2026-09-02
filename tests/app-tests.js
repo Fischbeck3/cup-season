@@ -72,12 +72,17 @@
     csOdo(el, '$600');
     /* csOdo deliberately sets the text and skips the strips under
        prefers-reduced-motion (index.html:3913). Asserting 3 strips there fails
-       for the RIGHT behaviour — which is what a headless browser run
-       (Playwright defaults many contexts to reduce) reports. Assert the
-       contract that holds in both worlds, and the strips only when animating. */
+       for the RIGHT behaviour. The reverse is also true and used to fail here:
+       while it IS animating, the element's textContent is three 0-9 strips, so
+       "does it contain 600" is false for the right behaviour too — the digits
+       are in the strips' HOME positions, not in the text. One contract per
+       world; `dataset.odo` below is the one that holds in both. */
     const rm = matchMedia('(prefers-reduced-motion:reduce)').matches;
-    t('csOdo: shows the new value', el.textContent.replace(/\s/g,'').includes('600'), true);
-    if (!rm) t('csOdo: builds one strip per digit', el.querySelectorAll('.odostrip').length, 3);
+    if (rm) t('csOdo: shows the new value', el.textContent.replace(/\s/g,'').includes('600'), true);
+    else {
+      t('csOdo: builds one strip per digit', el.querySelectorAll('.odostrip').length, 3);
+      t('csOdo: the strips carry the new value', el.textContent.replace(/[^\d]/g,'').length > 3, true);
+    }
     t('csOdo: dataset carries target', el.dataset.odo, '$600');
     csOdo(el, '$600');
     t('csOdo: same value is a no-op', el.dataset.odo, '$600');
@@ -201,6 +206,200 @@
       t('growth: it carries the node through', called && called.args && called.args.p_node, 'link_opened');
       window.sb.rpc = realRpc; state.demo = realDemo;
     }
+  })();
+
+  /* ══ D205 · solo tees off at two; squads at four ═════════════════════════
+     Every "minimum" sentence on this client derives from STRUCT_MIN. The words
+     that used to be typed ("Minimum four to tee off", "works at any size (4+)")
+     called the format two of two real leagues are playing too small. */
+  (function(){
+    t('D205: STRUCT_MIN is the one producer', [STRUCT_MIN.solo, STRUCT_MIN.squads2], [2, 4]);
+    t('D205: the minimum is a word, from the table', numberWord(STRUCT_MIN.squads2), 'four');
+    t('D205: solo tees off at two', numberWord(STRUCT_MIN.solo), 'two');
+    t('D205: the invite note says both, verbatim with the phone', inviteNoteText(),
+      'Lock opens the invite link \u2014 one link fills the league. The code works until first tee, '
+      + 'or until you close the roster. Squads need four to tee off; solo tees off at two.');
+    t('D205: solo works at any size (2+)', /works at any size \(2\+\)/.test(STRUCT_NOTES.solo), true);
+    const wasStruct = state.structure;
+    state.structure = 'solo';
+    t('D205: a solo league has no squads to form', lockButtonText(), 'Lock the bylaws');
+    state.structure = 'squads2';
+    t('D205: squads still form at the lock', lockButtonText(), 'Lock the bylaws & form the squads');
+    state.structure = wasStruct;
+  })();
+
+  /* ══ D206 · a league is minted with the defaults the wizard shows ═════════
+     The row said hybrid · 9 months · $75 because create_league relied on column
+     defaults, and applyBylaws read that row back OVER the wizard's own state —
+     six real setups carry a format nobody chose, with a live +15 payout branch
+     behind it. A new lock can no longer write one. */
+  (function(){
+    const wasFmt = state.fmt;
+    state.fmt = 2;
+    t('D206: a new lock never sends hybrid', fmtKeyForLock(), 'points');
+    state.fmt = 1;
+    t('D206: head-to-head still locks as itself', fmtKeyForLock(), 'h2h');
+    state.fmt = wasFmt;
+    t('D206: the legacy value still RENDERS (two seed rows have it)', FMT_KEYS[2], 'hybrid');
+    t('D206: 13 weeks is on the season ladder', DURS.includes(13), true);
+    t('D206: 13 weeks describes itself as 3 months', durMonths(13), 3);
+  })();
+
+  /* ══ D213 / M-17 · the week closes on the league's own day ════════════════
+     The clash week rolls on floor((today − starts_on)/7), keyed to the first-tee
+     weekday (D108) — so "Week closes Sun" named a day nothing happened on for
+     every league that does not tee off on Sunday. */
+  (function(){
+    const was = state.seasonStart;
+    const on = (iso, todayIso) => { state.seasonStart = iso; return weekCloseDate(localDate(todayIso)); };
+    const WDN = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+    t('M-17: a Wednesday league closes Tuesday', WDN[on('2026-09-02','2026-09-05').getDay()], 'Tue');
+    t('M-17: a Sunday league still closes Saturday', WDN[on('2026-08-30','2026-09-05').getDay()], 'Sat');
+    t('M-17: the close is inside the week it closes', on('2026-09-02','2026-09-05').toDateString(),
+      localDate('2026-09-08').toDateString());
+    /* D213 · a first tee still ahead clamps to week 1's close, the way the
+       phone's `LeagueDates.weekClose` does (`max(0, days)`) — not to a Sunday. */
+    t('D213: a future first tee gives week 1 close, not next Sunday',
+      on('2026-09-30','2026-09-05').toDateString(), localDate('2026-10-06').toDateString());
+    state.seasonStart = null;
+    t('M-17: no season to key on falls back to Sunday', WDN[weekCloseDate(localDate('2026-09-02')).getDay()], 'Sun');
+    state.seasonStart = was;
+  })();
+
+  /* ══ D208 · "Played in" counts leagues that STARTED ═══════════════════════
+     It counted memberships: an abandoned wizard, a sandbox and an unstarted
+     season all read as "Played in 1". */
+  (function(){
+    const real = { m: window.CS && window.CS.memberships, s: window.leagueSeasons,
+                   r: window.careerRankedSeasons, e: window.myEvents };
+    if (!window.CS) return;
+    const today = new Date(); today.setHours(0,0,0,0);
+    const iso = d => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+    const past = iso(new Date(today.getFullYear(), today.getMonth(), today.getDate() - 30));
+    const soon = iso(new Date(today.getFullYear(), today.getMonth(), today.getDate() + 30));
+    window.CS.memberships = [
+      { league: { id: 'L-live',  sandbox: false } },   /* teed off  -> counts */
+      { league: { id: 'L-setup', sandbox: false } },   /* no season -> no     */
+      { league: { id: 'L-soon',  sandbox: false } },   /* not yet   -> no     */
+      { league: { id: 'L-sand',  sandbox: true  } },   /* sandbox   -> never  */
+    ];
+    window.leagueSeasons = [
+      { id: 'S1', league_id: 'L-live', number: 1, status: 'active',   starts_on: past, ends_on: soon },
+      { id: 'S2', league_id: 'L-soon', number: 1, status: 'active',   starts_on: soon, ends_on: soon },
+      { id: 'S3', league_id: 'L-sand', number: 1, status: 'complete', starts_on: past, ends_on: past },
+    ];
+    window.careerRankedSeasons = new Set();
+    window.myEvents = [{ id: 'E1', mine: true }, { id: 'E2', mine: false }];
+    t('D208: only the league that teed off, plus events on your roster', playedInCount(), 2);
+    window.CS.memberships = [{ league: { id: 'L-soon', sandbox: false } }];
+    window.leagueSeasons = [{ id: 'S2', league_id: 'L-soon', number: 1, status: 'active', starts_on: soon, ends_on: soon }];
+    window.myEvents = [];
+    t('D208: a member who joined before first tee reads 0', playedInCount(), 0);
+    window.careerRankedSeasons = new Set(['S2']);
+    t('D208: unless they already hold a round in it', playedInCount(), 1);
+    window.CS.memberships = real.m; window.leagueSeasons = real.s;
+    window.careerRankedSeasons = real.r; window.myEvents = real.e;
+  })();
+
+  /* ══ D210 · the banned word leaves the user surfaces ══════════════════════ */
+  (function(){
+    t('D210: the personal-best tile names what the figure is measured against',
+      achSubtitle({ kind: 'personal_best', meta: { diff: 7.8 } }), '7.8 vs course');
+    t('Y-24: every marker is a "The"', window.MARKERS?.no2?.n, 'The No. 2');
+  })();
+
+  /* ══ Y-25 / Y-31 / M-19 / D201 · ONE scoring guide ═══════════════════════
+     The bands table is computed from bandName()/pointsFor(), so it can never
+     disagree with a receipt again; the ledger line comes from CS_LEDGER; and
+     with no league in hand "What counts" describes BOTH structures, so it never
+     promises a penalty a solo league cannot take (D140). */
+  (function(){
+    if (typeof window.openScoringHelp !== 'function') return;
+    const wasLeague = window.CS && window.CS.league;
+    if (window.CS) window.CS.league = null;
+    window.openScoringHelp();
+    const txt = ((document.querySelector('#sheet') || {}).textContent || '').replace(/\s+/g, ' ');
+    t('Y-25: the bands read their names and points off the engine rule',
+      /Torched it · beat it by 3 or more · 12 pts/.test(txt), true);
+    t('Q-20: the seam band is named for the points it pays',
+      /A little loose · 1 to 3 over · 6 pts/.test(txt), true);
+    t('Y-25: no band edge overlaps its neighbour', /by 1 to 2.9/.test(txt), true);
+    t('Y-31: the guide names the allowance the bands measure from',
+      /playing number/.test(txt) && /Standard scores you against 95% of it/.test(txt), true);
+    t('M-19: with no league in hand the floor describes both structures',
+      /In a solo league that minimum is a habit, not a penalty/.test(txt), true);
+    t('D201: the ledger line is the constant, verbatim', txt.indexOf(CS_LEDGER) >= 0, true);
+    t('D201: never "between you"', /between you/.test(txt), false);
+    t('D205: with no league the covenant says "your standing", true in both structures',
+      /can't hurt your standing by playing badly/.test(txt), true);
+    /* D205 · the THIRD branch: a squad league in hand reads the squad paragraph,
+       verbatim with the phone's `GuideCopy.scoring(solo: false)`. It used to be
+       unreachable — `!!league && structure==='solo'` folded "no league" and
+       "squads" into one false. */
+    const wasStruct = state.structure;
+    if (window.CS) window.CS.league = { id: 'L-test' };
+    state.structure = 'squads2';
+    window.openScoringHelp();
+    const sq = ((document.querySelector('#sheet') || {}).textContent || '').replace(/\s+/g, ' ');
+    t('D205: a squad league reads the squad paragraph',
+      /Your best rounds each month count for your squad/.test(sq), true);
+    t('D205: and never the solo clause', /In a solo league that minimum is a habit/.test(sq), false);
+    t('D205: a squad league keeps the squad covenant',
+      /can't hurt your squad by playing badly/.test(sq), true);
+    state.structure = 'solo';
+    window.openScoringHelp();
+    const so = ((document.querySelector('#sheet') || {}).textContent || '').replace(/\s+/g, ' ');
+    t('D205: a solo league is told the minimum is a habit',
+      /In a solo league the monthly minimum is a habit/.test(so), true);
+    state.structure = wasStruct;
+    document.querySelector('#sheet')?.classList.remove('open');
+    if (window.CS) window.CS.league = wasLeague;
+  })();
+
+  /* ══ M-15 · verification is a norm the league holds, not a filter ═════════
+     "GHIN-verified + attested" was a claim the app cannot make. */
+  (function(){
+    t('M-15: the bylaws row names the norm', VERIF[2], 'Attested where you can; the Pro rules on the rest');
+    t('M-15: Standard asks, it does not verify', VERIF[1], "Post what you'd post to GHIN");
+    const cards = document.querySelector('#presetSummary')?.parentElement?.textContent || '';
+    t('M-15: the footnote sits under the preset cards',
+      /Verification is a norm the league holds, not a filter the engine applies\./.test(cards), true);
+  })();
+
+  /* ══ Y-12 · a course label as it should be READ ══════════════════════════
+     GolfCourseAPI title-cases its club names upstream, so "Palo Verde GC"
+     lands in rounds.course_label as "Palo Verde Gc". csCourse repairs the
+     acronym and touches nothing else — re-casing the whole string is the bug
+     one level up. Twin of the Kit's RoundCopy.course. */
+  (function(){
+    t('Y-12: the club acronym is repaired', csCourse('Palo Verde Gc · Back'), 'Palo Verde GC · Back');
+    t('Y-12: and inside a longer label',
+      csCourse('Arizona Biltmore Cc — Links · Copper'), 'Arizona Biltmore CC — Links · Copper');
+    t('Y-12: a hand-typed label is left alone', csCourse('Papago GC'), 'Papago GC');
+    t('Y-12: a small word is NOT re-cased', csCourse('Lone Tree at the Ranch'), 'Lone Tree at the Ranch');
+    t('Y-12: a lowercase name is left alone', csCourse('encanto gc'), 'encanto GC');
+    t('Y-12: null-safe', csCourse(null), '');
+  })();
+
+  /* ══ Y-14 · the figure-scope line carries its denominator ═════════════════
+     "across counting rounds" said nothing about how many; with ONE counting
+     round the best and the average are the same number, and the line is the
+     only thing that can explain that. Twin of YouCopy.acrossCounting. */
+  (function(){
+    t('Y-14: the singular is the whole point', countingScope(1), 'across 1 counting round');
+    t('Y-14: the plural', countingScope(5), 'across 5 counting rounds');
+  })();
+
+  /* ══ Y-08 · the FORM dots get a visible key ══════════════════════════════
+     The legend lived only in the aria-label, and a screen-reader string is not
+     a legend for the eye. The credential passes none — that card can be
+     somebody else's, where "your playing number" would be a lie. */
+  (function(){
+    const rec = [{beat:true},{beat:false},{beat:true},{beat:true},{beat:false}];
+    const withKey = formRowHtml(rec, 'Your last five rounds, oldest first — a lit dot beat your playing number.');
+    t('Y-08: the key is drawn, not only spoken', /a lit dot beat your playing number/.test(withKey), true);
+    t('Y-08: the credential passes none', /lit dot/.test(formRowHtml(rec)), false);
+    t('Y-08: the dots survive the caption', (withKey.match(/<i /g) || []).length, 5);
   })();
 
   const fails = R.filter(r => !r.ok);

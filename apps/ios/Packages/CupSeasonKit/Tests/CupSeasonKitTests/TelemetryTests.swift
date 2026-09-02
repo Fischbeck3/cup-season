@@ -71,7 +71,11 @@ private final class Window {
 }
 
 @Suite struct MetricsStackTests {
-  /// A MetricKit-shaped tree: one thread, a single chain `main → A → B → C → D → E`.
+  /// A MetricKit-shaped tree, the way MetricKit actually builds it: the ROOT
+  /// frame is the innermost (the crash site) and each `subFrames` step is the
+  /// caller, so `names` reads inner → outer, `crash → … → main → start`. The
+  /// first fixture here was written root-is-main, and the walk was tested
+  /// against it; both were wrong together (the fix that turned this around).
   private func tree(_ names: [(String, Int)], attributed: Bool = true) -> [String: Any] {
     var chain: [String: Any]? = nil
     for (name, off) in names.reversed() {
@@ -87,18 +91,32 @@ private final class Window {
   }
 
   @Test func keepsTheFourInnermostFramesInnermostFirst() {
-    let d = data([tree([("dyld", 0x10), ("CupSeason", 0x100), ("CupSeason", 0x200), ("libswiftCore", 0x300), ("CupSeason", 0x400), ("CupSeason", 0x500)])])
-    #expect(MetricsStack.frames(fromCallStackTree: d) == "CupSeason+0x500 <- CupSeason+0x400 <- libswiftCore+0x300 <- CupSeason+0x200")
+    // inner → outer: the crash site is the root; main and dyld are the leaves
+    let d = data([tree([("libsystem_kernel", 0x500), ("CupSeason", 0x400), ("libswiftCore", 0x300), ("CupSeason", 0x200), ("CupSeason", 0x100), ("dyld", 0x10)])])
+    #expect(MetricsStack.frames(fromCallStackTree: d) == "libsystem_kernel+0x500 <- CupSeason+0x400 <- libswiftCore+0x300 <- CupSeason+0x200")
+  }
+
+  @Test func theRootFrameIsTheCrashSiteAndIsTheOneRecorded() {
+    // the regression: a deep stack must keep its ROOT (the crash) and drop its
+    // tail (main), never the other way round
+    var chain: [(String, Int)] = [("CupSeason", 0xdead)]
+    for i in 1...12 { chain.append(("Foundation", i)) }
+    chain.append(("CupSeason", 0x1))   // main
+    chain.append(("dyld", 0x0))        // start
+    let s = MetricsStack.frames(fromCallStackTree: data([tree(chain)]))
+    #expect(s.hasPrefix("CupSeason+0xdead <- Foundation+0x1"))
+    #expect(!s.contains("dyld"))
+    #expect(s.components(separatedBy: " <- ").count == MetricsStack.keptFrames)
   }
 
   @Test func aShallowStackKeepsWhatItHas() {
-    let d = data([tree([("dyld", 0x10), ("CupSeason", 0xabc)])])
+    let d = data([tree([("CupSeason", 0xabc), ("dyld", 0x10)])])
     #expect(MetricsStack.frames(fromCallStackTree: d) == "CupSeason+0xabc <- dyld+0x10")
   }
 
   @Test func prefersTheAttributedThread() {
-    let other = tree([("libsystem_kernel", 0x1), ("Foundation", 0x2)], attributed: false)
-    let mine = tree([("dyld", 0x3), ("CupSeason", 0x4)], attributed: true)
+    let other = tree([("Foundation", 0x2), ("libsystem_kernel", 0x1)], attributed: false)
+    let mine = tree([("CupSeason", 0x4), ("dyld", 0x3)], attributed: true)
     #expect(MetricsStack.frames(fromCallStackTree: data([other, mine])) == "CupSeason+0x4 <- dyld+0x3")
     // none attributed: the first thread
     let d2 = data([tree([("a", 1)], attributed: false), tree([("b", 2)], attributed: false)])
@@ -106,11 +124,12 @@ private final class Window {
   }
 
   @Test func followsTheHeaviestBranchOfAFork() {
+    // a sampled hang: the busy frame is the root; its callers fork under it
     let light: [String: Any] = ["binaryName": "Light", "offsetIntoBinaryTextSegment": 1, "sampleCount": 2]
     let heavy: [String: Any] = ["binaryName": "Heavy", "offsetIntoBinaryTextSegment": 2, "sampleCount": 9]
-    let root: [String: Any] = ["binaryName": "main", "offsetIntoBinaryTextSegment": 0, "sampleCount": 11, "subFrames": [light, heavy]]
+    let root: [String: Any] = ["binaryName": "busy", "offsetIntoBinaryTextSegment": 0, "sampleCount": 11, "subFrames": [light, heavy]]
     let d = data([["callStackRootFrames": [root], "threadAttributed": true]])
-    #expect(MetricsStack.frames(fromCallStackTree: d) == "Heavy+0x2 <- main+0x0")
+    #expect(MetricsStack.frames(fromCallStackTree: d) == "busy+0x0 <- Heavy+0x2")
   }
 
   @Test func garbageAndEmptyTreesGiveAnEmptyStackNotACrash() {
@@ -132,6 +151,8 @@ private final class Window {
     let s = MetricsStack.join(long)
     #expect(s.count == MetricsStack.maxLength)
     #expect(MetricsStack.join([]) == "")
-    #expect(MetricsStack.join(["outer", "inner"]) == "inner <- outer")
+    // join takes inner → outer and keeps that order
+    #expect(MetricsStack.join(["inner", "outer"]) == "inner <- outer")
+    #expect(MetricsStack.join(["1", "2", "3", "4", "5", "6"]) == "1 <- 2 <- 3 <- 4")
   }
 }

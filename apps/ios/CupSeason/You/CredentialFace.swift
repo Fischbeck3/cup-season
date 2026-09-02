@@ -21,6 +21,9 @@ import CupSeasonKit
 
 struct CredentialFace<Sub: View, Trailing: View>: View {
   @Environment(\.dynamicTypeSize) private var typeSize
+  /// The corner glyph follows the type size: a mark that stays 20pt beside a
+  /// name that has grown to 34 reads as a speck, not a marker.
+  @ScaledMetric(relativeTo: .body) private var cornerGlyph: CGFloat = 20
 
   let photoURL: URL?
   let marker: String?
@@ -103,6 +106,13 @@ struct CredentialFace<Sub: View, Trailing: View>: View {
   }
 
   /// Bottom edge of the panel: the name at one end, the marker at the other.
+  ///
+  /// Over a photograph the band carries its own PLATE (`CSPhotoScrim`) — the
+  /// ground the copy stands on, sized to the copy and nothing else. It is on
+  /// the BAND rather than the panel on purpose: the identity block is a known
+  /// strip at the foot of the card, so darkening it costs the picture a strip
+  /// and not a third. Over a crest there is no photograph to be legible
+  /// against, and no plate.
   private var band: some View {
     HStack(alignment: .bottom, spacing: 12) {
       identity
@@ -110,9 +120,28 @@ struct CredentialFace<Sub: View, Trailing: View>: View {
       if photoURL != nil { corner }
     }
     .padding(16)
+    .background { if photoURL != nil { CSPhotoScrim.plate(p.bg1) } }
   }
 
-  private var identity: some View {
+  /// Riding over the panel the copy wears a HALO; under it, on the card's own
+  /// ground, it wears nothing — an offscreen pass for a `.clear` shadow is a
+  /// pass all the same.
+  @ViewBuilder private var identity: some View {
+    if riding {
+      // the colour is the card's own ground, so it is dark behind light ink on
+      // charcoal and light behind dark ink on paper. It is what lets the scrim
+      // stop short of erasing the photograph — the copy carries its own
+      // contrast wherever it lands, including the line `sub()` draws, which
+      // arrives in the CALLER's palette and cannot be re-tinted from in here.
+      identityStack
+        .shadow(color: p.bg1.opacity(0.85), radius: 5)
+        .shadow(color: p.bg1.opacity(0.55), radius: 1.5)
+    } else {
+      identityStack
+    }
+  }
+
+  private var identityStack: some View {
     VStack(alignment: .leading, spacing: 3) {
       Text(name).font(CSFont.title).foregroundStyle(p.ink).lineLimit(2)
       FoundingTag(badge: badge).environment(\.cs, p).padding(.top, 1)
@@ -128,7 +157,7 @@ struct CredentialFace<Sub: View, Trailing: View>: View {
 
   /// The tiny emblem — present only when the photo took the crest's place.
   private var corner: some View {
-    CSMarkerView(key: marker, size: 20, lineWidth: 2)
+    CSMarkerView(key: marker, size: cornerGlyph, lineWidth: 2)
       .foregroundStyle(p.ink)
       .padding(9)
       .background(p.bg1.opacity(0.82), in: Circle())
@@ -137,20 +166,21 @@ struct CredentialFace<Sub: View, Trailing: View>: View {
       .accessibilityLabel("Marker: \(CSMarkers.marker(marker).name)")
   }
 
-  /// Ground for the name where it crosses a photograph. It is the card's own
-  /// bg1, so a light-theme card gets a light scrim and dark ink — the panel
-  /// stays part of the card instead of becoming a dark rectangle inside it.
-  private var scrim: some View {
-    LinearGradient(stops: [
-      .init(color: .clear,              location: 0.0),
-      .init(color: p.bg1.opacity(0.38), location: 0.34),
-      .init(color: p.bg1.opacity(0.86), location: 0.7),
-      // FULL bg1 at the last stop, or the panel's bottom edge shows as a seam
-      // and the photograph reads as a picture pasted on the card rather than
-      // the card's own top half
-      .init(color: p.bg1,               location: 1.0)
-    ], startPoint: .top, endPoint: .bottom)
-      .frame(height: 230)
-      .allowsHitTesting(false)
-  }
+  /// The panel's dissolve into the card — the SEAM, not the letters.
+  ///
+  /// The screenshot pass — it ran to FULL bg1 at location 1.0 over 230pt,
+  /// which is most of a square panel. On charcoal that is invisible; in the
+  /// light theme bg1 is very nearly white, and the bottom two thirds of the
+  /// photograph were bleached out of it — belt, shorts and legs gone, the
+  /// turf milky. D202 gives the photograph the card, so the photograph won
+  /// the argument and the dissolve was lightened.
+  ///
+  /// The MEASUREMENT pass then found what that cost: in charcoal the
+  /// smallest identity line fell to 4.49:1 on a real photograph and 4.02:1
+  /// over the near-white `-cs_dev_cred photo` subject, under the 4.5:1 a
+  /// footnote needs. The answer is NOT to put the dissolve back — it is the
+  /// plate on the band above, which buys the letters their contrast without
+  /// touching the picture over the other two thirds of the panel. Both ramps,
+  /// and the arithmetic that says the pair clears AA, live in `CSPhotoScrim`.
+  private var scrim: some View { CSPhotoScrim.settle(p.bg1) }
 }

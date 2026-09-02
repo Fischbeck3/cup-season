@@ -86,6 +86,9 @@ struct FinalistReceiptSheet: View {
         RoomMathRow(k: "Total in the Final", v: CSCopy.points(f.total), total: true)
       }
       Text("The rounds").csEyebrow().padding(.top, 6)
+      // D212 · the calendar cap does not stop at the window's edge, and the
+      // sentence that says so is the SERVER's, not a second copy on the phone.
+      if let note = model.cupRace?.cap_note { RoomFine(note).padding(.top, 4) }
       if f.rounds.isEmpty {
         RoomFine("No counting rounds in the window yet — the slate is still clean.").padding(.vertical, 8)
       } else {

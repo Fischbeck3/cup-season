@@ -91,10 +91,14 @@ private actor TelemetryDedupeActor {
 
 // MARK: - the crash stack (pure — the app hands over MXCallStackTree's JSON)
 
-/// MetricKit gives a call stack as a TREE (`jsonRepresentation()`), rooted at
-/// the thread's entry and descending through `subFrames` to the crashing
-/// frame. On-device frames are never symbolicated — a frame is a binary and an
-/// offset, which is what `symbolicatecrash`/`atos` needs and nothing more.
+/// MetricKit gives a call stack as a TREE (`jsonRepresentation()`) that is
+/// UPSIDE DOWN: `callStackRootFrames` is the innermost frame — the crash site
+/// (`__pthread_kill`, the hang's busy frame) — and each `subFrames` step is
+/// that frame's CALLER, walking out toward `main` and `start`. The first
+/// build of this walk read it the other way and kept the tail, so every crash
+/// row named `dyld` and `main` and dropped the one frame worth chasing. On-
+/// device frames are never symbolicated — a frame is a binary and an offset,
+/// which is what `symbolicatecrash`/`atos` needs and nothing more.
 public enum MetricsStack {
   /// The web keeps four frames and 400 characters (`trace`, index.html 3656);
   /// the phone keeps the same, innermost first, joined with ` <- `.
@@ -109,20 +113,21 @@ public enum MetricsStack {
           let stacks = root["callStacks"] as? [[String: Any]], !stacks.isEmpty else { return "" }
     let chosen = stacks.first { ($0["threadAttributed"] as? Bool) == true } ?? stacks[0]
     guard let roots = chosen["callStackRootFrames"] as? [[String: Any]] else { return "" }
+    // root → subFrames is inner → outer; stop once the kept frames are in hand
     var path: [String] = []
     var level: [[String: Any]] = roots
-    while let f = heaviest(level) {
+    while path.count < keptFrames, let f = heaviest(level) {
       path.append(render(f))
       level = f["subFrames"] as? [[String: Any]] ?? []
     }
     return join(path)
   }
 
-  /// The innermost `keptFrames` of an outer-to-inner path, innermost first,
-  /// capped at `maxLength` — the same truncation the web applies.
-  public static func join(_ outerToInner: [String]) -> String {
-    let inner = outerToInner.suffix(keptFrames).reversed()
-    return String(inner.joined(separator: " <- ").prefix(maxLength))
+  /// The first `keptFrames` of an inner-to-outer path, in that order (the
+  /// crash site first), capped at `maxLength` — the same truncation the web
+  /// applies.
+  public static func join(_ innerToOuter: [String]) -> String {
+    String(innerToOuter.prefix(keptFrames).joined(separator: " <- ").prefix(maxLength))
   }
 
   /// When a level forks (a sampled hang can), follow the branch that carried

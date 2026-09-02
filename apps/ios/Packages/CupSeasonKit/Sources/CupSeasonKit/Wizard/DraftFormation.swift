@@ -131,7 +131,15 @@ public enum DraftCopy {
   /// What `start_season` will say, said first (audit 02 §7.19). nil = clear to start.
   public static func startBlocker(members: Int, pool: Int, squads: [LeagueRoom.Squad], solo: Bool) -> String? {
     guard !solo else { return nil }
-    if members < 4 { return "Minimum four to tee off — \(members) in so far. Share the invite link." }
+    // D205 · the number and its word come from `Bylaws.structMin`, and the key
+    // is ALWAYS "squads2": `start_season` raises on `total < 4` for every
+    // non-solo structure (`20260902163000:253-257`), so four is the tee-off
+    // minimum whether the Pro drew two squads or four. structMin's 6 and 8 are
+    // the wizard's structure-FIT seat math ("3 squads · fits 6+"), a different
+    // question — blocking a five-member squads3 league here would refuse a
+    // season the server would have started.
+    let need = Bylaws.structMin["squads2"] ?? 4
+    if members < need { return "Minimum \(WizardCopy.numberWord(need)) to tee off — \(members) in so far. Share the invite link." }
     if pool > 0 { return "\(pool) golfer(s) still in the pool — everyone needs a squad before the first tee" }
     if let empty = squads.first(where: { $0.squad_members.isEmpty }) { return "\(empty.name) is empty — draw again or assign somebody before the season starts" }
     return nil

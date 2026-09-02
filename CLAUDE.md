@@ -165,7 +165,9 @@ fresh; seeds lock in `cup_finalists` when the daily tick flips
 
 Seasons run N whole weeks from a **flexible first-tee weekday** (§14.0 v1.1
 dropped the Sunday-start snap — pilot: "every league says Sunday"; UI labels
-derive the REAL weekday, never hardcode Sun/Sat). Caps/floors are calendar-month machinery; **floors are waived in partial
+derive the REAL weekday, never hardcode Sun/Sat) (D213 records it — the snap
+was a wizard rule, never a database one; the clash keys to `starts_on`).
+Caps/floors are calendar-month machinery; **floors are waived in partial
 edge months** (blanket rule, decided). League timezone default
 `America/Phoenix` (no DST). Month closes run on the 1st ~00:10 local.
 
@@ -252,7 +254,23 @@ edge months** (blanket rule, decided). League timezone default
   is a silent failure that the UI then narrates as success (2026-08-28 found
   four on consequential paths: lock-league, wizard invites, round_holes,
   push-off). Every direct write destructures and throws; better still, it is
-  an RPC. The phone has no direct writes at all — that is the model.
+  an RPC. The phone is NOT free of direct writes, and saying so was a
+  belief, not a fact: `WizardService.lock` carried four of them until D111
+  was built (2026-09-01) — the lock now goes through `lock_league`, one
+  transaction, both clients. What remains direct on the phone is small and
+  named, and it splits in two. ONE is CONSEQUENTIAL and is a defect awaiting
+  an RPC: `rounds`/`round_holes` (`PostService.swift:84,93` — the round row
+  feeds `v_rounds_ranked`, the counting cap, points and standings; the holes
+  insert is deliberately best-effort, mirroring the web, so a hole-detail
+  hiccup never un-posts the round). It is kept only because the web posts the
+  same way. The REST are social rows, RLS-guarded, with no scoring
+  consequence: the chat `posts` insert and `post_comments`
+  (`BoardRepository.swift:205,222`), `post_kudos`
+  (`BoardRepository.swift:213,216` / `HomeSocial.swift:104,107`) and
+  `client_events` (`Telemetry.swift:46`). The model is: a write with game consequences is an
+  RPC; a new direct write on the phone is a defect to be turned into one,
+  never a pattern to copy. Verify the list before citing it (this one was
+  read from the Kit on 2026-09-01, after D111 landed).
 - **The "Supabase Casa" MCP is bound to a DIFFERENT project** (casa-contenta,
   `dloqhozuxrmgmwmibfbx`). Its advisors/cron/trigger answers are not about
   Cup Season. Verify prod with `supabase db query --linked "<sql>"` (read-only,

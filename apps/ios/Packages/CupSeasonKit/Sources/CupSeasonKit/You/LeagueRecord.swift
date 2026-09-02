@@ -18,6 +18,10 @@ public struct LeagueRecordRow: Sendable, Identifiable, Equatable {
   public init(id: UUID, name: String, number: Int, line: String) { self.id = id; self.name = name; self.number = number; self.line = line }
   /// "SEASON II · 3RD OF 12 · 41 PTS"
   public var sub: String { "SEASON \(LeagueRecord.roman(number)) · \(line)" }
+  /// Y-33 · what VoiceOver says: "Season 2, 3rd of 12 · 41 pts". A roman "II"
+  /// is read as letters, and so is every upper-case token in `line` ("PTS"
+  /// becomes "P T S") — the numeral gets its digit and the rest its own case.
+  public var spoken: String { "Season \(number), \(line.lowercased())" }
 }
 
 public enum LeagueRecord {
@@ -36,8 +40,12 @@ public enum LeagueRecord {
   /// - standings: that season's individual standings, any order.
   public static func line(phase: String, season: Me.Season?, standings: [IndividualStanding], myMemberId: UUID,
                           today: String = CSDate.today(), calendar: Calendar = .current) -> String {
-    guard let s = season, phase != "setup" else { return "Forming — invites open" }
-    if phase == "draft" { return "Squad formation" }
+    // Y-09 · the WORDS are `LeagueCopy.Stage`'s; the CASE is this line's. Every
+    // other value of `line` is upper ("3RD OF 12 · 41 PTS"), and `sub`
+    // concatenates them into one mono line, so a natural-case stage would put
+    // "SEASON I · Forming" beside "SEASON II · 3RD OF 12 · 41 PTS" in one list.
+    guard let s = season, phase != "setup" else { return LeagueCopy.Stage.forming.label.uppercased() }
+    if phase == "draft" { return LeagueCopy.Stage.drawing.label.uppercased() }
     let rows = standings.filter { $0.season_id == s.id }.sorted { ($0.points ?? 0) > ($1.points ?? 0) }
     let place: String
     if let i = rows.firstIndex(where: { $0.member_id == myMemberId }) {

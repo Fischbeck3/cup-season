@@ -12,7 +12,9 @@ Season-long fantasy golf for real friend groups. Captains draft squads, everyone
 *(NOTE: this file is the working copy checked into the repo. The full v1.0 text
 was authored in the design chats; sections below are complete as pasted at repo
 creation. §14.0 amendment supersedes §14.1/§14.3 where they conflict — spec
-v1.1 should reconcile the prose and rule on hybrid +15 in partial months.)*
+v1.1 should reconcile the prose; the hybrid +15 question closed with D206,
+which retired hybrid from the engine. Amendments since are inline italic
+parentheticals citing their D-number; the decided line is never rewritten.)*
 
 ---
 
@@ -93,10 +95,13 @@ The window is the **calendar month**. Two independent parameters:
 |---|---|---|
 | Unlimited | Every round's points count | Casual play-more-win-more |
 | Best 6 | High cap, mild equalizer | Active groups, retiree-heavy |
-| **Best 4** *(default)* | Roughly weekly cadence | Most leagues |
+| Best 4 | Roughly weekly cadence | Active groups *(was the default until D142)* |
+| **Best 3** *(default, D142)* | A good round matters; a missed week is survivable | Most leagues |
 | Best 2 | Strong equalizer | Busy-season leagues |
 
 All posted rounds are always visible and count toward floors/stats; only the best N by points feed the squad total. A newly posted better round **displaces** the worst counting round in real time.
+
+*(D142/D149, 2026-08-30: the ladder is Best 2 / Best 3 / Best 4 / Best 6 / Unlimited and the default is **Best 3** — the cap is the quality dial, and at 4 the marginal round was already worthless to a regular. Standard = 3, Cutthroat = 2, Casual = Unlimited. Built: migration `20260830180000`; `lock_league` defaults `p_counting_cap` to 3. D206 (2026-09-01) adds a CHECK `counting_cap between 1 and 31` — a 0 zeroes every standings row silently.)*
 
 ### 3.2 Participation floor — "minimum rounds per month"
 
@@ -142,6 +147,16 @@ this section to Points Race + the endgame dial.)*
 *(D49, 2026-07-21: flat-7 retired — provisional rounds score normally,
 badged until established. See decision log.)*
 
+*(Unbuilt as of 2026-09-01 — leaned to in the 2026-09-01 You-and-mechanics
+review behind D204–D212, which took no D-entry on it:
+the **max index 30.0**, the **+1.0 in-season rise cap** and the
+**exceptional-score cut** exist in this table and not in the engine.
+`handicap_index_asof()` (`20260716100000`, still the only definition) takes
+the best m of the last 20 differentials through the WHS adjustment table and
+nothing else — no ceiling, no rise cap, no cut. D49 leans on the cut without
+it existing. Strike or build is a spec-amendment decision after launch; this
+note records the gap so the table stops reading as shipped.)*
+
 ---
 
 ## 6. Verification tiers
@@ -154,7 +169,7 @@ badged until established. See decision log.)*
 
 ## 7. Stakes structure
 
-Buy-in $25–$200 (default $75) · Payout split 60/25/15 (Champs/Runner-up/Points King) · optional side pots. **Track, never hold.** Money moves friend-to-friend; the ledger is the product. The pot is what the roster owes; payouts are made from what was collected (D106).
+Buy-in **$0 by default (bragging rights); $25–$200 when money's in play** *(D113, 2026-08-29. The column default moves to 0 in migration `20260901220000` (D196), whose backfill matched zero rows as written — it joins `seasons.status = 'setup'`, a value that CHECK forbids. `20260901220000` is APPLIED, so rule 2 binds it: the corrected backfill (keyed on `leagues.phase = 'setup'`) is a NEW migration, `20260902160000` §1, per D206; D206 also has `create_league` write the wizard's defaults explicitly, so a row and a wizard can never disagree again.)* · Payout split 60/25/15 (Champs/Runner-up/Points King) · optional side pots. **Track, never hold.** Money moves friend-to-friend; the ledger is the product. The pot is what the roster owes; payouts are made from what was collected (D106).
 
 ---
 
@@ -166,33 +181,46 @@ Buy-in $25–$200 (default $75) · Payout split 60/25/15 (Champs/Runner-up/Point
 | Index source | App | GHIN | GHIN | Any |
 | Verification | Honor | Attested | GHIN + attested | Any |
 | Eligible rounds | Any, sim ok, 9-hole half | Rated, sim ok | Rated tees, no 9-hole | Any |
-| Counting cap /mo | Unlimited | **Best 4** | Best 4 | 2/4/6/Unl |
+| Counting cap /mo | Unlimited | **Best 3** *(D142)* | Best 2 *(D149)* | 2/3/4/6/Unl |
 | Floor /mo | 0 | **2** | 3 | 0–4 |
 | Floor penalty | None | −5/short | Forfeit | Any |
 | Bye months | 1 | 1 | 1 | 0–2 |
 | Bonus layer | Birdie +1 | Off | Off | Any |
 | Format | Points | Points | H2H | Any |
-| Length | 6 mo | 9 mo | 9–12 mo | 3–12 mo |
+| Length | 6 mo | 9 mo | 9–12 mo | 1–12 mo *(D143/D149)* |
 
 **Monetization mapping:** presets free; **Custom = Commissioner Pro** (§11).
 
-**League size (graduated):** min **4 players**. 4–5: **Individual** (top 2 duel the Final) or **2×2** (both reach the Final; leader +10). 6–7: 2×3 / 3×2. **8+: full 4-squad draft.** 10+ clears the USGA club threshold → Make It Official (§11).
+**League size (graduated):** min **4 for squads · 2 for solo (D205)**. 4–5: **Individual** (top 2 duel the Final) or **2×2** (both reach the Final; leader +10). 6–7: 2×3 / 3×2. **8+: full 4-squad draft.** 10+ clears the USGA club threshold → Make It Official (§11).
 
 *(D48, 2026-07-21: the allowance dial, bonus-layer row, and format rows of the
 preset matrix are retired — presets keep their fixed values internally. See
-decision log; v1.1 updates the matrix.)*
+decision log; v1.1 updates the matrix.)* *(D206, 2026-09-01: hybrid retired
+from the engine as well — `season_format` defaults to `points`, unlocked rows
+are updated, the `close_month` +15 branch is deleted; the CHECK keeps the
+legacy value only so the two seed rows survive.)*
+
+*(Counting cap row — D142/D149, 2026-08-30: Standard **Best 3**, Cutthroat
+**Best 2**, Casual Unlimited, Custom 2/3/4/6/Unlimited; see §3.1.)*
+
+*(Length row — D206, 2026-09-01: the default on both clients is **13 weeks /
+3 months** for every preset — under ~10 weeks the calendar-month floor never
+assesses (D143's own tradeoff). The CHECK is 1–12 months (widened from 3–12 in
+`20260830180000`) and the dates are the truth, `season_months` only describes
+them (D143/D149). The per-preset
+lengths above are v1.0's suggestions, not defaults.)*
 
 ---
 
 ## 9. Edge cases & rulings
 
-Ties: total squad PvI → h2h record → streamed coin flip. Mid-season joins until halfway (provisional scoring; floor prorates — see §14.1 15th rule). Dropouts: squad plays short or Pro waiver wire. A round belongs to the local date **played**; posts accepted 7 days after play, later needs override. Commissioner can void/edit any round — every override logged and visible. Index revision day: the 1st, before counting.
+Ties: total squad PvI → h2h record → streamed coin flip. Mid-season joins until halfway (provisional scoring; floor prorates — see §14.1 15th rule). Dropouts: squad plays short or Pro waiver wire. A round belongs to the local date **played**; posts accepted 7 days after play, later needs override *(the seven-day wall is NOT enforced anywhere and never was — D122 named it an open item, D136 (Q-28) struck it as unenforced: backdated entry is legitimate (scorecard scan, guest claims, a round posted the following week) and the date field's own prominence is the control. The ruled direction (leaned to in the 2026-09-01 You-and-mechanics review behind D204–D212, under the owner's "build out your suggestions"; no D-entry of its own) is a "posted late" stamp on the card and the board story when `created_at − played_on > 7d`, with the Pro ruling (D50) — not yet built, no D-entry yet.)*. Commissioner can void/edit any round — every override logged and visible. Index revision day: the 1st, before counting.
 
 ---
 
 ## 10. Recommended beta configuration (PIGL)
 
-Standard + **sim rounds ON** + format **Hybrid**. Best 4 / floor 2 (−5) / 9 months / Attested / $75 · 60/25/15.
+Standard + **sim rounds ON** + format **Hybrid**. Best 4 / floor 2 (−5) / 9 months / Attested / $75 · 60/25/15. *(Historical — the v1.0 beta configuration as written. Hybrid is retired (D48, and D206 from the engine), the Standard cap is Best 3 (D142) and the buy-in defaults to $0 (D113/D196); a league minted today is points · Best 3 · $0 unless the Pro dials it.)*
 
 ---
 
@@ -234,7 +262,7 @@ The category: **fantasy sports where your foursome are the athletes.**
 ## 14. The Season Clock
 
 ### 14.0 Amendment (v1.0, DECIDED): Sunday seasons & the four-week Final
-Superseding 14.1/14.3 where they conflict: **seasons start on a Sunday, end on a Saturday**, N months snapped to whole weeks. Caps/floors stay calendar-month machinery; **floors waived in partial edge months** *(implemented: blanket rule, migration 006)*. **The Cup Final is the final four weeks, scored fresh.** `close_month()` gains the waiver; weekly snapshots feed the Week Review browser. *(Open for v1.1: hybrid +15 in partial edge months.)*
+Superseding 14.1/14.3 where they conflict: **seasons start on a Sunday, end on a Saturday**, N months snapped to whole weeks *(v1.1, D213: the Sunday snap is dropped; the first tee is any weekday — the season runs N whole weeks from the weekday of `starts_on`, clash weeks roll on that weekday, and first-tee labels derive the real weekday, never a hardcoded Sun/Sat. Built 2026-07-15, v23.122; the one label still keyed to Sunday — the Season tile's week-close line — was fixed on both clients in the same 2026-09-01/02 pass.)*. Caps/floors stay calendar-month machinery; **floors waived in partial edge months** *(implemented: blanket rule, migration 006)*. **The Cup Final is the final four weeks, scored fresh.** `close_month()` gains the waiver; weekly snapshots feed the Week Review browser. *(Open for v1.1: hybrid +15 in partial edge months — closed by D206, 2026-09-01: hybrid is retired from the engine and the `close_month` +15 branch is deleted.)*
 
 ### 14.1 Dates are structural
 League timezone default `America/Phoenix`. Late joiners: before the 15th → full floor; on/after → waived that month. *(Original 1st-of-month start superseded by 14.0.)*

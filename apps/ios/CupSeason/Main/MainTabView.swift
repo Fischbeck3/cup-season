@@ -78,7 +78,26 @@ enum CSDevHatch {
 
 enum HomeRoute: Hashable { case schedule, people, league(UUID) }
 enum ClubRoute: Hashable { case board(UUID), schedule, album(UUID) }
-enum YouRoute: Hashable { case people, settings }
+/// `.addGhin` is Card & settings opened on the card pane with the GHIN field
+/// focused (Y-30) — the You hero's "add your GHIN" lands on the field, not the screen.
+enum YouRoute: Hashable { case people, settings, addGhin }
+
+/// Y-16 · "open this league in the Clubhouse", callable from ANY screen: sets
+/// `store.preferredLeague`, clears the Clubhouse stack so the room is what
+/// shows, and selects the tab. Installed once by `MainTabView`; the default is
+/// a no-op so previews and slices compile without the shell.
+///
+///     @Environment(\.openLeague) private var openLeague
+///     openLeague(id)
+private struct OpenLeagueKey: EnvironmentKey {
+  static let defaultValue: @MainActor @Sendable (UUID) -> Void = { _ in }
+}
+extension EnvironmentValues {
+  var openLeague: @MainActor @Sendable (UUID) -> Void {
+    get { self[OpenLeagueKey.self] }
+    set { self[OpenLeagueKey.self] = newValue }
+  }
+}
 
 struct MainTabView: View {
   @Environment(SessionStore.self) private var store
@@ -94,6 +113,10 @@ struct MainTabView: View {
   @State private var homePath = NavigationPath()
   @State private var clubPath = NavigationPath()
   @State private var youPath = NavigationPath()
+  /// What the floating bar covers that the system does not already reserve —
+  /// measured from the live bar (`CSTabBarProbe`), never guessed. 0 until the
+  /// bar exists, which is exactly the behaviour the app had before.
+  @State private var barRoom: CGFloat = 0
   #if DEBUG
   @State private var devOpened = false
   #endif
@@ -135,6 +158,7 @@ struct MainTabView: View {
             }
           }
       }
+      .csTabBarEdge()
       .tabItem { Label("Home", systemImage: "house") }
       .tag(Tab.home)
 
@@ -166,6 +190,7 @@ struct MainTabView: View {
             }
           }
       }
+      .csTabBarEdge()
       .tabItem { Label("Clubhouse", systemImage: "flag") }
       .tag(Tab.clubhouse)
 
@@ -179,14 +204,36 @@ struct MainTabView: View {
             switch r {
             case .people: PeopleScreen(links: csLinks)
             case .settings: CardAndSettingsScreen()
+            case .addGhin: CardAndSettingsScreen(focus: .ghin)
             }
           }
       }
+      .csTabBarEdge()
       .tabItem { Label("You", systemImage: "person.text.rectangle") }
       .tag(Tab.you)
     }
+    // Room at the foot for the floating bar, answered in ONE place. Applied to
+    // the TabView, so every tab and every screen pushed inside one — Card &
+    // settings and People included, which paint their own ground and would
+    // otherwise each have to know the number — leaves the bar its space.
+    // `barRoom` is the measured SHORTFALL, so a screen the system already
+    // clears gets nothing added and cannot be inset twice. (The other half —
+    // the page not reading THROUGH the pill — is `.csTabBarEdge()`, per stack,
+    // so the full-screen covers below never inherit it.)
+    .csTabBarRoom(barRoom)
     .tint(cs.brand)
     .environment(\.presenter, presenter)
+    .environment(\.openLeague, { id in openLeague(id) })
+    // Measure the bar once it exists, and dress it on the way past. The bar is
+    // built after the first layout, so this polls briefly and then stops; a
+    // shell that never finds one leaves `barRoom` at 0.
+    .task(id: scenePhase) {
+      guard scenePhase == .active, barRoom == 0 else { return }
+      for _ in 0..<25 {
+        if let room = CSTabBarProbe.dressAndMeasure(), room > 0 { barRoom = room; return }
+        do { try await Task.sleep(for: .milliseconds(120)) } catch { return }
+      }
+    }
     // D155 · tapping the Dynamic Island or the lock-screen card opens the round
     .onReceive(NotificationCenter.default.publisher(for: .csOpenLiveRound)) { _ in
       presenter.showLive = true
@@ -390,6 +437,15 @@ struct MainTabView: View {
 
   // MARK: links
 
+  /// Y-16 · the one way a league is opened in the Clubhouse (`CSLinks.openLeague`
+  /// and the `\.openLeague` environment action both land here). The stack is
+  /// cleared so a board pushed earlier cannot sit over the room you asked for.
+  private func openLeague(_ id: UUID) {
+    store.preferredLeague = id
+    clubPath = NavigationPath()
+    tab = .clubhouse
+  }
+
   private var liveLinks: LiveLinks {
     LiveLinks(openReceipt: { presenter.receipt = $0 }, openTourCard: { presenter.tourCard = $0 }, done: { presenter.showLive = false })
   }
@@ -397,7 +453,7 @@ struct MainTabView: View {
   private var csLinks: CSLinks {
     CSLinks(openTourCard: { presenter.tourCard = $0 },
             openRound: nil,      // a nil openRound presents the scheduled-round sheet in place
-            openLeague: { id in store.preferredLeague = id; tab = .clubhouse })
+            openLeague: { openLeague($0) })
   }
 
   private var wizardLinks: WizardLinks {
@@ -427,11 +483,53 @@ struct MainTabView: View {
       postRound: { presenter.postOnComposer = true; presenter.showPost = true },
       openTourCard: { presenter.tourCard = $0 },
       openReceipt: { presenter.receipt = $0 },
-      addGhin: { tab = .you; youPath.append(YouRoute.settings) },
+      addGhin: { tab = .you; youPath.append(YouRoute.addGhin) },   // Y-30: lands ON the field
       founderNote: { presenter.showNote = true },
       stageRound: { playOn, tag in presenter.declare = DeclarePrefill(iso: playOn, tagPids: [tag]) }
     )
   }
 }
 
-/// Wave 5/6 hand-off (the wizard, the event picker): honest, and a real
+/// The floating tab bar, measured rather than guessed.
+///
+/// The bar floats OVER the page on this OS, so nothing downstream of it in
+/// SwiftUI can see where its top edge is: a `GeometryReader` inside a tab
+/// reports the safe area the system reserves, which is the very thing that is
+/// too small. The live `UITabBar` knows both numbers, so it is asked for both:
+/// what the pill COVERS (the screen's bottom edge up to the bar's top) and
+/// what the system already RESERVES. The difference is what a page owes its
+/// foot — 0 when the system already clears the bar, which is what keeps this
+/// from ever insetting a screen twice.
+///
+/// Read once and held. The bar does not change height while the app runs (no
+/// minimise behaviour is asked for), and re-reading after `csTabBarRoom` has
+/// landed would measure our own inset back into the reserve.
+@MainActor private enum CSTabBarProbe {
+  /// Dress the bar and return the room it costs the page,
+  /// or nil while there is no bar to read.
+  static func dressAndMeasure() -> CGFloat? {
+    guard let window = UIApplication.shared.connectedScenes
+            .compactMap({ $0 as? UIWindowScene })
+            .flatMap(\.windows)
+            .first(where: \.isKeyWindow),
+          let controller = tabController(in: window.rootViewController)
+    else { return nil }
+    let bar = controller.tabBar
+    CSTabBarChrome.dress(bar)
+    guard bar.bounds.height > 0 else { return nil }
+    let frame = bar.convert(bar.bounds, to: window)
+    let covers = max(0, window.bounds.maxY - frame.minY)
+    // the tab's own bottom safe area: the bar's reservation plus the home
+    // indicator. Zero means layout has not settled — do not trust it yet.
+    let reserved = controller.selectedViewController?.view.safeAreaInsets.bottom ?? 0
+    guard reserved > 0 else { return nil }
+    return max(0, covers - reserved)
+  }
+
+  private static func tabController(in vc: UIViewController?) -> UITabBarController? {
+    guard let vc else { return nil }
+    if let t = vc as? UITabBarController { return t }
+    for child in vc.children { if let t = tabController(in: child) { return t } }
+    return tabController(in: vc.presentedViewController)
+  }
+}

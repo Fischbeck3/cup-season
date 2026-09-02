@@ -61,16 +61,18 @@ struct CredDevView: View {
         if isHero {
           YouHero(photoURL: withPhoto ? CredDev.photo : nil, marker: "saguaro", name: "Jerecho Fischbeck",
                   meta: "@jerecho · Tempe, AZ · Papago GC", indexCurrent: 12.4, rounds: 42,
-                  trophyChips: ["🔥 Broke 80 · '26", "📈 4-week streak · '26"], moreChip: "+2 more in the case",
+                  trophyChips: ["🔥 Broke 80 · '26", "📈 4-week streak · '26", "⛳ First round · '26", "🎯 Broke 90 · '25", "📉 Personal best · '25"],
                   form: FormRow.from(beats: [true, true, true, false, true]),
-                  anchor: { Text("GHIN 1234567 · Member since Jul 2026").font(CSFont.footnote).foregroundStyle(cs.mut) })
+                  anchor: { Text("GHIN 1234567 · est. Jul 2026").font(CSFont.footnote).foregroundStyle(cs.mut) })
         } else {
           CredentialCard(photoURL: withPhoto ? CredDev.photo : nil, marker: "saguaro", name: "Jerecho Fischbeck",
                          badge: .founder, meta: "@jerecho · Tempe, AZ · Papago GC",
                          indexCurrent: 12.4, rounds: 42,
                          trophyLines: ["🔥 Broke 80 · '26", "📈 4-week streak · '26", "⛳ First round · '26"],
-                         form: FormRow.from(beats: [true, true, true, false, true]),
-                         anchor: { Text("GHIN 1234567 · Member since Jul 2026").font(CSFont.footnote).foregroundStyle(CSTokens.dark.mut) },
+                         // somebody ELSE's card: the form key's usual person, and the
+                         // one worth looking at
+                         form: FormRow.from(beats: [true, true, true, false, true]), isMe: false,
+                         anchor: { Text("GHIN 1234567 · est. Jul 2026").font(CSFont.footnote).foregroundStyle(CSTokens.dark.mut) },
                          extra: { EmptyView() }, settings: {})
         }
       }

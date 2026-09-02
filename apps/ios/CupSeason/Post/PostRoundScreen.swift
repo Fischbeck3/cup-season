@@ -311,7 +311,26 @@ private struct PostRoundBody: View {
 
   // MARK: - Point bands (3187–3197), folded
 
-  private static let bands = [("Beat your index by 3+", "12"), ("Beat it by 1–3", "9"), ("Within a stroke either way", "7"), ("Over by 1–3", "6"), ("Rough day, posted anyway", "5")]
+  /// D210 / Q-20 · the names and the points are the ENGINE's (`CSBands`, which
+  /// is `cup_points()` verbatim) and the edges are the guide's, so the composer,
+  /// the guide and the receipt cannot disagree. The hand-typed table this
+  /// replaced named bands `CSBands` does not have and carried the pre-Q-20
+  /// overlapping edges ("1–3" in two rows).
+  private static let bands: [(Double, String)] = [
+    (3, "beat it by 3 or more"), (1, "by 1 to 2.9"), (0, "less than 1 either way"),
+    (-1, "1 to 3 over"), (-4, "more than 3 over"),
+  ]
+
+  /// D142 · the cap is the LEAGUE's, never a literal 4 — Standard counts the
+  /// best 3, Cutthroat the best 2, Casual everything. With no cap in hand (an
+  /// unlimited league, or no league at all) the sentence drops the number
+  /// rather than naming one no league uses.
+  private var countingLine: String {
+    let stem = "Every posted round scores. Your best "
+    let tail = " each month count toward your squad — a better round always replaces your lowest, in real time."
+    guard let cap = model.membership?.settings?.counting_cap else { return stem + "few" + tail }   // the web's wording for the same unknown
+    return stem + String(cap) + tail
+  }
 
   private var bandsSection: some View {
     VStack(alignment: .leading, spacing: 0) {
@@ -335,10 +354,11 @@ private struct PostRoundBody: View {
       if bandsOpen {
         VStack(spacing: 0) {
           ForEach(Array(Self.bands.enumerated()), id: \.offset) { i, band in
-            PostBandRow(label: band.0, value: band.1, last: i == Self.bands.count - 1)
+            PostBandRow(label: "\(CSBands.bandName(band.0)) · \(band.1)",
+                        value: String(CSBands.cupPoints(band.0)), last: i == Self.bands.count - 1)
           }
           // the fine print under the bands (web 3198)
-          Text("Every posted round scores. Your best 4 each month count toward your squad — a better round always replaces your lowest, in real time.")
+          Text(countingLine)
             .font(CSFont.footnote).foregroundStyle(cs.dimText)
             .frame(maxWidth: .infinity, alignment: .leading).padding(.top, 8)
         }
@@ -399,8 +419,14 @@ private struct PostHeroContent: View {
         .fixedSize(horizontal: false, vertical: true)
       if let p {
         FlowLayout(spacing: 8) {
-          chip(pointsText, tone: cs.ink)
-          chip(p.vsText + " vs your index", tone: p.vs >= 0 ? cs.pos : cs.neg)
+          // D124 (i) · with no number yet there is no points total and no
+          // signed figure to show — only what the round was against the course.
+          if p.provisional {
+            chip(p.vsText, tone: cs.mut)
+          } else {
+            chip(pointsText, tone: cs.ink)
+            chip(p.vsText + " vs your index", tone: p.vs >= 0 ? cs.pos : cs.neg)
+          }
         }
         .padding(.top, 2)
       }
@@ -415,6 +441,7 @@ private struct PostHeroContent: View {
   /// The band phrase, the way the feed says it ("Beat your number by 2.4"); the web's empty-state lines until there is a card.
   private var sentence: String {
     guard let p = model.preview else { return model.calcMessage }
+    if p.provisional { return p.message }   // D124 (i) · "No number yet — this round starts it"
     let s = CSBands.vsPhrase(p.vs)
     return s.prefix(1).uppercased() + s.dropFirst()
   }

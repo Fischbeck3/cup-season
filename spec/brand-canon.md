@@ -61,12 +61,26 @@ crew's own voice. Never hype, never urgency, never shame.
 - **"The Pro,"** never "commissioner" (DB keeps the internal name; UI never).
 - **Named bands, never math jargon:** "beat your number by 0.6," never
   "PvI"/"differential" on any user surface.
-- **The ledger line (amended 2026-07-20, D39):** *"Cup Season keeps the
-  ledger; the money moves between friends"* — verbatim everywhere money
-  appears in marketing or store copy; door headline "Every dollar on the
-  books." ("Tracked, never held" and "takes no cut" retired — say what is
-  true now, promise nothing structural.) It is the anti-"betting app"
-  vaccine (GTM failure mode #5).
+- **The ledger line (amended 2026-07-20, D39; amended 2026-09-01, D201):**
+  *"Cup Season keeps the ledger; the money moves between friends"* — verbatim
+  everywhere money appears — **from one constant per client. A retyped copy
+  is the defect the day it is written, because it is already the version
+  that will drift.** (`CS_LEDGER` in `index.html`, `MoneyCopy.ledger` in the
+  Kit.) Door headline "Every dollar on the books." ("Tracked, never held" and
+  "takes no cut" retired — say what is true now, promise nothing
+  structural.) It is the anti-"betting app" vaccine (GTM failure mode #5).
+  *(D39 said "in marketing or store copy"; D201 widens it to every surface,
+  the product included — that is where the twenty-two copies in a dozen
+  wordings were. A verbatim law has no violating token for a grep to catch,
+  so it needs a fixed home or it is only a wish. "Between friends" is never
+  softened to "between you".)*
+- **One fact, one place** *(added 2026-09-01, D201 — the owner ruled "build
+  out your suggestions")*. Every fact on a screen belongs to exactly one
+  element — the one closest to the action. A control names the press; the
+  line above it carries the why; a summary never counts rows already on
+  screen with their answers on them. If two elements can both say it, the
+  one further from the action goes silent. *(The voice audit's dominant
+  defect: 57 of 165 findings were the same thing said twice on one screen.)*
 - **"Run it back"** — the renewal verb. Seasons aren't "resubscribed."
 - **The join covenant** doubles as the fairness promise wherever fear appears
   (design-review recommendation, standing).

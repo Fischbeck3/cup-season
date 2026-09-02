@@ -76,8 +76,8 @@ struct PricingPotFinePrint: View {
   let flags: PricingFlags
   var body: some View {
     PricingMarkdown(flags.visible
-      ? "**Cup Season keeps the books.** Buy-ins and payouts move friend-to-friend on Venmo or cash. The pass is the one line paid to Cup Season — it never comes out of the prize money."
-      : "**Cup Season keeps the books.** Buy-ins and payouts move friend-to-friend. We just make sure nobody argues at the bar.")
+      ? MoneyCopy.ledger + " The pass is the one line paid to Cup Season — it never comes out of the prize money."
+      : MoneyCopy.ledger)
   }
 }
 

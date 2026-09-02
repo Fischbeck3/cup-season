@@ -28,6 +28,12 @@
 -- NOTE: 15 and 16 FAIL until the audit's test footprint is wiped
 -- (docs/audit/blind-ux-2026-08-29/tools/wipe.sql) — they are failing on the
 -- evidence they were written from, which is the point.
+-- Refreshed 2026-09-02 (D204-D212 batch): checks 19 and 20 added — 19 seals
+-- the rounds INSERT to the payload's own columns (the column-revoke landmine
+-- again: a table grant a column revoke cannot subtract from, which let any
+-- client name index_at_post / attested / posted_by on the way in), 20 pins
+-- what a deleted round leaves behind (the board keeps the sentence, the
+-- trophy case keeps no medal it can no longer show).
 -- ============================================================================
 
 with checks as (
@@ -438,6 +444,60 @@ select '18 · one relationship per embed',
                        ('content_reports','profiles'), ('round_comments','profiles'))
                group by 1,2 having count(*) > 1) x), '?') end,
   'a client-embedded table with two paths to one target = PGRST201 on every unqualified embed'
+
+-- 19 · the rounds INSERT is sealed to the payload (M-14, 20260902173000).
+--     The same landmine as checks 2 and 9: a column revoke subtracts nothing
+--     from a table-level grant, so `authenticated` could name index_at_post,
+--     attested or posted_by on the way in and the BEFORE trigger — which only
+--     fills what is MISSING — would leave the lie in place. The seal is:
+--     revoke the table INSERT, re-grant the eleven columns both clients
+--     actually send (index.html:7184 · PostCard.swift:278-289 PostPayload). A twelfth
+--     column added to either payload lands here as a FAIL, not as a 42501 in
+--     a golfer's face.
+union all
+select '19 · rounds INSERT is column-scoped',
+  case when has_table_privilege('authenticated', 'public.rounds', 'INSERT')
+         then 'FAIL — authenticated holds table-level INSERT on rounds'
+       when missing <> '' then 'FAIL — payload column not grantable: ' || missing
+       when leaked  <> '' then 'FAIL — engine column still writable: ' || leaked
+       else 'PASS — 11 payload columns, engine columns sealed' end,
+  'gross rating nine_rating slope holes_played source played_on course_label api_course_id season_id photo_path'
+from (
+  select
+    coalesce((select string_agg(c, ', ') from unnest(array[
+       'gross','rating','nine_rating','slope','holes_played','source',
+       'played_on','course_label','api_course_id','season_id','photo_path']) c
+      where not has_column_privilege('authenticated', 'public.rounds', c, 'INSERT')), '') as missing,
+    coalesce((select string_agg(c, ', ') from unnest(array[
+       'id','profile_id','index_at_post','index_source_at_post','attested',
+       'posted_by','voided','differential','index_provisional']) c
+      where has_column_privilege('authenticated', 'public.rounds', c, 'INSERT')), '') as leaked
+) t
+
+-- 20 · what a deleted round leaves behind (Y-19 / M-16, 20260902173000).
+--     delete_round() is the only way a round leaves, and three things used to
+--     go wrong at once: the refresh trigger fired on INSERT only, so the
+--     index the deleted round earned survived it; every post that pointed at
+--     the round CASCADEd out, taking the clash result and the moment; and the
+--     award kept its row with a null receipt — a medal nobody can show.
+union all
+select '20 · a deleted round leaves the ledger true',
+  case when trg is null or trg not like '%AFTER INSERT OR DELETE%'
+         then 'FAIL — round_refresh_index_trg is not AFTER INSERT OR DELETE'
+       when fk is distinct from 'n'
+         then 'FAIL — posts_round_id_fkey is not ON DELETE SET NULL'
+       when orphans > 0
+         then 'FAIL — ' || orphans::text || ' achievement(s) carry no receipt'
+       else 'PASS' end,
+  'the number follows the ledger both ways ONCE THE ENGINE HAS ONE (round_refresh_index returns early while handicap_index() is null — under three live rounds the index the deleted round earned stands until the next post) · the board keeps the sentence · every medal has its round'
+from (
+  select
+    (select pg_get_triggerdef(t.oid) from pg_trigger t
+      where t.tgrelid = 'public.rounds'::regclass and t.tgname = 'round_refresh_index_trg') as trg,
+    (select c.confdeltype::text from pg_constraint c
+      where c.conrelid = 'public.posts'::regclass and c.conname = 'posts_round_id_fkey') as fk,
+    (select count(*) from achievements where round_id is null) as orphans
+) t
 
 )
 select * from checks order by check_name;

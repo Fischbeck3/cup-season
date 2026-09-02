@@ -53,4 +53,23 @@ import Foundation
     #expect(best?.played_on == "2026-08-18" && best?.band == "Beat your number")
     #expect(ClashMath.bestSoFar(rounds, member: UUID(), window: win, capN: 4) == nil)
   }
+
+  /// D142: the preview honours the league's ACTUAL cap — at Standard's Best 3
+  /// a 4th-ranked round is not the settle pick even when it is the week's best.
+  @Test func theCapIsTheLeaguesOwnNotASlot() {
+    let m = UUID()
+    func r(_ day: String, _ pts: Double, _ pvi: Double, _ rank: Int) -> LeagueRoom.RankedRound {
+      LeagueRoom.RankedRound(member_id: m, round_id: UUID(), pvi: pvi, points: pts, month_rank: rank,
+                             floor_credit: 1, played_on: day, index_at_post: 12, holes_played: 18)
+    }
+    let win = ClashMath.window(startsOn: "2026-08-06", week: 2)
+    let rounds = [
+      r("2026-08-14", 12, 3.9, 4),   // the week's best on points — but the 4th-ranked round of the month
+      r("2026-08-17", 9, 1.1, 3),
+    ]
+    #expect(ClashMath.bestSoFar(rounds, member: m, window: win, capN: 3)?.played_on == "2026-08-17")
+    #expect(ClashMath.bestSoFar(rounds, member: m, window: win, capN: 4)?.played_on == "2026-08-14")
+    #expect(ClashMath.bestSoFar(rounds, member: m, window: win, capN: 2) == nil)
+    #expect(ClashMath.bestSoFar(rounds, member: m, window: win, capN: StandingsMath.capN(nil))?.played_on == "2026-08-14")
+  }
 }

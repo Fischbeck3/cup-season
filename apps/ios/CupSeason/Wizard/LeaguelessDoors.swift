@@ -1,7 +1,8 @@
 // Cup Season — the league-less doors (`renderHomeStart`, index.html 9736–9773)
 // and the D41 run-it-back card (9739–9752, `runItBack` 14177–14184).
 //
-// Three quiet doors — Start a league · Start an event · Join a league — and,
+// Three quiet doors — Join a league · Start a league · Start an event (D151
+// item 4: the first thing offered is the thing that works) — and,
 // when a season has wrapped, the run-back card ahead of them. "Start a league"
 // IS the wizard; "Run it back" is the wizard with last season's bylaws
 // carried in and a "· S2" name. A new league id — continuity by convention.
@@ -24,9 +25,9 @@ struct LeaguelessDoors: View {
       }
       // three doors across; a column at the accessibility sizes so no label is scaled down to fit
       A11yStack(spacing: 8) {
+        door(WizardCopy.joinLeague) { join = true }
         door(WizardCopy.startLeague) { wizard = true }
         door(WizardCopy.startEvent) { links.startEvent() }
-        door(WizardCopy.joinLeague) { join = true }
       }
       if store.me?.memberships.isEmpty ?? true { CSFine(WizardCopy.leaguelessLine) }
     }
@@ -46,7 +47,12 @@ struct LeaguelessDoors: View {
   /// `.startjoin` — a quiet door, 44pt, the label wrapping.
   private func door(_ label: String, action: @escaping () -> Void) -> some View {
     Button(action: action) {
-      Text(label).font(CSFont.monoMediumBody).multilineTextAlignment(.center).minimumScaleFactor(0.85)
+      // one line on every phone: the text column is ~103pt across three doors
+      // and "Start a league" needs ~118pt at full size, so 1/2/2 lines made the
+      // trio look ragged. The 0.7 floor covers the SE and the non-a11y xxxLarge
+      // sizes; at the accessibility sizes A11yStack is a column and nothing scales.
+      Text(label).font(CSFont.monoMediumBody).multilineTextAlignment(.center)
+        .lineLimit(1).minimumScaleFactor(0.7)
         .foregroundStyle(cs.ink)
         .padding(.horizontal, 6).frame(maxWidth: .infinity, minHeight: 50)
         .background(cs.bg2, in: RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous))

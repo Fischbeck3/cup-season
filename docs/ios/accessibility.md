@@ -118,6 +118,10 @@ chip, a stepper) never squeezes a name; at AX1+ it takes its own line.
 - Left, by the §2.2 rule: `StandingsPane.swift:196` (a ring stroke on the fill meter), `LivePlayView.swift:136` (a 4pt spine bar), `PotPane.swift:102` (the unpaid ✓, a disabled glyph, hidden from VoiceOver).
 - Every artifact renderer (recap card, settlement card, jug card) uses `fixedSize` fonts on purpose — they are images, not UI.
 
+### Copy over a photograph (D214)
+- Text on a photo panel goes through `CSPhotoScrim` (`CSDesign/PhotoScrim.swift`), never a hand-rolled gradient: the **settle** dissolves the panel into the card, the **plate** is the copy's own ground on the band the words occupy. `CSDesignTests.PhotoScrimTests` composites `mut` over a paper-bright and a dusk-dark subject in both palettes and holds 4.5:1 — it is what stops a scrim being lightened for the picture's sake at the small print's expense (which is exactly what happened on 2026-09-02).
+- Verify by measuring a screenshot, not by reading tokens: contrast against a photograph is not a property of the palette. `-cs_dev_cred photo` is the deliberate worst case (a nearly white subject); `-cs_dev_cred crest` is the control that isolates the scrim from the tokens.
+
 ### Increase Contrast / Bold Text
 - Nothing broke. The mono and serif faces are bundled/custom, so Bold Text does not embolden them (iOS only weights the system faces); they stay legible because `mut` already passes AA at every size and the mono labels never drop below 11pt. Tokens are the same under Increase Contrast — `mut` (≈6.2:1) and `ink` clear AA on `bg0`/`bg1`/`bg2`. Not changed: a `legibilityWeight` swap to the Medium/SemiBold Plex faces would be a design decision (IOS-003 §2.1), flagged, not done.
 

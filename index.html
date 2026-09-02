@@ -90,8 +90,8 @@ html[data-theme="light"]{
   --bg0:#EFF2EE; --bg1:#FBFCFA; --bg2:#E5EAE4;
   --line:#D9DFD7; --line2:#C9D1C8;
   --ink:#1A2620; --mut:#52625A; --dim:#8C9992;
-  --pos:#0E9B51; --neg:#CC4038; --gold:#9A7418;   /* champagne, ink-dark for paper */
-  --pine:#0E3B24; --brand:#C94E1F; --dawn:#38678C;  /* ember + slate-blue on paper (D76) */
+  --pos:#0B793F; --neg:#BE3831; --gold:#846415;   /* champagne, ink-dark for paper (D211: AA on bg1/bg2 at 13pt) */
+  --pine:#0E3B24; --brand:#B3461C; --dawn:#38678C;  /* ember + slate-blue on paper (D76) */
   --sq0:#2C7CD3; --sq1:#DE6A22; --sq2:#7A58DE; --sq3:#0D9E8F;
   --glow:rgba(201,78,31,.12);
   --warm:#B97A1E; --hot:#C94E1F; --fire:#B03014; --cool:#6E7A84;  /* heat axis on paper */
@@ -2168,6 +2168,10 @@ body::before{
    fails AA. White ink clears 4.5:1. Dark theme's brighter ember (#E8622C)
    passes at ~5.6:1 with the near-black ink above — untouched. */
 html[data-theme="light"] .btn:not(.dark):not(.gold):not(.apple){color:#FFFFFF;}
+/* D211: the paper gold moved to #846415 to clear AA as TEXT, and #171204 on it
+   is 3.4:1 — white clears 5.5:1. Dark keeps the near-black ink (9.28:1) it has
+   always had. The phone's twin is CSButton .gold, which paints cs.bg0. */
+html[data-theme="light"] .btn.gold{color:#FFFFFF;}
 .btn, .mini, .tab, .navitem{transition:filter .12s ease, transform .1s ease, box-shadow .15s ease;}
 .btn:active, .mini:active{transform:scale(.98);}
 /* D76 sweep: the file's one focus rule that wasn't on --focus. It hardcoded
@@ -2892,7 +2896,7 @@ html[data-theme="light"] .room-dusk .btn:not(.dark):not(.gold):not(.apple){color
       <div style="display:grid; grid-template-columns:1fr 1fr; gap:9px; margin-bottom:12px">
         <div class="startdoor"><b>Home</b><small>Everything you're in, one feed</small></div>
         <div class="startdoor"><b>Clubhouse</b><small>One league: table, board, pot</small></div>
-        <div class="startdoor"><b>The ⊕</b><small>Before, during and after a round</small></div>
+        <div class="startdoor"><b>Post</b><small>Before, during and after a round</small></div>
         <div class="startdoor"><b>You</b><small>Your card, record and buddies</small></div>
       </div>
       <div style="display:flex; gap:9px; margin-bottom:6px">
@@ -2905,7 +2909,7 @@ html[data-theme="light"] .room-dusk .btn:not(.dark):not(.gold):not(.apple){color
       </div>
       <p class="fine" style="padding:0 2px 12px">You can run both at once. An event stands alone, or attaches to a league.</p>
       <button class="btn" id="orGo">Take me in</button>
-      <p class="fine" style="text-align:center; padding-top:10px; opacity:.7">Reopen this any time from You › ⚙ › How it works.</p>
+      <p class="fine" style="text-align:center; padding-top:10px; opacity:.7">Reopen this any time from You › ⚙︎ › How it works.</p>
     </div>
     <div class="ob-caption" id="obCaption"><span style="opacity:.5">v23 · __CS_VERSION__</span></div>
   </div>
@@ -3034,7 +3038,7 @@ html[data-theme="light"] .room-dusk .btn:not(.dark):not(.gold):not(.apple){color
           <div class="ctop">
             <span id="youMk" style="display:flex; flex:none"></span>
             <div style="min-width:0; flex:1"><b class="cnm" id="youName">Your card</b><small class="chd" id="youMeta"></small><small class="chd" id="youAnchor" style="opacity:.55; text-transform:none; letter-spacing:.04em"></small></div>
-            <button class="mini" id="youProfile" style="flex:none" aria-label="Card & settings" title="Card & settings">⚙</button>
+            <button class="mini" id="youProfile" style="flex:none" aria-label="Card & settings" title="Card & settings">⚙︎</button>
           </div>
           <div class="csplit">
             <div class="cidx"><b id="youIdx">—</b><small>Handicap index</small></div>
@@ -3104,10 +3108,14 @@ html[data-theme="light"] .room-dusk .btn:not(.dark):not(.gold):not(.apple){color
              four sections away. -->
         <div class="eyebrow">All time</div>
         <div class="stats">
-          <div class="stat"><div class="k">Rounds posted</div><div class="v" id="clR">—</div><div class="d fl">All time</div></div>
-          <div class="stat"><div class="k">Best vs index</div><div class="v" id="clBest">—</div><div class="d fl">Career best</div></div>
-          <div class="stat"><div class="k">Avg vs your number</div><div class="v" id="clAvg">—</div><div class="d fl">across counting rounds</div></div>
-          <div class="stat"><div class="k">Cups &amp; events</div><div class="v" id="clPlayed">—</div><div class="d fl">Played in</div></div>
+          <!-- Y-14 · no "All time" sub: the eyebrow above this row already
+               says the scope (brand canon 3 - one fact, one place). Y-14 also
+               puts these three rows in the SAME order and under the SAME names
+               as "This season" below, so the two panels stop drifting. -->
+          <div class="stat"><div class="k">Rounds posted</div><div class="v" id="clR">—</div></div>
+          <div class="stat"><div class="k">Best vs your playing number</div><div class="v" id="clBest">—</div><div class="d fl" id="clBestSub">across counting rounds</div></div>
+          <div class="stat"><div class="k">Avg vs your playing number</div><div class="v" id="clAvg">—</div><div class="d fl" id="clAvgSub">across counting rounds</div></div>
+          <div class="stat"><div class="k">Leagues &amp; events</div><div class="v" id="clPlayed">—</div><div class="d fl">Played in</div></div>
         </div>
 
         <div class="eyebrow">Recent rounds</div>
@@ -3124,10 +3132,10 @@ html[data-theme="light"] .room-dusk .btn:not(.dark):not(.gold):not(.apple){color
         <div class="league-only">
           <div class="eyebrow">This season · <span id="youSeasonLg">your league</span></div>
           <div class="stats">
-            <div class="stat"><div class="k">Rounds posted</div><div class="v" id="msR">—</div><div class="d fl">This season</div></div>
-            <div class="stat"><div class="k">Avg vs your number</div><div class="v" id="msAvg">—</div><div class="d fl">across counting rounds</div></div>
-            <div class="stat"><div class="k">Best round</div><div class="v" id="msBest">—</div><div class="d fl">vs index · season</div></div>
-            <div class="stat"><div class="k">Index move</div><div class="v" id="msDelta">—</div><div class="d up">Season to date</div></div>
+            <div class="stat"><div class="k">Rounds posted</div><div class="v" id="msR">—</div></div>
+            <div class="stat"><div class="k">Best vs your playing number</div><div class="v" id="msBest">—</div><div class="d fl" id="msBestSub">across counting rounds</div></div>
+            <div class="stat"><div class="k">Avg vs your playing number</div><div class="v" id="msAvg">—</div><div class="d fl" id="msAvgSub">across counting rounds</div></div>
+            <div class="stat"><div class="k">Index move</div><div class="v" id="msDelta">—</div><div class="d up" id="msDeltaSub">Season to date</div></div>
           </div>
         </div>
 
@@ -3313,7 +3321,7 @@ html[data-theme="light"] .room-dusk .btn:not(.dark):not(.gold):not(.apple){color
                button and five lines of teaching copy. Wide puts finish back
                under the entry column and the games alongside, unchanged. -->
           <div class="pggames">
-            <div class="eyebrow">Side games · tracked live, settled between you</div>
+            <div class="eyebrow">Side games · tracked live, settled between friends</div>
             <div class="gamecard" id="matchCard" style="--acc:var(--sq0)">
               <div class="gk" id="matchTeams">Match play · net best ball · You + Danny vs Chuck + Gary</div>
               <div class="gs" id="matchStatus">ALL SQUARE</div>
@@ -3444,12 +3452,16 @@ html[data-theme="light"] .room-dusk .btn:not(.dark):not(.gold):not(.apple){color
             </div>
             <div class="eyebrow">Point bands</div>
             <div class="card">
+              <!-- D210 / Q-20 · the engine's own names and points (bandName /
+                   cup_points), with the guide's non-overlapping edges. The old
+                   table named bands the engine does not have and said "1–3"
+                   in two rows. Verbatim with the phone's PostRoundScreen. -->
               <table class="bands">
-                <tr><td>Beat your index by 3+</td><td>12</td></tr>
-                <tr><td>Beat it by 1–3</td><td>9</td></tr>
-                <tr><td>Within a stroke either way</td><td>7</td></tr>
-                <tr><td>Over by 1–3</td><td>6</td></tr>
-                <tr><td>Rough day, posted anyway</td><td>5</td></tr>
+                <tr><td>Torched it · beat it by 3 or more</td><td>12</td></tr>
+                <tr><td>Beat your number · by 1 to 2.9</td><td>9</td></tr>
+                <tr><td>Played to it · less than 1 either way</td><td>7</td></tr>
+                <tr><td>A little loose · 1 to 3 over</td><td>6</td></tr>
+                <tr><td>Posted anyway · more than 3 over</td><td>5</td></tr>
               </table>
               <p class="fine">Every posted round scores. Your best few each month count toward your squad — a better round always replaces your lowest, in real time.</p>
             </div>
@@ -3483,7 +3495,7 @@ html[data-theme="light"] .room-dusk .btn:not(.dark):not(.gold):not(.apple){color
 
         <div class="wizstep" data-step="1">
           <div class="eyebrow" style="margin-top:0">How serious is your league? <button class="ibtn" data-i="preset" aria-expanded="false" aria-label="About competitiveness presets">i</button></div>
-          <div class="ihelp" id="ih-preset">One pick, made now, that sets the fairness rules for the whole season — handicap allowance, how scores are verified, which courses count. <b>Casual</b> is an honor-system beer league. <b>Standard</b> wants GHIN-posted rounds. <b>Cutthroat</b> wants receipts: attested scores on rated tees. Deciding this before anyone tees off is what keeps October friendly.</div>
+          <div class="ihelp" id="ih-preset">One pick, made now, that sets the fairness rules for the whole season — handicap allowance, how scores are verified, which courses count. <b>Casual</b> is an honor-system beer league. <b>Standard</b> asks you to post what you'd post to GHIN. <b>Cutthroat</b> wants receipts: attested where you can; the Pro rules on the rest. Deciding this before anyone tees off is what keeps October friendly.</div>
           <button class="preset" data-p="0">
             <h4>Casual <span class="ok" aria-hidden="true">✓</span></h4>
             <p class="lead">Honor scores, everything counts</p>
@@ -3492,14 +3504,15 @@ html[data-theme="light"] .room-dusk .btn:not(.dark):not(.gold):not(.apple){color
           <button class="preset sel" data-p="1">
             <h4>Standard <span class="ok" aria-hidden="true">✓</span></h4>
             <p class="lead">Weekly-golfer fair, light guardrails</p>
-            <p><b>95% hcp</b> · GHIN rounds · best 3 / mo count · 2-round floor</p>
+            <p><b>95% hcp</b> · post what you'd post to GHIN · best 3 / mo count · 2-round floor</p>
           </button>
           <button class="preset" data-p="2">
             <h4>Cutthroat <span class="ok" aria-hidden="true">✓</span></h4>
             <p class="lead">Tournament-tight, receipts required</p>
-            <p><b>90% hcp</b> · verified + attested · rated tees · best 2 / mo · 3-round floor</p>
+            <p><b>90% hcp</b> · attested where you can · rated tees · best 2 / mo · 3-round floor</p>
           </button>
           <p class="fine" id="presetSummary" style="padding-top:2px"></p>
+          <p class="fine" style="padding-top:0; color:var(--dim)">Verification is a norm the league holds, not a filter the engine applies.</p>
           <button class="btn" id="wizFastPath" style="margin-top:10px">Use these defaults →</button>
           <button class="mini" id="wizCustomize" aria-expanded="false" style="margin-top:10px">Customize <svg class="ic" aria-hidden="true"><use href="#i-chevron-down"/></svg></button>
           <div id="wizDials" style="display:none; margin-top:12px">
@@ -3568,7 +3581,7 @@ html[data-theme="light"] .room-dusk .btn:not(.dark):not(.gold):not(.apple){color
         <div class="wizstep" data-step="2">
           <div class="eyebrow" style="margin-top:0">Review the bylaws, then lock it in</div>
           <div class="card" id="bylawsReview" style="margin-bottom:10px"></div>
-          <p class="fine" id="inviteNote" style="padding-bottom:10px">Lock opens the invite link — one link fills the league; anyone can also join later with the league code. Minimum four to tee off.</p>
+          <p class="fine" id="inviteNote" style="padding-bottom:10px"></p>
           <button class="btn" id="lockBtn">Lock the bylaws & form the squads</button>
           <p class="fine" id="lockErr" role="alert" hidden style="padding:8px 0 0; color:var(--neg)"></p>
         </div>
@@ -3777,7 +3790,7 @@ html[data-theme="light"] .room-dusk .btn:not(.dark):not(.gold):not(.apple){color
               <div class="p"><b id="pay2">$300</b><span>Runner-up</span></div>
               <div class="p"><b id="pay3">$180</b><span>Points king</span></div>
             </div>
-            <p class="fine"><b>Cup Season keeps the books.</b> Buy-ins and payouts move friend-to-friend. We just make sure nobody argues at the bar.</p>
+            <p class="fine" data-ledger></p>
           </div>
           <div>
             <!-- D129: how to pay comes BEFORE the ledger of who has -->
@@ -4005,6 +4018,12 @@ html[data-theme="light"] .room-dusk .btn:not(.dark):not(.gold):not(.apple){color
 <script>
 /* ================= demo data ================= */
 const MOS=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+/* Y-26 · the founding date has ONE form on both clients: "est.\u00a0Jul\u00a02026",
+   with non-breaking spaces so the phrase never breaks across two lines. The
+   phone's producer is TourCard.established(); this is its twin, and the two
+   surfaces that used to spell it out themselves now both call it. */
+const estSince = iso => { if(!iso) return null; const d=new Date(iso);
+  return isNaN(d) ? null : 'est.\u00a0'+MOS[d.getMonth()]+'\u00a0'+d.getFullYear(); };
 const DOW=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
 /* relative demo dates — the diorama always reads current, never abandoned */
 function dAgo(n){
@@ -4055,9 +4074,13 @@ const state = {
   payers:payersSeed.map(p=>({name:p[0], paid:!!p[1]})),
   /* D113: $0, not $75. Money is a CHOICE (D46), and this value reaches a real
      wizard through applyBylaws/renderSetup — two of two pilot organizers met a
-     buy-in they never picked. The renderer already prints "None" for 0. */
-  stake:0, months:6, cap:1, floor:2, myIndex:12.4,
-  phase:'season', wiz:0, preset:1, fmt:0, emails:[], showOthers:false, structure:'squads2', demo:true, startOffset:0, durWeeks:26, startISO:'',
+     buy-in they never picked. The renderer already prints "None" for 0.
+     D206: 13 weeks / 3 months, not 26 / 6 — the wizard's defaults ARE the
+     defaults `create_league` writes, so a row and a wizard can never disagree
+     again. Not shorter: under ~10 weeks the calendar-month floor never
+     assesses (D143). The phone mints the same league (`WizardDials`). */
+  stake:0, months:3, cap:1, floor:2, myIndex:12.4,
+  phase:'season', wiz:0, preset:1, fmt:0, emails:[], showOthers:false, structure:'squads2', demo:true, startOffset:0, durWeeks:13, startISO:'',
   draftType:'random',
   finish:'cup_final',   /* the endgame dial (008): cup_final | points_table */
   payout:[60,25,15],    /* champ / runner-up / points king — sums 100 */
@@ -4393,6 +4416,13 @@ window.stampPosted=stampPosted;
    it, and never soften "between friends" to "between you" — the first names
    what the transaction IS, the second addresses the reader as a party to it. */
 const CS_LEDGER = 'Cup Season keeps the ledger; the money moves between friends.';
+/* …and the static surfaces read it too. A `data-ledger` element is painted
+   from the constant at boot, so markup can carry the line without retyping it
+   (a retyped copy is the defect the day it is written — brand canon §3). */
+function paintLedgerLines(root){
+  (root||document).querySelectorAll('[data-ledger]').forEach(el=>{ el.textContent = CS_LEDGER; });
+}
+window.paintLedgerLines = paintLedgerLines;
 const CS_STAKE_MAX = 200;
 function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
 /* F-003: users should never read raw Postgres/PostgREST jargon. Map known
@@ -4972,6 +5002,11 @@ function showFinalist(f){
   if(f.seed_rung) h+=`<div class="mathrow"><span>Seeded by</span><b>${esc(String(f.seed_rung).toUpperCase())}</b></div>`;
   h+=`<div class="mathrow tot"><span>Total in the Final</span><b>${tot}</b></div>`;
   h+=`<div class="eyebrow" style="margin-top:18px">The rounds</div>`;
+  /* D212 · the calendar cap does not stop at the window's edge. The sentence is
+     the server's (cup_final_race's `cap_note`), never retyped here; absent until
+     that migration is pushed, and null when the league sets no cap. */
+  const capNote=(window.cupRace&&window.cupRace.cap_note)||null;
+  if(capNote) h+=`<div class="fine">${esc(capNote)}</div>`;
   h+= rounds.length
     ? rounds.map(r=>`<div class="fine" style="display:flex;justify-content:space-between;gap:10px;padding:4px 0"><span>${esc(String(r.played_on))}${r.holes_played===9?' \u00b7 9 HOLES':''}${f.squad_id?' \u00b7 '+esc(String(r.golfer||'')).toUpperCase():''}</span><b class="mono" style="white-space:nowrap">${sgn(r.pvi)} vs index \u00b7 ${r.points} PTS</b></div>`).join('')
     : `<p class="fine">No counting rounds in the window yet \u2014 the slate is still clean.</p>`;
@@ -5560,12 +5595,33 @@ function boardSeenKey(){ return 'cs_board_seen_' + (window.CS?.league?.id || (st
    board card already uses (T11), never a new derivation. Demo/live-echo
    shape (who+meta+pvi, no post body): same idea, composed from f.meta
    (already "GROSS · COURSE") and bandName(). */
+/* A course label as it should be READ — the acronyms in their own case, and
+   every other character exactly as stored. Web twin of the Kit's
+   `RoundCopy.course`. The label is not ours and it is not consistent:
+   GolfCourseAPI title-cases its club names upstream, so a picked course lands
+   in `rounds.course_label` as "Palo Verde Gc · Back" while a hand-typed one
+   keeps "Encanto GC". Re-casing the whole string would break every real name
+   with a small word in it ("Lone Tree at the Ranch"), so the repair is the
+   narrowest one that reads right: fix the acronyms, touch nothing else. */
+const CS_COURSE_ACRONYMS = new Set(['GC','CC','CG','GCC','TPC','PGA','USGA']);
+function csCourse(label){
+  if(!label) return '';
+  let out='', run='';
+  const flush=()=>{ if(run){ out += CS_COURSE_ACRONYMS.has(run.toUpperCase()) ? run.toUpperCase() : run; run=''; } };
+  for(const ch of String(label)){
+    if(/\p{L}/u.test(ch)) run += ch; else { flush(); out += ch; }
+  }
+  flush();
+  return out;
+}
+window.csCourse = csCourse;
+
 function digestRoundLine(f){
   if(f.roundpost){
     const r = window.roundCache?.[f.rid];
     if(r && r.gross!=null){
       const band = r.pvi!=null ? bandName(Number(r.pvi)) : '';
-      return `${esc(f.who||'—')} · ${esc(r.course_label||'somewhere out there')}${band?` · ${esc(band)}`:''}`;
+      return `${esc(f.who||'—')} · ${esc(csCourse(r.course_label)||'somewhere out there')}${band?` · ${esc(band)}`:''}`;
     }
     return esc(easeCaps(f.txt||''));
   }
@@ -5806,7 +5862,7 @@ function renderFeedFull(force){
           <span class="bar" style="background:${SQHEX[f.ci]}"></span>
           <div class="body">
             <div class="l1" style="display:flex; align-items:center; gap:8px">${window.face?window.face(r.profile_id, memberMarker(r.profile_id), 22):''}<span>${esc(f.who||'—')}</span></div>
-            <div class="l2">${esc(r.course_label||'somewhere out there')} · ${r.holes_played||18} holes · ${r.played_on||''}</div>
+            <div class="l2">${esc(csCourse(r.course_label)||'somewhere out there')} · ${r.holes_played||18} holes · ${r.played_on||''}</div>
             <div class="rline">${sfNew?sfWrap(String(r.gross)):r.gross} GROSS${r.pvi!=null?` · ${(r.profile_id && r.profile_id===window.CS?.user?.id ? bandName(Number(r.pvi)) : theirs(bandName(Number(r.pvi)))).toUpperCase()}`:''}</div>
             <div class="rline">${counting}</div>
             ${stk>=2?`<div class="rline"><span class="streaktag ${stk>=3?'heathot':'heatwarm'}">${stk} STRAIGHT UNDER</span></div>`:''}
@@ -6229,7 +6285,7 @@ function seasonNote(kind){
    "▸ LEAGUE RULES & PRO SHOP" disclosure. D4 ordered a season-long foreshadow
    of the Cup Final reset back in July, so the leader's lead "lands as a
    playoff, not a theft" — what shipped was one line in a shared
-   nearest-deadline slot that "Week closes Sun" beats on all but the last few
+   nearest-deadline slot that the week-close line beats on all but the last few
    days of a season. This is the sentence, and it does not compete for space.
    Ties: §14.3's ladder is h2h months won → best single month → fewest rounds
    → a logged coin flip. The Points King ladder is NOT built (D136), so where
@@ -7969,8 +8025,8 @@ function renderPot(){
 /* ================= league setup ================= */
 const PRESET_SUMMARY=[
   'Casual: 100% handicap, honor-system scores, any course. Beer-league friendly — everything counts, nobody’s benched.',
-  'Standard: 95% handicap, GHIN-posted rounds, your best 3 a month count, post 2 or the squad feels it. The default for a reason.',
-  'Cutthroat: 90% handicap, attested + rated tees, best 2 a month, a 3-round floor. For crews that want the screws tight.',
+  'Standard: 95% handicap, post what you\'d post to GHIN, your best 3 a month count, post 2 or the squad feels it. The default for a reason.',
+  'Cutthroat: 90% handicap, attested where you can and the Pro rules on the rest, rated tees, best 2 a month, a 3-round floor. For crews that want the screws tight.',
 ];
 function syncWizSegs(){
   /* reflect state onto the segments (a loaded league, or a preset change).
@@ -8004,6 +8060,9 @@ function renderSetup(){
     } else { wmn.style.display='none'; }
   }
   renderSeasonDates();
+  /* D205 · the invite note and the lock button both read the structure */
+  paintInviteNote();
+  const lb=$('#lockBtn'); if(lb && !lb.disabled) lb.textContent=lockButtonText();
   if(typeof renderStructFit==='function') renderStructFit();
   if(typeof syncWizSegs==='function') syncWizSegs();
   renderPhase(); renderBylaws(); renderStats();
@@ -8037,6 +8096,21 @@ function seasonEndDate(){                       // start + N whole weeks → sam
   return new Date(s.getFullYear(), s.getMonth(), s.getDate() + state.durWeeks*7);
 }
 function isoOf(d){ return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; }
+/* D213 / M-17 · the clash week rolls on floor((today − starts_on)/7), keyed to
+   the first-tee weekday (D108) — so a Wednesday league's week closes on a
+   Tuesday, and "Week closes Sun" named a day nothing happened on. Sunday is
+   ONLY the fallback for a league with no season to key on (the phone keeps
+   `LeagueDates.nextSunday` for the same case). A season whose first tee is
+   still ahead clamps to week 1's close — `Math.max(0, …)`, the phone's rule
+   (`LeagueDates.weekClose`) — never to a Sunday. */
+function weekCloseDate(today){
+  const s = state.seasonStart ? localDate(state.seasonStart) : null;
+  if(!s){
+    const d=new Date(today); d.setDate(d.getDate()+(7-d.getDay())%7); return d;
+  }
+  const wk = Math.max(0, Math.floor(Math.round((today - s)/864e5) / 7));
+  return new Date(s.getFullYear(), s.getMonth(), s.getDate() + wk*7 + 6);
+}
 function renderSeasonDates(){
   const s=seasonStartDate(), e=seasonEndDate();
   const sd=$('#startDate');
@@ -8059,9 +8133,13 @@ $('#floorUp').addEventListener('click',()=>{if(state.floor<4){state.floor++;rend
 $('#floorDown').addEventListener('click',()=>{if(state.floor>0){state.floor--;renderSetup();}});
 
 /* D48: the format dial is retired — Points Race is the only season format now.
-   state.fmt stays 0 (state init + resetToBlank); the old fmtSeg/FMT_NOTES wiring
-   is gone. FMT_NAMES is kept (it labels the bylaws/aside/phase strings and still
-   renders legacy h2h/hybrid leagues loaded from the DB by their stored value). */
+   The old fmtSeg/FMT_NOTES wiring is gone; FMT_NAMES is kept because it labels
+   the bylaws/aside/phase strings.
+   D206 corrects what this comment used to claim. state.fmt did NOT "stay 0":
+   applyBylaws set it from the stored row, so the six unlocked setup leagues
+   carrying the column default `hybrid` read back as Hybrid — a format nobody
+   chose, with a live +15 payout branch behind it. It stays 0 now unless the
+   league is already LOCKED on a legacy value (the two seed rows). */
 /* the endgame dial (migration 008): Cup Final vs points-table crowning (D4) */
 const FINISH_NOTES={
   cup_final:'Cup Final: the last four weeks reset and score fresh — top seeds only, whoever’s hottest takes the cup.',
@@ -10705,13 +10783,13 @@ function renderStats(){
       sf.style.color='var(--gold)';
     } else {
       /* C4: the month machinery, surfaced — nearest deadline wins (§14.0).
-         Week closes Sunday night, month closes on the 1st, Cup Final looms. */
+         The week closes on the league's OWN day (D213), the month on the 1st. */
       const today=new Date(); today.setHours(0,0,0,0);
       const dTo=d=>Math.round((d-today)/864e5);
-      const sun=new Date(today); sun.setDate(sun.getDate()+(7-sun.getDay())%7);
+      const wc=weekCloseDate(today);
       const first=new Date(today.getFullYear(), today.getMonth()+1, 1);
       const opts=[
-        {n:dTo(sun),   pri:0, gold:false, t:dTo(sun)===0?'Week closes tonight':`Week closes Sun · ${dTo(sun)}d`},
+        {n:dTo(wc),    pri:0, gold:false, t:dTo(wc)===0?'Week closes tonight':`Week closes ${DOW[wc.getDay()]} · ${dTo(wc)}d`},
         {n:dTo(first), pri:1, gold:false, t:`Month closes ${MOS[first.getMonth()]} 1 · floors assessed`},
       ];
       /* the endgame dial (008): only Cup Final leagues get the Final line;
@@ -12633,9 +12711,15 @@ const ACH_META = {
   streak_8:     {icon:'📈', title:'8-week streak'},
   streak_12:    {icon:'💪', title:'Iron Man'},
 };
+/* P3 · how many credential chips a card engraves. It was 3 on You and 4 on the
+   Tour Card, on both clients; one number, read by every surface (the phone's
+   `TrophyMeta.credentialChips`). */
+const CRED_CHIPS = 3, MORE_IN_CASE = ' more in the case';
 function achSubtitle(a){
   const m=a.meta||{};
-  if(a.kind==='personal_best' && m.diff!=null) return 'Diff '+Number(m.diff).toFixed(1);
+  /* D210 · the banned word leaves the tile. "vs course" is the house name for
+     the figure — the same words the receipt's arithmetic row now carries. */
+  if(a.kind==='personal_best' && m.diff!=null) return Number(m.diff).toFixed(1)+' vs course';
   if(a.kind && a.kind.indexOf('sub_')===0 && m.gross!=null) return m.gross+' gross';
   if(a.kind && a.kind.indexOf('streak_')===0 && m.weeks!=null) return m.weeks+' weeks';
   if(a.kind==='first_round') return 'Posted';
@@ -12650,8 +12734,8 @@ function renderTrophyCase(){
      not a boot render) takes its name behind a sliding gold-needle cover. */
   const keyOf = x => String(x.id ?? ((x.title||x.kind||'')+'|'+(x.season_year||x.earned_on||'')));
   const fresh = id => _trophySeen!==null && !_trophySeen.has(id);
-  const cell = (icon,title,sub,mint) =>
-    `<div class="tcell${mint?' mintin':''}" style="border:0.5px solid var(--line); background:var(--bg2); border-radius:12px; padding:12px 6px 10px; text-align:center;">
+  const cell = (icon,title,sub,mint,rid) =>
+    `<div class="tcell${mint?' mintin':''}"${rid?` data-achr="${esc(rid)}" role="button" tabindex="0" style="cursor:pointer;`:' style="'}border:0.5px solid var(--line); background:var(--bg2); border-radius:12px; padding:12px 6px 10px; text-align:center;">
       <div style="font-size:26px; line-height:1">${esc(icon)}</div>
       <div style="font-size:12px; font-weight:600; color:var(--ink); margin-top:6px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis">${mint?`<span class="tmint">${esc(title)}<span class="tcover" aria-hidden="true"></span></span>`:esc(title)}</div>
       <div style="font-size:11.5px; color:var(--mut); margin-top:1px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis">${esc(sub)}</div>
@@ -12666,7 +12750,10 @@ function renderTrophyCase(){
     const m = ACH_META[a.kind] || {icon:'🏅', title:a.label||'Milestone'};
     const yr = a.earned_on ? " · '"+String(a.earned_on).slice(2,4) : '';
     const id='a'+keyOf(a); ids.push(id);
-    tiles.push(cell(m.icon, m.title, achSubtitle(a)+yr, fresh(id)));
+    /* Y-20 · my_achievements gains `round_id` with its migration; until that is
+       pushed the key is simply absent and the tile stays a tile. Never break
+       on absence (CLAUDE.md: neither deploy order breaks a live user). */
+    tiles.push(cell(m.icon, m.title, achSubtitle(a)+yr, fresh(id), a.round_id||null));
   });
   _trophySeen = new Set(ids);
   if(!tiles.length){
@@ -12674,6 +12761,11 @@ function renderTrophyCase(){
     return;
   }
   box.innerHTML = `<div style="display:grid; grid-template-columns:repeat(3,1fr); gap:8px">${tiles.join('')}</div>`;
+  box.querySelectorAll('[data-achr]').forEach(el=>{
+    const open = () => { const rid=el.dataset.achr; openRoundReceipt((window.roundCache||{})[rid] || { id: rid }); };
+    el.addEventListener('click', open);
+    el.addEventListener('keydown', e=>{ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); open(); } });
+  });
 }
 /* lifetime line + recent rounds — cross-league, user-global (window.career,
    set by the module loader). The demo shows a lived-in career. */
@@ -12700,10 +12792,11 @@ function renderCareerRecord(){
     ? { cups:2, runner_ups:1, crowns:1, majors:0, events:1,
         earnings_cents:36000, seasons_done:3, leagues:2 }
     : window.careerRec;
-  if(!r){
-    el.innerHTML = `<p class="fine" style="margin:0">Your record fills in when a season closes.</p>`;
-    return;
-  }
+  /* Y-02 · the display case had THREE empty states stacked — "Your record
+     fills in when a season closes", "The case is empty — for now…" and the
+     trophy strip's own line. The strip's line is the one that says it best,
+     so this card renders nothing at all until there is something to show. */
+  if(!r){ el.innerHTML=''; el.style.display='none'; return; }
   const items = [['cups','Cup','Cups'], ['crowns','Points crown','Points crowns'],
                  ['majors','Major','Majors'], ['events','Event','Events'],
                  ['runner_ups','Runner-up','Runner-ups']]
@@ -12712,7 +12805,7 @@ function renderCareerRecord(){
   const titles = items.length
     ? `<div class="recgrid">${items.map(i=>
         `<div class="rec"><b>${i.n}</b><span>${esc(i.n===1?i.one:i.many)}</span></div>`).join('')}</div>`
-    : `<p class="fine" style="margin:0">The case is empty — for now. Cups, crowns and event wins hang here when you take them.</p>`;
+    : '';
   const cents = Number(r.earnings_cents||0);
   const done  = Number(r.seasons_done||0);
   /* D39 verbatim posture: a record of what friends settled between themselves.
@@ -12722,6 +12815,7 @@ function renderCareerRecord(){
       <div><b>${csMoney(cents)}</b><small>Settled across ${done} season${done===1?'':'s'}</small></div>
     </div>
     <p class="fine" style="margin:8px 0 0">What your friends settled with you. ${CS_LEDGER}</p>` : '';
+  el.style.display = (titles || money) ? '' : 'none';
   el.innerHTML = titles + money;
 }
 window.renderCareerRecord = renderCareerRecord;
@@ -12731,7 +12825,12 @@ window.renderCareerRecord = renderCareerRecord;
    locally where index_at_post/differential are in hand). SKEW-SAFE: a payload
    whose entries carry NO `beat` key (pre-migration tour_card) renders nothing
    at all — no row, no error. Empty recent: same. */
-function formRowHtml(recent){
+/* Y-08 · `caption` is the dots' VISIBLE key. The legend lived only in the
+   aria-label, and a screen-reader string is not a legend for the eye. It rides
+   the row itself so the sentence has one home; the Tour Card's credential
+   passes none, because that card can be somebody else's and "your playing
+   number" would be a lie on it. */
+function formRowHtml(recent, caption){
   if(!Array.isArray(recent) || !recent.length) return '';
   const last5 = recent.slice(0,5);                       /* newest first */
   if(!last5.some(r => r && ('beat' in r))) return '';    /* old DB — no row */
@@ -12739,34 +12838,89 @@ function formRowHtml(recent){
   for(const r of last5){ if(r && r.beat === true) stk++; else break; }
   const dots = last5.slice().reverse().map(r => `<i class="${r && r.beat === true ? 'on' : ''}"></i>`).join('');
   const tag = stk >= 2 ? `<span class="streaktag ${stk >= 3 ? 'heathot' : 'heatwarm'}">${stk} STRAIGHT UNDER</span>` : '';
-  return `<div class="cform" role="img" aria-label="Form, last ${last5.length} rounds${stk >= 2 ? `, ${stk} straight under` : ''}"><span class="cfl">FORM</span>${dots}${tag}</div>`;
+  const key = caption ? `<div class="fine" style="padding-top:6px">${esc(caption)}</div>` : '';
+  return `<div class="cform" role="img" aria-label="Form, last ${last5.length} rounds${stk >= 2 ? `, ${stk} straight under` : ''}"><span class="cfl">FORM</span>${dots}${tag}</div>${key}`;
 }
+/* the one wording for what a lit dot means — web twin of `YouCopy.formKey` */
+const CS_FORM_KEY = 'Your last five rounds, oldest first — a lit dot beat your playing number.';
 window.formRowHtml = formRowHtml;
 
+/* D208 · "Played in" counts a league when its first season kicked off or you
+   hold a round in it; a sandbox never counts; an event counts once you are on
+   its roster. Computed here, from rows already in hand — no RPC. `kicked_off`
+   is not a column any client read carries, so it is read the way the tick sets
+   it: a running season whose first tee is on or before today, or a season
+   number past the first. A member who joined and never posted reads 0 until
+   first tee — which the ruling calls correct. Verbatim rule with `Career.playedIn`. */
+function playedInCount(){
+  const ms = (window.CS?.memberships) || [];
+  const seasons = window.leagueSeasons || [];
+  const ranked = window.careerRankedSeasons || new Set();
+  const today = isoOf(new Date());
+  const running = ['active','cup_final','complete'];
+  const leagues = ms.filter(m => {
+    if(!m || !m.league || m.league.sandbox) return false;
+    const ss = seasons.filter(x => x.league_id === m.league.id);
+    return ss.some(x =>
+         ranked.has(x.id)
+      || Number(x.number||1) > 1
+      || (running.includes(x.status) && String(x.starts_on||'') <= today));
+  }).length;
+  const events = ((window.myEvents)||[]).filter(e => e && e.mine).length;
+  return leagues + events;
+}
+window.playedInCount = playedInCount;
+
+/* Y-14 · the figure-scope line, WITH its denominator. Web twin of the Kit's
+   `YouCopy.acrossCounting` — one wording for "how many rounds is this read
+   off", on both panels and on both figures in each. */
+function countingScope(n){ return 'across '+n+' counting round'+(n===1?'':'s'); }
 function renderCareer(){
   /* diorama form is fabricated coherently (index 12.4: beat = 12.4−diff ≥ 1) */
   const c = state.demo
-    ? { rounds:42, best:4.8, avg:1.2, played:3, recent:[
-        {played_on:'2026-06-30', course_label:'Papago GC',    gross:82, differential:9.1,  holes_played:18, beat:true},
-        {played_on:'2026-06-22', course_label:'Ken McDonald', gross:86, differential:11.2, holes_played:18, beat:true},
-        {played_on:'2026-06-14', course_label:'Grayhawk',      gross:80, differential:7.8,  holes_played:18, beat:true},
-        {played_on:'2026-06-07', course_label:'Encanto',       gross:93, differential:14.6, holes_played:18, beat:false},
-        {played_on:'2026-05-31', course_label:'Aguila',        gross:84, differential:10.3, holes_played:18, beat:true} ] }
+    ? { rounds:42, best:4.8, avg:1.2, counting:42, played:3, recent:[
+        {played_on:'2026-06-30', course_label:'Papago GC',    gross:82, differential:9.1,  holes_played:18, pvi:3.3,  beat:true},
+        {played_on:'2026-06-22', course_label:'Ken McDonald', gross:86, differential:11.2, holes_played:18, pvi:1.2,  beat:true},
+        {played_on:'2026-06-14', course_label:'Grayhawk',      gross:80, differential:7.8,  holes_played:18, pvi:4.6,  beat:true},
+        {played_on:'2026-06-07', course_label:'Encanto',       gross:93, differential:14.6, holes_played:18, pvi:-2.2, beat:false},
+        {played_on:'2026-05-31', course_label:'Aguila',        gross:84, differential:10.3, holes_played:18, pvi:2.1,  beat:true} ] }
     : window.career;
   const set = (id,v)=>{ const el=$(id); if(el) el.textContent=v; };
   const sign = v => (v>=0?'+':'') + v.toFixed(1);
-  const yf=$('#youForm'); if(yf) yf.innerHTML = c ? formRowHtml(c.recent) : '';
+  const yf=$('#youForm'); if(yf) yf.innerHTML = c ? formRowHtml(c.recent, CS_FORM_KEY) : '';
   if(!c){ ['#clR','#clBest','#clAvg','#clPlayed'].forEach(id=>set(id,'—')); const yr=$('#youRecent'); if(yr) yr.innerHTML=''; return; }
   set('#clR', c.rounds);
   set('#clBest', c.best!=null ? sign(c.best) : '—');
   set('#clAvg',  c.avg !=null ? sign(c.avg)  : '—');
-  set('#clPlayed', c.played);
+  /* Y-28 · when the cell is a dash, the sub says why it is one.
+     Y-14 · WITH its denominator, and on BOTH figures: the best and the average
+     are read off the same counting set, and with one counting round they are
+     the same number. "Rounds posted" above counts a different set entirely. */
+  const clScope = !(c.counting>0) ? 'No counting rounds yet' : countingScope(c.counting);
+  set('#clAvgSub', clScope);
+  set('#clBestSub', clScope);
+  set('#clPlayed', state.demo ? c.played : playedInCount());
   const yr=$('#youRecent'); if(yr){
     /* delete-a-round lives here now (moved off the retired quick-post card):
        owner-only ×, delete_round RPC, standings views recompute on their own */
     const canDel = !state.demo && window.sb;
     yr.innerHTML = (c.recent && c.recent.length)
-      ? c.recent.map((r,ri)=>`<div class="fine" style="padding:3px 0; display:flex; justify-content:space-between; align-items:center; gap:8px;"><span>${r.played_on} · ${esc((r.course_label||'').toUpperCase())||'ROUND'}${r.holes_played===9?' · 9':''}</span><span style="display:flex; align-items:center; gap:12px;">${(r.photo_url||r.photo_path)?`<button data-rcpt-i="${ri}" title="Round photo" aria-label="Open the round" style="background:none; border:none; color:var(--dim); cursor:pointer; padding:2px 2px; line-height:1;"><svg class="ic" aria-hidden="true"><use href="#i-photo"/></svg></button>`:''}<b class="mono">${r.gross} · ${r.differential}</b>${canDel&&r.id?`<button data-delr="${r.id}" title="Delete this round" aria-label="Delete round" style="background:none; border:none; color:var(--dim); cursor:pointer; font-size:16px; line-height:1; padding:2px 4px;"><svg class="ic" aria-hidden="true"><use href="#i-close"/></svg></button>`:''}</span></div>`).join('')
+      /* Y-12 / D210 · the row used to read "2026-06-14 · GRAYHAWK   80 · 7.8":
+         a raw ISO date and two bare floats, the second of them the banned word
+         in numeral form. Now it reads the way the phone's recent-round row
+         does — the date as a glyph, the gross labelled, and the figure on its
+         own line under it, named for what it is measured against (D209). */
+      ? c.recent.map((r,ri)=>{
+          const d = r.played_on ? localDate(String(r.played_on)) : null;
+          const when = d ? `${MOS[d.getMonth()].toUpperCase()} ${d.getDate()}` : '';
+          const course = esc((r.course_label||'').toUpperCase()) || 'SOMEWHERE OUT THERE';
+          const fig = r.pvi!=null ? Number(r.pvi) : null;
+          const photo = (r.photo_url||r.photo_path)?`<button data-rcpt-i="${ri}" title="Round photo" aria-label="Open the round" style="background:none; border:none; color:var(--dim); cursor:pointer; padding:2px 2px; line-height:1;"><svg class="ic" aria-hidden="true"><use href="#i-photo"/></svg></button>`:'';
+          const del = canDel&&r.id?`<button data-delr="${r.id}" title="Delete this round" aria-label="Delete round" style="background:none; border:none; color:var(--dim); cursor:pointer; font-size:16px; line-height:1; padding:2px 4px;"><svg class="ic" aria-hidden="true"><use href="#i-close"/></svg></button>`:'';
+          return `<div class="fine" style="padding:3px 0"><div style="display:flex; justify-content:space-between; align-items:center; gap:8px;"><span>${when} · ${course}</span><span style="display:flex; align-items:center; gap:12px;">${photo}<b class="mono">${r.gross} GROSS${r.holes_played===9?' · 9 HOLES':''}</b>${del}</span></div>`
+            + (fig!=null ? `<div style="color:var(--mut)">${sign(fig)} vs your playing number</div>` : '')
+            + `</div>`;
+        }).join('')
       : emptyState({ icon:'⛳', line:'No rounds yet — your card fills as you play.', ctaLabel:'Post your first round', ctaGo:'record' });
     /* photos arc 2: the receipt sheet carries the photo — no bare image tabs */
     yr.querySelectorAll('[data-rcpt-i]').forEach(b=>b.addEventListener('click', ()=>{
@@ -12818,6 +12972,9 @@ function renderIndStats(){
   $('#msAvg').textContent=vsShort(me.avg);   /* Q-23 */
   $('#msBest').textContent='+'+me.best.toFixed(1);
   $('#msDelta').textContent='▼ '+Math.abs(me.d).toFixed(1);
+  $('#msAvgSub').textContent=countingScope(me.r);
+  $('#msBestSub').textContent=countingScope(me.r);
+  $('#msDeltaSub').textContent='Season to date';
 
   const king=rows[0];
   const imp=[...rows].sort((a,b)=>a.d-b.d)[0];
@@ -12847,6 +13004,9 @@ function renderIndStatsReal(){
   const dash=id=>{ const el=$(id); if(el) el.textContent='—'; };
   if(!rows.length){
     ['#msR','#msAvg','#msBest','#msDelta','#awKing','#awImp','#awIron'].forEach(dash);
+    $('#msAvgSub').textContent='No counting rounds yet';
+    $('#msBestSub').textContent='No counting rounds yet';
+    $('#msDeltaSub').textContent='Needs 2 rounds this season';
     $('#awKingS').textContent='Points King';
     $('#awImpS').textContent='Most Improved';
     $('#awIronS').textContent='Iron Man';
@@ -12855,11 +13015,23 @@ function renderIndStatsReal(){
   }
   const me=rows.find(p=>p.me);
   const sgn=v=>(v>=0?'+':'')+v.toFixed(1);
+  const cnt = (me && me.hist) ? me.hist.length : 0;
   $('#msR').textContent = me ? me.r : '—';
   $('#msAvg').textContent = me && me.r ? sgn(me.avg) : '—';
   $('#msBest').textContent = me && me.best!=null ? sgn(me.best) : '—';
-  $('#msDelta').textContent = me && me.d!=null && Math.abs(me.d)>=0.05
-    ? (me.d<0?'▼ ':'▲ ')+Math.abs(me.d).toFixed(1) : '—';
+  /* Y-28 · "Held" is not "—". A dash means there is no second round to
+     measure from; two rounds that bracket no move at all are a real answer,
+     and the sub says which of the two you are looking at. */
+  $('#msDelta').textContent = (!me || me.d==null) ? '—'
+    : Math.abs(me.d)<0.05 ? 'Held'
+    : (me.d<0?'▼ ':'▲ ')+Math.abs(me.d).toFixed(1);
+  /* Y-14 · the scope line carries the denominator and rides BOTH figures */
+  const msScope = cnt===0 ? 'No counting rounds yet' : countingScope(cnt);
+  $('#msAvgSub').textContent = msScope;
+  $('#msBestSub').textContent = msScope;
+  /* Y-14 · "Needs 2 rounds" read as nonsense beside "Rounds posted 17";
+     it means two rounds in THIS season. */
+  $('#msDeltaSub').textContent = (!me || me.d==null) ? 'Needs 2 rounds this season' : 'Season to date';
 
   /* award tiles are narrow — first names only, so the row never wraps */
   const fn=n=>(n||'—').trim().split(/\s+/)[0];
@@ -12921,22 +13093,49 @@ function roundCardBody(r, pvi, capN){
     rows.push(`<div class="mathrow"><span>The course</span><b>${Number(r.rating).toFixed(1)} / ${r.slope}</b></div>`);
   }
 
+  /* D124 (i) · a round posted with NO number has nothing to be compared to.
+     The number rows and the verdict go; one sentence stands in their place.
+     `index_provisional` / `provisional_round` are absent on an older database,
+     and then this branch simply never fires. */
+  const provisional = r.index_provisional===true;
+  /* D209 · the arithmetic reads in order: the number that day → the playing
+     number it becomes under the league's allowance → what the round was worth
+     against the course → the verdict. Same order as the phone's ReceiptRows. */
+  let playingShown=false;
+  if(!provisional){
+    if(r.index_at_post!=null){
+      rows.push(`<div class="mathrow sub"><span>${mine?'Your':'Their'} number that day</span><b>${Number(r.index_at_post).toFixed(1)}</b></div>`);
+    }
+    /* the allowance is visible where it ACTS. `round_card` returns the playing
+       index; the row renders only when the allowance actually moved the PRINTED
+       figure — at 100%, or at any allowance that lands on the same tenth, it
+       would print the row above it twice (D201: one fact, one place). */
+    const playingF = r.playing_index!=null ? Number(r.playing_index).toFixed(1) : null;
+    playingShown = playingF!=null && r.index_at_post!=null && playingF!==Number(r.index_at_post).toFixed(1);
+    if(playingShown){
+      rows.push(`<div class="mathrow sub"><span>Playing number</span><b>${playingF}</b></div>`);
+    }
+  }
+
   /* the arithmetic, shown rather than asserted (§16). Recomputed here from the
      stored inputs — if it ever disagrees with the stored differential, the
      stored one is displayed and this line just explains where it came from. */
+  /* D210 · "vs course" is the house name for this figure; the word the canon
+     bans by name never reaches a screen again. */
   if(r.differential!=null && r.rating!=null && r.slope!=null && r.gross!=null){
     const holes = r.holes_played===9 ? 9 : 18;
     const rt = holes===9 && r.nine_rating!=null ? Number(r.nine_rating) : Number(r.rating);
-    rows.push(`<div class="mathrow sub"><span>${r.gross} − ${rt.toFixed(1)} × 113 ⁄ ${r.slope}</span><b>${Number(r.differential).toFixed(1)} DIFFERENTIAL</b></div>`);
+    rows.push(`<div class="mathrow sub"><span>${r.gross} − ${rt.toFixed(1)} × 113 ⁄ ${r.slope}</span><b>${Number(r.differential).toFixed(1)} VS COURSE</b></div>`);
   }
-  if(r.index_at_post!=null){
-    rows.push(`<div class="mathrow sub"><span>${mine?'Your':'Their'} number that day</span><b>${Number(r.index_at_post).toFixed(1)}</b></div>`);
-  }
-  if(pvi!=null){
+  if(provisional){
+    /* the one sentence, byte-for-byte the phone's ReceiptRows.noNumberYet */
+    const n = r.provisional_round!=null ? Number(r.provisional_round) : null;
+    rows.push(`<div class="mathrow"><span>No number yet \u2014 this round starts it${n?` (${n} of 3)`:''}</span><b></b></div>`);
+  } else if(pvi!=null){
     /* Q-23 · the receipt is the one place the signed figure is legitimate —
        it is showing its work — but it leads with the words now, so the number
        explains the phrase rather than contradicting the card. */
-    rows.push(`<div class="mathrow"><span>${mine?'Against your number':'Against their number'}</span><b>${mine?vsShort(pvi):theirs(vsShort(pvi))} — ${(mine?bandName(pvi):theirs(bandName(pvi))).toUpperCase()}</b></div>`);
+    rows.push(`<div class="mathrow"><span>Against ${mine?'your':'their'} ${playingShown?'playing number':'number'}</span><b>${mine?vsShort(pvi):theirs(vsShort(pvi))} — ${(mine?bandName(pvi):theirs(bandName(pvi))).toUpperCase()}</b></div>`);
   }
   if(r.points!=null) rows.push(`<div class="mathrow"><span>Points</span><b>${r.points}</b></div>`);
   if(r.month_rank!=null){
@@ -13154,8 +13353,7 @@ function openSeasonCeremony(force){
       ${st.collectedCents<st.potCents ? `<div class="cerpay"><div class="who">Still owed to the pot
         <span class="why">${esc(st.owing.join(', '))}</span></div>
         <div class="amt">${csMoney(st.potCents-st.collectedCents)}</div></div>` : ''}
-      <p class="fine" style="margin:10px 0 0">Cup Season keeps the books. Money moves
-        friend-to-friend — we just make sure nobody argues at the bar.</p>
+      <p class="fine" style="margin:10px 0 0">${CS_LEDGER}</p>
     </div>` : '';
   const mineHtml = (st.mine && st.potCents>0) ? `
     <div class="ceryou"><b>You're owed ${csMoney(st.mine.cents)}</b>
@@ -13408,7 +13606,8 @@ function resetToBlank(leagueName){
 
 /* ================= phase, wizard & routing ================= */
 /* One source of truth for season edges: server dates when a season exists,
-   wizard preview dates before lock. Sunday start · Saturday finish (spec §14.0). */
+   wizard preview dates before lock. The first tee is ANY weekday and the
+   season ends on that same weekday N weeks out (§14.0 v1.1, D213). */
 /* 'YYYY-MM-DD' must parse as LOCAL midnight — bare new Date(iso) reads it as UTC,
    which in Phoenix renders the day before. */
 function localDate(iso){ const [y,m,d]=iso.split('-').map(Number); return new Date(y,m-1,d); }
@@ -13421,7 +13620,7 @@ function seasonSpanText(){
   return `${DOW[s.getDay()]} ${MOS[s.getMonth()]} ${s.getDate()} → ${DOW[e.getDay()]} ${MOS[e.getMonth()]} ${e.getDate()} · ${totalWeeks()} wks`;
 }
 /* Cup Final = the final four weeks, scored fresh (§14.0/§14.3).
-   Start = ends_on − 27 days: a Sunday, since seasons end Saturday. */
+   Start = ends_on − 27 days — four whole weeks, whatever the weekday (D213). */
 function cupFinalStart(){ const d=new Date(seasonE()); d.setDate(d.getDate()-27); return d; }
 function isCupFinal(){
   /* the endgame dial (008): points-table leagues never enter a Final */
@@ -13429,7 +13628,8 @@ function isCupFinal(){
   return !state.demo && state.phase==='season' && Date.now() >= cupFinalStart().getTime();
 }
 /* "At the starter": bylaws locked, squads formed, first tee still ahead.
-   Seasons start on a Sunday (§14.0) — until then the week counter is a lie. */
+   The first tee is any weekday (§14.0 v1.1, D213) — until it passes the
+   week counter is a lie. */
 function atStarter(){
   return !state.demo && state.phase==='season' && !!state.seasonStart
       && Date.now() < seasonS().getTime();
@@ -13446,10 +13646,17 @@ function currentWeek(){
   const w=Math.floor((Date.now()-seasonS())/(7*864e5))+1;
   return Math.min(Math.max(1,w), totalWeeks());
 }
+/* D206 · the DB's own words for the season format. 'hybrid' survives ONLY so
+   the two seeded legacy rows still render their own name; nothing new is ever
+   written with it (`fmtKeyForLock`), and a read-back clamps to points unless
+   the league is already locked on the legacy value (`applyBylaws`). */
+const FMT_KEYS=['points','h2h','hybrid'];
 const FMT_NAMES=['Points Race','Head-to-Head','Hybrid'];
+/* never mint a hybrid: a new lock writes points where the state says hybrid */
+function fmtKeyForLock(){ const k=FMT_KEYS[state.fmt]; return (!k || k==='hybrid') ? 'points' : k; }
 const STRUCT_NAMES={solo:'Individual — no squads', squads2:'2 squads', squads3:'3 squads', squads4:'4 squads'};
 const STRUCT_NOTES={
-  solo:'Individual · every player for himself — works at any size (4+). No squads; top 2 players meet in the Cup Final in the final four weeks.',
+  solo:'Individual · every player for himself — works at any size (2+). No squads; top 2 players meet in the Cup Final in the final four weeks.',
   squads2:'2 squads · fits 4–7 players. Both squads reach the Cup Final; the regular-season leader carries a +10 head start.',
   squads3:'3 squads · fits 6+. Cut line after 2nd: top 2 advance.',
   squads4:'4 squads · the full cup experience for 8+ players.',
@@ -13484,9 +13691,13 @@ $$('#structSeg button').forEach(b=>b.addEventListener('click',()=>{
   b.classList.add('on');
   state.structure=b.dataset.s;
   $('#structNote').textContent=STRUCT_NOTES[state.structure];
-  renderBylaws(); renderPhase();
+  /* D205 · the lock button and the invite note read the structure too */
+  renderSetup();
 }));
-const ALLOW=[100,95,90], VERIF=['Honor system','Attested','GHIN-verified + attested'];
+/* M-15 · verification describes what the league ASKS of a golfer, never a
+   check the engine performs ("GHIN-verified" was a claim the app cannot
+   make — ship audit 2026-08-31). Verbatim with the phone's `Bylaws.verif`. */
+const ALLOW=[100,95,90], VERIF=['Honor system','Post what you\'d post to GHIN','Attested where you can; the Pro rules on the rest'];
 const PENALTY=['None','−5 sqd pts / round short','Forfeit month'];
 /* Stage 3d: the desktop wizard aside — a drawn portrait of the league, live
    from the dials (the Pro watches it assemble instead of reading a list). All
@@ -13603,36 +13814,33 @@ function renderBylaws(){
   }
 }
 /* ─────────────────────────────────────────────────────────────────────────
-   D180 · when the invite link expires, said as a FACT on the lock screen.
+   D180 · when the invite link expires, said as a FACT on the lock screen —
+   the roster door's closing time, not D179's warning about it.
 
-   This replaces D179's warning, which was a band-aid: it explained an
-   incoherence (a link created and invalidated by the same action) instead of
-   removing it, and made the app argue with the Pro about a choice the app had
-   made badly. The roster door (D180) removes the incoherence; this line just
-   reports the door's closing time, in every case — which the screen never did
-   before, not even in the normal one.
-
-   At lock, `locked_at` is now, so the rule reduces to: first tee if it is in
-   the future, otherwise a week from today.
+   D205 · and both minimums with it, derived from STRUCT_MIN rather than
+   typed: squads tee off at four, solo at two. The old line ("Minimum four to
+   tee off") called the format two of two real leagues are playing too small,
+   and its "anyone can also join later with the league code" had been wrong
+   since D161 closed the code at first tee. Verbatim with the phone's
+   `WizardCopy.inviteNote`; D180's exact date left with it, because the ruling
+   names this sentence.
    ───────────────────────────────────────────────────────────────────────── */
-function inviteWindowText(){
-  const s = seasonStartDate();
-  const t = new Date(); t.setHours(0,0,0,0);
-  if(s > t) return `It works until first tee \u2014 ${WD[s.getDay()]} ${MOS[s.getMonth()]} ${s.getDate()}.`;
-  const w = new Date(t.getFullYear(), t.getMonth(), t.getDate() + 7);
-  return `It works for a week \u2014 until ${WD[w.getDay()]} ${MOS[w.getMonth()]} ${w.getDate()}.`;
+function numberWord(n){ return (n>=2 && n<=8) ? ['two','three','four','five','six','seven','eight'][n-2] : String(n); }
+function inviteNoteText(){
+  return 'Lock opens the invite link \u2014 one link fills the league. '
+       + 'The code works until first tee, or until you close the roster. '
+       + `Squads need ${numberWord(STRUCT_MIN.squads2||4)} to tee off; solo tees off at ${numberWord(STRUCT_MIN.solo||2)}.`;
 }
 function paintInviteNote(){
   const note = $('#inviteNote'); if(!note) return;
-  /* the old line promised "anyone can also join later with the league code",
-     which D161 stopped — the code closes at first tee. It has been wrong since
-     D161 shipped. */
-  note.textContent = `Lock opens the invite link. ${inviteWindowText()} You can close the roster yourself once everyone's in. Four to tee off.`;
+  note.textContent = inviteNoteText();
   const stale = document.getElementById('firstTeeWarn'); if(stale) stale.remove();
 }
 window.paintInviteNote = paintInviteNote;
+/* D205 · a solo league has no squads to form. (D161's rename of the button's
+   verb — "tee it up" — stays deferred.) */
+function lockButtonText(){ return state.structure==='solo' ? 'Lock the bylaws' : 'Lock the bylaws & form the squads'; }
 
-const MIN_LEAGUE=4;                    /* foursome floor — spec §8 v0.7 */
 if(state.emails.length===0) state.emails=[''];   /* one line; "+ Add email" grows it */
 function updateInviteNote(){
   /* A-W2: staged invites left the wizard — invites open post-lock behind the
@@ -14534,6 +14742,7 @@ $$('.ibtn').forEach(b=>b.addEventListener('click',e=>{
 seedHistory();
 /* post form defaults to today, local — toISOString() is UTC and drifts in Phoenix evenings */
 { const d=new Date(); $('#inDate').value=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; }
+paintLedgerLines();
 renderClimb(); renderStandings(); renderFeed(); renderDraft(); renderPot(); renderSetup(); renderPostHoles(); renderRoster(); renderPlay(); renderWizard(); renderPhase(); renderBylaws(); renderEmails(); renderStats(); renderIndStats();
 </script>
 
@@ -14607,7 +14816,7 @@ const MARKERS = {
   azalea:    {n:'The Azalea',     p:'M12 10c-1.4-1.9-1.4-4.7 0-6 1.4 1.3 1.4 4.1 0 6M10 11.3C7.7 10.7 6 8.4 6.5 6.5c1.9.1 3.9 2.1 4.3 4.4M10.9 13.6c-1.6 1.8-4.4 2.4-6 1.2.8-1.8 3.5-2.9 5.8-2.5M13.1 13.6c1.6 1.8 4.4 2.4 6 1.2-.8-1.8-3.5-2.9-5.8-2.5M14 11.3c2.3-.6 4-2.9 3.5-4.8-1.9.1-3.9 2.1-4.3 4.4M13.2 12a1.2 1.2 0 11-2.4 0 1.2 1.2 0 012.4 0'},
   jug:       {n:'The Jug',        p:'M11 3h2M12 3v2M10 5h4l.6 3c1.8 1.2 2 4.4.4 6h-6c-1.6-1.6-1.4-4.8.4-6L10 5M12 14v3M9.5 20h5c0-1.6-1-2.6-2.5-2.6s-2.5 1-2.5 2.6M16 9c2 0 2.8 1.8 2 3.2-.5 1-1.4 1.6-2.5 1.8'},
   weebridge: {n:'The Wee Bridge', p:'M2 16h4c0-3 2.5-5 6-5s6 2 6 5h4M9.5 16c0-1.7 1-2.7 2.5-2.7s2.5 1 2.5 2.7M8 19.5c1.5-1.2 6.5-1.2 8 0'},
-  no2:       {n:'No. 2',          p:'M6 21V3.5M6 4.5h8.5v6H6M8.6 6.8c0-.9.7-1.5 1.6-1.5s1.6.6 1.6 1.4c0 1.3-3.2 1.9-3.2 3.1h3.3'},
+  no2:       {n:'The No. 2',      p:'M6 21V3.5M6 4.5h8.5v6H6M8.6 6.8c0-.9.7-1.5 1.6-1.5s1.6.6 1.6 1.4c0 1.3-3.2 1.9-3.2 3.1h3.3'},
   stamp:     {n:'The Postage Stamp', p:'M5 5h14v14H5zM8 4v2M12 4v2M16 4v2M8 18v2M12 18v2M16 18v2M10.5 14.5V9.5l3 1.3-3 1.2M8.5 15.5c1.2-.7 5.8-.7 7 0'},
   thistle:   {n:'The Thistle',    p:'M8.2 5l1.5 2.6M12 4v3M15.8 5l-1.5 2.6M12 7c2.2 0 3.5 1.2 3.5 3s-1.3 3-3.5 3-3.5-1.2-3.5-3 1.3-3 3.5-3M10.2 8.6l3.6 2.8M13.8 8.6l-3.6 2.8M12 13v8M11 16.5c-1.8-.2-3.2-1.2-3.7-2.9M13 17.8c1.8-.2 3.2-1.2 3.7-2.9'},
 };
@@ -14836,23 +15045,28 @@ $('#obCrewSkip')?.addEventListener('click', () => leaveCrewStep('skip'));
    teachings stand on their own and "Take me in" is the one door. */
 /* D82: the guide sheets — the orientation's content, reopenable forever.
    Copy is grounded in the shipped labels; the model taught here must never
-   drift from the doors that teach themselves. */
+   drift from the doors that teach themselves.
+   Y-05 · verbatim with the phone's `GuideCopy.sheets`, with ONE deliberate
+   exception: the Clubhouse switcher. The phone pages between leagues by swipe
+   (D203); this client still switches with the chips up top (renderClubGroups),
+   and a door sentence names the door THAT client ships. Mirroring "swipe
+   sideways" here would write a fresh lie. Everything else is word for word. */
 const GUIDE = {
   places: ['The four places','ONE APP, FOUR ROOMS', `
     <p class="fine" style="padding:0 0 10px"><b>Home</b> is everything you're in, one feed — your standing up top, your buddies' rounds under it.</p>
     <p class="fine" style="padding:0 0 10px"><b>Clubhouse</b> is one league's room: Standings, the Board, the Schedule, the Pot, the Album, the League — switch groups with the chips up top.</p>
-    <p class="fine" style="padding:0 0 10px"><b>The ⊕ in the middle</b> is one door for before, during and after a round: post after, score the group live during, put a tee time up before.</p>
-    <p class="fine" style="padding:0 0 12px"><b>You</b> is your card, your record, your trophies and your buddies. The ⚙ on your card runs everything else.</p>`],
+    <p class="fine" style="padding:0 0 10px"><b>Post</b>, in the middle of the bar, is one door for before, during and after a round: post after, score the group live during, put a tee time up before.</p>
+    <p class="fine" style="padding:0 0 12px"><b>You</b> is your card, your record, your trophies and your buddies. The gear up top opens Card &amp; settings, which runs everything else.</p>`],
   games: ['Leagues vs events','THE LONG GAME · THE SHORT GAME', `
     <p class="fine" style="padding:0 0 10px"><b>A league is the long game.</b> A full season — weeks or months, squads or solo, every round you post counts toward a table, and the endgame settles it: a Cup Final or the points table.</p>
     <p class="fine" style="padding:0 0 10px"><b>An event is the short game.</b> A weekend or a few weeks, its own little trophy: the Ryder (two teams, weekly duels), or a Major (one window, every card on one board, one name on the jug).</p>
     <p class="fine" style="padding:0 0 12px">You can run both at once. An event stands alone, or attaches to a league.</p>`],
-  posting: ['Posting a round','THE ⊕ · BEFORE, DURING, AFTER', `
+  posting: ['Posting a round','POST · BEFORE, DURING, AFTER', `
     <p class="fine" style="padding:0 0 10px"><b>After you play:</b> front nine, back nine, pick the course — twenty seconds. It counts on your card and in every league you're in. <b>Scan the card</b> and the app reads it for you, the whole group at once.</p>
     <p class="fine" style="padding:0 0 10px"><b>During:</b> Play now is the shared pencil — match play, Wolf, skins, the settle-up. Everyone's card posts at the end, attested by the group.</p>
     <p class="fine" style="padding:0 0 12px"><b>Before:</b> put a tee time on the sheet. Your buddies see it and tap in.</p>`],
   buddies: ['Buddies, invites and claims','THREE LINKS, THREE JOBS', `
-    <p class="fine" style="padding:0 0 10px"><b>A buddy</b> is mutual — the magnifier up top finds golfers by name or @handle. Buddies see each other's rounds and share a tee sheet. Nothing to do with leagues or points.</p>
+    <p class="fine" style="padding:0 0 10px"><b>A buddy</b> is mutual — open Your buddies on You to find golfers by name or @handle. Buddies see each other's rounds and share a tee sheet. Nothing to do with leagues or points.</p>
     <p class="fine" style="padding:0 0 10px"><b>An invite link</b> carries a league's code — whoever opens it reviews the league and joins if they're in.</p>
     <p class="fine" style="padding:0 0 12px"><b>A claim link</b> hands one round to a guest you played with, so the score lands on their card. No league, no buddy — just the round.</p>`],
 };
@@ -14945,7 +15159,7 @@ function refreshWhoChip(){
   if($('#youMeta')) $('#youMeta').textContent =
     [p.handle ? '@'+p.handle : null, p.city, p.home_course].filter(Boolean).join(' · ');
   if($('#youAnchor')){
-    const since = p.created_at ? (()=>{ const d=new Date(p.created_at); return 'Member since '+MOS[d.getMonth()]+' '+d.getFullYear(); })() : null;
+    const since = estSince(p.created_at);
     if(p.ghin_number){
       $('#youAnchor').textContent = ['GHIN '+p.ghin_number, since].filter(Boolean).join(' · ');
     } else {
@@ -14984,12 +15198,12 @@ function refreshWhoChip(){
   const yt = $('#youTros');
   if(yt){
     const tr = Array.isArray(window.trophies) ? window.trophies : [];
-    const lines = tr.slice(0,3).map(a=>{
+    const lines = tr.slice(0,CRED_CHIPS).map(a=>{
       const m = ACH_META[a.kind] || { icon:'🏅', title:a.label||'Milestone' };
       const yr = a.earned_on ? " · '"+String(a.earned_on).slice(2,4) : '';
       return `${m.icon} ${esc(m.title)}${yr}`;
     });
-    if(tr.length>3) lines.push(`+${tr.length-3} more in the case`);
+    if(tr.length>CRED_CHIPS) lines.push(`+${tr.length-CRED_CHIPS}${MORE_IN_CASE}`);
     yt.innerHTML = lines.join('<br>');
   }
 }
@@ -15046,15 +15260,36 @@ async function renderCrewPeople(){
     /* the LEAGUE join link is the only invite link that exists — a buddy-invite
        link is a different mechanic and would need a decision, not a tidy. So:
        offer what is real, or offer nothing. */
-    const lg=(window.CS?.memberships||[]).find(m=>m.code);
+    /* Y-04 · the row NAMES the league it invites people INTO. It used to take
+       `.find(m=>m.code)` and say nothing, so a golfer in two leagues sent the
+       wrong link and never saw which. With more than one code in hand it asks. */
+    /* `loadMemberships()` selects `league:leagues(id,name,code,phase,sandbox)`,
+       so the code and the name live one level down — `m.code` is undefined on
+       every row and the filter used to return []. */
+    const codes=(window.CS?.memberships||[]).filter(m=>m.league?.code).map(m=>m.league);
     const el=document.getElementById('crLink');
-    if(lg && el){
-      el.innerHTML=`<button type="button" class="pdoorlink" id="crLinkBtn">
-        <span>Send an invite link</span><small>WORKS FOR ANYONE, ACCOUNT OR NOT</small></button>`;
-      document.getElementById('crLinkBtn').addEventListener('click', ()=>{
+    if(codes.length && el){
+      const one=codes.length===1;
+      const sub=(one?`${codes[0].name} \u00b7 works for anyone, account or not`
+                    :'Choose the league \u00b7 works for anyone, account or not').toUpperCase();
+      el.innerHTML=`<button type="button" class="pdoorlink" id="crLinkBtn" aria-expanded="false">
+        <span>Send an invite link</span><small>${esc(sub)}</small></button>
+        <div id="crLinkPick" hidden style="margin-top:6px"></div>`;
+      const share=lg=>{
         const url=`https://cupseason.app/?join=${lg.code}`;
         if(navigator.share) navigator.share({ title:'Cup Season', text:`You're invited to ${lg.name} on Cup Season`, url }).catch(()=>{});
         else { navigator.clipboard?.writeText(url); toast('Invite link copied'); }
+      };
+      const btn=document.getElementById('crLinkBtn'), pick=document.getElementById('crLinkPick');
+      btn.addEventListener('click', ()=>{
+        if(one) return share(codes[0]);
+        const open=!pick.hidden;
+        pick.hidden=open; btn.setAttribute('aria-expanded', String(!open));
+        if(!open && !pick.dataset.built){
+          pick.innerHTML=codes.map((m,i)=>`<button type="button" class="mini" data-inv="${i}" style="margin:0 6px 6px 0">${esc(m.name)}</button>`).join('');
+          pick.dataset.built='1';
+          pick.querySelectorAll('[data-inv]').forEach(b=>b.addEventListener('click',()=>share(codes[+b.dataset.inv])));
+        }
       });
     }
   }
@@ -15099,6 +15334,13 @@ async function renderCrewPeople(){
 }
 window.renderCrewPeople = renderCrewPeople;
 
+/* `YOU LEAD` / `THEY LEAD` / `ALL SQUARE` — web twin of the Kit's
+   `RivalryCopy.leadLabel`. One wording for "who is up" wherever it appears:
+   the Tour Card's vs chip and the rivalry row's own caption. */
+function csLeadLabel(wins, losses){ return wins>losses?'YOU LEAD':wins<losses?'THEY LEAD':'ALL SQUARE'; }
+/* the same three words for a surface holding the resolved lead ('up'/'down'/'even') */
+function csLeadFor(lead){ return csLeadLabel(lead==='up'?1:0, lead==='down'?1:0); }
+
 /* Rivalries: lifetime weekly-clash record vs your league mates (ckpt 4).
    my_rivalries() → summary rows; rivalry_weeks() → the receipts (§16). */
 async function renderRivalries(){
@@ -15125,7 +15367,16 @@ async function renderRivalries(){
     return `<div class="prow" data-tc="${r.opponent}">
       <span class="pmk">${mkr(r.marker||'saguaro')}</span>
       <span class="pmeta">${named}<b>${esc(r.display_name||'—')}</b><small>${facets}</small></span>
-      <span class="rivrec ${cls}">${rec}</span></div>`;
+      <!-- Y-08 · "1-0" in green said nothing about WHOSE record it was, and the
+           colour was the only thing carrying the verdict. Y-16 · the row opens
+           the Tour Card and never said so; same arrow every other door wears. -->
+      <span style="display:flex; align-items:center; gap:10px; flex:none;">
+        <span style="display:flex; flex-direction:column; align-items:flex-end; gap:2px;">
+          <span class="rivrec ${cls}">${rec}</span>
+          <span class="eyebrow" style="color:var(--mut)">${csLeadFor(r.lead)}</span>
+        </span>
+        <span style="color:var(--dim)" aria-hidden="true">→</span>
+      </span></div>`;
   }).join('');
 }
 window.renderRivalries = renderRivalries;
@@ -15142,12 +15393,15 @@ async function openRivalrySheet(oppId, name, rec){
               : '<span style="color:var(--mut)">HALVED</span>';
     return `<div class="check"><span class="num mono" style="font-size:10.5px; line-height:1.25">WK OF<br>${MOS[d.getMonth()].toUpperCase()} ${d.getDate()}</span>
       <div class="tt"><b>${tag} · YOU ${me>=0?'+':''}${me.toFixed(1)} · ${esc(name)} ${th>=0?'+':''}${th.toFixed(1)}</b>
-      <small>BEST ROUND VS INDEX THAT WEEK</small></div></div>`;
+      <small>BEST ROUND VS YOUR PLAYING NUMBER THAT WEEK</small></div></div>`;
   }).join('') : '<p class="fine">No head-to-head weeks yet. A clash counts a week you both post.</p>';
   /* M3/D18: name the rivalry — either rival can name, rename, or clear it */
   const eyebrow = curName?`<div class="eyebrow" style="color:var(--gold); margin-bottom:10px">“${esc(curName.toUpperCase())}”</div>`:'';
   const nameBtn = `<button class="btn dark" id="rivNameBtn" style="margin-top:12px">${curName?`Rename “${esc(curName)}”`:'Name this rivalry'}</button>`;
-  openSheet(`You vs ${name}`, `${rec||''} · WEEKLY CLASH · BETTER ROUND VS INDEX TAKES THE WEEK`, eyebrow + weeksHtml + nameBtn);
+  /* D209 · `rivalry_weeks` builds my_pvi/opp_pvi from max(rr.pvi) over
+     v_rounds_ranked — the ALLOWANCE figure — so both captions name the playing
+     number, not the index. Verbatim with the phone's RivalryCopy. */
+  openSheet(`You vs ${name}`, `${rec||''} · WEEKLY CLASH · BETTER ROUND VS YOUR PLAYING NUMBER TAKES THE WEEK`, eyebrow + weeksHtml + nameBtn);
   document.getElementById('rivNameBtn')?.addEventListener('click', ()=>openNameRivalry(oppId, name, curName));
 }
 window.openRivalrySheet = openRivalrySheet;
@@ -15217,18 +15471,22 @@ async function openTourCard(profileId){
   let vsChip='';
   if(vs && (vs.wins+vs.losses+vs.ties)>0){
     const rec2 = `${vs.wins}–${vs.losses}${vs.ties?'–'+vs.ties:''}`;
-    const lead = vs.wins>vs.losses?'YOU LEAD':vs.wins<vs.losses?'THEY LEAD':'ALL SQUARE';
+    const lead = csLeadLabel(vs.wins, vs.losses);
     vsChip = `<button class="cvs" id="tcVs">VS YOU · ${rec2} · ${lead}</button>`;
   }
   const mkMeta = (typeof MARKERS!=='undefined' && (MARKERS[p.marker]||MARKERS.saguaro)) || null;
-  const est = p.member_since ? (()=>{ const d=new Date(p.member_since); return 'est. '+MOS[d.getMonth()]+' '+d.getFullYear(); })() : null;
+  const est = estSince(p.member_since);
   const chd = [p.handle?'@'+esc(p.handle):null, p.city?esc(p.city):null, est].filter(Boolean).join(' · ');
-  const trosLines = tr.slice(0,4).map(a=>{
+  /* Y-09 · "+2 more" was a dead line of text — the only thing on the card that
+     looked like an affordance and did nothing. It expands the list IN PLACE
+     now, and folds back, exactly as the phone's credential does. */
+  const troAll = tr.map(a=>{
     const m=ACH_META[a.kind]||{icon:'🏅',title:a.label||'Milestone'};
     const yr=a.earned_on?" · '"+String(a.earned_on).slice(2,4):'';
     return `${m.icon} ${esc(m.title)}${yr}`;
   });
-  if(tr.length>4) trosLines.push(`+${tr.length-4} more`);
+  const troHid = troAll.slice(CRED_CHIPS);
+  const trosLines = troAll.slice(0,CRED_CHIPS);
   const header = `<div class="cred">
     ${mkMeta?`<div class="cwm" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="${mkMeta.p}"/></svg></div>`:''}
     <div class="ctop">
@@ -15237,20 +15495,53 @@ async function openTourCard(profileId){
     </div>
     <div class="csplit">
       <div class="cidx"><b>${idx}</b><small>Handicap index</small></div>
-      ${trosLines.length?`<div class="ctros">${trosLines.join('<br>')}</div>`:''}
+      ${trosLines.length?`<div class="ctros">${trosLines.join('<br>')}${troHid.length?`<span id="tcTroMore" hidden><br>${troHid.join('<br>')}</span><br><button id="tcTroTog" data-n="${troHid.length}" aria-expanded="false" style="background:none; border:none; padding:2px 0; font:inherit; color:var(--mut); cursor:pointer;">+${troHid.length} more</button>`:''}</div>`:''}
     </div>
     ${window.formRowHtml ? window.formRowHtml(rec) : ''}
     ${vsChip}
   </div>${reportLine}`;
   const trHtml='';
-  const best = c.best!=null ? Number(c.best).toFixed(1) : '—';
-  const avg = c.avg_pvi!=null ? (Number(c.avg_pvi)>=0?'+':'')+Number(c.avg_pvi).toFixed(1) : '—';
-  const stats = `<div class="eyebrow" style="margin-top:16px">Career</div>
+  /* D209 · ONE lens, named ONCE in the eyebrow rather than buried in every row
+     label. `tour_card()` (migration 20260902180000) corrects `avg_pvi` to the
+     allowance mean, adds `best_pvi`, and preserves the old 100% average under
+     its own honest name `avg_vs_index`.
+
+     The switch is the FIGURES, not the keys. A golfer no season has ever
+     ranked has no row in v_rounds_ranked at all, so the new server sends the
+     allowance keys as JSON null — four real profiles are in exactly that
+     state — and switching on key presence alone would print a dash where a
+     real number used to be. So: lens on only when an allowance figure actually
+     arrived; otherwise the 100% average keeps its own words, and the course
+     score keeps its own. D210 · neither branch prints the banned word.
+     The phone's twin is TourCard.swift / TourCardSheet.swift. */
+  const newShape = ('avg_vs_index' in c) || ('best_pvi' in c);
+  const avgPvi   = newShape && c.avg_pvi!=null ? Number(c.avg_pvi) : null;
+  const bestPvi  = c.best_pvi!=null ? Number(c.best_pvi) : null;
+  /* on an old payload `avg_pvi` IS the 100% figure — that key did not move, its lens did */
+  const avgIdx   = newShape ? (c.avg_vs_index!=null ? Number(c.avg_vs_index) : null)
+                            : (c.avg_pvi!=null ? Number(c.avg_pvi) : null);
+  const lens     = avgPvi!=null || bestPvi!=null;
+  const sgn1     = v => (v>=0?'+':'')+v.toFixed(1);
+  const whose    = p.is_me?'your':'their';
+  const best = lens ? (bestPvi!=null ? sgn1(bestPvi) : '—')
+                    : (c.best!=null ? Number(c.best).toFixed(1) : '—');
+  const avg  = lens ? (avgPvi!=null ? sgn1(avgPvi) : '—')
+                    : (avgIdx!=null ? sgn1(avgIdx) : '—');
+  const eyebrow  = lens ? `Career · vs ${whose} playing number` : 'Career';
+  const bestK    = lens ? 'Best round' : 'Best round vs course';
+  const avgK     = lens ? 'Avg' : `Avg vs ${whose} number`;
+  /* 8c · the two OLD figures run opposite ways — a course score where lower
+     wins beside a delta where + wins — and one table cannot sign both the same
+     way, so the table says which is which. Under the lens they are one
+     measurement signed one way and this line has nothing left to explain. */
+  const signsLine = lens ? ''
+    : `<div class="fine" style="padding-top:6px">Lower is better against the course; against ${whose} number, + is better.</div>`;
+  const stats = `<div class="eyebrow" style="margin-top:16px">${eyebrow}</div>
       <div class="mathrow"><span>Rounds</span><b>${c.rounds||0}</b></div>
-      <div class="mathrow"><span>Best diff</span><b>${best}</b></div>
-      <div class="mathrow"><span>Avg vs index</span><b>${avg}</b></div>
-      ${p.home_course?`<div class="mathrow"><span>Home course</span><b>${esc(p.home_course)}</b></div>`:''}
-      ${p.ghin?`<div class="mathrow"><span>GHIN</span><b>${esc(p.ghin)}</b></div>`:''}`;
+      <div class="mathrow"><span>${bestK}</span><b>${best}</b></div>
+      <div class="mathrow"><span>${avgK}</span><b>${avg}</b></div>
+      ${p.home_course?`<div class="mathrow"><span>Home course</span><b>${esc(csCourse(p.home_course))}</b></div>`:''}
+      ${p.ghin?`<div class="mathrow"><span>GHIN</span><b>${esc(p.ghin)}</b></div>`:''}${signsLine}`;
   /* D150 · the two questions the card could not answer. `shared` leads, because
      "you have both played Papago" is the reason two strangers start talking —
      the courses list underneath is the evidence for it. Only PICKED courses
@@ -15279,7 +15570,7 @@ async function openTourCard(profileId){
       + rec.map(r=>{ const d=new Date(r.played_on+'T00:00:00');
           const diff=r.differential!=null?Number(r.differential).toFixed(1):'—';
           return `<div class="check"><span class="num mono" style="font-size:11px">${MOS[d.getMonth()].toUpperCase()} ${d.getDate()}</span>
-            <div class="tt"><b>${r.gross} GROSS${r.holes_played===9?' · 9 HOLES':''}</b><small>${r.course_label?esc(r.course_label.toUpperCase())+' · ':''}DIFF ${diff}</small></div></div>`;
+            <div class="tt"><b>${r.gross} GROSS${r.holes_played===9?' · 9 HOLES':''}</b><small>${r.course_label?esc(r.course_label.toUpperCase())+' · ':''}VS COURSE ${diff}</small></div></div>`;
         }).join('');
   }
   /* W4 (iOS arc, Guideline 1.2): mute lives on the card — the one place you
@@ -15335,6 +15626,14 @@ async function openTourCard(profileId){
       ab.outerHTML=`<span class="ptag ${rr==='friend'?'ok':''}">${rr==='friend'?'Buddies':'Requested'}</span>`;
     }
     window.renderCrewPeople?.(); window.loadHome?.();
+  });
+  const tg=document.getElementById('tcTroTog');
+  if(tg) tg.addEventListener('click', ()=>{
+    const more=document.getElementById('tcTroMore'); if(!more) return;
+    const opening = more.hidden;
+    more.hidden = !opening;
+    tg.setAttribute('aria-expanded', String(opening));
+    tg.textContent = opening ? 'Show fewer' : `+${tg.dataset.n} more`;
   });
   const vb=document.getElementById('tcVs');
   if(vb) vb.addEventListener('click', ()=> openRivalrySheet(profileId, p.display_name||'them',
@@ -15554,7 +15853,7 @@ function openProfileHub(){
     <p class="fine" style="padding-left:0; margin-top:24px; opacity:.55">Cup Season · v23 · __CS_VERSION__</p>
     <div class="eyebrow">How it works</div>
     <div id="youGuide" style="text-align:left; margin-bottom:14px">
-      <div class="check tap" data-guide="places" style="cursor:pointer"><span class="num">◱</span><div class="tt"><b>The four places</b><small>Home · Clubhouse · the ⊕ · You</small></div><span class="fine" style="padding:0; color:var(--dim)">→</span></div>
+      <div class="check tap" data-guide="places" style="cursor:pointer"><span class="num">◱</span><div class="tt"><b>The four places</b><small>Home · Clubhouse · Post · You</small></div><span class="fine" style="padding:0; color:var(--dim)">→</span></div>
       <div class="check tap" data-guide="games" style="cursor:pointer"><span class="num">⛳</span><div class="tt"><b>Leagues vs events</b><small>The long game and the short game</small></div><span class="fine" style="padding:0; color:var(--dim)">→</span></div>
       <div class="check tap" data-guide="posting" style="cursor:pointer"><span class="num">✎</span><div class="tt"><b>Posting a round</b><small>Basic, live, and the scan</small></div><span class="fine" style="padding:0; color:var(--dim)">→</span></div>
       <div class="check tap" data-guide="buddies" style="cursor:pointer"><span class="num">◆</span><div class="tt"><b>Buddies, invites and claims</b><small>Three different links, three jobs</small></div><span class="fine" style="padding:0; color:var(--dim)">→</span></div>
@@ -15909,7 +16208,7 @@ function inviteMessage(L){
   try {
     if(state.seasonStart || state.startISO) lines.push(`First tee ${firstTeeText()}.`);
   } catch(_){}
-  lines.push(Number(state.stake) ? `$${state.stake} in — the app keeps the tab, money moves between you.`
+  lines.push(Number(state.stake) ? `$${state.stake} in — ${CS_LEDGER}`
                                  : 'No buy-in — bragging rights.');
   lines.push('Post real rounds from any course; every round scores against your own number, so a bad day still counts.');
   lines.push(inviteUrl(L));
@@ -15972,8 +16271,13 @@ async function openLockShare(nextPhase, sent){
   const need = Math.max(0, min - n);
   const struct = (SN[state.structure]||'the squads').toLowerCase();
   const forms = state.draftType==='assign' ? 'you seat the squads' : 'the draw runs';
+  /* P-11 · a league locked ahead of its first tee is not live yet, and the
+     celebration said it was. Same sentence, the real date until then. */
+  const t0 = new Date(); t0.setHours(0,0,0,0);
   const line = nextPhase === 'season'
-    ? 'Season is live — every golfer you add posts from day one.'
+    ? (seasonS() > t0
+        ? `First tee ${firstTeeText()} — every golfer you add posts from day one.`
+        : 'Season is live — every golfer you add posts from day one.')
     : need ? `${n} in so far — ${need} more fills ${struct}, and ${forms} when the crew is in.`
            : `${n} in — enough for ${struct}. ${state.draftType==='assign'?'Seat the squads':'Run the draw'} whenever you're ready.`;
   openSheet('Bylaws locked ⛳', 'One link fills the league', `
@@ -16153,10 +16457,19 @@ async function requestOtpCode(email){
 }
 
 async function loadMemberships(){
-  const { data, error } = await sb
+  /* D208 · a sandbox is never "played in", so the flag rides with the row.
+     Deploy skew: an older database has no such column — retry without it
+     rather than fail the whole boot on a count. */
+  let { data, error } = await sb
     .from('league_members')
-    .select('id, role, index_current, league:leagues(id,name,code,phase)')
+    .select('id, role, index_current, league:leagues(id,name,code,phase,sandbox)')
     .eq('profile_id', CS.user.id);
+  if(error && /sandbox/.test(error.message||'')){
+    ({ data, error } = await sb
+      .from('league_members')
+      .select('id, role, index_current, league:leagues(id,name,code,phase)')
+      .eq('profile_id', CS.user.id));
+  }
   if(error) throw error;
   CS.memberships = data ?? [];
   return CS.memberships;
@@ -16182,7 +16495,7 @@ function applyBylaws(b){
   /* prefer the real season span if it's loaded; else approx from months */
   state.durWeeks  = (state.seasonStart && state.seasonEnd)
     ? Math.max(1, Math.round((localDate(state.seasonEnd) - localDate(state.seasonStart)) / (7*864e5)))
-    : Math.max(2, Math.round((b.season_months||6) * 4.345));
+    : Math.max(2, Math.round((b.season_months||3) * 4.345));
   if(state.seasonStart) state.startISO = state.seasonStart;
   state.floor     = b.participation_floor;
   /* D174 · the real bylaw, not a guess from the preset. The composer used to
@@ -16194,10 +16507,13 @@ function applyBylaws(b){
   state.cap       = b.counting_cap === null ? 4 : (CAPMAP[b.counting_cap] ?? 1);
   state.preset    = ['casual','standard','cutthroat'].indexOf(b.preset) >= 0
                     ? ['casual','standard','cutthroat'].indexOf(b.preset) : 1;
-  /* legacy/null season_format would indexOf to -1 → FMT_NAMES[-1] renders
-     "undefined" and a relock writes season_format: undefined; clamp to
-     'points' (the D48 default) */
-  state.fmt       = Math.max(0, ['points','h2h','hybrid'].indexOf(b.season_format));
+  /* D206 · points unless this league is already LOCKED on a legacy value.
+     A legacy/null season_format would also indexOf to -1 → FMT_NAMES[-1]
+     renders "undefined" and a relock writes season_format: undefined. An
+     unlocked setup league carrying the old column default `hybrid` read back
+     as Hybrid — the format six real founders had and none of them picked. */
+  const fmtI      = FMT_KEYS.indexOf(b.season_format);
+  state.fmt       = (b.locked_at && fmtI > 0) ? fmtI : 0;
   state.structure = b.structure;
   state.payout    = [b.payout_champ ?? 60, b.payout_runnerup ?? 25, b.payout_king ?? 15];
   state.finish    = b.finish || 'cup_final';   /* migration 008: the endgame dial */
@@ -17018,7 +17334,7 @@ async function lockBylaws(){
       p_counting_cap:        CAPVALS[state.cap],
       p_participation_floor: state.floor,
       p_floor_penalty:       ['none','deduct','forfeit'][state.preset],
-      p_season_format:       ['points','h2h','hybrid'][state.fmt],
+      p_season_format:       fmtKeyForLock(),
       p_structure:           state.structure,
       p_buyin_cents:         state.stake * 100,
       p_season_months:       durMonths(state.durWeeks),
@@ -17061,7 +17377,7 @@ async function lockBylaws(){
     counting_cap:        CAPVALS[state.cap],
     participation_floor: state.floor,
     floor_penalty:       ['none','deduct','forfeit'][state.preset],
-    season_format:       ['points','h2h','hybrid'][state.fmt],
+    season_format:       fmtKeyForLock(),
     structure:           state.structure,
     buyin_cents:         state.stake * 100,
     season_months:       durMonths(state.durWeeks),
@@ -17081,7 +17397,7 @@ async function lockBylaws(){
       verification:['honor','attested','ghin'][state.preset],
       counting_cap:CAPVALS[state.cap], participation_floor:state.floor,
       floor_penalty:['none','deduct','forfeit'][state.preset],
-      season_format:['points','h2h','hybrid'][state.fmt], structure:state.structure,
+      season_format:fmtKeyForLock(), structure:state.structure,
       buyin_cents:state.stake*100, season_months:durMonths(state.durWeeks),
       draft_type:state.draftType,
       payout_champ:(state.payout||[60,25,15])[0], payout_runnerup:(state.payout||[60,25,15])[1],
@@ -17394,7 +17710,7 @@ async function covenantGate(code){
       ${info.preset?`<div class="byrow"><span>PRESET</span><b>${esc(String(info.preset).replace(/^./,c=>c.toUpperCase()))}</b></div>`:''}
       ${Number(info.floor)?`<div class="byrow"><span>PARTICIPATION FLOOR</span><b>${info.floor} round${Number(info.floor)===1?'':'s'} / mo</b></div>`:''}
       <div class="byrow"><span>FINISH</span><b>${info.finish==='points_table'?'Points table crowns it':'Cup Final · final 4 weeks'}</b></div>
-      <p class="fine" style="padding-top:10px">Joining puts you on the pot sheet for $${usd}. Cup Season keeps the tab; money moves between you.</p>
+      <p class="fine" style="padding-top:10px">Joining puts you on the pot sheet for $${usd}. ${CS_LEDGER}</p>
       <button class="btn" id="covJoin" style="margin-top:10px">Join — I’m in for $${usd}</button>
       <button class="btn dark" id="covNo" style="margin-top:8px">Not now</button>`);
     /* Code audit 2026-08-30 (SD-01) · this promise used to settle ONLY on these
@@ -18815,20 +19131,41 @@ async function loadCareer(){
         });
       }catch(_){ /* rows render without photos */ }
     }
-    const vals = rows
-      .map(r => (r.index_at_post!=null && r.differential!=null) ? (Number(r.index_at_post) - Number(r.differential)) : null)
-      .filter(v => v!=null);
+    /* D209 · ONE lens on You: every figure here is the allowance PvI the
+       ENGINE scored the round against (`v_rounds_ranked.pvi`), never a 100%
+       figure re-derived on the client. The All-time tiles and the season
+       strip therefore quote the same number for the same round, which they
+       did not before. A round with no ranked row — card-only, or outside
+       every season window — carries no figure and shows none. When a round
+       scored in more than one league, the league you are in wins the lens. */
+    const figures = {}, ptsBy = {};
+    let ranked = [];
+    try{
+      const { data: rk } = await sb.from('v_rounds_ranked')
+        .select('round_id, season_id, pvi, points').eq('profile_id', CS.user.id);
+      ranked = rk || [];
+      ranked.forEach(x => {
+        if(x.round_id==null || x.pvi==null) return;
+        if(figures[x.round_id]==null || (CS.season?.id && x.season_id===CS.season.id)){
+          figures[x.round_id]=Number(x.pvi); ptsBy[x.round_id]=x.points;
+        }
+      });
+    }catch(_){ /* no lens: the tiles say "—" rather than a number nobody scored */ }
+    /* D208 · the raw material for "Played in": which seasons hold a round of mine */
+    window.careerRankedSeasons = new Set(ranked.map(x => x.season_id).filter(Boolean));
+    const vals = rows.map(r => figures[r.id]).filter(v => v!=null);
     window.career = {
       rounds: rows.length,
       best:  vals.length ? Math.max(...vals) : null,
       avg:   vals.length ? vals.reduce((a,b)=>a+b,0)/vals.length : null,
-      played:(CS.memberships||[]).length + ((window.myEvents||[]).length),
-      /* D76 FORM: derive `beat` the way the named bands do (pvi ≥ 1). 9-hole
-         differentials are already 18-equivalized by score_round(), so the
-         same floor is honest; missing pieces stay null (slate dot). */
+      /* Y-28 · how many rounds carry a figure — when it is 0 the dash says why */
+      counting: vals.length,
+      figures, points: ptsBy,
+      /* D76 FORM: `beat` is the named bands' own floor (pvi ≥ 1) on the same
+         figure; a round with no lens stays null (slate dot). */
       recent: rows.slice(0,5).map(r => ({ ...r,
-        beat: (r.index_at_post!=null && r.differential!=null)
-          ? (Number(r.index_at_post) - Number(r.differential)) >= 1 : null })),
+        pvi:  figures[r.id] ?? null,
+        beat: figures[r.id]!=null ? figures[r.id] >= 1 : null })),
     };
   }catch(e){ window.career = window.career || null; }
   if(window.renderCareer) window.renderCareer();
@@ -18972,8 +19309,10 @@ async function loadLeagueRecord(){
   try {
     const ids = CS.memberships.map(m => m.league.id);
     const { data: seas } = await sb.from('seasons')
-      .select('id, league_id, number, status, starts_on')
+      .select('id, league_id, number, status, starts_on, ends_on')
       .in('league_id', ids).order('number', { ascending:false });
+    /* D208 · "Played in" reads the same rows — one query, two answers */
+    window.leagueSeasons = seas || [];
     const latest = new Map();
     (seas||[]).forEach(s => { if(!latest.has(s.league_id)) latest.set(s.league_id, s); });
     const sids = [...latest.values()].map(s => s.id);
@@ -18987,15 +19326,17 @@ async function loadLeagueRecord(){
     window.leagueRecord = CS.memberships.map(m => {
       const s = latest.get(m.league.id);
       let line;
-      if(!s || m.league.phase === 'setup') line = 'Forming — invites open';
-      else if(m.league.phase === 'draft') line = 'Squad formation';
+      /* Y-09/D120 · six words, one producer. This hand-derived pair was the
+         last place the record invented its own stage vocabulary. */
+      if(!s || m.league.phase === 'setup') line = STAGE_LABEL.forming;
+      else if(m.league.phase === 'draft') line = STAGE_LABEL.drawing;
       else {
         const rows = st.filter(x => x.season_id === s.id)
                        .sort((a,b) => (b.points||0) - (a.points||0));
         const i = rows.findIndex(x => x.member_id === m.id);
         const place = i >= 0 ? `${ord(i+1)} OF ${rows.length} · ${rows[i].points||0} PTS` : '—';
         const sd = localDate(s.starts_on);
-        line = sd > new Date()                                   ? `FIRST TEE SUN ${MOS[sd.getMonth()].toUpperCase()} ${sd.getDate()}`
+        line = sd > new Date()                                   ? `FIRST TEE ${DOW[sd.getDay()].toUpperCase()} ${MOS[sd.getMonth()].toUpperCase()} ${sd.getDate()}`
              : s.status === 'cup_final'                          ? `CUP FINAL · ${place}`
              : (s.status === 'complete' || m.league.phase === 'complete') ? `FINISHED ${place}`
              : place;
@@ -19405,36 +19746,65 @@ async function openMembersSheet(){
 window.openMembersSheet = openMembersSheet;
 
 /* the disclaimer: how scoring + the handicap starter system actually work.
-   Reachable from the index editor and the league-rules panel. */
+   Reachable from the index editor and the league-rules panel.
+
+   Y-25 · ONE producer. Verbatim with the phone's `GuideCopy.scoring(solo:)`,
+   which the welcome sheet, Card & settings and the league room all render;
+   nobody retypes the bands. The band NAMES and POINTS come from bandName() /
+   pointsFor() — the same half-open rule the receipt and cup_points() use
+   (Q-20/D123) — so this table can never disagree with a round card again; only
+   the edge is said in words. D205/M-19 makes "What counts" structure-aware: a
+   solo league's floor never assesses (D140), so the guide stops promising a
+   penalty the engine cannot fire. With no league in hand it says both, which
+   promises nothing the engine cannot do. */
+function scoringBandsCard(){
+  /* one value inside each band; -1 is the seam, and it belongs to "A little
+     loose" on both clients and in the table */
+  const rows = [[3,'beat it by 3 or more'], [1,'by 1 to 2.9'], [0,'less than 1 either way'],
+                [-1,'1 to 3 over'], [-4,'more than 3 over']];
+  return rows.map(([vs,edge]) =>
+    `<div class="fine" style="padding:2px 0"><b>${bandName(vs)}</b> · ${edge} · <b>${pointsFor(vs)[0]} pts</b></div>`).join('');
+}
 function openScoringHelp(){
+  /* D205 · THREE states, verbatim with the phone's `GuideCopy.scoring(solo:)`:
+     a solo league, a squad league, and no league in hand at all. Collapsing
+     the last two into one `false` made the phone's squad paragraph unreachable
+     here, so the same sheet said different things on the two clients. */
+  const solo = window.CS?.league ? (state.structure === 'solo') : null;
+  const covenant = solo === false
+    ? `<b>You can't hurt your squad by playing badly — only by not playing.</b>`
+    : `<b>You can't hurt your standing by playing badly — only by not playing.</b>`;
+  const counts = solo === true
+    ? `Your best rounds each month count — a better round always bumps your worst counter. In a solo league the monthly minimum is a habit, not a penalty — there's no squad to dock. Your league's exact numbers are in <b>League rules</b>.`
+    : solo === false
+    ? `Your best rounds each month count for your squad — a better round always bumps your worst counter — and everyone owes a minimum number of rounds a month so nobody coasts. Miss it once and your <b>season bye</b> covers you automatically — life happens; the floor bites from the second miss. Your league's exact numbers are in <b>League rules</b>.`
+    : `Your best rounds each month count — a better round always bumps your worst counter. In a squad league everyone owes a minimum number of rounds a month so nobody coasts: miss it once and your <b>season bye</b> covers you automatically — life happens; the floor bites from the second miss. In a solo league that minimum is a habit, not a penalty — there's no squad to dock. Your league's exact numbers are in <b>League rules</b>.`;
   openSheet('How scoring works', 'HANDICAPS · CUP POINTS · THE MONEY', `
     <div class="eyebrow" style="margin-top:0">Your number</div>
     <p class="fine" style="padding:0 0 6px">Your handicap index builds from your scores — no typing. Every round measures how you played against the course's difficulty (rating &amp; slope), and your best recent rounds set your number, WHS-style. It appears once you've posted <b>3 rounds</b>; until then it shows as building.</p>
     <p class="fine" style="padding:0 0 10px">You (or the Pro) can set a <b>starter</b> to get going sooner — but once you have 3 posted rounds, your scores take over. Manual changes are announced to your league so the crew keeps everyone honest.</p>
     <div class="eyebrow">Every round → cup points</div>
     <p class="fine" style="padding:0 0 4px">Every round is scored against <b>your own number</b> — a 22-index beating their number is worth exactly what a 6-index beating theirs is:</p>
-    <div class="card" style="text-align:left; padding:10px 12px; margin-bottom:10px">
-      <div class="fine" style="padding:2px 0"><b>Torched it</b> · beat it by 3+ · <b>12 pts</b></div>
-      <div class="fine" style="padding:2px 0"><b>Beat your number</b> · by 1–3 · <b>9 pts</b></div>
-      <div class="fine" style="padding:2px 0"><b>Played to it</b> · within 1 · <b>7 pts</b></div>
-      <div class="fine" style="padding:2px 0"><b>A little loose</b> · 1–3 over · <b>6 pts</b></div>
-      <div class="fine" style="padding:2px 0"><b>Posted anyway</b> · rough day · <b>5 pts</b></div>
-    </div>
-    <p class="fine" style="padding:0 0 10px">The 12-point ceiling caps what a padded number can buy; the 5-point floor means a posted 98 still beats an unposted 82. <b>You can't hurt your squad by playing badly — only by not playing.</b></p>
+    <div class="card" style="text-align:left; padding:10px 12px; margin-bottom:10px">${scoringBandsCard()}</div>
+    <p class="fine" style="padding:0 0 10px">The number the bands measure from is your <b>playing number</b> — your number with the league's allowance applied: ${PRESETS[1].name} scores you against ${ALLOW[1]}% of it, ${PRESETS[0].name} ${ALLOW[0]}%, ${PRESETS[2].name} ${ALLOW[2]}%.</p>
+    <p class="fine" style="padding:0 0 10px">The 12-point ceiling caps what a padded number can buy; the 5-point floor means a posted 98 still beats an unposted 82. ${covenant}</p>
     <div class="eyebrow">What counts</div>
-    <p class="fine" style="padding:0 0 10px">Your best rounds each month count for your squad — a better round always bumps your worst counter — and everyone owes a minimum number of rounds a month so nobody coasts. Miss it once and your <b>season bye</b> covers you automatically — life happens; the floor bites from the second miss. Your league's exact numbers are in <b>League rules</b>.</p>
+    <p class="fine" style="padding:0 0 10px">${counts}</p>
     <div class="eyebrow">The money</div>
-    <p class="fine" style="padding:0 0 8px">The pot is <b>on the books</b> — Cup Season keeps the ledger and shows a settlement card; the money moves between you.</p>`);
+    <p class="fine" style="padding:0 0 8px">The pot is <b>on the books</b>. ${CS_LEDGER} The settlement card shows who owes what.</p>`);
 }
 window.openScoringHelp = openScoringHelp;
 
 /* the join-moment covenant (decision D3): the three rules that kill the fear
    at the door — shown once, right after joining, when they matter most */
 function openLeagueWelcome(name){
+  /* D205 · "your squad" is a lie in a solo league; "your standing" is true in
+     both. Verbatim with the phone's LeagueWelcomeSheet. */
+  const solo = window.CS?.league ? (state.structure === 'solo') : null;
   openSheet('Welcome to '+(name||'the league'), 'THREE THINGS TO KNOW', `
-    <p class="fine" style="padding:0 0 10px"><b>You can't hurt your squad by playing badly.</b> Only by not playing. Every posted round scores — a rough day is still points on the board.</p>
+    <p class="fine" style="padding:0 0 10px"><b>You can't hurt your ${solo===false?'squad':'standing'} by playing badly.</b> Only by not playing. Every posted round scores — a rough day is still points on the board.</p>
     <p class="fine" style="padding:0 0 10px"><b>Rounds score against your own number.</b> Beat your handicap and it's a big day, whatever you shot. Your best rounds each month count; a better round always bumps your worst.</p>
-    <p class="fine" style="padding:0 0 12px"><b>The pot lives on the books.</b> Cup Season keeps the tab and shows who owes what; money moves between you.</p>
+    <p class="fine" style="padding:0 0 12px"><b>The pot lives on the books.</b> ${CS_LEDGER} The settlement card shows who owes what.</p>
     <p class="fine" style="padding:0 0 12px"><a href="#" onclick="openScoringHelp();return false" style="color:var(--brand)">How scoring works →</a></p>
     <div style="border-top:1px solid var(--line); padding-top:12px">
       <p class="fine" style="padding:0 0 8px"><b>Who else plays with you?</b> Growing the league isn't the Pro's chore — any member's link works.</p>
@@ -19450,7 +19820,7 @@ function openLeagueWelcome(name){
       const usd=Math.round(Number(b?.buyin_cents||0)/100);
       if(!usd) return;
       document.getElementById('shBody')?.insertAdjacentHTML('afterbegin',
-        `<p class="fine" style="padding:0 0 10px"><b style="color:var(--gold)">You're on the pot sheet: $${usd} buy-in.</b> The Pro tracks who's paid; money moves between you.</p>`);
+        `<p class="fine" style="padding:0 0 10px"><b style="color:var(--gold)">You're on the pot sheet: $${usd} buy-in.</b> The Pro tracks who's paid.</p>`);
     }).catch(()=>{});
   }
 }

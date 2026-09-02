@@ -83,7 +83,7 @@ public struct Covenant: Sendable, Equatable, Identifiable {
   public var floorLine: String? { floor > 0 ? "\(floor) round\(floor == 1 ? "" : "s") / mo" : nil }
   /// "Points table crowns it" / "Cup Final · final 4 weeks"
   public var finishLine: String { finish == "points_table" ? "Points table crowns it" : "Cup Final · final 4 weeks" }
-  public var potLine: String { "Joining puts you on the pot sheet for $\(usd). Cup Season keeps the tab; money moves between you." }
+  public var potLine: String { "Joining puts you on the pot sheet for $\(usd). " + MoneyCopy.ledger }
   public var joinLabel: String { "Join — I’m in for $\(usd)" }
 }
 

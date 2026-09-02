@@ -100,6 +100,26 @@ private func team(_ id: UUID, _ name: String, _ pts: Double, ci: Int = 0) -> Tea
     #expect(StandingsMath.awards(one)?.improvedSub == "Most Improved · needs 2+ rounds")
     #expect(StandingsMath.awards([]) == nil)
   }
+  /// D142: the marks use the league's ACTUAL `counting_cap` — at Standard's Best 3
+  /// the 4th-ranked round is the one bumped; nil is unlimited.
+  @Test func countingMarksFollowTheLeaguesOwnCap() {
+    let four = [
+      LeagueRoom.RankedRound(member_id: m1, round_id: UUID(), pvi: 2, points: 10, month_rank: 1, floor_credit: 1, played_on: "2026-06-01", index_at_post: 12, holes_played: 18),
+      LeagueRoom.RankedRound(member_id: m1, round_id: UUID(), pvi: 1, points: 9, month_rank: 2, floor_credit: 1, played_on: "2026-06-08", index_at_post: 12, holes_played: 18),
+      LeagueRoom.RankedRound(member_id: m1, round_id: UUID(), pvi: 0, points: 8, month_rank: 3, floor_credit: 1, played_on: "2026-06-15", index_at_post: 12, holes_played: 18),
+      LeagueRoom.RankedRound(member_id: m1, round_id: UUID(), pvi: -1, points: 7, month_rank: 4, floor_credit: 1, played_on: "2026-06-22", index_at_post: 12, holes_played: 18),
+    ]
+    let ind = [LeagueRoom.IndivStanding(member_id: m1, points: 27, rounds_posted: 4)]
+    let best3 = StandingsMath.indRows(indiv: ind, ranked: four, members: members, squads: squads, myMemberId: m1, capN: 3)[0]
+    #expect(best3.hist.map(\.played_on) == ["2026-06-22", "2026-06-15", "2026-06-08", "2026-06-01"])
+    #expect(best3.hist.map(\.counting) == [false, true, true, true])   // the 4th-ranked round is the bumped one
+    #expect(StandingsMath.myMonth(mine: four, capN: 3, monthKey: "2026-06") == MyMonth(credits: 4, counting: 3))
+    let best2 = StandingsMath.indRows(indiv: ind, ranked: four, members: members, squads: squads, myMemberId: m1, capN: 2)[0]
+    #expect(best2.hist.map(\.counting) == [false, false, true, true])
+    let unlimited = StandingsMath.indRows(indiv: ind, ranked: four, members: members, squads: squads, myMemberId: m1, capN: Bylaws(cap: nil).capN)[0]
+    #expect(unlimited.hist.allSatisfy { $0.counting })
+    #expect(StandingsMath.myMonth(mine: four, capN: Int.max, monthKey: "2026-06") == MyMonth(credits: 4, counting: 4))
+  }
   @Test func myMonthAndIndexDelta() {
     let mine = ranked.filter { $0.member_id == m1 }
     #expect(StandingsMath.myMonth(mine: mine, capN: 1, monthKey: "2026-06") == MyMonth(credits: 1.5, counting: 1))
@@ -278,15 +298,23 @@ private func team(_ id: UUID, _ name: String, _ pts: Double, ci: Int = 0) -> Tea
 
   @Test func applyBylaws() {
     let b = Bylaws.from(season)
-    #expect(b.stake == 75 && b.capIdx == 1 && b.capN == 4 && b.presetIdx == 1 && b.floor == 2 && b.payout == [60, 25, 15] && b.draftType == "random")
-    #expect(Bylaws.from(LeagueRoom.Settings(league_id: a, preset: "cutthroat", counting_cap: nil, draft_type: "snake")).capIdx == 3)
+    // D142: the ladder is [2, 3, 4, 6, ∞] — a stored 4 sits on rung 2, nil is the last rung, the default is Best 3.
+    #expect(b.stake == 75 && b.capIdx == 2 && b.capN == 4 && b.capLabel == "Best 4" && b.presetIdx == 1 && b.floor == 2 && b.payout == [60, 25, 15] && b.draftType == "random")
+    #expect(Bylaws.from(LeagueRoom.Settings(league_id: a, preset: "cutthroat", counting_cap: nil, draft_type: "snake")).capIdx == 4)
     #expect(Bylaws.from(LeagueRoom.Settings(league_id: a, preset: "custom", counting_cap: 2)).presetIdx == 1)
-    #expect(Bylaws.from(nil).capN == 4)
+    #expect(Bylaws.from(nil).capN == 3 && Bylaws.from(nil).cap == 3)
+    #expect(Bylaws.capLabels == ["Best 2", "Best 3", "Best 4", "Best 6", "Unlimited"] && Bylaws.capLabel(nil) == "Unlimited" && Bylaws.capLabel(5) == "Best 5")
+    #expect(Bylaws.capIndex(5) == 2 && Bylaws.capIndex(6) == 3 && Bylaws.capIndex(1) == 0 && Bylaws.capIndex(100) == 3)
+    // D206: a legacy "hybrid" reads as points and never crashes; "Hybrid" is gone from the names.
+    #expect(Bylaws.from(LeagueRoom.Settings(league_id: a, season_format: "hybrid")).fmtIdx == 0 && Bylaws.fmtNames == ["Points Race", "Head-to-Head"])
+    #expect(Bylaws.from(LeagueRoom.Settings(league_id: a, season_format: "h2h")).fmtIdx == 1)
   }
   @Test func bylawsRowsVerbatim() {
     let rows = LeagueCopy.bylawsRows(Bylaws.from(season), clock: clock("2026-06-01"))
     #expect(rows.map(\.k) == ["STRUCTURE", "Squad formation", "PRESET", "HANDICAP ALLOWANCE", "VERIFICATION", "COUNTING CAP", "PARTICIPATION FLOOR", "BUY-IN", "POT SPLIT", "SEASON", "CUP FINAL"])
     #expect(rows[0].v == "4 squads" && rows[1].v == "Blind draw" && rows[3].v == "95%" && rows[5].v == "Best 4 / mo" && rows[6].v == "2 / mo · −5 sqd pts / round short")
+    #expect(rows[4].v == "Post what you'd post to GHIN")   // M-15: a norm the league holds
+    #expect(Bylaws.verif == ["Honor system", "Post what you'd post to GHIN", "Attested where you can; the Pro rules on the rest"])
     #expect(rows[7].v == "$75 / player" && rows[8].v == "60 / 25 / 15 · champ / 2nd / king")
     #expect(rows[9].v == "5 mo · Sun May 3 → Sat Sep 26 · 21 wks")
     #expect(rows[10].v == "Final 4 weeks · from Sun Aug 30 · scored fresh")
@@ -296,18 +324,25 @@ private func team(_ id: UUID, _ name: String, _ pts: Double, ci: Int = 0) -> Tea
   }
   @Test func theSeasonTileDeadlines() {
     let b = Bylaws.from(season)
-    #expect(LeagueCopy.deadline(clock("2026-06-04"), b: b) == .init(text: "Week closes Sun · 3d", gold: false))
-    #expect(LeagueCopy.deadline(clock("2026-06-07"), b: b) == .init(text: "Week closes tonight", gold: false))
+    // M-17: a season that tees off on a Sunday (May 3) closes its weeks on Saturdays.
+    #expect(LeagueCopy.deadline(clock("2026-06-04"), b: b) == .init(text: "Week closes Sat · 2d", gold: false))
+    #expect(LeagueCopy.deadline(clock("2026-06-06"), b: b) == .init(text: "Week closes tonight", gold: false))
+    #expect(LeagueCopy.deadline(clock("2026-06-07"), b: b) == .init(text: "Week closes Sat · 6d", gold: false))
     #expect(LeagueCopy.deadline(clock("2026-06-30"), b: b) == .init(text: "Month closes Jul 1 · floors assessed", gold: false))
     #expect(LeagueCopy.deadline(clock("2026-08-27"), b: b) == .init(text: "Cup Final · Sun Aug 30 · 3d", gold: true))
     #expect(LeagueCopy.deadline(clock("2026-08-30"), b: b) == .init(text: "Cup Final · Sun Aug 30 · 0d", gold: true))
     #expect(LeagueCopy.deadline(clock("2026-08-28"), b: b) == .init(text: "Cup Final · Sun Aug 30 · 2d", gold: true))   // ties go to the Final
-    #expect(LeagueCopy.deadline(clock("2026-09-24"), b: b) == .init(text: "Week closes Sun · 3d", gold: false))          // the window has opened; no Final line
-    #expect(LeagueCopy.deadline(clock("2026-08-28", finish: "points_table"), b: Bylaws(finish: "points_table")) == .init(text: "Week closes Sun · 2d", gold: false))
+    #expect(LeagueCopy.deadline(clock("2026-08-29"), b: b) == .init(text: "Cup Final · Sun Aug 30 · 1d", gold: true))   // the eve: the Final closes this week
+    #expect(LeagueCopy.deadline(clock("2026-09-24"), b: b) == .init(text: "Week closes Sat · 2d", gold: false))          // the window has opened; no Final line
+    #expect(LeagueCopy.deadline(clock("2026-08-28", finish: "points_table"), b: Bylaws(finish: "points_table")) == .init(text: "Week closes Sat · 1d", gold: false))
     #expect(LeagueCopy.deadline(clock("2026-09-25", finish: "points_table"), b: Bylaws(finish: "points_table")) == .init(text: "Points table crowns it · ends Sep 26 · 1d", gold: true))
     #expect(LeagueCopy.deadline(clock("2026-09-01", status: "cup_final"), b: b) == .init(text: "CUP FINAL LIVE · 25 days left", gold: true))
     #expect(LeagueCopy.deadline(clock("2026-10-01", status: "complete"), b: b) == .init(text: "Season complete · settled", gold: true))
     #expect(LeagueCopy.deadline(clock("2026-04-30"), b: b) == .init(text: "First tee Sun May 3", gold: true))
+    let wed = RoomClock(phase: .season, startsOn: "2026-05-06", endsOn: "2026-09-29", status: "active", finish: "points_table", today: "2026-05-14")   // a Wednesday tee
+    #expect(LeagueCopy.deadline(wed, b: Bylaws(finish: "points_table")) == .init(text: "Week closes Tue · 5d", gold: false))
+    #expect(LeagueDates.weekClose(start: "2026-05-06", today: "2026-05-14") == "2026-05-19" && ClashMath.dowShort("2026-05-19") == "Tue")
+    #expect(LeagueDates.weekClose(start: "2026-05-06", today: "2026-04-01") == "2026-05-12")   // before first tee: week 1's close
     #expect(LeagueCopy.weekValue(clock("2026-04-30")) == "—" && LeagueCopy.weekValue(clock("2026-05-10")) == "W2" && LeagueCopy.weekValue(clock("2026-10-01", status: "complete")) == "21")
   }
   @Test func thePhaseStrings() {

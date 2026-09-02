@@ -50,9 +50,10 @@ public enum BoardLogic {
     public var ok: Bool { if case .counting = self { return true }; return false }
   }
 
-  public static func counting(monthRank: Int?, capIndex: Int) -> Counting {
+  /// D142: marks against the league's ACTUAL `counting_cap` (nil = unlimited),
+  /// so a cap the ladder does not carry still bumps at the right rank.
+  public static func counting(monthRank: Int?, capN: Int?) -> Counting {
     guard let rank = monthRank else { return .preseason }
-    let capN = CountingCap.n(index: capIndex)
     if let capN, rank > capN { return .bumped(capN) }
     return .counting(rank)
   }
@@ -68,9 +69,12 @@ public enum BoardLogic {
     return s
   }
 
-  /// `course · N holes · date` (5262).
+  /// `course · N holes · date` (5262). The label goes through `RoundCopy.course`
+  /// so the board says "Palo Verde GC", not the "Palo Verde Gc" the course API
+  /// title-cased upstream.
   public static func courseLine(_ r: BoardRound) -> String {
-    "\(r.courseLabel ?? "somewhere out there") · \(r.holesPlayed ?? 18) holes · \(r.playedOn ?? "")"
+    let c = RoundCopy.course(r.courseLabel)
+    return "\(c.isEmpty ? "somewhere out there" : c) · \(r.holesPlayed ?? 18) holes · \(r.playedOn ?? "")"
   }
 
   // MARK: - Digest (F13 3.3)
@@ -79,7 +83,8 @@ public enum BoardLogic {
   public static func digestRoundLine(_ f: BoardItem, cache: [UUID: BoardRound], names: BoardText.NameRegistry) -> String {
     if let rid = f.roundId, let r = cache[rid], r.gross != nil {
       let band = r.pvi.map(CSBands.bandName) ?? ""
-      return "\(f.who.isEmpty ? "—" : f.who) · \(r.courseLabel ?? "somewhere out there")\(band.isEmpty ? "" : " · \(band)")"
+      let c = RoundCopy.course(r.courseLabel)
+      return "\(f.who.isEmpty ? "—" : f.who) · \(c.isEmpty ? "somewhere out there" : c)\(band.isEmpty ? "" : " · \(band)")"
     }
     return BoardText.easeCaps(f.text, names: names)
   }
@@ -131,20 +136,27 @@ public enum BoardLogic {
       return "CUP FINAL LIVE · \(left) day\(left == 1 ? "" : "s") left"
     }
     func dTo(_ d: Date) -> Int { Int((calendar.startOfDay(for: d).timeIntervalSince(day) / 86400).rounded()) }
-    let wd = calendar.component(.weekday, from: day) - 1                       // 0 = Sunday, as JS getDay()
-    let sun = calendar.date(byAdding: .day, value: (7 - wd) % 7, to: day) ?? day
+    // M-17 / §14.0: the week closes on the season's own weekday — the last day of
+    // the clash window that holds today — never a hardcoded Sunday.
+    let startDay = calendar.startOfDay(for: start)
+    let since = max(0, Int((day.timeIntervalSince(startDay) / 86400).rounded()))
+    let close = calendar.date(byAdding: .day, value: (since / 7) * 7 + 6, to: startDay) ?? day
+    let closeDow = BoardText.DOW[calendar.component(.weekday, from: close) - 1]
     var comps = calendar.dateComponents([.year, .month], from: day)
     comps.month = (comps.month ?? 1) + 1; comps.day = 1
     let first = calendar.date(from: comps) ?? day
     struct Opt { let n: Int; let pri: Int; let t: String }
     var opts = [
-      Opt(n: dTo(sun), pri: 0, t: dTo(sun) == 0 ? "Week closes tonight" : "Week closes Sun · \(dTo(sun))d"),
+      Opt(n: dTo(close), pri: 0, t: dTo(close) == 0 ? "Week closes tonight" : "Week closes \(closeDow) · \(dTo(close))d"),
       Opt(n: dTo(first), pri: 1, t: "Month closes \(BoardText.MOS[(calendar.component(.month, from: first) - 1)]) 1 · floors assessed"),
     ]
     if (finish ?? "cup_final") == "cup_final" {
       if cf >= day {
         let c = calendar.dateComponents([.weekday, .month, .day], from: cf)
-        opts.append(Opt(n: dTo(cf), pri: 2, t: "Cup Final · \(BoardText.DOW[(c.weekday ?? 1) - 1]) \(BoardText.MOS[(c.month ?? 1) - 1]) \(c.day ?? 1) · \(dTo(cf))d"))
+        // The Final tees off the morning after a week closes; that week is its
+        // run-up, so the gold line wins it (ties go to the Final).
+        let n = dTo(cf) == dTo(close) + 1 ? dTo(close) : dTo(cf)
+        opts.append(Opt(n: n, pri: 2, t: "Cup Final · \(BoardText.DOW[(c.weekday ?? 1) - 1]) \(BoardText.MOS[(c.month ?? 1) - 1]) \(c.day ?? 1) · \(dTo(cf))d"))
       }
     } else if end >= day {
       let c = calendar.dateComponents([.month, .day], from: end)

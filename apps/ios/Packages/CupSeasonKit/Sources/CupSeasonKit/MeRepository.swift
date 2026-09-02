@@ -39,7 +39,7 @@ public struct SupabaseMeRepository: MeRepository {
     let city: String?; let home_course: String?; let index_current: Double?; let index_source: String?
     let photo_path: String?; let created_at: Date?
   }
-  private struct LeagueRow: Decodable { let id: UUID; let name: String; let code: String?; let phase: String; let commissioner_id: UUID? }
+  private struct LeagueRow: Decodable { let id: UUID; let name: String; let code: String?; let phase: String; let commissioner_id: UUID?; let sandbox: Bool? }
   private struct MemberRow: Decodable { let id: UUID; let league_id: UUID; let role: String; let marker: String?; let leagues: LeagueRow? }
   private struct SeasonRow: Decodable {
     let id: UUID; let league_id: UUID; let number: Int?; let starts_on: String; let ends_on: String; let status: String
@@ -69,7 +69,7 @@ public struct SupabaseMeRepository: MeRepository {
 
     // memberships with their league
     let members: [MemberRow] = try await db.from("league_members")
-      .select("id, league_id, role, marker, leagues(id, name, code, phase, commissioner_id)")
+      .select("id, league_id, role, marker, leagues(id, name, code, phase, commissioner_id, sandbox)")
       .eq("profile_id", value: userId).execute().value
     guard !members.isEmpty else { return Me(profile: profile) }
     let leagueIds = members.map(\.league_id)
@@ -128,7 +128,7 @@ public struct SupabaseMeRepository: MeRepository {
       }
       return Me.Membership(
         league_id: m.league_id, name: league?.name ?? "League", code: league?.code, phase: league?.phase ?? "setup",
-        role: m.role, member_id: m.id, marker: m.marker ?? p?.marker, commissioner_name: nil,
+        sandbox: league?.sandbox, role: m.role, member_id: m.id, marker: m.marker ?? p?.marker, commissioner_name: nil,
         settings: st.map { Me.Settings(structure: $0.structure, preset: $0.preset, counting_cap: $0.counting_cap, participation_floor: $0.participation_floor,
                                        floor_penalty: $0.floor_penalty, handicap_allowance: $0.handicap_allowance, buyin_cents: $0.buyin_cents,
                                        payout_champ: $0.payout_champ, payout_runnerup: $0.payout_runnerup, payout_king: $0.payout_king,

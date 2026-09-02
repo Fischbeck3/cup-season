@@ -1,20 +1,28 @@
 // Cup Season — the wizard's writes (index.html, the module block):
 //   createLeague   14852–14877   RPC create_league(p_name, p_code), telemetry league_create
-//   lockBylaws     14884–14973   FIVE direct writes under RLS — the one place the
-//                                phone writes tables directly, because the web does:
-//                                (1) league_settings UPDATE (+ the skew retry dropping `finish`)
-//                                (2) seasons INSERT {number:1, starts_on, ends_on} — reuses an existing row
-//                                (3) RPC form_squads(p_season) unless solo
-//                                (4) leagues UPDATE {phase, name}
-//                                (the vestigial `invites` INSERT is D97-dead: staging is gone)
+//   lockBylaws     17194–17248   ONE call — RPC lock_league(...) (D111): the bylaws,
+//                                season 1, form_squads unless solo, and the phase +
+//                                name, in one server transaction. Idempotent on
+//                                `locked_at`: a retap after an ambiguous failure gets
+//                                `{already_locked: true}` and the standing truth
+//                                instead of a second season. The next phase comes
+//                                from the RPC's result (the STORED structure), never
+//                                from the dials. Deploy skew does NOT ride the
+//                                Kit's `call(_:)` retry: that retry sheds every
+//                                droppable arg at once, so `WizardLockCall`
+//                                declares none and a refusal reaches the golfer
+//                                instead of locking a league on the SQL defaults.
+//                                Every deployed signature since 20260829220000
+//                                carries all eighteen args; the web's own skew
+//                                path (17239–17248) falls back only when the
+//                                FUNCTION is missing, never by dropping args.
 //   the lock button 15226–15261  lock_attempt · lock_blocked · lock_ok telemetry
 //   qaEvent        6097–6105     client_events INSERT, fire-and-forget, never throws
 //   wizCancel      15278–15292   delete_league on step-0 Cancel
 //   loadBylaws     14137–14142   league_settings select (run it back / an existing league)
 //
-// Audit 02 §7.21: the lock is five writes, not a transaction — a retap after a
-// partial lock must find `locked_at` set, a season row and `phase` still
-// `setup`, and finish the job. Every write here is idempotent on that path.
+// The reads here (`league`, `bylaws`, `season`, `memberCount`) are plain
+// selects under RLS; the phone previews and renders, it never decides.
 
 import Foundation
 import Supabase
@@ -92,57 +100,43 @@ public struct WizardService: Sendable {
     return n ?? 1
   }
 
-  // MARK: the lock (`lockBylaws`)
+  // MARK: the lock (`lockBylaws` → `lock_league`)
 
   public struct Locked: Sendable, Equatable {
     public let nextPhase: String
     public let seasonId: UUID
     public let startsOn: String
     public let endsOn: String
+    /// The RPC found `locked_at` already set — a retap; the truth above stands.
+    public let alreadyLocked: Bool
   }
 
-  private struct SeasonInsert: Encodable { let league_id: UUID; let number: Int; let starts_on: String; let ends_on: String }
-  private struct LeaguePhase: Encodable { let phase: String; let name: String }
-
-  /// The five-write sequence, in the web's order. `today` pins the preview dates
-  /// so a lock at 23:59 writes the same span the review card showed.
-  public func lock(leagueId: UUID, dials: WizardDials, fallbackName: String, today: String = CSDate.today(),
-                   now: Date = Date()) async throws -> Locked {
-    let db = svc.client
-    let lockedAt = ISO8601DateFormatter().string(from: now)
-    let payload = WizardLockPayload(dials, lockedAt: lockedAt)
-
-    // (1) the bylaws — retry WITHOUT `finish` on ANY error (never sniff the message)
-    do {
-      try await db.from("league_settings").update(payload).eq("league_id", value: leagueId).execute()
-    } catch {
-      try await db.from("league_settings").update(payload.withoutFinish).eq("league_id", value: leagueId).execute()
-    }
-
-    // (2) the season — reuse number 1 on a retap, never duplicate
-    let starts = dials.startDate(today: today), ends = dials.endDate(today: today)
-    let seasonRow: LeagueRoom.Season
-    if let existing = try await season(leagueId) {
-      seasonRow = existing
-    } else {
-      let created: LeagueRoom.Season = try await db.from("seasons")
-        .insert(SeasonInsert(league_id: leagueId, number: 1, starts_on: starts, ends_on: ends))
-        .select("id, number, starts_on, ends_on, status").single().execute().value
-      seasonRow = created
-    }
-
-    // (3) squads exist from lock; members join, then draw/assign fills them
-    if !dials.solo { _ = try await svc.call(Rpc.form_squads(p_season: seasonRow.id)) }
-
-    // (4) the phase and the name
-    let nextPhase = dials.solo ? "season" : "draft"
+  /// One RPC. `today` pins the preview dates so a lock at 23:59 sends the same
+  /// span the review card showed. The phase, the season and its dates are read
+  /// back from the result — the server decided them.
+  public func lock(leagueId: UUID, dials: WizardDials, fallbackName: String, today: String = CSDate.today()) async throws -> Locked {
     let typed = dials.name.trimmingCharacters(in: .whitespacesAndNewlines)
     let name = typed.isEmpty ? fallbackName : typed
-    try await db.from("leagues").update(LeaguePhase(phase: nextPhase, name: name)).eq("id", value: leagueId).execute()
+    let call = WizardLockCall(dials, leagueId: leagueId, name: name, today: today)
+    let data = try await svc.call(call)
 
-    track(.lock_ok, ["next_phase": .string(nextPhase)])
+    // `{already_locked, phase, season: row_to_json(seasons)}` — decoded defensively:
+    // the season's id/dates may arrive nested (today's shape) or flat.
+    let season = data["season"]
+    guard let nextPhase = data["phase"]?.string,
+          let idStr = season?["id"]?.string ?? data["season_id"]?.string, let seasonId = UUID(uuidString: idStr),
+          let startsOn = season?["starts_on"]?.string ?? data["starts_on"]?.string,
+          let endsOn = season?["ends_on"]?.string ?? data["ends_on"]?.string else {
+      throw RpcError(name: WizardLockCall.name, underlying: "The bylaws locked but the season did not come back.", droppedArgs: [])
+    }
+    let already = data["already_locked"]?.bool ?? false
+    // Honest breadcrumb: the skew retry drops every optional arg on ANY error,
+    // so a lock that reached the database on its second try wears the SQL
+    // defaults — the dates are the tell.
+    let sentDates = call.args.p_starts_on == startsOn && call.args.p_ends_on == endsOn
+    track(.lock_ok, ["next_phase": .string(nextPhase), "already_locked": .bool(already), "dates_as_sent": .bool(sentDates)])
     CSTelemetry.product(.leagueLocked, leagueId: leagueId)   // IOS-024
-    return Locked(nextPhase: nextPhase, seasonId: seasonRow.id, startsOn: seasonRow.starts_on, endsOn: seasonRow.ends_on)
+    return Locked(nextPhase: nextPhase, seasonId: seasonId, startsOn: startsOn, endsOn: endsOn, alreadyLocked: already)
   }
 
   // MARK: discard (`wizCancel`)

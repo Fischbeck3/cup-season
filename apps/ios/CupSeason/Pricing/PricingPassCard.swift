@@ -41,7 +41,7 @@ struct PricingPassCard: View {
           }
           .accessibilityElement(children: .combine)
           PricingFreeLine("**Your first year is free.** The pass starts if you're still running it a year from your first tee.")
-          PricingMarkdown("**Where the money goes:** the pass is paid to Cup Season. The pot never is — buy-ins and payouts move friend-to-friend, and the app keeps the books so nobody argues at the bar.")
+          PricingMarkdown("**Where the money goes:** the pass is paid to Cup Season. The pot never is — " + MoneyCopy.ledger)
         }
       }
     }

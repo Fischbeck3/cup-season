@@ -68,7 +68,7 @@ struct PeopleScreen: View {
         // invite link renders only when a league with a code exists, and the
         // golfer most likely to search and find nobody is exactly the one
         // least likely to have one.
-        CSFine(shareable == nil
+        CSFine(shareables.isEmpty
                ? "No golfers found under that name. They may not be on Cup Season yet."
                : "No golfers found under that name. The link below works for anyone.")
       } else {
@@ -105,31 +105,67 @@ struct PeopleScreen: View {
   /// The link is the LEAGUE's join link, which is the only invite link that
   /// exists. A buddy-invite link is a different mechanic and would need a
   /// decision, not a tidy — so this offers what is real, or nothing.
+  ///
+  /// Y-04 · the row NAMES the league the link joins — the golfer is inviting
+  /// someone into a room, and the row used to keep which one to itself. With
+  /// more than one league holding a code, a menu asks which.
   @ViewBuilder private var inviteLink: some View {
-    if let s = shareable {
-      ShareLink(item: URL(string: "https://cupseason.app/?join=\(s.code)")!,
-                subject: Text("Cup Season"),
-                message: Text("You're invited to \(s.name) on Cup Season")) {
-        HStack(spacing: 10) {
-          Image(systemName: "link").font(.system(size: 15)).foregroundStyle(cs.brand)
-          VStack(alignment: .leading, spacing: 1) {
-            Text("Send an invite link").font(CSFont.subhead.weight(.semibold)).foregroundStyle(cs.ink)
-            Text("WORKS FOR ANYONE, ACCOUNT OR NOT").font(CSFont.label).tracking(1.1).foregroundStyle(cs.dimText)
-          }
-          Spacer()
-          Text("→").font(CSFont.subhead).foregroundStyle(cs.brand)
+    let all = shareables
+    if all.count > 1 {
+      Menu {
+        ForEach(all, id: \.code) { s in
+          shareLink(s) { Label(s.name, systemImage: "link") }
         }
-        .padding(12)
-        .frame(minHeight: 44)
-        .background(cs.bg1, in: RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous))
-        .overlay(RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous).stroke(cs.line, lineWidth: 1))
+      } label: {
+        inviteRow(sub: "Choose the league · works for anyone, account or not")
+      }
+      .accessibilityLabel("Send an invite link")
+      .accessibilityHint("Choose the league")
+    } else if let s = all.first {
+      shareLink(s) {
+        inviteRow(sub: "\(s.name) · works for anyone, account or not")
       }
     }
   }
 
-  private var shareable: (name: String, code: String)? {
-    guard let m = store.me?.memberships.first(where: { $0.code != nil }), let c = m.code else { return nil }
-    return (name: m.name, code: c)
+  @ViewBuilder private func shareLink<L: View>(_ s: Shareable, @ViewBuilder label: () -> L) -> some View {
+    if let url = WizardCopy.inviteURL(s.code) {
+      ShareLink(item: url, subject: Text("Cup Season"), message: Text(WizardCopy.inviteText(s.name)), label: label)
+    }
+  }
+
+  /// `.pdoorlink` — the door itself; the small line is the eyebrow, set in caps.
+  ///
+  /// The row is the LABEL of a `Menu`/`ShareLink`, and a button label hands its
+  /// children a CENTRED text alignment through the environment. The eyebrow was
+  /// one line until "Choose the league · " joined it; the second line then sat
+  /// centred under a leading title. Both lines say leading out loud, and the
+  /// stack owns the width (no `Spacer` competing for it) so the arrow keeps the
+  /// trailing edge however many lines the eyebrow takes.
+  private func inviteRow(sub: String) -> some View {
+    HStack(spacing: 10) {
+      Image(systemName: "link").font(.system(size: 15)).foregroundStyle(cs.brand)
+      VStack(alignment: .leading, spacing: 1) {
+        Text("Send an invite link").font(CSFont.subhead.weight(.semibold)).foregroundStyle(cs.ink)
+        Text(sub).font(CSFont.label).tracking(1.1).textCase(.uppercase).foregroundStyle(cs.dimText)
+          .fixedSize(horizontal: false, vertical: true)
+      }
+      .multilineTextAlignment(.leading)
+      .frame(maxWidth: .infinity, alignment: .leading)
+      Text("→").font(CSFont.subhead).foregroundStyle(cs.brand)
+    }
+    .padding(12)
+    .frame(minHeight: 44)
+    .background(cs.bg1, in: RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous))
+    .overlay(RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous).stroke(cs.line, lineWidth: 1))
+    .contentShape(Rectangle())
+  }
+
+  private struct Shareable { let name: String; let code: String }
+
+  /// Every league of mine with a join code — the ones a link can open.
+  private var shareables: [Shareable] {
+    (store.me?.memberships ?? []).compactMap { m in m.code.map { Shareable(name: m.name, code: $0) } }
   }
 
   // MARK: buddies (13181–13184)
@@ -139,8 +175,9 @@ struct PeopleScreen: View {
     if vm.loaded && vm.lists.buddies.isEmpty {
       CSFine("No buddies yet. Search up top to add them.")
     } else {
+      // Y-27 · no capsule — the section head already says what these rows are.
       ForEach(vm.lists.buddies) { f in
-        PersonRow(person: f, links: links) { CSTag(text: "Buddies", tone: cs.pos) }
+        PersonRow(person: f, links: links) { EmptyView() }
       }
     }
   }
@@ -148,8 +185,10 @@ struct PeopleScreen: View {
   @ViewBuilder private var requested: some View {
     if !vm.lists.requested.isEmpty {
       CSSectionHead("Requested")
+      // Y-27 · no capsule, for the same reason as Buddies above: the section
+      // head already says what these rows are.
       ForEach(vm.lists.requested) { f in
-        PersonRow(person: f, links: links) { CSTag(text: "Requested") }
+        PersonRow(person: f, links: links) { EmptyView() }
       }
     }
   }
@@ -166,7 +205,7 @@ struct PeopleScreen: View {
       CSFine("Who can find you in search. Invite links always work.")
       HStack(spacing: 6) {
         ForEach(Discoverable.allCases, id: \.self) { d in
-          CSMini(d.label, tone: vm.discoverable == d ? cs.pos : nil) { Task { await vm.setDiscoverable(d) } }
+          CSMini(d.label, tone: vm.discoverable == d ? cs.pos : nil, selected: vm.discoverable == d) { Task { await vm.setDiscoverable(d) } }
         }
       }
     }
@@ -184,14 +223,27 @@ struct PersonRow<Action: View>: View {
   @State private var founder: UUID? = nil
 
   var body: some View {
-    RoomLineRow(marker: person.marker, title: title, sub: Text(subline ?? person.subline), spine: spine) { action }
-      .contentShape(Rectangle())
-      .onTapGesture { links.openTourCard?(person.id) }
+    // Y-23 · the person is a BUTTON (one element, a hint), not a tap gesture
+    // over a row; the trailing action keeps its own control.
+    RoomLineRow(marker: person.marker, title: title, sub: Text(subline ?? person.subline), spine: spine,
+                onTap: open, hint: open == nil ? nil : "Opens the Tour Card", label: spokenTitle) { action }
       .task { founder = await FounderBadge.shared.id() }
+  }
+
+  private var open: (() -> Void)? {
+    guard let f = links.openTourCard else { return nil }
+    return { f(person.id) }
   }
 
   private var title: Text {
     founder == person.id ? Text(person.name) + Text(" \(FounderBadge.tag)").foregroundStyle(cs.gold) : Text(person.name)
+  }
+  /// Y-33 · `FounderBadge.tag` carries a U+2726 dingbat, and the combined
+  /// element read it aloud between the name and "Founder" on every founder row.
+  /// The row still SHOWS the glyph; VoiceOver hears the words.
+  private var spokenTitle: String? {
+    guard founder == person.id else { return nil }
+    return "\(person.name), \(FounderBadge.tag.split(separator: " ").dropFirst().joined(separator: " "))"
   }
 }
 

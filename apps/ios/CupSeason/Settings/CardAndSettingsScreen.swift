@@ -3,23 +3,44 @@
 // A long press on the build line opens the Developer section (IOS-022 item
 // 8): the feedback door for everyone, the founder's desk and field note only
 // when the server says founder.
+//
+// The guide sheets (How it works · How scoring works) present from the SCREEN,
+// above both panes, so there is exactly one door and no pane can be handed a
+// no-op for it (ship audit Y-01).
 
 import SwiftUI
 import PhotosUI
 import CSDesign
 import CupSeasonKit
 
+/// A field on the card the screen can open ON. `.ghin` is the You hero's "add
+/// your GHIN" (Y-30): the golfer asked for the field, so the field is what lands.
+enum CardField: Hashable { case ghin }
+
 struct CardAndSettingsScreen: View {
   @Environment(SessionStore.self) private var store
   @Environment(\.cs) private var cs
   @State private var vm = CardSettingsModel()
-  @State private var pane = CSDevHatch.settingsPane
-  var openScoringHelp: () -> Void = {}
+  @State private var pane: Int
+  /// Y-01 · both panes open the guide through this one door.
+  @State private var guideSheet: GuideRoute?
+  /// Y-30 · the ASKED-FOR field, held until it is landed on and then cleared.
+  /// It used to be a `let` handed down on every rebuild, so every trip back
+  /// from Settings → Your card destroyed and rebuilt the pane, re-ran its
+  /// `.task` and raised the number pad again 400 ms later.
+  @State private var pendingFocus: CardField?
+
+  /// A `focus` is on the card, so it opens the card pane whatever the dev hatch says.
+  init(focus: CardField? = nil) {
+    _pendingFocus = State(initialValue: focus)
+    _pane = State(initialValue: focus == nil ? CSDevHatch.settingsPane : 0)
+  }
 
   var body: some View {
     ScrollView {
       VStack(alignment: .leading, spacing: 14) {
-        Text("Your card is what your buddies see · settings run the app").csEyebrow()
+        // Y-27 · one short eyebrow for the pane in hand, not a sentence about both.
+        Text(pane == 0 ? "What your buddies see" : "How the app runs").csEyebrow()
         Picker("Pane", selection: $pane) {
           Text("Your card").tag(0)
           Text("Settings").tag(1)
@@ -27,9 +48,9 @@ struct CardAndSettingsScreen: View {
         .pickerStyle(.segmented)
         .accessibilityLabel("Your card or settings")
         if pane == 0 {
-          CardEditorPane(vm: vm, openScoringHelp: openScoringHelp)
+          CardEditorPane(vm: vm, focus: $pendingFocus, openGuide: { guideSheet = $0 })
         } else {
-          SettingsPane(vm: vm)
+          SettingsPane(vm: vm, openGuide: { guideSheet = $0 })
         }
       }
       .padding(20)
@@ -57,6 +78,12 @@ struct CardAndSettingsScreen: View {
            + "Every league you are in is told.")
     }
     .task { await vm.load(userId: store.session?.user.id) }
+    .sheet(item: $guideSheet) { g in
+      switch g {
+      case .guide(let sheet): GuideSheetView(sheet: sheet)
+      case .scoring: ScoringHelpSheet()
+      }
+    }
   }
 }
 
@@ -237,14 +264,21 @@ final class CardSettingsModel {
 // MARK: - Your card
 
 private struct CardEditorPane: View {
+  @Environment(SessionStore.self) private var store
   @Environment(\.cs) private var cs
   @Environment(\.toast) private var toast
   @Environment(\.dynamicTypeSize) private var typeSize
   @Bindable var vm: CardSettingsModel
-  let openScoringHelp: () -> Void
+  /// Y-30 · the field to land on when the pane opens, if any. A BINDING: the
+  /// pane clears it once it has landed, so coming back never grabs the field
+  /// (and the keyboard) a second time.
+  @Binding var focus: CardField?
+  let openGuide: (GuideRoute) -> Void
   @State private var pick: PhotosPickerItem?
-  /// Four across at reading sizes; two at the accessibility sizes so a marker's name is never clipped.
-  private var columns: [GridItem] { Array(repeating: GridItem(.flexible(), spacing: 8), count: typeSize.isA11y ? 2 : 4) }
+  @FocusState private var focused: CardField?
+  /// Y-27 · as many across as fit a name — the grid decides, not a count, so a
+  /// marker's name is never clipped at the sizes between reading and accessibility.
+  private let columns = [GridItem(.adaptive(minimum: 96), spacing: 8)]
 
   var body: some View {
     VStack(alignment: .leading, spacing: 10) {
@@ -257,8 +291,10 @@ private struct CardEditorPane: View {
 
       label("Ball marker").padding(.top, 4)
       // D174 · the marker grid promised nothing and the audit found every member
-      // showing the identical cactus with no explanation. Say what it is FOR.
-      Fine("This is your icon on the board and in the standings until you add a photo.")
+      // showing the identical cactus with no explanation. Say what it is FOR —
+      // and say it ONCE: this line and the photo label used to contradict each
+      // other ("until you add a photo" / "always backs it up"). D202 is the rule.
+      Fine("Your icon on the board and in the standings — add a photo and it rides in the corner of your card.")
       LazyVGrid(columns: columns, spacing: 8) {
         ForEach(CSMarkers.all) { m in
           Button { vm.marker = m.key; vm.dirty = true; CSHaptic.selection() } label: {
@@ -272,15 +308,19 @@ private struct CardEditorPane: View {
               .stroke(vm.marker == m.key ? cs.brand : cs.line, lineWidth: vm.marker == m.key ? 2 : 1))
           }
           .buttonStyle(.plain)
+          // Y-33 · the glyph is silent by construction (`CSMarkerView` names
+          // itself only when it stands alone), so the marker is said once.
           .accessibilityLabel(m.name)
           .accessibilityAddTraits(vm.marker == m.key ? .isSelected : [])
         }
       }
 
-      label("Your photo · the marker always backs it up").padding(.top, 4)
+      label("Your photo").padding(.top, 4)
       A11yStack(spacing: 10) {
-        CSFace(photoURL: vm.avatar, marker: vm.marker ?? vm.profile?.marker, size: 56)
-          .accessibilityLabel(vm.avatar == nil ? "Your marker, no photo yet" : "Your photo")
+        // Y-33 · one label, the face's own — it hides itself when unnamed, so a
+        // label bolted on from outside would have been read to nobody.
+        CSFace(photoURL: vm.avatar, marker: vm.marker ?? vm.profile?.marker,
+               name: vm.avatar == nil ? "Your marker, no photo yet" : "Your photo", size: 56)
         HStack(spacing: 10) {
           PhotosPicker(selection: $pick, matching: .images) {
             MiniPill(text: vm.photoBusy ? "Uploading…" : (vm.avatar == nil ? "Add a photo" : "Change photo"))
@@ -305,7 +345,7 @@ private struct CardEditorPane: View {
 
       A11yStack(rowAlignment: .top, spacing: 10) {
         VStack(alignment: .leading, spacing: 6) {
-          label("Handle · moves once / 60 days")
+          label("Handle · 60-day lock")
           CSField("@handle", text: $vm.handle).textInputAutocapitalization(.never).autocorrectionDisabled().onChange(of: vm.handle) { vm.dirty = true }
             .accessibilityLabel("Handle")
         }
@@ -332,6 +372,7 @@ private struct CardEditorPane: View {
 
       label("GHIN # · optional").padding(.top, 4)
       CSField("e.g. 1234567", text: $vm.ghin).keyboardType(.numberPad).frame(maxWidth: 200).onChange(of: vm.ghin) { vm.dirty = true }.accessibilityLabel("GHIN number, optional")
+        .focused($focused, equals: .ghin)
       Text("A reference on your card — we never resell or verify it. Leave it blank if you'd rather not.")
         .font(CSFont.footnote).foregroundStyle(cs.dimText)
 
@@ -343,21 +384,37 @@ private struct CardEditorPane: View {
       .padding(.top, 6)
 
       Text("Handicap index").csEyebrow().padding(.top, 16)
-      A11yStack(spacing: 10) {
-        CSField("", text: $vm.index).keyboardType(.decimalPad).frame(maxWidth: 110).accessibilityLabel("Handicap index")
-        Button { Task { toast.show(await vm.updateIndex()) } } label: { MiniPill(text: vm.indexBusy ? "Updating…" : "Update index") }.disabled(vm.indexBusy)
+      if vm.profile?.index_source == "app" {
+        // Y-06 · once the engine owns the number, `set_index` refuses an edit by
+        // design — so no field. Say whose the number is, and where to read why.
+        Text("Your number is the engine's now · \(vm.index.isEmpty ? "—" : vm.index)")
+          .font(CSFont.body).foregroundStyle(cs.ink)
+          .accessibilityLabel("Your number is the engine's now. \(vm.index.isEmpty ? "No index yet" : "Index \(vm.index)")")
+        Text("It builds from your posted scores (best of your recent rounds, WHS-style) and moves as you post.")
+          .font(CSFont.footnote).foregroundStyle(cs.dimText)
+        // Y-01 · the title names what OPENS. "How it works" is a different,
+        // real thing one pane over (`CSSectionHead("How it works")` + `HowItWorks`),
+        // and this door has always opened the scoring guide.
+        guideLink("How scoring works")
+      } else {
+        A11yStack(spacing: 10) {
+          CSField("", text: $vm.index).keyboardType(.decimalPad).frame(maxWidth: 110).accessibilityLabel("Handicap index")
+          Button { Task { toast.show(await vm.updateIndex()) } } label: { MiniPill(text: vm.indexBusy ? "Updating…" : "Update index") }.disabled(vm.indexBusy)
+        }
+        Text("Your index builds automatically from your posted scores (best of your recent rounds, WHS-style) — it appears once you've posted 3. Set it here to seed a starter; once you have 3 rounds your scores take over. Changes are announced on your league boards, crew-policed.")
+          .font(CSFont.footnote).foregroundStyle(cs.dimText)
+        guideLink("How scoring works")
       }
-      Text("Your index builds automatically from your posted scores (best of your recent rounds, WHS-style) — it appears once you've posted 3. Set it here to seed a starter; once you have 3 rounds your scores take over. Changes are announced on your league boards, crew-policed.")
-        .font(CSFont.footnote).foregroundStyle(cs.dimText)
-      Button(action: openScoringHelp) {
-        Text("How scoring works →").font(CSFont.footnote).foregroundStyle(cs.dawn).frame(minHeight: 44).contentShape(Rectangle())
-      }
-      .buttonStyle(.plain)
-      .accessibilityLabel("How scoring works")
 
       Text("Your leagues").csEyebrow().padding(.top, 16)
-      if vm.leagues.isEmpty {
-        Text("No leagues yet. Start one or join with a code.").font(CSFont.footnote).foregroundStyle(cs.dimText)
+      if noLeagues {
+        // Y-13 · a league-less golfer gets the doors, not a sentence about them.
+        SettingsLeaguelessDoors()
+      } else if vm.leagues.isEmpty {
+        // memberships say there IS a league but `repo.leagues(userId:)` came
+        // back empty (`leagues = await l` swallows the failure). The eyebrow
+        // above must not stand over nothing.
+        Fine("No leagues yet. Start one or join with a code.")
       } else {
         ForEach(vm.leagues) { row in
           A11yStack(columnSpacing: 2) {
@@ -370,9 +427,38 @@ private struct CardEditorPane: View {
         }
       }
     }
+    // Y-30 · land on the asked-for field once the push has settled; focusing
+    // during the transition is dropped by the system, silently.
+    .task {
+      guard let f = focus else { return }
+      try? await Task.sleep(for: .milliseconds(400))
+      // `try?` swallows the cancellation a disappearing `.task` throws, so the
+      // wake has to check for itself before touching the focus state.
+      guard !Task.isCancelled else { return }
+      focused = f
+      focus = nil
+    }
   }
 
-  private func label(_ s: String) -> some View { Text(s).font(CSFont.label).tracking(1).textCase(.uppercase).foregroundStyle(cs.dimText) }
+  /// Y-13 · the doors only when BOTH sources say there is nothing: `vm.leagues`
+  /// is empty for the moment before its own query lands, and a golfer who has a
+  /// league would have watched them flash past.
+  private var noLeagues: Bool { (store.me?.memberships.isEmpty ?? false) && vm.leagues.isEmpty }
+
+  /// Y-27 · a label wraps rather than truncates; the handle's label used to clip mid-word.
+  private func label(_ s: String) -> some View {
+    Text(s).font(CSFont.label).tracking(1).textCase(.uppercase).foregroundStyle(cs.dimText)
+      .fixedSize(horizontal: false, vertical: true)
+  }
+
+  /// The scoring guide's door, in the card pane's footnote voice.
+  private func guideLink(_ title: String) -> some View {
+    Button { openGuide(.scoring) } label: {
+      Text("\(title) →").font(CSFont.footnote).foregroundStyle(cs.dawn).frame(minHeight: 44).contentShape(Rectangle())
+    }
+    .buttonStyle(.plain)
+    .accessibilityLabel(title)
+  }
 }
 
 // MARK: - Settings
@@ -384,13 +470,13 @@ enum GuideRoute: Identifiable {
 }
 
 private struct SettingsPane: View {
-  @State private var guideSheet: GuideRoute?
   @Environment(SessionStore.self) private var store
   @Environment(\.cs) private var cs
   @Environment(\.toast) private var toast
   @Environment(\.csAppearance) private var appearance
   @Environment(\.presenter) private var presenter
   @Bindable var vm: CardSettingsModel
+  let openGuide: (GuideRoute) -> Void
   @State private var push = PushService.shared
   @State private var pricing = PricingFlags.hidden
   /// The Developer section, revealed by a long press on the build line.
@@ -435,12 +521,45 @@ private struct SettingsPane: View {
       // D56 / IOS-021: Founding · free season · (paid, future) — the PILOT stub verbatim while hidden
       MembershipCard(flags: pricing, memberships: store.me?.memberships ?? [], proNames: nil)
         .task { pricing = await PricingFlags.load() }
+      // Y-13 · no league yet: the doors, here, where the membership is discussed.
+      // Y-13 · the same default as the card pane's `noLeagues`: an unloaded
+      // `store.me` is not evidence of no league, and the two panes disagreeing
+      // meant the doors flashed in one and not the other on the same state.
+      if store.me?.memberships.isEmpty ?? false {
+        SettingsLeaguelessDoors().padding(.top, 4)
+      }
+
+      // D177 · "How it works" moved off the You page. It is reference material
+      // — the same rows the Pro reads and a brand-new golfer reads — and it was
+      // filed under a page about your own record. Settings is already the
+      // drawer for things you consult rather than things you are.
+      // Y-14 · it sits with Membership, above the account-ending actions: the
+      // guide is something you consult, and it was filed below "Delete my account".
+      CSSectionHead("How it works").padding(.top, 14)
+      HowItWorks { row in
+        if row.key == "scoring" { openGuide(.scoring) }
+        else if let g = GuideCopy.sheets[row.key] { openGuide(.guide(g)) }
+      }
+
+      HStack(spacing: 10) {
+        Link(destination: CSConfig.legal("privacy")) { Text("Privacy").frame(minHeight: 44) }
+        Text("·").accessibilityHidden(true)
+        Link(destination: CSConfig.legal("terms")) { Text("Terms").frame(minHeight: 44) }
+        Text("·").accessibilityHidden(true)
+        Link(destination: CSConfig.legal("pot")) { Text("Prize pool").frame(minHeight: 44) }
+      }
+      .font(CSFont.footnote).foregroundStyle(cs.mut)
 
       CSButton("Sign out", style: .quiet) { Task { await store.signOut() } }.padding(.top, 12)
 
       Text("Danger zone").csEyebrow().padding(.top, 18)
       if !vm.deleteArmed {
-        Button { vm.deleteArmed = true; CSHaptic.warning() } label: {
+        Button {
+          vm.deleteArmed = true; CSHaptic.warning()
+          // Y-33 · the arm swaps this control for a paragraph and two buttons;
+          // VoiceOver is told, or the swap is silent.
+          AccessibilityNotification.Announcement("One more step: Delete permanently, or Cancel.").post()
+        } label: {
           Text("Delete my account").font(CSFont.footnote).foregroundStyle(cs.neg).frame(minHeight: 44).contentShape(Rectangle())
         }
         .buttonStyle(.plain)
@@ -460,6 +579,7 @@ private struct SettingsPane: View {
               .background(cs.neg, in: RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous))
           }
           .buttonStyle(.plain).disabled(vm.deleting)
+          .accessibilityHint("Closes the account for good")
           Button { vm.deleteArmed = false } label: {
             Text("Cancel").font(CSFont.subhead).foregroundStyle(cs.mut).padding(.horizontal, 12).frame(minHeight: 46).contentShape(Rectangle())
           }
@@ -485,30 +605,6 @@ private struct SettingsPane: View {
           feedback: { presenter.feedbackScreen = "settings"; presenter.showFeedback = true })
         .transition(.opacity)
       }
-      // D177 · "How it works" moved off the You page. It is reference material
-      // — the same rows the Pro reads and a brand-new golfer reads — and it was
-      // filed under a page about your own record. Settings is already the
-      // drawer for things you consult rather than things you are.
-      CSSectionHead("How it works")
-      HowItWorks { row in
-        if row.key == "scoring" { guideSheet = .scoring }
-        else if let g = GuideCopy.sheets[row.key] { guideSheet = .guide(g) }
-      }
-
-      HStack(spacing: 10) {
-        Link(destination: CSConfig.legal("privacy")) { Text("Privacy").frame(minHeight: 44) }
-        Text("·").accessibilityHidden(true)
-        Link(destination: CSConfig.legal("terms")) { Text("Terms").frame(minHeight: 44) }
-        Text("·").accessibilityHidden(true)
-        Link(destination: CSConfig.legal("pot")) { Text("Prize pool").frame(minHeight: 44) }
-      }
-      .font(CSFont.footnote).foregroundStyle(cs.mut)
-    }
-    .sheet(item: $guideSheet) { g in
-      switch g {
-      case .guide(let sheet): GuideSheetView(sheet: sheet)
-      case .scoring: ScoringHelpSheet()
-      }
     }
   }
 
@@ -522,6 +618,23 @@ private struct SettingsPane: View {
     }
     .buttonStyle(.plain)
     .disabled(push.busy)
+  }
+}
+
+/// Y-13 · the league-less doors (Join · Start a league · Start an event), wired
+/// for this screen: a lock or a join lands in the Clubhouse (`\.openLeague`)
+/// with the store reloaded behind it, as the tab's own wizard does.
+private struct SettingsLeaguelessDoors: View {
+  @Environment(SessionStore.self) private var store
+  @Environment(\.presenter) private var presenter
+  @Environment(\.openLeague) private var openLeague
+
+  var body: some View {
+    LeaguelessDoors(links: WizardLinks(
+      onLocked: { id in Task { await store.reload() }; openLeague(id) },
+      onCancelled: { Task { await store.reload() } },
+      startEvent: { presenter.showEventPicker = true },
+      onJoined: { id in PushAsk.shared.request(.leagueJoined); Task { await store.reload() }; openLeague(id) }))
   }
 }
 

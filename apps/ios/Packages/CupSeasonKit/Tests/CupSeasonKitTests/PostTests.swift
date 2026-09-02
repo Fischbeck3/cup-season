@@ -52,11 +52,18 @@ import Foundation
     #expect(PostCalc.preview(card(rating: "", slope: ""), myIndex: nil) == nil)
   }
 
-  @Test func noNumberFallsBackToEighteen() {
-    // the web's `|| 18` (14872): a golfer with no number previews against 18
+  @Test func noNumberYetShowsTheCourseFigureAndSaysSo() {
+    // D124 (i): the web's blind `|| 18` (14872) invented a number and printed a
+    // signed figure off it. With no number the preview asserts neither.
     let a = PostCalc.preview(card(f9: "41", b9: "43"), myIndex: nil)!
+    #expect(a.provisional)
+    #expect(a.points == 0)
+    #expect(a.message == "No number yet — this round starts it")
+    #expect(a.vsText == RoundCopy.f1(a.differential) + " vs course")
+    // a golfer WITH a number is untouched
     let b = PostCalc.preview(card(f9: "41", b9: "43"), myIndex: 18)!
-    #expect(a.vs == b.vs)
+    #expect(!b.provisional && b.points > 0)
+    #expect(a.differential == b.differential)
   }
 
   @Test func holesModeSumsTheGrid() {

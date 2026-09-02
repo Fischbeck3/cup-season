@@ -186,10 +186,22 @@ public struct PostPreview: Sendable, Equatable {
   public let message: String
   /// `state.lastPost.label`: "84 GROSS" / "41 GROSS · 9 HOLES"
   public let label: String
+  /// What the round was worth against the COURSE — the one figure a golfer
+  /// with no number yet actually has (D124 (i)).
+  public let differential: Double
+  /// D124 (i) · no number yet. There is nothing to score the round against, so
+  /// the preview stops asserting a signed figure and a points total it cannot
+  /// know: it shows the round vs the course, and says the round starts the number.
+  public let provisional: Bool
+  public init(gross: Int, holes: Int, vs: Double, points: Int, message: String, label: String,
+              differential: Double, provisional: Bool) {
+    self.gross = gross; self.holes = holes; self.vs = vs; self.points = points
+    self.message = message; self.label = label; self.differential = differential; self.provisional = provisional
+  }
   /// `#postGrossLine`: "Gross 84 · 18 holes" / "Gross 41 · 9 holes · half value"
   public var grossLine: String { "Gross \(gross) · " + (holes == 9 ? "9 holes · half value" : "18 holes") }
-  /// `#calcVs`: "+2.4" / "-1.3"
-  public var vsText: String { (vs >= 0 ? "+" : "") + RoundCopy.f1(vs) }
+  /// `#calcVs`: "+2.4" / "-1.3" — or "21.5 vs course", with no number yet.
+  public var vsText: String { provisional ? RoundCopy.f1(differential) + " vs course" : (vs >= 0 ? "+" : "") + RoundCopy.f1(vs) }
 }
 
 public enum PostCalc {
@@ -197,8 +209,11 @@ public enum PostCalc {
   public static let emptyMessage = "Enter at least one nine to see the points."
   public static let emptyMessageAfterTyping = "Enter at least one nine."
   public static let emptyGrossLine = "Enter your card to see the score."
-  /// `state.myIndex`'s fallback for a golfer with no number yet (14872).
-  public static let fallbackIndex = 18.0
+  /// D124 (i) · RETIRED as a display value. A golfer with no number is not an
+  /// 18 — the web's blind `|| 18` (14872) invented one and printed a signed
+  /// figure off it. It survives only as the seed the arithmetic needs to run;
+  /// nothing derived from it reaches a screen (`PostPreview.provisional`).
+  static let fallbackIndex = 18.0
 
   /// The engine's own expression, from `v_rounds_ranked`:
   ///
@@ -219,6 +234,7 @@ public enum PostCalc {
   /// never disagrees with what lands; the sentence is the web's.
   public static func preview(_ card: PostCard, myIndex: Double?, allowance: Int? = nil) -> PostPreview? {
     let idx = myIndex ?? fallbackIndex
+    let provisional = myIndex == nil
     let rating = card.ratingValue
     let slope = card.slopeValue > 0 ? Double(card.slopeValue) : 113
     let (f9, b9) = card.inputs
@@ -227,7 +243,9 @@ public enum PostCalc {
       let diff = (Double(gross) - rating) * 113 / slope
       let vs = pvi(index: idx, differential: diff, allowance: allowance)
       let (pts, msg) = CSBands.pointsFor(vs)
-      return PostPreview(gross: gross, holes: 18, vs: vs, points: pts, message: msg, label: "\(gross) GROSS")
+      return PostPreview(gross: gross, holes: 18, vs: vs, points: provisional ? 0 : pts,
+                         message: provisional ? ReceiptRows.noNumberYet(round: nil) : msg,
+                         label: "\(gross) GROSS", differential: (diff * 10).rounded() / 10, provisional: provisional)
     }
     if f9 > 0 || b9 > 0 {
       let g9 = f9 > 0 ? f9 : b9
@@ -237,7 +255,9 @@ public enum PostCalc {
       let vs = pvi(index: idx, differential: diff, allowance: allowance)
       let base = CSBands.pointsFor(vs)
       let pts = Int((Double(base.points) / 2).rounded(.up))
-      return PostPreview(gross: g9, holes: 9, vs: vs, points: pts, message: "9-hole round, half value. " + base.line, label: "\(g9) GROSS · 9 HOLES")
+      return PostPreview(gross: g9, holes: 9, vs: vs, points: provisional ? 0 : pts,
+                         message: provisional ? ReceiptRows.noNumberYet(round: nil) : "9-hole round, half value. " + base.line,
+                         label: "\(g9) GROSS · 9 HOLES", differential: (diff * 10).rounded() / 10, provisional: provisional)
     }
     return nil
   }

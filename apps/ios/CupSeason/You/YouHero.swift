@@ -15,6 +15,12 @@ import SwiftUI
 import CSDesign
 import CupSeasonKit
 
+/// Y-11 · how far the trailing fade on the milestone row ramps, and how much
+/// room the row leaves past its last chip so that chip is never the thing
+/// being faded. (A file constant because `YouHero` is generic, and a generic
+/// type cannot hold a static stored property.)
+private enum HeroChips { static let fade: CGFloat = 24 }
+
 struct YouHero<Anchor: View>: View {
   @Environment(\.cs) private var cs
   @Environment(\.csLookAccent) private var la
@@ -28,14 +34,19 @@ struct YouHero<Anchor: View>: View {
   let indexCurrent: Double?
   /// rounds on the card — drives "n of 3" until the index is established
   let rounds: Int
-  /// "🔥 Broke 80 · '26" …
+  /// EVERY engraved line — "🔥 Broke 80 · '26" … The card shows
+  /// `TrophyMeta.credentialChips` of them; "+N more in the case" adds the rest
+  /// to the row in place (P3 nit: a chip that only says "more" and goes
+  /// nowhere is a dead end, and the case is two sections down).
   let trophyChips: [String]
-  /// "+N more in the case" — the last chip, quieter
-  let moreChip: String?
   let form: FormRow?
   @ViewBuilder let anchor: () -> Anchor
 
+  @State private var expanded = false
+
   private var established: Bool { indexCurrent != nil }
+  private var shown: [String] { expanded ? trophyChips : Array(trophyChips.prefix(TrophyMeta.credentialChips)) }
+  private var hidden: Int { max(0, trophyChips.count - TrophyMeta.credentialChips) }
 
   var body: some View {
     // gold once the index is established (earned); otherwise the personal look's accent, ember when none (IOS-025)
@@ -49,10 +60,20 @@ struct YouHero<Anchor: View>: View {
                          sub: { anchor() }, trailing: { EmptyView() })
             .padding(.horizontal, -20).padding(.top, -20)
 
-          // the marker's name as the eyebrow — the web's `.cred` watermark, said out loud
-          // D103b: the hero eyebrow wears the personal look's accent; mut on homebase (gold stays the number's)
-          Text(CSMarkers.marker(marker).name).csEyebrow(la.eyebrow).padding(.top, 16)
-            .accessibilityLabel("Marker: \(CSMarkers.marker(marker).name)")
+          // the marker's name — the web's `.cred` watermark, said out loud, as
+          // the CAPTION of the panel above it.
+          // Y-08 · it used to be `csEyebrow`, the same face, size and tracking
+          // as every stat label on the page, sitting directly over "11.3 ·
+          // HANDICAP INDEX" — so "THE NO. 2" read as a rank. Its own mark
+          // beside it in the sentence face can only be what it is. D103b's
+          // look accent moves to the mark, so the personal dial still shows.
+          HStack(spacing: 6) {
+            CSMarkerView(key: marker, size: 15).foregroundStyle(la.accent)
+            Text(CSMarkers.marker(marker).name).font(CSFont.footnote).foregroundStyle(cs.mut)
+          }
+          .padding(.top, 16)
+          .accessibilityElement(children: .ignore)
+          .accessibilityLabel("Marker: \(CSMarkers.marker(marker).name)")
 
           VStack(alignment: .leading, spacing: 4) {
             if let idx = indexCurrent {
@@ -64,31 +85,69 @@ struct YouHero<Anchor: View>: View {
           }
           .padding(.top, 10)
           .accessibilityElement(children: .combine)
-          .accessibilityHint(established ? "" : "Building your number — your index appears at 3 posted rounds")
 
           if !established {
-            Text("Building your number — your index appears at 3 posted rounds")
+            // P3 nit: this sentence used to be the hint on the row above it as
+            // well, so VoiceOver said it twice. It is visible; that is enough.
+            Text(YouCopy.buildingNumber)
               .font(CSFont.footnote).foregroundStyle(cs.mut).padding(.top, 8)
           }
 
-          if !trophyChips.isEmpty || moreChip != nil {
-            // bleeds to the card edge so a clipped chip reads as "more to the right", not a cut
+          if !trophyChips.isEmpty {
+            // bleeds to the card edge so a clipped chip reads as "more to the
+            // right", not a cut.
+            // Y-11 · that only worked while the bleed carried a FADE. Without
+            // one the card's own `clipShape` cut the third chip through the
+            // middle of a glyph ("Broke 1|") with nothing to say the row
+            // scrolled. The mask ramps the last `chipFade` points out, and the
+            // row's trailing inset is that much wider — so at the far right
+            // the last chip stops before the ramp and is never dimmed, and the
+            // fade only ever eats empty space or a chip there IS more of.
             ScrollView(.horizontal, showsIndicators: false) {
               HStack(spacing: 6) {
-                ForEach(trophyChips, id: \.self) { YouTrophyChip(text: $0, earned: true) }
-                if let moreChip { YouTrophyChip(text: moreChip, earned: false) }
+                // by index: two milestones of the same kind and year engrave the same line
+                ForEach(Array(shown.enumerated()), id: \.offset) { _, line in
+                  YouTrophyChip(text: line, earned: true)
+                    .accessibilityLabel(TrophyMeta.spoken(line))   // Y-33 · VoiceOver says "Broke 80", not "fire, Broke 80"
+                }
+                // P3 nit: the expansion goes both ways. It used to be a
+                // one-way door — the "+N more" chip vanished on the first tap
+                // and the row could never be folded again.
+                if hidden > 0 {
+                  Button { withAnimation(.easeOut(duration: 0.18)) { expanded.toggle() } } label: {
+                    YouTrophyChip(text: expanded ? TrophyMeta.showFewer : TrophyMeta.moreLine(hidden, suffix: TrophyMeta.moreInCase), earned: false)
+                  }
+                  .buttonStyle(.plain)
+                  .accessibilityLabel(expanded ? "Show fewer milestones" : "\(hidden) more milestone\(hidden == 1 ? "" : "s")")
+                  .accessibilityHint(expanded ? "Folds the row back" : "Adds them to this row")
+                }
               }
-              .padding(.horizontal, 20)
+              .padding(.leading, 20).padding(.trailing, 20 + HeroChips.fade)
             }
             .padding(.horizontal, -20)
+            .mask { chipFadeMask }   // iOS 15+ overload; the deprecated `mask(_:)` takes no alignment
             .padding(.top, 14)
-            .accessibilityElement(children: .combine)
           }
 
-          if let form { FormRowView(form: form, palette: cs) }
+          // Y-08 · the dots' key rides the row itself, so the sentence has one
+          // home. Nothing on the page said what a lit dot meant unless a streak
+          // pill happened to be sitting beside them, and a VoiceOver label is
+          // not a legend for the eye.
+          if let form { FormRowView(form: form, palette: cs, caption: YouCopy.formKey) }
       }
     }
     .clipShape(RoundedRectangle(cornerRadius: CSTokens.Radius.r, style: .continuous))
+  }
+
+  /// An ALPHA ramp, not a colour: opaque to the card's right edge, then out
+  /// over `chipFade` points. Hit-testing is untouched, so the last chip stays
+  /// reachable — a mask hides pixels, never touches.
+  private var chipFadeMask: some View {
+    HStack(spacing: 0) {
+      Rectangle().fill(.black)
+      LinearGradient(colors: [.black, .black.opacity(0)], startPoint: .leading, endPoint: .trailing)
+        .frame(width: HeroChips.fade)
+    }
   }
 }
 
@@ -106,12 +165,13 @@ struct YouTrophyChip: View {
   }
 }
 
-#Preview("Established, three trophies, on a streak") {
+#Preview("Established, five milestones, on a streak") {
   ScrollView {
     YouHero(photoURL: nil, marker: "saguaro", name: "Jerecho Fischbeck", meta: "@jerecho · Tempe, AZ · Papago GC",
-            indexCurrent: 12.4, rounds: 42, trophyChips: ["🔥 Broke 80 · '26", "📈 4-week streak · '26", "⛳ First round · '26"],
-            moreChip: "+2 more in the case", form: FormRow.from(beats: [true, true, true, false, true]),
-            anchor: { Text("GHIN 1234567 · Member since Jul 2026").font(CSFont.footnote).foregroundStyle(CSTokens.dark.mut) })
+            indexCurrent: 12.4, rounds: 42,
+            trophyChips: ["🔥 Broke 80 · '26", "📈 4-week streak · '26", "⛳ First round · '26", "🎯 Broke 90 · '25", "📉 Personal best · '25"],
+            form: FormRow.from(beats: [true, true, true, false, true]),
+            anchor: { Text("GHIN 1234567 · est. Jul 2026").font(CSFont.footnote).foregroundStyle(CSTokens.dark.mut) })
       .padding(20)
   }
   .background(CSTokens.dark.bg0).csTheme()
@@ -120,7 +180,7 @@ struct YouTrophyChip: View {
 #Preview("Building — 2 of 3, light") {
   ScrollView {
     YouHero(photoURL: nil, marker: "thistle", name: "New Golfer", meta: "@newg · Mesa, AZ", indexCurrent: nil, rounds: 2,
-            trophyChips: [], moreChip: nil, form: nil, anchor: { EmptyView() })
+            trophyChips: [], form: nil, anchor: { EmptyView() })
       .padding(20)
   }
   .background(CSTokens.light.bg0).environment(\.colorScheme, .light).csTheme()
