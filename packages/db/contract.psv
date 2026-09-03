@@ -70,6 +70,18 @@
 # unsuspend_member. tour_card's signature is unchanged; only its body lost
 # the ghin field, which a contract snapshot cannot see.
 #
+# 2026-09-02: 214 functions, taken from PROD after the eight-migration push
+# (160000 the_pot_pane, 161000 fellas_teed_off_on_jul_20, 163000 the_first_tee_horn,
+# 170000 the_clash_stops_repeating_itself, 173000 what_a_deleted_round_leaves_behind,
+# 180000, 200000 the_hero_names_the_leader, 203000 a_booking_knows_its_round).
+# Four drifts, all from two files: my_achievements' return TABLE gained round_id
+# and rederive_achievements + round_achievements_on_delete are new (173000);
+# score_round's seven-arg overload went auth -> none (170000 revoked it, kept the
+# function so a stale bundle gets 42501 rather than 404) — so it stops being
+# generated into Rpc.swift, which is the point. native_home's SIGNATURE is
+# unchanged by 200000: v2 changed its RETURN SHAPE, which a contract snapshot
+# cannot see — the payload's keys are the client's business, not this file's.
+#
 _cup_window_rounds|p_season uuid|TABLE(member_id uuid, round_id uuid, profile_id uuid, played_on date, points integer, month_rank bigint, pvi numeric, holes_played integer)|definer|none
 _join_gate|p_league uuid, p_via_pro boolean|void|definer|none
 _late_squad|p_league uuid, p_member uuid|text|definer|none
@@ -180,7 +192,7 @@ mj_money|n numeric|text|invoker|none
 mj_vs|n numeric|text|invoker|none
 moderation_queue||jsonb|definer|auth
 moderator_can|p_league uuid|boolean|definer|none
-my_achievements||TABLE(kind text, label text, earned_on date, meta jsonb)|definer|auth
+my_achievements||TABLE(kind text, label text, earned_on date, meta jsonb, round_id uuid)|definer|auth
 my_actionable_count||integer|definer|auth
 my_friends||TABLE(friendship_id uuid, profile_id uuid, handle text, display_name text, city text, marker text, index_current numeric, status text, incoming boolean)|definer|auth
 my_invites||TABLE(id uuid, kind text, container_id uuid, container_name text, inviter text, starts_on date, created_at timestamp with time zone)|definer|auth
@@ -201,6 +213,7 @@ post_week_comeback|p_season uuid, p_week integer|void|definer|none
 randomize_squads|p_season uuid|void|definer|auth
 recent_partners|p_limit integer DEFAULT 12|TABLE(id uuid, handle text, display_name text, city text, home_course text, marker text, index_current numeric, rel text, last_played timestamp with time zone, rounds_together integer)|definer|auth
 recompute_season_payouts|p_season uuid|jsonb|definer|none
+rederive_achievements|p_profile uuid|void|definer|none
 register_device_token|p_token text, p_platform text DEFAULT 'ios'::text|void|definer|auth
 remove_member|p_member uuid|void|definer|auth
 report_content|p_post uuid DEFAULT NULL::uuid, p_reason text DEFAULT NULL::text, p_kind text DEFAULT 'post'::text, p_profile uuid DEFAULT NULL::uuid, p_comment uuid DEFAULT NULL::uuid|void|definer|auth
@@ -211,6 +224,7 @@ respond_invite|p_id uuid, p_accept boolean|void|definer|auth
 retag_round|p_id uuid, p_tagged uuid[]|void|definer|auth
 revoke_share|p_token uuid|boolean|definer|auth
 rivalry_weeks|p_opponent uuid|TABLE(wk date, my_pvi numeric, opp_pvi numeric, winner text)|definer|auth
+round_achievements_on_delete||trigger|definer|none
 round_card|p_round uuid|jsonb|definer|auth
 round_detail|p_round uuid|jsonb|definer|auth
 round_duel_nudge||trigger|definer|auth
@@ -233,7 +247,7 @@ sandbox_scrap|p_league uuid|jsonb|definer|auth
 sandbox_week|p_league uuid|jsonb|definer|auth
 scan_claim_info|p_token uuid|jsonb|definer|anon,auth
 sched_major_story||trigger|definer|none
-score_round|p_gross integer, p_rating numeric, p_slope integer, p_nine_rating numeric, p_index numeric, p_allowance integer, p_holes integer|TABLE(o_diff numeric, o_pvi numeric, o_points integer)|invoker|auth
+score_round|p_gross integer, p_rating numeric, p_slope integer, p_nine_rating numeric, p_index numeric, p_allowance integer, p_holes integer|TABLE(o_diff numeric, o_pvi numeric, o_points integer)|invoker|none
 score_round||trigger|definer|auth
 scrap_forfeit|p_id uuid|void|definer|auth
 scratch_round|p_id uuid|void|definer|auth

@@ -1,3 +1,8 @@
+-- HOW TO RUN IT: `supabase db query --linked --output-format text -f tests/db-checks.sql`.
+-- Do NOT pass it as an argument — `"$(cat tests/db-checks.sql)"` fails with
+-- "Unrecognized flag: --" because this file's first line starts with a comment
+-- dash and the CLI reads it as a flag. (A leading space inside the quotes also
+-- works.) The CLI answers in JSON whatever --output-format says. Read-only.
 -- ============================================================================
 -- Cup Season DB invariant suite — READ-ONLY. Paste whole file into the
 -- Supabase SQL editor; every row returned is a check with PASS/FAIL.
