@@ -402,6 +402,41 @@
     t('Y-08: the dots survive the caption', (withKey.match(/<i /g) || []).length, 5);
   })();
 
+  /* ══ D126 · the endgame sentence, one fixture on both clients ═════════════
+     tests/fixtures/endgame.json is GENERATED from this file's endgameLine()
+     (scratchpad/endgame-harness.mjs; never hand-edited) and the Kit's
+     EndgameCopy decodes the same file, so the phone and the web can only drift
+     together, never apart. The rule that matters is the date: cupFinalStart is
+     ends_on − 27 calendar days on the LOCAL calendar (localDate, never
+     new Date('YYYY-MM-DD')), and the weekday/month names come off DOW/MOS. The
+     fixture is fetched synchronously so the summary below still counts it —
+     serve from the repo root (python -m http.server) or this fails loudly. */
+  (function(){
+    let fx = null, status = null;
+    try {
+      const x = new XMLHttpRequest();
+      x.open('GET', 'tests/fixtures/endgame.json', false);
+      x.send(null);
+      status = x.status;
+      if (x.status === 200) fx = JSON.parse(x.responseText);
+    } catch (e) { status = String(e && e.message || e); }
+    t('D126: the endgame fixture is served (run from the repo root)', fx ? 200 : status, 200);
+    if (!fx) return;
+    t('D126: the fixture carries the rule the Kit reads', typeof fx._rule === 'string' && /27/.test(fx._rule), true);
+    t('D126: the matrix is whole (2 finishes × 4 structures × 3 windows)', fx.cases.length, 24);
+    const was = { s: state.seasonStart, e: state.seasonEnd, f: state.finish, st: state.structure };
+    /* the defaults are set to the OPPOSITE of what most cases ask, so a
+       producer that ignored opts and read state would fail here */
+    state.finish = 'points_table'; state.structure = 'squads4';
+    for (const c of fx.cases) {
+      state.seasonStart = c.starts_on; state.seasonEnd = c.ends_on;
+      t(`D126: ${c.label} · ${c.finish} · ${c.structure}`, endgameLine({ finish: c.finish, structure: c.structure }), c.expected);
+      const cf = cupFinalStart();
+      t(`D126: ${c.label} · Cup Final start is ends_on − 27 (${c.cup_final_start})`, isoOf(cf), c.cup_final_start);
+    }
+    state.seasonStart = was.s; state.seasonEnd = was.e; state.finish = was.f; state.structure = was.st;
+  })();
+
   const fails = R.filter(r => !r.ok);
   console.log(`\n${fails.length ? 'FAIL' : 'PASS'} — ${R.length} tests, ${fails.length} failure(s)`);
   return { total: R.length, failures: fails.map(f => f.name) };

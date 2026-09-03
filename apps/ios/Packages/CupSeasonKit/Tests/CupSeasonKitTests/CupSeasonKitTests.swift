@@ -62,6 +62,26 @@ import Foundation
     #expect(SeasonPhase.of(m, today: "2026-04-30") == .preseason)
   }
 
+  @Test("ONE week producer — Home's 'of N' is LeagueDates.totalWeeks, the Clubhouse's number (D213)")
+  func weekProducerAgreesWithClubhouse() {
+    // the two real leagues: Home once said 14 and 27 over a Clubhouse saying 13 and 26
+    let wtb = membership(phase: "season", status: "active", starts: "2026-08-03", ends: "2026-11-02")
+    #expect(LeagueDates.totalWeeks(start: "2026-08-03", end: "2026-11-02") == 13)
+    #expect(SeasonPhase.of(wtb, today: "2026-09-02") == .season(week: 5, of: 13))
+    #expect(SeasonPhase.of(wtb, today: "2026-08-03") == .season(week: 1, of: 13))
+    #expect(SeasonPhase.of(wtb, today: "2026-11-02") == .season(week: 13, of: 13))
+    let fellas = membership(phase: "season", status: "active", starts: "2026-07-20", ends: "2027-01-18")
+    #expect(LeagueDates.totalWeeks(start: "2026-07-20", end: "2027-01-18") == 26)
+    #expect(SeasonPhase.of(fellas, today: "2026-09-02") == .season(week: 7, of: 26))
+    // an exact one, every day of a week: week 2 runs Aug 10 → Aug 16
+    for d in ["2026-08-10", "2026-08-13", "2026-08-16"] {
+      guard case .season(let w, let n) = SeasonPhase.of(wtb, today: d) else { Issue.record("expected season on \(d)"); continue }
+      #expect(w == 2 && n == 13)
+      #expect(w == LeagueDates.currentWeek(start: "2026-08-03", end: "2026-11-02", today: d))
+    }
+    #expect(SeasonPhase.of(wtb, today: "2026-08-17") == .season(week: 3, of: 13))
+  }
+
   @Test func indexCopy() {
     #expect(CSCopy.index(nil) == "—")
     #expect(CSCopy.index(12.4) == "12.4")

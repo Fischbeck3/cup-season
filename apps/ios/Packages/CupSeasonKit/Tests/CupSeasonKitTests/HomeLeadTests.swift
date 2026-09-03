@@ -9,11 +9,12 @@ import Foundation
 
 @Suite struct HomeLeadTests {
 
-  private func clash(closesToday: Bool = false, days: Int = 4,
+  private func clash(week: Int = 5, closesToday: Bool = false, days: Int = 4,
                      mine: HomeClash.Side? = nil, theirs: HomeClash.Side? = nil,
-                     rivalry: String? = nil) -> HomeClash {
-    HomeClash(weekNo: 5, endsOn: "2026-09-06", daysLeft: days, closesToday: closesToday,
-              themName: "Galen Ward", themMarker: "island", mine: mine, theirs: theirs, rivalry: rivalry)
+                     rivalry: String? = nil, settled: Bool = false, roster: Int? = 2) -> HomeClash {
+    HomeClash(weekNo: week, endsOn: "2026-09-06", daysLeft: days, closesToday: closesToday,
+              themName: "Galen Ward", themMarker: "island", mine: mine, theirs: theirs, rivalry: rivalry, settled: settled,
+              roster: roster)
   }
   private let pulseShort = Me.Pulse(credits: 6, floor: 8, at_floor: false, partial: false)
   private let standingMoved = Me.Standing(rank: 3, of: 8, points: 41, prev_rank: 5, leader_squad_id: nil,
@@ -23,10 +24,136 @@ import Foundation
 
   @Test("the clash outranks everything else on the ladder")
   func clashWins() {
-    let lead = HomeLead.choose(clash: clash(), pulse: pulseShort, monthDaysLeft: 1,
+    let lead = HomeLead.choose(clash: clash(mine: .init(points: 9, pvi: 2.4)), pulse: pulseShort, monthDaysLeft: 1,
                                standing: standingMoved,
-                               milestone: ("Galen", "🔥 Personal best", UUID(), "island"))
+                               milestone: ("Galen", "🔥 Personal best", UUID(), "island"), phase: .season(week: 5, of: 13))
     guard case .clash = lead else { Issue.record("expected the clash, got \(String(describing: lead))"); return }
+  }
+
+  // ── D216 · a clash with nothing to say yields ──────────────────────────────
+
+  @Test("D216 · 0–0 mid-week YIELDS — the rungs below get the slot")
+  func emptyClashYieldsMidWeek() {
+    let quiet = clash(days: 4)
+    #expect(quiet.yields)
+    let lead = HomeLead.choose(clash: quiet, pulse: pulseShort, monthDaysLeft: 2, standing: nil, milestone: nil)
+    guard case .floor = lead else { Issue.record("expected the floor to take the slot, got \(String(describing: lead))"); return }
+    // and with nothing below it, NO card — never "Nothing posted" three mornings running
+    #expect(HomeLead.choose(clash: quiet, pulse: nil, monthDaysLeft: nil, standing: nil, milestone: nil) == nil)
+  }
+
+  @Test("D216 · the yield is any idle week AFTER the first — week 2, week 3, week 13 alike")
+  func emptyClashYieldsFromWeekTwo() {
+    for w in [2, 3, 13] {
+      let quiet = clash(week: w, days: 4)
+      #expect(quiet.yields, "week \(w)")
+      #expect(!quiet.isFirstWeekIdle)
+      #expect(HomeLead.choose(clash: quiet, pulse: nil, monthDaysLeft: nil, standing: nil, milestone: nil) == nil, "week \(w)")
+    }
+  }
+
+  @Test("D207 · the first week at 0–0 SHOWS once, and says the board's sentence")
+  func firstWeekIdleShows() {
+    let opener = clash(week: 1, days: 6)
+    #expect(!opener.yields && opener.isFirstWeekIdle)
+    guard case .clash(let c) = HomeLead.choose(clash: opener, pulse: pulseShort, monthDaysLeft: 1, standing: standingMoved,
+                                              milestone: ("Galen", "🔥 Personal best", nil, nil), phase: .season(week: 1, of: 13))
+    else { Issue.record("expected the opener to hold the slot"); return }
+    #expect(HomeLeadCopy.clashLine(c) == "It's the two of you — every week is the clash.")
+    // the ordinary sentence the moment either side posts — the opener is no longer idle
+    #expect(!clash(week: 1, mine: .init(points: 9, pvi: 2.4)).isFirstWeekIdle)
+    #expect(HomeLeadCopy.clashLine(clash(week: 1, mine: .init(points: 9, pvi: 2.4))) == "You v Galen. Best round of the week takes it.")
+    #expect(HomeLeadCopy.clashLine(clash(week: 1, theirs: .init(points: 6, pvi: 0.5))) == "You v Galen. Best round of the week takes it.")
+    // a settled week 1 is a result, not the opener
+    #expect(!clash(week: 1, settled: true).isFirstWeekIdle)
+    // and week 5 idle never borrows the opener's line
+    #expect(!clash(days: 1).isFirstWeekIdle)
+    #expect(HomeLeadCopy.clashLine(clash(days: 1)) == "You v Galen. Best round of the week takes it.")
+  }
+
+  @Test("D207 · 'It's the two of you' is the TWO-person league's sentence: in a bigger league week 1 is a week like any other, and a payload that cannot count is not two")
+  func openerIsTheTwoPersonLeagues() {
+    // the server writes the sentence only `when v_wk = 1 and v_roster = 2`
+    for n in [3, 8] {
+      let opener = clash(week: 1, days: 6, roster: n)
+      #expect(!opener.isTwo && !opener.isFirstWeekIdle, "roster \(n)")
+      #expect(opener.yields, "roster \(n) · an idle week 1 yields like week 2")
+      #expect(HomeLeadCopy.clashLine(opener) == "You v Galen. Best round of the week takes it.", "roster \(n)")
+      #expect(HomeLead.choose(clash: opener, pulse: nil, monthDaysLeft: nil, standing: nil, milestone: nil) == nil, "roster \(n)")
+      // …and re-enters on the last-call day, saying the ordinary sentence
+      let lastCall = clash(week: 1, days: 1, roster: n)
+      #expect(!lastCall.yields && HomeLeadCopy.clashLine(lastCall) == "You v Galen. Best round of the week takes it.", "roster \(n)")
+    }
+    // a v1 payload (no `buy_in.players`, squads' `of` counts squads) cannot say — never the opener
+    let unknown = clash(week: 1, days: 6, roster: nil)
+    #expect(!unknown.isTwo && !unknown.isFirstWeekIdle && unknown.yields)
+    // the RPC does not carry the count; the client hands it over on decode
+    let v = JSONValue.object(["week_no": .number(1), "ends_on": .string("2026-09-06"), "days_left": .number(6), "them_name": .string("Galen Ward")])
+    #expect(HomeClash.decode(v, roster: 2)?.isFirstWeekIdle == true)
+    #expect(HomeClash.decode(v, roster: 3)?.isFirstWeekIdle == false)
+    #expect(HomeClash.decode(v)?.isFirstWeekIdle == false)
+  }
+
+  @Test("D207 / D216 · the opener never yields, whatever the clock says — `weekNo <= 1`, so a week 0 the RPC should never send is the opener too")
+  func openerNeverYields() {
+    for w in [0, 1] {
+      for d in [0, 1, 4, 6] {
+        let c = clash(week: w, closesToday: d == 0, days: d)
+        #expect(!c.yields && c.isFirstWeekIdle == (w == 1), "week \(w) · \(d) days")
+        guard case .clash(let got) = HomeLead.choose(clash: c, pulse: pulseShort, monthDaysLeft: 1, standing: standingMoved,
+                                                     milestone: nil, phase: .season(week: 1, of: 13), solo: true)
+        else { Issue.record("expected the clash at week \(w), \(d) days"); continue }
+        #expect(HomeLeadCopy.clashLine(got) == (w == 1 ? "It's the two of you — every week is the clash."
+                                                       : "You v Galen. Best round of the week takes it."))
+      }
+    }
+    // the four guards of the second fix batch, side by side, on one state:
+    // solo → no floor; not .season → no move; nothing else → NO card
+    let idle = clash(week: 2, days: 4)
+    #expect(HomeLead.choose(clash: idle, pulse: pulseShort, monthDaysLeft: 1, standing: standingMoved, milestone: nil, phase: .cupFinal(weeksLeft: 2), solo: true) == nil)
+    #expect(HomeLead.choose(clash: idle, pulse: pulseShort, monthDaysLeft: 1, standing: standingMoved, milestone: nil, phase: .preseason, solo: true) == nil)
+    guard case .move = HomeLead.choose(clash: idle, pulse: pulseShort, monthDaysLeft: 1, standing: standingMoved, milestone: nil, phase: .season(week: 2, of: 13), solo: true)
+    else { Issue.record("expected the move once the season is on"); return }
+    guard case .floor = HomeLead.choose(clash: idle, pulse: pulseShort, monthDaysLeft: 1, standing: standingMoved, milestone: nil, phase: .season(week: 2, of: 13), solo: false)
+    else { Issue.record("expected the floor in a squads league"); return }
+  }
+
+  @Test("D216 · 0–0 on the last-call day SHOWS")
+  func emptyClashShowsLastDay() {
+    for c in [clash(closesToday: true, days: 0), clash(days: 1)] {
+      #expect(!c.yields)
+      guard case .clash = HomeLead.choose(clash: c, pulse: nil, monthDaysLeft: nil, standing: nil, milestone: nil)
+      else { Issue.record("expected the clash on the last day"); return }
+    }
+  }
+
+  @Test("D216 · one side posted SHOWS, whichever side")
+  func oneSidePostedShows() {
+    let mine = clash(days: 4, mine: .init(points: 9, pvi: 2.4))
+    let theirs = clash(days: 4, theirs: .init(points: 6, pvi: 0.5))
+    #expect(!mine.yields && !theirs.yields)
+    guard case .clash = HomeLead.choose(clash: mine, pulse: pulseShort, monthDaysLeft: 1, standing: nil, milestone: nil),
+          case .clash = HomeLead.choose(clash: theirs, pulse: pulseShort, monthDaysLeft: 1, standing: nil, milestone: nil)
+    else { Issue.record("expected the clash once a round is on it"); return }
+  }
+
+  @Test("D216 · a settled clash SHOWS — it is a result, not a nag")
+  func settledShows() {
+    let done = HomeClash(weekNo: 5, endsOn: "2026-09-06", daysLeft: 4, closesToday: false, themName: "Galen Ward", settled: true)
+    #expect(!done.yields)
+    guard case .clash = HomeLead.choose(clash: done, pulse: nil, monthDaysLeft: nil, standing: nil, milestone: nil)
+    else { Issue.record("expected the settled clash"); return }
+  }
+
+  @Test("the move rung never fires outside the season — prev_rank is a stale snapshot there")
+  func moveSuppressedOutsideSeason() {
+    for phase in [SeasonPhase.preseason, .forming, .wrapped, .cupFinal(weeksLeft: 2)] {
+      let lead = HomeLead.choose(clash: nil, pulse: nil, monthDaysLeft: nil, standing: standingMoved,
+                                 milestone: ("Galen", "🔥 Personal best", nil, nil), phase: phase)
+      guard case .milestone = lead else { Issue.record("expected the milestone under \(phase), got \(String(describing: lead))"); return }
+    }
+    // no phase handed over at all → no move, ever
+    #expect(HomeLead.choose(clash: nil, pulse: nil, monthDaysLeft: nil, standing: standingMoved, milestone: nil) == nil)
   }
 
   @Test("the floor outranks a move and a buddy's milestone")
@@ -41,7 +168,7 @@ import Foundation
   @Test("a move outranks a buddy's milestone")
   func moveThird() {
     let lead = HomeLead.choose(clash: nil, pulse: nil, monthDaysLeft: nil, standing: standingMoved,
-                               milestone: ("Galen", "🔥 Personal best", nil, nil))
+                               milestone: ("Galen", "🔥 Personal best", nil, nil), phase: .season(week: 5, of: 13))
     guard case .move(let r, let of, let from, _) = lead else { Issue.record("expected the move"); return }
     #expect(r == 3); #expect(of == 8); #expect(from == 5)
   }
@@ -65,6 +192,20 @@ import Foundation
     #expect(HomeLead.choose(clash: nil, pulse: partial, monthDaysLeft: 0, standing: nil, milestone: nil) == nil)
   }
 
+  @Test("D140 · a solo league has no floor — the rung never fires, whatever the pulse carries")
+  func soloHasNoFloor() {
+    // the exact state that fires the floor in a squads league…
+    guard case .floor = HomeLead.choose(clash: nil, pulse: pulseShort, monthDaysLeft: 1, standing: nil, milestone: nil, solo: false)
+    else { Issue.record("expected the floor in a squads league"); return }
+    // …is no card at all in a solo one, and the rungs below get the slot
+    #expect(HomeLead.choose(clash: nil, pulse: pulseShort, monthDaysLeft: 1, standing: nil, milestone: nil, solo: true) == nil)
+    let lead = HomeLead.choose(clash: nil, pulse: pulseShort, monthDaysLeft: 1, standing: standingMoved,
+                               milestone: ("Galen", "🔥 Personal best", nil, nil), phase: .season(week: 5, of: 13), solo: true)
+    guard case .move = lead else { Issue.record("expected the move under the solo guard, got \(String(describing: lead))"); return }
+    // a yielding clash above it changes nothing
+    #expect(HomeLead.choose(clash: clash(days: 4), pulse: pulseShort, monthDaysLeft: 0, standing: nil, milestone: nil, solo: true) == nil)
+  }
+
   @Test("the floor is silent until three days out — the chip already says it earlier")
   func floorWindow() {
     #expect(HomeLead.choose(clash: nil, pulse: pulseShort, monthDaysLeft: 4, standing: nil, milestone: nil) == nil)
@@ -75,7 +216,7 @@ import Foundation
   func heldRank() {
     let held = Me.Standing(rank: 3, of: 8, points: 41, prev_rank: 3, leader_squad_id: nil,
                            leader_points: 50, gap_to_leader: 9, gap_to_next: 2)
-    #expect(HomeLead.choose(clash: nil, pulse: nil, monthDaysLeft: nil, standing: held, milestone: nil) == nil)
+    #expect(HomeLead.choose(clash: nil, pulse: nil, monthDaysLeft: nil, standing: held, milestone: nil, phase: .season(week: 5, of: 13)) == nil)
   }
 
   // ── the words ──────────────────────────────────────────────────────────────

@@ -14,14 +14,15 @@ struct LeagueRoomScreen: View {
   @Environment(SessionStore.self) private var store
   @Environment(\.cs) private var cs
   @State private var model: LeagueRoomModel
-  @State private var router = RoomRouter()
+  @State private var router: RoomRouter
   let links: LeagueRoomLinks
   /// A paged Clubhouse hosts several rooms at once and sets the navigation
   /// title itself — six rooms all claiming it is a race with no winner.
   let titled: Bool
 
-  init(leagueId: UUID, links: LeagueRoomLinks, titled: Bool = true) {
+  init(leagueId: UUID, links: LeagueRoomLinks, titled: Bool = true, pane: RoomPane = .standings) {
     _model = State(initialValue: LeagueRoomModel(leagueId: leagueId))
+    _router = State(initialValue: RoomRouter(pane: pane))
     self.links = links
     self.titled = titled
   }

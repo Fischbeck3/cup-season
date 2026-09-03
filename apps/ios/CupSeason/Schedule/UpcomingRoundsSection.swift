@@ -10,11 +10,16 @@ import CupSeasonKit
 
 struct UpcomingRoundsSection: View {
   @Environment(\.cs) private var cs
-  @State private var vm = UpcomingModel()
+  /// Home owns the model (D217): the feed hides a booking line whose round is
+  /// already a card down here, so the two have to read the same list.
+  @State private var vm: UpcomingModel
   @State private var openRoundId: UUID? = nil
   let links: CSLinks
 
-  init(links: CSLinks = CSLinks()) { self.links = links }
+  init(links: CSLinks = CSLinks(), model: UpcomingModel? = nil) {
+    self.links = links
+    _vm = State(initialValue: model ?? UpcomingModel())
+  }
 
   var body: some View {
     // D176 · this section used to VANISH when nothing was booked, which is
@@ -72,12 +77,18 @@ struct HomeRoundCard: View {
       CSFace(marker: sr.marker, size: 36)
       VStack(alignment: .leading, spacing: 3) {
         (Text(sr.play_on.map { ScheduleDates.when($0) } ?? "").bold()
-         + (sr.relTag.map { Text(" · ") + Text($0).font(CSFont.label).foregroundStyle(cs.dimText) } ?? Text("")))
+         + (eyebrow.map { Text(" · ") + Text($0).font(CSFont.label).foregroundStyle(sr.withYou ? cs.gold : cs.dimText) } ?? Text("")))
           .font(CSFont.subhead).foregroundStyle(cs.ink)
         bits.font(CSFont.monoSmall).foregroundStyle(cs.mut)
       }
       .frame(maxWidth: .infinity, alignment: .leading)
       VStack(alignment: .trailing, spacing: 4) {
+        // the Home hard-look: a round booked WITH you that you said "in" on
+        // wears the calendar's own pill (ScheduleScreen `rowTitle`), gold —
+        // never a question once `my_rsvp` is set
+        if sr.youreIn {
+          Text("YOU’RE IN").font(CSFont.label).foregroundStyle(cs.gold)
+        }
         if let n = sr.rsvp_in, n > 0 {
           Text("\(n) in").font(CSFont.label).foregroundStyle(cs.pos).padding(.horizontal, 8).padding(.vertical, 3).background(cs.pos.opacity(0.14), in: Capsule())
         }
@@ -91,6 +102,10 @@ struct HomeRoundCard: View {
     .background(cs.bg1, in: RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous))
     .overlay(RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous).stroke(cs.line, lineWidth: 1))
   }
+
+  /// "WITH YOU" where it said LEAGUE MATE (the Home hard-look): a booking that
+  /// names you is your plan, not a league mate's.
+  private var eyebrow: String? { sr.withYou ? "WITH YOU" : sr.relTag }
 
   private var bits: Text {
     var t = Text(sr.who)
@@ -106,11 +121,18 @@ struct HomeRoundCard: View {
 final class UpcomingModel {
   var rounds: [ScheduledRound] = []
   var weather: [UUID: Weather] = [:]
+  /// Every booking on the watch list that names you (`tagged_me`), by id — a
+  /// booking line in the feed that survives the fold says "with you" off this.
+  var taggedIds: Set<UUID> = []
   private let sched = ScheduleService()
+
+  /// The ids on the Coming-up card — what the feed's fold hides (D217 rule 1).
+  var ids: Set<UUID> { Set(rounds.compactMap(\.id)) }
 
   func load() async {
     let all = (try? await sched.watch()) ?? []
     rounds = CalendarBuilder.homeRounds(all)
+    taggedIds = Set(all.filter(\.withYou).compactMap(\.id))
     // lazy, cached server-side, fail-silent — no glance is fine, never a blank
     for sr in rounds {
       guard let id = sr.id, let cid = sr.course_id, let on = sr.play_on, weather[id] == nil else { continue }

@@ -375,4 +375,41 @@ public enum LeagueCopy {
     solo ? ("INDIVIDUAL RACE — NO SQUADS.", "STANDINGS START AT THE FIRST POSTED ROUND; TOP 2 MEET IN THE CUP FINAL.")
          : ("NO ROUNDS YET.", "SQUADS FORM WHEN THE PRO LOCKS — STANDINGS START AT THE FIRST POSTED ROUND.")
   }
+
+  // MARK: - D126 · the endgame sentence
+
+  /// `endgameLine()` (index.html:6318) verbatim — how the season ends, in one
+  /// sentence, same words on the phone as on the web bylaws card.
+  ///
+  /// - cup_final: "The top 2 golfers|squads seed into a four-week Cup Final
+  ///   from {Dow Mon d} — scored fresh, so the regular season sets the seeds,
+  ///   not the winner." + (squads2 ONLY) " The leader carries +10 in." — the
+  ///   `enter_cup_final` head start is `case when structure = 'squads2' then
+  ///   10 else 0`, so any other structure promising +10 states a rule the
+  ///   engine does not have. The Cup Final starts ends_on − 27 calendar days
+  ///   (`LeagueDates.cupFinalStart`), formatted with the three-letter English
+  ///   tables, never DateFormatter locale output.
+  /// - points_table: "The points table crowns it on {Mon d} — every round
+  ///   counts to the last day." (ends_on itself, no weekday).
+  /// Both end with the tiebreak sentence, verbatim: "Level on points? Months
+  /// won breaks it." `tests/fixtures/endgame.json` is the canon for all 24 cases.
+  /// `startsOn` never enters the sentence; it is accepted so a caller can hand
+  /// over the whole season without picking fields.
+  public static func endgame(finish: String?, structure: String?, startsOn: String?, endsOn: String?,
+                             calendar: Calendar = .current) -> String {
+    let finish = (finish?.isEmpty == false) ? finish! : "cup_final"
+    let structure = (structure?.isEmpty == false) ? structure! : "squads2"
+    let tiebreak = "Level on points? Months won breaks it."
+    if finish == "points_table" {
+      let ends = endsOn.flatMap { CSDate.local($0, calendar: calendar) != nil ? LeagueDates.monDay($0, calendar: calendar) : nil }
+      return "The points table crowns it\(ends.map { " on \($0)" } ?? "") — every round counts to the last day. \(tiebreak)"
+    }
+    let who = structure == "solo" ? "The top 2 golfers" : "The top 2 squads"
+    let when = endsOn.flatMap { e -> String? in
+      guard CSDate.local(e, calendar: calendar) != nil else { return nil }
+      return LeagueDates.dowMonDay(LeagueDates.cupFinalStart(end: e, calendar: calendar), calendar: calendar)
+    }
+    let head = structure == "squads2" ? " The leader carries +10 in." : ""
+    return "\(who) seed into a four-week Cup Final\(when.map { " from \($0)" } ?? "") — scored fresh, so the regular season sets the seeds, not the winner.\(head) \(tiebreak)"
+  }
 }

@@ -3,10 +3,11 @@ import Foundation
 @testable import CupSeasonKit
 
 private func row(id: UUID = UUID(), name: String = "Galen", playOn: String, mine: Bool, friend: Bool = false, league: Bool = false,
-                 taggedMe: Bool = false, course: String? = "Papago GC", tee: String? = nil, tagged: [String]? = nil) -> ScheduledRound {
+                 taggedMe: Bool = false, course: String? = "Papago GC", tee: String? = nil, tagged: [String]? = nil,
+                 rsvp: String? = nil) -> ScheduledRound {
   Rpc.my_schedule.Row(id: id, profile_id: UUID(), display_name: name, marker: "saguaro", play_on: playOn, course_label: course, note: nil,
                       tee_time: tee, mine: mine, is_friend: friend, shared_league: league, tagged_names: tagged, tagged_me: taggedMe,
-                      course_id: nil, rsvp_in: nil, my_rsvp: nil, comment_n: nil)
+                      course_id: nil, rsvp_in: nil, my_rsvp: rsvp, comment_n: nil)
 }
 
 @Suite struct TeeSheetDateTests {
@@ -102,9 +103,99 @@ private func row(id: UUID = UUID(), name: String = "Galen", playOn: String, mine
     #expect(far.map(\.k) == ["Needs you"] && far[0].v == "1 invite")
     let last = UpNext.chips(watch: [], invites: 0, requests: 0, hasMemberships: true, today: "2026-08-31")
     #expect(last.first?.v == "today")
-    // a tagged buddy's round is YOUR plan, not a "Buddy's playing" nudge
-    let tagged = [row(name: "Galen", playOn: "2026-08-28", mine: false, friend: true, taggedMe: true)]
-    #expect(UpNext.chips(watch: tagged, invites: 0, requests: 0, hasMemberships: false, today: "2026-08-27").isEmpty)
+    // a tagged buddy's round is YOUR plan — the Next-round rung, never a "Buddy's playing" nudge
+    let tagged = [row(name: "Galen Ward", playOn: "2026-08-28", mine: false, friend: true, taggedMe: true, course: "Gold Canyon")]
+    let chips = UpNext.chips(watch: tagged, invites: 0, requests: 0, hasMemberships: false, today: "2026-08-27")
+    #expect(chips.map(\.k) == ["Next round"])
+    #expect(chips.first?.v == "Fri Aug 28 · Gold Canyon with Galen")
+  }
+
+  @Test("a round booked WITH you is your next round; yours still outranks it by date")
+  func taggedRoundIsMyPlan() {
+    let galen = UUID()
+    let tagged = row(id: galen, name: "Galen Ward", playOn: "2026-09-07", mine: false, friend: true, taggedMe: true, course: "Gold Canyon")
+    #expect(tagged.withYou && tagged.isMyPlan && !tagged.youreIn)
+    #expect(tagged.withYouChip == "Mon Sep 7 · Gold Canyon with Galen")
+    let chips = UpNext.chips(watch: [tagged], invites: 0, requests: 0, hasMemberships: false, today: "2026-09-02")
+    #expect(chips.map(\.k) == ["Next round"])
+    #expect(chips.first?.v == "Mon Sep 7 · Gold Canyon with Galen")
+    #expect(chips.first?.go == .round(galen))
+    // your own earlier round comes first, in its own words
+    let own = row(name: "Jerecho", playOn: "2026-09-05", mine: true, course: "Papago GC")
+    let both = UpNext.chips(watch: [tagged, own], invites: 0, requests: 0, hasMemberships: false, today: "2026-09-02")
+    #expect(both.map(\.k) == ["Next round"])
+    #expect(both.first?.v == "Papago GC · in 3 days")
+    // a buddy's round you are NOT on stays a "Buddy's playing" nudge
+    let plain = row(name: "Galen Ward", playOn: "2026-09-07", mine: false, friend: true)
+    #expect(!plain.withYou && !plain.isMyPlan && plain.withYouChip == nil)
+    #expect(UpNext.chips(watch: [plain], invites: 0, requests: 0, hasMemberships: false, today: "2026-09-02").map(\.k) == ["Buddy's playing"])
+  }
+
+  @Test("a tag you DECLINED is not your plan; a tag you have not answered still is — the chip never says 'with Galen' on a round you are not playing")
+  func declinedTagIsNotMyPlan() {
+    let galen = UUID()
+    func tagged(_ rsvp: String?) -> ScheduledRound {
+      row(id: galen, name: "Galen Ward", playOn: "2026-09-07", mine: false, friend: true, taggedMe: true, course: "Gold Canyon", rsvp: rsvp)
+    }
+    // unanswered, or in: the Next-round rung
+    for rsvp in [nil, "in"] as [String?] {
+      let chips = UpNext.chips(watch: [tagged(rsvp)], invites: 0, requests: 0, hasMemberships: false, today: "2026-09-02")
+      #expect(chips.map(\.k) == ["Next round"], "rsvp \(String(describing: rsvp))")
+      #expect(chips.first?.v == "Mon Sep 7 · Gold Canyon with Galen" && chips.first?.go == .round(galen))
+    }
+    // out: no Next round — and not a "Buddy's playing" nudge either, the tag already told you
+    let out = UpNext.chips(watch: [tagged("out")], invites: 0, requests: 0, hasMemberships: false, today: "2026-09-02")
+    #expect(out.isEmpty)
+    // the rung falls through to the next plan that IS yours
+    let own = row(name: "Jerecho", playOn: "2026-09-12", mine: true, course: "Papago GC")
+    let next = UpNext.chips(watch: [tagged("out"), own], invites: 0, requests: 0, hasMemberships: false, today: "2026-09-02")
+    #expect(next.map(\.k) == ["Next round"] && next.first?.v == "Papago GC · in 10 days")
+    // a host who declined their own booking is not playing it either — the
+    // plan is nobody's until the RSVP flips back (the web still shows it as the
+    // host's next round, `upcomingFromSchedule`; a web task under D219)
+    #expect(UpNext.chips(watch: [row(playOn: "2026-09-07", mine: true, rsvp: "out")], invites: 0, requests: 0, hasMemberships: false, today: "2026-09-02").isEmpty)
+    #expect(UpNext.chips(watch: [row(playOn: "2026-09-07", mine: true, rsvp: "in")], invites: 0, requests: 0, hasMemberships: false, today: "2026-09-02").map(\.k) == ["Next round"])
+    // the row's own flags: declined is still "with you" on the board, just not your plan on Home
+    #expect(tagged("out").withYou && !tagged("out").youreIn && tagged("in").youreIn)
+  }
+
+  @Test("the chip names the club alone — `Course.label` writes club — course, the web appends · tee; the row keeps the whole label")
+  func courseShortOnTheChip() {
+    // the audit's own booking: club — course · tee → the club
+    let gc = row(name: "Galen Ward", playOn: "2026-09-07", mine: false, friend: true, taggedMe: true,
+                 course: "Gold Canyon — Dinosaur Mountain · Black/Blue")
+    #expect(gc.courseShort == "Gold Canyon")
+    #expect(gc.withYouChip == "Mon Sep 7 · Gold Canyon with Galen")
+    #expect(gc.course_label == "Gold Canyon — Dinosaur Mountain · Black/Blue")   // the row's label is untouched
+    // a tee alone, no course segment; a course alone, no tee
+    #expect(row(playOn: "2026-09-07", mine: true, course: "Papago · Blue").courseShort == "Papago")
+    #expect(row(playOn: "2026-09-07", mine: true, course: "Troon North — Monument").courseShort == "Troon North")
+    #expect(row(playOn: "2026-09-07", mine: true, course: "  Papago GC  ").courseShort == "Papago GC")
+    // a hyphen is not the label's dash — a one-segment label stays whole
+    let biltmore = row(name: "Galen Ward", playOn: "2026-09-07", mine: false, friend: true, taggedMe: true, course: "Biltmore- Links")
+    #expect(biltmore.courseShort == "Biltmore- Links")
+    #expect(biltmore.withYouChip == "Mon Sep 7 · Biltmore- Links with Galen")
+    // no label, or a blank one, is "A round"
+    for label in [nil, "", "   "] as [String?] {
+      let r = row(name: "Galen Ward", playOn: "2026-09-07", mine: false, friend: true, taggedMe: true, course: label)
+      #expect(r.courseShort == nil, "label \(String(describing: label))")
+      #expect(r.withYouChip == "Mon Sep 7 · A round with Galen", "label \(String(describing: label))")
+    }
+  }
+
+  @Test("the Coming-up card knows who is on it: withYou and youreIn")
+  func comingUpFlags() {
+    let base = row(name: "Galen Ward", playOn: "2026-09-07", mine: false, friend: true, taggedMe: true)
+    let inOn = Rpc.my_schedule.Row(id: base.id, profile_id: base.profile_id, display_name: base.display_name, marker: base.marker,
+                                   play_on: base.play_on, course_label: base.course_label, note: nil, tee_time: nil, mine: false,
+                                   is_friend: true, shared_league: nil, tagged_names: nil, tagged_me: true, course_id: nil,
+                                   rsvp_in: 2, my_rsvp: "in", comment_n: nil)
+    #expect(inOn.withYou && inOn.youreIn)
+    // your own round is never "with you", and a tag on your own round is still yours
+    let mine = row(name: "Jerecho", playOn: "2026-09-07", mine: true, taggedMe: true)
+    #expect(!mine.withYou && mine.isMyPlan)
+    #expect(mine.hostFirstName == "Jerecho")
+    #expect(base.hostFirstName == "Galen")
   }
 }
 

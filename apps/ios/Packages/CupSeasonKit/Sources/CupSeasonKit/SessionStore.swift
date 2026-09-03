@@ -97,7 +97,27 @@ public final class SessionStore {
         if signInPending { signInPending = false; CSTelemetry.product(.signedIn) }
       }
     } catch {
-      state = .failed(AuthRules.human(error, fallback: "Could not load your card."))
+      // `.failed` is the BOOT's state ("retry offered" — RootView swaps the
+      // tabs out for it). A refresh that fails with a payload already in hand
+      // keeps that payload: a pull on a bad connection, or any of the many
+      // screens that call reload() after a write, must never evict a
+      // signed-in golfer to "Boot stalled" and throw away every tab's
+      // navigation. Only a session with nothing on screen falls to it.
+      // `.cardGate` is NOT kept: the gate holds no navigation worth saving,
+      // and its one caller reloads right after the save RPCs — kept, the
+      // golfer would sit on step 2 with the card already saved and no sign
+      // that only Home failed. "Boot stalled · Try again" is that sign.
+      switch state {
+      case .ready: break
+      default:
+        // A dead session is removed by the SDK, which emits `.signedOut` on
+        // its own turn — that can land mid-reload, and the RPC then fails as
+        // anon ("Sign in first"). The door is the honest end of that story,
+        // but only when the session is really gone: a door sign-in whose
+        // first reload fails still holds one and must reach Try again.
+        state = session == nil ? .signedOut
+          : .failed(AuthRules.human(error, fallback: "Could not load your card."))
+      }
     }
   }
 

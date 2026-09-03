@@ -67,6 +67,57 @@ public struct Me: Decodable, Sendable {
     public let leader_points: Double?
     public let gap_to_leader: Double?
     public let gap_to_next: Double?
+    /// D130 / `native_home()` v2 · the leader BY NAME — `firstname(display_name)`
+    /// in a solo league (the board's own word: "Galen"), the squad's name
+    /// otherwise. nil on a v1 payload (deploy skew): the copy then says "the lead".
+    public let leader_name: String?
+    /// v2 · the rank-2 name, so a leader can say "22 clear of Jade"
+    /// (`gap_to_next` is nil for rank 1). nil when fewer than two.
+    public let runner_up_name: String?
+    /// v2 · the rank-2 total, for the "19 – 9" clause at n = 2.
+    public let runner_up_points: Double?
+    /// v2 · D138 / §14.3 — only while the season is in its Cup Final: the
+    /// caller's LOCKED `cup_finalists.seed` (nil for a non-finalist, and on
+    /// every payload outside the Final). `rank` is the live table, which keeps
+    /// moving through the Final — it is never a seed.
+    public let seed: Int?
+    /// v2 · the finalists' names in seed order, the board's form. nil outside
+    /// the Final and on a v1 payload.
+    public let finalists: [String]?
+
+    public init(rank: Int, of: Int, points: Double?, prev_rank: Int?, leader_squad_id: UUID?, leader_points: Double?,
+                gap_to_leader: Double?, gap_to_next: Double?, leader_name: String? = nil, runner_up_name: String? = nil,
+                runner_up_points: Double? = nil, seed: Int? = nil, finalists: [String]? = nil) {
+      self.rank = rank; self.of = of; self.points = points; self.prev_rank = prev_rank; self.leader_squad_id = leader_squad_id
+      self.leader_points = leader_points; self.gap_to_leader = gap_to_leader; self.gap_to_next = gap_to_next
+      self.seed = seed; self.finalists = finalists
+      self.leader_name = leader_name; self.runner_up_name = runner_up_name; self.runner_up_points = runner_up_points
+    }
+  }
+
+  /// D106 / D129 · the pot as `native_home()` v2 carries it. Absent (nil on the
+  /// membership) when the league is bragging rights (D70) — and on a v1
+  /// payload, where the copy falls back to roster × stake and says nothing
+  /// about cash collected.
+  public struct BuyIn: Decodable, Sendable, Equatable {
+    /// The CALLER's own `buy_ins.paid`; false when no row. Self-only copy (D23).
+    public let paid: Bool?
+    /// `league_settings.buy_in_note` — how to pay, the Pro's words (D129).
+    public let note: String?
+    /// `league_settings.buy_in_due_on`, a calendar date (D129).
+    public let due_on: String?
+    /// How many members the pot is owed by — the roster, never below one
+    /// (`LeagueRoomModel.potPlayers`).
+    public let players: Int?
+    public let paid_count: Int?
+    /// `paid_count × buyin_cents` — the cash that exists (D106 "collected").
+    public let collected_cents: Int?
+
+    public init(paid: Bool? = nil, note: String? = nil, due_on: String? = nil, players: Int? = nil, paid_count: Int? = nil,
+                collected_cents: Int? = nil) {
+      self.paid = paid; self.note = note; self.due_on = due_on; self.players = players; self.paid_count = paid_count
+      self.collected_cents = collected_cents
+    }
   }
 
   public struct Pulse: Decodable, Sendable {
@@ -93,8 +144,45 @@ public struct Me: Decodable, Sendable {
     public let squad: Squad?
     public let standing: Standing?
     public let pulse: Pulse?
+    /// v2 · nil when `buyin_cents` is 0/null (D70) or on a v1 payload.
+    public let buy_in: BuyIn?
+    /// v2 · the D207 headcount — members with a living profile and no
+    /// suspension, the count `open_week_clash` writes "It's the two of you"
+    /// under. nil on a v1 payload. Prefer `headcount`, which falls back.
+    public let roster: Int?
+    /// v2 · every league_members row — suspended and tombstoned included —
+    /// the number the room's "N players", the Members sheet and the Pot pane
+    /// print. The count a Home line SHOWS; `roster` is the count a rule GATES
+    /// on. nil on a v1 payload.
+    public let members: Int?
     public var id: UUID { league_id }
     public var isPro: Bool { role == "commissioner" }
+
+    public init(league_id: UUID, name: String, code: String?, phase: String, sandbox: Bool?, role: String, member_id: UUID, marker: String?,
+                commissioner_name: String?, settings: Settings?, season: Season?, squad: Squad?, standing: Standing?, pulse: Pulse?,
+                buy_in: BuyIn? = nil, roster: Int? = nil, members: Int? = nil) {
+      self.league_id = league_id; self.name = name; self.code = code; self.phase = phase; self.sandbox = sandbox; self.role = role
+      self.member_id = member_id; self.marker = marker; self.commissioner_name = commissioner_name; self.settings = settings
+      self.season = season; self.squad = squad; self.standing = standing; self.pulse = pulse; self.buy_in = buy_in
+      self.roster = roster; self.members = members
+    }
+
+    /// The stake in cents — 0 for a bragging-rights league (D70).
+    public var stakeCents: Int { settings?.buyin_cents ?? 0 }
+    /// D140 · a solo league has no squads, so no floor can ever fire.
+    public var isSolo: Bool { settings?.structure == "solo" }
+    /// The league's headcount for a RULE (D207's "It's the two of you"): the
+    /// server's own D207 count (`roster`, v2) when it sent one; else the pot's
+    /// count (`buy_in.players` — every member row, suspended or not); else a
+    /// solo league's `standing.of`, which IS its roster; squads' `of` counts
+    /// squads, so it says nothing. nil = unknown. A line that SHOWS a headcount
+    /// reads `members` first — the room's number — see `HomeLeagueRow`.
+    public var headcount: Int? {
+      if let n = roster, n > 0 { return n }
+      if let n = buy_in?.players, n > 0 { return n }
+      if isSolo, let n = standing?.of, n > 0 { return n }
+      return nil
+    }
   }
 
   public struct LiveRound: Decodable, Sendable {
@@ -185,9 +273,12 @@ public enum SeasonPhase: Sendable, Equatable {
     guard m.phase == "season" else { return .forming }
     guard let sinceStart = CSDate.days(from: s.starts_on, to: today) else { return .forming }
     if sinceStart < 0 { return .preseason }
-    let total = max(1, ((CSDate.days(from: s.starts_on, to: s.ends_on) ?? 0) + 1 + 6) / 7)
-    let week = min(total, sinceStart / 7 + 1)
-    return .season(week: week, of: total)
+    // ONE week producer (D213 / §14.0 v1.1): the season runs N whole weeks and
+    // ends on the same weekday N weeks out, so N = (ends_on − starts_on) / 7 —
+    // `LeagueDates.totalWeeks`, the Clubhouse's number. Home once added a day
+    // before dividing and said "week 5 of 14" over a Clubhouse saying 13.
+    return .season(week: LeagueDates.currentWeek(start: s.starts_on, end: s.ends_on, today: today),
+                   of: LeagueDates.totalWeeks(start: s.starts_on, end: s.ends_on))
   }
 }
 
@@ -200,9 +291,19 @@ public enum HomeMode: Sendable {
   case cupFinal(Me.Membership)
   case wrapped(Me.Membership)
 
+  /// The leagues Home will render around: every one that has NOT wrapped
+  /// (forming, preseason, in season, in its Final), or — only when all have
+  /// wrapped — every one. One producer for the hero, the lead card and the
+  /// D121 rows, so a row's door (D218) can always land: a wrapped league
+  /// beside a live one is the Clubhouse's, not Home's. A preseason league
+  /// stays in — its row ("First tee Sat Sep 5") is a real door.
+  public static func pool(_ memberships: [Me.Membership], today: String = CSDate.today()) -> [Me.Membership] {
+    let active = memberships.filter { if case .wrapped = SeasonPhase.of($0, today: today) { return false }; return true }
+    return active.isEmpty ? memberships : active
+  }
+
   public static func of(_ me: Me, preferredLeague: UUID?) -> HomeMode {
-    let active = me.memberships.filter { if case .wrapped = SeasonPhase.of($0) { return false }; return true }
-    let pool = active.isEmpty ? me.memberships : active
+    let pool = pool(me.memberships)
     guard let m = pool.first(where: { $0.league_id == preferredLeague }) ?? pool.first else {
       let rounds = me.profile?.rounds_count ?? 0
       return .leagueless(rung: rounds < 3 ? 7 : 6)

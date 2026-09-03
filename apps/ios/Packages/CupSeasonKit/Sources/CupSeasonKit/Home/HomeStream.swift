@@ -11,7 +11,7 @@ import Supabase
 
 public typealias HomeFeedRow = Rpc.home_feed.Row
 
-public struct HomePost: Decodable, Sendable, Identifiable {
+public struct HomePost: Decodable, Sendable, Identifiable, Equatable {
   public let id: UUID
   public let league_id: UUID?
   public let kind: String
@@ -19,6 +19,18 @@ public struct HomePost: Decodable, Sendable, Identifiable {
   public let body: String?
   public let created_at: Date?
   public let live_round_id: UUID?
+  /// The posted round a round/moment line is about (`posts.round_id`).
+  public let round_id: UUID?
+  /// D219 · the booking a "put a round on the books" line is about
+  /// (`posts.scheduled_round_id`). nil before the column lands (deploy skew).
+  public let scheduled_round_id: UUID?
+
+  public init(id: UUID, league_id: UUID?, kind: String, member_id: UUID? = nil, body: String?, created_at: Date?,
+              live_round_id: UUID? = nil, round_id: UUID? = nil, scheduled_round_id: UUID? = nil) {
+    self.id = id; self.league_id = league_id; self.kind = kind; self.member_id = member_id; self.body = body
+    self.created_at = created_at; self.live_round_id = live_round_id; self.round_id = round_id
+    self.scheduled_round_id = scheduled_round_id
+  }
 }
 
 public enum HomeItem: Sendable, Identifiable {
@@ -32,14 +44,14 @@ public enum HomeItem: Sendable, Identifiable {
     }
   }
   /// Sort key: actual post time.
-  var time: Date {
+  public var time: Date {
     switch self {
     case .round(let r, _): r.created_at ?? CSDate.local(r.played_on ?? "") ?? .distantPast
     case .post(let p, _): p.created_at ?? .distantPast
     }
   }
   /// Bucket key: the displayed calendar date.
-  var day: String {
+  public var day: String {
     switch self {
     case .round(let r, _): r.played_on ?? (r.created_at.map { CSDate.iso($0) } ?? "")
     case .post(let p, _): p.created_at.map { CSDate.iso($0) } ?? ""
@@ -80,26 +92,40 @@ public struct HomeStreamRepository: Sendable {
     public let items: [HomeItem]
     public let rounds: [HomeFeedRow]
     public let posts: [HomePost]
+    /// The circle's feed could not be read at all (offline, a 5xx). Every read
+    /// in here is a `try?`, so a failure and a quiet week both arrive as an
+    /// empty `items` — this is the one bit that tells them apart, and Home
+    /// needs it: a failed read is not an empty feed (the You screen's rule),
+    /// so a pull on a bad signal keeps what is already on screen instead of
+    /// painting "No rounds from your buddies yet." over the circle's rounds.
+    public let failed: Bool
+
+    public init(items: [HomeItem], rounds: [HomeFeedRow], posts: [HomePost], failed: Bool = false) {
+      self.items = items; self.rounds = rounds; self.posts = posts; self.failed = failed
+    }
   }
 
   /// D176 · the lead card's clash rung. One RPC, `try?` on the whole read: an
   /// un-migrated database (deploy skew) renders no card, and the 42501 lesson
   /// holds — ANY error, never a sniffed message.
-  public func clash(league: UUID?) async -> HomeClash? {
+  /// `roster` is the league's headcount (`Membership.headcount`) — the card's
+  /// week-1 sentence is the two-person league's (D207), and the RPC does not
+  /// say how many are in it.
+  public func clash(league: UUID?, roster: Int? = nil) async -> HomeClash? {
     guard let league else { return nil }
-    return HomeClash.decode(try? await svc.call(Rpc.home_clash(p_league: league)))
+    return HomeClash.decode(try? await svc.call(Rpc.home_clash(p_league: league)), roster: roster)
   }
 
   public func load(memberships: [Me.Membership]) async -> Result {
     let ids = memberships.map(\.league_id)
     let names = Dictionary(uniqueKeysWithValues: memberships.map { ($0.league_id, $0.name) })
 
-    async let feed: [HomeFeedRow] = (try? svc.call(Rpc.home_feed(p_days: 21))) ?? []
-    async let posts: [HomePost] = ids.isEmpty ? [] : ((try? svc.client.from("posts")
-      .select("id, league_id, kind, member_id, body, created_at, live_round_id")
-      .in("league_id", values: ids).neq("kind", value: "chat").neq("kind", value: "round")
-      .order("created_at", ascending: false).limit(20).execute().value) ?? [])
-    let (rows, moments) = await (feed, posts)
+    // nil, not [] — the empty feed and the feed that could not be read are
+    // different stories and only this call can tell them apart.
+    async let feed: [HomeFeedRow]? = try? svc.call(Rpc.home_feed(p_days: 21))
+    async let posts: [HomePost] = ids.isEmpty ? [] : loadPosts(ids)
+    let (read, moments) = await (feed, posts)
+    let rows = read ?? []
 
     // one batched signing per load: the circle's photo paths → hour URLs
     var urls: [String: URL] = [:]
@@ -112,7 +138,23 @@ public struct HomeStreamRepository: Sendable {
       + moments.map { HomeItem.post($0, leagueName: $0.league_id.flatMap { names[$0] }) })
       .sorted { $0.time > $1.time }
       .prefix(30)
-    return Result(items: Array(items), rounds: rows, posts: moments)
+    return Result(items: Array(items), rounds: rows, posts: moments, failed: read == nil)
+  }
+
+  /// The posts read, in two tries. `scheduled_round_id` (D219) is the newest
+  /// column on `posts`; a database the migration has not reached answers the
+  /// full select with an error, and the deploy-skew rule (CLAUDE.md) says a
+  /// new column needs a client-side retry that drops it — ANY error, never a
+  /// sniffed message. Both tries fail → an empty feed, never a broken Home.
+  static let postColumns = "id, league_id, kind, member_id, body, created_at, live_round_id, round_id"
+  func loadPosts(_ ids: [UUID]) async -> [HomePost] {
+    func read(_ columns: String) async throws -> [HomePost] {
+      try await svc.client.from("posts").select(columns)
+        .in("league_id", values: ids).neq("kind", value: "chat").neq("kind", value: "round")
+        .order("created_at", ascending: false).limit(20).execute().value
+    }
+    if let full = try? await read(Self.postColumns + ", scheduled_round_id") { return full }
+    return (try? await read(Self.postColumns)) ?? []
   }
 }
 

@@ -204,7 +204,10 @@ enum RoomSheet: Identifiable {
 @MainActor @Observable final class RoomRouter {
   var sheet: RoomSheet?
   var pane: RoomPane = .standings
-  init() {
+  /// `pane` is where a door asked the room to open (Home's owe line → Pot);
+  /// STANDINGS otherwise. The dev hatch below still wins in a DEBUG build.
+  init(pane opening: RoomPane = .standings) {
+    pane = opening
     #if DEBUG
     // Developer hatch: `-cs_dev_pane pot|album|league` lands a simulator on a pane without a finger.
     let a = ProcessInfo.processInfo.arguments

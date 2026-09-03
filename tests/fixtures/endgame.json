@@ -1,0 +1,222 @@
+{
+  "_rule": "endgameLine(opts) is the D126 sentence. opts.finish (cup_final | points_table) and opts.structure (solo | squads2 | squads3 | squads4) are read from opts, falling back to state.finish / state.structure; the dates come from state.seasonEnd (seasons.ends_on) through seasonE(), which parses the ISO string with localDate(iso) = new Date(y, m-1, d), i.e. LOCAL midnight — never new Date(\"YYYY-MM-DD\"), which is UTC midnight and renders the previous day west of Greenwich. cupFinalStart() = a copy of seasonE() with setDate(getDate() - 27): the Cup Final starts exactly 27 calendar days before ends_on (four whole weeks, ends_on inclusive), whatever the weekday; month and year roll over naturally, and because the arithmetic is on local calendar days the result is the same in every timezone (this fixture was generated identically under TZ=America/Phoenix, UTC and Pacific/Auckland). Formats: DOW = [\"Sun\"..\"Sat\"] indexed by getDay(); MOS = [\"Jan\"..\"Dec\"] indexed by getMonth(); the day is getDate() with no zero padding. cup_final: \"The top 2 golfers\" (solo) or \"The top 2 squads\" (any squads structure — the seat count is 2 for every structure) + \" seed into a four-week Cup Final from {DOW} {MOS} {D} — scored fresh, so the regular season sets the seeds, not the winner.\" then, for squads2 ONLY, \" The leader carries +10 in.\" (enter_cup_final gives head_start 10 only to squads2), then \" Level on points? Months won breaks it.\" points_table (every structure, ignores structure): \"The points table crowns it on {MOS} {D} — every round counts to the last day. Level on points? Months won breaks it.\" where {MOS} {D} is ends_on itself, no weekday. The dashes are the real U+2014 em dash. starts_on does not enter the sentence; it is carried so the Kit test can build a full season. cup_final_start is the ISO local date the harness verified equals ends_on minus 27 days.",
+  "_generated_by": "scratchpad/endgame-harness.mjs against index.html endgameLine() — regenerate, never hand-edit",
+  "cases": [
+    {
+      "label": "WTB",
+      "finish": "cup_final",
+      "structure": "solo",
+      "starts_on": "2026-08-03",
+      "ends_on": "2026-11-02",
+      "cup_final_start": "2026-10-06",
+      "expected": "The top 2 golfers seed into a four-week Cup Final from Tue Oct 6 — scored fresh, so the regular season sets the seeds, not the winner. Level on points? Months won breaks it."
+    },
+    {
+      "label": "WTB",
+      "finish": "cup_final",
+      "structure": "squads2",
+      "starts_on": "2026-08-03",
+      "ends_on": "2026-11-02",
+      "cup_final_start": "2026-10-06",
+      "expected": "The top 2 squads seed into a four-week Cup Final from Tue Oct 6 — scored fresh, so the regular season sets the seeds, not the winner. The leader carries +10 in. Level on points? Months won breaks it."
+    },
+    {
+      "label": "WTB",
+      "finish": "cup_final",
+      "structure": "squads3",
+      "starts_on": "2026-08-03",
+      "ends_on": "2026-11-02",
+      "cup_final_start": "2026-10-06",
+      "expected": "The top 2 squads seed into a four-week Cup Final from Tue Oct 6 — scored fresh, so the regular season sets the seeds, not the winner. Level on points? Months won breaks it."
+    },
+    {
+      "label": "WTB",
+      "finish": "cup_final",
+      "structure": "squads4",
+      "starts_on": "2026-08-03",
+      "ends_on": "2026-11-02",
+      "cup_final_start": "2026-10-06",
+      "expected": "The top 2 squads seed into a four-week Cup Final from Tue Oct 6 — scored fresh, so the regular season sets the seeds, not the winner. Level on points? Months won breaks it."
+    },
+    {
+      "label": "WTB",
+      "finish": "points_table",
+      "structure": "solo",
+      "starts_on": "2026-08-03",
+      "ends_on": "2026-11-02",
+      "cup_final_start": "2026-10-06",
+      "expected": "The points table crowns it on Nov 2 — every round counts to the last day. Level on points? Months won breaks it."
+    },
+    {
+      "label": "WTB",
+      "finish": "points_table",
+      "structure": "squads2",
+      "starts_on": "2026-08-03",
+      "ends_on": "2026-11-02",
+      "cup_final_start": "2026-10-06",
+      "expected": "The points table crowns it on Nov 2 — every round counts to the last day. Level on points? Months won breaks it."
+    },
+    {
+      "label": "WTB",
+      "finish": "points_table",
+      "structure": "squads3",
+      "starts_on": "2026-08-03",
+      "ends_on": "2026-11-02",
+      "cup_final_start": "2026-10-06",
+      "expected": "The points table crowns it on Nov 2 — every round counts to the last day. Level on points? Months won breaks it."
+    },
+    {
+      "label": "WTB",
+      "finish": "points_table",
+      "structure": "squads4",
+      "starts_on": "2026-08-03",
+      "ends_on": "2026-11-02",
+      "cup_final_start": "2026-10-06",
+      "expected": "The points table crowns it on Nov 2 — every round counts to the last day. Level on points? Months won breaks it."
+    },
+    {
+      "label": "Fellas",
+      "finish": "cup_final",
+      "structure": "solo",
+      "starts_on": "2026-07-20",
+      "ends_on": "2027-01-18",
+      "cup_final_start": "2026-12-22",
+      "expected": "The top 2 golfers seed into a four-week Cup Final from Tue Dec 22 — scored fresh, so the regular season sets the seeds, not the winner. Level on points? Months won breaks it."
+    },
+    {
+      "label": "Fellas",
+      "finish": "cup_final",
+      "structure": "squads2",
+      "starts_on": "2026-07-20",
+      "ends_on": "2027-01-18",
+      "cup_final_start": "2026-12-22",
+      "expected": "The top 2 squads seed into a four-week Cup Final from Tue Dec 22 — scored fresh, so the regular season sets the seeds, not the winner. The leader carries +10 in. Level on points? Months won breaks it."
+    },
+    {
+      "label": "Fellas",
+      "finish": "cup_final",
+      "structure": "squads3",
+      "starts_on": "2026-07-20",
+      "ends_on": "2027-01-18",
+      "cup_final_start": "2026-12-22",
+      "expected": "The top 2 squads seed into a four-week Cup Final from Tue Dec 22 — scored fresh, so the regular season sets the seeds, not the winner. Level on points? Months won breaks it."
+    },
+    {
+      "label": "Fellas",
+      "finish": "cup_final",
+      "structure": "squads4",
+      "starts_on": "2026-07-20",
+      "ends_on": "2027-01-18",
+      "cup_final_start": "2026-12-22",
+      "expected": "The top 2 squads seed into a four-week Cup Final from Tue Dec 22 — scored fresh, so the regular season sets the seeds, not the winner. Level on points? Months won breaks it."
+    },
+    {
+      "label": "Fellas",
+      "finish": "points_table",
+      "structure": "solo",
+      "starts_on": "2026-07-20",
+      "ends_on": "2027-01-18",
+      "cup_final_start": "2026-12-22",
+      "expected": "The points table crowns it on Jan 18 — every round counts to the last day. Level on points? Months won breaks it."
+    },
+    {
+      "label": "Fellas",
+      "finish": "points_table",
+      "structure": "squads2",
+      "starts_on": "2026-07-20",
+      "ends_on": "2027-01-18",
+      "cup_final_start": "2026-12-22",
+      "expected": "The points table crowns it on Jan 18 — every round counts to the last day. Level on points? Months won breaks it."
+    },
+    {
+      "label": "Fellas",
+      "finish": "points_table",
+      "structure": "squads3",
+      "starts_on": "2026-07-20",
+      "ends_on": "2027-01-18",
+      "cup_final_start": "2026-12-22",
+      "expected": "The points table crowns it on Jan 18 — every round counts to the last day. Level on points? Months won breaks it."
+    },
+    {
+      "label": "Fellas",
+      "finish": "points_table",
+      "structure": "squads4",
+      "starts_on": "2026-07-20",
+      "ends_on": "2027-01-18",
+      "cup_final_start": "2026-12-22",
+      "expected": "The points table crowns it on Jan 18 — every round counts to the last day. Level on points? Months won breaks it."
+    },
+    {
+      "label": "year crossing",
+      "finish": "cup_final",
+      "structure": "solo",
+      "starts_on": "2026-11-30",
+      "ends_on": "2027-03-07",
+      "cup_final_start": "2027-02-08",
+      "expected": "The top 2 golfers seed into a four-week Cup Final from Mon Feb 8 — scored fresh, so the regular season sets the seeds, not the winner. Level on points? Months won breaks it."
+    },
+    {
+      "label": "year crossing",
+      "finish": "cup_final",
+      "structure": "squads2",
+      "starts_on": "2026-11-30",
+      "ends_on": "2027-03-07",
+      "cup_final_start": "2027-02-08",
+      "expected": "The top 2 squads seed into a four-week Cup Final from Mon Feb 8 — scored fresh, so the regular season sets the seeds, not the winner. The leader carries +10 in. Level on points? Months won breaks it."
+    },
+    {
+      "label": "year crossing",
+      "finish": "cup_final",
+      "structure": "squads3",
+      "starts_on": "2026-11-30",
+      "ends_on": "2027-03-07",
+      "cup_final_start": "2027-02-08",
+      "expected": "The top 2 squads seed into a four-week Cup Final from Mon Feb 8 — scored fresh, so the regular season sets the seeds, not the winner. Level on points? Months won breaks it."
+    },
+    {
+      "label": "year crossing",
+      "finish": "cup_final",
+      "structure": "squads4",
+      "starts_on": "2026-11-30",
+      "ends_on": "2027-03-07",
+      "cup_final_start": "2027-02-08",
+      "expected": "The top 2 squads seed into a four-week Cup Final from Mon Feb 8 — scored fresh, so the regular season sets the seeds, not the winner. Level on points? Months won breaks it."
+    },
+    {
+      "label": "year crossing",
+      "finish": "points_table",
+      "structure": "solo",
+      "starts_on": "2026-11-30",
+      "ends_on": "2027-03-07",
+      "cup_final_start": "2027-02-08",
+      "expected": "The points table crowns it on Mar 7 — every round counts to the last day. Level on points? Months won breaks it."
+    },
+    {
+      "label": "year crossing",
+      "finish": "points_table",
+      "structure": "squads2",
+      "starts_on": "2026-11-30",
+      "ends_on": "2027-03-07",
+      "cup_final_start": "2027-02-08",
+      "expected": "The points table crowns it on Mar 7 — every round counts to the last day. Level on points? Months won breaks it."
+    },
+    {
+      "label": "year crossing",
+      "finish": "points_table",
+      "structure": "squads3",
+      "starts_on": "2026-11-30",
+      "ends_on": "2027-03-07",
+      "cup_final_start": "2027-02-08",
+      "expected": "The points table crowns it on Mar 7 — every round counts to the last day. Level on points? Months won breaks it."
+    },
+    {
+      "label": "year crossing",
+      "finish": "points_table",
+      "structure": "squads4",
+      "starts_on": "2026-11-30",
+      "ends_on": "2027-03-07",
+      "cup_final_start": "2027-02-08",
+      "expected": "The points table crowns it on Mar 7 — every round counts to the last day. Level on points? Months won breaks it."
+    }
+  ]
+}

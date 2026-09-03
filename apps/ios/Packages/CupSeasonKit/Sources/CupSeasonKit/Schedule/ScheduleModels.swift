@@ -26,6 +26,36 @@ public extension ScheduledRound {
     guard let n = tagged_names, !n.isEmpty else { return nil }
     return "WITH " + n.joined(separator: " & ").uppercased()
   }
+
+  // The Home hard-look (2026-09-02): a round a buddy booked WITH you is your
+  // plan — the audit's Jerecho was tagged into Gold Canyon and Home showed
+  // nothing, because the Next-round rung kept only rounds he owned.
+
+  /// Someone else's booking that names you (`tagged_me`).
+  var withYou: Bool { !isMine && tagged_me == true }
+  /// You said "in" on it.
+  var youreIn: Bool { my_rsvp == "in" }
+  /// Qualifies for the Up Next "Next round" rung: yours, or booked with you.
+  var isMyPlan: Bool { isMine || withYou }
+  /// The host's first name — SQL `firstname()`'s rule (`CSBands.fn1`), so the
+  /// chip says "with Galen" where the board says "Galen".
+  var hostFirstName: String { CSBands.fn1(display_name) }
+  /// The Next-round chip for a round booked with you:
+  /// "Mon Sep 7 · Gold Canyon with Galen".
+  var withYouChip: String? {
+    guard withYou, let p = play_on else { return nil }
+    return "\(ScheduleDates.long(p)) · \(courseShort ?? "A round") with \(hostFirstName)"
+  }
+  /// The club alone. `Course.label` writes "Gold Canyon — Dinosaur Mountain"
+  /// and the web appends the tee ("· Black/Blue"); a chip has room for the
+  /// first segment and the board's row still carries the whole label.
+  var courseShort: String? {
+    guard let raw = course_label?.trimmingCharacters(in: .whitespaces), !raw.isEmpty else { return nil }
+    let head = raw.components(separatedBy: " — ").first ?? raw
+    let club = head.components(separatedBy: " · ").first ?? head
+    let t = club.trimmingCharacters(in: .whitespaces)
+    return t.isEmpty ? raw : t
+  }
 }
 
 /// `fmtTee` (16663): "07:40:00" | "07:40" → "7:40a"; empty → "".
@@ -348,12 +378,19 @@ public enum UpNext {
                            hasMemberships: Bool, today: String = CSDate.today()) -> [UpChip] {
     var chips: [UpChip] = []
     let src = watch.isEmpty ? schedule : watch
-    // Next round — YOURS (9630)
-    let mine = src.filter { $0.mine != false && ($0.play_on ?? "") >= today && $0.play_on != nil }
+    // Next round — YOURS, or booked WITH you (9630; the Home hard-look). A
+    // round you have DECLINED is not your plan, whether you were tagged on it
+    // or booked it yourself (a host can RSVP out of their own booking —
+    // `canRsvp`): "Next round · with Galen" on a round you said you are not
+    // playing is the chip lying. The web's `upcomingFromSchedule` differs on
+    // both axes — it keeps the host's own declined booking AND drops rounds
+    // booked WITH you (`if (r.mine === false) return;`, never reading
+    // `tagged_me` / `my_rsvp`) — a web task, logged under D219.
+    let mine = src.filter { ($0.mine != false || $0.tagged_me == true) && $0.my_rsvp != "out" && ($0.play_on ?? "") >= today && $0.play_on != nil }
       .sorted { ($0.play_on ?? "") < ($1.play_on ?? "") }
     if let up = mine.first, let p = up.play_on {
-      chips.append(UpChip("Next round", "\(up.course_label ?? "Declared round") · \(ScheduleDates.whenIn(p, today: today).lowercased())",
-                          up.id.map(UpChip.Go.round) ?? .calendar))
+      let v = up.withYouChip ?? "\(up.course_label ?? "Declared round") · \(ScheduleDates.whenIn(p, today: today).lowercased())"
+      chips.append(UpChip("Next round", v, up.id.map(UpChip.Go.round) ?? .calendar))
     }
     // Buddy's playing — the crew's plans echo Home (10662)
     let crew = watch.filter { $0.mine == false && ($0.is_friend == true || $0.shared_league == true) && $0.tagged_me != true }

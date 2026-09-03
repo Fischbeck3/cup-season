@@ -76,7 +76,12 @@ enum CSDevHatch {
   }
 }
 
-enum HomeRoute: Hashable { case schedule, people, league(UUID) }
+/// `.league` lands on STANDINGS (D218: the table is reached from the hero, the
+/// D121 row and the move card); `.pot` is the same room opened on the Pot pane
+/// — Home's self-only "You still owe" line (D129) leads to the books. A board
+/// is `ClubRoute.board`, which both stacks already resolve (D217's door under
+/// the folded notes on Home uses it too).
+enum HomeRoute: Hashable { case schedule, people, league(UUID), pot(UUID) }
 enum ClubRoute: Hashable { case board(UUID), schedule, album(UUID) }
 /// `.addGhin` is Card & settings opened on the card pane with the GHIN field
 /// focused (Y-30) — the You hero's "add your GHIN" lands on the field, not the screen.
@@ -155,6 +160,9 @@ struct MainTabView: View {
             case .league(let id): ClubhouseView(leagueId: id, onOpenBoard: { homePath.append(ClubRoute.board($0)) },
                                                 onOpenSchedule: { homePath.append(HomeRoute.schedule) },
                                                 onAddGolfers: { presenter.inviteTo = $0 })
+            case .pot(let id): ClubhouseView(leagueId: id, pane: .pot, onOpenBoard: { homePath.append(ClubRoute.board($0)) },
+                                             onOpenSchedule: { homePath.append(HomeRoute.schedule) },
+                                             onAddGolfers: { presenter.inviteTo = $0 })
             }
           }
       }
@@ -187,6 +195,9 @@ struct MainTabView: View {
             case .league(let id): ClubhouseView(leagueId: id, onOpenBoard: { clubPath.append(ClubRoute.board($0)) },
                                                 onOpenSchedule: { clubPath.append(ClubRoute.schedule) },
                                                 onAddGolfers: { presenter.inviteTo = $0 })
+            case .pot(let id): ClubhouseView(leagueId: id, pane: .pot, onOpenBoard: { clubPath.append(ClubRoute.board($0)) },
+                                             onOpenSchedule: { clubPath.append(ClubRoute.schedule) },
+                                             onAddGolfers: { presenter.inviteTo = $0 })
             }
           }
       }

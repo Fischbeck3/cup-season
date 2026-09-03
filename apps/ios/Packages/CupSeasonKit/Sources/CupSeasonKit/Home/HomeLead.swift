@@ -44,18 +44,50 @@ public struct HomeClash: Sendable, Equatable {
   public let mine: Side?
   public let theirs: Side?
   public let rivalry: String?
+  /// The RPC returns only open clashes today (`settled_at is null`); a settled
+  /// one, should a future payload carry it, is a result and never yields.
+  public let settled: Bool
+  /// The league's headcount, from the membership in hand
+  /// (`Membership.headcount` — the server's D207 count on a v2 payload) —
+  /// the clash payload does not carry it. nil on a payload that cannot say.
+  public let roster: Int?
 
   public init(weekNo: Int, endsOn: String, daysLeft: Int, closesToday: Bool, themName: String,
-              themMarker: String? = nil, mine: Side? = nil, theirs: Side? = nil, rivalry: String? = nil) {
+              themMarker: String? = nil, mine: Side? = nil, theirs: Side? = nil, rivalry: String? = nil,
+              settled: Bool = false, roster: Int? = nil) {
     self.weekNo = weekNo; self.endsOn = endsOn; self.daysLeft = daysLeft
     self.closesToday = closesToday; self.themName = themName; self.themMarker = themMarker
-    self.mine = mine; self.theirs = theirs; self.rivalry = rivalry
+    self.mine = mine; self.theirs = theirs; self.rivalry = rivalry; self.settled = settled
+    self.roster = roster
   }
+
+  /// D207 · "It's the two of you" is the TWO-person league's sentence — the
+  /// server writes it only `when v_wk = 1 and v_roster = 2`
+  /// (`20260902170000:195`); in a bigger league the pairing rotates (D52) and
+  /// week 1 is a week like any other. A payload that cannot say is not two.
+  public var isTwo: Bool { roster == 2 }
+
+  /// D216 · a clash with nothing posted on either side and more than a day
+  /// still to run has nothing to say yet — "You v Marcus. Nothing posted"
+  /// three mornings running is the noise the hard-look logged. The rung
+  /// re-enters the moment either side posts, on the last-call day (one day or
+  /// less left), or once settled.
+  public var yields: Bool {
+    guard !settled, mine == nil, theirs == nil else { return false }
+    // The first week of a two-person season shows once even at 0–0 — that
+    // card carries D207's own sentence ("It's the two of you — every week is
+    // the clash.").
+    guard !(weekNo <= 1 && isTwo) else { return false }
+    return daysLeft > 1 && !closesToday
+  }
+
+  /// D207 · the first week of a two-person season, nothing posted yet.
+  public var isFirstWeekIdle: Bool { weekNo == 1 && isTwo && mine == nil && theirs == nil && !settled }
 
   /// Hand-decoded from the RPC's jsonb. `try?`-free on purpose: a missing key
   /// returns nil rather than throwing, so deploy skew renders no card instead
   /// of breaking Home.
-  public static func decode(_ v: JSONValue?) -> HomeClash? {
+  public static func decode(_ v: JSONValue?, roster: Int? = nil) -> HomeClash? {
     guard let v, !v.isNull,
           let week = v["week_no"]?.int,
           let ends = v["ends_on"]?.string,
@@ -76,7 +108,9 @@ public struct HomeClash: Sendable, Equatable {
                      themMarker: v["them_marker"]?.string,
                      mine: side("mine"),
                      theirs: side("theirs"),
-                     rivalry: v["rivalry"]?.string)
+                     rivalry: v["rivalry"]?.string,
+                     settled: v["settled"]?.bool ?? (v["settled_at"].map { !$0.isNull } ?? false),
+                     roster: roster)
   }
 
   /// Who is ahead right now, by the settle's own rule — POINTS, which is the
@@ -113,23 +147,35 @@ public enum HomeLead: Sendable, Equatable {
   /// - move third: it happened, it is worth telling, nothing is owed.
   /// - milestone last: someone else's news, and the feed carries it anyway —
   ///   this only lifts it when nothing of yours is pressing.
+  ///
+  /// Three guards (the Home hard-look, 2026-09-02):
+  /// - D216 · a 0–0 clash mid-week YIELDS to the rungs below (`HomeClash.yields`).
+  /// - D140 · a solo league has no squads, so no floor can ever fire — the
+  ///   pulse still carries `participation_floor`, and the rung must not read
+  ///   it. `solo` is the league's `structure == "solo"`.
+  /// - The move rung reads `prev_rank`, a week-snapshot figure the server keeps
+  ///   carrying after the season ends and before it starts; it fires only when
+  ///   `phase` is `.season`. Pass nil (the default) and it never fires.
   public static func choose(clash: HomeClash?,
                             pulse: Me.Pulse?,
                             monthDaysLeft: Int?,
                             standing: Me.Standing?,
-                            milestone: (who: String, line: String, roundId: UUID?, marker: String?)?) -> HomeLead? {
-    if let clash { return .clash(clash) }
+                            milestone: (who: String, line: String, roundId: UUID?, marker: String?)?,
+                            phase: SeasonPhase? = nil,
+                            solo: Bool = false) -> HomeLead? {
+    if let clash, !clash.yields { return .clash(clash) }
 
     // The floor rung. `partial == true` means an edge month with floors waived
     // (§14.0's blanket rule) — telling someone to hit a floor that is waived is
     // the exact contradiction the audit logged elsewhere, so it is excluded.
-    if let p = pulse, p.partial != true, let floor = p.floor, floor > 0,
+    // A solo league is excluded outright (D140).
+    if !solo, let p = pulse, p.partial != true, let floor = p.floor, floor > 0,
        let days = monthDaysLeft, days <= 3 {
       let credits = p.credits ?? 0
       if credits < Double(floor) { return .floor(days: days, credits: credits, floor: floor) }
     }
 
-    if let st = standing, let prev = st.prev_rank, prev != st.rank {
+    if case .season = phase, let st = standing, let prev = st.prev_rank, prev != st.rank {
       return .move(rank: st.rank, of: st.of, from: prev, gapToLead: st.gap_to_leader)
     }
 
@@ -153,9 +199,11 @@ public enum HomeLeadCopy {
     return "\(name) · \(c.daysLeft) days left"
   }
 
-  /// The sentence under it. Sets the scene, then the stakes.
+  /// The sentence under it. Sets the scene, then the stakes. The first week
+  /// of a season at 0–0 says what the board says (D207).
   public static func clashLine(_ c: HomeClash) -> String {
-    "You v \(CSBands.fn1(c.themName)). Best round of the week takes it."
+    if c.isFirstWeekIdle { return "It's the two of you — every week is the clash." }
+    return "You v \(CSBands.fn1(c.themName)). Best round of the week takes it."
   }
 
   /// What a side has, in the app's own language — never raw differential.

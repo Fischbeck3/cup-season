@@ -21,7 +21,10 @@ struct UpNextChips: View {
   }
 
   var body: some View {
-    Group {
+    // A VStack, not a Group: Group forwards its modifiers to its children, and
+    // with no chips it has none — so the `.task` below never ran and the strip
+    // could never load its first chip. The stack exists even while empty.
+    VStack(spacing: 0) {
       if !vm.chips.isEmpty {
         ScrollView(.horizontal, showsIndicators: false) {
           HStack(spacing: 8) {

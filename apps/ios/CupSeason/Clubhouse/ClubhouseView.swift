@@ -24,6 +24,9 @@ struct ClubhouseView: View {
   let leagueId: UUID?
   /// The tab root pages between leagues; a pushed league does not.
   var paged: Bool = false
+  /// The pane the room opens on — STANDINGS unless a door asks for another
+  /// (Home's "You still owe" line lands on the Pot, D129).
+  var pane: RoomPane = .standings
   var onOpenBoard: (UUID) -> Void = { _ in }
   var onOpenSchedule: () -> Void = {}
   var onAddGolfers: (UUID) -> Void = { _ in }
@@ -86,7 +89,7 @@ struct ClubhouseView: View {
                                                           openTourCard: { presenter.tourCard = $0 }))
       // paged: the title is set once, above, for the league in hand — six room
       // screens all claiming the navigation title is a race with no winner
-      LeagueRoomScreen(leagueId: m.league_id, links: links(for: m), titled: !paged)
+      LeagueRoomScreen(leagueId: m.league_id, links: links(for: m), titled: !paged, pane: pane)
     }
     // IOS-025: the room wears its league's look — phase ≻ the Pro's choice ≻ the person's dial
     .environment(\.csLook, looks.look(for: m))
