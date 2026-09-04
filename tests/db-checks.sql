@@ -504,5 +504,69 @@ from (
     (select count(*) from achievements where round_id is null) as orphans
 ) t
 
+-- 21 · the posts INSERT is sealed to the chat payload (20260902210000).
+--     `posts.scheduled_round_id` is stamped by declare_round and by nothing
+--     else, but the column comment said so while the database did not: an
+--     INSERT policy constrains ROWS, never COLUMNS, and authenticated held
+--     table-level INSERT. Same landmine as checks 2, 9 and 19. The seal is:
+--     revoke the table INSERT, re-grant the five columns both clients send
+--     (index.html:6008 · BoardRepository.swift:205). A sixth column added to
+--     either payload lands here as a FAIL, not as a 42501 in a golfer's face —
+--     and a boilerplate migration that hands table INSERT back lands here too,
+--     which is the failure this check exists for.
+union all
+select '21 · posts INSERT is column-scoped',
+  case when has_table_privilege('authenticated', 'public.posts', 'INSERT')
+         then 'FAIL — authenticated holds table-level INSERT on posts'
+       when missing <> '' then 'FAIL — chat column not grantable: ' || missing
+       when leaked  <> '' then 'FAIL — server-owned column still writable: ' || leaked
+       else 'PASS — 5 chat columns, server columns sealed' end,
+  'league_id season_id kind member_id body'
+from (
+  select
+    coalesce((select string_agg(c, ', ') from unnest(array[
+       'league_id','season_id','kind','member_id','body']) c
+      where not has_column_privilege('authenticated', 'public.posts', c, 'INSERT')), '') as missing,
+    coalesce((select string_agg(c, ', ') from unnest(array[
+       'id','round_id','live_round_id','scheduled_round_id','event_id',
+       'push_title','hidden_at','hidden_by','hidden_reason']) c
+      where has_column_privilege('authenticated', 'public.posts', c, 'INSERT')), '') as leaked
+) t
+
+-- 22 · a null uid may not pass a guard (20260904173000).
+--     `auth.uid() <> owner` is NULL when either side is NULL, so the `if`
+--     never fires and the guard is skipped — it fails OPEN. Nine functions
+--     carried it; two compared against a column (`f.created_by`, `v_owner`)
+--     that can itself be null, which needs no missing JWT to open. The idiom
+--     is `is distinct from`, and this check is how it stays that way.
+union all
+select '22 · founder/owner guards fail closed',
+  case when bad is null then 'PASS — no `auth.uid() <>` anywhere in public'
+       else 'FAIL — a null uid still passes a guard in: ' || bad end,
+  'is distinct from, never <>'
+from (
+  select (select string_agg(p.proname, ', ' order by p.proname)
+            from pg_proc p join pg_namespace n on n.oid = p.pronamespace
+           where n.nspname = 'public' and p.prosrc ~ 'auth\.uid\(\)\s*(<>|!=)') as bad
+) t
+
+-- 23 · no client-useless table grants (20260904183000).
+--     TRUNCATE bypasses RLS, so it is not covered by the layer this schema
+--     leans on; REFERENCES, TRIGGER and MAINTAIN are not client verbs either.
+--     Note pg_default_acl still hands `arwdDxtm` to authenticated on NEW
+--     tables, so this check is also the tripwire for the next table added.
+union all
+select '23 · TRUNCATE is not a client verb',
+  case when n = 0 then 'PASS — no TRUNCATE/REFERENCES/TRIGGER/MAINTAIN for authenticated or anon'
+       else 'FAIL — ' || n || ' such grant(s), e.g. ' || left(coalesce(names, ''), 120) end,
+  'RLS does not cover TRUNCATE'
+from (
+  select count(*) as n, string_agg(distinct c.relname, ', ' order by c.relname) as names
+    from pg_class c, lateral aclexplode(c.relacl) a
+   where c.relnamespace = 'public'::regnamespace and c.relkind in ('r','p')
+     and a.privilege_type in ('TRUNCATE','REFERENCES','TRIGGER','MAINTAIN')
+     and a.grantee::regrole::text in ('authenticated','anon')
+) t
+
 )
 select * from checks order by check_name;

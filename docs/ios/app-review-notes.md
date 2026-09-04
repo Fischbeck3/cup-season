@@ -3,6 +3,20 @@
 Written before submission, not after a rejection (runbook: "Rejection playbook").
 Replace the two placeholders. Everything else is final copy.
 
+> **Two things to settle before this is pasted (checked 2026-09-04):**
+>
+> 1. **Sunset Match's season ends 2026-09-05.** It is the league the 5.3.4
+>    paragraph below points at, and the one the walkthrough calls "a season in
+>    progress". From 2026-09-06 a reviewer lands on a finished season. Either
+>    extend its `seasons.ends_on` past the review window, or re-point 5.3.4 at a
+>    league whose season runs long — Ridgeline Cup (ends 2026-12-19) or Winter
+>    Circuit (ends 2027-02-13) — and restate the pot figure, because the $450 is
+>    Sunset Match's arithmetic (6 members x $75), not theirs.
+> 2. **The walkthrough's figures are seed data and they drift.** Step 1's hero
+>    line was wrong when checked (it read "2nd · 10 points back"; the reviewer
+>    was tied 2nd and 25 back). Re-read every figure after the pre-submission
+>    `test-seed` run.
+
 ---
 
 ## Sign-in for review
@@ -29,7 +43,11 @@ scorecard, and a Ryder-style event. Nothing in it is a real person.
 
 ## Walkthrough (5 minutes)
 
-1. **Home** — the standing hero ("2nd · 10 points back"), the buddies' feed.
+1. **Home** — the standing hero (it names the leader and the gap: *"Priya leads
+   you by 25 · 139 – 114"*), the buddies' feed. The reviewer belongs to four
+   leagues, so the hero opens on whichever is in front; the compact rows under
+   it switch leagues. Figures move as the seed data ages — re-read them right
+   before submitting rather than trusting this line.
    Tap a round card → the round receipt: every point traces to the rounds that
    produced it.
 2. **Clubhouse** — the league room: standings, the climb, the board (chat +

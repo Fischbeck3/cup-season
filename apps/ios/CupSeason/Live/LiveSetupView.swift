@@ -183,6 +183,14 @@ struct LiveSetupView: View {
     }
   }
 
+  /// One pickable golfer: the player itself plus where it sat when the row was
+  /// drawn. Identity is the player's own id, never the position — see `chips`.
+  private struct Pick: Identifiable {
+    let i: Int
+    let p: LivePlayer
+    var id: String { p.id }
+  }
+
   /// The pick lists — only unselected players show (8770–8805).
   private var chips: some View {
     // D154 · the regulars lead. A golfer appears in exactly ONE group, so the
@@ -199,19 +207,37 @@ struct LiveSetupView: View {
     let any = store.roster.indices.contains { !store.sel.contains($0) }
     return VStack(alignment: .leading, spacing: 8) {
       ForEach(groups, id: \.0) { label, test in
-        let items = store.roster.indices.filter { !store.sel.contains($0) && test(store.roster[$0]) }
+        // Each row carries the PLAYER, not an index into a roster that a
+        // background load can replace under it. `prime()` rewrites
+        // `store.roster` wholesale after its await, and `resolveNearby()` and
+        // `markRegulars()` mutate and append to it — all of them after this
+        // body has been evaluated, and SwiftUI may run a row closure against
+        // the list it was drawn from a roster ago. Indexing back into the
+        // store from inside the row trapped on a real phone at first paint
+        // (build 669, 2026-09-03, `roster[i]` out of range). `slots` and
+        // `zone` had already learned this and guard their own indexing; this
+        // was the one picker that did not.
+        let items: [Pick] = store.roster.indices
+          .filter { !store.sel.contains($0) && test(store.roster[$0]) }
           .sorted { (store.roster[$0].regular ?? .max) < (store.roster[$1].regular ?? .max) }
+          .map { Pick(i: $0, p: store.roster[$0]) }
         if !items.isEmpty {
           Text(label).font(CSFont.label).tracking(1.2).textCase(.uppercase).foregroundStyle(cs.dimText)
           LiveFlow(spacing: 6) {
-            ForEach(items, id: \.self) { i in
-              let p = store.roster[i]
+            ForEach(items) { item in
+              let p = item.p
               // D158 · a NEARBY chip asks; every other chip adds. Proximity
               // proposes an identity, so the tap that seats them belongs on
               // their phone, not this one.
               let isNear = p.nearby == true
               let waiting = isNear && p.pid.map { store.asking.contains($0) } == true
-              Button { isNear ? store.askNearby(i) : store.pick(i) } label: {
+              // The position is resolved at TAP time, by identity: the row may
+              // have been drawn against an older roster, and seating by a stale
+              // position would seat the wrong golfer. Gone from the list, gone.
+              Button {
+                guard let idx = store.roster.firstIndex(where: { $0.id == p.id }) else { return }
+                isNear ? store.askNearby(idx) : store.pick(idx)
+              } label: {
                 HStack(spacing: 6) {
                   if p.guest { Text(p.buddy ? "BUDDY" : "GUEST").font(CSFont.label).foregroundStyle(cs.dimText) }
                   else { RoundedRectangle(cornerRadius: 3).fill(cs.squad(p.ci)).frame(width: 8, height: 8) }

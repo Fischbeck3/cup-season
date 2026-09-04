@@ -131,8 +131,15 @@ sections (§2.2, §14.0) when making competition-model decisions.
   The sweep migration RAISES rather than reporting success if any relation is
   left, so the claim is now self-enforcing. Lesson worth keeping: a grant
   assertion in this file is worth nothing until something fails on it, and
-  `has_table_privilege()` / `information_schema.role_table_grants` both mislead
-  here — read `pg_class.relacl`, then prove it with a real anon client. Also killed
+  `information_schema.role_table_grants` misleads here — read `pg_class.relacl`,
+  then prove it with a real anon client. Be precise about the built-ins, because
+  a later seal depends on them: `has_table_privilege(role, tbl, 'INSERT')`
+  answers the TABLE-level grant ONLY, so it goes false the moment a table grant
+  is replaced by column grants — which is exactly what db-checks 19 and 21 rely
+  on. The one that answers true on any single column is
+  `has_any_column_privilege()`. (Migration `20260902210000`'s header states this
+  backwards; it is applied, so it stands uncorrected there — rule 2. This is the
+  correct version.) Also killed
   in D37 and never to be reintroduced: the `members_self` UPDATE policy (let a
   member self-promote to commissioner) and `rounds_owner_update` (let an owner
   rewrite a posted round — §16 says rounds are immutable; deletion is
