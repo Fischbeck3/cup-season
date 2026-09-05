@@ -47,7 +47,7 @@ import Foundation
   }
 
   /// The payload's `floor` is the OTHER number; "best three a month count" was
-  /// unsayable until R9 returned the counting cap.
+  /// unsayable until R9 returned the rounds that count.
   @Test func theRuleSaysBestThreeAndTheMinimum() {
     let r = try? #require(Self.full.rulesLine)
     #expect(r == "Standard rules: honest scores, best three a month count, two a month keeps you in.")

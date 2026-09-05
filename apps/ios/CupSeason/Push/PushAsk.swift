@@ -85,7 +85,7 @@ struct PushPromptSheet: View {
     VStack(alignment: .leading, spacing: 14) {
       CSSheetHeader(title: "Hear it when it happens", sub: eyebrow)
       VStack(alignment: .leading, spacing: 10) {
-        line("flag.fill", "A round lands on the board. A duel is closing. The table moves.")
+        line("flag.fill", "A round lands on the board. A clash is closing. The table moves.")
         line("person.2.fill", "A buddy request, a tee time, an invite — answered from the lock screen.")
         line("moon.zzz.fill", "Nothing else. No streaks, no noise, no badge you didn’t earn.")
       }

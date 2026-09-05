@@ -54,7 +54,7 @@ struct SquadReceiptSheet: View {
                 RoundedRectangle(cornerRadius: 3).fill(cs.squad(p.ci)).frame(width: 10, height: 10)
                 VStack(alignment: .leading, spacing: 2) {
                   Text(p.n).font(CSFont.subhead.weight(.semibold)).foregroundStyle(cs.ink)
-                  Text("\(p.r) ROUND\(p.r == 1 ? "" : "S") · AVG vs index \(p.r > 0 ? StandingsMath.sgn(p.avg) : "—")")
+                  Text("\(p.r) ROUND\(p.r == 1 ? "" : "S") · AVG vs your number \(p.r > 0 ? StandingsMath.sgn(p.avg) : "—")")
                     .font(CSFont.label).tracking(0.8).foregroundStyle(cs.dimText)
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
@@ -96,7 +96,7 @@ struct MemberHistorySheet: View {
     SheetFrame(row.n, sub: "\(row.r) ROUND\(row.r == 1 ? "" : "S") · \(CSCopy.points(row.pts)) PTS") {
       if row.hist.isEmpty {
         CSEmptyState(icon: "⛳", line: "No rounds this season yet — post one and you're on the board.",
-                     cta: links.openRecord == nil ? nil : "Post a round") { dismiss(); links.openRecord?() }
+                     cta: links.openRecord == nil ? nil : "Add my round") { dismiss(); links.openRecord?() }
       } else {
         VStack(spacing: 0) {
           ForEach(row.hist) { h in
@@ -108,7 +108,7 @@ struct MemberHistorySheet: View {
                 Text(LeagueDates.monDay(h.played_on).uppercased() + (h.holes_played == 9 ? " · 9 HOLES" : "") + (h.counting ? "" : " · BUMPED"))
                   .font(CSFont.label).tracking(0.6).foregroundStyle(h.counting ? cs.mut : cs.dimText)
                 Spacer()
-                Text("\(StandingsMath.sgn(h.pvi)) vs index · \(CSCopy.points(h.points)) PTS")
+                Text("\(StandingsMath.sgn(h.pvi)) vs your number · \(CSCopy.points(h.points)) PTS")
                   .font(CSFont.monoSmall).csTabular().foregroundStyle(h.counting ? cs.ink : cs.mut).lineLimit(typeSize.isA11y ? nil : 1)
               }
               .padding(.vertical, 10).frame(minHeight: 44).contentShape(Rectangle())

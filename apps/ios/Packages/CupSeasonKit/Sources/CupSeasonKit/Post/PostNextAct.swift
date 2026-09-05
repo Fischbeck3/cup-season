@@ -108,7 +108,7 @@ public struct PostNextAct: Sendable, Equatable {
     public var buddiesPlayedThisWeek: Int?
     /// My rounds INCLUDING this one.
     public var roundsCount: Int?
-    /// The league's counting cap, when there is one.
+    /// The league's rounds that count, when there is one.
     public var countingCap: Int?
     public var monthName: String
 
@@ -220,7 +220,7 @@ public struct PostNextAct: Sendable, Equatable {
     if epi?.pvi == nil {
       return PostNextAct(key: "no_points", sentence: noPointsNote, label: "Done", door: .done)
     }
-    return PostNextAct(key: "on_the_board", sentence: "That is on your card.", label: "Done", door: .done)
+    return PostNextAct(key: "on_the_board", sentence: "That is in your rounds.", label: "Done", door: .done)
   }
 }
 

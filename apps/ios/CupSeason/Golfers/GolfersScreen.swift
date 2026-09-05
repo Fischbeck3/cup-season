@@ -14,7 +14,7 @@
 //   YOUR BUDDIES · YOU PLAY WITH (recent_partners) · RIVALRIES (R4) ·
 //   SOMEBODY WHO ISN'T HERE
 //
-// LEAGUE MATES is the one head in `GolfersRoot.Section` that still does not
+// IN YOUR SEASONS is the one head in `GolfersRoot.Section` that still does not
 // render: no shipped read returns a per-season roster to this surface without
 // a query per membership, and the same rule applies — a head with nothing
 // under it is a promise.

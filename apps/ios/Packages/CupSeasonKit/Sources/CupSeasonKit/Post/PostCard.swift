@@ -435,7 +435,7 @@ public struct PostCourseMemory: Sendable, Equatable, Identifiable {
 public struct PostDraft: Codable, Sendable, Equatable {
   public static let key = "cs_post_draft"
   public static let ttl: TimeInterval = 24 * 3600
-  public static let restoredToast = "Your unposted round came back — it’s waiting in Post a round"
+  public static let restoredToast = "Your unposted round came back — it’s waiting in Add my round"
 
   public var at: Date
   public var card: PostCard
@@ -565,7 +565,7 @@ public enum PostSeasonRule {
   }
 
   /// D122 · the same rule, but saying WHY when it does not count. The phone
-  /// knew `counts` and told the golfer only "COUNTS ON YOUR CARD"; the audit
+  /// knew `counts` and told the golfer only "COUNTS TOWARD YOUR NUMBER"; the audit
   /// watched six of six testers be promised league points a week before first
   /// tee and then shown zero with nothing connecting the two facts.
   /// Empty string when the round DOES count — there is nothing to explain.

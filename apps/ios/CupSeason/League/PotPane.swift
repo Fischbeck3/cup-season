@@ -87,7 +87,7 @@ struct PotPane: View {
     let paid = model.buyIns[m.id]?.paid ?? false
     return payerRow(name: m.name, paid: paid, busy: busy == m.id) {
       if !model.isPro { toast.show("The Pro marks buy-ins as the money moves between friends"); return }
-      if model.season == nil { toast.show("Buy-ins open once the bylaws lock"); return }
+      if model.season == nil { toast.show("Buy-ins open once the season starts"); return }
       busy = m.id
       Task {
         defer { busy = nil }
@@ -130,7 +130,7 @@ struct ForfeitLedgerView: View {
     if let S = model.forfeits {
       let open = S.filter { $0.status == "open" }, done = S.filter { $0.status == "settled" }
       VStack(alignment: .leading, spacing: 8) {
-        CSSectionHead("The other stakes · pride, on the books", trailing: "Post a stake") { router.open(.forfeitCreate) }
+        CSSectionHead("Bets for pride · on the record", trailing: "Post a forfeit") { router.open(.forfeitCreate) }
         if open.isEmpty { RoomFine("No stakes on the books. The cookout isn't going to bet itself.") }
         ForEach(open) { row($0) }
         if !done.isEmpty {
@@ -167,7 +167,7 @@ struct ForfeitLedgerView: View {
   }
 }
 
-/// `openStakeCreate` (10990–11035): "Post a stake · Pride, on the books — never money".
+/// `openStakeCreate` (10990–11035): "Post a forfeit · Pride, on the books — never money".
 struct ForfeitCreateSheet: View {
   @Environment(LeagueRoomModel.self) private var model
   @Environment(\.toast) private var toast
@@ -186,7 +186,7 @@ struct ForfeitCreateSheet: View {
 
   var body: some View {
     let others = model.members.filter { $0.profile_id != model.viewer?.id }
-    SheetFrame("Post a stake", sub: "Pride, on the books — never money") {
+    SheetFrame("Post a forfeit", sub: "Pride, on the books — never money") {
       label("Name it")
       CSField("The Lawn Bet", text: $name, font: CSFont.body)
       label("The shape")
@@ -204,7 +204,7 @@ struct ForfeitCreateSheet: View {
       .padding(.horizontal, 14).frame(minHeight: 48).frame(maxWidth: .infinity, alignment: .leading)
       .background(cs.bg2, in: RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous))
       label("Rides on (optional)")
-      CSField("Sunday's duel · first ace · the Cup Final", text: $hangs, font: CSFont.body)
+      CSField("Sunday's clash · first ace · the Cup Final", text: $hangs, font: CSFont.body)
       A11yStack(spacing: 8) {
         CSButton("Cancel", style: .quiet) { dismiss() }.frame(maxWidth: typeSize.isA11y ? .infinity : 110)
         CSButton("Put it on the books", busy: busy) {

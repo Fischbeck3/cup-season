@@ -2524,7 +2524,7 @@ html[data-theme="light"] .btn.gold{color:#FFFFFF;}
 .finish-band{font-family:var(--serif); font-size:19px; line-height:1.32; color:#ECEEF2; margin-top:12px;}
 .finish-pts{font-family:var(--mono); font-size:13px; font-weight:600; letter-spacing:.16em; text-transform:uppercase; margin-top:24px; min-height:1em;}
 .finish-pts.earned{color:#D8B25A;}   /* champagne — league points, EARNED */
-.finish-pts.card{color:#8FA096;}      /* league-less: it just counts on your card */
+.finish-pts.card{color:#8FA096;}      /* league-less: it just posts to your rounds */
 .finish-rule{width:64px; height:1px; background:#1C2620; margin-top:26px;}
 .finish-share{
   display:flex; align-items:center; justify-content:center; min-height:46px; min-width:220px;
@@ -3145,7 +3145,7 @@ html[data-theme="light"] .room-dusk .btn:not(.dark):not(.gold):not(.apple){color
     </button>
     <div class="deskmenu" id="deskMenu" hidden>
       <button class="navitem sub" data-v="hub">The season</button>
-      <button class="navitem sub" data-v="schedule">Tee sheet</button>
+      <button class="navitem sub" data-v="schedule">The schedule</button>
       <button class="navitem sub" data-v="stats">You &amp; your card</button>
     </div>
     <!-- D236 - the identity block. The desk puts my number, my last round, my
@@ -3324,7 +3324,7 @@ html[data-theme="light"] .room-dusk .btn:not(.dark):not(.gold):not(.apple){color
              the case's top strip now; the objects sit under them. The money
              stays D39's frame — what friends settled between themselves,
              never a balance the app holds. -->
-        <div class="eyebrow">Display case</div>
+        <div class="eyebrow">Trophies</div>
         <div class="card" id="careerRecord" style="text-align:left; padding:12px 14px; margin-bottom:10px"></div>
         <div id="trophyCase" class="room-dusk" style="margin-bottom:14px"></div>
 
@@ -3346,7 +3346,7 @@ html[data-theme="light"] .room-dusk .btn:not(.dark):not(.gold):not(.apple){color
 
         <div class="eyebrow">Recent rounds</div>
         <div class="card" style="text-align:left; padding:10px 12px"><div id="youRecent"></div></div>
-        <!-- D177: the "Post a round" button that sat here is gone. The ⊕ is a
+        <!-- D177: the "Add my round" button that sat here is gone. The ⊕ is a
              permanent tab an inch below it, and this is a page about the past. -->
 
         <!-- ══ D177 · YOUR SEASONS ════════════════════════════════════════ -->
@@ -3400,7 +3400,7 @@ html[data-theme="light"] .room-dusk .btn:not(.dark):not(.gold):not(.apple){color
         <a href="#" class="backlink" data-go="hub">← The season</a>
         <div class="draftgrid">
           <div>
-            <div class="eyebrow" id="draftEyebrow">Draft night · snake</div>
+            <div class="eyebrow" id="draftEyebrow">In turns · snake</div>
             <div class="lockbadge" id="draftLock" style="display:none"><span class="dot"></span> On the clock — only the picking captain can select</div>
             <div class="clock" id="clock"></div>
             <div class="squads" id="squads"></div>
@@ -3430,13 +3430,13 @@ html[data-theme="light"] .room-dusk .btn:not(.dark):not(.gold):not(.apple){color
           <span class="go">→</span>
         </button>
         <button class="optcard" style="--acc:var(--line2)" data-go="post">
-          <h4>Post a round — after you play</h4>
-          <p>Gross + tee, 20 seconds · counts on your card and in every league</p>
+          <h4>Add my round — after you play</h4>
+          <p>Gross + tee, 20 seconds · posts to your rounds and in every league</p>
           <span class="go">→</span>
         </button>
         <button class="optcard" id="optPlan" style="--acc:var(--line2)">
           <h4>Plan a tee time — before</h4>
-          <p>Put a round on the tee sheet · your buddies and leagues see it the moment you post</p>
+          <p>Put a round on the schedule · your buddies and leagues see it the moment you post</p>
           <span class="go">→</span>
         </button>
       </section>
@@ -3576,7 +3576,7 @@ html[data-theme="light"] .room-dusk .btn:not(.dark):not(.gold):not(.apple){color
             <div style="height:12px"></div>
             <div class="eyebrow" id="finishStatus" style="display:none" aria-live="polite"></div>
             <button class="btn" id="finishBtn">Finish round &amp; post to season</button>
-            <p class="fine" id="finishFine">Scores entered together are <b>auto-attested</b>: the group verifies everyone's round just by playing it. <b>Guests need no account:</b> they play every side game, appear in the settlement, and get a recap text with their scorecard and an invite when you finish. Only league members' rounds post to the season.</p>
+            <p class="fine" id="finishFine">Scores entered together are <b>vouched by the group</b>: the group verifies everyone's round just by playing it. <b>Guests need no account:</b> they play every side game, appear in the settlement, and get a recap text with their scorecard and an invite when you finish. Only league members' rounds post to the season.</p>
             <button class="mini" id="discardBtn" style="margin-top:6px; color:var(--dim)">Scrap this round</button>
           </div>
         </div>
@@ -3588,7 +3588,7 @@ html[data-theme="light"] .room-dusk .btn:not(.dark):not(.gold):not(.apple){color
         <a href="#" class="backlink" data-go="record">← Golf</a>
         <div class="postgrid">
           <div>
-            <div class="eyebrow" id="postEyebrow">Post a round · your index 12.4</div>
+            <div class="eyebrow" id="postEyebrow">Add my round · your number 12.4</div>
             <div class="card">
               <!-- IOS-030 - ONE box over an inherited, editable line. The
                    composer asks for one number; the course, the tees, the
@@ -3693,7 +3693,7 @@ html[data-theme="light"] .room-dusk .btn:not(.dark):not(.gold):not(.apple){color
                 <div><b id="calcGross">–</b><span>Gross</span></div>
                 <div><b id="calcVs">–</b><span>your number</span></div>
               </div>
-              <p class="fine" id="calcSeason" style="padding:8px 0 0">No league yet? The round still counts on your card — points apply in any league you join.</p>
+              <p class="fine" id="calcSeason" style="padding:8px 0 0">No season yet? The round still posts to your rounds — points apply in any season you join.</p>
             </div>
             <div class="eyebrow">Point bands</div>
             <div class="card">
@@ -3740,7 +3740,7 @@ html[data-theme="light"] .room-dusk .btn:not(.dark):not(.gold):not(.apple){color
 
         <div class="wizstep" data-step="1">
           <div class="eyebrow" style="margin-top:0">How serious is your league? <button class="ibtn" data-i="preset" aria-expanded="false" aria-label="About competitiveness presets">i</button></div>
-          <div class="ihelp" id="ih-preset">One pick, made now, that sets the fairness rules for the whole season — handicap allowance, how scores are verified, which courses count. <b>Casual</b> is an honor-system beer league. <b>Standard</b> asks you to post what you'd post to GHIN. <b>Cutthroat</b> wants receipts: attested where you can; the Pro rules on the rest. Deciding this before anyone tees off is what keeps October friendly.</div>
+          <div class="ihelp" id="ih-preset">One pick, made now, that sets the fairness rules for the whole season — how much of your number you play off, how scores are vouched for, which courses count. <b>Casual</b> is an honor-system beer league. <b>Standard</b> asks you to post what you'd post to GHIN. <b>Cutthroat</b> wants receipts: vouched by the group where you can; the Pro rules on the rest. Deciding this before anyone tees off is what keeps October friendly.</div>
           <!-- D225 / L-16 · the cards STOP NAMING DIALS. Each is one sentence,
                and the wording is the phone's own (WizardDials.presets.lead) so
                a reword on one client fails the other (D234). Every dial is
@@ -3793,7 +3793,7 @@ html[data-theme="light"] .room-dusk .btn:not(.dark):not(.gold):not(.apple){color
             <input class="f" id="startDate" type="date" style="max-width:160px; padding:9px 11px; font-family:var(--sans);">
           </div>
           <div class="eyebrow">Teams <button class="ibtn" data-i="structure" aria-expanded="false" aria-label="About teams">i</button></div>
-          <div class="ihelp" id="ih-structure">How the league is organized. <b>Solo</b> means everyone competes individually: no squads. Squad modes split the league into teams the Pro assigns or draws; more squads want more players (4 squads plays best at 8+).</div>
+          <div class="ihelp" id="ih-structure">How the league is organized. <b>Solo</b> means everyone competes individually: no squads. Squad modes split the league into teams the Pro picks or draws; more squads want more players (4 squads plays best at 8+).</div>
           <div class="seg" id="structSeg">
             <button data-s="solo">Solo</button>
             <button data-s="squads2">2 Squads</button>
@@ -3803,12 +3803,12 @@ html[data-theme="light"] .room-dusk .btn:not(.dark):not(.gold):not(.apple){color
           <p class="fine" id="structNote">4 squads · the full cup experience for 8+ players.</p>
           <p class="fine" id="structFit" style="padding-top:0; color:var(--warm)"></p>
           <div class="eyebrow">How teams fill <button class="ibtn" data-i="draft" aria-expanded="false" aria-label="About how teams fill">i</button></div>
-          <div class="ihelp" id="ih-draft">How squads get filled. <b>Blind draw</b> shuffles everyone server-side and announces the reveal to the board, so nobody can rig the hat. <b>Pro assign</b> lets you place players yourself, for groups who picked teams in the group chat. Live draft night with picks and a clock isn't built yet.</div>
+          <div class="ihelp" id="ih-draft">How squads get filled. <b>Random draw</b> shuffles everyone server-side and announces the reveal to the board, so nobody can rig the hat. <b>The Pro picks</b> lets you place players yourself, for groups who picked teams in the group chat. Live picking with a clock isn't built yet.</div>
           <div class="seg" id="draftSeg">
-            <button data-d="random" class="on">Blind draw</button>
+            <button data-d="random" class="on">Random draw</button>
             <button data-d="assign">Assign</button>
           </div>
-          <p class="fine" id="draftNote">Blind draw: the server shuffles every joined player into squads and posts the reveal. Argument-proof.</p>
+          <p class="fine" id="draftNote">Random draw: the server shuffles every joined player into squads and posts the reveal. Argument-proof.</p>
           <div class="eyebrow">How it ends <button class="ibtn" data-i="finish" aria-expanded="false" aria-label="About how it ends">i</button></div>
           <div class="ihelp" id="ih-finish">How the champion is crowned. <b>Cup Final</b> resets for the last four weeks — top seeds race fresh, anyone can catch fire, playoff drama. <b>Points table</b> crowns whoever leads when the season ends: the whole year is the race, no reset.</div>
           <div class="seg" id="finishSeg">
@@ -3825,25 +3825,25 @@ html[data-theme="light"] .room-dusk .btn:not(.dark):not(.gold):not(.apple){color
           </div>
           <p class="fine" id="payNote">Balanced: champ 60% · runner-up 25% · Points King 15%.</p>
           <div class="setrow">
-            <div class="lab">Counting cap <button class="ibtn" data-i="cap" aria-expanded="false" aria-label="About counting cap">i</button><small>Best N rounds / month · the quality dial</small></div>
+            <div class="lab">Rounds that count <button class="ibtn" data-i="cap" aria-expanded="false" aria-label="About the rounds that count">i</button><small>Your best N each month score</small></div>
             <div class="val" id="capVal">Best 3</div>
-            <div class="ctl"><button id="capDown" aria-label="Lower counting cap">−</button><button id="capUp" aria-label="Raise counting cap">+</button></div>
+            <div class="ctl"><button id="capDown" aria-label="Fewer rounds count">−</button><button id="capUp" aria-label="More rounds count">+</button></div>
           </div>
           <div class="ihelp" id="ih-cap">The dial that decides what a point means. Only your best N rounds each month score, so the retiree who plays daily can't bury the dad who plays weekly — and, just as much, so a good round is worth more than another round. Set it low and the table ranks how you played; set it high and it ranks how often you showed up. A better round always replaces your worst counter, so posting never stops mattering.</div>
           <div class="setrow">
-            <div class="lab">Participation floor <button class="ibtn" data-i="floor" aria-expanded="false" aria-label="About participation floor">i</button><small>MIN ROUNDS / MONTH · −5 SQD PTS SHORT</small></div>
+            <div class="lab">The monthly minimum <button class="ibtn" data-i="floor" aria-expanded="false" aria-label="About the monthly minimum">i</button><small>ROUNDS A MONTH · −5 SQUAD POINTS SHORT</small></div>
             <div class="val" id="floorVal">2 / mo</div>
-            <div class="ctl"><button id="floorDown" aria-label="Lower floor">−</button><button id="floorUp" aria-label="Raise floor">+</button></div>
+            <div class="ctl"><button id="floorDown" aria-label="Lower the minimum">−</button><button id="floorUp" aria-label="Raise the minimum">+</button></div>
           </div>
           <div class="ihelp" id="ih-floor">The anti-ghosting rule. Everyone posts at least this many rounds a month. Miss once and your season bye covers it <b>automatically</b> — no asking, no approval (D14); from the second miss the squad takes the penalty: −5 points per round short under Standard rules. Short months are waived.</div>
           </div><!-- /wizDials -->
         </div>
 
         <div class="wizstep" data-step="2">
-          <div class="eyebrow" style="margin-top:0">Review the bylaws, then lock it in</div>
+          <div class="eyebrow" style="margin-top:0">Review the rules, then start the season</div>
           <div class="card" id="bylawsReview" style="margin-bottom:10px"></div>
           <p class="fine" id="inviteNote" style="padding-bottom:10px"></p>
-          <button class="btn" id="lockBtn">Lock the bylaws & form the squads</button>
+          <button class="btn" id="lockBtn">Start the season & form the squads</button>
           <p class="fine" id="lockErr" role="alert" hidden style="padding:8px 0 0; color:var(--neg)"></p>
         </div>
 
@@ -3934,7 +3934,7 @@ html[data-theme="light"] .room-dusk .btn:not(.dark):not(.gold):not(.apple){color
         <div id="homeDraft" style="display:none">
           <div class="phasehero">
             <div class="k">Squads are forming</div>
-            <div class="n">The Pro has the list.</div>
+            <div class="n">It’s random — nobody picks.</div>
             <div class="m" id="draftPoolSub">12 PLAYERS IN THE POOL</div>
             <button class="btn" style="margin-top:16px" data-go="draft">Form the squads</button>
             <button class="btn dark" style="margin-top:10px" id="draftShare">Share the invite link</button>
@@ -3946,7 +3946,7 @@ html[data-theme="light"] .room-dusk .btn:not(.dark):not(.gold):not(.apple){color
         <div class="phasehero" id="kickoffHero" style="display:none">
           <div class="k">Before first tee</div>
           <div class="n" id="khTee">First tee —</div>
-          <div class="m" id="khCount">SQUADS LOCKED · PRACTICE ROUNDS HIT YOUR CARD, NOT THE SEASON</div>
+          <div class="m" id="khCount">SQUADS ARE SET · PRACTICE ROUNDS POST TO YOUR ROUNDS, NOT THE SEASON</div>
         </div>
         <button class="livebanner" id="liveBanner" data-go="play">
           <div class="lk"><span class="dot"></span>Live round in progress</div>
@@ -4075,8 +4075,8 @@ html[data-theme="light"] .room-dusk .btn:not(.dark):not(.gold):not(.apple){color
         <!-- D64: the forfeit ledger — stakes past money, pot-grade rigor.
              NEVER renders as dollars; prose voice; archive keeps settled ones. -->
         <div class="league-only" id="stakesWrap" style="margin-top:18px">
-          <div class="eyebrow" style="display:flex; align-items:center">The other stakes · pride, on the books
-            <button class="mini" id="stakeAdd" style="margin-left:auto">Post a stake</button></div>
+          <div class="eyebrow" style="display:flex; align-items:center">Bets for pride · on the record
+            <button class="mini" id="stakeAdd" style="margin-left:auto">Post a forfeit</button></div>
           <div id="stakesList"></div>
         </div>
         </div><!-- /room-pot -->
@@ -4110,7 +4110,7 @@ html[data-theme="light"] .room-dusk .btn:not(.dark):not(.gold):not(.apple){color
              handle; a member reads the state. -->
         <div class="check league-only" id="rosterRow"><span class="num" id="rosterIcon">🚪</span><div class="tt"><b id="rosterHead">Roster</b><small id="rosterSub"></small></div><span style="display:flex;gap:6px;flex:none" id="rosterAct"></span></div>
         <div class="check league-only"><span class="num">🔗</span><div class="tt"><b>Share the season</b><small>A public page — the standings so far, no account needed</small></div><span style="display:flex;gap:6px;flex:none"><button class="mini" id="hubSeasonShare">Link</button><button class="mini" id="hubSeasonRevoke" title="Turn off this link — the page stops working for everyone who has it">✕</button></span></div>
-        <div class="check"><span class="num"><svg class="ic" aria-hidden="true"><use href="#i-users"/></svg></span><div class="tt"><b>Squads</b><small id="hubDraftSub">Complete · rosters locked</small></div><button class="mini" data-go="draft">View</button></div>
+        <div class="check"><span class="num"><svg class="ic" aria-hidden="true"><use href="#i-users"/></svg></span><div class="tt"><b>Squads</b><small id="hubDraftSub">Complete · squads are set</small></div><button class="mini" data-go="draft">View</button></div>
 
         <!-- D223 §7.4 · THE RULES, IN PLAIN SENTENCES. Not ten all-caps rows:
              "COUNTING CAP", "PARTICIPATION FLOOR", "HANDICAP ALLOWANCE 95%",
@@ -4237,7 +4237,7 @@ html[data-theme="light"] .room-dusk .btn:not(.dark):not(.gold):not(.apple){color
       <!-- SCHEDULE (D93) — a destination, not a segment -->
       <section class="view" id="view-schedule">
         <a href="#" class="backlink" data-go="home">← Home</a>
-        <div class="eyebrow" style="margin-top:0">Your golf calendar · yours, your buddies’, your leagues’</div>
+        <div class="eyebrow" style="margin-top:0">Yours, your buddies’, your seasons’</div>
         <div id="room-schedule">
         <div class="eyebrow" id="calWatchHead" style="margin-top:0; display:none">In your crew's plans</div>
         <div id="calWatch" style="display:none; margin-bottom:6px"></div>
@@ -4251,14 +4251,14 @@ html[data-theme="light"] .room-dusk .btn:not(.dark):not(.gold):not(.apple){color
         <div class="card" style="text-align:left; padding:12px">
           <div class="calgrid" id="calGrid"></div>
           <div class="fine" style="padding:8px 0 0; display:flex; gap:12px; flex-wrap:wrap">
-            <span><i class="caldot rd"></i> ON THE TEE SHEET</span>
-            <span><i class="caldot lgm"></i> LEAGUE MATE</span>
+            <span><i class="caldot rd"></i> ON THE SCHEDULE</span>
+            <span><i class="caldot lgm"></i> IN YOUR SEASONS</span>
             <span><i class="caldot lg"></i> SEASON DATE</span>
           </div>
         </div>
-        <p class="fine" style="text-align:center; padding:9px 0 2px">Tap any day to put a round on the tee sheet.</p>
-        <button class="btn" id="calDeclare" style="margin-top:8px">Put a round on the tee sheet</button>
-        <div class="eyebrow">On the tee sheet</div>
+        <p class="fine" style="text-align:center; padding:9px 0 2px">Tap any day to put a round on the schedule.</p>
+        <button class="btn" id="calDeclare" style="margin-top:8px">Put a round on the schedule</button>
+        <div class="eyebrow">On the schedule</div>
         <div id="calList"></div>
         <div class="eyebrow" id="calWeeksHead">Week by week</div>
         <div class="card" id="calWeeks" style="text-align:left"></div>
@@ -4478,7 +4478,7 @@ window.state = state;   /* D81: QA bridge — the hero dev walk (CS_HOME_STATE)
 window.CS_HOME_STATE = window.CS_HOME_STATE || null;
 const STAKES=[0,25,50,75,100,150,200], LENGTHS=[6,9,12],
       CAPS=['Best 2','Best 3','Best 4','Best 6','Unlimited'];
-/* D142 · the counting cap had SEVEN inline copies of its value list
+/* D142 · the rounds that count had SEVEN inline copies of its value list
    ([2,4,6,Infinity] / [2,4,6,99]) plus CAPVALS for the database. One rule,
    eight producers — the exact shape the 2026-08-30 code audit named. These
    two arrays are now the only ones; CAPS indexes them by the wizard's
@@ -4928,7 +4928,7 @@ function switchView(v){
     const proHere = state.demo || !CS.league || CS.member?.role === 'commissioner';
     if(!proHere){
       window.qaEvent?.('wizard_gate_bounce', { phase: CS.league?.phase || state.phase || null });
-      toast('Only the Pro edits the bylaws');
+      toast('Only the Pro edits the rules');
       v = 'home';
     }
   }
@@ -4939,7 +4939,7 @@ function switchView(v){
      (a dialog that returns you where you were) rather than becoming a lane —
      the board is a section of the season page now (D223). */
   if(v==='board'){ if(typeof openBoardFull==='function') openBoardFull(); return; }
-  if(v==='draft' && state.phase==='setup'){ toast('Lock settings first: the draft opens after setup'); v='wizard'; }
+  if(v==='draft' && state.phase==='setup'){ toast('Start the season first: the draw opens after setup'); v='wizard'; }
   /* IA P4 → D107: real accounts get the full ⊕ triptych. Play now is the
      real tee sheet — it persists server-side at tee-off (league or not) and
      one finish posts every complete card to its golfer. */
@@ -5262,7 +5262,7 @@ function csSeasonArcLine(a){
     return from ? `${to} took the lead from ${from}.` : `${to} took the lead.`;
   }
   if(a.kind === 'clash'){
-    const other = csClean(a.other) || 'a league mate';
+    const other = csClean(a.other) || 'someone in the season';
     const who = csClean(a.subject);
     if(!who) return `You and ${other} halved the week.`;
     return who === 'you' ? `You took the week from ${other}.` : `${who} took the week.`;
@@ -5568,7 +5568,7 @@ function renderClimb(){
   const box=$('#climb'); if(!box) return;
   const note=$('#climbNote');
   if(!teams.length){
-    box.innerHTML='<div class="climb-empty">THE RACE STARTS WITH THE FIRST POSTED ROUND<br><span>SHARE THE LEAGUE CODE TO FILL THE TEE SHEET</span></div>';
+    box.innerHTML='<div class="climb-empty">THE RACE STARTS WITH THE FIRST POSTED ROUND<br><span>SHARE THE SEASON CODE TO FILL THE TABLE</span></div>';
     if(note) note.textContent=''; return;
   }
   const real=!state.demo && window.CS?.league;
@@ -5771,7 +5771,7 @@ function renderCupRace(){
   const race=(!state.demo && window.cupRace && window.cupRace.status==='live'
               && window.CS?.season?.status==='cup_final') ? window.cupRace : null;
   if(!race){ wrap.style.display='none'; if(eb) eb.textContent='Standings'; return; }
-  if(eb) eb.textContent='The regular season \u2014 final';
+  if(eb) eb.textContent='The weeks before the Final';
   const fins=(race.finalists||[]).slice()
     .sort((a,b)=>(Number(b.total)-Number(a.total)) || (a.seed-b.seed));
   const dl=Number(race.days_left)||0;
@@ -5811,9 +5811,9 @@ function showFinalist(f){
   const capNote=(window.cupRace&&window.cupRace.cap_note)||null;
   if(capNote) h+=`<div class="fine">${esc(capNote)}</div>`;
   h+= rounds.length
-    ? rounds.map(r=>`<div class="fine" style="display:flex;justify-content:space-between;gap:10px;padding:4px 0"><span>${esc(String(r.played_on))}${r.holes_played===9?' \u00b7 9 HOLES':''}${f.squad_id?' \u00b7 '+esc(String(r.golfer||'')).toUpperCase():''}</span><b class="mono" style="white-space:nowrap">${sgn(r.pvi)} vs index \u00b7 ${r.points} PTS</b></div>`).join('')
+    ? rounds.map(r=>`<div class="fine" style="display:flex;justify-content:space-between;gap:10px;padding:4px 0"><span>${esc(String(r.played_on))}${r.holes_played===9?' \u00b7 9 HOLES':''}${f.squad_id?' \u00b7 '+esc(String(r.golfer||'')).toUpperCase():''}</span><b class="mono" style="white-space:nowrap">${sgn(r.pvi)} vs your number \u00b7 ${r.points} PTS</b></div>`).join('')
     : `<p class="fine">No counting rounds in the window yet \u2014 the slate is still clean.</p>`;
-  h+=`<p class="fine" style="padding-top:12px">Only rounds inside the four-week window count here, up to the monthly cap. The regular season is the seed; this is the race.</p>`;
+  h+=`<p class="fine" style="padding-top:12px">Only rounds inside the four-week window count here, up to the monthly cap. The weeks before it decided who is in; this is the race.</p>`;
   openSheet(name, `SEED ${f.seed} \u00b7 ${tot} PTS IN THE FINAL`, h);
 }
 /* D108: the weekly clash — one spotlighted pairing per season week, as a chip
@@ -6867,14 +6867,14 @@ function renderDraft(){
   if(!state.demo && window.CS?.league && window.renderFormation){ window.renderFormation(); return; }
   const dt=state.draftType;
   $('#draftEyebrow').textContent = dt==='assign'
-    ? 'Squad formation · Pro assign'
-    : dt==='live' ? 'Live draft · pick clock' : 'Squad formation · blind draw';
+    ? 'Squad formation · The Pro picks'
+    : dt==='live' ? 'Live picks · clock' : 'Squad formation · random draw';
   $('#draftAdmin').style.display = state.draft.isCommish && dt!=='assign' ? 'block':'none';
   const rs=$('#resetDraft'); if(rs) rs.style.display='';   /* demo toy — real leagues hide it */
 
   if(dt==='assign'){
     $('#draftLock').style.display='none';
-    $('#clock').innerHTML='<span class="accent" style="background:var(--gold)"></span><div class="k">Pro assign</div><div class="n">You place the squads</div><div class="m">TAP A PLAYER, PICK A SQUAD</div>';
+    $('#clock').innerHTML='<span class="accent" style="background:var(--gold)"></span><div class="k">The Pro picks</div><div class="n">You place the squads</div><div class="m">TAP A PLAYER, PICK A SQUAD</div>';
     $('#pool').innerHTML='';
   }
   if(!teams.length){
@@ -6904,7 +6904,7 @@ function renderDraft(){
   clock.innerHTML= done
     ? `<span class="accent" style="background:var(--gold)"></span>
        <div class="k">Squads are set</div><div class="n">Good luck, everybody</div>
-       <div class="m">Rosters locked · season opens W1</div>`
+       <div class="m">Squads are set · season opens W1</div>`
     : `<span class="accent" style="background:${SQHEX[onClock]}"></span>
        <div class="k">On the clock</div><div class="n">${captains[onClock]}</div>
        <div class="m">R${rd} · PICK ${pk}/4 · ${squadNames[onClock].toUpperCase()}</div>`;
@@ -6922,7 +6922,7 @@ function renderDraft(){
     go.textContent='Start the season →';
     go.addEventListener('click',()=>{
       state.phase='season'; renderPhase(); switchView('home');
-      feed.push({d:TODAY, sys:true, txt:'Rosters locked — the season is live'});
+      feed.push({d:TODAY, sys:true, txt:'Squads are set — the season is live'});
       renderFeed();
       toast('Season is live: post your first round');
     });
@@ -6950,7 +6950,7 @@ function renderDraft(){
     const row=document.createElement('button'); row.className='pool-row';
     const allowed = canPick(onClock);
     if(!allowed){ row.style.opacity='.45'; }
-    row.innerHTML=`<span class="nm">${p.n}</span><span class="hcp">${p.i.toFixed(1)} IDX</span><span class="go">${allowed?'DRAFT':'LOCKED'}</span>`;
+    row.innerHTML=`<span class="nm">${p.n}</span><span class="hcp">${p.i.toFixed(1)} NUMBER</span><span class="go">${allowed?'DRAFT':'LOCKED'}</span>`;
     row.addEventListener('click',()=>{
       if(!allowed){
         toast(`Not your pick: ${captains[onClock]} is on the clock`);
@@ -6959,11 +6959,11 @@ function renderDraft(){
       const team=d.order[d.pick];
       const viaCommish = team!==d.meCaptain;
       d.rosters[team].push(p); d.pool.splice(idx,1); d.pick++;
-      feed.push({d:TODAY, sys:true, txt:`${captains[team].toUpperCase()} DRAFTS ${p.n.toUpperCase()} · ${p.i.toFixed(1)} · R${rd}P${pk}`});
+      feed.push({d:TODAY, sys:true, txt:`${captains[team].toUpperCase()} PICKS ${p.n.toUpperCase()} · ${p.i.toFixed(1)} · R${rd}P${pk}`});
       renderFeed();
       toast(viaCommish
         ? `Pro picked ${p.n} for ${captains[team]}, logged`
-        : `${captains[team]} drafts ${p.n} (${p.i.toFixed(1)})`);
+        : `${captains[team]} picks ${p.n} (${p.i.toFixed(1)})`);
       renderDraft();
     });
     pool.appendChild(row);
@@ -6972,10 +6972,10 @@ function renderDraft(){
 $('#resetDraft').addEventListener('click',e=>{
   e.preventDefault();
   state.draft={pick:0,pool:[...poolSeed],rosters:[[],[],[],[]],order:[0,1,2,3,3,2,1,0,0,1,2,3],meCaptain:1,isCommish:true};
-  renderDraft(); toast('Draft board wiped, order reset');
+  renderDraft(); toast('The board is clear, order reset');
 });
 const DRAFT_NOTES={
-  random:'Blind draw: the server shuffles every joined player into squads and posts the reveal. Argument-proof.',
+  random:'Random draw: the server shuffles every joined player into squads and posts the reveal. Argument-proof.',
   assign:'Assign: no draw. You place each player onto a squad yourself, like teams picked in the group chat.',
 };
 $$('#draftSeg button').forEach(b=>b.addEventListener('click',()=>{
@@ -6991,7 +6991,7 @@ $('#dShuffle').addEventListener('click',()=>{
   const base=[0,1,2,3];
   for(let i=base.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [base[i],base[j]]=[base[j],base[i]]; }
   d.order=[...base, ...[...base].reverse(), ...base];
-  feed.push({d:TODAY, sys:true, txt:`DRAFT ORDER SET — ${base.map(i=>captains[i].toUpperCase()).join(' · ')}`});
+  feed.push({d:TODAY, sys:true, txt:`PICK ORDER SET — ${base.map(i=>captains[i].toUpperCase()).join(' · ')}`});
   renderFeed(); renderDraft();
   toast('Order randomized and posted to the board');
 });
@@ -7106,9 +7106,9 @@ function seasonNote(kind){
   const ss = seasonState();
   if(ss === 'live') return '';
   if(ss === 'no_league')
-    return kind === 'short' ? 'On your card' : 'This round lands on your card — join a league and it scores there too.';
+    return kind === 'short' ? 'Counts toward your number' : 'This round posts to your rounds — join a season and it scores there too.';
   if(ss === 'over')
-    return kind === 'short' ? 'Season complete' : 'The season is over — this round lands on your card.';
+    return kind === 'short' ? 'Season complete' : 'The season is over — this round posts to your rounds.';
   let when = '';
   try { when = firstTeeText(); } catch(_){}
   return kind === 'short'
@@ -7147,7 +7147,7 @@ async function openBuyInTerms(){
       const { error } = await sb.rpc('set_buy_in_terms', { p_league: CS.league.id, p_note: note || null, p_due_on: d });
       if(error) throw error;
       CS.settings = { ...(CS.settings||{}), buy_in_note: note || null, buy_in_due_on: d };
-      closeSheet(); renderPot(); toast('Saved — the crew can see it on the pot sheet');
+      closeSheet(); renderPot(); toast('Saved — the crew can see it on the pot');
     } catch(e){ toast(humanError(e, 'Could not save.')); }
   });
 }
@@ -7171,7 +7171,7 @@ function endgameLine(opts){
      start states a rule the engine does not have. Found by the season sim
      2026-08-30, in a solo league that really did seed both finalists at 0. */
   const head = structure === 'squads2' ? ' The leader carries +10 in.' : '';
-  return `${who} seed into a four-week Cup Final${when ? ` from ${when}` : ''} — scored fresh, so the regular season sets the seeds, not the winner.${head} Level on points? Months won breaks it.`;
+  return `${who} go into a four-week Cup Final${when ? ` from ${when}` : ''} — scored fresh, so the weeks before it decide who is in, not who wins.${head} Level on points? Months won breaks it.`;
 }
 function vsShort(v){
   /* null/undefined/'' must NOT become 0 — Number(null) is 0, which would have
@@ -7620,11 +7620,11 @@ async function csRevokeLink(kind, ref){
 const EPI_ACH = {
   personal_best: { icon:'⭐', txt:'A personal best',                     sub:'The best round you’ve posted' },
   sub_80:        { icon:'🏆', txt:'You broke 80 for the first time', sub:'That one goes on the wall' },
-  sub_90:        { icon:'🏆', txt:'You broke 90 for the first time', sub:'Pinned to your card' },
-  sub_100:       { icon:'🏆', txt:'You broke 100 for the first time',sub:'Pinned to your card' },
-  streak_4:      { icon:'🔥', txt:'Four weeks running',             sub:'Iron man' },
-  streak_8:      { icon:'🔥', txt:'Eight weeks running',            sub:'Iron man doesn’t take weeks off' },
-  streak_12:     { icon:'🔥', txt:'Twelve weeks running',           sub:'Iron man' },
+  sub_90:        { icon:'🏆', txt:'You broke 90 for the first time', sub:'In your trophy case' },
+  sub_100:       { icon:'🏆', txt:'You broke 100 for the first time',sub:'In your trophy case' },
+  streak_4:      { icon:'🔥', txt:'Four weeks running',             sub:'A round every week for a month' },
+  streak_8:      { icon:'🔥', txt:'Eight weeks running',            sub:'Two months without a gap' },
+  streak_12:     { icon:'🔥', txt:'Twelve weeks running',           sub:'A round every week for a month' },
   first_round:   { icon:'⛳', txt:'Your first round is on the board',     sub:'Welcome to the season' },
 };
 function epiCounting(rank){
@@ -7730,7 +7730,7 @@ function csNextAct(epi, ctx){
     return { key:'counting', sentence:`That is ${csSpelled(epi.month_rank)} of your best ${csSpelled(ctx.counting_cap)} in ${ctx.month_name}.`,
              label:'Done', door:'done', ref:null };
   if(!epi || epi.pvi==null) return { key:'no_points', sentence:CS_NO_POINTS_NOTE, label:'Done', door:'done', ref:null };
-  return { key:'on_the_board', sentence:'That is on your card.', label:'Done', door:'done', ref:null };
+  return { key:'on_the_board', sentence:'That is in your rounds.', label:'Done', door:'done', ref:null };
 }
 /* D239 - "Played with Galen - he hasn't confirmed yet." A tag is never a vouch
    (L-19): the line says who, and whether they have answered, and nothing about
@@ -7764,7 +7764,7 @@ function showEpilogue(epi, course, firstEver, roundId, ctx){
     rows.push(`<div class="check"><span class="num">⛳</span><div class="tt"><b>${esc(bandName(pvi))}${epi.points!=null?` · ${epi.points} pts`:''}</b><small>${esc(vsPhrase(pvi))}${epiCounting(epi.month_rank)}</small></div></div>`);
   }
   (epi.earned||[]).forEach(a=>{
-    const m=EPI_ACH[a.kind] || { icon:'✦', txt:a.label||'A milestone', sub:'Pinned to your card' };
+    const m=EPI_ACH[a.kind] || { icon:'✦', txt:a.label||'A milestone', sub:'In your trophy case' };
     rows.push(`<div class="check"><span class="num">${m.icon}</span><div class="tt"><b>${esc(m.txt)}</b><small>${esc(m.sub)}</small></div></div>`);
   });
   (epi.rivals||[]).forEach(rv=>{
@@ -7860,7 +7860,7 @@ function showEpilogue(epi, course, firstEver, roundId, ctx){
    landed (home). Bands are NEVER re-derived here: vsPhrase() is the one phrase
    producer, the same the round cards and the recap card use. Champagne is
    earned-only — the points line goes gold ONLY when league points exist,
-   ink-muted ("counts on your card") otherwise. Share rides the existing
+   ink-muted ("posts to your rounds") otherwise. Share rides the existing
    recap-card path (shareRecapCard); no new fetches — every value is passed in. */
 let _finishShare=null;
 /* 2.1 follow-up: set true by finishCeremony when the ceremony owned the share
@@ -7890,10 +7890,10 @@ function finishCeremony(o){
     pl.textContent=`+${o.points} PTS`+(o.squad ? ` · COUNTS FOR ${String(o.squad).toUpperCase()}` : ' · COUNTS THIS SEASON');
   } else {
     pl.className='finish-pts card';
-    /* D122 · "COUNTS ON YOUR CARD" is true but not the question the golfer is
+    /* D122 · "COUNTS TOWARD YOUR NUMBER" is true but not the question the golfer is
        asking, which is why it did not count for the league. */
     const note = seasonNote('short');
-    pl.textContent = note ? note.toUpperCase() : 'COUNTS ON YOUR CARD';
+    pl.textContent = note ? note.toUpperCase() : 'COUNTS TOWARD YOUR NUMBER';
   }
   /* stash the exact payload the recap-card path expects (matches the epilogue) */
   _finishShare={
@@ -8241,7 +8241,7 @@ function restorePostDraft(){
     if(Array.isArray(d.scores) && d.scores.length===18) state.post.scores=d.scores.map(Number);
     state.post.touched=!!d.touched;
     renderPostHoles();
-    toast('Your unposted round came back — it’s waiting in Post a round');
+    toast('Your unposted round came back — it’s waiting in Add my round');
     return true;
   }catch(_){ return false; }
 }
@@ -8350,7 +8350,7 @@ $('#postBtn').addEventListener('click', async ()=>{
      never forbidden). Total mode enters gross directly, so it's exempt. */
   if(state.post.mode==='holes' && !state.post.touched){
     openSheet('Post as even par?', 'YOU HAVEN’T ENTERED YOUR CARD YET', `
-      <p class="fine" style="padding-bottom:12px">Each hole is still on par, so this would post an even-par ${state.post.pars.slice(0,state.post.side).reduce((a,b)=>a+b,0)} — and it counts on your card and in every league.</p>
+      <p class="fine" style="padding-bottom:12px">Each hole is still on par, so this would post an even-par ${state.post.pars.slice(0,state.post.side).reduce((a,b)=>a+b,0)} — and it posts to your rounds — every season you're in reads it.</p>
       <button class="btn" id="postEnterCard" style="margin-bottom:8px">Enter my card</button>
       <button class="btn dark" id="postEvenAnyway">Post even par anyway</button>`);
     document.getElementById('postEnterCard')?.addEventListener('click',closeSheet);
@@ -8498,7 +8498,7 @@ $('#postBtn').addEventListener('click', async ()=>{
            season window — the exact rule v_rounds_ranked enforces (played_on
            between starts_on and ends_on). A pre-season or out-of-window
            backdated round scores 0 server-side, so the ceremony must NOT flash
-           "COUNTS THIS SEASON" — it falls to "COUNTS ON YOUR CARD", matching
+           "COUNTS THIS SEASON" — it falls to "COUNTS TOWARD YOUR NUMBER", matching
            the app's own "practice rounds hit your card, not the season"
            promise. Keyed on the date, not atStarter() alone: a backdated round
            during an active season hits this too. */
@@ -8832,7 +8832,7 @@ function paintCourseHint(){
   if(!typed || picked){ hint.style.display='none'; return; }
   hint.style.display='';
   hint.style.color='var(--mut)';
-  hint.innerHTML = 'Unlisted course — the round counts in full. It just won\u2019t show on your card or match you with other golfers who\u2019ve played it.';
+  hint.innerHTML = 'Unlisted course — the round counts in full. It just won\u2019t show in your rounds or match you with other golfers who\u2019ve played it.';
 }
 function attachCourseSearch(courseSel, ratingSel, slopeSel, onTee){
   const input=$(courseSel); if(!input) return;
@@ -9185,8 +9185,8 @@ function renderPot(){
       if(!isPro){ el.appendChild(row); return; }
       row.addEventListener('click', async ()=>{
         if(!m) return;
-        if(!window.CS?.season?.id){ toast('Buy-ins open once the bylaws lock'); return; }
-        if(!window.CS?.season?.id){ toast('Buy-ins open once the bylaws lock'); return; }
+        if(!window.CS?.season?.id){ toast('Buy-ins open once the season starts'); return; }
+        if(!window.CS?.season?.id){ toast('Buy-ins open once the season starts'); return; }
         row.disabled=true;
         try{
           const { error } = await window.sb.rpc('mark_buy_in',
@@ -9228,7 +9228,7 @@ function renderPot(){
 const PRESET_SUMMARY=[
   'Casual: 100% handicap, honor-system scores, any course. Beer-league friendly — everything counts, nobody’s benched.',
   'Standard: 95% handicap, post what you\'d post to GHIN, your best 3 a month count, post 2 or the squad feels it. The default for a reason.',
-  'Cutthroat: 90% handicap, attested where you can and the Pro rules on the rest, rated tees, best 2 a month, a 3-round floor. For crews that want the screws tight.',
+  'Cutthroat: 90% handicap, vouched by the group where you can and the Pro rules on the rest, rated tees, best 2 a month, a 3-round floor. For crews that want the screws tight.',
 ];
 function syncWizSegs(){
   /* reflect state onto the segments (a loaded league, or a preset change).
@@ -9269,7 +9269,7 @@ function renderSetup(){
   if(typeof syncWizSegs==='function') syncWizSegs();
   renderPhase(); renderBylaws(); renderStats();
 }
-/* D143 · the participation floor is assessed only in WHOLE calendar months —
+/* D143 · the the monthly minimum is assessed only in WHOLE calendar months —
    close_month waives any month the season starts inside or ends inside. A short
    season can therefore contain none at all, and the floor a Pro just set never
    fires once. Say so at the moment they set it, not in a post-mortem. */
@@ -9360,7 +9360,7 @@ $$('#paySeg button').forEach(b=>b.addEventListener('click',()=>{
   $('#payNote').textContent=PAY_NOTES[b.dataset.pay];
   renderBylaws();
 }));
-/* D8 → A-W3: every wizard dial (buy-in … participation floor) now lives behind
+/* D8 → A-W3: every wizard dial (buy-in … the monthly minimum) now lives behind
    ONE disclosure. The preset carries the load; the Pro who wants to tune opens
    this. Supersedes the old cap/floor-only "fine print" toggle. */
 document.getElementById('wizCustomize')?.addEventListener('click',()=>{
@@ -9564,7 +9564,7 @@ function renderCourt(slots){
       c.className='crtchip'+(k===_crtPicked?' picked':'')+(tradeable?' cantrade':'');
       c.dataset.pos=k;
       c.innerHTML=`<div><b>${p.guest?`<span class="gtag">${p.buddy?'B':'G'}</span>`:`<span style="width:8px;height:8px;border-radius:3px;background:${SQHEX[p.ci]};display:inline-block;"></span>`}${esc(p.n)}</b>
-        <small>${p.est?'EST ':''}${fmtIdx(p.i)} IDX</small></div>
+        <small>${p.est?'EST ':''}${fmtIdx(p.i)} NUMBER</small></div>
         ${p.locked?'':`<button class="sx" data-rm="${idx}" aria-label="Remove ${esc(p.n)}"><svg class="ic" aria-hidden="true"><use href="#i-close"/></svg></button>`}`;
       courtDrag(c);
       z.appendChild(c);
@@ -9681,7 +9681,7 @@ function primeRealRoster(){
   const myPid=window.CS?.user?.id;
   ROSTER.length=0;
   /* setup-QA S6-03: an unestablished golfer (index_current null, "0 of 3")
-     was badged a flat "18.0 IDX" as if real — carry an est flag so every
+     was badged a flat "18.0 NUMBER" as if real — carry an est flag so every
      surface says EST until the number mints. */
   ROSTER.push({ n:(p.display_name||'You'), i:Number(p.index_current)||state.myIndex||18,
                 est: p.index_current==null,
@@ -9940,7 +9940,7 @@ async function rehydrateLiveRound(){
     renderResumeBanner();
     liveJoinIfAble();   /* D85: back on the group channel + reconcile pull */
     toast(state.live.mine===false
-      ? 'You’re on a live tee sheet — tap the banner on Home'
+      ? 'You’re in a live round — tap the banner on Home'
       : 'Continue your round — tap the banner on Home');
   }
 
@@ -10022,8 +10022,8 @@ async function rehydrateLiveRound(){
     renderResumeBanner();
     liveJoinIfAble();   /* D85: a fresh device joins the group channel too */
     toast(state.live.mine===false
-      ? (state.live.host ? `${fn1(state.live.host)} put you on the tee sheet — tap the banner on Home`
-                         : 'You’re on a live tee sheet — tap the banner on Home')
+      ? (state.live.host ? `${fn1(state.live.host)} started a live round with you — tap the banner on Home`
+                         : 'You’re in a live round — tap the banner on Home')
       : 'Continue your round — tap the banner on Home');
   } else if(!mine){
     clearLiveCache(null);
@@ -10045,7 +10045,7 @@ function renderResumeBanner(){
      a round nobody has scored yet says so instead of "THRU 0". */
   const invite = L.mine===false;
   const kicker = invite
-    ? (L.host ? `${fn1(L.host)} put you on the tee sheet` : `You're on a tee sheet`)
+    ? (L.host ? `${fn1(L.host)} started a live round with you` : `You're in a live round`)
     : 'Continue your round';
   const meta = thru>0 ? `HOLE ${L.hole+1} · THRU ${thru}`
     : (invite ? 'JUST TEED OFF · NOTHING SCORED YET' : `HOLE ${L.hole+1}`);
@@ -10830,7 +10830,7 @@ function settleTransfers(pts, val){
 }
 function settleRows(pts, val){
   const v = val!=null ? val : WOLF_VAL;
-  if(!(v>0)) return '<div class="srow"><span>BRAGGING POINTS — NO MONEY ON IT</span><b>$0</b></div>';
+  if(!(v>0)) return '<div class="srow"><span>WOLF POINTS — NO MONEY ON IT</span><b>$0</b></div>';
   const rows=settleTransfers(pts, v).map(t=>
     `<div class="srow"><span>${esc(t.from).toUpperCase()} → ${esc(t.to).toUpperCase()}</span><b>$${t.amt}</b></div>`);
   return rows.length?rows.join(''):'<div class="srow"><span>ALL SQUARE</span><b>$0</b></div>';
@@ -10852,8 +10852,8 @@ function renderPlanBridge(){
   const withN=(sr.tagged_names||[]).length?' · with '+esc(sr.tagged_names.join(' & ')):'';
   box.style.display='block';
   box.innerHTML=`<div class="card" style="border-color:var(--gold); padding:12px">
-    <b style="display:block; margin-bottom:2px">On your tee sheet today${sr.course_label?' · '+esc(sr.course_label):''}</b>
-    <span class="fine" style="padding:0">Load the course and your group into the tee sheet${withN}.</span>
+    <b style="display:block; margin-bottom:2px">Your round today${sr.course_label?' · '+esc(sr.course_label):''}</b>
+    <span class="fine" style="padding:0">Load the course and your group into the round${withN}.</span>
     <button class="mini" id="planLoad" style="margin-top:10px">Load it →</button>
   </div>`;
   $('#planLoad').addEventListener('click',()=>{
@@ -10915,7 +10915,7 @@ function renderPlay(){
      _fb.classList.toggle('dark', !_done); }   /* .btn.dark IS the web's quiet */
    /* the teaching copy speaks ONCE, before the first score. It is restated
       where it has consequence: the finish sheet opens with "Complete cards post
-      to the season, attested by the group… A partial card is skipped, not lost." */
+      to the season, vouched by the group… A partial card is skipped, not lost." */
    if(_ff) _ff.style.display = liveAnyScored() ? 'none' : '';}
 
   const dots=$('#holeDots'); dots.innerHTML='';
@@ -10941,7 +10941,7 @@ function renderPlay(){
           ? (liveSolo() ? (sunnSoloStrokesAt(h)[pi]||0)
                         : (sunnStrokesAt(h)[MTEAMS[0].includes(pi)?0:1]||0))   /* D74/D75: positional strokes, not SI */
           : strokeOn(pi,h))}</b>
-      <small>${state.live.game==='sunningdale' ? 'NO HCP · STRAIGHT UP' : `${p.est?'EST ':(p.guest?'SELF ':'')}${fmtIdx(p.i)} IDX · ${STROKES[pi]} STK`}</small></div>
+      <small>${state.live.game==='sunningdale' ? 'NO HCP · STRAIGHT UP' : `${p.est?'EST ':(p.guest?'SELF ':'')}${fmtIdx(p.i)} NUMBER · ${STROKES[pi]} STROKES`}</small></div>
       <div class="tot">${done.length? gross+' THRU '+done.length+'<br>'+(vp>=0?'+':'')+vp : '—'}</div>
       <div class="step">
         <button aria-label="Minus ${esc(p.n)}" data-pi="${pi}" data-d="-1">−</button>
@@ -11038,7 +11038,7 @@ function renderPlay(){
     const ord=wolfOrderNow();
     const k=ord.indexOf(wolfIdx);
     const tees=(k>=0?ord.slice(k+1).concat(ord.slice(0,k+1)):ord).map(p=>(LIVE[p]?.n||'').toUpperCase());
-    wm.textContent='TEES: '+tees.join(' · ')+(state.live.stake>0?` · $${state.live.stake}/PT`:' · BRAGGING POINTS');
+    wm.textContent='TEES: '+tees.join(' · ')+(state.live.stake>0?` · $${state.live.stake}/PT`:' · WOLF POINTS');
   }
   const wb=$('#wolfBtns'); wb.innerHTML='';
   const pick=state.live.wolf[h];
@@ -11078,7 +11078,7 @@ function renderPlay(){
     const sk=skinsCalc();
     const ss=$('#skinsStatus'), sm=$('#skinsMeta');
     if(ss) ss.textContent = sk.thru>=liveHoles()
-      ? (sk.carry>1?`DONE · ${sk.carry-1} SKIN${sk.carry===2?'':'S'} DIED CARRIED`:'DONE · EVERY SKIN CLAIMED')
+      ? (sk.carry>1?`DONE · ${sk.carry-1} SKIN${sk.carry===2?'':'S'} NEVER CLAIMED`:'DONE · EVERY SKIN CLAIMED')
       : `HOLE ${sk.thru+1} WORTH ${sk.carry} SKIN${sk.carry===1?'':'S'}`;
     if(sm) sm.textContent = `THRU ${sk.thru} · LOW NET TAKES IT`
       + (state.live.stake>0?` · $${state.live.stake}/SKIN`:' · BRAGGING SKINS');
@@ -11136,7 +11136,7 @@ function renderScoreboard(){
     const won=LIVE.map((p,i)=>({n:fn1(p.n).toUpperCase(),w:sk.won[i]})).filter(x=>x.w>0)
       .sort((a,b)=>b.w-a.w).map(x=>`${x.n} ${x.w}`).join(' · ');
     heroTxt = won || 'NO SKINS CLAIMED YET';
-    if(sk.thru<liveHoles() && sk.carry>1) heroTxt += ` · ${sk.carry} RIDING`;
+    if(sk.thru<liveHoles() && sk.carry>1) heroTxt += ` · ${sk.carry} CARRIED OVER`;
   }
   else {
     const rows=LIVE.map((p,i)=>({p,i,s:netParThru(i)})).filter(x=>x.s.thru>0);
@@ -11272,7 +11272,7 @@ function renderRoster(){
       d.className='pslot';
       d.innerHTML=`
         <div class="sn">${p.guest?`<span class="gtag">${p.buddy?'B':'G'}</span>`:`<span style="width:8px;height:8px;border-radius:3px;background:${SQHEX[p.ci]};display:inline-block;"></span>`}${esc(p.n)}</div>
-        <div class="si">${p.est?'EST ':''}${fmtIdx(p.i)} IDX</div>
+        <div class="si">${p.est?'EST ':''}${fmtIdx(p.i)} NUMBER</div>
         ${p.locked?'':`<button class="sx" data-rm="${idx}" aria-label="Remove ${esc(p.n)}"><svg class="ic" aria-hidden="true"><use href="#i-close"/></svg></button>`}`;
     }
     slots.appendChild(d);
@@ -11325,7 +11325,7 @@ function renderRoster(){
   if(!any && !state.demo){
     const h=document.createElement('p'); h.className='fine'; h.style.padding='2px 0';
     h.textContent=window.CS?.league
-      ? 'No league mates to tap yet — search the app or add a guest below.'
+      ? 'Nobody from your seasons to tap yet — search the app or add a guest below.'
       : 'No league needed — search the app or add a guest below; every complete card posts to its golfer.';
     wrap.appendChild(h);
   }
@@ -11355,12 +11355,12 @@ $('#youPeopleGo')?.addEventListener('click',()=>switchView('golfers'));
    inline one. The picker is untouched and still serves every other caller
    (#rosterFind below, the roster stager, the league invite flow). */
 $('#rosterFind')?.addEventListener('click',()=>{
-  if(state.demo){ toast('Demo round — search works in your real tee sheet'); return; }
+  if(state.demo){ toast('Demo round — search works in your real schedule'); return; }
   if(!window.openPeoplePicker){ toast('Still loading — try again in a second'); return; }
   window.openPeoplePicker({
     mode:'invite',
     title:'Add to the foursome',
-    sub:window.CS?.league ? 'League mates and buddies are below — search anyone on the app' : 'Buddies are below — search anyone on the app; their card posts to their own profile',
+    sub:window.CS?.league ? 'Buddies and the golfers in your seasons are below — search anyone on the app' : 'Buddies are below — search anyone on the app; their card posts to their own profile',
     excludeIds: ROSTER.map(r=>r.pid).filter(Boolean),
     onPick:(r)=>{
       if(ROSTER.some(x=>x.pid && x.pid===r.profile_id)){ toast(r.display_name+' is already in the picker'); return; }
@@ -11393,7 +11393,7 @@ function renderLiveBanner(){
   } else if(state.live.game==='skins'){
     const sk=skinsCalc();
     const me=LIVE.findIndex(p=>p.me || p.n==='You');
-    st=`SKINS · ${sk.carry} RIDING · YOU ${me>=0?sk.won[me]:0}`;
+    st=`SKINS · ${sk.carry} CARRIED OVER · YOU ${me>=0?sk.won[me]:0}`;
   }
   $('#lbStatus').textContent=st;
   $('#lbHole').textContent=`HOLE ${state.live.hole+1} · ${($('#lrCourse').value||'Encanto GC').toUpperCase()} · THRU ${thru}`;
@@ -11679,7 +11679,7 @@ function finishRealLiveRound(){
     : '';
   const result = gameResult();
   openSheet('Finish the round', _lg ? 'ONE FINISH — EVERY MEMBER’S CARD POSTS' : 'ONE FINISH — EVERY CARD POSTS TO ITS GOLFER',
-    `<p class="fine" style="padding-top:0">${_lg?'Complete cards post to the season':'Every complete card posts to its golfer'}, attested by the group${guestN?`; ${guestN} guest${guestN===1?'':'s'} get${guestN===1?'s':''} a recap to claim`:''}. A partial card is skipped, not lost.</p>
+    `<p class="fine" style="padding-top:0">${_lg?'Complete cards post to the season':'Every complete card posts to its golfer'}, vouched by the group${guestN?`; ${guestN} guest${guestN===1?'':'s'} get${guestN===1?'s':''} a recap to claim`:''}. A partial card is skipped, not lost.</p>
      ${warn}
      <button class="btn" id="lrPost" style="margin-top:12px">${done.length
        ? `Post ${done.length} card${done.length===1?'':'s'}${_lg?' to the season':' — each to its golfer'}`
@@ -11810,7 +11810,7 @@ function showLiveRecap(d, result, lrId){
       }</div>` : ''}
     </div>`);
   }
-  posted.forEach(x=>rows.push(`<div class="check"><span class="num">⛳</span><div class="tt"><b>${esc(x.name)} · ${x.gross}</b><small>POSTED · ${x.holes} HOLES · ✓ ATTESTED</small></div></div>`));
+  posted.forEach(x=>rows.push(`<div class="check"><span class="num">⛳</span><div class="tt"><b>${esc(x.name)} · ${x.gross}</b><small>POSTED · ${x.holes} HOLES · ✓ VOUCHED</small></div></div>`));
   skipped.forEach(x=>rows.push(`<div class="check"><span class="num">—</span><div class="tt"><b>${esc(x.name)}</b><small>NOT POSTED · ${esc(String(x.reason||'')).toUpperCase()}</small></div></div>`));
   guests.forEach(g=>{ const url=`${location.origin}/?claim=${g.claim_token}`;
     rows.push(`<div class="check"><span class="num">🎟️</span><div class="tt"><b>${esc(g.name||'Guest')}</b><small>GUEST RECAP — SHARE THE LINK</small></div><button class="mini" data-copylink="${esc(url)}" style="flex:none">Copy</button></div>`); });
@@ -11924,7 +11924,7 @@ $('#finishBtn').addEventListener('click',()=>{
     const diff=(gross-CRATE)*113/CSLOPE;
     const vs=p.i-diff;
     const pts=pointsFor(vs)[0];
-    feed.push({d:TODAY, sess:true, who:p.n,team:p.team,ci:p.ci,meta:`${gross} GROSS · ${courseUp} · LIVE ROUND ✓ ATTESTED`,pvi:vs,pts,kud:0,mine:false,cm:[]});
+    feed.push({d:TODAY, sess:true, who:p.n,team:p.team,ci:p.ci,meta:`${gross} GROSS · ${courseUp} · LIVE ROUND ✓ VOUCHED`,pvi:vs,pts,kud:0,mine:false,cm:[]});
     const t=teams.find(t=>t.name===p.team); if(t)t.pts+=pts;
     posted++;
   });
@@ -11933,7 +11933,7 @@ $('#finishBtn').addEventListener('click',()=>{
   teams.sort((a,b)=>b.pts-a.pts);
   renderClimb(); renderStandings(); renderFeed(); renderPlay(); renderStats(); renderIndStats();
   switchView('home'); scrollFeedBottom();
-  toast(posted+' rounds posted & attested'+(guests.length?`; recap texted to ${guests.join(' & ')} with an app invite`:''));
+  toast(posted+' rounds posted & vouched'+(guests.length?`; recap texted to ${guests.join(' & ')} with an app invite`:''));
   switchView('home');
 });
 
@@ -12056,7 +12056,7 @@ function renderStats(){
   const nk=$('#nextK');
   if(atStarter()){
     if(nk) nk.textContent='Next up · kickoff';
-    $('#nextTxt').textContent=`First tee ${firstTeeText()}. Practice rounds hit your card, not the season.`;
+    $('#nextTxt').textContent=`First tee ${firstTeeText()}. Practice rounds post to your rounds, not the season.`;
     return;
   }
   if(nk) nk.textContent=`Next up · ${curMonth()}`;
@@ -12067,7 +12067,7 @@ function renderStats(){
   const partial = !!(window.leaguePulse && window.leaguePulse[0] && window.leaguePulse[0].partial);
   const rem=Math.max(0, state.floor - credits);
   /* D234 · "you've posted 2.5" told a golfer they had posted half a round. The
-     arithmetic was never wrong — the participation floor is measured in
+     arithmetic was never wrong — the the monthly minimum is measured in
      CREDITS, an eighteen being one and a nine a half (v_rounds_ranked
      .floor_credit, which is exactly what close_month docks against) — but the
      unit was never named, on either client. L-01: every number shows its work.
@@ -12353,7 +12353,7 @@ function renderHomeStart(){
       <button class="startjoin" data-hgnew type="button" style="margin:0">Start something</button>
       <button class="startjoin" data-hgjoin type="button" style="margin:0">I have a code</button>
     </div>
-    ${leagueless ? '<p class="fine" style="padding:8px 0 0">Post a round — it counts on your card. Leagues score it when you join one.</p>' : ''}`;
+    ${leagueless ? '<p class="fine" style="padding:8px 0 0">Add a round — it posts to your rounds. Seasons score it when you join one.</p>' : ''}`;
   box.innerHTML = rb + doors;
   box.querySelector('[data-hgnew]')?.addEventListener('click', () => window.openIntentSheet?.());
   box.querySelector('[data-hgjoin]')?.addEventListener('click', () => window.openJoinSheet?.());
@@ -12615,7 +12615,7 @@ function renderHomeHero(){
     const nextStep =
       /* ---- the Pro ---- */
         isPro && stage === 'forming' && unnamed  ? { label:'Name your league', go:toWiz(0, '#setName') }
-      : isPro && stage === 'forming'             ? { label:'Lock it in and invite your crew', go:toWiz(2, null) }
+      : isPro && stage === 'forming'             ? { label:'Start the season and invite your crew', go:toWiz(2, null) }
       : isPro && stage === 'drawing' && need     ? { label:'Share the invite link', go:()=>shareInvite() }
       : isPro && stage === 'drawing'             ? { label:'Draw the squads', go:()=>switchView('draft') }
       : isPro && stage === 'preseason'           ? planRound
@@ -12632,7 +12632,7 @@ function renderHomeHero(){
        home: the post sheet itself says "Practice — the season starts <date>.
        This round builds your number" at the exact moment it matters (~:6214). */
     const subStep = (!isPro && stage !== 'season' && stage !== 'final' && stage !== 'complete')
-      ? { label:'Post a round', go:()=>switchView('record') } : null;
+      ? { label:'Add my round', go:()=>switchView('record') } : null;
     box.innerHTML = heroCard('', `${esc(lgName||'Your league')} · ${STAGE_LABEL[stage].toLowerCase()}`,
       dd!=null && !starter ? `<div class="hh-fig"><span class="hh-pos">${dd}</span><span class="hh-ord">day${dd===1?'':'s'}</span></div>` : '',
       starter ? `The season's on. <em>Rounds count from today.</em>`
@@ -12643,7 +12643,7 @@ function renderHomeHero(){
               /* D119 · a member is told who is doing what and by when, rather
                  than being handed the Pro's job description */
               : !isPro && stage === 'forming'
-                  ? `<b>${esc(proName)}</b> is setting the bylaws. <em>You'll see them the moment they lock.</em>`
+                  ? `<b>${esc(proName)}</b> is setting the rules. <em>You'll see them the moment the season starts.</em>`
               : !isPro && stage === 'drawing'
                   ? `${lead}<em>${esc(proName)} draws the squads${dd!=null?` before first tee`:''} — it's random.</em>`
               : !isPro && stage === 'preseason'
@@ -12652,8 +12652,8 @@ function renderHomeHero(){
               : stage === 'drawing' && need ? `<b>${n} in.</b> <em>${need} more to tee off.</em>`
               : stage === 'drawing' && rosterKnown ? `<b>${n} in</b> — enough to tee off. <em>Squads next.</em>`
               : stage === 'preseason'       ? `${lead}<em>First tee ${esc(firstTeeText())}.</em>`
-              : solo    ? `<b>Just you so far.</b> <em>Lock the bylaws and the invite link is yours.</em>`
-              : `${dd!=null?'to first tee. ':''}${rosterKnown?`<b>${n} golfers in.</b> `:''}<em>The bylaws lock at the tee.</em>`,
+              : solo    ? `<b>Just you so far.</b> <em>Start the season and the invite link is yours.</em>`
+              : `${dd!=null?'to first tee. ':''}${rosterKnown?`<b>${n} golfers in.</b> `:''}<em>The rules freeze at the first tee.</em>`,
       n?`<span>Roster</span><span class="hh-bar"><i style="width:${Math.min(100, Math.round(n/12*100))}%"></i></span><span>${n} in</span>`:'',
       (starter || !nextStep) ? '' : `<button class="hh-cta" data-hform type="button">${nextStep.label}</button>`
       + (subStep ? `<button class="hh-sub" data-hsub type="button">${subStep.label}</button>` : ''));
@@ -12685,7 +12685,7 @@ function renderHomeHero(){
       est ? `Established. <em>Nobody's seen it</em> — you haven't added a buddy yet.`
           : `${3-Math.min(rounds,2)} more and your index is live. <em>Play anywhere.</em>`,
       est?'':`<span>Index</span><span class="hh-bar"><i style="width:${Math.round(Math.min(rounds,3)/3*100)}%"></i></span><span>${Math.min(rounds,3)} of 3</span>`,
-      `<button class="hh-cta${est?'':' q'}" data-hbud type="button">${est?'Find your buddies':'Post a round'}</button>`);
+      `<button class="hh-cta${est?'':' q'}" data-hbud type="button">${est?'Find your buddies':'Add my round'}</button>`);
     wire('[data-hbud]', ()=> est ? (window.goCrewPeople?window.goCrewPeople():switchView('stats')) : switchView('record'));
     return;
   }
@@ -12768,8 +12768,8 @@ const OCCASIONS = [
   {key:'oldest',  w:[7,10, 7,24],  earned:true,  k:'The oldest one', h:'Links weather is a state of mind.',
    p:'One window, every card on one board, one name on the jug.', act:'Name the jug', go:'event', mk:'jug'},
   {key:'teams',   w:[9,18, 10,5],  earned:false, k:'The big team match', h:'Two teams. One cup. You know the one.',
-   p:'Weekly duels, first past half the points. Yours can start the same weekend.', act:'Run your own', go:'event', mk:null},
-  {key:'fall',    w:[10,1, 11,20], earned:true,  k:"The season's turning", h:'Cool mornings, empty tee sheets.',
+   p:'One opponent a week, first past half the points. Yours can start the same weekend.', act:'Run your own', go:'event', mk:null},
+  {key:'fall',    w:[10,1, 11,20], earned:true,  k:"The season's turning", h:'Cool mornings, empty fairways.',
    p:'A fall Major — two to four days, best card takes it.', act:'Name the jug', go:'event', mk:null},
   {key:'fresh',   w:[12,27, 1,15], earned:false, k:'A fresh table', h:"Nobody's ahead yet.",
    p:'A season scores the rounds you’re already playing. Nothing changes about how you post.', act:'Start a league', go:'league', mk:null, leaguelessOnly:true},
@@ -13506,7 +13506,7 @@ function homeLead(){
     const when = c.closes_today ? 'closes today'
                : c.days_left===1 ? 'one day left' : `${c.days_left} days left`;
     const them = (c.them_name||'').split(' ')[0] || 'them';
-    const act = !mine ? 'Post a round' : edge>0 ? 'See the receipt' : 'Post a better one';
+    const act = !mine ? 'Add my round' : edge>0 ? 'See the receipt' : 'Post a better one';
     return { eb:`${nm} \u00b7 ${when}`,
              ln:`You v ${esc(them)}. Best round of the week takes it.`,
              sides: clashSide('You', mine, edge>0, false)
@@ -13533,7 +13533,7 @@ function homeLead(){
       const short=Math.round((floor-credits)*10)/10;
       return { eb: days===0?'The month closes today':days===1?'The month closes tomorrow':`The month closes in ${days} days`,
                ln:`You're ${short%1?short.toFixed(1):short} short of the floor. One round covers it.`,
-               act:'Post a round', go:()=>switchView('post') };
+               act:'Add my round', go:()=>switchView('post') };
     }
   }
   /* 3 · your move — heroMyRung already computed it against the week snapshot */
@@ -13754,7 +13754,7 @@ function renderHomeLead(){ renderHomeDispatch(); }
 window.renderHomeLead = renderHomeLead;
 /* D178 · the clash was read ONCE, inside loadPulse, which only runs at boot.
    So you could post the very round the card asked for, land back on Home, and
-   read "Post a round" again — the card was rendering a boot-time snapshot.
+   read "Add my round" again — the card was rendering a boot-time snapshot.
    Every path that changes what the card would say now re-reads it. Fail-soft
    by construction: loadHomeClash swallows its own errors and renders nothing. */
 function refreshHomeLead(){
@@ -13809,7 +13809,7 @@ function homeRoundCard(sr, demo){
   const when = sr._whenTxt || (d ? (()=>{ const n=Math.round((d-new Date().setHours(0,0,0,0))/864e5);
     return n===0?'TODAY':n===1?'TOMORROW':`${DOW[d.getDay()].toUpperCase()} ${MOS[d.getMonth()].toUpperCase()} ${d.getDate()}`; })() : '');
   const who = sr.mine ? 'You' : esc(sr.display_name||sr.who||'A golfer');
-  const rel = sr.mine ? '' : (sr.shared_league?'LEAGUE MATE':(sr.is_friend?'BUDDY':''));
+  const rel = sr.mine ? '' : (sr.shared_league?'IN YOUR SEASONS':(sr.is_friend?'BUDDY':''));
   const tee = sr.tee_time ? fmtTee(sr.tee_time) : '';
   const bits = [ sr.course_label?esc(sr.course_label.toUpperCase()):null, tee?`<span style="color:var(--gold)">${tee}</span>`:null ].filter(Boolean).join(' · ');
   const inN = sr.rsvp_in||0, cN = sr.comment_n||0;
@@ -14356,7 +14356,7 @@ function csRunItBackTitle(isPro, proFirstName){
   return 'Ask ' + (proFirstName || 'the Pro') + ' to run it back';
 }
 function csRunItBackSub(isPro){
-  return isPro ? 'Same crew, same bylaws, fresh table. Nobody re-types a code.'
+  return isPro ? 'Same crew, same rules, fresh table. Nobody re-types a code.'
                : 'One line on the board, once. They decide when.';
 }
 function csRunItBackAskLine(firstName){ return (firstName || 'Somebody') + ' wants to run it back.'; }
@@ -14642,17 +14642,17 @@ function renderPulse(){
     const short=rows.filter(r=>!r.at_floor);
     const atFloor=rows.length-short.length;
     const names=short.slice(0,4).map(r=>esc(r.display_name||'A member')).join(', ')+(short.length>4?` +${short.length-4}`:'');
-    box.innerHTML=pulseCard(`${mName} · monthly floor · ${closes}`,
-      short.length ? `<b>${atFloor}/${rows.length} cleared</b> the ${floor}-round floor. Waiting on <b>${names}</b>.`
-                   : `<b>Everyone's cleared</b> the ${floor}-round floor for ${mName}.`);
+    box.innerHTML=pulseCard(`${mName} · monthly minimum · ${closes}`,
+      short.length ? `<b>${atFloor}/${rows.length} cleared</b> the ${floor}-round minimum. Waiting on <b>${names}</b>.`
+                   : `<b>Everyone's cleared</b> the ${floor}-round minimum for ${mName}.`);
   } else {
     const me=rows.find(r=>r.is_me); if(!me){ box.innerHTML=''; return; }
     const need=Math.max(0, floor-Number(me.credits));
     const needTxt=need%1?need.toFixed(1):need;
     const cr=fmt(me.credits);
     box.innerHTML=pulseGauge(Number(me.credits), floor, `Your ${mName} · ${closes}`,
-      need>0 ? `<b>Post ${needTxt} more</b> to clear this month's floor — ${cr}/${floor} counted.`
-             : `<b>Cleared for ${mName}</b> — ${cr} round${cr==='1'?'':'s'} counted, floor met.`);
+      need>0 ? `<b>Post ${needTxt} more</b> to clear this month's minimum — ${cr}/${floor} counted.`
+             : `<b>Cleared for ${mName}</b> — ${cr} round${cr==='1'?'':'s'} counted, minimum met.`);
   }
   /* #5 (pilot): "make it more clear about the month minimum." The gauge shows
      the COUNT; this line states the RULE — how many, what a miss costs, and the
@@ -14698,7 +14698,7 @@ function renderLRW(){
       <div class="fine" style="padding:2px 0 0">${w.shared_cards} rounds shared · one tap stages a Saturday</div>
     </div>
     <span style="display:flex; flex-direction:column; gap:6px; flex:none">
-      <button class="mini" id="lrwGo">Stage it</button>
+      <button class="mini" id="lrwGo">Plan a round</button>
       <button class="mini" id="lrwHush" aria-label="Quiet for a while">Later</button>
     </span></div>`;
   document.getElementById('lrwGo')?.addEventListener('click', ()=>{
@@ -14768,7 +14768,7 @@ function openStakeCreate(){
   if(state.demo || !window.CS?.user){ toast('Sign in to put a stake on the books'); return; }
   const others=(window.CS?.members||[]).filter(m=>m.profile_id && m.profile_id!==window.CS.user.id);
   const KINDS=[['hosts','Loser hosts'],['course_pick','Winner picks the course'],['strokes','Strokes next time'],['bounty','Standing bounty'],['custom','Name your own']];
-  openSheet('Post a stake', 'Pride, on the books — never money', `
+  openSheet('Post a forfeit', 'Pride, on the books — never money', `
     <label class="f" for="stkName">Name it</label>
     <input class="f" id="stkName" placeholder="The Lawn Bet" autocomplete="off" style="font-family:var(--sans)">
     <label class="f" style="margin-top:10px; display:block">The shape</label>
@@ -14781,7 +14781,7 @@ function openStakeCreate(){
       ${others.map(m=>`<option value="${m.profile_id}">${esc(m.profile?.display_name||'—')}</option>`).join('')}
     </select>
     <label class="f" style="margin-top:10px" for="stkHangs">Rides on <span style="color:var(--dim)">(optional)</span></label>
-    <input class="f" id="stkHangs" placeholder="Sunday's duel · first ace · the Cup Final" autocomplete="off" style="font-family:var(--sans)">
+    <input class="f" id="stkHangs" placeholder="Sunday's clash · first ace · the Cup Final" autocomplete="off" style="font-family:var(--sans)">
     <div style="display:flex; gap:8px; margin-top:14px">
       <button class="btn dark" id="stkCancel" style="flex:0 0 auto; width:auto; padding:0 16px">Cancel</button>
       <button class="btn" id="stkGo" style="flex:1">Put it on the books</button>
@@ -14866,7 +14866,7 @@ function renderTrophyCase(){
   });
   _trophySeen = new Set(ids);
   if(!tiles.length){
-    box.innerHTML = '<div class="card" style="text-align:left"><div class="fine" style="padding:0">No hardware yet. Break 80, post your first round, or win a Cup Final — milestones and trophies land here.</div></div>';
+    box.innerHTML = '<div class="card" style="text-align:left"><div class="fine" style="padding:0">Nothing in the case yet. Break 80, post your first round, or win a Cup Final — milestones and trophies land here.</div></div>';
     return;
   }
   box.innerHTML = `<div style="display:grid; grid-template-columns:repeat(3,1fr); gap:8px">${tiles.join('')}</div>`;
@@ -15176,9 +15176,9 @@ function openMemberHist(p){
   const sgn=v=>(v>=0?'+':'')+Number(v).toFixed(1);
   const hist=(p.hist||[]);
   const body=hist.length
-    ? hist.map(h=>`<div class="fine" style="display:flex;justify-content:space-between;gap:10px;padding:4px 0"><span>${h.played_on}${h.holes_played===9?' · 9 HOLES':''}${h.counting?'':' · BUMPED'}</span><b class="mono" style="white-space:nowrap">${sgn(h.pvi)} vs index · ${h.points} PTS</b></div>`).join('')
+    ? hist.map(h=>`<div class="fine" style="display:flex;justify-content:space-between;gap:10px;padding:4px 0"><span>${h.played_on}${h.holes_played===9?' · 9 HOLES':''}${h.counting?'':' · BUMPED'}</span><b class="mono" style="white-space:nowrap">${sgn(h.pvi)} vs your number · ${h.points} PTS</b></div>`).join('')
       + (hist.some(h=>!h.counting)?'<p class="fine" style="padding-top:10px">Bumped rounds still happened — a better round took their monthly slot. A better round always bumps your worst counter.</p>':'')
-    : emptyState({ icon:'⛳', line:'No rounds this season yet — post one and you\'re on the board.', ctaLabel:'Post a round', ctaGo:'record' });
+    : emptyState({ icon:'⛳', line:'No rounds this season yet — post one and you\'re on the board.', ctaLabel:'Add my round', ctaGo:'record' });
   openSheet(p.n, `${p.r} ROUND${p.r===1?'':'S'} · ${p.pts} PTS`, body);
 }
 
@@ -15244,7 +15244,11 @@ function roundCardBody(r, pvi, capN){
     /* Q-23 · the receipt is the one place the signed figure is legitimate —
        it is showing its work — but it leads with the words now, so the number
        explains the phrase rather than contradicting the card. */
-    rows.push(`<div class="mathrow"><span>Against ${mine?'your':'their'} ${playingShown?'playing number':'number'}</span><b>${mine?vsShort(pvi):theirs(vsShort(pvi))} — ${(mine?bandName(pvi):theirs(bandName(pvi))).toUpperCase()}</b></div>`);
+    /* R13 (D249) · the SERVER's band when `round_card` carried one, this
+       client's own when it did not — one table, three renderers, held together
+       by preflight check 28. */
+    const named = r.band || bandName(pvi);
+    rows.push(`<div class="mathrow"><span>Against ${mine?'your':'their'} ${playingShown?'playing number':'number'}</span><b>${mine?vsShort(pvi):theirs(vsShort(pvi))} — ${(mine?named:theirs(named)).toUpperCase()}</b></div>`);
   }
   if(r.points!=null) rows.push(`<div class="mathrow"><span>Points</span><b>${r.points}</b></div>`);
   if(r.month_rank!=null){
@@ -15252,7 +15256,7 @@ function roundCardBody(r, pvi, capN){
     rows.push(`<div class="mathrow"><span>This month</span><b>${r.month_rank<=cap?'COUNTING #'+r.month_rank:'BUMPED'}</b></div>`);
   }
   if(r.holes_played===9) rows.push(`<div class="mathrow"><span>Nine holes</span><b>HALF VALUE · HALF A ROUND</b></div>`);
-  if(r.attested) rows.push(`<div class="mathrow"><span>Attested</span><b>PLAYED WITH THE GROUP</b></div>`);
+  if(r.attested) rows.push(`<div class="mathrow"><span>Vouched</span><b>PLAYED WITH THE GROUP</b></div>`);
 
   /* who was there — the round was a social act, so the card says so */
   const mates = Array.isArray(r.played_with) ? r.played_with.filter(Boolean) : [];
@@ -15328,7 +15332,7 @@ const SQABBR=['MUD','SND','SHK','CPO'];
 const ADJ = [   /* demo adjustments — mirrors season_adjustments (migration 003) */
   {sq:'Sandbaggers', month:M3[1], kind:'matchup_bonus', pts:15, why:'Monthly head-to-head winner'},
   {sq:'Mudsharks',   month:M3[0], kind:'matchup_bonus', pts:15, why:'Monthly head-to-head winner'},
-  {sq:'Sandbaggers', month:M3[0], kind:'floor_penalty', pts:-5, who:'Garrett', why:'Floor 2/mo — posted 1'},
+  {sq:'Sandbaggers', month:M3[0], kind:'floor_penalty', pts:-5, who:'Garrett', why:'September — 2 a month, posted 1. The bye was already used.'},
 ];
 /* demo round history — the receipts behind each player's number */
 const HIST = {};
@@ -15352,7 +15356,7 @@ function seedHistory(){
     HIST[p.n]=rows;
   });
 }
-/* which rounds counted, per the counting cap, per month */
+/* which rounds counted, per the rounds that count, per month */
 function markCounting(rows){
   const capN=CAP_N[state.cap];
   const byMonth={};
@@ -15586,7 +15590,7 @@ function showSquad(name){
   roster.sort((a,b)=>b.pts-a.pts).forEach(p=>{
     h+=`<button class="rdrow" data-player="${p.n}">
       <span class="sw" style="background:${SQHEX[p.ci]}"></span>
-      <span class="rn"><b>${p.n}</b><small>${p.r} ROUNDS · AVG vs index ${p.avg>=0?'+':''}${p.avg.toFixed(1)}</small></span>
+      <span class="rn"><b>${p.n}</b><small>${p.r} ROUNDS · AVG vs your number ${p.avg>=0?'+':''}${p.avg.toFixed(1)}</small></span>
       <span class="rp">${p.pts}</span></button>`;
   });
   h+=`<p class="fine" style="padding-top:12px">Squad points = counting rounds + monthly bonuses − floor penalties. Tap any player for their rounds.</p>`;
@@ -15608,7 +15612,7 @@ function showSquadReal(t){
   rows.forEach((p,i)=>{
     h+=`<button class="rdrow" data-sqm="${i}">
       <span class="sw" style="background:${SQHEX[p.ci]??SQHEX[1]}"></span>
-      <span class="rn"><b>${esc(p.n)}</b><small>${p.r} ROUND${p.r===1?'':'S'} · AVG vs index ${p.r?(p.avg>=0?'+':'')+p.avg.toFixed(1):'—'}</small></span>
+      <span class="rn"><b>${esc(p.n)}</b><small>${p.r} ROUND${p.r===1?'':'S'} · AVG vs your number ${p.r?(p.avg>=0?'+':'')+p.avg.toFixed(1):'—'}</small></span>
       <span class="rp">${p.pts}</span></button>`;
   });
   if(!rows.length) h+=`<p class="fine">No rounds posted yet — the squad is waiting on its first counter.</p>`;
@@ -15629,7 +15633,7 @@ function showPlayer(name){
 
   let h=`<div class="mathrow"><span>Rounds posted</span><b>${p.r}</b></div>
     <div class="mathrow"><span>Counting (${CAPS[state.cap].toLowerCase()} / mo)</span><b>${counting.length}</b></div>
-    <div class="mathrow"><span>Average vs index</span><b>${p.avg>=0?'+':''}${p.avg.toFixed(1)}</b></div>
+    <div class="mathrow"><span>Average vs your number</span><b>${p.avg>=0?'+':''}${p.avg.toFixed(1)}</b></div>
     <div class="mathrow tot"><span>Season points</span><b>${p.pts}</b></div>`;
 
   h+=`<div class="eyebrow" style="margin-top:18px">Counting rounds</div>`;
@@ -15637,7 +15641,7 @@ function showPlayer(name){
     const i=(HIST[name]||[]).indexOf(r);
     h+=`<button class="rdrow" data-round="${name}|${i}">
       <span class="rn"><b>${r.gross} at ${r.course}${r.nine?' · 9':''}</b>
-      <small>${r.d} · ${r.pvi>=0?'+':''}${r.pvi.toFixed(1)} vs index${r.live?' · ✓ ATTESTED':''}</small></span>
+      <small>${r.d} · ${r.pvi>=0?'+':''}${r.pvi.toFixed(1)} vs your number${r.live?' · ✓ VOUCHED':''}</small></span>
       <span class="rp">${r.pts}</span></button>`;
   });
   if(cut.length){
@@ -15646,7 +15650,7 @@ function showPlayer(name){
       const i=(HIST[name]||[]).indexOf(r);
       h+=`<button class="rdrow cut" data-round="${name}|${i}">
         <span class="rn"><b>${r.gross} at ${r.course}${r.nine?' · 9':''}</b>
-        <small>${r.d} · ${r.pvi>=0?'+':''}${r.pvi.toFixed(1)} vs index</small></span>
+        <small>${r.d} · ${r.pvi>=0?'+':''}${r.pvi.toFixed(1)} vs your number</small></span>
         <span class="cuttag">BUMPED</span>
         <span class="rp">${r.pts}</span></button>`;
     });
@@ -15678,7 +15682,7 @@ function showRound(name, idx){
         `<div class="${x.s<x.par?'bird':x.s>x.par?'bog':''}"><b>${x.s}</b>${i+1}</div>`).join('')}</div>
       <div class="holegrid">${holes.slice(9).map((x,i)=>
         `<div class="${x.s<x.par?'bird':x.s>x.par?'bog':''}"><b>${x.s}</b>${i+10}</div>`).join('')}</div>
-      <p class="fine" style="padding-top:12px">✓ Attested: live round, witnessed by the group.</p>`;
+      <p class="fine" style="padding-top:12px">✓ Vouched: live round, witnessed by the group.</p>`;
   } else {
     h+=`<p class="fine" style="padding-top:12px">Quick post: gross and tee only. The summary is the whole receipt.</p>`;
   }
@@ -15798,7 +15802,7 @@ const FMT_KEYS=['points','h2h','hybrid'];
 const FMT_NAMES=['Points Race','Head-to-Head','Hybrid'];
 /* never mint a hybrid: a new lock writes points where the state says hybrid */
 function fmtKeyForLock(){ const k=FMT_KEYS[state.fmt]; return (!k || k==='hybrid') ? 'points' : k; }
-const STRUCT_NAMES={solo:'Individual — no squads', squads2:'2 squads', squads3:'3 squads', squads4:'4 squads'};
+const STRUCT_NAMES={solo:'Solo — everyone for themselves', squads2:'2 squads', squads3:'3 squads', squads4:'4 squads'};
 const STRUCT_NOTES={
   solo:'Individual · every player for himself — works at any size (2+). No squads; top 2 players meet in the Cup Final in the final four weeks.',
   squads2:'2 squads · fits 4–7 players. Both squads reach the Cup Final; the regular-season leader carries a +10 head start.',
@@ -15841,15 +15845,15 @@ $$('#structSeg button').forEach(b=>b.addEventListener('click',()=>{
 /* M-15 · verification describes what the league ASKS of a golfer, never a
    check the engine performs ("GHIN-verified" was a claim the app cannot
    make — ship audit 2026-08-31). Verbatim with the phone's `Bylaws.verif`. */
-const ALLOW=[100,95,90], VERIF=['Honor system','Post what you\'d post to GHIN','Attested where you can; the Pro rules on the rest'];
-const PENALTY=['None','−5 sqd pts / round short','Forfeit month'];
+const ALLOW=[100,95,90], VERIF=['Honor system','Post what you\'d post to GHIN','Vouched by the group where you can; the Pro rules on the rest'];
+const PENALTY=['None','−5 squad points a round short','The month\'s rounds are struck'];
 /* Stage 3d: the desktop wizard aside — a drawn portrait of the league, live
    from the dials (the Pro watches it assemble instead of reading a list). All
    from existing wizard state; no schema. */
 function wizPortrait(){
   const sqN = ({solo:0, squads2:2, squads3:3, squads4:4})[state.structure] ?? 4;
   const name = ($('#setName')?.value || '').trim() || 'Your league';
-  const draft = ({random:'Blind draw', assign:'Pro assign', snake:'Snake', live:'Live draft'})[state.draftType] || 'Blind draw';
+  const draft = ({random:'Random draw', assign:'The Pro picks', snake:'Snake', live:'Live picks'})[state.draftType] || 'Random draw';
   const cup = (state.finish||'cup_final')==='cup_final';
   const canCup = cup && state.durWeeks>=6;
   const roster = (typeof wizRoster==='function') ? wizRoster() : 1;
@@ -15891,13 +15895,13 @@ function wizPortrait(){
 function renderBylaws(){
   const pr=PRESETS[state.preset];
   const rows=`
-    <div class="byrow"><span>STRUCTURE</span><b>${STRUCT_NAMES[state.structure]}</b></div>
-    <div class="byrow"><span>Squad formation</span><b>${({random:'Blind draw',assign:'Pro assign',snake:'Snake · async',live:'Live · pick clock'})[state.draftType]}</b></div>
-    <div class="byrow"><span>PRESET</span><b>${pr.name}</b></div>
-    <div class="byrow"><span>HANDICAP ALLOWANCE</span><b>${ALLOW[state.preset]}%</b></div>
-    <div class="byrow"><span>VERIFICATION</span><b>${VERIF[state.preset]}</b></div>
-    <div class="byrow"><span>COUNTING CAP</span><b>${CAPS[state.cap]} / mo</b></div>
-    <div class="byrow"><span>PARTICIPATION FLOOR</span><b>${state.floor} / mo · ${PENALTY[state.preset]}</b></div>
+    <div class="byrow"><span>FORMAT</span><b>${STRUCT_NAMES[state.structure]}</b></div>
+    <div class="byrow"><span>THE DRAW</span><b>${({random:'Random draw',assign:'The Pro picks',snake:'In turns · async',live:'Live · pick clock'})[state.draftType]}</b></div>
+    <div class="byrow"><span>HOUSE RULES</span><b>${pr.name}</b></div>
+    <div class="byrow"><span>HOW SCORES COUNT</span><b>Scored at ${ALLOW[state.preset]}% of your number</b></div>
+    <div class="byrow"><span>SCORES</span><b>${VERIF[state.preset]}</b></div>
+    <div class="byrow"><span>EACH MONTH</span><b>${CAPS[state.cap]==='Unlimited' ? 'Every round counts' : CAPS[state.cap]+' a month count'}</b></div>
+    <div class="byrow"><span>THE MINIMUM</span><b>${state.floor} a month · ${PENALTY[state.preset]}</b></div>
     ${state.stake===0
       ? `<div class="byrow"><span>BUY-IN</span><b>None · bragging rights</b></div>`
       : `<div class="byrow"><span>BUY-IN</span><b>${fmt$(state.stake)} / player</b></div>
@@ -15989,7 +15993,7 @@ function paintInviteNote(){
 window.paintInviteNote = paintInviteNote;
 /* D205 · a solo league has no squads to form. (D161's rename of the button's
    verb — "tee it up" — stays deferred.) */
-function lockButtonText(){ return state.structure==='solo' ? 'Lock the bylaws' : 'Lock the bylaws & form the squads'; }
+function lockButtonText(){ return state.structure==='solo' ? 'Start the season' : 'Start the season & form the squads'; }
 
 if(state.emails.length===0) state.emails=[''];   /* one line; "+ Add email" grows it */
 function updateInviteNote(){
@@ -16046,14 +16050,14 @@ function renderPhase(){
     else       { park(codeBtn, cs);   park(addBtn, as);   }
   }
   $('#phaseSub').textContent = p==='setup'
-    ? (L ? `SETUP · LOCK THE BYLAWS TO OPEN INVITES` : 'SETUP · CODE SNDYCUP · 9 OF 16 JOINED')
+    ? (L ? `SETUP · START THE SEASON TO OPEN INVITES` : 'SETUP · CODE SNDYCUP · 9 OF 16 JOINED')
     : p==='draft' ? `${STAGE_LABEL.drawing} · rosters pending`
     : state.demo
       ? `Wk ${currentWeek()} / ${totalWeeks()} · ${FMT_NAMES[state.fmt]} · ${PRESETS[state.preset].name} rules`
       : atStarter()
       ? `BEFORE FIRST TEE · ${firstTeeText().toUpperCase()} · ${daysToTee()} DAY${daysToTee()===1?'':'S'}`
       : isCupFinal()
-      ? `CUP FINAL · Wk ${currentWeek()} / ${totalWeeks()} · fresh slate · ${PRESETS[state.preset].name} rules`
+      ? `CUP FINAL · Wk ${currentWeek()} / ${totalWeeks()} · scored fresh · ${PRESETS[state.preset].name} rules`
       : `Wk ${currentWeek()} / ${totalWeeks()} · ${FMT_NAMES[state.fmt]} · ${PRESETS[state.preset].name} rules`;
   if(state.demo) $('#phaseSub').textContent = 'DEMO · ' + $('#phaseSub').textContent;
   const kh=$('#kickoffHero');
@@ -16063,14 +16067,14 @@ function renderPhase(){
     if(on){
       $('#khTee').textContent = 'First tee ' + firstTeeText();
       const d=daysToTee();
-      $('#khCount').textContent = `KICKS OFF IN ${d} DAY${d===1?'':'S'} · SQUADS LOCKED · PRACTICE ROUNDS HIT YOUR CARD, NOT THE SEASON`;
+      $('#khCount').textContent = `KICKS OFF IN ${d} DAY${d===1?'':'S'} · SQUADS ARE SET · PRACTICE ROUNDS POST TO YOUR ROUNDS, NOT THE SEASON`;
     }
   }
   const hd=$('#hubDraftSub');
-  if(hd) hd.textContent = state.structure==='solo' ? 'Individual league — no squads'
+  if(hd) hd.textContent = state.structure==='solo' ? 'Solo — everyone for themselves'
     : p==='setup' ? 'OPENS AFTER SETTINGS LOCK'
-    : p==='draft' ? 'LIVE NOW — CAPTAINS READY'
-    : 'Complete · rosters locked';
+    : p==='draft' ? 'SQUADS DRAWING'
+    : 'Complete · squads are set';
   renderRosterDoor();     /* D180: who can still get in with the code */
   renderLeagueMeta();
   renderCalendar();
@@ -16211,7 +16215,7 @@ function renderCalendar(){
     const dowName = `${DOW[new Date(cur.y,cur.m,d).getDay()]} ${MOS[cur.m]} ${d}`;
     openSheet(dowName, `${items.length} ON THE SHEET`,
       items.map(it=> it.kind==='rd'
-        ? `<div class="check tap" data-roundopen="${it.sr.id}"><span class="num">${window.mkr?.(it.sr.marker||'saguaro')||'⛳'}</span><div class="tt"><b>${it.sr.mine?'You':esc(it.sr.display_name)}${it.sr.tee_time?' · <span style="color:var(--gold)">'+fmtTee(it.sr.tee_time)+'</span>':''}${it.sr.tagged_me?' · <span style="color:var(--gold)">YOU’RE IN</span>':(it.sr.shared_league&&!it.sr.mine?' · <span style="color:var(--gold)">LEAGUE MATE</span>':'')}</b><small>${[it.sr.course_label?esc(it.sr.course_label.toUpperCase()):null, (it.sr.tagged_names||[]).length?'WITH '+esc(it.sr.tagged_names.join(' & ').toUpperCase()):null, it.sr.note?'“'+esc(it.sr.note)+'”':null].filter(Boolean).join(' · ')||'ON THE TEE SHEET'}</small></div>${it.sr.mine?'<span style="display:flex; gap:6px; flex:none; margin-left:auto"><button class="mini" data-retag="'+it.sr.id+'" title="Edit group"><svg class="ic" aria-hidden="true"><use href="#i-plus"/></svg></button><button class="mini" data-scratch="'+it.sr.id+'" title="Cancel this round"><svg class="ic" aria-hidden="true"><use href="#i-close"/></svg></button></span>':''}</div>`
+        ? `<div class="check tap" data-roundopen="${it.sr.id}"><span class="num">${window.mkr?.(it.sr.marker||'saguaro')||'⛳'}</span><div class="tt"><b>${it.sr.mine?'You':esc(it.sr.display_name)}${it.sr.tee_time?' · <span style="color:var(--gold)">'+fmtTee(it.sr.tee_time)+'</span>':''}${it.sr.tagged_me?' · <span style="color:var(--gold)">YOU’RE IN</span>':(it.sr.shared_league&&!it.sr.mine?' · <span style="color:var(--gold)">IN YOUR SEASONS</span>':'')}</b><small>${[it.sr.course_label?esc(it.sr.course_label.toUpperCase()):null, (it.sr.tagged_names||[]).length?'WITH '+esc(it.sr.tagged_names.join(' & ').toUpperCase()):null, it.sr.note?'“'+esc(it.sr.note)+'”':null].filter(Boolean).join(' · ')||'ON THE SCHEDULE'}</small></div>${it.sr.mine?'<span style="display:flex; gap:6px; flex:none; margin-left:auto"><button class="mini" data-retag="'+it.sr.id+'" title="Edit group"><svg class="ic" aria-hidden="true"><use href="#i-plus"/></svg></button><button class="mini" data-scratch="'+it.sr.id+'" title="Cancel this round"><svg class="ic" aria-hidden="true"><use href="#i-close"/></svg></button></span>':''}</div>`
         : `<div class="check"><span class="num">⛳</span><div class="tt"><b style="${it.gold?'color:var(--gold)':''}">${esc(it.t)}</b></div></div>`
       ).join('')
       + (canAdd ? `<button class="btn dark" id="dayAdd" style="margin-top:12px"><svg class="ic" aria-hidden="true"><use href="#i-plus"/></svg> Put your round on this day</button>` : ''));
@@ -16246,7 +16250,7 @@ function renderCalendar(){
         const withTxt=(sr.tagged_names||[]).length?' · WITH '+esc(sr.tagged_names.join(' & ').toUpperCase()):'';
         return `<div class="check">
           <span class="num">${window.mkr?.(sr.marker||'saguaro')||'⛳'}</span>
-          <div class="tt"><b>${sr.mine?'You':esc(sr.display_name)}${sr.tee_time?' · <span style="color:var(--gold)">'+fmtTee(sr.tee_time)+'</span>':''}${sr.tagged_me?' · <span style="color:var(--gold)">YOU’RE IN</span>':(sr.shared_league&&!sr.mine?' · <span style="color:var(--gold)">LEAGUE MATE</span>':(sr.is_friend&&!sr.mine?' · <span style="color:var(--mut)">BUDDY</span>':''))}</b>
+          <div class="tt"><b>${sr.mine?'You':esc(sr.display_name)}${sr.tee_time?' · <span style="color:var(--gold)">'+fmtTee(sr.tee_time)+'</span>':''}${sr.tagged_me?' · <span style="color:var(--gold)">YOU’RE IN</span>':(sr.shared_league&&!sr.mine?' · <span style="color:var(--gold)">IN YOUR SEASONS</span>':(sr.is_friend&&!sr.mine?' · <span style="color:var(--mut)">BUDDY</span>':''))}</b>
           <small>${DOW[d.getDay()].toUpperCase()} ${MOS[d.getMonth()].toUpperCase()} ${d.getDate()}${sr.course_label?' · '+esc(sr.course_label.toUpperCase()):''}${withTxt}${sr.note?' · “'+esc(sr.note)+'”':''}</small></div>
           <span style="display:flex; gap:6px; align-items:center; flex:none">
             <b class="mono" style="font-size:11.5px; color:var(--mut); letter-spacing:.06em">${when}</b>
@@ -16254,7 +16258,7 @@ function renderCalendar(){
           </span>
         </div>`;
       }).join('');
-    list.innerHTML = rows || `<p class="fine" style="padding:6px 0">Nothing on the tee sheet for ${MOS[cur.m]}${state.demo?' (scheduling is a real-account thing)':''}. ${!state.demo?'Put one up: league mates and buddies see it the moment you do.':''}</p>`;
+    list.innerHTML = rows || `<p class="fine" style="padding:6px 0">Nothing on the schedule for ${MOS[cur.m]}${state.demo?' (scheduling is a real-account thing)':''}. ${!state.demo?'Put one up: buddies and the crews you play with see it the moment you do.':''}</p>`;
   }
 
   /* week-by-week history (league seasons only) */
@@ -16371,15 +16375,15 @@ function renderEvent(){
 
   /* how it scores — everyone sees the rule, not just the organizer */
   html += `<p class="fine" style="padding:0 0 6px">${P>0
-    ? `Each session pairs everyone 1‑on‑1; best round that week vs your index wins the point, a tie splits it. First to ${evHalf(clinch)} of ${M} takes the cup.`
-    : `Each session pairs everyone 1‑on‑1; best round that week vs your index wins the point, a tie splits it. Add players to both teams to set the target.`}</p>`;
+    ? `Each week pairs everyone 1‑on‑1; the best round that week against your own number wins the point, a tie splits it. First to ${evHalf(clinch)} of ${M} takes the cup.`
+    : `Each week pairs everyone 1‑on‑1; the best round that week against your own number wins the point, a tie splits it. Add players to both teams to set the target.`}</p>`;
 
   /* organizer controls — the event's creator runs the roster + sessions */
   const meU=window.CS?.user?.id, iAmOrg = ev.created_by===meU;
   /* the opt-in taunt (batch-3 #17): a standing target push must be CHOSEN */
   const meP=players.find(p=>p.profile_id===meU);
   if(meP && ev.status!=='complete'){
-    html+=`<div style="margin:2px 0 8px"><button class="mini" onclick="window.ryderNotify('${ev.id}',${meP.notify_target?'false':'true'})">🔔 Duel taunts: ${meP.notify_target?'ON — mute them':'OFF — ping me when my opponent posts'}</button></div>`;
+    html+=`<div style="margin:2px 0 8px"><button class="mini" onclick="window.ryderNotify('${ev.id}',${meP.notify_target?'false':'true'})">🔔 Tell me when he posts: ${meP.notify_target?'ON — mute them':'OFF — ping me when my opponent posts'}</button></div>`;
   }
   const unassigned = players.filter(p=>!p.team_id);
   if(iAmOrg){
@@ -16402,7 +16406,7 @@ function renderEvent(){
     const ds=duels.filter(d=>d.session_id===s.id);
     const d0=new Date(s.opens_on+'T00:00:00'), d1=new Date(s.closes_on+'T00:00:00');
     const when=`${MOS[d0.getMonth()].toUpperCase()} ${d0.getDate()}–${MOS[d1.getMonth()].toUpperCase()} ${d1.getDate()}`;
-    html+=`<div class="evsess"><div class="evsesshd">SESSION ${s.session_no} · ${when} · ${s.status.toUpperCase()}</div>`;
+    html+=`<div class="evsess"><div class="evsesshd">WEEK ${s.session_no} · ${when} · ${s.status.toUpperCase()}</div>`;
     if(!ds.length){ html+=`<div class="fine" style="padding:2px 0">Pairings not set.</div>`; }
     const waiting=[];   /* the nag list: who hasn't posted in an open session */
     ds.forEach(d=>{
@@ -16442,7 +16446,7 @@ function renderEvent(){
     }
     if(iAmOrg){
       if(!ds.length) html+=`<button class="mini" onclick="window.ryderPair('${s.id}')" style="margin-top:4px">Generate pairings</button>`;
-      else if(s.status!=='closed') html+=`<button class="mini" onclick="window.ryderResolve('${s.id}')" style="margin-top:4px">Score this session</button>`;
+      else if(s.status!=='closed') html+=`<button class="mini" onclick="window.ryderResolve('${s.id}')" style="margin-top:4px">Score this week</button>`;
     }
     html+=`</div>`;
   });
@@ -16735,7 +16739,7 @@ function renderNotifications(){
   el.querySelectorAll('[data-ivdet]').forEach(b=>b.addEventListener('click',()=>{
     const i=inv.find(x=>x.id===b.dataset.ivdet); if(!i) return;
     openSheet(i.kind==='league'?'League invite':'Ryder invite', (i.container_name||'').toUpperCase(),
-      `<p class="fine">${i.kind==='league'?'A season-long league.':'A Ryder event — two teams, vs-index duels.'} Invited by ${esc(i.inviter||'a golfer')}${i.starts_on?`. First tee ${i.starts_on}.`:''}</p>
+      `<p class="fine">${i.kind==='league'?'A season-long league.':'A Ryder — two teams, one clash each week.'} Invited by ${esc(i.inviter||'a golfer')}${i.starts_on?`. First tee ${i.starts_on}.`:''}</p>
        <div style="display:flex; gap:8px; margin-top:14px">
          <button class="btn" id="ivDetAcc" style="flex:1">Accept & join</button>
          <button class="btn dark" id="ivDetDec" style="flex:1">Decline</button>
@@ -16764,14 +16768,14 @@ function renderLeagueMeta(){
      target; short of it, every count reads as seats to fill, not a census */
   const min=STRUCT_MIN[state.structure]||4, short=Math.max(0,min-n);
   const si=$('#setupInviteSub');
-  if(si) si.textContent=(state.phase==='setup' ? 'JOINS OPEN AT THE LOCK · ' : `CODE ${L.code} · `)+(short
-    ? `${n} OF ${min} IN — ${short} SEAT${short===1?'':'S'} OPEN`
-    : `${n} JOINED — ENOUGH FOR THE DRAW`);
+  if(si) si.textContent=(state.phase==='setup' ? 'JOINS OPEN WHEN THE SEASON STARTS · ' : `CODE ${L.code} · `)+(short
+    ? `${n} IN · ${short} MORE TO TEE OFF`
+    : `${n} IN — THE LINK IS STILL LIVE`);
   const seated=new Set();
   squads.forEach(q=>(q.squad_members||[]).forEach(x=>seated.add(x.member_id)));
   const pool=members.filter(m=>!seated.has(m.id)).length;
   const dp=$('#draftPoolSub');
-  if(dp) dp.textContent=`${players(pool)} IN THE POOL`+(short?` · ${short} SEAT${short===1?'':'S'} OPEN`:'');
+  if(dp) dp.textContent=`${players(pool)} NOT ON A SQUAD YET`+(short?` · ${short} MORE TO TEE OFF`:'');
   /* S3-04: a member's tap opens a read-only draw view — say so on the button */
   const fsq=document.querySelector('#homeDraft [data-go="draft"]');
   if(fsq) fsq.textContent = (window.CS?.member?.role==='commissioner') ? 'Form the squads' : 'See the squads';
@@ -16808,7 +16812,7 @@ function renderLeagueMeta(){
       : 'Season live';
     $('#hhSpan').textContent = state.seasonStart
       ? seasonSpanText()
-      : 'Season dates lock with the bylaws';
+      : 'Season dates are set when the season starts';
     /* in setup the roster isn't loaded yet, so the Pro who just created the
        league would see "—" — fall back to their own name */
     const pro=members.find(m=>m.role==='commissioner');
@@ -17474,14 +17478,14 @@ const GUIDE = {
     <p class="fine" style="padding:0 0 12px"><b>You</b> is your card, your record and your trophies. The gear up top opens Card &amp; settings, which runs everything else.</p>`],
   games: ['Leagues vs events','THE LONG GAME · THE SHORT GAME', `
     <p class="fine" style="padding:0 0 10px"><b>A league is the long game.</b> A full season — weeks or months, squads or solo, every round you post counts toward a table, and the endgame settles it: a Cup Final or the points table.</p>
-    <p class="fine" style="padding:0 0 10px"><b>An event is the short game.</b> A weekend or a few weeks, its own little trophy: the Ryder (two teams, weekly duels), or a Major (one window, every card on one board, one name on the jug).</p>
+    <p class="fine" style="padding:0 0 10px"><b>An event is the short game.</b> A weekend or a few weeks, its own little trophy: the Ryder (two teams, one clash a week), or a Major (one window, every card on one board, one name on the jug).</p>
     <p class="fine" style="padding:0 0 12px">You can run both at once. An event stands alone, or attaches to a league.</p>`],
   posting: ['Posting a round','POST · BEFORE, DURING, AFTER', `
-    <p class="fine" style="padding:0 0 10px"><b>After you play:</b> front nine, back nine, pick the course — twenty seconds. It counts on your card and in every league you're in. <b>Scan the card</b> and the app reads it for you, the whole group at once.</p>
-    <p class="fine" style="padding:0 0 10px"><b>During:</b> Play now is the shared pencil — match play, Wolf, skins, the settle-up. Everyone's card posts at the end, attested by the group.</p>
+    <p class="fine" style="padding:0 0 10px"><b>After you play:</b> front nine, back nine, pick the course — twenty seconds. It posts to your rounds and in every league you're in. <b>Scan the card</b> and the app reads it for you, the whole group at once.</p>
+    <p class="fine" style="padding:0 0 10px"><b>During:</b> Play now is the shared pencil — match play, Wolf, skins, the settle-up. Everyone's card posts at the end, vouched by the group.</p>
     <p class="fine" style="padding:0 0 12px"><b>Before:</b> put a tee time on the sheet. Your buddies see it and tap in.</p>`],
   buddies: ['Buddies, invites and claims','THREE LINKS, THREE JOBS', `
-    <p class="fine" style="padding:0 0 10px"><b>A buddy</b> is mutual — open Your buddies on You to find golfers by name or @handle. Buddies see each other's rounds and share a tee sheet. Nothing to do with leagues or points.</p>
+    <p class="fine" style="padding:0 0 10px"><b>A buddy</b> is mutual — open Your buddies on You to find golfers by name or @handle. Buddies see each other's rounds and share a schedule. Nothing to do with leagues or points.</p>
     <p class="fine" style="padding:0 0 10px"><b>An invite link</b> carries a league's code — whoever opens it reviews the league and joins if they're in.</p>
     <p class="fine" style="padding:0 0 12px"><b>A claim link</b> hands one round to a guest you played with, so the score lands on their card. No league, no buddy — just the round.</p>`],
 };
@@ -17651,7 +17655,7 @@ function psRow(r, actionHTML){
      credential), the home course follows (it is the reason you might have met). */
   const idx  = (r.index_current!=null && typeof fmtIdx==='function') ? fmtIdx(r.index_current)
              : (r.index_current!=null ? String(r.index_current) : null);
-  const line2 = ['@'+esc(r.handle||'?'), idx ? esc(idx)+' idx' : null, r.city?esc(r.city):null]
+  const line2 = ['@'+esc(r.handle||'?'), idx ? esc(idx)+' number' : null, r.city?esc(r.city):null]
                   .filter(Boolean).join(' · ');
   const home = r.home_course ? `<small style="color:var(--dim)">${esc(r.home_course)}</small>` : '';
   return `<div class="prow"><span class="pmk" data-tc="${r.profile_id}">${window.face ? window.face(r.profile_id, r.marker, 36) : mkr(r.marker||'saguaro')}</span>
@@ -17810,12 +17814,12 @@ async function renderRivalries(){
   box.innerHTML=data.map(r=>{
     const cls=r.lead==='up'?'up':r.lead==='down'?'dn':'ev';
     const rec=`${r.wins}–${r.losses}${r.ties?'–'+r.ties:''}`;
-    /* the faceted record (batch-3 #18): clashes and Ryder duels side by side,
+    /* the faceted record (batch-3 #18): clashes and Ryder clashes side by side,
        never one blended number */
     const dTot=(r.duel_wins||0)+(r.duel_losses||0)+(r.duel_halves||0);
     const facets=[
       r.meetings?`${r.meetings} week${r.meetings===1?'':'s'} head-to-head`:null,
-      dTot?`Ryder duels ${r.duel_wins}–${r.duel_losses}${r.duel_halves?'–'+r.duel_halves:''}`:null,
+      dTot?`Ryder clashes ${r.duel_wins}–${r.duel_losses}${r.duel_halves?'–'+r.duel_halves:''}`:null,
     ].filter(Boolean).join(' · ');
     /* M3: a christened rivalry wears its name in gold, above the opponent */
     const named=r.rivalry_name?`<span class="eyebrow" style="color:var(--gold); display:block; margin-bottom:2px">${esc(r.rivalry_name.toUpperCase())}</span>`:'';
@@ -18173,7 +18177,7 @@ const CS_H2H_FACETS = [
   ['clashes',         'WEEKLY CLASHES'],
   ['played_together', 'PLAYED TOGETHER'],
   ['live_games',      'LIVE ROUNDS'],
-  ['duels',           'RYDER DUELS'],
+  ['duels',           'RYDER CLASHES'],
   ['callouts',        'CALLOUTS'],
 ];
 const CS_H2H_HEURISTIC = 'Same day, same course — we matched these; nobody confirmed them.';
@@ -18516,7 +18520,7 @@ async function openPerson(profileId){
       <button class="mini" type="button" data-len="week" disabled>One week</button>
       <button class="mini" type="button" data-len="season">A season</button>
     </div>
-    <p class="fine" style="padding-top:6px">A round on the tee sheet with them in it · a one-week head-to-head, which opens when callouts do · a season with them in it.</p>`;
+    <p class="fine" style="padding-top:6px">A round on the schedule with them in it · a one-week head-to-head, which opens when callouts do · a season with them in it.</p>`;
 
   /* the aside IS the record between the two of you - the desk's own shape */
   if(aside){
@@ -18749,7 +18753,7 @@ function openProfileHub(){
       <button class="mini" id="phChatTog">Chat pings: —</button>
       <button class="mini" id="phMailTog">Season email: —</button>
     </div>
-    <p class="fine" style="padding-left:0">Moments, reveals, and month closes always come through. Round posts and chat each have their own switch.</p>
+    <p class="fine" style="padding-left:0">Milestones, results and month closes always come through. Round posts and chat each have their own switch.</p>
 
     <div class="eyebrow" style="margin-top:20px">Appearance</div>
     <div style="display:flex; gap:6px;" id="phTheme">
@@ -18788,7 +18792,7 @@ function openProfileHub(){
       <div class="check tap" data-guide="buddies" style="cursor:pointer"><span class="num">◆</span><div class="tt"><b>Buddies, invites and claims</b><small>Three different links, three jobs</small></div><span class="fine" style="padding:0; color:var(--dim)">→</span></div>
       <div class="check tap" data-guide="scoring" style="cursor:pointer"><span class="num">◷</span><div class="tt"><b>How scoring works</b><small>How rounds become points</small></div><span class="fine" style="padding:0; color:var(--dim)">→</span></div>
     </div>
-    <p class="fine" style="padding-left:0; margin-top:6px; opacity:.55"><a href="/legal.html#privacy" target="_blank" rel="noopener" style="color:var(--mut)">Privacy</a> · <a href="/legal.html#terms" target="_blank" rel="noopener" style="color:var(--mut)">Terms</a> · <a href="/legal.html#pot" target="_blank" rel="noopener" style="color:var(--mut)">Prize pool</a></p>
+    <p class="fine" style="padding-left:0; margin-top:6px; opacity:.55"><a href="/legal.html#privacy" target="_blank" rel="noopener" style="color:var(--mut)">Privacy</a> · <a href="/legal.html#terms" target="_blank" rel="noopener" style="color:var(--mut)">Terms</a> · <a href="/legal.html#pot" target="_blank" rel="noopener" style="color:var(--mut)">The pot (legal)</a></p>
     </div>
   `);
   document.querySelectorAll('#phSeg [data-ph]').forEach(b => b.addEventListener('click', () => {
@@ -19209,7 +19213,7 @@ async function openLockShare(nextPhase, sent){
         : 'Season is live — every golfer you add posts from day one.')
     : need ? `${n} in so far — ${need} more fills ${struct}, and ${forms} when the crew is in.`
            : `${n} in — enough for ${struct}. ${state.draftType==='assign'?'Seat the squads':'Run the draw'} whenever you're ready.`;
-  openSheet('Bylaws locked ⛳', 'One link fills the league', `
+  openSheet('Season started ⛳', 'One link fills the league', `
     <p class="fine" style="padding:0 0 10px">${esc(line)}${sent ? ` (${sent} already invited.)` : ''}</p>
     <div class="card" style="text-align:left; padding:12px; margin-bottom:12px">
       <div class="fine" style="padding:0 0 6px">Anyone who opens this reviews <b>${esc(L.name)}</b>, then joins.</div>
@@ -19447,7 +19451,7 @@ function applyBylaws(b){
   state.payout    = [b.payout_champ ?? 60, b.payout_runnerup ?? 25, b.payout_king ?? 15];
   state.finish    = b.finish || 'cup_final';   /* migration 008: the endgame dial */
   /* setup-QA S4-02: draftType was write-only global state — set by the wizard
-     dial, never read back, so every league opened as blind draw (and held the
+     dial, never read back, so every league opened as random draw (and held the
      LAST league's formation across a switch). Rehydrate per league. */
   state.draftType = ['random','assign','snake','live'].includes(b.draft_type)
                     ? b.draft_type : 'random';
@@ -19575,8 +19579,8 @@ async function enterLeague(m, nav=true){
     const pe = document.querySelector('#view-post .eyebrow');
     /* setup-QA S6-03: no minted number = say "building", not a flat 18.0 */
     if(pe) pe.textContent = CS.profile.index_current==null
-      ? 'Post a round · your index builds at 3 rounds'
-      : 'Post a round · your index ' + state.myIndex.toFixed(1);
+      ? 'Add my round · your number builds at 3 rounds'
+      : 'Add my round · your number ' + state.myIndex.toFixed(1);
   }
   try { await loadLeagueData(); } catch(e){ bootTrace('league data: '+(e.message||e)); }
   /* resume an in-progress live round dropped by a refresh — runs after
@@ -19932,7 +19936,7 @@ async function leaveSeasonNow(){
     if(CS.member) CS.member.left_at = (data && data.left_at) || new Date().toISOString();
     toast(data && data.already
       ? window.CS_LEAVE.left
-      : `You left ${(data && data.league) || CS.league.name || 'the season'}. Your rounds stay on your card.`);
+      : `You left ${(data && data.league) || CS.league.name || 'the season'}. Your rounds stay where they are.`);
     renderLeaveSeason();
     await loadStandingsAndFeed();
   } catch(e){ toast(humanError(e, 'Could not leave the season.')); }
@@ -19997,7 +20001,7 @@ function renderScenarioLine(){
 }
 window.renderScenarioLine = renderScenarioLine;
 
-/* ---------- squad formation (Blind draw / Assign) ---------- */
+/* ---------- squad formation (Random draw / Assign) ---------- */
 function unassignedMembers(){
   const seated = new Set();
   CS.squads.forEach(q => (q.squad_members||[]).forEach(x => seated.add(x.member_id)));
@@ -20009,7 +20013,7 @@ function renderFormation(){
   const pool = unassignedMembers();
   const eb = $('#draftEyebrow');
   if(eb) eb.textContent = state.draftType === 'assign'
-    ? 'Form squads \u00b7 Pro assign' : 'Form squads \u00b7 blind draw';
+    ? 'Form squads \u00b7 The Pro picks' : 'Form squads \u00b7 random draw';
   $('#draftAdmin').style.display = 'none';
   const lock = $('#draftLock'); if(lock) lock.style.display = 'none';
   /* E5: the demo's "Restart" toy resets local draft state — never show it to
@@ -20929,7 +20933,7 @@ $('#lockBtn').addEventListener('click', async () => {
     try {
       await loadMemberships();
       switchView('home');
-      toast('Bylaws locked');
+      toast('Season started');
       /* growth (2026-07-17): creation ends on the SHARE moment, not a Done
          toast — a league is only real once the crew is in it */
       await openLockShare(locked.nextPhase, locked.emails || 0);
@@ -21005,7 +21009,7 @@ document.getElementById('wizCancel')?.addEventListener('click', async () => {
 function openEventPicker(){
   openSheet('Start an event', 'Short form · its own little trophy', `
     <div class="check tap" data-evstyle="ryder" style="cursor:pointer; border-color:var(--pos)">
-      <span class="num">⚔️</span><div class="tt"><b>The Ryder</b><small>Two teams trade weekly duels against their own numbers — first to the clinch takes it</small></div>
+      <span class="num">⚔️</span><div class="tt"><b>The Ryder</b><small>Two teams. Each week you play one opponent, scored against your own number. First team past halfway wins</small></div>
       <span class="fine" style="padding:0; color:var(--pos)">LIVE</span></div>
     <div class="check tap" data-evstyle="bracket" style="cursor:pointer">
       <span class="num">🥊</span><div class="tt"><b>Bracket</b><small>Seeded knockout — lose and you're out, last golfer standing</small></div>
@@ -21013,7 +21017,7 @@ function openEventPicker(){
     <div class="check tap" data-evstyle="major" style="cursor:pointer; border-color:var(--pos)">
       <span class="num">🏆</span><div class="tt"><b>A Major</b><small>A championship window — the best card takes the jug</small></div>
       <span class="fine" style="padding:0; color:var(--pos)">LIVE</span></div>
-    <p class="fine">Every event mints a trophy for your display case.</p>
+    <p class="fine">Every one of these awards a trophy.</p>
   `);
   $('#shBody').querySelectorAll('[data-evstyle]').forEach(b => b.addEventListener('click', () => {
     const s = b.dataset.evstyle;
@@ -21513,7 +21517,7 @@ window.enterLeagueById = async (id, nav=true) => {
    Two tiers (pilot feedback, 2026-07-17): a league that's still just you gets a
    plain confirm — the typed-name ritual made the create-and-scrap loop feel
    like defusing a bomb. Once OTHER golfers have joined, the heavy gate stays:
-   deleting takes their seat, their board, their pot sheet. The RPC re-validates
+   deleting takes their seat, their board, their pot. The RPC re-validates
    phase + first tee server-side either way; rounds are never touched. */
 /* ---------- D71: league cancellation with consent ---------- */
 function renderCancelBanner(){
@@ -21536,7 +21540,7 @@ function renderCancelBanner(){
   box.style.display='';
   box.innerHTML = `<div class="card" style="border-color:var(--neg); text-align:left">
     <b>The Pro wants to cancel ${esc(CS.league.name)}.</b>
-    <div class="fine" style="padding-top:4px">${refund}The season won't be played; nobody won and every buy-in comes back. Your rounds stay on your card.</div>
+    <div class="fine" style="padding-top:4px">${refund}The season won't be played; nobody won and every buy-in comes back. Your rounds stay where they are.</div>
     <div style="margin-top:10px; display:flex; gap:8px; flex-wrap:wrap">${actions}</div></div>`;
   box.querySelector('#cxYes')?.addEventListener('click', ()=>cancelVote(true));
   box.querySelector('#cxNo')?.addEventListener('click', ()=>cancelVote(false));
@@ -21622,7 +21626,7 @@ document.getElementById('hhDelete')?.addEventListener('click', async e => {
       <button class="btn dark" id="delNo" style="margin-top:8px">Keep it</button>`);
   } else {
     openSheet('Delete '+nm+'?', 'THIS TAKES EVERYONE’S SEAT', `
-      <p class="fine" style="padding-top:0">This deletes ${esc(nm)} for everyone in it: members, board, pot sheet, squads. Rounds stay on every golfer's profile. Type the league name to confirm.</p>
+      <p class="fine" style="padding-top:0">This deletes ${esc(nm)} for everyone in it: members, board, pot, squads. Rounds stay on every golfer's profile. Type the league name to confirm.</p>
       <input class="f" id="delName" placeholder="${esc(nm)}" autocomplete="off" style="font-family:var(--sans)">
       <button class="btn" id="delGo" style="margin-top:10px;background:var(--neg)">Delete for everyone</button>
       <button class="btn dark" id="delNo" style="margin-top:8px">Keep it</button>`);
@@ -21696,9 +21700,9 @@ function rivalryTag(pid){
         : `even ${r.wins}–${r.losses}`;
   } else {
     const dw = r.duel_wins||0, dl = r.duel_losses||0;
-    if(dw||dl) rec = dw>dl ? `you lead duels ${dw}–${dl}`
-                    : dw<dl ? `${first} leads duels ${dl}–${dw}`
-                    : `even in duels ${dw}–${dl}`;
+    if(dw||dl) rec = dw>dl ? `you lead clashes ${dw}–${dl}`
+                    : dw<dl ? `${first} leads clashes ${dl}–${dw}`
+                    : `even in clashes ${dw}–${dl}`;
   }
   if(!rec) return null;
   const nm = r.rivalry_name ? `“${esc(r.rivalry_name)}” · ` : '';
@@ -21725,7 +21729,7 @@ function renderWatchList(){
     const d = localDate(sr.play_on);
     const n = Math.round((d - new Date().setHours(0,0,0,0))/864e5);
     const when = n===0?'TODAY':n===1?'TOMORROW':`${DOW[d.getDay()].toUpperCase()} ${MOS[d.getMonth()].toUpperCase()} ${d.getDate()}`;
-    const rel = sr.is_friend ? 'BUDDY' : 'LEAGUE MATE';
+    const rel = sr.is_friend ? 'BUDDY' : 'IN YOUR SEASONS';
     const bits = [ when, sr.course_label?esc(sr.course_label.toUpperCase()):null,
       sr.tee_time?`<span style="color:var(--gold)">${fmtTee(sr.tee_time)}</span>`:null,
       rivalryTag(sr.profile_id),   /* M4/#7: the head-to-head, before the round */
@@ -21735,7 +21739,7 @@ function renderWatchList(){
       <span class="num">${window.mkr?.(sr.marker||'saguaro')||'⛳'}</span>
       <div class="tt"><b>${esc(sr.display_name)} <span class="fine" style="padding:0; color:var(--dim); letter-spacing:.06em">${rel}</span></b>
       <small>${bits}</small></div>
-      ${sr.tagged_me ? `<span class="fine" style="padding:0; color:var(--gold); flex:none">ON THE TEE SHEET</span>`
+      ${sr.tagged_me ? `<span class="fine" style="padding:0; color:var(--gold); flex:none">ON THE SCHEDULE</span>`
         : `<button class="mini" data-imin="${i}" style="flex:none">I’m in</button>`}
     </div>`;
   }).join('');
@@ -21872,32 +21876,32 @@ async function openRyderSetup(){
   /* run it back (D62): the rematch tap stashes a prefill; consumed once */
   const pf = window.RS_PREFILL || null; window.RS_PREFILL = null;
   const leagues = (CS.memberships||[]).map(m=>`<option value="${m.league.id}">${esc(m.league.name)}</option>`).join('');
-  openSheet('Start a Ryder', 'Two teams · vs-index duels · first to the clinch', `
-    <label class="f" for="rsName">Event name</label>
+  openSheet('Start a Ryder', 'Two teams · one clash a week · first past halfway', `
+    <label class="f" for="rsName">Name it</label>
     <input class="f" id="rsName" placeholder="The Grudge Match" autocomplete="off" style="font-family:var(--sans)">
     <div class="frow" style="margin-top:10px">
       <div><label class="f" for="rsA">Team A</label><input class="f" id="rsA" placeholder="Red" autocomplete="off" style="font-family:var(--sans)"></div>
       <div><label class="f" for="rsB">Team B</label><input class="f" id="rsB" placeholder="Blue" autocomplete="off" style="font-family:var(--sans)"></div>
     </div>
-    <label class="f" style="margin-top:10px; display:block">Sessions</label>
+    <label class="f" style="margin-top:10px; display:block">Weeks</label>
     <div class="seg" id="rsSess">${[3,4,5,6].map(n=>`<button data-n="${n}" class="${n===3?'on':''}">${n}</button>`).join('')}</div>
     <label class="f" style="margin-top:10px; display:block">Cadence</label>
     <div class="seg" id="rsCad"><button data-w="1" class="on">Weekly</button><button data-w="2">Every 2 wks</button></div>
     <label class="f" style="margin-top:10px" for="rsStart">First tee (a Sunday)</label>
     <input class="f" id="rsStart" type="date" value="${nextSundayISO()}">
-    <label class="f" style="margin-top:10px" for="rsLeague">Attach to a league <span style="color:var(--dim)">(optional)</span></label>
-    <select class="f" id="rsLeague" style="font-family:var(--sans)"><option value="">Standalone — invite anyone</option>${leagues}</select>
+    <label class="f" style="margin-top:10px" for="rsLeague">Attach to a season <span style="color:var(--dim)">(optional)</span></label>
+    <select class="f" id="rsLeague" style="font-family:var(--sans)"><option value="">On its own — invite anyone</option>${leagues}</select>
     <label class="f" style="margin-top:12px; display:block">Add players</label>
     <button class="btn dark" id="rsAdd" style="margin-top:6px">Search the app or tap a buddy</button>
     <div id="rsPicked" style="margin-top:8px"></div>
     <div class="card" style="margin-top:14px; padding:11px 13px; background:var(--bg2)">
       <div class="fine" style="padding:0; line-height:1.65">
-        <b style="color:var(--ink)">How it plays.</b> Two teams, one <b>session</b> a week. Each session you're paired 1‑on‑1 with someone on the other team; your best round that week — scored by how far you beat <em>your own</em> index — faces theirs. <b>Win a duel = 1 point, tie = ½ each.</b> First team past half the points takes the cup. Points scale to team size: 6‑a‑side over 3 weeks is 18 points, first to 9½.
+        <b style="color:var(--ink)">How it plays.</b> Two teams, one <b>week</b> at a time. Each week you're paired 1‑on‑1 with someone on the other team; your best round that week — scored by how far you beat <em>your own</em> number — faces theirs. <b>A week won is 1 point, halved is ½ each.</b> First team past half the points takes the cup. Points scale to team size: 6‑a‑side over 3 weeks is 18 points, first to 9½.
       </div>
     </div>
     <div style="display:flex; gap:8px; margin-top:14px;">
       <button class="btn dark" id="rsCancel" style="flex:0 0 auto; width:auto; padding:0 16px">Cancel</button>
-      <button class="btn" id="rsGo" style="flex:1">Create the event</button>
+      <button class="btn" id="rsGo" style="flex:1">Start it</button>
     </div>
     <p class="fine">You captain Team A. Invited players get a notification to accept; you draw or assign teams from the scoreboard once they're in.</p>
   `);
@@ -21994,7 +21998,7 @@ async function openMajorSetup(){
       <div class="seg" id="mjSplit"><button data-s="places" class="on">Top 3 · 60/25/15</button><button data-s="wta">Winner takes all</button></div>
     </div>
     <label class="f" style="margin-top:10px" for="mjLeague">Run it with a league <span style="color:var(--dim)">(optional)</span></label>
-    <select class="f" id="mjLeague" style="font-family:var(--sans)"><option value="">Standalone — invite anyone</option>${leagues}</select>
+    <select class="f" id="mjLeague" style="font-family:var(--sans)"><option value="">On its own — invite anyone</option>${leagues}</select>
     <label class="f" style="margin-top:12px; display:block">Add golfers</label>
     <button class="btn dark" id="mjAdd" style="margin-top:6px">Search the app or tap a buddy</button>
     <div id="mjPicked" style="margin-top:8px"></div>
@@ -22278,7 +22282,7 @@ window.ryderPair = async (sessionId)=>{
 };
 window.ryderResolve = async (sessionId)=>{
   try{ const {error}=await sb.rpc('resolve_session',{p_session:sessionId}); if(error)throw error;
-    toast('Session scored'); await loadEvent(window.CS_EVENT.event.id); }catch(e){ toast(humanError(e, 'Score failed.')); }
+    toast('Week scored'); await loadEvent(window.CS_EVENT.event.id); }catch(e){ toast(humanError(e, 'Score failed.')); }
 };
 window.ryderNotify = async (eventId, on)=>{
   try{
@@ -22649,7 +22653,7 @@ function fmtTee(t){
 }
 window.fmtTee = fmtTee;
 async function openDeclareSheet(prefillISO, opts){
-  if(state.demo || !CS.user){ toast('Sign in to put rounds on the tee sheet'); return; }
+  if(state.demo || !CS.user){ toast('Sign in to put rounds on the schedule'); return; }
   opts = opts || {};
   let iso = (typeof prefillISO === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(prefillISO)) ? prefillISO : null;
   if(!iso){ const d = new Date(); d.setDate(d.getDate() + ((6 - d.getDay() + 7) % 7 || 7)); /* next Saturday */
@@ -22660,8 +22664,8 @@ async function openDeclareSheet(prefillISO, opts){
   const chips = tagChipHtml(cand, 'drtag');
   const teeVal = opts.tee ? String(opts.tee).slice(0,5) : '';
   const joining = opts.hostName ? `You're in — declaring your own round alongside ${esc(opts.hostName)}.` : '';
-  openSheet(opts.hostName ? 'Get in on it' : 'Put a round on the tee sheet',
-    opts.hostName ? 'YOUR ROUND POSTS AND SCORES ON ITS OWN — YOU BOTH SHOW ON THE DAY' : 'BUDDIES & LEAGUE MATES SEE IT THE MOMENT YOU POST',
+  openSheet(opts.hostName ? 'Get in on it' : 'Put a round on the schedule',
+    opts.hostName ? 'YOUR ROUND POSTS AND SCORES ON ITS OWN — YOU BOTH SHOW ON THE DAY' : 'BUDDIES AND YOUR SEASONS SEE IT THE MOMENT YOU POST',
     `${joining ? `<p class="fine" style="padding:0 0 10px; color:var(--gold)">${joining}</p>` : ''}
      <div style="display:flex; gap:10px; align-items:flex-end; flex-wrap:wrap">
        <div style="flex:1 1 150px; min-width:150px"><label class="f" for="drDate">Day</label><input class="f" id="drDate" type="date" value="${iso}"></div>
@@ -22674,7 +22678,7 @@ async function openDeclareSheet(prefillISO, opts){
      ${chips ? `<label class="f" style="margin-top:12px; display:block">Tag your group · <span id="drTagN">${tagged.size}</span> tagged</label>
      <div style="margin-top:8px">${chips}</div>`
      : `<p class="fine" style="padding-top:10px">No one to tag yet. Add buddies from the You tab, or invite the league.</p>`}
-     <button class="btn" id="drGo" style="margin-top:14px">${opts.hostName ? "I'm in" : 'On the tee sheet'}</button>
+     <button class="btn" id="drGo" style="margin-top:14px">${opts.hostName ? "I'm in" : 'On the schedule'}</button>
      <p class="fine" style="padding-top:8px">Posts to your leagues' boards: tagged golfers are named. Scratch it any time from the calendar.</p>`);
   bindTagChips('drtag', tagged);
   attachCourseSearch('#drCourse');   /* pick a real course -> stamps course_id -> course info + weather in the sheet */
@@ -22697,7 +22701,7 @@ async function openDeclareSheet(prefillISO, opts){
       if(error) throw error;
       closeSheet();
       toast(opts.hostName ? "You're in — it's on both boards"
-        : tagged.size ? 'On the tee sheet: your group is named on the boards' : 'On the tee sheet: the boards know');
+        : tagged.size ? 'On the schedule: your group is named on the boards' : 'On the schedule: the boards know');
       loadSchedule(); loadWatchList();
       if(CS.league) loadStandingsAndFeed();
     } catch(e){ toast(humanError(e)); btn.disabled = false; }
@@ -22801,7 +22805,7 @@ function renderRoundSheet(id, d){
     <div class="rs-cinput"><input class="f" id="rsComment" placeholder="Say something to the group…" maxlength="500"><button class="mini" id="rsSend">Send</button></div>
     ${manage}
   </div>`;
-  openSheet(dateTxt, tee?`${tee} tee`:'On the tee sheet', body);
+  openSheet(dateTxt, tee?`${tee} tee`:'On the schedule', body);
 
   loadRoundWeather(d);
   const reload=()=>openRoundSheet(id);
@@ -23088,7 +23092,7 @@ function openLeagueWelcome(name){
       const usd=Math.round(Number(b?.buyin_cents||0)/100);
       if(!usd) return;
       document.getElementById('shBody')?.insertAdjacentHTML('afterbegin',
-        `<p class="fine" style="padding:0 0 10px"><b style="color:var(--gold)">You're on the pot sheet: $${usd} buy-in.</b> The Pro tracks who's paid.</p>`);
+        `<p class="fine" style="padding:0 0 10px"><b style="color:var(--gold)">You're on the pot: $${usd} buy-in.</b> The Pro tracks who's paid.</p>`);
     }).catch(()=>{});
   }
 }
@@ -23206,14 +23210,14 @@ $('#wCreate').addEventListener('click', () => {
   const carried = window._runItBack?.name || '';
   openSheet('Name your league', 'The banner everything hangs under', `
     <input class="f" id="nlName" placeholder="The Big Slice, The Sunday Cup, Dew Sweepers…" autocomplete="off" maxlength="40" style="font-family:var(--sans); font-size:16px" value="${esc(carried)}">
-    <p class="fine" style="padding-top:8px">You can rename it any time before the bylaws lock.</p>
+    <p class="fine" style="padding-top:8px">You can rename it any time before the season starts.</p>
     <button class="btn" id="nlGo" style="margin-top:12px">Start the league</button>`);
   const go = async () => {
     const name = (document.getElementById('nlName')?.value || '').trim();
     if(!name){ toast('Give the league its name first'); document.getElementById('nlName')?.focus(); return; }
     const b = document.getElementById('nlGo'); if(b) b.disabled = true;
     bootTrace('creating league…');
-    resetWizard();   /* fresh slate — no leftover players/bylaws from a prior draft */
+    resetWizard();   /* scored fresh — no leftover players/bylaws from a prior draft */
     try {
       const nm = document.getElementById('setName'); if(nm) nm.value = name;   /* createLeague reads it */
       await createLeague();
@@ -23230,9 +23234,9 @@ $('#wCreate').addEventListener('click', () => {
           renderBylaws();
         }catch(_){}
         window._runItBack=null;
-        toast('Run it back — last season’s bylaws carried over. Review and lock.');
+        toast('Run it back — last season’s rules carried over. Review and start.');
       } else {
-        toast(name + ' is on the books — set the bylaws');
+        toast(name + ' is on the books — set the rules');
       }
     } catch(e){
       window._runItBack=null;
@@ -23771,9 +23775,9 @@ async function claimPendingRound(){
     }
   }
   try{ localStorage.removeItem('cs_claim'); }catch(_){}
-  if(data?.already) toast('That round is already on your card');
+  if(data?.already) toast('That round is already in your rounds');
   else if(data?.posted){
-    toast(`Claimed ✓ — your ${data.gross} is on your card`);
+    toast(`Claimed ✓ — your ${data.gross} is in your rounds`);
     if(window.loadCareer) loadCareer();
   }
   else toast('Round claimed — the card was incomplete, so nothing posted');
@@ -23850,7 +23854,7 @@ if(new URLSearchParams(window.location.search).has('exit')){
 let booting = false;
 /* bootResolved goes true once a boot cycle finishes (door shown OR league
    entered). It makes safeBoot idempotent: the initial-load triggers below
-   (INITIAL_SESSION + a belt-and-suspenders fallback) can both fire, but only
+   (INITIAL_WEEK + a belt-and-suspenders fallback) can both fire, but only
    the first actually boots — the rest no-op. A real later sign-in passes
    force=true to override it; SIGNED_OUT clears it. This is what stops the
    double "no session" boot without racing on a timer. */
@@ -23896,7 +23900,7 @@ async function safeBoot(force){
       const { data, error } = await sb.rpc('guest_live_state', { p_token: claimTok });
       if(!error && data?.round?.status==='live'
          && window.enterGuestLive(data, claimTok, { signedIn:true })){
-        toast('You’re on this tee sheet — score your own card');
+        toast('You’re in this live round — score your own card');
         return;
       }
     }catch(_){}
@@ -23944,7 +23948,7 @@ async function safeBoot(force){
   if(CS.user) claimPendingRound();
   if(CS.user) redeemPendingShares();
 }
-/* supabase-js emits INITIAL_SESSION once on load — that drives the first boot.
+/* supabase-js emits INITIAL_WEEK once on load — that drives the first boot.
    The old code ALSO called safeBoot() directly at the bottom of the script, so
    every load booted twice (the no-session path logged "no session" twice, and
    any stray async rejection in the boot chain surfaced as an unhandledrejection
@@ -23971,8 +23975,8 @@ document.addEventListener('visibilitychange', () => {
   loadInvites().then(() => window.renderNotifications && window.renderNotifications()).catch(() => {});
 });
 
-/* Fallback: if INITIAL_SESSION never arrives (auth transport stall), boot
-   anyway. Idempotent — if INITIAL_SESSION already booted, bootResolved makes
+/* Fallback: if INITIAL_WEEK never arrives (auth transport stall), boot
+   anyway. Idempotent — if INITIAL_WEEK already booted, bootResolved makes
    this a no-op, so a healthy load still boots exactly once regardless of timing. */
 setTimeout(() => safeBoot(false), 3000);
 </script>

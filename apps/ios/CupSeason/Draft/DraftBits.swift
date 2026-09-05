@@ -75,7 +75,7 @@ struct DraftSquadCard: View {
     .allowsHitTesting(selected)
     .accessibilityElement(children: .combine)
     .accessibilityLabel(a11yLabel)
-    .accessibilityHint(selected ? "Seats the selected player here" : "")
+    .accessibilityHint(selected ? "Puts the selected golfer on this squad" : "")
     .accessibilityRemoveTraits(selected ? [] : .isButton)
   }
 
@@ -165,7 +165,7 @@ struct DraftPoolChip: View {
   }
 }
 
-/// `.pool-row` — name · IDX · DRAFT / LOCKED.
+/// `.pool-row` — name · NUMBER · DRAFT / LOCKED.
 struct DraftPoolRow: View {
   @Environment(\.cs) private var cs
   let name: String
@@ -190,7 +190,7 @@ struct DraftPoolRow: View {
     }
     .buttonStyle(.plain)
     .accessibilityLabel("\(name), \(idx)")
-    .accessibilityHint(allowed ? "Drafts them" : "Not your pick")
+    .accessibilityHint(allowed ? "Puts them on a squad" : "Not your pick")
   }
 }
 

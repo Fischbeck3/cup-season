@@ -154,7 +154,7 @@ struct PlayingSoonSection: View {
         Text("ASKED").font(CSFont.label).tracking(0.8).foregroundStyle(cs.mut)
       } else {
         CSMini("Ask for a seat", busy: busy.contains(id)) { Task { await ask(p) } }
-          .accessibilityHint("Sends the host a request. It does not put you on the tee sheet.")
+          .accessibilityHint("Sends the host a request. It does not started a live round with you.")
       }
     }
   }

@@ -22,7 +22,7 @@ struct YouLinks {
   var addGhin: (() -> Void)? = nil
   /// The founder's "✏️ Field note" (`founder_note`); hidden when nil.
   var founderNote: (() -> Void)? = nil
-  /// D63 "Stage it" — the declare sheet for the given day, tagging one golfer;
+  /// D63 "Plan a round" — the declare sheet for the given day, tagging one golfer;
   /// hidden when nil.
   var stageRound: ((_ playOn: String, _ tag: UUID) -> Void)? = nil
 

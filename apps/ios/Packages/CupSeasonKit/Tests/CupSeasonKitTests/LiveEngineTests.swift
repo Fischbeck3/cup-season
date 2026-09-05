@@ -414,7 +414,7 @@ private func round(_ names: [String], indices: [Double], scores: [[Int?]], game:
   }
 
   @Test func liveRows() {
-    #expect(LiveCopy.settleRows(pts: [1, -1], stake: 0, names: ["A", "B"]) == [.init(label: "BRAGGING POINTS — NO MONEY ON IT", amount: "$0")])
+    #expect(LiveCopy.settleRows(pts: [1, -1], stake: 0, names: ["A", "B"]) == [.init(label: "WOLF POINTS — NO MONEY ON IT", amount: "$0")])
     #expect(LiveCopy.settleRows(pts: [0, 0], stake: 5, names: ["A", "B"]) == [.init(label: "ALL SQUARE", amount: "$0")])
     #expect(LiveCopy.settleRows(pts: [1, -1], stake: 2.5, names: ["Ed", "Al"]) == [.init(label: "AL → ED", amount: "$2.5")])
   }
@@ -453,7 +453,7 @@ private func round(_ names: [String], indices: [Double], scores: [[Int?]], game:
     let s = round(["Ed", "Mitch", "Blake"], indices: [0, 0, 0], scores: [S(4, 3, 4), S(4, 4, 4), S(4, 4, 4)], game: .skins, stake: 5)
     let k = LiveCopy.skinsCard(s)!
     #expect(k.status == "HOLE 4 WORTH 2 SKINS" && k.hot && k.meta == "THRU 3 · LOW NET TAKES IT · $5/SKIN")
-    #expect(LiveCopy.scoreboard(s, presence: []).hero == "ED 2 · 2 RIDING")
+    #expect(LiveCopy.scoreboard(s, presence: []).hero == "ED 2 · 2 CARRIED OVER")
     var w = round(["Chuck", "Gary", "Jerecho", "Logan"], indices: [0, 0, 0, 0], scores: [S(4), S(4), S(3), S(4)], game: .wolf, stake: 2, wolfOrder: [2, 0, 3, 1])
     w.hole = 16
     let wc = LiveCopy.wolfCard(w)!
@@ -484,7 +484,7 @@ private func round(_ names: [String], indices: [Double], scores: [[Int?]], game:
     #expect(mine.kicker == "Continue your round" && mine.line == "PAPAGO · STROKE PLAY" && mine.meta == "HOLE 2" && mine.go == "→")
     s.mine = false; s.host = "Marcus Webb"
     let inv = LiveCopy.resumeBanner(s)!
-    #expect(inv.invite && inv.kicker == "Marcus put you on the tee sheet" && inv.meta == "JUST TEED OFF · NOTHING SCORED YET" && inv.go == "JOIN")
+    #expect(inv.invite && inv.kicker == "Marcus started a live round with you" && inv.meta == "JUST TEED OFF · NOTHING SCORED YET" && inv.go == "JOIN")
     s.scores[1][0] = 4
     #expect(LiveCopy.resumeBanner(s)!.meta == "HOLE 2 · THRU 1")
   }
@@ -495,7 +495,7 @@ private func round(_ names: [String], indices: [Double], scores: [[Int?]], game:
     let f = LiveCopy.finishSheet(s)
     #expect(f.primary == "Post 1 card to the season")
     #expect(f.warning == "Ed — missing holes 17, 18. That card won’t post — go back and fill in, or finish without.")
-    #expect(f.intro == "Complete cards post to the season, attested by the group; 1 guest gets a recap to claim. A partial card is skipped, not lost.")
+    #expect(f.intro == "Complete cards post to the season, vouched by the group; 1 guest gets a recap to claim. A partial card is skipped, not lost.")
     // a clean front nine on a nine is a complete card; a nine's back holes are never "missing"
     var nine = round(["A"], indices: [0], scores: [S(Array(repeating: 4, count: 9))], game: .score, holes: 9)
     #expect(LiveCopy.finishSheet(nine).primary == "Post 1 card to the season")
@@ -673,7 +673,7 @@ private func round(_ names: [String], indices: [Double], scores: [[Int?]], game:
     #expect(s.players[0].me && s.players[0].locked && s.players[1].i == 18)
     #expect(s.teams == [[0], [1]] && s.stake == 5)
     #expect(s.course.rating == 35.1 && s.course.siEst)
-    #expect(LiveCopy.resumeBanner(s)?.kicker == "Host put you on the tee sheet")
+    #expect(LiveCopy.resumeBanner(s)?.kicker == "Host started a live round with you")
     let mine = LiveRehydrator.fromServerRow(row(me: me, starter: me), myPid: me)!
     #expect(mine.mine)
   }

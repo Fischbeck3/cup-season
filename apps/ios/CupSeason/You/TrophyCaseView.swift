@@ -118,7 +118,7 @@ struct TrophyTileView: View {
 private func row<T: Decodable>(_ json: String) -> T { try! JSONDecoder().decode(T.self, from: Data(json.utf8)) }
 private func ach(_ json: String) -> Achievement { row(json) }
 
-#Preview("A case with hardware") {
+#Preview("A case with trophies") {
   TrophyCaseView(
     trophies: [row(#"{"kind":"league","title":"The Sunday Cup","subtitle":"Champion","placement":"winner","season_year":2026}"#)],
     achievements: [ach(#"{"kind":"sub_80","label":"Broke 80","earned_on":"2026-06-14","meta":{"gross":79},"round_id":"5ED6E3F8-0B1E-4E1D-9E8B-0C4B6C4C3E11"}"#),

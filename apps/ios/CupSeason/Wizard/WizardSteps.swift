@@ -282,10 +282,10 @@ struct WizardDialsPane: View {
       CSFine(model.dials.payNote)
 
       WizardSetRow(lab: WizardCopy.countingCap.0, small: WizardCopy.countingCap.1, val: model.dials.capText,
-                   downLabel: "Lower counting cap", upLabel: "Raise counting cap", help: ("cap", WizardCopy.capHelp),
+                   downLabel: "Fewer rounds count", upLabel: "More rounds count", help: ("cap", WizardCopy.capHelp),
                    down: { model.dials.stepCap(-1) }, up: { model.dials.stepCap(1) })
       WizardSetRow(lab: WizardCopy.floorRow.0, small: WizardCopy.floorRow.1, val: model.dials.floorText,
-                   downLabel: "Lower floor", upLabel: "Raise floor", help: ("floor", WizardCopy.floorHelp),
+                   downLabel: "Lower the minimum", upLabel: "Raise the minimum", help: ("floor", WizardCopy.floorHelp),
                    down: { model.dials.stepFloor(-1) }, up: { model.dials.stepFloor(1) })
     }
     .transition(.opacity.combined(with: .move(edge: .top)))

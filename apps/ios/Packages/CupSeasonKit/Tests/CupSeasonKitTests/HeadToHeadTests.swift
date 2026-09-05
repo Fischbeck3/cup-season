@@ -59,7 +59,7 @@ private let full = """
                          "source": "live_rounds" },
     "duels":           { "wins": 0, "losses": 1, "ties": 0, "meetings": 1, "unsettled": 0,
                          "confirmed": 1, "unconfirmed": 0, "heuristic": 0,
-                         "basis": "a Ryder duel, settled", "source": "event_duels" },
+                         "basis": "a Ryder clash, settled", "source": "event_duels" },
     "callouts":        { "wins": 0, "losses": 0, "ties": 0, "meetings": 1, "unsettled": 1,
                          "confirmed": 1, "unconfirmed": 0, "heuristic": 0,
                          "basis": "a head-to-head with a field of two", "source": "event_duels" }

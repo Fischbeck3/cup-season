@@ -55,7 +55,7 @@ public enum CompeteRoot {
   /// object is, even though the tab does not).
   public enum Head {
     public static let seasons = "YOUR SEASONS"
-    public static let moments = "YOUR MOMENTS"
+    public static let moments = "MATCHES & WEEKENDS"
     public static let finished = "FINISHED"
   }
 

@@ -195,7 +195,7 @@ final class LiveRoundStore {
     // advertising (the foursome is set — there is nobody left to ask).
     guard nearbyOn, let me = myPid, !state.active, !nearby.running else {
       // D173 · say WHY it did not start. Three attempts to fix "nearby only
-      // works on the tee sheet" have each been a guess; this prints the actual
+      // works on the schedule" have each been a guess; this prints the actual
       // failing precondition to `devicectl … --console`.
       nearbyPrint("startNearby SKIPPED — on=\(nearbyOn) pid=\(myPid != nil) activeRound=\(state.active) alreadyRunning=\(nearby.running)")
       return
@@ -243,7 +243,7 @@ final class LiveRoundStore {
   func askFailed(_ who: UUID, _ reason: String) {
     guard asking.remove(who) != nil else { return }
     let name = roster.first(where: { $0.pid == who })?.n
-    toast("\(reason) — ask \(name ?? "them") to open the tee sheet")
+    toast("\(reason) — ask \(name ?? "them") to start the live round")
   }
 
   private func answered(_ who: UUID, _ ok: Bool) {

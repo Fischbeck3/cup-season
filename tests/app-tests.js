@@ -56,6 +56,35 @@
     t('bands: name and points agree across the range', bad, null);
   })();
 
+  /* R13 / D249 · ONE BAND TABLE, THREE RENDERERS. `band_name(p_pvi)` is the
+     server's producer (20260930090000), `CSBands.bandName` is the phone's and
+     `bandName()` is this one. The cases below are `tests/fixtures/bands.json`
+     — generated from the SQL — and the SAME eleven are asserted in
+     `BandParityTests.swift`; preflight check 28 re-derives them from the
+     migration on every push and fails if any of the three has moved. A drift
+     therefore fails loudly on whichever side moved, which is the only way
+     three renderings of one rule stay one rule. */
+  (function(){
+    const CASES = [
+      [9.0, 'Torched it', 12], [3.0, 'Torched it', 12],
+      [2.99, 'Beat your number', 9], [1.0, 'Beat your number', 9],
+      [0.99, 'Played to it', 7], [0.0, 'Played to it', 7], [-0.99, 'Played to it', 7],
+      [-1.0, 'A little loose', 6], [-3.0, 'A little loose', 6],
+      [-3.01, 'Posted anyway', 5], [-12.0, 'Posted anyway', 5],
+    ];
+    let badBand = null, badPts = null;
+    for(const [pvi, band, pts] of CASES){
+      if(bandName(pvi) !== band && badBand === null) badBand = pvi + ' → ' + bandName(pvi);
+      if(pointsFor(pvi)[0] !== pts && badPts === null) badPts = pvi + ' → ' + pointsFor(pvi)[0];
+    }
+    t('R13: every case in the SQL fixture names the same band here', badBand, null);
+    t('R13: and pays the same points', badPts, null);
+    t('R13: the receipt prefers the server band when the payload carries one',
+      (function(){ const r = { band:'Beat your number' }; return r.band || bandName(-4); })(), 'Beat your number');
+    t('R13: and falls back to this client when it does not',
+      (function(){ const r = {}; return r.band || bandName(-4); })(), 'Posted anyway');
+  })();
+
   /* fmtIdx — plus-handicaps render golf-style (never minus) */
   t('fmtIdx: plus index renders +', fmtIdx(-1.7), '+1.7');
   t('fmtIdx: normal index plain', fmtIdx(12.4), '12.4');
@@ -222,9 +251,9 @@
     t('D205: solo works at any size (2+)', /works at any size \(2\+\)/.test(STRUCT_NOTES.solo), true);
     const wasStruct = state.structure;
     state.structure = 'solo';
-    t('D205: a solo league has no squads to form', lockButtonText(), 'Lock the bylaws');
+    t('D205: a solo league has no squads to form', lockButtonText(), 'Start the season');
     state.structure = 'squads2';
-    t('D205: squads still form at the lock', lockButtonText(), 'Lock the bylaws & form the squads');
+    t('D205: squads still form at the lock', lockButtonText(), 'Start the season & form the squads');
     state.structure = wasStruct;
   })();
 
@@ -359,7 +388,7 @@
   /* ══ M-15 · verification is a norm the league holds, not a filter ═════════
      "GHIN-verified + attested" was a claim the app cannot make. */
   (function(){
-    t('M-15: the bylaws row names the norm', VERIF[2], 'Attested where you can; the Pro rules on the rest');
+    t('M-15: the bylaws row names the norm', VERIF[2], 'Vouched by the group where you can; the Pro rules on the rest');
     t('M-15: Standard asks, it does not verify', VERIF[1], "Post what you'd post to GHIN");
     const cards = document.querySelector('#presetSummary')?.parentElement?.textContent || '';
     t('M-15: the footnote sits under the preset cards',
@@ -415,7 +444,9 @@
     let fx = null, status = null;
     try {
       const x = new XMLHttpRequest();
-      x.open('GET', 'tests/fixtures/endgame.json', false);
+      /* cache-busted: a stale HTTP copy of the fixture makes this suite
+         report a drift that is not there (measured 2026-09-05, wave 9) */
+      x.open('GET', 'tests/fixtures/endgame.json?v=' + Date.now(), false);
       x.send(null);
       status = x.status;
       if (x.status === 200) fx = JSON.parse(x.responseText);
@@ -767,7 +798,7 @@
     /* legacy routes keep working — an old link must not blank the page */
     t('D222: the old People route lands on Golfers', csViewFor('people'), 'golfers');
     t('D222: the old Clubhouse route lands on Compete', csViewFor('clubhouse'), 'compete');
-    t('D93: the old calendar route still lands on the tee sheet', csViewFor('cal'), 'schedule');
+    t('D93: the old calendar route still lands on the schedule', csViewFor('cal'), 'schedule');
     t('the pot is a pane of the season room', csViewFor('pot'), 'hub');
   })();
 
@@ -1016,7 +1047,7 @@
           played_together:{ wins:1, losses:2, ties:0, meetings:4, unsettled:1, confirmed:1, unconfirmed:1, heuristic:2,
                             basis:'the better card against your own number on a day you were both out', source:'round_players' },
           live_games:{ wins:1, losses:0, ties:0, meetings:1, basis:'the better card against your own number in a round you both scored live', source:'live_rounds' },
-          duels:{ wins:0, losses:1, ties:0, meetings:1, basis:'a Ryder duel, settled', source:'event_duels' },
+          duels:{ wins:0, losses:1, ties:0, meetings:1, basis:'a Ryder clash, settled', source:'event_duels' },
           callouts:{ wins:0, losses:0, ties:0, meetings:1, unsettled:1, basis:'a head-to-head with a field of two', source:'event_duels' },
         },
       });
@@ -1269,7 +1300,7 @@
       ['who', 'Casey Nguyen runs the season (the Pro). Marcus, Dev, Tash, Ravi, Jules and 2 more are in.']);
     t('D234: the clock reads the same on both clients',
       F(full).length, 'Thirteen weeks from Sat Sep 12.');
-    t('R9: the counting cap makes "best three a month count" sayable',
+    t('R9: the rounds that count makes "best three a month count" sayable',
       F(full).rules, 'Standard rules: honest scores, best three a month count, two a month keeps you in.');
     t('D126: the ending is a sentence, never a dial name',
       [F(full).ending, F({ name: 'x', buyin_cents: 0, finish: 'points_table' }).ending],
@@ -1395,7 +1426,7 @@
     t('D243: a member asks, and the Pro is named', csRunItBackTitle(false, 'Galen'), 'Ask Galen to run it back');
     t('D243: with no name it is still a door', csRunItBackTitle(false, null), 'Ask the Pro to run it back');
     t('D243: the Pro\'s sub promises the roster',
-      csRunItBackSub(true), 'Same crew, same bylaws, fresh table. Nobody re-types a code.');
+      csRunItBackSub(true), 'Same crew, same rules, fresh table. Nobody re-types a code.');
     t('D243: the outcome names the season and the crew',
       csRunItBackDone(2, 6, false), 'Season 2 is on. 6 of you are on it.');
     t('L-12: a changed stake fires the covenant again, and says so',

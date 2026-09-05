@@ -4,7 +4,7 @@
 // A posted round ends in ceremony, not a toast: dusk-locked in every theme,
 // `COURSE · SAT AUG 22` in the eyebrow, the serif gross rolling into the cup,
 // the band line from the one phrase producer, and the points line in
-// champagne ONLY when league points exist — "COUNTS ON YOUR CARD" otherwise.
+// champagne ONLY when league points exist — "COUNTS TOWARD YOUR NUMBER" otherwise.
 // The stagger is the web's (band at 2.03s, points at 2.21s, the buttons at
 // 2.55s); reduced motion lands on the rest frame at once. The thock —
 // `.success` through `sensoryFeedback` — fires as the screen appears

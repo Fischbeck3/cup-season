@@ -272,7 +272,7 @@ import Foundation
     let solo = PostCeremony(course: "Papago", date: "2026-08-22", gross: 84, vs: 2.4, points: 9, squad: nil, inLeague: true, name: "J", marker: "saguaro", leagueName: nil)
     #expect(solo.pointsLine == "+9 PTS · COUNTS THIS SEASON")
     let card = PostCeremony(course: "", date: "2026-08-22", gross: 84, vs: -71.6, points: nil, squad: nil, inLeague: false, name: "J", marker: "saguaro", leagueName: nil)
-    #expect(!card.earned && card.pointsLine == "COUNTS ON YOUR CARD" && card.band == "" && card.eyebrow == "A ROUND · SAT AUG 22")
+    #expect(!card.earned && card.pointsLine == "COUNTS TOWARD YOUR NUMBER" && card.band == "" && card.eyebrow == "A ROUND · SAT AUG 22")
 
     // D122 · the audit's exact scenario: a league whose first tee is a week
     // out. The golfer was promised league points and shown zero with nothing
@@ -324,8 +324,8 @@ import Foundation
     let rows = e.rows(cap: 4, firstEver: false)
     #expect(rows.count == 4)
     #expect(rows[0] == .line(icon: "⛳", title: "Beat your number · 9 pts", sub: "beat your number by 2.4 · counts #2 this month"))
-    #expect(rows[1] == .line(icon: "🏆", title: "You broke 90 for the first time", sub: "Pinned to your card"))
-    #expect(rows[2] == .line(icon: "✦", title: "A thing", sub: "Pinned to your card"))
+    #expect(rows[1] == .line(icon: "🏆", title: "You broke 90 for the first time", sub: "In your trophy case"))
+    #expect(rows[2] == .line(icon: "✦", title: "A thing", sub: "In your trophy case"))
     #expect(rows[3] == .line(icon: "⚔️", title: "You lead Ed 3–1 all-time · 1 halved", sub: "“The Feud” · your clash this week counted"))
   }
 

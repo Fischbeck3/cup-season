@@ -228,7 +228,7 @@ public enum LiveRehydrator {
       local.hole = max(0, min(local.liveHoles - 1, local.hole))
       local.ensureClocks()
       out.state = local
-      out.toast = local.mine ? "Continue your round — tap the banner on Home" : "You’re on a live tee sheet — tap the banner on Home"
+      out.toast = local.mine ? "Continue your round — tap the banner on Home" : "You’re in a live round — tap the banner on Home"
       resumed = true
     }
 
@@ -272,7 +272,7 @@ public enum LiveRehydrator {
       await disk.clearSnapshots(keep: lr)
       out.state = s
       out.toast = !s.mine
-        ? (s.host.map { "\(LiveFmt.fn1($0)) put you on the tee sheet — tap the banner on Home" } ?? "You’re on a live tee sheet — tap the banner on Home")
+        ? (s.host.map { "\(LiveFmt.fn1($0)) started a live round with you — tap the banner on Home" } ?? "You’re in a live round — tap the banner on Home")
         : "Continue your round — tap the banner on Home"
     } else if mine == nil {
       await disk.clearSnapshots(keep: nil)

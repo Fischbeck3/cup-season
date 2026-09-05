@@ -1,0 +1,19 @@
+{
+  "_": "R13 / D249 · the band table, GENERATED FROM THE SQL and asserted against both clients. Preflight check 28 re-derives `cases` from supabase/migrations/20260930090000_one_band_name.sql on every push and fails if this file, CSBands.bandName, or index.html's bandName() disagrees with it. Edit the migration, not this file.",
+  "source": "supabase/migrations/20260930090000_one_band_name.sql",
+  "producers": ["public.band_name(numeric)", "CSBands.bandName(_:)", "index.html bandName()"],
+  "cases": [
+    { "pvi": 9.0,   "band": "Torched it",       "points": 12 },
+    { "pvi": 3.0,   "band": "Torched it",       "points": 12 },
+    { "pvi": 2.99,  "band": "Beat your number", "points": 9 },
+    { "pvi": 1.0,   "band": "Beat your number", "points": 9 },
+    { "pvi": 0.99,  "band": "Played to it",     "points": 7 },
+    { "pvi": 0.0,   "band": "Played to it",     "points": 7 },
+    { "pvi": -0.99, "band": "Played to it",     "points": 7 },
+    { "pvi": -1.0,  "band": "A little loose",   "points": 6 },
+    { "pvi": -1.01, "band": "A little loose",   "points": 6 },
+    { "pvi": -3.0,  "band": "A little loose",   "points": 6 },
+    { "pvi": -3.01, "band": "Posted anyway",    "points": 5 },
+    { "pvi": -12.0, "band": "Posted anyway",    "points": 5 }
+  ]
+}

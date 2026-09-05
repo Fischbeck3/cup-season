@@ -210,7 +210,7 @@ struct SeasonPage: View {
         // D105: the race leads while its window is open; the season table is the seed beneath it
         CSSectionHead("The Cup Final").id(SeasonPane.table.anchor)
         CupFinalRaceView()
-        CSSectionHead("The regular season — final")
+        CSSectionHead("The weeks before the Final")
       } else {
         CSSectionHead("The table").id(SeasonPane.table.anchor)
       }

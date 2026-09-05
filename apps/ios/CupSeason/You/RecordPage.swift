@@ -197,7 +197,7 @@ final class RecordModel {
   static let emptyRoot = EmptyRoot(
     head: "Nothing on the record yet.",
     fact: nil,
-    sub: "Post a round you already played and it starts here — the courses, the numbers, and every season you go on to play.",
+    sub: "Add a round you already played and it starts here — the courses, the numbers, and every season you go on to play.",
     doors: [.addMyRound])
 
   /// True only once every read has ANSWERED and each one answered with

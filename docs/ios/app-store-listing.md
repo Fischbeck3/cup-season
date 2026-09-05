@@ -15,7 +15,7 @@ description, §4's keywords and §8's What's New are the changed fields. **§5
 §7 in particular must stay byte-aligned with `PrivacyInfo.xcprivacy` and
 `legal.html`, and §6 was rewritten on 2026-09-01 against Apple's current
 questionnaire. **"Captains draft squads" is deleted rather than reworded:** all
-13 production leagues draw at random and no captain drafts anything (the 2026-08-29
+13 production leagues draw at random and no captain picks anything (the 2026-08-29
 audit filed it as TM-22), and a listing that describes an unbuilt mechanic is
 the listing lying.
 
@@ -86,7 +86,7 @@ describes the smallest useful act in the app and what follows it.
 > your number by 3"), and every standings figure taps through to the exact
 > rounds that produced it. Receipts, always. The handicap argument is over.
 >
-> **The live round.** Put your group on the tee sheet and score Match Play,
+> **The live round.** Start a live round with your group and score Match Play,
 > Wolf, or Skins hole by hole, on one phone or four. Strokes come off
 > automatically, the ladder updates as you walk, and the settlement card at
 > the end says who won what. Played a guest? One link makes their round

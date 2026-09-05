@@ -69,7 +69,7 @@ import Foundation
 
   /// A-1 · the pair's second seat is an INVITE, never `add_friend_to_league`,
   /// which inserts the membership row with no invite, no acceptance and no
-  /// covenant — at a stake above $0 that seats a golfer on a pot sheet he never
+  /// covenant — at a stake above $0 that seats a golfer on a pot he never
   /// agreed to (L-12).
   @Test func thePairSeasonInvitesRatherThanSeats() {
     let rpcs = CalloutLength.aSeason.rpcs

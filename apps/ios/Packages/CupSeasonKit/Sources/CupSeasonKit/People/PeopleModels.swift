@@ -135,7 +135,7 @@ public struct Invite: Identifiable, Sendable, Equatable {
   }
   /// The Details sheet line.
   public var detail: String {
-    var s = (isLeague ? "A season-long league." : "A Ryder event — two teams, vs-index duels.") + " Invited by \(inviter)"
+    var s = (isLeague ? "A season-long league." : "A Ryder — two teams, one clash each week.") + " Invited by \(inviter)"
     if let d = startsOn { s += ". First tee \(d)." }
     return s
   }

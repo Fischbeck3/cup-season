@@ -1,5 +1,5 @@
 // Cup Season — squad formation and draft night (index.html):
-//   renderFormation  14607–14700   blind draw (randomize_squads) · Pro assign (assign_player)
+//   renderFormation  14607–14700   random draw (randomize_squads) · The Pro picks (assign_player)
 //                                  · Start the season (start_season) — the two LIVE engines
 //   renderDraft      5427–5548     the snake board's copy and clock (the web shows it only for
 //                                  its demo; the server's start_draft / make_pick / undo_pick are
@@ -72,17 +72,17 @@ public enum DraftCopy {
   // eyebrows (14611–14612, 5429–5431)
   public static func eyebrow(_ draftType: String) -> String {
     switch draftType {
-    case "assign": "Form squads · Pro assign"
-    case "live": "Live draft · pick clock"
-    case "snake": "Draft night · snake"
-    default: "Form squads · blind draw"
+    case "assign": "Form squads · The Pro picks"
+    case "live": "Live picks · clock"
+    case "snake": "In turns · snake"
+    default: "Form squads · random draw"
     }
   }
   // the clock (14618–14625)
   public static let formK = "Form squads"
   public static func formN(pool: Int) -> String { pool > 0 ? "\(pool) in the pool" : "Everyone has a squad" }
   public static func formM(_ draftType: String) -> String {
-    draftType == "assign" ? "Tap a player, then tap a squad" : "THE HAT SHUFFLES SERVER-SIDE — NOBODY RIGS THE DRAW"
+    draftType == "assign" ? "Tap a player, then tap a squad" : "IT’S RANDOM — NOBODY PICKS"
   }
   public static let draw = "Draw squads"
   public static let start = "Start the season →"
@@ -95,7 +95,7 @@ public enum DraftCopy {
   public static let squadEmpty = "Empty"
   public static func players(_ k: Int) -> String { "\(k) PLAYER\(k == 1 ? "" : "S")" }
   /// `switchView('draft')` in setup (4141).
-  public static let setupBounce = "Lock settings first: the draft opens after setup"
+  public static let setupBounce = "Start the season first: the draw opens after setup"
   public static let memberReadOnly = "The Pro forms the squads — you'll see them here the moment they're set."
 
   // the snake board (5440–5548)
@@ -105,13 +105,13 @@ public enum DraftCopy {
   public static let onClockK = "On the clock"
   public static let doneK = "Squads are set"
   public static let doneN = "Good luck, everybody"
-  public static let doneM = "Rosters locked · season opens W1"
+  public static let doneM = "Squads are set · season opens W1"
   public static let lockMine = "You are on the clock: make your pick"
   public static func lockTheirs(_ captain: String) -> String { "\(captain) is picking: only their account can select" }
   public static let lockIdle = "On the clock — only the picking captain can select"
   public static func notYourPick(_ captain: String) -> String { "Not your pick: \(captain) is on the clock" }
   public static func proPicked(_ player: String, for captain: String) -> String { "Pro picked \(player) for \(captain), logged" }
-  public static func drafted(_ captain: String, _ player: String, _ idx: String) -> String { "\(captain) drafts \(player) (\(idx))" }
+  public static func drafted(_ captain: String, _ player: String, _ idx: String) -> String { "\(captain) picks \(player) (\(idx))" }
   public static let poolDone = "Pool's empty. Every player has a squad."
   public static let draftTag = "DRAFT"
   public static let lockedTag = "LOCKED"
@@ -126,7 +126,7 @@ public enum DraftCopy {
   public static let captTag = "CAPT"
   public static func slot(_ r: Int) -> String { "R\(r) pick" }
   public static func clockM(round: Int, pick: Int, of: Int, squad: String) -> String { "R\(round) · PICK \(pick)/\(of) · \(squad.uppercased())" }
-  public static func idx(_ v: Double?) -> String { "\(CSCopy.index(v)) IDX" }
+  public static func idx(_ v: Double?) -> String { "\(CSCopy.index(v)) NUMBER" }
 
   /// What `start_season` will say, said first (audit 02 §7.19). nil = clear to start.
   public static func startBlocker(members: Int, pool: Int, squads: [LeagueRoom.Squad], solo: Bool) -> String? {
@@ -152,9 +152,9 @@ public struct DraftService: Sendable {
   let svc: SupabaseService
   public init(_ svc: SupabaseService = .shared) { self.svc = svc }
 
-  /// Blind draw (D54, D58): one tap; the reveal is a board post.
+  /// Random draw (D54, D58): one tap; the reveal is a board post.
   public func draw(season: UUID) async throws { _ = try await svc.call(Rpc.randomize_squads(p_season: season)) }
-  /// Pro assign (D75): a player onto a squad; the server logs the actor.
+  /// The Pro picks (D75): a player onto a squad; the server logs the actor.
   public func assign(squad: UUID, member: UUID) async throws { _ = try await svc.call(Rpc.assign_player(p_squad: squad, p_member: member)) }
   /// The server validates ≥4 · nobody loose · no empty squad; its message is the copy.
   public func startSeason(season: UUID) async throws { _ = try await svc.call(Rpc.start_season(p_season: season)) }

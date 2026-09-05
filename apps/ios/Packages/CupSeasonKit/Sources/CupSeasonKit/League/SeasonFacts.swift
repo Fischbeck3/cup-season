@@ -157,8 +157,8 @@ public enum SeasonFacts {
   ///   "Every round counts · …". Outside the season window the clock is
   ///   meaningless, so only the cap clause is spoken.
   /// Squads: the floor sentence Home has carried since D14, unchanged —
-  ///   "Partial month · floors waived" / "Month floor met · 6/4" /
-  ///   "Month floor 2/4 · 2 more" — then "Best 4 rounds a month count", else nil.
+  ///   "Partial month · no minimum" / "Minimum met · 6/4" /
+  ///   "4 a month · 2 to go" — then "Best 4 rounds a month count", else nil.
   public static func footRule(_ m: Me.Membership, today: String = CSDate.today(), calendar: Calendar = .current) -> String? {
     let cap = m.settings?.counting_cap.map { "Best \($0) rounds a month count" }
     // Outside the window there is no month to have a floor or a clock in —
@@ -180,9 +180,9 @@ public enum SeasonFacts {
     }
     if let p = m.pulse, let floor = p.floor, floor > 0 {
       let credits = p.credits ?? 0
-      if p.partial == true { return "Partial month · floors waived" }
-      return credits >= Double(floor) ? "Month floor met · \(CSCopy.points(credits))/\(floor)"
-                                      : "Month floor \(CSCopy.points(credits))/\(floor) · \(CSCopy.points(Double(floor) - credits)) more"
+      if p.partial == true { return "Partial month · no minimum" }
+      return credits >= Double(floor) ? "Minimum met · \(CSCopy.points(credits))/\(floor)"
+                                      : "\(floor) a month · \(CSCopy.points(Double(floor) - credits)) to go"
     }
     return cap
   }

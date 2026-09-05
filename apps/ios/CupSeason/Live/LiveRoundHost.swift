@@ -75,7 +75,7 @@ struct LiveRoundHost: View {
 // MARK: - the Home banner (7710–7735)
 
 /// Two faces: "Continue your round" or, for someone else's round, the
-/// invitation ("X put you on the tee sheet · JUST TEED OFF … · JOIN").
+/// invitation ("X started a live round with you · JUST TEED OFF … · JOIN").
 struct LiveResumeBanner: View {
   @Environment(SessionStore.self) private var session
   @Environment(\.cs) private var cs

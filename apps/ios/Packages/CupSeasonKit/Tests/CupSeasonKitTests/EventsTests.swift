@@ -103,7 +103,7 @@ private func room(status: String = "live", winner: UUID? = nil, sessionCount: In
     #expect(RyderMath.ordered(s).map(\.session_no) == [3, 2, 1])
   }
   @Test func header() {
-    #expect(RyderMath.sessionHeader(session(s1, 1, "2026-07-06", "2026-07-12", "open"), calendar: cal) == "SESSION 1 · JUL 6–JUL 12 · OPEN")
+    #expect(RyderMath.sessionHeader(session(s1, 1, "2026-07-06", "2026-07-12", "open"), calendar: cal) == "WEEK 1 · JUL 6–JUL 12 · OPEN")
   }
   @Test func nagLine() {
     #expect(RyderMath.nagLine(waiting: ["Will", "Jade"], closesOn: "2026-07-11", today: "2026-07-08", calendar: cal) == "Still to post: Will, Jade · 3d left.")

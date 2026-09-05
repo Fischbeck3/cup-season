@@ -85,10 +85,10 @@ struct LivePlayView: View {
             finishButton
             // …and the teaching copy speaks ONCE, before the first score. It is
             // restated where it has consequence — the finish sheet opens with
-            // "Complete cards post to the season, attested by the group; N
+            // "Complete cards post to the season, vouched by the group; N
             // guests get a recap to claim. A partial card is skipped, not lost."
             if !s.anyScored {
-              CSFine("Scores entered together are auto-attested: the group verifies everyone's round just by playing it. Guests need no account: they play every side game, appear in the settlement, and get a recap text with their scorecard and an invite when you finish. Only league members' rounds post to the season.")
+              CSFine("Scores entered together are vouched by the group: the group verifies everyone's round just by playing it. Guests need no account: they play every side game, appear in the settlement, and get a recap text with their scorecard and an invite when you finish. Only league members' rounds post to the season.")
             }
             scrapButton
           }

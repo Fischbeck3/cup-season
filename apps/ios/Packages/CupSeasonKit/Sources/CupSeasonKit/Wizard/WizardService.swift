@@ -148,7 +148,7 @@ public struct WizardService: Sendable {
           let idStr = season?["id"]?.string ?? data["season_id"]?.string, let seasonId = UUID(uuidString: idStr),
           let startsOn = season?["starts_on"]?.string ?? data["starts_on"]?.string,
           let endsOn = season?["ends_on"]?.string ?? data["ends_on"]?.string else {
-      throw RpcError(name: WizardLockCall.name, underlying: "The bylaws locked but the season did not come back.", droppedArgs: [])
+      throw RpcError(name: WizardLockCall.name, underlying: "The season did not come back after it started.", droppedArgs: [])
     }
     let already = data["already_locked"]?.bool ?? false
     // Honest breadcrumb: the skew retry drops every optional arg on ANY error,
@@ -171,7 +171,7 @@ public struct WizardService: Sendable {
     /// How many `invite_golfer` calls landed. Each is a COVENANT, not a seat —
     /// `add_friend_to_league` inserts the `league_members` row directly, with no
     /// invite, no acceptance and no covenant, which at a stake above $0 seats a
-    /// golfer on a pot sheet he never agreed to (L-12, CORE_FLOWS §0 A-1).
+    /// golfer on a pot he never agreed to (L-12, CORE_FLOWS §0 A-1).
     public let invited: Int
     /// The invites that did NOT land. Named on the share screen rather than
     /// swallowed — a golfer who thinks he invited four and invited two is the

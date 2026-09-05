@@ -1007,5 +1007,295 @@ else {
     : fail('the anon surface is exactly twelve', problems.slice(0, 3).join(' · '));
 }
 
+/* 27 · one vocabulary, one lint per law (D249, IOS-036) -------------------
+   TERMINOLOGY.md §4 is the ship list: twenty-nine patterns, each guarding a
+   ruling that has already drifted back once because it was only a sentence.
+   D131 was "copy-only, ~90 strings"; four of its retired phrasings were
+   written back into this programme's own proposed copy before anybody noticed.
+   So each law gets a grep, and a hit fails the push.
+
+   The scope is §4's: `apps/ios/CupSeason/**`, the Kit's Sources, `index.html`,
+   the store listing, and the board/push/ledger generators in SQL. Comments,
+   `Tests/` and the generated files are out. And the rule that makes it usable
+   at all — "a string is exempt because it is an IDENTIFIER, never because of
+   where it lives" — is why this reads `tools/extract-strings.mjs` rather than
+   grepping: `.select("id,differential,…")` is a column list, `class="pvi …"`
+   is a class name, and a lint that cries wolf on those gets switched off. */
+{
+  const T = await import('../tools/extract-strings.mjs');
+  const listingPath = join(root, 'docs', 'ios', 'app-store-listing.md');
+  const listing = existsSync(listingPath) ? readFileSync(listingPath, 'utf8') : '';
+
+  /* Exempt BY CALL SITE. Each entry is the exact sentence and the reason it is
+     the other sense of the word — the profile sense of "your card", the auth
+     sense of "session", the season award that owns "Iron Man". A new exemption
+     is an argument with §4, which is the point of writing them out. */
+  const EXEMPT = new Map([
+    ['A reference on your card — we never resell or verify it. Leave it blank if you’d rather not.', 'GHIN, the profile sense (§4 row 7)'],
+    ["A reference on your card — we never resell or verify it. Leave it blank if you'd rather not.", 'GHIN, the profile sense (§4 row 7)'],
+    ['Adding a GHIN number? It lives on your card, under You.', 'the profile sense — the card is the person (§4 row 7)'],
+    ['Restoring your session', 'the auth session (§4 row 10)'],
+    ['The code was accepted but no session came back.', 'the auth session (§4 row 10)'],
+    ['no session in storage — showing the door', 'the auth session (§4 row 10)'],
+    ['session ✓', 'the auth session (§4 row 10)'],
+    ['Iron Man', 'the season award, which keeps the name (§2.1)'],
+  ]);
+  const exemptPrefix = [
+    ['Iron Man ', 'the season award row (§2.1)'],
+    ['Points King takes', 'the awards footnote, where the award is named (§2.1)'],
+  ];
+  const isExempt = t => EXEMPT.has(t.trim()) || exemptPrefix.some(([p]) => t.trim().startsWith(p));
+
+  /* §4's table. `sql` marks the two rows whose scope includes the generators
+     (A-1: the ledger's reason strings and the stage strings are written in
+     SQL and rendered by both clients). */
+  const LAWS = [
+    [1, 'the counting cap is a sentence', [/counting\s+cap/i]],
+    [2, 'the minimum, never a floor', [/participation\s+floor/i, /month\s+floor/i, /floor\s+penalty/i]],
+    [3, 'the allowance is a number, not a term', [/handicap\s+allowance/i, /%\s?hcp\b/i]],
+    [4, 'no dial names as row keys', [/\b(PRESET|STRUCTURE|VERIFICATION)\b/]],
+    /* §2.3's lock row retires four phrasings and `SQUADS LOCKED` is the fourth
+       — the same family, in the same ruling, and the one the kickoff hero
+       carried. */
+    [5, 'the season starts; nothing locks', [/lock the bylaws/i, /lock it in/i, /seeds locked/i, /rosters locked/i, /squads locked/i], { sql: true }],
+    [6, 'the rules, never the bylaws', [/bylaws/i]],
+    [7, 'a round posts to your rounds', [/\bon your card\b/i, /hit your card/i, /pinned to your card/i]],
+    [8, 'one money noun', [/post a stake/i, /the other stakes/i, /pot sheet/i, /prize pool/i]],
+    [9, 'the clash, never the duel', [/\bduels?\b/i]],
+    [10, 'a week, never a session', [/\bsessions?\b/i]],
+    [11, 'no Clubhouse', [/clubhouse/i]],
+    [12, 'one lens (L-14)', [/\bdifferentials?\b/i, /\bPvI\b/, /vs index/i, /\bIDX\b/]],
+    [13, 'the schedule, never the tee sheet', [/tee\s+sheets?\b/i], { sql: true }],
+    [14, 'the draw, never a draft', [/\bdrafts?\b/i, /draft night/i, /the hat shuffles/i]],
+    [15, 'vouched by the group', [/attest/i]],
+    [16, 'never a printed seat count', [/seats?\s+open/i, /\b\d+\s+seats?\b/i, /\bSEATS\b/]],
+    [17, 'the six stage words only', [/LIVE NOW/, /CAPTAINS READY/, /The Pro has the list/i, /captains draft/i], { sql: true, listing: true }],
+    [18, 'the live round says the word', [/RIDING/, /DIED CARRIED/, /BRAGGING POINTS/, /\b3U\b/, /EST .*IDX/, /\bSTK\b/, /\bSELF\b/, /\bSI \d/]],
+    [19, 'the ledger says the consequence', [/MONTH FORFEITED/i, /floors? waived/i, /month forfeited/i, /\/mo — posted/i, /^Floor $/], { sql: true }],
+    [20, 'the Pro, never the commissioner', [/commissioner/i]],
+    [21, 'trophies, never hardware', [/stage it/i, /display case/i, /\bhardware\b/i]],
+    [22, 'in your seasons, never a league mate', [/league\s?mates?/i], { sql: true }],
+    [23, 'Iron Man is the award, not the streak', [/iron\s?man/i]],
+    [24, 'milestones and results', [/moments, reveals/i]],
+    [25, 'matches & weekends', [/YOUR MOMENTS/]],
+    [26, 'one verb opens the composer', [/^post (a )?round$/i]],
+    /* 27–29 are producer greps and payload greps, not string greps */
+    [28, 'no gross target off another golfer’s number', [/needs \d+ off (his|her|their)/i, /\bhe needs \d/i, /\bshe needs \d/i]],
+    [29, 'no invented split', [/winner takes \d+%/i, /\d+% of the pot/i]],
+  ];
+
+  const hits = [];
+  const record = (law, where, text) => hits.push(`§4.${law[0]} ${law[1]} — ${where}: ${JSON.stringify(text.slice(0, 70))}`);
+  /* A web template is one literal carrying a whole pane; the Swift side is one
+     sentence at a time. Split a blob on its own tags and newlines so a hit
+     names the SENTENCE, and so the profile-sense exemptions (which are exact
+     sentences) can still match inside one. */
+  const fragments = text => (/[<\n]/.test(text)
+    ? text.split(/<[^>]*>|\n/).map(x => x.trim()).filter(Boolean)
+    : [text]);
+  const scan = (law, where, text) => {
+    for (const frag of fragments(text)) {
+      if (isExempt(frag)) continue;
+      if (law[2].some(re => re.test(frag))) { record(law, where, frag); return; }
+    }
+  };
+
+  /* the phone */
+  const swift = T.swiftSources(join(root, 'apps', 'ios'));
+  for (const f of swift) {
+    const rel = f.slice(root.length).replace(/^\//, '');
+    for (const s of T.swiftProse(readFileSync(f, 'utf8'))) {
+      for (const law of LAWS) scan(law, `${rel}:${s.line}`, s.text);
+    }
+  }
+  /* the desk */
+  for (const s of T.webProse(html)) {
+    for (const law of LAWS) scan(law, `index.html:${s.line}`, s.text);
+  }
+  /* the store listing — §4 row 17 names it by name */
+  {
+    /* the STORE SUBSET (§4 row 17): the fields that are pasted into App Store
+       Connect — §1-§5 and §8. The file's own change notes are documentation
+       about the copy, not the copy. */
+    const lines = listing.split('\n');
+    let shipping = false;
+    for (const [i, line] of lines.entries()) {
+      const h = line.match(/^## (\d+)\./);
+      if (h) shipping = ['1', '2', '3', '4', '5', '8'].includes(h[1]);
+      if (!shipping) continue;
+      for (const law of LAWS.filter(l => l[3]?.listing)) scan(law, `docs/ios/app-store-listing.md:${i + 1}`, line);
+    }
+  }
+  /* the database. Only the LIVE definition of each function is scanned — an
+     older migration cannot be edited (L-05), so the sentence that ships is the
+     last `create or replace`. Only the generators (a function that writes a
+     board post, a nudge or a ledger reason) and never a `raise exception`,
+     which is an error message rather than the ledger's own voice. */
+  const liveDefs = new Map();
+  for (const f of readdirSync(migDir).filter(x => x.endsWith('.sql')).sort()) {
+    const src = readFileSync(join(migDir, f), 'utf8');
+    const re = /create\s+or\s+replace\s+function\s+(?:public\.)?"?([a-z0-9_]+)"?\s*\(([\s\S]*?)\n[^\n]*(?:\$function\$|\$\$|\$fn\$)\s*;/gi;
+    let m;
+    while ((m = re.exec(src))) liveDefs.set(m[1].toLowerCase(), { file: f, body: m[0] });
+  }
+  const sqlLaws = LAWS.filter(l => l[3]?.sql);
+  for (const [name, { file, body }] of liveDefs) {
+    if (!/insert\s+into\s+(posts|push_nudges|season_adjustments)\b/i.test(body)) continue;
+    const lines = body.split('\n');
+    for (const s of T.sqlStrings(body)) {
+      if (/raise\s+(exception|notice|warning)/i.test(lines[s.line - 1] || '')) continue;
+      for (const law of sqlLaws) scan(law, `${file} ${name}()`, s.text);
+    }
+  }
+
+  /* §4.27 · TWO PRODUCERS FOR ONE FACT — code greps, not string greps. The
+     check §4 calls the one that matters: a string lint holds a word steady, a
+     producer lint holds a FACT steady. */
+  const bandWords = /Torched it|Beat your number|Played to it|A little loose|Posted anyway/;
+  const BAND_HOMES = ['Board/CSBands.swift'];
+  for (const f of swift) {
+    if (BAND_HOMES.some(h => f.endsWith(h))) continue;
+    for (const s of T.swiftProse(readFileSync(f, 'utf8'))) {
+      if (bandWords.test(s.text)) hits.push(`§4.27 a second band table — ${f.slice(root.length).replace(/^\//, '')}:${s.line}: ${JSON.stringify(s.text.slice(0, 40))}`);
+    }
+  }
+  {
+    const web = html.match(/function bandName\(vs\)\{[\s\S]*?\n\}/);
+    if (!web) hits.push('§4.27 index.html has no bandName() — did the web’s band producer move?');
+    /* the five reads live in the two functions that ARE the producer — the
+       band's name and the points sentence that has to agree with it, the same
+       pair `CSBands.swift` holds on the phone. Anywhere else is a copy. */
+    const lineOfOffset = off => html.slice(0, off).split('\n').length;
+    const homes = [];
+    for (const m of [web, html.match(/function pointsFor\(vs\)\{[\s\S]*?\n\}/)]) {
+      if (m) homes.push([lineOfOffset(m.index), lineOfOffset(m.index + m[0].length)]);
+    }
+    for (const s of T.webProse(html)) {
+      if (!bandWords.test(s.text)) continue;
+      if (homes.some(([a, b]) => s.line >= a && s.line <= b)) continue;
+      hits.push(`§4.27 a second band table — index.html:${s.line}: ${JSON.stringify(s.text.slice(0, 40))}`);
+    }
+    const weekFormulas = [...html.matchAll(/Math\.ceil\([^)]*\/\s*7\s*\)/g)];
+    const weekHome = html.indexOf('function csWeek(');
+    const weekEnd = weekHome < 0 ? -1 : html.indexOf('\n}', weekHome);
+    for (const m of weekFormulas) {
+      if (weekHome >= 0 && m.index >= weekHome && m.index < weekEnd) continue;
+      hits.push(`§4.27 a second week formula — index.html offset ${m.index}: ${m[0]}`);
+    }
+    const bandFns = (html.match(/function bandName\s*\(/g) || []).length;
+    if (bandFns !== 1) hits.push(`§4.27 index.html declares bandName() ${bandFns} times`);
+  }
+  {
+    const csb = join(root, 'apps', 'ios', 'Packages', 'CupSeasonKit', 'Sources', 'CupSeasonKit', 'Board', 'CSBands.swift');
+    const n = existsSync(csb) ? (readFileSync(csb, 'utf8').match(/static func bandName\(/g) || []).length : 0;
+    if (n !== 1) hits.push(`§4.27 CSBands declares bandName ${n} times`);
+    const dates = join(root, 'apps', 'ios', 'Packages', 'CupSeasonKit', 'Sources', 'CupSeasonKit', 'League', 'LeagueDates.swift');
+    for (const f of swift) {
+      if (f === dates) continue;
+      const src = readFileSync(f, 'utf8');
+      if (/\(\s*days\s*\/\s*7\s*\)\.rounded\(\.up\)|ceil\(Double\([^)]*\)\s*\/\s*7/.test(src)) {
+        hits.push(`§4.27 a second week formula — ${f.slice(root.length).replace(/^\//, '')}`);
+      }
+    }
+  }
+
+  /* the self-test: a check that cannot fail is not a check. Two offenders,
+     one per client, synthesised rather than written to disk. */
+  {
+    const probes = [
+      ['Lock the bylaws & form the squads', 5],
+      ['3 SEATS OPEN', 16],
+      ['Draft night', 14],
+    ];
+    for (const [text, n] of probes) {
+      const law = LAWS.find(l => l[0] === n);
+      if (!law || !law[2].some(re => re.test(text))) {
+        hits.push(`self-test failed: §4.${n} no longer catches ${JSON.stringify(text)}`);
+      }
+    }
+    if (isExempt('Lock the bylaws & form the squads')) hits.push('self-test failed: the exemption list swallows a real offender');
+  }
+
+  hits.length === 0
+    ? pass('one vocabulary, one lint per law', `${LAWS.length + 1} laws · ${swift.length} Swift file(s) + index.html + ${liveDefs.size} live SQL definitions`)
+    : fail('one vocabulary, one lint per law', `${hits.length} hit(s) — ` + hits.slice(0, process.env.CS_LINT_ALL ? 99 : 6).join('\n           '));
+}
+
+/* 28 · one band table, three renderers (R13, D249) -------------------------
+   `band_name(p_pvi)` is the server's producer, `CSBands.bandName` is the
+   phone's and `bandName()` is the web's. Three renderings of one rule is
+   fine; three TABLES is what D249 forbids, and the −1.0 edge has already
+   drifted once (Q-20) — the phone said "Played to it" over a round the engine
+   scored 6. So the fixture is DERIVED FROM THE SQL here, on every push, and
+   asserted against both clients and against the checked-in file the Swift
+   suite reads. */
+{
+  const sqlPath = join(migDir, '20260930090000_one_band_name.sql');
+  const fixPath = join(root, 'tests', 'fixtures', 'bands.json');
+  const problems = [];
+
+  const bandsFromSql = () => {
+    if (!existsSync(sqlPath)) return null;
+    const src = readFileSync(sqlPath, 'utf8');
+    const body = (src.match(/create or replace function public\.band_name[\s\S]*?\$\$;/) || [])[0];
+    if (!body) return null;
+    const rules = [...body.matchAll(/when p_pvi (>=|>|<=|<)\s*(-?[\d.]+)\s*then '([^']+)'/g)]
+      .map(m => ({ op: m[1], n: Number(m[2]), band: m[3] }));
+    return rules.length ? rules : null;
+  };
+  const nameFor = (rules, pvi) => {
+    for (const r of rules) {
+      if (r.op === '>=' && pvi >= r.n) return r.band;
+      if (r.op === '>' && pvi > r.n) return r.band;
+      if (r.op === '<=' && pvi <= r.n) return r.band;
+      if (r.op === '<' && pvi < r.n) return r.band;
+    }
+    return (readFileSync(sqlPath, 'utf8').match(/else '([^']+)'\s*\n?\s*end;/) || [])[1] || null;
+  };
+
+  const rules = bandsFromSql();
+  if (!rules) problems.push('band_name is not in 20260930090000_one_band_name.sql — R13 lost its producer');
+
+  let fixture = null;
+  try { fixture = JSON.parse(readFileSync(fixPath, 'utf8')); } catch { problems.push('tests/fixtures/bands.json is missing or unreadable'); }
+
+  /* the phone's table, read out of the source rather than restated here */
+  const csbPath = join(root, 'apps', 'ios', 'Packages', 'CupSeasonKit', 'Sources', 'CupSeasonKit', 'Board', 'CSBands.swift');
+  const swiftRules = existsSync(csbPath)
+    ? [...((readFileSync(csbPath, 'utf8').match(/static func bandName\(_ vs: Double\) -> String \{[\s\S]*?\n  \}/) || [''])[0])
+        .matchAll(/if vs (>=|>|<=|<) (-?[\d.]+) \{ return "([^"]+)" \}/g)].map(m => ({ op: m[1], n: Number(m[2]), band: m[3] }))
+    : [];
+  /* the web's */
+  const webBlock = (html.match(/function bandName\(vs\)\{[\s\S]*?\n\}/) || [''])[0];
+  const webRules = [...webBlock.matchAll(/if\(vs\s*(>=|>|<=|<)\s*(-?[\d.]+)\)\s*return '([^']+)'/g)]
+    .map(m => ({ op: m[1], n: Number(m[2]), band: m[3] }));
+
+  if (rules && fixture) {
+    for (const c of fixture.cases || []) {
+      const sql = nameFor(rules, c.pvi);
+      if (sql !== c.band) problems.push(`pvi ${c.pvi}: the SQL says ${JSON.stringify(sql)}, the fixture says ${JSON.stringify(c.band)}`);
+      const phone = swiftRules.length ? nameFor(swiftRules, c.pvi) : null;
+      if (swiftRules.length && phone !== c.band) problems.push(`pvi ${c.pvi}: CSBands says ${JSON.stringify(phone)}, the fixture says ${JSON.stringify(c.band)}`);
+      const web = webRules.length ? nameFor(webRules, c.pvi) : null;
+      if (webRules.length && web !== c.band) problems.push(`pvi ${c.pvi}: the web says ${JSON.stringify(web)}, the fixture says ${JSON.stringify(c.band)}`);
+    }
+    if (!swiftRules.length) problems.push('CSBands.bandName could not be read — did the phone’s producer move?');
+    if (!webRules.length) problems.push('index.html bandName() could not be read — did the web’s producer move?');
+    if ((fixture.cases || []).length < 10) problems.push('the fixture has fewer than ten cases — it stopped covering the edges');
+  }
+
+  /* the self-test: shift one boundary and the comparison must notice */
+  if (rules) {
+    const bent = rules.map(r => (r.n === -1 ? { ...r, op: '>=' } : r));
+    if (nameFor(bent, -1) === nameFor(rules, -1)) {
+      problems.push('self-test failed: the parser cannot see the −1.0 edge move');
+    }
+  }
+
+  problems.length === 0
+    ? pass('one band table, three renderers', `${(fixture?.cases || []).length} case(s) · SQL, CSBands and bandName() agree`)
+    : fail('one band table, three renderers', problems.slice(0, 4).join(' · '));
+}
+
 console.log(`\n${fails ? 'FAIL' : 'PASS'} — ${fails} failure(s), ${warns} warning(s)`);
 process.exit(fails ? 1 : 0);

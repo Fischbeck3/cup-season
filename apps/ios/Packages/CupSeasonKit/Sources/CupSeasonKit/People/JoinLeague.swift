@@ -195,7 +195,7 @@ public struct Covenant: Sendable, Equatable, Identifiable {
   }
 
   /// 4 · "Standard rules: honest scores, best three a month count, two a month
-  /// keeps you in." The counting cap is R9's; the payload's `floor` is the
+  /// keeps you in." The rounds that count is R9's; the payload's `floor` is the
   /// OTHER number and always was.
   public var rulesLine: String? {
     var clauses: [String] = ["honest scores"]
@@ -258,8 +258,8 @@ public struct Covenant: Sendable, Equatable, Identifiable {
   public var floorLine: String? { floor > 0 ? "\(floor) round\(floor == 1 ? "" : "s") / mo" : nil }
   /// "Points table crowns it" / "Cup Final · final 4 weeks"
   public var finishLine: String { finish == "points_table" ? "Points table crowns it" : "Cup Final · final 4 weeks" }
-  /// "$50 / player · on the pot sheet" — kept for the row form.
-  public var buyinLine: String { "$\(usd) / player · on the books" }   // T-12: "pot sheet" retires
+  /// "$50 / player · on the pot" — kept for the row form.
+  public var buyinLine: String { "$\(usd) / player · on the books" }   // T-12: "pot" retires
 
   /// The head, and the order the screen draws the facts in. WHO comes before the
   /// money, and that order is a value rather than the way a View happens to be

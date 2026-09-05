@@ -44,7 +44,7 @@ struct ScheduledRoundSheet: View {
 
   private func sheet(_ d: RoundDetail) -> some View {
     VStack(alignment: .leading, spacing: 12) {
-      CSSheetHeader(title: d.title, sub: TeeTime.format(d.teeTime).isEmpty ? "On the tee sheet" : TeeTime.chip(d.teeTime))
+      CSSheetHeader(title: d.title, sub: TeeTime.format(d.teeTime).isEmpty ? "On the schedule" : TeeTime.chip(d.teeTime))
 
       // course header — cache name if linked, else the typed label, else a word. NEVER blank.
       VStack(alignment: .leading, spacing: 3) {

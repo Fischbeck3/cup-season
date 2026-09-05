@@ -64,8 +64,8 @@ struct LiveSetupView: View {
   private func planBridge(_ sr: ScheduledRound) -> some View {
     let withN = (sr.tagged_names ?? []).isEmpty ? "" : " · with " + (sr.tagged_names ?? []).joined(separator: " & ")
     return VStack(alignment: .leading, spacing: 4) {
-      Text("On your tee sheet today\(sr.course_label.map { " · \($0)" } ?? "")").font(CSFont.subhead.weight(.semibold)).foregroundStyle(cs.ink)
-      Text("Load the course and your group into the tee sheet\(withN).").font(CSFont.footnote).foregroundStyle(cs.dimText)
+      Text("Your round today\(sr.course_label.map { " · \($0)" } ?? "")").font(CSFont.subhead.weight(.semibold)).foregroundStyle(cs.ink)
+      Text("Load the course and your group into the round\(withN).").font(CSFont.footnote).foregroundStyle(cs.dimText)
       CSMini("Load it →") { store.loadPlan() }.padding(.top, 4)
     }
     .padding(12)
@@ -178,7 +178,7 @@ struct LiveSetupView: View {
             .labelsHidden().tint(cs.brand)
             .accessibilityLabel("Find buddies on this tee")
         }
-        CSFine("Bluetooth only — never your location, and nothing about where you are leaves your phone. A golfer who is not already your buddy or league mate stays invisible, and you still tap to add anyone.")
+        CSFine("Bluetooth only — never your location, and nothing about where you are leaves your phone. A golfer who is not already your buddy or in a season with you stays invisible, and you still tap to add anyone.")
       }
     }
   }
@@ -264,7 +264,7 @@ struct LiveSetupView: View {
           // D107: no league is a fine tee sheet — the add-golfer door leads
           CSMini("Bring your group — search the app", systemImage: "person.2") { showPicker = true }
         } else {
-          CSFine("No league mates to tap yet — search the app or add a guest below.")
+          CSFine("Nobody from your seasons to tap yet — search the app or add a guest below.")
         }
       }
     }
@@ -327,7 +327,7 @@ struct LiveSlotChip: View {
           else { RoundedRectangle(cornerRadius: 3).fill(cs.squad(player.ci)).frame(width: 8, height: 8) }
           Text(player.n).font(CSFont.subhead.weight(.semibold)).foregroundStyle(cs.ink).lineLimit(1)
         }
-        Text("\(player.est ? "EST " : "")\(LiveFmt.idx(player.i)) IDX").font(CSFont.label).tracking(1).foregroundStyle(cs.dimText)
+        Text("\(player.est ? "EST " : "")\(LiveFmt.idx(player.i)) NUMBER").font(CSFont.label).tracking(1).foregroundStyle(cs.dimText)
       }
       Spacer(minLength: 0)
       if tradeable { Text("⇄").font(CSFont.monoSmall).foregroundStyle(cs.brand) }
@@ -650,7 +650,7 @@ struct LiveRosterPickerSheet: View {
     NavigationStack {
       ScrollView {
         VStack(alignment: .leading, spacing: 12) {
-          CSSheetHeader(title: "Add to the foursome", sub: store.leagueId == nil ? "Buddies are below — search anyone on the app" : "League mates and buddies are below — search anyone on the app")
+          CSSheetHeader(title: "Add to the foursome", sub: store.leagueId == nil ? "Buddies are below — search anyone on the app" : "Buddies and the golfers in your seasons are below — search anyone on the app")
           CSField("Find golfers by name or @handle", text: $query, font: CSFont.body)
             .textInputAutocapitalization(.never).autocorrectionDisabled()
           if rows.isEmpty {

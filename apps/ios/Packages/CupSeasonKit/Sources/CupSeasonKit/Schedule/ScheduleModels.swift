@@ -1,7 +1,7 @@
 // Cup Season — the tee sheet, as shapes (spec/scheduled-rounds-arc.md; audit
 // 03 §1.10; index.html 12045–12170, 16670–16850, 10653–10735).
 //
-// Everything on the tee sheet is a CALENDAR date (a String through CSDate),
+// Everything on the schedule is a CALENDAR date (a String through CSDate),
 // never an instant. Nothing here is authoritative: the RPCs do the visibility
 // math (`my_schedule`), the phone only lays it out.
 
@@ -22,8 +22,8 @@ public extension ScheduledRound {
   var isCrewPlan: Bool { mine == false && (shared_league == true || tagged_me == true) }
   /// "You" / the name (12143, 10690).
   var who: String { isMine ? "You" : (display_name ?? "A golfer") }
-  /// "LEAGUE MATE" / "BUDDY" / nil (10691).
-  var relTag: String? { isMine ? nil : (shared_league == true ? "LEAGUE MATE" : (is_friend == true ? "BUDDY" : nil)) }
+  /// "IN YOUR SEASONS" / "BUDDY" / nil (10691).
+  var relTag: String? { isMine ? nil : (shared_league == true ? "IN YOUR SEASONS" : (is_friend == true ? "BUDDY" : nil)) }
   /// "WITH GALEN & MARCO" (12146).
   var withLine: String? {
     guard let n = tagged_names, !n.isEmpty else { return nil }
@@ -224,7 +224,7 @@ public enum CalendarItem: Sendable, Equatable {
   }
 
   public enum Dot: Sendable { case round, leagueMate, season }
-  /// The legend: ON THE TEE SHEET · LEAGUE MATE · SEASON DATE (12078).
+  /// The legend: ON THE SCHEDULE · IN YOUR SEASONS · SEASON DATE (12078).
   public var dot: Dot {
     switch self {
     case .round(let sr): (sr.tagged_me == true || (sr.shared_league == true && !sr.isMine)) ? .leagueMate : .round

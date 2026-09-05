@@ -102,7 +102,7 @@ public enum LiveCopy {
     let comeback = h >= s.liveHoles - 2
     let who = up(s.players[w].n) + " IS THE WOLF" + (comeback ? " · COMEBACK" : "")
     let tees = LiveEngines.wolfTeeOrder(wolf: w, order: order).map { up(s.players[$0].n) }
-    let meta = "TEES: " + tees.joined(separator: " · ") + (s.stake > 0 ? " · $\(LiveFmt.js(s.stake))/PT" : " · BRAGGING POINTS")
+    let meta = "TEES: " + tees.joined(separator: " · ") + (s.stake > 0 ? " · $\(LiveFmt.js(s.stake))/PT" : " · WOLF POINTS")
     let pts = LiveEngines.wolfPoints(order: order, picks: s.wolf, scores: s.scores, strokes: s.strokeTable, holes: s.liveHoles)
     return WolfCard(wolf: w, comeback: comeback, who: who, meta: meta, pts: pts)
   }
@@ -123,7 +123,7 @@ public enum LiveCopy {
     let sk = LiveEngines.skins(scores: s.scores, strokes: s.strokeTable, holes: s.liveHoles)
     let H = s.liveHoles
     let status = sk.thru >= H
-      ? (sk.carry > 1 ? "DONE · \(sk.carry - 1) SKIN\(sk.carry == 2 ? "" : "S") DIED CARRIED" : "DONE · EVERY SKIN CLAIMED")
+      ? (sk.carry > 1 ? "DONE · \(sk.carry - 1) SKIN\(sk.carry == 2 ? "" : "S") NEVER CLAIMED" : "DONE · EVERY SKIN CLAIMED")
       : "HOLE \(sk.thru + 1) WORTH \(sk.carry) SKIN\(sk.carry == 1 ? "" : "S")"
     let meta = "THRU \(sk.thru) · LOW NET TAKES IT" + (s.stake > 0 ? " · $\(LiveFmt.js(s.stake))/SKIN" : " · BRAGGING SKINS")
     return SkinsCard(status: status, meta: meta, hot: sk.thru < H && sk.carry >= 2, won: sk.won, pts: sk.pts)
@@ -138,7 +138,7 @@ public enum LiveCopy {
 
   /// `settleRows(pts, val)`.
   public static func settleRows(pts: [Int], stake: Double, names: [String]) -> [SettleRow] {
-    guard stake > 0 else { return [SettleRow(label: "BRAGGING POINTS — NO MONEY ON IT", amount: "$0")] }
+    guard stake > 0 else { return [SettleRow(label: "WOLF POINTS — NO MONEY ON IT", amount: "$0")] }
     let rows = LiveEngines.settleTransfers(pts: pts, val: stake).map {
       SettleRow(label: "\(names[$0.from].uppercased()) → \(names[$0.to].uppercased())", amount: "$\(LiveFmt.js($0.amt))")
     }
@@ -183,7 +183,7 @@ public enum LiveCopy {
         : (LiveEngines.sunningdaleStrokesAt(h: h, scores: s.scores, teams: s.teams, holes: s.liveHoles)[s.teams[0].contains(pi) ? 0 : 1])
     } else { dots = s.strokeOn(pi, h) }
     let sub = s.game == .sunningdale ? "NO HCP · STRAIGHT UP"
-      : "\(p.est ? "EST " : (p.guest ? "SELF " : ""))\(LiveFmt.idx(p.i)) IDX · \(s.strokes[pi]) STK"
+      : "\(p.est ? "EST " : (p.guest ? "SELF " : ""))\(LiveFmt.idx(p.i)) NUMBER · \(s.strokes[pi]) STROKES"
     return PlayerRow(name: p.n, guest: p.guest, strokeDots: dots, sub: sub,
                      total: done.isEmpty ? nil : "\(gross) THRU \(done.count)",
                      toPar: done.isEmpty ? nil : (vp >= 0 ? "+\(vp)" : String(vp)),
@@ -224,7 +224,7 @@ public enum LiveCopy {
       let won = s.players.enumerated().map { (n: up(LiveFmt.fn1($1.n)), w: sk.won[$0]) }.filter { $0.w > 0 }
         .sorted { $0.w > $1.w }.map { "\($0.n) \($0.w)" }.joined(separator: " · ")
       hero = won.isEmpty ? "NO SKINS CLAIMED YET" : won
-      if sk.thru < s.liveHoles, sk.carry > 1 { hero += " · \(sk.carry) RIDING" }
+      if sk.thru < s.liveHoles, sk.carry > 1 { hero += " · \(sk.carry) CARRIED OVER" }
     } else {
       let rows = s.players.indices.map { (i: $0, s: stat($0)) }.filter { $0.s.thru > 0 }
       if rows.isEmpty { hero = "ALL TO PLAY" }
@@ -271,7 +271,7 @@ public enum LiveCopy {
     let thru = s.thru
     let course = s.course.label.isEmpty ? "Your round" : s.course.label
     let invite = !s.mine
-    let kicker = invite ? (s.host.map { "\(LiveFmt.fn1($0)) put you on the tee sheet" } ?? "You're on a tee sheet") : "Continue your round"
+    let kicker = invite ? (s.host.map { "\(LiveFmt.fn1($0)) started a live round with you" } ?? "You're in a live round") : "Continue your round"
     let meta = thru > 0 ? "HOLE \(s.hole + 1) · THRU \(thru)" : (invite ? "JUST TEED OFF · NOTHING SCORED YET" : "HOLE \(s.hole + 1)")
     return ResumeBanner(invite: invite, kicker: kicker, line: "\(course.uppercased()) · \(s.game.banner.uppercased())", meta: meta, go: invite ? "JOIN" : "→")
   }
@@ -433,7 +433,7 @@ public enum LiveCopy {
     case .score:
       return nil
     case .skins, .wolf:
-      // the leader is the first entry; " · N RIDING" and everyone else drop
+      // the leader is the first entry; " · N CARRIED OVER" and everyone else drop
       let lead = hero.split(separator: "\u{00B7}").first.map { $0.trimmingCharacters(in: .whitespaces) } ?? hero
       if lead.hasPrefix("NO SKINS") { return "NO SKINS" }
       return lead.count <= 12 ? lead : String(lead.prefix(12))
@@ -504,7 +504,7 @@ public enum LiveCopy {
       }
       warning = parts.joined(separator: " · ") + ". \(open.count == 1 ? "That card" : "Those cards") won’t post — go back and \(anyStray ? "fix it" : "fill in"), or finish without."
     }
-    let intro = "\(leagueless ? "Every complete card posts to its golfer" : "Complete cards post to the season"), attested by the group\(guestN > 0 ? "; \(guestN) guest\(guestN == 1 ? "" : "s") get\(guestN == 1 ? "s" : "") a recap to claim" : ""). A partial card is skipped, not lost."
+    let intro = "\(leagueless ? "Every complete card posts to its golfer" : "Complete cards post to the season"), vouched by the group\(guestN > 0 ? "; \(guestN) guest\(guestN == 1 ? "" : "s") get\(guestN == 1 ? "s" : "") a recap to claim" : ""). A partial card is skipped, not lost."
     return FinishSheet(intro: intro, warning: warning,
                        primary: done.isEmpty ? (leagueless ? "Finish — no complete card to post" : "Finish — no complete member card to post")
                                              : "Post \(done.count) card\(done.count == 1 ? "" : "s")\(leagueless ? " — each to its golfer" : " to the season")",

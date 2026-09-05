@@ -20,7 +20,7 @@ struct ClimbView: View {
       if model.teams.isEmpty {
         VStack(alignment: .leading, spacing: 6) {
           Text("THE RACE STARTS WITH THE FIRST POSTED ROUND").font(CSFont.label).tracking(1.2).foregroundStyle(cs.mut)
-          Text("SHARE THE LEAGUE CODE TO FILL THE TEE SHEET").font(CSFont.label).tracking(1.2).foregroundStyle(cs.dimText)
+          Text("SHARE THE SEASON CODE TO FILL THE TABLE").font(CSFont.label).tracking(1.2).foregroundStyle(cs.dimText)
         }
         .padding(.vertical, 8)
       } else {

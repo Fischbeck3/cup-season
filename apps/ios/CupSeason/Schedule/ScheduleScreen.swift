@@ -31,21 +31,21 @@ struct ScheduleScreen: View {
   var body: some View {
     ScrollView {
       VStack(alignment: .leading, spacing: 12) {
-        Text("Your golf calendar · yours, your buddies’, your leagues’").csEyebrow()
+        Text("Yours, your buddies’, your seasons’").csEyebrow()
         watch
         calendarHeader
         grid
-        Text("Tap any day to put a round on the tee sheet.").font(CSFont.footnote).foregroundStyle(cs.dimText)
+        Text("Tap any day to put a round on the schedule.").font(CSFont.footnote).foregroundStyle(cs.dimText)
           .frame(maxWidth: .infinity).multilineTextAlignment(.center)
-        CSButton("Put a round on the tee sheet") { declare = DeclarePrefill() }
-        CSSectionHead("On the tee sheet")
+        CSButton("Put a round on the schedule") { declare = DeclarePrefill() }
+        CSSectionHead("On the schedule")
         list
         weeks
       }
       .padding(20)
     }
     .background(cs.bg0)
-    .navigationTitle("Your golf calendar")
+    .navigationTitle("The schedule")
     .navigationBarTitleDisplayMode(.inline)
     .refreshable { await vm.reload(me: store.me, current: store.preferredLeague) }
     .task { await vm.reload(me: store.me, current: store.preferredLeague) }
@@ -74,10 +74,10 @@ struct ScheduleScreen: View {
     if !rows.isEmpty {
       CSSectionHead("In your crew's plans")
       ForEach(rows) { sr in
-        let rel = sr.is_friend == true ? "BUDDY" : "LEAGUE MATE"
+        let rel = sr.is_friend == true ? "BUDDY" : "IN YOUR SEASONS"
         RoomLineRow(marker: sr.marker, title: Text(sr.display_name ?? "A golfer") + Text("  \(rel)").font(CSFont.label).foregroundStyle(cs.dimText),
                     sub: watchBits(sr)) {
-          if sr.tagged_me == true { Text("ON THE TEE SHEET").font(CSFont.label).foregroundStyle(cs.gold) }
+          if sr.tagged_me == true { Text("ON THE SCHEDULE").font(CSFont.label).foregroundStyle(cs.gold) }
           else {
             CSMini("I’m in") {
               declare = DeclarePrefill(iso: sr.play_on, course: sr.course_label ?? "", tee: sr.tee_time, courseId: sr.course_id,
@@ -124,7 +124,7 @@ struct ScheduleScreen: View {
           ForEach(1...vm.month.daysInMonth, id: \.self) { d in cell(d) }
         }
         HStack(spacing: 12) {
-          legend(cs.brand, "ON THE TEE SHEET"); legend(cs.gold, "LEAGUE MATE"); legend(cs.dawn, "SEASON DATE")
+          legend(cs.brand, "ON THE SCHEDULE"); legend(cs.gold, "IN YOUR SEASONS"); legend(cs.dawn, "SEASON DATE")
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(.top, 4)
@@ -206,14 +206,14 @@ struct ScheduleScreen: View {
     var t = Text(sr.who)
     if let tee = sr.tee_time, !TeeTime.format(tee).isEmpty { t = t + Text(" · ") + Text(TeeTime.format(tee)).foregroundStyle(cs.gold) }
     if sr.tagged_me == true { t = t + Text(" · ") + Text("YOU’RE IN").foregroundStyle(cs.gold) }
-    else if sr.shared_league == true && !sr.isMine { t = t + Text(" · ") + Text("LEAGUE MATE").foregroundStyle(cs.gold) }
+    else if sr.shared_league == true && !sr.isMine { t = t + Text(" · ") + Text("IN YOUR SEASONS").foregroundStyle(cs.gold) }
     else if sr.is_friend == true && !sr.isMine { t = t + Text(" · ") + Text("BUDDY").foregroundStyle(cs.mut) }
     return t
   }
 
   private func dayBits(_ sr: ScheduledRound) -> String {
     let bits = [sr.course_label?.uppercased(), sr.withLine, sr.note.flatMap { $0.isEmpty ? nil : "“\($0)”" }].compactMap { $0 }
-    return bits.isEmpty ? "ON THE TEE SHEET" : bits.joined(separator: " · ")
+    return bits.isEmpty ? "ON THE SCHEDULE" : bits.joined(separator: " · ")
   }
 
   private func ownerActions(_ sr: ScheduledRound, id: UUID) -> some View {
@@ -227,12 +227,12 @@ struct ScheduleScreen: View {
     }
   }
 
-  // MARK: on the tee sheet (12134–12153)
+  // MARK: on the schedule (12134–12153)
 
   @ViewBuilder private var list: some View {
     let rows = vm.listRows
     if rows.isEmpty {
-      CSFine("Nothing on the tee sheet for \(vm.month.monthName). Put one up: league mates and buddies see it the moment you do.")
+      CSFine("Nothing on the schedule for \(vm.month.monthName). Put one up: buddies and the crews you play with see it the moment you do.")
     } else {
       ForEach(rows) { sr in
         RoomLineRow(marker: sr.marker, title: rowTitle(sr), sub: Text(listBits(sr))) {

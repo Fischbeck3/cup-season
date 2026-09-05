@@ -72,7 +72,7 @@ struct LiveRecapSheet: View {
         }
       }
       ForEach(Array(d.posted.enumerated()), id: \.offset) { _, x in
-        checkRow("⛳", "\(x.name) · \(x.gross.map(String.init) ?? "")", "POSTED · \(x.holes.map(String.init) ?? "") HOLES · ✓ ATTESTED")
+        checkRow("⛳", "\(x.name) · \(x.gross.map(String.init) ?? "")", "POSTED · \(x.holes.map(String.init) ?? "") HOLES · ✓ VOUCHED")
       }
       ForEach(Array(d.skipped.enumerated()), id: \.offset) { _, x in
         checkRow("—", x.name, "NOT POSTED · \(x.reason.uppercased())")

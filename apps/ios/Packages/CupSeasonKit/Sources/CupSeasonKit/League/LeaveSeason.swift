@@ -58,7 +58,7 @@ public enum LeaveSeason {
 
   public static func done(_ league: String?) -> String {
     let n = (league?.trimmingCharacters(in: .whitespacesAndNewlines)).flatMap { $0.isEmpty ? nil : $0 }
-    return "You left \(n ?? "the season"). Your rounds stay on your card."
+    return "You left \(n ?? "the season"). Your rounds stay where they are."
   }
 }
 

@@ -482,7 +482,7 @@ public final class LeagueRoomModel {
   // MARK: - The Pro's tools (definer RPCs; the server re-validates every one)
 
   public func markBuyIn(member: UUID, paid: Bool) async throws {
-    guard let s = season else { throw RpcError(name: "mark_buy_in", underlying: "Buy-ins open once the bylaws lock", droppedArgs: []) }
+    guard let s = season else { throw RpcError(name: "mark_buy_in", underlying: "Buy-ins open once the season starts", droppedArgs: []) }
     _ = try await svc.call(Rpc.mark_buy_in(p_season: s.id, p_member: member, p_paid: paid))
     buyIns[member] = LeagueRoom.BuyIn(member_id: member, paid: paid, amount_cents: bylaws.stake * 100)
   }

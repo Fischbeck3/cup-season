@@ -41,7 +41,7 @@ struct IndividualRaceView: View {
         if rows.isEmpty {
           // the web's sentence (11258), ending in the one move that fills it
           CSEmptyState(icon: "⛳", line: "The race fills in once your league season is live and rounds land.",
-                       cta: links.openRecord == nil ? nil : "Post a round") { links.openRecord?() }
+                       cta: links.openRecord == nil ? nil : "Add my round") { links.openRecord?() }
             .padding(.vertical, 8)
         } else {
           if !ax {
@@ -49,7 +49,7 @@ struct IndividualRaceView: View {
               Text("").frame(width: 26)
               Text("Player").frame(maxWidth: .infinity, alignment: .leading)
               Text("R").frame(width: 28, alignment: .trailing)
-              Text("Avg vs index").frame(width: 70, alignment: .trailing)
+              Text("Avg vs your number").frame(width: 70, alignment: .trailing)
               Text("Pts").frame(width: 40, alignment: .trailing)
             }
             .font(CSFont.label).tracking(1.0).textCase(.uppercase).foregroundStyle(cs.dimText)
@@ -75,7 +75,7 @@ struct IndividualRaceView: View {
                 HStack(spacing: 10) {
                   if ax { Text("R").font(CSFont.label).tracking(1.0).foregroundStyle(cs.dimText) }
                   Text("\(p.r)").font(CSFont.monoSmall).csTabular().foregroundStyle(cs.mut).frame(minWidth: ax ? nil : 28, alignment: .trailing)
-                  if ax { Text("· VS INDEX").font(CSFont.label).tracking(1.0).foregroundStyle(cs.dimText) }
+                  if ax { Text("· VS YOUR NUMBER").font(CSFont.label).tracking(1.0).foregroundStyle(cs.dimText) }
                   Text(p.r > 0 ? StandingsMath.sgn(p.avg) : "—").font(CSFont.monoSmall).csTabular()
                     .foregroundStyle(p.avg >= 0 ? cs.pos : cs.neg).frame(minWidth: ax ? nil : 70, alignment: .trailing)
                   if ax { Text("· PTS").font(CSFont.label).tracking(1.0).foregroundStyle(cs.dimText) }

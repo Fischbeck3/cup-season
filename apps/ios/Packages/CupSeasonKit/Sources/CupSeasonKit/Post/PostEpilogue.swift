@@ -101,11 +101,11 @@ public struct PostEpilogue: Sendable, Equatable {
   public static let achievements: [String: (icon: String, txt: String, sub: String)] = [
     "personal_best": ("⭐", "A personal best", "The best round you’ve posted"),
     "sub_80": ("🏆", "You broke 80 for the first time", "That one goes on the wall"),
-    "sub_90": ("🏆", "You broke 90 for the first time", "Pinned to your card"),
-    "sub_100": ("🏆", "You broke 100 for the first time", "Pinned to your card"),
-    "streak_4": ("🔥", "Four weeks running", "Iron man"),
-    "streak_8": ("🔥", "Eight weeks running", "Iron man doesn’t take weeks off"),
-    "streak_12": ("🔥", "Twelve weeks running", "Iron man"),
+    "sub_90": ("🏆", "You broke 90 for the first time", "In your trophy case"),
+    "sub_100": ("🏆", "You broke 100 for the first time", "In your trophy case"),
+    "streak_4": ("🔥", "Four weeks running", "A round every week for a month"),
+    "streak_8": ("🔥", "Eight weeks running", "Two months without a gap"),
+    "streak_12": ("🔥", "Twelve weeks running", "Three months without a gap"),
     "first_round": ("⛳", "Your first round is on the board", "Welcome to the season"),
   ]
 
@@ -126,7 +126,7 @@ public struct PostEpilogue: Sendable, Equatable {
       rows.append(.line(icon: "⛳", title: title, sub: CSBands.vsPhrase(pvi) + Self.counting(rank: monthRank, cap: cap)))
     }
     for a in earned {
-      let m = Self.achievements[a.kind] ?? ("✦", a.label ?? "A milestone", "Pinned to your card")
+      let m = Self.achievements[a.kind] ?? ("✦", a.label ?? "A milestone", "In your trophy case")
       rows.append(.line(icon: m.icon, title: m.txt, sub: m.sub))
     }
     for rv in rivals {
@@ -184,7 +184,7 @@ public struct PostCeremony: Sendable, Equatable, Identifiable {
   public let leagueName: String?
   /// D122 · WHY this round earned no league points, in the golfer's words —
   /// "Practice · season starts Sat Sep 5" rather than the technically-true but
-  /// unhelpful "COUNTS ON YOUR CARD". Defaulted so older callers still compile;
+  /// unhelpful "COUNTS TOWARD YOUR NUMBER". Defaulted so older callers still compile;
   /// `LeagueCopy.seasonNote(_:firstTee:short:)` is the producer.
   public let seasonNote: String?
 
@@ -209,12 +209,12 @@ public struct PostCeremony: Sendable, Equatable, Identifiable {
   public var band: String { PostCalc.vsIsSane(vs) ? CSBands.vsPhrase(vs) : "" }
   /// Champagne = EARNED: gold only for real league points (> 0).
   public var earned: Bool { inLeague && (points ?? 0) > 0 }
-  /// `+9 PTS · COUNTS FOR THE PINES` / `+9 PTS · COUNTS THIS SEASON` / `COUNTS ON YOUR CARD`
+  /// `+9 PTS · COUNTS FOR THE PINES` / `+9 PTS · COUNTS THIS SEASON` / `COUNTS TOWARD YOUR NUMBER`
   public var pointsLine: String {
     guard earned, let points else {
       /* D122 · say WHY it did not score for the league when we know */
       if let n = seasonNote, !n.isEmpty { return n.uppercased() }
-      return "COUNTS ON YOUR CARD"
+      return "COUNTS TOWARD YOUR NUMBER"
     }
     return "+\(points) PTS" + (squad.map { " · COUNTS FOR \($0.uppercased())" } ?? " · COUNTS THIS SEASON")
   }

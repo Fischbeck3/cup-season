@@ -37,7 +37,7 @@ enum PushDev {
     for m in me?.memberships ?? [] { NSLog("[push-dev] league \(m.name): \(m.league_id.uuidString.lowercased())") }
     if let lr = me?.live_round { NSLog("[push-dev] live round: \(lr.id.uuidString.lowercased()) status=\(lr.status)") }
     for e in me?.events ?? [] { NSLog("[push-dev] event \(e.name): \(e.id.uuidString.lowercased())") }
-    for d in me?.open_duels ?? [] { NSLog("[push-dev] duel session: \(d.session_id?.uuidString.lowercased() ?? "nil") closes \(d.closes_on ?? "?")") }
+    for d in me?.open_duels ?? [] { NSLog("[push-dev] clash: \(d.session_id?.uuidString.lowercased() ?? "nil") closes \(d.closes_on ?? "?")") }
     if let feed = try? await svc.call(Rpc.home_feed(p_days: 60)) {
       for r in feed.prefix(3) { if let id = r.round_id { NSLog("[push-dev] round: \(id.uuidString.lowercased())") } }
     }

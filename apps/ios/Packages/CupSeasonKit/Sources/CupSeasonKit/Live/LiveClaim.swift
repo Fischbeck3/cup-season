@@ -112,10 +112,10 @@ public enum ClaimFlow {
       }
     }
     ClaimIntent.clear(defaults: defaults)
-    if data?["already"]?.bool == true { return .already(toast: "That round is already on your card") }
+    if data?["already"]?.bool == true { return .already(toast: "That round is already in your rounds") }
     if data?["posted"]?.bool == true {
       let g = data?["gross"]?.int
-      return .posted(gross: g, toast: "Claimed ✓ — your \(g.map(String.init) ?? "round") is on your card")
+      return .posted(gross: g, toast: "Claimed ✓ — your \(g.map(String.init) ?? "round") is in your rounds")
     }
     return .incomplete(toast: "Round claimed — the card was incomplete, so nothing posted")
   }

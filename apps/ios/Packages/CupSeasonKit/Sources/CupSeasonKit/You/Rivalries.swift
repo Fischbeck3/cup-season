@@ -3,7 +3,7 @@
 // 13244–13264, `openNameRivalry` 13268–13290).
 //
 // `my_rivalries()` → summary rows; `rivalry_weeks()` → the receipts (§16).
-// The faceted record: clashes and Ryder duels side by side, never one blended
+// The faceted record: clashes and Ryder clashes side by side, never one blended
 // number. A christened rivalry (M3/D18) wears its name in gold.
 
 import Foundation
@@ -32,7 +32,7 @@ public struct RivalryLine: Sendable, Identifiable, Equatable {
     let meetings = r.meetings ?? 0
     let facets = [
       meetings > 0 ? "\(meetings) week\(meetings == 1 ? "" : "s") head-to-head" : nil,
-      (dw + dl + dh) > 0 ? "Ryder duels \(dw)–\(dl)\(dh > 0 ? "–\(dh)" : "")" : nil,
+      (dw + dl + dh) > 0 ? "Ryder clashes \(dw)–\(dl)\(dh > 0 ? "–\(dh)" : "")" : nil,
     ].compactMap { $0 }.joined(separator: " · ")
     let lead: RivalryLead = r.lead == "up" ? .up : r.lead == "down" ? .down : .even
     let named = (r.rivalry_name ?? "").isEmpty ? nil : r.rivalry_name

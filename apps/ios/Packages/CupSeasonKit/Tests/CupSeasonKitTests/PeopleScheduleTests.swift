@@ -207,7 +207,7 @@ private func row(id: UUID = UUID(), name: String = "Galen", playOn: String, mine
 
   @Test func covenantCopy() {
     let c = Covenant(.object(["name": .string("PIGL"), "buyin_cents": .number(5000), "preset": .string("standard"), "floor": .number(2), "finish": .string("points_table")]))!
-    #expect(c.usd == 50 && c.buyinLine == "$50 / player · on the books")   // T-12: "pot sheet" retires
+    #expect(c.usd == 50 && c.buyinLine == "$50 / player · on the books")   // T-12: "pot" retires
     #expect(c.presetLine == "Standard" && c.floorLine == "2 rounds / mo" && c.finishLine == "Points table crowns it")
     #expect(c.joinLabel == "Join — I’m in for $50")
     #expect(Covenant(.null) == nil)
@@ -231,7 +231,7 @@ private func row(id: UUID = UUID(), name: String = "Galen", playOn: String, mine
   @Test func inviteAndPersonCopy() {
     let i = Invite(id: UUID(), kind: "event", containerId: nil, containerName: "Desert Ryder", inviter: "Galen", startsOn: "2026-09-12")
     #expect(i.title == "Ryder invite" && i.subline == "from Galen · first tee 2026-09-12")
-    #expect(i.detail == "A Ryder event — two teams, vs-index duels. Invited by Galen. First tee 2026-09-12.")
+    #expect(i.detail == "A Ryder — two teams, one clash each week. Invited by Galen. First tee 2026-09-12.")
     let l = Invite(id: UUID(), kind: "league", containerId: nil, containerName: "PIGL", inviter: "a golfer", startsOn: nil)
     #expect(l.subline == "from a golfer" && l.detail == "A season-long league. Invited by a golfer")
     #expect(Rel("incoming").tag == "Wants to add you" && Rel("none").action == "Add" && Rel("incoming").action == "Accept" && Rel("friend").action == nil)
@@ -288,7 +288,7 @@ private func row(id: UUID = UUID(), name: String = "Galen", playOn: String, mine
     #expect(RivalryTag.of(pid, rivals: [r])?.text == "“The Grudge” · you lead 3–1")
     let d = Rpc.my_rivalries.Row(opponent: pid, display_name: "Galen Ortiz", handle: nil, marker: nil, wins: 0, losses: 0, ties: 0, meetings: 0, lead: nil,
                                  duel_wins: 0, duel_losses: 2, duel_halves: nil, rivalry_name: nil)
-    #expect(RivalryTag.of(pid, rivals: [d])?.text == "Galen leads duels 2–0")
+    #expect(RivalryTag.of(pid, rivals: [d])?.text == "Galen leads clashes 2–0")
     #expect(RivalryTag.of(UUID(), rivals: [r]) == nil)
   }
 

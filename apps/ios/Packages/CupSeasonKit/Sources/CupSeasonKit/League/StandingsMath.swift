@@ -148,7 +148,7 @@ public enum StandingsStory: Sendable, Equatable {
 // MARK: - The math
 
 public enum StandingsMath {
-  /// `CAPVALS` — the counting cap as a number (nil = unlimited).
+  /// `CAPVALS` — the rounds that count as a number (nil = unlimited).
   public static func capN(_ countingCap: Int?) -> Int { countingCap ?? Int.max }
 
   /// `memCi` (14384): the palette index of the squad a member sits in; 1 when unsquadded.
@@ -490,7 +490,7 @@ public enum ClimbMath {
 // MARK: - The scenario line (D24)
 
 public enum ScenarioPart: Sendable, Equatable {
-  case clinch(String)   // "SEEDS LOCKED"
+  case clinch(String)   // "THE FINAL IS SET"
   case text(String)
   case bold(String)
   case out(String)
@@ -515,7 +515,7 @@ public enum ScenarioLine {
     let up = { (s: String?) in (s ?? "").uppercased() }
     if meta.locked == true {
       let seeds = rows.prefix(max(0, meta.k ?? 0)).map { up($0.name) }
-      return [.clinch("SEEDS LOCKED"), .text(" — \(seeds.joined(separator: " · ")) INTO THE CUP FINAL")]
+      return [.clinch("THE FINAL IS SET"), .text(" — \(seeds.joined(separator: " · ")) INTO THE CUP FINAL")]
     }
     if meta.months_left == 0 { return [] }
     let sw = seedWord(meta)

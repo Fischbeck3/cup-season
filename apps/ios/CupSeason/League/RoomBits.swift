@@ -234,7 +234,7 @@ struct LeagueRoomLinks: Sendable {
   /// The season album, as its own screen (D93: one home per question — the
   /// room's own copy of it retired with the six segments). Hidden when nil.
   var openAlbum: (@MainActor @Sendable () -> Void)? = nil
-  /// The Golf hub / tee sheet ("Live round", "Post a round"). Hidden when nil.
+  /// The Golf hub / tee sheet ("Live round", "Add my round"). Hidden when nil.
   var openRecord: (@MainActor @Sendable () -> Void)? = nil
   /// D41 "Run it back — Season 2". Hidden when nil.
   var runItBack: (@MainActor @Sendable () -> Void)? = nil

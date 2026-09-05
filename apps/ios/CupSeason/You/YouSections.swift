@@ -29,7 +29,7 @@ struct LastRoundWithCard: View {
           .accessibilityElement(children: .combine)
         }
         HStack(spacing: 6) {
-          if let stage { MiniButton(label: "Stage it") { stage(LastRoundWith.nextSaturday(), lrw.profileId) }.accessibilityHint("Puts a round with \(line.name) on the tee sheet") }
+          if let stage { MiniButton(label: "Plan a round") { stage(LastRoundWith.nextSaturday(), lrw.profileId) }.accessibilityHint("Puts a round with \(line.name) on the schedule") }
           MiniButton(label: "Later", action: later).accessibilityLabel("Quiet for a while")
         }
       }

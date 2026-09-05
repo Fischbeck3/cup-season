@@ -37,7 +37,7 @@ struct EventPickerSheet: View {
             style("🏆", "A Major", "A championship window · best card takes the jug", live: true) { major = true }
           }
           // A-4 / T-12 · "mint" is the engine's verb.
-          CSFine("Every one of these awards a trophy for your display case.")
+          CSFine("Every one of these awards a trophy.")
         }
         .padding(20)
       }

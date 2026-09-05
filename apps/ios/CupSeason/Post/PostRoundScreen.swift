@@ -119,7 +119,7 @@ private struct PostRoundBody: View {
     }
     .scrollDismissesKeyboard(.interactively)
     .safeAreaInset(edge: .bottom, spacing: 0) { bottomBar }
-    .navigationTitle("Post a round")
+    .navigationTitle("Add my round")
     .navigationBarTitleDisplayMode(.inline)
     .toolbar {
       ToolbarItem(placement: .topBarTrailing) {
@@ -133,7 +133,7 @@ private struct PostRoundBody: View {
           }
           .foregroundStyle(cs.brand)
         }
-        .accessibilityHint("Opens the tee sheet to score a round live")
+        .accessibilityHint("Opens live scoring for a round")
       }
     }
     .sheet(isPresented: $showDate) { PostDateSheet(day: $model.day) }
@@ -473,7 +473,7 @@ private struct PostRoundBody: View {
         Text(model.grossLine).font(CSFont.monoSmall).foregroundStyle(cs.mut).csTabular()
           .frame(maxWidth: .infinity).frame(minHeight: 22)
           .accessibilityAddTraits(.updatesFrequently)
-        CSButton("Post round", busy: model.busy) { model.tapPost() }
+        CSButton("Add my round", busy: model.busy) { model.tapPost() }
         // abandonment is a real path, not a refresh: one tap empties the card
         Button { model.startOver() } label: {
           Text("Start over — clear this card").font(CSFont.footnote).foregroundStyle(cs.mut).frame(maxWidth: .infinity, minHeight: 44)
@@ -545,7 +545,7 @@ private struct PostHeroContent: View {
       // D178 · it is no longer a 100% preview, so it must no longer say so.
       CSFine("A preview — your league's own math scores it on the books.").padding(.top, 4)
       if model.membership == nil {
-        CSFine("No league yet? The round still counts on your card — points apply in any league you join.")
+        CSFine("No season yet? The round still posts to your rounds — points apply in any season you join.")
       }
     }
   }
@@ -564,11 +564,11 @@ private struct PostHeroContent: View {
     return s.prefix(1).uppercased() + s.dropFirst()
   }
 
-  /// "9 pts · PIGL" through the open league's lens; "counts on your card" without one.
+  /// "9 pts · PIGL" through the open league's lens; "posts to your rounds" without one.
   private var pointsText: String {
     guard let p = model.preview else { return "" }
     if let name = model.membership?.name { return "\(p.points) pts · \(name)" }
-    return "counts on your card"
+    return "posts to your rounds"
   }
 
   private func chip(_ text: String, tone: Color) -> some View {

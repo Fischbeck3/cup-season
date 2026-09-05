@@ -103,7 +103,7 @@ struct FinalistReceiptSheet: View {
                      + (f.squad_id != nil ? " · \((h.golfer ?? "").uppercased())" : ""))
                   .font(CSFont.label).tracking(0.6).foregroundStyle(cs.mut)
                 Spacer()
-                Text("\(StandingsMath.sgn(h.pvi ?? 0)) vs index · \(CSCopy.points(h.points)) PTS")
+                Text("\(StandingsMath.sgn(h.pvi ?? 0)) vs your number · \(CSCopy.points(h.points)) PTS")
                   .font(CSFont.monoSmall).csTabular().foregroundStyle(cs.ink).lineLimit(typeSize.isA11y ? nil : 1)
               }
               .padding(.vertical, 10).frame(minHeight: 44).contentShape(Rectangle())
@@ -116,7 +116,7 @@ struct FinalistReceiptSheet: View {
           }
         }
       }
-      RoomFine("Only rounds inside the four-week window count here, up to the monthly cap. The regular season is the seed; this is the race.").padding(.top, 10)
+      RoomFine("Only rounds inside the four-week window count here, up to the monthly cap. The weeks before it decided who is in; this is the race.").padding(.top, 10)
     }
   }
 }

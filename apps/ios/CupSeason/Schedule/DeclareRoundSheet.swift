@@ -41,8 +41,8 @@ struct DeclareRoundSheet: View {
     NavigationStack {
       ScrollView {
         VStack(alignment: .leading, spacing: 12) {
-          CSSheetHeader(title: vm.hostName != nil ? "Get in on it" : "Put a round on the tee sheet",
-                        sub: vm.hostName != nil ? "YOUR ROUND POSTS AND SCORES ON ITS OWN — YOU BOTH SHOW ON THE DAY" : "BUDDIES & LEAGUE MATES SEE IT THE MOMENT YOU POST")
+          CSSheetHeader(title: vm.hostName != nil ? "Get in on it" : "Put a round on the schedule",
+                        sub: vm.hostName != nil ? "YOUR ROUND POSTS AND SCORES ON ITS OWN — YOU BOTH SHOW ON THE DAY" : "BUDDIES AND YOUR SEASONS SEE IT THE MOMENT YOU POST")
           if let h = vm.hostName { CSFine("You're in — declaring your own round alongside \(h).", tone: cs.gold) }
 
           HStack(alignment: .top, spacing: 10) {
@@ -216,7 +216,7 @@ final class DeclareModel {
       declaredId = id
       CSHaptic.success()
       toasts.show(hostName != nil ? "You're in — it's on both boards"
-                  : tagged.isEmpty ? "On the tee sheet: the boards know" : "On the tee sheet: your group is named on the boards")
+                  : tagged.isEmpty ? "On the schedule: the boards know" : "On the schedule: your group is named on the boards")
       return id
     } catch { toasts.show(HumanError.text(error)); return nil }
   }

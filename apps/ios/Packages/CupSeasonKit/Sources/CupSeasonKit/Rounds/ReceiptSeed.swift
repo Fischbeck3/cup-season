@@ -25,6 +25,12 @@ public struct ReceiptSeed: Sendable, Equatable {
   public var slope: Int?
   public var nineRating: Double?
   public var pvi: Double?
+  /// R13 (D249) — `round_card.band`: the SERVER's name for this round's pvi,
+  /// from `band_name(p_pvi)`. Optional on purpose: a build that meets a
+  /// database without the function, or a seed row that never went through
+  /// `round_card`, falls back to `CSBands.bandName` — the same five words from
+  /// the same boundaries, which preflight check 28 holds to one table.
+  public var band: String?
   /// D209 — `v_rounds_ranked.playing_index`: the number the points were scored
   /// against, `index_at_post × the league's allowance` (95% for Standard).
   /// `round_card` has always returned it; the receipt used to drop it.
@@ -52,12 +58,14 @@ public struct ReceiptSeed: Sendable, Equatable {
               playedOn: String? = nil, courseLabel: String? = nil, holesPlayed: Int? = nil, photoPath: String? = nil, photoURL: URL? = nil,
               rating: Double? = nil, slope: Int? = nil, nineRating: Double? = nil, pvi: Double? = nil, playingIndex: Double? = nil,
               points: Double? = nil, monthRank: Int? = nil, countingCap: Int? = nil, attested: Bool? = nil, playedWith: [String] = [],
-              liveRoundId: UUID? = nil, isMine: Bool? = nil, marker: String? = nil, indexProvisional: Bool? = nil, provisionalRound: Int? = nil) {
+              liveRoundId: UUID? = nil, isMine: Bool? = nil, marker: String? = nil, indexProvisional: Bool? = nil, provisionalRound: Int? = nil,
+              band: String? = nil) {
     self.id = id; self.profileId = profileId; self.gross = gross; self.differential = differential; self.indexAtPost = indexAtPost
     self.playedOn = playedOn; self.courseLabel = courseLabel; self.holesPlayed = holesPlayed; self.photoPath = photoPath; self.photoURL = photoURL
     self.rating = rating; self.slope = slope; self.nineRating = nineRating; self.pvi = pvi; self.playingIndex = playingIndex; self.points = points
     self.monthRank = monthRank; self.countingCap = countingCap; self.attested = attested; self.playedWith = playedWith; self.liveRoundId = liveRoundId
     self.isMine = isMine; self.marker = marker; self.indexProvisional = indexProvisional; self.provisionalRound = provisionalRound
+    self.band = band
   }
 
   /// `r.pvi ?? index_at_post − differential` (11374, 11399) — with the playing
@@ -101,6 +109,7 @@ public struct ReceiptSeed: Sendable, Equatable {
     if has("slope") { r.slope = o["slope"]?.int }
     if has("nine_rating") { r.nineRating = o["nine_rating"]?.double }
     if has("pvi") { r.pvi = o["pvi"]?.double }
+    if has("band") { r.band = o["band"]?.string }
     if has("playing_index") { r.playingIndex = o["playing_index"]?.double }
     if has("points") { r.points = o["points"]?.double }
     if has("month_rank") { r.monthRank = o["month_rank"]?.int }
@@ -147,7 +156,7 @@ public enum ReceiptRows {
 
   /// `roundCardBody(r, pvi, capN)` — called twice: once with the row the
   /// caller had (instant), once with the full payload.
-  /// - capN: the league's counting cap; nil = unlimited (the web's `Infinity`).
+  /// - capN: the league's rounds that count; nil = unlimited (the web's `Infinity`).
   /// - viewerId: decides "Your" vs "Their" when the row lacks `is_mine`.
   public static func build(_ r: ReceiptSeed, capN: Int?, viewerId: UUID?) -> [ReceiptRow] {
     let mine = r.isMine ?? (r.profileId == nil || r.profileId == viewerId)
@@ -193,7 +202,10 @@ public enum ReceiptRows {
       // Q-23: the words lead and the figure explains them; the figure is the
       // web's short form ("+2.4" / "level" / "-1.8") and the band edge is the
       // engine's (`CSBands`, Q-20), so this row and `cup_points()` agree at −1.0.
-      let band = mine ? CSBands.bandName(pvi) : CSBands.theirs(CSBands.bandName(pvi))
+      // R13 · the server's band when the payload carried one, this client's
+      // own when it did not. One table, three renderers (preflight 28).
+      let named = r.band ?? CSBands.bandName(pvi)
+      let band = mine ? named : CSBands.theirs(named)
       rows.append(.math(label: "Against \(who) \(playingShown ? "playing number" : "number")",
                         value: "\(CSBands.vsShort(pvi)) — \(band.uppercased())", sub: false))
     }

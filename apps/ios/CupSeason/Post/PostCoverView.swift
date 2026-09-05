@@ -107,9 +107,9 @@ private struct PostCoverStack: View {
               close(); links.openLive()
             }
             PostOptionRow(tick: cs.line2, title: "Add a round you played",
-                          sub: "Your gross and the tee — it counts on your card and in every season.") { path.append(PostCoverView.Route.post) }
+                          sub: "Your gross and the tee — it posts to your rounds, and every season you're in reads it.") { path.append(PostCoverView.Route.post) }
             PostOptionRow(tick: cs.line2, title: "Plan a round",
-                          sub: "Put it on the tee sheet; your buddies and your leagues see it.", last: true) { showPlan = true }
+                          sub: "Put it on the schedule; your buddies and your leagues see it.", last: true) { showPlan = true }
           }
           .padding(.top, 12)
           CSFine("Hold the ⊕ to go straight to your card.").padding(.top, 12)

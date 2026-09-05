@@ -58,7 +58,7 @@ import Foundation
     var d = WizardDials()
     #expect(d.presetSummaryText.hasPrefix("Standard: 95% handicap, post what you'd post to GHIN, your best 3 a month count"))
     d.applyPreset(2)
-    #expect(d.presetSummaryText.contains("attested where you can and the Pro rules on the rest") && d.presetSummaryText.contains("best 2 a month"))
+    #expect(d.presetSummaryText.contains("vouched by the group where you can and the Pro rules on the rest") && d.presetSummaryText.contains("best 2 a month"))
     d.applyPreset(1)
     d.payout = [70, 20, 10]
     #expect(d.payNote == "Winner-heavy: champ 70% · runner-up 20% · Points King 10%.")
@@ -76,7 +76,7 @@ import Foundation
     #expect(WizardDials.structFitLine(roster: 1) == "1 golfer staged — solo fits. Bigger squads open up as more join, by code or invite.")
     #expect(WizardDials.structToast("squads4", roster: 1) == "4 squads plays best at 8+ — fine if more join by code")
     // the web toasts solo too (STRUCT_MIN.solo = 2): guidance, never a block
-    #expect(WizardDials.structToast("solo", roster: 1) == "Individual — no squads plays best at 2+ — fine if more join by code")
+    #expect(WizardDials.structToast("solo", roster: 1) == "Solo — everyone for themselves plays best at 2+ — fine if more join by code")
   }
   @Test func sixGolfersFitUpToThree() {
     #expect(WizardDials.structFitLine(roster: 6) == "6 golfers staged — solo or up to 3 squads fit. Bigger squads open up as more join, by code or invite.")
@@ -93,7 +93,7 @@ import Foundation
     d.stake = 75; d.structure = "squads4"; d.payout = [60, 25, 15]
     let p = WizardPortrait(d, roster: 3)
     #expect(p.name == "The Big Slice" && p.pot == 225 && p.squads == 4)
-    #expect(p.structLine == "4 SQUADS · BLIND DRAW")
+    #expect(p.structLine == "4 SQUADS · RANDOM DRAW")
     #expect(p.potSub == "$75 / player · 3 in so far · 60/25/15")
     #expect(zip(p.bar, [81.6, 34.0, 20.4]).allSatisfy { abs($0 - $1) < 0.001 })
   }
@@ -195,7 +195,7 @@ import Foundation
   /// The wrapper IS the generated binding by NAME, and drops nothing. The
   /// Kit's retry sheds every droppable arg at once, so a non-empty list here
   /// would let a skew retry lock a league on the SQL defaults and still say
-  /// "Bylaws locked" (D206). Every deployed signature since `20260829220000`
+  /// "Season started" (D206). Every deployed signature since `20260829220000`
   /// carries all eighteen args, so there is nothing to retry into either.
   @Test func theWrapperDropsNothingOnASkewRetry() {
     #expect(WizardLockCall.name == "lock_league" && WizardLockCall.name == Rpc.lock_league.name)
@@ -265,7 +265,7 @@ import Foundation
   /// D205: every minimum derives from `structMin`; a solo league forms no squads.
   @Test func theReviewStepSpeaksBothMinimums() {
     #expect(WizardCopy.inviteNote == "Lock opens the invite link — one link fills the league. The code works until first tee, or until you close the roster. Squads need four to tee off; solo tees off at two.")
-    #expect(WizardCopy.lockButton(solo: true) == "Lock the bylaws" && WizardCopy.lockButton(solo: false) == "Lock the bylaws & form the squads")
+    #expect(WizardCopy.lockButton(solo: true) == "Start the season" && WizardCopy.lockButton(solo: false) == "Start the season & form the squads")
     #expect(WizardDials.structNotes["solo"]?.hasPrefix("Individual · every player for himself — works at any size (2+).") == true)
     #expect(WizardCopy.verificationNote == "Verification is a norm the league holds, not a filter the engine applies.")
   }
@@ -308,7 +308,7 @@ import Foundation
     #expect(DraftCopy.startBlocker(members: 3, pool: 0, squads: three, solo: false) == "Minimum four to tee off — 3 in so far. Share the invite link.")
   }
   @Test func formationCopy() {
-    #expect(DraftCopy.eyebrow("assign") == "Form squads · Pro assign" && DraftCopy.eyebrow("random") == "Form squads · blind draw")
+    #expect(DraftCopy.eyebrow("assign") == "Form squads · The Pro picks" && DraftCopy.eyebrow("random") == "Form squads · random draw")
     #expect(DraftCopy.formN(pool: 3) == "3 in the pool" && DraftCopy.formN(pool: 0) == "Everyone has a squad")
     #expect(DraftCopy.lockTheirs("Logan") == "Logan is picking: only their account can select")
     #expect(DraftCopy.proPicked("Ed", for: "Logan") == "Pro picked Ed for Logan, logged")

@@ -67,6 +67,11 @@ struct HomeView: View {
         // device and is spent the moment the engine has a number of its own.
         let strip = MeStripCopy.make(me, starter: StarterIndex.current(engineIndex: me.profile?.index_current))
         let ranked = vm.ranked(stripSuppress: strip.suppress)
+        // IOS-034 · the home screen gets what Home just read, and nothing it
+        // did not: the strip's own facts (never the money one) and the lead's
+        // own sentence. Written here, where both producers have already run,
+        // so the widget cannot draw a fact this screen is not drawing.
+        let _ = DispatchSnapshotFeed.publish(strip: strip, lead: ranked.lead)
         VStack(alignment: .leading, spacing: 14) {
           // 1 · the masthead. IOS-019 rule 3: the wordmark lives in the
           // scroll, where the glass toolbar cannot clip it.
@@ -746,10 +751,10 @@ private struct FeedPostRow: View {
     }
   }
   static func tag(_ d: HomeFeedDoor) -> String {
-    switch d { case .live: "SCORECARD"; case .round: "THE ROUND"; case .scheduled: "THE TEE SHEET" }
+    switch d { case .live: "SCORECARD"; case .round: "THE ROUND"; case .scheduled: "THE SCHEDULE" }
   }
   static func hint(_ d: HomeFeedDoor) -> String {
-    switch d { case .live: "Opens the scorecard"; case .round: "Opens the round"; case .scheduled: "Opens the round on the tee sheet" }
+    switch d { case .live: "Opens the scorecard"; case .round: "Opens the round"; case .scheduled: "Opens the round on the schedule" }
   }
 }
 

@@ -30,7 +30,7 @@ public enum GolfersRoot {
       case .playingSoon:  "PLAYING SOON"
       case .buddies:      "YOUR BUDDIES"
       case .youPlayWith:  "YOU PLAY WITH"
-      case .leagueMates:  "LEAGUE MATES"
+      case .leagueMates:  "IN YOUR SEASONS"
       case .invite:       "SOMEBODY WHO ISN’T HERE"
       }
     }

@@ -69,10 +69,10 @@ final class PostRoundModel {
     PostSeasonRule.membership(playedOn: card.date, memberships: store.me?.memberships ?? [])
   }
   var myIndex: Double? { profile?.index_current }
-  /// "Post a round · your index 12.4" — the REAL number (landmine 7.12).
+  /// "Add my round · your number 12.4" — the REAL number (landmine 7.12).
   /// No minted number = say "building", not a dash (web 14242, setup-QA S6-03).
   var eyebrow: String {
-    myIndex == nil ? "Post a round · your index builds at 3 rounds" : "Post a round · your index " + CSCopy.index(myIndex)
+    myIndex == nil ? "Add my round · your number builds at 3 rounds" : "Add my round · your number " + CSCopy.index(myIndex)
   }
 
   // MARK: - open (`switchView('post')`, 4159)
@@ -185,7 +185,7 @@ final class PostRoundModel {
     toast.show(PostScan.readToast(misses: misses))
   }
 
-  // MARK: - drafts (6217–6270)
+  // MARK: - picks (6217–6270)
 
   private func scheduleDraft() {
     draftTask?.cancel()

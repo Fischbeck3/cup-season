@@ -64,9 +64,9 @@ struct LeaveSeasonTests {
     let r = try JSONDecoder().decode(LeaveResult.self, from: Data(json.utf8))
     #expect(r.already == true)
     #expect(r.league == "Fellas")
-    #expect(LeaveSeason.done(r.league) == "You left Fellas. Your rounds stay on your card.")
+    #expect(LeaveSeason.done(r.league) == "You left Fellas. Your rounds stay where they are.")
     // a payload that names no league still produces a sentence, not a blank
-    #expect(LeaveSeason.done(nil) == "You left the season. Your rounds stay on your card.")
+    #expect(LeaveSeason.done(nil) == "You left the season. Your rounds stay where they are.")
   }
 
   @Test("a leaver keeps their row on the table — the table is history, not a roster")

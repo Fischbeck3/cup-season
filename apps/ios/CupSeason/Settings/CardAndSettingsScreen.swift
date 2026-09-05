@@ -502,7 +502,7 @@ private struct SettingsPane: View {
         Text("This device is on here, but we haven't been able to confirm it with the server. Reopen the app with signal, or tap Disable then Enable.")
           .font(CSFont.footnote).foregroundStyle(cs.gold)
       }
-      Text("Moments, reveals, and month closes always come through. Round posts and chat each have their own switch.")
+      Text("Milestones, results and month closes always come through. Round posts and chat each have their own switch.")
         .font(CSFont.footnote).foregroundStyle(cs.dimText)
 
       Text("Appearance").csEyebrow().padding(.top, 14)
@@ -546,7 +546,7 @@ private struct SettingsPane: View {
         Text("·").accessibilityHidden(true)
         Link(destination: CSConfig.legal("terms")) { Text("Terms").frame(minHeight: 44) }
         Text("·").accessibilityHidden(true)
-        Link(destination: CSConfig.legal("pot")) { Text("Prize pool").frame(minHeight: 44) }
+        Link(destination: CSConfig.legal("pot")) { Text("The pot (legal)").frame(minHeight: 44) }
       }
       .font(CSFont.footnote).foregroundStyle(cs.mut)
 

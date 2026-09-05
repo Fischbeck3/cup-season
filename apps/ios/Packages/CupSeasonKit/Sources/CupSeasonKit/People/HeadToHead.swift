@@ -74,7 +74,7 @@ public struct HeadToHead: Sendable, Equatable {
       case .clashes:         "WEEKLY CLASHES"
       case .playedTogether:  "PLAYED TOGETHER"
       case .liveGames:       "LIVE ROUNDS"
-      case .duels:           "RYDER DUELS"
+      case .duels:           "RYDER CLASHES"
       case .callouts:        "CALLOUTS"
       }
     }

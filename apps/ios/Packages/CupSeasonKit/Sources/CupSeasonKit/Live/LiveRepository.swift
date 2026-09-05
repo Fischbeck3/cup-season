@@ -351,7 +351,7 @@ public struct LiveRepository: Sendable {
 
   // MARK: the plan bridge (8349)
 
-  /// A round of mine on the tee sheet today, if any.
+  /// A round of mine on the schedule today, if any.
   public func todaysPlan() async -> ScheduledRound? {
     let today = CSDate.today()
     let rows = (try? await ScheduleService(svc).watch(today: today)) ?? []

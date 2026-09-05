@@ -298,7 +298,7 @@ import Foundation
   /// case's line is the only sentence a new golfer reads.
   @Test func anEmptyCaseSaysItOnce() {
     #expect(TrophyCase.tiles(trophies: [], achievements: []).isEmpty)
-    #expect(TrophyCase.emptyLine.hasPrefix("No hardware yet."))
+    #expect(TrophyCase.emptyLine.hasPrefix("Nothing in the case yet."))
     #expect(CareerRecord.parse(.object([:])).items.isEmpty)
   }
 
@@ -381,7 +381,7 @@ import Foundation
                                  lead: "up", duel_wins: 3, duel_losses: 2, duel_halves: 0, rivalry_name: "The Grudge")
     let line = RivalryLine.from(r)!
     #expect(line.record == "4–2–1" && line.lead == .up)
-    #expect(line.facets == "7 weeks head-to-head · Ryder duels 3–2")
+    #expect(line.facets == "7 weeks head-to-head · Ryder clashes 3–2")
     #expect(line.rivalryName == "The Grudge")
     let quiet = RivalryLine.from(Rpc.my_rivalries.Row(opponent: UUID(), display_name: nil, handle: nil, marker: nil, wins: 0, losses: 1, ties: 0, meetings: 1,
                                                       lead: "down", duel_wins: 0, duel_losses: 0, duel_halves: 0, rivalry_name: ""))!

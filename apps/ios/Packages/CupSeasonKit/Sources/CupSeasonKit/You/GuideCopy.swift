@@ -65,16 +65,16 @@ public enum GuideCopy {
     ]),
     "games": GuideSheet(key: "games", title: "Leagues vs events", sub: "THE LONG GAME · THE SHORT GAME", paragraphs: [
       "**A league is the long game.** A full season — weeks or months, squads or solo, every round you post counts toward a table, and the endgame settles it: a Cup Final or the points table.",
-      "**An event is the short game.** A weekend or a few weeks, its own little trophy: the Ryder (two teams, weekly duels), or a Major (one window, every card on one board, one name on the jug).",
+      "**An event is the short game.** A weekend or a few weeks, its own little trophy: the Ryder (two teams, one clash a week), or a Major (one window, every card on one board, one name on the jug).",
       "You can run both at once. An event stands alone, or attaches to a league.",
     ]),
     "posting": GuideSheet(key: "posting", title: "Posting a round", sub: "POST · BEFORE, DURING, AFTER", paragraphs: [
-      "**After you play:** front nine, back nine, pick the course — twenty seconds. It counts on your card and in every league you're in. **Scan the card** and the app reads it for you, the whole group at once.",
-      "**During:** Play now is the shared pencil — match play, Wolf, skins, the settle-up. Everyone's card posts at the end, attested by the group.",
+      "**After you play:** front nine, back nine, pick the course — twenty seconds. It posts to your rounds and in every league you're in. **Scan the card** and the app reads it for you, the whole group at once.",
+      "**During:** Play now is the shared pencil — match play, Wolf, skins, the settle-up. Everyone's card posts at the end, vouched by the group.",
       "**Before:** put a tee time on the sheet. Your buddies see it and tap in.",
     ]),
     "buddies": GuideSheet(key: "buddies", title: "Buddies, invites and claims", sub: "THREE LINKS, THREE JOBS", paragraphs: [
-      "**A buddy** is mutual — open Your buddies on You to find golfers by name or @handle. Buddies see each other's rounds and share a tee sheet. Nothing to do with leagues or points.",
+      "**A buddy** is mutual — open Your buddies on You to find golfers by name or @handle. Buddies see each other's rounds and share a schedule. Nothing to do with leagues or points.",
       "**An invite link** carries a league's code — whoever opens it reviews the league and joins if they're in.",
       "**A claim link** hands one round to a guest you played with, so the score lands on their card. No league, no buddy — just the round.",
     ]),

@@ -130,9 +130,9 @@ struct YouScreen: View {
             if noRounds {
               // Y-29 · nothing on the card yet: one empty state, the Post door,
               // and no three sections each saying "not yet" in its own words.
-              // A case with hardware in it (rare without a round) still hangs.
+              // A case with trophies in it (rare without a round) still hangs.
               if !TrophyCase.tiles(trophies: model.data.trophies, achievements: model.data.achievements).isEmpty {
-                CSSectionHead("Display case")
+                CSSectionHead("Trophies")
                 TrophyCaseView(trophies: model.data.trophies, achievements: model.data.achievements, userId: uid, openReceipt: links.openReceipt)
               }
               CSEmptyState(icon: "⛳", line: YouCopy.noRoundsLine, cta: YouCopy.postFirst, action: links.postRound).id("you-recent")
@@ -141,7 +141,7 @@ struct YouScreen: View {
               // (the same trophies as objects) were two sections about one subject,
               // adjacent, under different names. The counts are now the case's top
               // strip and the objects sit under them.
-              CSSectionHead("Display case")
+              CSSectionHead("Trophies")
               CareerRecordView(record: model.data.careerRecord)
               TrophyCaseView(trophies: model.data.trophies, achievements: model.data.achievements, userId: uid, openReceipt: links.openReceipt)
 
@@ -158,7 +158,7 @@ struct YouScreen: View {
               }, delete: { r in
                 if let uid { _ = await model.deleteRound(r, me: me, uid: uid, leagueId: leagueId) }
               })
-              // the "Post a round" button that sat here is gone: the ⊕ is a
+              // the "Add my round" button that sat here is gone: the ⊕ is a
               // permanent tab one inch below it, and this is a page about the past.
               // No "All rounds →" door either: the only list screen the app has is
               // the season ALBUM (photos), and a door named for rounds cannot open it.

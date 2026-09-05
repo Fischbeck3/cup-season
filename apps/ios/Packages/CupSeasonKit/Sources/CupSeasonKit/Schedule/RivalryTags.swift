@@ -23,7 +23,7 @@ public struct RivalryTag: Sendable, Equatable {
     } else {
       let dw = r.duel_wins ?? 0, dl = r.duel_losses ?? 0
       if dw != 0 || dl != 0 {
-        rec = dw > dl ? "you lead duels \(dw)–\(dl)" : dw < dl ? "\(first) leads duels \(dl)–\(dw)" : "even in duels \(dw)–\(dl)"
+        rec = dw > dl ? "you lead clashes \(dw)–\(dl)" : dw < dl ? "\(first) leads clashes \(dl)–\(dw)" : "even in clashes \(dw)–\(dl)"
       }
     }
     guard let rec else { return nil }

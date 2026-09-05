@@ -129,7 +129,7 @@ public struct BoardRound: Sendable, Identifiable, Equatable {
   }
 }
 
-/// The counting cap's stepper slot. D142: the ladder lives in one place —
+/// The rounds that count's stepper slot. D142: the ladder lives in one place —
 /// `Bylaws.capVals` [2, 3, 4, 6, nil] — and the NUMBER is the truth; a slot
 /// is only where the wizard's stepper sits. Prefer carrying `counting_cap`
 /// itself (`BoardLogic.counting(monthRank:capN:)`) over a slot.

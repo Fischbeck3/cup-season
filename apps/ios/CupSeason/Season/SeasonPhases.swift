@@ -59,7 +59,7 @@ struct SeasonDraftHero: View {
   @Environment(\.cs) private var cs
 
   var body: some View {
-    PhaseHero(k: "Squads are forming", n: "The Pro has the list.",
+    PhaseHero(k: "Squads are forming", n: "It’s random — nobody picks.",
               m: LeagueCopy.draftPoolSub(pool: model.pool.count, members: model.members.count, min: model.bylaws.structMin)) {
       VStack(spacing: 10) {
         CSButton(model.isPro ? "Form the squads" : "See the squads") { links.openDraft() }

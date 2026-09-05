@@ -161,7 +161,7 @@ public enum TrophyCase {
   /// Y-02 · THE one empty state for a case with nothing in it. The record
   /// strip above it renders nothing when it has no items, so a new golfer
   /// reads one sentence, not two.
-  public static let emptyLine = "No hardware yet. Break 80, post your first round, or win a Cup Final — milestones and trophies land here."
+  public static let emptyLine = "Nothing in the case yet. Break 80, post your first round, or win a Cup Final — milestones and trophies land here."
 }
 
 /// Which tiles this device has already shown — a tile only engraves on

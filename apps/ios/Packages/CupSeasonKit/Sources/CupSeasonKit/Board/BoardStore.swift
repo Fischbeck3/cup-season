@@ -20,7 +20,7 @@ public final class BoardStore {
   public let profileId: UUID?
   public let isPro: Bool
   public let seasonId: UUID?
-  /// D142 · the league's ACTUAL counting cap (nil = unlimited), not a stepper
+  /// D142 · the league's ACTUAL rounds that count (nil = unlimited), not a stepper
   /// slot — a cap off the ladder (a stored 5) must bump at 5, not at 4.
   public let capN: Int?
   private let season: Me.Season?

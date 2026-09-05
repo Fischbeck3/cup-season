@@ -91,7 +91,7 @@ struct ProVerbRow: View {
 
   private var note: String {
     model.clock.phase == .season && !model.clock.atStarter
-      ? "The bylaws froze at the first tee. Everything here is posted to the board."
+      ? "The rules froze at the first tee. Everything here is posted to the board."
       : "Everything here is posted to the board."
   }
 

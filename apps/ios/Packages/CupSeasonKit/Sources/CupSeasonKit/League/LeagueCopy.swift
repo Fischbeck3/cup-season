@@ -21,14 +21,14 @@ public struct Bylaws: Sendable, Equatable {
   public static let presetNames = ["Casual", "Standard", "Cutthroat"]
   public static let allow = [100, 95, 90]
   /// M-15 · the VERIFICATION row names the norm, not a filter (web VERIF, 13489).
-  public static let verif = ["Honor system", "Post what you'd post to GHIN", "Attested where you can; the Pro rules on the rest"]
-  public static let penalty = ["None", "−5 sqd pts / round short", "Forfeit month"]
+  public static let verif = ["Honor system", "Post what you'd post to GHIN", "Vouched by the group where you can; the Pro rules on the rest"]
+  public static let penalty = ["None", "−5 squad points a round short", "The month's rounds are struck"]
   /// D206 · "Hybrid" left the wizard; a legacy `season_format = 'hybrid'` row
   /// renders as the points race (`from` clamps it) and never indexes past this.
   public static let fmtNames = ["Points Race", "Head-to-Head"]
-  public static let structNames = ["solo": "Individual — no squads", "squads2": "2 squads", "squads3": "3 squads", "squads4": "4 squads"]
+  public static let structNames = ["solo": "Solo — everyone for themselves", "squads2": "2 squads", "squads3": "3 squads", "squads4": "4 squads"]
   public static let structMin = ["solo": 2, "squads2": 4, "squads3": 6, "squads4": 8]
-  public static let draftNames = ["random": "Blind draw", "assign": "Pro assign", "snake": "Snake · async", "live": "Live · pick clock"]
+  public static let draftNames = ["random": "Random draw", "assign": "The Pro picks", "snake": "In turns · async", "live": "Live · pick clock"]
 
   /// "Best N" / "Unlimited" — the one producer of the cap's name.
   public static func capLabel(_ n: Int?) -> String { n.map { "Best \($0)" } ?? "Unlimited" }
@@ -113,7 +113,7 @@ public struct RoomClock: Sendable, Equatable {
   public var firstTeeText: String { startsOn.map { LeagueDates.dowMonDay($0) } ?? "—" }
   public var cupFinalStart: String? { endsOn.map { LeagueDates.cupFinalStart(end: $0) } }
   public var spanText: String {
-    guard let s = startsOn, let e = endsOn else { return "Season dates lock with the bylaws" }
+    guard let s = startsOn, let e = endsOn else { return "Season dates are set when the season starts" }
     return LeagueDates.spanText(start: s, end: e)
   }
 }
@@ -130,13 +130,13 @@ public enum LeagueCopy {
 
   public static func bylawsRows(_ b: Bylaws, clock: RoomClock) -> [BylawRow] {
     var rows: [BylawRow] = [
-      BylawRow("STRUCTURE", Bylaws.structNames[b.structure] ?? b.structure),
-      BylawRow("Squad formation", Bylaws.draftNames[b.draftType] ?? b.draftType),
-      BylawRow("PRESET", b.presetName),
-      BylawRow("HANDICAP ALLOWANCE", "\(Bylaws.allow[b.presetIdx])%"),
-      BylawRow("VERIFICATION", Bylaws.verif[b.presetIdx]),
-      BylawRow("COUNTING CAP", "\(b.capLabel) / mo"),
-      BylawRow("PARTICIPATION FLOOR", "\(b.floor) / mo · \(Bylaws.penalty[b.presetIdx])"),
+      BylawRow("FORMAT", Bylaws.structNames[b.structure] ?? b.structure),
+      BylawRow("THE DRAW", Bylaws.draftNames[b.draftType] ?? b.draftType),
+      BylawRow("HOUSE RULES", b.presetName),
+      BylawRow("HOW SCORES COUNT", "Scored at \(Bylaws.allow[b.presetIdx])% of your number"),
+      BylawRow("SCORES", Bylaws.verif[b.presetIdx]),
+      BylawRow("EACH MONTH", b.cap == nil ? "Every round counts" : "\(b.capLabel) a month count"),
+      BylawRow("THE MINIMUM", "\(b.floor) a month · \(Bylaws.penalty[b.presetIdx])"),
     ]
     if b.stake == 0 {
       rows.append(BylawRow("BUY-IN", "None · bragging rights"))
@@ -207,7 +207,7 @@ public enum LeagueCopy {
     switch st {
     case .season, .final: return ""
     case .complete:
-      return short ? "Season complete" : "The season is over — this round lands on your card."
+      return short ? "Season complete" : "The season is over — this round posts to your rounds."
     case .forming, .drawing, .preseason:
       guard let when = firstTee, !when.isEmpty else {
         return short ? "Practice round"
@@ -219,8 +219,8 @@ public enum LeagueCopy {
   }
 
   /// The no-league case, which is not a stage — the golfer simply has no league.
-  public static let noLeagueNote = "This round lands on your card — join a league and it scores there too."
-  public static let noLeagueNoteShort = "On your card"
+  public static let noLeagueNote = "This round posts to your rounds — join a season and it scores there too."
+  public static let noLeagueNoteShort = "Counts toward your number"
 
   public static func phaseHeader(_ c: RoomClock) -> String {
     let st = stage(c)
@@ -230,11 +230,11 @@ public enum LeagueCopy {
   /// `#phaseSub` (12008–12020).
   public static func phaseSub(_ c: RoomClock, b: Bylaws, code: String?, members: Int) -> String {
     switch c.phase {
-    case .setup: return "SETUP · LOCK THE BYLAWS TO OPEN INVITES"
+    case .setup: return "SETUP · START THE SEASON TO OPEN INVITES"
     case .draft: return "\(Stage.drawing.label) · rosters pending"
     case .season:
       if c.atStarter { return "BEFORE FIRST TEE · \(c.firstTeeText.uppercased()) · \(c.daysToTee) DAY\(c.daysToTee == 1 ? "" : "S")" }
-      if c.isCupFinal { return "CUP FINAL · Wk \(c.currentWeek) / \(c.totalWeeks) · fresh slate · \(b.presetName) rules" }
+      if c.isCupFinal { return "CUP FINAL · Wk \(c.currentWeek) / \(c.totalWeeks) · scored fresh · \(b.presetName) rules" }
       return "Wk \(c.currentWeek) / \(c.totalWeeks) · \(Bylaws.fmtNames[b.fmtIdx]) · \(b.presetName) rules"
     }
   }
@@ -245,30 +245,30 @@ public enum LeagueCopy {
   public static func seatFill(code: String?, members n: Int, min: Int, locked: Bool = true) -> String {
     let short = max(0, min - n)
     // D161 · in setup the code admits nobody, so it is not shown as if it did
-    return (locked ? "CODE \(code ?? "—") · " : "JOINS OPEN AT THE LOCK · ")
-      + (short > 0 ? "\(n) OF \(min) IN — \(short) SEAT\(short == 1 ? "" : "S") OPEN" : "\(n) JOINED — ENOUGH FOR THE DRAW")
+    return (locked ? "CODE \(code ?? "—") · " : "JOINS OPEN WHEN THE SEASON STARTS · ")
+      + (short > 0 ? "\(n) IN · \(short) MORE TO TEE OFF" : "\(n) IN — THE LINK IS STILL LIVE")
   }
 
   /// `#draftPoolSub` (12647–12648).
   public static func draftPoolSub(pool: Int, members n: Int, min: Int) -> String {
     let short = max(0, min - n)
-    return "\(players(pool)) IN THE POOL" + (short > 0 ? " · \(short) SEAT\(short == 1 ? "" : "S") OPEN" : "")
+    return "\(players(pool)) NOT ON A SQUAD YET" + (short > 0 ? " · \(short) MORE TO TEE OFF" : "")
   }
 
   /// `#hubDraftSub` (12034–12037).
   public static func squadsSub(_ c: RoomClock, solo: Bool) -> String {
-    if solo { return "Individual league — no squads" }
+    if solo { return "Solo — everyone for themselves" }
     switch c.phase {
     case .setup: return "OPENS AFTER SETTINGS LOCK"
-    case .draft: return "LIVE NOW — CAPTAINS READY"
-    case .season: return "Complete · rosters locked"
+    case .draft: return "SQUADS DRAWING"
+    case .season: return "Complete · squads are set"
     }
   }
 
   /// `#kickoffHero` (12024–12030).
   public static func kickoff(_ c: RoomClock) -> (tee: String, count: String) {
     let d = c.daysToTee
-    return ("First tee \(c.firstTeeText)", "KICKS OFF IN \(d) DAY\(d == 1 ? "" : "S") · SQUADS LOCKED · PRACTICE ROUNDS HIT YOUR CARD, NOT THE SEASON")
+    return ("First tee \(c.firstTeeText)", "KICKS OFF IN \(d) DAY\(d == 1 ? "" : "S") · SQUADS ARE SET · PRACTICE ROUNDS POST TO YOUR ROUNDS, NOT THE SEASON")
   }
 
   /// The danger zone (12688–12703).
@@ -353,7 +353,7 @@ public enum LeagueCopy {
   // MARK: next up (9512–9530)
 
   /// D234 · *"you've posted 2.5"* told a golfer they had posted half a round.
-  /// The arithmetic was never wrong — the participation floor is measured in
+  /// The arithmetic was never wrong — the the monthly minimum is measured in
   /// CREDITS, an eighteen being one and a nine a half
   /// (`v_rounds_ranked.floor_credit`, and `close_month` docks against exactly
   /// that sum) — but the unit was never named, on either client. L-01 says
@@ -367,7 +367,7 @@ public enum LeagueCopy {
   }
 
   public static func nextUp(_ c: RoomClock, b: Bylaws, credits: Double, partial: Bool) -> (k: String, text: String) {
-    if c.atStarter { return ("Next up · kickoff", "First tee \(c.firstTeeText). Practice rounds hit your card, not the season.") }
+    if c.atStarter { return ("Next up · kickoff", "First tee \(c.firstTeeText). Practice rounds post to your rounds, not the season.") }
     let month = LeagueDates.monthLong(c.today)
     let rem = max(0, Double(b.floor) - credits)
     let half = halfNote(credits: credits, rem: rem)
@@ -396,8 +396,8 @@ public enum LeagueCopy {
   /// `endgameLine()` (index.html:6318) verbatim — how the season ends, in one
   /// sentence, same words on the phone as on the web bylaws card.
   ///
-  /// - cup_final: "The top 2 golfers|squads seed into a four-week Cup Final
-  ///   from {Dow Mon d} — scored fresh, so the regular season sets the seeds,
+  /// - cup_final: "The top 2 golfers|squads go into a four-week Cup Final
+  ///   from {Dow Mon d} — scored fresh, so the weeks before it decide who is in,
   ///   not the winner." + (squads2 ONLY) " The leader carries +10 in." — the
   ///   `enter_cup_final` head start is `case when structure = 'squads2' then
   ///   10 else 0`, so any other structure promising +10 states a rule the
@@ -425,7 +425,7 @@ public enum LeagueCopy {
       return LeagueDates.dowMonDay(LeagueDates.cupFinalStart(end: e, calendar: calendar), calendar: calendar)
     }
     let head = structure == "squads2" ? " The leader carries +10 in." : ""
-    return "\(who) seed into a four-week Cup Final\(when.map { " from \($0)" } ?? "") — scored fresh, so the regular season sets the seeds, not the winner.\(head) \(tiebreak)"
+    return "\(who) go into a four-week Cup Final\(when.map { " from \($0)" } ?? "") — scored fresh, so the weeks before it decide who is in, not who wins.\(head) \(tiebreak)"
   }
 }
 
@@ -463,7 +463,7 @@ public enum RunItBack {
   /// tap actually does, and it does not promise a season.
   public static func sub(isPro: Bool) -> String {
     isPro
-      ? "Same crew, same bylaws, fresh table. Nobody re-types a code."
+      ? "Same crew, same rules, fresh table. Nobody re-types a code."
       : "One line on the board, once. They decide when."
   }
 

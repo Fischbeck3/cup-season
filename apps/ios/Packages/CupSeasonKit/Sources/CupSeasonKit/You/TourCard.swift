@@ -336,7 +336,7 @@ public struct TourCard: Sendable {
     /// exists — R-F's own condition — and the sheet never names the object.
     public var sub: String {
       switch self {
-      case .saturday: "A round on the tee sheet, with them in it"
+      case .saturday: "A round on the schedule, with them in it"
       case .week:     "A one-week head-to-head"
       case .season:   "A season with them in it"
       }

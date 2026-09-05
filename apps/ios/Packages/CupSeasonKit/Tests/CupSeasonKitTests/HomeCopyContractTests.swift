@@ -137,7 +137,7 @@ func heroMembership(name: String = "Who's the bitch?", structure: String = "solo
   @Test("the defaults are the web's: cup_final and squads2; no season → no date clause")
   func defaults() {
     #expect(LeagueCopy.endgame(finish: nil, structure: nil, startsOn: nil, endsOn: nil)
-            == "The top 2 squads seed into a four-week Cup Final — scored fresh, so the regular season sets the seeds, not the winner. The leader carries +10 in. Level on points? Months won breaks it.")
+            == "The top 2 squads go into a four-week Cup Final — scored fresh, so the weeks before it decide who is in, not who wins. The leader carries +10 in. Level on points? Months won breaks it.")
     #expect(LeagueCopy.endgame(finish: "points_table", structure: "solo", startsOn: nil, endsOn: nil)
             == "The points table crowns it — every round counts to the last day. Level on points? Months won breaks it.")
     let m = heroMembership(structure: "squads2")
@@ -287,9 +287,9 @@ func heroMembership(name: String = "Who's the bitch?", structure: String = "solo
 
   @Test("squads: the floor sentence Home has carried since D14, word for word")
   func squadRule() {
-    #expect(SeasonFacts.footRule(heroMembership(structure: "squads2", credits: 2, floor: 4), today: "2026-09-02") == "Month floor 2/4 · 2 more")
-    #expect(SeasonFacts.footRule(heroMembership(structure: "squads2", credits: 6, floor: 4), today: "2026-09-02") == "Month floor met · 6/4")
-    #expect(SeasonFacts.footRule(heroMembership(structure: "squads2", credits: 0, floor: 4, partial: true), today: "2026-09-02") == "Partial month · floors waived")
+    #expect(SeasonFacts.footRule(heroMembership(structure: "squads2", credits: 2, floor: 4), today: "2026-09-02") == "4 a month · 2 to go")
+    #expect(SeasonFacts.footRule(heroMembership(structure: "squads2", credits: 6, floor: 4), today: "2026-09-02") == "Minimum met · 6/4")
+    #expect(SeasonFacts.footRule(heroMembership(structure: "squads2", credits: 0, floor: 4, partial: true), today: "2026-09-02") == "Partial month · no minimum")
     #expect(SeasonFacts.footRule(heroMembership(structure: "squads2", floor: nil), today: "2026-09-02") == "Best 4 rounds a month count")
     #expect(SeasonFacts.footRule(heroMembership(structure: "squads2", cap: nil, floor: nil), today: "2026-09-02") == nil)
   }
@@ -339,10 +339,10 @@ func heroMembership(name: String = "Who's the bitch?", structure: String = "solo
   @Test("§14.0 · the Cup Final is still a calendar month: the floor and the cap speak inside it, as close_month assesses them — the foot and the lead card's floor rung agree")
   func footRuleInTheFinal() {
     // Oct 10 is inside the Final (ends Nov 2); a full October has a floor
-    #expect(SeasonFacts.footRule(heroMembership(structure: "squads2", status: "cup_final", credits: 2, floor: 4), today: "2026-10-10") == "Month floor 2/4 · 2 more")
-    #expect(SeasonFacts.footRule(heroMembership(structure: "squads2", status: "cup_final", credits: 6, floor: 4), today: "2026-10-10") == "Month floor met · 6/4")
+    #expect(SeasonFacts.footRule(heroMembership(structure: "squads2", status: "cup_final", credits: 2, floor: 4), today: "2026-10-10") == "4 a month · 2 to go")
+    #expect(SeasonFacts.footRule(heroMembership(structure: "squads2", status: "cup_final", credits: 6, floor: 4), today: "2026-10-10") == "Minimum met · 6/4")
     // the edge month is partial and says so, in the Final as in the season
-    #expect(SeasonFacts.footRule(heroMembership(structure: "squads2", status: "cup_final", credits: 2, floor: 4, partial: true), today: "2026-11-01") == "Partial month · floors waived")
+    #expect(SeasonFacts.footRule(heroMembership(structure: "squads2", status: "cup_final", credits: 2, floor: 4, partial: true), today: "2026-11-01") == "Partial month · no minimum")
     // solo: never a floor (D140), still the cap and the clock
     #expect(SeasonFacts.footRule(heroMembership(status: "cup_final", credits: 2, floor: 4), today: "2026-10-10") == "Best 4 rounds a month count · 2 posted · 21 days left in October")
     // and the FLOOR item fires on the same month — no contradiction on one

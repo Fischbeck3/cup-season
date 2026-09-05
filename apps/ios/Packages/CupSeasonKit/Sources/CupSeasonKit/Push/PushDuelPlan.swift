@@ -50,6 +50,6 @@ public struct PushDuelPlan: Sendable, Equatable {
   }
 
   /// The words (§7), verbatim.
-  public static let title = "Your duel closes tonight"
+  public static let title = "Your clash closes tonight"
   public static let body = "You haven’t posted."
 }

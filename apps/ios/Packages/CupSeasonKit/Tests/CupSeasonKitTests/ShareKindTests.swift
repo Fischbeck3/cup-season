@@ -70,7 +70,7 @@ struct ShareKindTests {
     #expect(DeepLink.of(ShareIntent.person.url(tok)) == .person)
     #expect(DeepLink.of(ShareIntent.plan.url(tok)) == .plan)
     #expect(NavSlot.of(DeepLink.person) == .golfers)   // it ends in a buddy request
-    #expect(NavSlot.of(DeepLink.plan) == .play)        // it ends in a seat on the tee sheet
+    #expect(NavSlot.of(DeepLink.plan) == .play)        // it ends in a seat on the schedule
     for l in DeepLink.allCases { #expect(NavSlot.allCases.contains(NavSlot.of(l))) }
   }
 

@@ -111,7 +111,7 @@ struct HomeRoundCard: View {
     .overlay(RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous).stroke(cs.line, lineWidth: 1))
   }
 
-  /// "WITH YOU" where it said LEAGUE MATE (the Home hard-look): a booking that
+  /// "WITH YOU" where it said IN YOUR SEASONS (the Home hard-look): a booking that
   /// names you is your plan, not a league mate's.
   private var eyebrow: String? { sr.withYou ? "WITH YOU" : sr.relTag }
 

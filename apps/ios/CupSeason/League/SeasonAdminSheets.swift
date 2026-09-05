@@ -137,7 +137,7 @@ struct DeleteLeagueSheet: View {
       if others == 0 {
         RoomFine("It's just you in it — the league, its board and settings go completely. Rounds stay on your golfer card.")
       } else {
-        RoomFine("This deletes \(nm) for everyone in it: members, board, pot sheet, squads. Rounds stay on every golfer's profile. Type the league name to confirm.")
+        RoomFine("This deletes \(nm) for everyone in it: members, board, pot, squads. Rounds stay on every golfer's profile. Type the league name to confirm.")
         CSField(nm, text: $typed, font: CSFont.body)
       }
       Button {

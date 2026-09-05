@@ -178,7 +178,7 @@ public enum RyderMath {
 
   /// How it scores — everyone sees the rule, not just the organizer (12257).
   public static func ruleSentence(_ t: Target) -> String {
-    let head = "Each session pairs everyone 1‑on‑1; best round that week vs your index wins the point, a tie splits it. "
+    let head = "Each week pairs everyone 1‑on‑1; the best round that week against your own number wins the point, a tie splits it. "
     return t.pairings > 0
       ? head + "First to \(evHalf(t.clinch)) of \(t.points) takes the cup."
       : head + "Add players to both teams to set the target."
@@ -186,7 +186,7 @@ public enum RyderMath {
 
   /// The taunt toggle's label (12266).
   public static func tauntLabel(on: Bool) -> String {
-    "🔔 Duel taunts: " + (on ? "ON — mute them" : "OFF — ping me when my opponent posts")
+    "🔔 Tell me when he posts: " + (on ? "ON — mute them" : "OFF — ping me when my opponent posts")
   }
 
   /// S5-02: before anything closes, Session 1 is the story — read top-down.
@@ -196,9 +196,9 @@ public enum RyderMath {
     return sessions.sorted { anyClosed ? $0.session_no > $1.session_no : $0.session_no < $1.session_no }
   }
 
-  /// `SESSION 2 · JUL 6–JUL 12 · OPEN`.
+  /// `WEEK 2 · JUL 6–JUL 12 · OPEN`.
   public static func sessionHeader(_ s: EventSession, calendar: Calendar = .current) -> String {
-    "SESSION \(s.session_no) · \(EventDates.window(s.opens_on, s.closes_on, calendar: calendar)) · \(s.status.uppercased())"
+    "WEEK \(s.session_no) · \(EventDates.window(s.opens_on, s.closes_on, calendar: calendar)) · \(s.status.uppercased())"
   }
 
   /// `vs` · `def.` · `halved`.

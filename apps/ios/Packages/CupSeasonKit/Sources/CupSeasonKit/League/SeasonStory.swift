@@ -195,7 +195,7 @@ public enum SeasonStory {
     public let rank: Int
     public let rounds: Int?
     /// Counting rounds this month, from `month_rank` against the cap — never
-    /// the participation floor's credit count (L-44).
+    /// the the monthly minimum's credit count (L-44).
     public let counted: Int?
     public let left: Bool?
     public let is_me: Bool?
@@ -411,7 +411,7 @@ public enum SeasonStoryCopy {
       if let from = clean(a.other) { return "\(to) took the lead from \(from)." }
       return "\(to) took the lead."
     case "clash":
-      let other = clean(a.other) ?? "a league mate"
+      let other = clean(a.other) ?? "someone in the season"
       guard let who = clean(a.subject) else { return "You and \(other) halved the week." }
       return who == "you" ? "You took the week from \(other)." : "\(who) took the week."
     default: return nil

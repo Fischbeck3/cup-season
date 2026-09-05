@@ -294,7 +294,7 @@ struct PostEvenParSheet: View {
   var body: some View {
     VStack(alignment: .leading, spacing: 12) {
       CSSheetHeader(title: "Post as even par?", sub: "YOU HAVEN’T ENTERED YOUR CARD YET")
-      CSFine("Each hole is still on par, so this would post an even-par \(model.card.evenParTotal) — and it counts on your card and in every league.")
+      CSFine("Each hole is still on par, so this would post an even-par \(model.card.evenParTotal) — and it posts to your rounds — every season you're in reads it.")
       CSButton("Enter my card") { dismiss() }
       CSButton("Post even par anyway", style: .quiet) { model.postEvenParAnyway() }
     }

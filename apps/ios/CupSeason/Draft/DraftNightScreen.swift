@@ -1,6 +1,6 @@
 // Cup Season — `#view-draft` (index.html 2936–2957), on the `.room-dusk`
 // ground in every theme: squad formation for a real league (`renderFormation`
-// 14607–14700 — blind draw · Pro assign · Start the season) and the snake
+// 14607–14700 — random draw · The Pro picks · Start the season) and the snake
 // board (`renderDraft` 5427–5548) over `drafts` / `draft_picks` for a league
 // whose formation is `snake` or `live`. Members see the same view read-only
 // (S3-04). Realtime rides the DEDICATED client; every pick and the draw
@@ -13,7 +13,7 @@ import CupSeasonKit
 struct DraftLinks {
   /// `start_season` succeeded — the web switches to Home with "The season is live — post a round".
   var onSeasonStarted: @MainActor @Sendable (UUID) -> Void
-  /// Setup-phase bounce (4141): "Lock settings first: the draft opens after setup".
+  /// Setup-phase bounce (4141): "Start the season first: the draw opens after setup".
   var openWizard: @MainActor @Sendable () -> Void
   /// The members sheet's "Add golfers" (the people picker, another slice's sheet).
   var addGolfers: @MainActor @Sendable () -> Void
@@ -56,7 +56,7 @@ struct DraftNightScreen: View {
     }
     .background(CSDusk.ground)
     .environment(\.cs, dk)                       // the ceremony ground keeps the charcoal palette in every theme
-    .navigationTitle(room.league?.name ?? "Draft night")
+    .navigationTitle(room.league?.name ?? "The draw")
     .navigationBarTitleDisplayMode(.inline)
     .toolbar {
       ToolbarItem(placement: .topBarTrailing) {

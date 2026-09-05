@@ -135,6 +135,10 @@ targets:
     sources:
       - path: CupSeasonWidgets
       - path: CupSeason/Live/CSRoundActivity.swift
+      # IOS-034 step 5 · the snapshot is compiled into BOTH targets, the way
+      # CSRoundActivity.swift is. It imports Foundation and nothing else, so
+      # the extension still depends on CSDesign alone and holds no client.
+      - path: Packages/CupSeasonKit/Sources/CupSeasonKit/Home/DispatchSnapshot.swift
     dependencies:
       - package: CSDesign
     settings:

@@ -176,7 +176,7 @@ public struct PeopleService: Sendable {
     let dw = r.duel_wins ?? 0, dl = r.duel_losses ?? 0, dh = r.duel_halves ?? 0
     let duels = HeadToHead.FacetLine(facet: .duels, wins: dw, losses: dl, ties: dh,
                                      meetings: dw + dl + dh,
-                                     basis: "a Ryder duel, settled", source: "my_rivalries")
+                                     basis: "a Ryder clash, settled", source: "my_rivalries")
     return HeadToHead(visible: true,
                       opponent: .init(id: opponent, displayName: r.display_name ?? name,
                                       handle: r.handle, marker: r.marker ?? marker),

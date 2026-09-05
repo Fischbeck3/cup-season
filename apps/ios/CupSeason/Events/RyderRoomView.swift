@@ -173,8 +173,8 @@ struct RyderRoomView: View {
         if ds.isEmpty {
           CSMini("Generate pairings", busy: model.isBusy("pair-\(s.id)")) { pair(s) }
         } else if !s.isClosed {
-          CSMini("Score this session", busy: model.isBusy("resolve-\(s.id)")) {
-            act(fail: "Score failed.", ok: "Session scored") { try await model.resolve(session: s.id) }
+          CSMini("Score this week", busy: model.isBusy("resolve-\(s.id)")) {
+            act(fail: "Score failed.", ok: "Week scored") { try await model.resolve(session: s.id) }
           }
         }
       }

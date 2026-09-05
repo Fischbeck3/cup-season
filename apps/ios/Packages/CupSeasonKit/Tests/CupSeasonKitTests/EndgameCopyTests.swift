@@ -68,8 +68,8 @@ struct EndgameCopyTests {
   func theSentence() {
     let m = membership()
     let sentence = SeasonFacts.footEndgame(m, calendar: cal)
-    #expect(sentence == "The top 2 golfers seed into a four-week Cup Final from Mon Dec 7 — scored fresh, "
-                      + "so the regular season sets the seeds, not the winner. Level on points? Months won breaks it.")
+    #expect(sentence == "The top 2 golfers go into a four-week Cup Final from Mon Dec 7 — scored fresh, "
+                      + "so the weeks before it decide who is in, not who wins. Level on points? Months won breaks it.")
     // D126's own phrase survives; §14.3 is the ladder it names
     #expect(sentence?.contains("scored fresh") == true)
     #expect(sentence?.hasSuffix("Level on points? Months won breaks it.") == true)

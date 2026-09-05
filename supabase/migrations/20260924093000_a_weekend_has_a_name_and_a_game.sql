@@ -149,7 +149,7 @@ begin
               || trim(to_char(p_play_on, 'Dy Mon FMDD'))
               || coalesce(' · ' || v_course, '') || ' — in or out?';
     insert into push_nudges (profile_id, kind, title, body, payload)
-    select t.pid, 'rsvp', v_who || ' put you on the tee sheet', v_body,
+    select t.pid, 'rsvp', v_who || ' put you on the schedule', v_body,
            jsonb_build_object('scheduled_round_id', v_id, 'profile_id', auth.uid())
       from unnest(v_tags) t(pid);
   end if;

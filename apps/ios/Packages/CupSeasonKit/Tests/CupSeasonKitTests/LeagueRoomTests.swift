@@ -279,7 +279,7 @@ private func team(_ id: UUID, _ name: String, _ pts: Double, ci: Int = 0) -> Tea
   }
   @Test func seedsLockedOnceTheFinalRuns() {
     let sc = SeasonScenarios(meta: meta(locked: true), rows: [row(a, "Squad 1", pts: 90, max: 90), row(b, "Squad 2", pts: 70, max: 70), row(c, "Squad 3", pts: 10, max: 10)])
-    #expect(ScenarioLine.parts(sc) == [.clinch("SEEDS LOCKED"), .text(" — SQUAD 1 · SQUAD 2 INTO THE CUP FINAL")])
+    #expect(ScenarioLine.parts(sc) == [.clinch("THE FINAL IS SET"), .text(" — SQUAD 1 · SQUAD 2 INTO THE CUP FINAL")])
   }
   @Test func aMagicNumberOnlyWhenReachable() {
     let sc = SeasonScenarios(meta: meta(), rows: [row(a, "Squad 1", pts: 100, max: 160, needs: 20), row(d, "Squad 4", pts: 5, max: 30, out: true)])
@@ -330,10 +330,13 @@ private func team(_ id: UUID, _ name: String, _ pts: Double, ci: Int = 0) -> Tea
   }
   @Test func bylawsRowsVerbatim() {
     let rows = LeagueCopy.bylawsRows(Bylaws.from(season), clock: clock("2026-06-01"))
-    #expect(rows.map(\.k) == ["STRUCTURE", "Squad formation", "PRESET", "HANDICAP ALLOWANCE", "VERIFICATION", "COUNTING CAP", "PARTICIPATION FLOOR", "BUY-IN", "POT SPLIT", "SEASON", "CUP FINAL"])
-    #expect(rows[0].v == "4 squads" && rows[1].v == "Blind draw" && rows[3].v == "95%" && rows[5].v == "Best 4 / mo" && rows[6].v == "2 / mo · −5 sqd pts / round short")
+    // D249 · the row KEYS stopped naming dials (L-16, TERMINOLOGY §4 rows 1-4):
+    // a Pro reads what the rule DOES, in the same words the rules page uses.
+    #expect(rows.map(\.k) == ["FORMAT", "THE DRAW", "HOUSE RULES", "HOW SCORES COUNT", "SCORES", "EACH MONTH", "THE MINIMUM", "BUY-IN", "POT SPLIT", "SEASON", "CUP FINAL"])
+    #expect(rows[0].v == "4 squads" && rows[1].v == "Random draw" && rows[3].v == "Scored at 95% of your number"
+            && rows[5].v == "Best 4 a month count" && rows[6].v == "2 a month · −5 squad points a round short")
     #expect(rows[4].v == "Post what you'd post to GHIN")   // M-15: a norm the league holds
-    #expect(Bylaws.verif == ["Honor system", "Post what you'd post to GHIN", "Attested where you can; the Pro rules on the rest"])
+    #expect(Bylaws.verif == ["Honor system", "Post what you'd post to GHIN", "Vouched by the group where you can; the Pro rules on the rest"])
     #expect(rows[7].v == "$75 / player" && rows[8].v == "60 / 25 / 15 · champ / 2nd / king")
     #expect(rows[9].v == "5 mo · Sun May 3 → Sat Sep 26 · 21 wks")
     #expect(rows[10].v == "Final 4 weeks · from Sun Aug 30 · scored fresh")
@@ -375,15 +378,19 @@ private func team(_ id: UUID, _ name: String, _ pts: Double, ci: Int = 0) -> Tea
     let b = Bylaws.from(season)
     #expect(LeagueCopy.phaseSub(clock("2026-05-10"), b: b, code: "PIGL", members: 8) == "Wk 2 / 21 · Points Race · Standard rules")
     #expect(LeagueCopy.phaseSub(clock("2026-04-30"), b: b, code: "PIGL", members: 8) == "BEFORE FIRST TEE · SUN MAY 3 · 3 DAYS")
-    #expect(LeagueCopy.phaseSub(clock("2026-05-10", phase: .setup), b: b, code: "PIGL", members: 8) == "SETUP · LOCK THE BYLAWS TO OPEN INVITES")
-    #expect(LeagueCopy.kickoff(clock("2026-05-02")) == ("First tee Sun May 3", "KICKS OFF IN 1 DAY · SQUADS LOCKED · PRACTICE ROUNDS HIT YOUR CARD, NOT THE SEASON"))
-    #expect(LeagueCopy.seatFill(code: "PIGL", members: 5, min: 8) == "CODE PIGL · 5 OF 8 IN — 3 SEATS OPEN")
-    #expect(LeagueCopy.draftPoolSub(pool: 2, members: 8, min: 8) == "2 PLAYERS IN THE POOL")
+    #expect(LeagueCopy.phaseSub(clock("2026-05-10", phase: .setup), b: b, code: "PIGL", members: 8) == "SETUP · START THE SEASON TO OPEN INVITES")
+    #expect(LeagueCopy.kickoff(clock("2026-05-02")) == ("First tee Sun May 3", "KICKS OFF IN 1 DAY · SQUADS ARE SET · PRACTICE ROUNDS POST TO YOUR ROUNDS, NOT THE SEASON"))
+    // A-6 · a seat count counts nothing (`scheduled_rounds` has no capacity and
+    // a roster's own minimum is the fact): the line names the roster and what
+    // is still needed, never "3 SEATS OPEN".
+    #expect(LeagueCopy.seatFill(code: "PIGL", members: 5, min: 8) == "CODE PIGL · 5 IN · 3 MORE TO TEE OFF")
+    #expect(LeagueCopy.seatFill(code: "PIGL", members: 9, min: 8) == "CODE PIGL · 9 IN — THE LINK IS STILL LIVE")
+    #expect(LeagueCopy.draftPoolSub(pool: 2, members: 8, min: 8) == "2 PLAYERS NOT ON A SQUAD YET")
     #expect(LeagueCopy.danger(clock("2026-06-01")).link == "Cancel this league" && LeagueCopy.danger(clock("2026-04-30")).preTee)
   }
   @Test func nextUpAndTheMeter() {
     let b = Bylaws.from(season)
-    #expect(LeagueCopy.nextUp(clock("2026-04-30"), b: b, credits: 0, partial: false) == ("Next up · kickoff", "First tee Sun May 3. Practice rounds hit your card, not the season."))
+    #expect(LeagueCopy.nextUp(clock("2026-04-30"), b: b, credits: 0, partial: false) == ("Next up · kickoff", "First tee Sun May 3. Practice rounds post to your rounds, not the season."))
     #expect(LeagueCopy.nextUp(clock("2026-08-27"), b: b, credits: 1, partial: false).text == "Post 1 more round this month — best 4 count, you've posted 1.")
     // D234 · the half is GLOSSED, and only when there is a half on screen: the
     // floor is measured in credits (an eighteen is one, a nine is a half), and
