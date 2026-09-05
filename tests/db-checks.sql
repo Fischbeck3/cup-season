@@ -670,5 +670,50 @@ select '28 · the plan link keeps the anon surface at twelve',
          then 'FAIL — D69 guard was widened; the link was supposed to seat, not the function'
        else 'PASS — one plan, one seat, and D69 untouched' end,
   'shares.kind = plan · share_info branch · the seat is taken inside redeem_share'
+
+-- 29 · D242 · a forfeit carries its terms in WORDS, never an amount in a
+--     column. The rule is load-bearing for store review (20260724120000:10-13)
+--     and a WIDENING is exactly when a rule gets quietly dropped, so it is a
+--     tripwire rather than a comment. Exactly one home is a CHECK, and the
+--     read moved with the write or the widened writer inserts rows nobody can
+--     ever see.
+union all
+select '29 · a forfeit has no money column, and exactly one home',
+  case when (select count(*) from information_schema.columns
+              where table_schema = 'public' and table_name = 'forfeits'
+                and column_name ~* '(cents|amount|dollars|stake|price|money)') > 0
+         then 'FAIL — forfeits grew a money column; terms are prose (D64/D242)'
+       when (select count(*) from information_schema.columns
+              where table_schema = 'public' and table_name = 'forfeits'
+                and column_name = 'event_id') = 0
+         then 'PASS — D242 not deployed yet'
+       when not exists (select 1 from pg_constraint
+                         where conname in ('forfeits_one_home', 'forfeits_has_home')
+                           and conrelid = 'public.forfeits'::regclass)
+         then 'FAIL — the one-home CHECK is gone'
+       when (select qual::text from pg_policies
+              where schemaname = 'public' and tablename = 'forfeits' and policyname = 'forfeits_read')
+              not like '%party_b%'
+         then 'FAIL — forfeits_read cannot see a forfeit between two buddies with no season'
+       else 'PASS — four homes, one at a time, and no amount anywhere' end,
+  'forfeits.league_id nullable · event_id · scheduled_round_id · party_b'
+
+-- 30 · D237 · `callout_mutes` is the WRITER's memory, not a surface. CC-52:
+--     pg_default_acl still grants everything on every new table, so a new
+--     table is born wide and this is the standing proof it was sealed.
+union all
+select '30 · callout_mutes is sealed, and a callout scores nothing',
+  case when to_regclass('public.callout_mutes') is null then 'PASS — D237 not deployed yet'
+       when has_table_privilege('anon', 'public.callout_mutes', 'select')
+         or has_table_privilege('authenticated', 'public.callout_mutes', 'select')
+         then 'FAIL — callout_mutes is readable; nothing may render "he muted you" (L-22)'
+       when has_function_privilege('anon', 'public.call_out(uuid,date,text)', 'execute')
+         or has_function_privilege('anon', 'public.respond_callout(uuid,boolean)', 'execute')
+         then 'FAIL — a callout RPC is reachable by anon'
+       when (select prosrc from pg_proc p join pg_namespace n on n.oid = p.pronamespace
+              where n.nspname = 'public' and p.proname = 'call_out') not like '%league_id%'
+         then 'FAIL — call_out must mint league_id null; a callout scores zero, always'
+       else 'PASS — sealed, authenticated-only, and league_id null' end,
+  'callout_mutes revoked from all · call_out / respond_callout to authenticated'
 )
 select * from checks order by check_name;

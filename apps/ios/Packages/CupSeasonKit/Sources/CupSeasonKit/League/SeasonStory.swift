@@ -504,7 +504,7 @@ public enum SeasonStoryCopy {
                       "eleven", "twelve", "thirteen", "fourteen", "fifteen", "sixteen", "seventeen",
                       "eighteen", "nineteen", "twenty"]
   static let tens = ["", "", "twenty", "thirty", "forty", "fifty", "sixty", "seventy", "eighty", "ninety"]
-  static func word(_ n: Int) -> String {
+  public static func word(_ n: Int) -> String {
     if n >= 0 && n < words.count { return words[n] }
     if n > 20 && n < 100 {
       let t = tens[n / 10], u = n % 10
@@ -512,7 +512,7 @@ public enum SeasonStoryCopy {
     }
     return String(n)
   }
-  static func cap(_ s: String) -> String {
+  public static func cap(_ s: String) -> String {
     guard let c = s.first else { return s }
     return c.uppercased() + s.dropFirst()
   }

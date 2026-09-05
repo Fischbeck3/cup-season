@@ -1,6 +1,12 @@
-// Cup Season — "Put a round on the tee sheet" (`openDeclareSheet` 16670–16724;
+// Cup Season — "Put a round on the schedule" (`openDeclareSheet` 16670–16724;
 // `attachCourseSearch` 6729; `bindTagChips` 16642). One sheet, two doors:
 // the calendar and the ⊕ Plan card. Works league-less.
+//
+// D240 · A WEEKEND GAINS A NAME AND A GAME. Both optional, both defaulted, and
+// the name is PRE-FILLED from the course and the day rather than minted for
+// anybody. "Something on it" is a FORFEIT (T-02, D242) — a bet in words — never
+// a cents field: a plan has no ledger, no collected figure and no L-09 line, so
+// `stake_cents` is declined in writing (D250 ⑨).
 
 import SwiftUI
 import CSDesign
@@ -64,6 +70,30 @@ struct DeclareRoundSheet: View {
           CSField("buddies trip, looking for a 4th", text: $vm.note, font: CSFont.body)
             .onChange(of: vm.note) { _, n in if n.count > 140 { vm.note = String(n.prefix(140)) } }
 
+          // D240 · a name, and a game. Both optional; the name is pre-filled
+          // from the course and the day and is never written for anybody.
+          Text("\(PlanCopy.nameLabel) · \(PlanCopy.nameOptional)").csEyebrow().padding(.top, 4)
+          CSField(vm.suggestedName ?? PlanCopy.namePlaceholder, text: $vm.name, font: CSFont.body)
+            .textInputAutocapitalization(.words)
+            .accessibilityLabel(PlanCopy.nameLabel)
+          Text(PlanCopy.gameLabel).csEyebrow().padding(.top, 4)
+          A11yStack(spacing: 6) {
+            ForEach(Array(PlanCopy.games.enumerated()), id: \.offset) { _, g in
+              gameChip(g)
+            }
+          }
+          Button { CSHaptic.selection(); vm.forfeit = true } label: {
+            VStack(alignment: .leading, spacing: 2) {
+              Text("\(PlanCopy.stakeDoor) →").font(CSFont.monoMediumBody).foregroundStyle(cs.ink)
+              Text(PlanCopy.stakeGloss).font(CSFont.footnote).foregroundStyle(cs.dimText)
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(.vertical, 10).frame(minHeight: 50)
+            .contentShape(Rectangle())
+          }
+          .buttonStyle(.plain)
+          .padding(.top, 2)
+
           if vm.candidatesLoaded {
             if vm.candidates.isEmpty {
               CSFine("No one to tag yet. Add buddies from the You tab, or invite the league.").padding(.top, 6)
@@ -73,7 +103,7 @@ struct DeclareRoundSheet: View {
             }
           }
 
-          CSButton(vm.hostName != nil ? "I'm in" : "On the tee sheet", busy: vm.busy) {
+          CSButton(vm.hostName != nil ? "I'm in" : "Put it on the schedule", busy: vm.busy) {
             Task { if let id = await vm.go() { onDeclared(id); dismiss() } }
           }
           .padding(.top, 6)
@@ -85,9 +115,29 @@ struct DeclareRoundSheet: View {
       .scrollDismissesKeyboard(.interactively)
       .toolbar { ToolbarItem(placement: .topBarLeading) { Button("Cancel") { dismiss() }.foregroundStyle(cs.mut) } }
       .task { await vm.loadCandidates() }
+      .sheet(isPresented: $vm.forfeit) {
+        // The stake is a forfeit, and it lands on the plan once the plan
+        // exists. Until then it is held and posted with it.
+        ForfeitSheet(home: ForfeitHome(scheduledRoundId: vm.declaredId, opponent: vm.tagged.count == 1 ? vm.tagged.first : nil))
+      }
       .csToasts(toasts)
     }
     .presentationDragIndicator(.visible)
+  }
+
+  /// The four the plan may carry. `nil` is Just golf — the ABSENCE of a game,
+  /// which is what the migration stores.
+  private func gameChip(_ g: LiveGame?) -> some View {
+    let on = vm.game == g
+    return Button { CSHaptic.selection(); vm.game = g } label: {
+      Text(PlanCopy.gameLabelFor(g)).font(CSFont.monoSmall).lineLimit(1).minimumScaleFactor(0.8)
+        .foregroundStyle(on ? cs.bg0 : cs.ink)
+        .padding(.horizontal, 8).frame(maxWidth: .infinity, minHeight: 44)
+        .background(on ? cs.ink : cs.bg2, in: RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous))
+        .overlay(RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous).stroke(cs.line2, lineWidth: on ? 0 : 1))
+    }
+    .buttonStyle(.plain)
+    .accessibilityAddTraits(on ? [.isSelected] : [])
   }
 }
 
@@ -100,6 +150,12 @@ final class DeclareModel {
   var course: String
   var courseId: String?
   var note = ""
+  /// D240 · the weekend's own two facts.
+  var name = ""
+  var game: LiveGame? = nil
+  var forfeit = false
+  /// Set once the plan exists, so a forfeit can hang on it.
+  var declaredId: UUID? = nil
   var tagged: Set<UUID>
   var candidates: [TagCandidate] = []
   var candidatesLoaded = false
@@ -134,6 +190,16 @@ final class DeclareModel {
     candidatesLoaded = true
   }
 
+  /// The placeholder the field shows. A plan is named only when the golfer
+  /// types one or accepts this one — nothing is minted for them (L-44: a name
+  /// nobody chose is not a name).
+  var suggestedName: String? {
+    PlanCopy.suggestedName(course: course, playOn: CSDate.iso(day, calendar: ScheduleDates.gregorian))
+  }
+  /// Only a plan the golfer gave a GAME to takes the suggested name — a
+  /// nameless plan stays nameless, which is every plan in prod today.
+  var suggestedNameIfNamed: String? { game == nil ? nil : suggestedName }
+
   var teeValue: String? {
     guard teeOn else { return nil }
     let c = ScheduleDates.gregorian.dateComponents([.hour, .minute], from: tee)
@@ -145,7 +211,9 @@ final class DeclareModel {
     busy = true; defer { busy = false }
     do {
       let id = try await sched.declare(playOn: CSDate.iso(day, calendar: ScheduleDates.gregorian), course: course, note: note,
-                                       tagged: Array(tagged), tee: teeValue, courseId: courseId)
+                                       tagged: Array(tagged), tee: teeValue, courseId: courseId,
+                                       name: name.isEmpty ? suggestedNameIfNamed : name, game: game)
+      declaredId = id
       CSHaptic.success()
       toasts.show(hostName != nil ? "You're in — it's on both boards"
                   : tagged.isEmpty ? "On the tee sheet: the boards know" : "On the tee sheet: your group is named on the boards")

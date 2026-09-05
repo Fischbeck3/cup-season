@@ -5,9 +5,9 @@ import Foundation
 private func row(id: UUID = UUID(), name: String = "Galen", playOn: String, mine: Bool, friend: Bool = false, league: Bool = false,
                  taggedMe: Bool = false, course: String? = "Papago GC", tee: String? = nil, tagged: [String]? = nil,
                  rsvp: String? = nil) -> ScheduledRound {
-  Rpc.my_schedule.Row(id: id, profile_id: UUID(), display_name: name, marker: "saguaro", play_on: playOn, course_label: course, note: nil,
-                      tee_time: tee, mine: mine, is_friend: friend, shared_league: league, tagged_names: tagged, tagged_me: taggedMe,
-                      course_id: nil, rsvp_in: nil, my_rsvp: rsvp, comment_n: nil)
+  SchedulePlan(id: id, profile_id: UUID(), display_name: name, marker: "saguaro", play_on: playOn, course_label: course, note: nil,
+               tee_time: tee, mine: mine, is_friend: friend, shared_league: league, tagged_names: tagged, tagged_me: taggedMe,
+               course_id: nil, rsvp_in: nil, my_rsvp: rsvp, comment_n: nil)
 }
 
 @Suite struct TeeSheetDateTests {
@@ -186,10 +186,10 @@ private func row(id: UUID = UUID(), name: String = "Galen", playOn: String, mine
   @Test("the Coming-up card knows who is on it: withYou and youreIn")
   func comingUpFlags() {
     let base = row(name: "Galen Ward", playOn: "2026-09-07", mine: false, friend: true, taggedMe: true)
-    let inOn = Rpc.my_schedule.Row(id: base.id, profile_id: base.profile_id, display_name: base.display_name, marker: base.marker,
-                                   play_on: base.play_on, course_label: base.course_label, note: nil, tee_time: nil, mine: false,
-                                   is_friend: true, shared_league: nil, tagged_names: nil, tagged_me: true, course_id: nil,
-                                   rsvp_in: 2, my_rsvp: "in", comment_n: nil)
+    let inOn = SchedulePlan(id: base.id, profile_id: base.profile_id, display_name: base.display_name, marker: base.marker,
+                            play_on: base.play_on, course_label: base.course_label, note: nil, tee_time: nil, mine: false,
+                            is_friend: true, shared_league: nil, tagged_names: nil, tagged_me: true, course_id: nil,
+                            rsvp_in: 2, my_rsvp: "in", comment_n: nil)
     #expect(inOn.withYou && inOn.youreIn)
     // your own round is never "with you", and a tag on your own round is still yours
     let mine = row(name: "Jerecho", playOn: "2026-09-07", mine: true, taggedMe: true)
@@ -207,7 +207,7 @@ private func row(id: UUID = UUID(), name: String = "Galen", playOn: String, mine
 
   @Test func covenantCopy() {
     let c = Covenant(.object(["name": .string("PIGL"), "buyin_cents": .number(5000), "preset": .string("standard"), "floor": .number(2), "finish": .string("points_table")]))!
-    #expect(c.usd == 50 && c.buyinLine == "$50 / player · on the pot sheet")
+    #expect(c.usd == 50 && c.buyinLine == "$50 / player · on the books")   // T-12: "pot sheet" retires
     #expect(c.presetLine == "Standard" && c.floorLine == "2 rounds / mo" && c.finishLine == "Points table crowns it")
     #expect(c.joinLabel == "Join — I’m in for $50")
     #expect(Covenant(.null) == nil)

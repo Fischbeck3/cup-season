@@ -30,7 +30,7 @@ struct JoinLeagueFlow: View {
     NavigationStack {
       ScrollView {
         VStack(alignment: .leading, spacing: 14) {
-          CSSheetHeader(title: "Join a league", sub: "I HAVE A LEAGUE CODE")   // Q-16: one noun for the code (D47)
+          CSSheetHeader(title: "Join with a code", sub: "WHOEVER'S RUNNING IT WILL HAVE SENT YOU ONE")   // T-13: one noun for the code (D47)
           if vm.presetCode == nil {
             CSField("League code", text: $vm.code)
               .textInputAutocapitalization(.characters).autocorrectionDisabled()
@@ -93,11 +93,13 @@ final class JoinModel {
     note = nil
     do {
       guard let name = try await joins.leagueName(c) else {
-        note = "No league with that code — check with your Pro"; return
+        note = "No season with that code. Check with whoever sent it."; return
       }
       leagueName = name
-      if let cov = try await joins.covenant(c) { covenant = cov; return }   // the stake, named BEFORE join_league
-      await join()
+      // L-12 · the covenant, at EVERY stake including $0 (D225). It used to
+      // fire only above $0, so a golfer joining a free season never met the
+      // Pro, the length, the rules or the ending.
+      covenant = try await joins.covenant(c)
     } catch { note = JoinService.joinError(error) }
   }
 
@@ -108,7 +110,7 @@ final class JoinModel {
       let id = try await joins.join(c)
       JoinIntent.clear()
       CSHaptic.success()
-      toasts.show("Joined \(leagueName ?? "the league")")
+      toasts.show("Joined \(leagueName ?? "the season")")
       joinedId = id
     } catch { note = JoinService.joinError(error) }
   }
@@ -125,36 +127,35 @@ final class JoinModel {
 struct CovenantSheet: View {
   @Environment(\.cs) private var cs
   let covenant: Covenant
+  /// The joiner's own posted rounds, for the starter clause. nil = not read, so
+  /// the clause is omitted rather than guessed (L-44).
+  var postedRounds: Int? = nil
   let onJoin: () -> Void
   let onNo: () -> Void
 
   var body: some View {
     ScrollView {
-      VStack(alignment: .leading, spacing: 10) {
-        CSSheetHeader(title: "Before you join \(covenant.name)", sub: "THE FINE PRINT, UP FRONT")
-        byrow("BUY-IN", covenant.buyinLine)
-        if let p = covenant.presetLine { byrow("PRESET", p) }
-        if let f = covenant.floorLine { byrow("PARTICIPATION FLOOR", f) }
-        byrow("FINISH", covenant.finishLine)
-        CSFine(covenant.potLine).padding(.top, 10)
-        CSButton(covenant.joinLabel, action: onJoin).padding(.top, 10)
-        CSButton("Not now", style: .quiet, action: onNo)
+      VStack(alignment: .leading, spacing: 12) {
+        CSSheetHeader(title: covenant.head, sub: "EVERYTHING BEFORE YOU TAP")
+        // WHO comes before the money. The order is the producer's, not this
+        // file's — `Covenant.facts` decides it, and a fact with no read is
+        // simply not in the list (L-44).
+        ForEach(covenant.facts(postedRounds: postedRounds), id: \.0) { fact, line in
+          Text(line)
+            .font(fact == .who ? CSFont.sentenceBold : CSFont.sentence)
+            .foregroundStyle(fact == .stake ? cs.gold : cs.ink)
+            .fixedSize(horizontal: false, vertical: true)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .accessibilityLabel(line)
+        }
+        CSButton(covenant.joinLabel, action: onJoin).padding(.top, 8)
+        CSButton(Covenant.notNow, style: .quiet, action: onNo)
       }
       .padding(20)
     }
     .background(cs.bg0)
     .presentationDetents([.large])
     .presentationDragIndicator(.visible)
-  }
-
-  private func byrow(_ k: String, _ v: String) -> some View {
-    HStack(alignment: .firstTextBaseline) {
-      Text(k).csEyebrow()
-      Spacer()
-      Text(v).font(CSFont.monoMediumBody).foregroundStyle(cs.ink).multilineTextAlignment(.trailing)
-    }
-    .padding(.vertical, 8)
-    .overlay(alignment: .bottom) { Rectangle().fill(cs.line).frame(height: 1) }
   }
 }
 
@@ -220,7 +221,13 @@ struct LeagueWelcomeSheet: View {
 }
 
 #Preview("Covenant") {
-  CovenantSheet(covenant: Covenant(name: "PIGL", buyinCents: 5000, preset: "standard", floor: 2, finish: "cup_final"), onJoin: {}, onNo: {}).csTheme()
+  CovenantSheet(covenant: Covenant(name: "the Fellas", buyinCents: 5000, preset: "standard", floor: 2, finish: "cup_final",
+                                   proName: "Galen Fischbeck", rosterCount: 8,
+                                   rosterNames: ["Marcus Webb", "Dev Patel", "Tash Boyle", "Ravi Shah", "Jules Kerr"],
+                                   startsOn: "2026-09-12", weeks: 13, countingCap: 3,
+                                   split: .init(champion: 60, runnerUp: 25, pointsKing: 15),
+                                   hasPayNote: true, phase: "setup"),
+                postedRounds: 0, onJoin: {}, onNo: {}).csTheme()
 }
 
 #Preview("Welcome") {

@@ -19,10 +19,18 @@ struct WizardLockShare: Identifiable, Equatable {
   /// P-11 · the season's `starts_on` as the lock returned it — "Season is live"
   /// only once first tee has come; before it, the line names the tee.
   var startsOn: String? = nil
+  /// D225 · the wizard's own answers, so the share screen can say the sentence
+  /// the golfer just built rather than the seat math it used to.
+  var weeks: Int? = nil
+  var invited: Int = 0
   var id: UUID { leagueId }
   var line: String {
-    WizardCopy.lockShareLine(nextPhase: nextPhase, members: members, structure: structure, draftType: draftType, startsOn: startsOn)
+    if let w = weeks, let s = startsOn {
+      return WizardCopy.liveSub(weeks: w, startsOn: s, invited: invited)
+    }
+    return WizardCopy.lockShareLine(nextPhase: nextPhase, members: members, structure: structure, draftType: draftType, startsOn: startsOn)
   }
+  var head: String { WizardCopy.liveHead(name) }
   var url: URL? { WizardCopy.inviteURL(code) }
 }
 
@@ -35,7 +43,7 @@ struct WizardLockShareSheet: View {
   var body: some View {
     ScrollView {
       VStack(alignment: .leading, spacing: 12) {
-        CSSheetHeader(title: WizardCopy.lockShareTitle, sub: WizardCopy.lockShareSub)
+        CSSheetHeader(title: share.head, sub: WizardCopy.lockShareSub)
         CSFine(share.line)
         CSCard(padding: 12) {
           VStack(alignment: .leading, spacing: 4) {
@@ -45,16 +53,32 @@ struct WizardLockShareSheet: View {
               .textSelection(.enabled)
           }
         }
+        // D114's phone half: the URL as text (a golfer reads it aloud in a
+        // group chat, which is a real thing that happens), then the web's three
+        // controls beside the system sheet.
         if let url = share.url {
+          A11yStack(spacing: 8) {
+            CSMini(WizardCopy.copyLink) {
+              UIPasteboard.general.string = url.absoluteString
+              CSHaptic.selection()
+              CSGrowth.log(.artifactShared, kind: "join", token: share.code, league: share.leagueId)
+            }
+            CSMini(WizardCopy.copyMessage) {
+              UIPasteboard.general.string = "\(WizardCopy.inviteText(share.name)): \(url.absoluteString)"
+              CSHaptic.selection()
+              CSGrowth.log(.artifactShared, kind: "join", token: share.code, league: share.leagueId)
+            }
+          }
+          .padding(.top, 2)
           ShareLink(item: url, subject: Text("Cup Season"), message: Text(WizardCopy.inviteText(share.name))) {
-            Text(WizardCopy.shareInvite).font(CSFont.button).frame(maxWidth: .infinity, minHeight: 50)
+            Text(WizardCopy.shareEllipsis).font(CSFont.button).frame(maxWidth: .infinity, minHeight: 50)
               .foregroundStyle(cs.bg0).background(cs.brand, in: RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous))
           }
           .simultaneousGesture(TapGesture().onEnded { CSGrowth.log(.artifactShared, kind: "join", token: share.code, league: share.leagueId) })
           .padding(.top, 4)
         }
         CSButton("Add golfers", style: .quiet) { picker = true }
-        CSButton(WizardCopy.later, style: .quiet) { dismiss() }
+        CSButton(WizardCopy.openTheSeason, style: .quiet) { dismiss() }
       }
       .padding(20)
     }

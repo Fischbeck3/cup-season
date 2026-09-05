@@ -200,7 +200,7 @@ struct HomeFootDoors: View {
         door("ADD MY ROUND", "add_my_round", "Add my round", ember: true) {
           presenter.postOnComposer = true; presenter.showPost = true
         }
-        door("START SOMETHING", "start_something", "Start something") { presenter.wizard = .init(existingLeagueId: nil) }
+        door("START SOMETHING", "start_something", "Start something") { presenter.showIntent = true }
         door("JOIN WITH A CODE", "join_with_a_code", "Join with a code") { presenter.join(code: nil) }
         door("FIND GOLFERS", "find_golfers", "Find golfers") { openGolfers() }
       }

@@ -21,11 +21,21 @@ import Foundation
   @Test func theLadderIsTheWebs() {
     #expect(WizardDials.caps == ["Best 2", "Best 3", "Best 4", "Best 6", "Unlimited"])
     #expect(WizardDials.capVals == [2, 3, 4, 6, nil])
-    #expect(WizardDials.presets.map(\.line) == [
-      "100% hcp · honor scores · any course · unlimited counting · no floor",
-      "95% hcp · post what you'd post to GHIN · best 3 / mo count · 2-round floor",
-      "90% hcp · attested where you can · rated tees · best 2 / mo · 3-round floor",
+    // D225 / L-16 · the cards STOP NAMING DIALS. Reciting four dials on a card
+    // a golfer meets before they have met any of them was a live L-16 violation
+    // on the shipping client; each card is one sentence now, and every dial is
+    // still there, verbatim, behind More settings (P-6).
+    #expect(WizardDials.presets.map(\.line) == ["", "", ""])
+    #expect(WizardDials.presets.map(\.lead) == [
+      "Honest scores, and everything counts.",
+      "The default. Honest scores, light guardrails.",
+      "Tight. Vouched where you can, and the screws in.",
     ])
+    for p in WizardDials.presets {
+      for dial in ["hcp", "%", "counting", "floor", "GHIN", "attested"] {
+        #expect(!p.lead.lowercased().contains(dial.lowercased()), Comment(rawValue: "\(p.name) names \(dial)"))
+      }
+    }
   }
   /// D206: 13 weeks by default; D142: Standard's Best 3.
   @Test func aRealLeagueStartsAtBraggingRights() {

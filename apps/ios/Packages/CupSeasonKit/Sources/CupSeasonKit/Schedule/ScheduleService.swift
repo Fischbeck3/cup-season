@@ -16,7 +16,7 @@ public struct ScheduleService: Sendable {
 
   /// `my_schedule(p_from, p_to)` — the RPC does the visibility math.
   public func schedule(from: String, to: String) async throws -> [ScheduledRound] {
-    try await svc.call(Rpc.my_schedule(p_from: from, p_to: to))
+    try await svc.call(MyScheduleCall(p_from: from, p_to: to))
   }
 
   /// `loadSchedule` (15685): the visible month.
@@ -41,8 +41,17 @@ public struct ScheduleService: Sendable {
   // MARK: writes
 
   /// `declare_round` (16704). `tee` is "HH:MM"; `courseId` stamps the cache row.
-  public func declare(playOn: String, course: String, note: String, tagged: [UUID], tee: String?, courseId: String?) async throws -> UUID {
-    try await svc.call(Rpc.declare_round(p_play_on: playOn, p_course: course, p_note: note, p_tagged: tagged, p_tee: tee, p_course_id: courseId))
+  ///
+  /// D240 · a plan may carry a NAME and a GAME. Both are droppable and nothing
+  /// else is, so a database without the eight-argument overload books the plan
+  /// exactly as it does today rather than losing the group off the tee sheet.
+  @discardableResult
+  public func declare(playOn: String, course: String, note: String, tagged: [UUID], tee: String?, courseId: String?,
+                      name: String? = nil, game: LiveGame? = nil) async throws -> UUID {
+    let label = name?.trimmingCharacters(in: .whitespacesAndNewlines)
+    return try await svc.call(DeclarePlanCall(
+      p_play_on: playOn, p_course: course, p_note: note, p_tagged: tagged, p_tee: tee, p_course_id: courseId,
+      p_name: (label?.isEmpty ?? true) ? nil : label, p_game: PlanCopy.gameValue(game)))
   }
 
   public func scratch(_ id: UUID) async throws { _ = try await svc.call(Rpc.scratch_round(p_id: id)) }

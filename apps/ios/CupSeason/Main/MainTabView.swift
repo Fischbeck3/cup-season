@@ -385,6 +385,24 @@ struct MainTabView: View {
       case "live": presenter.showLive = true
       case "wizard": presenter.wizard = .init(existingLeagueId: nil)
       case "events": presenter.showEventPicker = true
+      // D237's GATE · nobody had ever seen the Ryder room in LIVE or COMPLETE,
+      // which is the entire life of a callout. `-cs_dev_open ryder` opens the
+      // first event on the payload; `-cs_dev_open callout` opens a field of
+      // two, when there is one.
+      // `-cs_dev_open ryder <uuid>` opens one by id, because `native_home`
+      // carries only `setup` and `live` events and a COMPLETE room — half of
+      // what D237's gate is for — is unreachable without it.
+      case "ryder":
+        presenter.event = (i + 2 < a.count ? UUID(uuidString: a[i + 2]) : nil) ?? store.me?.events.first?.id
+      case "callout":
+        presenter.event = await firstCallout() ?? store.me?.events.first?.id
+      case "intent": presenter.showIntent = true
+      case "length": presenter.showPickAGolfer = true
+      // R-F's three lengths open from a NAME, and a name has to be tapped.
+      case "lengths", "callout_sheet":
+        if let who = await ScheduleService().tagCandidates(league: nil).first {
+          if a[i + 1] == "lengths" { presenter.length = who } else { presenter.callout = who }
+        }
       // D199: the credential is the one surface that cannot be reached without
       // a finger — it opens from a name, and a name has to be tapped. Judging a
       // card design from a screenshot needed a door.
@@ -478,7 +496,45 @@ struct MainTabView: View {
       }
     }
     .fullScreenCover(item: $presenter.wizard) { t in
-      WizardScreen(existingLeagueId: t.existingLeagueId, links: wizardLinks, initialStep: t.initialStep)
+      // CJ-08 · the wizard's Close lives on a navigation bar, and a
+      // fullScreenCover with no NavigationStack has none — the first shot of
+      // the re-cut step 1 was a full-screen cover with no way out of it.
+      NavigationStack {
+        WizardScreen(existingLeagueId: t.existingLeagueId, links: wizardLinks, initialStep: t.initialStep)
+      }
+    }
+    // D225 · the intent sheet. Every "Start something" lands here first, and
+    // nothing is minted by opening it.
+    .sheet(isPresented: $presenter.showIntent) { IntentSheet(take: takeIntent, joinWithCode: { presenter.join(code: nil) }) }
+    .sheet(isPresented: $presenter.showWhenFork) {
+      WhenForkSheet { f in
+        switch f {
+        case .rightNow: presenter.showLive = true
+        case .aDayThisWeek: presenter.declare = DeclarePrefill()
+        }
+      }
+    }
+    // R-F · the golfer, then the length. All three lengths, always.
+    .sheet(isPresented: $presenter.showPickAGolfer) {
+      PickAGolferSheet(take: { presenter.length = $0 }, findGolfers: { tab = .golfers })
+    }
+    .sheet(item: $presenter.length) { who in
+      LengthStep(opponent: who,
+                 liveNow: LiveRoundStore.shared.state.active,
+                 myLeagues: store.me?.memberships.compactMap(\.league_id) ?? [],
+                 take: { takeLength($0, who) },
+                 putAForfeitOnIt: { lid in presenter.forfeit = .init(home: ForfeitHome(leagueId: lid, opponent: who.id), opponentName: who.name) })
+    }
+    .sheet(item: $presenter.callout) { who in
+      CalloutSheet(opponent: who) { _ in Task { await store.reload() } }
+    }
+    .sheet(item: $presenter.calloutReply) { c in
+      CalloutReplySheet(eventId: c.eventId, from: c.from, closesOn: c.closesOn, terms: c.terms) { _ in
+        Task { await store.reload() }
+      }
+    }
+    .sheet(item: $presenter.forfeit) { t in
+      ForfeitSheet(home: t.home, opponentName: t.opponentName) { Task { await store.reload() } }
     }
     .fullScreenCover(item: $presenter.draft) { lid in
       NavigationStack {
@@ -662,7 +718,7 @@ struct MainTabView: View {
                  openHeadToHead: { golfersPath.append(GolfersRoute.headToHead($0)) },
                  openReceipt: { presenter.receipt = $0 },
                  stageRound: { playOn, tag in presenter.declare = DeclarePrefill(iso: playOn, tagPids: [tag]) },
-                 startSomething: { presenter.wizard = .init(existingLeagueId: nil) })
+                 startSomething: { presenter.showIntent = true })
     case .headToHead(let id):
       HeadToHeadPage(opponentId: id,
                      openPerson: { golfersPath.append(GolfersRoute.person($0)) },
@@ -711,12 +767,48 @@ struct MainTabView: View {
             openCompetition: { openCompetition($0) })
   }
 
+  /// D225 · one switch, five destinations. Each intent resolves to an engine
+  /// object the golfer never hears named (IA §6.2).
+  private func takeIntent(_ r: StartIntent.Resolution) {
+    switch r {
+    case .whenFork:     presenter.showWhenFork = true
+    case .season:       presenter.wizard = .init(existingLeagueId: nil)
+    case .weekend:      presenter.declare = DeclarePrefill()
+    case .pickAGolfer:  presenter.showPickAGolfer = true
+    case .whatsItOn:    presenter.forfeit = .init(home: ForfeitHome(leagueId: store.preferredLeague))
+    }
+  }
+
+  /// R-F · each length lands on an object that already exists, and the golfer
+  /// never meets its name.
+  private func takeLength(_ len: CalloutLength, _ who: TagCandidate) {
+    switch len.object {
+    case .liveRound:  presenter.showLive = true          // L-40 · the free door
+    case .callout:    presenter.callout = who
+    case .pairSeason:
+      // D205 · a season at two golfers. The wizard mints it, and the second
+      // seat is an INVITE, never `add_friend_to_league` (L-12, A-1).
+      presenter.wizard = .init(existingLeagueId: nil)
+    }
+  }
+
+  /// D237's gate hatch: the first one-session, league-less, field-of-two event
+  /// I am in — the shape `CalloutShape.isCallout` names.
+  private func firstCallout() async -> UUID? {
+    struct Row: Decodable { let id: UUID; let session_count: Int?; let league_id: UUID? }
+    for e in store.me?.events ?? [] where e.league_id == nil {
+      return e.id
+    }
+    return nil
+  }
+
   private var wizardLinks: WizardLinks {
     WizardLinks(
       onLocked: { id in presenter.wizard = nil; presenter.runBack = nil; Task { await store.reload() }; openCompetition(id) },
       onCancelled: { presenter.wizard = nil; Task { await store.reload() } },
       startEvent: { presenter.wizard = nil; presenter.showEventPicker = true },
-      onJoined: { id in PushAsk.shared.request(.leagueJoined); Task { await store.reload() }; openCompetition(id) })
+      onJoined: { id in PushAsk.shared.request(.leagueJoined); Task { await store.reload() }; openCompetition(id) },
+      findGolfers: { presenter.wizard = nil; tab = .golfers })
   }
 
   private var eventLinks: EventLinks {

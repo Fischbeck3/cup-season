@@ -1,121 +1,103 @@
-// Cup Season — the wizard's three panes (index.html 3214–3312), the dials
-// (`.setrow` steppers, `.seg` segments, the `i` help buttons) and the
-// portrait (`wizPortrait`, 11847–11890) as a card in the flow.
+// Cup Season — the wizard's three questions (D225; IA §6.3, CORE_FLOWS §7),
+// the dials behind **More settings** (`.setrow` steppers, `.seg` segments, the
+// `i` help buttons) and the portrait (`wizPortrait`, 11847–11890).
+//
+// Who's playing? · How long, and when's the first tee? · What's on it?
+// Then the rules in one sentence, the name (pre-filled, asked LAST), and
+// **Start the season** — the one tap that mints anything at all.
 
 import SwiftUI
 import CSDesign
 import CupSeasonKit
 
-// MARK: - Step 0 · name + the Pro (3214–3227)
+// MARK: - Step 1 · Who's playing? (IA §6.3, CORE_FLOWS §7.1)
 
-struct WizardNameStep: View {
+struct WizardWhoStep: View {
   @Environment(SessionStore.self) private var store
   @Environment(\.cs) private var cs
   @Bindable var model: WizardModel
-
-  var body: some View {
-    CSCard {
-      VStack(alignment: .leading, spacing: 8) {
-        Text(WizardCopy.nameLabel).font(CSFont.label).tracking(1.2).textCase(.uppercase).foregroundStyle(cs.mut)
-        CSField(WizardCopy.namePlaceholder, text: $model.dials.name, font: CSFont.body)
-          .textInputAutocapitalization(.words)
-          .accessibilityLabel(WizardCopy.nameLabel)
-        Text(WizardCopy.proLabel).font(CSFont.label).tracking(1.2).textCase(.uppercase).foregroundStyle(cs.mut).padding(.top, 10)
-        // `renderProChip` (13898): the Pro is always the creator — a fixed identity, not a dead email field
-        let p = store.me?.profile
-        let handle = p?.handle.map { "@\($0)" } ?? store.email ?? ""
-        HStack(spacing: 12) {
-          CSFace(marker: p?.marker, size: 36)
-          VStack(alignment: .leading, spacing: 2) {
-            Text(p?.display_name ?? "You").font(CSFont.subhead.weight(.semibold)).foregroundStyle(cs.ink)
-            Text("\(handle) · \(WizardCopy.proSub)").font(CSFont.monoSmall).foregroundStyle(cs.mut).lineLimit(1)
-          }
-          Spacer(minLength: 8)
-          CSTag(text: WizardCopy.proTag, tone: cs.brand)
-        }
-        .padding(.vertical, 8).padding(.horizontal, 12)
-        .background(cs.bg2, in: RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous))
-      }
-    }
-  }
-}
-
-// MARK: - Step 1 · competitiveness + the dials (3229–3312)
-
-struct WizardPresetStep: View {
-  @Environment(\.toast) private var toast
-  @Environment(\.cs) private var cs
-  @Environment(\.accessibilityReduceMotion) private var reduceMotion
-  @Bindable var model: WizardModel
-  @State private var help: Set<String> = []
-  /// D56 / IOS-021: the season-pass card under the pot preview. `.hidden`
-  /// until the flag loads; renders nothing while `pricing.visible` is false.
-  @State private var pricing = PricingFlags.hidden
+  let findGolfers: () -> Void
 
   var body: some View {
     VStack(alignment: .leading, spacing: 12) {
-      eyebrow(WizardCopy.presetEyebrow, help: "preset", text: WizardCopy.presetHelp)
-      ForEach(0..<3, id: \.self) { i in presetCard(i) }
-      CSFine(model.dials.presetSummaryText)
-      CSFine(WizardCopy.verificationNote)   // M-15: a norm the league holds, not a filter the engine applies
-      CSButton(WizardCopy.fastPath) { CSHaptic.selection(); model.step = 2 }
-      Button {
-        withAnimation(reduceMotion ? nil : .timingCurve(0.16, 0.84, 0.36, 1, duration: 0.26)) { model.showDials.toggle() }
-      } label: {
-        HStack(spacing: 6) {
-          Text(model.showDials ? WizardCopy.hideOptions : WizardCopy.customize).font(CSFont.monoMediumBody)
-          Image(systemName: "chevron.down").font(.system(size: 12, weight: .semibold)).rotationEffect(.degrees(model.showDials ? 180 : 0))
+      if !model.buddiesLoaded {
+        ProgressView().tint(cs.brand)
+      } else if model.buddies.isEmpty {
+        // THE EMPTY BRANCH — every first-time organiser's state, and it was
+        // missing. `search_golfers` matches an exact @handle or an existing
+        // relation only (L-37), so a golfer signed in an hour cannot find two
+        // friends who are already on the app.
+        Text(WizardCopy.step1Empty).font(CSFont.sentence).foregroundStyle(cs.mut)
+        door(WizardCopy.findYourFriends, sub: WizardCopy.findYourFriendsSub, ember: true, action: findGolfers)
+        door(WizardCopy.textThemALink, sub: nil, ember: false, action: findGolfers)
+        door(WizardCopy.justMe, sub: WizardCopy.justMeSub, ember: false) { model.step = 1 }
+      } else {
+        Text(WizardCopy.step1Sub).font(CSFont.footnote).foregroundStyle(cs.dimText)
+        FlowLayout(spacing: 6) {
+          ForEach(model.buddies) { b in chip(b) }
         }
-        .foregroundStyle(cs.ink).padding(.horizontal, 12).frame(minHeight: 44)
-        .background(cs.bg2, in: Capsule()).overlay(Capsule().stroke(cs.line2, lineWidth: 1))
+        door(WizardCopy.textThemALink, sub: nil, ember: false, action: findGolfers)
+        // Derived, never printed as a literal (D205/D206).
+        CSFine(WizardDials.rosterHint)
       }
-      .buttonStyle(.plain)
-      .accessibilityValue(model.showDials ? "expanded" : "collapsed")
-      if model.showDials { dials }
-      WizardPortraitCard(portrait: model.portrait)
-        .task { pricing = await PricingFlags.load() }
-      PricingPassCard(flags: pricing, roster: model.roster, buyInCents: model.dials.stake * 100)
+
+      // The ONE question the roster is worth asking, and only at four or more.
+      if model.asksAboutSquads {
+        Text(WizardCopy.squadsQuestion).csEyebrow().padding(.top, 6)
+        WizardSeg(options: [("solo", WizardCopy.squadsNo), ("squads", WizardCopy.squadsYes)],
+                  selected: (model.squadsChosen ?? false) ? "squads" : "solo") { k in
+          model.squadsChosen = (k == "squads")
+        }
+      }
     }
   }
 
-  /// `.preset` (3230–3245): name ✓ · lead · the bundle line.
-  private func presetCard(_ i: Int) -> some View {
-    let p = WizardDials.presets[i]
-    let on = model.dials.preset == i
+  private func chip(_ b: TagCandidate) -> some View {
+    let on = model.dials.invitees.contains(b.id)
     return Button {
       CSHaptic.selection()
-      model.dials.applyPreset(i)
-      toast.show(model.dials.presetToast)
+      if on { model.dials.invitees.removeAll { $0 == b.id } } else { model.dials.invitees.append(b.id) }
+      model.syncName(myName: store.me?.profile?.display_name)
     } label: {
-      VStack(alignment: .leading, spacing: 4) {
-        HStack(spacing: 8) {
-          Text(p.name).font(CSFont.title).foregroundStyle(cs.ink)
-          if on { Text("✓").font(CSFont.monoMediumBody).foregroundStyle(cs.brand) }
-        }
-        Text(p.lead).font(CSFont.sentence).foregroundStyle(cs.ink)
-        Text(p.line).font(CSFont.footnote).foregroundStyle(cs.mut)
+      HStack(spacing: 6) {
+        CSMarkerView(key: b.marker, size: 16).foregroundStyle(on ? cs.pos : cs.ink)
+        Text(b.name).font(CSFont.monoMediumBody).foregroundStyle(on ? cs.pos : cs.ink)
       }
-      .padding(14)
+      .padding(.horizontal, 12).frame(minHeight: 44)
+      .background(cs.bg2, in: Capsule())
+      .overlay(Capsule().stroke(on ? cs.pos : cs.line2, lineWidth: 1))
+    }
+    .buttonStyle(.plain)
+    .accessibilityAddTraits(on ? .isSelected : [])
+  }
+
+  private func door(_ label: String, sub: String?, ember: Bool, action: @escaping () -> Void) -> some View {
+    Button(action: { CSHaptic.selection(); action() }) {
+      VStack(alignment: .leading, spacing: 2) {
+        Text(label).font(CSFont.monoMediumBody).foregroundStyle(ember ? cs.brand : cs.ink)
+        if let sub { Text(sub).font(CSFont.footnote).foregroundStyle(cs.dimText) }
+      }
       .frame(maxWidth: .infinity, alignment: .leading)
-      .background(cs.bg1, in: RoundedRectangle(cornerRadius: CSTokens.Radius.r, style: .continuous))
-      .overlay(RoundedRectangle(cornerRadius: CSTokens.Radius.r, style: .continuous).stroke(on ? cs.brand : cs.line, lineWidth: on ? 1.5 : 1))
+      .padding(.horizontal, 12).padding(.vertical, 10).frame(minHeight: 50)
+      .background(cs.bg2, in: RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous))
+      .overlay(RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous).stroke(ember ? cs.brand : cs.line2, lineWidth: 1))
       .contentShape(Rectangle())
     }
     .buttonStyle(.plain)
-    .accessibilityElement(children: .combine)
-    .accessibilityAddTraits(on ? [.isButton, .isSelected] : [.isButton])
   }
+}
 
-  /// `#wizDials` — every dial, in the web's order.
-  private var dials: some View {
-    VStack(alignment: .leading, spacing: 10) {
-      WizardSetRow(lab: WizardCopy.buyIn.0, small: WizardCopy.buyIn.1, val: model.dials.stakeText,
-                   downLabel: "Lower buy-in", upLabel: "Raise buy-in",
-                   down: { model.dials.stepStake(-1) }, up: { model.dials.stepStake(1) })
+// MARK: - Step 2 · How long, and when's the first tee?
+
+struct WizardWhenStep: View {
+  @Environment(\.cs) private var cs
+  @Bindable var model: WizardModel
+
+  var body: some View {
+    VStack(alignment: .leading, spacing: 12) {
       WizardSetRow(lab: WizardCopy.seasonLength.0, small: WizardCopy.seasonLength.1, val: model.dials.lengthText,
                    downLabel: "Shorter season", upLabel: "Longer season",
                    down: { model.dials.stepLength(-1) }, up: { model.dials.stepLength(1) })
-      // first tee — any day (§14.0 v1.1); the small line is the REAL weekday span
       A11yStack(spacing: 10, columnSpacing: 6) {
         VStack(alignment: .leading, spacing: 2) {
           Text(WizardCopy.firstTee.0).font(CSFont.subhead.weight(.semibold)).foregroundStyle(cs.ink)
@@ -128,26 +110,173 @@ struct WizardPresetStep: View {
       }
       .padding(.vertical, 8)
       .overlay(alignment: .bottom) { Rectangle().fill(cs.line).frame(height: 1) }
+      // L-13, in a golfer's words, at the moment it matters.
+      CSFine(WizardCopy.step2Note(endsOn: model.dials.endDate()))
+    }
+  }
 
-      eyebrow(WizardCopy.teamsEyebrow, help: "structure", text: WizardCopy.teamsHelp)
+  private var startDate: Binding<Date> {
+    Binding(get: { CSDate.local(model.dials.startDate()) ?? Date() },
+            set: { model.dials.startISO = CSDate.iso($0) })
+  }
+}
+
+// MARK: - Step 3 · What's on it? · then the rules, the name, and Start
+
+struct WizardStakeStep: View {
+  @Environment(\.toast) private var toast
+  @Environment(\.cs) private var cs
+  @Environment(\.accessibilityReduceMotion) private var reduceMotion
+  @Bindable var model: WizardModel
+  let publish: () -> Void
+  @State private var help: Set<String> = []
+  @State private var otherOpen = false
+  @State private var otherText = ""
+  @State private var pricing = PricingFlags.hidden
+
+  var body: some View {
+    VStack(alignment: .leading, spacing: 12) {
+      // L-11 · Bragging rights is SELECTED. Money is a choice, never a default.
+      A11yStack(spacing: 6) {
+        ForEach(WizardDials.stakeChips, id: \.self) { v in stakeChip(v) }
+        otherChip
+      }
+      if otherOpen {
+        CSField("$20", text: $otherText, font: CSFont.body)
+          .keyboardType(.numberPad)
+          .onChange(of: otherText) { _, t in
+            let digits = t.filter(\.isNumber)
+            if digits != t { otherText = digits }
+            model.dials.stake = min(10_000, Int(digits) ?? 0)
+          }
+          .accessibilityLabel("Buy-in in dollars")
+      }
+
+      // L-10 · at $0 the whole block below is ABSENT, not greyed.
+      if model.dials.stake > 0 {
+        CSFine(WizardCopy.potLine(stake: model.dials.stake, roster: model.roster))
+        // L-09 · the ledger line, verbatim from the constant.
+        Text(MoneyCopy.ledger).font(CSFont.footnote).foregroundStyle(cs.gold)
+          .fixedSize(horizontal: false, vertical: true)
+        Text(WizardCopy.payLabel).csEyebrow().padding(.top, 4)
+        CSField(WizardCopy.payPlaceholder, text: $model.dials.buyInNote, font: CSFont.body)
+          .textInputAutocapitalization(.never).autocorrectionDisabled()
+          .accessibilityLabel(WizardCopy.payLabel)
+        // The ONE required field the wizard gains.
+        CSFine(model.dials.payNoteMissing ? WizardCopy.payMissing : WizardCopy.payFine,
+               tone: model.dials.payNoteMissing ? cs.warm : cs.dimText)
+      }
+
+      Rectangle().fill(cs.line).frame(height: 1).padding(.vertical, 4)
+
+      // THE RULES, IN ONE SENTENCE. Every dial is still there, verbatim, behind
+      // More settings (P-6: complexity hidden, never deleted).
+      Text(WizardCopy.rulesHead).font(CSFont.subhead.weight(.semibold)).foregroundStyle(cs.ink)
+      Text(WizardCopy.rulesLine(model.dials)).font(CSFont.sentence).foregroundStyle(cs.dimText)
+        .fixedSize(horizontal: false, vertical: true)
+      Button {
+        withAnimation(reduceMotion ? nil : .timingCurve(0.16, 0.84, 0.36, 1, duration: 0.26)) { model.showDials.toggle() }
+      } label: {
+        HStack(spacing: 6) {
+          Text(WizardCopy.moreSettings).font(CSFont.monoMediumBody)
+          Image(systemName: "chevron.down").font(.system(size: 12, weight: .semibold)).rotationEffect(.degrees(model.showDials ? 180 : 0))
+        }
+        .foregroundStyle(cs.ink).padding(.horizontal, 12).frame(minHeight: 44)
+        .background(cs.bg2, in: Capsule()).overlay(Capsule().stroke(cs.line2, lineWidth: 1))
+      }
+      .buttonStyle(.plain)
+      .accessibilityValue(model.showDials ? "expanded" : "collapsed")
+      if model.showDials { WizardDialsPane(model: model, help: $help) }
+
+      Text(WizardCopy.nameIt).csEyebrow().padding(.top, 6)
+      CSField("The Fellas", text: $model.dials.name, font: CSFont.body)
+        .textInputAutocapitalization(.words)
+        .onChange(of: model.dials.name) { _, _ in model.nameTouched = true }
+        .accessibilityLabel(WizardCopy.nameIt)
+
+      CSButton(WizardCopy.publish, busy: model.busy) { publish() }
+        .disabled(!model.dials.canPublish)
+        .opacity(model.dials.canPublish ? 1 : 0.5)
+      CSFine(WizardCopy.freezeNote)
+      WizardPortraitCard(portrait: model.portrait)
+        .task { pricing = await PricingFlags.load() }
+      PricingPassCard(flags: pricing, roster: model.roster, buyInCents: model.dials.stake * 100)
+    }
+  }
+
+  private func stakeChip(_ v: Int) -> some View {
+    let on = !otherOpen && model.dials.stake == v
+    return Button {
+      CSHaptic.selection(); otherOpen = false; model.dials.stake = v
+    } label: {
+      Text(v == 0 ? WizardDials.braggingRights : PotMath.dollars(v))
+        .font(CSFont.monoSmall).lineLimit(1).minimumScaleFactor(0.8)
+        .foregroundStyle(on ? cs.bg0 : cs.ink)
+        .padding(.horizontal, 10).frame(maxWidth: .infinity, minHeight: 44)
+        .background(on ? cs.ink : cs.bg2, in: RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous))
+        .overlay(RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous).stroke(cs.line2, lineWidth: on ? 0 : 1))
+    }
+    .buttonStyle(.plain)
+    .accessibilityAddTraits(on ? [.isSelected] : [])
+  }
+
+  /// D225 · $20 was impossible: the rungs are fixed and there was no field.
+  private var otherChip: some View {
+    Button {
+      CSHaptic.selection(); otherOpen = true
+      otherText = model.dials.stake > 0 && !WizardDials.stakeChips.contains(model.dials.stake) ? String(model.dials.stake) : ""
+      model.dials.stake = Int(otherText) ?? 0
+    } label: {
+      Text(WizardDials.otherLabel).font(CSFont.monoSmall)
+        .foregroundStyle(otherOpen ? cs.bg0 : cs.ink)
+        .padding(.horizontal, 10).frame(maxWidth: .infinity, minHeight: 44)
+        .background(otherOpen ? cs.ink : cs.bg2, in: RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous))
+        .overlay(RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous).stroke(cs.line2, lineWidth: otherOpen ? 0 : 1))
+    }
+    .buttonStyle(.plain)
+    .accessibilityAddTraits(otherOpen ? [.isSelected] : [])
+  }
+}
+
+/// **More settings** — every dial, verbatim, with its ⓘ paragraph. Nothing was
+/// deleted when the three questions replaced them (P-6).
+struct WizardDialsPane: View {
+  @Environment(\.toast) private var toast
+  @Environment(\.cs) private var cs
+  @Bindable var model: WizardModel
+  @Binding var help: Set<String>
+
+  var body: some View {
+    VStack(alignment: .leading, spacing: 10) {
+      eyebrow(WizardCopy.presetEyebrow, key: "preset", text: WizardCopy.presetHelp)
+      ForEach(0..<3, id: \.self) { i in presetCard(i) }
+      CSFine(model.dials.presetSummaryText)
+      CSFine(WizardCopy.verificationNote)   // M-15: a norm the league holds, not a filter the engine applies
+
+      WizardSetRow(lab: WizardCopy.buyIn.0, small: WizardCopy.buyIn.1, val: model.dials.stakeText,
+                   downLabel: "Lower buy-in", upLabel: "Raise buy-in",
+                   down: { model.dials.stepStake(-1) }, up: { model.dials.stepStake(1) })
+
+      eyebrow(WizardCopy.teamsEyebrow, key: "structure", text: WizardCopy.teamsHelp)
       WizardSeg(options: WizardDials.structures.map { ($0, WizardDials.structLabels[$0] ?? $0) }, selected: model.dials.structure,
                 dimmed: { !WizardDials.fits($0, roster: model.roster) }) { s in
         if let t = WizardDials.structToast(s, roster: model.roster) { toast.show(t) }
         model.dials.structure = s
+        model.squadsChosen = (s != "solo")
       }
       CSFine(model.dials.structNote)
-      CSFine(model.structFit, tone: cs.warm)
+      CSFine(WizardDials.structFitLine(roster: model.roster), tone: cs.warm)
 
-      eyebrow(WizardCopy.fillEyebrow, help: "draft", text: WizardCopy.fillHelp)
+      eyebrow(WizardCopy.fillEyebrow, key: "draft", text: WizardCopy.fillHelp)
       WizardSeg(options: WizardDials.draftTypes.map { ($0, WizardDials.draftLabels[$0] ?? $0) },
                 selected: WizardDials.draftTypes.contains(model.dials.draftType) ? model.dials.draftType : "random") { model.dials.draftType = $0 }
       CSFine(model.dials.draftNote)
 
-      eyebrow(WizardCopy.endsEyebrow, help: "finish", text: WizardCopy.endsHelp)
+      eyebrow(WizardCopy.endsEyebrow, key: "finish", text: WizardCopy.endsHelp)
       WizardSeg(options: WizardDials.finishes.map { ($0, WizardDials.finishLabels[$0] ?? $0) }, selected: model.dials.finish) { model.dials.finish = $0 }
       CSFine(model.dials.finishNote)
 
-      eyebrow(WizardCopy.potEyebrow, help: "payout", text: WizardCopy.potHelp)
+      eyebrow(WizardCopy.potEyebrow, key: "payout", text: WizardCopy.potHelp)
       WizardSeg(options: WizardDials.payouts.map { p in (p.map(String.init).joined(separator: ","), WizardDials.payLabels[p.map(String.init).joined(separator: ",")] ?? "") },
                 selected: model.dials.payKey) { k in model.dials.payout = k.split(separator: ",").compactMap { Int($0) } }
       CSFine(model.dials.payNote)
@@ -162,13 +291,34 @@ struct WizardPresetStep: View {
     .transition(.opacity.combined(with: .move(edge: .top)))
   }
 
-  private var startDate: Binding<Date> {
-    Binding(get: { CSDate.local(model.dials.startDate()) ?? Date() },
-            set: { model.dials.startISO = CSDate.iso($0) })
+  /// `.preset` — the name, and ONE sentence. The dial recital is gone (L-16).
+  private func presetCard(_ i: Int) -> some View {
+    let p = WizardDials.presets[i]
+    let on = model.dials.preset == i
+    return Button {
+      CSHaptic.selection()
+      model.dials.applyPreset(i)
+      toast.show(model.dials.presetToast)
+    } label: {
+      VStack(alignment: .leading, spacing: 4) {
+        HStack(spacing: 8) {
+          Text(p.name).font(CSFont.title).foregroundStyle(cs.ink)
+          if on { Text("✓").font(CSFont.monoMediumBody).foregroundStyle(cs.brand) }
+        }
+        Text(p.lead).font(CSFont.sentence).foregroundStyle(cs.ink)
+      }
+      .padding(14)
+      .frame(maxWidth: .infinity, alignment: .leading)
+      .background(cs.bg1, in: RoundedRectangle(cornerRadius: CSTokens.Radius.r, style: .continuous))
+      .overlay(RoundedRectangle(cornerRadius: CSTokens.Radius.r, style: .continuous).stroke(on ? cs.brand : cs.line, lineWidth: on ? 1.5 : 1))
+      .contentShape(Rectangle())
+    }
+    .buttonStyle(.plain)
+    .accessibilityElement(children: .combine)
+    .accessibilityAddTraits(on ? [.isButton, .isSelected] : [.isButton])
   }
 
-  /// `.eyebrow` + the `i` button, with its `.ihelp` paragraph underneath.
-  private func eyebrow(_ t: String, help key: String, text: String) -> some View {
+  private func eyebrow(_ t: String, key: String, text: String) -> some View {
     VStack(alignment: .leading, spacing: 6) {
       HStack(spacing: 8) {
         Text(t).csEyebrow()
@@ -179,37 +329,6 @@ struct WizardPresetStep: View {
       if help.contains(key) { CSFine(text) }
     }
     .padding(.top, 6)
-  }
-}
-
-// MARK: - Step 2 · review & lock (3305–3312)
-
-struct WizardReviewStep: View {
-  @Environment(\.cs) private var cs
-  @Environment(\.dynamicTypeSize) private var typeSize
-  @Bindable var model: WizardModel
-  let lock: () -> Void
-
-  var body: some View {
-    VStack(alignment: .leading, spacing: 12) {
-      Text(WizardCopy.reviewEyebrow).csEyebrow()
-      CSCard {
-        VStack(spacing: 0) {
-          ForEach(model.dials.bylawsRows()) { r in
-            A11yStack(rowAlignment: .firstTextBaseline, spacing: 12, columnSpacing: 2) {
-              Text(r.k).font(CSFont.label).tracking(1.0).textCase(.uppercase).foregroundStyle(cs.dimText)
-              Spacer(minLength: 8)
-              Text(r.v).font(CSFont.subhead.weight(.semibold)).foregroundStyle(cs.ink).multilineTextAlignment(typeSize.isA11y ? .leading : .trailing)
-            }
-            .padding(.vertical, 7)
-            .overlay(alignment: .bottom) { Rectangle().fill(cs.line).frame(height: 1) }
-            .accessibilityElement(children: .combine)
-          }
-        }
-      }
-      CSFine(WizardCopy.inviteNote)
-      CSButton(WizardCopy.lockButton(solo: model.dials.solo), busy: model.busy) { lock() }
-    }
   }
 }
 

@@ -100,7 +100,7 @@ struct HomeView: View {
           if let o = vm.occasion {
             OccasionCard(o: o, onGo: {
                            CSTelemetry.event("home_occasion_tap", ["win": .string(o.key), "act": .string("go")])
-                           if o.go == .league { presenter.wizard = .init(existingLeagueId: nil) } else { presenter.showEventPicker = true }
+                           if o.go == .league { presenter.showIntent = true } else { presenter.showEventPicker = true }
                          },
                          onDismiss: {
                            CSTelemetry.event("home_occasion_tap", ["win": .string(o.key), "act": .string("dismiss")])

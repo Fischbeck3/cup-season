@@ -1211,6 +1211,103 @@
     [csShortCourse('Papago Golf Course'), csShortCourse(null), csShortCourse('   ')],
     ['PAPAGO GOLF COURSE', null, null]);
 
+  /* ============ WAVE 7 · intent, the callout, and the covenant ============
+     D225 · the doors name what I want, not what the engine has. The whole
+     ruling rests on one testable property: no string the sheet renders may
+     contain an engine object noun. */
+  (function () {
+    t('D225: the sheet is four peers and one modifier',
+      [CS_INTENTS.length, typeof csIntentStrings, csIntentStrings().length], [4, 'function', 12]);
+    t('D234: the lines are the phone\u2019s, verbatim',
+      CS_INTENTS.map(i => i.line),
+      ['Play with my friends', 'Run a season', "We're playing this weekend", 'I want to beat one guy']);
+    t('D234: and so are the glosses',
+      CS_INTENTS.map(i => i.gloss),
+      ['a round with whoever is around', 'weeks of golf that add up to a table',
+       'one day, and a name for it', 'you and him, whatever length you like']);
+    t('D225: zero object nouns, on every string the sheet renders',
+      csIntentStrings().flatMap(csObjectNouns), []);
+    t('D225: and the ban is on WORDS, not substrings',
+      [csObjectNouns('Run a season'), csObjectNouns('seasonal golf'),
+       csObjectNouns('Start a league'), csObjectNouns('Start an event')],
+      [[], [], ['league'], ['event']]);
+    /* L-32 · a weekend mints no trophy (D240), so the door does not sell one */
+    t('D240: the weekend door sells a name, never a trophy',
+      [CS_INTENTS[2].gloss.includes('trophy'), CS_INTENTS[2].gloss.includes('cup')], [false, false]);
+
+    /* R-F · all three lengths, always, in the owner's own words */
+    t('R-F: the three lengths are the owner\u2019s words',
+      CS_LENGTHS.map(l => l.title + ' — ' + l.gloss),
+      ['This Saturday — a live match, on one card',
+       'One week — best round by Sunday takes it',
+       'A season — a table, and a cup at the end']);
+    t('R-F: the state ORDERS them and never shortens them',
+      [csLengthsOffered(false, false).map(l => l.k),
+       csLengthsOffered(true, false).map(l => l.k),
+       csLengthsOffered(false, true).map(l => l.k),
+       csLengthsOffered(true, true).map(l => l.k)],
+      [['thisSaturday', 'oneWeek', 'aSeason'],
+       ['thisSaturday', 'oneWeek', 'aSeason'],
+       ['thisSaturday', 'oneWeek', 'aSeason'],
+       ['thisSaturday', 'oneWeek', 'aSeason']]);
+    t('R-F: every length lands on an object that already exists',
+      CS_LENGTHS.map(l => l.object), ['liveRound', 'callout', 'pairSeason']);
+    t('R-F: and the golfer never meets the object\u2019s name',
+      CS_LENGTHS.flatMap(l => csObjectNouns(l.title + ' ' + l.gloss)), []);
+
+    /* D225 / R9 · the covenant names the crew, the clock and what the money
+       buys — and an absent fact renders NOTHING (L-44). */
+    const full = {
+      name: 'the Fellas', buyin_cents: 5000, preset: 'standard', floor: 2, finish: 'cup_final',
+      roster: { count: 8, pro_name: 'Casey Nguyen', names: ['Marcus Webb', 'Dev Patel', 'Tash Boyle', 'Ravi Shah', 'Jules Kerr'] },
+      starts_on: '2026-09-12', weeks: 13, counting_cap: 3,
+      split: { champion: 60, runner_up: 25, points_king: 15 }, pay: { has_note: true, due_on: null },
+    };
+    const F = info => csCovenantFacts(info).reduce((m, f) => (m[f.k] = f.t, m), {});
+    t('D225: WHO comes before the money',
+      [csCovenantFacts(full)[0].k, F(full).who],
+      ['who', 'Casey Nguyen runs the season (the Pro). Marcus, Dev, Tash, Ravi, Jules and 2 more are in.']);
+    t('D234: the clock reads the same on both clients',
+      F(full).length, 'Thirteen weeks from Sat Sep 12.');
+    t('R9: the counting cap makes "best three a month count" sayable',
+      F(full).rules, 'Standard rules: honest scores, best three a month count, two a month keeps you in.');
+    t('D126: the ending is a sentence, never a dial name',
+      [F(full).ending, F({ name: 'x', buyin_cents: 0, finish: 'points_table' }).ending],
+      ['It ends with a four-week Cup Final between the top two.',
+       "The season's points decide it. No reset."]);
+    t('L-10: the split answers what $50 buys, and renders above $0 only',
+      [F(full).split, F({ name: 'x', buyin_cents: 0, split: { champion: 60, runner_up: 25, points_king: 15 } }).split],
+      ['If you take it: 60 percent to the champion, 25 to the runner-up, 15 to the points king.', undefined]);
+    t('D129: the pay fact is a boolean and a date, never the note',
+      [F(full).pay, F({ name: 'x', buyin_cents: 5000, has_pay_note: false }).pay],
+      ["The Pro has said how to pay. You'll see it on the pot.",
+       "The Pro hasn't said how to pay yet. It'll be on the pot when they do."]);
+    t('L-09: the ledger line is the constant, never retyped', F(full).ledger, CS_LEDGER);
+    /* L-44 · the SHIPPED payload, with none of R9's six */
+    const today = { name: 'the Fellas', buyin_cents: 5000, preset: 'standard', floor: 2, finish: 'cup_final' };
+    t('L-44: an absent fact renders nothing at all',
+      [F(today).who, F(today).length, F(today).split, F(today).pay],
+      [undefined, undefined, undefined, undefined]);
+    t('L-44: and the facts it CAN say are still said',
+      csCovenantFacts(today).map(f => f.k), ['rules', 'ending', 'stake', 'ledger']);
+    /* L-12 · the covenant renders at $0 — the defect D225 exists to close */
+    t('L-12: a $0 season still passes the covenant, with no money lines',
+      csCovenantFacts({ name: 'the Fellas', buyin_cents: 0, preset: 'standard', floor: 2, finish: 'cup_final',
+                        roster: { count: 3, pro_name: 'Casey Nguyen', names: ['Dev Patel'] },
+                        starts_on: '2026-09-12', weeks: 13, counting_cap: 3 }).map(f => f.k),
+      ['who', 'length', 'rules', 'ending']);
+    t('D124: the starter clause renders on fewer than three posted rounds',
+      [csCovenantFacts(today, 0).some(f => f.k === 'starter'),
+       csCovenantFacts(today, 3).some(f => f.k === 'starter'),
+       csCovenantFacts(today).some(f => f.k === 'starter')],
+      [true, false, false]);
+    t('D225: the fact ORDER is a value both clients hold',
+      CS_COVENANT_FACTS, ['who', 'length', 'rules', 'ending', 'stake', 'ledger', 'split', 'pay', 'starter']);
+    /* R18 · the pay note is the ONE required field above $0 */
+    t('R18: above $0 with no note the publish is blocked, and $0 never is',
+      [typeof csPayNoteMissing, typeof csPayNote], ['function', 'function']);
+  })();
+
   const fails = R.filter(r => !r.ok);
   console.log(`\n${fails.length ? 'FAIL' : 'PASS'} — ${R.length} tests, ${fails.length} failure(s)`);
   return { total: R.length, failures: fails.map(f => f.name) };

@@ -34,7 +34,7 @@ struct CompeteScreen: View {
       VStack(alignment: .leading, spacing: 14) {
         CSPageHeader("Compete", eyebrow: CSHeaderDate.today()) {
           // IA §6.1 · one primary door at the head.
-          Button { presenter.wizard = .init(existingLeagueId: nil) } label: {
+          Button { presenter.showIntent = true } label: {
             Text("START SOMETHING ↗").csEyebrow(cs.brand).a11yHitSlop()
           }
           .buttonStyle(.plain)
@@ -96,7 +96,7 @@ struct CompeteScreen: View {
   /// L-32 · the empty root's doors, wired to things that exist.
   private func take(_ door: EmptyRoot.Door) {
     switch door {
-    case .startSomething: presenter.wizard = .init(existingLeagueId: nil)
+    case .startSomething: presenter.showIntent = true
     case .joinWithCode:   presenter.join(code: nil)
     case .findGolfers:    openGolfers()
     case .personLink:     openGolfers()

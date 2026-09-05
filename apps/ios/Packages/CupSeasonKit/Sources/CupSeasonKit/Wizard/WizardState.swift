@@ -14,7 +14,15 @@ import Foundation
 
 /// `state` as the wizard reads it. Stake in DOLLARS (the lock writes cents).
 public struct WizardDials: Sendable, Equatable {
+  /// D225 · the ladder, plus **Other**. $20 was impossible: the rungs are fixed
+  /// and there was no field. `otherStake` is the escape hatch and the ladder is
+  /// otherwise unchanged — L-11 keeps $0 (bragging rights) selected.
   public static let stakes = [0, 25, 50, 75, 100, 150, 200]
+  /// The four the wizard OFFERS as chips, in D225's order. Everything else on
+  /// the ladder is still reachable through the stepper in More settings.
+  public static let stakeChips = [0, 25, 50, 100]
+  public static let otherLabel = "Other"
+  public static let braggingRights = "Bragging rights"
   public static let durs = [2, 3, 4, 5, 6, 8, 10, 13, 17, 22, 26, 39, 52]
   public static let caps = Bylaws.capLabels
   public static let capVals = Bylaws.capVals
@@ -63,13 +71,18 @@ public struct WizardDials: Sendable, Equatable {
   /// M-15: verification is described as what the league asks of a golfer,
   /// never as something the engine checks ("GHIN-verified" was a claim the
   /// app cannot make — ship audit 2026-08-31).
+  /// D225 / L-16 · THE CARDS STOP NAMING DIALS. "95% hcp · post what you'd post
+  /// to GHIN · best 3 / mo count · 2-round floor" recited four dials on a card
+  /// a golfer meets before they have met any of them — a live L-16 violation on
+  /// the shipping client. Each card is ONE SENTENCE now, and the wording is
+  /// TERMINOLOGY §2.3's own cell, cited rather than restated. `line` survives as
+  /// the empty string so nothing that reads it breaks; the dials themselves are
+  /// all still there, verbatim, behind **More settings** (P-6: complexity is
+  /// hidden, never deleted).
   public static let presets = [
-    Preset(cap: nil, floor: 0, name: "Casual", lead: "Honor scores, everything counts",
-           line: "100% hcp · honor scores · any course · unlimited counting · no floor"),
-    Preset(cap: 3, floor: 2, name: "Standard", lead: "Weekly-golfer fair, light guardrails",
-           line: "95% hcp · post what you'd post to GHIN · best 3 / mo count · 2-round floor"),
-    Preset(cap: 2, floor: 3, name: "Cutthroat", lead: "Tournament-tight, receipts required",
-           line: "90% hcp · attested where you can · rated tees · best 2 / mo · 3-round floor"),
+    Preset(cap: nil, floor: 0, name: "Casual", lead: "Honest scores, and everything counts.", line: ""),
+    Preset(cap: 3, floor: 2, name: "Standard", lead: "The default. Honest scores, light guardrails.", line: ""),
+    Preset(cap: 2, floor: 3, name: "Cutthroat", lead: "Tight. Vouched where you can, and the screws in.", line: ""),
   ]
   public static let presetSummary = [
     "Casual: 100% handicap, honor-system scores, any course. Beer-league friendly — everything counts, nobody’s benched.",
@@ -93,6 +106,15 @@ public struct WizardDials: Sendable, Equatable {
   public var payout: [Int]
   public var cap: Int
   public var floor: Int
+  /// D225 / R18 · how they pay you. REQUIRED above $0, and written in the SAME
+  /// TRANSACTION as the publish (L-41) — `set_buy_in_terms` has zero call sites
+  /// on the phone, so a Pro on iOS could not record it at all and two persona
+  /// walks ended owing money with nowhere to look.
+  public var buyInNote: String = ""
+  /// The golfers picked in step 1. Each becomes an `invite_golfer` on publish —
+  /// NOT `add_friend_to_league`, which seats a golfer with no covenant
+  /// (CORE_FLOWS §0 A-1; L-12).
+  public var invitees: [UUID] = []
 
   /// `resetWizard` (13885): a REAL league starts at bragging rights (S2-03).
   /// D206: 13 weeks by default (a quarter — one whole calendar month is
@@ -136,6 +158,44 @@ public struct WizardDials: Sendable, Equatable {
   public var floorText: String { "\(floor) / mo" }
   public var capN: Int? { Self.capVals[max(0, min(Self.capVals.count - 1, cap))] }
   public var solo: Bool { structure == "solo" }
+
+  // MARK: - D225 · what the wizard asks, and what it derives
+
+  /// THE STRUCTURE IS DERIVED, NOT ASKED. Solo at two, a question at four or
+  /// more. This kills `squads2`-minted-for-a-roster-of-one (D206) and the
+  /// "2 Squads selected and greyed out at the same time" state in one move.
+  public static func derivedStructure(roster n: Int, squadsChosen: Bool?) -> String {
+    guard n >= (structMin["squads2"] ?? 4) else { return "solo" }
+    return (squadsChosen ?? false) ? "squads2" : "solo"
+  }
+  /// The question is only worth asking at four or more.
+  public static func asksAboutSquads(roster n: Int) -> Bool { n >= (structMin["squads2"] ?? 4) }
+  /// "Two is a season. Four opens squads." — derived from `structMin`, never a
+  /// literal.
+  public static var rosterHint: String {
+    "\(WizardCopy.numberWord(structMin["solo"] ?? 2).capitalized) is a season. "
+      + "\(WizardCopy.numberWord(structMin["squads2"] ?? 4).capitalized) opens squads."
+  }
+
+  /// The ONE required field the wizard gains. Above $0 with no note, **Start
+  /// the season** is disabled and the field says why.
+  public var payNoteMissing: Bool {
+    stake > 0 && buyInNote.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+  }
+  public var canPublish: Bool { !payNoteMissing }
+
+  /// The name, pre-filled from the roster and asked LAST. "Galen & Jerecho" at
+  /// two; the crew's own shape above that. Never minted for them — the field
+  /// opens with this in it and the golfer may type over it.
+  public static func suggestedName(_ names: [String]) -> String {
+    let firsts = names.map { CSBands.fn1($0) }.filter { !$0.isEmpty }
+    switch firsts.count {
+    case 0: return ""
+    case 1: return firsts[0]
+    case 2: return "\(firsts[0]) & \(firsts[1])"
+    default: return "\(firsts[0]), \(firsts[1]) & \(firsts.count - 2) more"
+    }
+  }
   public var payKey: String { payout.map(String.init).joined(separator: ",") }
   public var structNote: String { Self.structNotes[structure] ?? "" }
   public var draftNote: String { Self.draftNotes[draftType] ?? Self.draftNotes["random"]! }
@@ -305,8 +365,14 @@ public struct WizardLockCall: RpcCall {
   public typealias Returns = JSONValue
 
   public let args: Rpc.lock_league
+  /// R18 · the nineteenth argument, sent ONLY when there is a note. A $0 season
+  /// sends the nineteen keys every deployed `lock_league` has had since
+  /// 20260829220000, so the common path never depends on the migration at all.
+  public let payNote: String?
 
   public init(_ d: WizardDials, leagueId: UUID, name: String, today: String = CSDate.today()) {
+    let note = d.buyInNote.trimmingCharacters(in: .whitespacesAndNewlines)
+    payNote = note.isEmpty ? nil : note
     args = Rpc.lock_league(
       p_league: leagueId,
       p_name: name,
@@ -358,7 +424,15 @@ public struct WizardLockCall: RpcCall {
     try c.encodeIfPresent(args.p_payout_king, forKey: Key("p_payout_king"))
     try c.encodeIfPresent(args.p_starts_on, forKey: Key("p_starts_on"))
     try c.encodeIfPresent(args.p_ends_on, forKey: Key("p_ends_on"))
+    try c.encodeIfPresent(payNote, forKey: Key("p_pay_note"))
   }
+
+  /// The same call with the note stripped — the ONE fallback, and it fires on a
+  /// missing FUNCTION only (PGRST202 / 42883), never on a refusal. A season that
+  /// locked through it is live with no note, and `WizardService` says so out
+  /// loud rather than letting the fact go quiet.
+  public var withoutPayNote: WizardLockCall { WizardLockCall(args: args, payNote: nil) }
+  init(args: Rpc.lock_league, payNote: String?) { self.args = args; self.payNote = payNote }
 }
 
 // MARK: - Copy the screens print
@@ -479,4 +553,84 @@ public enum WizardCopy {
   }
   public static let ctaName = "Name your league"
   public static let ctaLock = "Lock it in and invite your crew"
+
+  // MARK: - D225 · the three questions, in order (IA §6.3, CORE_FLOWS §7)
+
+  /// 1 · WHO
+  public static let step1 = "Who's playing?"
+  public static let step1Sub = "Pick from your buddies, or send a link when you're done."
+  /// The empty branch — every first-time organiser's state, and it was missing.
+  /// `search_golfers` matches an exact @handle or an existing relation only
+  /// (L-37), so a golfer signed in an hour cannot find two friends who are
+  /// already on the app. Without these three doors the sheet's first screen is
+  /// a dead end for exactly the golfer it was written for.
+  public static let step1Empty = "No buddies yet. Two ways in."
+  public static let findYourFriends = "Find your friends"
+  public static let findYourFriendsSub = "check your contacts for golfers already here"
+  public static let textThemALink = "Someone not here yet — text them a link"
+  public static let justMe = "Just me for now"
+  public static let justMeSub = "you can add people any time before the first tee"
+  /// The one question the roster is worth asking, and only at four or more.
+  public static let squadsQuestion = "Squads, or every man for himself?"
+  public static let squadsYes = "Squads"
+  public static let squadsNo = "Every man for himself"
+
+  /// 2 · WHEN
+  public static let step2 = "How long, and when's the first tee?"
+  /// L-13, in a golfer's words, at the moment it matters: six of six audit
+  /// posters were promised points a week before their first tee.
+  public static func step2Note(endsOn: String) -> String {
+    "Ends \(LeagueDates.dowMonDay(endsOn)). Rounds you post before the first tee still build your number."
+  }
+
+  /// 3 · WHAT'S ON IT
+  public static let step3 = "What's on it?"
+  public static let payLabel = "How do they pay you?"
+  public static let payPlaceholder = "Venmo @galen"
+  public static let payFine = "Everyone who owes will see this. It's the only place they can look."
+  /// The one required field the wizard gains (D225).
+  public static let payMissing = "They'll need somewhere to send it."
+  /// L-09 · printed from the constant, never retyped.
+  public static func potLine(stake: Int, roster: Int) -> String {
+    "$\(stake) each. \(WizardCopy.numberWord(max(1, roster)).capitalized) in makes \(PotMath.dollars(stake * max(1, roster)))."
+  }
+
+  /// THEN, AND ONLY THEN.
+  public static let rulesHead = "Standard rules."
+  public static func rulesLine(_ d: WizardDials) -> String {
+    var clauses = ["Honest scores"]
+    if let c = d.capN { clauses.append("best \(numberWord(c)) a month count") }
+    if d.floor > 0 { clauses.append("\(numberWord(d.floor)) a month keeps you in") }
+    clauses.append("\(Bylaws.allow[d.preset]) percent of your number")
+    return clauses.joined(separator: ", ") + "."
+  }
+  public static let moreSettings = "More settings"
+  public static let nameIt = "Name it"
+  public static let publish = "Start the season"
+  /// T-11 · the state, not the word. Nothing "locks".
+  public static let freezeNote = "The rules freeze at the first tee."
+  public static let close = "Close"
+
+  /// The publish, and its one half-state. `create_league` and `lock_league` are
+  /// two calls; `lock_league` is idempotent on `locked_at`, which is what makes
+  /// the retry safe — and a retap after this sentence gets the standing truth
+  /// rather than a second season.
+  public static let publishFailedHalf = "The season was created but the rules did not lock. Try again — it will not make a second one."
+  public static let publishFailed = "Couldn't start the season."
+  /// R18 · the note did not land because the database has not had the migration.
+  /// Named out loud rather than dropped (D225).
+  public static let payNoteMissedIt = "The season is live. Add how they pay you from the pot."
+
+  /// The share screen, which is the SAME screen (D114's phone half).
+  public static func liveHead(_ name: String) -> String { "\(name) is live." }
+  public static func liveSub(weeks: Int, startsOn: String, invited: Int) -> String {
+    let crew = invited > 0
+      ? "\(WizardCopy.numberWord(invited + 1).capitalized) in, and the link works for anyone."
+      : "The link works for anyone."
+    return "\(numberWord(weeks).capitalized) weeks from \(LeagueDates.dowMonDay(startsOn)). \(crew)"
+  }
+  public static let copyLink = "Copy link"
+  public static let copyMessage = "Copy message"
+  public static let shareEllipsis = "Share…"
+  public static let openTheSeason = "Open the season"
 }

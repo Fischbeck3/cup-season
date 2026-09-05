@@ -112,7 +112,7 @@ struct GolfersScreen: View {
     // search field). The door scrolls to it rather than focusing a text field
     // the golfer did not ask for — wave 3 had nothing else to point at.
     case .personLink:     personLinkTap += 1
-    case .startSomething: presenter.wizard = .init(existingLeagueId: nil)
+    case .startSomething: presenter.showIntent = true
     case .joinWithCode:   presenter.join(code: nil)
     case .addMyRound:     presenter.postOnComposer = true; presenter.showPost = true
     case .retry:          Task { await reload() }

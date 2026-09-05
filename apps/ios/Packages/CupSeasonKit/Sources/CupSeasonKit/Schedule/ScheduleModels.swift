@@ -7,9 +7,12 @@
 
 import Foundation
 
-public typealias ScheduledRound = Rpc.my_schedule.Row
-
-extension Rpc.my_schedule.Row: Identifiable {}
+/// D240 / R22 · the row `my_schedule` returns, hand-declared in
+/// `PlanIdentity.swift` because the function's RETURN TYPE changed and it is
+/// unpushed — `contract.psv` is a snapshot of prod and is refreshed after a
+/// push, never ahead of one. Every field the old shape had is still here, so
+/// nothing that reads a plan changed.
+public typealias ScheduledRound = SchedulePlan
 
 public extension ScheduledRound {
   var isMine: Bool { mine ?? false }

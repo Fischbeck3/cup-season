@@ -1,11 +1,15 @@
 // Cup Season — the league-less doors (`renderHomeStart`, index.html 9736–9773)
 // and the D41 run-it-back card (9739–9752, `runItBack` 14177–14184).
 //
-// Three quiet doors — Join a league · Start a league · Start an event (D151
-// item 4: the first thing offered is the thing that works) — and,
-// when a season has wrapped, the run-back card ahead of them. "Start a league"
-// IS the wizard; "Run it back" is the wizard with last season's bylaws
-// carried in and a "· S2" name. A new league id — continuity by convention.
+// D225 · THE THREE OBJECT DOORS ARE GONE. "Join a league · Start a league ·
+// Start an event" made a golfer choose which object expressed what they wanted
+// before they had said what they wanted. There is ONE door now — **Start
+// something** — and it opens the intent sheet, whose five sentences name no
+// object at all. "I have a code" stays as its own quiet door, because a golfer
+// holding a code is not choosing anything.
+//
+// When a season has wrapped the run-back card sits ahead of them. "Run it back"
+// is the wizard with last season's bylaws carried in and a "· S2" name.
 
 import SwiftUI
 import CSDesign
@@ -13,6 +17,7 @@ import CupSeasonKit
 
 struct LeaguelessDoors: View {
   @Environment(SessionStore.self) private var store
+  @Environment(\.presenter) private var presenter
   @Environment(\.cs) private var cs
   let links: WizardLinks
   @State private var wizard = false
@@ -23,11 +28,10 @@ struct LeaguelessDoors: View {
       if let done = store.me?.memberships.first(where: { $0.phase == "complete" }) {
         RunItBackCard(leagueId: done.league_id, links: links)
       }
-      // three doors across; a column at the accessibility sizes so no label is scaled down to fit
+      // Two doors: the intent sheet, and the one a golfer holding a code needs.
       A11yStack(spacing: 8) {
-        door(WizardCopy.joinLeague) { join = true }
-        door(WizardCopy.startLeague) { wizard = true }
-        door(WizardCopy.startEvent) { links.startEvent() }
+        door("Start something") { presenter.showIntent = true }
+        door(StartIntent.codeDoor) { join = true }
       }
       if store.me?.memberships.isEmpty ?? true { CSFine(WizardCopy.leaguelessLine) }
     }

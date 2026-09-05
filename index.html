@@ -3763,20 +3763,21 @@ html[data-theme="light"] .room-dusk .btn:not(.dark):not(.gold):not(.apple){color
         <div class="wizstep" data-step="1">
           <div class="eyebrow" style="margin-top:0">How serious is your league? <button class="ibtn" data-i="preset" aria-expanded="false" aria-label="About competitiveness presets">i</button></div>
           <div class="ihelp" id="ih-preset">One pick, made now, that sets the fairness rules for the whole season — handicap allowance, how scores are verified, which courses count. <b>Casual</b> is an honor-system beer league. <b>Standard</b> asks you to post what you'd post to GHIN. <b>Cutthroat</b> wants receipts: attested where you can; the Pro rules on the rest. Deciding this before anyone tees off is what keeps October friendly.</div>
+          <!-- D225 / L-16 · the cards STOP NAMING DIALS. Each is one sentence,
+               and the wording is the phone's own (WizardDials.presets.lead) so
+               a reword on one client fails the other (D234). Every dial is
+               still here, verbatim, further down (P-6). -->
           <button class="preset" data-p="0">
             <h4>Casual <span class="ok" aria-hidden="true">✓</span></h4>
-            <p class="lead">Honor scores, everything counts</p>
-            <p><b>100% hcp</b> · honor scores · any course · unlimited counting · no floor</p>
+            <p class="lead">Honest scores, and everything counts.</p>
           </button>
           <button class="preset sel" data-p="1">
             <h4>Standard <span class="ok" aria-hidden="true">✓</span></h4>
-            <p class="lead">Weekly-golfer fair, light guardrails</p>
-            <p><b>95% hcp</b> · post what you'd post to GHIN · best 3 / mo count · 2-round floor</p>
+            <p class="lead">The default. Honest scores, light guardrails.</p>
           </button>
           <button class="preset" data-p="2">
             <h4>Cutthroat <span class="ok" aria-hidden="true">✓</span></h4>
-            <p class="lead">Tournament-tight, receipts required</p>
-            <p><b>90% hcp</b> · attested where you can · rated tees · best 2 / mo · 3-round floor</p>
+            <p class="lead">Tight. Vouched where you can, and the screws in.</p>
           </button>
           <p class="fine" id="presetSummary" style="padding-top:2px"></p>
           <p class="fine" style="padding-top:0; color:var(--dim)">Verification is a norm the league holds, not a filter the engine applies.</p>
@@ -3787,6 +3788,21 @@ html[data-theme="light"] .room-dusk .btn:not(.dark):not(.gold):not(.apple){color
             <div class="lab">Buy-in<small>Per player · $0 = bragging rights</small></div>
             <div class="val" id="stakeVal">None</div>
             <div class="ctl"><button id="stakeDown" aria-label="Lower buy-in">−</button><button id="stakeUp" aria-label="Raise buy-in">+</button></div>
+          </div>
+          <!-- D225 · Other. The ladder is [0,25,50,75,100,150,200] and $20 was
+               impossible; this is the escape hatch, and nothing else moves. -->
+          <div class="setrow" id="stakeOtherRow">
+            <div class="lab">Other<small>Any number, per player</small></div>
+            <input class="f" id="stakeOther" type="number" min="0" max="10000" inputmode="numeric" placeholder="20"
+                   style="max-width:120px; padding:9px 11px; font-family:var(--sans);" aria-label="Buy-in in dollars">
+          </div>
+          <!-- D225 / R18 · the ONE required field the wizard gains. Above $0
+               with no note, Start the season is disabled: a season cannot go
+               live with a stake and nowhere to send it (L-41). -->
+          <div id="payNoteRow" style="display:none">
+            <label class="f" for="payNote">How do they pay you?</label>
+            <input class="f" id="payNote" placeholder="Venmo @galen" style="font-family:var(--sans); font-size:16px;">
+            <p class="fine" id="payNoteFine" style="padding-top:4px">Everyone who owes will see this. It's the only place they can look.</p>
           </div>
           <div class="setrow">
             <div class="lab">Season length<small>Weeks or months · ends the same weekday</small></div>
@@ -12344,33 +12360,28 @@ function renderHomeStart(){
      Join a league" as row one. They collapse to one quiet link; a league-less
      account still gets the full row, because there they ARE the next move.
      (D94 named this the thing to watch. The audit watched it.) */
+  /* D225 · THE THREE OBJECT DOORS ARE GONE. "Join a league · Start a league ·
+     Start an event" made a golfer choose which object expressed what they
+     wanted before they had said what they wanted, and six of six `setup`
+     leagues in prod are a founder alone. There is ONE door now — Start
+     something — and it opens the intent sheet, whose five sentences name no
+     object at all. "I have a code" stays as its own quiet door, because a
+     golfer holding a code is not choosing anything. */
   const inALeague = (window.CS?.memberships||[]).some(m => m.league?.phase !== 'complete');
   const doors = inALeague ? `
     <p class="fine" style="padding:8px 0 0"><a href="#" data-hgmore style="color:var(--mut); text-decoration:underline; text-underline-offset:3px">Start something else…</a></p>`
     : `
-    <div class="startgrid" style="grid-template-columns:1fr 1fr 1fr">
-      <!-- D151 · Join leads. "Start a league" led for months and the measured
-           result was a league of one: six of the ten golfers who reached a
-           league are still alone in the one they made. Joining an existing
-           crew is the move that actually works, so it is offered first. -->
-      <button class="startjoin" data-hgjoin type="button" style="margin:0">Join a league</button>
-      <button class="startjoin" data-hgnew type="button" style="margin:0">Start a league</button>
-      <button class="startjoin" data-hgnewev type="button" style="margin:0">Start an event</button>
+    <div class="startgrid" style="grid-template-columns:1fr 1fr">
+      <button class="startjoin" data-hgnew type="button" style="margin:0">Start something</button>
+      <button class="startjoin" data-hgjoin type="button" style="margin:0">I have a code</button>
     </div>
     ${leagueless ? '<p class="fine" style="padding:8px 0 0">Post a round — it counts on your card. Leagues score it when you join one.</p>' : ''}`;
   box.innerHTML = rb + doors;
-  box.querySelector('[data-hgnew]')?.addEventListener('click', () => document.getElementById('wCreate')?.click());
-  box.querySelector('[data-hgnewev]')?.addEventListener('click', () => window.openEventPicker?.());
+  box.querySelector('[data-hgnew]')?.addEventListener('click', () => window.openIntentSheet?.());
   box.querySelector('[data-hgjoin]')?.addEventListener('click', () => window.openJoinSheet?.());
   box.querySelector('[data-hgmore]')?.addEventListener('click', (e) => {
     e.preventDefault();
-    openSheet('Start something else', 'YOU CAN RUN MORE THAN ONE', `
-      <button class="btn" id="hgmNew">Start a league</button>
-      <button class="btn dark" id="hgmEv" style="margin-top:8px">Start an event</button>
-      <button class="btn dark" id="hgmJoin" style="margin-top:8px">Join a league</button>`);
-    document.getElementById('hgmNew')?.addEventListener('click', ()=>{ closeSheet(); document.getElementById('wCreate')?.click(); });
-    document.getElementById('hgmEv')?.addEventListener('click', ()=>{ closeSheet(); window.openEventPicker?.(); });
-    document.getElementById('hgmJoin')?.addEventListener('click', ()=>{ closeSheet(); window.openJoinSheet?.(); });
+    window.openIntentSheet?.();
   });
   if(done) box.querySelector('[data-runback]')?.addEventListener('click', () => window.runItBack?.(done.league));
 }
@@ -16649,7 +16660,42 @@ function renderWizard(){
   $('#wizCancel').style.display = state.wiz===0 ? 'flex':'none';   /* step 0: Cancel replaces Back */
   $('#wizNext').style.display = state.wiz===2 ? 'none':'flex';
   if(state.wiz===0 && !state.demo) window.renderProChip?.();
+  csRenderPayNote();
 }
+/* D225 / R18 · the pay note is REQUIRED above $0, and the lock button says so
+   rather than failing after the tap. L-10: at $0 the whole block is ABSENT,
+   never greyed — a $0 season shows no pot surface anywhere. */
+/* The classic block cannot be seen from the module, so the two the lock needs
+   are bridged on `window` explicitly — a missing bridge fails SILENTLY here. */
+function csPayNote(){ return (document.getElementById('payNote')?.value || '').trim(); }
+function csPayNoteMissing(){ return Number(state.stake) > 0 && !csPayNote(); }
+window.csPayNote = csPayNote;
+window.csPayNoteMissing = csPayNoteMissing;
+function csRenderPayNote(){
+  const row = document.getElementById('payNoteRow');
+  if(row) row.style.display = Number(state.stake) > 0 ? '' : 'none';
+  const fine = document.getElementById('payNoteFine');
+  if(fine){
+    fine.textContent = csPayNoteMissing()
+      ? "They'll need somewhere to send it."
+      : "Everyone who owes will see this. It's the only place they can look.";
+    fine.style.color = csPayNoteMissing() ? 'var(--warm)' : '';
+  }
+  const btn = document.getElementById('lockBtn');
+  if(btn){ btn.disabled = csPayNoteMissing(); btn.style.opacity = csPayNoteMissing() ? 0.5 : ''; }
+  const other = document.getElementById('stakeOther');
+  if(other && document.activeElement !== other){
+    other.value = (Number(state.stake) && !STAKES.includes(Number(state.stake))) ? String(state.stake) : '';
+  }
+}
+document.getElementById('payNote')?.addEventListener('input', csRenderPayNote);
+document.getElementById('stakeOther')?.addEventListener('input', e => {
+  const n = Math.max(0, Math.min(10000, parseInt(String(e.target.value).replace(/[^0-9]/g,''), 10) || 0));
+  state.stake = n;
+  const v = document.getElementById('stakeVal');
+  if(v) v.textContent = n === 0 ? 'None' : '$' + n;
+  window.renderBylaws?.(); csRenderPayNote();
+});
 $('#wizBack').addEventListener('click',()=>{state.wiz=Math.max(0,state.wiz-1);renderWizard();});
 $('#wizNext').addEventListener('click',()=>{state.wiz=Math.min(2,state.wiz+1);renderWizard();});
 /* A-W3 fast path: the defaults are excellent — skip the dials and land on
@@ -19851,7 +19897,8 @@ async function lockBylaws(){
      second season. The old path stays as the fallback for deploy skew — a
      client on Netlify can reach a database that has not taken the migration
      yet, and must still lock (CLAUDE.md: neither order breaks a live user). */
-  const lockViaRpc = async () => {
+  const note = (window.csPayNote?.() || '');
+  const lockViaRpc = async (withNote) => {
     const starts = seasonStartDate(), ends = seasonEndDate();
     const { data, error } = await sb.rpc('lock_league', {
       p_league: CS.league.id,
@@ -19875,6 +19922,11 @@ async function lockBylaws(){
          that one is in its temporal dead zone when this closure runs, and the
          first real lock after this change died on exactly that. */
       p_starts_on: isoOf(starts), p_ends_on: isoOf(ends),
+      /* R18 · publishing stays ONE transaction (L-41). Sent only when there is
+         a note, so a $0 season sends the nineteen keys every deployed
+         lock_league has had since 20260829220000 and never depends on the
+         migration at all. */
+      ...(withNote && note ? { p_pay_note: note } : {}),
     });
     if(error) throw error;
     CS.season = data?.season || CS.season;
@@ -19886,14 +19938,26 @@ async function lockBylaws(){
     renderPhase();
     return { emails: 0, nextPhase: data?.phase };
   };
+  const missingFn = e => /schema cache|could not find the|does not exist|no function matches/
+    .test(String(e?.message || e).toLowerCase());
   try {
-    return await lockViaRpc();
+    return await lockViaRpc(!!note);
   } catch(err){
+    /* R18 · the note is a NEW argument on a function that exists. If the
+       twenty-argument shape is not deployed yet, retry the nineteen and NAME
+       the miss — a note that goes quiet is the exact defect the note exists to
+       fix. Only after that does the pre-D111 path come into play. */
+    if(note && missingFn(err)){
+      try {
+        const r = await lockViaRpc(false);
+        toast('The season is live. Add how they pay you from the pot.');
+        return r;
+      } catch(err2){ if(!missingFn(err2)) throw err2; }
+    }
     /* only fall back when the FUNCTION is missing (skew). A real refusal —
        "Only the Pro can lock the bylaws." — must reach the golfer, not be
        retried through a path with weaker checks. */
-    const m = String(err?.message || err).toLowerCase();
-    if(!/schema cache|could not find the|does not exist|no function matches/.test(m)) throw err;
+    if(!missingFn(err)) throw err;
     window.qaEvent?.('lock_rpc_absent', { msg: String(err?.message||err).slice(0,120) });
   }
   let emails = state.emails.filter(e => e.includes('@'));
@@ -20233,6 +20297,84 @@ $('#obJoin').addEventListener('click', () => {
    empty one (L-32), and only an ANSWER of $0 is a one-tap join. A code that
    resolves to no league answers `null` and still goes through, because
    join_league is the one that gets to say the code is wrong. */
+/* D225 / R9 · the covenant's facts, in the phone's own order and with the
+   phone's own sentences (`Covenant.facts`, JoinLeague.swift). WHO comes before
+   the money, and a fact with no read renders NOTHING (L-44) — which is what
+   makes a client that ships ahead of the migration honest rather than empty.
+   `CS_COVENANT_FACTS` is the order both suites pin. */
+window.CS_COVENANT_FACTS = ['who','length','rules','ending','stake','ledger','split','pay','starter'];
+function csWord(n){
+  const w=['zero','one','two','three','four','five','six','seven','eight','nine','ten','eleven','twelve',
+           'thirteen','fourteen','fifteen','sixteen','seventeen','eighteen','nineteen','twenty'];
+  const t=['','','twenty','thirty','forty','fifty','sixty','seventy','eighty','ninety'];
+  if(n>=0 && n<w.length) return w[n];
+  if(n>20 && n<100) return (n%10)===0 ? t[Math.floor(n/10)] : t[Math.floor(n/10)]+'-'+w[n%10];
+  return String(n);
+}
+function csCap(x){ return x ? x.charAt(0).toUpperCase()+x.slice(1) : x; }
+/* "Sat Sep 12" — the phone's `LeagueDates.dowMonDay`, said once here. */
+function csDowMonDay(iso){
+  try{ const d = localDate(String(iso)); return `${DOW[d.getDay()]} ${MOS[d.getMonth()]} ${d.getDate()}`; }
+  catch(_){ return String(iso); }
+}
+function csCovenantFacts(info, postedRounds){
+  const out = [];
+  const usd = Math.round(Number(info.buyin_cents||0)/100), paid = usd > 0;
+  const r = info.roster || null;
+  /* 1 · WHO comes before the money. D132's noun, DEFINED at first contact. */
+  if(r && (r.pro_name || (r.names||[]).length)){
+    const parts = [];
+    if(r.pro_name) parts.push(r.pro_name + ' runs the season (the Pro).');
+    const named = (r.names||[]).filter(Boolean).slice(0,6).map(n => String(n).trim().split(/\s+/)[0]);
+    if(named.length){
+      const rest = Math.max(0, (Number(r.count) || named.length+1) - 1 - named.length);
+      const list = rest > 0 ? named.join(', ') + ' and ' + rest + ' more'
+        : named.length === 1 ? named[0]
+        : named.slice(0,-1).join(', ') + ' and ' + named[named.length-1];
+      parts.push(list + ' ' + ((named.length === 1 && rest === 0) ? 'is' : 'are') + ' in.');
+    } else if(Number(r.count) === 1 && r.pro_name){ parts.push('Nobody else yet.'); }
+    if(parts.length) out.push({ k:'who', t: parts.join(' ') });
+  }
+  /* 2 + 3 · the clock and the length. Either half alone still says a true thing. */
+  const wk = Number(info.weeks)||0;
+  const weeksText = wk ? csCap(csWord(wk)) + ' week' + (wk===1?'':'s') : null;
+  const tee = info.starts_on ? csDowMonDay(info.starts_on) : null;
+  if(weeksText && tee) out.push({ k:'length', t: weeksText + ' from ' + tee + '.' });
+  else if(weeksText)   out.push({ k:'length', t: weeksText + '.' });
+  else if(tee)         out.push({ k:'length', t: 'First tee ' + tee + '.' });
+  /* 4 · the rule. The payload's `floor` is the OTHER number; R9 brings the cap. */
+  {
+    const clauses = ['honest scores'];
+    if(Number(info.counting_cap)) clauses.push('best ' + csWord(Number(info.counting_cap)) + ' a month count');
+    if(Number(info.floor)) clauses.push(csWord(Number(info.floor)) + ' a month keeps you in');
+    const head = info.preset ? csCap(String(info.preset)) + ' rules: ' : 'The rules: ';
+    out.push({ k:'rules', t: head + clauses.join(', ') + '.' });
+  }
+  /* the ending, in D126's own sentence rather than a dial name */
+  out.push({ k:'ending', t: info.finish==='points_table'
+    ? "The season's points decide it. No reset."
+    : 'It ends with a four-week Cup Final between the top two.' });
+  /* L-10 · every money line is ABOVE $0 only */
+  if(paid){
+    out.push({ k:'stake', t: '$' + usd + ' each.' });
+    out.push({ k:'ledger', t: CS_LEDGER });          /* L-09 · the constant, never retyped */
+    const sp = info.split;
+    if(sp) out.push({ k:'split', t: 'If you take it: ' + sp.champion + ' percent to the champion, '
+      + sp.runner_up + ' to the runner-up, ' + sp.points_king + ' to the points king.' });
+    const pay = info.pay || {};
+    const hasNote = (pay.has_note !== undefined) ? pay.has_note : info.has_pay_note;
+    const due = pay.due_on || info.buy_in_due_on;
+    if(hasNote === true)  out.push({ k:'pay', t: 'The Pro has said how to pay' + (due ? ' by ' + csDowMonDay(due) : '') + ". You'll see it on the pot." });
+    if(hasNote === false) out.push({ k:'pay', t: "The Pro hasn't said how to pay yet. It'll be on the pot when they do." });
+  }
+  /* D124 · the provisional starter, said BEFORE the tap, above $0 and below it */
+  if(typeof postedRounds === 'number' && postedRounds < 3){
+    out.push({ k:'starter', t: 'With no posted rounds your starter number scores your first cards until three of your own take over.' });
+  }
+  return out;
+}
+window.csCovenantFacts = csCovenantFacts;
+
 async function covenantGate(code){
   let info=null, answered=false;
   try{
@@ -20241,16 +20383,19 @@ async function covenantGate(code){
     info=data; answered=true;
   }catch(_){}
   if(!answered){ toast('Could not check this league\u2019s terms \u2014 try again in a moment'); return false; }
-  if(!info || !Number(info.buyin_cents)) return true;
-  const usd=Math.round(Number(info.buyin_cents)/100);
+  /* L-12 / D225 · the covenant renders at EVERY stake, INCLUDING $0. It used
+     to return true unmodified below $0, so a golfer joining a FREE season never
+     met the Pro, the length, the rules or the ending — the covenant's whole
+     job, skipped on the most common league in the product. A FAILED read is
+     still a different case and still fails closed (above). */
+  if(!info) return false;
+  const usd=Math.round(Number(info.buyin_cents||0)/100);
+  const paid = usd > 0;
+  const facts = csCovenantFacts(info);
   return new Promise(res=>{
-    openSheet('Before you join '+(info.name||'this league'), 'THE FINE PRINT, UP FRONT', `
-      <div class="byrow"><span>BUY-IN</span><b>$${usd} / player · on the pot sheet</b></div>
-      ${info.preset?`<div class="byrow"><span>PRESET</span><b>${esc(String(info.preset).replace(/^./,c=>c.toUpperCase()))}</b></div>`:''}
-      ${Number(info.floor)?`<div class="byrow"><span>PARTICIPATION FLOOR</span><b>${info.floor} round${Number(info.floor)===1?'':'s'} / mo</b></div>`:''}
-      <div class="byrow"><span>FINISH</span><b>${info.finish==='points_table'?'Points table crowns it':'Cup Final · final 4 weeks'}</b></div>
-      <p class="fine" style="padding-top:10px">Joining puts you on the pot sheet for $${usd}. ${CS_LEDGER}</p>
-      <button class="btn" id="covJoin" style="margin-top:10px">Join — I’m in for $${usd}</button>
+    openSheet('Before you join '+(info.name||'this season'), 'EVERYTHING BEFORE YOU TAP',
+      facts.map((f,i)=>`<p class="${i===0?'lead':'fine'}" style="padding-top:${i===0?0:6}px${f.k==='stake'?';color:var(--gold)':''}">${esc(f.t)}</p>`).join('') + `
+      <button class="btn" id="covJoin" style="margin-top:12px">${paid?`Join — I’m in for $${usd}`:`Join ${esc(info.name||'the season')}`}</button>
       <button class="btn dark" id="covNo" style="margin-top:8px">Not now</button>`);
     /* Code audit 2026-08-30 (SD-01) · this promise used to settle ONLY on these
        two buttons. The sheet has three other ways out — the X, the backdrop and
@@ -20782,6 +20927,148 @@ window.openLeagueSwitcher = openLeagueSwitcher;
 /* the Home hub's Start cards call these (classic → module) */
 window.openEventPicker = openEventPicker;
 window.openJoinSheet   = openJoinSheet;
+
+/* ============ D225 · the intent sheet ============
+   Five sentences, no object nouns. The producer is `StartIntent` on the phone
+   and this is its twin — the same lines, the same glosses, the same order, and
+   the same ban on engine nouns, so a reword on one client fails the other
+   (D234). The fifth is a MODIFIER and renders below a hairline as a footer
+   line, because money is a choice ON a competition and never a competition
+   (L-11, D46). NOTHING is minted by opening it. */
+const CS_INTENTS = [
+  { k:'playWithFriends', line:'Play with my friends',      gloss:'a round with whoever is around',      go:'whenFork' },
+  { k:'runASeason',      line:'Run a season',              gloss:'weeks of golf that add up to a table', go:'season' },
+  /* L-32 · "a name for it", never "one trophy": a weekend mints NO trophy
+     (D240), and a door may not sell what the object does not open. */
+  { k:'thisWeekend',     line:"We're playing this weekend", gloss:'one day, and a name for it',          go:'weekend' },
+  { k:'beatOneGuy',      line:'I want to beat one guy',     gloss:'you and him, whatever length you like', go:'pickAGolfer' },
+];
+const CS_INTENT_TITLE = 'What do you want to do?';
+const CS_INTENT_MODIFIER = { line:'Put money on it', gloss:'add a pot to any of the above', go:'whatsItOn' };
+const CS_INTENT_CODE_DOOR = 'I have a code';
+/* TERMINOLOGY §3.1 + §3.2. `season` is deliberately absent: §2.3 rules it the
+   GOLFER's word for the thing you start, join, run and win. */
+const CS_OBJECT_NOUNS = ['league','event','ryder','major','bracket','duel','session','commissioner',
+  'structure','preset','bylaws','lock','wizard','moment','callout','forfeit','squad','squads',
+  'draft','roster','clubhouse','dispatch','tier','pvi','differential','allowance'];
+function csObjectNouns(str){
+  return String(str||'').toLowerCase().split(/[^a-z]+/).filter(w => CS_OBJECT_NOUNS.includes(w));
+}
+function csIntentStrings(){
+  return CS_INTENTS.flatMap(i => [i.line, i.gloss])
+    .concat([CS_INTENT_TITLE, CS_INTENT_MODIFIER.line, CS_INTENT_MODIFIER.gloss, CS_INTENT_CODE_DOOR]);
+}
+/* R-F · the three lengths, always all three, in the owner's own words. The
+   person's state may ORDER them; it may never withhold one. */
+const CS_LENGTHS = [
+  { k:'thisSaturday', title:'This Saturday', gloss:'a live match, on one card',       object:'liveRound' },
+  { k:'oneWeek',      title:'One week',      gloss:'best round by Sunday takes it',   object:'callout' },
+  { k:'aSeason',      title:'A season',      gloss:'a table, and a cup at the end',   object:'pairSeason' },
+];
+function csLengthsOffered(liveNow, shareASeason){
+  let o = CS_LENGTHS.slice();
+  if(shareASeason){ o = o.filter(x => x.k !== 'aSeason').concat(CS_LENGTHS.filter(x => x.k === 'aSeason')); }
+  if(liveNow){ o = CS_LENGTHS.filter(x => x.k === 'thisSaturday').concat(o.filter(x => x.k !== 'thisSaturday')); }
+  return o;
+}
+function openIntentSheet(){
+  const row = (line, gloss, id, ember) => `
+    <button class="startjoin" id="${esc(id)}" type="button"
+            style="margin:0 0 2px; width:100%; text-align:left; display:block; padding:12px 14px; min-height:56px">
+      <b style="display:block; color:${ember?'var(--brand)':'var(--ink)'}">${esc(line)}</b>
+      <small style="display:block; color:var(--dim)">${esc(gloss)}</small>
+    </button>`;
+  openSheet(CS_INTENT_TITLE, 'PICK THE ONE THAT SOUNDS LIKE YOU',
+    CS_INTENTS.map((i, n) => row(i.line, i.gloss, 'csi-' + i.k, n === 0)).join('')
+    + '<div style="height:1px; background:var(--line); margin:10px 0"></div>'
+    + row(CS_INTENT_MODIFIER.line, CS_INTENT_MODIFIER.gloss, 'csi-money', false)
+    + `<p class="fine" style="padding-top:12px"><a href="#" id="csi-code" style="color:var(--mut); text-decoration:underline; text-underline-offset:3px">${esc(CS_INTENT_CODE_DOOR)} →</a></p>`);
+  CS_INTENTS.forEach(i => document.getElementById('csi-' + i.k)?.addEventListener('click', () => {
+    closeSheet(); window.qaEvent?.('cta_tapped', { door: 'intent:' + i.k }); csTakeIntent(i.go);
+  }));
+  document.getElementById('csi-money')?.addEventListener('click', () => {
+    closeSheet(); window.qaEvent?.('cta_tapped', { door: 'intent:money' }); csTakeIntent('whatsItOn');
+  });
+  document.getElementById('csi-code')?.addEventListener('click', e => { e.preventDefault(); closeSheet(); openJoinSheet(); });
+}
+/* One switch, five destinations. Each intent resolves to an engine object the
+   golfer never hears named (IA §6.2). */
+function csTakeIntent(go){
+  if(go === 'whenFork') return openWhenFork();
+  if(go === 'season')   return document.getElementById('wCreate')?.click();
+  if(go === 'weekend')  return window.openDeclareSheet?.();
+  if(go === 'pickAGolfer') return openLengthStep();
+  /* "Put money on it" never creates a competition. Before the first tee it is
+     the buy-in dial; after it, the rules froze and the honest answer is a
+     forfeit — said out loud rather than hidden (L-12). */
+  if(CS.league && ['setup','draft'].includes(CS.league.phase)){ state.wiz = 1; renderWizard(); switchView('wizard'); return; }
+  if(CS.league) return toast(esc(CS.league.name) + ' has started and the rules froze at the first tee. You can put a forfeit on it.');
+  toast('Nothing to put money on yet. Start something first.');
+}
+function openWhenFork(){
+  openSheet('When are you playing?', 'TWO WAYS, AND BOTH WORK', `
+    <button class="startjoin" id="csw-now" type="button" style="margin:0 0 2px; width:100%; text-align:left; display:block; padding:12px 14px">
+      <b style="display:block; color:var(--brand)">Right now</b><small style="display:block; color:var(--dim)">score it live, hole by hole</small></button>
+    <button class="startjoin" id="csw-day" type="button" style="margin:0; width:100%; text-align:left; display:block; padding:12px 14px">
+      <b style="display:block">A day this week</b><small style="display:block; color:var(--dim)">put it on the schedule</small></button>`);
+  document.getElementById('csw-now')?.addEventListener('click', ()=>{ closeSheet(); switchView('play'); });
+  document.getElementById('csw-day')?.addEventListener('click', ()=>{ closeSheet(); window.openDeclareSheet?.(); });
+}
+/* R-F · the golfer, then the length. All three, always. */
+async function openLengthStep(){
+  let people = [];
+  try { const { data } = await sb.rpc('my_friends'); people = (data||[]).filter(f => f.status === 'accepted'); } catch(_){}
+  if(!people.length){
+    openSheet('Who?', 'YOUR BUDDIES', `<p class="lead">Callouts are between buddies. Add one first.</p>
+      <button class="btn" id="csl-find" style="margin-top:10px">Find golfers</button>`);
+    document.getElementById('csl-find')?.addEventListener('click', ()=>{ closeSheet(); switchView('people'); });
+    return;
+  }
+  openSheet('Who?', 'YOUR BUDDIES', people.map(p =>
+    `<button class="startjoin" data-csl="${esc(p.profile_id)}" data-cslname="${esc(p.display_name||'')}" type="button"
+             style="margin:0 0 2px; width:100%; text-align:left; display:block; padding:12px 14px">${esc(p.display_name||'A golfer')}</button>`).join(''));
+  document.getElementById('shBody')?.querySelectorAll('[data-csl]').forEach(b => b.addEventListener('click', () => {
+    closeSheet(); csAskTheLength(b.dataset.csl, b.dataset.cslname);
+  }));
+}
+function csAskTheLength(pid, name){
+  const first = String(name||'').trim().split(/\s+/)[0] || 'them';
+  const lengths = csLengthsOffered(!!CS.liveRound, false);
+  openSheet('How long?', 'YOU AND ' + esc(first.toUpperCase()),
+    lengths.map((l, n) => `
+      <button class="startjoin" data-csln="${l.k}" type="button"
+              style="margin:0 0 2px; width:100%; text-align:left; display:block; padding:12px 14px; min-height:56px">
+        <b style="display:block; color:${n===0?'var(--brand)':'var(--ink)'}">${esc(l.title)}</b>
+        <small style="display:block; color:var(--dim)">${esc(l.gloss)}</small>
+      </button>`).join(''));
+  document.getElementById('shBody')?.querySelectorAll('[data-csln]').forEach(b => b.addEventListener('click', async () => {
+    const k = b.dataset.csln;
+    closeSheet();
+    window.qaEvent?.('cta_tapped', { door: 'length:' + k });
+    if(k === 'thisSaturday') return switchView('play');
+    if(k === 'aSeason')      return document.getElementById('wCreate')?.click();
+    /* D237 · the callout. R19 mints a Ryder with a field of two and one
+       session — no new table. A database without it says so rather than
+       claiming the callout failed (wave 6's three-way rule). */
+    try {
+      const { data, error } = await sb.rpc('call_out', { p_opponent: pid, p_closes_on: null, p_forfeit_terms: null });
+      if(error) throw error;
+      toast('Sent. Best round by Sunday takes it.');
+      return data;
+    } catch(err){
+      const m = String(err?.message || err).toLowerCase();
+      toast(/schema cache|could not find the|does not exist|no function matches|pgrst202/.test(m)
+        ? 'Callouts need the latest update — try again shortly.'
+        : humanError(err));
+    }
+  }));
+}
+window.openIntentSheet = openIntentSheet;
+window.csIntentStrings = csIntentStrings;
+window.csObjectNouns   = csObjectNouns;
+window.csLengthsOffered = csLengthsOffered;
+window.CS_INTENTS = CS_INTENTS;
+window.CS_LENGTHS = CS_LENGTHS;
 /* switch into a league by id — the Home hub's group rows call this (classic) */
 window.enterLeagueById = async (id, nav=true) => {
   const m = (CS.memberships||[]).find(x => x.league.id === id);

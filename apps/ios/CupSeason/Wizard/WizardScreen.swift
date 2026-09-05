@@ -1,12 +1,26 @@
-// Cup Season — `#view-wizard` (index.html 3208–3332; renderWizard 12706;
-// the name sheet 17159–17206; the lock button 15226–15261; wizCancel 15278).
+// Cup Season — the wizard, re-cut (D225 / O-04; IA §6.3; CORE_FLOWS §7).
 //
-// Three steps — name + the Pro · competitiveness + the dials · review & lock —
-// with the `.wizdots` rail in ember (cs.brand — never `pos`, D76) and the
-// Cancel / ← Back / Next → nav. The desktop's "Your league so far" portrait
-// rides inside step 1 as a card on the phone. A league row is minted only
-// after a name (the "My Cup husks" lesson), and the flow ends on the SHARE
-// moment, never a Done toast — a league is only real once the crew is in it.
+// It asked the league name TWICE, introduced "PRO — THAT'S YOU", then asked
+// "How serious is your league?" over three preset cards that recited four dials
+// each (a live L-16 violation), then printed ten all-caps bylaw rows, and showed
+// the first invite surface on the FIFTH screen, after Lock.
+//
+// It asks three questions now, in this order:
+//
+//   1 · Who's playing?              → and the structure is DERIVED from the answer
+//   2 · How long, and when's the first tee?
+//   3 · What's on it?               → and above $0, how they pay you (required)
+//   then: the rules in one sentence · Name it (pre-filled) · Start the season
+//
+// NOTHING IS MINTED UNTIL THE LAST TAP. Prod holds six founder-alone `setup`
+// leagues because "Start the league" minted a row on a typed NAME. The name is
+// asked LAST, it is pre-filled from the roster, and `WizardService.publish`
+// makes every write on that one tap. An abandoned wizard leaves nothing behind.
+//
+// THE INVITE IS ON THE SAME SCREEN AS "START THE SEASON", not five screens
+// later, and the share row is the web's four controls (D114's phone half).
+//
+// A CLOSE ON EVERY STEP (CJ-08: it is a fullScreenCover with no exit today).
 
 import SwiftUI
 import CSDesign
@@ -14,17 +28,19 @@ import CupSeasonKit
 
 /// Where the wizard hands off. The host wires these.
 struct WizardLinks {
-  /// The bylaws locked (and the share sheet was dismissed) — open the league.
+  /// The season is live (and the share screen was dismissed) — open it.
   var onLocked: (UUID) -> Void
-  /// Step-0 Cancel discarded the league, or the host should just close.
+  /// Cancelled; nothing was minted.
   var onCancelled: () -> Void
-  /// The league-less door "Start an event" (the event picker is another slice).
+  /// The intent sheet's "We're playing this weekend" and the Ryder door.
   var startEvent: () -> Void
-  /// The league-less door "Join a league" completed.
+  /// A join completed.
   var onJoined: (UUID) -> Void = { _ in }
+  /// Step 1's empty branch: contacts (D251, wave 8) and the person link (D241).
+  var findGolfers: () -> Void = {}
 }
 
-/// D41: last season's bylaws carried into a fresh league (`window._runItBack`).
+/// D41: last season's bylaws carried into a fresh season (`window._runItBack`).
 struct WizardRunBack {
   let name: String
   let bylaws: LeagueRoom.Settings?
@@ -46,10 +62,8 @@ struct WizardScreen: View {
   var body: some View {
     Group {
       if model.loading {
-        VStack(spacing: 12) { ProgressView().tint(cs.brand); Text("Loading the wizard…").csEyebrow() }
+        VStack(spacing: 12) { ProgressView().tint(cs.brand); Text("Loading…").csEyebrow() }
           .frame(maxWidth: .infinity, maxHeight: .infinity)
-      } else if model.leagueId == nil {
-        nameSheet
       } else {
         wizard
       }
@@ -57,7 +71,13 @@ struct WizardScreen: View {
     .background(cs.bg0)
     .navigationTitle("")
     .navigationBarTitleDisplayMode(.inline)
-    .task { await model.load(toast: toast, alreadyLocked: { links.onLocked($0) }) }
+    .toolbar {
+      // CJ-08 · a way out of every step, always.
+      ToolbarItem(placement: .topBarLeading) {
+        Button(WizardCopy.close) { close() }.foregroundStyle(cs.mut)
+      }
+    }
+    .task { await model.load(toast: toast, alreadyLocked: { links.onLocked($0) }, store: store) }
     .sheet(item: $model.share, onDismiss: { if let id = model.lockedLeague { links.onLocked(id) } }) { s in
       WizardLockShareSheet(share: s)
         .presentationDetents([.large])
@@ -65,45 +85,18 @@ struct WizardScreen: View {
     }
   }
 
-  // MARK: the name sheet (`#wCreate`) — a row is minted only after a name
-
-  private var nameSheet: some View {
-    ScrollView {
-      VStack(alignment: .leading, spacing: 12) {
-        CSSheetHeader(title: WizardCopy.nameSheetTitle, sub: WizardCopy.nameSheetSub)
-        CSField(WizardCopy.namePlaceholder, text: $model.dials.name, font: CSFont.body)
-          .textInputAutocapitalization(.words)
-          .submitLabel(.go)
-          .onSubmit { create() }
-          .accessibilityLabel(WizardCopy.nameLabel)
-        CSFine(WizardCopy.nameSheetFine)
-        CSButton(WizardCopy.nameSheetGo, busy: model.busy) { create() }.padding(.top, 4)
-        CSButton(WizardCopy.cancel, style: .quiet) { links.onCancelled() }
-      }
-      .padding(20)
-    }
-    .scrollDismissesKeyboard(.interactively)
-  }
-
-  private func create() {
-    guard store.session != nil else { toast.show(WizardCopy.signInFirst); return }
-    Task {
-      if let t = await model.create() { toast.show(t) }
-    }
-  }
-
-  // MARK: the three steps
+  // MARK: the three questions
 
   private var wizard: some View {
     ScrollViewReader { proxy in
       ScrollView {
         VStack(alignment: .leading, spacing: 14) {
-          Text(WizardCopy.eyebrow).csEyebrow().id("top")
+          Text(head).font(CSFont.title).foregroundStyle(cs.ink).id("top")
           WizardDots(step: model.step)
           switch model.step {
-          case 0: WizardNameStep(model: model)
-          case 1: WizardPresetStep(model: model)
-          default: WizardReviewStep(model: model, lock: lock)
+          case 0: WizardWhoStep(model: model, findGolfers: links.findGolfers)
+          case 1: WizardWhenStep(model: model)
+          default: WizardStakeStep(model: model, publish: publish)
           }
           nav
         }
@@ -114,12 +107,18 @@ struct WizardScreen: View {
     }
   }
 
-  /// `.wiznav` — step 0: Cancel replaces Back; step 2: Next hides. Two across; stacked at the accessibility sizes.
+  private var head: String {
+    switch model.step {
+    case 0: return WizardCopy.step1
+    case 1: return WizardCopy.step2
+    default: return WizardCopy.step3
+    }
+  }
+
+  /// Back / Next. Step 2 has no Next — its own **Start the season** is the tap.
   private var nav: some View {
     A11yStack(spacing: 10) {
-      if model.step == 0 {
-        WizardCancelButton(busy: model.busy) { discard() }
-      } else {
+      if model.step > 0 {
         CSButton(WizardCopy.back, style: .quiet) { model.step = max(0, model.step - 1) }
       }
       if model.step < 2 {
@@ -129,25 +128,23 @@ struct WizardScreen: View {
     .padding(.top, 6)
   }
 
-  private func discard() {
+  private func close() {
     Task {
-      do {
-        try await model.discard()
-        toast.show(WizardCopy.discarded)
-        links.onCancelled()
-      } catch { toast.show(HumanError.text(error, prefix: WizardCopy.couldNotDiscard)) }
+      // Nothing was minted unless this is an in-progress league from before the
+      // re-cut, in which case Cancel still discards it.
+      try? await model.discardIfMinted()
+      links.onCancelled()
     }
   }
 
-  /// `#lockBtn` (15226–15261): telemetry, the D5 unnamed guard, the one `lock_league` call (D111), the share moment.
-  private func lock() {
+  private func publish() {
     Task {
-      switch await model.lock() {
-      case .blocked: toast.show(WizardCopy.nameTheLeagueFirst)
+      switch await model.publish() {
+      case .blocked(let why): toast.show(why)
       case .failed(let msg): toast.show(msg)
-      case .locked:
+      case .live(let note):
         CSHaptic.success()
-        toast.show(WizardCopy.bylawsLocked)
+        if let note { toast.show(note) }
         await store.reload()
       }
     }
@@ -171,27 +168,6 @@ struct WizardDots: View {
   }
 }
 
-/// Step-0 Cancel: two taps — the web used `confirm()`, the phone never alerts.
-struct WizardCancelButton: View {
-  @Environment(\.cs) private var cs
-  let busy: Bool
-  let action: () -> Void
-  @State private var armed = false
-  var body: some View {
-    VStack(alignment: .leading, spacing: 6) {
-      CSButton(armed ? "Sure? Discard it" : WizardCopy.cancel, style: .quiet, busy: busy) {
-        if armed { action() } else { armed = true; CSHaptic.warning() }
-      }
-      if armed { CSFine(WizardCopy.cancelConfirm) }
-    }
-    .task(id: armed) {
-      guard armed else { return }
-      try? await Task.sleep(for: .seconds(4))
-      armed = false
-    }
-  }
-}
-
 // MARK: - The model
 
 @MainActor
@@ -202,17 +178,21 @@ final class WizardModel {
   var busy = false
   var loading = false
   var showDials = false
+  /// nil until the golfer is asked (four or more). Below four it is never asked
+  /// and the structure is solo by derivation.
+  var squadsChosen: Bool? = nil
+  var buddies: [TagCandidate] = []
+  var buddiesLoaded = false
+  var nameTouched = false
   private(set) var leagueId: UUID?
   private(set) var code: String?
-  /// The name on the row (the lock's fallback; "My Cup" is the scaffold, D5).
   private(set) var storedName = ""
-  /// `wizRoster()` — the roster the wizard can see: this league's seats (you, at least).
-  private(set) var roster = 1
   private(set) var runBack: WizardRunBack?
   var share: WizardLockShare?
   private(set) var lockedLeague: UUID?
 
   private let svc = WizardService()
+  private let sched = ScheduleService()
   private let existingLeagueId: UUID?
 
   init(existingLeagueId: UUID?, runBack: WizardRunBack?, initialStep: Int) {
@@ -226,17 +206,31 @@ final class WizardModel {
     }
   }
 
+  /// The roster the season will have: me, plus everyone picked.
+  var roster: Int { 1 + dials.invitees.count }
   var portrait: WizardPortrait { WizardPortrait(dials, roster: roster) }
-  var structFit: String { WizardDials.structFitLine(roster: roster) }
+  var asksAboutSquads: Bool { WizardDials.asksAboutSquads(roster: roster) }
 
-  /// An existing setup-phase league opens on its stored dials (`enterLeague` → `applyBylaws`).
-  func load(toast: CSToastCenter, alreadyLocked: @escaping (UUID) -> Void) async {
+  /// The name, pre-filled from the roster until the golfer types over it.
+  func syncName(myName: String?) {
+    guard !nameTouched, dials.name.trimmingCharacters(in: .whitespaces).isEmpty || !nameTouched else { return }
+    let names = ([myName] + dials.invitees.compactMap { id in buddies.first { $0.id == id }?.name }).compactMap { $0 }
+    let s = WizardDials.suggestedName(names)
+    if !s.isEmpty { dials.name = s }
+  }
+
+  func load(toast: CSToastCenter, alreadyLocked: @escaping (UUID) -> Void, store: SessionStore) async {
+    if buddies.isEmpty && !buddiesLoaded {
+      buddies = await sched.tagCandidates(league: nil)
+      buddiesLoaded = true
+      syncName(myName: store.me?.profile?.display_name)
+    }
     guard let id = existingLeagueId, leagueId == nil else { return }
     loading = true
     defer { loading = false }
     do {
-      guard let head = try await svc.league(id) else { toast.show("No league with that id — it may have been deleted."); return }
-      if head.phase != "setup" { alreadyLocked(id); return }   // D40: only a setup league belongs in the wizard
+      guard let head = try await svc.league(id) else { toast.show("No season with that id — it may have been deleted."); return }
+      if head.phase != "setup" { alreadyLocked(id); return }   // D40: only a setup season belongs here
       let b = try? await svc.bylaws(id)
       let s = try? await svc.season(id)
       if let b { dials = WizardDials.from(b, name: WizardCopy.isUnnamed(head.name) ? "" : head.name, season: s) }
@@ -244,61 +238,59 @@ final class WizardModel {
       storedName = head.name
       code = head.code
       leagueId = id
-      roster = await svc.memberCount(id)
-    } catch { toast.show(HumanError.text(error, prefix: "Could not open the wizard.")) }
+      nameTouched = !WizardCopy.isUnnamed(head.name)
+    } catch { toast.show(HumanError.text(error, prefix: "Could not open this.")) }
   }
 
-  /// `#nlGo` (17177–17206): create the row, then the wizard. Returns the toast.
-  func create() async -> String? {
-    let name = dials.name.trimmingCharacters(in: .whitespacesAndNewlines)
-    guard !name.isEmpty else { return WizardCopy.nameFirst }
+  enum PublishResult { case blocked(String), failed(String), live(String?) }
+
+  /// One tap. `create_league` → `lock_league(+ p_pay_note)` → one
+  /// `invite_golfer` per picked buddy, and the share screen is the same screen.
+  func publish() async -> PublishResult {
+    // The one required field the wizard gains (D225).
+    if dials.payNoteMissing { step = 2; return .blocked(WizardCopy.payMissing) }
+    var d = dials
+    d.structure = WizardDials.derivedStructure(roster: roster, squadsChosen: squadsChosen)
+    if d.name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty { d.name = storedName }
     busy = true
     defer { busy = false }
-    do {
-      let c = try await svc.createLeague(name: name)
-      leagueId = c.leagueId; code = c.code; storedName = c.name
-      dials.name = name
-      step = 0
-      if runBack != nil { runBack = nil; return WizardCopy.runBackCarried }
-      return WizardCopy.onTheBooks(name)
-    } catch {
-      runBack = nil
-      return HumanError.text(error, prefix: WizardCopy.couldNotCreate)
-    }
-  }
-
-  enum LockResult { case blocked, failed(String), locked }
-
-  func lock() async -> LockResult {
-    guard let id = leagueId else { return .failed(WizardCopy.lockFailed) }
     svc.track(.lock_attempt)
-    let typed = dials.name.trimmingCharacters(in: .whitespacesAndNewlines)
-    if typed.isEmpty && WizardCopy.isUnnamed(storedName) {
-      svc.track(.lock_blocked, ["reason": .string("unnamed")])
-      step = 0
-      return .blocked
-    }
-    busy = true
-    defer { busy = false }
+
     do {
-      let r = try await svc.lock(leagueId: id, dials: dials, fallbackName: storedName)
-      let name = typed.isEmpty ? storedName : typed
-      storedName = name
-      lockedLeague = id
-      let n = await svc.memberCount(id)
-      svc.track(.invite_open, ["sent": .number(0)])
-      share = WizardLockShare(leagueId: id, name: name, code: code ?? "", nextPhase: r.nextPhase, members: n,
-                              structure: dials.structure, draftType: dials.draftType, startsOn: r.startsOn)
-      return .locked
-    } catch { return .failed(HumanError.text(error, prefix: WizardCopy.lockFailed)) }
+      // An in-progress league from before the re-cut already has its row.
+      if let id = leagueId {
+        let locked = try await svc.lock(leagueId: id, dials: d, fallbackName: storedName)
+        return finish(leagueId: id, code: code ?? "", name: d.name.isEmpty ? storedName : d.name,
+                      locked: locked, invited: 0, notInvited: 0, dials: d)
+      }
+      let p = try await svc.publish(dials: d)
+      leagueId = p.leagueId; code = p.code; storedName = p.name
+      return finish(leagueId: p.leagueId, code: p.code, name: p.name, locked: p.locked,
+                    invited: p.invited, notInvited: p.notInvited, dials: d)
+    } catch {
+      return .failed(HumanError.text(error, prefix: WizardCopy.publishFailed))
+    }
   }
 
-  /// `wizCancel`: the row exists, so abandoning discards it (delete_league is setup/draft-only).
-  func discard() async throws {
-    busy = true
-    defer { busy = false }
-    if let id = leagueId { try await svc.deleteLeague(id) }
+  private func finish(leagueId id: UUID, code c: String, name: String, locked: WizardService.Locked,
+                      invited: Int, notInvited: Int, dials d: WizardDials) -> PublishResult {
+    lockedLeague = id
+    share = WizardLockShare(leagueId: id, name: name, code: c, nextPhase: locked.nextPhase,
+                            members: 1 + invited, structure: d.structure, draftType: d.draftType,
+                            startsOn: locked.startsOn, weeks: d.durWeeks, invited: invited)
+    // R18 · the note did not land. Named out loud rather than dropped.
+    if d.stake > 0 && !locked.payNoteLanded { return .live(WizardCopy.payNoteMissedIt) }
+    if notInvited > 0 {
+      return .live("\(notInvited) invite\(notInvited == 1 ? "" : "s") didn't send. Share the link instead.")
+    }
+    return .live(nil)
+  }
+
+  /// Only an in-progress league minted BEFORE the re-cut has anything to
+  /// discard. A wizard closed at step 1 has written nothing at all.
+  func discardIfMinted() async throws {
+    guard let id = leagueId, lockedLeague == nil else { return }
+    try await svc.deleteLeague(id)
     leagueId = nil; code = nil; storedName = ""
-    dials = WizardDials()
   }
 }

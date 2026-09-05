@@ -109,6 +109,15 @@ public struct WizardService: Sendable {
     public let endsOn: String
     /// The RPC found `locked_at` already set — a retap; the truth above stands.
     public let alreadyLocked: Bool
+    /// R18 · did the pay note land in the same transaction? False means the
+    /// season is live and the Pro still has to say how to pay — which the share
+    /// screen names rather than letting it go quiet.
+    public let payNoteLanded: Bool
+    public init(nextPhase: String, seasonId: UUID, startsOn: String, endsOn: String,
+                alreadyLocked: Bool, payNoteLanded: Bool = true) {
+      self.nextPhase = nextPhase; self.seasonId = seasonId; self.startsOn = startsOn
+      self.endsOn = endsOn; self.alreadyLocked = alreadyLocked; self.payNoteLanded = payNoteLanded
+    }
   }
 
   /// One RPC. `today` pins the preview dates so a lock at 23:59 sends the same
@@ -118,7 +127,19 @@ public struct WizardService: Sendable {
     let typed = dials.name.trimmingCharacters(in: .whitespacesAndNewlines)
     let name = typed.isEmpty ? fallbackName : typed
     let call = WizardLockCall(dials, leagueId: leagueId, name: name, today: today)
-    let data = try await svc.call(call)
+    var noteLanded = call.payNote != nil
+    let data: JSONValue
+    do {
+      data = try await svc.call(call)
+    } catch {
+      // R18 · the DECLARED fallback, and it fires on one condition: the
+      // twenty-argument function is not deployed yet (PGRST202 / 42883).
+      // A refusal — a wrong structure, a league that is gone — reaches the
+      // golfer, exactly as it does today.
+      guard call.payNote != nil, PostService.fallbackFires(on: error) else { throw error }
+      data = try await svc.call(call.withoutPayNote)
+      noteLanded = false
+    }
 
     // `{already_locked, phase, season: row_to_json(seasons)}` — decoded defensively:
     // the season's id/dates may arrive nested (today's shape) or flat.
@@ -136,7 +157,57 @@ public struct WizardService: Sendable {
     let sentDates = call.args.p_starts_on == startsOn && call.args.p_ends_on == endsOn
     track(.lock_ok, ["next_phase": .string(nextPhase), "already_locked": .bool(already), "dates_as_sent": .bool(sentDates)])
     CSTelemetry.product(.leagueLocked, leagueId: leagueId)   // IOS-024
-    return Locked(nextPhase: nextPhase, seasonId: seasonId, startsOn: startsOn, endsOn: endsOn, alreadyLocked: already)
+    return Locked(nextPhase: nextPhase, seasonId: seasonId, startsOn: startsOn, endsOn: endsOn, alreadyLocked: already,
+                  payNoteLanded: noteLanded && (data["has_pay_note"]?.bool ?? true))
+  }
+
+  // MARK: - D225 · the publish, on ONE tap
+
+  public struct Published: Sendable, Equatable {
+    public let leagueId: UUID
+    public let code: String
+    public let name: String
+    public let locked: Locked
+    /// How many `invite_golfer` calls landed. Each is a COVENANT, not a seat —
+    /// `add_friend_to_league` inserts the `league_members` row directly, with no
+    /// invite, no acceptance and no covenant, which at a stake above $0 seats a
+    /// golfer on a pot sheet he never agreed to (L-12, CORE_FLOWS §0 A-1).
+    public let invited: Int
+    /// The invites that did NOT land. Named on the share screen rather than
+    /// swallowed — a golfer who thinks he invited four and invited two is the
+    /// defect this field exists to prevent.
+    public let notInvited: Int
+  }
+
+  /// A season is minted at the START tap, never on a typed name: prod holds six
+  /// founder-alone `setup` leagues because "Start the league" minted on a name
+  /// (`WizardScreen.swift:70-86` → `:252-268`), so an abandoned wizard left a
+  /// husk behind. Nothing here writes anything until every question is answered.
+  ///
+  /// L-41 wants formation to be ONE transaction. `create_league` and
+  /// `lock_league` are two calls, and folding the first into the second changes
+  /// a signature every build in the field calls — so the ONE half-state that
+  /// survives is named on screen and `lock_league` is idempotent on `locked_at`,
+  /// which is what makes the retry safe.
+  public func publish(dials: WizardDials, today: String = CSDate.today()) async throws -> Published {
+    let name = dials.name.trimmingCharacters(in: .whitespacesAndNewlines)
+    let created = try await createLeague(name: name)
+    let locked: Locked
+    do {
+      locked = try await lock(leagueId: created.leagueId, dials: dials, fallbackName: created.name, today: today)
+    } catch {
+      throw RpcError(name: WizardLockCall.name,
+                     underlying: WizardCopy.publishFailedHalf + " (" + HumanError.text(error) + ")",
+                     droppedArgs: [])
+    }
+    var ok = 0, bad = 0
+    for pid in dials.invitees {
+      do { _ = try await svc.call(InviteGolferCall(p_league: created.leagueId, p_event: nil, p_profile: pid)); ok += 1 }
+      catch { bad += 1 }
+    }
+    track(.invite_open, ["sent": .number(Double(ok))])
+    return Published(leagueId: created.leagueId, code: created.code, name: created.name,
+                     locked: locked, invited: ok, notInvited: bad)
   }
 
   // MARK: discard (`wizCancel`)

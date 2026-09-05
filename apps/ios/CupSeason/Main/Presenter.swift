@@ -43,6 +43,21 @@ final class Presenter {
   /// Events (wave 6): the picker, and a room.
   var showEventPicker = false
   var event: UUID?
+  /// D225 · the intent sheet — five sentences, no object nouns. Every
+  /// "Start something" lands here first, and nothing is minted by opening it.
+  var showIntent = false
+  /// Intent 1's fork: right now, or a day this week.
+  var showWhenFork = false
+  /// R-F · the golfer picker for "I want to beat one guy", then the length.
+  var showPickAGolfer = false
+  var length: TagCandidate?
+  /// D237 · the callout sheet, and the recipient's door.
+  var callout: TagCandidate?
+  var calloutReply: CalloutInvite?
+  /// D242 · the forfeit sheet, reachable without a season.
+  var forfeit: ForfeitTarget?
+  struct CalloutInvite: Identifiable { let eventId: UUID; let from: String; let closesOn: String; var terms: String? = nil; var id: UUID { eventId } }
+  struct ForfeitTarget: Identifiable { var home = ForfeitHome(); var opponentName: String? = nil; var id: String { String(describing: home) } }
 
   func join(code: String?) { joinCode = code; showJoin = true }
 
@@ -51,7 +66,8 @@ final class Presenter {
   var anythingUp: Bool {
     tourCard != nil || receipt != nil || scorecard != nil || scheduledRound != nil || showJoin || showPost || showLive ||
       showFeedback || showDesk || showNote || declare != nil || inviteTo != nil || wizard != nil || draft != nil || runBack != nil ||
-      showEventPicker || event != nil
+      showEventPicker || event != nil || showIntent || showWhenFork || showPickAGolfer ||
+      length != nil || callout != nil || calloutReply != nil || forfeit != nil
   }
 
   /// Take everything down. Returns true if anything was up (the caller
@@ -62,6 +78,8 @@ final class Presenter {
     tourCard = nil; receipt = nil; scorecard = nil; scheduledRound = nil; showJoin = false; showPost = false; showLive = false
     showFeedback = false; showDesk = false; showNote = false; declare = nil; inviteTo = nil; wizard = nil; draft = nil; runBack = nil
     showEventPicker = false; event = nil
+    showIntent = false; showWhenFork = false; showPickAGolfer = false
+    length = nil; callout = nil; calloutReply = nil; forfeit = nil
     return was
   }
 }

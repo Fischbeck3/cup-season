@@ -1,0 +1,118 @@
+import Testing
+import Foundation
+@testable import CupSeasonKit
+
+/// D242 · a forfeit can exist between two golfers with no season.
+///
+/// Two rules, and the database says both in CHECKs. This is their client twin,
+/// so the sheet refuses before the server has to — and so that "exactly one
+/// home" is a value a test can walk rather than a sentence in a migration.
+@Suite struct ForfeitHomeTests {
+
+  private static let a = UUID(), b = UUID(), c = UUID(), him = UUID()
+
+  // MARK: - exactly one home, all sixteen combinations
+
+  @Test func exactlyOneHome() {
+    var checked = 0
+    for l in [nil, Self.a] {
+      for e in [nil, Self.b] {
+        for r in [nil, Self.c] {
+          for o in [nil, Self.him] {
+            let h = ForfeitHome(leagueId: l, eventId: e, scheduledRoundId: r, opponent: o)
+            let containers = [l, e, r].compactMap { $0 }.count
+            checked += 1
+            if containers > 1 {
+              #expect(h.verdict == .twoHomes)
+              #expect(!h.isValid)
+            } else if containers == 0 && o == nil {
+              #expect(h.verdict == .noHome)
+              #expect(!h.isValid)
+            } else {
+              #expect(h.isValid, Comment(rawValue: "\(containers) containers, opponent \(o != nil)"))
+            }
+          }
+        }
+      }
+    }
+    #expect(checked == 16)
+  }
+
+  /// The FOURTH home the draft did not name, and the one the callout's own
+  /// stake needs: two buddies who share nothing at all.
+  @Test func twoBuddiesWithNoSeasonIsAHome() {
+    let h = ForfeitHome(opponent: Self.him)
+    #expect(h.isValid)
+    #expect(h.kind == .buddies)
+    #expect(h.containers == 0)
+  }
+
+  @Test func everyHomeKnowsWhichItIs() {
+    #expect(ForfeitHome(leagueId: Self.a).kind == .season)
+    #expect(ForfeitHome(eventId: Self.b).kind == .moment)
+    #expect(ForfeitHome(scheduledRoundId: Self.c).kind == .plan)
+    #expect(ForfeitHome(opponent: Self.him).kind == .buddies)
+    #expect(ForfeitHome().kind == .none)
+  }
+
+  /// L-32 · a refusal a golfer can read beats a control that is missing.
+  @Test func everyRefusalIsASentenceAndEveryValidHomeHasNone() {
+    #expect(ForfeitHome(leagueId: Self.a, eventId: Self.b).refusal == "A forfeit hangs on one thing.")
+    #expect(ForfeitHome().refusal == "Say who it is with, or what it hangs on.")
+    #expect(ForfeitHome(opponent: Self.him).refusal == nil)
+    #expect(ForfeitHome(leagueId: Self.a).refusal == nil)
+  }
+
+  // MARK: - no money column, ever
+
+  /// The load-bearing rule this widening leans on
+  /// (`20260724120000_forfeit_ledger.sql:10-13`): terms are PROSE, never an
+  /// amount. It is the store-review posture as much as taste (D39/D64), and a
+  /// widening is exactly when a rule gets quietly dropped.
+  @Test func nothingInTheForfeitSheetSaysMoney() {
+    let strings = [ForfeitCopy.title, ForfeitCopy.nameLabel, ForfeitCopy.namePlaceholder,
+                   ForfeitCopy.termsLabel, ForfeitCopy.termsPlaceholder, ForfeitCopy.whoLabel,
+                   ForfeitCopy.theField, ForfeitCopy.settlesLabel, ForfeitCopy.settlesPlaceholder,
+                   ForfeitCopy.put, ForfeitCopy.definition, ForfeitCopy.noPush]
+    for s in strings {
+      for w in ForfeitCopy.moneyWords {
+        #expect(!s.lowercased().contains(w), Comment(rawValue: "\"\(s)\" says \(w)"))
+      }
+    }
+  }
+
+  /// The client mirror of the CHECK: the call carries no amount, and there is
+  /// nowhere on it to put one.
+  @Test func theCallCarriesNoAmount() throws {
+    let call = CreateForfeitCall(home: ForfeitHome(opponent: Self.him),
+                                 name: "The Lawn Bet", terms: "Loser mows the winner's lawn")
+    let data = try JSONEncoder().encode(call)
+    let obj = try #require(try JSONSerialization.jsonObject(with: data) as? [String: Any])
+    for k in obj.keys {
+      #expect(!k.contains("cent") && !k.contains("amount") && !k.contains("stake"),
+              Comment(rawValue: k))
+    }
+    // and the four homes it can name, and no fifth
+    #expect(Set(obj.keys) == ["p_league", "p_name", "p_terms", "p_kind", "p_other"])
+  }
+
+  /// C-5's skew rule: only the two NEW arguments are droppable. Dropping
+  /// `p_other` on a retry would turn a bet between two golfers into a bounty
+  /// against the field, which is a different bet.
+  @Test func onlyTheTwoNewArgumentsAreDroppable() {
+    #expect(Set(CreateForfeitCall.optionalArgs) == ["p_event", "p_round"])
+    #expect(!CreateForfeitCall.optionalArgs.contains("p_other"))
+    #expect(!CreateForfeitCall.optionalArgs.contains("p_league"))
+  }
+
+  /// A null league is an EXPLICIT null, never an omitted key — PostgREST matches
+  /// a signature by the keys it is given.
+  @Test func aNullLeagueIsWrittenNotOmitted() throws {
+    let call = CreateForfeitCall(home: ForfeitHome(eventId: Self.b, opponent: Self.him),
+                                 name: "n", terms: "t")
+    let data = try JSONEncoder().encode(call)
+    let obj = try #require(try JSONSerialization.jsonObject(with: data) as? [String: Any])
+    #expect(obj["p_league"] is NSNull)
+    #expect(obj["p_event"] != nil)
+  }
+}
