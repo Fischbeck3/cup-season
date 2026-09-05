@@ -1,10 +1,23 @@
-# App Store listing — paste-ready (IOS-027)
+# App Store listing — paste-ready (IOS-027, rewritten IOS-035 2026-09-05)
 
 Companion to `docs/ios/app-review-notes.md` (the Review Notes field — already
 written, not repeated here) and `spec/appstore-launch-kit.md` (the source of
 every paragraph reused below). Character limits: name 30 · subtitle 30 ·
 promotional text 170 · description 4,000 · keywords 100. Name + subtitle +
 keywords are the only search-indexed fields.
+
+**Rewritten 2026-09-05 under IOS-035.** The listing is the true first screen of
+the brief's "first seconds", and the version it replaced sold the engine: a
+stranger met *league*, *season*, *commissioner*, *bylaw*, *allowance* and
+*endgame* before they met golf. §1's subtitle, §2's promotional text, §3's
+description, §4's keywords and §8's What's New are the changed fields. **§5
+(URLs, copyright), §6 (age rating) and §7 (the privacy label) are untouched** —
+§7 in particular must stay byte-aligned with `PrivacyInfo.xcprivacy` and
+`legal.html`, and §6 was rewritten on 2026-09-01 against Apple's current
+questionnaire. **"Captains draft squads" is deleted rather than reworded:** all
+13 production leagues draw at random and no captain drafts anything (the 2026-08-29
+audit filed it as TM-22), and a listing that describes an unbuilt mechanic is
+the listing lying.
 
 The posture rule holds over every field: store copy is legal copy. The D39
 canon appears verbatim; bet / betting / gambling / wager / odds / action /
@@ -18,45 +31,53 @@ Founding League offer appears nowhere in the listing (outreach only).
 **Name (10/30):**
 > Cup Season
 
-**Subtitle — recommended (20/30):**
-> Run your golf season
+**Subtitle — recommended (22/30):**
+> Golf with your friends
 
 Two alternates, either pastes as-is:
 > Golf leagues, handicaps, skins  *(30/30 — keyword density)*
 > Seasons, handicaps & skins  *(26/30 — the kit's alternate)*
 
-*Why the brand line (runbook D2, re-decided for the shorter name):* the
-runbook's case against it was that "golf" repeated a word already in the
-name and so indexed nothing. The name is now `Cup Season`, ten characters
-with no "golf" in it — the brand line is the only place the word appears, so
-it now carries the one search term that matters AND says what the app does
-in the user's own vocabulary. Discovery is not the channel (the funnel is a
-claim link from a friend, foursome by foursome), and the subtitle is editable
-without review; if organic search ever matters, swap to the 30-character
-alternate then.
+*Why this and not "Run your golf season" (IOS-035, superseding the note that
+stood here):* the retired line is a job description, and the job is not what a
+stranger is deciding about in the two seconds the subtitle gets. "Run" is the
+verb of an administrator; the person we want is a golfer with three friends and
+no spreadsheet. The new line keeps the one search term that matters ("golf",
+which the ten-character name does not carry) and says the thing the product
+actually is. Discovery is not the channel — the funnel is a claim link from a
+friend, foursome by foursome — and the subtitle is editable without review; if
+organic search ever matters, swap to the 30-character alternate then.
 
 **Category:** Sports. **Secondary:** Lifestyle.
 
-## 2. Promotional text (147/170 — editable any time, no review)
+## 2. Promotional text (156/170 — editable any time, no review)
 
-> Season three of the founding league is under way. Draft the crew, post real
-> rounds, and race a season-long cup with standings that show their work.
+> Add the round you just played and it lands in your friends' feeds, on your
+> number, and on whatever you have going with them. Standings that show their
+> work.
+
+*Why the change:* the retired line named a founding league nobody reading the
+store page can join, and led with a draft the engine does not run. This one
+describes the smallest useful act in the app and what follows it.
 
 ## 3. Description (2,576/4,000)
 
-> **Retire the spreadsheet. Run your golf season in your pocket.**
+> **Cup Season turns the golf you already play into a season with your friends.**
 >
-> Cup Season is the operating system for your crew's golf season. Captains
-> draft squads, everyone posts real rounds from any course, points pile up
-> month after month, and the season ends the way a season should: with a Cup.
+> You add a round — course, score, done — and it posts to your rounds, into
+> your friends' feeds, and onto whatever you have going with them. Start a
+> season with one guy or eight, put a weekend on the calendar, or just call
+> somebody out for Saturday. It keeps the table, the money, the rivalries and
+> the record, and every time you open it, it tells you one true thing about
+> where you stand and what happens next.
 >
-> **How a season works.** The Pro sets the bylaws once — squads or solo, the
-> handicap allowance, how many rounds count a month, the endgame — and locks
-> them at first tee. From there the season runs itself. Every posted round
-> scores against your number, the best ones count toward the month, and the
-> standings tell the story as it happens: who leads, who is climbing, who is
-> one good weekend from the top. It ends with a four-week Cup Final or the
-> points table, settled by a tiebreak ladder that never needs a committee.
+> **How a season works.** Somebody sets it up once — who's in, how long it
+> runs, how many rounds count a month, how it ends — and it runs itself from
+> the first tee. Every round you post scores against your number, your best
+> ones count toward the month, and the table tells the story as it happens:
+> who leads, who is climbing, who is one good weekend from the top. It ends
+> with a four-week Cup Final or on the points table, settled by a tiebreak
+> ladder that never needs a committee.
 >
 > **Post a round in under a minute.** Pick the course, type the front and back
 > nines, or enter your card hole by hole. Photograph a paper scorecard and
@@ -89,16 +110,19 @@ alternate then.
 > every dollar of your crew's pot on the books, where the whole league can see
 > it. A league can also run on bragging rights alone.
 >
-> Grab your crew. Draft the squads. Post the rounds.
+> Add the round you just played. See what it moved.
 > **Where amateur golf counts.**
 
 ## 4. Keywords (98/100)
 
-> handicap,skins,match,play,wolf,scorecard,standings,draft,league,buddies,friends,fantasy,trip,ryder
+> handicap,skins,match,play,wolf,scorecard,standings,draft,league,buddies,rivalry,fantasy,trip,ryder
 
 No spaces after commas. No repeat of a name word (cup, season) or a subtitle
-word (run, your, golf). "league" earns its place now that the name no longer
-carries "Golf Leagues"; "ryder" is the one term a golfer types that no
+word (golf, with, your, friends) — which is why **"friends" comes out**: it is
+now a subtitle word and would index nothing twice. **"rivalry" takes its
+place**, because it is what the record between two golfers is called
+everywhere in the product. "league" earns its place now that the name no
+longer carries "Golf Leagues"; "ryder" is the one term a golfer types that no
 competitor field says. Nothing in the banned list.
 
 ## 5. URLs and copyright
@@ -207,9 +231,10 @@ agreement; when one changes, the other two change in the same commit.
 
 ## 8. What's New — 1.0 (community voice, never changelog-speak)
 
-> The clubhouse door opens. Seasons, drafts, real-round handicaps, Match
-> Play, Wolf and Skins with settlement cards, Ryder-style events, trophies,
-> and standings that show their work. Founding league: PIGL, Tempe, AZ.
+> Add a round in under a minute and watch it land — on your number, in your
+> friends' feeds, on the table. Seasons with one friend or eight. Match Play,
+> Wolf and Skins with a settlement card at the end. Rivalries, trophies, and
+> standings that show their work.
 
 ## 9. Field-by-field paste order in App Store Connect
 
@@ -218,5 +243,6 @@ agreement; when one changes, the other two change in the same commit.
 2. App Privacy: §7, then publish.
 3. Version 1.0: promotional text (§2), description (§3), keywords (§4),
    support + marketing URLs (§5), copyright (§5), What's New (§8),
-   screenshots (launch kit §3), Review Notes + reviewer sign-in
+   screenshots (**`apps/ios/Screenshots/SHOT-LIST.md`**, which supersedes
+   launch kit §3's order), Review Notes + reviewer sign-in
    (`docs/ios/app-review-notes.md`).

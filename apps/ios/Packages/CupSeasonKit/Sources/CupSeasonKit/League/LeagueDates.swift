@@ -27,13 +27,74 @@ public enum LeagueDates {
     return CSDate.iso(e, calendar: calendar)
   }
 
-  /// `totalWeeks()` — max(1, ceil((e−s)/7d)).
+  // MARK: - D246 · the ONE week producer
+
+  /// **The week.** `native_home.season.week_no` is the answer, and this is the
+  /// only place either client reads it.
+  ///
+  /// "What week is it" used to be computed in at least six places with at
+  /// least two different bases — `snapshot_week` (0-based, day-7 start),
+  /// `open_week_clash`/`home_clash`/`settle` (1-based), `sandbox_week`, the
+  /// web's `weekCloseDate` (0-based), the web hero (1-based, `+1`), the web's
+  /// weeks-left `Math.ceil`, and `LeagueDates.currentWeek` here — so the same
+  /// season could be week 7 on one surface and week 6 on another. That is
+  /// L-44's exact failure and it cannot be fixed by a lint, only by ruling the
+  /// producer (D246).
+  ///
+  /// The **declared fallback** is `currentWeek` below, and it fires only for a
+  /// payload that predates the v3 migration — the client renders what it
+  /// renders today rather than a blank, and the two clients agree again the
+  /// moment the migration lands.
+  public static func week(_ s: Me.Season?, today: String = CSDate.today(), calendar: Calendar = .current) -> Int {
+    guard let s else { return 1 }
+    if let w = s.week_no, w > 0 { return w }
+    return currentWeek(start: s.starts_on, end: s.ends_on, today: today, calendar: calendar)
+  }
+
+  /// How many weeks the season runs — `season.weeks_total`, with `totalWeeks`
+  /// as the declared fallback.
+  public static func weeksTotal(_ s: Me.Season?, calendar: Calendar = .current) -> Int {
+    guard let s else { return 1 }
+    if let n = s.weeks_total, n > 0 { return n }
+    return totalWeeks(start: s.starts_on, end: s.ends_on, calendar: calendar)
+  }
+
+  /// The day this week closes — `season.week_ends_on`, with `weekClose` as the
+  /// declared fallback. The league's OWN closing weekday, never a Sunday.
+  public static func weekEnds(_ s: Me.Season?, today: String = CSDate.today(), calendar: Calendar = .current) -> String? {
+    guard let s else { return nil }
+    if let d = s.week_ends_on, !d.isEmpty { return d }
+    return weekClose(start: s.starts_on, today: today, calendar: calendar)
+  }
+
+  /// The day the Cup Final opens — `season.final_opens_on`, with
+  /// `cupFinalStart` as the declared fallback. nil on a points-table season,
+  /// which has no Final to open, and the caller renders nothing.
+  public static func finalOpens(_ s: Me.Season?, finish: String?, calendar: Calendar = .current) -> String? {
+    guard let s else { return nil }
+    if let d = s.final_opens_on, !d.isEmpty { return d }
+    guard (finish?.isEmpty == false ? finish! : "cup_final") == "cup_final" else { return nil }
+    return cupFinalStart(end: s.ends_on, calendar: calendar)
+  }
+
+  /// `standings_snapshots.week_no` is **0-based** (`snapshot_week`), and every
+  /// surface that shows one to a golfer must relabel it. It is relabelled at
+  /// READ time and never recomputed client-side: the snapshot's own number is
+  /// the record of which window it captured, and rewriting it would break the
+  /// history it is.
+  public static func snapshotWeekLabel(_ snapshotWeekNo: Int) -> Int { snapshotWeekNo + 1 }
+
+  /// `totalWeeks()` — max(1, ceil((e−s)/7d)). **The declared fallback for
+  /// `weeksTotal(_:)`, not a producer** (D246): call it only through that.
   public static func totalWeeks(start: String, end: String, calendar: Calendar = .current) -> Int {
     let days = CSDate.days(from: start, to: end, calendar: calendar) ?? 0
     return max(1, Int((Double(days) / 7).rounded(.up)))
   }
 
   /// `currentWeek()` — floor(days since start / 7) + 1, clamped to the season.
+  /// **The declared fallback for `week(_:)`, not a producer** (D246): it fires
+  /// only on a payload that predates `native_home` v3. Call it only through
+  /// `week(_:today:)`.
   public static func currentWeek(start: String, end: String, today: String, calendar: Calendar = .current) -> Int {
     let since = CSDate.days(from: start, to: today, calendar: calendar) ?? 0
     let w = Int((Double(since) / 7).rounded(.down)) + 1

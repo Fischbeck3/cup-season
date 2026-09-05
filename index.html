@@ -153,7 +153,37 @@ button{font-family:var(--sans); touch-action:manipulation; color:var(--ink);}
 .navitem.active{color:var(--ink); background:var(--bg2); border-left-color:var(--brand);}
 .navitem:hover{color:var(--ink);}
 .navitem:focus-visible{outline:2px solid var(--focus); outline-offset:-2px;}
-.side .foot{margin-top:auto; padding:12px 10px 4px; border-top:1px solid var(--line);}
+/* ============ D236 - the ME strip / the desk's identity block ============
+   A LINE OF TYPE on the page's own ground, never a tile grid: no card, no
+   border, no radius, no background. That is the whole distinction between this
+   and the KPI strip the audit filed as an anti-pattern. In the sidebar it
+   stacks (a desk has height and no width to waste); at the head of Home it
+   flows. Exactly ONE of the two is on screen at any width. */
+.sideme{margin-top:auto; padding:14px 10px 12px; border-top:1px solid var(--line);}
+.sideme:empty{display:none;}
+.sideme .mefacts{display:flex; flex-wrap:wrap; gap:14px 22px;}
+.sideme .mefact{
+  background:none; border:0; padding:0; margin:0; cursor:pointer; text-align:left;
+  display:flex; flex-direction:column; gap:2px; color:var(--ink); min-width:0;
+}
+.sideme .mefact b{font-family:var(--mono); font-size:14px; font-weight:600; letter-spacing:.01em; font-variant-numeric:tabular-nums;}
+.sideme .mefact small{font-family:var(--mono); font-size:11px; color:var(--mut); letter-spacing:.1em; text-transform:uppercase;}
+/* L-10 - money is `neg`, never gold and never a countdown */
+.sideme .mefact.owed b{color:var(--neg);}
+.sideme .mefact:hover b{color:var(--brand);}
+.sideme .mefact:focus-visible{outline:2px solid var(--focus); outline-offset:3px; border-radius:4px;}
+.sideme .mesr{
+  display:block; width:100%; margin-top:12px; padding:0; border:0; background:none; cursor:pointer;
+  font-family:var(--sans); font-size:11.5px; line-height:1.5; color:var(--mut); text-align:left;
+  letter-spacing:.02em;
+}
+.sideme .mesr:hover{color:var(--ink);}
+.sideme .mesr:focus-visible{outline:2px solid var(--focus); outline-offset:3px; border-radius:4px;}
+/* the sidebar is the desk's home for it; #homeMe covers the narrow widths */
+.homeme{display:block; margin:0 0 18px; padding:0 0 14px; border-top:0; border-bottom:1px solid var(--line);}
+.homeme .mefacts{gap:12px 20px;}
+@media(min-width:960px){ .homeme{display:none;} }
+.side .foot{margin-top:0; padding:12px 10px 4px; border-top:1px solid var(--line);}
 .side .foot .lg{font-size:12.5px; font-weight:700;}
 .side .foot .sm{font-family:var(--mono); font-size:11.5px; color:var(--dim); letter-spacing:.08em; text-transform:uppercase; margin-top:2px;}
 
@@ -291,7 +321,9 @@ button{font-family:var(--sans); touch-action:manipulation; color:var(--ink);}
 .scenLine .clinch{color:var(--pos);}
 .scenLine .out{color:var(--dim);}
 .scenLine b{color:var(--ink); font-weight:600;}
-.rkmove{font-family:var(--mono); font-size:9.5px; margin-left:3px; letter-spacing:0;}
+/* A-4: the label carries its own clock, so it is a line under the rank
+   rather than a glyph beside it - the rank column keeps its width. */
+.rkmove{display:block; font-family:var(--mono); font-size:9.5px; margin:2px 0 0; letter-spacing:.04em; white-space:nowrap;}
 .rkmove.up{color:var(--warm);} .rkmove.up2{color:var(--hot);} .rkmove.dn{color:var(--cool);} .rkmove.fl{color:var(--dim);}  /* D76 heat */
 .rivrec{font-family:var(--mono); font-size:14px; font-weight:600; letter-spacing:.02em; flex:none;}
 .rivrec.up{color:var(--pos);} .rivrec.dn{color:var(--dim);} .rivrec.ev{color:var(--mut);}
@@ -2946,6 +2978,11 @@ html[data-theme="light"] .room-dusk .btn:not(.dark):not(.gold):not(.apple){color
     <button class="navitem" data-v="stats">
       <svg viewBox="0 0 24 24"><rect x="3" y="5.5" width="18" height="13" rx="2.2"/><circle cx="8.5" cy="11.4" r="2.3"/><path d="M13 9.6h4.6M13 13h4.6M6 15.7c.7-1.3 4-1.3 4.7 0"/></svg> You
     </button>
+    <!-- D236 - the identity block. The desk puts my number, my last round, my
+         next round and my money where the eye rests between reads; the phone
+         puts the same four facts across the head of Home. Same producer, two
+         shapes. Below 960 the sidebar is gone and #homeMe carries them. -->
+    <div class="sideme" id="sideMe"></div>
     <div class="foot">
       <div class="lg" id="sideLeague">The Sunday Cup</div>
       <div class="sm" id="sideMeta">7 players · 2 squads</div>
@@ -3010,6 +3047,8 @@ html[data-theme="light"] .room-dusk .btn:not(.dark):not(.gold):not(.apple){color
              calendar destination; the feed still STAYS WHOLE (D81's correction
              survives this). -->
         <div id="homeHub">
+          <!-- the identity block below desk width; #sideMe carries it above -->
+          <div class="sideme homeme" id="homeMe"></div>
           <div id="homeStart"></div>
           <!-- D176: the lead card. One slot, a fixed ladder, one card at a
                time, and NO card is the resting state — the hero below is
@@ -4646,6 +4685,34 @@ function buildSeries(){
   });
 }
 
+/* ============ A-4 - a movement label carries its own clock ============
+   `prev_rank` is a SUNDAY snapshot (`run_week_snapshots`, cron '10 7 * * 0'),
+   so a Tuesday climb read "held" and erased the only movement of the week.
+   The rule is now absolute on both clients: a movement label names the day it
+   is measured FROM, or it does not render.
+
+   `delta` is prior rank minus current rank (positive = climbed). `sinceISO` is
+   the snapshot's own `captured_at`. Returns null - no label - when either is
+   missing, which is the deploy-skew case and the week-1 case both. */
+const CS_MOVE_WORDS=['','one','two','three','four','five','six','seven','eight','nine','ten'];
+function csMovement(delta, sinceISO){
+  if(delta==null || !isFinite(delta) || !sinceISO) return null;
+  const d=new Date(sinceISO);
+  if(isNaN(d)) return null;
+  const day=DOW[d.getDay()].toUpperCase();
+  const n=Math.abs(delta);
+  const word=CS_MOVE_WORDS[n] || String(n);
+  if(delta===0) return { tone:'fl', text:`HELD SINCE ${day}`, long:`held since ${DOW[d.getDay()]}`, dir:0 };
+  const up=delta>0;
+  return {
+    tone: up ? (delta>=2 ? 'up2' : 'up') : 'dn',
+    text: `${up?'\u25b2':'\u25bc'}${n} SINCE ${day}`,
+    long: `${up?'up':'down'} ${word} since ${DOW[d.getDay()]}`,
+    dir: up ? 1 : -1,
+  };
+}
+window.csMovement = csMovement;
+
 /* real leagues: series = recorded weekly snapshots + the live 'now' point */
 function buildRealSeries(WKS){
   const hist = window.seasonHistory || [];
@@ -5086,10 +5153,12 @@ function renderStandings(){
      consumed here so a mere re-render stays static */
   const sfFresh = !!window._sfStandingsFresh; window._sfStandingsFresh = false;
   const priorRank={};
+  let priorSince=null;   /* A-4 - WHEN the comparison is from, or no label at all */
   const hist=(!state.demo && window.seasonHistory) ? window.seasonHistory : [];
   if(hist.length){
     const lastWk=Math.max(...hist.map(h=>h.week_no));
     const snap=hist.find(h=>h.week_no===lastWk);
+    priorSince = snap && snap.captured_at ? snap.captured_at : null;
     ((snap && snap.standings && (solo?snap.standings.individuals:snap.standings.squads))||[]).slice()
       .sort((a,b)=>(Number(b.points)||0)-(Number(a.points)||0))
       .forEach((row,idx)=>{ priorRank[solo?row.member_id:row.squad_id]=idx; });
@@ -5111,12 +5180,12 @@ function renderStandings(){
     const arr=series[ti]||[];
     const dwk=arr.length>1 ? arr[arr.length-1]-arr[arr.length-2] : 0;
     const pr=priorRank[t.id];
-    let mv='';
-    /* D76 heat: climbing runs warm, climbing 2+ hot; falling cools to slate */
-    if(pr!=null){ const d=pr-i;
-      mv = d===0 ? `<span class="rkmove fl" title="held this week">&ndash;</span>`
-         : `<span class="rkmove ${d>=2?'up2':d>0?'up':'dn'}" title="${d>0?'up':'down'} ${Math.abs(d)} this week">${d>0?'▲':'▼'}${Math.abs(d)}</span>`;
-    }
+    /* A-4 - the honest movement label. D76's heat is kept (climbing runs warm,
+       climbing 2+ hot, falling cools) and the LIE is removed: the clause now
+       names the day it is measured from, and with no snapshot date there is no
+       label at all rather than a bare arrow. */
+    const mvL=csMovement(pr!=null ? pr-i : null, priorSince);
+    const mv = mvL ? `<span class="rkmove ${mvL.tone}" title="${esc(mvL.long)}">${mvL.text}</span>` : '';
     /* SF-6: the climb — a rank that moved since the last snapshot flips in */
     const rk0=String(i+1).padStart(2,'0');
     const rkH=(sfFresh && pr!=null && pr!==i) ? sfWrap(rk0) : rk0;
@@ -8143,14 +8212,7 @@ function isoOf(d){ return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(
    `LeagueDates.nextSunday` for the same case). A season whose first tee is
    still ahead clamps to week 1's close — `Math.max(0, …)`, the phone's rule
    (`LeagueDates.weekClose`) — never to a Sunday. */
-function weekCloseDate(today){
-  const s = state.seasonStart ? localDate(state.seasonStart) : null;
-  if(!s){
-    const d=new Date(today); d.setDate(d.getDate()+(7-d.getDay())%7); return d;
-  }
-  const wk = Math.max(0, Math.floor(Math.round((today - s)/864e5) / 7));
-  return new Date(s.getFullYear(), s.getMonth(), s.getDate() + wk*7 + 6);
-}
+function weekCloseDate(today){ return csWeekEnds(window.CS && CS.season, today); }
 function renderSeasonDates(){
   const s=seasonStartDate(), e=seasonEndDate();
   const sd=$('#startDate');
@@ -11118,6 +11180,10 @@ function renderHomeTiles(){
     .filter(sr=>{ if(!isMyPlan(sr)) return false;
                   const d=sr.play_on?localDate(sr.play_on):null; return d && !isNaN(d) && d>=today; })
     .sort((a,b)=>String(a.play_on).localeCompare(String(b.play_on)))[0];
+  /* L-34 / D236 - the ME strip owns NEXT. With the identity block carrying it,
+     this tile said the same plan a second time on the same screen, and the
+     chip below said it a third; the strip's `suppress` set stands both down. */
+  const meOwnsNext = window.__meSuppress && window.__meSuppress.has('my_next_round');
   const DOWS=['SUN','MON','TUE','WED','THU','FRI','SAT'];
   const nextT = next
     ? { t:'Next', v:DOWS[localDate(next.play_on).getDay()],
@@ -11135,7 +11201,7 @@ function renderHomeTiles(){
     : { t:'Board', v: fresh?String(fresh):'Open', s: fresh?'NEW TODAY':'THE LEAGUE',
         go:()=>switchView('board'), acc:'var(--dim)' };
 
-  const tiles=[league, nextT, board];
+  const tiles=[league, ...(meOwnsNext ? [] : [nextT]), board];
   box.innerHTML=`<div class="hometiles">${tiles.map((x,i)=>
     `<button class="htile" data-htile="${i}" type="button" style="--acc:${x.acc}"${x.go?'':' disabled'}>
        <span class="t">${x.t}</span><span class="v">${x.v}</span><span class="s">${x.s}</span>
@@ -12370,8 +12436,11 @@ function renderUpNext(){
   const chips=[];
   if(state.demo){ box.innerHTML=''; return; }   /* D83: demo chips retired */
   {
+    /* L-34 - the ME strip owns NEXT (D236); the chip is the third render of
+       one fact on one screen, and it stands down when the block carried it. */
+    const meOwnsNext = window.__meSuppress && window.__meSuppress.has('my_next_round');
     const up = (typeof upcomingFromSchedule==='function') ? upcomingFromSchedule() : [];
-    if(up.length) chips.push(upChip('Next round', up[0].what + ' · ' + up[0].when.toLowerCase()));
+    if(up.length && !meOwnsNext) chips.push(upChip('Next round', up[0].what + ' · ' + up[0].when.toLowerCase()));
     /* the crew's plans echo Home → the Watch List is one tap from the nudge */
     const watch = (window.watchAll||[]).filter(r => r.mine===false && (r.is_friend||r.shared_league) && !r.tagged_me);
     if(watch.length){
@@ -12501,6 +12570,201 @@ function renderRequestsInto(box){
     }catch(e){ b.disabled=false; toast(humanError(e)); }
   }));
 }
+/* ============ D236 - the ME strip, as the desk's IDENTITY BLOCK ============
+   The same four facts the phone puts across the head of Home - my number, my
+   last round, my next round, my money - plus one season context row. Produced
+   from the same rules as `MeStripCopy` on the phone and rendered in the shape a
+   DESK affords: a stacked block in the sidebar, where the eye rests between
+   reads, rather than a tight row across a 390-px screen. Two shapes, one set of
+   producers (D234 / R-C).
+
+   The laws that decide every branch here are the phone's, verbatim:
+     L-44  a fact with NO READ renders nothing - not a dash, not a zero
+     L-10  a $0 league shows no pot surface anywhere, and the unpaid figure is
+           SELF-ONLY, never a count of who else has not paid
+     A-5   a gap is always attached to a name
+     L-34  no card below repeats a fact this block owns
+   `native_home.season.week_no` and `standing.next_up/next_down` are the phone's
+   reads; the web computes the same answers from the standings rows it already
+   holds, in the same order the server ranks them. */
+function csMeStrip(){
+  const P = (window.CS && CS.profile) || null;
+  const slots = [];
+
+  /* 1 - YOUR NUMBER. `STARTER` is reserved and not yet issued: nothing writes
+     index_source='starter' until onboarding asks the band question. It exists
+     so that the day a starter figure appears it is never dressed as an
+     established index (L-14). */
+  if(P){
+    const ix = P.index_current;
+    if(ix != null && isFinite(Number(ix))){
+      slots.push({ fact:'my_number', label: P.index_source==='starter' ? 'STARTER' : 'YOUR NUMBER',
+                   value: fmtIdx(Number(ix)), go:'card' });
+    } else if(window.career && window.career.rounds != null){
+      const n = Math.min(Number(window.career.rounds)||0, 3);
+      slots.push({ fact:'my_number', label:'BUILDING', value: n<=0 ? '—' : `${n} OF 3`, go:'card' });
+    }
+    /* no index AND no round count = nothing is known, so nothing is said */
+  }
+
+  /* 2 - LAST. The gross and the day; an older round says its date instead.
+     "days since" is never printed - that is the shame line L-22 forbids. */
+  const lastR = window.career && (window.career.recent||[])[0];
+  if(lastR && lastR.gross != null && lastR.played_on){
+    slots.push({ fact:'my_last_round', label:'LAST',
+                 value:`${lastR.gross} ${csDayToken(String(lastR.played_on))}`, go:'round', id:lastR.id });
+  } else if(window.career && Number(window.career.rounds) === 0){
+    slots.push({ fact:'my_last_round', label:'LAST', value:'NO ROUNDS YET', go:'post' });
+  }
+
+  /* 3 - NEXT. `isMyPlan` is the ONE plan predicate on this client (D219); the
+     block calls it rather than re-filtering. A plan with no tee time names its
+     course instead - `scheduled_rounds.tee_time` is nullable and real plans in
+     prod have none, and a guessed tee time is the one thing this slot may never
+     print (SA-4). */
+  const sched = (window.watchAll && window.watchAll.length) ? window.watchAll : (window.mySchedule || []);
+  if(Array.isArray(sched)){
+    const t0=new Date(); t0.setHours(0,0,0,0); const todayI=isoOf(t0);
+    const mine = sched.filter(r => isMyPlan(r) && r.play_on && String(r.play_on) >= todayI)
+      .sort((a,b) => String(a.play_on).localeCompare(String(b.play_on)) || String(a.tee_time||'').localeCompare(String(b.tee_time||'')));
+    const up = mine[0];
+    if(up){
+      const day = csDayToken(String(up.play_on));
+      const tee = csTeeText(up.tee_time);
+      const course = up.course_label ? String(up.course_label).toUpperCase() : null;
+      slots.push({ fact:'my_next_round', label:'NEXT',
+                   value: tee ? `${day} ${tee}` : (course ? `${day} · ${course}` : day),
+                   go:'plan', id:up.id });
+    } else {
+      slots.push({ fact:'my_next_round', label:'NEXT', value:'PLAN ONE', go:'declare' });
+    }
+  }
+
+  /* 4 - STILL OWE. D129's line, relocated. Self-only (D23): it reads MY OWN
+     buy-in row and never prints how many others owe. Absent entirely at $0
+     (D70, L-10), absent when paid, absent in setup where the books are not
+     open yet (D112). */
+  const meM = window.CS && CS.member;
+  const bi  = (window.buyIns||{})[meM && meM.id];
+  const stake = Number(state.stake)||0;
+  if(meM && stake > 0 && state.phase !== 'setup' && bi && bi.paid === false){
+    slots.push({ fact:'my_money', label:'STILL OWE', value:`${fmt$(stake)} YOU`, go:'pot' });
+  }
+
+  return { slots, seasonRow: csMeSeasonRow(), suppress: slots.map(s => s.fact) };
+}
+
+/* The season context row: the league, the rank, both gaps WITH NAMES, and the
+   short endgame clause. At rank 3 or worse the LEADER is named - otherwise the
+   man actually winning is named nowhere - and the endgame clause is dropped at
+   that length rather than wrapping. With no season the row is ABSENT, not a row
+   of zeroes (L-44). */
+function csMeSeasonRow(){
+  if(state.demo || !window.CS || !CS.league || !teams.length) return null;
+  if(state.phase !== 'season') return null;
+  const solo = state.structure==='solo';
+  let myId=null;
+  if(CS.member){
+    if(solo) myId=CS.member.id;
+    else { const q=(CS.squads||[]).find(q=>(q.squad_members||[]).some(x=>x.member_id===CS.member.id)); myId=q?q.id:null; }
+  }
+  const i = myId!=null ? teams.findIndex(t=>t.id===myId) : -1;
+  if(i<0) return null;
+  const parts=[String(CS.league.name||'').toUpperCase()];
+  const rank=`${climbOrd(i+1).toUpperCase()} OF ${teams.length}`;
+  parts.push(solo ? rank : [teams[i].name.toUpperCase(), rank].join(' '));
+  if(i >= 2 && teams[0]){
+    const gap = Number(teams[0].pts) - Number(teams[i].pts);
+    if(gap > 0) parts.push(`${teams[0].name.toUpperCase()} LEADS BY ${csN(gap)}`);
+  }
+  const up = teams[i-1], down = teams[i+1];
+  if(up)   parts.push(`${csN(Number(up.pts)-Number(teams[i].pts))} BACK OF ${String(up.name).toUpperCase()}`);
+  if(down) parts.push(`${csN(Number(teams[i].pts)-Number(down.pts))} CLEAR OF ${String(down.name).toUpperCase()}`);
+  if(i < 2){ const c = csEndgameClause(teams.length); if(c) parts.push(c); }
+  return { text: parts.join(' · '), parts };
+}
+
+/* D235 - the endgame, SHORT. The long sentence lives under the season page's
+   table; this clause is the half a golfer sees on every open. At a field of two
+   it never says "the top two seed" - at n=2 that is a tautology (SA-3). */
+function csEndgameClause(n){
+  const finish = state.finish || 'cup_final';
+  try{
+    if(finish === 'points_table'){
+      const e = new Date(seasonE());
+      return `POINTS TABLE CROWNS IT ${MOS[e.getMonth()].toUpperCase()} ${e.getDate()}`;
+    }
+    const cf = cupFinalStart();
+    const when = `${MOS[cf.getMonth()].toUpperCase()} ${cf.getDate()}`;
+    return (state.structure==='solo' && n===2)
+      ? `A FINAL BETWEEN THE TWO OF YOU, OPENS ${when}`
+      : `TOP 2 INTO THE FINAL, OPENS ${when}`;
+  }catch(_){ return null; }
+}
+
+/* TODAY / SAT / AUG 21 - inside a week either way the weekday is what a golfer
+   recognises; past that it is the date. The phone's `MeStripCopy.dayToken`. */
+function csDayToken(iso){
+  const d = localDate(String(iso).slice(0,10));
+  if(isNaN(d)) return String(iso).toUpperCase();
+  const t0=new Date(); t0.setHours(0,0,0,0);
+  const days = Math.round((d - t0)/864e5);
+  if(days === 0) return 'TODAY';
+  if(Math.abs(days) <= 6) return DOW[d.getDay()].toUpperCase();
+  return `${MOS[d.getMonth()].toUpperCase()} ${d.getDate()}`;
+}
+/* "07:10:00" -> "7:10". Printed exactly as the plan holds it; never rounded. */
+function csTeeText(raw){
+  if(!raw) return null;
+  const m = String(raw).match(/^(\d{1,2}):(\d{2})/);
+  if(!m) return null;
+  const h=Number(m[1]), mm=Number(m[2]);
+  if(!(h>=0&&h<=23&&mm>=0&&mm<=59)) return null;
+  return `${h}:${String(mm).padStart(2,'0')}`;
+}
+function csN(v){ const n=Number(v); return Number.isFinite(n) ? (n===Math.round(n) ? String(Math.round(n)) : n.toFixed(1)) : '—'; }
+window.csMeStrip = csMeStrip; window.csMovementReady = true;
+
+/* The desk header. One block, rendered into the sidebar at desk widths and at
+   the head of Home below them - exactly one is on screen at any width, which is
+   what "two shapes, one producer" means in CSS. */
+function renderMeStrip(){
+  const strip = csMeStrip();
+  const html = (!strip.slots.length && !strip.seasonRow) ? '' : `
+    <div class="mefacts">${strip.slots.map(s => `
+      <button class="mefact${s.fact==='my_money'?' owed':''}" type="button" data-mego="${esc(s.fact)}"${s.id?` data-meid="${esc(s.id)}"`:''}>
+        <b>${esc(s.value)}</b><small>${esc(s.label)}</small>
+      </button>`).join('')}</div>
+    ${strip.seasonRow ? `<button class="mesr" type="button" data-mego="season_row">${esc(strip.seasonRow.text)}</button>` : ''}`;
+  ['#sideMe', '#homeMe'].forEach(sel => {
+    const box = document.querySelector(sel);
+    if(!box) return;
+    box.innerHTML = html;
+    box.querySelectorAll('[data-mego]').forEach(el => el.addEventListener('click', () => {
+      const go = el.getAttribute('data-mego'), id = el.getAttribute('data-meid');
+      qaEvent('cta_tapped', { door: go });
+      /* Every figure taps to its receipt (L-01). Each door is one that already
+         exists on this client - the block adds no route of its own. */
+      if(go==='my_number')          { switchView('stats'); }
+      else if(go==='my_last_round') { if(id && window.openRoundSheet) window.openRoundSheet(id); else switchView('record'); }
+      else if(go==='my_next_round') { if(id) switchView('schedule'); else window.openDeclareSheet?.(); }
+      else if(go==='my_money')      { switchView('pot'); }
+      else if(go==='season_row')    { switchView('hub'); }
+    }));
+  });
+  /* L-34 - the facts this block has SPENT. Whatever renders below drops them:
+     the phone hands the same set down from `MeStripCopy.Strip.suppress`. Set
+     BEFORE the rest of Home paints, which is why `renderMeStrip` is the first
+     call in `renderHomeHub`. */
+  window.__meSuppress = new Set(strip.suppress);
+  /* D234 - the same funnel the phone writes, off the same producer. No name,
+     no handle, no id; `qaEvent` stamps the platform centrally. */
+  const tag = `${strip.slots.length}${strip.seasonRow?'s':'-'}`;
+  if(window.__meSeen !== tag){ window.__meSeen = tag;
+    qaEvent('home_state_seen', { state: seasonState(), facts: strip.slots.length, season_row: !!strip.seasonRow }); }
+}
+window.renderMeStrip = renderMeStrip;
+
 function renderHomeHub(){
   /* D93: the board is league-scoped; the `league-only` class LOOKS like a
      gate but has no CSS rule and no JS behind it (21 uses, all inert), so
@@ -12508,6 +12772,7 @@ function renderHomeHub(){
   {const bg=document.getElementById('homeBoardGo');
    if(bg) bg.style.display = (!state.demo && window.CS?.league) ? '' : 'none';}
   renderResumeBanner();   /* an in-progress live round is the first thing you see */
+  renderMeStrip();        /* D236: my number, my last round, my next round, my money */
   renderHomeLead();       /* D176: the one card that knows what day it is */
   if(typeof renderHomeHero==='function') renderHomeHero();   /* D81: the one hero slot (R2) */
   if(typeof renderOccasion==='function') renderOccasion();   /* D81 R3: the calendar's second voice */
@@ -13703,14 +13968,49 @@ function daysToTee(){ return Math.max(0, Math.ceil((seasonS().getTime()-Date.now
 /* real weekday, not a hardcoded "Sun" — §14.0 v1.1 dropped the Sunday-start
    snap, so a season can tee off any day (pilot: "every league says Sunday"). */
 function firstTeeText(){ const s=seasonS(); return `${DOW[s.getDay()]} ${MOS[s.getMonth()]} ${s.getDate()}`; }
-function totalWeeks(){
+/* ============ D246 - the ONE week producer ============
+   "What week is it" was computed in at least six places across two clients
+   with at least two different bases, so the same season could be week 7 on one
+   surface and week 6 on another. That is L-44's exact failure and no lint can
+   fix it - it needs a ruled producer.
+
+   `native_home.season.week_no` is now the answer, computed once on the server
+   on the season's own calendar day. `csWeek` reads it where a payload carries
+   it and otherwise runs the SAME formula the migration moved server-side, on
+   CALENDAR DAYS - which is the real fix here, because the old body subtracted
+   INSTANTS (`Date.now() - seasonS()`), and an instant difference divided by
+   604800000 is a day out of step with the phone's calendar-day floor across a
+   DST boundary. The phone's twin is `LeagueDates.week`. */
+function csWeekDays(a, b){ return Math.round((b - a) / 864e5); }   /* calendar days, both at local midnight */
+function csWeeksTotal(season){
+  if(season && Number(season.weeks_total) > 0) return Number(season.weeks_total);
   const s=seasonS(), e=seasonE();
-  return Math.max(1, Math.ceil((e-s)/(7*864e5)));
+  return Math.max(1, Math.ceil(csWeekDays(s, e) / 7));
 }
-function currentWeek(){
-  const w=Math.floor((Date.now()-seasonS())/(7*864e5))+1;
-  return Math.min(Math.max(1,w), totalWeeks());
+function csWeek(season, today){
+  if(season && Number(season.week_no) > 0) return Number(season.week_no);
+  const t = today || (()=>{ const d=new Date(); d.setHours(0,0,0,0); return d; })();
+  const w = Math.floor(csWeekDays(seasonS(), t) / 7) + 1;
+  return Math.min(Math.max(1, w), csWeeksTotal(season));
 }
+/* the day THIS week closes - the league's own weekday, never a hardcoded
+   Sunday (D213/M-17). `LeagueDates.weekEnds` is the phone's twin. */
+function csWeekEnds(season, today){
+  if(season && season.week_ends_on) return localDate(season.week_ends_on);
+  const s = state.seasonStart ? localDate(state.seasonStart) : null;
+  if(!s){ const d=new Date(today); d.setDate(d.getDate()+(7-d.getDay())%7); return d; }
+  const wk = Math.max(0, Math.floor(csWeekDays(s, today) / 7));
+  return new Date(s.getFullYear(), s.getMonth(), s.getDate() + wk*7 + 6);
+}
+/* `standings_snapshots.week_no` is 0-BASED (`snapshot_week`). Every surface
+   that shows one to a golfer RELABELS it; it is never recomputed, because the
+   snapshot's own number is the record of which window it captured. */
+function csSnapshotWeekLabel(n){ return Number(n) + 1; }
+/* Every existing call site keeps its name and reads the producer. */
+function totalWeeks(){ return csWeeksTotal(window.CS && CS.season); }
+function currentWeek(){ return csWeek(window.CS && CS.season); }
+window.csWeek = csWeek; window.csWeeksTotal = csWeeksTotal; window.csWeekEnds = csWeekEnds;
+window.csSnapshotWeekLabel = csSnapshotWeekLabel;
 /* D206 · the DB's own words for the season format. 'hybrid' survives ONLY so
    the two seeded legacy rows still render their own name; nothing new is ever
    written with it (`fmtKeyForLock`), and a read-back clamps to points unless
@@ -14905,7 +15205,7 @@ async function loadProfile(){
   /* photos arc 2 (D59): photo_path rides the select — retry without it on
      deploy skew (client ahead of the migration) */
   let q = await sb.from('profiles')
-    .select('id, display_name, city, home_course, index_current, marker, notify_chat, notify_rounds, handle, discoverable, ghin_number, created_at, photo_path')
+    .select('id, display_name, city, home_course, index_current, index_source, marker, notify_chat, notify_rounds, handle, discoverable, ghin_number, created_at, photo_path')
     .eq('id', CS.user.id).maybeSingle();
   if(q.error){
     /* ANY error retries the legacy shape — a sealed table's missing column
@@ -14913,7 +15213,7 @@ async function loadProfile(){
        (pilot, 2026-07-23), so error-message sniffing is not skew armor */
     try{ console.warn('[loadProfile] photo select failed, retrying legacy:', q.error.message||q.error); }catch(_){}
     q = await sb.from('profiles')
-      .select('id, display_name, city, home_course, index_current, marker, notify_chat, notify_rounds, handle, discoverable, ghin_number, created_at')
+      .select('id, display_name, city, home_course, index_current, index_source, marker, notify_chat, notify_rounds, handle, discoverable, ghin_number, created_at')
       .eq('id', CS.user.id).maybeSingle();
   }
   const data = q.data;
@@ -16886,8 +17186,12 @@ async function loadStandingsAndFeed(){
 
   /* season history: the weekly snapshots the cron spine records */
   if(CS.season){
+    /* A-4 · `captured_at` rides the read because a movement label carries its
+       own clock or it does not render. `prev_rank` is a SUNDAY snapshot (the
+       cron is '10 7 * * 0'), so a Tuesday climb used to read "held" and lie
+       about time. */
     const { data: snaps } = await sb.from('standings_snapshots')
-      .select('week_no, standings').eq('season_id', CS.season.id).order('week_no');
+      .select('week_no, captured_at, standings').eq('season_id', CS.season.id).order('week_no');
     window.seasonHistory = snaps || [];
     const d0 = new Date(CS.season.starts_on + 'T00:00:00');
     const d1 = new Date(CS.season.ends_on + 'T00:00:00');

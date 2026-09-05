@@ -21,6 +21,28 @@ public struct Me: Decodable, Sendable {
     public let rounds_count: Int?
     public let member_since: Date?
     public let is_founder: Bool?
+    /// v3 / D236 · MY last living round — the ME strip's `LAST` slot. Today
+    /// the phone hunts for its own row in `home_feed`, which carries the
+    /// CIRCLE's rounds and can page past mine. nil on a v2 payload, and the
+    /// slot then renders NOTHING rather than a guess (L-44).
+    public let last_round_on: String?
+    public let last_gross: Int?
+    /// v3 · so `LAST` has a door (the receipt) instead of a dead figure.
+    public let last_round_id: UUID?
+    /// v3 · for a RANKER only. It is never rendered: "N days since you played"
+    /// is the shame line L-22 forbids, and the strip prints the DATE.
+    public let days_since_round: Int?
+
+    public init(id: UUID, display_name: String?, handle: String?, marker: String?, city: String?, home_course: String?,
+                index_current: Double?, index_source: String?, photo_path: String?, rounds_count: Int?,
+                member_since: Date?, is_founder: Bool?, last_round_on: String? = nil, last_gross: Int? = nil,
+                last_round_id: UUID? = nil, days_since_round: Int? = nil) {
+      self.id = id; self.display_name = display_name; self.handle = handle; self.marker = marker; self.city = city
+      self.home_course = home_course; self.index_current = index_current; self.index_source = index_source
+      self.photo_path = photo_path; self.rounds_count = rounds_count; self.member_since = member_since
+      self.is_founder = is_founder; self.last_round_on = last_round_on; self.last_gross = last_gross
+      self.last_round_id = last_round_id; self.days_since_round = days_since_round
+    }
   }
 
   public struct Settings: Decodable, Sendable {
@@ -50,6 +72,32 @@ public struct Me: Decodable, Sendable {
     public let champion_member_id: UUID?
     public let points_king_member_id: UUID?
     public let tiebreak_rung: String?
+    /// v3 / D246 · THE week. Both clients read it and neither computes it;
+    /// `LeagueDates.currentWeek` survives only as this key's declared fallback
+    /// for a payload that predates the migration. Computed on the SEASON's own
+    /// calendar day, so a device in another timezone cannot disagree with it.
+    public let week_no: Int?
+    public let weeks_total: Int?
+    /// The day THIS week closes — the league's own weekday, never a Sunday.
+    public let week_ends_on: String?
+    /// nil once the season has started, so nobody prints "0 days to first tee".
+    public let days_to_first_tee: Int?
+    public let days_left: Int?
+    /// `ends_on − 27` on a cup_final season; nil on a points-table season,
+    /// which has no Final to open.
+    public let final_opens_on: String?
+
+    public init(id: UUID, number: Int?, starts_on: String, ends_on: String, status: String, timezone: String?,
+                grace_hours: Int?, champion_squad_id: UUID?, champion_member_id: UUID?, points_king_member_id: UUID?,
+                tiebreak_rung: String?, week_no: Int? = nil, weeks_total: Int? = nil, week_ends_on: String? = nil,
+                days_to_first_tee: Int? = nil, days_left: Int? = nil, final_opens_on: String? = nil) {
+      self.id = id; self.number = number; self.starts_on = starts_on; self.ends_on = ends_on; self.status = status
+      self.timezone = timezone; self.grace_hours = grace_hours; self.champion_squad_id = champion_squad_id
+      self.champion_member_id = champion_member_id; self.points_king_member_id = points_king_member_id
+      self.tiebreak_rung = tiebreak_rung; self.week_no = week_no; self.weeks_total = weeks_total
+      self.week_ends_on = week_ends_on; self.days_to_first_tee = days_to_first_tee; self.days_left = days_left
+      self.final_opens_on = final_opens_on
+    }
   }
 
   public struct Squad: Decodable, Sendable {
@@ -84,14 +132,29 @@ public struct Me: Decodable, Sendable {
     /// v2 · the finalists' names in seed order, the board's form. nil outside
     /// the Final and on a v1 payload.
     public let finalists: [String]?
+    /// v3 · one row of the table, by name and by points.
+    public struct Neighbour: Decodable, Sendable, Equatable {
+      public let name: String?
+      public let points: Double?
+      public init(name: String?, points: Double?) { self.name = name; self.points = points }
+    }
+    /// v3 · the row directly ABOVE mine, and the one directly below. nil at
+    /// the ends of the table and on a v2 payload. **A gap is always attached
+    /// to a name** (A-5) — v2 named the leader and rank 2 only, so a golfer at
+    /// rank ≥ 3 was told a number with nobody on the end of it; without these
+    /// the gap clause does not render at all.
+    public let next_up: Neighbour?
+    public let next_down: Neighbour?
 
     public init(rank: Int, of: Int, points: Double?, prev_rank: Int?, leader_squad_id: UUID?, leader_points: Double?,
                 gap_to_leader: Double?, gap_to_next: Double?, leader_name: String? = nil, runner_up_name: String? = nil,
-                runner_up_points: Double? = nil, seed: Int? = nil, finalists: [String]? = nil) {
+                runner_up_points: Double? = nil, seed: Int? = nil, finalists: [String]? = nil,
+                next_up: Neighbour? = nil, next_down: Neighbour? = nil) {
       self.rank = rank; self.of = of; self.points = points; self.prev_rank = prev_rank; self.leader_squad_id = leader_squad_id
       self.leader_points = leader_points; self.gap_to_leader = gap_to_leader; self.gap_to_next = gap_to_next
       self.seed = seed; self.finalists = finalists
       self.leader_name = leader_name; self.runner_up_name = runner_up_name; self.runner_up_points = runner_up_points
+      self.next_up = next_up; self.next_down = next_down
     }
   }
 
@@ -155,16 +218,60 @@ public struct Me: Decodable, Sendable {
     /// print. The count a Home line SHOWS; `roster` is the count a rule GATES
     /// on. nil on a v1 payload.
     public let members: Int?
+    /// v3 / D226 · the Pro's FIRST name, in the board's own form. The Pro is a
+    /// golfer with a job, not a role a screen is addressed to.
+    public let pro_name: String?
+    /// v3 · the most recent COMPLETE season of this league that is not the
+    /// current one — what a golfer between seasons has to look at. `my_rank`
+    /// and `of` are solo-only; a squads member's own rank is not a number this
+    /// payload has, and it is nil rather than guessed.
+    public struct LastSeason: Decodable, Sendable, Equatable {
+      public let number: Int?
+      public let ended_on: String?
+      public let champion_name: String?
+      public let my_rank: Int?
+      public let of: Int?
+      public init(number: Int? = nil, ended_on: String? = nil, champion_name: String? = nil,
+                  my_rank: Int? = nil, of: Int? = nil) {
+        self.number = number; self.ended_on = ended_on; self.champion_name = champion_name
+        self.my_rank = my_rank; self.of = of
+      }
+    }
+    public let last_season: LastSeason?
+    /// v3 · `home_clash(league_id)`, inlined so Home stops making a second RPC
+    /// per league for a fact that belongs to this payload. nil unless I am in
+    /// this week's open clash — the function's own rule, unchanged.
+    public struct Clash: Decodable, Sendable, Equatable {
+      public struct Side: Decodable, Sendable, Equatable {
+        public let round_id: UUID?
+        public let played_on: String?
+        public let points: Double?
+        public let pvi: Double?
+        public let gross: Int?
+      }
+      public let week_no: Int?
+      public let ends_on: String?
+      public let days_left: Int?
+      public let closes_today: Bool?
+      public let them_name: String?
+      public let them_marker: String?
+      public let mine: Side?
+      public let theirs: Side?
+      public let rivalry: String?
+    }
+    public let clash: Clash?
     public var id: UUID { league_id }
     public var isPro: Bool { role == "commissioner" }
 
     public init(league_id: UUID, name: String, code: String?, phase: String, sandbox: Bool?, role: String, member_id: UUID, marker: String?,
                 commissioner_name: String?, settings: Settings?, season: Season?, squad: Squad?, standing: Standing?, pulse: Pulse?,
-                buy_in: BuyIn? = nil, roster: Int? = nil, members: Int? = nil) {
+                buy_in: BuyIn? = nil, roster: Int? = nil, members: Int? = nil,
+                pro_name: String? = nil, last_season: LastSeason? = nil, clash: Clash? = nil) {
       self.league_id = league_id; self.name = name; self.code = code; self.phase = phase; self.sandbox = sandbox; self.role = role
       self.member_id = member_id; self.marker = marker; self.commissioner_name = commissioner_name; self.settings = settings
       self.season = season; self.squad = squad; self.standing = standing; self.pulse = pulse; self.buy_in = buy_in
       self.roster = roster; self.members = members
+      self.pro_name = pro_name; self.last_season = last_season; self.clash = clash
     }
 
     /// The stake in cents — 0 for a bragging-rights league (D70).
@@ -250,6 +357,17 @@ public struct Me: Decodable, Sendable {
 
   /// The forced-update gate (`app_flags.ios.min_build`, IOS-009).
   public var minIOSBuild: Int? { flags?["ios"]?["min_build"]?.int }
+
+  /// `upcoming_rounds` as the tee-sheet rows it already is — the payload
+  /// carries `my_schedule(today, today+14)` verbatim (`native_home`), so the
+  /// ME strip's NEXT slot reads the plan out of the payload it already has
+  /// instead of firing a second call for it. An undecodable row is dropped,
+  /// never guessed at.
+  public var upcoming: [ScheduledRound] {
+    guard !upcoming_rounds.isEmpty,
+          let data = try? JSONEncoder().encode(upcoming_rounds) else { return [] }
+    return (try? JSONDecoder().decode([ScheduledRound].self, from: data)) ?? []
+  }
 }
 
 // MARK: - Derived season phase (IOS-002 §3)
@@ -273,12 +391,13 @@ public enum SeasonPhase: Sendable, Equatable {
     guard m.phase == "season" else { return .forming }
     guard let sinceStart = CSDate.days(from: s.starts_on, to: today) else { return .forming }
     if sinceStart < 0 { return .preseason }
-    // ONE week producer (D213 / §14.0 v1.1): the season runs N whole weeks and
-    // ends on the same weekday N weeks out, so N = (ends_on − starts_on) / 7 —
-    // `LeagueDates.totalWeeks`, the Clubhouse's number. Home once added a day
-    // before dividing and said "week 5 of 14" over a Clubhouse saying 13.
-    return .season(week: LeagueDates.currentWeek(start: s.starts_on, end: s.ends_on, today: today),
-                   of: LeagueDates.totalWeeks(start: s.starts_on, end: s.ends_on))
+    // ONE week producer (D213 / §14.0 v1.1, executed by D246): the season's
+    // own `week_no` and `weeks_total`, computed once on the server on the
+    // SEASON's calendar day. `LeagueDates.week`/`weeksTotal` read them and fall
+    // back to the local formula only for a payload that predates v3 — which is
+    // the one place either client is still allowed to count weeks.
+    return .season(week: LeagueDates.week(s, today: today),
+                   of: LeagueDates.weeksTotal(s))
   }
 }
 

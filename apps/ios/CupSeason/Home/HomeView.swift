@@ -71,7 +71,17 @@ struct HomeView: View {
             HomeLeadCard(lead: lead) { take(lead, league: vm.leadLeague) }
           }
 
-          HomeHero(mode: mode, me: me, push: push)
+          // D236 / IOS-029a · THE ME STRIP. Four mono facts that are about ME
+          // and one season context row, above everything that is about the
+          // league. It publishes `suppress` — the facts it has spent — and
+          // everything below drops them, so the same fact can no longer render
+          // three times on one screen (L-34). This is 1a: the strip lands ON
+          // today's `HomeMode` Home, which is still here; 1b replaces what is
+          // under it. There is no window in which Home has no renderer.
+          let strip = MeStripCopy.make(me)
+          MeStrip(strip: strip, state: stateKey(mode), push: push)
+
+          HomeHero(mode: mode, me: me, suppress: strip.suppress, push: push)
             .environment(\.csLook, looks.look(for: mode.membership))
 
           // D121 · one quiet row per OTHER league. A tap re-renders Home —
@@ -93,7 +103,10 @@ struct HomeView: View {
                          })
           }
 
-          UpNextChips(leagueId: mode.membership?.league_id, links: links, go: { go in
+          // L-34 · the strip owns NEXT, so the "Next round" chip stands down.
+          // HM-35 was the live door offered twice on one screen; this is the
+          // same defect one slot over.
+          UpNextChips(leagueId: mode.membership?.league_id, links: links, suppress: strip.suppress, go: { go in
             switch go {
             case .round(let id):  presenter.scheduledRound = id
             case .calendar:       push(.schedule)
@@ -131,6 +144,12 @@ struct HomeView: View {
           }
 
           UpcomingRoundsSection(links: links, model: upcoming)
+
+          // The floor (L-32, D94 restored): four live doors on every Home, in
+          // every state including brand-new, offline and failed. The `+` menu
+          // above still carries three of them and is retired in 1b, when Home
+          // itself is rebuilt around this order.
+          HomeFootDoors(push: push)
         }
         .padding(.horizontal, 20).padding(.top, 4).padding(.bottom, 32)
       }
@@ -154,6 +173,21 @@ struct HomeView: View {
     .task(id: loadKey) { await vm.load(me: store.me, key: loadKey) }
     .navigationTitle("")
     .toolbar(.hidden, for: .navigationBar)
+  }
+
+  /// D234 · which Home this is, for `home_state_seen`. Today's state machine
+  /// is `HomeMode` plus the leagueless rung, and that is what this screen
+  /// actually renders; Wave 1b's ranker replaces it with the state matrix's
+  /// own letter. It carries no name, no handle and no id.
+  private func stateKey(_ mode: HomeMode) -> String {
+    switch mode {
+    case .leagueless(let rung): "leagueless_\(rung)"
+    case .forming:              "forming"
+    case .preseason:            "preseason"
+    case .season:               "season"
+    case .cupFinal:             "cup_final"
+    case .wrapped:              "wrapped"
+    }
   }
 
   /// D176 · the lead card's one action. Each face leads exactly one place, and
@@ -809,6 +843,10 @@ struct HomeHero: View {
   @Environment(\.csLookAccent) private var la
   let mode: HomeMode
   let me: Me
+  /// L-34 · the facts the ME strip has already spent. The hero drops anything
+  /// in it rather than saying the same thing a second time on one screen —
+  /// D129's owe line moved UP into the strip, it did not get duplicated.
+  var suppress: Set<MeStripCopy.Fact> = []
   /// Home's push. The hero and its owe line are the only two doors in it.
   var push: (HomeRoute) -> Void = { _ in }
 
@@ -1005,9 +1043,12 @@ struct HomeHero: View {
     return [HomeHeroCopy.footRule(m), HomeHeroCopy.footEndgame(m), HomeHeroCopy.footMoney(m, stillOwe: true)].compactMap { $0 }
   }
 
-  /// D129 / D23 · "You still owe $75 · …" — self-only, unpaid only.
+  /// D129 / D23 · "You still owe $75 · …" — self-only, unpaid only, and only
+  /// while the ME strip is not already carrying it. The strip's slot fires on
+  /// the same predicate (`buy_in.paid == false` at a live stake), so the two
+  /// can never both be right and both be shown.
   private var owe: String? {
-    guard let m = mode.membership else { return nil }
+    guard !suppress.contains(.myMoney), let m = mode.membership else { return nil }
     if case .wrapped = mode { return nil }
     return HomeHeroCopy.owe(m)
   }

@@ -474,6 +474,78 @@
     window.watchAll = was;
   })();
 
+  /* ============ D246 - ONE week producer ============
+     Six formulas across two clients with two different bases; the same season
+     could be week 7 here and week 6 on the phone. `csWeek` reads
+     `native_home.season.week_no` where a payload carries it and otherwise runs
+     the SAME arithmetic the migration moved server-side, on CALENDAR days -
+     the old body divided an INSTANT difference, which is a day out across a
+     DST boundary. The phone's twin is `LeagueDates.week`. */
+  (function(){
+    const wasStart = state.seasonStart, wasEnd = state.seasonEnd;
+    state.seasonStart = '2026-07-05'; state.seasonEnd = '2027-01-03';
+    const d = iso => localDate(iso);
+
+    t('D246: the server’s week is the week', csWeek({ week_no: 9, weeks_total: 26 }, d('2026-01-01')), 9);
+    t('D246: the server’s total is the total', csWeeksTotal({ weeks_total: 26 }), 26);
+    t('D246: no payload falls back to the ruled formula', csWeek(null, d('2026-09-08')), 10);
+    t('D246: week 1 is the first tee', csWeek(null, d('2026-07-05')), 1);
+    t('D246: day six is still week 1', csWeek(null, d('2026-07-11')), 1);
+    t('D246: day seven is week 2', csWeek(null, d('2026-07-12')), 2);
+    t('D246: before the first tee clamps to week 1', csWeek(null, d('2026-06-01')), 1);
+    t('D246: past the end clamps to the total', csWeek(null, d('2027-06-01')), csWeeksTotal(null));
+    t('D246: a zero week is unset, not week zero', csWeek({ week_no: 0 }, d('2026-09-08')) > 0, true);
+    /* the week closes on the league's OWN weekday - the season tees off on a
+       Sunday, so its weeks close on Saturdays, never on a hardcoded Sunday */
+    t('D246: the week closes on the league’s own weekday',
+      isoOf(csWeekEnds(null, d('2026-09-08'))), '2026-09-12');
+    t('D246: the server’s close wins',
+      isoOf(csWeekEnds({ week_ends_on: '2026-09-13' }, d('2026-09-08'))), '2026-09-13');
+    /* `standings_snapshots.week_no` is 0-BASED and is RELABELLED, never recomputed */
+    t('D246: snapshot week 0 is week 1', csSnapshotWeekLabel(0), 1);
+    t('D246: snapshot week 8 is week 9', csSnapshotWeekLabel(8), 9);
+    state.seasonStart = wasStart; state.seasonEnd = wasEnd;
+  })();
+
+  /* ============ A-4 - a movement label carries its own clock ============
+     `prev_rank` is a SUNDAY snapshot (cron '10 7 * * 0'), so a Tuesday climb
+     read "held" and erased the only movement of the week. A bare arrow is now
+     unwritable: the label names the day it is measured FROM, or it does not
+     render at all. */
+  (function(){
+    const sun = '2026-09-06T07:10:00Z';   /* the snapshot's own captured_at */
+    t('A-4: no clock, no label', csMovement(1, null), null);
+    t('A-4: no delta, no label', csMovement(null, sun), null);
+    t('A-4: an unparseable clock is no clock', csMovement(1, 'not-a-date'), null);
+    t('A-4: up one names the day it is measured from', csMovement(1, sun).long, 'up one since Sun');
+    t('A-4: the visible label carries the clock too', /SINCE/.test(csMovement(1, sun).text), true);
+    t('A-4: down two says down two', csMovement(-2, sun).long, 'down two since Sun');
+    t('A-4: held says since when', csMovement(0, sun).long, 'held since Sun');
+    t('A-4: held is never a bare dash', csMovement(0, sun).text, 'HELD SINCE SUN');
+    /* D76's heat survives: climbing runs warm, climbing 2+ hot, falling cools */
+    t('A-4: D76 heat is kept', [csMovement(1,sun).tone, csMovement(2,sun).tone, csMovement(-1,sun).tone, csMovement(0,sun).tone],
+      ['up','up2','dn','fl']);
+  })();
+
+  /* ============ D236 - the ME strip's tokens ============
+     Produced once and rendered twice: these are the web halves of
+     `MeStripCopy.dayToken` and `.teeText`, and the phone's `MeStripTests`
+     assert the same answers. */
+  (function(){
+    const day = n => { const d=new Date(); d.setHours(0,0,0,0); d.setDate(d.getDate()+n);
+      return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; };
+    const DOWU = ['SUN','MON','TUE','WED','THU','FRI','SAT'];
+    const wd = n => { const d=new Date(); d.setHours(0,0,0,0); d.setDate(d.getDate()+n); return DOWU[d.getDay()]; };
+    t('D236: today is TODAY', csDayToken(day(0)), 'TODAY');
+    t('D236: inside a week is a weekday', csDayToken(day(4)), wd(4));
+    t('D236: a recent round is a weekday', csDayToken(day(-3)), wd(-3));
+    t('D236: past a week it is the date', /^[A-Z]{3} \d{1,2}$/.test(csDayToken(day(30))), true);
+    t('D236: a tee time prints as the plan holds it', csTeeText('07:10:00'), '7:10');
+    t('D236: an afternoon tee', csTeeText('14:05:00'), '14:05');
+    t('D236: no tee time, no guess', csTeeText(null), null);
+    t('D236: a junk tee time is not a tee time', csTeeText('later'), null);
+  })();
+
   const fails = R.filter(r => !r.ok);
   console.log(`\n${fails.length ? 'FAIL' : 'PASS'} — ${R.length} tests, ${fails.length} failure(s)`);
   return { total: R.length, failures: fails.map(f => f.name) };

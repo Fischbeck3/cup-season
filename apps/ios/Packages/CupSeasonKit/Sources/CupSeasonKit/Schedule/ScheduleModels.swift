@@ -374,8 +374,13 @@ public struct UpChip: Sendable, Equatable, Identifiable {
 public enum UpNext {
   /// `watch` = the 14-day window (`watchAll`); falls back to the month's
   /// schedule when empty, as `upcomingFromSchedule` does.
+  /// `suppress` is L-34 as a producer rule: a fact the ME strip has already
+  /// spent is not said again on the same screen. The strip owns NEXT, so the
+  /// "Next round" chip stands down when it is on — HM-35 was the live door
+  /// offered twice on one screen, and this is the same defect one slot over.
   public static func chips(watch: [ScheduledRound], schedule: [ScheduledRound] = [], invites: Int, requests: Int,
-                           hasMemberships: Bool, today: String = CSDate.today()) -> [UpChip] {
+                           hasMemberships: Bool, today: String = CSDate.today(),
+                           suppress: Set<MeStripCopy.Fact> = []) -> [UpChip] {
     var chips: [UpChip] = []
     let src = watch.isEmpty ? schedule : watch
     // Next round — YOURS, or booked WITH you (9630; the Home hard-look). A
@@ -388,7 +393,7 @@ public enum UpNext {
     // `tagged_me` / `my_rsvp`) — a web task, logged under D219.
     let mine = src.filter { ($0.mine != false || $0.tagged_me == true) && $0.my_rsvp != "out" && ($0.play_on ?? "") >= today && $0.play_on != nil }
       .sorted { ($0.play_on ?? "") < ($1.play_on ?? "") }
-    if let up = mine.first, let p = up.play_on {
+    if !suppress.contains(.myNextRound), let up = mine.first, let p = up.play_on {
       let v = up.withYouChip ?? "\(up.course_label ?? "Declared round") · \(ScheduleDates.whenIn(p, today: today).lowercased())"
       chips.append(UpChip("Next round", v, up.id.map(UpChip.Go.round) ?? .calendar))
     }

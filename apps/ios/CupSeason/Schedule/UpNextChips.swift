@@ -12,12 +12,15 @@ struct UpNextChips: View {
   @State private var vm = UpNextModel()
   let leagueId: UUID?
   let links: CSLinks
+  /// L-34 · the facts the ME strip has already spent (D236).
+  let suppress: Set<MeStripCopy.Fact>
   /// D176 · where a tapped chip goes. Home owns the routing; this view only
   /// says which door was knocked on.
   var go: (UpChip.Go) -> Void = { _ in }
 
-  init(leagueId: UUID? = nil, links: CSLinks = CSLinks(), go: @escaping (UpChip.Go) -> Void = { _ in }) {
-    self.leagueId = leagueId; self.links = links; self.go = go
+  init(leagueId: UUID? = nil, links: CSLinks = CSLinks(), suppress: Set<MeStripCopy.Fact> = [],
+       go: @escaping (UpChip.Go) -> Void = { _ in }) {
+    self.leagueId = leagueId; self.links = links; self.suppress = suppress; self.go = go
   }
 
   var body: some View {
@@ -40,7 +43,7 @@ struct UpNextChips: View {
       }
     }
     .task(id: store.me?.memberships.count) {
-      await vm.load(hasMemberships: leagueId != nil || !(store.me?.memberships.isEmpty ?? true))
+      await vm.load(hasMemberships: leagueId != nil || !(store.me?.memberships.isEmpty ?? true), suppress: suppress)
     }
   }
 
@@ -85,14 +88,15 @@ final class UpNextModel {
   private let sched = ScheduleService()
   private let people = PeopleService()
 
-  func load(hasMemberships: Bool) async {
+  func load(hasMemberships: Bool, suppress: Set<MeStripCopy.Fact> = []) async {
     async let w = sched.watch()
     async let i = people.invites()
     async let f = people.friends()
     let watch = (try? await w) ?? []
     let invites = (try? await i)?.count ?? 0
     let requests = (try? await f)?.requests.count ?? 0
-    chips = UpNext.chips(watch: watch, invites: invites, requests: requests, hasMemberships: hasMemberships)
+    chips = UpNext.chips(watch: watch, invites: invites, requests: requests, hasMemberships: hasMemberships,
+                         suppress: suppress)
   }
 }
 
