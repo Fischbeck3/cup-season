@@ -50,6 +50,25 @@ private func team(_ id: UUID, _ name: String, _ pts: Double, ci: Int = 0) -> Tea
     #expect(StandingsMath.move(prior: nil, now: 0) == nil)
     #expect(RankMove.up(2).label == "▲2" && RankMove.down(1).title == "down 1 this week" && RankMove.held.label == "–")
   }
+
+  /// A-4 · the label carries its own clock, or it does not render. The same
+  /// eight answers `tests/app-tests.js` holds `csMovement` to, so the two
+  /// clients cannot describe one Sunday two ways.
+  @Test func movementCarriesItsClock() {
+    let sun = "2026-08-30T07:10:00.228+00:00"   // a Sunday
+    #expect(StandingsMath.movement(delta: 1, since: nil) == nil)
+    #expect(StandingsMath.movement(delta: nil, since: sun) == nil)
+    #expect(StandingsMath.movement(delta: 1, since: "not-a-date") == nil)
+    #expect(StandingsMath.movement(delta: 1, since: sun)?.long == "up one since Sun")
+    #expect(StandingsMath.movement(delta: 1, since: sun)?.text == "▲1 SINCE SUN")
+    #expect(StandingsMath.movement(delta: -2, since: sun)?.long == "down two since Sun")
+    #expect(StandingsMath.movement(delta: 0, since: sun)?.text == "HELD SINCE SUN")
+    // D76's heat, kept
+    #expect([StandingsMath.movement(delta: 1, since: sun)?.tone,
+             StandingsMath.movement(delta: 2, since: sun)?.tone,
+             StandingsMath.movement(delta: -1, since: sun)?.tone,
+             StandingsMath.movement(delta: 0, since: sun)?.tone] == [.up, .up2, .down, .held])
+  }
   @Test func seriesIsSnapshotsThenNow() {
     let teams = [team(a, "A", 30), team(b, "B", 18)]
     let s = StandingsMath.series(teams: teams, snapshots: [snap(1, [(a, 10), (b, 12)]), snap(2, [(a, 20), (b, 15)])], weeks: 18, solo: false)

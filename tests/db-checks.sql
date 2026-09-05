@@ -601,5 +601,21 @@ from (
     ), ''), '') as bad
 ) t
 
+-- 25 · D244 · leaving a season is FORWARD-ONLY, and the only thing that can
+--     enforce that is the scoring lens. `leave_season` writes `left_at` and
+--     touches no round; if the view ever stops honouring the column, every
+--     leaver's past rounds vanish from everyone else's standings — the exact
+--     thing §16 forbids, and it would happen silently.
+union all
+select '25 · a leaver stops scoring forward-only',
+  case when to_regclass('public.v_rounds_ranked') is null then 'FAIL — the scoring lens is gone'
+       when not exists (select 1 from information_schema.columns
+                         where table_schema = 'public' and table_name = 'league_members'
+                           and column_name = 'left_at') then 'PASS — leave_season not deployed yet'
+       when pg_get_viewdef('public.v_rounds_ranked'::regclass, true) not like '%left_at%'
+         then 'FAIL — v_rounds_ranked does not honour left_at; a leaver''s past rounds are at risk'
+       else 'PASS — the forward-only cut is in the lens, beside the suspension''s' end,
+  'r.created_at < lm.left_at'
+
 )
 select * from checks order by check_name;

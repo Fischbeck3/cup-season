@@ -1,4 +1,4 @@
-// Cup Season — previews for the league room, on the smallest honest sample:
+// Cup Season — previews for the season page, on the smallest honest sample:
 // two squads, two golfers, a live week. Nothing here reaches the network.
 
 import SwiftUI
@@ -38,23 +38,31 @@ enum LeagueRoomSample {
   }
 
   static let links = LeagueRoomLinks(openBoard: {}, openSchedule: {}, openWizard: {}, openDraft: {}, openReceipt: { _ in }, openTourCard: { _ in }, addGolfers: {},
-                                     openRecord: {}, runItBack: {})
+                                     openAlbum: {}, openRecord: {}, runItBack: {})
 }
 
-#Preview("Standings · live week") {
+#Preview("The table · live week") {
   ScrollView {
-    VStack(alignment: .leading, spacing: 14) { LeagueHeaderCard(loading: false); StandingsPane() }.padding(20)
+    VStack(alignment: .leading, spacing: 14) {
+      SeasonDateline(loading: false)
+      SeasonStoryLead(model: LeagueRoomSample.model())
+      StandingsTableView()
+      SeasonEndgameFoot()
+      SeasonDoors()
+    }
+    .padding(20)
   }
   .environment(LeagueRoomSample.model()).environment(RoomRouter()).environment(\.roomLinks, LeagueRoomSample.links)
   .csTheme()
 }
 
-/// IOS-022 item 9: the season strip wraps two by two and the tab strip scrolls — nothing clips.
-#Preview("Standings · accessibility3") {
+/// IOS-022 item 9: nothing clips at the accessibility sizes.
+#Preview("The table · accessibility3") {
   ScrollView {
     VStack(alignment: .leading, spacing: 14) {
-      CSTabStrip(RoomPane.allCases.map { ($0, $0.rawValue) }, selection: .constant(.standings))
-      StandingsPane()
+      SeasonDateline(loading: false)
+      StandingsTableView()
+      SeasonEndgameFoot()
     }
     .padding(20)
   }
@@ -69,15 +77,15 @@ enum LeagueRoomSample {
     .csTheme()
 }
 
-#Preview("League · rules open") {
-  ScrollView { LeaguePane().padding(20) }
+#Preview("The Pro's verbs") {
+  ScrollView { ProVerbRow().padding(20) }
     .environment(LeagueRoomSample.model()).environment(RoomRouter()).environment(\.roomLinks, LeagueRoomSample.links)
     .csTheme()
 }
 
 #Preview("Wrapped · gold hero") {
   ScrollView {
-    VStack(alignment: .leading, spacing: 14) { LeagueHeaderCard(loading: false); StandingsPane() }.padding(20)
+    VStack(alignment: .leading, spacing: 14) { SeasonDateline(loading: false); SeasonWrappedHero(); StandingsTableView() }.padding(20)
   }
   .environment(LeagueRoomSample.model(status: "complete", today: "2026-10-01")).environment(RoomRouter()).environment(\.roomLinks, LeagueRoomSample.links)
   .csTheme()

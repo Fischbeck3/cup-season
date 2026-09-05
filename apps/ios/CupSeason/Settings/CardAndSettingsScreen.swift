@@ -631,10 +631,10 @@ private struct SettingsLeaguelessDoors: View {
 
   var body: some View {
     LeaguelessDoors(links: WizardLinks(
-      onLocked: { id in Task { await store.reload() }; openCompetition(id, .standings) },
+      onLocked: { id in Task { await store.reload() }; openCompetition(id, .table) },
       onCancelled: { Task { await store.reload() } },
       startEvent: { presenter.showEventPicker = true },
-      onJoined: { id in PushAsk.shared.request(.leagueJoined); Task { await store.reload() }; openCompetition(id, .standings) }))
+      onJoined: { id in PushAsk.shared.request(.leagueJoined); Task { await store.reload() }; openCompetition(id, .table) }))
   }
 }
 

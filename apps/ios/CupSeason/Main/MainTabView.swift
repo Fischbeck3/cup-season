@@ -94,12 +94,12 @@ enum CSDevHatch {
 /// open league to push into (D229).
 enum HomeRoute: Hashable { case schedule }
 
-/// Compete's own stack. `.season` lands on the pane a door asked for — D218's
-/// rule survives restated: a door named for a table opens a table, so "See the
-/// table →" anchors `.standings` and the hero's own door opens the room. The
-/// pane is `RoomPane` today and becomes the season page's `Pane` in wave 4
-/// (D223 / IOS-031), which changes the LANDING and not this enum's callers.
-enum CompeteRoute: Hashable { case season(UUID, pane: RoomPane), board(UUID), schedule, album(UUID) }
+/// Compete's own stack. `.season` lands on the section a door asked for —
+/// D218's rule survives restated: a door named for a table opens a table, so
+/// "See the table →" anchors `.table` and the hero's own door opens the page
+/// at its head. D223 changed the LANDING (the season page replaces the room)
+/// and not one caller of this enum.
+enum CompeteRoute: Hashable { case season(UUID, pane: SeasonPane), board(UUID), schedule, album(UUID) }
 
 /// `.addGhin` is Card & settings opened on the card pane with the GHIN field
 /// focused (Y-30) — the You hero's "add your GHIN" lands on the field, not the screen.
@@ -112,9 +112,9 @@ enum YouRoute: Hashable { case settings, addGhin }
 /// so previews and slices compile without the shell.
 ///
 ///     @Environment(\.openCompetition) private var openCompetition
-///     openCompetition(id, .standings)
+///     openCompetition(id, .table)
 private struct OpenCompetitionKey: EnvironmentKey {
-  static let defaultValue: @MainActor @Sendable (UUID, RoomPane) -> Void = { _, _ in }
+  static let defaultValue: @MainActor @Sendable (UUID, SeasonPane) -> Void = { _, _ in }
 }
 /// The second cross-tab door: Golfers, from Home's wire, from You's hero and
 /// from every "Find golfers" in the app. It replaces the `HomeRoute.people`
@@ -124,7 +124,7 @@ private struct OpenGolfersKey: EnvironmentKey {
   static let defaultValue: @MainActor @Sendable () -> Void = {}
 }
 extension EnvironmentValues {
-  var openCompetition: @MainActor @Sendable (UUID, RoomPane) -> Void {
+  var openCompetition: @MainActor @Sendable (UUID, SeasonPane) -> Void {
     get { self[OpenCompetitionKey.self] }
     set { self[OpenCompetitionKey.self] = newValue }
   }
@@ -314,7 +314,18 @@ struct MainTabView: View {
       switch a[i + 1] {
       case "compete", "clubhouse": tab = .compete
       case "you": tab = .you
-      case "board": tab = .compete; if let l = store.preferredLeague { competePath.append(CompeteRoute.board(l)) }
+      case "board": tab = .compete; if let l = store.preferredLeague { openCompetition(l, pane: .board) }
+      // D223 · the season page and its two pushed pages. A screenshot of the
+      // page a wave rebuilt is not optional, and the page opens from a row.
+      case "season": tab = .compete; if let l = store.preferredLeague { openCompetition(l, pane: .table) }
+      case "pot":    tab = .compete; if let l = store.preferredLeague { openCompetition(l, pane: .pot) }
+      case "story", "rules":
+        tab = .compete
+        if let l = store.preferredLeague {
+          openCompetition(l, pane: .table)
+          try? await Task.sleep(for: .milliseconds(1200))
+          competePath.append(a[i + 1] == "story" ? SeasonSubRoute.story(l) : SeasonSubRoute.rules(l))
+        }
       case "schedule": tab = .compete; competePath.append(CompeteRoute.schedule)
       case "settings": tab = .you; youPath.append(YouRoute.settings)
       case "golfers", "people": tab = .golfers; golfersPath = NavigationPath()
@@ -509,10 +520,20 @@ struct MainTabView: View {
   /// `preferredLeague` is written as NAVIGATION MEMORY and nothing else (D229):
   /// it decides which season Compete shows on arrival with no deeper intent,
   /// and no read on any other screen depends on it.
-  private func openCompetition(_ id: UUID, pane: RoomPane = .standings) {
+  private func openCompetition(_ id: UUID, pane: SeasonPane = .table) {
     store.preferredLeague = id
     competePath = NavigationPath()
     competePath.append(CompeteRoute.season(id, pane: pane))
+    // D230 · a door named for the board, the schedule or the album opens THAT
+    // surface — with the season page underneath it, so back lands on the
+    // season rather than on the tab root. A section on the page (the story,
+    // the table, the pot) is a scroll, not a push, and the page does it.
+    switch pane {
+    case .board:    competePath.append(CompeteRoute.board(id))
+    case .album:    competePath.append(CompeteRoute.album(id))
+    case .schedule: competePath.append(CompeteRoute.schedule)
+    default: break
+    }
     tab = .compete
   }
 
@@ -523,20 +544,35 @@ struct MainTabView: View {
     tab = .golfers
   }
 
-  /// Compete's pushed destinations. `.season` is `LeagueRoomScreen` inside
-  /// `ClubhouseView` today; wave 4 (D223 / IOS-031) swaps the landing for the
-  /// season page and every caller here is unchanged by that.
+  /// Compete's pushed destinations. D223 / IOS-031: `.season` is the SEASON
+  /// PAGE — the league room and its six segments are gone, and every caller
+  /// here was unchanged by that, which is what D230 was written to guarantee.
   @ViewBuilder private func competeDestination(_ r: CompeteRoute) -> some View {
     switch r {
     case .season(let id, let pane):
-      ClubhouseView(leagueId: id, pane: pane,
-                    onOpenBoard: { competePath.append(CompeteRoute.board($0)) },
-                    onOpenSchedule: { competePath.append(CompeteRoute.schedule) },
-                    onAddGolfers: { presenter.inviteTo = $0 })
+      SeasonPage(leagueId: id, links: seasonLinks(id), pane: pane)
     case .board(let id): BoardScreen(leagueId: id, links: boardLinks)
     case .schedule: ScheduleScreen(links: csLinks)
     case .album(let id): AlbumScreen(leagueId: id)
     }
+  }
+
+  /// The season page's doors into the other slices. They were built inside
+  /// `ClubhouseView`, which retired with the room; the shell owns them now,
+  /// which is also what lets a door push ON TOP of the page (D230).
+  private func seasonLinks(_ id: UUID) -> LeagueRoomLinks {
+    LeagueRoomLinks(
+      openBoard: { competePath.append(CompeteRoute.board(id)) },
+      openSchedule: { competePath.append(CompeteRoute.schedule) },
+      openWizard: { presenter.wizard = .init(existingLeagueId: id) },
+      openDraft: { presenter.draft = id },
+      openReceipt: { presenter.receipt = $0 },
+      openTourCard: { presenter.tourCard = $0 },
+      addGolfers: { presenter.inviteTo = id },
+      openAlbum: { competePath.append(CompeteRoute.album(id)) },
+      openRecord: { presenter.postOnComposer = false; presenter.showPost = true },
+      runItBack: { presenter.runBack = id },
+      leagueGone: { competePath = NavigationPath(); Task { await store.reload() } })
   }
 
   private var liveLinks: LiveLinks {

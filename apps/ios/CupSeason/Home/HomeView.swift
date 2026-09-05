@@ -194,9 +194,9 @@ struct HomeView: View {
     case .plan(let id):        presenter.scheduledRound = id
     // D222 · `HomeRoute.league` / `.pot` are gone; a season is Compete's object
     // and the pane is the one the door was named for (D218).
-    case .season(let id, let pane): openCompetition(id, RoomPane.named(pane))
+    case .season(let id, let pane): openCompetition(id, SeasonPane.named(pane))
     case .pot(let id):         openCompetition(id, .pot)
-    case .invite(let id, _):   openCompetition(id, .standings)
+    case .invite(let id, _):   openCompetition(id, .table)
     case .none:                break
     }
   }

@@ -80,6 +80,10 @@ public final class LeagueRoomModel {
   /// pushed yet), or in a league too small to pair — the card hides, like the web.
   public private(set) var weekClash: LeagueRoom.WeekClash? = nil
   public private(set) var cancel: CancelStatus?
+  /// R6 · the season's own story. nil = the read could not be made (deploy
+  /// skew, or a refusal) — the page renders WITHOUT a story spine rather than
+  /// with an empty one, and the table, the pot and the doors are unchanged.
+  public private(set) var seasonStory: SeasonStory.Payload?
   /// Signed avatar URLs by profile id (one batched signing per load, an hour).
   public private(set) var avatarURL: [UUID: URL] = [:]
   public private(set) var album: [AlbumItem]? = nil
@@ -93,6 +97,8 @@ public final class LeagueRoomModel {
   public private(set) var myMonth: MyMonth?
   public private(set) var myIndexDelta: Double?
   public private(set) var priorRank: [UUID: Int] = [:]
+  /// A-4 · the day `priorRank` is measured FROM. nil = no clock, no label.
+  public private(set) var priorSince: String?
   public private(set) var series: [UUID: [Double]] = [:]
   public private(set) var seasonWeeks: Int?
   /// SF-6: set on a fresh load, consumed by the table's first render.
@@ -197,7 +203,16 @@ public final class LeagueRoomModel {
         .select("league_id, preset, handicap_allowance, verification, counting_cap, participation_floor, floor_penalty, season_format, buyin_cents, season_months, locked_at, structure, draft_type, payout_champ, payout_runnerup, payout_king, finish, roster_closed_at")
         .eq("league_id", value: leagueId).execute().value
       let (leagues, settingsRows) = try await (leagueQ, settingsQ)
-      guard let lg = leagues.first else { throw RpcError(name: "leagues", underlying: "No league with that id — it may have been deleted.", droppedArgs: []) }
+      // L-32 · a season this golfer cannot see is a STATE, not an error, and
+      // it is not an auth failure. Its old sentence ("…it may have been
+      // deleted") was run through `AuthRules.human`, which matches "deleted"
+      // and answered "This account was closed and can't sign in again" — a
+      // sentence about the wrong thing entirely, seen on a real account the
+      // day the season page replaced the room.
+      guard let lg = leagues.first else {
+        error = "That season isn't yours to see — it may have ended, or you may have left it."
+        return
+      }
       league = lg
       settings = settingsRows.first
       season = try await loadSeason()
@@ -208,7 +223,9 @@ public final class LeagueRoomModel {
           .eq("season_id", value: s.id).order("name").execute().value
         async let bi: [LeagueRoom.BuyIn] = db.from("buy_ins").select("member_id, paid, amount_cents").eq("season_id", value: s.id).execute().value
         async let st: [LeagueRoom.SquadStanding] = db.from("v_squad_standings").select("squad_id, points").eq("season_id", value: s.id).execute().value
-        async let sn: [LeagueRoom.Snapshot] = db.from("standings_snapshots").select("week_no, standings").eq("season_id", value: s.id).order("week_no").execute().value
+        // A-4 · `captured_at` rides the read because a movement label carries
+        // its own clock or it does not render at all.
+        async let sn: [LeagueRoom.Snapshot] = db.from("standings_snapshots").select("week_no, captured_at, standings").eq("season_id", value: s.id).order("week_no").execute().value
         async let rr: [LeagueRoom.RankedRound] = db.from("v_rounds_ranked")
           .select("member_id, round_id, pvi, points, month_rank, floor_credit, played_on, index_at_post, holes_played")
           .eq("season_id", value: s.id).execute().value
@@ -246,6 +263,7 @@ public final class LeagueRoomModel {
       g.addTask { await self.loadScenarios() }
       g.addTask { await self.loadCupRace() }
       g.addTask { await self.loadWeekClash() }
+      g.addTask { await self.loadStory() }
       g.addTask { await self.refreshCancelStatus() }
       g.addTask { await self.loadForfeits() }
       g.addTask { await self.signAvatars() }
@@ -338,6 +356,7 @@ public final class LeagueRoomModel {
     } else { teams = [] }
     let solo = teams.first?.solo ?? false
     priorRank = StandingsMath.priorRank(snapshots: snapshots, solo: solo)
+    priorSince = StandingsMath.priorSince(snapshots: snapshots)
     series = StandingsMath.series(teams: teams, snapshots: snapshots, weeks: max(2, seasonWeeks ?? 18), solo: solo)
   }
 
@@ -369,6 +388,35 @@ public final class LeagueRoomModel {
   }
   /// Tests and previews: the clash without the network.
   public func seedWeekClash(_ wc: LeagueRoom.WeekClash?) { weekClash = wc }
+
+  /// R6 · the story. One RPC, `try?` on the whole read: a database that has
+  /// not reached this migration renders a season page with no story spine,
+  /// which is a shorter page and not a broken one.
+  private func loadStory() async {
+    seasonStory = try? await svc.call(SeasonStoryCall(p_season: season?.id, p_league: leagueId))
+  }
+  /// Tests and previews: the story without the network.
+  public func seedStory(_ p: SeasonStory.Payload?) { seasonStory = p }
+
+  /// The story line the page leads with, chosen by the seven-rung ladder.
+  public var storyLine: SeasonStoryCopy.Line? { seasonStory.flatMap { SeasonStoryCopy.line($0) } }
+
+  // MARK: - D244 · leaving, forward-only
+
+  /// The viewer's own exit, as the page may offer it right now.
+  public var leaveGate: LeaveSeason.Gate {
+    LeaveSeason.gate(isPro: isPro, hasLeft: seasonStory?.season?.i_left == true)
+  }
+
+  /// C-9 · forward-only. No round is touched; the membership stops accruing
+  /// from today. The room is re-read afterwards so the page shows what the
+  /// database holds rather than what was asked for.
+  @discardableResult
+  public func leaveSeason() async throws -> LeaveResult {
+    let r = try await svc.call(LeaveSeasonCall(p_league: leagueId))
+    await refresh()
+    return r
+  }
 
   private func loadScenarios() async {
     guard let s = season else { scenarios = nil; return }

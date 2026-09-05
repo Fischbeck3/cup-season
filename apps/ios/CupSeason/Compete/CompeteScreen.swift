@@ -88,7 +88,7 @@ struct CompeteScreen: View {
 
   /// Every row is a door, and the object decides which one.
   private func open(_ row: CompeteRoot.Row) {
-    if let id = row.leagueId { push(.season(id, pane: .standings)); store.preferredLeague = id }
+    if let id = row.leagueId { push(.season(id, pane: .table)); store.preferredLeague = id }
     else if let id = row.eventId { presenter.event = id }
     else if let id = row.roundId { presenter.scheduledRound = id }
   }

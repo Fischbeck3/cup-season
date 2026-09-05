@@ -75,7 +75,38 @@ public struct MyMonth: Sendable, Equatable {
   public init(credits: Double, counting: Int) { self.credits = credits; self.counting = counting }
 }
 
+/// A-4 · THE HONEST MOVEMENT LABEL — the phone's twin of the web's
+/// `csMovement`, and the producer that finally kills the bare chip.
+///
+/// `prev_rank` is a SUNDAY snapshot (`run_week_snapshots`, cron `'10 7 * * 0'`),
+/// so a Tuesday climb read "held" and erased the only movement of the week.
+/// The rule is absolute on both clients now: a movement label NAMES THE DAY IT
+/// IS MEASURED FROM, or it does not render. No clock, no label — which is the
+/// deploy-skew case and the week-1 case both.
+///
+/// `delta` is prior rank minus current rank (positive = climbed). `since` is
+/// the snapshot's own `captured_at`; its calendar-date prefix is what names the
+/// day, never an ISO parse of the instant (L-07).
+public struct Movement: Sendable, Equatable {
+  /// `held` · `up` · `up2` · `down` — D76's heat, kept.
+  public enum Tone: String, Sendable, Equatable { case held, up, up2, down }
+  public let tone: Tone
+  /// "▲1 SINCE SUN" / "HELD SINCE SUN" — never a bare arrow.
+  public let text: String
+  /// "up one since Sunday" — the VoiceOver grain.
+  public let long: String
+  /// 1 climbed · 0 held · -1 fell.
+  public let dir: Int
+  public init(tone: Tone, text: String, long: String, dir: Int) {
+    self.tone = tone; self.text = text; self.long = long; self.dir = dir
+  }
+}
+
 /// The ▲/▼ chip vs the last weekly snapshot (D76 heat).
+///
+/// **Superseded as a user-facing label by `Movement`** (A-4): `.held`'s "–" is
+/// a claim about time made without a clock. The type survives because the
+/// arithmetic (who moved, by how much) is still the arithmetic.
 public enum RankMove: Sendable, Equatable {
   case held
   case up(Int)
@@ -184,6 +215,35 @@ public enum StandingsMath {
     guard sorted.count > 1 else { return nil }
     let now = profileIndex ?? sorted.last!.index_at_post ?? 0
     return now - (sorted.first!.index_at_post ?? 0)
+  }
+
+  /// A-4 · the movement label, or nil. The web's `csMovement`, word for word:
+  /// the same words, the same tones, the same two refusals.
+  public static func movement(delta: Int?, since: String?, calendar: Calendar = .current) -> Movement? {
+    guard let delta, let since, !since.isEmpty else { return nil }
+    // the instant's own calendar-date prefix — never an ISO parse (L-07)
+    guard let d = CSDate.local(String(since.prefix(10)), calendar: calendar) else { return nil }
+    let wd = calendar.component(.weekday, from: d)
+    let short = LeagueDates.dow[max(0, min(6, wd - 1))].uppercased()
+    let long = LeagueDates.dow[max(0, min(6, wd - 1))]
+    if delta == 0 {
+      return Movement(tone: .held, text: "HELD SINCE \(short)", long: "held since \(long)", dir: 0)
+    }
+    let n = abs(delta)
+    let word = SeasonStoryCopy.word(n)
+    let up = delta > 0
+    return Movement(tone: up ? (delta >= 2 ? .up2 : .up) : .down,
+                    text: "\(up ? "▲" : "▼")\(n) SINCE \(short)",
+                    long: "\(up ? "up" : "down") \(word) since \(long)",
+                    dir: up ? 1 : -1)
+  }
+
+  /// The clock a movement label is measured from — the latest snapshot's own
+  /// `captured_at`. nil on a read that did not ask for it, and then there is
+  /// no label at all rather than a bare arrow.
+  public static func priorSince(snapshots: [LeagueRoom.Snapshot]) -> String? {
+    guard let lastWk = snapshots.map(\.week_no).max() else { return nil }
+    return snapshots.first(where: { $0.week_no == lastWk })?.captured_at
   }
 
   /// `priorRank` (4523–4531): rank in the latest weekly snapshot, by id.
@@ -474,5 +534,60 @@ public enum ScenarioLine {
       parts.append(.out("\(out.joined(separator: ", ")) OUT OF THE \(meta.finish == "points_table" ? "RACE" : "SEED RACE")"))
     }
     return parts
+  }
+}
+
+// MARK: - D71 · the cancellation vote, as an item (IA §7.5)
+
+/// Today a vote to end a season is visible in one place — inside the room —
+/// and Home keeps saying "week 7 of 26" while the season is being ended. A
+/// vote nobody sees is not consent, so the vote is an ITEM: one eyebrow, one
+/// sentence, the two facts that decide it, and the act this viewer actually
+/// has. The page renders it at the top; Home's ranker returns the same shape
+/// in band 1 when the read reaches it.
+///
+/// The two facts are the ones a member needs and no others (L-10, L-02):
+/// the money comes back, and the rounds stay — all of them. At $0 the Pro
+/// ends it alone (D71), so the sentence is a VERDICT and not a vote.
+public enum SeasonVote {
+
+  /// What this viewer can do about it right now.
+  public enum Act: Sendable, Equatable { case vote, withdraw, wait }
+
+  public struct Item: Sendable, Equatable {
+    public let eyebrow: String
+    public let headline: String
+    public let standfirst: String
+    public let tally: String
+    public let act: Act
+    public init(eyebrow: String, headline: String, standfirst: String, tally: String, act: Act) {
+      self.eyebrow = eyebrow; self.headline = headline; self.standfirst = standfirst
+      self.tally = tally; self.act = act
+    }
+  }
+
+  public static func item(_ c: CancelStatus, league: String?, pro: String?) -> Item {
+    let name = (league?.trimmingCharacters(in: .whitespacesAndNewlines)).flatMap { $0.isEmpty ? nil : $0 } ?? "The season"
+    let proName = (pro?.trimmingCharacters(in: .whitespacesAndNewlines)).flatMap { $0.isEmpty ? nil : $0 }
+    let approved = c.approved ?? 0
+    let members = c.members ?? 0
+    let refund = c.you_refund_cents ?? 0
+
+    let head = c.is_pro == true
+      ? "You have asked to end the season."
+      : "\(proName ?? "The Pro") has asked to end the season."
+        + (members > 0 ? " \(SeasonStoryCopy.cap(SeasonStoryCopy.word(approved))) of \(SeasonStoryCopy.word(members)) "
+                       + "\(approved == 1 ? "has" : "have") agreed." : "")
+
+    var sub = refund > 0 ? "Your \(PotMath.money(refund)) comes back. " : ""
+    sub += "Your rounds stay where they are — all of them."
+
+    let act: Act = c.is_pro == true ? .withdraw : (c.you_approved == true ? .wait : .vote)
+    let tally = c.you_approved == true
+      ? "You agreed — waiting on the rest (\(approved) of \(members))."
+      : "\(approved) of \(members) agreed"
+
+    return Item(eyebrow: "\(name.uppercased()) · A VOTE IS OPEN", headline: head, standfirst: sub,
+                tally: tally, act: act)
   }
 }

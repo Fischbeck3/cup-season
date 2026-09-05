@@ -92,6 +92,15 @@ public final class SessionStore {
       } else if me.needsCard {
         state = .cardGate(me)
       } else {
+        // D229 · navigation memory, and nothing else — but memory of a season
+        // this golfer is no longer in is not memory, it is a dead route. The
+        // Clubhouse used to swallow that silently (it fell back to the first
+        // membership when the remembered id matched none); the season page
+        // loads exactly the id it is given, so the id is checked HERE, once,
+        // rather than by every door that reads it.
+        if let want = preferredLeague, !me.memberships.contains(where: { $0.league_id == want }) {
+          preferredLeague = nil
+        }
         if preferredLeague == nil { preferredLeague = me.memberships.first?.league_id }
         state = .ready(me)
         if signInPending { signInPending = false; CSTelemetry.product(.signedIn) }

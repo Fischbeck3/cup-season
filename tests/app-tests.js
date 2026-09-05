@@ -840,6 +840,166 @@
       csMomentLine('ryder', 'setup', false), 'The Ryder · open to you');
   })();
 
+  /* ==== D223 / R-H · the season's story — the seven-rung ladder ==========
+     The web half of `SeasonStoryCopy`. These assert the SAME answers
+     `SeasonStoryTests.swift` asserts, case for case: two clients, one
+     ladder, one sentence. The fence is asserted here too, because the web is
+     where a payload from a newer server arrives first. */
+  (function seasonStory(){
+    const sunday = '2026-08-30T07:10:00.228+00:00';
+    const table = [{ id:'galen', name:'Galen', points:31, rank:1 },
+                   { id:'you', name:'You', points:27, rank:2, is_me:true }];
+    const P = (facts, extra) => Object.assign({
+      season:{ league:'Fellas', number:1, status:'active', solo:true },
+      facts, history:[], arc:[], table, archive:[],
+    }, extra || {});
+
+    t('rung 1: the lead changed hands, and it names the day',
+      csSeasonStoryLine(P({ week_no:7, weeks_total:26, field:2,
+        lead_flip:{ week:7, on:sunday, to:'Jade', to_id:'jade', first_time:true, source:'standings_snapshots' } })).text,
+      'The lead changed hands on Sunday. Jade has it for the first time.');
+    t('rung 1: a leader who has had it before takes it BACK',
+      csSeasonStoryLine(P({ week_no:7, weeks_total:26, field:2,
+        lead_flip:{ week:7, on:sunday, to:'Jade', to_id:'jade', first_time:false, source:'standings_snapshots' } })).text,
+      'The lead changed hands on Sunday. Jade has it back.');
+    t('rung 1: when the lead came to ME the sentence is mine',
+      csSeasonStoryLine(P({ week_no:7, weeks_total:26, field:2,
+        lead_flip:{ week:7, on:sunday, to:'You', to_id:'you', first_time:true, source:'standings_snapshots' } })).text,
+      'You took the lead on Sunday. For the first time.');
+    t('rung 1: a flip six weeks ago is not this week’s news',
+      csSeasonStoryLine(P({ week_no:7, weeks_total:26, weeks_left:19, field:2,
+        leader:{ name:'Galen', run_weeks:4, source:'standings_snapshots' },
+        runner_up:{ name:'You', points:27 }, top_gap:4,
+        lead_flip:{ week:1, on:sunday, to:'Galen', to_id:'galen', first_time:true, source:'standings_snapshots' } })).rung, 2);
+    t('rung 2: a run of four weeks, said out loud',
+      csSeasonStoryLine(P({ week_no:7, weeks_total:26, weeks_left:19, field:2,
+        leader:{ name:'Galen', run_weeks:4, source:'standings_snapshots' },
+        runner_up:{ name:'You', points:27 }, top_gap:4 })).text,
+      'Galen has led for four straight weeks.');
+    t('rung 2: a squad is a THEY, a golfer a she or a he',
+      csSeasonStoryLine(Object.assign(P({ week_no:7, weeks_total:26, weeks_left:19, field:4,
+        leader:{ name:'Mudsharks', run_weeks:4, source:'standings_snapshots' },
+        runner_up:{ name:'The Frost', points:27 }, top_gap:4 }),
+        { season:{ solo:false, status:'active' } })).text,
+      'Mudsharks have led for four straight weeks.');
+    t('rung 2: a run of two weeks is not a run',
+      csSeasonStoryLine(P({ week_no:7, weeks_total:26, weeks_left:19, field:2,
+        leader:{ name:'Galen', run_weeks:2, source:'standings_snapshots' },
+        runner_up:{ name:'You', points:27 }, top_gap:9 })).rung !== 2, true);
+    t('rung 3: two points at the top, with the clock',
+      csSeasonStoryLine(P({ week_no:7, weeks_total:26, weeks_left:6, field:4,
+        leader:{ name:'Galen', run_weeks:1, source:'standings_snapshots' },
+        runner_up:{ name:'You', points:29 }, top_gap:2 })).text,
+      'Two points separate the top two with six weeks to play.');
+    t('rung 3: level is level, never “zero points separate”',
+      csSeasonStoryLine(P({ week_no:7, weeks_total:26, weeks_left:6, field:4,
+        leader:{ name:'Galen', run_weeks:1, source:'standings_snapshots' },
+        runner_up:{ name:'You', points:31 }, top_gap:0 })).text,
+      'The top two are level with six weeks to play.');
+    t('rung 4: a squad has a plural verb, a golfer a singular one',
+      [csSeasonStoryLine(Object.assign(P({ week_no:7, weeks_total:26, weeks_left:9, field:4,
+          leader:{ name:'Galen', run_weeks:1, source:'standings_snapshots' },
+          runner_up:{ name:'The Frost', points:25 }, top_gap:6,
+          closer:{ name:'The Frost', taken:6, weeks:2, source:'standings_snapshots' } }),
+          { season:{ solo:false, status:'active' } })).text,
+       csSeasonStoryLine(P({ week_no:7, weeks_total:26, weeks_left:9, field:4,
+          leader:{ name:'Galen', run_weeks:1, source:'standings_snapshots' },
+          runner_up:{ name:'Jade', points:25 }, top_gap:6,
+          closer:{ name:'Jade', taken:6, weeks:2, source:'standings_snapshots' } })).text],
+      ['The Frost have taken six off the lead in a fortnight.',
+       'Jade has taken six off the lead in a fortnight.']);
+    t('rung 5: the Final’s clock, its seats and who is still live',
+      csSeasonStoryLine(P({ week_no:20, weeks_total:26, weeks_left:6, field:4,
+        leader:{ name:'Galen', run_weeks:1, source:'standings_snapshots' },
+        runner_up:{ name:'You', points:25 }, top_gap:6,
+        final:{ opens_on:'2026-12-22', in_weeks:3, seats:2, still_live:4, source:'season_scenarios' } })).text,
+      'Three weeks until the Final. Two seats, four still live.');
+    t('rung 5: a Final sixteen weeks out is not news',
+      csSeasonStoryLine(P({ week_no:7, weeks_total:26, weeks_left:19, field:2,
+        leader:{ name:'Galen', run_weeks:1, source:'standings_snapshots' },
+        runner_up:{ name:'You', points:25 }, top_gap:6,
+        final:{ opens_on:'2026-12-22', in_weeks:16, seats:2, still_live:2, source:'season_scenarios' } })).rung !== 5, true);
+    t('rung 6: week one',
+      csSeasonStoryLine(P({ week_no:1, weeks_total:13, weeks_left:12, field:6 })).text,
+      'Thirteen weeks. Clean cards, fragile egos.');
+    t('rung 0: a wrapped season leads with how it ended',
+      csSeasonStoryLine(Object.assign(P({ week_no:26, weeks_total:26, field:2 }),
+        { season:{ status:'complete', solo:true },
+          archive:[{ number:1, champion:'Galen', is_current:true }] })).text, 'Galen took it.');
+    t('L-44: no facts, no line', csSeasonStoryLine({}), null);
+
+    /* rung 7 · the reach back, and its absolute fence (R-H) */
+    const quiet = { week_no:7, weeks_total:26, weeks_left:19, field:2,
+                    leader:{ name:'Galen', run_weeks:1, source:'standings_snapshots' },
+                    runner_up:{ name:'You', points:27 }, top_gap:9, last_snapshot_on:sunday };
+    t('R-H: the unsettled week, from week_clashes and my_rivalries',
+      csSeasonStoryLine(P(quiet, { history:[{ kind:'unsettled_week', source:'week_clashes',
+        record_source:'my_rivalries', opponent:'Galen', since:'2026-08-12', days:24,
+        wins:5, losses:6, ties:0 }] })).text,
+      'You and Galen have not settled a week since the 12th of August. Galen is 6–5 up all-time.');
+    t('R-H: the record is read from MY side',
+      [csSeasonHistoryLine({ kind:'unsettled_week', source:'week_clashes', opponent:'Galen',
+         since:'2026-08-12', days:24, wins:6, losses:5, ties:0 }).slice(-24),
+       csSeasonHistoryLine({ kind:'unsettled_week', source:'week_clashes', opponent:'Galen',
+         since:'2026-08-12', days:24, wins:5, losses:5, ties:0 }).slice(-30)],
+      ['You are 6–5 up all-time.', 'You are level at 5–5 all-time.']);
+    t('R-H: a week settled five days ago is no manufactured stake',
+      csSeasonStoryLine(P(quiet, { history:[{ kind:'unsettled_week', source:'week_clashes',
+        opponent:'Jade', since:'2026-08-31', days:5, wins:2, losses:0, ties:0 }] })).text,
+      'Week seven of twenty-six. Nothing has moved since Sunday.');
+    t('R-H: my own run at my own place',
+      csSeasonStoryLine(P(quiet, { history:[{ kind:'my_run', source:'standings_snapshots', rank:2, weeks:4 }] })).text,
+      'You have held 2nd for four straight weeks.');
+    t('R-H: my best week, as a difference between two rows that exist',
+      csSeasonStoryLine(P(quiet, { history:[{ kind:'my_best_week', source:'standings_snapshots', week:5, points:10 }] })).text,
+      'Your best week of the season is still week five — 10 points.');
+    t('THE FENCE: a source that is not a named read renders nothing',
+      csSeasonStoryLine(P(quiet, { history:[{ kind:'unsettled_week', source:'a_hunch', opponent:'Galen',
+        since:'2026-08-12', days:24, wins:5, losses:6, ties:0 }] })).text.indexOf('Galen'), -1);
+    t('THE FENCE: and the whitelist is the whole of what may be counted over',
+      CS_STORY_READS.slice().sort().join(','),
+      'my_rivalries,posts,season_scenarios,standings_snapshots,week_clashes');
+    t('R-H: a kind this build does not know says nothing',
+      csSeasonHistoryLine({ kind:'vibes', source:'standings_snapshots' }), null);
+    t('R-H: a run of one week is not a run',
+      csSeasonHistoryLine({ kind:'my_run', source:'standings_snapshots', rank:2, weeks:1 }), null);
+    t('rung 7b: even history finds nothing, and the sentence is still true',
+      csSeasonStoryLine(P(quiet)).text, 'Week seven of twenty-six. Nothing has moved since Sunday.');
+    t('rung 7b: with no snapshot at all it says “yet”',
+      csSeasonStoryLine(P({ week_no:3, weeks_total:13, weeks_left:10, field:2,
+        leader:{ name:'Galen', run_weeks:1, source:'standings_snapshots' },
+        runner_up:{ name:'You', points:9 }, top_gap:9 })).text,
+      'Week three of thirteen. Nothing has moved yet.');
+
+    /* the arc, and the dateline */
+    t('the arc phrases its own facts',
+      [csSeasonArcLine({ kind:'lead_change', source:'standings_snapshots', week:5, subject:'Jade', other:'Galen' }),
+       csSeasonArcLine({ kind:'clash', source:'week_clashes', week:4, subject:'you', other:'Galen' }),
+       csSeasonArcLine({ kind:'clash', source:'week_clashes', week:4, subject:null, other:'Jade' })],
+      ['Jade took the lead from Galen.', 'You took the week from Galen.', 'You and Jade halved the week.']);
+    t('an arc row whose source is not a named read renders nothing',
+      csSeasonArcLine({ kind:'post', source:'somewhere', text:'Trust me' }), null);
+    t('L-34: the dateline carries the week ONCE, and only in a stage that has one',
+      [csSeasonDateline('Fellas', 'season', 7, 26), csSeasonDateline('Fellas', 'preseason', 1, 26),
+       csSeasonDateline('Fellas', 'complete', 26, 26)],
+      ['FELLAS · WEEK 7 OF 26 · SEASON LIVE', 'FELLAS · BEFORE FIRST TEE', 'FELLAS · SEASON COMPLETE']);
+
+    /* D244 · the exit says exactly what happens, and nothing else */
+    t('D244: three facts, and no fourth',
+      CS_LEAVE.body,
+      'Your rounds stay where they are. Your name stays on the season you played. You stop scoring from today.');
+    t('D244: nothing is deleted, removed or forfeited',
+      /delete|remove|erase|forfeit/i.test(CS_LEAVE.body), false);
+    t('D244: the armed tap restates the consequence (L-32)',
+      CS_LEAVE.armed, 'Sure? You stop scoring today');
+
+    /* D235 · the endgame under the table is the whole mechanic */
+    t('D235: the sentence ends on §14.3’s ladder',
+      /Level on points\? Months won breaks it\.$/.test(endgameLine({ finish:'cup_final', structure:'solo' })), true);
+    t('D235: and it keeps D126’s own phrase',
+      /scored fresh/.test(endgameLine({ finish:'cup_final', structure:'solo' })), true);
+  })();
+
   const fails = R.filter(r => !r.ok);
   console.log(`\n${fails.length ? 'FAIL' : 'PASS'} — ${R.length} tests, ${fails.length} failure(s)`);
   return { total: R.length, failures: fails.map(f => f.name) };

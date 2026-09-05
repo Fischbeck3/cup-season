@@ -254,7 +254,7 @@ struct LeagueRecordView: View {
         ForEach(Array(rows.enumerated()), id: \.element.id) { i, r in
           // Y-16 · the row is a door into the season, in Compete (D222)
           CSRow(last: i == rows.count - 1) {
-            YouDoorRow(glyph: Text(Image(systemName: "flag")), title: r.name, sub: r.sub, action: { openCompetition(r.id, .standings) })
+            YouDoorRow(glyph: Text(Image(systemName: "flag")), title: r.name, sub: r.sub, action: { openCompetition(r.id, .table) })
               .accessibilityLabel("\(r.name), \(r.spoken)")   // Y-33 · "Season 2", not "S E A S O N I I"
               .accessibilityHint("Opens the season in Compete")
           }

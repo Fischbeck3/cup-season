@@ -5,6 +5,9 @@ import Foundation
 
 public enum LeagueDates {
   public static let dow = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]
+  /// The weekday said out loud — the story line's grain ("changed hands on
+  /// Sunday"), where the table's chip says SUN.
+  public static let dowLong = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"]
   public static let mos = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
   public static let monthsLong = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"]
 

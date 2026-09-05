@@ -1197,20 +1197,17 @@ body.guestlive #onboard{display:none !important;}
 @media(min-width:1100px){
   #homeHub .deskmain{max-width:680px;}
 }
-/* Stage 3c: desktop League Room — Standings and the Board side by side (the
-   board is the alive spine, worth keeping in view). Only the standings segment
-   splits; schedule/pot/league stay single full-width panes. Robust + resize-safe:
-   the layout keys off #roomGrid[data-room], set by setRoomSeg, so every seg state
-   is well-defined. Mobile is untouched (the wrapper is a plain block <1100). */
+/* D223 · THE SEASON'S OWN BODY. Stage 3c split the room's standings segment
+   against the board; the season page splits the PAGE against its own history —
+   the table down the reading column, the story beside it. The reading measure
+   is capped where it belongs (on the column, not the page — D228's lesson),
+   and the climb/table pair inside the column stacks, because two halves of a
+   half render at ~200px and text escapes its pills (pilot, 2026-07-20). */
 @media(min-width:1100px){
-  #roomGrid[data-room="standings"]{display:grid; grid-template-columns:minmax(0,1.18fr) minmax(0,.82fr); gap:24px; align-items:start; grid-auto-flow:dense;}
-  #roomGrid[data-room="standings"] #room-standings{display:block; grid-column:1; min-width:0;}
-  #roomGrid[data-room="standings"] #room-board{display:block; grid-column:2; min-width:0;}
-  #roomSeg [data-room="board"]{display:none;}   /* board rides alongside standings — no separate tab needed */
-  /* the standings pane carries its OWN >=960px two-col grid (.homegrid: climb |
-     table) sized for the full column — inside this split it must stack, or both
-     halves render at ~200px and text escapes its pills (pilot, 2026-07-20) */
-  #roomGrid[data-room="standings"] .homegrid{display:block;}
+  #seasonBody .deskmain{max-width:760px;}
+}
+@media(min-width:960px){
+  #seasonBody .homegrid{display:block;}
 }
 .wizstep{display:none;}
 .wizstep.on{display:block; animation:vin .22s ease both;}
@@ -2146,9 +2143,46 @@ body.noleague #view-hub  > *:not(#hubLeagueless){display:none !important;}
    with no league read "Your seasons · This season · your league" over four
    em-dashes. The class now does what its name always claimed. */
 body.noleague .league-only{display:none !important;}
-/* League Room segments (IA P2): one pane at a time */
-.roompane{display:none;}
-.roompane.on{display:block;}
+/* D223 · A SEASON IS A PAGE, NOT SIX SEGMENTS. The strip that showed one pane
+   at a time (and put two DOORS inside a segmented control) retires with the
+   room; every pane is a section of one scrolling page now. `.roompane`
+   survives as the wrapper every renderer already writes into — what it no
+   longer does is hide four fifths of the season. */
+.roompane{display:block; margin-bottom:26px;}
+/* L-34 on the season page: one fact, one place. All four figures of the old
+   season strip are said elsewhere on this page or in the identity block beside
+   it — the WEEK in the dateline, THE POT in the pot section, YOUR INDEX in the
+   ME strip, and COUNTING ROUNDS in the Next-up card's own sentence ("September
+   is covered — 3 rounds counting"). The phone deleted its twin outright
+   (`RoomSeasonStrip`); here the nodes stay, because two renderers write into
+   them without a guard, and the strip is not shown. */
+#seasonBody .stats{display:none;}
+#seasonBody #hhIdent{display:none;}
+/* the dateline, the story line and the arc — the desk's own grain */
+.seasondate{font-family:var(--mono); font-size:11px; letter-spacing:.14em; text-transform:uppercase; color:var(--dim); margin:0 0 8px;}
+.seasonlead{font-family:var(--serif); font-size:20px; line-height:1.36; color:var(--ink); margin:0 0 6px; text-align:left;}
+.seasonmore{display:inline-block; font-family:var(--mono); font-size:11.5px; letter-spacing:.12em; text-transform:uppercase; color:var(--brand); margin:0 0 16px; text-decoration:none;}
+.endgamefoot{font-size:12.5px; line-height:1.55; color:var(--dim); text-align:left; padding:8px 0 0; margin:0;}
+.arcrow{border-bottom:1px solid var(--line); padding:9px 0; text-align:left;}
+.arcrow .aw{display:block; font-family:var(--mono); font-size:10.5px; letter-spacing:.13em; text-transform:uppercase; color:var(--dim);}
+.arcrow .at{display:block; font-size:13px; line-height:1.5; color:var(--ink); margin-top:2px;}
+.arcrow.mine .at{font-weight:600;}
+.rulesec{text-align:left; margin:0 0 14px;}
+.rulesec b{display:block; font-family:var(--mono); font-size:10.5px; letter-spacing:.13em; text-transform:uppercase; color:var(--dim); margin-bottom:3px;}
+.rulesec p{margin:0; font-size:13.5px; line-height:1.6; color:var(--ink);}
+/* THE PRINT SHEET. The web's own job (R-C): a season a golfer can put on
+   paper in February. The chrome, every control and every composer go; the
+   story, the table and the rules stay, and the aside falls in beneath the
+   reading column so the history prints after the table it explains. */
+@media print{
+  .side, .tabbar, .composer, .seg, #errbar, #boardFull, #seasonPrint,
+  button, .mini, .btn, .livebanner{display:none !important;}
+  .deskbody, .deskbody.wide{display:block !important;}
+  .deskaside{position:static !important; margin-top:24px;}
+  .roompane{page-break-inside:avoid;}
+  body{background:#fff; color:#000;}
+  .card, .tblwrap{border-color:#ccc;}
+}
 .prow{display:flex; align-items:center; gap:10px; padding:11px 0; border-top:1px solid var(--line);}
 .prow:first-child{border-top:none;}
 .prow .pmk{flex:none; display:flex; color:var(--mut);}
@@ -3840,11 +3874,27 @@ html[data-theme="light"] .room-dusk .btn:not(.dark):not(.gold):not(.apple){color
       <button class="btn dark" id="wOut" style="margin-top:10px">Sign out</button>
       <div class="ob-caption">No code? Any league member can share an invite link.</div>
         </div>
-        <div class="eyebrow league-only" style="margin-top:0">Your groups</div>
+        <!-- D223 · THE SEASON PAGE, in the desk's own shape (R-C revised): the
+             table down the reading column and the season's own history beside
+             it. Not the phone's page in a browser — the phone scrolls one
+             column and pushes the story; a 1,440-px screen shows both at once,
+             which is the whole argument for a desk. -->
+        <div class="deskbody league-only" id="seasonBody">
+        <div class="deskmain">
+        <div class="eyebrow league-only" style="margin-top:0">Your seasons</div>
         <div id="clubGroups" class="league-only" style="display:flex; gap:8px; overflow-x:auto; padding-bottom:6px; margin-bottom:12px"></div>
+        <!-- the dateline and the story line: the season's name, its week and
+             its stage said ONCE (L-34, D120, D246), then one sentence about a
+             person, chosen by the seven-rung ladder (`csSeasonStoryLine`). -->
+        <div class="seasondate league-only" id="seasonDateline"></div>
+        <div class="seasonlead league-only" id="seasonLead"></div>
+        <a href="#seasonArc" class="seasonmore league-only" id="seasonMore" style="display:none">The season's story →</a>
         <div class="card league-only" id="hubHeader" style="margin-bottom:14px">
           <div style="display:flex; align-items:center; gap:10px;">
-            <div style="min-width:0"><b id="hhName" style="font-size:16px">The Sunday Cup</b><div class="fine" id="hhPhase" style="padding:2px 0 0">Season live</div></div>
+            <!-- L-34 · the name and the stage are the DATELINE's, four rows up.
+                 The nodes stay because two renderers write into them without a
+                 guard; what they no longer do is say it twice. -->
+            <div style="min-width:0" id="hhIdent"><b id="hhName" style="font-size:16px">The Sunday Cup</b><div class="fine" id="hhPhase" style="padding:2px 0 0">Season live</div></div>
             <span id="hhCodeSlot" style="margin-left:auto; flex:none"><button class="mini copycode">Code · <b class="mono" id="hhCode">SNDYCUP</b></button></span>
           </div>
           <div class="fine" id="hhSpan" style="padding:8px 0 0">Sun Jul 5 → Sat Dec 26 · 25 wks</div>
@@ -3860,29 +3910,13 @@ html[data-theme="light"] .room-dusk .btn:not(.dark):not(.gold):not(.apple){color
              every member (approve / decline) and the Pro (withdraw). -->
         <div id="cancelBanner" class="league-only" style="display:none; margin-bottom:12px"></div>
 
-        <!-- LEAGUE ROOM (IA P2): one door, five segments. Panes wrap the existing
-             blocks with their IDs intact, so every renderer works unchanged. -->
-        <div class="seg league-only" id="roomSeg" style="margin-bottom:12px">
-          <button data-room="standings" class="on">Standings</button>
-          <button data-room="board">Board</button>
-          <button data-room="schedule">Schedule</button>
-          <button data-room="pot">Pot</button>
-          <button data-room="album">Album</button>
-          <button data-room="league">League</button>
-        </div>
-
+        <!-- D223 · the six-segment strip is gone. Two of its six were DOORS
+             (the board and the schedule), which is what made it a control that
+             could not say what it did; the four panes are sections of this
+             page now, and `setRoomSeg` scrolls to one instead of hiding the
+             other three. Its markup is kept, with every id intact, so every
+             renderer below works unchanged. -->
         <div class="room-grid" id="roomGrid" data-room="standings">
-        <div class="roompane" id="room-board">
-        <div class="card league-only" id="boardCard" style="margin-bottom:14px; text-align:left;">
-          <div class="eyebrow" style="margin-top:0">The board · rounds land here automatically <a href="#" id="bfOpen">OPEN ↗</a></div>
-          <div id="feedList" style="max-height:52vh; overflow-y:auto;"></div>
-          <div class="composer">
-            <input class="f" id="chatIn" placeholder="Message the league…">
-            <button class="btn dark" id="annBtn" style="display:none; width:auto; padding:0 14px;" title="Announce to the league">📣</button>
-            <button class="btn" id="chatSend" style="width:auto; padding:0 18px;">Send</button>
-          </div>
-        </div>
-        </div><!-- /room-board -->
 
         <div class="roompane on" id="room-standings">
         <div id="homeSetup" style="display:none">
@@ -3915,10 +3949,18 @@ html[data-theme="light"] .room-dusk .btn:not(.dark):not(.gold):not(.apple){color
           <div class="lm" id="lbHole">HOLE 7 · ENCANTO GC</div>
           <span class="go">→</span>
         </button>
+        <!-- D223 / L-34 · three of these four figures are said elsewhere on this
+             page or in the identity block beside it: the WEEK is the dateline's,
+             THE POT is the pot section's, YOUR INDEX is the ME strip's. They are
+             marked rather than deleted because their renderers write into them
+             unguarded, and hidden on the season page by the rule next to
+             `.roompane`. The phone deleted its twin outright (RoomSeasonStrip).
+             COUNTING ROUNDS stays: it is the only place either client says how
+             many of this month's rounds are counting. -->
         <div class="stats">
-          <div class="stat"><div class="k">Season</div><div class="v"><span id="statWk">W18</span> <small>/ <span id="wkTotal2">24</span></small></div><div class="d fl" id="statFinal">Cup Final · final 4 wks</div></div>
-          <div class="stat"><div class="k">The pot</div><div class="v gold" id="chipPot">$525</div><div class="d fl" id="paidChip">5/7 buy-ins in</div></div>
-          <div class="stat"><div class="k">Your index</div><div class="v heronum" id="statIdx">12.4</div><div class="d up" id="statIdxD">▼ 0.3 this month</div></div>
+          <div class="stat" data-dup="week"><div class="k">Season</div><div class="v"><span id="statWk">W18</span> <small>/ <span id="wkTotal2">24</span></small></div><div class="d fl" id="statFinal">Cup Final · final 4 wks</div></div>
+          <div class="stat" data-dup="pot"><div class="k">The pot</div><div class="v gold" id="chipPot">$525</div><div class="d fl" id="paidChip">5/7 buy-ins in</div></div>
+          <div class="stat" data-dup="index"><div class="k">Your index</div><div class="v heronum" id="statIdx">12.4</div><div class="d up" id="statIdxD">▼ 0.3 this month</div></div>
           <div class="stat"><div class="k">Counting rounds</div><div class="v" id="statCount">3 <small>/ 4</small></div><div class="d fl" id="statCountD">This month · best 4 count</div></div>
         </div>
 
@@ -3972,6 +4014,9 @@ html[data-theme="light"] .room-dusk .btn:not(.dark):not(.gold):not(.apple){color
               <table class="tbl" id="standings"></table>
               <div class="scenLine" id="scenarioLine" style="display:none"></div>
             </div>
+            <!-- D235 · the endgame, whole, PERMANENTLY under the table. The ME
+                 strip's clause is the same fact at the other grain. -->
+            <p class="endgamefoot league-only" id="endgameFoot"></p>
           </div>
         </div>
         </div>
@@ -4031,6 +4076,27 @@ html[data-theme="light"] .room-dusk .btn:not(.dark):not(.gold):not(.apple){color
         </div>
         </div><!-- /room-pot -->
 
+
+        <div class="roompane" id="room-board">
+        <div class="card league-only" id="boardCard" style="margin-bottom:14px; text-align:left;">
+          <div class="eyebrow" style="margin-top:0">The board · rounds land here automatically <a href="#" id="bfOpen">OPEN ↗</a></div>
+          <div id="feedList" style="max-height:52vh; overflow-y:auto;"></div>
+          <div class="composer">
+            <input class="f" id="chatIn" placeholder="Message the league…">
+            <button class="btn dark" id="annBtn" style="display:none; width:auto; padding:0 14px;" title="Announce to the league">📣</button>
+            <button class="btn" id="chatSend" style="width:auto; padding:0 18px;">Send</button>
+          </div>
+        </div>
+        </div><!-- /room-board -->
+
+        <!-- photos arc 2 (ckpt 1): the season album — the league's round
+             photos in one place, newest first. Data is the same rounds the
+             board already reads; the grid renders lazily on first open. -->
+        <div class="roompane" id="room-album">
+          <div class="eyebrow league-only" style="margin-top:0">The album · every round photo this season</div>
+          <div id="albumGrid"></div>
+        </div><!-- /room-album -->
+
         <div class="roompane" id="room-league">
         <div class="eyebrow league-only" style="margin-top:0">League</div>
         <div class="check league-only"><span class="num"><svg class="ic" aria-hidden="true"><use href="#i-flag"/></svg></span><div class="tt"><b>Members & invites</b><small id="hubMembersSub">7 players</small></div><button class="mini" id="hubMembersBtn">View</button></div>
@@ -4041,28 +4107,35 @@ html[data-theme="light"] .room-dusk .btn:not(.dark):not(.gold):not(.apple){color
         <div class="check league-only"><span class="num">🔗</span><div class="tt"><b>Share the season</b><small>A public page — the standings so far, no account needed</small></div><span style="display:flex;gap:6px;flex:none"><button class="mini" id="hubSeasonShare">Link</button><button class="mini" id="hubSeasonRevoke" title="Turn off this link — the page stops working for everyone who has it">✕</button></span></div>
         <div class="check"><span class="num"><svg class="ic" aria-hidden="true"><use href="#i-users"/></svg></span><div class="tt"><b>Squads</b><small id="hubDraftSub">Complete · rosters locked</small></div><button class="mini" data-go="draft">View</button></div>
 
-        <details class="hubmore league-only" style="margin-bottom:14px">
-          <summary style="cursor:pointer; font-family:var(--mono); font-size:12.5px; letter-spacing:.14em; text-transform:uppercase; color:var(--dim); padding:8px 0;">League rules</summary>
-          <div class="eyebrow" style="margin-top:10px">The bylaws — the rules this league plays by</div>
-          <div class="card" id="bylawsHub" style="margin-bottom:10px"></div>
-          <button class="mini" id="rulesScoreHelp" style="margin-bottom:14px">How scoring &amp; handicaps work →</button>
+        <!-- D223 §7.4 · THE RULES, IN PLAIN SENTENCES. Not ten all-caps rows:
+             "COUNTING CAP", "PARTICIPATION FLOOR", "HANDICAP ALLOWANCE 95%",
+             "VERIFICATION", "STRUCTURE" and "PRESET" are retired from every
+             user surface — they stay in the WIZARD, which is where a Pro is
+             actually setting them. `#bylawsHub` keeps its id and its renderer;
+             what changed is what the renderer writes into it. -->
+        <div class="eyebrow league-only" id="rulesHead">The rules — how this season scores, and how it ends</div>
+        <div id="bylawsHub" style="margin-bottom:10px; text-align:left"></div>
+        <button class="mini" id="rulesScoreHelp" style="margin-bottom:14px">How scoring &amp; handicaps work →</button>
 
-          <!-- D183 · the Pro Shop teaser is DELETED, not rewritten. It sold
-               four features under two nouns D132 retired, three of which do
-               not exist, behind a "COMING AT LAUNCH" banner that is no longer
-               true of anything. Free until a thousand golfers means the league
-               pane sells nothing at all. -->
-        </details>
+        <!-- D244 · LEAVE THE SEASON. Forward-only, member-only, two taps, and
+             the copy says exactly what happens and nothing else. There has
+             never been a member exit on either client. -->
+        <div class="league-only" id="leaveSeason" style="margin-top:6px; border-top:1px solid var(--line); padding-top:12px; text-align:left"></div>
         </div><!-- /room-league -->
-
-        <!-- photos arc 2 (ckpt 1): the season album — the league's round
-             photos in one place, newest first. Data is the same rounds the
-             board already reads; the grid renders lazily on first open. -->
-        <div class="roompane" id="room-album">
-          <div class="eyebrow league-only" style="margin-top:0">The album · every round photo this season</div>
-          <div id="albumGrid"></div>
-        </div><!-- /room-album -->
         </div><!-- /room-grid -->
+        </div><!-- /deskmain -->
+        <!-- THE HISTORY, BESIDE THE TABLE. The week-by-week arc, then every
+             season this league has played. Both come from R6 `season_story`;
+             a database that has not reached that migration renders the page
+             without this column rather than with an empty one (L-44). -->
+        <aside class="deskaside league-only" id="seasonAside">
+          <div class="eyebrow" style="margin-top:0">The season's story</div>
+          <div id="seasonArc"></div>
+          <div class="eyebrow" id="seasonArchiveHead" style="display:none">Every season</div>
+          <div id="seasonArchive"></div>
+          <button class="mini" id="seasonPrint" style="margin-top:12px">Print this season</button>
+        </aside>
+        </div><!-- /seasonBody -->
       </section>
 
 
@@ -4742,25 +4815,22 @@ function backToDoor(){ const ob = $('#onboard'); ob.style.display = ''; ob.class
 
 /* ================= nav ================= */
 /* League Room segment switcher (IA P2) — Standings | Board | Schedule | Pot | League */
+/* D223 · the six segments became SECTIONS of one page, so this function stopped
+   hiding four fifths of the season and started landing on one part of it. Every
+   caller is unchanged — `switchView('pot')` still means "open the season on the
+   pot", it just scrolls there now instead of blanking the table. The schedule
+   is still a destination (D93), not a section, and still returns here (Q-12). */
 function setRoomSeg(r){
-  /* D93: the schedule is a destination now, not a pane. The segment button
-     stays where pilots know it and routes there instead of toggling — one
-     place per thing, rather than the same calendar in two. */
-  /* Q-12 · remember the room, so Schedule's back link returns to it. The
-     audit's observer tapped Schedule from inside the Clubhouse and landed on
-     a full-screen calendar whose only exit was "← Home" — the league chips
-     and segments vanished and the room had to be re-entered by hand. */
   if(r==='schedule'){ window._schedFrom = 'hub'; switchView('schedule'); return; }
-  $$('#roomSeg [data-room]').forEach(x=>x.classList.toggle('on', x.dataset.room===r));
-  $$('.roompane').forEach(p=>p.classList.toggle('on', p.id==='room-'+r));
-  const rg=$('#roomGrid'); if(rg) rg.dataset.room=r;   /* Stage 3c: the desktop standings+board split keys off this */
-  /* (the schedule branch returned above — D93 moved that pane to view-schedule,
-     which renders the calendar on entry instead) */
+  const rg=$('#roomGrid'); if(rg) rg.dataset.room=r;
   if(r==='pot' && typeof renderPot==='function') renderPot();
   if(r==='pot') window.loadStakes?.();      /* D64: refresh the forfeit ledger (module-side — guard) */
   if(r==='album') window.renderAlbum?.();   /* module-side (needs sb) — guard the boundary */
+  const el = document.getElementById('room-'+r);
+  if(el && typeof el.scrollIntoView === 'function'){
+    try { el.scrollIntoView({ behavior:'smooth', block:'start' }); } catch(_){ el.scrollIntoView(); }
+  }
 }
-$$('#roomSeg [data-room]').forEach(b=>b.addEventListener('click',()=>setRoomSeg(b.dataset.room)));
 /* D222 · THE ROUTER'S OWN ALIAS TABLE, in one place.
    `switchView` used to rename views inline, so nothing else could ask "does
    this destination resolve?" — which is how the live route pointed at a
@@ -4811,7 +4881,7 @@ function switchView(v){
   if(arguments[0]==='pot') setRoomSeg('pot');
   /* D93: the board is reachable from anywhere. It keeps its full-screen form
      (a dialog that returns you where you were) rather than becoming a lane —
-     #room-board still rides beside standings on desktop and is untouched. */
+     the board is a section of the season page now (D223). */
   if(v==='board'){ if(typeof openBoardFull==='function') openBoardFull(); return; }
   if(v==='draft' && state.phase==='setup'){ toast('Lock settings first: the draft opens after setup'); v='wizard'; }
   /* IA P4 → D107: real accounts get the full ⊕ triptych. Play now is the
@@ -4973,6 +5043,347 @@ function csMovement(delta, sinceISO){
   };
 }
 window.csMovement = csMovement;
+
+/* ============ D223 · THE SEASON'S STORY — the seven-rung ladder ============
+   The web half of `SeasonStoryCopy` (CupSeasonKit/League/SeasonStory.swift).
+   R6 `season_story` returns FACTS with their provenance; the ladder that turns
+   them into one sentence lives on the client, once per client, because a
+   ladder written in SQL is a ladder no test can walk. Both clients read the
+   same payload and produce the same sentence — that is D234's whole rule.
+
+   R-H · rung 7 reaches back into history, and the FENCE is absolute: every
+   candidate names the read it was counted over, and a source this build does
+   not recognise renders NOTHING. Nothing is invented, nothing is inflated, and
+   no rung manufactures a stake that does not exist. */
+const CS_STORY_READS = ['standings_snapshots','week_clashes','my_rivalries','posts','season_scenarios'];
+const CS_WORDS = ['zero','one','two','three','four','five','six','seven','eight','nine','ten','eleven',
+                  'twelve','thirteen','fourteen','fifteen','sixteen','seventeen','eighteen','nineteen','twenty'];
+const CS_TENS  = ['','','twenty','thirty','forty','fifty','sixty','seventy','eighty','ninety'];
+const DOW_LONG = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+function csWord(n){
+  n = Number(n);
+  if(!isFinite(n)) return '';
+  if(n >= 0 && n < CS_WORDS.length) return CS_WORDS[n];
+  if(n > 20 && n < 100){ const t = CS_TENS[Math.floor(n/10)], u = n % 10; return u ? `${t}-${CS_WORDS[u]}` : t; }
+  return String(n);
+}
+const csCapWord = s => s ? s[0].toUpperCase() + s.slice(1) : s;
+/* The weekday of an INSTANT, from its own calendar-date prefix. `new
+   Date('2026-08-30T07:10:00+00')` is fine, but the date-only landmine next
+   door is not, so the day is read the same way on both clients: the first ten
+   characters, as a calendar day. */
+function csStoryDay(instant){
+  if(!instant) return null;
+  const iso = String(instant).slice(0,10).split('-').map(Number);
+  if(iso.length !== 3 || !iso[0]) return null;
+  const d = new Date(iso[0], iso[1]-1, iso[2]);
+  return isNaN(d) ? null : DOW_LONG[d.getDay()];
+}
+/* "the 12th of August" — R-H's own form. */
+function csTheDayOf(iso){
+  if(!iso) return '';
+  const p = String(iso).slice(0,10).split('-').map(Number);
+  if(p.length !== 3 || !p[0]) return String(iso);
+  const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+  return `the ${csOrdinal(p[2])} of ${MONTHS[p[1]-1]}`;
+}
+const csStorySourceOk = src => !!src && CS_STORY_READS.indexOf(src) >= 0;
+const csClean = v => { const t = (v==null?'':String(v)).trim(); return t || null; };
+
+/* one rung-7 candidate as a sentence, or null when this build cannot say it */
+function csSeasonHistoryLine(h){
+  if(!h) return null;
+  if(h.kind === 'unsettled_week'){
+    const name = csClean(h.opponent);
+    /* a week settled days ago is not a story; a fortnight is */
+    if(!name || !h.since || Number(h.days||0) < 14) return null;
+    let s = `You and ${name} have not settled a week since ${csTheDayOf(h.since)}.`;
+    const w = Number(h.wins||0), l = Number(h.losses||0), t = Number(h.ties||0);
+    if(w + l + t > 0){
+      if(w > l)      s += ` You are ${w}–${l} up all-time.`;
+      else if(l > w) s += ` ${name} is ${l}–${w} up all-time.`;
+      else           s += ` You are level at ${w}–${l} all-time.`;
+    }
+    return s;
+  }
+  if(h.kind === 'my_run'){
+    if(!h.rank || Number(h.weeks||0) < 2) return null;
+    return `You have held ${csOrdinal(Number(h.rank))} for ${csWord(Number(h.weeks))} straight weeks.`;
+  }
+  if(h.kind === 'my_best_week'){
+    if(!h.week || !(Number(h.points) > 0)) return null;
+    return `Your best week of the season is still week ${csWord(Number(h.week))} — ${csNum(h.points)} points.`;
+  }
+  return null;
+}
+
+function csSeasonStoryLine(p){
+  const f = p && p.facts;
+  if(!f) return null;
+  const rows = (p.table || []), me = rows.find(r => r.is_me);
+  const solo = !!(p.season && p.season.solo);
+
+  /* rung 0 · a wrapped season leads with how it ended */
+  if(p.season && p.season.status === 'complete'){
+    const cur = (p.archive || []).find(a => a.is_current);
+    const champ = csClean(cur && cur.champion);
+    if(champ) return { rung:0, text: champ === (me && me.name) ? 'You took it.' : `${champ} took it.`, source:'standings_snapshots' };
+  }
+  /* rung 1 · the lead changed hands this week */
+  const flip = f.lead_flip;
+  if(flip && csStorySourceOk(flip.source) && csClean(flip.to) && Number(flip.week) >= Number(f.week_no||0) - 1){
+    const day = csStoryDay(flip.on);
+    const when = day ? ` on ${day}` : '';
+    if(me && flip.to_id && String(me.id) === String(flip.to_id))
+      return { rung:1, text:`You took the lead${when}.` + (flip.first_time ? ' For the first time.' : ''), source: flip.source };
+    return { rung:1, text:`The lead changed hands${when}. ${flip.to} has it ${flip.first_time ? 'for the first time' : 'back'}.`,
+             source: flip.source };
+  }
+  /* rung 2 · somebody has led three weeks or more */
+  const lead = f.leader;
+  if(lead && csStorySourceOk(lead.source) && Number(lead.run_weeks||0) >= 3 && csClean(lead.name)){
+    /* a squad is a THEY — "Mudsharks has led" is the engine talking */
+    const who = lead.is_me ? 'You have' : (solo ? `${lead.name} has` : `${lead.name} have`);
+    return { rung:2, text:`${who} led for ${csWord(Number(lead.run_weeks))} straight weeks.`, source: lead.source };
+  }
+  /* rung 3 · the top two are inside two points */
+  const gap = f.top_gap;
+  if(gap != null && Number(gap) <= 2 && Number(f.field||0) >= 2 && f.runner_up){
+    const left = Number(f.weeks_left||0);
+    const clock = left > 0 ? ` with ${csWord(left)} week${left===1?'':'s'} to play` : '';
+    if(Number(gap) <= 0) return { rung:3, text:`The top two are level${clock}.`, source:'standings_snapshots' };
+    const g = Number(gap);
+    const head = g === 1 ? 'One point separates'
+               : g === Math.round(g) ? `${csCapWord(csWord(g))} points separate`
+               : `${csNum(g)} points separate`;
+    return { rung:3, text:`${head} the top two${clock}.`, source:'standings_snapshots' };
+  }
+  /* rung 4 · somebody has closed half the gap in a fortnight */
+  const c = f.closer;
+  if(c && csStorySourceOk(c.source) && csClean(c.name) && Number(c.taken||0) > 0){
+    const mine = me && me.name === c.name;
+    const verb = mine ? 'You have' : (solo ? `${c.name} has` : `${c.name} have`);
+    return { rung:4, text:`${verb} taken ${csWord(Math.round(Number(c.taken)))} off the lead in a fortnight.`, source: c.source };
+  }
+  /* rung 5 · the Final opens inside three weeks */
+  const fin = f.final;
+  if(fin && csStorySourceOk(fin.source) && fin.in_weeks != null && Number(fin.in_weeks) <= 3 && Number(fin.in_weeks) >= 0
+     && !(p.season && p.season.status === 'cup_final')){
+    const w = Number(fin.in_weeks);
+    const head = w === 0 ? 'The Final opens this week.' : `${csCapWord(csWord(w))} week${w===1?'':'s'} until the Final.`;
+    const seats = Number(fin.seats || 2);
+    let tail = `${csCapWord(csWord(seats))} seat${seats===1?'':'s'}`;
+    if(Number(fin.still_live||0) > 0) tail += `, ${csWord(Number(fin.still_live))} still live`;
+    return { rung:5, text:`${head} ${tail}.`, source: fin.source };
+  }
+  /* rung 6 · week one */
+  if(Number(f.week_no||1) === 1 && f.weeks_total)
+    return { rung:6, text:`${csCapWord(csWord(Number(f.weeks_total)))} weeks. Clean cards, fragile egos.`, source:'standings_snapshots' };
+  /* rung 7 · the reach back (R-H) */
+  for(const h of (p.history || [])){
+    const text = csSeasonHistoryLine(h);
+    if(text && csStorySourceOk(h.source)) return { rung:7, text, source:h.source };
+  }
+  /* rung 7b · even history found nothing */
+  const day = csStoryDay(f.last_snapshot_on);
+  return { rung:7, source:'standings_snapshots',
+           text:`Week ${csWord(Number(f.week_no||1))} of ${csWord(Number(f.weeks_total||1))}. Nothing has moved${day?` since ${day}`:' yet'}.` };
+}
+
+/* one arc entry as a line — `post` carries the server's own sentence, eased
+   out of the scoreboard voice; the other kinds are facts this producer
+   phrases, so both clients say the same thing about the same week. */
+function csSeasonArcLine(a){
+  if(!a || !csStorySourceOk(a.source)) return null;
+  if(a.kind === 'post') return csClean(a.text) ? easeCaps(a.text) : null;
+  if(a.kind === 'lead_change'){
+    const to = csClean(a.subject);
+    if(!to) return null;
+    const from = csClean(a.other);
+    return from ? `${to} took the lead from ${from}.` : `${to} took the lead.`;
+  }
+  if(a.kind === 'clash'){
+    const other = csClean(a.other) || 'a league mate';
+    const who = csClean(a.subject);
+    if(!who) return `You and ${other} halved the week.`;
+    return who === 'you' ? `You took the week from ${other}.` : `${who} took the week.`;
+  }
+  return null;
+}
+
+/* FELLAS · WEEK 7 OF 26 · SEASON LIVE — one row, one vocabulary (D120), and
+   the week said ONCE on the page (L-34). */
+function csSeasonDateline(name, stageKey, week, weeks){
+  const parts = [];
+  const n = csClean(name);
+  if(n) parts.push(n.toUpperCase());
+  if((stageKey === 'season' || stageKey === 'final') && week && weeks) parts.push(`WEEK ${week} OF ${weeks}`);
+  parts.push((STAGE_LABEL[stageKey] || '').toUpperCase());
+  return parts.filter(Boolean).join(' · ');
+}
+window.csSeasonStoryLine = csSeasonStoryLine;
+window.csSeasonHistoryLine = csSeasonHistoryLine;
+window.csSeasonArcLine = csSeasonArcLine;
+window.csSeasonDateline = csSeasonDateline;
+window.csWord = csWord;
+window.CS_STORY_READS = CS_STORY_READS;
+
+/* ---- the season page's own renderers ---- */
+function renderSeasonStory(){
+  const p = window.seasonStory || null;
+  const dl = $('#seasonDateline'), lead = $('#seasonLead'), more = $('#seasonMore');
+  if(dl){
+    const wk = (p && p.facts && p.facts.week_no) || (typeof currentWeek === 'function' ? currentWeek() : null);
+    const wt = (p && p.facts && p.facts.weeks_total) || (typeof totalWeeks === 'function' ? totalWeeks() : null);
+    dl.textContent = csSeasonDateline(window.CS?.league?.name || (state.demo ? 'The Sunday Cup' : ''),
+                                      leagueStage(), wk, wt);
+  }
+  const line = p ? csSeasonStoryLine(p) : null;
+  if(lead){ lead.textContent = line ? line.text : ''; lead.style.display = line ? '' : 'none'; }
+  if(more) more.style.display = (line && (p.arc||[]).length) ? '' : 'none';
+
+  /* the arc, beside the table */
+  const arc = $('#seasonArc');
+  if(arc){
+    const rows = (p ? (p.arc || []) : []).map(a => ({ a, t: csSeasonArcLine(a) })).filter(x => x.t);
+    arc.innerHTML = rows.length
+      ? rows.map(({a,t}) => `<div class="arcrow${a.mine?' mine':''}">${a.week?`<span class="aw">Week ${esc(String(a.week))}</span>`:''}<span class="at">${esc(t)}</span></div>`).join('')
+      : `<p class="fine" style="padding:6px 0">${p ? 'Nothing has happened yet. The first posted round starts the story.'
+                                                  : 'The story arrives with the season’s first weekly snapshot.'}</p>`;
+  }
+  /* the archive — every season this league has played */
+  const arch = $('#seasonArchive'), archHead = $('#seasonArchiveHead');
+  if(arch){
+    const seasons = p ? (p.archive || []) : [];
+    const show = seasons.length > 1;
+    if(archHead) archHead.style.display = show ? '' : 'none';
+    arch.innerHTML = show ? seasons.map(a => {
+      const bits = [];
+      if(a.starts_on && a.ends_on){
+        const f = iso => { const q = String(iso).slice(0,10).split('-').map(Number); return `${MOS[q[1]-1]} ${q[2]}`; };
+        bits.push(`${f(a.starts_on)} – ${f(a.ends_on)}`);
+      }
+      if(csClean(a.champion)) bits.push(`${a.champion} took it`);
+      else if(a.status === 'complete') bits.push('Season complete');
+      else if(a.is_current) bits.push('Running now');
+      return `<div class="arcrow"><span class="aw">Season ${esc(String(a.number||''))}</span><span class="at">${esc(bits.join(' · '))}</span></div>`;
+    }).join('') : '';
+  }
+  renderEndgameFoot();
+  renderLeaveSeason();   /* the gate's own read lands with the story */
+}
+/* D235 · the endgame, whole, permanently under the table. The ME strip's
+   clause is the same fact at the other grain, produced from the same finish,
+   structure and dates — so the two can never say different things. */
+function renderEndgameFoot(){
+  const host = $('#endgameFoot');
+  if(!host) return;
+  host.textContent = endgameLine({});
+}
+window.renderSeasonStory = renderSeasonStory;
+window.renderEndgameFoot = renderEndgameFoot;
+
+/* ============ D223 §7.4 · THE RULES, AS SENTENCES ============
+   The web half of `SeasonRules.sections`. One page a golfer would read out
+   loud, not ten all-caps rows — it retires COUNTING CAP, PARTICIPATION FLOOR,
+   HANDICAP ALLOWANCE 95%, VERIFICATION, STRUCTURE and PRESET from the user's
+   surface. Two phrases survive because they are RULED and not leaked:
+   "scored fresh" is D126's own wording, and the allowance sentence is
+   D128(2)'s. The wizard's review keeps the dials — that is a control panel,
+   and this is a page about a season. */
+function csAllowanceWords(n){
+  if(n === 100) return 'the full number';
+  if(n === 95)  return 'ninety-five percent';
+  if(n === 90)  return 'ninety percent';
+  return `${n} percent`;
+}
+function csSeasonRules(){
+  const out = [];
+  const cap = CAP_DB[state.cap];
+  const counted = cap == null
+    ? 'Every round you post counts.'
+    : `Your best ${csWord(cap)} round${cap===1?'':'s'} each calendar month count.`;
+  out.push({ head:'How it scores',
+             body:`Every round you post is scored against your own number at ${csAllowanceWords(ALLOW[state.preset])}. ${counted}` });
+  const floor = Number(state.floor||0);
+  if(floor > 0){
+    const rounds = `${csCapWord(csWord(floor))} round${floor===1?'':'s'} a month.`;
+    out.push({ head:'What you owe the season',
+               body: state.structure === 'solo'
+                 ? `${rounds} In a season with no squads that is a habit, not a penalty — there is no squad to dock.`
+                 : `${rounds} Miss a month and your first one is forgiven automatically.` });
+  }
+  out.push({ head:'How it ends', body: endgameLine({}) });
+  if(Number(state.stake||0) > 0){
+    const n = state.demo ? state.payers.length : Math.max(1, (window.CS?.members||[]).length);
+    const pay = state.payout || [60,25,15];
+    out.push({ head:"What's on it",
+               body:`${fmt$(state.stake)} each, ${fmt$(state.stake*n)} in the pot. `
+                  + `${csCapWord(csWord(pay[0]))} percent to the champion, ${csWord(pay[1])} to the runner-up, `
+                  + `${csWord(pay[2])} to the points king. Cup Season keeps the ledger; the money moves between friends.` });
+  }
+  out.push({ head:'Scores', body: VERIF[state.preset] + '.' });
+  const pro = (window.CS?.members||[]).find(m => m.role === 'commissioner')?.profile?.display_name;
+  let close = pro ? `${pro} runs the season (the Pro).` : '';
+  if(leagueStage() === 'season' || leagueStage() === 'final')
+    close += (close ? ' ' : '') + 'Rules froze at the first tee.';
+  if(close) out.push({ head:'Who runs it', body: close });
+  return out;
+}
+function csSeasonRulesHtml(){
+  return csSeasonRules().map(r =>
+    `<div class="rulesec"><b>${esc(r.head)}</b><p>${esc(r.body)}</p></div>`).join('');
+}
+window.csSeasonRules = csSeasonRules;
+
+/* ============ D244 · LEAVE THE SEASON — forward-only ============
+   Member-only, two taps ("Sure?" — never a confirm() — L-32), and the copy
+   says exactly what happens and nothing else. The Pro is told WHY rather than
+   shown nothing: a season whose only Pro walked out has nobody to mark a
+   payment or close the roster. */
+const CS_LEAVE = {
+  head:  'Leave the season',
+  body:  'Your rounds stay where they are. Your name stays on the season you played. You stop scoring from today.',
+  armed: 'Sure? You stop scoring today',
+  pro:   'Hand the season to somebody else first — a season needs a Pro.',
+  left:  'You left this season. Your rounds and your place stay exactly where they are.',
+};
+window.CS_LEAVE = CS_LEAVE;
+function csLeaveGate(){
+  if(state.demo || !window.CS?.league) return 'hidden';
+  /* the server's own answer first (`season_story.season.i_left`), the local
+     echo second — a page that has just left says so before the next read */
+  if(window.seasonStory?.season?.i_left) return 'left';
+  if(window.CS?.member?.left_at) return 'left';
+  return window.CS?.member?.role === 'commissioner' ? 'pro' : 'offer';
+}
+window.csLeaveGate = csLeaveGate;
+function renderLeaveSeason(){
+  const host = $('#leaveSeason');
+  if(!host) return;
+  const gate = csLeaveGate();
+  if(gate === 'hidden'){ host.innerHTML=''; host.style.display='none'; return; }
+  host.style.display='';
+  if(gate === 'pro'){ host.innerHTML = `<div class="eyebrow" style="margin-top:0">${esc(CS_LEAVE.head)}</div><p class="fine" style="padding:0">${esc(CS_LEAVE.pro)}</p>`; return; }
+  if(gate === 'left'){ host.innerHTML = `<div class="eyebrow" style="margin-top:0">${esc(CS_LEAVE.head)}</div><p class="fine" style="padding:0">${esc(CS_LEAVE.left)}</p>`; return; }
+  host.innerHTML = `<div class="eyebrow" style="margin-top:0">${esc(CS_LEAVE.head)}</div>`
+    + `<p class="fine" style="padding:0 0 8px">${esc(CS_LEAVE.body)}</p>`
+    + `<button class="mini" id="leaveBtn">${esc(CS_LEAVE.head)}</button>`;
+  const btn = host.querySelector('#leaveBtn');
+  let armed = false, t = null;
+  btn?.addEventListener('click', async () => {
+    if(!armed){
+      armed = true; btn.textContent = CS_LEAVE.armed; btn.style.color = 'var(--neg)';
+      clearTimeout(t); t = setTimeout(()=>{ armed=false; btn.textContent=CS_LEAVE.head; btn.style.color=''; }, 3000);
+      return;
+    }
+    clearTimeout(t); armed = false; btn.disabled = true;
+    try { await window.leaveSeasonNow?.(); }
+    finally { btn.disabled = false; btn.textContent = CS_LEAVE.head; btn.style.color=''; }
+  });
+}
+window.renderLeaveSeason = renderLeaveSeason;
+$('#seasonPrint')?.addEventListener('click', () => { try { window.print(); } catch(_){} });
 
 /* real leagues: series = recorded weekly snapshots + the live 'now' point */
 function buildRealSeries(WKS){
@@ -5231,7 +5642,12 @@ function renderClimb(){
     const seatLine = K>=n
       ? (n<=1 ? 'NOBODY TO RACE YET' : `EVERYONE ADVANCES — ${n} CONTENDER${n===1?'':'S'}, ${K} SEAT${K===1?'':'S'}`)
       : `TOP ${K} ${meta && meta.finish==='points_table' ? '— THE POINTS CROWN' : 'ADVANCE TO THE CUP FINAL'}`;
-    note.innerHTML = `${esc(seatLine)}<span class="endgame-line">${esc(endgameLine(meta||{}))}</span>`
+    /* D235 · the endgame sentence used to be repeated here. It is one fact,
+       and its place is under the TABLE, permanently (`#endgameFoot`); the ME
+       strip's clause is the same fact at the other grain. What stays here is
+       the seat line, which is this card's own fact, and D127's hollow-Final
+       clause. */
+    note.innerHTML = esc(seatLine)
       + (K>=n && n>1 ? '<span class="endgame-line">Every contender already has a seat, so the Final is a formality until more golfers join.</span>' : '');
     }
   }
@@ -15062,7 +15478,11 @@ function renderBylaws(){
     ${(state.finish||'cup_final')==='cup_final' && totalWeeks()>=6
       ? `<div class="byrow"><span>CUP FINAL</span><b>Final 4 weeks · from ${WD[cupFinalStart().getDay()]} ${MOS[cupFinalStart().getMonth()]} ${cupFinalStart().getDate()} · scored fresh</b></div>`
       : `<div class="byrow"><span>FINISH</span><b>Points table crowns it · whole season, one race</b></div>`}`;
-  const hub=$('#bylawsHub'); if(hub) hub.innerHTML=rows;
+  /* D223 §7.4 · the season page reads SENTENCES; the wizard's review keeps the
+     dials, because that is where a Pro is setting them and the engine's nouns
+     are the right nouns for a control. Same facts, two grains, one producer
+     each. */
+  const hub=$('#bylawsHub'); if(hub) hub.innerHTML=csSeasonRulesHtml();
   const rev=$('#bylawsReview'); if(rev) rev.innerHTML=rows;
   paintInviteNote();   /* D180: say when the invite link expires */
   const asd=$('#wizAside'); if(asd) asd.innerHTML=wizPortrait();   /* Stage 3d: the desktop live portrait */
@@ -15090,13 +15510,15 @@ function renderBylaws(){
      the "bragging rights" label so the absence reads as intentional. Toggled
      both ways so switching to a staked league restores them. */
   const otl=$('.ontheline');   /* it's a class, not an id — the gold "On the line" bar */
-  const potTab=document.querySelector('#roomSeg button[data-room="pot"]');
+  /* D223 · the segment that hid the pot is gone; at $0 the whole SECTION goes,
+     which is what L-10 asks for — a $0 season shows no pot surface at all. */
+  const potPane=document.getElementById('room-pot');
   if(state.stake===0){
     if(otl) otl.style.display='none';
-    if(potTab) potTab.style.display='none';
+    if(potPane) potPane.style.display='none';
   } else {
     if(otl) otl.style.display='';
-    if(potTab) potTab.style.display='';
+    if(potPane) potPane.style.display='';
     const la=$('#lineAmt'); if(la){
       /* one source of player count everywhere the pot shows: demo = the crew,
          real = the actual roster (the 16 fallback made the tile lie vs the pot page) */
@@ -18288,8 +18710,45 @@ async function loadStandingsAndFeed(){
   }
   renderPhase(); renderIndStats(); renderPot(); renderBylaws();
   renderFeed();
+  renderLeaveSeason();
+  loadSeasonStory();   /* R6 — fire-and-forget; the page renders without it */
 }
 window.loadStandingsAndFeed = loadStandingsAndFeed;
+
+/* ---------- R6 · the season's story (D223) --------------------------------
+   ONE read, `try`-wrapped whole: a database that has not reached the migration
+   leaves `window.seasonStory` null and the page renders WITHOUT its story
+   spine — a shorter page, never a broken one (L-44). The ladder that chooses
+   the sentence is `csSeasonStoryLine`, shared with the phone by shape. */
+async function loadSeasonStory(){
+  window.seasonStory = null;
+  try {
+    if(!CS.league) { renderSeasonStory(); return; }
+    const { data, error } = await sb.rpc('season_story', { p_league: CS.league.id });
+    if(!error && data) window.seasonStory = data;
+  } catch(_){}
+  renderSeasonStory();
+}
+window.loadSeasonStory = loadSeasonStory;
+
+/* ---------- C-9 · leaving, forward-only (D244) ----------------------------
+   `supabase-js` never throws, so the error is destructured and raised. On the
+   way back the room is re-read, because what the page shows is what the
+   database holds and not what was asked for. */
+async function leaveSeasonNow(){
+  if(!CS.league) return;
+  try {
+    const { data, error } = await sb.rpc('leave_season', { p_league: CS.league.id });
+    if(error) throw error;
+    if(CS.member) CS.member.left_at = (data && data.left_at) || new Date().toISOString();
+    toast(data && data.already
+      ? window.CS_LEAVE.left
+      : `You left ${(data && data.league) || CS.league.name || 'the season'}. Your rounds stay on your card.`);
+    renderLeaveSeason();
+    await loadStandingsAndFeed();
+  } catch(e){ toast(humanError(e, 'Could not leave the season.')); }
+}
+window.leaveSeasonNow = leaveSeasonNow;
 
 /* ---------- the clinch/scenario line (D24) — the endgame math, honestly ----
    season_scenarios() returns {meta, rows}; each row carries clinched /

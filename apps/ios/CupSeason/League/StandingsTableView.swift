@@ -73,7 +73,9 @@ struct StandingsTableView: View {
     let arr = model.series[t.id] ?? []
     let dwk: Double = arr.count > 1 ? arr[arr.count - 1] - arr[arr.count - 2] : 0
     let pr = model.priorRank[t.id]
-    let mv = StandingsMath.move(prior: pr, now: i)
+    // A-4 · the label carries its own clock, or there is no label. A bare "–"
+    // over a Sunday snapshot is a claim about time made without one.
+    let mv = StandingsMath.movement(delta: pr.map { $0 - i }, since: model.priorSince)
     let flips = flipOnce && pr != nil && pr != i
     let ax = typeSize.isA11y
     return Button {
@@ -122,18 +124,23 @@ struct StandingsTableView: View {
     }
     .buttonStyle(.plain)
     // "1st, Galen, 27 points, up 1 this week" — the row in one breath
-    .accessibilityLabel("\(CSCopy.ordinal(i + 1)), \(t.name), \(CSCopy.points(t.pts)) points" + (mv.map { ", \($0.title)" } ?? ""))
+    .accessibilityLabel("\(CSCopy.ordinal(i + 1)), \(t.name), \(CSCopy.points(t.pts)) points" + (mv.map { ", \($0.long)" } ?? ""))
     .accessibilityHint(solo ? "Opens their rounds" : "Opens the squad receipt")
   }
 
-  /// `.rkmove` — D76 heat: climbing warm, climbing 2+ hot; falling cools to slate.
-  private func moveChip(_ mv: RankMove) -> some View {
-    let tone: Color = switch mv {
+  /// `.rkmove` — D76 heat, kept: climbing warm, climbing 2+ hot, falling cools
+  /// to slate, holding is quiet. The words are `StandingsMath.movement`'s, so
+  /// the phone and the web say the same thing about the same Sunday.
+  private func moveChip(_ mv: Movement) -> some View {
+    let tone: Color = switch mv.tone {
     case .held: cs.mut
-    case .up(let n): n >= 2 ? cs.hot : cs.warm
+    case .up: cs.warm
+    case .up2: cs.hot
     case .down: cs.cool
     }
-    return Text(mv.label).font(CSFont.label).csTabular().foregroundStyle(tone).accessibilityLabel(mv.title)
+    return Text(mv.text).font(CSFont.label).tracking(0.6).csTabular().foregroundStyle(tone)
+      .lineLimit(1).minimumScaleFactor(0.8)
+      .accessibilityLabel(mv.long)
   }
 }
 

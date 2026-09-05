@@ -160,7 +160,15 @@ public enum LeagueRoom {
   public struct Snapshot: Decodable, Sendable {
     public let week_no: Int
     public let standings: JSONValue
-    public init(week_no: Int, standings: JSONValue) { self.week_no = week_no; self.standings = standings }
+    /// A-4 · WHEN this snapshot was taken. A movement label names the day it
+    /// is measured FROM or it does not render, and the snapshot is the only
+    /// thing that knows: `run_week_snapshots` is a Sunday cron, so a Tuesday
+    /// climb read "held" for as long as the label had no clock. nil = an older
+    /// read that did not ask for it, and then there is no label at all.
+    public let captured_at: String?
+    public init(week_no: Int, standings: JSONValue, captured_at: String? = nil) {
+      self.week_no = week_no; self.standings = standings; self.captured_at = captured_at
+    }
   }
 
   /// `v_rounds_ranked` — one row per round × league lens.

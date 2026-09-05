@@ -1,122 +1,18 @@
-// Cup Season — the League pane (`#room-league`, index.html 3527–3552):
-// Members & invites · Share the season (D57) · Squads · League rules & Pro
-// Shop; plus the delete / cancel sheets (15618–15683, D71).
+// Cup Season — what the League pane left behind (D223, IOS-031).
+//
+// The pane itself is gone: its rows are the rules page's "Who's in" section
+// (everyone) and the Pro's verb row (the Pro), which is IOS-031's split — two
+// surfaces, not one pane with a role branch inside it. Its all-caps bylaws
+// card went with it; the rules are sentences now (§7.4).
+//
+// What stays here is what the rest of the season still calls: the Pro's
+// notices switch, the season's cancel and delete sheets (D71), and the two
+// small helpers they need.
 
 import SwiftUI
 import CSDesign
 import CupSeasonKit
 import UIKit
-
-struct LeaguePane: View {
-  @Environment(LeagueRoomModel.self) private var model
-  @Environment(RoomRouter.self) private var router
-  @Environment(\.roomLinks) private var links
-  @Environment(\.toast) private var toast
-  @Environment(\.cs) private var cs
-  #if DEBUG
-  // Developer hatch: `-cs_dev_rules` opens the bylaws disclosure on a simulator without a finger.
-  @State private var rulesOpen = ProcessInfo.processInfo.arguments.contains("-cs_dev_rules")
-  #else
-  @State private var rulesOpen = false
-  #endif
-  @State private var shareURL: URL?
-  @State private var sharing = false
-  @State private var rosterBusy = false
-
-  /// D180 · "ROSTER OPEN · 5 IN" and, for the Pro, the handle. The sub-line is
-  /// `RosterDoor.line()` — the same three facts `_join_gate` reads, so the
-  /// screen and the server cannot say different things.
-  @ViewBuilder private var rosterRow: some View {
-    let door = model.rosterDoor
-    RoomCheckRow(door.eyebrow(members: model.members.count), sub: door.line()) {
-      Image(systemName: door.isOpen ? "door.left.hand.open" : "door.left.hand.closed")
-        .font(.system(size: 15, weight: .regular))
-        .foregroundStyle(door.isOpen ? cs.brand : cs.mut)
-    } trail: {
-      if model.isPro {
-        if door.isOpen {
-          // armed, because closing it turns off a link the Pro has already
-          // texted to people — recoverable, but not a stray tap
-          ArmedMini("Roster's set", armedLabel: "Sure? The link stops working", busy: rosterBusy) {
-            setRoster(open: false)
-          }
-          .accessibilityHint("Turns off the invite link. You can still add golfers yourself until the halfway turn.")
-        } else {
-          RoomMini("Reopen", busy: rosterBusy) { setRoster(open: true) }
-        }
-      }
-    }
-  }
-
-  private func setRoster(open: Bool) {
-    rosterBusy = true
-    Task {
-      defer { rosterBusy = false }
-      do {
-        try await model.setRoster(open: open)
-        toast.show(open ? "Roster's open — the link works again" : "Roster's set")
-      } catch { toast.show(roomError(error, "Could not change the roster.")) }
-    }
-  }
-
-  var body: some View {
-    let n = model.members.count
-    VStack(alignment: .leading, spacing: 0) {
-      CSSectionHead("League")
-      RoomCheckRow("Members & invites", sub: "\(n) player\(n == 1 ? "" : "s")") {
-        Image(systemName: "flag").font(.system(size: 15, weight: .regular)).foregroundStyle(cs.ink)
-      } trail: { RoomMini("View") { router.open(.members) } }
-      RoomCheckRow("Share the season", sub: "A public page — the standings so far, no account needed") {
-        Text("🔗").font(.system(size: 15))
-      } trail: {
-        HStack(spacing: 6) {
-          RoomMini("Link", busy: sharing) {
-            if model.season == nil { toast.show("The season page opens at first tee"); return }
-            sharing = true
-            Task { defer { sharing = false }; do { shareURL = try await model.seasonShareURL() } catch { toast.show(roomError(error, "Could not make the link.")) } }
-          }
-          ArmedMini("✕", armedLabel: "Sure? Turn it off") {
-            guard model.season != nil else { return }
-            Task { do { try await model.revokeSeasonShare(); toast.show("Link is off — the page stops working for everyone") } catch { toast.show(roomError(error, "Could not revoke.")) } }
-          }
-          .accessibilityLabel("Turn off this link — the page stops working for everyone who has it")
-        }
-      }
-      // D180 · the roster door. It sits directly under Members & invites
-      // because it governs exactly that: who can still get in with the code.
-      // The Pro gets the handle; a member reads the state and nothing else.
-      rosterRow
-
-      RoomCheckRow("Squads", sub: LeagueCopy.squadsSub(model.clock, solo: model.solo)) {
-        Image(systemName: "person.2").font(.system(size: 15, weight: .regular)).foregroundStyle(cs.ink)
-      } trail: { RoomMini("View") { links.openDraft() } }
-
-      // IOS-025 / D103a: the Pro dresses the room; members read the choice
-      LookRoomSection(leagueId: model.leagueId, isPro: model.isPro)
-
-      // push wave 7: the Pro curates league notices; members read the setting
-      NoticesRoomSection()
-
-      DisclosureGroup(isExpanded: $rulesOpen) {
-        VStack(alignment: .leading, spacing: 10) {
-          CSSectionHead("The bylaws · locked at first tee")
-          BylawsCard()
-          // D183 · the Pro Shop teaser is DELETED, not rewritten — four
-          // features under two nouns D132 retired, three of them unbuilt,
-          // behind a "COMING AT LAUNCH" banner that is no longer true of
-          // anything. Free until a thousand golfers: this pane sells nothing.
-        }
-      } label: {
-        Text("League rules").csEyebrow().frame(minHeight: 44)
-      }
-      .tint(cs.mut)
-      .padding(.top, 4)
-    }
-    .sheet(item: $shareURL) { url in
-      ActivityView(items: [url, "\(model.league?.name ?? "Our league") on Cup Season — the season so far"]).presentationDetents([.medium, .large])
-    }
-  }
-}
 
 /// The Pro's "League notices" switch (`leagues.notify_system`, push wave 7).
 /// On: floors, closes and season notices reach the crew's phones. Off: only

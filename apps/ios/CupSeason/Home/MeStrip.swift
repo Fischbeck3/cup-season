@@ -113,7 +113,7 @@ struct MeStrip: View {
     Button {
       CSHaptic.selection()
       CSTelemetry.event(CSTelemetry.Metric.ctaTapped.rawValue, ["door": .string("season_row")])
-      openCompetition(row.leagueId, .standings)
+      openCompetition(row.leagueId, .table)
     } label: {
       Text(row.text)
         .font(CSFont.footnote)

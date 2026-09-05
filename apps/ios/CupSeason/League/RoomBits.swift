@@ -203,41 +203,22 @@ enum RoomSheet: Identifiable {
 
 @MainActor @Observable final class RoomRouter {
   var sheet: RoomSheet?
-  var pane: RoomPane = .standings
-  /// `pane` is where a door asked the room to open (Home's owe line → Pot);
-  /// STANDINGS otherwise. The dev hatch below still wins in a DEBUG build.
-  init(pane opening: RoomPane = .standings) {
+  var pane: SeasonPane = .table
+  /// `pane` is the section a door asked the page to land on (Home's owe line
+  /// → the pot); the table otherwise. The dev hatch below still wins in DEBUG.
+  init(pane opening: SeasonPane = .table) {
     pane = opening
     #if DEBUG
     // Developer hatch: `-cs_dev_pane pot|album|league` lands a simulator on a pane without a finger.
     let a = ProcessInfo.processInfo.arguments
     if let i = a.firstIndex(of: "-cs_dev_pane"), i + 1 < a.count,
-       let p = RoomPane.allCases.first(where: { $0.rawValue.lowercased() == a[i + 1].lowercased() }), p != .board, p != .schedule {
+       let p = SeasonPane.allCases.first(where: { $0.rawValue.lowercased() == a[i + 1].lowercased() }),
+       p != .board, p != .schedule, p != .album {
       pane = p
     }
     #endif
   }
   func open(_ s: RoomSheet) { sheet = s }
-}
-
-enum RoomPane: String, CaseIterable, Identifiable {
-  case standings = "Standings", board = "Board", schedule = "Schedule", pot = "Pot", album = "Album", league = "League"
-
-  /// The server's own pane word (`home_dispatch`'s `route.pane`, a free string
-  /// so the ranker can name a pane this build does not know). An unknown name
-  /// lands on the table, which is what a season door means when it says
-  /// nothing more — never a blank pane.
-  static func named(_ raw: String?) -> RoomPane {
-    switch (raw ?? "").lowercased() {
-    case "board":    return .board
-    case "schedule": return .schedule
-    case "pot":      return .pot
-    case "album":    return .album
-    case "rules", "league": return .league
-    default:         return .standings
-    }
-  }
-  var id: String { rawValue }
 }
 
 /// The room's callbacks into the other slices (Board, Schedule, the wizard,
@@ -250,6 +231,9 @@ struct LeagueRoomLinks: Sendable {
   var openReceipt: @MainActor @Sendable (UUID) -> Void
   var openTourCard: @MainActor @Sendable (UUID) -> Void
   var addGolfers: @MainActor @Sendable () -> Void
+  /// The season album, as its own screen (D93: one home per question — the
+  /// room's own copy of it retired with the six segments). Hidden when nil.
+  var openAlbum: (@MainActor @Sendable () -> Void)? = nil
   /// The Golf hub / tee sheet ("Live round", "Post a round"). Hidden when nil.
   var openRecord: (@MainActor @Sendable () -> Void)? = nil
   /// D41 "Run it back — Season 2". Hidden when nil.
