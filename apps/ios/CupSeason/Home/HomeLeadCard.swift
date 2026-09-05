@@ -112,7 +112,7 @@ struct HomeDeckCard: View {
             Text("\(moreCut) more →").font(CSFont.label).foregroundStyle(cs.mut).a11yHitSlop()
           }
           .buttonStyle(.plain)
-          .accessibilityLabel("\(moreCut) more, in the Clubhouse")
+          .accessibilityLabel("\(moreCut) more, in Golfers")
         }
       }
     }

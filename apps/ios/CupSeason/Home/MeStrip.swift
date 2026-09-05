@@ -26,6 +26,7 @@ struct MeStrip: View {
   @Environment(\.cs) private var cs
   @Environment(\.dynamicTypeSize) private var typeSize
   @Environment(\.presenter) private var presenter
+  @Environment(\.openCompetition) private var openCompetition
   @Environment(SessionStore.self) private var store
   let strip: MeStripCopy.Strip
   /// D234 · which Home this golfer is looking at, for `home_state_seen`. It is
@@ -34,7 +35,8 @@ struct MeStrip: View {
   /// and no id.
   let state: String
   /// Where a door lands. Home owns the routing; this view only says which
-  /// door was knocked on.
+  /// door was knocked on. The pot crosses into Compete, which is a tab and not
+  /// a push (D222).
   var push: (HomeRoute) -> Void = { _ in }
 
   var body: some View {
@@ -111,7 +113,7 @@ struct MeStrip: View {
     Button {
       CSHaptic.selection()
       CSTelemetry.event(CSTelemetry.Metric.ctaTapped.rawValue, ["door": .string("season_row")])
-      push(.league(row.leagueId))
+      openCompetition(row.leagueId, .standings)
     } label: {
       Text(row.text)
         .font(CSFont.footnote)
@@ -138,7 +140,7 @@ struct MeStrip: View {
     case .receipt(let id):   presenter.receipt = id
     case .declare:           presenter.declare = DeclarePrefill()
     case .plan(let id):      presenter.scheduledRound = id
-    case .pot(let id):       push(.pot(id))
+    case .pot(let id):       openCompetition(id, .pot)
     }
   }
 
@@ -182,6 +184,7 @@ private struct OweStripAction: ViewModifier {
 struct HomeFootDoors: View {
   @Environment(\.cs) private var cs
   @Environment(\.presenter) private var presenter
+  @Environment(\.openGolfers) private var openGolfers
   var push: (HomeRoute) -> Void = { _ in }
 
   var body: some View {
@@ -199,7 +202,7 @@ struct HomeFootDoors: View {
         }
         door("START SOMETHING", "start_something", "Start something") { presenter.wizard = .init(existingLeagueId: nil) }
         door("JOIN WITH A CODE", "join_with_a_code", "Join with a code") { presenter.join(code: nil) }
-        door("FIND GOLFERS", "find_golfers", "Find golfers") { push(.people) }
+        door("FIND GOLFERS", "find_golfers", "Find golfers") { openGolfers() }
       }
       .padding(.top, 12)
     }

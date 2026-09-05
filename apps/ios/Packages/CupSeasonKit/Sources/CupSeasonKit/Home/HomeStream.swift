@@ -208,13 +208,25 @@ public enum HomeCopy {
 /// never a name. Dismiss is per-window-per-year, so next spring the azaleas
 /// come back. Weekend CLUSTERING preempts the calendar.
 ///
-/// D252 · FOUR of the six sell a Major or a jug, and the Major's door is
-/// gated on `app_flags.ios.major`, which is off in prod. A card that offers a
-/// door that will not open is the one dishonesty the design does not permit
-/// (L-32, L-44), so `needsMajor` marks them and `current(leagueless:majorOpen:)`
-/// withholds them until the flag is read TRUE. The flag defaults to `false`
-/// here for the same reason `EventPickerSheet` reads it fail-closed: an
-/// unreadable flag hides a door rather than advertising one.
+/// D252 · FOUR of the six sell a Major or a jug, and the Major's door is gated
+/// on `app_flags.ios.major`. A card that offers a door that will not open is
+/// the one dishonesty the design does not permit (L-32, L-44), so `needsMajor`
+/// marks them and `current(leagueless:majorOpen:)` withholds them until the
+/// flag is read TRUE.
+///
+/// **R-E opened the flag** —
+/// `supabase/migrations/20260912090000_the_major_opens.sql`, wave 3, in the
+/// same wave that made the Major's surfaces good enough to receive the traffic.
+/// **Nothing here changed to un-darken them, deliberately:** the gate is a READ
+/// of prod, not a constant, so the four cards come back the moment the owner
+/// pushes that migration and stay dark until then, on a build that is already
+/// in TestFlight. That is the whole reason the sequencing clause was written as
+/// a flag rather than as a promise to remember.
+///
+/// The flag still defaults to `false` here for the same reason
+/// `EventPickerSheet` reads it fail-closed: an unreadable flag hides a door
+/// rather than advertising one, and the curtain has to keep working in both
+/// directions.
 public struct Occasion: Sendable, Identifiable {
   public enum Go: Sendable { case event, league }
   public let key: String

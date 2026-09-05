@@ -222,6 +222,21 @@ enum RoomSheet: Identifiable {
 
 enum RoomPane: String, CaseIterable, Identifiable {
   case standings = "Standings", board = "Board", schedule = "Schedule", pot = "Pot", album = "Album", league = "League"
+
+  /// The server's own pane word (`home_dispatch`'s `route.pane`, a free string
+  /// so the ranker can name a pane this build does not know). An unknown name
+  /// lands on the table, which is what a season door means when it says
+  /// nothing more — never a blank pane.
+  static func named(_ raw: String?) -> RoomPane {
+    switch (raw ?? "").lowercased() {
+    case "board":    return .board
+    case "schedule": return .schedule
+    case "pot":      return .pot
+    case "album":    return .album
+    case "rules", "league": return .league
+    default:         return .standings
+    }
+  }
   var id: String { rawValue }
 }
 

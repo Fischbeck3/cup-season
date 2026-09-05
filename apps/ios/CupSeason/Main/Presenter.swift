@@ -1,6 +1,14 @@
 // Cup Season — the sheets every tab can raise (IOS-002 §2: objects push,
 // actions present). One presenter, installed at the tab shell, so a Tour
 // Card opened from Home and one opened from the board are the same door.
+//
+// D222 / IOS-028 · the shell went from four slots to five and **every sheet
+// here survived it**, which is the point: a sheet is presented over whatever
+// tab is on, so adding a destination changes where you LAND, never what can
+// rise. `dismissAll()` and `anythingUp` are the two functions that must know
+// every field — the push-ask waits on a clear stage and a routed tap clears
+// one — so a new field that is not in both is a defect, and they are the first
+// place to look when a prompt stops appearing.
 
 import SwiftUI
 import CupSeasonKit

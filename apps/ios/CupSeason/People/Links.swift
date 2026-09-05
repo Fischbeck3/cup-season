@@ -10,7 +10,9 @@ import CupSeasonKit
 struct CSLinks {
   var openTourCard: ((UUID) -> Void)? = nil
   var openRound: ((UUID) -> Void)? = nil
-  var openLeague: ((UUID) -> Void)? = nil
+  /// D222 · one door, resolving a season or a moment — `openLeague` was
+  /// named for a table and a season is not a table (route map §13.2).
+  var openCompetition: ((UUID) -> Void)? = nil
 }
 
 // MARK: - The bits the web's `openSheet` / `.mini` / `.ptag` / `.check` were

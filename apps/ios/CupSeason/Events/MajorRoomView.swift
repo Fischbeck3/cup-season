@@ -52,13 +52,18 @@ struct MajorRoomView: View {
       Text(line).font(CSFont.label).tracking(0.8).foregroundStyle(cs.gold).frame(maxWidth: .infinity).multilineTextAlignment(.center)
     }
 
-    RoomFine("Your best 18-hole card inside the window, scored against your own number. Post as many as the weekend allows — the best one stands.")
+    // D252 · **the jug, defined once** (TERMINOLOGY §1 sentence 16). It is the
+    // one piece of the Major's private language the design kept, and the price
+    // of keeping a word is saying what it means, here, at first contact.
+    RoomFine("The jug — the trophy this one is played for. Your best 18-hole card inside the window, scored against your own number. Post as many as the weekend allows; the best one stands.")
 
     // enter / organizer controls
     let mine = room.majorBoard.contains { $0.profileId == me }
     if !mine && inLeague && !f.complete && !f.horn && me != nil {
-      CSButton("Enter the field", busy: model.isBusy("enter")) {
-        act(fail: nil, ok: "You're in the field") { try await model.enter(); await store.reload() }
+      // D252 · "Enter the field" was the room's word for joining; the control
+      // says what the golfer says.
+      CSButton(EventCopy.joinVerb, busy: model.isBusy("enter")) {
+        act(fail: nil, ok: "You’re in") { try await model.enter(); await store.reload() }
       }
     }
     if iAmOrg && !f.complete {
@@ -70,11 +75,11 @@ struct MajorRoomView: View {
               act(fail: nil, ok: "The window is open") { try await model.openWindow(session: s.id) }
             }
           } else {
-            CSFine("Needs 2 in the field to open.")
+            CSFine("Needs 2 playing to open.")
           }
         }
         if ev.isLive, let s = f.session, let d = f.daysLeft, d < 0 {
-          CSMini("Sound the horn — settle", busy: model.isBusy("settle")) {
+          CSMini("Settle it — name the champion", busy: model.isBusy("settle")) {
             act(fail: nil, ok: "Settled — the jug has a name") { try await model.settle(session: s.id) }
           }
         }
@@ -98,7 +103,11 @@ struct MajorRoomView: View {
       }
       let ex = room.majorCards.filter { $0.rank == nil && $0.no_card != true }.sorted { ($0.pvi ?? -99) > ($1.pvi ?? -99) }
       if !ex.isEmpty {
-        Text("Exhibition — official by the next one").csEyebrow().padding(.top, 4)
+        // D252 · "Exhibition" is the engine's word for a card that cannot
+        // contend because the golfer's number is not established yet. The head
+        // says what that MEANS; `EX` stays the board's position token, which
+        // this head is the definition of.
+        Text("Doesn’t count this year").csEyebrow().padding(.top, 4)
         ForEach(ex) { c in
           let r = byPlayer[c.player_id]
           boardRow(pos: "EX", name: r?.displayName ?? "—", marker: r?.marker ?? "saguaro", profile: r?.profileId,
@@ -121,7 +130,8 @@ struct MajorRoomView: View {
       // D61: the rematch tap — the only door into a lineage
       CSButton("Run it back — same jug, next year", style: .quiet) { runBack = MajorPrefill(room, me: me) }
     } else {
-      Text("The clubhouse\(ev.isLive ? " — live" : "")").csEyebrow().padding(.top, 4)
+      // D252 · "the clubhouse" was this room's private name for a leaderboard.
+      Text("Leaderboard\(ev.isLive ? " — live" : "")").csEyebrow().padding(.top, 4)
       let carded = room.majorBoard.filter { $0.pvi != nil }
       let waiting = room.majorBoard.filter { $0.pvi == nil }
       let contenders = carded.filter { !$0.exhibition }
@@ -132,14 +142,14 @@ struct MajorRoomView: View {
       }
       if carded.isEmpty { CSFine(MajorMath.noCardsLine(live: ev.isLive)) }
       if !waiting.isEmpty {
-        Text("Yet to card").csEyebrow().padding(.top, 4)
+        Text("Still to post").csEyebrow().padding(.top, 4)
         ForEach(waiting) { r in
           boardRow(pos: "—", name: r.displayName, marker: r.marker, profile: r.profileId,
-                   line: r.exhibition ? "Exhibition — official by the next one" : "The window is open", pvi: nil, round: nil)
+                   line: r.exhibition ? "Your number is still settling — official by the next one" : "The window is open", pvi: nil, round: nil)
         }
       }
       if ev.isLive, !waiting.isEmpty, let d = f.daysLeft, d >= 0 {
-        CSFine(MajorMath.stillToCard(waiting.map(\.displayName), daysLeft: d)).padding(.top, 2)
+        CSFine(MajorMath.stillToPost(waiting.map(\.displayName), daysLeft: d)).padding(.top, 2)
       }
     }
 
@@ -209,7 +219,7 @@ struct MajorRoomView: View {
     .overlay(RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous).stroke(cs.line, lineWidth: 1))
     .contentShape(Rectangle())
 
-    let said = "\(pos == "🏆" ? "Champion" : pos == "EX" ? "Exhibition" : pos == "—" ? "" : pos), \(name), \(line)" + (pvi.map { ", \(MajorMath.vs($0))" } ?? "")
+    let said = "\(pos == "🏆" ? "Champion" : pos == "EX" ? "Doesn’t count this year" : pos == "—" ? "" : pos), \(name), \(line)" + (pvi.map { ", \(MajorMath.vs($0))" } ?? "")
     return Group {
       if let round {
         Button { links.openReceipt(round) } label: { row }.buttonStyle(.plain)

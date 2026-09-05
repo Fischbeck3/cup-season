@@ -328,33 +328,49 @@ public enum MajorMath {
                  buyIn: buyIn, pot: buyIn * Double(contenders), champion: champ, championCard: champCard, opensAhead: opensAhead)
   }
 
-  /// `FORMING · OPENS JUL 10` · `FORMING` · `LIVE · 2D LEFT` · `THE FINAL DAY` ·
-  /// `AWAITING THE HORN` · `NAME TAKES THE JUG` · `SETTLED — NO CARDS`.
+  /// `OPENS SATURDAY` · `OPENS JUL 10` · `FORMING` · `LIVE · 2D LEFT` ·
+  /// `THE FINAL DAY` · `WAITING TO SETTLE` · `NAME TAKES THE JUG` ·
+  /// `SETTLED — NO CARDS`.
+  ///
+  /// **D252 · two of these were the room's private language and are now plain
+  /// words.** `AWAITING THE HORN` said nothing to a golfer who had not been
+  /// told what the horn was; the state it names is "the window has closed and
+  /// nobody has settled it", so it says that. And the forming chip names the
+  /// DAY when the day is inside the coming week — `OPENS SATURDAY` is the
+  /// sentence the terminology table asks for, and it is only true there, so
+  /// past a week the chip keeps the date it always had rather than claiming a
+  /// weekday eight days out that reads as this Saturday.
   public static func statusChip(status: String, complete: Bool, championName: String?, daysLeft: Int?, opensAhead: Bool,
-                                opensOn: String?, calendar: Calendar = .current) -> String {
+                                opensOn: String?, today: String = CSDate.today(), calendar: Calendar = .current) -> String {
     if complete { return championName.map { $0.uppercased() + " TAKES THE JUG" } ?? "SETTLED — NO CARDS" }
     if status == "setup" {
-      if daysLeft != nil, opensAhead, let o = opensOn { return "FORMING · OPENS " + EventDates.monthDayUpper(o, calendar: calendar) }
+      if daysLeft != nil, opensAhead, let o = opensOn {
+        let out = CSDate.days(from: today, to: o, calendar: calendar)
+        if let n = out, n >= 0, n <= 6 { return "OPENS " + EventDates.weekdayLong(o, calendar: calendar).uppercased() }
+        return "OPENS " + EventDates.monthDayUpper(o, calendar: calendar)
+      }
       return "FORMING"
     }
-    guard let d = daysLeft else { return "AWAITING THE HORN" }
+    guard let d = daysLeft else { return "WAITING TO SETTLE" }
     if d > 0 { return "LIVE · \(d)D LEFT" }
     if d == 0 { return "THE FINAL DAY" }
-    return "AWAITING THE HORN"
+    return "WAITING TO SETTLE"
   }
 
-  public static func statusChip(_ room: EventRoom, _ f: Facts, calendar: Calendar = .current) -> String {
+  public static func statusChip(_ room: EventRoom, _ f: Facts, today: String = CSDate.today(), calendar: Calendar = .current) -> String {
     statusChip(status: room.event.status, complete: f.complete, championName: f.champion?.displayName, daysLeft: f.daysLeft,
-               opensAhead: f.opensAhead, opensOn: f.session?.opens_on, calendar: calendar)
+               opensAhead: f.opensAhead, opensOn: f.session?.opens_on, today: today, calendar: calendar)
   }
 
   /// The card's three lines (12398–12404).
   public static func cardLines(days: Int, when: String, field: Int, contenders: Int, buyIn: Double, pot: Double, potSplit: String?) -> [String] {
-    let ex = field != contenders ? " (\(field - contenders) EXHIBITION)" : ""
+    let ex = field != contenders ? " · \(field - contenders) NOT COUNTING THIS YEAR" : ""
     let stakes = buyIn > 0
       ? "BUY-IN \(money(buyIn)) · POT \(money(pot)) · \(potSplit == "wta" ? "WINNER TAKES ALL" : "60 / 25 / 15")"
       : "BRAGGING RIGHTS"
-    return ["A MAJOR · \(days) DAYS", "\(when) · FIELD OF \(field)\(ex)", stakes]
+    // D252 · "the field" was the room's word for a headcount; T-08 gives the
+    // count to "playing". The exhibition tail keeps its own plain gloss.
+    return ["A MAJOR · \(days) DAYS", "\(when) · \(field) PLAYING\(ex)", stakes]
   }
 
   /// D61 — "THE 2ND ANNUAL · MARCUS DEFENDS". nil until the chain has two editions.
@@ -381,14 +397,17 @@ public enum MajorMath {
     return s
   }
 
-  /// `No cards yet — first one takes the clubhouse.`
+  /// `No cards yet — first one leads.` (D252: "the clubhouse" was the room's
+  /// private name for the leaderboard, and the leaderboard is what it is.)
   public static func noCardsLine(live: Bool) -> String {
-    "No cards yet\(live ? " — first one takes the clubhouse" : "")."
+    "No cards yet\(live ? " — first one leads" : "")."
   }
 
-  /// `Still to card: X, Y · 2d left.` / `… · cards in by tonight.`
-  public static func stillToCard(_ names: [String], daysLeft: Int) -> String {
-    "Still to card: \(names.joined(separator: ", ")) · \(daysLeft == 0 ? "cards in by tonight" : "\(daysLeft)d left")."
+  /// `Still to post: X, Y · 2d left.` / `… · cards in by tonight.`
+  /// D252 / A-5: "card" is the noun on the board; "post" is the verb and the
+  /// state everywhere else in the product, and one act has one word.
+  public static func stillToPost(_ names: [String], daysLeft: Int) -> String {
+    "Still to post: \(names.joined(separator: ", ")) · \(daysLeft == 0 ? "cards in by tonight" : "\(daysLeft)d left")."
   }
 
   /// The fine print — chosen, not discovered (D45).
@@ -427,13 +446,26 @@ public enum EventCopy {
     status == "complete" ? "Final" : status == "setup" ? "Forming" : "Live"
   }
 
-  /// The Clubhouse chip's sub: `Ryder · Live` · `Major · Enter the field`.
+  /// The chip's sub: `Ryder · Live` · `Major · I’m in`.
+  /// D252 · "Enter the field" is the room's word for joining; the control the
+  /// golfer taps says **I’m in**, here and in the Major's room, and nowhere
+  /// are there two verbs for one act.
+  public static let joinVerb = "I’m in"
+
   public static func chipSub(_ e: EventSummary) -> String {
-    (e.isMajor ? "Major" : "Ryder") + " · " + (e.mine ? status(e.status) : "Enter the field")
+    (e.isMajor ? "Major" : "Ryder") + " · " + (e.mine ? status(e.status) : joinVerb)
   }
 
   /// The switcher row's sub (15483): `A Major · Live` · `The Ryder · Forming`.
   public static func switcherSub(_ e: EventSummary) -> String {
-    (e.isMajor ? "A Major" : "The Ryder") + " · " + (e.mine ? status(e.status) : "Enter the field")
+    (e.isMajor ? "A Major" : "The Ryder") + " · " + (e.mine ? status(e.status) : joinVerb)
+  }
+
+  /// Compete's moment row (IA §6.1). The noun, then the state — or, for a
+  /// moment I have not joined, the fact that the door is open. Never a
+  /// countdown: the row's clock is a sort key, not a sentence (L-22).
+  public static func momentLine(kind: String, status s: String, mine: Bool) -> String {
+    let noun = kind == "major" ? "A Major" : "The Ryder"
+    return noun + " · " + (mine ? status(s) : "open to you")
   }
 }

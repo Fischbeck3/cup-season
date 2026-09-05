@@ -171,16 +171,32 @@ private func room(status: String = "live", winner: UUID? = nil, sessionCount: In
   @Test func money() { #expect(MajorMath.money(20) == "$20"); #expect(MajorMath.money(12.5) == "$12.50"); #expect(MajorMath.money(nil) == "$0") }
   @Test func cardLines() {
     #expect(MajorMath.cardLines(days: 4, when: "JUL 9–JUL 12", field: 8, contenders: 6, buyIn: 20, pot: 120, potSplit: "places")
-            == ["A MAJOR · 4 DAYS", "JUL 9–JUL 12 · FIELD OF 8 (2 EXHIBITION)", "BUY-IN $20 · POT $120 · 60 / 25 / 15"])
+            // D252 · "the field" was the room's word for a headcount and
+            // "EXHIBITION" was its word for a card that cannot contend.
+            == ["A MAJOR · 4 DAYS", "JUL 9–JUL 12 · 8 PLAYING · 2 NOT COUNTING THIS YEAR", "BUY-IN $20 · POT $120 · 60 / 25 / 15"])
     #expect(MajorMath.cardLines(days: 2, when: "JUL 11–JUL 12", field: 4, contenders: 4, buyIn: 0, pot: 0, potSplit: nil)[2] == "BRAGGING RIGHTS")
     #expect(MajorMath.cardLines(days: 3, when: "", field: 4, contenders: 4, buyIn: 10, pot: 40, potSplit: "wta")[2] == "BUY-IN $10 · POT $40 · WINNER TAKES ALL")
   }
+  /// D252 · two of these were the room's private language.
+  ///
+  /// "AWAITING THE HORN" said nothing to a golfer who had not been told what
+  /// the horn was, and the state it names is "the window closed and nobody has
+  /// settled it". The terminology table's replacement, **Opens Saturday**, is a
+  /// FORMING sentence, not that one — so it lands on the forming chip, where it
+  /// is true, and only inside the coming week: a weekday eight days out reads
+  /// as this Saturday, which is the lie the change exists to remove.
   @Test func statusChips() {
-    #expect(MajorMath.statusChip(status: "setup", complete: false, championName: nil, daysLeft: 5, opensAhead: true, opensOn: "2026-07-10", calendar: cal) == "FORMING · OPENS JUL 10")
+    // inside the week → the day has a name
+    #expect(MajorMath.statusChip(status: "setup", complete: false, championName: nil, daysLeft: 5, opensAhead: true,
+                                 opensOn: "2026-07-11", today: "2026-07-06", calendar: cal) == "OPENS SATURDAY")
+    // past it → the date it always was, never a weekday a week out
+    #expect(MajorMath.statusChip(status: "setup", complete: false, championName: nil, daysLeft: 12, opensAhead: true,
+                                 opensOn: "2026-07-18", today: "2026-07-06", calendar: cal) == "OPENS JUL 18")
     #expect(MajorMath.statusChip(status: "setup", complete: false, championName: nil, daysLeft: 1, opensAhead: false, opensOn: "2026-07-10", calendar: cal) == "FORMING")
     #expect(MajorMath.statusChip(status: "live", complete: false, championName: nil, daysLeft: 2, opensAhead: false, opensOn: nil) == "LIVE · 2D LEFT")
     #expect(MajorMath.statusChip(status: "live", complete: false, championName: nil, daysLeft: 0, opensAhead: false, opensOn: nil) == "THE FINAL DAY")
-    #expect(MajorMath.statusChip(status: "live", complete: false, championName: nil, daysLeft: -1, opensAhead: false, opensOn: nil) == "AWAITING THE HORN")
+    #expect(MajorMath.statusChip(status: "live", complete: false, championName: nil, daysLeft: -1, opensAhead: false, opensOn: nil) == "WAITING TO SETTLE")
+    #expect(MajorMath.statusChip(status: "live", complete: false, championName: nil, daysLeft: nil, opensAhead: false, opensOn: nil) == "WAITING TO SETTLE")
     #expect(MajorMath.statusChip(status: "complete", complete: true, championName: "Marcus", daysLeft: -2, opensAhead: false, opensOn: nil) == "MARCUS TAKES THE JUG")
     #expect(MajorMath.statusChip(status: "complete", complete: true, championName: nil, daysLeft: -2, opensAhead: false, opensOn: nil) == "SETTLED — NO CARDS")
   }
@@ -195,6 +211,12 @@ private func room(status: String = "live", winner: UUID? = nil, sessionCount: In
     #expect(MajorMath.cardsLine(gross: 82, cards: 2) == "82 · 2 cards")
     #expect(MajorMath.cardsLine(gross: nil, cards: 1, prize: 60) == "1 card · $60")
     #expect(MajorMath.cardsLine(gross: 90, cards: 3, exhibition: true) == "90 · 3 cards · exhibition")
+    // D252 · "still to post", not "still to card": one act, one verb (A-5).
+    #expect(MajorMath.stillToPost(["Tash", "Dev"], daysLeft: 2) == "Still to post: Tash, Dev · 2d left.")
+    #expect(MajorMath.stillToPost(["Tash"], daysLeft: 0) == "Still to post: Tash · cards in by tonight.")
+    // and the leaderboard is a leaderboard, not "the clubhouse"
+    #expect(MajorMath.noCardsLine(live: true) == "No cards yet — first one leads.")
+    #expect(!MajorMath.noCardsLine(live: true).contains("clubhouse"))
     #expect(MajorMath.shareText(name: "Marcus", jug: "The PIGL Championship", gross: 82, pvi: 4.2) == "Marcus takes The PIGL Championship — 82, 4.2 under their number · cupseason.app")
   }
   @Test func whenLine() {
@@ -218,7 +240,13 @@ private func room(status: String = "live", winner: UUID? = nil, sessionCount: In
 @Suite struct EventChipCopyTests {
   @Test func subs() {
     #expect(EventCopy.chipSub(EventSummary(id: UUID(), name: "x", kind: "ryder", status: "live", mine: true)) == "Ryder · Live")
-    #expect(EventCopy.chipSub(EventSummary(id: UUID(), name: "x", kind: "major", status: "setup", mine: false)) == "Major · Enter the field")
+    // D252 · "Enter the field" was the room's word for joining.
+    #expect(EventCopy.chipSub(EventSummary(id: UUID(), name: "x", kind: "major", status: "setup", mine: false)) == "Major · I’m in")
+    #expect(EventCopy.switcherSub(EventSummary(id: UUID(), name: "x", kind: "ryder", status: "live", mine: false)) == "The Ryder · I’m in")
+    // Compete's own row (IA §6.1): the noun, then the state — and never a
+    // countdown, because the row's clock is a sort key (L-22).
+    #expect(EventCopy.momentLine(kind: "major", status: "live", mine: true) == "A Major · Live")
+    #expect(EventCopy.momentLine(kind: "ryder", status: "setup", mine: false) == "The Ryder · open to you")
     #expect(EventCopy.chipSub(EventSummary(id: UUID(), name: "x", kind: "ryder", status: "complete", mine: true)) == "Ryder · Final")
     #expect(EventCopy.switcherSub(EventSummary(id: UUID(), name: "x", kind: "major", status: "setup", mine: true)) == "A Major · Forming")
   }

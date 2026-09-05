@@ -146,7 +146,7 @@ private struct PostRoundBody: View {
     }
     .sheet(item: $model.epilogue, onDismiss: onDone) { show in
       EpilogueSheet(show: show, photo: model.recapPhoto,
-                    links: EpilogueLinks(openTable: { onDone(); links.openLeague($0) },
+                    links: EpilogueLinks(openTable: { onDone(); links.openCompetition($0) },
                                          openPerson: { onDone(); links.openTourCard($0) },
                                          openPeople: { onDone(); links.openPeople() },
                                          startSomething: { onDone(); links.openPeople() }),

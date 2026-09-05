@@ -262,16 +262,27 @@ public enum SeasonFacts {
   ///             Final is scored fresh (§14.3), so the table's rank is not its rank
   ///   complete  "Season complete" (`LeagueCopy.seasonNote`)
   ///   forming   "Forming" / "Squads drawing" (`LeagueCopy.Stage.label`)
-  public static func seasonLine(_ m: Me.Membership, today: String = CSDate.today(), calendar: Calendar = .current) -> String {
+  ///
+  /// **One producer, two grains** (the pattern IOS-036 names for the endgame
+  /// clause). `week: false` drops the leading week clause and nothing else —
+  /// for a surface whose EYEBROW already carries the week, where printing it
+  /// again is the same fact in two places on one row (L-34). Compete's peer
+  /// list is that surface; a second producer for it would be the drift D234
+  /// exists to forbid.
+  public static func seasonLine(_ m: Me.Membership, week: Bool = true,
+                                today: String = CSDate.today(), calendar: Calendar = .current) -> String {
     switch SeasonPhase.of(m, today: today) {
     case .season(let w, let n):
-      var s = "Week \(w) of \(n)"
+      var s = week ? "Week \(w) of \(n)" : ""
       if let st = m.standing {
-        s += " · \(CSCopy.ordinal(st.rank)) of \(st.of)"
+        s += (s.isEmpty ? "" : " · ") + "\(CSCopy.ordinal(st.rank)) of \(st.of)"
         if let race = race(st) { s += ", \(race)" }
       }
-      if let money = SeasonFacts.footMoney(m) { s += " · \(money)" }
-      return s
+      if let money = SeasonFacts.footMoney(m) { s += (s.isEmpty ? "" : " · ") + money }
+      // A season with no standing and no money has nothing left to say once
+      // the week is taken out — the stage word is the honest sentence, not an
+      // empty one (L-32).
+      return s.isEmpty ? "Standings start at the first posted round." : s
     case .preseason:
       var s = "First tee \(m.season.map { LeagueDates.dowMonDay($0.starts_on, calendar: calendar) } ?? "—")"
       // "on the roster" — the row's own noun for a headcount (D207's phone

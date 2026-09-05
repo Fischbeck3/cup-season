@@ -1,6 +1,18 @@
-// Cup Season — the four places (D82, IOS-011): Home · Clubhouse · ⊕ · You.
-// Each tab owns a NavigationStack; objects push, actions present through
-// the Presenter installed here.
+// Cup Season — the FIVE places (D222 / R-A, R-D; IOS-028):
+// Home · Compete · ⊕ Play · Golfers · You.
+//
+// D82's four places ruled for a year and D93 restated it ("NAV UNCHANGED — and
+// that is the point"). The owner overrode it at level 3, because "who am I
+// competing with" cost three screens and every walked persona paid for it. The
+// one rule of D82 that survives is the one that mattered: **the ⊕ is a verb,
+// not a place** — it presents, the selection snaps back, and it wears ember.
+//
+// Each tab owns a NavigationStack; objects push, actions present through the
+// Presenter installed here. **Nothing pushes across a stack any more**: the two
+// cross-tab doors are environment actions (`\.openCompetition`, `\.openGolfers`)
+// rather than a `NavigationLink(value:)` declared in one stack and resolved in
+// another — which is the whole of the D178 class of bug (a link SwiftUI logs a
+// warning about and silently ignores).
 
 import SwiftUI
 import CSDesign
@@ -76,31 +88,49 @@ enum CSDevHatch {
   }
 }
 
-/// `.league` lands on STANDINGS (D218: the table is reached from the hero, the
-/// D121 row and the move card); `.pot` is the same room opened on the Pot pane
-/// — Home's self-only "You still owe" line (D129) leads to the books. A board
-/// is `ClubRoute.board`, which both stacks already resolve (D217's door under
-/// the folded notes on Home uses it too).
-enum HomeRoute: Hashable { case schedule, people, league(UUID), pot(UUID) }
-enum ClubRoute: Hashable { case board(UUID), schedule, album(UUID) }
+/// Home pushes exactly one thing now: the calendar. `.people` became
+/// `openGolfers()` (a tab, not a push), and `.league`/`.pot` became
+/// `openCompetition(_:pane:)` — a season is Compete's object, and Home has no
+/// open league to push into (D229).
+enum HomeRoute: Hashable { case schedule }
+
+/// Compete's own stack. `.season` lands on the pane a door asked for — D218's
+/// rule survives restated: a door named for a table opens a table, so "See the
+/// table →" anchors `.standings` and the hero's own door opens the room. The
+/// pane is `RoomPane` today and becomes the season page's `Pane` in wave 4
+/// (D223 / IOS-031), which changes the LANDING and not this enum's callers.
+enum CompeteRoute: Hashable { case season(UUID, pane: RoomPane), board(UUID), schedule, album(UUID) }
+
 /// `.addGhin` is Card & settings opened on the card pane with the GHIN field
 /// focused (Y-30) — the You hero's "add your GHIN" lands on the field, not the screen.
-enum YouRoute: Hashable { case people, settings, addGhin }
+/// `.people` retired: Golfers is a tab (D222).
+enum YouRoute: Hashable { case settings, addGhin }
 
-/// Y-16 · "open this league in the Clubhouse", callable from ANY screen: sets
-/// `store.preferredLeague`, clears the Clubhouse stack so the room is what
-/// shows, and selects the tab. Installed once by `MainTabView`; the default is
-/// a no-op so previews and slices compile without the shell.
+/// Y-16, retargeted by D222 · "open this competition", callable from ANY
+/// screen: remembers it, clears Compete's stack so the object is what shows,
+/// and selects the tab. Installed once by `MainTabView`; the default is a no-op
+/// so previews and slices compile without the shell.
 ///
-///     @Environment(\.openLeague) private var openLeague
-///     openLeague(id)
-private struct OpenLeagueKey: EnvironmentKey {
-  static let defaultValue: @MainActor @Sendable (UUID) -> Void = { _ in }
+///     @Environment(\.openCompetition) private var openCompetition
+///     openCompetition(id, .standings)
+private struct OpenCompetitionKey: EnvironmentKey {
+  static let defaultValue: @MainActor @Sendable (UUID, RoomPane) -> Void = { _, _ in }
+}
+/// The second cross-tab door: Golfers, from Home's wire, from You's hero and
+/// from every "Find golfers" in the app. It replaces the `HomeRoute.people`
+/// push, which had to be declared in three separate stacks and was dead in a
+/// fourth (D178).
+private struct OpenGolfersKey: EnvironmentKey {
+  static let defaultValue: @MainActor @Sendable () -> Void = {}
 }
 extension EnvironmentValues {
-  var openLeague: @MainActor @Sendable (UUID) -> Void {
-    get { self[OpenLeagueKey.self] }
-    set { self[OpenLeagueKey.self] = newValue }
+  var openCompetition: @MainActor @Sendable (UUID, RoomPane) -> Void {
+    get { self[OpenCompetitionKey.self] }
+    set { self[OpenCompetitionKey.self] = newValue }
+  }
+  var openGolfers: @MainActor @Sendable () -> Void {
+    get { self[OpenGolfersKey.self] }
+    set { self[OpenGolfersKey.self] = newValue }
   }
 }
 
@@ -116,7 +146,8 @@ struct MainTabView: View {
   @State private var router = PushRouter.shared
   @State private var ask = PushAsk.shared
   @State private var homePath = NavigationPath()
-  @State private var clubPath = NavigationPath()
+  @State private var competePath = NavigationPath()
+  @State private var golfersPath = NavigationPath()
   @State private var youPath = NavigationPath()
   /// What the floating bar covers that the system does not already reserve —
   /// measured from the live bar (`CSTabBarProbe`), never guessed. 0 until the
@@ -125,7 +156,23 @@ struct MainTabView: View {
   #if DEBUG
   @State private var devOpened = false
   #endif
-  enum Tab: Hashable { case home, clubhouse, post, you }
+  /// D222 · five slots. The order is the bar's order and the ⊕ is the middle
+  /// of the five, which is what keeps `CSTabBarLongPress.plusIndex(of:)`
+  /// pointing at it without a constant to forget.
+  enum Tab: Hashable {
+    case home, compete, play, golfers, you
+    /// The Kit's slot for this tab. One vocabulary, so `NavSlot` can decide
+    /// where a route lands and this shell only obeys.
+    init(_ slot: NavSlot) {
+      switch slot {
+      case .home: self = .home
+      case .compete: self = .compete
+      case .play: self = .play
+      case .golfers: self = .golfers
+      case .you: self = .you
+      }
+    }
+  }
 
   var body: some View {
     // D163 · the round follows you. The bar sits ABOVE the tab view so it is
@@ -148,83 +195,57 @@ struct MainTabView: View {
 
   private var tabs: some View {
     TabView(selection: $tab) {
+      // ---- 1 · HOME. The dispatch. One push: the calendar. ----
       NavigationStack(path: $homePath) {
         HomeView(links: csLinks, push: { homePath.append($0) })
-          .navigationDestination(for: ClubRoute.self) { r in
-            switch r {
-            case .board(let id): BoardScreen(leagueId: id, links: boardLinks)
-            case .schedule: ScheduleScreen(links: csLinks)
-            case .album(let id): AlbumScreen(leagueId: id)
-            }
-          }
           .navigationDestination(for: HomeRoute.self) { r in
             switch r {
             case .schedule: ScheduleScreen(links: csLinks)
-            case .people: PeopleScreen(links: csLinks)
-            case .league(let id): ClubhouseView(leagueId: id, onOpenBoard: { homePath.append(ClubRoute.board($0)) },
-                                                onOpenSchedule: { homePath.append(HomeRoute.schedule) },
-                                                onAddGolfers: { presenter.inviteTo = $0 })
-            case .pot(let id): ClubhouseView(leagueId: id, pane: .pot, onOpenBoard: { homePath.append(ClubRoute.board($0)) },
-                                             onOpenSchedule: { homePath.append(HomeRoute.schedule) },
-                                             onAddGolfers: { presenter.inviteTo = $0 })
             }
           }
       }
       .csTabBarEdge()
-      .tabItem { Label("Home", systemImage: "house") }
+      .tabItem { Label(NavSlot.home.label, systemImage: "house") }
       .tag(Tab.home)
 
-      NavigationStack(path: $clubPath) {
-        ClubhouseView(leagueId: store.preferredLeague, paged: true,
-                      onOpenBoard: { clubPath.append(ClubRoute.board($0)) },
-                      onOpenSchedule: { clubPath.append(ClubRoute.schedule) },
-                      onAddGolfers: { presenter.inviteTo = $0 })
-          .navigationDestination(for: ClubRoute.self) { r in
-            switch r {
-            case .board(let id): BoardScreen(leagueId: id, links: boardLinks)
-            case .schedule: ScheduleScreen(links: csLinks)
-            case .album(let id): AlbumScreen(leagueId: id)
-            }
-          }
-          // D178 · ClubhouseView:65 emits `NavigationLink(value: HomeRoute.people)`
-          // for "Add golfers", and this stack declared only ClubRoute — so the
-          // link was INERT: SwiftUI logs "the link will not work" and the tap
-          // does nothing. The league-less Clubhouse offers four affordances and
-          // the last one was dead, on exactly the screen a brand-new tester
-          // lands on.
-          .navigationDestination(for: HomeRoute.self) { r in
-            switch r {
-            case .schedule: ScheduleScreen(links: csLinks)
-            case .people: PeopleScreen(links: csLinks)
-            case .league(let id): ClubhouseView(leagueId: id, onOpenBoard: { clubPath.append(ClubRoute.board($0)) },
-                                                onOpenSchedule: { clubPath.append(ClubRoute.schedule) },
-                                                onAddGolfers: { presenter.inviteTo = $0 })
-            case .pot(let id): ClubhouseView(leagueId: id, pane: .pot, onOpenBoard: { clubPath.append(ClubRoute.board($0)) },
-                                             onOpenSchedule: { clubPath.append(ClubRoute.schedule) },
-                                             onAddGolfers: { presenter.inviteTo = $0 })
-            }
-          }
+      // ---- 2 · COMPETE. Every season and moment I am in, as peers. ----
+      // O-06 · the slot's own name in the IA blueprint, and D11 retired
+      // "clubhouse" from prose the day the tab kept the word.
+      NavigationStack(path: $competePath) {
+        CompeteScreen(links: csLinks,
+                      push: { competePath.append($0) },
+                      openGolfers: { openGolfers() })
+          .navigationDestination(for: CompeteRoute.self) { r in competeDestination(r) }
       }
       .csTabBarEdge()
-      .tabItem { Label("Clubhouse", systemImage: "flag") }
-      .tag(Tab.clubhouse)
+      .tabItem { Label(NavSlot.compete.label, systemImage: "flag") }
+      .tag(Tab.compete)
 
+      // ---- 3 · ⊕ PLAY. A verb, not a place (D82's one surviving rule). ----
       Color.clear
-        .tabItem { Label { Text("Post") } icon: { Image(uiImage: emberPlus) } }
-        .tag(Tab.post)
+        .tabItem { Label { Text(NavSlot.play.label) } icon: { Image(uiImage: emberPlus) } }
+        .tag(Tab.play)
 
+      // ---- 4 · GOLFERS. The COMMUNITY destination (D222). ----
+      NavigationStack(path: $golfersPath) {
+        GolfersScreen(links: csLinks)
+      }
+      .csTabBarEdge()
+      .tabItem { Label(NavSlot.golfers.label, systemImage: "person.2") }
+      .tag(Tab.golfers)
+
+      // ---- 5 · YOU. The card, the number, the record. ----
       NavigationStack(path: $youPath) {
         YouScreen(leagueId: store.preferredLeague, links: youLinks)
           .navigationDestination(for: YouRoute.self) { r in
             switch r {
-            case .people: PeopleScreen(links: csLinks)
             case .settings: CardAndSettingsScreen()
             case .addGhin: CardAndSettingsScreen(focus: .ghin)
             }
           }
       }
       .csTabBarEdge()
-      .tabItem { Label("You", systemImage: "person.text.rectangle") }
+      .tabItem { Label(NavSlot.you.label, systemImage: "person.text.rectangle") }
       .tag(Tab.you)
     }
     // Room at the foot for the floating bar, answered in ONE place. Applied to
@@ -238,7 +259,8 @@ struct MainTabView: View {
     .csTabBarRoom(barRoom)
     .tint(cs.brand)
     .environment(\.presenter, presenter)
-    .environment(\.openLeague, { id in openLeague(id) })
+    .environment(\.openCompetition, { id, pane in openCompetition(id, pane: pane) })
+    .environment(\.openGolfers, { openGolfers() })
     // Measure the bar once it exists, and dress it on the way past. The bar is
     // built after the first layout, so this polls briefly and then stops; a
     // shell that never finds one leaves `barRoom` at 0.
@@ -290,12 +312,12 @@ struct MainTabView: View {
       try? await Task.sleep(for: .seconds(2))
       devOpened = true
       switch a[i + 1] {
-      case "clubhouse": tab = .clubhouse
+      case "compete", "clubhouse": tab = .compete
       case "you": tab = .you
-      case "board": tab = .clubhouse; if let l = store.preferredLeague { clubPath.append(ClubRoute.board(l)) }
-      case "schedule": tab = .clubhouse; clubPath.append(ClubRoute.schedule)
+      case "board": tab = .compete; if let l = store.preferredLeague { competePath.append(CompeteRoute.board(l)) }
+      case "schedule": tab = .compete; competePath.append(CompeteRoute.schedule)
       case "settings": tab = .you; youPath.append(YouRoute.settings)
-      case "people": tab = .you; youPath.append(YouRoute.people)
+      case "golfers", "people": tab = .golfers; golfersPath = NavigationPath()
       case "post": presenter.postOnComposer = false; presenter.showPost = true
       case "postround": presenter.postOnComposer = true; presenter.showPost = true
       case "live": presenter.showLive = true
@@ -339,9 +361,9 @@ struct MainTabView: View {
     .sheet(item: $ask.presented) { PushPromptSheet(reason: $0) }
     .onChange(of: tab) { old, new in
       // the ⊕ is a verb, not a place: it presents, and the selection snaps back (IOS-022 item 3: with a haptic)
-      if new == .post {
+      if new == .play {
         CSHaptic.present()
-        tab = old == .post ? .home : old
+        tab = old == .play ? .home : old
         // D227 · with a round live, the ⊕ OPENS THE ROUND. It used to offer
         // the cover, whose first row is the same door `LiveNowBar` is already
         // offering two rows above it — the same act, twice, on one screen.
@@ -371,8 +393,8 @@ struct MainTabView: View {
     .sheet(item: $presenter.declare) { DeclareRoundSheet(prefill: $0, leagueId: store.preferredLeague) { _ in } }
     .sheet(isPresented: $presenter.showJoin) {
       JoinLeagueFlow(code: presenter.joinCode) { id in
-        store.preferredLeague = id
         Task { await store.reload() }
+        openCompetition(id)
       }
     }
     .sheet(isPresented: $presenter.showFeedback) {
@@ -416,8 +438,8 @@ struct MainTabView: View {
     .fullScreenCover(isPresented: $presenter.showPost) {
       PostCoverView(startOnComposer: presenter.postOnComposer, links: PostLinks(openLive: { presenter.showLive = true },
                                      openReceipt: { presenter.receipt = $0 },
-                                     openPeople: { presenter.showPost = false; tab = .you; youPath.append(YouRoute.people) },
-                                     openLeague: { presenter.showPost = false; openLeague($0) },
+                                     openPeople: { presenter.showPost = false; openGolfers() },
+                                     openCompetition: { presenter.showPost = false; openCompetition($0) },
                                      openTourCard: { presenter.showPost = false; presenter.tourCard = $0 }))
     }
     .fullScreenCover(isPresented: $presenter.showLive) { LiveRoundHost(links: liveLinks) }
@@ -442,28 +464,30 @@ struct MainTabView: View {
     if case .live = route {} else if presenter.dismissAll() {
       try? await Task.sleep(for: .milliseconds(450))   // the curtain closes before the next sheet
     }
+    // D222 · the SLOT is decided once, in the Kit, so a route that lands on a
+    // destination that no longer exists is a failing `RouteMapTests` case and
+    // not a blank screen. What happens INSIDE the slot is this switch's job.
+    tab = Tab(NavSlot.of(route))
     switch route {
     case .receipt(let id): presenter.receipt = id
     case .scorecard(let id): presenter.scorecard = id
+    // A board is a season's board, and a season is Compete's (route map §13.2).
     case .board(let league):
       store.preferredLeague = league
-      tab = .clubhouse
-      clubPath = NavigationPath()
-      clubPath.append(ClubRoute.board(league))
+      competePath = NavigationPath()
+      competePath.append(CompeteRoute.board(league))
     case .live(let lr):
       LiveRoundStore.shared.handleLiveOpen(lr: lr)
       presenter.showLive = true
     case .event(let id): presenter.event = id
     case .invites:
-      tab = .home
       homePath = NavigationPath()   // the banner sits at the top of Home
+    // D222 · a person waiting on you is a COMMUNITY object. It was a push into
+    // People, which lived under You; requests are the head of Golfers now.
     case .requests:
-      tab = .home
-      homePath = NavigationPath()
-      homePath.append(HomeRoute.people)
+      golfersPath = NavigationPath()
     case .scheduledRound(let id): presenter.scheduledRound = id
     case .home:
-      tab = .home
       homePath = NavigationPath()
     }
   }
@@ -477,13 +501,42 @@ struct MainTabView: View {
 
   // MARK: links
 
-  /// Y-16 · the one way a league is opened in the Clubhouse (`CSLinks.openLeague`
-  /// and the `\.openLeague` environment action both land here). The stack is
-  /// cleared so a board pushed earlier cannot sit over the room you asked for.
-  private func openLeague(_ id: UUID) {
+  /// Y-16, retargeted · the ONE way a competition is opened (`CSLinks
+  /// .openCompetition` and the `\.openCompetition` environment action both land
+  /// here). The stack is cleared first, so a board pushed earlier cannot sit
+  /// over the object you asked for.
+  ///
+  /// `preferredLeague` is written as NAVIGATION MEMORY and nothing else (D229):
+  /// it decides which season Compete shows on arrival with no deeper intent,
+  /// and no read on any other screen depends on it.
+  private func openCompetition(_ id: UUID, pane: RoomPane = .standings) {
     store.preferredLeague = id
-    clubPath = NavigationPath()
-    tab = .clubhouse
+    competePath = NavigationPath()
+    competePath.append(CompeteRoute.season(id, pane: pane))
+    tab = .compete
+  }
+
+  /// The other cross-tab door. Requests sit at the head of the tab, so landing
+  /// on the root IS landing on them.
+  private func openGolfers() {
+    golfersPath = NavigationPath()
+    tab = .golfers
+  }
+
+  /// Compete's pushed destinations. `.season` is `LeagueRoomScreen` inside
+  /// `ClubhouseView` today; wave 4 (D223 / IOS-031) swaps the landing for the
+  /// season page and every caller here is unchanged by that.
+  @ViewBuilder private func competeDestination(_ r: CompeteRoute) -> some View {
+    switch r {
+    case .season(let id, let pane):
+      ClubhouseView(leagueId: id, pane: pane,
+                    onOpenBoard: { competePath.append(CompeteRoute.board($0)) },
+                    onOpenSchedule: { competePath.append(CompeteRoute.schedule) },
+                    onAddGolfers: { presenter.inviteTo = $0 })
+    case .board(let id): BoardScreen(leagueId: id, links: boardLinks)
+    case .schedule: ScheduleScreen(links: csLinks)
+    case .album(let id): AlbumScreen(leagueId: id)
+    }
   }
 
   private var liveLinks: LiveLinks {
@@ -493,15 +546,15 @@ struct MainTabView: View {
   private var csLinks: CSLinks {
     CSLinks(openTourCard: { presenter.tourCard = $0 },
             openRound: nil,      // a nil openRound presents the scheduled-round sheet in place
-            openLeague: { openLeague($0) })
+            openCompetition: { openCompetition($0) })
   }
 
   private var wizardLinks: WizardLinks {
     WizardLinks(
-      onLocked: { id in presenter.wizard = nil; presenter.runBack = nil; store.preferredLeague = id; Task { await store.reload() }; tab = .clubhouse },
+      onLocked: { id in presenter.wizard = nil; presenter.runBack = nil; Task { await store.reload() }; openCompetition(id) },
       onCancelled: { presenter.wizard = nil; Task { await store.reload() } },
       startEvent: { presenter.wizard = nil; presenter.showEventPicker = true },
-      onJoined: { id in PushAsk.shared.request(.leagueJoined); store.preferredLeague = id; Task { await store.reload() }; tab = .clubhouse })
+      onJoined: { id in PushAsk.shared.request(.leagueJoined); Task { await store.reload() }; openCompetition(id) })
   }
 
   private var eventLinks: EventLinks {
@@ -516,7 +569,7 @@ struct MainTabView: View {
 
   private var youLinks: YouLinks {
     YouLinks(
-      openBuddies: { tab = .you; youPath.append(YouRoute.people) },
+      openBuddies: { openGolfers() },
       openSettings: { tab = .you; youPath.append(YouRoute.settings) },
       openFeedback: { presenter.feedbackScreen = "you"; presenter.showFeedback = true },
       openFounderDesk: { presenter.showDesk = true },
@@ -534,8 +587,10 @@ struct MainTabView: View {
 ///
 /// SwiftUI's `tabItem` takes no gesture, so the recogniser goes on the live
 /// `UITabBar` and decides for itself whether the press landed on the ⊕: the
-/// bar's own item buttons, sorted left to right, and `Tab.post` is the third
-/// of four. `cancelsTouchesInView` stays false, so an ordinary tap is
+/// bar's own item buttons, sorted left to right, and `Tab.play` is the MIDDLE
+/// one — the third of five since D222, and the third of four before it, which
+/// is why `plusIndex(of:)` derives the index rather than naming it.
+/// `cancelsTouchesInView` stays false, so an ordinary tap is
 /// untouched and the ⊕ still presents the cover. A bar it cannot find means no
 /// gesture at all — the cover's second row is the same door, one tap further.
 @MainActor enum CSTabBarLongPress {
@@ -554,9 +609,9 @@ struct MainTabView: View {
     }
   }
 
-  /// The ⊕ is the middle slot: index 2 of four today, and the middle of any odd
-  /// count if a slot is ever added. Derived rather than hard-coded so wave 3's
-  /// five destinations do not silently move the gesture onto Golfers.
+  /// The ⊕ is the middle slot: index 2 of five since D222, and index 2 of four
+  /// before it — the derivation is what carried the gesture through the change
+  /// instead of silently moving it onto Golfers.
   static func plusIndex(of count: Int) -> Int { count <= 0 ? 0 : count / 2 }
 
   private static var target: Target?

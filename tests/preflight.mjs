@@ -791,5 +791,53 @@ else {
   }
 }
 
+/* 24 · every nav destination lands somewhere real (D222, IOS-028) -----------
+   The five slots became real destinations this wave, and a `switchView` to a
+   name with no pane deactivates every pane and drops the golfer on a BLANK
+   SCREEN with a clean console. That is not hypothetical: `csItemDoor`'s live
+   route pointed at a `view-live` that has never existed, and it took a human
+   reading the file to find it — no test could, because the browser suite only
+   runs in a browser and the gate that stops a push is this file.
+
+   So: every `data-v` on a `.navitem` or a `.tab`, resolved through the router's
+   own alias table (`csViewFor`, read out of the source rather than restated
+   here), must name a `<section id="view-…">` that exists — or `board`, which is
+   a full-screen dialog rather than a pane and is named as the one exception. */
+{
+  const nav = [...html.matchAll(/<button[^>]*class="(?:navitem|tab)[^"]*"[^>]*data-v="([a-z-]+)"/g)].map(m => m[1]);
+  const navAlt = [...html.matchAll(/<button[^>]*data-v="([a-z-]+)"[^>]*class="(?:navitem|tab)[^"]*"/g)].map(m => m[1]);
+  const items = [...new Set(nav.concat(navAlt))];
+  const views = new Set([...html.matchAll(/id="view-([a-z-]+)"/g)].map(m => m[1]));
+
+  /* the alias table, read from the router itself — a rename made there and not
+     here would otherwise pass this check while breaking the page */
+  const fn = html.match(/function csViewFor\(v\)\{([\s\S]*?)\n\}/);
+  const alias = {};
+  if (fn) for (const m of fn[1].matchAll(/if\(v==='([a-z-]+)'\)\s*return\s*'([a-z-]+)'/g)) alias[m[1]] = m[2];
+
+  const problems = [];
+  if (!items.length) problems.push('no nav items found — the selector or the markup moved');
+  if (!fn) problems.push('csViewFor is gone — the router has no alias table to read');
+  for (const v of items) {
+    const target = alias[v] || v;
+    if (target === 'board') continue;                 // a dialog, not a pane
+    if (!views.has(target)) problems.push(`${v} → view-${target}, which does not exist`);
+  }
+  /* and the aliases themselves, so an old link cannot blank the page either */
+  for (const [from, to] of Object.entries(alias)) {
+    if (to !== 'board' && !views.has(to)) problems.push(`alias ${from} → view-${to}, which does not exist`);
+  }
+  /* self-test: the check has to be able to see a broken one */
+  {
+    const broken = html.replace('data-v="compete"', 'data-v="notaview"');
+    const bItems = [...new Set([...broken.matchAll(/<button[^>]*class="(?:navitem|tab)[^"]*"[^>]*data-v="([a-z-]+)"/g)].map(m => m[1]))];
+    if (!bItems.some(v => !views.has(alias[v] || v) && (alias[v] || v) !== 'board'))
+      problems.push('self-test failed: the check cannot see a nav item pointing at a missing view');
+  }
+  problems.length === 0
+    ? pass('every nav destination resolves', `${items.length} nav item(s) + ${Object.keys(alias).length} alias(es) → live panes`)
+    : fail('every nav destination resolves', problems.join(' · '));
+}
+
 console.log(`\n${fails ? 'FAIL' : 'PASS'} — ${fails} failure(s), ${warns} warning(s)`);
 process.exit(fails ? 1 : 0);

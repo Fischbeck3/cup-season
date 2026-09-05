@@ -47,7 +47,8 @@ public enum GuideCopy {
 
   /// The five `.check` rows under "How it works", in order.
   public static let rows: [Row] = [
-    Row(key: "places", glyph: "◱", title: "The four places", sub: "Home · Clubhouse · Post · You"),
+    // D222 · five, and the ⊕ is a verb rather than a fifth room.
+    Row(key: "places", glyph: "◱", title: "The five places", sub: "Home · Compete · ⊕ Play · Golfers · You"),
     Row(key: "games", glyph: "⛳", title: "Leagues vs events", sub: "The long game and the short game"),
     Row(key: "posting", glyph: "✎", title: "Posting a round", sub: "Basic, live, and the scan"),
     Row(key: "buddies", glyph: "◆", title: "Buddies, invites and claims", sub: "Three different links, three jobs"),
@@ -55,11 +56,12 @@ public enum GuideCopy {
   ]
 
   public static let sheets: [String: GuideSheet] = [
-    "places": GuideSheet(key: "places", title: "The four places", sub: "ONE APP, FOUR ROOMS", paragraphs: [
-      "**Home** is everything you're in, one feed — your standing up top, your buddies' rounds under it.",
-      "**Clubhouse** is one league's room: Standings, the Board, the Schedule, the Pot, the Album, the League — swipe sideways to move between your leagues.",
-      "**Post**, in the middle of the bar, is one door for before, during and after a round: post after, score the group live during, put a tee time up before.",
-      "**You** is your card, your record, your trophies and your buddies. The gear up top opens Card & settings, which runs everything else.",
+    "places": GuideSheet(key: "places", title: "The five places", sub: "FOUR PLACES AND ONE VERB", paragraphs: [
+      "**Home** is what is happening and what you can do about it — your four numbers up top, then the one thing worth your attention, then your buddies' rounds.",
+      "**Compete** is everything you are playing for, side by side: your seasons, your weekends and your matches. Finished ones fold under the list rather than disappearing.",
+      "**⊕ Play**, in the middle of the bar, is a verb rather than a place: score a round live, add one you played, or put a tee time up. Press and hold it to go straight to the score.",
+      "**Golfers** is the people — anybody waiting on you, your buddies, and the ones you play with but have not added yet.",
+      "**You** is your card, your record and your trophies. The gear up top opens Card & settings, which runs everything else.",
     ]),
     "games": GuideSheet(key: "games", title: "Leagues vs events", sub: "THE LONG GAME · THE SHORT GAME", paragraphs: [
       "**A league is the long game.** A full season — weeks or months, squads or solo, every round you post counts toward a table, and the endgame settles it: a Cup Final or the points table.",

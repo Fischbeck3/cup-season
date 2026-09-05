@@ -20,8 +20,9 @@ struct PostLinks {
   var openReceipt: (UUID) -> Void = { _ in }
   var openPeople: () -> Void = {}
   /// The epilogue's act can land on a season's table or on a golfer's card;
-  /// both are doors the shell already owns (IOS-030).
-  var openLeague: (UUID) -> Void = { _ in }
+  /// both are doors the shell already owns (IOS-030). D222 renamed the first —
+  /// a season is Compete's object and "league" is not what it opens.
+  var openCompetition: (UUID) -> Void = { _ in }
   var openTourCard: (UUID) -> Void = { _ in }
 }
 

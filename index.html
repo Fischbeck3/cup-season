@@ -230,6 +230,50 @@ button{font-family:var(--sans); touch-action:manipulation; color:var(--ink);}
 .homeme{display:block; margin:0 0 18px; padding:0 0 14px; border-top:0; border-bottom:1px solid var(--line);}
 .homeme .mefacts{gap:12px 20px;}
 @media(min-width:960px){ .homeme{display:none;} }
+/* D222 · the Desk disclosure. A desk has room for a list; the three surfaces
+   under it are destinations a golfer reaches on a Sunday night, not at the
+   turn, and they do not earn a slot of their own on a 1,440-px screen. */
+.navitem .deskcaret{margin-left:auto; font-size:10px; transition:transform .16s ease;}
+.navitem[aria-expanded="true"] .deskcaret{transform:rotate(90deg);}
+.deskmenu{display:flex; flex-direction:column; gap:2px; padding:2px 0 6px 18px;}
+/* the UA's `[hidden]{display:none}` loses to an author `display:flex` at equal
+   specificity, so the disclosure has to say it itself or it is never closed. */
+.deskmenu[hidden]{display:none;}
+.navitem.sub{font-size:12.8px; font-weight:600; padding:8px 12px;}
+/* D228's two-column body, GENERALISED (D222). It was `#homeHub .deskmain`
+   only; Compete and Golfers are desk bodies too, and the reading measure is a
+   property of a COLUMN of prose, not of one screen. */
+.deskaside{min-width:0;}
+@media(min-width:960px){
+  .deskbody.wide{grid-template-columns:minmax(0,1fr) 300px;}
+  .deskaside{position:sticky; top:78px;}
+}
+/* the peer row: mono eyebrow, name, one true sentence. No card, no border —
+   a hairline between, the whole row a button (COMPONENT_SYSTEM's list weight) */
+.peerrow{
+  display:block; width:100%; text-align:left; background:none; border:0;
+  border-bottom:1px solid var(--line); padding:12px 2px; cursor:pointer; color:var(--ink);
+}
+.peerrow:hover{background:var(--bg1);}
+.peerrow:focus-visible{outline:2px solid var(--focus); outline-offset:-2px;}
+.peerrow .pe{font-family:var(--mono); font-size:11px; letter-spacing:.14em; text-transform:uppercase; color:var(--dim); display:block;}
+.peerrow .pn{font-size:14.5px; font-weight:700; display:block; margin-top:2px;}
+.peerrow .ps{font-family:var(--mono); font-size:12px; color:var(--mut); display:block; margin-top:3px;}
+/* L-32 · the empty root, one shape for both destinations */
+.cmphead{display:flex; align-items:baseline; gap:14px; margin:0 0 6px;}
+.cmphead h2{font-family:var(--serif); font-size:26px; font-weight:700; margin:0; flex:1;}
+.cmphead a{font-family:var(--mono); font-size:11px; letter-spacing:.14em; text-transform:uppercase; color:var(--brand); text-decoration:none;}
+.emptyroot{padding:6px 0 2px;}
+.emptyroot h3{font-family:var(--serif); font-size:22px; margin:0 0 8px; font-weight:700;}
+.emptyroot .fact{font-family:var(--mono); font-size:12.5px; color:var(--mut); margin:0 0 6px;}
+.emptyroot .sub{font-size:13.5px; color:var(--dim); margin:0 0 12px; max-width:46ch;}
+.emptyroot .doors{display:flex; flex-wrap:wrap; gap:18px;}
+.emptyroot .doors button{
+  background:none; border:0; padding:6px 0; cursor:pointer;
+  font-family:var(--mono); font-size:11.5px; letter-spacing:.14em; text-transform:uppercase; color:var(--mut);
+}
+.emptyroot .doors button:first-child{color:var(--brand);}
+.emptyroot .doors button:focus-visible{outline:2px solid var(--focus); outline-offset:3px;}
 .side .foot{margin-top:0; padding:12px 10px 4px; border-top:1px solid var(--line);}
 .side .foot .lg{font-size:12.5px; font-weight:700;}
 .side .foot .sm{font-family:var(--mono); font-size:11.5px; color:var(--dim); letter-spacing:.08em; text-transform:uppercase; margin-top:2px;}
@@ -1817,8 +1861,11 @@ html[data-theme="light"] .momrow{background:rgba(21,116,63,.06);}
 /* ============ tab bar (mobile) ============ */
 .tabbar{
   position:fixed; left:0; right:0; bottom:0; z-index:25;
-  /* three lanes — the Post tee floats ABOVE the bar, centered (see .tab[data-v=record]) */
-  display:grid; grid-template-columns:repeat(3,1fr);
+  /* D222 · FOUR lanes — five slots, and the ⊕ floats ABOVE the bar, centred
+     and out of flow (see .tab[data-v=record]), so the grid carries the other
+     four. It was three lanes for four slots; with five, three lanes wrapped
+     the bar onto a second row and the ⊕ landed on top of a label. */
+  display:grid; grid-template-columns:repeat(4,1fr);
   padding:7px 8px calc(9px + env(safe-area-inset-bottom));
   background:rgba(12,13,15,.9);
   backdrop-filter:blur(18px) saturate(1.3);
@@ -2308,9 +2355,10 @@ html[data-theme="light"] .btn.gold{color:#FFFFFF;}
 }
 .hdr .who:active{box-shadow:0 0 0 4px var(--glow);}
 
-/* tabbar: three lanes; the Post tee is a standalone floating tab ABOVE the
-   bar, dead center — a ball teed up on the bar, not squeezed into it */
-.tabbar{grid-template-columns:repeat(3,1fr);}
+/* tabbar: four lanes (D222's five slots less the floating ⊕); the Record tee
+   is a standalone floating tab ABOVE the bar, dead center — a ball teed up on
+   the bar, not squeezed into it */
+.tabbar{grid-template-columns:repeat(4,1fr);}
 .tab[data-v="record"]{
   position:fixed; left:50%; transform:translateX(-50%);
   bottom:calc(64px + env(safe-area-inset-bottom));
@@ -3000,19 +3048,20 @@ html[data-theme="light"] .room-dusk .btn:not(.dark):not(.gold):not(.apple){color
 
     </div>
     <!-- D82: ONE orientation screen, after the golfer card. Two teachings
-         only — the four places, and the two ways to play (the switcher's own
+         only — the five places (D222), and the two ways to play (the switcher's own
          words: the long game / the short game). Skippable in one tap,
          reopenable forever from You › ⚙ Card & settings › How it works. -->
     <div id="obOrient" style="display:none">
       <div class="ob-hero" style="margin-bottom:16px">
-        <h1 style="font-size:28px">Four places.<br><em>Two ways to play.</em></h1>
+        <h1 style="font-size:28px">Five places.<br><em>Two ways to play.</em></h1>
         <p style="margin-top:8px">Thirty seconds, then you're in.</p>
       </div>
       <div style="display:grid; grid-template-columns:1fr 1fr; gap:9px; margin-bottom:12px">
-        <div class="startdoor"><b>Home</b><small>Everything you're in, one feed</small></div>
-        <div class="startdoor"><b>Clubhouse</b><small>One league: table, board, pot</small></div>
-        <div class="startdoor"><b>Post</b><small>Before, during and after a round</small></div>
-        <div class="startdoor"><b>You</b><small>Your card, record and buddies</small></div>
+        <div class="startdoor"><b>Home</b><small>What is happening, and what you can do</small></div>
+        <div class="startdoor"><b>Compete</b><small>Every season and weekend you are in</small></div>
+        <div class="startdoor"><b>Record</b><small>Before, during and after a round</small></div>
+        <div class="startdoor"><b>Golfers</b><small>Your buddies, and who is waiting on you</small></div>
+        <div class="startdoor"><b>You</b><small>Your card, your record, your trophies</small></div>
       </div>
       <div style="display:flex; gap:9px; margin-bottom:6px">
         <div class="startdoor" style="flex:1; text-align:left">
@@ -3049,18 +3098,33 @@ html[data-theme="light"] .room-dusk .btn:not(.dark):not(.gold):not(.apple){color
   <aside class="side">
     <!-- desktop brand block retired: the header carries the Cup Season logo now.
          #brandSeason setters are guarded, so its removal is a no-op. -->
+    <!-- D222 / R-C (revised) · THE DESK'S OWN NAV. Five entries, and the fifth
+         is a disclosure rather than a destination: a desk has room for a list
+         and no reason to hide the season, the tee sheet and the card behind a
+         tab bar. Every entry drives `switchView`, which is the router both this
+         and the mobile tab bar share — the shape is the web's, the router is
+         not duplicated. -->
     <button class="navitem active" data-v="home">
       <svg viewBox="0 0 24 24"><path d="M4 11.5 12 4l8 7.5"/><path d="M6 10v10h12V10"/></svg> Home
     </button>
+    <button class="navitem" data-v="compete">
+      <svg viewBox="0 0 24 24"><path d="M6 21V3"/><path d="M6 4h11l-2.4 3.6L17 11H6"/></svg> Compete
+    </button>
+    <button class="navitem" data-v="golfers">
+      <svg viewBox="0 0 24 24"><circle cx="9" cy="8.5" r="3.2"/><path d="M3.6 19c.4-3 2.7-4.6 5.4-4.6s5 1.6 5.4 4.6"/><path d="M16.2 6.4a3 3 0 0 1 0 5.6"/><path d="M17.4 14.9c2 .6 3.2 2.1 3.5 4.1"/></svg> Golfers
+    </button>
     <button class="navitem" data-v="record">
-      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.6"/><path d="M12 8.2v7.6M8.2 12h7.6"/></svg> Post a round
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.6"/><path d="M12 8.2v7.6M8.2 12h7.6"/></svg> Record
     </button>
-    <button class="navitem" data-v="hub">
-      <svg viewBox="0 0 24 24"><path d="M3 20h18"/><path d="M5 20V9l7-4 7 4v11"/><path d="M10 20v-5h4v5"/><path d="M12 5V2.5l3 1-3 1"/></svg> Clubhouse
+    <button class="navitem" id="deskToggle" type="button" aria-expanded="false" aria-controls="deskMenu">
+      <svg viewBox="0 0 24 24"><path d="M3 8.5h18"/><path d="M4.5 8.5V19h15V8.5"/><path d="M4 8.5 12 4l8 4.5"/></svg> Desk
+      <span class="deskcaret" aria-hidden="true">&#9656;</span>
     </button>
-    <button class="navitem" data-v="stats">
-      <svg viewBox="0 0 24 24"><rect x="3" y="5.5" width="18" height="13" rx="2.2"/><circle cx="8.5" cy="11.4" r="2.3"/><path d="M13 9.6h4.6M13 13h4.6M6 15.7c.7-1.3 4-1.3 4.7 0"/></svg> You
-    </button>
+    <div class="deskmenu" id="deskMenu" hidden>
+      <button class="navitem sub" data-v="hub">The season</button>
+      <button class="navitem sub" data-v="schedule">Tee sheet</button>
+      <button class="navitem sub" data-v="stats">You &amp; your card</button>
+    </div>
     <!-- D236 - the identity block. The desk puts my number, my last round, my
          next round and my money where the eye rests between reads; the phone
          puts the same four facts across the head of Home. Same producer, two
@@ -3205,7 +3269,8 @@ html[data-theme="light"] .room-dusk .btn:not(.dark):not(.gold):not(.apple){color
              "Build your crew" card is gone (redundant with Crew · People). -->
         <!-- D93: buddies left this page. IA P5 put them here and split the
              relationship three ways (list on You, requests on Home, search in
-             the header). The list is now view-people; this is the door to it.
+             the header). D222 promoted the list to the GOLFERS destination;
+             this is the door to it.
              D177 moved it to the TOP: it is the only DOOR on a page that is
              otherwise all reading, and it sat seventh. You do not scroll past
              your own trophy case to reach a person. -->
@@ -3309,7 +3374,7 @@ html[data-theme="light"] .room-dusk .btn:not(.dark):not(.gold):not(.apple){color
       <section class="view room-dusk" id="view-draft">
         <!-- Q-11: the formation screen was a dead end — a member who tapped
              "See the squads" had no way back but the browser. -->
-        <a href="#" class="backlink" data-go="hub">← Clubhouse</a>
+        <a href="#" class="backlink" data-go="hub">← The season</a>
         <div class="draftgrid">
           <div>
             <div class="eyebrow" id="draftEyebrow">Draft night · snake</div>
@@ -4003,17 +4068,42 @@ html[data-theme="light"] .room-dusk .btn:not(.dark):not(.gold):not(.apple){color
 
 
       <!-- BUDDIES (D93) — one home for the relationship -->
-      <section class="view" id="view-people">
-        <a href="#" class="backlink" data-go="stats">← You</a>
-        <div class="eyebrow" style="margin-top:0">Your buddies</div>
-        <!-- D177: requests LEAD. A person waiting on you outranks a search
-             box; they were third, under a "Find a golfer" button that opened a
-             picker containing a search field, itself sitting above an inline
-             search field doing the same job. One search survives — the inline
-             one, on the page named after buddies. The picker still serves
-             every other caller. -->
-        <div id="peopleRequests" style="text-align:left"></div>
-        <div id="youPeople" style="text-align:left"></div>
+      <!-- COMPETE (D222 / R-A, R-D) — the peer list, in the desk's own shape.
+           Every season and every moment as PEERS down the reading column; the
+           doors and the finished shelf beside it. Not the phone's tab in a
+           browser: on a 1,440-px screen the archive sits next to the list
+           rather than under it. -->
+      <section class="view" id="view-compete">
+        <div class="deskbody wide">
+          <div class="deskmain">
+            <div class="cmphead">
+              <h2>Compete</h2>
+              <a href="#" id="cmpStart">START SOMETHING ↗</a>
+            </div>
+            <div id="cmpList" style="text-align:left"></div>
+          </div>
+          <aside class="deskaside">
+            <div class="eyebrow">Finished</div>
+            <div id="cmpFinished" style="text-align:left"></div>
+          </aside>
+        </div>
+      </section>
+
+      <!-- GOLFERS (D222) — `view-people` promoted. The old route still works:
+           `switchView('people')` resolves here through `csViewFor`. -->
+      <section class="view" id="view-golfers">
+        <div class="deskbody wide">
+          <div class="deskmain">
+            <div class="cmphead"><h2>Golfers</h2></div>
+            <div id="glfRoot" style="text-align:left"></div>
+            <div id="peopleRequests" style="text-align:left"></div>
+            <div id="youPeople" style="text-align:left"></div>
+          </div>
+          <aside class="deskaside">
+            <div class="eyebrow">Playing soon</div>
+            <div id="glfSoon" style="text-align:left"></div>
+          </aside>
+        </div>
       </section>
       <!-- SCHEDULE (D93) — a destination, not a segment -->
       <section class="view" id="view-schedule">
@@ -4062,10 +4152,15 @@ html[data-theme="light"] .room-dusk .btn:not(.dark):not(.gold):not(.apple){color
   </div>
 </div>
 
+<!-- D222 · below the desk's width the same five destinations become a bar, and
+     it drives the SAME `switchView`. The sidebar and this are two shapes of one
+     router, which is the whole of R-C as revised: shared producers and routes,
+     separate chrome. -->
 <nav class="tabbar" aria-label="Sections">
   <button class="tab active" data-v="home"><svg viewBox="0 0 24 24"><path d="M4 11.5 12 4l8 7.5"/><path d="M6 10v10h12V10"/></svg>Home</button>
-  <button class="tab" data-v="hub"><svg viewBox="0 0 24 24"><path d="M3 20h18"/><path d="M5 20V9l7-4 7 4v11"/><path d="M10 20v-5h4v5"/><path d="M12 5V2.5l3 1-3 1"/></svg>Clubhouse</button>
-  <button class="tab" data-v="record" aria-label="Post a round"><span class="circ"><svg viewBox="0 0 24 24"><path d="M12 6v12M6 12h12"/></svg></span>Post</button>
+  <button class="tab" data-v="compete"><svg viewBox="0 0 24 24"><path d="M6 21V3"/><path d="M6 4h11l-2.4 3.6L17 11H6"/></svg>Compete</button>
+  <button class="tab" data-v="record" aria-label="Add my round"><span class="circ"><svg viewBox="0 0 24 24"><path d="M12 6v12M6 12h12"/></svg></span>Record</button>
+  <button class="tab" data-v="golfers"><svg viewBox="0 0 24 24"><circle cx="9" cy="8.5" r="3.2"/><path d="M3.6 19c.4-3 2.7-4.6 5.4-4.6s5 1.6 5.4 4.6"/><path d="M16.2 6.4a3 3 0 0 1 0 5.6"/><path d="M17.4 14.9c2 .6 3.2 2.1 3.5 4.1"/></svg>Golfers</button>
   <button class="tab" data-v="stats"><svg viewBox="0 0 24 24"><rect x="3" y="5.5" width="18" height="13" rx="2.2"/><circle cx="8.5" cy="11.4" r="2.3"/><path d="M13 9.6h4.6M13 13h4.6M6 15.7c.7-1.3 4-1.3 4.7 0"/></svg>You</button>
 </nav>
 
@@ -4666,8 +4761,35 @@ function setRoomSeg(r){
   if(r==='album') window.renderAlbum?.();   /* module-side (needs sb) — guard the boundary */
 }
 $$('#roomSeg [data-room]').forEach(b=>b.addEventListener('click',()=>setRoomSeg(b.dataset.room)));
+/* D222 · THE ROUTER'S OWN ALIAS TABLE, in one place.
+   `switchView` used to rename views inline, so nothing else could ask "does
+   this destination resolve?" — which is how the live route pointed at a
+   `view-live` that does not exist until wave 1b found it by hand. Every rename
+   that is PURE lives here; the ones with a side effect (the pot's segment, the
+   board's dialog) stay in `switchView` below and are named there.
+   `tests/app-tests.js` walks the sidebar and the tab bar through this. */
+function csViewFor(v){
+  if(v==='feed') return 'home';          /* v23.55: the board lives on Home */
+  if(v==='cal') return 'schedule';       /* D93: the old calendar route */
+  if(v==='pot') return 'hub';            /* the pot is a pane of the season room */
+  if(v==='people') return 'golfers';     /* D222: People became a destination */
+  if(v==='clubhouse') return 'compete';  /* O-06: the word is retired */
+  return v;
+}
+window.csViewFor = csViewFor;
+/* True when a destination lands on something real: a pane that exists, or the
+   board, which is a full-screen dialog rather than a pane. A `switchView` to a
+   name with neither deactivates every pane and lands the golfer on a blank
+   screen — the exact failure wave 1b found on the live route. */
+function csRouteResolves(v){
+  const t = csViewFor(v);
+  if(t === 'board') return true;
+  return !!document.getElementById('view-' + t);
+}
+window.csRouteResolves = csRouteResolves;
+
 function switchView(v){
-  if(v==='feed') v='home'; /* v23.55: the board lives on Home */
+  v = csViewFor(v);
   /* Q-10 · D40 restored at the choke point. D40 ruled "a member must never see
      the Pro's configuration tool" and built the guarantee as ONE route check
      (enterLeague); D96 later added a Home CTA that walked around it, and the
@@ -4684,10 +4806,9 @@ function switchView(v){
       v = 'home';
     }
   }
-  /* Calendar tab + pot page retired (IA P2) — both live in the League Room now.
-     Old links keep working via these maps. */
-  if(v==='cal') v='schedule';            /* D93: the old calendar route now lands on the real one */
-  if(v==='pot'){ v='hub'; setRoomSeg('pot'); }
+  /* The pot's rename is `csViewFor`'s; its SIDE EFFECT is here — the room has
+     to be opened on the right pane, and a pure rename cannot do that. */
+  if(arguments[0]==='pot') setRoomSeg('pot');
   /* D93: the board is reachable from anywhere. It keeps its full-screen form
      (a dialog that returns you where you were) rather than becoming a lane —
      #room-board still rides beside standings on desktop and is untouched. */
@@ -4708,13 +4829,14 @@ function switchView(v){
     if(back){
       const from = window._schedFrom === 'hub' ? 'hub' : 'home';
       back.dataset.go = from;
-      back.textContent = from === 'hub' ? '\u2190 Clubhouse' : '\u2190 Home';
+      back.textContent = from === 'hub' ? '\u2190 The season' : '\u2190 Home';
     }
     window._schedFrom = null;   /* one trip only — the next entry decides again */
   }
   gateLiveRound();
   $$('.tab').forEach(t=>t.classList.toggle('active',t.dataset.v===v));
   $$('.navitem').forEach(t=>t.classList.toggle('active',t.dataset.v===v));
+  window.csDeskReveal?.(v);
   $$('.view').forEach(x=>x.classList.toggle('active',x.id==='view-'+v));
   window.csHideInstallNudge?.();   /* Q-13: after the swap — busy() reads the view that is now on */
   window.scrollTo({top:0});
@@ -4741,13 +4863,30 @@ function switchView(v){
     if(!state.demo && window.CS?.league && !(window.CS.members||[]).length && window.loadLeagueData)
       window.loadLeagueData();
   }
-  if(v==='stats'){ window.renderCrewPeople?.(); window.renderRivalries?.(); }   /* IA P5: buddies + rivalries live on You */
+  if(v==='stats'){ window.renderRivalries?.(); }   /* D222: the buddy list is the Golfers destination now */
+  /* D222 · the two destinations this wave made real. Both are module-side or
+     depend on data the module loads, so every call is guarded at the classic
+     boundary — a missing bridge fails SILENTLY as demo mode, which is why the
+     check is explicit rather than assumed. */
+  if(v==='compete') window.renderCompete?.();
+  if(v==='golfers'){ window.renderGolfers?.(); window.renderCrewPeople?.(); window.renderPeopleRequests?.(); }
   /* D93: the two promoted destinations render on entry, exactly as their old
      segment/tab did. Both are module-side — guard the classic boundary. */
   if(v==='schedule' && typeof renderCalendar==='function') renderCalendar();
-  if(v==='people'){ window.renderCrewPeople?.(); renderPeopleRequests(); }
 }
-$$('.tab, .navitem').forEach(b=>b.addEventListener('click',()=>switchView(b.dataset.v)));
+$$('.tab, .navitem').forEach(b=>b.addEventListener('click',()=>{ if(b.dataset.v) switchView(b.dataset.v); }));
+/* D222 · the Desk disclosure. It is not a destination and carries no `data-v`;
+   it reveals three that are. It opens itself when one of its own is the view on
+   screen, so a golfer who lands on the season page from a Compete row can see
+   where they are. */
+(function(){
+  const t=document.getElementById('deskToggle'), m=document.getElementById('deskMenu');
+  if(!t||!m) return;
+  const set=open=>{ m.hidden=!open; t.setAttribute('aria-expanded', String(open)); };
+  set(false);
+  t.addEventListener('click',()=>set(m.hidden));
+  window.csDeskReveal = v => { if([...m.querySelectorAll('[data-v]')].some(b=>b.dataset.v===v)) set(true); };
+})();
 
 /* a11y: the app renders many click-only .tap rows (hub, switcher, sheets,
    start cards). Stamp each focusable + button-role as it appears, and treat
@@ -7137,7 +7276,7 @@ function showEpilogue(epi, course, firstEver, roundId, ctx){
     window.qaEvent?.('cta_tapped', { where:'epilogue', act: act && act.key });
     if(desk){ host.style.display='none'; host.innerHTML=''; } else { closeSheet(); }
     if(door==='table' || door==='head_to_head') switchView('hub');
-    else if(door==='record' || door==='season_with' || door==='find_golfers') switchView('people');
+    else if(door==='record' || door==='season_with' || door==='find_golfers') switchView('golfers');
     else if(door==='start_something') switchView('wizard');
   });
   const lk=scope.querySelector('#epiLink');
@@ -10657,7 +10796,7 @@ $('#gAdd').addEventListener('click',()=>{
    pre-filled), exactly like a buddy row. Guest-by-name stays the fallback. */
 /* D93 · the buddies destination: the You row is the door, and finding a golfer
    is the first thing offered inside it rather than a magnifier in the header. */
-$('#youPeopleGo')?.addEventListener('click',()=>switchView('people'));
+$('#youPeopleGo')?.addEventListener('click',()=>switchView('golfers'));
 /* D177 · #peopleFind is gone. It opened the People Picker — a sheet whose first
    element is a search field — from directly above an inline search field doing
    the same job, on the page named after buddies. One search survives, the
@@ -11541,7 +11680,7 @@ function renderClubGroups(){
   const chips = (CS.memberships||[]).map(m =>
       groupChip(esc(m.league.name), m.league.id===cur?'Here':(m.role==='commissioner'?'Your league':'In season'), m.league.id===cur, `data-cglg="${m.league.id}"`)).join('')
     + (window.myEvents||[]).map(e => groupChip(esc(e.name),
-        (e.kind==='major'?'Major':'Ryder') + ' · ' + (e.mine===false ? 'Enter the field' : evStat(e)),
+        (e.kind==='major'?'Major':'Ryder') + ' · ' + (e.mine===false ? 'I\u2019m in' : evStat(e)),
         false, `data-cgev="${e.id}"`)).join('');
   box.innerHTML = chips || '<span class="fine" style="padding:0">No groups yet.</span>';
   box.querySelectorAll('[data-cglg]').forEach(b=>b.addEventListener('click',()=>{ const id=b.dataset.cglg; if(window.CS?.league?.id!==id) window.enterLeagueById?.(id, false); }));
@@ -12849,7 +12988,7 @@ function csItemDoor(it){
   const id = r.id || null;
   switch(r.kind){
     case 'composer':  return ()=>switchView('post');
-    case 'people':    return ()=>switchView('people');
+    case 'people':    return ()=>switchView('golfers');
     case 'declare':   return ()=>window.openDeclareSheet?.();
     case 'plan':      return id ? ()=>switchView('schedule') : null;
     case 'receipt':   return id ? ()=>(window.openRoundSheet ? window.openRoundSheet(id) : switchView('record')) : null;
@@ -13305,6 +13444,221 @@ function csTeeText(raw){
 }
 function csN(v){ const n=Number(v); return Number.isFinite(n) ? (n===Math.round(n) ? String(Math.round(n)) : n.toFixed(1)) : '—'; }
 window.csMeStrip = csMeStrip; window.csMovementReady = true;
+
+/* ============================================================================
+   D222 · COMPETE and GOLFERS — the two destinations, and their producers.
+   Twins of the Kit's `CompeteRoot` and `EmptyRoot`. One rule per producer, the
+   same rule on both clients (D234):
+     · nearest clock first, and a clockless row keeps its arrival order
+     · finished is FOLDED, never dropped
+     · every empty root ends in a next move, and a FAILED READ IS NEVER AN
+       EMPTY ONE
+   ========================================================================== */
+
+/* Rule 1. `Array.prototype.sort` is stable in every engine this ships to, but
+   the phone's `sorted(_:)` carries an explicit index for the same reason and
+   the two must agree exactly, so the tie-break is written down here too. */
+function csCompeteSort(rows){
+  return rows.map((r,i)=>[r,i]).sort((a,b)=>{
+    const x=a[0].clock, y=b[0].clock;
+    if(x==null && y==null) return a[1]-b[1];
+    if(x==null) return 1;
+    if(y==null) return -1;
+    return x===y ? a[1]-b[1] : x-y;
+  }).map(p=>p[0]);
+}
+
+/* A plan's own sentence — the twin of `CompeteRoot.planLine`, and it carries
+   the same two rules, the first of which cost a real screenshot to find.
+   `my_schedule.tagged_names` INCLUDES ME on a round a buddy booked with me, so
+   the naive sentence read "You and Jerecho Fischbeck." — the viewer, twice, one
+   of them by name. My own name comes out, and a round I do not own names its
+   HOST, which is the fact that makes it mine at all. And IA §8.4 rule 1: NO
+   SEAT COUNT, anywhere — `scheduled_rounds` has no capacity column and a
+   printed one counts nothing. */
+function csPlanLine(sr, myName){
+  const mine = String(myName||'').trim().toLowerCase();
+  const first = s => String(s||'').trim().split(/\s+/)[0] || '';
+  let names=(sr.tagged_names||[]).map(n=>String(n||'').trim()).filter(Boolean)
+    .filter(n => !mine || (n.toLowerCase() !== mine && n.toLowerCase() !== first(myName).toLowerCase()));
+  const list = ns => ns.length>1 ? ns.slice(0,-1).join(', ') + ' and ' + ns[ns.length-1] : (ns[0]||'');
+  if(sr.mine === false){
+    const host = first(sr.display_name) || 'A golfer';
+    return names.length ? `${host}\u2019s round. You, ${list(names)}.` : `${host}\u2019s round. You\u2019re on it.`;
+  }
+  if(!names.length) return csTeeText(sr.tee_time) ? `Your tee time, ${csTeeText(sr.tee_time)}.` : 'Yours, so far.';
+  if(names.length===1) return `You and ${names[0]}.`;
+  return 'You, ' + list(names) + '.';
+}
+
+/* Compete's moment row — the noun, then the state. Never a countdown: the
+   row's clock is a sort key, not a sentence (L-22). Twin of `EventCopy
+   .momentLine`. */
+function csMomentLine(kind, status, mine){
+  const noun = kind==='major' ? 'A Major' : 'The Ryder';
+  const st = status==='complete' ? 'Final' : status==='setup' ? 'Forming' : 'Live';
+  return noun + ' · ' + (mine ? st : 'open to you');
+}
+
+function csDaysBetween(fromISO, toISO){
+  const a=localDate(String(fromISO).slice(0,10)), b=localDate(String(toISO).slice(0,10));
+  if(isNaN(a)||isNaN(b)) return null;
+  a.setHours(0,0,0,0); b.setHours(0,0,0,0);
+  return Math.round((b-a)/864e5);
+}
+
+/* The list itself. `memberships` and `events` are what the boot already loaded;
+   `schedule` is `my_schedule`'s rows, filtered by the SINGLE plan predicate
+   (`isMyPlan`) rather than re-filtered here — D234's whole point. */
+function csCompeteList(memberships, events, schedule, todayISO){
+  const today = todayISO || new Date().toISOString().slice(0,10);
+  const live=[], moments=[], finished=[];
+  (memberships||[]).forEach(m=>{
+    const lg=m.league||m, done = (lg.phase==='complete');
+    const row={ id:'league:'+lg.id, kind:'season', leagueId:lg.id,
+                eyebrow: done ? 'Season complete' : (lg.phase==='season' ? 'In season' : lg.phase==='draft' ? 'Squads drawing' : 'Forming'),
+                title: lg.name || 'A season',
+                /* L-44 · a finished season says it is finished. The champion's
+                   NAME is a fact the boot's membership rows do not carry, so it
+                   is not claimed here — the season page names them. */
+                sub: done ? 'Wrapped. Open it for the table.'
+                          : (m.role==='commissioner' ? 'You run it (the Pro).' : 'You’re in it.'),
+                clock: null };
+    (done ? finished : live).push(row);
+  });
+  (events||[]).forEach(e=>{
+    const done = e.status==='complete';
+    const row={ id:'event:'+e.id, kind:'moment', eventId:e.id,
+                eyebrow: done ? 'Final' : (e.starts_on ? csDayToken(e.starts_on) : 'Forming'),
+                title: e.name || 'A moment',
+                sub: csMomentLine(e.kind, e.status, e.mine !== false),
+                clock: (done || !e.starts_on) ? null : csDaysBetween(today, e.starts_on) };
+    (done ? finished : moments).push(row);
+  });
+  (schedule||[]).forEach(sr=>{
+    if(!(window.isMyPlan ? isMyPlan(sr) : sr.mine)) return;
+    const d = sr.play_on ? csDaysBetween(today, sr.play_on) : null;
+    if(d==null || d<0) return;
+    moments.push({ id:'plan:'+sr.id, kind:'weekend', roundId:sr.id,
+                   eyebrow: csDayToken(sr.play_on),
+                   /* the club, not the whole tee label — a slot sized for a
+                      short name gets a short name (DEF-1's lesson) */
+                   title: String(sr.course_label||'A round').split(' — ')[0].split(' · ')[0],
+                   sub: csPlanLine(sr, window.CS?.profile?.display_name), clock: d });
+  });
+  return { seasons: csCompeteSort(live), moments: csCompeteSort(moments), finished: finished,
+           nothingRunning: !live.length && !moments.length };
+}
+
+/* L-32, both halves. `failed` wins over everything: an error is the one fact
+   the screen knows for certain, and dressing it as "nothing running" is the
+   failure the law names. */
+function csEmptyRoot(which, opts){
+  const o = opts || {};
+  if(o.failed) return { state:'failed', head:'Couldn’t load this.', fact:null,
+    sub:'That is us, not you — your seasons and your buddies are all still there.',
+    doors:[{k:'retry', t:'Try again'}] };
+  if(o.loaded === false) return { state:'loading', head:'', fact:null, sub:'', doors:[] };
+  if(which === 'golfers'){
+    return { state:'empty', head:'No buddies yet.', fact:null,
+      sub:'Add the people you actually play with. They see your rounds, you see theirs, and either of you can pull the other into a season.',
+      /* R-G's contacts door is D251, wave 8. A door that does not open is the
+         one thing not permitted (L-32/L-44). */
+      doors:[{k:'findGolfers', t:'Find golfers'}, {k:'personLink', t:'Text someone a link'}] };
+  }
+  const n = o.buddies;
+  const has = (n||0) > 0;
+  return { state:'empty', head:'Nothing running.',
+    fact: has ? `${n} ${n===1?'buddy':'buddies'}, and none of you is playing for anything.` : null,
+    sub:'Your next competition starts here — a season, a weekend, or one guy you want to beat.',
+    doors:[{k:'startSomething', t:'Start something'},
+           has ? {k:'joinWithCode', t:'I have a code'} : {k:'findGolfers', t:'Find golfers'}] };
+}
+
+function csEmptyRootHtml(root){
+  if(root.state==='loading') return '<p class="fine" style="padding:0">Loading…</p>';
+  return `<div class="emptyroot"><h3>${esc(root.head)}</h3>`
+    + (root.fact ? `<p class="fact">${esc(root.fact)}</p>` : '')
+    + `<p class="sub">${esc(root.sub)}</p>`
+    + `<div class="doors">${root.doors.map(d=>`<button type="button" data-erdoor="${esc(d.k)}">${esc(d.t.toUpperCase())}</button>`).join('')}</div></div>`;
+}
+
+function csPeerRowHtml(r){
+  return `<button class="peerrow" type="button" data-peer="${esc(r.id)}">
+      <span class="pe">${esc(r.eyebrow)}</span><span class="pn">${esc(r.title)}</span><span class="ps">${esc(r.sub)}</span>
+    </button>`;
+}
+
+window.csCompeteSort = csCompeteSort;
+window.csCompeteList = csCompeteList;
+window.csEmptyRoot = csEmptyRoot;
+window.csPlanLine = csPlanLine;
+window.csMomentLine = csMomentLine;
+
+/* ---- the two renderers ---------------------------------------------------- */
+
+function csEmptyRootDoors(box, take){
+  box.querySelectorAll('[data-erdoor]').forEach(b=>b.addEventListener('click',()=>take(b.dataset.erdoor)));
+}
+
+function renderCompete(){
+  const box=document.getElementById('cmpList'), shelf=document.getElementById('cmpFinished');
+  if(!box) return;
+  if(!window.CS?.user){
+    box.innerHTML = csEmptyRootHtml(csEmptyRoot('compete', { buddies:0 }));
+    if(shelf) shelf.innerHTML='';
+    csEmptyRootDoors(box, take);
+    return;
+  }
+  const list = csCompeteList(CS.memberships, window.myEvents,
+                             (window.watchAll&&window.watchAll.length)?window.watchAll:(window.mySchedule||[]));
+  const body = list.nothingRunning
+    ? csEmptyRootHtml(csEmptyRoot('compete', { buddies: (window.__buddyCount ?? null) }))
+    : `<div class="eyebrow">Your seasons</div>`
+      + (list.seasons.length ? list.seasons.map(csPeerRowHtml).join('') : '<p class="fine" style="padding:0">None yet.</p>')
+      + (list.moments.length ? `<div class="eyebrow">Your moments</div>` + list.moments.map(csPeerRowHtml).join('') : '');
+  box.innerHTML = body;
+  if(shelf) shelf.innerHTML = list.finished.length
+    ? list.finished.map(csPeerRowHtml).join('')
+    : '<p class="fine" style="padding:0">Nothing finished yet.</p>';
+  [box, shelf].forEach(el=>{ if(!el) return;
+    el.querySelectorAll('[data-peer]').forEach(b=>b.addEventListener('click',()=>{
+      const [kind,id]=b.dataset.peer.split(':');
+      if(kind==='league'){ if(window.CS?.league?.id!==id) window.enterLeagueById?.(id, false); else switchView('hub'); }
+      else if(kind==='event') window.openEvent?.(id);
+      else switchView('schedule');
+    }));
+  });
+  csEmptyRootDoors(box, take);
+  function take(k){
+    if(k==='startSomething') switchView('wizard');
+    else if(k==='joinWithCode') window.openJoinSheet ? window.openJoinSheet() : switchView('wizard');
+    else if(k==='findGolfers') switchView('golfers');
+    else if(k==='retry') window.loadHome?.();
+  }
+}
+window.renderCompete = renderCompete;
+
+/* Golfers' own root. The rows themselves are `renderCrewPeople`'s, unchanged —
+   promoting a screen to a destination is not a licence to rewrite what it says.
+   What the destination adds is the two states a pushed pane never had. */
+function renderGolfers(){
+  const box=document.getElementById('glfRoot'); if(!box) return;
+  const soon=document.getElementById('glfSoon');
+  if(!window.CS?.user){
+    box.innerHTML='<p class="fine" style="padding:0">Sign in to add buddies and see requests.</p>';
+    if(soon) soon.innerHTML='';
+    return;
+  }
+  box.innerHTML='';
+  if(soon){
+    const rows=(window.watchAll||[]).filter(sr=>!(window.isMyPlan?isMyPlan(sr):sr.mine)).slice(0,4);
+    soon.innerHTML = rows.length
+      ? rows.map(sr=>`<div class="fine" style="padding:6px 0">${esc(sr.display_name||'A golfer')} · ${esc(csDayToken(sr.play_on))} ${esc(String(sr.course_label||'').split(' — ')[0])}</div>`).join('')
+      : '<p class="fine" style="padding:0">Nothing on your buddies’ sheets yet.</p>';
+  }
+}
+window.renderGolfers = renderGolfers;
 
 /* The desk header. One block, rendered into the sidebar at desk widths and at
    the head of Home below them - exactly one is on screen at any width, which is
@@ -15302,8 +15656,17 @@ function renderMajorRoom(el, E){
 
   let statusChip = complete
     ? (champ?esc(champ.display_name.toUpperCase())+' TAKES THE JUG':'SETTLED — NO CARDS')
-    : ev.status==='setup' ? (daysLeft!=null&&d0>todayMid?'FORMING · OPENS '+MOS[d0.getMonth()].toUpperCase()+' '+d0.getDate():'FORMING')
-    : daysLeft>0 ? `LIVE · ${daysLeft}D LEFT` : daysLeft===0 ? 'THE FINAL DAY' : 'AWAITING THE HORN';
+    /* D252 · two of these were the room's private language. "Opens Saturday"
+       is a FORMING sentence and lands where it is true — inside the coming
+       week, because a weekday eight days out reads as this Saturday. And
+       "AWAITING THE HORN" says nothing to a golfer who was never told what the
+       horn is; the state is "the window closed and nobody has settled it". */
+    : ev.status==='setup' ? (daysLeft!=null&&d0>todayMid
+        ? 'OPENS ' + (Math.round((d0-todayMid)/864e5) <= 6
+            ? ['SUNDAY','MONDAY','TUESDAY','WEDNESDAY','THURSDAY','FRIDAY','SATURDAY'][d0.getDay()]
+            : MOS[d0.getMonth()].toUpperCase()+' '+d0.getDate())
+        : 'FORMING')
+    : daysLeft>0 ? `LIVE · ${daysLeft}D LEFT` : daysLeft===0 ? 'THE FINAL DAY' : 'WAITING TO SETTLE';
 
   let html=`<div class="eyebrow" style="margin-top:0; display:flex; align-items:center">${esc(ev.name)}
     <span class="fine" style="margin-left:auto; padding:0; color:var(--gold)">${statusChip}</span></div>
@@ -15311,7 +15674,7 @@ function renderMajorRoom(el, E){
       <div style="text-align:center; padding:4px 0 2px">
         <div style="font-size:34px; line-height:1">🏆</div>
         <div style="font-family:var(--mono); font-size:13px; letter-spacing:.14em; color:var(--gold); margin-top:6px">A MAJOR · ${days} DAYS</div>
-        <div class="fine" style="padding:4px 0 0">${when} · FIELD OF ${board.length}${board.length!==contendersIn?` (${board.length-contendersIn} EXHIBITION)`:''}</div>
+        <div class="fine" style="padding:4px 0 0">${when} · ${board.length} PLAYING${board.length!==contendersIn?` · ${board.length-contendersIn} NOT COUNTING THIS YEAR`:''}</div>
         <div class="fine" style="padding:2px 0 0">${buyIn>0
           ? `BUY-IN ${mjMoney(buyIn)} · POT ${mjMoney(pot)} · ${ev.pot_split==='wta'?'WINNER TAKES ALL':'60 / 25 / 15'}`
           : 'BRAGGING RIGHTS'}</div>
@@ -15333,7 +15696,7 @@ function renderMajorRoom(el, E){
   const horn = (E.sessions||[]).some(x=>x.status==='closed');
   const inLeague = ev.league_id && (window.CS?.memberships||[]).some(m=>m.league.id===ev.league_id);
   if(!mine && inLeague && !complete && !horn && meU){
-    html+=`<div style="margin:2px 0 8px"><button class="btn" onclick="window.majorEnter('${ev.id}')">Enter the field</button></div>`;
+    html+=`<div style="margin:2px 0 8px"><button class="btn" onclick="window.majorEnter('${ev.id}')">I\u2019m in</button></div>`;
   }
   if(iAmOrg && !complete){
     html+=`<div style="display:flex; gap:8px; flex-wrap:wrap; margin:2px 0 6px">
@@ -15386,7 +15749,7 @@ function renderMajorRoom(el, E){
     /* D61: the rematch tap — the only door into a lineage */
     html+=`<div style="margin-top:8px"><button class="btn dark" style="width:100%" onclick="window.majorRunBack()">Run it back — same jug, next year</button></div>`;
   } else {
-    html+=`<div class="eyebrow">The clubhouse${ev.status==='live'?' — live':''}</div>`;
+    html+=`<div class="eyebrow">Leaderboard${ev.status==='live'?' — live':''}</div>`;
     let pos=0;
     const carded=board.filter(r=>r.pvi!=null), waiting=board.filter(r=>r.pvi==null);
     carded.forEach(r=>{
@@ -15394,13 +15757,13 @@ function renderMajorRoom(el, E){
       const line=`${r.gross!=null?r.gross+' · ':''}${r.cards||0} card${(r.cards||0)===1?'':'s'}${r.exhibition?' · exhibition':''}`;
       html+=rowHtml(label, r, line, r.round_id||'');
     });
-    if(!carded.length) html+=`<div class="fine" style="padding:2px 0">No cards yet${ev.status==='live'?' — first one takes the clubhouse':''}.</div>`;
+    if(!carded.length) html+=`<div class="fine" style="padding:2px 0">No cards yet${ev.status==='live'?' — first one leads':''}.</div>`;
     if(waiting.length){
-      html+=`<div class="eyebrow">Yet to card</div>`;
-      waiting.forEach(r=>{ html+=rowHtml('—', r, r.exhibition?'Exhibition — official by the next one':'The window is open'); });
+      html+=`<div class="eyebrow">Still to post</div>`;
+      waiting.forEach(r=>{ html+=rowHtml('—', r, r.exhibition?'Your number is still settling — official by the next one':'The window is open'); });
     }
     if(ev.status==='live' && waiting.length && daysLeft!=null && daysLeft>=0){
-      html+=`<div class="fine" style="padding:4px 0 0">Still to card: <b>${waiting.map(r=>esc(r.display_name)).join(', ')}</b> · ${daysLeft===0?'cards in by tonight':daysLeft+'d left'}.</div>`;
+      html+=`<div class="fine" style="padding:4px 0 0">Still to post: <b>${waiting.map(r=>esc(r.display_name)).join(', ')}</b> · ${daysLeft===0?'cards in by tonight':daysLeft+'d left'}.</div>`;
     }
   }
 
@@ -16008,11 +16371,12 @@ $('#obCrewSkip')?.addEventListener('click', () => leaveCrewStep('skip'));
    and a door sentence names the door THAT client ships. Mirroring "swipe
    sideways" here would write a fresh lie. Everything else is word for word. */
 const GUIDE = {
-  places: ['The four places','ONE APP, FOUR ROOMS', `
-    <p class="fine" style="padding:0 0 10px"><b>Home</b> is everything you're in, one feed — your standing up top, your buddies' rounds under it.</p>
-    <p class="fine" style="padding:0 0 10px"><b>Clubhouse</b> is one league's room: Standings, the Board, the Schedule, the Pot, the Album, the League — switch groups with the chips up top.</p>
-    <p class="fine" style="padding:0 0 10px"><b>Post</b>, in the middle of the bar, is one door for before, during and after a round: post after, score the group live during, put a tee time up before.</p>
-    <p class="fine" style="padding:0 0 12px"><b>You</b> is your card, your record, your trophies and your buddies. The gear up top opens Card &amp; settings, which runs everything else.</p>`],
+  places: ['The five places','FOUR PLACES AND ONE VERB', `
+    <p class="fine" style="padding:0 0 10px"><b>Home</b> is what is happening and what you can do about it — your four numbers up top, then the one thing worth your attention, then your buddies' rounds.</p>
+    <p class="fine" style="padding:0 0 10px"><b>Compete</b> is everything you are playing for, side by side: your seasons, your weekends and your matches. Finished ones fold under the list rather than disappearing.</p>
+    <p class="fine" style="padding:0 0 10px"><b>Record</b> is a verb rather than a place: add a round you played, score one live, or put a tee time up.</p>
+    <p class="fine" style="padding:0 0 10px"><b>Golfers</b> is the people — anybody waiting on you, your buddies, and the ones you play with but have not added yet.</p>
+    <p class="fine" style="padding:0 0 12px"><b>You</b> is your card, your record and your trophies. The gear up top opens Card &amp; settings, which runs everything else.</p>`],
   games: ['Leagues vs events','THE LONG GAME · THE SHORT GAME', `
     <p class="fine" style="padding:0 0 10px"><b>A league is the long game.</b> A full season — weeks or months, squads or solo, every round you post counts toward a table, and the endgame settles it: a Cup Final or the points table.</p>
     <p class="fine" style="padding:0 0 10px"><b>An event is the short game.</b> A weekend or a few weeks, its own little trophy: the Ryder (two teams, weekly duels), or a Major (one window, every card on one board, one name on the jug).</p>
@@ -16197,7 +16561,16 @@ function psFriendTag(rel){
        : rel==='incoming' ? '<span class="ptag pos">Wants to add you</span>' : '';
 }
 async function psSearch(q){ try{ const {data}=await sb.rpc('search_golfers',{p_q:q}); return data||[]; }catch(_){ return []; } }
-async function psFriends(){ try{ const {data}=await sb.rpc('my_friends'); return data||[]; }catch(_){ return []; } }
+/* L-32 · a failed read is never an empty one. This swallowed the error and
+   returned `[]`, so a dead network rendered "No buddies yet" over a golfer's
+   real list — and they would go and add the friends they already have. It
+   returns NULL when it could not answer; every caller that renders an absence
+   has to say which of the two it is, and the ones that only filter a list treat
+   null as "nothing to filter", which is what they did before. */
+async function psFriends(){
+  try{ const {data, error}=await sb.rpc('my_friends'); if(error) return null; return data||[]; }
+  catch(_){ return null; }
+}
 
 async function renderCrewPeople(){
   const box = document.getElementById('youPeople'); if(!box) return;   /* IA P5: buddies on You */
@@ -16251,16 +16624,39 @@ async function renderCrewPeople(){
   }
   const paint = async () => {
     const data = await psFriends();
+    /* D222 / L-32 · the destination's own root. A read that did not answer says
+       so and offers the one honest next move; an answer with nobody in it is a
+       different sentence with different doors. */
+    const root = document.getElementById('glfRoot');
+    if(data === null){
+      if(root){
+        root.innerHTML = csEmptyRootHtml(csEmptyRoot('golfers', { failed:true }));
+        root.querySelectorAll('[data-erdoor]').forEach(b=>b.addEventListener('click', paint));
+      }
+      return;
+    }
     const reqs=data.filter(f=>f.status==='pending'&&f.incoming);
     const out =data.filter(f=>f.status==='pending'&&!f.incoming);
     const buds=data.filter(f=>f.status==='accepted');
+    window.__buddyCount = buds.length;
+    const bare = !buds.length && !reqs.length && !out.length;
+    if(root){
+      root.innerHTML = bare ? csEmptyRootHtml(csEmptyRoot('golfers', {})) : '';
+      if(bare) root.querySelectorAll('[data-erdoor]').forEach(b=>b.addEventListener('click',()=>{
+        document.getElementById('crFind')?.focus();
+      }));
+    }
     document.getElementById('crReq').innerHTML = reqs.length
       ? `<div class="eyebrow" style="color:var(--brand)">Requests · ${reqs.length}</div>`+reqs.map(f=>psRow(f,
          `<span class="pact"><button class="mini" data-facc="${f.friendship_id}">Accept</button><button class="mini" data-fdec="${f.friendship_id}" aria-label="Decline"><svg class="ic" aria-hidden="true"><use href="#i-close"/></svg></button></span>`)).join('') : '';
+    /* L-34 · one fact, one place. With the destination's empty root on screen
+       saying "No buddies yet.", this section said it a second time three rows
+       below it. When the root owns the sentence, the section stands down. */
     document.getElementById('crBud').innerHTML =
-      `<div class="eyebrow">Buddies${buds.length?' · '+buds.length:''}</div>`+
-      (buds.length ? buds.map(f=>psRow(f,'<span class="ptag ok">Buddies</span>')).join('')
-        : '<p class="fine" style="padding:0">No buddies yet. Search up top to add them.</p>')+
+      (bare ? '' :
+        `<div class="eyebrow">Buddies${buds.length?' · '+buds.length:''}</div>`+
+        (buds.length ? buds.map(f=>psRow(f,'<span class="ptag ok">Buddies</span>')).join('')
+          : '<p class="fine" style="padding:0">No buddies yet. Search up top to add them.</p>'))+
       (out.length ? `<div class="eyebrow">Requested</div>`+out.map(f=>psRow(f,'<span class="ptag">Requested</span>')).join('') : '');
     box.querySelectorAll('[data-facc],[data-fdec]').forEach(b=>b.addEventListener('click', async()=>{
       b.disabled=true; const acc=b.hasAttribute('data-facc');
@@ -16698,11 +17094,11 @@ function openPeoplePicker(opts){
            : '<p class="fine">Type a name or @handle to search — buddies you add appear here.</p>'); wire(); };
   /* empty search = your accepted buddies (pilot walked back the league-mate
      recommendations here — the tee sheet's chips already lead with the league) */
-  psFriends().then(d=>render(d.filter(f=>f.status==='accepted')));
+  psFriends().then(d=>render((d||[]).filter(f=>f.status==='accepted')));
   let t=null;
   document.getElementById('ppFind').addEventListener('input', ()=>{ clearTimeout(t); t=setTimeout(async()=>{
     const q=document.getElementById('ppFind').value.trim();
-    if(!q.length){ psFriends().then(d=>render(d.filter(f=>f.status==='accepted'))); return; }
+    if(!q.length){ psFriends().then(d=>render((d||[]).filter(f=>f.status==='accepted'))); return; }
     render(await psSearch(q));
   }, 350); });
 }
@@ -16809,7 +17205,7 @@ function openProfileHub(){
     <p class="fine" style="padding-left:0; margin-top:24px; opacity:.55">Cup Season · v23 · __CS_VERSION__</p>
     <div class="eyebrow">How it works</div>
     <div id="youGuide" style="text-align:left; margin-bottom:14px">
-      <div class="check tap" data-guide="places" style="cursor:pointer"><span class="num">◱</span><div class="tt"><b>The four places</b><small>Home · Clubhouse · Post · You</small></div><span class="fine" style="padding:0; color:var(--dim)">→</span></div>
+      <div class="check tap" data-guide="places" style="cursor:pointer"><span class="num">◱</span><div class="tt"><b>The five places</b><small>Home · Compete · Record · Golfers · You</small></div><span class="fine" style="padding:0; color:var(--dim)">→</span></div>
       <div class="check tap" data-guide="games" style="cursor:pointer"><span class="num">⛳</span><div class="tt"><b>Leagues vs events</b><small>The long game and the short game</small></div><span class="fine" style="padding:0; color:var(--dim)">→</span></div>
       <div class="check tap" data-guide="posting" style="cursor:pointer"><span class="num">✎</span><div class="tt"><b>Posting a round</b><small>Basic, live, and the scan</small></div><span class="fine" style="padding:0; color:var(--dim)">→</span></div>
       <div class="check tap" data-guide="buddies" style="cursor:pointer"><span class="num">◆</span><div class="tt"><b>Buddies, invites and claims</b><small>Three different links, three jobs</small></div><span class="fine" style="padding:0; color:var(--dim)">→</span></div>
@@ -19152,7 +19548,7 @@ async function openLeagueSwitcher(){
   }).join('');
   const evStat = e => e.status==='complete' ? 'Final' : e.status==='setup' ? 'Forming' : 'Live';
   const events = (window.myEvents||[]).map(e => row('__event:'+e.id, e.kind==='major'?'🏆':'⚔️', e.name,
-    (e.kind==='major'?'A Major':'The Ryder') + ' · ' + (e.mine===false?'Enter the field':evStat(e)), false)).join('');
+    (e.kind==='major'?'A Major':'The Ryder') + ' · ' + (e.mine===false?'I\u2019m in':evStat(e)), false)).join('');
   const invites = (window.myInvites||[]).map(i => `
     <div class="check"><span class="num">${i.kind==='league'?'⛳':'🏆'}</span>
       <div class="tt"><b>${esc(i.container_name||'')}</b><small>INVITE · FROM ${esc((i.inviter||'').toUpperCase())}</small></div>

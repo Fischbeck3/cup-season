@@ -40,6 +40,8 @@ struct HomeView: View {
   @Environment(SessionStore.self) private var store
   @Environment(LookStore.self) private var looks
   @Environment(\.presenter) private var presenter
+  @Environment(\.openCompetition) private var openCompetition
+  @Environment(\.openGolfers) private var openGolfers
   @Environment(\.cs) private var cs
   let links: CSLinks
   /// A card is a door. The tap pushes onto the tab's own path — the pattern
@@ -91,7 +93,7 @@ struct HomeView: View {
             HomeDeckCard(item: item,
                          moreCut: idx == ranked.deck.count - 1 ? ranked.cut : 0,
                          act: { take(item) },
-                         onMore: { push(.people) })
+                         onMore: { openGolfers() })
               .environment(\.csLook, looks.look(for: league(item)))
           }
 
@@ -112,7 +114,7 @@ struct HomeView: View {
             switch go {
             case .round(let id):  presenter.scheduledRound = id
             case .calendar:       push(.schedule)
-            case .people:         push(.people)
+            case .people:         openGolfers()
             case .standings:      break
             }
           })
@@ -120,9 +122,13 @@ struct HomeView: View {
           // 5 · THE WIRE — the feed, whole. D218: the lane is cross-league, so
           // its door is the buddies.
           HomeSectionHead("Around your buddies") {
-            NavigationLink(value: HomeRoute.people) { Text("YOUR BUDDIES ↗").csEyebrow(cs.dawn).a11yHitSlop() }
+            // D222 · Golfers is a TAB. It was a push into a screen that lived
+            // under You, declared here and resolved in three stacks — the shape
+            // that made D178's dead link possible.
+            Button { openGolfers() } label: { Text("YOUR BUDDIES ↗").csEyebrow(cs.dawn).a11yHitSlop() }
+              .buttonStyle(.plain)
               .accessibilityLabel("Your buddies")
-              .accessibilityHint("Opens your buddies")
+              .accessibilityHint("Opens the Golfers tab")
           }
 
           let buckets = vm.feed(upcoming: upcoming.ids)
@@ -133,7 +139,8 @@ struct HomeView: View {
           } else if buckets.isEmpty {
             A11yStack(alignment: .leading, rowAlignment: .firstTextBaseline, spacing: 4) {
               Text("No rounds from your buddies yet. Post one, or").font(CSFont.footnote).foregroundStyle(cs.mut)
-              NavigationLink(value: HomeRoute.people) { Text("add some buddies.").font(CSFont.footnote).foregroundStyle(cs.brand).a11yHitSlop() }
+              Button { openGolfers() } label: { Text("add some buddies.").font(CSFont.footnote).foregroundStyle(cs.brand).a11yHitSlop() }
+                .buttonStyle(.plain)
             }
             .padding(.top, 4)
           } else {
@@ -180,14 +187,16 @@ struct HomeView: View {
                        "tier": .string(item.tier.rawValue)])
     switch item.route {
     case .composer:            presenter.postOnComposer = true; presenter.showPost = true
-    case .people:              push(.people)
+    case .people:              openGolfers()
     case .declare:             presenter.declare = DeclarePrefill()
     case .live:                presenter.showLive = true
     case .receipt(let id):     presenter.receipt = id
     case .plan(let id):        presenter.scheduledRound = id
-    case .season(let id, _):   push(.league(id))
-    case .pot(let id):         push(.pot(id))
-    case .invite(let id, _):   push(.league(id))
+    // D222 · `HomeRoute.league` / `.pot` are gone; a season is Compete's object
+    // and the pane is the one the door was named for (D218).
+    case .season(let id, let pane): openCompetition(id, RoomPane.named(pane))
+    case .pot(let id):         openCompetition(id, .pot)
+    case .invite(let id, _):   openCompetition(id, .standings)
     case .none:                break
     }
   }
@@ -747,6 +756,7 @@ private struct FeedPostRow: View {
 /// the row.
 private struct FeedNotesRow: View {
   @Environment(\.cs) private var cs
+  @Environment(\.openCompetition) private var openCompetition
   let notes: HomeFeedNotes
   let bucket: String
   var taggedIds: Set<UUID> = []
@@ -784,12 +794,13 @@ private struct FeedNotesRow: View {
             // D217 · the one door: the notes are the league's Notices, the board
             // is where they live. A merged group (two leagues' notes in one
             // fold) gets one door per league, each named, so nobody guesses.
-            // `ClubRoute.board` is the route Home already takes to a board
-            // (`onOpenBoard`); both stacks resolve it.
+            // D222 · a board is a SEASON's board and a season is Compete's, so
+            // the door crosses tabs through the one environment action rather
+            // than a link declared in a stack that no longer resolves it.
             ForEach(Array(zip(notes.leagueIds, notes.leagueNames)), id: \.0) { pair in
               let (id, name) = pair
               let label = notes.leagueIds.count == 1 ? "THE BOARD ↗" : "\(name.uppercased()) · THE BOARD ↗"
-              NavigationLink(value: ClubRoute.board(id)) {
+              Button { openCompetition(id, .board) } label: {
                 HStack(spacing: 0) {
                   Text(label).font(CSFont.label).foregroundStyle(cs.gold)
                   Spacer(minLength: 0)

@@ -622,19 +622,19 @@ private struct SettingsPane: View {
 }
 
 /// Y-13 · the league-less doors (Join · Start a league · Start an event), wired
-/// for this screen: a lock or a join lands in the Clubhouse (`\.openLeague`)
+/// for this screen: a lock or a join lands in Compete (`\.openCompetition`)
 /// with the store reloaded behind it, as the tab's own wizard does.
 private struct SettingsLeaguelessDoors: View {
   @Environment(SessionStore.self) private var store
   @Environment(\.presenter) private var presenter
-  @Environment(\.openLeague) private var openLeague
+  @Environment(\.openCompetition) private var openCompetition
 
   var body: some View {
     LeaguelessDoors(links: WizardLinks(
-      onLocked: { id in Task { await store.reload() }; openLeague(id) },
+      onLocked: { id in Task { await store.reload() }; openCompetition(id, .standings) },
       onCancelled: { Task { await store.reload() } },
       startEvent: { presenter.showEventPicker = true },
-      onJoined: { id in PushAsk.shared.request(.leagueJoined); Task { await store.reload() }; openLeague(id) }))
+      onJoined: { id in PushAsk.shared.request(.leagueJoined); Task { await store.reload() }; openCompetition(id, .standings) }))
   }
 }
 

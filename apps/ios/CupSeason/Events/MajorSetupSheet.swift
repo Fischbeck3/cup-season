@@ -94,14 +94,16 @@ struct MajorSetupSheet: View {
       EventFieldLabel(text: "Add golfers")
       CSButton("Search the app or tap a buddy", style: .quiet) { picking = true }
       ForEach(staged) { p in EventStagedRow(person: p) { staged.removeAll { $0.id == p.id } } }
-      EventFineCard(markdown: "**How it plays.** Everyone posts inside the window — any course, any day it's open. Your **best 18-hole card**, scored against *your own* number, is your score; post as many as the weekend allows. An established number (3 posted rounds) contends for the jug; newer golfers play **exhibition** — on the board, official by the next one. Ties settle on countback: second-best card, then earliest posted, then a logged coin flip.")
+      // D252 · the jug is defined once, and it is defined HERE too because this
+      // is the other first contact: the sheet that creates one.
+      EventFineCard(markdown: "**How it plays.** The jug is the trophy this one is played for. Everyone posts inside the window — any course, any day it's open. Your **best 18-hole card**, scored against *your own* number, is your score; post as many as the weekend allows. An established number (3 posted rounds) plays for the jug; newer golfers are on the board but **don't count this year** — official by the next one. Ties settle on countback: second-best card, then earliest posted, then a logged coin flip.")
         .padding(.top, 6)
       A11yStack(spacing: 8) {
         CSButton("Cancel", style: .quiet) { dismiss() }.frame(maxWidth: typeSize.isA11y ? .infinity : 120)
         CSButton("Set the Major", busy: busy) { create() }
       }
       .padding(.top, 6)
-      CSFine("A league Major shows on the crew's board and any member can enter. The window opens on its first morning; the jug settles the morning after the final day.")
+      CSFine("A league Major shows on the crew's board and any member can join. The window opens on its first morning; the jug is settled the morning after the final day.")
     }
     .csToasts(toasts)
     .sheet(isPresented: $picking) {
@@ -123,7 +125,7 @@ struct MajorSetupSheet: View {
         let id = try await repo.createMajor(draft)
         await repo.invite(staged.map(\.id), to: id)
         await store.reload()
-        toasts.show(staged.isEmpty ? "The Major is set — build the field" : "The Major is set — \(staged.count) invited")
+        toasts.show(staged.isEmpty ? "The Major is set — now get golfers in it" : "The Major is set — \(staged.count) invited")
         dismiss()
         onCreated(id)
       } catch {

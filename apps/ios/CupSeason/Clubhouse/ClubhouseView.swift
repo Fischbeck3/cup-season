@@ -20,6 +20,7 @@ struct ClubhouseView: View {
   @Environment(SessionStore.self) private var store
   @Environment(LookStore.self) private var looks
   @Environment(\.presenter) private var presenter
+  @Environment(\.openGolfers) private var openGolfers
   @Environment(\.cs) private var cs
   let leagueId: UUID?
   /// The tab root pages between leagues; a pushed league does not.
@@ -142,7 +143,10 @@ struct ClubhouseView: View {
           onCancelled: { Task { await store.reload() } },
           startEvent: { presenter.showEventPicker = true },
           onJoined: { id in store.preferredLeague = id; Task { await store.reload() } }))
-        NavigationLink(value: HomeRoute.people) {
+        // D222 · Golfers is a tab. D178 filed this exact control as dead
+        // because the link was declared in a stack that did not resolve its
+        // type; an environment action cannot be declared in the wrong place.
+        Button { openGolfers() } label: {
           Text("Add golfers").font(CSFont.button).frame(maxWidth: .infinity, minHeight: 50).foregroundStyle(cs.ink)
             .background(cs.bg2, in: RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous))
             .overlay(RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous).stroke(cs.line2, lineWidth: 1))
@@ -152,7 +156,7 @@ struct ClubhouseView: View {
       .padding(20)
     }
     .background(cs.bg0)
-    .navigationTitle("Clubhouse")
+    .navigationTitle("Compete")
     .navigationBarTitleDisplayMode(.inline)
   }
 

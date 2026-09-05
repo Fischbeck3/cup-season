@@ -50,14 +50,20 @@ scorecard, and a Ryder-style event. Nothing in it is a real person.
    before submitting rather than trusting this line.
    Tap a round card → the round receipt: every point traces to the rounds that
    produced it.
-2. **Clubhouse** — the league room: standings, the climb, the board (chat +
+2. **Compete** — every season and moment, as peers; a row opens the season: standings, the climb, the board (chat +
    posts), the schedule, the album. Tap "Standings" rows for receipts.
-3. **⊕ Post** — post a round: pick a course (search), type front and back
-   nines, or "Enter your card" for hole by hole. Post → the finish ceremony.
-   (Posting from the review account is fine; it's a sandbox.)
-4. **⊕ Play now** — the live tee sheet: match play / Wolf / skins, scored
-   hole by hole; finish → the settlement card and the share sheet.
-5. **You** — the golfer's card, trophies, the record. Settings → Appearance,
+3. **⊕ Play** — the centre button is a verb, not a place: it presents a cover
+   with three rows. "Add a round you played" is the composer: one box for the
+   gross over an editable course line, with the nines, the scan and hole-by-hole
+   behind "edit". Post → the finish ceremony. (Posting from the review account
+   is fine; it's a sandbox.) A long press on the ⊕ opens the composer directly.
+4. **⊕ Score it live** — the cover's first row: the live tee sheet, match play
+   / Wolf / skins, scored hole by hole; finish → the settlement card and the
+   share sheet.
+5. **Golfers** — the people: anybody waiting on you at the head, then your
+   buddies, with search by name or @handle and "Findable by" (the privacy
+   control). Every golfer's card carries mute and the two-step report.
+6. **You** — the golfer's card, trophies, the record. Settings → Appearance,
    Palette, Notifications, and **Delete account** (in-app, Guideline 5.1.1(v)).
    **Please do not complete the deletion on this account** — it is the review
    account and the flow is real, not a demo. This account has posted rounds, so
@@ -77,7 +83,7 @@ never handles money.** There is no wagering, no deposit, no payout, no
 contest run by Cup Season, and no money moves through the app or any payment
 rail. The app keeps a *ledger* — who has paid the group's organiser and who
 is owed — exactly like a shared spreadsheet, and the group settles among
-themselves outside the app. The screen is **Clubhouse → Pot** ("Cup Season
+themselves outside the app. The screen is **Compete → the season → Pot** ("Cup Season
 keeps the books. Buy-ins and payouts move friend-to-friend."). The review
 account's league, Sunset Match, keeps a $450 pot so you can see the ledger
 itself; a league can also run with no pot at all ("bragging rights").
@@ -157,7 +163,7 @@ questionnaire (the July 2025 revision) asks about that directly. Answering
 
 | If review says | Answer with |
 |---|---|
-| 5.3.4 real-money gaming | The paragraph above, verbatim; point at Clubhouse → Pot. Offer a screen recording of the ledger. |
+| 5.3.4 real-money gaming | The paragraph above, verbatim; point at Compete → the season → Pot. Offer a screen recording of the ledger. |
 | 2.1 incomplete / cannot evaluate | The reviewer landed in an empty state: the account is re-seeded (`test-seed` with `target_email`) and the walkthrough re-sent. |
 | 1.2 UGC safety | Report + Mute paths above; `report_content` and `set_mute` are server RPCs, reachable from every post and member sheet. |
 | 5.1.1(v) account deletion | In-app path above; `delete_account` RPC. |

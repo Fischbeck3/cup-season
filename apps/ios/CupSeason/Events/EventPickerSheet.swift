@@ -1,7 +1,16 @@
-// Cup Season — the event-style menu (`openEventPicker` 15293–15312): Ryder
-// is live, the Major is live behind `app_flags.ios.major` (IOS-022 item 7 —
-// hidden for v1, the code stays), the Bracket is the roadmap. Keeps the
-// Ryder from being the lone hard-coded event: it's the first of a category.
+// Cup Season — the event-style menu (`openEventPicker` 15293–15312): Ryder is
+// live, the Major is live behind `app_flags.ios.major`, and D252 / R-E OPENS
+// that flag — the migration is `20260912090000_the_major_opens.sql` and the
+// read stays fail-closed, so the door appears the day the owner pushes it and
+// not one build sooner.
+//
+// The Bracket's row is GONE (D109 parked the mechanic; TERMINOLOGY §2.3 makes
+// hiding the row the level-5 half). A row labelled SOON, that toasts "isn't
+// built yet" when tapped, is a door sold and not opened — the one dishonesty
+// L-32/L-44 forbid, on the very sheet whose other row this wave un-gated.
+//
+// This sheet retires into the intent sheet in wave 7 (D225): it is a menu of
+// schema objects, and the intent sheet asks a question instead.
 
 import SwiftUI
 import CSDesign
@@ -22,13 +31,13 @@ struct EventPickerSheet: View {
     NavigationStack {
       ScrollView {
         VStack(alignment: .leading, spacing: 10) {
-          CSSheetHeader(title: "Start an event", sub: "Short form · its own little trophy")
-          style("⚔️", "The Ryder", "Two teams · weekly vs-index duels · first to the clinch", live: true) { ryder = true }
-          style("🥊", "Bracket", "Knockout · seeded · last golfer standing", live: false) { toasts.show("Bracket isn't built yet") }
+          CSSheetHeader(title: "Start something short", sub: "A few weeks, its own trophy")
+          style("⚔️", "The Ryder", "Two teams · each week you play one opponent · first team past halfway wins", live: true) { ryder = true }
           if majorDoor {
             style("🏆", "A Major", "A championship window · best card takes the jug", live: true) { major = true }
           }
-          CSFine("Every event mints a trophy for your display case.")
+          // A-4 / T-12 · "mint" is the engine's verb.
+          CSFine("Every one of these awards a trophy for your display case.")
         }
         .padding(20)
       }

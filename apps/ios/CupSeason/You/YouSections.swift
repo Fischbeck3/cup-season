@@ -242,7 +242,7 @@ struct SeasonStatsStrip: View {
 // MARK: - D4: the league record
 
 struct LeagueRecordView: View {
-  @Environment(\.openLeague) private var openLeague
+  @Environment(\.openCompetition) private var openCompetition
   let rows: [LeagueRecordRow]
   var body: some View {
     if !rows.isEmpty {
@@ -252,11 +252,11 @@ struct LeagueRecordView: View {
       CSSectionHead("Every season")
       VStack(spacing: 0) {
         ForEach(Array(rows.enumerated()), id: \.element.id) { i, r in
-          // Y-16 · the row is a door into the league's room in the Clubhouse
+          // Y-16 · the row is a door into the season, in Compete (D222)
           CSRow(last: i == rows.count - 1) {
-            YouDoorRow(glyph: Text(Image(systemName: "flag")), title: r.name, sub: r.sub, action: { openLeague(r.id) })
+            YouDoorRow(glyph: Text(Image(systemName: "flag")), title: r.name, sub: r.sub, action: { openCompetition(r.id, .standings) })
               .accessibilityLabel("\(r.name), \(r.spoken)")   // Y-33 · "Season 2", not "S E A S O N I I"
-              .accessibilityHint("Opens the league in the Clubhouse")
+              .accessibilityHint("Opens the season in Compete")
           }
         }
       }

@@ -43,14 +43,15 @@ enum OrientationCopy {
   }
 
   /// Two lines, as the web breaks them.
-  static let title = "Four places.\nTwo ways to play."
+  static let title = "Five places.\nTwo ways to play."
   static let sub = "Thirty seconds, then you're in."
   /// The tab bar's own glyphs, so each row teaches the icon it names.
   static let places: [Place] = [
     Place(symbol: "house", title: "Home", sub: "Everything you're in, one feed"),
-    Place(symbol: "flag", title: "Clubhouse", sub: "One league: table, board, pot"),
-    Place(symbol: "plus.circle.fill", title: "Post", sub: "Before, during and after a round"),
-    Place(symbol: "person.text.rectangle", title: "You", sub: "Your card, record and buddies"),
+    Place(symbol: "flag", title: "Compete", sub: "Every season and weekend you are in"),
+    Place(symbol: "plus.circle.fill", title: "Play", sub: "Before, during and after a round"),
+    Place(symbol: "person.2", title: "Golfers", sub: "Your buddies and who is waiting on you"),
+    Place(symbol: "person.text.rectangle", title: "You", sub: "Your card, your record, your trophies"),
   ]
   static let longGame = Way(eyebrow: "The long game", title: "A league", sub: "Months. Every round counts toward a table.")
   static let shortGame = Way(eyebrow: "The short game", title: "An event", sub: "A weekend or a few weeks. Its own little trophy.")

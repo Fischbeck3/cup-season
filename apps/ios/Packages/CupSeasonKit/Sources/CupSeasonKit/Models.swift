@@ -435,6 +435,12 @@ public enum CSCopy {
     return v == v.rounded() ? String(Int(v)) : String(format: "%.1f", v)
   }
 
+  /// "1 buddy" / "5 buddies" — a headcount with its own noun, so no screen
+  /// hand-writes a plural and no screen prints a bare number nobody can read.
+  public static func count(_ n: Int, _ singular: String, plural: String) -> String {
+    "\(n) \(n == 1 ? singular : plural)"
+  }
+
   public static func dollars(cents: Int) -> String {
     cents % 100 == 0 ? "$\(cents / 100)" : String(format: "$%.2f", Double(cents) / 100)
   }

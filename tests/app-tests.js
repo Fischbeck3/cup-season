@@ -723,6 +723,123 @@
       /\u2014 \/ \u2014/.test(csInheritText()) || csInheritText().indexOf('Add the course') === 0, true);
   })();
 
+  /* ==== D222 · the nav, and that every entry lands somewhere real ==========
+     A `switchView` to a name with no pane deactivates every pane and drops the
+     golfer on a blank screen — which is exactly how the live route was broken
+     until wave 1b found it by hand. These walk the real DOM: every sidebar
+     item and every tab, through the router's own alias table. */
+  (function(){
+    const nav = [...document.querySelectorAll('.side .navitem[data-v]')].map(b => b.dataset.v);
+    const tabs = [...document.querySelectorAll('.tabbar .tab[data-v]')].map(b => b.dataset.v);
+
+    t('D222: the sidebar leads with the five destinations',
+      nav.slice(0, 4), ['home', 'compete', 'golfers', 'record']);
+    t('D222: the Desk is a disclosure, not a destination (it carries no data-v)',
+      document.getElementById('deskToggle')?.dataset.v, undefined);
+    t('D222: and it reveals three that are',
+      [...document.querySelectorAll('#deskMenu .navitem[data-v]')].map(b => b.dataset.v),
+      ['hub', 'schedule', 'stats']);
+    t('D222: the mobile bar carries five slots, the ⊕ in the middle',
+      tabs, ['home', 'compete', 'record', 'golfers', 'stats']);
+
+    /* every sidebar item maps to a switchView case … */
+    const unresolved = nav.concat(tabs).filter(v => !csRouteResolves(v));
+    t('D222: every nav entry resolves to a view that exists', unresolved, []);
+
+    /* … and back: every view the router can land on is reachable from the nav,
+       or is a pushed/child surface reached from one of them. A view in neither
+       set is a screen nobody can get to. */
+    const reachable = new Set(nav.concat(tabs).map(csViewFor));
+    const children = ['post', 'play', 'event', 'draft', 'wizard'];   /* reached from a door, never the bar */
+    const orphans = [...document.querySelectorAll('.view[id^="view-"]')]
+      .map(el => el.id.slice(5))
+      .filter(v => !reachable.has(v) && children.indexOf(v) < 0);
+    t('D222: no view is unreachable from the nav', orphans, []);
+
+    /* the two names R-D settled, and the two the overhaul retired */
+    const labels = [...document.querySelectorAll('.side .navitem, .tabbar .tab')].map(b => b.textContent.trim());
+    t('O-06: "Clubhouse" is gone from the nav', labels.some(l => /clubhouse/i.test(l)), false);
+    t('R-D: Compete and Golfers are the two names', labels.some(l => /^Compete/.test(l)) && labels.some(l => /^Golfers/.test(l)), true);
+
+    /* legacy routes keep working — an old link must not blank the page */
+    t('D222: the old People route lands on Golfers', csViewFor('people'), 'golfers');
+    t('D222: the old Clubhouse route lands on Compete', csViewFor('clubhouse'), 'compete');
+    t('D93: the old calendar route still lands on the tee sheet', csViewFor('cal'), 'schedule');
+    t('the pot is a pane of the season room', csViewFor('pot'), 'hub');
+  })();
+
+  /* ==== D222 · Compete's list, and both empty roots ======================== */
+  (function(){
+    const row = (id, clock) => ({ id, clock, kind: 'season', eyebrow: '', title: id, sub: '' });
+
+    /* rule 1 · nearest clock first; a clockless row keeps its arrival order.
+       The phone's `CompeteRoot.sorted` is the same rule and the same tie-break. */
+    t('Compete: nearest clock first',
+      csCompeteSort([row('d', 9), row('a', 0), row('c', 4)]).map(r => r.id), ['a', 'c', 'd']);
+    t('Compete: no clock goes to the back, in arrival order',
+      csCompeteSort([row('n1', null), row('soon', 2), row('n2', null), row('late', 30)]).map(r => r.id),
+      ['soon', 'late', 'n1', 'n2']);
+    (function(){
+      const input = Array.from({ length: 12 }, (_, i) => row('r' + i, 3));
+      let stable = true;
+      for (let k = 0; k < 20; k++) {
+        if (csCompeteSort(input).map(r => r.id).join() !== input.map(r => r.id).join()) stable = false;
+      }
+      t('Compete: equal clocks keep their order every time', stable, true);
+    })();
+
+    /* rule 3 · L-32, both halves */
+    const failed = csEmptyRoot('compete', { failed: true });
+    const empty = csEmptyRoot('compete', {});
+    t('L-32: a failed read is not an empty one', failed.head === empty.head, false);
+    t('L-32: a failed read offers the one honest move', failed.doors.map(d => d.k), ['retry']);
+    t('L-32: an absence does not offer "try again"', empty.doors.some(d => d.k === 'retry'), false);
+    t('L-32: every empty root ends in a next move',
+      [failed, empty, csEmptyRoot('golfers', {}), csEmptyRoot('compete', { buddies: 5 })]
+        .every(r => r.doors.length > 0), true);
+    t('L-32: a load in flight is neither', csEmptyRoot('golfers', { loaded: false }).state, 'loading');
+
+    /* the design's words, and the one conditional true fact */
+    t('IA §6.1: Compete’s empty root, verbatim', empty.head, 'Nothing running.');
+    t('IA §6.1: the fact is real when it is real',
+      csEmptyRoot('compete', { buddies: 5 }).fact, '5 buddies, and none of you is playing for anything.');
+    t('IA §6.1: one buddy is one buddy',
+      csEmptyRoot('compete', { buddies: 1 }).fact, '1 buddy, and none of you is playing for anything.');
+    t('L-44: with none, the fact is omitted rather than guessed', empty.fact, null);
+    t('IA §6.1: with no buddies the second door becomes Find golfers',
+      empty.doors.map(d => d.k), ['startSomething', 'findGolfers']);
+    t('IA §6.1: with buddies it is the code door',
+      csEmptyRoot('compete', { buddies: 3 }).doors.map(d => d.k), ['startSomething', 'joinWithCode']);
+    t('IA §10.1: Golfers’ empty root, verbatim', csEmptyRoot('golfers', {}).head, 'No buddies yet.');
+    /* R-G's contacts door is D251, wave 8 — not sold before it opens */
+    t('L-32: Golfers does not sell the contacts door yet',
+      csEmptyRoot('golfers', {}).doors.map(d => d.t), ['Find golfers', 'Text someone a link']);
+
+    /* IA §8.4 rule 1 · no seat count, anywhere */
+    t('a plan names who is on it', csPlanLine({ tagged_names: ['Galen'] }), 'You and Galen.');
+    t('and three of them read as a sentence',
+      csPlanLine({ tagged_names: ['Galen', 'Jade', 'Dev'] }), 'You, Galen, Jade and Dev.');
+    t('IA §8.4: and it never counts seats',
+      /seat/i.test(csPlanLine({ tagged_names: [], tee_time: '07:10:00' })), false);
+    t('a plan with nobody on it says the tee time',
+      csPlanLine({ tagged_names: [], tee_time: '07:10:00' }), 'Your tee time, 7:10.');
+    /* seen on a real account before it was fixed: `tagged_names` carries the
+       VIEWER on a round a buddy booked with them */
+    t('a plan never names the viewer twice',
+      csPlanLine({ tagged_names: ['Jerecho Fischbeck', 'Galen'] }, 'Jerecho Fischbeck'), 'You and Galen.');
+    t('someone else’s round names its host',
+      csPlanLine({ mine: false, display_name: 'Galen Ross', tagged_names: ['Jerecho Fischbeck'] }, 'Jerecho Fischbeck'),
+      'Galen\u2019s round. You\u2019re on it.');
+    t('…and the others on it',
+      csPlanLine({ mine: false, display_name: 'Galen Ross', tagged_names: ['Jerecho Fischbeck', 'Jade', 'Dev'] }, 'Jerecho Fischbeck'),
+      'Galen\u2019s round. You, Jade and Dev.');
+
+    /* D252 · the moment row's noun and state — never a countdown (L-22) */
+    t('D252: a moment names the noun and the state', csMomentLine('major', 'live', true), 'A Major · Live');
+    t('D252: one you have not joined says the door is open',
+      csMomentLine('ryder', 'setup', false), 'The Ryder · open to you');
+  })();
+
   const fails = R.filter(r => !r.ok);
   console.log(`\n${fails.length ? 'FAIL' : 'PASS'} — ${R.length} tests, ${fails.length} failure(s)`);
   return { total: R.length, failures: fails.map(f => f.name) };
