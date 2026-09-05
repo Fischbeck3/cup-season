@@ -131,7 +131,11 @@ struct MainTabView: View {
     // D163 · the round follows you. The bar sits ABOVE the tab view so it is
     // present on every tab, and stands down while the round is on screen.
     VStack(spacing: 0) {
-      LiveNowBar(presented: presenter.showLive) { presenter.showLive = true }
+      // L-34 · and while the live round is HOME's LEAD, the bar stands down
+      // too: today both render and the same door is offered twice on one
+      // screen (HM-35). `HomeLeadFlag` is written by Home when its rank-1
+      // item is the live round and cleared the moment it is not.
+      LiveNowBar(presented: presenter.showLive || (tab == .home && HomeLeadFlag.shared.liveIsLead)) { presenter.showLive = true }
       tabs
     }
     // D175 · the doorbell rings wherever you are. Advertising has followed the

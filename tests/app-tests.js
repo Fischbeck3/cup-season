@@ -546,6 +546,88 @@
     t('D236: a junk tee time is not a tee time', csTeeText('later'), null);
   })();
 
+  /* ============ D231 - the desk rule, on the web ============
+     `csRankDispatch` is the web half of the phone's `HomeRank.arrange`, and
+     the cases below are the same cases the Swift suite drives out of
+     `tests/fixtures/dispatch.json` — that file is canon; these are inlined
+     because this suite runs in a console with no filesystem. If the two ever
+     disagree, the JSON wins and one of the two producers is wrong. */
+  (function(){
+    const door = k => ({ kind: k || 'composer' });
+    const it = (key, tier, o) => Object.assign({ key, tier, headline: key + ' happened.', route: door(), human_subject: true }, o || {});
+
+    /* G2 · THE VETO — a bare standing can never lead, however high it scores */
+    const veto = csRankDispatch([ it('standing', 'closing', { score: 1056, human_subject: false }),
+                                  it('clash', 'circle', { score: 412 }) ], { useServerRank: false });
+    t('D231: the veto — a bare standing does not lead', veto.lead.key, 'clash');
+    t('D231: the veto — it keeps its score and sits in the deck', veto.deck.map(x => x.key), ['standing']);
+
+    /* with nothing human on the screen there is NO lead, and none is invented */
+    const none = csRankDispatch([ it('a', 'closing', { score: 1000, human_subject: false }) ], { useServerRank: false });
+    t('D231: no human subject, no lead', none.lead, null);
+    t('D231: ... and the deck still renders', none.deck.length, 1);
+
+    /* G1 · THE FENCE — an item with no door does not render at all */
+    const fenced = csRankDispatch([ { key: 'doorless', tier: 'closing', score: 1000, human_subject: true,
+                                      headline: 'Nowhere to go.', route: { kind: 'teleport' } },
+                                    it('chapter', 'chapter', { score: 200 }) ], { useServerRank: false });
+    t('D231: the fence — no door, no render', fenced.lead.key, 'chapter');
+    t('D231: the fence — and nothing else survives it', fenced.deck.length, 0);
+    t('D231: the fence — an empty sentence is not an item',
+      csRankDispatch([ it('blank', 'closing', { headline: '   ' }) ], { useServerRank: false }).lead, null);
+
+    /* the six bands, in the order UX_PRINCIPLES §5.1 states them */
+    const tiers = ['opportunity', 'chapter', 'circle', 'coming', 'changed', 'closing'].map(x => it(x, x));
+    const sorted = csRankDispatch(tiers, { useServerRank: false });
+    t('D231: the six bands sort closing first', sorted.lead.key, 'closing');
+    t('D231: ... then changed, coming, circle, chapter', sorted.deck.map(x => x.key),
+      ['changed', 'coming', 'circle', 'chapter']);
+
+    /* G5 · THE CAP — one lead and four, and the overflow is COUNTED */
+    const many = csRankDispatch(Array.from({ length: 9 }, (_, i) => it('i' + i, 'circle', { score: 400 - i })),
+                                { useServerRank: false });
+    t('D231: the cap — four in the deck', many.deck.length, 4);
+    t('D231: the cap — the overflow is counted, not hidden', many.cut, 4);
+
+    /* the tie-breaks: score, then newer before older, then the key */
+    const tie = csRankDispatch([ it('a', 'circle', { score: 400, at: '2026-09-01' }),
+                                 it('b', 'circle', { score: 400, at: '2026-09-04' }),
+                                 it('c', 'circle', { score: 400, at: '2026-09-04' }) ], { useServerRank: false });
+    t('D231: the tie-breaks are deterministic', [tie.lead.key].concat(tie.deck.map(x => x.key)), ['b', 'c', 'a']);
+
+    /* the server's own rank wins when EVERY item carries one — the web renders
+       a list, it does not re-rank */
+    const served = csRankDispatch([ it('third', 'closing', { score: 1000, rank: 3 }),
+                                    it('first', 'chapter', { score: 100, rank: 1 }),
+                                    it('second', 'circle', { score: 400, rank: 2 }) ]);
+    t('D231: the server rank is honoured', served.lead.key, 'first');
+    t('D231: ... and the deck follows it', served.deck.map(x => x.key), ['second', 'third']);
+
+    /* L-34 · the lead's suppress set is UNIONED onto the strip's */
+    const sup = csRankDispatch([ it('clash', 'closing', { score: 1000, suppress: ['my_last_round'] }) ],
+                               { stripSuppress: ['my_next_round', 'my_money'], leadSuppress: ['my_number'], useServerRank: false });
+    t('D231: suppress unions, never replaces', [...sup.suppress].sort(),
+      ['my_last_round', 'my_money', 'my_next_round', 'my_number']);
+
+    /* the declared fallback draws NO LEAD CARD — a guessed lead is the exact
+       failure the veto exists to prevent */
+    const savedClash = window.homeClash, savedFeed = window.homeFeedRows;
+    window.homeClash = { week_no: 5, ends_on: '2026-09-06', days_left: 2, closes_today: false,
+                         them_name: 'Galen Ward', mine: { gross: 89, round_id: null }, theirs: null };
+    window.homeFeedRows = [{ round_id: 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa', golfer: 'Jade Nunes', gross: 81, played_on: '2026-09-03', course: 'Troon', is_me: false }];
+    const fb = csFallbackItems();
+    t('D228: the fallback composes items', fb.length >= 2, true);
+    t('D228: the fallback order is CLOSING then CIRCLE', fb.map(x => x.tier), ['closing', 'circle']);
+    t('D228: SA-2 — the subject is the opponent, and the verb is not "post again"',
+      fb[0].headline, 'Galen has 2 days to answer your 89.');
+    t('D228: the fallback draws NO lead card', csRankDispatch(fb, { useServerRank: false }).lead, null);
+    t('D228: ... and every fallback item still has a door', fb.every(x => !!x.route), true);
+    /* the producer applies the fence itself: a circle round with no id is not an item */
+    window.homeFeedRows = [{ round_id: null, golfer: 'Jade Nunes', gross: 81, played_on: '2026-09-03', course: 'Troon', is_me: false }];
+    t('D228: a fallback item with no door is never emitted', csFallbackItems().map(x => x.tier), ['closing']);
+    window.homeClash = savedClash; window.homeFeedRows = savedFeed;
+  })();
+
   const fails = R.filter(r => !r.ok);
   console.log(`\n${fails.length ? 'FAIL' : 'PASS'} — ${R.length} tests, ${fails.length} failure(s)`);
   return { total: R.length, failures: fails.map(f => f.name) };

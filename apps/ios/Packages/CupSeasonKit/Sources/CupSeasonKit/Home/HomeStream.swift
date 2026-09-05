@@ -105,15 +105,38 @@ public struct HomeStreamRepository: Sendable {
     }
   }
 
-  /// D176 · the lead card's clash rung. One RPC, `try?` on the whole read: an
-  /// un-migrated database (deploy skew) renders no card, and the 42501 lesson
-  /// holds — ANY error, never a sniffed message.
+  /// D176 · the clash, on the FALLBACK path only. `native_home` v3 inlines it
+  /// (`membership.clash`), so a current payload needs no call at all; this is
+  /// what a v2 payload still reaches for. One RPC, `try?` on the whole read:
+  /// an un-migrated database renders no card, and the 42501 lesson holds —
+  /// ANY error, never a sniffed message.
   /// `roster` is the league's headcount (`Membership.headcount`) — the card's
   /// week-1 sentence is the two-person league's (D207), and the RPC does not
   /// say how many are in it.
   public func clash(league: UUID?, roster: Int? = nil) async -> HomeClash? {
     guard let league else { return nil }
     return HomeClash.decode(try? await svc.call(Rpc.home_clash(p_league: league)), roster: roster)
+  }
+
+  /// R1 · the dispatch. ONE read: `{me, items, lead_suppress, generated_at}`.
+  ///
+  /// Hand-declared rather than generated, because the migration that creates
+  /// the function is written and unpushed — the documented shape while a
+  /// migration awaits its contract refresh (preflight 17 tolerates it and
+  /// still demands the grant). `p_days` is optional on both sides.
+  ///
+  /// nil means "the ranker could not be reached", which is a DIFFERENT answer
+  /// from "the ranker returned nothing": the first renders `HomeFallbackItems`,
+  /// the second renders an honest, shorter Home.
+  struct DispatchCall: RpcCall {
+    static let name = "home_dispatch"
+    static let optionalArgs: [String] = ["p_days"]
+    typealias Returns = HomeDispatch.Payload
+    var p_days: Int?
+  }
+
+  public func dispatch(days: Int = 21) async -> HomeDispatch.Payload? {
+    try? await svc.call(DispatchCall(p_days: days))
   }
 
   public func load(memberships: [Me.Membership]) async -> Result {

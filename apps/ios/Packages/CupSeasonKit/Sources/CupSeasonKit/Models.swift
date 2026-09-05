@@ -402,47 +402,18 @@ public enum SeasonPhase: Sendable, Equatable {
 }
 
 /// What Home leads with (audit 08 §3; D81 "the standing is a verb").
-public enum HomeMode: Sendable {
-  case leagueless(rung: Int)      // 7: no rounds · 6: no buddies · 5: buddies, no league
-  case forming(Me.Membership)
-  case preseason(Me.Membership)
-  case season(Me.Membership)
-  case cupFinal(Me.Membership)
-  case wrapped(Me.Membership)
-
-  /// The leagues Home will render around: every one that has NOT wrapped
-  /// (forming, preseason, in season, in its Final), or — only when all have
-  /// wrapped — every one. One producer for the hero, the lead card and the
-  /// D121 rows, so a row's door (D218) can always land: a wrapped league
-  /// beside a live one is the Clubhouse's, not Home's. A preseason league
-  /// stays in — its row ("First tee Sat Sep 5") is a real door.
-  public static func pool(_ memberships: [Me.Membership], today: String = CSDate.today()) -> [Me.Membership] {
-    let active = memberships.filter { if case .wrapped = SeasonPhase.of($0, today: today) { return false }; return true }
-    return active.isEmpty ? memberships : active
-  }
-
-  public static func of(_ me: Me, preferredLeague: UUID?) -> HomeMode {
-    let pool = pool(me.memberships)
-    guard let m = pool.first(where: { $0.league_id == preferredLeague }) ?? pool.first else {
-      let rounds = me.profile?.rounds_count ?? 0
-      return .leagueless(rung: rounds < 3 ? 7 : 6)
-    }
-    switch SeasonPhase.of(m) {
-    case .forming: return .forming(m)
-    case .preseason: return .preseason(m)
-    case .season: return .season(m)
-    case .cupFinal: return .cupFinal(m)
-    case .wrapped: return .wrapped(m)
-    }
-  }
-
-  public var membership: Me.Membership? {
-    switch self {
-    case .leagueless: nil
-    case .forming(let m), .preseason(let m), .season(let m), .cupFinal(let m), .wrapped(let m): m
-    }
-  }
-}
+// `HomeMode` lived here — six cases, one `pool`, and a rule nobody logged.
+//
+// It is DELETED (D229, wave 1b). Home has no open league: the dispatch is
+// cross-membership by construction and every item names its own season in its
+// own dateline, so there is nothing left to switch between. `pool` went with
+// it, and its worst behaviour with it — a wrapped membership was dropped the
+// moment a live one existed, which is why a golfer with one live season and
+// one just-finished season saw no trace of the season they had just played.
+// A wrapped season is now an item like any other, ranked below anything live.
+//
+// `store.preferredLeague` survives as NAVIGATION MEMORY ONLY: which season
+// page Compete opens on with no deeper intent. Home does not read it.
 
 // MARK: - Copy producers (D1/D2: bands, never PvI)
 

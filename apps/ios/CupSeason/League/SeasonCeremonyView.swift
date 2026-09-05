@@ -8,15 +8,50 @@ import CSDesign
 import CupSeasonKit
 
 struct SeasonCeremonyView: View {
-  @Environment(LeagueRoomModel.self) private var model
+  /// The room's model, when the ceremony is opened from inside the room.
+  /// **Optional on purpose (IOS-029b).** Home has to be able to fire the
+  /// takeover — a member who never opens the Clubhouse the night their season
+  /// ends never sees it end — and Home must not drag in the season page's
+  /// whole model to do it. So the view takes its facts as VALUES through the
+  /// initialiser below, and reads the model only when one is in the
+  /// environment. Nothing about the room's path changes.
+  @Environment(LeagueRoomModel.self) private var model: LeagueRoomModel?
   @Environment(\.roomLinks) private var links
   @Environment(\.dismiss) private var dismiss
   private let d = CSTokens.dark   // the dusk room keeps the charcoal ink in every theme
 
+  private let givenSettlement: PotMath.Settlement?
+  private let givenMembers: Int?
+  private let givenFinish: String?
+  private let givenSeasonId: UUID?
+  private let givenRunItBack: (() -> Void)?
+
+  /// The room's initialiser: everything comes from the environment model.
+  init() {
+    givenSettlement = nil; givenMembers = nil; givenFinish = nil; givenSeasonId = nil; givenRunItBack = nil
+  }
+
+  /// **The value initialiser (HOME_STATE_MATRIX.md S8).** Present the same
+  /// ceremony straight from `home_dispatch` — the champion, the margin, the
+  /// tiebreak rung, the runner-up, the points king and the pay rows — with no
+  /// room fetch behind it. `seasonId` is what the once-per-member key is
+  /// written under; pass nil and the ceremony simply does not mark itself
+  /// seen, which is honest rather than wrong.
+  init(settlement: PotMath.Settlement?, members: Int, finish: String?, seasonId: UUID? = nil,
+       onRunItBack: (() -> Void)? = nil) {
+    givenSettlement = settlement; givenMembers = members; givenFinish = finish
+    givenSeasonId = seasonId; givenRunItBack = onRunItBack
+  }
+
+  private var settlement: PotMath.Settlement? { givenSettlement ?? model?.settlement }
+  private var memberCount: Int { givenMembers ?? model?.members.count ?? 0 }
+  private var finish: String? { givenFinish ?? model?.bylaws.finish }
+  private var runItBack: (() -> Void)? { givenRunItBack ?? links.runItBack }
+
   var body: some View {
-    let cup = model.bylaws.finish == "cup_final"
+    let cup = finish == "cup_final"
     SheetFrame(cup ? "The Cup Final" : "The season", dusk: true) {
-      if let st = model.settlement {
+      if let st = settlement {
         VStack(alignment: .center, spacing: 10) {
           Text("Season complete").csEyebrow(d.gold)
           Text(st.champName).font(CSFont.hero).foregroundStyle(d.ink).multilineTextAlignment(.center)
@@ -54,7 +89,7 @@ struct SeasonCeremonyView: View {
                 .font(CSFont.title).foregroundStyle(d.ink)
               if !st.fromLedger { Text("PREVIEW").csEyebrow(d.warm) }
             }
-            Text("\(model.members.count) golfers · \(st.stillOwedCents > 0 ? "paid from what was collected" : "what each is owed")").font(CSFont.footnote).foregroundStyle(d.mut)
+            Text("\(memberCount) golfers · \(st.stillOwedCents > 0 ? "paid from what was collected" : "what each is owed")").font(CSFont.footnote).foregroundStyle(d.mut)
             ForEach(st.rows) { r in payRow(r.name, r.why.joined(separator: " + "), r.cents) }
             // a share with no eligible finisher (an empty squad) must not silently vanish (§16)
             if st.unclaimedCents > 0 { payRow("Unclaimed", "no eligible finisher", st.unclaimedCents) }
@@ -64,7 +99,7 @@ struct SeasonCeremonyView: View {
               .font(CSFont.footnote).foregroundStyle(d.mut).padding(.top, 6).fixedSize(horizontal: false, vertical: true)
           }
         }
-        if let rb = links.runItBack { CSButton("Run it back — Season 2", style: .gold) { dismiss(); rb() }.padding(.top, 8) }
+        if let rb = runItBack { CSButton("Run it back — Season 2", style: .gold) { dismiss(); rb() }.padding(.top, 8) }
         Button { dismiss() } label: {
           Text("Close").font(CSFont.subhead).foregroundStyle(d.mut).frame(maxWidth: .infinity, minHeight: 44).contentShape(Rectangle())
         }
@@ -73,7 +108,13 @@ struct SeasonCeremonyView: View {
         Text("The result posts once the season closes.").font(CSFont.body).foregroundStyle(d.mut)
       }
     }
-    .onAppear { model.markCeremonySeen() }
+    // Once per member. From the room the model owns the key; from Home the
+    // same device-local key is written directly, so a ceremony fired from
+    // either door is not shown twice.
+    .onAppear {
+      if let model { model.markCeremonySeen() }
+      else if let id = givenSeasonId { UserDefaults.standard.set(true, forKey: LeagueRoomModel.ceremonyKey(id)) }
+    }
   }
 
   private func block<C: View>(@ViewBuilder _ c: () -> C) -> some View {

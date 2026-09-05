@@ -1,16 +1,22 @@
-// Cup Season — the lead card (D176). ONE slot above the hero that changes with
-// what is true today. The ladder that picks it lives in `HomeLead.choose` —
-// this file only draws the four faces.
+// Cup Season — the dispatch card (D228, D231, IOS-029b).
 //
-// Why it exists: Home ran the same ten slots in the same order every day, so
-// Sunday looked like Wednesday and the last day of the month looked like the
-// first. The only variance on the screen was the hero's ▲ chip. Everything the
-// card needs was ALREADY loaded — rank, prev_rank, the month floor, the feed —
-// except the clash, which is one RPC.
+// One shape, two weights. The LEAD is the rank-1 item, drawn as a hero with a
+// spine; a DECK item is the same grammar at a smaller weight. Neither knows
+// anything about what it is saying — the sentences are the ranker's, the
+// arrangement is `HomeRank`'s, and this file only lays them out.
 //
-// It is also how the weekly clash finally reaches the two golfers in it. Before
-// this the clash was announced to the board and the two people named were never
-// told: a duel announced to an empty room.
+// THE CARD GRAMMAR, and it is the same on both clients (UX_PRINCIPLES.md §4):
+//
+//     mono dateline  ·  serif headline  ·  sans standfirst  ·  one ember verb
+//
+// The 3.5-px spine does the state signalling: ember for a clock, gold for
+// something earned, a mut hairline for quiet-and-true. Gold never touches the
+// verb — a verb is a control, and gold on a control is a defect, not a taste
+// call (L-25).
+//
+// It replaces the four-faced D176 card, whose ladder is now a written desk
+// rule on the server. What it keeps from that card is the discipline: ONE
+// card at the top, never a stack, and no card at all is a legal answer.
 
 import SwiftUI
 import CSDesign
@@ -19,93 +25,120 @@ import CupSeasonKit
 struct HomeLeadCard: View {
   @Environment(\.cs) private var cs
   @Environment(\.csLookAccent) private var la
-  let lead: HomeLead
-  /// The card's single action. Home wires it to the composer, a receipt, or the room.
+  let item: HomeDispatch.Item
+  /// The card's single action — the one door the ranker put under it.
   let act: () -> Void
 
+  private var spine: Color {
+    switch item.spine {
+    case .ember: cs.brand
+    case .gold:  cs.gold
+    case .mut:   la.active ? la.accent : cs.line2
+    }
+  }
+
   var body: some View {
-    // Ember is the LIVE metal (D103a) and every face of this card is something
-    // still running — a clash mid-week, a month not yet closed, a table that
-    // just moved. Gold would be wrong: nothing here is earned yet.
-    CSCard(spine: cs.brand) {
+    CSHero(spine: spine, padding: 18) {
       VStack(alignment: .leading, spacing: 8) {
-        Text(eyebrow).csEyebrow(cs.brand)
-        Text(line).font(CSFont.sentenceBold).foregroundStyle(cs.ink)
-        if case .clash(let c) = lead { sides(c) }
-        Button(action: act) {
-          HStack(spacing: 6) { Text(action); Text("→") }
-            .font(CSFont.button).foregroundStyle(cs.brand).a11yHitSlop()
+        Text(item.eyebrow).csEyebrow(item.spine == .gold ? cs.gold : (item.spine == .ember ? cs.brand : la.eyebrow))
+          .fixedSize(horizontal: false, vertical: true)
+        // AX3 · the headline wraps; it never truncates and never shrinks below
+        // the type scale's own floor.
+        Text(item.headline).font(CSFont.sentenceBold).foregroundStyle(cs.ink)
+          .fixedSize(horizontal: false, vertical: true)
+        if let s = item.standfirst, !s.isEmpty {
+          Text(s).font(CSFont.subhead).foregroundStyle(cs.mut)
+            .fixedSize(horizontal: false, vertical: true)
         }
-        .buttonStyle(.plain)
-        .accessibilityLabel(action)
-        .padding(.top, 2)
+        if let a = item.action, !a.isEmpty {
+          Button(action: act) {
+            HStack(spacing: 6) { Text(a); Text("→") }
+              .font(CSFont.button).foregroundStyle(cs.brand).a11yHitSlop()
+          }
+          .buttonStyle(.plain)
+          .accessibilityLabel(a)
+          .padding(.top, 2)
+        }
       }
     }
     .accessibilityElement(children: .contain)
-    .accessibilityLabel("\(eyebrow). \(line)")
-  }
-
-  /// Both sides of the clash, side by side. The one in front is `pos` — the
-  /// semantic "performance up", which is what leading a clash is.
-  private func sides(_ c: HomeClash) -> some View {
-    HStack(alignment: .top, spacing: 12) {
-      side("You", HomeLeadCopy.sideLine(c.mine), ahead: c.edge == .me, marker: nil, trailing: false)
-      Text("V").font(CSFont.label).tracking(1.4).foregroundStyle(cs.dimText).padding(.top, 3)
-      side(CSBands.fn1(c.themName), HomeLeadCopy.sideLine(c.theirs), ahead: c.edge == .them,
-           marker: c.themMarker, trailing: true)
-    }
-    .padding(.top, 2)
-  }
-
-  private func side(_ name: String, _ detail: String, ahead: Bool, marker: String?, trailing: Bool) -> some View {
-    VStack(alignment: trailing ? .trailing : .leading, spacing: 2) {
-      HStack(spacing: 5) {
-        if trailing, let m = marker { CSMarkerView(key: m, size: 15).foregroundStyle(cs.mut).accessibilityHidden(true) }
-        Text(name).font(CSFont.button).foregroundStyle(cs.ink)
-      }
-      Text(detail).font(CSFont.monoSmall).foregroundStyle(ahead ? cs.pos : cs.mut)
-    }
-    .frame(maxWidth: .infinity, alignment: trailing ? .trailing : .leading)
-    .accessibilityElement(children: .combine)
-  }
-
-  private var eyebrow: String {
-    switch lead {
-    case .clash(let c): return HomeLeadCopy.clashEyebrow(c)
-    case .floor(let d, _, _): return HomeLeadCopy.floorEyebrow(days: d)
-    case .move(let r, _, let f, _): return HomeLeadCopy.moveEyebrow(rank: r, from: f)
-    case .milestone: return "Around your buddies"
-    }
-  }
-
-  private var line: String {
-    switch lead {
-    case .clash(let c): return HomeLeadCopy.clashLine(c)
-    case .floor(_, let cr, let fl): return HomeLeadCopy.floorLine(credits: cr, floor: fl)
-    case .move(let r, let of, let f, let g): return HomeLeadCopy.moveLine(rank: r, of: of, from: f, gapToLead: g)
-    case .milestone(let who, let l, _, _): return "\(who) — \(l)"
-    }
-  }
-
-  private var action: String {
-    switch lead {
-    case .clash(let c): return HomeLeadCopy.clashAction(c)
-    case .floor: return "Post a round"
-    case .move: return "See the table"
-    case .milestone: return "See the round"
-    }
+    .accessibilityLabel([item.eyebrow, item.headline, item.standfirst].compactMap { $0 }.joined(separator: ". "))
   }
 }
 
-#Preview("Lead · clash closing") {
-  HomeLeadCard(lead: .clash(.init(weekNo: 5, endsOn: "2026-08-31", daysLeft: 0, closesToday: true,
-                                  themName: "Galen Ward", themMarker: "island",
-                                  mine: nil,
-                                  theirs: .init(playedOn: "2026-08-28", points: 9, pvi: 2.4, gross: 79))),
+/// A deck item: the same grammar, one weight down, still one sentence and one
+/// door. The cap is four of these (`HomeRank.deckCap`) and a shorter deck is a
+/// SHORTER DECK — never a padded one (§3's never-empty rule).
+struct HomeDeckCard: View {
+  @Environment(\.cs) private var cs
+  @Environment(\.csLookAccent) private var la
+  let item: HomeDispatch.Item
+  /// D229 · when the cap bites, the last card's foot says how many seasons'
+  /// items did not fit rather than the screen pretending they do not exist.
+  var moreCut: Int = 0
+  let act: () -> Void
+  var onMore: () -> Void = {}
+
+  private var spine: Color {
+    switch item.spine {
+    case .ember: cs.brand
+    case .gold:  cs.gold
+    case .mut:   la.active ? la.accent : cs.line2
+    }
+  }
+
+  var body: some View {
+    CSCard(spine: spine) {
+      VStack(alignment: .leading, spacing: 6) {
+        Text(item.eyebrow).csEyebrow(item.spine == .gold ? cs.gold : la.eyebrow)
+          .fixedSize(horizontal: false, vertical: true)
+        Text(item.headline).font(CSFont.sentenceBold).foregroundStyle(cs.ink)
+          .fixedSize(horizontal: false, vertical: true)
+        if let s = item.standfirst, !s.isEmpty {
+          Text(s).font(CSFont.footnote).foregroundStyle(cs.mut)
+            .fixedSize(horizontal: false, vertical: true)
+        }
+        if let a = item.action, !a.isEmpty {
+          Button(action: act) {
+            HStack(spacing: 6) { Text(a); Text("→") }
+              .font(CSFont.monoSmall).foregroundStyle(cs.brand).a11yHitSlop()
+          }
+          .buttonStyle(.plain)
+          .accessibilityLabel(a)
+          .padding(.top, 2)
+        }
+        if moreCut > 0 {
+          Button(action: onMore) {
+            Text("\(moreCut) more →").font(CSFont.label).foregroundStyle(cs.mut).a11yHitSlop()
+          }
+          .buttonStyle(.plain)
+          .accessibilityLabel("\(moreCut) more, in the Clubhouse")
+        }
+      }
+    }
+    .accessibilityElement(children: .contain)
+    .accessibilityLabel([item.eyebrow, item.headline, item.standfirst].compactMap { $0 }.joined(separator: ". "))
+  }
+}
+
+#Preview("The lead · a clash closing") {
+  HomeLeadCard(item: .init(key: "clash", tier: .closing, rank: 1, score: 1056,
+                           subject: "Galen", humanSubject: true,
+                           eyebrow: "WHO'S THE BITCH? · THE CLASH · CLOSES IN 2 DAYS",
+                           headline: "Galen has two days to answer your 89.",
+                           standfirst: "Your round is the number to beat.",
+                           action: "See the receipt", route: .composer, spine: .ember),
                act: {})
     .padding(20).csTheme()
 }
 
-#Preview("Lead · the floor") {
-  HomeLeadCard(lead: .floor(days: 1, credits: 6, floor: 8), act: {}).padding(20).csTheme()
+#Preview("A deck item · the chapter") {
+  HomeDeckCard(item: .init(key: "chapter", tier: .chapter, rank: 3, score: 205,
+                           subject: "Galen", humanSubject: true,
+                           eyebrow: "FELLAS · WEEK 7 OF 26",
+                           headline: "Galen is the one to catch.",
+                           standfirst: "4 back of Galen.",
+                           action: "Open the season", route: .composer, spine: .mut),
+               act: {})
+    .padding(20).csTheme()
 }

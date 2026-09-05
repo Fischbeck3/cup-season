@@ -179,6 +179,53 @@ button{font-family:var(--sans); touch-action:manipulation; color:var(--ink);}
 }
 .sideme .mesr:hover{color:var(--ink);}
 .sideme .mesr:focus-visible{outline:2px solid var(--focus); outline-offset:3px; border-radius:4px;}
+/* ============ D228 - the desk's two-column body ============
+   The phone reorders ONE lane; the desk reorders a WIDE BODY. Same producer,
+   two shapes (D234, R-C as revised): the dispatch reads down the left, the
+   wire sits beside it on the right, and nothing the phone pushes below the
+   fold is pushed below it on a 1,440-px screen. Below 960 the columns stack
+   in the phone's own order - the dispatch, then the wire. */
+.deskbody{display:block;}
+.deskwire{min-width:0;}
+@media(min-width:960px){
+  .deskbody{display:grid; grid-template-columns:minmax(0,1fr) 348px; gap:34px; align-items:start;}
+  .deskwire{position:sticky; top:78px; max-height:calc(100dvh - 100px); overflow:auto; padding-right:2px;}
+  .deskwire::-webkit-scrollbar{width:6px;}
+  .deskwire::-webkit-scrollbar-thumb{background:var(--line2); border-radius:3px;}
+}
+/* ============ D231 - one dispatch card, two weights ============
+   mono dateline / serif headline / sans standfirst / one ember verb. The
+   3.5-px spine does the state signalling: ember for a clock, gold for
+   something earned, a mut hairline for quiet-and-true. Gold never touches the
+   verb - a verb is a control (L-25). */
+.dcard{
+  position:relative; text-align:left; background:var(--bg1);
+  border:1px solid var(--line); border-radius:14px;
+  padding:15px 16px 14px 19px; margin:0 0 12px; overflow:hidden;
+}
+.dcard::before{content:''; position:absolute; left:0; top:0; bottom:0; width:3.5px; background:var(--line2);}
+.dcard.ember::before{background:var(--brand);}
+.dcard.gold::before{background:var(--gold);}
+.dcard.lead{padding:19px 20px 17px 23px;}
+.dcard .eb{
+  display:block; font-family:var(--mono); font-size:10.5px; letter-spacing:.13em;
+  text-transform:uppercase; color:var(--mut); margin-bottom:7px;
+}
+.dcard.ember .eb{color:var(--brand);}
+.dcard.gold .eb{color:var(--gold);}
+.dcard .hl{font-family:var(--serif); font-size:17px; line-height:1.34; color:var(--ink); font-weight:600;}
+.dcard.lead .hl{font-size:20px;}
+.dcard .sf{font-size:13px; line-height:1.5; color:var(--mut); margin-top:5px;}
+.dcard .act{
+  display:inline-flex; align-items:center; gap:6px; margin-top:10px;
+  background:none; border:0; padding:0; cursor:pointer;
+  font-family:var(--sans); font-size:13px; font-weight:700; color:var(--brand);
+}
+.dcard .act:focus-visible{outline:2px solid var(--focus); outline-offset:3px; border-radius:4px;}
+.dcard .more{
+  display:block; margin-top:8px; background:none; border:0; padding:0; cursor:pointer;
+  font-family:var(--mono); font-size:11px; letter-spacing:.1em; text-transform:uppercase; color:var(--mut);
+}
 /* the sidebar is the desk's home for it; #homeMe covers the narrow widths */
 .homeme{display:block; margin:0 0 18px; padding:0 0 14px; border-top:0; border-bottom:1px solid var(--line);}
 .homeme .mefacts{gap:12px 20px;}
@@ -1062,13 +1109,16 @@ body.guestlive #onboard{display:none !important;}
   #view-wizard .wiz-aside{display:block; position:sticky; top:88px;}
   #view-wizard #bylawsReview{display:none;}   /* the sticky aside IS the review on desktop */
 }
-/* D81: the Home grid/rail is RETIRED — one lane in source order on every
-   breakpoint. Stage 3b's desktop rail and 3b.1's mobile order:-1 hoist are
-   both gone; the hoist was the single biggest fold cost (the cold-start
-   doors rode above the feed for members in week 17). On desktop the lane
-   caps its measure instead of splitting columns. */
+/* D81's one lane, and D228's amendment to it.
+   D81 retired Stage 3b's desktop rail and 3b.1's mobile order:-1 hoist — the
+   hoist was the single biggest fold cost — and capped the lane's measure at
+   640 px on desktop instead of splitting columns. **D228 amends the CAP, not
+   the lane**: the desk gets a wide two-column body (the dispatch left, the
+   wire right, `.deskbody` above), so the 640-px cap moves onto the READING
+   COLUMN, where it belongs. The measure is still capped; the page is no
+   longer capped with it. Below 960 the columns stack and this does nothing. */
 @media(min-width:1100px){
-  #homeHub{max-width:640px;}
+  #homeHub .deskmain{max-width:680px;}
 }
 /* Stage 3c: desktop League Room — Standings and the Board side by side (the
    board is the alive spine, worth keeping in view). Only the standings segment
@@ -3046,23 +3096,35 @@ html[data-theme="light"] .room-dusk .btn:not(.dark):not(.gold):not(.apple){color
              board. The "Upcoming golf" list retired into the Next tile + the
              calendar destination; the feed still STAYS WHOLE (D81's correction
              survives this). -->
-        <div id="homeHub">
-          <!-- the identity block below desk width; #sideMe carries it above -->
-          <div class="sideme homeme" id="homeMe"></div>
-          <div id="homeStart"></div>
-          <!-- D176: the lead card. One slot, a fixed ladder, one card at a
-               time, and NO card is the resting state — the hero below is
-               already a good one. It sits ABOVE the hero on purpose: the hero
-               says where you stand, the lead card says what today is asking. -->
-          <div id="homeLead"></div>
-          <div id="homeHero"></div>
-          <div id="homeTiles"></div>
-          <div id="homeOccasion"></div>
-          <div id="homeUpNext"></div>
-          <div id="homePulse"></div>
-          <div class="eyebrow withgo" id="homeFeedHead">Around your buddies<a href="#" data-go="board" id="homeBoardGo">THE BOARD ↗</a></div>
-          <div id="homeDigest"></div>
-          <div id="homeFeed"></div>
+        <!-- D228 · the desk's wide two-column body. The DISPATCH reads down
+             the left; the WIRE sits beside it on the right, whole (D217's
+             fold and D218's head kept). Below 960 the two stack in the
+             phone's own order. This is not the phone's lane in a browser —
+             it is the same producer in the shape a desk earns. -->
+        <div id="homeHub" class="deskbody">
+          <div class="deskmain">
+            <!-- the identity block below desk width; #sideMe carries it above -->
+            <div class="sideme homeme" id="homeMe"></div>
+            <div id="homeStart"></div>
+            <!-- D231 · THE LEAD. One card, a human subject, one ember verb —
+                 or no card at all, which is what a golfer with nothing
+                 pressing gets. The ladder that used to pick it is a written
+                 desk rule on the server now (`home_dispatch`). -->
+            <div id="homeLead"></div>
+            <!-- D228 · THE DECK: items 2–5, ranked, each one sentence with one
+                 door. A shorter deck is a shorter deck; it is never padded. -->
+            <div id="homeDeck"></div>
+            <div id="homeHero"></div>
+            <div id="homeTiles"></div>
+            <div id="homeOccasion"></div>
+            <div id="homeUpNext"></div>
+            <div id="homePulse"></div>
+          </div>
+          <aside class="deskwire">
+            <div class="eyebrow withgo" id="homeFeedHead">Around your buddies<a href="#" data-go="board" id="homeBoardGo">THE BOARD ↗</a></div>
+            <div id="homeDigest"></div>
+            <div id="homeFeed"></div>
+          </aside>
         </div>
       </section>
 
@@ -11328,6 +11390,14 @@ function heroFloorFoot(){
 }
 function renderHomeHero(){
   const box=$('#homeHero'); if(!box) return;
+  /* L-34 · ONE FACT, ONE PLACE. The hero said WHERE YOU STAND; the ME strip
+     owns that now (D236) and the LEAD says what today is asking (D231). When
+     a lead card renders, the hero stands down rather than restating the
+     season a second time on one screen — the same discipline that stood the
+     D129 owe line and the D219 next-round chip down in wave 1a. It comes back
+     the moment there is no lead, which is when its sentence is the only one
+     on the screen. */
+  if(window.__leadOwnsToday){ box.innerHTML=''; return; }
   /* every CTA tap and each state's first paint per session go to
      client_events (qaEvent: demo never emits, failures swallowed) — the
      "does the empty space incite?" question is empirical, and launch week
@@ -12407,19 +12477,186 @@ function homeLead(){
   }
   return null;
 }
-function renderHomeLead(){
-  const box=$('#homeLead'); if(!box) return;
-  if(state.demo || !CS?.user){ box.innerHTML=''; return; }
-  const L=homeLead();
-  if(!L){ box.innerHTML=''; return; }
-  box.innerHTML = `<div class="leadcard">
-    <span class="eb">${esc(L.eb)}</span>
-    <div class="ln">${L.ln}</div>
-    ${L.sides?`<div class="sides">${L.sides}</div>`:''}
-    <button type="button" class="act" id="leadAct">${esc(L.act)} <span>\u2192</span></button>
-  </div>`;
-  const b=document.getElementById('leadAct'); if(b) b.addEventListener('click', L.go);
+/* ─────────────────────────────────────────────────────────────────────────
+   D228 / D231 · THE DISPATCH — one ranked read, arranged by one written rule
+   ─────────────────────────────────────────────────────────────────────────
+   `home_dispatch(p_days)` scores every item on the server and returns `tier`,
+   `rank`, `rank_reason`, `route` and `suppress` per item. The web does NOT
+   reimplement the ladder: it renders a list. What it DOES re-apply is the
+   three gates, exactly as the phone's `HomeRank.arrange` does, so a ranker
+   bug produces a shorter screen rather than a standing in the lead slot:
+
+     G1 THE FENCE  an item with no door does not render.
+     G2 THE VETO   the lead must have a human subject. A bare standing keeps
+                   its score and sits in the deck.
+     G5 THE CAP    one lead and at most four, and the overflow is COUNTED.
+
+   The tie-breaks are the same three, in the same order: score, newer before
+   older, then the key — so two consecutive opens never reshuffle. */
+const CS_TIER_BAND = { closing:1000, changed:800, coming:600, circle:400, chapter:200, opportunity:100 };
+const CS_TIER_ORDER = ['closing','changed','coming','circle','chapter','opportunity'];
+const CS_DECK_CAP = 4;
+
+function csItemWeight(it){
+  const s = Number(it && it.score);
+  if(isFinite(s)) return Math.max(0, s);
+  return CS_TIER_BAND[it && it.tier] || CS_TIER_BAND.opportunity;
 }
+/* An item this build cannot open is an item this build does not render. The
+   kinds are the ranker's own; anything else falls through to null. */
+function csItemDoor(it){
+  const r = (it && it.route) || null; if(!r || !r.kind) return null;
+  const id = r.id || null;
+  switch(r.kind){
+    case 'composer':  return ()=>switchView('post');
+    case 'people':    return ()=>switchView('people');
+    case 'declare':   return ()=>window.openDeclareSheet?.();
+    case 'plan':      return id ? ()=>switchView('schedule') : null;
+    case 'receipt':   return id ? ()=>(window.openRoundSheet ? window.openRoundSheet(id) : switchView('record')) : null;
+    /* the web's live surface is the tee sheet (`view-play`), not a view named
+       "live" — a switchView to a view that does not exist deactivates every
+       pane and lands the golfer on a blank screen, which is the one thing a
+       door may never do (L-32). */
+    case 'live':      return id ? ()=>switchView('play') : null;
+    case 'season':    return id ? ()=>switchView('hub') : null;
+    case 'pot':       return id ? ()=>switchView('pot') : null;
+    case 'invite':    return id ? ()=>switchView('hub') : null;
+    default:          return null;
+  }
+}
+function csRankDispatch(items, opts){
+  const o = opts || {};
+  /* G1 · the fence */
+  const live = (items||[]).filter(it => it && csItemDoor(it) && String(it.headline||'').trim());
+  const ranked = live.length > 0 && live.every(it => it.rank != null);
+  const sorted = live.slice().sort((a,b)=>{
+    if(o.useServerRank !== false && ranked) return (a.rank-b.rank) || (a.key<b.key?-1:a.key>b.key?1:0);
+    const w = csItemWeight(b) - csItemWeight(a); if(w) return w;
+    const at = String(b.at||'').localeCompare(String(a.at||'')); if(at) return at;
+    return String(a.key).localeCompare(String(b.key));
+  });
+  /* G2 · the veto */
+  const li = sorted.findIndex(it => !!it.human_subject);
+  const lead = li >= 0 ? sorted[li] : null;
+  const rest = sorted.filter((_,i)=> i !== li);
+  /* G5 · the cap */
+  const deck = rest.slice(0, CS_DECK_CAP);
+  const suppress = new Set([...(o.stripSuppress||[]), ...(o.leadSuppress||[]), ...((lead && lead.suppress)||[])]);
+  return { lead, deck, suppress, cut: Math.max(0, rest.length - deck.length) };
+}
+window.csRankDispatch = csRankDispatch;
+
+/* THE DECLARED FALLBACK — the web's twin of `HomeFallbackItems`.
+   When `home_dispatch` cannot be reached (an un-migrated database is a real
+   Tuesday: the owner applies migrations by hand), the client composes what it
+   can honestly say from reads it already has, in the static tier-less order
+   CLOSING → CHANGED → COMING → CIRCLE, and — like the phone — it draws NO
+   LEAD CARD. A guessed lead is the exact failure the veto exists to prevent,
+   so every fallback item is `human_subject:false` and the lead slot stays
+   empty until the ranker can be reached. */
+function csFallbackItems(){
+  const out = [];
+  const push = (o) => out.push(Object.assign({ human_subject:false, suppress:[], spine:'mut' }, o));
+  const c = window.homeClash;
+  if(c && c.week_no != null){
+    const mine=c.mine, theirs=c.theirs;
+    const idle = !mine && !theirs;
+    const yields = idle && c.days_left > 1 && !c.closes_today;
+    const them = ((c.them_name||'').split(' ')[0]) || 'your opponent';
+    const when = c.closes_today ? 'today' : c.days_left===1 ? 'tomorrow' : `in ${c.days_left} days`;
+    let hl, sf, act, route;
+    if(yields){ hl=`Your clash with ${them} is open.`; sf='Best round of the week takes it.'; act='Add my round'; route={kind:'composer'}; }
+    else if(theirs && !mine){ hl=`${them} posted ${theirs.gross!=null?theirs.gross:'a round'}.`; sf=`That is the number, and the week closes ${when}.`; act='Add my round'; route={kind:'composer'}; }
+    else if(mine && !theirs){ hl=`${them} has ${c.closes_today?'today':c.days_left===1?'one day':c.days_left+' days'} to answer your ${mine.gross!=null?mine.gross:'round'}.`;
+                              sf='Your round is the number to beat.'; act='See the receipt';
+                              route= mine.round_id ? {kind:'receipt', id:mine.round_id} : {kind:'composer'}; }
+    else { hl=`You and ${them} are both in.`; sf=`The week closes ${when}. Best round takes it.`; act='See the receipt';
+           route= (mine&&mine.round_id) ? {kind:'receipt', id:mine.round_id} : {kind:'composer'}; }
+    push({ key:`clash:${c.week_no}`, tier: yields?'coming':'closing', spine:'ember',
+           eyebrow:`${((c.rivalry||'').trim()||'The clash').toUpperCase()} · CLOSES ${when.toUpperCase()}`,
+           headline:hl, standfirst:sf, action:act, route, at:c.ends_on,
+           suppress: mine ? ['my_last_round'] : [] });
+  }
+  /* the circle's freshest round — the one CIRCLE item, never mine */
+  const r = (window.homeFeedRows||[]).find(x => !x.is_me && x.gross != null);
+  if(r){
+    const mile = r.is_pr ? 'A personal best.' : r.is_sub80 ? 'Under 80 for the first time.' : r.is_first ? 'Their first round on the card.' : null;
+    push({ key:`story:${r.round_id||r.played_on}`, tier:'circle', spine: mile?'gold':'mut',
+           eyebrow:'AROUND YOUR BUDDIES',
+           headline:`${(r.golfer||'A golfer').split(' ')[0]} posted ${r.gross}${r.course?` at ${r.course}`:''}.`,
+           standfirst:mile, action:'See the round',
+           route: r.round_id ? {kind:'receipt', id:r.round_id} : null, at:r.played_on });
+  }
+  /* the fence, applied by the PRODUCER as well as by the arrangement: a
+     fallback item with no door is never emitted, so nothing downstream has to
+     remember to drop it (`HomeRank.fallbackOrder` does the same on the phone). */
+  return out.filter(it => CS_TIER_ORDER.indexOf(it.tier) >= 0 && !!csItemDoor(it))
+    .sort((a,b)=>{
+      const t = CS_TIER_ORDER.indexOf(a.tier) - CS_TIER_ORDER.indexOf(b.tier); if(t) return t;
+      const at = String(b.at||'').localeCompare(String(a.at||'')); if(at) return at;
+      return String(a.key).localeCompare(String(b.key));
+    });
+}
+window.csFallbackItems = csFallbackItems;
+
+/* R1 · the one read. `null` means "the ranker could not be reached", which is
+   a different answer from "the ranker returned nothing" — the first renders
+   the fallback, the second renders an honest, shorter Home. */
+window.homeDispatch = null;
+async function loadHomeDispatch(){
+  window.homeDispatch = null;
+  if(state.demo || !window.sb || !CS?.user) return;
+  try{
+    const { data, error } = await window.sb.rpc('home_dispatch', { p_days: 21 });
+    if(!error && data) window.homeDispatch = data;
+  }catch(_){ /* skew: an un-migrated database renders the fallback, never an error */ }
+}
+window.loadHomeDispatch = loadHomeDispatch;
+
+function csDispatchCard(it, lead, cut){
+  const spine = it.spine === 'ember' ? ' ember' : it.spine === 'gold' ? ' gold' : '';
+  return `<div class="dcard${lead?' lead':''}${spine}" data-dkey="${esc(it.key)}"${it.rank_reason?` data-why="${esc(it.rank_reason)}"`:''}>
+    ${it.eyebrow?`<span class="eb">${esc(it.eyebrow)}</span>`:''}
+    <div class="hl">${esc(it.headline)}</div>
+    ${it.standfirst?`<div class="sf">${esc(it.standfirst)}</div>`:''}
+    ${it.action?`<button type="button" class="act" data-dgo="${esc(it.key)}">${esc(it.action)} <span>→</span></button>`:''}
+    ${cut>0?`<button type="button" class="more" data-dgo="__more">${cut} more →</button>`:''}
+  </div>`;
+}
+/* The dispatch, rendered: the lead into #homeLead and the deck into #homeDeck.
+   The old four-faced D176 card is gone — its ladder is a written desk rule on
+   the server now, and its good sentences ride the fallback above. */
+function renderHomeDispatch(){
+  const leadBox=$('#homeLead'), deckBox=$('#homeDeck');
+  if(!leadBox && !deckBox) return;
+  const wipe = ()=>{ if(leadBox) leadBox.innerHTML=''; if(deckBox) deckBox.innerHTML=''; };
+  if(state.demo || !CS?.user){ wipe(); return; }
+  const served = window.homeDispatch && Array.isArray(window.homeDispatch.items) ? window.homeDispatch.items : null;
+  const items = served || csFallbackItems();
+  const r = csRankDispatch(items, {
+    stripSuppress: window.__meSuppress ? [...window.__meSuppress] : [],
+    leadSuppress: (window.homeDispatch && window.homeDispatch.lead_suppress) || [],
+    useServerRank: !!served });
+  if(leadBox) leadBox.innerHTML = r.lead ? csDispatchCard(r.lead, true, 0) : '';
+  if(deckBox) deckBox.innerHTML = r.deck.map((it,i)=>csDispatchCard(it, false, i===r.deck.length-1 ? r.cut : 0)).join('');
+  /* L-34 · the lead's set is UNIONED onto the strip's, never swapped for it —
+     `renderMeStrip` runs first and everything below reads the union. */
+  window.__meSuppress = r.suppress;
+  /* ... and the hero stands down while a lead is on the screen. */
+  window.__leadOwnsToday = !!r.lead;
+  if(r.lead){ const h=$('#homeHero'); if(h) h.innerHTML=''; }
+  const all = [r.lead, ...r.deck].filter(Boolean);
+  document.querySelectorAll('[data-dgo]').forEach(b => b.addEventListener('click', () => {
+    const k = b.getAttribute('data-dgo');
+    if(k === '__more'){ switchView('hub'); return; }
+    const it = all.find(x => x.key === k); if(!it) return;
+    qaEvent('cta_tapped', { door: String(k).split(':')[0], tier: it.tier });
+    const go = csItemDoor(it); if(go) go();
+  }));
+}
+window.renderHomeDispatch = renderHomeDispatch;
+/* Every call site that used to repaint the D176 card repaints the dispatch. */
+function renderHomeLead(){ renderHomeDispatch(); }
 window.renderHomeLead = renderHomeLead;
 /* D178 · the clash was read ONCE, inside loadPulse, which only runs at boot.
    So you could post the very round the card asked for, land back on Home, and
@@ -12427,8 +12664,12 @@ window.renderHomeLead = renderHomeLead;
    Every path that changes what the card would say now re-reads it. Fail-soft
    by construction: loadHomeClash swallows its own errors and renders nothing. */
 function refreshHomeLead(){
-  if(window.renderHomeLead) renderHomeLead();          /* paint what we have */
-  loadHomeClash().then(()=>{ if(window.renderHomeLead) renderHomeLead(); });
+  if(window.renderHomeDispatch) renderHomeDispatch();  /* paint what we have */
+  /* Both reads, then one repaint. `home_clash` still feeds the DECLARED
+     FALLBACK (the phone reads the same clash off `native_home` v3), so it is
+     not dead the day the ranker cannot be reached. */
+  Promise.all([loadHomeDispatch(), loadHomeClash()])
+    .then(()=>{ if(window.renderHomeDispatch) renderHomeDispatch(); });
 }
 window.refreshHomeLead = refreshHomeLead;
 function renderUpNext(){
@@ -12773,7 +13014,7 @@ function renderHomeHub(){
    if(bg) bg.style.display = (!state.demo && window.CS?.league) ? '' : 'none';}
   renderResumeBanner();   /* an in-progress live round is the first thing you see */
   renderMeStrip();        /* D236: my number, my last round, my next round, my money */
-  renderHomeLead();       /* D176: the one card that knows what day it is */
+  renderHomeDispatch();   /* D228/D231: the lead and the deck, ranked, one read */
   if(typeof renderHomeHero==='function') renderHomeHero();   /* D81: the one hero slot (R2) */
   if(typeof renderOccasion==='function') renderOccasion();   /* D81 R3: the calendar's second voice */
   renderUpNext();

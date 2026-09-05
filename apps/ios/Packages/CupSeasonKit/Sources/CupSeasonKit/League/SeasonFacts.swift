@@ -1,8 +1,13 @@
-// Cup Season — the words on the Home hero (the Home hard-look, 2026-09-02).
+// Cup Season — the season's own facts, in sentences (relocated 2026-09-05).
 //
-// Pure functions over (Membership, today). Nothing here reads the clock or the
-// network, so a test can pin every sentence; the app's `HomeHero` only lays
-// them out. The rules they obey, all rulings:
+// These are the pure producers that used to live in `HomeHeroCopy` and
+// `HomeLeagueRow`. **The two SURFACES retired with wave 1b** — Home's hero and
+// the D121 compact rows are replaced by one ranked dispatch (D228, D229,
+// D231) — but the RULINGS they encoded did not, and this file is where they
+// now live so wave 4's season page reads them rather than retyping them.
+//
+// Every ruling carried across, named, with its assertions in
+// `HomeCopyContractTests.swift`:
 //
 //   D26   "back of" — the Climb's catch-framing, the table's first noun.
 //   D130  the leader BY NAME — a person is beaten by a person, not "the lead";
@@ -14,18 +19,21 @@
 //   D138  the Final is a field of two — a seed is the locked row, never the table.
 //   D129  the owe line: "You still owe $50 · Venmo @casey · by Sat Sep 5".
 //   D140  a solo league has no floor and no floor clock, ever.
+//   D14   the floor sentence, verbatim.
 //   D126  the endgame is a sentence you can always see — `LeagueCopy.endgame`
 //         says it; §14.3 is the ladder it names ("Months won breaks it.").
+//   D207  the two-person season's own sentences.
 //
-// Every name arrives from `native_home()` v2 already in the board's own form —
-// `firstname(display_name)` for a golfer, `squads.name` for a squad — so the
-// hero says "Galen" where the board says "Galen" and never first-names a squad
-// called "Sunday Money". A v1 payload (deploy skew) has no names; the copy then
-// falls back to the sentences Home spoke before this wave.
+// Pure functions over (Membership, today). Nothing here reads the clock or
+// the network, so a test can pin every sentence. Every name arrives from
+// `native_home()` already in the board's own form — `firstname(display_name)`
+// for a golfer, `squads.name` for a squad — so a sentence says "Galen" where
+// the board says "Galen" and never first-names a squad called "Sunday Money".
+// A payload without names falls back to the sentences that predate them.
 
 import Foundation
 
-public enum HomeHeroCopy {
+public enum SeasonFacts {
   // MARK: - the standing line
 
   /// The sentence under the figure, in season.
@@ -239,5 +247,71 @@ public enum HomeHeroCopy {
   static func clean(_ s: String?) -> String? {
     let t = (s ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
     return t.isEmpty ? nil : t
+  }
+
+  // MARK: - the season's one line (relocated from the D121 row)
+
+  /// The line, by stage:
+  ///   season    "Week 7 of 26 · 1st of 2, 22 clear of Jade · $150 on the books · $0 collected"
+  ///             "Week 5 of 13 · 3rd of 10, 12 back of Galen"
+  ///             "Week 5 of 13 · 2nd of 10, level with Galen"
+  ///             the money clause is `SeasonFacts.footMoney` — nothing on a
+  ///             $0 league (D70), no "collected" on a v1 payload.
+  ///   preseason "First tee Sat Sep 5 · 5 on the roster"
+  ///   cup final "Cup Final · 2 weeks left" / "· 1 week left" — never the season's place: the
+  ///             Final is scored fresh (§14.3), so the table's rank is not its rank
+  ///   complete  "Season complete" (`LeagueCopy.seasonNote`)
+  ///   forming   "Forming" / "Squads drawing" (`LeagueCopy.Stage.label`)
+  public static func seasonLine(_ m: Me.Membership, today: String = CSDate.today(), calendar: Calendar = .current) -> String {
+    switch SeasonPhase.of(m, today: today) {
+    case .season(let w, let n):
+      var s = "Week \(w) of \(n)"
+      if let st = m.standing {
+        s += " · \(CSCopy.ordinal(st.rank)) of \(st.of)"
+        if let race = race(st) { s += ", \(race)" }
+      }
+      if let money = SeasonFacts.footMoney(m) { s += " · \(money)" }
+      return s
+    case .preseason:
+      var s = "First tee \(m.season.map { LeagueDates.dowMonDay($0.starts_on, calendar: calendar) } ?? "—")"
+      // "on the roster" — the row's own noun for a headcount (D207's phone
+      // note); "N in" is the calendar's word for RSVPs and the pot's retired
+      // word for buy-ins. The number is the ROOM's: `membership.members` is
+      // every league_members row, suspended and tombstoned included — what
+      // the room's "N players", the Members sheet and the Pot pane print,
+      // and this row is a Home lens whose hero opens that room (D218). The
+      // D207 count behind `headcount` drops both and can read one lower; it
+      // is what a rule gates on, and only the fallback here (v1, or the
+      // server could not count).
+      if let n = m.members, n > 0 { s += " · \(n) on the roster" }
+      else if let n = m.headcount { s += " · \(n) on the roster" }
+      return s
+    case .cupFinal(let left):
+      return "\(LeagueCopy.Stage.final.label) · \(SeasonFacts.finalClock(left))"
+    case .wrapped:
+      return LeagueCopy.seasonNote(.complete, firstTee: nil, short: true)
+    case .forming:
+      return (m.phase == "draft" ? LeagueCopy.Stage.drawing : LeagueCopy.Stage.forming).label
+    }
+  }
+
+  /// "22 clear of Jade" / "12 back of Galen" / "level with Galen"; the pre-v2
+  /// sentences when the names have not arrived; nil with nothing to say.
+  public static func race(_ st: Me.Standing) -> String? {
+    if st.rank == 1 {
+      let gap = st.gap_to_next ?? ((st.points != nil && st.runner_up_points != nil) ? (st.points! - st.runner_up_points!) : nil)
+      guard let other = SeasonFacts.clean(st.runner_up_name) else {
+        // A v1 payload never carries the top row's margin — claim none, not a tie.
+        if let g = gap, g > 0 { return "\(CSCopy.points(g)) clear" }
+        return nil
+      }
+      guard let g = gap else { return nil }
+      return g > 0 ? "\(CSCopy.points(g)) clear of \(other)" : "level with \(other)"
+    }
+    guard let g = st.gap_to_leader else { return nil }
+    guard let leader = SeasonFacts.clean(st.leader_name) else {
+      return g > 0 ? "\(CSCopy.points(g)) back of the lead" : "level with the lead"
+    }
+    return g > 0 ? "\(CSCopy.points(g)) back of \(leader)" : "level with \(leader)"
   }
 }

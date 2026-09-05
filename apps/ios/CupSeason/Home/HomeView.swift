@@ -1,20 +1,36 @@
-// Cup Season — Home (index.html 2792–2822 slot order; D81 one lane; D94
-// doors; D27 the digest; IOS-012 hero first on the phone).
+// Cup Season — Home, as one ranked dispatch (D228, D229, D231, IOS-029b).
 //
-// Slots, top to bottom: invites banner → buddy requests (D177 — their OWN
-// row; the banner above carries league and Ryder invites only, whatever this
-// comment used to claim) → live-round banner → lead card (D176) → hero →
-// the D121 rows (one per OTHER league) → occasion → Up Next → digest → the
-// one feed (folded, D217) → coming up.
+// Six slots, one order, every state (HOME_STATE_MATRIX.md §1). A state does
+// not change the layout; it changes what fills it.
 //
-// The Home hard-look (2026-09-02, "build to your recommendations"): the hero
-// speaks `HomeHeroCopy` and is one door to the table; a D121 row re-renders
-// Home around its league; the buddies head opens the buddies (D218); a feed
-// line is a door iff it knows its round (D219); league notes fold to one line
-// per league (D217). The doors (start a league · start an event · join with a code)
-// live in the header's `+` (IOS-022 item 1: the navigation bar is hidden on
-// Home, so the wordmark sits at the top of the safe area; pushed screens
-// keep their back bar — visibility is per destination).
+//   1  MASTHEAD      the wordmark and the dateline. Never a badge, never a
+//                    count of my absence.
+//   2  THE LEAD      the rank-1 item — a person's sentence with one verb.
+//                    NO card is a legal answer.
+//   3  THE ME STRIP  my number · my last round · my next round · my money,
+//                    plus one season context row. Always present (D236).
+//   4  THE DECK      items 2–5, ranked, each one sentence with one door.
+//                    A shorter deck is a shorter deck; it is never padded.
+//   5  THE WIRE      the feed, WHOLE — D217's fold and D218's head, kept.
+//   6  THE FOUR DOORS  always present, never behind a `+` (L-32, D94).
+//
+// WHAT RETIRED WITH THIS FILE'S REWRITE, and why each had to go together:
+//
+//   · `HomeMode`'s six-case switch and its six heroes. A hero addressed to a
+//     phase is a database record with a serif face on it, and it led with a
+//     STANDING — which the veto now forbids outright (D231).
+//   · The D121 compact rows. A row that re-rendered Home around another
+//     league was a mode change disguised as a link; its content survives as
+//     ranked items, each naming its own season (D229).
+//   · The `+` menu. It hid three of the four doors behind a glyph; the doors
+//     are the floor now and they are on the surface in every state.
+//
+// ONE READ. `home_dispatch(p_days)` returns `{me, items, lead_suppress}` — the
+// ME facts and the ranked list in one payload, so nothing on this screen is
+// composed twice and the strip and the cards describe one instant. When it
+// cannot be reached, `HomeFallbackItems` composes what this client can honestly
+// say from `native_home` + `home_feed`, in a static order, WITH NO LEAD CARD
+// (a guessed lead is the exact failure the veto exists to prevent).
 
 import SwiftUI
 import CSDesign
@@ -26,73 +42,60 @@ struct HomeView: View {
   @Environment(\.presenter) private var presenter
   @Environment(\.cs) private var cs
   let links: CSLinks
-  /// D176 · a chip is a door. The tap pushes onto the tab's own path — the same
-  /// pattern the Clubhouse destinations already use, rather than a second
-  /// `navigationDestination` restating routes MainTabView already owns.
+  /// A card is a door. The tap pushes onto the tab's own path — the pattern
+  /// the Clubhouse destinations already use.
   var push: (HomeRoute) -> Void = { _ in }
   @State private var vm = HomeModel()
   /// The Coming-up card's model, owned here so the feed's fold can hide a
   /// booking line whose round is already a card (D217 rule 1).
   @State private var upcoming = UpcomingModel()
-  /// What a stream load is FOR: this payload, rendered around this league.
-  /// The pull and `.task(id:)` both load by it — see `HomeModel.load`.
-  private var loadKey: HomeModel.LoadKey { .init(generated: store.me?.generated_at, league: store.preferredLeague) }
+  /// D229 · Home has NO open league. The key is the payload's stamp and
+  /// nothing else — `preferredLeague` is navigation memory now, and a screen
+  /// that reloads around it is the switcher this wave deleted.
+  private var loadKey: HomeModel.LoadKey { .init(generated: store.me?.generated_at) }
+
+  /// The payload the strip and the cards are drawn from: the dispatch's own
+  /// `me` when it served one (one read, one instant), the session's otherwise.
+  private var me: Me? { vm.me ?? store.me }
 
   var body: some View {
-    // IOS-025: Home wears the PERSONAL dial; the hero alone follows its league (phase ≻ the Pro's look ≻ personal)
     ScrollView {
-      if let me = store.me {
-        let mode = HomeMode.of(me, preferredLeague: store.preferredLeague)
+      if let me {
+        let strip = MeStripCopy.make(me)
+        let ranked = vm.ranked(stripSuppress: strip.suppress)
         VStack(alignment: .leading, spacing: 14) {
-          // IOS-019 rule 3: the wordmark lives in the scroll, where the glass toolbar cannot clip it
-          CSPageHeader("Cup Season", eyebrow: CSHeaderDate.today()) { plusMenu }.padding(.bottom, 2)
+          // 1 · the masthead. IOS-019 rule 3: the wordmark lives in the
+          // scroll, where the glass toolbar cannot clip it.
+          CSPageHeader("Cup Season", eyebrow: CSHeaderDate.today()) { EmptyView() }.padding(.bottom, 2)
 
-          InvitesBanner { id in store.preferredLeague = id; Task { await store.reload() } }
-
-          // D177 · buddy requests reach you HERE. This file's header has
-          // claimed since the port that InvitesBanner carried them "inside the
-          // banner"; it never did — that banner is league and Ryder invites
-          // only. Costs zero pixels on the days nobody has asked.
-          BuddyRequests(links: links, head: true, onAnswered: { Task { await store.reload() } })
-
-          LiveResumeBanner(links: LiveLinks(openReceipt: { presenter.receipt = $0 }, openTourCard: { presenter.tourCard = $0 },
-                                            done: { presenter.showLive = false }),
-                           open: { presenter.showLive = true })
-
-          // D176 · the lead card. One slot, a fixed ladder, one card at a time —
-          // and NO card is the resting state, because the hero below is already
-          // a good one. It sits above the hero on purpose: the hero says where
-          // you stand, the lead card says what today is asking of you.
-          // The card is pinned to the league it was chosen for: a row tap flips
-          // the hero at once, the card waits for its own league's read rather
-          // than sit under the wrong hero (D218), and its door goes where the
-          // card was built, never where the hero has since moved.
-          if let lead = vm.lead, vm.leadLeague == mode.membership?.league_id {
-            HomeLeadCard(lead: lead) { take(lead, league: vm.leadLeague) }
+          // 2 · THE LEAD. One card, a human subject, one ember verb — or no
+          // card at all, which is what a golfer with nothing pressing gets.
+          if let lead = ranked.lead {
+            HomeLeadCard(item: lead) { take(lead) }
+              .environment(\.csLook, looks.look(for: league(lead)))
           }
 
-          // D236 / IOS-029a · THE ME STRIP. Four mono facts that are about ME
-          // and one season context row, above everything that is about the
-          // league. It publishes `suppress` — the facts it has spent — and
-          // everything below drops them, so the same fact can no longer render
-          // three times on one screen (L-34). This is 1a: the strip lands ON
-          // today's `HomeMode` Home, which is still here; 1b replaces what is
-          // under it. There is no window in which Home has no renderer.
-          let strip = MeStripCopy.make(me)
-          MeStrip(strip: strip, state: stateKey(mode), push: push)
+          // An invitation and a buddy request are answered IN PLACE here, so
+          // the ranker's own items for them stand down on the phone (L-34).
+          // They are items on the web, which has no such banners.
+          InvitesBanner { _ in Task { await store.reload() } }
+          BuddyRequests(links: links, head: true, onAnswered: { Task { await store.reload() } })
 
-          HomeHero(mode: mode, me: me, suppress: strip.suppress, push: push)
-            .environment(\.csLook, looks.look(for: mode.membership))
+          // 3 · THE ME STRIP. Four facts that are about ME, and one season
+          // context row. It publishes `suppress`; the lead's set is UNIONED
+          // onto it, never swapped for it.
+          MeStrip(strip: strip, state: vm.stateKey, push: push)
 
-          // D121 · one quiet row per OTHER league. A tap re-renders Home —
-          // hero AND lead card — around that league; it never leaves the screen.
-          HomeLeagueRows(memberships: me.memberships, current: mode.membership?.league_id) { id in
-            store.preferredLeague = id   // `.task(id:)` reloads around it
-            CSHaptic.selection()
+          // 4 · THE DECK. At most four, ranked, never padded.
+          ForEach(Array(ranked.deck.enumerated()), id: \.element.id) { idx, item in
+            HomeDeckCard(item: item,
+                         moreCut: idx == ranked.deck.count - 1 ? ranked.cut : 0,
+                         act: { take(item) },
+                         onMore: { push(.people) })
+              .environment(\.csLook, looks.look(for: league(item)))
           }
 
           if let o = vm.occasion {
-            // web 10082/10093: the wink's tap is an event, either way it goes
             OccasionCard(o: o, onGo: {
                            CSTelemetry.event("home_occasion_tap", ["win": .string(o.key), "act": .string("go")])
                            if o.go == .league { presenter.wizard = .init(existingLeagueId: nil) } else { presenter.showEventPicker = true }
@@ -103,24 +106,21 @@ struct HomeView: View {
                          })
           }
 
-          // L-34 · the strip owns NEXT, so the "Next round" chip stands down.
-          // HM-35 was the live door offered twice on one screen; this is the
-          // same defect one slot over.
-          UpNextChips(leagueId: mode.membership?.league_id, links: links, suppress: strip.suppress, go: { go in
+          // L-34 · the strip owns NEXT and the lead may own the plan, so the
+          // chips honour the UNION of both sets.
+          UpNextChips(leagueId: nil, links: links, suppress: ranked.suppress, go: { go in
             switch go {
             case .round(let id):  presenter.scheduledRound = id
             case .calendar:       push(.schedule)
             case .people:         push(.people)
-            case .standings:      if let l = mode.membership?.league_id { push(.league(l)) }
+            case .standings:      break
             }
           })
 
-          // the section head: eyebrow + hairline (IOS-019 rule 2). D218: the lane
-          // is cross-league, so its door is the buddies, not one league's table
-          // — the table is reached from the hero, the D121 row and the move card.
+          // 5 · THE WIRE — the feed, whole. D218: the lane is cross-league, so
+          // its door is the buddies.
           HomeSectionHead("Around your buddies") {
             NavigationLink(value: HomeRoute.people) { Text("YOUR BUDDIES ↗").csEyebrow(cs.dawn).a11yHitSlop() }
-              // VoiceOver reads the glyph as "north east arrow" — name the door instead
               .accessibilityLabel("Your buddies")
               .accessibilityHint("Opens your buddies")
           }
@@ -131,7 +131,6 @@ struct HomeView: View {
           if vm.loading && buckets.isEmpty {
             ForEach(0..<3, id: \.self) { _ in skeleton }
           } else if buckets.isEmpty {
-            // the sentence and its link share a line where they fit; the link is a 44pt target either way
             A11yStack(alignment: .leading, rowAlignment: .firstTextBaseline, spacing: 4) {
               Text("No rounds from your buddies yet. Post one, or").font(CSFont.footnote).foregroundStyle(cs.mut)
               NavigationLink(value: HomeRoute.people) { Text("add some buddies.").font(CSFont.footnote).foregroundStyle(cs.brand).a11yHitSlop() }
@@ -145,10 +144,8 @@ struct HomeView: View {
 
           UpcomingRoundsSection(links: links, model: upcoming)
 
-          // The floor (L-32, D94 restored): four live doors on every Home, in
-          // every state including brand-new, offline and failed. The `+` menu
-          // above still carries three of them and is retired in 1b, when Home
-          // itself is rebuilt around this order.
+          // 6 · THE FLOOR (L-32, D94 restored): four live doors on every Home,
+          // in every state including brand-new, offline and failed.
           HomeFootDoors(push: push)
         }
         .padding(.horizontal, 20).padding(.top, 4).padding(.bottom, 32)
@@ -158,69 +155,41 @@ struct HomeView: View {
     .environment(\.csLook, looks.personalLook())
     .defaultScrollAnchor(CSDevHatch.bottom ? .bottom : .top)
     .refreshable {
-        // The pull's own load holds the spinner through the stream. A fresh
-        // payload also changes `generated_at`, which fires `.task(id:)` below
-        // with the SAME key — and `HomeModel.load` joins a load already in
-        // flight for its key instead of running a second one (one load per
-        // pull). A pull that gets no new payload (offline; a reload already
-        // in flight elsewhere) still refreshes the stream from what it has.
+        // The pull refreshes the SESSION's payload (every other tab reads it)
+        // and then the dispatch, whose own answer supersedes it for this
+        // screen. `HomeModel.load` joins a load already in flight for its key
+        // rather than running a second one.
         await store.reload()
         await vm.load(me: store.me, key: loadKey)
       }
-    // Reload on a fresh payload OR a league flip — the Clubhouse pager sets
-    // the preference too, with no payload change, and the lead card must
-    // follow the hero to the new league.
     .task(id: loadKey) { await vm.load(me: store.me, key: loadKey) }
     .navigationTitle("")
     .toolbar(.hidden, for: .navigationBar)
   }
 
-  /// D234 · which Home this is, for `home_state_seen`. Today's state machine
-  /// is `HomeMode` plus the leagueless rung, and that is what this screen
-  /// actually renders; Wave 1b's ranker replaces it with the state matrix's
-  /// own letter. It carries no name, no handle and no id.
-  private func stateKey(_ mode: HomeMode) -> String {
-    switch mode {
-    case .leagueless(let rung): "leagueless_\(rung)"
-    case .forming:              "forming"
-    case .preseason:            "preseason"
-    case .season:               "season"
-    case .cupFinal:             "cup_final"
-    case .wrapped:              "wrapped"
-    }
+  /// The look an item wears: its own season's, when it names one.
+  private func league(_ item: HomeDispatch.Item) -> Me.Membership? {
+    guard let id = item.leagueId else { return nil }
+    return me?.memberships.first { $0.league_id == id }
   }
 
-  /// D176 · the lead card's one action. Each face leads exactly one place, and
-  /// never to a dead end: the clash sends you to the composer unless the round
-  /// that would answer it already exists, in which case it opens that receipt.
-  private func take(_ lead: HomeLead, league: UUID?) {
-    switch lead {
-    case .clash(let c):
-      if c.mine == nil || c.edge != .me { presenter.postOnComposer = true; presenter.showPost = true }
-      else if let r = c.mine?.roundId { presenter.receipt = r }
-      else { presenter.postOnComposer = true; presenter.showPost = true }
-    case .floor:
-      presenter.postOnComposer = true; presenter.showPost = true
-    case .move:
-      if let l = league { push(.league(l)) }
-    case .milestone(_, _, let rid, _):
-      if let rid { presenter.receipt = rid }
+  /// Every card's one door. The ranker chose it; this only opens it.
+  private func take(_ item: HomeDispatch.Item) {
+    CSTelemetry.event(CSTelemetry.Metric.ctaTapped.rawValue,
+                      ["door": .string(item.key.split(separator: ":").first.map(String.init) ?? item.key),
+                       "tier": .string(item.tier.rawValue)])
+    switch item.route {
+    case .composer:            presenter.postOnComposer = true; presenter.showPost = true
+    case .people:              push(.people)
+    case .declare:             presenter.declare = DeclarePrefill()
+    case .live:                presenter.showLive = true
+    case .receipt(let id):     presenter.receipt = id
+    case .plan(let id):        presenter.scheduledRound = id
+    case .season(let id, _):   push(.league(id))
+    case .pot(let id):         push(.pot(id))
+    case .invite(let id, _):   push(.league(id))
+    case .none:                break
     }
-  }
-
-  /// The doors, as the header row's trailing control (IOS-022 item 1).
-  private var plusMenu: some View {
-    Menu {
-      Button { presenter.wizard = .init(existingLeagueId: nil) } label: { Label("Start a league", systemImage: "flag") }
-      Button { presenter.showEventPicker = true } label: { Label("Start an event", systemImage: "trophy") }
-      Button { presenter.join(code: nil) } label: { Label("Join with a code", systemImage: "key") }
-      NavigationLink(value: HomeRoute.schedule) { Label("Your golf calendar", systemImage: "calendar") }
-      NavigationLink(value: HomeRoute.people) { Label("Find golfers", systemImage: "magnifyingglass") }
-    } label: {
-      Image(systemName: "plus").font(.system(size: 20, weight: .semibold)).foregroundStyle(cs.brand)
-        .frame(width: 44, height: 44).contentShape(Rectangle())
-    }
-    .accessibilityLabel("Start or join")
   }
 
   private var skeleton: some View {
@@ -249,24 +218,44 @@ private struct HomeSectionHead<Trailing: View>: View {
   }
 }
 
+/// L-34 · while the live round IS the lead, `LiveNowBar` stands down. Today
+/// both render and the same door is offered twice on one screen (HM-35). The
+/// bar lives above the TabView, so the fact has to travel: Home writes it,
+/// `MainTabView` reads it, and it is false the moment Home is not showing a
+/// live lead.
+@MainActor
+@Observable
+final class HomeLeadFlag {
+  static let shared = HomeLeadFlag()
+  var liveIsLead = false
+  private init() {}
+}
+
 @MainActor
 @Observable
 final class HomeModel {
-  /// The stream as loaded, newest first. The view folds it (`feed(upcoming:)`)
+  /// The wire as loaded, newest first. The view folds it (`feed(upcoming:)`)
   /// against the Coming-up card, which loads on its own clock.
   var items: [HomeItem] = []
   var digest: HomeDigest?
   var occasion: Occasion?
-  /// D176 · the one card above the hero, or none. `HomeLead.choose` decides.
-  var lead: HomeLead?
-  /// The league `lead` was chosen for — the view shows the card only while
-  /// the hero is rendering that league.
-  var leadLeague: UUID?
+  /// The ranked dispatch, served or composed. Empty is a legal answer.
+  var dispatch: [HomeDispatch.Item] = []
+  /// The lead's own suppress set, as the server published it.
+  var leadSuppress: Set<MeStripCopy.Fact> = []
+  /// The payload the dispatch came back with — nil while it has not served
+  /// one, and then the view falls back to the session's.
+  var me: Me?
+  /// True while the client is composing the dispatch itself. It is not an
+  /// error state; it is a shorter, honest Home with no lead card.
+  var usedFallback = false
   var loading = false
   var social = HomeSocial.Snapshot()
   private var markRead = false
   /// D252 · `app_flags.ios.major`, read once per model and only when a card
   /// that sells a Major is actually in its window. nil = not read yet.
+  /// **Carried through wave 1b's rewrite on purpose**: dropping it would leave
+  /// the four gated cards dark for ever after wave 3 opens the flag.
   private var majorOpen: Bool?
   private var mark: Date?
   private var rounds: [HomeFeedRow] = []
@@ -274,141 +263,128 @@ final class HomeModel {
   private var urls: [UUID: URL] = [:]
   private let repo = HomeStreamRepository()
   private let socialRepo = HomeSocial()
-  /// Which load is current. A superseded run still comes back from its
-  /// awaits, and without this it would write the OLD league's stream over
-  /// the new one and clear `loading` under the run still in flight (a pull
-  /// over a league flip does exactly that).
+  /// Which load is current. A superseded run still comes back from its awaits,
+  /// and without this it would write the old stream over the new one.
   private var generation = 0
-  /// The load in flight, by the key it was started for — see `load(me:key:)`.
+  /// The load in flight, by the key it was started for.
   private var inflight: (key: LoadKey, task: Task<Void, Never>)?
 
-  /// One load per payload. A pull to refresh loads the stream itself (so its
-  /// spinner lasts through it) and the fresh payload ALSO fires `.task(id:)`
-  /// with the same key; the second caller joins the run in flight instead of
-  /// racing it. A different key (a newer payload, a league flip) starts a new
-  /// run, and the generation guard retires the old one. The run is its own
-  /// task so a joiner's cancellation (`.task(id:)` moving on) cannot cut it
-  /// short under the caller still waiting on it.
-  func load(me: Me?, key: LoadKey) async {
+  /// D234 · which Home this is, for `home_state_seen`. It is the LEAD's own
+  /// tier and key now, which is the state matrix's own answer to "which Home
+  /// is this" — and it carries no name, no handle and no id.
+  var stateKey: String {
+    guard let lead = HomeRank.arrange(dispatch, leadSuppress: leadSuppress).lead else {
+      return usedFallback ? "fallback_no_lead" : "quiet"
+    }
+    return "\(lead.tier.rawValue)_\(lead.key.split(separator: ":").first.map(String.init) ?? "item")"
+  }
+
+  /// The screen, arranged. Pure over what is in hand, so the same items always
+  /// produce the same Home.
+  func ranked(stripSuppress: Set<MeStripCopy.Fact>) -> HomeRank.Ranked {
+    // The invitation and the buddy request are answered in place on the phone
+    // (`InvitesBanner`, `BuddyRequests`), so their items stand down here
+    // rather than saying the same thing twice on one screen (L-34). The web
+    // has no such banners and renders them as items.
+    let mine = dispatch.filter { item in
+      if case .invite = item.route { return false }
+      return !item.key.hasPrefix("friend:")
+    }
+    let r = HomeRank.arrange(mine, stripSuppress: stripSuppress, leadSuppress: leadSuppress,
+                             useServerRank: !usedFallback)
+    // L-34 · the live door is offered once. `MainTabView` reads this.
+    if case .live = r.lead?.route { HomeLeadFlag.shared.liveIsLead = true }
+    else { HomeLeadFlag.shared.liveIsLead = false }
+    return r
+  }
+
+  /// One load per payload. A pull and `.task(id:)` share a key; the second
+  /// caller joins the run in flight instead of racing it.
+  func load(me sessionMe: Me?, key: LoadKey) async {
     if let cur = inflight, cur.key == key { await cur.task.value; return }
     generation += 1
     let gen = generation
     let task = Task { [self] in
-      await run(me: me, gen: gen)
-      // MY entry, not "an entry with my key". A superseded run of the same
-      // key (league A → B → A while the first A was still reading) would
-      // otherwise clear the LIVE run's entry, and the next caller — a pull,
-      // a tab return — could no longer join it. `inflight` always holds the
-      // newest run, so "I am the current generation" is "the entry is mine".
+      await run(me: sessionMe, gen: gen)
       if gen == generation { inflight = nil }
     }
     inflight = (key, task)
     await task.value
   }
 
-  private func run(me: Me?, gen: Int) async {
-    guard let me else { return }
-    // A run can be retired before its body is ever dequeued (two key changes
-    // in a row). Nothing it writes — not even `loading` — is the screen's.
+  private func run(me sessionMe: Me?, gen: Int) async {
+    guard let sessionMe else { return }
     guard live(gen) else { return }
     loading = true
     defer { if gen == generation { loading = false } }
+
     // D252 · a card whose act is a Major or a jug does not render until the
     // Major's door opens. The WINDOW is checked first — pure, no I/O — so the
     // flag is fetched only on the days one of the four gated cards would
-    // otherwise show, and never on the other three hundred. Fail-closed: an
-    // unreadable flag leaves `majorOpen` nil and the card stays down, which is
-    // what `EventPickerSheet` does with the same read.
-    let leagueless = me.memberships.isEmpty
+    // otherwise show. Fail-closed: an unreadable flag leaves the card down.
+    let leagueless = (self.me ?? sessionMe).memberships.isEmpty
     if majorOpen == nil, Occasion.needsMajorToday(leagueless: leagueless) {
       majorOpen = await EventFlags.majorEnabled()
       guard live(gen) else { return }
     }
     occasion = Occasion.current(leagueless: leagueless, majorOpen: majorOpen ?? false)
-    let r = await repo.load(memberships: me.memberships)
+
+    // R1 · the one read. `nil` is "the ranker could not be reached", which is
+    // a different answer from "the ranker returned nothing".
+    let served = await repo.dispatch(days: 21)
+    guard live(gen) else { return }
+    if let served {
+      me = served.me
+      dispatch = served.items
+      leadSuppress = served.leadSuppress
+      usedFallback = false
+    }
+
+    let r = await repo.load(memberships: (me ?? sessionMe).memberships)
     guard live(gen) else { return }
     // A failed read is not an empty feed. With rounds already on screen, a
-    // pull on a bad signal keeps them — writing `r.items` here would paint
-    // "No rounds from your buddies yet." over the circle's week and call a
-    // network error a quiet one. With nothing in hand the empty state is the
-    // honest answer, and the next load fills it.
-    if r.failed && !items.isEmpty { return }
-    items = r.items
-    rounds = r.rounds; posts = r.posts
-    if !markRead { mark = HomeDigest.readAndMark(profile: me.profile?.id); markRead = true }
-    urls = [:]
-    for case .round(let row, let u) in r.items { if let id = row.round_id, let u { urls[id] = u } }
-    digest = HomeDigest.make(rounds: rounds, posts: posts, photoURLs: urls, mark: mark)
-    // circle reactions ride the rounds just loaded (round → shared-league post)
-    let snap = await socialRepo.load(rounds: rounds, memberships: me.memberships, currentLeague: hero(me)?.league_id)
+    // pull on a bad signal keeps them.
+    if !(r.failed && !items.isEmpty) {
+      items = r.items
+      rounds = r.rounds; posts = r.posts
+      if !markRead { mark = HomeDigest.readAndMark(profile: (me ?? sessionMe).profile?.id); markRead = true }
+      urls = [:]
+      for case .round(let row, let u) in r.items { if let id = row.round_id, let u { urls[id] = u } }
+      digest = HomeDigest.make(rounds: rounds, posts: posts, photoURLs: urls, mark: mark)
+    }
+
+    // The DECLARED FALLBACK (preflight 23). It runs after the wire, because
+    // its CIRCLE item is composed from the same rows.
+    if served == nil {
+      dispatch = HomeFallbackItems.make(me ?? sessionMe, feed: rounds)
+      leadSuppress = []
+      usedFallback = true
+    }
+
+    let snap = await socialRepo.load(rounds: rounds, memberships: (me ?? sessionMe).memberships, currentLeague: nil)
     guard live(gen) else { return }
     social = snap
     if let mark { digest = HomeDigest.make(rounds: rounds, posts: posts, photoURLs: urls, mark: mark, mentions: social.mentions(rounds: rounds, since: mark)) }
-    await loadLead(me: me, gen: gen)
   }
 
   /// Still the current load — the only state a load may write from.
   private func live(_ gen: Int) -> Bool { gen == generation }
 
-  /// D217 · the feed, folded: booking lines already on the Coming-up card are
-  /// hidden, the same note across leagues is one line, and what is left is
-  /// one line per league per bucket. Pure over what is already in hand.
+  /// D217 · the wire, folded: booking lines already on the Coming-up card are
+  /// hidden, the same note across leagues is one line. Pure over what is in hand.
   func feed(upcoming: Set<UUID>) -> [HomeFeedBucket] { HomeFeedFold.fold(items, upcoming: upcoming) }
 
-  /// D176 · everything the ladder reads is already in hand but the clash, which
-  /// is one RPC. It runs LAST so a slow or skewed clash read never delays the
-  /// feed — the card simply appears a moment after the rest of Home.
-  private func loadLead(me: Me, gen: Int) async {
-    let m = hero(me)
-    let today = CSDate.today()
-    let days = CSDate.days(from: today, to: ScheduleDates.endOfMonth(today)).map { max(0, $0) }
-    // someone else's news, today, worth lifting out of the river
-    let mile = rounds.first { $0.is_me != true && $0.played_on == today && HomeCopy.milestone($0) != nil }
-    // `phase` gates the move rung to a live season (the Kit's rule): a
-    // prev_rank the server keeps carrying before first tee is not a move.
-    // `solo` gates the floor rung off entirely (D140): a solo league has no
-    // squads, so the floor its pulse still carries can never be owed.
-    let chosen = HomeLead.choose(clash: await repo.clash(league: m?.league_id, roster: m?.headcount),
-                           pulse: m?.pulse,
-                           monthDaysLeft: days,
-                           standing: m?.standing,
-                           milestone: mile.map { (who: HomeCopy.who($0),
-                                                  line: HomeCopy.milestone($0) ?? "",
-                                                  roundId: $0.round_id,
-                                                  marker: $0.marker) },
-                           phase: m.map { SeasonPhase.of($0) },
-                           solo: m?.isSolo ?? false)
-    // one assignment, after the await, and only from the current load: a
-    // flip mid-read cannot leave the old league's card pinned to the new league
-    guard live(gen) else { return }
-    lead = chosen; leadLeague = m?.league_id
-  }
-
-  /// What `.task(id:)` watches: the payload's stamp and the league in front.
-  /// The stamp is `native_home`'s `now()`, so two payloads never share a key;
-  /// a server that stopped sending it would collapse every payload to one key
-  /// and only a league flip would reload. A league write followed by a reload
-  /// (the invite banner's door) is deliberately TWO keys — the row's league
-  /// re-renders Home at once and the fresh payload supersedes it a moment
-  /// later, at the cost of one stream read whose result is dropped.
-  struct LoadKey: Equatable { let generated: Date?; let league: UUID? }
-
-  /// The membership the hero renders — `HomeMode.of` over the same stored
-  /// preference the view reads, so the lead card, the circle and the hero can
-  /// never speak for different leagues (a stored league that has WRAPPED
-  /// falls to the live one in both places).
-  private func hero(_ me: Me) -> Me.Membership? {
-    HomeMode.of(me, preferredLeague: UserDefaults.standard.string(forKey: CSConfig.lastLeagueKey).flatMap(UUID.init)).membership
-  }
+  /// What `.task(id:)` watches: the payload's stamp. D229 — no league.
+  struct LoadKey: Equatable { let generated: Date? }
 
   /// `toggleHomeRx` — optimistic flip, one write path, revert + toast on failure.
-  func toggle(round: HomeFeedRow, emoji: String, me: Me, name: String) async -> String? {
+  func toggle(round: HomeFeedRow, emoji: String, me who: Me, name: String) async -> String? {
     guard let rid = round.round_id, let t = social.targets[rid] else { return nil }
     var st = social.rx[t.postId, default: [:]][emoji, default: ReactionState()]
     let had = st.me
     st.flip(me: name, on: !had)
     social.rx[t.postId, default: [:]][emoji] = st
-    do { try await socialRepo.write(target: t, memberships: me.memberships, emoji: emoji, had: had); return nil }
+    do { try await socialRepo.write(target: t, memberships: who.memberships, emoji: emoji, had: had); return nil }
     catch {
       st.flip(me: name, on: had)
       social.rx[t.postId, default: [:]][emoji] = st
@@ -830,295 +806,6 @@ private struct FeedNotesRow: View {
           .overlay(alignment: .leading) { Rectangle().fill(cs.line).frame(width: 1) }
         }
       }
-    }
-  }
-}
-
-/// The hero: the standing MOVE (D81 "the standing is a verb"). The whole card
-/// is ONE door to the league's table (D218; `HomeRoute.league` lands on
-/// STANDINGS). Its words come from `HomeHeroCopy`, in season; the stages
-/// before and after keep the sentences D119/D122 set.
-struct HomeHero: View {
-  @Environment(\.cs) private var cs
-  @Environment(\.csLookAccent) private var la
-  let mode: HomeMode
-  let me: Me
-  /// L-34 · the facts the ME strip has already spent. The hero drops anything
-  /// in it rather than saying the same thing a second time on one screen —
-  /// D129's owe line moved UP into the strip, it did not get duplicated.
-  var suppress: Set<MeStripCopy.Fact> = []
-  /// Home's push. The hero and its owe line are the only two doors in it.
-  var push: (HomeRoute) -> Void = { _ in }
-
-  var body: some View {
-    if let lid = mode.membership?.league_id {
-      Button { push(.league(lid)) } label: { card }
-        .buttonStyle(.plain)
-        .accessibilityElement(children: .combine)
-        .accessibilityLabel(a11y)
-        .accessibilityHint("Opens the table")
-        .accessibilityAction(named: "See the table") { push(.league(lid)) }
-        .modifier(OweAction(owe: owe, act: { push(.pot(lid)) }))
-    } else {
-      card.accessibilityElement(children: .combine)
-    }
-  }
-
-  private var card: some View {
-    // IOS-019 rule 1: the one hero on the screen wears the wash — gold when earned; otherwise the
-    // look's accent from the environment, ember when none (IOS-025: a look never overrides gold)
-    CSHero(spine: earned ? cs.gold : nil, padding: 20) {
-      VStack(alignment: .leading, spacing: 10) {
-        Text(eyebrow).csEyebrow(earned ? cs.gold : la.eyebrow)   // D103b: the eyebrow wears the look
-        HStack(alignment: .firstTextBaseline, spacing: 12) {
-          Text(figure).font(CSFont.hero).foregroundStyle(earned ? cs.gold : cs.ink).csTabular()
-          if let of = captionTail { Text(of).font(CSFont.sentence).foregroundStyle(cs.mut) }
-          if let move { moveChip(move) }
-        }
-        Text(line).font(CSFont.sentence).foregroundStyle(cs.ink)
-        // the foot, rung by rung: rule · endgame · money · owe — then the door's word
-        if !foots.isEmpty || owe != nil || mode.membership != nil {
-          VStack(alignment: .leading, spacing: 4) {
-            ForEach(foots, id: \.self) { Text($0).font(CSFont.monoSmall).foregroundStyle(cs.mut) }
-            if let owe, let lid = mode.membership?.league_id {
-              // D129 / D23 · self-only, and a door of its own: the books
-              Button { push(.pot(lid)) } label: {
-                Text(owe).font(CSFont.monoSmall).foregroundStyle(cs.warm).frame(minHeight: 28, alignment: .leading).contentShape(Rectangle())
-              }
-              .buttonStyle(.plain)
-              .accessibilityHidden(true)   // reached through the hero's action instead
-            }
-            if mode.membership != nil {
-              HStack { Spacer(); Text("See the table →").font(CSFont.monoSmall).foregroundStyle(cs.brand) }
-                .padding(.top, 2)
-            }
-          }
-          .padding(.top, 2)
-        }
-      }
-      .padding(.leading, 6)
-    }
-  }
-
-  /// One label for the one button: the league, the line and the caption.
-  private var a11y: String {
-    var parts = [eyebrow]
-    if let c = caption { parts.append(c) } else { parts.append(figure) }
-    if let m = move { parts.append(m.0) }
-    parts.append(line)
-    parts += foots
-    if let owe { parts.append(owe) }
-    return parts.joined(separator: ". ")
-  }
-
-  /// Gold is EARNED only: the lead this season, the top seed into the Final
-  /// (the LOCKED seed — `cup_finalists`, never the table, which keeps moving
-  /// through the Final), or your name on the cup.
-  private var earned: Bool {
-    switch mode {
-    case .season(let m): return m.standing?.rank == 1
-    case .cupFinal(let m): return m.standing?.seed == 1
-    case .wrapped(let m): return m.season?.champion_squad_id != nil && m.season?.champion_squad_id == m.squad?.id
-    default: return false
-    }
-  }
-  private var eyebrow: String {
-    switch mode {
-    case .leagueless: return "Your card"
-    /* D120 · the shared stage vocabulary. `forming` here covers setup AND
-       draft (SeasonPhase does not split them), so it reports the one the
-       league is actually in; `preseason` said "season live", which is the
-       exact contradiction the audit logged on the web — a hero claiming the
-       season was on while the Clubhouse said practice rounds do not count. */
-    case .forming(let m):
-      return "\(m.name) · \((m.phase == "draft" ? LeagueCopy.Stage.drawing : .forming).label.lowercased())"
-    case .preseason(let m): return "\(m.name) · \(LeagueCopy.Stage.preseason.label.lowercased())"
-    case .season(let m):
-      // ONE week producer: `SeasonPhase.of` → `LeagueDates.currentWeek/totalWeeks`
-      if case .season(let w, let of) = SeasonPhase.of(m) { return "\(m.name) · week \(w) of \(of)" }
-      return m.name
-    case .cupFinal(let m): return "\(m.name) · cup final"
-    case .wrapped(let m): return "\(m.name) · season wrapped"
-    }
-  }
-
-  private var figure: String {
-    switch mode {
-    case .leagueless(let rung): return rung == 7 ? "\(min(me.profile?.rounds_count ?? 0, 3)) of 3" : CSCopy.index(me.profile?.index_current)
-    case .forming(let m):
-      if let s = m.season, let d = CSDate.days(from: CSDate.today(), to: s.starts_on), d >= 0 { return "\(d)d" }
-      return "—"
-    case .preseason(let m):
-      if let s = m.season, let d = CSDate.days(from: CSDate.today(), to: s.starts_on) { return "\(max(d, 0))d" }
-      return "—"
-    case .season(let m), .wrapped(let m):
-      if let r = m.standing?.rank { return CSCopy.ordinal(r) }
-      return "—"
-    // D138 · a finalist's figure is their locked seed; anyone else's is their
-    // place on the table, which is still live (§14.3 — the Final is scored fresh)
-    case .cupFinal(let m):
-      return HomeHeroCopy.finalFigure(m) ?? "—"
-    }
-  }
-
-  /// "2nd of 2" — `HomeHeroCopy.caption`, once a standing exists. In the Final
-  /// a finalist reads "1st seed"; everyone else keeps their place (§14.3).
-  private var caption: String? {
-    switch mode {
-    case .season(let m), .wrapped(let m): return HomeHeroCopy.caption(m)
-    case .cupFinal(let m): return HomeHeroCopy.seedCaption(m)
-    default: return nil
-    }
-  }
-  /// The caption's "of 2", set beside the ordinal figure (D81 keeps the ordinal big).
-  private var captionTail: String? {
-    guard let c = caption, c.hasPrefix(figure) else { return caption }
-    let t = c.dropFirst(figure.count).trimmingCharacters(in: .whitespaces)
-    return t.isEmpty ? nil : t
-  }
-
-  private var move: (String, Color)? {
-    guard case .season(let m) = mode, let st = m.standing, let prev = st.prev_rank else { return nil }
-    if st.rank < prev { return ("▲ up \(prev - st.rank)", prev - st.rank >= 2 ? cs.hot : cs.warm) }
-    if st.rank > prev { return ("▼ down \(st.rank - prev)", cs.cool) }
-    return ("— held", cs.mut)
-  }
-
-  private func moveChip(_ m: (String, Color)) -> some View {
-    Text(m.0).font(CSFont.monoMediumBody).foregroundStyle(m.1)
-      .padding(.horizontal, 8).padding(.vertical, 3)
-      .overlay(Capsule().stroke(m.1.opacity(0.5), lineWidth: 1))
-  }
-
-  /// D119 · the Pro by name where the copy names them; "the Pro" when the
-  /// server has not sent one, never a guess.
-  private func proName(_ m: Me.Membership) -> String {
-    let n = (m.commissioner_name ?? "").trimmingCharacters(in: .whitespaces)
-    return n.isEmpty ? "The Pro" : n
-  }
-
-  private var line: String {
-    switch mode {
-    case .leagueless(let rung):
-      return rung == 7 ? "Three rounds and your index goes live. Nothing else needed."
-                       : "Established. Nobody's seen it yet — you haven't joined a league."
-    /* D119 · a member is told who is doing what and by when, not handed the
-       Pro's job description. Four of four player personas met the Pro's lock
-       button on their own Home in the audit. */
-    case .forming(let m):
-      if m.isPro {
-        return m.phase == "draft" ? "Bylaws locked. Draw the squads when the crew is in."
-                                  : "Your league is still forming. Lock the bylaws and the invite link is yours."
-      }
-      if m.phase == "draft" { return "\(proName(m)) draws the squads before first tee — it's random." }
-      return "\(proName(m)) is setting the bylaws. You'll see them the moment they lock."
-    /* D122 · "The season's on" before first tee is the contradiction itself */
-    case .preseason(let m):
-      guard let s = m.season, let d = CSDate.days(from: CSDate.today(), to: s.starts_on), d >= 0 else {
-        return "Rounds before first tee build your number."
-      }
-      return "First tee in \(d) day\(d == 1 ? "" : "s"). Rounds before it build your number."
-    // D130 / D47 · "10 back of Galen · 9 – 19" — the leader by name, the score
-    // as the sentence at n = 2; the pre-v2 sentences on a payload without names.
-    case .season(let m):
-      return HomeHeroCopy.line(m)
-    case .cupFinal(let m):
-      // D138 · a finalist gets the Final's sentence; a non-finalist is told
-      // whose cup it is and that the table race is still theirs. The clock
-      // is the D121 row's clock (`HomeHeroCopy.finalClock`) — never "0 left".
-      if case .cupFinal(let w) = SeasonPhase.of(m) { return HomeHeroCopy.finalLine(m, weeksLeft: w) }
-      return "Four weeks, scored fresh."
-    case .wrapped(let m):
-      if let s = m.season, let champ = s.champion_squad_id, champ == m.squad?.id { return "Your name goes on the cup." }
-      return "The cup's been lifted. Run it back."
-    }
-  }
-
-  /// The foot: rule (D140 — a solo league gets the cap line, never a floor) ·
-  /// endgame (D126) · money (D106, every member, never on a $0 league — D70;
-  /// the hero also carries the Pot pane's "· N still owe" while cash is short).
-  private var foots: [String] {
-    guard let m = mode.membership else { return [] }
-    if case .wrapped = mode { return [] }
-    return [HomeHeroCopy.footRule(m), HomeHeroCopy.footEndgame(m), HomeHeroCopy.footMoney(m, stillOwe: true)].compactMap { $0 }
-  }
-
-  /// D129 / D23 · "You still owe $75 · …" — self-only, unpaid only, and only
-  /// while the ME strip is not already carrying it. The strip's slot fires on
-  /// the same predicate (`buy_in.paid == false` at a live stake), so the two
-  /// can never both be right and both be shown.
-  private var owe: String? {
-    guard !suppress.contains(.myMoney), let m = mode.membership else { return nil }
-    if case .wrapped = mode { return nil }
-    return HomeHeroCopy.owe(m)
-  }
-}
-
-/// The owe line as a VoiceOver action on the hero — the eye taps the line, the rotor names it.
-private struct OweAction: ViewModifier {
-  let owe: String?
-  let act: () -> Void
-  func body(content: Content) -> some View {
-    if let owe { content.accessibilityAction(named: owe) { act() } } else { content }
-  }
-}
-
-/// D121 · one 44-pt row per league other than the one the hero wears. Quiet:
-/// the league in the display face, the standing line in the label face, a
-/// chevron. Three rows, then "and N more → Clubhouse". Hidden with one league.
-/// Money on the line is `HomeHeroCopy.footMoney` — nothing on a $0 league (D70).
-struct HomeLeagueRows: View {
-  @Environment(\.cs) private var cs
-  @Environment(\.openLeague) private var openLeague
-  let memberships: [Me.Membership]
-  let current: UUID?
-  /// The tap: re-render Home around this league.
-  let lens: (UUID) -> Void
-  static let cap = 3
-
-  var body: some View {
-    let rows = HomeLeagueRow.rows(memberships, excluding: current)
-    if !rows.isEmpty {
-      VStack(spacing: 0) {
-        ForEach(rows.prefix(Self.cap)) { r in
-          Button { lens(r.id) } label: {
-            HStack(alignment: .center, spacing: 10) {
-              VStack(alignment: .leading, spacing: 2) {
-                Text(r.name).font(CSFont.sentenceBold).foregroundStyle(cs.ink).lineLimit(1)
-                // the standing line runs long at AX sizes ("Week 7 of 26 · 1st of 2, 22 clear
-                // of Jade · $150 on the books · $0 collected") — wrap it whole, never clip it
-                Text(r.sub).font(CSFont.label).foregroundStyle(cs.mut)
-                  .fixedSize(horizontal: false, vertical: true)
-              }
-              Spacer(minLength: 0)
-              Text("›").font(CSFont.subhead).foregroundStyle(cs.brand)
-            }
-            .frame(maxWidth: .infinity, minHeight: 44, alignment: .leading)
-            .contentShape(Rectangle())
-          }
-          .buttonStyle(.plain)
-          .accessibilityLabel("\(r.name). \(r.sub)")
-          .accessibilityHint("Shows this league on Home")
-          if r.id != rows.prefix(Self.cap).last?.id || rows.count > Self.cap { CSHairline() }
-        }
-        if rows.count > Self.cap, let first = rows.dropFirst(Self.cap).first {
-          Button { openLeague(first.id) } label: {
-            HStack {
-              Text("and \(rows.count - Self.cap) more → Clubhouse").font(CSFont.label).foregroundStyle(cs.brand)
-              Spacer(minLength: 0)
-            }
-            .frame(maxWidth: .infinity, minHeight: 44, alignment: .leading)
-            .contentShape(Rectangle())
-          }
-          .buttonStyle(.plain)
-          // the arrow glyph does not read; say where the door goes
-          .accessibilityLabel("And \(rows.count - Self.cap) more leagues, in the Clubhouse")
-          .accessibilityHint("Opens the Clubhouse")
-        }
-      }
-      .padding(.horizontal, 6)
-      .accessibilityElement(children: .contain)
-      .accessibilityLabel("Your other leagues")
     }
   }
 }

@@ -29,9 +29,9 @@ struct MeStrip: View {
   @Environment(SessionStore.self) private var store
   let strip: MeStripCopy.Strip
   /// D234 · which Home this golfer is looking at, for `home_state_seen`. It is
-  /// today's state machine (`HomeMode` plus the leagueless rung), which is
-  /// what this screen actually renders; when Wave 1b's ranker lands it becomes
-  /// the state matrix's own letter.
+  /// the LEAD's own tier and key (`HomeModel.stateKey`) — the state matrix's
+  /// own answer to "which Home is this" — and it carries no name, no handle
+  /// and no id.
   let state: String
   /// Where a door lands. Home owns the routing; this view only says which
   /// door was knocked on.

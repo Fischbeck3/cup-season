@@ -312,7 +312,21 @@ const warn = (name, note) => { warns++; console.log(`~ WARN  ${name} — ${note}
   if (ghosts.length) fail('rpc exists in database', `client calls a function that is in neither prod nor a migration: ${ghosts.join(', ')}`);
   else if (stale) fail('rpc exists in database', `${staleWhich || 'a generated artifact'} is stale — run tools/build-db.mjs (it writes rpc.ts AND apps/ios/.../Rpc.swift)`);
   else pass('rpc exists in database', `${called.size} client RPCs, ${inProd.size} in the snapshot`);
-  if (pending.length) warn('rpc pending deploy', `in a migration but not yet in prod — owe a db push: ${pending.join(', ')}`);
+  /* A pending function is a `supabase db push` the wave OWES, and every wave of
+     the UX overhaul leaves one. What decides whether that is a warning is
+     CLAUDE.md's own deploy-skew rule: a client ahead of the database must
+     still render an honest screen. So the two cases are told apart rather
+     than lumped together — an UNGUARDED call to a function prod does not have
+     is a 404 a user can meet and stays a WARN; a call wrapped in its own
+     try/catch (the declared-fallback shape) is reported, by name, as the push
+     that is owed. Both are printed; only the dangerous one warns. */
+  const guarded = f => [...html.matchAll(new RegExp(`\\.rpc\\(\\s*['"]${f}['"]`, 'g'))]
+    .every(m => /\btry\s*\{/.test(html.slice(Math.max(0, m.index - 500), m.index))
+             && /\bcatch\b/.test(html.slice(m.index, m.index + 900)));
+  const risky = pending.filter(f => !guarded(f));
+  const owed = pending.filter(guarded);
+  if (risky.length) warn('rpc pending deploy', `called with no fallback and not yet in prod — owe a db push: ${risky.join(', ')}`);
+  else if (owed.length) pass('rpc pending deploy', `owe a db push (each call is fallback-guarded): ${owed.join(', ')}`);
 }
 
 /* ---------------------------------------------------------------------------
@@ -740,6 +754,41 @@ else {
   offenders.length === 0
     ? pass('nobody stamps their own platform', `${swift.length} Swift file(s) + index.html — one stamp per client`)
     : fail('nobody stamps their own platform', offenders.join(' · '));
+}
+
+/* 23 · the declared fallback exists (IOS-029b, D231) ------------------------
+   Wave 1b deleted `HomeMode`, `HomeLead`, `HomeHeroCopy` and `HomeLeagueRow`,
+   so "render as today" is not a fallback any more — there is no today left to
+   render. `HomeFallbackItems` IS the fallback: a client whose database is
+   behind it composes items from `native_home` + `home_feed`, in a static
+   tier-less order, with no lead card. The owner applies migrations by hand,
+   so a client-ahead deploy is a real Tuesday and not a hypothetical.
+
+   Three things fail the push: the producer missing from the Kit, Home not
+   calling it, and Home calling `home_dispatch` without a fallback branch. */
+{
+  if (!iosSrc.length) pass('the declared fallback exists', 'apps/ios absent — skipped');
+  else {
+    const problems = [];
+    const producer = iosSrc.find(([rel]) => rel.endsWith('CupSeasonKit/Home/HomeFallbackItems.swift'));
+    if (!producer) problems.push('HomeFallbackItems.swift is gone from the Kit — Home has no renderer on a client-ahead deploy');
+    else if (!/enum\s+HomeFallbackItems\b/.test(producer[1]))
+      problems.push('HomeFallbackItems.swift no longer declares HomeFallbackItems');
+    else if (!/fallbackOrder/.test(producer[1]))
+      problems.push('the fallback no longer sorts by the static tier order (CLOSING → CHANGED → COMING → CIRCLE)');
+
+    const home = iosSrc.find(([rel]) => rel.endsWith('CupSeason/Home/HomeView.swift'));
+    if (!home) problems.push('HomeView.swift is gone');
+    else {
+      if (!/HomeFallbackItems\.make\(/.test(home[1]))
+        problems.push('HomeView never calls HomeFallbackItems.make — the fallback would ship dead');
+      if (!/HomeRank\.arrange\(/.test(home[1]) && !/vm\.ranked\(/.test(home[1]))
+        problems.push('HomeView never arranges the dispatch — the veto and the fence would not be re-applied');
+    }
+    problems.length === 0
+      ? pass('the declared fallback exists', 'HomeFallbackItems is in the Home target and Home calls it')
+      : fail('the declared fallback exists', problems.join(' · '));
+  }
 }
 
 console.log(`\n${fails ? 'FAIL' : 'PASS'} — ${fails} failure(s), ${warns} warning(s)`);
