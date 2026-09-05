@@ -50,4 +50,9 @@ public extension Notification.Name {
   /// D155 · the island was tapped. Raised by `onOpenURL`, consumed by the tab
   /// view, which already knows how to present the round.
   static let csOpenLiveRound = Notification.Name("cs.openLiveRound")
+  /// D241 / D253 · a person or plan token was just stored by `onOpenURL`.
+  /// The shell drains pending tokens on every session change anyway; this is
+  /// what makes a link tapped while the app is ALREADY open land at once
+  /// rather than on the next cold start.
+  static let csShareTokenPending = Notification.Name("cs.shareTokenPending")
 }

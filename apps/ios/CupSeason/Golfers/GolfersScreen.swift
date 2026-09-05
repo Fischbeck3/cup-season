@@ -32,6 +32,8 @@ struct GolfersScreen: View {
   @State private var reqs = BuddyRequestsModel()
   @State private var lens: FriendsBoard.Lens = .form
   @FocusState private var searchFocused: Bool
+  /// D241 · the empty root's link door, wired to the row that mints it.
+  @State private var personLinkTap = 0
   let links: CSLinks
   /// D222 · the person is a PAGE now, pushed inside this tab. The peek sheet
   /// survives for the in-context tap on a round card, which is a different
@@ -81,6 +83,10 @@ struct GolfersScreen: View {
       .padding(20)
     }
     .background(cs.bg0)
+    // `-cs_dev_bottom` — the same door Home and You have, for the same reason:
+    // a tab three screens tall cannot be judged from its top, and a row nobody
+    // can photograph is a row nobody has looked at. DEBUG only.
+    .defaultScrollAnchor(CSDevHatch.bottom ? .bottom : .top)
     .navigationTitle("")
     .toolbar(.hidden, for: .navigationBar)
     .refreshable { await reload() }
@@ -102,7 +108,10 @@ struct GolfersScreen: View {
   private func take(_ door: EmptyRoot.Door) {
     switch door {
     case .findGolfers:    searchFocused = true
-    case .personLink:     searchFocused = true       // the link row sits under the field
+    // D241 · the link row is REAL now (`PersonInviteLink`, mounted under the
+    // search field). The door scrolls to it rather than focusing a text field
+    // the golfer did not ask for — wave 3 had nothing else to point at.
+    case .personLink:     personLinkTap += 1
     case .startSomething: presenter.wizard = .init(existingLeagueId: nil)
     case .joinWithCode:   presenter.join(code: nil)
     case .addMyRound:     presenter.postOnComposer = true; presenter.showPost = true
@@ -121,7 +130,13 @@ struct GolfersScreen: View {
     }
   }
 
-  @ViewBuilder private var inviteLink: some View { PeopleInviteLink(store: store) }
+  @ViewBuilder private var inviteLink: some View {
+    PeopleInviteLink(store: store)
+    // D241 · `always: true` — on the Golfers tab this is THE door for a golfer
+    // with no season, and it stands beside the league link rather than behind
+    // it, because the two invite to different things.
+    PersonInviteLink(store: store, always: true, trigger: personLinkTap)
+  }
   @ViewBuilder private var findable: some View { PeopleFindable(vm: vm) }
 
   private var skeleton: some View {

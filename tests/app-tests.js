@@ -1113,6 +1113,104 @@
       /scored fresh/.test(endgameLine({ finish:'cup_final', structure:'solo' })), true);
   })();
 
+  /* ------------------------------------------------------------------ wave 6
+     THE RAILS · D238 (a post can be homed on a person), D241 (the person
+     link), D253 (the plan link). The migrations are what widen the CHECKs;
+     what these hold is the half a golfer can see — and, critically, that BOTH
+     CLIENTS decide the same things the same way (D234). Each assertion below
+     has a twin in `PersonHomedPostTests` or `ShareKindTests`. */
+  (function(){
+    /* D238 · whose reaction is this. The old test compared ONE member id, so a
+       golfer in two leagues saw their own 🔥 as somebody else's. */
+    const H = window.homeRx;
+    window.homeRx = {
+      myPid: 'me', myIds: new Set(['memA']),
+      mem2pid: { memA:'me', memB:'me', memG:'galen' },
+      names: { me:'Jerecho', galen:'Galen', memA:'Jerecho', memB:'Jerecho', memG:'Galen' },
+    };
+    t('D238: a profile-keyed reaction of mine is mine',
+      csKudoMine({ post_id:'p', profile_id:'me', emoji:'🔥' }), true);
+    t('D238: and through EITHER membership, once the roster resolves it',
+      [csKudoMine({ post_id:'p', member_id:'memA' }), csKudoMine({ post_id:'p', member_id:'memB' })], [true, true]);
+    t('D238: somebody else is still somebody else, by either road',
+      [csKudoMine({ post_id:'p', profile_id:'galen' }), csKudoMine({ post_id:'p', member_id:'memG' })], [false, false]);
+    t('D238: a row that resolves to nobody is "someone", never a guess',
+      [csKudoWho({ post_id:'p', profile_id:'galen' }), csKudoWho({ post_id:'p', member_id:'nope' })], ['Galen', 'someone']);
+    window.homeRx = H;
+
+    /* D238 · the ONE skew fallback, and everything it must not swallow. It
+       identifies the same person by a different column; it never writes a
+       different reaction (the retired emoji fallback's mistake). */
+    t('D238: the skew fallback fires on a column PostgREST has never heard of',
+      [csKudoSkew({ code:'PGRST204', message:"Could not find the 'profile_id' column of 'post_kudos'" }),
+       csKudoSkew({ message:'column "profile_id" does not exist' })], [true, true]);
+    t('D238: and NOT on a refusal, a network drop or a duplicate',
+      [csKudoSkew({ message:'new row violates row-level security policy' }),
+       csKudoSkew({ message:'Failed to fetch' }),
+       csKudoSkew({ message:'duplicate key value violates unique constraint' })], [false, false, false]);
+
+    /* D241 / D253 · the two links. Two kinds, two queries, and the signed-out
+       surface still at TWELVE — `share_info` is already one of them, and the
+       write half (`redeem_share`) is authenticated-only. */
+    t('D241/D253: two kinds, and the two queries the AASA claims',
+      CS_SHARE_LINKS.map(l => l.kind + ':' + l.q), ['person:p', 'plan:plan']);
+    t('D241/D253: and two storage keys that cannot collide',
+      new Set(CS_SHARE_LINKS.map(l => l.key)).size, 2);
+
+    /* every dead path is ONE outcome and ONE sentence (D57, fail-closed) */
+    [null, undefined, {}, { kind:null }, { kind:'a_kind_from_the_future' }].forEach((d, i) => {
+      t('D241: dead path ' + i + ' answers the same nothing',
+        csShareLine('person', d), 'That link has expired. Whoever sent it can share a fresh one.');
+    });
+
+    /* D80 · a REQUEST, never a friendship — unless they asked first */
+    t('D241: the sentence says request, not friendship',
+      csShareLine('person', { kind:'person', result:'requested' }), 'Asked to join their crew. They’ll get the nudge.');
+    t('D241: mutual intent is the ONLY case that says buddies',
+      csShareLine('person', { kind:'person', result:'friend' }), 'You’re in each other’s crew now.');
+    t('D241: your own link on your own phone says nothing',
+      csShareLine('person', { kind:'person', result:'self' }), null);
+
+    /* D253 · one plan, one seat */
+    t('D253: the seat, and the request the host still has to accept',
+      csShareLine('plan', { kind:'plan', seat:'in', result:'requested' }),
+      'You’re in for that round. The host has your buddy request.');
+    t('D253: a second open writes nothing more and says which it was',
+      csShareLine('plan', { kind:'plan', seat:'already', result:'friend' }),
+      'You’re already down for that round.');
+    t('D253: a plan whose day has gone gets the card and no seat',
+      csShareLine('plan', { kind:'plan', seat:'past' }), 'That round has already been played.');
+    t('D253: the host opening their own link says nothing',
+      csShareLine('plan', { kind:'plan', seat:'host', result:'host' }), null);
+    t('D253: a seat word from the future lands on the conservative truth',
+      csShareLine('plan', { kind:'plan', seat:'waitlisted' }), 'You’re already down for that round.');
+
+    /* L-32 · a kind the CHECK does not admit yet is NOT an error the golfer
+       caused, and the row removes itself rather than offering a door that fails */
+    t('D241: an undeployed kind is "not yet", not a failure',
+      [csShareKindNotDeployed({ code:'23514', message:'violates check constraint "shares_kind_check"' }),
+       csShareKindNotDeployed({ message:'Nothing to share' })], [true, true]);
+    t('D234: and the "not yet" sentence is the phone\u2019s, verbatim',
+      CS_SHARE_NOT_YET, 'Links need the latest update \u2014 try again shortly.');
+    t('D241: and a real failure is still a real failure',
+      [csShareKindNotDeployed({ message:'Failed to fetch' }),
+       csShareKindNotDeployed({ message:'Sign in first' })], [false, false]);
+  })();
+
+  /* DEF-1 · the short name of a course. BUILD_PLAN §2.z: a producer that
+     interpolates a server string into a slot sized for a short one looks
+     correct in a test and wrong on a phone. `MeStripCopy.shortCourse` is the
+     twin and `LongCourseNameTests` asserts the same four answers. */
+  t('DEF-1: prod’s longest label becomes the club',
+    csShortCourse('Gold Canyon — Dinosaur Mountain · Black/Blue'), 'GOLD CANYON');
+  t('DEF-1: the layout and the tee variant are both dropped',
+    [csShortCourse('Troon North Golf Course — Pinnacle Course · Gold'),
+     csShortCourse('Raven Golf Club-Phoenix · Silver')],
+    ['TROON NORTH GOLF COURSE', 'RAVEN GOLF CLUB-PHOENIX']);
+  t('DEF-1: a plain name is left as it is, and nothing is invented from nothing',
+    [csShortCourse('Papago Golf Course'), csShortCourse(null), csShortCourse('   ')],
+    ['PAPAGO GOLF COURSE', null, null]);
+
   const fails = R.filter(r => !r.ok);
   console.log(`\n${fails.length ? 'FAIL' : 'PASS'} — ${R.length} tests, ${fails.length} failure(s)`);
   return { total: R.length, failures: fails.map(f => f.name) };

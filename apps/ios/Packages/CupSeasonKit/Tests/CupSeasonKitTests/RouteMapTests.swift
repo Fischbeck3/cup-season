@@ -58,15 +58,18 @@ import Foundation
     #expect(NavSlot.of(PushRoute.requests) != .you)
   }
 
-  /// Every deep link the app claims. The AASA claims two paths and the Live
-  /// Activity's scheme is the third; nothing else is claimed, and a URL this
-  /// app does not claim classifies as nil so the caller does nothing.
+  /// Every deep link the app claims. The AASA claims FOUR queries — `?join=`,
+  /// `?claim=` and, from wave 6, D241's `?p=` and D253's `?plan=` — and the
+  /// Live Activity's scheme is the fifth link; nothing else is claimed, and a
+  /// URL this app does not claim classifies as nil so the caller does nothing.
   @Test func everyDeepLinkLandsInOneOfTheFive() {
-    #expect(DeepLink.allCases.count == 3)
+    #expect(DeepLink.allCases.count == 5)
     for link in DeepLink.allCases { #expect(NavSlot.allCases.contains(NavSlot.of(link))) }
     #expect(NavSlot.of(DeepLink.liveRound) == .play)
     #expect(NavSlot.of(DeepLink.join) == .compete)
     #expect(NavSlot.of(DeepLink.claim) == .play)
+    #expect(NavSlot.of(DeepLink.person) == .golfers)
+    #expect(NavSlot.of(DeepLink.plan) == .play)
   }
 
   @Test func theUrlsThemselvesClassify() {

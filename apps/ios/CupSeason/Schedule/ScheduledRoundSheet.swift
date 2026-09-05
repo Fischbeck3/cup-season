@@ -120,6 +120,13 @@ struct ScheduledRoundSheet: View {
       }
 
       if d.mine {
+        // D253 · THE PLAN LINK. Three screens promised a weekend invite link
+        // that no read and no write ever minted; this is the one that mints
+        // it. It is the host's control alone — the link is the only thing in
+        // the product that can seat a stranger, and D69's rule that a tee
+        // sheet is the host's is what bounds it.
+        PlanInviteLink(roundId: d.id, course: d.courseLabel, day: d.playOn)
+          .padding(.top, 8)
         HStack(spacing: 8) {
           CSMini("Edit group") {
             retag = RetagRequest(roundId: d.id, iso: d.playOn ?? CSDate.today(), courseLabel: d.courseLabel,

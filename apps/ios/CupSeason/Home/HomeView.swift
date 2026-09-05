@@ -370,7 +370,11 @@ final class HomeModel {
       usedFallback = true
     }
 
-    let snap = await socialRepo.load(rounds: rounds, memberships: (me ?? sessionMe).memberships, currentLeague: nil)
+    // D238 · `me` is passed now, because the reaction is keyed on the PERSON.
+    // Without it a leagueless friend's round would carry a strip whose own
+    // flame did not read as mine.
+    let snap = await socialRepo.load(rounds: rounds, memberships: (me ?? sessionMe).memberships,
+                                     currentLeague: nil, me: (me ?? sessionMe).profile?.id)
     guard live(gen) else { return }
     social = snap
     if let mark { digest = HomeDigest.make(rounds: rounds, posts: posts, photoURLs: urls, mark: mark, mentions: social.mentions(rounds: rounds, since: mark)) }
@@ -393,7 +397,7 @@ final class HomeModel {
     let had = st.me
     st.flip(me: name, on: !had)
     social.rx[t.postId, default: [:]][emoji] = st
-    do { try await socialRepo.write(target: t, memberships: who.memberships, emoji: emoji, had: had); return nil }
+    do { try await socialRepo.write(target: t, memberships: who.memberships, me: who.profile?.id, emoji: emoji, had: had); return nil }
     catch {
       st.flip(me: name, on: had)
       social.rx[t.postId, default: [:]][emoji] = st

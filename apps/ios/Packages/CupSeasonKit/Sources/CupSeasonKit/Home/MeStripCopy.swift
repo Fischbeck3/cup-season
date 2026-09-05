@@ -175,7 +175,8 @@ public enum MeStripCopy {
     }
     let day = dayToken(on, today: today, calendar: calendar)
     let tee = up.tee_time.flatMap(teeText)
-    let course = up.course_label.flatMap { $0.isEmpty ? nil : $0.uppercased() }
+    // DEF-1 · the SHORT name. The full label is the plan card's fact.
+    let course = shortCourse(up.course_label)?.uppercased()
     let value = tee.map { "\(day) \($0)" } ?? course.map { "\(day) · \($0)" } ?? day
     return Slot(fact: .myNextRound, label: "NEXT", value: value,
                 door: up.id.map(Door.plan) ?? .declare,
@@ -316,6 +317,43 @@ public enum MeStripCopy {
       return LeagueDates.dow[max(0, min(6, wd - 1))].uppercased()
     }
     return LeagueDates.monDay(iso, calendar: calendar).uppercased()
+  }
+
+  /// THE SHORT NAME OF A COURSE (BUILD_PLAN §2.z, DEF-1). A slot sized for a
+  /// short string that interpolates a name from the database looks correct in
+  /// a test and wrong on a phone: prod's longest label today is
+  /// `Gold Canyon — Dinosaur Mountain · Black/Blue`, and in the strip's NEXT
+  /// slot it wrapped to three lines, pushed its own label out of the row and
+  /// still ended in an ellipsis — at the DEFAULT type size, on the widest
+  /// phone, against AX3's "nothing truncates".
+  ///
+  /// The rule the strip follows is the one the rest of the app already
+  /// follows for a glance: the club, never the layout and never the tee
+  /// variant. Both are facts the PLAN CARD carries, and one fact has one
+  /// place (L-34).
+  static func shortCourse(_ raw: String?) -> String? {
+    guard let raw, !raw.trimmingCharacters(in: .whitespaces).isEmpty else { return nil }
+    // the API's own separators: an em-dash for the layout, a middot for the tee
+    let club = raw.components(separatedBy: " — ").first ?? raw
+    let out = (club.components(separatedBy: " · ").first ?? club).trimmingCharacters(in: .whitespaces)
+    return out.isEmpty ? nil : out
+  }
+
+  /// The day as a WORD, for a sentence rather than a slot: `today`,
+  /// `tomorrow`, or the weekday (`Monday`). `dayToken` is the mono form the
+  /// strip and the eyebrows wear; this is the one a headline can end on.
+  static func dayWord(_ iso: String, today: String, calendar: Calendar = .current) -> String {
+    guard let days = CSDate.days(from: today, to: iso) else { return "a round" }
+    if days == 0 { return "today" }
+    if days == 1 { return "tomorrow" }
+    if days > 1, days <= 6, let d = CSDate.local(iso, calendar: calendar) {
+      let wd = calendar.component(.weekday, from: d)
+      let short = LeagueDates.dow[max(0, min(6, wd - 1))]
+      let full = ["Sun": "Sunday", "Mon": "Monday", "Tue": "Tuesday", "Wed": "Wednesday",
+                  "Thu": "Thursday", "Fri": "Friday", "Sat": "Saturday"]
+      return full[short] ?? short
+    }
+    return LeagueDates.monDay(iso, calendar: calendar)
   }
 
   /// `"07:10:00"` → `"7:10"`. A tee time is printed exactly as the plan holds

@@ -4186,6 +4186,11 @@ html[data-theme="light"] .room-dusk .btn:not(.dark):not(.gold):not(.apple){color
                  actually ask; the list under it is the roster the board is
                  drawn from. -->
             <div id="glfBoard" style="text-align:left"></div>
+            <!-- D241 - THE PERSON LINK. Below the requests and the board on
+                 purpose (D177: a person waiting on you outranks everything
+                 else on this page), and above the roster, because the golfer
+                 with nobody in their list is the one it is for. -->
+            <div id="glfPersonLink" style="text-align:left"></div>
             <div id="youPeople" style="text-align:left"></div>
           </div>
           <aside class="deskaside">
@@ -6127,12 +6132,36 @@ function rxFlip(cur, me, on){
    exactly the "new emojis fall back to a fire emoji" bug. The pre-migration
    window it protected is over (20260716230000 is live). A reaction now either
    saves as chosen or fails loudly — never becomes a different reaction. */
-async function rxWrite(post_id, member_id, emoji, had){
-  const row={ post_id, member_id, emoji };
-  const { error } = had
-    ? await window.sb.from('post_kudos').delete().match(row)
-    : await window.sb.from('post_kudos').insert(row);
-  return error || null;
+/* D238 · the reaction is keyed on the PERSON now, so a golfer with no season
+   can leave one. `member_id` keeps its column and loses only its foreign key,
+   which is what lets an unpushed database still take the write — and the one
+   fallback below fires ONLY on a column PostgREST has never heard of. It
+   identifies the SAME person by a different column; it never writes a
+   different reaction, which is the distinction the retired emoji fallback
+   failed to make. */
+function csKudoSkew(error){
+  const m=String((error&&(error.code||error.message))||'').toLowerCase()
+        + ' ' + String((error&&error.message)||'').toLowerCase();
+  if(m.includes('pgrst204') || m.includes('42703')) return true;
+  if(m.includes('column') && (m.includes('does not exist') || m.includes('could not be found'))) return true;
+  return m.includes('schema cache') && m.includes('profile_id');
+}
+window.csKudoSkew = csKudoSkew;
+async function rxWrite(post_id, member_id, emoji, had, profile_id){
+  const pid = profile_id || window.CS?.profile?.id || null;
+  const go = async (row) => {
+    const { error } = had
+      ? await window.sb.from('post_kudos').delete().match(row)
+      : await window.sb.from('post_kudos').insert(row);
+    return error || null;
+  };
+  if(pid){
+    const err = await go({ post_id, profile_id: pid, emoji });
+    if(!err) return null;
+    if(!csKudoSkew(err) || !member_id) return err;
+  }
+  if(!member_id) return { message:'no golfer to write for' };
+  return go({ post_id, member_id, emoji });
 }
 /* toggle my reaction of `emoji` on feed item f — optimistic, DB-backed when real */
 async function toggleRx(f, emoji){
@@ -6141,8 +6170,9 @@ async function toggleRx(f, emoji){
   const had=cur.me;
   rxFlip(cur, me, !had);
   rerenderFeeds();
-  if(state.demo || !f.post_id || !window.sb || !window.CS?.member) return;
-  const error = await rxWrite(f.post_id, window.CS.member.id, emoji, had);
+  if(state.demo || !f.post_id || !window.sb) return;
+  if(!window.CS?.member && !window.CS?.profile?.id) return;
+  const error = await rxWrite(f.post_id, window.CS?.member?.id || null, emoji, had);
   if(error){ /* revert the optimistic flip — and say so */
     console.warn('[reaction]', emoji, error);
     rxFlip(cur, me, had);
@@ -6178,11 +6208,18 @@ async function fetchSocial(pids){
         .in('post_id', pids).order('created_at', { ascending:true }),
     ]));
   }catch(e){ console.warn('[social]', e); return; }
-  const rxBy={}, cmBy={}, mine=window.CS?.member?.id;
+  const rxBy={}, cmBy={}, mine=window.CS?.member?.id, myPid=window.CS?.profile?.id;
+  /* D238 · whose reaction is this. The profile wins where it is present; a
+     row from before the push resolves through the open league's roster. A row
+     that resolves to neither is "Someone" — the board has never guessed. */
   (kud||[]).forEach(k=>{
     const e=k.emoji||'🔥';
     const s=((rxBy[k.post_id]||={})[e]||={n:0, me:false, who:[]});
-    s.n++; if(k.member_id===mine) s.me=true; s.who.push(window.memName?.(k.member_id) ?? 'Someone');
+    s.n++;
+    if(k.profile_id ? (myPid && k.profile_id===myPid) : (k.member_id===mine)) s.me=true;
+    s.who.push((k.member_id ? window.memName?.(k.member_id) : null)
+               ?? (k.profile_id===myPid ? (window.CS?.profile?.display_name || 'You') : null)
+               ?? 'Someone');
   });
   (cmt||[]).forEach(c=>{ (cmBy[c.post_id]||=[]).push({ w:window.memName?.(c.member_id) ?? 'Someone', t:c.body }); });
   feed.forEach(f=>{ if(f.post_id){ f.rx = rxBy[f.post_id] || {}; f.cm = cmBy[f.post_id] || []; } });
@@ -7522,6 +7559,51 @@ async function csShareLink(kind, ref, text, card){
     toast('Link copied — no account needed to view it');
   }catch(e){ toast(humanError(e, 'Could not make the link.')); }
 }
+/* D241 / D253 · the two NEW kinds. The same `create_share`, the same
+   `shares_one_live` uniqueness (so a golfer has exactly ONE live person link
+   and asking twice returns the same token), and a different query on the URL
+   because the landing page is a different card.
+
+   THREE answers, not two. A CHECK that does not admit the kind yet means the
+   migration has not landed — that is not an error the golfer caused, so the
+   caller draws NOTHING rather than a control that would fail (L-32). */
+/* D234 · ONE sentence, both clients. `ShareLinkService.notYetLine` is its
+   twin, and it is the SCORECARD's own words retargeted — inventing a second
+   voice for the same situation is how two clients start disagreeing. The row
+   STAYS: a control that vanishes when you tap it is worse than one that tells
+   you to come back, and after the owner's `db push` it works with no client
+   change at all. */
+const CS_SHARE_NOT_YET = 'Links need the latest update — try again shortly.';
+window.CS_SHARE_NOT_YET = CS_SHARE_NOT_YET;
+function csShareKindNotDeployed(e){
+  const m=String((e&&(e.code||''))+' '+(e&&e.message||'')).toLowerCase();
+  return m.includes('23514') || m.includes('shares_kind_check') || m.includes('nothing to share');
+}
+window.csShareKindNotDeployed = csShareKindNotDeployed;
+async function csShareIntentLink(kind, ref, text){
+  if(!window.sb || !ref) return { ok:false };
+  let data=null;
+  try{
+    const r = await sb.rpc('create_share', { p_kind: kind, p_ref: ref });
+    if(r.error) throw r.error;
+    data = r.data;
+  }catch(e){
+    if(csShareKindNotDeployed(e)){ toast(CS_SHARE_NOT_YET); return { ok:false, notYet:true }; }
+    toast(humanError(e, 'Could not make that link.'));
+    return { ok:false };
+  }
+  const url = location.origin + '/?' + (kind === 'person' ? 'p' : 'plan') + '=' + data;
+  growthEvent('artifact_shared', kind, data);
+  if(navigator.share){
+    try{ await navigator.share({ title:'Cup Season', text, url }); return { ok:true, url }; }
+    catch(e){ if(e && e.name==='AbortError') return { ok:true, url }; }
+  }
+  try{ await navigator.clipboard?.writeText((text ? text + ' ' : '') + url); toast('Link copied — no account needed to open it'); }
+  catch(_){ toast(url); }
+  return { ok:true, url };
+}
+window.csShareIntentLink = csShareIntentLink;
+
 /* revoke within the same three-RPC surface: create_share re-returns the live
    token for this artifact, revoke_share kills it. A fresh share later mints a
    NEW token — revoked copies stay dark. */
@@ -12782,6 +12864,25 @@ function founderTag(pid, name){
    league's if the viewer is in it, else the round's OLDEST post. Rows with no
    shared-league post (friend-only circle members) show no strip at all — an
    affordance that would fail is worse than none. */
+/* D238 · is this reaction MINE, and whose is it? Both answers resolve the
+   PERSON: a profile-keyed row directly, a legacy member-keyed row through the
+   roster. The old test compared one member id, so a golfer in two leagues saw
+   their own 🔥 as somebody else's. */
+function csKudoMine(k){
+  const H=window.homeRx||{};
+  if(k.profile_id) return !!(H.myPid && k.profile_id===H.myPid);
+  if(!k.member_id) return false;
+  if(H.myIds?.has(k.member_id)) return true;
+  return !!(H.myPid && H.mem2pid?.[k.member_id]===H.myPid);
+}
+function csKudoWho(k){
+  const H=window.homeRx||{};
+  return (k.profile_id ? H.names?.[k.profile_id] : null)
+      || (k.member_id ? H.names?.[k.member_id] : null)
+      || 'someone';
+}
+window.csKudoMine = csKudoMine;
+window.csKudoWho = csKudoWho;
 function homeRxOf(r){
   if(state.demo) return r.rx || (r.rx = {});
   const t = window.homeRx?.post?.[r.round_id];
@@ -12792,20 +12893,39 @@ function homeRxOf(r){
    Names need their own resolve: memName() only knows the open league's
    roster, and a reactor can sit in a shared league that isn't open. */
 async function fetchHomeSocial(){
-  window.homeRx = { post:{}, kud:{}, names:{}, raw:[], cmine:[], myIds:new Set() };
+  window.homeRx = { post:{}, kud:{}, names:{}, mem2pid:{}, raw:[], cmine:[], myIds:new Set(), myPid:null };
   if(state.demo || !window.sb || !window.CS?.user) return;
   const rids=[...new Set((window.homeFeedRows||[]).map(r=>r.round_id).filter(Boolean))];
   if(!rids.length) return;
   try{
-    const { data: posts } = await window.sb.from('posts')
-      .select('id, league_id, round_id, created_at')
+    /* D238 · `profile_id` may not be on `posts` yet. ANY error retries the
+       legacy shape — a 42501 never names its column (CLAUDE.md). */
+    let posts=null;
+    ({ data: posts } = await window.sb.from('posts')
+      .select('id, league_id, profile_id, round_id, created_at')
       .in('round_id', rids).eq('kind','round')
-      .order('created_at', { ascending:true });   /* oldest-first: first-in wins below */
+      .order('created_at', { ascending:true }));
+    if(!posts){
+      ({ data: posts } = await window.sb.from('posts')
+        .select('id, league_id, round_id, created_at')
+        .in('round_id', rids).eq('kind','round')
+        .order('created_at', { ascending:true }));
+    }
+    /* WHICH post a round's strip hangs on, in one place and one order — the
+       twin of the phone's `HomeSocial.pick`:
+         0 · the OPEN league's   1 · any other league's, oldest first
+         2 · the PERSON's — D238's new rail, and the only post a leagueless
+             golfer's round ever has. Before it, those rows carried no strip
+             at all, which is 14 of 39 prod profiles. */
     const cur=window.CS?.league?.id;
+    const rank=(p)=> p.league_id ? (p.league_id===cur ? 0 : 1) : (p.profile_id ? 2 : 3);
+    const best={};
     (posts||[]).forEach(p=>{
-      const t=window.homeRx.post[p.round_id];
-      if(!t || (p.league_id===cur && t.league_id!==cur))
-        window.homeRx.post[p.round_id]={ post_id:p.id, league_id:p.league_id };
+      const r=rank(p);
+      if(r===3) return;                                   /* homed on nothing */
+      if(best[p.round_id]!==undefined && best[p.round_id]<=r) return;
+      best[p.round_id]=r;
+      window.homeRx.post[p.round_id]={ post_id:p.id, league_id:p.league_id||null };
     });
     const pids=Object.values(window.homeRx.post).map(t=>t.post_id);
     if(!pids.length) return;
@@ -12819,21 +12939,38 @@ async function fetchHomeSocial(){
         ? window.sb.from('post_comments').select('post_id, member_id, created_at').in('post_id', myPids)
         : Promise.resolve({ data: [] }),
     ]);
-    const memberIds=[...new Set((kud||[]).map(k=>k.member_id).concat((cmt||[]).map(c=>c.member_id)))];
+    const memberIds=[...new Set((kud||[]).map(k=>k.member_id).concat((cmt||[]).map(c=>c.member_id)).filter(Boolean))];
     if(memberIds.length){
       const { data: mems } = await window.sb.from('league_members')
-        .select('id, profile:profiles(display_name)').in('id', memberIds);
-      (mems||[]).forEach(m=>{ window.homeRx.names[m.id]=m.profile?.display_name || 'someone'; });
+        .select('id, profile_id, profile:profiles(display_name)').in('id', memberIds);
+      (mems||[]).forEach(m=>{
+        window.homeRx.names[m.id]=m.profile?.display_name || 'someone';
+        if(m.profile_id){
+          window.homeRx.mem2pid[m.id]=m.profile_id;
+          window.homeRx.names[m.profile_id]=m.profile?.display_name || 'someone';
+        }
+      });
+    }
+    /* D238 · a reactor may now share NO league with the viewer at all, which
+       is exactly the row `league_members` could never name. */
+    const pids2=[...new Set((kud||[]).map(k=>k.profile_id).filter(Boolean))]
+      .filter(id=>!window.homeRx.names[id]);
+    if(pids2.length){
+      const { data: profs } = await window.sb.from('profiles').select('id, display_name').in('id', pids2);
+      (profs||[]).forEach(p=>{ window.homeRx.names[p.id]=p.display_name || 'someone'; });
     }
     const myIds=new Set((window.CS?.memberships||[]).map(m=>m.id));
+    const myPid=window.CS?.profile?.id||null;
     window.homeRx.myIds=myIds;
+    window.homeRx.myPid=myPid;
     window.homeRx.raw=kud||[];       /* timestamped rows — the digest reads these */
     window.homeRx.cmine=cmt||[];
     (kud||[]).forEach(k=>{
       const e=k.emoji||'🔥';
       const s=((window.homeRx.kud[k.post_id]||={})[e]||={n:0, me:false, who:[]});
-      s.n++; if(myIds.has(k.member_id)) s.me=true;
-      s.who.push(window.homeRx.names[k.member_id]||'someone');
+      s.n++;
+      if(csKudoMine(k)) s.me=true;
+      s.who.push(csKudoWho(k));
     });
   }catch(e){ console.warn('[homeSocial]', e); }
 }
@@ -12846,11 +12983,12 @@ async function toggleHomeRx(r, emoji){
   renderHomeFeed();
   if(state.demo) return;
   const t=window.homeRx?.post?.[r.round_id]; if(!t) return;
-  /* the write must carry MY member id in the POST's league — CS.member is the
-     open league's membership, which may be the wrong one from Home */
-  const mem=(window.CS?.memberships||[]).find(m=>m.league.id===t.league_id);
-  const error = mem ? await rxWrite(t.post_id, mem.id, emoji, had)
-                    : { message:'not a member of that league' };
+  /* D238 · the write is keyed on the PERSON, so a post homed on a golfer with
+     no league takes it. The membership is still resolved and still passed —
+     it is the declared fallback for a database that has not had the column
+     pushed yet, and for that case only. */
+  const mem=t.league_id ? (window.CS?.memberships||[]).find(m=>m.league.id===t.league_id) : null;
+  const error = await rxWrite(t.post_id, mem?.id || null, emoji, had);
   if(error){
     console.warn('[reaction:home]', emoji, error);
     rxFlip(cur, me, had);
@@ -13217,14 +13355,14 @@ function dgMentions(mark){
   (hr.raw||[]).forEach(k=>{
     if(!k.created_at || dgTime(k.created_at)<=mark) return;
     const r=mine[k.post_id]; if(!r) return;
-    if(hr.myIds.has(k.member_id)) return;          /* my own tap isn't news */
-    out.push({ who:hr.names[k.member_id]||'someone', e:k.emoji||'🔥', gross:r.gross });
+    if(csKudoMine(k)) return;                      /* my own tap isn't news */
+    out.push({ who:csKudoWho(k), e:k.emoji||'🔥', gross:r.gross });
   });
   (hr.cmine||[]).forEach(c=>{
     if(!c.created_at || dgTime(c.created_at)<=mark) return;
     const r=mine[c.post_id]; if(!r) return;
-    if(hr.myIds.has(c.member_id)) return;
-    out.push({ who:hr.names[c.member_id]||'someone', e:null, gross:r.gross });
+    if(csKudoMine(c)) return;
+    out.push({ who:csKudoWho(c), e:null, gross:r.gross });
   });
   return out;
 }
@@ -13509,6 +13647,18 @@ window.csRankDispatch = csRankDispatch;
    LEAD CARD. A guessed lead is the exact failure the veto exists to prevent,
    so every fallback item is `human_subject:false` and the lead slot stays
    empty until the ranker can be reached. */
+/* DEF-1 · the short name of a course, for any slot sized for a glance.
+   `MeStripCopy.shortCourse` is its twin and both suites assert the same
+   answers on prod's longest label. */
+function csShortCourse(raw){
+  const s0 = String(raw || '').trim();
+  if(!s0) return null;
+  const club = s0.split(' — ')[0];
+  const out = club.split(' · ')[0].trim();
+  return out ? out.toUpperCase() : null;
+}
+window.csShortCourse = csShortCourse;
+
 function csFallbackItems(){
   const out = [];
   const push = (o) => out.push(Object.assign({ human_subject:false, suppress:[], spine:'mut' }, o));
@@ -13827,7 +13977,12 @@ function csMeStrip(){
     if(up){
       const day = csDayToken(String(up.play_on));
       const tee = csTeeText(up.tee_time);
-      const course = up.course_label ? String(up.course_label).toUpperCase() : null;
+      /* DEF-1 · the SHORT name of the course. A slot sized for a short string
+         that interpolates a name from the database looks correct in a test
+         and wrong on a phone: prod's longest label is `Gold Canyon —
+         Dinosaur Mountain · Black/Blue`. The club, never the layout and never
+         the tee variant — both are the plan card's facts (L-34). */
+      const course = csShortCourse(up.course_label);
       slots.push({ fact:'my_next_round', label:'NEXT',
                    value: tee ? `${day} ${tee}` : (course ? `${day} · ${course}` : day),
                    go:'plan', id:up.id });
@@ -14124,9 +14279,29 @@ function renderGolfers(){
   if(!window.CS?.user){
     box.innerHTML='<p class="fine" style="padding:0">Sign in to add buddies and see requests.</p>';
     if(soon) soon.innerHTML='';
+    const pl=document.getElementById('glfPersonLink'); if(pl) pl.innerHTML='';
     return;
   }
   box.innerHTML='';
+  /* D241 · THE PERSON LINK, on the desk. The league invite link renders only
+     when a league has a code, which is exactly the golfer this is for: 27 of
+     39 prod profiles have no accepted buddy and the app had nothing to hand
+     them. The row REMOVES ITSELF if the kind is not deployed yet — a door
+     that cannot open is the one thing not permitted (L-32). */
+  const plink=document.getElementById('glfPersonLink');
+  if(plink){
+    plink.innerHTML = `<div class="eyebrow">Bring someone in</div>
+      <button class="btn dark" id="glfPersonLinkBtn" style="display:block;width:100%;text-align:left">
+        <span style="display:block">Text someone a link</span>
+        <span class="fine" style="display:block;opacity:.75;padding:0">Works for anyone · no account needed</span>
+      </button>`;
+    plink.querySelector('#glfPersonLinkBtn').addEventListener('click', async(e)=>{
+      const b=e.currentTarget; if(b.disabled) return; b.disabled=true;
+      const r = await csShareIntentLink('person', window.CS?.profile?.id,
+        `${window.CS?.profile?.display_name || 'A golfer'} wants you in their golf. Cup Season keeps score for a group of friends — every round, against everyone’s own number.`);
+      b.disabled=false;   /* the row stays either way — see CS_SHARE_NOT_YET */
+    });
+  }
   /* D245 · the board sits above the buddies list, because "who is playing well
      right now" is the question friends actually ask and the list under it is
      the roster the board is drawn from. */
@@ -21886,7 +22061,13 @@ function renderRoundSheet(id, d){
       <div><b>${esc(c.name||'')}</b> <span class="t">${esc(c.body||'')}</span></div></div>`).join('')
     : '<p class="fine" style="padding:2px 0; opacity:.7">No messages yet — kick it off.</p>';
 
+  /* D253 · THE PLAN LINK. Three screens promised a weekend invite link that no
+     read and no write ever minted; this is the one that mints it, and it is
+     the host's control alone — the link is the only thing in the product that
+     can seat a stranger, and D69's rule that a tee sheet is the host's is what
+     bounds it. */
   const manage = d.mine ? `<div class="managebar2">
+     <button class="mbtn2" id="rrLink">Text them a link</button>
      <button class="mbtn2" id="rrGroup">Edit group</button>
      <button class="mbtn2 warn" id="rrScratch">Cancel round</button></div>` : '';
 
@@ -21917,6 +22098,12 @@ function renderRoundSheet(id, d){
     catch(e){ toast(humanError(e, 'Could not post.')); } };
   $('#rsSend')?.addEventListener('click', send);
   $('#rsComment')?.addEventListener('keydown',e=>{ if(e.key==='Enter'){ e.preventDefault(); send(); } });
+  $('#rrLink')?.addEventListener('click', async(e)=>{
+    const b=e.currentTarget; b.disabled=true;
+    const where = courseName ? ` at ${courseName}` : '';
+    await csShareIntentLink('plan', id, `Golf${where}, ${dateTxt}. Tap to take the seat.`);
+    b.disabled=false;
+  });
   $('#rrGroup')?.addEventListener('click',()=>{ closeSheet(); openRetagSheet(id); });
   $('#rrScratch')?.addEventListener('click', async(e)=>{ const b=e.currentTarget; b.disabled=true;
     try{ const {error}=await sb.rpc('scratch_round',{p_id:id}); if(error) throw error; closeSheet(); toast('Round scratched'); loadSchedule(); if(window.loadWatchList) loadWatchList(); }
@@ -22448,6 +22635,7 @@ async function boot(){
 /* continue the boot after the golfer-card gate saves */
 async function resumeAfterProfile(){
   claimPendingRound();   /* guest → golfer: attach the waiting round now that the card exists */
+  redeemPendingShares();  /* D241/D253 · the person and plan links, spent once the card exists */
   const ls = k => { try{ return localStorage.getItem(k); }catch(_){ return null; } };
   /* arrival intent, captured before we consume it: an invited member (cs_code)
      or guest-claim user (cs_claim) is taught by their league covenant / their
@@ -22554,6 +22742,28 @@ if(unsubParam){
 
 const shareParam = new URLSearchParams(window.location.search).get('share');
 if(shareParam){ window._csShareView = true; window.growthEvent?.('link_opened', 'share', shareParam.trim()); renderShareView(shareParam.trim()); }
+/* D241 / D253 · the two new anon landings. They ride the SAME endpoint —
+   `share_info` is already one of L-45's twelve — and the same renderer, which
+   is the whole argument for widening a CHECK rather than minting a thirteenth
+   signed-out endpoint (declined in writing, D250).
+
+   The token is also STORED, exactly as `?claim=` is, because the page it
+   lands on is a door: whoever taps it has no account, and the buddy request
+   (and, for a plan, the seat) is spent AFTER they sign in and have a name on
+   them. `redeem_share` is authenticated-only, so this page never learns who
+   the card is about beyond what it draws. */
+const CS_SHARE_LINKS = [{ q:'p', kind:'person', key:'cs_person' }, { q:'plan', kind:'plan', key:'cs_plan' }];
+window.CS_SHARE_LINKS = CS_SHARE_LINKS;
+for(const L of CS_SHARE_LINKS){
+  const v = new URLSearchParams(window.location.search).get(L.q);
+  if(!v || !v.trim()) continue;
+  const tok = v.trim();
+  try{ localStorage.setItem(L.key, tok); }catch(_){}
+  window.growthEvent?.('link_opened', L.kind, tok);
+  window._csShareView = true;
+  renderShareView(tok);
+  break;
+}
 window._csShareRender = renderShareView;   /* QA hook: drive the view with a token or a stub payload */
 async function renderShareView(tok, _testInfo){
   /* D76: the GROUND converges to charcoal (identity, not metals) — every
@@ -22697,6 +22907,61 @@ async function renderShareView(tok, _testInfo){
       <div style="border-top:1px solid rgba(255,255,255,.1);margin:14px 40px 0"></div>
       <div style="letter-spacing:.12em;font-size:12.5px;margin-top:14px">${esc(String(info.course || '').toUpperCase())}</div>
       <div style="color:${C.mut};font-size:11.5px;letter-spacing:.12em;margin-top:8px">${esc(fmtD(info.played_on))}</div>`;
+  } else if(info.kind === 'person'){
+    /* D241 · IA §10.5's own card: a name, a marker, the number and the recent
+       rounds. Every line is a FACT the server returned — a golfer with no
+       rounds gets no rounds line rather than a zero (L-44), and there is no
+       handle, no city and no id on the page. */
+    document.title = `${info.name} — Cup Season`;
+    card.style.borderColor = 'rgba(255,90,46,.38)';   /* live layer: ember frame (D76) */
+    const rounds = (info.rounds || []);
+    /* L-01 · the BEST is the server's, over every round. Deriving it from the
+       three rows below would print a number narrower than the sentence it sits
+       in — "18 rounds posted, best 85" where the 85 was the best of three. */
+    const best = info.best;
+    const nRounds = Number(info.rounds_n || 0);
+    const line2 = nRounds > 0
+      ? `${esc(String(nRounds))} round${nRounds === 1 ? '' : 's'} posted${best != null ? `, best ${esc(String(best))}` : ''}.`
+      : '';
+    card.innerHTML = `
+      ${markerSvg(info.marker)}
+      <div style="font-family:${SERIF};font-size:26px;line-height:1.35;margin:6px 6px 4px">${esc(info.name)} wants you in their golf.</div>
+      ${line2 ? `<div style="color:${C.mut};font-size:13.5px;line-height:1.6;margin-top:10px">${line2}</div>` : ''}
+      ${info.index != null ? `<div style="color:${C.mut};font-size:11.5px;letter-spacing:.14em;margin-top:8px">INDEX ${esc(String(info.index))}</div>` : ''}
+      ${rounds.length ? `<div style="border-top:1px solid rgba(255,255,255,.1);margin:18px 30px 6px"></div>
+      ${rounds.map(r => `<div style="display:flex;justify-content:space-between;align-items:baseline;gap:10px;padding:5px 12px;font-size:13px;text-align:left">
+         <span style="color:${C.mut};white-space:nowrap">${esc(fmtD(r.played_on))}</span>
+         <span style="min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:right">${r.gross != null ? esc(String(r.gross)) : '—'}${esc(r.course ? ' · ' + String(r.course).split(' — ')[0] : '')}</span></div>`).join('')}` : ''}
+      <div style="color:${C.mut};font-size:12.5px;line-height:1.6;margin-top:16px">Cup Season keeps score for a group of friends — every round, against everyone&rsquo;s own number.</div>`;
+    foot.innerHTML = `<a href="/" style="display:block;background:${C.hot};color:#1C1208;text-decoration:none;border-radius:12px;padding:14px 12px;font-weight:600;letter-spacing:.04em">Get the app</a>
+      <div style="color:${C.mut};font-size:11.5px;line-height:1.6;margin-top:12px">Signing in sends ${esc(info.name)} a buddy request. They still have to say yes.</div>`;
+
+  } else if(info.kind === 'plan'){
+    /* D253 · the day, the course and who is in. Not the note — the host wrote
+       that for the crew they tagged, not for a stranger holding a link. */
+    /* the SHORT course name in the headline, the full label nowhere: a public
+       card that prints `Gold Canyon — Dinosaur Mountain · Black/Blue` in serif
+       runs to three lines and tells a stranger which tees to hit off before it
+       tells them whose round it is (BUILD_PLAN §2.z's rule for any slot that
+       takes a name from the database). */
+    const venue = String(info.course || '').split(' — ')[0] || 'the course';
+    document.title = `Golf at ${venue} — Cup Season`;
+    card.style.borderColor = 'rgba(255,90,46,.38)';
+    const who = (info.who || []);
+    /* a name is singular, a list takes "and" — the same conjugation bug that
+       produced "Galen lead by 4" on the season page */
+    const whoTxt = who.length <= 1 ? who.join('')
+                 : who.slice(0, -1).join(', ') + ' and ' + who[who.length - 1];
+    card.innerHTML = `
+      <div style="color:${C.hot};letter-spacing:.2em;font-size:12px;font-weight:600">${esc(fmtD(info.play_on))}${info.tee ? ' · ' + esc(info.tee) : ''}</div>
+      <div style="font-family:${SERIF};font-size:26px;line-height:1.35;margin:16px 6px 4px">${esc(info.host)} has a round on at ${esc(venue)}.</div>
+      ${who.length
+        ? `<div style="color:${C.mut};font-size:13px;line-height:1.6;margin-top:12px">${esc(whoTxt)} ${who.length === 1 ? 'is' : 'are'} in.</div>`
+        : `<div style="color:${C.mut};font-size:13px;line-height:1.6;margin-top:12px">Just ${esc(info.host)} so far.</div>`}
+      <div style="color:${C.mut};font-size:12.5px;line-height:1.6;margin-top:16px">Cup Season keeps score for a group of friends — every round, against everyone&rsquo;s own number.</div>`;
+    foot.innerHTML = `<a href="/" style="display:block;background:${C.hot};color:#1C1208;text-decoration:none;border-radius:12px;padding:14px 12px;font-weight:600;letter-spacing:.04em">Take the seat</a>
+      <div style="color:${C.mut};font-size:11.5px;line-height:1.6;margin-top:12px">Signing in puts you down for this round and sends ${esc(info.host)} a buddy request.</div>`;
+
   } else if(info.kind === 'recap'){
     /* "— the season" is a section header, not news. The champion is the news;
        past tense works for a squad name and a solo golfer alike. */
@@ -22797,6 +23062,67 @@ async function claimPendingRound(){
   else toast('Round claimed — the card was incomplete, so nothing posted');
 }
 window.claimPendingRound = claimPendingRound;   /* D87: the classic side claims when a guest-scored round finishes */
+
+/* D241 / D253 · spend a pending `?p=` or `?plan=` token.
+   It is spent HERE and not on the landing page because the write is never
+   anonymous: `redeem_share` is granted to `authenticated` and revoked from
+   `public, anon`, so the signed-out card never learns the profile id behind
+   it. And a buddy request from a golfer with no name on them is not a request
+   anybody can answer — hence "after the golfer card", the same rule the claim
+   funnel follows.
+
+   THREE answers, not two. `PGRST202` / "does not exist" means the migration
+   has not landed: the token is KEPT and nothing is said, because nothing is
+   wrong. Every dead path on the server — a made-up token, a revoked one, a
+   deleted golfer — returns the SAME shape (D57), so this cannot tell the
+   golfer which it was, and does not try. */
+function csShareLine(kind, data){
+  /* a kind this client has never heard of is a DEAD path, not a person link
+     with an odd label — the same answer `ShareRedeem.parse` gives on the
+     phone, which is what D234 means by "produced once" */
+  const known = (window.CS_SHARE_LINKS || [{kind:'person'},{kind:'plan'}]).map(l=>l.kind);
+  if(!data || !data.kind || known.indexOf(data.kind) < 0)
+    return 'That link has expired. Whoever sent it can share a fresh one.';
+  if(data.kind === 'plan'){
+    if(data.seat === 'host') return null;
+    if(data.seat === 'past') return 'That round has already been played.';
+    const seat = data.seat === 'in' ? 'You’re in for that round.' : 'You’re already down for that round.';
+    return data.result === 'requested' ? seat + ' The host has your buddy request.' : seat;
+  }
+  if(data.result === 'self') return null;
+  if(data.result === 'friend') return 'You’re in each other’s crew now.';
+  return 'Asked to join their crew. They’ll get the nudge.';
+}
+window.csShareLine = csShareLine;
+async function redeemPendingShares(){
+  if(state.demo || !window.sb || !CS.user || !CS.profile?.marker) return;
+  for(const L of (window.CS_SHARE_LINKS || [])){
+    let tok=null; try{ tok=localStorage.getItem(L.key); }catch(_){}
+    if(!tok) continue;
+    let data=null;
+    try{
+      const r = await sb.rpc('redeem_share', { p_token: tok });
+      if(r.error) throw r.error;
+      data = r.data;
+    }catch(e){
+      const msg=String((e&&e.message)||'');
+      /* not deployed yet — keep the token, say nothing, try again next boot */
+      if(/PGRST202|does not exist|schema cache|42883/i.test(msg)) continue;
+      try{ localStorage.removeItem(L.key); }catch(_){}
+      toast(humanError(e, 'Could not open that link.'));
+      continue;
+    }
+    try{ localStorage.removeItem(L.key); }catch(_){}
+    const line = csShareLine(L.kind, data);
+    if(line) toast(line);
+    if(data && data.kind){
+      /* repaint what the token changed, if that surface is on screen */
+      if(data.kind === 'person') window.renderPeopleRequests?.();
+      if(data.kind === 'plan') window.loadSchedule?.();
+    }
+  }
+}
+window.redeemPendingShares = redeemPendingShares;
 
 if(new URLSearchParams(window.location.search).has('exit')){
   /* ?exit is the dev/QA reset hatch. Global scope made it a remote logout for
@@ -22899,6 +23225,7 @@ async function safeBoot(force){
     }catch(_){}
   }
   if(CS.user) claimPendingRound();
+  if(CS.user) redeemPendingShares();
 }
 /* supabase-js emits INITIAL_SESSION once on load — that drives the first boot.
    The old code ALSO called safeBoot() directly at the bottom of the script, so

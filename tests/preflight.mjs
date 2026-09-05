@@ -917,5 +917,95 @@ else {
     : fail('report and block survive the redesign', problems.slice(0, 4).join(' · '));
 }
 
+/* 26 · the anon surface is EXACTLY twelve (L-45, D241, D253) --------------
+   Wave 6 adds two share KINDS and two landing pages, and the single thing
+   that would make that a bad trade is a thirteenth signed-out endpoint. Two
+   Phase-2 proposals answered the same question with exactly that; D250
+   declines one in writing, and this is the check that makes the decline
+   mechanical rather than a sentence in a log nobody greps.
+
+   It reads the `grant execute … to anon` list OUT OF THE MIGRATION TREE and
+   compares it against the twelve NAMED IN CLAUDE.md — parsed from the file,
+   not restated here, so a name added to the prose and not to a migration (or
+   the reverse) fails the push. `tests/db-checks.sql` check 2 asserts the same
+   set against the LIVE database; this one catches it before the push, which
+   is the only moment it is still cheap.
+
+   `redeem_share` is the wave's own tripwire: it is the thirteenth
+   AUTHENTICATED function, and if it ever appears in the anon list this check
+   is what says so. */
+{
+  const problems = [];
+  const claude = readFileSync(join(root, 'CLAUDE.md'), 'utf8');
+
+  /* the twelve, from CLAUDE.md's own paragraph — the seven listed by name
+     plus the five named in the parenthetical (the D86 guest trio, door_flags,
+     log_growth_event) */
+  const paraStart = claude.indexOf('to `anon` only for the twelve public endpoints');
+  const paraEnd = claude.indexOf('A new\n  RPC that "silently 403s in prod"', paraStart);
+  const para = paraStart < 0 ? '' : claude.slice(paraStart, paraEnd < 0 ? paraStart + 2000 : paraEnd);
+  if (!para) problems.push('CLAUDE.md no longer names the twelve anon endpoints — the list has no source');
+  const declared = new Set([...para.matchAll(/`([a-z0-9_]+)`/g)].map(m => m[1])
+    .filter(n => /_/.test(n) || n === 'anon' ? n !== 'anon' : false));
+  if (para && declared.size !== 12) {
+    problems.push(`CLAUDE.md names ${declared.size} anon endpoints, not twelve: ${[...declared].sort().join(', ')}`);
+  }
+
+  /* What the migration tree actually grants. The tree is replayed in FILE
+     ORDER, statement by statement, exactly as `db push` applies it — because
+     the answer depends on the order: D37's own migration
+     (20260718172300:74) carries `revoke execute on all functions in schema
+     public from anon`, which wipes every grant made before it, and nine
+     functions from the pre-D37 era (join_league, form_squads, cup_points …)
+     would otherwise still read as anon-callable here. A blanket revoke is a
+     statement about the whole set, so it has to clear the whole set. */
+  const STMT = /\b(grant|revoke)\s+(?:all(?:\s+privileges)?|execute)\s+on\s+(all\s+functions\s+in\s+schema\s+"?public"?|function\s+(?:"?public"?\.)?"?([a-z0-9_]+)"?\s*\([^)]*\))\s*(?:from|to)\s+([^;]+);/gi;
+  const files = readdirSync(migDir).filter(f => f.endsWith('.sql')).sort();
+  const anonGranted = new Set();
+  for (const f of files) {
+    const src = readFileSync(join(migDir, f), 'utf8');
+    for (const m of src.matchAll(STMT)) {
+      const verb = m[1].toLowerCase(), target = m[2].toLowerCase(), fn = (m[3] || '').toLowerCase();
+      const roles = m[4].toLowerCase();
+      if (!/\banon\b|\bpublic\b/.test(roles)) continue;
+      if (target.startsWith('all functions')) {
+        /* only a REVOKE is meaningful here; a blanket grant to anon has never
+           been written in this repo and would fail check 2's sibling anyway */
+        if (verb === 'revoke') anonGranted.clear();
+        continue;
+      }
+      if (verb === 'grant') { if (/\banon\b/.test(roles)) anonGranted.add(fn); }
+      else anonGranted.delete(fn);
+    }
+  }
+
+  const extra = [...anonGranted].filter(f => !declared.has(f)).sort();
+  const missing = [...declared].filter(f => !anonGranted.has(f)).sort();
+  if (extra.length) problems.push(`granted to anon but not one of the twelve: ${extra.join(', ')}`);
+  if (missing.length) problems.push(`named in CLAUDE.md but never granted to anon: ${missing.join(', ')}`);
+
+  /* the wave's own tripwire, stated by name so it cannot be lost in a diff */
+  if (anonGranted.has('redeem_share')) {
+    problems.push('redeem_share is granted to anon — the person and plan links write, and the write is never anonymous (D241)');
+  }
+
+  /* self-test: the check must be able to SEE a thirteenth. Synthesised, not
+     written to disk — a check that cannot fail is not a check. */
+  {
+    const probe = "grant execute on function public.a_thirteenth_endpoint(uuid) to anon, authenticated;";
+    const seen = new Set(anonGranted);
+    for (const m of probe.matchAll(new RegExp(STMT.source, 'gi'))) {
+      if (/\banon\b/.test(m[4].toLowerCase())) seen.add((m[3] || '').toLowerCase());
+    }
+    if (!seen.has('a_thirteenth_endpoint') || seen.size !== anonGranted.size + 1) {
+      problems.push('self-test failed: the parser cannot see a thirteenth anon grant');
+    }
+  }
+
+  problems.length === 0
+    ? pass('the anon surface is exactly twelve', `${anonGranted.size} function(s), and CLAUDE.md names the same ${declared.size}`)
+    : fail('the anon surface is exactly twelve', problems.slice(0, 3).join(' · '));
+}
+
 console.log(`\n${fails ? 'FAIL' : 'PASS'} — ${fails} failure(s), ${warns} warning(s)`);
 process.exit(fails ? 1 : 0);

@@ -461,6 +461,52 @@ Deno.serve(async (req) => {
     return reply('sent', { kind: nk });
   }
 
+  /* D238 · a post homed on a PERSON: fan to that golfer's accepted buddies.
+     This is the branch that turns a leagueless round from a row nobody sees
+     into a lock screen — the third of SP-1's four rails. The fan is BY PERSON,
+     never per league, and it is deduped PER RECIPIENT: a buddy who shares two
+     leagues with the poster is one phone, and a Set is the whole of that rule.
+     `notify_rounds` / `notify_chat` are honoured exactly as the league branch
+     honours them, and a muter of the poster is dropped (§5.3). */
+  if (!record.league_id && !record.event_id && record.profile_id) {
+    const author = String(record.profile_id);
+    const [{ data: me }, { data: fr }] = await Promise.all([
+      sb.from('profiles').select('display_name').eq('id', author).maybeSingle(),
+      sb.from('friendships').select('requester, addressee')
+        .eq('status', 'accepted').or(`requester.eq.${author},addressee.eq.${author}`),
+    ]);
+    /* one row per FRIENDSHIP, two columns, one of them me — the Set is what
+       makes it one row per PERSON */
+    const buddies = new Set<string>();
+    for (const f of fr ?? []) {
+      const other = String(f.requester) === author ? String(f.addressee) : String(f.requester);
+      if (other && other !== author) buddies.add(other);
+    }
+    if (!buddies.size) return reply('no-buddies', { post: record.id, kind: record.kind });
+    const { data: prefs } = await sb.from('profiles')
+      .select('id, notify_chat, notify_rounds').in('id', [...buddies]);
+    const wantsIt = (row: { notify_chat?: boolean; notify_rounds?: boolean } | undefined) => {
+      if (record.kind === 'chat') return row?.notify_chat ?? true;
+      if (record.kind === 'round') return row?.notify_rounds ?? true;
+      return true;
+    };
+    const byId = new Map((prefs ?? []).map((r) => [String(r.id), r]));
+    const muters = await mutersOf(author);
+    const recipients = [...buddies]
+      .filter((id) => wantsIt(byId.get(id)))
+      .filter((id) => !muters.has(id));
+    /* the context is the golfer, because there is no league to name — which is
+       the whole reason this post exists */
+    const n = headline(record.push_title, record.body, firstName(me?.display_name ?? 'A golfer'));
+    if (!n.title) return reply('empty-body', { kind: record.kind, post: record.id });
+    console.log(`[push] kind=${record.kind} friends recipients=${recipients.length} of ${buddies.size}`);
+    await sendTo(recipients, n.title, n.body,
+      route(postKind(record.kind, record.live_round_id),
+        { post_id: record.id, round_id: record.round_id, live_round_id: record.live_round_id },
+        { collapseId: record.id }));
+    return reply('sent', { kind: record.kind, recipients: recipients.length });
+  }
+
   // event board posts (the Ryder): fan to the event's players
   if (!record.league_id) {
     if (!record.event_id) return reply('no-league-or-event', { post: record.id });

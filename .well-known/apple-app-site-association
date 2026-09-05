@@ -2,17 +2,37 @@
   "applinks": {
     "details": [
       {
-        "appIDs": ["3F7BK4WVH8.app.cupseason.ios"],
+        "appIDs": [
+          "3F7BK4WVH8.app.cupseason.ios"
+        ],
         "components": [
           {
             "/": "/",
-            "?": { "claim": "?*" },
+            "?": {
+              "claim": "?*"
+            },
             "comment": "Guest claim links open the app so a round can be adopted natively."
           },
           {
             "/": "/",
-            "?": { "join": "?*" },
+            "?": {
+              "join": "?*"
+            },
             "comment": "League invite links open the app straight into the join covenant."
+          },
+          {
+            "/": "/",
+            "?": {
+              "p": "?*"
+            },
+            "comment": "D241 - a golfer's own card. The app mints the buddy request; signed out, the web renders the card."
+          },
+          {
+            "/": "/",
+            "?": {
+              "plan": "?*"
+            },
+            "comment": "D253 - a weekend. The app takes the seat and mints the buddy request to the host."
           }
         ]
       }

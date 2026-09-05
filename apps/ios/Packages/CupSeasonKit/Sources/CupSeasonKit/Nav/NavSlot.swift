@@ -40,12 +40,13 @@ public enum NavSlot: String, Sendable, CaseIterable {
   }
 }
 
-/// The three URLs this app claims, classified once.
+/// The five URLs this app claims, classified once.
 ///
-/// The AASA claims `?join=` and `?claim=` and nothing else; `cupseason://live`
-/// is the Live Activity's tap-back (D155), checked FIRST because it carries no
-/// query to misread. The parsers themselves are not duplicated here — this
-/// calls `JoinIntent.code(from:)` and `ClaimIntent.token(from:)`, which are the
+/// The AASA claims `?join=`, `?claim=` and — from wave 6 — `?p=` and `?plan=`;
+/// `cupseason://live` is the Live Activity's tap-back (D155), checked FIRST
+/// because it carries no query to misread. The parsers themselves are not
+/// duplicated here — this calls `JoinIntent.code(from:)`,
+/// `ClaimIntent.token(from:)` and `ShareIntent.of(_:)`, which are the
 /// producers, so a change to what a link looks like is still made in one place.
 public enum DeepLink: Sendable, Equatable, CaseIterable {
   /// `cupseason://live` — the island, the lock-screen card.
@@ -54,6 +55,13 @@ public enum DeepLink: Sendable, Equatable, CaseIterable {
   case join
   /// `/?claim=TOKEN`
   case claim
+  /// D241 · `/?p=TOKEN` — a golfer's own card. Signed in, it mints a buddy
+  /// request; signed out, the web's landing page is what the sender's friend
+  /// actually sees, and this is only the app's half.
+  case person
+  /// D253 · `/?plan=TOKEN` — a weekend. It takes the seat and mints the
+  /// request, in that order, in one transaction on the server.
+  case plan
 
   /// The scheme and host of the Live Activity's tap-back. `CSRoundActivityLink`
   /// carries the same pair for the widget extension, which cannot depend on
@@ -67,6 +75,11 @@ public enum DeepLink: Sendable, Equatable, CaseIterable {
     if url.scheme == liveScheme, url.host == liveHost { return .liveRound }
     if JoinIntent.code(from: url) != nil { return .join }
     if ClaimIntent.token(from: url) != nil { return .claim }
+    switch ShareIntent.of(url)?.kind {
+    case .person: return .person
+    case .plan:   return .plan
+    case nil:     break
+    }
     return nil
   }
 }
@@ -107,6 +120,12 @@ public extension NavSlot {
     case .liveRound: .play          // the cover opens over the tab you are on
     case .join:      .compete       // a code joins a season, and a season is Compete's
     case .claim:     .play          // a claimed round is the tee sheet's business
+    // D241 · a person link ends in a buddy request, and a person waiting on
+    // you is Golfers' — the same slot `PushRoute.requests` lands in.
+    case .person:    .golfers
+    // D253 · a plan link ends in a SEAT on a round, and the tee sheet is the
+    // ⊕'s. It is the same landing `.claim` has for the same reason.
+    case .plan:      .play
     }
   }
 

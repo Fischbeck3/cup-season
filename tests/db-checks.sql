@@ -617,5 +617,58 @@ select '25 · a leaver stops scoring forward-only',
        else 'PASS — the forward-only cut is in the lens, beside the suspension''s' end,
   'r.created_at < lm.left_at'
 
+
+-- 26 · D238 · a post may be homed on a PERSON, and the reaction is keyed on one.
+--     `posts` RLS is the most-read policy in the product and `post_kudos` is
+--     the wall a leagueless golfer hit; both are asserted here because a
+--     silently-reverted CHECK or a restored FK puts 14 of 39 profiles back
+--     outside the board with nothing on screen to say so.
+union all
+select '26 · a post can be homed on a person',
+  case when (select pg_get_constraintdef(oid) from pg_constraint where conname = 'posts_home_check') is null
+         then 'FAIL — posts_home_check is gone'
+       when (select pg_get_constraintdef(oid) from pg_constraint where conname = 'posts_home_check') not like '%profile_id%'
+         then 'PASS — D238 not deployed yet'
+       when not exists (select 1 from pg_policies where tablename = 'posts' and policyname = 'posts_profile_read')
+         then 'FAIL — a person-homed post has no reader policy'
+       when (select pg_get_constraintdef(oid) from pg_constraint where conname = 'post_kudos_pkey') not like '%profile_id%'
+         then 'FAIL — posts widened but post_kudos is still keyed on a membership'
+       when exists (select 1 from pg_constraint where conname = 'post_kudos_member_id_fkey')
+         then 'FAIL — a reaction still requires a shared league'
+       else 'PASS — homed, readable, and reactable without a league' end,
+  'posts.profile_id + posts_profile_read + post_kudos(post_id, profile_id, emoji)'
+
+-- 27 · D241 · the person link is a VALUE on an existing CHECK and a BRANCH in
+--     an endpoint that is already one of L-45's twelve. The thing that must
+--     never be true is a thirteenth anon endpoint, so the redemption — the
+--     half that writes — is asserted signed-in only.
+union all
+select '27 · the person link keeps the anon surface at twelve',
+  case when (select pg_get_constraintdef(oid) from pg_constraint where conname = 'shares_kind_check') not like '%person%'
+         then 'PASS — D241 not deployed yet'
+       when to_regprocedure('public.redeem_share(uuid)') is null
+         then 'FAIL — shares.kind admits a person but nothing can redeem one'
+       when has_function_privilege('anon', 'public.redeem_share(uuid)', 'execute')
+         then 'FAIL — redeem_share is executable by anon: that is a thirteenth endpoint'
+       when not has_function_privilege('authenticated', 'public.redeem_share(uuid)', 'execute')
+         then 'FAIL — redeem_share is callable by nobody'
+       else 'PASS — the card is anon, the buddy request is not' end,
+  'shares.kind = person · share_info branch · redeem_share to authenticated only'
+
+-- 28 · D253 · the plan link rides the SAME CHECK and the SAME two functions.
+--     It also may not widen `set_round_rsvp`: the seat is taken inside
+--     `redeem_share`, and D69's guard on the RSVP write stays exactly as it is.
+union all
+select '28 · the plan link keeps the anon surface at twelve',
+  case when (select pg_get_constraintdef(oid) from pg_constraint where conname = 'shares_kind_check') not like '%plan%'
+         then 'PASS — D253 not deployed yet'
+       when has_function_privilege('anon', 'public.redeem_share(uuid)', 'execute')
+         then 'FAIL — redeem_share is executable by anon: that is a thirteenth endpoint'
+       when (select prosrc from pg_proc p join pg_namespace n on n.oid = p.pronamespace
+              where n.nspname = 'public' and p.proname = 'set_round_rsvp')
+              not like '%Only the host and tagged players%'
+         then 'FAIL — D69 guard was widened; the link was supposed to seat, not the function'
+       else 'PASS — one plan, one seat, and D69 untouched' end,
+  'shares.kind = plan · share_info branch · the seat is taken inside redeem_share'
 )
 select * from checks order by check_name;

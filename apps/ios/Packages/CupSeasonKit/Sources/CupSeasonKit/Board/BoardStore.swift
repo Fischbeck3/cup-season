@@ -143,13 +143,19 @@ public final class BoardStore {
     let pids = built.compactMap(\.postId)
     guard !pids.isEmpty else { return }
     let (kudos, comments) = try await repo.social(postIds: pids)
+    // D238 · a reaction is keyed on the PERSON. The roster still resolves a
+    // legacy row's membership to a profile; a row that resolves to neither is
+    // "Someone", which is what the board has always said rather than guessing.
+    var memberToProfile: [UUID: UUID] = [:]
+    var nameOf: [UUID: String] = [:]
+    for m in members { if let p = m.profileId { memberToProfile[m.id] = p; nameOf[p] = m.name } }
     var rxBy: [UUID: [String: ReactionState]] = [:]
     for k in kudos {
-      let e = k.emoji ?? CSReactions.quick
+      let e = BoardKudos.emoji(k)
       var s = rxBy[k.post_id, default: [:]][e, default: ReactionState()]
       s.n += 1
-      if k.member_id == memberId { s.me = true }
-      s.who.append(member(k.member_id)?.name ?? "Someone")
+      if BoardKudos.isMine(k, me: profileId, myMemberIds: memberId.map { [$0] } ?? [], memberToProfile: memberToProfile) { s.me = true }
+      s.who.append(BoardKudos.author(k, memberToProfile: memberToProfile).flatMap { nameOf[$0] } ?? "Someone")
       rxBy[k.post_id, default: [:]][e] = s
     }
     var cmBy: [UUID: [BoardComment]] = [:]
@@ -235,9 +241,9 @@ public final class BoardStore {
     let had = cur.me
     cur.flip(me: me, on: !had)
     items[i].reactions[emoji] = cur
-    guard let post = items[i].postId, let member = memberId else { return }
+    guard let post = items[i].postId, profileId != nil || memberId != nil else { return }
     do {
-      try await repo.writeKudo(post: post, member: member, emoji: emoji, had: had)
+      try await repo.writeKudo(post: post, profile: profileId, member: memberId, emoji: emoji, had: had)
     } catch {
       // revert the optimistic flip — and say so
       if let j = items.firstIndex(where: { $0.id == itemId }) {

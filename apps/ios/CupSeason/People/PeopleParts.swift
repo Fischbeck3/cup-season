@@ -67,7 +67,15 @@ struct PeopleTabBody: View {
     // it: here it is "who am I up against", there it is "what have I done".
     RivalriesSection(rivalries: vm.rivalries, openTourCard: openHeadToHead)
 
+    // D241 · BRING SOMEONE IN. Two links to two different things: the league's
+    // (which renders only when a league has a code) and the golfer's own,
+    // which is the one that works for the 27 of 39 prod profiles with no
+    // accepted buddy. `always: true` so the two clients draw the same row in
+    // the same place — the desk's `renderGolfers` has no league-code branch
+    // and never had one, and D234 forbids the two disagreeing.
+    CSSectionHead("Bring someone in")
     PeopleInviteLink(store: store)
+    PersonInviteLink(store: store, always: true)
     PeopleFindable(vm: vm)
   }
 
@@ -144,6 +152,82 @@ struct PeopleResults: View {
 /// Y-04 · the row NAMES the league the link joins — the golfer is inviting
 /// someone into a room, and the row used to keep which one to itself. With
 /// more than one league holding a code, a menu asks which.
+/// D241 · THE PERSON LINK — the fourth of SP-1's rails, and the door that
+/// makes the other three matter to a golfer with no season.
+///
+/// `PeopleInviteLink` above renders only when a LEAGUE has a code, which is
+/// exactly the golfer this one is for: 27 of 39 prod profiles have no accepted
+/// buddy, and until now the app had nothing to hand them. This mints
+/// `shares.kind = 'person'` for the golfer's own card and opens the system
+/// share sheet on it.
+///
+/// **It is a door or it is nothing.** The migration is written and unpushed,
+/// so the mint has three answers, not two: minted (share it), not deployed yet
+/// (draw NOTHING — L-32 forbids a control that cannot work), and failed (say
+/// so, and leave the row so they can try again).
+struct PersonInviteLink: View {
+  @Environment(\.cs) private var cs
+  @Environment(\.toast) private var toast
+  let store: SessionStore
+  /// Set by a caller that wants the row drawn even with a league link above
+  /// it. Left false, the row stands down where `PeopleInviteLink` is already
+  /// offering a link — one door for one job (L-34).
+  var always = false
+  /// An empty root's "Text someone a link" door bumps this, and the row DOES
+  /// the thing rather than scrolling the golfer to a control they then have to
+  /// find and tap again. L-32 asks for a next move, not a signpost to one.
+  var trigger: Int = 0
+  @State private var minting = false
+  @State private var link: URL?
+
+  var body: some View {
+    if always || PeopleInviteLink.shareables(store).isEmpty {
+      Button { mint() } label: { row }
+        .buttonStyle(.plain)
+        .disabled(minting || store.me?.profile?.id == nil)
+        .accessibilityLabel("Text someone a link")
+        .accessibilityHint("Sends a link to your card. They can join from it.")
+        .sheet(item: $link) { url in
+          ActivityView(items: [ShareIntent.person.message(name: store.me?.profile?.display_name), url])
+        }
+        .onChange(of: trigger) { _, n in if n > 0 { mint() } }
+    }
+  }
+
+  private func mint() {
+    guard let me = store.me?.profile?.id, !minting else { return }
+    minting = true
+    Task {
+      switch await ShareLinkService().mint(.person, ref: me) {
+      case .ok(let url):   link = url
+      case .notYet:        toast.show(ShareLinkService.notYetLine)
+      case .failed(let m): toast.show(m)
+      }
+      minting = false
+    }
+  }
+
+  private var row: some View {
+    HStack(spacing: 10) {
+      Image(systemName: "paperplane").font(.system(size: 15)).foregroundStyle(cs.brand)
+      VStack(alignment: .leading, spacing: 1) {
+        Text("Text someone a link").font(CSFont.subhead.weight(.semibold)).foregroundStyle(cs.ink)
+        Text(minting ? "Making the link…" : "Works for anyone · no account needed")
+          .font(CSFont.label).tracking(1.1).textCase(.uppercase).foregroundStyle(cs.dimText)
+          .fixedSize(horizontal: false, vertical: true)
+      }
+      .multilineTextAlignment(.leading)
+      .frame(maxWidth: .infinity, alignment: .leading)
+      Text("→").font(CSFont.subhead).foregroundStyle(cs.brand)
+    }
+    .padding(12)
+    .frame(minHeight: 44)
+    .background(cs.bg1, in: RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous))
+    .overlay(RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous).stroke(cs.line, lineWidth: 1))
+    .contentShape(Rectangle())
+  }
+}
+
 struct PeopleInviteLink: View {
   @Environment(\.cs) private var cs
   let store: SessionStore
@@ -381,4 +465,66 @@ final class PeopleModel {
 
 #Preview("Golfers") {
   NavigationStack { GolfersScreen() }.csTheme()
+}
+
+/// D253 · THE PLAN LINK — the host's own door on a weekend.
+///
+/// It mints `shares.kind = 'plan'` and hands the token to the system share
+/// sheet. On sign-in the token takes ONE seat on THAT plan and mints a buddy
+/// request to the host, in one transaction on the server — `set_round_rsvp`
+/// is untouched, because D69 narrowed it to the host and the tagged and a
+/// link-holder is neither.
+///
+/// Three answers, like every other read and write shipped ahead of a push:
+/// minted, not deployed yet (draw nothing), failed (say so, keep the row).
+struct PlanInviteLink: View {
+  @Environment(\.cs) private var cs
+  @Environment(\.toast) private var toast
+  let roundId: UUID
+  var course: String? = nil
+  var day: String? = nil
+  @State private var minting = false
+  @State private var link: URL?
+
+  var body: some View {
+    Group {
+      Button {
+        guard !minting else { return }
+        minting = true
+        Task {
+          switch await ShareLinkService().mint(.plan, ref: roundId) {
+          case .ok(let url):   link = url
+          case .notYet:        toast.show(ShareLinkService.notYetLine)
+          case .failed(let m): toast.show(m)
+          }
+          minting = false
+        }
+      } label: {
+        HStack(spacing: 10) {
+          Image(systemName: "paperplane").font(.system(size: 15)).foregroundStyle(cs.brand)
+          VStack(alignment: .leading, spacing: 1) {
+            Text("Text them a link").font(CSFont.subhead.weight(.semibold)).foregroundStyle(cs.ink)
+            Text(minting ? "Making the link…" : "Works for anyone · no account needed")
+              .font(CSFont.label).tracking(1.1).textCase(.uppercase).foregroundStyle(cs.dimText)
+              .fixedSize(horizontal: false, vertical: true)
+          }
+          .multilineTextAlignment(.leading)
+          .frame(maxWidth: .infinity, alignment: .leading)
+          Text("→").font(CSFont.subhead).foregroundStyle(cs.brand)
+        }
+        .padding(12)
+        .frame(minHeight: 44)
+        .background(cs.bg1, in: RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous))
+        .overlay(RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous).stroke(cs.line, lineWidth: 1))
+        .contentShape(Rectangle())
+      }
+      .buttonStyle(.plain)
+      .disabled(minting)
+      .accessibilityLabel("Text them a link")
+      .accessibilityHint("Sends a link to this round. Whoever opens it takes a seat.")
+      .sheet(item: $link) { url in
+        ActivityView(items: [ShareIntent.plan.message(name: nil, course: course, day: day.map { CSDate.short($0) }), url])
+      }
+    }
+  }
 }

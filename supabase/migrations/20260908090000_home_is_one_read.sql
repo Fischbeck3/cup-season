@@ -547,6 +547,15 @@ begin
         v_in  int := greatest(0, coalesce((e->>'rsvp_in')::int, 0));
         v_d   int := (e->>'play_on')::date - v_today;
         v_who text := coalesce(firstname(e->>'display_name'), 'A golfer');
+        -- the day as a WORD, for a sentence rather than a slot. `MeStripCopy
+        -- .dayWord` is its twin on the phone and `HomeFallbackItems` uses it
+        -- for the same item, so the ranker and the declared fallback say the
+        -- same thing about the same plan.
+        v_day text := case ((e->>'play_on')::date - v_today)
+                        when 0 then 'today' when 1 then 'tomorrow'
+                        else case when (e->>'play_on')::date - v_today between 2 and 6
+                                  then to_char((e->>'play_on')::date, 'FMDay')
+                                  else to_char((e->>'play_on')::date, 'FMMon FMDD') end end;
       begin
         v_items := v_items || jsonb_build_array(jsonb_build_object(
           'key',           'plan:' || coalesce(e->>'id', ''),
@@ -559,14 +568,19 @@ begin
           'eyebrow',       upper(to_char((e->>'play_on')::date, 'Dy'))
                              || case when nullif(e->>'course_label', '') is not null
                                      then ' · ' || upper(e->>'course_label') else '' end,
+          -- L-34 · the EYEBROW above already carries the where-and-when, so the
+          -- headline carries the who-and-what and the standfirst the detail.
+          -- It read `MON · GOLD CANYON — DINOSAUR MOUNTAIN · BLACK/BLUE` with
+          -- `Galen has you down for Gold Canyon — Dinosaur Mountain ·
+          -- Black/Blue.` immediately under it: the same fact, in full, twice
+          -- on one card. That is the whole reason the grammar has three slots.
           'headline',      case when coalesce((e->>'mine')::boolean, false)
-                                then 'You have '
-                                       || coalesce(nullif(e->>'course_label', ''), 'a round')
-                                       || ' on the sheet.'
-                                else v_who || ' has you down for '
-                                       || coalesce(nullif(e->>'course_label', ''), 'a round') || '.' end,
-          'standfirst',    case when v_in > 1 then v_in || ' of you on the sheet.'
-                                when coalesce(e->>'my_rsvp', '') = '' then 'You have not said either way.' end,
+                                then 'You have a round on ' || v_day || '.'
+                                else v_who || ' has you down for ' || v_day || '.' end,
+          'standfirst',    nullif(concat_ws(' · ',
+                                   nullif(to_char((e->>'tee_time')::time, 'FMHH12:MI'), '') || ' tee',
+                                   case when v_in > 1 then v_in || ' of you on the sheet' end)
+                                 || '.', '.'),
           'action',        case when coalesce(e->>'my_rsvp', '') = '' then 'Say you''re in' else 'Open the plan' end,
           'route',         jsonb_build_object('kind', 'plan', 'id', e->>'id'),
           'league_id',     null,

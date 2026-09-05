@@ -157,6 +157,9 @@ struct MainTabView: View {
   @Environment(\.cs) private var cs
   @Environment(\.colorScheme) private var scheme
   @Environment(\.scenePhase) private var scenePhase
+  /// D241 / D253 · the one line a redeemed link says. The shell's own toast
+  /// host, because the token is spent before any tab has appeared.
+  @Environment(\.toast) private var shellToast
   @State private var tab: Tab = .home
   @State private var presenter = Presenter()
   /// D104: the tapped-notification route waiting to land, and the contextual ask.
@@ -170,6 +173,10 @@ struct MainTabView: View {
   /// measured from the live bar (`CSTabBarProbe`), never guessed. 0 until the
   /// bar exists, which is exactly the behaviour the app had before.
   @State private var barRoom: CGFloat = 0
+  /// D241 / D253 · a pending `?p=` or `?plan=` token, drained once the golfer
+  /// has a name on them. Bumped by `onOpenURL` so a link tapped while the app
+  /// is already open lands at once.
+  @State private var shareTick = 0
   #if DEBUG
   @State private var devOpened = false
   #endif
@@ -299,6 +306,15 @@ struct MainTabView: View {
     // D155 · tapping the Dynamic Island or the lock-screen card opens the round
     .onReceive(NotificationCenter.default.publisher(for: .csOpenLiveRound)) { _ in
       presenter.showLive = true
+    }
+    // D241 / D253 · spend a pending person or plan token. It is drained HERE,
+    // not in `onOpenURL`, because a link tapped on a phone with no session has
+    // to survive the whole door — email, code, golfer card — and a buddy
+    // request from a golfer with no name on them is not a request anybody can
+    // answer. `.task(id:)` on the profile is what makes the wait exact.
+    .onReceive(NotificationCenter.default.publisher(for: .csShareTokenPending)) { _ in shareTick += 1 }
+    .task(id: ShareDrainKey(profile: store.me?.profile?.id, tick: shareTick)) {
+      await drainShareTokens()
     }
     // D168 · nearby follows the APP. Foreground and opted in = discoverable to
     // your buddies; backgrounded = nothing, by construction (MultipeerConnectivity
@@ -570,6 +586,44 @@ struct MainTabView: View {
     default: break
     }
     tab = .compete
+  }
+
+  /// What the drain watches: the golfer, and a bump from `onOpenURL`. A change
+  /// in either re-runs it; nothing else does, so a redraw never re-spends a
+  /// token.
+  private struct ShareDrainKey: Equatable { let profile: UUID?; let tick: Int }
+
+  /// D241 / D253 · one token, one act, and the token is retired only when the
+  /// server actually answered. `.notYet` means the migration has not landed:
+  /// the token is KEPT and nothing is said, because nothing is wrong — that is
+  /// the three-state rule wave 5 wrote down after "The board didn't load."
+  /// appeared over an account whose board was simply not deployed.
+  private func drainShareTokens() async {
+    guard store.me?.profile?.id != nil else { return }
+    let svc = ShareLinkService()
+    for kind in ShareIntent.allCases {
+      guard let token = kind.pending() else { continue }
+      switch await svc.redeem(token) {
+      case .notYet:
+        continue                                   // keep it; try again after the push
+      case .failed(let msg):
+        kind.clear()
+        shellToast.show(msg)
+      case .ok(let r):
+        kind.clear()
+        if let line = r.line { shellToast.show(line) }
+        await store.reload()
+        // land where the link ended: a buddy request is Golfers', a seat is
+        // the tee sheet's. `NavSlot.of(_:)` decides, so the landing and the
+        // route map can never disagree.
+        switch r.outcome {
+        case .dead, .mine: break
+        case .requested, .buddies: openGolfers()
+        case .seated, .planPast:
+          homePath = NavigationPath(); tab = .home; homePath.append(HomeRoute.schedule)
+        }
+      }
+    }
   }
 
   /// The other cross-tab door. Requests sit at the head of the tab, so landing

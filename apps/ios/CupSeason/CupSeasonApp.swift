@@ -40,7 +40,8 @@ struct CupSeasonApp: App {
           default:          break
           }
         }
-        // Universal Links: /?join=CODE and /?claim=TOKEN (the AASA claims only these two).
+        // Universal Links: /?join=CODE, /?claim=TOKEN, and — D241/D253 — /?p=
+        // and /?plan=. The AASA claims exactly these four queries.
         .onOpenURL { url in
           // D155 · the Live Activity's own scheme — the one tap back from a
           // locked phone. Checked first: it carries no query to misread.
@@ -49,6 +50,15 @@ struct CupSeasonApp: App {
           }
           else if let code = JoinIntent.code(from: url) { JoinIntent.store(code); CSGrowth.log(.linkOpened, kind: "join", token: code); Task { await store.reload() } }
           else if let claim = ClaimIntent.token(from: url) { ClaimIntent.store(claim); CSGrowth.log(.linkOpened, kind: "claim", token: claim) }   // consumed by the tee sheet (wave 4)
+          // D241 / D253 · the token is STORED, never spent here: a link tapped
+          // on a phone with no session must survive the whole door — email,
+          // code, golfer card — and be spent once the golfer has a name on
+          // them. `MainTabView` drains it, the same place the claim is drained.
+          else if let (kind, token) = ShareIntent.of(url) {
+            kind.store(token)
+            CSGrowth.log(.linkOpened, kind: kind.growthKind, token: token.uuidString.lowercased())
+            NotificationCenter.default.post(name: .csShareTokenPending, object: nil)
+          }
         }
     }
   }

@@ -370,3 +370,76 @@ private let today = "2026-09-08"
     #expect(s.slots.map(\.fact) == [.myNextRound])
   }
 }
+
+// MARK: - DEF-1 / DEF-2 · the two defects a screenshot found and no test did
+
+/// BUILD_PLAN §2.z: "a producer that interpolates a server string into a slot
+/// sized for a short one will look correct in a test and wrong on a phone."
+/// Both were photographed on the owner's real account at three consecutive
+/// tips before anything caught them, so both become values here.
+@Suite("The strip and the lead survive a long course name")
+struct LongCourseNameTests {
+
+  /// Prod's longest label today, and the one that wrapped the NEXT slot to
+  /// three lines at the DEFAULT type size on the widest phone.
+  static let longest = "Gold Canyon — Dinosaur Mountain · Black/Blue"
+
+  @Test func theShortNameIsTheClubAndNothingElse() {
+    #expect(MeStripCopy.shortCourse(Self.longest) == "Gold Canyon")
+    #expect(MeStripCopy.shortCourse("Troon North Golf Course — Pinnacle Course · Gold") == "Troon North Golf Course")
+    #expect(MeStripCopy.shortCourse("Raven Golf Club-Phoenix · Silver") == "Raven Golf Club-Phoenix")
+    // a plain name is left exactly as it is
+    #expect(MeStripCopy.shortCourse("Papago Golf Course") == "Papago Golf Course")
+    // and nothing is invented from nothing
+    #expect(MeStripCopy.shortCourse(nil) == nil)
+    #expect(MeStripCopy.shortCourse("   ") == nil)
+  }
+
+  /// DEF-1 · the slot with a real plan on it. With a tee time the strip says
+  /// the day and the tee; WITHOUT one — which is every real plan in prod —
+  /// it says the day and the CLUB, never the layout and never the tee variant.
+  @Test func theNextSlotNeverPrintsTheFullLabel() {
+    let noTee = plan("2026-09-07", tee: nil, course: Self.longest)
+    let slot = MeStripCopy.nextSlot([noTee], today: "2026-09-05", calendar: .current)
+    #expect(slot?.value == "MON · GOLD CANYON")
+    #expect(slot?.value.contains("DINOSAUR") == false)
+    #expect(slot?.value.contains("BLACK/BLUE") == false)
+    // the tee wins the slot outright — a time is shorter and more useful than a place
+    #expect(MeStripCopy.nextSlot([plan("2026-09-07", course: Self.longest)],
+                                 today: "2026-09-05", calendar: .current)?.value == "MON 7:10")
+  }
+
+  /// The day as a WORD, for a sentence. `home_dispatch` computes the same
+  /// three cases in SQL, and `HomeFallbackItems` uses this one, so the ranker
+  /// and the declared fallback say the same thing about the same plan.
+  @Test func theDayWordIsASentenceNotASlot() {
+    #expect(MeStripCopy.dayWord("2026-09-05", today: "2026-09-05") == "today")
+    #expect(MeStripCopy.dayWord("2026-09-06", today: "2026-09-05") == "tomorrow")
+    #expect(MeStripCopy.dayWord("2026-09-07", today: "2026-09-05") == "Monday")
+    // past a week it is a date, never a weekday that could mean either week
+    #expect(MeStripCopy.dayWord("2026-09-20", today: "2026-09-05").contains("Sep"))
+  }
+
+  /// DEF-2 (L-34) · the lead card said its course TWICE — once in full in the
+  /// eyebrow and once in full in the headline. The eyebrow keeps the venue;
+  /// the headline names the person and the day; the standfirst carries the
+  /// tee time and who else is in.
+  @Test func theLeadCardNeverSaysItsCourseTwice() throws {
+    let row: [String: Any] = [
+      "id": UUID().uuidString, "display_name": "Galen Fischbeck", "play_on": "2026-09-07",
+      "course_label": Self.longest, "tee_time": "07:10:00", "rsvp_in": 2,
+      "mine": false, "tagged_me": true,
+    ]
+    let json = try JSONSerialization.data(withJSONObject: ["memberships": [], "invites": [],
+                                                          "events": [], "open_duels": [],
+                                                          "upcoming_rounds": [row]])
+    let me = try JSONDecoder().decode(Me.self, from: json)
+    let items = HomeFallbackItems.make(me, feed: [], today: "2026-09-05")
+    let lead = items.first { $0.key.hasPrefix("plan:") }
+    #expect(lead != nil)
+    #expect(lead?.headline == "Galen has you down for Monday.")
+    #expect(lead?.eyebrow.contains("GOLD CANYON") == true)          // the venue, once
+    #expect(lead?.headline.contains("Gold Canyon") == false)        // and not twice
+    #expect(lead?.standfirst == "7:10 tee · 2 of you on the sheet.")
+  }
+}

@@ -28,12 +28,11 @@ public struct PostRow: Decodable, Sendable, Equatable {
   }
 }
 
-public struct KudoRow: Codable, Sendable, Equatable {
-  public let post_id: UUID
-  public let member_id: UUID
-  public let emoji: String?
-  public init(post_id: UUID, member_id: UUID, emoji: String?) { self.post_id = post_id; self.member_id = member_id; self.emoji = emoji }
-}
+/// D238 · the reaction is keyed on the PERSON now, and BOTH keys are optional
+/// because both eras are real: a pre-push row carries `member_id` alone, a
+/// post-push row carries `profile_id`, and the backfill leaves the five
+/// existing rows carrying both. `BoardKudos` is where that is decided once.
+public typealias KudoRow = BoardKudos.Row
 
 public struct CommentRow: Decodable, Sendable, Equatable {
   public let post_id: UUID
@@ -64,7 +63,7 @@ public protocol BoardRepository: Sendable {
   func social(postIds: [UUID]) async throws -> (kudos: [KudoRow], comments: [CommentRow])
   func signedURLs(paths: [String]) async -> [String: URL]
   func insertChat(league: UUID, season: UUID?, member: UUID, body: String) async throws
-  func writeKudo(post: UUID, member: UUID, emoji: String, had: Bool) async throws
+  func writeKudo(post: UUID, profile: UUID?, member: UUID?, emoji: String, had: Bool) async throws
   func insertComment(post: UUID, member: UUID, body: String) async throws
   func announce(league: UUID, body: String) async throws
   func report(post: UUID, reason: String) async throws
@@ -206,14 +205,37 @@ public struct SupabaseBoardRepository: BoardRepository {
   }
 
   /// THE one write path for a reaction row — insert or delete, exactly as
-  /// chosen. NO skew fallback here, deliberately (the original guard retried
-  /// without emoji and the column default stamped 🔥 — a 🦅 became fire).
-  public func writeKudo(post: UUID, member: UUID, emoji: String, had: Bool) async throws {
-    if had {
-      try await db.from("post_kudos").delete()
-        .eq("post_id", value: post).eq("member_id", value: member).eq("emoji", value: emoji).execute()
-    } else {
-      try await db.from("post_kudos").insert(KudoRow(post_id: post, member_id: member, emoji: emoji)).execute()
+  /// chosen. There is still NO fallback that changes which emoji was written
+  /// (the original guard retried without `emoji` and the column default
+  /// stamped 🔥 — a 🦅 became fire). D238 adds ONE fallback and it is a
+  /// different kind: when `profile_id` is not deployed yet the SAME person is
+  /// named by their membership. `BoardKudos.skewFallbackFires` is the only
+  /// condition, and it is a value a test holds.
+  public func writeKudo(post: UUID, profile: UUID?, member: UUID?, emoji: String, had: Bool) async throws {
+    struct ProfileRow: Encodable { let post_id: UUID; let profile_id: UUID; let emoji: String }
+    struct MemberRow: Encodable { let post_id: UUID; let member_id: UUID; let emoji: String }
+    func legacy(_ m: UUID) async throws {
+      if had {
+        try await db.from("post_kudos").delete()
+          .eq("post_id", value: post).eq("member_id", value: m).eq("emoji", value: emoji).execute()
+      } else {
+        try await db.from("post_kudos").insert(MemberRow(post_id: post, member_id: m, emoji: emoji)).execute()
+      }
+    }
+    guard let profile else {
+      guard let member else { throw RpcError(name: "post_kudos", underlying: "no golfer to write for", droppedArgs: []) }
+      try await legacy(member); return
+    }
+    do {
+      if had {
+        try await db.from("post_kudos").delete()
+          .eq("post_id", value: post).eq("profile_id", value: profile).eq("emoji", value: emoji).execute()
+      } else {
+        try await db.from("post_kudos").insert(ProfileRow(post_id: post, profile_id: profile, emoji: emoji)).execute()
+      }
+    } catch {
+      guard BoardKudos.skewFallbackFires(on: error), let member else { throw error }
+      try await legacy(member)
     }
   }
 

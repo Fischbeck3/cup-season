@@ -91,15 +91,25 @@ public enum HomeFallbackItems {
       guard let on = p.play_on, let days = CSDate.days(from: today, to: on), days <= 8 else { continue }
       let mine = p.mine != false
       let who = p.display_name.flatMap { CSBands.fn1($0) } ?? "A golfer"
-      let course = (p.course_label?.isEmpty == false) ? p.course_label! : "a round"
+      // DEF-2 (L-34) · the EYEBROW carries the where-and-when, so the headline
+      // carries the who-and-what. It read `MON · GOLD CANYON — DINOSAUR
+      // MOUNTAIN · BLACK/BLUE` with `Galen has you down for Gold Canyon —
+      // Dinosaur Mountain · Black/Blue.` immediately under it: the same fact,
+      // in full, twice on one card. That is the whole reason the card grammar
+      // has three slots.
+      let day = MeStripCopy.dayWord(on, today: today, calendar: calendar)
+      let tee = p.tee_time.flatMap(MeStripCopy.teeText).map { "\($0) tee" }
+      let party = (p.rsvp_in ?? 0) > 1 ? "\(p.rsvp_in ?? 0) of you on the sheet" : nil
+      let stand = [tee, party].compactMap { $0 }.joined(separator: " · ")
       out.append(.init(key: "plan:\(p.id?.uuidString ?? on)", tier: days <= 3 ? .closing : .coming,
                        subject: mine ? "you" : who, humanSubject: true,
                        eyebrow: [MeStripCopy.dayToken(on, today: today, calendar: calendar),
                                  (p.course_label?.isEmpty == false) ? p.course_label!.uppercased() : nil]
                                   .compactMap { $0 }.joined(separator: " · "),
-                       headline: mine ? "You have \(course) on the sheet."
-                                      : "\(who) has you down for \(course).",
-                       standfirst: p.my_rsvp == nil ? "You have not said either way." : nil,
+                       headline: mine ? "You have a round on \(day)."
+                                      : "\(who) has you down for \(day).",
+                       standfirst: !stand.isEmpty ? stand + "."
+                                   : (p.my_rsvp == nil ? "You have not said either way." : nil),
                        action: p.my_rsvp == nil ? "Say you're in" : "Open the plan",
                        route: p.id.map(HomeDispatch.Route.plan) ?? .declare,
                        spine: .ember, at: on))
