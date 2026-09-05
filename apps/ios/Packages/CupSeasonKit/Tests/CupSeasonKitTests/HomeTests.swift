@@ -94,3 +94,69 @@ private func row(_ id: UUID = UUID(), me: Bool = false, golfer: String? = "Diego
     #expect(Occasion.current(leagueless: true, today: jan5, calendar: cal, defaults: defaults) == nil)
   }
 }
+
+// D252 — a card that sells a Major does not render until the Major's door
+// opens. Four of the six windows do: `opener`, `test`, `oldest` and `fall`.
+// The artifacts say three; the table holds four, and all four are gated.
+
+@Suite struct OccasionMajorGateTests {
+  private func cal() -> Calendar {
+    var c = Calendar(identifier: .gregorian)
+    c.timeZone = TimeZone(identifier: "America/Phoenix")!
+    return c
+  }
+  private func fresh(_ name: String) -> UserDefaults {
+    let d = UserDefaults(suiteName: name)!
+    d.removePersistentDomain(forName: name)
+    return d
+  }
+  private func day(_ m: Int, _ d: Int, _ c: Calendar) -> Date {
+    c.date(from: DateComponents(year: 2027, month: m, day: d))!
+  }
+
+  @Test func exactlyFourWindowsSellAMajorOrAJug() {
+    let gated = Occasion.all.filter(\.needsMajor).map(\.key)
+    #expect(Set(gated) == ["opener", "test", "oldest", "fall"])
+    #expect(gated.count == 4)
+    // and the two that are not gated are the Ryder and the league
+    #expect(Occasion.all.filter { !$0.needsMajor }.map(\.key) == ["teams", "fresh"])
+  }
+
+  @Test func aShutDoorIsNeverSoldAndTheFlagDefaultsToShut() {
+    let c = cal(), d = fresh("occasion-major-tests")
+    for (m, day) in [(4, 1), (6, 12), (7, 15), (10, 20)] {
+      let t = self.day(m, day, c)
+      // the window is live — with the door open the card is there
+      #expect(Occasion.current(leagueless: false, majorOpen: true, today: t, calendar: c, defaults: d)?.needsMajor == true)
+      // with the door shut it is not, and the DEFAULT is shut: a caller that
+      // never read `app_flags.ios.major` gets the same answer as one whose
+      // read failed, which is what EventPickerSheet does with the same flag
+      #expect(Occasion.current(leagueless: false, majorOpen: false, today: t, calendar: c, defaults: d)?.needsMajor != true)
+      #expect(Occasion.current(leagueless: false, today: t, calendar: c, defaults: d)?.needsMajor != true)
+    }
+  }
+
+  @Test func aWithheldCardYieldsToTheNextWindowRatherThanBlankingHome() {
+    // 1–5 Oct: `teams` (a Ryder — not gated) and `fall` (a Major — gated) are
+    // both live, and `teams` is first in the table. The Ryder shows either way.
+    let c = cal(), d = fresh("occasion-major-overlap")
+    let oct2 = day(10, 2, c)
+    #expect(Occasion.current(leagueless: false, majorOpen: true, today: oct2, calendar: c, defaults: d)?.key == "teams")
+    #expect(Occasion.current(leagueless: false, majorOpen: false, today: oct2, calendar: c, defaults: d)?.key == "teams")
+    // and once the Ryder is dismissed, the shut door leaves nothing rather
+    // than offering a Major that cannot be started
+    Occasion.dismiss(Occasion.all.first { $0.key == "teams" }!, today: oct2, calendar: c, defaults: d)
+    #expect(Occasion.current(leagueless: false, majorOpen: true, today: oct2, calendar: c, defaults: d)?.key == "fall")
+    #expect(Occasion.current(leagueless: false, majorOpen: false, today: oct2, calendar: c, defaults: d) == nil)
+  }
+
+  @Test func theFlagIsOnlyReadOnADayThatWouldNeedIt() {
+    let c = cal(), d = fresh("occasion-major-needs")
+    #expect(Occasion.needsMajorToday(leagueless: false, today: day(6, 12, c), calendar: c, defaults: d))
+    // 2 Oct is the Ryder's, and the Ryder needs no flag
+    #expect(!Occasion.needsMajorToday(leagueless: false, today: day(10, 2, c), calendar: c, defaults: d))
+    // and an ordinary day is in no window at all
+    #expect(!Occasion.needsMajorToday(leagueless: false, today: day(9, 5, c), calendar: c, defaults: d))
+    #expect(Occasion.current(leagueless: false, majorOpen: true, today: day(9, 5, c), calendar: c, defaults: d) == nil)
+  }
+}

@@ -150,7 +150,7 @@ struct OrientationScreen: View {
         leave("event")
       }))
     }
-    .onAppear { CSTelemetry.event("orientation_shown", ["platform": .string("ios")]) }
+    .onAppear { CSTelemetry.event("orientation_shown") }
   }
 
   /// The ⊕ wears ember in the bar; it wears ember here.
@@ -209,7 +209,7 @@ struct OrientationScreen: View {
   private func leave(_ how: String) {
     guard !leaving else { return }
     leaving = true
-    CSTelemetry.event("orientation_done", ["how": .string(how), "platform": .string("ios")])
+    CSTelemetry.event("orientation_done", ["how": .string(how)])
     Task {
       if how != "in" { try? await Task.sleep(for: .milliseconds(450)) }
       done()

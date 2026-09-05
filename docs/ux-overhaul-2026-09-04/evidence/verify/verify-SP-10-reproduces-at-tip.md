@@ -1,0 +1,34 @@
+# Verify SP-10 · lens "reproduces-at-tip" · tip 3bba87e · 2026-09-04
+
+Verdict: **HOLDS** (with corrections). Every behavioural claim I could open at tip reproduces in the code; the prod scoreboard claims reproduce in read-only queries. Two claims are reader-only (not reproduced here) and five need rewording.
+
+## A. Canon still names the web as reference — SAW
+- `CLAUDE.md:301-303` "The web client is the behavioural reference; the phone owns operating the league, the desk owns authoring it (IOS-007)."
+- `docs/ios/DECISIONS.md:179-189` IOS-018: "The phone builds everything the web has … in the web's own copy and behaviour."
+- Web-owed notes: `spec/decision-log.md:4243` (D121 "The web row is still owed"), `:4334` (D130 "the web hero still repeats it, index.html:11520 — a web task"), `:5640-5677` D216/D217/D218 "BUILT … client only" (phone), D219 "a web task under this entry". D126/D129 not opened.
+- IOS-011 (`DECISIONS.md:127`) "⊕ is a full-screen cover opening on the post form" v D110 addendum (`decision-log.md:4116-4119`) "the ⊕ … now ALWAYS open the cover". The CODE follows the addendum: `MainTabView.swift:338` sets `postOnComposer = false` on the ⊕ tab; `PostCoverView.swift:30-35` documents it. A stale-doc contradiction, not a behavioural one.
+
+## B. Divergence — SAW unless marked
+- No second-league row on the web: `renderHomeHero` (`index.html:11198-11217`) builds `active`/`done` from memberships and uses them only to choose the wrapped-vs-live branch; no per-membership row anywhere in `:11240-11560`. Boot toasts "Switch groups anytime from Home" at `:20066` when `CS.memberships.length > 1`. Phone has `CupSeasonKit/Home/HomeLeagueRow.swift`. Prod: 11 of 17 golfers in a non-sandbox league hold 2+.
+- `upcomingFromSchedule` `:10985` `if(r.mine === false) return;` — no `tagged_me`/`my_rsvp` read anywhere in `:10978-10999`. Next tile `:11052-11054` filters `watchAll` on date only (not even `mine`).
+- `:10877` prints `you've posted ${fmtN(credits)}` — code SAW; that `credits` is fractional in practice is INFERRED (fmtN exists for it).
+- Archive `:14123-14130`: `sq = standings.squads`, `lead = sq[0]`, row prints `WK n` plus nothing when `lead` is undefined. Prod: 3 of 6 in-season leagues are `league_settings.structure = 'solo'` (Fellas, Who's the bitch?, +1) and their latest snapshots carry `squads: []` with `individuals` — the bare row is INFERRED from code + data shape (not run in a browser). NOTE: 0 of 6 are one-member; "solo" means structure.
+- Covenant: `index.html:17705` `if(!info || !Number(info.buyin_cents)) return true;` (RPC error → `info=null` → proceed). Phone `Kit/People/JoinLeague.swift:99-106` `try await svc.call(...)` throws; its own comment: "fails closed — the web fell open".
+- Hand-typed course post: phone `PostCard.swift:73` `ratingValue = Self.dbl(rating)`, `:78-79` `dbl` is `parseFloat(v)||0`; preview at `:238-246` computes a differential from rating 0 and returns non-nil; `PostRoundModel.swift:201` guards only `preview != nil`; no submit-path guard names rating; payload `:298` carries `rating`; server `20260718173100:58` `check (rating between 25 and 90) not valid` rejects. Web Q-22 `:6989-6999` blocks the same case. Code-read, not run.
+- Crew step: web `#obCrew` `:2859` ("Who are you playing with? … Got a league code? … Find your buddies") shown from `continueAfterCard` `:15006-15014`. Phone `OrientationScreen.swift` carries the orientation copy ("Four places. Two ways to play.") plus code/league/event doors (`:195-203`) and logs `orientation_done{how}` "the web's crew_step_done vocabulary" (`:205-212`). So the QUESTION and the buddies door are web-only; the doors are not.
+- Week formulas on the web: `:13641-13644` `max(1, ceil((e-s)/7d))`; `:16819` `max(2, round((d1-d0+1d)/7d))`; `:11305` `floor((now-start)/7d)+1` clamped. Phone `LeagueDates.swift:30-40` = ceil / floor+1 (matches `:13641`). Server formulas not counted by me.
+- Tiebreak two wordings: `:11520` "Months won breaks the tie." v `:6328`/`:6337` "Level on points? Months won breaks it."
+- `#hhPhase` `:14635` hand-writes 'Squad formation' while `STAGE_LABEL.drawing` `:6221` is 'Squads drawing'.
+
+## C. Scoreboard — prod read-only (`supabase db query --linked`), 2026-09-04
+- `client_events` columns: id, profile_id, event, props, created_at — no platform. `rounds` has no client column (`source` is quick:207 / live:5).
+- All 16 event names ever: post_open 109/8, home_hero_state 90/11 (web, last 2026-09-01), post_submit 24/5, signed_in 14/5, client_error 13/4, push_opened 7/1, orientation_shown 5/1, league_create 2, home_hero_tap 2, push_prompt_shown 1, round_posted 1, scan_post 1, invite_open 1, lock_attempt 1 (2026-07-27), lock_ok 1 (2026-07-27), league_created 1. ZERO: crew_step_*, covenant_declined, orientation_done, home_occasion_tap, lock_fail, any app_open/view name.
+- FR-09 mechanism SAW: `state.demo` starts `true` (`:4083`), flips only in `enterGuestLive` `:9024`, `resetToBlank` `:13581`, `showWelcome` `:19847` — all downstream of `crew_step_shown` `:15012`, `crew_step_done` `:15016`, `covenant_declined` `:20034`/`:20108` on a cold signup; `qaEvent` `:6900` keeps `if(state.demo || !window.sb) return;`.
+- Lock: zero rows since D111 (2026-09-01) on either client. Phone fires `lock_attempt`/`lock_blocked`/`invite_open` (`WizardScreen.swift:274-289`) but its success name is `league_locked` (`WizardService.swift:138`), not `lock_ok`.
+- 30-day split with `post_open`/`post_submit`/`lock_*` treated as both-client names: web-only names 8 golfers, phone-only 5, shared 4. device_tokens = 1. rounds 212, 195 played_on more than a day before created_at (statement says 199; threshold-dependent; no 'seed' source exists).
+- Platform: `Telemetry.swift:41-48` row is `{event, props}`; BUT `HomeView.swift:87,91` and `OrientationScreen.swift:153,212` stamp `platform:"ios"` in props, and `product()` `:53-57` stamps `build`. Phone event surface is ~16 names, not one: five product events, wizard (3), post (`PostEpilogue.swift:225-232`: post_open, post_mode_switch, post_even_par_confirmed, post_submit, scan_post, scan_claim_minted), push_* (5), orientation_* (2), client_error, home_occasion_tap. HM-44's Home-scoped claim is right: Home logs only home_occasion_tap and no hero state.
+- Screenshots: `apps/ios/Screenshots/6.9/05-you.png` (Sep 1) shows "Member since Aug 2026", "YOUR DISPLAY CASE", "No silverware yet — every season starts level.", "LIFETIME"; none of the six strings exists in Swift at tip (only a comment at `TourCard.swift:146` saying "Member since" is retired). 06-settings.png not opened.
+
+## D. Not reproduced here (reader-only)
+- SV-01 (22 light captures against a charcoal default) — a capture-harness claim, not client behaviour.
+- "The signup-walk set is the web" (SV §0), D131/D132 unbuilt, D126/D129 web-owed, the exact server week-formula count, DL-26 seven band copies, DL-09 three head-to-heads.

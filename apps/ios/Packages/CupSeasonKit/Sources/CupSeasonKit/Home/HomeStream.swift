@@ -184,6 +184,14 @@ public enum HomeCopy {
 /// Six calendar windows, all copy OBLIQUE — the marker art carries the nod,
 /// never a name. Dismiss is per-window-per-year, so next spring the azaleas
 /// come back. Weekend CLUSTERING preempts the calendar.
+///
+/// D252 · FOUR of the six sell a Major or a jug, and the Major's door is
+/// gated on `app_flags.ios.major`, which is off in prod. A card that offers a
+/// door that will not open is the one dishonesty the design does not permit
+/// (L-32, L-44), so `needsMajor` marks them and `current(leagueless:majorOpen:)`
+/// withholds them until the flag is read TRUE. The flag defaults to `false`
+/// here for the same reason `EventPickerSheet` reads it fail-closed: an
+/// unreadable flag hides a door rather than advertising one.
 public struct Occasion: Sendable, Identifiable {
   public enum Go: Sendable { case event, league }
   public let key: String
@@ -196,21 +204,24 @@ public struct Occasion: Sendable, Identifiable {
   public let go: Go
   public let marker: String?
   public let leaguelessOnly: Bool
+  /// This card's act is a Major or a jug — it renders only once the Major's
+  /// flag is on. `teams` (a Ryder) and `fresh` (a league) are not gated.
+  public let needsMajor: Bool
   public var id: String { key }
 
   public static let all: [Occasion] = [
     Occasion(key: "opener", window: (3, 28, 4, 13), earned: true, k: "The first one of the year", h: "Azaleas are blooming somewhere.",
-             p: "One window, every card on one board, one name on the jug.", act: "Put a jug up", go: .event, marker: "azalea", leaguelessOnly: false),
+             p: "One window, every card on one board, one name on the jug.", act: "Put a jug up", go: .event, marker: "azalea", leaguelessOnly: false, needsMajor: true),
     Occasion(key: "test", window: (6, 8, 6, 22), earned: true, k: "The hardest test", h: "Somewhere out there, par is winning.",
-             p: "A championship window — two to four days, best card takes it.", act: "Set the Major", go: .event, marker: "no2", leaguelessOnly: false),
+             p: "A championship window — two to four days, best card takes it.", act: "Set the Major", go: .event, marker: "no2", leaguelessOnly: false, needsMajor: true),
     Occasion(key: "oldest", window: (7, 10, 7, 24), earned: true, k: "The oldest one", h: "Links weather is a state of mind.",
-             p: "One window, every card on one board, one name on the jug.", act: "Name the jug", go: .event, marker: "jug", leaguelessOnly: false),
+             p: "One window, every card on one board, one name on the jug.", act: "Name the jug", go: .event, marker: "jug", leaguelessOnly: false, needsMajor: true),
     Occasion(key: "teams", window: (9, 18, 10, 5), earned: false, k: "The big team match", h: "Two teams. One cup. You know the one.",
-             p: "Weekly duels, first past half the points. Yours can start the same weekend.", act: "Run your own", go: .event, marker: nil, leaguelessOnly: false),
+             p: "Weekly duels, first past half the points. Yours can start the same weekend.", act: "Run your own", go: .event, marker: nil, leaguelessOnly: false, needsMajor: false),
     Occasion(key: "fall", window: (10, 1, 11, 20), earned: true, k: "The season's turning", h: "Cool mornings, empty tee sheets.",
-             p: "A fall Major — two to four days, best card takes it.", act: "Name the jug", go: .event, marker: nil, leaguelessOnly: false),
+             p: "A fall Major — two to four days, best card takes it.", act: "Name the jug", go: .event, marker: nil, leaguelessOnly: false, needsMajor: true),
     Occasion(key: "fresh", window: (12, 27, 1, 15), earned: false, k: "A fresh table", h: "Nobody's ahead yet.",
-             p: "A season scores the rounds you’re already playing. Nothing changes about how you post.", act: "Start a league", go: .league, marker: nil, leaguelessOnly: true),
+             p: "A season scores the rounds you’re already playing. Nothing changes about how you post.", act: "Start a league", go: .league, marker: nil, leaguelessOnly: true, needsMajor: false),
   ]
 
   public static func inWindow(_ w: (Int, Int, Int, Int), month m: Int, day: Int) -> Bool {
@@ -220,12 +231,29 @@ public struct Occasion: Sendable, Identifiable {
   }
 
   /// The one to show today, honouring per-year dismissals.
-  public static func current(leagueless: Bool, today: Date = Date(), calendar: Calendar = .current, defaults: UserDefaults = .standard) -> Occasion? {
+  ///
+  /// `majorOpen` defaults to **false** (D252): a caller that has not read
+  /// `app_flags.ios.major` shows no card that sells a Major, which is the same
+  /// answer `EventPickerSheet` gives when the flag will not read. A withheld
+  /// card does not blank Home — the next window that is not gated takes its
+  /// place, exactly as a dismissed one does.
+  public static func current(leagueless: Bool, majorOpen: Bool = false, today: Date = Date(),
+                             calendar: Calendar = .current, defaults: UserDefaults = .standard) -> Occasion? {
     let c = calendar.dateComponents([.year, .month, .day], from: today)
     guard let y = c.year, let m = c.month, let d = c.day else { return nil }
     return all.first { o in
-      inWindow(o.window, month: m, day: d) && !(o.leaguelessOnly && !leagueless) && !defaults.bool(forKey: "cs_occ_\(o.key)_\(y)")
+      inWindow(o.window, month: m, day: d) && !(o.leaguelessOnly && !leagueless)
+        && !(o.needsMajor && !majorOpen)
+        && !defaults.bool(forKey: "cs_occ_\(o.key)_\(y)")
     }
+  }
+
+  /// Is any card in today's windows gated on the Major? The caller asks this
+  /// FIRST so a Home outside every gated window never spends a round trip on
+  /// the flag — which is every day of the year but the four windows below.
+  public static func needsMajorToday(leagueless: Bool, today: Date = Date(),
+                                     calendar: Calendar = .current, defaults: UserDefaults = .standard) -> Bool {
+    current(leagueless: leagueless, majorOpen: true, today: today, calendar: calendar, defaults: defaults)?.needsMajor == true
   }
 
   public static func dismiss(_ o: Occasion, today: Date = Date(), calendar: Calendar = .current, defaults: UserDefaults = .standard) {

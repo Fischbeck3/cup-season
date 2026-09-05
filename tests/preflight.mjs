@@ -680,5 +680,67 @@ else {
         ' — PostgREST returns 300 PGRST201; use live_round_players!live_round_players_live_round_id_fkey(...)');
 }
 
+/* 22 · nobody stamps their own platform (D234) -----------------------------
+   `platform` was hand-written in four Swift call sites and nowhere else, and
+   the web wrote it in none, so no row in `client_events` could be split by
+   client — the phone's rows and the web's were the same rows, and every rate
+   in the design set was unmeasurable. The stamp now lives in exactly one place
+   on each client: `CSTelemetry.event` (via `stamped`) and `qaEvent`. A caller
+   that types its own is not a style choice — it is a second producer for a
+   fact that has one, so it fails the push.
+
+   Scope: `.swift` under apps/ios (build/checkout trees excluded, since the
+   SPM checkouts carry asset catalogues with a `"platform"` key), and
+   index.html outside `qaEvent`'s own body. `p_platform` (the
+   register_device_token argument) is a different word and is not matched. */
+{
+  const offenders = [];
+
+  const iosRoot = join(root, 'apps', 'ios');
+  const SKIP = new Set(['build', '.build', 'DerivedData', 'CupSeason.xcodeproj', 'Screenshots']);
+  const swift = [];
+  const walk = dir => {
+    let entries;
+    try { entries = readdirSync(dir, { withFileTypes: true }); } catch { return; }
+    for (const e of entries) {
+      if (e.name.startsWith('.') && e.name !== '.build') continue;
+      if (SKIP.has(e.name)) continue;
+      const full = join(dir, e.name);
+      if (e.isDirectory()) walk(full);
+      else if (e.name.endsWith('.swift')) swift.push(full);
+    }
+  };
+  if (existsSync(iosRoot)) walk(iosRoot);
+
+  /* Two files may name the client, and they are the rule itself: the stamp,
+     and the suite that pins it. Named one by one rather than by directory —
+     exempting every test file would let a fixture quietly grow a second
+     producer for the same fact. */
+  const STAMPS = ['CupSeasonKit/Telemetry.swift', 'CupSeasonKitTests/TelemetryTests.swift'];
+  for (const f of swift) {
+    if (STAMPS.some(x => f.endsWith(x))) continue;
+    const src = readFileSync(f, 'utf8');
+    if (/(?<![\w_])"platform"\s*:/.test(src))
+      offenders.push(`${f.slice(root.length)} writes its own "platform" (the stamp is CSTelemetry.event)`);
+  }
+
+  /* the web's single stamp is inside qaEvent; anywhere else in index.html is a
+     second producer for the same fact */
+  const qa = html.match(/function qaEvent\(event, props\)\{[\s\S]*?\n\}/);
+  const qaStart = qa ? qa.index : -1;
+  const qaEnd = qa ? qa.index + qa[0].length : -1;
+  if (!qa) offenders.push('index.html: qaEvent not found — did the web\u2019s one stamp get renamed?');
+  else if (!/platform:\s*CS_PLATFORM/.test(qa[0]))
+    offenders.push('index.html: qaEvent no longer stamps platform — every web row would go unlabelled');
+  for (const m of html.matchAll(/(?<![\w_$])platform\s*:/g)) {
+    if (m.index >= qaStart && m.index < qaEnd) continue;
+    offenders.push(`index.html: a "platform" key at offset ${m.index} outside qaEvent`);
+  }
+
+  offenders.length === 0
+    ? pass('nobody stamps their own platform', `${swift.length} Swift file(s) + index.html — one stamp per client`)
+    : fail('nobody stamps their own platform', offenders.join(' · '));
+}
+
 console.log(`\n${fails ? 'FAIL' : 'PASS'} — ${fails} failure(s), ${warns} warning(s)`);
 process.exit(fails ? 1 : 0);

@@ -7,6 +7,10 @@ import CupSeasonKit
 @main
 struct CupSeasonApp: App {
   @UIApplicationDelegateAdaptor(AppDelegate.self) private var delegate
+  /// D234 · `app_open` is the denominator of every funnel in the overhaul, so
+  /// it is counted here — at the scene, once per foreground — rather than at a
+  /// screen that a golfer may or may not reach.
+  @Environment(\.scenePhase) private var scenePhase
   @State private var store = SessionStore()
   @State private var appearance = CSAppearance.load()
   @State private var toasts = CSToastCenter()
@@ -25,6 +29,17 @@ struct CupSeasonApp: App {
         .csToasts(toasts)
         .task { store.start() }
         .task { await PushService.shared.syncOnLaunch() }
+        // One row per FOREGROUND, not per `.active`: a banner, the app
+        // switcher and Face ID all bounce through `.inactive` and back, and
+        // counting those as opens would inflate the number every rate in the
+        // design set is divided by. `AppOpenGate` holds that rule.
+        .onChange(of: scenePhase, initial: true) { _, phase in
+          switch phase {
+          case .active:     CSTelemetry.sceneBecameActive()
+          case .background: CSTelemetry.sceneEnteredBackground()
+          default:          break
+          }
+        }
         // Universal Links: /?join=CODE and /?claim=TOKEN (the AASA claims only these two).
         .onOpenURL { url in
           // D155 · the Live Activity's own scheme — the one tap back from a

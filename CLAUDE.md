@@ -298,9 +298,18 @@ edge months** (blanket rule, decided). League timezone default
   10/11 fail the push if they are stale, and checks 15–17 are the Swift
   siblings of 12–14 (palette purity, OTP discipline, RPC grants).
 - **Native work runs LOCALLY** (rule 6 still holds). Decisions, roadmap and
-  the audit behind them: `docs/ios/`. The web client is the behavioural
-  reference; the phone owns operating the league, the desk owns authoring it
-  (IOS-007). `apps/mobile/` (Expo B1) and `ios-wrapper/` are retired by D99.
+  the audit behind them: `docs/ios/`. **Two clients, one product, one set of
+  producers, two shapes — the phone at the turn, the web at the desk** (D234,
+  owner ruling R-C, 2026-09-05; this SUPERSEDES "the web client is the
+  behavioural reference", which was stale). Every change has a phone half and
+  a web half and is not done until both ship. **Shared and produced once:**
+  every RPC and payload, every copy producer and copy law, the terminology
+  table, the ranking rule, the object model, every decision entry. **Not
+  shared:** layout, density, navigation chrome, and which facts sit beside
+  which — the same sentence renders as a card on the phone and as a column on
+  the desk. The web is built INTO `index.html`, in its own desktop-first shape
+  (a sidebar and a wide two-column body), never as the phone's tabs reflowed.
+  `apps/mobile/` (Expo B1) and `ios-wrapper/` are retired by D99.
 
 ## Environments & commands
 

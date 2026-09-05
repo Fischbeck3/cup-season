@@ -6895,10 +6895,21 @@ function finishDismiss(){
    client_events. Demo is a diorama (never emits), a missing sb bridge no-ops,
    and every failure is swallowed — a breadcrumb must never break a post.
    profile_id defaults to auth.uid() server-side, so nothing is sent here. ---- */
+/* D234 · `platform` is stamped HERE and only here, exactly as the phone stamps
+   it in CSTelemetry.event and only there. Before this, the phone hand-wrote
+   it in four places and the web wrote it nowhere, so no event in
+   `client_events` could be split by client — the two clients' rows were the
+   same rows, and every rate in the design set was unmeasurable. A caller's own
+   `platform` is OVERWRITTEN rather than merged: this is the one place the
+   client names itself. Preflight check 22 fails the push on a literal
+   `platform` key anywhere else in this file, or in apps/ios outside
+   Telemetry.swift. */
+const CS_PLATFORM = 'web';
 function qaEvent(event, props){
   try{
     if(state.demo || !window.sb) return;
-    window.sb.from('client_events').insert({ event, props: props||{} }).then(null, ()=>{});
+    const stamped = Object.assign({}, props||{}, { platform: CS_PLATFORM });
+    window.sb.from('client_events').insert({ event, props: stamped }).then(null, ()=>{});
   }catch(_){}
 }
 /* The wizard funnel events (2026-07-24) are emitted from the MODULE block,
@@ -6996,6 +7007,14 @@ function recalc(){
     $('#calcGross').textContent=String(Math.round((f9||0)+(b9||0)) || '–');
     $('#calcVs').textContent='—';
     const glr=$('#postGrossLine'); if(glr) glr.textContent='Rating and slope set the score — pick a tee.';
+    /* D234 · the card is IN and the rating is not. Q-22 already stops the post
+       (an unrated round cannot be scored and must never be scored as a zero),
+       but the button then said "Enter at least one nine first" — a sentence
+       that is false the moment you have entered a nine, and one that points at
+       the wrong field. This is the hand-typed-course case: a muni the
+       catalogue lacks has no tee to pick, so the rating is the golfer's to
+       type. Name that, and mark the field, the way Q-21 marks the date. */
+    state.postBlocked='rating';
     state.lastPost=null; return;
   }
   let diff, vs, pts, msg, gross, label;
@@ -7023,8 +7042,10 @@ function recalc(){
     $('#calcPts').textContent='–'; $('#calcMsg').textContent='Enter at least one nine.';
     $('#calcGross').textContent='–'; $('#calcVs').textContent='–';
     const gl0=$('#postGrossLine'); if(gl0) gl0.textContent='Enter your card to see the score.';
+    state.postBlocked='card';
     state.lastPost=null; return;
   }
+  state.postBlocked=null;
   $('#calcGross').textContent=Math.round(gross);
   /* D122 · outside the season window this round earns NO league points, and
      the audit watched six of six testers be promised 5/6/12 here and shown a
@@ -7168,7 +7189,26 @@ function openPostParsSheet(){
   f9.focus();
 }
 $('#postBtn').addEventListener('click', async ()=>{
-  if(!state.lastPost){toast('Enter at least one nine first');return;}
+  if(!state.lastPost){
+    /* D234 · say which field is missing, and mark it. A hand-typed course has
+       no tee to pick, so the rating and slope are the golfer's to type — and
+       they are printed on the back of the scorecard, which is the one place
+       the app can point them to. */
+    if(state.postBlocked==='rating'){
+      const rEl=$('#inRating'), sEl=$('#inSlope');
+      const bad = (parseFloat(rEl?.value)>0) ? sEl : rEl;
+      bad?.setAttribute('aria-invalid','true'); bad?.classList.add('bad');
+      bad?.scrollIntoView?.({block:'center'}); bad?.focus?.();
+      toast('Type the rating and slope off the scorecard \u2014 they\u2019re on the back of the card');
+      window.qaEvent?.('post_blocked', { reason: 'no_rating' });
+      return;
+    }
+    toast('Enter at least one nine first');
+    window.qaEvent?.('post_blocked', { reason: 'no_card' });
+    return;
+  }
+  $('#inRating')?.removeAttribute('aria-invalid'); $('#inRating')?.classList.remove('bad');
+  $('#inSlope')?.removeAttribute('aria-invalid'); $('#inSlope')?.classList.remove('bad');
   /* Q-21 · never let the round leave without a date. The server's NOT NULL was
      the only thing catching this, and its message ("please try again") sent the
      golfer round a loop that could not succeed. Say it here, mark the field. */
@@ -7340,7 +7380,7 @@ $('#postBtn').addEventListener('click', async ()=>{
       state.post.scores = state.post.pars.slice();   /* reset the grid to par */
       state.post.touched=false;                       /* next round starts fresh */
       if(typeof clearPostDraft==='function') clearPostDraft();   /* posted = the draft's job is done */
-      state.lastPost=null;
+      state.lastPost=null; state.postBlocked=null;
       if(typeof renderPostHoles==='function') renderPostHoles(); else if(typeof recalc==='function') recalc();
       const firstEver = (window.career?.rounds || 0) === 0;   /* Phase 4: capture before loadCareer updates the count */
       if(window.loadStandingsAndFeed) await window.loadStandingsAndFeed();
@@ -7589,7 +7629,7 @@ function resetPostComposer(){
   state.post.scan=null;
   window._scanShot=null;
   setPostPhoto(null);
-  state.lastPost=null;
+  state.lastPost=null; state.postBlocked=null;
   renderPostHoles();
 }
 $('#postReset')?.addEventListener('click',e=>{
@@ -10871,11 +10911,20 @@ function renderStats(){
      contradiction. Read the same partial flag so the two cards agree. */
   const partial = !!(window.leaguePulse && window.leaguePulse[0] && window.leaguePulse[0].partial);
   const rem=Math.max(0, state.floor - credits);
+  /* D234 · "you've posted 2.5" told a golfer they had posted half a round. The
+     arithmetic was never wrong — the participation floor is measured in
+     CREDITS, an eighteen being one and a nine a half (v_rounds_ranked
+     .floor_credit, which is exactly what close_month docks against) — but the
+     unit was never named, on either client. L-01: every number shows its work.
+     The gloss appears only when a half is actually on screen, so a golfer with
+     three eighteens never meets the rule. The phone's LeagueCopy.halfNote is
+     the same clause off the same rule; the two may not drift. */
+  const half = (credits%1 || rem%1) ? ' A nine counts half.' : '';
   $('#nextTxt').textContent = partial
     ? `${curMonth()} is a short month — no floor to clear. Every round still counts.`
     : rem>0
-      ? `Post ${fmtN(rem)} more round${rem===1?'':'s'} this month — ${CAPS[state.cap].toLowerCase()} count, you've posted ${fmtN(credits)}.`
-      : `${curMonth()} is covered — ${fmtN(credits)} rounds counting. A better one always replaces your lowest.`;
+      ? `Post ${fmtN(rem)} more round${rem===1?'':'s'} this month — ${CAPS[state.cap].toLowerCase()} count, you've posted ${fmtN(credits)}.` + half
+      : `${curMonth()} is covered — ${fmtN(credits)} rounds counting. A better one always replaces your lowest.` + half;
 }
 
 /* ================= course card · pars in a sheet ================= */
@@ -10975,16 +11024,27 @@ function hubGroupRow(icon,name,sub,here){
     <div class="tt"><b>${name}</b><small>${sub}</small></div>
     ${here?'<span class="fine" style="padding:0; color:var(--pos)">HERE</span>':'<span class="fine" style="padding:0; color:var(--dim)">→</span>'}</div>`;
 }
+/* D219 / D234 · "your next round" is YOURS *or booked WITH you*, and a round
+   you have DECLINED is not your plan whoever booked it. Both axes were wrong
+   here: `r.mine === false` dropped every round a friend booked with you (the
+   whole point of tagging), and nothing read `my_rsvp`, so your own declined
+   booking stayed "Next round". The phone has had the right predicate since the
+   Home hard-look (`ScheduleModels.chips`, `mine != false || tagged_me`, and
+   `my_rsvp != 'out'`); this is the same rule, produced once and rendered
+   twice, and the Next TILE below now calls it instead of filtering its own. */
+function isMyPlan(r){
+  return (r.mine !== false || r.tagged_me === true) && r.my_rsvp !== 'out';
+}
+window.isMyPlan = isMyPlan;
 function upcomingFromSchedule(){
-  /* "your next round" is YOURS — the schedule rows carry others' rounds too
-     (buddies, league mates), so filter to mine. Field is play_on (the RPC's
-     column); the old played_on/date guesses never matched and this silently
-     returned nothing on real data. The Watch List owns others' plans. */
+  /* Field is play_on (the RPC's column); the old played_on/date guesses never
+     matched and this silently returned nothing on real data. The Watch List
+     owns others' plans. */
   const s = (window.watchAll && window.watchAll.length) ? window.watchAll : (window.mySchedule || []);
   const today = new Date(); today.setHours(0,0,0,0);
   const out = [];
   s.forEach(r => {
-    if(r.mine === false) return;
+    if(!isMyPlan(r)) return;
     const d = r.play_on || r.played_on || r.date || r.day || r.on; if(!d) return;
     const dt = (typeof localDate==='function') ? localDate(d) : new Date(d);
     if(isNaN(dt) || dt < today) return;
@@ -11050,8 +11110,13 @@ function renderHomeTiles(){
      tile is a summary of the calendar rather than a second opinion */
   const today=new Date(); today.setHours(0,0,0,0);
   const src=(window.watchAll&&window.watchAll.length)?window.watchAll:(window.mySchedule||[]);
+  /* D234 · this tile had NO mine filter at all, so `watchAll` — which carries
+     buddies' and league mates' plans — could put a BUDDY'S round under a tile
+     labelled "Next" while the chip below it named a different one. One
+     producer (`isMyPlan`), used by the tile and the chip both. */
   const next=(src||[])
-    .filter(sr=>{ const d=sr.play_on?localDate(sr.play_on):null; return d && !isNaN(d) && d>=today; })
+    .filter(sr=>{ if(!isMyPlan(sr)) return false;
+                  const d=sr.play_on?localDate(sr.play_on):null; return d && !isNaN(d) && d>=today; })
     .sort((a,b)=>String(a.play_on).localeCompare(String(b.play_on)))[0];
   const DOWS=['SUN','MON','TUE','WED','THU','FRI','SAT'];
   const nextT = next
@@ -14120,13 +14185,23 @@ function renderCalendar(){
           ? 'The demo skips the archive. Real seasons record every Sunday night.'
           : 'Nothing recorded yet: the first snapshot writes Sunday night, and every week lands here for the season.')+'</p>';
       } else {
+        /* D234 · a SOLO season forms no squads, so `standings.squads` is []
+           and every week of a solo archive rendered as a bare "WK 3" with no
+           leader, no gap and no points — three of the six in-season leagues in
+           prod. snapshot_week writes BOTH halves of the payload; read the one
+           this season has. `teams` carries the season's own rows either way
+           (squads, or the individual race with `solo:true` and `id` = member
+           id), so one nameOf serves both. */
+        const solo = !!(teams.length && teams[0].solo);
         const nameOf=id=>{ const t=teams.find(t=>t.id===id); return t?t.name:'—'; };
         wkEl.innerHTML = hist.slice().reverse().map(sn=>{
-          const sq=((sn.standings&&sn.standings.squads)||[]).slice().sort((a,b)=>b.points-a.points);
-          const lead=sq[0], second=sq[1];
+          const rows=((sn.standings && (solo ? sn.standings.individuals : sn.standings.squads))||[])
+            .slice().sort((a,b)=>b.points-a.points);
+          const lead=rows[0], second=rows[1];
+          const leadId = lead ? (solo ? lead.member_id : lead.squad_id) : null;
           const gap=lead&&second ? lead.points-second.points : null;
           return `<div class="fine" style="display:flex; justify-content:space-between; gap:10px; padding:5px 0;">
-            <span><b class="mono" style="color:var(--ink)">WK ${sn.week_no}</b>${lead?' · '+esc(nameOf(lead.squad_id)).toUpperCase()+' LED':''}${gap!=null?(gap===0?' · TIED AT THE TOP':' · BY '+gap):''}</span>
+            <span><b class="mono" style="color:var(--ink)">WK ${sn.week_no}</b>${lead?' · '+esc(nameOf(leadId)).toUpperCase()+' LED':''}${gap!=null?(gap===0?' · TIED AT THE TOP':' · BY '+gap):''}</span>
             <b class="mono">${lead?lead.points+' PTS':''}</b>
           </div>`;
         }).join('');
@@ -17696,12 +17771,23 @@ $('#obJoin').addEventListener('click', () => {
 
 /* setup-QA S3-01: money never surprises anybody. When a league carries a
    buy-in, a signed-in join pauses on a one-tap covenant that names the stake
-   BEFORE join_league runs; $0 leagues keep the one-tap join. Fails open to
-   the old flow while the RPC isn't deployed (skew) — the post-join welcome
-   still discloses the pot either way. */
+   BEFORE join_league runs; $0 leagues keep the one-tap join.
+   D234 · it used to FAIL OPEN: `!info` caught a failed read as well as a $0
+   league, so any error on this RPC — skew, a bad connection, a 403 — seated a
+   golfer without ever naming the stake, which is the one thing S3-01 exists to
+   prevent. The phone has failed CLOSED here since JoinLeague.covenant (a throw
+   stops the join); this is that rule, on the web. A failed read is not an
+   empty one (L-32), and only an ANSWER of $0 is a one-tap join. A code that
+   resolves to no league answers `null` and still goes through, because
+   join_league is the one that gets to say the code is wrong. */
 async function covenantGate(code){
-  let info=null;
-  try{ const {data,error}=await sb.rpc('join_covenant_info',{p_code:code}); if(!error) info=data; }catch(_){}
+  let info=null, answered=false;
+  try{
+    const {data,error}=await sb.rpc('join_covenant_info',{p_code:code});
+    if(error) throw error;
+    info=data; answered=true;
+  }catch(_){}
+  if(!answered){ toast('Could not check this league\u2019s terms \u2014 try again in a moment'); return false; }
   if(!info || !Number(info.buyin_cents)) return true;
   const usd=Math.round(Number(info.buyin_cents)/100);
   return new Promise(res=>{
@@ -20063,7 +20149,13 @@ async function boot(){
     const mFirst = CS.memberships.find(x => x.league.id === lastId) || CS.memberships[0];
     bootTrace('entering ' + mFirst.league.name);
     await enterLeague(mFirst);
-    if(CS.memberships.length > 1) toast('Switch groups anytime from Home');
+    /* D234 · the toast that used to fire here said "Switch groups anytime from
+       Home" and there is no such control on the web: Home has no second-league
+       row (D121's web half was never built), so 11 of 17 active golfers were
+       told to use a switch that is not there. A client may lag and it may not
+       lie. Deleted rather than rewritten — the honest version of this sentence
+       is a control, and the control is the sidebar, which lands with the web's
+       own shape. */
   } catch(e){
     authStatus('Boot failed at [' + bootStep + ']: ' + (e.message || e), 'err');
   } finally {

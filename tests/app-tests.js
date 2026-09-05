@@ -437,6 +437,43 @@
     state.seasonStart = was.s; state.seasonEnd = was.e; state.finish = was.f; state.structure = was.st;
   })();
 
+  /* ══ D219 / D234 · one plan predicate, two callers ═══════════════════════
+     `upcomingFromSchedule` and the Next TILE used to disagree with each other
+     AND with the phone: the list dropped `mine === false` (so a round booked
+     WITH you never became "Next round") and read neither `tagged_me` nor
+     `my_rsvp` (so your own declined booking stayed "Next"), while the tile
+     filtered nothing but the date over `watchAll` — buddies' plans included —
+     and could name somebody else's round as yours. The phone's rule is
+     `(mine != false || tagged_me) && my_rsvp != 'out'`
+     (`ScheduleModels.chips`); `isMyPlan` is that rule, and both callers use it. */
+  (function(){
+    const iso = d => { const x = new Date(); x.setHours(12,0,0,0); x.setDate(x.getDate()+d);
+      return `${x.getFullYear()}-${String(x.getMonth()+1).padStart(2,'0')}-${String(x.getDate()).padStart(2,'0')}`; };
+
+    t('D219: my own booking is mine', isMyPlan({ mine:true }), true);
+    t('D219: a row with no `mine` at all is mine (my_schedule carries none)', isMyPlan({}), true);
+    t('D219: a round booked WITH me is mine', isMyPlan({ mine:false, tagged_me:true }), true);
+    t('D219: a buddy\u2019s round is not mine', isMyPlan({ mine:false }), false);
+    t('D219: my DECLINED booking is not mine', isMyPlan({ mine:true, my_rsvp:'out' }), false);
+    t('D219: a tagged round I declined is not mine', isMyPlan({ mine:false, tagged_me:true, my_rsvp:'out' }), false);
+    t('D219: an accepted tag is mine', isMyPlan({ mine:false, tagged_me:true, my_rsvp:'in' }), true);
+
+    const was = window.watchAll;
+    window.watchAll = [
+      { id:'a', mine:false, tagged_me:true, play_on:iso(1), course_label:'Papago GC', tagged_names:['Galen'] },
+      { id:'b', mine:true,  my_rsvp:'out',  play_on:iso(0), course_label:'Encanto GC' },
+      { id:'c', mine:false,                 play_on:iso(2), course_label:'Aguila GC', display_name:'Ed' },
+      { id:'d', mine:true,                  play_on:iso(4), course_label:'Palo Verde GC' },
+    ];
+    const up = upcomingFromSchedule();
+    t('D219: a round booked with me leads the list', up.map(r => r.what), ['Papago GC', 'Palo Verde GC']);
+    t('D219: my declined booking is not on it', up.some(r => r.what === 'Encanto GC'), false);
+    t('D219: a buddy\u2019s round is not on it', up.some(r => r.what === 'Aguila GC'), false);
+    t('D219: the tagged round names who booked it with me', up[0].who, 'with Galen');
+    t('D219: tomorrow is TOMORROW', up[0].when, 'TOMORROW');
+    window.watchAll = was;
+  })();
+
   const fails = R.filter(r => !r.ok);
   console.log(`\n${fails.length ? 'FAIL' : 'PASS'} — ${R.length} tests, ${fails.length} failure(s)`);
   return { total: R.length, failures: fails.map(f => f.name) };

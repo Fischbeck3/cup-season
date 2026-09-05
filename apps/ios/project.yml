@@ -108,6 +108,16 @@ targets:
         # provider are the owner's; the button renders only behind the flag.
         com.apple.developer.applesignin:
           - Default
+        # IOS-034 · the App Group the widget's snapshot lives in. The app
+        # WRITES it; the extension reads it; nothing does either yet — the
+        # widget itself is the last wave. It is declared now because steps 1
+        # and 4 of IOS-034 are the OWNER's (register the id in the portal, then
+        # regenerate BOTH provisioning profiles — TestFlight 669's will not
+        # cover it), and owner work is named a wave early, not discovered at
+        # submission. Both targets must name the SAME id or the container the
+        # app writes is not the container the widget reads.
+        com.apple.security.application-groups:
+          - group.app.cupseason.shared
 
   # D155 · the Live Activity's home. It depends on CSDesign ONLY — the palette
   # comes from the same generated tokens the app uses, and an extension that
@@ -130,6 +140,14 @@ targets:
         CURRENT_PROJECT_VERSION: "1"
         TARGETED_DEVICE_FAMILY: "1"
         SKIP_INSTALL: YES
+    # IOS-034 step 3 · the extension's half of the App Group. XcodeGen writes
+    # the file at this path and sets CODE_SIGN_ENTITLEMENTS for the target, so
+    # the two are never out of step with each other.
+    entitlements:
+      path: CupSeasonWidgets/CupSeasonWidgets.entitlements
+      properties:
+        com.apple.security.application-groups:
+          - group.app.cupseason.shared
     info:
       path: CupSeasonWidgets/Info.plist
       properties:

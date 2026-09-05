@@ -70,6 +70,85 @@ private final class Window {
   }
 }
 
+// D234 — the platform stamp. Four callers hand-wrote `platform: "ios"` and
+// nothing else did, so `client_events` could not be split by client; the stamp
+// now lives in one place on each client and preflight check 22 keeps it there.
+
+@Suite struct TelemetryPlatformTests {
+  @Test func everyRowCarriesThePlatform() {
+    #expect(CSTelemetry.platform == "ios")
+    #expect(CSTelemetry.stamped([:])["platform"] == .string("ios"))
+    #expect(CSTelemetry.stamped(["win": .string("fall")])["platform"] == .string("ios"))
+    // the caller's own props survive beside it
+    #expect(CSTelemetry.stamped(["win": .string("fall")])["win"] == .string("fall"))
+  }
+
+  @Test func aCallerWrittenPlatformIsOverwrittenNotMerged() {
+    // the whole point: the client names itself in one place, so a caller that
+    // types its own — or types the WRONG one — cannot split an event in two
+    #expect(CSTelemetry.stamped(["platform": .string("web")])["platform"] == .string("ios"))
+    #expect(CSTelemetry.stamped(["platform": .null])["platform"] == .string("ios"))
+  }
+
+  @Test func theFourMetricEventsExistAndCarryTheirNames() {
+    #expect(CSTelemetry.Metric.appOpen.rawValue == "app_open")
+    #expect(CSTelemetry.Metric.homeStateSeen.rawValue == "home_state_seen")
+    #expect(CSTelemetry.Metric.ctaTapped.rawValue == "cta_tapped")
+    #expect(CSTelemetry.Metric.firstAct.rawValue == "first_act")
+    // four, and only four — a fifth added without an entry fails here
+    #expect(Set([CSTelemetry.Metric.appOpen, .homeStateSeen, .ctaTapped, .firstAct].map(\.rawValue)).count == 4)
+  }
+
+  @Test func theStampDoesNotMoveTheDedupeWindow() {
+    // a constant key on every row collapses no burst that was not already
+    // collapsing, and splits none that was not
+    let w = Window()
+    let bare = TelemetryDedupe.key("cta_tapped", ["door": .string("post")])
+    let stamped = TelemetryDedupe.key("cta_tapped", CSTelemetry.stamped(["door": .string("post")]))
+    #expect(bare != stamped)                       // the row really does carry it
+    #expect(w.admit(stamped, at: 0))
+    #expect(!w.admit(stamped, at: 1.999))          // the window is still two seconds
+    #expect(w.admit(stamped, at: 2.0))
+    // two different doors are still two events
+    #expect(w.admit(TelemetryDedupe.key("cta_tapped", CSTelemetry.stamped(["door": .string("play")])), at: 2.1))
+  }
+}
+
+@Suite struct AppOpenGateTests {
+  /// `#expect` captures its expression, so the mutating calls run through a box.
+  private final class Gate {
+    var g = AppOpenGate()
+    func foreground() -> Bool { g.foreground() }
+    func background() { g.background() }
+  }
+
+  @Test func theFirstForegroundCountsAndTheSecondDoesNot() {
+    let g = Gate()
+    #expect(g.foreground())
+    #expect(!g.foreground())
+    #expect(!g.foreground())
+  }
+
+  @Test func onlyATripThroughTheBackgroundRearmsIt() {
+    let g = Gate()
+    #expect(g.foreground())
+    // a banner, the app switcher, Face ID: `.inactive` and back, never
+    // `.background`. None of those is an open, and counting them would inflate
+    // the number every rate in the design set is divided by.
+    #expect(!g.foreground())
+    g.background()
+    #expect(g.foreground())
+    #expect(!g.foreground())
+  }
+
+  @Test func aBackgroundBeforeAnyForegroundStillCountsOnce() {
+    let g = Gate()
+    g.background()
+    #expect(g.foreground())
+    #expect(!g.foreground())
+  }
+}
+
 @Suite struct MetricsStackTests {
   /// A MetricKit-shaped tree, the way MetricKit actually builds it: the ROOT
   /// frame is the innermost (the crash site) and each `subFrames` step is the

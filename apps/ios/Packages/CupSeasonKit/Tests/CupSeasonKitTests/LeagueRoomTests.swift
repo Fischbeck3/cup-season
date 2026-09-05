@@ -366,7 +366,16 @@ private func team(_ id: UUID, _ name: String, _ pts: Double, ci: Int = 0) -> Tea
     let b = Bylaws.from(season)
     #expect(LeagueCopy.nextUp(clock("2026-04-30"), b: b, credits: 0, partial: false) == ("Next up · kickoff", "First tee Sun May 3. Practice rounds hit your card, not the season."))
     #expect(LeagueCopy.nextUp(clock("2026-08-27"), b: b, credits: 1, partial: false).text == "Post 1 more round this month — best 4 count, you've posted 1.")
-    #expect(LeagueCopy.nextUp(clock("2026-08-27"), b: b, credits: 0.5, partial: false).text == "Post 1.5 more rounds this month — best 4 count, you've posted 0.5.")
+    // D234 · the half is GLOSSED, and only when there is a half on screen: the
+    // floor is measured in credits (an eighteen is one, a nine is a half), and
+    // "you've posted 0.5" without that clause told a golfer they had posted
+    // half a round. The web's `nextUpText` carries the same words.
+    #expect(LeagueCopy.nextUp(clock("2026-08-27"), b: b, credits: 0.5, partial: false).text == "Post 1.5 more rounds this month — best 4 count, you've posted 0.5. A nine counts half.")
+    // a whole number of eighteens never meets the rule
+    #expect(!LeagueCopy.nextUp(clock("2026-08-27"), b: b, credits: 1, partial: false).text.contains("A nine counts half."))
+    #expect(!LeagueCopy.nextUp(clock("2026-08-27"), b: b, credits: 2, partial: false).text.contains("A nine counts half."))
+    // and a covered month with a half in it says so too
+    #expect(LeagueCopy.nextUp(clock("2026-08-27"), b: b, credits: 2.5, partial: false).text == "August is covered — 2.5 rounds counting. A better one always replaces your lowest. A nine counts half.")
     #expect(LeagueCopy.nextUp(clock("2026-08-27"), b: b, credits: 2, partial: false).text == "August is covered — 2 rounds counting. A better one always replaces your lowest.")
     #expect(LeagueCopy.nextUp(clock("2026-08-27"), b: b, credits: 0, partial: true) == ("Next up · August", "August is a short month — no floor to clear. Every round still counts."))
     let pm = LeagueCopy.pressMeter(today: "2026-08-27")

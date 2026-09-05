@@ -84,11 +84,11 @@ struct HomeView: View {
           if let o = vm.occasion {
             // web 10082/10093: the wink's tap is an event, either way it goes
             OccasionCard(o: o, onGo: {
-                           CSTelemetry.event("home_occasion_tap", ["win": .string(o.key), "act": .string("go"), "platform": .string("ios")])
+                           CSTelemetry.event("home_occasion_tap", ["win": .string(o.key), "act": .string("go")])
                            if o.go == .league { presenter.wizard = .init(existingLeagueId: nil) } else { presenter.showEventPicker = true }
                          },
                          onDismiss: {
-                           CSTelemetry.event("home_occasion_tap", ["win": .string(o.key), "act": .string("dismiss"), "platform": .string("ios")])
+                           CSTelemetry.event("home_occasion_tap", ["win": .string(o.key), "act": .string("dismiss")])
                            Occasion.dismiss(o); vm.occasion = nil
                          })
           }
@@ -231,6 +231,9 @@ final class HomeModel {
   var loading = false
   var social = HomeSocial.Snapshot()
   private var markRead = false
+  /// D252 · `app_flags.ios.major`, read once per model and only when a card
+  /// that sells a Major is actually in its window. nil = not read yet.
+  private var majorOpen: Bool?
   private var mark: Date?
   private var rounds: [HomeFeedRow] = []
   private var posts: [HomePost] = []
@@ -276,7 +279,18 @@ final class HomeModel {
     guard live(gen) else { return }
     loading = true
     defer { if gen == generation { loading = false } }
-    occasion = Occasion.current(leagueless: me.memberships.isEmpty)
+    // D252 · a card whose act is a Major or a jug does not render until the
+    // Major's door opens. The WINDOW is checked first — pure, no I/O — so the
+    // flag is fetched only on the days one of the four gated cards would
+    // otherwise show, and never on the other three hundred. Fail-closed: an
+    // unreadable flag leaves `majorOpen` nil and the card stays down, which is
+    // what `EventPickerSheet` does with the same read.
+    let leagueless = me.memberships.isEmpty
+    if majorOpen == nil, Occasion.needsMajorToday(leagueless: leagueless) {
+      majorOpen = await EventFlags.majorEnabled()
+      guard live(gen) else { return }
+    }
+    occasion = Occasion.current(leagueless: leagueless, majorOpen: majorOpen ?? false)
     let r = await repo.load(memberships: me.memberships)
     guard live(gen) else { return }
     // A failed read is not an empty feed. With rounds already on screen, a

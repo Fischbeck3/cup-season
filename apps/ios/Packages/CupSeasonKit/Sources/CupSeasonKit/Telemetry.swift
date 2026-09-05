@@ -10,6 +10,13 @@
 // phone is therefore blind here, exactly as the web is; that gap is recorded
 // in CLAUDE.md and left open on purpose.
 //
+// D234 · EVERY row carries `props.platform`, stamped here and only here. The
+// web's `qaEvent` stamps `'web'` in exactly the same one place. Before this,
+// four callers wrote it by hand and nothing else did, so no event in
+// `client_events` could be split by client — the phone's rows and the web's
+// were the same rows. Preflight check 22 fails the push if anyone stamps
+// their own again.
+//
 // Never PII: no emails, no names, no handles ride in props. Crash rows carry a
 // four-frame stack (the ghost lesson — a record with no origin cannot be
 // chased) as `Binary+0xoffset`, which names code, never a person.
@@ -31,6 +38,42 @@ public enum CSTelemetry {
     case roundPosted = "round_posted"
   }
 
+  /// D234 · the four events the overhaul is measured by. Until these exist no
+  /// claim in the design set is checkable: nobody can say what a golfer saw on
+  /// Home, whether a door was tapped, or whether anything followed it.
+  ///
+  /// `app_open` fires once per FOREGROUND (`AppOpenGate`), `home_state_seen`
+  /// once per Home render with the state's letter, `cta_tapped` with the door
+  /// that was pressed, and `first_act` the first consequential thing an
+  /// account ever does. None of them carries a name, a handle or an email —
+  /// the file's own rule, unchanged.
+  public enum Metric: String, Sendable {
+    case appOpen = "app_open"
+    case homeStateSeen = "home_state_seen"
+    case ctaTapped = "cta_tapped"
+    case firstAct = "first_act"
+  }
+
+  /// The client this row came from. Stamped CENTRALLY, on every row, by
+  /// `event(_:_:)` — never by a caller.
+  ///
+  /// D234: it was hand-written in four places and nowhere else, so the founder's
+  /// desk could not split ANY event by client and the two clients' rows were
+  /// indistinguishable in `client_events`. A caller-written value is now
+  /// overwritten rather than merged (see `stamped`), and preflight check 22
+  /// fails the push on a literal `"platform"` key anywhere but this file.
+  public static let platform = "ios"
+
+  /// Pure, so the rule is a test rather than a comment: whatever the caller
+  /// passed, the row carries this client's `platform`. A caller that writes
+  /// its own is OVERWRITTEN — the stamp is the one place this is decided, and
+  /// two clients disagreeing about their own names is the defect this closes.
+  public static func stamped(_ props: [String: JSONValue]) -> [String: JSONValue] {
+    var p = props
+    p["platform"] = .string(platform)
+    return p
+  }
+
   /// `CFBundleVersion` as a number, 0 when unstamped (tests, previews).
   public static let build: Int = Int(Bundle.main.object(forInfoDictionaryKey: "CFBundleVersion") as? String ?? "") ?? 0
 
@@ -39,8 +82,13 @@ public enum CSTelemetry {
   /// Fire-and-forget. Never throws, never blocks the caller, and a burst of
   /// the same name+props inside two seconds writes one row.
   public static func event(_ name: String, _ props: [String: JSONValue] = [:]) {
-    let key = TelemetryDedupe.key(name, props)
-    let row = Row(event: name, props: .object(props))
+    // The stamp goes on BEFORE the key, so the row that is written and the
+    // row the window remembers are the same row. The window itself is
+    // unchanged: `platform` is a constant on every key, so it collapses no
+    // burst that was not already collapsing and splits none that was not.
+    let stampedProps = stamped(props)
+    let key = TelemetryDedupe.key(name, stampedProps)
+    let row = Row(event: name, props: .object(stampedProps))
     Task.detached(priority: .utility) {
       guard await dedupe.admit(key) else { return }
       _ = try? await SupabaseService.shared.client.from("client_events").insert(row).execute()
@@ -54,7 +102,43 @@ public enum CSTelemetry {
     event(p.rawValue, props)
   }
 
+  /// `app_open`, once per foreground (D234). Called from the scene phase, so
+  /// the gate lives on the main actor beside it.
+  @MainActor private static var openGate = AppOpenGate()
+
+  /// The scene came forward. Writes at most one `app_open` per foreground.
+  @MainActor public static func sceneBecameActive() {
+    guard openGate.foreground() else { return }
+    event(Metric.appOpen.rawValue, ["build": .number(Double(build))])
+  }
+
+  /// The scene went to the background — the next `.active` is a new open.
+  @MainActor public static func sceneEnteredBackground() { openGate.background() }
+
   private static let dedupe = TelemetryDedupeActor()
+}
+
+// MARK: - once per foreground
+
+/// SwiftUI hands a scene FOUR phases and `.active` arrives more often than a
+/// golfer opens the app: a notification banner, the app switcher, a share
+/// sheet from another app and Face ID all pass through `.inactive` and back.
+/// Counting those as opens would inflate the one number every funnel in the
+/// design set is divided by. Only a trip through `.background` re-arms.
+///
+/// Pure, so "once per foreground" is a test rather than a comment.
+public struct AppOpenGate: Sendable {
+  private var armed = true
+  public init() {}
+
+  /// true exactly once per foreground.
+  public mutating func foreground() -> Bool {
+    defer { armed = false }
+    return armed
+  }
+
+  /// The app left the screen; the next foreground counts again.
+  public mutating func background() { armed = true }
 }
 
 // MARK: - the dedupe window

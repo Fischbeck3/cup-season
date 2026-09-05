@@ -352,15 +352,30 @@ public enum LeagueCopy {
 
   // MARK: next up (9512–9530)
 
+  /// D234 · *"you've posted 2.5"* told a golfer they had posted half a round.
+  /// The arithmetic was never wrong — the participation floor is measured in
+  /// CREDITS, an eighteen being one and a nine a half
+  /// (`v_rounds_ranked.floor_credit`, and `close_month` docks against exactly
+  /// that sum) — but the unit was never named, on either client. L-01 says
+  /// every number shows its work, so the half is glossed, and only when there
+  /// is a half on screen: a golfer with three eighteens never meets the rule.
+  /// The web's `nextUpText` carries the same clause off the same rule.
+  static func halfNote(credits: Double, rem: Double) -> String {
+    let fractional = credits.truncatingRemainder(dividingBy: 1) != 0
+      || rem.truncatingRemainder(dividingBy: 1) != 0
+    return fractional ? " A nine counts half." : ""
+  }
+
   public static func nextUp(_ c: RoomClock, b: Bylaws, credits: Double, partial: Bool) -> (k: String, text: String) {
     if c.atStarter { return ("Next up · kickoff", "First tee \(c.firstTeeText). Practice rounds hit your card, not the season.") }
     let month = LeagueDates.monthLong(c.today)
     let rem = max(0, Double(b.floor) - credits)
+    let half = halfNote(credits: credits, rem: rem)
     let text = partial
       ? "\(month) is a short month — no floor to clear. Every round still counts."
       : rem > 0
-        ? "Post \(fmtN(rem)) more round\(rem == 1 ? "" : "s") this month — \(b.capLabel.lowercased()) count, you've posted \(fmtN(credits))."
-        : "\(month) is covered — \(fmtN(credits)) rounds counting. A better one always replaces your lowest."
+        ? "Post \(fmtN(rem)) more round\(rem == 1 ? "" : "s") this month — \(b.capLabel.lowercased()) count, you've posted \(fmtN(credits))." + half
+        : "\(month) is covered — \(fmtN(credits)) rounds counting. A better one always replaces your lowest." + half
     return ("Next up · \(month)", text)
   }
 
