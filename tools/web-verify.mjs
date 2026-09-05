@@ -43,6 +43,11 @@ const KNOWN_OK = [
   'Unchecked runtime.lastError',
   'favicon.ico',
   'Download the React DevTools',
+  /* A `--eval` walk clicks with `.click()`, which is not a user gesture, so
+     Chrome refuses `navigator.vibrate` and logs it as an error. It is the
+     WALK's artefact, not the page's: the same tap by a finger carries a
+     gesture and is allowed. Added in wave 8, whose card gate taps a band. */
+  "Blocked call to navigator.vibrate",
 ]
 
 function findShell() {

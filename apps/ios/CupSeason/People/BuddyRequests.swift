@@ -41,7 +41,10 @@ final class BuddyRequestsModel {
     busy.insert(p.id); defer { busy.remove(p.id) }
     do {
       try await people.respond(fid, accept: accept)
-      if accept { CSHaptic.success() }
+      // D247 · the push ask follows the first moment that EARNS it, and this is
+      // one of the three: somebody said yes to you. The policy still decides
+      // whether it actually rises (never on launch, ≥14 days after "Not now").
+      if accept { CSHaptic.success(); PushAsk.shared.request(.buddyAccepted) }
       await load()
       return accept ? "Golf buddies ✓" : "Request declined"
     } catch {

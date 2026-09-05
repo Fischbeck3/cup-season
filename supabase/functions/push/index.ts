@@ -99,12 +99,38 @@ const reply = (reason: string, extra: Record<string, unknown> = {}) => {
 // What the phone needs to land on the right screen. Web push never sees it.
 type CsKind =
   | 'round' | 'chat' | 'announce' | 'moment' | 'system' | 'settlement' | 'live_open'
-  | 'nudge' | 'invite' | 'request' | 'rsvp' | 'event';
+  | 'nudge' | 'invite' | 'request' | 'rsvp' | 'event'
+  /* D248 · nine nudges and one transactional notice. The vocabulary ships here
+     and in `PushKind` (Kit) TOGETHER; the PRODUCERS stay dark until D248's gate
+     — one production APNs token receiving one real push — so nothing writes a
+     row of these kinds yet and the migration's own self-check fails if anything
+     does. Knowing how to DELIVER one before anything sends one is the safe
+     order: the reverse ships ten kinds that land on `nudge`'s catch-all and
+     therefore land Home. */
+  | 'rank_change' | 'clash_pressure' | 'callout' | 'clash_verdict' | 'index_live'
+  | 'tee_tomorrow' | 'season_countdown' | 'friend_round' | 'seat_open'
+  | 'season_cancel';
+
 const CS_ID_KEYS = [
   'league_id', 'post_id', 'round_id', 'live_round_id', 'event_id',
   'profile_id', 'scheduled_round_id', 'request_id', 'invite_id',
 ] as const;
 type CsIdKey = typeof CS_ID_KEYS[number];
+
+/* The ten, and the ids each one carries. A kind absent from this table takes
+   the catch-all below, exactly as it does today. */
+const D248_IDS: Record<string, CsIdKey[]> = {
+  rank_change:      ['league_id', 'profile_id'],
+  clash_pressure:   ['league_id', 'event_id', 'profile_id'],
+  callout:          ['profile_id', 'event_id'],
+  clash_verdict:    ['league_id', 'event_id'],
+  index_live:       [],
+  tee_tomorrow:     ['scheduled_round_id', 'league_id'],
+  season_countdown: ['league_id'],
+  friend_round:     ['round_id', 'post_id', 'profile_id'],
+  seat_open:        ['scheduled_round_id', 'profile_id'],
+  season_cancel:    ['league_id'],
+};
 type Cs = { v: 1; kind: CsKind } & Partial<Record<CsIdKey, string>>;
 type Category = 'CS_REQUEST' | 'CS_RSVP' | 'CS_INVITE';
 type Route = {
@@ -443,6 +469,16 @@ Deno.serve(async (req) => {
     } else if (nk === 'rsvp') {
       r = route('rsvp', { scheduled_round_id: pl.scheduled_round_id, profile_id: pl.profile_id },
         { thread: 'you', category: 'CS_RSVP', collapseId: record.id });
+    } else if (D248_IDS[nk]) {
+      /* D248 · the kind travels as itself so the phone's own route table
+         decides where it lands (`PushRoute.from`), and only the ids that kind
+         carries are sent — the contract's rule, so a missing one lands Home
+         rather than on a blank. None of these is actionable from the lock
+         screen: no category, and the two that could be (a seat, a callout) are
+         answered on a page where the terms are visible. */
+      const ids: Partial<Record<CsIdKey, unknown>> = {};
+      for (const k of D248_IDS[nk]) ids[k] = pl[k];
+      r = route(nk as CsKind, ids, { thread: 'you', collapseId: record.id });
     } else {
       /* the Ryder taunt / the live-round call: ids only when the inserter
          wrote a payload (today's inserters write none — those land Home) */

@@ -159,6 +159,35 @@ questionnaire (the July 2025 revision) asks about that directly. Answering
 
 ---
 
+## Contacts (D251 · privacy)
+
+**When it is asked.** In exactly two places, and nowhere else: onboarding's
+crew step ("Who do you play with?") and the wizard's first step. Never on
+launch, never as a condition of anything. **Declining finishes the screen** —
+the same screen offers a search box and a share link, and a golfer who says no
+can still complete onboarding and use the whole app.
+
+**What the sentence on the screen says, verbatim:** *"We'll check your contacts
+against the golfers already here. We send hashes, never your contacts, and we
+keep nothing that doesn't match."*
+
+**What actually leaves the device.** SHA-256 digests of normalised email
+addresses and phone numbers, and nothing else — no names, no raw addresses, no
+phone numbers, no contact records. The digests are used for one comparison and
+are not stored. The server holds only a **salted** digest of each Cup Season
+golfer's OWN sign-in email (`profiles.contact_hash`), computed server-side with
+a salt no client can read, so nothing on a device can produce or reverse it.
+
+**What comes back.** Only golfers who match AND who have not hidden themselves
+(the same discoverability setting that governs search). No browsable list, no
+count of near-misses, no "somebody matched" without a name. A contact who is
+not a Cup Season golfer produces nothing at all.
+
+**The permission string** (`NSContactsUsageDescription`) says the same thing the
+screen says.
+
+---
+
 ## If review comes back (the playbook, native edition)
 
 | If review says | Answer with |

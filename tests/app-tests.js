@@ -1308,6 +1308,101 @@
       [typeof csPayNoteMissing, typeof csPayNote], ['function', 'function']);
   })();
 
+  /* ===================================================================
+     WAVE 8 · ONBOARDING, CONTACTS AND RUN IT BACK (D247, D233, D251, D243)
+     ===================================================================
+     Every assertion below has a twin in `OnboardingTests` / `ContactHashTests`
+     / `PushKindTests` on the phone, asserting the SAME literal. A reword on one
+     client fails on the other, which is what D234 exists to enforce. */
+  (function(){
+    /* D247 · question 1, in a golfer's units */
+    t('D247: the handicap is asked in scores', CS_ONBOARDING.shootQuestion, 'What do you usually shoot?');
+    t('D247: five bands, in the ruled words',
+      CS_SCORE_BANDS.map(b => b.title), ['Under 80', '80s', '90s', '100+', 'No idea']);
+    t('D247: "No idea" implies no number', csScoreBand('noIdea').starter, null);
+    t('D247: the bands run the right way', CS_SCORE_BANDS.slice(0,4).map(b => b.starter), [6, 13, 20, 28]);
+    t('D247: the question never says "index"',
+      /index/i.test(CS_ONBOARDING.shootQuestion + ' ' + CS_ONBOARDING.shootSub), false);
+    /* L-14 · a band is the middle of a RANGE, so it never wears the engine's
+       own precision. This is the exact defect the phone's first cut had. */
+    t('L-14: a whole starter prints whole', csStarterText(13), '13');
+    t('L-14: and a fractional one still shows its place', csStarterText(12.4), '12.4');
+
+    /* D247 · the two defaults, and the gate that is still marker AND handle */
+    t('D247: the handle derives from the name', csHandleFromName('Jerecho Fischbeck'), 'jerechofischbeck');
+    t('D247: and never longer than 20', csHandleFromName('a'.repeat(40)).length, 20);
+    t('D247: a two-letter nickname derives an illegal handle', csHandleIsLegal(csHandleFromName('JT')), false);
+    t('CLAUDE.md landmine: the gate is marker AND handle',
+      [csOnboardingGate('saguaro','jer'), csOnboardingGate(null,'jer'),
+       csOnboardingGate('saguaro',null), csOnboardingGate('  ','jer')],
+      [true, false, false, false]);
+    /* THE PARITY FIXTURE. `MarkerDefault.assign` (Kit) and `csMarkerDefault`
+       run the same djb2-with-a-per-step-mod over the same key order, so the
+       same golfer gets the same marker on the phone and at the desk. These four
+       are asserted by `OnboardingTests` too — a floor that differs between a
+       golfer's two screens is not a floor. */
+    t('D247/L-24: the defaulted marker is the phone\'s marker',
+      ['jerecho','galen','jade','tash'].map(csMarkerDefault),
+      ['island','lighthouse','shark','dunes']);
+    t('L-24: the footnote names it and says where to change it',
+      csMarkerFootnote('The Island'),
+      'Your marker is The Island until you pick another — tap it, or change it any time from You.');
+
+    /* D233 · four routes, and the exit is not a failure */
+    t('D233: four crew routes, in reading order',
+      CS_CREW_ROUTES.map(r => r.title),
+      ['Find your friends', 'Search by name or @handle',
+       'Text an invite to somebody else', "Nobody yet — I'll add them later"]);
+    t('D233: the exit is never called "skip"', /skip/i.test(CS_CREW_ROUTES[3].title), false);
+    /* THE ONE LEGITIMATE DIFFERENCE, and it is a capability rather than copy:
+       a desktop browser has no address book, so the contacts door is drawn only
+       where `navigator.contacts.select` exists. L-32 forbids a door that cannot
+       open, so on this machine the desk offers three. */
+    t('L-32: a door that cannot open is not drawn',
+      csCrewRoutes().some(r => r.key === 'contacts'), csContactsAvailable());
+
+    /* D251 · the privacy envelope */
+    t('D251: the consent sentence says what travels and what is kept',
+      CS_ONBOARDING.contactsConsent,
+      "We'll check your contacts against the golfers already here. We send hashes, never your contacts, and we keep nothing that doesn't match.");
+    t('D251: declining is a named control', CS_ONBOARDING.contactsDecline, 'Not now');
+    t('D251: an empty match ends in a next move',
+      CS_ONBOARDING.contactsNone, 'None of your contacts is here yet. Text one a link.');
+    t('L-32: refused, not-yet and nobody are three different facts',
+      new Set([CS_ONBOARDING.contactsNone, CS_ONBOARDING.contactsRefused, CS_ONBOARDING.contactsNotYet]).size, 3);
+    t('D251: a match is counted in words', [csContactsFound(0), csContactsFound(1), csContactsFound(3)],
+      [null, 'One of your friends is already here.', '3 of your friends are already here.']);
+    /* normalisation — the migration's own self-check cases, verbatim */
+    t('C-11: email normalisation matches the server',
+      csNormaliseEmail('  Jerecho@Example.COM '), 'jerecho@example.com');
+    t('C-11: no provider cleverness', csNormaliseEmail('a.b+golf@gmail.com'), 'a.b+golf@gmail.com');
+    t('C-11: a non-address is not an address',
+      [csNormaliseEmail('jerecho'), csNormaliseEmail('@example.com'), csNormaliseEmail('')],
+      [null, null, null]);
+    t('C-11: phone normalisation matches the server',
+      [csNormalisePhone('(480) 555-0134'), csNormalisePhone('+44 20 7946 0958'), csNormalisePhone('555-0134')],
+      ['+14805550134', '+442079460958', null]);
+    t('C-11: one number written four ways is one hash input',
+      new Set(['4805550134','480-555-0134','(480) 555 0134','+1 480 555 0134'].map(csNormalisePhone)).size, 1);
+    t('C-11: the cap is the server\'s own cap', CS_CONTACT_MAX, 1000);
+    /* the digest itself is async (SubtleCrypto), so the SHA-256 vector is
+       asserted in the browser walk's --eval rather than here; what this holds
+       is that the client's half EXISTS and takes no salt argument. */
+    t('C-11: the client hashes, and takes no salt', csContactDigest.length, 1);
+
+    /* D243 · run it back, role-gated */
+    t('D243: the Pro runs it back', csRunItBackTitle(true, 'Galen'), 'Run it back — Season 2');
+    t('D243: a member asks, and the Pro is named', csRunItBackTitle(false, 'Galen'), 'Ask Galen to run it back');
+    t('D243: with no name it is still a door', csRunItBackTitle(false, null), 'Ask the Pro to run it back');
+    t('D243: the Pro\'s sub promises the roster',
+      csRunItBackSub(true), 'Same crew, same bylaws, fresh table. Nobody re-types a code.');
+    t('D243: the outcome names the season and the crew',
+      csRunItBackDone(2, 6, false), 'Season 2 is on. 6 of you are on it.');
+    t('L-12: a changed stake fires the covenant again, and says so',
+      csRunItBackDone(2, 6, true),
+      'Season 2 is on. 6 of you are on it. The terms changed, so everyone reads them again.');
+  })();
+
   const fails = R.filter(r => !r.ok);
   console.log(`\n${fails.length ? 'FAIL' : 'PASS'} — ${R.length} tests, ${fails.length} failure(s)`);
   return { total: R.length, failures: fails.map(f => f.name) };

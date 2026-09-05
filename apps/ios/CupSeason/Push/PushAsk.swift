@@ -47,7 +47,7 @@ final class PushAsk {
 
   #if DEBUG
   /// `-cs_dev_push_prompt`: the explainer whatever the system says.
-  func force() { pending = .cardSaved }
+  func force() { pending = .firstRound }
   #endif
 
   func declined() {
@@ -75,8 +75,8 @@ struct PushPromptSheet: View {
 
   private var eyebrow: String {
     switch reason {
-    case .cardSaved: "YOUR CARD IS IN"
     case .firstRound: "FIRST ONE ON THE BOARD"
+    case .buddyAccepted: "YOU TWO ARE BUDDIES"
     case .leagueJoined: "YOU’RE ON THE ROSTER"
     }
   }

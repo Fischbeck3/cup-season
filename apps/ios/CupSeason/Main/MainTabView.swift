@@ -605,6 +605,12 @@ struct MainTabView: View {
     case .requests:
       golfersPath = NavigationPath()
     case .scheduledRound(let id): presenter.scheduledRound = id
+    // D248 · the callout's landing. The record between the two of you is the
+    // only page that can say what being called out means, and it is a pushed
+    // Golfers page — so the stack is cleared and the page is the top of it.
+    case .headToHead(let who):
+      golfersPath = NavigationPath()
+      golfersPath.append(GolfersRoute.headToHead(who))
     case .home:
       homePath = NavigationPath()
     }

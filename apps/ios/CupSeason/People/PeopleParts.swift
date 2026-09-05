@@ -177,6 +177,13 @@ struct PersonInviteLink: View {
   /// the thing rather than scrolling the golfer to a control they then have to
   /// find and tap again. L-32 asks for a next move, not a signpost to one.
   var trigger: Int = 0
+  /// D233 · the crew step names this route in ITS producer's words ("Text an
+  /// invite to somebody else"), and the same producer names it on the web. The
+  /// row takes the words rather than the step drawing a second control beside
+  /// it — which is what the first cut did, and it put two doors on one act
+  /// (L-34). Everywhere else the row keeps the copy it has always had.
+  var title: String? = nil
+  var sub: String? = nil
   @State private var minting = false
   @State private var link: URL?
 
@@ -211,8 +218,8 @@ struct PersonInviteLink: View {
     HStack(spacing: 10) {
       Image(systemName: "paperplane").font(.system(size: 15)).foregroundStyle(cs.brand)
       VStack(alignment: .leading, spacing: 1) {
-        Text("Text someone a link").font(CSFont.subhead.weight(.semibold)).foregroundStyle(cs.ink)
-        Text(minting ? "Making the link…" : "Works for anyone · no account needed")
+        Text(title ?? "Text someone a link").font(CSFont.subhead.weight(.semibold)).foregroundStyle(cs.ink)
+        Text(minting ? "Making the link…" : (sub ?? "Works for anyone · no account needed"))
           .font(CSFont.label).tracking(1.1).textCase(.uppercase).foregroundStyle(cs.dimText)
           .fixedSize(horizontal: false, vertical: true)
       }

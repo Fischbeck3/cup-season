@@ -1933,7 +1933,11 @@ html[data-theme="light"] .momrow{background:rgba(21,116,63,.06);}
 .onboard.hide, .onboard.hide *{animation-play-state:paused !important;}
 /* ---- entry: course graphic, squad flash, entrance motion ---- */
 .ob-in{position:relative; z-index:1; margin-top:auto; width:100%; text-align:center;}  /* bottom-anchored on phones, scroll-safe */
-.onboard #obProfile, .onboard #obWelcome, .onboard #obOrient{text-align:left;}
+.onboard #obProfile, .onboard #obWelcome, .onboard #obCrew{text-align:left;}
+/* D247 · these three frames are left-aligned, so their standfirst is too —
+   `.ob-hero p` centres itself with `margin:auto` for the DOOR, and under a
+   left-aligned title that reads as a stray indent. */
+.onboard #obProfile .ob-hero p, .onboard #obCrew .ob-hero p{margin-left:0; margin-right:0;}
 /* the fold: the door owns the first viewport; the story scrolls in below */
 .ob-fold{position:relative; display:flex; flex-direction:column; min-height:calc(100svh - 54px - env(safe-area-inset-bottom, 0px));}
 .ob-fgrid{flex:1; display:flex; flex-direction:column; width:100%; max-width:1360px; margin:0 auto;}
@@ -3022,40 +3026,44 @@ html[data-theme="light"] .room-dusk .btn:not(.dark):not(.gold):not(.apple){color
 <!-- D83: the demo season retired — the door sells with its own splash -->
     <p class="fine" style="text-align:center; margin-top:16px; opacity:.7">By continuing you agree to the <a href="/legal.html#terms" target="_blank" rel="noopener" style="color:var(--mut); text-decoration:underline">Terms</a> &amp; <a href="/legal.html#privacy" target="_blank" rel="noopener" style="color:var(--mut); text-decoration:underline">Privacy Policy</a>.</p>
     </div>
+    <!-- D247 · ONE CARD, THREE QUESTIONS, IN A GOLFER'S UNITS.
+         Was: name, handle, home course, city, a decimal INDEX, a GHIN toggle
+         and fourteen markers with no default — eight asks, two of which the
+         app could answer itself and one of which asks for a number most
+         golfers do not have. Now: the name, "What do you usually shoot?" in
+         bands, and two DEFAULTS (the handle from the name, the marker from the
+         handle) shown and changeable. GHIN, the home course and the city move
+         to the card under You, where they are edited rather than demanded.
+         Every string is `CS_ONBOARDING`, painted by `csPaintOnboarding()`, so
+         the desk and the phone cannot word the same question two ways. -->
     <div id="obProfile" style="display:none">
       <div class="ob-hero" style="margin-bottom:18px">
         <div class="lockbadge" style="color:var(--pos); border-color:rgba(78,197,132,.35); background:rgba(78,197,132,.07)">✓ SIGNED IN</div>
-        <h1 style="font-size:30px">Set up your <em>golfer card.</em></h1>
-        <p style="margin-top:10px">Just a name and a marker to start — this card follows you into every league.</p>
+        <h1 style="font-size:30px" id="pfTitle"></h1>
+        <p style="margin-top:10px" id="pfSubtitle"></p>
       </div>
-      <label class="f" for="pfName">Name on the card</label>
-      <input class="f" id="pfName" autocomplete="off" placeholder="First name or nickname" style="font-family:var(--sans); font-size:16px;">
-      <div style="height:12px"></div>
-      <label class="f" for="pfHandle">Your handle — how buddies find you</label>
+      <label class="f" for="pfName" id="pfNameLabel"></label>
+      <input class="f" id="pfName" autocomplete="name" placeholder="First and last" style="font-family:var(--sans); font-size:16px;">
+      <div style="height:16px"></div>
+      <label class="f" id="pfShootLabel"></label>
+      <div id="pfBands" role="radiogroup" style="display:flex; flex-wrap:wrap; gap:8px; margin-top:8px"></div>
+      <p class="fine" style="margin:8px 2px 0; padding:0; color:var(--dim)" id="pfShootSub"></p>
+      <p class="fine" style="margin:6px 2px 0; padding:0; color:var(--mut); display:none" id="pfStarterNote"></p>
+      <div style="height:16px"></div>
+      <label class="f" id="pfMarkerLabel"></label>
+      <!-- D247 · the marker is DEFAULTED, so the fourteen are behind a "Change"
+           row rather than in front of a stranger. Same interaction as the
+           phone; the desk simply has room to open four across. -->
+      <button class="mini" type="button" id="pfMarkerRow" style="width:100%; display:flex; align-items:center; gap:10px; min-height:44px; margin-top:8px; text-align:left"></button>
+      <div id="pfMarkers" style="display:none; grid-template-columns:repeat(4,1fr); gap:8px; margin-top:8px;"></div>
+      <p class="fine" style="margin:6px 2px 0; padding:0; color:var(--dim)" id="pfMarkerNote"></p>
+      <div style="height:16px"></div>
+      <label class="f" for="pfHandle" id="pfHandleLabel"></label>
       <input class="f" id="pfHandle" autocomplete="off" placeholder="@jerecho" style="font-family:var(--sans); font-size:16px;">
-      <p class="fine" style="margin:6px 2px 0; padding:0; color:var(--dim)">Pick it now — this is how buddies find you. It can be changed later, but only once every 60 days, and your leagues are told when it does.</p>
-      <div style="height:14px"></div>
-      <label class="f" for="pfHome">Home course <span style="color:var(--dim); font-weight:400">· optional</span></label>
-      <input class="f" id="pfHome" autocomplete="off" placeholder="Where you play most" style="font-family:var(--sans); font-size:16px;">
-      <div style="height:12px"></div>
-      <label class="f" for="pfCity">City <span style="color:var(--dim); font-weight:400">· optional</span></label>
-      <input class="f" id="pfCity" autocomplete="off" placeholder="Tempe, AZ" style="font-family:var(--sans); font-size:16px;">
-      <p class="fine" style="margin:6px 2px 0; padding:0; color:var(--dim)">These are how buddies recognise you in search — and how someone spots that you play their course.</p>
-      <div style="height:12px"></div>
-      <label class="f" for="pfIdx">Handicap index <span style="color:var(--dim); font-weight:400">· optional</span></label>
-      <input class="f" id="pfIdx" type="number" step="0.1" inputmode="decimal" placeholder="e.g. 12.4">
-      <p class="fine" style="margin:6px 2px 0; padding:0; color:var(--dim)">Know your index? Enter it as a starting point — otherwise your first three rounds set it, and it keeps adjusting as you play.</p>
-      <button class="mini" id="pfGhinToggle" type="button" style="margin-top:8px">+ Add your GHIN number</button>
-      <div id="pfGhinWrap" style="display:none; margin-top:8px">
-        <input class="f" id="pfGhin" inputmode="numeric" autocomplete="off" placeholder="GHIN # · e.g. 1234567" style="font-family:var(--sans); max-width:220px">
-        <p class="fine" style="margin:6px 2px 0; padding:0; color:var(--dim)">Links your USGA record — that's identity, not your number. Your index still comes from your posted scores.</p>
-      </div>
-      <div style="height:14px"></div>
-      <label class="f">Ball marker</label>
-      <p class="fine" style="margin:4px 2px 0; padding:0; color:var(--dim)">This is your icon on the board and in the standings until you add a photo.</p>
-      <div id="pfMarkers" style="display:grid; grid-template-columns:repeat(4,1fr); gap:8px; margin-top:8px;"></div>
+      <p class="fine" style="margin:6px 2px 0; padding:0; color:var(--dim)" id="pfHandleRule"></p>
       <div style="height:16px"></div>
       <button class="btn" id="pfSave">Save my card</button>
+      <p class="fine" style="margin:8px 2px 0; padding:0; color:var(--dim)" id="pfGhinNote"></p>
       <div class="ob-caption" id="pfStatus" style="margin-top:10px"></div>
     </div>
     <!-- D151 · the crew step. Signup used to end on a menu whose first tile was
@@ -3067,22 +3075,20 @@ html[data-theme="light"] .room-dusk .btn:not(.dark):not(.gold):not(.apple){color
     <div id="obCrew" style="display:none">
       <div class="ob-hero" style="margin-bottom:18px">
         <div class="lockbadge" style="color:var(--pos); border-color:rgba(78,197,132,.35); background:rgba(78,197,132,.07)">✓ CARD SAVED</div>
-        <h1 style="font-size:30px">Who are you <em>playing with?</em></h1>
-        <p style="margin-top:10px">Cup Season is a game you play with people you know. Bring them now and your first round already counts for something.</p>
+        <h1 style="font-size:30px" id="obCrewTitle"></h1>
+        <p style="margin-top:10px" id="obCrewSub"></p>
       </div>
-      <label class="f" for="obCrewCode">Got a league code?</label>
-      <div class="joinbox" style="display:flex">
-        <input id="obCrewCode" placeholder="LEAGUE CODE" maxlength="8" autocomplete="off">
-        <button class="btn" id="obCrewJoin" type="button">Join</button>
+      <div id="obCrewRoutes"></div>
+      <!-- D251 · the consent sentence renders HERE, at the point of the ask,
+           and nowhere else. Two controls, both real, and declining leaves the
+           step finishable (L-32: never an alert(), never a trap). -->
+      <div id="obCrewConsent" style="display:none; margin-top:12px; padding:12px; border:1px solid var(--line); border-radius:12px"></div>
+      <div id="obCrewSearchWrap" style="display:none; margin-top:10px">
+        <input class="f" id="obCrewSearch" autocomplete="off" placeholder="Search by name or @handle" style="font-family:var(--sans); font-size:16px;">
       </div>
-      <p class="fine" style="margin:6px 2px 0; padding:0; color:var(--dim)">A buddy texted you one? This is where it goes.</p>
       <div class="ob-status" id="obCrewStatus" role="status" aria-live="polite"></div>
-      <div style="height:18px"></div>
-      <button class="btn dark" id="obCrewFind" type="button">Find your buddies</button>
-      <p class="fine" style="margin:6px 2px 0; padding:0; color:var(--dim)">Search by name or @handle — buddies see each other's rounds and share a tee sheet.</p>
-      <div style="height:18px"></div>
-      <button class="mini" id="obCrewStart" type="button" style="width:100%">Start a league instead</button>
-      <button class="cs-tskip" id="obCrewSkip" type="button" style="margin-top:10px">I'll do this later</button>
+      <div id="obCrewResults"></div>
+      <button class="btn" id="obCrewGo" type="button" style="display:none; margin-top:14px">Take me in</button>
     </div>
     <div id="obWelcome" style="display:none">
       <div class="ob-hero" style="margin-bottom:22px">
@@ -3091,34 +3097,6 @@ html[data-theme="light"] .room-dusk .btn:not(.dark):not(.gold):not(.apple){color
         <p id="obWelcomeWho" style="margin-top:10px"></p>
       </div>
 
-    </div>
-    <!-- D82: ONE orientation screen, after the golfer card. Two teachings
-         only — the five places (D222), and the two ways to play (the switcher's own
-         words: the long game / the short game). Skippable in one tap,
-         reopenable forever from You › ⚙ Card & settings › How it works. -->
-    <div id="obOrient" style="display:none">
-      <div class="ob-hero" style="margin-bottom:16px">
-        <h1 style="font-size:28px">Five places.<br><em>Two ways to play.</em></h1>
-        <p style="margin-top:8px">Thirty seconds, then you're in.</p>
-      </div>
-      <div style="display:grid; grid-template-columns:1fr 1fr; gap:9px; margin-bottom:12px">
-        <div class="startdoor"><b>Home</b><small>What is happening, and what you can do</small></div>
-        <div class="startdoor"><b>Compete</b><small>Every season and weekend you are in</small></div>
-        <div class="startdoor"><b>Record</b><small>Before, during and after a round</small></div>
-        <div class="startdoor"><b>Golfers</b><small>Your buddies, and who is waiting on you</small></div>
-        <div class="startdoor"><b>You</b><small>Your card, your record, your trophies</small></div>
-      </div>
-      <div style="display:flex; gap:9px; margin-bottom:6px">
-        <div class="startdoor" style="flex:1; text-align:left">
-          <div class="mono" style="font-size:9.5px; letter-spacing:.12em; color:var(--brand); margin-bottom:5px">THE LONG GAME</div>
-          <b>A league</b><small>Months. Every round counts toward a table.</small></div>
-        <div class="startdoor" style="flex:1; text-align:left">
-          <div class="mono" style="font-size:9.5px; letter-spacing:.12em; color:var(--gold); margin-bottom:5px">THE SHORT GAME</div>
-          <b>An event</b><small>A weekend or a few weeks. Its own little trophy.</small></div>
-      </div>
-      <p class="fine" style="padding:0 2px 12px">You can run both at once. An event stands alone, or attaches to a league.</p>
-      <button class="btn" id="orGo">Take me in</button>
-      <p class="fine" style="text-align:center; padding-top:10px; opacity:.7">Reopen this any time from You › ⚙︎ › How it works.</p>
     </div>
     <div class="ob-caption" id="obCaption"><span style="opacity:.5">v23 · __CS_VERSION__</span></div>
   </div>
@@ -12343,8 +12321,8 @@ function renderHomeStart(){
         </svg>
         <div><div class="rb-k">Season wrapped</div><b>${esc(done.league.name)}</b></div>
       </div>
-      <button class="btn" data-runback="${esc(done.league.id)}" type="button">Run it back — Season 2</button>
-      <div class="rb-sub">Same crew, same bylaws, fresh table — change anything in the wizard.</div>
+      <button class="btn" data-runback="${esc(done.league.id)}" type="button">${esc(csRunItBackTitle(done.role === 'commissioner', csProFirstName(done)))}</button>
+      <div class="rb-sub">${esc(csRunItBackSub(done.role === 'commissioner'))}</div>
     </div>` : '';
   /* F7: round-first orientation — league-less only (a member already knows
      rounds fan into their league; this is for someone who hasn't joined one
@@ -12498,8 +12476,8 @@ function renderHomeHero(){
     seen('complete');
     box.innerHTML = heroCard('earned', `Season wrapped · ${esc(done?.league?.name||'your league')}`,
       fig, line, `<span class="tap" data-hrecap style="cursor:pointer">Season recap →</span>`,
-      `<button class="hh-cta" data-hrunback type="button">Run it back — Season 2</button>`);
-    wire('[data-hrunback]', ()=> window.runItBack?.(done.league));
+      `<button class="hh-cta" data-hrunback type="button">${esc(csRunItBackTitle(done?.role === 'commissioner', csProFirstName(done)))}</button>`);
+    wire('[data-hrunback]', ()=> window.runItBack?.(done.league, done));
     wire('[data-hrecap]',  ()=> { switchView('hub'); });
     return;
   }
@@ -13944,19 +13922,39 @@ function renderRequestsInto(box){
    `native_home.season.week_no` and `standing.next_up/next_down` are the phone's
    reads; the web computes the same answers from the standings rows it already
    holds, in the same order the server ranks them. */
+/* D247's declined form: the band's figure is held on this device and SPENT the
+   moment the engine has a number of its own, because two numbers on one card is
+   the confusion L-34 exists to prevent. */
+function csStarterHeld(engineIndex){
+  if(engineIndex != null && isFinite(Number(engineIndex))) return null;
+  let raw = null;
+  try { raw = localStorage.getItem('cs_starter_index'); } catch(_){ return null; }
+  if(raw == null) return null;
+  const v = Number(raw);
+  return (isFinite(v) && v > -10 && v < 54) ? v : null;
+}
+
 function csMeStrip(){
   const P = (window.CS && CS.profile) || null;
   const slots = [];
 
-  /* 1 - YOUR NUMBER. `STARTER` is reserved and not yet issued: nothing writes
-     index_source='starter' until onboarding asks the band question. It exists
-     so that the day a starter figure appears it is never dressed as an
-     established index (L-14). */
+  /* 1 - YOUR NUMBER, and `STARTER` IS ISSUED NOW (D247), from two places for
+     one reason. The server-side `index_source='starter'` is still not written —
+     D124 (an owner ruling) declined seeding the engine from a starter — so the
+     band a golfer picks at onboarding lives on the DEVICE (`cs_starter_index`)
+     and is read here. The label is the same either way, because to a golfer
+     reading their own card the distinction is invisible and the honesty rule
+     is the same: a starter is never dressed as an established index (L-14). */
   if(P){
     const ix = P.index_current;
+    const starter = csStarterHeld(ix);
     if(ix != null && isFinite(Number(ix))){
       slots.push({ fact:'my_number', label: P.index_source==='starter' ? 'STARTER' : 'YOUR NUMBER',
                    value: fmtIdx(Number(ix)), go:'card' });
+    } else if(starter != null){
+      /* `csStarterText`, not `fmtIdx`: a band is the middle of a RANGE and
+         "13.0" would dress a guess in the engine's own precision. */
+      slots.push({ fact:'my_number', label:'STARTER', value: csStarterText(starter), go:'card' });
     } else if(window.career && window.career.rounds != null){
       const n = Math.min(Number(window.career.rounds)||0, 3);
       slots.push({ fact:'my_number', label:'BUILDING', value: n<=0 ? '—' : `${n} OF 3`, go:'card' });
@@ -14191,6 +14189,186 @@ function csCompeteList(memberships, events, schedule, todayISO){
   return { seasons: csCompeteSort(live), moments: csCompeteSort(moments), finished: finished,
            nothingRunning: !live.length && !moments.length };
 }
+
+/* ===================================================================
+   D247 / D233 / D251 · ONBOARDING, IN A GOLFER'S UNITS — the web's half
+   of the Kit's `OnboardingCopy`, `ContactHash` and `RunItBack`.
+   ===================================================================
+   Every string below is the phone's string. D234 makes the producers
+   shared and the SHAPES different: the phone asks these on three frames
+   in a column; the desk asks them in the signed-out door's own card,
+   which is why the copy lives here and the layout does not. */
+
+/* Question 1. Five bands, and "No idea" implies NOTHING — a guess dressed
+   as a number is what L-14 and L-44 both forbid. */
+const CS_SCORE_BANDS = [
+  { key:'under80',     title:'Under 80', starter:6  },
+  { key:'eighties',    title:'80s',      starter:13 },
+  { key:'nineties',    title:'90s',      starter:20 },
+  { key:'hundredPlus', title:'100+',     starter:28 },
+  { key:'noIdea',      title:'No idea',  starter:null },
+];
+function csScoreBand(key){ return CS_SCORE_BANDS.find(b => b.key === key) || null; }
+
+/* A band is the MIDDLE OF A RANGE, not a measured index. `13.0` would dress
+   a guess in the engine's own precision, which is what the STARTER label
+   exists to prevent (L-14). Whole prints whole. */
+function csStarterText(v){
+  if(v == null || !isFinite(v)) return '';
+  return Number(v) === Math.round(Number(v)) ? String(Math.round(Number(v))) : (Math.round(Number(v)*10)/10).toFixed(1);
+}
+
+const CS_ONBOARDING = {
+  cardEyebrow:'Your card',
+  cardTitle:"Who's on the card?",
+  cardSub:'Just a name to start — this card follows you into every season.',
+  shootQuestion:'What do you usually shoot?',
+  shootSub:'Your number builds itself from three posted rounds. This just gets you started.',
+  shootStarterNote:"We'll call it a starter until three of your own rounds take over.",
+  nameLabel:'Name',
+  namePlaceholder:'First and last',
+  nameMissing:'Your name goes on the card.',
+  handleLabel:'@handle',
+  handleRule:'3–20 letters, numbers or _. It changes once every 60 days.',
+  handleBad:'A handle is 3–20 letters, numbers or underscores.',
+  markerLabel:'Ball marker',
+  ghinMovedNote:'Adding a GHIN number? It lives on your card, under You.',
+  save:'Save my card',
+  crewEyebrow:'Card saved',
+  crewTitle:'Who do you play with?',
+  crewSub:'Cup Season is a game you play with people you know. Bring one now and your first round already counts for something.',
+  crewGo:'Take me in',
+  contactsConsent:"We'll check your contacts against the golfers already here. We send hashes, never your contacts, and we keep nothing that doesn't match.",
+  contactsAllow:'Check my contacts',
+  contactsDecline:'Not now',
+  contactsNone:'None of your contacts is here yet. Text one a link.',
+  contactsRefused:'Contacts are off for Cup Season. You can turn them on in Settings, or search by name.',
+  contactsNotYet:'Contact matching needs the latest update — try again shortly.',
+};
+function csMarkerFootnote(name){
+  return 'Your marker is ' + name + ' until you pick another — tap it, or change it any time from You.';
+}
+function csContactsFound(n){
+  if(!n || n < 1) return null;
+  return n === 1 ? 'One of your friends is already here.' : n + ' of your friends are already here.';
+}
+
+/* The four crew routes, in reading order. `later` is an EXIT, never dressed
+   as a failure — which is why it is a sentence a golfer can say about
+   themselves rather than the word "skip". */
+const CS_CREW_ROUTES = [
+  { key:'contacts', title:'Find your friends',              sub:'check your contacts for golfers already here' },
+  { key:'search',   title:'Search by name or @handle',      sub:'if you know what they go by here' },
+  { key:'link',     title:'Text an invite to somebody else', sub:"they don't need an account to see it" },
+  { key:'later',    title:"Nobody yet — I'll add them later", sub:null },
+];
+
+/* THE ONE PLACE THE TWO CLIENTS LEGITIMATELY DIFFER, and it is a capability,
+   not a copy decision: a desktop browser has no address book. The contacts
+   route is drawn only where `navigator.contacts.select` actually exists —
+   Android Chrome, in a secure context — because L-32 forbids a door that
+   cannot open. Everywhere else the desk offers the other three. */
+function csContactsAvailable(){
+  return !!(navigator.contacts && typeof navigator.contacts.select === 'function'
+            && window.isSecureContext && window.crypto && window.crypto.subtle);
+}
+function csCrewRoutes(){
+  return CS_CREW_ROUTES.filter(r => r.key !== 'contacts' || csContactsAvailable());
+}
+
+/* D247 · the handle and the marker are DEFAULTED, not asked. The gate is
+   still `marker` AND `handle` (CLAUDE.md's landmine) — defaulting is not
+   skipping, because the save writes both. */
+function csHandleFromName(name){
+  return String(name || '').toLowerCase().replace(/[^a-z0-9]/g, '').slice(0, 20);
+}
+function csHandleIsLegal(h){ return /^[a-z0-9_]{3,20}$/.test(String(h || '')); }
+function csOnboardingGate(marker, handle){
+  return !!String(marker || '').trim() && !!String(handle || '').trim();
+}
+/* Deterministic on the handle, so the same golfer gets the same marker on
+   both clients and across a reinstall. A floor that moves is not a floor. */
+function csMarkerDefault(handle){
+  /* `MARKERS` is the module's own table, bridged onto window (17012). Object
+     key order is insertion order, and `build-markers.mjs` generates
+     `CSMarkers.all` from this very table — so the two clients walk the
+     fourteen in the same order and land on the same marker. */
+  const keys = Object.keys(window.MARKERS || {});
+  if(!keys.length) return 'saguaro';
+  /* The SAME arithmetic as `MarkerDefault.assign` (Kit): djb2 with an explicit
+     mod at every step. Swift accumulates in UInt64 and JS above 2^53 is not an
+     integer, so without the per-step mod the two would silently diverge on a
+     long handle — and a golfer's marker would differ between their phone and
+     the desk, which is the one thing a floor may not do. */
+  let seed = 5381;
+  for(const ch of String(handle || '')) seed = (seed * 33 + ch.codePointAt(0)) % 4294967296;
+  return keys[seed % keys.length];
+}
+
+/* D251 · normalisation and a plain SHA-256. THE SALT IS SERVER-SIDE and
+   cannot be reached from here; `cs_pepper` applies it inside the definer
+   function, so nothing this file computes is what the column stores. The
+   cases below are the migration's own self-check cases, verbatim. */
+function csNormaliseEmail(raw){
+  const s = String(raw || '').trim().toLowerCase();
+  if(!s || !s.includes('@') || s.startsWith('@') || s.endsWith('@')) return null;
+  return s;
+}
+function csNormalisePhone(raw){
+  const d = String(raw || '').replace(/[^0-9]/g, '');
+  if(d.length < 9) return null;
+  return d.length === 10 ? '+1' + d : '+' + d;
+}
+async function csContactDigest(normalised){
+  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(normalised));
+  return [...new Uint8Array(buf)].map(b => b.toString(16).padStart(2, '0')).join('');
+}
+const CS_CONTACT_MAX = 1000;
+async function csContactHashes(emails, phones){
+  const out = [], seen = new Set();
+  const normalised = (emails || []).map(csNormaliseEmail).concat((phones || []).map(csNormalisePhone));
+  for(const n of normalised){
+    if(!n) continue;
+    const h = await csContactDigest(n);
+    if(seen.has(h)) continue;
+    seen.add(h); out.push(h);
+    if(out.length >= CS_CONTACT_MAX) break;
+  }
+  return out;
+}
+
+/* D243 · Run it back, role-gated. The Pro runs it back; a member ASKS, and
+   the ask is one line on the board — D248's own clause says the run-back ask
+   ships with a recipient's Home item or it does not ship, and that item is
+   not built, so a `push_nudges` row would be a request that disappears. */
+/* Classic, not module: the run-back CARD and the Home hero both render in the
+   classic block and both name the Pro. A module-scope helper referenced from
+   classic is the landmine CLAUDE.md names — it fails silently, and preflight's
+   free-identifier check caught exactly that here. */
+function csProFirstName(m){
+  const n = (m && (m.commissioner_name || m.league?.commissioner_name))
+         || window.CS?.league?.commissioner_name || '';
+  return String(n).trim().split(' ')[0] || null;
+}
+
+function csRunItBackTitle(isPro, proFirstName){
+  if(isPro) return 'Run it back — Season 2';
+  return 'Ask ' + (proFirstName || 'the Pro') + ' to run it back';
+}
+function csRunItBackSub(isPro){
+  return isPro ? 'Same crew, same bylaws, fresh table. Nobody re-types a code.'
+               : 'One line on the board, once. They decide when.';
+}
+function csRunItBackAskLine(firstName){ return (firstName || 'Somebody') + ' wants to run it back.'; }
+function csRunItBackDone(seasonNumber, seated, refires){
+  const n = seasonNumber ? ('Season ' + seasonNumber) : 'The next season';
+  const crew = seated === 1 ? "You're on it." : (seated + ' of you are on it.');
+  return refires ? (n + ' is on. ' + crew + ' The terms changed, so everyone reads them again.')
+                 : (n + ' is on. ' + crew);
+}
+const CS_RUNBACK_NOT_YET = 'Running it back needs the latest update — try again shortly.';
+const CS_RUNBACK_ASK_SENT = "Asked. It's on the board.";
+const CS_RUNBACK_ASK_ALREADY = "You've already asked. It's on the board.";
 
 /* L-32, both halves. `failed` wins over everything: an error is the one fact
    the screen knows for certain, and dressing it as "nothing running" is the
@@ -15302,7 +15480,7 @@ function openSeasonCeremony(force){
       </div>
       ${mineHtml}
       ${payHtml}
-      <button class="btn" id="cerRunBack" type="button" style="width:100%;margin-top:16px">Run it back — Season 2</button>
+      <button class="btn" id="cerRunBack" type="button" style="width:100%;margin-top:16px">${esc(csRunItBackTitle(window.CS?.member?.role === 'commissioner', csProFirstName(null)))}</button>
       <button class="cs-tskip" id="cerDone" type="button" style="width:100%;margin-top:6px">Close</button>
     </div>`;
   openSheet(cup?'The Cup Final':'The season', '', html);
@@ -16894,7 +17072,77 @@ async function loadProfile(){
   return CS.profile;
 }
 
-let pfMarker = null;   /* S1-01: no default — the marker is chosen, never inherited */
+/* D247 · the marker is DEFAULTED now, not chosen. L-08 requires it SET, not
+   CHOSEN; L-24 is satisfied because it is still one of the fourteen, still the
+   floor, still changeable — and the footnote names it and says where to change
+   it. The old comment here read "no default — every skipper was a saguaro";
+   the fix for that is a DETERMINISTIC default (a different marker per golfer),
+   not a required choice in front of a stranger. */
+let pfMarker = null;
+let pfMarkerTouched = false;
+let pfMarkerOpen = false;
+let pfBand = null;
+
+/* The collapsed marker row: the assigned marker, its name, and the way in. */
+function csPaintMarkerRow(){
+  const row = document.getElementById('pfMarkerRow');
+  const note = document.getElementById('pfMarkerNote');
+  const name = (window.MARKERS || {})[pfMarker]?.n || 'The Saguaro';
+  if(note) note.textContent = csMarkerFootnote(name);
+  if(!row) return;
+  row.innerHTML = `<span>${(window.mkr || (()=>''))(pfMarker)}</span>
+    <span style="flex:1">${esc(name)}</span>
+    <span class="fine" style="opacity:.7">${pfMarkerOpen ? 'Close' : 'Change'}</span>`;
+  if(!row._csBound){
+    row._csBound = true;
+    row.addEventListener('click', () => {
+      pfMarkerOpen = !pfMarkerOpen;
+      const g = document.getElementById('pfMarkers');
+      if(g) g.style.display = pfMarkerOpen ? 'grid' : 'none';
+      csPaintMarkerRow();
+    });
+  }
+}
+
+/* Every visible string comes from `CS_ONBOARDING`, so the desk cannot word a
+   question differently from the phone (D234). */
+function csPaintOnboarding(){
+  const set = (id, v) => { const el = document.getElementById(id); if(el) el.textContent = v; };
+  set('pfTitle', CS_ONBOARDING.cardTitle);
+  set('pfSubtitle', CS_ONBOARDING.cardSub);
+  set('pfNameLabel', CS_ONBOARDING.nameLabel);
+  set('pfShootLabel', CS_ONBOARDING.shootQuestion);
+  set('pfShootSub', CS_ONBOARDING.shootSub);
+  set('pfStarterNote', CS_ONBOARDING.shootStarterNote);
+  set('pfMarkerLabel', CS_ONBOARDING.markerLabel);
+  set('pfHandleLabel', CS_ONBOARDING.handleLabel);
+  set('pfHandleRule', CS_ONBOARDING.handleRule);
+  set('pfGhinNote', CS_ONBOARDING.ghinMovedNote);
+  const save = document.getElementById('pfSave'); if(save) save.textContent = CS_ONBOARDING.save;
+  set('obCrewTitle', CS_ONBOARDING.crewTitle);
+  set('obCrewSub', CS_ONBOARDING.crewSub);
+  const go = document.getElementById('obCrewGo'); if(go) go.textContent = CS_ONBOARDING.crewGo;
+}
+
+function pfPaintBands(){
+  const box = document.getElementById('pfBands');
+  if(!box) return;
+  box.innerHTML = CS_SCORE_BANDS.map(b =>
+    `<button class="mini" type="button" role="radio" data-band="${b.key}" aria-checked="${b.key===pfBand}" style="min-height:44px;padding:0 14px;${b.key===pfBand?'border-color:var(--brand);color:var(--brand);':''}">${esc(b.title)}</button>`).join('');
+  box.querySelectorAll('[data-band]').forEach(btn => btn.addEventListener('click', () => {
+    pfBand = btn.dataset.band;
+    try{ if(navigator.vibrate) navigator.vibrate(10); }catch(_){}
+    pfPaintBands();
+    const note = document.getElementById('pfStarterNote');
+    if(note) note.style.display = csScoreBand(pfBand)?.starter != null ? 'block' : 'none';
+  }));
+}
+
+/* Bridged for the wave's browser walk (`tools/web-verify.mjs --eval`), which is
+   how the web half of every wave is verified: these three frames are otherwise
+   reachable only behind a real session, and a surface nobody can photograph is
+   a surface nobody has looked at. Same rule the file already applies to `mkr`
+   and `MARKERS` — an explicit bridge, never a silent one. */
 function showProfileGate(){
   $('#obDoor').style.display = 'none';
   $('#obWelcome').style.display = 'none';
@@ -16906,6 +17154,7 @@ function showProfileGate(){
   [g, ...g.querySelectorAll('*')].forEach(el => {
     el.style.animation='none'; el.style.opacity='1'; el.style.transform='none';
   });
+  csPaintOnboarding();
   /* S7-02: the claim context survives the card gate — the door promised
      "claiming X's round"; the save screen keeps that thread visible */
   try{
@@ -16926,13 +17175,19 @@ function showProfileGate(){
   const emailLocal = (CS.user?.email || '').split('@')[0];
   const derivedName = dn && emailLocal && norm(dn) === norm(emailLocal);
   if(dn && !derivedName && !$('#pfName').value) $('#pfName').value = dn;
+  /* the handle DEFAULTS from the name (`csHandleFromName`, the phone's own
+     derivation), and the golfer can still edit it */
   if(!$('#pfHandle').value){
-    const sug = CS.profile?.handle
-      || (CS.profile?.display_name || CS.user?.email || '').split('@')[0]
-           .toLowerCase().replace(/[^a-z0-9_]/g, '').slice(0, 20);
+    const sug = CS.profile?.handle || csHandleFromName($('#pfName').value || CS.user?.email || '');
     if(sug) $('#pfHandle').value = '@' + sug;
   }
   pfCheckHandle();   /* show availability on the pre-filled suggestion right away */
+  /* and the MARKER defaults from the handle, deterministically */
+  if(!pfMarker){
+    pfMarker = CS.profile?.marker || csMarkerDefault(($('#pfHandle').value || '').replace(/^@/, ''));
+    if(CS.profile?.marker) pfMarkerTouched = true;
+  }
+  pfPaintBands();
   /* Phase 5: the marker grid is a real radiogroup — roving tabindex, arrow
      keys, aria-checked, and a 10ms haptic tick on pick. */
   const grid = $('#pfMarkers');
@@ -16940,8 +17195,10 @@ function showProfileGate(){
   grid.setAttribute('aria-label','Ball marker');
   grid.innerHTML = Object.keys(MARKERS).map(k =>
     `<button class="mini" data-mk="${k}" role="radio" aria-checked="${k===pfMarker}" tabindex="${k===pfMarker?0:-1}" style="display:flex;flex-direction:column;align-items:center;gap:4px;padding:10px 4px;${k===pfMarker?'border-color:var(--brand);color:var(--brand);':''}">${mkr(k)}<span style="font-size:10.5px;letter-spacing:.06em">${MARKERS[k].n.toUpperCase()}</span></button>`).join('');
+  grid.style.display = pfMarkerOpen ? 'grid' : 'none';
+  csPaintMarkerRow();
   grid.querySelectorAll('[data-mk]').forEach(b => b.addEventListener('click', () => {
-    pfMarker = b.dataset.mk;
+    pfMarker = b.dataset.mk; pfMarkerTouched = true; pfMarkerOpen = false;
     try{ if(navigator.vibrate) navigator.vibrate(10); }catch(_){}
     showProfileGate();
     grid.querySelector(`[data-mk="${pfMarker}"]`)?.focus();
@@ -16955,7 +17212,7 @@ function showProfileGate(){
       else if(e.key==='ArrowLeft' || e.key==='ArrowUp') i = (i-1+keys.length) % keys.length;
       else return;
       e.preventDefault();
-      pfMarker = keys[i];
+      pfMarker = keys[i]; pfMarkerTouched = true;
       try{ if(navigator.vibrate) navigator.vibrate(10); }catch(_){}
       showProfileGate();
       grid.querySelector(`[data-mk="${pfMarker}"]`)?.focus();
@@ -16963,37 +17220,44 @@ function showProfileGate(){
   }
 }
 
+window.showProfileGate = showProfileGate;
+window.csPaintOnboarding = csPaintOnboarding;
+window.csContinueAfterCard = () => continueAfterCard();
+
 $('#pfSave').addEventListener('click', async () => {
   const name = $('#pfName').value.trim();
-  if(!name){ $('#pfStatus').textContent = 'The card needs a name.'; return; }
-  /* S1-01: the marker is a CHOICE, not a default — every skipper was a
-     saguaro. No pre-pick; the save asks for one. */
-  if(!pfMarker){ $('#pfStatus').textContent = 'Pick your ball marker — it’s your face here.'; return; }
+  if(!name){ $('#pfStatus').textContent = CS_ONBOARDING.nameMissing; return; }
   const hnd = $('#pfHandle').value.trim().replace(/^@/, '').toLowerCase();
-  if(!/^[a-z0-9_]{3,20}$/.test(hnd)){
-    $('#pfStatus').textContent = 'Handle: 3–20 letters, numbers or underscores.'; return;
-  }
-  const idx = parseFloat($('#pfIdx').value);
+  /* D247 · the handle is DEFAULTED, but a one-word nickname derives one the
+     server refuses — so it is named here rather than failing at set_handle
+     with a message about a regex. */
+  if(!csHandleIsLegal(hnd)){ $('#pfStatus').textContent = CS_ONBOARDING.handleBad; return; }
+  /* THE GATE IS STILL `marker` AND `handle` (CLAUDE.md's landmine). Defaulting
+     is not skipping — the save writes both, so the m001 trigger's row still
+     cannot pass. */
+  if(!csOnboardingGate(pfMarker, hnd)){ $('#pfStatus').textContent = 'Your card needs a handle and a marker.'; return; }
   const btn = $('#pfSave'); btn.disabled = true; btn.textContent = '…';
   try {
     const { error: he } = await sb.rpc('set_handle', { p_handle: hnd });
     if(he) throw he;
-    /* D151 · home course and city are asked HERE now, not deferred to a You-tab
-       editor most golfers never open (43% / 39% filled). They are the two
-       fields that make a stranger worth adding, search_golfers already returns
-       both, and after D150 the home course anchors course history. Both stay
-       optional; blank sends null, and set_profile coalesces, so an empty box
-       never clobbers a value someone already had. The index is a starter your
-       own scores overtake (WHS-lite, established at 3 rounds). */
+    /* D247 · `p_index` is NULL, ALWAYS. The band a golfer picks is a STARTER
+       and it stays on this device: D124 (an owner ruling) declined seeding the
+       engine from a starter, so a band-derived figure must never reach
+       `profiles.index_current` or it would score rounds one, two and three.
+       The ME strip renders `STARTER 13` from `cs_starter_index` instead (L-14).
+       The home course, the city and the GHIN move to the card under You —
+       D247's three questions are the name, the band, and who you play with. */
     const { error } = await sb.rpc('set_profile', {
       p_name: name,
-      p_city: (($('#pfCity')?.value) || '').trim() || null,
-      p_home: (($('#pfHome')?.value) || '').trim() || null,
-      p_index: isNaN(idx) ? null : idx,
+      p_index: null,
       p_marker: pfMarker,
-      p_ghin: (($('#pfGhin')?.value) || '').trim() || null,   /* GHIN B: identity, optional; null = keep (none on a new profile) */
     });
     if(error) throw error;
+    try {
+      const band = csScoreBand(pfBand);
+      if(band && band.starter != null) localStorage.setItem('cs_starter_index', String(band.starter));
+      else localStorage.removeItem('cs_starter_index');
+    } catch(_){}
     { let via='direct', tok=null;
       try{ const c=localStorage.getItem('cs_code'), k=localStorage.getItem('cs_claim');
            if(k){ via='claim'; tok=k; } else if(c){ via='join'; tok=c; } }catch(_){}
@@ -17001,72 +17265,196 @@ $('#pfSave').addEventListener('click', async () => {
     await loadProfile();
     $('#obProfile').style.display = 'none';
     toast(`Card saved. Welcome, ${name}.`);
-    /* D82: the one orientation screen rides between the card and first Home
-       — exactly once (cs_oriented). Its buttons resume the same path. */
-    let oriented = true;
-    try { oriented = !!localStorage.getItem('cs_oriented'); } catch(_){}
-    if(!oriented){ showOrientation(); }
-    else await continueAfterCard();
+    /* D224 · the orientation screen is RETIRED, not amended: it was an
+       explainer slide, which the brief bans outright, and it taught a nav D222
+       replaced. What follows the card is a QUESTION (D233's crew step). */
+    await continueAfterCard();
   } catch(e){
     $('#pfStatus').textContent = humanError(e, 'Save failed.');
-  } finally { btn.disabled = false; btn.textContent = 'Save my card'; }
+  } finally { btn.disabled = false; btn.textContent = CS_ONBOARDING.save; }
 });
-/* D82: the orientation screen — shown once, then only ever by request.
-   "Take me in" resumes the interrupted boot path (D83 retired the demo
-   CTA). The flag is set on SHOW (not on dismiss), so a crash mid-screen
-   never traps a user in it. */
-function showOrientation(){
-  try { localStorage.setItem('cs_oriented','1'); } catch(_){}
-  $('#obOrient').style.display = 'block';
-}
-$('#orGo').addEventListener('click', async () => {
-  $('#obOrient').style.display = 'none';
-  await continueAfterCard();
-});
+/* D224 · THE ORIENTATION SCREEN IS RETIRED, NOT AMENDED. It taught two things
+   — the places, and the two ways to play — and the brief bans explainer slides
+   outright. Both are taught where they are needed now: the five places ARE the
+   sidebar and the tab bar, and the long game / the short game is the intent
+   sheet's own five sentences, met at the moment somebody wants to start
+   something. Its content survives, reopenable forever, in the guide sheets
+   below (You › Card & settings › How it works) — which is where D82's own
+   "reopenable" clause always pointed. */
 
-/* D151 · the crew step sits between the card and the app, for COLD arrivals
-   only. An invited golfer (cs_code) or a guest claiming a round (cs_claim) is
+/* D233 · the crew step sits between the card and the app, for COLD arrivals
+   only. An invited golfer (cs_code / cs_claim / a person or plan link) is
    already being carried somewhere by resumeAfterProfile — asking them who they
-   play with would be noise. Shown once; the flag is set on SHOW, like D82's,
-   so a crash mid-screen can never trap anyone in it. */
+   play with would be noise (D116). Shown once; the flag is set on SHOW, so a
+   crash mid-screen can never trap anyone in it. */
 async function continueAfterCard(){
   const ls = k => { try{ return localStorage.getItem(k); }catch(_){ return null; } };
-  const invited = !!(ls('cs_code') || ls('cs_claim'));
+  const invited = !!(ls('cs_code') || ls('cs_claim') || ls('cs_share_person') || ls('cs_share_plan'));
   const seen    = !!ls('cs_crew');
   if(invited || seen){ await resumeAfterProfile(); return; }
   try { localStorage.setItem('cs_crew','1'); } catch(_){}
   window.qaEvent?.('crew_step_shown', {});
-  $('#obCrew').style.display = 'block';
+  /* the crew step owns its own frame: the door's hero and caption come down
+     here rather than relying on the card gate having done it, so the step is
+     correct on its own */
+  $('#obDoor').style.display = 'none';
+  $('#obProfile').style.display = 'none';
+  /* the FIRST `.ob-hero` is the door's — the same selector `showProfileGate`
+     uses; the frames' own heroes are nested inside their own divs */
+  const doorHero = document.querySelector('.onboard .ob-hero');
+  if(doorHero) doorHero.style.display = 'none';
+  csPaintOnboarding();
+  csPaintCrewRoutes();
+  const c = $('#obCrew');
+  c.style.display = 'block';
+  /* The door's entrance animation runs ONCE, on the first paint, and every
+     `.onboard` descendant ends it at `opacity:0` — so a frame revealed later is
+     in the DOM, has its text, and is invisible. `showProfileGate` already
+     resets this for the card; the crew step needs the same reset or it renders
+     three doors under a blank hero. Found by photographing it, not by a test:
+     the eval read the right strings off elements nobody could see. */
+  [c, ...c.querySelectorAll('*')].forEach(el => {
+    el.style.animation = 'none'; el.style.opacity = '1'; el.style.transform = 'none';
+  });
 }
 async function leaveCrewStep(how, then){
-  window.qaEvent?.('crew_step_done', { how });
+  window.qaEvent?.('crew_step_done', { how, added: csCrewAdded });
   $('#obCrew').style.display = 'none';
   await resumeAfterProfile();
   if(typeof then === 'function') setTimeout(then, 260);
 }
-$('#obCrewJoin')?.addEventListener('click', async () => {
-  const el = $('#obCrewCode'), st = $('#obCrewStatus');
-  const code = (el?.value || '').trim().toUpperCase();
-  if(code.length < 4){ st.textContent = 'That code looks too short.'; return; }
-  const b = $('#obCrewJoin'); b.disabled = true; b.textContent = '…';
-  try{
-    /* the covenant is shown BEFORE join_league here exactly as it is on the
-       invite-link path (S3-01) — the stake is never a surprise */
-    if(await covenantGate(code)){
-      const { error } = await sb.rpc('join_league', { p_code: code });
+
+/* How many buddies this step actually produced — the value that decides the
+   first Home (D233) and turns the exit row into "Take me in", because "Nobody
+   yet" is false once somebody has been added. */
+let csCrewAdded = 0;
+
+function csPaintCrewRoutes(){
+  const box = document.getElementById('obCrewRoutes');
+  if(!box) return;
+  const routes = csCrewRoutes().filter(r => r.key !== 'later' || csCrewAdded === 0);
+  box.innerHTML = routes.map(r =>
+    /* `display:block` explicitly: `.btn` is a centred flex row, which laid the
+       gloss out BESIDE the title on one line instead of under it. */
+    `<button class="btn ${r.key === 'contacts' ? '' : 'dark'}" type="button" data-crew="${r.key}" style="display:block;width:100%;text-align:left;margin-top:10px;padding:12px 14px">
+       <span style="display:block">${esc(r.title)}</span>
+       ${r.sub ? `<span class="fine" style="display:block;padding:2px 0 0;opacity:.75">${esc(r.sub)}</span>` : ''}
+     </button>`).join('');
+  box.querySelectorAll('[data-crew]').forEach(b => b.addEventListener('click', () => csCrewTake(b.dataset.crew)));
+  const go = document.getElementById('obCrewGo');
+  if(go) go.style.display = csCrewAdded > 0 ? 'block' : 'none';
+}
+
+window.csPaintCrewRoutes = csPaintCrewRoutes;
+
+async function csCrewTake(key){
+  const st = document.getElementById('obCrewStatus');
+  if(key === 'later'){ leaveCrewStep('skip'); return; }
+  if(key === 'search'){
+    const wrap = document.getElementById('obCrewSearchWrap');
+    if(wrap){ wrap.style.display = 'block'; document.getElementById('obCrewSearch')?.focus(); }
+    return;
+  }
+  if(key === 'link'){
+    /* D241 · the person link. Three answers, not two: minted, not deployed yet
+       (say nothing is wrong), failed (say so). */
+    const r = await csShareIntentLink('person', window.CS?.profile?.id,
+      "Come and play. Cup Season keeps score for a group of friends — every round, against everyone's own number.");
+    if(r?.ok && st) st.textContent = 'Link copied. Text it to one of them.';
+    return;
+  }
+  if(key === 'contacts'){ csCrewConsent(); return; }
+}
+
+/* The consent panel. It is a PANEL, not an `alert()` (L-32), it carries the
+   sentence verbatim, and "Not now" simply puts it away — the step is still
+   finishable by every other route, which is R-G's own clause. */
+function csCrewConsent(){
+  const box = document.getElementById('obCrewConsent');
+  if(!box) return;
+  box.style.display = 'block';
+  box.innerHTML = `<p class="fine" style="padding:0 0 10px">${esc(CS_ONBOARDING.contactsConsent)}</p>
+    <button class="btn" type="button" id="obCrewConsentYes" style="width:100%">${esc(CS_ONBOARDING.contactsAllow)}</button>
+    <button class="cs-tskip" type="button" id="obCrewConsentNo" style="margin-top:8px">${esc(CS_ONBOARDING.contactsDecline)}</button>`;
+  document.getElementById('obCrewConsentYes')?.addEventListener('click', async () => {
+    box.style.display = 'none'; box.innerHTML = '';
+    await csCrewContacts();
+  });
+  document.getElementById('obCrewConsentNo')?.addEventListener('click', () => {
+    box.style.display = 'none'; box.innerHTML = '';
+  });
+}
+
+/* D251 · the consent sentence is shown AT THE POINT OF THE ASK and nowhere
+   else, declining finishes the step, and nothing leaves this browser but
+   digests — `csContactHashes` normalises and hashes, and the salt is applied
+   server-side inside `match_contacts`. */
+async function csCrewContacts(){
+  const st = document.getElementById('obCrewStatus');
+  if(st) st.textContent = 'Checking…';
+  let picked = null;
+  try {
+    picked = await navigator.contacts.select(['email', 'tel'], { multiple: true });
+  } catch(_){
+    if(st) st.textContent = CS_ONBOARDING.contactsRefused;
+    return;
+  }
+  if(!picked || !picked.length){ if(st) st.textContent = CS_ONBOARDING.contactsNone; return; }
+  const emails = [], phones = [];
+  for(const c of picked){
+    for(const e of (c.email || [])) emails.push(e);
+    for(const t of (c.tel || [])) phones.push(t);
+  }
+  const hashes = await csContactHashes(emails, phones);
+  if(!hashes.length){ if(st) st.textContent = CS_ONBOARDING.contactsNone; return; }
+  try {
+    const { data, error } = await sb.rpc('match_contacts', { p_hashes: hashes });
+    if(error) throw error;
+    const people = data || [];
+    if(st) st.textContent = csContactsFound(people.length) || CS_ONBOARDING.contactsNone;
+    csPaintCrewMatches(people);
+  } catch(e){
+    if(st) st.textContent = csShareKindNotDeployed(e) ? CS_ONBOARDING.contactsNotYet
+                                                     : humanError(e, "Couldn't check your contacts.");
+  }
+}
+
+function csPaintCrewMatches(people){
+  const box = document.getElementById('obCrewResults');
+  if(!box) return;
+  box.innerHTML = (people || []).map(p =>
+    `<div class="row" style="display:flex;align-items:center;gap:10px;padding:8px 0">
+       <span>${mkr(p.marker || 'saguaro')}</span>
+       <span style="flex:1"><b>${esc(p.display_name || '—')}</b>${p.handle ? ` <span class="fine">@${esc(p.handle)}</span>` : ''}</span>
+       ${p.rel === 'friend' ? '<span class="fine">Buddies</span>'
+                            : `<button class="mini" type="button" data-crewadd="${esc(p.id)}">Add</button>`}
+     </div>`).join('');
+  box.querySelectorAll('[data-crewadd]').forEach(b => b.addEventListener('click', async () => {
+    b.disabled = true;
+    try {
+      const { error } = await sb.rpc('friend_request', { p_profile: b.dataset.crewadd });
       if(error) throw error;
-      await leaveCrewStep('code');
-    } else {
-      st.textContent = 'Not joined — the code still works whenever you are.';
-    }
-  }catch(e){ st.textContent = humanError(e, 'Could not join with that code.'); }
-  finally { b.disabled = false; b.textContent = 'Join'; }
+      b.textContent = 'Sent';
+      csCrewAdded += 1;
+      csPaintCrewRoutes();
+    } catch(e){ b.disabled = false; toast(humanError(e, "Couldn't send that.")); }
+  }));
+}
+
+/* the inline search, on the same step */
+document.getElementById('obCrewSearch')?.addEventListener('input', async (e) => {
+  const q = (e.target.value || '').trim();
+  const box = document.getElementById('obCrewResults');
+  if(!box) return;
+  if(q.length < 2){ box.innerHTML = ''; return; }
+  try {
+    const { data, error } = await sb.rpc('search_golfers', { p_q: q });
+    if(error) throw error;
+    csPaintCrewMatches((data || []).map(r => ({ id:r.profile_id, display_name:r.display_name,
+                                                handle:r.handle, marker:r.marker, rel:r.rel })));
+  } catch(_){ box.innerHTML = ''; }
 });
-$('#obCrewFind')?.addEventListener('click', () =>
-  leaveCrewStep('buddies', () => window.openPeoplePicker?.({ title:'Find golfers', sub:'Search by name or @handle to add buddies' })));
-$('#obCrewStart')?.addEventListener('click', () =>
-  leaveCrewStep('league', () => { try{ switchView('wizard'); }catch(_){} }));
-$('#obCrewSkip')?.addEventListener('click', () => leaveCrewStep('skip'));
+document.getElementById('obCrewGo')?.addEventListener('click', () => leaveCrewStep('buddies'));
 /* D83: the orientation's demo CTA retired with the demo season — the two
    teachings stand on their own and "Take me in" is the one door. */
 /* D82: the guide sheets — the orientation's content, reopenable forever.
@@ -17159,22 +17547,30 @@ function pfCheckHandle(){
 }
 /* Phase 2: the handle auto-derives from the name and refines as you type it —
    until you edit the handle yourself, at which point it's yours and we stop.
-   One less thing to invent at the wall (Airbnb/Duolingo: infer, don't ask). */
+   One less thing to invent at the wall (Airbnb/Duolingo: infer, don't ask).
+   D247 · the derivation is now `csHandleFromName`, the phone's own, so the two
+   clients cannot hand the same golfer two different handles — and the MARKER
+   rides along, because it defaults off the handle. */
 $('#pfName')?.addEventListener('input', () => {
   if(pfHandleTouched) return;
-  const sug = ($('#pfName').value || '').toLowerCase().replace(/[^a-z0-9_]/g, '').slice(0, 20);
+  const sug = csHandleFromName($('#pfName').value);
   $('#pfHandle').value = sug ? '@' + sug : '';
+  if(!pfMarkerTouched){
+    pfMarker = csMarkerDefault(sug);
+    csPaintMarkerRow();
+    document.querySelectorAll('#pfMarkers [data-mk]').forEach(b => {
+      const on = b.dataset.mk === pfMarker;
+      b.setAttribute('aria-checked', String(on));
+      b.style.borderColor = on ? 'var(--brand)' : '';
+      b.style.color = on ? 'var(--brand)' : '';
+    });
+  }
   pfCheckHandle();
 });
 $('#pfHandle')?.addEventListener('input', () => { pfHandleTouched = true; pfCheckHandle(); });
-/* GHIN B: one "Your handicap" block — the index seeds your number, GHIN is a
-   quiet reveal for identity (doesn't set the number; we never import the index). */
-$('#pfGhinToggle')?.addEventListener('click', () => {
-  const w = $('#pfGhinWrap'); if(!w) return;
-  w.style.display = 'block';
-  $('#pfGhinToggle').style.display = 'none';
-  $('#pfGhin')?.focus();
-});
+/* D247 · GHIN is OFF onboarding and lives on the card under You, so the
+   toggle and its field are gone with the block they opened. */
+
 
 /* ---------- profile hub: the avatar chip opens your card ---------- */
 const initialsOf = n => ((n||'').trim().split(/\s+/).map(w => w[0]).join('').slice(0,2).toUpperCase()) || 'MJ';
@@ -19058,17 +19454,51 @@ function applyBylaws(b){
   renderSetup(); renderBylaws();
 }
 
-/* Stage 3d-4 / D41: run it back — a settled season is the on-ramp to the next.
-   Stash the old league's bylaws + a "· S2" name, then run the normal create
-   flow (#wCreate); the handler's hook applies the prefill once the scaffold +
-   wizard are up. New league id — continuity by convention; linked multi-season
-   is a later build. No new engine/RPC/schema. */
-async function runItBack(oldLeague){
+/* D243 · RUN IT BACK CARRIES THE ROSTER (R10), and the card has two seats.
+   It used to stash the old bylaws and run the CREATE flow — a new league id and
+   a new code, so every member re-typed one to play the season they had already
+   agreed to; and it was drawn for every member, so a member who tapped it was
+   silently made the founder of a different league with the same name.
+   Season 2 is a second `seasons` row under the SAME league now. The Pro mints
+   it; a member ASKS, once, and the ask is one line on the board — D248's own
+   clause says the run-back ask ships with a recipient's Home item or it does
+   not ship, and that item is not built, so a nudge would disappear. */
+async function runItBack(oldLeague, membership){
   if(!oldLeague) return;
-  let bylaws=null; try{ bylaws = await loadBylaws(oldLeague.id); }catch(_){}
-  const base = (oldLeague.name||'Your league').replace(/\s*·\s*S\d+\s*$/i,'').trim();
-  window._runItBack = { bylaws, name: base + ' · S2' };
-  document.getElementById('wCreate')?.click();
+  const lid = oldLeague.id || oldLeague;
+  const mem = membership || (window.CS?.memberships || []).find(m => m.league?.id === lid);
+  const isPro = (mem?.role || window.CS?.member?.role) === 'commissioner';
+
+  if(!isPro){
+    /* the member's ask — one board line, once per league */
+    let asked = false;
+    try { asked = !!localStorage.getItem('cs_runback_ask:' + lid); } catch(_){}
+    if(asked){ toast(CS_RUNBACK_ASK_ALREADY); return; }
+    const first = String(window.CS?.profile?.display_name || '').trim().split(' ')[0] || null;
+    try {
+      const { error } = await sb.from('posts').insert({
+        league_id: lid, kind: 'chat', member_id: mem?.id || window.CS?.member?.id,
+        body: csRunItBackAskLine(first) });
+      if(error) throw error;
+      try { localStorage.setItem('cs_runback_ask:' + lid, '1'); } catch(_){}
+      toast(CS_RUNBACK_ASK_SENT);
+    } catch(e){ toast(humanError(e, "Couldn't send that.")); }
+    return;
+  }
+
+  /* the Pro's own tap. R10 is unpushed today, so `.notYet` is a real state and
+     is NOT narrated as a failure (wave 5's three-state rule). */
+  try {
+    const { data, error } = await sb.rpc('run_it_back', { p_league: lid });
+    if(error) throw error;
+    const r = data || {};
+    toast(csRunItBackDone(r.season?.number, r.seated || 0, !!r.covenant_refires));
+    try { localStorage.setItem('cs_last_league', lid); } catch(_){}
+    await loadMemberships();
+    switchView('hub');
+  } catch(e){
+    toast(csShareKindNotDeployed(e) ? CS_RUNBACK_NOT_YET : humanError(e, "Couldn't start the next season."));
+  }
 }
 window.runItBack = runItBack;
 

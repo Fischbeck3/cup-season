@@ -20,8 +20,14 @@ public enum CSConfig {
 
   /// Last league the person had open — the web's `cs_last_league`.
   public static let lastLeagueKey = "cs_last_league"
-  /// Orientation shown once per device — the web's `cs_oriented`.
+  /// D224 · the orientation screen is RETIRED (an explainer slide, which the
+  /// brief bans outright). The key survives so a device that already saw it is
+  /// not re-judged by anything, and so nothing reuses the name.
   public static let orientedKey = "cs_oriented"
+  /// D233 · the crew step, shown once per device — the web's `cs_crew`, the
+  /// same key on both clients so a golfer who met it on the desk does not meet
+  /// it again on the phone.
+  public static let crewKey = "cs_crew"
   /// The Forge plays fully once per device — the web's `cs_forge`.
   public static let forgeKey = "cs_forge"
 }

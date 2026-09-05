@@ -63,7 +63,9 @@ struct HomeView: View {
   var body: some View {
     ScrollView {
       if let me {
-        let strip = MeStripCopy.make(me)
+        // D247 · the starter the golfer picked at onboarding lives on the
+        // device and is spent the moment the engine has a number of its own.
+        let strip = MeStripCopy.make(me, starter: StarterIndex.current(engineIndex: me.profile?.index_current))
         let ranked = vm.ranked(stripSuppress: strip.suppress)
         VStack(alignment: .leading, spacing: 14) {
           // 1 · the masthead. IOS-019 rule 3: the wordmark lives in the

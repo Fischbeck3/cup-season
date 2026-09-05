@@ -428,3 +428,71 @@ public enum LeagueCopy {
     return "\(who) seed into a four-week Cup Final\(when.map { " from \($0)" } ?? "") — scored fresh, so the regular season sets the seeds, not the winner.\(head) \(tiebreak)"
   }
 }
+
+// MARK: - D243 · Run it back, role-gated
+
+/// RUN IT BACK CARRIES THE ROSTER — and the card that offers it stops making
+/// commissioners by accident.
+///
+/// The old card opened the WIZARD with last season's bylaws carried in and a
+/// "· S2" name. That mints a NEW `leagues` row and a NEW code, so every member
+/// re-types one to play the season they already agreed to — and it was shown to
+/// EVERY member, so a member who tapped it was silently made the founder of a
+/// different league with the same name. A persona walk backed out of exactly
+/// that ("Wait — am I creating this? I'm not the Pro").
+///
+/// Season 2 is a second `seasons` row under the SAME league (R10). So the card
+/// has two seats, and which one you get is not a matter of taste: only the Pro
+/// can run it back, and a member's honest control is an ASK.
+public enum RunItBack {
+  /// Who is looking. `role` is `league_members.role` as the payload carries it.
+  public static func isPro(role: String?) -> Bool { (role ?? "") == "commissioner" }
+
+  public static let eyebrow = "Season wrapped"
+
+  /// The Pro's control, and the member's. The member's names the Pro, because
+  /// "ask somebody" with nobody in it is a door that does not say where it goes.
+  public static func title(isPro: Bool, proFirstName: String?) -> String {
+    if isPro { return "Run it back — Season 2" }
+    let who = (proFirstName?.isEmpty == false) ? proFirstName! : "the Pro"
+    return "Ask \(who) to run it back"
+  }
+
+  /// The Pro's sub says what carries over — which is the whole point of R10 and
+  /// the one thing the old card could not promise. The member's says what their
+  /// tap actually does, and it does not promise a season.
+  public static func sub(isPro: Bool) -> String {
+    isPro
+      ? "Same crew, same bylaws, fresh table. Nobody re-types a code."
+      : "One line on the board, once. They decide when."
+  }
+
+  /// L-20 · ONE ask, once per member per season. The key is per league so a
+  /// golfer in two wrapped seasons can ask in both.
+  public static func askKey(league: UUID) -> String { "cs_runback_ask:\(league.uuidString)" }
+
+  /// What the ask writes. It is a BOARD line, not a `push_nudges` row: D248's
+  /// own conflict clause rules that the run-back ask "ships with a recipient's
+  /// Home item or it does not ship at all", and that Home item is not built —
+  /// so the request lands somewhere the Pro already reads rather than on a
+  /// channel that is gated off, where it would simply disappear.
+  public static func askLine(_ askerFirstName: String?) -> String {
+    let who = (askerFirstName?.isEmpty == false) ? askerFirstName! : "Somebody"
+    return "\(who) wants to run it back."
+  }
+  public static let askSent = "Asked. It's on the board."
+  public static let askAlready = "You've already asked. It's on the board."
+
+  /// The Pro's outcome, in the golfer's units. `invited` is only ever named
+  /// when the covenant actually re-fired — a count of zero says nothing.
+  public static func done(seasonNumber: Int?, seated: Int, covenantRefires: Bool) -> String {
+    let n = seasonNumber.map { "Season \($0)" } ?? "The next season"
+    let crew = seated == 1 ? "You're on it." : "\(seated) of you are on it."
+    return covenantRefires
+      ? "\(n) is on. \(crew) The terms changed, so everyone reads them again."
+      : "\(n) is on. \(crew)"
+  }
+
+  /// The three-valued answer this build's unpushed reads all use.
+  public static let notYetLine = "Running it back needs the latest update — try again shortly."
+}

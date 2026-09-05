@@ -35,7 +35,12 @@ private func userInfo(kind: String, v: Any = 1, category: String? = nil, _ ids: 
       #expect(p != nil, "\(kind) decodes")
       #expect(p.map(PushRoute.from) == want, "\(kind) → \(want)")
     }
-    #expect(PushKind.allCases.count == 12)
+    // The twelve DELIVERY kinds this contract shipped with, plus D248's ten
+    // (nine nudges and one transactional notice). The split is what the count
+    // is really asserting, so it is asserted as a split.
+    #expect(PushKind.allCases.filter { $0.policy == .delivery }.count == 12)
+    #expect(PushKind.d248.count == 10)
+    #expect(PushKind.allCases.count == 22)
   }
 
   @Test func missingIdsLandHome() {

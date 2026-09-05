@@ -67,7 +67,21 @@ struct LeaguelessDoors: View {
   }
 }
 
-/// `.runback` — "Season wrapped · <name>" · Run it back — Season 2 · the sub.
+/// `.runback` — D243 · RUN IT BACK CARRIES THE ROSTER, and the card has two
+/// seats.
+///
+/// It used to open the WIZARD with last season's bylaws carried in and a "· S2"
+/// name, which mints a NEW league and a NEW code — so every member re-types one
+/// to play the season they already agreed to. And it was drawn for EVERY
+/// member, so a member who tapped it was silently made the founder of a
+/// different league with the same name. A persona walk backed out of exactly
+/// that.
+///
+/// Now: the Pro runs it back (R10 mints season 2 under the SAME league, and
+/// nobody re-types anything); a member ASKS, once, and the ask is one line on
+/// the board — not a `push_nudges` row, because D248's own clause says the
+/// run-back ask ships with a recipient's Home item or it does not ship, and
+/// that item is not built.
 struct RunItBackCard: View {
   @Environment(SessionStore.self) private var store
   @Environment(\.toast) private var toast
@@ -75,43 +89,63 @@ struct RunItBackCard: View {
   let leagueId: UUID
   let links: WizardLinks
   @State private var busy = false
-  @State private var runBack: WizardRunBack?
+  @State private var asked = false
+
+  private var membership: Me.Membership? { store.me?.memberships.first { $0.league_id == leagueId } }
+  private var isPro: Bool { RunItBack.isPro(role: membership?.role) }
 
   var body: some View {
-    let m = store.me?.memberships.first { $0.league_id == leagueId }
+    let m = membership
     CSCard(spine: cs.gold) {
       VStack(alignment: .leading, spacing: 10) {
         HStack(spacing: 12) {
           Image(systemName: "trophy").font(.system(size: 26, weight: .regular)).foregroundStyle(cs.gold).frame(width: 34).accessibilityHidden(true)
           VStack(alignment: .leading, spacing: 2) {
-            Text(WizardCopy.runBackK).csEyebrow()
+            Text(RunItBack.eyebrow).csEyebrow()
             Text(m?.name ?? "Your league").font(CSFont.sentenceBold).foregroundStyle(cs.ink)
           }
         }
         .accessibilityElement(children: .combine)
-        CSButton(WizardCopy.runBack, style: .gold, busy: busy) { start(name: m?.name ?? "") }
-        CSFine(WizardCopy.runBackSub)
+        CSButton(RunItBack.title(isPro: isPro, proFirstName: proFirstName), style: .gold, busy: busy) {
+          Task { isPro ? await runIt() : await askThem() }
+        }
+        .disabled(asked && !isPro)
+        CSFine(RunItBack.sub(isPro: isPro))
       }
     }
-    .fullScreenCover(item: $runBack) { rb in
-      NavigationStack {
-        WizardScreen(existingLeagueId: nil, links: WizardLinks(
-          onLocked: { id in runBack = nil; links.onLocked(id) },
-          onCancelled: { runBack = nil; links.onCancelled() },
-          startEvent: links.startEvent, onJoined: links.onJoined), runBack: rb)
-      }
+    .onAppear { asked = UserDefaults.standard.bool(forKey: RunItBack.askKey(league: leagueId)) }
+  }
+
+  /// The Pro's name comes from the payload's own roster when it carries one;
+  /// the producer says "the Pro" when it does not, and never invents a name.
+  private var proFirstName: String? {
+    guard let n = membership?.commissioner_name, !n.isEmpty else { return nil }
+    return n.split(separator: " ").first.map(String.init)
+  }
+
+  private func runIt() async {
+    busy = true
+    defer { busy = false }
+    switch await RunItBackService().run(leagueId) {
+    case .ran(let r):
+      toast.show(r.line)
+      store.preferredLeague = leagueId
+      await store.reload()
+      links.onLocked(leagueId)
+    case .notYet:
+      toast.show(RunItBack.notYetLine)
+    case .refused(let msg):
+      toast.show(msg)
     }
   }
 
-  /// `runItBack(oldLeague)`: stash the old bylaws + a "· S2" name, then the normal create flow.
-  private func start(name: String) {
+  private func askThem() async {
+    guard let member = membership?.member_id else { toast.show(RunItBack.notYetLine); return }
     busy = true
-    Task {
-      defer { busy = false }
-      let b = try? await WizardService().bylaws(leagueId)
-      runBack = WizardRunBack(name: WizardCopy.runBackName(name), bylaws: b)
-    }
+    defer { busy = false }
+    let first = store.me?.profile?.display_name?.split(separator: " ").first.map(String.init)
+    let line = await RunItBackService().ask(league: leagueId, season: nil, member: member, myFirstName: first)
+    asked = true
+    toast.show(line)
   }
 }
-
-extension WizardRunBack: Identifiable { var id: String { name } }

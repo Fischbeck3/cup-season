@@ -42,6 +42,8 @@
 	</array>
 	<key>NSCameraUsageDescription</key>
 	<string>Cup Season reads your scorecard from a photo so you can post a round in seconds.</string>
+	<key>NSContactsUsageDescription</key>
+	<string>Cup Season can check your contacts against the golfers already here, so you can find your friends. We send hashes, never your contacts, and we keep nothing that doesn't match.</string>
 	<key>NSLocalNetworkUsageDescription</key>
 	<string>Cup Season can see which of your golf buddies are standing on this tee, so the foursome fills itself. It never uses your location, and a phone that is not already your buddy or league mate stays invisible.</string>
 	<key>NSPhotoLibraryUsageDescription</key>

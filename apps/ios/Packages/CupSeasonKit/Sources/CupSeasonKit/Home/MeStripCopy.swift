@@ -94,12 +94,15 @@ public enum MeStripCopy {
   /// Passing `nil` means "the plan is not known" and the slot does not render
   /// — which is different from an empty sheet, which means "no plan" and
   /// renders `PLAN ONE`.
+  /// `starter` is D247's band, held on the DEVICE and nowhere else. It is
+  /// spent the moment the engine has a number (`StarterIndex.current` returns
+  /// nil once `index_current` exists), so the strip never shows two numbers.
   public static func make(_ me: Me?, upcoming: [ScheduledRound]?, today: String = CSDate.today(),
-                          calendar: Calendar = .current) -> Strip {
+                          calendar: Calendar = .current, starter: Double? = nil) -> Strip {
     guard let me else { return Strip(slots: [], seasonRow: nil) }
     // The order is the reading order and it never changes: my number, my last
     // round, my next round, my money.
-    let slots = [numberSlot(me.profile),
+    let slots = [numberSlot(me.profile, starter: starter),
                  lastSlot(me.profile, today: today, calendar: calendar),
                  nextSlot(upcoming, today: today, calendar: calendar),
                  moneySlot(me.memberships)].compactMap { $0 }
@@ -107,8 +110,9 @@ public enum MeStripCopy {
   }
 
   /// The same, reading the payload's own tee sheet.
-  public static func make(_ me: Me?, today: String = CSDate.today(), calendar: Calendar = .current) -> Strip {
-    make(me, upcoming: me?.upcoming, today: today, calendar: calendar)
+  public static func make(_ me: Me?, today: String = CSDate.today(), calendar: Calendar = .current,
+                          starter: Double? = nil) -> Strip {
+    make(me, upcoming: me?.upcoming, today: today, calendar: calendar, starter: starter)
   }
 
   // MARK: 1 · YOUR NUMBER
@@ -116,18 +120,30 @@ public enum MeStripCopy {
   /// `12.4` · `YOUR NUMBER`, or `STARTER 13` while the onboarding band stands,
   /// or `— · BUILDING` at zero rounds and `1 OF 3 · BUILDING` under three.
   ///
-  /// The `STARTER` label is **reserved here and not yet issued**: nothing on
-  /// the phone writes `index_source = 'starter'` until D247's onboarding ships
-  /// (and, per §4 of the build plan, in its declined form — client-side only,
-  /// never reaching the engine). The label exists so the day a starter figure
-  /// appears it is never dressed as an established index (L-14).
-  static func numberSlot(_ p: Me.Profile?) -> Slot? {
+  /// The `STARTER` label IS ISSUED NOW (D247, wave 8), and it is issued from
+  /// TWO places for one reason. The server-side `index_source = 'starter'` is
+  /// still not written — D124 is an owner ruling and it declined seeding the
+  /// engine — so the band a golfer picks at onboarding lives on the DEVICE and
+  /// is passed in here. The label is the same either way, because to a golfer
+  /// reading their card the distinction is invisible and the honesty rule is
+  /// the same: a starter is never dressed as an established index (L-14).
+  static func numberSlot(_ p: Me.Profile?, starter: Double? = nil) -> Slot? {
     guard let p else { return nil }
     if let ix = p.index_current, ix.isFinite {
-      let starter = p.index_source == "starter"
+      let isStarter = p.index_source == "starter"
       let value = CSCopy.index(ix)
-      return Slot(fact: .myNumber, label: starter ? "STARTER" : "YOUR NUMBER", value: value, door: .yourCard,
-                  voiceOver: starter ? "starter number, \(value)" : "your number, \(value)")
+      return Slot(fact: .myNumber, label: isStarter ? "STARTER" : "YOUR NUMBER", value: value, door: .yourCard,
+                  voiceOver: isStarter ? "starter number, \(value)" : "your number, \(value)")
+    }
+    // D247's declined form: no engine number, but this golfer answered "what do
+    // you usually shoot?" and the band's figure is on this device. It renders
+    // as STARTER and never as YOUR NUMBER, and it never reached `profiles`.
+    if let s = starter, s.isFinite {
+      // `StarterIndex.text`, not `CSCopy.index`: a band is the middle of a
+      // range and `13.0` would dress it in the engine's own precision (L-14).
+      let value = StarterIndex.text(s)
+      return Slot(fact: .myNumber, label: "STARTER", value: value, door: .yourCard,
+                  voiceOver: "starter number, \(value)")
     }
     // No index yet. `rounds_count` is what says whether the number is BUILDING
     // or simply unread — and an unread count renders nothing.

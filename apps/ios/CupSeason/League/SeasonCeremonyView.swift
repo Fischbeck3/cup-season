@@ -99,7 +99,12 @@ struct SeasonCeremonyView: View {
               .font(CSFont.footnote).foregroundStyle(d.mut).padding(.top, 6).fixedSize(horizontal: false, vertical: true)
           }
         }
-        if let rb = runItBack { CSButton("Run it back — Season 2", style: .gold) { dismiss(); rb() }.padding(.top, 8) }
+        // D243 · role-gated, for the same reason the wrapped hero is.
+        if let rb = runItBack {
+          CSButton(RunItBack.title(isPro: model?.isPro ?? false,
+                                   proFirstName: (model?.proName).flatMap { $0 == "—" ? nil : $0 }),
+                   style: .gold) { dismiss(); rb() }.padding(.top, 8)
+        }
         Button { dismiss() } label: {
           Text("Close").font(CSFont.subhead).foregroundStyle(d.mut).frame(maxWidth: .infinity, minHeight: 44).contentShape(Rectangle())
         }

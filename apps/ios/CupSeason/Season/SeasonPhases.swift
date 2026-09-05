@@ -103,7 +103,14 @@ struct SeasonWrappedHero: View {
           Text("\(PotMath.score(s1))–\(PotMath.score(s2))").font(CSFont.stat).csTabular().foregroundStyle(cs.gold)
         }
         RoomMini("See how it ended") { router.open(.ceremony) }.padding(.top, 6)
-        if let rb = links.runItBack { CSButton("Run it back — Season 2", style: .gold) { rb() }.padding(.top, 4) }
+        // D243 · role-gated. The Pro runs it back; a member ASKS. The card
+        // behind this button has two seats, so the button must too — a member
+        // reading "Run it back" and then meeting "Ask Galen" is the same
+        // door-that-does-not-open L-32 forbids.
+        if let rb = links.runItBack {
+          CSButton(RunItBack.title(isPro: model.isPro, proFirstName: model.proName == "—" ? nil : model.proName),
+                   style: .gold) { rb() }.padding(.top, 4)
+        }
       }
     }
   }

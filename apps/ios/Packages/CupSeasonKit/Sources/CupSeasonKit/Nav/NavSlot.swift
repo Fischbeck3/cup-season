@@ -109,6 +109,10 @@ public extension NavSlot {
     // D222's whole point: a person waiting on you is a COMMUNITY object, and
     // it stops being a cross-stack push into a screen that lived under You.
     case .requests: .golfers
+    // D248 · a callout is a person waiting on you, and the head-to-head is a
+    // Golfers page (`GolfersRoute.headToHead`) — the same slot Requests lands
+    // in, for the same reason.
+    case .headToHead: .golfers
     case .home: .home
     }
   }
