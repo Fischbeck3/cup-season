@@ -21,25 +21,79 @@ public struct PostEpilogue: Sendable, Equatable {
     public let name: String; public let wins: Int; public let losses: Int; public let ties: Int
     public let lead: String?; public let rivalryName: String?
   }
+
+  /// R7 · what the round moved, as the server counted it. Every field is
+  /// optional in the payload and optional here: a squads season has no personal
+  /// rank, a leagueless round has no table, and an older database has none of
+  /// these keys — in all three cases the movement sentence does not render
+  /// rather than guessing one (L-44).
+  public struct Movement: Sendable, Equatable {
+    public let rankBefore: Int?
+    public let rankAfter: Int?
+    public let of: Int?
+    /// The golfers this round went past, in the order they stood BEFORE it.
+    public let passed: [String]
+    /// Points between me and the row above me, after the round.
+    public let gapToNextAfter: Double?
+
+    public init(rankBefore: Int?, rankAfter: Int?, of: Int?, passed: [String] = [], gapToNextAfter: Double? = nil) {
+      self.rankBefore = rankBefore; self.rankAfter = rankAfter; self.of = of
+      self.passed = passed; self.gapToNextAfter = gapToNextAfter
+    }
+  }
+
+  /// C-2 · who was out there, as the server recorded the claim. `confirmed` is
+  /// the STATE (D239 rule 2) and a tag is never a vouch (L-19).
+  public struct Partner: Sendable, Equatable, Identifiable {
+    public let profileId: UUID?
+    public let name: String
+    public let confirmed: Bool
+    public let sharesSeason: Bool
+    public var id: String { (profileId?.uuidString ?? "") + name }
+    public init(profileId: UUID?, name: String, confirmed: Bool, sharesSeason: Bool) {
+      self.profileId = profileId; self.name = name; self.confirmed = confirmed; self.sharesSeason = sharesSeason
+    }
+  }
+
   public let gross: Int?
   public let pvi: Double?
   public let points: Double?
   public let monthRank: Int?
   public let earned: [Earned]
   public let rivals: [Rival]
+  /// nil = the read is not there (an older database, or a season with no
+  /// personal table). Never an empty movement, which would read as "held".
+  public let movement: Movement?
+  public let playedWith: [Partner]
 
-  public init(gross: Int?, pvi: Double?, points: Double?, monthRank: Int?, earned: [Earned] = [], rivals: [Rival] = []) {
+  public init(gross: Int?, pvi: Double?, points: Double?, monthRank: Int?, earned: [Earned] = [], rivals: [Rival] = [],
+              movement: Movement? = nil, playedWith: [Partner] = []) {
     self.gross = gross; self.pvi = pvi; self.points = points; self.monthRank = monthRank; self.earned = earned; self.rivals = rivals
+    self.movement = movement; self.playedWith = playedWith
   }
 
   public init?(json: JSONValue) {
     guard case .object = json else { return nil }
+    // R7's keys are additive and every one of them is optional: a payload from
+    // before the migration decodes to exactly the epilogue it decoded to
+    // before, with `movement` nil and no partners.
+    let before = json["rank_before"]?.int, after = json["rank_after"]?.int
+    let movement: Movement? = (before == nil && after == nil) ? nil : Movement(
+      rankBefore: before, rankAfter: after, of: json["of"]?.int,
+      passed: (json["passed"]?.array ?? []).compactMap { $0.string },
+      gapToNextAfter: json["gap_to_next_after"]?.double)
     self.init(
       gross: json["gross"]?.int, pvi: json["pvi"]?.double, points: json["points"]?.double, monthRank: json["month_rank"]?.int,
       earned: (json["earned"]?.array ?? []).compactMap { a in a["kind"]?.string.map { Earned(kind: $0, label: a["label"]?.string) } },
       rivals: (json["rivals"]?.array ?? []).map { r in
         Rival(name: r["name"]?.string ?? "A rival", wins: r["wins"]?.int ?? 0, losses: r["losses"]?.int ?? 0, ties: r["ties"]?.int ?? 0,
               lead: r["lead"]?.string, rivalryName: r["rivalry_name"]?.string)
+      },
+      movement: movement,
+      playedWith: (json["played_with"]?.array ?? []).compactMap { w in
+        guard let name = w["name"]?.string, !name.isEmpty else { return nil }
+        return Partner(profileId: w["profile_id"]?.string.flatMap { UUID(uuidString: $0) }, name: name,
+                       confirmed: w["confirmed"]?.bool ?? false, sharesSeason: w["shares_season"]?.bool ?? false)
       })
   }
 

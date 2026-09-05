@@ -36,11 +36,16 @@ final class PostRoundModel {
   var pendingPartners: PostPartnersShow?
   /// `_lastPostPhoto` — the recap card rides it
   var recapPhoto: UIImage?
+  /// D239 · who was out there. Optional, bounded by the buddies and league
+  /// mates the golfer actually plays with, and never a vouch (L-19).
+  var partnerChoices: [Person] = []
+  var playedWith: [UUID] = []
 
   private let store: SessionStore
   private let toast: CSToastCenter
   private let svc = PostService()
   private let sched = ScheduleService()
+  private let people = PeopleService()
   private var draftTask: Task<Void, Never>?
   private var openedAt = Date()
   private var typedSomething = false
@@ -54,9 +59,14 @@ final class PostRoundModel {
 
   var uid: UUID? { store.session?.user.id }
   var profile: Me.Profile? { store.me?.profile }
-  /// The open league (`CS.league` / `CS.season`): Home's preferred membership.
+  /// D229 · the membership this round belongs to is derived from the DATE, the
+  /// same way `post_round` derives it on the server — never from
+  /// `preferredLeague`, which is navigation memory and was answering a scoring
+  /// question it had no business answering (D123/L-13). The composer uses it
+  /// for the allowance it previews at, and the ceremony's league name comes
+  /// back from the server with the round.
   var membership: Me.Membership? {
-    store.me?.memberships.first { $0.league_id == store.preferredLeague } ?? store.me?.memberships.first
+    PostSeasonRule.membership(playedOn: card.date, memberships: store.me?.memberships ?? [])
   }
   var myIndex: Double? { profile?.index_current }
   /// "Post a round · your index 12.4" — the REAL number (landmine 7.12).
@@ -73,6 +83,12 @@ final class PostRoundModel {
     restoreDraft()
     if let uid { memory = await svc.courseMemory(uid) }
     scanEnabled = await svc.scanEnabled()
+    partnerChoices = await people.playedWith()
+  }
+
+  func toggle(partner id: UUID) {
+    if let i = playedWith.firstIndex(of: id) { playedWith.remove(at: i) } else if playedWith.count < 7 { playedWith.append(id) }
+    CSHaptic.selection()
   }
 
   // MARK: - the preview
@@ -197,8 +213,16 @@ final class PostRoundModel {
 
   // MARK: - Post (the `#postBtn` handler)
 
+  /// IOS-030 · which field is missing, if any. The composer marks it.
+  var blocked: PostCalc.Blocked? { PostCalc.blocked(card) }
+
   func tapPost() {
-    guard preview != nil else { toast.show("Enter at least one nine first"); return }
+    if let b = blocked {
+      toast.show(b.message)
+      svc.event("post_blocked", ["reason": .string(b.reason)])
+      return
+    }
+    guard preview != nil else { toast.show(PostCalc.Blocked.noCard.message); return }
     if card.needsEvenParGuard { showEvenPar = true; return }
     Task { await submit() }
   }
@@ -214,14 +238,18 @@ final class PostRoundModel {
     guard !busy, let preview, let uid else { return }
     busy = true; defer { busy = false }
     let m = membership
-    var payload = PostPayload.build(card, seasonId: m?.season?.id)
+    // D229 · no season on the payload. `post_round` derives it; the season on
+    // the build below is the DECLARED FALLBACK's only use of a client-chosen
+    // one, for a database that does not have the function yet.
+    var payload = PostPayload.build(card, seasonId: nil)
     if let jpeg = photoJPEG {
       if let path = await svc.uploadPhoto(jpeg, uid: uid) { payload.photo_path = path }
       else { toast.show("Photo didn’t stick — posting the round without it") }
     }
-    let roundId: UUID
-    do { roundId = try await svc.insertRound(payload) }
+    let outcome: PostService.PostOutcome
+    do { outcome = try await svc.postRound(payload, playedWith: playedWith, fallbackSeason: m?.season?.id) }
     catch { toast.show(HumanError.text(error, prefix: "Post failed.")); return }
+    let roundId = outcome.roundId
 
     await svc.insertHoles(PostPayload.holeRows(card, roundId: roundId))
     svc.event(PostEvent.submit, [
@@ -243,10 +271,15 @@ final class PostRoundModel {
     recapPhoto = photo
     let course = payload.course_label
     let firstEver = (profile?.rounds_count ?? 0) == 0
-    let counts = PostSeasonRule.counts(playedOn: payload.played_on, season: m?.season, hasLeague: m != nil)
+    // The SERVER says what the round counts for; the local rule is what answers
+    // when the round went in through the declared fallback (D229).
+    let counts = outcome.viaFallback
+      ? PostSeasonRule.counts(playedOn: payload.played_on, season: m?.season, hasLeague: m != nil)
+      : outcome.counts
     ceremony = PostCeremony(course: course ?? "A round", date: payload.played_on ?? CSDate.today(), gross: payload.gross, vs: preview.vs,
-                            points: counts ? preview.points : nil, squad: m?.squad?.name, inLeague: counts,
-                            name: profile?.display_name ?? "You", marker: profile?.marker ?? "saguaro", leagueName: m?.name,
+                            points: counts ? preview.points : nil, squad: outcome.squad ?? m?.squad?.name, inLeague: counts,
+                            name: profile?.display_name ?? "You", marker: profile?.marker ?? "saguaro",
+                            leagueName: outcome.leagueName ?? m?.name,
                             /* D122 · why it did not score for the league, in words */
                             seasonNote: PostSeasonRule.note(playedOn: payload.played_on, season: m?.season, hasLeague: m != nil))
     CSHaptic.success()
@@ -262,15 +295,29 @@ final class PostRoundModel {
     pendingPartners = claim
     if claim == nil {
       let cap = m?.settings?.counting_cap
-      if let epi = await svc.epilogue(roundId), !epi.rows(cap: cap, firstEver: firstEver).isEmpty || firstEver {
-        pendingEpilogue = PostEpilogueShow(epilogue: epi, course: course, firstEver: firstEver, roundId: roundId, cap: cap,
-                                           photoTravels: payload.photo_path != nil, ceremonyOwnsShare: true)
-      } else if firstEver {
-        pendingEpilogue = PostEpilogueShow(epilogue: PostEpilogue(gross: payload.gross, pvi: nil, points: nil, monthRank: nil), course: course,
-                                           firstEver: true, roundId: roundId, cap: cap, photoTravels: payload.photo_path != nil, ceremonyOwnsShare: true)
+      // R11 returns the epilogue INSIDE its answer, so the page is on screen
+      // without a second round trip; the fallback path fetches it as before.
+      let epi = outcome.epilogue
+      let act = PostNextAct.choose(epi, seasonId: outcome.seasonId ?? m?.season?.id, context: nextActContext(cap: cap, roundsAfter: (profile?.rounds_count ?? 0) + 1))
+      if epi != nil || firstEver {
+        pendingEpilogue = PostEpilogueShow(epilogue: epi ?? PostEpilogue(gross: payload.gross, pvi: nil, points: nil, monthRank: nil),
+                                           course: course, firstEver: firstEver, roundId: roundId, cap: cap,
+                                           photoTravels: payload.photo_path != nil, ceremonyOwnsShare: true, act: act)
       }
     }
+    playedWith = []
     Task { await store.reload() }   // the home feed, the standing, the count
+  }
+
+  /// Everything the next act is allowed to know, and nothing else. A count that
+  /// was not read is left absent so the rung that needs it does not fire.
+  private func nextActContext(cap: Int?, roundsAfter: Int) -> PostNextAct.Context {
+    PostNextAct.Context(
+      leagueless: (store.me?.memberships ?? []).isEmpty,
+      buddiesPlayedThisWeek: nil,
+      roundsCount: roundsAfter,
+      countingCap: cap,
+      monthName: PostNextAct.monthName(card.date ?? CSDate.today()))
   }
 
   /// The curtain has closed: hand the moment to whichever sheet is waiting.
@@ -317,6 +364,8 @@ struct PostEpilogueShow: Identifiable {
   let cap: Int?
   let photoTravels: Bool
   let ceremonyOwnsShare: Bool
+  /// The one ranked next act (P-3). Defaulted so an older caller still compiles.
+  var act: PostNextAct? = nil
   var id: UUID { roundId }
 }
 

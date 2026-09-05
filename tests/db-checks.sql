@@ -568,5 +568,38 @@ from (
      and a.grantee::regrole::text in ('authenticated','anon')
 ) t
 
+-- 24 · round_players is read-only to every client (D239, 20260910093000).
+--     The programme's ONE new table holds who-played-with-whom, and CC-52's
+--     lesson is that a new table is born wide: `pg_default_acl` hands
+--     `arwdDxtm` to authenticated, so the migration revokes from authenticated
+--     as well as from public and anon before granting SELECT back. Writes go
+--     through `post_round` and `confirm_round_partner` and nowhere else — a
+--     direct insert would let anyone write a claim about anybody.
+union all
+select '24 · round_players is read-only to clients',
+  case when to_regclass('public.round_players') is null then 'PASS — table not deployed yet'
+       when bad <> '' then 'FAIL — ' || bad
+       else 'PASS — authenticated may SELECT and nothing else; anon holds nothing; RLS on' end,
+  'writes go through post_round only'
+from (
+  select coalesce(nullif(concat_ws('; ',
+      (select case when to_regclass('public.round_players') is not null
+                    and (has_any_column_privilege('authenticated','public.round_players','INSERT')
+                      or has_any_column_privilege('authenticated','public.round_players','UPDATE')
+                      or has_table_privilege('authenticated','public.round_players','DELETE'))
+                   then 'authenticated can write it' end),
+      (select case when to_regclass('public.round_players') is not null
+                    and (has_table_privilege('anon','public.round_players','SELECT')
+                      or has_any_column_privilege('anon','public.round_players','INSERT'))
+                   then 'anon holds a grant' end),
+      (select case when to_regclass('public.round_players') is not null
+                    and not coalesce((select c.relrowsecurity from pg_class c where c.oid = to_regclass('public.round_players')), false)
+                   then 'RLS is off' end),
+      (select case when to_regclass('public.round_players') is not null
+                    and not has_table_privilege('authenticated','public.round_players','SELECT')
+                   then 'authenticated cannot read it' end)
+    ), ''), '') as bad
+) t
+
 )
 select * from checks order by check_name;

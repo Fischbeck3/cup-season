@@ -628,6 +628,101 @@
     window.homeClash = savedClash; window.homeFeedRows = savedFeed;
   })();
 
+  /* ===== wave 2 · the verb and the funnel (R7, R11, D227, D239, IOS-030) =====
+     The web's producers are the phone's producers in another shape (D234), so
+     these are the same cases `EpilogueMovementTests` drives on the Kit. */
+  (function(){
+    /* postEntry — the ONE box, then the nines (D72 intact) */
+    const set = (id, v) => { const el = document.getElementById(id); if (el) el.value = v; };
+    const savedGross = document.getElementById('inGross')?.value;
+    const savedF9 = document.getElementById('inF9')?.value, savedB9 = document.getElementById('inB9')?.value;
+    const savedSide = state.post.side, savedMode = state.post.mode;
+    state.post.mode = 'total'; state.post.side = 18;
+    set('inGross', '84'); set('inF9', ''); set('inB9', '');
+    t('IOS-030: the one box is an eighteen', postEntry(), { gross: 84, holes: 18 });
+    set('inGross', ''); set('inF9', '41'); set('inB9', '43');
+    t('IOS-030: both nines are an eighteen', postEntry(), { gross: 84, holes: 18 });
+    set('inF9', '41'); set('inB9', '');
+    t('D72: one nine is still a nine', postEntry(), { gross: 41, holes: 9 });
+    set('inGross', '84');
+    t('L-34: the nines win while the card is open', postEntry(), { gross: 41, holes: 9 });
+    set('inGross', ''); set('inF9', ''); set('inB9', '');
+    t('IOS-030: an empty card enters nothing', postEntry(), null);
+    set('inGross', savedGross || ''); set('inF9', savedF9 || ''); set('inB9', savedB9 || '');
+    state.post.side = savedSide; state.post.mode = savedMode;
+
+    /* R7 · the movement sentence is a count over a named read */
+    t('R7: a climb names who was passed',
+      csMovementSentence({ rank_before: 4, rank_after: 2, passed: ['Jade', 'Dre'] }),
+      'That moved you past Jade and Dre into second.');
+    t('R7: a climb with nobody named still says where it landed',
+      csMovementSentence({ rank_before: 3, rank_after: 2, passed: [] }), 'That moved you into second.');
+    t('L-44: no read, no sentence', csMovementSentence(null), null);
+    t('L-44: half a read is no read', csMovementSentence({ rank_before: null, rank_after: 2 }), null);
+    t('R7: a round that moved nothing says nothing', csMovementSentence({ rank_before: 2, rank_after: 2 }), null);
+    t('R7: a posted round never LOSES you a place', csMovementSentence({ rank_before: 2, rank_after: 3 }), null);
+    t('A-4: the gap clause only renders when there is one',
+      csMovementGap({ rank_after: 2, gap_to_next_after: 4 }), '4 back of the row above.');
+    t('A-4: ... and never at the top of the table', csMovementGap({ rank_after: 1, gap_to_next_after: 4 }), '');
+
+    /* the one ranked next act (P-3), rung by rung */
+    const epi = (o) => Object.assign({ gross: 84, pvi: 1.1, points: 9, month_rank: null, earned: [], rivals: [], played_with: [] }, o || {});
+    t('P-3: the clash outranks everything',
+      csNextAct(epi({ rank_before: 4, rank_after: 2, passed: ['Jade'] }), { clash: { id: 'x', weeks_running: 2 } }).sentence,
+      'That takes the clash. Second week running.');
+    t('P-3: the movement is the second rung',
+      csNextAct(epi({ rank_before: 3, rank_after: 2, passed: ['Jade'] }), {}).key, 'movement');
+    t('D239: a partner with no shared season is offered one',
+      csNextAct(epi({ played_with: [{ profile_id: 'g', name: 'Galen', shares_season: false }] }), { rounds_together: { g: 4 } }).sentence,
+      'Galen was out there too. Four rounds between you this month \u2014 four is a season.');
+    t('D239: ... and without the count it invents none',
+      csNextAct(epi({ played_with: [{ profile_id: 'g', name: 'Galen', shares_season: false }] }), {}).sentence,
+      'Galen was out there too. Make the next one count.');
+    t('D239: a shared season reads the record',
+      csNextAct(epi({ played_with: [{ profile_id: 'j', name: 'Jade', shares_season: true }],
+                      rivals: [{ name: 'Jade', wins: 5, losses: 6, ties: 0, lead: 'down' }] }), {}).sentence,
+      'You and Jade have played eleven together. Jade leads 6.');
+    t('P-3: leagueless with buddies counts rather than guesses',
+      csNextAct(epi({}), { leagueless: true, buddies_played_this_week: 3 }).sentence,
+      'Three of yours played this week. Nobody is playing for anything.');
+    t('P-3: the third round is when the number goes live',
+      csNextAct(epi({}), { leagueless: true, rounds_count: 3 }).sentence,
+      'That is your third. Your number goes live now.');
+    t('P-3: the eighth rung is a true sentence with a Done',
+      csNextAct(epi({ month_rank: 2 }), { counting_cap: 3, month_name: 'September' }).sentence,
+      'That is two of your best three in September.');
+    t('V-3: a round the engine scored nothing for says so',
+      csNextAct(epi({ pvi: null }), {}).sentence, 'That builds your number and nothing else.');
+    t('L-32: an epilogue that could not be read still ends in a next move',
+      csNextAct(null, {}).label, 'Done');
+    /* the phrase means one thing because it is said once (P-3's own check) */
+    const rungs = [
+      csNextAct(epi({}), { clash: { id: 'x', weeks_running: 2 } }),
+      csNextAct(epi({ rank_before: 3, rank_after: 2, passed: ['Jade'] }), {}),
+      csNextAct(epi({}), { callout_event: 'e', callout_sentence: 'You called it.' }),
+      csNextAct(epi({ played_with: [{ profile_id: 'g', name: 'Galen', shares_season: false }] }), {}),
+      csNextAct(epi({ played_with: [{ profile_id: 'j', name: 'Jade', shares_season: true }] }), {}),
+      csNextAct(epi({}), { leagueless: true, buddies_played_this_week: 3 }),
+      csNextAct(epi({}), { leagueless: true, rounds_count: 3 }),
+      csNextAct(epi({ month_rank: 2 }), { counting_cap: 3, month_name: 'September' }),
+    ];
+    t('P-3: eight rungs, eight distinct sentences', new Set(rungs.map(r => r.sentence)).size, 8);
+    t('P-3: "Make the next one count" appears in exactly one rung',
+      rungs.filter(r => r.sentence.indexOf('Make the next one count') >= 0).length, 1);
+    t('L-32: every rung ends in a next move', rungs.every(r => !!r.label), true);
+
+    /* L-19 · a tag is never a vouch */
+    t('D239: an unconfirmed tag says so',
+      csPlayedWithLine([{ name: 'Galen', confirmed: false }]), 'Played with Galen \u2014 Galen hasn\u2019t confirmed yet.');
+    t('D239: a confirmed one just says who', csPlayedWithLine([{ name: 'Galen', confirmed: true }]), 'Played with Galen.');
+    t('D239: nobody out there, nothing said', csPlayedWithLine([]), '');
+
+    /* D229 · the composer's inherited line names what is MISSING rather than
+       showing a placeholder that reads like a value (PA-025) */
+    t('PA-025: an em dash, never a number nobody typed',
+      /\u2014 \/ \u2014/.test(csInheritText()) || csInheritText().indexOf('Add the course') === 0, true);
+  })();
+
   const fails = R.filter(r => !r.ok);
   console.log(`\n${fails.length ? 'FAIL' : 'PASS'} — ${R.length} tests, ${fails.length} failure(s)`);
   return { total: R.length, failures: fails.map(f => f.name) };

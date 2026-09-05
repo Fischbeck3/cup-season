@@ -45,6 +45,11 @@ public struct PostCard: Codable, Sendable, Equatable {
   public var scan: PostScanContext?
 
   // the typed inputs, as typed (`#inF9` … `#inDate`)
+  /// IOS-030 · the ONE box. The composer asks for one number — the round's
+  /// gross — and everything else is inherited or behind the fold. The two
+  /// nines survive underneath it, complete and unchanged (P-6): a golfer who
+  /// opens the card and types 41 and 43 gets exactly what they always got.
+  public var whole = ""
   public var f9 = ""
   public var b9 = ""
   public var rating = ""
@@ -84,7 +89,28 @@ public struct PostCard: Codable, Sendable, Equatable {
 
   /// Nothing typed and the grid untouched — the draft has nothing to keep.
   public var isBlank: Bool {
-    [f9, b9, rating, slope, course].allSatisfy { $0.trimmingCharacters(in: .whitespaces).isEmpty } && date == nil && !touched
+    [whole, f9, b9, rating, slope, course].allSatisfy { $0.trimmingCharacters(in: .whitespaces).isEmpty } && date == nil && !touched
+  }
+
+  /// THE round, as entered: a gross and the holes it was played over. One
+  /// place, so the preview, the payload and the receipt cannot disagree about
+  /// what a card with one number in it means.
+  ///
+  /// THE CARD WINS. A golfer who opened the fold and typed their nines (or
+  /// worked the grid) has made the more specific statement, so those answer
+  /// first, on the rules they always had (D72: one nine filled is a nine, and
+  /// the 9-hole side ignores a stale back nine). The one box answers when they
+  /// have not — which is the 90 % case, and the reason it is the hero.
+  ///
+  /// This is the same order the hero renders in, deliberately: the box stands
+  /// down and shows the card's own total whenever the card is carrying the
+  /// round, so the number on screen and the number posted are one number.
+  public var entry: (gross: Int, holes: Int)? {
+    let (f, b) = inputs
+    if f > 0 && b > 0 { return (f + b, 18) }
+    if f > 0 || b > 0 { return (max(f, b), 9) }
+    if mode == .total, side == 18, Self.num(whole) > 0 { return (Self.num(whole), 18) }
+    return nil
   }
 
   // MARK: - the grid (`renderPostHoles` 6131)
@@ -116,7 +142,7 @@ public struct PostCard: Codable, Sendable, Equatable {
 
   /// `resetPostComposer`: the whole composer back to blank (pars stay).
   public mutating func startOver() {
-    f9 = ""; b9 = ""; rating = ""; slope = ""; course = ""; courseId = nil; date = nil
+    whole = ""; f9 = ""; b9 = ""; rating = ""; slope = ""; course = ""; courseId = nil; date = nil
     mode = .total; scores = pars; touched = false; scan = nil
   }
 
@@ -205,10 +231,50 @@ public struct PostPreview: Sendable, Equatable {
 }
 
 public enum PostCalc {
-  /// The empty state's copy — the markup's line, then `recalc`'s once something was typed.
-  public static let emptyMessage = "Enter at least one nine to see the points."
-  public static let emptyMessageAfterTyping = "Enter at least one nine."
+  /// The empty state's copy — the markup's line, then `recalc`'s once something
+  /// was typed. IOS-030 · the composer asks for ONE number, so the sentence
+  /// asks for one number; the nines are behind the fold and are what the
+  /// sentence used to name on a screen that led with them.
+  public static let emptyMessage = "Enter your gross to see the points."
+  public static let emptyMessageAfterTyping = "Enter your gross."
   public static let emptyGrossLine = "Enter your card to see the score."
+
+  /// IOS-030 · WHY the round cannot post yet, named. A hand-typed course has no
+  /// tee to pick, so the rating and slope are the golfer's to type — and until
+  /// they are, the arithmetic here was running on a rating of 0, previewing a
+  /// nonsense figure and letting the golfer press Post on a round the database
+  /// would refuse (`rounds_rating_sane`, `rounds_slope_sane`). The web was
+  /// given this sentence in wave 0; this is its twin, produced once for both.
+  public enum Blocked: Sendable, Equatable {
+    /// Nothing entered yet.
+    case noCard
+    /// A card is entered, but the course carries no rating or slope.
+    case noRating
+
+    public var message: String {
+      switch self {
+      case .noCard: return "Enter your gross first"
+      case .noRating: return PostCalc.noRatingMessage
+      }
+    }
+    /// What `qaEvent`/`post_blocked` records, the same word on both clients.
+    public var reason: String { self == .noRating ? "no_rating" : "no_card" }
+  }
+
+  public static let noRatingMessage = "Type the rating and slope off the scorecard — they’re on the back of the card"
+
+  /// A rating and a slope the engine can actually score against — the database's
+  /// own sane ranges, so the composer refuses exactly what the table refuses.
+  public static func ratingIsSane(_ rating: Double) -> Bool { rating >= 25 && rating <= 90 }
+  public static func slopeIsSane(_ slope: Int) -> Bool { slope >= 55 && slope <= 155 }
+
+  /// nil = the card can post. Otherwise the reason, which the composer says
+  /// and marks the field for.
+  public static func blocked(_ card: PostCard) -> Blocked? {
+    guard card.entry != nil else { return .noCard }
+    guard ratingIsSane(card.ratingValue), slopeIsSane(card.slopeValue) else { return .noRating }
+    return nil
+  }
   /// D124 (i) · RETIRED as a display value. A golfer with no number is not an
   /// 18 — the web's blind `|| 18` (14872) invented one and printed a signed
   /// figure off it. It survives only as the seed the arithmetic needs to run;
@@ -237,9 +303,13 @@ public enum PostCalc {
     let provisional = myIndex == nil
     let rating = card.ratingValue
     let slope = card.slopeValue > 0 ? Double(card.slopeValue) : 113
-    let (f9, b9) = card.inputs
-    if f9 > 0 && b9 > 0 {
-      let gross = f9 + b9
+    // IOS-030 · a card with no rating is not a round with a differential of
+    // (gross − 0)·113/113. It previewed one, and the number it printed was the
+    // one thing on the screen a golfer had no way to know was nonsense.
+    guard ratingIsSane(rating), slopeIsSane(card.slopeValue) else { return nil }
+    guard let entry = card.entry else { return nil }
+    if entry.holes == 18 {
+      let gross = entry.gross
       let diff = (Double(gross) - rating) * 113 / slope
       let vs = pvi(index: idx, differential: diff, allowance: allowance)
       let (pts, msg) = CSBands.pointsFor(vs)
@@ -247,8 +317,8 @@ public enum PostCalc {
                          message: provisional ? ReceiptRows.noNumberYet(round: nil) : msg,
                          label: "\(gross) GROSS", differential: (diff * 10).rounded() / 10, provisional: provisional)
     }
-    if f9 > 0 || b9 > 0 {
-      let g9 = f9 > 0 ? f9 : b9
+    do {
+      let g9 = entry.gross
       // D72: (nine gross − 9-hole rating) scaled, doubled to an 18-hole equivalent
       let rating9 = card.rating9 ? rating : rating / 2
       let diff = ((Double(g9) - rating9) * 113 / slope) * 2
@@ -259,7 +329,6 @@ public enum PostCalc {
                          message: provisional ? ReceiptRows.noNumberYet(round: nil) : "9-hole round, half value. " + base.line,
                          label: "\(g9) GROSS · 9 HOLES", differential: (diff * 10).rounded() / 10, provisional: provisional)
     }
-    return nil
   }
 
   /// The ceremony's display gate (6055): |vs| > 30 means we don't really have a number.
@@ -289,12 +358,12 @@ public struct PostPayload: Encodable, Sendable, Equatable {
   public var photo_path: String?
 
   public static func build(_ card: PostCard, seasonId: UUID?) -> PostPayload {
-    let (f9, b9) = card.inputs
     let rating = card.ratingValue
-    let nine = !(f9 > 0 && b9 > 0)
+    let entry = card.entry
+    let nine = (entry?.holes ?? 18) == 9
     let label = card.course.trimmingCharacters(in: .whitespaces)
     return PostPayload(
-      gross: nine ? (f9 > 0 ? f9 : b9) : f9 + b9,
+      gross: entry?.gross ?? 0,
       rating: rating,
       // D72: the ACTUAL 9-hole rating the server scores against — a real 9-hole
       // tee sends it straight; an 18-hole course played as a nine sends half
@@ -472,6 +541,27 @@ public enum PostSeasonRule {
     guard hasLeague, let s = season, !s.starts_on.isEmpty, !s.ends_on.isEmpty else { return false }
     let played = playedOn ?? today
     return played >= s.starts_on && played <= s.ends_on
+  }
+
+  /// D229 · which membership a round posted on this date belongs to, the same
+  /// way the server derives it in `post_round`: the season whose window holds
+  /// the date, an ACTIVE one first, then the one closing soonest. The composer
+  /// uses it for ONE thing — the allowance it previews at (D123/L-13) — and
+  /// for nothing else. `preferredLeague` is navigation memory and is not
+  /// consulted here: the season a round scores for was never the golfer's
+  /// choice, and on the served path the client sends no season at all.
+  public static func membership(playedOn: String?, memberships: [Me.Membership],
+                                today: String = CSDate.today()) -> Me.Membership? {
+    let played = playedOn ?? today
+    let inWindow = memberships.filter { m in
+      guard let s = m.season, !s.starts_on.isEmpty, !s.ends_on.isEmpty else { return false }
+      return played >= s.starts_on && played <= s.ends_on
+    }
+    return inWindow.min { a, b in
+      let aActive = (a.season?.status == "active"), bActive = (b.season?.status == "active")
+      if aActive != bActive { return aActive }
+      return (a.season?.ends_on ?? "") < (b.season?.ends_on ?? "")
+    }
   }
 
   /// D122 · the same rule, but saying WHY when it does not count. The phone

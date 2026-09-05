@@ -19,6 +19,10 @@ struct PostLinks {
   var openLive: () -> Void = {}
   var openReceipt: (UUID) -> Void = { _ in }
   var openPeople: () -> Void = {}
+  /// The epilogue's act can land on a season's table or on a golfer's card;
+  /// both are doors the shell already owns (IOS-030).
+  var openLeague: (UUID) -> Void = { _ in }
+  var openTourCard: (UUID) -> Void = { _ in }
 }
 
 struct PostCoverView: View {
@@ -86,22 +90,28 @@ private struct PostCoverStack: View {
     NavigationStack(path: $path) {
       ScrollView {
         VStack(alignment: .leading, spacing: 0) {
-          // the web's cover line, verbatim, as the header's sub (IOS-022 item 4)
-          CSPageHeader("Golf", sub: "Play one live, post one you just finished, or plan the next")
-          // D110: the live game leads and wears ember (the live metal, per the
-          // tokens contract); posting and planning are quiet errand rows. Before
-          // this, POST wore ember and the live door a squad blue — backwards.
+          // D227 · three rows, one line of gloss each, and the ~1,000 px of
+          // dead space under them closed (SV-22). The tab is Play, so the
+          // cover is Play.
+          CSPageHeader("Play", sub: "One live, one you just finished, or the next one")
+          // L-40 / D110: the live game leads and wears ember (the live metal,
+          // per the tokens contract); posting and planning are quiet errand
+          // rows. D227 holds that clause rather than spending it: the 90 %
+          // case is served by a LONG-PRESS on the ⊕, by Home's first foot door
+          // and by every explicit "Add a round" CTA, all of which land on the
+          // composer directly.
           VStack(spacing: 0) {
-            PostLiveHeroRow(title: "Play now — score the group",
-                            sub: "Everyone scores from their own phone — Match Play, Wolf or Skins — and it settles up at the end. Friends without the app just play; their card is waiting when they want it.") {
+            PostLiveHeroRow(title: "Score it live — you and the group, hole by hole",
+                            sub: "Everyone scores from their own phone, and it settles up at the end.") {
               close(); links.openLive()
             }
-            PostOptionRow(tick: cs.line2, title: "Post a round — after you play",
-                          sub: "Gross + tee, 20 seconds · counts on your card and in every league") { path.append(PostCoverView.Route.post) }
-            PostOptionRow(tick: cs.line2, title: "Plan a tee time — before",
-                          sub: "Put a round on the tee sheet · your buddies and leagues see it the moment you post", last: true) { showPlan = true }
+            PostOptionRow(tick: cs.line2, title: "Add a round you played",
+                          sub: "Your gross and the tee — it counts on your card and in every season.") { path.append(PostCoverView.Route.post) }
+            PostOptionRow(tick: cs.line2, title: "Plan a round",
+                          sub: "Put it on the tee sheet; your buddies and your leagues see it.", last: true) { showPlan = true }
           }
           .padding(.top, 12)
+          CSFine("Hold the ⊕ to go straight to your card.").padding(.top, 12)
         }
         .padding(20)
       }

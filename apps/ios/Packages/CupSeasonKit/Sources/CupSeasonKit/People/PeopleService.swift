@@ -47,6 +47,30 @@ public struct PeopleService: Sendable {
     BuddyLists.partition(try await svc.call(Rpc.my_friends()))
   }
 
+  /// D239 · who the composer may offer as "who was out there": the golfers this
+  /// person actually plays with, recent partners first, then accepted buddies.
+  /// A tag is a claim about another person, so the list is bounded rather than
+  /// searchable — a stranger is not offered here (L-37), and a read that fails
+  /// returns nothing rather than an empty promise.
+  public func playedWith(limit: Int = 12) async -> [Person] {
+    var out: [Person] = []
+    var seen = Set<UUID>()
+    if let rows: [Rpc.recent_partners.Row] = try? await svc.call(Rpc.recent_partners(p_limit: limit)) {
+      for r in rows {
+        guard let id = r.id, !seen.contains(id), let name = r.display_name, !name.isEmpty else { continue }
+        seen.insert(id)
+        out.append(Person(id: id, displayName: name, handle: r.handle, city: r.city, marker: r.marker,
+                          rel: Rel(r.rel)))
+      }
+    }
+    if out.count < limit, let lists = try? await friends() {
+      for p in lists.buddies where !seen.contains(p.id) && out.count < limit {
+        seen.insert(p.id); out.append(p)
+      }
+    }
+    return out
+  }
+
   /// `friend_request` — 'friend' when the intent was mutual, else 'requested'.
   public func request(_ profile: UUID) async throws -> Rel {
     Rel(try await svc.call(Rpc.friend_request(p_profile: profile)))

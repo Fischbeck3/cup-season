@@ -339,7 +339,30 @@ struct MainTabView: View {
     .sheet(item: $ask.presented) { PushPromptSheet(reason: $0) }
     .onChange(of: tab) { old, new in
       // the ⊕ is a verb, not a place: it presents, and the selection snaps back (IOS-022 item 3: with a haptic)
-      if new == .post { CSHaptic.present(); presenter.postOnComposer = false; presenter.showPost = true; tab = old == .post ? .home : old }
+      if new == .post {
+        CSHaptic.present()
+        tab = old == .post ? .home : old
+        // D227 · with a round live, the ⊕ OPENS THE ROUND. It used to offer
+        // the cover, whose first row is the same door `LiveNowBar` is already
+        // offering two rows above it — the same act, twice, on one screen.
+        if LiveRoundStore.shared.state.active {
+          presenter.showLive = true
+        } else {
+          presenter.postOnComposer = false
+          presenter.showPost = true
+        }
+      }
+    }
+    // D227 · a LONG-PRESS on the ⊕ opens the composer with the score focused.
+    // The system tab bar has no gesture of its own, so the recogniser is
+    // attached to the live `UITabBar` and answers only for the ⊕'s own item.
+    // The 90 % case in one gesture, without spending L-40's clause.
+    .task(id: barRoom) {
+      CSTabBarLongPress.install(onPlus: {
+        CSHaptic.present()
+        presenter.postOnComposer = true
+        presenter.showPost = true
+      })
     }
     .sheet(item: $presenter.tourCard) { TourCardSheet(profileId: $0, links: youLinks) }
     .sheet(item: $presenter.receipt) { RoundReceiptSheet(roundId: $0, seed: nil, openScorecard: { presenter.scorecard = $0 }) }
@@ -393,7 +416,9 @@ struct MainTabView: View {
     .fullScreenCover(isPresented: $presenter.showPost) {
       PostCoverView(startOnComposer: presenter.postOnComposer, links: PostLinks(openLive: { presenter.showLive = true },
                                      openReceipt: { presenter.receipt = $0 },
-                                     openPeople: { presenter.showPost = false; tab = .you; youPath.append(YouRoute.people) }))
+                                     openPeople: { presenter.showPost = false; tab = .you; youPath.append(YouRoute.people) },
+                                     openLeague: { presenter.showPost = false; openLeague($0) },
+                                     openTourCard: { presenter.showPost = false; presenter.tourCard = $0 }))
     }
     .fullScreenCover(isPresented: $presenter.showLive) { LiveRoundHost(links: liveLinks) }
   }
@@ -502,6 +527,66 @@ struct MainTabView: View {
       founderNote: { presenter.showNote = true },
       stageRound: { playOn, tag in presenter.declare = DeclarePrefill(iso: playOn, tagPids: [tag]) }
     )
+  }
+}
+
+/// D227 · the ⊕'s long-press.
+///
+/// SwiftUI's `tabItem` takes no gesture, so the recogniser goes on the live
+/// `UITabBar` and decides for itself whether the press landed on the ⊕: the
+/// bar's own item buttons, sorted left to right, and `Tab.post` is the third
+/// of four. `cancelsTouchesInView` stays false, so an ordinary tap is
+/// untouched and the ⊕ still presents the cover. A bar it cannot find means no
+/// gesture at all — the cover's second row is the same door, one tap further.
+@MainActor enum CSTabBarLongPress {
+  @MainActor private final class Target: NSObject {
+    let onPlus: () -> Void
+    init(onPlus: @escaping () -> Void) { self.onPlus = onPlus }
+    @objc @MainActor func fire(_ g: UILongPressGestureRecognizer) {
+      guard g.state == .began, let bar = g.view as? UITabBar else { return }
+      let point = g.location(in: bar)
+      let buttons = bar.subviews
+        .filter { String(describing: type(of: $0)).contains("TabBarButton") && $0.bounds.width > 1 }
+        .sorted { $0.frame.minX < $1.frame.minX }
+      guard let hit = buttons.firstIndex(where: { $0.frame.contains(point) }) else { return }
+      guard hit == CSTabBarLongPress.plusIndex(of: buttons.count) else { return }
+      onPlus()
+    }
+  }
+
+  /// The ⊕ is the middle slot: index 2 of four today, and the middle of any odd
+  /// count if a slot is ever added. Derived rather than hard-coded so wave 3's
+  /// five destinations do not silently move the gesture onto Golfers.
+  static func plusIndex(of count: Int) -> Int { count <= 0 ? 0 : count / 2 }
+
+  private static var target: Target?
+
+  static func install(onPlus: @escaping () -> Void) {
+    guard let bar = liveBar() else { return }
+    if let existing = bar.gestureRecognizers?.first(where: { $0.name == "cs.plus.longpress" }) {
+      bar.removeGestureRecognizer(existing)
+    }
+    let t = Target(onPlus: onPlus)
+    target = t   // the recogniser holds its target weakly
+    let g = UILongPressGestureRecognizer(target: t, action: #selector(Target.fire(_:)))
+    g.name = "cs.plus.longpress"
+    g.minimumPressDuration = 0.35
+    g.cancelsTouchesInView = false
+    g.delaysTouchesBegan = false
+    bar.addGestureRecognizer(g)
+  }
+
+  private static func liveBar() -> UITabBar? {
+    guard let window = UIApplication.shared.connectedScenes
+            .compactMap({ $0 as? UIWindowScene }).flatMap(\.windows).first(where: \.isKeyWindow) else { return nil }
+    return controller(in: window.rootViewController)?.tabBar
+  }
+
+  private static func controller(in vc: UIViewController?) -> UITabBarController? {
+    guard let vc else { return nil }
+    if let t = vc as? UITabBarController { return t }
+    for child in vc.children { if let t = controller(in: child) { return t } }
+    return controller(in: vc.presentedViewController)
   }
 }
 

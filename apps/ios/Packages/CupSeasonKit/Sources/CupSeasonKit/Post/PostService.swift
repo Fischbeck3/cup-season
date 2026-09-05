@@ -1,13 +1,23 @@
 // Cup Season — the data side of posting a round (audit 03 §2, §4).
 //
-// The round is inserted DIRECTLY into `rounds` (RLS `rounds_owner_insert`),
-// exactly as the web does at index.html 6378 — the one documented exception
-// to "game writes go through RPCs", and load-bearing. The deploy-skew rule
-// from CLAUDE.md is kept the phone's way: retry on ANY error by dropping
-// `api_course_id`, then `photo_path` — never by sniffing the message (42501
-// never names its column). Everything else here is an RPC through `call`, a
-// storage call, or an Edge Function — and every soft failure degrades to the
-// typed path (D36: "cost fails closed; every failure lands on the two boxes").
+// IOS-030 · the round is posted by the SERVER. `post_round` (R11) is the write:
+// L-03 says a write with game consequences is an RPC, and this was the one
+// consequential direct insert left on the phone. The season it scores for is
+// derived server-side from `played_on` against every membership's window at
+// that membership's own allowance (D229/L-13) — the client sends no league and
+// no season, because one `season_id` could never express a golfer in two.
+//
+// The direct insert survives as the DECLARED FALLBACK and fires only on a
+// function-missing error (PGRST202 / 42883): CLAUDE.md's deploy-skew rule
+// covers new arguments and new columns, not a function that does not exist
+// yet, and this is the composer's only post path. Its own skew retries are
+// kept the phone's way — retry on ANY error by dropping `api_course_id`, then
+// `photo_path`, never by sniffing the message (42501 never names its column) —
+// and the served path does the same two drops inside the RPC.
+//
+// Everything else here is an RPC through `call`, a storage call, or an Edge
+// Function — and every soft failure degrades to the typed path (D36: "cost
+// fails closed; every failure lands on the two boxes").
 
 import Foundation
 import Supabase
@@ -61,7 +71,123 @@ public struct PostService: Sendable {
     } catch { return nil }
   }
 
-  // MARK: - the insert (6378–6388) with the two skew retries
+  // MARK: - the post (R11 `post_round`), with the insert as its declared fallback
+
+  /// R11 · the write. **Hand-declared** rather than generated, because the
+  /// migration that creates the function is written and unpushed — the
+  /// documented shape while a migration awaits its contract refresh (preflight
+  /// 17 tolerates it and still demands the grant).
+  ///
+  /// There is **no league or season argument**: D229 moved that derivation to
+  /// the server, off `p_played_on` against every membership's window at that
+  /// membership's own allowance (L-13). Every argument after the three the
+  /// engine cannot score without is defaulted, so a database that has this
+  /// function and a client that is older still meet.
+  struct PostRoundCall: RpcCall {
+    static let name = "post_round"
+    static let optionalArgs: [String] = [
+      "p_holes_played", "p_nine_rating", "p_course_id", "p_course_label",
+      "p_played_on", "p_photo_path", "p_played_with",
+    ]
+    typealias Returns = JSONValue
+    var p_gross: Int
+    var p_rating: Double
+    var p_slope: Int
+    var p_holes_played: Int
+    var p_nine_rating: Double?
+    var p_course_id: String?
+    var p_course_label: String?
+    var p_played_on: String?
+    var p_photo_path: String?
+    var p_played_with: [UUID]
+  }
+
+  /// What came back from the post: the round's id, what the SERVER decided the
+  /// round counts for, and the epilogue that rides back in the same response
+  /// (so the ceremony and the epilogue never cost a second round trip).
+  public struct PostOutcome: Sendable, Equatable {
+    public let roundId: UUID
+    public let seasonId: UUID?
+    public let leagueName: String?
+    public let squad: String?
+    public let counts: Bool
+    public let tagged: Int
+    /// nil = the epilogue had nothing to say, or could not be read. Never a blocker.
+    public let epilogue: PostEpilogue?
+    /// true when the round went in through the declared fallback — the direct
+    /// insert — because the server does not have `post_round` yet.
+    public let viaFallback: Bool
+
+    public init(roundId: UUID, seasonId: UUID? = nil, leagueName: String? = nil, squad: String? = nil,
+                counts: Bool = false, tagged: Int = 0, epilogue: PostEpilogue? = nil, viaFallback: Bool = false) {
+      self.roundId = roundId; self.seasonId = seasonId; self.leagueName = leagueName; self.squad = squad
+      self.counts = counts; self.tagged = tagged; self.epilogue = epilogue; self.viaFallback = viaFallback
+    }
+
+    /// The RPC's `jsonb{round, epilogue}`, read the deploy-skew way: every key
+    /// optional, an id that will not parse means the payload is not one we can
+    /// trust and the caller falls back rather than inventing a round.
+    public init?(json: JSONValue) {
+      guard case .object = json,
+            let idText = json["round"]?["id"]?.string, let id = UUID(uuidString: idText) else { return nil }
+      let r = json["round"]
+      self.init(roundId: id,
+                seasonId: r?["season_id"]?.string.flatMap { UUID(uuidString: $0) },
+                leagueName: r?["league_name"]?.string,
+                squad: r?["squad"]?.string,
+                counts: r?["counts"]?.bool ?? (r?["season_id"]?.string != nil),
+                tagged: r?["tagged"]?.int ?? 0,
+                epilogue: json["epilogue"].flatMap { PostEpilogue(json: $0) },
+                viaFallback: false)
+    }
+  }
+
+  /// The one condition the declared fallback fires on, as a value a test can
+  /// hold: the function is not there yet. Anything else — a check constraint,
+  /// a network failure, a refused rating — is a real error and is thrown, so a
+  /// bad round never quietly takes the old path and posts anyway.
+  public static func fallbackFires(on error: Error) -> Bool {
+    (error as? RpcError)?.isMissingFunction == true
+  }
+
+  /// L-03 · the one consequential direct write on the phone becomes an RPC.
+  ///
+  /// `PostService.insertRound` is kept as the **declared fallback** and fires
+  /// on a function-missing error (PGRST202 / 42883) — CLAUDE.md's skew rule
+  /// covers new arguments and new columns, not a function that does not exist
+  /// yet, and this is the only post path in the composer. The two skew retries
+  /// (drop `api_course_id`, then `photo_path`) live inside the RPC now; the
+  /// fallback keeps its own.
+  ///
+  /// `seasonId` is the fallback's ONLY use of a client-chosen season: on the
+  /// served path the server derives it and the client sends nothing.
+  public func postRound(_ payload: PostPayload, playedWith: [UUID] = [], fallbackSeason: UUID? = nil) async throws -> PostOutcome {
+    do {
+      let json = try await svc.call(PostRoundCall(
+        p_gross: payload.gross, p_rating: payload.rating, p_slope: payload.slope,
+        p_holes_played: payload.holes_played, p_nine_rating: payload.nine_rating,
+        p_course_id: payload.api_course_id, p_course_label: payload.course_label,
+        p_played_on: payload.played_on, p_photo_path: payload.photo_path,
+        p_played_with: playedWith))
+      if let out = PostOutcome(json: json) {
+        CSTelemetry.product(.roundPosted)
+        CSGrowth.log(.firstRoundPosted)
+        return out
+      }
+      // the function answered with a shape we do not recognise: fall through
+      // rather than tell a golfer their round posted when we cannot name it.
+      throw RpcError(name: PostRoundCall.name, underlying: "post_round returned no round id", droppedArgs: [])
+    } catch {
+      guard Self.fallbackFires(on: error) else { throw error }
+      var p = payload
+      p.season_id = fallbackSeason
+      let id = try await insertRound(p)
+      return PostOutcome(roundId: id, seasonId: fallbackSeason, counts: fallbackSeason != nil,
+                         epilogue: await epilogue(id), viaFallback: true)
+    }
+  }
+
+  // MARK: - the insert (6378–6388) with the two skew retries — the DECLARED FALLBACK
 
   private struct IdRow: Decodable { let id: UUID }
 

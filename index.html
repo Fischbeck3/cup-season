@@ -511,10 +511,43 @@ input.f[type="date"]{ min-width:0; max-width:100%; }
 }
 input.f::-webkit-outer-spin-button, input.f::-webkit-inner-spin-button{-webkit-appearance:none;}
 
+/* IOS-030 / R-C - the composer at DESK width. It was two equal halves, so the
+   one box a golfer came to fill sat in a 50% column beside a points table.
+   The reading column carries the round; the 348-px rail carries what the round
+   is worth, which is the same frame the desk's Home uses (D228). */
+/* the epilogue panel's act: the sentence the round earned, then its one door */
+.epiact{padding:2px 0 6px;}
+.epiactline{font-family:var(--serif); font-size:20px; line-height:1.3; color:var(--ink); margin:0 0 10px;}
+/* the panel reads down the same measure the dispatch does - a sentence at
+   1,440 px wide is not a sentence (D81's measure cap, on the column) */
+#epiPanel{margin-bottom:14px; max-width:678px;}
 .postgrid{display:block;}
 @media(min-width:960px){
-  .postgrid{display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:22px; align-items:start;}
+  .postgrid{display:grid; grid-template-columns:minmax(0,1fr) 348px; gap:34px; align-items:start;}
+  .postgrid > div:first-child{max-width:620px;}
 }
+/* the ONE box: a focused numeric control, so it wears the mono figure face and
+   never the serif (L-29) */
+.grossbox{
+  width:100%; background:transparent; border:0; outline:0; padding:0; margin:0;
+  font-family:var(--mono); font-size:64px; font-weight:600; line-height:1.05;
+  color:var(--ink); font-variant-numeric:tabular-nums; -moz-appearance:textfield;
+}
+.grossbox::-webkit-outer-spin-button, .grossbox::-webkit-inner-spin-button{-webkit-appearance:none; margin:0;}
+.grossbox::placeholder{color:var(--dim);}
+.inheritline{
+  display:flex; align-items:baseline; gap:10px; width:100%; text-align:left;
+  background:transparent; border:0; border-top:1px solid var(--line2);
+  padding:12px 0 0; margin-top:12px; cursor:pointer;
+  font-family:var(--mono); font-size:12px; letter-spacing:.06em; color:var(--ink);
+}
+.inheritline .edit{margin-left:auto; color:var(--brand);}
+.whochip{
+  display:inline-flex; align-items:center; gap:6px; padding:7px 12px; margin:0 6px 6px 0;
+  border-radius:999px; border:1px solid var(--line2); background:var(--bg2);
+  color:var(--mut); font-size:13px; cursor:pointer;
+}
+.whochip.on{border-color:var(--brand); background:color-mix(in srgb, var(--brand) 16%, transparent); color:var(--ink);}
 .calc{
   background:var(--bg1); border:1px solid var(--line2); border-radius:var(--r);
   padding:18px; text-align:center;
@@ -3077,6 +3110,10 @@ html[data-theme="light"] .room-dusk .btn:not(.dark):not(.gold):not(.apple){color
 
       <!-- HOME -->
       <section class="view active" id="view-home">
+        <!-- IOS-030 - the epilogue's desk shape: a panel at the head of the
+             reading column, where the golfer already is, rather than a modal
+             over it. Empty and hidden until a round is posted. -->
+        <div id="epiPanel" style="display:none"></div>
         <div id="notifBanner"></div>
         <div id="resumeBanner" style="display:none"></div>
         <div id="homeRequests"></div>
@@ -3463,8 +3500,26 @@ html[data-theme="light"] .room-dusk .btn:not(.dark):not(.gold):not(.apple){color
         <a href="#" class="backlink" data-go="record">← Golf</a>
         <div class="postgrid">
           <div>
-            <div class="eyebrow">Post a round · your index 12.4</div>
+            <div class="eyebrow" id="postEyebrow">Post a round · your index 12.4</div>
             <div class="card">
+              <!-- IOS-030 - ONE box over an inherited, editable line. The
+                   composer asks for one number; the course, the tees, the
+                   rating and the date come from the last round at that course
+                   and open on "edit". Everything that was here is still here,
+                   complete, behind that line (P-6). -->
+              <label class="f" for="inGross">Your gross</label>
+              <input class="grossbox" id="inGross" type="number" inputmode="numeric" placeholder="&mdash;" autocomplete="off">
+              <button type="button" class="inheritline" id="postInherit" aria-expanded="false" aria-controls="postCardFold">
+                <span id="postInheritText">Add the course</span><span class="edit" id="postInheritEdit">edit</span>
+              </button>
+              <!-- D239 - who was out there. Optional, bounded by the golfers
+                   you actually play with, and never a vouch (L-19). -->
+              <div id="postWhoWrap" style="margin-top:14px; display:none">
+                <div class="eyebrow" style="margin:0 0 6px">Who was out there?</div>
+                <div id="postWho"></div>
+                <p class="fine" style="padding-top:2px">Optional. They confirm it from their own phone; nothing is claimed about their score.</p>
+              </div>
+              <div id="postCardFold" style="display:none; margin-top:14px">
               <div class="frow one">
                 <div>
                   <label class="f" for="inCourse">Course & tees</label>
@@ -3529,6 +3584,7 @@ html[data-theme="light"] .room-dusk .btn:not(.dark):not(.gold):not(.apple){color
               </div>
               <input type="file" id="postPhotoFile" accept="image/*" style="display:none">
               <input type="file" id="postScanFile" accept="image/*" capture="environment" style="display:none">
+              </div><!-- /postCardFold -->
               <!-- F2: the live gross reads at a glance right above Post, so an
                    untouched (even-par) card is visible before the tap -->
               <div id="postGrossLine" style="margin-top:12px; padding:10px 12px; border:1px solid var(--line2); border-radius:10px; background:var(--bg2); font-weight:700; font-size:15px; text-align:center; color:var(--ink)">—</div>
@@ -3544,7 +3600,7 @@ html[data-theme="light"] .room-dusk .btn:not(.dark):not(.gold):not(.apple){color
             <div class="calc" aria-live="polite">
               <div class="k">League points this round</div>
               <div class="big" id="calcPts">–</div>
-              <div class="msg" id="calcMsg">Enter at least one nine to see the points.</div>
+              <div class="msg" id="calcMsg">Enter your gross to see the points.</div>
               <div class="trio">
                 <div><b id="calcGross">–</b><span>Gross</span></div>
                 <div><b id="calcVs">–</b><span>your number</span></div>
@@ -4669,6 +4725,10 @@ function switchView(v){
        allows (hoisted classic fns — defined by the time a user can tap) */
     if(typeof loadScanFlag==='function') loadScanFlag();
     if(typeof refreshPostPhotoUI==='function') refreshPostPhotoUI();
+    /* IOS-030 - the composer opens ON the number; D239's WHO row loads behind it */
+    if(typeof renderInheritLine==='function') renderInheritLine();
+    if(typeof loadPostPartners==='function') loadPostPartners();
+    setTimeout(()=>{ const g=document.getElementById('inGross'); if(g && !g.value) g.focus(); }, 120);
   }
   /* the wizard's buddy picker renders lazily — every entry path (welcome
      "Start a league", the lock-fallback) lands here, so fire it here once */
@@ -6882,9 +6942,132 @@ function epiCounting(rank){
   if(rank<=capN) return capN===Infinity ? ' · counts this month' : ` · counts #${rank} this month`;
   return ` · outside your best ${capN} this month, for now`;
 }
-function showEpilogue(epi, course, firstEver, roundId){
+/* ============ R7 / IOS-030 - what the round moved, and the one next act ====
+   The web twin of `EpilogueMovement` and `PostNextAct` (CupSeasonKit). Same
+   rules, same sentences, two shapes (D234): a count over a NAMED read, and
+   nothing at all where the read is absent (L-44). `tests/app-tests.js` asserts
+   both clients against the same cases. */
+const CS_PLACE=['','first','second','third','fourth','fifth'];
+function csOrdinal(n){
+  const t=n%100, u=n%10;
+  const suf=(t>=11&&t<=13)?'th':(u===1?'st':u===2?'nd':u===3?'rd':'th');
+  return String(n)+suf;
+}
+function csPlace(n){ return CS_PLACE[n] || csOrdinal(n); }
+/* one decimal only when there is one - the points producer's own rule */
+function csNum(n){ return (n%1) ? Number(n).toFixed(1) : String(Number(n)); }
+/* "September" from a calendar date, BY PARTS - never through Date parsing (L-07) */
+const CS_MONTHS_LONG=['January','February','March','April','May','June','July','August','September','October','November','December'];
+function csMonthName(iso){
+  const m=parseInt(String(iso).slice(5,7),10);
+  return (m>=1 && m<=12) ? CS_MONTHS_LONG[m-1] : '';
+}
+const CS_SPELLED=['zero','one','two','three','four','five','six','seven','eight','nine','ten','eleven','twelve'];
+function csSpelled(n){ return (n>=0 && n<CS_SPELLED.length) ? CS_SPELLED[n] : String(n); }
+function csCapFirst(t){ return t ? t.charAt(0).toUpperCase()+t.slice(1) : t; }
+function csNameList(names){
+  const a=(names||[]).filter(Boolean);
+  if(!a.length) return '';
+  if(a.length===1) return a[0];
+  if(a.length===2) return a[0]+' and '+a[1];
+  return a.slice(0,-1).join(', ')+' and '+a[a.length-1];
+}
+/* nil in three cases, each deliberate: the read is absent, the round moved
+   nothing, or the table says a posted round LOST a place - which is a table we
+   do not repeat back to the golfer. */
+function csMovementSentence(m){
+  if(!m) return null;
+  const before=m.rank_before, after=m.rank_after;
+  if(before==null || after==null || !(after<before)) return null;
+  const names=(m.passed||[]).filter(Boolean);
+  return names.length ? `That moved you past ${csNameList(names)} into ${csPlace(after)}.`
+                      : `That moved you into ${csPlace(after)}.`;
+}
+function csMovementGap(m){
+  if(!m || m.rank_after==null || m.rank_after<=1) return '';
+  const g=m.gap_to_next_after;
+  if(g==null || !(g>0)) return '';
+  return `${csNum(g)} back of the row above.`;
+}
+const CS_NO_POINTS_NOTE='That builds your number and nothing else.';
+/* Eight rungs, eight distinct sentences, one door each (P-3). Every branch
+   takes its facts from `ctx`; an absent fact drops the rung rather than
+   filling it in. */
+function csNextAct(epi, ctx){
+  ctx = ctx || {};
+  const partners=(epi && epi.played_with) || [];
+  if(ctx.clash){
+    const running = (ctx.clash.weeks_running>=2) ? ` ${csCapFirst(csPlace(ctx.clash.weeks_running))} week running.` : '';
+    return { key:'clash', sentence:`That takes the clash.${running}`, label:'See the head-to-head', door:'head_to_head', ref:ctx.clash.id||null };
+  }
+  const moved = csMovementSentence(epi && {
+    rank_before: epi.rank_before, rank_after: epi.rank_after,
+    passed: epi.passed, gap_to_next_after: epi.gap_to_next_after });
+  if(moved) return { key:'movement', sentence:moved, label:'See the table', door:'table', ref:(epi&&epi.season_id)||null };
+  if(ctx.callout_event && ctx.callout_sentence)
+    return { key:'callout', sentence:ctx.callout_sentence, label:'See the callout', door:'callout', ref:ctx.callout_event };
+  const stranger = partners.find(p=>!p.shares_season);
+  if(stranger){
+    const n=(ctx.rounds_together||{})[stranger.profile_id] || 0;
+    const tail = n>=2 ? ` ${csCapFirst(csSpelled(n))} rounds between you this month \u2014 ${csSpelled(n)} is a season.`
+                      : ' Make the next one count.';
+    return { key:'partner_new', sentence:`${stranger.name} was out there too.${tail}`,
+             label:`Start a season with ${stranger.name}`, door:'season_with', ref:stranger.profile_id||null };
+  }
+  if(partners.length){
+    const p=partners[0];
+    const r=((epi && epi.rivals)||[]).find(x=>x.name && (x.name.indexOf(p.name)===0 || p.name.indexOf(x.name)===0));
+    if(r){
+      const met=(r.wins||0)+(r.losses||0)+(r.ties||0);
+      const lead = r.lead==='up' ? `You lead ${r.wins}.` : r.lead==='down' ? `${p.name} leads ${r.losses}.` : 'Dead even.';
+      return { key:'partner_record', sentence:`You and ${p.name} have played ${csSpelled(met)} together. ${lead}`,
+               label:'See the record', door:'record', ref:p.profile_id||null };
+    }
+    return { key:'partner_seen', sentence:`${p.name} was out there too.`, label:'See the record', door:'record', ref:p.profile_id||null };
+  }
+  if(ctx.leagueless && ctx.buddies_played_this_week>0)
+    return { key:'leagueless_buddies',
+             sentence:`${csCapFirst(csSpelled(ctx.buddies_played_this_week))} of yours played this week. Nobody is playing for anything.`,
+             label:'Start something', door:'start_something', ref:null };
+  if(ctx.leagueless && ctx.rounds_count!=null){
+    const n=ctx.rounds_count;
+    if(n===3) return { key:'number_live', sentence:'That is your third. Your number goes live now.', label:'Find golfers', door:'find_golfers', ref:null };
+    if(n<3) return { key:'number_building', sentence:`That is your ${csPlace(n)}. ${csCapFirst(csSpelled(3-n))} more and your number goes live.`,
+                     label:'Find golfers', door:'find_golfers', ref:null };
+  }
+  if(epi && epi.month_rank!=null && ctx.counting_cap!=null && epi.month_rank<=ctx.counting_cap && ctx.month_name)
+    return { key:'counting', sentence:`That is ${csSpelled(epi.month_rank)} of your best ${csSpelled(ctx.counting_cap)} in ${ctx.month_name}.`,
+             label:'Done', door:'done', ref:null };
+  if(!epi || epi.pvi==null) return { key:'no_points', sentence:CS_NO_POINTS_NOTE, label:'Done', door:'done', ref:null };
+  return { key:'on_the_board', sentence:'That is on your card.', label:'Done', door:'done', ref:null };
+}
+/* D239 - "Played with Galen - he hasn't confirmed yet." A tag is never a vouch
+   (L-19): the line says who, and whether they have answered, and nothing about
+   attestation. */
+function csPlayedWithLine(people){
+  const all=(people||[]).map(p=>p.name);
+  const waiting=(people||[]).filter(p=>!p.confirmed).map(p=>p.name);
+  if(!all.length) return '';
+  if(!waiting.length) return `Played with ${csNameList(all)}.`;
+  if(waiting.length===all.length && all.length===1) return `Played with ${all[0]} \u2014 ${all[0]} hasn\u2019t confirmed yet.`;
+  return `Played with ${csNameList(all)} \u2014 waiting on ${csNameList(waiting)}.`;
+}
+window.csNextAct=csNextAct; window.csMovementSentence=csMovementSentence;
+window.csMovementGap=csMovementGap; window.csPlayedWithLine=csPlayedWithLine;
+
+function showEpilogue(epi, course, firstEver, roundId, ctx){
   if(!epi) return;
   const rows=[];
+  /* IOS-030 - the ONE ranked next act, above everything else on the page. It
+     was a sheet of achievement rows and two share buttons, and then nothing
+     (PP-02). The share artifacts survive, demoted below the act. */
+  const act = (typeof csNextAct==='function') ? csNextAct(epi, ctx||{}) : null;
+  if(act){
+    const gap = csMovementGap({ rank_after: epi.rank_after, gap_to_next_after: epi.gap_to_next_after });
+    rows.push(`<div class="epiact"><p class="epiactline">${esc(act.sentence)}</p>${
+      gap ? `<p class="fine" style="padding:0 0 8px">${esc(gap)}</p>` : ''
+    }<button class="btn${act.door==='done'?' dark':''}" id="epiAct" data-door="${esc(act.door)}" data-ref="${esc(act.ref||'')}">${esc(act.label)}</button></div>`);
+  }
   const pvi = epi.pvi!=null ? Number(epi.pvi) : null;
   if(pvi!=null){
     rows.push(`<div class="check"><span class="num">⛳</span><div class="tt"><b>${esc(bandName(pvi))}${epi.points!=null?` · ${epi.points} pts`:''}</b><small>${esc(vsPhrase(pvi))}${epiCounting(epi.month_rank)}</small></div></div>`);
@@ -6903,7 +7086,10 @@ function showEpilogue(epi, course, firstEver, roundId){
     const sub = rv.rivalry_name ? `“${esc(rv.rivalry_name)}” · your clash this week counted` : 'Your clash this week counted';
     rows.push(`<div class="check"><span class="num">⚔️</span><div class="tt"><b>${esc(line)} all-time${tie}</b><small>${sub}</small></div></div>`);
   });
-  if(!rows.length && !firstEver) return; /* nothing worth interrupting a post for */
+  /* the act always says something true, so the page always has a reason to
+     exist - but a page with only the act and nothing earned is still worth
+     showing, because the act IS the point (P-3). */
+  if(!rows.length && !firstEver) return;
   /* Phase 4: the first-ever round always gets its moment + the shareable card,
      even when there's no band row yet (a brand-new golfer has no index, so pvi
      is null) — the first success is the growth seam. */
@@ -6912,29 +7098,58 @@ function showEpilogue(epi, course, firstEver, roundId){
   const sub = course
     ? `${epi.gross!=null?epi.gross+' at ':''}${String(course).toUpperCase()}`
     : 'THE ROUND, FOR YOU FIRST';
+  /* D239 - who was out there, as a claim with a state */
+  if((epi.played_with||[]).length && typeof csPlayedWithLine==='function')
+    rows.push(`<p class="fine" style="padding:8px 0 0">${esc(csPlayedWithLine(epi.played_with))}</p>`);
   /* #18: the peak's shareable form — the card needs its hero number.
      2.1 follow-up: when the ceremony already owned the share for this post, keep
      every epilogue row above but drop this duplicate button; absent the ceremony
      (fallback / older flows) it renders exactly as before. */
+  /* the act is the only ember verb on the page: the share is the SECOND row
+     now, and a second full-weight button beside the act would make the page
+     ask two things at once (L-25 - a verb is a control, and only one of them
+     is the moment's) */
   if(epi.gross!=null && !_ceremonyOwnsShare)
-    rows.push(`<button class="btn" id="epiShare" style="width:100%;margin-top:14px">${firstEver?'Share your first card':'Share the card'}</button>`);
+    rows.push(`<button class="btn dark" id="epiShare" style="width:100%;margin-top:14px">${firstEver?'Share your first card':'Share the card'}</button>`);
   /* D57: the link version of the same peak — a page anyone can open, no account.
      Real rounds only (the diorama publishes nothing). */
   if(epi.gross!=null && roundId && !state.demo)
     rows.push(`<button class="btn dark" id="epiLink" style="width:100%;margin-top:8px">Share a link — no account needed</button>
       <button class="cs-tskip" id="epiRevoke" type="button" style="width:100%;margin-top:6px">Turn off this link</button>
       <p class="fine" style="margin:4px 0 0;text-align:center">The page stops working for everyone who has it. You can share a new link anytime.</p>`);
-  openSheet(firstEver?'Welcome to the season ⛳':'Your round', sub, rows.join(''));
-  const lk=$('#shBody').querySelector('#epiLink');
+  /* R-C - on the desk the epilogue is a PANEL on the page, not a modal over
+     it: it lands at the head of the reading column where the golfer already
+     is, and the act is a control they can walk away from. Below 960 (and
+     wherever the host is missing) it is the sheet it always was. */
+  const host=$('#epiPanel');
+  const desk = host && window.matchMedia && window.matchMedia('(min-width:960px)').matches;
+  if(desk){
+    host.innerHTML = `<div class="card"><div class="eyebrow">${esc(firstEver?'Welcome to the season':'Your round')} \u00b7 ${esc(sub)}</div>${rows.join('')}</div>`;
+    host.style.display='block';
+    host.scrollIntoView({ block:'nearest' });
+  } else {
+    openSheet(firstEver?'Welcome to the season ⛳':'Your round', sub, rows.join(''));
+  }
+  const scope = desk ? host : $('#shBody');
+  const actBtn = scope.querySelector('#epiAct');
+  if(actBtn) actBtn.addEventListener('click', ()=>{
+    const door=actBtn.dataset.door, ref=actBtn.dataset.ref;
+    window.qaEvent?.('cta_tapped', { where:'epilogue', act: act && act.key });
+    if(desk){ host.style.display='none'; host.innerHTML=''; } else { closeSheet(); }
+    if(door==='table' || door==='head_to_head') switchView('hub');
+    else if(door==='record' || door==='season_with' || door==='find_golfers') switchView('people');
+    else if(door==='start_something') switchView('wizard');
+  });
+  const lk=scope.querySelector('#epiLink');
   if(lk) lk.addEventListener('click',()=>csShareLink('round', roundId,
     `${window.CS?.profile?.display_name || 'A round'} — ${epi.gross} at ${course || 'the course'}`));
   /* D60 consent line: when a photo will travel with the link, the button says
      so BEFORE the tap (the tap is the publish act) */
   if(lk && (window._lastPostPhoto || null))
     lk.textContent = 'Share a link — card + photo';
-  const rv=$('#shBody').querySelector('#epiRevoke');
+  const rv=scope.querySelector('#epiRevoke');
   if(rv) rv.addEventListener('click',()=>csRevokeLink('round', roundId));
-  const sh=$('#shBody').querySelector('#epiShare');
+  const sh=scope.querySelector('#epiShare');
   if(sh) sh.addEventListener('click',()=>shareRecapCard({
     name:  state.demo ? DEMO_ME : (window.CS?.profile?.display_name || 'You'),
     marker: (state.demo ? null : window.CS?.profile?.marker) || 'saguaro',
@@ -7078,7 +7293,7 @@ const POST_PAR_STD=[4,4,4,3,5,4,3,4,5, 4,4,3,4,5,4,3,4,5];   // par 72 template
 /* F2: `touched` tracks whether the golfer interacted with the grid at all —
    guards against a rushed Post on an untouched par-prefilled card (accidental
    even-par). Tracks interaction, not scores===pars, so a legit dial-to-par counts. */
-state.post = { mode:'total', side:18, pars:POST_PAR_STD.slice(), scores:POST_PAR_STD.slice(), touched:false, rating9:false, parsCourse:null };  /* D32: front & back is the default; hole-by-hole is the opt-in card. D72: rating9 = the rating field already holds a 9-hole rating (a real 9-hole tee), so recalc must NOT halve it */
+state.post = { mode:'total', side:18, pars:POST_PAR_STD.slice(), scores:POST_PAR_STD.slice(), touched:false, rating9:false, parsCourse:null, playedWith:[] };  /* D32: front & back is the default; hole-by-hole is the opt-in card. D72: rating9 = the rating field already holds a 9-hole rating (a real 9-hole tee), so recalc must NOT halve it */
 /* f9/b9 the rest of the pipeline reads — from the grid in holes mode, from the
    two inputs in total mode. One source, so scoring never disagrees with entry. */
 function postInputs(){
@@ -7090,6 +7305,86 @@ function postInputs(){
   /* D72: a 9-hole post ignores the back-nine box even if it carries a stale
      value — whichever nine was typed is the round, at half value */
   return state.post.side===9 ? { f9: f9||b9, b9:0 } : { f9, b9 };
+}
+/* IOS-030 - THE round, as entered: a gross and the holes it was played over.
+   One place on each client (the phone's `PostCard.entry`), so the preview, the
+   payload and the receipt cannot disagree about what a card with one number in
+   it means. The one box wins while the card is closed and on eighteen; the
+   nines answer otherwise, on the rules they always had (D72). */
+function postEntry(){
+  const whole = parseFloat($('#inGross')?.value) || 0;
+  /* THE CARD WINS: a golfer who opened the fold and typed their nines has made
+     the more specific statement. The one box answers when they have not. */
+  const {f9,b9}=postInputs();
+  if(f9>0 && b9>0) return { gross: f9+b9, holes: 18 };
+  if(f9>0 || b9>0) return { gross: Math.max(f9,b9), holes: 9 };
+  if(state.post.mode!=='holes' && state.post.side===18 && whole>0) return { gross: whole, holes: 18 };
+  return null;
+}
+/* the inherited line: course - rating/slope - date, and an em dash for a piece
+   nobody has typed (PA-025: a placeholder that reads like a value is a lie) */
+function csInheritText(){
+  const course=($('#inCourse')?.value||'').trim();
+  const rating=($('#inRating')?.value||'').trim() || '\u2014';
+  const slope=($('#inSlope')?.value||'').trim() || '\u2014';
+  const d=$('#inDate')?.value;
+  /* csDayToken is the day producer both clients share (wave 1a) - TODAY, a
+     weekday inside the week, then MON D. It is defined in the later block, so
+     the call is guarded rather than assumed. */
+  const when = d ? (typeof csDayToken==='function' ? csDayToken(d) : d) : 'TODAY';
+  return [course || 'Add the course', rating+' / '+slope, when].join(' \u00b7 ');
+}
+function renderInheritLine(){
+  const t=$('#postInheritText'); if(t) t.textContent=csInheritText();
+}
+function togglePostFold(open){
+  const fold=$('#postCardFold'), btn=$('#postInherit'), edit=$('#postInheritEdit');
+  if(!fold) return;
+  const want = (open===undefined) ? fold.style.display==='none' : !!open;
+  fold.style.display = want ? 'block' : 'none';
+  if(btn) btn.setAttribute('aria-expanded', want ? 'true':'false');
+  if(edit) edit.textContent = want ? 'done' : 'edit';
+}
+/* D239 - the golfers the composer may offer: the people you actually play
+   with, recent partners first, then accepted buddies. Bounded rather than
+   searchable, because a tag is a claim about another person (L-37); a read
+   that fails leaves the row hidden rather than promising an empty picker. */
+let _postPartners=null;
+async function loadPostPartners(){
+  if(state.demo || !window.sb) return;
+  if(_postPartners) return renderPostWho();
+  const out=[]; const seen=new Set();
+  try{
+    const { data } = await sb.rpc('recent_partners', { p_limit: 12 });
+    (data||[]).forEach(r=>{ if(r.id && !seen.has(r.id)){ seen.add(r.id); out.push({ id:r.id, name:r.display_name||'Golfer' }); } });
+  }catch(_){}
+  if(out.length < 12){
+    try{
+      const { data } = await sb.rpc('my_friends');
+      (data||[]).filter(f=>f.status==='accepted').forEach(f=>{
+        if(f.profile_id && !seen.has(f.profile_id) && out.length<12){ seen.add(f.profile_id); out.push({ id:f.profile_id, name:f.display_name||'Golfer' }); }
+      });
+    }catch(_){}
+  }
+  _postPartners=out;
+  renderPostWho();
+}
+function renderPostWho(){
+  const wrap=$('#postWhoWrap'), host=$('#postWho');
+  if(!wrap || !host) return;
+  const people=_postPartners||[];
+  wrap.style.display = people.length ? 'block' : 'none';
+  const on=new Set(state.post.playedWith||[]);
+  host.innerHTML = people.map(p=>
+    `<button type="button" class="whochip${on.has(p.id)?' on':''}" data-pid="${esc(p.id)}" aria-pressed="${on.has(p.id)}">${esc(p.name)}${on.has(p.id)?' \u2713':''}</button>`
+  ).join('');
+  host.querySelectorAll('.whochip').forEach(b=>b.addEventListener('click',()=>{
+    const id=b.dataset.pid;
+    const list=state.post.playedWith||(state.post.playedWith=[]);
+    const at=list.indexOf(id);
+    if(at>=0) list.splice(at,1); else if(list.length<7) list.push(id);
+    renderPostWho();
+  }));
 }
 function renderPostHoles(){
   const wrapH=$('#postHolesWrap'), wrapT=$('#postTotalWrap'); if(!wrapH) return;
@@ -7128,14 +7423,16 @@ function recalc(){
   const rating=parseFloat($('#inRating').value)||0;
   const slope=parseFloat($('#inSlope').value)||113;
   const {f9,b9}=postInputs();
+  const entry=postEntry();
+  renderInheritLine();
   /* Q-22 · a BLANK rating used to fall to 0 and be scored as one, so a 91 with
      no tee picked previewed "-75.8 vs your index · 5 pts" and Post stayed
      live. A course with no rating cannot be scored; say so instead of
      inventing a differential from zero. */
-  if((f9>0 || b9>0) && (!(rating>0) || !(slope>0))){
+  if(entry && (!(rating>0) || !(slope>0))){
     $('#calcPts').textContent='–';
     $('#calcMsg').textContent='Pick a tee — or type the rating and slope — to see the points.';
-    $('#calcGross').textContent=String(Math.round((f9||0)+(b9||0)) || '–');
+    $('#calcGross').textContent=String(Math.round(entry ? entry.gross : 0) || '–');
     $('#calcVs').textContent='—';
     const glr=$('#postGrossLine'); if(glr) glr.textContent='Rating and slope set the score — pick a tee.';
     /* D234 · the card is IN and the rating is not. Q-22 already stops the post
@@ -7149,14 +7446,14 @@ function recalc(){
     state.lastPost=null; return;
   }
   let diff, vs, pts, msg, gross, label;
-  if(f9>0 && b9>0){
-    gross=f9+b9;
+  if(entry && entry.holes===18){
+    gross=entry.gross;
     diff=(gross-rating)*113/slope;
     vs=pviFor(state.myIndex, diff);          /* D174 · at the league's allowance */
     [pts,msg]=pointsFor(vs);
     label=`${gross} GROSS`;
-  } else if(f9>0 || b9>0){
-    const g9=f9||b9;
+  } else if(entry){
+    const g9=entry.gross;
     gross=g9;
     /* D72: a 9-hole differential = (nine gross − 9-hole rating) scaled, doubled
        to an 18-hole equivalent. The 9-hole rating is either a real one loaded
@@ -7170,7 +7467,7 @@ function recalc(){
     msg='9-hole round, half value. '+base[1];
     label=`${g9} GROSS · 9 HOLES`;
   } else {
-    $('#calcPts').textContent='–'; $('#calcMsg').textContent='Enter at least one nine.';
+    $('#calcPts').textContent='–'; $('#calcMsg').textContent='Enter your gross.';
     $('#calcGross').textContent='–'; $('#calcVs').textContent='–';
     const gl0=$('#postGrossLine'); if(gl0) gl0.textContent='Enter your card to see the score.';
     state.postBlocked='card';
@@ -7203,7 +7500,10 @@ function recalc(){
   if(gl) gl.textContent = `Gross ${gross} · ${label.includes('9 HOLES')?'9 holes · half value':'18 holes'}`;
   state.lastPost={pts, vs, label};
 }
-['inRating','inSlope','inF9','inB9'].forEach(id=>$('#'+id)?.addEventListener('input',recalc));
+['inRating','inSlope','inF9','inB9','inGross'].forEach(id=>$('#'+id)?.addEventListener('input',recalc));
+$('#inCourse')?.addEventListener('input', renderInheritLine);
+$('#inDate')?.addEventListener('input', renderInheritLine);
+$('#postInherit')?.addEventListener('click', ()=>togglePostFold());
 /* D72: a hand-typed rating is assumed to be an 18-hole rating (recalc halves it
    for a 9-hole post). A 9-hole tee's onTee re-sets rating9 afterward, so an
    auto-loaded 9-hole rating is respected; only manual entry clears the flag. */
@@ -7334,7 +7634,7 @@ $('#postBtn').addEventListener('click', async ()=>{
       window.qaEvent?.('post_blocked', { reason: 'no_rating' });
       return;
     }
-    toast('Enter at least one nine first');
+    toast('Enter your gross first');
     window.qaEvent?.('post_blocked', { reason: 'no_card' });
     return;
   }
@@ -7376,13 +7676,14 @@ $('#postBtn').addEventListener('click', async ()=>{
     /* real account (league or not): the round is a fact — insert it, the trigger scores the
        differential, the views score the league, the board post fans out */
     const {f9,b9}=postInputs();
+    const entry=postEntry();
     const rating=parseFloat($('#inRating').value), slope=parseInt($('#inSlope').value);
-    const nine = !(f9>0 && b9>0);
+    const nine = (entry ? entry.holes : 18) === 9;
     const holesMode = state.post.mode==='holes';
     const btn=$('#postBtn'); btn.disabled=true;
     try {
       const payload = {
-        gross: nine ? (f9||b9) : f9+b9,
+        gross: entry ? entry.gross : 0,
         rating,
         /* D72: nine_rating is the ACTUAL 9-hole rating the server scores against
            ((gross − nine_rating)·113/slope·2). A real 9-hole tee already holds a
@@ -7395,7 +7696,6 @@ $('#postBtn').addEventListener('click', async ()=>{
         /* soft link to the reconciled cache (text id, no FK — never blocks the
            insert on cache timing). Legacy uuid course_id stays untouched. */
         api_course_id: $('#inCourse').dataset.courseId || null,
-        season_id: CS.season?.id || null,
       };
       /* photos arc: upload first (own-prefix path in the private bucket), ride
          the path on the insert. A failed upload demotes to a photo-less post —
@@ -7410,18 +7710,48 @@ $('#postBtn').addEventListener('click', async ()=>{
           else payload.photo_path = path;
         }catch(_){ /* storage unreachable: post without the photo */ }
       }
-      let { data:rrow, error } = await sb.from('rounds').insert(payload).select('id').single();
-      /* Netlify ships this client before `db push` — if a column isn't there
-         yet, drop it and retry so a post never fails on deploy skew */
-      if(error && /api_course_id/.test(error.message||'')){
-        delete payload.api_course_id;
+      /* L-03 / IOS-030 - the round is posted by the SERVER. `post_round` derives
+         the season from played_on against every membership's window at that
+         membership's own allowance (D229/L-13), so the client sends no season
+         at all: `CS.season` could only ever name ONE, and a golfer in two
+         seasons scores in both. The epilogue rides back in the same answer.
+
+         The direct insert is KEPT as the declared fallback and fires only when
+         the function is not there yet (PGRST202 / 42883) - CLAUDE.md's skew
+         rule covers new args and new columns, not a function that does not
+         exist. Anything else is a real error and reaches the golfer. */
+      let rrow=null, error=null, epiFromRpc=null, rpcRound=null;
+      try{
+        const { data: posted, error: perr } = await sb.rpc('post_round', {
+          p_gross: payload.gross, p_rating: payload.rating, p_slope: payload.slope,
+          p_holes_played: payload.holes_played, p_nine_rating: payload.nine_rating,
+          p_course_id: payload.api_course_id, p_course_label: payload.course_label,
+          p_played_on: payload.played_on, p_photo_path: payload.photo_path,
+          p_played_with: (state.post.playedWith||[]),
+        });
+        if(perr) throw perr;
+        rpcRound = posted && posted.round;
+        if(!rpcRound || !rpcRound.id) throw new Error('post_round returned no round id');
+        rrow = { id: rpcRound.id };
+        epiFromRpc = (posted && posted.epilogue) || null;
+      }catch(e){
+        const m=String(e && (e.code||e.message) || '').toLowerCase();
+        const missing = m.includes('pgrst202') || m.includes('42883') || m.includes('schema cache') || m.includes('could not find the function');
+        if(!missing) throw e;
+        payload.season_id = CS.season?.id || null;   /* the fallback's only client-chosen season */
         ({ data:rrow, error } = await sb.from('rounds').insert(payload).select('id').single());
+        /* Netlify ships this client before `db push` - if a column isn't there
+           yet, drop it and retry so a post never fails on deploy skew */
+        if(error && /api_course_id/.test(error.message||'')){
+          delete payload.api_course_id;
+          ({ data:rrow, error } = await sb.from('rounds').insert(payload).select('id').single());
+        }
+        if(error && /photo_path/.test(error.message||'')){
+          delete payload.photo_path;
+          ({ data:rrow, error } = await sb.from('rounds').insert(payload).select('id').single());
+        }
+        if(error) throw error;
       }
-      if(error && /photo_path/.test(error.message||'')){
-        delete payload.photo_path;
-        ({ data:rrow, error } = await sb.from('rounds').insert(payload).select('id').single());
-      }
-      if(error) throw error;
       /* SF-6: the arrival — this round's gross flips in on its FIRST card
          render (home story card or full board), then the flag dies there.
          Stepper + gross-only both land here — one success path, one flag. */
@@ -7499,7 +7829,8 @@ $('#postBtn').addEventListener('click', async ()=>{
       setTimeout(() => window.csEarnInstallNudge?.(), 1400);   /* earned: the first real round hits the board */
       /* clear the form so a posted round never reads as "didn't submit"
          (pilot feedback: entered a second round thinking the first failed) */
-      $('#inF9').value=''; $('#inB9').value='';
+      $('#inGross').value=''; $('#inF9').value=''; $('#inB9').value='';
+      state.post.playedWith=[]; if(typeof renderPostWho==='function') renderPostWho();
       $('#inCourse').value=''; $('#inCourse').dataset.courseId='';
       $('#inRating').value=''; $('#inSlope').value='';
       state.post.mode='total';                        /* the grid was a scan confirm — the composer resets to front & back (D34) */
@@ -7526,8 +7857,17 @@ $('#postBtn').addEventListener('click', async ()=>{
         try{ scanPartnersSheet(scanCtx); }catch(_){}
       } else if(rrow?.id){
         try {
-          const { data: epi } = await sb.rpc('round_epilogue', { p_round: rrow.id });
-          showEpilogue(epi, payload.course_label, firstEver, rrow.id);
+          /* the epilogue rides back INSIDE post_round's answer, so the page is
+             on screen without a second round trip; the fallback path fetches
+             it the way it always did. */
+          let epi = epiFromRpc;
+          if(!epi){ ({ data: epi } = await sb.rpc('round_epilogue', { p_round: rrow.id })); }
+          showEpilogue(epi, payload.course_label, firstEver, rrow.id, {
+            leagueless: !(window.CS?.memberships||[]).length && !window.CS?.league,
+            rounds_count: (window.career?.rounds || 0) + 1,
+            counting_cap: window.CS?.settings?.counting_cap ?? null,
+            month_name: payload.played_on ? csMonthName(payload.played_on) : '',
+          });
         } catch(_){ /* RPC not deployed yet, or nothing to say — never block a post */ }
       }
     } catch(e){ toast(humanError(e, 'Post failed.')); }

@@ -85,14 +85,22 @@ private struct PostRoundBody: View {
   @State private var ratingOpen = false
   @State private var showDate = false
   @State private var bandsOpen = false
+  /// IOS-030 · the composer opens on the ONE box, so a long-press on the ⊕
+  /// lands with the keyboard up and the score is two digits away.
+  @FocusState private var grossFocused: Bool
+  /// The nines, the 18/9 seg, the strip and the course search live behind this
+  /// — complete and unchanged (P-6). Open by default only when there is no
+  /// course to inherit, which is the first-ever round.
+  @State private var cardOpen: Bool?
 
   var body: some View {
     ScrollViewReader { proxy in
       ScrollView {
         VStack(alignment: .leading, spacing: 0) {
-          PostHeroCard(model: model)
-          whereSection
-          cardSection.id("card")
+          PostHeroCard(model: model, focus: $grossFocused)
+          inheritedLine
+          whoSection
+          cardFold.id("card")
           detailsSection.id("details")
           bandsSection.id("bands")
         }
@@ -136,8 +144,97 @@ private struct PostRoundBody: View {
     .fullScreenCover(item: $model.ceremony, onDismiss: { if !model.afterCeremony() { onDone() } }) { c in
       FinishCeremonyView(ceremony: c, photo: model.recapPhoto) { model.ceremony = nil }
     }
-    .sheet(item: $model.epilogue, onDismiss: onDone) { EpilogueSheet(show: $0, photo: model.recapPhoto) }
+    .sheet(item: $model.epilogue, onDismiss: onDone) { show in
+      EpilogueSheet(show: show, photo: model.recapPhoto,
+                    links: EpilogueLinks(openTable: { onDone(); links.openLeague($0) },
+                                         openPerson: { onDone(); links.openTourCard($0) },
+                                         openPeople: { onDone(); links.openPeople() },
+                                         startSomething: { onDone(); links.openPeople() }),
+                    onDone: { model.epilogue = nil })
+    }
+    .task {
+      // the composer opens ON the number — two digits and a tap (IOS-030)
+      try? await Task.sleep(for: .milliseconds(350))
+      if model.card.entry == nil { grossFocused = true }
+    }
     .sheet(item: $model.partners, onDismiss: onDone) { PostPartnersSheet(show: $0) }
+  }
+
+  // MARK: - The inherited line (IOS-030 · course · rating/slope · date, one row)
+
+  /// Everything the composer knows without asking: the course it inherited, the
+  /// rating and slope that came with it, and the day. One editable line rather
+  /// than five fields — and it says what is MISSING rather than showing a
+  /// placeholder that reads like a value (PA-025: `72.1` and `128` were
+  /// placeholders and every tester read them as the course's numbers).
+  private var inheritedLine: some View {
+    Button { withAnimation(CSMotion.roll) { cardOpen = !cardIsOpen } } label: {
+      CSRow(last: true) {
+        A11yStack(rowAlignment: .firstTextBaseline, spacing: 8, columnSpacing: 2) {
+          Text(inheritedText).font(CSFont.monoSmall).foregroundStyle(model.card.course.isEmpty ? cs.mut : cs.ink)
+            .multilineTextAlignment(.leading)
+          Spacer(minLength: 8)
+          Text(cardIsOpen ? "done" : "edit").font(CSFont.monoSmall).foregroundStyle(cs.dawn)
+        }
+      }
+      .contentShape(Rectangle())
+    }
+    .buttonStyle(.plain)
+    .padding(.top, 12)
+    .accessibilityLabel("Course and tees: \(inheritedText)")
+    .accessibilityHint(cardIsOpen ? "Closes the card" : "Opens the course, the tees and your nines")
+  }
+
+  /// "PAPAGO · BLUE · 71.2 / 128 · TODAY". A missing piece is an em dash, never
+  /// a number nobody typed.
+  private var inheritedText: String {
+    let course = model.card.course.trimmingCharacters(in: .whitespaces)
+    let rating = model.card.rating.isEmpty ? "—" : model.card.rating
+    let slope = model.card.slope.isEmpty ? "—" : model.card.slope
+    return [course.isEmpty ? "Add the course" : course, "\(rating) / \(slope)", CSHeaderDate.today(model.day)]
+      .joined(separator: " · ")
+  }
+
+  /// Open when the golfer opened it, or when there is nothing to inherit.
+  private var cardIsOpen: Bool { cardOpen ?? (model.card.course.isEmpty || model.card.rating.isEmpty) }
+
+  // MARK: - Who was out there (D239 · optional, bounded, never a vouch)
+
+  @ViewBuilder private var whoSection: some View {
+    if !model.partnerChoices.isEmpty {
+      VStack(alignment: .leading, spacing: 8) {
+        Text("Who was out there?").csEyebrow().padding(.top, 14)
+        FlowLayout(spacing: 8) {
+          ForEach(model.partnerChoices) { p in
+            let on = model.playedWith.contains(p.id)
+            Button { model.toggle(partner: p.id) } label: {
+              Text(on ? "\(p.name) ✓" : p.name)
+                .font(CSFont.subhead).foregroundStyle(on ? cs.ink : cs.mut)
+                .padding(.horizontal, 12).padding(.vertical, 8)
+                .background((on ? cs.brand.opacity(0.16) : cs.bg2), in: Capsule())
+                .overlay(Capsule().stroke(on ? cs.brand : cs.line2, lineWidth: 1))
+            }
+            .buttonStyle(.plain)
+            .accessibilityLabel(p.name)
+            .accessibilityValue(on ? "tagged" : "not tagged")
+            .accessibilityHint("Says they were out there. It is not a vouch — they confirm from their own phone.")
+          }
+        }
+        CSFine("Optional. They confirm it from their own phone; nothing is claimed about their score.")
+      }
+    }
+  }
+
+  // MARK: - The card, behind the fold (P-6 · nothing is deleted)
+
+  @ViewBuilder private var cardFold: some View {
+    if cardIsOpen {
+      VStack(alignment: .leading, spacing: 0) {
+        whereSection
+        cardSection
+      }
+      .transition(.opacity)
+    }
   }
 
   // MARK: - Where (`#inCourse`, the chips, `#inRating` / `#inSlope`)
@@ -394,9 +491,9 @@ private struct PostRoundBody: View {
 private struct PostHeroCard: View {
   @Environment(\.cs) private var cs
   let model: PostRoundModel
+  var focus: FocusState<Bool>.Binding
   var body: some View {
-    CSDuskCard(wash: cs.brand) { PostHeroContent(model: model) }
-      .accessibilityElement(children: .combine)
+    CSDuskCard(wash: cs.brand) { PostHeroContent(model: model, focus: focus) }
       .accessibilityAddTraits(.updatesFrequently)
   }
 }
@@ -404,16 +501,31 @@ private struct PostHeroCard: View {
 /// Its own view so `cs` resolves to the dusk card's dark palette.
 private struct PostHeroContent: View {
   @Environment(\.cs) private var cs
-  let model: PostRoundModel
+  @Bindable var model: PostRoundModel
+  var focus: FocusState<Bool>.Binding
 
   var body: some View {
     let p = model.preview
     VStack(alignment: .leading, spacing: 8) {
       Text(model.eyebrow).csEyebrow()
+      // IOS-030 · ONE box, and it is the hero. A focused numeric input is a
+      // control, so it wears the mono figure face and never the serif (L-29).
+      // When the golfer opens the card and types their nines instead, the box
+      // stands down and shows what those nines add up to.
       HStack(alignment: .firstTextBaseline, spacing: 10) {
-        Text(p.map { "\($0.gross)" } ?? "—").font(CSFont.figure).csTabular().foregroundStyle(p == nil ? cs.dimText : cs.ink)   // the empty dash is quiet, not a bar
-          .contentTransition(.numericText())
-        Text(p.map { $0.holes == 9 ? "9 holes · half value" : "18 holes" } ?? "gross").font(CSFont.monoSmall).foregroundStyle(cs.mut)
+        if usesNines, let p {
+          Text("\(p.gross)").font(CSFont.figure).csTabular().foregroundStyle(cs.ink)
+            .contentTransition(.numericText())
+        } else {
+          // no prompt glyph: an em dash at the figure size reads as a redaction
+          // bar, and the label beside the box already says what it wants
+          TextField("", text: $model.card.whole)
+            .font(CSFont.figure).csTabular().foregroundStyle(cs.ink)
+            .keyboardType(.numberPad).focused(focus)
+            .frame(maxWidth: 150)
+            .accessibilityLabel("Your gross")
+        }
+        Text(p.map { $0.holes == 9 ? "9 holes · half value" : "18 holes" } ?? "your gross").font(CSFont.monoSmall).foregroundStyle(cs.mut)
       }
       Text(sentence).font(CSFont.sentence).foregroundStyle(p == nil ? cs.mut : cs.ink)
         .fixedSize(horizontal: false, vertical: true)
@@ -436,6 +548,12 @@ private struct PostHeroContent: View {
         CSFine("No league yet? The round still counts on your card — points apply in any league you join.")
       }
     }
+  }
+
+  /// The nines (or the strip) are carrying the card, so the one box stands down
+  /// rather than offering a second place to type the same round (L-34).
+  private var usesNines: Bool {
+    model.card.mode == .holes || model.card.inputs.f9 > 0 || model.card.inputs.b9 > 0
   }
 
   /// The band phrase, the way the feed says it ("Beat your number by 2.4"); the web's empty-state lines until there is a card.
