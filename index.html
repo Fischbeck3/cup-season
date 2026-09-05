@@ -528,6 +528,17 @@ tr.cutrow td{
 }
 
 /* ============ forms ============ */
+/* IOS-032 - the head-to-head's LAST FIVE. The credential's own dots are
+   scoped to `.cred .cform i`, so a copy of that markup outside the card
+   rendered nothing at all (a real screenshot caught it). Same grammar as the
+   FORM row: oldest first, ember when the meeting was mine (L-25). */
+/* the board's trailing figure gets its own lane: `.pmeta` is flex:1 and pushed
+   the band past the row's right edge (a real screenshot caught it clipped). */
+.bdfig{flex:none; color:var(--mut); font-size:11.5px; letter-spacing:.06em; text-align:right; white-space:nowrap;}
+.h2hdots{display:flex; align-items:center; gap:7px; min-height:28px;}
+.h2hdots i{width:9px; height:9px; border-radius:50%; background:var(--bg2); border:1px solid var(--line2); display:inline-block;}
+.h2hdots i.on{background:var(--brand); border-color:var(--brand);}
+.h2hdots small{margin-left:6px; color:var(--dim); font-family:var(--mono); font-size:10.5px; letter-spacing:.09em;}
 .frow{display:grid; grid-template-columns:1fr 1fr; gap:10px;}
 .frow + .frow{margin-top:10px;}
 .frow.one{grid-template-columns:1fr;}
@@ -4170,11 +4181,57 @@ html[data-theme="light"] .room-dusk .btn:not(.dark):not(.gold):not(.apple){color
             <div class="cmphead"><h2>Golfers</h2></div>
             <div id="glfRoot" style="text-align:left"></div>
             <div id="peopleRequests" style="text-align:left"></div>
+            <!-- IOS-032 / D245 - THE BOARD. It sits above the buddies list
+                 because "who is playing well right now" is the question friends
+                 actually ask; the list under it is the roster the board is
+                 drawn from. -->
+            <div id="glfBoard" style="text-align:left"></div>
             <div id="youPeople" style="text-align:left"></div>
           </div>
           <aside class="deskaside">
             <div class="eyebrow">Playing soon</div>
             <div id="glfSoon" style="text-align:left"></div>
+          </aside>
+        </div>
+      </section>
+
+      <!-- THE PERSON PAGE (IOS-032, IA 10.3) - the desk's own shape, not the
+           phone's sheet at a wider size: the card and its history read down the
+           reading column, and THE RECORD BETWEEN YOU sits beside it, where the
+           eye rests. The peek sheet (`openTourCard`) survives for the
+           in-context glance from a round card, which is a different gesture
+           with a different job.
+
+           P-17 rides the head (L-38): report and mute have to be reachable
+           from every surface that renders another golfer's content, and the
+           Guideline 1.2 walk is a list of these two pages plus the sheet. -->
+      <section class="view" id="view-person">
+        <a href="#" class="backlink" data-go="golfers">&#8592; Golfers</a>
+        <div class="deskbody wide">
+          <div class="deskmain">
+            <div class="cmphead"><h2 id="perName">A golfer</h2><span id="perSafety"></span></div>
+            <div id="perMain" style="text-align:left"></div>
+          </div>
+          <aside class="deskaside">
+            <div class="eyebrow">The record between you</div>
+            <div id="perAside" style="text-align:left"></div>
+          </aside>
+        </div>
+      </section>
+
+      <!-- THE HEAD-TO-HEAD (IOS-032, IA 10.4) - six facets, each carrying its
+           own basis, over one summary that is the SUM of the same rows the
+           facets counted. The doors and the safety block sit in the aside. -->
+      <section class="view" id="view-h2h">
+        <a href="#" class="backlink" data-go="golfers">&#8592; Golfers</a>
+        <div class="deskbody wide">
+          <div class="deskmain">
+            <div class="cmphead"><h2 id="h2hName">You and them</h2><span id="h2hSafety"></span></div>
+            <div id="h2hMain" style="text-align:left"></div>
+          </div>
+          <aside class="deskaside">
+            <div class="eyebrow">What now</div>
+            <div id="h2hAside" style="text-align:left"></div>
           </aside>
         </div>
       </section>
@@ -5055,7 +5112,10 @@ window.csMovement = csMovement;
    candidate names the read it was counted over, and a source this build does
    not recognise renders NOTHING. Nothing is invented, nothing is inflated, and
    no rung manufactures a stake that does not exist. */
-const CS_STORY_READS = ['standings_snapshots','week_clashes','my_rivalries','posts','season_scenarios'];
+/* wave 5 - R4 joins the fence in the same commit as its migration (the rule
+   the fence itself states): a read that feeds a sentence is named here, or its
+   sentences render nothing. The phone's twin is `SeasonStoryCopy.namedReads`. */
+const CS_STORY_READS = ['standings_snapshots','week_clashes','my_rivalries','posts','season_scenarios','head_to_head'];
 const CS_WORDS = ['zero','one','two','three','four','five','six','seven','eight','nine','ten','eleven',
                   'twelve','thirteen','fourteen','fifteen','sixteen','seventeen','eighteen','nineteen','twenty'];
 const CS_TENS  = ['','','twenty','thirty','forty','fifty','sixty','seventy','eighty','ninety'];
@@ -14067,6 +14127,10 @@ function renderGolfers(){
     return;
   }
   box.innerHTML='';
+  /* D245 · the board sits above the buddies list, because "who is playing well
+     right now" is the question friends actually ask and the list under it is
+     the roster the board is drawn from. */
+  renderFriendsBoard();
   if(soon){
     const rows=(window.watchAll||[]).filter(sr=>!(window.isMyPlan?isMyPlan(sr):sr.mine)).slice(0,4);
     soon.innerHTML = rows.length
@@ -17468,6 +17532,480 @@ async function openTourCard(profileId){
   });
 }
 window.openTourCard = openTourCard;
+
+/* ============================================================
+   WAVE 5 - THE PEOPLE (IOS-032, D239, D245, R4/R5/R15/R16)
+
+   The producers below are the web halves of `HeadToHead.swift`,
+   `FriendsBoard.swift` and `SafetyMenu.swift`. The SENTENCES are produced
+   once per client and asserted against the same cases on both, because a
+   ladder written in SQL is a ladder no test can walk; the ARITHMETIC is the
+   server's, materialised once so the facets and the headline cannot disagree.
+
+   Three rules the pages hold and the tests pin:
+     * a facet with no data renders NOTHING - never "0-0", never a dash (P-6)
+     * the same-day/same-course fallback CARRIES ITS LABEL wherever it fed a
+       number: it is an inference and the row says so out loud
+     * a meeting with no verdict is not a tie
+   ============================================================ */
+
+/* the six, in the order both clients read them. A key this build does not
+   know is DROPPED rather than drawn under a guess. */
+const CS_H2H_FACETS = [
+  ['season_weeks',    'IN THE SEASON'],
+  ['clashes',         'WEEKLY CLASHES'],
+  ['played_together', 'PLAYED TOGETHER'],
+  ['live_games',      'LIVE ROUNDS'],
+  ['duels',           'RYDER DUELS'],
+  ['callouts',        'CALLOUTS'],
+];
+const CS_H2H_HEURISTIC = 'Same day, same course — we matched these; nobody confirmed them.';
+const CS_H2H_UNCONFIRMED = 'Waiting on them to confirm.';
+const CS_H2H_NOT_A_VOUCH = 'A tag says who was out there. It says nothing about the score.';
+window.CS_H2H_FACETS = CS_H2H_FACETS;
+/* the labels are bridged too: a `const` in a classic block is NOT on `window`,
+   and the browser suite asserts these strings by name (the classic-module
+   boundary CLAUDE.md calls a landmine, in its quieter form). */
+window.CS_H2H_HEURISTIC = CS_H2H_HEURISTIC;
+window.CS_H2H_UNCONFIRMED = CS_H2H_UNCONFIRMED;
+window.CS_H2H_NOT_A_VOUCH = CS_H2H_NOT_A_VOUCH;
+
+/* the voice writes small numbers as words (L-33); past twelve a figure reads
+   better in a scoreline. Verbatim with `HeadToHeadCopy.spelled`. */
+function csSpelled(n){
+  const w = ['zero','one','two','three','four','five','six','seven','eight','nine','ten','eleven','twelve'];
+  return (n >= 0 && n <= 12) ? w[n] : String(n);
+}
+/* "March" from "2026-03-14" - by parts, never through Date() (L-07). */
+function csMonthOf(iso){
+  const p = String(iso || '').split('-').map(Number);
+  const mos = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+  return (p.length >= 2 && p[1] >= 1 && p[1] <= 12) ? mos[p[1] - 1] : null;
+}
+function csCapFirst(s){ return s ? s.charAt(0).toUpperCase() + s.slice(1) : s; }
+/* "May 3" - the day said OUT LOUD, for a sentence. `csDayToken` is the mono
+   glyph ("MAY 3") and belongs in a cell, not mid-clause. Twin of the Kit's
+   `RivalryCopy.monthDaySpoken`, read by parts (L-07). */
+function csSpokenDay(iso){
+  const p = String(iso || '').split('-').map(Number);
+  const mos = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+  return (p.length === 3 && p[1] >= 1 && p[1] <= 12) ? `${mos[p[1] - 1]} ${p[2]}` : '';
+}
+window.csSpokenDay = csSpokenDay;
+
+/* R4 -> the shape both pages read. Six facets, fixed order, empties dropped. */
+function csH2HParse(j){
+  j = j || {};
+  const rec = j.record || {};
+  const wins = Number(rec.wins || 0), losses = Number(rec.losses || 0), ties = Number(rec.ties || 0);
+  const facets = [];
+  const src = j.facets || {};
+  for(const [key, head] of CS_H2H_FACETS){
+    const f = src[key];
+    if(!f) continue;
+    const meetings = Number(f.meetings || 0);
+    if(!meetings) continue;                       /* P-6 - never "0-0" */
+    const w = Number(f.wins || 0), l = Number(f.losses || 0), t = Number(f.ties || 0);
+    facets.push({
+      key, head, wins: w, losses: l, ties: t, meetings,
+      unsettled: Number(f.unsettled || 0), confirmed: Number(f.confirmed || 0),
+      unconfirmed: Number(f.unconfirmed || 0), heuristic: Number(f.heuristic || 0),
+      basis: f.basis || null, source: f.source || null,
+      settled: w + l + t,
+      record: (w + l + t) > 0 ? `${w}–${l}${t ? '–' + t : ''}` : null,
+      lead: w > l ? 'up' : w < l ? 'down' : 'even',
+    });
+  }
+  const st = j.streak && Number(j.streak.n) >= 2 ? { who: j.streak.who, n: Number(j.streak.n) } : null;
+  return {
+    visible: !!j.visible,
+    opponent: j.opponent || {},
+    name: (j.opponent && j.opponent.display_name) || '—',
+    league: j.league || null,
+    wins, losses, ties, settled: wins + losses + ties, total: Number(rec.total || 0),
+    lead: j.lead || 'even',
+    since: j.since || null,
+    streak: st,
+    lastFive: Array.isArray(j.last_five) ? j.last_five : [],
+    facets,
+    rivalryName: j.rivalry_name || null,
+  };
+}
+/* "You lead 6-5." / "Galen leads 6-5." / "All square, 5-5." Nothing decided,
+   no sentence - a record of nought is not a headline (L-44). */
+function csH2HHeadline(h){
+  if(!h || !h.settled) return null;
+  const rec = `${h.wins}–${h.losses}${h.ties ? '–' + h.ties : ''}`;
+  if(h.lead === 'up')   return `You lead ${rec}.`;
+  if(h.lead === 'down') return `${h.name} leads ${h.losses}–${h.wins}${h.ties ? '–' + h.ties : ''}.`;
+  return `All square, ${rec}.`;
+}
+/* every clause dropped rather than guessed */
+function csH2HStandfirst(h){
+  if(!h) return null;
+  const parts = [];
+  if(h.total > 0) parts.push(`${csSpelled(h.total)} ${h.total === 1 ? 'meeting' : 'meetings'} where you both played`);
+  const m = csMonthOf(h.since);
+  if(m) parts.push(`going back to ${m}`);
+  if(!parts.length) return null;
+  let s = csCapFirst(parts.join(', ') + '.');
+  if(h.streak){
+    s += h.streak.who === 'me'
+      ? ` You have taken the last ${csSpelled(h.streak.n)}.`
+      : ` ${h.name} has taken the last ${csSpelled(h.streak.n)}.`;
+  }
+  return s;
+}
+/* the row's sub: its basis, and the heuristic's label wherever it contributed */
+function csH2HFacetSub(f){
+  const bits = [];
+  if(f.basis) bits.push(csCapFirst(f.basis));
+  if(f.heuristic > 0) bits.push(CS_H2H_HEURISTIC);
+  if(f.unconfirmed > 0) bits.push(CS_H2H_UNCONFIRMED);
+  /* L-33 - the voice writes small numbers as words, and a clause that opens a
+     sentence opens it with one */
+  if(f.unsettled > 0) bits.push(`${csCapFirst(csSpelled(f.unsettled))} with no card from one of you — counted as a meeting, not a result.`);
+  if(!bits.length) return null;
+  /* every clause here is a SENTENCE and ends like one: joined bare, the basis
+     ran straight into the heuristic label, which a real screenshot caught */
+  return bits.map(b => b.slice(-1) === '.' ? b : b + '.').join(' ');
+}
+function csH2HUsesHeuristic(h){ return !!h && h.facets.some(f => f.heuristic > 0); }
+/* the clause the PERSON page borrows */
+function csH2HPersonClause(h){
+  if(!h || !h.settled) return null;
+  if(h.losses > 0) return `${h.name} has beaten you ${csSpelled(h.losses)} ${h.losses === 1 ? 'time' : 'times'} out of ${csSpelled(h.settled)}.`;
+  return `You have taken all ${csSpelled(h.settled)} of them.`;
+}
+window.csH2HParse = csH2HParse; window.csH2HHeadline = csH2HHeadline;
+window.csH2HStandfirst = csH2HStandfirst; window.csH2HFacetSub = csH2HFacetSub;
+window.csH2HUsesHeuristic = csH2HUsesHeuristic; window.csH2HPersonClause = csH2HPersonClause;
+
+/* ---------- P-17, the safety block (L-38, Guideline 1.2) ----------
+   Mute - Hide this - Report, and no item named Block over a mechanic that does
+   not exist: L-38's own wording is "Report, block (mute), hide/unhide", and
+   `docs/ios/app-review-notes.md:105` already tells App Review that Mute IS the
+   block here. The report keeps its TWO steps. */
+const CS_SAFETY_REASONS = ['A made-up score','Harassment or abuse','An inappropriate photo','Spam','Something else'];
+function csSafetyMenuHtml(profileId, name){
+  if(!profileId || profileId === window.CS?.user?.id) return '';
+  return `<button class="mini" type="button" data-safety="${esc(profileId)}" data-safetyname="${esc(name || 'this golfer')}"
+    aria-label="More actions for ${esc(name || 'this golfer')}" style="color:var(--mut); margin-left:auto">⋯</button>`;
+}
+function csWireSafety(root){
+  (root || document).querySelectorAll('[data-safety]').forEach(b => {
+    if(b.dataset.wired) return;
+    b.dataset.wired = '1';
+    b.addEventListener('click', () => csOpenSafety(b.dataset.safety, b.dataset.safetyname));
+  });
+}
+function csOpenSafety(pid, name){
+  const muted = window.MUTED instanceof Set && window.MUTED.has(pid);
+  openSheet(name || 'This golfer', 'MUTE · HIDE · REPORT', `
+    <button class="btn dark" id="sfMute" style="margin-top:4px">${muted ? '🔈 Unmute' : '🔇 Mute'} ${esc(name || '')}</button>
+    <p class="fine" style="padding:4px 0 10px">${muted ? 'Show their rounds again.' : 'Hide their rounds from your feeds.'}</p>
+    <div class="eyebrow">Report</div>
+    <p class="fine" style="padding-top:0">Pick a reason, then confirm. It goes to the founder desk. Nothing is sent until you confirm.</p>
+    <div id="sfReasons">${CS_SAFETY_REASONS.map((r,i)=>`<button class="mini" type="button" data-sfr="${i}" style="margin:0 6px 6px 0">${esc(r)}</button>`).join('')}</div>
+    <button class="btn" id="sfSend" style="margin-top:10px" disabled>Pick a reason</button>
+    <p class="fine" id="sfErr" style="padding-top:6px; display:none; color:var(--neg)"></p>`);
+  let reason = null;
+  const send = document.getElementById('sfSend');
+  document.querySelectorAll('[data-sfr]').forEach(b => b.addEventListener('click', () => {
+    reason = CS_SAFETY_REASONS[+b.dataset.sfr];
+    document.querySelectorAll('[data-sfr]').forEach(x => x.style.borderColor = '');
+    b.style.borderColor = 'var(--brand)';
+    send.disabled = false; send.textContent = 'Send this report';
+  }));
+  document.getElementById('sfMute')?.addEventListener('click', async () => {
+    const on = !muted;
+    const { error } = await sb.rpc('set_mute', { p_profile: pid, p_on: on });
+    if(error){ toast(humanError(error, 'Could not change that.')); return; }
+    if(window.MUTED instanceof Set){ on ? window.MUTED.add(pid) : window.MUTED.delete(pid); }
+    toast(on ? `Muted. ${name || 'Their'} rounds drop off your boards.` : 'Unmuted.');
+    closeSheet?.();
+  });
+  send?.addEventListener('click', async () => {
+    if(!reason) return;
+    send.disabled = true; send.textContent = 'Reporting…';
+    const { error } = await sb.rpc('report_content', { p_post: null, p_reason: reason, p_kind: 'profile', p_profile: pid });
+    if(error){
+      /* P-17's error state: the sheet stays open and says so */
+      const e = document.getElementById('sfErr');
+      if(e){ e.style.display = ''; e.textContent = humanError(error, 'Could not send that report.'); }
+      send.disabled = false; send.textContent = 'Send this report';
+      return;
+    }
+    toast('Reported — the founder desk sees it');
+    closeSheet?.();
+  });
+}
+window.csSafetyMenuHtml = csSafetyMenuHtml; window.csWireSafety = csWireSafety;
+window.CS_SAFETY_REASONS = CS_SAFETY_REASONS;
+
+/* ---------- R5, the board ---------- */
+/* "4 rounds · beat their number 3 times" - the denominator is part of the
+   fact (L-01). Verbatim with `FriendsBoard.Row.formLine`. */
+function csBoardFormLine(r){
+  const n = Number(r.rounds_30d || 0);
+  if(!n) return 'No rounds in the window';
+  const rounds = `${n} round${n === 1 ? '' : 's'}`;
+  const whose = r.is_me ? 'your' : 'their';
+  const b = Number(r.beats_30d || 0);
+  if(b === 0) return `${rounds} · didn’t beat ${whose} number`;
+  if(b === 1) return `${rounds} · beat ${whose} number once`;
+  if(b === 2) return `${rounds} · beat ${whose} number twice`;
+  return `${rounds} · beat ${whose} number ${b} times`;
+}
+/* the BAND, never the float (L-14 / T-07); nothing over no rounds (L-44).
+   `bandName` is written from the golfer's OWN point of view ("Beat your
+   number"), which is right on a receipt and wrong on a list of other people -
+   a real screenshot caught the board telling me Tash had beaten MY number. The
+   band table stays the one band table; only the possessive turns. */
+function csBoardBand(r){
+  if(!Number(r.rounds_30d || 0) || r.avg_vs_number_30d == null) return null;
+  const name = bandName(Number(r.avg_vs_number_30d));
+  return r.is_me ? name : name.replace('your', 'their');
+}
+window.csBoardFormLine = csBoardFormLine; window.csBoardBand = csBoardBand;
+
+let CS_BOARD_LENS = 'form';
+async function renderFriendsBoard(){
+  const box = document.getElementById('glfBoard'); if(!box) return;
+  if(!window.CS?.user || state.demo){ box.innerHTML = ''; return; }
+  /* THREE answers, and two of them look the same if you collapse them: the
+     board answered, the FUNCTION is not deployed yet (render nothing - nothing
+     is wrong), or the read failed (say so in one line - L-32). A screenshot of
+     the tab against prod showed "The board didn't load." over an account whose
+     board is simply not pushed yet. */
+  let rows = null, missing = false;
+  try{
+    const { data, error } = await sb.rpc('friends_board', { p_days: 30 });
+    if(error){ missing = /PGRST202|does not exist|schema cache|42883/i.test(error.message || error.code || ''); }
+    else rows = data || [];
+  }catch(e){ missing = /PGRST202|does not exist|schema cache|42883/i.test(e?.message || ''); }
+  if(rows === null){
+    box.innerHTML = missing ? ''
+      : '<div class="eyebrow">The board</div><p class="fine" style="padding:0">The board didn’t load.</p>';
+    return;
+  }
+  /* a board of ONE is not a board — it is me, alone, ranked first of one. It
+     would also sit under the destination's own "No buddies yet." root, which
+     is one page saying two things (L-34). */
+  if(rows.length < 2){ box.innerHTML = ''; return; }
+  const lens = CS_BOARD_LENS;
+  const rank = r => Number((lens === 'form' ? r.rank_by_form : r.rank_by_index) || 0);
+  const sorted = rows.slice().sort((a, b) => rank(a) - rank(b) || String(a.display_name||'').localeCompare(String(b.display_name||'')));
+  box.innerHTML = `
+    <div class="eyebrow" style="display:flex; align-items:center; gap:10px">The board
+      <span style="margin-left:auto; display:flex; gap:6px">
+        <button class="mini" type="button" data-lens="form"${lens==='form'?' style="border-color:var(--pos); color:var(--pos)"':''}>Form</button>
+        <button class="mini" type="button" data-lens="handicap"${lens==='handicap'?' style="border-color:var(--pos); color:var(--pos)"':''}>Handicap</button>
+      </span></div>
+    ${sorted.map(r => {
+      const name = r.is_me ? 'You' : (r.display_name || '—');
+      const sub = lens === 'form' ? csBoardFormLine(r)
+                : (r.last_round_on ? `Last round ${csDayToken(r.last_round_on)}` : 'No rounds posted yet');
+      const fig = lens === 'form' ? (csBoardBand(r) || '—').toUpperCase()
+                : (r.index_current != null ? fmtIdx(r.index_current) : '—');
+      return `<div class="prow" data-person="${esc(r.profile_id)}">
+        <span class="pmk" style="min-width:26px; text-align:right; color:var(--mut); font-family:var(--mono); font-size:11px">${rank(r)}</span>
+        <span class="pmeta"><b>${esc(name)}</b><small>${esc(sub)}</small></span>
+        <span class="bdfig mono">${esc(fig)}</span></div>`;
+    }).join('')}
+    <p class="fine" style="padding:6px 0 0">Your buddies, by how they are playing. No badges, no streaks — just rounds.</p>`;
+  box.querySelectorAll('[data-lens]').forEach(b => b.addEventListener('click', () => {
+    CS_BOARD_LENS = b.dataset.lens; renderFriendsBoard();
+  }));
+}
+window.renderFriendsBoard = renderFriendsBoard;
+
+/* ---------- the person page, at desk width ---------- */
+async function openPerson(profileId){
+  if(!profileId) return;
+  if(state.demo || !window.CS?.user){ toast('Sign in to see golfers'); return; }
+  window.__csPerson = profileId;
+  switchView('person');
+  const main = document.getElementById('perMain'), aside = document.getElementById('perAside');
+  const head = document.getElementById('perName'), safe = document.getElementById('perSafety');
+  if(main) main.innerHTML = '<p class="fine" style="padding:0">Pulling the card…</p>';
+  if(aside) aside.innerHTML = '';
+  let card = null, h2h = null;
+  try{
+    const [cr, hr] = await Promise.all([
+      sb.rpc('tour_card', { p_profile: profileId }),
+      sb.rpc('head_to_head', { p_opponent: profileId }).catch(() => ({ data: null })),
+    ]);
+    card = cr.data;
+    h2h = hr && hr.data ? csH2HParse(hr.data) : null;
+  }catch(_){ card = null; }
+  if(window.__csPerson !== profileId) return;          /* a later tap won */
+
+  if(!card){
+    /* L-32 - a failed read is never a private card */
+    if(head) head.textContent = 'A golfer';
+    if(main) main.innerHTML = '<p class="fine" style="padding:0">Couldn’t pull that card. Check your signal and try again.</p>';
+    return;
+  }
+  const p = card.profile || {}, c = card.career || {};
+  const name = p.display_name || '—';
+  if(head) head.textContent = name;
+  if(safe){ safe.innerHTML = csSafetyMenuHtml(profileId, name); csWireSafety(safe); }
+  if(!card.visible){
+    if(main) main.innerHTML = `<p class="fine" style="padding:0">This golfer keeps their card private, or you don’t share a league yet.</p>`;
+    return;
+  }
+
+  /* the narrative head - two clauses, each dropped rather than guessed */
+  /* ONE SUBJECT, ONE SENTENCE. Two clauses about the same golfer, each
+     opening with their name, reads as two facts about two people. Verbatim
+     with `HeadToHeadCopy.personNarrative`. */
+  const cups = (card.case || []).filter(t => t.placement === 'winner').length;
+  const titles = cups > 0 ? `${name} has won ${csSpelled(cups)} ${cups === 1 ? 'title' : 'titles'}` : null;
+  const pc = csH2HPersonClause(h2h);
+  let narrative = null;
+  if(titles && pc && pc.indexOf(name + ' has ') === 0) narrative = titles + ', and has ' + pc.slice((name + ' has ').length);
+  else if(titles && pc) narrative = titles + '. ' + pc;
+  else if(titles) narrative = titles + '.';
+  else if(pc) narrative = pc;
+
+  const idx = p.index_current != null ? fmtIdx(p.index_current) : '—';
+  const best = c.best_round && c.best_round.gross != null
+    ? `${c.best_round.gross}${c.best_round.course_label ? ' at ' + esc(csCourse(c.best_round.course_label)) : ''}${c.best_round.played_on ? ', ' + esc(csSpokenDay(c.best_round.played_on)) : ''}`
+    : null;
+  const caseLine = (card.case || []).map(t => t.title ? (t.season_year ? `${t.title} · ${t.season_year}` : t.title) : null)
+    .filter(Boolean).slice(0, 3).join(' · ');
+  const shared = (card.shared_courses || []).slice(0, 3).map(x => esc(x.name)).join(' · ');
+  const rec = card.recent || [];
+
+  if(main) main.innerHTML = `
+    ${narrative ? `<p style="font-size:16px; line-height:1.5; margin:0 0 14px">${esc(narrative)}</p>` : ''}
+    <div class="mathrow"><span>Handicap index</span><b>${esc(idx)}</b></div>
+    <div class="mathrow"><span>Rounds</span><b>${Number(c.rounds || 0)}</b></div>
+    ${best ? `<div class="mathrow"><span>Best</span><b>${best}</b></div>` : ''}
+    ${caseLine ? `<div class="mathrow"><span>Trophies</span><b>${esc(caseLine)}</b></div>` : ''}
+    ${p.home_course ? `<div class="mathrow"><span>Home course</span><b>${esc(csCourse(p.home_course))}</b></div>` : ''}
+    ${shared ? `<div class="cboth" style="margin-top:14px"><b>You’ve both played</b><small>${shared}</small></div>` : ''}
+    ${rec.length ? `<div class="eyebrow" style="margin-top:16px">Recent rounds</div>` + rec.map(r => {
+      const d = String(r.played_on || '');
+      return `<div class="check"><span class="num mono" style="font-size:11px">${esc(csDayToken(d))}</span>
+        <div class="tt"><b>${r.gross != null ? r.gross : '—'} GROSS${r.holes_played === 9 ? ' · 9 HOLES' : ''}</b>
+        <small>${r.course_label ? esc(String(r.course_label).toUpperCase()) + ' · ' : ''}VS COURSE ${r.differential != null ? Number(r.differential).toFixed(1) : '—'}</small></div></div>`;
+    }).join('') : ''}
+    <div class="eyebrow" style="margin-top:18px">Play them</div>
+    <p class="fine" style="padding-top:0">How long do you want it to run?</p>
+    <div style="display:flex; gap:8px; flex-wrap:wrap">
+      <button class="mini" type="button" data-len="saturday">This Saturday</button>
+      <button class="mini" type="button" data-len="week" disabled>One week</button>
+      <button class="mini" type="button" data-len="season">A season</button>
+    </div>
+    <p class="fine" style="padding-top:6px">A round on the tee sheet with them in it · a one-week head-to-head, which opens when callouts do · a season with them in it.</p>`;
+
+  /* the aside IS the record between the two of you - the desk's own shape */
+  if(aside){
+    if(h2h && (h2h.settled > 0 || h2h.facets.length)){
+      aside.innerHTML = `
+        ${csH2HHeadline(h2h) ? `<p style="font-size:15px; margin:0 0 6px"><b>${esc(csH2HHeadline(h2h))}</b></p>` : ''}
+        ${csH2HStandfirst(h2h) ? `<p class="fine" style="padding-top:0">${esc(csH2HStandfirst(h2h))}</p>` : ''}
+        ${h2h.facets.map(f => `<div class="mathrow"><span>${esc(f.head)}</span><b>${esc(f.record || (f.meetings + ' SO FAR'))}</b></div>`).join('')}
+        ${csH2HUsesHeuristic(h2h) ? `<p class="fine">${esc(CS_H2H_HEURISTIC)}</p>` : ''}
+        <button class="btn dark" type="button" id="perOpenH2H" style="margin-top:10px">See the whole record</button>`;
+      document.getElementById('perOpenH2H')?.addEventListener('click', () => openHeadToHead(profileId, name));
+    } else {
+      aside.innerHTML = `<p class="fine" style="padding:0">Nothing between you yet. The moment you both post a round the same week, or one of you tags the other on a card, this fills in.</p>`;
+    }
+  }
+  main?.querySelectorAll('[data-len]').forEach(b => b.addEventListener('click', () => {
+    if(b.dataset.len === 'season') switchView('wizard');
+    else if(b.dataset.len === 'saturday') switchView('schedule');
+  }));
+}
+window.openPerson = openPerson;
+
+/* ---------- the head-to-head, at desk width ---------- */
+async function openHeadToHead(profileId, fallbackName){
+  if(!profileId) return;
+  if(state.demo || !window.CS?.user){ toast('Sign in to see golfers'); return; }
+  window.__csH2H = profileId;
+  switchView('h2h');
+  const main = document.getElementById('h2hMain'), aside = document.getElementById('h2hAside');
+  const head = document.getElementById('h2hName'), safe = document.getElementById('h2hSafety');
+  if(head) head.textContent = `You and ${fallbackName || 'them'}`;
+  if(main) main.innerHTML = '<p class="fine" style="padding:0">Counting it up…</p>';
+  if(aside) aside.innerHTML = '';
+  let h = null, failed = false;
+  try{
+    const { data, error } = await sb.rpc('head_to_head', { p_opponent: profileId });
+    if(error) throw error;
+    h = csH2HParse(data);
+  }catch(_){ failed = true; }
+  if(window.__csH2H !== profileId) return;
+
+  if(failed){
+    /* the declared fallback: the season-only record `my_rivalries` returns,
+       which cannot count two buddies who share no season. The page says which
+       of the two it is holding rather than pretending they are one read. */
+    try{
+      const { data } = await sb.rpc('my_rivalries');
+      const r = (data || []).find(x => x.opponent === profileId);
+      if(r){
+        h = csH2HParse({
+          visible: true, opponent: { id: profileId, display_name: r.display_name, marker: r.marker },
+          record: { wins: r.wins, losses: r.losses, ties: r.ties,
+                    total: (r.wins||0)+(r.losses||0)+(r.ties||0) },
+          lead: r.lead, rivalry_name: r.rivalry_name,
+          facets: { season_weeks: { wins: r.wins, losses: r.losses, ties: r.ties,
+                                    meetings: r.meetings || ((r.wins||0)+(r.losses||0)+(r.ties||0)),
+                                    basis: 'the better round against your playing number in a week you both posted',
+                                    source: 'my_rivalries' } },
+        });
+      }
+    }catch(_){ /* neither read answered */ }
+  }
+  const name = (h && h.name !== '—') ? h.name : (fallbackName || 'them');
+  if(head) head.textContent = `You and ${name}`;
+  if(safe){ safe.innerHTML = csSafetyMenuHtml(profileId, name); csWireSafety(safe); }
+
+  if(!h){
+    if(main) main.innerHTML = '<p class="fine" style="padding:0">Couldn’t count that up. Check your signal and try again.</p>';
+    return;
+  }
+  if(!h.settled && !h.facets.length){
+    if(main) main.innerHTML = `<p class="fine" style="padding:0">Nothing between you and ${esc(name)} yet. The moment you both post a round the same week, or one of you tags the other on a card, this fills in.</p>`;
+    return;
+  }
+  const dots = h.lastFive.slice().reverse()
+    .map(m => `<i class="${m.won === true ? 'on' : ''}"></i>`).join('');
+  const mine = h.lastFive.filter(m => m.won === true).length;
+  if(main) main.innerHTML = `
+    ${h.rivalryName ? `<div class="eyebrow" style="color:var(--gold)">“${esc(String(h.rivalryName).toUpperCase())}”</div>` : ''}
+    ${csH2HHeadline(h) ? `<h3 style="margin:2px 0 6px; font-size:20px">${esc(csH2HHeadline(h))}</h3>` : ''}
+    ${csH2HStandfirst(h) ? `<p style="color:var(--mut); margin:0 0 14px">${esc(csH2HStandfirst(h))}</p>` : ''}
+    ${h.lastFive.length ? `<div class="eyebrow">Last five</div>
+      <div class="h2hdots" role="img" aria-label="Last ${h.lastFive.length} meetings, oldest first, ${mine} to you">${dots}
+        <small>${mine} OF ${h.lastFive.length} TO YOU · OLDEST FIRST</small></div>` : ''}
+    <div class="eyebrow" style="margin-top:16px">How it adds up</div>
+    ${h.facets.map(f => `
+      <div class="mathrow"><span>${esc(f.head)}</span><b>${esc(f.record || (f.meetings + ' SO FAR'))}</b></div>
+      ${csH2HFacetSub(f) ? `<p class="fine" style="padding:0 0 8px">${esc(csH2HFacetSub(f))}</p>` : ''}`).join('')}
+    ${h.facets.some(f => f.key === 'played_together') ? `<p class="fine">${esc(CS_H2H_NOT_A_VOUCH)}</p>` : ''}`;
+
+  if(aside) aside.innerHTML = `
+    <button class="btn dark" type="button" id="h2hCard" style="margin-bottom:8px">Open ${esc(name)}’s card</button>
+    <button class="btn dark" type="button" id="h2hName2">${h.rivalryName ? 'Rename “' + esc(h.rivalryName) + '”' : 'Name it'}</button>
+    <p class="fine">Give it a name your crew would actually say.</p>`;
+  document.getElementById('h2hCard')?.addEventListener('click', () => openPerson(profileId));
+  document.getElementById('h2hName2')?.addEventListener('click', () => openNameRivalry(profileId, name, h.rivalryName || ''));
+}
+window.openHeadToHead = openHeadToHead;
+
+/* one delegated door: any [data-person] element opens the PERSON PAGE. The
+   `data-tc` sheet stays what it is - the in-context peek from a round card. */
+document.addEventListener('click', e => {
+  const el = e.target.closest('[data-person]');
+  if(el && el.dataset.person){ e.preventDefault(); openPerson(el.dataset.person); }
+});
+
 /* one delegated door: any [data-tc="<profileId>"] element opens that card */
 document.addEventListener('click', e=>{
   const el = e.target.closest('[data-tc]');

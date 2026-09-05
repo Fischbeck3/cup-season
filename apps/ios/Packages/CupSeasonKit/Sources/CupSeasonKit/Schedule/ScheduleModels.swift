@@ -514,6 +514,10 @@ public struct RoundDetail: Sendable, Equatable {
   public var courseName: String { course?.name ?? courseLabel ?? "A round" }
   /// D69: RSVP is for the invited — the host or a tagged player.
   public var canRsvp: Bool { mine || taggedMe }
+  /// The host's first name, for the sentence under "Ask for a seat" — the
+  /// same rule the board and the chips use (`CSBands.fn1`), so one golfer is
+  /// called one thing on every surface.
+  public var hostName: String { ownerName.map(CSBands.fn1) ?? "the host" }
   public var inCount: Int { rsvp.filter { $0.status == "in" }.count }
   public var title: String { playOn.map(ScheduleDates.long) ?? "Round" }
 }

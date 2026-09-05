@@ -71,6 +71,163 @@ public struct PeopleService: Sendable {
     return out
   }
 
+  // MARK: the record between two golfers, and the board (wave 5)
+  //
+  // Four HAND-DECLARED calls, because the migrations that create them are
+  // written and unpushed — the shape preflight 17 tolerates while a contract
+  // refresh waits on the owner's push, and every one still carries its grant
+  // in its migration (L-04). They are replaced by the generated names on the
+  // first `build-db.mjs` after the push.
+
+  struct HeadToHeadCall: RpcCall {
+    static let name = "head_to_head"
+    static let optionalArgs: [String] = ["p_opponent"]
+    typealias Returns = JSONValue
+    var p_opponent: UUID
+  }
+  struct FriendsBoardCall: RpcCall {
+    static let name = "friends_board"
+    static let optionalArgs: [String] = ["p_days"]
+    typealias Returns = [FriendsBoard.ServerRow]
+    var p_days: Int?
+  }
+  struct AskForASeatCall: RpcCall {
+    static let name = "ask_for_a_seat"
+    static let optionalArgs: [String] = []
+    typealias Returns = JSONValue
+    var p_scheduled_round: UUID
+  }
+  /// The tags waiting on ME. It exists so R15 has a surface — without it a
+  /// tag is a claim nobody can answer, which is the disclaimer D239 refused.
+  public struct OpenTag: Decodable, Sendable, Identifiable {
+    public let round_id: UUID?
+    public let played_on: String?
+    public let course_label: String?
+    public let gross: Int?
+    public let by_name: String?
+    public let by_profile: UUID?
+    public var id: String { round_id?.uuidString ?? UUID().uuidString }
+
+    /// "Galen says you played Papago on June 1 — that right?" Each clause is
+    /// dropped rather than guessed; a tag with no course still asks the
+    /// question, because the question is about the day and the person.
+    public var question: String {
+      let who = by_name ?? "A golfer"
+      let day = played_on.map(RivalryCopy.monthDaySpoken) ?? ""
+      var s = "\(who) says you were out"
+      if let c = course_label, !c.isEmpty { s += " at \(RoundCopy.course(c))" }
+      if !day.isEmpty { s += " on \(day)" }
+      return s + " — that right?"
+    }
+  }
+  struct OpenTagsCall: RpcCall {
+    static let name = "my_open_tags"
+    static let optionalArgs: [String] = ["p_limit"]
+    typealias Returns = [OpenTag]
+    var p_limit: Int?
+  }
+
+  /// The tags waiting on me. An empty list and a failed read are the same
+  /// here on purpose: the section simply does not render, and nothing about
+  /// the tab is wrong when it doesn't (P-11's error column).
+  public func openTags(limit: Int = 10) async -> [OpenTag] {
+    ((try? await svc.call(OpenTagsCall(p_limit: limit))) ?? []).filter { $0.round_id != nil }
+  }
+
+  struct ConfirmPartnerCall: RpcCall {
+    static let name = "confirm_round_partner"
+    static let optionalArgs: [String] = ["p_confirm"]
+    typealias Returns = JSONValue
+    var p_round: UUID
+    var p_confirm: Bool?
+  }
+
+  /// R4 · the record between me and one golfer. nil means "the read could not
+  /// be reached", which is a DIFFERENT answer from a record with nothing in
+  /// it — the first says so and offers the retry, the second is an honest
+  /// empty state (L-32). The declared fallback while the migration is unpushed
+  /// is `my_rivalries`, which is what both clients show today.
+  public func headToHead(_ opponent: UUID) async -> HeadToHead? {
+    guard let json = try? await svc.call(HeadToHeadCall(p_opponent: opponent)) else { return nil }
+    return HeadToHead.parse(json)
+  }
+
+  /// The fallback, and its answer is THREE-VALUED, because two of the three
+  /// look identical if you collapse them:
+  ///   * `.failure`  — the read did not answer (L-32: say so, offer the retry)
+  ///   * `nil` row   — the read answered and there is no record between you
+  ///                   (an honest empty state, not an error)
+  ///   * a record    — the season-only figure `my_rivalries` has always
+  ///                   returned, which cannot count two buddies who share no
+  ///                   season; the page says which of the two it is holding
+  ///
+  /// The first cut collapsed the middle case into the first, and a real
+  /// simulator screenshot showed "Couldn't load this" over a buddy the app
+  /// simply has no history with.
+  public func headToHeadFallback(_ opponent: UUID, name: String?, marker: String?) async throws -> HeadToHead? {
+    let rows = try await svc.call(Rpc.my_rivalries())
+    guard let r = rows.first(where: { $0.opponent == opponent }) else { return nil }
+    let w = r.wins ?? 0, l = r.losses ?? 0, t = r.ties ?? 0
+    let lead: RivalryLead = r.lead == "up" ? .up : r.lead == "down" ? .down : .even
+    let weeks = HeadToHead.FacetLine(facet: .seasonWeeks, wins: w, losses: l, ties: t,
+                                     meetings: r.meetings ?? (w + l + t),
+                                     basis: "the better round against your playing number in a week you both posted",
+                                     source: "my_rivalries")
+    let dw = r.duel_wins ?? 0, dl = r.duel_losses ?? 0, dh = r.duel_halves ?? 0
+    let duels = HeadToHead.FacetLine(facet: .duels, wins: dw, losses: dl, ties: dh,
+                                     meetings: dw + dl + dh,
+                                     basis: "a Ryder duel, settled", source: "my_rivalries")
+    return HeadToHead(visible: true,
+                      opponent: .init(id: opponent, displayName: r.display_name ?? name,
+                                      handle: r.handle, marker: r.marker ?? marker),
+                      record: .init(wins: w + dw, losses: l + dl, ties: t + dh,
+                                    total: w + dw + l + dl + t + dh),
+                      lead: lead,
+                      facets: [weeks, duels].filter(\.hasData),
+                      rivalryName: (r.rivalry_name ?? "").isEmpty ? nil : r.rivalry_name)
+  }
+
+  /// R5 · the board. THREE answers, because two of them look the same if you
+  /// collapse them and the difference is what a golfer reads:
+  ///   * `.some(board)`   — it answered
+  ///   * `.notYet`        — the FUNCTION is not there (the migration is
+  ///                        unpushed): the section does not render, and
+  ///                        nothing is wrong
+  ///   * `.failed`        — the read did not answer: say so in one line (L-32)
+  ///
+  /// A simulator screenshot of the tab against prod showed "The board didn't
+  /// load." over an account whose board is simply not deployed yet, which is
+  /// the wrong sentence for the true state.
+  public enum BoardRead: Sendable {
+    case ok(FriendsBoard)
+    case notYet
+    case failed
+  }
+
+  public func board(days: Int = 30) async -> BoardRead {
+    do {
+      return .ok(FriendsBoard.parse(try await svc.call(FriendsBoardCall(p_days: days)), days: days))
+    } catch {
+      return PostService.fallbackFires(on: error) ? .notYet : .failed
+    }
+  }
+
+  /// R16 · a REQUEST to the host, never a write to the tee sheet (D69). The
+  /// server's own state comes back so the row can say which of the four it is.
+  @discardableResult
+  public func askForASeat(_ scheduledRound: UUID) async throws -> String {
+    let json = try await svc.call(AskForASeatCall(p_scheduled_round: scheduledRound))
+    return json["state"]?.string ?? "asked"
+  }
+
+  /// R15 · the tagged golfer answers. Declining REMOVES the row; a tag nobody
+  /// agreed to leaves no trace (D239). Confirming is not attesting (L-19).
+  @discardableResult
+  public func confirmRoundPartner(_ round: UUID, confirm: Bool) async throws -> String {
+    let json = try await svc.call(ConfirmPartnerCall(p_round: round, p_confirm: confirm))
+    return json["state"]?.string ?? (confirm ? "confirmed" : "removed")
+  }
+
   /// `friend_request` — 'friend' when the intent was mutual, else 'requested'.
   public func request(_ profile: UUID) async throws -> Rel {
     Rel(try await svc.call(Rpc.friend_request(p_profile: profile)))

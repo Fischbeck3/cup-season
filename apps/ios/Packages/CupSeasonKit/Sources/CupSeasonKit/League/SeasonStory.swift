@@ -262,6 +262,10 @@ public enum SeasonStoryCopy {
   /// migration that adds it, or its sentences never reach a screen.
   public static let namedReads: Set<String> = [
     "standings_snapshots", "week_clashes", "my_rivalries", "posts", "season_scenarios",
+    // wave 5 · R4 joins the fence in the same commit as its migration, which
+    // is what the rule above requires. Without this line every sentence the
+    // head-to-head feeds would render nothing — the fence working, not a bug.
+    "head_to_head",
   ]
 
   /// The chosen sentence, the rung it came from, and the read that proves it.

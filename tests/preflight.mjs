@@ -839,5 +839,83 @@ else {
     : fail('every nav destination resolves', problems.join(' · '));
 }
 
+
+/* 25 · report and block survive the redesign (L-38, Guideline 1.2) ----------
+   L-38 is in the immutable wall — "Report, block (mute), hide/unhide, suspend,
+   delete account exist on every surface where content is, and SURVIVE ANY
+   REDESIGN" — and this build is exactly the kind of change that loses it: the
+   Tour Card SHEET carried mute and the two-step report, and wave 5 promoted it
+   to a page. A page without them drops report and block from the surface a
+   golfer most often reaches a person on, and App Review rejects for it.
+
+   So the check is a list, and the list is the acceptance test
+   (`COMPONENT_SYSTEM.md` P-17, `INFORMATION_ARCHITECTURE.md` §18.1 test 4):
+   every surface that renders another golfer's content reaches the safety
+   block, on BOTH clients, and the block itself still holds all three verbs.
+
+   It does NOT look for a control named "Block". This product has no block
+   mechanic; L-38's own wording is "block (mute)" and
+   `docs/ios/app-review-notes.md` already tells App Review that Mute is the
+   block here. A menu item over a mechanic that does not exist is what L-32 and
+   L-44 forbid, so what is checked is the verb that actually runs. */
+{
+  const problems = [];
+
+  /* --- the phone --- */
+  const swift = new Map(iosSrc);
+  const safety = swift.get('CupSeason/People/SafetyMenu.swift');
+  if (!safety) problems.push('CupSeason/People/SafetyMenu.swift is gone — P-17 has no producer');
+  else {
+    /* the block itself holds all three verbs and the report is still two-step */
+    if (!/set_mute|setMute/.test(safety)) problems.push('SafetyMenu no longer mutes (L-38 block)');
+    if (!/report/i.test(safety)) problems.push('SafetyMenu no longer reports (L-38)');
+    if (!/hideThis/.test(safety)) problems.push('SafetyMenu lost "Hide this" (L-38 hide)');
+    if (!/reasons/.test(safety) || !/Pick a reason|Send this report/.test(safety))
+      problems.push('the report lost its two steps — one tap is an accident');
+  }
+
+  /* every surface that renders another golfer's content, by name. Adding a
+     person surface without adding it here is the omission this list exists to
+     make loud; adding it here without mounting P-17 fails the push. */
+  const mounts = [
+    ['CupSeason/Golfers/PersonPage.swift',    /CSSafetyMenu\(/],
+    ['CupSeason/Golfers/HeadToHeadPage.swift', /CSSafetyMenu\(/],
+    /* the peek sheet keeps its OWN copy, unchanged — the promotion did not
+       take mute or the two-step report off it */
+    ['CupSeason/You/TourCardSheet.swift',     /setMute|toggleMute/],
+    ['CupSeason/You/TourCardSheet.swift',     /Sure\? Report/],
+  ];
+  for (const [rel, pat] of mounts) {
+    const src = swift.get(rel);
+    if (!src) { problems.push(`${rel} is missing — a person surface cannot be checked`); continue; }
+    if (!pat.test(src)) problems.push(`${rel} renders another golfer and cannot reach report/mute (L-38)`);
+  }
+
+  /* --- the web, or Guideline 1.2 is only half-answered --- */
+  if (!/function csSafetyMenuHtml\(/.test(html)) problems.push('the web has no P-17 producer (csSafetyMenuHtml)');
+  if (!/p_kind:\s*'profile'/.test(html)) problems.push('the web safety block no longer reports a golfer');
+  if (!/rpc\('set_mute'/.test(html)) problems.push('the web safety block no longer mutes');
+  for (const fn of ['openPerson', 'openHeadToHead']) {
+    const a = html.indexOf('async function ' + fn + '(');
+    const b = html.indexOf('window.' + fn + ' = ' + fn + ';');
+    if (a < 0 || b < a) { problems.push(`the web's ${fn} is gone — a person surface cannot be checked`); continue; }
+    if (!/csSafetyMenuHtml\(/.test(html.slice(a, b)))
+      problems.push(`the web's ${fn} renders a golfer with no P-17 (L-38)`);
+  }
+
+  /* self-test: the check has to be able to see a surface that lost it */
+  {
+    const stripped = (swift.get('CupSeason/Golfers/PersonPage.swift') || '').replace(/CSSafetyMenu\(/g, 'EmptyView(');
+    if (/CSSafetyMenu\(/.test(stripped)) problems.push('self-test failed: the phone half cannot see a stripped surface');
+    const webStripped = html.replace(/csSafetyMenuHtml\(/g, 'noop(');
+    if (/function csSafetyMenuHtml\(/.test(webStripped) || /csSafetyMenuHtml\(/.test(webStripped))
+      problems.push('self-test failed: the web half cannot see a stripped surface');
+  }
+
+  problems.length === 0
+    ? pass('report and block survive the redesign', `${mounts.length} phone surface(s) + 2 web page(s) reach P-17`)
+    : fail('report and block survive the redesign', problems.slice(0, 4).join(' · '));
+}
+
 console.log(`\n${fails ? 'FAIL' : 'PASS'} — ${fails} failure(s), ${warns} warning(s)`);
 process.exit(fails ? 1 : 0);

@@ -81,6 +81,23 @@ struct ScheduledRoundSheet: View {
           rsvpButton("Maybe", "maybe", on: cs.gold, ink: Color(hex: 0x3A2C07))
           rsvpButton("Can’t", "out", on: cs.bg2, ink: cs.ink)
         }
+      } else if !d.mine {
+        // IOS-032 · the dead end, closed. A golfer who sees a buddy's plan and
+        // wants in had NOWHERE to go: the row rendered and every control was
+        // absent, because D69 says a tee sheet is the host's. "Ask for a seat"
+        // is a REQUEST — one `rsvp` nudge to the host (R16), once per person
+        // per plan — and it writes NOTHING to the tee sheet, so D69 stands
+        // exactly where it stood.
+        VStack(alignment: .leading, spacing: 6) {
+          if vm.asked {
+            Text("ASKED — IT’S WITH THEM").font(CSFont.label).tracking(0.9).foregroundStyle(cs.pos)
+              .frame(minHeight: 32)
+          } else {
+            CSMini("Ask for a seat", busy: vm.asking) { Task { await vm.askForASeat() } }
+          }
+          CSFine("It sends \(d.hostName) a note. Only they can add you to the group.")
+        }
+        .padding(.top, 4)
       }
 
       Text("On the board").csEyebrow().padding(.top, 6)
@@ -160,11 +177,32 @@ final class RoundSheetModel {
   var sending = false
   var rsvping = false
   var scratching = false
+  /// IOS-032 · "Ask for a seat" — a REQUEST to the host (R16), never a write
+  /// to the tee sheet. `asked` is the local echo of the server's own state.
+  var asking = false
+  var asked = false
   private let fallback: ScheduledRound?
   private let toasts: CSToastCenter
   private let sched = ScheduleService()
+  private let people = PeopleService()
 
   init(id: UUID, fallback: ScheduledRound?, toasts: CSToastCenter) { self.id = id; self.fallback = fallback; self.toasts = toasts }
+
+  /// One nudge, once. The server enforces the same rule, so a second tap on
+  /// another device is not a second ping either (L-20/L-21).
+  func askForASeat() async {
+    asking = true
+    defer { asking = false }
+    do {
+      let state = try await people.askForASeat(id)
+      asked = true
+      toasts.show(state == "already_asked" ? "Already asked — it’s with them."
+                : state == "already_in" ? "You’re already in that group."
+                : "Asked. It’s up to them now.")
+    } catch {
+      toasts.show(HumanError.text(error, prefix: "Couldn’t send that."))
+    }
+  }
 
   func load() async {
     do { detail = try await sched.detail(id) }

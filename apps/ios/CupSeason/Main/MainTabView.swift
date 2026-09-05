@@ -101,10 +101,16 @@ enum HomeRoute: Hashable { case schedule }
 /// and not one caller of this enum.
 enum CompeteRoute: Hashable { case season(UUID, pane: SeasonPane), board(UUID), schedule, album(UUID) }
 
+/// Golfers' own stack (IOS-028, filled by IOS-032). Wave 3 declared only what
+/// it could land on; wave 5 adds the two pages the design draws, because a
+/// route to a page that does not exist is a door that does not open (L-32).
+enum GolfersRoute: Hashable { case person(UUID), headToHead(UUID) }
+
 /// `.addGhin` is Card & settings opened on the card pane with the GHIN field
 /// focused (Y-30) — the You hero's "add your GHIN" lands on the field, not the screen.
 /// `.people` retired: Golfers is a tab (D222).
-enum YouRoute: Hashable { case settings, addGhin }
+/// `.record` is D232's second head, promoted from a section to a destination.
+enum YouRoute: Hashable { case settings, addGhin, record }
 
 /// Y-16, retargeted by D222 · "open this competition", callable from ANY
 /// screen: remembers it, clears Compete's stack so the object is what shows,
@@ -123,6 +129,13 @@ private struct OpenCompetitionKey: EnvironmentKey {
 private struct OpenGolfersKey: EnvironmentKey {
   static let defaultValue: @MainActor @Sendable () -> Void = {}
 }
+/// D222 / IOS-032 · "open this golfer", callable from any screen: selects
+/// Golfers and pushes the PERSON PAGE. The peek sheet (`presenter.tourCard`)
+/// stays what it is — an in-context glance from a round card — and this is the
+/// door for a name a golfer means to go and read.
+private struct OpenPersonKey: EnvironmentKey {
+  static let defaultValue: @MainActor @Sendable (UUID) -> Void = { _ in }
+}
 extension EnvironmentValues {
   var openCompetition: @MainActor @Sendable (UUID, SeasonPane) -> Void {
     get { self[OpenCompetitionKey.self] }
@@ -131,6 +144,10 @@ extension EnvironmentValues {
   var openGolfers: @MainActor @Sendable () -> Void {
     get { self[OpenGolfersKey.self] }
     set { self[OpenGolfersKey.self] = newValue }
+  }
+  var openPerson: @MainActor @Sendable (UUID) -> Void {
+    get { self[OpenPersonKey.self] }
+    set { self[OpenPersonKey.self] = newValue }
   }
 }
 
@@ -228,7 +245,11 @@ struct MainTabView: View {
 
       // ---- 4 · GOLFERS. The COMMUNITY destination (D222). ----
       NavigationStack(path: $golfersPath) {
-        GolfersScreen(links: csLinks)
+        GolfersScreen(links: csLinks,
+                      openPerson: { openPerson($0) },
+                      openHeadToHead: { golfersPath.append(GolfersRoute.headToHead($0)) },
+                      openRound: { presenter.scheduledRound = $0 })
+          .navigationDestination(for: GolfersRoute.self) { r in golfersDestination(r) }
       }
       .csTabBarEdge()
       .tabItem { Label(NavSlot.golfers.label, systemImage: "person.2") }
@@ -241,6 +262,9 @@ struct MainTabView: View {
             switch r {
             case .settings: CardAndSettingsScreen()
             case .addGhin: CardAndSettingsScreen(focus: .ghin)
+            // D232 · the record is a DESTINATION, not a section
+            case .record: RecordPage(links: youLinks,
+                                     openHeadToHead: { openPerson($0) })
             }
           }
       }
@@ -261,6 +285,7 @@ struct MainTabView: View {
     .environment(\.presenter, presenter)
     .environment(\.openCompetition, { id, pane in openCompetition(id, pane: pane) })
     .environment(\.openGolfers, { openGolfers() })
+    .environment(\.openPerson, { openPerson($0) })
     // Measure the bar once it exists, and dress it on the way past. The bar is
     // built after the first layout, so this polls briefly and then stops; a
     // shell that never finds one leaves `barRoom` at 0.
@@ -329,6 +354,16 @@ struct MainTabView: View {
       case "schedule": tab = .compete; competePath.append(CompeteRoute.schedule)
       case "settings": tab = .you; youPath.append(YouRoute.settings)
       case "golfers", "people": tab = .golfers; golfersPath = NavigationPath()
+      // IOS-032 · the two pages wave 5 built open from a NAME, and a name has
+      // to be tapped. A page nobody can photograph is a page nobody has looked
+      // at, so the hatch takes the first buddy it can find.
+      case "person", "h2h":
+        tab = .golfers
+        golfersPath = NavigationPath()
+        if let opp = await firstBuddy() {
+          golfersPath.append(a[i + 1] == "person" ? GolfersRoute.person(opp) : GolfersRoute.headToHead(opp))
+        }
+      case "record": tab = .you; youPath.append(YouRoute.record)
       case "post": presenter.postOnComposer = false; presenter.showPost = true
       case "postround": presenter.postOnComposer = true; presenter.showPost = true
       case "live": presenter.showLive = true
@@ -544,6 +579,43 @@ struct MainTabView: View {
     tab = .golfers
   }
 
+  #if DEBUG
+  /// The first golfer the hatch can land on: a buddy if there is one, else
+  /// somebody in a shared league. Nothing is invented — if the account knows
+  /// nobody, the hatch lands on the tab root and says so by showing it.
+  private func firstBuddy() async -> UUID? {
+    if let rows = try? await SupabaseService.shared.call(Rpc.my_friends()),
+       let f = rows.first(where: { $0.status == "accepted" })?.profile_id { return f }
+    if let rows = try? await SupabaseService.shared.call(Rpc.my_rivalries()) { return rows.first?.opponent }
+    return nil
+  }
+  #endif
+
+  /// D222 / IOS-032 · a golfer is a destination. Clearing the stack first means
+  /// the page is what shows rather than a card three pushes deep.
+  private func openPerson(_ id: UUID) {
+    if tab != .golfers { golfersPath = NavigationPath() }
+    tab = .golfers
+    golfersPath.append(GolfersRoute.person(id))
+  }
+
+  /// Golfers' pushed destinations. Both are new in wave 5 and both carry P-17
+  /// (L-38) — the whole reason IOS-032 names the pattern.
+  @ViewBuilder private func golfersDestination(_ r: GolfersRoute) -> some View {
+    switch r {
+    case .person(let id):
+      PersonPage(profileId: id,
+                 openHeadToHead: { golfersPath.append(GolfersRoute.headToHead($0)) },
+                 openReceipt: { presenter.receipt = $0 },
+                 stageRound: { playOn, tag in presenter.declare = DeclarePrefill(iso: playOn, tagPids: [tag]) },
+                 startSomething: { presenter.wizard = .init(existingLeagueId: nil) })
+    case .headToHead(let id):
+      HeadToHeadPage(opponentId: id,
+                     openPerson: { golfersPath.append(GolfersRoute.person($0)) },
+                     stageRound: { playOn, tag in presenter.declare = DeclarePrefill(iso: playOn, tagPids: [tag]) })
+    }
+  }
+
   /// Compete's pushed destinations. D223 / IOS-031: `.season` is the SEASON
   /// PAGE — the league room and its six segments are gone, and every caller
   /// here was unchanged by that, which is what D230 was written to guarantee.
@@ -612,6 +684,7 @@ struct MainTabView: View {
       postRound: { presenter.postOnComposer = true; presenter.showPost = true },
       openTourCard: { presenter.tourCard = $0 },
       openReceipt: { presenter.receipt = $0 },
+      openRecord: { tab = .you; youPath.append(YouRoute.record) },  // D232
       addGhin: { tab = .you; youPath.append(YouRoute.addGhin) },   // Y-30: lands ON the field
       founderNote: { presenter.showNote = true },
       stageRound: { playOn, tag in presenter.declare = DeclarePrefill(iso: playOn, tagPids: [tag]) }

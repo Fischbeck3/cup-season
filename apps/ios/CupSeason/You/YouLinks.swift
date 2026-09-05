@@ -14,6 +14,10 @@ struct YouLinks {
   var postRound: () -> Void
   var openTourCard: (UUID) -> Void
   var openReceipt: (UUID) -> Void
+  /// D232 · "Your record", the second head, promoted to a destination.
+  /// Optional so a slice or a preview compiles without the shell; the door
+  /// falls back to Settings rather than rendering a control that does nothing.
+  var openRecord: (() -> Void)? = nil
   /// "add your GHIN" — lands on the GHIN field; falls back to `openSettings`.
   var addGhin: (() -> Void)? = nil
   /// The founder's "✏️ Field note" (`founder_note`); hidden when nil.

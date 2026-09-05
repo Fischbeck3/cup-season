@@ -63,6 +63,61 @@ public struct TourCard: Sendable {
       self.bestPvi = bestPvi; self.avgVsIndex = avgVsIndex; self.playingLens = playingLens
     }
   }
+  /// R21 · one real trophy off the viewed golfer's own `trophies` rows. The
+  /// table's RLS is self-only and stays self-only; `tour_card` is SECURITY
+  /// DEFINER and has already decided this viewer may see this card, so it is
+  /// the one place a case may be read from. Absent on a payload that predates
+  /// R21, and the row simply does not render (L-44).
+  public struct Cabinet: Sendable, Equatable, Identifiable {
+    public let kind: String?
+    public let title: String?
+    public let subtitle: String?
+    public let placement: String?
+    public let seasonYear: Int?
+    /// A calendar date as a String — never through an ISO parser (L-07).
+    public let earnedOn: String?
+    public var id: String { "\(kind ?? "")|\(title ?? "")|\(earnedOn ?? "")|\(seasonYear.map(String.init) ?? "")" }
+
+    public init(kind: String?, title: String?, subtitle: String? = nil, placement: String? = nil,
+                seasonYear: Int? = nil, earnedOn: String? = nil) {
+      self.kind = kind; self.title = title; self.subtitle = subtitle
+      self.placement = placement; self.seasonYear = seasonYear; self.earnedOn = earnedOn
+    }
+
+    /// "Cup · 2026" — the object, and the year it was won. A trophy with no
+    /// title is not drawn; there is nothing honest to call it.
+    public var line: String? {
+      guard let t = title, !t.isEmpty else { return nil }
+      return seasonYear.map { "\(t) · \($0)" } ?? t
+    }
+  }
+
+  /// R21 · the best round as the sentence a golfer actually says: "74 at
+  /// Troon North, May 3". Nil until R21 lands, and the row does not render.
+  public struct BestRound: Sendable, Equatable {
+    public let gross: Int
+    public let courseLabel: String?
+    /// A calendar date as a String (L-07).
+    public let playedOn: String?
+    public let differential: Double?
+
+    public init(gross: Int, courseLabel: String?, playedOn: String?, differential: Double? = nil) {
+      self.gross = gross; self.courseLabel = courseLabel
+      self.playedOn = playedOn; self.differential = differential
+    }
+
+    /// "74 at Troon North, May 3" — each clause dropped rather than guessed.
+    public var line: String {
+      var s = String(gross)
+      if let c = courseLabel, !c.isEmpty { s += " at \(RoundCopy.course(c))" }
+      if let on = playedOn {
+        let d = RivalryCopy.monthDaySpoken(on)
+        if !d.isEmpty { s += ", \(d)" }
+      }
+      return s
+    }
+  }
+
   public struct Recent: Sendable, Equatable, Identifiable {
     public let playedOn: String
     public let courseLabel: String?
@@ -72,6 +127,32 @@ public struct TourCard: Sendable {
     public let beat: Bool?
     public var id: String { "\(playedOn)|\(gross ?? 0)|\(courseLabel ?? "")" }
   }
+  /// D150 · a course this golfer has played, and how often. Returned by
+  /// `tour_card` since D150 and DISCARDED by the phone ever since; IOS-032
+  /// renders it.
+  public struct Course: Sendable, Equatable, Identifiable {
+    public let name: String
+    public let rounds: Int
+    /// A calendar date as a String (L-07).
+    public let lastPlayed: String?
+    public var id: String { name }
+    public init(name: String, rounds: Int, lastPlayed: String? = nil) {
+      self.name = name; self.rounds = rounds; self.lastPlayed = lastPlayed
+    }
+  }
+
+  /// D150 · "you've both played Papago" — the reason two strangers start
+  /// talking, fetched and thrown away until now.
+  public struct SharedCourse: Sendable, Equatable, Identifiable {
+    public let name: String
+    public let mine: Int
+    public let theirs: Int
+    public var id: String { name }
+    public init(name: String, mine: Int, theirs: Int) {
+      self.name = name; self.mine = mine; self.theirs = theirs
+    }
+  }
+
   public struct VsYou: Sendable, Equatable {
     public let wins: Int, losses: Int, ties: Int
     public var total: Int { wins + losses + ties }
@@ -84,11 +165,23 @@ public struct TourCard: Sendable {
   public let visible: Bool
   public let profile: Profile
   public let career: CareerBlock
+  /// The MILESTONES, under the key they have always had (`achievements`).
   public let trophies: [Rpc.my_achievements.Row]
+  /// R21 · the actual silverware (`trophies`). Empty until the migration lands.
+  public let cabinet: [Cabinet]
+  /// R21 · the lowest eighteen-hole gross, with where and when.
+  public let bestRound: BestRound?
   public let recent: [Recent]
   public let vsYou: VsYou?
+  /// D150 · the course history, and the overlap with mine.
+  public let courses: [Course]
+  public let sharedCourses: [SharedCourse]
 
   public static let privateLine = "This golfer keeps their card private, or you don’t share a league yet."
+
+  /// The names of the courses you have both played, in the order the server
+  /// ranks them (most of theirs first).
+  public var sharedCourseNames: [String] { sharedCourses.map(\.name) }
 
   public static func parse(_ json: JSONValue) -> TourCard {
     let p = json["profile"], c = json["career"]
@@ -122,7 +215,31 @@ public struct TourCard: Sendable {
     if let v = json["vs_you"], case .object = v {
       vs = VsYou(wins: v["wins"]?.int ?? 0, losses: v["losses"]?.int ?? 0, ties: v["ties"]?.int ?? 0)
     }
-    return TourCard(visible: json["visible"]?.bool ?? false, profile: profile, career: career, trophies: trophies, recent: recent, vsYou: vs)
+    // R21 · both are ABSENT-SAFE. A server that predates the migration sends
+    // neither key and both rows stay off the page rather than printing a dash
+    // over a fact nobody can read (L-44).
+    let cabinet: [Cabinet] = (json["case"]?.array ?? []).compactMap { t in
+      guard let title = t["title"]?.string, !title.isEmpty else { return nil }
+      return Cabinet(kind: t["kind"]?.string, title: title, subtitle: t["subtitle"]?.string,
+                     placement: t["placement"]?.string, seasonYear: t["season_year"]?.int,
+                     earnedOn: t["earned_on"]?.string)
+    }
+    var best: BestRound? = nil
+    if let b = c?["best_round"], case .object = b, let g = b["gross"]?.int {
+      best = BestRound(gross: g, courseLabel: b["course_label"]?.string,
+                       playedOn: b["played_on"]?.string, differential: b["differential"]?.double)
+    }
+    let courses: [Course] = (json["courses"]?.array ?? []).compactMap { c in
+      guard let n = c["name"]?.string, !n.isEmpty else { return nil }
+      return Course(name: n, rounds: c["rounds"]?.int ?? 0, lastPlayed: c["last_played"]?.string)
+    }
+    let shared: [SharedCourse] = (json["shared_courses"]?.array ?? []).compactMap { c in
+      guard let n = c["name"]?.string, !n.isEmpty else { return nil }
+      return SharedCourse(name: n, mine: c["mine"]?.int ?? 0, theirs: c["theirs"]?.int ?? 0)
+    }
+    return TourCard(visible: json["visible"]?.bool ?? false, profile: profile, career: career,
+                    trophies: trophies, cabinet: cabinet, bestRound: best, recent: recent, vsYou: vs,
+                    courses: courses, sharedCourses: shared)
   }
 
   /// A Postgres timestamptz as jsonb writes it (with or without fractional
@@ -182,6 +299,59 @@ public struct TourCard: Sendable {
   }
   public static let careerTitle = "Career"
   public static let roundsLabel = "Rounds"
+
+  // MARK: - The PERSON page's own rows (IOS-032, IA §10.3)
+  //
+  // The page is the sheet promoted to a destination, and these are the five
+  // rows the design draws down its left edge. Each renders only when its fact
+  // arrived: TROPHIES and BEST wait on R21, YOU AND HIM on R4, THIS SEASON on
+  // the shared season. A row with no fact is not drawn as a dash.
+
+  public static let rowYouAndThem = "YOU AND THEM"
+  public static let rowThisSeason = "THIS SEASON"
+  public static let rowLastFive   = "LAST FIVE"
+  public static let rowBest       = "BEST"
+  public static let rowTrophies   = "TROPHIES"
+
+  /// "YOU AND GALEN" — the row label with the name in it, which is what the
+  /// page actually prints; the bare form above is the fallback for a card
+  /// whose profile carries no name.
+  public static func youAndThem(_ name: String?) -> String {
+    guard let n = name, !n.isEmpty else { return rowYouAndThem }
+    return "YOU AND \(n.uppercased())"
+  }
+
+  /// The three lengths, R-F's ruling: asked as one step, never guessed, all
+  /// three always offered. The words are the owner's.
+  public enum Length: String, Sendable, CaseIterable {
+    case saturday, week, season
+    public var label: String {
+      switch self {
+      case .saturday: "This Saturday"
+      case .week:     "One week"
+      case .season:   "A season"
+      }
+    }
+    /// What each one lands on. Every one of these is an object that already
+    /// exists — R-F's own condition — and the sheet never names the object.
+    public var sub: String {
+      switch self {
+      case .saturday: "A round on the tee sheet, with them in it"
+      case .week:     "A one-week head-to-head"
+      case .season:   "A season with them in it"
+      }
+    }
+  }
+  /// A golfer whose card is empty. One true sentence beats three em dashes,
+  /// and it is not an apology — it is the state, and the state is normal for
+  /// somebody who joined this week (L-44, L-32's voice).
+  public static func noRoundsYet(_ name: String?) -> String {
+    let who = (name?.isEmpty == false) ? name! : "This golfer"
+    return "\(who) hasn’t posted a round yet. Their card fills in from the first one."
+  }
+
+  public static let lengthsHead = "PLAY THEM"
+  public static let lengthsSub = "How long do you want it to run?"
 
   /// Under the lens this is the You tab's own row, word for word
   /// (`YouCopy.bestRound`), so the two surfaces read as one number.
@@ -282,6 +452,12 @@ public struct TourCardRepository: Sendable {
   /// D59 moderation: lands on the founder desk.
   public func reportPhoto(_ profileId: UUID) async throws {
     _ = try await svc.call(Rpc.report_content(p_post: nil, p_reason: "profile photo", p_kind: "profile_photo", p_profile: profileId))
+  }
+
+  /// P-17 · a report about a GOLFER rather than about one photo, with the
+  /// reason the reporter picked. Same endpoint, same desk (L-38).
+  public func report(_ profileId: UUID, reason: String) async throws {
+    _ = try await svc.call(Rpc.report_content(p_post: nil, p_reason: reason, p_kind: "profile", p_profile: profileId))
   }
 
   public func rivalryWeeks(_ opponent: UUID) async throws -> [Rpc.rivalry_weeks.Row] {

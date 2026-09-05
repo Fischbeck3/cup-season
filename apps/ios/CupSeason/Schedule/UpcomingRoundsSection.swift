@@ -88,6 +88,14 @@ struct HomeRoundCard: View {
         // never a question once `my_rsvp` is set
         if sr.youreIn {
           Text("YOU’RE IN").font(CSFont.label).foregroundStyle(cs.gold)
+        } else if askable {
+          // IOS-032 · a buddy's plan you are not in used to render every fact
+          // and no way in — the dead end IA §10.1 names. The card does not do
+          // the asking (a one-tap nudge from a scroll is a nudge sent by
+          // accident); it says what is behind the door, and the round sheet
+          // carries the act. D69 is untouched either way: the ask is a
+          // REQUEST to the host and never a write to the tee sheet.
+          Text("ASK FOR A SEAT").font(CSFont.label).foregroundStyle(cs.brand)
         }
         if let n = sr.rsvp_in, n > 0 {
           Text("\(n) in").font(CSFont.label).foregroundStyle(cs.pos).padding(.horizontal, 8).padding(.vertical, 3).background(cs.pos.opacity(0.14), in: Capsule())
@@ -106,6 +114,10 @@ struct HomeRoundCard: View {
   /// "WITH YOU" where it said LEAGUE MATE (the Home hard-look): a booking that
   /// names you is your plan, not a league mate's.
   private var eyebrow: String? { sr.withYou ? "WITH YOU" : sr.relTag }
+
+  /// Somebody else's plan that has not named me. Mine and the ones I am tagged
+  /// on already have RSVP; this is the third case, which had nothing.
+  private var askable: Bool { !sr.isMine && sr.tagged_me != true }
 
   private var bits: Text {
     var t = Text(sr.who)

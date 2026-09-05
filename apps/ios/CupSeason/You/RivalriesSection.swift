@@ -11,6 +11,10 @@ struct RivalriesSection: View {
   @Environment(\.dynamicTypeSize) private var typeSize
   let rivalries: [RivalryLine]
   let openTourCard: (UUID) -> Void
+  /// D232 · the record calls this section "Head to head" (each row opens one);
+  /// Golfers keeps the scope-naming head below, because there the question is
+  /// who you are up against rather than what you have done.
+  var head: String? = nil
 
   var body: some View {
     if !rivalries.isEmpty {
@@ -19,7 +23,7 @@ struct RivalriesSection: View {
       // league. Sitting under "Your seasons" beside a season-scoped strip, that
       // had to be stated or the head would inherit the wrong scope from its
       // neighbour.
-      CSSectionHead("Rivalries · all leagues")
+      CSSectionHead(head ?? "Rivalries · all leagues")
       VStack(spacing: 0) {
         ForEach(Array(rivalries.enumerated()), id: \.element.id) { i, r in
           CSRow(last: i == rivalries.count - 1) {

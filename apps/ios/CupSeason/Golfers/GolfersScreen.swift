@@ -1,19 +1,23 @@
-// Cup Season — GOLFERS, the tab root (D222 / R-A, R-D; IOS-028; IA §10.1).
+// Cup Season — GOLFERS, the tab root (D222 / R-A, R-D; IOS-028, IOS-032;
+// IA §10.1).
 //
-// `PeopleScreen` promoted to a destination. Everything it did it still does —
-// requests at the head, one search, the buddies list, the invite link, "findable
-// by" — because promoting a screen to a tab is not a licence to rewrite what it
-// says, and every one of those was itself a D177/D178 fix.
+// `PeopleScreen` promoted to a destination in wave 3. Everything it did it
+// still does — requests at the head, one search, the buddies list, the invite
+// link, "findable by" — because promoting a screen to a tab is not a licence
+// to rewrite what it says, and every one of those was itself a D177/D178 fix.
 //
-// What the promotion adds is the two things a tab owes and a pushed screen did
-// not: **an empty root that ends in a next move** and **a failed read that says
-// so** (L-32, both halves). `GolfersRoot` (Kit) owns both.
+// WAVE 5 FILLS THE SECTIONS WAVE 3 DELIBERATELY LEFT OUT. Wave 3's own note
+// said a head over a list this build cannot fill is a promise, not a section;
+// the reads now exist, so the sections do:
 //
-// The three tiers the tab holds — buddies, league mates, and people you have
-// played with but have not added — are why R-D chose this name over Friends.
-// The sections for the last two land in wave 5 with the reads that make them
-// true (`friends_board`, `recent_partners`, `head_to_head`); a head over a list
-// this build cannot fill is a promise, not a section.
+//   REQUESTS · THE BOARD (R5) · PLAYING SOON with Ask for a seat (R16) ·
+//   YOUR BUDDIES · YOU PLAY WITH (recent_partners) · RIVALRIES (R4) ·
+//   SOMEBODY WHO ISN'T HERE
+//
+// LEAGUE MATES is the one head in `GolfersRoot.Section` that still does not
+// render: no shipped read returns a per-season roster to this surface without
+// a query per membership, and the same rule applies — a head with nothing
+// under it is a promise.
 
 import SwiftUI
 import CSDesign
@@ -26,11 +30,24 @@ struct GolfersScreen: View {
   @State private var vm: PeopleModel
   @State private var toasts: CSToastCenter
   @State private var reqs = BuddyRequestsModel()
+  @State private var lens: FriendsBoard.Lens = .form
   @FocusState private var searchFocused: Bool
   let links: CSLinks
+  /// D222 · the person is a PAGE now, pushed inside this tab. The peek sheet
+  /// survives for the in-context tap on a round card, which is a different
+  /// gesture with a different job.
+  var openPerson: (UUID) -> Void = { _ in }
+  var openHeadToHead: (UUID) -> Void = { _ in }
+  var openRound: (UUID) -> Void = { _ in }
 
-  init(links: CSLinks = CSLinks()) {
+  init(links: CSLinks = CSLinks(),
+       openPerson: @escaping (UUID) -> Void = { _ in },
+       openHeadToHead: @escaping (UUID) -> Void = { _ in },
+       openRound: @escaping (UUID) -> Void = { _ in }) {
     self.links = links
+    self.openPerson = openPerson
+    self.openHeadToHead = openHeadToHead
+    self.openRound = openRound
     let t = CSToastCenter()
     _toasts = State(initialValue: t)
     _vm = State(initialValue: PeopleModel(toasts: t))
@@ -56,7 +73,9 @@ struct GolfersScreen: View {
           inviteLink
           findable
         case .list:
-          PeopleTabBody(vm: vm, reqs: reqs, links: links, toasts: toasts)
+          PeopleTabBody(vm: vm, reqs: reqs, links: links, toasts: toasts,
+                        lens: $lens, openPerson: openPerson,
+                        openHeadToHead: openHeadToHead, openRound: openRound)
         }
       }
       .padding(20)
@@ -64,10 +83,16 @@ struct GolfersScreen: View {
     .background(cs.bg0)
     .navigationTitle("")
     .toolbar(.hidden, for: .navigationBar)
-    .refreshable { await vm.paint(); await reqs.load() }
-    .task { await vm.paint(); await reqs.load(); await vm.loadDiscoverable() }   // seeing the requests clears the badge (D104 §4)
+    .refreshable { await reload() }
+    .task { await reload(); await vm.loadDiscoverable() }   // seeing the requests clears the badge (D104 §4)
     .task(id: vm.query) { await vm.search() }
     .csToasts(toasts)
+  }
+
+  private func reload() async {
+    await vm.paint()
+    await reqs.load()
+    await vm.paintTheTab()
   }
 
   /// L-32 · the empty root's doors, wired to things that exist today. The
@@ -81,7 +106,7 @@ struct GolfersScreen: View {
     case .startSomething: presenter.wizard = .init(existingLeagueId: nil)
     case .joinWithCode:   presenter.join(code: nil)
     case .addMyRound:     presenter.postOnComposer = true; presenter.showPost = true
-    case .retry:          Task { await vm.paint(); await reqs.load() }
+    case .retry:          Task { await reload() }
     }
   }
 

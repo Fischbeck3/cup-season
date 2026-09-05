@@ -750,7 +750,10 @@
        or is a pushed/child surface reached from one of them. A view in neither
        set is a screen nobody can get to. */
     const reachable = new Set(nav.concat(tabs).map(csViewFor));
-    const children = ['post', 'play', 'event', 'draft', 'wizard'];   /* reached from a door, never the bar */
+    /* reached from a DOOR, never the bar: the composer and the live cover, the
+       moment room, the draw, the wizard, and wave 5's two person surfaces —
+       a person page is reached from a name, which is the only honest way in. */
+    const children = ['post', 'play', 'event', 'draft', 'wizard', 'person', 'h2h'];
     const orphans = [...document.querySelectorAll('.view[id^="view-"]')]
       .map(el => el.id.slice(5))
       .filter(v => !reachable.has(v) && children.indexOf(v) < 0);
@@ -956,9 +959,12 @@
     t('THE FENCE: a source that is not a named read renders nothing',
       csSeasonStoryLine(P(quiet, { history:[{ kind:'unsettled_week', source:'a_hunch', opponent:'Galen',
         since:'2026-08-12', days:24, wins:5, losses:6, ties:0 }] })).text.indexOf('Galen'), -1);
+    /* wave 5 · R4 joined the fence in the same commit as its migration, which
+       is the rule the fence itself states: a read that feeds a sentence is
+       named here, or its sentences never reach a screen. */
     t('THE FENCE: and the whitelist is the whole of what may be counted over',
       CS_STORY_READS.slice().sort().join(','),
-      'my_rivalries,posts,season_scenarios,standings_snapshots,week_clashes');
+      'head_to_head,my_rivalries,posts,season_scenarios,standings_snapshots,week_clashes');
     t('R-H: a kind this build does not know says nothing',
       csSeasonHistoryLine({ kind:'vibes', source:'standings_snapshots' }), null);
     t('R-H: a run of one week is not a run',
@@ -992,6 +998,113 @@
       /delete|remove|erase|forfeit/i.test(CS_LEAVE.body), false);
     t('D244: the armed tap restates the consequence (L-32)',
       CS_LEAVE.armed, 'Sure? You stop scoring today');
+
+    /* ── WAVE 5 · the people (R4/R5, D239, D245, IOS-032) ─────────────── */
+    (function wave5(){
+      const opp = { id:'77777777-7777-7777-7777-777777777777', display_name:'Galen', marker:'beer' };
+      const full = csH2HParse({
+        visible:true, opponent:opp, league:'Fellas',
+        record:{ wins:6, losses:5, ties:0, total:11 }, lead:'up',
+        since:'2026-03-14', streak:{ who:'them', n:2 },
+        last_five:[{on:'2026-08-30',won:false,facet:'clashes'},{on:'2026-08-23',won:false,facet:'season_weeks'},
+                   {on:'2026-08-16',won:true,facet:'played_together'},{on:'2026-08-09',won:true,facet:'live_games'},
+                   {on:'2026-08-02',won:null,facet:'duels'}],
+        rivalry_name:'The Grudge',
+        facets:{
+          season_weeks:{ wins:3, losses:1, ties:0, meetings:4, basis:'the better round against your playing number in a week you both posted', source:'v_rounds_ranked' },
+          clashes:{ wins:1, losses:1, ties:0, meetings:2, basis:'the weekly clash the season opened and settled', source:'week_clashes' },
+          played_together:{ wins:1, losses:2, ties:0, meetings:4, unsettled:1, confirmed:1, unconfirmed:1, heuristic:2,
+                            basis:'the better card against your own number on a day you were both out', source:'round_players' },
+          live_games:{ wins:1, losses:0, ties:0, meetings:1, basis:'the better card against your own number in a round you both scored live', source:'live_rounds' },
+          duels:{ wins:0, losses:1, ties:0, meetings:1, basis:'a Ryder duel, settled', source:'event_duels' },
+          callouts:{ wins:0, losses:0, ties:0, meetings:1, unsettled:1, basis:'a head-to-head with a field of two', source:'event_duels' },
+        },
+      });
+
+      /* the six facets, in a fixed order — the same order the phone reads */
+      t('R4: six facets, in the order both clients read them',
+        full.facets.map(f => f.key),
+        ['season_weeks','clashes','played_together','live_games','duels','callouts']);
+      t('R4: a facet with no data renders NOTHING (P-6, never 0–0)',
+        csH2HParse({ visible:true, opponent:opp, record:{wins:1,losses:0,ties:0,total:1}, lead:'up',
+          facets:{ season_weeks:{wins:1,losses:0,ties:0,meetings:1}, duels:{wins:0,losses:0,ties:0,meetings:0} } })
+          .facets.map(f => f.key), ['season_weeks']);
+      t('R4: a facet key this build does not know is dropped, never guessed',
+        csH2HParse({ visible:true, opponent:opp, record:{wins:0,losses:0,ties:0,total:3}, lead:'even',
+          facets:{ moon_shots:{wins:2,losses:1,ties:0,meetings:3}, clashes:{wins:0,losses:0,ties:0,meetings:3,unsettled:3} } })
+          .facets.map(f => f.key), ['clashes']);
+
+      /* the heuristic carries its label — the whole reason the fallback is allowed */
+      t('R4: the same-day/same-course inference is LABELLED wherever it fed a number',
+        csH2HFacetSub(full.facets.find(f => f.key === 'played_together')).indexOf(CS_H2H_HEURISTIC) >= 0, true);
+      t('R4: a facet with no inference never carries the label',
+        full.facets.filter(f => f.heuristic === 0)
+          .every(f => (csH2HFacetSub(f) || '').indexOf(CS_H2H_HEURISTIC) < 0), true);
+      t('R4: every clause in a sub ends like a sentence (the screenshot defect)',
+        full.facets.map(f => csH2HFacetSub(f)).filter(Boolean).every(s => s.slice(-1) === '.'), true);
+      t('R4: and the basis never runs into the heuristic label',
+        /out Same day/.test(csH2HFacetSub(full.facets.find(f => f.key === 'played_together'))), false);
+      t('R4: an unconfirmed tag says so', 
+        csH2HFacetSub(full.facets.find(f => f.key === 'played_together')).indexOf(CS_H2H_UNCONFIRMED) >= 0, true);
+      t('R4: an undecided meeting is counted in words, and never as a tie',
+        /One with no card from one of you/.test(csH2HFacetSub(full.facets.find(f => f.key === 'callouts'))), true);
+      t('R4: a meeting with no verdict is not a tie',
+        (() => { const c = full.facets.find(f => f.key === 'callouts');
+                 return [c.ties, c.unsettled, c.record]; })(), [0, 1, null]);
+
+      /* the sentences — identical to `HeadToHeadCopy`, case for case */
+      t('R4: the headline names who leads', 
+        [csH2HHeadline(full),
+         csH2HHeadline(csH2HParse({ visible:true, opponent:opp, record:{wins:5,losses:6,ties:0,total:11}, lead:'down', facets:{} })),
+         csH2HHeadline(csH2HParse({ visible:true, opponent:opp, record:{wins:5,losses:5,ties:0,total:10}, lead:'even', facets:{} }))],
+        ['You lead 6–5.', 'Galen leads 6–5.', 'All square, 5–5.']);
+      t('R4: nothing decided means no headline at all (L-44)',
+        csH2HHeadline(csH2HParse({ visible:true, opponent:opp, record:{wins:0,losses:0,ties:0,total:2}, lead:'even',
+          facets:{ played_together:{wins:0,losses:0,ties:0,meetings:2,unsettled:2} } })), null);
+      t('R4: the standfirst drops every clause it cannot prove',
+        [csH2HStandfirst(full),
+         csH2HStandfirst(csH2HParse({ visible:true, opponent:opp, record:{wins:1,losses:0,ties:0,total:1}, lead:'up', facets:{} }))],
+        ['Eleven meetings where you both played, going back to March. Galen has taken the last two.',
+         'One meeting where you both played.']);
+      t('R4: a streak of one is not a streak',
+        csH2HParse({ visible:true, opponent:opp, record:{wins:1,losses:1,ties:0,total:2}, lead:'even',
+          streak:{ who:'me', n:1 }, facets:{} }).streak, null);
+      t('R4: the person clause is the one the card borrows',
+        csH2HPersonClause(full), 'Galen has beaten you five times out of eleven.');
+      /* a real screenshot caught the first cut naming the golfer twice in two
+         consecutive clauses — "Galen has won one title. Galen has beaten you…" */
+      t('the day said out loud never shouts mid-sentence (L-33)',
+        [csSpokenDay('2026-05-03'), csSpokenDay('nonsense')], ['May 3', '']);
+
+      /* R5 · the board */
+      const me = { profile_id:'1', display_name:'Jerecho', rounds_30d:6, beats_30d:2, avg_vs_number_30d:0.4, is_me:true };
+      const tash = { profile_id:'2', display_name:'Tash', rounds_30d:4, beats_30d:3, avg_vs_number_30d:2.4, is_me:false };
+      const jade = { profile_id:'3', display_name:'Jade', rounds_30d:0, beats_30d:0, avg_vs_number_30d:null, is_me:false };
+      t('R5: the form line names its denominator (L-01) and speaks for whose number it is',
+        [csBoardFormLine(tash), csBoardFormLine(me), csBoardFormLine(jade)],
+        ['4 rounds · beat their number 3 times', '6 rounds · beat your number twice', 'No rounds in the window']);
+      t('R5: the figure is a BAND, never the float (L-14 / T-07)',
+        [csBoardBand(tash), csBoardBand(jade)], ['Beat their number', null]);
+      t('R5: the possessive turns on somebody else’s row, and only there',
+        [csBoardBand(me), bandName(2.4)], ['Played to it', 'Beat your number']);
+      t('R5: the two clients agree on the band boundary',
+        csBoardBand({ rounds_30d:1, avg_vs_number_30d:1, is_me:true }), 'Beat your number');
+
+      /* the fence gained its new read in the same commit as its migration */
+      t('wave 5: head_to_head is inside the story fence',
+        CS_STORY_READS.indexOf('head_to_head') >= 0, true);
+      t('wave 5: and the fence is still exactly the six named reads',
+        CS_STORY_READS.length, 6);
+
+      /* P-17 · the safety block is a producer, and it does not sell a Block */
+      t('P-17: the block renders for another golfer and never for me',
+        [csSafetyMenuHtml('someone-else', 'Galen').length > 0,
+         csSafetyMenuHtml(null, 'Galen')], [true, '']);
+      t('P-17: the reasons are five, and "Something else" is last',
+        [CS_SAFETY_REASONS.length, CS_SAFETY_REASONS[CS_SAFETY_REASONS.length - 1]], [5, 'Something else']);
+      t('L-19: a tag is never a vouch, and the page says so',
+        /says nothing about the score/.test(CS_H2H_NOT_A_VOUCH), true);
+    })();
 
     /* D235 · the endgame under the table is the whole mechanic */
     t('D235: the sentence ends on §14.3’s ladder',

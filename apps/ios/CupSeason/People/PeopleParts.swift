@@ -22,6 +22,12 @@ struct PeopleTabBody: View {
   let reqs: BuddyRequestsModel
   let links: CSLinks
   let toasts: CSToastCenter
+  /// D245 · which lens the board wears. It lives on the SCREEN so a scroll
+  /// away and back does not silently put the golfer back on form.
+  @Binding var lens: FriendsBoard.Lens
+  var openPerson: (UUID) -> Void = { _ in }
+  var openHeadToHead: (UUID) -> Void = { _ in }
+  var openRound: (UUID) -> Void = { _ in }
 
   var body: some View {
     // D177 · a person waiting on you outranks a search box. Requests sat
@@ -30,6 +36,11 @@ struct PeopleTabBody: View {
     // D178 · repaint the buddies list too: an accepted request moves a person
     // from one section of this screen into another.
     BuddyRequests(links: links, head: true, model: reqs, onAnswered: { Task { await vm.paint() } })
+
+    // D239 · a tag is a claim with a state, and this is where the state
+    // changes. It sits beside the requests for D177's own reason: a person
+    // waiting on you outranks a search box.
+    OpenTagsSection(tags: vm.openTags, onAnswered: { await vm.paintTheTab() })
 
     // D177 · one search, not two. A "Find a golfer" button that opened a
     // sheet containing a search field sat directly above an inline search
@@ -41,10 +52,22 @@ struct PeopleTabBody: View {
       .textInputAutocapitalization(.never).autocorrectionDisabled()
       .accessibilityLabel("Search golfers by name or @handle")
     PeopleResults(vm: vm, links: links)
-    PeopleInviteLink(store: store)
+
+    // IA §10.1's order, and every section below renders only when it has
+    // something in it — a head over nothing is a promise, not a section.
+    FriendsBoardSection(board: vm.board, failed: vm.boardFailed, lens: $lens, openPerson: openPerson)
+    PlayingSoonSection(plans: vm.plans, openRound: openRound)
 
     buddies
+    YouPlayWithSection(people: vm.partners, links: links, onAdd: { p in await vm.add(p) })
     requested
+
+    // D232 · rivalries live on Golfers AND on the record. Two doors on one
+    // object, which is what L-34 permits when they open different faces of
+    // it: here it is "who am I up against", there it is "what have I done".
+    RivalriesSection(rivalries: vm.rivalries, openTourCard: openHeadToHead)
+
+    PeopleInviteLink(store: store)
     PeopleFindable(vm: vm)
   }
 
@@ -257,7 +280,21 @@ final class PeopleModel {
   var searching = false
   var busy = Set<UUID>()
   var discoverable: Discoverable = .everyone
+  /// D245 · the board. nil is "not read yet or the read failed"; `boardFailed`
+  /// is which of the two, because L-32 says a failed read is never an empty one.
+  var board: FriendsBoard?
+  var boardFailed = false
+  /// The buddies' plans — the PLAYING SOON section and its "Ask for a seat".
+  var plans: [ScheduledRound] = []
+  /// `recent_partners` — the golfers you actually play with (IA §10.1).
+  var partners: [Person] = []
+  /// The lifetime clash record, which now opens the head-to-head PAGE.
+  var rivalries: [RivalryLine] = []
+  /// D239 · the tags waiting on ME. A claim about where I was that I have not
+  /// answered is a person waiting on me, and it sits with the requests.
+  var openTags: [PeopleService.OpenTag] = []
   private let people = PeopleService()
+  private let sched = ScheduleService()
   private let toasts: CSToastCenter
 
   init(toasts: CSToastCenter) { self.toasts = toasts }
@@ -272,6 +309,27 @@ final class PeopleModel {
       readFailed = lists.buddies.isEmpty && lists.requested.isEmpty
     }
     loaded = true
+  }
+
+  /// Everything the tab shows BESIDE the buddies list. Each read is
+  /// independent and a failure of one never blanks the others — the sections
+  /// simply do not render, which is what P-11's error column asks for.
+  func paintTheTab() async {
+    async let b = people.board()
+    async let watch: [ScheduledRound] = (try? await sched.watch()) ?? []
+    async let partnersRead: [Person] = people.playedWith(limit: 8)
+    async let rivals: [Rpc.my_rivalries.Row] = (try? await SupabaseService.shared.call(Rpc.my_rivalries())) ?? []
+    async let tags: [PeopleService.OpenTag] = people.openTags()
+    let (bd, w, pw, rv, tg) = await (b, watch, partnersRead, rivals, tags)
+    switch bd {
+    case .ok(let value): board = value; boardFailed = false
+    case .notYet:        board = nil;   boardFailed = false   // not deployed — not a failure
+    case .failed:        board = nil;   boardFailed = true
+    }
+    plans = w
+    partners = pw
+    rivalries = rv.compactMap(RivalryLine.from)
+    openTags = tg
   }
 
   /// debounced 350 ms; one letter searches (pilot: "M" must find @mm…)

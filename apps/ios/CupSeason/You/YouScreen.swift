@@ -166,26 +166,35 @@ struct YouScreen: View {
           }
           .redacted(reason: model.loaded ? [] : .placeholder)
 
-          // ── D177 · YOUR SEASONS ──────────────────────────────────────────
-          // D178 · gated on its children. All three are conditional — the two
-          // below on `league != nil`, and LeagueRecordView on a non-empty row
-          // set — so a league-less tester's You page ended on a glowing
-          // eyebrow, a rule, and 32pt of nothing. A group head is structure;
-          // structure over an empty room is a bug, not a spine.
-          if league != nil || !model.data.leagueRecord.isEmpty {
-            CSGroupHead("Your seasons").id("you-seasons")
-          }
-
+          // D232 · the season strip is a NOW fact and belongs under "Your
+          // golf" — where you sit this week is not history. It keeps its own
+          // head, which names the league, because it is the one league-scoped
+          // block on the page.
           Group {
             if league != nil {
               SeasonStatsStrip(stats: model.data.seasonStats, leagueName: league?.name ?? "your league",
                                failed: model.data.failed.contains("season"))
-              RivalriesSection(rivalries: model.data.rivalries, openTourCard: links.openTourCard)
             }
-            // "League record" → "Every season": it is a season-by-season list of
-            // where you finished, in every league. Calling it a record put a
-            // THIRD "record" on one page.
-            LeagueRecordView(rows: model.data.leagueRecord)
+          }
+          .redacted(reason: model.loaded ? [] : .placeholder)
+
+          // ── D232 · YOUR RECORD ───────────────────────────────────────────
+          // The second head was a SECTION where a destination belongs: the
+          // career, the trophies, the head-to-heads, the side games, the books
+          // and the courses were six things under one eyebrow, and the thing a
+          // golfer comes back for in February should not be something they
+          // scroll past their trophy case to reach.
+          //
+          // Two on a page is still a spine (D177's own rule): "Your golf"
+          // above, and this door. `RivalriesSection` and `LeagueRecordView`
+          // moved to the page it opens — they are not rendered twice.
+          CSGroupHead("Your record").id("you-seasons")
+          CSRow(last: true) {
+            YouDoorRow(glyph: Text(Image(systemName: "trophy")),
+                       title: "Everything you’ve played",
+                       sub: recordSub,
+                       action: links.openRecord ?? links.openSettings)
+              .accessibilityHint("Opens your record")
           }
           .redacted(reason: model.loaded ? [] : .placeholder)
         }
@@ -222,6 +231,22 @@ struct YouScreen: View {
   private func reload() async {
     guard let me = store.me, let uid else { return }
     await model.load(me: me, uid: uid, leagueId: leagueId)
+  }
+
+  /// What is behind the door, in facts the page already holds — never a
+  /// promise about what might be in there (L-44). With nothing to count yet
+  /// the line says what the record is FOR.
+  private var recordSub: String {
+    var bits: [String] = []
+    let seasons = model.data.leagueRecord.count
+    if seasons > 0 { bits.append("\(seasons) season\(seasons == 1 ? "" : "s")") }
+    let rivals = model.data.rivalries.count
+    if rivals > 0 { bits.append("\(rivals) head-to-head\(rivals == 1 ? "" : "s")") }
+    if let n = model.data.careerRecord?.items.reduce(0, { $0 + $1.n }), n > 0 {
+      bits.append("\(n) title\(n == 1 ? "" : "s")")
+    }
+    return bits.isEmpty ? "Seasons, trophies, head-to-heads and the books"
+                        : bits.joined(separator: " · ")
   }
 
   /// Y-17 · "Some of your card did not load. · Retry" — one line, no banner.

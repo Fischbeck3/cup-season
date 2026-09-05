@@ -279,8 +279,11 @@ struct SeasonStoryHistoryTests {
     #expect(SeasonStoryCopy.line(invented)?.text.contains("Galen") == false)
     #expect(SeasonStoryCopy.line(invented)?.source == "standings_snapshots")
     // and the whitelist is the whole of what may be counted over
+    // wave 5 · R4 joined the fence in the same commit as its migration, which
+    // is the rule this assertion enforces: a read that feeds a sentence is
+    // named here or its sentences never reach a screen.
     #expect(SeasonStoryCopy.namedReads == ["standings_snapshots", "week_clashes", "my_rivalries",
-                                           "posts", "season_scenarios"])
+                                           "posts", "season_scenarios", "head_to_head"])
   }
 
   @Test("a kind this build does not know renders nothing rather than a guess")
