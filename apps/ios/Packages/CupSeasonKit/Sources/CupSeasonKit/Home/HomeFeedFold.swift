@@ -108,10 +108,20 @@ public enum HomeFeedFold {
   /// The fold. `items` is `HomeStreamRepository.Result.items` (newest first);
   /// `upcoming` is the set of scheduled-round ids the Coming-up card already
   /// shows. Buckets come out as `HomeBuckets.bucket` would cut them.
-  public static func fold(_ items: [HomeItem], upcoming: Set<UUID> = [], today: String = CSDate.today()) -> [HomeFeedBucket] {
-    // 1 · hide what the Coming-up card already says.
+  /// `spent` is F-2's set: the ROUNDS the ranked cards above have already told
+  /// a story about. A-6's own worked example — "Galen posted 79 at Lone Tree ·
+  /// Personal best" in the deck and "Sun, Aug 23 — Galen set a personal best —
+  /// 79 at Lone Tree" in the wire, one scroll apart — is this argument being
+  /// empty. The card is the better rendering, so the wire yields.
+  public static func fold(_ items: [HomeItem], upcoming: Set<UUID> = [], spent: Set<UUID> = [],
+                          today: String = CSDate.today()) -> [HomeFeedBucket] {
+    // 1 · hide what the Coming-up card and the ranked deck already say.
     let kept = items.filter { i in
       if case .post(let p, _) = i, p.kind == "system", let s = p.scheduled_round_id, upcoming.contains(s) { return false }
+      if !spent.isEmpty {
+        if case .round(let r, _) = i, let id = r.round_id, spent.contains(id) { return false }
+        if case .post(let p, _) = i, let id = p.round_id, spent.contains(id) { return false }
+      }
       return true
     }
     // 2 · the same line in two leagues within 48h is one line. Newest survives

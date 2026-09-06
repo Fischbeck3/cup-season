@@ -36,6 +36,12 @@ struct CredentialFace<Sub: View, Trailing: View>: View {
   /// its body is building (D199).
   let p: CSPalette
   let accent: Color
+  /// F-8 · the panel's shape. Square by default — the card as it has always
+  /// been — and WIDER on a page that has to reach an action inside the first
+  /// screenful. On the largest current iPhone a 1:1 panel is ~350pt, which
+  /// pushed the person page's only controls under the tab bar; the page a
+  /// callout push lands on cannot make the golfer scroll to answer it.
+  var aspect: CGFloat = 1
   /// the line under the name — GHIN, member-since
   @ViewBuilder var sub: () -> Sub
   /// the panel's top corner — the gear on your own card
@@ -58,7 +64,7 @@ struct CredentialFace<Sub: View, Trailing: View>: View {
 
   private var panel: some View {
     Color.clear
-      .aspectRatio(1, contentMode: .fit)
+      .aspectRatio(aspect, contentMode: .fit)
       .frame(maxWidth: .infinity)
       .overlay { fill }
       .overlay(alignment: .bottom) { if riding { scrim } }

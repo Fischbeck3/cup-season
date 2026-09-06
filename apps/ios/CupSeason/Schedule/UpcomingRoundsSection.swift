@@ -77,7 +77,7 @@ struct HomeRoundCard: View {
       CSFace(marker: sr.marker, size: 36)
       VStack(alignment: .leading, spacing: 3) {
         (Text(sr.play_on.map { ScheduleDates.when($0) } ?? "").bold()
-         + (eyebrow.map { Text(" · ") + Text($0).font(CSFont.label).foregroundStyle(sr.withYou ? cs.gold : cs.dimText) } ?? Text("")))
+         + (eyebrow.map { Text(" · ") + Text($0).font(CSFont.label).foregroundStyle(sr.withYou ? cs.dawn : cs.dimText) } ?? Text("")))
           .font(CSFont.subhead).foregroundStyle(cs.ink)
         bits.font(CSFont.monoSmall).foregroundStyle(cs.mut)
       }
@@ -87,7 +87,10 @@ struct HomeRoundCard: View {
         // wears the calendar's own pill (ScheduleScreen `rowTitle`), gold —
         // never a question once `my_rsvp` is set
         if sr.youreIn {
-          Text("YOU’RE IN").font(CSFont.label).foregroundStyle(cs.gold)
+          // F-10 · being on somebody's tee sheet is a MEMBERSHIP FACT: it is not
+          // earned (gold, L-25) and it is not performance up (green). It is
+          // quiet and true, which is what dawn is for.
+          Text("YOU’RE IN").font(CSFont.label).foregroundStyle(cs.dawn)
         } else if askable {
           // IOS-032 · a buddy's plan you are not in used to render every fact
           // and no way in — the dead end IA §10.1 names. The card does not do
@@ -123,7 +126,7 @@ struct HomeRoundCard: View {
     var t = Text(sr.who)
     if let c = sr.course_label { t = t + Text(" · \(c.uppercased())") }
     let tee = TeeTime.format(sr.tee_time)
-    if !tee.isEmpty { t = t + Text(" · ") + Text(tee).foregroundStyle(cs.gold) }
+    if !tee.isEmpty { t = t + Text(" · ") + Text(tee).foregroundStyle(cs.dawn) }   // F-10 · a clock is not an achievement
     return t
   }
 }

@@ -97,15 +97,26 @@ public struct PostEpilogue: Sendable, Equatable {
       })
   }
 
-  /// `EPI_ACH` — every line names a feeling; nothing here is a bare stat.
+  /// `EPI_ACH` — every line names a FEELING; nothing here is a bare stat.
+  ///
+  /// R-13 · the three streak rows had become descriptions of the streak ("Two
+  /// months without a gap"), which is the rule this table's own docstring
+  /// states and the keep list names in §8.4. They said "Iron man" before, and
+  /// Iron Man is the AWARD, not the streak (§4.23) — so these three name what
+  /// the streak feels like without borrowing the trophy's name.
+  ///
+  /// R-08 · this table and `EPI_ACH` in index.html are ONE table on two
+  /// clients. The web's `streak_12` carried `streak_4`'s line — a twelve-week
+  /// streak told it had played every week for a month. Preflight check 29 now
+  /// compares the two, key by key, so a one-sided edit fails the push.
   public static let achievements: [String: (icon: String, txt: String, sub: String)] = [
     "personal_best": ("⭐", "A personal best", "The best round you’ve posted"),
     "sub_80": ("🏆", "You broke 80 for the first time", "That one goes on the wall"),
     "sub_90": ("🏆", "You broke 90 for the first time", "In your trophy case"),
     "sub_100": ("🏆", "You broke 100 for the first time", "In your trophy case"),
-    "streak_4": ("🔥", "Four weeks running", "A round every week for a month"),
-    "streak_8": ("🔥", "Eight weeks running", "Two months without a gap"),
-    "streak_12": ("🔥", "Twelve weeks running", "Three months without a gap"),
+    "streak_4": ("🔥", "Four weeks running", "Nobody’s had to ask where you were"),
+    "streak_8": ("🔥", "Eight weeks running", "Two months and still nobody’s had to ask"),
+    "streak_12": ("🔥", "Twelve weeks running", "Three months. The rest of them take weeks off."),
     "first_round": ("⛳", "Your first round is on the board", "Welcome to the season"),
   ]
 

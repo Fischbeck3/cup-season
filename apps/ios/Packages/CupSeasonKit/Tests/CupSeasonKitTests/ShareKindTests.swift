@@ -135,13 +135,13 @@ struct ShareRedeemTests {
   @Test func thePersonLinkSaysRequestUnlessTheyAskedFirst() {
     let requested = ShareRedeem.parse(.object(["kind": .string("person"), "result": .string("requested")]))
     #expect(requested.outcome == .requested)
-    #expect(requested.line == "Asked to join their crew. They’ll get the nudge.")
+    #expect(requested.line == GolfersRoot.BuddyAsk.sent)
 
     // `friend_request` answers 'friend' when they had already asked — mutual
     // intent, and only THEN is it a friendship.
     let mutual = ShareRedeem.parse(.object(["kind": .string("person"), "result": .string("friend")]))
     #expect(mutual.outcome == .buddies)
-    #expect(mutual.line == "You’re in each other’s crew now.")
+    #expect(mutual.line == GolfersRoot.BuddyAsk.mutual)
 
     // your own link on your own phone says nothing at all
     let mine = ShareRedeem.parse(.object(["kind": .string("person"), "result": .string("self")]))

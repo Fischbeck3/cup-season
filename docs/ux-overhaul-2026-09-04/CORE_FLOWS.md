@@ -51,7 +51,7 @@ C-3 (D240) gives `scheduled_rounds` a `name`, a `game` and a **`stake_cents`**. 
 
 **Reads and writes.** Every line names the RPC. **A** = shipping, in `packages/db/contract.psv`. **B** = a new RPC over existing tables (§17). **C** = a new table, column or mechanic (§17). A write that is a direct table insert today is called out as a defect on the path, per **L-03**.
 
-**Taps and seconds.** A *tap* is one discrete touch on a control; typed characters are counted separately as `(+n typed)`. Seconds are **targets**, not measurements, and the only measured baseline in the product is `post_submit` (n=24, p50 39 s, p90 76 s, `UX_PRINCIPLES.md` §P-2). Every target below that competes with that baseline is written to beat it, and §18 says how each is checked.
+**Taps and seconds.** A *tap* is one discrete touch on a control; typed characters are counted separately as `(+n typed)`. Seconds are **targets**, not measurements. The one timing figure the product has ever logged is `post_submit` (n=24, p50 39 s, p90 76 s, `UX_PRINCIPLES.md` §P-2) *(a snapshot of an unlaunched database — scaffolding, not behaviour; see `EVIDENCE_POLICY.md`)*, and the posters are us, so it is a record of our own posting and **not a benchmark**. Every target below is the brief's — the smallest useful act, in the fewest taps that can carry it — and §18 says how each is checked.
 
 **"What the other party sees."** Push copy obeys **L-20**: one of D23's eight emotions, once per condition, no shame, and no push until one production APNs token has received one real push (`device_tokens` holds one `ios-sandbox` row). Where a flow's push kind is one of D248's ten new ones it is named as such.
 
@@ -130,7 +130,7 @@ C-3 (D240) gives `scheduled_rounds` a `name`, a `game` and a **`stake_cents`**. 
 | *(and the Home behind it)* | **S1's outbound branch** (`HOME_STATE_MATRIX.md` SA-7) carries the same sentence — *"Two invitations are out. Nothing back yet."* — so the next screen does not contradict the one before it (**L-44**). Reads: `friendships` outgoing (A) + `shares` of kind `person` (**C-4**) and `plan` (**C-12**) | |
 | nobody | **"Add a round you already played."** / *Course, score, done. Your number starts building at three.* | **Add my round** |
 
-Every branch's door is the composer. **No orientation screen** (prod: `orientation_shown` 5, `orientation_done` **0**).
+Every branch's door is the composer. **No orientation screen** — O-03/D224 deleted it, and the brief's first frame is a done act, not a tour.
 
 ### 2.2 Taps and seconds
 
@@ -212,7 +212,7 @@ The phone's `DoorView` **never reads `JoinIntent`** today (FR-07) while the web 
 > **Galen has a round on the schedule for Saturday, 7:10 at Papago.**
 > **Say you're in →**
 
-*If nobody has declared anything — which is what prod actually looks like:*
+*If nobody has declared anything — nothing in §7.5's publish path writes a plan, so this branch must always render:*
 
 > **YOU'RE IN THE FELLAS**
 > Six golfers, thirteen weeks from Saturday. Galen runs the season (the Pro).
@@ -222,7 +222,7 @@ The phone's `DoorView` **never reads `JoinIntent`** today (FR-07) while the web 
 > Marcus, Dev, Tash, Ravi and Jules.
 > **See the season →**   ·   **Add my round**
 
-**Prod holds one future planned round across 39 profiles.** A Pro who publishes a season and declares nothing is the norm, not the failure case — persona D's own walk ends exactly there. So the invited golfer's first DONE act cannot rest on a plan existing: the fallback is **the roster**, which is five real names and always exists once a season is locked (`native_home.roster`, A; **R9**'s roster on the join path), and **Add my round**, which works with no buddies, no plan and no index. `HOME_STATE_MATRIX.md` S15 carries the same two branches, and neither invents a tee time.
+**A season may be published with nothing on the schedule** — `declare_round` is a separate act and nothing in §7.5's publish path writes one. A Pro who publishes a season and declares nothing is a state the design must answer, not a failure case — persona D's own walk ends exactly there. So the invited golfer's first DONE act cannot rest on a plan existing: the fallback is **the roster**, which is five real names and always exists once a season is locked (`native_home.roster`, A; **R9**'s roster on the join path), and **Add my round**, which works with no buddies, no plan and no index. `HOME_STATE_MATRIX.md` S15 carries the same two branches, and neither invents a tee time.
 
 ### 3.2 The link survives the boot, and the cold case has a door
 
@@ -331,7 +331,7 @@ The crew step (§2, frame 3) is **skipped for an invitee** — they arrived with
 | ⊕ → cover → Add a round you played → `84` → Add my round | 3 | 2 digits | 24 s |
 | First-ever round (no course memory) | 5 | course, 2 digits, rating, slope | 55 s |
 
-The measured baseline is `post_submit` p50 39 s / p90 76 s. The second row must beat the p50 and the first row must halve it; §18 says how that is checked.
+The targets are the brief's, not a measurement: **P-2** asks for the smallest useful act, and two taps and two digits is the shortest form this composer can take. The `post_submit` figures (n=24, p50 39 s, p90 76 s) are our own posts and are a record, not a bar (§1); §18 says how the walk is timed.
 
 ### 4.4 What the other party sees
 
@@ -447,7 +447,7 @@ Then §5.1's covenant, then the welcome, then Home. **Taps: 2 (+8 characters) ·
 > **Put money on it** — add a pot to any of the above
 > *I have a code →*
 
-Five sentences, no object nouns. **The fifth is a modifier and renders as a footer line**, below a hairline, because money is a choice *on* a competition and never a competition (**L-11**, D46 — two of two organisers in the audit met a $75 stake they never chose). Nothing is minted by opening this sheet.
+Five sentences, no object nouns. **The fifth is a modifier and renders as a footer line**, below a hairline, because money is a choice *on* a competition and never a competition (**L-11**, D46 — the persona walks met a $75 stake nobody had chosen, which is a walk finding about the screen and never a count of organisers). Nothing is minted by opening this sheet.
 
 ### 6.2 What each intent resolves to
 
@@ -513,7 +513,7 @@ Five sentences, no object nouns. **The fifth is a modifier and renders as a foot
 
 ### 6.5 The one rule that governs all five
 
-**Nothing is minted until the organiser has said what they want.** Six of six `setup` leagues in prod are a founder alone, because the wizard mints a `leagues` row on a **name** (`WizardScreen.swift:70-86` → `:252-268`). In every flow below, the row is minted at the **Start** tap, in one transaction with `lock_league` (**L-41**). An abandoned intent sheet leaves nothing behind, and the check is `select count(*) from leagues where status='setup'` before and after (**A-3**).
+**Nothing is minted until the organiser has said what they want.** The wizard mints a `leagues` row on a **name** (`WizardScreen.swift:70-86` → `:252-268`), so every abandoned run leaves a real `setup` league behind — the `setup` rows in prod are exactly that, our own abandoned runs. In every flow below, the row is minted at the **Start** tap, in one transaction with `lock_league` (**L-41**). An abandoned intent sheet leaves nothing behind, and the check is `select count(*) from leagues where status='setup'` before and after (**A-3**).
 
 ---
 
@@ -550,7 +550,7 @@ Five sentences, no object nouns. **The fifth is a modifier and renders as a foot
 
 A golfer signed in an hour has no `my_friends` and no `recent_partners`, and `search_golfers` matches **an exact @handle or an existing relation only** (L-37) — so they cannot find two friends who are already on the app, which is exactly where persona D stalled. §7.9's failure table covers *"the Pro publishes alone"*, which is a **post-publish** state; this is the state before the first tap.
 
-**Contacts matching sits here** (**R-G**, **C-11**, drafted as **D251**), with its consent sentence at the point of the ask — *"We'll check your contacts against the golfers already here. We send hashes, never your contacts, and we keep nothing that doesn't match."* — the ability to decline and still finish the step, and a **gracefully empty result**: *"None of your contacts is here yet. Text one a link."* With 39 golfers on the app most matches return nothing, and the copy is written for that rather than against it.
+**Contacts matching sits here** (**R-G**, **C-11**, drafted as **D251**), with its consent sentence at the point of the ask — *"We'll check your contacts against the golfers already here. We send hashes, never your contacts, and we keep nothing that doesn't match."* — the ability to decline and still finish the step, and a **gracefully empty result**: *"None of your contacts is here yet. Text one a link."* Cup Season has not launched, so a match will usually return nobody, and the copy is written for that rather than against it — **R-G**'s own note: the feature is built for the shape of the product, not for this week's yield.
 
 - **Asked:** who. **Inferred:** the **structure** — solo at two, a question at four or more, derived from `Bylaws.structMin` and never printed as a literal. This kills two live bugs at once: `squads2` minted for a roster of one (D206), and the "2 Squads selected and greyed out at the same time" state.
 - Reads: `my_friends` (A) · `recent_partners` (A) · `search_golfers` (A) · **`match_contacts(p_hashes)`** (**C-11**).
@@ -564,7 +564,7 @@ A golfer signed in an hour has no `my_friends` and no `recent_partners`, and `se
 > *Ends Saturday, Dec 12. Rounds you post before the first tee still build your number.*
 
 - **Asked:** two dials, both defaulted (thirteen weeks is D206's default; the first tee defaults to the next Saturday, `WizardDials.startISO`).
-- The trailing sentence is **L-13** stated in a golfer's words, at the moment it matters: six of six audit posters were promised points a week before their first tee.
+- The trailing sentence is **L-13** stated in a golfer's words, at the moment it matters: a round posted before the first tee falls outside the season's window and scores nothing for the table (§4.6), and no wizard screen says so today — which is what the persona walks hit.
 - **The weekday is real.** `spec/spec-v1.0.md` §14.0 v1.1 dropped the Sunday snap and D213 recorded it; the label derives the actual weekday and never hardcodes one.
 - Reads: none. Writes: none.
 
@@ -657,7 +657,7 @@ A wrapped season's Pro gets **Run it back**; a member gets **Ask Galen to run it
 
 - **The Pro:** *"The hat is ready. Six in, four to a squad."* → **Draw the squads** (`randomize_squads`, A) → the draw animates → **Start the season →**.
 - **A member:** a different screen — *"Galen draws the squads before the first tee. It's random — nobody picks."* → **See who's in →**. No verb they cannot press.
-- All 13 prod leagues are `draft_type = 'random'`; the `assign` and `snake` branches (`DraftNightScreen.swift:126-262`) have never been reachable and are **specified as deleted** unless the wizard offers them.
+- The `assign` and `snake` branches (`DraftNightScreen.swift:126-262`) are **specified as deleted** unless the wizard offers them. `snake` is offered by neither wizard (`WizardDials.draftTypes` is `["random", "assign"]`, `WizardState.swift:40`; the web's seg is `index.html:3814-3815`), so it is unreachable on the code alone. **`assign` is offered by both.** ⚠ **RE-ARGUE:** deleting the `assign` branch rested only on every prod league carrying `draft_type = 'random'` — a count of leagues we seeded and abandoned, not a choice golfers made — so to stand it needs an owner ruling that the wizard stops offering `assign` (§19 item 3 routes it there) or a seeded walk of an assign draft night that finds the screen broken.
 
 ### 7.9 Failure and empty branches
 
@@ -672,7 +672,7 @@ A wrapped season's Pro gets **Run it back**; a member gets **Ask Galen to run it
 ### 7.10 Solo vs squads, said both ways
 
 - **At two golfers** the season is D205's pair. It is **solo** by derivation, the weekly clash *is* the pair, and the product already has the right words: *"It's the two of you — every week is the clash."* (D207, `HomeLead.swift:68,85`). No draft night, no squads, no captain.
-- **Above two golfers the clash is not mine most weeks, and every flow in this document must be read with that in hand.** `open_week_clash` seats **one pair per season-week** (`20260831160000:60-115`) and `home_clash` returns null unless I am one of the two (`:507-513`) — so in a season of eight, a member is spotlighted roughly one week in four. **Both real seasons in prod are n=2**, which is why the whole clash grammar reads as though it always applies. It does not: §10.3's clash row, §11.2's first epilogue rung and §16's pair line are the **n=2 and spotlighted-week** cases. The other three weeks are `HOME_STATE_MATRIX.md`'s **F6** — the pair that does have the week, rendered as somebody else's golf, never as a stake I cannot enter.
+- **Above two golfers the clash is not mine most weeks, and every flow in this document must be read with that in hand.** `open_week_clash` seats **one pair per season-week** (`20260831160000:60-115`) and `home_clash` returns null unless I am one of the two (`:507-513`) — so in a season of eight, a member is spotlighted roughly one week in four. **The grammar was written for the pair** — D205/D207's two-golfer season, the shape the owner's own league runs — which is why it reads as though it always applies. It does not: §10.3's clash row, §11.2's first epilogue rung and §16's pair line are the **n=2 and spotlighted-week** cases. The other three weeks are `HOME_STATE_MATRIX.md`'s **F6** — the pair that does have the week, rendered as somebody else's golf, never as a stake I cannot enter.
 - **At four or more** step 1 asks one extra question — *"Squads, or every man for himself?"* — with the roster-fit line under it, and squads adds draft night (§7.8) and the squad table (`StandingsPane.swift:53-71`).
 - **A squads captain** gains exactly one thing a member does not: a line on the squad's row naming who is short this month, with a door to the members sheet (`MembersSheet.swift:56-92` already renders captain pills, D58). There are no captain tools beyond that.
 
@@ -824,7 +824,7 @@ Three moments, one page grammar, three different clocks. The word **event** is r
 
 ### 9.2 "Make it a season" — the pair, in full
 
-At two golfers a season **is** the pair: `league_settings.structure = 'solo'`, two `league_members`, the weekly clash is the pair and the Final seats two (D205, `decision-log.md:5542-5551`). Both real seasons in prod are exactly this.
+At two golfers a season **is** the pair: `league_settings.structure = 'solo'`, two `league_members`, the weekly clash is the pair and the Final seats two (D205, `decision-log.md:5542-5551`). The owner's own league is exactly this.
 
 > **You and Galen**
 > **How long?** ( Thirteen weeks ⌄ )
@@ -875,7 +875,7 @@ D21 is **ruled and unbuilt** (zero code hits at tip). It is built here as a Ryde
 
 **Failure and empty branches.** No buddies → the picker's empty state is *"Callouts are between buddies. Add one first."* with **Find golfers**. An open callout already exists with the same person → the door reads **See the callout →**. The window closes with no rounds → `halve`, quiet, no push, no line.
 
-**The gate, kept from the engineer's seat:** nobody has ever seen the Ryder room in LIVE or COMPLETE (G-08), which is the entire life of a callout. **The reviewer seed's "The Grudge" is walked through a live and a completed session before this is committed.** If it does not hold, the named fallback is a `callouts` table and a two-week swing — and only then.
+**The gate, kept from the engineer's seat:** the Ryder room's LIVE and COMPLETE states have never been walked (G-08), which is the entire life of a callout. **The reviewer seed's "The Grudge" is walked through a live and a completed session before this is committed.** If it does not hold, the named fallback is a `callouts` table and a two-week swing — and only then.
 
 **Aha line:** **"You called it. You posted 84 — 2.0 under your number. Galen has to beat that off his."**
 
@@ -931,7 +931,7 @@ Two tenses. **Live** is the free door and the funnel; **after** is the composer 
 This is §4 in full. Two additions belong to "recording a result" rather than to the first round:
 
 - **"Who was out there?"** (**C-2**) is what turns a solo post into a result between people. It is optional, it offers buddies and league mates only, and it is a **claim with a state** — the tagged golfer confirms from their own Home, and until they do the head-to-head facet reads *"Galen hasn't confirmed."*
-- **The same-day, same-course fallback** is used to seed the head-to-head facet and is **labelled as a fallback**, because 155 of 212 quick rounds in prod carry no course id and the facet would otherwise be thin for months. A fallback meeting is never called a "beat" without the qualifier.
+- **The same-day, same-course fallback** is used to seed the head-to-head facet and is **labelled as a fallback**, because a quick-posted round can carry no course id at all — a hand-typed course never mints a course key (`PostCard.swift:291-307`, §4.2's fourth defect) — so the facet cannot rely on a course join. A fallback meeting is never called a "beat" without the qualifier.
 
 ### 10.3 A result inside a clash, a callout or a session
 
@@ -1112,7 +1112,7 @@ The most under-used built thing in the product: `set_rivalry_name(p_opponent, p_
 
 At the end, `SeasonCeremonyView` (kept whole, **L-31**) shows the champion, the margin, the tiebreak rung, the runner-up, the points king, **"You're owed"** and the pay rows. It pays from **collected**, never from the pot — a settlement card must be true on the day it is shared.
 
-`season_payouts` (A) holds **0 rows for everyone in prod**, so when it is empty the pot clause is **omitted, never guessed**, and the record's THE BOOKS section renders only what is true (**L-44**: no $0 "earnings" figure dressed as a stat).
+`season_payouts` (A) is written only when a season settles (`20260725100000_career_record.sql:110-133`), so it returns nothing until one has, and when it is empty the pot clause is **omitted, never guessed**, and the record's THE BOOKS section renders only what is true (**L-44**: no $0 "earnings" figure dressed as a stat).
 
 ### 13.4 Failure and empty branches
 
@@ -1248,7 +1248,7 @@ Every row is designed from the code, not from a persona, because no persona sat 
 |---|---|
 | **A member of a squads season** | §4's post shows the squad's colour on the receipt spine (**L-26**, identity not decoration). §7's creation is not theirs to run. §13's owe slot is identical. The one real difference is the monthly minimum: it says **who it costs** — *"You are two rounds short. The Mudsharks carry the penalty, not you."* (D14's anti-ghosting rule, stated in words for the first time). |
 | **A member of a solo season** | The minimum **never assesses** (D140, **L-18**): the equivalent line is a habit with no penalty — *"Two rounds in September. Your best three count."* At two golfers the clash **is** the pair and §9.2's sentences apply. |
-| **A member of a season of more than two** | **The clash is not mine most weeks**, and every flow above must be read with that in hand. `open_week_clash` seats one pair per season-week (`20260831160000:60-115`) and `home_clash` returns null unless I am one of the two (`:507-513`) — at a roster of eight that is roughly one week in four. §10.3's clash row, §11.2's first rung and §16's pair line are the **spotlighted-week** cases; the other weeks are `HOME_STATE_MATRIX.md`'s **F6**, where the pair is somebody else's golf and never a stake I cannot enter. Both real seasons in prod are n=2, which is why this needed saying. |
+| **A member of a season of more than two** | **The clash is not mine most weeks**, and every flow above must be read with that in hand. `open_week_clash` seats one pair per season-week (`20260831160000:60-115`) and `home_clash` returns null unless I am one of the two (`:507-513`) — at a roster of eight that is roughly one week in four. §10.3's clash row, §11.2's first rung and §16's pair line are the **spotlighted-week** cases; the other weeks are `HOME_STATE_MATRIX.md`'s **F6**, where the pair is somebody else's golf and never a stake I cannot enter. The pair is the shape the owner's own league runs, which is why this needed saying. |
 | **A squads captain** | One line on the squad's row naming who is short this month, with a door to the members sheet (`MembersSheet.swift:56-92`). **No captain tools beyond that.** A captain is a player with a name on a squad. |
 | **The Pro during a season** | §7.8's verb row at the foot of the season page — seven verbs, seven RPCs, never a mode. §13.2 is theirs. Everything else in this document is identical to a member's, which is **V-1** and is checked by opening both Homes on the same seeded season. |
 | **The Pro before the first tee** | §7.8's sentence-not-checklist head, with **Share the invite link** as the one action. |
@@ -1267,9 +1267,9 @@ Every row is designed from the code, not from a persona, because no persona sat 
 
 ### 18.1 The three acceptance tests these flows must pass
 
-1. **The cold-account walk** — install → door → card → composer → posted, counting taps and seconds against `post_submit` (n=24, p50 39 s, p90 76 s). §4.3's first row must halve it.
+1. **The cold-account walk** — install → door → card → composer → posted, counting taps and seconds against **§4.3's targets** (2 taps, 2 digits, 18 s). The `post_submit` figures (n=24, p50 39 s, p90 76 s) are our own posts, recorded beside the walk and never used as the bar (§1). ⚠ **RE-ARGUE:** the seconds in §4.3 have no measurement behind them either — to stand as a pass/fail bar they need a timed walkthrough of a seeded cold account, which is what this test becomes.
 2. **The covenant walk on all four join paths** — link, code, in-app invite, **and $0** — on both clients. Preflight 19 is extended to the in-app path.
-3. **The abandoned-creation query** — `select count(*) from leagues where status='setup'` is unchanged after an abandoned intent sheet and an abandoned wizard. Prod holds **six founder-alone `setup` leagues** today because the wizard mints on a name.
+3. **The abandoned-creation query** — `select count(*) from leagues where status='setup'` is unchanged after an abandoned intent sheet and an abandoned wizard. The wizard mints on a name today (§6.5), which is what the query catches; the `setup` rows already in prod are our own abandoned runs.
 
 Plus: one production APNs token receiving one real push before anything in §3.4, §4.4, §7.7, §9.3 or §10.1 that depends on a notification is built.
 
@@ -1283,7 +1283,7 @@ Plus: one production APNs token receiving one real push before anything in §3.4
 
 1. **Does the starter index write to `profiles.index_current`?** (§2.1 frame 2.) `score_round` reaches `profiles.index_current` before its own-differential fallback, so a band-derived figure **scores** the first three rounds — which is **D124's option (ii)**, an option that owner ruling considered and declined in favour of option (i). D247 carries the CONFLICT line; only the owner may overturn an owner ruling. *If declined:* the starter is client-side only, labels the ME strip, never reaches the engine, and **C-13**/**R23** come out of the plan.
 2. **Whether `add_friend_to_league` survives at all** (spine amendment **A-1**). This document restricts it to a $0 roster add by the Pro. The stricter reading — every seat but your own is an invite — is one line simpler and costs the Pro nothing; it is named here rather than taken.
-3. **`assign` and `snake` on draft night** (§7.8). Delete both unreachable branches, or promote one deliberately in the wizard. Carrying two unreachable UIs through a redesign is how the next audit finds them.
+3. **`snake` on draft night** (§7.8). Delete the one unreachable branch, or promote it deliberately in the wizard. **`assign` is BUILT END TO END and must not be deleted** (verified in code 2026-09-05): the wizard offers exactly `["random", "assign"]` (`WizardState.swift:40-44`, labels and help text at `:471-473`); `assign_player(p_squad, p_member)` exists, is `definer` and granted to `authenticated` (`contract.psv`); the phone calls it (`DraftNightScreen.swift:129,162`) and so does the web (`index.html:19658`); and `randomize_squads` deliberately refuses an assign league with a written sentence — *"This league seats its squads by Pro assign — tap players into squads instead of drawing."* (`20260722210000:37-39`). It is a deliberate path for groups who pick teams in the group chat, not dead code. **Only `snake` and `live` are stored-but-never-offered** and are the unreachable pair. Carrying one unreachable UI through a redesign is how the next audit finds it.
 4. **Whether a weekend may ever carry money directly** (spine amendment **A-4**). This document routes it to a forfeit or to the live round's own stake. If the owner wants `scheduled_rounds.stake_cents`, it needs a ledger, a collected figure and the L-09 line on a surface that has none of those — which is a bigger change than a column, and §17.4 declines it in writing.
 
 ---
@@ -1293,9 +1293,9 @@ Plus: one production APNs token receiving one real push before anything in §3.4
 | # | The gap | Why it is recorded rather than resolved | What reopens it |
 |---|---|---|---|
 | **1** | **The cold-install link is a door, not a mechanism** (§3.2). A golfer who taps a link, installs from the App Store and opens the app arrives with nothing carried over, because iOS passes nothing after an install. | The platform does not offer deferred deep linking. Promising it would cost a week and deliver nothing. | A first-launch clipboard read, which is its own entry with its own privacy note. |
-| **2** | **Nine of the twelve flows depend on a push channel that has never delivered a real notification.** `device_tokens` holds one `ios-sandbox` row and `push_prompt_shown` has zero accepts. | It is a gate, not a risk: **no notification work begins until one production APNs token has received one real push** (§1, D248). Every push in this document is a specification until then. | The Wave-0 gate passing. |
-| **3** | **The callout's whole life is unproven.** Nobody has ever seen the Ryder room in LIVE or COMPLETE (G-08), which is exactly the state a callout lives in for its entire existence. | The engine is complete and the design rests on it; walking it is cheaper than building a `callouts` table against a hypothesis. | The reviewer seed's "The Grudge" walked through a live and a completed session. If it does not hold, D237's named fallback is the table and a two-week swing. |
-| **4** | **`post_submit` is the only measured baseline in the product** (n=24, p50 39 s, p90 76 s). Every other target in this document is a target, not a measurement. | Stating targets as measurements would be the exact L-44 failure this design exists to end; §1 says so. | Wave 0's `cta_tapped` / `first_act` events, which give the second and third baselines. |
+| **2** | **Nine of the twelve flows depend on a push channel that has never delivered a real notification.** `device_tokens` holds one `ios-sandbox` row and no production APNs token has ever registered. | It is a gate, not a risk: **no notification work begins until one production APNs token has received one real push** (§1, D248). Every push in this document is a specification until then. | The Wave-0 gate passing. |
+| **3** | **The callout's whole life is unproven.** The Ryder room's LIVE and COMPLETE states have never been walked (G-08), which is exactly the state a callout lives in for its entire existence. | The engine is complete and the design rests on it; walking it is cheaper than building a `callouts` table against a hypothesis. | The reviewer seed's "The Grudge" walked through a live and a completed session. If it does not hold, D237's named fallback is the table and a two-week swing. |
+| **4** | **The product has no behavioural baseline at all.** The one timing figure ever logged is `post_submit` (n=24, p50 39 s, p90 76 s) and the posters are us, so every target in this document is a target, not a measurement. | Stating targets as measurements would be the exact L-44 failure this design exists to end; §1 says so, and `EVIDENCE_POLICY.md` strikes the figure as a benchmark. | Golfers to measure, and Wave 0's `cta_tapped` / `first_act` events once there are. |
 
 ---
 

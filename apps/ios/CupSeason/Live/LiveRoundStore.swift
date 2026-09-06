@@ -221,7 +221,7 @@ final class LiveRoundStore {
   /// regular asserts nothing about who is standing here, and needs no witness.
   func askNearby(_ i: Int) {
     guard i < roster.count, let pid = roster[i].pid else { return }
-    guard sel.count < 4 else { toast("Foursome is full: remove someone first"); return }
+    guard sel.count < 4 else { toast("The group is full: remove someone first"); return }   // LV-08
     asking.insert(pid)
     nearby.invite(pid,
                   name: myName ?? "A golfer",
@@ -381,7 +381,7 @@ final class LiveRoundStore {
 
   func pick(_ idx: Int) {
     guard !sel.contains(idx) else { return }
-    if sel.count >= 4 { toast("Foursome is full: remove someone first"); return }
+    if sel.count >= 4 { toast("The group is full: remove someone first"); return }   // LV-08
     sel.append(idx)
   }
   func remove(_ idx: Int) { sel.removeAll { $0 == idx }; crtPicked = nil }

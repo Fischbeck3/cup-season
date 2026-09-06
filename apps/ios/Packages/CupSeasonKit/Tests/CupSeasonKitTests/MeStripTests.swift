@@ -86,8 +86,11 @@ private let today = "2026-09-08"
     let m = Me(profile: profile(), memberships: [membership(standing: standing(rank: 2, of: 8, points: 27))])
     let s = MeStripCopy.make(m, upcoming: [plan("2026-09-12")], today: today)
     #expect(s.slots.map(\.fact) == [.myNumber, .myLastRound, .myNextRound, .myMoney])
-    #expect(s.slots.map(\.label) == ["YOUR NUMBER", "LAST", "NEXT", "STILL OWE"])
-    #expect(s.slots.map(\.value) == ["12.4", "78 SAT", "SAT 7:10", "$50 YOU"])
+    #expect(s.slots.map(\.label) == ["YOUR NUMBER", "LAST", "NEXT", "YOU STILL OWE"])
+    // F-17 · every slot is DATUM over NOUN: the value is a figure, never a
+    // figure with a word welded on ("$75 YOU" over "STILL OWE").
+    #expect(s.slots.allSatisfy { !$0.value.contains(" YOU") })
+    #expect(s.slots.map(\.value) == ["12.4", "78 SAT", "SAT 7:10", "$50"])
   }
 
   /// L-01 · every figure taps to its receipt. A slot with no door is a number
@@ -209,7 +212,7 @@ private let today = "2026-09-08"
   @Test func theUnpaidStateIsSelfOnly() {
     let m = Me(profile: profile(), memberships: [membership()])
     let slot = MeStripCopy.make(m, upcoming: [], today: today).slots.first { $0.fact == .myMoney }
-    #expect(slot?.value == "$50 YOU")
+    #expect(slot?.value == "$50")
     #expect(slot?.value.contains("6") == false)
     #expect(slot?.value.contains("still owe") == false)
     #expect(slot?.voiceOver == "you still owe $50")
@@ -223,7 +226,7 @@ private let today = "2026-09-08"
     let far = membership(name: "Desert Dogs", stake: 2500, due: "2026-11-01")
     let s = MeStripCopy.make(Me(profile: profile(), memberships: [far, near]), upcoming: [], today: today)
     let slot = s.slots.first { $0.fact == .myMoney }
-    #expect(slot?.value == "$75 YOU")
+    #expect(slot?.value == "$75")
     #expect(slot?.door == .pot(near.league_id))
   }
 }

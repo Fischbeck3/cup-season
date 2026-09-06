@@ -37,7 +37,10 @@ struct EventPickerSheet: View {
             style("🏆", "A Major", "A championship window · best card takes the jug", live: true) { major = true }
           }
           // A-4 / T-12 · "mint" is the engine's verb.
-          CSFine("Every one of these awards a trophy.")
+          // F-16 · and the sentence AGREES with the list. With the Major's door
+          // shut this is a picker of one, and "every one of these" was plural
+          // over a list of one.
+          CSFine(majorDoor ? "Every one of these awards a trophy." : "It awards a trophy.")
         }
         .padding(20)
       }
@@ -68,12 +71,13 @@ struct EventPickerSheet: View {
           Text(line).font(CSFont.monoSmall).foregroundStyle(cs.mut)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
-        Text(live ? "LIVE" : "SOON").font(CSFont.label).tracking(0.8).foregroundStyle(live ? cs.pos : cs.dimText)
+        // F-16 · ember is the metal of LIVE (L-25); green is performance-up.
+        Text(live ? "LIVE" : "SOON").font(CSFont.label).tracking(0.8).foregroundStyle(live ? cs.brand : cs.dimText)
       }
       .padding(.vertical, 8).padding(.horizontal, 12)
       .frame(minHeight: 52)
       .background(cs.bg1, in: RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous))
-      .overlay(RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous).stroke(live ? cs.pos : cs.line, lineWidth: 1))
+      .overlay(RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous).stroke(live ? cs.brand : cs.line, lineWidth: 1))   // F-16
       .contentShape(Rectangle())
     }
     .buttonStyle(.plain)

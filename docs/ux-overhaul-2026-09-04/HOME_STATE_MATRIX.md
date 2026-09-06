@@ -1,6 +1,6 @@
 # Cup Season — the Home state matrix
 
-*Phase 2. Repo `/Users/fischbeck3/cup-season` at tip `3bba87e` · written 2026-09-05 · read-only on the repo but for this folder. Prod was read (read-only, `supabase db query --linked`) to ground §8; nothing was written.*
+*Phase 2. Repo `/Users/fischbeck3/cup-season` at tip `3bba87e` · written 2026-09-05 · read-only on the repo but for this folder. Prod was read (read-only, `supabase db query --linked`) to ground §8; nothing was written (a snapshot of an unlaunched database — scaffolding, not behaviour; see `EVIDENCE_POLICY.md` — and §8's own reads are the exception that policy names: the owner's real league).*
 
 This is the operating manual for one screen. `INFORMATION_ARCHITECTURE.md` §4 says what Home **is**; `UX_PRINCIPLES.md` §5 says how it **sorts**. This document says what it **renders**, in every state, slot by slot, with the read behind each fact and the door under each line — plus the ranking function as arithmetic, the never-empty rule per slot, and one worked example against the owner's real account at a real instant.
 
@@ -22,8 +22,8 @@ This is the operating manual for one screen. `INFORMATION_ARCHITECTURE.md` §4 s
 | **SA-4** | **The ME strip's NEXT slot tolerates a null tee time and a plan that is not mine.** It renders `MON · GOLD CANYON` with no time, and names the host in the tap target, not the slot | `scheduled_rounds.tee_time` is nullable and the owner's own live plan has none (`ee835aef`, `tee_time: null`, `profile_id` = Galen) | §4.2's strip table |
 | **SA-5** | **One modifier is added to §5.1's within-tier order**: *the subject is my `next_up` or `next_down`.* §5.1 orders "mine > an opponent's > a buddy's > a league mate's", which cannot separate **two open clashes closing the same Sunday** — the owner has exactly that tonight | It is a fact from a named read (`standing.next_up/next_down`, **R3**), not a judgement | §5.1's within-tier rule; implemented as M3 in §2 below |
 | **SA-7** | **S1 and S2 gain an outbound branch.** No Home state carries an invitation I have sent and nobody has answered — S10 is incoming-only — while onboarding's fourth frame promises *"You'll see them here the moment they're in."* The wire's line becomes *"Two invitations are out. Nothing back yet."* with **Send another** and **Find golfers** | The owner's own account holds **four** outgoing pending friend requests; the state is real, unhandled, and contradicts a sentence the app wrote five seconds earlier (L-44) | §4's S1 and S2 |
-| **SA-8** | **State F gains a sixth sub-state, F6 · the clash is somebody else's.** `open_week_clash` seats one pair per season-week (`20260831160000:60-115`) and `home_clash` returns null unless I am one of the two (`:507-513`), so above two golfers **most members have no weekly stake most weeks** — roughly three weeks in four at a roster of eight. F6 renders the pair as a **CIRCLE item**, never a stake I cannot enter | Both real seasons in prod are n=2, which is why the whole clash grammar was written from a seat that does not generalise. Prod's other leagues hold 9, 8, 8, 6 and 6 | §4's S6, and §5's new n=2 / n>2 column |
-| **SA-6** | **The wire may name the circle's silence, and only the circle's.** `UX_PRINCIPLES.md` §6 forbids an empty state that names *the golfer's* absence. *"Nothing from your buddies in ten days"* names the **world's**, which is the legal half of the same rule, and it is the honest sentence in a product whose prod database holds one round in the last ten days | L-21 (curate, never fabricate) + §6's own distinction between "about the world" and "about the golfer's failure" | §3's wire row |
+| **SA-8** | **State F gains a sixth sub-state, F6 · the clash is somebody else's.** `open_week_clash` seats one pair per season-week (`20260831160000:60-115`) and `home_clash` returns null unless I am one of the two (`:507-513`), so above two golfers **most members have no weekly stake most weeks** — roughly three weeks in four at a roster of eight. F6 renders the pair as a **CIRCLE item**, never a stake I cannot enter | Both of the owner's own seasons are at a field of two, which is why the whole clash grammar was written from a seat that does not generalise. The code makes no such exception: above two golfers `home_clash` can return null every week, and §3's never-empty rule forbids the screen answering that with nothing | §4's S6, and §5's new n=2 / n>2 column |
+| **SA-6** | **The wire may name the circle's silence, and only the circle's.** `UX_PRINCIPLES.md` §6 forbids an empty state that names *the golfer's* absence. *"Nothing from your buddies in ten days"* names the **world's**, which is the legal half of the same rule, and it is the honest sentence for a wire with nothing in it — the state the owner's own Home is in tonight (§8) | L-21 (curate, never fabricate) + §6's own distinction between "about the world" and "about the golfer's failure" | §3's wire row |
 
 ---
 
@@ -152,7 +152,7 @@ Seventeen states plus offline. For each: the exact Home top to bottom, the one r
 
 It names one person because the host must answer one person. It **never** counts how many asked and were not answered, and there is no repeat (L-20, G7).
 
-**A standing note on the push column.** `device_tokens` holds **one** row in prod and it is `ios-sandbox`; `push_prompt_shown` fired once with zero accepts. `UX_PRINCIPLES.md` §9's gate stands: **no notification work starts until one production APNs token has received one real push.** Every push named below is therefore a *specification*, and each names one of D23's eight emotions (pride, nostalgia, anticipation, belonging, rivalry, joy, reflection, achievement), fires once per condition, and lands on a route that exists (`INFORMATION_ARCHITECTURE.md` §13.4).
+**A standing note on the push column.** `device_tokens` holds **one** row in prod and it is `ios-sandbox`; `push_prompt_shown` fired once with zero accepts — a fact about a pipeline nobody has been asked through, never evidence that the ask is unwanted (`EVIDENCE_POLICY.md`). `UX_PRINCIPLES.md` §9's gate stands: **no notification work starts until one production APNs token has received one real push.** Every push named below is therefore a *specification*, and each names one of D23's eight emotions (pride, nostalgia, anticipation, belonging, rivalry, joy, reflection, achievement), fires once per condition, and lands on a route that exists (`INFORMATION_ARCHITECTURE.md` §13.4).
 
 ---
 
@@ -175,7 +175,7 @@ It names one person because the host must answer one person. It **never** counts
 
 **The one ranked action: Add my round.** It wins because it is the only band that fires (B6 = 100) and because it is the smallest useful act in the product (P-2). Nothing here has a clock, so no band above 6 can exist — and the fence says: when only bands 5–6 exist, that *is* the lead.
 
-**Deliberately absent.** The orientation screen (O-03/D224 — prod: `orientation_shown` 5, `orientation_done` **0**). Any explainer of league vs season. A demo feed. A standings shape with zeroes in it. A career counter reading `0 seasons · $0` (L-44). A push permission prompt — it moves to *after* the first round (§11.4).
+**Deliberately absent.** The orientation screen (O-03/D224 — the ruling is the reason; the prod counters behind it are unlaunched scaffolding and are not offered as one). Any explainer of league vs season. A demo feed. A standings shape with zeroes in it. A career counter reading `0 seasons · $0` (L-44). A push permission prompt — it moves to *after* the first round (§11.4).
 
 **The push that would have brought them here.** None, and none should. A brand-new golfer has nothing to be notified about; firing one is the definition of manufactured engagement (L-22).
 
@@ -204,7 +204,9 @@ It names one person because the host must answer one person. It **never** counts
 
 ### S3 · Buddies, no competition — the largest real cohort
 
-*(§4.5 state C. 14 of 39 prod profiles are in no league, plus every member between seasons.)*
+*(§4.5 state C — a golfer with buddies and nothing running, plus every member between seasons. The brief requires a golfer with no season to have something true to open the app for; that is why this state gets a full row.)*
+
+⚠ RE-ARGUE: the heading's *"the largest real cohort"* rested on "14 of 39 prod profiles are in no league" and on nothing else — to stand as a **ranking** it needs a cohort measured after launch; without one the superlative drops and the state keeps its row on the brief alone (`EVIDENCE_POLICY.md`).
 
 | Slot | Component | Copy | Read | Door |
 |---|---|---|---|---|
@@ -218,7 +220,7 @@ It names one person because the host must answer one person. It **never** counts
 | 5 | wire | the circle's rounds, whole | **R2** / `home_feed` (A) | receipts |
 | 6 | doors | four | static | four |
 
-**The one ranked action depends on how many plans the circle holds, and both cases are written because the common one is *one*.**
+**The one ranked action depends on how many plans the circle holds, and both cases are written because a circle holding exactly *one* plan is a state the product must answer.**
 
 - **Two or more plans:** the lead is the COMING item and its verb is **Start something**. B3 (600) + M6 (+12) + M8 (+18) ≈ 630 beats the rivalry item (B4 400 + M6) and every OPPORTUNITY. The clock is real — Saturday is dated — and this is the exact shape the brief calls the funnel's mouth: *casual → competition*. **The lead's suppress set:** `{the weekend plans}` — deck 4 renders the *other* plan, never the one the lead named.
 - **Exactly one plan:** the lead **is** the seat item and its verb is **Ask for a seat**. As tabulated with two rows the lead and deck 4 would be the same plan rendered twice (L-34), and G3 would silently drop one without saying which. It is also the better screen: a golfer whose one question is *"is there a reason to make Sunday count?"* gets the answer as the lead rather than at rank five behind a duplicate. **The lead's suppress set:** `{that plan, its seat}` — deck 4 does not render at all, and the deck is a row shorter, which §3 already permits.
@@ -279,7 +281,7 @@ Either way the second act is one tap away at the foot: **Start something** is on
 
 The ME strip and the doors are the same in all six. Only the lead and the deck move.
 
-**Read this table with the roster size in hand.** `open_week_clash` seats **one pair per season-week** — `order by staleness … limit 1, on conflict (season_id, week_no) do nothing` (`20260831160000_home_lead_and_clash_beats.sql:60-115`) — and `home_clash` returns null unless the caller is `a_member` or `b_member` (`:507-513`). At **n = 2** the pair is always me and the other golfer, so F2/F3/F4 fire every week and the whole clash grammar reads as written. At **n > 2** they fire only in the weeks I am spotlighted: in a season of eight that is roughly one week in four, and in the other three **F6** is the state. Both real seasons in prod are n=2, which is why this needed saying: the shipped grammar was written from a seat that does not generalise, and prod's other leagues hold 9, 8, 8, 6 and 6.
+**Read this table with the roster size in hand.** `open_week_clash` seats **one pair per season-week** — `order by staleness … limit 1, on conflict (season_id, week_no) do nothing` (`20260831160000_home_lead_and_clash_beats.sql:60-115`) — and `home_clash` returns null unless the caller is `a_member` or `b_member` (`:507-513`). At **n = 2** the pair is always me and the other golfer, so F2/F3/F4 fire every week and the whole clash grammar reads as written. At **n > 2** they fire only in the weeks I am spotlighted: in a season of eight that is roughly one week in four, and in the other three **F6** is the state. Both of the owner's own seasons are at a field of two, which is why this needed saying: the shipped grammar was written from a seat that does not generalise, and nothing in `open_week_clash` makes an exception above two.
 
 | Sub | Fires when | The lead | Band · score | One ranked action |
 |---|---|---|---|---|
@@ -501,7 +503,7 @@ The ME strip and the doors are the same in all six. Only the lead and the deck m
 
 ### S15 · The season starts in N days *(SA-1)*
 
-*`SeasonPhase.preseason` exists (`Models.swift:273`) and §4.5 has no row for it. Prod holds six `setup` leagues, every one of them a founder alone.*
+*`SeasonPhase.preseason` exists (`Models.swift:273`) and §4.5 has no row for it. A locked season before its first tee is a state the product produces on its own, and no Home state answers it.*
 
 | Slot | Component | Copy | Read | Door |
 |---|---|---|---|---|
@@ -510,16 +512,16 @@ The ME strip and the doors are the same in all six. Only the lead and the deck m
 | 3 | ME strip | four facts; `NEXT` may be the first tee itself | **R1** | — |
 | 3 | season row | `FELLAS · FIRST TEE SAT SEP 12 · SIX IN` — **a standing does not exist yet and none is invented** | **R3** | the season page |
 | 4 | deck 2 · COMING · B3 — **only if a plan exists** | *"Galen has a round on the schedule for Saturday, 7:10 at Papago."* | **R22** `my_schedule` (A) | **Say you're in →** |
-| 4 | deck 2 · **no plan on the schedule** — **the usual case** | *"Five others are in. Here's who."* | `native_home.roster` (A) / **R9**'s roster on the join path | **See the season →**, and the second door is **Add my round** |
+| 4 | deck 2 · **no plan on the schedule** — **the branch that must always work** | *"Five others are in. Here's who."* | `native_home.roster` (A) / **R9**'s roster on the join path | **See the season →**, and the second door is **Add my round** |
 | 4 | deck 3 · CHAPTER · B5 | *"Thirteen weeks. Clean cards, fragile egos."* — rung 6 of the story ladder | **R6** | the season page |
 
 **The one ranked action: Open the season** (member) / **Share the invite link** (Pro). The Pro's version wins inside three days because the roster is the only thing that can still change; outside three days both are band 3 and the member's version leads.
 
 **Deliberately absent.** A zeroed table. A `0 of 0` standing. A countdown clock rendered as a timer (L-22). The word "lock" — the tap is **Start the season** and the state is *"the rules froze at the first tee"*.
 
-**The no-plan branch is the common branch, and it is written because the flow that depends on it was not.** `CORE_FLOWS.md` §3.1's screen 5 offers **Say you're in** to the Pro's Saturday round as the invited golfer's first DONE act — and **prod holds one future planned round across 39 profiles.** A Pro who publishes a season and declares nothing is the norm, not the failure case. When there is no plan the deck's second item is **the roster** — five real names, a fact that always exists once a season is locked — and the DONE act is **Add my round**, which works with no buddies, no plan and no index. `CORE_FLOWS.md` §3.3's tap table counts the plan tap as **conditional**, not as the tenth tap.
+**The no-plan branch is one the product can always land in, and it is written because the flow that depends on it was not.** `CORE_FLOWS.md` §3.1's screen 5 offers **Say you're in** to the Pro's Saturday round as the invited golfer's first DONE act — and **a season can be locked with nothing on its schedule**, because the plan is a separate, optional act. A Pro who publishes a season and declares nothing is therefore doing something the product permits, and §3's never-empty rule says this branch may not dead-end. When there is no plan the deck's second item is **the roster** — five real names, a fact that always exists once a season is locked — and the DONE act is **Add my round**, which works with no buddies, no plan and no index. `CORE_FLOWS.md` §3.3's tap table counts the plan tap as **conditional**, not as the tenth tap.
 
-**L-13 is stated in words, once, here.** *"Rounds you post before Saturday still build your number — they just do not score yet."* Six of six audit posters were promised points a week before their season opened.
+**L-13 is stated in words, once, here.** *"Rounds you post before Saturday still build your number — they just do not score yet."* Every one of the audit's blind personas was promised points a week before their season opened — a persona walk, which is a reasoning tool and never a cohort (`EVIDENCE_POLICY.md`).
 
 **The push.** `season_countdown` (**anticipation**), once, three days out: *"The Fellas starts Saturday."* → the season page.
 
@@ -590,7 +592,7 @@ The audit walked none of them. All are designed from the code.
 
 ### 5.1 · Two golfers, or more than two
 
-**This is the branch nobody had written, and it is the one that decides what most members see most weeks.** Both real seasons in prod are n=2, so every worked example in this set — D207's *"It's the two of you"*, the pressure line, the verdict, §8's whole example — is drawn from a seat where the weekly clash is always mine. It is not.
+**This is the branch nobody had written, and it is the one that decides what a member of any season above two golfers sees most weeks.** Both of the owner's own seasons are at a field of two, so every worked example in this set — D207's *"It's the two of you"*, the pressure line, the verdict, §8's whole example — is drawn from a seat where the weekly clash is always mine. It is not.
 
 | What | **n = 2** | **n > 2** |
 |---|---|---|
@@ -612,7 +614,7 @@ The audit walked none of them. All are designed from the code.
 | **S6 · CHAPTER** | about people | about squads: *"The Frost have closed to six."* | same | same |
 | **S6 · captain** | n/a | one extra clause on the squad's row naming who is short this month, with a door to the members sheet (`MembersSheet.swift:56-92` already renders captain pills; D58). **No captain tools beyond that** | — | — |
 | **S15** | *"Two is a season."* | *"Four opens squads."* — derived from `structMin`, **never a literal** | **Share the invite link** leads inside three days | **Open the season** leads |
-| **S15 · draft night** | never fires — a solo season has no draw | a **pushed page with two seats**: the Pro sees *"The hat is ready. Six in, four to a squad."* → **Draw the squads**; a member sees a **different screen** — *"Galen draws the squads before the first tee. It's random — nobody picks."* → **See who's in**. Today `DraftNightScreen` shows the Pro's screen to a member with the verb swapped (CH-13), and branches three ways on `draft_type` while **all 13 prod leagues are `random`** | | |
+| **S15 · draft night** | never fires — a solo season has no draw | a **pushed page with two seats**: the Pro sees *"The hat is ready. Six in, four to a squad."* → **Draw the squads**; a member sees a **different screen** — *"Galen draws the squads before the first tee. It's random — nobody picks."* → **See who's in**. Today `DraftNightScreen` shows the Pro's screen to a member with the verb swapped (CH-13), and branches three ways on `draft_type` while **no prod row exercises a branch but `random`** — two of the three are unwalked, a coverage gap to seed and walk rather than a signal about what organisers choose | | |
 | **S7 / S8** | the champion is a **person** and `champion_member_id` must be read — `HomeView.swift:869,980` read `champion_squad_id` only, so **every solo champion in prod is told "The cup's been lifted"** instead of their own name | the champion is a squad; gold goes on the squad name | **Run it back** (**R10**) | **Ask Mike to run it back** — one nudge, once per season per member |
 | **the cancel vote** | at $0 the Pro ends it alone (D71) and the item is a **verdict**, not a vote | as solo | the Pro's request is a verb on the season page | **a band-1 item for every member**: *"Galen has asked to end the season. Three of six have agreed. Your $50 comes back. Your rounds stay where they are — all of them."* → **See the terms**. Today Home is silent during an open vote and the hero keeps saying "week 7 of 26" while the season is being ended (`league_cancel_status` is read only by the room, `contract.psv:170`) |
 | **leaving** | — | — | — | **Leave the season** exists on the rules page and **nowhere on Home** — a forward-only, member-only, two-tap act (**C-9**, D244). There is **no member exit on either client today**, and "Cancel" in the room hero is Pro-only |
@@ -776,7 +778,7 @@ Six items score. The arithmetic is §2's.
 - **His own round in the wire.** The lead spent it (G3).
 - **A push.** None could have reached him: one `device_tokens` row, and it is `ios-sandbox`.
 
-**The notification that would have brought him here.** In the built product: **none tonight** — he posted three hours ago and a push to the author of the thing that triggered it is banned. The next honest one is Sunday morning: `clash_pressure` (**rivalry**), once, only if Galen posts — *"Galen posted. He needs one better than your 89, and the clash closes tonight."* → the clash receipt. And Sunday evening, `clash_verdict` (**joy** or **reflection**) — *"The clash is yours."* — which in prod would be **the first clash ever settled with a winner**: `week_clashes` holds eight rows and **zero** with a `winner_member`.
+**The notification that would have brought him here.** In the built product: **none tonight** — he posted three hours ago and a push to the author of the thing that triggered it is banned. The next honest one is Sunday morning: `clash_pressure` (**rivalry**), once, only if Galen posts — *"Galen posted. He needs one better than your 89, and the clash closes tonight."* → the clash receipt. And Sunday evening, `clash_verdict` (**joy** or **reflection**) — *"The clash is yours."* — which in prod would be **the first clash ever settled with a winner**: `week_clashes` holds eight rows and **zero** with a `winner_member` — an unwalked code path, not a verdict on the mechanic.
 
 ### 8.4 The next morning, to prove it is alive
 
@@ -832,7 +834,7 @@ Every one is already named in `INFORMATION_ARCHITECTURE.md` §15. Nothing new is
 2. **Should S17's lead be the movement or the receipt?** §8.3 ranks the *clash* above the *movement* because the clash has a clock. On a night when no clash is open, the movement leads and the verb is **See the table**. Whether a golfer three hours off a round wants the arithmetic or the table is worth testing rather than ruling.
 3. **The ceremony's trigger in S8.** Once per member, fired from Home, and the "seen" store is a **device-local key** (S8). If the owner wants it to survive a reinstall or a second device it is a one-line definer write, `mark_ceremony_seen(p_season)`; if the owner wants it to fire only inside the season page, a member who never opens Compete never sees their own season end — which is the state every solo champion in prod is in today.
 4. **Whether the wire may say the circle is silent** (SA-6). The alternative is to render nothing above the fold and let the section be short. The recommendation is the sentence, because *"nothing from your buddies in twelve days"* is exactly the fact that makes **Find golfers** the right door.
-5. **Whether F6 should ever be promoted.** As ruled it is a band-4 CIRCLE item, so in a season of eight most weeks lead with a CHAPTER. The alternative — letting a clash I am not in lead — would put a stake I cannot enter at the top of my Home, which G1's fence forbids. Named here because it is the shape of most members' Tuesdays and it deserves to be looked at on a screen rather than in a table.
+5. **Whether F6 should ever be promoted.** As ruled it is a band-4 CIRCLE item, so in a season of eight most weeks lead with a CHAPTER. The alternative — letting a clash I am not in lead — would put a stake I cannot enter at the top of my Home, which G1's fence forbids. Named here because it is the shape of a Tuesday in any season above two golfers and it deserves to be looked at on a screen rather than in a table.
 
 ---
 

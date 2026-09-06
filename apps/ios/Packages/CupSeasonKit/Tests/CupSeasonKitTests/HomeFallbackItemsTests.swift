@@ -97,6 +97,14 @@ private func feedRow(gross: Int = 79, me: Bool = false, pr: Bool = false) throws
     #expect(!items.isEmpty)
     // nothing carries a server rank, so nothing claims to be rank 1
     #expect(items.allSatisfy { $0.rank == nil && $0.score == nil && $0.rankReason == nil })
+    // R-06 · and the SCREEN leads with nothing. The assertion above only said
+    // no item claimed a rank; the phone still picked a lead off `humanSubject`
+    // and drew a card, where the web drew none. §5.4 rule 2 is about the CARD.
+    let arranged = HomeRank.arrange(items, useServerRank: false, allowLead: false)
+    #expect(arranged.lead == nil)
+    #expect(!arranged.deck.isEmpty)
+    // and with the ranker's answer in hand the veto still picks one
+    #expect(HomeRank.arrange(items, useServerRank: false, allowLead: true).lead != nil)
   }
 
   @Test("the ME strip is drawn either way — it is pure over the payload and needs no ranker")

@@ -47,6 +47,31 @@ import Foundation
     #expect(Set(ways.compactMap(ContactHash.normalisePhone)).count == 1)
   }
 
+  /// C-07 · the three implementations are ONE contract. `Character.isNumber` is
+  /// true for every character with a numeric value, so an Arabic-Indic digit,
+  /// a superscript or a fraction used to survive the filter here and be
+  /// stripped by `regexp_replace(…, '[^0-9]')` server-side and by
+  /// `/[^0-9]/g` on the web — a different digest on each side, and a
+  /// mismatched digest never matches, so nothing ever says so.
+  @Test func onlyAsciiDigitsSurviveTheFilter() {
+    // Arabic-Indic ٣ and a superscript ² are NOT digits for this purpose. With
+    // ٣ counted this is TEN characters and takes the North-American "+1"; with
+    // it stripped it is nine ASCII digits and takes a bare "+".
+    #expect(ContactHash.normalisePhone("48055501٣4") == "+480555014")
+    #expect(ContactHash.normalisePhone("480²5550134") == "+14805550134")
+    // ½ and Ⅳ carry numeric values and must contribute nothing
+    #expect(ContactHash.normalisePhone("4805550134½") == "+14805550134")
+    #expect(ContactHash.normalisePhone("Ⅳ4805550134") == "+14805550134")
+  }
+
+  /// C-07 · the same pin on the email side: a TAB-padded address is trimmed
+  /// here, on the web (`String.trim()`) and now in `cs_normalise_email`, whose
+  /// bare `btrim()` stripped spaces only.
+  @Test func aTabPaddedAddressNormalisesTheSameWay() {
+    #expect(ContactHash.normaliseEmail("\tjerecho@example.com\n") == "jerecho@example.com")
+    #expect(ContactHash.normaliseEmail("  jerecho@example.com\t ") == "jerecho@example.com")
+  }
+
   // MARK: - 2 · the client never holds a salt
 
   @Test func theDigestIsPlainSha256AndCarriesNoSalt() {
@@ -126,9 +151,12 @@ import Foundation
 
   @Test func theConsentSentenceSaysWhatTravelsAndWhatIsKept() {
     let c = OnboardingCopy.contactsConsent
-    #expect(c == "We'll check your contacts against the golfers already here. We send hashes, never your contacts, and we keep nothing that doesn't match.")
-    #expect(c.contains("hashes"))
-    #expect(c.contains("never your contacts"))
+    #expect(c == "We’ll check your contacts against the golfers already here. Your names and numbers never leave the phone — we send a scrambled version, and we keep nothing that doesn’t match.")
+    // LV-15 · the claim survives; the DEVELOPER'S NOUN does not. "Hashes"
+    // fails Test 1 and Test 2, and L-33 says copy names what happens to you.
+    #expect(!c.lowercased().contains("hash"))
+    #expect(c.contains("never leave the phone"))
+    #expect(c.contains("scrambled version"))
     #expect(c.contains("keep nothing"))
   }
 

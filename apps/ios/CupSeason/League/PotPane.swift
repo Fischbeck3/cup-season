@@ -186,17 +186,21 @@ struct ForfeitCreateSheet: View {
 
   var body: some View {
     let others = model.members.filter { $0.profile_id != model.viewer?.id }
-    SheetFrame("Post a forfeit", sub: "Pride, on the books — never money") {
-      label("Name it")
-      CSField("The Lawn Bet", text: $name, font: CSFont.body)
+    // LV-02 · ONE forfeit composer, one set of words. This sheet and
+    // `ForfeitSheet` (the season-less one) are two views over one object, and
+    // they said opposite things: "on the books" here against T-02's ruling
+    // that a forfeit goes on the record and never on the books (L-34).
+    SheetFrame("Post a forfeit", sub: ForfeitCopy.definition) {
+      label(ForfeitCopy.nameLabel)
+      CSField(ForfeitCopy.namePlaceholder, text: $name, font: CSFont.body)
       label("The shape")
       FlowSeg(options: Self.kinds, selection: $kind)
         .onChange(of: kind) { _, k in if termsAuto || terms.isEmpty { terms = Self.terms[k] ?? ""; termsAuto = true } }
-      label("The terms")
-      CSField("The terms", text: $terms, font: CSFont.body).onChange(of: terms) { old, new in if new != (Self.terms[kind] ?? "") { termsAuto = false } }
+      label(ForfeitCopy.termsLabel)
+      CSField(ForfeitCopy.termsLabel, text: $terms, font: CSFont.body).onChange(of: terms) { old, new in if new != (Self.terms[kind] ?? "") { termsAuto = false } }
       label("Against")
       Picker("Against", selection: $other) {
-        Text("The field — first to hit it").tag(UUID?.none)
+        Text("\(ForfeitCopy.theField) — first to hit it").tag(UUID?.none)
         ForEach(others) { m in Text(m.name).tag(UUID?.some(m.profile_id)) }
       }
       .pickerStyle(.menu).tint(cs.ink)
@@ -204,10 +208,10 @@ struct ForfeitCreateSheet: View {
       .padding(.horizontal, 14).frame(minHeight: 48).frame(maxWidth: .infinity, alignment: .leading)
       .background(cs.bg2, in: RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous))
       label("Rides on (optional)")
-      CSField("Sunday's clash · first ace · the Cup Final", text: $hangs, font: CSFont.body)
+      CSField(ForfeitCopy.settlesPlaceholder, text: $hangs, font: CSFont.body)
       A11yStack(spacing: 8) {
         CSButton("Cancel", style: .quiet) { dismiss() }.frame(maxWidth: typeSize.isA11y ? .infinity : 110)
-        CSButton("Put it on the books", busy: busy) {
+        CSButton(ForfeitCopy.put, busy: busy) {
           busy = true
           Task {
             defer { busy = false }
@@ -220,7 +224,7 @@ struct ForfeitCreateSheet: View {
         }
       }
       .padding(.top, 6)
-      RoomFine("Stakes settle on a party's tap and archive into the record. The pot stays money; this never is.")
+      RoomFine(ForfeitCopy.noPush)
     }
   }
   private func label(_ s: String) -> some View { Text(s).csEyebrow().padding(.top, 4) }

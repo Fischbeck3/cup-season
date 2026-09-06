@@ -48,11 +48,23 @@ struct SeasonStoryPane: View {
       if rows.isEmpty {
         // L-32 · an empty state ends in a next move, and a season with no
         // story yet has exactly one: play.
-        CSEmptyState(icon: "📖",
-                     line: model.seasonStory == nil
-                       ? "The story arrives with the season's first weekly snapshot."
-                       : "Nothing has happened yet. The first posted round starts the story.",
-                     cta: links.openRecord == nil ? nil : "Add my round") { links.openRecord?() }
+        //
+        // C-09 · a read that did NOT ANSWER says so and offers the retry. It
+        // used to say the story had not started, which for a season with
+        // eleven weeks of story and a bad signal is a false fact about the
+        // season, told with the season's own voice.
+        if model.storyRead == .failed {
+          let e = EmptyRoot.failedRead()
+          CSEmptyState(icon: "📖", line: "\(e.head) \(e.sub)", cta: "Try again") {
+            Task { await model.reloadStory() }
+          }
+        } else {
+          CSEmptyState(icon: "📖",
+                       line: model.seasonStory == nil
+                         ? "The story arrives with the season's first weekly snapshot."
+                         : "Nothing has happened yet. The first posted round starts the story.",
+                       cta: links.openRecord == nil ? nil : "Add my round") { links.openRecord?() }
+        }
       }
       ForEach(Array(rows.enumerated()), id: \.offset) { _, pair in
         let (a, text) = pair

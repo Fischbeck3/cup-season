@@ -106,7 +106,8 @@ struct RunItBackCard: View {
           }
         }
         .accessibilityElement(children: .combine)
-        CSButton(RunItBack.title(isPro: isPro, proFirstName: proFirstName), style: .gold, busy: busy) {
+        // LV-21 · L-25: gold on a button is a defect. Ember is the act metal.
+        CSButton(RunItBack.title(isPro: isPro, proFirstName: proFirstName), style: .primary, busy: busy) {
           Task { isPro ? await runIt() : await askThem() }
         }
         .disabled(asked && !isPro)

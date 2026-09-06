@@ -23,7 +23,7 @@ struct RivalriesSection: View {
       // league. Sitting under "Your seasons" beside a season-scoped strip, that
       // had to be stated or the head would inherit the wrong scope from its
       // neighbour.
-      CSSectionHead(head ?? "Rivalries · all leagues")
+      CSSectionHead(head ?? "Rivalries · every season")
       VStack(spacing: 0) {
         ForEach(Array(rivalries.enumerated()), id: \.element.id) { i, r in
           CSRow(last: i == rivalries.count - 1) {
@@ -61,7 +61,7 @@ struct RivalriesSection: View {
             }
             .buttonStyle(.plain)
             .accessibilityElement(children: .combine)
-            .accessibilityHint("Opens the Tour Card")
+            .accessibilityHint(GolfersRoot.CardName.hint())
           }
         }
       }
@@ -69,8 +69,10 @@ struct RivalriesSection: View {
   }
 
   /// `.rivrec.up` pos · `.dn` dim · `.ev` mut
+  /// F-10 · a record you took off somebody IS the canonical EARNED case, so
+  /// it is the one that wears gold (L-25). Green is a figure that runs.
   private func recordColor(_ lead: RivalryLead) -> Color {
-    switch lead { case .up: cs.pos; case .down: cs.dimText; case .even: cs.mut }
+    switch lead { case .up: cs.gold; case .down: cs.dimText; case .even: cs.mut }
   }
 
 }

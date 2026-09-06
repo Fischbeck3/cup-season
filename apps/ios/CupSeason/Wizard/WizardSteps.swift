@@ -10,6 +10,20 @@ import SwiftUI
 import CSDesign
 import CupSeasonKit
 
+/// F-12 · which door labels are SENTENCES rather than labels.
+///
+/// L-29 splits the three voices: mono is the record — labels, eyebrows,
+/// tabular numerals, never prose. `WizardCopy.textThemALink` is a full
+/// sentence with a subject, a verb and an em dash, and it rendered in
+/// `monoMediumBody` because every step-1 door does. Rather than tag each
+/// string, the renderer asks: a label with a verb-carrying clause in it —
+/// an em dash, or more than four words — is prose.
+enum WizardSteps {
+  static func isSentence(_ label: String) -> Bool {
+    label.contains("—") || label.split(separator: " ").count > 4
+  }
+}
+
 // MARK: - Step 1 · Who's playing? (IA §6.3, CORE_FLOWS §7.1)
 
 struct WizardWhoStep: View {
@@ -74,7 +88,14 @@ struct WizardWhoStep: View {
   private func door(_ label: String, sub: String?, ember: Bool, action: @escaping () -> Void) -> some View {
     Button(action: { CSHaptic.selection(); action() }) {
       VStack(alignment: .leading, spacing: 2) {
-        Text(label).font(CSFont.monoMediumBody).foregroundStyle(ember ? cs.brand : cs.ink)
+        // F-12 · L-29: mono is the RECORD — labels, eyebrows, tabular numerals,
+        // never prose. Every step-1 route renders through here and one of them
+        // ("Someone not here yet — text them a link") is a full sentence with a
+        // subject, a verb and an em dash. A label stays mono; a sentence takes
+        // the sans voice. The buddy chips beside these are legitimately mono.
+        Text(label)
+          .font(WizardSteps.isSentence(label) ? CSFont.subhead.weight(.medium) : CSFont.monoMediumBody)
+          .foregroundStyle(ember ? cs.brand : cs.ink)
         if let sub { Text(sub).font(CSFont.footnote).foregroundStyle(cs.dimText) }
       }
       .frame(maxWidth: .infinity, alignment: .leading)

@@ -1039,10 +1039,19 @@ else {
     ['no session in storage — showing the door', 'the auth session (§4 row 10)'],
     ['session ✓', 'the auth session (§4 row 10)'],
     ['Iron Man', 'the season award, which keeps the name (§2.1)'],
+    /* §4.32 · "playing number" is scoped to the RECEIPT (TERMINOLOGY line 84 +
+       note 1), where the arithmetic is shown beside it (L-01), and to the
+       guide's one DEFINITION of the term. Every other surface says "vs your
+       number" — F-14 found four that had drifted back. */
+    ['Playing number', 'the receipt, where the arithmetic is beside it (§4 row 84)'],
+    ['playing number', 'the receipt, where the arithmetic is beside it (§4 row 84)'],
+    ["The number the bands measure from is your **playing number** — your number with the league's allowance applied: \u00a0scores you against \u00a0% of it, \u00a0\u00a0%, \u00a0\u00a0%.",
+     'the guide, which is where the term is DEFINED'],
   ]);
   const exemptPrefix = [
     ['Iron Man ', 'the season award row (§2.1)'],
     ['Points King takes', 'the awards footnote, where the award is named (§2.1)'],
+    ['The number the bands measure from is your **playing number**', 'the guide, which is where the term is DEFINED (§4 row 84)'],
   ];
   const isExempt = t => EXEMPT.has(t.trim()) || exemptPrefix.some(([p]) => t.trim().startsWith(p));
 
@@ -1057,7 +1066,11 @@ else {
     /* §2.3's lock row retires four phrasings and `SQUADS LOCKED` is the fourth
        — the same family, in the same ruling, and the one the kickoff hero
        carried. */
-    [5, 'the season starts; nothing locks', [/lock the bylaws/i, /lock it in/i, /seeds locked/i, /rosters locked/i, /squads locked/i], { sql: true }],
+    /* F-5 · widened the way check 7 was: a ruling with one grep behind it lets
+       every other inflection ship. `lock them in` walked past `lock it in` on
+       the wizard's own eyebrow, and `HAS LOCKED A CUP SEED` walked past
+       `SEEDS LOCKED` on the season page. */
+    [5, 'the season starts; nothing locks', [/lock the bylaws/i, /lock (it|them) in/i, /\bseeds? locked\b/i, /rosters locked/i, /squads locked/i, /\bhas locked\b/i, /\bmore locks\b/i], { sql: true }],
     [6, 'the rules, never the bylaws', [/bylaws/i]],
     [7, 'a round posts to your rounds', [/\bon your card\b/i, /hit your card/i, /pinned to your card/i]],
     [8, 'one money noun', [/post a stake/i, /the other stakes/i, /pot sheet/i, /prize pool/i]],
@@ -1074,14 +1087,26 @@ else {
     [19, 'the ledger says the consequence', [/MONTH FORFEITED/i, /floors? waived/i, /month forfeited/i, /\/mo — posted/i, /^Floor $/], { sql: true }],
     [20, 'the Pro, never the commissioner', [/commissioner/i]],
     [21, 'trophies, never hardware', [/stage it/i, /display case/i, /\bhardware\b/i]],
-    [22, 'in your seasons, never a league mate', [/league\s?mates?/i], { sql: true }],
+    /* F-5 · the same widening. "league mate" was the only inflection grepped;
+       "leaguemates", "your league mates" and the possessive all walked past. */
+    [22, 'in your seasons, never a league mate', [/league\s?-?mates?/i, /mates? in your league/i], { sql: true }],
     [23, 'Iron Man is the award, not the streak', [/iron\s?man/i]],
     [24, 'milestones and results', [/moments, reveals/i]],
-    [25, 'matches & weekends', [/YOUR MOMENTS/]],
+    /* F-3 · this guarded the wrong direction. `OWNER_RULINGS.md` R-D rules the
+       head YOUR MOMENTS, and the check failed the push on the owner's own
+       word because `TERMINOLOGY.md` A-4 had proposed MATCHES & WEEKENDS
+       instead. The ruling ships; the lint holds the ruling. */
+    [25, 'the ruled section heads (R-D)', [/MATCHES\s*&(amp;)?\s*WEEKENDS/i]],
     [26, 'one verb opens the composer', [/^post (a )?round$/i]],
     /* 27–29 are producer greps and payload greps, not string greps */
     [28, 'no gross target off another golfer’s number', [/needs \d+ off (his|her|their)/i, /\bhe needs \d/i, /\bshe needs \d/i]],
     [29, 'no invented split', [/winner takes \d+%/i, /\d+% of the pot/i]],
+    /* 30–33 · the four rulings the Repair phase found had drifted back with no
+       lint behind them. D249's thesis, proved four more times. */
+    [30, 'a golfer’s card, never a Tour Card', [/\bTour Cards?\b/i]],
+    [31, 'not on a squad yet, never the pool', [/\bthe pool\b/i, /\bin the pool\b/i]],
+    [32, 'playing number is the receipt’s word', [/playing number/i]],
+    [33, 'league is never a thing you start or join', [/\b(start|join|create)\s+(a|your|the)\s+leagues?\b/i]],
   ];
 
   const hits = [];
@@ -1295,6 +1320,184 @@ else {
   problems.length === 0
     ? pass('one band table, three renderers', `${(fixture?.cases || []).length} case(s) · SQL, CSBands and bandName() agree`)
     : fail('one band table, three renderers', problems.slice(0, 4).join(' · '));
+}
+
+
+/* 34 · no RPC overload PostgREST cannot resolve (C-01, C-02, D249) ----------
+   `create or replace function` with a NEW argument list OVERLOADS rather than
+   replaces. PostgREST resolves an RPC by the JSON body's KEY NAMES: a
+   candidate matches when the sent keys are a subset of its parameters and
+   every non-defaulted parameter is present. So when two functions share a
+   name and one's REQUIRED set is a subset of the other's parameters, a body
+   that satisfies the smaller one satisfies both, and Postgres refuses —
+   `PGRST203`, "could not choose the best candidate function". That is a total
+   outage for the call, not a skew.
+
+   This repo has paid for it three times. `score_round` (spec/decision-log.md
+   :5181) was caught in review and the old signature dropped. `lock_league`
+   (20260924103000) and `declare_round` (20260924093000) shipped the same bug
+   in the overhaul and were caught by the correctness review — after which this
+   check exists so the fourth one fails the push instead.
+
+   It reads the SHIPPED surface — the contract snapshot — plus every signature
+   the unpushed migrations create or drop, so it sees what prod will look like
+   AFTER the owner's next `supabase db push`. */
+{
+  const problems = [];
+  /* what prod has today, from the snapshot */
+  const sigs = new Map();          // name → [{args:[{name,defaulted}], from}]
+  const parseArgs = a => (a || '').trim() === '' ? [] : splitTop(a).map(one => {
+    const t = one.trim();
+    const defaulted = /\bDEFAULT\b/i.test(t);
+    const m = t.match(/^(?:VARIADIC\s+|OUT\s+|INOUT\s+)?([A-Za-z_][A-Za-z0-9_]*)\s+/);
+    return { name: m ? m[1] : null, defaulted };
+  });
+  /* split on commas that are not inside brackets or quotes */
+  function splitTop(a) {
+    const out = []; let depth = 0, cur = '';
+    for (const ch of a) {
+      if (ch === '(' || ch === '[') depth++;
+      else if (ch === ')' || ch === ']') depth--;
+      if (ch === ',' && depth === 0) { out.push(cur); cur = ''; continue; }
+      cur += ch;
+    }
+    if (cur.trim()) out.push(cur);
+    return out;
+  }
+  const key = (name, args) => `${name}(${args.map(x => x.name || '?').join(',')})`;
+  const add = (name, args, from) => {
+    const list = sigs.get(name) || [];
+    if (!list.some(x => key(name, x.args) === key(name, args))) list.push({ args, from });
+    sigs.set(name, list);
+  };
+  const drop = (name, arity) => {
+    const list = sigs.get(name); if (!list) return;
+    sigs.set(name, list.filter(x => x.args.length !== arity));
+  };
+
+  for (const line of readFileSync(join(root, 'packages', 'db', 'contract.psv'), 'utf8').split('\n')) {
+    if (!line || line.startsWith('#')) continue;
+    const [name, args] = line.split('|');
+    if (!name) continue;
+    add(name.trim(), parseArgs(args), 'contract.psv');
+  }
+
+  /* every migration newer than the snapshot, in order */
+  const migs = readdirSync(migDir).filter(f => f.endsWith('.sql')).sort();
+  for (const f of migs) {
+    const src = readFileSync(join(migDir, f), 'utf8');
+    /* drops first inside a file are written before the create by convention,
+       but order does not matter here: a create of the same key replaces it */
+    for (const m of src.matchAll(/drop\s+function\s+(?:if\s+exists\s+)?public\.([A-Za-z_][A-Za-z0-9_]*)\s*\(([^;]*?)\)\s*;/gi)) {
+      const inner = m[2].trim();
+      drop(m[1], inner === '' ? 0 : splitTop(inner).length);
+    }
+    for (const m of src.matchAll(/create\s+or\s+replace\s+function\s+public\.([A-Za-z_][A-Za-z0-9_]*)\s*\(([\s\S]*?)\)\s*\n?\s*returns/gi)) {
+      add(m[1], parseArgs(m[2]), f);
+    }
+  }
+
+  for (const [name, list] of sigs) {
+    if (list.length < 2) continue;
+    for (const a of list) for (const b of list) {
+      if (a === b) continue;
+      const aRequired = a.args.filter(x => !x.defaulted).map(x => x.name);
+      const bNames = new Set(b.args.map(x => x.name));
+      /* a body carrying exactly a's parameters satisfies b as well */
+      const aAll = a.args.map(x => x.name);
+      if (aAll.every(n => n && bNames.has(n)) && aRequired.every(n => n && bNames.has(n))
+          && b.args.filter(x => !x.defaulted).every(n => aAll.includes(n.name))) {
+        problems.push(`${key(name, a.args)} [${a.from}] is ambiguous against ${key(name, b.args)} [${b.from}] — PostgREST cannot choose (PGRST203)`);
+      }
+    }
+  }
+
+  /* the self-test: the comparator must SEE the two shapes that shipped. Both
+     are stated as the migrations wrote them, so a rewrite of the comparator
+     that stops noticing them fails here rather than in production. */
+  const ambiguous = (a, b) => {
+    const aAll = a.map(x => x.name), bNames = new Set(b.map(x => x.name));
+    return aAll.every(n => bNames.has(n)) && b.filter(x => !x.defaulted).every(x => aAll.includes(x.name));
+  };
+  const lock19 = 'p_league,p_name,p_preset'.split(',').map(n => ({ name: n, defaulted: n !== 'p_league' }));
+  const lock20 = [...lock19, { name: 'p_pay_note', defaulted: true }];
+  if (!ambiguous(lock19, lock20)) problems.push('self-test failed: the comparator no longer sees lock_league(19) ⊂ lock_league(20)');
+  const dr6 = 'p_play_on,p_course,p_note,p_tagged,p_tee,p_course_id'.split(',').map((n, i) => ({ name: n, defaulted: i > 2 }));
+  const dr8 = [...dr6, { name: 'p_name', defaulted: true }, { name: 'p_game', defaulted: true }];
+  if (!ambiguous(dr6, dr8)) problems.push('self-test failed: the comparator no longer sees declare_round(6) ⊂ declare_round(8)');
+  /* …and it must NOT cry wolf on a genuinely distinct pair */
+  if (ambiguous([{ name: 'p_a', defaulted: false }], [{ name: 'p_b', defaulted: false }])) {
+    problems.push('self-test failed: the comparator flags two functions with no shared parameter');
+  }
+
+  problems.length === 0
+    ? pass('no unresolvable RPC overload', `${sigs.size} function name(s) after the pending push · score_round, lock_league and declare_round are the three this would have caught`)
+    : fail('no unresolvable RPC overload', [...new Set(problems)].slice(0, 4).join(' · '));
+}
+
+/* 35 · one epilogue milestone table, two clients (R-08) --------------------
+   `PostEpilogue.achievements` and index.html's `EPI_ACH` are one table on two
+   clients. The sweep edited one and mis-pasted the other: the web's
+   `streak_12` carried `streak_4`'s line, so a twelve-week streak was told it
+   had played every week for a month. Byte-for-byte, key by key. */
+{
+  const problems = [];
+  const swiftPath = join(root, 'apps', 'ios', 'Packages', 'CupSeasonKit', 'Sources', 'CupSeasonKit', 'Post', 'PostEpilogue.swift');
+  const swiftSrc = existsSync(swiftPath) ? readFileSync(swiftPath, 'utf8') : '';
+  const swiftBlock = (swiftSrc.match(/achievements: \[String: \(icon: String, txt: String, sub: String\)\] = \[([\s\S]*?)\n  \]/) || [])[1] || '';
+  const swiftRows = new Map([...swiftBlock.matchAll(/"([a-z0-9_]+)":\s*\("([^"]*)",\s*"([^"]*)",\s*"([^"]*)"\)/g)]
+    .map(m => [m[1], { icon: m[2], txt: m[3], sub: m[4] }]));
+  const webBlock = (html.match(/const EPI_ACH = \{([\s\S]*?)\n\};/) || [])[1] || '';
+  const webRows = new Map([...webBlock.matchAll(/([a-z0-9_]+):\s*\{\s*icon:'([^']*)',\s*txt:'([^']*)',\s*sub:'([^']*)'\s*\}/g)]
+    .map(m => [m[1], { icon: m[2], txt: m[3], sub: m[4] }]));
+
+  if (swiftRows.size === 0) problems.push('PostEpilogue.achievements could not be read — did the phone’s table move?');
+  if (webRows.size === 0) problems.push('index.html EPI_ACH could not be read — did the web’s table move?');
+  if (swiftRows.size && webRows.size) {
+    for (const k of new Set([...swiftRows.keys(), ...webRows.keys()])) {
+      const a = swiftRows.get(k), b = webRows.get(k);
+      if (!a) { problems.push(`${k} is on the web and not on the phone`); continue; }
+      if (!b) { problems.push(`${k} is on the phone and not on the web`); continue; }
+      for (const f of ['icon', 'txt', 'sub']) {
+        if (a[f] !== b[f]) problems.push(`${k}.${f}: phone ${JSON.stringify(a[f])} vs web ${JSON.stringify(b[f])}`);
+      }
+    }
+    /* and no two STREAKS share a sub — the mis-paste's own signature was a
+       twelve-week streak wearing the four-week line. (sub_90 and sub_100
+       deliberately share "In your trophy case"; a streak may not.) */
+    const subs = new Map();
+    for (const [k, v] of swiftRows) {
+      if (!k.startsWith('streak_')) continue;
+      if (subs.has(v.sub)) problems.push(`${k} and ${subs.get(v.sub)} say the same thing: ${JSON.stringify(v.sub)}`);
+      subs.set(v.sub, k);
+    }
+  }
+  problems.length === 0
+    ? pass('one epilogue table, two clients', `${swiftRows.size} milestone(s) agree, and no two say the same thing`)
+    : fail('one epilogue table, two clients', problems.slice(0, 4).join(' · '));
+}
+
+
+/* 36 · the 11px floor, and a debt that may only shrink (LV-17, L-29) --------
+   L-29: "nothing below 11pt". `CSFont.label`'s own comment names index.html as
+   the file that went to 8.5, and the redesign added six more sub-11px rules to
+   its brand-new desktop chrome — a standings movement caption at 9.5px
+   carrying a real fact among them. Those six are at the floor now.
+
+   The eighty-six that predate the overhaul are a DEBT, not a licence: this
+   check pins the count, so a new rule below the floor fails the push and every
+   one paid off ratchets the number down. It is the only shape that makes a
+   pre-existing violation safe to leave in place. */
+{
+  const BELOW_11 = 86;                    // 2026-09-05, after LV-17 paid six back
+  const found = (html.match(/font-size:\s*(?:[0-9]|10)(?:\.[0-9]+)?px/g) || []);
+  if (found.length > BELOW_11) {
+    fail('the 11px floor holds', `${found.length} rule(s) below 11px — the debt is ${BELOW_11} and may only shrink (L-29). New: ${found.length - BELOW_11}`);
+  } else if (found.length < BELOW_11) {
+    pass('the 11px floor holds', `${found.length} rule(s) below 11px — ${BELOW_11 - found.length} paid off; lower BELOW_11 to ${found.length} to keep the ratchet`);
+  } else {
+    pass('the 11px floor holds', `${found.length} grandfathered rule(s), and no new one`);
+  }
 }
 
 console.log(`\n${fails ? 'FAIL' : 'PASS'} — ${fails} failure(s), ${warns} warning(s)`);

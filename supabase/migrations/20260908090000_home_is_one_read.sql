@@ -77,6 +77,27 @@
 -- ============================================================================
 
 -- ---------------------------------------------------------------------------
+-- LV-11 · an ordinal, once
+-- ---------------------------------------------------------------------------
+-- `CSCopy.ordinal` is the phone's. The dispatch card printed a RAW rank —
+-- "You finished 3 of 8." — while the Swift declared fallback printed "3rd of
+-- 8" for the same state, so the served path and its own fallback disagreed and
+-- the test only asserted the fallback. The rule is the English one: 11, 12 and
+-- 13 take "th"; everything else goes by the last digit.
+create or replace function public.ordinal(p_n integer)
+returns text language sql immutable as $fn$
+  select case
+    when p_n is null then null
+    when (abs(p_n) % 100) between 11 and 13 then p_n || 'th'
+    when (abs(p_n) % 10) = 1 then p_n || 'st'
+    when (abs(p_n) % 10) = 2 then p_n || 'nd'
+    when (abs(p_n) % 10) = 3 then p_n || 'rd'
+    else p_n || 'th'
+  end
+$fn$;
+revoke all on function public.ordinal(integer) from public, anon;   -- L-04
+
+-- ---------------------------------------------------------------------------
 -- R2 · the wire
 -- ---------------------------------------------------------------------------
 create or replace function public.home_stories(p_days integer default 21,
@@ -218,16 +239,31 @@ begin
   -- state where the lead is a place I am already standing in (S11).
   if (v_me->'live_round') is not null and (v_me->'live_round') <> 'null'::jsonb then
     e := v_me->'live_round';
+    -- R-04 · TWO FACES. `native_home.live_round` is "a live round the caller
+    -- is SEATED in", which includes a round somebody else started and I have
+    -- never opened — where "You are on the card right now" and "the card is
+    -- open" are both false, the host is unnamed and the verb JOIN is missing.
+    -- LV-09 · and the noun: §2.1 splits "your card" (the person) from "your
+    -- scorecard" (the holes). This is the holes.
     v_items := v_items || jsonb_build_array(jsonb_build_object(
       'key',           'live:' || coalesce(e->>'id', ''),
       'tier',          'closing', 'band', 1000,
       'mods',          70, 'mod_reason', 'M1 30 (live) + M2 40 (me)',
-      'subject',       'you', 'human_subject', true,
-      'eyebrow',       upper(coalesce(nullif(e->>'course_label', ''), 'A round is live')),
-      'headline',      'You are on the card right now.',
-      'standfirst',    case when nullif(e->>'league_name', '') is not null
-                            then e->>'league_name' || ' — the card is open.' end,
-      'action',        'Back to the round',
+      'subject',       case when (e->>'mine')::boolean is not false then 'you'
+                            else coalesce(firstname(e->>'host'), 'a golfer') end,
+      'human_subject', true,
+      'eyebrow',       case when (e->>'mine')::boolean is not false
+                            then upper(coalesce(nullif(e->>'course_label', ''), 'A round is live'))
+                            else 'JUST TEED OFF · NOTHING SCORED YET' end,
+      'headline',      case when (e->>'mine')::boolean is not false
+                            then 'You’re in a live round right now.'
+                            else coalesce(firstname(e->>'host'), 'Somebody')
+                                   || ' started a live round with you.' end,
+      'standfirst',    case when (e->>'mine')::boolean is not false
+                            then case when nullif(e->>'league_name', '') is not null
+                                      then e->>'league_name' || ' — the scorecard is open.' end
+                            else coalesce(nullif(e->>'course_label', ''), nullif(e->>'league_name', '')) end,
+      'action',        case when (e->>'mine')::boolean is not false then 'Back to the round' else 'Join' end,
       'route',         jsonb_build_object('kind', 'live', 'id', e->>'id'),
       'league_id',     e->>'league_id',
       'suppress',      '[]'::jsonb,
@@ -493,12 +529,22 @@ begin
       v_items := v_items || jsonb_build_array(jsonb_build_object(
         'key',           'lastseason:' || coalesce(m->>'league_id', ''),
         'tier',          'chapter', 'band', 200, 'mods', 0, 'mod_reason', 'none',
-        'subject',       m #>> '{last_season,champion_name}', 'human_subject', true,
+        -- LV-11 · the champion may be the CALLER. Without the branch a golfer
+        -- who WON read their own name in the third person, beside "You
+        -- finished 1 of 8." The file already branches this way one item down
+        -- ("You are the one to catch.").
+        'subject',       case when (m #>> '{last_season,champion_is_me}')::boolean is true
+                              then 'you' else m #>> '{last_season,champion_name}' end,
+        'human_subject', true,
         'eyebrow',       upper(m->>'name') || ' · SEASON COMPLETE',
-        'headline',      (m #>> '{last_season,champion_name}') || ' took the last one.',
+        'headline',      case when (m #>> '{last_season,champion_is_me}')::boolean is true
+                              then 'You took the last one.'
+                              else (m #>> '{last_season,champion_name}') || ' took the last one.' end,
+        -- LV-11 · an ORDINAL, the way the Swift fallback prints it
+        -- (`CSCopy.ordinal`). This printed a raw rank — "You finished 3 of 8."
         'standfirst',    case when nullif(m #>> '{last_season,my_rank}', '') is not null
                                    and nullif(m #>> '{last_season,of}', '') is not null
-                              then 'You finished ' || (m #>> '{last_season,my_rank}')
+                              then 'You finished ' || ordinal((m #>> '{last_season,my_rank}')::int)
                                      || ' of ' || (m #>> '{last_season,of}') || '.' end,
         'action',        'See how it ended',
         'route',         jsonb_build_object('kind', 'season', 'id', m->>'league_id'),

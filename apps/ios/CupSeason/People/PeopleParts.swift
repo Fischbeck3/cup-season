@@ -82,7 +82,11 @@ struct PeopleTabBody: View {
   // MARK: buddies (13181–13184)
 
   @ViewBuilder private var buddies: some View {
-    CSSectionHead(vm.lists.buddies.isEmpty ? "Buddies" : "Buddies · \(vm.lists.buddies.count)")
+    // F-4 · the ruled head, from the producer R-D's three tiers were written
+    // into — which had zero call sites while this printed its own. And no
+    // COUNT: `COMPONENT_SYSTEM` §574 names "YOUR BUDDIES · 5 over five visible
+    // rows" as the counter-example, because the rows are the count.
+    CSSectionHead(GolfersRoot.Section.buddies.head.capitalized)
     if vm.loaded && vm.lists.buddies.isEmpty {
       CSFine("No buddies yet. Search up top to add them.")
     } else {
@@ -254,10 +258,10 @@ struct PeopleInviteLink: View {
           shareLink(s) { Label(s.name, systemImage: "link") }
         }
       } label: {
-        inviteRow(sub: "Choose the league · works for anyone, account or not")
+        inviteRow(sub: "Choose the season · works for anyone, account or not")   // LV-14
       }
       .accessibilityLabel("Send an invite link")
-      .accessibilityHint("Choose the league")
+      .accessibilityHint("Choose the season")   // LV-14
     } else if let s = all.first {
       shareLink(s) {
         inviteRow(sub: "\(s.name) · works for anyone, account or not")
@@ -336,7 +340,7 @@ struct PersonRow<Action: View>: View {
     // Y-23 · the person is a BUTTON (one element, a hint), not a tap gesture
     // over a row; the trailing action keeps its own control.
     RoomLineRow(marker: person.marker, title: title, sub: Text(subline ?? person.subline), spine: spine,
-                onTap: open, hint: open == nil ? nil : "Opens the Tour Card", label: spokenTitle) { action }
+                onTap: open, hint: open == nil ? nil : GolfersRoot.CardName.hint(person.name), label: spokenTitle) { action }
       .task { founder = await FounderBadge.shared.id() }
   }
 
@@ -438,7 +442,7 @@ final class PeopleModel {
     busy.insert(r.id); defer { busy.remove(r.id) }
     do {
       let rel = try await people.request(r.id)
-      toast(rel == .friend ? "Golf buddies ✓" : "Request sent")
+      toast(rel == .friend ? GolfersRoot.BuddyAsk.accepted : GolfersRoot.BuddyAsk.sent)
       if let i = results.firstIndex(where: { $0.id == r.id }) { results[i].rel = rel == .friend ? .friend : .requested }
       await paint()
     } catch { toast(HumanError.text(error, prefix: "Could not send.")) }

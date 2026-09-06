@@ -65,7 +65,7 @@ public struct ForfeitHome: Sendable, Equatable {
     case .ok: return nil
     case .twoHomes: return "A forfeit hangs on one thing."
     case .noHome: return "Say who it is with, or what it hangs on."
-    case .bountyNeedsAContainer: return "A bounty needs a field. Name who it's with."
+    case .bountyNeedsAContainer: return "A bounty needs a field. Name who it’s with."
     }
   }
 
@@ -83,23 +83,31 @@ public struct ForfeitHome: Sendable, Equatable {
 /// The sheet's own copy (`PotPane`'s forfeit sheet, moved out of the pot pane so
 /// it is reachable without a season). CORE_FLOWS §6.4.
 public enum ForfeitCopy {
-  public static let title = "What's on it?"
+  public static let title = "What’s on it?"
   public static let nameLabel = "Name it"
   public static let namePlaceholder = "The Lawn Bet"
   public static let termsLabel = "The terms"
-  public static let termsPlaceholder = "Loser mows the winner's lawn"
+  public static let termsPlaceholder = "Loser mows the winner’s lawn"
   public static let whoLabel = "Who"
   public static let theField = "The field"
   public static let settlesLabel = "When it settles"
-  public static let settlesPlaceholder = "Sunday's clash · first ace · the Cup Final"
+  public static let settlesPlaceholder = "Sunday’s clash · first ace · the Cup Final"
   public static let put = "Put it on the record"
 
   /// L-39 / T-02 · the one sentence that says what a forfeit is, at first
-  /// contact. Money lives in the pot and nowhere else (L-10).
-  public static let definition = "A forfeit is a bet in words. Cup Season keeps no money on it — that's the pot's job."
+  /// contact, VERBATIM from TERMINOLOGY §1 definition 9.
+  ///
+  /// LV-01 · the sentence this replaces — "Cup Season keeps no money on it" —
+  /// was a CUSTODY CLAIM, which is the class L-09 retired along with "never
+  /// held" and "takes no cut". A promise about what the company does with
+  /// money is a structural promise, and D184 keeps a future pot service open;
+  /// the brand canon's rule is to say what is true now and promise nothing
+  /// structural. The ledger line is the only place money's handling is
+  /// described, and it is `MoneyCopy.ledger`.
+  public static let definition = "A forfeit is a bet for pride. It settles on a tap and goes on the record — never on the books."
 
   /// A forfeit is a fact, not a summons: no push fires (L-20/L-22).
-  public static let noPush = "Nobody gets a notification. It's on the record and that's the point."
+  public static let noPush = "Nobody gets a notification. It’s on the record and that’s the point."
 
   /// The words a money AMOUNT would be written in. Nothing in this product may
   /// print one on a forfeit, and `ForfeitHomeTests` asserts that none of the
@@ -111,15 +119,16 @@ public enum ForfeitCopy {
 /// argument overload is unpushed, so `contract.psv` (a snapshot of prod) cannot
 /// carry it yet.
 ///
-/// `p_event` and `p_round` are the ONLY droppable arguments, so a database that
-/// has not had the migration takes the six-argument shape — which means a
-/// LEAGUE forfeit still posts, and a forfeit with no season is refused by the
-/// server with its own sentence rather than posting somewhere it does not
-/// belong. Dropping `p_other` on a skew retry would turn a bet between two
-/// golfers into a bounty against the field, which is a different bet.
+/// C-06 · NOTHING is droppable, and nothing needs to be. `p_event` and
+/// `p_round` are optionals, so a forfeit homed on a season already sends the
+/// six keys the deployed function has — no shed required. Keeping them on the
+/// droppable list meant a blind retry on ANY error re-homed a MOMENT's or a
+/// PLAN's forfeit onto the league (a different bet), or posted a second one
+/// after a lost response. A moment- or plan-homed forfeit against a database
+/// that has not had the migration takes PGRST202 and says so.
 public struct CreateForfeitCall: RpcCall {
   public static let name = "create_forfeit"
-  public static let optionalArgs: [String] = ["p_event", "p_round"]
+  public static let optionalArgs: [String] = []
   public typealias Returns = UUID
   public var p_league: UUID?
   public var p_name: String

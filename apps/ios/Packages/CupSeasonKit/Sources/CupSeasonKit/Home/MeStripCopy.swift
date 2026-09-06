@@ -227,8 +227,12 @@ public enum MeStripCopy {
     let nearest = owed.min { a, b in
       (a.buy_in?.due_on ?? "9999-12-31") < (b.buy_in?.due_on ?? "9999-12-31")
     } ?? owed[0]
-    let value = "\(CSCopy.dollars(cents: cents)) YOU"
-    return Slot(fact: .myMoney, label: "STILL OWE", value: value, door: .pot(nearest.league_id),
+    // F-17 · the strip's grammar is DATUM over NOUN — "10.6" over "YOUR
+    // NUMBER". This slot put a word in the value ("$75 YOU" over "STILL OWE")
+    // so the pair read as a split sentence while its three neighbours read as
+    // figures. The word belongs in the label.
+    let value = CSCopy.dollars(cents: cents)
+    return Slot(fact: .myMoney, label: "YOU STILL OWE", value: value, door: .pot(nearest.league_id),
                 voiceOver: "you still owe \(CSCopy.dollars(cents: cents))")
   }
 

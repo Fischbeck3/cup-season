@@ -63,6 +63,41 @@ public enum GolfersRoot {
     return .empty(empty())
   }
 
+  /// LV-16 · ONE sentence for one act. Sending a buddy request was confirmed
+  /// four ways across four new files — "Request sent" three times and "Asked to
+  /// join their crew. They'll get the nudge." once, which also used *crew*,
+  /// which T-08 rules a register word and never a list label. The ruled noun
+  /// for the relationship is **buddy**, defined at first contact just above.
+  public enum BuddyAsk {
+    public static let sent = "Request sent"
+    public static let accepted = "Golf buddies ✓"
+    /// Both sides already asked, so the link closed it on the spot.
+    public static let mutual = "You’re golf buddies now."
+  }
+
+  /// LV-05 · what a golfer's card is CALLED, in one place.
+  ///
+  /// "Tour Card" is retired by TERMINOLOGY §2.1 row 1 — in real golf it is a
+  /// playing privilege, and it means nothing here. The card IS the person, so
+  /// it takes the person's name. Every header, every title and every
+  /// accessibility hint reads from this, so the name cannot drift back one
+  /// surface at a time (§4 row 30 is the lint that says so).
+  public enum CardName {
+    /// "Galen’s card" — or, with no name in hand, a card that belongs to
+    /// somebody rather than to nobody.
+    public static func title(_ name: String?) -> String {
+      guard let n = name?.trimmingCharacters(in: .whitespaces), !n.isEmpty else { return "A golfer’s card" }
+      return "\(n)’s card"
+    }
+    /// The viewer's own.
+    public static let mine = "Your card"
+    /// The hint a face, a row or a name carries: what the tap OPENS.
+    public static func hint(_ name: String? = nil) -> String {
+      guard let n = name?.trimmingCharacters(in: .whitespaces), !n.isEmpty else { return "Opens their card" }
+      return "Opens \(n)’s card"
+    }
+  }
+
   /// IA §10.1's empty root.
   ///
   /// **Two doors, not three.** The design's first door is "Find your friends →

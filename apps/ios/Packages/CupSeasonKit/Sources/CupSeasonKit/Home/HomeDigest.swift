@@ -71,8 +71,15 @@ public struct HomeDigest: Sendable, Equatable {
   }
 
   /// nil = nothing to frame (first visit, or truly nothing).
+  /// `spent` is F-2's set: the rounds the ranked deck above has already told a
+  /// story about. The QUIET branch reaches for the best round in the feed, and
+  /// on a quiet day that is the same round the CIRCLE card is already carrying
+  /// — "Galen posted 79 at Lone Tree · Personal best" in the deck and "Sun,
+  /// Aug 23 — Galen set a personal best — 79 at Lone Tree" one scroll below,
+  /// which is A-6's worked example word for word. The digest yields.
   public static func make(rounds: [HomeFeedRow], posts: [HomePost], photoURLs: [UUID: URL] = [:], mark: Date?,
-                          mentions: [HomeSocial.Mention] = [], now: Date = Date(), calendar: Calendar = .current) -> HomeDigest? {
+                          mentions: [HomeSocial.Mention] = [], spent: Set<UUID> = [],
+                          now: Date = Date(), calendar: Calendar = .current) -> HomeDigest? {
     guard let mark else { return nil }   // first visit — the feed IS the reveal
     let freshRounds = rounds.filter { ($0.created_at ?? CSDate.local($0.played_on ?? "") ?? .distantPast) > mark }
     let freshPosts = posts.filter { ($0.created_at ?? .distantPast) > mark }
@@ -93,7 +100,7 @@ public struct HomeDigest: Sendable, Equatable {
       guard !bits.isEmpty else { return nil }
       return HomeDigest(kind: .since, label: "Since you were here", body: join(bits) + ".", roundId: nil, photoURL: nil, strong: strong)
     }
-    guard let b = best(rounds, now: now) else { return nil }
+    guard let b = best(rounds.filter { !($0.round_id.map(spent.contains) ?? false) }, now: now) else { return nil }
     let t = b.created_at ?? CSDate.local(b.played_on ?? "") ?? now
     return HomeDigest(kind: .quiet, label: "Quiet since your last visit", body: "\(day(t, now: now, calendar: calendar)) — \(line(b))",
                       roundId: b.round_id, photoURL: b.round_id.flatMap { photoURLs[$0] }, strong: [who(b)])

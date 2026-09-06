@@ -167,8 +167,8 @@ public struct ShareRedeem: Sendable, Equatable {
     switch outcome {
     case .dead:      return "That link has expired. Whoever sent it can share a fresh one."
     case .mine:      return nil                       // your own link — nothing to say
-    case .requested: return "Asked to join their crew. They’ll get the nudge."
-    case .buddies:   return "You’re in each other’s crew now."
+    case .requested: return GolfersRoot.BuddyAsk.sent      // LV-16 · one sentence for one act
+    case .buddies:   return GolfersRoot.BuddyAsk.mutual    // LV-16 · "crew" is a register word, never a label (T-08)
     case .planPast:  return "That round has already been played."
     case .seated(let already, let request):
       let seat = already ? "You’re already down for that round." : "You’re in for that round."

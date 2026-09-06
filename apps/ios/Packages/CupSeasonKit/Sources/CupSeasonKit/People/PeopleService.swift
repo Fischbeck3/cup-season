@@ -136,7 +136,11 @@ public struct PeopleService: Sendable {
 
   struct ConfirmPartnerCall: RpcCall {
     static let name = "confirm_round_partner"
-    static let optionalArgs: [String] = ["p_confirm"]
+    /// C-04 · a boolean with a non-null server default can NEVER be droppable.
+    /// `confirm_round_partner(p_round, p_confirm boolean default true)` — drop
+    /// the key on a retry and "that wasn't me" is written as "yes, that was me".
+    /// `respond_callout` has the same shape and already gets this right.
+    static let optionalArgs: [String] = []
     typealias Returns = JSONValue
     var p_round: UUID
     var p_confirm: Bool?
@@ -171,7 +175,7 @@ public struct PeopleService: Sendable {
     let lead: RivalryLead = r.lead == "up" ? .up : r.lead == "down" ? .down : .even
     let weeks = HeadToHead.FacetLine(facet: .seasonWeeks, wins: w, losses: l, ties: t,
                                      meetings: r.meetings ?? (w + l + t),
-                                     basis: "the better round against your playing number in a week you both posted",
+                                     basis: "the better round against your number in a week you both posted",   // F-14
                                      source: "my_rivalries")
     let dw = r.duel_wins ?? 0, dl = r.duel_losses ?? 0, dh = r.duel_halves ?? 0
     let duels = HeadToHead.FacetLine(facet: .duels, wins: dw, losses: dl, ties: dh,

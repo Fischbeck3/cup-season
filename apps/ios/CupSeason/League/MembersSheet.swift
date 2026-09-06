@@ -22,7 +22,7 @@ struct MembersSheet: View {
 
   var body: some View {
     let n = model.members.count
-    SheetFrame("Members & invites", sub: "\(n) PLAYER\(n == 1 ? "" : "S") · CODE \(model.league?.code ?? "—")") {
+    SheetFrame("Members & invites", sub: "\(n) GOLFER\(n == 1 ? "" : "S") · CODE \(model.league?.code ?? "—")") {
       VStack(spacing: 0) {
         ForEach(model.members) { m in memberRow(m) }
       }
@@ -51,7 +51,7 @@ struct MembersSheet: View {
   private func memberRow(_ m: LeagueRoom.Member) -> some View {
     let isMe = m.id == model.myMember?.id
     let sub = [m.profile?.handle.map { "@\($0)" },
-               m.profile?.index_current.map { "INDEX \(CSCopy.index($0))" },
+               m.profile?.index_current.map { "NUMBER \(CSCopy.index($0))" },   // LV-19
                model.squadName(m.id).isEmpty ? nil : model.squadName(m.id).uppercased()].compactMap { $0 }.joined(separator: " · ")
     return VStack(alignment: .leading, spacing: 0) {
       // face + name across; "Marker here" drops under them at the accessibility sizes
@@ -60,7 +60,7 @@ struct MembersSheet: View {
           Button { dismiss(); links.openTourCard(m.profile_id) } label: {
             CSFace(photoURL: model.avatarURL[m.profile_id], marker: m.mk, size: 36).a11yHitSlop(vertical: 4, horizontal: 4)
           }
-          .buttonStyle(.plain).accessibilityLabel("\(m.name)'s Tour Card")
+          .buttonStyle(.plain).accessibilityLabel(GolfersRoot.CardName.title(m.name))
           VStack(alignment: .leading, spacing: 2) {
             HStack(alignment: .firstTextBaseline, spacing: 6) {
               Text(m.name).font(CSFont.subhead.weight(.semibold)).foregroundStyle(cs.ink)
@@ -80,7 +80,9 @@ struct MembersSheet: View {
         let proWhy = "You become a player. Only they can hand it back."
         // the Pro's tools wrap rather than clip (three pills never fit one line at the accessibility sizes)
         FlowRow(spacing: 6) {
-          RoomMini("Set index") { setIndexFor = m }
+          // LV-19 · ONE label for one act. This sheet said "Set index" here and
+          // "Set the index" on the sheet it opens.
+          RoomMini("Set the starter") { setIndexFor = m }
           if model.league?.phase == "setup" {
             ArmedMini("Remove", armedLabel: "Sure? Remove", busy: busy == m.id, onArm: { reason = $0 ? (m.id, removeWhy) : nil }) {
               run(m.id) { try await model.removeMember(m.id); toast.show("Removed. The board knows."); dismiss() }
@@ -166,15 +168,15 @@ struct SetIndexSheet: View {
   @State private var text = ""
   @State private var busy = false
   var body: some View {
-    SheetFrame("Starter index", sub: "A NUMBER TO START FROM") {
+    SheetFrame("The starter", sub: "A NUMBER TO START FROM") {
       RoomFine("A starting number for \(member.name). Once they post 3 rounds, their own scores take over.")
       CSField("e.g. 12.4", text: $text).keyboardType(.numbersAndPunctuation)
-      CSButton("Set the index", busy: busy) {
-        guard let idx = Double(text.replacingOccurrences(of: ",", with: ".")), idx >= -10, idx <= 54 else { toast.show("Index looks off: expected -10 to 54"); return }
+      CSButton("Set the starter", busy: busy) {
+        guard let idx = Double(text.replacingOccurrences(of: ",", with: ".")), idx >= -10, idx <= 54 else { toast.show("That number looks off: expected -10 to 54"); return }
         busy = true
         Task {
           defer { busy = false }
-          do { try await model.setMemberIndex(member: member.id, index: idx); toast.show("Starter index set — posted to the board"); dismiss() }
+          do { try await model.setMemberIndex(member: member.id, index: idx); toast.show("Starter set — posted to the board"); dismiss() }
           catch { toast.show(roomError(error)) }
         }
       }

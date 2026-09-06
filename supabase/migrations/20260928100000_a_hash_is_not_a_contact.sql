@@ -82,9 +82,14 @@ revoke select (contact_hash) on public.profiles from authenticated, anon;
 -- `ContactHashTests` / `tests/app-tests.js` assert the same cases against the
 -- same inputs. If this ever changes, three files change together or a golfer's
 -- own email stops matching their own row.
+-- C-07 · btrim's default strips SPACES only, while both clients trim tabs and
+-- newlines too (Swift `.whitespacesAndNewlines`, JS `.trim()`). A tab-padded
+-- address hashed differently on the two sides, and a mismatched digest is
+-- silent — it simply never matches. The trim set is named here so the three
+-- implementations are one contract rather than three close readings.
 create or replace function public.cs_normalise_email(p_raw text)
 returns text language sql immutable as $fn$
-  select nullif(lower(btrim(coalesce(p_raw, ''))), '')
+  select nullif(lower(btrim(coalesce(p_raw, ''), E' \t\n\r\f\v')), '')
 $fn$;
 
 -- Digits only; a bare 10-digit number is North American and takes a 1; the
@@ -123,6 +128,15 @@ returns text language sql stable security definer set search_path = public as $f
 $fn$;
 revoke all on function public.cs_pepper(text) from public, anon, authenticated;
 
+-- C-13 · L-04's shape is that EVERY new function is revoked from public and
+-- anon, not only the ones a client calls. The three transforms above are
+-- unsalted and a client can compute them anyway, so this is posture rather
+-- than a hole — but posture is what L-04 is, and an ungranted function nobody
+-- notices is how the next one ships ungranted on purpose.
+revoke all on function public.cs_normalise_email(text) from public, anon;
+revoke all on function public.cs_normalise_phone(text) from public, anon;
+revoke all on function public.cs_contact_digest(text) from public, anon;
+
 -- ---------------------------------------------------------------------------
 -- 4 · keeping a golfer's own row hashed
 -- ---------------------------------------------------------------------------
@@ -142,6 +156,8 @@ begin
   );
   return new;
 end $fn$;
+
+revoke all on function public.profile_refresh_contact_hash() from public, anon;   -- C-13
 
 drop trigger if exists profile_contact_hash_trg on public.profiles;
 create trigger profile_contact_hash_trg
@@ -266,6 +282,13 @@ begin
   end if;
   if has_function_privilege('authenticated', 'public.cs_pepper(text)', 'execute') then
     raise exception 'C-11: a client can reach the pepper';
+  end if;
+  -- C-13 · the three transforms and the trigger are revoked from anon too
+  if has_function_privilege('anon', 'public.cs_normalise_email(text)', 'execute')
+     or has_function_privilege('anon', 'public.cs_normalise_phone(text)', 'execute')
+     or has_function_privilege('anon', 'public.cs_contact_digest(text)', 'execute')
+     or has_function_privilege('anon', 'public.profile_refresh_contact_hash()', 'execute') then
+    raise exception 'L-04: a new function kept PostgreSQL''s implicit EXECUTE TO PUBLIC';
   end if;
   if has_table_privilege('authenticated', 'public.contact_pepper', 'select') then
     raise exception 'C-11: the salt is readable — it is server-side or it is nothing';

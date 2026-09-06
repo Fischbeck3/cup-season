@@ -228,7 +228,10 @@ public enum LiveRehydrator {
       local.hole = max(0, min(local.liveHoles - 1, local.hole))
       local.ensureClocks()
       out.state = local
-      out.toast = local.mine ? "Continue your round — tap the banner on Home" : "You’re in a live round — tap the banner on Home"
+      // R-03 · the LIVE bar, not "the banner on Home". `LiveResumeBanner` was
+      // taken off Home in this wave, so these three toasts named a surface the
+      // phone no longer draws. `LiveNowBar` sits above the tabs on every tab.
+      out.toast = local.mine ? "Continue your round — tap the LIVE bar" : "You’re in a live round — tap the LIVE bar"
       resumed = true
     }
 
@@ -272,8 +275,8 @@ public enum LiveRehydrator {
       await disk.clearSnapshots(keep: lr)
       out.state = s
       out.toast = !s.mine
-        ? (s.host.map { "\(LiveFmt.fn1($0)) started a live round with you — tap the banner on Home" } ?? "You’re in a live round — tap the banner on Home")
-        : "Continue your round — tap the banner on Home"
+        ? (s.host.map { "\(LiveFmt.fn1($0)) started a live round with you — tap the LIVE bar" } ?? "You’re in a live round — tap the LIVE bar")
+        : "Continue your round — tap the LIVE bar"
     } else if mine == nil {
       await disk.clearSnapshots(keep: nil)
     }

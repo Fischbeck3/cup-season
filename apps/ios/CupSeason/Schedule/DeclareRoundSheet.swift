@@ -107,7 +107,7 @@ struct DeclareRoundSheet: View {
             Task { if let id = await vm.go() { onDeclared(id); dismiss() } }
           }
           .padding(.top, 6)
-          CSFine("Posts to your leagues' boards: tagged golfers are named. Scratch it any time from the calendar.")
+          CSFine("Posts to your seasons' boards: tagged golfers are named. Scratch it any time from the calendar.")
         }
         .padding(20)
       }

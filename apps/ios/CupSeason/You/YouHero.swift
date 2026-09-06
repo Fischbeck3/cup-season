@@ -49,8 +49,11 @@ struct YouHero<Anchor: View>: View {
   private var hidden: Int { max(0, trophyChips.count - TrophyMeta.credentialChips) }
 
   var body: some View {
-    // gold once the index is established (earned); otherwise the personal look's accent, ember when none (IOS-025)
-    CSHero(spine: established ? cs.gold : nil, padding: 20) {
+    // F-1 · gold when the card carries something EARNED — a trophy — and not
+    // merely because the index is established. UX_PRINCIPLES §4 forbids gold
+    // on a handicap index in those words, and keying the spine off
+    // `established` was the same claim made with a stripe. (IOS-025)
+    CSHero(spine: trophyChips.isEmpty ? nil : cs.gold, padding: 20) {
       VStack(alignment: .leading, spacing: 0) {
           // the panel bleeds to the card's edges — the 20pt hero padding is
           // for the record below it, not for the face
@@ -77,7 +80,12 @@ struct YouHero<Anchor: View>: View {
 
           VStack(alignment: .leading, spacing: 4) {
             if let idx = indexCurrent {
-              Text(CSCopy.index(idx)).font(CSFont.hero).foregroundStyle(cs.gold).csTabular()   // EARNED: the number, once established
+              // F-1 · INK, not gold. UX_PRINCIPLES §4 names this exact case
+              // under "This forbids": "Gold on a handicap index (a fact about
+              // you, not a thing you took off someone)." L-25 is gold = EARNED
+              // only, and a number is not taken off anybody. The trophy chips
+              // beside it keep the metal, because those were.
+              Text(CSCopy.index(idx)).font(CSFont.hero).foregroundStyle(cs.ink).csTabular()
             } else {
               Text(Career.establishing(rounds: rounds)).font(CSFont.hero).foregroundStyle(cs.ink).csTabular()
             }

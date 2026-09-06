@@ -60,7 +60,7 @@
 --   membership gains
 --     pro_name     text|null   firstname(commissioner) — the board's own form,
 --                              so the Pro is finally a person with a name
---     last_season  {number, ended_on, champion_name, my_rank, of}|null
+--     last_season  {number, ended_on, champion_name, champion_is_me, my_rank, of}|null
 --                              the most recent COMPLETE season of this league
 --                              that is not the current one — what a golfer
 --                              between seasons has to look at, and a fact no
@@ -499,6 +499,18 @@ begin
                                                where lm7.id = s2.champion_member_id)
                             else (select sq7.name from squads sq7 where sq7.id = s2.champion_squad_id)
                           end,
+        -- LV-11 · whether the caller IS the champion. Without it the dispatch
+        -- card said "Galen took the last one." to Galen, beside "You finished
+        -- 1 of 8." — the golfer's own name in the third person.
+        'champion_is_me', case
+                            when v_solo then exists (select 1 from league_members lm8
+                                                      where lm8.id = s2.champion_member_id
+                                                        and lm8.profile_id = v)
+                            else exists (select 1 from squads sq8
+                                          join league_members lm9 on lm9.squad_id = sq8.id
+                                         where sq8.id = s2.champion_squad_id
+                                           and lm9.profile_id = v)
+                          end,
         'my_rank',        case
                             when v_solo then (select vi2.rk from (
                                    select vi.member_id, rank() over (order by vi.points desc) as rk
@@ -592,6 +604,13 @@ begin
       'join_code',    lr.join_code,
       'mine',         exists (select 1 from league_members sm
                                where sm.id = lr.started_by and sm.profile_id = v),
+      -- R-04 · WHO started it. This read returns a round the caller is SEATED
+      -- in, which includes one somebody else started and I have never opened;
+      -- without the name that state had no subject and the card said "You are
+      -- on the card right now", which is false.
+      'host',         (select p9.display_name from league_members sm9
+                        join profiles p9 on p9.id = sm9.profile_id
+                       where sm9.id = lr.started_by),
       'visitor',      false)
     into v_live
     from live_rounds lr
@@ -620,6 +639,11 @@ begin
       'game',         e->>'game',
       'join_code',    e->>'join_code',
       'mine',         false,
+      -- R-04 · the starter, by name. `my_visitor_rounds` carries
+      -- `starter_profile_id`; a row with none leaves this null and the card
+      -- says the true thing without a subject rather than inventing one.
+      'host',         (select p10.display_name from profiles p10
+                        where p10.id = nullif(e->>'starter_profile_id', '')::uuid),
       'visitor',      true)
     into v_live_vis
     from jsonb_array_elements(my_visitor_rounds()) e

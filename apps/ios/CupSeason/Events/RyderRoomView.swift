@@ -128,7 +128,7 @@ struct RyderRoomView: View {
           .onTapGesture { if let pid = p.profileId { links.openTourCard(pid) } }
           .accessibilityElement(children: .combine)
           .accessibilityAddTraits(p.profileId == nil ? [] : .isButton)
-          .accessibilityHint(p.profileId == nil ? "" : "Opens the Tour Card")
+          .accessibilityHint(p.profileId == nil ? "" : GolfersRoot.CardName.hint())
         }
       }
     }

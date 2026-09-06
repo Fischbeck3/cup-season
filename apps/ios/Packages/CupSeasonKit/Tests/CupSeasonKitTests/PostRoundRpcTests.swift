@@ -39,14 +39,13 @@ import Foundation
     #expect(json["p_tee_id"] == nil)
   }
 
-  @Test func everyArgumentAfterTheThreeTheEngineNeedsIsDroppable() {
-    // deploy skew, both directions: a database that has an older `post_round`
-    // must still be reachable, so every defaulted argument is declared here.
-    let optional = Set(PostService.PostRoundCall.optionalArgs)
-    #expect(optional == ["p_holes_played", "p_nine_rating", "p_course_id", "p_course_label",
-                         "p_played_on", "p_photo_path", "p_played_with"])
-    // the three that have no default are the three a round cannot be scored without
-    #expect(!optional.contains("p_gross") && !optional.contains("p_rating") && !optional.contains("p_slope"))
+  /// C-03 · a round sheds NOTHING on a blind retry. `SupabaseService.call(_:)`
+  /// removes every droppable key at once on ANY first error, so one 500 used to
+  /// re-date the round to today (changing the season window it scores in, L-13),
+  /// post a nine as an eighteen, and drop the partners and the photo. The skew
+  /// that matters — `post_round` not existing — is the DECLARED fallback.
+  @Test func nothingIsDroppableOnARound() {
+    #expect(PostService.PostRoundCall.optionalArgs.isEmpty)
     #expect(PostService.PostRoundCall.name == "post_round")
   }
 

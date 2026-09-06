@@ -15,16 +15,26 @@
 --      way to pay it — which is the exact state D129's owe line then has to
 --      describe, with nowhere to point.
 --
--- So: `p_pay_note text default null` is the nineteenth argument, written into
--- league_settings IN THE SAME STATEMENT as every other bylaw. Defaulted and
--- skew-safe (CLAUDE.md:77-80): the eighteen-argument function stays exactly
--- where it is, so a client that has not shipped locks a season the way it does
--- today, and a client that HAS shipped against a database that has not takes
--- PGRST202 and names the miss on screen rather than dropping the note.
+-- So: `p_pay_note text default null` is the twentieth argument, written into
+-- league_settings IN THE SAME STATEMENT as every other bylaw.
+--
+-- C-01: skew safety is the argument's DEFAULT, never a second function.
+-- `create or replace` with a NEW argument list OVERLOADS rather than replaces,
+-- and PostgREST resolves an RPC by the JSON body's KEY NAMES: a 19-key body
+-- satisfies both the 19-arg and the 20-arg candidate, so Postgres answers
+-- "could not choose the best candidate function" and NOBODY locks a season.
+-- This repo has paid for that once already (spec/decision-log.md:5181,
+-- score_round). So the 19-arg signature is DROPPED here, the 20-arg's default
+-- serves a client that has not shipped, and both clients now send p_pay_note
+-- unconditionally (null when empty) so the sole live signature is unambiguous.
 --
 -- `set_buy_in_terms` survives untouched as the after-the-fact edit and finally
 -- gets its phone call site on the pot section.
 -- ============================================================================
+
+-- C-01: the superseded 19-argument signature goes, or a 19-key body is ambiguous
+-- against both and every client stops publishing a season.
+drop function if exists public.lock_league(uuid, text, text, integer, text, integer, integer, text, text, text, integer, integer, text, text, integer, integer, integer, date, date);
 
 create or replace function public.lock_league(p_league uuid, p_name text default null::text, p_preset text default 'standard'::text, p_handicap_allowance integer default 95, p_verification text default 'attested'::text, p_counting_cap integer default 3, p_participation_floor integer default 2, p_floor_penalty text default 'deduct'::text, p_season_format text default 'points'::text, p_structure text default 'squads2'::text, p_buyin_cents integer default 0, p_season_months integer default 6, p_draft_type text default 'random'::text, p_finish text default 'cup_final'::text, p_payout_champ integer default 60, p_payout_runnerup integer default 25, p_payout_king integer default 15, p_starts_on date default null::date, p_ends_on date default null::date, p_pay_note text default null::text)
 returns json
@@ -140,10 +150,12 @@ begin
     raise exception 'R18: the pay note does not ride the lock''s own UPDATE — publishing is no longer one transaction (L-41)';
   end if;
 
-  -- the 19-arg shape survives, or every build in the field stops locking
-  if not exists (select 1 from pg_proc
-                  where proname='lock_league' and pronamespace='public'::regnamespace and pronargs=19) then
-    raise exception 'R18: the 19-argument lock_league was dropped — deploy skew would take every shipped client down';
+  -- C-01: exactly ONE lock_league survives. Two candidates whose required-argument
+  -- sets nest make every 19-key call ambiguous (PGRST203), which is a total outage
+  -- for publishing rather than a skew.
+  if (select count(*) from pg_proc
+       where proname='lock_league' and pronamespace='public'::regnamespace) <> 1 then
+    raise exception 'R18: lock_league is overloaded — a 19-key body would match two candidates and publishing would fail for every client';
   end if;
 
   if has_function_privilege('anon','public.lock_league(uuid,text,text,integer,text,integer,integer,text,text,text,integer,integer,text,text,integer,integer,integer,date,date,text)','execute') then

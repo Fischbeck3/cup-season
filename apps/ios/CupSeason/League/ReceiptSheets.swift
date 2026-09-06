@@ -19,7 +19,7 @@ struct SquadReceiptSheet: View {
     let fromRounds = rows.reduce(0) { $0 + $1.pts }
     let adj = team.pts - fromRounds   // the ledger's net: bonuses − penalties
     let ledger = model.ledger(squad: team.id)
-    SheetFrame(team.name, sub: "\(team.cap.isEmpty ? "" : "CAPT. \(team.cap.uppercased()) · ")\(rows.count) PLAYERS · \(CSCopy.points(team.pts)) PTS") {
+    SheetFrame(team.name, sub: "\(team.cap.isEmpty ? "" : "CAPT. \(team.cap.uppercased()) · ")\(rows.count) GOLFERS · \(CSCopy.points(team.pts)) PTS") {
       VStack(alignment: .leading, spacing: 0) {
         RoomMathRow(k: "Counting rounds", v: CSCopy.points(fromRounds))
         if ledger.isEmpty {
@@ -117,7 +117,7 @@ struct MemberHistorySheet: View {
             .buttonStyle(.plain)
             .disabled(h.round_id == nil)
             .accessibilityElement(children: .combine)
-            .accessibilityLabel("\(h.played_on)\(h.holes_played == 9 ? ", 9 holes" : ""), \(StandingsMath.sgn(h.pvi)) versus index, \(CSCopy.points(h.points)) points\(h.counting ? "" : ", bumped")")
+            .accessibilityLabel("\(h.played_on)\(h.holes_played == 9 ? ", 9 holes" : ""), \(StandingsMath.sgn(h.pvi)) versus your number, \(CSCopy.points(h.points)) points\(h.counting ? "" : ", bumped")")
             .accessibilityHint(h.round_id == nil ? "" : "Opens the round")
           }
         }
@@ -125,7 +125,7 @@ struct MemberHistorySheet: View {
           RoomFine("Bumped rounds still happened — a better round took their monthly slot. A better round always bumps your worst counter.").padding(.top, 10)
         }
         if let pid = row.profileId {
-          RoomMini("Tour Card") { dismiss(); links.openTourCard(pid) }.padding(.top, 6)
+          RoomMini(GolfersRoot.CardName.title(row.n)) { dismiss(); links.openTourCard(pid) }.padding(.top, 6)
         }
       }
     }

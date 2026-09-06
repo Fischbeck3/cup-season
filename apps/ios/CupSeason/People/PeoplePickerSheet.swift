@@ -134,7 +134,7 @@ final class PickerModel {
     busy.insert(r.id); defer { busy.remove(r.id) }
     do {
       let rel = try await people.request(r.id)
-      toasts.show(rel == .friend ? "Golf buddies ✓" : "Request sent")
+      toasts.show(rel == .friend ? GolfersRoot.BuddyAsk.accepted : GolfersRoot.BuddyAsk.sent)
       if let i = rows.firstIndex(where: { $0.id == r.id }) { rows[i].rel = rel == .friend ? .friend : .requested }
     } catch { toasts.show(HumanError.text(error, prefix: "Could not send.")) }
   }

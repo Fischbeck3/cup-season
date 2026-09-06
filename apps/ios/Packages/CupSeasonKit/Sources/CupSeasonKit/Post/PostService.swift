@@ -85,10 +85,14 @@ public struct PostService: Sendable {
   /// function and a client that is older still meet.
   struct PostRoundCall: RpcCall {
     static let name = "post_round"
-    static let optionalArgs: [String] = [
-      "p_holes_played", "p_nine_rating", "p_course_id", "p_course_label",
-      "p_played_on", "p_photo_path", "p_played_with",
-    ]
+    /// C-03 · NOTHING is droppable. `SupabaseService.call(_:)` retries on ANY
+    /// first error by removing EVERY droppable key at once, so one 500 or one
+    /// dropped connection re-dated the round to `current_date` (which changes
+    /// the season window it scores in, L-13), turned a nine into an eighteen,
+    /// and threw away the partners and the scorecard photo. The one skew case
+    /// that matters — the function not existing — is covered by the DECLARED
+    /// fallback in `postRound(_:)`, which fires on PGRST202/42883 alone.
+    static let optionalArgs: [String] = []
     typealias Returns = JSONValue
     var p_gross: Int
     var p_rating: Double

@@ -124,7 +124,7 @@ struct PlayingSoonSection: View {
 
   var body: some View {
     if !theirs.isEmpty {
-      CSSectionHead("Playing soon")
+      CSSectionHead(GolfersRoot.Section.playingSoon.head.capitalized)   // F-4
       VStack(spacing: 0) {
         ForEach(Array(theirs.prefix(4).enumerated()), id: \.element.id) { i, p in
           CSRow(last: i == min(theirs.count, 4) - 1) {
@@ -149,12 +149,18 @@ struct PlayingSoonSection: View {
       // A golfer already in the group has the RSVP control on the round sheet;
       // offering them a seat they hold would be a door to nowhere (L-32).
       if p.tagged_me == true {
-        Text("YOU’RE IN").font(CSFont.label).tracking(0.8).foregroundStyle(cs.pos)
+        // F-10 · one fact, one metal. This said green while Home and the
+        // calendar said gold for the same fact; a membership fact is neither.
+        Text("YOU’RE IN").font(CSFont.label).tracking(0.8).foregroundStyle(cs.dawn)
       } else if asked.contains(id) {
         Text("ASKED").font(CSFont.label).tracking(0.8).foregroundStyle(cs.mut)
       } else {
         CSMini("Ask for a seat", busy: busy.contains(id)) { Task { await ask(p) } }
-          .accessibilityHint("Sends the host a request. It does not started a live round with you.")
+          // LV-06 / R-02 · D249's sweep of "put you on the tee sheet" ran into a
+          // NEGATION here and broke it. It was also false: asking for a seat on
+          // a PLANNED round has nothing to do with a live one. This is the
+          // sentence `ScheduledRoundSheet` already uses for the same act.
+          .accessibilityHint("It sends \(p.who) a note. Only they can add you to the group.")
       }
     }
   }
@@ -207,7 +213,7 @@ struct YouPlayWithSection: View {
 
   var body: some View {
     if !strangers.isEmpty {
-      CSSectionHead("You play with")
+      CSSectionHead(GolfersRoot.Section.youPlayWith.head.capitalized)   // F-4
       CSFine("Golfers you have actually been out with, who are not buddies yet.")
       VStack(spacing: 0) {
         ForEach(Array(strangers.prefix(shown).enumerated()), id: \.element.id) { i, p in

@@ -64,9 +64,19 @@ enum SeasonSubRoute: Hashable { case story(UUID), rules(UUID) }
 
 struct SeasonPage: View {
   @Environment(SessionStore.self) private var store
+  /// R-10 · IOS-025: "the room wears its league's look — phase ≻ the Pro's
+  /// choice ≻ the person's dial". The deleted `ClubhouseView` set it; this page
+  /// did not, and it is pushed by `competeDestination` — OUTSIDE the
+  /// `.environment(\.csLook, …)` on `CompeteScreen`'s own ScrollView, which
+  /// sits deeper than the navigationDestination and cannot reach a push. So a
+  /// season's colour dressed its Compete row and vanished the moment you
+  /// opened it. No entry retires IOS-025 for this surface.
+  @Environment(LookStore.self) private var looks
   @Environment(\.cs) private var cs
   @State private var model: LeagueRoomModel
   @State private var router: RoomRouter
+  /// R-11 · the rank-up haptic, once per load, for the season in hand.
+  @State private var climbs = 0
   let links: LeagueRoomLinks
   let pane: SeasonPane
 
@@ -100,6 +110,14 @@ struct SeasonPage: View {
     }
   }
 
+  /// R-10 · the membership's own look, resolved the way `CompeteScreen` does.
+  /// nil while the session has not answered — the page then wears the personal
+  /// look, which is what it wore before.
+  private var seasonLook: CSLookSpec? {
+    guard let m = store.me?.memberships.first(where: { $0.league_id == model.leagueId }) else { return nil }
+    return looks.look(for: m)
+  }
+
   private func page(_ proxy: ScrollViewProxy) -> some View {
     ScrollView {
       VStack(alignment: .leading, spacing: 16) {
@@ -129,6 +147,12 @@ struct SeasonPage: View {
       }
       .padding(.horizontal, 20).padding(.top, 8).padding(.bottom, 40)
     }
+    .environment(\.csLook, seasonLook)   // R-10 · before csLookGround, which reads it
+    // R-11 · the keep list's own line: "the rank-up haptic, once, for the room
+    // in hand". It went out with ClubhouseView and nothing replaced it. One
+    // page, one rung, so the "only the room on screen" guard is the page.
+    .csFeedback(.rankUp, trigger: climbs)
+    .task(id: model.loaded) { if model.loaded && model.iClimbed { climbs += 1 } }
     .csLookGround()
     .environment(model)
     .environment(router)
@@ -218,7 +242,7 @@ struct SeasonPage: View {
       SeasonEndgameFoot()
       CSSectionHead("The climb")
       ClimbView()
-      CSSectionHead("Every player")
+      CSSectionHead("Every golfer")   // LV-10 · row 121 rules the phrase
       IndividualRaceView()
     }
   }

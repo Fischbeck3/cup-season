@@ -52,7 +52,7 @@ struct PersonPage: View {
         case .hidden:
           // the privacy gate, said plainly, with the one door that can change it
           VStack(alignment: .leading, spacing: 10) {
-            CSPageHeader("Tour Card", eyebrow: "PRIVATE") { EmptyView() }
+            CSPageHeader(GolfersRoot.CardName.title(model.name), eyebrow: "PRIVATE") { EmptyView() }
             CSFine(TourCard.privateLine)
             if model.relation.actionLabel != nil { buddyAction }
           }
@@ -67,7 +67,7 @@ struct PersonPage: View {
     // and the first simulator screenshot of this page was a golfer's card with
     // no way off it — the bar is the back, and P-17 rides its trailing edge
     // where the design puts it ("mounted in the page's overflow").
-    .navigationTitle(model.name ?? "Tour Card")
+    .navigationTitle(model.name ?? GolfersRoot.CardName.title(nil))
     .navigationBarTitleDisplayMode(.inline)
     .toolbar {
       if !model.isMe, let name = model.name {
@@ -93,6 +93,12 @@ struct PersonPage: View {
                    trophyLines: TrophyMeta.credChips(c.trophies),
                    form: FormRow.from(beats: c.recent.map(\.beat)),
                    isMe: p.isMe,
+                   // F-8 · a 1:1 panel is ~350pt on the biggest iPhone, and with
+                   // four identity lines, the index, the buddy chip and the
+                   // narrative under it the page's ONLY actions landed below
+                   // the tab bar. This is the page `PushRoute.headToHead` lands
+                   // a callout on, so it may not ask for a scroll to answer.
+                   aspect: 16.0 / 10.0,
                    anchor: { EmptyView() }, extra: { EmptyView() })
 
     // ── the narrative head. Two clauses, each dropped rather than guessed.
@@ -103,6 +109,11 @@ struct PersonPage: View {
     }
 
     if !p.isMe { buddyAction }
+
+    // ── R-F · THE THREE LENGTHS, hoisted (F-8). The owner ruled that beating
+    // one guy asks how long it runs; that question is the page's ranked
+    // action, so it sits above the record rather than under it.
+    if !p.isMe { lengths(p.displayName ?? "them") }
 
     // ── the five rows. Each renders only when its fact arrived.
     VStack(spacing: 0) {
@@ -178,9 +189,6 @@ struct PersonPage: View {
                       + "VS COURSE " + (r.differential.map(RoundCopy.f1) ?? "—")) { EmptyView() }
       }
     }
-
-    // ── R-F · the three lengths, asked as one step and never guessed
-    if !p.isMe { lengths(p.displayName ?? "them") }
   }
 
   // MARK: the three lengths (R-F)
@@ -330,7 +338,7 @@ final class PersonModel {
         relation = .friend
       } else {
         relation = try await repo.friendRequest(id)
-        ToastCenter.shared.show(relation == .friend ? "Golf buddies ✓" : "Request sent")
+        ToastCenter.shared.show(relation == .friend ? GolfersRoot.BuddyAsk.accepted : GolfersRoot.BuddyAsk.sent)
       }
     } catch { ToastCenter.shared.show(SliceFormat.human(error, "Could not send.")) }
   }

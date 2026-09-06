@@ -38,19 +38,43 @@ public enum HomeFallbackItems {
 
   /// Every item this client can honestly compose without the ranker, in the
   /// static order. `today` is injectable so the table test can pin a date.
+  /// `liveHost` is the first name of whoever STARTED the live round, when the
+  /// device knows it (`LiveRoundStore.state.host`). `native_home`'s
+  /// `live_round` carries `mine` but no name, so this is passed in rather than
+  /// guessed — and with nothing in hand the invitation still says the true
+  /// thing, just without a subject.
   public static func make(_ me: Me?, feed: [HomeFeedRow] = [], today: String = CSDate.today(),
-                          calendar: Calendar = .current) -> [HomeDispatch.Item] {
+                          calendar: Calendar = .current, liveHost: String? = nil) -> [HomeDispatch.Item] {
     guard let me else { return [] }
     var out: [HomeDispatch.Item] = []
 
-    // ---- CLOSING · my live round -------------------------------------------
+    // ---- CLOSING · a live round --------------------------------------------
+    // R-04 · TWO FACES, because `native_home.live_round` is "a live round the
+    // caller is SEATED in" — which includes a round somebody else started and
+    // I have never opened. One face said "You are on the card right now" and
+    // "the card is open" for that state, where both sentences are false, the
+    // host is unnamed and the verb JOIN is missing. `LiveCopy.resumeBanner`
+    // has always produced both; nothing rendered it after the resume banner
+    // came off Home.
+    //
+    // LV-09 · and the noun: §2.1 splits "your card" (the person) from "your
+    // scorecard" (the holes). This is the holes.
     if let lr = me.live_round {
+      let mine = lr.mine != false
+      let who = liveHost.map { CSBands.fn1($0) }
       out.append(.init(key: "live:\(lr.id.uuidString)", tier: .closing,
-                       subject: "you", humanSubject: true,
-                       eyebrow: (lr.course_label?.uppercased()).flatMap { $0.isEmpty ? nil : $0 } ?? "A ROUND IS LIVE",
-                       headline: "You are on the card right now.",
-                       standfirst: lr.league_name.flatMap { $0.isEmpty ? nil : "\($0) — the card is open." },
-                       action: "Back to the round", route: .live(lr.id),
+                       subject: mine ? "you" : (who ?? "a golfer"), humanSubject: true,
+                       eyebrow: mine
+                         ? ((lr.course_label?.uppercased()).flatMap { $0.isEmpty ? nil : $0 } ?? "A ROUND IS LIVE")
+                         : "JUST TEED OFF · NOTHING SCORED YET",
+                       headline: mine
+                         ? "You’re in a live round right now."
+                         : "\(who ?? "Somebody") started a live round with you.",
+                       standfirst: mine
+                         ? lr.league_name.flatMap { $0.isEmpty ? nil : "\($0) — the scorecard is open." }
+                         : ((lr.course_label?.isEmpty == false) ? lr.course_label : lr.league_name),
+                       action: mine ? "Back to the round" : "Join",
+                       route: .live(lr.id),
                        leagueId: lr.league_id, spine: .ember,
                        at: lr.started_at.map { CSDate.iso($0) }))
     }
@@ -79,6 +103,7 @@ public enum HomeFallbackItems {
     // ---- per membership -----------------------------------------------------
     for m in me.memberships {
       if let item = clashItem(m, today: today) { out.append(item) }
+      if let item = floorItem(m, today: today, calendar: calendar) { out.append(item) }
       if let item = movementItem(m) { out.append(item) }
       if let item = firstTeeItem(m, today: today, calendar: calendar) { out.append(item) }
       if let item = chapterItem(m) { out.append(item) }
@@ -199,6 +224,36 @@ public enum HomeFallbackItems {
   /// A-4 · a movement label carries its own clock or it does not render.
   /// `prev_rank` is a SUNDAY snapshot, so the sentence says "since Sunday" —
   /// a bare "held" is unwritable here by construction.
+  /// R-05 · THE MONTH MINIMUM, the one item with a hard deadline and a real
+  /// penalty (−5 a round, or a forfeited month). The server ranker composes it
+  /// and NEITHER client fallback did — so on the day `home_dispatch` cannot be
+  /// reached, which is every day until the migrations land, the deadline
+  /// simply never appeared.
+  ///
+  /// The guards are the retired `HomeLead`'s, verbatim: D140's SOLO EXCLUSION
+  /// (a solo season has no squads, so no floor can fire), the partial-month
+  /// exclusion (a golfer who joined mid-month is not behind), a floor that is
+  /// actually set, credits short of it, and the last three days of the month —
+  /// a minimum named on the 4th is a nag, not a clock (L-22).
+  static func floorItem(_ m: Me.Membership, today: String, calendar: Calendar) -> HomeDispatch.Item? {
+    guard !m.isSolo, let pu = m.pulse, pu.partial != true,
+          let floor = pu.floor, floor > 0,
+          let credits = pu.credits, credits < Double(floor),
+          let left = CSDate.days(from: today, to: ScheduleDates.endOfMonth(today)),
+          left <= 3, left >= 0,
+          let monthIdx = ScheduleDates.parts(today)?.m, (1...12).contains(monthIdx),
+          let closeDay = ScheduleDates.jsDay(ScheduleDates.endOfMonth(today)) else { return nil }
+    let short = Double(floor) - credits
+    let shortText = short == short.rounded() ? String(Int(short)) : String(format: "%.1f", short)
+    return .init(key: "floor:\(m.league_id.uuidString)", tier: .closing,
+                 subject: "you", humanSubject: true,
+                 eyebrow: "\(LeagueDates.monthsLong[monthIdx - 1].uppercased()) CLOSES \(LeagueDates.dow[closeDay].uppercased())",
+                 headline: "You are \(shortText) short of the minimum.",
+                 standfirst: m.squad.map { "The \($0.name) carry the penalty, not you." },
+                 action: "Add my round", route: .composer,
+                 leagueId: m.league_id, spine: .ember)
+  }
+
   static func movementItem(_ m: Me.Membership) -> HomeDispatch.Item? {
     guard let st = m.standing, let prev = st.prev_rank, prev != st.rank,
           m.season?.status == "active" else { return nil }
@@ -237,10 +292,14 @@ public enum HomeFallbackItems {
       // stopping at "nothing has moved". The last completed season is that
       // fact, it is on the payload, and it needs no new read.
       guard let last = m.last_season, let champ = last.champion_name, !champ.isEmpty else { return nil }
+      // LV-11 · the champion may be ME. Without the branch a golfer who WON
+      // read their own name in the third person, beside "You finished 1st of
+      // 8." The season's live item branches this way one case down.
+      let iWon = last.champion_is_me == true
       return .init(key: "lastseason:\(m.league_id.uuidString)", tier: .chapter,
-                   subject: champ, humanSubject: true,
+                   subject: iWon ? "you" : champ, humanSubject: true,
                    eyebrow: "\(m.name.uppercased()) · SEASON COMPLETE",
-                   headline: "\(champ) took the last one.",
+                   headline: iWon ? "You took the last one." : "\(champ) took the last one.",
                    standfirst: (last.my_rank).flatMap { r in last.of.map { "You finished \(CSCopy.ordinal(r)) of \($0)." } },
                    action: "See how it ended", route: .season(m.league_id, pane: nil),
                    leagueId: m.league_id, spine: .gold, at: last.ended_on)

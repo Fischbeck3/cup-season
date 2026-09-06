@@ -154,9 +154,13 @@ import Foundation
   /// card is about, because that card is usually somebody else's.
   @Test func bothFormKeysAreCutFromTheSameSentence() {
     // byte-for-byte with the web's `CS_FORM_KEY` (index.html)
-    #expect(YouCopy.formKey == "Your last five rounds, oldest first — a lit dot beat your playing number.")
-    #expect(YouCopy.formKeyCard(mine: false) == "Last five, oldest first — a lit dot beat their playing number.")
-    #expect(YouCopy.formKeyCard(mine: true) == "Last five, oldest first — a lit dot beat your playing number.")
+    #expect(YouCopy.formKey == "Your last five rounds, oldest first — a lit dot beat your number.")
+    #expect(YouCopy.formKeyCard(mine: false) == "Last five, oldest first — a lit dot beat their number.")
+    #expect(YouCopy.formKeyCard(mine: true) == "Last five, oldest first — a lit dot beat your number.")
+    // F-14 · "playing number" is the RECEIPT's word and nowhere else
+    #expect(!YouCopy.vsPlayingNumber.contains("playing"))
+    #expect(!YouCopy.avgVsPlayingNumber.contains("playing"))
+    #expect(!YouCopy.bestVsPlayingNumber.contains("playing"))
     // the load-bearing half — the reading order and what a lit dot IS — is
     // the SAME string on every surface, which is the point of one producer
     let tail = "oldest first — a lit dot beat"
@@ -432,8 +436,8 @@ import Foundation
     #expect(on.playingLens && on.bestText == "+4.0" && on.avgText == "+2.6")
     #expect(TourCard.bestLabel(playingLens: true) == "Best round")
     #expect(TourCard.avgLabel(playingLens: true, isMe: true) == "Avg")
-    #expect(TourCard.careerEyebrow(playingLens: true, isMe: true) == "Career · vs your playing number")
-    #expect(TourCard.careerEyebrow(playingLens: true, isMe: false) == "Career · vs their playing number")
+    #expect(TourCard.careerEyebrow(playingLens: true, isMe: true) == "Career · vs your number")
+    #expect(TourCard.careerEyebrow(playingLens: true, isMe: false) == "Career · vs their number")
 
     // A golfer no season has ever ranked: the new server sends the allowance
     // keys as null. Key presence alone would print a dash over a real number,

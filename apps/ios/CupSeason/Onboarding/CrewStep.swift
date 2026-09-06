@@ -211,9 +211,9 @@ struct CrewStep: View {
       _ = try await PeopleService().request(id)
       added += 1
       CSHaptic.success()
-      toast.show("Request sent")
+      toast.show(GolfersRoot.BuddyAsk.sent)
     } catch {
-      toast.show(AuthRules.human(error, fallback: "Couldn't send that."))
+      toast.show(AuthRules.human(error, fallback: "Couldn’t send that."))
     }
   }
 

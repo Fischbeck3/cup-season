@@ -48,9 +48,18 @@ alter table public.scheduled_rounds add constraint scheduled_rounds_game_check
 
 -- ── 2 · declare_round gains p_name and p_game, both defaulted ──────────────
 -- Body = 20260902203000_a_booking_knows_its_round.sql:46-141, verbatim but for
--- the two columns and the name in the board post. The 6- and 5-arg overloads
--- are untouched: a client that has not shipped yet declares a nameless plan,
--- which is what it does today.
+-- the two columns and the name in the board post.
+--
+-- C-02: the 5- and 6-arg overloads are DROPPED, not kept. `create or replace`
+-- with a new argument list overloads, and PostgREST resolves an RPC by the
+-- JSON body's key names — a 6-key body is a subset of the 8-arg's parameters
+-- with every required one present, so it matches BOTH and Postgres refuses
+-- ("could not choose the best candidate function"). Declaring a round would
+-- fail on every client. Skew safety is the two DEFAULTS: a client that has not
+-- shipped sends six keys and declares a nameless plan, exactly as today.
+drop function if exists public.declare_round(date, text, text, uuid[], time without time zone);
+drop function if exists public.declare_round(date, text, text, uuid[], time without time zone, text);
+
 create or replace function public.declare_round(
   p_play_on date,
   p_course text,
@@ -252,6 +261,12 @@ begin
   if position('name text' in v_src) = 0 or position('game text' in v_src) = 0
      or position('rsvp jsonb' in v_src) = 0 or position('tagged_pids uuid[]' in v_src) = 0 then
     raise exception 'D240: my_schedule does not return the weekend''s identity — R22 is the whole point of C-3';
+  end if;
+
+  -- C-02: exactly ONE declare_round survives, or a 6-key body is ambiguous
+  if (select count(*) from pg_proc
+       where proname='declare_round' and pronamespace='public'::regnamespace) <> 1 then
+    raise exception 'D240: declare_round is overloaded — a 6-key body would match two candidates and declaring a round would fail for every client';
   end if;
 
   -- declare_round takes both, defaulted (deploy skew, CLAUDE.md:77-80)

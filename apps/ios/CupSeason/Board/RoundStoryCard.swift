@@ -31,7 +31,7 @@ struct RoundStoryCard: View {
         .accessibilityLabel("\(item.who.isEmpty ? "—" : item.who), \(BoardLogic.grossLine(round, viewer: store.profileId).lowercased()), \(BoardLogic.courseLine(round))"
                             + (round.points.map { ", \(CSCopy.points($0)) points" } ?? ""))
         .accessibilityHint("Opens the round")
-        .accessibilityAction(named: "\(item.who.isEmpty ? "Their" : item.who + "'s") Tour Card") { if let p = round.profileId { links.openTourCard(p) } }
+        .accessibilityAction(named: GolfersRoot.CardName.title(item.who)) { if let p = round.profileId { links.openTourCard(p) } }
       if item.social { ReactionBar(item: item, store: store) }
     }
     .padding(.horizontal, 13).padding(.vertical, 12)

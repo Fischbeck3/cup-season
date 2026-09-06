@@ -45,7 +45,7 @@ revoke all on function public.band_name(numeric) from public, anon;
 grant execute on function public.band_name(numeric) to authenticated;
 
 comment on function public.band_name(numeric) is
-  'R13 · the named band for a pvi. The boundaries are cup_points'''' own, and preflight check 28 asserts CSBands and the web''s bandName() against a fixture generated from this function.';
+  'R13 · the named band for a pvi. The boundaries are cup_points'' own, and preflight check 28 asserts CSBands and the web''s bandName() against a fixture generated from this function.';
 
 -- ── 2 · the round's own card carries it ─────────────────────────────────────
 -- `round_card` verbatim from 20260902173000_what_a_deleted_round_leaves_behind

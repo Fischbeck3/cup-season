@@ -60,7 +60,7 @@ struct StandingsTableView: View {
   private func header(solo: Bool) -> some View {
     HStack(spacing: 10) {
       Text("").frame(width: 58)
-      Text(solo ? "Player" : "Squad").frame(maxWidth: .infinity, alignment: .leading)
+      Text(solo ? "Golfer" : "Squad")   // LV-10.frame(maxWidth: .infinity, alignment: .leading)
       Text("Δ Wk").frame(width: 48, alignment: .trailing)
       Text("Pts").frame(width: 44, alignment: .trailing)
     }
@@ -154,13 +154,20 @@ struct StoryLine: View {
         .accessibilityLabel(story.text)
     }
   }
-  private func name(_ t: Team) -> Text { Text(t.name).font(CSFont.sentenceBold).foregroundStyle(cs.squad(t.ci)) }
+  /// F-9 · a SOLO row's name is a person, and a story line is not live. The
+  /// squad palette dresses a squad; a golfer's name in a sentence takes the
+  /// sentence's ink and only the weight changes (L-25: ember means live).
+  private func name(_ t: Team) -> Text {
+    Text(t.name).font(CSFont.sentenceBold).foregroundStyle(t.solo ? cs.ink : cs.squad(t.ci))
+  }
   private var text: Text {
     switch story {
     case .none: Text("")
     case .outFront(let a): name(a) + Text(" out front — waiting on a challenger.")
     case .deadHeat(let a, let b, let pts): Text("Dead heat — ") + name(a) + Text(" and ") + name(b) + Text(" level at \(CSCopy.points(pts)).")
-    case .lead(let a, let b, let m, let back): name(a) + Text(" lead by ") + Text(CSCopy.points(m)).font(CSFont.sentenceBold) + Text(" · ") + name(b) + Text(" \(back).")
+    case .lead(let a, let b, let m, let back):
+      name(a) + Text(" \(StandingsStory.leads(a)) by ") + Text(CSCopy.points(m)).font(CSFont.sentenceBold)
+        + Text(". ") + name(b) + Text(" \(back).")
     }
   }
 }

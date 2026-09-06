@@ -228,7 +228,7 @@ struct MajorRoomView: View {
       } else if let profile {
         Button { links.openTourCard(profile) } label: { row }.buttonStyle(.plain)
           .accessibilityLabel(said)
-          .accessibilityHint("Opens the Tour Card")
+          .accessibilityHint(GolfersRoot.CardName.hint())
       } else {
         row.accessibilityElement(children: .combine).accessibilityLabel(said)
       }

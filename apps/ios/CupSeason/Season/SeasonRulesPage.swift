@@ -74,7 +74,8 @@ struct SeasonRulesPage: View {
         .accessibilityElement(children: .combine)
       }
       Button { router.open(.scoringHelp) } label: {
-        Text("How scoring and handicaps work →").font(CSFont.monoMediumBody).foregroundStyle(cs.dawn)
+        // F-12 · a full clause is prose, and L-29 keeps prose out of mono.
+        Text("How scoring and handicaps work →").font(CSFont.subhead.weight(.medium)).foregroundStyle(cs.dawn)
           .frame(minHeight: 44).contentShape(Rectangle())
       }
       .buttonStyle(.plain)
@@ -88,7 +89,9 @@ struct SeasonRulesPage: View {
     let n = model.members.count
     return VStack(alignment: .leading, spacing: 0) {
       CSSectionHead("Who's in")
-      RoomCheckRow("Members", sub: "\(n) player\(n == 1 ? "" : "s")") {
+      // LV-10 · row 161 retires "members" and "players": a season's list is
+      // THE ROSTER, and a headcount counts GOLFERS.
+      RoomCheckRow("The roster", sub: "\(n) golfer\(n == 1 ? "" : "s")") {
         Image(systemName: "flag").font(.system(size: 15, weight: .regular)).foregroundStyle(cs.ink)
       } trail: { RoomMini("View") { router.open(.members) } }
       let door = model.rosterDoor

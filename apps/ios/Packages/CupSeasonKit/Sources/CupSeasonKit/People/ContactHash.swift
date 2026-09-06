@@ -45,7 +45,13 @@ public enum ContactHash {
   /// a number anybody can be reached on, and it normalises to nothing rather
   /// than to a short string thousands of contact books would collide on.
   public static func normalisePhone(_ raw: String) -> String? {
-    let d = raw.filter(\.isNumber)
+    // C-07 · ASCII digits, and nothing else. `Character.isNumber` is true for
+    // every character with a NUMERIC VALUE — Arabic-Indic digits, superscripts,
+    // fractions, Roman numerals — while the SQL strips `[^0-9]` and the web
+    // strips `/[^0-9]/g`. A number carrying one non-ASCII numeral hashed to a
+    // different digest on the phone than on the server's own backfill, and the
+    // failure is silent by construction: a mismatched digest never matches.
+    let d = raw.filter { $0.isASCII && $0.isNumber }
     guard d.count >= 9 else { return nil }
     return d.count == 10 ? "+1\(d)" : "+\(d)"
   }
@@ -131,7 +137,7 @@ public struct ContactMatchService: Sendable {
       return people.isEmpty ? .none : .matched(people)
     } catch {
       if PostService.fallbackFires(on: error) { return .notYet }
-      return .failed(AuthRules.human(error, fallback: "Couldn't check your contacts."))
+      return .failed(AuthRules.human(error, fallback: "Couldn’t check your contacts."))
     }
   }
 

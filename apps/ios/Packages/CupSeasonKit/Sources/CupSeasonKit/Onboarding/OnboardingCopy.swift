@@ -84,7 +84,7 @@ public enum OnboardingCopy {
   // ---- frame 2 · the card, one scrolling frame ----------------------------
 
   public static let cardEyebrow = "Your card"
-  public static let cardTitle = "Who's on the card?"
+  public static let cardTitle = "Who’s on the card?"
   public static let cardSub = "Just a name to start — this card follows you into every season."
 
   /// Question 1, in a golfer's units.
@@ -92,7 +92,7 @@ public enum OnboardingCopy {
   public static let shootSub = "Your number builds itself from three posted rounds. This just gets you started."
   /// The one honesty rule that has to be on the screen, not only in the entry.
   public static let shootStarterNote =
-    "We'll call it a starter until three of your own rounds take over."
+    "We’ll call it a starter until three of your own rounds take over."
 
   public static let nameLabel = "Name"
   public static let namePlaceholder = "First and last"
@@ -104,10 +104,16 @@ public enum OnboardingCopy {
   public static let handleRule = "3–20 letters, numbers or _. It changes once every 60 days."
   public static let handleBad = "A handle is 3–20 letters, numbers or underscores."
 
-  /// The marker footnote. It names what was assigned and where to change it —
-  /// L-24's floor, stated on the screen that applies it.
+  /// The marker footnote. It names what was assigned, WHAT IT IS FOR, and
+  /// where to change it — L-24's floor, stated on the screen that applies it.
+  ///
+  /// R-14 · the middle clause came back. The baseline sentence — "It's your
+  /// face here until you add a photo — and your stamp on every round after."
+  /// — is the one TERMINOLOGY §4 holds up as the pattern for defining a noun
+  /// at first contact, and D247's replacement said only where to change it.
+  /// The floor survived; the teaching did not.
   public static func markerFootnote(_ name: String) -> String {
-    "Your marker is \(name) until you pick another — tap it, or change it any time from You."
+    "Your marker is \(name) — your face here until you add a photo, and your stamp on every round after. Tap it to pick another, or change it any time from You."
   }
   public static let markerLabel = "Ball marker"
 
@@ -136,7 +142,7 @@ public enum OnboardingCopy {
       case .contacts: "Find your friends"
       case .search:   "Search by name or @handle"
       case .link:     "Text an invite to somebody else"
-      case .later:    "Nobody yet — I'll add them later"
+      case .later:    "Nobody yet — I’ll add them later"
       }
     }
 
@@ -144,7 +150,7 @@ public enum OnboardingCopy {
       switch self {
       case .contacts: "check your contacts for golfers already here"
       case .search:   "if you know what they go by here"
-      case .link:     "they don't need an account to see it"
+      case .link:     "they don’t need an account to see it"
       case .later:    nil
       }
     }
@@ -163,8 +169,14 @@ public enum OnboardingCopy {
 
   /// The consent sentence, asked at the point of the ask and nowhere else
   /// (wizard step 1 and this step). Verbatim from D251.
+  ///
+  /// LV-15 · "hashes" is a developer's noun. It fails Test 1 (immediately
+  /// understandable) and Test 2 (sounds like a real golfer), and L-33's rule
+  /// is that copy says what happens to YOU, not what the system does. The
+  /// claim underneath is unchanged and still true (`ContactHash` is a salted
+  /// SHA-256 whose salt never leaves the server).
   public static let contactsConsent =
-    "We'll check your contacts against the golfers already here. We send hashes, never your contacts, and we keep nothing that doesn't match."
+    "We’ll check your contacts against the golfers already here. Your names and numbers never leave the phone — we send a scrambled version, and we keep nothing that doesn’t match."
   public static let contactsAllow = "Check my contacts"
   /// Declining must FINISH the step, not trap it — R-G's own clause.
   public static let contactsDecline = "Not now"
@@ -175,7 +187,10 @@ public enum OnboardingCopy {
   /// The system refused the address book. A different fact from "nobody
   /// matched", and never rendered as one (L-32, L-44).
   public static let contactsRefused = "Contacts are off for Cup Season. You can turn them on in Settings, or search by name."
-  public static let contactsNotYet = "Contact matching needs the latest update — try again shortly."
+  /// F-19 · the SERVER is behind, not the golfer's app — they have the latest
+  /// client. Blaming the client for a deploy skew sends somebody to the App
+  /// Store for an update that does not exist.
+  public static let contactsNotYet = "Contact matching isn’t switched on yet — try again shortly."
 
   /// One match, two matches, many — the sentence the brief asked for, and it
   /// is only ever printed over a real count.

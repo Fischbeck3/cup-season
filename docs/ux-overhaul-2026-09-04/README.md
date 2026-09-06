@@ -1,6 +1,6 @@
 # Cup Season — the UX/product overhaul, 2026-09-04
 
-*A first-principles rethink of the product experience, not a refresh. Repo `/Users/fischbeck3/cup-season` at tip `3bba87e`; written 2026-09-04/05; read-only on the repo but for this folder. Prod was read (read-only) to ground every figure; nothing was written.*
+*A first-principles rethink of the product experience, not a refresh. Repo `/Users/fischbeck3/cup-season` at tip `3bba87e`; written 2026-09-04/05; read-only on the repo but for this folder. Prod was read (read-only) to ground every figure; nothing was written (a snapshot of an unlaunched database — scaffolding, not behaviour; see `EVIDENCE_POLICY.md`).*
 
 **The brief in one line:** *"Don't make me understand Cup Season. Make me want to use Cup Season."*
 
@@ -32,7 +32,7 @@ Read them in this order. Each answers a different question, and none repeats ano
 **And the Phase-1 ground truth:**
 
 - **[`UX_AUDIT.md`](UX_AUDIT.md)** (1,376 lines) — the IA as it exists, every screen, every flow, the Home state matrix as it exists, six persona walks, terminology, empty states, notifications, the keep lists, what data is available, the prior-audit delta, and the laws.
-- **[`STRUCTURAL_PROBLEMS.md`](STRUCTURAL_PROBLEMS.md)** (456 lines) — the ranked, adversarially verified problems the redesign had to solve. **Five "is-it-structural" refutations succeeded** and are carried as findings of fact: "I want to beat Jake" already has an object (D205's two-golfer season); Home's dead ends are unbuilt rulings rather than a missing IA; the multi-league evidence was a seeding artifact; the season recap already exists; and the vocabulary work is execution, not architecture.
+- **[`STRUCTURAL_PROBLEMS.md`](STRUCTURAL_PROBLEMS.md)** (456 lines) — the ranked, adversarially verified problems the redesign had to solve. **Five "is-it-structural" refutations succeeded** and are carried as findings of fact: "I want to beat Jake" already has an object (D205's two-golfer season); Home's dead ends are unbuilt rulings rather than a missing IA; the multi-league evidence was a seeding artifact; the season recap already exists; and the vocabulary work is execution, not architecture. **⚠ RE-ARGUE:** the multi-league refutation rested on a prod count of multi-league golfers and nothing else, which `EVIDENCE_POLICY.md` strikes — to stand as a finding of fact it needs the seeded multi-league walk §5 already names as acceptance test 2 (`STRUCTURAL_PROBLEMS.md` SP-2 carries the same mark).
 
 ---
 
@@ -107,9 +107,9 @@ Eight of the ten questions this work opened are answered in [`OWNER_RULINGS.md`]
 **Four gates, operational rather than editorial:**
 
 2. **D237's gate** — walk the reviewer seed's "The Grudge" through a live **and** a completed session before the callout is committed. Nobody has ever seen the Ryder room in LIVE or COMPLETE, which is the entire life of a callout.
-3. **D248's gate** — **one production APNs token receiving one real notification** before any notification work begins. `device_tokens` holds one `ios-sandbox` row and zero prompts have been accepted.
+3. **D248's gate** — **one production APNs token receiving one real notification** before any notification work begins. `device_tokens` holds one `ios-sandbox` row and no production token, so the production push path has never been proven end to end — a gate on the machine, not a reading of the ask (the prompt-shown-and-accepted counts once cited here are struck; `EVIDENCE_POLICY.md`).
 4. **D250's two named bets** — no `crews` table, and the Ryder-at-two.
-5. **`assign` and `snake`** — delete both unreachable draft branches, or promote one deliberately in the wizard. All 13 prod leagues are `random`.
+5. **`assign` and `snake`** — delete both draft branches, or promote one deliberately in the wizard. `snake` has no engine behind it (`CLAUDE.md:375`). **⚠ RE-ARGUE: `assign`** — "unreachable" rested on a prod tally of `draw_rule` and nothing else, which `EVIDENCE_POLICY.md` strikes, while `CLAUDE.md:344` lists "blind draw / assign" as a live path; confirm from `WizardState` / `create_league` that no path sets it before deleting.
 
 **Two operational consequences only the owner can carry, named so they are not discovered at submission time:**
 
@@ -151,7 +151,7 @@ Eight of the ten questions this work opened are answered in [`OWNER_RULINGS.md`]
 
 **≈46 weeks of one lane, or ≈30 calendar weeks across two.** The halves share producers and entries but touch no common file, so they parallelise cleanly if the Experience lane is two people. Neither number includes App Review turnaround or the hand-offs P-14 requires between Experience, Gameplay and Social. **The weeks column also excludes push turnaround**: `Rpc.swift` is generated from a `pg_proc` snapshot of the *live* database, so client work proceeds ahead of the owner's push through a **hand-declared `RpcCall`** — the pattern preflight 17 explicitly tolerates — replaced by the generated name on the first push after the migration lands.
 
-**Waves 1 and 2 are shippable alone and worth shipping even if 3–9 slipped.** The Clubhouse retirement goes last-but-one, after the season page has proven itself as a pushed destination: it is the change with the least direct evidence and the most blast radius.
+**Waves 1 and 2 are shippable alone and worth shipping even if 3–9 slipped.** The Clubhouse retirement goes last-but-one, after the season page has proven itself as a pushed destination: it is the change with the least direct evidence and the most blast radius — no walked persona failed *because* the tab is called Clubhouse, and the walks are a reasoning tool, never a cohort (`EVIDENCE_POLICY.md`).
 
 ### The three acceptance tests, plus one
 

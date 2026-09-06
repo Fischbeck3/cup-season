@@ -81,7 +81,7 @@ struct MajorJugCard: View {
   }
 }
 
-/// "Share the jug 🏆" — renders the card once, then a `ShareLink` with the
+/// "Share the jug" — renders the card once, then a `ShareLink` with the
 /// image and the caption. The web falls back to a download + clipboard;
 /// the share sheet is the phone's one path.
 struct MajorShareButton: View {
@@ -93,13 +93,13 @@ struct MajorShareButton: View {
     Group {
       if let image {
         ShareLink(item: image, message: Text(data.caption), preview: SharePreview(data.jug, image: image)) {
-          Text("Share the jug 🏆").font(CSFont.button)
+          Text("Share the jug").font(CSFont.button)
             .frame(maxWidth: .infinity, minHeight: 50)
             .foregroundStyle(cs.bg0)
             .background(cs.brand, in: RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous))
         }
       } else {
-        CSButton("Share the jug 🏆", busy: true) {}
+        CSButton("Share the jug", busy: true) {}
       }
     }
     .task(id: data) { image = await Self.render(data) }

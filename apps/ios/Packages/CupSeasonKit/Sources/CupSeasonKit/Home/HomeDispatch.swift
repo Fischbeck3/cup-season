@@ -158,7 +158,6 @@ public enum HomeDispatch {
       func opt<T: Decodable>(_ type: T.Type, _ k: CodingKeys) -> T? {
         (try? c.decodeIfPresent(type, forKey: k)) ?? nil
       }
-      key = opt(String.self, .key) ?? UUID().uuidString
       tier = opt(String.self, .tier).flatMap(Tier.init(rawValue:)) ?? .opportunity
       rank = opt(Int.self, .rank)
       score = opt(Int.self, .score)
@@ -167,6 +166,12 @@ public enum HomeDispatch {
       humanSubject = opt(Bool.self, .human_subject) ?? false
       eyebrow = opt(String.self, .eyebrow) ?? ""
       headline = opt(String.self, .headline) ?? ""
+      // C-12 · the key is DETERMINISTIC even for a payload this build did not
+      // expect. `UUID().uuidString` gave a keyless item a fresh identity on
+      // every decode, which broke the docstring's own promise — key is
+      // `Identifiable.id` and the sort tie-break, so the deck reshuffled and
+      // SwiftUI re-created every row on each load.
+      key = opt(String.self, .key) ?? "\(tier.rawValue):\(headline)"
       standfirst = opt(String.self, .standfirst)
       action = opt(String.self, .action)
       let spec = opt(RouteSpec.self, .route)
@@ -235,8 +240,34 @@ public enum HomeRank {
     /// How many ranked items were cut by the cap — the fourth item's foot
     /// says so rather than the screen pretending they do not exist.
     public let cut: Int
+    /// F-2 · the ROUNDS this arrangement has already told a story about.
+    ///
+    /// A-6's worked example in `UX_PRINCIPLES` §3 is exactly this: a buddy's
+    /// personal best in the ranked deck and again in the wire one scroll
+    /// below. The mechanism the design names — "the lead hands the deck a
+    /// suppress" — was typed `Set<MeStripCopy.Fact>`, four ME facts, which
+    /// cannot name a round. This can: `HomeFeedFold.fold` takes it and the
+    /// wire drops the row the card already spent.
+    public let spentRounds: Set<UUID>
 
     public var isEmpty: Bool { lead == nil && deck.isEmpty }
+
+    public init(lead: HomeDispatch.Item?, deck: [HomeDispatch.Item],
+                suppress: Set<MeStripCopy.Fact>, cut: Int, spentRounds: Set<UUID> = []) {
+      self.lead = lead; self.deck = deck; self.suppress = suppress
+      self.cut = cut; self.spentRounds = spentRounds
+    }
+  }
+
+  /// The round an item has spent, when it has one. Derived from what the item
+  /// already carries — its door, and the `story:<round>` key both producers
+  /// mint — so nothing new travels on the wire and the SERVED path gets the
+  /// de-dupe for free.
+  static func spentRound(_ item: HomeDispatch.Item) -> UUID? {
+    if case .receipt(let id) = item.route { return id }
+    let parts = item.key.split(separator: ":", maxSplits: 1)
+    if parts.count == 2, parts[0] == "story" { return UUID(uuidString: String(parts[1])) }
+    return nil
   }
 
   /// The rule, in one function.
@@ -251,14 +282,19 @@ public enum HomeRank {
   /// 4. **G5 · the cap.** One lead and at most four below it.
   ///
   /// `stripSuppress` is the ME strip's own set; the lead's is unioned onto it.
+  /// `useServerRank` chooses the ORDER (the server's `rank`, or the score);
+  /// `allowLead` chooses whether there is a LEAD CARD AT ALL. They are two
+  /// different questions and R-06 is about the second: the declared fallback
+  /// orders its items and renders no lead.
   public static func arrange(_ items: [HomeDispatch.Item],
                              stripSuppress: Set<MeStripCopy.Fact> = [],
                              leadSuppress: Set<MeStripCopy.Fact> = [],
-                             useServerRank: Bool = true) -> Ranked {
+                             useServerRank: Bool = true,
+                             allowLead: Bool = true) -> Ranked {
     // G1 · the fence.
     let live = items.filter { $0.route != nil && !$0.headline.trimmingCharacters(in: .whitespaces).isEmpty }
     guard !live.isEmpty else {
-      return Ranked(lead: nil, deck: [], suppress: stripSuppress.union(leadSuppress), cut: 0)
+      return Ranked(lead: nil, deck: [], suppress: stripSuppress.union(leadSuppress), cut: 0, spentRounds: [])
     }
 
     let ranked = live.allSatisfy { $0.rank != nil }
@@ -279,14 +315,25 @@ public enum HomeRank {
     }
 
     // G2 · the veto.
-    let leadIndex = sorted.firstIndex(where: \.humanSubject)
+    //
+    // R-06 · and the fallback leads with NOTHING. UX_PRINCIPLES §5.4 rule 2 —
+    // restated verbatim in `HomeView`'s header and this file's — says the
+    // declared fallback renders no lead card, "because a guessed lead is the
+    // exact failure the veto exists to prevent". The web obeyed it (every
+    // `csFallbackItems` item is `human_subject: false`) and the phone did not,
+    // so the two clients drew a structurally different Home on the day the
+    // ranker was unreachable — which, until the migrations land, is every day.
+    let leadIndex = allowLead ? sorted.firstIndex(where: \.humanSubject) : nil
     let lead = leadIndex.map { sorted[$0] }
     var rest = sorted
     if let i = leadIndex { rest.remove(at: i) }
 
     let deck = Array(rest.prefix(deckCap))
     let spent = stripSuppress.union(leadSuppress).union(lead?.suppress ?? [])
-    return Ranked(lead: lead, deck: deck, suppress: spent, cut: max(0, rest.count - deck.count))
+    // F-2 · every round the cards on screen have already told.
+    let rounds = Set(([lead].compactMap { $0 } + deck).compactMap(spentRound))
+    return Ranked(lead: lead, deck: deck, suppress: spent,
+                  cut: max(0, rest.count - deck.count), spentRounds: rounds)
   }
 
   /// The declared fallback's order — the static, tier-less

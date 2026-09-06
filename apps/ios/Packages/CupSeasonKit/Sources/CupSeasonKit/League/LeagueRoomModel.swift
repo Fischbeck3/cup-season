@@ -84,6 +84,14 @@ public final class LeagueRoomModel {
   /// skew, or a refusal) — the page renders WITHOUT a story spine rather than
   /// with an empty one, and the table, the pot and the doors are unchanged.
   public private(set) var seasonStory: SeasonStory.Payload?
+  /// C-09 · which of the three answers the story read gave. `try?` collapsed
+  /// "not deployed yet", "the network failed" and "no rows" into one nil, and
+  /// the pane rendered all three as *"The story arrives with the season's first
+  /// weekly snapshot."* — a sentence that is FALSE for a season with eleven
+  /// weeks of story and a bad connection. A failed read is never an empty one
+  /// (L-32 / D220). `PeopleService.headToHead` is the shape this copies.
+  public enum StoryRead: Sendable, Equatable { case loaded, notYet, failed }
+  public private(set) var storyRead: StoryRead = .notYet
   /// Signed avatar URLs by profile id (one batched signing per load, an hour).
   public private(set) var avatarURL: [UUID: URL] = [:]
   public private(set) var album: [AlbumItem]? = nil
@@ -135,6 +143,20 @@ public final class LeagueRoomModel {
   /// The viewer's rung id: the member row when solo, else their squad.
   public var myTeamId: UUID? { solo ? myMember?.id : mySquad?.id }
   public var story: StandingsStory { StandingsMath.story(teams) }
+
+  /// R-11 · did the viewer's own rung CLIMB since the last snapshot?
+  ///
+  /// The rank-up haptic is on the keep list (§8.3: "once, for the room in
+  /// hand") and it went out with `ClubhouseView`. `grep -rn rankUp` over the
+  /// app returned nothing. The guard is the same one that room used — the
+  /// viewer's rung, never a neighbour's, because a buzz for somebody else's
+  /// climb is a ghost.
+  public var iClimbed: Bool {
+    guard let mine = myTeamId,
+          let now = teams.firstIndex(where: { $0.id == mine }),
+          let was = priorRank[mine] else { return false }
+    return now < was
+  }
   public var awards: StandingsMath.Awards? { StandingsMath.awards(indRows) }
   public var establishedIndex: Bool { viewer?.indexCurrent != nil }
   public var pool: [LeagueRoom.Member] { members.filter { m in !squads.contains { $0.seats(m.id) } } }
@@ -389,14 +411,25 @@ public final class LeagueRoomModel {
   /// Tests and previews: the clash without the network.
   public func seedWeekClash(_ wc: LeagueRoom.WeekClash?) { weekClash = wc }
 
-  /// R6 · the story. One RPC, `try?` on the whole read: a database that has
-  /// not reached this migration renders a season page with no story spine,
-  /// which is a shorter page and not a broken one.
+  /// R6 · the story. THREE answers, never one nil (C-09): the story itself, a
+  /// database that has not reached this migration (a shorter page, not a broken
+  /// one), and a read that did not answer — which the pane says out loud and
+  /// offers the retry for, rather than making a claim about the season.
   private func loadStory() async {
-    seasonStory = try? await svc.call(SeasonStoryCall(p_season: season?.id, p_league: leagueId))
+    do {
+      seasonStory = try await svc.call(SeasonStoryCall(p_season: season?.id, p_league: leagueId))
+      storyRead = .loaded
+    } catch {
+      seasonStory = nil
+      storyRead = PostService.fallbackFires(on: error) ? .notYet : .failed
+    }
   }
+  /// C-09 · the retry the failed-read state offers. One read, not the whole page.
+  public func reloadStory() async { await loadStory() }
   /// Tests and previews: the story without the network.
-  public func seedStory(_ p: SeasonStory.Payload?) { seasonStory = p }
+  public func seedStory(_ p: SeasonStory.Payload?) { seasonStory = p; storyRead = p == nil ? .notYet : .loaded }
+  /// Tests and previews: the read that did not answer.
+  public func seedStoryRead(_ r: StoryRead) { storyRead = r }
 
   /// The story line the page leads with, chosen by the seven-rung ladder.
   public var storyLine: SeasonStoryCopy.Line? { seasonStory.flatMap { SeasonStoryCopy.line($0) } }

@@ -108,8 +108,11 @@ struct SeasonWrappedHero: View {
         // reading "Run it back" and then meeting "Ask Galen" is the same
         // door-that-does-not-open L-32 forbids.
         if let rb = links.runItBack {
+          // LV-21 · L-25 is explicit: gold on a button is a defect. Gold is
+          // EARNED and a control is an act, so ember (the primary) carries it
+          // and the earned facts on the same card keep the metal.
           CSButton(RunItBack.title(isPro: model.isPro, proFirstName: model.proName == "—" ? nil : model.proName),
-                   style: .gold) { rb() }.padding(.top, 4)
+                   style: .primary) { rb() }.padding(.top, 4)
         }
       }
     }
@@ -154,7 +157,9 @@ struct NextCard: View {
           Text(n.text).font(CSFont.subhead).foregroundStyle(cs.ink).fixedSize(horizontal: false, vertical: true)
         }
         Spacer(minLength: 0)
-        if let go = links.openRecord { RoomMini("Live round") { go() } }
+        // F-9 · a control is FUNCTION-FIRST (L-33). "Live round" is a noun;
+        // every other door on this page says what the tap does.
+        if let go = links.openRecord { RoomMini("Add my round") { go() } }
       }
     }
   }

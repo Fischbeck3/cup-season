@@ -31,7 +31,7 @@ public struct WizardDials: Sendable, Equatable {
   public static let structNames = Bylaws.structNames
   public static let structMin = Bylaws.structMin
   public static let structNotes = [
-    "solo": "Individual · every player for himself — works at any size (2+). No squads; top 2 players meet in the Cup Final in the final four weeks.",
+    "solo": "Individual · everyone for themselves — works at any size (2+). No squads; the top two meet in the Cup Final in the final four weeks.",   // LV-18
     "squads2": "2 squads · fits 4–7 players. Both squads reach the Cup Final; the regular-season leader carries a +10 head start.",
     "squads3": "3 squads · fits 6+. Cut line after 2nd: top 2 advance.",
     "squads4": "4 squads · the full cup experience for 8+ players.",
@@ -86,7 +86,7 @@ public struct WizardDials: Sendable, Equatable {
   ]
   public static let presetSummary = [
     "Casual: 100% handicap, honor-system scores, any course. Beer-league friendly — everything counts, nobody’s benched.",
-    "Standard: 95% handicap, post what you'd post to GHIN, your best 3 a month count, post 2 or the squad feels it. The default for a reason.",
+    "Standard: 95% handicap, post what you’d post to GHIN, your best 3 a month count, post 2 or the squad feels it. The default for a reason.",
     "Cutthroat: 90% handicap, vouched by the group where you can and the Pro rules on the rest, rated tees, best 2 a month, a 3-round floor. For crews that want the screws tight.",
   ]
   /// The DB's own words for the three presets (14890–14895).
@@ -302,7 +302,7 @@ public struct WizardPortrait: Sendable, Equatable {
     let draft = ["random": "Random draw", "assign": "The Pro picks", "snake": "Snake", "live": "Live picks"][d.draftType] ?? "Random draw"
     name = d.name.trimmingCharacters(in: .whitespaces).isEmpty ? "Your league" : d.name.trimmingCharacters(in: .whitespaces)
     squads = sqN
-    structLine = sqN > 0 ? "\(sqN) SQUADS · \(draft.uppercased())" : "SOLO · EVERY PLAYER"
+    structLine = sqN > 0 ? "\(sqN) SQUADS · \(draft.uppercased())" : "SOLO · EVERY GOLFER"   // LV-10/LV-18
     cup = d.finish == "cup_final"
     canCup = cup && d.durWeeks >= 6
     stake = d.stake
@@ -365,9 +365,16 @@ public struct WizardLockCall: RpcCall {
   public typealias Returns = JSONValue
 
   public let args: Rpc.lock_league
-  /// R18 · the nineteenth argument, sent ONLY when there is a note. A $0 season
+  /// R18 · the twentieth argument, sent ONLY when there is a note. A $0 season
   /// sends the nineteen keys every deployed `lock_league` has had since
   /// 20260829220000, so the common path never depends on the migration at all.
+  ///
+  /// C-01: that is only safe because 20260924103000 DROPS the 19-argument
+  /// signature. PostgREST resolves by key name, so while both signatures were
+  /// live a nineteen-key body matched two candidates and nobody could publish.
+  /// One function, twenty parameters, the last one defaulted: nineteen keys
+  /// resolve to it, twenty keys resolve to it, and a client running ahead of
+  /// the database takes PGRST202 and drops the note through `withoutPayNote`.
   public let payNote: String?
 
   public init(_ d: WizardDials, leagueId: UUID, name: String, today: String = CSDate.today()) {
@@ -438,10 +445,13 @@ public struct WizardLockCall: RpcCall {
 // MARK: - Copy the screens print
 
 public enum WizardCopy {
-  public static let eyebrow = "Create your league — set the rules once, lock them in"
+  // F-5 · check 5 bans "lock it in"; this said "lock them in" and walked past
+  // it, on the wizard's own eyebrow. §2.3: the season STARTS; nothing locks.
+  // LV-14 · and "league" is never the thing you create — a season is.
+  public static let eyebrow = "Set the rules once, then start the season"
   public static let namePlaceholder = "The Big Slice, The Sunday Cup, Dew Sweepers…"
   public static let nameLabel = "League name"
-  public static let proLabel = "Pro — that's you"
+  public static let proLabel = "Pro — that’s you"
   public static let proSub = "you run this league"
   public static let proTag = "THE PRO"
 
@@ -449,16 +459,16 @@ public enum WizardCopy {
   public static let nameSheetTitle = "Name your league"
   public static let nameSheetSub = "The banner everything hangs under"
   public static let nameSheetFine = "You can rename it any time before the season starts."
-  public static let nameSheetGo = "Start the league"
+  public static let nameSheetGo = "Start the season"
   public static let nameFirst = "Give the league its name first"
   public static func onTheBooks(_ name: String) -> String { "\(name) is on the books — set the rules" }
   public static let runBackCarried = "Run it back — last season’s rules carried over. Review and start."
-  public static let couldNotCreate = "Could not create the league."
-  public static let signInFirst = "Sign in to start your league."
+  public static let couldNotCreate = "Could not start the season."
+  public static let signInFirst = "Sign in to start a season."
 
   // step 1
   public static let presetEyebrow = "How serious is your league?"
-  public static let presetHelp = "One pick, made now, that sets the fairness rules for the whole season — how much of your number you play off, how scores are vouched for, which courses count. Casual is an honor-system beer league. Standard asks you to post what you'd post to GHIN. Cutthroat wants receipts: vouched by the group where you can; the Pro rules on the rest. Deciding this before anyone tees off is what keeps October friendly."
+  public static let presetHelp = "One pick, made now, that sets the fairness rules for the whole season — how much of your number you play off, how scores are vouched for, which courses count. Casual is an honor-system beer league. Standard asks you to post what you’d post to GHIN. Cutthroat wants receipts: vouched by the group where you can; the Pro rules on the rest. Deciding this before anyone tees off is what keeps October friendly."
   /// M-15 · the footnote under the preset cards: verification is a norm, not a filter.
   public static let verificationNote = "Verification is a norm the league holds, not a filter the engine applies."
   public static let fastPath = "Use these defaults →"
@@ -470,15 +480,15 @@ public enum WizardCopy {
   public static let teamsEyebrow = "Teams"
   public static let teamsHelp = "How the league is organized. Solo means everyone competes individually: no squads. Squad modes split the league into teams the Pro picks or draws; more squads want more players (4 squads plays best at 8+)."
   public static let fillEyebrow = "How teams fill"
-  public static let fillHelp = "How squads get filled. Random draw shuffles everyone server-side and announces the reveal to the board, so nobody can rig the hat. Picking them yourself lets you place players, for groups who picked teams in the group chat. Live picking with a clock isn't built yet."
+  public static let fillHelp = "How squads get filled. Random draw shuffles everyone server-side and announces the reveal to the board, so nobody can rig the hat. Picking them yourself lets you place players, for groups who picked teams in the group chat. Live picking with a clock isn’t built yet."
   public static let endsEyebrow = "How it ends"
   public static let endsHelp = "How the champion is crowned. Cup Final resets for the last four weeks — top seeds race fresh, anyone can catch fire, playoff drama. Points table crowns whoever leads when the season ends: the whole year is the race, no reset."
   public static let potEyebrow = "The pot split"
-  public static let potHelp = "How the pot pays out at season's end. Every split rewards the champion, the runner-up, and the Points King (best individual all year). The pot lives on the books here — " + MoneyCopy.ledger
+  public static let potHelp = "How the pot pays out at season’s end. Every split rewards the champion, the runner-up, and the Points King (best individual all year). The pot lives on the books here — " + MoneyCopy.ledger
   public static let countingCap = ("Rounds that count", "Your best N each month score")
-  public static let capHelp = "The core fairness dial. Only your best N rounds each month score for the squad, so the retiree who plays daily can't bury the dad who plays weekly. A better round automatically replaces your worst counter, so posting never stops mattering."
+  public static let capHelp = "The core fairness dial. Only your best N rounds each month score for the squad, so the retiree who plays daily can’t bury the dad who plays weekly. A better round automatically replaces your worst counter, so posting never stops mattering."
   public static let floorRow = ("The monthly minimum", "ROUNDS A MONTH · −5 SQUAD POINTS SHORT")
-  public static let floorHelp = "The anti-ghosting rule. Every player must post at least this many rounds a month, or the squad takes a penalty: −5 points per round short under Standard rules. One Pro-approved bye month per season covers vacations and injuries."
+  public static let floorHelp = "The anti-ghosting rule. Every golfer posts at least this many rounds a month, or the squad takes a penalty: −5 points per round short under Standard rules. One Pro-approved bye month per season covers vacations and injuries."
   public static let asideTitle = "Your league so far"
   public static let asideHint = "Turn the dials — the rules fill in here. They freeze at the first tee."
 
@@ -501,12 +511,12 @@ public enum WizardCopy {
   public static let cancel = "Cancel"
   public static let back = "← Back"
   public static let next = "Next →"
-  public static let cancelConfirm = "Cancel this league? It hasn't started, so this discards it completely."
+  public static let cancelConfirm = "Cancel this league? It hasn’t started, so this discards it completely."
   public static let discarded = "League discarded"
   public static let couldNotDiscard = "Could not discard."
 
   // the lock share (`openLockShare`, 13931–13960)
-  public static let lockShareTitle = "Season started ⛳"
+  public static let lockShareTitle = "Season started"
   public static let lockShareSub = "One link fills the league"
   public static let shareInvite = "Share the invite link"
   public static let later = "Later — it lives in the league room"
@@ -523,9 +533,9 @@ public enum WizardCopy {
       return "Season is live — every golfer you add posts from day one."
     }
     if need > 0 { return "\(n) in so far — \(need) more fills \(structName), and \(forms) when the crew is in." }
-    return "\(n) in — enough for \(structName). \(draftType == "assign" ? "Seat the squads" : "Run the draw") whenever you're ready."
+    return "\(n) in — enough for \(structName). \(draftType == "assign" ? "Seat the squads" : "Run the draw") whenever you’re ready."
   }
-  public static func inviteText(_ league: String) -> String { "You're invited to \(league) on Cup Season" }
+  public static func inviteText(_ league: String) -> String { "You’re invited to \(league) on Cup Season" }
   public static func inviteURL(_ code: String) -> URL? {
     guard let enc = code.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) else { return nil }
     return URL(string: "\(CSConfig.webOrigin.absoluteString)/?join=\(enc)")
@@ -533,9 +543,10 @@ public enum WizardCopy {
   public static func inviteShort(_ code: String) -> String { "cupseason.app/?join=\(code)" }
 
   // the league-less doors (`renderHomeStart`, 9736–9773) and the D96 hero (9900–9946)
-  public static let startLeague = "Start a league"
+  // LV-14 · row 113: league is never a button, a tab or a thing you join.
+  public static let startLeague = "Start a season"
   public static let startEvent = "Start an event"
-  public static let joinLeague = "Join a league"
+  public static let joinLeague = "Join with a code"
   public static let leaguelessLine = "Add a round — it posts to your rounds. Seasons score it when you join one."
   public static let runBackK = "Season wrapped"
   public static let runBack = "Run it back — Season 2"
@@ -557,8 +568,8 @@ public enum WizardCopy {
   // MARK: - D225 · the three questions, in order (IA §6.3, CORE_FLOWS §7)
 
   /// 1 · WHO
-  public static let step1 = "Who's playing?"
-  public static let step1Sub = "Pick from your buddies, or send a link when you're done."
+  public static let step1 = "Who’s playing?"
+  public static let step1Sub = "Pick from your buddies, or send a link when you’re done."
   /// The empty branch — every first-time organiser's state, and it was missing.
   /// `search_golfers` matches an exact @handle or an existing relation only
   /// (L-37), so a golfer signed in an hour cannot find two friends who are
@@ -571,12 +582,17 @@ public enum WizardCopy {
   public static let justMe = "Just me for now"
   public static let justMeSub = "you can add people any time before the first tee"
   /// The one question the roster is worth asking, and only at four or more.
-  public static let squadsQuestion = "Squads, or every man for himself?"
+  ///
+  /// LV-18 · "everyone for themselves", which is the ruled phrase (row 121)
+  /// and what `LeagueCopy.structNames["solo"]`, `LiveSetupView` and
+  /// `LiveCopy` already say in five places. The wizard is the one screen where
+  /// a NEW organiser — who may not be a man — makes this choice.
+  public static let squadsQuestion = "Squads, or everyone for themselves?"
   public static let squadsYes = "Squads"
-  public static let squadsNo = "Every man for himself"
+  public static let squadsNo = "Everyone for themselves"
 
   /// 2 · WHEN
-  public static let step2 = "How long, and when's the first tee?"
+  public static let step2 = "How long, and when’s the first tee?"
   /// L-13, in a golfer's words, at the moment it matters: six of six audit
   /// posters were promised points a week before their first tee.
   public static func step2Note(endsOn: String) -> String {
@@ -584,12 +600,12 @@ public enum WizardCopy {
   }
 
   /// 3 · WHAT'S ON IT
-  public static let step3 = "What's on it?"
+  public static let step3 = "What’s on it?"
   public static let payLabel = "How do they pay you?"
   public static let payPlaceholder = "Venmo @galen"
-  public static let payFine = "Everyone who owes will see this. It's the only place they can look."
+  public static let payFine = "Everyone who owes will see this. It’s the only place they can look."
   /// The one required field the wizard gains (D225).
-  public static let payMissing = "They'll need somewhere to send it."
+  public static let payMissing = "They’ll need somewhere to send it."
   /// L-09 · printed from the constant, never retyped.
   public static func potLine(stake: Int, roster: Int) -> String {
     "$\(stake) each. \(WizardCopy.numberWord(max(1, roster)).capitalized) in makes \(PotMath.dollars(stake * max(1, roster)))."
@@ -616,7 +632,7 @@ public enum WizardCopy {
   /// the retry safe — and a retap after this sentence gets the standing truth
   /// rather than a second season.
   public static let publishFailedHalf = "The season was created but the rules did not lock. Try again — it will not make a second one."
-  public static let publishFailed = "Couldn't start the season."
+  public static let publishFailed = "Couldn’t start the season."
   /// R18 · the note did not land because the database has not had the migration.
   /// Named out loud rather than dropped (D225).
   public static let payNoteMissedIt = "The season is live. Add how they pay you from the pot."

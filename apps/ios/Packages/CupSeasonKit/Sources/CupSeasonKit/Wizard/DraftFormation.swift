@@ -80,9 +80,10 @@ public enum DraftCopy {
   }
   // the clock (14618–14625)
   public static let formK = "Form squads"
-  public static func formN(pool: Int) -> String { pool > 0 ? "\(pool) in the pool" : "Everyone has a squad" }
+  // LV-13 · "the pool" is §3.1 engine glossary; row 161 gives the replacement.
+  public static func formN(pool: Int) -> String { pool > 0 ? "\(pool) not on a squad yet" : "Everyone has a squad" }
   public static func formM(_ draftType: String) -> String {
-    draftType == "assign" ? "Tap a player, then tap a squad" : "IT’S RANDOM — NOBODY PICKS"
+    draftType == "assign" ? "Tap a golfer, then tap a squad" : "IT’S RANDOM — NOBODY PICKS"
   }
   public static let draw = "Draw squads"
   public static let start = "Start the season →"
@@ -90,10 +91,10 @@ public enum DraftCopy {
   public static let drawFailed = "Draw failed."
   public static let assignFailed = "Assign failed."
   public static let seasonLive = "The season is live — post a round"
-  public static let poolEyebrow = "The pool"
-  public static let poolEmpty = "Pool is empty. Players appear here as they join with the league code."
+  public static let poolEyebrow = "Not on a squad yet"
+  public static let poolEmpty = "Everyone has a squad. Golfers show up here as they join with the season code."
   public static let squadEmpty = "Empty"
-  public static func players(_ k: Int) -> String { "\(k) PLAYER\(k == 1 ? "" : "S")" }
+  public static func players(_ k: Int) -> String { "\(k) GOLFER\(k == 1 ? "" : "S")" }
   /// `switchView('draft')` in setup (4141).
   public static let setupBounce = "Start the season first: the draw opens after setup"
   public static let memberReadOnly = "The Pro forms the squads — you'll see them here the moment they're set."
@@ -112,7 +113,7 @@ public enum DraftCopy {
   public static func notYourPick(_ captain: String) -> String { "Not your pick: \(captain) is on the clock" }
   public static func proPicked(_ player: String, for captain: String) -> String { "Pro picked \(player) for \(captain), logged" }
   public static func drafted(_ captain: String, _ player: String, _ idx: String) -> String { "\(captain) picks \(player) (\(idx))" }
-  public static let poolDone = "Pool's empty. Every player has a squad."
+  public static let poolDone = "Everyone has a squad."
   public static let draftTag = "DRAFT"
   public static let lockedTag = "LOCKED"
   public static let proEyebrow = "Pro"
@@ -140,7 +141,7 @@ public enum DraftCopy {
     // season the server would have started.
     let need = Bylaws.structMin["squads2"] ?? 4
     if members < need { return "Minimum \(WizardCopy.numberWord(need)) to tee off — \(members) in so far. Share the invite link." }
-    if pool > 0 { return "\(pool) golfer(s) still in the pool — everyone needs a squad before the first tee" }
+    if pool > 0 { return "\(pool) golfer(s) not on a squad yet — everyone needs one before the first tee" }
     if let empty = squads.first(where: { $0.squad_members.isEmpty }) { return "\(empty.name) is empty — draw again or assign somebody before the season starts" }
     return nil
   }

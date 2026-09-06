@@ -42,16 +42,27 @@ public struct ScheduleService: Sendable {
 
   /// `declare_round` (16704). `tee` is "HH:MM"; `courseId` stamps the cache row.
   ///
-  /// D240 · a plan may carry a NAME and a GAME. Both are droppable and nothing
-  /// else is, so a database without the eight-argument overload books the plan
-  /// exactly as it does today rather than losing the group off the tee sheet.
+  /// D240 · a plan may carry a NAME and a GAME.
+  ///
+  /// C-06 · the two are NOT on a blind shed list. `SupabaseService.call(_:)`
+  /// drops every droppable key on any error, which lost the plan's identity on
+  /// a flaky network and could book the weekend twice. This is the DECLARED
+  /// fallback instead: it fires only when the eight-argument `declare_round`
+  /// is not deployed (PGRST202 / 42883) and only when there is something to
+  /// drop, and it books the plan unnamed — which is what it does today.
   @discardableResult
   public func declare(playOn: String, course: String, note: String, tagged: [UUID], tee: String?, courseId: String?,
                       name: String? = nil, game: LiveGame? = nil) async throws -> UUID {
     let label = name?.trimmingCharacters(in: .whitespacesAndNewlines)
-    return try await svc.call(DeclarePlanCall(
+    let call = DeclarePlanCall(
       p_play_on: playOn, p_course: course, p_note: note, p_tagged: tagged, p_tee: tee, p_course_id: courseId,
-      p_name: (label?.isEmpty ?? true) ? nil : label, p_game: PlanCopy.gameValue(game)))
+      p_name: (label?.isEmpty ?? true) ? nil : label, p_game: PlanCopy.gameValue(game))
+    do { return try await svc.call(call) } catch {
+      guard PostService.fallbackFires(on: error), call.p_name != nil || call.p_game != nil else { throw error }
+      var bare = call
+      bare.p_name = nil; bare.p_game = nil
+      return try await svc.call(bare)
+    }
   }
 
   public func scratch(_ id: UUID) async throws { _ = try await svc.call(Rpc.scratch_round(p_id: id)) }

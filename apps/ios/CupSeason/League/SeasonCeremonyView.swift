@@ -103,7 +103,7 @@ struct SeasonCeremonyView: View {
         if let rb = runItBack {
           CSButton(RunItBack.title(isPro: model?.isPro ?? false,
                                    proFirstName: (model?.proName).flatMap { $0 == "—" ? nil : $0 }),
-                   style: .gold) { dismiss(); rb() }.padding(.top, 8)
+                   style: .primary) { dismiss(); rb() }.padding(.top, 8)   // LV-21 · L-25
         }
         Button { dismiss() } label: {
           Text("Close").font(CSFont.subhead).foregroundStyle(d.mut).frame(maxWidth: .infinity, minHeight: 44).contentShape(Rectangle())

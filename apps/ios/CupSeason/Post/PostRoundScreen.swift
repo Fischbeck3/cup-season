@@ -124,14 +124,16 @@ private struct PostRoundBody: View {
     .toolbar {
       ToolbarItem(placement: .topBarTrailing) {
         // "Play now" — the tee sheet stays one tap away from the composer (IOS-004 §2)
+        //
+        // F-11 · QUIET. The composer's ranked action is `Add my round`, an
+        // ember fill at the foot; this is a LANE CHANGE. Two ember calls-to-act
+        // in one viewport compete, and the rule is written in this build's own
+        // code (`MeStrip`'s foot doors: "ember is the metal of act now, and
+        // spending it four times in one row spends it on nothing"). The dot
+        // goes with the metal — an ember dot is the live signal, and nothing
+        // is live here yet.
         Button { onDone(); links.openLive() } label: {
-          // D110: the live door wears ember + the dot, so "Play now" reads as a
-          // different MOMENT, not a nav link (was a quiet dawn text button)
-          HStack(spacing: 6) {
-            Circle().fill(cs.brand).frame(width: 6, height: 6)
-            Text("Play now").font(CSFont.subhead.weight(.semibold))
-          }
-          .foregroundStyle(cs.brand)
+          Text("Play now").font(CSFont.subhead.weight(.semibold)).foregroundStyle(cs.dawn)
         }
         .accessibilityHint("Opens live scoring for a round")
       }
@@ -320,7 +322,7 @@ private struct PostRoundBody: View {
       VStack(alignment: .leading, spacing: 8) {
         // the eyebrow and the 18/9 seg share a line; at the accessibility sizes the seg takes the full width under it
         A11yStack(spacing: 8) {
-          Text("Your card").csEyebrow()
+          Text("The round").csEyebrow()   // F-13 · the FORM, not the profile
           Spacer(minLength: 8)
           PostSeg(options: [(18, "18 holes"), (9, "9 holes")], selection: model.card.side) { model.setSide($0) }
             .frame(maxWidth: typeSize.isA11y ? .infinity : 200)
@@ -366,7 +368,9 @@ private struct PostRoundBody: View {
       CSFine("How most golfers keep it — 41 out, 43 in. Played just one nine? Fill that side only and it posts at half value, half a round.")
       // D34: the grid is opt-in — the seg stays hidden; this is its one door
       Button { model.setMode(.holes) } label: {
-        Text("Enter your card").font(CSFont.footnote).foregroundStyle(cs.brand).frame(minHeight: 44).contentShape(Rectangle())
+        // F-13 · the FORM's own noun. "Your card" is the profile sense (§2.1
+        // row 2) and this opens the hole grid.
+        Text("Enter it hole by hole").font(CSFont.footnote).foregroundStyle(cs.brand).frame(minHeight: 44).contentShape(Rectangle())
       }
       .buttonStyle(.plain)
       .accessibilityHint("Opens the hole-by-hole card")
@@ -476,7 +480,7 @@ private struct PostRoundBody: View {
         CSButton("Add my round", busy: model.busy) { model.tapPost() }
         // abandonment is a real path, not a refresh: one tap empties the card
         Button { model.startOver() } label: {
-          Text("Start over — clear this card").font(CSFont.footnote).foregroundStyle(cs.mut).frame(maxWidth: .infinity, minHeight: 44)
+          Text("Start over — clear this round").font(CSFont.footnote)   // F-13.foregroundStyle(cs.mut).frame(maxWidth: .infinity, minHeight: 44)
         }
         .buttonStyle(.plain)
       }
@@ -537,13 +541,15 @@ private struct PostHeroContent: View {
             chip(p.vsText, tone: cs.mut)
           } else {
             chip(pointsText, tone: cs.ink)
-            chip(p.vsText + " vs your index", tone: p.vs >= 0 ? cs.pos : cs.neg)
+            // LV-19 / L-14 · one lens, one word: "your number". "Index" is the
+            // governing body's word and check 12's grep does not see it here.
+            chip(p.vsText + " vs your number", tone: p.vs >= 0 ? cs.pos : cs.neg)
           }
         }
         .padding(.top, 2)
       }
       // D178 · it is no longer a 100% preview, so it must no longer say so.
-      CSFine("A preview — your league's own math scores it on the books.").padding(.top, 4)
+      CSFine("A preview — your season's own math scores it on the books.").padding(.top, 4)
       if model.membership == nil {
         CSFine("No season yet? The round still posts to your rounds — points apply in any season you join.")
       }

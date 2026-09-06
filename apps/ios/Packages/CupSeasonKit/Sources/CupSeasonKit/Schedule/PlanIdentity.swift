@@ -100,14 +100,14 @@ public struct MyScheduleCall: RpcCall {
 /// C-3 · `declare_round` with the two new arguments. Hand-declared for the same
 /// reason: the eight-argument overload is unpushed.
 ///
-/// `p_name` and `p_game` are the ONLY droppable arguments, so a database that
-/// has not had the migration takes the six-argument function and books the plan
-/// unnamed — which is what it does today — while a real refusal ("Tag up to
-/// seven") still reaches the golfer. Dropping the tags on a skew retry, which
-/// is what the generated call does, would post a plan with nobody on it.
+/// C-06 · NOTHING is droppable. `SupabaseService.call(_:)` sheds every
+/// droppable key on ANY first error, so a 500 or a dropped connection lost the
+/// plan's whole D240 identity and could book the weekend twice. The skew the
+/// two arguments needed is served instead by a DECLARED fallback in
+/// `ScheduleService.declare(...)`, which fires on PGRST202/42883 alone.
 public struct DeclarePlanCall: RpcCall {
   public static let name = "declare_round"
-  public static let optionalArgs: [String] = ["p_name", "p_game"]
+  public static let optionalArgs: [String] = []
   public typealias Returns = UUID
   public var p_play_on: String
   public var p_course: String

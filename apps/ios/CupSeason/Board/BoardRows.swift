@@ -146,7 +146,7 @@ struct ChatRow: View {
         .buttonStyle(.plain)
         .disabled(item.profileId == nil)
         .accessibilityLabel(item.who)
-        .accessibilityHint(item.profileId == nil ? "" : "Opens the Tour Card")
+        .accessibilityHint(item.profileId == nil ? "" : GolfersRoot.CardName.hint())
         if item.profileId != nil, item.profileId == store.founderId { FounderTag() }
       }
       Text(item.text).font(CSFont.subhead).foregroundStyle(cs.ink).lineSpacing(3)

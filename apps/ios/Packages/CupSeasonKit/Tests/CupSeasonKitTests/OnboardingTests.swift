@@ -102,6 +102,11 @@ import Foundation
     #expect(note.contains("The Saguaro"))
     #expect(note.lowercased().contains("tap it"))
     #expect(note.contains("You"))
+    // R-14 · and what it is FOR. A default that says only where to change it
+    // has not taught the golfer what a marker is, which is the pattern
+    // TERMINOLOGY §4 holds this sentence up as.
+    #expect(note.contains("your face here until you add a photo"))
+    #expect(note.contains("stamp on every round"))
   }
 
   // MARK: - 3 · the gate is marker AND handle
@@ -180,7 +185,7 @@ import Foundation
     #expect(r.map(\.title) == ["Find your friends",
                               "Search by name or @handle",
                               "Text an invite to somebody else",
-                              "Nobody yet — I'll add them later"])
+                              "Nobody yet — I’ll add them later"])
     // contacts is FIRST: it is the only route that can find somebody a golfer
     // cannot name (R-G's whole point).
     #expect(r.first == .contacts)

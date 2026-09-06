@@ -64,6 +64,9 @@ struct CredentialCard<Anchor: View, Extra: View>: View {
   /// else's, and a caller that has not thought about which is a caller about
   /// to put "your playing number" on a stranger's record.
   let isMe: Bool
+  /// F-8 · handed straight to `CredentialFace`. 1 is the card everywhere it
+  /// already is; the person page passes a wider panel.
+  var aspect: CGFloat = 1
   @ViewBuilder let anchor: () -> Anchor
   @ViewBuilder let extra: () -> Extra
   var settings: (() -> Void)? = nil
@@ -77,7 +80,7 @@ struct CredentialCard<Anchor: View, Extra: View>: View {
   var body: some View {
     VStack(alignment: .leading, spacing: 0) {
       CredentialFace(photoURL: photoURL, marker: marker, name: name, badge: badge, meta: meta,
-                     p: p, accent: accent,
+                     p: p, accent: accent, aspect: aspect,
                      sub: { anchor() },
                      trailing: {
                        if let settings {
@@ -104,7 +107,12 @@ struct CredentialCard<Anchor: View, Extra: View>: View {
         A11yStack(rowAlignment: .bottom, spacing: 12, columnSpacing: 8) {
           VStack(alignment: .leading, spacing: 3) {
             if let idx = indexCurrent {
-              Text(CSCopy.index(idx)).font(CSFont.hero).foregroundStyle(p.gold).csTabular()   // EARNED: the number, once established
+              // F-1 · INK, not gold, and for the same reason it is ink on the
+              // You hero: `UX_PRINCIPLES` §4 forbids gold on a handicap index
+              // in those exact words — it is a fact about the golfer, not a
+              // thing they took off somebody (L-25). The trophy lines below
+              // keep the metal, because those were earned.
+              Text(CSCopy.index(idx)).font(CSFont.hero).foregroundStyle(p.ink).csTabular()
             } else {
               Text(Career.establishing(rounds: rounds)).font(CSFont.heroSmall).foregroundStyle(p.ink).csTabular()
             }

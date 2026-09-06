@@ -244,7 +244,9 @@ struct FormRowView: View {
 
   private var dots: some View {
     HStack(spacing: 6) {
-      Text("FORM").font(CSFont.label).tracking(1.6).foregroundStyle(palette.mut).padding(.trailing, 2)
+      // F-14 · TERMINOLOGY line 90 rules the row's label: a dot row with no
+      // label is a puzzle, and FORM was the puzzle's name.
+      Text("LAST FIVE").font(CSFont.label).tracking(1.6).foregroundStyle(palette.mut).padding(.trailing, 2)
       ForEach(Array(form.dots.enumerated()), id: \.offset) { _, on in
         Circle()
           .fill(on == true ? palette.hot : palette.ink.opacity(0.14))

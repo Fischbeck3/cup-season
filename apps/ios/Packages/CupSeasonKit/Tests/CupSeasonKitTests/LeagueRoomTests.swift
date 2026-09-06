@@ -15,10 +15,10 @@ private func team(_ id: UUID, _ name: String, _ pts: Double, ci: Int = 0) -> Tea
 
 @Suite struct StandingsStoryTests {
   @Test func aGoodWeekendBackWithinFifteen() {
-    #expect(StandingsMath.story([team(a, "Squad 1", 30), team(b, "Squad 2", 18)]).text == "Squad 1 lead by 12 · Squad 2 a good weekend back.")
+    #expect(StandingsMath.story([team(a, "Squad 1", 30), team(b, "Squad 2", 18)]).text == "Squad 1 lead by 12. Squad 2 a good weekend back.")
   }
   @Test func pointsBackPastFifteen() {
-    #expect(StandingsMath.story([team(a, "Squad 1", 40), team(b, "Squad 2", 20)]).text == "Squad 1 lead by 20 · Squad 2 20 back.")
+    #expect(StandingsMath.story([team(a, "Squad 1", 40), team(b, "Squad 2", 20)]).text == "Squad 1 lead by 20. Squad 2 20 back.")
   }
   @Test func deadHeat() {
     #expect(StandingsMath.story([team(a, "Squad 1", 20), team(b, "Squad 2", 20)]).text == "Dead heat — Squad 1 and Squad 2 level at 20.")
@@ -30,6 +30,16 @@ private func team(_ id: UUID, _ name: String, _ pts: Double, ci: Int = 0) -> Tea
   }
   @Test func outFrontAlone() {
     #expect(StandingsMath.story([team(a, "Dan", 9)]).text == "Dan out front — waiting on a challenger.")
+  }
+  /// F-9 · a solo season's row is a PERSON, so the verb agrees with him. D205
+  /// made a solo league a season at two golfers and the line still read
+  /// "Galen lead by 4" — the one sentence V-4 requires to be a sentence.
+  @Test func aGolferLeadsAndASquadLead() {
+    let solo = StandingsMath.story([Team(id: a, name: "Galen", pts: 30, ci: 0, solo: true),
+                                    Team(id: b, name: "Jerecho", pts: 18, ci: 1, solo: true)])
+    #expect(solo.text == "Galen leads by 12. Jerecho a good weekend back.")
+    #expect(!solo.text.contains(" · "))
+    #expect(StandingsMath.story([team(a, "Squad 1", 30), team(b, "Squad 2", 18)]).text.contains("Squad 1 lead by"))
   }
 }
 
@@ -283,7 +293,7 @@ private func team(_ id: UUID, _ name: String, _ pts: Double, ci: Int = 0) -> Tea
   }
   @Test func aMagicNumberOnlyWhenReachable() {
     let sc = SeasonScenarios(meta: meta(), rows: [row(a, "Squad 1", pts: 100, max: 160, needs: 20), row(d, "Squad 4", pts: 5, max: 30, out: true)])
-    #expect(ScenarioLine.parts(sc) == [.bold("SQUAD 1"), .text(" · 20 MORE LOCKS A CUP SEED"), .text(" · "), .out("SQUAD 4 OUT OF THE SEED RACE")])
+    #expect(ScenarioLine.parts(sc) == [.bold("SQUAD 1"), .text(" · 20 MORE CLINCHES A CUP SEED"), .text(" · "), .out("SQUAD 4 OUT OF THE SEED RACE")])
     let far = SeasonScenarios(meta: meta(), rows: [row(a, "Squad 1", pts: 100, max: 110, needs: 20)])
     #expect(ScenarioLine.parts(far).isEmpty)
   }
@@ -293,9 +303,9 @@ private func team(_ id: UUID, _ name: String, _ pts: Double, ci: Int = 0) -> Tea
   }
   @Test func theCrownAndTheRace() {
     let sc = SeasonScenarios(meta: meta(finish: "points_table"), rows: [row(a, "Dan", pts: 100, max: 160, clinched: true), row(b, "Joe", pts: 1, max: 20, out: true)])
-    #expect(ScenarioLine.parts(sc) == [.bold("DAN"), .text(" HAS LOCKED THE CROWN"), .text(" · "), .out("JOE OUT OF THE RACE")])
+    #expect(ScenarioLine.parts(sc) == [.bold("DAN"), .text(" IS IN THE CROWN"), .text(" · "), .out("JOE OUT OF THE RACE")])
     let two = SeasonScenarios(meta: meta(structure: "squads2"), rows: [row(a, "Squad 1", pts: 100, max: 160, clinched: true)])
-    #expect(ScenarioLine.parts(two) == [.bold("SQUAD 1"), .text(" HAS LOCKED THE TOP SEED · +10")])
+    #expect(ScenarioLine.parts(two) == [.bold("SQUAD 1"), .text(" IS IN THE TOP SEED · +10")])
   }
   @Test func quietAfterTheWindowAndWithoutRows() {
     #expect(ScenarioLine.parts(SeasonScenarios(meta: meta(monthsLeft: 0), rows: [row(a, "S", pts: 1, max: 2)])).isEmpty)
@@ -385,7 +395,7 @@ private func team(_ id: UUID, _ name: String, _ pts: Double, ci: Int = 0) -> Tea
     // is still needed, never "3 SEATS OPEN".
     #expect(LeagueCopy.seatFill(code: "PIGL", members: 5, min: 8) == "CODE PIGL · 5 IN · 3 MORE TO TEE OFF")
     #expect(LeagueCopy.seatFill(code: "PIGL", members: 9, min: 8) == "CODE PIGL · 9 IN — THE LINK IS STILL LIVE")
-    #expect(LeagueCopy.draftPoolSub(pool: 2, members: 8, min: 8) == "2 PLAYERS NOT ON A SQUAD YET")
+    #expect(LeagueCopy.draftPoolSub(pool: 2, members: 8, min: 8) == "2 GOLFERS NOT ON A SQUAD YET")
     #expect(LeagueCopy.danger(clock("2026-06-01")).link == "Cancel this league" && LeagueCopy.danger(clock("2026-04-30")).preTee)
   }
   @Test func nextUpAndTheMeter() {
@@ -447,7 +457,7 @@ private func team(_ id: UUID, _ name: String, _ pts: Double, ci: Int = 0) -> Tea
                buyIns: [.init(member_id: m2, paid: true, amount_cents: 7500)], today: "2026-06-01")
     #expect(model.loaded && model.freshStandings && !model.isPro && model.myTeamId == b)
     #expect(model.teams.map(\.id) == [c, b] && model.teams[0].cap == "Joe")
-    #expect(model.story.text == "Squad 2 lead by 12 · Squad 1 a good weekend back.")
+    #expect(model.story.text == "Squad 2 lead by 12. Squad 1 a good weekend back.")
     #expect(model.potTotal == 150 && model.paidCount == 1 && model.collectedDollars == 75 && model.proName == "Joe")
     #expect(model.clock.currentWeek == 5 && model.clock.totalWeeks == 21 && !model.clock.atStarter)
     #expect(model.inviteURL?.absoluteString == "https://cupseason.app/?join=PIGL" && model.inviteText == "You're invited to PIGL on Cup Season")

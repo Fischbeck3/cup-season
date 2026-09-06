@@ -56,7 +56,7 @@ import Foundation
   }
   @Test func summaryAndNotesAreTheWebs() {
     var d = WizardDials()
-    #expect(d.presetSummaryText.hasPrefix("Standard: 95% handicap, post what you'd post to GHIN, your best 3 a month count"))
+    #expect(d.presetSummaryText.hasPrefix("Standard: 95% handicap, post what you’d post to GHIN, your best 3 a month count"))
     d.applyPreset(2)
     #expect(d.presetSummaryText.contains("vouched by the group where you can and the Pro rules on the rest") && d.presetSummaryText.contains("best 2 a month"))
     d.applyPreset(1)
@@ -101,7 +101,7 @@ import Foundation
     var d = WizardDials()
     d.structure = "solo"; d.durWeeks = 26
     let p = WizardPortrait(d, roster: 1)
-    #expect(p.stake == 0 && p.structLine == "SOLO · EVERY PLAYER" && p.months == 6 && p.canCup && p.seasonTail == "6 mo")
+    #expect(p.stake == 0 && p.structLine == "SOLO · EVERY GOLFER" && p.months == 6 && p.canCup && p.seasonTail == "6 mo")
     d.durWeeks = 4; d.finish = "points_table"
     let q = WizardPortrait(d, roster: 1)
     #expect(q.months == 1 && !q.canCup && q.seasonTail == "4 wk · POINTS TABLE")
@@ -248,7 +248,7 @@ import Foundation
     #expect(WizardCopy.lockShareLine(nextPhase: "draft", members: 1, structure: "squads4", draftType: "random")
             == "1 in so far — 7 more fills 4 squads, and the draw runs when the crew is in.")
     #expect(WizardCopy.lockShareLine(nextPhase: "draft", members: 5, structure: "squads2", draftType: "assign")
-            == "5 in — enough for 2 squads. Seat the squads whenever you're ready.")
+            == "5 in — enough for 2 squads. Seat the squads whenever you’re ready.")
     #expect(WizardCopy.lockShareLine(nextPhase: "season", members: 1, structure: "solo", draftType: "random")
             == "Season is live — every golfer you add posts from day one.")
     #expect(WizardCopy.inviteURL("ABCD1234")?.absoluteString == "https://cupseason.app/?join=ABCD1234")
@@ -266,7 +266,7 @@ import Foundation
   @Test func theReviewStepSpeaksBothMinimums() {
     #expect(WizardCopy.inviteNote == "Lock opens the invite link — one link fills the league. The code works until first tee, or until you close the roster. Squads need four to tee off; solo tees off at two.")
     #expect(WizardCopy.lockButton(solo: true) == "Start the season" && WizardCopy.lockButton(solo: false) == "Start the season & form the squads")
-    #expect(WizardDials.structNotes["solo"]?.hasPrefix("Individual · every player for himself — works at any size (2+).") == true)
+    #expect(WizardDials.structNotes["solo"]?.hasPrefix("Individual · everyone for themselves — works at any size (2+).") == true)
     #expect(WizardCopy.verificationNote == "Verification is a norm the league holds, not a filter the engine applies.")
   }
 }
@@ -294,7 +294,7 @@ import Foundation
     let empty = LeagueRoom.Squad(id: UUID(), name: "Squad 2", color: 1)
     let full = LeagueRoom.Squad(id: UUID(), name: "Squad 1", color: 0, squad_members: [.init(member_id: UUID())])
     #expect(DraftCopy.startBlocker(members: 3, pool: 0, squads: [full], solo: false) == "Minimum four to tee off — 3 in so far. Share the invite link.")
-    #expect(DraftCopy.startBlocker(members: 5, pool: 2, squads: [full], solo: false) == "2 golfer(s) still in the pool — everyone needs a squad before the first tee")
+    #expect(DraftCopy.startBlocker(members: 5, pool: 2, squads: [full], solo: false) == "2 golfer(s) not on a squad yet — everyone needs one before the first tee")
     #expect(DraftCopy.startBlocker(members: 5, pool: 0, squads: [full, empty], solo: false) == "Squad 2 is empty — draw again or assign somebody before the season starts")
     #expect(DraftCopy.startBlocker(members: 5, pool: 0, squads: [full], solo: false) == nil)
     #expect(DraftCopy.startBlocker(members: 1, pool: 0, squads: [], solo: true) == nil)
@@ -309,7 +309,7 @@ import Foundation
   }
   @Test func formationCopy() {
     #expect(DraftCopy.eyebrow("assign") == "Form squads · The Pro picks" && DraftCopy.eyebrow("random") == "Form squads · random draw")
-    #expect(DraftCopy.formN(pool: 3) == "3 in the pool" && DraftCopy.formN(pool: 0) == "Everyone has a squad")
+    #expect(DraftCopy.formN(pool: 3) == "3 not on a squad yet" && DraftCopy.formN(pool: 0) == "Everyone has a squad")
     #expect(DraftCopy.lockTheirs("Logan") == "Logan is picking: only their account can select")
     #expect(DraftCopy.proPicked("Ed", for: "Logan") == "Pro picked Ed for Logan, logged")
   }

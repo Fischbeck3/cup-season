@@ -186,7 +186,7 @@ public enum RyderMath {
 
   /// The taunt toggle's label (12266).
   public static func tauntLabel(on: Bool) -> String {
-    "🔔 Tell me when he posts: " + (on ? "ON — mute them" : "OFF — ping me when my opponent posts")
+    "Tell me when he posts: " + (on ? "ON — mute them" : "OFF — ping me when my opponent posts")
   }
 
   /// S5-02: before anything closes, Session 1 is the story — read top-down.

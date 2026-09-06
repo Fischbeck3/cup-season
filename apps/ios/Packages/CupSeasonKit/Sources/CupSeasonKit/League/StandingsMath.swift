@@ -135,14 +135,27 @@ public enum StandingsStory: Sendable, Equatable {
   case lead(Team, Team, margin: Double, back: String)
 
   /// The sentence, plain. Views colour the names.
+  ///
+  /// F-9 · the VERB AGREES with its subject. This was written when a `Team`
+  /// was always a squad — "Reds lead by 4" — and D205 made a solo season a
+  /// season at two golfers, so `a.name` is a PERSON now and the line read
+  /// "Galen lead by 4". `Team.solo` is the answer the row already carries.
+  ///
+  /// And the two clauses are joined by a FULL STOP, not a middot: a middot
+  /// between two independent clauses reads as two links rather than a
+  /// sentence, and V-4 wants a sentence with a subject directly above THE
+  /// TABLE.
   public var text: String {
     switch self {
     case .none: return ""
     case .outFront(let a): return "\(a.name) out front — waiting on a challenger."
     case .deadHeat(let a, let b, let pts): return "Dead heat — \(a.name) and \(b.name) level at \(CSCopy.points(pts))."
-    case .lead(let a, let b, let m, let back): return "\(a.name) lead by \(CSCopy.points(m)) · \(b.name) \(back)."
+    case .lead(let a, let b, let m, let back): return "\(a.name) \(Self.leads(a)) by \(CSCopy.points(m)). \(b.name) \(back)."
     }
   }
+
+  /// "leads" for one golfer, "lead" for a squad. The row knows which it is.
+  public static func leads(_ t: Team) -> String { t.solo ? "leads" : "lead" }
 }
 
 // MARK: - The math
@@ -524,9 +537,12 @@ public enum ScenarioLine {
     let leadHeadroom = (lead.max_final ?? 0) - (lead.points ?? 0)
     var parts: [ScenarioPart] = []
     if lead.clinched == true {
-      parts += [.bold(up(lead.name)), .text(" HAS LOCKED \(sw)")]
+      // F-5 · §2.3 retires "locked" as this product's verb for a settled
+      // fact; check 5 grepped SEEDS LOCKED and this inflection walked past it.
+      // "Clinched" is the golf word for the same certainty anyway.
+      parts += [.bold(up(lead.name)), .text(" IS IN \(sw)")]
     } else if capped, let needs = lead.needs, needs > 0, needs <= leadHeadroom {
-      parts += [.bold(up(lead.name)), .text(" · \(CSCopy.points(needs)) MORE LOCKS \(sw)")]
+      parts += [.bold(up(lead.name)), .text(" · \(CSCopy.points(needs)) MORE CLINCHES \(sw)")]
     }
     let out = rows.filter { $0.eliminated == true }.map { up($0.name) }
     if !out.isEmpty {
@@ -579,7 +595,12 @@ public enum SeasonVote {
         + (members > 0 ? " \(SeasonStoryCopy.cap(SeasonStoryCopy.word(approved))) of \(SeasonStoryCopy.word(members)) "
                        + "\(approved == 1 ? "has" : "have") agreed." : "")
 
-    var sub = refund > 0 ? "Your \(PotMath.money(refund)) comes back. " : ""
+    // R-17 · the CONSEQUENCE first, and unconditionally. The retired
+    // `CancelBanner` carried "nobody won"; this rebuilt the standfirst out of
+    // the refund and the rounds, so at a $0 stake a member voting on a
+    // cancellation was never told the fact that makes the vote consequential.
+    var sub = "The season won't be played and nobody won. "
+    sub += refund > 0 ? "Your \(PotMath.money(refund)) comes back. " : ""
     sub += "Your rounds stay where they are — all of them."
 
     let act: Act = c.is_pro == true ? .withdraw : (c.you_approved == true ? .wait : .vote)

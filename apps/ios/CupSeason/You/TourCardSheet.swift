@@ -35,18 +35,18 @@ struct TourCardSheet: View {
     Group {
       if let load {
         if load.card.visible { card(load) } else {
-          SliceSheet(title: "Tour Card", sub: "PRIVATE") { Fine(TourCard.privateLine) }
+          SliceSheet(title: GolfersRoot.CardName.title(nil), sub: "PRIVATE") { Fine(TourCard.privateLine) }
         }
       } else if failed {
         // a load failure is not privacy — say so, and offer the retry
-        SliceSheet(title: "Tour Card", sub: "COULD NOT LOAD") {
+        SliceSheet(title: GolfersRoot.CardName.title(nil), sub: "COULD NOT LOAD") {
           VStack(alignment: .leading, spacing: 10) {
             Fine("Could not pull the card — check your signal and try again.")
             Button("Try again") { failed = false; Task { await fetch() } }.font(CSFont.subhead).foregroundStyle(cs.dawn)
           }
         }
       } else {
-        SliceSheet(title: "Tour Card", sub: "LOADING…") { Fine("Pulling the card…") }
+        SliceSheet(title: GolfersRoot.CardName.title(nil), sub: "LOADING…") { Fine("Pulling the card…") }
       }
     }
     .task { await fetch() }
@@ -69,7 +69,7 @@ struct TourCardSheet: View {
     let vs = c.vsYou
     let canReport = l.avatarURL != nil && profileId != store.session?.user.id
     let form = FormRow.from(beats: c.recent.map(\.beat))
-    return SliceSheet(title: p.isMe ? "Your Tour Card" : "Tour Card",
+    return SliceSheet(title: p.isMe ? GolfersRoot.CardName.mine : GolfersRoot.CardName.title(p.displayName),
                       sub: p.isMe ? "THIS IS HOW YOUR BUDDIES SEE YOU" : (p.handle.map { "@" + $0.uppercased() } ?? "")) {
       CredentialCard(photoURL: l.avatarURL, marker: p.marker, name: p.displayName ?? "—", badge: store.founding.badge(for: profileId), meta: meta,
                      indexCurrent: p.indexCurrent, rounds: c.career.rounds,
@@ -185,7 +185,7 @@ struct TourCardSheet: View {
     } else {
       do {
         let r = try await repo.friendRequest(profileId)
-        ToastCenter.shared.show(r == .friend ? "Golf buddies ✓" : "Request sent")
+        ToastCenter.shared.show(r == .friend ? GolfersRoot.BuddyAsk.accepted : GolfersRoot.BuddyAsk.sent)
         relation = r
       } catch { ToastCenter.shared.show(SliceFormat.human(error, "Could not send.")) }
     }

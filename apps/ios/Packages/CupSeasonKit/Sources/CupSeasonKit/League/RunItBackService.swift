@@ -19,11 +19,13 @@ import Foundation
 /// server-side, so a client that ships first still calls it.
 public struct RunItBackCall: RpcCall {
   public static let name = "run_it_back"
-  /// The four terms may all be dropped on a skew retry — dropping them means
-  /// "carry last season's forward", which is exactly what the RPC does with a
-  /// null. Dropping the LEAGUE would run back a different season, so it is not
-  /// on this list.
-  public static let optionalArgs = ["p_starts_on", "p_ends_on", "p_buyin_cents", "p_season_months", "p_pay_note"]
+  /// C-06 · NOTHING is droppable. `run_it_back` mints a season and carries no
+  /// idempotency key, so a blind retry could start next season on the server's
+  /// defaults with the Pro's dates, stake, length and pay note discarded — and
+  /// a lost response after a committed insert could start it twice. The one
+  /// skew case is the function not existing, and `run(_:)` already answers
+  /// that with `.notYet` rather than a shed argument.
+  public static let optionalArgs: [String] = []
   public typealias Returns = RunItBackResult
   public var p_league: UUID
   public var p_starts_on: String?
@@ -102,7 +104,7 @@ public struct RunItBackService: Sendable {
       defaults.set(true, forKey: key)
       return RunItBack.askSent
     } catch {
-      return AuthRules.human(error, fallback: "Couldn't send that.")
+      return AuthRules.human(error, fallback: "Couldn’t send that.")
     }
   }
 }

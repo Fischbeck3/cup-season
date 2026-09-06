@@ -256,7 +256,7 @@ public struct Occasion: Sendable, Identifiable {
     Occasion(key: "fall", window: (10, 1, 11, 20), earned: true, k: "The season's turning", h: "Cool mornings, empty fairways.",
              p: "A fall Major — two to four days, best card takes it.", act: "Name the jug", go: .event, marker: nil, leaguelessOnly: false, needsMajor: true),
     Occasion(key: "fresh", window: (12, 27, 1, 15), earned: false, k: "A fresh table", h: "Nobody's ahead yet.",
-             p: "A season scores the rounds you’re already playing. Nothing changes about how you post.", act: "Start a league", go: .league, marker: nil, leaguelessOnly: true, needsMajor: false),
+             p: "A season scores the rounds you’re already playing. Nothing changes about how you post.", act: "Start a season", go: .league, marker: nil, leaguelessOnly: true, needsMajor: false),
   ]
 
   public static func inWindow(_ w: (Int, Int, Int, Int), month m: Int, day: Int) -> Bool {

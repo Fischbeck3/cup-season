@@ -239,7 +239,8 @@ public enum LeagueCopy {
     }
   }
 
-  public static func players(_ k: Int) -> String { "\(k) PLAYER\(k == 1 ? "" : "S")" }
+  /// LV-10 · a headcount counts GOLFERS (row 161).
+  public static func players(_ k: Int) -> String { "\(k) GOLFER\(k == 1 ? "" : "S")" }
 
   /// `#setupInviteSub` (12640–12643).
   public static func seatFill(code: String?, members n: Int, min: Int, locked: Bool = true) -> String {

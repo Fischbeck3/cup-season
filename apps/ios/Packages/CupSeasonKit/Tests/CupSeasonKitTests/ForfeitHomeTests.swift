@@ -96,13 +96,23 @@ import Foundation
     #expect(Set(obj.keys) == ["p_league", "p_name", "p_terms", "p_kind", "p_other"])
   }
 
-  /// C-5's skew rule: only the two NEW arguments are droppable. Dropping
-  /// `p_other` on a retry would turn a bet between two golfers into a bounty
-  /// against the field, which is a different bet.
-  @Test func onlyTheTwoNewArgumentsAreDroppable() {
-    #expect(Set(CreateForfeitCall.optionalArgs) == ["p_event", "p_round"])
-    #expect(!CreateForfeitCall.optionalArgs.contains("p_other"))
-    #expect(!CreateForfeitCall.optionalArgs.contains("p_league"))
+  /// C-06 · a consequential write sheds NOTHING on a blind retry. A season's
+  /// forfeit already sends the six keys the deployed function has (the two new
+  /// arguments are nil and omitted), so there is nothing to gain and a
+  /// re-homed bet and a duplicate row to lose.
+  @Test func nothingIsDroppableOnAForfeit() {
+    #expect(CreateForfeitCall.optionalArgs.isEmpty)
+  }
+
+  /// The proof the skew is served without a shed: a SEASON's forfeit encodes
+  /// exactly the six keys every deployed `create_forfeit` has.
+  @Test func aSeasonForfeitSendsTheSixKeysTheDeployedFunctionHas() throws {
+    let call = CreateForfeitCall(home: ForfeitHome(leagueId: Self.b, opponent: Self.him),
+                                 name: "n", terms: "t")
+    let data = try JSONEncoder().encode(call)
+    let obj = try #require(try JSONSerialization.jsonObject(with: data) as? [String: Any])
+    #expect(obj["p_event"] == nil && obj["p_round"] == nil)
+    #expect(Set(obj.keys) == ["p_league", "p_name", "p_terms", "p_kind", "p_other"])
   }
 
   /// A null league is an EXPLICIT null, never an omitted key — PostgREST matches

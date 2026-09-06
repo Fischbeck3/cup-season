@@ -124,7 +124,7 @@ struct HomeDeckCard: View {
 #Preview("The lead · a clash closing") {
   HomeLeadCard(item: .init(key: "clash", tier: .closing, rank: 1, score: 1056,
                            subject: "Galen", humanSubject: true,
-                           eyebrow: "WHO'S THE BITCH? · THE CLASH · CLOSES IN 2 DAYS",
+                           eyebrow: "THE FELLAS · THE CLASH · CLOSES IN 2 DAYS",   // LV-23 · a neutral fixture; a preview is a screenshot source
                            headline: "Galen has two days to answer your 89.",
                            standfirst: "Your round is the number to beat.",
                            action: "See the receipt", route: .composer, spine: .ember),

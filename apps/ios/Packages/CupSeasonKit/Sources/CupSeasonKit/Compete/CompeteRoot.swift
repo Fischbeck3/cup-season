@@ -53,9 +53,19 @@ public enum CompeteRoot {
 
   /// The three heads, verbatim (R-D: the object keeps its name where the
   /// object is, even though the tab does not).
+  ///
+  /// **F-3 · CONFLICT, and the ruling wins.** `OWNER_RULINGS.md` R-D names
+  /// these two heads in terms — *"the section heads still read YOUR SEASONS
+  /// and YOUR MOMENTS"*. `TERMINOLOGY.md` A-4 replaced the second with
+  /// `MATCHES & WEEKENDS` because `moment` is also `posts.moment`, a schema
+  /// word, and preflight check 25 was then written to FAIL THE PUSH on the
+  /// owner's own word. A-4's reasoning is sound and its argument is recorded
+  /// in the D-entry and in the report as a question for the owner — but an
+  /// artifact does not overrule a ruling, and a lint may not enforce the
+  /// inversion. The owner's word ships; check 25 now guards the other way.
   public enum Head {
     public static let seasons = "YOUR SEASONS"
-    public static let moments = "MATCHES & WEEKENDS"
+    public static let moments = "YOUR MOMENTS"
     public static let finished = "FINISHED"
   }
 

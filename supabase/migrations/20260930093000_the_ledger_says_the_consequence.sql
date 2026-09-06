@@ -120,7 +120,7 @@ begin
               (season_id, squad_id, member_id, month, kind, points, reason)
             values (p_season, m.squad_id, m.member_id, p_month, 'floor_forfeit',
                     -m.counting_pts,
-                    to_char(p_month,'FMMonth')||'''s rounds are struck — the minimum wasn''''t met. '
+                    to_char(p_month,'FMMonth')||'''s rounds are struck — the minimum wasn''t met. '
                     ||'Posted '||m.credits||' of '||st.participation_floor||', and the bye was already used.');
             insert into posts (league_id, season_id, kind, member_id, body)
             values (se.league_id, p_season, 'system', m.member_id,
@@ -220,7 +220,7 @@ begin
      order by starts_on desc limit 1;
     if v_season is null then raise exception 'No active season to post into'; end if;
   end if;
-  -- D107: without a league, v_member and v_season stay null â the round
+  -- D107: without a league, v_member and v_season stay null — the round
   -- belongs to its starter by profile, and there is nothing to post into.
 
   insert into live_rounds (league_id, season_id, course_id, tee_id, course_label,
@@ -237,7 +237,7 @@ begin
   for v_el in select * from jsonb_array_elements(coalesce(p_players, '[]'::jsonb)) loop
     if (v_el->>'member_id') is not null then
       if p_league is null then
-        raise exception 'No league on this round â seat golfers as guests';
+        raise exception 'No league on this round — seat golfers as guests';
       end if;
       if not exists (
         select 1 from league_members
@@ -261,14 +261,14 @@ begin
     v_pos := v_pos + 1;
   end loop;
 
-  -- D86/D88 Â· the invitation. Members by member_id, visitors by
+  -- D86/D88 · the invitation. Members by member_id, visitors by
   -- guest_profile_id; never the starter, never an account-less guest (there is
-  -- no one to notify â they have a name and nothing else).
+  -- no one to notify — they have a name and nothing else).
   select split_part(coalesce(playerlabel(v), 'Someone'), ' ', 1) into v_who;
   v_where := coalesce(nullif(trim(p_course_label), ''), 'the course');
   v_title := v_who || ' started a live round with you';
-  v_body  := 'Live round at ' || v_where || ' â open the app to score it with them';
-  -- wave 7 Â· routed: the phone opens THIS live round (contract Â§2, `nudge`)
+  v_body  := 'Live round at ' || v_where || ' — open the app to score it with them';
+  -- wave 7 · routed: the phone opens THIS live round (contract §2, `nudge`)
   insert into push_nudges (profile_id, kind, title, body, payload)
   select distinct pr, 'nudge', v_title, v_body,
          jsonb_build_object('live_round_id', v_lr, 'league_id', p_league)

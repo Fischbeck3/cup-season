@@ -118,7 +118,9 @@ struct LiveSetupView: View {
   private var foursomeCard: some View {
     CSCard {
       VStack(alignment: .leading, spacing: 10) {
-        fieldLabel("The foursome · \(store.sel.count) / 4")
+        // LV-08 · "the foursome" is retired (row 161) in favour of "the group",
+        // which this screen's own new copy already says five ways.
+        fieldLabel("The group · \(store.sel.count) / 4")
         if store.teamable {
           LiveSeg(options: [(LiveMode.teams, "2v2 teams"), (LiveMode.solo, "Everyone for themselves")], selected: store.state.mode) { store.setMode($0) }
         }
@@ -129,7 +131,8 @@ struct LiveSetupView: View {
         fieldLabel("Add a guest").padding(.top, 4)
         A11yStack(spacing: 8) {
           CSField("Name", text: $guestName, font: CSFont.body).accessibilityLabel("Guest name")
-          CSField("Index", text: $guestIdx).keyboardType(.decimalPad).frame(width: typeSize.isA11y ? nil : 96).accessibilityLabel("Guest index")
+          // LV-19 · the slot chip on this same screen says NUMBER; the field said Index.
+          CSField("Number", text: $guestIdx).keyboardType(.decimalPad).frame(width: typeSize.isA11y ? nil : 96).accessibilityLabel("Guest number")
           CSMini("Add") {
             store.addGuest(name: guestName, index: Double(guestIdx.replacingOccurrences(of: ",", with: ".")))
             if !guestName.trimmingCharacters(in: .whitespaces).isEmpty { guestName = ""; guestIdx = "" }
@@ -170,7 +173,7 @@ struct LiveSetupView: View {
         HStack {
           VStack(alignment: .leading, spacing: 2) {
             Text("Who's on this tee").font(CSFont.subhead.weight(.semibold)).foregroundStyle(cs.ink)
-            Text(store.nearbyOn ? "Looking for buddies nearby" : "Fill the foursome from the phones next to you")
+            Text(store.nearbyOn ? "Looking for buddies nearby" : "Fill the group from the phones next to you")
               .font(CSFont.label).foregroundStyle(cs.dimText)
           }
           Spacer()
@@ -254,7 +257,7 @@ struct LiveSetupView: View {
               .disabled(waiting)
               .accessibilityLabel("\(p.n), index \(LiveFmt.idx(p.i))\(p.guest ? (p.buddy ? ", buddy" : ", guest") : "")\(waiting ? ", asked, waiting for them" : "")")
               .accessibilityHint(isNear ? "Asks them to join — they confirm on their own phone"
-                                        : "Adds them to the foursome")
+                                        : "Adds them to the group")
             }
           }
         }
@@ -650,7 +653,7 @@ struct LiveRosterPickerSheet: View {
     NavigationStack {
       ScrollView {
         VStack(alignment: .leading, spacing: 12) {
-          CSSheetHeader(title: "Add to the foursome", sub: store.leagueId == nil ? "Buddies are below — search anyone on the app" : "Buddies and the golfers in your seasons are below — search anyone on the app")
+          CSSheetHeader(title: "Add to the group", sub: store.leagueId == nil ? "Buddies are below — search anyone on the app" : "Buddies and the golfers in your seasons are below — search anyone on the app")
           CSField("Find golfers by name or @handle", text: $query, font: CSFont.body)
             .textInputAutocapitalization(.never).autocorrectionDisabled()
           if rows.isEmpty {

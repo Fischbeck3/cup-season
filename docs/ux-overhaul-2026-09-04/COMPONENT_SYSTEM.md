@@ -370,7 +370,7 @@ CSRivalLine(
 )
 ```
 
-**Copy rule.** The record is always attached to a name and a direction — "You lead 6–5", never a bare "6–5". Until a meeting is confirmed the facet is labelled **"played together"** and never "beat" without the qualifier (C-2/D239: the tag has a state, and a tag is never a vouch — L-19). The same-day/same-course heuristic is **labelled as a heuristic**, because 155 of 212 quick rounds in prod carry no course id. The rivalry name leads when it exists (`my_rivalries.rivalry_name` is returned and dropped by the client today).
+**Copy rule.** The record is always attached to a name and a direction — "You lead 6–5", never a bare "6–5". Until a meeting is confirmed the facet is labelled **"played together"** and never "beat" without the qualifier (C-2/D239: the tag has a state, and a tag is never a vouch — L-19). The same-day/same-course heuristic is **labelled as a heuristic**, because the course is optional on a quick post — a round may carry no `course_id` at all, so a same-course match is an inference and never a record (L-44). The rivalry name leads when it exists (`my_rivalries.rivalry_name` is returned and dropped by the client today).
 
 **States.** **loading** redacted record + one bar. **empty** fewer than two meetings and the line does not render — **never "0–0"**, which is a number that counts nothing (L-44). **error** the line drops; nothing else on the page changes.
 
@@ -446,7 +446,7 @@ The five, as ruled (`INFORMATION_ARCHITECTURE.md` §6.2):
 > *Put money on it* — add a pot to any of the above  ← the **modifier**, a footer line
 > *I have a code →*
 
-**Copy rule.** **Names an intent, never an object.** No "league", no "event", no "Ryder", no "bracket". **And it may not sell what the object does not mint:** the third line used to read *"one day, one trophy"* while C-3/D240's own text says a named weekend *"gets no board of its own and mints no trophy"* — the gloss is now **"one day, and a name for it"** (L-32/L-44, and `TERMINOLOGY.md` A-9). Money is a choice **on** a competition and never a competition, so it is a footer and not a fifth peer (L-11, D46 — two of two organisers met a $75 stake they never chose). No icon and no chevron on a primary door: an icon here would be a category badge, which is the object menu wearing a costume.
+**Copy rule.** **Names an intent, never an object.** No "league", no "event", no "Ryder", no "bracket". **And it may not sell what the object does not mint:** the third line used to read *"one day, one trophy"* while C-3/D240's own text says a named weekend *"gets no board of its own and mints no trophy"* — the gloss is now **"one day, and a name for it"** (L-32/L-44, and `TERMINOLOGY.md` A-9). Money is a choice **on** a competition and never a competition, so it is a footer and not a fifth peer (L-11, D46 — and both organiser walks in the August audit met a $75 stake they never chose: a persona walk is a reasoning tool, not a cohort). No icon and no chevron on a primary door: an icon here would be a category badge, which is the object menu wearing a costume.
 
 **States.** The one pattern with no data: no loading, no empty, no error. That is deliberate — creation must work when everything else is failing.
 
@@ -479,7 +479,7 @@ CSStep(
 )
 ```
 
-The three questions, in order, and nothing else before Start: **Who's playing? · How long, and when's the first tee? · What's on it?** (`INFORMATION_ARCHITECTURE.md` §6.3). The name is asked **last**, on the same screen as the primary, and the `leagues` row is minted at that tap in one transaction with `lock_league` — so an abandoned wizard leaves nothing behind (prod holds six founder-alone `setup` leagues because the wizard mints on a name, `WizardScreen.swift:70-86` → `:252-268`).
+The three questions, in order, and nothing else before Start: **Who's playing? · How long, and when's the first tee? · What's on it?** (`INFORMATION_ARCHITECTURE.md` §6.3). The name is asked **last**, on the same screen as the primary, and the `leagues` row is minted at that tap in one transaction with `lock_league` — so an abandoned wizard leaves nothing behind (today the wizard mints the row on the name step, so an abandoned wizard strands a founder-alone `setup` league, `WizardScreen.swift:70-86` → `:252-268`).
 
 **Copy rule.** The note is **derived, never a literal**: "Two is a season. Four opens squads." comes from `structMin`, so it cannot go stale. The primary names the press ("Start the season"), never "Continue". **A preset carries one sentence and never recites a dial** — `WizardState.swift:68-72` is a live L-16 violation, printing "95% hcp · post what you'd post to GHIN · best 3 / mo count · 2-round floor" on a card whose whole job is to spare a golfer those words. It becomes: *"Standard — the default. Light guardrails, honest scores."*
 
@@ -519,7 +519,7 @@ CSStakeLine(
 - **$0 renders nothing.** No "None", no "Bragging rights" tile, no pot pane, no surface anywhere (L-10, D70). A $0 season is not a season with an empty pot; it is a season with no pot.
 - **The ledger line is one constant, printed verbatim**: `MoneyCopy.ledger` (`MoneyCopy.swift:28`) — *"Cup Season keeps the ledger; the money moves between friends."* Never "never held", never "takes no cut", never "between you". That file's own header explains why this drifted twenty-two ways: a verbatim law has no violating token, only near-misses, so nothing ever failed. The component is the fixed home the law needs.
 - **The unpaid figure is self-only, in `neg`, never gold and never with a countdown.** Money is never urgency and never earned (L-10). It lives in exactly one always-present place — the ME strip's `STILL OWE` slot — where it fires from state on every open, and taps to the books. D129 relocated, not demoted.
-- **A payout with zero rows renders nothing, never $0.** `season_payouts` has 0 rows in prod, so a "$0 earnings" stat would be a number that counts nothing (L-44).
+- **A payout with zero rows renders nothing, never $0.** A golfer who has not been paid out has no `season_payouts` rows, and a "$0 earnings" stat over none of them is a number that counts nothing (L-44).
 - **No odds, no action, no units, no parlay, no "wager".** The banned register is `brand-canon.md:91-95`, and this component is what App Review reads.
 
 **States.** **loading** the two numbers redacted, labels visible. **empty** at $0 the component is **absent**, which is the only empty state in the system that draws literally nothing. **error** the numbers keep their last values under the stale dateline; a stale pot figure is honest, a guessed one is not.

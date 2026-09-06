@@ -67,11 +67,10 @@ struct HomeView: View {
         // device and is spent the moment the engine has a number of its own.
         let strip = MeStripCopy.make(me, starter: StarterIndex.current(engineIndex: me.profile?.index_current))
         let ranked = vm.ranked(stripSuppress: strip.suppress)
-        // IOS-034 · the home screen gets what Home just read, and nothing it
-        // did not: the strip's own facts (never the money one) and the lead's
-        // own sentence. Written here, where both producers have already run,
-        // so the widget cannot draw a fact this screen is not drawing.
-        let _ = DispatchSnapshotFeed.publish(strip: strip, lead: ranked.lead)
+        // IOS-034's widget snapshot and L-34's live-lead flag are BOTH written
+        // from `HomeModel.run(...)`, never from here (C-05, C-11): a body is
+        // evaluated on every scroll and on every observation change, and both
+        // writes have consequences outside this view.
         VStack(alignment: .leading, spacing: 14) {
           // 1 · the masthead. IOS-019 rule 3: the wordmark lives in the
           // scroll, where the glass toolbar cannot clip it.
@@ -138,11 +137,25 @@ struct HomeView: View {
               .accessibilityHint("Opens the Golfers tab")
           }
 
-          let buckets = vm.feed(upcoming: upcoming.ids)
+          // F-2 · the wire never re-tells a round the deck above already told.
+          let buckets = vm.feed(upcoming: upcoming.ids, spent: ranked.spentRounds)
           if let d = vm.digest { CSRow(last: !buckets.isEmpty) { HomeDigestRow(digest: d, openReceipt: { presenter.receipt = $0 }) } }
 
           if vm.loading && buckets.isEmpty {
             ForEach(0..<3, id: \.self) { _ in skeleton }
+          } else if buckets.isEmpty && vm.feedFailed {
+            // C-10 · a failed read is never an empty one (L-32). Saying "no
+            // rounds from your buddies" over a dead network is a claim about
+            // the golfer's buddies made from a read that never answered.
+            let e = EmptyRoot.failedRead()
+            A11yStack(alignment: .leading, rowAlignment: .firstTextBaseline, spacing: 4) {
+              Text(e.head).font(CSFont.footnote).foregroundStyle(cs.mut)
+              Button { Task { await vm.load(me: store.me, key: loadKey) } } label: {
+                Text("Try again.").font(CSFont.footnote).foregroundStyle(cs.brand).a11yHitSlop()
+              }
+              .buttonStyle(.plain)
+            }
+            .padding(.top, 4)
           } else if buckets.isEmpty {
             A11yStack(alignment: .leading, rowAlignment: .firstTextBaseline, spacing: 4) {
               Text("No rounds from your buddies yet. Post one, or").font(CSFont.footnote).foregroundStyle(cs.mut)
@@ -265,6 +278,14 @@ final class HomeModel {
   /// True while the client is composing the dispatch itself. It is not an
   /// error state; it is a shorter, honest Home with no lead card.
   var usedFallback = false
+  /// F-2 · the rounds the ranked cards have already told a story about. Set
+  /// when the arrangement settles, so the DIGEST (which reaches for the best
+  /// round in the feed on a quiet day) yields the same fact the deck spent.
+  var spentRounds: Set<UUID> = []
+  /// C-10 · the wire read did not answer. A DIFFERENT answer from "your buddies
+  /// have posted nothing", which is what the screen used to say over a dead
+  /// network (L-32's second half).
+  var feedFailed = false
   var loading = false
   var social = HomeSocial.Snapshot()
   private var markRead = false
@@ -306,12 +327,39 @@ final class HomeModel {
       if case .invite = item.route { return false }
       return !item.key.hasPrefix("friend:")
     }
-    let r = HomeRank.arrange(mine, stripSuppress: stripSuppress, leadSuppress: leadSuppress,
-                             useServerRank: !usedFallback)
-    // L-34 · the live door is offered once. `MainTabView` reads this.
-    if case .live = r.lead?.route { HomeLeadFlag.shared.liveIsLead = true }
+    // R-06 · `allowLead: !usedFallback` — UX_PRINCIPLES §5.4 rule 2, which this
+    // file's own header restates: the declared fallback renders NO LEAD CARD,
+    // because a guessed lead is the exact failure the veto exists to prevent.
+    // The web obeyed it and the phone did not, so on the day the ranker cannot
+    // be reached the two clients drew a structurally different Home.
+    return HomeRank.arrange(mine, stripSuppress: stripSuppress, leadSuppress: leadSuppress,
+                            useServerRank: !usedFallback, allowLead: !usedFallback)
+  }
+
+  /// C-05 / C-11 · the two writes that reach OUTSIDE this screen, made once per
+  /// load instead of once per body evaluation.
+  ///
+  /// `HomeLeadFlag` is `@Observable` and `MainTabView.body` reads it, so
+  /// assigning it from `HomeView.body` invalidated the ancestor mid-render —
+  /// "Modifying state during view update", and at worst a loop. The widget
+  /// snapshot is an App-Group `UserDefaults` write, which has no business
+  /// happening on a scroll.
+  ///
+  /// The widget is handed a LEAD only when the ranker actually served one: a
+  /// sentence composed by the declared fallback is honest on Home, where the
+  /// screen around it says what it is, and is not a sentence to put on a home
+  /// screen as though the server said it.
+  private func publishOutwards(me m: Me) {
+    let strip = MeStripCopy.make(m, starter: StarterIndex.current(engineIndex: m.profile?.index_current))
+    let r = ranked(stripSuppress: strip.suppress)
+    let lead = r.lead
+    spentRounds = r.spentRounds
+    if let mark { digest = HomeDigest.make(rounds: rounds, posts: posts, photoURLs: urls, mark: mark,
+                                           mentions: social.mentions(rounds: rounds, since: mark),
+                                           spent: r.spentRounds) }
+    if case .live = lead?.route { HomeLeadFlag.shared.liveIsLead = true }
     else { HomeLeadFlag.shared.liveIsLead = false }
-    return r
+    DispatchSnapshotFeed.publish(strip: strip, lead: usedFallback ? nil : lead)
   }
 
   /// One load per payload. A pull and `.task(id:)` share a key; the second
@@ -360,19 +408,24 @@ final class HomeModel {
     guard live(gen) else { return }
     // A failed read is not an empty feed. With rounds already on screen, a
     // pull on a bad signal keeps them.
+    feedFailed = r.failed
     if !(r.failed && !items.isEmpty) {
       items = r.items
       rounds = r.rounds; posts = r.posts
       if !markRead { mark = HomeDigest.readAndMark(profile: (me ?? sessionMe).profile?.id); markRead = true }
       urls = [:]
       for case .round(let row, let u) in r.items { if let id = row.round_id, let u { urls[id] = u } }
-      digest = HomeDigest.make(rounds: rounds, posts: posts, photoURLs: urls, mark: mark)
+      digest = HomeDigest.make(rounds: rounds, posts: posts, photoURLs: urls, mark: mark, spent: spentRounds)
     }
 
     // The DECLARED FALLBACK (preflight 23). It runs after the wire, because
     // its CIRCLE item is composed from the same rows.
     if served == nil {
-      dispatch = HomeFallbackItems.make(me ?? sessionMe, feed: rounds)
+      // R-04 · the live item has two faces and the invitation's needs a name.
+      // `native_home.live_round` carries `mine` but no host, and the device
+      // already knows who started the round it is seated in.
+      dispatch = HomeFallbackItems.make(me ?? sessionMe, feed: rounds,
+                                        liveHost: LiveRoundStore.shared.state.host)
       leadSuppress = []
       usedFallback = true
     }
@@ -384,7 +437,9 @@ final class HomeModel {
                                      currentLeague: nil, me: (me ?? sessionMe).profile?.id)
     guard live(gen) else { return }
     social = snap
-    if let mark { digest = HomeDigest.make(rounds: rounds, posts: posts, photoURLs: urls, mark: mark, mentions: social.mentions(rounds: rounds, since: mark)) }
+    // F-2 · the digest is rebuilt inside `publishOutwards`, where the ranked
+    // arrangement is in hand and the rounds it spent are known.
+    publishOutwards(me: me ?? sessionMe)
   }
 
   /// Still the current load — the only state a load may write from.
@@ -392,7 +447,9 @@ final class HomeModel {
 
   /// D217 · the wire, folded: booking lines already on the Coming-up card are
   /// hidden, the same note across leagues is one line. Pure over what is in hand.
-  func feed(upcoming: Set<UUID>) -> [HomeFeedBucket] { HomeFeedFold.fold(items, upcoming: upcoming) }
+  func feed(upcoming: Set<UUID>, spent: Set<UUID> = []) -> [HomeFeedBucket] {
+    HomeFeedFold.fold(items, upcoming: upcoming, spent: spent)
+  }
 
   /// What `.task(id:)` watches: the payload's stamp. D229 — no league.
   struct LoadKey: Equatable { let generated: Date? }
@@ -579,10 +636,18 @@ private struct FeedRoundCard: View {
             HStack(spacing: 8) {
               faceButton(size: 36)
               VStack(alignment: .leading, spacing: 1) {
+                // F-15 · the name TRUNCATES and the capsule keeps its size.
+                // Both were unconstrained, so the row overflowed its column and
+                // the name rendered as orphaned glyph fragments behind the ✦
+                // FOUNDER chip. The chip takes the priority because it is
+                // fixed-width; the name is the half that can give.
                 HStack(alignment: .firstTextBaseline, spacing: 6) {
                   Text(who).font(CSFont.button).foregroundStyle(CSTokens.dark.ink)
+                    .lineLimit(1).truncationMode(.tail)
                   FoundingTag(badge: store.founding.badge(for: r.profile_id)).environment(\.cs, CSTokens.dark)
+                    .layoutPriority(1)
                 }
+                .frame(maxWidth: .infinity, alignment: .leading)
                 Text(meta + (milestone.map { " · \($0)" } ?? "")).font(CSFont.footnote).foregroundStyle(CSTokens.dark.mut)
               }
             }
@@ -612,10 +677,12 @@ private struct FeedRoundCard: View {
               HStack(spacing: 10) {
                 faceButton(size: 44)
                 VStack(alignment: .leading, spacing: 2) {
-                  HStack(alignment: .firstTextBaseline, spacing: 6) {
+                  HStack(alignment: .firstTextBaseline, spacing: 6) {   // F-15
                     Text(who).font(CSFont.button).foregroundStyle(cs.ink)
-                    FoundingTag(badge: store.founding.badge(for: r.profile_id))
+                      .lineLimit(1).truncationMode(.tail)
+                    FoundingTag(badge: store.founding.badge(for: r.profile_id)).layoutPriority(1)
                   }
+                  .frame(maxWidth: .infinity, alignment: .leading)
                   if let line = milestone ?? phrase { Text(line).font(CSFont.footnote).foregroundStyle(milestone != nil ? cs.gold : cs.mut) }
                 }
               }
@@ -647,8 +714,8 @@ private struct FeedRoundCard: View {
     }
     .accessibilityLabel("\(who) — \(r.gross.map(String.init) ?? "") at \(r.course ?? "a round")" + (phrase.map { ", \($0.lowercased())" } ?? ""))
     .accessibilityHint("Opens the round")
-    // VoiceOver reaches the nested doors through the rotor: the Tour Card and the six reactions
-    .accessibilityAction(named: "\(who)'s Tour Card") { if let p = r.profile_id { presenter.tourCard = p } }
+    // VoiceOver reaches the nested doors through the rotor: the card and the six reactions
+    .accessibilityAction(named: GolfersRoot.CardName.title(who)) { if let p = r.profile_id { presenter.tourCard = p } }
     .modifier(A11yReactionActions(enabled: canReact, toggle: toggle))
   }
 

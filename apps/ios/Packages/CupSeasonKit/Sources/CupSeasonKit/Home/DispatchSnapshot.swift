@@ -83,8 +83,8 @@ public struct DispatchSnapshot: Codable, Sendable, Equatable {
 
   public func isStale(now: Date = Date()) -> Bool { now.timeIntervalSince(savedAt) >= Self.staleAfter }
 
-  /// `AS OF 14:22` while it is fresh; `AS OF SAT · OPEN TO REFRESH` once it is
-  /// not. The widget never draws a bare time.
+  /// `AS OF 2:22 PM` while it is fresh; `AS OF SAT · OPEN TO REFRESH` once it
+  /// is not. The widget never draws a bare time.
   public func asOf(now: Date = Date(), calendar: Calendar = .current, locale: Locale = .current) -> String {
     var cal = calendar
     cal.locale = locale
@@ -92,8 +92,15 @@ public struct DispatchSnapshot: Codable, Sendable, Equatable {
       let day = cal.shortWeekdaySymbols[cal.component(.weekday, from: savedAt) - 1].uppercased()
       return "AS OF \(day) · OPEN TO REFRESH"
     }
-    let h = cal.component(.hour, from: savedAt), m = cal.component(.minute, from: savedAt)
-    return String(format: "AS OF %d:%02d", h, m)
+    // C-15 · the LOCALE's own hour cycle. `%d:%02d` off `.hour` printed a
+    // 24-hour clock on every device, so a US home screen read AS OF 14:22
+    // beside a phone that says 2:22p everywhere else.
+    let f = DateFormatter()
+    f.locale = locale
+    f.calendar = cal
+    f.timeZone = cal.timeZone
+    f.setLocalizedDateFormatFromTemplate("jmm")
+    return "AS OF \(f.string(from: savedAt).uppercased())"
   }
 
   /// The lead's verb, and nothing once the snapshot is stale: offering an act

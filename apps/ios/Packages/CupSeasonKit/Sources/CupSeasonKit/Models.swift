@@ -229,12 +229,16 @@ public struct Me: Decodable, Sendable {
       public let number: Int?
       public let ended_on: String?
       public let champion_name: String?
+      /// LV-11 · whether the champion is the VIEWER. Optional, so a payload
+      /// from a database that has not shipped it decodes and the card falls
+      /// back to naming the champion, exactly as it does today.
+      public let champion_is_me: Bool?
       public let my_rank: Int?
       public let of: Int?
       public init(number: Int? = nil, ended_on: String? = nil, champion_name: String? = nil,
-                  my_rank: Int? = nil, of: Int? = nil) {
+                  champion_is_me: Bool? = nil, my_rank: Int? = nil, of: Int? = nil) {
         self.number = number; self.ended_on = ended_on; self.champion_name = champion_name
-        self.my_rank = my_rank; self.of = of
+        self.champion_is_me = champion_is_me; self.my_rank = my_rank; self.of = of
       }
     }
     public let last_season: LastSeason?
@@ -301,6 +305,10 @@ public struct Me: Decodable, Sendable {
     public let course_label: String?
     public let game: String?
     public let mine: Bool?
+    /// R-04 · who STARTED it. This read returns a round the caller is seated
+    /// in, which includes one somebody else started; without the name that
+    /// state had no subject. Optional — a payload without it still renders.
+    public let host: String?
     public let visitor: Bool?
   }
 

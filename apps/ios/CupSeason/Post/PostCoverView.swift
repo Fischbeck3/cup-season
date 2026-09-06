@@ -109,10 +109,15 @@ private struct PostCoverStack: View {
             PostOptionRow(tick: cs.line2, title: "Add a round you played",
                           sub: "Your gross and the tee — it posts to your rounds, and every season you're in reads it.") { path.append(PostCoverView.Route.post) }
             PostOptionRow(tick: cs.line2, title: "Plan a round",
-                          sub: "Put it on the schedule; your buddies and your leagues see it.", last: true) { showPlan = true }
+                          // LV-14 · row 113: "league" is never a thing you join. The container is
+                          // a SEASON.
+                          sub: "Put it on the schedule; your buddies and your seasons see it.", last: true) { showPlan = true }
           }
           .padding(.top, 12)
-          CSFine("Hold the ⊕ to go straight to your card.").padding(.top, 12)
+          // F-13 · what the long-press OPENS, named. "Your card" is the profile
+          // (the exempt sense) and this opens the composer — on a screen whose
+          // row above calls the same destination "Add a round you played".
+          CSFine("Hold the ⊕ to go straight to Add my round.").padding(.top, 12)
         }
         .padding(20)
       }
