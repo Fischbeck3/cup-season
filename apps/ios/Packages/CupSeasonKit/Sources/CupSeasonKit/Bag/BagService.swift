@@ -76,6 +76,15 @@ public struct BagService: Sendable {
   /// may narrate it as one: the surfaces draw nothing at all on nil, which is
   /// what makes the deploy-skew window honest instead of empty (L-32).
   public func load(_ profile: UUID? = nil) async -> Bag? {
+    #if DEBUG
+    // `-cs_dev_bag <id>` — one interception, so the You door's summary and the
+    // sheet below it can never disagree about what is in the bag. Never in
+    // Release, by construction, and `save` is deliberately not hatched: a
+    // fixture cannot be written to anybody's account (`BagFixtures`).
+    let a = ProcessInfo.processInfo.arguments
+    if let i = a.firstIndex(of: "-cs_dev_bag"), i + 1 < a.count,
+       let fixture = BagFixtures.named(a[i + 1]) { return fixture }
+    #endif
     guard let payload = try? await svc.call(BagOfCall(p_profile: profile)) else { return nil }
     return Bag.parse(payload)
   }
