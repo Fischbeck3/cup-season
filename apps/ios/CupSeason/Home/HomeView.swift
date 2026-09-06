@@ -86,8 +86,12 @@ struct HomeView: View {
           // An invitation and a buddy request are answered IN PLACE here, so
           // the ranker's own items for them stand down on the phone (L-34).
           // They are items on the web, which has no such banners.
-          InvitesBanner { _ in Task { await store.reload() } }
-          BuddyRequests(links: links, head: true, onAnswered: { Task { await store.reload() } })
+          // D259 · under `-cs_dev_home_state` these two make their own reads, so
+          // they would answer the signed-in account over a fixture screen.
+          if !CSDevHatch.fixtureHome {
+            InvitesBanner { _ in Task { await store.reload() } }
+            BuddyRequests(links: links, head: true, onAnswered: { Task { await store.reload() } })
+          }
 
           // 3 · THE ME STRIP. Four facts that are about ME, and one season
           // context row. It publishes `suppress`; the lead's set is UNIONED
@@ -122,6 +126,7 @@ struct HomeView: View {
 
           // L-34 · the strip owns NEXT and the lead may own the plan, so the
           // chips honour the UNION of both sets.
+          if !CSDevHatch.fixtureHome {
           UpNextChips(leagueId: nil, links: links, suppress: ranked.suppress, go: { go in
             switch go {
             case .round(let id):  presenter.scheduledRound = id
@@ -130,6 +135,7 @@ struct HomeView: View {
             case .standings:      break
             }
           })
+          }
 
           // 5 · THE WIRE — the feed, whole. D218: the lane is cross-league, so
           // its door is the buddies.
@@ -191,7 +197,7 @@ struct HomeView: View {
             }
           }
 
-          UpcomingRoundsSection(links: links, model: upcoming)
+          if !CSDevHatch.fixtureHome { UpcomingRoundsSection(links: links, model: upcoming) }
 
           // 6 · THE FLOOR (L-32, D94 restored): four live doors on every Home,
           // in every state including brand-new, offline and failed.
@@ -398,11 +404,47 @@ final class HomeModel {
     await task.value
   }
 
+  #if DEBUG
+  /// The Home-state hatch's substitution (D259). The wire, the social read and
+  /// the occasion are CLEARED rather than faked: a fixture that invented a feed
+  /// would be inventing golfers, and `EVIDENCE_POLICY.md` forbids exactly that.
+  /// The widget snapshot is not written either — a fixture is not a fact to put
+  /// on a home screen.
+  private func runFixture(_ id: String) {
+    guard let p = HomeStateFixtures.payload(id) else {
+      NSLog("[home-state] no fixture named \(id). Try one of: \(HomeStateFixtures.all.map(\.id).joined(separator: ", "))")
+      return
+    }
+    if let s = HomeStateFixtures.state(id) { NSLog("[home-state] \(s.matrix) · \(s.title) — \(s.note)") }
+    me = p.me
+    dispatch = p.items
+    leadSuppress = p.leadSuppress
+    usedFallback = false
+    occasion = nil
+    items = []; digest = nil; feedFailed = false
+    social = HomeSocial.Snapshot()
+    guard let m = p.me else { return }
+    let strip = MeStripCopy.make(m, starter: StarterIndex.current(engineIndex: m.profile?.index_current))
+    let r = ranked(stripSuppress: strip.suppress)
+    spentRounds = r.spentRounds
+    if case .live = r.lead?.route { HomeLeadFlag.shared.liveIsLead = true }
+    else { HomeLeadFlag.shared.liveIsLead = false }
+  }
+  #endif
+
   private func run(me sessionMe: Me?, gen: Int) async {
     guard let sessionMe else { return }
     guard live(gen) else { return }
     loading = true
     defer { if gen == generation { loading = false } }
+
+    #if DEBUG
+    // D259 · `-cs_dev_home_state <id>`. ONE READ is substituted and nothing
+    // else changes: the same arrangement rule, the same producers, the same
+    // six slots. It is the only way twelve of the seventeen states in
+    // `HOME_STATE_MATRIX.md` can be looked at, and it never writes anything.
+    if let want = CSDevHatch.homeState { runFixture(want); return }
+    #endif
 
     // D252 · a card whose act is a Major or a jug does not render until the
     // Major's door opens. The WINDOW is checked first — pure, no I/O — so the

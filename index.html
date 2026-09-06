@@ -13803,12 +13803,62 @@ function csFallbackItems(){
 }
 window.csFallbackItems = csFallbackItems;
 
+/* D259 · THE HOME-STATE HATCH, the desk's half.
+   `?cs_home_state=<id>` substitutes a fixture payload for the ranker's read, so
+   the twelve states of `HOME_STATE_MATRIX.md` §4 that no account can reach are
+   screens a browser can open. The fixtures are `tests/fixtures/home-states.json`
+   — THE SAME FILE the phone's `HomeStateFixtures.swift` is generated from — and
+   they are fetched at runtime, which is precisely why this hatch cannot exist in
+   production: `stamp-version.sh` publishes an allowlist and `tests/` is not on
+   it, so the fetch 404s on cupseason.app and the hatch declines out loud.
+   `?cs_home_state=list` prints the ids.
+   WHAT IT DOES NOT DO: it does not fake the ME strip. The strip reads `CS.profile`,
+   `career` and `state.leagues` on this client rather than one `native_home`
+   payload, so substituting it would mean faking five sources instead of one. The
+   LEAD and the DECK — the ranked screen the states are actually about, and the
+   half both clients genuinely share through `csRankDispatch` — are what the
+   hatch drives. */
+window.csHomeState = (function(){
+  try{ return new URLSearchParams(location.search).get('cs_home_state') || null; }catch(_){ return null; }
+})();
+window.__csHomeStateNote = null;
+function csResolveFixtureDates(text, today){
+  const base = today || new Date();
+  const iso = (off)=>{ const d = new Date(base.getFullYear(), base.getMonth(), base.getDate()+off);
+    return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; };
+  const eyebrow = (off)=>{ const d = new Date(base.getFullYear(), base.getMonth(), base.getDate()+off);
+    return d.toLocaleDateString(undefined, { weekday:'short', month:'short', day:'numeric' })
+            .replace(',', ' \u00b7').toUpperCase(); };
+  return String(text).replace(/@(today|eyebrow)([+-]\d+)?/g,
+    (_, kind, off) => (kind === 'eyebrow' ? eyebrow : iso)(parseInt(off || '0', 10)));
+}
+async function csLoadHomeStateFixture(id){
+  let doc;
+  try{
+    const res = await fetch('tests/fixtures/home-states.json', { cache:'no-store' });
+    if(!res.ok) throw new Error('HTTP ' + res.status);
+    doc = JSON.parse(csResolveFixtureDates(await res.text()));
+  }catch(e){
+    console.warn('[home-state] the fixtures are not served here (' + e.message + '). ' +
+                 'This hatch only works against a local checkout — tests/ is not in the dist allowlist.');
+    return null;
+  }
+  const ids = (doc.states || []).map(s => s.id);
+  if(id === 'list'){ console.log('[home-state] ' + ids.join(', ')); return null; }
+  const st = (doc.states || []).find(s => s.id === id);
+  if(!st){ console.warn('[home-state] no fixture named "' + id + '". Try one of: ' + ids.join(', ')); return null; }
+  console.log('[home-state] ' + st.matrix + ' \u00b7 ' + st.title + ' \u2014 ' + st.note);
+  window.__csHomeStateNote = st.matrix + ' \u00b7 ' + st.title;
+  return st.payload;
+}
+
 /* R1 · the one read. `null` means "the ranker could not be reached", which is
    a different answer from "the ranker returned nothing" — the first renders
    the fallback, the second renders an honest, shorter Home. */
 window.homeDispatch = null;
 async function loadHomeDispatch(){
   window.homeDispatch = null;
+  if(window.csHomeState){ window.homeDispatch = await csLoadHomeStateFixture(window.csHomeState); return; }
   if(state.demo || !window.sb || !CS?.user) return;
   try{
     const { data, error } = await window.sb.rpc('home_dispatch', { p_days: 21 });
@@ -13834,9 +13884,12 @@ function renderHomeDispatch(){
   const leadBox=$('#homeLead'), deckBox=$('#homeDeck');
   if(!leadBox && !deckBox) return;
   const wipe = ()=>{ if(leadBox) leadBox.innerHTML=''; if(deckBox) deckBox.innerHTML=''; };
-  if(state.demo || !CS?.user){ wipe(); return; }
+  /* D259 · the state hatch renders over a signed-out boot as well, because a
+     desk with no session is the only web session a build machine has, and a
+     state nobody can photograph is a state nobody has looked at. */
+  if((state.demo || !CS?.user) && !window.csHomeState){ wipe(); return; }
   const served = window.homeDispatch && Array.isArray(window.homeDispatch.items) ? window.homeDispatch.items : null;
-  const items = served || csFallbackItems();
+  const items = served || (window.csHomeState ? [] : csFallbackItems());
   const r = csRankDispatch(items, {
     stripSuppress: window.__meSuppress ? [...window.__meSuppress] : [],
     leadSuppress: (window.homeDispatch && window.homeDispatch.lead_suppress) || [],
@@ -13883,6 +13936,23 @@ function refreshHomeLead(){
     .then(()=>{ if(window.renderHomeDispatch) renderHomeDispatch(); });
 }
 window.refreshHomeLead = refreshHomeLead;
+/* D259 · the hatch's own boot. With `?cs_home_state=<id>` the desk lifts the
+   sign-in door, lands on Home and paints the fixture — a state a browser can
+   photograph without a session, which is the only web session a build machine
+   has. It runs once, after the boot has had its go, and it is inert without
+   the query key. */
+if(window.csHomeState){
+  window.addEventListener('load', function(){
+    setTimeout(function(){
+      try{ if(typeof enterApp === 'function') enterApp(); }catch(_){}
+      try{ if(typeof switchView === 'function') switchView('home'); }catch(_){}
+      loadHomeDispatch().then(function(){
+        if(window.renderHomeDispatch) renderHomeDispatch();
+        const h = document.querySelector('#homeHero'); if(h) h.innerHTML = '';
+      });
+    }, 1200);
+  });
+}
 function renderUpNext(){
   const box=$('#homeUpNext'); if(!box) return;
   const chips=[];

@@ -21,7 +21,8 @@ import CupSeasonKit
 /// Developer hatches (DEBUG only; the shipped build has no such door):
 /// `-cs_dev_open <place>` lands a simulator on a screen, `-cs_dev_bottom`
 /// opens Home / You scrolled to the foot so the lower half can be seen
-/// without a finger. Neither exists in Release.
+/// without a finger, `-cs_dev_home_state <id>` puts Home in any state of the
+/// matrix. None of them exists in Release.
 enum CSDevHatch {
   static var bottom: Bool {
     #if DEBUG
@@ -38,6 +39,24 @@ enum CSDevHatch {
     #endif
     return 0
   }
+  /// `-cs_dev_home_state <id>` substitutes a FIXTURE payload for Home's one
+  /// read, so any state in `HOME_STATE_MATRIX.md` §4 is a screen a simulator
+  /// can open (D259). Twelve of the seventeen cannot be reached from any
+  /// account this product has, which is why the re-audit could not photograph
+  /// them. It never writes to the server; the ids are `HomeStateFixtures.all`.
+  static var homeState: String? {
+    #if DEBUG
+    let a = ProcessInfo.processInfo.arguments
+    if let i = a.firstIndex(of: "-cs_dev_home_state"), i + 1 < a.count { return a[i + 1] }
+    #endif
+    return nil
+  }
+  /// True while Home is showing a FIXTURE. The three sub-views that make their
+  /// own server reads — the invites banner, the buddy requests, the Up Next
+  /// chips and the Coming-up section — stand down under it, because a
+  /// screenshot that is half a fixture and half somebody's real account is
+  /// evidence of neither. Always false in Release, by construction.
+  static var fixtureHome: Bool { homeState != nil }
   /// `-cs_dev_live` seeds a live match-play round, 14 holes in, so the tee
   /// sheet — and D152's landscape card — can be seen without signing in and
   /// playing one. DEBUG only; it never touches the server.
@@ -398,6 +417,20 @@ struct MainTabView: View {
         presenter.event = await firstCallout() ?? store.me?.events.first?.id
       case "intent": presenter.showIntent = true
       case "length": presenter.showPickAGolfer = true
+      // D259 · the three centre-action sheets that set PRIVATE state and had no
+      // door here, so nobody had ever photographed them: the plan sheet, the
+      // when-fork under "Play with my friends", and the forfeit sheet D242
+      // widened past a season. A surface with no hatch is a surface no audit
+      // reaches, which is how all three arrived at the re-audit unlooked-at.
+      case "declare": presenter.declare = DeclarePrefill()
+      case "whenfork": presenter.showWhenFork = true
+      // The forfeit's own point is that it no longer needs a league (D242), so
+      // the hatch opens the one shape that proves it: no container, no
+      // opponent. `-cs_dev_open forfeit league` opens it inside a season.
+      case "forfeit":
+        let inLeague = i + 2 < a.count && a[i + 2] == "league"
+        presenter.forfeit = .init(home: ForfeitHome(leagueId: inLeague ? store.preferredLeague : nil),
+                                  opponentName: nil)
       // R-F's three lengths open from a NAME, and a name has to be tapped.
       case "lengths", "callout_sheet":
         if let who = await ScheduleService().tagCandidates(league: nil).first {
@@ -416,7 +449,10 @@ struct MainTabView: View {
       guard store.me != nil else { return }
       if PushDev.printIds { await PushDev.dumpIds(me: store.me, preferred: store.preferredLeague) }
       try? await Task.sleep(for: .seconds(2))
-      if let p = PushDev.payload { router.open(p) }
+      // D259 · `resolved` fills the ids the route needs from the session, so a
+      // shorthand like `-cs_dev_push callout` lands on the head-to-head page
+      // instead of falling through the contract's "missing id lands Home" clause.
+      if let p = await PushDev.resolved(me: store.me, preferred: store.preferredLeague) { router.open(p) }
       if PushDev.forcePrompt { ask.force() }
     }
     #endif

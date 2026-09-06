@@ -1774,5 +1774,159 @@ else {
     : fail('one easing, and reduced motion rests on the frame', hits.slice(0, 6).join('\n           '));
 }
 
+
+/* 40 · the two clients' nav labels agree, slot by slot (D222 / R-A, R-D) -----
+   THE FOURTH CHECK THE EVIDENCE SWEEP ASKED FOR AND NOBODY BUILT. Check 24
+   walks the web's router and check 25 guards the ruled section heads, but
+   nothing compared the two clients' nav LABELS against each other — which is
+   why the web drifted twice inside one overhaul (the section head, and the
+   centre destination reading "Record" where the phone read "Play").
+
+   `NavSlot.label` is the phone's producer and the only place the five words
+   live. The web declares them twice — once in the desk's sidebar and once in
+   the bar below 960px — because they are two shapes of one router (R-C), and
+   two hand-typed copies of five words is exactly the shape that drifts.
+
+   THE ROUTER IDS ARE NOT THE LABELS, and the mapping is declared here with its
+   reason: `data-v` values predate D222 and index.html's own comment says so —
+   *"`data-v="record"` is the router id and is not a surface"*. Renaming them is
+   a router change with eleven pane ids behind it; agreeing on the WORD is what
+   the golfer sees. */
+{
+  const hits = [];
+  const SLOT_TO_V = { home: 'home', compete: 'compete', play: 'record', golfers: 'golfers', you: 'stats' };
+
+  const navPath = join(root, 'apps', 'ios', 'Packages', 'CupSeasonKit', 'Sources', 'CupSeasonKit', 'Nav', 'NavSlot.swift');
+  const navSrc = existsSync(navPath) ? readFileSync(navPath, 'utf8') : '';
+  const labelBlock = (navSrc.match(/public var label: String \{\s*switch self \{([\s\S]*?)\n    \}/) || [])[1] || '';
+  const phone = new Map([...labelBlock.matchAll(/case \.([a-z]+):\s*"([^"]+)"/g)].map(m => [m[1], m[2]]));
+  if (phone.size === 0) hits.push('NavSlot.label could not be read — did the phone’s producer move?');
+
+  /* the label a button wears: everything that is not a tag, collapsed */
+  const wordOf = (buttonHtml) => buttonHtml
+    .replace(/<svg[\s\S]*?<\/svg>/g, ' ')
+    .replace(/<[^>]+>/g, ' ')
+    .replace(/&[a-z]+;|&#\d+;/gi, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  /* every <button …data-v="x"…>…</button> inside one region */
+  const buttons = (region, cls) => {
+    const out = new Map();
+    for (const m of region.matchAll(/<button\b[^>]*>[\s\S]*?<\/button>/g)) {
+      const tag = (m[0].match(/<button\b[^>]*>/) || [''])[0];
+      if (!new RegExp(`class="${cls}[^"]*"`).test(tag)) continue;
+      if (/class="[^"]*\bsub\b[^"]*"/.test(tag)) continue;     // the More disclosure’s children
+      const v = (tag.match(/data-v="([^"]+)"/) || [])[1];
+      if (!v) continue;
+      out.set(v, wordOf(m[0]));
+    }
+    return out;
+  };
+
+  const tabStart = html.indexOf('<nav class="tabbar"');
+  const tabRegion = tabStart < 0 ? '' : html.slice(tabStart, html.indexOf('</nav>', tabStart));
+  const asideStart = html.indexOf('class="navitem active"');
+  const asideRegion = asideStart < 0 ? '' : html.slice(html.lastIndexOf('<aside', asideStart), html.indexOf('</aside>', asideStart));
+
+  const bar = buttons(tabRegion, 'tab');
+  const side = buttons(asideRegion, 'navitem');
+  if (bar.size === 0) hits.push('index.html: the tab bar’s five buttons could not be read');
+  if (side.size === 0) hits.push('index.html: the sidebar’s five buttons could not be read');
+
+  if (phone.size && bar.size && side.size) {
+    for (const [slot, want] of phone) {
+      const v = SLOT_TO_V[slot];
+      if (!v) { hits.push(`NavSlot.${slot} has no web destination declared in this check`); continue; }
+      for (const [where, got] of [['the tab bar', bar.get(v)], ['the sidebar', side.get(v)]]) {
+        if (got === undefined) hits.push(`${where} has no data-v="${v}" — the phone’s ${slot} slot has no twin`);
+        else if (got !== want) hits.push(`${where} says ${JSON.stringify(got)} where the phone says ${JSON.stringify(want)} (slot ${slot})`);
+      }
+    }
+    /* and neither client has a SIXTH place: five slots, five buttons, both shapes */
+    for (const [where, got] of [['the tab bar', bar], ['the sidebar', side]]) {
+      const extra = [...got.keys()].filter(v => !Object.values(SLOT_TO_V).includes(v));
+      if (extra.length) hits.push(`${where} carries a destination the phone has no slot for: ${extra.join(', ')}`);
+      if (got.size !== 5) hits.push(`${where} has ${got.size} destination(s), and D222 ruled five`);
+    }
+  }
+
+  /* the self-test: a check that cannot fail is not a check */
+  if (wordOf('<button class="tab" data-v="record"><svg viewBox="0 0 24 24"><path d="M12 6v12"/></svg>Record</button>') !== 'Record') {
+    hits.push('self-test failed: the label extractor no longer reads a button’s word');
+  }
+
+  hits.length === 0
+    ? pass('the two clients agree on the five words', `${phone.size} slot(s) × the sidebar and the bar`)
+    : fail('the two clients agree on the five words', hits.slice(0, 6).join('\n           '));
+}
+
+/* 41 · one Home-state fixture set, and it cannot exist in production (D259) --
+   The re-audit could not reach twelve of seventeen Home states, which is the
+   largest verification hole the product has. The hatch that closes it is only
+   worth having if BOTH clients open the same states, so the payloads are one
+   JSON file: the phone gets a generated Swift twin, the web fetches the file
+   itself. This check holds the three things that make that safe —
+   the twin is not stale, the phone's copy is `#if DEBUG` so no Release build
+   contains it, and `tests/` is not in the dist allowlist, so the web's hatch
+   404s on cupseason.app by construction rather than by a flag somebody can
+   flip. */
+{
+  const hits = [];
+  const fxPath = join(root, 'tests', 'fixtures', 'home-states.json');
+  const swiftPath = join(root, 'apps', 'ios', 'Packages', 'CupSeasonKit', 'Sources', 'CupSeasonKit', 'Generated', 'HomeStateFixtures.swift');
+  let doc = null;
+  if (!existsSync(fxPath)) hits.push('tests/fixtures/home-states.json is gone — the hatch has no states');
+  else {
+    try { doc = JSON.parse(readFileSync(fxPath, 'utf8')); }
+    catch (e) { hits.push(`home-states.json does not parse: ${e.message}`); }
+  }
+
+  /* the phone's twin is fresh, and it is DEBUG-only */
+  if (doc) {
+    const { render } = await import('../tools/build-home-states.mjs');
+    const want = render(doc);
+    const got = existsSync(swiftPath) ? readFileSync(swiftPath, 'utf8') : '';
+    if (got !== want) hits.push('HomeStateFixtures.swift is STALE — run `node tools/build-home-states.mjs`');
+    if (!/^#if DEBUG$/m.test(got)) hits.push('HomeStateFixtures.swift is not wrapped in #if DEBUG — a Release build would carry the fixtures');
+  }
+
+  /* every fixture is a screen: a door the fence will not drop, and a headline */
+  const PHONE_ROUTES = new Set(['composer', 'people', 'declare', 'live', 'receipt', 'plan', 'season', 'pot', 'invite']);
+  if (doc) {
+    const webRoutes = new Set([...((html.match(/function csItemDoor\(it\)\{[\s\S]*?\n\}/) || [''])[0])
+      .matchAll(/case '([a-z]+)':/g)].map(m => m[1]));
+    for (const st of doc.states || []) {
+      for (const k of ['id', 'matrix', 'title', 'note', 'payload']) {
+        if (!st[k]) hits.push(`fixture ${st.id || '?'} has no ${k}`);
+      }
+      const items = st.payload?.items || [];
+      if (!items.length) hits.push(`fixture ${st.id} has no items — it renders nothing to photograph`);
+      for (const it of items) {
+        const kind = it.route?.kind;
+        if (!kind) { hits.push(`${st.id}/${it.key}: no route — G1's fence drops it and the screenshot is a lie`); continue; }
+        if (!PHONE_ROUTES.has(kind)) hits.push(`${st.id}/${it.key}: route "${kind}" is not one the phone can resolve`);
+        if (webRoutes.size && !webRoutes.has(kind)) hits.push(`${st.id}/${it.key}: route "${kind}" is not one the web can resolve`);
+        if (!String(it.headline || '').trim()) hits.push(`${st.id}/${it.key}: no headline`);
+      }
+    }
+    if ((doc.states || []).length < 13) hits.push(`${(doc.states || []).length} state(s) — the wave's own floor is 13`);
+  }
+
+  /* the production seal: the web fetches a path the deploy does not publish */
+  if (!/fetch\('tests\/fixtures\/home-states\.json'/.test(html)) {
+    hits.push('index.html no longer reads tests/fixtures/home-states.json — the two clients are on different fixtures');
+  }
+  if (/tests\//.test(stamp)) hits.push('stamp-version.sh publishes tests/ — the Home-state hatch would exist in production');
+  if (/home-states/.test(sw)) hits.push('sw.js precaches the fixtures — they would be served from a cache in production');
+
+  /* the self-test */
+  if (PHONE_ROUTES.has('event')) hits.push('self-test failed: the route vocabulary now claims a case HomeDispatch.Route does not have');
+
+  hits.length === 0
+    ? pass('one Home-state fixture set, and none of it ships', `${(doc?.states || []).length} state(s) · generated for the phone, fetched by the web, absent from dist`)
+    : fail('one Home-state fixture set, and none of it ships', hits.slice(0, 6).join('\n           '));
+}
+
 console.log(`\n${fails ? 'FAIL' : 'PASS'} — ${fails} failure(s), ${warns} warning(s)`);
 process.exit(fails ? 1 : 0);

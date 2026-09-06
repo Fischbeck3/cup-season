@@ -455,3 +455,29 @@ The ⊕'s composer is its own decision (IOS-020). Ceremonies, the finish, the se
 **Reversibility.** EASY, and the font-name fix is the one to think about before reverting — it changes the metrics of every mono line in the app, which is a visible change and the correct one.
 
 **Gate:** preflight **39** checks, 0 failures 0 warnings; sunningdale 27; CupSeasonKit · CupSeason · CSDesign green (counts in the wave report); `web-verify` clean at 1440/390/320 with no document overflow. No migration was written, so there was none to dry-run.
+
+---
+
+## IOS-040 · The hatches the next audit needs — thirteen Home states, a callout that routes, and three sheets nobody had photographed — **P1 · BUILT 2026-09-05, wave C (D259; owner-authorised with the UX overhaul)**
+
+**Decision.** Make every screen the phone can draw a screen a simulator can open, and make the two clients' five nav words hold each other.
+
+**`-cs_dev_home_state <id>` substitutes ONE READ.** `HomeModel.run` takes `HomeStateFixtures.payload(id)` in place of `home_dispatch`, and nothing else changes — the same `HomeRank.arrange`, the same `MeStripCopy`, the same six slots. It never writes to the server. The four sub-views that make their own reads (`InvitesBanner`, `BuddyRequests`, `UpNextChips`, `UpcomingRoundsSection`) stand down under `CSDevHatch.fixtureHome`, because a screenshot that is half a fixture and half the signed-in account is evidence of neither; that flag is `homeState != nil` and `homeState` is `nil` in Release by construction, so the shipped build has no branch to take.
+
+**The fixtures are generated, and they are also the test suite.** `tests/fixtures/home-states.json` is the source; `tools/build-home-states.mjs` writes `Generated/HomeStateFixtures.swift` inside `#if DEBUG`; `HomeStateFixtureTests` runs the fence, the veto, the cap, the suppress union and the determinism of the arrangement over the same thirteen payloads the screenshots use — plus the copy laws they must keep (no count of the golfer's absence, no retired R-J phrasing, the typographic apostrophe). Dates are **tokens** resolved at load, so a fixture never reads stale.
+
+**`-cs_dev_push <kind>` fills the ids the route needs.** `PushRoute.from` was always right; `PushDev.payload` is a pure parse and `-cs_dev_push_ids` printed **no person's id at all**, so no callout payload could carry the `profile_id` its landing requires and every attempt fell through the contract's "a missing id lands Home" clause. `PushDev.resolved(me:preferred:)` takes a bare `PushKind` name, fills only what that kind's landing needs from the session already in memory, logs `kind → route`, and leaves a hand-written payload untouched. The dump prints buddies, clash opponents and the caller.
+
+**`-cs_dev_open declare | whenfork | forfeit`.** Three sheets that set private `Presenter` state with no case here. `-cs_dev_open forfeit` opens D242's no-container shape (the point of that entry); `-cs_dev_open forfeit league` opens it inside a season.
+
+**What the hatches found, in one pass.** The phone drops every `invite:` item because it answers invitations in a banner that reads a different source, so a golfer with an invitation in the ranked payload and nothing in `my_invites` sees nothing on Home — while the desk leads with it. A wrapped season loses its ME-strip row, which `HOME_STATE_MATRIX.md` §4 specifies twice. The wire's leagueless empty state breaks its own sentence across two lines at the DEFAULT size. `YOUR NUMBER` wraps in the four-fact strip when the owe line is present. `HomeDispatch.Route` has no event case, so an event never leads Home on either client. All of it is in `HOME_STATES.md` with the picture beside it; none of it is fixed here, because a wave that instruments and repairs in one commit cannot say which it was.
+
+**The web half.** `?cs_home_state=<id>` fetches **the same fixture file** and drives the desk's lead and deck — including over a signed-out boot, which is the only web session a build machine has, and which is why the last re-audit had no signed-in web screenshot at all. It cannot exist in production: `stamp-version.sh` publishes an allowlist, `tests/` is not on it, the fetch 404s and the hatch declines out loud. It does **not** fake the desk's ME strip, which reads five sources rather than one.
+
+**Preflight 40 · the two clients' nav labels, slot by slot.** `NavSlot.label` against both of the web's shapes — the sidebar and the bar — with the slot→`data-v` map declared and reasoned in the check, and a failure on a sixth destination in either. The word `Record` in place of `Play` now fails the push; it shipped twice inside this overhaul. **Preflight 41 · the fixture set**: the generated twin is fresh, the phone's copy is `#if DEBUG`, every fixture item carries a door both clients resolve, and `tests/` is absent from the dist allowlist and from `sw.js`. Both were made to fail on purpose before being trusted.
+
+**Skew.** None. No RPC, no payload key, no migration and no grant: this wave is client-only on both clients, and the 24 migrations the owner owes are unchanged.
+
+**Reversibility.** EASY. Every line is DEBUG-only on the phone or query-gated on the web.
+
+**Gate:** preflight **41** checks, 0 failures 0 warnings; sunningdale 27; CupSeasonKit 829 · CupSeason 28 · CSDesign 14; `web-verify` clean at 1440/390/320 with no document overflow. No migration was written, so there was none to dry-run.
