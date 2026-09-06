@@ -336,6 +336,26 @@ struct HomeFootDoors: View {
   @Environment(\.presenter) private var presenter
   @Environment(\.openGolfers) private var openGolfers
   var push: (HomeRoute) -> Void = { _ in }
+  /// **The act the LEAD is already offering, in ember, one screen above.**
+  ///
+  /// On a brand-new account the lead card said *"Add my round →"* in ember and
+  /// then, four rows down, this row said `ADD MY ROUND` in ember: the same
+  /// words, the same metal, the same act, on a screen with almost nothing else
+  /// on it. The door is not removed — L-25 keeps all four, always — it just
+  /// stops being the one wearing the metal, which moves to the next door the
+  /// golfer has not already been offered.
+  var leadRoute: HomeDispatch.Route?
+
+  /// L-25 · exactly one door wears the ember, and never the one the lead has.
+  private var emberKey: String {
+    let taken: String? = switch leadRoute {
+    case .composer: "add_my_round"
+    case .people:   "find_golfers"
+    default:        nil
+    }
+    return ["add_my_round", "start_something", "join_with_a_code", "find_golfers"]
+      .first { $0 != taken } ?? "add_my_round"
+  }
 
   var body: some View {
     VStack(alignment: .leading, spacing: 0) {
@@ -347,7 +367,7 @@ struct HomeFootDoors: View {
         // in one row spends it on nothing. The free door is the tee sheet
         // (L-40) and "Add my round" is the one the brief asks for first, so it
         // wears the ember; the other three are quiet and equally present.
-        door("ADD MY ROUND", "add_my_round", "Add my round", ember: true) {
+        door("ADD MY ROUND", "add_my_round", "Add my round") {
           presenter.postOnComposer = true; presenter.showPost = true
         }
         door("START SOMETHING", "start_something", "Start something") { presenter.showIntent = true }
@@ -359,14 +379,14 @@ struct HomeFootDoors: View {
     .padding(.top, 6)
   }
 
-  private func door(_ title: String, _ key: String, _ spoken: String, ember: Bool = false,
+  private func door(_ title: String, _ key: String, _ spoken: String,
                     _ act: @escaping () -> Void) -> some View {
     Button {
       CSHaptic.selection()
       CSTelemetry.event(CSTelemetry.Metric.ctaTapped.rawValue, ["door": .string(key)])
       act()
     } label: {
-      Text(title).csEyebrow(ember ? cs.brand : cs.mut).a11yHitSlop()
+      Text(title).csEyebrow(key == emberKey ? cs.brand : cs.mut).a11yHitSlop()
     }
     .buttonStyle(.plain)
     // VoiceOver reads a tracked all-caps eyebrow letter by letter; give it the

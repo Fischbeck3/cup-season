@@ -63,7 +63,18 @@ public enum MeStripCopy {
     public let door: Door
     /// "your number, 12.4" — each pair is ONE VoiceOver element (AX3).
     public let voiceOver: String
+    /// **Is this a fact, or the shape where a fact will go?** `— BUILDING`,
+    /// `NO ROUNDS YET` and `PLAN ONE` are doors wearing a slot's clothes. Each
+    /// is right on its own; all of them at once is a row of absences dressed
+    /// as a data row, which is what a brand-new golfer was handed.
+    public let isPlaceholder: Bool
     public var id: String { fact.rawValue }
+
+    public init(fact: Fact, label: String, value: String, door: Door, voiceOver: String,
+                isPlaceholder: Bool = false) {
+      self.fact = fact; self.label = label; self.value = value; self.door = door
+      self.voiceOver = voiceOver; self.isPlaceholder = isPlaceholder
+    }
   }
 
   /// The one context row under the four facts: the season with the nearest
@@ -164,6 +175,26 @@ public enum MeStripCopy {
       ? nearest(me.memberships, today: today)
           .flatMap { SeasonFacts.monthRow($0, today: today, calendar: calendar) }
       : nil
+    // **A ROW OF ABSENCES IS NOT AN ANCHOR.** On a brand-new account every
+    // slot is a door wearing a slot's clothes — `— BUILDING · NO ROUNDS YET ·
+    // PLAN ONE` — set directly under a lead card that has just said "your
+    // first round is the only thing missing". The strip's whole job is to be
+    // the four facts that are about ME; with nothing yet true it is a form
+    // that failed to load, and it says the lead's sentence back in mono.
+    //
+    // So it stands down entirely, and Home is the lead card and the four
+    // doors — which is `HOME_STATE_MATRIX` §4.5's own shape for the first
+    // open, *"one true thing is enough"*, applied one row higher than the
+    // matrix applied it. Nothing is lost: every placeholder's door is also a
+    // foot door, and the foot doors are the floor that never hides (L-32).
+    //
+    // One real fact is enough to bring it back: `14.2 · 86 WED · PLAN ONE` is
+    // a strip with something to say, and `PLAN ONE` inside it is an invitation
+    // rather than a fourth way of saying "nothing here yet".
+    let allEmpty = !slots.isEmpty && slots.allSatisfy(\.isPlaceholder)
+    if allEmpty && owe == nil && season == nil && month == nil {
+      return Strip(slots: [], seasonRow: nil)
+    }
     return Strip(slots: slots, seasonRow: season, monthRow: month, oweRow: owe)
   }
 
@@ -211,7 +242,8 @@ public enum MeStripCopy {
     let value = n <= 0 ? "—" : "\(min(n, 3)) OF 3"
     return Slot(fact: .myNumber, label: "BUILDING", value: value, door: .yourCard,
                 voiceOver: n <= 0 ? "your number, building, no rounds yet"
-                                  : "your number, building, \(min(n, 3)) of 3 rounds posted")
+                                  : "your number, building, \(min(n, 3)) of 3 rounds posted",
+                isPlaceholder: true)
   }
 
   // MARK: 2 · LAST
@@ -231,7 +263,7 @@ public enum MeStripCopy {
     // a v2 payload knows nothing about my last round and says nothing (L-44).
     if p.rounds_count == 0 {
       return Slot(fact: .myLastRound, label: "LAST", value: "NO ROUNDS YET", door: .composer,
-                  voiceOver: "last round, none yet")
+                  voiceOver: "last round, none yet", isPlaceholder: true)
     }
     return nil
   }
@@ -247,7 +279,7 @@ public enum MeStripCopy {
     guard let upcoming else { return nil }
     guard let up = mine(upcoming, today: today).first, let on = up.play_on else {
       return Slot(fact: .myNextRound, label: "NEXT", value: "PLAN ONE", door: .declare,
-                  voiceOver: "next round, none booked")
+                  voiceOver: "next round, none booked", isPlaceholder: true)
     }
     let day = dayToken(on, today: today, calendar: calendar)
     let tee = up.tee_time.flatMap(teeText)

@@ -57,6 +57,17 @@ enum CSDevHatch {
   /// screenshot that is half a fixture and half somebody's real account is
   /// evidence of neither. Always false in Release, by construction.
   static var fixtureHome: Bool { homeState != nil }
+  /// `-cs_dev_open_play` presents the ⊕ cover on launch. The ⊕ is a tab-bar
+  /// item with no route and no deep link that skips SpringBoard's "Open in
+  /// Cup Season?" confirmation, so the one screen the Play tab actually IS
+  /// could not be photographed without a finger on the glass. DEBUG only.
+  static var openPlay: Bool {
+    #if DEBUG
+    return ProcessInfo.processInfo.arguments.contains("-cs_dev_open_play")
+    #else
+    return false
+    #endif
+  }
   /// `-cs_dev_live` seeds a live match-play round, 14 holes in, so the tee
   /// sheet — and D152's landscape card — can be seen without signing in and
   /// playing one. DEBUG only; it never touches the server.
@@ -562,6 +573,10 @@ struct MainTabView: View {
     // D225 · the intent sheet. Every "Start something" lands here first, and
     // nothing is minted by opening it.
     .sheet(isPresented: $presenter.showIntent) { IntentSheet(take: takeIntent, joinWithCode: { presenter.join(code: nil) }) }
+    #if DEBUG
+    // `-cs_dev_open_play` — the ⊕ cover, on launch, for a simulator with no finger.
+    .task { if CSDevHatch.openPlay { presenter.postOnComposer = false; presenter.showPost = true } }
+    #endif
     .sheet(isPresented: $presenter.showWhenFork) {
       WhenForkSheet { f in
         switch f {
@@ -614,7 +629,8 @@ struct MainTabView: View {
                                      openReceipt: { presenter.receipt = $0 },
                                      openPeople: { presenter.showPost = false; openGolfers() },
                                      openCompetition: { presenter.showPost = false; openCompetition($0) },
-                                     openTourCard: { presenter.showPost = false; presenter.tourCard = $0 }))
+                                     openTourCard: { presenter.showPost = false; presenter.tourCard = $0 },
+                                     startSomething: { presenter.showPost = false; presenter.showIntent = true }))
     }
     .fullScreenCover(isPresented: $presenter.showLive) { LiveRoundHost(links: liveLinks) }
   }

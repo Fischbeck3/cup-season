@@ -146,20 +146,33 @@ struct HomeView: View {
           })
           }
 
-          // 5 · THE WIRE — the feed, whole. D218: the lane is cross-league, so
-          // its door is the buddies.
-          HomeSectionHead("Around your buddies") {
-            // D222 · Golfers is a TAB. It was a push into a screen that lived
-            // under You, declared here and resolved in three stacks — the shape
-            // that made D178's dead link possible.
-            Button { openGolfers() } label: { Text("YOUR BUDDIES ↗").csEyebrow(cs.dawn).a11yHitSlop() }
-              .buttonStyle(.plain)
-              .accessibilityLabel("Your buddies")
-              .accessibilityHint("Opens the Golfers tab")
-          }
-
           // F-2 · the wire never re-tells a round the deck above already told.
           let buckets = vm.feed(upcoming: upcoming.ids, spent: ranked.spentRounds)
+
+          // 5 · THE WIRE — the feed, whole. D218: the lane is cross-league, so
+          // its door is the buddies.
+          //
+          // **A HEADING IS A LABEL FOR A LIST, AND THERE IS NO LIST.** With an
+          // empty wire this rendered `AROUND YOUR BUDDIES`, a `YOUR BUDDIES ↗`
+          // door beside it, and then *"No rounds from your buddies yet. Post
+          // one, or add some buddies."* — three gestures at one absence, above
+          // a fourth (`FIND GOLFERS`) in the foot doors. To a golfer who has
+          // nobody, the word arrived four times in half a screen.
+          //
+          // The heading and its door are what a list needs. The empty branch
+          // below is already one sentence carrying its own door, and it says
+          // the same thing better because it says it once.
+          if !buckets.isEmpty || vm.loading || vm.feedFailed {
+            HomeSectionHead("Around your buddies") {
+              // D222 · Golfers is a TAB. It was a push into a screen that lived
+              // under You, declared here and resolved in three stacks — the shape
+              // that made D178's dead link possible.
+              Button { openGolfers() } label: { Text("YOUR BUDDIES ↗").csEyebrow(cs.dawn).a11yHitSlop() }
+                .buttonStyle(.plain)
+                .accessibilityLabel("Your buddies")
+                .accessibilityHint("Opens the Golfers tab")
+            }
+          }
           if let d = vm.digest { CSRow(last: !buckets.isEmpty) { HomeDigestRow(digest: d, openReceipt: { presenter.receipt = $0 }) } }
 
           if vm.loading && buckets.isEmpty {
@@ -226,7 +239,7 @@ struct HomeView: View {
 
           // 6 · THE FLOOR (L-32, D94 restored): four live doors on every Home,
           // in every state including brand-new, offline and failed.
-          HomeFootDoors(push: push)
+          HomeFootDoors(push: push, leadRoute: ranked.lead?.route)
         }
         .padding(.horizontal, 20).padding(.top, 4).padding(.bottom, 32)
       }

@@ -156,10 +156,12 @@ import Foundation
     // L-44 forbids, and BUILDING is the honest state.
     StarterIndex.set(.noIdea, defaults: d)
     #expect(StarterIndex.current(engineIndex: nil, defaults: d) == nil)
-    let building = MeStripCopy.make(Me(profile: p), upcoming: [], today: "2026-09-05", starter: nil)
-      .slots.first { $0.fact == .myNumber }
+    // On the producer: the assembled strip stands down when BUILDING is all
+    // there is to say, so the label is asserted where it is decided.
+    let building = MeStripCopy.numberSlot(p, starter: nil)
     #expect(building?.label == "BUILDING")
     #expect(building?.value == "—")
+    #expect(building?.isPlaceholder == true)
   }
 
   @Test func theStarterIsNotAServerValue() {

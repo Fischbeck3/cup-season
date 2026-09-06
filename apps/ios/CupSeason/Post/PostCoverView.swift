@@ -24,6 +24,11 @@ struct PostLinks {
   /// a season is Compete's object and "league" is not what it opens.
   var openCompetition: (UUID) -> Void = { _ in }
   var openTourCard: (UUID) -> Void = { _ in }
+  /// "Start something" — the intent sheet. The ⊕ is the only VERB in the tab
+  /// bar and it offered three ways to make a ROUND and no way to make a
+  /// competition, so the funnel the brief describes — casual golf into a
+  /// season — had no mouth at the place people actually press.
+  var startSomething: () -> Void = {}
 }
 
 struct PostCoverView: View {
@@ -94,7 +99,7 @@ private struct PostCoverStack: View {
           // D227 · three rows, one line of gloss each, and the ~1,000 px of
           // dead space under them closed (SV-22). The tab is Play, so the
           // cover is Play.
-          CSPageHeader("Play", sub: "One live, one you just finished, or the next one")
+          CSPageHeader("Play", sub: "One live, one you just finished, or the next one — or something to play for")
           // L-40 / D110: the live game leads and wears ember (the live metal,
           // per the tokens contract); posting and planning are quiet errand
           // rows. D227 holds that clause rather than spending it: the 90 %
@@ -124,6 +129,30 @@ private struct PostCoverStack: View {
                           sub: "Put it on the schedule; your buddies and your seasons see it.", last: true) { showPlan = true }
           }
           .padding(.top, 12)
+
+          // **THE FOURTH ROW IS A DIFFERENT NOUN, SO IT IS SET APART.**
+          //
+          // The three rows above all produce a ROUND — live, played, planned —
+          // and they share a rhythm because of it. This produces a SEASON, and
+          // dropping it in as a fourth peer would have blurred what the group
+          // above them is. It sits under its own rule instead, which is also
+          // the honest reading order: you put golf in first, and the
+          // competition is what that golf becomes.
+          //
+          // It is the same act as Home's `START SOMETHING` door and Compete's
+          // — one sheet, `IntentSheet`, reached from wherever the thought
+          // occurs. Creation starts from intent, never from configuration.
+          VStack(alignment: .leading, spacing: 0) {
+            CSHairline()
+            // L-25 · the live row already wears the ember on this screen, and
+            // spending it twice spends it on nothing. What sets this row apart
+            // is structural — its own rule and its own gap — not a second
+            // metal competing with the one act that is genuinely happening now.
+            PostOptionRow(tick: cs.line2, title: "Start something",
+                          sub: "A season, a weekend, a one-off — pick who's in and what you're playing for.",
+                          last: true) { close(); links.startSomething() }
+          }
+          .padding(.top, 20)
           // F-13 · what the long-press OPENS, named. "Your card" is the profile
           // (the exempt sense) and this opens the composer — on a screen whose
           // row above calls the same destination "Add a round you played".

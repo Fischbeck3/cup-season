@@ -116,13 +116,20 @@ private let today = "2026-09-08"
     #expect(!s.slots.contains { $0.value.contains("NO ROUNDS YET") })
   }
 
+  /// The three empty states are still BUILT, and still carry their doors —
+  /// asserted on the producers, because the assembled strip now declines to
+  /// render a row in which all three are all there is (`MeStripPlaceholderTests`).
+  /// Each is right the moment one real fact stands beside it.
   @Test func aKnownZeroIsAnEmptyStateWithADoor() {
     let p = profile(index: nil, source: nil, rounds: 0, lastOn: nil, lastGross: nil, lastId: nil)
-    let s = MeStripCopy.make(Me(profile: p), upcoming: [], today: today)
-    #expect(s.slots.map(\.value) == ["—", "NO ROUNDS YET", "PLAN ONE"])
-    #expect(s.slots.map(\.label) == ["BUILDING", "LAST", "NEXT"])
-    #expect(s.slots[1].door == .composer)
-    #expect(s.slots[2].door == .declare)
+    let number = MeStripCopy.numberSlot(p)
+    let last = MeStripCopy.lastSlot(p, today: today, calendar: .current)
+    let next = MeStripCopy.nextSlot([], today: today, calendar: .current)
+    #expect([number, last, next].compactMap { $0?.value } == ["—", "NO ROUNDS YET", "PLAN ONE"])
+    #expect([number, last, next].compactMap { $0?.label } == ["BUILDING", "LAST", "NEXT"])
+    #expect(last?.door == .composer)
+    #expect(next?.door == .declare)
+    #expect([number, last, next].compactMap { $0?.isPlaceholder } == [true, true, true])
   }
 
   @Test func underThreeRoundsTheNumberIsBuilding() {
@@ -379,9 +386,12 @@ private let today = "2026-09-08"
   }
 
   @Test func noProfileIsNoFacts() {
+    // The tee sheet is still readable, so NEXT still has an honest empty state
+    // — but `PLAN ONE` alone is a row of one absence, and the strip stands
+    // down rather than render it. The slot itself is still produced.
     let s = MeStripCopy.make(Me(profile: nil), upcoming: [], today: today)
-    // The tee sheet is still readable, so NEXT still has an honest empty state.
-    #expect(s.slots.map(\.fact) == [.myNextRound])
+    #expect(s.slots.isEmpty)
+    #expect(MeStripCopy.nextSlot([], today: today, calendar: .current)?.fact == .myNextRound)
   }
 }
 
@@ -517,5 +527,42 @@ struct LongCourseNameTests {
   func theMonthRowYieldsToBoth() {
     let me = Me(profile: profile(), memberships: [membership()])
     #expect(MeStripCopy.make(me, upcoming: [], today: today).monthRow == nil)
+  }
+}
+
+// MARK: - a row of absences is not an anchor
+
+@Suite struct MeStripPlaceholderTests {
+  private let today = "2026-09-06"
+
+  /// Brand new: `— BUILDING · NO ROUNDS YET · PLAN ONE`, set under a lead card
+  /// that has just said "your first round is the only thing missing". Three
+  /// doors wearing a data row's clothes, saying the lead's sentence back.
+  @Test("with nothing true yet the strip renders nothing at all")
+  func theEmptyStripStandsDown() {
+    let me = Me(profile: profile(index: nil, rounds: 0, lastOn: nil, lastGross: nil, lastId: nil), memberships: [])
+    let s = MeStripCopy.make(me, upcoming: [], today: today)
+    #expect(s.slots.isEmpty)
+    #expect(s.isEmpty)
+  }
+
+  /// One real fact is enough to bring it back — and `PLAN ONE` beside a number
+  /// and a last round is an invitation, not a fourth way of saying "nothing".
+  @Test("one real fact brings the whole strip back, placeholders included")
+  func oneFactIsEnough() {
+    let me = Me(profile: profile(), memberships: [])
+    let s = MeStripCopy.make(me, upcoming: [], today: today)
+    #expect(s.slots.contains { $0.fact == .myNumber && !$0.isPlaceholder })
+    #expect(s.slots.contains { $0.value == "PLAN ONE" && $0.isPlaceholder })
+  }
+
+  /// A membership with something to say keeps the strip even at zero rounds:
+  /// the supporting row is a fact, and standing down would delete it.
+  @Test("a supporting row keeps the strip up even with every slot empty")
+  func aRealRowKeepsIt() {
+    let me = Me(profile: profile(index: nil, rounds: 0, lastOn: nil, lastGross: nil, lastId: nil), memberships: [membership()])
+    let s = MeStripCopy.make(me, upcoming: [], today: today)
+    #expect(s.isEmpty == false)
+    #expect(s.oweRow != nil)
   }
 }
