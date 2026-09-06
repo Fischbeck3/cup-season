@@ -1,0 +1,837 @@
+<!doctype html>
+<html><head><meta charset="utf-8">
+<title>Cup Season — COURSE, the editorial surface</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Condensed:wght@600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg0:#0F1A15; --bg1:#1A2620; --bg2:#26352E; --rule:#4A6155;
+  --ink:#F1F4EF; --mut:#9BA69D; --dim:#5E6A62;
+  --panel:#E9ECE3; --panelInk:#0B120E; --panelMut:#4C574F;
+  --leaf:#EFEADD; --leafInk:#1A1B14; --leafMut:#57605A;
+  --brand:#E8622C; --gold:#D8B25A; --pos:#4EC584; --neg:#FF6A5E; --cool:#7F8C95;
+  --pig0:#492D2C; --pig1:#473C28; --pig2:#293B2B; --pig3:#1F4648; --pig4:#293B4E; --pig5:#4E3C4F;
+  --ceremony:#0A0E0C;
+  --board:'IBM Plex Sans Condensed', -apple-system, sans-serif;
+  --mono:'IBM Plex Mono', ui-monospace, monospace;
+  --sans:-apple-system, system-ui, sans-serif;
+  --serif:'New York','Iowan Old Style',Georgia,serif;
+  --leafRule:rgba(26,27,20,.20);
+}
+.paper{
+  --bg0:#F4F1E9; --bg1:#EAE6DB; --bg2:#DED8C8; --rule:#A9A08A;
+  --ink:#151B17; --mut:#575F57; --dim:#8B9089;
+  --panel:#141A16; --panelInk:#F4F1E9; --panelMut:#A6AEA5;
+  --leaf:#FFFDF7; --leafInk:#1A1B14; --leafMut:#5A625A;
+  --brand:#A8420F; --gold:#7A5A12; --pos:#0B7340; --neg:#B02A20; --cool:#5D6862;
+  --pig0:#FDDAD8; --pig1:#E6D8C2; --pig2:#D6EBD7; --pig3:#BEE4E7; --pig4:#D9EAFF; --pig5:#EED9EE;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#2a2a2a;font-family:var(--sans);padding:28px;display:flex;flex-wrap:wrap;gap:28px;align-items:flex-start}
+.artboard{width:402px;height:874px;background:var(--bg0);color:var(--ink);position:relative;overflow:hidden;
+  font-family:var(--sans);-webkit-font-smoothing:antialiased}
+.wrap{padding:0 20px}
+
+/* ---- the nine type roles (UI_SYSTEM §1.2) ---- */
+.figXL{font-family:var(--board);font-weight:700;font-size:56px;line-height:.92;font-variant-numeric:tabular-nums}
+.fig  {font-family:var(--board);font-weight:700;font-size:40px;line-height:.94;font-variant-numeric:tabular-nums}
+.figM {font-family:var(--board);font-weight:700;font-size:27px;line-height:.96;font-variant-numeric:tabular-nums}
+.figS {font-family:var(--board);font-weight:700;font-size:20px;line-height:1;font-variant-numeric:tabular-nums}
+.display{font-family:var(--board);font-weight:700;font-size:34px;line-height:.98;text-transform:uppercase;letter-spacing:.005em}
+.title{font-family:var(--board);font-weight:700;font-size:24px;line-height:1.05;text-transform:uppercase;letter-spacing:.01em}
+.name{font-family:var(--board);font-weight:600;font-size:17px;line-height:1.16;text-transform:uppercase;letter-spacing:.035em}
+.nameS{font-family:var(--board);font-weight:600;font-size:15px;line-height:1.16;text-transform:uppercase;letter-spacing:.04em}
+.social{font-family:var(--board);font-weight:600;font-size:17px;line-height:1.16;letter-spacing:0}
+.lead{font-family:var(--serif);font-weight:700;font-size:28px;line-height:1.14;letter-spacing:-.01em}
+.story{font-family:var(--serif);font-weight:400;font-size:20px;line-height:1.34}
+.body{font-family:var(--sans);font-size:17px;line-height:1.45}
+.bodyS{font-family:var(--sans);font-size:15px;line-height:1.45}
+.agate{font-family:var(--board);font-weight:600;font-size:12px;line-height:1.2;text-transform:uppercase;letter-spacing:.09em}
+.agateS{font-family:var(--board);font-weight:600;font-size:11px;line-height:1.2;text-transform:uppercase;letter-spacing:.08em}
+.col{font-family:var(--mono);font-weight:500;font-size:14px;font-variant-numeric:tabular-nums}
+.colS{font-family:var(--mono);font-weight:400;font-size:12px;font-variant-numeric:tabular-nums}
+.mut{color:var(--mut)} .gold{color:var(--gold)} .em{color:var(--brand)}
+
+/* ---- structure ---- */
+.hair{height:1px;background:var(--rule)}
+.heavy{height:2px;background:var(--ink)}
+.sechead{display:flex;align-items:center;gap:10px;padding:0 20px}
+.sechead .hair{flex:1}
+.bonepanel{background:#E9ECE3;color:#0B120E;border-radius:3px;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;text-align:center}
+.panel{background:var(--panel);color:var(--panelInk);border-radius:3px;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;text-align:center}
+.leaf{background:var(--leaf);color:var(--leafInk);border-radius:3px;box-shadow:0 1px 0 rgba(0,0,0,.22),inset 0 0 0 1px rgba(26,27,20,.13)}
+.paper .leaf{box-shadow:none;outline:1px solid var(--rule);outline-offset:-1px}
+.slat{display:flex;align-items:center;min-height:50px;border-top:1px solid var(--rule)}
+.disc{border-radius:50%;display:flex;align-items:center;justify-content:center;flex:none;
+  box-shadow:inset 0 0 0 1px var(--rule)}
+.btn{height:50px;border-radius:10px;display:flex;align-items:center;justify-content:center}
+.btnP{background:var(--brand);color:var(--bg0)}
+.btnS{background:var(--bg2);color:var(--ink)}
+.link{display:inline-block;border-bottom:2px solid var(--mut);padding-bottom:3px}
+.link.live{border-bottom-color:var(--brand)}
+.chip{height:28px;border-radius:3px;background:var(--bg2);color:var(--mut);display:inline-flex;align-items:center;padding:0 12px}
+.chip.sel{background:var(--panel);color:var(--panelInk)}
+.overlap>*{margin-left:-12px;box-shadow:inset 0 0 0 1px var(--rule),0 0 0 2px var(--bg0)}
+.overlap>*:first-child{margin-left:0}
+.tabbar{position:absolute;left:0;right:0;bottom:0;height:74px;border-top:1px solid var(--rule);
+  background:var(--bg0);display:flex;align-items:flex-start;padding-top:9px}
+.tab{flex:1;display:flex;flex-direction:column;align-items:center;gap:5px;color:var(--mut)}
+.tab.sel{color:var(--ink)} .tab.play{color:var(--brand)}
+.tab .u{width:26px;height:2px;background:var(--ink);margin-top:3px}
+.fade{position:absolute;left:0;right:0;height:28px;bottom:74px;
+  background:linear-gradient(to bottom,transparent,var(--bg0))}
+.status{height:54px;display:flex;align-items:center;justify-content:space-between;padding:0 22px;
+  font-family:var(--sans);font-size:15px;font-weight:600}
+.notch{position:absolute;left:50%;transform:translateX(-50%);top:12px;width:96px;height:30px;background:#000;border-radius:16px;z-index:5}
+
+/* ---- the plate: COURSE's opening object, image or drawing ---- */
+.plate{position:relative;overflow:hidden}
+.plateScrim{position:absolute;inset:0;
+  background:linear-gradient(to bottom,rgba(10,14,12,.44) 0%,rgba(10,14,12,0) 30%,rgba(10,14,12,.30) 56%,rgba(10,14,12,.86) 100%)}
+.plateFoot{position:absolute;left:20px;right:20px;bottom:14px;color:#F1F4EF;display:flex;align-items:flex-end;gap:12px}
+/* the drawn card: 18 bars, height by yardage, width by par, gold on the #1 stroke hole */
+.bars{position:absolute;left:20px;right:20px;display:flex;align-items:flex-end;gap:4.6px}
+.bars i{display:block;background:var(--rule);border-radius:1px}
+
+/* ---- the leaf's printed grid ---- */
+.lrow{display:flex;align-items:baseline}
+.lrow b{flex:0 0 26px;font-family:var(--board);font-weight:600;font-size:11px;letter-spacing:.08em;
+  text-transform:uppercase;color:var(--leafMut)}
+.lrow s{flex:1;text-align:center;text-decoration:none}
+
+/* §1.3 — agate sets SENTENCE case for a phrase, caps for a label. */
+.sent{text-transform:none!important;letter-spacing:.02em}
+/* §2.3 — on cream stock the pigments are pale tints; the marker takes INK, never mut. */
+.paper .disc svg,.paper .face svg,.paper .disc56 svg{stroke:var(--ink)!important}
+
+</style></head><body>
+
+<!-- ═══════════════════════════ 1 · COURSE PAGE (with image) ═══════════════════════════ -->
+<div class="artboard" id="course-page">
+  <div class="notch"></div>
+
+  <!-- THE PLATE — a golfer's own round photo at this course (§10.1 rung 1) -->
+  <div class="plate" style="height:252px">
+    <div style="position:absolute;left:0;right:0;top:0;height:96px;z-index:1;background:linear-gradient(to bottom,rgba(10,14,12,.72),rgba(10,14,12,0))"></div>
+    <div style="position:absolute;left:0;right:0;top:0;height:268px;overflow:hidden"><svg width="402" height="268" viewBox="0 0 402 268" preserveAspectRatio="xMidYMid slice" style="position:absolute;inset:0;display:block">
+ <defs>
+  <filter id="skyh268"><feTurbulence type="fractalNoise" baseFrequency="0.008 0.030" numOctaves="4" seed="7" result="t"/>
+    <feColorMatrix in="t" type="matrix" values="0 0 0 0 0.42  0 0 0 0 0.34  0 0 0 0 0.24  0 0 1.1 0 0.10"/><feGaussianBlur stdDeviation="1.1"/></filter>
+  <filter id="turfh268"><feTurbulence type="fractalNoise" baseFrequency="0.30 0.90" numOctaves="5" seed="10" result="t"/>
+    <feColorMatrix in="t" type="matrix" values="0 0 0 0 0.16  0 0 0 0 0.20  0 0 0 0 0.09  0 0 1.8 0 0.02"/></filter>
+  <filter id="softh268"><feTurbulence type="fractalNoise" baseFrequency="0.004 0.009" numOctaves="3" seed="18" result="t"/>
+    <feColorMatrix in="t" type="matrix" values="0 0 0 0 0.05  0 0 0 0 0.07  0 0 0 0 0.04  0 0 2.4 0 -0.55"/><feGaussianBlur stdDeviation="12"/></filter>
+  <filter id="grainh268"><feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2" seed="26" result="t"/>
+    <feColorMatrix in="t" type="saturate" values="0"/>
+    <feComponentTransfer><feFuncA type="linear" slope="0.19" intercept="-0.06"/></feComponentTransfer></filter>
+  <filter id="hazeh268"><feGaussianBlur stdDeviation="2.2"/></filter>
+  <linearGradient id="skygh268" x1="0" y1="0" x2="0" y2="1">
+    <stop offset="0" stop-color="#5A5F46"/><stop offset=".50" stop-color="#A79066"/><stop offset="1" stop-color="#E4C88C"/></linearGradient>
+  <linearGradient id="turfgh268" x1="0" y1="0" x2="0" y2="1">
+    <stop offset="0" stop-color="#8B8A54"/><stop offset=".20" stop-color="#5C6A3B"/><stop offset=".58" stop-color="#3A4A30"/><stop offset="1" stop-color="#18231A"/></linearGradient>
+  <linearGradient id="lith268" x1="0.9" y1="0" x2="0.15" y2="0.9">
+    <stop offset="0" stop-color="#F0C583" stop-opacity=".30"/><stop offset=".45" stop-color="#B08F4E" stop-opacity=".07"/>
+    <stop offset="1" stop-color="#080E0A" stop-opacity=".30"/></linearGradient>
+  <linearGradient id="seamh268" x1="0" y1="0" x2="0" y2="1">
+    <stop offset="0" stop-color="#A8945C" stop-opacity="0"/><stop offset=".46" stop-color="#AE9A60" stop-opacity=".50"/><stop offset=".62" stop-color="#9C8C58" stop-opacity=".34"/><stop offset="1" stop-color="#8C7E50" stop-opacity="0"/></linearGradient>
+  <radialGradient id="vigh268" cx="0.62" cy="0.26" r="0.92">
+    <stop offset=".44" stop-color="#000" stop-opacity="0"/><stop offset="1" stop-color="#000" stop-opacity=".38"/></radialGradient>
+  <clipPath id="csh268"><rect width="402" height="93"/></clipPath>
+  <clipPath id="cgh268"><rect y="91" width="402" height="177"/></clipPath>
+ </defs>
+ <g clip-path="url(#csh268)">
+   <rect width="402" height="93" fill="url(#skygh268)"/>
+   <rect width="402" height="93" filter="url(#skyh268)" opacity=".85"/>
+   <g filter="url(#hazeh268)" opacity=".92">
+     <path d="M-20 131.2 C-16.4 61.6 -8.4 59.1 -3.8 81.7 C-0.9 74.4 5.8 73.0 9.6 85.4 C19.0 88.0 40.4 87.7 52.4 90.2 C61.3 83.6 81.5 83.0 92.9 88.9 C98.2 66.0 110.2 63.8 117.0 78.6 C120.8 73.5 129.4 72.0 134.2 83.2 C140.3 87.0 154.2 86.7 161.9 89.3 C171.6 87.2 193.6 86.8 205.9 89.5 C212.5 87.3 227.4 87.0 235.7 90.1 C241.7 88.0 255.3 87.7 262.9 89.2 C268.4 70.5 281.0 68.7 288.0 81.8 C295.2 73.1 311.3 71.5 320.4 82.3 C325.0 69.1 335.6 67.2 341.5 84.9 C347.3 67.1 360.6 65.1 368.0 75.5 C376.4 85.0 395.7 84.5 406.5 89.0 C409.7 72.8 416.8 71.2 420.8 80.0 C426.9 67.3 440.6 65.3 448.3 86.3 L422 139.24 L-20 139.24 Z" fill="#1D2A1E"/>
+     <path d="M-20 118.72800000000001 C-12.4 91.5 5.0 91.3 14.7 92.7 C22.5 88.9 40.4 88.5 50.4 90.8 C57.5 89.6 73.7 89.3 82.8 91.8 C90.1 90.2 106.6 90.0 115.9 91.1 C123.4 80.9 140.5 79.8 150.1 86.2 C157.7 83.5 174.9 82.7 184.5 87.9 C191.4 75.3 207.1 73.8 215.8 85.6 C220.9 90.0 232.4 89.8 238.8 91.0 C245.9 89.3 262.2 89.0 271.3 92.0 C276.1 91.3 287.2 91.1 293.3 92.3 C296.9 82.2 305.1 81.2 309.7 85.9 C312.5 77.3 318.8 75.9 322.3 84.0 C325.8 83.5 333.6 82.7 338.0 88.4 C343.9 74.4 357.3 72.8 364.9 82.0 C372.8 89.7 390.7 89.4 400.8 91.4 C405.1 83.1 415.0 82.3 420.6 90.1 C426.3 78.6 439.2 77.4 446.4 89.7 L422 123.8736 L-20 123.8736 Z" fill="#131C15"/>
+   </g>
+ </g>
+ <g clip-path="url(#cgh268)">
+   <rect y="91" width="402" height="177" fill="url(#turfgh268)"/>
+   <g transform="rotate(-3.4 201 91)"><rect x="-40" y="116" width="482" height="25" fill="#DCD3A8" opacity="0.103"/><rect x="-40" y="166" width="482" height="25" fill="#DCD3A8" opacity="0.079"/><rect x="-40" y="216" width="482" height="25" fill="#DCD3A8" opacity="0.055"/><rect x="-40" y="266" width="482" height="25" fill="#DCD3A8" opacity="0.031"/></g>
+   <rect y="91" width="402" height="177" filter="url(#turfh268)" opacity=".85"/>
+ </g>
+ <rect y="68" width="402" height="46" fill="url(#seamh268)"/>
+ <ellipse cx="56" cy="273" rx="249" ry="80" fill="#0A120C" opacity=".38" filter="url(#hazeh268)"/>
+ <rect width="402" height="268" filter="url(#softh268)" opacity=".8"/>
+ <rect width="402" height="268" fill="url(#lith268)"/>
+ <rect width="402" height="268" fill="url(#vigh268)"/>
+ <rect width="402" height="268" filter="url(#grainh268)" opacity=".55"/>
+</svg></div>
+    <div class="plateScrim"></div>
+    <div class="status" style="position:absolute;top:0;left:0;right:0;color:#F1F4EF"><span>9:41</span><span style="font-size:13px">▮▮▮ ᯤ ▰</span></div>
+    <div style="position:absolute;left:20px;top:56px">
+      <svg width="12" height="20" viewBox="0 0 12 20" fill="none" stroke="#F1F4EF" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M9 3L3 10l6 7"/></svg></div>
+    <div class="agateS" style="position:absolute;right:20px;top:58px;color:#D2D8CE">Galen’s round · Aug 24</div>
+    <div class="plateFoot">
+      <div style="flex:1;min-width:0">
+        <div class="agate" style="color:#CBD2C8">Kept · four of yours have played it</div>
+        <div class="display" style="margin-top:9px">Papago</div>
+        <div class="agate" style="color:#CBD2C8;margin-top:9px">Phoenix, Arizona · Municipal</div>
+      </div>
+      <div class="bonepanel" style="width:64px;height:64px;flex:none">
+        <div class="figM">81</div>
+        <div class="agateS" style="color:#4C574F;margin-top:5px">Your best</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- THE FACTS — one line of type, never a grid (§15.3) -->
+  <div class="wrap" style="margin-top:13px">
+    <div style="display:flex;align-items:baseline;gap:5px;flex-wrap:wrap">
+      <span class="figS">72</span><span class="agateS mut">Par</span><span class="agateS mut" style="opacity:.5">·</span>
+      <span class="figS">7,068</span><span class="agateS mut">Yds</span><span class="agateS mut" style="opacity:.5">·</span>
+      <span class="figS">72.5</span><span class="agateS mut">Rtg</span><span class="agateS mut" style="opacity:.5">·</span>
+      <span class="figS">130</span><span class="agateS mut">Slope</span>
+    </div>
+    <div class="agateS mut" style="margin-top:9px">Papago blue · the 4th plays hardest · saved today</div>
+  </div>
+
+  <!-- THE RATING as content (§9.11, brief §12) -->
+  <div class="wrap" style="margin-top:14px;display:flex;align-items:flex-start;gap:18px">
+    <div style="flex:none">
+      <div class="fig">4.6</div>
+      <div style="height:2px;background:var(--ink);margin:6px 0 6px;width:66px"></div>
+      <div class="agateS mut" style="width:118px">Cup Season · 24 ratings</div>
+    </div>
+    <div style="flex:1">
+      <svg width="122" height="20" viewBox="0 0 122 20" style="display:block">
+        <defs><path id="st-d" d="M10 1.4l2.5 5.5 6 .7-4.5 4.1 1.22 5.95L10 14.6 4.78 17.65 6 11.7 1.5 7.6l6-.7z"/>
+        <clipPath id="half-d"><rect x="96" y="0" width="10.4" height="20"/></clipPath></defs>
+        <g fill="var(--ink)"><use href="#st-d" x="0"/><use href="#st-d" x="24"/><use href="#st-d" x="48"/><use href="#st-d" x="72"/></g>
+        <use href="#st-d" x="96" fill="none" stroke="var(--rule)" stroke-width="1.4"/>
+        <g clip-path="url(#half-d)"><use href="#st-d" x="96" fill="var(--ink)"/></g></svg>
+      <div class="bodyS mut" style="margin-top:12px">Your golfers give it <span class="figS" style="font-size:17px">4.9</span>.</div>
+      <div style="margin-top:13px"><span class="link nameS">Rate it</span></div>
+    </div>
+  </div>
+
+  <!-- THE PULL QUOTE — the one serif on this surface (§15.3) -->
+  <div class="wrap" style="margin-top:14px">
+    <div class="story" style="text-indent:-9px">“The desert does the arguing. You just keep it in play.”</div>
+    <div class="bodyS mut" style="margin-top:9px">Jade, after an <span class="figS" style="font-size:15px;color:var(--ink)">82</span> here on Aug 30.</div>
+  </div>
+
+  <!-- WHO OF YOURS HAS PLAYED IT — the overlapping row and the sentence that names them -->
+  <div class="wrap" style="margin-top:13px;display:flex;align-items:center;gap:14px">
+    <div class="overlap" style="display:flex;flex:none">
+      <div class="disc" style="width:34px;height:34px;background:var(--pig1)"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="var(--mut)" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M7 21V4"/><path d="M7 5h9l-2.6 3.4L16 12H7"/></svg></div>
+      <div class="disc" style="width:34px;height:34px;background:var(--pig5)"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="var(--mut)" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M5.5 16.5c0-4.4 2.9-7.6 6.5-7.6s6.5 3.2 6.5 7.6"/><path d="M4.5 16.5h15"/><path d="M12 8.9V6.4"/></svg></div>
+      <div class="disc" style="width:34px;height:34px;background:var(--pig4)"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="var(--mut)" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="2.4"/><path d="M12 9.4c0-2.7 1.7-4.1 3.3-3.6M12 14.6c0-2.7-1.7-4.4-3.3-3.9M9.4 12c-2.7 0-4.2-1.6-3.7-3.2M14.6 12c2.7 0 4.4 1.7 3.9 3.3"/></svg></div>
+      <div class="disc" style="width:34px;height:34px;background:var(--pig2)"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="var(--mut)" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 14c3-4 5-4 8 0s5 4 8 0"/></svg></div>
+    </div>
+    <div class="bodyS" style="flex:1">Galen, Tash, Jade and Dev. Galen’s <span class="figS" style="font-size:15px">79</span> is the best of them.</div>
+  </div>
+
+  <!-- THE FRONT NINE, printed on a leaf -->
+  <div class="leaf" style="margin:18px 20px 0;padding:12px 14px 13px">
+    <div class="agateS" style="color:var(--leafMut)">The front nine · Papago blue</div>
+    <div class="lrow" style="margin-top:11px"><b>Hole</b>
+      <s class="colS" style="color:var(--leafMut)">1</s><s class="colS" style="color:var(--leafMut)">2</s><s class="colS" style="color:var(--leafMut)">3</s>
+      <s class="colS" style="color:var(--leafMut)">4</s><s class="colS" style="color:var(--leafMut)">5</s><s class="colS" style="color:var(--leafMut)">6</s>
+      <s class="colS" style="color:var(--leafMut)">7</s><s class="colS" style="color:var(--leafMut)">8</s><s class="colS" style="color:var(--leafMut)">9</s>
+      <s class="colS" style="color:var(--leafMut)">Out</s></div>
+    <div style="height:1px;background:var(--leafRule);margin:8px 0 8px"></div>
+    <div class="lrow"><b>Par</b>
+      <s class="col">4</s><s class="col">5</s><s class="col">3</s><s class="col">4</s><s class="col">4</s>
+      <s class="col">4</s><s class="col">3</s><s class="col">5</s><s class="col">4</s><s class="col">36</s></div>
+    <div class="lrow" style="margin-top:7px"><b>SI</b>
+      <s class="colS" style="color:var(--leafMut)">7</s><s class="colS" style="color:var(--leafMut)">3</s><s class="colS" style="color:var(--leafMut)">15</s>
+      <s class="colS" style="color:var(--leafMut)">1</s><s class="colS" style="color:var(--leafMut)">5</s><s class="colS" style="color:var(--leafMut)">11</s>
+      <s class="colS" style="color:var(--leafMut)">17</s><s class="colS" style="color:var(--leafMut)">9</s><s class="colS" style="color:var(--leafMut)">13</s>
+      <s class="colS" style="color:var(--leafMut)"></s></div>
+  </div>
+
+  <!-- ROUNDS HERE — the list runs on under the fade -->
+  <div class="sechead" style="margin-top:16px"><div class="agate mut">Rounds here</div><div class="hair"></div></div>
+  <div class="slat" style="margin-top:10px">
+    <div style="display:flex;align-items:center;gap:12px;flex:1;padding:0 20px">
+      <div class="disc" style="width:30px;height:30px;background:var(--pig5)"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="var(--mut)" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M5.5 16.5c0-4.4 2.9-7.6 6.5-7.6s6.5 3.2 6.5 7.6"/><path d="M4.5 16.5h15"/><path d="M12 8.9V6.4"/></svg></div>
+      <div style="flex:1;min-width:0"><div class="social" style="display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden">Tash Bell</div><div class="agateS mut" style="margin-top:4px">Aug 30 · blue tees</div></div>
+      <div class="figM">84</div>
+    </div>
+  </div>
+  <div class="slat">
+    <div style="display:flex;align-items:center;gap:12px;flex:1;padding:0 20px">
+      <div class="disc" style="width:30px;height:30px;background:var(--pig1)"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="var(--mut)" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M7 21V4"/><path d="M7 5h9l-2.6 3.4L16 12H7"/></svg></div>
+      <div style="flex:1;min-width:0"><div class="social" style="display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden">Galen Marr</div><div class="agateS mut" style="margin-top:4px">Jul 12 · black tees</div></div>
+      <div class="figM">79</div>
+    </div>
+  </div>
+  <div class="slat">
+    <div style="display:flex;align-items:center;gap:12px;flex:1;padding:0 20px">
+      <div class="disc" style="width:30px;height:30px;background:var(--pig4)"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="var(--mut)" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="2.4"/><path d="M12 9.4c0-2.7 1.7-4.1 3.3-3.6M12 14.6c0-2.7-1.7-4.4-3.3-3.9M9.4 12c-2.7 0-4.2-1.6-3.7-3.2M14.6 12c2.7 0 4.4 1.7 3.9 3.3"/></svg></div>
+      <div style="flex:1;min-width:0"><div class="social" style="display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden">Jade</div><div class="agateS mut" style="margin-top:4px">Aug 30 · blue tees</div></div>
+      <div class="figM">82</div>
+    </div>
+  </div>
+
+  <div class="fade"></div>
+  <div class="tabbar">
+    <div class="tab"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 11l8-6 8 6"/><path d="M6 10v9h12v-9"/></svg><div class="agateS">Home</div></div>
+    <div class="tab sel"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M7 21V4"/><path d="M7 5h10l-3 4 3 4H7"/></svg><div class="agateS">Compete</div><div class="u"></div></div>
+    <div class="tab play"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 8v8M8 12h8"/></svg><div class="agateS">Play</div></div>
+    <div class="tab"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="9" r="3.2"/><path d="M3.5 19c.6-3.3 2.8-5 5.5-5s4.9 1.7 5.5 5"/><circle cx="17" cy="10" r="2.4"/><path d="M15 19c.4-2.4 1.8-3.6 3.6-3.6 1.2 0 2.2.5 2.9 1.5"/></svg><div class="agateS">Golfers</div></div>
+    <div class="tab"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="9" cy="11" r="2"/><path d="M5.5 16c.5-1.6 1.9-2.4 3.5-2.4s3 .8 3.5 2.4"/><path d="M15 10h4M15 13.5h4"/></svg><div class="agateS">You</div></div>
+  </div>
+</div>
+
+
+<!-- ═══════════════════════════ 2 · COURSE PAGE, NO IMAGE ═══════════════════════════ -->
+<div class="artboard" id="course-page-noimage">
+  <div class="notch"></div>
+
+  <!-- THE PLATE — the drawn card (§10.1 rung 2). The same object; only its content changed. -->
+  <div class="plate" style="height:240px;background:var(--bg1);border-bottom:1px solid var(--rule)">
+    <div class="bars" style="bottom:118px;height:64px;top:66px;align-items:flex-end">
+      <i style="width:16px;height:49px;background:var(--rule)"></i>
+      <i style="width:20px;height:71px;background:var(--rule)"></i>
+      <i style="width:11px;height:19px;background:var(--rule)"></i>
+      <i style="width:16px;height:52px;background:var(--rule)"></i>
+      <i style="width:16px;height:59px;background:var(--rule)"></i>
+      <i style="width:16px;height:57px;background:var(--gold)"></i>
+      <i style="width:11px;height:18px;background:var(--rule)"></i>
+      <i style="width:20px;height:69px;background:var(--rule)"></i>
+      <i style="width:16px;height:51px;background:var(--rule)"></i>
+      <i style="width:16px;height:53px;background:var(--rule)"></i>
+      <i style="width:16px;height:45px;background:var(--rule)"></i>
+      <i style="width:11px;height:22px;background:var(--rule)"></i>
+      <i style="width:16px;height:52px;background:var(--rule)"></i>
+      <i style="width:20px;height:72px;background:var(--rule)"></i>
+      <i style="width:16px;height:47px;background:var(--rule)"></i>
+      <i style="width:11px;height:20px;background:var(--rule)"></i>
+      <i style="width:16px;height:56px;background:var(--rule)"></i>
+      <i style="width:16px;height:63px;background:var(--rule)"></i>
+    </div>
+    <div class="colS" style="position:absolute;left:20px;right:20px;bottom:100px;display:flex;font-size:11px"><span style="width:5.556%;text-align:center;color:var(--dim)">1</span><span style="width:5.556%;text-align:center;color:var(--dim)">2</span><span style="width:5.556%;text-align:center;color:var(--dim)">3</span><span style="width:5.556%;text-align:center;color:var(--dim)">4</span><span style="width:5.556%;text-align:center;color:var(--dim)">5</span><span style="width:5.556%;text-align:center;color:var(--dim)">6</span><span style="width:5.556%;text-align:center;color:var(--dim)">7</span><span style="width:5.556%;text-align:center;color:var(--dim)">8</span><span style="width:5.556%;text-align:center;color:var(--dim)">9</span><span style="width:5.556%;text-align:center;color:var(--dim)">10</span><span style="width:5.556%;text-align:center;color:var(--dim)">11</span><span style="width:5.556%;text-align:center;color:var(--dim)">12</span><span style="width:5.556%;text-align:center;color:var(--dim)">13</span><span style="width:5.556%;text-align:center;color:var(--dim)">14</span><span style="width:5.556%;text-align:center;color:var(--dim)">15</span><span style="width:5.556%;text-align:center;color:var(--dim)">16</span><span style="width:5.556%;text-align:center;color:var(--dim)">17</span><span style="width:5.556%;text-align:center;color:var(--dim)">18</span></div>
+    <div style="position:absolute;left:0;right:0;bottom:0;height:120px;
+      background:linear-gradient(to bottom,rgba(26,38,32,0),var(--bg1) 45%,var(--bg1))"></div>
+
+    <div class="status" style="position:absolute;top:0;left:0;right:0"><span>9:41</span><span style="font-size:13px">▮▮▮ ᯤ ▰</span></div>
+    <div style="position:absolute;left:20px;top:56px">
+      <svg width="12" height="20" viewBox="0 0 12 20" fill="none" stroke="var(--ink)" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M9 3L3 10l6 7"/></svg></div>
+    <div style="position:absolute;left:20px;right:20px;bottom:14px">
+      <div class="agate mut">On your schedule · Saturday</div>
+      <div class="display" style="margin-top:9px">Gold Canyon</div>
+      <div class="title mut" style="margin-top:2px">Dinosaur Mountain</div>
+    </div>
+  </div>
+
+  <div class="wrap" style="margin-top:13px">
+    <div style="display:flex;align-items:baseline;gap:5px;flex-wrap:wrap">
+      <span class="figS">71</span><span class="agateS mut">Par</span><span class="agateS mut" style="opacity:.5">·</span>
+      <span class="figS">6,754</span><span class="agateS mut">Yds</span><span class="agateS mut" style="opacity:.5">·</span>
+      <span class="figS">71.4</span><span class="agateS mut">Rtg</span><span class="agateS mut" style="opacity:.5">·</span>
+      <span class="figS">137</span><span class="agateS mut">Slope</span>
+    </div>
+    <div class="agateS mut" style="margin-top:9px">Black tees · the 6th plays hardest · saved sat sep 5</div>
+  </div>
+
+  <!-- THE RATING, unrated: the star rail at full size, never shrunk and never hidden -->
+  <div class="wrap" style="margin-top:16px">
+    <svg width="140" height="23" viewBox="0 0 140 23" style="display:block">
+      <defs><path id="st-n" d="M11.5 1.6l2.9 6.3 6.9.8-5.17 4.7 1.4 6.85L11.5 16.8 5.5 20.25l1.4-6.85L1.7 8.7l6.9-.8z"/></defs>
+      <g fill="none" stroke="var(--mut)" stroke-width="1.4">
+        <use href="#st-n" x="0"/><use href="#st-n" x="28"/><use href="#st-n" x="56"/><use href="#st-n" x="84"/><use href="#st-n" x="112"/></g></svg>
+    <div class="agateS mut" style="margin-top:10px">Not rated · the first card sets the number</div>
+    <div style="margin-top:10px"><span class="link nameS">Rate it</span></div>
+  </div>
+
+  <!-- the card is on the phone whether or not anybody has played it -->
+  <div class="leaf" style="margin:17px 20px 0;padding:12px 14px 12px">
+    <div class="agateS" style="color:var(--leafMut)">The front nine · black tees</div>
+    <div class="lrow" style="margin-top:11px"><b>Hole</b>
+      <s class="colS" style="color:var(--leafMut)">1</s><s class="colS" style="color:var(--leafMut)">2</s><s class="colS" style="color:var(--leafMut)">3</s>
+      <s class="colS" style="color:var(--leafMut)">4</s><s class="colS" style="color:var(--leafMut)">5</s><s class="colS" style="color:var(--leafMut)">6</s>
+      <s class="colS" style="color:var(--leafMut)">7</s><s class="colS" style="color:var(--leafMut)">8</s><s class="colS" style="color:var(--leafMut)">9</s>
+      <s class="colS" style="color:var(--leafMut)">Out</s></div>
+    <div style="height:1px;background:var(--leafRule);margin:8px 0 8px"></div>
+    <div class="lrow"><b>Par</b>
+      <s class="col">4</s><s class="col">5</s><s class="col">3</s><s class="col">4</s><s class="col">4</s>
+      <s class="col">4</s><s class="col">3</s><s class="col">5</s><s class="col">4</s><s class="col">36</s></div>
+  </div>
+
+  <!-- THE EMPTY: a drawn object, a fact about the world, one true fact, one door -->
+  <div class="wrap" style="margin-top:20px">
+    <div class="agate mut" style="margin-top:11px">The first card</div>
+    <div class="lead" style="margin-top:8px">Nobody here has played it.</div>
+    <div class="bodyS mut" style="margin-top:9px">One posted round puts a number on this page.</div>
+    <div class="btn btnP name" style="margin-top:16px">Add my round</div>
+  </div>
+
+  <div class="fade"></div>
+  <div class="tabbar">
+    <div class="tab"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 11l8-6 8 6"/><path d="M6 10v9h12v-9"/></svg><div class="agateS">Home</div></div>
+    <div class="tab sel"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M7 21V4"/><path d="M7 5h10l-3 4 3 4H7"/></svg><div class="agateS">Compete</div><div class="u"></div></div>
+    <div class="tab play"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 8v8M8 12h8"/></svg><div class="agateS">Play</div></div>
+    <div class="tab"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="9" r="3.2"/><path d="M3.5 19c.6-3.3 2.8-5 5.5-5s4.9 1.7 5.5 5"/><circle cx="17" cy="10" r="2.4"/><path d="M15 19c.4-2.4 1.8-3.6 3.6-3.6 1.2 0 2.2.5 2.9 1.5"/></svg><div class="agateS">Golfers</div></div>
+    <div class="tab"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="9" cy="11" r="2"/><path d="M5.5 16c.5-1.6 1.9-2.4 3.5-2.4s3 .8 3.5 2.4"/><path d="M15 10h4M15 13.5h4"/></svg><div class="agateS">You</div></div>
+  </div>
+</div>
+
+
+<!-- ═══════════════════════════ 3 · THE COMPACT CARD ═══════════════════════════ -->
+<div class="artboard" id="course-card">
+  <div class="notch"></div>
+  <div class="status"><span>9:41</span><span style="font-size:13px">▮▮▮ ᯤ ▰</span></div>
+
+  <div class="wrap" style="margin-top:4px">
+    <div class="display">Courses</div>
+    <div class="agate mut" style="margin-top:10px">Kept on your phone · six saved</div>
+  </div>
+
+  <div class="wrap" style="margin-top:15px;display:flex;gap:8px">
+    <div class="chip sel agate">All</div><div class="chip agate">Planned</div><div class="chip agate">Played</div>
+  </div>
+  <div class="wrap" style="margin-top:15px;display:flex;padding-bottom:7px"><span class="agateS mut" style="margin-left:auto">Your best</span></div>
+
+  <!-- the rows: three drawn-card thumbs (nine bars, three heights by par, §10.2) ·
+       NO thumb at all · a long name -->
+  <div style="margin-top:15px">
+    <div class="slat" style="min-height:62px">
+      <div style="display:flex;align-items:center;gap:14px;flex:1;min-width:0;padding:0 20px">
+        <div style="width:44px;height:44px;border-radius:3px;flex:none;background:var(--bg1);display:flex;align-items:flex-end;gap:2.6px;padding:6px 5px"><i style="display:block;width:3.6px;height:19px;background:var(--mut)"></i><i style="display:block;width:3.6px;height:27px;background:var(--mut)"></i><i style="display:block;width:3.6px;height:11px;background:var(--mut)"></i><i style="display:block;width:3.6px;height:19px;background:var(--mut)"></i><i style="display:block;width:3.6px;height:19px;background:var(--mut)"></i><i style="display:block;width:3.6px;height:19px;background:var(--mut)"></i><i style="display:block;width:3.6px;height:11px;background:var(--mut)"></i><i style="display:block;width:3.6px;height:27px;background:var(--mut)"></i><i style="display:block;width:3.6px;height:19px;background:var(--mut)"></i></div>
+        <div style="flex:1;min-width:0">
+          <div class="social" style="display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden">Papago</div>
+          <div style="display:flex;align-items:center;gap:6px;margin-top:5px">
+            <svg width="11" height="11" viewBox="0 0 12 12" fill="var(--mut)"><path d="M6 .8l1.6 3.3 3.6.5-2.6 2.5.6 3.6L6 9l-3.2 1.7.6-3.6L.8 4.6l3.6-.5z"/></svg>
+            <span class="agateS mut sent">4.6 · Phoenix, AZ · you played Aug 30</span>
+          </div>
+        </div>
+        <div class="figM">81</div>
+      </div>
+    </div>
+
+    <div class="slat" style="min-height:62px">
+      <div style="display:flex;align-items:center;gap:14px;flex:1;min-width:0;padding:0 20px">
+        <div style="width:44px;height:44px;border-radius:3px;flex:none;background:var(--bg1);display:flex;align-items:flex-end;gap:2.6px;padding:6px 5px"><i style="display:block;width:3.6px;height:19px;background:var(--mut)"></i><i style="display:block;width:3.6px;height:19px;background:var(--mut)"></i><i style="display:block;width:3.6px;height:11px;background:var(--mut)"></i><i style="display:block;width:3.6px;height:27px;background:var(--mut)"></i><i style="display:block;width:3.6px;height:19px;background:var(--mut)"></i><i style="display:block;width:3.6px;height:19px;background:var(--mut)"></i><i style="display:block;width:3.6px;height:11px;background:var(--mut)"></i><i style="display:block;width:3.6px;height:19px;background:var(--mut)"></i><i style="display:block;width:3.6px;height:27px;background:var(--mut)"></i></div>
+        <div style="flex:1;min-width:0">
+          <div class="social" style="display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden">Troon North · Monument</div>
+          <div style="display:flex;align-items:center;gap:6px;margin-top:5px">
+            <svg width="11" height="11" viewBox="0 0 12 12" fill="var(--mut)"><path d="M6 .8l1.6 3.3 3.6.5-2.6 2.5.6 3.6L6 9l-3.2 1.7.6-3.6L.8 4.6l3.6-.5z"/></svg>
+            <span class="agateS mut sent">4.8 · Scottsdale, AZ · three of yours</span>
+          </div>
+        </div>
+        <div class="figM">86</div>
+      </div>
+    </div>
+
+    <div class="slat" style="min-height:62px">
+      <div style="display:flex;align-items:center;gap:14px;flex:1;min-width:0;padding:0 20px">
+        <div style="width:44px;height:44px;border-radius:3px;flex:none;background:var(--bg1);display:flex;align-items:flex-end;gap:2.6px;padding:6px 5px"><i style="display:block;width:3.6px;height:19px;background:var(--mut)"></i><i style="display:block;width:3.6px;height:11px;background:var(--mut)"></i><i style="display:block;width:3.6px;height:27px;background:var(--mut)"></i><i style="display:block;width:3.6px;height:19px;background:var(--mut)"></i><i style="display:block;width:3.6px;height:19px;background:var(--mut)"></i><i style="display:block;width:3.6px;height:11px;background:var(--mut)"></i><i style="display:block;width:3.6px;height:19px;background:var(--mut)"></i><i style="display:block;width:3.6px;height:27px;background:var(--mut)"></i><i style="display:block;width:3.6px;height:19px;background:var(--mut)"></i></div>
+        <div style="flex:1;min-width:0">
+          <div class="social" style="display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden">Desert Mountain · Renegade</div>
+          <div style="display:flex;align-items:center;gap:6px;margin-top:5px">
+            <svg width="11" height="11" viewBox="0 0 12 12" fill="var(--mut)"><path d="M6 .8l1.6 3.3 3.6.5-2.6 2.5.6 3.6L6 9l-3.2 1.7.6-3.6L.8 4.6l3.6-.5z"/></svg>
+            <span class="agateS mut sent">4.4 · Scottsdale, AZ · two of yours</span>
+          </div>
+        </div>
+        <div class="figM">88</div>
+      </div>
+    </div>
+
+    <!-- unplayed, but the card is cached, so the row keeps the SAME left object as every other -->
+    <div class="slat" style="min-height:62px">
+      <div style="display:flex;align-items:center;gap:14px;flex:1;min-width:0;padding:0 20px">
+        <div style="width:44px;height:44px;border-radius:3px;flex:none;background:var(--bg1);display:flex;align-items:flex-end;gap:2.6px;padding:6px 5px"><i style="display:block;width:3.6px;height:19px;background:var(--rule)"></i><i style="display:block;width:3.6px;height:27px;background:var(--rule)"></i><i style="display:block;width:3.6px;height:11px;background:var(--rule)"></i><i style="display:block;width:3.6px;height:19px;background:var(--rule)"></i><i style="display:block;width:3.6px;height:19px;background:var(--rule)"></i><i style="display:block;width:3.6px;height:19px;background:var(--rule)"></i><i style="display:block;width:3.6px;height:11px;background:var(--rule)"></i><i style="display:block;width:3.6px;height:27px;background:var(--rule)"></i><i style="display:block;width:3.6px;height:19px;background:var(--rule)"></i></div>
+        <div style="flex:1;min-width:0">
+          <div class="social">Gold Canyon · Dinosaur Mountain</div>
+          <div class="agateS mut sent" style="margin-top:5px">Not rated · Gold Canyon, AZ · on your plan Sat Sep 12</div>
+        </div>
+        <div class="figM dimc" style="flex:none">—</div>
+      </div>
+    </div>
+
+    <!-- the long-name policy: one line, tail ellipsis, product-wide -->
+    <div class="slat" style="min-height:62px">
+      <div style="display:flex;align-items:center;gap:14px;flex:1;min-width:0;padding:0 20px">
+        <div style="width:44px;height:44px;border-radius:3px;flex:none;background:var(--bg1);display:flex;align-items:flex-end;gap:2.6px;padding:6px 5px"><i style="display:block;width:3.6px;height:27px;background:var(--rule)"></i><i style="display:block;width:3.6px;height:19px;background:var(--rule)"></i><i style="display:block;width:3.6px;height:11px;background:var(--rule)"></i><i style="display:block;width:3.6px;height:19px;background:var(--rule)"></i><i style="display:block;width:3.6px;height:19px;background:var(--rule)"></i><i style="display:block;width:3.6px;height:11px;background:var(--rule)"></i><i style="display:block;width:3.6px;height:27px;background:var(--rule)"></i><i style="display:block;width:3.6px;height:19px;background:var(--rule)"></i><i style="display:block;width:3.6px;height:19px;background:var(--rule)"></i></div>
+        <div style="flex:1;min-width:0">
+          <div class="social" style="display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden">The Raven Golf Club at Verrado · Founders Course</div>
+          <div class="agateS mut" style="margin-top:5px">Not rated · Buckeye, AZ · one of yours</div>
+        </div>
+      </div>
+    </div>
+    <div class="hair"></div>
+  </div>
+
+  <!-- the same object in the wire: course discovery, at the editorial weight (brief §7) -->
+  <div class="sechead" style="margin-top:30px"><div class="agate mut">The wire</div><div class="hair"></div></div>
+
+  <div class="wrap" style="margin-top:16px;display:flex;gap:14px">
+    <div style="width:64px;height:64px;border-radius:3px;flex:none;position:relative;overflow:hidden"><svg width="64" height="64" viewBox="0 0 62 62" preserveAspectRatio="xMidYMid slice" style="position:absolute;inset:0;display:block">
+ <defs>
+  <filter id="skythumbtroon"><feTurbulence type="fractalNoise" baseFrequency="0.008 0.030" numOctaves="4" seed="61" result="t"/>
+    <feColorMatrix in="t" type="matrix" values="0 0 0 0 0.42  0 0 0 0 0.34  0 0 0 0 0.24  0 0 1.1 0 0.10"/><feGaussianBlur stdDeviation="1.1"/></filter>
+  <filter id="turfthumbtroon"><feTurbulence type="fractalNoise" baseFrequency="0.30 0.90" numOctaves="5" seed="64" result="t"/>
+    <feColorMatrix in="t" type="matrix" values="0 0 0 0 0.16  0 0 0 0 0.20  0 0 0 0 0.09  0 0 1.8 0 0.02"/></filter>
+  <filter id="softthumbtroon"><feTurbulence type="fractalNoise" baseFrequency="0.004 0.009" numOctaves="3" seed="72" result="t"/>
+    <feColorMatrix in="t" type="matrix" values="0 0 0 0 0.05  0 0 0 0 0.07  0 0 0 0 0.04  0 0 2.4 0 -0.55"/><feGaussianBlur stdDeviation="12"/></filter>
+  <filter id="grainthumbtroon"><feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2" seed="80" result="t"/>
+    <feColorMatrix in="t" type="saturate" values="0"/>
+    <feComponentTransfer><feFuncA type="linear" slope="0.19" intercept="-0.06"/></feComponentTransfer></filter>
+  <filter id="hazethumbtroon"><feGaussianBlur stdDeviation="1.1"/></filter>
+  <linearGradient id="skygthumbtroon" x1="0" y1="0" x2="0" y2="1">
+    <stop offset="0" stop-color="#5A5F46"/><stop offset=".50" stop-color="#A79066"/><stop offset="1" stop-color="#E4C88C"/></linearGradient>
+  <linearGradient id="turfgthumbtroon" x1="0" y1="0" x2="0" y2="1">
+    <stop offset="0" stop-color="#8B8A54"/><stop offset=".20" stop-color="#5C6A3B"/><stop offset=".58" stop-color="#3A4A30"/><stop offset="1" stop-color="#18231A"/></linearGradient>
+  <linearGradient id="litthumbtroon" x1="0.9" y1="0" x2="0.15" y2="0.9">
+    <stop offset="0" stop-color="#F0C583" stop-opacity=".30"/><stop offset=".45" stop-color="#B08F4E" stop-opacity=".07"/>
+    <stop offset="1" stop-color="#080E0A" stop-opacity=".30"/></linearGradient>
+  <linearGradient id="seamthumbtroon" x1="0" y1="0" x2="0" y2="1">
+    <stop offset="0" stop-color="#A8945C" stop-opacity="0"/><stop offset=".46" stop-color="#AE9A60" stop-opacity=".50"/><stop offset=".62" stop-color="#9C8C58" stop-opacity=".34"/><stop offset="1" stop-color="#8C7E50" stop-opacity="0"/></linearGradient>
+  <radialGradient id="vigthumbtroon" cx="0.62" cy="0.26" r="0.92">
+    <stop offset=".44" stop-color="#000" stop-opacity="0"/><stop offset="1" stop-color="#000" stop-opacity=".38"/></radialGradient>
+  <clipPath id="csthumbtroon"><rect width="62" height="28"/></clipPath>
+  <clipPath id="cgthumbtroon"><rect y="26" width="62" height="36"/></clipPath>
+ </defs>
+ <g clip-path="url(#csthumbtroon)">
+   <rect width="62" height="28" fill="url(#skygthumbtroon)"/>
+   <rect width="62" height="28" filter="url(#skythumbtroon)" opacity=".85"/>
+   <g filter="url(#hazethumbtroon)" opacity=".92">
+     <path d="M-20 44 C-13.6 13.6 1.0 12.5 9.2 22.4 C15.1 13.1 28.4 12.0 35.9 22.9 C44.8 23.1 65.1 22.9 76.5 25.2 C82.3 18.7 95.4 18.0 102.8 22.0 L82 47.599999999999994 L-20 47.599999999999994 Z" fill="#1D2A1E"/>
+     <path d="M-20 40 C-13.0 19.2 3.0 18.4 11.9 23.4 C16.1 22.4 25.6 21.9 31.0 26.0 C34.0 20.4 40.9 19.8 44.7 23.3 C52.8 26.8 71.3 26.7 81.6 27.3 C86.6 26.2 97.8 26.0 104.1 27.5 L82 42.4 L-20 42.4 Z" fill="#131C15"/>
+   </g>
+ </g>
+ <g clip-path="url(#cgthumbtroon)">
+   <rect y="26" width="62" height="36" fill="url(#turfgthumbtroon)"/>
+   <g transform="rotate(-3.4 31 26)"><rect x="-40" y="33" width="142" height="7" fill="#DCD3A8" opacity="0.098"/><rect x="-40" y="47" width="142" height="7" fill="#DCD3A8" opacity="0.065"/><rect x="-40" y="61" width="142" height="7" fill="#DCD3A8" opacity="0.032"/></g>
+   <rect y="26" width="62" height="36" filter="url(#turfthumbtroon)" opacity=".85"/>
+ </g>
+ <rect y="21" width="62" height="11" fill="url(#seamthumbtroon)"/>
+ <ellipse cx="9" cy="63" rx="38" ry="19" fill="#0A120C" opacity=".38" filter="url(#hazethumbtroon)"/>
+ <rect width="64" height="64" filter="url(#softthumbtroon)" opacity=".8"/>
+ <rect width="64" height="64" fill="url(#litthumbtroon)"/>
+ <rect width="64" height="64" fill="url(#vigthumbtroon)"/>
+ <rect width="64" height="64" filter="url(#grainthumbtroon)" opacity=".55"/>
+</svg></div>
+    <div style="flex:1;min-width:0">
+      <div class="name">Troon North · Monument</div>
+      <div style="display:flex;align-items:center;gap:9px;margin-top:8px">
+        <svg width="80" height="14" viewBox="0 0 80 14" style="display:block">
+          <defs><path id="st-c" d="M7 1l1.75 3.85 4.2.47-3.15 2.87.85 4.16L7 10.2 3.35 12.35l.85-4.16L1.05 5.32l4.2-.47z"/></defs>
+          <g fill="var(--ink)"><use href="#st-c" x="0"/><use href="#st-c" x="16"/><use href="#st-c" x="32"/><use href="#st-c" x="48"/><use href="#st-c" x="64"/></g></svg>
+        <span class="figS" style="font-size:17px">4.8</span>
+        <span class="agateS mut">Galen · Saturday</span>
+      </div>
+      <div class="bodyS" style="margin-top:9px">“Best course I’ve played this year. Bring more golf balls than you think.”</div>
+    </div>
+  </div>
+
+  <div class="hair" style="margin:18px 20px 0"></div>
+  <div class="wrap" style="margin-top:14px;display:flex;align-items:baseline;gap:12px">
+    <div class="agateS mut" style="width:30px;flex:none">Fri</div>
+    <div class="bodyS mut" style="flex:1">Dev put Papago on the plan for Sunday.</div>
+  </div>
+  <div class="wrap" style="margin-top:11px;display:flex;align-items:baseline;gap:12px">
+    <div class="agateS mut" style="width:30px;flex:none">Thu</div>
+    <div class="bodyS mut" style="flex:1">Tash rated Papago four and a half.</div>
+  </div>
+
+  <div class="fade"></div>
+  <div class="tabbar">
+    <div class="tab"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 11l8-6 8 6"/><path d="M6 10v9h12v-9"/></svg><div class="agateS">Home</div></div>
+    <div class="tab"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M7 21V4"/><path d="M7 5h10l-3 4 3 4H7"/></svg><div class="agateS">Compete</div></div>
+    <div class="tab play"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 8v8M8 12h8"/></svg><div class="agateS">Play</div></div>
+    <div class="tab"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="9" r="3.2"/><path d="M3.5 19c.6-3.3 2.8-5 5.5-5s4.9 1.7 5.5 5"/><circle cx="17" cy="10" r="2.4"/><path d="M15 19c.4-2.4 1.8-3.6 3.6-3.6 1.2 0 2.2.5 2.9 1.5"/></svg><div class="agateS">Golfers</div></div>
+    <div class="tab sel"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="9" cy="11" r="2"/><path d="M5.5 16c.5-1.6 1.9-2.4 3.5-2.4s3 .8 3.5 2.4"/><path d="M15 10h4M15 13.5h4"/></svg><div class="agateS">You</div><div class="u"></div></div>
+  </div>
+</div>
+
+
+<!-- ═══════════════════════════ 4 · THE RATING, LARGE ═══════════════════════════ -->
+<div class="artboard" id="course-rating">
+  <div class="notch"></div>
+
+  <!-- the page behind, dimmed: the fitted sheet rises off the course page -->
+  <div class="plate" style="height:252px">
+    <div style="position:absolute;left:0;right:0;top:0;height:96px;z-index:1;background:linear-gradient(to bottom,rgba(10,14,12,.72),rgba(10,14,12,0))"></div>
+    <div style="position:absolute;left:0;right:0;top:0;height:268px;overflow:hidden"><svg width="402" height="268" viewBox="0 0 402 268" preserveAspectRatio="xMidYMid slice" style="position:absolute;inset:0;display:block">
+ <defs>
+  <filter id="skyh268"><feTurbulence type="fractalNoise" baseFrequency="0.008 0.030" numOctaves="4" seed="7" result="t"/>
+    <feColorMatrix in="t" type="matrix" values="0 0 0 0 0.42  0 0 0 0 0.34  0 0 0 0 0.24  0 0 1.1 0 0.10"/><feGaussianBlur stdDeviation="1.1"/></filter>
+  <filter id="turfh268"><feTurbulence type="fractalNoise" baseFrequency="0.30 0.90" numOctaves="5" seed="10" result="t"/>
+    <feColorMatrix in="t" type="matrix" values="0 0 0 0 0.16  0 0 0 0 0.20  0 0 0 0 0.09  0 0 1.8 0 0.02"/></filter>
+  <filter id="softh268"><feTurbulence type="fractalNoise" baseFrequency="0.004 0.009" numOctaves="3" seed="18" result="t"/>
+    <feColorMatrix in="t" type="matrix" values="0 0 0 0 0.05  0 0 0 0 0.07  0 0 0 0 0.04  0 0 2.4 0 -0.55"/><feGaussianBlur stdDeviation="12"/></filter>
+  <filter id="grainh268"><feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2" seed="26" result="t"/>
+    <feColorMatrix in="t" type="saturate" values="0"/>
+    <feComponentTransfer><feFuncA type="linear" slope="0.19" intercept="-0.06"/></feComponentTransfer></filter>
+  <filter id="hazeh268"><feGaussianBlur stdDeviation="2.2"/></filter>
+  <linearGradient id="skygh268" x1="0" y1="0" x2="0" y2="1">
+    <stop offset="0" stop-color="#5A5F46"/><stop offset=".50" stop-color="#A79066"/><stop offset="1" stop-color="#E4C88C"/></linearGradient>
+  <linearGradient id="turfgh268" x1="0" y1="0" x2="0" y2="1">
+    <stop offset="0" stop-color="#8B8A54"/><stop offset=".20" stop-color="#5C6A3B"/><stop offset=".58" stop-color="#3A4A30"/><stop offset="1" stop-color="#18231A"/></linearGradient>
+  <linearGradient id="lith268" x1="0.9" y1="0" x2="0.15" y2="0.9">
+    <stop offset="0" stop-color="#F0C583" stop-opacity=".30"/><stop offset=".45" stop-color="#B08F4E" stop-opacity=".07"/>
+    <stop offset="1" stop-color="#080E0A" stop-opacity=".30"/></linearGradient>
+  <linearGradient id="seamh268" x1="0" y1="0" x2="0" y2="1">
+    <stop offset="0" stop-color="#A8945C" stop-opacity="0"/><stop offset=".46" stop-color="#AE9A60" stop-opacity=".50"/><stop offset=".62" stop-color="#9C8C58" stop-opacity=".34"/><stop offset="1" stop-color="#8C7E50" stop-opacity="0"/></linearGradient>
+  <radialGradient id="vigh268" cx="0.62" cy="0.26" r="0.92">
+    <stop offset=".44" stop-color="#000" stop-opacity="0"/><stop offset="1" stop-color="#000" stop-opacity=".38"/></radialGradient>
+  <clipPath id="csh268"><rect width="402" height="93"/></clipPath>
+  <clipPath id="cgh268"><rect y="91" width="402" height="177"/></clipPath>
+ </defs>
+ <g clip-path="url(#csh268)">
+   <rect width="402" height="93" fill="url(#skygh268)"/>
+   <rect width="402" height="93" filter="url(#skyh268)" opacity=".85"/>
+   <g filter="url(#hazeh268)" opacity=".92">
+     <path d="M-20 131.2 C-16.4 61.6 -8.4 59.1 -3.8 81.7 C-0.9 74.4 5.8 73.0 9.6 85.4 C19.0 88.0 40.4 87.7 52.4 90.2 C61.3 83.6 81.5 83.0 92.9 88.9 C98.2 66.0 110.2 63.8 117.0 78.6 C120.8 73.5 129.4 72.0 134.2 83.2 C140.3 87.0 154.2 86.7 161.9 89.3 C171.6 87.2 193.6 86.8 205.9 89.5 C212.5 87.3 227.4 87.0 235.7 90.1 C241.7 88.0 255.3 87.7 262.9 89.2 C268.4 70.5 281.0 68.7 288.0 81.8 C295.2 73.1 311.3 71.5 320.4 82.3 C325.0 69.1 335.6 67.2 341.5 84.9 C347.3 67.1 360.6 65.1 368.0 75.5 C376.4 85.0 395.7 84.5 406.5 89.0 C409.7 72.8 416.8 71.2 420.8 80.0 C426.9 67.3 440.6 65.3 448.3 86.3 L422 139.24 L-20 139.24 Z" fill="#1D2A1E"/>
+     <path d="M-20 118.72800000000001 C-12.4 91.5 5.0 91.3 14.7 92.7 C22.5 88.9 40.4 88.5 50.4 90.8 C57.5 89.6 73.7 89.3 82.8 91.8 C90.1 90.2 106.6 90.0 115.9 91.1 C123.4 80.9 140.5 79.8 150.1 86.2 C157.7 83.5 174.9 82.7 184.5 87.9 C191.4 75.3 207.1 73.8 215.8 85.6 C220.9 90.0 232.4 89.8 238.8 91.0 C245.9 89.3 262.2 89.0 271.3 92.0 C276.1 91.3 287.2 91.1 293.3 92.3 C296.9 82.2 305.1 81.2 309.7 85.9 C312.5 77.3 318.8 75.9 322.3 84.0 C325.8 83.5 333.6 82.7 338.0 88.4 C343.9 74.4 357.3 72.8 364.9 82.0 C372.8 89.7 390.7 89.4 400.8 91.4 C405.1 83.1 415.0 82.3 420.6 90.1 C426.3 78.6 439.2 77.4 446.4 89.7 L422 123.8736 L-20 123.8736 Z" fill="#131C15"/>
+   </g>
+ </g>
+ <g clip-path="url(#cgh268)">
+   <rect y="91" width="402" height="177" fill="url(#turfgh268)"/>
+   <g transform="rotate(-3.4 201 91)"><rect x="-40" y="116" width="482" height="25" fill="#DCD3A8" opacity="0.103"/><rect x="-40" y="166" width="482" height="25" fill="#DCD3A8" opacity="0.079"/><rect x="-40" y="216" width="482" height="25" fill="#DCD3A8" opacity="0.055"/><rect x="-40" y="266" width="482" height="25" fill="#DCD3A8" opacity="0.031"/></g>
+   <rect y="91" width="402" height="177" filter="url(#turfh268)" opacity=".85"/>
+ </g>
+ <rect y="68" width="402" height="46" fill="url(#seamh268)"/>
+ <ellipse cx="56" cy="273" rx="249" ry="80" fill="#0A120C" opacity=".38" filter="url(#hazeh268)"/>
+ <rect width="402" height="268" filter="url(#softh268)" opacity=".8"/>
+ <rect width="402" height="268" fill="url(#lith268)"/>
+ <rect width="402" height="268" fill="url(#vigh268)"/>
+ <rect width="402" height="268" filter="url(#grainh268)" opacity=".55"/>
+</svg></div>
+    <div class="plateScrim"></div>
+    <div class="status" style="position:absolute;top:0;left:0;right:0;color:#F1F4EF"><span>9:41</span><span style="font-size:13px">▮▮▮ ᯤ ▰</span></div>
+    <div class="plateFoot">
+      <div style="flex:1;min-width:0">
+        <div class="display">Papago</div>
+        <div class="agate" style="color:#CBD2C8;margin-top:9px">Phoenix, Arizona · Municipal</div>
+      </div>
+    </div>
+  </div>
+  <div style="position:absolute;left:0;right:0;top:0;height:300px;background:rgba(10,14,12,.62)"></div>
+
+  <!-- the sheet, fitted to its content (CSFittedSheet) -->
+  <div style="position:absolute;left:0;right:0;top:278px;bottom:0;background:var(--bg0);border-radius:24px 24px 0 0;overflow:hidden">
+    <div style="width:36px;height:5px;border-radius:3px;background:var(--rule);margin:8px auto 0"></div>
+    <div class="wrap" style="margin-top:11px;display:flex;justify-content:flex-end">
+      <span class="link nameS">Close</span>
+    </div>
+
+    <div class="wrap" style="margin-top:18px">
+      <div class="agate mut">Your rating</div>
+      <div class="display" style="margin-top:9px">Papago</div>
+    </div>
+
+    <!-- the control: a continuous 362×56 DRAG target plus a 44pt −½ / +½ stepper
+         pair for the tap case. Ten 44pt targets do not fit a 362pt measure
+         (10 × 44 = 440), so the half-star hit region is 28pt and the stepper is
+         what makes that legal — UI_SYSTEM §16.2. Ink: gold may never touch a
+         control (LINT-11). -->
+    <div class="wrap" style="margin-top:22px;display:flex;align-items:center;gap:10px">
+      <div style="width:44px;height:44px;border-radius:10px;background:var(--bg2);display:flex;align-items:center;justify-content:center;flex:none">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--ink)" stroke-width="2" stroke-linecap="round"><path d="M6 12h12"/></svg>
+      </div>
+      <svg width="230" height="44" viewBox="0 0 298 56" style="display:block;flex:1">
+        <defs><path id="st-r" d="M25 2.6l6.6 14.3 15.7 1.8-11.75 10.75L38.75 45 25 37.3 11.25 45 14.45 29.45 2.7 18.7l15.7-1.8z"/>
+        <clipPath id="half-r"><rect x="224" y="0" width="25" height="56"/></clipPath></defs>
+        <g fill="var(--ink)"><use href="#st-r" x="0"/><use href="#st-r" x="56"/><use href="#st-r" x="112"/><use href="#st-r" x="168"/></g>
+        <use href="#st-r" x="224" fill="none" stroke="var(--mut)" stroke-width="1.6"/>
+        <g clip-path="url(#half-r)"><use href="#st-r" x="224" fill="var(--ink)"/></g></svg>
+      <div style="width:44px;height:44px;border-radius:10px;background:var(--bg2);display:flex;align-items:center;justify-content:center;flex:none">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--ink)" stroke-width="2" stroke-linecap="round"><path d="M6 12h12M12 6v12"/></svg>
+      </div>
+    </div>
+
+    <div class="wrap" style="margin-top:20px;display:flex;align-items:flex-end;gap:20px">
+      <div style="flex:none">
+        <div class="figXL">4.5</div>
+        <div class="heavy" style="margin:7px 0 6px;width:88px"></div>
+        <div class="agateS mut">Yours</div>
+      </div>
+      <div class="bodyS mut" style="flex:1;padding-bottom:2px">Half stars count. Change it any time — the number moves with you.</div>
+    </div>
+
+    <div class="hair" style="margin:22px 20px 0"></div>
+
+    <!-- the three numbers on one rule (§9.6's device): the community · your golfers · you -->
+    <div class="wrap" style="margin-top:20px">
+      <div style="display:flex;align-items:flex-end;justify-content:space-between">
+        <div class="fig">4.6</div><div class="fig">4.9</div>
+      </div>
+      <div class="heavy" style="margin:8px 0 8px"></div>
+      <div style="display:flex;align-items:flex-start;justify-content:space-between">
+        <div class="agateS mut" style="width:170px">Cup Season</div>
+        <div class="agateS mut" style="width:170px;text-align:right">Your golfers</div>
+      </div>
+      <div class="bodyS mut" style="margin-top:14px">Twenty-four ratings, four of them from your golfers.</div>
+    </div>
+
+    <div class="wrap" style="margin-top:24px">
+      <div class="btn btnP name">Rate it</div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ═══════════════════════════ 5 · COURSE, LIGHT ═══════════════════════════ -->
+<div class="artboard paper" id="course-light">
+  <div class="notch"></div>
+
+  <div class="plate" style="height:252px">
+    <div style="position:absolute;left:0;right:0;top:0;height:96px;z-index:1;background:linear-gradient(to bottom,rgba(10,14,12,.72),rgba(10,14,12,0))"></div>
+    <div style="position:absolute;left:0;right:0;top:0;height:268px;overflow:hidden"><svg width="402" height="268" viewBox="0 0 402 268" preserveAspectRatio="xMidYMid slice" style="position:absolute;inset:0;display:block">
+ <defs>
+  <filter id="skyh268"><feTurbulence type="fractalNoise" baseFrequency="0.008 0.030" numOctaves="4" seed="7" result="t"/>
+    <feColorMatrix in="t" type="matrix" values="0 0 0 0 0.42  0 0 0 0 0.34  0 0 0 0 0.24  0 0 1.1 0 0.10"/><feGaussianBlur stdDeviation="1.1"/></filter>
+  <filter id="turfh268"><feTurbulence type="fractalNoise" baseFrequency="0.30 0.90" numOctaves="5" seed="10" result="t"/>
+    <feColorMatrix in="t" type="matrix" values="0 0 0 0 0.16  0 0 0 0 0.20  0 0 0 0 0.09  0 0 1.8 0 0.02"/></filter>
+  <filter id="softh268"><feTurbulence type="fractalNoise" baseFrequency="0.004 0.009" numOctaves="3" seed="18" result="t"/>
+    <feColorMatrix in="t" type="matrix" values="0 0 0 0 0.05  0 0 0 0 0.07  0 0 0 0 0.04  0 0 2.4 0 -0.55"/><feGaussianBlur stdDeviation="12"/></filter>
+  <filter id="grainh268"><feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2" seed="26" result="t"/>
+    <feColorMatrix in="t" type="saturate" values="0"/>
+    <feComponentTransfer><feFuncA type="linear" slope="0.19" intercept="-0.06"/></feComponentTransfer></filter>
+  <filter id="hazeh268"><feGaussianBlur stdDeviation="2.2"/></filter>
+  <linearGradient id="skygh268" x1="0" y1="0" x2="0" y2="1">
+    <stop offset="0" stop-color="#5A5F46"/><stop offset=".50" stop-color="#A79066"/><stop offset="1" stop-color="#E4C88C"/></linearGradient>
+  <linearGradient id="turfgh268" x1="0" y1="0" x2="0" y2="1">
+    <stop offset="0" stop-color="#8B8A54"/><stop offset=".20" stop-color="#5C6A3B"/><stop offset=".58" stop-color="#3A4A30"/><stop offset="1" stop-color="#18231A"/></linearGradient>
+  <linearGradient id="lith268" x1="0.9" y1="0" x2="0.15" y2="0.9">
+    <stop offset="0" stop-color="#F0C583" stop-opacity=".30"/><stop offset=".45" stop-color="#B08F4E" stop-opacity=".07"/>
+    <stop offset="1" stop-color="#080E0A" stop-opacity=".30"/></linearGradient>
+  <linearGradient id="seamh268" x1="0" y1="0" x2="0" y2="1">
+    <stop offset="0" stop-color="#A8945C" stop-opacity="0"/><stop offset=".46" stop-color="#AE9A60" stop-opacity=".50"/><stop offset=".62" stop-color="#9C8C58" stop-opacity=".34"/><stop offset="1" stop-color="#8C7E50" stop-opacity="0"/></linearGradient>
+  <radialGradient id="vigh268" cx="0.62" cy="0.26" r="0.92">
+    <stop offset=".44" stop-color="#000" stop-opacity="0"/><stop offset="1" stop-color="#000" stop-opacity=".38"/></radialGradient>
+  <clipPath id="csh268"><rect width="402" height="93"/></clipPath>
+  <clipPath id="cgh268"><rect y="91" width="402" height="177"/></clipPath>
+ </defs>
+ <g clip-path="url(#csh268)">
+   <rect width="402" height="93" fill="url(#skygh268)"/>
+   <rect width="402" height="93" filter="url(#skyh268)" opacity=".85"/>
+   <g filter="url(#hazeh268)" opacity=".92">
+     <path d="M-20 131.2 C-16.4 61.6 -8.4 59.1 -3.8 81.7 C-0.9 74.4 5.8 73.0 9.6 85.4 C19.0 88.0 40.4 87.7 52.4 90.2 C61.3 83.6 81.5 83.0 92.9 88.9 C98.2 66.0 110.2 63.8 117.0 78.6 C120.8 73.5 129.4 72.0 134.2 83.2 C140.3 87.0 154.2 86.7 161.9 89.3 C171.6 87.2 193.6 86.8 205.9 89.5 C212.5 87.3 227.4 87.0 235.7 90.1 C241.7 88.0 255.3 87.7 262.9 89.2 C268.4 70.5 281.0 68.7 288.0 81.8 C295.2 73.1 311.3 71.5 320.4 82.3 C325.0 69.1 335.6 67.2 341.5 84.9 C347.3 67.1 360.6 65.1 368.0 75.5 C376.4 85.0 395.7 84.5 406.5 89.0 C409.7 72.8 416.8 71.2 420.8 80.0 C426.9 67.3 440.6 65.3 448.3 86.3 L422 139.24 L-20 139.24 Z" fill="#1D2A1E"/>
+     <path d="M-20 118.72800000000001 C-12.4 91.5 5.0 91.3 14.7 92.7 C22.5 88.9 40.4 88.5 50.4 90.8 C57.5 89.6 73.7 89.3 82.8 91.8 C90.1 90.2 106.6 90.0 115.9 91.1 C123.4 80.9 140.5 79.8 150.1 86.2 C157.7 83.5 174.9 82.7 184.5 87.9 C191.4 75.3 207.1 73.8 215.8 85.6 C220.9 90.0 232.4 89.8 238.8 91.0 C245.9 89.3 262.2 89.0 271.3 92.0 C276.1 91.3 287.2 91.1 293.3 92.3 C296.9 82.2 305.1 81.2 309.7 85.9 C312.5 77.3 318.8 75.9 322.3 84.0 C325.8 83.5 333.6 82.7 338.0 88.4 C343.9 74.4 357.3 72.8 364.9 82.0 C372.8 89.7 390.7 89.4 400.8 91.4 C405.1 83.1 415.0 82.3 420.6 90.1 C426.3 78.6 439.2 77.4 446.4 89.7 L422 123.8736 L-20 123.8736 Z" fill="#131C15"/>
+   </g>
+ </g>
+ <g clip-path="url(#cgh268)">
+   <rect y="91" width="402" height="177" fill="url(#turfgh268)"/>
+   <g transform="rotate(-3.4 201 91)"><rect x="-40" y="116" width="482" height="25" fill="#DCD3A8" opacity="0.103"/><rect x="-40" y="166" width="482" height="25" fill="#DCD3A8" opacity="0.079"/><rect x="-40" y="216" width="482" height="25" fill="#DCD3A8" opacity="0.055"/><rect x="-40" y="266" width="482" height="25" fill="#DCD3A8" opacity="0.031"/></g>
+   <rect y="91" width="402" height="177" filter="url(#turfh268)" opacity=".85"/>
+ </g>
+ <rect y="68" width="402" height="46" fill="url(#seamh268)"/>
+ <ellipse cx="56" cy="273" rx="249" ry="80" fill="#0A120C" opacity=".38" filter="url(#hazeh268)"/>
+ <rect width="402" height="268" filter="url(#softh268)" opacity=".8"/>
+ <rect width="402" height="268" fill="url(#lith268)"/>
+ <rect width="402" height="268" fill="url(#vigh268)"/>
+ <rect width="402" height="268" filter="url(#grainh268)" opacity=".55"/>
+</svg></div>
+    <div class="plateScrim"></div>
+    <div class="status" style="position:absolute;top:0;left:0;right:0;color:#F1F4EF"><span>9:41</span><span style="font-size:13px">▮▮▮ ᯤ ▰</span></div>
+    <div style="position:absolute;left:20px;top:56px">
+      <svg width="12" height="20" viewBox="0 0 12 20" fill="none" stroke="#F1F4EF" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M9 3L3 10l6 7"/></svg></div>
+    <div class="agateS" style="position:absolute;right:20px;top:58px;color:#D2D8CE">Galen’s round · Aug 24</div>
+    <div class="plateFoot">
+      <div style="flex:1;min-width:0">
+        <div class="agate" style="color:#CBD2C8">Kept · four of yours have played it</div>
+        <div class="display" style="margin-top:9px">Papago</div>
+        <div class="agate" style="color:#CBD2C8;margin-top:9px">Phoenix, Arizona · Municipal</div>
+      </div>
+      <div class="bonepanel" style="width:64px;height:64px;flex:none">
+        <div class="figM">81</div>
+        <div class="agateS" style="color:#4C574F;margin-top:5px">Your best</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="wrap" style="margin-top:13px">
+    <div style="display:flex;align-items:baseline;gap:5px;flex-wrap:wrap">
+      <span class="figS">72</span><span class="agateS mut">Par</span><span class="agateS mut" style="opacity:.5">·</span>
+      <span class="figS">7,068</span><span class="agateS mut">Yds</span><span class="agateS mut" style="opacity:.5">·</span>
+      <span class="figS">72.5</span><span class="agateS mut">Rtg</span><span class="agateS mut" style="opacity:.5">·</span>
+      <span class="figS">130</span><span class="agateS mut">Slope</span>
+    </div>
+    <div class="agateS mut" style="margin-top:9px">Papago blue · the 4th plays hardest · saved today</div>
+  </div>
+
+  <div class="wrap" style="margin-top:14px;display:flex;align-items:flex-start;gap:18px">
+    <div style="flex:none">
+      <div class="fig">4.6</div>
+      <div style="height:2px;background:var(--ink);margin:6px 0 6px;width:66px"></div>
+      <div class="agateS mut" style="width:118px">Cup Season · 24 ratings</div>
+    </div>
+    <div style="flex:1">
+      <svg width="122" height="20" viewBox="0 0 122 20" style="display:block">
+        <defs><path id="st-l" d="M10 1.4l2.5 5.5 6 .7-4.5 4.1 1.22 5.95L10 14.6 4.78 17.65 6 11.7 1.5 7.6l6-.7z"/>
+        <clipPath id="half-l"><rect x="96" y="0" width="10.4" height="20"/></clipPath></defs>
+        <g fill="var(--ink)"><use href="#st-l" x="0"/><use href="#st-l" x="24"/><use href="#st-l" x="48"/><use href="#st-l" x="72"/></g>
+        <use href="#st-l" x="96" fill="none" stroke="var(--rule)" stroke-width="1.4"/>
+        <g clip-path="url(#half-l)"><use href="#st-l" x="96" fill="var(--ink)"/></g></svg>
+      <div class="bodyS mut" style="margin-top:11px">Your golfers give it <span class="figS" style="font-size:17px">4.9</span>.</div>
+      <div style="margin-top:11px"><span class="link nameS">Rate it</span></div>
+    </div>
+  </div>
+
+  <div class="wrap" style="margin-top:14px">
+    <div class="story" style="text-indent:-9px">“The desert does the arguing. You just keep it in play.”</div>
+    <div class="bodyS mut" style="margin-top:9px">Jade, after an <span class="figS" style="font-size:15px;color:var(--ink)">82</span> here on Aug 30.</div>
+  </div>
+
+  <div class="wrap" style="margin-top:13px;display:flex;align-items:center;gap:14px">
+    <div class="overlap" style="display:flex;flex:none">
+      <div class="disc" style="width:34px;height:34px;background:var(--pig1)"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="var(--mut)" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M7 21V4"/><path d="M7 5h9l-2.6 3.4L16 12H7"/></svg></div>
+      <div class="disc" style="width:34px;height:34px;background:var(--pig5)"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="var(--mut)" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M5.5 16.5c0-4.4 2.9-7.6 6.5-7.6s6.5 3.2 6.5 7.6"/><path d="M4.5 16.5h15"/><path d="M12 8.9V6.4"/></svg></div>
+      <div class="disc" style="width:34px;height:34px;background:var(--pig4)"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="var(--mut)" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="2.4"/><path d="M12 9.4c0-2.7 1.7-4.1 3.3-3.6M12 14.6c0-2.7-1.7-4.4-3.3-3.9M9.4 12c-2.7 0-4.2-1.6-3.7-3.2M14.6 12c2.7 0 4.4 1.7 3.9 3.3"/></svg></div>
+      <div class="disc" style="width:34px;height:34px;background:var(--pig2)"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="var(--mut)" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 14c3-4 5-4 8 0s5 4 8 0"/></svg></div>
+    </div>
+    <div class="bodyS" style="flex:1">Galen, Tash, Jade and Dev. Galen’s <span class="figS" style="font-size:15px">79</span> is the best of them.</div>
+  </div>
+
+  <div class="leaf" style="margin:18px 20px 0;padding:12px 14px 13px">
+    <div class="agateS" style="color:var(--leafMut)">The front nine · Papago blue</div>
+    <div class="lrow" style="margin-top:11px"><b>Hole</b>
+      <s class="colS" style="color:var(--leafMut)">1</s><s class="colS" style="color:var(--leafMut)">2</s><s class="colS" style="color:var(--leafMut)">3</s>
+      <s class="colS" style="color:var(--leafMut)">4</s><s class="colS" style="color:var(--leafMut)">5</s><s class="colS" style="color:var(--leafMut)">6</s>
+      <s class="colS" style="color:var(--leafMut)">7</s><s class="colS" style="color:var(--leafMut)">8</s><s class="colS" style="color:var(--leafMut)">9</s>
+      <s class="colS" style="color:var(--leafMut)">Out</s></div>
+    <div style="height:1px;background:var(--leafRule);margin:8px 0 8px"></div>
+    <div class="lrow"><b>Par</b>
+      <s class="col">4</s><s class="col">5</s><s class="col">3</s><s class="col">4</s><s class="col">4</s>
+      <s class="col">4</s><s class="col">3</s><s class="col">5</s><s class="col">4</s><s class="col">36</s></div>
+    <div class="lrow" style="margin-top:7px"><b>SI</b>
+      <s class="colS" style="color:var(--leafMut)">7</s><s class="colS" style="color:var(--leafMut)">3</s><s class="colS" style="color:var(--leafMut)">15</s>
+      <s class="colS" style="color:var(--leafMut)">1</s><s class="colS" style="color:var(--leafMut)">5</s><s class="colS" style="color:var(--leafMut)">11</s>
+      <s class="colS" style="color:var(--leafMut)">17</s><s class="colS" style="color:var(--leafMut)">9</s><s class="colS" style="color:var(--leafMut)">13</s>
+      <s class="colS" style="color:var(--leafMut)"></s></div>
+  </div>
+
+  <div class="sechead" style="margin-top:16px"><div class="agate mut">Rounds here</div><div class="hair"></div></div>
+  <div class="slat" style="margin-top:10px">
+    <div style="display:flex;align-items:center;gap:12px;flex:1;padding:0 20px">
+      <div class="disc" style="width:30px;height:30px;background:var(--pig5)"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="var(--mut)" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M5.5 16.5c0-4.4 2.9-7.6 6.5-7.6s6.5 3.2 6.5 7.6"/><path d="M4.5 16.5h15"/><path d="M12 8.9V6.4"/></svg></div>
+      <div style="flex:1;min-width:0"><div class="social" style="display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden">Tash Bell</div><div class="agateS mut" style="margin-top:4px">Aug 30 · blue tees</div></div>
+      <div class="figM">84</div>
+    </div>
+  </div>
+  <div class="slat">
+    <div style="display:flex;align-items:center;gap:12px;flex:1;padding:0 20px">
+      <div class="disc" style="width:30px;height:30px;background:var(--pig1)"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="var(--mut)" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M7 21V4"/><path d="M7 5h9l-2.6 3.4L16 12H7"/></svg></div>
+      <div style="flex:1;min-width:0"><div class="social" style="display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden">Galen Marr</div><div class="agateS mut" style="margin-top:4px">Jul 12 · black tees</div></div>
+      <div class="figM">79</div>
+    </div>
+  </div>
+  <div class="slat">
+    <div style="display:flex;align-items:center;gap:12px;flex:1;padding:0 20px">
+      <div class="disc" style="width:30px;height:30px;background:var(--pig4)"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="var(--mut)" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="2.4"/><path d="M12 9.4c0-2.7 1.7-4.1 3.3-3.6M12 14.6c0-2.7-1.7-4.4-3.3-3.9M9.4 12c-2.7 0-4.2-1.6-3.7-3.2M14.6 12c2.7 0 4.4 1.7 3.9 3.3"/></svg></div>
+      <div style="flex:1;min-width:0"><div class="social" style="display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden">Jade</div><div class="agateS mut" style="margin-top:4px">Aug 30 · blue tees</div></div>
+      <div class="figM">82</div>
+    </div>
+  </div>
+
+  <div class="fade"></div>
+  <div class="tabbar">
+    <div class="tab"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 11l8-6 8 6"/><path d="M6 10v9h12v-9"/></svg><div class="agateS">Home</div></div>
+    <div class="tab sel"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M7 21V4"/><path d="M7 5h10l-3 4 3 4H7"/></svg><div class="agateS">Compete</div><div class="u"></div></div>
+    <div class="tab play"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 8v8M8 12h8"/></svg><div class="agateS">Play</div></div>
+    <div class="tab"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="9" r="3.2"/><path d="M3.5 19c.6-3.3 2.8-5 5.5-5s4.9 1.7 5.5 5"/><circle cx="17" cy="10" r="2.4"/><path d="M15 19c.4-2.4 1.8-3.6 3.6-3.6 1.2 0 2.2.5 2.9 1.5"/></svg><div class="agateS">Golfers</div></div>
+    <div class="tab"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="9" cy="11" r="2"/><path d="M5.5 16c.5-1.6 1.9-2.4 3.5-2.4s3 .8 3.5 2.4"/><path d="M15 10h4M15 13.5h4"/></svg><div class="agateS">You</div></div>
+  </div>
+</div>
+
+</body></html>

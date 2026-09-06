@@ -1,0 +1,753 @@
+<!doctype html>
+<html><head><meta charset="utf-8">
+<title>Cup Season — HOME, the front page</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Condensed:wght@600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+/* Tokens — UI_SYSTEM §2.1, verbatim. Nothing here is invented. */
+:root{
+  --bg0:#0F1A15; --bg1:#1A2620; --bg2:#26352E; --rule:#4A6155;
+  --ink:#F1F4EF; --mut:#9BA69D; --dim:#5E6A62;
+  --panel:#E9ECE3; --panelInk:#0B120E; --panelMut:#4C574F;
+  --leaf:#EFEADD; --leafInk:#1A1B14; --leafMut:#57605A;
+  --brand:#E8622C; --gold:#D8B25A; --pos:#4EC584; --neg:#FF6A5E; --cool:#7F8C95;
+  --pig0:#492D2C; --pig1:#473C28; --pig2:#293B2B; --pig3:#1F4648; --pig4:#293B4E; --pig5:#4E3C4F;
+  --ceremony:#0A0E0C; --ceremonyInk:#F1F4EF; --cerMut:#9BA69D; --cerBrand:#E8622C; --cerGold:#D8B25A; --crest:#33463B; --folioRule:#8B8F8B;
+  --board:'IBM Plex Sans Condensed', -apple-system, sans-serif;
+  --mono:'IBM Plex Mono', ui-monospace, monospace;
+  --sans:-apple-system, system-ui, sans-serif;
+  --serif:'New York','Iowan Old Style',Georgia,serif;
+}
+.paper{
+  --bg0:#F4F1E9; --bg1:#EAE6DB; --bg2:#DED8C8; --rule:#A9A08A;
+  --ink:#151B17; --mut:#575F57; --dim:#8B9089;
+  --panel:#141A16; --panelInk:#F4F1E9; --panelMut:#A6AEA5;
+  --leaf:#FFFDF7; --leafInk:#1A1B14; --leafMut:#5A625A;
+  --brand:#A8420F; --gold:#7A5A12; --pos:#0B7340; --neg:#B02A20; --cool:#5D6862;
+  --pig0:#FDDAD8; --pig1:#E6D8C2; --pig2:#D6EBD7; --pig3:#BEE4E7; --pig4:#D9EAFF; --pig5:#EED9EE;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#2a2a2a;font-family:var(--sans);padding:28px;display:flex;flex-wrap:wrap;gap:28px;align-items:flex-start}
+.artboard{width:402px;height:874px;background:var(--bg0);color:var(--ink);position:relative;overflow:hidden;
+  font-family:var(--sans);-webkit-font-smoothing:antialiased}
+.wrap{padding:0 20px}
+
+/* ---- the nine type roles, UI_SYSTEM §1.2 ---- */
+.figXL{font-family:var(--board);font-weight:700;font-size:56px;line-height:.92;font-variant-numeric:tabular-nums}
+.fig  {font-family:var(--board);font-weight:700;font-size:40px;line-height:.94;font-variant-numeric:tabular-nums}
+.figM {font-family:var(--board);font-weight:700;font-size:27px;line-height:.96;font-variant-numeric:tabular-nums}
+.figS {font-family:var(--board);font-weight:700;font-size:20px;line-height:1;font-variant-numeric:tabular-nums}
+.display{font-family:var(--board);font-weight:700;font-size:34px;line-height:.98;text-transform:uppercase;letter-spacing:.005em}
+.title{font-family:var(--board);font-weight:700;font-size:24px;line-height:1.05;text-transform:uppercase;letter-spacing:.01em}
+.name{font-family:var(--board);font-weight:600;font-size:17px;line-height:1.16;text-transform:uppercase;letter-spacing:.035em}
+.nameS{font-family:var(--board);font-weight:600;font-size:15px;line-height:1.16;text-transform:uppercase;letter-spacing:.04em}
+.social{font-family:var(--board);font-weight:600;font-size:17px;line-height:1.16;letter-spacing:0}
+.lead{font-family:var(--serif);font-weight:700;font-size:28px;line-height:1.14;letter-spacing:-.01em}
+.story{font-family:var(--serif);font-weight:400;font-size:20px;line-height:1.34}
+.body{font-family:var(--sans);font-size:17px;line-height:1.45}
+.bodyS{font-family:var(--sans);font-size:15px;line-height:1.45}
+.agate{font-family:var(--board);font-weight:600;font-size:12px;line-height:1.2;text-transform:uppercase;letter-spacing:.09em}
+.agateS{font-family:var(--board);font-weight:600;font-size:11px;line-height:1.2;text-transform:uppercase;letter-spacing:.08em}
+.col{font-family:var(--mono);font-weight:500;font-size:14px;font-variant-numeric:tabular-nums}
+.colS{font-family:var(--mono);font-weight:400;font-size:12px;font-variant-numeric:tabular-nums}
+.mut{color:var(--mut)} .dimc{color:var(--dim)} .gold{color:var(--gold)} .em{color:var(--brand)}
+
+/* ---- structure, UI_SYSTEM §3 ---- */
+.hair{height:1px;background:var(--rule)}
+.heavy{height:2px;background:var(--ink)}
+.sechead{display:flex;align-items:center;gap:10px;padding:0 20px}
+.sechead .hair{flex:1}
+.panel{background:var(--panel);color:var(--panelInk);border-radius:3px;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;text-align:center}
+.panel .agateS{color:var(--panelMut)}
+/* §3.2 — over a photograph the panel is the BONE panel in both themes */
+.onphoto .panel{background:#E9ECE3;color:#0B120E}
+.onphoto .panel .agateS{color:#4C574F}
+.slot{height:24px;background:var(--gold);color:var(--panelInk);border-radius:3px;
+  display:inline-flex;align-items:center;padding:0 8px}
+.disc{border-radius:50%;display:flex;align-items:center;justify-content:center;flex:none;
+  box-shadow:inset 0 0 0 1px var(--rule)}
+.btn{height:50px;border-radius:10px;display:flex;align-items:center;justify-content:center}
+.btnP{background:var(--brand);color:var(--bg0)}
+.link{display:inline-flex;align-items:center;gap:7px;border-bottom:2px solid var(--mut);padding-bottom:4px}
+.link.live{border-bottom-color:var(--brand)}
+.rf .r{height:2px;background:var(--ink);margin:6px 0 5px}
+.rf.live .r{background:var(--brand)} .rf.earned .r{background:var(--gold)}
+.tri{width:0;height:0;border-left:5px solid transparent;border-right:5px solid transparent}
+.up{border-bottom:8px solid var(--pos)} .down{border-top:8px solid var(--cool)}
+.held{width:9px;height:2px;background:var(--mut)}
+.mv{display:inline-flex;align-items:center;gap:6px}
+.tabbar{position:absolute;left:0;right:0;bottom:0;height:74px;border-top:1px solid var(--rule);
+  background:var(--bg0);display:flex;align-items:flex-start;padding-top:9px}
+.tab{flex:1;display:flex;flex-direction:column;align-items:center;gap:5px;color:var(--mut)}
+.tab.sel{color:var(--ink)} .tab.play{color:var(--brand)}
+.tab .u{width:26px;height:2px;background:var(--ink);margin-top:3px}
+.fade{position:absolute;left:0;right:0;height:28px;bottom:74px;
+  background:linear-gradient(to bottom,transparent,var(--bg0))}
+.status{height:54px;display:flex;align-items:center;justify-content:space-between;padding:0 22px;
+  font-family:var(--sans);font-size:15px;font-weight:600}
+.notch{position:absolute;left:50%;transform:translateX(-50%);top:12px;width:96px;height:30px;background:#000;border-radius:16px}
+/* the floor — four doors as rule-separated rows, never four ragged caps columns */
+.door{display:flex;align-items:center;gap:12px;height:44px;padding:0 20px}
+.door .g{margin-left:auto;text-align:right}
+/* the key artboard's own furniture (not part of the product) */
+.keylab{font-family:var(--mono);font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--dim);padding:0 20px}
+
+/* §1.3 — agate sets SENTENCE case for a phrase, caps for a label. */
+.sent{text-transform:none!important;letter-spacing:.02em}
+/* §2.3 — on cream stock the pigments are pale tints; the marker takes INK, never mut. */
+.paper .disc svg,.paper .face svg,.paper .disc56 svg{stroke:var(--ink)!important}
+
+/* §1.6 — ONE ordinal: agate small caps on the baseline. Never a raised superscript. */
+.ord{font-size:.44em;letter-spacing:.06em;font-weight:700;vertical-align:baseline;margin-left:.06em}
+</style></head><body>
+
+<!-- ======================================================================= -->
+<!-- HOME · LIVE — a live season day. Sam Ridley, The Fellas, week 5 of 13.  -->
+<!-- ======================================================================= -->
+<div class="artboard" id="home-live">
+  <div class="notch"></div>
+  <div class="status"><span>7:39</span><span style="font-size:13px">▮▮▮ ᯤ ▰</span></div>
+
+  <!-- 1 · THE MASTHEAD — wordmark over a 2pt ink rule, dateline flush right -->
+  <div class="wrap" style="display:flex;align-items:baseline;justify-content:space-between">
+    <div class="display" style="font-size:30px;letter-spacing:.01em">Cup Season</div>
+    <div class="agate mut">Sun · Sep 6</div>
+  </div>
+  <div class="wrap" style="margin-top:9px"><div class="heavy"></div></div>
+
+  <!-- 2 · THE LEAD — weight 1, the competition moment -->
+  <div class="wrap" style="margin-top:18px">
+    <div style="display:flex;align-items:center;justify-content:space-between">
+      <div class="agate em" style="display:flex;align-items:center;gap:7px">
+        <span style="width:7px;height:7px;border-radius:50%;background:var(--brand);display:inline-block"></span>
+        Live · the clash closes today</div>
+    </div>
+    <div style="display:flex;gap:16px;margin-top:12px;align-items:flex-start">
+      <div style="flex:1;min-width:0">
+        <div class="lead">You moved to 2nd.</div>
+        <div class="body mut" style="margin-top:11px">Galen is four ahead. One counting round in the top band closes it.</div>
+        <div style="margin-top:15px">
+          <span class="link live nameS">Put a round on the schedule</span>
+        </div>
+      </div>
+      <div style="width:84px;flex:none">
+        <!-- the panel: one figure, one unit, no sentence, ever -->
+        <div class="panel" style="width:84px;height:90px">
+          <div class="fig" style="font-size:38px">2<span class="ord">ND</span></div>
+          <div class="mv" style="margin-top:4px"><span class="tri up"></span><span class="figS" style="font-size:16px">2</span></div>
+          <div class="agateS" style="margin-top:5px">Of eight</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 3 · THE ME STRIP — four figures on one rule, the standing line, the ledger -->
+  <div class="wrap" style="margin-top:22px">
+    <div style="display:flex;align-items:flex-end;justify-content:space-between">
+      <div class="figM">10.6</div><div class="figM">84</div><div class="figM">$75</div>
+    </div>
+    <div class="heavy" style="margin:6px 0 5px"></div>
+    <div style="display:flex;justify-content:space-between">
+      <div class="agateS mut">Your number</div><div class="agateS mut">Last · Fri</div>
+      <div class="agateS mut">You owe</div>
+    </div>
+  </div>
+
+  <!-- 4 · THE WIRE -->
+  <div class="sechead" style="margin-top:16px"><div class="agate mut">The wire</div><div class="hair"></div></div>
+
+  <!-- weight 2 · friend round — the photograph, the face, the gross -->
+  <div class="onphoto" style="position:relative;height:154px;margin-top:12px;overflow:hidden">
+    <svg width="402" height="154" viewBox="0 0 402 154" preserveAspectRatio="xMidYMid slice" style="position:absolute;inset:0;display:block">
+ <defs>
+  <filter id="skywireband"><feTurbulence type="fractalNoise" baseFrequency="0.008 0.030" numOctaves="4" seed="23" result="t"/>
+    <feColorMatrix in="t" type="matrix" values="0 0 0 0 0.42  0 0 0 0 0.34  0 0 0 0 0.24  0 0 1.1 0 0.10"/><feGaussianBlur stdDeviation="1.1"/></filter>
+  <filter id="turfwireband"><feTurbulence type="fractalNoise" baseFrequency="0.30 0.90" numOctaves="5" seed="26" result="t"/>
+    <feColorMatrix in="t" type="matrix" values="0 0 0 0 0.16  0 0 0 0 0.20  0 0 0 0 0.09  0 0 1.8 0 0.02"/></filter>
+  <filter id="softwireband"><feTurbulence type="fractalNoise" baseFrequency="0.004 0.009" numOctaves="3" seed="34" result="t"/>
+    <feColorMatrix in="t" type="matrix" values="0 0 0 0 0.05  0 0 0 0 0.07  0 0 0 0 0.04  0 0 2.4 0 -0.55"/><feGaussianBlur stdDeviation="12"/></filter>
+  <filter id="grainwireband"><feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2" seed="42" result="t"/>
+    <feColorMatrix in="t" type="saturate" values="0"/>
+    <feComponentTransfer><feFuncA type="linear" slope="0.19" intercept="-0.06"/></feComponentTransfer></filter>
+  <filter id="hazewireband"><feGaussianBlur stdDeviation="1.3"/></filter>
+  <linearGradient id="skygwireband" x1="0" y1="0" x2="0" y2="1">
+    <stop offset="0" stop-color="#5A5F46"/><stop offset=".50" stop-color="#A79066"/><stop offset="1" stop-color="#E4C88C"/></linearGradient>
+  <linearGradient id="turfgwireband" x1="0" y1="0" x2="0" y2="1">
+    <stop offset="0" stop-color="#8B8A54"/><stop offset=".20" stop-color="#5C6A3B"/><stop offset=".58" stop-color="#3A4A30"/><stop offset="1" stop-color="#18231A"/></linearGradient>
+  <linearGradient id="litwireband" x1="0.9" y1="0" x2="0.15" y2="0.9">
+    <stop offset="0" stop-color="#F0C583" stop-opacity=".30"/><stop offset=".45" stop-color="#B08F4E" stop-opacity=".07"/>
+    <stop offset="1" stop-color="#080E0A" stop-opacity=".30"/></linearGradient>
+  <linearGradient id="seamwireband" x1="0" y1="0" x2="0" y2="1">
+    <stop offset="0" stop-color="#A8945C" stop-opacity="0"/><stop offset=".46" stop-color="#AE9A60" stop-opacity=".50"/><stop offset=".62" stop-color="#9C8C58" stop-opacity=".34"/><stop offset="1" stop-color="#8C7E50" stop-opacity="0"/></linearGradient>
+  <radialGradient id="vigwireband" cx="0.62" cy="0.26" r="0.92">
+    <stop offset=".44" stop-color="#000" stop-opacity="0"/><stop offset="1" stop-color="#000" stop-opacity=".38"/></radialGradient>
+  <clipPath id="cswireband"><rect width="402" height="48"/></clipPath>
+  <clipPath id="cgwireband"><rect y="46" width="402" height="108"/></clipPath>
+ </defs>
+ <g clip-path="url(#cswireband)">
+   <rect width="402" height="48" fill="url(#skygwireband)"/>
+   <rect width="402" height="48" filter="url(#skywireband)" opacity=".85"/>
+   <g filter="url(#hazewireband)" opacity=".92">
+     <path d="M-20 69.1 C-10.9 43.3 9.9 43.1 21.5 44.7 C25.0 36.6 32.8 35.8 37.2 39.6 C40.1 35.1 46.5 34.1 50.2 38.6 C57.8 36.7 75.2 35.9 84.9 41.7 C90.2 43.8 102.3 43.6 109.1 45.5 C116.3 42.2 132.6 41.9 141.8 45.2 C146.4 42.8 156.9 42.6 162.8 44.6 C165.9 30.9 172.9 29.6 176.9 40.9 C182.5 41.9 195.5 41.6 202.7 44.5 C208.7 43.1 222.2 42.8 229.7 44.1 C233.3 29.9 241.5 28.5 246.1 41.4 C249.3 35.4 256.6 34.4 260.6 39.6 C265.0 33.7 275.0 32.7 280.5 42.6 C287.5 34.2 303.5 33.2 312.4 41.8 C317.7 42.4 329.9 42.1 336.7 44.1 C342.2 42.8 354.7 42.5 361.7 43.9 C368.8 36.6 385.0 35.8 394.0 44.0 C401.6 37.2 418.7 36.5 428.3 43.6 L422 73.72 L-20 73.72 Z" fill="#1D2A1E"/>
+     <path d="M-20 62.784 C-16.3 40.6 -8.0 40.0 -3.3 44.5 C2.0 39.7 14.1 39.0 20.8 46.0 C28.1 42.6 44.5 42.1 53.6 45.9 C57.3 37.7 65.5 36.8 70.1 45.5 C74.7 46.6 85.2 46.5 91.0 47.5 C100.9 45.3 123.4 45.1 136.1 46.8 C145.6 46.6 167.4 46.4 179.6 47.7 C188.4 46.7 208.4 46.6 219.7 47.3 C223.3 38.1 231.4 37.2 236.0 43.2 C238.8 37.8 245.0 36.9 248.5 45.0 C257.8 47.1 278.9 47.0 290.6 47.5 C298.8 46.5 317.3 46.3 327.7 47.6 C334.4 45.9 349.5 45.7 358.0 46.9 C363.1 46.1 374.7 46.0 381.2 47.0 C385.8 41.9 396.4 41.4 402.4 43.9 C408.6 45.6 422.7 45.4 430.6 47.1 L422 65.74080000000001 L-20 65.74080000000001 Z" fill="#131C15"/>
+   </g>
+ </g>
+ <g clip-path="url(#cgwireband)">
+   <rect y="46" width="402" height="108" fill="url(#turfgwireband)"/>
+   <g transform="rotate(-3.4 201 46)"><rect x="-40" y="61" width="482" height="15" fill="#DCD3A8" opacity="0.103"/><rect x="-40" y="91" width="482" height="15" fill="#DCD3A8" opacity="0.080"/><rect x="-40" y="121" width="482" height="15" fill="#DCD3A8" opacity="0.056"/><rect x="-40" y="151" width="482" height="15" fill="#DCD3A8" opacity="0.032"/></g>
+   <rect y="46" width="402" height="108" filter="url(#turfwireband)" opacity=".85"/>
+ </g>
+ <rect y="33" width="402" height="26" fill="url(#seamwireband)"/>
+ <ellipse cx="56" cy="157" rx="249" ry="46" fill="#0A120C" opacity=".38" filter="url(#hazewireband)"/>
+ <rect width="402" height="154" filter="url(#softwireband)" opacity=".8"/>
+ <rect width="402" height="154" fill="url(#litwireband)"/>
+ <rect width="402" height="154" fill="url(#vigwireband)"/>
+ <rect width="402" height="154" filter="url(#grainwireband)" opacity=".55"/>
+</svg>
+    <div style="position:absolute;inset:0;background:linear-gradient(to right,rgba(10,14,12,.88) 0%,rgba(10,14,12,.56) 46%,rgba(10,14,12,.10) 100%)"></div>
+    <div class="agateS" style="position:absolute;right:14px;top:11px;color:#D7DCD3;opacity:.9">Galen’s round · Sun</div>
+    <div style="position:absolute;left:20px;right:20px;bottom:15px;display:flex;align-items:flex-end;gap:12px">
+      <div class="disc" style="width:38px;height:38px;background:var(--pig1)">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#F1F4EF" stroke-width="1.7" stroke-linecap="round"><path d="M12 20V8"/><path d="M12 12c0-3 2.5-4 4-3.6"/><path d="M12 14c0-3-2.5-4.4-4-4"/></svg>
+      </div>
+      <div style="flex:1;min-width:0">
+        <div class="social" style="color:#F1F4EF">Galen Marr</div>
+        <div class="bodyS" style="margin-top:2px;color:#F1F4EF">79 at Papago — a personal best.</div>
+      </div>
+      <div class="panel" style="width:60px;height:60px">
+        <div class="figM">79</div><div class="agateS" style="margin-top:4px">Gross</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- weight 3 · course discovery — editorial -->
+  <div class="hair"></div>
+  <div class="wrap" style="display:flex;gap:14px;align-items:center;padding-top:11px;padding-bottom:11px">
+    <div style="width:58px;height:58px;position:relative;overflow:hidden;flex:none"><svg width="58" height="58" viewBox="0 0 58 58" preserveAspectRatio="xMidYMid slice" style="position:absolute;inset:0;display:block">
+ <defs>
+  <filter id="skythumbtroonb"><feTurbulence type="fractalNoise" baseFrequency="0.008 0.030" numOctaves="4" seed="61" result="t"/>
+    <feColorMatrix in="t" type="matrix" values="0 0 0 0 0.42  0 0 0 0 0.34  0 0 0 0 0.24  0 0 1.1 0 0.10"/><feGaussianBlur stdDeviation="1.1"/></filter>
+  <filter id="turfthumbtroonb"><feTurbulence type="fractalNoise" baseFrequency="0.30 0.90" numOctaves="5" seed="64" result="t"/>
+    <feColorMatrix in="t" type="matrix" values="0 0 0 0 0.16  0 0 0 0 0.20  0 0 0 0 0.09  0 0 1.8 0 0.02"/></filter>
+  <filter id="softthumbtroonb"><feTurbulence type="fractalNoise" baseFrequency="0.004 0.009" numOctaves="3" seed="72" result="t"/>
+    <feColorMatrix in="t" type="matrix" values="0 0 0 0 0.05  0 0 0 0 0.07  0 0 0 0 0.04  0 0 2.4 0 -0.55"/><feGaussianBlur stdDeviation="12"/></filter>
+  <filter id="grainthumbtroonb"><feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2" seed="80" result="t"/>
+    <feColorMatrix in="t" type="saturate" values="0"/>
+    <feComponentTransfer><feFuncA type="linear" slope="0.19" intercept="-0.06"/></feComponentTransfer></filter>
+  <filter id="hazethumbtroonb"><feGaussianBlur stdDeviation="1.1"/></filter>
+  <linearGradient id="skygthumbtroonb" x1="0" y1="0" x2="0" y2="1">
+    <stop offset="0" stop-color="#5A5F46"/><stop offset=".50" stop-color="#A79066"/><stop offset="1" stop-color="#E4C88C"/></linearGradient>
+  <linearGradient id="turfgthumbtroonb" x1="0" y1="0" x2="0" y2="1">
+    <stop offset="0" stop-color="#8B8A54"/><stop offset=".20" stop-color="#5C6A3B"/><stop offset=".58" stop-color="#3A4A30"/><stop offset="1" stop-color="#18231A"/></linearGradient>
+  <linearGradient id="litthumbtroonb" x1="0.9" y1="0" x2="0.15" y2="0.9">
+    <stop offset="0" stop-color="#F0C583" stop-opacity=".30"/><stop offset=".45" stop-color="#B08F4E" stop-opacity=".07"/>
+    <stop offset="1" stop-color="#080E0A" stop-opacity=".30"/></linearGradient>
+  <linearGradient id="seamthumbtroonb" x1="0" y1="0" x2="0" y2="1">
+    <stop offset="0" stop-color="#A8945C" stop-opacity="0"/><stop offset=".46" stop-color="#AE9A60" stop-opacity=".50"/><stop offset=".62" stop-color="#9C8C58" stop-opacity=".34"/><stop offset="1" stop-color="#8C7E50" stop-opacity="0"/></linearGradient>
+  <radialGradient id="vigthumbtroonb" cx="0.62" cy="0.26" r="0.92">
+    <stop offset=".44" stop-color="#000" stop-opacity="0"/><stop offset="1" stop-color="#000" stop-opacity=".38"/></radialGradient>
+  <clipPath id="csthumbtroonb"><rect width="58" height="26"/></clipPath>
+  <clipPath id="cgthumbtroonb"><rect y="24" width="58" height="34"/></clipPath>
+ </defs>
+ <g clip-path="url(#csthumbtroonb)">
+   <rect width="58" height="26" fill="url(#skygthumbtroonb)"/>
+   <rect width="58" height="26" filter="url(#skythumbtroonb)" opacity=".85"/>
+   <g filter="url(#hazethumbtroonb)" opacity=".92">
+     <path d="M-20 42 C-13.6 11.6 1.0 10.5 9.2 20.4 C15.1 11.1 28.4 10.0 35.9 20.9 C44.8 21.1 65.1 20.9 76.5 23.2 C82.3 16.7 95.4 16.0 102.8 20.0 L78 45.599999999999994 L-20 45.599999999999994 Z" fill="#1D2A1E"/>
+     <path d="M-20 38 C-13.0 17.2 3.0 16.4 11.9 21.4 C16.1 20.4 25.6 19.9 31.0 24.0 C34.0 18.4 40.9 17.8 44.7 21.3 C52.8 24.8 71.3 24.7 81.6 25.3 L78 40.4 L-20 40.4 Z" fill="#131C15"/>
+   </g>
+ </g>
+ <g clip-path="url(#cgthumbtroonb)">
+   <rect y="24" width="58" height="34" fill="url(#turfgthumbtroonb)"/>
+   <g transform="rotate(-3.4 29 24)"><rect x="-40" y="31" width="138" height="7" fill="#DCD3A8" opacity="0.098"/><rect x="-40" y="45" width="138" height="7" fill="#DCD3A8" opacity="0.063"/></g>
+   <rect y="24" width="58" height="34" filter="url(#turfthumbtroonb)" opacity=".85"/>
+ </g>
+ <rect y="19" width="58" height="10" fill="url(#seamthumbtroonb)"/>
+ <ellipse cx="8" cy="59" rx="36" ry="17" fill="#0A120C" opacity=".38" filter="url(#hazethumbtroonb)"/>
+ <rect width="58" height="58" filter="url(#softthumbtroonb)" opacity=".8"/>
+ <rect width="58" height="58" fill="url(#litthumbtroonb)"/>
+ <rect width="58" height="58" fill="url(#vigthumbtroonb)"/>
+ <rect width="58" height="58" filter="url(#grainthumbtroonb)" opacity=".55"/>
+</svg></div>
+    <div style="flex:1;min-width:0">
+      <div class="name">Troon North</div>
+      <div class="agateS mut sent" style="margin-top:5px">Monument · 3 of your golfers</div>
+    </div>
+    <div style="text-align:right">
+      <div class="figS">4.6</div>
+      <svg width="72" height="12" viewBox="0 0 106 18" style="margin-top:5px">
+        <defs><path id="stB" d="M9 1.2l2.25 4.95 5.4.6-4.05 3.7 1.1 5.35L9 13.1 4.3 15.8l1.1-5.35L1.35 6.75l5.4-.6z"/>
+        <clipPath id="halfB"><rect x="84" y="0" width="9.4" height="18"/></clipPath></defs>
+        <g fill="var(--ink)"><use href="#stB" x="0"/><use href="#stB" x="21"/><use href="#stB" x="42"/><use href="#stB" x="63"/></g>
+        <use href="#stB" x="84" fill="none" stroke="var(--rule)" stroke-width="1.6"/>
+        <g clip-path="url(#halfB)"><use href="#stB" x="84" fill="var(--ink)"/></g></svg>
+    </div>
+  </div>
+
+  <!-- weight 4 · what is next — a dated row with a chevron, never a figure in a numeral rail -->
+  <div class="hair"></div>
+  <div class="wrap" style="display:flex;gap:14px;align-items:center;padding-top:11px;padding-bottom:11px">
+    <div class="agateS mut sent" style="width:32px;flex:none">Mon</div>
+    <div class="bodyS" style="flex:1">Papago, 7:10 with Galen and Jade.</div>
+    <svg width="8" height="14" viewBox="0 0 8 14" fill="none" stroke="var(--mut)" stroke-width="1.7" stroke-linecap="round"><path d="M1.5 1.5L6 7l-4.5 5.5"/></svg>
+  </div>
+
+  <!-- weight 5 · minor activity — quiet, one line, a day marker -->
+  <div class="hair"></div>
+  <div class="wrap" style="display:flex;gap:14px;align-items:baseline;padding-top:11px;padding-bottom:11px">
+    <div class="agateS mut sent" style="width:32px;flex:none">Tue</div>
+    <div class="bodyS mut">Tash Bell joined The Dew Sweepers.</div>
+  </div>
+  <div class="hair"></div>
+  <div class="wrap" style="display:flex;gap:14px;align-items:baseline;padding-top:11px;padding-bottom:14px">
+    <div class="agateS mut sent" style="width:32px;flex:none">Mon</div>
+    <div class="bodyS mut">The Pro closed the roster at eight.</div>
+  </div>
+
+  <div class="fade"></div>
+  <div class="tabbar">
+    <div class="tab sel"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 11l8-6 8 6"/><path d="M6 10v9h12v-9"/></svg><div class="agateS">Home</div><div class="u"></div></div>
+    <div class="tab"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M7 21V4"/><path d="M7 5h10l-3 4 3 4H7"/></svg><div class="agateS">Compete</div></div>
+    <div class="tab play"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 8v8M8 12h8"/></svg><div class="agateS">Play</div></div>
+    <div class="tab"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="9" r="3.2"/><path d="M3.5 19c.6-3.3 2.8-5 5.5-5s4.9 1.7 5.5 5"/><circle cx="17" cy="10" r="2.4"/><path d="M15 19c.4-2.4 1.8-3.6 3.6-3.6 1.2 0 2.2.5 2.9 1.5"/></svg><div class="agateS">Golfers</div></div>
+    <div class="tab"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="9" cy="11" r="2"/><path d="M5.5 16c.5-1.6 1.9-2.4 3.5-2.4s3 .8 3.5 2.4"/><path d="M15 10h4M15 13.5h4"/></svg><div class="agateS">You</div></div>
+  </div>
+</div>
+
+<!-- ======================================================================= -->
+<!-- HOME · QUIET — between seasons. The Dew Sweepers wrapped on Aug 31.     -->
+<!-- ======================================================================= -->
+<div class="artboard" id="home-quiet">
+  <div class="notch"></div>
+  <div class="status"><span>7:40</span><span style="font-size:13px">▮▮▮ ᯤ ▰</span></div>
+
+  <div class="wrap" style="display:flex;align-items:baseline;justify-content:space-between">
+    <div class="display" style="font-size:30px;letter-spacing:.01em">Cup Season</div>
+    <div class="agate mut">Sun · Sep 6</div>
+  </div>
+  <div class="wrap" style="margin-top:9px"><div class="heavy"></div></div>
+
+  <!-- THE LEAD — earned, not live. No ember anywhere in this block. -->
+  <div class="wrap" style="margin-top:15px">
+    <div class="agate mut">The Dew Sweepers · Season complete</div>
+    <div style="display:flex;gap:16px;margin-top:12px;align-items:flex-start">
+      <div style="flex:1;min-width:0">
+        <div style="display:flex;align-items:center;gap:9px"><div class="slot agateS">Champion</div><div class="agate mut">Mike Fenner</div></div>
+        <div class="lead" style="margin-top:9px">Mike took it by twelve.</div>
+        <div class="body mut" style="margin-top:11px">You finished fourth of twelve, and your best month was August.</div>
+        <div style="margin-top:13px">
+          <span class="nameS" style="border-bottom:2px solid var(--mut);padding-bottom:4px">See how it ended</span>
+        </div>
+      </div>
+      <div style="width:84px;flex:none;text-align:right">
+        <div class="panel" style="width:84px;height:84px">
+          <div class="fig" style="font-size:38px">4<span class="ord">TH</span></div>
+          <div class="agateS" style="margin-top:5px">Of twelve</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- THE ME STRIP — two facts. A slot with no figure is ABSENT, never a verb,
+       never a dash: "PLAN ONE" does not belong in a value seat. -->
+  <div class="wrap" style="margin-top:20px">
+    <div style="display:flex">
+      <div style="width:116px"><div class="figM">12.4</div></div>
+      <div style="width:116px"><div class="figM">81</div></div>
+    </div>
+    <div class="heavy" style="margin:6px 0 5px"></div>
+    <div style="display:flex">
+      <div class="agateS mut" style="width:116px;white-space:nowrap">Your number</div>
+      <div class="agateS mut" style="width:116px;white-space:nowrap">Last · Tue</div>
+    </div>
+    <div class="agate mut" style="margin-top:11px">The Dew Sweepers · Ran twenty-six weeks</div>
+  </div>
+
+  <!-- THE WIRE — empty: a drawn shape, an eyebrow, and a headline that is a
+       fact about the WORLD, never the golfer's omission. Its door is the lit
+       door in the floor beneath, so the screen carries one act, not two. -->
+  <div class="sechead" style="margin-top:12px"><div class="agate mut">The wire</div><div class="hair"></div></div>
+  <div class="wrap" style="margin-top:14px">
+    <div class="agate mut">Nothing running since Aug 31</div>
+    <div class="lead" style="margin-top:9px">Four of the twelve have played since it ended.</div>
+    <div class="body mut" style="margin-top:10px">Their rounds are still counting somewhere. Yours are not.</div>
+  </div>
+
+  <!-- THE FLOOR — four doors, on every Home, in every state. Exactly ONE
+       ember object per Home: here it is the lit door, because nothing above
+       carries a primary. -->
+  <div style="margin-top:12px">
+    <div class="hair"></div>
+    <div class="door"><span class="nameS">Add my round</span><span class="agateS mut g sent">One you already played</span></div>
+    <div class="hair" style="margin-left:20px"></div>
+    <div class="door"><span class="nameS" style="border-bottom:2px solid var(--brand);padding-bottom:3px">Start something</span><span class="agateS mut g sent">A season, a weekend, a clash</span></div>
+    <div class="hair" style="margin-left:20px"></div>
+    <div class="door"><span class="nameS">Join with a code</span><span class="agateS mut g sent">Someone sent you one</span></div>
+    <div class="hair" style="margin-left:20px"></div>
+    <div class="door"><span class="nameS">Find golfers</span><span class="agateS mut g sent">The people you play with</span></div>
+  </div>
+  <div class="fade"></div>
+  <div class="tabbar">
+    <div class="tab sel"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 11l8-6 8 6"/><path d="M6 10v9h12v-9"/></svg><div class="agateS">Home</div><div class="u"></div></div>
+    <div class="tab"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M7 21V4"/><path d="M7 5h10l-3 4 3 4H7"/></svg><div class="agateS">Compete</div></div>
+    <div class="tab play"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 8v8M8 12h8"/></svg><div class="agateS">Play</div></div>
+    <div class="tab"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="9" r="3.2"/><path d="M3.5 19c.6-3.3 2.8-5 5.5-5s4.9 1.7 5.5 5"/><circle cx="17" cy="10" r="2.4"/><path d="M15 19c.4-2.4 1.8-3.6 3.6-3.6 1.2 0 2.2.5 2.9 1.5"/></svg><div class="agateS">Golfers</div></div>
+    <div class="tab"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="9" cy="11" r="2"/><path d="M5.5 16c.5-1.6 1.9-2.4 3.5-2.4s3 .8 3.5 2.4"/><path d="M15 10h4M15 13.5h4"/></svg><div class="agateS">You</div></div>
+  </div>
+</div>
+
+<!-- ======================================================================= -->
+<!-- HOME · NEW — brand new. No league, no rounds, a starter number.         -->
+<!-- ======================================================================= -->
+<div class="artboard" id="home-new">
+  <div class="notch"></div>
+  <div class="status"><span>7:41</span><span style="font-size:13px">▮▮▮ ᯤ ▰</span></div>
+
+  <div class="wrap" style="display:flex;align-items:baseline;justify-content:space-between">
+    <div class="display" style="font-size:30px;letter-spacing:.01em">Cup Season</div>
+    <div class="agate mut">Sun · Sep 6</div>
+  </div>
+  <div class="wrap" style="margin-top:9px"><div class="heavy"></div></div>
+
+  <!-- THE EMPTY, as the page's lead: a shape, an eyebrow, a fact about the
+       world, one true fact, a door, and a number. -->
+  <div class="wrap" style="margin-top:36px">
+    <svg width="78" height="78" viewBox="0 0 78 78" fill="none" stroke="var(--mut)" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+      <rect x="5" y="9" width="68" height="60" rx="2"/>
+      <path d="M5 23h68"/><path d="M5 46h68"/>
+      <path d="M22 23v46"/><path d="M39 23v46"/><path d="M56 23v46"/>
+      <path d="M11 16h9"/><path d="M28 16h22"/>
+    </svg>
+    <div class="agate mut" style="margin-top:22px">The first card</div>
+    <div class="lead" style="margin-top:10px">Every number you have<br>starts with one round.</div>
+    <div class="body mut" style="margin-top:12px">Post three and your number builds itself — until then, 12.0 is a starter.</div>
+    <div class="btn btnP" style="margin-top:22px">
+      <span class="name" style="font-size:17px">Add my round</span>
+    </div>
+  </div>
+
+  <!-- THE ME STRIP at one cell — the starter, on its own rule, and what moves it -->
+  <div class="wrap" style="margin-top:26px">
+    <div style="display:flex;align-items:flex-end;justify-content:space-between">
+      <div class="figM">12.0</div><div class="figM dimc">—</div><div class="figM dimc">—</div>
+    </div>
+    <div class="heavy" style="margin:6px 0 5px"></div>
+    <div style="display:flex;justify-content:space-between">
+      <div class="agateS mut">Your number</div><div class="agateS dimc">Last</div><div class="agateS dimc">Best</div>
+    </div>
+    <div class="agateS mut sent" style="margin-top:9px">A starter, until three rounds land.</div>
+  </div>
+
+  <!-- what the first round turns on — three facts about the product, not three promises -->
+  <div class="sechead" style="margin-top:24px"><div class="agate mut">One round from here</div><div class="hair"></div></div>
+  <div style="margin-top:4px">
+    <div class="hair"></div>
+    <div class="door" style="height:46px"><span class="nameS">Your number moves</span><span class="agateS mut g sent">12.0 becomes yours, not ours</span></div>
+    <div class="hair" style="margin-left:20px"></div>
+    <div class="door" style="height:46px"><span class="nameS">The course keeps it</span><span class="agateS mut g sent">Papago remembers your best</span></div>
+    <div class="hair" style="margin-left:20px"></div>
+    <div class="door" style="height:46px"><span class="nameS">Your friends see it</span><span class="agateS mut g sent">The moment you join one</span></div>
+    <div class="hair" style="margin-left:20px"></div>
+  </div>
+
+  <!-- THE FLOOR, collapsed. The page's primary is already ADD MY ROUND, so the
+       floor suppresses that door and offers the other three behind one row —
+       "competing CTAs" (BRIEF §27) is the same verb twice, 380pt apart. -->
+  <div style="position:absolute;left:0;right:0;bottom:96px">
+    <div class="heavy" style="margin:0 20px 0"></div>
+    <div class="door" style="height:48px"><span class="nameS">Something else</span><span class="agateS mut g sent">Start a season · join with a code · find golfers</span></div>
+  </div>
+
+  <div class="fade"></div>
+  <div class="tabbar">
+    <div class="tab sel"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 11l8-6 8 6"/><path d="M6 10v9h12v-9"/></svg><div class="agateS">Home</div><div class="u"></div></div>
+    <div class="tab"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M7 21V4"/><path d="M7 5h10l-3 4 3 4H7"/></svg><div class="agateS">Compete</div></div>
+    <div class="tab play"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 8v8M8 12h8"/></svg><div class="agateS">Play</div></div>
+    <div class="tab"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="9" r="3.2"/><path d="M3.5 19c.6-3.3 2.8-5 5.5-5s4.9 1.7 5.5 5"/><circle cx="17" cy="10" r="2.4"/><path d="M15 19c.4-2.4 1.8-3.6 3.6-3.6 1.2 0 2.2.5 2.9 1.5"/></svg><div class="agateS">Golfers</div></div>
+    <div class="tab"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="9" cy="11" r="2"/><path d="M5.5 16c.5-1.6 1.9-2.4 3.5-2.4s3 .8 3.5 2.4"/><path d="M15 10h4M15 13.5h4"/></svg><div class="agateS">You</div></div>
+  </div>
+</div>
+
+<!-- ======================================================================= -->
+<!-- HOME · LIGHT — the quiet day, printed on the morning tee sheet          -->
+<!-- ======================================================================= -->
+<div class="artboard paper" id="home-light">
+  <div class="notch"></div>
+  <div class="status"><span>7:40</span><span style="font-size:13px">▮▮▮ ᯤ ▰</span></div>
+
+  <div class="wrap" style="display:flex;align-items:baseline;justify-content:space-between">
+    <div class="display" style="font-size:30px;letter-spacing:.01em">Cup Season</div>
+    <div class="agate mut">Sun · Sep 6</div>
+  </div>
+  <div class="wrap" style="margin-top:9px"><div class="heavy"></div></div>
+
+  <!-- THE LEAD — earned, not live. No ember anywhere in this block. -->
+  <div class="wrap" style="margin-top:15px">
+    <div class="agate mut">The Dew Sweepers · Season complete</div>
+    <div style="display:flex;gap:16px;margin-top:12px;align-items:flex-start">
+      <div style="flex:1;min-width:0">
+        <div style="display:flex;align-items:center;gap:9px"><div class="slot agateS">Champion</div><div class="agate mut">Mike Fenner</div></div>
+        <div class="lead" style="margin-top:9px">Mike took it by twelve.</div>
+        <div class="body mut" style="margin-top:11px">You finished fourth of twelve, and your best month was August.</div>
+        <div style="margin-top:13px">
+          <span class="nameS" style="border-bottom:2px solid var(--mut);padding-bottom:4px">See how it ended</span>
+        </div>
+      </div>
+      <div style="width:84px;flex:none;text-align:right">
+        <div class="panel" style="width:84px;height:84px">
+          <div class="fig" style="font-size:38px">4<span class="ord">TH</span></div>
+          <div class="agateS" style="margin-top:5px">Of twelve</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- THE ME STRIP — two facts. A slot with no figure is ABSENT, never a verb,
+       never a dash: "PLAN ONE" does not belong in a value seat. -->
+  <div class="wrap" style="margin-top:20px">
+    <div style="display:flex">
+      <div style="width:116px"><div class="figM">12.4</div></div>
+      <div style="width:116px"><div class="figM">81</div></div>
+    </div>
+    <div class="heavy" style="margin:6px 0 5px"></div>
+    <div style="display:flex">
+      <div class="agateS mut" style="width:116px;white-space:nowrap">Your number</div>
+      <div class="agateS mut" style="width:116px;white-space:nowrap">Last · Tue</div>
+    </div>
+    <div class="agate mut" style="margin-top:11px">The Dew Sweepers · Ran twenty-six weeks</div>
+  </div>
+
+  <!-- THE WIRE — empty: a drawn shape, an eyebrow, and a headline that is a
+       fact about the WORLD, never the golfer's omission. Its door is the lit
+       door in the floor beneath, so the screen carries one act, not two. -->
+  <div class="sechead" style="margin-top:12px"><div class="agate mut">The wire</div><div class="hair"></div></div>
+  <div class="wrap" style="margin-top:12px">
+    <div class="agate mut">Nothing running since Aug 31</div>
+    <div class="lead" style="margin-top:9px">Four of the twelve have played since it ended.</div>
+    <div class="body mut" style="margin-top:10px">Their rounds are still counting somewhere. Yours are not.</div>
+  </div>
+
+  <!-- THE FLOOR — four doors, on every Home, in every state. Exactly ONE
+       ember object per Home: here it is the lit door, because nothing above
+       carries a primary. -->
+  <div style="margin-top:12px">
+    <div class="hair"></div>
+    <div class="door"><span class="nameS">Add my round</span><span class="agateS mut g sent">One you already played</span></div>
+    <div class="hair" style="margin-left:20px"></div>
+    <div class="door"><span class="nameS" style="border-bottom:2px solid var(--brand);padding-bottom:3px">Start something</span><span class="agateS mut g sent">A season, a weekend, a clash</span></div>
+    <div class="hair" style="margin-left:20px"></div>
+    <div class="door"><span class="nameS">Join with a code</span><span class="agateS mut g sent">Someone sent you one</span></div>
+    <div class="hair" style="margin-left:20px"></div>
+    <div class="door"><span class="nameS">Find golfers</span><span class="agateS mut g sent">The people you play with</span></div>
+  </div>
+  <div class="fade"></div>
+  <div class="tabbar">
+    <div class="tab sel"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 11l8-6 8 6"/><path d="M6 10v9h12v-9"/></svg><div class="agateS">Home</div><div class="u"></div></div>
+    <div class="tab"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M7 21V4"/><path d="M7 5h10l-3 4 3 4H7"/></svg><div class="agateS">Compete</div></div>
+    <div class="tab play"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 8v8M8 12h8"/></svg><div class="agateS">Play</div></div>
+    <div class="tab"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="9" r="3.2"/><path d="M3.5 19c.6-3.3 2.8-5 5.5-5s4.9 1.7 5.5 5"/><circle cx="17" cy="10" r="2.4"/><path d="M15 19c.4-2.4 1.8-3.6 3.6-3.6 1.2 0 2.2.5 2.9 1.5"/></svg><div class="agateS">Golfers</div></div>
+    <div class="tab"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="9" cy="11" r="2"/><path d="M5.5 16c.5-1.6 1.9-2.4 3.5-2.4s3 .8 3.5 2.4"/><path d="M15 10h4M15 13.5h4"/></svg><div class="agateS">You</div></div>
+  </div>
+</div>
+
+<!-- ======================================================================= -->
+<!-- HOME · FEED WEIGHTS — the five, stacked, as a key                       -->
+<!-- ======================================================================= -->
+<div class="artboard" id="home-feed-weights">
+
+  <div class="keylab" style="padding-top:14px">Home · five weights, one grammar</div>
+
+  <!-- 1 -->
+  <div class="keylab em" style="margin-top:12px">1 · competition moment — the block</div>
+  <div class="wrap" style="margin-top:8px">
+    <div style="display:flex;align-items:center;justify-content:space-between">
+      <div class="agate em" style="display:flex;align-items:center;gap:7px">
+        <span style="width:7px;height:7px;border-radius:50%;background:var(--brand);display:inline-block"></span>
+        Live · the lead changed hands</div>
+      <div class="agate mut">The Fellas</div>
+    </div>
+    <div style="display:flex;gap:16px;margin-top:10px;align-items:flex-start">
+      <div style="flex:1;min-width:0">
+        <div class="lead" style="font-size:26px">Jade took the lead off Galen on Sunday night.</div>
+      </div>
+      <div style="width:78px;flex:none">
+        <div class="panel" style="width:78px;height:84px">
+          <div class="fig" style="font-size:34px">1<span class="ord">ST</span></div>
+          <div class="mv" style="margin-top:3px"><span class="tri up"></span><span class="figS" style="font-size:15px">1</span></div>
+          <div class="agateS" style="margin-top:4px">Jade</div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- 2 -->
+  <div class="keylab" style="margin-top:14px">2 · friend round — social, the face leads</div>
+  <div class="onphoto" style="position:relative;height:126px;margin-top:8px;overflow:hidden">
+    <svg width="402" height="126" viewBox="0 0 402 126" preserveAspectRatio="xMidYMid slice" style="position:absolute;inset:0;display:block">
+ <defs>
+  <filter id="skywb126"><feTurbulence type="fractalNoise" baseFrequency="0.008 0.030" numOctaves="4" seed="23" result="t"/>
+    <feColorMatrix in="t" type="matrix" values="0 0 0 0 0.42  0 0 0 0 0.34  0 0 0 0 0.24  0 0 1.1 0 0.10"/><feGaussianBlur stdDeviation="1.1"/></filter>
+  <filter id="turfwb126"><feTurbulence type="fractalNoise" baseFrequency="0.30 0.90" numOctaves="5" seed="26" result="t"/>
+    <feColorMatrix in="t" type="matrix" values="0 0 0 0 0.16  0 0 0 0 0.20  0 0 0 0 0.09  0 0 1.8 0 0.02"/></filter>
+  <filter id="softwb126"><feTurbulence type="fractalNoise" baseFrequency="0.004 0.009" numOctaves="3" seed="34" result="t"/>
+    <feColorMatrix in="t" type="matrix" values="0 0 0 0 0.05  0 0 0 0 0.07  0 0 0 0 0.04  0 0 2.4 0 -0.55"/><feGaussianBlur stdDeviation="12"/></filter>
+  <filter id="grainwb126"><feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2" seed="42" result="t"/>
+    <feColorMatrix in="t" type="saturate" values="0"/>
+    <feComponentTransfer><feFuncA type="linear" slope="0.19" intercept="-0.06"/></feComponentTransfer></filter>
+  <filter id="hazewb126"><feGaussianBlur stdDeviation="1.1"/></filter>
+  <linearGradient id="skygwb126" x1="0" y1="0" x2="0" y2="1">
+    <stop offset="0" stop-color="#5A5F46"/><stop offset=".50" stop-color="#A79066"/><stop offset="1" stop-color="#E4C88C"/></linearGradient>
+  <linearGradient id="turfgwb126" x1="0" y1="0" x2="0" y2="1">
+    <stop offset="0" stop-color="#8B8A54"/><stop offset=".20" stop-color="#5C6A3B"/><stop offset=".58" stop-color="#3A4A30"/><stop offset="1" stop-color="#18231A"/></linearGradient>
+  <linearGradient id="litwb126" x1="0.9" y1="0" x2="0.15" y2="0.9">
+    <stop offset="0" stop-color="#F0C583" stop-opacity=".30"/><stop offset=".45" stop-color="#B08F4E" stop-opacity=".07"/>
+    <stop offset="1" stop-color="#080E0A" stop-opacity=".30"/></linearGradient>
+  <linearGradient id="seamwb126" x1="0" y1="0" x2="0" y2="1">
+    <stop offset="0" stop-color="#A8945C" stop-opacity="0"/><stop offset=".46" stop-color="#AE9A60" stop-opacity=".50"/><stop offset=".62" stop-color="#9C8C58" stop-opacity=".34"/><stop offset="1" stop-color="#8C7E50" stop-opacity="0"/></linearGradient>
+  <radialGradient id="vigwb126" cx="0.62" cy="0.26" r="0.92">
+    <stop offset=".44" stop-color="#000" stop-opacity="0"/><stop offset="1" stop-color="#000" stop-opacity=".38"/></radialGradient>
+  <clipPath id="cswb126"><rect width="402" height="40"/></clipPath>
+  <clipPath id="cgwb126"><rect y="38" width="402" height="88"/></clipPath>
+ </defs>
+ <g clip-path="url(#cswb126)">
+   <rect width="402" height="40" fill="url(#skygwb126)"/>
+   <rect width="402" height="40" filter="url(#skywb126)" opacity=".85"/>
+   <g filter="url(#hazewb126)" opacity=".92">
+     <path d="M-20 56.9 C-10.9 35.8 9.9 35.6 21.5 36.9 C25.0 30.3 32.8 29.6 37.2 32.8 C40.1 29.1 46.5 28.3 50.2 32.0 C57.8 30.4 75.2 29.7 84.9 34.5 C90.2 36.2 102.3 36.0 109.1 37.6 C116.3 34.9 132.6 34.6 141.8 37.3 C146.4 35.4 156.9 35.2 162.8 36.8 C165.9 25.6 172.9 24.5 176.9 33.9 C182.5 34.7 195.5 34.4 202.7 36.8 C208.7 35.6 222.2 35.4 229.7 36.5 C233.3 24.8 241.5 23.7 246.1 34.3 C249.3 29.3 256.6 28.5 260.6 32.8 C265.0 28.0 275.0 27.1 280.5 35.2 C287.5 28.3 303.5 27.5 312.4 34.6 C317.7 35.1 329.9 34.8 336.7 36.4 C342.2 35.4 354.7 35.1 361.7 36.3 C368.8 30.3 385.0 29.7 394.0 36.3 C401.6 30.8 418.7 30.2 428.3 36.0 L422 60.67999999999999 L-20 60.67999999999999 Z" fill="#1D2A1E"/>
+     <path d="M-20 52.096000000000004 C-16.3 34.0 -8.0 33.4 -3.3 37.1 C2.0 33.2 14.1 32.6 20.8 38.3 C28.1 35.5 44.5 35.2 53.6 38.3 C57.3 31.5 65.5 30.8 70.1 37.9 C74.7 38.9 85.2 38.8 91.0 39.6 C100.9 37.8 123.4 37.6 136.1 39.1 C145.6 38.8 167.4 38.7 179.6 39.8 C188.4 38.9 208.4 38.8 219.7 39.4 C223.3 31.9 231.4 31.2 236.0 36.1 C238.8 31.7 245.0 30.9 248.5 37.6 C257.8 39.2 278.9 39.2 290.6 39.6 C298.8 38.7 317.3 38.6 327.7 39.7 C334.4 38.3 349.5 38.2 358.0 39.1 C363.1 38.5 374.7 38.3 381.2 39.2 C385.8 35.0 396.4 34.6 402.4 36.6 C408.6 38.0 422.7 37.8 430.6 39.2 L422 54.5152 L-20 54.5152 Z" fill="#131C15"/>
+   </g>
+ </g>
+ <g clip-path="url(#cgwb126)">
+   <rect y="38" width="402" height="88" fill="url(#turfgwb126)"/>
+   <g transform="rotate(-3.4 201 38)"><rect x="-40" y="51" width="482" height="13" fill="#DCD3A8" opacity="0.102"/><rect x="-40" y="77" width="482" height="13" fill="#DCD3A8" opacity="0.077"/><rect x="-40" y="103" width="482" height="13" fill="#DCD3A8" opacity="0.052"/></g>
+   <rect y="38" width="402" height="88" filter="url(#turfwb126)" opacity=".85"/>
+ </g>
+ <rect y="27" width="402" height="21" fill="url(#seamwb126)"/>
+ <ellipse cx="56" cy="129" rx="249" ry="38" fill="#0A120C" opacity=".38" filter="url(#hazewb126)"/>
+ <rect width="402" height="126" filter="url(#softwb126)" opacity=".8"/>
+ <rect width="402" height="126" fill="url(#litwb126)"/>
+ <rect width="402" height="126" fill="url(#vigwb126)"/>
+ <rect width="402" height="126" filter="url(#grainwb126)" opacity=".55"/>
+</svg>
+    <div style="position:absolute;inset:0;background:linear-gradient(to right,rgba(10,14,12,.88) 0%,rgba(10,14,12,.56) 46%,rgba(10,14,12,.10) 100%)"></div>
+    <div class="agateS" style="position:absolute;right:14px;top:10px;color:#D7DCD3;opacity:.9">Dev’s round · Sat</div>
+    <div style="position:absolute;left:20px;right:20px;bottom:14px;display:flex;align-items:flex-end;gap:12px">
+      <div class="disc" style="width:38px;height:38px;background:var(--pig2)">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#F1F4EF" stroke-width="1.7" stroke-linecap="round"><path d="M6 16c3-1 4-5 6-9 2 4 3 8 6 9"/><path d="M5 19h14"/></svg>
+      </div>
+      <div style="flex:1;min-width:0">
+        <div class="social" style="color:#F1F4EF">Dev Rana</div>
+        <div class="bodyS" style="margin-top:2px;color:#F1F4EF">82 at Papago — beat their number by 2.4.</div>
+      </div>
+      <div class="panel" style="width:56px;height:56px">
+        <div class="figM" style="font-size:24px">82</div><div class="agateS" style="margin-top:3px">Gross</div>
+      </div>
+    </div>
+  </div>
+  <!-- the reaction line: the ONE place emoji are legal -->
+  <div class="wrap" style="display:flex;align-items:center;gap:14px;height:34px">
+    <span style="display:inline-flex;align-items:center;gap:5px"><span style="font-size:13px;line-height:1">🔥</span><span class="agateS mut">3</span></span>
+    <span style="display:inline-flex;align-items:center;gap:5px"><span style="font-size:13px;line-height:1">🦅</span><span class="agateS mut">1</span></span>
+    <span class="agateS mut" style="margin-left:auto">Sat</span>
+  </div>
+
+  <!-- 3 -->
+  <div class="keylab" style="margin-top:2px">3 · course discovery — editorial</div>
+  <div class="hair" style="margin-top:8px"></div>
+  <div class="wrap" style="display:flex;gap:14px;align-items:center;padding-top:11px;padding-bottom:11px">
+    <div style="width:56px;height:56px;position:relative;overflow:hidden;flex:none"><svg width="56" height="56" viewBox="0 0 58 58" preserveAspectRatio="xMidYMid slice" style="position:absolute;inset:0;display:block">
+ <defs>
+  <filter id="skythumbdesert"><feTurbulence type="fractalNoise" baseFrequency="0.008 0.030" numOctaves="4" seed="88" result="t"/>
+    <feColorMatrix in="t" type="matrix" values="0 0 0 0 0.42  0 0 0 0 0.34  0 0 0 0 0.24  0 0 1.1 0 0.10"/><feGaussianBlur stdDeviation="1.1"/></filter>
+  <filter id="turfthumbdesert"><feTurbulence type="fractalNoise" baseFrequency="0.30 0.90" numOctaves="5" seed="91" result="t"/>
+    <feColorMatrix in="t" type="matrix" values="0 0 0 0 0.16  0 0 0 0 0.20  0 0 0 0 0.09  0 0 1.8 0 0.02"/></filter>
+  <filter id="softthumbdesert"><feTurbulence type="fractalNoise" baseFrequency="0.004 0.009" numOctaves="3" seed="99" result="t"/>
+    <feColorMatrix in="t" type="matrix" values="0 0 0 0 0.05  0 0 0 0 0.07  0 0 0 0 0.04  0 0 2.4 0 -0.55"/><feGaussianBlur stdDeviation="12"/></filter>
+  <filter id="grainthumbdesert"><feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2" seed="107" result="t"/>
+    <feColorMatrix in="t" type="saturate" values="0"/>
+    <feComponentTransfer><feFuncA type="linear" slope="0.19" intercept="-0.06"/></feComponentTransfer></filter>
+  <filter id="hazethumbdesert"><feGaussianBlur stdDeviation="1.1"/></filter>
+  <linearGradient id="skygthumbdesert" x1="0" y1="0" x2="0" y2="1">
+    <stop offset="0" stop-color="#5A5F46"/><stop offset=".50" stop-color="#A79066"/><stop offset="1" stop-color="#E4C88C"/></linearGradient>
+  <linearGradient id="turfgthumbdesert" x1="0" y1="0" x2="0" y2="1">
+    <stop offset="0" stop-color="#8B8A54"/><stop offset=".20" stop-color="#5C6A3B"/><stop offset=".58" stop-color="#3A4A30"/><stop offset="1" stop-color="#18231A"/></linearGradient>
+  <linearGradient id="litthumbdesert" x1="0.9" y1="0" x2="0.15" y2="0.9">
+    <stop offset="0" stop-color="#F0C583" stop-opacity=".30"/><stop offset=".45" stop-color="#B08F4E" stop-opacity=".07"/>
+    <stop offset="1" stop-color="#080E0A" stop-opacity=".30"/></linearGradient>
+  <linearGradient id="seamthumbdesert" x1="0" y1="0" x2="0" y2="1">
+    <stop offset="0" stop-color="#A8945C" stop-opacity="0"/><stop offset=".46" stop-color="#AE9A60" stop-opacity=".50"/><stop offset=".62" stop-color="#9C8C58" stop-opacity=".34"/><stop offset="1" stop-color="#8C7E50" stop-opacity="0"/></linearGradient>
+  <radialGradient id="vigthumbdesert" cx="0.62" cy="0.26" r="0.92">
+    <stop offset=".44" stop-color="#000" stop-opacity="0"/><stop offset="1" stop-color="#000" stop-opacity=".38"/></radialGradient>
+  <clipPath id="csthumbdesert"><rect width="58" height="26"/></clipPath>
+  <clipPath id="cgthumbdesert"><rect y="24" width="58" height="34"/></clipPath>
+ </defs>
+ <g clip-path="url(#csthumbdesert)">
+   <rect width="58" height="26" fill="url(#skygthumbdesert)"/>
+   <rect width="58" height="26" filter="url(#skythumbdesert)" opacity=".85"/>
+   <g filter="url(#hazethumbdesert)" opacity=".92">
+     <path d="M-20 42 C-12.1 12.0 5.7 10.9 15.7 17.7 C23.1 11.9 39.7 10.9 49.1 18.7 C54.2 16.0 66.0 15.3 72.6 22.2 C79.3 10.9 94.7 9.7 103.3 19.1 L78 45.599999999999994 L-20 45.599999999999994 Z" fill="#1D2A1E"/>
+     <path d="M-20 38 C-10.6 23.7 10.6 23.5 22.5 25.0 C27.5 25.2 38.9 25.1 45.3 25.8 C54.6 24.0 75.8 23.8 87.7 25.0 L78 40.4 L-20 40.4 Z" fill="#131C15"/>
+   </g>
+ </g>
+ <g clip-path="url(#cgthumbdesert)">
+   <rect y="24" width="58" height="34" fill="url(#turfgthumbdesert)"/>
+   <g transform="rotate(-3.4 29 24)"><rect x="-40" y="31" width="138" height="7" fill="#DCD3A8" opacity="0.098"/><rect x="-40" y="45" width="138" height="7" fill="#DCD3A8" opacity="0.063"/></g>
+   <rect y="24" width="58" height="34" filter="url(#turfthumbdesert)" opacity=".85"/>
+ </g>
+ <rect y="19" width="58" height="10" fill="url(#seamthumbdesert)"/>
+ <ellipse cx="8" cy="59" rx="36" ry="17" fill="#0A120C" opacity=".38" filter="url(#hazethumbdesert)"/>
+ <rect width="56" height="56" filter="url(#softthumbdesert)" opacity=".8"/>
+ <rect width="56" height="56" fill="url(#litthumbdesert)"/>
+ <rect width="56" height="56" fill="url(#vigthumbdesert)"/>
+ <rect width="56" height="56" filter="url(#grainthumbdesert)" opacity=".55"/>
+</svg></div>
+    <div style="flex:1;min-width:0">
+      <div class="name">Desert Mountain</div>
+      <div class="agateS mut" style="margin-top:5px">Renegade · New to the board</div>
+    </div>
+    <div style="text-align:right">
+      <div class="figS gold">4.8</div>
+      <svg width="72" height="12" viewBox="0 0 106 18" style="margin-top:5px">
+        <defs><path id="stC" d="M9 1.2l2.25 4.95 5.4.6-4.05 3.7 1.1 5.35L9 13.1 4.3 15.8l1.1-5.35L1.35 6.75l5.4-.6z"/></defs>
+        <g fill="var(--gold)"><use href="#stC" x="0"/><use href="#stC" x="21"/><use href="#stC" x="42"/><use href="#stC" x="63"/><use href="#stC" x="84"/></g></svg>
+    </div>
+  </div>
+
+  <!-- 4 -->
+  <div class="keylab" style="margin-top:2px">4 · season moment — the takeover band</div>
+  <div style="margin-top:8px;background:var(--ceremony);color:var(--ceremonyInk);position:relative;overflow:hidden;height:142px">
+    <svg width="402" height="142" viewBox="0 0 402 142" style="position:absolute;inset:0;opacity:.5">
+      <g fill="none" stroke="#2A3A31" stroke-width="1.2">
+        <ellipse cx="318" cy="66" rx="34" ry="22"/><ellipse cx="318" cy="66" rx="56" ry="36"/>
+        <ellipse cx="318" cy="66" rx="78" ry="50"/><ellipse cx="318" cy="66" rx="100" ry="64"/>
+        <ellipse cx="318" cy="66" rx="122" ry="78"/></g>
+      <path d="M120 126 C190 96 250 96 402 44" fill="none" stroke="#3A4A41" stroke-width="1.4"/>
+      <circle cx="318" cy="66" r="4" fill="#E8622C"/>
+    </svg>
+    <div class="wrap" style="position:relative;padding-top:16px">
+      <div class="agate em">Cup Final · four weeks, scored fresh</div>
+      <div class="display" style="margin-top:9px;font-size:31px">The final<br>is here</div>
+    </div>
+    <div class="wrap" style="position:absolute;left:0;right:0;bottom:12px">
+      <div class="agateS mut">Opens Sat Oct 4 · top 2 advance · you are 2nd</div>
+    </div>
+  </div>
+
+  <!-- 5 -->
+  <div class="keylab" style="margin-top:12px">5 · minor activity — quiet, one line</div>
+  <div class="hair" style="margin-top:8px"></div>
+  <div class="wrap" style="display:flex;gap:14px;align-items:baseline;padding-top:10px;padding-bottom:10px">
+    <div class="agateS mut sent" style="width:32px;flex:none">Wed</div>
+    <div class="bodyS mut">Mike Fenner kept Papago.</div>
+  </div>
+  <div class="hair"></div>
+  <div class="wrap" style="display:flex;gap:14px;align-items:baseline;padding-top:10px">
+    <div class="agateS mut sent" style="width:32px;flex:none">Wed</div>
+    <div class="bodyS mut">The Pro closed the roster at eight.</div>
+  </div>
+</div>
+
+</body></html>

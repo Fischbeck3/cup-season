@@ -1,0 +1,704 @@
+<!doctype html>
+<html><head><meta charset="utf-8">
+<title>Cup Season — the profile, worked</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Condensed:wght@600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg0:#0F1A15; --bg1:#1A2620; --bg2:#26352E; --rule:#4A6155;
+  --ink:#F1F4EF; --mut:#9BA69D; --dim:#5E6A62;
+  --panel:#E9ECE3; --panelInk:#0B120E; --panelMut:#4C574F;
+  --leaf:#EFEADD; --leafInk:#1A1B14; --leafMut:#57605A;
+  --brand:#E8622C; --gold:#D8B25A; --pos:#4EC584; --neg:#FF6A5E; --cool:#7F8C95;
+  --pig0:#492D2C; --pig1:#473C28; --pig2:#293B2B; --pig3:#1F4648; --pig4:#293B4E; --pig5:#4E3C4F;
+  --ceremony:#0A0E0C; --ceremonyInk:#F1F4EF; --cerMut:#9BA69D; --cerBrand:#E8622C; --cerGold:#D8B25A; --crest:#33463B; --folioRule:#8B8F8B;
+  --board:'IBM Plex Sans Condensed', -apple-system, sans-serif;
+  --mono:'IBM Plex Mono', ui-monospace, monospace;
+  --sans:-apple-system, system-ui, sans-serif;
+  --serif:'New York','Iowan Old Style',Georgia,serif;
+}
+.paper{
+  --bg0:#F4F1E9; --bg1:#EAE6DB; --bg2:#DED8C8; --rule:#A9A08A;
+  --ink:#151B17; --mut:#575F57; --dim:#8B9089;
+  --panel:#141A16; --panelInk:#F4F1E9; --panelMut:#A6AEA5;
+  --leaf:#FFFDF7; --leafInk:#1A1B14; --leafMut:#5A625A;
+  --brand:#A8420F; --gold:#7A5A12; --pos:#0B7340; --neg:#B02A20; --cool:#5D6862;
+  --pig0:#FDDAD8; --pig1:#E6D8C2; --pig2:#D6EBD7; --pig3:#BEE4E7; --pig4:#D9EAFF; --pig5:#EED9EE;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#2a2a2a;font-family:var(--sans);padding:28px;display:flex;flex-wrap:wrap;gap:28px;align-items:flex-start}
+.artboard{width:402px;height:874px;background:var(--bg0);color:var(--ink);position:relative;overflow:hidden;
+  font-family:var(--sans);-webkit-font-smoothing:antialiased}
+.wrap{padding:0 20px}
+
+/* ---- type roles (UI_SYSTEM §1.2) ---- */
+.figXL{font-family:var(--board);font-weight:700;font-size:56px;line-height:.92;font-variant-numeric:tabular-nums}
+.fig  {font-family:var(--board);font-weight:700;font-size:40px;line-height:.94;font-variant-numeric:tabular-nums}
+.figM {font-family:var(--board);font-weight:700;font-size:27px;line-height:.96;font-variant-numeric:tabular-nums}
+.figS {font-family:var(--board);font-weight:700;font-size:20px;line-height:1;font-variant-numeric:tabular-nums}
+.display{font-family:var(--board);font-weight:700;font-size:34px;line-height:.98;text-transform:uppercase;letter-spacing:.005em}
+.name{font-family:var(--board);font-weight:600;font-size:17px;line-height:1.16;text-transform:uppercase;letter-spacing:.035em}
+.nameS{font-family:var(--board);font-weight:600;font-size:15px;line-height:1.16;text-transform:uppercase;letter-spacing:.04em}
+.social{font-family:var(--board);font-weight:600;font-size:17px;line-height:1.16;letter-spacing:0}
+.lead{font-family:var(--serif);font-weight:700;font-size:28px;line-height:1.14;letter-spacing:-.01em}
+.story{font-family:var(--serif);font-weight:400;font-size:20px;line-height:1.34}
+.bodyS{font-family:var(--sans);font-size:15px;line-height:1.45}
+.agate{font-family:var(--board);font-weight:600;font-size:12px;line-height:1.2;text-transform:uppercase;letter-spacing:.09em}
+.agateS{font-family:var(--board);font-weight:600;font-size:11px;line-height:1.2;text-transform:uppercase;letter-spacing:.08em}
+.col{font-family:var(--mono);font-weight:500;font-size:14px;font-variant-numeric:tabular-nums}
+.colS{font-family:var(--mono);font-weight:400;font-size:12px;font-variant-numeric:tabular-nums}
+.mut{color:var(--mut)} .dimc{color:var(--dim)} .gold{color:var(--gold)} .em{color:var(--brand)}
+/* §1.6 — ONE ordinal: agate small caps ON the baseline. Never raised. */
+.ord{font-size:.46em;vertical-align:baseline;letter-spacing:.05em;text-transform:uppercase;margin-left:.05em}
+
+/* ---- structure (UI_SYSTEM §3) ---- */
+.hair{height:1px;background:var(--rule)}
+.heavy{height:2px;background:var(--ink)}
+.sechead{display:flex;align-items:center;gap:10px;padding:0 20px}
+.sechead .hair{flex:1}
+.leaf{background:var(--leaf);color:var(--leafInk);border-radius:3px;box-shadow:0 1px 0 rgba(0,0,0,.22)}
+.paper .leaf{box-shadow:0 1px 0 rgba(0,0,0,.10);outline:1px solid var(--rule);outline-offset:-1px}
+.slat{display:flex;align-items:center;min-height:50px;border-top:1px solid var(--rule);padding:0 20px}
+.slat.tight{min-height:44px}
+.rail{width:44px;align-self:stretch;display:flex;align-items:center;justify-content:center;flex:0 0 44px;margin-left:-20px}
+.rail.mine{background:var(--panel);color:var(--panelInk)}
+.rail.earned{background:var(--gold);color:var(--panelInk)}
+.disc{border-radius:50%;display:flex;align-items:center;justify-content:center;flex:none;
+  box-shadow:inset 0 0 0 1px var(--rule)}
+.btn{height:50px;border-radius:10px;display:flex;align-items:center;justify-content:center}
+.btnP{background:var(--brand);color:var(--bg0)}
+.link{display:inline-block;border-bottom:2px solid var(--mut);padding-bottom:3px}
+.link.live{border-bottom-color:var(--brand)}
+.tri{width:0;height:0;border-left:5px solid transparent;border-right:5px solid transparent}
+.up{border-bottom:8px solid var(--pos)} .down{border-top:8px solid var(--cool)}
+.mv{display:inline-flex;align-items:center;gap:5px}
+.tabbar{position:absolute;left:0;right:0;bottom:0;height:74px;border-top:1px solid var(--rule);
+  background:var(--bg0);display:flex;align-items:flex-start;padding-top:9px}
+.tab{flex:1;display:flex;flex-direction:column;align-items:center;gap:5px;color:var(--mut)}
+.tab.sel{color:var(--ink)} .tab.play{color:var(--brand)}
+.tab .u{width:26px;height:2px;background:var(--ink);margin-top:3px}
+.fade{position:absolute;left:0;right:0;height:28px;bottom:74px;
+  background:linear-gradient(to bottom,transparent,var(--bg0))}
+.status{height:54px;display:flex;align-items:center;justify-content:space-between;padding:0 22px;
+  font-family:var(--sans);font-size:15px;font-weight:600}
+.notch{position:absolute;left:50%;transform:translateX(-50%);top:12px;width:96px;height:30px;background:#000;border-radius:16px;z-index:3}
+.chrome{height:34px;display:flex;align-items:center;justify-content:space-between;padding:0 20px}
+
+/* ---- the credential (UI_SYSTEM §6.5) ---- */
+.cred{margin:14px 20px 0;border-radius:16px;overflow:hidden;background:var(--ceremony);color:var(--ceremonyInk);
+  box-shadow:0 18px 44px -12px rgba(0,0,0,.55);position:relative;height:312px}
+.paper .cred{box-shadow:0 16px 34px -14px rgba(20,26,22,.45)}
+.cred .slot{display:inline-flex;align-items:center;gap:7px;background:var(--gold);color:#0B120E;border-radius:3px;height:24px;padding:0 10px}
+.paper .cred .slot{background:#D8B25A}
+.credmut{color:#9BA69D} .creddim{color:#8B8F8B} .credrule{background:rgba(241,244,239,.16)}
+
+/* ---- the meeting tape (the rivalry graphic) ---- */
+.tape{position:relative;height:38px;display:flex}
+.tape .midrule{position:absolute;left:0;right:0;top:18px;height:2px;background:var(--ink)}
+.tape .cell{flex:1;position:relative}
+.tape .cell i{position:absolute;left:5px;right:5px;height:16px;border-radius:1px}
+.tape .cell.t-up i{top:0;background:var(--ink)}
+.tape .cell.t-dn i{bottom:0;background:var(--rule)}
+
+/* §1.3 — agate sets SENTENCE case for a phrase, caps for a label. */
+.sent{text-transform:none!important;letter-spacing:.02em}
+/* §2.3 — on cream stock the pigments are pale tints; the marker takes INK, never mut. */
+.paper .disc svg,.paper .face svg,.paper .disc56 svg{stroke:var(--ink)!important}
+
+</style></head><body>
+
+<!-- ==================================================================== -->
+<!-- 1 · PROFILE TOP — the You root: the credential, then the season      -->
+<!-- ==================================================================== -->
+<div class="artboard" id="profile-top">
+  <div class="notch"></div>
+  <div class="status"><span>7:39</span><span style="font-size:13px">▮▮▮ ᯤ ▰</span></div>
+
+  <!-- chrome: one trailing tertiary link. No page title — the object names the page. -->
+  <div class="chrome"><span></span><span class="nameS" style="border-bottom:2px solid var(--mut);padding-bottom:3px">Share</span></div>
+
+  <!-- THE CREDENTIAL -->
+  <div class="cred">
+    <!-- the contour of the home course, behind, at a24 -->
+    <svg width="362" height="200" viewBox="0 0 362 200" style="position:absolute;top:-6px;left:0;opacity:.9">
+      <path d="M14.8 0.0 L13.5 7.7 L10.6 12.9 L9.2 15.4 L1.3 23.1 L0.0 24.0" fill="none" stroke="#33463B" stroke-width="1.15" stroke-linecap="round" stroke-linejoin="round" opacity="0.95"/>
+      <path d="M174.6 0.0 L181.0 2.2 L191.6 5.1 L202.3 7.3 L204.9 7.7 L212.9 8.9 L223.6 9.9 L234.2 10.5 L244.9 10.7 L255.5 10.4 L266.2 9.9 L276.8 8.9 L287.3 7.7 L287.5 7.7 L298.1 6.1 L308.8 4.2 L319.4 2.0 L327.5 0.0" fill="none" stroke="#33463B" stroke-width="1.15" stroke-linecap="round" stroke-linejoin="round" opacity="0.95"/>
+      <path d="M35.2 0.0 L33.8 7.7 L31.9 11.4 L30.2 15.4 L24.2 23.1 L21.3 25.7 L15.2 30.8 L10.6 33.8 L1.8 38.5 L0.0 39.3" fill="none" stroke="#33463B" stroke-width="1.15" stroke-linecap="round" stroke-linejoin="round" opacity="0.95"/>
+      <path d="M151.1 0.0 L159.7 3.6 L170.4 7.1 L172.5 7.7 L181.0 9.8 L191.6 11.9 L202.3 13.4 L212.9 14.5 L223.6 15.1 L232.2 15.4 L234.2 15.4 L244.9 15.4 L247.0 15.4 L255.5 15.2 L266.2 14.6 L276.8 13.8 L287.5 12.8 L298.1 11.6 L308.8 10.2 L319.4 8.5 L324.9 7.7 L330.1 6.8 L340.7 5.0 L351.4 3.1 L362.0 1.3" fill="none" stroke="#33463B" stroke-width="1.15" stroke-linecap="round" stroke-linejoin="round" opacity="0.95"/>
+      <path d="M67.6 0.0 L63.9 6.0 L63.2 7.7 L58.7 15.4 L53.2 22.3 L52.7 23.1 L45.8 30.8 L42.6 33.6 L36.9 38.5 L31.9 42.1 L25.5 46.2 L21.3 48.6 L10.6 53.6 L9.9 53.8 L0.0 57.8" fill="none" stroke="#33463B" stroke-width="1.15" stroke-linecap="round" stroke-linejoin="round" opacity="0.95"/>
+      <path d="M115.6 0.0 L117.1 0.6 L127.8 5.0 L135.0 7.7 L138.4 8.8 L149.1 11.9 L159.7 14.4 L164.7 15.4 L170.4 16.4 L181.0 18.0 L191.6 19.2 L202.3 20.1 L212.9 20.6 L223.6 20.9 L234.2 20.9 L244.9 20.7 L255.5 20.4 L266.2 19.8 L276.8 19.1 L287.5 18.2 L298.1 17.3 L308.8 16.3 L319.2 15.4 L319.4 15.4 L330.1 14.6 L340.7 14.2 L351.4 14.4 L358.9 15.4 L362.0 16.0" fill="none" stroke="#33463B" stroke-width="1.15" stroke-linecap="round" stroke-linejoin="round" opacity="0.95"/>
+      <path d="M362.0 36.5 L356.4 30.8 L351.4 27.9 L340.7 24.6 L330.1 23.2 L327.3 23.1 L319.4 22.8 L308.8 23.0 L306.1 23.1 L298.1 23.4 L287.5 24.0 L276.8 24.7 L266.2 25.4 L255.5 26.0 L244.9 26.5 L234.2 27.0 L223.6 27.3 L212.9 27.5 L202.3 27.6 L191.6 27.6 L181.0 27.4 L170.4 27.3 L159.7 27.0 L149.1 26.8 L138.4 26.8 L127.8 27.1 L117.1 28.3 L106.6 30.8 L106.5 30.8 L95.8 36.1 L92.4 38.5 L85.2 44.6 L83.6 46.2 L76.6 53.8 L74.5 56.7 L70.7 61.5 L65.8 69.2 L63.9 73.5 L62.0 76.9 L59.6 84.6 L58.8 92.3 L59.5 100.0 L61.6 107.7 L63.9 112.8 L64.9 115.4 L69.0 123.1 L74.4 130.8 L74.5 131.0 L80.3 138.5 L85.2 143.7 L87.4 146.2 L95.7 153.8 L95.8 153.9 L104.8 161.5 L106.5 162.8 L115.2 169.2 L117.1 170.6 L126.6 176.9 L127.8 177.7 L138.4 184.5 L138.7 184.6 L149.1 191.3 L150.6 192.3 L159.7 198.7 L161.5 200.0" fill="none" stroke="#33463B" stroke-width="1.15" stroke-linecap="round" stroke-linejoin="round" opacity="0.95"/>
+      <path d="M362.0 100.9 L361.9 100.0 L360.6 92.3 L359.4 84.6 L358.2 76.9 L357.1 69.2 L355.7 61.5 L353.6 53.8 L351.4 48.7 L349.9 46.2 L342.0 38.5 L340.7 37.7 L330.1 33.5 L319.4 31.5 L311.6 30.8 L308.8 30.6 L298.1 30.4 L287.5 30.6 L282.1 30.8 L276.8 31.0 L266.2 31.6 L255.5 32.3 L244.9 33.1 L234.2 33.9 L223.6 34.7 L212.9 35.6 L202.3 36.6 L191.6 37.7 L185.8 38.5 L181.0 39.3 L170.4 41.6 L159.7 44.7 L155.4 46.2 L149.1 49.7 L142.6 53.8 L138.4 58.6 L135.9 61.5 L132.3 69.2 L130.7 76.9 L130.8 84.6 L132.1 92.3 L134.8 100.0 L138.4 106.9 L138.8 107.7 L143.9 115.4 L149.1 121.5 L150.5 123.1 L158.5 130.8 L159.7 131.8 L168.1 138.5 L170.4 140.1 L179.7 146.2 L181.0 147.0 L191.6 153.0 L193.2 153.8 L202.3 158.6 L208.5 161.5 L212.9 163.8 L223.6 168.8 L224.5 169.2 L234.2 174.5 L238.5 176.9 L244.9 181.6 L248.5 184.6 L254.4 192.3 L255.5 194.9 L257.3 200.0" fill="none" stroke="#33463B" stroke-width="1.15" stroke-linecap="round" stroke-linejoin="round" opacity="0.95"/>
+      <path d="M287.5 38.4 L280.0 38.5 L276.8 38.5 L266.2 39.1 L255.5 40.0 L244.9 41.1 L234.2 42.4 L223.6 44.1 L212.9 46.0 L212.2 46.2 L202.3 49.1 L191.6 53.1 L189.8 53.8 L181.0 59.9 L178.8 61.5 L173.2 69.2 L170.9 76.9 L170.7 84.6 L172.4 92.3 L175.9 100.0 L181.0 107.5 L181.1 107.7 L188.2 115.4 L191.6 118.4 L197.5 123.1 L202.3 126.4 L209.6 130.8 L212.9 132.6 L223.6 137.7 L225.4 138.5 L234.2 142.0 L244.9 145.6 L247.1 146.2 L255.5 148.6 L266.2 151.1 L276.8 153.0 L284.8 153.8 L287.5 154.2 L298.1 154.7 L306.4 153.8 L308.8 153.6 L319.4 150.3 L325.1 146.2 L330.1 142.4 L333.2 138.5 L338.7 130.8 L340.7 127.2 L342.4 123.1 L344.6 115.4 L346.0 107.7 L346.5 100.0 L346.4 92.3 L345.9 84.6 L345.0 76.9 L343.5 69.2 L341.2 61.5 L340.7 60.5 L336.7 53.8 L330.1 47.5 L328.0 46.2 L319.4 42.5 L308.8 40.0 L298.1 38.7 L291.0 38.5 L287.5 38.4" fill="none" stroke="#33463B" stroke-width="1.15" stroke-linecap="round" stroke-linejoin="round" opacity="0.95"/>
+      <path d="M362.0 180.9 L351.4 180.5 L340.7 181.2 L330.1 184.3 L329.5 184.6 L319.4 190.8 L317.9 192.3 L311.1 200.0" fill="none" stroke="#33463B" stroke-width="1.15" stroke-linecap="round" stroke-linejoin="round" opacity="0.95"/>
+      <path d="M110 178 C176 150 214 124 262 88" stroke="#33463B" stroke-width="1.3" fill="none"/>
+      <circle cx="262" cy="88" r="3.4" fill="#8A4A2C"/>
+    </svg>
+    <!-- the crest: the golfer's marker, bleeding off the right edge -->
+    <svg width="164" height="164" viewBox="0 0 24 24" fill="none" stroke="#33463B" stroke-width="1.5"
+         stroke-linecap="round" stroke-linejoin="round" style="position:absolute;right:-46px;top:16px;opacity:.62">
+      <path d="M12 3v18M12 10c-3 0-4-1-4-4M12 13c3 0 4-1 4-5"/></svg>
+
+    <!-- the slot: the one earned label, the one gold object on the surface -->
+    <div style="position:absolute;left:20px;top:20px">
+      <div class="slot"><span class="agateS">Founder</span></div>
+    </div>
+
+
+    <div style="position:absolute;left:20px;right:20px;top:114px">
+      <div class="display" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Sam Ridley</div>
+    </div>
+    <div style="position:absolute;left:20px;right:20px;top:157px">
+      <div class="agateS credmut">@samridley · Tempe, AZ · Papago GC</div>
+    </div>
+
+    <!-- three figures on one rule -->
+    <div style="position:absolute;left:20px;right:20px;top:196px">
+      <div style="display:flex;justify-content:space-between;align-items:flex-end">
+        <div class="figM">10.6</div><div class="figM">18</div><div class="figM">2<span class="ord">ND</span></div>
+      </div>
+      <div style="height:2px;background:#F1F4EF;margin:7px 0 6px"></div>
+      <div style="display:flex;justify-content:space-between">
+        <div class="agateS credmut">Handicap index</div>
+        <div class="agateS credmut">Rounds</div>
+        <div class="agateS credmut">The Fellas</div>
+      </div>
+    </div>
+
+    <!-- the folio -->
+    <div style="position:absolute;left:20px;right:20px;bottom:15px">
+      <div class="credrule" style="height:1px;margin-bottom:10px"></div>
+      <div style="display:flex;justify-content:space-between">
+        <div class="agateS creddim sent">Cup Season · The Saguaro</div>
+        <div class="agateS creddim">No. 07</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- THE SEASON — competition, on the page's own ground -->
+  <div class="sechead" style="margin-top:32px">
+    <div class="agate mut">The season</div><div class="hair"></div><div class="agateS mut">Week 9 of 14</div>
+  </div>
+  <div class="slat" style="min-height:56px;margin-top:12px">
+    <div class="rail mine"><span class="figM">02</span></div>
+    <div style="flex:1;min-width:0;padding-left:12px">
+      <div class="name" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">The Fellas</div>
+      <div class="agateS mut sent" style="margin-top:5px">Season two · 8 golfers</div>
+    </div>
+    <div class="mv" style="margin-right:16px"><span class="tri up"></span><span class="figS">2</span></div>
+    <div class="figM" style="min-width:44px;text-align:right">19</div>
+  </div>
+  <div class="wrap" style="margin-top:12px">
+    <div class="agate mut">4 back of Galen · 3 clear of Tash</div>
+  </div>
+
+  <!-- RIVALS -->
+  <div class="sechead" style="margin-top:32px">
+    <div class="agate mut">Rivals</div><div class="hair"></div><div class="agateS mut">Three</div>
+  </div>
+  <div style="margin-top:12px">
+    <div class="slat">
+      <div class="disc" style="width:38px;height:38px;background:var(--pig1)">
+        <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="var(--mut)" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M7 21V4"/><path d="M7 5h9l-2.6 3.4L16 12H7"/></svg>
+      </div>
+      <div style="flex:1;min-width:0;padding-left:12px">
+        <div class="name" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Galen Marr</div>
+        <div class="agateS mut sent" style="margin-top:5px">11 meetings · since June</div>
+      </div>
+      <div style="text-align:right">
+        <div class="figS">6–5</div><div class="agateS mut" style="margin-top:5px">You lead</div>
+      </div>
+    </div>
+    <div class="slat">
+      <div class="disc" style="width:38px;height:38px;background:var(--pig5)">
+        <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="var(--mut)" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M5.5 16.5c0-4.4 2.9-7.6 6.5-7.6s6.5 3.2 6.5 7.6"/><path d="M4.5 16.5h15"/><path d="M12 8.9V6.4"/></svg>
+      </div>
+      <div style="flex:1;min-width:0;padding-left:12px">
+        <div class="name" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Tash Bell</div>
+        <div class="agateS mut sent" style="margin-top:5px">6 meetings · The Fellas</div>
+      </div>
+      <div style="text-align:right">
+        <div class="figS">3–3</div><div class="agateS mut" style="margin-top:5px">All square</div>
+      </div>
+    </div>
+  </div>
+  <div class="wrap" style="margin-top:14px"><span class="nameS link">Every rival</span></div>
+
+  <div class="sechead" style="margin-top:30px">
+    <div class="agate mut">Form</div><div class="hair"></div><div class="agateS mut">Last five</div>
+  </div>
+
+  <div class="fade"></div>
+  <div class="tabbar">
+    <div class="tab"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 11l8-6 8 6"/><path d="M6 10v9h12v-9"/></svg><div class="agateS">Home</div></div>
+    <div class="tab"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M7 21V4"/><path d="M7 5h10l-3 4 3 4H7"/></svg><div class="agateS">Compete</div></div>
+    <div class="tab play"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 8v8M8 12h8"/></svg><div class="agateS">Play</div></div>
+    <div class="tab"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="9" r="3.2"/><path d="M3.5 19c.6-3.3 2.8-5 5.5-5s4.9 1.7 5.5 5"/><circle cx="17" cy="10" r="2.4"/><path d="M15 19c.4-2.4 1.8-3.6 3.6-3.6 1.2 0 2.2.5 2.9 1.5"/></svg><div class="agateS">Golfers</div></div>
+    <div class="tab sel"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="9" cy="11" r="2"/><path d="M5.5 16c.5-1.6 1.9-2.4 3.5-2.4s3 .8 3.5 2.4"/><path d="M15 10h4M15 13.5h4"/></svg><div class="agateS">You</div><div class="u"></div></div>
+  </div>
+</div>
+
+
+<!-- ==================================================================== -->
+<!-- 2 · PROFILE SCROLLED — competition tail, then golf                   -->
+<!-- ==================================================================== -->
+<div class="artboard" id="profile-scrolled">
+  <div class="notch"></div>
+  <div class="status"><span>7:39</span><span style="font-size:13px">▮▮▮ ᯤ ▰</span></div>
+
+  <!-- the standing sentence, carried up from the season block -->
+  <div class="wrap" style="margin-top:12px"><div class="agate mut">4 back of Galen · 3 clear of Tash</div></div>
+
+  <div class="sechead" style="margin-top:32px">
+    <div class="agate mut">Rivals</div><div class="hair"></div><div class="agateS mut">Three</div>
+  </div>
+  <div style="margin-top:12px">
+    <div class="slat">
+      <div class="disc" style="width:38px;height:38px;background:var(--pig1)">
+        <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="var(--mut)" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M7 21V4"/><path d="M7 5h9l-2.6 3.4L16 12H7"/></svg>
+      </div>
+      <div style="flex:1;min-width:0;padding-left:12px">
+        <div class="name">Galen Marr</div>
+        <div class="agateS mut sent" style="margin-top:5px">11 meetings · since June</div>
+      </div>
+      <div style="text-align:right"><div class="figS">6–5</div><div class="agateS mut" style="margin-top:5px">You lead</div></div>
+    </div>
+    <div class="slat">
+      <div class="disc" style="width:38px;height:38px;background:var(--pig5)">
+        <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="var(--mut)" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M5.5 16.5c0-4.4 2.9-7.6 6.5-7.6s6.5 3.2 6.5 7.6"/><path d="M4.5 16.5h15"/><path d="M12 8.9V6.4"/></svg>
+      </div>
+      <div style="flex:1;min-width:0;padding-left:12px">
+        <div class="name">Tash Bell</div>
+        <div class="agateS mut sent" style="margin-top:5px">6 meetings · The Fellas</div>
+      </div>
+      <div style="text-align:right"><div class="figS">3–3</div><div class="agateS mut" style="margin-top:5px">All square</div></div>
+    </div>
+  </div>
+  <div class="wrap" style="margin-top:14px"><span class="nameS link">Every rival</span></div>
+
+  <!-- FORM — five grosses on one rule, the best in gold -->
+  <div class="sechead" style="margin-top:30px">
+    <div class="agate mut">Form</div><div class="hair"></div><div class="agateS mut">Last five</div>
+  </div>
+  <div class="wrap" style="margin-top:14px">
+    <div style="display:flex;justify-content:space-between;align-items:flex-end">
+      <div class="figS">79</div><div class="figS">84</div><div class="figS">77</div><div class="figS">81</div><div class="figS gold">74</div>
+    </div>
+    <div class="heavy" style="margin:7px 0 6px"></div>
+    <div style="display:flex;justify-content:space-between">
+      <div class="agateS mut">Aug 30</div><div class="agateS mut">Sep 2</div><div class="agateS mut">Sep 9</div>
+      <div class="agateS mut">Sep 14</div><div class="agateS gold">Sep 21</div>
+    </div>
+  </div>
+
+  <!-- COURSES KEPT -->
+  <div class="sechead" style="margin-top:30px">
+    <div class="agate mut">Courses kept</div><div class="hair"></div><div class="agateS mut">Eleven</div>
+  </div>
+  <div class="wrap" style="margin-top:11px;display:flex">
+    <div style="flex:1"></div>
+    <div class="agateS mut" style="width:34px;text-align:right">Rds</div>
+    <div class="agateS mut" style="width:44px;text-align:right;padding-left:10px">Best</div>
+  </div>
+  <div style="margin-top:6px">
+    <div class="slat tight">
+      <div style="flex:1;min-width:0"><span class="social">Papago</span> <span class="agateS mut">Phoenix</span></div>
+      <div class="col mut" style="width:34px;text-align:right">11</div>
+      <div class="figS" style="width:44px;text-align:right">77</div>
+    </div>
+    <div class="slat tight">
+      <div style="flex:1;min-width:0"><span class="social">Dinosaur Mountain</span> <span class="agateS mut">Gold Canyon</span></div>
+      <div class="col mut" style="width:34px;text-align:right">4</div>
+      <div class="figS" style="width:44px;text-align:right">82</div>
+    </div>
+    <div class="slat tight">
+      <div style="flex:1;min-width:0"><span class="social">Troon North</span> <span class="agateS mut">Scottsdale</span></div>
+      <div class="col mut" style="width:34px;text-align:right">3</div>
+      <div class="figS" style="width:44px;text-align:right">74</div>
+    </div>
+  </div>
+  <div class="wrap" style="margin-top:16px"><span class="nameS link">The other eight</span></div>
+
+  <!-- THE RECORD — the archive's door, printed on a leaf -->
+  <div class="sechead" style="margin-top:30px">
+    <div class="agate mut">The record</div><div class="hair"></div><div class="agateS mut">Three seasons</div>
+  </div>
+  <div class="leaf" style="margin:12px 20px 0;padding:14px 14px 12px">
+    <div style="display:flex;color:var(--leafMut);padding-bottom:8px">
+      <div class="agateS" style="width:42px">Year</div><div class="agateS" style="flex:1">Competition</div>
+      <div class="agateS" style="width:52px;text-align:right">Finish</div><div class="agateS" style="width:56px;text-align:right">Money</div>
+    </div>
+    <div style="height:1px;background:rgba(26,27,20,.22)"></div>
+    <div style="display:flex;align-items:baseline;padding:10px 0 9px">
+      <div class="colS" style="width:42px;color:var(--leafMut)">2026</div>
+      <div class="social" style="flex:1;font-size:16px">The Fellas <span class="agateS" style="color:var(--leafMut)">Season one</span></div>
+      <div style="width:52px;text-align:right"><div class="figS">2<span class="ord">ND</span></div><div style="height:2px;background:var(--leafInk);margin-top:4px"></div></div>
+      <div class="col" style="width:56px;text-align:right">$40</div>
+    </div>
+    <div style="height:1px;background:rgba(26,27,20,.16)"></div>
+    <div style="display:flex;align-items:baseline;padding:10px 0 9px">
+      <div class="colS" style="width:42px;color:var(--leafMut)">2026</div>
+      <div class="social" style="flex:1;font-size:16px">Dew Sweepers <span class="agateS" style="color:var(--leafMut)">Spring</span></div>
+      <div class="figS" style="width:52px;text-align:right">5<span class="ord">TH</span></div>
+      <div class="col" style="width:56px;text-align:right">−$20</div>
+    </div>
+  </div>
+
+  <div class="fade"></div>
+  <div class="tabbar">
+    <div class="tab"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 11l8-6 8 6"/><path d="M6 10v9h12v-9"/></svg><div class="agateS">Home</div></div>
+    <div class="tab"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M7 21V4"/><path d="M7 5h10l-3 4 3 4H7"/></svg><div class="agateS">Compete</div></div>
+    <div class="tab play"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 8v8M8 12h8"/></svg><div class="agateS">Play</div></div>
+    <div class="tab"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="9" r="3.2"/><path d="M3.5 19c.6-3.3 2.8-5 5.5-5s4.9 1.7 5.5 5"/><circle cx="17" cy="10" r="2.4"/><path d="M15 19c.4-2.4 1.8-3.6 3.6-3.6 1.2 0 2.2.5 2.9 1.5"/></svg><div class="agateS">Golfers</div></div>
+    <div class="tab sel"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="9" cy="11" r="2"/><path d="M5.5 16c.5-1.6 1.9-2.4 3.5-2.4s3 .8 3.5 2.4"/><path d="M15 10h4M15 13.5h4"/></svg><div class="agateS">You</div><div class="u"></div></div>
+  </div>
+</div>
+
+
+<!-- ==================================================================== -->
+<!-- 3 · PROFILE HISTORY — the Record: archive / achievement              -->
+<!-- ==================================================================== -->
+<div class="artboard" id="profile-history">
+  <div class="notch"></div>
+  <div class="status"><span>7:39</span><span style="font-size:13px">▮▮▮ ᯤ ▰</span></div>
+
+  <div class="chrome">
+    <svg width="12" height="20" viewBox="0 0 12 20" fill="none" stroke="var(--mut)" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M9 3L3 10l6 7"/></svg>
+    <span></span>
+  </div>
+
+  <!-- the page header: display + dateline, no second title -->
+  <div class="wrap" style="margin-top:14px;display:flex;align-items:baseline;justify-content:space-between">
+    <div class="display">The record</div>
+    <div class="agateS mut">Since March 2026</div>
+  </div>
+
+  <!-- the one serif sentence: the almanac's voice -->
+  <div class="wrap" style="margin-top:18px">
+    <div class="lead">Eighteen rounds since March. The best of them a 74, at Troon North.</div>
+  </div>
+
+  <!-- the career, four figures on one rule -->
+  <div class="wrap" style="margin-top:28px">
+    <div style="display:flex;justify-content:space-between;align-items:flex-end">
+      <div class="figM">18</div><div class="figM">3</div><div class="figM">74</div><div class="figM">$80</div>
+    </div>
+    <div class="heavy" style="margin:7px 0 6px"></div>
+    <div style="display:flex;justify-content:space-between">
+      <div class="agateS mut">Rounds</div><div class="agateS mut">Seasons</div>
+      <div class="agateS mut">Best</div><div class="agateS mut">Money</div>
+    </div>
+  </div>
+
+  <!-- SEASONS — the printed table, on a leaf -->
+  <div class="sechead" style="margin-top:28px">
+    <div class="agate mut">Seasons</div><div class="hair"></div><div class="agateS mut">Three</div>
+  </div>
+  <div class="leaf" style="margin:12px 20px 0;padding:14px 14px 12px">
+    <div style="display:flex;color:var(--leafMut);padding-bottom:8px">
+      <div class="agateS" style="width:42px">Year</div><div class="agateS" style="flex:1">Competition</div>
+      <div class="agateS" style="width:52px;text-align:right">Finish</div><div class="agateS" style="width:56px;text-align:right">Money</div>
+    </div>
+    <div style="height:1px;background:rgba(26,27,20,.22)"></div>
+    <div style="display:flex;align-items:baseline;padding:10px 0 9px">
+      <div class="colS" style="width:42px;color:var(--leafMut)">2026</div>
+      <div class="social" style="flex:1;font-size:16px">Desert Mountain Cup</div>
+      <div style="width:52px;text-align:right"><div class="nameS">Won</div><div style="height:2px;background:#7A5A12;margin-top:4px"></div></div>
+      <div class="col" style="width:56px;text-align:right">$60</div>
+    </div>
+    <div style="height:1px;background:rgba(26,27,20,.16)"></div>
+    <div style="display:flex;align-items:baseline;padding:10px 0 9px">
+      <div class="colS" style="width:42px;color:var(--leafMut)">2026</div>
+      <div class="social" style="flex:1;font-size:16px">The Fellas <span class="agateS" style="color:var(--leafMut)">Season one</span></div>
+      <div style="width:52px;text-align:right"><div class="figS">2<span class="ord">ND</span></div><div style="height:2px;background:var(--leafInk);margin-top:4px"></div></div>
+      <div class="col" style="width:56px;text-align:right">$40</div>
+    </div>
+    <div style="height:1px;background:rgba(26,27,20,.16)"></div>
+    <div style="display:flex;align-items:baseline;padding:10px 0 2px">
+      <div class="colS" style="width:42px;color:var(--leafMut)">2026</div>
+      <div class="social" style="flex:1;font-size:16px">Dew Sweepers <span class="agateS" style="color:var(--leafMut)">Spring</span></div>
+      <div class="figS" style="width:52px;text-align:right">5<span class="ord">TH</span></div>
+      <div class="col" style="width:56px;text-align:right">−$20</div>
+    </div>
+  </div>
+  <div class="wrap" style="margin-top:10px">
+  </div>
+
+  <!-- TROPHIES — drawn, on the ground, no tiles and no card -->
+  <div class="sechead" style="margin-top:24px">
+    <div class="agate mut">Trophies</div><div class="hair"></div><div class="agateS mut">Three</div>
+  </div>
+  <div style="margin-top:12px">
+    <div class="slat tight" style="gap:14px">
+      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--ink)" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M7 4h10v5a5 5 0 01-10 0V4z"/><path d="M7 5.5H4.5c0 2.6 1 4 2.8 4.4M17 5.5h2.5c0 2.6-1 4-2.8 4.4"/><path d="M12 14v3M9 20h6c0-1.8-1.2-3-3-3s-3 1.2-3 3z"/></svg>
+      <div style="flex:1;min-width:0">
+        <div class="name">Desert Mountain Cup</div>
+        <div class="agateS mut sent" style="margin-top:5px">Won · September 2026</div>
+      </div>
+    </div>
+    <div class="slat tight" style="gap:14px">
+      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--ink)" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M7.5 5.5L10 4v10"/><path d="M14 4h3.5l-3.5 5h3.5"/><path d="M4 18.5h16"/><path d="M4 21h16"/></svg>
+      <div style="flex:1;min-width:0">
+        <div class="name">Low round of the season</div>
+        <div class="agateS mut sent" style="margin-top:5px">74 at Troon North · Sep 21</div>
+      </div>
+    </div>
+    <div class="slat tight" style="gap:14px">
+      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--ink)" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19h4v-5H4zM10 19h4V9h-4zM16 19h4V4h-4z"/></svg>
+      <div style="flex:1;min-width:0">
+        <div class="name">Most improved</div>
+        <div class="agateS mut sent" style="margin-top:5px">The Fellas · Season one</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="fade"></div>
+  <div class="tabbar">
+    <div class="tab"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 11l8-6 8 6"/><path d="M6 10v9h12v-9"/></svg><div class="agateS">Home</div></div>
+    <div class="tab"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M7 21V4"/><path d="M7 5h10l-3 4 3 4H7"/></svg><div class="agateS">Compete</div></div>
+    <div class="tab play"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 8v8M8 12h8"/></svg><div class="agateS">Play</div></div>
+    <div class="tab"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="9" r="3.2"/><path d="M3.5 19c.6-3.3 2.8-5 5.5-5s4.9 1.7 5.5 5"/><circle cx="17" cy="10" r="2.4"/><path d="M15 19c.4-2.4 1.8-3.6 3.6-3.6 1.2 0 2.2.5 2.9 1.5"/></svg><div class="agateS">Golfers</div></div>
+    <div class="tab sel"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="9" cy="11" r="2"/><path d="M5.5 16c.5-1.6 1.9-2.4 3.5-2.4s3 .8 3.5 2.4"/><path d="M15 10h4M15 13.5h4"/></svg><div class="agateS">You</div><div class="u"></div></div>
+  </div>
+</div>
+
+
+<!-- ==================================================================== -->
+<!-- 4 · PROFILE H2H — the rivalry as a graphic, filled                   -->
+<!-- ==================================================================== -->
+<div class="artboard" id="profile-h2h">
+  <div class="notch"></div>
+  <div class="status"><span>7:39</span><span style="font-size:13px">▮▮▮ ᯤ ▰</span></div>
+
+  <div class="chrome">
+    <svg width="12" height="20" viewBox="0 0 12 20" fill="none" stroke="var(--mut)" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M9 3L3 10l6 7"/></svg>
+    <span></span>
+  </div>
+
+  <div class="wrap" style="margin-top:14px">
+    <div class="agate gold">The Papago Grudge</div>
+    <div class="display" style="margin-top:9px">You and Galen</div>
+  </div>
+
+  <!-- the rivalry graphic: two faces, the record between them -->
+  <div class="wrap" style="margin-top:26px;display:flex;align-items:flex-start;justify-content:space-between">
+    <div style="width:64px;text-align:center">
+      <div class="disc" style="width:64px;height:64px;background:var(--pig3)">
+        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="var(--ink)" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21V6"/><path d="M12 12c0-3.4 2.6-4.6 4.4-4.2"/><path d="M12 15c0-3.4-2.6-5-4.4-4.6"/></svg>
+      </div>
+      <div class="nameS" style="margin-top:9px">You</div>
+    </div>
+    <div style="width:180px;text-align:center">
+      <div class="figXL">6–5</div>
+      <div class="heavy" style="margin:7px 0 6px"></div>
+      <div class="agateS mut">Eleven meetings</div>
+    </div>
+    <div style="width:64px;text-align:center">
+      <div class="disc" style="width:64px;height:64px;background:var(--pig1)">
+        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="var(--ink)" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M7 21V4"/><path d="M7 5h9l-2.6 3.4L16 12H7"/></svg>
+      </div>
+      <div class="nameS" style="margin-top:9px">Galen</div>
+    </div>
+  </div>
+
+  <!-- the one serif sentence -->
+  <div class="wrap" style="margin-top:24px">
+    <div class="story">Eleven meetings since June. He has won the last two.</div>
+  </div>
+
+  <!-- the meeting tape: above the rule is yours, below it is theirs -->
+  <div class="sechead" style="margin-top:26px">
+    <div class="agate mut">Every meeting</div><div class="hair"></div><div class="agateS mut">Oldest first</div>
+  </div>
+  <div class="wrap" style="margin-top:14px;display:flex;align-items:center;gap:12px">
+    <div class="tape" style="flex:1"><div class="midrule"></div>
+      <div class="cell t-up"><i></i></div>
+      <div class="cell t-dn"><i></i></div>
+      <div class="cell t-up"><i></i></div>
+      <div class="cell t-up"><i></i></div>
+      <div class="cell t-dn"><i></i></div>
+      <div class="cell t-up"><i></i></div>
+      <div class="cell t-dn"><i></i></div>
+      <div class="cell t-up"><i></i></div>
+      <div class="cell t-up"><i></i></div>
+      <div class="cell t-dn"><i></i></div>
+      <div class="cell t-dn"><i></i></div>
+    </div>
+    <div style="width:52px;height:38px;display:flex;flex-direction:column;justify-content:space-between;text-align:right">
+      <div class="agateS mut">Yours</div><div class="agateS mut">Theirs</div>
+    </div>
+  </div>
+  <div class="wrap" style="margin-top:9px;display:flex;justify-content:space-between">
+    <div class="agateS mut">Jun 14</div><div class="agateS mut">Sep 21</div>
+  </div>
+  <div class="wrap" style="margin-top:9px"><div class="agateS mut sent">One square is one win.</div></div>
+
+  <!-- where it was decided: a printed grid, on a leaf -->
+  <div class="sechead" style="margin-top:24px">
+    <div class="agate mut">Where it was decided</div><div class="hair"></div>
+  </div>
+  <div class="leaf" style="margin:12px 20px 0;padding:13px 14px 11px">
+    <div style="display:flex;color:var(--leafMut);padding-bottom:7px">
+      <div class="agateS" style="flex:1">Facet</div>
+      <div class="agateS" style="width:42px;text-align:right">Met</div>
+      <div class="agateS" style="width:56px;text-align:right">Record</div>
+    </div>
+    <div style="height:1px;background:rgba(26,27,20,.22)"></div>
+    <div style="display:flex;align-items:baseline;padding:8px 0 7px">
+      <div class="social" style="flex:1;font-size:16px">In the season</div>
+      <div class="col" style="width:42px;text-align:right;color:var(--leafMut)">4</div>
+      <div class="figS" style="width:56px;text-align:right">3–1</div>
+    </div>
+    <div style="height:1px;background:rgba(26,27,20,.16)"></div>
+    <div style="display:flex;align-items:baseline;padding:8px 0 7px">
+      <div class="social" style="flex:1;font-size:16px">Weekly clashes</div>
+      <div class="col" style="width:42px;text-align:right;color:var(--leafMut)">4</div>
+      <div class="figS" style="width:56px;text-align:right">2–2</div>
+    </div>
+    <div style="height:1px;background:rgba(26,27,20,.16)"></div>
+    <div style="display:flex;align-items:baseline;padding:8px 0 2px">
+      <div style="flex:1">
+        <div class="social" style="font-size:16px">Played together</div>
+        <div class="agateS" style="color:var(--leafMut);margin-top:4px">Two matched by day and course</div>
+      </div>
+      <div class="col" style="width:42px;text-align:right;color:var(--leafMut)">3</div>
+      <div class="figS" style="width:56px;text-align:right">1–2</div>
+    </div>
+  </div>
+
+  <div class="wrap" style="margin-top:20px">
+    <div class="btn btnP"><span class="name">Play Galen</span></div>
+  </div>
+
+  <div class="fade"></div>
+  <div class="tabbar">
+    <div class="tab"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 11l8-6 8 6"/><path d="M6 10v9h12v-9"/></svg><div class="agateS">Home</div></div>
+    <div class="tab"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M7 21V4"/><path d="M7 5h10l-3 4 3 4H7"/></svg><div class="agateS">Compete</div></div>
+    <div class="tab play"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 8v8M8 12h8"/></svg><div class="agateS">Play</div></div>
+    <div class="tab sel"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="9" r="3.2"/><path d="M3.5 19c.6-3.3 2.8-5 5.5-5s4.9 1.7 5.5 5"/><circle cx="17" cy="10" r="2.4"/><path d="M15 19c.4-2.4 1.8-3.6 3.6-3.6 1.2 0 2.2.5 2.9 1.5"/></svg><div class="agateS">Golfers</div><div class="u"></div></div>
+    <div class="tab"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="9" cy="11" r="2"/><path d="M5.5 16c.5-1.6 1.9-2.4 3.5-2.4s3 .8 3.5 2.4"/><path d="M15 10h4M15 13.5h4"/></svg><div class="agateS">You</div></div>
+  </div>
+</div>
+
+
+<!-- ==================================================================== -->
+<!-- 5 · PROFILE LIGHT — somebody else's page, printed on the tee sheet   -->
+<!-- ==================================================================== -->
+<div class="artboard paper" id="profile-light">
+  <div class="notch"></div>
+  <div class="status"><span>7:39</span><span style="font-size:13px">▮▮▮ ᯤ ▰</span></div>
+
+  <div class="chrome">
+    <svg width="12" height="20" viewBox="0 0 12 20" fill="none" stroke="var(--mut)" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M9 3L3 10l6 7"/></svg>
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="var(--mut)"><circle cx="5.5" cy="12" r="1.7"/><circle cx="12" cy="12" r="1.7"/><circle cx="18.5" cy="12" r="1.7"/></svg>
+  </div>
+
+  <!-- the credential does not change colour when the room does -->
+  <div class="cred">
+    <svg width="362" height="200" viewBox="0 0 362 200" style="position:absolute;top:-6px;left:0;opacity:.9">
+      <path d="M0.0 127.2 L10.6 126.0 L21.3 123.9 L24.4 123.1 L31.9 120.8 L42.6 116.4 L44.6 115.4 L53.2 110.1 L56.6 107.7 L63.9 100.8 L64.7 100.0 L69.5 92.3 L71.7 84.6 L71.5 76.9 L68.5 69.2 L63.9 63.0 L62.7 61.5 L53.2 53.9 L53.2 53.8 L42.6 48.2 L37.8 46.2 L31.9 44.0 L21.3 41.1 L10.6 39.1 L5.2 38.5 L0.0 37.9" fill="none" stroke="#33463B" stroke-width="1.15" stroke-linecap="round" stroke-linejoin="round" opacity="0.95"/>
+      <path d="M0.0 138.8 L3.5 138.5 L10.6 137.7 L21.3 135.8 L31.9 133.2 L39.2 130.8 L42.6 129.6 L53.2 124.9 L56.8 123.1 L63.9 118.9 L69.0 115.4 L74.5 110.8 L77.9 107.7 L84.2 100.0 L85.2 98.3 L88.3 92.3 L90.3 84.6 L90.2 76.9 L87.9 69.2 L85.2 64.6 L83.3 61.5 L76.0 53.8 L74.5 52.7 L65.4 46.2 L63.9 45.3 L53.2 39.8 L50.1 38.5 L42.6 35.6 L31.9 32.3 L25.3 30.8 L21.3 29.9 L10.6 28.1 L0.0 27.1" fill="none" stroke="#33463B" stroke-width="1.15" stroke-linecap="round" stroke-linejoin="round" opacity="0.95"/>
+      <path d="M0.0 150.8 L10.6 149.6 L21.3 147.8 L28.0 146.2 L31.9 145.2 L42.6 142.1 L52.1 138.5 L53.2 138.0 L63.9 133.1 L68.1 130.8 L74.5 127.0 L80.4 123.1 L85.2 119.4 L89.9 115.4 L95.8 109.4 L97.4 107.7 L102.9 100.0 L106.5 92.6 L106.6 92.3 L108.6 84.6 L108.7 76.9 L106.8 69.2 L106.5 68.5 L103.0 61.5 L97.0 53.8 L95.8 52.7 L88.5 46.2 L85.2 43.8 L77.0 38.5 L74.5 37.1 L63.9 31.8 L61.5 30.8 L53.2 27.5 L42.6 24.0 L39.3 23.1 L31.9 21.1 L21.3 18.9 L10.6 17.3 L0.0 16.2" fill="none" stroke="#33463B" stroke-width="1.15" stroke-linecap="round" stroke-linejoin="round" opacity="0.95"/>
+      <path d="M0.0 164.5 L10.6 163.1 L18.3 161.5 L21.3 161.0 L31.9 158.5 L42.6 155.3 L46.6 153.8 L53.2 151.5 L63.9 147.0 L65.5 146.2 L74.5 141.7 L80.1 138.5 L85.2 135.4 L92.1 130.8 L95.8 128.0 L102.0 123.1 L106.5 119.0 L110.3 115.4 L116.9 107.7 L117.1 107.4 L122.2 100.0 L125.8 92.3 L127.8 84.9 L127.8 84.6 L128.3 76.9 L127.8 73.7 L127.0 69.2 L123.9 61.5 L118.8 53.8 L117.1 52.1 L111.5 46.2 L106.5 42.0 L102.0 38.5 L95.8 34.4 L89.8 30.8 L85.2 28.3 L74.5 23.2 L74.3 23.1 L63.9 18.7 L54.1 15.4 L53.2 15.1 L42.6 11.9 L31.9 9.3 L23.6 7.7 L21.3 7.2 L10.6 5.5 L0.0 4.4" fill="none" stroke="#33463B" stroke-width="1.15" stroke-linecap="round" stroke-linejoin="round" opacity="0.95"/>
+      <path d="M362.0 5.0 L359.0 7.7 L353.7 15.4 L352.1 23.1 L354.0 30.8 L359.6 38.5 L362.0 40.5" fill="none" stroke="#33463B" stroke-width="1.15" stroke-linecap="round" stroke-linejoin="round" opacity="0.95"/>
+      <path d="M49.4 0.0 L53.2 1.0 L63.9 4.4 L72.6 7.7 L74.5 8.4 L85.2 12.7 L91.0 15.4 L95.8 17.6 L106.2 23.1 L106.5 23.2 L117.1 29.6 L119.0 30.8 L127.8 37.2 L129.5 38.5 L137.9 46.2 L138.4 46.8 L144.4 53.8 L148.6 61.5 L149.1 63.1 L151.1 69.2 L151.6 76.9 L150.4 84.6 L149.1 88.2 L147.7 92.3 L143.7 100.0 L138.4 107.5 L138.3 107.7 L131.9 115.4 L127.8 119.5 L124.2 123.1 L117.1 129.3 L115.4 130.8 L106.5 137.8 L105.5 138.5 L95.8 145.2 L94.2 146.2 L85.2 151.8 L81.4 153.8 L74.5 157.7 L66.4 161.5 L63.9 162.8 L53.2 167.6 L48.7 169.2 L42.6 171.9 L31.9 175.8 L28.1 176.9 L21.3 179.8 L10.6 183.6 L6.9 184.6 L0.0 189.5" fill="none" stroke="#33463B" stroke-width="1.15" stroke-linecap="round" stroke-linejoin="round" opacity="0.95"/>
+      <path d="M303.5 0.0 L299.9 7.7 L298.1 13.7 L297.7 15.4 L296.9 23.1 L297.7 30.8 L298.1 32.1 L300.2 38.5 L304.8 46.2 L308.8 50.7 L311.7 53.8 L319.4 60.1 L321.4 61.5 L330.1 66.7 L334.8 69.2 L340.7 72.0 L351.4 76.3 L353.3 76.9 L362.0 79.7" fill="none" stroke="#33463B" stroke-width="1.15" stroke-linecap="round" stroke-linejoin="round" opacity="0.95"/>
+      <path d="M100.4 0.0 L106.5 2.6 L117.1 7.7 L117.1 7.7 L127.8 12.8 L132.8 15.4 L138.4 18.4 L147.0 23.1 L149.1 24.4 L159.7 30.8 L159.7 30.8 L170.4 38.0 L171.0 38.5 L180.0 46.2 L181.0 47.5 L186.3 53.8 L188.9 61.5 L188.6 69.2 L186.3 76.9 L182.2 84.6 L181.0 86.2 L177.4 92.3 L171.4 100.0 L170.4 101.0 L164.9 107.7 L159.7 112.9 L157.5 115.4 L149.5 123.1 L149.1 123.4 L141.1 130.8 L138.4 133.0 L132.0 138.5 L127.8 141.9 L122.4 146.2 L117.1 150.3 L112.3 153.8 L106.5 158.2 L101.5 161.5 L95.8 165.6 L90.2 169.2 L85.2 172.8 L78.6 176.9 L74.5 180.0 L67.7 184.6 L63.9 188.3 L59.6 192.3 L56.3 200.0" fill="none" stroke="#33463B" stroke-width="1.15" stroke-linecap="round" stroke-linejoin="round" opacity="0.95"/>
+      <path d="M251.6 0.0 L248.6 7.7 L246.1 15.4 L244.9 20.1 L244.0 23.1 L242.6 30.8 L242.4 38.5 L244.5 46.2 L244.9 46.7 L249.0 53.8 L255.5 60.0 L257.1 61.5 L266.2 67.9 L267.9 69.2 L276.8 74.4 L281.1 76.9 L287.5 80.1 L296.5 84.6 L298.1 85.4 L308.8 90.1 L313.9 92.3 L319.4 94.6 L330.1 98.6 L334.0 100.0 L340.7 102.3 L351.4 105.6 L358.9 107.7 L362.0 108.6" fill="none" stroke="#33463B" stroke-width="1.15" stroke-linecap="round" stroke-linejoin="round" opacity="0.95"/>
+      <path d="M104 178 C170 150 212 124 260 89" stroke="#33463B" stroke-width="1.3" fill="none"/>
+      <circle cx="260" cy="89" r="3.4" fill="#8A4A2C"/>
+    </svg>
+    <svg width="150" height="150" viewBox="0 0 24 24" fill="none" stroke="#33463B" stroke-width="1.5"
+         stroke-linecap="round" stroke-linejoin="round" style="position:absolute;right:-26px;top:44px;opacity:.62">
+      <path d="M12 21v-6M12 15c-5 0-7-2-7-5 3-2 5-2 7-1 2-1 4-1 7 1 0 3-2 5-7 5z"/></svg>
+
+    <!-- no slot: nothing has been won yet, so the surface carries no gold here.
+         And no medallion: the crest OR the corner, never both (§6.5). -->
+
+
+    <div style="position:absolute;left:20px;right:20px;top:114px">
+      <div class="display" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Galen Marr</div>
+    </div>
+    <div style="position:absolute;left:20px;right:20px;top:157px">
+      <div class="agateS credmut">@galenmarr · Mesa, AZ · Papago GC</div>
+    </div>
+
+    <div style="position:absolute;left:20px;right:20px;top:196px">
+      <div style="display:flex;justify-content:space-between;align-items:flex-end">
+        <div class="figM">8.4</div><div class="figM">22</div><div class="figM">1<span class="ord">ST</span></div>
+      </div>
+      <div style="height:2px;background:#F1F4EF;margin:7px 0 6px"></div>
+      <div style="display:flex;justify-content:space-between">
+        <div class="agateS credmut">Handicap index</div>
+        <div class="agateS credmut">Rounds</div>
+        <div class="agateS credmut">The Fellas</div>
+      </div>
+    </div>
+
+    <div style="position:absolute;left:20px;right:20px;bottom:15px">
+      <div class="credrule" style="height:1px;margin-bottom:10px"></div>
+      <div style="display:flex;justify-content:space-between">
+        <div class="agateS creddim sent">Cup Season · The Lone Tree</div>
+        <div class="agateS creddim">No. 12</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- the page's one primary: the live thing you can do now -->
+  <div class="wrap" style="margin-top:20px">
+    <div class="btn btnP"><span class="name">Play Galen</span></div>
+  </div>
+
+  <!-- THE SEASON — his rail is painted gold, because first was earned -->
+  <div class="sechead" style="margin-top:26px">
+    <div class="agate mut">The season</div><div class="hair"></div><div class="agateS mut">Week 9 of 14</div>
+  </div>
+  <div class="slat" style="min-height:56px;margin-top:12px">
+    <div class="rail earned"><span class="figM">01</span></div>
+    <div style="flex:1;min-width:0;padding-left:12px">
+      <div class="name" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">The Fellas</div>
+      <div class="agateS mut sent" style="margin-top:5px">Season two · 8 golfers</div>
+    </div>
+    <div class="mv" style="margin-right:16px"><span style="width:9px;height:2px;background:var(--rule);display:block"></span></div>
+    <div class="figM" style="min-width:44px;text-align:right">23</div>
+  </div>
+  <div class="wrap" style="margin-top:12px">
+    <div class="agate mut">Has led since week three · 4 clear of you</div>
+  </div>
+
+  <!-- YOU AND GALEN — the door to the rivalry -->
+  <div class="sechead" style="margin-top:28px">
+    <div class="agate mut">You and Galen</div><div class="hair"></div><div class="agateS mut">The Papago Grudge</div>
+  </div>
+  <div class="slat" style="min-height:56px;margin-top:12px">
+    <div style="display:flex" class="overlap">
+      <div class="disc" style="width:38px;height:38px;background:var(--pig3)">
+        <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="var(--mut)" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21V6"/><path d="M12 12c0-3.4 2.6-4.6 4.4-4.2"/><path d="M12 15c0-3.4-2.6-5-4.4-4.6"/></svg>
+      </div>
+      <div class="disc" style="width:38px;height:38px;background:var(--pig1);margin-left:-12px;box-shadow:inset 0 0 0 1px var(--rule),0 0 0 2px var(--bg0)">
+        <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="var(--mut)" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M7 21V4"/><path d="M7 5h9l-2.6 3.4L16 12H7"/></svg>
+      </div>
+    </div>
+    <div style="flex:1;min-width:0;padding-left:14px">
+      <div class="name">The record</div>
+      <div class="agateS mut sent" style="margin-top:5px">11 meetings · since June</div>
+    </div>
+    <div style="text-align:right"><div class="figS">6–5</div><div class="agateS mut" style="margin-top:5px">You lead</div></div>
+  </div>
+
+  <div class="sechead" style="margin-top:28px">
+    <div class="agate mut">Courses you both keep</div><div class="hair"></div><div class="agateS mut">Four</div>
+  </div>
+
+  <div class="fade"></div>
+  <div class="tabbar">
+    <div class="tab"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 11l8-6 8 6"/><path d="M6 10v9h12v-9"/></svg><div class="agateS">Home</div></div>
+    <div class="tab"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M7 21V4"/><path d="M7 5h10l-3 4 3 4H7"/></svg><div class="agateS">Compete</div></div>
+    <div class="tab play"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 8v8M8 12h8"/></svg><div class="agateS">Play</div></div>
+    <div class="tab sel"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="9" r="3.2"/><path d="M3.5 19c.6-3.3 2.8-5 5.5-5s4.9 1.7 5.5 5"/><circle cx="17" cy="10" r="2.4"/><path d="M15 19c.4-2.4 1.8-3.6 3.6-3.6 1.2 0 2.2.5 2.9 1.5"/></svg><div class="agateS">Golfers</div><div class="u"></div></div>
+    <div class="tab"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="9" cy="11" r="2"/><path d="M5.5 16c.5-1.6 1.9-2.4 3.5-2.4s3 .8 3.5 2.4"/><path d="M15 10h4M15 13.5h4"/></svg><div class="agateS">You</div></div>
+  </div>
+</div>
+
+</body></html>

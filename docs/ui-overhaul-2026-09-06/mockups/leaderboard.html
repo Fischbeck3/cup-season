@@ -1,0 +1,924 @@
+<!doctype html>
+<html><head><meta charset="utf-8">
+<title>Cup Season — leaderboards and score displays</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Condensed:wght@600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg0:#0F1A15; --bg1:#1A2620; --bg2:#26352E; --rule:#4A6155;
+  --ink:#F1F4EF; --mut:#9BA69D; --dim:#5E6A62;
+  --panel:#E9ECE3; --panelInk:#0B120E; --panelMut:#4C574F;
+  --leaf:#EFEADD; --leafInk:#1A1B14; --leafMut:#57605A;
+  --brand:#E8622C; --gold:#D8B25A; --pos:#4EC584; --neg:#FF6A5E; --cool:#7F8C95;
+  --pig0:#492D2C; --pig1:#473C28; --pig2:#293B2B; --pig3:#1F4648; --pig4:#293B4E; --pig5:#4E3C4F;
+  --ceremony:#0A0E0C;
+  --board:'IBM Plex Sans Condensed', -apple-system, sans-serif;
+  --mono:'IBM Plex Mono', ui-monospace, monospace;
+  --sans:-apple-system, system-ui, sans-serif;
+  --serif:'New York','Iowan Old Style',Georgia,serif;
+}
+.paper{
+  --bg0:#F4F1E9; --bg1:#EAE6DB; --bg2:#DED8C8; --rule:#A9A08A;
+  --ink:#151B17; --mut:#575F57; --dim:#8B9089;
+  --panel:#141A16; --panelInk:#F4F1E9; --panelMut:#A6AEA5;
+  --leaf:#FFFDF7; --leafInk:#1A1B14; --leafMut:#5A625A;
+  --brand:#A8420F; --gold:#7A5A12; --pos:#0B7340; --neg:#B02A20; --cool:#5D6862;
+  --pig0:#FDDAD8; --pig1:#E6D8C2; --pig2:#D6EBD7; --pig3:#BEE4E7; --pig4:#D9EAFF; --pig5:#EED9EE;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#2a2a2a;font-family:var(--sans);padding:28px;display:flex;flex-wrap:wrap;gap:28px;align-items:flex-start}
+.artboard{width:402px;height:874px;background:var(--bg0);color:var(--ink);position:relative;overflow:hidden;
+  font-family:var(--sans);-webkit-font-smoothing:antialiased}
+.wrap{padding:0 20px}
+
+/* ---- type roles (UI_SYSTEM §1.2) ---- */
+.figXL{font-family:var(--board);font-weight:700;font-size:56px;line-height:.92;font-variant-numeric:tabular-nums}
+.fig  {font-family:var(--board);font-weight:700;font-size:40px;line-height:.94;font-variant-numeric:tabular-nums}
+.figM {font-family:var(--board);font-weight:700;font-size:27px;line-height:.96;font-variant-numeric:tabular-nums}
+.figS {font-family:var(--board);font-weight:700;font-size:20px;line-height:1;font-variant-numeric:tabular-nums}
+.display{font-family:var(--board);font-weight:700;font-size:34px;line-height:.98;text-transform:uppercase;letter-spacing:.005em}
+.title{font-family:var(--board);font-weight:700;font-size:24px;line-height:1.05;text-transform:uppercase;letter-spacing:.01em}
+.name{font-family:var(--board);font-weight:600;font-size:17px;line-height:1.16;text-transform:uppercase;letter-spacing:.035em}
+.nameS{font-family:var(--board);font-weight:600;font-size:15px;line-height:1.16;text-transform:uppercase;letter-spacing:.04em}
+.social{font-family:var(--board);font-weight:600;font-size:17px;line-height:1.16;letter-spacing:0}
+.lead{font-family:var(--serif);font-weight:700;font-size:28px;line-height:1.14;letter-spacing:-.01em}
+.story{font-family:var(--serif);font-weight:400;font-size:20px;line-height:1.34}
+.body{font-family:var(--sans);font-size:17px;line-height:1.45}
+.bodyS{font-family:var(--sans);font-size:15px;line-height:1.45}
+.agate{font-family:var(--board);font-weight:600;font-size:12px;line-height:1.2;text-transform:uppercase;letter-spacing:.09em}
+.agateS{font-family:var(--board);font-weight:600;font-size:11px;line-height:1.2;text-transform:uppercase;letter-spacing:.08em}
+.col{font-family:var(--mono);font-weight:500;font-size:14px;font-variant-numeric:tabular-nums}
+.colS{font-family:var(--mono);font-weight:400;font-size:12px;font-variant-numeric:tabular-nums}
+.mut{color:var(--mut)} .dimc{color:var(--dim)} .gold{color:var(--gold)} .em{color:var(--brand)}
+.run{font-family:var(--board);font-weight:700;font-variant-numeric:tabular-nums} /* the figure run */
+
+/* ---- structure ---- */
+.hair{height:1px;background:var(--rule)}
+.heavy{height:2px;background:var(--ink)}
+.sechead{display:flex;align-items:center;gap:10px;padding:0 20px}
+.sechead .hair{flex:1}
+.panel{background:var(--panel);color:var(--panelInk);border-radius:3px;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;text-align:center}
+.leaf{background:var(--leaf);color:var(--leafInk);border-radius:3px;box-shadow:0 1px 0 rgba(0,0,0,.22),inset 0 0 0 1px rgba(26,27,20,.13)}
+.paper .leaf{box-shadow:0 1px 0 rgba(0,0,0,.10);outline:1px solid var(--rule);outline-offset:-1px}
+.disc{border-radius:50%;display:flex;align-items:center;justify-content:center;flex:none;
+  box-shadow:inset 0 0 0 1px var(--rule);overflow:hidden}
+.btn{height:50px;border-radius:10px;display:flex;align-items:center;justify-content:center}
+.btnP{background:var(--brand);color:var(--bg0)}
+.btnS{background:var(--bg2);color:var(--ink)}
+.link{display:inline-block;border-bottom:2px solid var(--mut);padding-bottom:3px}
+.link.live{border-bottom-color:var(--brand)}
+.tabbar{position:absolute;left:0;right:0;bottom:0;height:74px;border-top:1px solid var(--rule);
+  background:var(--bg0);display:flex;align-items:flex-start;padding-top:9px}
+.tab{flex:1;display:flex;flex-direction:column;align-items:center;gap:5px;color:var(--mut)}
+.tab.sel{color:var(--ink)} .tab.play{color:var(--brand)}
+.tab .u{width:26px;height:2px;background:var(--ink);margin-top:3px}
+.fade{position:absolute;left:0;right:0;height:28px;bottom:74px;
+  background:linear-gradient(to bottom,transparent,var(--bg0))}
+.fade.notab{bottom:0}
+.status{height:54px;display:flex;align-items:center;justify-content:space-between;padding:0 22px;
+  font-family:var(--sans);font-size:15px;font-weight:600}
+.notch{position:absolute;left:50%;transform:translateX(-50%);top:12px;width:96px;height:30px;background:#000;border-radius:16px}
+.paper .notch{background:#000}
+.chip{height:28px;border-radius:3px;background:var(--bg2);color:var(--mut);display:inline-flex;align-items:center;padding:0 12px}
+.chip.sel{background:var(--panel);color:var(--panelInk)}
+
+/* ---- the slat, the rail, movement (§9.1, §9.3) ---- */
+.slat{display:flex;align-items:stretch;min-height:50px;border-top:1px solid var(--rule)}
+.rail{width:44px;flex:0 0 44px;display:flex;align-items:center;justify-content:center}
+.rail.gold{background:var(--gold);color:var(--panelInk)}
+.rail.mine{background:var(--panel);color:var(--panelInk)}
+.slatbody{display:flex;align-items:center;gap:10px;flex:1;min-width:0;padding:0 20px 0 12px}
+.who{flex:1;min-width:0}
+.who .name{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.who .agateS{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tri{width:0;height:0;border-left:5px solid transparent;border-right:5px solid transparent}
+.up{border-bottom:8px solid var(--pos)} .down{border-top:8px solid var(--cool)}
+.held{width:9px;height:2px;background:var(--mut)}
+.mv{display:inline-flex;align-items:center;gap:5px;width:34px;justify-content:flex-end}
+/* §9.1 — delta and gap are both change metrics; they share one cell, so the NAME keeps the width */
+.gapc{width:58px;flex:none;display:flex;align-items:center;justify-content:flex-end;gap:7px}
+.gapc .mvin{display:inline-flex;align-items:center;gap:3px}
+.ptsc{width:50px;text-align:right;flex:none}
+.colhead{display:flex;align-items:center;color:var(--mut);padding:9px 20px 7px 0}
+.colhead .h1{width:44px;text-align:center}
+.colhead .h2{flex:1;padding-left:12px}
+.colhead .h3{display:none}
+.colhead .h4{width:58px;text-align:right;padding-left:10px}
+.colhead .h5{width:50px;text-align:right;padding-left:10px}
+
+/* ---- the rule-and-figure (§0.2) ---- */
+.rf .r{height:2px;background:var(--ink);margin:6px 0 5px}
+.rf.live .r{background:var(--brand)} .rf.earned .r{background:var(--gold)}
+
+/* ---- the scorecard ink law (§9.4) ---- */
+.mark{display:inline-flex;align-items:center;justify-content:center;line-height:1}
+.ring{border:1.7px solid currentColor;border-radius:50%}
+.box{border:1.7px solid currentColor;border-radius:1px}
+.dbl{border:1.7px solid currentColor;padding:2px}
+.dbl.ring{border-radius:50%} .dbl.box{border-radius:1px}
+.par{width:4px;height:4px;border-radius:50%;background:currentColor}
+.hcell.ahead{color:var(--mut)}
+.unp{width:9px;height:1px;background:var(--mut)}
+
+/* ---- the live sheet ---- */
+.holestrip{display:flex;align-items:flex-end;gap:0}
+.hcell{flex:1;height:30px;display:flex;align-items:center;justify-content:center;position:relative}
+.hcell.now::after{content:"";position:absolute;left:3px;right:3px;bottom:-6px;height:2px;background:var(--brand)}
+.step{width:44px;height:44px;border-radius:10px;background:var(--bg2);display:flex;align-items:center;justify-content:center;flex:none}
+
+/* §1.3 — agate sets SENTENCE case for a phrase, caps for a label. */
+.sent{text-transform:none!important;letter-spacing:.02em}
+/* §2.3 — on cream stock the pigments are pale tints; the marker takes INK, never mut. */
+.paper .disc svg,.paper .face svg,.paper .disc56 svg{stroke:var(--ink)!important}
+
+</style></head><body>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+  <g id="mk-saguaro"><path d="M12 21V6"/><path d="M12 12c0-3.4 2.6-4.6 4.4-4.2"/><path d="M12 15c0-3.4-2.6-5-4.4-4.6"/></g>
+  <g id="mk-pin"><path d="M7 21V4"/><path d="M7 5h9l-2.6 3.4L16 12H7"/></g>
+  <g id="mk-azalea"><circle cx="12" cy="12" r="2.4"/><path d="M12 9.4c0-2.7 1.7-4.1 3.3-3.6M12 14.6c0-2.7-1.7-4.4-3.3-3.9M9.4 12c-2.7 0-4.2-1.6-3.7-3.2M14.6 12c2.7 0 4.4 1.7 3.9 3.3"/></g>
+  <g id="mk-wave"><path d="M4 14c3-4 5-4 8 0s5 4 8 0"/></g>
+  <g id="mk-bridge"><path d="M3.5 16h17"/><path d="M3.5 16c3.5-7 13.5-7 17 0"/><path d="M9 16v-3.4M15 16v-3.4"/></g>
+  <g id="mk-stamp"><rect x="6.5" y="6.5" width="11" height="11"/><circle cx="12" cy="12" r="2.1"/></g>
+  <g id="mk-jug"><path d="M9.2 7h5.6l-.9 10h-3.8z"/><path d="M14.8 9.2c2 0 2.4 3 0 3.6"/></g>
+  <g id="mk-tee"><path d="M8 7.5h8"/><path d="M12 7.5v7"/><path d="M10.2 14.5h3.6"/></g>
+</defs></svg>
+
+<!-- ================================================================= -->
+<!-- 1 · THE BOARD AT A FIELD OF TWO                                    -->
+<!-- ================================================================= -->
+<div class="artboard" id="leaderboard-lb-season-2">
+  <div class="notch"></div>
+  <div class="status"><span>7:39</span><span style="font-size:13px">▮▮▮ ᯤ ▰</span></div>
+  <div class="wrap" style="height:28px"><svg width="12" height="20" viewBox="0 0 12 20" fill="none" stroke="var(--mut)" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M9 3L3 10l6 7"/></svg></div>
+
+  <div class="wrap" style="margin-top:6px">
+    <div class="agate em" style="display:flex;align-items:center;gap:7px">
+      <span style="width:7px;height:7px;border-radius:50%;background:var(--brand);display:inline-block"></span>
+      Season live · week 5 of 13</div>
+    <div class="display" style="margin-top:9px">The Papago Grudge</div>
+    <div class="story" style="margin-top:11px">Galen has led since week three.</div>
+    <!-- the month clock, the SAME component the season page carries: weeks grouped by month, months named -->
+    <div style="display:flex;gap:12px;margin-top:15px">
+      <div style="flex:4"><div style="display:flex;gap:5px"><div style="flex:1;height:8px;background:var(--mut)"></div><div style="flex:1;height:8px;background:var(--mut)"></div><div style="flex:1;height:8px;background:var(--mut)"></div><div style="flex:1;height:8px;background:var(--mut)"></div></div>
+        <div class="agateS mut" style="margin-top:8px">Aug</div></div>
+      <div style="flex:5"><div style="display:flex;gap:5px"><div style="flex:1;height:8px;background:var(--brand)"></div><div style="flex:1;height:8px;background:var(--rule)"></div><div style="flex:1;height:8px;background:var(--rule)"></div><div style="flex:1;height:8px;background:var(--rule)"></div><div style="flex:1;height:8px;background:var(--rule)"></div></div>
+        <div class="agateS em" style="margin-top:8px">Sep · 25 days</div></div>
+      <div style="flex:4"><div style="display:flex;gap:5px"><div style="flex:1;height:8px;background:var(--rule)"></div><div style="flex:1;height:8px;background:var(--rule)"></div><div style="flex:1;height:8px;background:var(--rule)"></div><div style="flex:1;height:8px;background:var(--rule)"></div></div>
+        <div class="agateS mut" style="margin-top:8px">Oct</div></div>
+    </div>
+  </div>
+
+  <div class="sechead" style="margin-top:20px"><div class="agate mut">This week · the clash</div><div class="hair"></div></div>
+  <div class="wrap" style="margin-top:12px;display:flex;flex-direction:column;gap:12px">
+    <div style="display:flex;align-items:center;gap:12px">
+      <div class="disc" style="width:38px;height:38px;background:var(--pig1)"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="var(--mut)" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M7 21V4"/><path d="M7 5h9l-2.6 3.4L16 12H7"/></svg></div>
+      <div style="flex:1;min-width:0"><div class="name">Galen Marr</div><div class="agateS mut" style="margin-top:4px">No round yet</div></div>
+      <div class="figM mut">—</div>
+    </div>
+    <div style="display:flex;align-items:center;gap:12px">
+      <div class="disc" style="width:38px;height:38px;background:var(--pig3)"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="var(--ink)" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21V6"/><path d="M12 12c0-3.4 2.6-4.6 4.4-4.2"/><path d="M12 15c0-3.4-2.6-5-4.4-4.6"/></svg></div>
+      <div style="flex:1;min-width:0"><div class="name">You</div><div class="agateS mut" style="margin-top:4px">A little loose · Fri</div></div>
+      <div class="panel" style="width:64px;height:52px"><div class="figM">89</div></div>
+    </div>
+  </div>
+
+  <div class="sechead" style="margin-top:22px"><div class="agate mut">The table · moved since Sun</div><div class="hair"></div></div>
+  <div class="colhead agateS">
+    <div class="h1">Pos</div><div class="h2">Golfer</div>
+    <div class="h4">Gap</div><div class="h5">Pts</div>
+  </div>
+
+  <div class="slat">
+    <div class="rail gold"><span class="figM">01</span></div>
+    <div class="slatbody">
+      <div class="disc" style="width:30px;height:30px;background:var(--pig1)"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="var(--mut)" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M7 21V4"/><path d="M7 5h9l-2.6 3.4L16 12H7"/></svg></div>
+      <div class="who"><div class="name">Galen Marr</div><div class="agateS mut" style="margin-top:3px">3 rounds · best 79</div></div>
+      <div class="gapc col mut"><span class="held"></span></div>
+      <div class="ptsc figM gold">19</div>
+    </div>
+  </div>
+  <div class="slat">
+    <div class="rail mine"><span class="figM">02</span></div>
+    <div class="slatbody">
+      <div class="disc" style="width:30px;height:30px;background:var(--pig3)"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="var(--ink)" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21V6"/><path d="M12 12c0-3.4 2.6-4.6 4.4-4.2"/><path d="M12 15c0-3.4-2.6-5-4.4-4.6"/></svg></div>
+      <div class="who"><div class="name">You</div><div class="agateS mut" style="margin-top:3px">2 rounds · best 84</div></div>
+      <div class="gapc col mut"><span>+4</span><span class="mvin"><span class="held"></span></span></div>
+      <div class="ptsc figM">15</div>
+    </div>
+  </div>
+  <div class="hair"></div>
+
+  <div class="wrap" style="margin-top:20px;display:flex;align-items:flex-end;gap:20px">
+    <div class="rf earned">
+      <div class="fig gold">$120</div>
+      <div class="r"></div>
+      <div class="agateS mut">The pot · 2 in at $60 · winner takes it</div>
+    </div>
+  </div>
+
+  <div class="fade"></div>
+  <div class="tabbar">
+    <div class="tab"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 11l8-6 8 6"/><path d="M6 10v9h12v-9"/></svg><div class="agateS">Home</div></div>
+    <div class="tab sel"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><use href="#mk-pin"/></svg><div class="agateS">Compete</div><div class="u"></div></div>
+    <div class="tab play"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 8v8M8 12h8"/></svg><div class="agateS">Play</div></div>
+    <div class="tab"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="9" r="3.2"/><path d="M3.5 19c.6-3.3 2.8-5 5.5-5s4.9 1.7 5.5 5"/><circle cx="17" cy="10" r="2.4"/><path d="M15 19c.4-2.4 1.8-3.6 3.6-3.6 1.2 0 2.2.5 2.9 1.5"/></svg><div class="agateS">Golfers</div></div>
+    <div class="tab"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="9" cy="11" r="2"/><path d="M5.5 16c.5-1.6 1.9-2.4 3.5-2.4s3 .8 3.5 2.4"/><path d="M15 10h4M15 13.5h4"/></svg><div class="agateS">You</div></div>
+  </div>
+</div>
+
+<!-- ================================================================= -->
+<!-- 2 · THE SEASON BOARD · SIX ROWS                                    -->
+<!-- ================================================================= -->
+<div class="artboard" id="leaderboard-lb-season-6">
+  <div class="notch"></div>
+  <div class="status"><span>7:39</span><span style="font-size:13px">▮▮▮ ᯤ ▰</span></div>
+  <div class="wrap" style="height:28px"><svg width="12" height="20" viewBox="0 0 12 20" fill="none" stroke="var(--mut)" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M9 3L3 10l6 7"/></svg></div>
+
+  <div class="wrap" style="margin-top:6px">
+    <div class="agate em" style="display:flex;align-items:center;gap:7px">
+      <span style="width:7px;height:7px;border-radius:50%;background:var(--brand);display:inline-block"></span>
+      Season live · week 5 of 13</div>
+    <div class="display" style="margin-top:9px">The Fellas</div>
+    <div class="story" style="margin-top:11px">Galen leads by four. You are a good weekend back.</div>
+    <!-- the month clock, the SAME component the season page carries: weeks grouped by month, months named -->
+    <div style="display:flex;gap:12px;margin-top:15px">
+      <div style="flex:4"><div style="display:flex;gap:5px"><div style="flex:1;height:8px;background:var(--mut)"></div><div style="flex:1;height:8px;background:var(--mut)"></div><div style="flex:1;height:8px;background:var(--mut)"></div><div style="flex:1;height:8px;background:var(--mut)"></div></div>
+        <div class="agateS mut" style="margin-top:8px">Aug</div></div>
+      <div style="flex:5"><div style="display:flex;gap:5px"><div style="flex:1;height:8px;background:var(--brand)"></div><div style="flex:1;height:8px;background:var(--rule)"></div><div style="flex:1;height:8px;background:var(--rule)"></div><div style="flex:1;height:8px;background:var(--rule)"></div><div style="flex:1;height:8px;background:var(--rule)"></div></div>
+        <div class="agateS em" style="margin-top:8px">Sep · 25 days</div></div>
+      <div style="flex:4"><div style="display:flex;gap:5px"><div style="flex:1;height:8px;background:var(--rule)"></div><div style="flex:1;height:8px;background:var(--rule)"></div><div style="flex:1;height:8px;background:var(--rule)"></div><div style="flex:1;height:8px;background:var(--rule)"></div></div>
+        <div class="agateS mut" style="margin-top:8px">Oct</div></div>
+    </div>
+    <div class="agateS mut" style="margin-top:10px">Best four a month count · 1 posted · 25 days left</div>
+  </div>
+
+  <div class="sechead" style="margin-top:18px"><div class="agate mut">The table · moved since Sun</div><div class="hair"></div></div>
+  <div class="colhead agateS">
+    <div class="h1">Pos</div><div class="h2">Golfer</div>
+    <div class="h4">Gap</div><div class="h5">Pts</div>
+  </div>
+
+  <div class="slat">
+    <div class="rail gold"><span class="figM">01</span></div>
+    <div class="slatbody">
+      <div class="disc" style="width:30px;height:30px;background:var(--pig1)"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="var(--mut)" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M7 21V4"/><path d="M7 5h9l-2.6 3.4L16 12H7"/></svg></div>
+      <div class="who"><div class="name">Galen Marr</div><div class="agateS mut" style="margin-top:3px">3 rounds · best 79</div></div>
+      <div class="gapc col mut"><span class="held"></span></div>
+      <div class="ptsc figM gold">19</div>
+    </div>
+  </div>
+  <div class="slat">
+    <div class="rail mine"><span class="figM">02</span></div>
+    <div class="slatbody">
+      <div class="disc" style="width:30px;height:30px;background:var(--pig3)"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="var(--ink)" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21V6"/><path d="M12 12c0-3.4 2.6-4.6 4.4-4.2"/><path d="M12 15c0-3.4-2.6-5-4.4-4.6"/></svg></div>
+      <div class="who"><div class="name">You</div><div class="agateS mut" style="margin-top:3px">1 round this month</div></div>
+      <div class="gapc col mut"><span>+4</span><span class="mvin"><span class="tri up"></span><span class="figS">2</span></span></div>
+      <div class="ptsc figM">15</div>
+    </div>
+  </div>
+  <div class="slat">
+    <div class="rail"><span class="figM mut">03</span></div>
+    <div class="slatbody">
+      <div class="disc" style="width:30px;height:30px;background:var(--pig4)"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="var(--mut)" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="2.4"/><path d="M12 9.4c0-2.7 1.7-4.1 3.3-3.6M12 14.6c0-2.7-1.7-4.4-3.3-3.9M9.4 12c-2.7 0-4.2-1.6-3.7-3.2M14.6 12c2.7 0 4.4 1.7 3.9 3.3"/></svg></div>
+      <div class="who"><div class="name">Jade</div><div class="agateS mut" style="margin-top:3px">4 rounds · cooled</div></div>
+      <div class="gapc col mut"><span>+9</span><span class="mvin"><span class="tri down"></span><span class="figS">1</span></span></div>
+      <div class="ptsc figM">10</div>
+    </div>
+  </div>
+  <div class="slat">
+    <div class="rail"><span class="figM mut">04</span></div>
+    <div class="slatbody">
+      <div class="disc" style="width:30px;height:30px;background:var(--pig2)"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="var(--mut)" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 14c3-4 5-4 8 0s5 4 8 0"/></svg></div>
+      <div class="who"><div class="name">Dev Rana</div><div class="agateS mut" style="margin-top:3px">2 rounds · best 88</div></div>
+      <div class="gapc col mut"><span>+12</span><span class="mvin"><span class="held"></span></span></div>
+      <div class="ptsc figM">7</div>
+    </div>
+  </div>
+  <div class="slat">
+    <div class="rail"><span class="figM mut">05</span></div>
+    <div class="slatbody">
+      <div class="disc" style="width:30px;height:30px;background:var(--pig5)"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="var(--ink)" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M5.5 16.5c0-4.4 2.9-7.6 6.5-7.6s6.5 3.2 6.5 7.6"/><path d="M4.5 16.5h15"/><path d="M12 8.9V6.4"/></svg></div>
+      <div class="who"><div class="name">Tash Bell</div><div class="agateS mut" style="margin-top:3px">2 of 4 counting · two short</div></div>
+      <div class="gapc col mut"><span>+13</span><span class="mvin"><span class="tri up"></span><span class="figS">1</span></span></div>
+      <div class="ptsc figM">6</div>
+    </div>
+  </div>
+  <div class="slat">
+    <div class="rail"><span class="figM mut">06</span></div>
+    <div class="slatbody">
+      <div class="disc" style="width:30px;height:30px;background:var(--pig0)"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="var(--mut)" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 16h17"/><path d="M3.5 16c3.5-7 13.5-7 17 0"/><path d="M9 16v-3.4M15 16v-3.4"/></svg></div>
+      <div class="who"><div class="name">Mike Fenner</div><div class="agateS mut" style="margin-top:3px">1 round · no number</div></div>
+      <div class="gapc col mut"><span>+15</span><span class="mvin"><span class="held"></span></span></div>
+      <div class="ptsc figM">4</div>
+    </div>
+  </div>
+  <div class="hair"></div>
+
+  <div class="wrap" style="margin-top:16px;display:flex;align-items:flex-end;gap:16px">
+    <div class="rf earned">
+      <div class="fig gold">$480</div>
+      <div class="r"></div>
+      <div class="agateS mut">The pot · 8 in at $60 · 288 / 120 / 72</div>
+    </div>
+    <div style="flex:1;text-align:right;padding-bottom:4px"><span class="link nameS">The split</span></div>
+  </div>
+
+  <div class="fade"></div>
+  <div class="tabbar">
+    <div class="tab"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 11l8-6 8 6"/><path d="M6 10v9h12v-9"/></svg><div class="agateS">Home</div></div>
+    <div class="tab sel"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><use href="#mk-pin"/></svg><div class="agateS">Compete</div><div class="u"></div></div>
+    <div class="tab play"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 8v8M8 12h8"/></svg><div class="agateS">Play</div></div>
+    <div class="tab"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="9" r="3.2"/><path d="M3.5 19c.6-3.3 2.8-5 5.5-5s4.9 1.7 5.5 5"/><circle cx="17" cy="10" r="2.4"/><path d="M15 19c.4-2.4 1.8-3.6 3.6-3.6 1.2 0 2.2.5 2.9 1.5"/></svg><div class="agateS">Golfers</div></div>
+    <div class="tab"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="9" cy="11" r="2"/><path d="M5.5 16c.5-1.6 1.9-2.4 3.5-2.4s3 .8 3.5 2.4"/><path d="M15 10h4M15 13.5h4"/></svg><div class="agateS">You</div></div>
+  </div>
+</div>
+
+<!-- ================================================================= -->
+<!-- 3 · THE FULL BOARD · TWELVE ROWS, LONG NAMES, A TIE, 3 DIGITS      -->
+<!-- ================================================================= -->
+<div class="artboard" id="leaderboard-lb-season-12">
+  <div class="notch"></div>
+  <div class="status"><span>7:39</span><span style="font-size:13px">▮▮▮ ᯤ ▰</span></div>
+  <div class="wrap" style="height:26px"><svg width="12" height="20" viewBox="0 0 12 20" fill="none" stroke="var(--mut)" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M9 3L3 10l6 7"/></svg></div>
+
+  <div class="wrap" style="margin-top:4px">
+    <div class="agate mut">The Dew Sweepers · moved since Sun</div>
+    <div style="margin-top:5px;display:flex;align-items:baseline;justify-content:space-between">
+      <div class="title">All twelve</div>
+      <div class="agateS mut">1st $432 · 2nd $180 · 3rd $108</div>
+    </div>
+  </div>
+
+  <div class="colhead agateS" style="margin-top:4px;padding-top:6px;padding-bottom:5px">
+    <div class="h1">Pos</div><div class="h2">Golfer</div>
+    <div class="h4">Gap</div><div class="h5">Pts</div>
+  </div>
+
+  <div class="slat">
+    <div class="rail gold"><span class="figM">01</span></div>
+    <div class="slatbody">
+      <div class="disc" style="width:30px;height:30px;background:var(--pig1)"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="var(--mut)" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M7 21V4"/><path d="M7 5h9l-2.6 3.4L16 12H7"/></svg></div>
+      <div class="who"><div class="name">G. Marr</div><div class="agateS mut" style="margin-top:3px">11 rounds · best 74</div></div>
+      <div class="gapc col mut"><span class="held"></span></div>
+      <div class="ptsc figM gold">104</div>
+    </div>
+  </div>
+  <div class="slat">
+    <div class="rail mine"><span class="figM">02</span></div>
+    <div class="slatbody">
+      <div class="disc" style="width:30px;height:30px;background:var(--pig3)"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="var(--ink)" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21V6"/><path d="M12 12c0-3.4 2.6-4.6 4.4-4.2"/><path d="M12 15c0-3.4-2.6-5-4.4-4.6"/></svg></div>
+      <div class="who"><div class="name">You</div><div class="agateS mut" style="margin-top:3px">10 rounds · best 79</div></div>
+      <div class="gapc col mut"><span>+9</span><span class="mvin"><span class="tri up"></span><span class="figS">2</span></span></div>
+      <div class="ptsc figM">95</div>
+    </div>
+  </div>
+  <div class="slat">
+    <div class="rail"><span class="figM mut">03</span></div>
+    <div class="slatbody">
+      <div class="disc" style="width:30px;height:30px;background:var(--pig4)"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="var(--mut)" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M9.2 7h5.6l-.9 10h-3.8z"/><path d="M14.8 9.2c2 0 2.4 3 0 3.6"/></svg></div>
+      <div class="who"><div class="name">P. Raghunathan</div><div class="agateS mut" style="margin-top:3px">12 rounds · best 81</div></div>
+      <div class="gapc col mut"><span>+11</span><span class="mvin"><span class="tri down"></span><span class="figS">1</span></span></div>
+      <div class="ptsc figM">93</div>
+    </div>
+  </div>
+  <div class="slat">
+    <div class="rail"><span class="figM mut">04</span></div>
+    <div class="slatbody">
+      <div class="disc" style="width:30px;height:30px;background:var(--pig2)"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="var(--mut)" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 14c3-4 5-4 8 0s5 4 8 0"/></svg></div>
+      <div class="who"><div class="name">D. Rana</div><div class="agateS mut" style="margin-top:3px">9 rounds · tied</div></div>
+      <div class="gapc col mut"><span>+18</span><span class="mvin"><span class="tri up"></span><span class="figS">1</span></span></div>
+      <div class="ptsc figM">86</div>
+    </div>
+  </div>
+  <div class="slat">
+    <div class="rail"><span class="figM mut">04</span></div>
+    <div class="slatbody">
+      <div class="disc" style="width:30px;height:30px;background:var(--pig0)"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="var(--mut)" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 16h17"/><path d="M3.5 16c3.5-7 13.5-7 17 0"/><path d="M9 16v-3.4M15 16v-3.4"/></svg></div>
+      <div class="who"><div class="name">M. Fenner</div><div class="agateS mut" style="margin-top:3px">9 rounds · tied</div></div>
+      <div class="gapc col mut"><span>+18</span><span class="mvin"><span class="held"></span></span></div>
+      <div class="ptsc figM">86</div>
+    </div>
+  </div>
+  <div class="slat">
+    <div class="rail"><span class="figM mut">06</span></div>
+    <div class="slatbody">
+      <div class="disc" style="width:30px;height:30px;background:var(--pig5)"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="var(--ink)" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M5.5 16.5c0-4.4 2.9-7.6 6.5-7.6s6.5 3.2 6.5 7.6"/><path d="M4.5 16.5h15"/><path d="M12 8.9V6.4"/></svg></div>
+      <div class="who"><div class="name">T. Bell</div><div class="agateS mut" style="margin-top:3px">8 rounds · best 84</div></div>
+      <div class="gapc col mut"><span>+21</span><span class="mvin"><span class="tri up"></span><span class="figS">3</span></span></div>
+      <div class="ptsc figM">83</div>
+    </div>
+  </div>
+  <div class="slat">
+    <div class="rail"><span class="figM mut">07</span></div>
+    <div class="slatbody">
+      <div class="disc" style="width:30px;height:30px;background:var(--pig1)"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="var(--mut)" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="6.5" y="6.5" width="11" height="11"/><circle cx="12" cy="12" r="2.1"/></svg></div>
+      <div class="who"><div class="name">B. Oyelaran-Reyes</div><div class="agateS mut" style="margin-top:3px">10 rounds · cooled</div></div>
+      <div class="gapc col mut"><span>+24</span><span class="mvin"><span class="tri down"></span><span class="figS">2</span></span></div>
+      <div class="ptsc figM">80</div>
+    </div>
+  </div>
+  <div class="slat">
+    <div class="rail"><span class="figM mut">08</span></div>
+    <div class="slatbody">
+      <div class="disc" style="width:30px;height:30px;background:var(--pig4)"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="var(--mut)" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="2.4"/><path d="M12 9.4c0-2.7 1.7-4.1 3.3-3.6M12 14.6c0-2.7-1.7-4.4-3.3-3.9M9.4 12c-2.7 0-4.2-1.6-3.7-3.2M14.6 12c2.7 0 4.4 1.7 3.9 3.3"/></svg></div>
+      <div class="who"><div class="name">Jade</div><div class="agateS mut" style="margin-top:3px">7 rounds · best 86</div></div>
+      <div class="gapc col mut"><span>+29</span><span class="mvin"><span class="held"></span></span></div>
+      <div class="ptsc figM">75</div>
+    </div>
+  </div>
+  <div class="slat">
+    <div class="rail"><span class="figM mut">09</span></div>
+    <div class="slatbody">
+      <div class="disc" style="width:30px;height:30px;background:var(--pig3)"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="var(--mut)" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M8 7.5h8"/><path d="M12 7.5v7"/><path d="M10.2 14.5h3.6"/></svg></div>
+      <div class="who"><div class="name">M. Oyelaran</div><div class="agateS mut" style="margin-top:3px">6 rounds · short</div></div>
+      <div class="gapc col mut"><span>+38</span><span class="mvin"><span class="tri up"></span><span class="figS">1</span></span></div>
+      <div class="ptsc figM">66</div>
+    </div>
+  </div>
+  <div class="slat">
+    <div class="rail"><span class="figM mut">10</span></div>
+    <div class="slatbody">
+      <div class="disc" style="width:30px;height:30px;background:var(--pig0)"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="var(--ink)" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="6.5" y="6.5" width="11" height="11"/><circle cx="12" cy="12" r="2.1"/></svg></div>
+      <div class="who"><div class="name">B. Trittipoe</div><div class="agateS mut" style="margin-top:3px">5 rounds · cooled</div></div>
+      <div class="gapc col mut"><span>+44</span><span class="mvin"><span class="tri down"></span><span class="figS">2</span></span></div>
+      <div class="ptsc figM">60</div>
+    </div>
+  </div>
+  <div class="slat">
+    <div class="rail"><span class="figM mut">11</span></div>
+    <div class="slatbody">
+      <div class="disc" style="width:30px;height:30px;background:var(--pig2)"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="var(--mut)" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="2.4"/><path d="M12 9.4c0-2.7 1.7-4.1 3.3-3.6M12 14.6c0-2.7-1.7-4.4-3.3-3.9M9.4 12c-2.7 0-4.2-1.6-3.7-3.2M14.6 12c2.7 0 4.4 1.7 3.9 3.3"/></svg></div>
+      <div class="who"><div class="name">A. Quintanilla</div><div class="agateS mut" style="margin-top:3px">4 rounds · best 92</div></div>
+      <div class="gapc col mut"><span>+52</span><span class="mvin"><span class="held"></span></span></div>
+      <div class="ptsc figM">52</div>
+    </div>
+  </div>
+  <div class="slat">
+    <div class="rail"><span class="figM mut">12</span></div>
+    <div class="slatbody">
+      <div class="disc" style="width:30px;height:30px;background:var(--pig5)"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="var(--mut)" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 14c3-4 5-4 8 0s5 4 8 0"/></svg></div>
+      <div class="who"><div class="name">R. Ocampo</div><div class="agateS mut" style="margin-top:3px">2 rounds · no number</div></div>
+      <div class="gapc col mut"><span>+73</span><span class="mvin"><span class="held"></span></span></div>
+      <div class="ptsc figM">31</div>
+    </div>
+  </div>
+  <div class="hair"></div>
+
+  <div class="fade"></div>
+  <div class="tabbar">
+    <div class="tab"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 11l8-6 8 6"/><path d="M6 10v9h12v-9"/></svg><div class="agateS">Home</div></div>
+    <div class="tab sel"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><use href="#mk-pin"/></svg><div class="agateS">Compete</div><div class="u"></div></div>
+    <div class="tab play"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 8v8M8 12h8"/></svg><div class="agateS">Play</div></div>
+    <div class="tab"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="9" r="3.2"/><path d="M3.5 19c.6-3.3 2.8-5 5.5-5s4.9 1.7 5.5 5"/><circle cx="17" cy="10" r="2.4"/><path d="M15 19c.4-2.4 1.8-3.6 3.6-3.6 1.2 0 2.2.5 2.9 1.5"/></svg><div class="agateS">Golfers</div></div>
+    <div class="tab"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="9" cy="11" r="2"/><path d="M5.5 16c.5-1.6 1.9-2.4 3.5-2.4s3 .8 3.5 2.4"/><path d="M15 10h4M15 13.5h4"/></svg><div class="agateS">You</div></div>
+  </div>
+</div>
+
+<!-- ================================================================= -->
+<!-- 4 · THE GOLFERS BOARD · FORM, NOT MOVEMENT                         -->
+<!-- ================================================================= -->
+<div class="artboard" id="leaderboard-lb-friends-form">
+  <div class="notch"></div>
+  <div class="status"><span>7:43</span><span style="font-size:13px">▮▮▮ ᯤ ▰</span></div>
+
+  <div class="wrap" style="margin-top:6px;display:flex;align-items:baseline;justify-content:space-between">
+    <div class="display">Golfers</div>
+    <div class="agate mut">Sun · Sep 6</div>
+  </div>
+
+  <div class="wrap" style="margin-top:14px">
+    <div style="height:50px;border-radius:10px;background:var(--bg2);display:flex;align-items:center;gap:10px;padding:0 14px">
+      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="var(--mut)" stroke-width="1.7" stroke-linecap="round"><circle cx="11" cy="11" r="6.5"/><path d="M16 16l4 4"/></svg>
+      <span class="bodyS mut">Search by name or @handle</span>
+    </div>
+  </div>
+
+  <div class="sechead" style="margin-top:20px"><div class="agate mut">The board · vs playing HCP · last 30 days</div><div class="hair"></div></div>
+  <div class="wrap" style="margin-top:12px;display:flex;gap:8px">
+    <span class="chip sel agateS">Form</span>
+    <span class="chip agateS">Handicap</span>
+  </div>
+
+  <div style="display:flex;align-items:center;padding:14px 20px 6px">
+    <span class="agateS mut" style="margin-left:auto">Vs your number · lower is better</span>
+  </div>
+
+  <div class="slat" style="min-height:60px">
+    <div class="rail"><span class="figM mut">01</span></div>
+    <div class="slatbody">
+      <div class="disc" style="width:38px;height:38px;background:var(--pig1)"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="var(--mut)" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M7 21V4"/><path d="M7 5h9l-2.6 3.4L16 12H7"/></svg></div>
+      <div class="who"><div class="name">Galen Marr</div><div class="agateS mut sent" style="margin-top:4px">3 rounds</div></div>
+      <div style="width:124px;text-align:right;flex:none">
+        <div class="figS">−1.8</div>
+        <div class="agateS mut" style="margin-top:5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">A little loose</div>
+      </div>
+    </div>
+  </div>
+  <div class="slat" style="min-height:60px">
+    <div class="rail mine"><span class="figM">02</span></div>
+    <div class="slatbody">
+      <div class="disc" style="width:38px;height:38px;background:var(--pig3)"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="var(--ink)" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21V6"/><path d="M12 12c0-3.4 2.6-4.6 4.4-4.2"/><path d="M12 15c0-3.4-2.6-5-4.4-4.6"/></svg></div>
+      <div class="who"><div class="name">You</div><div class="agateS mut sent" style="margin-top:4px">2 rounds</div></div>
+      <div style="width:124px;text-align:right;flex:none">
+        <div class="figS">−0.4</div>
+        <div class="agateS mut" style="margin-top:5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Beat your number</div>
+      </div>
+    </div>
+  </div>
+  <div class="slat" style="min-height:60px">
+    <div class="rail"><span class="figM mut">03</span></div>
+    <div class="slatbody">
+      <div class="disc" style="width:38px;height:38px;background:var(--pig4)"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="var(--mut)" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="2.4"/><path d="M12 9.4c0-2.7 1.7-4.1 3.3-3.6M12 14.6c0-2.7-1.7-4.4-3.3-3.9M9.4 12c-2.7 0-4.2-1.6-3.7-3.2M14.6 12c2.7 0 4.4 1.7 3.9 3.3"/></svg></div>
+      <div class="who"><div class="name">Jade</div><div class="agateS mut sent" style="margin-top:4px">1 round</div></div>
+      <div style="width:124px;text-align:right;flex:none">
+        <div class="figS">+0.9</div>
+        <div class="agateS mut" style="margin-top:5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Played to it</div>
+      </div>
+    </div>
+  </div>
+  <div class="slat" style="min-height:60px">
+    <div class="rail"><span class="figM mut">04</span></div>
+    <div class="slatbody">
+      <div class="disc" style="width:38px;height:38px;background:var(--pig5)"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="var(--ink)" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M5.5 16.5c0-4.4 2.9-7.6 6.5-7.6s6.5 3.2 6.5 7.6"/><path d="M4.5 16.5h15"/><path d="M12 8.9V6.4"/></svg></div>
+      <div class="who"><div class="name">Tash Bell</div><div class="agateS mut sent" style="margin-top:4px">2 rounds</div></div>
+      <div style="width:124px;text-align:right;flex:none">
+        <div class="figS">+4.2</div>
+        <div class="agateS mut" style="margin-top:5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Posted anyway</div>
+      </div>
+    </div>
+  </div>
+  <div class="slat" style="min-height:60px">
+    <div class="rail"><span class="figM mut">05</span></div>
+    <div class="slatbody">
+      <div class="disc" style="width:38px;height:38px;background:var(--pig2)"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="var(--mut)" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 14c3-4 5-4 8 0s5 4 8 0"/></svg></div>
+      <div class="who"><div class="name">Dev Rana</div><div class="agateS mut sent" style="margin-top:4px">1 round</div></div>
+      <div style="width:124px;text-align:right;flex:none">
+        <div class="figS">+6.1</div>
+        <div class="agateS mut" style="margin-top:5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Posted anyway</div>
+      </div>
+    </div>
+  </div>
+  <div class="slat" style="min-height:60px">
+    <div class="rail"><span class="figM mut">06</span></div>
+    <div class="slatbody">
+      <div class="disc" style="width:38px;height:38px;background:var(--pig0)"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="var(--mut)" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 16h17"/><path d="M3.5 16c3.5-7 13.5-7 17 0"/><path d="M9 16v-3.4M15 16v-3.4"/></svg></div>
+      <div class="who"><div class="name">Mike Fenner</div><div class="agateS mut sent" style="margin-top:4px">No rounds in the window</div></div>
+      <div style="width:124px;text-align:right;flex:none">
+        <div class="figS mut">—</div>
+        <div class="agateS mut" style="margin-top:5px">Nothing yet</div>
+      </div>
+    </div>
+  </div>
+  <div class="hair"></div>
+
+  <div class="wrap"><div class="bodyS mut" style="margin-top:12px;font-size:15px">Your buddies, by how they are playing. No badges, no streaks — just rounds.</div></div>
+
+  <div class="fade"></div>
+  <div class="tabbar">
+    <div class="tab"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 11l8-6 8 6"/><path d="M6 10v9h12v-9"/></svg><div class="agateS">Home</div></div>
+    <div class="tab"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><use href="#mk-pin"/></svg><div class="agateS">Compete</div></div>
+    <div class="tab play"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 8v8M8 12h8"/></svg><div class="agateS">Play</div></div>
+    <div class="tab sel"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="9" r="3.2"/><path d="M3.5 19c.6-3.3 2.8-5 5.5-5s4.9 1.7 5.5 5"/><circle cx="17" cy="10" r="2.4"/><path d="M15 19c.4-2.4 1.8-3.6 3.6-3.6 1.2 0 2.2.5 2.9 1.5"/></svg><div class="agateS">Golfers</div><div class="u"></div></div>
+    <div class="tab"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="9" cy="11" r="2"/><path d="M5.5 16c.5-1.6 1.9-2.4 3.5-2.4s3 .8 3.5 2.4"/><path d="M15 10h4M15 13.5h4"/></svg><div class="agateS">You</div></div>
+  </div>
+</div>
+
+<!-- ================================================================= -->
+<!-- 5 · THE LIVE SHEET — THE HOLE STRIP AND THE SCORE OBJECT           -->
+<!-- ================================================================= -->
+<div class="artboard" id="leaderboard-lb-live">
+  <div class="notch"></div>
+  <div class="status"><span>7:47</span><span style="font-size:13px">▮▮▮ ᯤ ▰</span></div>
+
+  <div class="wrap" style="display:flex;justify-content:flex-end;height:32px;align-items:flex-start">
+    <span class="link nameS">Close</span>
+  </div>
+
+  <div class="wrap" style="margin-top:14px">
+    <div class="agate em" style="display:flex;align-items:center;gap:7px">
+      <span style="width:7px;height:7px;border-radius:50%;background:var(--brand);display:inline-block"></span>
+      Live · Papago · Blue · 71.2 / 128</div>
+  </div>
+
+  <div class="wrap" style="margin-top:16px;display:flex;align-items:center;gap:12px">
+    <div style="width:44px;height:44px;border-radius:10px;background:var(--bg2);display:flex;align-items:center;justify-content:center;flex:none">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--ink)" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M14 5l-7 7 7 7"/></svg>
+    </div>
+    <div style="flex:1;text-align:center">
+      <div class="display">Hole 15</div>
+      <div class="agateS mut" style="margin-top:6px">Par 4 · SI 14 · 402 yds</div>
+    </div>
+    <div style="width:44px;height:44px;border-radius:10px;background:var(--bg2);display:flex;align-items:center;justify-content:center;flex:none">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--ink)" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M10 5l7 7-7 7"/></svg>
+    </div>
+  </div>
+
+  <!-- the hole strip: your card, hole by hole, in the scorecard's own ink law -->
+  <div class="wrap" style="margin-top:20px">
+    <div class="holestrip">
+      <div class="hcell"><span class="mark box" style="width:15px;height:15px"></span></div>
+      <div class="hcell"><span class="mark ring" style="width:15px;height:15px"></span></div>
+      <div class="hcell"><span class="par"></span></div>
+      <div class="hcell"><span class="par"></span></div>
+      <div class="hcell"><span class="mark ring" style="width:15px;height:15px"></span></div>
+      <div class="hcell"><span class="par"></span></div>
+      <div class="hcell"><span class="mark box" style="width:15px;height:15px"></span></div>
+      <div class="hcell"><span class="mark box" style="width:15px;height:15px"></span></div>
+      <div class="hcell"><span class="par"></span></div>
+      <div class="hcell"><span class="par"></span></div>
+      <div class="hcell"><span class="mark ring" style="width:15px;height:15px"></span></div>
+      <div class="hcell"><span class="mark box" style="width:15px;height:15px"></span></div>
+      <div class="hcell"><span class="par"></span></div>
+      <div class="hcell"><span class="mark box" style="width:15px;height:15px"></span></div>
+      <div class="hcell now"><span class="unp"></span></div>
+      <div class="hcell"><span class="unp"></span></div>
+      <div class="hcell"><span class="unp"></span></div>
+      <div class="hcell"><span class="unp"></span></div>
+    </div>
+    <div style="height:1px;background:var(--rule);margin-top:8px"></div>
+    <div style="display:flex;justify-content:space-between;margin-top:8px">
+      <div class="agateS mut sent" style="display:flex;align-items:center;gap:11px">
+        <span style="display:inline-flex;align-items:center;gap:4px"><span class="mark ring" style="width:11px;height:11px"></span>under</span>
+        <span style="display:inline-flex;align-items:center;gap:4px"><span class="par" style="width:5px;height:5px"></span>level</span>
+        <span style="display:inline-flex;align-items:center;gap:4px"><span class="mark box" style="width:11px;height:11px"></span>over</span>
+      </div>
+      <div class="agateS mut sent">Your card · 55 thru 14</div>
+    </div>
+  </div>
+
+  <div style="margin-top:16px"></div>
+
+  <!-- four golfers, each with the hole's score as an object -->
+  <div class="slat" style="min-height:70px;border-top:1px solid var(--rule)">
+    <div class="slatbody" style="padding:0 20px;gap:10px">
+      <div class="disc" style="width:38px;height:38px;background:var(--pig3)"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="var(--ink)" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21V6"/><path d="M12 12c0-3.4 2.6-4.6 4.4-4.2"/><path d="M12 15c0-3.4-2.6-5-4.4-4.6"/></svg></div>
+      <div class="who"><div class="name">You</div><div class="agateS mut" style="margin-top:4px">2 strokes · 55 thru 14</div></div>
+      <div class="step"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--ink)" stroke-width="2" stroke-linecap="round"><path d="M6 12h12"/></svg></div>
+      <div style="width:52px;text-align:center;flex:none">
+        <div class="figM dimc">—</div>
+        <div style="height:2px;background:var(--rule);margin-top:6px"></div>
+        <div class="agateS mut" style="margin-top:5px" aria-hidden="true">&nbsp;</div>
+      </div>
+      <div class="step"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--ink)" stroke-width="2" stroke-linecap="round"><path d="M6 12h12M12 6v12"/></svg></div>
+    </div>
+  </div>
+  <div class="slat" style="min-height:70px">
+    <div class="slatbody" style="padding:0 20px;gap:10px">
+      <div class="disc" style="width:38px;height:38px;background:var(--pig1)"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="var(--mut)" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M7 21V4"/><path d="M7 5h9l-2.6 3.4L16 12H7"/></svg></div>
+      <div class="who"><div class="name">Galen Marr</div><div class="agateS mut" style="margin-top:4px">6 strokes · 58 thru 14</div></div>
+      <div class="step"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--ink)" stroke-width="2" stroke-linecap="round"><path d="M6 12h12"/></svg></div>
+      <div style="width:52px;text-align:center;flex:none">
+        <div class="figM">3</div>
+        <div style="height:2px;background:var(--ink);margin-top:6px"></div>
+        <div class="agateS mut" style="margin-top:5px" aria-hidden="true">&nbsp;</div>
+      </div>
+      <div class="step"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--ink)" stroke-width="2" stroke-linecap="round"><path d="M6 12h12M12 6v12"/></svg></div>
+    </div>
+  </div>
+  <div class="slat" style="min-height:70px">
+    <div class="slatbody" style="padding:0 20px;gap:10px">
+      <div class="disc" style="width:38px;height:38px;background:var(--pig4)"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="var(--mut)" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="2.4"/><path d="M12 9.4c0-2.7 1.7-4.1 3.3-3.6M12 14.6c0-2.7-1.7-4.4-3.3-3.9M9.4 12c-2.7 0-4.2-1.6-3.7-3.2M14.6 12c2.7 0 4.4 1.7 3.9 3.3"/></svg></div>
+      <div class="who"><div class="name">Jade</div><div class="agateS mut" style="margin-top:4px">No strokes · 57 thru 14</div></div>
+      <div class="step"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--ink)" stroke-width="2" stroke-linecap="round"><path d="M6 12h12"/></svg></div>
+      <div style="width:52px;text-align:center;flex:none">
+        <div class="figM">5</div>
+        <div style="height:2px;background:var(--ink);margin-top:6px"></div>
+        <div class="agateS mut" style="margin-top:5px" aria-hidden="true">&nbsp;</div>
+      </div>
+      <div class="step"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--ink)" stroke-width="2" stroke-linecap="round"><path d="M6 12h12M12 6v12"/></svg></div>
+    </div>
+  </div>
+  <div class="slat" style="min-height:70px">
+    <div class="slatbody" style="padding:0 20px;gap:10px">
+      <div class="disc" style="width:38px;height:38px;background:var(--pig5)"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="var(--ink)" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M5.5 16.5c0-4.4 2.9-7.6 6.5-7.6s6.5 3.2 6.5 7.6"/><path d="M4.5 16.5h15"/><path d="M12 8.9V6.4"/></svg></div>
+      <div class="who"><div class="name">Tash Bell <span class="agateS mut">Guest</span></div><div class="agateS mut" style="margin-top:4px">12 strokes · 61 thru 14</div></div>
+      <div class="step"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--ink)" stroke-width="2" stroke-linecap="round"><path d="M6 12h12"/></svg></div>
+      <div style="width:52px;text-align:center;flex:none">
+        <div class="figM dimc">—</div>
+        <div style="height:2px;background:var(--rule);margin-top:6px"></div>
+        <div class="agateS mut" style="margin-top:5px" aria-hidden="true">&nbsp;</div>
+      </div>
+      <div class="step"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--ink)" stroke-width="2" stroke-linecap="round"><path d="M6 12h12M12 6v12"/></svg></div>
+    </div>
+  </div>
+  <div class="hair"></div>
+
+  <div class="wrap" style="margin-top:16px;display:flex;align-items:flex-end;justify-content:space-between">
+    <div>
+      <div class="agateS mut">Match play · net best ball</div>
+      <div class="name" style="margin-top:6px">All square · thru 14</div>
+    </div>
+    <div><span class="link nameS">The scorecard</span></div>
+  </div>
+
+  <!-- the number to beat, hole by hole — what the foursome is actually asking at 15 -->
+  <div class="sechead" style="margin-top:16px"><div class="agate mut">To win this hole</div><div class="hair"></div></div>
+  <div style="margin-top:2px">
+    <div class="hair"></div>
+    <div class="wrap" style="display:flex;align-items:center;height:44px"><span class="nameS">You</span><span class="agateS mut sent" style="margin-left:auto">net 3 beats it</span></div>
+    <div class="hair" style="margin-left:20px"></div>
+    <div class="wrap" style="display:flex;align-items:center;height:44px"><span class="nameS">Galen Marr</span><span class="agateS mut sent" style="margin-left:auto">in for net 3</span></div>
+    <div class="hair" style="margin-left:20px"></div>
+    <div class="wrap" style="display:flex;align-items:center;height:44px"><span class="nameS">Jade</span><span class="agateS mut sent" style="margin-left:auto">net 5 · out of it</span></div>
+  </div>
+
+  <div class="wrap" style="position:absolute;left:0;right:0;bottom:18px">
+    <div class="btn btnP name">Finish the round</div>
+  </div>
+  <div class="fade notab" style="bottom:78px"></div>
+</div>
+
+<!-- ================================================================= -->
+<!-- 6 · THE SCORE AS AN OBJECT, AND THE RECEIPT                        -->
+<!-- ================================================================= -->
+<div class="artboard" id="leaderboard-lb-score-object">
+  <div class="notch"></div>
+  <div class="status"><span>7:46</span><span style="font-size:13px">▮▮▮ ᯤ ▰</span></div>
+
+  <div class="wrap" style="display:flex;justify-content:flex-end;height:32px;align-items:flex-start">
+    <span class="link nameS">Close</span>
+  </div>
+
+  <div class="wrap" style="margin-top:12px">
+    <div class="agate mut">Papago · Blue · Sun Sep 6</div>
+    <div class="title" style="margin-top:8px">Your round</div>
+  </div>
+
+  <!-- the figure -->
+  <div class="wrap" style="margin-top:20px;display:flex;align-items:flex-end;gap:24px">
+    <div class="rf" style="flex:none">
+      <div class="figXL">74</div>
+      <div class="r" style="width:104px"></div>
+      <div class="agateS mut">Gross · 18 holes</div>
+    </div>
+    <div class="rf" style="flex:none;padding-bottom:2px">
+      <div class="fig">12</div>
+      <div class="r" style="width:56px"></div>
+      <div class="agateS mut">Points</div>
+    </div>
+  </div>
+  <div class="wrap" style="margin-top:18px">
+    <div class="body">You beat your playing HCP by <span class="run" style="font-size:19px">7.6</span> — your best of the season.</div>
+  </div>
+
+  <!-- the receipt: the leaf, because it is a printed grid -->
+  <div class="sechead" style="margin-top:24px"><div class="agate mut">The receipt</div><div class="hair"></div></div>
+  <div class="wrap" style="margin-top:12px">
+    <div class="leaf" style="padding:16px 16px 18px">
+      <div style="display:flex;justify-content:space-between;align-items:baseline">
+        <span class="agateS" style="color:var(--leafMut)">What this round was worth</span>
+        <span class="agateS" style="color:var(--leafMut)">Sun · Sep 6</span>
+      </div>
+      <div style="height:1px;background:rgba(26,27,20,.22);margin:11px 0 2px"></div>
+
+      <div style="display:flex;justify-content:space-between;align-items:baseline;padding:8px 0">
+        <span class="bodyS" style="color:var(--leafInk);font-size:14px">The course</span>
+        <span class="col" style="color:var(--leafInk)">71.2 / 128</span>
+      </div>
+      <div style="display:flex;justify-content:space-between;align-items:baseline;padding:8px 0;border-top:1px solid rgba(26,27,20,.12)">
+        <span class="bodyS" style="color:var(--leafMut);font-size:14px">Your index that day</span>
+        <span class="col" style="color:var(--leafMut)">10.6</span>
+      </div>
+      <div style="display:flex;justify-content:space-between;align-items:baseline;padding:8px 0;border-top:1px solid rgba(26,27,20,.12)">
+        <span class="bodyS" style="color:var(--leafMut);font-size:14px">Playing HCP · 95%</span>
+        <span class="col" style="color:var(--leafMut)">10.1</span>
+      </div>
+      <div style="display:flex;justify-content:space-between;align-items:baseline;padding:8px 0;border-top:1px solid rgba(26,27,20,.12)">
+        <span class="colS" style="color:var(--leafMut)">74 − 71.2 × 113 ⁄ 128</span>
+        <span class="col" style="color:var(--leafMut)">2.5 vs the course</span>
+      </div>
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;padding:9px 0;border-top:1px solid rgba(26,27,20,.12)">
+        <span class="bodyS" style="color:var(--leafInk);font-size:14px">Against your playing HCP</span>
+        <span style="text-align:right">
+          <span class="figS" style="color:var(--leafInk)">−7.6</span>
+          <div class="agateS" style="color:var(--leafMut);margin-top:4px">Beat your number</div>
+        </span>
+      </div>
+      <div style="display:flex;justify-content:space-between;align-items:baseline;padding:10px 0 2px;border-top:2px solid var(--leafInk);margin-top:4px">
+        <span class="name" style="color:var(--leafInk)">Points</span>
+        <span class="figS" style="color:var(--leafInk)">12</span>
+      </div>
+      <div style="display:flex;justify-content:space-between;align-items:baseline;padding-top:8px">
+        <span class="agateS" style="color:var(--leafMut)">This month</span>
+        <span class="agateS" style="color:var(--leafInk)">Counting #2 of 4</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="wrap" style="margin-top:14px;display:flex;justify-content:space-between;align-items:baseline">
+    <span class="link nameS">See the scorecard</span>
+    <span class="agateS mut">Played with Galen, Tash</span>
+  </div>
+</div>
+
+<!-- ================================================================= -->
+<!-- 7 · THE BOARD IN LIGHT — THE MORNING TEE SHEET                     -->
+<!-- ================================================================= -->
+<div class="artboard paper" id="leaderboard-lb-light">
+  <div class="notch"></div>
+  <div class="status"><span>7:39</span><span style="font-size:13px">▮▮▮ ᯤ ▰</span></div>
+  <div class="wrap" style="height:28px"><svg width="12" height="20" viewBox="0 0 12 20" fill="none" stroke="var(--mut)" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M9 3L3 10l6 7"/></svg></div>
+
+  <div class="wrap" style="margin-top:6px">
+    <div class="agate em" style="display:flex;align-items:center;gap:7px">
+      <span style="width:7px;height:7px;border-radius:50%;background:var(--brand);display:inline-block"></span>
+      Season live · week 5 of 13</div>
+    <div class="display" style="margin-top:9px">The Fellas</div>
+    <div class="story" style="margin-top:11px">Galen leads by four. You are a good weekend back.</div>
+    <!-- the month clock, the SAME component the season page carries: weeks grouped by month, months named -->
+    <div style="display:flex;gap:12px;margin-top:15px">
+      <div style="flex:4"><div style="display:flex;gap:5px"><div style="flex:1;height:8px;background:var(--mut)"></div><div style="flex:1;height:8px;background:var(--mut)"></div><div style="flex:1;height:8px;background:var(--mut)"></div><div style="flex:1;height:8px;background:var(--mut)"></div></div>
+        <div class="agateS mut" style="margin-top:8px">Aug</div></div>
+      <div style="flex:5"><div style="display:flex;gap:5px"><div style="flex:1;height:8px;background:var(--brand)"></div><div style="flex:1;height:8px;background:var(--rule)"></div><div style="flex:1;height:8px;background:var(--rule)"></div><div style="flex:1;height:8px;background:var(--rule)"></div><div style="flex:1;height:8px;background:var(--rule)"></div></div>
+        <div class="agateS em" style="margin-top:8px">Sep · 25 days</div></div>
+      <div style="flex:4"><div style="display:flex;gap:5px"><div style="flex:1;height:8px;background:var(--rule)"></div><div style="flex:1;height:8px;background:var(--rule)"></div><div style="flex:1;height:8px;background:var(--rule)"></div><div style="flex:1;height:8px;background:var(--rule)"></div></div>
+        <div class="agateS mut" style="margin-top:8px">Oct</div></div>
+    </div>
+    <div class="agateS mut" style="margin-top:10px">Best four a month count · 1 posted · 25 days left</div>
+  </div>
+
+  <div class="sechead" style="margin-top:18px"><div class="agate mut">The table · moved since Sun</div><div class="hair"></div></div>
+  <div class="colhead agateS">
+    <div class="h1">Pos</div><div class="h2">Golfer</div>
+    <div class="h4">Gap</div><div class="h5">Pts</div>
+  </div>
+
+  <div class="slat">
+    <div class="rail gold"><span class="figM">01</span></div>
+    <div class="slatbody">
+      <div class="disc" style="width:30px;height:30px;background:var(--pig1)"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="var(--mut)" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M7 21V4"/><path d="M7 5h9l-2.6 3.4L16 12H7"/></svg></div>
+      <div class="who"><div class="name">Galen Marr</div><div class="agateS mut" style="margin-top:3px">3 rounds · best 79</div></div>
+      <div class="gapc col mut"><span class="held"></span></div>
+      <div class="ptsc figM gold">19</div>
+    </div>
+  </div>
+  <div class="slat">
+    <div class="rail mine"><span class="figM">02</span></div>
+    <div class="slatbody">
+      <div class="disc" style="width:30px;height:30px;background:var(--pig3)"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="var(--ink)" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21V6"/><path d="M12 12c0-3.4 2.6-4.6 4.4-4.2"/><path d="M12 15c0-3.4-2.6-5-4.4-4.6"/></svg></div>
+      <div class="who"><div class="name">You</div><div class="agateS mut" style="margin-top:3px">1 round this month</div></div>
+      <div class="gapc col mut"><span>+4</span><span class="mvin"><span class="tri up"></span><span class="figS">2</span></span></div>
+      <div class="ptsc figM">15</div>
+    </div>
+  </div>
+  <div class="slat">
+    <div class="rail"><span class="figM mut">03</span></div>
+    <div class="slatbody">
+      <div class="disc" style="width:30px;height:30px;background:var(--pig4)"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="var(--mut)" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="2.4"/><path d="M12 9.4c0-2.7 1.7-4.1 3.3-3.6M12 14.6c0-2.7-1.7-4.4-3.3-3.9M9.4 12c-2.7 0-4.2-1.6-3.7-3.2M14.6 12c2.7 0 4.4 1.7 3.9 3.3"/></svg></div>
+      <div class="who"><div class="name">Jade</div><div class="agateS mut" style="margin-top:3px">4 rounds · cooled</div></div>
+      <div class="gapc col mut"><span>+9</span><span class="mvin"><span class="tri down"></span><span class="figS">1</span></span></div>
+      <div class="ptsc figM">10</div>
+    </div>
+  </div>
+  <div class="slat">
+    <div class="rail"><span class="figM mut">04</span></div>
+    <div class="slatbody">
+      <div class="disc" style="width:30px;height:30px;background:var(--pig2)"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="var(--mut)" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 14c3-4 5-4 8 0s5 4 8 0"/></svg></div>
+      <div class="who"><div class="name">Dev Rana</div><div class="agateS mut" style="margin-top:3px">2 rounds · best 88</div></div>
+      <div class="gapc col mut"><span>+12</span><span class="mvin"><span class="held"></span></span></div>
+      <div class="ptsc figM">7</div>
+    </div>
+  </div>
+  <div class="slat">
+    <div class="rail"><span class="figM mut">05</span></div>
+    <div class="slatbody">
+      <div class="disc" style="width:30px;height:30px;background:var(--pig5)"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="var(--ink)" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M5.5 16.5c0-4.4 2.9-7.6 6.5-7.6s6.5 3.2 6.5 7.6"/><path d="M4.5 16.5h15"/><path d="M12 8.9V6.4"/></svg></div>
+      <div class="who"><div class="name">Tash Bell</div><div class="agateS mut" style="margin-top:3px">2 of 4 counting · two short</div></div>
+      <div class="gapc col mut"><span>+13</span><span class="mvin"><span class="tri up"></span><span class="figS">1</span></span></div>
+      <div class="ptsc figM">6</div>
+    </div>
+  </div>
+  <div class="slat">
+    <div class="rail"><span class="figM mut">06</span></div>
+    <div class="slatbody">
+      <div class="disc" style="width:30px;height:30px;background:var(--pig0)"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="var(--mut)" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 16h17"/><path d="M3.5 16c3.5-7 13.5-7 17 0"/><path d="M9 16v-3.4M15 16v-3.4"/></svg></div>
+      <div class="who"><div class="name">Mike Fenner</div><div class="agateS mut" style="margin-top:3px">1 round · no number</div></div>
+      <div class="gapc col mut"><span>+15</span><span class="mvin"><span class="held"></span></span></div>
+      <div class="ptsc figM">4</div>
+    </div>
+  </div>
+  <div class="hair"></div>
+
+  <div class="wrap" style="margin-top:16px;display:flex;align-items:flex-end;gap:16px">
+    <div class="rf earned">
+      <div class="fig gold">$480</div>
+      <div class="r"></div>
+      <div class="agateS mut">The pot · 8 in at $60 · 288 / 120 / 72</div>
+    </div>
+    <div style="flex:1;text-align:right;padding-bottom:4px"><span class="link nameS">The split</span></div>
+  </div>
+
+  <div class="fade"></div>
+  <div class="tabbar">
+    <div class="tab"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 11l8-6 8 6"/><path d="M6 10v9h12v-9"/></svg><div class="agateS">Home</div></div>
+    <div class="tab sel"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><use href="#mk-pin"/></svg><div class="agateS">Compete</div><div class="u"></div></div>
+    <div class="tab play"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 8v8M8 12h8"/></svg><div class="agateS">Play</div></div>
+    <div class="tab"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="9" r="3.2"/><path d="M3.5 19c.6-3.3 2.8-5 5.5-5s4.9 1.7 5.5 5"/><circle cx="17" cy="10" r="2.4"/><path d="M15 19c.4-2.4 1.8-3.6 3.6-3.6 1.2 0 2.2.5 2.9 1.5"/></svg><div class="agateS">Golfers</div></div>
+    <div class="tab"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="9" cy="11" r="2"/><path d="M5.5 16c.5-1.6 1.9-2.4 3.5-2.4s3 .8 3.5 2.4"/><path d="M15 10h4M15 13.5h4"/></svg><div class="agateS">You</div></div>
+  </div>
+</div>
+
+</body></html>
