@@ -120,6 +120,18 @@ public struct DispatchSnapshot: Codable, Sendable, Equatable {
     return try? JSONDecoder().decode(DispatchSnapshot.self, from: data)
   }
 
+  /// P3f · the HOME SCREEN is not behind a session. The snapshot is a season
+  /// row, an index, a last round and a lead headline sitting on a widget that
+  /// anyone holding the phone can read, and it survived a sign-out — so a
+  /// golfer who signed out kept broadcasting their season to the next person
+  /// to pick the phone up. `SessionStore.signOut()` clears it. The offline
+  /// COURSE books are different and deliberately outlive a sign-out (OE-2):
+  /// they sit inside the app behind a session, and every door onto them does
+  /// too. A widget has no door.
+  public static func forget(_ defaults: UserDefaults? = UserDefaults(suiteName: CSAppGroup.id)) {
+    defaults?.removeObject(forKey: CSAppGroup.snapshotKey)
+  }
+
   @discardableResult
   public func write(_ defaults: UserDefaults? = UserDefaults(suiteName: CSAppGroup.id)) -> Bool {
     guard let d = defaults, let data = try? JSONEncoder().encode(self) else { return false }

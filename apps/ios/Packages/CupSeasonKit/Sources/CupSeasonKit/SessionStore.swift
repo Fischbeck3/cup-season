@@ -163,6 +163,13 @@ public final class SessionStore {
     // `CourseBookStore.claim(_:)`, on the first `.ready` of a sign-in. Deleting
     // them here meant a mis-tap on `Boot stalled`, offline, destroyed the only
     // thing the app could still show. Nothing signed-out can read them.
+    //
+    // P3f · the WIDGET's snapshot is cleared here, and the difference is the
+    // door. The course books sit inside the app behind a session; the home
+    // screen has no session, so a season row, an index and a lead headline
+    // left on a widget is a signed-out golfer still broadcasting to whoever
+    // picks the phone up. The next successful Home writes it again.
+    DispatchSnapshot.forget()
     state = .signedOut
   }
 
