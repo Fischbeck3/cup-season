@@ -24,6 +24,13 @@ final class YouModel {
     loaded = true
   }
 
+  /// D262 · the bag rides in on its own, AFTER the card. nil is "the read did
+  /// not happen" — a database this migration has not reached, or no signal —
+  /// and the row is not drawn at all in that case. A door to a bag that
+  /// cannot be opened is the one thing not permitted (L-32).
+  var bag: Bag?
+  func loadBag() async { bag = await BagService().load() }
+
   /// `delete_round`, then a full reload of the card — Y-19 dropped the
   /// `handicap_index` read that used to follow the delete and changed nothing.
   func deleteRound(_ r: RoundRow, me: Me, uid: UUID, leagueId: UUID?) async -> Bool {
@@ -93,13 +100,27 @@ struct YouScreen: View {
           // own row, and this says so before you open it.
           // Y-27 · no CSSectionHead here: the row below already says "Your
           // buddies", and a head that repeats its one row is one fact twice.
-          CSRow(last: true) {
+          CSRow(last: model.bag == nil) {
             YouDoorRow(glyph: Text(Image(systemName: "person.2")),
                        title: "Your buddies",
                        sub: reqs.requests.isEmpty
                             ? "Find golfers, see who you play with"
                             : "\(reqs.requests.count) request\(reqs.requests.count == 1 ? "" : "s") waiting",
                        action: links.openBuddies)
+          }
+
+          // D262 · R-O · the bag. It sits beside the buddies door because both
+          // are DOORS on a page that is otherwise all reading, and because a
+          // bag is part of the card rather than part of the record. It renders
+          // only once the read has answered — see `YouModel.bag`.
+          if let bag = model.bag, let open = links.openBag {
+            CSRow(last: true) {
+              YouDoorRow(glyph: Text(Image(systemName: "bag")),
+                         title: BagCopy.yours,
+                         sub: bag.isEmpty ? BagCopy.emptySub : BagCopy.summary(bag),
+                         action: open)
+                .accessibilityHint("Opens your bag")
+            }
           }
 
           if let lrw = model.data.lastRoundWith {
@@ -213,7 +234,7 @@ struct YouScreen: View {
     .toolbar(.hidden, for: .navigationBar)
     .sliceToastHost()
     .refreshable { await reload() }
-    .task(id: store.me?.profile?.id) { await reload(); await reqs.load() }
+    .task(id: store.me?.profile?.id) { await reload(); await reqs.load(); await model.loadBag() }
     #if DEBUG
     // Developer hatch: `-cs_dev_scroll <anchor>` (case · alltime · recent ·
     // seasons) scrolls a simulator there — the same door LeagueRoomScreen has,
@@ -235,6 +256,7 @@ struct YouScreen: View {
   private func reload() async {
     guard let me = store.me, let uid else { return }
     await model.load(me: me, uid: uid, leagueId: leagueId)
+    await model.loadBag()
   }
 
   /// What is behind the door, in facts the page already holds — never a

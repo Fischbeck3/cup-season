@@ -147,7 +147,20 @@ public struct HomeStreamRepository: Sendable {
     // different stories and only this call can tell them apart.
     async let feed: [HomeFeedRow]? = try? svc.call(Rpc.home_feed(p_days: 21))
     async let posts: [HomePost] = ids.isEmpty ? [] : loadPosts(ids)
-    let (read, moments) = await (feed, posts)
+    // D262 · THE PERSON RAIL GETS ITS FIRST READER. D238 gave a post the right
+    // to be homed on a golfer instead of a league — the rail a leagueless
+    // golfer's milestones and a bag change ride — and nothing has ever read
+    // one: both clients filtered the board by `league_id`, so every
+    // profile-homed post written since has gone nowhere. The circle's own
+    // rounds already arrive through `home_feed`, so `round` stays out here or
+    // the same round would be told twice; `chat` stays out for the same reason
+    // it does in the league read.
+    async let personal: [HomePost] = loadPersonPosts()
+    let (read, leaguePosts, personPosts) = await (feed, posts, personal)
+    // deduped by id: nothing writes a post that is homed on a league AND a
+    // person today, but a list that renders by id must not depend on that.
+    var seenPosts = Set<UUID>()
+    let moments = (leaguePosts + personPosts).filter { seenPosts.insert($0.id).inserted }
     let rows = read ?? []
 
     // one batched signing per load: the circle's photo paths → hour URLs
@@ -174,6 +187,26 @@ public struct HomeStreamRepository: Sendable {
     func read(_ columns: String) async throws -> [HomePost] {
       try await svc.client.from("posts").select(columns)
         .in("league_id", values: ids).neq("kind", value: "chat").neq("kind", value: "round")
+        .order("created_at", ascending: false).limit(20).execute().value
+    }
+    if let full = try? await read(Self.postColumns + ", scheduled_round_id") { return full }
+    return (try? await read(Self.postColumns)) ?? []
+  }
+
+  /// D262 · the person-homed posts this viewer may see. There is no id list to
+  /// pass: `posts_profile_read` (D238) IS the filter — self, an accepted
+  /// buddy, a shared league, a shared event, or a golfer discoverable to
+  /// everyone, minus anyone muted — which is the Tour Card's own circle, so
+  /// the client cannot widen it by asking wrong.
+  ///
+  /// A database that predates `posts.profile_id` answers with an error, and an
+  /// error here is an empty list rather than a broken Home (deploy skew, both
+  /// directions).
+  func loadPersonPosts() async -> [HomePost] {
+    func read(_ columns: String) async throws -> [HomePost] {
+      try await svc.client.from("posts").select(columns)
+        .not("profile_id", operator: .is, value: "null")
+        .neq("kind", value: "chat").neq("kind", value: "round")
         .order("created_at", ascending: false).limit(20).execute().value
     }
     if let full = try? await read(Self.postColumns + ", scheduled_round_id") { return full }

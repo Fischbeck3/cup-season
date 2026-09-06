@@ -2246,6 +2246,24 @@ body:not(.noleague) #hubLeagueless{display:none;}
 .cbtable th{text-align:left; padding:2px 8px 2px 0; color:var(--dim); font-weight:400;}
 .cbtable td{padding:2px 6px; color:var(--mut); text-align:right; min-width:22px;}
 .cbtable tr:nth-child(2) td{color:var(--ink);}
+/* D262 / R-O · the bag. The desk's half is DESKTOP-FIRST (R-C): on a 1440 the
+   bag and the sideline sit side by side, because the whole question the
+   sideline answers ("is Galen bringing the new driver?") is a comparison, and
+   a comparison down one column is not one. Under 900px they stack. */
+.bagcols{display:grid; grid-template-columns:1fr 1fr; gap:18px; align-items:start;}
+@media (max-width:900px){ .bagcols{grid-template-columns:1fr; gap:10px;} }
+.bagrow{display:flex; flex-wrap:wrap; gap:8px; align-items:center; padding:6px 0; border-top:1px solid var(--line);}
+.bagrow .bslot{font-family:var(--mono); font-size:11px; letter-spacing:.08em; text-transform:uppercase;
+  color:var(--dim); flex:0 0 92px; min-width:0; overflow-wrap:anywhere;}
+.bagrow .blab{flex:1 1 auto; min-width:0; overflow-wrap:anywhere;}
+.bagrow input.f{margin:0;}
+.bagrow input.bslotin{flex:0 0 110px;}
+/* the four move buttons wrap under the two boxes rather than crushing the
+   label to one character — measured at 390, which is where it happened */
+.bagrow input.blab{flex:1 1 150px; min-width:140px;}
+.bagrow .bmove{flex:none; background:none; border:1px solid var(--line); color:var(--mut);
+  border-radius:8px; min-width:44px; min-height:44px; cursor:pointer; font-family:var(--mono); font-size:12px;}
+.bagsince{font-family:var(--serif); font-size:16px; line-height:1.45; color:var(--ink); padding:2px 0 10px;}
 /* D180 · a standing notice row — amber, an icon, room to breathe. Used where
    the app reports a state the golfer chose, never to scold them for it. */
 .warnrow{display:flex; gap:8px; align-items:flex-start; padding:10px 12px 10px 11px;
@@ -3433,6 +3451,17 @@ html[data-theme="light"] .room-dusk .btn:not(.dark):not(.gold):not(.apple){color
              of where you finished, in every league you have played. -->
         <div class="eyebrow" id="lgRecHead" style="display:none">Every season</div>
         <div id="lgRec" style="display:none; margin-bottom:14px"></div>
+
+        <!-- ══ D262 / R-O · YOUR BAG ═══════════════════════════════════════
+             Fourteen clubs in your own words, the sideline beside them, the
+             ball under both — and the line the feature exists for at the top.
+             There is NO EQUIPMENT DATABASE behind these fields: two free-text
+             boxes per club and nothing else (R-O's written refusal).
+             The whole section is drawn only once `bag_of` has ANSWERED, so a
+             database this migration has not reached renders nothing at all
+             rather than an empty bag somebody might fill in twice. -->
+        <div class="grouphead" id="youBagHead" style="display:none">Your bag</div>
+        <div id="youBag" style="display:none; text-align:left"></div>
 
                 <!-- ══ D261 / R-N · YOUR COURSES ═══════════════════════════════════
              The desk's half of the offline course store. On the phone this is
@@ -12240,8 +12269,236 @@ function renderCourseBooks(){
 }
 window.renderCourseBooks = renderCourseBooks;
 
+/* ════════════════════════════════════════════════════════════════════════
+   D262 / R-O · WHAT'S IN THE BAG — the desk's half.
+
+   Fourteen clubs in the golfer's own words, the sideline BESIDE them (the
+   desk has the room, and the sideline is the half nobody else does), the ball
+   under both, and at the top the line the feature exists for:
+
+     "Since the new driver went in: four rounds, two beat your playing HCP."
+
+   NO EQUIPMENT DATABASE (R-O, a written refusal): two free-text boxes per
+   club, no picker, no catalogue, no autocomplete against a brand list.
+
+   The producers below are the verbatim twins of the phone's `BagCopy` —
+   `csBagWord`/`BagCopy.word`, `csBagSince`/`BagCopy.sinceLine`,
+   `csBagSummary`/`BagCopy.summary` — and the diff that decides whether a
+   change is worth posting is neither client's: `save_bag` does it once, in
+   the database, so the two clients cannot disagree about what happened.
+
+   The whole section is hidden until `bag_of` ANSWERS. A database this
+   migration has not reached draws nothing at all rather than an empty bag
+   (deploy skew, and L-32: an empty screen is not an honest answer to a
+   failed read). */
+const CS_BAG_CAP = 14;
+const CS_BAG = { data: null, editing: false, draft: null, fetched: false };
+const CS_BAG_COPY = {
+  full: 'That is fourteen — the bag is full. Move one to the sideline first.',
+  sidelineWhat: 'Clubs you own that swap in.',
+  emptyMine: 'Nothing in it yet. Fourteen clubs, in your own words — and the sideline for what swaps in.',
+  saved: 'Bag saved',
+  slotPlaceholder: 'Driver',
+  labelPlaceholder: 'TSR3 9° · Ventus Blue',
+  ballPlaceholder: 'Pro V1'
+};
+/* "driver" out of "Driver"; "TSR3" left exactly as it is, because an all-caps
+   word is an acronym and lower-casing it destroys it (the R-M lesson: two
+   producers shipped "playing hcp"). Blank degrades to "club". */
+function csBagWord(slot){
+  const t = String(slot || '').trim();
+  if(!t) return 'club';
+  return t === t.toUpperCase() ? t : t.toLowerCase();
+}
+function csBagSpelled(n){
+  return ['','one','two','three','four','five','six','seven','eight','nine','ten'][n] || String(n);
+}
+/* R-O's own line. Every clause is dropped rather than guessed: no `beat`
+   figure means the sentence stops after the rounds (L-44). */
+function csBagSince(s, isMe){
+  if(!s || !s.rounds) return '';
+  const rounds = csBagSpelled(s.rounds) + ' round' + (s.rounds === 1 ? '' : 's');
+  let line = 'Since the new ' + csBagWord(s.slot) + ' went in: ' + rounds;
+  if(s.beat != null){
+    line += s.beat === 0 ? ', none of them beat your playing HCP'
+                         : ', ' + csBagSpelled(s.beat) + ' beat your playing HCP';
+  }
+  line += '.';
+  return isMe === false ? line.replace(/\byour\b/g, 'their') : line;
+}
+function csBagSummary(bag){
+  if(!bag) return '';
+  const bits = [];
+  const cl = (bag.clubs || []).length, sd = (bag.sideline || []).length;
+  if(cl) bits.push(cl + ' club' + (cl === 1 ? '' : 's'));
+  if(sd) bits.push(sd + ' on the sideline');
+  if(bag.ball && bag.ball.label) bits.push(bag.ball.label);
+  return bits.join(' · ');
+}
+/* the read. Returns null when it did not happen — never an empty bag. */
+async function csBagRead(pid){
+  if(!window.sb || state.demo || !window.CS?.user) return null;
+  try{
+    const { data, error } = await window.sb.rpc('bag_of', pid ? { p_profile: pid } : {});
+    if(error || !data || data.visible !== true) return null;
+    return data;
+  }catch(_){ return null; }
+}
+/* ONE read per session, not one per render: `renderStats` runs on every pass
+   over the You page and an RPC on each of them is a read nobody asked for.
+   `force` is the save's own path back. */
+async function csBagRefresh(force){
+  if(CS_BAG.fetched && !force){ renderBag(); return; }
+  /* not signed in yet is NOT "fetched": the You page renders during boot and
+     a flag set there would hold the section closed for the whole session */
+  if(!window.sb || state.demo || !window.CS?.user){ renderBag(); return; }
+  CS_BAG.fetched = true;
+  CS_BAG.data = await csBagRead(null);
+  renderBag();
+}
+window.csBagRefresh = csBagRefresh;
+/* the module block reads this one on a golfer's card. A classic `function`
+   declaration is already a window property; the assignment is explicit because
+   a missing bridge fails SILENTLY here (CLAUDE.md's landmine) and this one is
+   read from the other side of the boundary. */
+window.csBagSince = csBagSince;
+
+function csBagRowRead(it){
+  const slot = String(it.slot || '').trim();
+  return '<div class="bagrow"><span class="bslot">' + (slot ? esc(slot) : '&nbsp;') + '</span>'
+       + '<span class="blab">' + esc(it.label || '') + '</span></div>';
+}
+function csBagRowEdit(it, where, i){
+  const swap = where === 'clubs' ? '→ sideline' : '→ bag';
+  return '<div class="bagrow">'
+    + '<input class="f bslotin" data-bag="slot" data-w="' + where + '" data-i="' + i + '" value="'
+      + esc(it.slot || '') + '" placeholder="' + esc(CS_BAG_COPY.slotPlaceholder) + '" aria-label="What kind of club">'
+    + '<input class="f blab" data-bag="label" data-w="' + where + '" data-i="' + i + '" value="'
+      + esc(it.label || '') + '" placeholder="' + esc(CS_BAG_COPY.labelPlaceholder) + '" aria-label="The club, in your own words">'
+    + '<button type="button" class="bmove" data-bagup="' + where + ':' + i + '" aria-label="Move up">↑</button>'
+    + '<button type="button" class="bmove" data-bagdn="' + where + ':' + i + '" aria-label="Move down">↓</button>'
+    + '<button type="button" class="bmove" data-bagswap="' + where + ':' + i + '" aria-label="' + swap + '">⇄</button>'
+    + '<button type="button" class="bmove" data-bagdel="' + where + ':' + i + '" aria-label="Remove">✕</button>'
+    + '</div>';
+}
+function renderBag(){
+  const head = $('#youBagHead'), box = $('#youBag');
+  if(!head || !box) return;
+  const bag = CS_BAG.data;
+  /* the read has not answered: the section does not exist */
+  if(!bag){ head.style.display = 'none'; box.style.display = 'none'; return; }
+  head.style.display = ''; box.style.display = '';
+  const d = CS_BAG.editing ? CS_BAG.draft : { clubs: bag.clubs || [], sideline: bag.sideline || [], ball: (bag.ball && bag.ball.label) || '' };
+  const since = csBagSince(bag.since, true);
+  const rows = (list, where) => (list.length
+    ? list.map((it, i) => CS_BAG.editing ? csBagRowEdit(it, where, i) : csBagRowRead(it)).join('')
+    : '<p class="fine">' + (where === 'clubs' ? 'Nothing in the bag yet.' : 'Nothing on the sideline.') + '</p>');
+  let html = since ? '<p class="bagsince">' + esc(since) + '</p>' : '';
+  if(!CS_BAG.editing && !(d.clubs.length || d.sideline.length || d.ball)){
+    html += '<p class="fine">' + esc(CS_BAG_COPY.emptyMine) + '</p>';
+  }
+  html += '<div class="bagcols">'
+    + '<div><div class="eyebrow">In the bag' + (d.clubs.length ? ' · ' + d.clubs.length : '') + '</div>'
+    + rows(d.clubs, 'clubs')
+    + (CS_BAG.editing ? (d.clubs.length >= CS_BAG_CAP
+        ? '<p class="fine">' + esc(CS_BAG_COPY.full) + '</p>'
+        : '<button type="button" class="mini" id="bagAddClub" style="margin-top:8px">Add a club</button>') : '')
+    + '</div>'
+    + '<div><div class="eyebrow">The sideline</div><p class="fine">' + esc(CS_BAG_COPY.sidelineWhat) + '</p>'
+    + rows(d.sideline, 'sideline')
+    + (CS_BAG.editing ? '<button type="button" class="mini" id="bagAddSide" style="margin-top:8px">Add to the sideline</button>' : '')
+    + '</div></div>';
+  html += '<div class="eyebrow" style="margin-top:14px">The ball</div>';
+  html += CS_BAG.editing
+    ? '<input class="f" id="bagBall" value="' + esc(d.ball || '') + '" placeholder="' + esc(CS_BAG_COPY.ballPlaceholder) + '" aria-label="The ball you play">'
+    : '<p class="fine">' + (d.ball ? esc(d.ball) : 'No ball named yet.') + '</p>';
+  html += CS_BAG.editing
+    ? '<div style="margin-top:12px"><button class="btn dark" id="bagSave">Save the bag</button>'
+      + '<button class="mini" id="bagCancel" style="margin-left:8px">Cancel</button></div>'
+    : '<div style="margin-top:12px"><button class="mini" id="bagEdit">Edit the bag</button></div>';
+  box.innerHTML = html;
+  wireBag();
+}
+window.renderBag = renderBag;
+
+function csBagDraft(){
+  const b = CS_BAG.data || {};
+  return {
+    clubs: (b.clubs || []).map(x => ({ id: x.id, slot: x.slot || '', label: x.label || '' })),
+    sideline: (b.sideline || []).map(x => ({ id: x.id, slot: x.slot || '', label: x.label || '' })),
+    ball: (b.ball && b.ball.label) || ''
+  };
+}
+function wireBag(){
+  const box = $('#youBag'); if(!box) return;
+  const on = (sel, fn) => { const el = box.querySelector(sel); if(el) el.addEventListener('click', fn); };
+  on('#bagEdit', () => { CS_BAG.draft = csBagDraft(); CS_BAG.editing = true; renderBag(); });
+  on('#bagCancel', () => { CS_BAG.editing = false; CS_BAG.draft = null; renderBag(); });
+  on('#bagAddClub', () => {
+    if(CS_BAG.draft.clubs.length >= CS_BAG_CAP) return;
+    CS_BAG.draft.clubs.push({ id: null, slot: '', label: '' }); renderBag();
+  });
+  on('#bagAddSide', () => { CS_BAG.draft.sideline.push({ id: null, slot: '', label: '' }); renderBag(); });
+  /* the fields write straight into the draft, so a re-render (a move, an add)
+     never loses what was typed into a box above it */
+  box.querySelectorAll('input[data-bag]').forEach(inp => {
+    inp.addEventListener('input', () => {
+      const list = CS_BAG.draft[inp.dataset.w]; if(!list) return;
+      const row = list[Number(inp.dataset.i)]; if(!row) return;
+      row[inp.dataset.bag] = inp.value;
+    });
+  });
+  const ball = box.querySelector('#bagBall');
+  if(ball) ball.addEventListener('input', () => { CS_BAG.draft.ball = ball.value; });
+  const move = (spec, delta) => {
+    const [w, i0] = spec.split(':'); const i = Number(i0);
+    const list = CS_BAG.draft[w]; const j = i + delta;
+    if(!list || j < 0 || j >= list.length) return;
+    const t = list[i]; list[i] = list[j]; list[j] = t; renderBag();
+  };
+  box.querySelectorAll('[data-bagup]').forEach(b => b.addEventListener('click', () => move(b.dataset.bagup, -1)));
+  box.querySelectorAll('[data-bagdn]').forEach(b => b.addEventListener('click', () => move(b.dataset.bagdn, 1)));
+  box.querySelectorAll('[data-bagswap]').forEach(b => b.addEventListener('click', () => {
+    const [w, i0] = b.dataset.bagswap.split(':'); const i = Number(i0);
+    const from = CS_BAG.draft[w], to = CS_BAG.draft[w === 'clubs' ? 'sideline' : 'clubs'];
+    if(!from || !to || !from[i]) return;
+    if(w === 'sideline' && to.length >= CS_BAG_CAP){ toast(CS_BAG_COPY.full); return; }
+    to.push(from.splice(i, 1)[0]); renderBag();
+  }));
+  box.querySelectorAll('[data-bagdel]').forEach(b => b.addEventListener('click', () => {
+    const [w, i0] = b.dataset.bagdel.split(':'); const list = CS_BAG.draft[w];
+    if(list) list.splice(Number(i0), 1);
+    renderBag();
+  }));
+  on('#bagSave', async () => {
+    const btn = box.querySelector('#bagSave'); if(btn) btn.disabled = true;
+    const clean = list => list.filter(x => String(x.label || '').trim())
+      .map(x => ({ id: x.id || null, slot: String(x.slot || '').trim() || null, label: String(x.label).trim() }));
+    try{
+      /* supabase-js NEVER throws on a database error (CLAUDE.md) — the 15th
+         club comes back as `error`, not as an exception */
+      const { data, error } = await window.sb.rpc('save_bag', {
+        p_clubs: clean(CS_BAG.draft.clubs),
+        p_sideline: clean(CS_BAG.draft.sideline),
+        p_ball: String(CS_BAG.draft.ball || '').trim() || null,
+        p_ball_set: true
+      });
+      if(error) throw error;
+      CS_BAG.data = data && data.visible ? data : CS_BAG.data;
+      CS_BAG.editing = false; CS_BAG.draft = null;
+      toast(CS_BAG_COPY.saved);
+      renderBag();
+      window.loadHome?.();
+    }catch(e){
+      if(btn) btn.disabled = false;
+      toast(humanError(e, 'Could not save your bag.'));
+    }
+  });
+}
+
 function renderStats(){
   renderCourseBooks();
+  csBagRefresh();
   const capN=CAP_N[state.cap];
   /* real leagues read the view-backed month numbers (window.myMonth, set by
      the module) — the demo's feed-scrape (who==='You') never matches real
@@ -18432,15 +18689,21 @@ async function openTourCard(profileId){
                     : (c.best!=null ? Number(c.best).toFixed(1) : '—');
   const avg  = lens ? (avgPvi!=null ? sgn1(avgPvi) : '—')
                     : (avgIdx!=null ? sgn1(avgIdx) : '—');
-  const eyebrow  = lens ? `Career · vs ${whose} number` : 'Career';
+  /* R-M · the comparison noun is the PLAYING HCP. Wave D renamed both
+     clients' producers and missed these three, because they are built by
+     interpolation inside a template literal and preflight 42's web scan reads
+     PROSE. The phone's twins are `TourCard.careerEyebrow`, `bestLabel`,
+     `avgLabel` and `careerSignsLine`; these now say the same words. Check 42
+     part C pins this block so the miss cannot come back. */
+  const eyebrow  = lens ? `Career · vs ${whose} playing HCP` : 'Career';
   const bestK    = lens ? 'Best round' : 'Best round vs course';
-  const avgK     = lens ? 'Avg' : `Avg vs ${whose} number`;
+  const avgK     = lens ? 'Avg' : `Avg vs ${whose} playing HCP`;
   /* 8c · the two OLD figures run opposite ways — a course score where lower
      wins beside a delta where + wins — and one table cannot sign both the same
      way, so the table says which is which. Under the lens they are one
      measurement signed one way and this line has nothing left to explain. */
   const signsLine = lens ? ''
-    : `<div class="fine" style="padding-top:6px">Lower is better against the course; against ${whose} number, + is better.</div>`;
+    : `<div class="fine" style="padding-top:6px">Lower is better against the course; against ${whose} playing HCP, + is better.</div>`;
   const stats = `<div class="eyebrow" style="margin-top:16px">${eyebrow}</div>
       <div class="mathrow"><span>Rounds</span><b>${c.rounds||0}</b></div>
       <div class="mathrow"><span>${bestK}</span><b>${best}</b></div>
@@ -18468,6 +18731,31 @@ async function openTourCard(profileId){
           return `<div class="mathrow"><span>${esc(x.name)}${both}</span><b>${x.rounds}${when?` <small style="color:var(--mut);font-weight:400">· ${when}</small>`:''}</b></div>`;
         }).join('')
       + (crs.length>8 ? `<p class="fine" style="padding:4px 0 0">+${crs.length-8} more</p>` : '');
+  }
+  /* D262 · R-O · THE BAG, on the card that carries it. `bag_of` runs the Tour
+     Card's own predicate, so a bag is never on a page the card is not; it is
+     fetched AFTER the card so a slow read never holds the credential back, and
+     it is drawn only when it has something in it — an empty "In the bag" head
+     on somebody else's card is a sentence about them they did not write. */
+  let bagHtml='', bg=null;
+  try{
+    const bagRead = await sb.rpc('bag_of', { p_profile: profileId });
+    if(!bagRead.error) bg = bagRead.data;
+  }catch(_){ /* skew: a database without `bag_of` draws no bag, never an error */ }
+  {
+    if(bg && bg.visible === true && ((bg.clubs||[]).length || (bg.sideline||[]).length || bg.ball)){
+      const since = window.csBagSince ? window.csBagSince(bg.since, !!p.is_me) : '';
+      const row = it => `<div class="mathrow"><span>${esc(String(it.slot||'').trim() || 'Club')}</span><b>${esc(it.label||'')}</b></div>`;
+      bagHtml = `<div class="eyebrow" style="margin-top:16px">${p.is_me ? 'Your bag' : 'In the bag'}</div>`
+        + (since ? `<p class="fine" style="padding:0 0 6px">${esc(since)}</p>` : '')
+        + (bg.clubs||[]).map(row).join('')
+        + (bg.ball ? `<div class="mathrow"><span>Ball</span><b>${esc(bg.ball.label||'')}</b></div>` : '')
+        + ((bg.sideline||[]).length
+            ? `<p class="fine" style="padding:6px 0 0">On the sideline \u00b7 `
+              + (bg.sideline||[]).map(x=>esc([String(x.slot||'').trim(), x.label].filter(Boolean).join(' \u00b7 '))).join(' \u00b7 ')
+              + `</p>`
+            : '');
+    }
   }
   let recHtml='';
   if(rec.length){
@@ -18515,7 +18803,7 @@ async function openTourCard(profileId){
       ? `<div style="margin-top:12px"><span class="ptag">Requested</span></div>`
       : `<button class="btn dark" id="tcAdd" style="margin-top:12px">${tcRel==='incoming'?'Accept buddy request':'Add buddy'}</button>`;
   }
-  openSheet(p.is_me ? 'Your card' : `${p.display_name || 'A golfer'}’s card`, p.is_me?'THIS IS HOW YOUR BUDDIES SEE YOU':(p.handle?'@'+p.handle.toUpperCase():''), header+shrHtml+addHtml+trHtml+stats+crsHtml+recHtml+muteHtml+suspHtml);
+  openSheet(p.is_me ? 'Your card' : `${p.display_name || 'A golfer'}’s card`, p.is_me?'THIS IS HOW YOUR BUDDIES SEE YOU':(p.handle?'@'+p.handle.toUpperCase():''), header+shrHtml+addHtml+trHtml+stats+bagHtml+crsHtml+recHtml+muteHtml+suspHtml);
   const ab=document.getElementById('tcAdd');
   if(ab) ab.addEventListener('click', async()=>{
     ab.disabled=true;
@@ -23001,6 +23289,30 @@ async function loadHome(){
       window.homePosts = hr.data || [];
     } else window.homePosts = [];
   } catch(e){ window.homePosts = window.homePosts||[]; }
+  /* D262 · THE PERSON RAIL GETS ITS FIRST READER. D238 gave a post the right
+     to be homed on a golfer rather than a league — the rail a leagueless
+     golfer's milestones and a bag change ride — and until now nothing read
+     one: both clients filtered the board by league, so every profile-homed
+     post written since has gone nowhere. There is no id list to pass;
+     `posts_profile_read` IS the filter (self, a buddy, a shared league or
+     event, or discoverable — minus anyone muted), which is the Tour Card's own
+     circle. `round` stays out because `home_feed` already carries the circle's
+     rounds and the same round must not be told twice; `chat` stays out for the
+     reason it does above. Deduped by id, and any error is an empty list rather
+     than a broken Home. */
+  try{
+    const PCOLS = lr => `id, league_id, profile_id, kind, member_id, body, created_at${lr?', live_round_id':''}`;
+    let pr = await sb.from('posts').select(PCOLS(true))
+      .not('profile_id','is',null).neq('kind','chat').neq('kind','round')
+      .order('created_at', { ascending:false }).limit(20);
+    if(pr.error) pr = await sb.from('posts').select(PCOLS(false))
+      .not('profile_id','is',null).neq('kind','chat').neq('kind','round')
+      .order('created_at', { ascending:false }).limit(20);
+    if(!pr.error && (pr.data||[]).length){
+      const seen = new Set((window.homePosts||[]).map(p => p.id));
+      window.homePosts = (window.homePosts||[]).concat((pr.data||[]).filter(p => !seen.has(p.id)));
+    }
+  } catch(e){ /* an un-migrated database has no profile_id: no person posts, no error */ }
   /* #11: the unified Home feed carries moment posts from ALL your leagues, but
      loadLeagueData only learns the ACTIVE league's roster — a dormant member of
      a secondary league, named in one of those all-caps posts, would half-shout

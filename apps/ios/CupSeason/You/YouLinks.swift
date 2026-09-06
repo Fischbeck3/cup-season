@@ -20,11 +20,24 @@ struct YouLinks {
   var openRecord: (() -> Void)? = nil
   /// "add your GHIN" — lands on the GHIN field; falls back to `openSettings`.
   var addGhin: (() -> Void)? = nil
+  /// D262 · R-O · "Your bag" — the editor. Optional so a slice compiles
+  /// without the shell, and the ROW IS NOT DRAWN when it is nil: a door that
+  /// cannot open is never rendered.
+  var openBag: (() -> Void)? = nil
   /// The founder's "✏️ Field note" (`founder_note`); hidden when nil.
   var founderNote: (() -> Void)? = nil
   /// D63 "Plan a round" — the declare sheet for the given day, tagging one golfer;
   /// hidden when nil.
   var stageRound: ((_ playOn: String, _ tag: UUID) -> Void)? = nil
+
+  /// The bag door, added after the rest — the initialiser already takes
+  /// twelve arguments and a thirteenth positional one is how a call site ends
+  /// up wiring the wrong closure.
+  func withBag(_ open: @escaping () -> Void) -> YouLinks {
+    var copy = self
+    copy.openBag = open
+    return copy
+  }
 
   @MainActor static let none = YouLinks(openBuddies: {}, openSettings: {}, openFeedback: {}, openFounderDesk: {}, postRound: {},
                              openTourCard: { _ in }, openReceipt: { _ in })

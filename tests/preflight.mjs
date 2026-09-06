@@ -2045,6 +2045,17 @@ else {
       if (!src) { hits.push(`${who} not found — the gloss producer moved and this check went blind`); continue; }
       if (!/playing HCP/.test(src)) hits.push(`${who} does not say "playing HCP" — R-M's noun has been reverted`);
     }
+    /* The desk's Tour Card builds its three career labels by INTERPOLATION
+       inside a template literal (`vs ${whose} number`), which the prose scan
+       above cannot see — so wave D renamed both clients' producers and left
+       these three saying the old noun for a day. Wave E fixed them and pinned
+       them here, by name, so the same blind spot cannot swallow them twice. */
+    const career = html.match(/const eyebrow\s+= lens[\s\S]*?const stats =/);
+    if (!career) hits.push("index.html openTourCard's career labels moved — this check went blind");
+    else {
+      if (!/playing HCP/.test(career[0])) hits.push('index.html openTourCard: the career labels no longer say "playing HCP" (R-M)');
+      if (/\bnumbers?\b/.test(career[0])) hits.push('index.html openTourCard: a career label says "number" again (R-M)');
+    }
   }
 
   /* the self-test: a check that cannot fail is not a check. */
@@ -2062,6 +2073,59 @@ else {
   hits.length === 0
     ? pass('the gloss says playing HCP, the five bands do not', `${swift42.length} Swift file(s) + index.html + the live SQL generators · ${BANDS.length} band(s) held to spec §2.2`)
     : fail('the gloss says playing HCP, the five bands do not', `${hits.length} hit(s) — ` + hits.slice(0, process.env.CS_LINT_ALL ? 99 : 6).join('\n           '));
+}
+
+/* 43 · the bag says one sentence on both clients (R-O, D262) ----------------
+   The bag has ONE line that carries the whole feature —
+
+     "Since the new driver went in: four rounds, two beat your playing HCP."
+
+   — and it is minted twice, once in Swift (`BagCopy.sinceLine`) and once in
+   JavaScript (`csBagSince`), because a Swift producer cannot run in a browser.
+   That is exactly the shape D259 caught drifting: the phone had a producer,
+   the web hand-typed the words, and nothing compared them. So the FRAGMENTS
+   are compared here, and the fourteen with them, because a cap that disagrees
+   between two clients is a bag one of them will not let you fill.
+
+   It also holds the acronym: R-M's noun is `playing HCP` and two producers
+   have already shipped `playing hcp` by lower-casing a whole sentence. Neither
+   of these may. */
+{
+  const swift = readFileSync(join(root, 'apps', 'ios', 'Packages', 'CupSeasonKit', 'Sources',
+                                  'CupSeasonKit', 'Bag', 'Bag.swift'), 'utf8');
+  const hits = [];
+  const phone = swift.match(/static func sinceLine\([\s\S]*?\n  \}/)?.[0];
+  const desk = html.match(/function csBagSince\(s, isMe\)\{[\s\S]*?\n\}/)?.[0];
+  /* every fragment the sentence is built from, in both languages */
+  const FRAGMENTS = ['Since the new ', ' went in: ', ' round', ' beat your playing HCP', 'none of them beat your playing HCP'];
+  for (const [who, src] of [['BagCopy.sinceLine', phone], ['index.html csBagSince()', desk]]) {
+    if (!src) { hits.push(`${who} not found — the bag's one sentence moved and this check went blind`); continue; }
+    for (const f of FRAGMENTS) if (!src.includes(f)) hits.push(`${who} no longer says ${JSON.stringify(f)} — the two clients would say the bag's line differently`);
+    if (/playing hcp/.test(src)) hits.push(`${who} lower-cases the acronym — it is "playing HCP" (R-M)`);
+  }
+  /* fourteen, in both clients. The server refuses the fifteenth; these are
+     what the screens say before it gets there. */
+  const phoneCap = swift.match(/public static let cap = (\d+)/)?.[1];
+  const deskCap = html.match(/const CS_BAG_CAP = (\d+)/)?.[1];
+  if (phoneCap !== '14') hits.push(`BagCopy.cap is ${phoneCap ?? 'missing'} — R-O says fourteen`);
+  if (deskCap !== '14') hits.push(`CS_BAG_CAP is ${deskCap ?? 'missing'} — R-O says fourteen`);
+  if (phoneCap !== deskCap) hits.push('the two clients disagree about how many clubs a bag holds');
+  /* the refusal, as a lint: no equipment catalogue crept in behind the free
+     text (R-O's written refusal, D250 sense) */
+  const bagMig = readdirSync(migDir).filter(f => /whats_in_the_bag/.test(f))
+    .map(f => readFileSync(join(migDir, f), 'utf8')).join('\n');
+  if (bagMig && /create table[^;]*\b(club_models|club_brands|equipment)\b/i.test(bagMig)) {
+    hits.push('the bag grew an equipment catalogue — R-O refuses one in writing');
+  }
+  /* the self-test: a check that cannot fail is not a check */
+  {
+    const broken = 'let line = "Since the new " + w + " went in: " + n + " rounds, two beat your playing hcp."';
+    if (!/playing hcp/.test(broken)) hits.push('self-test failed: §43 no longer notices a lower-cased acronym');
+    if (FRAGMENTS.every(f => 'a line that says nothing of the sort'.includes(f))) hits.push('self-test failed: §43 fragments match anything');
+  }
+  hits.length === 0
+    ? pass('the bag says one sentence on both clients', `${FRAGMENTS.length} fragment(s) × 2 producer(s) · cap ${phoneCap} on both`)
+    : fail('the bag says one sentence on both clients', `${hits.length} hit(s) — ` + hits.slice(0, 6).join('\n           '));
 }
 
 console.log(`\n${fails ? 'FAIL' : 'PASS'} — ${fails} failure(s), ${warns} warning(s)`);

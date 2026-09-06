@@ -445,6 +445,14 @@ struct MainTabView: View {
       // an empty store it opens on a course that was never kept, which is the
       // other state worth photographing. Nothing is seeded — a fabricated book
       // would make the screenshot a lie about what the store does.
+      // D262 · the bag opens from a row on You that is drawn only once
+      // `bag_of` has ANSWERED — which is exactly right and means that before
+      // the owner's push there is no door to it at all. The hatch opens the
+      // sheet anyway, because the state worth photographing tonight is the one
+      // a client ahead of its database shows: "Could not open your bag.
+      // Nothing has been changed." Nothing is seeded — a fabricated bag would
+      // make the screenshot a lie about what the feature does (D261's rule).
+      case "bag": presenter.showBag = true
       case "coursecard":
         let kept = await CourseBookStore().kept().first
         presenter.courseCard = CourseSheetRef(id: kept?.id ?? "never-kept", label: kept?.label ?? "A course you have not played")
@@ -512,6 +520,9 @@ struct MainTabView: View {
     }
     .sheet(item: $presenter.tourCard) { TourCardSheet(profileId: $0, links: youLinks) }
     .sheet(item: $presenter.courseCard) { CourseCardSheet(courseId: $0.id, label: $0.label) }
+    /* D262 · R-O · the bag. The You row that opens it is drawn only once its
+       read has answered, so this sheet is never reachable without one. */
+    .sheet(isPresented: $presenter.showBag) { BagSheet() }
     .sheet(item: $presenter.receipt) { RoundReceiptSheet(roundId: $0, seed: nil, openScorecard: { presenter.scorecard = $0 }) }
     .sheet(item: $presenter.scorecard) { ScorecardSheet(liveRoundId: $0) }
     .sheet(item: $presenter.scheduledRound) { ScheduledRoundSheet(roundId: $0, leagueId: store.preferredLeague, links: csLinks) }
@@ -886,6 +897,7 @@ struct MainTabView: View {
       founderNote: { presenter.showNote = true },
       stageRound: { playOn, tag in presenter.declare = DeclarePrefill(iso: playOn, tagPids: [tag]) }
     )
+    .withBag { presenter.showBag = true }
   }
 }
 

@@ -497,6 +497,20 @@ Deno.serve(async (req) => {
     return reply('sent', { kind: nk });
   }
 
+  /* D262 · A BAG CHANGE IS A FEED ITEM, NEVER A LOCK SCREEN. The push set is
+     curated by kind and a new kind does not join it by default: "Galen put a
+     new driver in the bag" is worth reading when you open the app and is not
+     worth interrupting anybody for (L-22). It is checked here, before the
+     person-homed fan below, because `bag` is only ever homed on a person —
+     and it is checked by NAME rather than by an allow-list, so nothing else
+     changes shape. Ordering, said out loud: until this function is deployed,
+     a database that already carries `save_bag` will ring buddies' phones on a
+     bag change. Both halves ship in one commit; both must be deployed. */
+  if (String(record.kind ?? '') === 'bag') {
+    console.log(`[push] kind=bag not-a-push-kind post=${record.id}`);
+    return reply('not-a-push-kind', { kind: 'bag', post: record.id });
+  }
+
   /* D238 · a post homed on a PERSON: fan to that golfer's accepted buddies.
      This is the branch that turns a leagueless round from a row nobody sees
      into a lock screen — the third of SP-1's four rails. The fan is BY PERSON,

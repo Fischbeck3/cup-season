@@ -173,6 +173,32 @@ struct PersonPage: View {
       CSFine(TourCard.noRoundsYet(p.displayName)).padding(.top, 8)
     }
 
+    // ── D262 · R-O · THE BAG. Drawn only when the read answered AND there is
+    // something in it: an empty "In the bag" head on somebody else's page is a
+    // sentence about them that they did not write (L-44). The visibility is
+    // the card's own — `bag_of` runs the Tour Card's predicate — so a bag is
+    // never on a page the card is not.
+    if let bag = model.bag, !bag.isEmpty {
+      Text(BagCopy.head(isMe: p.isMe).uppercased()).csEyebrow().padding(.top, 8)
+      // the line the whole feature exists for, in the third person for a page
+      // that is about somebody else
+      if let since = bag.since {
+        Text(BagCopy.sinceLine(since, isMe: p.isMe))
+          .font(CSFont.sentence).foregroundStyle(cs.ink)
+          .fixedSize(horizontal: false, vertical: true).padding(.bottom, 2)
+      }
+      VStack(spacing: 0) {
+        ForEach(bag.clubs) { club in
+          MathRow(label: club.slotLabel.isEmpty ? "Club" : club.slotLabel, value: club.label)
+        }
+        if let ball = bag.ball { MathRow(label: "Ball", value: ball.label) }
+      }
+      if !bag.sideline.isEmpty {
+        Text(BagCopy.sideline.uppercased()).csEyebrow().padding(.top, 8)
+        CSFine(bag.sideline.map(\.line).joined(separator: " · "))
+      }
+    }
+
     // ── D150's two answers, returned since D150 and never rendered here
     if !model.sharedCourses.isEmpty {
       Text("You’ve both played").csEyebrow().padding(.top, 8)
@@ -295,6 +321,9 @@ final class PersonModel {
   /// record both clients show today.
   var h2h: HeadToHead?
   var sharedCourses: [String] = []
+  /// D262 · nil is "the read did not happen" (no signal, or a database this
+  /// migration has not reached) and draws NOTHING — never an empty bag.
+  var bag: Bag?
   var sharedSeason: SharedSeason?
   var isMe = false
   var name: String?
@@ -319,6 +348,10 @@ final class PersonModel {
     guard l.card.visible else { state = .hidden; return }
     sharedCourses = l.card.sharedCourseNames
     state = .card(l)
+
+    // the bag rides in after the card, like the head-to-head: the page is
+    // useful without it and a slow read never holds the credential back
+    bag = await BagService().load(id)
 
     guard !l.card.profile.isMe else { return }
     // R4 rides in after the card — the page is useful without it, and a slow
