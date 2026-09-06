@@ -118,26 +118,61 @@ public enum MeStripCopy {
   /// `starter` is D247's band, held on the DEVICE and nowhere else. It is
   /// spent the moment the engine has a number (`StarterIndex.current` returns
   /// nil once `index_current` exists), so the strip never shows two numbers.
+  /// `suppress` is **what the lead and the deck have already said**
+  /// (`HomeRank.Ranked.columnFacts`). `HOME_STATE_MATRIX` §3 row 3 puts this
+  /// row's never-list first: *"any fact the lead or the deck also renders"*.
+  /// The precedence is one-way — lead → deck → strip — so the strip is the
+  /// surface that gives way, and on a busy morning it is a shorter line.
   public static func make(_ me: Me?, upcoming: [ScheduledRound]?, today: String = CSDate.today(),
-                          calendar: Calendar = .current, starter: Double? = nil) -> Strip {
+                          calendar: Calendar = .current, starter: Double? = nil,
+                          suppress: Set<Fact> = [], standingSaid: Bool = false) -> Strip {
     guard let me else { return Strip(slots: [], seasonRow: nil) }
     // The order is the reading order and it never changes: my number, my last
     // round, my next round, my money.
     let slots = [numberSlot(me.profile, starter: starter),
                  lastSlot(me.profile, today: today, calendar: calendar),
                  nextSlot(upcoming, today: today, calendar: calendar),
-                 moneySlot(me.memberships)].compactMap { $0 }
-    return Strip(slots: slots,
-                 seasonRow: seasonRow(me.memberships, today: today, calendar: calendar),
-                 monthRow: nearest(me.memberships, today: today)
-                             .flatMap { SeasonFacts.monthRow($0, today: today, calendar: calendar) },
-                 oweRow: oweRow(me.memberships, today: today, calendar: calendar))
+                 moneySlot(me.memberships)]
+      .compactMap { $0 }
+      .filter { !suppress.contains($0.fact) }
+
+    // **The three supporting rows stop being a paragraph.**
+    //
+    // The strip used to set the owe instruction, the season row and the month
+    // row one under the other, unconditionally: three sentences in
+    // near-identical grey, five lines of type, two of which repeated something
+    // already on the screen — the `$75` directly above the first, and the
+    // standing a CHANGED card was making its headline out of. Between the lead
+    // card and the deck it read as debris.
+    //
+    // Each now earns its place instead:
+    //
+    //   · **the owe instruction** keeps QB-04's whole point — the Pro's terms,
+    //     fetched to the phone and printed nowhere — minus the figure, which
+    //     is in the slot one row up (`withoutFigure`);
+    //   · **the season row** stands down when the column already said where I
+    //     stand. It is NOT ranked below the owe line: a buy-in stays unpaid for
+    //     weeks, and letting money outrank standing would have hidden the
+    //     competition behind a chore for most of a season;
+    //   · **the month row** is the weakest of the three and renders only when
+    //     neither of the others did — it is a rule, not news.
+    let showsMoney = slots.contains { $0.fact == .myMoney }
+    let owe = oweRow(me.memberships, today: today, calendar: calendar)
+      .map { showsMoney ? withoutFigure($0) : $0 }
+    let season = standingSaid ? nil : seasonRow(me.memberships, today: today, calendar: calendar)
+    let month = (owe == nil && season == nil)
+      ? nearest(me.memberships, today: today)
+          .flatMap { SeasonFacts.monthRow($0, today: today, calendar: calendar) }
+      : nil
+    return Strip(slots: slots, seasonRow: season, monthRow: month, oweRow: owe)
   }
 
   /// The same, reading the payload's own tee sheet.
   public static func make(_ me: Me?, today: String = CSDate.today(), calendar: Calendar = .current,
-                          starter: Double? = nil) -> Strip {
-    make(me, upcoming: me?.upcoming, today: today, calendar: calendar, starter: starter)
+                          starter: Double? = nil, suppress: Set<Fact> = [],
+                          standingSaid: Bool = false) -> Strip {
+    make(me, upcoming: me?.upcoming, today: today, calendar: calendar, starter: starter,
+         suppress: suppress, standingSaid: standingSaid)
   }
 
   // MARK: 1 · YOUR NUMBER
@@ -275,6 +310,23 @@ public enum MeStripCopy {
       (a.buy_in?.due_on ?? "9999-12-31") < (b.buy_in?.due_on ?? "9999-12-31")
     } ?? owed[0]
     return SeasonFacts.owe(nearest, today: today, calendar: calendar)
+  }
+
+  /// **The figure is directly above this line; it is not said twice.**
+  ///
+  /// `SeasonFacts.owe` opens with the amount — *"You still owe $75 · ask the
+  /// Pro how to pay"* — because on the pot pane it stands alone and has to.
+  /// In the strip it sits one row under `$75 · YOU STILL OWE`, so the opening
+  /// clause is the same fact restated in the same words a line apart, which is
+  /// the L-34 finding the audit filed and then reproduced.
+  ///
+  /// Only the leading clause goes. Everything the slot cannot say — the Pro's
+  /// terms, the due date — is what remains, which was the point of QB-04.
+  static func withoutFigure(_ line: String) -> String {
+    guard line.hasPrefix("You still owe "), let cut = line.range(of: " \u{00B7} ") else { return line }
+    let rest = String(line[cut.upperBound...])
+    guard let f = rest.first else { return line }
+    return f.uppercased() + rest.dropFirst()
   }
 
   // MARK: - The season context row

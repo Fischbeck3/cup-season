@@ -213,3 +213,74 @@ private func item(_ key: String, _ tier: HomeDispatch.Tier, score: Int? = nil, r
               == ["closing", "changed", "coming", "circle", "chapter", "opportunity"])
   }
 }
+
+// MARK: - G3 · suppression, and the column the ME strip yields to
+
+/// `HOME_STATE_MATRIX` §2.3 G3 was written into the design and never built:
+/// the suppress set was computed in `arrange`, handed to `UpNextChips`, and to
+/// nothing else, so the deck was `rest.prefix(cap)` verbatim. On a golfer in
+/// two leagues that put *"Galen has today to answer your 89"* at the top and
+/// *"Jade has today to answer your 89"* two rows under it — one round of mine,
+/// reported twice, because two leagues each held a row about it.
+@Suite struct HomeRankSuppressionTests {
+
+  @Test("G3 · an item whose ENTIRE fact set the lead already spent is dropped")
+  func theSecondClashGoes() {
+    let r = HomeRank.arrange([
+      item("clash:a:5", .closing, score: 1000, suppress: [.myLastRound]),
+      item("clash:b:5", .closing, score: 900,  suppress: [.myLastRound]),
+      item("plan:x",    .coming,  score: 600),
+    ])
+    #expect(r.lead?.key == "clash:a:5")
+    #expect(r.deck.map(\.key) == ["plan:x"])
+    #expect(r.deck.contains { $0.key == "clash:b:5" } == false)
+  }
+
+  @Test("G3 · PARTIAL overlap survives — an item saying something new keeps its place")
+  func partialOverlapStays() {
+    let r = HomeRank.arrange([
+      item("clash:a:5", .closing, score: 1000, suppress: [.myLastRound]),
+      item("x:1",       .coming,  score: 600,  suppress: [.myLastRound, .myMoney]),
+    ])
+    #expect(r.deck.map(\.key) == ["x:1"])
+  }
+
+  @Test("an unknown family spends nothing and is never dropped")
+  func theUnknownIsShown() {
+    let r = HomeRank.arrange([
+      item("clash:a:5", .closing, score: 1000, suppress: [.myLastRound]),
+      item("weather:1", .coming,  score: 600),
+    ])
+    #expect(r.deck.map(\.key) == ["weather:1"])
+  }
+
+  /// The server sets `suppress` on exactly one producer and sends `'[]'` on
+  /// every other, so the families carry the answer where it did not.
+  @Test("a plan card spends my next round, so the strip's NEXT slot stands down")
+  func thePlanOwnsNext() {
+    let r = HomeRank.arrange([item("clash:a:5", .closing, score: 1000),
+                              item("plan:x", .coming, score: 600)])
+    #expect(r.columnFacts.contains(MeStripCopy.Fact.myNextRound))
+  }
+
+  @Test("the season row stands down when the column already says where I stand")
+  func theStandingIsSaidOnce() {
+    let said = HomeRank.arrange([item("clash:a:5", .closing, score: 1000),
+                                 item("need:l1", .coming, score: 600)])
+    #expect(said.saysStanding)
+    let unsaid = HomeRank.arrange([item("clash:a:5", .closing, score: 1000),
+                                   item("plan:x", .coming, score: 600)])
+    #expect(unsaid.saysStanding == false)
+  }
+
+  /// The precedence is ONE WAY — lead → deck → strip. A fact the strip happens
+  /// to hold must never remove a CARD; that inversion is what left the deck
+  /// unfiltered while the strip believed it had done the de-duplicating.
+  @Test("the strip never drops a card")
+  func theStripDoesNotOutrankTheColumn() {
+    let r = HomeRank.arrange([item("clash:a:5", .closing, score: 1000, suppress: [.myLastRound]),
+                              item("plan:x", .coming, score: 600)],
+                             stripSuppress: [.myNextRound, .myLastRound, .myMoney, .myNumber])
+    #expect(r.deck.map(\.key) == ["plan:x"])
+  }
+}

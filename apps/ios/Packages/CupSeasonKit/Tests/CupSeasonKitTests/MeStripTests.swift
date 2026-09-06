@@ -457,3 +457,65 @@ struct LongCourseNameTests {
     #expect(lead?.standfirst == "7:10 tee · 2 of you on the sheet.")
   }
 }
+
+// MARK: - the strip yields, and its supporting rows earn their place
+
+@Suite struct MeStripYieldTests {
+  private let today = "2026-09-06"
+
+  @Test("the strip drops a fact the lead or the deck already rendered")
+  func theStripYields() {
+    let me = Me(profile: profile(), memberships: [membership()])
+    let full = MeStripCopy.make(me, upcoming: [], today: today)
+    let cut  = MeStripCopy.make(me, upcoming: [], today: today, suppress: [.myLastRound])
+    #expect(full.slots.contains { $0.fact == .myLastRound })
+    #expect(cut.slots.contains { $0.fact == .myLastRound } == false)
+    // Everything else is untouched — this suppresses a slot, not the strip.
+    #expect(cut.slots.contains { $0.fact == .myNumber })
+  }
+
+  /// L-34, one row apart: `$75 · YOU STILL OWE` and then, directly beneath it,
+  /// "You still owe $75 · …". The instruction survives; the echo does not.
+  @Test("the owe line does not repeat the figure standing above it")
+  func theFigureIsSaidOnce() {
+    let me = Me(profile: profile(), memberships: [membership()])
+    let s = MeStripCopy.make(me, upcoming: [], today: today)
+    #expect(s.slots.contains { $0.fact == .myMoney })
+    #expect(s.oweRow?.hasPrefix("You still owe") == false)
+    #expect(s.oweRow?.contains("Venmo @ray-o") == true)
+  }
+
+  /// With the money slot suppressed there is no figure above the line, so the
+  /// sentence has to carry it again.
+  @Test("with no money slot on screen the owe line keeps its figure")
+  func theFigureReturnsWhenTheSlotIsGone() {
+    let me = Me(profile: profile(), memberships: [membership()])
+    let s = MeStripCopy.make(me, upcoming: [], today: today, suppress: [.myMoney])
+    #expect(s.oweRow?.hasPrefix("You still owe") == true)
+  }
+
+  @Test("the season row stands down when the column already said where I stand")
+  func theStandingIsSaidOnce() {
+    let me = Me(profile: profile(), memberships: [membership(standing: standing(rank: 2, of: 8, points: 30,
+                                                                                leader: "Galen", leaderGap: 4))])
+    #expect(MeStripCopy.make(me, upcoming: [], today: today).seasonRow != nil)
+    #expect(MeStripCopy.make(me, upcoming: [], today: today, standingSaid: true).seasonRow == nil)
+  }
+
+  /// An unpaid buy-in sits there for weeks. Ranking money above standing would
+  /// have hidden the competition behind a chore for most of a season.
+  @Test("money never outranks the standing")
+  func moneyDoesNotMaskTheSeason() {
+    let me = Me(profile: profile(), memberships: [membership(standing: standing(rank: 2, of: 8, points: 30,
+                                                                                leader: "Galen", leaderGap: 4))])
+    let s = MeStripCopy.make(me, upcoming: [], today: today)
+    #expect(s.oweRow != nil)
+    #expect(s.seasonRow != nil)
+  }
+
+  @Test("the month row is the weakest and renders only when the others did not")
+  func theMonthRowYieldsToBoth() {
+    let me = Me(profile: profile(), memberships: [membership()])
+    #expect(MeStripCopy.make(me, upcoming: [], today: today).monthRow == nil)
+  }
+}

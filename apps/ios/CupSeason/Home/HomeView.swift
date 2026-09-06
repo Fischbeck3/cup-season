@@ -65,8 +65,17 @@ struct HomeView: View {
       if let me {
         // D247 · the starter the golfer picked at onboarding lives on the
         // device and is spent the moment the engine has a number of its own.
-        let strip = MeStripCopy.make(me, starter: StarterIndex.current(engineIndex: me.profile?.index_current))
-        let ranked = vm.ranked(stripSuppress: strip.suppress)
+        // **The column is arranged FIRST, and the strip yields to it.**
+        // It used to run the other way — the strip was built, its four facts
+        // became `stripSuppress`, and the deck was handed a set it never read.
+        // `HOME_STATE_MATRIX` §3 row 3 states the precedence the other way
+        // round: the strip may not render "any fact the lead or the deck also
+        // renders". So: lead → deck → strip, one way, no negotiation.
+        let ranked = vm.ranked()
+        let strip = MeStripCopy.make(me,
+                                     starter: StarterIndex.current(engineIndex: me.profile?.index_current),
+                                     suppress: ranked.columnFacts,
+                                     standingSaid: ranked.saysStanding)
         // IOS-034's widget snapshot and L-34's live-lead flag are BOTH written
         // from `HomeModel.run(...)`, never from here (C-05, C-11): a body is
         // evaluated on every scroll and on every observation change, and both
@@ -362,7 +371,7 @@ final class HomeModel {
 
   /// The screen, arranged. Pure over what is in hand, so the same items always
   /// produce the same Home.
-  func ranked(stripSuppress: Set<MeStripCopy.Fact>) -> HomeRank.Ranked {
+  func ranked() -> HomeRank.Ranked {
     // The invitation and the buddy request are answered in place on the phone
     // (`InvitesBanner`, `BuddyRequests`), so their items stand down here
     // rather than saying the same thing twice on one screen (L-34). The web
@@ -376,7 +385,7 @@ final class HomeModel {
     // because a guessed lead is the exact failure the veto exists to prevent.
     // The web obeyed it and the phone did not, so on the day the ranker cannot
     // be reached the two clients drew a structurally different Home.
-    return HomeRank.arrange(mine, stripSuppress: stripSuppress, leadSuppress: leadSuppress,
+    return HomeRank.arrange(mine, leadSuppress: leadSuppress,
                             useServerRank: !usedFallback, allowLead: !usedFallback)
   }
 
@@ -394,8 +403,9 @@ final class HomeModel {
   /// screen around it says what it is, and is not a sentence to put on a home
   /// screen as though the server said it.
   private func publishOutwards(me m: Me) {
-    let strip = MeStripCopy.make(m, starter: StarterIndex.current(engineIndex: m.profile?.index_current))
-    let r = ranked(stripSuppress: strip.suppress)
+    let r = ranked()
+    let strip = MeStripCopy.make(m, starter: StarterIndex.current(engineIndex: m.profile?.index_current),
+                                 suppress: r.columnFacts, standingSaid: r.saysStanding)
     let lead = r.lead
     spentRounds = r.spentRounds
     if let mark { digest = HomeDigest.make(rounds: rounds, posts: posts, photoURLs: urls, mark: mark,
@@ -440,8 +450,7 @@ final class HomeModel {
     items = []; digest = nil; feedFailed = false
     social = HomeSocial.Snapshot()
     guard let m = p.me else { return }
-    let strip = MeStripCopy.make(m, starter: StarterIndex.current(engineIndex: m.profile?.index_current))
-    let r = ranked(stripSuppress: strip.suppress)
+    let r = ranked()
     spentRounds = r.spentRounds
     if case .live = r.lead?.route { HomeLeadFlag.shared.liveIsLead = true }
     else { HomeLeadFlag.shared.liveIsLead = false }

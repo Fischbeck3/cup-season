@@ -254,14 +254,67 @@ public enum HomeRank {
     /// cannot name a round. This can: `HomeFeedFold.fold` takes it and the
     /// wire drops the row the card already spent.
     public let spentRounds: Set<UUID>
+    /// **What the MAIN COLUMN has already said** — the lead's facts plus every
+    /// surviving deck item's. `HOME_STATE_MATRIX` §3 row 3 forbids the ME strip
+    /// rendering "any fact the lead or the deck also renders", so the strip is
+    /// built from THIS, after the arrangement, and yields to it. It is a
+    /// one-way precedence — lead → deck → strip — and never a negotiation.
+    public let columnFacts: Set<MeStripCopy.Fact>
+    /// **Does the column already say where I stand?** The ME strip's season
+    /// row — `2ND OF 2 · 4 BACK OF GALEN · A FINAL BETWEEN THE TWO OF YOU` —
+    /// is the same sentence a CHANGED or CHAPTER card makes its headline out
+    /// of, so on a morning when one of those leads, the row underneath was
+    /// saying it a second time in smaller grey type. It is not a ME fact, so
+    /// `columnFacts` cannot carry it; it travels as its own answer.
+    public let saysStanding: Bool
 
     public var isEmpty: Bool { lead == nil && deck.isEmpty }
 
     public init(lead: HomeDispatch.Item?, deck: [HomeDispatch.Item],
                 suppress: Set<MeStripCopy.Fact>, cut: Int, spentRounds: Set<UUID> = [],
-                overflow: [HomeDispatch.Item] = []) {
+                overflow: [HomeDispatch.Item] = [], columnFacts: Set<MeStripCopy.Fact> = [],
+                saysStanding: Bool = false) {
       self.lead = lead; self.deck = deck; self.suppress = suppress
       self.cut = cut; self.spentRounds = spentRounds; self.overflow = overflow
+      self.columnFacts = columnFacts; self.saysStanding = saysStanding
+    }
+  }
+
+  /// An item whose whole point is where I stand in a season. The families are
+  /// the ranker's own: `need:` (*"You are 4 back of Galen with 8 weeks left"* —
+  /// rank, gap, name and clock, which is the season row's entire content),
+  /// `move:` (CHANGED — the rank moved), `chapter:` (the season's standing
+  /// truth), `lastseason:` and `runitback:` (last season's table). Keyed on
+  /// the family, never on the prose.
+  static func saysStanding(_ item: HomeDispatch.Item) -> Bool {
+    ["need", "move", "chapter", "lastseason", "runitback"]
+      .contains(item.key.split(separator: ":", maxSplits: 1).first.map(String.init) ?? "")
+  }
+
+  /// **What an item has spent — the missing `fact_ids`.**
+  ///
+  /// `INFORMATION_ARCHITECTURE` §R1 specifies every dispatch item carrying
+  /// `fact_ids` alongside `suppress`. The server sends none, the client
+  /// modelled none, and `suppress` itself is `'[]'::jsonb` on all but one
+  /// producer — so G3 had nothing to compare and the whole de-dupe layer was
+  /// inert on both sides of the wire.
+  ///
+  /// The server's own answer wins whenever it gave one. Where it did not, the
+  /// set is derived from the item's KEY FAMILY — `plan:<id>`, `clash:<league>`
+  /// — which is structure the server really does send. It is never derived
+  /// from the headline: that is prose, and reading a fact out of prose is a
+  /// guess (L-44). A family this table does not know spends nothing, which is
+  /// the safe answer — an unknown item is shown, never silently dropped.
+  static func facts(_ item: HomeDispatch.Item) -> Set<MeStripCopy.Fact> {
+    if !item.suppress.isEmpty { return item.suppress }
+    switch item.key.split(separator: ":", maxSplits: 1).first.map(String.init) ?? "" {
+    // The weekly clash, when I have posted into it: the number the card puts
+    // up for someone to answer is my last round. (The server sets this one
+    // itself; the fall-back covers the fallback producer, which does not.)
+    case "clash":            return [.myLastRound]
+    // A dated plan of mine — the same tee the strip's NEXT slot names.
+    case "plan", "firsttee": return [.myNextRound]
+    default:                 return []
     }
   }
 
@@ -287,7 +340,10 @@ public enum HomeRank {
   ///    SUBJECT. A bare standing keeps its score and sits in the deck.
   /// 4. **G5 · the cap.** One lead and at most four below it.
   ///
-  /// `stripSuppress` is the ME strip's own set; the lead's is unioned onto it.
+  /// `stripSuppress` is a set the CALLER already knows is spent. It is folded
+  /// into `suppress` for the chips and it does NOT drop deck items: the strip
+  /// yields to the column, never the other way round (§3 row 3). Home passes
+  /// nothing and builds its strip from `columnFacts` afterwards.
   /// `useServerRank` chooses the ORDER (the server's `rank`, or the score);
   /// `allowLead` chooses whether there is a LEAD CARD AT ALL. They are two
   /// different questions and R-06 is about the second: the declared fallback
@@ -300,7 +356,8 @@ public enum HomeRank {
     // G1 · the fence.
     let live = items.filter { $0.route != nil && !$0.headline.trimmingCharacters(in: .whitespaces).isEmpty }
     guard !live.isEmpty else {
-      return Ranked(lead: nil, deck: [], suppress: stripSuppress.union(leadSuppress), cut: 0, spentRounds: [])
+      return Ranked(lead: nil, deck: [], suppress: stripSuppress.union(leadSuppress), cut: 0, spentRounds: [],
+                    columnFacts: leadSuppress)
     }
 
     let ranked = live.allSatisfy { $0.rank != nil }
@@ -334,13 +391,36 @@ public enum HomeRank {
     var rest = sorted
     if let i = leadIndex { rest.remove(at: i) }
 
-    let deck = Array(rest.prefix(deckCap))
-    let overflow = Array(rest.dropFirst(deck.count))
-    let spent = stripSuppress.union(leadSuppress).union(lead?.suppress ?? [])
+    // G3 · SUPPRESSION. **This rule was specified and never built.**
+    //
+    // `HOME_STATE_MATRIX` §2.3 G3: *"the lead publishes `suppress: Set<Fact>`;
+    // any item whose ENTIRE fact set is suppressed is dropped."* Until now the
+    // set was computed here, handed to `UpNextChips`, and to nothing else — so
+    // the deck was `rest.prefix(cap)` verbatim and every fact the lead had
+    // already spent could be spent again two cards below it. On a golfer in two
+    // leagues that rendered *"Galen has today to answer your 89"* as the lead
+    // and *"Jade has today to answer your 89"* as deck item 1: one round of
+    // mine, reported twice, because two leagues each had a row about it.
+    //
+    // Partial overlap survives, exactly as G3 allows: an item that says
+    // something the lead did NOT say keeps its place.
+    let leadSpent = leadSuppress.union(lead?.suppress ?? [])
+    let kept = rest.filter { item in
+      let f = facts(item)
+      return f.isEmpty || !f.isSubset(of: leadSpent)
+    }
+    let deck = Array(kept.prefix(deckCap))
+    let overflow = Array(kept.dropFirst(deck.count))
+    // The strip yields to the column, so the column's own facts are collected
+    // here; `suppress` stays the full union, which is what the chips read.
+    let column = leadSpent.union(deck.flatMap(facts))
+    let spent = stripSuppress.union(column)
     // F-2 · every round the cards on screen have already told.
     let rounds = Set(([lead].compactMap { $0 } + deck).compactMap(spentRound))
     return Ranked(lead: lead, deck: deck, suppress: spent,
-                  cut: overflow.count, spentRounds: rounds, overflow: overflow)
+                  cut: overflow.count, spentRounds: rounds, overflow: overflow,
+                  columnFacts: column,
+                  saysStanding: ([lead].compactMap { $0 } + deck).contains(where: saysStanding))
   }
 
   /// The declared fallback's order — the static, tier-less
