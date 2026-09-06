@@ -440,6 +440,14 @@ struct MainTabView: View {
       // a finger — it opens from a name, and a name has to be tapped. Judging a
       // card design from a screenshot needed a door.
       case "tourcard": presenter.tourCard = store.me?.profile?.id
+      // D261 · the course card opens from a plan row or a course name, which
+      // means a finger. The hatch opens the FIRST book this phone holds; with
+      // an empty store it opens on a course that was never kept, which is the
+      // other state worth photographing. Nothing is seeded — a fabricated book
+      // would make the screenshot a lie about what the store does.
+      case "coursecard":
+        let kept = await CourseBookStore().kept().first
+        presenter.courseCard = CourseSheetRef(id: kept?.id ?? "never-kept", label: kept?.label ?? "A course you have not played")
       default: break
       }
     }
@@ -503,6 +511,7 @@ struct MainTabView: View {
       })
     }
     .sheet(item: $presenter.tourCard) { TourCardSheet(profileId: $0, links: youLinks) }
+    .sheet(item: $presenter.courseCard) { CourseCardSheet(courseId: $0.id, label: $0.label) }
     .sheet(item: $presenter.receipt) { RoundReceiptSheet(roundId: $0, seed: nil, openScorecard: { presenter.scorecard = $0 }) }
     .sheet(item: $presenter.scorecard) { ScorecardSheet(liveRoundId: $0) }
     .sheet(item: $presenter.scheduledRound) { ScheduledRoundSheet(roundId: $0, leagueId: store.preferredLeague, links: csLinks) }

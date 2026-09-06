@@ -2234,6 +2234,18 @@ body:not(.noleague) #hubLeagueless{display:none;}
   text-transform:uppercase; color:var(--brand); margin:26px 0 7px;
   padding-bottom:7px; border-bottom:1px solid var(--line2);}
 .grouphead:first-child{margin-top:0;}
+/* D261 / R-N · the desk's course archive. The card scrolls INSIDE its own
+   container — the page never scrolls sideways (IA §4.2, and preflight 39's
+   web twin asserts it at 320px). Nothing here declares below the 11px floor. */
+.cbook{border:1px solid var(--line); border-radius:10px; padding:10px 12px; margin-bottom:8px; background:var(--bg1);}
+.cbook>summary{cursor:pointer; list-style:none; padding:4px 0; min-height:32px;}
+.cbook>summary::-webkit-details-marker{display:none;}
+.cbtee{margin-top:10px; padding-top:8px; border-top:1px solid var(--line);}
+.cbcard{overflow-x:auto; -webkit-overflow-scrolling:touch; max-width:100%;}
+.cbtable{border-collapse:collapse; font-family:var(--mono); font-size:11px; white-space:nowrap;}
+.cbtable th{text-align:left; padding:2px 8px 2px 0; color:var(--dim); font-weight:400;}
+.cbtable td{padding:2px 6px; color:var(--mut); text-align:right; min-width:22px;}
+.cbtable tr:nth-child(2) td{color:var(--ink);}
 /* D180 · a standing notice row — amber, an icon, room to breathe. Used where
    the app reports a state the golfer chose, never to scold them for it. */
 .warnrow{display:flex; gap:8px; align-items:flex-start; padding:10px 12px 10px 11px;
@@ -3383,8 +3395,8 @@ html[data-theme="light"] .room-dusk .btn:not(.dark):not(.gold):not(.apple){color
                puts these three rows in the SAME order and under the SAME names
                as "This season" below, so the two panels stop drifting. -->
           <div class="stat"><div class="k">Rounds posted</div><div class="v" id="clR">—</div></div>
-          <div class="stat"><div class="k">Best vs your number</div><div class="v" id="clBest">—</div><div class="d fl" id="clBestSub">across counting rounds</div></div>
-          <div class="stat"><div class="k">Avg vs your number</div><div class="v" id="clAvg">—</div><div class="d fl" id="clAvgSub">across counting rounds</div></div>
+          <div class="stat"><div class="k">Best vs your playing HCP</div><div class="v" id="clBest">—</div><div class="d fl" id="clBestSub">across counting rounds</div></div>
+          <div class="stat"><div class="k">Avg vs your playing HCP</div><div class="v" id="clAvg">—</div><div class="d fl" id="clAvgSub">across counting rounds</div></div>
           <div class="stat"><div class="k">Leagues &amp; events</div><div class="v" id="clPlayed">—</div><div class="d fl">Played in</div></div>
         </div>
 
@@ -3403,8 +3415,8 @@ html[data-theme="light"] .room-dusk .btn:not(.dark):not(.gold):not(.apple){color
           <div class="eyebrow">This season · <span id="youSeasonLg">your league</span></div>
           <div class="stats">
             <div class="stat"><div class="k">Rounds posted</div><div class="v" id="msR">—</div></div>
-            <div class="stat"><div class="k">Best vs your number</div><div class="v" id="msBest">—</div><div class="d fl" id="msBestSub">across counting rounds</div></div>
-            <div class="stat"><div class="k">Avg vs your number</div><div class="v" id="msAvg">—</div><div class="d fl" id="msAvgSub">across counting rounds</div></div>
+            <div class="stat"><div class="k">Best vs your playing HCP</div><div class="v" id="msBest">—</div><div class="d fl" id="msBestSub">across counting rounds</div></div>
+            <div class="stat"><div class="k">Avg vs your playing HCP</div><div class="v" id="msAvg">—</div><div class="d fl" id="msAvgSub">across counting rounds</div></div>
             <div class="stat"><div class="k">Index move</div><div class="v" id="msDelta">—</div><div class="d up" id="msDeltaSub">Season to date</div></div>
           </div>
         </div>
@@ -3422,7 +3434,18 @@ html[data-theme="light"] .room-dusk .btn:not(.dark):not(.gold):not(.apple){color
         <div class="eyebrow" id="lgRecHead" style="display:none">Every season</div>
         <div id="lgRec" style="display:none; margin-bottom:14px"></div>
 
-                <!-- D177: "How it works" moved off this page into the ⚙ Card &
+                <!-- ══ D261 / R-N · YOUR COURSES ═══════════════════════════════════
+             The desk's half of the offline course store. On the phone this is
+             a lookup you reach when the signal is gone; on a 1440 it is the
+             ARCHIVE — every course you have played or planned, its tees, its
+             ratings and slopes and its card, side by side — which is the read
+             R-C says the desk should lean into. It works with no connection
+             because it is drawn from what this device kept, and it says so. -->
+        <div class="grouphead">Your courses</div>
+        <p class="fine" id="youCoursesWhat" style="padding:0 0 8px"></p>
+        <div id="youCourses" style="text-align:left"></div>
+
+        <!-- D177: "How it works" moved off this page into the ⚙ Card &
              settings sheet (#setGuide). It is reference material — the same
              rows the Pro reads and a brand-new golfer reads — and it was filed
              under a page about your own record. -->
@@ -3735,7 +3758,7 @@ html[data-theme="light"] .room-dusk .btn:not(.dark):not(.gold):not(.apple){color
               <div class="msg" id="calcMsg">Enter your gross to see the points.</div>
               <div class="trio">
                 <div><b id="calcGross">–</b><span>Gross</span></div>
-                <div><b id="calcVs">–</b><span>your number</span></div>
+                <div><b id="calcVs">–</b><span>your playing HCP</span></div>
               </div>
               <p class="fine" id="calcSeason" style="padding:8px 0 0">No season yet? The round still posts to your rounds — points apply in any season you join.</p>
             </div>
@@ -3784,7 +3807,7 @@ html[data-theme="light"] .room-dusk .btn:not(.dark):not(.gold):not(.apple){color
 
         <div class="wizstep" data-step="1">
           <div class="eyebrow" style="margin-top:0">How serious is your league? <button class="ibtn" data-i="preset" aria-expanded="false" aria-label="About competitiveness presets">i</button></div>
-          <div class="ihelp" id="ih-preset">One pick, made now, that sets the fairness rules for the whole season — how much of your number you play off, how scores are vouched for, which courses count. <b>Casual</b> is an honor-system beer league. <b>Standard</b> asks you to post what you'd post to GHIN. <b>Cutthroat</b> wants receipts: vouched by the group where you can; the Pro rules on the rest. Deciding this before anyone tees off is what keeps October friendly.</div>
+          <div class="ihelp" id="ih-preset">One pick, made now, that sets the fairness rules for the whole season — how much of your index you play off, how scores are vouched for, which courses count. <b>Casual</b> is an honor-system beer league. <b>Standard</b> asks you to post what you'd post to GHIN. <b>Cutthroat</b> wants receipts: vouched by the group where you can; the Pro rules on the rest. Deciding this before anyone tees off is what keeps October friendly.</div>
           <!-- D225 / L-16 · the cards STOP NAMING DIALS. Each is one sentence,
                and the wording is the phone's own (WizardDials.presets.lead) so
                a reword on one client fails the other (D234). Every dial is
@@ -4711,11 +4734,11 @@ setInterval(function(){
   const feedEl = document.getElementById('obFeed');
   const lbEl = document.getElementById('obLb');
   const FEED = [
-    {n:'MARCUS', c:'PAPAGO GC', g:82, b:'BEAT HIS NUMBER BY 2.4', p:'+9 PTS', sq:'--sq0'},
+    {n:'MARCUS', c:'PAPAGO GC', g:82, b:'BEAT HIS PLAYING HCP BY 2.4', p:'+9 PTS', sq:'--sq0'},
     {n:'DANA', c:'ENCANTO 9', g:91, b:'POSTED ANYWAY', p:'+5 PTS', sq:'--sq1'},
     {n:'RAY', c:'AGUILA', g:78, b:'TORCHED IT BY 4.1', p:'+12 PTS', sq:'--sq2'},
-    {n:'PRIYA', c:'KEN McDONALD', g:87, b:'PLAYED TO HER NUMBER', p:'+7 PTS', sq:'--sq3'},
-    {n:'COLE', c:'DOBSON RANCH', g:84, b:'BEAT HIS NUMBER BY 1.2', p:'+9 PTS', sq:'--sq0'}
+    {n:'PRIYA', c:'KEN McDONALD', g:87, b:'PLAYED TO HER PLAYING HCP', p:'+7 PTS', sq:'--sq3'},
+    {n:'COLE', c:'DOBSON RANCH', g:84, b:'BEAT HIS PLAYING HCP BY 1.2', p:'+9 PTS', sq:'--sq0'}
   ];
   const LBT = [
     {n:'Dew Sweepers', sq:'--sq3', p:184},
@@ -5867,7 +5890,7 @@ function showFinalist(f){
   const capNote=(window.cupRace&&window.cupRace.cap_note)||null;
   if(capNote) h+=`<div class="fine">${esc(capNote)}</div>`;
   h+= rounds.length
-    ? rounds.map(r=>`<div class="fine" style="display:flex;justify-content:space-between;gap:10px;padding:4px 0"><span>${esc(String(r.played_on))}${r.holes_played===9?' \u00b7 9 HOLES':''}${f.squad_id?' \u00b7 '+esc(String(r.golfer||'')).toUpperCase():''}</span><b class="mono" style="white-space:nowrap">${sgn(r.pvi)} vs your number \u00b7 ${r.points} PTS</b></div>`).join('')
+    ? rounds.map(r=>`<div class="fine" style="display:flex;justify-content:space-between;gap:10px;padding:4px 0"><span>${esc(String(r.played_on))}${r.holes_played===9?' \u00b7 9 HOLES':''}${f.squad_id?' \u00b7 '+esc(String(r.golfer||'')).toUpperCase():''}</span><b class="mono" style="white-space:nowrap">${sgn(r.pvi)} vs your playing HCP \u00b7 ${r.points} PTS</b></div>`).join('')
     : `<p class="fine">No counting rounds in the window yet \u2014 the slate is still clean.</p>`;
   h+=`<p class="fine" style="padding-top:12px">Only rounds inside the four-week window count here, up to the monthly cap. The weeks before it decided who is in; this is the race.</p>`;
   openSheet(name, `SEED ${f.seed} \u00b7 ${tot} PTS IN THE FINAL`, h);
@@ -7084,14 +7107,18 @@ function pointsFor(vs){
      constantly, and the server writes the row — so the screen was promising a
      point the table would not pay. Half-open, engine-side, everywhere.
      db-checks 17 pins cup_points; app-tests pin this. */
-  if(vs>=3)  return [12,'You torched your number by '+vs.toFixed(1)+'. Sandbagger alert.'];
-  if(vs>=1)  return [9,'You beat your number by '+vs.toFixed(1)+'. Nice round.'];
-  if(vs>-1)  return [7,'Right on your number. Steady points.'];
+  if(vs>=3)  return [12,'You torched your playing HCP by '+vs.toFixed(1)+'. Sandbagger alert.'];
+  if(vs>=1)  return [9,'You beat your playing HCP by '+vs.toFixed(1)+'. Nice round.'];
+  if(vs>-1)  return [7,'Right on your playing HCP. Steady points.'];
   if(vs>=-3) return [6,'A little loose, still cash in the bank.'];
   return [5,'Rough one, but posted rounds always score.'];
 }
 /* the named bands (spec §2.2's Read column) — the display language for scoring.
-   PvI stays the engine currency; the SCREEN says "your number" (decision D1). */
+   PvI stays the engine currency; the SCREEN says "your playing HCP" for the
+   COMPARISON (R-M / D260, amending D1's noun); the five BAND LABELS below are
+   spec §2.2's and the owner ruled they stand. A card can show the chip "Beat
+   your number" over the line "2.1 under your playing HCP" — one fact wearing
+   two nouns, deliberate, and preflight 42 keeps the two sets apart. */
 function bandName(vs){
   if(vs>=3)  return 'Torched it';
   if(vs>=1)  return 'Beat your number';
@@ -7272,13 +7299,13 @@ function floorSentence(o){
 function vsPhrase(vs){
   vs=Number(vs);
   if(!isFinite(vs)) return '';
-  if(vs>=1)  return 'beat your number by '+vs.toFixed(1);
-  if(vs>-1)  return 'played to your number';   /* Q-20 */
-  return vs.toFixed(1).replace('-','')+' over your number';
+  if(vs>=1)  return 'beat your playing HCP by '+vs.toFixed(1);
+  if(vs>-1)  return 'played to your playing HCP';   /* Q-20 */
+  return vs.toFixed(1).replace('-','')+' over your playing HCP';
 }
 /* third-person form for surfaces that show SOMEONE ELSE's round — the share
    page, crew rows in the feed, another golfer's receipt. "Your number" is the
-   owner's voice only; a stranger reading "2.4 over your number" can't tell
+   owner's voice only; a stranger reading "2.4 over your playing HCP" can't tell
    whose (pilot). Always they/them — never guess pronouns from a name. */
 const theirs = s => String(s||'').replace(/YOUR/g,'THEIR').replace(/Your/g,'Their').replace(/your/g,'their');
 /* D77 · first names leave the app, full names stay in it. A feed row has the
@@ -7348,7 +7375,7 @@ function drawRecapCard(d){
   /* the hero number — serif, the memory-and-honor voice */
   ctr(String(d.gross), 760, `700 300px ${SERIF}`, INK);
   /* band renders only on a SANE vs — a rating-less post recalcs to a nonsense
-     differential (≈ −71.6 → "71.6 over your number"), so |pvi|>30 means we
+     differential (≈ −71.6 → "71.6 over your playing HCP"), so |pvi|>30 means we
      don't really have a number. Gated here at render time so every caller
      (ceremony share, epilogue share, future ones) is covered; rows below sit
      at fixed y, so the card stands without the band. Display gate only. */
@@ -7376,7 +7403,10 @@ function recapText(d){
      out of the share text too */
   const pviSane = d.pvi!=null && isFinite(d.pvi) && Math.abs(Number(d.pvi))<=30;
   return `${d.gross} at ${d.course||'the course'}`
-    + (pviSane?` — ${theirs(vsPhrase(Number(d.pvi))).toLowerCase()}`:'')
+    /* R-M · NOT lower-cased: vsPhrase is already sentence-case prose and its
+       noun is an acronym — `.toLowerCase()` shipped "playing hcp" into the
+       one string that leaves the app. Verbatim with the phone's `caption`. */
+    + (pviSane?` — ${theirs(vsPhrase(Number(d.pvi)))}`:'')
     + (d.points!=null?` · ${d.points} pts`:'') + ' · cupseason.app';
 }
 async function shareRecapCard(d){
@@ -7940,7 +7970,7 @@ function finishCeremony(o){
   $('#finGross').textContent=(o.gross!=null?o.gross:'');
   /* the band line reuses the app's one phrase producer — never re-derived.
      Gate on a SANE vs: a rating-less post recalcs to a nonsense differential
-     (≈ −71.6 → "71.6 over your number"), so |vs|>30 means we don't really have
+     (≈ −71.6 → "71.6 over your playing HCP"), so |vs|>30 means we don't really have
      a number — the band bows out and eyebrow/gross/points carry the ceremony
      alone. Scoring/recalc are untouched; this is a display gate only. */
   const vsSane = o.vs!=null && isFinite(o.vs) && Math.abs(Number(o.vs))<=30;
@@ -8895,6 +8925,136 @@ function paintCourseHint(){
   hint.style.color='var(--mut)';
   hint.innerHTML = 'Unlisted course — the round counts in full. It just won\u2019t show in your rounds or match you with other golfers who\u2019ve played it.';
 }
+/* ── D261 / R-N · THE COURSES THIS DEVICE KEEPS ─────────────────────────────
+   The owner's escalation was an airplane and a dead app: nothing about a
+   course was stored on the client, so tees, ratings, slopes and hole cards all
+   needed a signal. The phone keeps them in Application Support (`CourseDisk`);
+   the desk keeps them here, in localStorage, under the same rules — the
+   courses you have PLAYED or PLANNED and nothing else, capped, evicted
+   least-recently-used, and never drawn without a line saying when it is from.
+
+   The desk's half is not the phone's screen reflowed (R-C): on a 1440 the
+   value is the ARCHIVE — every course you have played, its tees and its card,
+   browsable — and working with no connection is what the store gives it for
+   free. Searching the whole catalogue offline is out of scope on both clients
+   and says so.
+
+   One producer, two renderers: the strings live in `CS_COURSE_COPY` and are
+   the phone's `CourseBookCopy` with ONE word changed — the phone says "your
+   phone" and the desk says "this device", because a golfer reading this on a
+   MacBook is not reading it on a phone and L-32 is about telling the truth. */
+const CS_COURSE_KEY = 'cs.courses.v1';
+const CS_COURSE_CAP = 40;
+const CS_COURSE_COPY = {
+  neverKept: 'This course is not on this device. Cup Season keeps the courses you have played or planned; open this one with a signal and it will be here next time.',
+  readFailed: 'Could not reach the course list. What this device has kept is below.',
+  searchOffline: 'No signal — searching the courses on this device. The full list needs a connection.',
+  noCard: 'No hole card saved for this tee. Pars and stroke indexes come down the first time you play it with a signal.',
+  what: 'Courses you have played or planned are kept on this device, so the tees, ratings and cards are there with no signal.'
+};
+function csCourseAll(){
+  try{
+    const raw = JSON.parse(localStorage.getItem(CS_COURSE_KEY) || '[]');
+    return Array.isArray(raw) ? raw.filter(b=>b && b.id) : [];
+  }catch(_){ return []; }
+}
+function csCourseWrite(list){
+  try{
+    const capped = list.slice().sort((a,b)=>(b.usedAt||0)-(a.usedAt||0)).slice(0, CS_COURSE_CAP);
+    localStorage.setItem(CS_COURSE_KEY, JSON.stringify(capped));
+  }catch(_){ /* a full or blocked store is not a reason to break a tee pick */ }
+}
+function csCourseGet(id){
+  if(!id) return null;
+  const all = csCourseAll();
+  const b = all.find(x=>String(x.id)===String(id));
+  if(b){ b.usedAt = Date.now(); csCourseWrite(all); }   /* read TOUCHES it — LRU means used */
+  return b || null;
+}
+/* the club/course label rule, the phone's `CourseHit.label` */
+function csCourseLabel(b){
+  return (b.club_name && b.course_name && b.club_name!==b.course_name)
+    ? `${b.club_name} — ${b.course_name}` : (b.course_name || b.club_name || b.label || 'Course');
+}
+function csCoursePlace(b){ return [b.city,b.state].filter(Boolean).join(', '); }
+/* "Saved on your phone today" — the ONLY sanctioned rendering of provenance,
+   and it is never omitted beside a figure it qualifies (L-32). */
+function csCourseSavedLine(b){
+  const at = new Date(b.savedAt || Date.now());
+  const iso = d => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+  const now = new Date();
+  let when;
+  if(iso(at)===iso(now)) when = 'today';
+  else if(iso(at)===iso(new Date(now.getTime()-86400000))) when = 'yesterday';
+  else when = `${DOW[at.getDay()]} ${MOS[at.getMonth()]} ${at.getDate()}`;
+  return `Saved on this device ${when}`;
+}
+function csCourseSearch(q){
+  const needle = String(q||'').trim().toLowerCase();
+  if(needle.length < 2) return [];
+  return csCourseAll()
+    .filter(b => csCourseLabel(b).toLowerCase().includes(needle) || csCoursePlace(b).toLowerCase().includes(needle))
+    .slice(0, 12);
+}
+/* a kept book, shaped as the search dropdown's own row */
+function csCourseAsHit(b){
+  return { id:String(b.id), label:csCourseLabel(b), place:csCoursePlace(b),
+           tees:(b.tees||[]).filter(t=>t.course_rating!=null && t.slope_rating!=null) };
+}
+/* write-through from an ordinary online pick, so the store fills itself */
+function csCourseKeep(c, tee){
+  if(!c || !c.id) return;
+  const all = csCourseAll();
+  const i = all.findIndex(x=>String(x.id)===String(c.id));
+  const old = i >= 0 ? all[i] : null;
+  const tees = (c.tees||[]).map(t=>{
+    const kept = (old?.tees||[]).find(k=>k.tee_name===t.tee_name && k.gender===t.gender);
+    return Object.assign({}, t, { holes: (kept?.holes)||[] });
+  });
+  if(!tees.length) return;
+  const book = { id:String(c.id), club_name:old?.club_name || c.label, course_name:old?.course_name || null,
+                 city:old?.city || null, state:old?.state || null, tees,
+                 planned: old?.planned || false, played: old?.played || false,
+                 next_play_on: old?.next_play_on || null, last_played_on: old?.last_played_on || null,
+                 savedAt: Date.now(), usedAt: Date.now() };
+  if(i >= 0) all[i] = book; else all.push(book);
+  csCourseWrite(all);
+}
+/* the one read that fills the store — `my_course_books`. A MERGE, not a
+   replace: eviction order survives, and a row that came back with no tees
+   never overwrites a card we already hold (L-44). Returns null when the read
+   did not happen, which is NOT the same as zero. */
+async function csCourseRefresh(){
+  if(state.demo || !window.sb || !window.CS?.user) return null;
+  /* Deploy-skew: the client may be newer than the database. The whole read is
+     wrapped and a failure returns null — NOT zero — so nothing on either
+     client ever narrates "no courses" over a read that did not happen. */
+  let data;
+  try {
+    const res = await window.sb.rpc('my_course_books', { p_limit: CS_COURSE_CAP });
+    if(res.error || !Array.isArray(res.data)) return null;
+    data = res.data;
+  } catch(_){ return null; }
+  const all = csCourseAll();
+  for(const row of data){
+    if(!row || !row.id) continue;
+    const i = all.findIndex(x=>String(x.id)===String(row.id));
+    const old = i >= 0 ? all[i] : null;
+    const tees = (Array.isArray(row.tees) && row.tees.length) ? row.tees : (old?.tees || []);
+    const book = { id:String(row.id), club_name:row.club_name, course_name:row.course_name,
+                   city:row.city, state:row.state, tees,
+                   planned:!!row.planned, played:!!row.played,
+                   next_play_on:row.next_play_on || null, last_played_on:row.last_played_on || null,
+                   savedAt: (Array.isArray(row.tees) && row.tees.length) ? Date.now() : (old?.savedAt || Date.now()),
+                   usedAt: old?.usedAt || Date.now() };
+    if(i >= 0) all[i] = book; else all.push(book);
+  }
+  csCourseWrite(all);
+  return data.length;
+}
+window.csCourseRefresh = csCourseRefresh;
+window.csCourseAll = csCourseAll;
+
 function attachCourseSearch(courseSel, ratingSel, slopeSel, onTee){
   const input=$(courseSel); if(!input) return;
   const dd=document.createElement('div'); dd.className='coursedd'; dd.style.display='none';
@@ -8918,6 +9078,10 @@ function attachCourseSearch(courseSel, ratingSel, slopeSel, onTee){
   const ra=$(ratingSel), sl=$(slopeSel);
   const hide=()=>{ dd.style.display='none'; dd.innerHTML=''; dd.dataset.stage=''; };
   let timer=null, lastQ='', courses=[];
+  /* D261 · true when NOTHING on the network answered and the rows below are
+     the courses this device kept. The list says so rather than letting a
+     two-row dropdown read as the whole catalogue (L-32). */
+  let offline=false;
 
   function showTees(ci){
     const c=courses[ci];
@@ -8941,13 +9105,17 @@ function attachCourseSearch(courseSel, ratingSel, slopeSel, onTee){
       if(ratingSel==='#inRating' && typeof recalc==='function') recalc();
       hide(); toast('Tees set — rating and slope filled');
       const cached = window.sb.functions.invoke('courses', { body:{ action:'cache', id:c.id } }).catch(()=>{});
+      csCourseKeep(c, t);   /* D261 · this device keeps what you picked */
       if(typeof onTee==='function') onTee({ course:c, tee:t, cached });
     }));
   }
   function showCourses(){
     dd.dataset.stage='courses';
-    if(!courses.length){ dd.innerHTML='<div class="coursedd-msg">No match — type the course, rating and slope by hand.</div>'; dd.style.display='block'; return; }
-    dd.innerHTML = courses.map((c,ci)=>
+    if(!courses.length){
+      dd.innerHTML = `<div class="coursedd-msg">${offline ? esc(CS_COURSE_COPY.searchOffline) : 'No match — type the course, rating and slope by hand.'}</div>`;
+      dd.style.display='block'; return;
+    }
+    dd.innerHTML = (offline ? `<div class="coursedd-msg">${esc(CS_COURSE_COPY.searchOffline)}</div>` : '') + courses.map((c,ci)=>
       `<button type="button" data-ci="${ci}"><b>${esc(c.label)}</b><span>${c.place?esc(c.place)+' · ':''}${c.tees.length} tee${c.tees.length===1?'':'s'}</span></button>`).join('');
     dd.style.display='block';
     dd.querySelectorAll('[data-ci]').forEach(b=>b.addEventListener('mousedown',e=>{
@@ -8977,17 +9145,25 @@ function attachCourseSearch(courseSel, ratingSel, slopeSel, onTee){
     const { data, error } = await window.sb.from('api_courses')
       .select('id, club_name, course_name, city, state, api_course_tees(tee_name, gender, course_rating, slope_rating, number_of_holes)')
       .or(`course_name.ilike.${like},club_name.ilike.${like}`).limit(12);
-    if(error || !data) return [];
+    /* D261 · null means THE READ FAILED; [] means the cache has no match. The
+       dropdown needs the difference — one is "no such course", the other is
+       "no signal", and saying the first when the truth is the second is the
+       lie L-32 forbids. */
+    if(error || !data) return null;
     return data.map(c=>shapeCourse(c, c.api_course_tees)).filter(c=>c.tees.length);
   }
   async function run(q){
     if(state.demo || !window.CS?.user || !window.sb) return;
-    let local=[];
-    try{ local = await searchCache(q); }catch(_){ local=[]; }
+    /* D261 / R-N · the phone's own books answer first and answer offline. */
+    const saved = csCourseSearch(q).map(csCourseAsHit).filter(c=>c.tees.length);
+    let cached=null;
+    try{ cached = await searchCache(q); }catch(_){ cached=null; }
+    const seenSaved = new Set(saved.map(c=>c.id));
+    const local = [...saved, ...(cached||[]).filter(c=>!seenSaved.has(c.id))].slice(0,12);
     /* paint cached hits immediately — but never yank the user out of the tee
        list, and never let a stale response overwrite a newer query */
     const fresh = () => lastQ===q && dd.dataset.stage!=='tees';
-    if(local.length && fresh()){ courses=local; showCourses(); }
+    if(local.length && fresh()){ courses=local; offline = cached===null; showCourses(); }
     try {
       const { data, error } = await window.sb.functions.invoke('courses', { body:{ action:'search', q } });
       if(error) throw error;
@@ -8999,7 +9175,7 @@ function attachCourseSearch(courseSel, ratingSel, slopeSel, onTee){
          empty and "No match" is the honest answer — whereas skipping the render
          left the previous "Course search is down" on screen after the search
          had come back, which is a worse lie than the original silence. */
-      if(fresh()){ courses=merged; showCourses(); }
+      if(fresh()){ courses=merged; offline=false; showCourses(); }
     } catch(e){
       /* API unavailable: cached results stand (pilot rule — never yank a hit
          the golfer can already see).
@@ -9008,11 +9184,19 @@ function attachCourseSearch(courseSel, ratingSel, slopeSel, onTee){
          three times and got no list, no spinner and no error (five 502s in the
          console), then posted with a blank rating. Say it, and offer a retry. */
       window.qaEvent?.('course_search_fail', { q_len: q.length, msg: String(e?.message||e).slice(0,80) });
-      if(!local.length && fresh()){
-        dd.dataset.stage='courses';
-        dd.innerHTML = '<div class="coursedd-msg">Course search is down — type the course, rating and slope by hand.</div>'
-          + '<button type="button" data-csretry><b>Try again</b></button>';
-        dd.style.display='block';   /* the retry is delegated at setup — see above */
+      /* D261 · with nothing on the network, what this device kept STANDS and
+         says so. Only a search that has neither falls to the retry. */
+      if(fresh()){
+        offline = cached===null;
+        if(local.length){ courses=local; showCourses(); }
+        else {
+          dd.dataset.stage='courses';
+          dd.innerHTML = (offline
+              ? `<div class="coursedd-msg">${esc(CS_COURSE_COPY.searchOffline)}</div>`
+              : '<div class="coursedd-msg">Course search is down — type the course, rating and slope by hand.</div>')
+            + '<button type="button" data-csretry><b>Try again</b></button>';
+          dd.style.display='block';   /* the retry is delegated at setup — see above */
+        }
       }
     }
   }
@@ -12008,7 +12192,56 @@ function yourMonthCredits(){
     return a + (f.meta.includes('9 HOLES') ? 0.5 : 1);
   }, 0);
 }
+/* D261 / R-N · the desk's course archive. Drawn from what THIS DEVICE kept —
+   no network read on the way in, because this is the panel a golfer opens when
+   there is no network — and refreshed underneath when there is one.
+
+   Every rule the phone's `CourseCardSheet` obeys is obeyed here: the saved
+   line sits ABOVE the first figure it qualifies, a tee with no card says so
+   rather than drawing eighteen par 4s, and an empty store says what fills it
+   instead of rendering nothing (L-32, L-44). */
+function renderCourseBooks(){
+  const box = $('#youCourses'); if(!box) return;
+  const what = $('#youCoursesWhat'); if(what) what.textContent = CS_COURSE_COPY.what;
+  const books = csCourseAll();
+  if(!books.length){
+    box.innerHTML = '<p class="fine">Nothing kept yet. Post a round or put one on the schedule and its course comes with you.</p>';
+    return;
+  }
+  box.innerHTML = books.map(b=>{
+    const tees = (b.tees||[]).filter(t=>t.course_rating!=null && t.slope_rating!=null);
+    const teeRows = tees.length ? tees.map(t=>{
+      const holes = Array.isArray(t.holes) ? t.holes.slice().sort((x,y)=>(x.hole||0)-(y.hole||0)) : [];
+      const card = holes.length
+        ? `<div class="cbcard"><table class="cbtable"><tr><th>HOLE</th>${holes.map(h=>`<td>${h.hole}</td>`).join('')}</tr>`
+          + `<tr><th>PAR</th>${holes.map(h=>`<td>${h.par!=null?h.par:'—'}</td>`).join('')}</tr>`
+          + `<tr><th>SI</th>${holes.map(h=>`<td>${h.si!=null?h.si:'—'}</td>`).join('')}</tr></table></div>`
+        : `<p class="fine">${esc(CS_COURSE_COPY.noCard)}</p>`;
+      const first = holes[0];
+      const firstLine = first
+        ? `<p class="fine"><b>1st: par ${first.par!=null?first.par:'—'}${first.si!=null?` · stroke index ${first.si}`:''}</b></p>` : '';
+      return `<div class="cbtee"><div class="eyebrow">${esc(t.tee_name||'Tee')}${t.gender==='female'?' · Women’s':''}`
+        + ` · Rating ${t.course_rating} · Slope ${t.slope_rating}${t.number_of_holes?` · ${t.number_of_holes} holes`:''}</div>`
+        + firstLine + card + '</div>';
+    }).join('') : '<p class="fine">No rated tees kept for this course.</p>';
+    /* a date is never printed as an ISO string — `new Date('YYYY-MM-DD')` is
+       UTC midnight and renders the previous day in Phoenix, which is why this
+       repo builds its dates by hand. Verbatim with the phone's
+       `LeagueDates.dowMonDay`. */
+    const dmd = iso => { try{ const d=localDate(iso); return `${DOW[d.getDay()]} ${MOS[d.getMonth()]} ${d.getDate()}`; }catch(_){ return iso; } };
+    const why = b.next_play_on ? `On your schedule ${esc(dmd(b.next_play_on))}.`
+              : b.last_played_on ? `You last played here ${esc(dmd(b.last_played_on))}.` : '';
+    return `<details class="cbook"><summary><b>${esc(csCourseLabel(b))}</b>`
+      + `<span class="fine"> ${esc(csCoursePlace(b))}${csCoursePlace(b)?' · ':''}${tees.length} tee${tees.length===1?'':'s'}</span></summary>`
+      /* L-32 · the provenance line comes BEFORE any figure it qualifies */
+      + `<p class="fine">${esc(csCourseSavedLine(b))}. Ratings and cards change; this is the copy you have.</p>`
+      + (why?`<p class="fine">${why}</p>`:'') + teeRows + '</details>';
+  }).join('');
+}
+window.renderCourseBooks = renderCourseBooks;
+
 function renderStats(){
+  renderCourseBooks();
   const capN=CAP_N[state.cap];
   /* real leagues read the view-backed month numbers (window.myMonth, set by
      the module) — the demo's feed-scrape (who==='You') never matches real
@@ -15131,7 +15364,7 @@ function renderCareerRecord(){
 window.renderCareerRecord = renderCareerRecord;
 
 /* D76 — FORM L5: the card runs a temperature. Dots read oldest→newest; ember
-   = beat your number (`beat` per round: server-computed on tour_card, derived
+   = beat your playing HCP (`beat` per round: server-computed on tour_card, derived
    locally where index_at_post/differential are in hand). SKEW-SAFE: a payload
    whose entries carry NO `beat` key (pre-migration tour_card) renders nothing
    at all — no row, no error. Empty recent: same. */
@@ -15152,7 +15385,7 @@ function formRowHtml(recent, caption){
   return `<div class="cform" role="img" aria-label="Form, last ${last5.length} rounds${stk >= 2 ? `, ${stk} straight under` : ''}"><span class="cfl">LAST FIVE</span>${dots}${tag}</div>${key}`;
 }
 /* the one wording for what a lit dot means — web twin of `YouCopy.formKey` */
-const CS_FORM_KEY = 'Your last five rounds, oldest first — a lit dot beat your number.';
+const CS_FORM_KEY = 'Your last five rounds, oldest first — a lit dot beat your playing HCP.';
 window.formRowHtml = formRowHtml;
 
 /* D208 · "Played in" counts a league when its first season kicked off or you
@@ -15228,7 +15461,7 @@ function renderCareer(){
           const photo = (r.photo_url||r.photo_path)?`<button data-rcpt-i="${ri}" title="Round photo" aria-label="Open the round" style="background:none; border:none; color:var(--dim); cursor:pointer; padding:2px 2px; line-height:1;"><svg class="ic" aria-hidden="true"><use href="#i-photo"/></svg></button>`:'';
           const del = canDel&&r.id?`<button data-delr="${r.id}" title="Delete this round" aria-label="Delete round" style="background:none; border:none; color:var(--dim); cursor:pointer; font-size:16px; line-height:1; padding:2px 4px;"><svg class="ic" aria-hidden="true"><use href="#i-close"/></svg></button>`:'';
           return `<div class="fine" style="padding:3px 0"><div style="display:flex; justify-content:space-between; align-items:center; gap:8px;"><span>${when} · ${course}</span><span style="display:flex; align-items:center; gap:12px;">${photo}<b class="mono">${r.gross} GROSS${r.holes_played===9?' · 9 HOLES':''}</b>${del}</span></div>`
-            + (fig!=null ? `<div style="color:var(--mut)">${sign(fig)} vs your number</div>` : '')
+            + (fig!=null ? `<div style="color:var(--mut)">${sign(fig)} vs your playing HCP</div>` : '')
             + `</div>`;
         }).join('')
       : emptyState({ icon:'⛳', line:'No rounds yet — your card fills as you play.', ctaLabel:'Post your first round', ctaGo:'record' });
@@ -15293,7 +15526,7 @@ function renderIndStats(){
   $('#awImp').textContent=imp.n;    $('#awImpS').textContent='Most Improved · ▼'+Math.abs(imp.d).toFixed(1);
   $('#awIron').textContent=iron.n;  $('#awIronS').textContent='Iron Man · '+iron.r+' rds';
 
-  let html=`<tr><th></th><th>Golfer</th><th class="num">R</th><th class="num">Avg vs your number</th><th class="num">Pts</th></tr>`;
+  let html=`<tr><th></th><th>Golfer</th><th class="num">R</th><th class="num">Avg vs your playing HCP</th><th class="num">Pts</th></tr>`;
   rows.forEach((p,i)=>{
     html+=`<tr class="tap" data-pl="${p.n}"${(p.me||p.n==='You')?' style="background:var(--bg2)"':''}>
       <td class="rk mono">${String(i+1).padStart(2,'0')}</td>
@@ -15355,7 +15588,7 @@ function renderIndStatsReal(){
   $('#awIron').textContent=iron.r>0?fn(iron.n):'—';
   $('#awIronS').textContent='Iron Man'+(iron.r>0?' · '+iron.r+' rds':'');
 
-  let html=`<tr><th></th><th>Golfer</th><th class="num">R</th><th class="num">Avg vs your number</th><th class="num">Pts</th></tr>`;
+  let html=`<tr><th></th><th>Golfer</th><th class="num">R</th><th class="num">Avg vs your playing HCP</th><th class="num">Pts</th></tr>`;
   rows.forEach((p,i)=>{
     html+=`<tr class="tap" data-ri="${i}"${p.me?' style="background:var(--bg2)"':''}>
       <td class="rk mono">${String(i+1).padStart(2,'0')}</td>
@@ -15377,7 +15610,7 @@ function openMemberHist(p){
   const sgn=v=>(v>=0?'+':'')+Number(v).toFixed(1);
   const hist=(p.hist||[]);
   const body=hist.length
-    ? hist.map(h=>`<div class="fine" style="display:flex;justify-content:space-between;gap:10px;padding:4px 0"><span>${h.played_on}${h.holes_played===9?' · 9 HOLES':''}${h.counting?'':' · BUMPED'}</span><b class="mono" style="white-space:nowrap">${sgn(h.pvi)} vs your number · ${h.points} PTS</b></div>`).join('')
+    ? hist.map(h=>`<div class="fine" style="display:flex;justify-content:space-between;gap:10px;padding:4px 0"><span>${h.played_on}${h.holes_played===9?' · 9 HOLES':''}${h.counting?'':' · BUMPED'}</span><b class="mono" style="white-space:nowrap">${sgn(h.pvi)} vs your playing HCP · ${h.points} PTS</b></div>`).join('')
       + (hist.some(h=>!h.counting)?'<p class="fine" style="padding-top:10px">Bumped rounds still happened — a better round took their monthly slot. A better round always bumps your worst counter.</p>':'')
     : emptyState({ icon:'⛳', line:'No rounds this season yet — post one and you\'re on the board.', ctaLabel:'Add my round', ctaGo:'record' });
   openSheet(p.n, `${p.r} ROUND${p.r===1?'':'S'} · ${p.pts} PTS`, body);
@@ -15408,13 +15641,15 @@ function roundCardBody(r, pvi, capN){
      `index_provisional` / `provisional_round` are absent on an older database,
      and then this branch simply never fires. */
   const provisional = r.index_provisional===true;
-  /* D209 · the arithmetic reads in order: the number that day → the playing
-     number it becomes under the league's allowance → what the round was worth
-     against the course → the verdict. Same order as the phone's ReceiptRows. */
+  /* D209 / R-M · the arithmetic reads in order: the INDEX that day → the
+     PLAYING HCP it becomes under the league's allowance → what the round was
+     worth against the course → the verdict. Same order as the phone's
+     ReceiptRows, and this pair of rows is where the two handicap nouns are
+     distinguished for a golfer who has never met them. */
   let playingShown=false;
   if(!provisional){
     if(r.index_at_post!=null){
-      rows.push(`<div class="mathrow sub"><span>${mine?'Your':'Their'} number that day</span><b>${Number(r.index_at_post).toFixed(1)}</b></div>`);
+      rows.push(`<div class="mathrow sub"><span>${mine?'Your':'Their'} index that day</span><b>${Number(r.index_at_post).toFixed(1)}</b></div>`);
     }
     /* the allowance is visible where it ACTS. `round_card` returns the playing
        index; the row renders only when the allowance actually moved the PRINTED
@@ -15423,7 +15658,7 @@ function roundCardBody(r, pvi, capN){
     const playingF = r.playing_index!=null ? Number(r.playing_index).toFixed(1) : null;
     playingShown = playingF!=null && r.index_at_post!=null && playingF!==Number(r.index_at_post).toFixed(1);
     if(playingShown){
-      rows.push(`<div class="mathrow sub"><span>Playing number</span><b>${playingF}</b></div>`);
+      rows.push(`<div class="mathrow sub"><span>Playing HCP</span><b>${playingF}</b></div>`);
     }
   }
 
@@ -15449,7 +15684,7 @@ function roundCardBody(r, pvi, capN){
        client's own when it did not — one table, three renderers, held together
        by preflight check 28. */
     const named = r.band || bandName(pvi);
-    rows.push(`<div class="mathrow"><span>Against ${mine?'your':'their'} ${playingShown?'playing number':'number'}</span><b>${mine?vsShort(pvi):theirs(vsShort(pvi))} — ${(mine?named:theirs(named)).toUpperCase()}</b></div>`);
+    rows.push(`<div class="mathrow"><span>Against ${mine?'your':'their'} playing HCP</span><b>${mine?vsShort(pvi):theirs(vsShort(pvi))} — ${(mine?named:theirs(named)).toUpperCase()}</b></div>`);
   }
   if(r.points!=null) rows.push(`<div class="mathrow"><span>Points</span><b>${r.points}</b></div>`);
   if(r.month_rank!=null){
@@ -15791,7 +16026,7 @@ function showSquad(name){
   roster.sort((a,b)=>b.pts-a.pts).forEach(p=>{
     h+=`<button class="rdrow" data-player="${p.n}">
       <span class="sw" style="background:${SQHEX[p.ci]}"></span>
-      <span class="rn"><b>${p.n}</b><small>${p.r} ROUNDS · AVG vs your number ${p.avg>=0?'+':''}${p.avg.toFixed(1)}</small></span>
+      <span class="rn"><b>${p.n}</b><small>${p.r} ROUNDS · AVG vs your playing HCP ${p.avg>=0?'+':''}${p.avg.toFixed(1)}</small></span>
       <span class="rp">${p.pts}</span></button>`;
   });
   h+=`<p class="fine" style="padding-top:12px">Squad points = counting rounds + monthly bonuses − floor penalties. Tap any player for their rounds.</p>`;
@@ -15813,11 +16048,11 @@ function showSquadReal(t){
   rows.forEach((p,i)=>{
     h+=`<button class="rdrow" data-sqm="${i}">
       <span class="sw" style="background:${SQHEX[p.ci]??SQHEX[1]}"></span>
-      <span class="rn"><b>${esc(p.n)}</b><small>${p.r} ROUND${p.r===1?'':'S'} · AVG vs your number ${p.r?(p.avg>=0?'+':'')+p.avg.toFixed(1):'—'}</small></span>
+      <span class="rn"><b>${esc(p.n)}</b><small>${p.r} ROUND${p.r===1?'':'S'} · AVG vs your playing HCP ${p.r?(p.avg>=0?'+':'')+p.avg.toFixed(1):'—'}</small></span>
       <span class="rp">${p.pts}</span></button>`;
   });
   if(!rows.length) h+=`<p class="fine">No rounds posted yet — the squad is waiting on its first counter.</p>`;
-  h+=`<p class="fine" style="padding-top:12px">Squad points = everyone's counting rounds + the ledger. Tap any player for the rounds behind their number.</p>`;
+  h+=`<p class="fine" style="padding-top:12px">Squad points = everyone's counting rounds + the ledger. Tap any player for the rounds behind their points.</p>`;
   openSheet(t.name, `${t.cap?'CAPT. '+t.cap.toUpperCase()+' · ':''}${rows.length} GOLFERS · ${t.pts} PTS`, h);
   document.querySelectorAll('[data-sqm]').forEach(b=>b.addEventListener('click',()=>{
     const p=rows[Number(b.dataset.sqm)]; if(p) openMemberHist(p);
@@ -15834,7 +16069,7 @@ function showPlayer(name){
 
   let h=`<div class="mathrow"><span>Rounds posted</span><b>${p.r}</b></div>
     <div class="mathrow"><span>Counting (${CAPS[state.cap].toLowerCase()} / mo)</span><b>${counting.length}</b></div>
-    <div class="mathrow"><span>Average vs your number</span><b>${p.avg>=0?'+':''}${p.avg.toFixed(1)}</b></div>
+    <div class="mathrow"><span>Average vs your playing HCP</span><b>${p.avg>=0?'+':''}${p.avg.toFixed(1)}</b></div>
     <div class="mathrow tot"><span>Season points</span><b>${p.pts}</b></div>`;
 
   h+=`<div class="eyebrow" style="margin-top:18px">Counting rounds</div>`;
@@ -15842,7 +16077,7 @@ function showPlayer(name){
     const i=(HIST[name]||[]).indexOf(r);
     h+=`<button class="rdrow" data-round="${name}|${i}">
       <span class="rn"><b>${r.gross} at ${r.course}${r.nine?' · 9':''}</b>
-      <small>${r.d} · ${r.pvi>=0?'+':''}${r.pvi.toFixed(1)} vs your number${r.live?' · ✓ VOUCHED':''}</small></span>
+      <small>${r.d} · ${r.pvi>=0?'+':''}${r.pvi.toFixed(1)} vs your playing HCP${r.live?' · ✓ VOUCHED':''}</small></span>
       <span class="rp">${r.pts}</span></button>`;
   });
   if(cut.length){
@@ -15851,7 +16086,7 @@ function showPlayer(name){
       const i=(HIST[name]||[]).indexOf(r);
       h+=`<button class="rdrow cut" data-round="${name}|${i}">
         <span class="rn"><b>${r.gross} at ${r.course}${r.nine?' · 9':''}</b>
-        <small>${r.d} · ${r.pvi>=0?'+':''}${r.pvi.toFixed(1)} vs your number</small></span>
+        <small>${r.d} · ${r.pvi>=0?'+':''}${r.pvi.toFixed(1)} vs your playing HCP</small></span>
         <span class="cuttag">BUMPED</span>
         <span class="rp">${r.pts}</span></button>`;
     });
@@ -15874,7 +16109,7 @@ function showRound(name, idx){
     <div class="mathrow"><span>Course rating / slope</span><b>${CRATE} / ${CSLOPE}</b></div>
     <div class="mathrow"><span>Round vs course</span><b>${diff.toFixed(1)}</b></div>
     <div class="mathrow"><span>Index × allowance</span><b>${state.myIndex.toFixed(1)} × ${allow}%</b></div>
-    <div class="mathrow ${r.pvi>=0?'pos':'neg'}"><span>Vs your number</span><b>${r.pvi>=0?'+':''}${r.pvi.toFixed(1)}</b></div>
+    <div class="mathrow ${r.pvi>=0?'pos':'neg'}"><span>Vs your playing HCP</span><b>${r.pvi>=0?'+':''}${r.pvi.toFixed(1)}</b></div>
     <div class="mathrow tot"><span>Points${r.nine?' · half value':''}</span><b>${r.pts}</b></div>`;
 
   if(r.live){
@@ -16102,7 +16337,7 @@ function renderBylaws(){
     <div class="byrow"><span>FORMAT</span><b>${STRUCT_NAMES[state.structure]}</b></div>
     <div class="byrow"><span>THE DRAW</span><b>${({random:'Random draw',assign:'The Pro picks',snake:'In turns · async',live:'Live · pick clock'})[state.draftType]}</b></div>
     <div class="byrow"><span>HOUSE RULES</span><b>${pr.name}</b></div>
-    <div class="byrow"><span>HOW SCORES COUNT</span><b>Scored at ${ALLOW[state.preset]}% of your number</b></div>
+    <div class="byrow"><span>HOW SCORES COUNT</span><b>Scored at ${ALLOW[state.preset]}% of your index</b></div>
     <div class="byrow"><span>SCORES</span><b>${VERIF[state.preset]}</b></div>
     <div class="byrow"><span>EACH MONTH</span><b>${CAPS[state.cap]==='Unlimited' ? 'Every round counts' : CAPS[state.cap]+' a month count'}</b></div>
     <div class="byrow"><span>THE MINIMUM</span><b>${state.floor} a month · ${PENALTY[state.preset]}</b></div>
@@ -16907,7 +17142,7 @@ async function shareMajorCard(d){
   try{
     const blob=await new Promise(res=>drawMajorCard(d).toBlob(res,'image/png'));
     const file=new File([blob],'cup-season-major.png',{type:'image/png'});
-    const text=`${d.name} takes ${d.jug} — ${d.gross}, ${mjVs(d.pvi).toLowerCase()} their number · cupseason.app`;
+    const text=`${d.name} takes ${d.jug} — ${d.gross}, ${mjVs(d.pvi).toLowerCase()} their playing HCP · cupseason.app`;
     if(navigator.canShare && navigator.canShare({files:[file]})){
       await navigator.share({files:[file], text});
       return;
@@ -18060,15 +18295,15 @@ async function openRivalrySheet(oppId, name, rec){
               : '<span style="color:var(--mut)">HALVED</span>';
     return `<div class="check"><span class="num mono" style="font-size:10.5px; line-height:1.25">WK OF<br>${MOS[d.getMonth()].toUpperCase()} ${d.getDate()}</span>
       <div class="tt"><b>${tag} · YOU ${me>=0?'+':''}${me.toFixed(1)} · ${esc(name)} ${th>=0?'+':''}${th.toFixed(1)}</b>
-      <small>BEST ROUND VS YOUR NUMBER THAT WEEK</small></div></div>`;
+      <small>BEST ROUND VS YOUR PLAYING HCP THAT WEEK</small></div></div>`;
   }).join('') : '<p class="fine">No head-to-head weeks yet. A clash counts a week you both post.</p>';
   /* M3/D18: name the rivalry — either rival can name, rename, or clear it */
   const eyebrow = curName?`<div class="eyebrow" style="color:var(--gold); margin-bottom:10px">“${esc(curName.toUpperCase())}”</div>`:'';
   const nameBtn = `<button class="btn dark" id="rivNameBtn" style="margin-top:12px">${curName?`Rename “${esc(curName)}”`:'Name this rivalry'}</button>`;
   /* D209 · `rivalry_weeks` builds my_pvi/opp_pvi from max(rr.pvi) over
      v_rounds_ranked — the ALLOWANCE figure — so both captions name the playing
-     number, not the index. Verbatim with the phone's RivalryCopy. */
-  openSheet(`You vs ${name}`, `${rec||''} · WEEKLY CLASH · BETTER ROUND VS YOUR NUMBER TAKES THE WEEK`, eyebrow + weeksHtml + nameBtn);
+     HCP, not the index (R-M). Verbatim with the phone's RivalryCopy. */
+  openSheet(`You vs ${name}`, `${rec||''} · WEEKLY CLASH · BETTER ROUND VS YOUR PLAYING HCP TAKES THE WEEK`, eyebrow + weeksHtml + nameBtn);
   document.getElementById('rivNameBtn')?.addEventListener('click', ()=>openNameRivalry(oppId, name, curName));
 }
 window.openRivalrySheet = openRivalrySheet;
@@ -18576,7 +18811,7 @@ window.csSafetyMenuHtml = csSafetyMenuHtml; window.csWireSafety = csWireSafety;
 window.CS_SAFETY_REASONS = CS_SAFETY_REASONS;
 
 /* ---------- R5, the board ---------- */
-/* "4 rounds · beat their number 3 times" - the denominator is part of the
+/* "4 rounds · beat their playing HCP 3 times" - the denominator is part of the
    fact (L-01). Verbatim with `FriendsBoard.Row.formLine`. */
 function csBoardFormLine(r){
   const n = Number(r.rounds_30d || 0);
@@ -18584,10 +18819,10 @@ function csBoardFormLine(r){
   const rounds = `${n} round${n === 1 ? '' : 's'}`;
   const whose = r.is_me ? 'your' : 'their';
   const b = Number(r.beats_30d || 0);
-  if(b === 0) return `${rounds} · didn’t beat ${whose} number`;
-  if(b === 1) return `${rounds} · beat ${whose} number once`;
-  if(b === 2) return `${rounds} · beat ${whose} number twice`;
-  return `${rounds} · beat ${whose} number ${b} times`;
+  if(b === 0) return `${rounds} · didn’t beat ${whose} playing HCP`;
+  if(b === 1) return `${rounds} · beat ${whose} playing HCP once`;
+  if(b === 2) return `${rounds} · beat ${whose} playing HCP twice`;
+  return `${rounds} · beat ${whose} playing HCP ${b} times`;
 }
 /* the BAND, never the float (L-14 / T-07); nothing over no rounds (L-44).
    `bandName` is written from the golfer's OWN point of view ("Beat your
@@ -18788,7 +19023,7 @@ async function openHeadToHead(profileId, fallbackName){
           lead: r.lead, rivalry_name: r.rivalry_name,
           facets: { season_weeks: { wins: r.wins, losses: r.losses, ties: r.ties,
                                     meetings: r.meetings || ((r.wins||0)+(r.losses||0)+(r.ties||0)),
-                                    basis: 'the better round against your number in a week you both posted',
+                                    basis: 'the better round against your playing HCP in a week you both posted',
                                     source: 'my_rivalries' } },
         });
       }
@@ -19809,6 +20044,10 @@ async function enterLeague(m, nav=true){
   if(ab) ab.style.display = CS.member?.role === 'commissioner' ? '' : 'none';
   subscribeLeague();
   loadCourseMemory();
+  /* D261 / R-N · fill the offline course store off a boot that already
+     succeeded. Never awaited — it must not delay a screen — and silent on
+     failure, because a failure means this device keeps the books it has. */
+  csCourseRefresh().then(n=>{ if(n) renderCourseBooks(); }).catch(()=>{});
   renderProChip();
 
   bootStep = 'reveal';
@@ -23359,13 +23598,13 @@ function openScoringHelp(){
     ? `Your best rounds each month count for your squad — a better round always bumps your worst counter — and everyone owes a minimum number of rounds a month so nobody coasts. Miss it once and your <b>season bye</b> covers you automatically — life happens; the floor bites from the second miss. Your league's exact numbers are in <b>League rules</b>.`
     : `Your best rounds each month count — a better round always bumps your worst counter. In a squad league everyone owes a minimum number of rounds a month so nobody coasts: miss it once and your <b>season bye</b> covers you automatically — life happens; the floor bites from the second miss. In a solo league that minimum is a habit, not a penalty — there's no squad to dock. Your league's exact numbers are in <b>League rules</b>.`;
   openSheet('How scoring works', 'HANDICAPS · CUP POINTS · THE MONEY', `
-    <div class="eyebrow" style="margin-top:0">Your number</div>
-    <p class="fine" style="padding:0 0 6px">Your handicap index builds from your scores — no typing. Every round measures how you played against the course's difficulty (rating &amp; slope), and your best recent rounds set your number, WHS-style. It appears once you've posted <b>3 rounds</b>; until then it shows as building.</p>
+    <div class="eyebrow" style="margin-top:0">Your index</div>
+    <p class="fine" style="padding:0 0 6px">Your handicap index builds from your scores — no typing. Every round measures how you played against the course's difficulty (rating &amp; slope), and your best recent rounds set your index, WHS-style. It appears once you've posted <b>3 rounds</b>; until then it shows as building.</p>
     <p class="fine" style="padding:0 0 10px">You (or the Pro) can set a <b>starter</b> to get going sooner — but once you have 3 posted rounds, your scores take over. Manual changes are announced to your league so the crew keeps everyone honest.</p>
     <div class="eyebrow">Every round → cup points</div>
-    <p class="fine" style="padding:0 0 4px">Every round is scored against <b>your own number</b> — a 22-index beating their number is worth exactly what a 6-index beating theirs is:</p>
+    <p class="fine" style="padding:0 0 4px">Every round is scored against <b>your own playing HCP</b> — a 22-index beating theirs is worth exactly what a 6-index beating theirs is:</p>
     <div class="card" style="text-align:left; padding:10px 12px; margin-bottom:10px">${scoringBandsCard()}</div>
-    <p class="fine" style="padding:0 0 10px">The number the bands measure from is your <b>playing number</b> — your number with the league's allowance applied: ${PRESETS[1].name} scores you against ${ALLOW[1]}% of it, ${PRESETS[0].name} ${ALLOW[0]}%, ${PRESETS[2].name} ${ALLOW[2]}%.</p>
+    <p class="fine" style="padding:0 0 10px">The figure the bands measure from is your <b>playing HCP</b> — your index under this league's allowance. ${PRESETS[1].name} scores you against ${ALLOW[1]}% of it, ${PRESETS[0].name} ${ALLOW[0]}%, ${PRESETS[2].name} ${ALLOW[2]}%. So at an index of 10.6 in a ${PRESETS[1].name} league your playing HCP here is 10.1, and that is the figure a round is measured against.</p>
     <p class="fine" style="padding:0 0 10px">The 12-point ceiling caps what a padded number can buy; the 5-point floor means a posted 98 still beats an unposted 82. ${covenant}</p>
     <div class="eyebrow">What counts</div>
     <p class="fine" style="padding:0 0 10px">${counts}</p>
@@ -23443,6 +23682,7 @@ function showWelcome(){
   loadCareerRecord();           /* D67: titles + what they paid (user-global) */
   renderIndStats();
   loadCourseMemory();
+  csCourseRefresh().then(n=>{ if(n) renderCourseBooks(); }).catch(()=>{});   /* D261 / R-N */
   loadPulse();                          /* role-aware Home: month participation pulse */
   loadLeagueSpans().then(loadSchedule).then(()=>window.renderHomeHub&&window.renderHomeHub()).catch(e=>bootTrace('home hub: '+(e.message||e))); /* Home recap "next rounds" */
   loadWatchList().catch(e=>bootTrace('watch: '+(e.message||e)));                               /* the crew's plans, league-less too */

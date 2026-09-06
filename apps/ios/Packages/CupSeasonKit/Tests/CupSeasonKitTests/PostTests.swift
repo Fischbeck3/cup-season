@@ -268,7 +268,7 @@ import Foundation
     let earned = PostCeremony(course: "Papago", date: "2026-08-22", gross: 84, vs: 2.4, points: 9, squad: "The Pines", inLeague: true, name: "J", marker: "saguaro", leagueName: "PIGL")
     #expect(earned.earned && earned.pointsLine == "+9 PTS · COUNTS FOR THE PINES")
     #expect(earned.eyebrow == "PAPAGO · SAT AUG 22")
-    #expect(earned.band == "beat your number by 2.4")
+    #expect(earned.band == "beat your playing HCP by 2.4")
     let solo = PostCeremony(course: "Papago", date: "2026-08-22", gross: 84, vs: 2.4, points: 9, squad: nil, inLeague: true, name: "J", marker: "saguaro", leagueName: nil)
     #expect(solo.pointsLine == "+9 PTS · COUNTS THIS SEASON")
     let card = PostCeremony(course: "", date: "2026-08-22", gross: 84, vs: -71.6, points: nil, squad: nil, inLeague: false, name: "J", marker: "saguaro", leagueName: nil)
@@ -308,9 +308,9 @@ import Foundation
 
   @Test func theRecapSpeaksInTheThirdPerson() {
     let r = PostRecap(name: "Jerecho", marker: "saguaro", gross: 84, pvi: 2.4, points: 9, course: "Papago", date: "2026-08-22", badge: nil)
-    #expect(r.bandLine == "BEAT THEIR NUMBER" && r.vsLine == "beat their number by 2.4")
+    #expect(r.bandLine == "BEAT THEIR NUMBER" && r.vsLine == "beat their playing HCP by 2.4")
     #expect(r.whenLine == "SAT · AUG 22 · 9 PTS")
-    #expect(r.caption == "84 at Papago — beat their number by 2.4 · 9 pts · cupseason.app")
+    #expect(r.caption == "84 at Papago — beat their playing HCP by 2.4 · 9 pts · cupseason.app")
     let bare = PostRecap(name: "", marker: "saguaro", gross: 99, pvi: -71.6, points: nil, course: "", date: "2026-08-22", badge: nil)
     #expect(bare.nameLine == "A GOLFER" && bare.bandLine == nil && bare.caption == "99 at the course · cupseason.app")
   }
@@ -323,7 +323,7 @@ import Foundation
                          rivals: [.init(name: "Ed", wins: 3, losses: 1, ties: 1, lead: "up", rivalryName: "The Feud")])
     let rows = e.rows(cap: 4, firstEver: false)
     #expect(rows.count == 4)
-    #expect(rows[0] == .line(icon: "⛳", title: "Beat your number · 9 pts", sub: "beat your number by 2.4 · counts #2 this month"))
+    #expect(rows[0] == .line(icon: "⛳", title: "Beat your number · 9 pts", sub: "beat your playing HCP by 2.4 · counts #2 this month"))
     #expect(rows[1] == .line(icon: "🏆", title: "You broke 90 for the first time", sub: "In your trophy case"))
     #expect(rows[2] == .line(icon: "✦", title: "A thing", sub: "In your trophy case"))
     #expect(rows[3] == .line(icon: "⚔️", title: "You lead Ed 3–1 all-time · 1 halved", sub: "“The Feud” · your clash this week counted"))

@@ -35,17 +35,17 @@ import Foundation
     #expect(CSBands.pointsFor(-1.0).points == 6)
     #expect(CSBands.pointsFor(-1.0).line == "A little loose, still cash in the bank.")
     #expect(CSBands.pointsFor(-0.99).points == 7)
-    #expect(CSBands.pointsFor(3.4) == (12, "You torched your number by 3.4. Sandbagger alert."))
-    #expect(CSBands.pointsFor(2.4) == (9, "You beat your number by 2.4. Nice round."))
-    #expect(CSBands.pointsFor(0.4) == (7, "Right on your number. Steady points."))
+    #expect(CSBands.pointsFor(3.4) == (12, "You torched your playing HCP by 3.4. Sandbagger alert."))
+    #expect(CSBands.pointsFor(2.4) == (9, "You beat your playing HCP by 2.4. Nice round."))
+    #expect(CSBands.pointsFor(0.4) == (7, "Right on your playing HCP. Steady points."))
     #expect(CSBands.pointsFor(-2.2) == (6, "A little loose, still cash in the bank."))
     #expect(CSBands.pointsFor(-5) == (5, "Rough one, but posted rounds always score."))
   }
 
   @Test func phrasesAndPronouns() {
-    #expect(CSBands.vsPhrase(2.4) == "beat your number by 2.4")
-    #expect(CSBands.vsPhrase(0.2) == "played to your number")
-    #expect(CSBands.vsPhrase(-2.2) == "2.2 over your number")
+    #expect(CSBands.vsPhrase(2.4) == "beat your playing HCP by 2.4")
+    #expect(CSBands.vsPhrase(0.2) == "played to your playing HCP")
+    #expect(CSBands.vsPhrase(-2.2) == "2.2 over your playing HCP")
     #expect(CSBands.vsPhrase(nil) == "")
     #expect(CSBands.theirs("Beat your number") == "Beat their number")
     #expect(CSBands.theirs("BEAT YOUR NUMBER") == "BEAT THEIR NUMBER")

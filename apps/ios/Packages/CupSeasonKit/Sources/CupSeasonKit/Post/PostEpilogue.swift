@@ -266,7 +266,7 @@ public struct PostRecap: Sendable, Equatable {
   public var nameLine: String { (name.isEmpty ? "A golfer" : name).uppercased() }
   /// Third person on the artifact: "BEAT THEIR NUMBER"
   public var bandLine: String? { pviSane ? CSBands.theirs(CSBands.bandName(pvi!)).uppercased() : nil }
-  /// "beat their number by 2.4"
+  /// "beat their playing HCP by 2.4"
   public var vsLine: String? { pviSane ? CSBands.theirs(CSBands.vsPhrase(pvi)) : nil }
   public var courseLine: String { (course.isEmpty ? "A round" : course).uppercased() }
   /// "SAT · AUG 22 · 9 PTS"
@@ -277,9 +277,14 @@ public struct PostRecap: Sendable, Equatable {
     return s
   }
   /// `recapText` — the caption that rides with the card.
+  ///
+  /// R-M · the phrase is NOT lower-cased on the way in. `vsPhrase` is already
+  /// sentence-case prose, and the noun it now carries is an ACRONYM — a blanket
+  /// `.lowercased()` turned "playing HCP" into "playing hcp" in the one string
+  /// that leaves the app and lands in somebody's group chat.
   public var caption: String {
     var s = "\(gross) at \(course.isEmpty ? "the course" : course)"
-    if let v = vsLine { s += " — \(v.lowercased())" }
+    if let v = vsLine { s += " — \(v)" }
     if let points { s += " · \(points) pts" }
     return s + " · cupseason.app"
   }

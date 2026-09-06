@@ -1039,19 +1039,15 @@ else {
     ['no session in storage — showing the door', 'the auth session (§4 row 10)'],
     ['session ✓', 'the auth session (§4 row 10)'],
     ['Iron Man', 'the season award, which keeps the name (§2.1)'],
-    /* §4.32 · "playing number" is scoped to the RECEIPT (TERMINOLOGY line 84 +
-       note 1), where the arithmetic is shown beside it (L-01), and to the
-       guide's one DEFINITION of the term. Every other surface says "vs your
-       number" — F-14 found four that had drifted back. */
-    ['Playing number', 'the receipt, where the arithmetic is beside it (§4 row 84)'],
-    ['playing number', 'the receipt, where the arithmetic is beside it (§4 row 84)'],
-    ["The number the bands measure from is your **playing number** — your number with the league's allowance applied: \u00a0scores you against \u00a0% of it, \u00a0\u00a0%, \u00a0\u00a0%.",
-     'the guide, which is where the term is DEFINED'],
+    /* §4.32 · "playing number" HAD a receipt-shaped exemption (TERMINOLOGY line
+       84 + note 1). R-M retires the term itself: the figure is a PLAYING HCP,
+       on the receipt and everywhere else, so the exemptions are gone and the
+       law now bites on every surface. Check 42 is the other half — it holds
+       the five band labels still while this one moves the gloss. */
   ]);
   const exemptPrefix = [
     ['Iron Man ', 'the season award row (§2.1)'],
     ['Points King takes', 'the awards footnote, where the award is named (§2.1)'],
-    ['The number the bands measure from is your **playing number**', 'the guide, which is where the term is DEFINED (§4 row 84)'],
   ];
   const isExempt = t => EXEMPT.has(t.trim()) || exemptPrefix.some(([p]) => t.trim().startsWith(p));
 
@@ -1105,7 +1101,8 @@ else {
        lint behind them. D249's thesis, proved four more times. */
     [30, 'a golfer’s card, never a Tour Card', [/\bTour Cards?\b/i]],
     [31, 'not on a squad yet, never the pool', [/\bthe pool\b/i, /\bin the pool\b/i]],
-    [32, 'playing number is the receipt’s word', [/playing number/i]],
+    /* R-M · the term is retired, not scoped: the noun is "playing HCP". */
+    [32, 'the playing figure is an HCP, never a number', [/playing number/i]],
     [33, 'league is never a thing you start or join', [/\b(start|join|create)\s+(a|your|the)\s+leagues?\b/i]],
     /* 34 · R-J. The fourth intent reads "Go head to head". `I want to beat one
        guy` was the only one of four that began "I want to", it read as cringe,
@@ -1926,6 +1923,145 @@ else {
   hits.length === 0
     ? pass('one Home-state fixture set, and none of it ships', `${(doc?.states || []).length} state(s) · generated for the phone, fetched by the web, absent from dist`)
     : fail('one Home-state fixture set, and none of it ships', hits.slice(0, 6).join('\n           '));
+}
+
+
+/* 42 · the gloss and the five bands, kept out of each other (R-M, D260) ------
+   R-M retired `your number` as the COMPARISON noun and, in the same breath,
+   ruled the five band labels stay exactly as spec §2.2 has them. That leaves
+   two sets one word apart, and the ruling asks for a lint that keeps each out
+   of the other — because "Beat your number" is a SUBSTRING of the sentence it
+   replaces, so a half-applied rename reads perfectly and is wrong.
+
+   THE TWO RULES:
+     A · the COMPARISON FRAME never says "number". "beat your number by 2.1",
+         "1.4 over your number", "played to your number", "Avg vs your number",
+         "95% of your number" — all retired. The one exemption is a string that
+         IS a band label, verbatim, because "Beat your number" is still the
+         chip's own name.
+     B · the BAND SET is exactly the five, in all three producers, and no band
+         ever says "playing HCP". Check 28 holds the three producers to each
+         OTHER; this holds them to spec §2.2 so the set cannot move as a group.
+
+   The INDEX sense is deliberately untouched. "your number builds itself from
+   three posted rounds" is about the index, R-M retired the word only for the
+   comparison, and a lint that swept both would be enforcing a ruling nobody
+   made. The frames below are what tells the two apart. */
+{
+  const T = await import('../tools/extract-strings.mjs');
+  const hits = [];
+
+  /* spec §2.2's five, verbatim. If the owner ever renames one, this line moves
+     with the ruling — and nothing else in the repo has to be trusted to. */
+  const BANDS = ['Torched it', 'Beat your number', 'Played to it', 'A little loose', 'Posted anyway'];
+  const bandForms = new Set();
+  for (const b of BANDS) {
+    for (const v of [b, b.toUpperCase(), b.toLowerCase(),
+                     b.replace(/your/i, 'their'), b.toUpperCase().replace(/YOUR/, 'THEIR'),
+                     b.toLowerCase().replace(/your/, 'their')]) bandForms.add(v);
+  }
+
+  /* A · the comparison frames. Each is a POSSESSIVE + "number" behind a word
+     that can only be the arithmetic; the index sense ("builds your number",
+     "your number goes live") matches none of them. */
+  const FRAMES = [
+    /\b(beat|beats|beating|torched|torches|torching)\s+(your|their|her|his|its|my)\s+numbers?\b/i,
+    /\b(over|under|vs\.?|versus|against|on|to)\s+(your|their|her|his|its|my)\s+numbers?\b/i,
+    /\bplayed\s+to\s+(your|their|her|his|its|my)\s+numbers?\b/i,
+    /\b\d+\s?%\s+of\s+(your|their|her|his|my)\s+numbers?\b/i,
+    /\bplaying\s+number\b/i,
+  ];
+  const offends = t => {
+    const trimmed = t.trim();
+    if (bandForms.has(trimmed)) return false;           // the chip keeps its name
+    return FRAMES.some(re => re.test(trimmed));
+  };
+  /* one sentence at a time, the way check 27 splits a web template */
+  const fragments = text => (/[<\n]/.test(text)
+    ? text.split(/<[^>]*>|\n/).map(x => x.trim()).filter(Boolean)
+    : [text]);
+  const scanText = (where, text) => {
+    for (const frag of fragments(text)) {
+      if (offends(frag)) { hits.push(`${where}: ${JSON.stringify(frag.slice(0, 72))}`); return; }
+    }
+  };
+
+  const swift42 = T.swiftSources(join(root, 'apps', 'ios'));
+  for (const f of swift42) {
+    const rel = f.slice(root.length).replace(/^\//, '');
+    for (const s of T.swiftProse(readFileSync(f, 'utf8'))) scanText(`${rel}:${s.line}`, s.text);
+  }
+  for (const s of T.webProse(html)) scanText(`index.html:${s.line}`, s.text);
+
+  /* the database — the LIVE definition of each generator, check 27's own rule:
+     an applied migration cannot be edited, so the sentence that ships is the
+     last `create or replace`. */
+  {
+    const liveDefs = new Map();
+    for (const f of readdirSync(migDir).filter(x => x.endsWith('.sql')).sort()) {
+      const src = readFileSync(join(migDir, f), 'utf8');
+      const re = /create\s+or\s+replace\s+function\s+(?:public\.)?"?([a-z0-9_]+)"?\s*\(([\s\S]*?)\n[^\n]*(?:\$function\$|\$\$|\$fn\$)\s*;/gi;
+      let m;
+      while ((m = re.exec(src))) liveDefs.set(m[1].toLowerCase(), { file: f, body: m[0] });
+    }
+    for (const [name, { file, body }] of liveDefs) {
+      if (!/insert\s+into\s+(posts|push_nudges|season_adjustments)\b/i.test(body)) continue;
+      const lines = body.split('\n');
+      for (const s of T.sqlStrings(body)) {
+        if (/raise\s+(exception|notice|warning)/i.test(lines[s.line - 1] || '')) continue;
+        scanText(`${file} ${name}()`, s.text);
+      }
+    }
+  }
+
+  /* B · the five, verbatim, in all three producers — and never wearing the
+     gloss's noun. */
+  {
+    const csb = readFileSync(join(root, 'apps', 'ios', 'Packages', 'CupSeasonKit', 'Sources',
+                                  'CupSeasonKit', 'Board', 'CSBands.swift'), 'utf8');
+    const phoneBand = csb.match(/static func bandName\([\s\S]*?\n  \}/);
+    const webBand = html.match(/function bandName\(vs\)\{[\s\S]*?\n\}/);
+    const sqlBand = [...migs.matchAll(/create or replace function public\.band_name[\s\S]*?\$\$;/g)].pop();
+    const homes = [['CSBands.bandName', phoneBand?.[0]], ['index.html bandName()', webBand?.[0]],
+                   ['public.band_name', sqlBand?.[0]]];
+    for (const [who, src] of homes) {
+      if (!src) { hits.push(`${who} not found — the band producer moved and this check went blind`); continue; }
+      for (const b of BANDS) if (!src.includes(b)) hits.push(`${who} no longer says ${JSON.stringify(b)} — spec §2.2's five are a closed set (R-M)`);
+      if (/playing\s+HCP/i.test(src)) hits.push(`${who} says "playing HCP" — the gloss has leaked into the band set (R-M)`);
+    }
+  }
+
+  /* C · and the gloss producers DO say it, so a half-reverted rename fails. */
+  {
+    const csb = readFileSync(join(root, 'apps', 'ios', 'Packages', 'CupSeasonKit', 'Sources',
+                                  'CupSeasonKit', 'Board', 'CSBands.swift'), 'utf8');
+    const pairs = [
+      ['CSBands.vsPhrase', csb.match(/static func vsPhrase\([\s\S]*?\n  \}/)?.[0]],
+      ['CSBands.pointsFor', csb.match(/static func pointsFor\([\s\S]*?\n  \}/)?.[0]],
+      ['index.html vsPhrase()', html.match(/function vsPhrase\(vs\)\{[\s\S]*?\n\}/)?.[0]],
+      ['index.html pointsFor()', html.match(/function pointsFor\(vs\)\{[\s\S]*?\n\}/)?.[0]],
+    ];
+    for (const [who, src] of pairs) {
+      if (!src) { hits.push(`${who} not found — the gloss producer moved and this check went blind`); continue; }
+      if (!/playing HCP/.test(src)) hits.push(`${who} does not say "playing HCP" — R-M's noun has been reverted`);
+    }
+  }
+
+  /* the self-test: a check that cannot fail is not a check. */
+  {
+    const probes = [
+      'beat your number by 2.4', '1.3 over your number', 'played to your number',
+      'Avg vs their number', 'Scored at 95% of your number', 'Playing number',
+    ];
+    for (const t of probes) if (!offends(t)) hits.push(`self-test failed: §42 no longer catches ${JSON.stringify(t)}`);
+    const keep = ['Beat your number', 'BEAT THEIR NUMBER', 'Your number builds itself from three posted rounds.',
+                  'That builds your number and nothing else.', 'Building your number'];
+    for (const t of keep) if (offends(t)) hits.push(`self-test failed: §42 caught ${JSON.stringify(t)}, which the ruling KEEPS`);
+  }
+
+  hits.length === 0
+    ? pass('the gloss says playing HCP, the five bands do not', `${swift42.length} Swift file(s) + index.html + the live SQL generators · ${BANDS.length} band(s) held to spec §2.2`)
+    : fail('the gloss says playing HCP, the five bands do not', `${hits.length} hit(s) — ` + hits.slice(0, process.env.CS_LINT_ALL ? 99 : 6).join('\n           '));
 }
 
 console.log(`\n${fails ? 'FAIL' : 'PASS'} — ${fails} failure(s), ${warns} warning(s)`);

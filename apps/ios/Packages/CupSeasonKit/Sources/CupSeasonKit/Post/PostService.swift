@@ -340,7 +340,21 @@ public struct PostService: Sendable {
 
   /// After the `courses {action:'cache'}` call: the picked tee's holes, in
   /// order. nil on a cache miss = the typed path; the holes choice stands.
+  ///
+  /// D261 / R-N · with no signal the phone answers from its own book, so a
+  /// round played at a course you have played before can be added in the car
+  /// park and posted when the signal returns.
   public func teePars(courseId: String, teeName: String?, rating: Double?) async -> (pars: [Int], nine: Bool)? {
+    if let live = await liveTeePars(courseId: courseId, teeName: teeName, rating: rating) {
+      await CourseBookStore(svc).keepCard(
+        courseId: courseId, teeName: teeName,
+        holes: live.pars.enumerated().map { CourseHole(hole: $0.offset + 1, par: $0.element, si: nil) })
+      return live
+    }
+    return await CourseBookStore(svc).pars(courseId: courseId, teeName: teeName, rating: rating)
+  }
+
+  private func liveTeePars(courseId: String, teeName: String?, rating: Double?) async -> (pars: [Int], nine: Bool)? {
     guard let tees: [TeeRow] = try? await db.from("api_course_tees").select("id, tee_name, number_of_holes, course_rating")
       .eq("course_id", value: courseId).execute().value, !tees.isEmpty else { return nil }
     let picked = tees.first { $0.tee_name == teeName && $0.course_rating == rating } ?? tees.first { $0.tee_name == teeName } ?? tees[0]

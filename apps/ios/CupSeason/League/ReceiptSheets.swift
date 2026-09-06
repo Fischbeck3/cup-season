@@ -73,7 +73,7 @@ struct SquadReceiptSheet: View {
         }
         if rows.isEmpty { RoomFine("No rounds posted yet — the squad is waiting on its first counter.").padding(.vertical, 8) }
       }
-      RoomFine("Squad points = everyone's counting rounds + the ledger. Tap any player for the rounds behind their number.").padding(.top, 6)
+      RoomFine("Squad points = everyone's counting rounds + the ledger. Tap any player for the rounds behind their points.").padding(.top, 6)
     }
   }
 

@@ -57,7 +57,9 @@ struct IndividualRaceView: View {
               // number means, and it was the wrong one. `TourCard.avgLabel`
               // already gets this right on a person page; the table now says
               // the same thing.
-              Text("Avg vs their number").frame(width: 70, alignment: .trailing)
+              // R-M · the comparison noun. The column is widened with it:
+              // a head that wraps to four lines is DEF-1 all over again.
+              Text("Avg vs their playing HCP").frame(width: 84, alignment: .trailing)
               Text("Pts").frame(width: 40, alignment: .trailing)
             }
             .font(CSFont.label).tracking(1.0).textCase(.uppercase).foregroundStyle(cs.dimText)
@@ -83,7 +85,7 @@ struct IndividualRaceView: View {
                 HStack(spacing: 10) {
                   if ax { Text("R").font(CSFont.label).tracking(1.0).foregroundStyle(cs.dimText) }
                   Text("\(p.r)").font(CSFont.monoSmall).csTabular().foregroundStyle(cs.mut).frame(minWidth: ax ? nil : 28, alignment: .trailing)
-                  if ax { Text("· VS YOUR NUMBER").font(CSFont.label).tracking(1.0).foregroundStyle(cs.dimText) }
+                  if ax { Text("· AVG VS THEIR PLAYING HCP").font(CSFont.label).tracking(1.0).foregroundStyle(cs.dimText) }
                   Text(p.r > 0 ? StandingsMath.sgn(p.avg) : "—").font(CSFont.monoSmall).csTabular()
                     .foregroundStyle(p.avg >= 0 ? cs.pos : cs.neg).frame(minWidth: ax ? nil : 70, alignment: .trailing)
                   if ax { Text("· PTS").font(CSFont.label).tracking(1.0).foregroundStyle(cs.dimText) }

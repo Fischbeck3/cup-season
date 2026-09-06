@@ -104,6 +104,11 @@ public final class SessionStore {
         if preferredLeague == nil { preferredLeague = me.memberships.first?.league_id }
         state = .ready(me)
         if signInPending { signInPending = false; CSTelemetry.product(.signedIn) }
+        // D261 / R-N · fill the offline course store off the back of a boot
+        // that already succeeded. Detached because it must never delay a
+        // screen, and silent because a failure means the phone keeps the books
+        // it already has — which is the whole point.
+        Task.detached(priority: .utility) { await CourseBookStore().refresh() }
       }
     } catch {
       // `.failed` is the BOOT's state ("retry offered" — RootView swaps the
@@ -145,6 +150,9 @@ public final class SessionStore {
 
   public func signOut() async {
     try? await svc.signOut()
+    // D261 · the books are one golfer's schedule and one golfer's rounds. A
+    // shared phone does not hand them to whoever signs in next.
+    await CourseBookStore().forget()
     state = .signedOut
   }
 

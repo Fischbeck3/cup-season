@@ -98,7 +98,7 @@ struct TourCardSheet: View {
       //
       // The fallback is not only for a pre-push server: a golfer no season has
       // ever ranked has no allowance figure at all, and for them the block
-      // keeps the 100% average under the 100% label ("Avg vs your number",
+      // keeps the 100% average under the 100% label ("Avg vs your playing HCP",
       // which is what `avg_vs_index` honestly is) and the course score under
       // "Best round vs course". The phone never prints the You tab's words
       // over a figure that is not the You tab's number.

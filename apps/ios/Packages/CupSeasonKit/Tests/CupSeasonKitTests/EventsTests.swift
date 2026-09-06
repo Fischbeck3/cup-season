@@ -217,7 +217,7 @@ private func room(status: String = "live", winner: UUID? = nil, sessionCount: In
     // and the leaderboard is a leaderboard, not "the clubhouse"
     #expect(MajorMath.noCardsLine(live: true) == "No cards yet — first one leads.")
     #expect(!MajorMath.noCardsLine(live: true).contains("clubhouse"))
-    #expect(MajorMath.shareText(name: "Marcus", jug: "The PIGL Championship", gross: 82, pvi: 4.2) == "Marcus takes The PIGL Championship — 82, 4.2 under their number · cupseason.app")
+    #expect(MajorMath.shareText(name: "Marcus", jug: "The PIGL Championship", gross: 82, pvi: 4.2) == "Marcus takes The PIGL Championship — 82, 4.2 under their playing HCP · cupseason.app")
   }
   @Test func whenLine() {
     #expect(MajorMath.whenLine(finalOn: "2026-07-12", days: 4, calendar: cal) == "Thu, Jul 9 → Sun, Jul 12 · best card by Sunday night")

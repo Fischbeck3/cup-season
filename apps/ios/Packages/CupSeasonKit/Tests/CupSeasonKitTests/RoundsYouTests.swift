@@ -15,9 +15,9 @@ import Foundation
     let rows = ReceiptRows.build(biltmore, capN: nil, viewerId: nil)
     #expect(rows[0] == .math(label: "The course", value: "64.9 / 111", sub: false))
     // D209 · the number rows come FIRST, then the arithmetic; D210 · "VS COURSE"
-    #expect(rows[1] == .math(label: "Your number that day", value: "10.0", sub: true))
+    #expect(rows[1] == .math(label: "Your index that day", value: "10.0", sub: true))
     #expect(rows[2] == .math(label: "86 − 64.9 × 113 ⁄ 111", value: "21.5 VS COURSE", sub: true))
-    #expect(rows[3] == .math(label: "Against your number", value: "-11.5 — POSTED ANYWAY", sub: false))
+    #expect(rows[3] == .math(label: "Against your playing HCP", value: "-11.5 — POSTED ANYWAY", sub: false))
     #expect(rows[4] == .math(label: "Points", value: "5", sub: false))
     #expect(rows[5] == .math(label: "This month", value: "COUNTING #3", sub: false))
     #expect(rows.count == 6)
@@ -35,8 +35,8 @@ import Foundation
     var r = biltmore
     r.isMine = false; r.pvi = 2.4
     let rows = ReceiptRows.build(r, capN: nil, viewerId: nil)
-    #expect(rows.contains(.math(label: "Their number that day", value: "10.0", sub: true)))
-    #expect(rows.contains(.math(label: "Against their number", value: "+2.4 — BEAT THEIR NUMBER", sub: false)))
+    #expect(rows.contains(.math(label: "Their index that day", value: "10.0", sub: true)))
+    #expect(rows.contains(.math(label: "Against their playing HCP", value: "+2.4 — BEAT THEIR NUMBER", sub: false)))
   }
 
   @Test func bumpedPastTheCapAndTheHandOff() {
@@ -81,9 +81,9 @@ import Foundation
     #expect(RoundCopy.bandName(-3.1) == "Posted anyway")
   }
   @Test func phrases() {
-    #expect(RoundCopy.vsPhrase(2.4) == "beat your number by 2.4")
-    #expect(RoundCopy.vsPhrase(0.3) == "played to your number")
-    #expect(RoundCopy.vsPhrase(-1.3) == "1.3 over your number")
+    #expect(RoundCopy.vsPhrase(2.4) == "beat your playing HCP by 2.4")
+    #expect(RoundCopy.vsPhrase(0.3) == "played to your playing HCP")
+    #expect(RoundCopy.vsPhrase(-1.3) == "1.3 over your playing HCP")
     #expect(RoundCopy.vsPhrase(nil) == "")
     #expect(RoundCopy.theirs("Beat your number") == "Beat their number")
     #expect(RoundCopy.theirs("BEAT YOUR NUMBER") == "BEAT THEIR NUMBER")
@@ -97,8 +97,8 @@ import Foundation
     #expect(RoundCopy.pointsFor(-1.0).points == CSBands.cupPoints(-1.0))
     #expect(RoundCopy.pointsFor(-1.0).points == 6)
     #expect(RoundCopy.pointsFor(-0.99).points == 7)
-    #expect(RoundCopy.vsPhrase(-1.0) == "1.0 over your number")
-    #expect(RoundCopy.vsPhrase(-0.99) == "played to your number")
+    #expect(RoundCopy.vsPhrase(-1.0) == "1.0 over your playing HCP")
+    #expect(RoundCopy.vsPhrase(-0.99) == "played to your playing HCP")
     #expect(RoundCopy.pointsFor(3).points == 12 && RoundCopy.pointsFor(1).points == 9 && RoundCopy.pointsFor(-4).points == 5)
     #expect(RoundCopy.signed(1.25) == "+1.2" || RoundCopy.signed(1.25) == "+1.3")
     #expect(RoundCopy.signed(-0.4) == "-0.4")
@@ -154,13 +154,20 @@ import Foundation
   /// card is about, because that card is usually somebody else's.
   @Test func bothFormKeysAreCutFromTheSameSentence() {
     // byte-for-byte with the web's `CS_FORM_KEY` (index.html)
-    #expect(YouCopy.formKey == "Your last five rounds, oldest first — a lit dot beat your number.")
-    #expect(YouCopy.formKeyCard(mine: false) == "Last five, oldest first — a lit dot beat their number.")
-    #expect(YouCopy.formKeyCard(mine: true) == "Last five, oldest first — a lit dot beat your number.")
+    #expect(YouCopy.formKey == "Your last five rounds, oldest first — a lit dot beat your playing HCP.")
+    #expect(YouCopy.formKeyCard(mine: false) == "Last five, oldest first — a lit dot beat their playing HCP.")
+    #expect(YouCopy.formKeyCard(mine: true) == "Last five, oldest first — a lit dot beat your playing HCP.")
     // F-14 · "playing number" is the RECEIPT's word and nowhere else
-    #expect(!YouCopy.vsPlayingNumber.contains("playing"))
-    #expect(!YouCopy.avgVsPlayingNumber.contains("playing"))
-    #expect(!YouCopy.bestVsPlayingNumber.contains("playing"))
+    // R-M / D260 · the comparison noun IS the playing HCP now. F-14's rule (the
+    // three labels must not say "playing") is retired by an owner ruling, and
+    // the assertion is inverted rather than deleted: all three say it, and none
+    // of them may fall back to the retired noun.
+    #expect(YouCopy.vsPlayingNumber == "vs your playing HCP")
+    #expect(YouCopy.avgVsPlayingNumber == "Avg vs your playing HCP")
+    #expect(YouCopy.bestVsPlayingNumber == "Best vs your playing HCP")
+    for s in [YouCopy.vsPlayingNumber, YouCopy.avgVsPlayingNumber, YouCopy.bestVsPlayingNumber] {
+      #expect(!s.contains("your number") && !s.contains("playing number"))
+    }
     // the load-bearing half — the reading order and what a lit dot IS — is
     // the SAME string on every surface, which is the point of one producer
     let tail = "oldest first — a lit dot beat"
@@ -421,7 +428,7 @@ import Foundation
     // 100% average is decoded into the field whose name says what it is.
     #expect(c.playingLens == false && c.career.avgVsIndex == -0.4 && c.career.avgPvi == nil)
     #expect(TourCard.bestLabel(playingLens: false) == "Best round vs course")
-    #expect(TourCard.avgLabel(playingLens: false, isMe: true) == "Avg vs your number")
+    #expect(TourCard.avgLabel(playingLens: false, isMe: true) == "Avg vs your playing HCP")
     #expect(TourCard.careerEyebrow(playingLens: false, isMe: true) == "Career")
   }
 
@@ -436,8 +443,8 @@ import Foundation
     #expect(on.playingLens && on.bestText == "+4.0" && on.avgText == "+2.6")
     #expect(TourCard.bestLabel(playingLens: true) == "Best round")
     #expect(TourCard.avgLabel(playingLens: true, isMe: true) == "Avg")
-    #expect(TourCard.careerEyebrow(playingLens: true, isMe: true) == "Career · vs your number")
-    #expect(TourCard.careerEyebrow(playingLens: true, isMe: false) == "Career · vs their number")
+    #expect(TourCard.careerEyebrow(playingLens: true, isMe: true) == "Career · vs your playing HCP")
+    #expect(TourCard.careerEyebrow(playingLens: true, isMe: false) == "Career · vs their playing HCP")
 
     // A golfer no season has ever ranked: the new server sends the allowance
     // keys as null. Key presence alone would print a dash over a real number,

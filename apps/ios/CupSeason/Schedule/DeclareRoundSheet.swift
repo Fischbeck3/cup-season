@@ -309,8 +309,17 @@ struct CourseSearchField: View {
       case .courses:
         dropdown {
           if vm.courses.isEmpty {
-            Text("No match — type the course, rating and slope by hand.").font(CSFont.footnote).foregroundStyle(cs.mut).padding(12)
+            Text(vm.offline ? CourseBookCopy.searchOffline : "No match — type the course, rating and slope by hand.")
+              .font(CSFont.footnote).foregroundStyle(cs.mut).padding(12)
+              .fixedSize(horizontal: false, vertical: true)
           } else {
+            // D261 · when the rows came off the phone, the list says so BEFORE
+            // the rows, so nobody reads a two-course list as the catalogue.
+            if vm.offline {
+              Text(CourseBookCopy.searchOffline).font(CSFont.footnote).foregroundStyle(cs.mut)
+                .padding(.horizontal, 12).padding(.top, 10)
+                .fixedSize(horizontal: false, vertical: true)
+            }
             ForEach(vm.courses) { c in
               ddRow(c.label, c.subline) { text = c.label; vm.pickedLabel = c.label; courseId = c.id; vm.showTees(c) }
             }
@@ -329,7 +338,12 @@ struct CourseSearchField: View {
                 courseId = c.id
                 vm.stage = .hidden
                 toasts.show("Tees set — rating and slope filled")
-                Task { await ScheduleService().cacheCourse(c.id) }
+                Task {
+                  await ScheduleService().cacheCourse(c.id)
+                  // D261 · the phone keeps what you picked, so this course is
+                  // there the next time there is no signal.
+                  await CourseBookStore().keep(hit: c, tee: t)
+                }
               }
             }
           }
@@ -365,9 +379,14 @@ final class CourseSearchModel {
   var stage: Stage = .hidden
   var courses: [CourseHit] = []
   var pickedLabel: String? = nil
+  /// D261 · true when these rows are the courses on this phone and nothing on
+  /// the network answered. The dropdown says so rather than implying the
+  /// catalogue is this short (L-32).
+  var offline = false
   private var task: Task<Void, Never>?
   private var lastQ = ""
   private let sched = ScheduleService()
+  private let books = CourseBookStore()
 
   func showTees(_ c: CourseHit) { stage = .tees(c) }
 
@@ -403,19 +422,17 @@ final class CourseSearchModel {
   private var inTees: Bool { if case .tees = stage { return true }; return false }
 
   private func run(_ q: String) async {
-    let local = await sched.searchCache(q)
-    // paint cached hits immediately — never yank the user out of the tee list, never let a stale response overwrite a newer query
+    // paint what the phone and the cache have immediately — never yank the user
+    // out of the tee list, never let a stale response overwrite a newer query
     let fresh = { self.lastQ == q && !self.inTees }
-    if !local.isEmpty, fresh() { courses = local; stage = .courses }
-    do {
-      let remote = try await sched.searchRemote(q)
-      let merged = ScheduleService.merge(local: local, remote: remote)
-      // show the list even when empty — the empty state IS the "type it by hand" row, so a no-match never looks like a dead field
-      if fresh() { courses = merged; stage = .courses }
-    } catch {
-      // upstream down: cached hits stand; with nothing cached, still open the list so the manual-entry row answers (never silently .hidden)
-      if fresh(), local.isEmpty { courses = []; stage = .courses }
-    }
+    let saved = await books.search(q).map(\.hit)
+    if !saved.isEmpty, fresh() { courses = saved; stage = .courses }
+    // D261 / R-N · ONE producer: the book, then our cache, then the API — and
+    // it reports whether the network was in the answer at all.
+    let answer = await books.searchCourses(q)
+    // show the list even when empty — the empty state IS the "type it by hand"
+    // row, so a no-match never looks like a dead field
+    if fresh() { courses = answer.hits; offline = answer.offline; stage = .courses }
   }
 }
 

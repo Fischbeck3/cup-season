@@ -689,10 +689,19 @@ private struct FeedRoundCard: View {
 
   private var who: String { HomeCopy.who(r) }
   private var milestone: String? { HomeCopy.milestone(r) }
-  private var phrase: String? {
+  /// The gloss as its producer writes it — "beat their playing HCP by 2.4".
+  ///
+  /// R-M · the two forms are SEPARATE rather than one lower-cased on the way
+  /// out. The noun is now an acronym, and `phrase.lowercased()` shipped
+  /// "playing hcp" onto the feed card and into its VoiceOver label.
+  private var phraseRaw: String? {
     guard let p = r.pvi else { return nil }
     let s = CSBands.vsPhrase(p)
-    let out = r.is_me == true ? s : CSBands.theirs(s)
+    return r.is_me == true ? s : CSBands.theirs(s)
+  }
+  /// The same gloss opening a sentence.
+  private var phrase: String? {
+    guard let out = phraseRaw else { return nil }
     return out.prefix(1).uppercased() + out.dropFirst()
   }
   private var meta: String { "\(r.course ?? "a round") · \(CSDate.short(r.played_on ?? ""))" }
@@ -722,7 +731,7 @@ private struct FeedRoundCard: View {
             }
             HStack(alignment: .lastTextBaseline, spacing: 8) {
               Text(r.gross.map(String.init) ?? "").font(CSFont.hero).foregroundStyle(CSTokens.dark.ink)
-              if let phrase { Text(phrase.lowercased()).font(CSFont.footnote).foregroundStyle(CSTokens.dark.mut) }
+              if let phraseRaw { Text(phraseRaw).font(CSFont.footnote).foregroundStyle(CSTokens.dark.mut) }
               Spacer()
               CSMarkerView(key: r.marker, size: 22).foregroundStyle(CSTokens.dark.ink).accessibilityHidden(true)
             }
@@ -781,7 +790,7 @@ private struct FeedRoundCard: View {
         }
       }
     }
-    .accessibilityLabel("\(who) — \(r.gross.map(String.init) ?? "") at \(r.course ?? "a round")" + (phrase.map { ", \($0.lowercased())" } ?? ""))
+    .accessibilityLabel("\(who) — \(r.gross.map(String.init) ?? "") at \(r.course ?? "a round")" + (phraseRaw.map { ", \($0)" } ?? ""))
     .accessibilityHint("Opens the round")
     // VoiceOver reaches the nested doors through the rotor: the card and the six reactions
     .accessibilityAction(named: GolfersRoot.CardName.title(who)) { if let p = r.profile_id { presenter.tourCard = p } }

@@ -346,7 +346,7 @@ private func team(_ id: UUID, _ name: String, _ pts: Double, ci: Int = 0) -> Tea
     // D249 · the row KEYS stopped naming dials (L-16, TERMINOLOGY §4 rows 1-4):
     // a Pro reads what the rule DOES, in the same words the rules page uses.
     #expect(rows.map(\.k) == ["FORMAT", "THE DRAW", "HOUSE RULES", "HOW SCORES COUNT", "SCORES", "EACH MONTH", "THE MINIMUM", "BUY-IN", "POT SPLIT", "SEASON", "CUP FINAL"])
-    #expect(rows[0].v == "4 squads" && rows[1].v == "Random draw" && rows[3].v == "Scored at 95% of your number"
+    #expect(rows[0].v == "4 squads" && rows[1].v == "Random draw" && rows[3].v == "Scored at 95% of your index"
             && rows[5].v == "Best 4 a month count" && rows[6].v == "2 a month · −5 squad points a round short")
     #expect(rows[4].v == "Post what you'd post to GHIN")   // M-15: a norm the league holds
     #expect(Bylaws.verif == ["Honor system", "Post what you'd post to GHIN", "Vouched by the group where you can; the Pro rules on the rest"])

@@ -229,3 +229,35 @@ This is the first real escalation from the owner's own play since the evidence p
 **How it must behave (L-32, and the honesty laws):** cached data is shown with an honest line saying when it is from — never presented as live. A failed read is never an empty screen. Nothing is fabricated: a course that was never cached says so and offers what it can.
 
 **Not in scope:** searching the whole course catalogue offline; any course you have neither played nor planned. Those need the network and should say so.
+
+## R-O · What's in the bag — DECIDED, built tonight
+
+The card gains a bag. **It clears the vision's bar rather than skirting it:** the rejection list is scoped by its own opening clause — *"Anything requiring additional tracking during play: club tracking, shot tracking…"* — and club tracking means logging what you hit on each shot. A bag is filled once and changed a few times a year, so the five-question filter's actual question ("would enough golfers actually do this every round?") does not engage. The precedent is already shipped: the ball marker is an identity object with no competitive function that golfers enjoy choosing. **The owner has overridden the "not before Monday" caution and asked for it tonight; it is additive and must not block the ship.**
+
+### What it is
+
+- **Your bag** — up to fourteen clubs, each free text (*"TSR3 9° · Ventus Blue"*), ordered driver → putter, plus the ball.
+- **The sideline** — clubs you own that swap in. This is the part nobody else does: most bag features are a static fourteen, and a 3-iron that replaces the 5-wood *sometimes* is what makes **"is Galen bringing the new driver?"** a question with an answer.
+- **NO EQUIPMENT DATABASE.** Free text and an optional photo. Brands, models, lofts and shafts are a third-party data dependency with the course API's maintenance cost, and it is how a fun feature becomes a chore. Structure is added later only if people actually fill it in. *(This is a written refusal in the D250 sense — re-proposing it costs an argument with this entry.)*
+
+### The feature is the CHANGE, not the list
+
+A static bag is a page nobody revisits. **A bag change is a post**, and it rides the rails this overhaul just built — a post can belong to a person rather than requiring a league (D238), and the ranked dispatch can carry it. That makes it content for a golfer with nothing running, which is the problem SP-1 named.
+
+Voice, per the canon: *"Galen put a new driver in the bag."* One post per change, batched when several land together, and **never manufactured** (L-20/21/22) — a bag edit that changes nothing posts nothing.
+
+### The thing worth building carefully
+
+**A bag is a state over time, and rounds are already timestamped.** So the product can say, with no shot tracking whatsoever:
+
+> **Since the new driver went in: four rounds, two under your playing HCP.**
+
+Zero extra effort per round, and it is the vision's own *Memory > Statistics* applied to gear. That is the reason to model each club with an `added_on` and a `removed_on` rather than storing a flat list.
+
+### Rules it inherits
+
+Visibility is the Tour Card's existing gate (self · buddy · shared season · discoverable) — a bag is never more public than the card that carries it. Grants explicit (L-04), the migration dry-run, arguments defaulted, the client honest when the read is absent. The marker remains the identity floor (L-24); a bag never replaces it.
+
+### Not in scope tonight
+
+The AI caddy guide. Owner and orchestrator agreed: the version that tells you what to hit is a different product, competes with the rangefinder apps the vision says not to be, and would own the quality of its own advice. **The version that fits is "your own record on the hole you are standing on"** — *"You have played this seven times. Two pars, one double, best is a four."* — which needs no AI, uses rounds already posted, and nobody else can copy because nobody else has your rounds. Recorded here as the next thing, not built tonight.

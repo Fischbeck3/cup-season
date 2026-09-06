@@ -4,7 +4,8 @@
 // from `round_card()`. "Anything missing is simply absent — a receipt never
 // guesses at a number it does not hold." The seed is that row; `ReceiptRows`
 // is `roundCardBody`, line for line, plus two rulings the web has not caught
-// up with: the "Playing number" row (D209) and the no-number sentence (D124).
+// up with: the "Playing HCP" row (D209, renamed by R-M) and the no-number
+// sentence (D124).
 
 import Foundation
 
@@ -170,22 +171,23 @@ public enum ReceiptRows {
     if let rating = r.rating, let slope = r.slope {
       rows.append(.math(label: "The course", value: "\(RoundCopy.f1(rating)) / \(slope)", sub: false))
     }
-    // D209 · the arithmetic reads in order: the number that day → the playing
-    // number it becomes under the league's allowance → what the round was worth
-    // against the course → the verdict → the points. The playing-number row is
-    // the allowance made visible where it acts, so it renders only when the
-    // allowance MOVED the number: at 100% — or at any allowance that lands on
-    // the same tenth, which a low index does — it would print the line above it
-    // a second time (D201: one fact, one place). Compared as it PRINTS, not as
-    // it computes: two rows reading "0.4" are the defect whatever the floats say.
-    var playingShown = false
+    // D209 / R-M · the arithmetic reads in order: the INDEX that day → the
+    // PLAYING HCP it becomes under the league's allowance → what the round was worth
+    // against the course → the verdict → the points. THIS PAIR OF ROWS IS
+    // WHERE THE TWO HANDICAP NOUNS ARE DISTINGUISHED (R-M): the index is the
+    // number on your card, the playing HCP is that index under this league's
+    // allowance, and the receipt shows one becoming the other. The playing row
+    // renders only when the allowance MOVED the figure: at 100% — or at any
+    // allowance that lands on the same tenth, which a low index does — it would
+    // print the line above it a second time (D201: one fact, one place).
+    // Compared as it PRINTS, not as it computes: two rows reading "0.4" are the
+    // defect whatever the floats say.
     if !provisional {
       if let idx = r.indexAtPost {
-        rows.append(.math(label: "\(mine ? "Your" : "Their") number that day", value: RoundCopy.f1(idx), sub: true))
+        rows.append(.math(label: "\(mine ? "Your" : "Their") index that day", value: RoundCopy.f1(idx), sub: true))
       }
       if let playing = r.playingIndex, RoundCopy.f1(playing) != r.indexAtPost.map(RoundCopy.f1) {
-        rows.append(.math(label: "Playing number", value: RoundCopy.f1(playing), sub: true))
-        playingShown = true
+        rows.append(.math(label: "Playing HCP", value: RoundCopy.f1(playing), sub: true))
       }
     }
     // the arithmetic, shown rather than asserted (§16). "Vs course" is the
@@ -206,7 +208,7 @@ public enum ReceiptRows {
       // own when it did not. One table, three renderers (preflight 28).
       let named = r.band ?? CSBands.bandName(pvi)
       let band = mine ? named : CSBands.theirs(named)
-      rows.append(.math(label: "Against \(who) \(playingShown ? "playing number" : "number")",
+      rows.append(.math(label: "Against \(who) playing HCP",
                         value: "\(CSBands.vsShort(pvi)) — \(band.uppercased())", sub: false))
     }
     if let pts = r.points { rows.append(.math(label: "Points", value: CSCopy.points(pts), sub: false)) }

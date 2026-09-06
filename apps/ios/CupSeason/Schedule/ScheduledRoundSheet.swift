@@ -14,6 +14,7 @@ struct ScheduledRoundSheet: View {
   @State private var vm: RoundSheetModel
   @State private var toasts: CSToastCenter
   @State private var retag: RetagRequest? = nil
+  @State private var card: CourseSheetRef? = nil
   let links: CSLinks
   let leagueId: UUID?
 
@@ -38,6 +39,7 @@ struct ScheduledRoundSheet: View {
       .task { await vm.load() }
       .csToasts(toasts)
       .sheet(item: $retag, onDismiss: { Task { await vm.load() } }) { r in RetagSheet(request: r, leagueId: leagueId) }
+      .sheet(item: $card) { c in CourseCardSheet(courseId: c.id, label: c.label) }
     }
     .presentationDragIndicator(.visible)
   }
@@ -46,11 +48,27 @@ struct ScheduledRoundSheet: View {
     VStack(alignment: .leading, spacing: 12) {
       CSSheetHeader(title: d.title, sub: TeeTime.format(d.teeTime).isEmpty ? "On the schedule" : TeeTime.chip(d.teeTime))
 
+      // D261 / R-N · L-32 · the read failed and this is the row we already had.
+      // It is said once, at the top, before any fact it qualifies.
+      if vm.stale {
+        Text("Could not reach the server. This is the plan as your phone has it — who is in and the comments may have moved.")
+          .font(CSFont.footnote).foregroundStyle(cs.mut)
+          .fixedSize(horizontal: false, vertical: true)
+      }
+
       // course header — cache name if linked, else the typed label, else a word. NEVER blank.
       VStack(alignment: .leading, spacing: 3) {
         Text(d.courseName).font(CSFont.sentenceBold).foregroundStyle(cs.ink)
         if let c = d.course, !c.meta.isEmpty { Text(c.meta).font(CSFont.monoSmall).foregroundStyle(cs.mut) }
         if let c = d.course, !c.place.isEmpty { Text(c.place).font(CSFont.footnote).foregroundStyle(cs.dimText) }
+        // D261 / R-N · the door the escalation asked for: the tees, the ratings
+        // and slopes, and the card — from the phone, so it opens on a plane.
+        // Offered only for a course this phone has actually kept, because a
+        // door that opens on nothing is the one thing not permitted (L-32).
+        if vm.kept, let id = d.courseId {
+          Button("See the tees and the card") { card = CourseSheetRef(id: id, label: d.courseName) }
+            .font(CSFont.button).foregroundStyle(cs.brand).frame(minHeight: 44)
+        }
       }
       HStack(spacing: 8) {
         chip(TeeTime.chip(d.teeTime), fg: cs.ink, bg: cs.bg2, border: cs.line)
@@ -189,6 +207,11 @@ final class RoundSheetModel {
   let id: UUID
   var detail: RoundDetail?
   var failed = false
+  /// D261 · the detail read did not answer and what is on screen is the row we
+  /// already had. Never presented as live.
+  var stale = false
+  /// D261 · this phone holds a course book for this round's course.
+  var kept = false
   var weather: Weather?
   var rivals: [Rpc.my_rivalries.Row] = []
   var draft = ""
@@ -223,11 +246,18 @@ final class RoundSheetModel {
   }
 
   func load() async {
-    do { detail = try await sched.detail(id) }
+    do { detail = try await sched.detail(id); stale = false }
     catch {
-      // deploy-skew: round_detail not live yet — fall back to the schedule row
-      if let f = fallback { detail = RoundDetail(fallback: f) } else { failed = true; toasts.show("Couldn’t load that round"); return }
+      // deploy-skew OR no signal: `round_detail` is not live yet, or nothing is.
+      // Fall back to the schedule row we were handed and SAY the read failed —
+      // a screen that quietly draws a thinner version of itself is the lie
+      // L-32 forbids (D261).
+      if let f = fallback { detail = RoundDetail(fallback: f); stale = true }
+      else { failed = true; toasts.show("Couldn’t load that round"); return }
     }
+    // D261 · does the phone hold this course? The door below is drawn only if
+    // it does, so it can never open on nothing.
+    kept = await CourseBookStore().book(detail?.courseId).book != nil
     rivals = await RivalsCache.shared.rivals()
     // weather rides in async; no location or out of range → the chip just stays hidden
     if let d = detail, let c = d.course, let lat = c.lat, let lon = c.lon, let on = d.playOn {
@@ -255,6 +285,8 @@ final class RoundSheetModel {
     catch { toasts.show(HumanError.text(error, prefix: "Scratch failed.")); return false }
   }
 }
+
+struct CourseSheetRef: Identifiable, Equatable { let id: String; let label: String }
 
 // MARK: - Tag your group (`openRetagSheet` 16852)
 

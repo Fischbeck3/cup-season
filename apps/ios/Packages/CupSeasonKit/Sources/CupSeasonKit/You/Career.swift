@@ -132,20 +132,19 @@ public struct Career: Sendable, Equatable {
 public enum YouCopy {
   /// D209 · the one lens every You figure is labelled with.
   ///
-  /// F-14 · **"playing number" is scoped to the RECEIPT** (TERMINOLOGY line 84
-  /// + note 1): "every other surface says vs your number". These three label
-  /// You, the Tour Card and the rivalry sheet, none of which is a receipt, and
-  /// no lint covered the ruling — which is D249's own thesis about a ruled
-  /// sentence with nothing holding it. The constants keep their names; only
-  /// the words a golfer reads change. `ReceiptSeed` keeps "Playing number",
-  /// where the arithmetic is shown beside it (L-01).
-  public static let vsPlayingNumber = "vs your number"
-  public static let avgVsPlayingNumber = "Avg vs your number"
+  /// R-M / D260 · the comparison noun is **the playing HCP** — the index
+  /// under this league's allowance, which is what the figure is actually
+  /// measured against. F-14 had scoped D209's "playing number" to the receipt
+  /// and sent every other surface to "vs your number"; R-M retires BOTH for
+  /// this figure and gives all of them one true noun. The constants keep their
+  /// names; only the words a golfer reads change.
+  public static let vsPlayingNumber = "vs your playing HCP"
+  public static let avgVsPlayingNumber = "Avg vs your playing HCP"
   /// Y-28/Y-14 · the "best" row on BOTH You stat panels. All time used to call
   /// the same figure "Best round" with the lens in a grey sub under it, which
   /// made one pair of stats read as two — D210's banned word is out of both,
   /// and so is the second name.
-  public static let bestVsPlayingNumber = "Best vs your number"
+  public static let bestVsPlayingNumber = "Best vs your playing HCP"
   /// The same figure on the TOUR CARD, where D209 names the lens once in the
   /// section eyebrow and the rows underneath carry their own short words
   /// (`TourCard.bestLabel`). Not for a You panel: there the row label is the
@@ -212,12 +211,12 @@ public enum YouCopy {
   /// The one sentence both keys are cut from. The tail is the load-bearing
   /// half — the reading order, and what a lit dot IS.
   private static func formSentence(lead: String, whose: String) -> String {
-    "\(lead), oldest first — a lit dot beat \(whose) number."
+    "\(lead), oldest first — a lit dot beat \(whose) playing HCP."
   }
 }
 
 /// D76 — FORM L5: the card runs a temperature. Dots read oldest→newest; ember
-/// = beat your number.
+/// = beat your playing HCP.
 public struct FormRow: Sendable, Equatable {
   /// one round's lens for a dot — the allowance figure and the points it earned
   public struct Dot: Sendable, Equatable {

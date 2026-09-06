@@ -541,9 +541,9 @@ private struct PostHeroContent: View {
             chip(p.vsText, tone: cs.mut)
           } else {
             chip(pointsText, tone: cs.ink)
-            // LV-19 / L-14 · one lens, one word: "your number". "Index" is the
+            // LV-19 / L-14 / R-M · one lens, one word: "your playing HCP".
             // governing body's word and check 12's grep does not see it here.
-            chip(p.vsText + " vs your number", tone: p.vs >= 0 ? cs.pos : cs.neg)
+            chip(p.vsText + " vs your playing HCP", tone: p.vs >= 0 ? cs.pos : cs.neg)
           }
         }
         .padding(.top, 2)
@@ -562,7 +562,7 @@ private struct PostHeroContent: View {
     model.card.mode == .holes || model.card.inputs.f9 > 0 || model.card.inputs.b9 > 0
   }
 
-  /// The band phrase, the way the feed says it ("Beat your number by 2.4"); the web's empty-state lines until there is a card.
+  /// The band phrase, the way the feed says it ("Beat your playing HCP by 2.4"); the web's empty-state lines until there is a card.
   private var sentence: String {
     guard let p = model.preview else { return model.calcMessage }
     if p.provisional { return p.message }   // D124 (i) · "No number yet — this round starts it"

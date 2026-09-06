@@ -2,8 +2,17 @@
 //
 // Ported VERBATIM from index.html 5566–5600: `pointsFor`, `bandName`,
 // `vsPhrase`, `theirs`, `fn1`. PvI stays the engine currency; the SCREEN says
-// "your number". Nothing here is authoritative — the server's `cup_points`
-// scores the round; this only phrases it.
+// "your playing HCP" (R-M, D260). Nothing here is authoritative — the server's
+// `cup_points` scores the round; this only phrases it.
+//
+// R-M · TWO SETS LIVE IN THIS FILE AND THEY MUST NOT DRIFT INTO EACH OTHER.
+// `bandName` is the CLOSED SET OF FIVE (spec §2.2) and the owner ruled it
+// stands exactly as it is — "Beat your number" included. `vsPhrase` and
+// `pointsFor` are the ARITHMETIC, and the arithmetic is measured against the
+// index under this league's allowance, which is a PLAYING HANDICAP. So a round
+// card can show the chip "Beat your number" over the line "2.1 under your
+// playing HCP": one fact wearing two nouns, deliberate, recorded in R-M, and
+// NOT a defect. Preflight 42 keeps each set out of the other.
 //
 // The −1.0 edge, RESOLVED 2026-08-29 (Q-20). This file used to follow the
 // server for the number while keeping the web's `>= -1` for the NAME, so a
@@ -30,15 +39,18 @@ public enum CSBands {
   public static func pointsFor(_ vs: Double) -> (points: Int, line: String) {
     let pts = cupPoints(vs)
     switch pts {
-    case 12: return (12, "You torched your number by \(fixed1(vs)). Sandbagger alert.")
-    case 9: return (9, "You beat your number by \(fixed1(vs)). Nice round.")
-    case 7: return (7, "Right on your number. Steady points.")
+    case 12: return (12, "You torched your playing HCP by \(fixed1(vs)). Sandbagger alert.")
+    case 9: return (9, "You beat your playing HCP by \(fixed1(vs)). Nice round.")
+    case 7: return (7, "Right on your playing HCP. Steady points.")
     case 6: return (6, "A little loose, still cash in the bank.")
     default: return (5, "Rough one, but posted rounds always score.")
     }
   }
 
   /// Torched it / Beat your number / Played to it / A little loose / Posted anyway.
+  ///
+  /// SETTLED 2026-09-05 (R-M): the five stand exactly as spec §2.2 has them.
+  /// They are short LABELS, not arithmetic; the arithmetic is `vsPhrase`.
   public static func bandName(_ vs: Double) -> String {
     if vs >= 3 { return "Torched it" }
     if vs >= 1 { return "Beat your number" }
@@ -49,13 +61,13 @@ public enum CSBands {
 
   public static func vsPhrase(_ v: Double?) -> String {
     guard let vs = v, vs.isFinite else { return "" }
-    if vs >= 1 { return "beat your number by \(fixed1(vs))" }
-    if vs > -1 { return "played to your number" }   // Q-20
-    return fixed1(vs).replacingOccurrences(of: "-", with: "") + " over your number"
+    if vs >= 1 { return "beat your playing HCP by \(fixed1(vs))" }
+    if vs > -1 { return "played to your playing HCP" }   // Q-20
+    return fixed1(vs).replacingOccurrences(of: "-", with: "") + " over your playing HCP"
   }
 
   /// D176 · the compact form for a card that has no room for a sentence:
-  /// "+2.4" / "level" / "-1.8", against your number. Same half-open boundary
+  /// "+2.4" / "level" / "-1.8", against your playing HCP. Same half-open boundary
   /// as `bandName` and `cup_points`, so the short form and the long form can
   /// never disagree about which side of "played to it" a round sits on.
   public static func vsShort(_ v: Double?) -> String {

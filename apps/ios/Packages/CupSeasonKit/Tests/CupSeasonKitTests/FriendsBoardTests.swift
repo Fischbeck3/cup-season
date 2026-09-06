@@ -116,7 +116,7 @@ private let board = """
     let b = FriendsBoard.parse(try rows(board))
     let mine = try #require(b.rows.first { $0.isMe })
     #expect(mine.name == "You")
-    #expect(mine.formLine == "6 rounds · beat your number twice")
+    #expect(mine.formLine == "6 rounds · beat your playing HCP twice")
   }
 
   // MARK: clause 5 — a band, and the denominator
@@ -153,8 +153,8 @@ private let board = """
 
   @Test func theFormLineCountsInWordsBelowThree() throws {
     let b = FriendsBoard.parse(try rows(board))
-    #expect(try #require(b.rows.first { $0.name == "Tash" }).formLine == "4 rounds · beat their number 3 times")
-    #expect(try #require(b.rows.first { $0.name == "Marcus" }).formLine == "2 rounds · didn’t beat their number")
+    #expect(try #require(b.rows.first { $0.name == "Tash" }).formLine == "4 rounds · beat their playing HCP 3 times")
+    #expect(try #require(b.rows.first { $0.name == "Marcus" }).formLine == "2 rounds · didn’t beat their playing HCP")
   }
 
   // MARK: shape and decoding

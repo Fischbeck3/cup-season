@@ -175,7 +175,7 @@ public struct PeopleService: Sendable {
     let lead: RivalryLead = r.lead == "up" ? .up : r.lead == "down" ? .down : .even
     let weeks = HeadToHead.FacetLine(facet: .seasonWeeks, wins: w, losses: l, ties: t,
                                      meetings: r.meetings ?? (w + l + t),
-                                     basis: "the better round against your number in a week you both posted",   // F-14
+                                     basis: "the better round against your playing HCP in a week you both posted",   // F-14, R-M
                                      source: "my_rivalries")
     let dw = r.duel_wins ?? 0, dl = r.duel_losses ?? 0, dh = r.duel_halves ?? 0
     let duels = HeadToHead.FacetLine(facet: .duels, wins: dw, losses: dl, ties: dh,

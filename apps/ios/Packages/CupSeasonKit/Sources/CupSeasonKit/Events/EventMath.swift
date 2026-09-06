@@ -421,7 +421,7 @@ public enum MajorMath {
 
   /// The share caption (12581).
   public static func shareText(name: String, jug: String, gross: Int?, pvi: Double?) -> String {
-    "\(name) takes \(jug) — \(gross.map { String($0) } ?? "—"), \(vs(pvi).lowercased()) their number · cupseason.app"
+    "\(name) takes \(jug) — \(gross.map { String($0) } ?? "—"), \(vs(pvi).lowercased()) their playing HCP · cupseason.app"
   }
 
   /// The setup sheet's window line: "Thu, Jul 9 → Sun, Jul 12 · best card by Sunday night".

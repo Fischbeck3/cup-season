@@ -269,8 +269,26 @@ public struct LiveRepository: Sendable {
   private struct HoleRow: Decodable { let hole_number: Int?; let par: Int?; let handicap: Int? }
 
   /// The per-hole par + stroke index for a picked tee, wanting `holes` (18 or 9).
-  /// nil when the cache has no usable card (the typed path stands).
+  /// nil when neither the server nor the phone has a usable card (the typed
+  /// path stands).
+  ///
+  /// D261 / R-N · THE PHONE ANSWERS WHEN THE SIGNAL DOES NOT. This is the read
+  /// R-N calls the bigger win: a tee sheet cannot score at all without pars and
+  /// stroke indexes, and a golf course is exactly where the signal is worst.
+  /// So the server is asked first (it is the authority and it may have gained a
+  /// card since), the answer is written through to the phone, and a failed or
+  /// empty read falls back to the book instead of leaving the card blank.
   public func courseHoles(courseId: String, teeName: String?, want: Int) async -> [(par: Int, handicap: Int)]? {
+    if let live = await liveCourseHoles(courseId: courseId, teeName: teeName, want: want) {
+      await CourseBookStore(svc).keepCard(
+        courseId: courseId, teeName: teeName,
+        holes: live.enumerated().map { CourseHole(hole: $0.offset + 1, par: $0.element.par, si: $0.element.handicap) })
+      return live
+    }
+    return await CourseBookStore(svc).card(courseId: courseId, teeName: teeName, want: want)
+  }
+
+  private func liveCourseHoles(courseId: String, teeName: String?, want: Int) async -> [(par: Int, handicap: Int)]? {
     guard let tees: [TeeRow] = try? await svc.client.from("api_course_tees").select("id, tee_name, number_of_holes").eq("course_id", value: courseId).execute().value else { return nil }
     let row = tees.first { $0.tee_name == teeName && $0.number_of_holes == want } ?? tees.first { $0.tee_name == teeName }
     guard let row else { return nil }

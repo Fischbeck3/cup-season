@@ -52,7 +52,7 @@ public struct TourCard: Sendable {
     public let bestPvi: Double?
     /// The 100% average, `index_at_post − differential`: `avg_vs_index` on the
     /// new payload, `avg_pvi` on the old one. This is what the fallback row
-    /// prints, and it is genuinely "vs your number".
+    /// prints, and it is genuinely "vs your playing HCP".
     public let avgVsIndex: Double?
     /// true when an allowance figure actually arrived — see the note above
     public let playingLens: Bool
@@ -370,18 +370,18 @@ public struct TourCard: Sendable {
   public static func bestLabel(playingLens: Bool) -> String {
     playingLens ? YouCopy.bestRound : "Best round vs course"
   }
-  /// The tail of "Avg vs your playing number" lives in the eyebrow above it;
+  /// The tail of "Avg vs your playing HCP" lives in the eyebrow above it;
   /// the old figure keeps the whole label, because the old figure is a
   /// different number.
   public static func avgLabel(playingLens: Bool, isMe: Bool) -> String {
-    playingLens ? "Avg" : "Avg vs \(isMe ? "your" : "their") number"
+    playingLens ? "Avg" : "Avg vs \(isMe ? "your" : "their") playing HCP"
   }
 
   /// The two OLD figures run opposite ways — a course score where lower wins
   /// sits beside a delta where `+` wins — and one table cannot sign both the
   /// same way. So the table says which is which. It goes with them.
   public static func careerSignsLine(isMe: Bool) -> String {
-    "Lower is better against the course; against \(isMe ? "your" : "their") number, + is better."
+    "Lower is better against the course; against \(isMe ? "your" : "their") playing HCP, + is better."
   }
 }
 

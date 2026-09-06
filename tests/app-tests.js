@@ -46,7 +46,7 @@
   t('bands: -1.0 scores 6, like cup_points', pointsFor(-1.0)[0], 6);
   t('bands: -1.0 is named for the points it pays', bandName(-1.0), 'A little loose');
   t('bands: -0.99 is still played-to-it', [pointsFor(-0.99)[0], bandName(-0.99)], [7, 'Played to it']);
-  t('bands: the phrase agrees at the edge', /over your number/.test(vsPhrase(-1.0)), true);
+  t('bands: the phrase agrees at the edge', /over your playing HCP/.test(vsPhrase(-1.0)), true);
   (function(){
     /* the split that shipped was name-vs-points; assert they never diverge */
     const NAME = {12:'Torched it', 9:'Beat your number', 7:'Played to it', 6:'A little loose', 5:'Posted anyway'};
@@ -1113,7 +1113,7 @@
       const jade = { profile_id:'3', display_name:'Jade', rounds_30d:0, beats_30d:0, avg_vs_number_30d:null, is_me:false };
       t('R5: the form line names its denominator (L-01) and speaks for whose number it is',
         [csBoardFormLine(tash), csBoardFormLine(me), csBoardFormLine(jade)],
-        ['4 rounds · beat their number 3 times', '6 rounds · beat your number twice', 'No rounds in the window']);
+        ['4 rounds · beat their playing HCP 3 times', '6 rounds · beat your playing HCP twice', 'No rounds in the window']);
       t('R5: the figure is a BAND, never the float (L-14 / T-07)',
         [csBoardBand(tash), csBoardBand(jade)], ['Beat their number', null]);
       t('R5: the possessive turns on somebody else’s row, and only there',

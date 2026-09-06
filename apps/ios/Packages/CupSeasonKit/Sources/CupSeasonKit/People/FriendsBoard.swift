@@ -79,7 +79,8 @@ public struct FriendsBoard: Sendable, Equatable {
 
     public func rank(_ lens: Lens) -> Int { lens == .form ? rankByForm : rankByIndex }
 
-    /// "4 rounds · beat her number 3 times" — the sentence IA §10.2 writes,
+    /// "4 rounds · beat their playing HCP 3 times" — the sentence IA §10.2
+    /// writes, with R-M's noun,
     /// with the pronoun the row can actually justify. Nobody's gender is
     /// stored, so the possessive is "their" for a buddy and "your" for me.
     public var formLine: String {
@@ -87,10 +88,10 @@ public struct FriendsBoard: Sendable, Equatable {
       let r = "\(rounds) round\(rounds == 1 ? "" : "s")"
       let whose = isMe ? "your" : "their"
       switch beats {
-      case 0:  return "\(r) · didn’t beat \(whose) number"
-      case 1:  return "\(r) · beat \(whose) number once"
-      case 2:  return "\(r) · beat \(whose) number twice"
-      default: return "\(r) · beat \(whose) number \(beats) times"
+      case 0:  return "\(r) · didn’t beat \(whose) playing HCP"
+      case 1:  return "\(r) · beat \(whose) playing HCP once"
+      case 2:  return "\(r) · beat \(whose) playing HCP twice"
+      default: return "\(r) · beat \(whose) playing HCP \(beats) times"
       }
     }
 

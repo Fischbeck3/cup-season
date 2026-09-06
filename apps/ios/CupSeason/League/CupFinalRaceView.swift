@@ -79,7 +79,7 @@ struct FinalistReceiptSheet: View {
     let f = finalist
     let name = model.teams.first { $0.id == f.teamId }?.name ?? f.name
     // QB-17 · this sheet is a rung, and a rung is usually somebody else. Only
-    // my own rung may say "your number".
+    // my own rung may say "your playing HCP".
     let whose = (f.teamId != nil && f.teamId == model.myTeamId) ? "your" : "their"
     SheetFrame(name, sub: "SEED \(f.seed) · \(CSCopy.points(f.total)) PTS IN THE FINAL") {
       VStack(alignment: .leading, spacing: 0) {

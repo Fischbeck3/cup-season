@@ -17,6 +17,9 @@ import CupSeasonKit
 @Observable
 final class Presenter {
   var tourCard: UUID?
+  /// D261 / R-N · the course card — the tees, the ratings and slopes and the
+  /// hole card, drawn from the phone's own store so it opens on a plane.
+  var courseCard: CourseSheetRef?
   var receipt: UUID?
   var scorecard: UUID?
   var scheduledRound: UUID?

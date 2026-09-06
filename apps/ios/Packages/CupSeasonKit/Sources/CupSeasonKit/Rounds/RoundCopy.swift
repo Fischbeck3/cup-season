@@ -1,7 +1,9 @@
 // Cup Season — the named bands (spec §2.2's Read column), verbatim from
 // index.html 5566–5600 (`pointsFor`, `bandName`, `vsPhrase`, `theirs`, `fn1`).
 //
-// PvI stays the engine currency; the SCREEN says "your number" (D1). This is
+// PvI stays the engine currency; the SCREEN says "your playing HCP" (R-M,
+// D260 — amending D1's noun for the COMPARISON only; the five bands stand).
+// This is
 // display copy, never authority: the points a round is worth come from the
 // server (`v_rounds_ranked` → `cup_points()`), and the phone only phrases them.
 //
@@ -20,8 +22,8 @@ public enum RoundCopy {
   /// `bandName(vs)` — the five named bands, edges from `CSBands`.
   public static func bandName(_ vs: Double) -> String { CSBands.bandName(vs) }
 
-  /// `vsPhrase(vs)` — "beat your number by 2.4" / "played to your number" /
-  /// "1.3 over your number". Empty when there is no finite number.
+  /// `vsPhrase(vs)` — "beat your playing HCP by 2.4" / "played to your playing
+  /// HCP" / "1.3 over your playing HCP". Empty when there is no finite figure.
   public static func vsPhrase(_ vs: Double?) -> String { CSBands.vsPhrase(vs) }
 
   /// `theirs(s)` — third-person form for SOMEONE ELSE's round. Always

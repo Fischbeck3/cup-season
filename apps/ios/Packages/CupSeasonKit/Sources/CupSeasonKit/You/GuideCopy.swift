@@ -117,12 +117,12 @@ public enum GuideCopy {
       ? "**You can't hurt your squad by playing badly — only by not playing.**"
       : "**You can't hurt your standing by playing badly — only by not playing.**"
     return [
-      ScoringSection(eyebrow: "Your number", paragraphs: [
-        "Your handicap index builds from your scores — no typing. Every round measures how you played against the course's difficulty (rating & slope), and your best recent rounds set your number, WHS-style. It appears once you've posted **3 rounds**; until then it shows as building.",
+      ScoringSection(eyebrow: "Your index", paragraphs: [
+        "Your handicap index builds from your scores — no typing. Every round measures how you played against the course's difficulty (rating & slope), and your best recent rounds set your index, WHS-style. It appears once you've posted **3 rounds**; until then it shows as building.",
         "You (or the Pro) can set a **starter** to get going sooner — but once you have 3 posted rounds, your scores take over. Manual changes are announced to your league so the crew keeps everyone honest.",
       ], bands: []),
       ScoringSection(eyebrow: "Every round → cup points", paragraphs: [
-        "Every round is scored against **your own number** — a 22-index beating their number is worth exactly what a 6-index beating theirs is:",
+        "Every round is scored against **your own playing HCP** — a 22-index beating theirs is worth exactly what a 6-index beating theirs is:",
       ], bands: [
         // one value inside each band; the name and the points are the engine's (CSBands), the edge is said in words
         band(3, "beat it by 3 or more"),
@@ -133,7 +133,14 @@ public enum GuideCopy {
       ]),
       ScoringSection(eyebrow: "", paragraphs: [
         // Y-31 · the allowance is the one number a receipt cannot be reverse-engineered from
-        "The number the bands measure from is your **playing number** — your number with the league's allowance applied: \(Bylaws.presetNames[1]) scores you against \(Bylaws.allow[1])% of it, \(Bylaws.presetNames[0]) \(Bylaws.allow[0])%, \(Bylaws.presetNames[2]) \(Bylaws.allow[2])%.",
+        //
+        // R-M · THIS IS THE ONE PLACE THE TWO HANDICAP NOUNS ARE DISTINGUISHED,
+        // at first contact and once. Your INDEX is the number on your card, the
+        // one the engine derives from your scores. Your PLAYING HCP is that
+        // index under this league's allowance, and it is the figure every band
+        // and every gloss is measured against. They are never interchangeable,
+        // and the worked example is here so nobody has to take it on trust.
+        "The figure the bands measure from is your **playing HCP** — your index under this league's allowance. \(Bylaws.presetNames[1]) scores you against \(Bylaws.allow[1])% of it, \(Bylaws.presetNames[0]) \(Bylaws.allow[0])%, \(Bylaws.presetNames[2]) \(Bylaws.allow[2])%. So at an index of 10.6 in a \(Bylaws.presetNames[1]) league your playing HCP here is 10.1, and that is the figure a round is measured against.",
         "The 12-point ceiling caps what a padded number can buy; the 5-point floor means a posted 98 still beats an unposted 82. \(covenant)",
       ], bands: []),
       ScoringSection(eyebrow: "What counts", paragraphs: [counts], bands: []),

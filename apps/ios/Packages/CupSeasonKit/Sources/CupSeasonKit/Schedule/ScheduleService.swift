@@ -130,7 +130,13 @@ public struct ScheduleService: Sendable {
 
   /// Our own cache answers instantly, costs no API call, and keeps working
   /// when the API doesn't.
-  public func searchCache(_ q: String) async -> [CourseHit] {
+  public func searchCache(_ q: String) async -> [CourseHit] { await searchCacheResult(q) ?? [] }
+
+  /// D261 / R-N · the same read, but nil means THE READ FAILED and `[]` means
+  /// the cache genuinely has no match. The picker needs the difference: one is
+  /// "no such course", the other is "no signal", and telling a golfer the first
+  /// when the truth is the second is exactly the lie L-32 forbids.
+  public func searchCacheResult(_ q: String) async -> [CourseHit]? {
     let safe = q.replacingOccurrences(of: "[,()%_*]", with: " ", options: .regularExpression).trimmingCharacters(in: .whitespaces)
     guard safe.count >= 3 else { return [] }
     let like = "%\(safe)%"
@@ -140,7 +146,7 @@ public struct ScheduleService: Sendable {
         .or("course_name.ilike.\(like),club_name.ilike.\(like)").limit(12).execute().value
       return rows.map { CourseHit(id: $0.id, club: $0.club_name, course: $0.course_name, city: $0.city, state: $0.state, tees: $0.api_course_tees ?? []) }
         .filter { !$0.tees.isEmpty }
-    } catch { return [] }
+    } catch { return nil }
   }
 
   private struct SearchBody: Encodable { let action = "search"; let q: String }

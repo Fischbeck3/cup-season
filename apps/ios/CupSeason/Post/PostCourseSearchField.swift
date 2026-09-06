@@ -30,8 +30,17 @@ struct PostCourseSearchField: View {
       case .courses:
         dropdown {
           if vm.courses.isEmpty {
-            Text("No match — type the course, rating and slope by hand.").font(CSFont.footnote).foregroundStyle(cs.mut).padding(12)
+            Text(vm.offline ? CourseBookCopy.searchOffline : "No match — type the course, rating and slope by hand.")
+              .font(CSFont.footnote).foregroundStyle(cs.mut).padding(12)
+              .fixedSize(horizontal: false, vertical: true)
           } else {
+            // D261 / R-N · a round can be added in the car park: with no signal
+            // the rows are the courses this phone kept, and the list says so.
+            if vm.offline {
+              Text(CourseBookCopy.searchOffline).font(CSFont.footnote).foregroundStyle(cs.mut)
+                .padding(.horizontal, 12).padding(.top, 10)
+                .fixedSize(horizontal: false, vertical: true)
+            }
             ForEach(vm.courses) { c in
               row(c.label, c.subline) { text = c.label; vm.pickedLabel = c.label; courseId = c.id; vm.showTees(c) }
             }
@@ -51,6 +60,7 @@ struct PostCourseSearchField: View {
                 courseId = c.id
                 vm.stage = .hidden
                 onTee(c, t)
+                Task { await CourseBookStore().keep(hit: c, tee: t) }
               }
             }
           }

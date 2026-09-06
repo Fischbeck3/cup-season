@@ -133,7 +133,7 @@ public enum LeagueCopy {
       BylawRow("FORMAT", Bylaws.structNames[b.structure] ?? b.structure),
       BylawRow("THE DRAW", Bylaws.draftNames[b.draftType] ?? b.draftType),
       BylawRow("HOUSE RULES", b.presetName),
-      BylawRow("HOW SCORES COUNT", "Scored at \(Bylaws.allow[b.presetIdx])% of your number"),
+      BylawRow("HOW SCORES COUNT", "Scored at \(Bylaws.allow[b.presetIdx])% of your index"),
       BylawRow("SCORES", Bylaws.verif[b.presetIdx]),
       BylawRow("EACH MONTH", b.cap == nil ? "Every round counts" : "\(b.capLabel) a month count"),
       BylawRow("THE MINIMUM", "\(b.floor) a month · \(Bylaws.penalty[b.presetIdx])"),

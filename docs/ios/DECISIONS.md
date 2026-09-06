@@ -481,3 +481,33 @@ The ⊕'s composer is its own decision (IOS-020). Ceremonies, the finish, the se
 **Reversibility.** EASY. Every line is DEBUG-only on the phone or query-gated on the web.
 
 **Gate:** preflight **41** checks, 0 failures 0 warnings; sunningdale 27; CupSeasonKit 829 · CupSeason 28 · CSDesign 14; `web-verify` clean at 1440/390/320 with no document overflow. No migration was written, so there was none to dry-run.
+
+---
+
+## IOS-041 · The playing-HCP gloss and the offline course book — **P1 · BUILT 2026-09-05, wave D (R-M, R-N; D260, D261; owner-ruled 2026-09-05)**
+
+**Decision.** Say what the figure a round is measured against actually is, and stop being dead without a signal.
+
+**The gloss says `playing HCP`; the five bands say what they always said.** `CSBands.vsPhrase` and `CSBands.pointsFor` are the only two producers that had to change on the phone — *"beat your playing HCP by 2.4"*, *"played to your playing HCP"*, *"1.3 over your playing HCP"* — and everything downstream follows: the composer's chip, the receipt, the epilogue and its share caption, the feed card, the friends board's form line, the rivalry captions, the You and Tour Card labels, the head-to-head basis, the individual race's column head. `bandName` is untouched: *Torched it · **Beat your number** · Played to it · A little loose · Posted anyway*, exactly as spec §2.2 has them, because the owner ruled they stay. A card can therefore show the chip **Beat your number** over the line **2.1 under your playing HCP** — recorded in R-M, deliberate, not a defect.
+
+**The two nouns are distinguished once, at first contact.** The scoring guide's own section is now `Your index` and the one under it defines the other in a worked example; the receipt shows one becoming the other in adjacent rows (**Your index that day 14.2** → **Playing HCP 13.5**); the rules page reads *"Scored at 95% of your index"*. The INDEX sense of `your number` is deliberately untouched everywhere else — R-M retired the word for the comparison, and sweeping both would have been a ruling nobody made.
+
+**Two producers were destroying the acronym and neither had a test.** `PostEpilogue.caption` lower-cased the whole share line — the ONE string that leaves the app and lands in a group chat — and Home's feed card lower-cased the same gloss for both the card and its VoiceOver label. Both now keep the case their producer gave them; the caption's test pins it.
+
+**`CourseDisk` is `LiveDisk`'s twin, plus a cap.** Actor, JSON files in Application Support, atomic writes, every read tolerant of a missing or corrupt file — and 40 books with least-recently-used eviction, where "used" means READ (`book(_:)` touches on the way out, which is what makes the order mean anything). A course id arrives off the network, so it is never spliced into a path raw.
+
+**`my_course_books(p_limit)` fills it in one round trip**, hand-declared as an `RpcCall` until the owner's push refreshes the contract, with the argument defaulted on both sides. It runs **detached** after a boot that already succeeded and is silent on failure, because a failure means the phone keeps the books it has. Sign-out clears them.
+
+**Three surfaces work with no signal, and the fourth says why it cannot.** `CourseCardSheet` draws the picked tee's rating, slope, par and yards, then *"1st: par 5 · stroke index 7"*, then the card in two rows of nine — the escalation's own question, at the top, above the list of every other tee. `LiveRepository.courseHoles` asks the server, writes the answer through, and falls back to the book, so a tee sheet can score in a canyon. All three course pickers (composer, plan, live setup) consult the book before the network through ONE producer, `CourseBookStore.searchCourses`, and say *"No signal — searching the courses on your phone"* when nothing on the network answered. Searching the whole catalogue offline is out of scope and the same line says so.
+
+**Honesty is in the type.** `CourseAnswer` cannot hand over a book without saying where it came from, and `savedLine` is the only sanctioned rendering of provenance — so there is no path that draws a cached rating without the line above it. The plan sheet now says when its read failed instead of quietly drawing the thinner row it already had. A tee with no cached card says so; a partial card is not a card; `pars` and `card` return nil rather than a guess.
+
+**`-cs_dev_open coursecard`** opens the first book the phone holds, and with an empty store opens the never-kept state — the other one worth photographing. Nothing is seeded: a fabricated book would make the screenshot a lie about what the store does.
+
+**The web half, in its own shape (R-C).** The desk gets the ARCHIVE — every course you have played or planned, its tees, ratings, slopes and cards, browsable under YOUR COURSES on the You page — backed by the same store in `localStorage`, the same cap, the same LRU, and the same strings with ONE word changed — the phone says *"your phone"* and the desk says *"this device"*, because a golfer reading this on a MacBook is not reading it on a phone and L-32 is about telling the truth. The three pickers fall back the same way, and `searchCache` now returns null on a failed read so the dropdown can tell "no such course" from "no signal".
+
+**Skew.** Two migrations owed. `my_course_books` is called by both clients through a guarded read that returns null — NOT zero — when it is not there, so a client ahead of the database shows the books it already has and never narrates "no courses". `settle_week_clash`'s rename changes no signature and no payload key; either deploy order renders an honest board post, in one noun or the other.
+
+**Reversibility.** EASY for the gloss (four string literals per client, plus the tests and one lint). MEDIUM for the store, only because deleting it means deleting a directory of files on every device that has one — nothing depends on it, and every read falls back to the network path it had before.
+
+**Gate:** preflight **42** checks, 0 failures 0 warnings; sunningdale 27; CupSeasonKit 841 · CupSeason 28 · CSDesign 14; `web-verify` clean at 1440/390 with no document overflow. Both migrations dry-ran clean against production inside `begin … rollback`.
