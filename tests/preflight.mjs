@@ -1496,7 +1496,7 @@ else {
    one paid off ratchets the number down. It is the only shape that makes a
    pre-existing violation safe to leave in place. */
 {
-  const BELOW_11 = 86;                    // 2026-09-05, after LV-17 paid six back
+  const BELOW_11 = 83;                    // 2026-09-05, after LV-17 paid six back and D258 paid the climb's three
   const found = (html.match(/font-size:\s*(?:[0-9]|10)(?:\.[0-9]+)?px/g) || []);
   if (found.length > BELOW_11) {
     fail('the 11px floor holds', `${found.length} rule(s) below 11px — the debt is ${BELOW_11} and may only shrink (L-29). New: ${found.length - BELOW_11}`);
@@ -1567,6 +1567,211 @@ else {
   hits.length === 0
     ? pass('one worth-of-a-round producer, three renderers', 'RoundWorth.gain · csRoundWorth · public.round_worth')
     : fail('one worth-of-a-round producer, three renderers', hits.join('\n           '));
+}
+
+
+/* 38 · the type floors on the phone, and a sheet that survives AX3 ----------
+   L-29: "nothing renders below 11pt at the default size; every layout tolerates
+   AX sizes." Check 36 holds that line on the web. This is its phone half, and
+   it holds three things the accessibility wave found broken by looking:
+
+   (a) **A `CSFont` role may not be declared below 11pt**, and a role may not be
+       scaled below 11 either — `.minimumScaleFactor(0.7)` on an 11pt label is
+       7.7pt, which is the same sin at one remove. Four labels and five small
+       mono lines were doing exactly that.
+
+   (b) **Every PostScript name `CSFont` asks for must exist in a bundled face.**
+       `monoRegular` was `"IBMPlexMono"`, which is neither the Regular face's
+       PostScript name (`IBMPlexMono-Regular`) nor its family (`IBM Plex Mono`),
+       so `Font.custom` resolved nothing and three of the mono roles — label,
+       mono, monoSmall — had been silently rendering in the system sans. Nothing
+       crashes, nothing logs, and the record voice is simply not there.
+
+   (c) **A sheet may not be pinned to a fixed height.** 340 points hold three
+       sentences at the reading sizes and one and a half at AX3, where the
+       length sheet drew its rows on top of each other. Fixed heights go through
+       `.csFittedSheet`, which hands the whole page over at the accessibility
+       sizes. */
+{
+  const hits = [];
+  const iosRoot = join(root, 'apps', 'ios');
+  const swiftAll = (await import('../tools/extract-strings.mjs')).swiftSources(iosRoot);
+  const rel = f => f.slice(root.length).replace(/^\//, '');
+  const FLOOR = 11;
+
+  /* (a) the roles, and the scale factors applied to them */
+  const typo = join(iosRoot, 'Packages', 'CSDesign', 'Sources', 'CSDesign', 'Typography.swift');
+  const roles = new Map();                                   // CSFont.<role> -> declared points
+  if (!existsSync(typo)) {
+    hits.push('CSDesign/Typography.swift is gone — where did the three voices go?');
+  } else {
+    const src = readFileSync(typo, 'utf8');
+    for (const m of src.matchAll(/static let (\w+) = Font\.custom\((\w+), size: ([\d.]+)/g)) {
+      roles.set(m[1], Number(m[3]));
+      if (Number(m[3]) < FLOOR) hits.push(`CSFont.${m[1]} is declared at ${m[3]}pt — the floor is ${FLOOR} (L-29)`);
+    }
+    /* (b) the faces those roles name, against the bundled files' own name table */
+    const fontDir = join(iosRoot, 'CupSeason', 'Resources', 'Fonts');
+    const bundled = new Set();
+    if (existsSync(fontDir)) {
+      for (const f of readdirSync(fontDir).filter(x => /\.(ttf|otf)$/i.test(x))) {
+        const buf = readFileSync(join(fontDir, f));
+        const numTables = buf.readUInt16BE(4);
+        let nameOff = 0;
+        for (let i = 0; i < numTables; i++) {
+          const o = 12 + 16 * i;
+          if (buf.toString('latin1', o, o + 4) === 'name') nameOff = buf.readUInt32BE(o + 8);
+        }
+        if (!nameOff) continue;
+        const count = buf.readUInt16BE(nameOff + 2), strOff = nameOff + buf.readUInt16BE(nameOff + 4);
+        for (let i = 0; i < count; i++) {
+          const r = nameOff + 6 + 12 * i;
+          const pid = buf.readUInt16BE(r), nid = buf.readUInt16BE(r + 6);
+          const len = buf.readUInt16BE(r + 8), off = buf.readUInt16BE(r + 10);
+          if (nid !== 1 && nid !== 6) continue;                 // family, PostScript
+          const raw = buf.subarray(strOff + off, strOff + off + len);
+          bundled.add((pid === 3 ? raw.toString('utf16le').split('').map((_, k, a) =>
+            k % 1 === 0 ? a[k] : '').join('') : raw.toString('latin1')));
+          bundled.add(raw.toString(pid === 3 ? 'utf16le' : 'latin1'));
+          if (pid === 3) {                                      // big-endian UTF-16
+            let out = '';
+            for (let k = 0; k + 1 < raw.length; k += 2) out += String.fromCharCode(raw.readUInt16BE(k));
+            bundled.add(out);
+          }
+        }
+      }
+    }
+    /* Charter is a system face on iOS and is not bundled; the mono faces are ours. */
+    for (const m of src.matchAll(/static let (mono\w+) = "([^"]+)"/g)) {
+      if (!bundled.has(m[2])) {
+        hits.push(`CSFont.${m[1]} names "${m[2]}", which no bundled face carries — Font.custom falls back to the system sans, silently`);
+      }
+    }
+    if (bundled.size === 0) hits.push('no bundled font names could be read — the face check is not running');
+  }
+
+  /* a role scaled below the floor is below the floor */
+  const SCALE = /\.font\(CSFont\.(\w+)\)[^\n]*?\.minimumScaleFactor\(([\d.]+)\)/g;
+  for (const f of swiftAll) {
+    if (/\/Tests\//.test(f)) continue;
+    const src = readFileSync(f, 'utf8');
+    for (const m of src.matchAll(SCALE)) {
+      const base = roles.get(m[1]);
+      if (base === undefined) continue;                        // .body/.footnote etc: the system's own floor
+      const floorAt = base * Number(m[2]);
+      if (floorAt < FLOOR - 0.005) {
+        hits.push(`${rel(f)}: CSFont.${m[1]} (${base}pt) × ${m[2]} = ${floorAt.toFixed(2)}pt — below the ${FLOOR}pt floor (L-29)`);
+      }
+    }
+  }
+
+  /* (c) no sheet pinned to a height outside the AX-aware helper */
+  const HELPER = join(iosRoot, 'Packages', 'CSDesign', 'Sources', 'CSDesign', 'Surfaces.swift');
+  for (const f of swiftAll) {
+    if (f === HELPER || /\/Tests\//.test(f)) continue;
+    const src = readFileSync(f, 'utf8');
+    for (const m of src.matchAll(/presentationDetents\(\[[^\]]*\.height\(/g)) {
+      hits.push(`${rel(f)}: a sheet pinned to .height(...) — use .csFittedSheet(_:), which hands the page over at the accessibility sizes`);
+    }
+  }
+  if (!/func csFittedSheet\(/.test(existsSync(HELPER) ? readFileSync(HELPER, 'utf8') : '')) {
+    hits.push('CSDesign has no csFittedSheet(_:) — the AX-aware detent is gone');
+  }
+
+  /* the self-test: a check that cannot fail is not a check */
+  if (!SCALE.test('.font(CSFont.label).minimumScaleFactor(0.7)')) {
+    hits.push('self-test failed: the scale-factor grep no longer matches a scaled role');
+  }
+  SCALE.lastIndex = 0;
+  if (!/presentationDetents\(\[[^\]]*\.height\(/.test('.presentationDetents([.height(320)])')) {
+    hits.push('self-test failed: the pinned-height grep no longer matches a pinned height');
+  }
+
+  hits.length === 0
+    ? pass('the phone holds the 11pt floor', `${roles.size} type role(s), every face resolves, no sheet pinned to a height`)
+    : fail('the phone holds the 11pt floor', hits.slice(0, 6).join('\n           '));
+}
+
+/* 39 · one easing, and reduced motion rests on the frame (L-30) -------------
+   *"One easing everywhere — the roll `cubic-bezier(.16,.84,.36,1)`; nothing
+   bounces; reduced motion rests on the frame."* Both halves had holes.
+
+   The roll was one of six curves on the phone — `easeOut` on the root view,
+   `easeInOut` on two breathing dots, `easeIn` on the split-flap — and roughly
+   thirty `withAnimation` call sites animated straight through a golfer's
+   reduce-motion setting because the guard was a habit rather than a mechanism.
+   `CSMotion.run` / `.csAnimation` ARE the mechanism now, so this check is the
+   lint per law (D249): a raw curve, or a raw `withAnimation`, fails the push.
+
+   On the web the backstop is a single reduced-motion rule that rests every
+   animation and transition on its end frame, plus the ban on overshoot — a
+   cubic-bezier with a control point outside 0…1 is a bounce, and golf does not
+   bounce. */
+{
+  const hits = [];
+  const iosRoot = join(root, 'apps', 'ios');
+  const swiftAll = (await import('../tools/extract-strings.mjs')).swiftSources(iosRoot);
+  const rel = f => f.slice(root.length).replace(/^\//, '');
+  const HOME = join(iosRoot, 'Packages', 'CSDesign', 'Sources', 'CSDesign', 'Surfaces.swift');
+
+  /* the roll, and nothing else */
+  const OTHER = /\.(easeIn|easeOut|easeInOut|linear|spring|bouncy|snappy|smooth)\b\s*[(,)]/;
+  const CURVE = /timingCurve\(\s*([\d.]+)\s*,\s*([\d.]+)\s*,\s*([\d.]+)\s*,\s*([\d.]+)/g;
+  for (const f of swiftAll) {
+    if (/\/Tests\//.test(f)) continue;
+    const src = readFileSync(f, 'utf8');
+    src.split('\n').forEach((line, i) => {
+      if (!/[Aa]nimation|withAnimation|\.animation\(/.test(line)) return;
+      if (OTHER.test(line)) hits.push(`${rel(f)}:${i + 1} — a second easing: ${line.trim().slice(0, 72)}`);
+    });
+    for (const m of src.matchAll(CURVE)) {
+      const got = [m[1], m[2], m[3], m[4]].map(Number);
+      if (got.join(',') !== '0.16,0.84,0.36,1') {
+        hits.push(`${rel(f)} — timingCurve(${got.join(', ')}) is not the roll`);
+      }
+    }
+    /* reduced motion rests on the frame: the guard is CSMotion, not a habit */
+    if (f !== HOME) {
+      src.split('\n').forEach((line, i) => {
+        if (/\bwithAnimation\s*\(/.test(line)) {
+          hits.push(`${rel(f)}:${i + 1} — a raw withAnimation: use CSMotion.run, which rests on the frame under reduce motion`);
+        }
+        if (/(?<!cs)\.animation\(/.test(line) && !/TimelineView/.test(line)
+            && !/reduce/i.test(line) && !/csAnimation/.test(line)) {
+          hits.push(`${rel(f)}:${i + 1} — a raw .animation(): use .csAnimation(_:value:) or guard it on reduceMotion`);
+        }
+      });
+    }
+  }
+  for (const need of ['static func run', 'func csAnimation', 'static func breath']) {
+    if (!existsSync(HOME) || !readFileSync(HOME, 'utf8').includes(need)) {
+      hits.push(`CSDesign is missing CSMotion's ${need} — L-30 has no mechanism`);
+    }
+  }
+
+  /* the web: one backstop, and nothing bounces */
+  if (!/@media\s*\(prefers-reduced-motion:\s*reduce\)\s*\{[^}]*animation-duration:\s*\.?0*1?ms\s*!important/s.test(html)
+      && !/prefers-reduced-motion[^{]*\{\s*\*[^}]*animation-duration/s.test(html)) {
+    hits.push('index.html has no global reduced-motion backstop — every new @keyframes needs its own opt-out and one will be missed');
+  }
+  for (const m of html.matchAll(/cubic-bezier\(\s*([-\d.]+)\s*,\s*([-\d.]+)\s*,\s*([-\d.]+)\s*,\s*([-\d.]+)\s*\)/g)) {
+    const n = [m[1], m[2], m[3], m[4]].map(Number);
+    if (n[1] > 1 || n[3] > 1 || n[1] < 0 || n[3] < 0) {
+      hits.push(`index.html — cubic-bezier(${n.join(',')}) overshoots: golf does not bounce (L-30)`);
+    }
+  }
+
+  /* the self-test */
+  if (!OTHER.test('.animation(.easeOut(duration: 0.2), value: x)')) {
+    hits.push('self-test failed: the second-easing grep no longer matches easeOut');
+  }
+  if (!/\bwithAnimation\s*\(/.test('withAnimation(CSMotion.roll) { x = 1 }')) {
+    hits.push('self-test failed: the withAnimation grep no longer matches');
+  }
+
+  hits.length === 0
+    ? pass('one easing, and reduced motion rests on the frame', 'CSMotion on the phone · a backstop and no overshoot on the web')
+    : fail('one easing, and reduced motion rests on the frame', hits.slice(0, 6).join('\n           '));
 }
 
 console.log(`\n${fails ? 'FAIL' : 'PASS'} — ${fails} failure(s), ${warns} warning(s)`);

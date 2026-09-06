@@ -73,8 +73,8 @@ struct RootView: View {
         BootFailedView(message: message)
       }
     }
-    .animation(.easeOut(duration: 0.26), value: stateKey)
-    .animation(.easeOut(duration: 0.26), value: crewing)
+    .csAnimation(CSMotion.rise, value: stateKey)
+    .csAnimation(CSMotion.rise, value: crewing)
     // D233: decided once per arrival in `.ready` — after the card, or on a
     // restored session — never on a reload while the tabs are up. The flag is
     // written on the DECISION, so a crash mid-screen never traps anyone; a

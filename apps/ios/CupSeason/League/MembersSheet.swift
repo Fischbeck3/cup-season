@@ -133,7 +133,7 @@ struct LeagueMarkerPicker: View {
             VStack(spacing: 4) {
               CSMarkerView(mk, size: 24).foregroundStyle(cur == mk.key ? cs.pos : cs.ink)
               Text(mk.name.uppercased()).font(CSFont.label).tracking(0.6).foregroundStyle(cur == mk.key ? cs.pos : cs.mut)
-                .lineLimit(2).multilineTextAlignment(.center).minimumScaleFactor(0.8)
+                .lineLimit(2).multilineTextAlignment(.center)   // L-29 · 11pt is the floor; it wraps rather than shrinks
             }
             .padding(.vertical, 10).padding(.horizontal, 4).frame(maxWidth: .infinity, minHeight: 64)
             .background(cs.bg2, in: RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous))

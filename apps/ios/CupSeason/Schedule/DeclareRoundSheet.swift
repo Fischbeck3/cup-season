@@ -137,7 +137,7 @@ struct DeclareRoundSheet: View {
   private func gameChip(_ g: LiveGame?) -> some View {
     let on = vm.game == g
     return Button { CSHaptic.selection(); vm.game = g } label: {
-      Text(PlanCopy.gameLabelFor(g)).font(CSFont.monoSmall).lineLimit(1).minimumScaleFactor(0.8)
+      Text(PlanCopy.gameLabelFor(g)).font(CSFont.monoSmall).lineLimit(1).minimumScaleFactor(0.85)   // L-29 · 13 × 0.85 = 11.05
         .foregroundStyle(on ? cs.bg0 : cs.ink)
         .padding(.horizontal, 8).frame(maxWidth: .infinity, minHeight: 44)
         .background(on ? cs.ink : cs.bg2, in: RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous))

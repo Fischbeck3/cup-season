@@ -6,6 +6,9 @@
 // is a token at an opacity — nothing is invented (preflight 15).
 
 import SwiftUI
+#if canImport(UIKit)
+import UIKit
+#endif
 
 // MARK: - The wash
 
@@ -253,7 +256,7 @@ public struct CSTabStrip<T: Hashable>: View {
         ForEach(items, id: \.0) { key, label in
           let on = key == selection
           Button {
-            withAnimation(CSMotion.roll) { selection = key }
+            CSMotion.run { selection = key }
             CSHaptic.selection()
           } label: {
             VStack(spacing: 8) {
@@ -284,9 +287,108 @@ public struct CSTabStrip<T: Hashable>: View {
 // MARK: - Motion
 
 /// The roll: `cubic-bezier(.16,.84,.36,1)` — fast start, long soft settle.
+///
+/// **L-30 has two halves and this type owns both.** One easing everywhere —
+/// the roll, at three durations; nothing bounces, which is why no token here
+/// has a control point above 1. And *reduced motion rests on the frame rather
+/// than animating*: `curve`, `run` and `.csAnimation` all resolve to **nil**
+/// when the golfer has asked for less motion, which in SwiftUI means the state
+/// change lands instantly and the frame is where it always was. That is the
+/// difference between "shorter" and "rests": a reduced-motion setting is not a
+/// request for a faster animation.
+///
+/// The reduce-motion read is `UIAccessibility`'s global rather than the
+/// `\.accessibilityReduceMotion` environment value on purpose — `withAnimation`
+/// is called from button actions and models that have no environment to read,
+/// and a rule that only holds inside a `body` is a rule with a hole in it.
 public enum CSMotion {
   public static let roll = Animation.timingCurve(0.16, 0.84, 0.36, 1, duration: 0.32)
   public static let rise = Animation.timingCurve(0.16, 0.84, 0.36, 1, duration: 0.26)
+  /// A long roll, for a list that reorders under the eye (the table, the climb).
+  public static let settle = Animation.timingCurve(0.16, 0.84, 0.36, 1, duration: 0.55)
+  /// A quick roll, for a disclosure that opens under the finger.
+  public static let tick = Animation.timingCurve(0.16, 0.84, 0.36, 1, duration: 0.18)
+
+  /// The one repeating motion the product has: a live dot breathing. It is
+  /// still the roll — `easeInOut` was a fourth curve wearing a fifth job.
+  public static func breath(_ duration: Double = 1.4) -> Animation {
+    Animation.timingCurve(0.16, 0.84, 0.36, 1, duration: duration).repeatForever(autoreverses: true)
+  }
+
+  /// Has the golfer asked for less motion? Read at the moment of animating,
+  /// never cached: the setting can change while the app is open.
+  @MainActor public static var reduced: Bool {
+    #if canImport(UIKit)
+    UIAccessibility.isReduceMotionEnabled
+    #else
+    false
+    #endif
+  }
+
+  /// The animation to actually use — `nil` under reduced motion (L-30).
+  @MainActor public static func curve(_ a: Animation = roll) -> Animation? { reduced ? nil : a }
+
+  /// `withAnimation`, with L-30 applied. Every state change in the app that
+  /// wants the roll goes through here, so "reduced motion rests on the frame"
+  /// is one line of code rather than a habit forty call sites have to keep.
+  @MainActor public static func run<R>(_ a: Animation = roll, _ body: () throws -> R) rethrows -> R {
+    try withAnimation(curve(a), body)
+  }
+}
+
+public extension View {
+  /// `.animation(_:value:)`, with L-30 applied — the roll, and nothing at all
+  /// when the golfer has asked for less motion.
+  func csAnimation<V: Equatable>(_ a: Animation = CSMotion.roll, value: V) -> some View {
+    modifier(CSAnimationModifier(base: a, value: value))
+  }
+}
+
+private struct CSAnimationModifier<V: Equatable>: ViewModifier {
+  /// The environment value, not the global, is what a `body` should read: it
+  /// invalidates the view when the setting changes, which the global does not.
+  @Environment(\.accessibilityReduceMotion) private var reduceMotion
+  let base: Animation
+  let value: V
+  func body(content: Content) -> some View {
+    content.animation(reduceMotion ? nil : base, value: value)
+  }
+}
+
+// MARK: - Sheets that survive the accessibility sizes
+
+/// **A sheet pinned to a height is a sheet a golfer at AX3 cannot read.**
+///
+/// `.presentationDetents([.height(340)])` is the right answer at the reading
+/// sizes — five sentences do not need a whole screen, and a sheet with 900pt of
+/// nothing under it reads as a page that failed. At the accessibility sizes the
+/// same 340 points hold roughly a third of the same words: the length sheet
+/// drew its three rows ON TOP OF EACH OTHER and ended two of its three glosses
+/// in an ellipsis, and the intent sheet showed two of its four intents with no
+/// sign there were more.
+///
+/// So the height is a READING-SIZE detent, and the accessibility sizes get the
+/// whole page. One helper, so no sheet has to remember (preflight 38 fails the
+/// push on a bare `.height(` detent outside it).
+public struct CSFittedSheet: ViewModifier {
+  @Environment(\.dynamicTypeSize) private var typeSize
+  let height: CGFloat
+  let large: Bool
+  public func body(content: Content) -> some View {
+    content
+      .presentationDetents(typeSize.isA11y ? [.large]
+                           : (large ? [.height(height), .large] : [.height(height)]))
+      .presentationDragIndicator(.visible)
+  }
+}
+
+public extension View {
+  /// A fitted sheet: `height` points at the reading sizes, the whole page at
+  /// the accessibility sizes. `large: true` also offers the full page as a
+  /// second detent below AX, for a sheet whose content can grow.
+  func csFittedSheet(_ height: CGFloat, large: Bool = false) -> some View {
+    modifier(CSFittedSheet(height: height, large: large))
+  }
 }
 
 #Preview("Tab strip · accessibility3") {

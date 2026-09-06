@@ -41,7 +41,7 @@ struct StandingsTableView: View {
               .overlay(alignment: .bottom) { Rectangle().fill(cs.gold.opacity(0.4)).frame(height: 1) }
           }
         }
-        .animation(.timingCurve(0.16, 0.84, 0.36, 1, duration: 0.55), value: teams.map(\.id))
+        .csAnimation(CSMotion.settle, value: teams.map(\.id))
       }
       ScenarioLineView(parts: ScenarioLine.parts(model.scenarios)).padding(.top, 4)
     }
@@ -85,7 +85,11 @@ struct StandingsTableView: View {
       A11yStack(spacing: 10, columnSpacing: 4) {
         // rank + move beside the name; at the accessibility sizes the rank block takes its own line too
         A11yStack(spacing: 10, columnSpacing: 2) {
-          HStack(alignment: .firstTextBaseline, spacing: 4) {
+          // D258 · four points between a two-digit rank and its movement chip
+          // is a hairline at the reading sizes and nothing at all at AX3,
+          // where the row read `01HELD SINCE SUN` — two facts printed as one
+          // word. The gap scales with the type it separates.
+          HStack(alignment: .firstTextBaseline, spacing: ax ? 12 : 4) {
             RankFlipText(text: String(format: "%02d", i + 1), flip: flips, tone: i == 0 ? cs.gold : cs.mut)
             if let mv { moveChip(mv) }
           }
@@ -93,9 +97,14 @@ struct StandingsTableView: View {
           HStack(spacing: 8) {
             RoundedRectangle(cornerRadius: 3).fill(cs.squad(t.ci)).frame(width: 10, height: 10)
             VStack(alignment: .leading, spacing: 1) {
-              Text(t.name).font(CSFont.subhead.weight(i == 0 ? .semibold : .regular)).foregroundStyle(cs.ink).lineLimit(ax ? nil : 1)
+              // D258 · `Jerecho Fisch…` at the DEFAULT type size, in the one
+              // column a golfer reads to find himself. A name wraps; it is
+              // never cut, and it is never shrunk below the 11pt floor either.
+              Text(t.name).font(CSFont.subhead.weight(i == 0 ? .semibold : .regular)).foregroundStyle(cs.ink)
+                .lineLimit(ax ? nil : 2).fixedSize(horizontal: false, vertical: true)
               Text((model.seedOf(t.id).map { "SEED \($0) · " } ?? "") + (solo ? "\(t.sub) ROUND\(t.sub == 1 ? "" : "S")" : "CAPT. \(t.cap.uppercased())"))
-                .font(CSFont.label).tracking(0.8).foregroundStyle(cs.dimText).lineLimit(ax ? nil : 1)
+                .font(CSFont.label).tracking(0.8).foregroundStyle(cs.dimText)
+                .lineLimit(ax ? nil : 2).fixedSize(horizontal: false, vertical: true)
             }
           }
           .frame(maxWidth: .infinity, alignment: .leading)
@@ -138,8 +147,12 @@ struct StandingsTableView: View {
     case .up2: cs.hot
     case .down: cs.cool
     }
+    // D258 · `CSFont.label` IS the 11pt floor (L-29), so a 0.8 scale factor
+    // rendered "HELD SINCE SUN" at 8.8pt on any phone narrow enough to ask —
+    // the exact sin `CSFont.label`'s own comment names the web for. It wraps
+    // instead: two lines at 11pt beat one line at 8.8.
     return Text(mv.text).font(CSFont.label).tracking(0.6).csTabular().foregroundStyle(tone)
-      .lineLimit(1).minimumScaleFactor(0.8)
+      .lineLimit(2).fixedSize(horizontal: false, vertical: true)
       .accessibilityLabel(mv.long)
   }
 }
@@ -246,11 +259,11 @@ private struct FlipChar: View {
     Task { @MainActor in
       try? await Task.sleep(for: .seconds(delay))
       for next in decoys + [final] {
-        withAnimation(.easeIn(duration: 0.15)) { angle = 90 }
+        CSMotion.run(CSMotion.tick) { angle = 90 }
         try? await Task.sleep(for: .milliseconds(150))
         shown = next
         angle = -90
-        withAnimation(.timingCurve(0.16, 0.84, 0.36, 1, duration: 0.18)) { angle = 0 }
+        CSMotion.run(CSMotion.tick) { angle = 0 }
         try? await Task.sleep(for: .milliseconds(180))
       }
       shown = final; angle = 0

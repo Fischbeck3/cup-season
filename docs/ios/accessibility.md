@@ -144,3 +144,63 @@ chip, a stepper) never squeezes a name; at AX1+ it takes its own line.
 ## Screenshots
 
 `scratchpad/shots/before-*.png` / `after-*.png` per screen at AX5 (`…-ax5`) and AX3 (`…-ax3`), taken in-session (see the wave-8 report). The pairs that show the fixes: `clubhouse-ax5` (the hero's phase line and code chip), `board-ax5` (the story card's name and the composer), `clubhouse-standings-ax5` / `clubhouse-race-ax5` (the two tables), `post-total-ax5` (the two gross figures), `live-ax5` (the setup card), `you-ax5` / `you-bottom-ax5` (the case and the record), `settings-ax5` / `settings-pane-ax5`.
+
+---
+
+# Wave B — 2026-09-05 (D258 / IOS-039), the second pass, on the surfaces the overhaul added
+
+Wave 8 walked the app that existed in August. The overhaul then added the ME
+strip, the intent sheet, the three lengths, the season page's table and the
+composer, and **the acceptance test in `INFORMATION_ARCHITECTURE.md` §4.2 was
+failing on a screenshot the owner had seen.** Same method — launch, look, fix,
+re-shoot — at the DEFAULT size, AX3, AX4 and AX5, on an iPhone 17 Pro.
+
+## The four helpers gained two, and both are mechanisms rather than habits
+
+| Helper | What it is |
+|---|---|
+| `.csFittedSheet(_:large:)` (CSDesign) | `.height(...)` at the reading sizes, **the whole page at the accessibility sizes**. A fitted sheet is a reading-size decision; 340 points hold three sentences at Large and one and a half at AX3. Preflight 38 fails the push on a bare `.height(` detent anywhere else. |
+| `CSMotion.run` / `.csAnimation(_:value:)` / `CSMotion.breath(_:)` (CSDesign) | the roll, resolved to **nothing** under reduce motion. Reduce motion RESTS ON THE FRAME (L-30): a nil animation, not a shorter one. Preflight 39 fails the push on a raw `withAnimation`, an unguarded `.animation(` or a second easing. |
+
+`MeStripLayout` (Kit) is the third new thing and it is not a helper but a
+producer: **the strip is set in a monospaced face, so its reflow is
+arithmetic.** Two rows of two while every pair's widest unbreakable word fits
+the column; one fact per row when it does not.
+
+## What was found by looking, and fixed
+
+| Surface | Found | Fixed |
+|---|---|---|
+| ME strip (`Home/MeStrip.swift`) | at AX3 four full-width blocks filled the first screen and the season row was capped at two lines — `2ND OF 2 · A FINAL BE…` | two rows of two by `MeStripLayout.twoUp`, decided from a MEASURED character width; the season row wraps whole |
+| Intent sheet (`Compete/IntentSheet.swift`) | 540pt showed two of four intents at AX3, with nothing to say there were more | `.csFittedSheet(540, large: true)` |
+| The when-fork, the three lengths, the callout reply | pinned to 260 / 340 / 320 with **no scroller**: the length sheet drew its three rows ON TOP OF EACH OTHER and ellipsised two of three glosses | a `ScrollView` each, and `.csFittedSheet` |
+| Season table (`League/StandingsTableView.swift`) | `01HELD SINCE SUN` — a 4pt gap between a rank and its chip is nothing at AX3; `Jerecho Fisch…` at the **default** size; the movement chip scaled to 8.8pt | the gap scales with the type; names wrap; the chip wraps at 11pt instead of shrinking |
+| The climb (`League/ClimbView.swift`) | `You · Jere…` at the default size | the rung's name wraps |
+| Home's plan card (`Schedule/UpcomingRoundsSection.swift`) | two columns of type on a 390pt card at AX3: a course name in five lines beside a stack of chips in two | `A11yStack` — a card is a column at the accessibility sizes |
+| Ten sites across the app | a role scaled below the 11pt floor (`CSFont.label` × 0.7 = 7.7pt) | at or above the floor, or wrapping instead |
+| **`CSFont.monoRegular`** | `"IBMPlexMono"` is not a name any bundled face carries, so `label`, `mono` and `monoSmall` **rendered in the system sans** — the record voice was not there | `"IBMPlexMono-Regular"`, read from the file's own `name` table |
+
+## Reduce motion, as a rule rather than a habit
+
+Every animating call site in `CupSeason/` and `CSDesign/` now goes through
+`CSMotion`. Six curves became one at four durations (`roll` 0.32, `rise` 0.26,
+`settle` 0.55, `tick` 0.18, plus `breath(_:)` for the one repeating motion the
+product has). Two sites keep an explicit `reduceMotion ? nil :` guard because
+they animate conditionally on something else as well, and preflight 39 allows
+exactly that shape.
+
+On the web, thirty-odd per-surface `prefers-reduced-motion` blocks are now
+backed by **one global backstop** that rests every animation and transition on
+its end frame, because the ones nobody wrote (`csStamp`, `csPutt`, `csDrop`,
+the split-flap) were the ones that mattered. The one bezier that overshot is
+the roll.
+
+## What is still owed
+
+- **The web's type is declared in pixels**, so it answers page zoom and not a
+  browser text-size preference. Converting the sheet to `rem` is its own wave.
+- **83 web rules remain below 11px** (86 before this wave paid the climb's
+  three). Check 36's ratchet is the mechanism; the number may only fall.
+- **Reduce motion is verified by reading and by one screenshot with the setting
+  on.** A still cannot prove an animation did not play; the mechanism and the
+  lint are what carry it.

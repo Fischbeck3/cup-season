@@ -108,8 +108,8 @@ struct TrophyTileView: View {
     .accessibilityLabel("\(tile.title), \(tile.sub)")
     .onAppear {
       guard engrave, !reduceMotion else { return }
-      withAnimation(.timingCurve(0.16, 0.84, 0.36, 1, duration: 0.5)) { risen = true }
-      withAnimation(.timingCurve(0.16, 0.84, 0.36, 1, duration: 1.1).delay(0.5)) { coverGone = true }
+      CSMotion.run(.timingCurve(0.16, 0.84, 0.36, 1, duration: 0.5)) { risen = true }
+      CSMotion.run(.timingCurve(0.16, 0.84, 0.36, 1, duration: 1.1).delay(0.5)) { coverGone = true }
     }
   }
 }

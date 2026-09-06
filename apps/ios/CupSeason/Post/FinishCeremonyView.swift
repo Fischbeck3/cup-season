@@ -75,12 +75,16 @@ struct FinishCeremonyView: View {
 
   private func run() {
     if reduceMotion { stage = 5; return }
+    // L-30 · one curve. The ceremony's five stages are the roll at 0.64 and
+    // the last one at 0.5 — it was `easeOut`, which is a second easing doing a
+    // job the roll already does. `reduceMotion` above rests it on stage 5.
     let roll = Animation.timingCurve(0.16, 0.84, 0.36, 1, duration: 0.64)
-    withAnimation(roll.delay(0.2)) { stage = 1 }
-    withAnimation(roll.delay(0.9)) { stage = 2 }
-    withAnimation(roll.delay(2.03)) { stage = 3 }
-    withAnimation(roll.delay(2.21)) { stage = 4 }
-    withAnimation(.easeOut(duration: 0.5).delay(2.55)) { stage = 5 }
+    let last = Animation.timingCurve(0.16, 0.84, 0.36, 1, duration: 0.5)
+    CSMotion.run(roll.delay(0.2)) { stage = 1 }
+    CSMotion.run(roll.delay(0.9)) { stage = 2 }
+    CSMotion.run(roll.delay(2.03)) { stage = 3 }
+    CSMotion.run(roll.delay(2.21)) { stage = 4 }
+    CSMotion.run(last.delay(2.55)) { stage = 5 }
   }
 }
 

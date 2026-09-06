@@ -433,3 +433,25 @@ The ⊕'s composer is its own decision (IOS-020). Ceremonies, the finish, the se
 **Reversibility.** EASY. No schema object is created; the two new SQL functions are additive and the two re-created ones are `create or replace`.
 
 **Gate:** preflight 37 checks 0/0, sunningdale 27, CupSeasonKit · CupSeason · CSDesign all green (counts in the wave report), migration `20261001090000` dry-run clean against production inside `begin … rollback`.
+
+## IOS-039 · The accessibility sizes, the record voice, and one easing — **P1 · BUILT 2026-09-05, wave B (D258; owner-authorised with the UX overhaul)**
+
+**Decision.** Make the AX sizes a layout the app *decides* rather than a size it survives, restore the mono voice, and give L-30 a mechanism instead of a habit.
+
+**The strip reflows by arithmetic, not by hope.** `MeStripLayout` (Kit) takes two rows of two while every pair's widest unbreakable WORD fits the column, and one fact per row when it does not. It can do that because the strip is set entirely in IBM Plex Mono, whose advance is 600/1000 of the em in all three bundled weights — read from the files, not remembered. The view hands it a unit **measured** off a ten-character probe set in the real face at the real size: `UIFontMetrics(forTextStyle:).scaledValue(for:)` and SwiftUI's `Font.custom(_:size:relativeTo:)` disagree by about five points at AX5, and the computed version drew `NUMBE` / `R`. `MeStripLayoutTests` holds the reflow at AX3, AX4-equivalent and AX5 with the app's own reported units, and holds a **copy-length budget** on every label and fixed value the producer can print. The season row's two-line cap is gone: it wraps.
+
+**A pinned sheet is a reading-size decision.** `.csFittedSheet(_:large:)` (CSDesign) keeps `.height(...)` at the reading sizes and gives the whole page at the accessibility sizes. The intent sheet showed two of four intents at AX3; the length sheet drew its three rows **on top of each other** and ellipsised two of three glosses. Three sheets also gained the scroller they never had. Preflight 38 fails the push on a bare `.height(` detent anywhere else.
+
+**`CSFont.monoRegular` was `"IBMPlexMono"` and nothing carried that name.** The face is `IBMPlexMono-Regular`; `Font.custom` resolved nothing and fell back to the system sans, so `label`, `mono` and `monoSmall` — the labels, the eyebrows' small sibling, the record voice — had never rendered in Plex. It was invisible because the fallback is legible. Preflight 38 now reads every bundled file's `name` table and fails on a name no face carries.
+
+**The 11pt floor, and the names that were being cut.** Ten sites scaled a role below 11pt (`CSFont.label` × 0.7 = 7.7); each is now at or above the floor or wraps instead. The table's name column and the climb's rung were truncating `Jerecho Fisch…` and `You · Jere…` at the DEFAULT size; both wrap. The table's rank and its movement chip get a gap that scales with the type they separate — at AX3 the row read `01HELD SINCE SUN`.
+
+**L-30 gets a mechanism.** `CSMotion.run`, `.csAnimation(_:value:)` and `CSMotion.breath(_:)` resolve to nothing under reduce motion, and every animating call site in the app and in CSDesign now goes through them; the roll is the only curve, at four named durations. Preflight 39 fails the push on a second easing, a raw `withAnimation`, or an unguarded `.animation(`.
+
+**The web half.** A single global `prefers-reduced-motion` backstop rests every animation and transition on its end frame — the thirty per-surface opt-outs above it stay, but the ones nobody wrote (`csStamp`, `csPutt`, `csDrop`, the split-flap) are covered now. The one bouncing bezier is the roll. The climb's rung stops clipping its name and its sentence, and its three sub-11px rules are paid off (the web's floor debt ratchets 86 → 83). `tools/web-verify.mjs` gains a **permanent horizontal-overflow assertion** and the walk runs at **1440, 390 and 320** — 320 being the web's exact twin of "nothing scrolls horizontally".
+
+**Skew.** None. No RPC, no payload key, no migration: this wave is client-only in both clients, and the 24 migrations the owner owes are unchanged.
+
+**Reversibility.** EASY, and the font-name fix is the one to think about before reverting — it changes the metrics of every mono line in the app, which is a visible change and the correct one.
+
+**Gate:** preflight **39** checks, 0 failures 0 warnings; sunningdale 27; CupSeasonKit · CupSeason · CSDesign green (counts in the wave report); `web-verify` clean at 1440/390/320 with no document overflow. No migration was written, so there was none to dry-run.

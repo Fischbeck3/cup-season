@@ -103,7 +103,7 @@ struct WizardScreen: View {
         .padding(.horizontal, 20).padding(.top, 8).padding(.bottom, 32)
       }
       .scrollDismissesKeyboard(.interactively)
-      .onChange(of: model.step) { _, _ in withAnimation(reduceMotion ? nil : .timingCurve(0.16, 0.84, 0.36, 1, duration: 0.26)) { proxy.scrollTo("top", anchor: .top) } }
+      .onChange(of: model.step) { _, _ in CSMotion.run(CSMotion.rise) { proxy.scrollTo("top", anchor: .top) } }
     }
   }
 
@@ -160,7 +160,7 @@ struct WizardDots: View {
     HStack(spacing: 6) {
       ForEach(0..<3, id: \.self) { i in
         Capsule().fill(i <= step ? cs.brand : cs.line2).frame(width: i == step ? 22 : 8, height: 4)
-          .animation(reduceMotion ? nil : .timingCurve(0.16, 0.84, 0.36, 1, duration: 0.26), value: step)
+          .csAnimation(CSMotion.rise, value: step)
       }
     }
     .accessibilityElement(children: .ignore)

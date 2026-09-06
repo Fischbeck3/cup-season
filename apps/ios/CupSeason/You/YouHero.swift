@@ -122,7 +122,7 @@ struct YouHero<Anchor: View>: View {
                 // one-way door — the "+N more" chip vanished on the first tap
                 // and the row could never be folded again.
                 if hidden > 0 {
-                  Button { withAnimation(.easeOut(duration: 0.18)) { expanded.toggle() } } label: {
+                  Button { CSMotion.run(CSMotion.tick) { expanded.toggle() } } label: {
                     YouTrophyChip(text: expanded ? TrophyMeta.showFewer : TrophyMeta.moreLine(hidden, suffix: TrophyMeta.moreInCase), earned: false)
                   }
                   .buttonStyle(.plain)

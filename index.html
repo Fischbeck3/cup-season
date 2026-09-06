@@ -372,7 +372,7 @@ button{font-family:var(--sans); touch-action:manipulation; color:var(--ink);}
 .climb-rung .rk{font-family:var(--mono); font-size:11px; color:var(--dim); flex:none; width:18px;}
 .climb-rung .sw{width:10px; height:10px; border-radius:3px; flex:none;}
 .climb-rung .mk{font-size:15px; flex:none; line-height:1;}
-.climb-rung .nm{flex:1; min-width:0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; font-weight:600; font-size:13px;}
+.climb-rung .nm{flex:1; min-width:0; font-weight:600; font-size:13px; overflow-wrap:anywhere;}   /* D258 · a name wraps; `You · Jere…` is a fact deleted */
 .climb-rung .pts{font-family:var(--mono); font-size:13px; color:var(--ink); flex:none;}
 .climb-rung .gap{font-family:var(--mono); font-size:11px; color:var(--dim); flex:none; min-width:36px; text-align:right;}
 .climb-rung .gap:empty{min-width:0;}
@@ -381,17 +381,17 @@ button{font-family:var(--sans); touch-action:manipulation; color:var(--ink);}
 .climb-rung.me{border-color:var(--gold); padding:12px 10px;}
 .climb-rung.me .nm{color:var(--gold); font-size:15px;}
 .climb-rung.me .pts{font-size:15px;}
-.climb-rung .voice{flex:none; flex-basis:100%; min-width:0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; font-family:var(--mono); font-size:11px; letter-spacing:.04em; color:var(--dim); padding-left:46px;}
+.climb-rung .voice{flex:none; flex-basis:100%; min-width:0; font-family:var(--mono); font-size:11px; letter-spacing:.04em; color:var(--dim); padding-left:46px; overflow-wrap:anywhere;}   /* D258 · the rung's one sentence wraps rather than clipping */
 .climb-rung .voice b{color:var(--ink); font-weight:600;}
 .climb-rung .voice .stake{color:var(--gold);}
-.climb-rung .badge{font-family:var(--mono); font-size:9.5px; letter-spacing:.08em; padding:1px 5px; border-radius:4px; flex:none;}
+.climb-rung .badge{font-family:var(--mono); font-size:11px; letter-spacing:.08em; padding:1px 5px; border-radius:4px; flex:none;}   /* D258 · 11px is the floor (L-29); the phone's badge is CSFont.label */
 .climb-rung .badge.lock{color:var(--pos); border:1px solid var(--pos);}
 .climb-rung .badge.out{color:var(--dim); border:1px solid var(--line);}
 .climb-spark{flex:none; margin:0 1px;}
-.climb-cut{display:flex; align-items:center; gap:8px; padding:2px 2px; margin-bottom:6px; font-family:var(--mono); font-size:10px; letter-spacing:.08em; color:var(--gold);}
+.climb-cut{display:flex; align-items:center; gap:8px; padding:2px 2px; margin-bottom:6px; font-family:var(--mono); font-size:11px; letter-spacing:.08em; color:var(--gold);}   /* D258 · L-29 */
 .climb-cut .ln{flex:1; height:0; border-top:1px dashed var(--gold); opacity:.55;}
 .climb-cut .lb{flex:none;}
-.climb-ellip{font-family:var(--mono); font-size:10px; color:var(--dim); text-align:center; letter-spacing:.12em; opacity:.7; margin-bottom:7px;}
+.climb-ellip{font-family:var(--mono); font-size:11px; color:var(--dim); text-align:center; letter-spacing:.12em; opacity:.7; margin-bottom:7px;}   /* D258 · L-29 */
 .climb-rung.in{animation:climbIn .22s ease-out;}
 @keyframes climbIn{from{opacity:0}}
 .climb-ghost{position:absolute; left:0; right:0; margin:0; pointer-events:none; transition:opacity .2s ease-out;}
@@ -2028,7 +2028,7 @@ html[data-theme="light"] .momrow{background:rgba(21,116,63,.06);}
 @keyframes csRingOnce{0%{opacity:0; transform:scale(.6);} 30%{opacity:.9; transform:scale(1.1);} 100%{opacity:0; transform:scale(2);}}
 html.ob-fast .ob-amb, html.ob-fast .obtr, html.ob-fast .obflag,
 html.ob-fast .obball, html.ob-fast .obring1, html.ob-fast .obspark{animation:none !important; opacity:0 !important;}
-html.ob-fast .ob-mark{animation:csStamp .85s cubic-bezier(.2,1.4,.4,1) .15s both;}
+html.ob-fast .ob-mark{animation:csStamp .85s var(--roll) .15s both;}   /* L-30 · golf does not bounce; 1.4 overshot */
 html.ob-fast .ob-stampring{animation:csRingOnce .6s ease-out .55s both;}
 html.ob-fast .ob-pulse{animation-delay:1.6s;}
 html.ob-fast .obsw b{animation-delay:calc(var(--d,0s)*.3);}
@@ -2848,13 +2848,39 @@ html[data-theme="light"] .room-dusk .btn:not(.dark):not(.gold):not(.apple){color
 .rline{font-family:var(--mono); font-size:12.5px; color:var(--mut); margin-top:3px; letter-spacing:.02em;}
 .rline .ok{color:var(--pos);} .rline .dim{color:var(--dim);}
 
-/* views: settle rather than pop */
-.view{animation:vin .26s cubic-bezier(.22,.9,.32,1) both;}
+/* views: settle rather than pop — on the roll, like everything else (L-30) */
+.view{animation:vin .26s var(--roll) both;}
 
 @media(prefers-reduced-motion:reduce){
   .view{animation:none;}
   .toast{transition:opacity .15s ease;}
   .btn, .mini, .tab .circ, .check{transition:none;}
+}
+
+/* ============ D258 · REDUCED MOTION RESTS ON THE FRAME (L-30) ============
+   The thirty-odd `prefers-reduced-motion` blocks above this one are each a
+   surface remembering to opt out, and the rule that has to be remembered is
+   the rule that gets missed: `csStamp`, `csPutt`, `csDrop` and the split-flap
+   all animate for a golfer who asked the operating system for less motion,
+   because nobody wrote them a block.
+
+   This is the backstop, and it is deliberately the LAST thing in the sheet so
+   it wins. A near-zero duration with the animation's own fill lands every
+   element on its END frame — the ball in the cup, the stamp stamped, the view
+   in place — which is what "rests on the frame" means. It is not a faster
+   animation; there is no animation.
+
+   The blocks above stay: they are more specific about what an individual
+   surface should look like at rest, and several hide a decorative element
+   outright, which is better than freezing it. This only catches what they
+   miss. Preflight 39 fails the push if it is removed. */
+@media(prefers-reduced-motion:reduce){
+  *, *::before, *::after{
+    animation-duration:.001ms !important;
+    animation-iteration-count:1 !important;
+    transition-duration:.001ms !important;
+    scroll-behavior:auto !important;
+  }
 }
 </style>
 <script>

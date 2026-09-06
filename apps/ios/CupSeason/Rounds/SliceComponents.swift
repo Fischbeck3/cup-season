@@ -45,7 +45,7 @@ private struct ToastHostModifier: ViewModifier {
           .accessibilityAddTraits(.updatesFrequently)
       }
     }
-    .animation(.timingCurve(0.16, 0.84, 0.36, 1, duration: 0.32), value: center.message)
+    .csAnimation(CSMotion.roll, value: center.message)
   }
 }
 

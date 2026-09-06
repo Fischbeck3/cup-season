@@ -56,12 +56,12 @@ struct LiveNowBar: View {
         .transition(.move(edge: .top).combined(with: .opacity))
         .onAppear {
           guard !UIAccessibility.isReduceMotionEnabled else { return }
-          withAnimation(.easeInOut(duration: 1.6).repeatForever(autoreverses: true)) { breathe = true }
+          CSMotion.run(CSMotion.breath(1.6)) { breathe = true }
         }
       }
     }
-    .animation(.easeOut(duration: 0.22), value: live)
-    .animation(.easeOut(duration: 0.22), value: waiting)
+    .csAnimation(CSMotion.rise, value: live)
+    .csAnimation(CSMotion.rise, value: waiting)
   }
 
   /// The bar says where the round IS, not what it is called — a golfer glancing

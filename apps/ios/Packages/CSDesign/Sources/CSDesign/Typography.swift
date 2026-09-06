@@ -10,8 +10,25 @@
 import SwiftUI
 
 public enum CSFont {
-  // PostScript names of the bundled IBM Plex Mono files (OFL).
-  static let monoRegular = "IBMPlexMono"
+  // PostScript names of the bundled IBM Plex Mono files (OFL) — read from the
+  // files' own `name` table (id 6), not remembered.
+  //
+  // D258 · **THIS WAS `"IBMPlexMono"`, WHICH IS NOT A NAME ANY OF THE THREE
+  // FILES CARRIES.** The Regular face is `IBMPlexMono-Regular` in PostScript
+  // and `IBM Plex Mono` as a family; `IBMPlexMono` is neither, so
+  // `Font.custom` resolved nothing and fell back to the system sans. Every
+  // role built on this constant — `label`, `mono`, `monoSmall` — had been
+  // rendering in SF Pro since the faces were bundled: `YOUR NUMBER` under the
+  // strip's figure was NOT the record voice, while `SAT · SEP 5` beside it
+  // (built on `monoMedium`, whose name does resolve) was. Two of the three
+  // type voices, silently one voice.
+  //
+  // It surfaced because `MeStripLayout` does arithmetic on a monospaced
+  // advance and the arithmetic kept disagreeing with the screen: a probe set
+  // in `label` measured 24.0 points a character where the rendered label took
+  // 29.9. A layout that measures its own type is a layout that can catch this;
+  // preflight 38 now catches it before the push.
+  static let monoRegular = "IBMPlexMono-Regular"
   static let monoMedium = "IBMPlexMono-Medium"
   static let monoSemibold = "IBMPlexMono-SemiBold"
   // Charter ships on iOS as a system face — no bundling.

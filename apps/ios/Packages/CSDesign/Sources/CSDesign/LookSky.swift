@@ -98,7 +98,7 @@ private struct CSLookGround: ViewModifier {
       content.onScrollGeometryChange(for: Bool.self) { g in
         g.contentOffset.y + g.contentInsets.top > CSLookStrip.threshold
       } action: { _, past in
-        withAnimation(CSMotion.rise) { scrolled = past }
+        CSMotion.run(CSMotion.rise) { scrolled = past }
       }
     } else {
       content

@@ -14,6 +14,15 @@
 // ONE VoiceOver element ("your number, 12.4"); the season row is one element
 // read whole; and the owe slot keeps its VoiceOver action.
 //
+// D258 · **THE TWO-UP REFLOW IS ARITHMETIC, AND THE SEASON ROW WRAPS.** The
+// grid decision is `MeStripLayout.twoUp` in the Kit: the strip is set entirely
+// in a monospaced face, so the widest unbreakable word in a column is a
+// calculation and not a hope. Two rows of two while every pair fits; one fact
+// per row when it does not, which is the layout that can never truncate. And
+// the season row is UNCAPPED at the accessibility sizes — a clipped clause is
+// a fact deleted, and the strip halving its own height is what makes room for
+// the words it used to cut.
+//
 // The producer is `MeStripCopy` in the Kit — every string, every empty state
 // and every door is decided there, so the web's identity block says the same
 // things off the same payload.
@@ -39,23 +48,45 @@ struct MeStrip: View {
   /// a push (D222).
   var push: (HomeRoute) -> Void = { _ in }
 
+  /// The strip's own measured width, and the width of ONE character in each of
+  /// its two type roles. All three are seeded at zero, which reads as "not yet
+  /// measured" and takes the one-fact-per-row layout — the safe one. A single
+  /// extra layout pass on first appearance is the price, and it is invisible.
+  @State private var measured: CGFloat = 0
+  @State private var valueUnit: CGFloat = 0
+  @State private var labelUnit: CGFloat = 0
+
   var body: some View {
     if !strip.isEmpty {
       VStack(alignment: .leading, spacing: 10) {
         if typeSize.isA11y {
-          // QB-11 · AX3 IS AN ACCEPTANCE TEST FOR THIS VIEW, and it was
-          // failing. Two rows of two halves the width available to each pair,
-          // and at the accessibility sizes a single unbreakable word — NUMBER,
-          // CANYON — is wider than half the screen. So `YOUR NUM…` and
-          // `GOLD C…` truncated: a fact the golfer cannot read is a fact that
-          // is not on the screen, and this view's own header promises that
-          // nothing truncates.
+          // QB-11 / D258 · AX3 IS AN ACCEPTANCE TEST FOR THIS VIEW.
           //
-          // One fact per row, full width, value over label — the same grammar
-          // as the reading sizes, with the whole line to wrap into. Nothing
-          // truncates and nothing scrolls sideways, which is what this view's
-          // own header promises and what the release gate tests.
-          ForEach(strip.slots) { s in slot(s, inline: true) }
+          // QB-11 answered the truncation by giving every fact its own full
+          // row. That never truncates — and it also turned four facts into
+          // four tall blocks that filled the whole first screen, so the lead
+          // card, which is the thing Home is FOR, was below the fold at the
+          // one type size where scrolling costs the most.
+          //
+          // The answer is IA §4.2's own: two rows of two — but taken only when
+          // the arithmetic says every pair fits, because the strip is set in a
+          // monospaced face and `MeStripLayout` can therefore work out the
+          // widest unbreakable word instead of hoping. Where it does not fit
+          // (a narrower phone, AX4, AX5) the fall-back is QB-11's row per
+          // fact, which is still the layout that cannot truncate.
+          if MeStripLayout.twoUp(strip.slots, columnWidth: columnWidth,
+                                 valueUnit: Double(valueUnit), labelUnit: Double(labelUnit)) {
+            VStack(alignment: .leading, spacing: 12) {
+              ForEach(Array(MeStripLayout.pairs(strip.slots).enumerated()), id: \.offset) { _, pair in
+                HStack(alignment: .top, spacing: gutter) {
+                  ForEach(pair) { s in slot(s, inline: true) }
+                  if pair.count == 1 { Color.clear.frame(maxWidth: .infinity, maxHeight: 0) }
+                }
+              }
+            }
+          } else {
+            ForEach(strip.slots) { s in slot(s, inline: true) }
+          }
         } else {
           HStack(alignment: .top, spacing: 0) {
             ForEach(strip.slots) { s in
@@ -65,6 +96,16 @@ struct MeStrip: View {
             Spacer(minLength: 0)
           }
         }
+        #if DEBUG
+        // Developer hatch: `-cs_dev_strip_metrics` prints the numbers the
+        // reflow decides on — the strip's width, the column, one character of
+        // each face, and each slot's widest word. It is how the AX5 break was
+        // traced to a font name that resolved to nothing. DEBUG only.
+        if ProcessInfo.processInfo.arguments.contains("-cs_dev_strip_metrics") {
+          Text("W \(Int(measured)) COL \(Int(columnWidth)) LU \(String(format: "%.2f", labelUnit)) VU \(String(format: "%.2f", valueUnit)) MIN \(strip.slots.map { Int(MeStripLayout.minColumn($0, valueUnit: Double(valueUnit), labelUnit: Double(labelUnit))) }.map(String.init).joined(separator: "/"))")
+            .font(.system(size: 12)).foregroundStyle(.red)
+        }
+        #endif
         // QB-04 · the instruction goes directly under the figure it explains.
         if let owe = strip.oweRow { oweLine(owe) }
         if let row = strip.seasonRow { seasonRow(row) }
@@ -73,8 +114,52 @@ struct MeStrip: View {
         if let month = strip.monthRow { monthLine(month) }
       }
       .padding(.vertical, 2)
+      // Every measurement rides a background, so none of it costs the layout
+      // anything: the strip's own width, and one character of each of its two
+      // faces set exactly as the slots set them.
+      .background {
+        GeometryReader { g in
+          Color.clear
+            .onAppear { measured = g.size.width }
+            .onChange(of: g.size.width) { _, w in measured = w }
+        }
+      }
+      .background(alignment: .topLeading) { typeProbes }
       .onAppear { CSTelemetry.event(CSTelemetry.Metric.homeStateSeen.rawValue, seenProps) }
     }
+  }
+
+  // MARK: - The arithmetic behind the reflow
+
+  /// The gutter between the two columns at the accessibility sizes.
+  private var gutter: CGFloat { 14 }
+  /// `a11yHitSlop(horizontal: 6)` insets the label before handing the space
+  /// back to the layout, so the TEXT is laid out 12 points narrower than the
+  /// column it sits in. Left out of the arithmetic, the strip believed it had
+  /// twelve points it did not have and broke `NUMBER` in half to prove it.
+  private var slotInset: CGFloat { 12 }
+
+  /// What each column's TEXT actually gets. Zero until the strip has been
+  /// measured, which `MeStripLayout.twoUp` reads as "do not try".
+  private var columnWidth: Double {
+    measured <= 0 ? 0 : Double((measured - gutter) / 2 - slotInset)
+  }
+
+  /// **The two faces, measured rather than computed.** Ten characters of
+  /// `MeStripLayout.probe`, set exactly as a value and exactly as a label —
+  /// same font, same tracking — and divided by ten. In a monospaced face that
+  /// is one character's width, at the size the golfer's own setting produces,
+  /// with no table and no assumption about how `relativeTo:` scales. Hidden,
+  /// laid out in a background, and invisible to VoiceOver.
+  @ViewBuilder private var typeProbes: some View {
+    VStack(spacing: 0) {
+      Text(MeStripLayout.probe).font(CSFont.monoMediumBody).csTabular().fixedSize()
+        .background { GeometryReader { g in Color.clear.csMeasureUnit(g.size.width) { valueUnit = $0 } } }
+      Text(MeStripLayout.probe).font(CSFont.label).tracking(1.2).fixedSize()
+        .background { GeometryReader { g in Color.clear.csMeasureUnit(g.size.width) { labelUnit = $0 } } }
+    }
+    .hidden()
+    .accessibilityHidden(true)
   }
 
   private var separator: some View {
@@ -127,15 +212,15 @@ struct MeStrip: View {
         Text(row.text)
           .font(CSFont.footnote)
           .foregroundStyle(cs.mut)
-          // AX3 · it wraps rather than truncating, and it never scrolls
-          // sideways. QB-11 · at the accessibility sizes it is CAPPED at two
-          // lines and hands the rest to a door: a row that grew to nine lines
-          // pushed every card on Home off the bottom of the page, which is a
-          // different failure from truncating a fact and needs a different
-          // answer. VoiceOver still reads the row whole (`accessibilityLabel`
-          // below), so nothing is lost to somebody who cannot see it.
-          .lineLimit(typeSize.isA11y ? 2 : nil)
-          .fixedSize(horizontal: false, vertical: typeSize.isA11y ? false : true)
+          // AX3 · **IT WRAPS RATHER THAN TRUNCATING.** D258 removes QB-11's
+          // two-line cap: the cap was there because the strip above it had
+          // become four full-width blocks and the page had no room left, and
+          // the cap paid for that with `2ND OF 2 · A FINAL BE…` — a clause
+          // clipped mid-word on the one screen a golfer at AX3 has to lean on.
+          // The two-up reflow gives the room back; the row now says all of it,
+          // wrapping, and the door under it stays because a door is useful
+          // whether or not the sentence fits.
+          .fixedSize(horizontal: false, vertical: true)
           .multilineTextAlignment(.leading)
           .frame(maxWidth: .infinity, alignment: .leading)
         if typeSize.isA11y {
@@ -217,6 +302,16 @@ struct MeStrip: View {
      "facts": .number(Double(strip.slots.count)),
      "season_row": .bool(strip.seasonRow != nil),
      "month_row": .bool(strip.monthRow != nil)]
+  }
+}
+
+private extension View {
+  /// Report one character's width — the probe's rendered width over its
+  /// character count — when it is first known and whenever it changes.
+  func csMeasureUnit(_ width: CGFloat, _ set: @escaping (CGFloat) -> Void) -> some View {
+    let n = CGFloat(MeStripLayout.probe.count)
+    return onAppear { if width > 0 { set(width / n) } }
+      .onChange(of: width) { _, w in if w > 0 { set(w / n) } }
   }
 }
 

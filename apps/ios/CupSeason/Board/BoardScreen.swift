@@ -86,7 +86,7 @@ struct BoardScreen: View {
       .onChange(of: store.items.last?.id) { _, _ in
         // force scrolls to the newest on open + fresh chat; otherwise the
         // reader's place is preserved (a reaction mid-scroll never yanks)
-        if store.loaded, store.digest == nil { withAnimation { proxy.scrollTo("board-end", anchor: .bottom) } }
+        if store.loaded, store.digest == nil { CSMotion.run { proxy.scrollTo("board-end", anchor: .bottom) } }
       }
       .onChange(of: store.loaded) { _, loaded in
         if loaded, store.digest == nil { proxy.scrollTo("board-end", anchor: .bottom) }

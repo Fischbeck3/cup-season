@@ -103,7 +103,7 @@ struct DoorView: View {
   @ViewBuilder private var crest: some View {
     if let playForge {
       ForgeView(play: playForge) {
-        withAnimation(playForge ? CSMotion.roll : nil) { risen = true }
+        if playForge { CSMotion.run { risen = true } } else { risen = true }
         if focus == nil { focus = .email }
       }
     } else {

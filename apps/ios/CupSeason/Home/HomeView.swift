@@ -874,7 +874,7 @@ private struct FeedNotesRow: View {
                   withYou: p.scheduled_round_id.map { taggedIds.contains($0) } ?? false, presenter: presenter)
     } else {
       VStack(alignment: .leading, spacing: 0) {
-        Button { withAnimation(CSMotion.roll) { open.toggle() } } label: {
+        Button { CSMotion.run { open.toggle() } } label: {
           HStack(alignment: .firstTextBaseline, spacing: 8) {
             Text(notes.line(bucket: bucket)).font(CSFont.subhead).foregroundStyle(cs.ink)
             Spacer(minLength: 0)

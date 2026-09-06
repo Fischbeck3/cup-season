@@ -72,8 +72,15 @@ struct HomeRoundCard: View {
   let sr: ScheduledRound
   let weather: Weather?
 
+  @Environment(\.dynamicTypeSize) private var typeSize
+
   var body: some View {
-    HStack(alignment: .center, spacing: 12) {
+    // D258 · at the accessibility sizes two columns of type on a 390pt card
+    // are two narrow gutters fighting each other: the course name broke into
+    // five lines beside a stack of chips that had broken into two. A card is a
+    // COLUMN there — the facts keep their order and each gets the full width.
+    A11yStack(alignment: .leading, rowAlignment: .center, spacing: 12, columnSpacing: 10) {
+      HStack(alignment: .center, spacing: 12) {
       CSFace(marker: sr.marker, size: 36)
       VStack(alignment: .leading, spacing: 3) {
         (Text(sr.play_on.map { ScheduleDates.when($0) } ?? "").bold()
@@ -82,7 +89,19 @@ struct HomeRoundCard: View {
         bits.font(CSFont.monoSmall).foregroundStyle(cs.mut)
       }
       .frame(maxWidth: .infinity, alignment: .leading)
-      VStack(alignment: .trailing, spacing: 4) {
+      }
+      chips
+    }
+    .padding(12)
+    .background(cs.bg1, in: RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous))
+    .overlay(RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous).stroke(cs.line, lineWidth: 1))
+  }
+
+  /// The card's trailing facts — the pill, the seat door, the count, the
+  /// weather. A trailing column at the reading sizes; its own full-width row
+  /// under `A11yStack` at the accessibility sizes.
+  @ViewBuilder private var chips: some View {
+    VStack(alignment: typeSize.isA11y ? .leading : .trailing, spacing: 4) {
         // the Home hard-look: a round booked WITH you that you said "in" on
         // wears the calendar's own pill (ScheduleScreen `rowTitle`), gold —
         // never a question once `my_rsvp` is set
@@ -107,11 +126,7 @@ struct HomeRoundCard: View {
           HStack(spacing: 3) { Image(systemName: "bubble.left").font(.system(size: 11)); Text("\(c)").font(CSFont.label) }.foregroundStyle(cs.mut)
         }
         if let w = weather { Text(w.glance).font(CSFont.label).foregroundStyle(cs.mut) }
-      }
     }
-    .padding(12)
-    .background(cs.bg1, in: RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous))
-    .overlay(RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous).stroke(cs.line, lineWidth: 1))
   }
 
   /// "WITH YOU" where it said IN YOUR SEASONS (the Home hard-look): a booking that

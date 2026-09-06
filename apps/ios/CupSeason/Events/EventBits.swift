@@ -137,7 +137,7 @@ struct EventRiseModifier: ViewModifier {
       .opacity(rise && !landed ? 0 : 1)
       .onAppear {
         guard rise, !reduceMotion else { landed = true; return }
-        withAnimation(.timingCurve(0.16, 0.84, 0.36, 1, duration: 0.3)) { landed = true }
+        CSMotion.run { landed = true }
       }
   }
 }

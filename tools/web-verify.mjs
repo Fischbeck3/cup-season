@@ -157,6 +157,7 @@ async function main() {
   console_.length = 0   // the pre-clear load is not what we are judging
 
   // 2 · the real walk
+  const overflow = []
   for (const w of WIDTHS) {
     await S('Emulation.setDeviceMetricsOverride', {
       width: w, height: w >= 900 ? 900 : 844, deviceScaleFactor: 2, mobile: w < 900,
@@ -169,6 +170,44 @@ async function main() {
         console.log(`eval@${w}:`, JSON.stringify(r.result?.value ?? r.result?.description ?? null))
       } catch (e) { console.log(`eval@${w}: FAILED ${e.message}`) }
     }
+    /* D258 · **NOTHING SCROLLS HORIZONTALLY.** The phone's accessibility
+       acceptance test (IA §4.2) has an exact web twin, and it is the one
+       WCAG states as a number: content must reflow at 320 CSS pixels without
+       a horizontal scrollbar. A document that scrolls sideways is a document
+       whose right-hand column a golfer cannot reach, and it is invisible in a
+       full-page screenshot — `captureBeyondViewport` simply photographs the
+       overflow as if it were meant.
+
+       Only the DOCUMENT is judged. A table or a tab strip inside its own
+       `overflow-x:auto` box is a scroller on purpose and is not a finding. */
+    try {
+      const probe = await S('Runtime.evaluate', {
+        returnByValue: true,
+        expression: `(() => {
+          const vw = window.innerWidth;
+          const over = document.documentElement.scrollWidth - vw;
+          if (over <= 1) return { over: 0, who: [] };
+          const scrolls = el => { for (let n = el; n && n !== document.body; n = n.parentElement) {
+            const o = getComputedStyle(n).overflowX; if (o === 'auto' || o === 'scroll') return true; } return false; };
+          const who = [...document.querySelectorAll('body *')]
+            .filter(el => el.getBoundingClientRect().right > vw + 1 && el.offsetParent !== null && !scrolls(el))
+            .slice(0, 6)
+            .map(el => (el.tagName.toLowerCase() + (el.id ? '#' + el.id : '') +
+                        (el.className && typeof el.className === 'string' ? '.' + el.className.trim().split(/\s+/).join('.') : '')
+                       ).slice(0, 70) + ' → ' + Math.round(el.getBoundingClientRect().right));
+          return { over, who };
+        })()`,
+      })
+      const r = probe.result?.value
+      if (r && r.over > 1) {
+        overflow.push(`${w}px: the document is ${Math.round(r.over)}px wider than the viewport` +
+                      (r.who.length ? ` — ${r.who.join(' · ')}` : ''))
+        console.log(`overflow@${w}: +${Math.round(r.over)}px${r.who.length ? ' — ' + r.who.join(' · ') : ''}`)
+      } else {
+        console.log(`overflow@${w}: none`)
+      }
+    } catch (e) { console.log(`overflow@${w}: probe FAILED ${e.message}`) }
+
     const { data } = await S('Page.captureScreenshot', { format: 'png', captureBeyondViewport: true })
     const file = join(OUT, `${LABEL}-${w}.png`)
     writeFileSync(file, Buffer.from(data, 'base64'))
@@ -186,8 +225,11 @@ async function main() {
   try { ws.close() } catch {}
   proc.kill()
 
+  if (overflow.length) for (const o of overflow) console.log(`  [overflow] ${o}`)
+
   if (bad.length) { console.log(`\nFAIL — ${bad.length} unexpected console error(s)`); process.exit(1) }
-  console.log('\nPASS — console clean but for known lines')
+  if (overflow.length) { console.log(`\nFAIL — the document scrolls horizontally at ${overflow.length} width(s)`); process.exit(1) }
+  console.log('\nPASS — console clean but for known lines, and nothing scrolls horizontally')
   process.exit(0)
 }
 

@@ -453,7 +453,7 @@ struct LiveCarryPulse: ViewModifier {
   func body(content: Content) -> some View {
     content
       .opacity(on && lit ? 0.72 : 1)
-      .animation(on && !reduce ? .easeInOut(duration: 1.4).repeatForever(autoreverses: true) : .default, value: lit)
+      .animation(on && !reduce ? CSMotion.breath(1.4) : nil, value: lit)
       .onAppear { lit = on }
       .onChange(of: on) { _, v in lit = v }
   }

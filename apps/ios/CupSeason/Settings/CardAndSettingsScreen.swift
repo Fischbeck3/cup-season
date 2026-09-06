@@ -300,7 +300,7 @@ private struct CardEditorPane: View {
           Button { vm.marker = m.key; vm.dirty = true; CSHaptic.selection() } label: {
             VStack(spacing: 6) {
               CSMarkerView(m, size: 28).foregroundStyle(vm.marker == m.key ? cs.brand : cs.ink)
-              Text(m.name).font(CSFont.label).foregroundStyle(cs.mut).lineLimit(typeSize.isA11y ? 2 : 1).minimumScaleFactor(0.7).multilineTextAlignment(.center)
+              Text(m.name).font(CSFont.label).foregroundStyle(cs.mut).lineLimit(2).multilineTextAlignment(.center)   // L-29
             }
             .frame(maxWidth: .infinity, minHeight: 66)
             .background(cs.bg1, in: RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous))
@@ -593,7 +593,7 @@ private struct SettingsPane: View {
         .onLongPressGesture(minimumDuration: 1) {
           guard !developer else { return }
           CSHaptic.impact(.medium)
-          withAnimation(CSMotion.roll) { developer = true }
+          CSMotion.run { developer = true }
         }
         .accessibilityAddTraits(.isButton)
         .accessibilityHint("Press and hold for the Developer section")

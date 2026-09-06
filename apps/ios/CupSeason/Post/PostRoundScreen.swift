@@ -170,7 +170,7 @@ private struct PostRoundBody: View {
   /// placeholder that reads like a value (PA-025: `72.1` and `128` were
   /// placeholders and every tester read them as the course's numbers).
   private var inheritedLine: some View {
-    Button { withAnimation(CSMotion.roll) { cardOpen = !cardIsOpen } } label: {
+    Button { CSMotion.run { cardOpen = !cardIsOpen } } label: {
       CSRow(last: true) {
         A11yStack(rowAlignment: .firstTextBaseline, spacing: 8, columnSpacing: 2) {
           Text(inheritedText).font(CSFont.monoSmall).foregroundStyle(model.card.course.isEmpty ? cs.mut : cs.ink)
@@ -246,7 +246,7 @@ private struct PostRoundBody: View {
       CSSectionHead("Course & tees").padding(.top, 8)
       PostCourseSearchField(text: $model.card.course, courseId: $model.card.courseId) { c, t in
         model.teePicked(course: c, tee: t)
-        withAnimation(CSMotion.roll) { ratingOpen = false }   // the tee filled the line; the fields fold
+        CSMotion.run { ratingOpen = false }   // the tee filled the line; the fields fold
       }
         .padding(.top, 12).padding(.bottom, 2)
       // course memory — ONLY while the search field is empty, so recents never read as stuck search results (they used to sit
@@ -255,7 +255,7 @@ private struct PostRoundBody: View {
         Text("Recent courses").csEyebrow().padding(.top, 6)
       }
       ForEach(model.card.course.isEmpty ? model.memory : []) { m in
-        Button { model.fill(m); withAnimation(CSMotion.roll) { ratingOpen = false } } label: {
+        Button { model.fill(m); CSMotion.run { ratingOpen = false } } label: {
           CSRow {
             A11yStack(rowAlignment: .firstTextBaseline, spacing: 10, columnSpacing: 2) {
               Text(m.label).font(CSFont.subhead).foregroundStyle(cs.ink).multilineTextAlignment(.leading)
@@ -271,7 +271,7 @@ private struct PostRoundBody: View {
       }
       // rating/slope: one mono line that opens into the two fields on "edit" — always editable (D72);
       // an empty card shows "— / —" and stays folded (IOS-022 item 4)
-      Button { withAnimation(CSMotion.roll) { ratingOpen.toggle() } } label: {
+      Button { CSMotion.run { ratingOpen.toggle() } } label: {
         CSRow(last: !ratingFieldsShown) {
           A11yStack(rowAlignment: .firstTextBaseline, spacing: 8, columnSpacing: 2) {
             Text("Rating / slope").font(CSFont.subhead).foregroundStyle(cs.mut)
@@ -435,7 +435,7 @@ private struct PostRoundBody: View {
 
   private var bandsSection: some View {
     VStack(alignment: .leading, spacing: 0) {
-      Button { withAnimation(CSMotion.roll) { bandsOpen.toggle() } } label: {
+      Button { CSMotion.run { bandsOpen.toggle() } } label: {
         VStack(alignment: .leading, spacing: 8) {
           HStack {
             Text("How points work").csEyebrow()
@@ -619,8 +619,7 @@ private struct PostDateSheet: View {
     .padding(20)
     .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
     .background(cs.bg0)
-    .presentationDetents([.height(560), .large])
-    .presentationDragIndicator(.visible)
+    .csFittedSheet(560, large: true)
   }
 }
 

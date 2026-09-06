@@ -96,7 +96,7 @@ struct SeasonPage: View {
           // the door that named a section lands on it, once the section exists
           guard model.loaded, pane == .pot || pane == .story else { return }
           try? await Task.sleep(for: .milliseconds(250))
-          withAnimation(CSMotion.roll) { proxy.scrollTo(pane.anchor, anchor: .top) }
+          CSMotion.run { proxy.scrollTo(pane.anchor, anchor: .top) }
         }
         #if DEBUG
         // Developer hatch: `-cs_dev_scroll <anchor>` (story · table · pot) scrolls a simulator there.
@@ -141,7 +141,7 @@ struct SeasonPage: View {
           pot
           SeasonDoors()
           if model.isPro && !model.isComplete {
-            ProVerbRow(scrollTo: { a in withAnimation(CSMotion.roll) { proxy.scrollTo(a, anchor: .top) } })
+            ProVerbRow(scrollTo: { a in CSMotion.run { proxy.scrollTo(a, anchor: .top) } })
           }
         }
       }

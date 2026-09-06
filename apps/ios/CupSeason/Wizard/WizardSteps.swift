@@ -370,7 +370,7 @@ struct WizardStakeStep: View {
       Text(WizardCopy.rulesLine(model.dials)).font(CSFont.sentence).foregroundStyle(cs.dimText)
         .fixedSize(horizontal: false, vertical: true)
       Button {
-        withAnimation(reduceMotion ? nil : .timingCurve(0.16, 0.84, 0.36, 1, duration: 0.26)) { model.showDials.toggle() }
+        CSMotion.run(CSMotion.rise) { model.showDials.toggle() }
       } label: {
         HStack(spacing: 6) {
           Text(WizardCopy.moreSettings).font(CSFont.monoMediumBody)
@@ -405,7 +405,7 @@ struct WizardStakeStep: View {
       CSHaptic.selection(); otherOpen = false; model.dials.stake = v
     } label: {
       Text(v == 0 ? WizardDials.braggingRights : PotMath.dollars(v))
-        .font(CSFont.monoSmall).lineLimit(1).minimumScaleFactor(0.8)
+        .font(CSFont.monoSmall).lineLimit(1).minimumScaleFactor(0.85)   // L-29
         .foregroundStyle(on ? cs.bg0 : cs.ink)
         .padding(.horizontal, 10).frame(maxWidth: .infinity, minHeight: 44)
         .background(on ? cs.ink : cs.bg2, in: RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous))
@@ -597,7 +597,7 @@ struct WizardSeg: View {
       ForEach(options, id: \.key) { o in
         let on = o.key == selected
         Button { CSHaptic.selection(); pick(o.key) } label: {
-          Text(o.label).font(CSFont.monoSmall).lineLimit(1).minimumScaleFactor(0.8)
+          Text(o.label).font(CSFont.monoSmall).lineLimit(1).minimumScaleFactor(0.85)   // L-29
             .foregroundStyle(on ? cs.bg0 : cs.ink)
             .padding(.horizontal, 10).frame(maxWidth: .infinity, minHeight: 44)
             .background(on ? cs.ink : cs.bg2, in: RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous))

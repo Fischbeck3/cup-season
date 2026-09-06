@@ -197,7 +197,7 @@ struct CardGateView: View {
         } label: {
           VStack(spacing: 8) {
             CSMarkerView(m, size: 34).foregroundStyle(marker == m.key ? cs.brand : cs.ink)
-            Text(m.name).font(CSFont.label).foregroundStyle(cs.mut).lineLimit(typeSize.isA11y ? 2 : 1).minimumScaleFactor(0.7)
+            Text(m.name).font(CSFont.label).foregroundStyle(cs.mut).lineLimit(2)   // L-29 · 11pt is the floor
               .multilineTextAlignment(.center)
           }
           .frame(maxWidth: .infinity, minHeight: 78)

@@ -55,7 +55,7 @@ struct CareerRecordView: View {
               ForEach(r.items) { i in
                 VStack(alignment: .leading, spacing: 2) {
                   Text(String(i.n)).font(CSFont.heroSmall).foregroundStyle(cs.gold).csTabular()   // EARNED
-                  Text(i.label).font(CSFont.label).tracking(1.2).textCase(.uppercase).foregroundStyle(cs.mut).lineLimit(typeSize.isA11y ? nil : 1).minimumScaleFactor(0.85)
+                  Text(i.label).font(CSFont.label).tracking(1.2).textCase(.uppercase).foregroundStyle(cs.mut).lineLimit(typeSize.isA11y ? nil : 2)   // L-29
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .accessibilityElement(children: .combine)

@@ -61,7 +61,7 @@ private struct CSToastHost: ViewModifier {
             .accessibilityAddTraits(.updatesFrequently)
         }
       }
-      .animation(.timingCurve(0.16, 0.84, 0.36, 1, duration: 0.32), value: center.current)
+      .csAnimation(CSMotion.roll, value: center.current)
   }
 }
 

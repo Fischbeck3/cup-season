@@ -127,7 +127,7 @@ struct PostScorecardStrip: View {
     // the scan's confidence per cell: a hole the model could not read sits on par and wears a warm hairline
     let unread = model.card.scan.map { $0.read.indices.contains(i) && $0.read[i] == 0 } ?? false
     return Button {
-      withAnimation(CSMotion.rise) { selected = i }
+      CSMotion.run(CSMotion.rise) { selected = i }
       CSHaptic.selection()
     } label: {
       VStack(spacing: 3) {
@@ -190,7 +190,7 @@ struct PostScorecardStrip: View {
         step("+", "Plus hole \(i + 1)") { model.plus(i) }
       }
       Button {
-        withAnimation(CSMotion.rise) { selected = PostStrip.next(after: i, side: model.card.side) }
+        CSMotion.run(CSMotion.rise) { selected = PostStrip.next(after: i, side: model.card.side) }
         CSHaptic.selection()
       } label: {
         Text("Next hole →").font(CSFont.footnote).foregroundStyle(cs.dawn).frame(maxWidth: .infinity, minHeight: 44)

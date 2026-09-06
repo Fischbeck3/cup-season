@@ -146,7 +146,7 @@ struct CredentialCard<Anchor: View, Extra: View>: View {
               // from here, so this one just says how many.
               if hiddenTrophies > 0 {
                 Button {
-                  withAnimation(.easeOut(duration: 0.18)) { trophiesExpanded.toggle() }
+                  CSMotion.run(CSMotion.tick) { trophiesExpanded.toggle() }
                 } label: {
                   Text(trophiesExpanded ? TrophyMeta.showFewer : TrophyMeta.moreLine(hiddenTrophies, suffix: " more"))
                     .font(CSFont.label).foregroundStyle(p.mut)

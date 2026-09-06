@@ -31,7 +31,7 @@ struct ClimbView: View {
           case .ellipsis(_, let hidden): ellipsis(hidden)
           }
         }
-        .animation(reduceMotion ? nil : .timingCurve(0.16, 0.84, 0.36, 1, duration: 0.55), value: items.map(\.id))
+        .csAnimation(CSMotion.settle, value: items.map(\.id))
         // QB-12 · **THE GAP, AS A MOVE.** The climb showed the deficit and the
         // seat and stopped there; a reader in third had to open the round
         // composer's HOW POINTS WORK fold and do the subtraction himself to
@@ -85,8 +85,12 @@ struct ClimbView: View {
             } else {
               RoundedRectangle(cornerRadius: 3).fill(cs.squad(r.team.ci)).frame(width: 10, height: 10)
             }
+            // D258 · a name is a fact and a clipped name is a fact deleted.
+            // `You · Jerecho Fischbeck` in a rung beside a badge and a figure
+            // rendered `You · Jere…` at the DEFAULT size. It wraps.
             Text(r.isMe ? "You · \(r.team.name)" : r.team.name).font(r.isMe ? CSFont.subhead.weight(.semibold) : CSFont.subhead)
-              .foregroundStyle(cs.ink).lineLimit(typeSize.isA11y ? nil : 1)
+              .foregroundStyle(cs.ink)
+              .fixedSize(horizontal: false, vertical: true)
             if let b = r.badge {
               Text(b).font(CSFont.label).tracking(1.0).foregroundStyle(b == "IN" ? cs.gold : cs.cool)
                 .padding(.horizontal, 6).padding(.vertical, 2)

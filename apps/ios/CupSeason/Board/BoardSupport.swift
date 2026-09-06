@@ -53,7 +53,7 @@ struct BoardToastHost: ViewModifier {
             .id(text)
         }
       }
-      .animation(.timingCurve(0.16, 0.84, 0.36, 1, duration: 0.32), value: store.toast)
+      .csAnimation(CSMotion.roll, value: store.toast)
       .onChange(of: store.toast) { _, new in
         hide?.cancel()
         guard new != nil else { return }

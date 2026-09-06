@@ -56,7 +56,7 @@ struct LeaguelessDoors: View {
       // trio look ragged. The 0.7 floor covers the SE and the non-a11y xxxLarge
       // sizes; at the accessibility sizes A11yStack is a column and nothing scales.
       Text(label).font(CSFont.monoMediumBody).multilineTextAlignment(.center)
-        .lineLimit(1).minimumScaleFactor(0.7)
+        .lineLimit(1).minimumScaleFactor(0.8)   // L-29 · 14 × 0.8 = 11.2, the floor
         .foregroundStyle(cs.ink)
         .padding(.horizontal, 6).frame(maxWidth: .infinity, minHeight: 50)
         .background(cs.bg2, in: RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous))

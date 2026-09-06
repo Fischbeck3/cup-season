@@ -67,7 +67,7 @@ private struct PostCoverRise: ViewModifier {
       .opacity(risen ? 1 : 0)
       .offset(y: risen ? 0 : 6)
       .onAppear {
-        if reduceMotion { risen = true } else { withAnimation(CSMotion.rise) { risen = true } }
+        CSMotion.run(CSMotion.rise) { risen = true }
       }
   }
 }
@@ -176,7 +176,7 @@ struct PostLiveHeroRow: View {
     .accessibilityLabel("Live: \(title). \(sub)")
     .onAppear {
       guard !UIAccessibility.isReduceMotionEnabled else { return }
-      withAnimation(.easeInOut(duration: 1.1).repeatForever(autoreverses: true)) { breathe = true }
+      CSMotion.run(CSMotion.breath(1.1)) { breathe = true }
     }
   }
 }

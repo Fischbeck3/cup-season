@@ -37,6 +37,13 @@ struct LengthStep: View {
   private var lengths: [CalloutLength] { CalloutLength.offered(liveNow: liveNow, shareASeason: shareASeason) }
 
   var body: some View {
+    // D258 · **THIS SHEET WAS THE WORST AX3 FAILURE IN THE BUILD.** Three
+    // rows and a header in 340 fixed points at the accessibility sizes drew
+    // the rows ON TOP OF EACH OTHER and ended two of the three glosses in an
+    // ellipsis — "best round by Sunday ta…", on the screen whose whole job is
+    // to explain what the three lengths mean. A scroller and an AX-aware
+    // detent, and nothing is clipped at any size.
+    ScrollView {
     VStack(alignment: .leading, spacing: 4) {
       CSSheetHeader(title: CalloutLength.question, sub: "YOU AND \(CSBands.fn1(opponent.name).uppercased())")
       ForEach(Array(lengths.enumerated()), id: \.element) { i, len in
@@ -74,9 +81,9 @@ struct LengthStep: View {
     }
     .padding(20)
     .frame(maxWidth: .infinity, alignment: .leading)
+    }
     .background(cs.bg0)
-    .presentationDetents([.height(shareASeason ? 400 : 340)])
-    .presentationDragIndicator(.visible)
+    .csFittedSheet(shareASeason ? 400 : 340)
     .task { shared = await ForfeitService().sharedLeague(with: opponent.id, mine: myLeagues) }
   }
 }
@@ -137,7 +144,7 @@ struct CalloutSheet: View {
 
   private func pill(_ label: String, on: Bool, action: @escaping () -> Void) -> some View {
     Button { CSHaptic.selection(); action() } label: {
-      Text(label).font(CSFont.monoSmall).lineLimit(1).minimumScaleFactor(0.8)
+      Text(label).font(CSFont.monoSmall).lineLimit(1).minimumScaleFactor(0.85)   // L-29 · 13 × 0.85 = 11.05
         .foregroundStyle(on ? cs.bg0 : cs.ink)
         .padding(.horizontal, 10).frame(maxWidth: .infinity, minHeight: 44)
         .background(on ? cs.ink : cs.bg2, in: RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous))
@@ -199,6 +206,9 @@ struct CalloutReplySheet: View {
   @State private var toasts = CSToastCenter()
 
   var body: some View {
+    // D258 · the reply is two buttons and a sentence, and at AX3 the sentence
+    // alone was taller than the 320 points it was pinned to.
+    ScrollView {
     VStack(alignment: .leading, spacing: 12) {
       CSSheetHeader(title: CalloutCopy.received(from), sub: "IT'S FOR THE RECORD")
       Text(CalloutCopy.receivedSub(closesOn: closesOn, terms: terms))
@@ -210,10 +220,10 @@ struct CalloutReplySheet: View {
     }
     .padding(20)
     .frame(maxWidth: .infinity, alignment: .leading)
+    }
     .background(cs.bg0)
     .csToasts(toasts)
-    .presentationDetents([.height(320)])
-    .presentationDragIndicator(.visible)
+    .csFittedSheet(320)
   }
 
   private func answer(_ accept: Bool) {

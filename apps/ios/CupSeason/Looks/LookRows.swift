@@ -37,7 +37,7 @@ struct LookPaletteDial: View {
   private func pick(_ p: PersonalLook) {
     guard looks.personal != p else { return }
     CSHaptic.selection()
-    withAnimation(CSMotion.roll) { looks.personal = p }
+    CSMotion.run { looks.personal = p }
   }
 }
 

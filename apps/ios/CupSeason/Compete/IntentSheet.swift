@@ -59,8 +59,14 @@ struct IntentSheet: View {
     .background(cs.bg0)
     // Fitted, not full-height: five sentences do not need a whole screen, and
     // a sheet with 900pt of nothing under it reads as a page that failed.
-    .presentationDetents([.height(540), .large])
-    .presentationDragIndicator(.visible)
+    //
+    // D258 · **AT THE ACCESSIBILITY SIZES IT IS THE WHOLE PAGE.** 540 points
+    // hold four sentences at the reading sizes and two of them at AX3, so the
+    // sheet that says "pick the one that sounds like you" offered a golfer a
+    // choice of two with nothing to say there were four. `csFittedSheet` keeps
+    // the fitted height where it is right and hands over the page where it is
+    // not.
+    .csFittedSheet(540, large: true)
   }
 
   private func row(_ line: String, _ gloss: String, ember: Bool, hairline: Bool = true, action: @escaping () -> Void) -> some View {
@@ -89,6 +95,9 @@ struct WhenForkSheet: View {
   let take: (StartIntent.WhenFork) -> Void
 
   var body: some View {
+    // D258 · a fork with no scroller clipped its second answer at AX3. Two
+    // sentences are still two sentences; they are just taller.
+    ScrollView {
     VStack(alignment: .leading, spacing: 4) {
       CSSheetHeader(title: StartIntent.WhenFork.title, sub: "TWO WAYS, AND BOTH WORK")
       ForEach(StartIntent.WhenFork.allCases) { f in
@@ -112,9 +121,9 @@ struct WhenForkSheet: View {
     }
     .padding(20)
     .frame(maxWidth: .infinity, alignment: .leading)
+    }
     .background(cs.bg0)
-    .presentationDetents([.height(260)])
-    .presentationDragIndicator(.visible)
+    .csFittedSheet(260)
   }
 }
 

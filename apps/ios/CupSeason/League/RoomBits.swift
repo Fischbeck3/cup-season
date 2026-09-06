@@ -61,7 +61,7 @@ struct ArmedMini: View {
         disarm = Task { try? await Task.sleep(for: .seconds(3)); if !Task.isCancelled { armed = false; onArm?(false) } }
       }
     }
-    .animation(.easeOut(duration: 0.2), value: armed)
+    .csAnimation(CSMotion.tick, value: armed)
   }
 }
 
