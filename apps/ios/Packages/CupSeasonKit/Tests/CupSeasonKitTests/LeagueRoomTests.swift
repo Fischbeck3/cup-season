@@ -176,10 +176,33 @@ private func team(_ id: UUID, _ name: String, _ pts: Double, ci: Int = 0) -> Tea
     let odd = PotMath.settlementCents(pot: 101, payout: [60, 25, 15])
     #expect(odd.champ + odd.runner + odd.king == 101)
   }
-  @Test func thePotPaneTrioInDollars() {
-    let t = PotMath.trioDollars(total: 525, payout: [60, 25, 15])
-    #expect(t.champ == 315 && t.runner == 131 && t.king == 79)
+  /// M1 · the parts SUM TO THE POT, and they are the figures the ceremony
+  /// pays. The clean case ($525) is kept and a dirty one is added beside it —
+  /// $25 × 6 = $150 was the case that printed $151 on the pot pane and paid
+  /// $37.50 on the settlement card.
+  @Test func thePotPaneTrioIsTheSettlementSplit() {
+    let t = PotMath.trioCents(potCents: 52_500, payout: [60, 25, 15])
+    #expect(t.champ == 31_500 && t.runner == 13_125 && t.king == 7_875)
+    #expect(t.champ + t.runner + t.king == 52_500)
     #expect(PotMath.money(7550) == "$75.50" && PotMath.money(18000) == "$180")
+
+    let dirty = PotMath.trioCents(potCents: 15_000, payout: [60, 25, 15])
+    #expect(dirty.champ + dirty.runner + dirty.king == 15_000)
+    #expect(PotMath.money(dirty.champ) == "$90" && PotMath.money(dirty.runner) == "$37.50" && PotMath.money(dirty.king) == "$22.50")
+    // and the pane agrees with the ceremony, which is the half of M1 that hurt
+    let paid = PotMath.settlementCents(pot: 15_000, payout: [60, 25, 15])
+    #expect(paid.champ == dirty.champ && paid.runner == dirty.runner && paid.king == dirty.king)
+
+    // every realistic stake x roster x preset sums to the pot
+    for stake in stride(from: 5, through: 200, by: 5) {
+      for n in 2...24 {
+        for p in [[60, 25, 15], [50, 30, 20], [70, 20, 10]] {
+          let pot = stake * n * 100
+          let x = PotMath.trioCents(potCents: pot, payout: p)
+          #expect(x.champ + x.runner + x.king == pot)
+        }
+      }
+    }
   }
 
   let members = [LeagueRoom.Member(id: m1, role: "player", profile_id: p1, profile: .init(display_name: "Dan")),
@@ -422,7 +445,7 @@ private func team(_ id: UUID, _ name: String, _ pts: Double, ci: Int = 0) -> Tea
     #expect(LeagueCopy.indexSub(established: false, delta: -1) == "Building your number")
     #expect(LeagueCopy.indexSub(established: true, delta: -0.3) == "▼ 0.3 this season" && LeagueCopy.indexSub(established: true, delta: 0.01) == "Season to date")
     #expect(LeagueCopy.countingSub(month: "August", capN: Int.max) == "August · every round counts")
-    #expect(LeagueCopy.lineSplit(total: 525, payout: [60, 25, 15]) == "CHAMPS $315 · RUNNER-UP $131 · POINTS KING $79")
+    #expect(LeagueCopy.lineSplit(potCents: 52_500, payout: [60, 25, 15]) == "CHAMPS $315 · RUNNER-UP $131.25 · POINTS KING $78.75")
     #expect(LeagueCopy.finishDial(current: "cup_final").label == "Finish: Cup Final — switch to points table")
   }
 }

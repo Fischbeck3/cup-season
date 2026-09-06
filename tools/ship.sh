@@ -54,6 +54,37 @@ confirm() {  # confirm <prompt> [required-word]
   [[ "$ans" == "$word" ]]
 }
 
+# --- ORDER GATE: a pending migration that widens a posts `kind` --------------
+# X1 / R-2 · this script ships DATABASE first and EDGE FUNCTIONS second, and for
+# one shape of release that order is the wrong one. `save_bag` writes a post of
+# kind 'bag'; the posts INSERT webhook drives the `push` Edge Function; D238's
+# person-homed branch fans to every accepted buddy; and the ONLY thing standing
+# between a bag change and every buddy's lock screen is the guard in
+# supabase/functions/push/index.ts. Push the database first and the first bag
+# edit is the manufactured interruption L-22 forbids — in the week new testers
+# arrive. Deploying the function first is safe in BOTH orders, so the rule is
+# simply: function first, whenever a pending migration widens a kind check.
+if have database owed; then
+  KINDGUARD=""
+  for m in $(git status --porcelain supabase/migrations 2>/dev/null | awk '{print $2}'; \
+             node tools/deploy-status.mjs --json | node -e "
+    let s='';process.stdin.on('data',d=>s+=d).on('end',()=>{
+      const j=JSON.parse(s);(j.database?.owed||[]).forEach(x=>console.log('supabase/migrations/'+(x.file||x)));});" 2>/dev/null); do
+    [[ -f "$m" ]] && grep -qiE 'posts_kind_check|kind[^\n]*check' "$m" && KINDGUARD="$KINDGUARD $m"
+  done
+  if [[ -n "$KINDGUARD" ]]; then
+    step "ORDER"
+    say "${RED}A pending migration widens the posts KIND check:${OFF}${KINDGUARD}"
+    say "${BOLD}Deploy the push Edge Function BEFORE the database.${OFF}"
+    say "${DIM}Without its guard, the first post of the new kind fans to every${OFF}"
+    say "${DIM}accepted buddy through D238's person-homed branch (L-22).${OFF}"
+    say "${DIM}  supabase functions deploy push${OFF}"
+    if ! confirm "Has ${BOLD}push${OFF} already been deployed?" "deployed"; then
+      say "${RED}Stopping. Deploy push, then run this again.${OFF}"; exit 1
+    fi
+  fi
+fi
+
 # --- database --------------------------------------------------------------
 if have database owed; then
   step "DATABASE"

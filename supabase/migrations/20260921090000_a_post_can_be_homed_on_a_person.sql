@@ -78,11 +78,25 @@ grant execute on function public.can_see_profile_board(uuid) to authenticated;
 -- today stops being readable. The mute clause and the hidden_at clause are
 -- restated rather than inherited, because `posts_read` is a different policy
 -- and an unmuted branch would be a hole in L-38.
+--
+-- P1f · AND A DEPARTED GOLFER'S POSTS GO WITH THEM. `can_see_profile_board`
+-- carries no `deleted_at` clause: `delete_account` (20260901140000) tombstones
+-- rather than deletes, and `discoverable='nobody'` closes only the STRANGER
+-- branch — the buddy, shared-league and shared-event branches still return
+-- true. Without this clause a golfer who deleted their account kept a
+-- person-homed board on every former league mate's Home, bag posts included,
+-- while `tour_card` refused the very card those posts hang off
+-- (20260830240000:61). It is restated here rather than pushed into
+-- `can_see_profile_board`, for the same reason the mute and hidden_at clauses
+-- are: this policy states its own conditions and cannot drift.
 drop policy if exists posts_profile_read on public.posts;
 create policy posts_profile_read on public.posts for select
   using (
     profile_id is not null
     and public.can_see_profile_board(profile_id)
+    and exists (
+      select 1 from profiles pr
+       where pr.id = posts.profile_id and pr.deleted_at is null)
     and not exists (
       select 1 from mutes mu
        where mu.muter = auth.uid() and mu.muted = posts.profile_id)
@@ -571,11 +585,28 @@ alter table public.post_kudos add  constraint post_kudos_pkey
 
 comment on column public.post_kudos.member_id is
   'D238 · kept, unkeyed and nullable, so a client that has not shipped the '
-  're-key yet still writes a reaction that lands. The trigger derives the '
-  'profile from it. Nothing reads it any more.';
+  're-key yet still writes a reaction that lands. The trigger derives EITHER '
+  'key from the other, so a league-homed reaction always carries both and '
+  'build 669 — which decodes this column as a non-optional uuid — keeps '
+  'reading the board. A PERSON-homed post has no league and therefore no '
+  'member row: its member_id is null and that is safe, because 669 skips any '
+  'post with no league_id (HomeSocial.swift:66).';
 
 -- Whichever of the two the writer named, the other is derived. This is the
--- whole of the skew answer and it is four lines.
+-- whole of the skew answer.
+--
+-- S-1 · IT HAS TO RUN BOTH WAYS. It derived only profile-from-member, and both
+-- NEW clients write `{post_id, profile_id, emoji}` with no member_id at all
+-- (HomeSocial.swift:243, BoardRepository.swift:234, index.html's kudos insert).
+-- So every reaction a new client left on a LEAGUE post landed with
+-- `member_id = null` — and build 669, which is what the owner and Galen are
+-- carrying, decodes it as a NON-OPTIONAL uuid in two places. On the league
+-- board (BoardRepository.swift:33, filled at :187 by `select("*")` with no
+-- `try?`) the decode raises `valueNotFound(UUID)`, `repo.social()` throws,
+-- `hydrate()` throws, and `BoardStore.load()` renders "Could not load the
+-- board." with every post, round and announcement gone — permanently, on every
+-- load. On Home the `try?` swallows it and the reaction strips silently empty.
+-- One reaction from a new client would have done that to an old one.
 create or replace function public.post_kudos_home()
 returns trigger
 language plpgsql
@@ -587,6 +618,16 @@ begin
     select lm.profile_id into new.profile_id from league_members lm where lm.id = new.member_id;
   end if;
   if new.profile_id is null then new.profile_id := auth.uid(); end if;
+  -- and the other direction: a league-homed post always yields a member row
+  -- for a golfer who can react to it, so an old client always finds its key.
+  if new.member_id is null and new.profile_id is not null then
+    select lm.id into new.member_id
+      from posts p
+      join league_members lm
+        on lm.league_id = p.league_id
+       and lm.profile_id = new.profile_id
+     where p.id = new.post_id;
+  end if;
   return new;
 end $function$;
 

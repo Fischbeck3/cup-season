@@ -12,7 +12,7 @@
 // runs 95% (the wizard's default preset), and 71 of 289 real scored rounds
 // would show a figure in a DIFFERENT points band than the engine pays, always
 // over-promising. A league-less round stays at 100%, which is correct: it is
-// scored against the golfer's own number and nothing else.
+// scored against the golfer's playing HCP and nothing else.
 
 import Foundation
 

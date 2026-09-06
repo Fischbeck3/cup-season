@@ -204,7 +204,7 @@ struct LeagueWelcomeSheet: View {
         // and an unknown structure never asserts a squad the golfer may not have.
         rule(welcome.solo == false ? "You can't hurt your squad by playing badly." : "You can't hurt your standing by playing badly.",
              " Only by not playing. Every posted round scores — a rough day is still points on the board.")
-        rule("Rounds score against your own number.", " Beat your handicap and it's a big day, whatever you shot. Your best rounds each month count; a better round always bumps your worst.")
+        rule("Rounds score against your playing HCP.", " Beat your handicap and it's a big day, whatever you shot. Your best rounds each month count; a better round always bumps your worst.")
         rule("The pot lives on the books.", " \(MoneyCopy.ledger) The settlement card shows who owes what.")
         Button("How scoring works →") { scoring = true }.font(CSFont.footnote).foregroundStyle(cs.brand).padding(.bottom, 4)
         Rectangle().fill(cs.line).frame(height: 1)

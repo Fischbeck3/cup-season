@@ -21,7 +21,8 @@ struct PotPane: View {
   var body: some View {
     let b = model.bylaws
     let free = b.stake == 0
-    let trio = PotMath.trioDollars(total: model.potTotal, payout: b.payout)
+    // M1 · the pane shows what the settlement will pay, to the cent.
+    let trio = PotMath.trioCents(potCents: model.potTotal * 100, payout: b.payout)
     let mine = store.me?.memberships.first { $0.league_id == model.leagueId }
     VStack(alignment: .leading, spacing: 14) {
       CSSectionHead("Season stakes")
@@ -59,9 +60,9 @@ struct PotPane: View {
         CSHairline()
         // three across; stacked at the accessibility sizes so a figure is never squeezed
         A11yStack(rowAlignment: .top, spacing: 10, columnSpacing: 8) {
-          trioTile(free ? "—" : PotMath.dollars(trio.champ), "Cup champs")
-          trioTile(free ? "—" : PotMath.dollars(trio.runner), "Runner-up")
-          trioTile(free ? "—" : PotMath.dollars(trio.king), "Points king")
+          trioTile(free ? "—" : PotMath.money(trio.champ), "Cup champs")
+          trioTile(free ? "—" : PotMath.money(trio.runner), "Runner-up")
+          trioTile(free ? "—" : PotMath.money(trio.king), "Points king")
         }
         .padding(.vertical, 10)
         CSHairline()

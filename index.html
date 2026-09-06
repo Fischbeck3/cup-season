@@ -3684,7 +3684,7 @@ html[data-theme="light"] .room-dusk .btn:not(.dark):not(.gold):not(.apple){color
         <a href="#" class="backlink" data-go="record">← Play</a>
         <div class="postgrid">
           <div>
-            <div class="eyebrow" id="postEyebrow">Add my round · your number 12.4</div>
+            <div class="eyebrow" id="postEyebrow">Add my round</div>
             <div class="card">
               <!-- IOS-030 - ONE box over an inherited, editable line. The
                    composer asks for one number; the course, the tees, the
@@ -4084,7 +4084,7 @@ html[data-theme="light"] .room-dusk .btn:not(.dark):not(.gold):not(.apple){color
             <div class="ok">On the line</div>
             <div class="oa heronum" id="lineAmt">$525</div>
           </div>
-          <div class="os" id="lineSplit">CHAMPS $315 · RUNNER-UP $131 · POINTS KING $79</div>
+          <div class="os" id="lineSplit">CHAMPS $315 · RUNNER-UP $131.25 · POINTS KING $78.75</div>
           <span class="go">→</span>
         </button>
 
@@ -5012,8 +5012,36 @@ function csRouteResolves(v){
 }
 window.csRouteResolves = csRouteResolves;
 
+/* NW-5 · THE COMPOSER'S EYEBROW IS PRODUCED, NOT TYPED.
+   The markup carried `Add my round · your number 12.4` — a mockup value from
+   the initial commit — and the only writer ran once, inside boot's
+   `if(CS.profile)` block, reached by a CSS selector rather than the id. Any
+   path into the composer that did not come through that block showed a
+   stranger's handicap. It is a function now, it is called on every entry, and
+   it takes the golfer's REAL index (landmine 7.12).
+
+   And it says INDEX. R-M's accepted cost is that two handicap nouns coexist —
+   your *index* and your *playing HCP* — and that they be distinguished once
+   and never used interchangeably. This screen shows BOTH: `#calcVs`'s label a
+   hundred lines below says "your playing HCP", and under a Standard league's
+   95% allowance the two differ by about half a shot. `PostRoundModel.eyebrow`
+   is the phone's twin and says the same sentence. */
+function csComposerEyebrow(){
+  const ix = window.CS?.profile ? window.CS.profile.index_current : null;
+  /* setup-QA S6-03: no minted number = say "building", not a flat 18.0 */
+  return ix == null ? 'Add my round \u00b7 your index builds at 3 rounds'
+                    : 'Add my round \u00b7 your index ' + Number(ix).toFixed(1);
+}
+function csRenderComposerEyebrow(){
+  const pe = document.getElementById('postEyebrow');
+  if(pe) pe.textContent = csComposerEyebrow();
+}
+window.csComposerEyebrow = csComposerEyebrow;
+window.csRenderComposerEyebrow = csRenderComposerEyebrow;
+
 function switchView(v){
   v = csViewFor(v);
+  if(v==='post') csRenderComposerEyebrow();
   /* Q-10 · D40 restored at the choke point. D40 ruled "a member must never see
      the Pro's configuration tool" and built the guarantee as ONE route check
      (enterLeague); D96 later added a Home CTA that walked around it, and the
@@ -5471,7 +5499,7 @@ function csSeasonRules(){
     ? 'Every round you post counts.'
     : `Your best ${csWord(cap)} round${cap===1?'':'s'} each calendar month count.`;
   out.push({ head:'How it scores',
-             body:`Every round you post is scored against your own number at ${csAllowanceWords(ALLOW[state.preset])}. ${counted}` });
+             body:`Every round you post is scored against your playing HCP at ${csAllowanceWords(ALLOW[state.preset])}. ${counted}` });
   const floor = Number(state.floor||0);
   if(floor > 0){
     const rounds = `${csCapWord(csWord(floor))} round${floor===1?'':'s'} a month.`;
@@ -6007,19 +6035,34 @@ function renderStandings(){
       .sort((a,b)=>(Number(b.points)||0)-(Number(a.points)||0))
       .forEach((row,idx)=>{ priorRank[solo?row.member_id:row.squad_id]=idx; });
   }
+  /* DEF-3 · ONE SCREEN, ONE NAME FOR ONE PERSON. The clash card above this
+     table says `you`; the story line said `Jerecho Fischbeck` and the row under
+     it said it a third time. The viewer's own SOLO rung resolves to **You**
+     here and in the row; the full name stays on the Tour Card, where it
+     identifies a person to somebody else. A squad keeps its name — a squad is
+     a thing the viewer is in, not the viewer. `StandingsStory.displayName` /
+     `.rowName` are the phone's twins, and second person takes its copula
+     ("You are a good weekend back") rather than the third person's elision. */
+  const myRung = (!state.demo && window.CS?.member)
+    ? (solo ? window.CS.member.id
+            : ((window.CS.squads||[]).find(q=>(q.squad_members||[]).some(x=>x.member_id===window.CS.member.id))||{}).id || null)
+    : null;
+  const isYou = t => !!(solo && myRung && t.id === myRung);
+  const nameOf = t => `<b style="${solo?'':`color:${SQHEX[t.ci]}`}">${isYou(t) ? 'You' : esc(t.name)}</b>`;
+  const beOf   = t => isYou(t) ? 'are ' : '';
   if(story){
     const a=teams[0], b=teams[1]; let txt='';
-    if(!b){ txt = a.pts>0 ? `<b style="${solo?'':`color:${SQHEX[a.ci]}`}">${esc(a.name)}</b> out front — waiting on a challenger.` : ''; }
+    if(!b){ txt = a.pts>0 ? `${nameOf(a)} ${beOf(a)}out front — waiting on a challenger.` : ''; }
     else if(a.pts===0 && b.pts===0){ txt=''; }
     else { const m=a.pts-b.pts;
       txt = m===0
-        ? `Dead heat — <b style="${solo?'':`color:${SQHEX[a.ci]}`}">${esc(a.name)}</b> and <b style="${solo?'':`color:${SQHEX[b.ci]}`}">${esc(b.name)}</b> level at ${a.pts}.`
+        ? `Dead heat — ${nameOf(a)} and ${nameOf(b)} level at ${a.pts}.`
         /* F-9 · the verb agrees with its subject and the clauses take a full
            stop. `solo` is true when the row is a PERSON (D205 made a solo
            league a season at two golfers), and a story line is not live — a
            golfer's name takes the sentence's ink, the squad palette dresses a
            squad. `StandingsStory` is the phone's twin. */
-        : `<b style="${solo?'':`color:${SQHEX[a.ci]}`}">${esc(a.name)}</b> ${solo?'leads':'lead'} by <b>${m}</b>. <b style="${solo?'':`color:${SQHEX[b.ci]}`}">${esc(b.name)}</b> ${m<=15?'a good weekend back':m+' back'}.`;
+        : `${nameOf(a)} ${isYou(a)?'lead':(solo?'leads':'lead')} by <b>${m}</b>. ${nameOf(b)} ${beOf(b)}${m<=15?'a good weekend back':m+' back'}.`;
     }
     story.innerHTML=txt;
   }
@@ -6040,7 +6083,7 @@ function renderStandings(){
     const rkH=(sfFresh && pr!=null && pr!==i) ? sfWrap(rk0) : rk0;
     html+=`<tr class="${i===0?'lead':''} tap" data-squad="${esc(t.name)}">
       <td class="rk mono">${rkH}${mv}</td>
-      <td><div style="display:flex;align-items:center;gap:10px"><span class="sw" style="background:${SQHEX[t.ci]}"></span><div><div class="tn">${esc(t.name)}</div><div class="tc">${seedOf(t.id)?'SEED '+seedOf(t.id)+' \u00b7 ':''}${solo ? (t.sub||0)+' ROUND'+(t.sub===1?'':'S') : 'CAPT. '+esc(t.cap).toUpperCase()}</div></div></div></td>
+      <td><div style="display:flex;align-items:center;gap:10px"><span class="sw" style="background:${SQHEX[t.ci]}"></span><div><div class="tn">${isYou(t) ? 'You \u00b7 ' + esc(t.name) : esc(t.name)}</div><div class="tc">${seedOf(t.id)?'SEED '+seedOf(t.id)+' \u00b7 ':''}${solo ? (t.sub||0)+' ROUND'+(t.sub===1?'':'S') : 'CAPT. '+esc(t.cap).toUpperCase()}</div></div></div></td>
       <td>${arr.length>1?sparkline(arr,t.ci):'<span class="fine" style="padding:0;color:var(--dim)">WK 1</span>'}</td>
       <td class="num"><span class="dw" style="color:${dwk>=12?'var(--pos)':dwk<0?'var(--neg)':'var(--mut)'}">${dwk>0?'+':''}${dwk}</span></td>
       <td class="num pts">${t.pts}</td>
@@ -7117,7 +7160,7 @@ $('#dPickFor').addEventListener('click',()=>{
      pvi = round(index_at_post * handicap_allowance/100 - differential, 1)
    Prefer the league's stored bylaw; fall back to the preset map (what the
    wizard writes); 100 when there is no league at all, which is correct — a
-   league-less round is scored against the golfer's own number. */
+   league-less round is scored against the golfer's playing HCP. */
 function leagueAllowance(){
   if(state.demo) return [100,95,90][state.preset] ?? 100;
   if(!window.CS?.league) return 100;
@@ -9418,16 +9461,14 @@ function renderPot(){
     const stillOwe=Math.max(0, players-paidN);
     $('#potMath').textContent=`${players} × ${fmt$(state.stake)} · ${fmt$(collected)} collected`
       + (stillOwe>0 && collected<total ? ` · ${stillOwe} still owe` : '');
-    /* Q-28 · three independent Math.rounds do not add up to the pot: a $250
-       pot at 60/25/15 printed $150 + $63 + $38 = $251, and the audit's testers
-       were asked to trust a ledger whose own tiles out-summed it. The champion
-       absorbs the rounding (D106's penny rule), so the three tiles always
-       total the pot exactly. */
-    const runnerUp = Math.round(total*pr/100);
-    const king     = Math.round(total*pk/100);
-    $('#pay1').textContent=fmt$(total - runnerUp - king);
-    $('#pay2').textContent=fmt$(runnerUp);
-    $('#pay3').textContent=fmt$(king);
+    /* Q-28, completed by M1 · three independent Math.rounds did not add up to
+       the pot; the champion absorbing fixed the SUM but the arithmetic still
+       ran on dollars, so the tiles still disagreed with the ceremony by up to
+       a dollar a head. `csTrioCents` is the settlement's own split, in cents. */
+    const trio = csTrioCents(total*100, [pc,pr,pk]);
+    $('#pay1').textContent=csMoney(trio.champ);
+    $('#pay2').textContent=csMoney(trio.runner);
+    $('#pay3').textContent=csMoney(trio.king);
     /* D129 · how to pay, before the ledger of who has. The audit's Pot tab said
        "$150 · $0 collected · 2 still owe" six weeks into a real season and not
        one tester — including the member who had been there the whole time —
@@ -9482,9 +9523,11 @@ function renderPot(){
   csOdo($('#potAmt'), fmt$(total));   /* C6: the books absorb the entry */
   $('#chipPot').textContent=fmt$(total);
   $('#potMath').textContent=`${nPay} × ${fmt$(state.stake)} buy-in · locked before W1`;
-  $('#pay1').textContent=fmt$(Math.round(total*0.6));
-  $('#pay2').textContent=fmt$(Math.round(total*0.25));
-  $('#pay3').textContent=fmt$(Math.round(total*0.15));
+  /* M1 · the diorama uses the same split as the real thing. */
+  const demoTrio = csTrioCents(total*100, [60,25,15]);
+  $('#pay1').textContent=csMoney(demoTrio.champ);
+  $('#pay2').textContent=csMoney(demoTrio.runner);
+  $('#pay3').textContent=csMoney(demoTrio.king);
   const el=$('#payers'); el.innerHTML='';
   state.payers.forEach((p,i)=>{
     const row=document.createElement('button');
@@ -14684,7 +14727,15 @@ function csMeStrip(){
   const meM = window.CS && CS.member;
   const bi  = (window.buyIns||{})[meM && meM.id];
   const stake = Number(state.stake)||0;
-  if(meM && stake > 0 && state.phase !== 'setup' && bi && bi.paid === false){
+  /* M2 · ABSENCE IS UNPAID. `window.buyIns` holds only rows that exist in
+     `buy_ins`, and the only writer is `mark_buy_in` — so a league that has just
+     locked has NO row for anybody, which is every new staked league on day one,
+     and this line never appeared. The phone reads `buy_in.paid`, which the
+     server coalesces to false when there is no row (20260906090000:453-455),
+     so the two clients answered opposite ways about one fact. The server's rule
+     is the rule. */
+  const paid = bi ? bi.paid === true : false;
+  if(meM && stake > 0 && state.phase !== 'setup' && !paid){
     /* F-17 · datum over noun. The value carried a word ("$75 YOU" over "STILL
        OWE"), so the pair read as a split sentence where its three neighbours
        read as figures. `MeStripCopy.moneySlot` is the phone's twin. */
@@ -15171,7 +15222,7 @@ function renderGolfers(){
     plink.querySelector('#glfPersonLinkBtn').addEventListener('click', async(e)=>{
       const b=e.currentTarget; if(b.disabled) return; b.disabled=true;
       const r = await csShareIntentLink('person', window.CS?.profile?.id,
-        `${window.CS?.profile?.display_name || 'A golfer'} wants you in their golf. Cup Season keeps score for a group of friends — every round, against everyone’s own number.`);
+        `${window.CS?.profile?.display_name || 'A golfer'} wants you in their golf. Cup Season keeps score for a group of friends — every round, against everyone’s playing HCP.`);
       b.disabled=false;   /* the row stays either way — see CS_SHARE_NOT_YET */
     });
   }
@@ -16069,6 +16120,31 @@ function csMoney(cents){
   const v=(cents||0)/100;
   return '$' + (Math.round(v*100)%100===0 ? String(Math.round(v)) : v.toFixed(2));
 }
+/* M1 · ONE POT SPLIT, AND IT IS THE ONE THAT PAYS.
+   The three payout tiles, the demo tiles and the on-the-line bar each rounded
+   their own share off DOLLARS (`Math.round(total * pct / 100)`), so the parts
+   did not sum to the pot in 670 of 2760 realistic stake x roster x preset
+   combinations: $25 x 6 = $150 printed CHAMPS $90 · RUNNER-UP $38 · POINTS
+   KING $23, which is $151. And the figure disagreed with what the ceremony
+   actually pays — `recompute_season_payouts` (20260828170000:79-81) and
+   `PotMath.settlementCents` round the runner and the king in CENTS and let the
+   champion absorb — so the runner-up on that pot read $38 every week of the
+   season and was paid $37.50 on the settlement card. `PotMath.trioCents` is
+   the phone's twin; both call the settlement's own arithmetic now. */
+function csTrioCents(potCents, payout){
+  const [, pr, pk] = (payout && payout.length===3) ? payout : [60,25,15];
+  const runner = Math.round(potCents * pr / 100);
+  const king   = Math.round(potCents * pk / 100);
+  return { champ: Math.max(0, potCents - runner - king), runner, king };
+}
+/* `#lineSplit` — LeagueCopy.lineSplit is the phone's twin. */
+function csLineSplit(potCents, payout){
+  const t = csTrioCents(potCents, payout);
+  return `CHAMPS ${csMoney(t.champ)} \u00b7 RUNNER-UP ${csMoney(t.runner)} \u00b7 POINTS KING ${csMoney(t.king)}`;
+}
+window.csTrioCents = csTrioCents;
+window.csLineSplit = csLineSplit;
+
 /* even split in CENTS; the remainder rides with the earliest seats so the
    parts always sum to the whole — money between friends never loses a penny */
 function csSplitCents(total, n){
@@ -16658,8 +16734,8 @@ function renderBylaws(){
       /* D106: the bar says what was collected when it is short of the pot */
       const biL=window.buyIns||{};
       const colL=state.demo ? total : (window.CS?.members||[]).reduce((a,m)=>a+(biL[m.id]?.paid ? (biL[m.id].amount_cents!=null ? biL[m.id].amount_cents/100 : state.stake) : 0),0);
-      $('#lineSplit').textContent=`CHAMPS ${fmt$(Math.round(total*pc/100))} · RUNNER-UP ${fmt$(Math.round(total*pr/100))} · POINTS KING ${fmt$(Math.round(total*pk/100))}`
-        + (colL<total ? ` · ${fmt$(colL)} COLLECTED` : '');
+      $('#lineSplit').textContent = csLineSplit(total*100, [pc,pr,pk])
+        + (colL<total ? ` \u00b7 ${fmt$(colL)} COLLECTED` : '');
     }
   }
 }
@@ -17071,8 +17147,8 @@ function renderEvent(){
 
   /* how it scores — everyone sees the rule, not just the organizer */
   html += `<p class="fine" style="padding:0 0 6px">${P>0
-    ? `Each week pairs everyone 1‑on‑1; the best round that week against your own number wins the point, a tie splits it. First to ${evHalf(clinch)} of ${M} takes the cup.`
-    : `Each week pairs everyone 1‑on‑1; the best round that week against your own number wins the point, a tie splits it. Add players to both teams to set the target.`}</p>`;
+    ? `Each week pairs everyone 1‑on‑1; the best round that week against your playing HCP wins the point, a tie splits it. First to ${evHalf(clinch)} of ${M} takes the cup.`
+    : `Each week pairs everyone 1‑on‑1; the best round that week against your playing HCP wins the point, a tie splits it. Add players to both teams to set the target.`}</p>`;
 
   /* organizer controls — the event's creator runs the roster + sessions */
   const meU=window.CS?.user?.id, iAmOrg = ev.created_by===meU;
@@ -17240,7 +17316,7 @@ function renderMajorRoom(el, E){
     html+=`<div class="fine" style="text-align:center; padding:0 0 6px; color:var(--gold)">THE ${nthUp(myPos)} ANNUAL${lastChamp&&!complete?` · ${esc(lastChamp.champion).toUpperCase()} DEFENDS`:''}</div>`;
   }
 
-  html += `<p class="fine" style="padding:0 0 6px">Your best 18-hole card inside the window, scored against your own number. Post as many as the weekend allows — the best one stands.</p>`;
+  html += `<p class="fine" style="padding:0 0 6px">Your best 18-hole card inside the window, scored against your playing HCP. Post as many as the weekend allows — the best one stands.</p>`;
 
   /* enter / organizer controls */
   const horn = (E.sessions||[]).some(x=>x.status==='closed');
@@ -17568,8 +17644,20 @@ function csRenderPayNote(){
   }
 }
 document.getElementById('payNote')?.addEventListener('input', csRenderPayNote);
+/* M4 · THE DATABASE'S OWN CEILING. `league_settings_buyin_range`
+   (20260901220000:77-79, applied in production) is
+   `buyin_cents >= 0 and buyin_cents <= 20000` — $200. This clamped to 10,000
+   DOLLARS and sent `stake * 100`, so a Pro who typed 250 got a raw
+   check-constraint message out of `lock_league`, AFTER `create_league` had run,
+   leaving exactly the unlocked founder-alone husk D225 exists to remove.
+   `WizardDials.maxStake` is the phone's twin. */
+const CS_MAX_STAKE = 200;
 document.getElementById('stakeOther')?.addEventListener('input', e => {
-  const n = Math.max(0, Math.min(10000, parseInt(String(e.target.value).replace(/[^0-9]/g,''), 10) || 0));
+  const n = Math.max(0, Math.min(CS_MAX_STAKE, parseInt(String(e.target.value).replace(/[^0-9]/g,''), 10) || 0));
+  /* the FIELD clamps too: a stake still showing 250 while the league is built
+     at 200 is a second way to be lied to */
+  const shown = String(e.target.value).replace(/[^0-9]/g,'') === '' ? '' : String(n);
+  if(e.target.value !== shown) e.target.value = shown;
   state.stake = n;
   const v = document.getElementById('stakeVal');
   if(v) v.textContent = n === 0 ? 'None' : '$' + n;
@@ -18060,7 +18148,7 @@ async function csCrewTake(key){
     /* D241 · the person link. Three answers, not two: minted, not deployed yet
        (say nothing is wrong), failed (say so). */
     const r = await csShareIntentLink('person', window.CS?.profile?.id,
-      "Come and play. Cup Season keeps score for a group of friends — every round, against everyone's own number.");
+      "Come and play. Cup Season keeps score for a group of friends — every round, against everyone's playing HCP.");
     if(r?.ok && st) st.textContent = 'Link copied. Text it to one of them.';
     return;
   }
@@ -19877,7 +19965,7 @@ function inviteMessage(L){
   } catch(_){}
   lines.push(Number(state.stake) ? `$${state.stake} in — ${CS_LEDGER}`
                                  : 'No buy-in — bragging rights.');
-  lines.push('Post real rounds from any course; every round scores against your own number, so a bad day still counts.');
+  lines.push('Post real rounds from any course; every round scores against your playing HCP, so a bad day still counts.');
   lines.push(inviteUrl(L));
   return lines.join('\n');
 }
@@ -20310,11 +20398,7 @@ async function enterLeague(m, nav=true){
   bootStep = 'league-data';
   if(CS.profile){
     state.myIndex = Number(CS.profile.index_current) || state.myIndex;
-    const pe = document.querySelector('#view-post .eyebrow');
-    /* setup-QA S6-03: no minted number = say "building", not a flat 18.0 */
-    if(pe) pe.textContent = CS.profile.index_current==null
-      ? 'Add my round · your number builds at 3 rounds'
-      : 'Add my round · your number ' + state.myIndex.toFixed(1);
+    window.csRenderComposerEyebrow?.();
   }
   try { await loadLeagueData(); } catch(e){ bootTrace('league data: '+(e.message||e)); }
   /* resume an in-progress live round dropped by a refresh — runs after
@@ -21755,7 +21839,7 @@ function openEventPicker(){
      with the length of the list. */
   openSheet('Start something short', 'A few weeks, its own trophy', `
     <div class="check tap" data-evstyle="ryder" style="cursor:pointer; border-color:var(--brand)">
-      <span class="num">⚔️</span><div class="tt"><b>The Ryder</b><small>Two teams. Each week you play one opponent, scored against your own number. First team past halfway wins</small></div>
+      <span class="num">⚔️</span><div class="tt"><b>The Ryder</b><small>Two teams. Each week you play one opponent, scored against your playing HCP. First team past halfway wins</small></div>
       <span class="fine" style="padding:0; color:var(--brand)">LIVE</span></div>
     <div class="check tap" data-evstyle="major" style="cursor:pointer; border-color:var(--brand)">
       <span class="num">🏆</span><div class="tt"><b>A Major</b><small>A championship window — the best card takes the jug</small></div>
@@ -23933,7 +24017,7 @@ function openLeagueWelcome(name){
   const solo = window.CS?.league ? (state.structure === 'solo') : null;
   openSheet('Welcome to '+(name||'the league'), 'THREE THINGS TO KNOW', `
     <p class="fine" style="padding:0 0 10px"><b>You can't hurt your ${solo===false?'squad':'standing'} by playing badly.</b> Only by not playing. Every posted round scores — a rough day is still points on the board.</p>
-    <p class="fine" style="padding:0 0 10px"><b>Rounds score against your own number.</b> Beat your handicap and it's a big day, whatever you shot. Your best rounds each month count; a better round always bumps your worst.</p>
+    <p class="fine" style="padding:0 0 10px"><b>Rounds score against your playing HCP.</b> Beat your handicap and it's a big day, whatever you shot. Your best rounds each month count; a better round always bumps your worst.</p>
     <p class="fine" style="padding:0 0 12px"><b>The pot lives on the books.</b> ${CS_LEDGER} The settlement card shows who owes what.</p>
     <p class="fine" style="padding:0 0 12px"><a href="#" onclick="openScoringHelp();return false" style="color:var(--brand)">How scoring works →</a></p>
     <div style="border-top:1px solid var(--line); padding-top:12px">
@@ -24512,7 +24596,7 @@ async function renderShareView(tok, _testInfo){
       ${rounds.map(r => `<div style="display:flex;justify-content:space-between;align-items:baseline;gap:10px;padding:5px 12px;font-size:13px;text-align:left">
          <span style="color:${C.mut};white-space:nowrap">${esc(fmtD(r.played_on))}</span>
          <span style="min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:right">${r.gross != null ? esc(String(r.gross)) : '—'}${esc(r.course ? ' · ' + String(r.course).split(' — ')[0] : '')}</span></div>`).join('')}` : ''}
-      <div style="color:${C.mut};font-size:12.5px;line-height:1.6;margin-top:16px">Cup Season keeps score for a group of friends — every round, against everyone&rsquo;s own number.</div>`;
+      <div style="color:${C.mut};font-size:12.5px;line-height:1.6;margin-top:16px">Cup Season keeps score for a group of friends — every round, against everyone&rsquo;s playing HCP.</div>`;
     foot.innerHTML = `<a href="/" style="display:block;background:${C.hot};color:#1C1208;text-decoration:none;border-radius:12px;padding:14px 12px;font-weight:600;letter-spacing:.04em">Get the app</a>
       <div style="color:${C.mut};font-size:11.5px;line-height:1.6;margin-top:12px">Signing in sends ${esc(info.name)} a buddy request. They still have to say yes.</div>`;
 
@@ -24538,7 +24622,7 @@ async function renderShareView(tok, _testInfo){
       ${who.length
         ? `<div style="color:${C.mut};font-size:13px;line-height:1.6;margin-top:12px">${esc(whoTxt)} ${who.length === 1 ? 'is' : 'are'} in.</div>`
         : `<div style="color:${C.mut};font-size:13px;line-height:1.6;margin-top:12px">Just ${esc(info.host)} so far.</div>`}
-      <div style="color:${C.mut};font-size:12.5px;line-height:1.6;margin-top:16px">Cup Season keeps score for a group of friends — every round, against everyone&rsquo;s own number.</div>`;
+      <div style="color:${C.mut};font-size:12.5px;line-height:1.6;margin-top:16px">Cup Season keeps score for a group of friends — every round, against everyone&rsquo;s playing HCP.</div>`;
     foot.innerHTML = `<a href="/" style="display:block;background:${C.hot};color:#1C1208;text-decoration:none;border-radius:12px;padding:14px 12px;font-weight:600;letter-spacing:.04em">Take the seat</a>
       <div style="color:${C.mut};font-size:11.5px;line-height:1.6;margin-top:12px">Signing in puts you down for this round and sends ${esc(info.host)} a buddy request.</div>`;
 

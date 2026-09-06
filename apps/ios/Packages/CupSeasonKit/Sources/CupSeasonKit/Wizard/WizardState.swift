@@ -18,6 +18,15 @@ public struct WizardDials: Sendable, Equatable {
   /// and there was no field. `otherStake` is the escape hatch and the ladder is
   /// otherwise unchanged — L-11 keeps $0 (bragging rights) selected.
   public static let stakes = [0, 25, 50, 75, 100, 150, 200]
+  /// M4 · **THE DATABASE'S OWN CEILING, IN DOLLARS.**
+  /// `league_settings_buyin_range` (20260901220000:77-79, applied in production)
+  /// is `buyin_cents >= 0 and buyin_cents <= 20000`. Both Other fields clamped
+  /// to 10,000 DOLLARS and both send `stake × 100`, so a Pro who typed 250 got
+  /// a raw check-constraint message out of `lock_league` — AFTER `create_league`
+  /// had already run, leaving exactly the unlocked founder-alone husk D225
+  /// exists to remove. The ladder's own top rung is this number; nothing else
+  /// may offer more than the database will take.
+  public static let maxStake = 200
   /// The four the wizard OFFERS as chips, in D225's order. Everything else on
   /// the ladder is still reachable through the stepper in More settings.
   public static let stakeChips = [0, 25, 50, 100]

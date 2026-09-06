@@ -21,10 +21,24 @@ public enum PotMath {
     }
   }
 
-  /// The pot pane's trio in DOLLARS (7001–7003): round(total × pct / 100).
-  public static func trioDollars(total: Int, payout: [Int]) -> (champ: Int, runner: Int, king: Int) {
-    let p = payout.count == 3 ? payout : [60, 25, 15]
-    return (jsRound(Double(total) * Double(p[0]) / 100), jsRound(Double(total) * Double(p[1]) / 100), jsRound(Double(total) * Double(p[2]) / 100))
+  /// The pot pane's trio, in CENTS — and it is the SETTLEMENT's own split.
+  ///
+  /// M1 · this used to round each share independently on DOLLARS
+  /// (`round(total × pct / 100)`) on all three surfaces — the pot pane, the
+  /// wizard's preview and the web's on-the-line bar — so the parts did not sum
+  /// to the pot in 670 of 2760 realistic stake × roster × preset combinations.
+  /// A $25 × 6 = $150 pot printed CHAMPS $90 · RUNNER-UP $38 · POINTS KING $23,
+  /// which is $151. And it disagreed with what the ceremony actually PAYS:
+  /// `settlementCents` and `recompute_season_payouts` round the runner and the
+  /// king in cents and let the champion absorb, so the runner-up read $38 every
+  /// week of the season and was paid $37.50 on the settlement card — the
+  /// artifact D66 calls the product's best marketing object, and L-01's own
+  /// failure mode ("the first 'this is rigged' in a group chat") on the one
+  /// surface with a dollar sign on it.
+  ///
+  /// There is ONE split now, it is the one that pays, and it is this.
+  public static func trioCents(potCents: Int, payout: [Int]) -> (champ: Int, runner: Int, king: Int) {
+    settlementCents(pot: potCents, payout: payout)
   }
 
   /// The settlement split in CENTS (11483–11487): runner and king round, the champion absorbs.

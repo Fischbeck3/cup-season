@@ -108,7 +108,14 @@ public final class SessionStore {
         // that already succeeded. Detached because it must never delay a
         // screen, and silent because a failure means the phone keeps the books
         // it already has — which is the whole point.
-        Task.detached(priority: .utility) { await CourseBookStore().refresh() }
+        // OE-2 · and the books belong to a GOLFER: a different one arriving is
+        // what clears them (`claim`), not a sign-out that may be a mis-tap on
+        // a dead screen.
+        let mine = me.profile?.id
+        Task.detached(priority: .utility) {
+          await CourseBookStore().claim(mine)
+          await CourseBookStore().refresh()
+        }
       }
     } catch {
       // `.failed` is the BOOT's state ("retry offered" — RootView swaps the
@@ -150,9 +157,12 @@ public final class SessionStore {
 
   public func signOut() async {
     try? await svc.signOut()
-    // D261 · the books are one golfer's schedule and one golfer's rounds. A
-    // shared phone does not hand them to whoever signs in next.
-    await CourseBookStore().forget()
+    // OE-2 · the course books are NOT deleted here. D261's rule — a shared
+    // phone does not hand one golfer's schedule and rounds to the next — is
+    // kept, and enforced where the next golfer actually appears:
+    // `CourseBookStore.claim(_:)`, on the first `.ready` of a sign-in. Deleting
+    // them here meant a mis-tap on `Boot stalled`, offline, destroyed the only
+    // thing the app could still show. Nothing signed-out can read them.
     state = .signedOut
   }
 

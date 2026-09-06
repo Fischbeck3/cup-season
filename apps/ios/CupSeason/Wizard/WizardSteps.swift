@@ -337,14 +337,21 @@ struct WizardStakeStep: View {
         otherChip
       }
       if otherOpen {
+        // M4 · the cap is the DATABASE's, and the field says it rather than
+        // letting `lock_league` say it in Postgres.
         CSField("$20", text: $otherText, font: CSFont.body)
           .keyboardType(.numberPad)
           .onChange(of: otherText) { _, t in
             let digits = t.filter(\.isNumber)
-            if digits != t { otherText = digits }
-            model.dials.stake = min(10_000, Int(digits) ?? 0)
+            let n = min(WizardDials.maxStake, Int(digits) ?? 0)
+            // The FIELD clamps too: a stake the field still shows as 250 while
+            // the league is built at 200 is a second way to be lied to.
+            let shown = digits.isEmpty ? "" : String(n)
+            if shown != t { otherText = shown }
+            model.dials.stake = n
           }
           .accessibilityLabel("Buy-in in dollars")
+        CSFine("Up to $\(WizardDials.maxStake) a golfer.")
       }
 
       // L-10 · at $0 the whole block below is ABSENT, not greyed.

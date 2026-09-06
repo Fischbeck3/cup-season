@@ -119,10 +119,15 @@ public struct CourseBookStore: Sendable {
       let card = (t.tee_name == tee?.tee_name && !holes.isEmpty)
         ? holes
         : (tees.first { $0.teeName == t.tee_name && $0.gender == t.gender }?.holes ?? [])
+      // NW-2 · a write-through must not ERASE what a `my_course_books` fill
+      // knew. `api_course_tees` carries no yardage or par total, so writing
+      // nil over them threw away the only figure `defaultTee` can order by.
+      let had = tees.first { $0.teeName == t.tee_name && $0.gender == t.gender }
       tees.removeAll { $0.teeName == t.tee_name && $0.gender == t.gender }
       tees.append(CourseBookTee(teeName: t.tee_name, gender: t.gender,
                                 rating: t.course_rating, slope: t.slope_rating,
-                                holesCount: t.number_of_holes, parTotal: nil, yards: nil, holes: card))
+                                holesCount: t.number_of_holes,
+                                parTotal: had?.parTotal, yards: had?.yards, holes: card))
     }
     guard !tees.isEmpty else { return }
     let club = existing?.clubName, course = existing?.courseName
@@ -208,23 +213,53 @@ public struct CourseBookStore: Sendable {
 
   /// `(par, stroke index)` per hole for a picked tee, from the phone. This is
   /// the read the live tee sheet needs to score at all with no signal.
-  public func card(courseId: String?, teeName: String?, want: Int) async -> [(par: Int, handicap: Int)]? {
+  ///
+  /// NW-3 · STRICT. A tee name that does not resolve returns nil and the typed
+  /// path stands; it never substitutes another tee's card. `rating` is passed
+  /// through so two tees sharing a name can be told apart.
+  public func card(courseId: String?, teeName: String?, rating: Double? = nil, want: Int) async -> [(par: Int, handicap: Int)]? {
     guard let id = courseId, let b = await disk.book(id) else { return nil }
-    return b.tee(named: teeName, holes: want)?.card(want: want)
+    return b.tee(named: teeName, holes: want, rating: rating)?.card(want: want)
   }
 
   /// The pars alone — the composer's `teePars`, from the phone.
   public func pars(courseId: String?, teeName: String?, rating: Double?) async -> (pars: [Int], nine: Bool)? {
     guard let id = courseId, let b = await disk.book(id) else { return nil }
-    let tee = b.tees.first { $0.teeName == teeName && $0.rating == rating }
-      ?? b.tee(named: teeName)
-    guard let tee else { return nil }
+    // NW-3 · strict on the NAME, narrowed by the rating. No `?? defaultTee`.
+    guard let tee = b.tee(named: teeName, rating: rating) else { return nil }
     let want = (tee.holesCount ?? 18) == 9 ? 9 : 18
     guard let pars = tee.pars(want: want) else { return nil }
     return (pars, want == 9)
   }
 
   public func forget() async { await disk.clear() }
+
+  /// Whose books these are. See `claim(_:)`.
+  static let ownerKey = "cs_course_books_owner"
+
+  /// OE-2 · **THE BOOKS ARE FORGOTTEN WHEN A DIFFERENT GOLFER ARRIVES, NOT
+  /// WHEN ONE LEAVES.**
+  ///
+  /// D261 deletes the store on sign-out, because a shared phone must not hand
+  /// one golfer's schedule and rounds to whoever signs in next. That reason is
+  /// sound; the TRIGGER was not. `Boot stalled` offers `Sign out` as one of two
+  /// buttons, supabase-swift removes the local session BEFORE its network call,
+  /// and the store is deleted locally either way — so a mis-tap on a dead
+  /// screen, on a plane, signed the golfer out AND destroyed the forty
+  /// kilobytes of course books that were the only thing the app could still
+  /// show them, with an emailed code the only way back in.
+  ///
+  /// The event D261 actually cares about is a DIFFERENT golfer holding the
+  /// phone, and that event is a sign-IN. Until one happens the books stay put,
+  /// unreachable by anyone without a session (every door onto them sits behind
+  /// one), and the same golfer signing back in keeps everything.
+  public func claim(_ profileId: UUID?) async {
+    guard let id = profileId?.uuidString else { return }
+    let d = UserDefaults.standard
+    let was = d.string(forKey: CourseBookStore.ownerKey)
+    if let was, was != id { await forget() }
+    if was != id { d.set(id, forKey: CourseBookStore.ownerKey) }
+  }
 
   // MARK: - decoding
 

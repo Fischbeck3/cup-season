@@ -145,17 +145,55 @@ public enum StandingsStory: Sendable, Equatable {
   /// between two independent clauses reads as two links rather than a
   /// sentence, and V-4 wants a sentence with a subject directly above THE
   /// TABLE.
-  public var text: String {
+  public var text: String { text(viewer: nil) }
+
+  /// DEF-3 · **one screen, one name for one person.** The clash card above the
+  /// table says `you`, the story line said `Jerecho Fischbeck` and the row
+  /// under it said `Jerecho Fischbeck` again — three names for the golfer
+  /// reading them. The viewer's own SOLO row resolves to **You** in every
+  /// sentence addressed to them; the full name stays on the Tour Card, where
+  /// it identifies a person to somebody else. A SQUAD keeps its name: a squad
+  /// is a thing the viewer is in, not the viewer.
+  ///
+  /// Second person takes a second-person verb, so the elision that carries a
+  /// third-person clause ("Galen out front", "Squad 2 a good weekend back")
+  /// gains its copula rather than printing "You out front".
+  public func text(viewer: UUID?) -> String {
     switch self {
     case .none: return ""
-    case .outFront(let a): return "\(a.name) out front — waiting on a challenger."
-    case .deadHeat(let a, let b, let pts): return "Dead heat — \(a.name) and \(b.name) level at \(CSCopy.points(pts))."
-    case .lead(let a, let b, let m, let back): return "\(a.name) \(Self.leads(a)) by \(CSCopy.points(m)). \(b.name) \(back)."
+    case .outFront(let a):
+      return "\(Self.displayName(a, viewer: viewer)) \(Self.isYou(a, viewer) ? "are " : "")out front — waiting on a challenger."
+    case .deadHeat(let a, let b, let pts):
+      return "Dead heat — \(Self.displayName(a, viewer: viewer)) and \(Self.displayName(b, viewer: viewer)) level at \(CSCopy.points(pts))."
+    case .lead(let a, let b, let m, let back):
+      return "\(Self.displayName(a, viewer: viewer)) \(Self.leads(a, viewer: viewer)) by \(CSCopy.points(m)). "
+        + "\(Self.displayName(b, viewer: viewer)) \(Self.isYou(b, viewer) ? "are " : "")\(back)."
     }
   }
 
-  /// "leads" for one golfer, "lead" for a squad. The row knows which it is.
-  public static func leads(_ t: Team) -> String { t.solo ? "leads" : "lead" }
+  /// True when this rung is the golfer reading it.
+  public static func isYou(_ t: Team, _ viewer: UUID?) -> Bool {
+    guard t.solo, let v = viewer else { return false }
+    return t.id == v
+  }
+
+  /// The name a SENTENCE uses for a rung. See `text(viewer:)`.
+  public static func displayName(_ t: Team, viewer: UUID?) -> String {
+    isYou(t, viewer) ? "You" : t.name
+  }
+
+  /// The name a TABLE ROW uses. The row is a place a golfer looks to find
+  /// themselves, so it keeps the full name and marks it — the same form the
+  /// climb has always rendered (`ClimbView`: `You · <name>`).
+  public static func rowName(_ t: Team, viewer: UUID?) -> String {
+    isYou(t, viewer) ? "You · \(t.name)" : t.name
+  }
+
+  /// "lead" for you, "leads" for one other golfer, "lead" for a squad.
+  /// The row knows which it is.
+  public static func leads(_ t: Team, viewer: UUID? = nil) -> String {
+    isYou(t, viewer) ? "lead" : (t.solo ? "leads" : "lead")
+  }
 }
 
 // MARK: - The math

@@ -178,7 +178,7 @@ public enum RyderMath {
 
   /// How it scores — everyone sees the rule, not just the organizer (12257).
   public static func ruleSentence(_ t: Target) -> String {
-    let head = "Each week pairs everyone 1‑on‑1; the best round that week against your own number wins the point, a tie splits it. "
+    let head = "Each week pairs everyone 1‑on‑1; the best round that week against your playing HCP wins the point, a tie splits it. "
     return t.pairings > 0
       ? head + "First to \(evHalf(t.clinch)) of \(t.points) takes the cup."
       : head + "Add players to both teams to set the target."
@@ -412,7 +412,7 @@ public enum MajorMath {
 
   /// The fine print — chosen, not discovered (D45).
   public static func finePrint(buyIn: Double, potSplit: String?) -> String {
-    var s = "The fine print. 18-hole cards only; scored by how far you beat your own number. An established number (3 posted rounds) contends for the jug"
+    var s = "The fine print. 18-hole cards only; scored by how far you beat your playing HCP. An established number (3 posted rounds) contends for the jug"
     s += buyIn > 0 ? " and the pot" : ""
     s += "; newer golfers play exhibition — on the board, official by the next one. Ties settle on countback: second-best card, then earliest posted, then a logged coin flip."
     if buyIn > 0 { s += " Pot is a ledger — \(potSplit == "wta" ? "winner takes it" : "60/25/15, top three"); money moves between friends." }

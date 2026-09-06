@@ -278,14 +278,27 @@ public struct LiveRepository: Sendable {
   /// So the server is asked first (it is the authority and it may have gained a
   /// card since), the answer is written through to the phone, and a failed or
   /// empty read falls back to the book instead of leaving the card blank.
-  public func courseHoles(courseId: String, teeName: String?, want: Int) async -> [(par: Int, handicap: Int)]? {
+  public func courseHoles(courseId: String, teeName: String?, rating: Double? = nil, want: Int) async -> [(par: Int, handicap: Int)]? {
     if let live = await liveCourseHoles(courseId: courseId, teeName: teeName, want: want) {
       await CourseBookStore(svc).keepCard(
         courseId: courseId, teeName: teeName,
         holes: live.enumerated().map { CourseHole(hole: $0.offset + 1, par: $0.element.par, si: $0.element.handicap) })
       return live
     }
-    return await CourseBookStore(svc).card(courseId: courseId, teeName: teeName, want: want)
+    return await savedCourseHoles(courseId: courseId, teeName: teeName, rating: rating, want: want)
+  }
+
+  /// The phone's own card, with NO network in it at all.
+  ///
+  /// OE-4 · the tee sheet reads this FIRST and lets `courseHoles` refresh
+  /// underneath. `applyTee` used to await three sequential network calls —
+  /// `cacheCourse`, `api_course_tees`, `api_course_holes` — before the book
+  /// was consulted, so on one bar the card showed `LiveCourseCard.postParStd`,
+  /// a fabricated par-72 template, for as long as those took to give up. R-N
+  /// calls this read the bigger win; the book now answers first, which is what
+  /// `CourseBookStore`'s own header says the pattern is.
+  public func savedCourseHoles(courseId: String, teeName: String?, rating: Double? = nil, want: Int) async -> [(par: Int, handicap: Int)]? {
+    await CourseBookStore(svc).card(courseId: courseId, teeName: teeName, rating: rating, want: want)
   }
 
   private func liveCourseHoles(courseId: String, teeName: String?, want: Int) async -> [(par: Int, handicap: Int)]? {

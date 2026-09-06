@@ -38,13 +38,35 @@ public final class SupabaseService: Sendable {
   public let client: SupabaseClient
   public let realtime: SupabaseClient
 
+  /// OE-4 · **A BAD SIGNAL MUST NOT BE WORSE THAN NO SIGNAL.** Nothing set a
+  /// request timeout anywhere in the app, so every call inherited
+  /// `URLSession`'s 60-second default and the phone only learned it was
+  /// offline when something finally failed. Airplane mode fails fast (-1009);
+  /// one bar on a tee box does not — the boot sat on "Restoring your session"
+  /// for up to a minute before "Boot stalled", and the live tee sheet awaited
+  /// three sequential reads before consulting the phone's own book.
+  ///
+  /// `timeoutIntervalForRequest` is an INACTIVITY timer, not a total: a photo
+  /// upload that keeps sending is unaffected, and only a stalled connection
+  /// trips it. Twelve seconds is generous for every payload we send.
+  ///
+  /// The REALTIME client keeps `URLSession.shared` on purpose: its transport
+  /// is a websocket, and an inactivity timeout on a websocket task closes an
+  /// idle channel — a quiet board is not a broken one.
+  static func tunedSession() -> URLSession {
+    let c = URLSessionConfiguration.default
+    c.timeoutIntervalForRequest = 12
+    c.waitsForConnectivity = false
+    return URLSession(configuration: c)
+  }
+
   private init() {
     client = SupabaseClient(
       supabaseURL: CSConfig.supabaseURL,
       supabaseKey: CSConfig.supabasePublishableKey,
       options: SupabaseClientOptions(
         auth: .init(flowType: .implicit, emitLocalSessionAsInitialSession: true),
-        global: .init(headers: ["x-client-info": "cupseason-ios"])
+        global: .init(headers: ["x-client-info": "cupseason-ios"], session: SupabaseService.tunedSession())
       )
     )
     realtime = SupabaseClient(

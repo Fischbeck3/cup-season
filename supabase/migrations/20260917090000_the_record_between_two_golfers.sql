@@ -128,11 +128,11 @@ declare
   v_streak_who text; v_streak_n int;
   v_league text;
   v_basis constant jsonb := jsonb_build_object(
-    'season_weeks',    jsonb_build_object('basis', 'the better round against your playing number in a week you both posted', 'source', 'v_rounds_ranked'),
+    'season_weeks',    jsonb_build_object('basis', 'the better round against your playing HCP in a week you both posted', 'source', 'v_rounds_ranked'),
     'clashes',         jsonb_build_object('basis', 'the weekly clash the season opened and settled',                        'source', 'week_clashes'),
-    'played_together', jsonb_build_object('basis', 'the better card against your own number on a day you were both out',    'source', 'round_players'),
-    'live_games',      jsonb_build_object('basis', 'the better card against your own number in a round you both scored live','source', 'live_rounds'),
-    'duels',           jsonb_build_object('basis', 'a Ryder duel, settled',                                                 'source', 'event_duels'),
+    'played_together', jsonb_build_object('basis', 'the better card against your playing HCP on a day you were both out',    'source', 'round_players'),
+    'live_games',      jsonb_build_object('basis', 'the better card against your playing HCP in a round you both scored live','source', 'live_rounds'),
+    'duels',           jsonb_build_object('basis', 'a Ryder clash, settled',                                                 'source', 'event_duels'),
     'callouts',        jsonb_build_object('basis', 'a head-to-head with a field of two',                                    'source', 'event_duels'));
 begin
   -- the null case answers before the auth check, so a catalogue self-check can

@@ -456,8 +456,19 @@ final class LiveRoundStore {
       state.course.parsCourse = course.id
       state.course.note = nil
     }
+    // OE-4 / R-N · THE BOOK FIRST, THE NETWORK UNDERNEATH. Three sequential
+    // reads used to run before the phone's own card was consulted, so a golfer
+    // on one bar scored against `LiveCourseCard.postParStd` — a fabricated
+    // par-72 template — while they waited. The kept card is drawn immediately
+    // and the server's answer, which is the authority and may be newer,
+    // replaces it when it lands.
+    if let saved = await repo.savedCourseHoles(courseId: course.id, teeName: tee.tee_name,
+                                               rating: tee.course_rating, want: state.liveHoles) {
+      state.course.load(holes: saved, playing: state.liveHoles)
+    }
     await ScheduleService().cacheCourse(course.id)
-    if let rows = await repo.courseHoles(courseId: course.id, teeName: tee.tee_name, want: state.liveHoles) {
+    if let rows = await repo.courseHoles(courseId: course.id, teeName: tee.tee_name,
+                                         rating: tee.course_rating, want: state.liveHoles) {
       state.course.load(holes: rows, playing: state.liveHoles)
     }
   }

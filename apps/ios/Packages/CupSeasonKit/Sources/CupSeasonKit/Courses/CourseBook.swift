@@ -130,9 +130,37 @@ public struct CourseBook: Codable, Sendable, Equatable, Identifiable {
   /// "Papago · 3 tees" — `CourseHit.subline`'s shape.
   public var subline: String { (place.isEmpty ? "" : place + " · ") + "\(tees.count) tee\(tees.count == 1 ? "" : "s")" }
 
-  /// The tee a golfer most likely wants first: the longest 18 with a rating.
+  /// The tee a golfer most likely wants first: the LONGEST 18.
+  ///
+  /// OE-3 / NW-2 · this was `tees.first { holesCount == 18 }` — the first
+  /// 18-hole tee in whatever order the fill happened to leave. Both fill paths
+  /// sort by `course_rating desc` (`my_course_books` orders
+  /// `number_of_holes desc, course_rating desc, tee_name`), and a women's
+  /// rating off the same tee is HIGHER than a men's, so "the first 18" was
+  /// systematically a women's tee: **seven of seven** books on the owner's own
+  /// phone opened on one, on the screen R-N exists for. Nothing on the golfer
+  /// card carries a gender, so there is nothing to match a golfer against —
+  /// the book therefore does what this comment always claimed and takes the
+  /// longest, which is a fact about the COURSE rather than a guess about the
+  /// person reading it.
   public var defaultTee: CourseBookTee? {
-    tees.first { ($0.holesCount ?? 18) == 18 } ?? tees.first
+    let full = tees.filter { ($0.holesCount ?? 18) == 18 }
+    return CourseBook.longest(full.isEmpty ? tees : full)
+  }
+
+  /// The longest tee in a pool.
+  ///
+  /// `keep()`'s write-through has no yardage to carry (`api_course_tees` does
+  /// not return one), so a book filled only that way can have none at all. In
+  /// that case the pool keeps its order minus the ONE bias we know is in it:
+  /// a women's row is not preferred over a men's one by a sort that only ever
+  /// ranked them by rating. It is not a claim about the golfer; it is the
+  /// removal of a claim the ordering was making on its own.
+  static func longest(_ pool: [CourseBookTee]) -> CourseBookTee? {
+    if let byYards = pool.filter({ ($0.yards ?? 0) > 0 }).max(by: { ($0.yards ?? 0) < ($1.yards ?? 0) }) {
+      return byYards
+    }
+    return pool.first { $0.gender != "female" } ?? pool.first
   }
 
   /// The book as a search row, so an offline picker draws the same component
@@ -144,11 +172,29 @@ public struct CourseBook: Codable, Sendable, Equatable, Identifiable {
                                          number_of_holes: $0.holesCount) })
   }
 
-  public func tee(named name: String?, holes want: Int? = nil) -> CourseBookTee? {
-    if let want {
-      if let exact = tees.first(where: { $0.teeName == name && $0.holesCount == want }) { return exact }
+  /// The tee that was PICKED, and nothing else. A miss returns nil.
+  ///
+  /// NW-3 · this ended `?? defaultTee`, so a tee renamed on the server, typed
+  /// by hand, or simply nil handed back the DEFAULT tee's pars and stroke
+  /// indexes as though they were the picked tee's — silently, with
+  /// `CourseBookCopy.noCard` never firing because a card *was* found. Stroke
+  /// indexes allocate strokes in Match Play, Skins and Wolf, so a card off the
+  /// wrong tee is worse than no card at all; and this file's own law at the
+  /// top already says pars and stroke indexes "return nil, never a guess".
+  ///
+  /// `rating` separates two tees that share a name — Palo Verde carries a
+  /// men's `Back` and a women's `Back` — which a name alone cannot do.
+  public func tee(named name: String?, holes want: Int? = nil, rating: Double? = nil) -> CourseBookTee? {
+    guard let name, !name.isEmpty else { return nil }
+    var pool = tees.filter { $0.teeName == name }
+    guard !pool.isEmpty else { return nil }
+    if let want, pool.contains(where: { $0.holesCount == want }) {
+      pool = pool.filter { $0.holesCount == want }
     }
-    return tees.first { $0.teeName == name } ?? defaultTee
+    if let rating, let exact = pool.first(where: { $0.rating == rating }) { return exact }
+    // Same name, no rating to separate them: the longest, never the sort's
+    // own first (see `longest`). Still the PICKED name — never another tee.
+    return CourseBook.longest(pool)
   }
 
   public func touched(_ now: Date = Date()) -> CourseBook {

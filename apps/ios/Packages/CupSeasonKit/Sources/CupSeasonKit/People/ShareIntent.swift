@@ -93,7 +93,7 @@ public enum ShareIntent: String, Sendable, CaseIterable {
     case .person:
       let who = (name?.trimmingCharacters(in: .whitespaces)).flatMap { $0.isEmpty ? nil : $0 }
       return (who.map { "\($0) wants you in their golf." } ?? "Come and play.")
-        + " Cup Season keeps score for a group of friends — every round, against everyone’s own number."
+        + " Cup Season keeps score for a group of friends — every round, against everyone’s playing HCP."
     case .plan:
       let where_ = (course?.trimmingCharacters(in: .whitespaces)).flatMap { $0.isEmpty ? nil : $0 }
       let when = (day?.trimmingCharacters(in: .whitespaces)).flatMap { $0.isEmpty ? nil : $0 }

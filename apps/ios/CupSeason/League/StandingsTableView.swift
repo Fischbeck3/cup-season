@@ -19,7 +19,7 @@ struct StandingsTableView: View {
     let teams = model.teams
     let solo = teams.first?.solo ?? false
     VStack(alignment: .leading, spacing: 10) {
-      StoryLine(story: model.story)
+      StoryLine(story: model.story, viewer: model.myTeamId)
       if model.isComplete { RoomMini("See how it ended") { router.open(.ceremony) } }
       VStack(spacing: 0) {
         // the column heads mean nothing once the columns stack (accessibility sizes) — each row says its own
@@ -100,7 +100,13 @@ struct StandingsTableView: View {
               // D258 · `Jerecho Fisch…` at the DEFAULT type size, in the one
               // column a golfer reads to find himself. A name wraps; it is
               // never cut, and it is never shrunk below the 11pt floor either.
-              Text(t.name).font(CSFont.subhead.weight(i == 0 ? .semibold : .regular)).foregroundStyle(cs.ink)
+              // DEF-3 · the table is where a golfer looks to find HIMSELF, and
+              // it was the one surface still calling him by his full name while
+              // the clash card directly above said `you`. The row marks the
+              // viewer the way the climb always has — `You · <name>` — so the
+              // name is still there for anyone reading over his shoulder.
+              Text(StandingsStory.rowName(t, viewer: model.myTeamId))
+                .font(CSFont.subhead.weight(i == 0 ? .semibold : .regular)).foregroundStyle(cs.ink)
                 .lineLimit(ax ? nil : 2).fixedSize(horizontal: false, vertical: true)
               Text((model.seedOf(t.id).map { "SEED \($0) · " } ?? "") + (solo ? "\(t.sub) ROUND\(t.sub == 1 ? "" : "S")" : "CAPT. \(t.cap.uppercased())"))
                 .font(CSFont.label).tracking(0.8).foregroundStyle(cs.dimText)
@@ -133,7 +139,7 @@ struct StandingsTableView: View {
     }
     .buttonStyle(.plain)
     // "1st, Galen, 27 points, up 1 this week" — the row in one breath
-    .accessibilityLabel("\(CSCopy.ordinal(i + 1)), \(t.name), \(CSCopy.points(t.pts)) points" + (mv.map { ", \($0.long)" } ?? ""))
+    .accessibilityLabel("\(CSCopy.ordinal(i + 1)), \(StandingsStory.rowName(t, viewer: model.myTeamId)), \(CSCopy.points(t.pts)) points" + (mv.map { ", \($0.long)" } ?? ""))
     .accessibilityHint(solo ? "Opens their rounds" : "Opens the squad receipt")
   }
 
@@ -161,26 +167,32 @@ struct StandingsTableView: View {
 struct StoryLine: View {
   @Environment(\.cs) private var cs
   let story: StandingsStory
+  /// DEF-3 · the viewer's own rung, so the sentence says `You` where the clash
+  /// card above it already does. nil outside a room the viewer sits in.
+  var viewer: UUID? = nil
   var body: some View {
     if case .none = story { EmptyView() } else {
       text.font(CSFont.sentence).foregroundStyle(cs.ink).fixedSize(horizontal: false, vertical: true)
-        .accessibilityLabel(story.text)
+        .accessibilityLabel(story.text(viewer: viewer))
     }
   }
   /// F-9 · a SOLO row's name is a person, and a story line is not live. The
   /// squad palette dresses a squad; a golfer's name in a sentence takes the
   /// sentence's ink and only the weight changes (L-25: ember means live).
   private func name(_ t: Team) -> Text {
-    Text(t.name).font(CSFont.sentenceBold).foregroundStyle(t.solo ? cs.ink : cs.squad(t.ci))
+    Text(StandingsStory.displayName(t, viewer: viewer))
+      .font(CSFont.sentenceBold).foregroundStyle(t.solo ? cs.ink : cs.squad(t.ci))
   }
+  /// The copula the second person needs and the third person elides.
+  private func be(_ t: Team) -> String { StandingsStory.isYou(t, viewer) ? "are " : "" }
   private var text: Text {
     switch story {
     case .none: Text("")
-    case .outFront(let a): name(a) + Text(" out front — waiting on a challenger.")
+    case .outFront(let a): name(a) + Text(" \(be(a))out front — waiting on a challenger.")
     case .deadHeat(let a, let b, let pts): Text("Dead heat — ") + name(a) + Text(" and ") + name(b) + Text(" level at \(CSCopy.points(pts)).")
     case .lead(let a, let b, let m, let back):
-      name(a) + Text(" \(StandingsStory.leads(a)) by ") + Text(CSCopy.points(m)).font(CSFont.sentenceBold)
-        + Text(". ") + name(b) + Text(" \(back).")
+      name(a) + Text(" \(StandingsStory.leads(a, viewer: viewer)) by ") + Text(CSCopy.points(m)).font(CSFont.sentenceBold)
+        + Text(". ") + name(b) + Text(" \(be(b))\(back).")
     }
   }
 }

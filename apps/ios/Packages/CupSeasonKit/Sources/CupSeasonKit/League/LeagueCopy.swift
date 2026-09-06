@@ -380,10 +380,12 @@ public enum LeagueCopy {
     return ("Next up · \(month)", text)
   }
 
-  /// `#lineSplit` (11943).
-  public static func lineSplit(total: Int, payout: [Int]) -> String {
-    let t = PotMath.trioDollars(total: total, payout: payout)
-    return "CHAMPS \(PotMath.dollars(t.champ)) · RUNNER-UP \(PotMath.dollars(t.runner)) · POINTS KING \(PotMath.dollars(t.king))"
+  /// `#lineSplit` (11943). M1 · cents in, the settlement's own split, and
+  /// `PotMath.money` so a half-dollar prints as one instead of being rounded
+  /// into a figure nobody will be paid.
+  public static func lineSplit(potCents: Int, payout: [Int]) -> String {
+    let t = PotMath.trioCents(potCents: potCents, payout: payout)
+    return "CHAMPS \(PotMath.money(t.champ)) · RUNNER-UP \(PotMath.money(t.runner)) · POINTS KING \(PotMath.money(t.king))"
   }
 
   /// The standings empty state (4516–4518).

@@ -1964,12 +1964,26 @@ else {
   /* A · the comparison frames. Each is a POSSESSIVE + "number" behind a word
      that can only be the arithmetic; the index sense ("builds your number",
      "your number goes live") matches none of them. */
+  /* NW-4 · THE POSSESSIVE DOES NOT HAVE TO SIT ON THE NOUN. Every frame
+     required `your` to be directly followed by `number`, so ONE intervening
+     adjective walked straight past: `against your own number` and `your
+     playing number` were invisible to this check, and there were fifteen of
+     them live on both clients and in `head_to_head()` — the comparison itself,
+     the exact arithmetic R-M renamed, including the sentence that explains the
+     scoring model to a golfer joining a league. `(?:\w+\s+){0,2}` tolerates
+     one or two words between the determiner and the noun.
+
+     It cannot catch the OPPONENT'S-SCORE sense — `the number to beat` — which
+     the ruling keeps: that phrase has no possessive at all, and the self-test
+     below pins every live instance of it. */
+  const POSS = '(your|their|her|his|its|my)\\s+(?:\\w+\\s+){0,2}';
   const FRAMES = [
-    /\b(beat|beats|beating|torched|torches|torching)\s+(your|their|her|his|its|my)\s+numbers?\b/i,
-    /\b(over|under|vs\.?|versus|against|on|to)\s+(your|their|her|his|its|my)\s+numbers?\b/i,
-    /\bplayed\s+to\s+(your|their|her|his|its|my)\s+numbers?\b/i,
-    /\b\d+\s?%\s+of\s+(your|their|her|his|my)\s+numbers?\b/i,
+    new RegExp(`\\b(beat|beats|beating|torched|torches|torching)\\s+${POSS}numbers?\\b`, 'i'),
+    new RegExp(`\\b(over|under|vs\\.?|versus|against|on|to)\\s+${POSS}numbers?\\b`, 'i'),
+    new RegExp(`\\bplayed\\s+to\\s+${POSS}numbers?\\b`, 'i'),
+    new RegExp(`\\b\\d+\\s?%\\s+of\\s+${POSS}numbers?\\b`, 'i'),
     /\bplaying\s+number\b/i,
+    /\b(everyone|anybody|anyone|somebody|someone|nobody)(?:'|\u2019)s\s+(?:\w+\s+){0,2}numbers?\b/i,
   ];
   const offends = t => {
     const trimmed = t.trim();
@@ -2004,8 +2018,15 @@ else {
       let m;
       while ((m = re.exec(src))) liveDefs.set(m[1].toLowerCase(), { file: f, body: m[0] });
     }
+    /* NW-1 · EVERY LIVE DEFINITION, NOT JUST THE GENERATORS. This skipped any
+       function that does not `insert into posts|push_nudges|season_adjustments`
+       — so a function that RETURNS prose was never scanned, and
+       `head_to_head()` shipped four retired words (`playing number` twice,
+       `your own number`, `a Ryder duel`) that both clients render verbatim.
+       Both clients' fallbacks had been renamed, so the page read correctly
+       today and would have started disagreeing with itself word for word the
+       moment the owner pushed. */
     for (const [name, { file, body }] of liveDefs) {
-      if (!/insert\s+into\s+(posts|push_nudges|season_adjustments)\b/i.test(body)) continue;
       const lines = body.split('\n');
       for (const s of T.sqlStrings(body)) {
         if (/raise\s+(exception|notice|warning)/i.test(lines[s.line - 1] || '')) continue;
@@ -2065,8 +2086,14 @@ else {
       'Avg vs their number', 'Scored at 95% of your number', 'Playing number',
     ];
     for (const t of probes) if (!offends(t)) hits.push(`self-test failed: §42 no longer catches ${JSON.stringify(t)}`);
+    const probes2 = ['scored against your own number', 'the better round against your playing number',
+                     'beat your own number', "against everyone's own number"];
+    for (const t of probes2) if (!offends(t)) hits.push(`self-test failed: §42 no longer catches ${JSON.stringify(t)} (NW-4)`);
+    /* the OPPONENT'S-SCORE sense, which the ruling keeps — every live instance,
+       by name, so the widened frames can never start eating it. */
     const keep = ['Beat your number', 'BEAT THEIR NUMBER', 'Your number builds itself from three posted rounds.',
-                  'That builds your number and nothing else.', 'Building your number'];
+                  'That builds your number and nothing else.', 'Building your number',
+                  'The number to beat', 'the number to beat is 31', 'THE NUMBER TO BEAT'];
     for (const t of keep) if (offends(t)) hits.push(`self-test failed: §42 caught ${JSON.stringify(t)}, which the ruling KEEPS`);
   }
 

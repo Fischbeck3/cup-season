@@ -165,18 +165,107 @@ struct BootingView: View {
   }
 }
 
+/// OE-1 · **THE BOOT THAT FAILED IS NOT AN EMPTY SCREEN.**
+///
+/// `SessionStore.reload()` is the only path into `.ready`, and it is a network
+/// read with no cache, so a cold launch on a plane — with a perfectly good
+/// Keychain session — landed here and this screen WAS the whole app. Everything
+/// the phone already held was behind it: the course books R-N put there for
+/// exactly this moment, and a live round in `LiveDisk`.
+///
+/// So when a session exists the screen carries what the phone knows on its own:
+///   · the last successful Home, from the App Group snapshot the widget already
+///     reads, under its own AS OF line — never presented as live, and its verb
+///     drops itself once the read is a day old (`DispatchSnapshot.verb`);
+///   · a door onto the courses on this phone, which needs no session at all.
+///
+/// OE-2 · and `Sign out` no longer fires on one tap. It is the only other
+/// button here, it is a hair from `Try again`, and offline it succeeds locally
+/// while leaving the golfer with an emailed code as the only way back.
 struct BootFailedView: View {
   @Environment(SessionStore.self) private var store
   @Environment(\.cs) private var cs
   let message: String
+  @State private var snapshot: DispatchSnapshot? = nil
+  @State private var courses = false
+  @State private var askSignOut = false
+
+  private var signedIn: Bool { store.session != nil }
+
   var body: some View {
-    VStack(spacing: 18) {
-      Text("Boot stalled").csEyebrow(cs.neg)
-      Text(message).font(CSFont.body).foregroundStyle(cs.ink).multilineTextAlignment(.center)
-      CSButton("Try again") { Task { await store.reload() } }
-      Button("Sign out") { Task { await store.signOut() } }.font(CSFont.subhead).foregroundStyle(cs.mut)
+    ScrollView {
+      VStack(spacing: 18) {
+        Text("Boot stalled").csEyebrow(cs.neg)
+        Text(message).font(CSFont.body).foregroundStyle(cs.ink).multilineTextAlignment(.center)
+        CSButton("Try again") { Task { await store.reload() } }
+
+        if signedIn {
+          if let s = snapshot { lastKnown(s) }
+          Button { courses = true } label: {
+            HStack(spacing: 8) {
+              Text("Courses on your phone").font(CSFont.subhead).foregroundStyle(cs.brand)
+              Text("›").font(CSFont.subhead).foregroundStyle(cs.brand)
+            }
+            .frame(maxWidth: .infinity, minHeight: 44)
+            .contentShape(Rectangle())
+          }
+          .buttonStyle(.plain)
+          Text("Tees, ratings, slopes and cards, saved on this phone. No signal needed.")
+            .font(CSFont.footnote).foregroundStyle(cs.dimText)
+            .multilineTextAlignment(.center).fixedSize(horizontal: false, vertical: true)
+        }
+
+        Button("Sign out") { askSignOut = true }.font(CSFont.subhead).foregroundStyle(cs.mut)
+          .padding(.top, 6)
+      }
+      .padding(28)
+      .frame(maxWidth: .infinity)
     }
-    .padding(28)
+    .background(cs.bg0.ignoresSafeArea())
+    .task { snapshot = DispatchSnapshot.read() }
+    .sheet(isPresented: $courses) { KeptCoursesSheet() }
+    // OE-2 · it names what is lost, because on this screen the golfer cannot
+    // get any of it back until they have a signal AND an email.
+    .confirmationDialog("Sign out of Cup Season?", isPresented: $askSignOut, titleVisibility: .visible) {
+      Button("Sign out", role: .destructive) { Task { await store.signOut() } }
+      Button("Stay signed in", role: .cancel) { }
+    } message: {
+      Text("Signing back in needs a code emailed to you, so it needs a signal. Try again first if you might not have one.")
+    }
+  }
+
+  /// The last Home this phone actually loaded. L-32: it says when it is from,
+  /// and it never wears a door — the verb is the lead's own act and offering it
+  /// off a read that may be a day old is the lie L-44 forbids, which is why
+  /// `DispatchSnapshot.verb` withholds it once stale.
+  @ViewBuilder private func lastKnown(_ s: DispatchSnapshot) -> some View {
+    VStack(alignment: .leading, spacing: 8) {
+      Text(s.asOf()).csEyebrow()
+      if let row = s.seasonRow {
+        Text(row).font(CSFont.monoSmall).csTabular().foregroundStyle(cs.mut)
+          .fixedSize(horizontal: false, vertical: true)
+      }
+      if let eyebrow = s.leadEyebrow { Text(eyebrow).csEyebrow() }
+      if let head = s.leadHeadline {
+        Text(head).font(CSFont.sentence).foregroundStyle(cs.ink)
+          .fixedSize(horizontal: false, vertical: true)
+      }
+      if !s.facts.isEmpty {
+        VStack(alignment: .leading, spacing: 4) {
+          ForEach(Array(s.facts.enumerated()), id: \.offset) { _, f in
+            HStack(alignment: .firstTextBaseline, spacing: 8) {
+              Text(f.label).font(CSFont.label).tracking(1.0).foregroundStyle(cs.dimText)
+              Text(f.value).font(CSFont.monoSmall).csTabular().foregroundStyle(cs.ink)
+            }
+          }
+        }
+        .padding(.top, 2)
+      }
+    }
+    .frame(maxWidth: .infinity, alignment: .leading)
+    .padding(14)
+    .background(cs.bg1, in: RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous))
+    .overlay(RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous).stroke(cs.line, lineWidth: 1))
   }
 }
 

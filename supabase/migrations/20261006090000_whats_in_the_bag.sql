@@ -142,7 +142,19 @@ begin
 
   -- L-37 · the Tour Card's gate, and nothing else. A bag is never more public
   -- than the card that carries it, so there is one predicate for both.
-  if not public.can_see_profile_board(t) then
+  --
+  -- P1f · AND THE CARD IS GONE WHEN THE GOLFER IS. `delete_account`
+  -- (20260901140000) TOMBSTONES rather than deletes — name, handle, city,
+  -- marker and ghin nulled, discoverable set to 'nobody', deleted_at stamped —
+  -- and `tour_card` refuses the row outright on that stamp (20260830240000:61).
+  -- `can_see_profile_board` has no deleted_at clause: 'nobody' closes only the
+  -- STRANGER branch, so the buddy, shared-league and shared-event branches all
+  -- still returned true and a departed golfer's fourteen clubs, sideline, ball
+  -- and "since" line stayed readable by every former league mate. R-O's rule
+  -- is that a bag is never more public than the card that carries it, and the
+  -- card is not public at all.
+  if not public.can_see_profile_board(t)
+     or not exists (select 1 from profiles pr where pr.id = t and pr.deleted_at is null) then
     return jsonb_build_object('visible', false);
   end if;
 
@@ -498,6 +510,41 @@ comment on function public.save_bag(jsonb, jsonb, text, boolean) is
 
 revoke all on function public.save_bag(jsonb, jsonb, text, boolean) from public, anon;
 grant execute on function public.save_bag(jsonb, jsonb, text, boolean) to authenticated;
+
+-- ---------------------------------------------------------------------------
+-- 4b · P1f · the bag goes with the card, and it goes at the tombstone
+-- ---------------------------------------------------------------------------
+--
+-- `delete_account` cannot delete the profile row — the footprint (rounds,
+-- adjustments, draft picks, a live round somebody else was in) holds it — so it
+-- stamps `deleted_at` and nulls the identity. Nothing then removes `bag_items`,
+-- and while `bag_of` now refuses to read them (above), rows a golfer asked to
+-- have deleted should not simply sit there.
+--
+-- It is a TRIGGER rather than a line inside `delete_account` on purpose:
+-- 20260901140000 is APPLIED and cannot be edited (CLAUDE.md rule 2), and a
+-- fresh `create or replace` of a 150-line SECURITY DEFINER function to add one
+-- statement is a large risk for a small fix. This fires on the tombstone
+-- itself, so every path that sets `deleted_at` — today's and tomorrow's — takes
+-- the bag with it.
+create or replace function public.bag_follows_the_card()
+returns trigger
+language plpgsql
+security definer
+set search_path to 'public'
+as $function$
+begin
+  if new.deleted_at is not null and old.deleted_at is null then
+    delete from bag_items where profile_id = new.id;
+  end if;
+  return new;
+end $function$;
+
+revoke all on function public.bag_follows_the_card() from public, anon;
+
+drop trigger if exists bag_follows_the_card on public.profiles;
+create trigger bag_follows_the_card after update of deleted_at on public.profiles
+  for each row execute function public.bag_follows_the_card();
 
 -- ---------------------------------------------------------------------------
 -- 5 · self-check — reads the catalogue only, mutates nothing (L-05)

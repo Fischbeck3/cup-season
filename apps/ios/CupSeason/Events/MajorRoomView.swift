@@ -1,6 +1,6 @@
 // Cup Season — the Major's championship room (`renderMajorRoom` 12374–12529,
 // D42–D46, gameplay-modes §10). One window, the whole field on one board,
-// best 18-hole card vs your own number. Speaks UNDER/OVER in words; every
+// best 18-hole card vs your playing HCP. Speaks UNDER/OVER in words; every
 // figure taps to its round (§16). Exhibition rows are on the board and never
 // paid (D44).
 
@@ -55,7 +55,7 @@ struct MajorRoomView: View {
     // D252 · **the jug, defined once** (TERMINOLOGY §1 sentence 16). It is the
     // one piece of the Major's private language the design kept, and the price
     // of keeping a word is saying what it means, here, at first contact.
-    RoomFine("The jug — the trophy this one is played for. Your best 18-hole card inside the window, scored against your own number. Post as many as the weekend allows; the best one stands.")
+    RoomFine("The jug — the trophy this one is played for. Your best 18-hole card inside the window, scored against your playing HCP. Post as many as the weekend allows; the best one stands.")
 
     // enter / organizer controls
     let mine = room.majorBoard.contains { $0.profileId == me }
@@ -178,7 +178,7 @@ struct MajorRoomView: View {
     // the fine print — chosen, not discovered (D45)
     EventFineCard(markdown: MajorMath.finePrint(buyIn: f.buyIn, potSplit: ev.pot_split)
       .replacingOccurrences(of: "The fine print.", with: "**The fine print.**")
-      .replacingOccurrences(of: "your own number", with: "*your own* number")
+      .replacingOccurrences(of: "your playing HCP", with: "*your playing HCP*")
       .replacingOccurrences(of: "play exhibition", with: "play **exhibition**"))
       .padding(.top, 8)
 

@@ -160,13 +160,22 @@ struct HomeView: View {
             // rounds from your buddies" over a dead network is a claim about
             // the golfer's buddies made from a read that never answered.
             let e = EmptyRoot.failedRead()
-            A11yStack(alignment: .leading, rowAlignment: .firstTextBaseline, spacing: 4) {
-              Text(e.head).font(CSFont.footnote).foregroundStyle(cs.mut)
-              Button { Task { await vm.load(me: store.me, key: loadKey) } } label: {
-                Text("Try again.").font(CSFont.footnote).foregroundStyle(cs.brand).a11yHitSlop()
-              }
-              .buttonStyle(.plain)
+            // SB-1 / OE-5 · the head and its door are ONE SENTENCE, so they lay
+            // out as one wrapping paragraph and never as two views on a shared
+            // baseline. In an `A11yStack` — an `HStack` at every reading size —
+            // a head that wraps to two lines leaves the door pinned to the
+            // FIRST baseline, and the golfer reads the sentence out of order.
+            // Composed as a single `Text`, it wraps as prose, stays one tap
+            // target, and VoiceOver speaks it as one element.
+            Button { Task { await vm.load(me: store.me, key: loadKey) } } label: {
+              (Text(e.head).foregroundStyle(cs.mut) + Text(" ") + Text("Try again.").foregroundStyle(cs.brand))
+                .font(CSFont.footnote)
+                .multilineTextAlignment(.leading)
+                .fixedSize(horizontal: false, vertical: true)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .a11yHitSlop()
             }
+            .buttonStyle(.plain)
             .padding(.top, 4)
           } else if buckets.isEmpty {
             // QB-05 · **NEVER "add some buddies" TO A GOLFER WITH A ROSTER.**
@@ -181,15 +190,22 @@ struct HomeView: View {
             // With a season, the move is his season's own roster; the buddies
             // door stays for a golfer who genuinely has nobody.
             let roster = EmptyRoot.wireEmpty(me: me)
-            A11yStack(alignment: .leading, rowAlignment: .firstTextBaseline, spacing: 4) {
-              Text(roster.head).font(CSFont.footnote).foregroundStyle(cs.mut)
-              Button {
-                if let id = roster.leagueId { openCompetition(id, .table) } else { openGolfers() }
-              } label: {
-                Text(roster.door).font(CSFont.footnote).foregroundStyle(cs.brand).a11yHitSlop()
-              }
-              .buttonStyle(.plain)
+            // SB-1 / OE-5 · one sentence, one paragraph. The no-season branch
+            // is a 44-character head and an 18-character door; they cannot
+            // share one 350pt line at the DEFAULT type size, so the row form
+            // printed `No rounds from your buddies yet. Post   add some
+            // buddies. / one, or`. See the failed-read branch above.
+            Button {
+              if let id = roster.leagueId { openCompetition(id, .table) } else { openGolfers() }
+            } label: {
+              (Text(roster.head).foregroundStyle(cs.mut) + Text(" ") + Text(roster.door).foregroundStyle(cs.brand))
+                .font(CSFont.footnote)
+                .multilineTextAlignment(.leading)
+                .fixedSize(horizontal: false, vertical: true)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .a11yHitSlop()
             }
+            .buttonStyle(.plain)
             .padding(.top, 4)
           } else {
             ForEach(buckets) { b in
