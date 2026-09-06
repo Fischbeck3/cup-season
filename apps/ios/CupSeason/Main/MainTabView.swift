@@ -403,10 +403,17 @@ struct MainTabView: View {
       // IOS-032 · the two pages wave 5 built open from a NAME, and a name has
       // to be tapped. A page nobody can photograph is a page nobody has looked
       // at, so the hatch takes the first buddy it can find.
+      // `-cs_dev_open person me` opens MY OWN person page, the way
+      // `-cs_dev_open ryder <uuid>` takes an argument. It exists so a state
+      // that is somebody's own data — the bag — can be photographed without
+      // dressing a real buddy in clubs he does not own (D261).
       case "person", "h2h":
         tab = .golfers
         golfersPath = NavigationPath()
-        if let opp = await firstBuddy() {
+        let mine = i + 2 < a.count && a[i + 2] == "me" ? store.me?.profile?.id : nil
+        var who = mine
+        if who == nil { who = await firstBuddy() }
+        if let opp = who {
           golfersPath.append(a[i + 1] == "person" ? GolfersRoute.person(opp) : GolfersRoute.headToHead(opp))
         }
       case "record": tab = .you; youPath.append(YouRoute.record)

@@ -62,6 +62,11 @@ struct PersonPage: View {
       }
       .padding(20)
     }
+    // `-cs_dev_bottom` — the same door Home, You and Golfers already have.
+    // The bag block sits below the card, the career table and the rivalry, so
+    // the one part of this page a screenshot most needs was the one part a
+    // simulator could not reach without a finger.
+    .defaultScrollAnchor(CSDevHatch.bottom ? .bottom : .top)
     .background(cs.bg0)
     // The bar STAYS. A pushed page with `toolbar(.hidden)` has no back button,
     // and the first simulator screenshot of this page was a golfer's card with
