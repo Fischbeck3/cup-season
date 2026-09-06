@@ -48,7 +48,7 @@ final class Presenter {
   var showIntent = false
   /// Intent 1's fork: right now, or a day this week.
   var showWhenFork = false
-  /// R-F · the golfer picker for "I want to beat one guy", then the length.
+  /// R-F · the golfer picker for "Go head to head", then the length.
   var showPickAGolfer = false
   var length: TagCandidate?
   /// D237 · the callout sheet, and the recipient's door.

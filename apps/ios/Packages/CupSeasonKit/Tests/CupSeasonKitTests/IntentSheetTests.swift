@@ -25,7 +25,10 @@ import Foundation
     #expect(StartIntent.playWithFriends.line == "Play with my friends")
     #expect(StartIntent.runASeason.line == "Run a season")
     #expect(StartIntent.thisWeekend.line == "We're playing this weekend")
-    #expect(StartIntent.beatOneGuy.line == "I want to beat one guy")
+    #expect(StartIntent.headToHead.line == "Go head to head")
+    // R-J · the retired phrasing may not come back on any of the four.
+    #expect(StartIntent.peers.allSatisfy { !$0.line.lowercased().contains("beat one guy") })
+    #expect(StartIntent.everyString.allSatisfy { !$0.lowercased().contains("i want to") })
     #expect(StartIntent.modifierLine == "Put money on it")
     #expect(StartIntent.codeDoor == "I have a code")
   }
@@ -33,7 +36,13 @@ import Foundation
   @Test func theGlossesAreTheDesignsOwn() {
     #expect(StartIntent.playWithFriends.gloss == "a round with whoever is around")
     #expect(StartIntent.runASeason.gloss == "weeks of golf that add up to a table")
-    #expect(StartIntent.beatOneGuy.gloss == "you and him, whatever length you like")
+    #expect(StartIntent.headToHead.gloss == "the two of you, at whatever length you like")
+    // R-J's own reason, as a test: the fourth door is addressed to every
+    // golfer in a mixed league, so no gendered pronoun survives on the sheet.
+    #expect(StartIntent.everyString.allSatisfy { s in
+      !s.split(whereSeparator: { !$0.isLetter }).map(String.init)
+        .contains(where: { ["him", "his", "her", "hers", "guy", "guys"].contains($0.lowercased()) })
+    })
     #expect(StartIntent.modifierGloss == "add a pot to any of the above")
   }
 
@@ -87,7 +96,7 @@ import Foundation
     #expect(StartIntent.playWithFriends.resolution == .whenFork)
     #expect(StartIntent.runASeason.resolution == .season)
     #expect(StartIntent.thisWeekend.resolution == .weekend)
-    #expect(StartIntent.beatOneGuy.resolution == .pickAGolfer)
+    #expect(StartIntent.headToHead.resolution == .pickAGolfer)
     // Every peer resolves somewhere, and no two resolve to the same place.
     let all = StartIntent.peers.map(\.resolution)
     #expect(Set(all).count == all.count)

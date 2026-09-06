@@ -56,6 +56,17 @@ struct ScheduledRoundSheet: View {
         chip(TeeTime.chip(d.teeTime), fg: cs.ink, bg: cs.bg2, border: cs.line)
         if let w = vm.weather { chip(w.line, fg: cs.mut, bg: cs.gold.opacity(0.12), border: cs.gold.opacity(0.32)) }
       }
+      // R-K / D256 · WHAT THIS ROUND IS WORTH. The server sends the cap and
+      // the month's counters (`round_detail.worth`); the sentence is produced
+      // once, in `RoundWorth`, and rendered by both clients. The subject is
+      // "This round" and not the day and the course, because the header above
+      // already carries both and a card that says one fact twice is DEF-2
+      // (L-34). A database without the migration sends no `worth` key, and
+      // nothing renders in its place (L-44).
+      ForEach(Array(d.worthLines.enumerated()), id: \.offset) { _, worth in
+        Text(worth).font(CSFont.footnote).foregroundStyle(cs.mut)
+          .fixedSize(horizontal: false, vertical: true)
+      }
       if let n = d.note, !n.isEmpty { Text("“\(n)”").font(CSFont.sentence).italic().foregroundStyle(cs.ink) }
       if !d.mine, let r = RivalryTag.of(d.profileId, rivals: vm.rivals) {
         (Text("◇ ") + Text(r.text).foregroundStyle(cs.gold) + Text(" · ") + Text("one more round.").italic())

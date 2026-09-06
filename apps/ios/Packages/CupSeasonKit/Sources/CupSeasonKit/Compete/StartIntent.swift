@@ -15,6 +15,15 @@
 // never a competition (L-11, D46 — two of two organisers in the audit met a $75
 // stake they never chose), so it renders below a hairline, as a footer line.
 //
+// R-J · THE FOURTH INTENT IS "Go head to head". `I want to beat one guy` is
+// retired everywhere, on both clients: it was the only one of the four that
+// began "I want to", it read as cringe, and it was the one sentence not
+// addressed to every golfer in a mixed league. The replacement is four verb
+// phrases in one register — and "head to head" is the product's OWN noun for
+// the record between two golfers (`head_to_head`, the page, the rivalry line),
+// so the door and the thing it builds finally share a word. The retired
+// phrasing is preflight 27 §4.34 now; it cannot come back quietly.
+//
 // Nothing is minted by opening this sheet.
 
 import Foundation
@@ -26,13 +35,15 @@ public enum StartIntent: String, Sendable, Equatable, CaseIterable, Identifiable
   case runASeason
   /// One day, and a name for it.
   case thisWeekend
-  /// You and him, at a length he picks in one more tap (R-F).
-  case beatOneGuy
+  /// The two of you, at a length picked in one more tap (R-F). The door and
+  /// the record it builds share a word: `head_to_head` is already this
+  /// product's noun for what two golfers have between them (R-J).
+  case headToHead
 
   public var id: String { rawValue }
 
   /// The four PEERS, in the order the sheet draws them.
-  public static let peers: [StartIntent] = [.playWithFriends, .runASeason, .thisWeekend, .beatOneGuy]
+  public static let peers: [StartIntent] = [.playWithFriends, .runASeason, .thisWeekend, .headToHead]
 
   /// The control's own words.
   public var line: String {
@@ -40,7 +51,7 @@ public enum StartIntent: String, Sendable, Equatable, CaseIterable, Identifiable
     case .playWithFriends: return "Play with my friends"
     case .runASeason:      return "Run a season"
     case .thisWeekend:     return "We're playing this weekend"
-    case .beatOneGuy:      return "I want to beat one guy"
+    case .headToHead:      return "Go head to head"
     }
   }
 
@@ -52,7 +63,7 @@ public enum StartIntent: String, Sendable, Equatable, CaseIterable, Identifiable
     // L-32 · "a name for it", never "one trophy": a weekend mints no trophy
     // (D240), and a door may not sell what the object does not open.
     case .thisWeekend:     return "one day, and a name for it"
-    case .beatOneGuy:      return "you and him, whatever length you like"
+    case .headToHead:      return "the two of you, at whatever length you like"
     }
   }
 
@@ -119,7 +130,7 @@ public enum StartIntent: String, Sendable, Equatable, CaseIterable, Identifiable
     case .playWithFriends: return .whenFork
     case .runASeason:      return .season
     case .thisWeekend:     return .weekend
-    case .beatOneGuy:      return .pickAGolfer
+    case .headToHead:      return .pickAGolfer
     }
   }
 

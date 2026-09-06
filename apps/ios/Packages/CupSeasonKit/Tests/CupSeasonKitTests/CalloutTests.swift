@@ -2,7 +2,7 @@ import Testing
 import Foundation
 @testable import CupSeasonKit
 
-/// D237 / R-F · "I want to beat one guy" asks the length, and every length lands
+/// D237 / R-F / R-J · "Go head to head" asks the length, and every length lands
 /// on an object that already exists.
 ///
 /// Three properties, and all three are the owner's ruling rather than taste:
@@ -198,7 +198,7 @@ import Foundation
     #expect(CalloutService.notYet(missing))
     #expect(!CalloutService.notYet(refused))
     // QB-01 · never "the latest update", and never the private noun in the
-    // failure — the golfer chose "I want to beat one guy" and has never met
+    // failure — the golfer chose "Go head to head" and has never met
     // the word "callout".
     #expect(!CalloutService.notYetLine.lowercased().contains("update"))
     #expect(!CalloutService.notYetLine.lowercased().contains("callout"))

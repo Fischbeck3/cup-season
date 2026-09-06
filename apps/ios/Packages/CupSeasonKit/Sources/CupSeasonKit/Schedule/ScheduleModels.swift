@@ -482,12 +482,18 @@ public struct RoundDetail: Sendable, Equatable {
   public let course: Course?
   public let rsvp: [Rsvp]
   public let comments: [Comment]
+  /// R-K / D256 · what this round is worth, one row per season it would count
+  /// in. Empty on a database that predates `round_detail` v2 and on a round
+  /// that counts nowhere — in both cases the sheet prints no worth line, which
+  /// is the honest screen either way (L-44).
+  public let worth: [RoundWorth.Counters]
 
   public init(id: UUID, profileId: UUID?, ownerName: String?, ownerMarker: String?, mine: Bool, taggedMe: Bool, playOn: String?, teeTime: String?,
-              note: String?, courseLabel: String?, courseId: String?, myRsvp: String?, course: Course?, rsvp: [Rsvp], comments: [Comment]) {
+              note: String?, courseLabel: String?, courseId: String?, myRsvp: String?, course: Course?, rsvp: [Rsvp], comments: [Comment],
+              worth: [RoundWorth.Counters] = []) {
     self.id = id; self.profileId = profileId; self.ownerName = ownerName; self.ownerMarker = ownerMarker; self.mine = mine; self.taggedMe = taggedMe
     self.playOn = playOn; self.teeTime = teeTime; self.note = note; self.courseLabel = courseLabel; self.courseId = courseId; self.myRsvp = myRsvp
-    self.course = course; self.rsvp = rsvp; self.comments = comments
+    self.course = course; self.rsvp = rsvp; self.comments = comments; self.worth = worth
   }
 
   public init?(_ v: JSONValue) {
@@ -503,7 +509,8 @@ public struct RoundDetail: Sendable, Equatable {
               rsvp: (v["rsvp"]?.array ?? []).map { Rsvp(profileId: $0["profile_id"]?.string.flatMap(UUID.init), name: $0["name"]?.string ?? "A golfer",
                                                         marker: $0["marker"]?.string, status: $0["status"]?.string) },
               comments: (v["comments"]?.array ?? []).map { Comment(name: $0["name"]?.string ?? "", marker: $0["marker"]?.string, body: $0["body"]?.string ?? "",
-                                                                   mine: $0["mine"]?.bool ?? false, at: $0["at"]?.string) })
+                                                                   mine: $0["mine"]?.bool ?? false, at: $0["at"]?.string) },
+              worth: (v["worth"]?.array ?? []).compactMap(RoundWorth.Counters.init))
   }
 
   /// A `my_schedule` row stands in when `round_detail` is not live (16752).
@@ -523,6 +530,11 @@ public struct RoundDetail: Sendable, Equatable {
   public var hostName: String { ownerName.map(CSBands.fn1) ?? "the host" }
   public var inCount: Int { rsvp.filter { $0.status == "in" }.count }
   public var title: String { playOn.map(ScheduleDates.long) ?? "Round" }
+  /// R-K · the worth lines, produced once (`RoundWorth`) and rendered by both
+  /// clients. The subject is "This round" and not the day and the course: the
+  /// sheet's own header carries both, and DEF-2 is the defect filed the last
+  /// time a card said its course twice (L-34).
+  public var worthLines: [String] { RoundWorth.lines(worth) }
 }
 
 /// The `weather` function's payload (`{ ok, weather }`; `{ unavailable }` on a miss).

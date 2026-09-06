@@ -715,5 +715,26 @@ select '30 · callout_mutes is sealed, and a callout scores nothing',
          then 'FAIL — call_out must mint league_id null; a callout scores zero, always'
        else 'PASS — sealed, authenticated-only, and league_id null' end,
   'callout_mutes revoked from all · call_out / respond_callout to authenticated'
+
+-- 31 · R-K / D256 · `round_worth` is the AUTHORITY for what a round is worth,
+--     and the two client ports (`RoundWorth.gain`, `csRoundWorth`) are pinned
+--     to it by their own tests. This is the pin on the server's half: the same
+--     table the migration's header states, evaluated by the live function.
+--     Check 17 does this for cup_points and is the shape being copied.
+union all
+select '31 · what a round is worth, and it is a ceiling',
+  case when to_regclass('public.v_rounds_ranked') is null then 'PASS — schema not deployed yet'
+       when not exists (select 1 from pg_proc p join pg_namespace n on n.oid = p.pronamespace
+                         where n.nspname = 'public' and p.proname = 'round_worth')
+         then 'PASS — R-K not deployed yet'
+       when round_worth(4, 2, 6)    is distinct from 12 then 'FAIL — a slot is open: the round ADDS its points'
+       when round_worth(4, 4, 6)    is distinct from  6 then 'FAIL — full: the round BUMPS the worst counter'
+       when round_worth(4, 4, 12)   is distinct from  0 then 'FAIL — a month of top-band rounds gains nothing'
+       when round_worth(4, 4, null) is not null          then 'FAIL — full with an unknown counter has no honest answer'
+       when round_worth(null, 9, null) is distinct from 12 then 'FAIL — uncapped: every round counts'
+       when has_function_privilege('anon', 'public.round_worth(integer,integer,numeric)', 'execute')
+         then 'FAIL — round_worth is reachable by anon'
+       else 'PASS — 12 / 6 / 0 / null / 12, and no anon execute' end,
+  'round_worth(cap,used,worst) · the table in 20261001090000''s header'
 )
 select * from checks order by check_name;

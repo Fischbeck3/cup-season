@@ -1,4 +1,4 @@
-// Cup Season — "I want to beat one guy" (D237 / R-F; IA §9; CORE_FLOWS §9).
+// Cup Season — "Go head to head" (D237 / R-F / R-J; IA §9; CORE_FLOWS §9).
 //
 // The golfer, then ONE more question, and never a guess. R-F ruled the shape
 // and the words:

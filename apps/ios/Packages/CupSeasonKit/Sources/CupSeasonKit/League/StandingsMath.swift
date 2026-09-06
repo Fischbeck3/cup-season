@@ -513,18 +513,14 @@ public enum ClimbMath {
   /// slightly wrong is worse than no sentence (L-01: every number shows its
   /// work). Silence is the honest answer for a gap that big.
   ///
-  /// `topBand` is `CSBands.cupPoints` at its ceiling, read from the one band
-  /// table (§4.27) rather than typed.
+  /// R-K / D256 · THE SUM MOVED, THE SENTENCE DID NOT. The multiplication
+  /// above now lives in `RoundWorth.gain` because the plan sheet and Home's
+  /// dispatch say what a round is worth out of the same sum; this function
+  /// keeps the decision (does ONE round close it) and the words. There is one
+  /// copy of the arithmetic on this client and preflight 37 keeps it that way.
   public static func closer(gap: Double, countingPoints: [Double], capN: Int?) -> String? {
     guard gap > 0, gap.isFinite else { return nil }
-    let top = Double(CSBands.cupPoints(3))
-    let gain: Double
-    if let cap = capN, cap > 0, countingPoints.count >= cap {
-      guard let worst = countingPoints.min() else { return nil }
-      gain = top - worst
-    } else {
-      gain = top
-    }
+    guard let gain = RoundWorth.gain(cap: capN, used: countingPoints.count, worst: countingPoints.min()) else { return nil }
     guard gain >= gap else { return nil }
     return "One round in the top band closes it."
   }

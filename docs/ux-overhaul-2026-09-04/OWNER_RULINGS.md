@@ -142,3 +142,90 @@ The ranking ladder's bottom rung **does not stop at "nothing has moved."** When 
 | R-H | §4 the ladder — rung 7 reaches into history under the same fence |
 
 *Every one of these needs its draft entry in `DECISIONS_TO_LOG.md` updated to match before the wave that builds it.*
+
+---
+
+# Second sitting — 2026-09-05, after the build and the blind re-audit
+
+*Same standing as the rulings above: these outrank the artifacts. R-I…R-L answer the questions the repair phase left open.*
+
+## R-I · One Saturday is NOT a new object — the live round already is one — DECIDED
+
+The most-requested thing across all six walks was "make this Saturday count", and the season's two-week floor (§14.0) blocks a one-day *season*. **The answer is not a new object.** A Saturday is already a live round with a game and a stake, settling on a card at the end, and it is the one part of the product every persona in both audits praised.
+
+**What is missing is the sentence that says so.** The intent sheet's "We're playing this weekend" and "Go head to head → This Saturday" both already land there; nothing tells a golfer that this *is* the answer to their Saturday. So:
+
+- **No `outings` table, no one-day season, no new competition object.** D250's written refusals stand and this ruling joins them.
+- The work is **copy and routing**: the intent sheet says plainly that a day is a competition when it has a game and something on it; the named weekend, the live round and the settlement card are named as one path rather than three features.
+- **Re-walk it before writing any of it.** The named weekend, the callout and the person link were all unapplied during the re-audit, so no persona ever saw this path work. Push first, walk it, then write only the sentences that are actually missing.
+
+## R-J · The fourth intent reads "Go head to head" — DECIDED
+
+`I want to beat one guy` is retired. It was the only one of four intents starting with "I want to", it read as cringe, and it was the one sentence not addressed to every golfer in a mixed league.
+
+> **Play with my friends · Run a season · We're playing this weekend · Go head to head**
+
+Four verb phrases, one register. And **"head to head" is already the product's own noun** for the record between two golfers (`head_to_head`, the page, the rivalry line), so the door and the thing it builds finally share a word — L-34's own logic applied to a noun rather than a fact.
+
+*The three lengths underneath are unchanged: This Saturday · One week · A season.*
+
+## R-K · The plan sheet carries what the round is worth — DECIDED, and it is WIDER than the question asked
+
+**Yes** to the worth-preview on a scheduled round — *"Tomorrow at Papago is worth up to 12. Your best 4 count and you have 2."* — and the owner widened it: **also when a round needs to be scheduled** to close a gap, catch up, or hold a lead.
+
+That second half is a different feature and must be built as one, not smuggled in as copy:
+
+- **The plan you have** reads the monthly cap and the golfer's counters into the schedule and says what the round is worth. Honest arithmetic only, and it must obey the ceiling rule the climb already obeys (D24: a ceiling, never a probability).
+- **The plan you need** is a NOW item, not a plan-sheet line: *"You are two clear with three weeks left — one more counting round holds it"* or *"Ray is four back with a round in hand."* It reaches the golfer through the ranked dispatch and the notification kinds, not by inventing a sixth slot.
+- **One producer, not two.** The worth-of-a-round sentence exists on the climb today; the plan sheet and the dispatch item read the same producer or the fact drifts (D201, and the lint per law).
+- **Fence:** L-21 forbids manufactured stakes. "You need a round to hold your lead" ships only where the arithmetic is real and the counting rounds are in hand; where it is not, the app says nothing.
+
+## R-L · The quiet card stays wide — DECIDED
+
+Any day, for a golfer with nothing running, dismissible once a year. Ratified as the repair built it. A golfer with nothing on is precisely who the brief says must find a reason to open the app, and the twenty-day window meant the emptiest account saw the least — the inversion the audit named. The once-a-year dismissal is what keeps it from becoming a nag (L-20/L-22).
+
+---
+
+**Still open after this sitting:** the section head (`YOUR MOMENTS` ships, `MATCHES & WEEKENDS` argued); whether events return to the season page; whether the league code chip returns to the header; `snake`'s delete-or-promote; and the eight ⚠ RE-ARGUE claims the evidence sweep flagged.
+
+## R-M · The comparison noun becomes "your playing HCP" — DECIDED, with one thing to settle
+
+`your number` is retired as the **comparison** noun. The figure a round is measured against is your handicap with the league's allowance applied, and *playing handicap* is the real term for exactly that — so the app now says what it means:
+
+> **Beat your playing HCP by 2.1** · **1.4 over your playing HCP**
+
+**Why not "your HCP":** under a Standard league's 95% allowance the two figures differ by about half a shot, so "over your HCP" is arithmetic a golfer can catch being wrong. "Playing HCP" is both familiar and correct, which is why it wins over both the old word and the short one.
+
+**The cost, accepted:** two handicap nouns now coexist — your **index** (the number on your card, which the engine derives) and your **playing HCP** (that index under this league's allowance). They must be distinguished once, at first contact, and never used interchangeably: *"Your index is 10.6. This league plays 95%, so your playing HCP here is 10.1."*
+
+**THE ONE THING TO SETTLE — the band label.** The five bands are spec §2.2 and one of them is **"Beat your number"**:
+
+> Torched it · **Beat your number** · Played to it · A little loose · Posted anyway
+
+They are short labels, not arithmetic, and "Beat your playing HCP" is a mouthful as a chip. The build therefore:
+1. **Renames every comparison gloss** to `playing HCP` — the figures, the receipts, the epilogue, the feed lines, the accessibility labels. This is what the ruling asked for.
+2. **Leaves the five band labels alone. SETTLED 2026-09-05: the owner ruled "leave Beat your number for now."** The five bands stand exactly as spec §2.2 has them, and no test, fixture or entry moves.
+
+**The tension this accepts, named here so nobody re-files it as a defect.** A round card can show the chip **"Beat your number"** above the line **"2.1 under your playing HCP"** — one fact wearing two nouns. That is a deliberate, temporary inconsistency, not an oversight:
+- The bands are a *closed set of five labels* with their own decision history; the gloss is *arithmetic*, and only the arithmetic was wrong.
+- "Beat your number" still reads correctly in plain English even beside the new noun, because the number it names IS the playing handicap.
+- Revisiting it is a one-line change plus its tests whenever the owner wants it, and the candidates are on the record: **"Beat it"** (shortest, keeps the chip a chip) or **"Beat your playing HCP"** (consistent, long for a chip).
+
+Until then: **the glosses say `playing HCP`, the five bands say what they have always said, and a lint keeps each set from drifting into the other.**
+
+## R-N · The phone keeps the courses you have played or planned — DECIDED
+
+**The escalation, in the owner's words:** *"I was in the air on airplane mode the other day and wanted to see what the slope/rating and 1st hole was on a course I wanted to play but the app was dead on airplane mode essentially."*
+
+This is the first real escalation from the owner's own play since the evidence policy made escalations the highest form of evidence, and it exposes a genuine hole: **nothing about a course is stored on the phone.** Tees, ratings, slopes and hole pars are all fetched live, so the app is useless without a signal — on a plane, and *at most golf courses*, which is the larger case.
+
+**What is kept:** every course on your schedule and every course you have posted a round at — its tees, each tee's rating and slope, and the hole pars and stroke indexes. A course is a few kilobytes; the store is capped and evicts least-recently-used.
+
+**What it must make work with no signal:**
+- Looking a course up — the tees, the ratings and slopes, the card (which is the airplane case, exactly).
+- **Starting and scoring a live round.** This is the bigger win and the reason to build it properly: golf courses are where signal is worst, and the tee sheet needs pars and stroke indexes to score at all.
+- The composer offering a course you have played, with its tee data, so a round can be added from the car park and posted when the signal returns.
+
+**How it must behave (L-32, and the honesty laws):** cached data is shown with an honest line saying when it is from — never presented as live. A failed read is never an empty screen. Nothing is fabricated: a course that was never cached says so and offers what it can.
+
+**Not in scope:** searching the whole course catalogue offline; any course you have neither played nor planned. Those need the network and should say so.

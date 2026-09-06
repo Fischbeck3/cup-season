@@ -1107,6 +1107,12 @@ else {
     [31, 'not on a squad yet, never the pool', [/\bthe pool\b/i, /\bin the pool\b/i]],
     [32, 'playing number is the receipt’s word', [/playing number/i]],
     [33, 'league is never a thing you start or join', [/\b(start|join|create)\s+(a|your|the)\s+leagues?\b/i]],
+    /* 34 · R-J. The fourth intent reads "Go head to head". `I want to beat one
+       guy` was the only one of four that began "I want to", it read as cringe,
+       and it was the one sentence not addressed to every golfer in a mixed
+       league. It is retired on both clients, and this is what keeps it retired
+       — D249's whole thesis is that a ruling with no grep behind it comes back. */
+    [34, 'the fourth intent is Go head to head (R-J)', [/beat one guy/i, /\bbeat one\b/i]],
   ];
 
   const hits = [];
@@ -1231,6 +1237,7 @@ else {
       ['Lock the bylaws & form the squads', 5],
       ['3 SEATS OPEN', 16],
       ['Draft night', 14],
+      ['I want to beat one guy', 34],
     ];
     for (const [text, n] of probes) {
       const law = LAWS.find(l => l[0] === n);
@@ -1498,6 +1505,68 @@ else {
   } else {
     pass('the 11px floor holds', `${found.length} grandfathered rule(s), and no new one`);
   }
+}
+
+/* 37 · one worth-of-a-round producer, three renderers (R-K, D256) -----------
+   R-K put "what is this round worth" on two new surfaces — the plan sheet and
+   Home's dispatch — beside the climb, which has been doing the multiplication
+   since QB-12. The ruling's own words: *"One producer, not two… the plan sheet
+   and the dispatch item read the same producer or the fact drifts."*
+
+   The shape is check 28's, and it is this repo's settled answer to a rule that
+   must exist in SQL and in two clients: the SERVER owns the sum
+   (`public.round_worth`), each client carries ONE verbatim port, and a second
+   copy of the arithmetic on either client fails the push. The ports are pinned
+   against the server's own table by `RoundWorthTests` and `tests/db-checks.sql`;
+   this check pins the SINGULARITY. */
+{
+  const hits = [];
+  const kit = join(root, 'apps', 'ios', 'Packages', 'CupSeasonKit', 'Sources', 'CupSeasonKit');
+  const home = join(kit, 'League', 'RoundWorth.swift');
+
+  if (!existsSync(home)) {
+    hits.push('CupSeasonKit/League/RoundWorth.swift is gone — where did the sum go?');
+  } else {
+    const src = readFileSync(home, 'utf8');
+    const n = (src.match(/static func gain\(/g) || []).length;
+    if (n !== 1) hits.push(`RoundWorth declares gain ${n} times`);
+  }
+
+  /* the multiplication itself, anywhere but its home. `topBand - worst` in any
+     spelling is the bump; a bare `cupPoints(3)` outside the producer is the
+     add. Both are the sum, and both belong in exactly one file. */
+  const swift37 = (await import('../tools/extract-strings.mjs')).swiftSources(join(root, 'apps', 'ios'));
+  const BUMP = /(top|topBand|cupPoints\(3\)|CSBands\.cupPoints\(3\))\s*-\s*(worst|min)/;
+  for (const f of swift37) {
+    if (f === home) continue;
+    if (/\/Tests\//.test(f)) continue;
+    const src = readFileSync(f, 'utf8');
+    if (BUMP.test(src)) hits.push(`a second worth sum — ${f.slice(root.length).replace(/^\//, '')}`);
+  }
+
+  /* the web's one port */
+  const declared = (html.match(/function csRoundWorth\s*\(/g) || []).length;
+  if (declared !== 1) hits.push(`index.html declares csRoundWorth() ${declared} times`);
+  {
+    const at = html.indexOf('function csRoundWorth(');
+    const end = at < 0 ? -1 : html.indexOf('\n}', at);
+    for (const m of [...html.matchAll(/pointsFor\(3\)\[0\]\s*-\s*/g)]) {
+      if (at >= 0 && m.index > at && m.index < end) continue;
+      hits.push(`a second worth sum — index.html offset ${m.index}`);
+    }
+  }
+
+  /* and the authority it is a port OF */
+  const worthSql = readdirSync(migDir).filter(x => x.endsWith('.sql'))
+    .some(f => /create\s+or\s+replace\s+function\s+public\.round_worth\s*\(/i.test(readFileSync(join(migDir, f), 'utf8')));
+  if (!worthSql) hits.push('no migration declares public.round_worth() — the clients are porting nothing');
+
+  /* the self-test: a check that cannot fail is not a check */
+  if (!BUMP.test('let g = topBand - worst')) hits.push('self-test failed: the bump grep no longer matches the bump');
+
+  hits.length === 0
+    ? pass('one worth-of-a-round producer, three renderers', 'RoundWorth.gain · csRoundWorth · public.round_worth')
+    : fail('one worth-of-a-round producer, three renderers', hits.join('\n           '));
 }
 
 console.log(`\n${fails ? 'FAIL' : 'PASS'} — ${fails} failure(s), ${warns} warning(s)`);

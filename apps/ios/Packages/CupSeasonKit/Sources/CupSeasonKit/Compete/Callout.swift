@@ -1,4 +1,4 @@
-// Cup Season — "I want to beat one guy" (D237 / R-F; IA §9, §9.1; CORE_FLOWS §9).
+// Cup Season — "Go head to head" (D237 / R-F / R-J; IA §9, §9.1; CORE_FLOWS §9).
 //
 // THE OWNER RULED THE SHAPE AND THE WORDS. After the golfer, ONE question, and
 // all three lengths are always offered:
@@ -238,7 +238,7 @@ public struct CalloutService: Sendable {
   /// QB-01 · two things were wrong with this sentence and both mattered. It
   /// sent a golfer to the App Store for an update that does not exist, and it
   /// introduced the product's private noun — "callouts" — inside the failure,
-  /// to somebody who had chosen "I want to beat one guy" and had never met the
+  /// to somebody who had chosen "Go head to head" and had never met the
   /// word. It now says what the golfer did, says the server is behind, and
   /// names the door that is open today: a round on the schedule, tagged.
   public static let notYetLine =

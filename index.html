@@ -21495,7 +21495,12 @@ const CS_INTENTS = [
   /* L-32 · "a name for it", never "one trophy": a weekend mints NO trophy
      (D240), and a door may not sell what the object does not open. */
   { k:'thisWeekend',     line:"We're playing this weekend", gloss:'one day, and a name for it',          go:'weekend' },
-  { k:'beatOneGuy',      line:'I want to beat one guy',     gloss:'you and him, whatever length you like', go:'pickAGolfer' },
+  /* R-J · the fourth intent. `I want to beat one guy` is retired on both
+     clients: the only one of four that began "I want to", and the one
+     sentence not addressed to every golfer in a mixed league. "Head to
+     head" is already the product's own noun for the record between two
+     golfers, so the door and the record share a word. */
+  { k:'headToHead',     line:'Go head to head',           gloss:'the two of you, at whatever length you like', go:'pickAGolfer' },
 ];
 const CS_INTENT_TITLE = 'What do you want to do?';
 const CS_INTENT_MODIFIER = { line:'Put money on it', gloss:'add a pot to any of the above', go:'whatsItOn' };
@@ -22855,6 +22860,61 @@ window.openDeclareSheet = openDeclareSheet;
 document.getElementById('calDeclare')?.addEventListener('click', () => openDeclareSheet());
 document.getElementById('optPlan')?.addEventListener('click', () => openDeclareSheet());
 
+/* ===== R-K / D256 · what a round is worth ==================================
+   THE SUM, ported verbatim from `public.round_worth(p_cap, p_used, p_worst)`
+   — the way `pointsFor` is `cup_points` verbatim. With a counting slot still
+   open a round ADDS its points, so a top-band round is worth the whole 12;
+   with the month full it BUMPS the worst counter and is worth 12 minus that
+   round. Null when the facts are absent, and the surface then says nothing.
+
+   IT IS A CEILING, NEVER A PROBABILITY (D24). There is exactly one copy of
+   this on this client and one in the Kit (`RoundWorth.gain`); preflight 37
+   fails the push on a second. */
+function csRoundWorth(cap, used, worst){
+  const c = (cap == null) ? null : Number(cap);
+  const u = Number(used || 0);
+  const top = pointsFor(3)[0];
+  if(c == null || !(c > 0) || u < c) return top;
+  if(worst == null || !isFinite(Number(worst))) return null;
+  return top - Number(worst);
+}
+/* The plan sheet's two sentences, or null. `subject` is what the surface calls
+   the round: the sheet passes "This round" because its own header already
+   carries the day and the course, and a card that prints one fact twice is the
+   defect DEF-2 was filed for (L-34). `season` is spent only when a round counts
+   in more than one. */
+function csRoundWorthLine(subject, cap, used, worst, season){
+  const g = csRoundWorth(cap, used, worst);
+  if(g == null) return null;
+  const c = (cap == null) ? null : Number(cap);
+  const u = Number(used || 0);
+  const whose = season ? (' in ' + season) : '';
+  const full = c != null && c > 0 && u >= c;
+  if(g <= 0) return subject + ' cannot add to your points' + whose + ' this month — your best '
+    + (c == null ? 'rounds' : c) + ' already count. It still builds your number.';
+  const head = subject + ' is worth up to ' + csNum(g) + (full ? ' more' : '') + whose + '.';
+  if(c == null || !(c > 0)) return head + ' Every round you post this month counts.';
+  return head + ' ' + (full
+    ? 'Your best ' + c + ' count this month and your worst is a ' + csNum(worst) + '.'
+    : 'Your best ' + c + ' count and you have ' + u + '.');
+}
+/* `round_detail.worth` — one row per season the round counts in, at most two.
+   Three of these is a wall of arithmetic on a sheet whose job is who is in and
+   when. An old payload has no `worth` key at all and renders nothing (L-44). */
+function csRoundWorthLines(rows, subject){
+  const w = Array.isArray(rows) ? rows : [];
+  const named = w.length > 1;
+  return w.slice(0, 2)
+    .map(r => csRoundWorthLine(subject || 'This round', r.cap, r.used, r.worst, named ? r.league_name : null))
+    .filter(Boolean);
+}
+
+/* bridged for the classic side and for `tests/app-tests.js`, which asserts the
+   sum against the same table `tests/db-checks.sql` pins the server's against. */
+window.csRoundWorth      = csRoundWorth;
+window.csRoundWorthLine  = csRoundWorthLine;
+window.csRoundWorthLines = csRoundWorthLines;
+
 /* ===== the round as an object: tap into a scheduled round (arc Stages 1–5) =====
    course info + weather + who's-in + a mini board. Everything degrades
    gracefully: a round with no linked course shows the typed name (never blank),
@@ -22917,6 +22977,12 @@ function renderRoundSheet(id, d){
      <button class="rbtn${myR==='maybe'?' on maybe':''}" data-rsvp="maybe">Maybe</button>
      <button class="rbtn${myR==='out'?' on out':''}" data-rsvp="out">Can’t</button></div>` : '';
 
+  /* R-K · what this round is worth, to the person reading it. The server sends
+     the cap and the counters; the sentence is produced once, here and in the
+     Kit, and rendered by both clients. Nothing renders where nothing is known. */
+  const worthHtml = csRoundWorthLines(d.worth, 'This round')
+    .map(w => `<p class="fine" style="padding:2px 0">${esc(w)}</p>`).join('');
+
   const riv = (!d.mine && typeof rivalryTag==='function') ? rivalryTag(d.profile_id) : null;
   const rivHtml = riv ? `<div class="rivchip">◇ ${riv} · <em>one more round.</em></div>` : '';
 
@@ -22939,6 +23005,7 @@ function renderRoundSheet(id, d){
   const body = `<div class="rsheet">
     <div class="rs-course"><b>${esc(courseName)}</b>${meta?`<span class="meta mono">${meta}</span>`:''}${place?`<span class="place">${esc(place)}</span>`:''}</div>
     <div class="rs-when"><span class="teechip mono">${tee?tee+' tee':'Tee TBD'}</span><span class="wxchip mono" id="rsWx" style="display:none"></span></div>
+    ${worthHtml}
     ${d.note?`<div class="rs-note">“${esc(d.note)}”</div>`:''}
     ${rivHtml}
     <div class="rs-lbl">Who’s in <span class="n">${inN} in</span></div>

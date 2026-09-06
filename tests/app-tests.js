@@ -1251,11 +1251,16 @@
       [CS_INTENTS.length, typeof csIntentStrings, csIntentStrings().length], [4, 'function', 12]);
     t('D234: the lines are the phone\u2019s, verbatim',
       CS_INTENTS.map(i => i.line),
-      ['Play with my friends', 'Run a season', "We're playing this weekend", 'I want to beat one guy']);
+      ['Play with my friends', 'Run a season', "We're playing this weekend", 'Go head to head']);
+    /* R-J · the retired phrasing cannot come back, on either client */
+    t('R-J: no intent begins "I want to", and none says "beat one guy"',
+      csIntentStrings().filter(x => /i want to|beat one guy/i.test(x)), []);
+    t('R-J: and the sheet is addressed to every golfer in a mixed league',
+      csIntentStrings().flatMap(x => x.toLowerCase().split(/[^a-z]+/).filter(w => ['him','his','her','hers','guy','guys'].includes(w))), []);
     t('D234: and so are the glosses',
       CS_INTENTS.map(i => i.gloss),
       ['a round with whoever is around', 'weeks of golf that add up to a table',
-       'one day, and a name for it', 'you and him, whatever length you like']);
+       'one day, and a name for it', 'the two of you, at whatever length you like']);
     t('D225: zero object nouns, on every string the sheet renders',
       csIntentStrings().flatMap(csObjectNouns), []);
     t('D225: and the ban is on WORDS, not substrings',
@@ -1432,6 +1437,33 @@
     t('L-12: a changed stake fires the covenant again, and says so',
       csRunItBackDone(2, 6, true),
       'Season 2 is on. 6 of you are on it. The terms changed, so everyone reads them again.');
+  })();
+
+  /* ============ WAVE A · what a round is worth (R-K, D256) ============
+     The sum is `public.round_worth`'s, ported verbatim; these are the same
+     five cases tests/db-checks.sql 31 evaluates on the server and
+     RoundWorthTests asserts on the phone. */
+  (function () {
+    t('D256: a slot is open, so the round ADDS its points', csRoundWorth(4, 2, 6), 12);
+    t('D256: a full month BUMPS the worst counter', csRoundWorth(4, 4, 6), 6);
+    t('D256: a month of top-band rounds gains nothing', csRoundWorth(4, 4, 12), 0);
+    t('D256: full with an unknown counter has no honest answer', csRoundWorth(4, 4, null), null);
+    t('D256: uncapped means every round counts', csRoundWorth(null, 9, null), 12);
+    t('R-K: the owner\u2019s own sentence',
+      csRoundWorthLine('Tomorrow at Papago', 4, 2, null, null),
+      'Tomorrow at Papago is worth up to 12. Your best 4 count and you have 2.');
+    t('D24: it is a ceiling, never a probability',
+      /up to/.test(csRoundWorthLine('This round', 4, 2, null, null)), true);
+    t('D256: a full month says what it bumps',
+      csRoundWorthLine('This round', 4, 4, 7, null),
+      'This round is worth up to 5 more. Your best 4 count this month and your worst is a 7.');
+    t('L-44: absent facts render nothing', csRoundWorthLines(undefined, 'This round'), []);
+    t('L-34: the season is named only when there is more than one',
+      [csRoundWorthLines([{ league_name: 'The Fellas', cap: 4, used: 2 }], 'This round').length,
+       csRoundWorthLines([{ league_name: 'The Fellas', cap: 4, used: 2 },
+                          { league_name: 'PIGL', cap: 3, used: 0 }], 'This round')[1].includes('in PIGL'),
+       csRoundWorthLines([{ cap: 4, used: 1 }, { cap: 4, used: 1 }, { cap: 4, used: 1 }], 'This round').length],
+      [1, true, 2]);
   })();
 
   const fails = R.filter(r => !r.ok);
