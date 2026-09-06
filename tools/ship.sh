@@ -66,11 +66,10 @@ confirm() {  # confirm <prompt> [required-word]
 # simply: function first, whenever a pending migration widens a kind check.
 if have database owed; then
   KINDGUARD=""
-  for m in $(git status --porcelain supabase/migrations 2>/dev/null | awk '{print $2}'; \
-             node tools/deploy-status.mjs --json | node -e "
+  for m in $(printf '%s' "$STATUS_JSON" | node -e "
     let s='';process.stdin.on('data',d=>s+=d).on('end',()=>{
-      const j=JSON.parse(s);(j.database?.owed||[]).forEach(x=>console.log('supabase/migrations/'+(x.file||x)));});" 2>/dev/null); do
-    [[ -f "$m" ]] && grep -qiE 'posts_kind_check|kind[^\n]*check' "$m" && KINDGUARD="$KINDGUARD $m"
+      const j=JSON.parse(s);(j.database&&j.database.pending||[]).forEach(x=>console.log('supabase/migrations/'+(x.file||x)));});"); do
+    [[ -f "$m" ]] && grep -qiE 'posts_kind_check' "$m" && KINDGUARD="$KINDGUARD $m"
   done
   if [[ -n "$KINDGUARD" ]]; then
     step "ORDER"
