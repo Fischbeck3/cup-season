@@ -213,8 +213,12 @@ struct PersonPage: View {
   /// R-F: all three are always offered. The one that has no object yet says so
   /// in its own sub rather than being hidden — the owner ruled that the golfer
   /// is asked the length, and a length quietly missing is a guess.
+  ///
+  /// QB-01 / F-9 · the sentence is `TourCard.weekNotYet` now, produced once in
+  /// the Kit for both clients. It no longer teaches the golfer the product's
+  /// private noun inside a failure, and it ends in a move.
   private func sub(_ l: TourCard.Length) -> String {
-    l == .week ? l.sub + " · opens when callouts do" : l.sub
+    l == .week ? l.sub + " · " + TourCard.weekNotYet : l.sub
   }
 
   private func take(_ l: TourCard.Length) -> (() -> Void)? {

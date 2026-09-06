@@ -81,6 +81,30 @@ public enum ScoreBand: String, Sendable, Equatable, CaseIterable, Identifiable {
 // MARK: - the copy
 
 public enum OnboardingCopy {
+
+  // ---- frame 1 · the door -------------------------------------------------
+
+  /// QB-15 · **ONE SENTENCE THAT SURVIVES BEING READ BY A STRANGER.**
+  ///
+  /// The whole of what the product said in its first thirty seconds was the
+  /// tagline — *"Rally your crew. Post real rounds. Take the cup."* — and two
+  /// blind readers stopped on its last noun and never got it back: *"'Take the
+  /// cup' — what cup? I still don't know if the cup is a trophy, a prize, or
+  /// the money."* Neither could say what the app was, and one of them had come
+  /// from a store page whose own first sentence says it plainly.
+  ///
+  /// So the store listing's sentence comes to the door, and it does the one
+  /// thing the tagline could not: it defines the cup at the moment the word is
+  /// used, by saying what taking it means. The tagline is untouched — it is
+  /// the brand line and it is the same on both clients — and this stands under
+  /// it for the stranger who needs it.
+  ///
+  /// It yields to `PendingLink.doorLine()`: a golfer who arrived from a
+  /// friend's link is not a stranger and should be told whose season this is
+  /// instead.
+  public static let doorPitch =
+    "The golf you already play, turned into a season with your friends \u{2014} a running table, and a cup for whoever takes it."
+
   // ---- frame 2 · the card, one scrolling frame ----------------------------
 
   public static let cardEyebrow = "Your card"
@@ -90,6 +114,12 @@ public enum OnboardingCopy {
   /// Question 1, in a golfer's units.
   public static let shootQuestion = "What do you usually shoot?"
   public static let shootSub = "Your number builds itself from three posted rounds. This just gets you started."
+  /// QB-08 · the four words the strip preview needed. Every blind reader who
+  /// met `STARTER 20` cold on Home read it as a rank or a countdown; nobody
+  /// read it as a handicap. It says what the figure IS, once, where the figure
+  /// is chosen.
+  public static let stripPreviewNote = "\u{2014} the handicap this starts you on."
+
   /// The one honesty rule that has to be on the screen, not only in the entry.
   public static let shootStarterNote =
     "We’ll call it a starter until three of your own rounds take over."

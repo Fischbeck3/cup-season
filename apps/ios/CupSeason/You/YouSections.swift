@@ -222,11 +222,20 @@ struct RecentRoundsList: View {
 struct SeasonStatsStrip: View {
   let stats: SeasonStats?
   let leagueName: String
+  /// B-9 · **A FINISHED SEASON IS NOT "THIS SEASON".**
+  ///
+  /// The head was hard-coded, so a golfer whose season wrapped a fortnight ago
+  /// — with the page one screen above telling her so in gold — read `THIS
+  /// SEASON · THE OCOTILLO CUP` over her final numbers and went back to check
+  /// whether the Pro had quietly started a second one: *"the one place tonight
+  /// the app said something untrue, and it made me doubt the screens above
+  /// it."* The figures are right; the scope word was wrong.
+  var wrapped: Bool = false
   /// Y-28 · the season read FAILED. Without this a nil block told a golfer
   /// they "need 2 rounds" when the truth is that nothing came back.
   var failed: Bool = false
   var body: some View {
-    CSSectionHead("This season · \(leagueName)")
+    CSSectionHead("\(wrapped ? "Last season" : "This season") · \(leagueName)")
     VStack(spacing: 0) {
       // Y-14 · the same three rows, in the same order, as "All time" above.
       // Brand canon §3 "one fact, one place": the head names the scope, so no

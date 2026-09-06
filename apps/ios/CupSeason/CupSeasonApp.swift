@@ -48,7 +48,26 @@ struct CupSeasonApp: App {
           if url.scheme == "cupseason", url.host == CSRoundActivityLink.host {
             NotificationCenter.default.post(name: .csOpenLiveRound, object: nil)
           }
-          else if let code = JoinIntent.code(from: url) { JoinIntent.store(code); CSGrowth.log(.linkOpened, kind: "join", token: code); Task { await store.reload() } }
+          // QB-08 · the code is stored WITH THE SEASON'S NAME, because
+          // `PendingLink.doorLine()` can only say "You're joining The Fellas"
+          // if somebody told it the name. `store(code)` was called with none,
+          // so the best the door could ever have managed was "a season" — and
+          // it was rendering nothing at all. `league_by_code` is one of the
+          // twelve anon endpoints, so this resolves BEFORE sign-in, which is
+          // the whole point: the stranger who tapped a friend's link meets the
+          // season's name above the email field rather than a bare box.
+          else if let code = JoinIntent.code(from: url) {
+            JoinIntent.store(code)
+            CSGrowth.log(.linkOpened, kind: "join", token: code)
+            Task {
+              // A name that does not resolve leaves the generic line standing;
+              // it never blocks the door and never invents a name (L-44).
+              if let n = ((try? await JoinService().leagueName(code)) ?? nil), !n.isEmpty {
+                JoinIntent.store(code, name: n)
+              }
+              await store.reload()
+            }
+          }
           else if let claim = ClaimIntent.token(from: url) { ClaimIntent.store(claim); CSGrowth.log(.linkOpened, kind: "claim", token: claim) }   // consumed by the tee sheet (wave 4)
           // D241 / D253 · the token is STORED, never spent here: a link tapped
           // on a phone with no session must survive the whole door — email,

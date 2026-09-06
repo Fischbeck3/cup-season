@@ -76,6 +76,9 @@ struct HomeDeckCard: View {
   /// D229 · when the cap bites, the last card's foot says how many seasons'
   /// items did not fit rather than the screen pretending they do not exist.
   var moreCut: Int = 0
+  /// QB-18 · what the elided item's own door says, so the link names its
+  /// destination instead of implying the deck's.
+  var moreLabel: String? = nil
   let act: () -> Void
   var onMore: () -> Void = {}
 
@@ -107,12 +110,12 @@ struct HomeDeckCard: View {
           .accessibilityLabel(a)
           .padding(.top, 2)
         }
-        if moreCut > 0 {
+        if moreCut > 0, let moreLabel {
           Button(action: onMore) {
-            Text("\(moreCut) more →").font(CSFont.label).foregroundStyle(cs.mut).a11yHitSlop()
+            Text("\(moreCut) more · \(moreLabel.uppercased()) →").font(CSFont.label).foregroundStyle(cs.mut).a11yHitSlop()
           }
           .buttonStyle(.plain)
-          .accessibilityLabel("\(moreCut) more, in Golfers")
+          .accessibilityLabel("\(moreCut) more. \(moreLabel)")
         }
       }
     }

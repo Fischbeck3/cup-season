@@ -235,7 +235,14 @@ public struct CalloutService: Sendable {
   /// lesson): `.notYet` is not `.failed`, and "the callout could not be sent"
   /// over a database that simply has not had the migration is a lie.
   public static func notYet(_ error: Error) -> Bool { PostService.fallbackFires(on: error) }
-  public static let notYetLine = "Callouts need the latest update — try again shortly."
+  /// QB-01 · two things were wrong with this sentence and both mattered. It
+  /// sent a golfer to the App Store for an update that does not exist, and it
+  /// introduced the product's private noun — "callouts" — inside the failure,
+  /// to somebody who had chosen "I want to beat one guy" and had never met the
+  /// word. It now says what the golfer did, says the server is behind, and
+  /// names the door that is open today: a round on the schedule, tagged.
+  public static let notYetLine =
+    "Calling somebody out isn\u{2019}t switched on yet \u{2014} put a round on the schedule and tag them instead."
 }
 
 // MARK: - what a callout IS, to a reader

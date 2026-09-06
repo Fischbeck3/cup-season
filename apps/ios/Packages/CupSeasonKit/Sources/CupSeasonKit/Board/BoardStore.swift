@@ -343,7 +343,7 @@ public final class BoardStore {
     } catch {
       // deploy skew: client shipped before the migration — say so plainly
       return .unavailable(BoardText.isSchemaSkew(error)
-        ? "The scorecard needs the latest update — try again shortly"
+        ? "The scorecard isn\u{2019}t switched on yet \u{2014} try again shortly"
         : BoardText.humanError(error, "Could not open that card."))
     }
   }

@@ -48,6 +48,44 @@ public struct EmptyRoot: Sendable, Equatable {
     self.doors = doors.isEmpty ? [.addMyRound] : doors
   }
 
+  /// QB-05 · **WHAT THE WIRE SAYS WHEN NO BUDDY HAS POSTED.**
+  ///
+  /// It said, unconditionally, *"No rounds from your buddies yet. Post one, or
+  /// add some buddies."* The first sentence is true and fine. The second is a
+  /// claim about the golfer's life, and for a member of a season it is false:
+  /// a blind walker met it ninety seconds after a covenant that had named all
+  /// six golfers in his season, and wrote that it was *"worse than silence"*.
+  ///
+  /// So the second clause branches on the roster. With a season the next move
+  /// is that season's own roster — which for a golfer whose season has not
+  /// teed off is the only true, interesting, non-empty thing about his account.
+  /// With genuinely nobody, the buddies door is still exactly right.
+  ///
+  /// The head never claims anything about people: an empty wire is an empty
+  /// wire in both branches.
+  public struct WireEmpty: Sendable, Equatable {
+    public let head: String
+    public let door: String
+    /// nil means the door is the buddies list.
+    public let leagueId: UUID?
+  }
+
+  public static func wireEmpty(me: Me?, today: String = CSDate.today()) -> WireEmpty {
+    let seasons = (me?.memberships ?? []).filter { m in
+      if case .wrapped = SeasonPhase.of(m, today: today) { return false }
+      return (m.members ?? m.headcount ?? 0) >= 2
+    }
+    let pick = seasons.min { a, b in
+      (a.season?.starts_on ?? "9999-12-31") < (b.season?.starts_on ?? "9999-12-31")
+    }
+    guard let m = pick else {
+      return WireEmpty(head: "No rounds from your buddies yet. Post one, or",
+                       door: "add some buddies.", leagueId: nil)
+    }
+    return WireEmpty(head: "No rounds from your buddies yet.",
+                     door: "See who\u{2019}s in \(m.name).", leagueId: m.league_id)
+  }
+
   /// The failed read, said plainly, with the only honest next move on it.
   /// Deliberately NOT parameterised by tab: a read that failed failed the same
   /// way everywhere, and a per-screen apology is a per-screen voice.

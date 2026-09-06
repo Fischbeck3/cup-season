@@ -240,6 +240,11 @@ public enum HomeRank {
     /// How many ranked items were cut by the cap — the fourth item's foot
     /// says so rather than the screen pretending they do not exist.
     public let cut: Int
+    /// QB-18 · the items the cap cut, in rank order. The foot link opened the
+    /// GOLFERS TAB, whatever the elided item was — so a season card's "1 more"
+    /// landed a golfer in his address book with no way back to whatever he had
+    /// been about to see. The link opens the item now, and names it.
+    public let overflow: [HomeDispatch.Item]
     /// F-2 · the ROUNDS this arrangement has already told a story about.
     ///
     /// A-6's worked example in `UX_PRINCIPLES` §3 is exactly this: a buddy's
@@ -253,9 +258,10 @@ public enum HomeRank {
     public var isEmpty: Bool { lead == nil && deck.isEmpty }
 
     public init(lead: HomeDispatch.Item?, deck: [HomeDispatch.Item],
-                suppress: Set<MeStripCopy.Fact>, cut: Int, spentRounds: Set<UUID> = []) {
+                suppress: Set<MeStripCopy.Fact>, cut: Int, spentRounds: Set<UUID> = [],
+                overflow: [HomeDispatch.Item] = []) {
       self.lead = lead; self.deck = deck; self.suppress = suppress
-      self.cut = cut; self.spentRounds = spentRounds
+      self.cut = cut; self.spentRounds = spentRounds; self.overflow = overflow
     }
   }
 
@@ -329,11 +335,12 @@ public enum HomeRank {
     if let i = leadIndex { rest.remove(at: i) }
 
     let deck = Array(rest.prefix(deckCap))
+    let overflow = Array(rest.dropFirst(deck.count))
     let spent = stripSuppress.union(leadSuppress).union(lead?.suppress ?? [])
     // F-2 · every round the cards on screen have already told.
     let rounds = Set(([lead].compactMap { $0 } + deck).compactMap(spentRound))
     return Ranked(lead: lead, deck: deck, suppress: spent,
-                  cut: max(0, rest.count - deck.count), spentRounds: rounds)
+                  cut: overflow.count, spentRounds: rounds, overflow: overflow)
   }
 
   /// The declared fallback's order — the static, tier-less

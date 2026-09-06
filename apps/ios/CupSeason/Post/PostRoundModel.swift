@@ -298,7 +298,8 @@ final class PostRoundModel {
       // R11 returns the epilogue INSIDE its answer, so the page is on screen
       // without a second round trip; the fallback path fetches it as before.
       let epi = outcome.epilogue
-      let act = PostNextAct.choose(epi, seasonId: outcome.seasonId ?? m?.season?.id, context: nextActContext(cap: cap, roundsAfter: (profile?.rounds_count ?? 0) + 1))
+      let act = PostNextAct.choose(epi, seasonId: outcome.seasonId ?? m?.season?.id,
+                                   context: await nextActContext(cap: cap, roundsAfter: (profile?.rounds_count ?? 0) + 1))
       if epi != nil || firstEver {
         pendingEpilogue = PostEpilogueShow(epilogue: epi ?? PostEpilogue(gross: payload.gross, pvi: nil, points: nil, monthRank: nil),
                                            course: course, firstEver: firstEver, roundId: roundId, cap: cap,
@@ -311,10 +312,30 @@ final class PostRoundModel {
 
   /// Everything the next act is allowed to know, and nothing else. A count that
   /// was not read is left absent so the rung that needs it does not fire.
-  private func nextActContext(cap: Int?, roundsAfter: Int) -> PostNextAct.Context {
-    PostNextAct.Context(
-      leagueless: (store.me?.memberships ?? []).isEmpty,
-      buddiesPlayedThisWeek: nil,
+  ///
+  /// **F-3 tail · `buddiesPlayedThisWeek` was hard-coded `nil`,** so rung 6 —
+  /// *"Two of yours played this week. Nobody is playing for anything." → Start
+  /// something* — could never fire for anybody. It is the same idea as the
+  /// Compete tab's own best line, already written, already tested, one wire
+  /// short: *"already written, one wire short of working."*
+  ///
+  /// It is read here rather than guessed: `home_feed` over seven days, distinct
+  /// golfers who are not me. A read that does not answer leaves the count
+  /// ABSENT, and the rung stands down — which is the same rule as before, just
+  /// no longer the only outcome (L-44).
+  ///
+  /// **B-1** · and `leagueless` is `nothingRunning`, not `memberships.isEmpty`:
+  /// a golfer between seasons is in this state, and a membership pointing at a
+  /// finished season is not a competition.
+  private func nextActContext(cap: Int?, roundsAfter: Int) async -> PostNextAct.Context {
+    let nothingRunning = Occasion.nothingRunning(store.me?.memberships ?? [])
+    var buddies: Int? = nil
+    if nothingRunning, let rows = try? await SupabaseService.shared.call(Rpc.home_feed(p_days: 7)) {
+      buddies = Set(rows.filter { $0.is_me != true }.compactMap(\.profile_id)).count
+    }
+    return PostNextAct.Context(
+      leagueless: nothingRunning,
+      buddiesPlayedThisWeek: buddies,
       roundsCount: roundsAfter,
       countingCap: cap,
       monthName: PostNextAct.monthName(card.date ?? CSDate.today()))

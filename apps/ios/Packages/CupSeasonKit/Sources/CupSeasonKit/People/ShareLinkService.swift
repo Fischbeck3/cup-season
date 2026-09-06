@@ -75,14 +75,34 @@ public struct ShareLinkService: Sendable {
     }
   }
 
-  /// What a golfer is told when the kind is not deployed yet. It is the
-  /// SCORECARD's own sentence, retargeted — `BoardStore.loadScorecard` has said
-  /// "needs the latest update — try again shortly" since D92, and inventing a
-  /// second voice for the same situation is how two clients start disagreeing.
-  /// The row STAYS: a control that vanishes when you tap it is worse than one
-  /// that tells you to come back, and after the owner's `db push` it works
-  /// with no client change at all.
-  public static let notYetLine = "Links need the latest update — try again shortly."
+  /// What a golfer is told when the kind is not deployed yet.
+  ///
+  /// QB-01 · IT NO LONGER SENDS ANYBODY TO THE APP STORE. "Needs the latest
+  /// update" was written for a deploy skew and read, correctly, as an
+  /// instruction: two of six blind walks left the app and searched the App
+  /// Store for an update that does not exist. The SERVER is behind, not the
+  /// golfer's app — which is what F-19 already ruled for the contacts route
+  /// (`OnboardingCopy.contactsNotYet`), and this is that ruling applied to the
+  /// four doors that still carried the old sentence.
+  ///
+  /// AND IT NAMES THE LIVE ALTERNATIVE IN THE SAME BREATH (L-32: every state
+  /// ends in a next move). A season's invite link is minted by a different
+  /// path, it works today, and it is the one invite in the product that does —
+  /// so the golfer is pointed at it rather than at a future they cannot
+  /// schedule. The row STAYS: a control that vanishes when you tap it is worse
+  /// than one that tells you what does work, and after the owner's `db push`
+  /// it mints with no client change at all.
+  public static let notYetLine = notYetLine(hasSeason: false)
+
+  /// `hasSeason` is whether this golfer has a season whose link they can send.
+  /// With one, the alternative is a thing they can do now; without one it is
+  /// what a season would give them, and it is never dressed as a thing they
+  /// already have.
+  public static func notYetLine(hasSeason: Bool) -> String {
+    hasSeason
+      ? "Person links aren\u{2019}t switched on yet \u{2014} send your season\u{2019}s invite link instead."
+      : "Person links aren\u{2019}t switched on yet \u{2014} a season\u{2019}s invite link works for anyone."
+  }
 
   /// The one condition that means "the migration has not landed yet". A kind
   /// the CHECK does not admit fails as a check violation (23514) or as

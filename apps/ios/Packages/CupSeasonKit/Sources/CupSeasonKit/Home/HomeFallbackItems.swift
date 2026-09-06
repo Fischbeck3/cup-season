@@ -144,9 +144,15 @@ public enum HomeFallbackItems {
     if let r = feed.first(where: { $0.is_me != true && $0.gross != nil }) {
       let who = HomeCopy.who(r)
       let mile = HomeCopy.milestone(r)
+      // QB-20 · the eyebrow said `AROUND YOUR BUDDIES`, which is also the
+      // SECTION HEAD one thumb-flick below it. Two readers took the repeat for
+      // a rendering bug — *"for a second I think I've scrolled backwards"* —
+      // and one of them read the two instances as different things. A card's
+      // eyebrow names its own subject; the section keeps the name.
+      let when = r.played_on.map { MeStripCopy.dayToken($0, today: today, calendar: calendar) }
       out.append(.init(key: "story:\(r.round_id?.uuidString ?? who)", tier: .circle,
                        subject: who, humanSubject: true,
-                       eyebrow: "AROUND YOUR BUDDIES",
+                       eyebrow: [who.uppercased(), when].compactMap { $0 }.joined(separator: " · "),
                        headline: "\(who) posted \(r.gross.map(String.init) ?? "a round")"
                                    + ((r.course?.isEmpty == false) ? " at \(r.course!)." : "."),
                        standfirst: mile,

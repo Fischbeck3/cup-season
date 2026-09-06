@@ -123,10 +123,57 @@ import Foundation
     #expect(d.spanText() == "Wed Sep 9 – Wed Oct 21")
     #expect(d.startDate(today: "2026-08-27") == "2026-09-09")
   }
+  /// QB-06 · **A ROSTER OF ONE GETS ROOM TO FILL.**
+  ///
+  /// The rules freeze at the first tee and the invite link closes there, and
+  /// "the next upcoming Saturday" on a Friday night is TOMORROW — so an
+  /// organiser with nobody in yet was handed, unmarked, a season that gave her
+  /// crew less than 27 hours: *"that link would have been dead by lunchtime
+  /// and I would have had no idea why nobody could join."* A season that
+  /// already has people in it keeps the near Saturday.
   @Test func untouchedStartFollowsTheDefault() {
-    let d = WizardDials()   // D206: 13 weeks
-    #expect(d.startDate(today: "2026-08-27") == "2026-08-29" && d.endDate(today: "2026-08-27") == "2026-11-28")
+    var d = WizardDials()   // D206: 13 weeks. Roster of one — two weeks out.
+    #expect(d.startDate(today: "2026-08-27") == "2026-09-12" && d.endDate(today: "2026-08-27") == "2026-12-12")
+    #expect(d.spanText(today: "2026-08-27") == "Sat Sep 12 – Sat Dec 12")
+    // …and with the crew already in it, the near Saturday stands.
+    d.expectedRoster = 6
+    #expect(d.startDate(today: "2026-08-27") == "2026-08-29")
     #expect(d.spanText(today: "2026-08-27") == "Sat Aug 29 – Sat Nov 28")
+  }
+
+  /// QB-06 · the roster-aware default, on its own. It is still a SATURDAY —
+  /// only the distance changes — and it is at least a fortnight out.
+  @Test func aSeasonWithNobodyInItStartsAFortnightOut() {
+    #expect(WizardDials.defaultStart(today: "2026-08-27", roster: 1) == "2026-09-12")   // a Thursday
+    #expect(WizardDials.defaultStart(today: "2026-08-29", roster: 1) == "2026-09-12")   // a Saturday
+    #expect(WizardDials.defaultStart(today: "2026-08-30", roster: 1) == "2026-09-19")   // a Sunday
+    #expect(WizardDials.defaultStart(today: "2026-08-27", roster: 2) == "2026-08-29")
+    for iso in ["2026-08-27", "2026-08-29", "2026-08-30", "2026-09-01"] {
+      let d = WizardDials.defaultStart(today: iso, roster: 1)
+      #expect((CSDate.days(from: iso, to: d) ?? 0) >= 14)
+      #expect(LeagueDates.dowMonDay(d).hasPrefix("Sat"))
+    }
+  }
+
+  /// QB-13 · the number the organiser knows before she opens the app, and the
+  /// one number the wizard never learned. It seats nobody; it sizes what the
+  /// wizard says.
+  @Test func theExpectedRosterDrivesEverythingDownstream() {
+    var d = WizardDials()
+    #expect(d.plannedRoster == 1)
+    #expect(WizardCopy.potLine(stake: 50, roster: d.plannedRoster) == "$50 each. 1 in makes $50.")
+    d.expectedRoster = 6
+    #expect(d.plannedRoster == 6)
+    #expect(WizardCopy.potLine(stake: 50, roster: d.plannedRoster) == "$50 each. Six in makes $300.")
+    #expect(WizardDials.asksAboutSquads(roster: d.plannedRoster))
+    // D206 stands: an explicit "Squads" answer mints squads; silence never does.
+    #expect(WizardDials.derivedStructure(roster: d.plannedRoster, squadsChosen: nil) == "solo")
+    #expect(WizardDials.derivedStructure(roster: d.plannedRoster, squadsChosen: true) == "squads2")
+  }
+
+  /// QB-10 · three doors, and it said two.
+  @Test func theEmptyStepCountsItsOwnDoors() {
+    #expect(WizardCopy.step1Empty == "No buddies yet. Three ways in.")
   }
   /// D143: `season_months` describes the window, 1..12 like the web — never a clamped 3.
   @Test func seasonMonthsDescribesTheWindow() {

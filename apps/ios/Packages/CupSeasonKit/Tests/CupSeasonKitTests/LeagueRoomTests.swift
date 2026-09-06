@@ -248,7 +248,10 @@ private func team(_ id: UUID, _ name: String, _ pts: Double, ci: Int = 0) -> Tea
     if case .cut(let label) = items.first(where: { if case .cut = $0 { return true }; return false })! { #expect(label == "CUT LINE · 20 CLEAR") }
     let on = ClimbMath.items(teams: teams, meId: c, scenarios: nil)   // 3rd, one below the line
     if case .rung(let r) = on.first(where: { if case .rung(let r) = $0 { return r.index == 1 }; return false })! {
-      #expect(r.voice == .aheadOfYou(10, stake: "the top seed"))
+      // QB-16 · the golfer on the rung above at K = 2 holds the LAST seat in
+      // the Final, not the top seed — two readers re-read the whole ladder to
+      // check they had not misread who was leading.
+      #expect(r.voice == .aheadOfYou(10, stake: "the last seat in the Final"))
     }
   }
   @Test func spectatorsSeeBehindTheLeader() {

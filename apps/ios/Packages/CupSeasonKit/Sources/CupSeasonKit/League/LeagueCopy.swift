@@ -495,5 +495,16 @@ public enum RunItBack {
   }
 
   /// The three-valued answer this build's unpushed reads all use.
-  public static let notYetLine = "Running it back needs the latest update — try again shortly."
+  ///
+  /// QB-01 · the Pro's half of run-it-back is the unapplied one; the member's
+  /// **ask** is a board line and works today. So the sentence tells the Pro
+  /// that the server is behind — never that their app is out of date — and
+  /// points at the door that is open.
+  public static let notYetLine =
+    "Running it back isn\u{2019}t switched on yet \u{2014} you can start the next season from Compete."
+
+  /// A different fact from the one above, and it was wearing that sentence:
+  /// the payload carries no membership row for this golfer, which is not a
+  /// deploy skew and must not be narrated as one.
+  public static let noSeatLine = "You\u{2019}re not on this season\u{2019}s roster."
 }

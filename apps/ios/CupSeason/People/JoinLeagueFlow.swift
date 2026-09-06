@@ -30,7 +30,13 @@ struct JoinLeagueFlow: View {
     NavigationStack {
       ScrollView {
         VStack(alignment: .leading, spacing: 14) {
-          CSSheetHeader(title: "Join with a code", sub: "WHOEVER'S RUNNING IT WILL HAVE SENT YOU ONE")   // T-13: one noun for the code (D47)
+          // QB-08 · an invited joiner arrives with the code ALREADY IN HAND and
+          // was shown the manual-entry screen anyway: *"nobody sent me a code.
+          // Wrong screen. Where's Cancel?"* When the code came from a link the
+          // sheet says whose season it is; when it is being typed, the old
+          // frame is still exactly right.
+          CSSheetHeader(title: vm.presetCode == nil ? "Join with a code" : (vm.leagueName.map { "You're joining \($0)" } ?? "You're joining a season"),
+                        sub: vm.presetCode == nil ? "WHOEVER'S RUNNING IT WILL HAVE SENT YOU ONE" : "THE LINK BROUGHT THE CODE WITH IT")   // T-13: one noun for the code (D47)
           if vm.presetCode == nil {
             CSField("League code", text: $vm.code)
               .textInputAutocapitalization(.characters).autocorrectionDisabled()
@@ -38,7 +44,7 @@ struct JoinLeagueFlow: View {
           } else {
             Text(vm.code).font(CSFont.code).foregroundStyle(cs.ink)
           }
-          if let name = vm.leagueName { CSFine("You're invited to \(name).", tone: cs.ink) }
+          if vm.presetCode == nil, let name = vm.leagueName { CSFine("You're invited to \(name).", tone: cs.ink) }
           CSButton("Join", busy: vm.busy) { Task { await vm.go() } }
           if let note = vm.note { CSNote(note, tone: .neg) }
         }
@@ -48,7 +54,13 @@ struct JoinLeagueFlow: View {
       .toolbar { ToolbarItem(placement: .topBarLeading) { Button("Cancel") { dismiss() }.foregroundStyle(cs.mut) } }
       .task { if vm.presetCode != nil { await vm.go() } }
       .sheet(item: $vm.covenant) { c in
-        CovenantSheet(covenant: c, onJoin: { vm.covenant = nil; Task { await vm.join() } }, onNo: { vm.covenant = nil })
+        // QB-08 · `postedRounds` was never passed, so `Covenant.starterClause`
+        // — the one sentence in the covenant written for a beginner, with a
+        // producer and a test — never rendered, and the beginner is exactly
+        // the golfer it was written for. A nil count still renders nothing
+        // (L-44); a real zero renders the clause.
+        CovenantSheet(covenant: c, postedRounds: store.me?.profile?.rounds_count,
+                      onJoin: { vm.covenant = nil; Task { await vm.join() } }, onNo: { vm.covenant = nil })
       }
       .sheet(item: $vm.welcome, onDismiss: { if let id = vm.joinedId { PushAsk.shared.request(.leagueJoined); onJoined(id); dismiss() } }) { w in
         LeagueWelcomeSheet(welcome: w)

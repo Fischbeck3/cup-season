@@ -141,7 +141,7 @@ struct RunItBackCard: View {
   }
 
   private func askThem() async {
-    guard let member = membership?.member_id else { toast.show(RunItBack.notYetLine); return }
+    guard let member = membership?.member_id else { toast.show(RunItBack.noSeatLine); return }
     busy = true
     defer { busy = false }
     let first = store.me?.profile?.display_name?.split(separator: " ").first.map(String.init)

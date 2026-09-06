@@ -422,7 +422,18 @@ public enum ClimbMath {
     if K < n { show.insert(K - 1); show.insert(K) } else { show.insert(n - 1) }
     if meIdx >= 0 { show.insert(meIdx - 1); show.insert(meIdx); show.insert(meIdx + 1) }
     let idxs = show.filter { $0 >= 0 && $0 < n }.sorted()
-    let stakeTxt = cut.line == "CROWN LINE" ? "the crown" : cut.line == "CUP LINE" ? "the last cup spot" : "the top seed"
+    // QB-16 · **THE LAST SEAT IS NOT THE TOP SEED.**
+    //
+    // This fell through to "the top seed" for any cut line that is neither a
+    // crown line nor a cup line — which at K = 2 means the golfer on rank TWO
+    // is captioned the top seed while rank one sits above him with the lead.
+    // Two blind readers, a full audit apart, re-read the entire ladder to check
+    // they had not misread who was leading: *"Cal isn't the top seed — Wes is.
+    // Cal holds the last seat."* The rung is describing the seat the golfer is
+    // trying to take, and the seat above the line is the LAST one in.
+    let stakeTxt = cut.line == "CROWN LINE" ? "the crown"
+                 : cut.line == "CUP LINE" ? "the last cup spot"
+                 : "the last seat in the Final"
     var out: [ClimbItem] = []
     var cutDrawn = false
     var prev = -1
@@ -477,6 +488,45 @@ public enum ClimbMath {
     }
     if prev < n - 1 { out.append(.ellipsis(id: "etail", hidden: n - 1 - prev)) }
     return out
+  }
+
+  /// QB-12 · **TURN THE GAP INTO A MOVE.**
+  ///
+  /// Everywhere the app says "4 back of Cal" it also holds, on the same
+  /// device, the five points bands and the golfer's own counting rounds for
+  /// the month — and nothing did the multiplication. A blind reader did it
+  /// himself, eight taps deep, inside the round composer's HOW POINTS WORK
+  /// fold: *"my worst counting round is a 6, so one 'Torched it' swaps a 6 for
+  /// a 12 and that's +6 — one great round puts me past Cal. That is a
+  /// genuinely motivating fact and I had to derive it."*
+  ///
+  /// The arithmetic, stated exactly:
+  ///
+  ///   · with the month's counting slots NOT yet full, a new round ADDS its
+  ///     points, so a top-band round is worth the whole 12;
+  ///   · with them full, a top-band round BUMPS the worst counter, so it is
+  ///     worth 12 minus that round.
+  ///
+  /// **It renders only when ONE round genuinely closes the gap.** Two rounds
+  /// would each bump a successively better counter, so "two rounds closes it"
+  /// is arithmetic nobody can stand behind — and a motivating sentence that is
+  /// slightly wrong is worse than no sentence (L-01: every number shows its
+  /// work). Silence is the honest answer for a gap that big.
+  ///
+  /// `topBand` is `CSBands.cupPoints` at its ceiling, read from the one band
+  /// table (§4.27) rather than typed.
+  public static func closer(gap: Double, countingPoints: [Double], capN: Int?) -> String? {
+    guard gap > 0, gap.isFinite else { return nil }
+    let top = Double(CSBands.cupPoints(3))
+    let gain: Double
+    if let cap = capN, cap > 0, countingPoints.count >= cap {
+      guard let worst = countingPoints.min() else { return nil }
+      gain = top - worst
+    } else {
+      gain = top
+    }
+    guard gain >= gap else { return nil }
+    return "One round in the top band closes it."
   }
 
   /// `#climbNote` (4471–4475).

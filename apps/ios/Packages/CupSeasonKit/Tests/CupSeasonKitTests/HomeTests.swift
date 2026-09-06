@@ -73,13 +73,40 @@ private func row(_ id: UUID = UUID(), me: Bool = false, golfer: String? = "Diego
 
 @Suite struct OccasionTests {
   @Test func windowsWrapAcrossNewYear() {
-    let fresh = Occasion.all.first { $0.key == "fresh" }!
-    #expect(Occasion.inWindow(fresh.window, month: 12, day: 30))
-    #expect(Occasion.inWindow(fresh.window, month: 1, day: 10))
-    #expect(!Occasion.inWindow(fresh.window, month: 2, day: 1))
+    // The wrap rule itself, on a literal — `fresh` used to be the example and
+    // is no longer a windowed card (see the test below).
+    let dec27toJan15 = (12, 27, 1, 15)
+    #expect(Occasion.inWindow(dec27toJan15, month: 12, day: 30))
+    #expect(Occasion.inWindow(dec27toJan15, month: 1, day: 10))
+    #expect(!Occasion.inWindow(dec27toJan15, month: 2, day: 1))
     let opener = Occasion.all.first { $0.key == "opener" }!
     #expect(Occasion.inWindow(opener.window, month: 4, day: 1))
     #expect(!Occasion.inWindow(opener.window, month: 4, day: 20))
+  }
+
+  /// QB-19 · the one card written for a golfer with nothing running fired
+  /// twenty days a year, so the state it was written for could not reach it
+  /// for eleven and a half months. A state is not an occasion.
+  @Test func theNothingRunningCardIsReachableEveryDay() {
+    let fresh = Occasion.all.first { $0.key == "fresh" }!
+    for m in 1...12 {
+      #expect(Occasion.inWindow(fresh.window, month: m, day: 1))
+      #expect(Occasion.inWindow(fresh.window, month: m, day: 28))
+    }
+    // and it is still only for a golfer with nothing running
+    #expect(fresh.leaguelessOnly)
+    // …which is a different question from "has no membership at all" (B-1).
+    let wrapped = try! JSONDecoder().decode(Me.Membership.self, from: Data("""
+    {"league_id":"\(UUID().uuidString)","member_id":"\(UUID().uuidString)","name":"The Ocotillo Cup","phase":"complete","role":"member",
+     "season":{"id":"\(UUID().uuidString)","starts_on":"2026-05-25","ends_on":"2026-08-23","status":"complete"}}
+    """.utf8))
+    #expect(Occasion.nothingRunning([wrapped], today: "2026-09-08"))
+    let live = try! JSONDecoder().decode(Me.Membership.self, from: Data("""
+    {"league_id":"\(UUID().uuidString)","member_id":"\(UUID().uuidString)","name":"The Fellas","phase":"season","role":"member",
+     "season":{"id":"\(UUID().uuidString)","starts_on":"2026-07-20","ends_on":"2027-01-17","status":"active"}}
+    """.utf8))
+    #expect(!Occasion.nothingRunning([live], today: "2026-09-08"))
+    #expect(Occasion.nothingRunning([], today: "2026-09-08"))
   }
 
   @Test func leaguelessOnlyWindowsHideForMembers() {

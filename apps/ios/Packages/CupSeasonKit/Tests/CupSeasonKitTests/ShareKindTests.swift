@@ -192,6 +192,11 @@ struct ShareRedeemTests {
     // D234 · one sentence, both clients. `CS_SHARE_NOT_YET` is its twin and
     // `tests/app-tests.js` asserts the same literal, so a reword on one side
     // fails on the other rather than shipping two voices for one situation.
-    #expect(ShareLinkService.notYetLine == "Links need the latest update — try again shortly.")
+    // QB-01 · the sentence may never send a golfer to the App Store, and it
+    // names the live alternative in the same breath (L-32).
+    #expect(!ShareLinkService.notYetLine.lowercased().contains("update"))
+    #expect(ShareLinkService.notYetLine(hasSeason: false)
+              == "Person links aren\u{2019}t switched on yet \u{2014} a season\u{2019}s invite link works for anyone.")
+    #expect(ShareLinkService.notYetLine(hasSeason: true).contains("send your"))
   }
 }

@@ -206,8 +206,11 @@ final class WizardModel {
     }
   }
 
-  /// The roster the season will have: me, plus everyone picked.
-  var roster: Int { 1 + dials.invitees.count }
+  /// The roster the season will have: me, plus everyone picked — and never
+  /// fewer than the number the organiser gave at step 1 (QB-13). Everything
+  /// downstream reads this: the pot line, the structure-fit line, the squads
+  /// question and the first-tee default.
+  var roster: Int { dials.plannedRoster }
   var portrait: WizardPortrait { WizardPortrait(dials, roster: roster) }
   var asksAboutSquads: Bool { WizardDials.asksAboutSquads(roster: roster) }
 

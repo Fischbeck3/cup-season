@@ -187,6 +187,40 @@ public enum SeasonFacts {
     return cap
   }
 
+  /// QB-09 · **THE MONTH LINE, ON HOME, EVERY DAY.**
+  ///
+  /// `00-launch-default.png` carried *"Best 4 rounds a month count · 1 posted ·
+  /// 26 days left in September"* above the fold on every open. After the
+  /// rebuild the only surface carrying it on Home was `floorItem`, which
+  /// guards on `!isSolo` **and** `left <= 3` — so a solo season never saw it at
+  /// all and a squads season saw it on three days of thirty. That was a silent
+  /// deletion of a fact `UX_AUDIT` §8.2/§8.3 keep, not a decision.
+  ///
+  /// **A cap and a clock are facts, not alarms.** `floorItem` stays exactly as
+  /// it is — it is the alarm, and an alarm should fire near the deadline. This
+  /// is the fact, and it is present in every state with a live season, in both
+  /// shapes, in the strip's own quiet type.
+  ///
+  /// L-44 · an unread credit count renders NOTHING rather than a zero: "0
+  /// posted" over a payload that did not carry the pulse is a claim about the
+  /// golfer's month that nobody made.
+  public static func monthRow(_ m: Me.Membership, today: String = CSDate.today(),
+                              calendar: Calendar = .current) -> String? {
+    switch SeasonPhase.of(m, today: today) {
+    case .season, .cupFinal: break
+    default: return nil
+    }
+    guard let cap = m.settings?.counting_cap, cap > 0 else { return nil }
+    let left = LeagueDates.daysInMonth(today, calendar: calendar) - (Int(today.suffix(2)) ?? 0)
+    let month = LeagueDates.monthLong(today, calendar: calendar)
+    let clock = left <= 0 ? "last day of \(month)"
+              : left == 1 ? "1 day left in \(month)"
+              : "\(left) days left in \(month)"
+    let head = "Best \(cap) a month count"
+    guard let credits = m.pulse?.credits else { return "\(head) · \(clock)" }
+    return "\(head) · \(CSCopy.points(credits)) posted · \(clock)"
+  }
+
   /// D126 · how the season ends — `LeagueCopy.endgame`. nil until a season exists.
   public static func footEndgame(_ m: Me.Membership, calendar: Calendar = .current) -> String? {
     guard let s = m.season else { return nil }

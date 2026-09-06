@@ -98,8 +98,14 @@ struct HomeView: View {
           ForEach(Array(ranked.deck.enumerated()), id: \.element.id) { idx, item in
             HomeDeckCard(item: item,
                          moreCut: idx == ranked.deck.count - 1 ? ranked.cut : 0,
+                         moreLabel: ranked.overflow.first?.action,
                          act: { take(item) },
-                         onMore: { openGolfers() })
+                         // QB-18 · it opened the GOLFERS TAB. The card that ran
+                         // out of room was a season card, and the link sent the
+                         // golfer to his address book: *"A link that lies about
+                         // its destination is worse than a card that admits it
+                         // ran out of room."* It opens the item it elided.
+                         onMore: { if let o = ranked.overflow.first { take(o) } })
               .environment(\.csLook, looks.look(for: league(item)))
           }
 
@@ -157,10 +163,26 @@ struct HomeView: View {
             }
             .padding(.top, 4)
           } else if buckets.isEmpty {
+            // QB-05 · **NEVER "add some buddies" TO A GOLFER WITH A ROSTER.**
+            //
+            // This branch rendered unconditionally, so a golfer ninety seconds
+            // past a covenant that named all six of his season's golfers was
+            // told he had none: *"which is worse than silence, because it tells
+            // me I have no buddies ninety seconds after showing me six of them
+            // by name."* The wire is honestly empty — nobody has posted — but
+            // the SECOND clause is a claim about his life, and it was false.
+            //
+            // With a season, the move is his season's own roster; the buddies
+            // door stays for a golfer who genuinely has nobody.
+            let roster = EmptyRoot.wireEmpty(me: me)
             A11yStack(alignment: .leading, rowAlignment: .firstTextBaseline, spacing: 4) {
-              Text("No rounds from your buddies yet. Post one, or").font(CSFont.footnote).foregroundStyle(cs.mut)
-              Button { openGolfers() } label: { Text("add some buddies.").font(CSFont.footnote).foregroundStyle(cs.brand).a11yHitSlop() }
-                .buttonStyle(.plain)
+              Text(roster.head).font(CSFont.footnote).foregroundStyle(cs.mut)
+              Button {
+                if let id = roster.leagueId { openCompetition(id, .table) } else { openGolfers() }
+              } label: {
+                Text(roster.door).font(CSFont.footnote).foregroundStyle(cs.brand).a11yHitSlop()
+              }
+              .buttonStyle(.plain)
             }
             .padding(.top, 4)
           } else {
@@ -386,7 +408,12 @@ final class HomeModel {
     // Major's door opens. The WINDOW is checked first — pure, no I/O — so the
     // flag is fetched only on the days one of the four gated cards would
     // otherwise show. Fail-closed: an unreadable flag leaves the card down.
-    let leagueless = (self.me ?? sessionMe).memberships.isEmpty
+    // B-1 / QB-19 · "has a league" and "has a season running" are different
+    // questions, and this asked the first while meaning the second. A golfer
+    // between seasons answered "has a league" — so the one Home card written
+    // for her state could never reach her, and neither could the one written
+    // for a golfer with friends and no competition.
+    let leagueless = Occasion.nothingRunning((self.me ?? sessionMe).memberships)
     if majorOpen == nil, Occasion.needsMajorToday(leagueless: leagueless) {
       majorOpen = await EventFlags.majorEnabled()
       guard live(gen) else { return }

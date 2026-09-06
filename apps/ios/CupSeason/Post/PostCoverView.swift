@@ -102,8 +102,18 @@ private struct PostCoverStack: View {
           // and by every explicit "Add a round" CTA, all of which land on the
           // composer directly.
           VStack(spacing: 0) {
+            // A-3 · **"THEY DON'T NEED THE APP" BELONGS ON THE OUTSIDE.**
+            //
+            // The single most useful fact in the product for a golfer whose
+            // group is not on here — guests play every game, post nothing, no
+            // account needed — was three scrolls inside the live setup, under
+            // a headline that says the opposite. A blind reader ruled the
+            // whole live game out on this row's second line ("my group has one
+            // guy who still uses a flip phone"), then found the answer by
+            // accident at the very end: *"That is the answer to my entire
+            // question and it is buried."* One clause, on the cover.
             PostLiveHeroRow(title: "Score it live — you and the group, hole by hole",
-                            sub: "Everyone scores from their own phone, and it settles up at the end.") {
+                            sub: "One phone or four — guests need no account. It settles up at the end.") {
               close(); links.openLive()
             }
             PostOptionRow(tick: cs.line2, title: "Add a round you played",

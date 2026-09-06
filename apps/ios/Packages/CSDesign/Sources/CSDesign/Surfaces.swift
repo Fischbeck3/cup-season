@@ -93,6 +93,7 @@ public struct CSDuskCard<Content: View>: View {
 public struct CSPageHeader<Trailing: View>: View {
   @Environment(\.cs) private var cs
   @Environment(\.csLookAccent) private var la
+  @Environment(\.dynamicTypeSize) private var typeSize
   let title: String
   let eyebrow: String?
   let sub: String?
@@ -102,24 +103,46 @@ public struct CSPageHeader<Trailing: View>: View {
   }
   public var body: some View {
     VStack(alignment: .leading, spacing: 8) {
-      HStack(alignment: .lastTextBaseline) {
-        VStack(alignment: .leading, spacing: 8) {
-          // D103b: accent → accent2 under a look; ember → amber on homebase
-          Rectangle().fill(LinearGradient(colors: la.tick, startPoint: .leading, endPoint: .trailing))
-            .frame(width: 28, height: 3)
-          Text(title).font(CSFont.heroSmall).foregroundStyle(cs.ink).lineLimit(2).minimumScaleFactor(0.8)
-        }
-        .accessibilityElement(children: .combine)
-        // Y-33: the page's title is a heading — VoiceOver's rotor lands on it
-        .accessibilityAddTraits(.isHeader)
-        Spacer(minLength: 8)
+      // QB-11 · **AX3 · THE HEADER'S THREE THINGS STOP FIGHTING FOR ONE ROW.**
+      //
+      // Title, dateline and the page's one action shared an `HStack`, so at
+      // the accessibility sizes the Compete tab drew "Com / pete" broken across
+      // two lines beside "START SOMET / HING" split mid-word and overlapping
+      // the date. Three elements that each want the full width cannot have a
+      // third of it. They stack, in reading order, at those sizes only —
+      // nothing is dropped, nothing shrinks, and the reading-size layout is
+      // untouched.
+      if typeSize.isA11y {
+        titleBlock
         if let eyebrow { Text(eyebrow).csEyebrow() }
-        // the control is its own accessibility element — never folded into the title
-        trailing.frame(minWidth: 44, minHeight: 44).padding(.trailing, -8)
+        trailing.frame(minHeight: 44)
+      } else {
+        HStack(alignment: .lastTextBaseline) {
+          titleBlock
+          Spacer(minLength: 8)
+          if let eyebrow { Text(eyebrow).csEyebrow() }
+          // the control is its own accessibility element — never folded into the title
+          trailing.frame(minWidth: 44, minHeight: 44).padding(.trailing, -8)
+        }
       }
       if let sub { Text(sub).font(CSFont.sentence).foregroundStyle(cs.mut) }
     }
     .frame(maxWidth: .infinity, alignment: .leading)
+  }
+
+  private var titleBlock: some View {
+    VStack(alignment: .leading, spacing: 8) {
+      // D103b: accent → accent2 under a look; ember → amber on homebase
+      Rectangle().fill(LinearGradient(colors: la.tick, startPoint: .leading, endPoint: .trailing))
+        .frame(width: 28, height: 3)
+      Text(title).font(CSFont.heroSmall).foregroundStyle(cs.ink)
+        .lineLimit(2).minimumScaleFactor(0.8)
+        .fixedSize(horizontal: false, vertical: true)
+    }
+    .frame(maxWidth: .infinity, alignment: .leading)
+    .accessibilityElement(children: .combine)
+    // Y-33: the page's title is a heading — VoiceOver's rotor lands on it
+    .accessibilityAddTraits(.isHeader)
   }
 }
 

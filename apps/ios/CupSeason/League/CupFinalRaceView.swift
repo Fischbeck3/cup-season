@@ -78,6 +78,9 @@ struct FinalistReceiptSheet: View {
   var body: some View {
     let f = finalist
     let name = model.teams.first { $0.id == f.teamId }?.name ?? f.name
+    // QB-17 · this sheet is a rung, and a rung is usually somebody else. Only
+    // my own rung may say "your number".
+    let whose = (f.teamId != nil && f.teamId == model.myTeamId) ? "your" : "their"
     SheetFrame(name, sub: "SEED \(f.seed) · \(CSCopy.points(f.total)) PTS IN THE FINAL") {
       VStack(alignment: .leading, spacing: 0) {
         if f.head_start > 0 { RoomMathRow(k: "Head start · top seed", v: "+" + CSCopy.points(f.head_start), tone: cs.pos) }
@@ -103,7 +106,7 @@ struct FinalistReceiptSheet: View {
                      + (f.squad_id != nil ? " · \((h.golfer ?? "").uppercased())" : ""))
                   .font(CSFont.label).tracking(0.6).foregroundStyle(cs.mut)
                 Spacer()
-                Text("\(StandingsMath.sgn(h.pvi ?? 0)) vs your number · \(CSCopy.points(h.points)) PTS")
+                Text("\(StandingsMath.sgn(h.pvi ?? 0)) vs \(whose) number · \(CSCopy.points(h.points)) PTS")
                   .font(CSFont.monoSmall).csTabular().foregroundStyle(cs.ink).lineLimit(typeSize.isA11y ? nil : 1)
               }
               .padding(.vertical, 10).frame(minHeight: 44).contentShape(Rectangle())

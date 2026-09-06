@@ -76,17 +76,23 @@ import Foundation
   // MARK: - the one true fact, and the door that changes with it
 
   @Test func theFactIsOmittedRatherThanGuessed() {
-    // With buddies it is real and is used…
+    // QB-21 · the counted sentence is the HEAD now — it was the best writing
+    // in the product and it sat under "Nothing running.", which two readers
+    // took as an instruction to leave the one screen that had their answer.
     let withBuddies = CompeteRoot.empty(buddies: 5)
-    #expect(withBuddies.fact == "5 buddies, and none of you is playing for anything.")
+    #expect(withBuddies.head == "5 buddies, and none of you is playing for anything.")
+    #expect(withBuddies.fact == nil)
     #expect(withBuddies.doors == [.startSomething, .joinWithCode])
-    #expect(CompeteRoot.empty(buddies: 1).fact == "1 buddy, and none of you is playing for anything.")
-    // …with none, it is not written at all, and the second door becomes the
-    // one that is any use to somebody nobody has sent a code to.
+    #expect(CompeteRoot.empty(buddies: 1).head == "1 buddy, and none of you is playing for anything.")
+    // …with none, there is nothing true to count, so the old head stands and
+    // the second door becomes the one that is any use to somebody nobody has
+    // sent a code to.
     let alone = CompeteRoot.empty(buddies: 0)
+    #expect(alone.head == "Nothing running.")
     #expect(alone.fact == nil)
     #expect(alone.doors == [.startSomething, .findGolfers])
     // A read that could not answer is the same as no fact — never a zero.
+    #expect(CompeteRoot.empty(buddies: nil).head == "Nothing running.")
     #expect(CompeteRoot.empty(buddies: nil).fact == nil)
   }
 

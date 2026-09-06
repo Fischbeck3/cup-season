@@ -122,6 +122,24 @@ struct CardGateView: View {
       FlowLayout(spacing: 8) {
         ForEach(ScoreBand.allCases) { b in bandChip(b) }
       }
+      // QB-08 · **SHOW THE ANSWER'S CONSEQUENCE WHERE THE ANSWER IS GIVEN.**
+      //
+      // `ScoreBand.stripPreview` produces `STARTER 20`, is unit-tested, and was
+      // rendered nowhere — so the biggest figure on the first Home a golfer
+      // ever sees arrived cold, ten minutes after the tap that caused it, and
+      // three of six blind readers took it for a RANK. *"My first guess was
+      // that 20 is a rank — I am 20th at something."* The band's own figure
+      // belongs under the band's own chip, in the same type the strip will
+      // use, so the golfer meets the number where they chose it.
+      if let b = band {
+        HStack(spacing: 8) {
+          Text(b.stripPreview).font(CSFont.monoMediumBody).csTabular().foregroundStyle(cs.ink)
+          Text(OnboardingCopy.stripPreviewNote).font(CSFont.footnote).foregroundStyle(cs.dimText)
+        }
+        .fixedSize(horizontal: false, vertical: true)
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel("\(b.stripPreview). \(OnboardingCopy.stripPreviewNote)")
+      }
       Text(OnboardingCopy.shootSub).font(CSFont.footnote).foregroundStyle(cs.dimText)
       if let b = band, b.starter != nil {
         Text(OnboardingCopy.shootStarterNote).font(CSFont.footnote).foregroundStyle(cs.mut)

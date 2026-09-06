@@ -7,8 +7,69 @@
 // **Start the season** — the one tap that mints anything at all.
 
 import SwiftUI
+import Contacts
 import CSDesign
 import CupSeasonKit
+
+/// QB-02 · **THE CONTACTS MATCH, INSIDE THE WIZARD.**
+///
+/// Step 1's "Find your friends — check your contacts for golfers already here"
+/// called `findGolfers`, which is `{ presenter.wizard = nil; tab = .golfers }`
+/// — it closed the whole wizard and switched tabs, and so did the door beside
+/// it that said something else entirely. Two labels, one action, neither of
+/// them the label's own.
+///
+/// The crew step already runs this correctly (`CrewStep.runContacts`), so the
+/// mechanism is lifted here whole rather than re-written: the same privacy
+/// envelope at the point of the ask, the same salted digests, the same
+/// three-way answer, the same `OnboardingCopy` sentences. Nothing leaves the
+/// phone but hashes and nothing dismisses the wizard.
+@MainActor
+@Observable
+final class WizardContacts {
+  enum State: Equatable { case idle, checking, answered(String, [MatchedGolfer]) }
+  var consent = false
+  var state: State = .idle
+  var busy = Set<UUID>()
+
+  func ask() { consent = true }
+
+  func run() async {
+    state = .checking
+    let book = CNContactStore()
+    let ok = (try? await book.requestAccess(for: .contacts)) ?? false
+    guard ok else { state = .answered(OnboardingCopy.contactsRefused, []); return }
+
+    var emails: [String] = []
+    var phones: [String] = []
+    let keys = [CNContactEmailAddressesKey, CNContactPhoneNumbersKey] as [CNKeyDescriptor]
+    do {
+      try book.enumerateContacts(with: CNContactFetchRequest(keysToFetch: keys)) { c, stop in
+        for e in c.emailAddresses { emails.append(e.value as String) }
+        for p in c.phoneNumbers { phones.append(p.value.stringValue) }
+        if emails.count + phones.count > ContactHash.maxHashes * 2 { stop.pointee = true }
+      }
+    } catch {
+      state = .answered(OnboardingCopy.contactsRefused, []); return
+    }
+
+    let result = (try? await ContactMatchService().match(ContactHash.hashes(emails: emails, phones: phones))) ?? .none
+    let line = ContactMatchService.line(result) ?? OnboardingCopy.contactsNone
+    if case .matched(let people) = result { state = .answered(line, people) }
+    else { state = .answered(line, []) }
+  }
+
+  func add(_ id: UUID, toast: CSToastCenter) async {
+    busy.insert(id); defer { busy.remove(id) }
+    do {
+      _ = try await PeopleService().request(id)
+      CSHaptic.success()
+      toast.show(GolfersRoot.BuddyAsk.sent)
+    } catch {
+      toast.show(AuthRules.human(error, fallback: "Couldn\u{2019}t send that."))
+    }
+  }
+}
 
 /// F-12 · which door labels are SENTENCES rather than labels.
 ///
@@ -29,8 +90,13 @@ enum WizardSteps {
 struct WizardWhoStep: View {
   @Environment(SessionStore.self) private var store
   @Environment(\.cs) private var cs
+  @Environment(\.toast) private var toast
   @Bindable var model: WizardModel
+  /// The LAST resort only: a route that genuinely belongs on another tab.
+  /// QB-02 · nothing on this step uses it any more.
   let findGolfers: () -> Void
+  @State private var contacts = WizardContacts()
+  @State private var linkTrigger = 0
 
   var body: some View {
     VStack(alignment: .leading, spacing: 12) {
@@ -42,20 +108,38 @@ struct WizardWhoStep: View {
         // relation only (L-37), so a golfer signed in an hour cannot find two
         // friends who are already on the app.
         Text(WizardCopy.step1Empty).font(CSFont.sentence).foregroundStyle(cs.mut)
-        door(WizardCopy.findYourFriends, sub: WizardCopy.findYourFriendsSub, ember: true, action: findGolfers)
-        door(WizardCopy.textThemALink, sub: nil, ember: false, action: findGolfers)
+        // QB-02 · BOTH of these used to call `findGolfers`, which closed the
+        // whole wizard and switched tabs. Two differently-labelled controls
+        // performing one action that was neither of their labels was the worst
+        // moment in the organiser's walk — "that is the moment I stop trusting
+        // the labels on this app". They do what they say now, in place, over
+        // the wizard, and the wizard is still there behind the sheet.
+        door(WizardCopy.findYourFriends, sub: WizardCopy.findYourFriendsSub, ember: true) { contacts.ask() }
+        contactsAnswer
+        // The share row IS the door (the crew step's own pattern, L-34): one
+        // control for one act. It mints and opens the system share sheet.
+        PersonInviteLink(store: store, always: true, trigger: linkTrigger,
+                         title: WizardCopy.textThemALink, sub: nil)
         door(WizardCopy.justMe, sub: WizardCopy.justMeSub, ember: false) { model.step = 1 }
       } else {
         Text(WizardCopy.step1Sub).font(CSFont.footnote).foregroundStyle(cs.dimText)
         FlowLayout(spacing: 6) {
           ForEach(model.buddies) { b in chip(b) }
         }
-        door(WizardCopy.textThemALink, sub: nil, ember: false, action: findGolfers)
+        PersonInviteLink(store: store, always: true, trigger: linkTrigger,
+                         title: WizardCopy.textThemALink, sub: nil)
         // Derived, never printed as a literal (D205/D206).
         CSFine(WizardDials.rosterHint)
       }
 
-      // The ONE question the roster is worth asking, and only at four or more.
+      // QB-13 · question one. It is asked of every organiser, in both branches,
+      // because the number of people in the group is not the number of people
+      // in the address book.
+      howMany
+
+      // The ONE question the roster is worth asking, and only at four or more —
+      // and the roster it counts is now the one the organiser gave, not the one
+      // her phone could prove.
       if model.asksAboutSquads {
         Text(WizardCopy.squadsQuestion).csEyebrow().padding(.top, 6)
         WizardSeg(options: [("solo", WizardCopy.squadsNo), ("squads", WizardCopy.squadsYes)],
@@ -64,6 +148,93 @@ struct WizardWhoStep: View {
         }
       }
     }
+    .sheet(isPresented: $contacts.consent) { contactsConsent }
+  }
+
+  // MARK: QB-13 · how many of you?
+
+  @ViewBuilder private var howMany: some View {
+    Text(WizardCopy.howManyQuestion).csEyebrow().padding(.top, 6)
+    FlowLayout(spacing: 6) {
+      ForEach(WizardCopy.howManyChips, id: \.self) { n in howManyChip(n) }
+    }
+    CSFine(WizardCopy.howManyFine)
+  }
+
+  private func howManyChip(_ n: Int) -> some View {
+    let on = model.dials.expectedRoster == n
+    return Button {
+      CSHaptic.selection()
+      model.dials.expectedRoster = on ? nil : n
+    } label: {
+      Text(WizardCopy.howManyLabel(n)).font(CSFont.monoMediumBody)
+        .foregroundStyle(on ? cs.pos : cs.ink)
+        .padding(.horizontal, 16).frame(minWidth: 44, minHeight: 44)
+        .background(cs.bg2, in: Capsule())
+        .overlay(Capsule().stroke(on ? cs.pos : cs.line2, lineWidth: 1))
+    }
+    .buttonStyle(.plain)
+    .accessibilityLabel("\(WizardCopy.howManyLabel(n)) golfers")
+    .accessibilityAddTraits(on ? .isSelected : [])
+  }
+
+  // MARK: QB-02 · contacts, in place
+
+  /// The crew step's own consent sheet, verbatim (`OnboardingCopy`), because
+  /// the privacy envelope belongs at the point of the ask and there is exactly
+  /// one of it.
+  private var contactsConsent: some View {
+    VStack(alignment: .leading, spacing: 14) {
+      CSSheetHeader(title: OnboardingCopy.CrewRoute.contacts.title, sub: "PRIVACY")
+      Text(OnboardingCopy.contactsConsent).font(CSFont.body).foregroundStyle(cs.mut)
+      VStack(spacing: 8) {
+        CSButton(OnboardingCopy.contactsAllow) { contacts.consent = false; Task { await contacts.run() } }
+        Button { contacts.consent = false } label: {
+          Text(OnboardingCopy.contactsDecline).font(CSFont.subhead).foregroundStyle(cs.mut)
+            .frame(maxWidth: .infinity, minHeight: 44)
+        }
+        .buttonStyle(.plain)
+      }
+      .padding(.top, 4)
+    }
+    .padding(20)
+    .frame(maxWidth: .infinity, alignment: .leading)
+    .background(cs.bg0)
+    .presentationDetents([.medium])
+    .presentationDragIndicator(.visible)
+  }
+
+  @ViewBuilder private var contactsAnswer: some View {
+    switch contacts.state {
+    case .idle: EmptyView()
+    case .checking: CSFine("Checking…")
+    case .answered(let line, let people):
+      // L-32 · every state ends in a next move: nobody matched carries the
+      // link row below it; a match carries the people, and adding one here
+      // puts them straight into this season's roster chips.
+      CSFine(line)
+      ForEach(people, id: \.id) { m in matchRow(m) }
+    }
+  }
+
+  private func matchRow(_ m: MatchedGolfer) -> some View {
+    HStack(spacing: 12) {
+      CSMarkerView(CSMarkers.marker(m.marker), size: 26).foregroundStyle(cs.ink)
+      VStack(alignment: .leading, spacing: 2) {
+        Text(m.person.name).font(CSFont.sentence).foregroundStyle(cs.ink)
+        if let h = m.handle, !h.isEmpty {
+          Text("@\(h)").font(CSFont.footnote).foregroundStyle(cs.dimText)
+        }
+      }
+      Spacer(minLength: 8)
+      if m.person.rel == .friend {
+        CSTag(text: "Buddies", tone: cs.pos)
+      } else {
+        CSMini("Add", busy: contacts.busy.contains(m.id)) { Task { await contacts.add(m.id, toast: toast) } }
+      }
+    }
+    .frame(minHeight: 44)
+    .accessibilityElement(children: .combine)
   }
 
   private func chip(_ b: TagCandidate) -> some View {
@@ -133,6 +304,9 @@ struct WizardWhenStep: View {
       .overlay(alignment: .bottom) { Rectangle().fill(cs.line).frame(height: 1) }
       // L-13, in a golfer's words, at the moment it matters.
       CSFine(WizardCopy.step2Note(endsOn: model.dials.endDate()))
+      // QB-06 · and the two things the first tee COSTS, said here rather than
+      // three panes deep and after publication.
+      CSFine(WizardCopy.step2Consequence(startsOn: model.dials.startDate()), tone: cs.warm)
     }
   }
 

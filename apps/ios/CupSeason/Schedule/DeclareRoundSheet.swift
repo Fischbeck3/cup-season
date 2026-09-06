@@ -96,7 +96,14 @@ struct DeclareRoundSheet: View {
 
           if vm.candidatesLoaded {
             if vm.candidates.isEmpty {
-              CSFine("No one to tag yet. Add buddies from the You tab, or invite the league.").padding(.top, 6)
+              // A-3 · this sent a golfer to the WRONG TAB for a list that is
+              // not there ("There is no buddies list under You — I went and
+              // looked"), and then offered him a league he does not have. The
+              // buddies live on GOLFERS, and the fact that decides whether
+              // Saturday can happen at all — that the people he plays with do
+              // not need an account to play — belongs here, where he is
+              // planning Saturday.
+              CSFine("Nobody to tag yet — buddies live on the Golfers tab. Playing anyway? Guests need no account: start it live and add them by name.").padding(.top, 6)
             } else {
               Text("Tag your group · \(vm.tagged.count) tagged").csEyebrow().padding(.top, 6)
               TagChips(candidates: vm.candidates, tagged: $vm.tagged, toasts: toasts)

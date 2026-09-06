@@ -255,9 +255,39 @@ public struct Occasion: Sendable, Identifiable {
              p: "One opponent a week, first past half the points. Yours can start the same weekend.", act: "Run your own", go: .event, marker: nil, leaguelessOnly: false, needsMajor: false),
     Occasion(key: "fall", window: (10, 1, 11, 20), earned: true, k: "The season's turning", h: "Cool mornings, empty fairways.",
              p: "A fall Major — two to four days, best card takes it.", act: "Name the jug", go: .event, marker: nil, leaguelessOnly: false, needsMajor: true),
-    Occasion(key: "fresh", window: (12, 27, 1, 15), earned: false, k: "A fresh table", h: "Nobody's ahead yet.",
+    // QB-19 · **THE ONE CARD WRITTEN FOR A GOLFER WITH NOTHING RUNNING FIRED
+    // TWENTY DAYS A YEAR.**
+    //
+    // Its window was Dec 27 – Jan 15, so it was unreachable for eleven and a
+    // half months: *"the app has a card designed for exactly my state and its
+    // window is Dec 27 to Jan 15. It is September."* Every other row here is a
+    // genuine calendar occasion — a Major has a date and the card belongs to
+    // it. This one is not an occasion at all. It is a STATE, and boxing a
+    // state inside a calendar window was the error.
+    //
+    // So its window is the year. It is still last in the list, so any real
+    // occasion in season takes the slot ahead of it; it still only reaches a
+    // golfer with nothing running; and `Occasion.dismiss` still retires it for
+    // the year on one tap. What it stops being is unreachable.
+    Occasion(key: "fresh", window: (1, 1, 12, 31), earned: false, k: "A fresh table", h: "Nobody's ahead yet.",
              p: "A season scores the rounds you’re already playing. Nothing changes about how you post.", act: "Start a season", go: .league, marker: nil, leaguelessOnly: true, needsMajor: false),
   ]
+
+  /// B-1 / QB-19 · the predicate `leagueless` actually wants. A membership
+  /// whose season is wrapped, or which has no season at all, is not a season
+  /// running — and a golfer with six buddies and a finished season is exactly
+  /// who "Nobody's ahead yet." was written for.
+  ///
+  /// One producer, so Home and anything else that asks the question cannot
+  /// answer it two different ways.
+  public static func nothingRunning(_ memberships: [Me.Membership], today: String = CSDate.today()) -> Bool {
+    !memberships.contains { m in
+      switch SeasonPhase.of(m, today: today) {
+      case .preseason, .season, .cupFinal: return true
+      case .forming, .wrapped:             return false
+      }
+    }
+  }
 
   public static func inWindow(_ w: (Int, Int, Int, Int), month m: Int, day: Int) -> Bool {
     let after = m > w.0 || (m == w.0 && day >= w.1)
@@ -272,6 +302,13 @@ public struct Occasion: Sendable, Identifiable {
   /// answer `EventPickerSheet` gives when the flag will not read. A withheld
   /// card does not blank Home — the next window that is not gated takes its
   /// place, exactly as a dismissed one does.
+  /// `leagueless` · **B-1 / QB-19 · IT MEANS "NOTHING RUNNING", NOT "NO
+  /// LEAGUE".** Both callers used to compute it as `memberships.isEmpty`, so a
+  /// golfer whose season finished a fortnight ago — who is in exactly the
+  /// state this card is written for — was excluded by a membership row that
+  /// points at a season nobody is playing. *"Between seasons is a state, not
+  /// the absence of one."* The parameter keeps its name because it is the
+  /// producer's public shape; the RULE is in this sentence and in the callers.
   public static func current(leagueless: Bool, majorOpen: Bool = false, today: Date = Date(),
                              calendar: Calendar = .current, defaults: UserDefaults = .standard) -> Occasion? {
     let c = calendar.dateComponents([.year, .month, .day], from: today)

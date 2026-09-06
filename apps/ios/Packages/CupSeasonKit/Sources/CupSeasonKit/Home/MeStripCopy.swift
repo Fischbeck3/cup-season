@@ -80,9 +80,30 @@ public enum MeStripCopy {
   public struct Strip: Sendable, Equatable {
     public let slots: [Slot]
     public let seasonRow: SeasonRow?
+    /// QB-09 · the month's cap, what I have posted into it, and how much of it
+    /// is left. `SeasonFacts.monthRow` — one producer, and it is a FACT that
+    /// stands every day, not a deadline item that fires on three of thirty.
+    public let monthRow: String?
+    /// QB-04 · **HOW TO PAY, UNDER THE FIGURE THAT SAYS YOU OWE.**
+    ///
+    /// `Me.Membership.BuyIn` carries `note` — commented in the model as "how
+    /// to pay, the Pro's words" — and `due_on`. `SeasonFacts.owe` turns them
+    /// into *"You still owe $75 · Venmo @casey · by Sat Sep 5"*, or the honest
+    /// fallback *"…ask the Pro how to pay — money moves between you"*. A grep
+    /// of the whole iOS target found it called from **one unit test and no
+    /// view**: the sentence the Pro typed was fetched to the golfer's phone
+    /// and printed nowhere, while the strip beside it dunned him in red.
+    ///
+    /// It renders for the SAME membership the money slot's door points at, so
+    /// the figure and the instruction are one fact in one place (L-34).
+    public let oweRow: String?
     /// L-34 as a producer rule, not a per-screen judgement.
     public var suppress: Set<Fact> { Set(slots.map(\.fact)) }
-    public var isEmpty: Bool { slots.isEmpty && seasonRow == nil }
+    public var isEmpty: Bool { slots.isEmpty && seasonRow == nil && monthRow == nil }
+
+    public init(slots: [Slot], seasonRow: SeasonRow?, monthRow: String? = nil, oweRow: String? = nil) {
+      self.slots = slots; self.seasonRow = seasonRow; self.monthRow = monthRow; self.oweRow = oweRow
+    }
   }
 
   // MARK: - The producer
@@ -106,7 +127,11 @@ public enum MeStripCopy {
                  lastSlot(me.profile, today: today, calendar: calendar),
                  nextSlot(upcoming, today: today, calendar: calendar),
                  moneySlot(me.memberships)].compactMap { $0 }
-    return Strip(slots: slots, seasonRow: seasonRow(me.memberships, today: today, calendar: calendar))
+    return Strip(slots: slots,
+                 seasonRow: seasonRow(me.memberships, today: today, calendar: calendar),
+                 monthRow: nearest(me.memberships, today: today)
+                             .flatMap { SeasonFacts.monthRow($0, today: today, calendar: calendar) },
+                 oweRow: oweRow(me.memberships, today: today, calendar: calendar))
   }
 
   /// The same, reading the payload's own tee sheet.
@@ -236,19 +261,56 @@ public enum MeStripCopy {
                 voiceOver: "you still owe \(CSCopy.dollars(cents: cents))")
   }
 
+  /// QB-04 · the Pro's payment words, for the season the money slot opens.
+  ///
+  /// The slot's door is `moneySlot`'s own choice — the season with the nearest
+  /// due date — and this reads the same one, so the figure and the sentence
+  /// can never describe different seasons. With more than one season owing,
+  /// the strip's figure is a SUM and the instruction is the nearest season's;
+  /// the sentence names its own amount, so nothing is ambiguous.
+  static func oweRow(_ memberships: [Me.Membership], today: String, calendar: Calendar) -> String? {
+    let owed = memberships.filter { $0.stakeCents > 0 && $0.phase != "setup" && $0.buy_in?.paid == false }
+    guard !owed.isEmpty else { return nil }
+    let nearest = owed.min { a, b in
+      (a.buy_in?.due_on ?? "9999-12-31") < (b.buy_in?.due_on ?? "9999-12-31")
+    } ?? owed[0]
+    return SeasonFacts.owe(nearest, today: today, calendar: calendar)
+  }
+
   // MARK: - The season context row
 
   /// `FELLAS · 2ND OF 8 · 4 BACK OF GALEN · 2 CLEAR OF JADE · TOP 2 INTO THE
   /// FINAL, OPENS OCT 6`, for the season with the nearest deadline.
   ///
-  /// **At rank 3 or worse the leader is named** — otherwise the man actually
-  /// winning is named nowhere on Home: `DESERT DOGS · 3RD OF 8 · TOMMY LEADS
-  /// BY 12 · 4 BACK OF DRE`. The endgame clause is dropped at that length
-  /// rather than wrapping to a fourth line.
+  /// **QB-03 · THE ENDGAME CLAUSE IS NEVER DROPPED.** It used to be appended
+  /// only `if st.rank < 3`, to make room for the leader's name — so the one
+  /// seat that does not already know where it stands, third, was the one seat
+  /// guaranteed never to be told. A golfer at 1 or 2 knows they are in; a
+  /// golfer at 3 does not know they are out. That broke D126, D235 ("a clause
+  /// you always see") and `UX_AUDIT` §8.3's keep list, and a blind walker in
+  /// exactly that seat found the sentence three taps deep on a page called The
+  /// rules: *"Nothing on Home tells me 3rd is a losing position."*
   ///
-  /// With no season the row is absent — **not a row of zeroes** (L-44).
+  /// So the LEADER'S NAME yields instead, at rank ≥ 3, and the clause stands:
+  /// `RED MOUNTAIN · 3RD OF 8 · 4 BACK OF CAL · TOP 2 INTO THE FINAL`. The
+  /// leader is twelve points and nineteen weeks away; the golfer one rung up
+  /// is catchable this weekend, is named by `next_up`, and the cut line is
+  /// what decides whether catching him matters. The trade is the one the
+  /// walker asked for in his own words. It also shortens the longest string
+  /// this row can produce, which is the AX3 gate (QB-11).
+  ///
+  /// **QB-05 · A SEASON THAT HAS NOT STARTED IS STILL A SEASON.** The row
+  /// required a `standing`, and a preseason member has none — so a golfer who
+  /// had just paid $50 to play five named golfers got a Home with no season on
+  /// it at all, and a wire that told him to add some buddies. For him the
+  /// ROSTER is the content, and `SeasonFacts.seasonLine` already writes the
+  /// sentence: `DAWN PATROL · FIRST TEE SAT SEP 5 · 6 ON THE ROSTER`.
+  ///
+  /// With no season at all the row is absent — **not a row of zeroes** (L-44).
   static func seasonRow(_ memberships: [Me.Membership], today: String, calendar: Calendar) -> SeasonRow? {
-    guard let m = nearest(memberships, today: today), let st = m.standing else { return nil }
+    guard let m = nearest(memberships, today: today), let st = m.standing else {
+      return preseasonRow(memberships, today: today, calendar: calendar)
+    }
     var parts: [String] = [m.name.uppercased()]
     // Squads read the squad first, then me. `standing` is the SQUAD's row in a
     // squads league, so the squad's name goes on the rank, and "you Nth of N"
@@ -256,11 +318,11 @@ public enum MeStripCopy {
     let rank = "\(CSCopy.ordinal(st.rank).uppercased()) OF \(st.of)"
     parts.append(m.isSolo ? rank : [m.squad?.name.uppercased(), rank].compactMap { $0 }.joined(separator: " "))
 
-    // At rank ≥ 3 the leader is named before the gap; at 1 or 2 `next_up` IS
-    // the leader and the clause would say the same name twice.
-    if st.rank >= 3, let leader = st.leader_name, let gap = st.gap_to_leader, gap > 0 {
-      parts.append("\(leader.uppercased()) LEADS BY \(CSCopy.points(gap))")
-    }
+    // QB-03 · the leader's name is the clause that yields. It only ever
+    // rendered at rank ≥ 3, which is precisely the rank at which the endgame
+    // clause was being deleted to make room for it — and of the two, the cut
+    // line is the one that answers "am I in or out".
+    _ = st.leader_name
     // A-5 · a gap is always attached to a name.
     if let up = st.next_up, let name = up.name, let gap = gapUp(st, up), gap >= 0 {
       parts.append("\(CSCopy.points(gap)) BACK OF \(name.uppercased())")
@@ -268,10 +330,30 @@ public enum MeStripCopy {
     if let down = st.next_down, let name = down.name, let gap = gapDown(st, down), gap >= 0 {
       parts.append("\(CSCopy.points(gap)) CLEAR OF \(name.uppercased())")
     }
-    // The short half of D126(2)'s always-visible endgame. Dropped at rank ≥ 3,
-    // where the leader's clause has taken its room.
-    if st.rank < 3, let clause = endgameClause(m, calendar: calendar) { parts.append(clause) }
+    // The short half of D126(2)'s always-visible endgame. **At every rank.**
+    if let clause = endgameClause(m, calendar: calendar) { parts.append(clause) }
     return SeasonRow(leagueId: m.league_id, text: parts.joined(separator: " · "), parts: parts)
+  }
+
+  /// QB-05 · the row for a member whose season has not teed off.
+  ///
+  /// The season with the nearest first tee, named, with its date and its
+  /// roster — the two facts that are true about a preseason membership and
+  /// interesting to the golfer who just joined it. The sentence is
+  /// `SeasonFacts.seasonLine`'s own preseason branch, upper-cased into the
+  /// strip's register, so Home and Compete cannot say different things about
+  /// the same season. It taps to the season, where the roster is.
+  static func preseasonRow(_ memberships: [Me.Membership], today: String, calendar: Calendar) -> SeasonRow? {
+    let pre = memberships.filter {
+      if case .preseason = SeasonPhase.of($0, today: today) { return true }
+      return false
+    }
+    guard let m = pre.min(by: { ($0.season?.starts_on ?? "9999") < ($1.season?.starts_on ?? "9999") }) else { return nil }
+    let line = SeasonFacts.seasonLine(m, today: today, calendar: calendar)
+    let parts = [m.name.uppercased()] + line.split(separator: "\u{00B7}").map {
+      $0.trimmingCharacters(in: .whitespaces).uppercased()
+    }
+    return SeasonRow(leagueId: m.league_id, text: parts.joined(separator: " \u{00B7} "), parts: parts)
   }
 
   /// The season with the nearest deadline — the week's close where the server

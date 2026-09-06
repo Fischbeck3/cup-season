@@ -211,12 +211,16 @@ struct PersonInviteLink: View {
     Task {
       switch await ShareLinkService().mint(.person, ref: me) {
       case .ok(let url):   link = url
-      case .notYet:        toast.show(ShareLinkService.notYetLine)
+      case .notYet:        toast.show(ShareLinkService.notYetLine(hasSeason: hasSeason))
       case .failed(let m): toast.show(m)
       }
       minting = false
     }
   }
+
+  /// QB-01 · whether this golfer has a season whose invite link they can send
+  /// instead. The alternative is only offered when it is real.
+  private var hasSeason: Bool { !(store.me?.memberships.isEmpty ?? true) }
 
   private var row: some View {
     HStack(spacing: 10) {
@@ -505,7 +509,7 @@ struct PlanInviteLink: View {
         Task {
           switch await ShareLinkService().mint(.plan, ref: roundId) {
           case .ok(let url):   link = url
-          case .notYet:        toast.show(ShareLinkService.notYetLine)
+          case .notYet:        toast.show(ShareLinkService.notYetLine(hasSeason: false))
           case .failed(let m): toast.show(m)
           }
           minting = false

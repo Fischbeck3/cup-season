@@ -244,12 +244,26 @@ public enum CompeteRoot {
   /// sent one to.
   public static func empty(buddies: Int?) -> EmptyRoot {
     let hasBuddies = (buddies ?? 0) > 0
-    let fact: String? = hasBuddies
+    let counted = hasBuddies
       ? "\(CSCopy.count(buddies ?? 0, "buddy", plural: "buddies")), and none of you is playing for anything."
       : nil
+    // QB-21 · **THE BEST SENTENCE IN THE PRODUCT WAS UNDER A DISMISSAL.**
+    //
+    // "Nothing running." led, in the head's own weight, over the counted line
+    // — and two blind readers reacted to the heading before they read the
+    // sentence under it: *"'Nothing running' is a phrase I would normally read
+    // as there is nothing here, leave… the heading told me to leave and the
+    // line under it told me to stay."* The other called the same counted line
+    // *"diagnosis and dare in eleven words. It made me feel something."*
+    //
+    // So the counted line takes the head when there is one to count, and the
+    // dismissal becomes the eyebrow above it — still said, no longer the
+    // loudest thing on a screen whose whole job is to start something. With no
+    // buddies there is nothing true to count and the old head is the right
+    // one: an empty root never guesses a fact (L-44).
     return EmptyRoot(
-      head: "Nothing running.",
-      fact: fact,
+      head: counted ?? "Nothing running.",
+      fact: nil,
       sub: "Your next competition starts here — a season, a weekend, or one guy you want to beat.",
       doors: [.startSomething, hasBuddies ? .joinWithCode : .findGolfers])
   }

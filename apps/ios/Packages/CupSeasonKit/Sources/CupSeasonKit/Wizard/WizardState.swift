@@ -115,6 +115,22 @@ public struct WizardDials: Sendable, Equatable {
   /// NOT `add_friend_to_league`, which seats a golfer with no covenant
   /// (CORE_FLOWS §0 A-1; L-12).
   public var invitees: [UUID] = []
+  /// QB-13 · **HOW MANY OF YOU ARE THERE.** The number the organiser knows
+  /// before she opens the app, and the one number the wizard never learned.
+  ///
+  /// Squads-or-solo, the pot maths, the structure-fit line and the "four opens
+  /// squads" hint all derived from who was ALREADY INSTALLED, which for a new
+  /// organiser is always exactly one — so a six-person Saturday league minted
+  /// solo and step 3 printed "One in makes $50" for a season its own link had
+  /// just been texted to six people. The wizard asks now, at step 1, before
+  /// anything derives from a roster of one.
+  ///
+  /// It is a COUNT, not a roster: it seats nobody, invites nobody and mints
+  /// nothing. It sizes what the wizard SAYS, and — only when the organiser
+  /// then answers the squads question out loud — what the wizard MINTS. D206
+  /// ruled against squads-for-one *by derivation*, and that ruling stands:
+  /// `squadsChosen` is still nil unless somebody taps it.
+  public var expectedRoster: Int? = nil
 
   /// `resetWizard` (13885): a REAL league starts at bragging rights (S2-03).
   /// D206: 13 weeks by default (a quarter — one whole calendar month is
@@ -212,7 +228,37 @@ public struct WizardDials: Sendable, Equatable {
     if add == 0 { add = 7 }
     return LeagueDates.addDays(today, add, calendar: calendar)
   }
-  public func startDate(today: String = CSDate.today()) -> String { startISO.isEmpty ? Self.defaultStart(today: today) : startISO }
+
+  /// QB-06 · **THE SAME SATURDAY, BUT NOT TOMORROW'S.**
+  ///
+  /// The first tee is the most consequential default in the product: the rules
+  /// freeze there AND the invite link closes there (L-18). On a Friday night
+  /// "the next upcoming Saturday" is TOMORROW, so an organiser with nobody in
+  /// yet was handed, unmarked, a season that gave her crew less than 27 hours
+  /// to find the App Store — and the link would have died before anyone
+  /// tapped it, with nothing anywhere to say why.
+  ///
+  /// So a season **whose roster is still just the organiser** starts at the
+  /// first Saturday at least two weeks out. A season that already has people
+  /// in it keeps the near Saturday, which is the guess that made a blind
+  /// walker say the app had read his mind. Both are Saturdays; only the
+  /// distance changes, and the golfer can move it either way.
+  public static func defaultStart(today: String = CSDate.today(), roster: Int,
+                                  calendar: Calendar = .current) -> String {
+    let near = defaultStart(today: today, calendar: calendar)
+    guard roster <= 1 else { return near }
+    var d = near
+    while (CSDate.days(from: today, to: d) ?? 99) < 14 { d = LeagueDates.addDays(d, 7, calendar: calendar) }
+    return d
+  }
+
+  /// The roster this season is being built for: everyone picked, plus me, and
+  /// never fewer than the count the organiser gave at step 1.
+  public var plannedRoster: Int { max(1 + invitees.count, expectedRoster ?? 0) }
+
+  public func startDate(today: String = CSDate.today()) -> String {
+    startISO.isEmpty ? Self.defaultStart(today: today, roster: plannedRoster) : startISO
+  }
   /// `seasonEndDate()` — start + N whole weeks → the same weekday.
   public func endDate(today: String = CSDate.today()) -> String { LeagueDates.addDays(startDate(today: today), durWeeks * 7) }
   /// `#seasonSpan` — "Sat Sep 5 – Sat Mar 6", the REAL weekdays (§14.0 v1.1).
@@ -575,7 +621,13 @@ public enum WizardCopy {
   /// (L-37), so a golfer signed in an hour cannot find two friends who are
   /// already on the app. Without these three doors the sheet's first screen is
   /// a dead end for exactly the golfer it was written for.
-  public static let step1Empty = "No buddies yet. Two ways in."
+  /// QB-10 · **three doors, and it said two.** Two blind walkers counted the
+  /// boxes twice and one of them wrote that "two ways in over three boxes
+  /// makes me feel like the screen isn't looking at itself". Derived from the
+  /// door list rather than typed, so it cannot drift again.
+  public static var step1Empty: String { "No buddies yet. \(numberWord(step1Doors).capitalized) ways in." }
+  /// Find your friends · Text them a link · Just me for now.
+  public static let step1Doors = 3
   public static let findYourFriends = "Find your friends"
   public static let findYourFriendsSub = "check your contacts for golfers already here"
   public static let textThemALink = "Someone not here yet — text them a link"
@@ -587,16 +639,39 @@ public enum WizardCopy {
   /// and what `LeagueCopy.structNames["solo"]`, `LiveSetupView` and
   /// `LiveCopy` already say in five places. The wizard is the one screen where
   /// a NEW organiser — who may not be a man — makes this choice.
+  /// QB-13 · question one, before anything derives from a roster of one.
+  /// The chips carry exact numbers, not bands, because the whole point is that
+  /// the pot line can then say `$300` instead of `One in makes $50`.
+  public static let howManyQuestion = "How many of you?"
+  public static let howManyFine =
+    "Counting you. It sizes the pot and decides which questions are worth asking \u{2014} you can still add anyone before the first tee."
+  public static let howManyChips: [Int] = [2, 3, 4, 5, 6, 8, 10, 12]
+  public static func howManyLabel(_ n: Int) -> String {
+    n == howManyChips.last ? "\(n)+" : "\(n)"
+  }
+
   public static let squadsQuestion = "Squads, or everyone for themselves?"
   public static let squadsYes = "Squads"
   public static let squadsNo = "Everyone for themselves"
 
   /// 2 · WHEN
   public static let step2 = "How long, and when’s the first tee?"
-  /// L-13, in a golfer's words, at the moment it matters: six of six audit
-  /// posters were promised points a week before their first tee.
+  /// L-13, in a golfer's words, at the moment it matters.
   public static func step2Note(endsOn: String) -> String {
     "Ends \(LeagueDates.dowMonDay(endsOn)). Rounds you post before the first tee still build your number."
+  }
+
+  /// QB-06 · **WHAT THE FIRST TEE COSTS, WHERE THE FIRST TEE IS CHOSEN.**
+  ///
+  /// Both consequences were true and neither was on this screen. The rules
+  /// freeze at the first tee (`freezeNote`, one line above **Start the
+  /// season**, three panes later) and the invite link closes there
+  /// (`RosterDoor`, inside the season's rules pane, AFTER publication). An
+  /// organiser accepted the default, published, texted six people, and only
+  /// found the second fact by hunting. It is one sentence and it belongs
+  /// beside the date picker.
+  public static func step2Consequence(startsOn: String) -> String {
+    "After \(LeagueDates.dowMonDay(startsOn)) the rules freeze and the invite link closes \u{2014} leave the crew room to join."
   }
 
   /// 3 · WHAT'S ON IT

@@ -197,6 +197,11 @@ import Foundation
     let refused = RpcError(name: "call_out", underlying: "Callouts are between buddies. Add them first", droppedArgs: [])
     #expect(CalloutService.notYet(missing))
     #expect(!CalloutService.notYet(refused))
-    #expect(CalloutService.notYetLine.contains("latest update"))
+    // QB-01 · never "the latest update", and never the private noun in the
+    // failure — the golfer chose "I want to beat one guy" and has never met
+    // the word "callout".
+    #expect(!CalloutService.notYetLine.lowercased().contains("update"))
+    #expect(!CalloutService.notYetLine.lowercased().contains("callout"))
+    #expect(CalloutService.notYetLine.contains("schedule"))
   }
 }

@@ -173,6 +173,10 @@ struct YouScreen: View {
           Group {
             if league != nil {
               SeasonStatsStrip(stats: model.data.seasonStats, leagueName: league?.name ?? "your league",
+                               wrapped: league.map { m in
+                                 if case .wrapped = SeasonPhase.of(m) { return true }
+                                 return false
+                               } ?? false,
                                failed: model.data.failed.contains("season"))
             }
           }

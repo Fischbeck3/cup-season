@@ -242,29 +242,40 @@ private let today = "2026-09-08"
     #expect(s.seasonRow?.text == "FELLAS · 2ND OF 8 · 4 BACK OF GALEN · 2 CLEAR OF JADE · TOP 2 INTO THE FINAL, OPENS DEC 7")
   }
 
-  /// The AX3 acceptance string — the longest the strip can produce. At rank 3
-  /// or worse the LEADER is named (otherwise the man actually winning is named
-  /// nowhere on Home), and the endgame clause is dropped rather than wrapping
-  /// to a fourth line.
-  @Test func atRankThreeTheLeaderIsNamedAndTheEndgameClauseIsDropped() {
+  /// QB-03 · **THE CUT LINE IS NEVER THE CLAUSE THAT YIELDS.**
+  ///
+  /// The endgame clause used to be appended only `if st.rank < 3`, to make room
+  /// for the leader's name — so the one seat that does not already know where
+  /// it stands was the one seat guaranteed never to be told. A reader sitting
+  /// in exactly that seat: *"I know I'm 3rd. Nothing on Home tells me 3rd is a
+  /// losing position."* The leader's name yields instead, and he asked for
+  /// precisely this string.
+  ///
+  /// It is also the AX3 acceptance string — the longest the row can produce —
+  /// and this trade makes it shorter, which is why QB-03 and QB-11 were fixed
+  /// together.
+  @Test func theEndgameClauseSurvivesAtEveryRank() {
     let st = standing(rank: 3, of: 8, points: 19, leader: "Tommy", leaderGap: 12,
                       up: ("Dre", 23), down: ("Jade", 15))
     let s = MeStripCopy.make(Me(profile: profile(), memberships: [membership(name: "Desert Dogs", standing: st)]),
                              upcoming: [], today: today)
-    #expect(s.seasonRow?.text == "DESERT DOGS · 3RD OF 8 · TOMMY LEADS BY 12 · 4 BACK OF DRE · 4 CLEAR OF JADE")
-    #expect(s.seasonRow?.text.contains("FINAL") == false)
+    #expect(s.seasonRow?.text == "DESERT DOGS · 3RD OF 8 · 4 BACK OF DRE · 4 CLEAR OF JADE · TOP 2 INTO THE FINAL, OPENS DEC 7")
+    #expect(s.seasonRow?.text.contains("TOMMY LEADS") == false)
   }
 
   /// A-5 · a gap is always attached to a name. Without `next_up` (a v2 payload)
   /// the gap clause does not render at all — "4 back" with nobody on the end of
-  /// it is a number a golfer cannot act on.
+  /// it is a number a golfer cannot act on. QB-03 · and the endgame clause is
+  /// what the row says when both gaps are nameless, which is exactly the state
+  /// in which "am I in or out" is the only question left.
   @Test func aGapWithNoNameDoesNotRender() {
     let st = Me.Standing(rank: 3, of: 8, points: 19, prev_rank: nil, leader_squad_id: nil, leader_points: 31,
                          gap_to_leader: 12, gap_to_next: 4, leader_name: "Tommy")
     let s = MeStripCopy.make(Me(profile: profile(), memberships: [membership(standing: st)]),
                              upcoming: [], today: today)
-    #expect(s.seasonRow?.text == "FELLAS · 3RD OF 8 · TOMMY LEADS BY 12")
+    #expect(s.seasonRow?.text == "FELLAS · 3RD OF 8 · TOP 2 INTO THE FINAL, OPENS DEC 7")
     #expect(s.seasonRow?.text.contains("BACK OF") == false)
+    #expect(s.seasonRow?.text.contains("TOMMY") == false)
   }
 
   /// At rank 1 or 2 `next_up` IS the leader, so no leader clause is needed.

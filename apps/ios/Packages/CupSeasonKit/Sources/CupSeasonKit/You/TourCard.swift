@@ -353,6 +353,18 @@ public struct TourCard: Sendable {
   public static let lengthsHead = "PLAY THEM"
   public static let lengthsSub = "How long do you want it to run?"
 
+  /// QB-01 / F-9 · what the ONE WEEK row says while `call_out()` is unapplied.
+  ///
+  /// It said "opens when callouts do". Two things were wrong with that and a
+  /// blind walk hit both: "callouts" is the product's private noun, met for
+  /// the first time as an excuse on a row the golfer had not chosen it from;
+  /// and "when" was a promise with no date behind it. R-F keeps all three
+  /// lengths on the page, so the row stays — but it says the server is behind
+  /// in plain words, and it names the thing that fills a head-to-head today,
+  /// which is the one act the golfer was already going to perform.
+  public static let weekNotYet =
+    "not switched on yet \u{2014} post a round the same week as them and the record still fills in"
+
   /// Under the lens this is the You tab's own row, word for word
   /// (`YouCopy.bestRound`), so the two surfaces read as one number.
   public static func bestLabel(playingLens: Bool) -> String {

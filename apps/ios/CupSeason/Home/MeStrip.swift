@@ -43,15 +43,19 @@ struct MeStrip: View {
     if !strip.isEmpty {
       VStack(alignment: .leading, spacing: 10) {
         if typeSize.isA11y {
-          // AX3 · two rows of two. A `Grid` would keep the columns aligned and
-          // also keep the row's width, which is what pushes a long value off
-          // the screen — the pairs stack instead.
-          ForEach(Array(pairs.enumerated()), id: \.offset) { _, pair in
-            HStack(alignment: .top, spacing: 20) {
-              ForEach(pair) { s in slot(s) }
-              Spacer(minLength: 0)
-            }
-          }
+          // QB-11 · AX3 IS AN ACCEPTANCE TEST FOR THIS VIEW, and it was
+          // failing. Two rows of two halves the width available to each pair,
+          // and at the accessibility sizes a single unbreakable word — NUMBER,
+          // CANYON — is wider than half the screen. So `YOUR NUM…` and
+          // `GOLD C…` truncated: a fact the golfer cannot read is a fact that
+          // is not on the screen, and this view's own header promises that
+          // nothing truncates.
+          //
+          // One fact per row, full width, value over label — the same grammar
+          // as the reading sizes, with the whole line to wrap into. Nothing
+          // truncates and nothing scrolls sideways, which is what this view's
+          // own header promises and what the release gate tests.
+          ForEach(strip.slots) { s in slot(s, inline: true) }
         } else {
           HStack(alignment: .top, spacing: 0) {
             ForEach(strip.slots) { s in
@@ -61,16 +65,16 @@ struct MeStrip: View {
             Spacer(minLength: 0)
           }
         }
+        // QB-04 · the instruction goes directly under the figure it explains.
+        if let owe = strip.oweRow { oweLine(owe) }
         if let row = strip.seasonRow { seasonRow(row) }
+        // QB-09 · the cap, what I have posted into the month, and what is left
+        // of it. Every day, in every state with a live season.
+        if let month = strip.monthRow { monthLine(month) }
       }
       .padding(.vertical, 2)
       .onAppear { CSTelemetry.event(CSTelemetry.Metric.homeStateSeen.rawValue, seenProps) }
     }
-  }
-
-  /// The four facts in two pairs, in the strip's own order.
-  private var pairs: [[MeStripCopy.Slot]] {
-    stride(from: 0, to: strip.slots.count, by: 2).map { Array(strip.slots[$0..<min($0 + 2, strip.slots.count)]) }
   }
 
   private var separator: some View {
@@ -80,7 +84,7 @@ struct MeStrip: View {
   }
 
   @ViewBuilder
-  private func slot(_ s: MeStripCopy.Slot) -> some View {
+  private func slot(_ s: MeStripCopy.Slot, inline: Bool = false) -> some View {
     Button {
       CSHaptic.selection()
       CSTelemetry.event(CSTelemetry.Metric.ctaTapped.rawValue, ["door": .string(s.fact.rawValue)])
@@ -93,11 +97,15 @@ struct MeStrip: View {
           // L-10 · money renders in `neg`, NEVER gold and never with a
           // countdown. Gold is earned; an unpaid stake is not an achievement.
           .foregroundStyle(s.fact == .myMoney ? cs.neg : cs.ink)
-          .lineLimit(2).minimumScaleFactor(1)
+          // AX3 · with the whole width to wrap into, a fact never has to be
+          // cut short; at the reading sizes the two-line cap still holds the
+          // four columns to one row.
+          .lineLimit(inline ? nil : 2).minimumScaleFactor(1)
           .fixedSize(horizontal: false, vertical: true)
         Text(s.label).font(CSFont.label).tracking(1.2).foregroundStyle(cs.mut)
-          .lineLimit(2).fixedSize(horizontal: false, vertical: true)
+          .lineLimit(inline ? nil : 2).fixedSize(horizontal: false, vertical: true)
       }
+      .frame(maxWidth: inline ? .infinity : nil, alignment: .leading)
       .a11yHitSlop(vertical: 8, horizontal: 6)
     }
     .buttonStyle(.plain)
@@ -115,20 +123,66 @@ struct MeStrip: View {
       CSTelemetry.event(CSTelemetry.Metric.ctaTapped.rawValue, ["door": .string("season_row")])
       openCompetition(row.leagueId, .table)
     } label: {
-      Text(row.text)
-        .font(CSFont.footnote)
-        .foregroundStyle(cs.mut)
-        // AX3 · it wraps to three lines rather than truncating, and it never
-        // scrolls sideways.
+      VStack(alignment: .leading, spacing: 2) {
+        Text(row.text)
+          .font(CSFont.footnote)
+          .foregroundStyle(cs.mut)
+          // AX3 · it wraps rather than truncating, and it never scrolls
+          // sideways. QB-11 · at the accessibility sizes it is CAPPED at two
+          // lines and hands the rest to a door: a row that grew to nine lines
+          // pushed every card on Home off the bottom of the page, which is a
+          // different failure from truncating a fact and needs a different
+          // answer. VoiceOver still reads the row whole (`accessibilityLabel`
+          // below), so nothing is lost to somebody who cannot see it.
+          .lineLimit(typeSize.isA11y ? 2 : nil)
+          .fixedSize(horizontal: false, vertical: typeSize.isA11y ? false : true)
+          .multilineTextAlignment(.leading)
+          .frame(maxWidth: .infinity, alignment: .leading)
+        if typeSize.isA11y {
+          Text("SEE THE SEASON \u{2192}").csEyebrow(cs.brand)
+        }
+      }
+      .a11yHitSlop(vertical: 6, horizontal: 4)
+    }
+    .buttonStyle(.plain)
+    .accessibilityElement(children: .combine)
+    .accessibilityLabel(row.parts.joined(separator: ", "))
+    .accessibilityHint("Opens the season")
+  }
+
+  /// QB-04 · "You still owe $75 · Venmo @casey · by Sat Sep 5". It taps to the
+  /// pot, the same door the figure above it opens. It is NOT in `neg`: L-10
+  /// rules the money FIGURE red, and this is the instruction beside it, not a
+  /// second alarm.
+  private func oweLine(_ text: String) -> some View {
+    Button {
+      CSHaptic.selection()
+      CSTelemetry.event(CSTelemetry.Metric.ctaTapped.rawValue, ["door": .string("owe_line")])
+      if let id = strip.slots.first(where: { $0.fact == .myMoney })?.door,
+         case .pot(let league) = id { openCompetition(league, .pot) }
+    } label: {
+      Text(text)
+        .font(CSFont.footnote).foregroundStyle(cs.mut)
         .fixedSize(horizontal: false, vertical: true)
         .multilineTextAlignment(.leading)
         .frame(maxWidth: .infinity, alignment: .leading)
         .a11yHitSlop(vertical: 6, horizontal: 4)
     }
     .buttonStyle(.plain)
-    .accessibilityElement(children: .combine)
-    .accessibilityLabel(row.parts.joined(separator: ", "))
-    .accessibilityHint("Opens the season")
+    .accessibilityLabel(text)
+    .accessibilityHint("Opens the pot")
+  }
+
+  /// QB-09 · the month's cap, my credits in it, and its clock — quieter than
+  /// the season row, and never an alarm. `HomeFallbackItems.floorItem` is the
+  /// alarm and still fires in the last three days; this is the fact.
+  private func monthLine(_ text: String) -> some View {
+    Text(text)
+      .font(CSFont.footnote).foregroundStyle(cs.dimText)
+      .fixedSize(horizontal: false, vertical: true)
+      .multilineTextAlignment(.leading)
+      .frame(maxWidth: .infinity, alignment: .leading)
+      .accessibilityLabel(text)
   }
 
   private func take(_ door: MeStripCopy.Door) {
@@ -161,7 +215,8 @@ struct MeStrip: View {
   private var seenProps: [String: JSONValue] {
     ["state": .string(state),
      "facts": .number(Double(strip.slots.count)),
-     "season_row": .bool(strip.seasonRow != nil)]
+     "season_row": .bool(strip.seasonRow != nil),
+     "month_row": .bool(strip.monthRow != nil)]
   }
 }
 

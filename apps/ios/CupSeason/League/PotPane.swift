@@ -4,6 +4,7 @@
 // pride, on the books — never dollars.
 
 import SwiftUI
+import UIKit
 import CSDesign
 import CupSeasonKit
 
@@ -21,8 +22,24 @@ struct PotPane: View {
     let b = model.bylaws
     let free = b.stake == 0
     let trio = PotMath.trioDollars(total: model.potTotal, payout: b.payout)
+    let mine = store.me?.memberships.first { $0.league_id == model.leagueId }
     VStack(alignment: .leading, spacing: 14) {
       CSSectionHead("Season stakes")
+      // QB-04 · **THE PRO'S PAYMENT WORDS, AT THE HEAD OF THE POT.**
+      //
+      // A member who owes arrived here from the red figure on Home and found
+      // the purse, the split, the ledger line and a tick list — and no answer
+      // to the one question he came with. `SeasonFacts.owe` had the answer,
+      // built from `buy_in.note` and `buy_in.due_on`, and was called from a
+      // test and nothing else: *"the one concrete task I arrived with — pay my
+      // $50 — is the one thing the app confirms it will not help me with,
+      // using words it already has on the device."*
+      if let m = mine, let owe = SeasonFacts.owe(m) {
+        Text(owe).font(CSFont.sentenceBold).foregroundStyle(cs.ink)
+          .fixedSize(horizontal: false, vertical: true)
+          .frame(maxWidth: .infinity, alignment: .leading)
+          .accessibilityLabel(owe)
+      }
       // the purse: gold is the pot's own metal (earned); a free league wears no spine
       CSCard(spine: free ? nil : cs.gold, padding: 18) {
         VStack(alignment: .leading, spacing: 6) {
@@ -49,7 +66,7 @@ struct PotPane: View {
         .padding(.vertical, 10)
         CSHairline()
       }
-      if let m = store.me?.memberships.first(where: { $0.league_id == model.leagueId }) {
+      if let m = mine {
         PotPassCard(flags: pricing, league: m, isPro: model.isPro, yearStartsOn: model.season?.starts_on, roster: model.potPlayers)
       }
       PricingPotFinePrint(flags: pricing)
@@ -86,7 +103,28 @@ struct PotPane: View {
   private func payer(_ m: LeagueRoom.Member) -> some View {
     let paid = model.buyIns[m.id]?.paid ?? false
     return payerRow(name: m.name, paid: paid, busy: busy == m.id) {
-      if !model.isPro { toast.show("The Pro marks buy-ins as the money moves between friends"); return }
+      if !model.isPro {
+        // QB-04 · **A TAP ON YOUR OWN ROW ANSWERS, INSTEAD OF EXPLAINING WHY
+        // NOTHING HAPPENED.** It used to raise "The Pro marks buy-ins as the
+        // money moves between friends" — true, and not the thing the golfer
+        // asked. On your OWN unpaid row it now hands you the Pro's words and
+        // puts them on the clipboard, which is the act a golfer performs next
+        // (they are about to paste a handle into another app). On somebody
+        // else's row the old sentence is still exactly right.
+        if m.profile_id == store.me?.profile?.id,
+           let mine = store.me?.memberships.first(where: { $0.league_id == model.leagueId }),
+           let owe = SeasonFacts.owe(mine) {
+          if let note = mine.buy_in?.note?.trimmingCharacters(in: .whitespacesAndNewlines), !note.isEmpty {
+            UIPasteboard.general.string = note
+            CSHaptic.selection()
+            toast.show("\(owe) \u{00B7} copied")
+          } else {
+            toast.show(owe)
+          }
+          return
+        }
+        toast.show("The Pro marks buy-ins as the money moves between friends"); return
+      }
       if model.season == nil { toast.show("Buy-ins open once the season starts"); return }
       busy = m.id
       Task {

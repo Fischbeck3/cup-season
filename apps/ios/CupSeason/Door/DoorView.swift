@@ -18,8 +18,14 @@ struct DoorView: View {
   @State private var risen = false
   @State private var flags = DoorFlags.closed
   @State private var toasts = CSToastCenter()   // the door sits above the tab host, so it carries its own
+  /// QB-08 · what is waiting, said above the email field. Read once on
+  /// appearance and again whenever a link lands while the door is up.
+  @State private var pending: String? = PendingLink.doorLine()
+  /// QB-08 · the cold-install answer, typed rather than tapped.
+  @State private var codeEntry = false
+  @State private var typedCode = ""
   @FocusState private var focus: Field?
-  enum Field { case email, code, password }
+  enum Field { case email, code, password, joinCode }
 
   var body: some View {
     ScrollView {
@@ -30,6 +36,25 @@ struct DoorView: View {
 
         if risen {
           Group {
+            // QB-08 · **THE INVITED STRANGER MEETS A SENTENCE, NOT A BOX.**
+            //
+            // `PendingLink.doorLine()` produces "You're joining The Fellas.
+            // Sign in and you're on the roster.", is asserted verbatim by
+            // `OnboardingTests`, and was called from no view — so somebody who
+            // tapped a friend's link, installed, and came back met a bare email
+            // field with nothing on the screen naming the season, the money or
+            // the friend. "I have now created an account, agreed to Terms and a
+            // Privacy Policy, and handed over my email — and I still do not
+            // know what I am joining."
+            if vm.stage == .email {
+              Text(pending ?? OnboardingCopy.doorPitch)
+                .font(pending == nil ? CSFont.sentence : CSFont.sentenceBold)
+                .foregroundStyle(pending == nil ? cs.mut : cs.ink)
+                .fixedSize(horizontal: false, vertical: true)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(.bottom, 18)
+                .accessibilityAddTraits(pending == nil ? [] : .isHeader)
+            }
             switch vm.stage {
             case .email: emailStage
             case .code: codeStage
@@ -51,6 +76,7 @@ struct DoorView: View {
     .scrollDismissesKeyboard(.interactively)
     .csToasts(toasts)
     .onAppear {
+      pending = PendingLink.doorLine()
       if playForge == nil {
         let play = ForgeState.shouldPlay(reduceMotion: reduceMotion)
         if play { ForgeState.markPlayed() }
@@ -110,6 +136,42 @@ struct DoorView: View {
       }
       Text("One code, no password. Codes come from the newest email.")
         .font(CSFont.footnote).foregroundStyle(cs.dimText).padding(.top, 4)
+      haveACode
+    }
+  }
+
+  /// QB-08 · **THE COLD-INSTALL ANSWER, BUILT.**
+  ///
+  /// `PendingLink`'s own header names it: iOS has no deferred deep linking, so
+  /// after an App Store install the system passes nothing and no token is ever
+  /// stored — *"the cold case's answer is the door's 'I have a code'."* That
+  /// control did not exist. The web's door has carried it since the beginning,
+  /// so the two clients also disagreed about whether an invited stranger has a
+  /// way in at all (R-C).
+  ///
+  /// It does not sign anybody in. It stores the code the way a tapped link
+  /// does, so the sentence above the email field becomes theirs and the join
+  /// resolves after the card — the one path into the app stays one path.
+  @ViewBuilder private var haveACode: some View {
+    if codeEntry {
+      VStack(alignment: .leading, spacing: 8) {
+        Text("Your code").csEyebrow()
+        CSField("SATURDAY26", text: $typedCode)
+          .textInputAutocapitalization(.characters).autocorrectionDisabled()
+          .submitLabel(.done)
+          .focused($focus, equals: .joinCode)
+          .accessibilityLabel("Your code")
+          .onSubmit { takeCode() }
+        CSButton("That\u{2019}s my code", style: .quiet) { takeCode() }
+      }
+      .padding(.top, 16)
+    } else if pending == nil {
+      Button { codeEntry = true; focus = .joinCode } label: {
+        Text("I HAVE A CODE").csEyebrow(cs.dawn).a11yHitSlop()
+      }
+      .buttonStyle(.plain)
+      .accessibilityLabel("I have a code")
+      .padding(.top, 16)
     }
   }
 
@@ -205,6 +267,24 @@ struct DoorView: View {
     }
   }
   private func verify() { Task { await vm.verify() } }
+
+  /// QB-08 · a typed code is stored exactly as a tapped link stores one, name
+  /// and all, so the door's own sentence and the covenant after the card both
+  /// know which season this is.
+  private func takeCode() {
+    let code = JoinIntent.normalize(typedCode)
+    guard code.count >= 4 else { toasts.show("That does not look like a code."); return }
+    JoinIntent.store(code)
+    codeEntry = false
+    pending = PendingLink.doorLine()
+    focus = .email
+    Task {
+      if let n = ((try? await JoinService().leagueName(code)) ?? nil), !n.isEmpty {
+        JoinIntent.store(code, name: n)
+        pending = PendingLink.doorLine()
+      }
+    }
+  }
   private func resend() { Task { await vm.resend() } }
   private func reviewer() { Task { await vm.reviewer() } }
 }

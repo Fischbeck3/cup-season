@@ -32,12 +32,42 @@ struct ClimbView: View {
           }
         }
         .animation(reduceMotion ? nil : .timingCurve(0.16, 0.84, 0.36, 1, duration: 0.55), value: items.map(\.id))
+        // QB-12 · **THE GAP, AS A MOVE.** The climb showed the deficit and the
+        // seat and stopped there; a reader in third had to open the round
+        // composer's HOW POINTS WORK fold and do the subtraction himself to
+        // learn that one great Saturday closes four points. Everything the
+        // sentence needs is on this screen already.
+        if let move = closer {
+          Text(move).font(CSFont.sentence).foregroundStyle(cs.ink)
+            .padding(.top, 8).padding(.leading, 36)
+            .fixedSize(horizontal: false, vertical: true)
+        }
         Text(ClimbMath.note(teams: model.teams, scenarios: model.scenarios))
           .font(CSFont.label).tracking(1.0).foregroundStyle(cs.dimText).padding(.top, 10)
       }
     }
     .accessibilityElement(children: .contain)
     .accessibilityLabel("The climb — your place in the season race")
+  }
+
+  /// QB-12 · the clause, or nothing. It reads MY OWN counting rounds for the
+  /// current calendar month and the league's cap, and it renders only when one
+  /// top-band round genuinely closes the gap to the rung above (`ClimbMath.
+  /// closer` refuses every other case rather than guessing at two).
+  ///
+  /// Squads leagues get nothing here on purpose: the gap is between SQUADS and
+  /// one golfer's round does not close it on its own, so the arithmetic would
+  /// be a promise the engine cannot keep.
+  private var closer: String? {
+    guard let meId = model.myTeamId,
+          let idx = model.teams.firstIndex(where: { $0.id == meId }), idx > 0,
+          model.teams[idx].solo,
+          let row = model.indRow(meId) else { return nil }
+    let gap = model.teams[idx - 1].pts - model.teams[idx].pts
+    let month = LeagueDates.monthKey(CSDate.today())
+    let counting = row.hist.filter { $0.counting && $0.played_on.hasPrefix(month) }.map(\.points)
+    let cap = model.bylaws.cap
+    return ClimbMath.closer(gap: gap, countingPoints: counting, capN: cap)
   }
 
   private func rung(_ r: ClimbRung) -> some View {

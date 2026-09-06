@@ -54,7 +54,9 @@ struct SquadReceiptSheet: View {
                 RoundedRectangle(cornerRadius: 3).fill(cs.squad(p.ci)).frame(width: 10, height: 10)
                 VStack(alignment: .leading, spacing: 2) {
                   Text(p.n).font(CSFont.subhead.weight(.semibold)).foregroundStyle(cs.ink)
-                  Text("\(p.r) ROUND\(p.r == 1 ? "" : "S") · AVG vs your number \(p.r > 0 ? StandingsMath.sgn(p.avg) : "—")")
+                  // QB-17 · the row is one golfer's average; only my own row
+                  // may say "your". `IndRow.me` has always known which.
+                  Text("\(p.r) ROUND\(p.r == 1 ? "" : "S") · AVG vs \(p.me ? "your" : "their") number \(p.r > 0 ? StandingsMath.sgn(p.avg) : "—")")
                     .font(CSFont.label).tracking(0.8).foregroundStyle(cs.dimText)
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
@@ -92,6 +94,18 @@ struct MemberHistorySheet: View {
   @Environment(\.dynamicTypeSize) private var typeSize
   let row: IndRow
 
+  /// QB-17 · **WHOSE NUMBER.**
+  ///
+  /// This sheet lists ONE golfer's rounds, and every row said "vs your
+  /// number" — inside a sheet about somebody else. A reader opening his rival's
+  /// rounds stopped dead: *"Whose number? It's a list of Cal's rounds — it must
+  /// be his — but the label says your. I checked twice. Half of what this sheet
+  /// is for is comparing him to me, so the one ambiguous pronoun in it is the
+  /// pronoun that decides the meaning."*
+  ///
+  /// `IndRow.me` already answers it, and has all along.
+  private var whose: String { row.me ? "your" : "their" }
+
   var body: some View {
     SheetFrame(row.n, sub: "\(row.r) ROUND\(row.r == 1 ? "" : "S") · \(CSCopy.points(row.pts)) PTS") {
       if row.hist.isEmpty {
@@ -108,7 +122,7 @@ struct MemberHistorySheet: View {
                 Text(LeagueDates.monDay(h.played_on).uppercased() + (h.holes_played == 9 ? " · 9 HOLES" : "") + (h.counting ? "" : " · BUMPED"))
                   .font(CSFont.label).tracking(0.6).foregroundStyle(h.counting ? cs.mut : cs.dimText)
                 Spacer()
-                Text("\(StandingsMath.sgn(h.pvi)) vs your number · \(CSCopy.points(h.points)) PTS")
+                Text("\(StandingsMath.sgn(h.pvi)) vs \(whose) number · \(CSCopy.points(h.points)) PTS")
                   .font(CSFont.monoSmall).csTabular().foregroundStyle(h.counting ? cs.ink : cs.mut).lineLimit(typeSize.isA11y ? nil : 1)
               }
               .padding(.vertical, 10).frame(minHeight: 44).contentShape(Rectangle())
@@ -117,7 +131,7 @@ struct MemberHistorySheet: View {
             .buttonStyle(.plain)
             .disabled(h.round_id == nil)
             .accessibilityElement(children: .combine)
-            .accessibilityLabel("\(h.played_on)\(h.holes_played == 9 ? ", 9 holes" : ""), \(StandingsMath.sgn(h.pvi)) versus your number, \(CSCopy.points(h.points)) points\(h.counting ? "" : ", bumped")")
+            .accessibilityLabel("\(h.played_on)\(h.holes_played == 9 ? ", 9 holes" : ""), \(StandingsMath.sgn(h.pvi)) versus \(whose) number, \(CSCopy.points(h.points)) points\(h.counting ? "" : ", bumped")")
             .accessibilityHint(h.round_id == nil ? "" : "Opens the round")
           }
         }

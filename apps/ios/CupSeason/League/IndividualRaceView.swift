@@ -47,9 +47,17 @@ struct IndividualRaceView: View {
           if !ax {
             HStack(spacing: 10) {
               Text("").frame(width: 26)
-              Text("Player").frame(maxWidth: .infinity, alignment: .leading)
+              // QB-17 · `Player` survived LV-10's sweep of the standings heads
+              // and is visible at the foot of the season page. One word for one
+              // thing (TERMINOLOGY): a person who plays here is a GOLFER.
+              Text("Golfer").frame(maxWidth: .infinity, alignment: .leading)
               Text("R").frame(width: 28, alignment: .trailing)
-              Text("Avg vs your number").frame(width: 70, alignment: .trailing)
+              // QB-17 · and this heads a column of OTHER GOLFERS' averages.
+              // "your" is the one pronoun in the table that decides what the
+              // number means, and it was the wrong one. `TourCard.avgLabel`
+              // already gets this right on a person page; the table now says
+              // the same thing.
+              Text("Avg vs their number").frame(width: 70, alignment: .trailing)
               Text("Pts").frame(width: 40, alignment: .trailing)
             }
             .font(CSFont.label).tracking(1.0).textCase(.uppercase).foregroundStyle(cs.dimText)
