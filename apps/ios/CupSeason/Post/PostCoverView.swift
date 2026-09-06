@@ -29,6 +29,9 @@ struct PostLinks {
   /// competition, so the funnel the brief describes — casual golf into a
   /// season — had no mouth at the place people actually press.
   var startSomething: () -> Void = {}
+  /// D-offline · post a card this phone kept because the server abandoned its
+  /// round before the strokes landed. It seeds the composer; it never posts.
+  var postKept: (KeptCard) -> Void = { _ in }
 }
 
 struct PostCoverView: View {
@@ -86,6 +89,7 @@ private struct PostCoverStack: View {
   let close: () -> Void
   @State private var path: NavigationPath
   @State private var showPlan = false
+  @State private var kept: [KeptCard] = []
 
   init(links: PostLinks, startOnPost: Bool, close: @escaping () -> Void) {
     self.links = links; self.close = close
@@ -130,6 +134,34 @@ private struct PostCoverStack: View {
           }
           .padding(.top, 12)
 
+          // **THE ROUND THIS PHONE IS STILL HOLDING.**
+          //
+          // A live round the server abandoned before its last strokes landed.
+          // The card is kept (`LiveDisk.retire`) and this is its only door —
+          // without it, the toast that promises "saved on this phone to post
+          // yourself" names a surface that does not exist, and the card is as
+          // lost to the golfer as it was when we deleted it.
+          //
+          // **It never posts itself.** `rounds` has no idempotency key, and
+          // the round's scoring window has usually closed behind it — the
+          // weekly clash is settled by the daily tick the morning after its
+          // last day and never re-settled. A card arriving after that is not a
+          // late score. So the golfer reads what was kept and decides.
+          if !kept.isEmpty {
+            VStack(alignment: .leading, spacing: 0) {
+              CSHairline()
+              Text("STILL ON THIS PHONE").csEyebrow(cs.warm).padding(.top, 14).padding(.bottom, 2)
+              ForEach(Array(kept.enumerated()), id: \.element.id) { i, k in
+                PostOptionRow(tick: cs.warm, title: k.line,
+                              sub: k.isComplete
+                                ? "Scored here, never landed. Check it and post it."
+                                : "Scored here, never landed — \(18 - k.holesPlayed) holes blank.",
+                              last: i == kept.count - 1) { close(); links.postKept(k) }
+              }
+            }
+            .padding(.top, 18)
+          }
+
           // **THE FOURTH ROW IS A DIFFERENT NOUN, SO IT IS SET APART.**
           //
           // The three rows above all produce a ROUND — live, played, planned —
@@ -167,6 +199,7 @@ private struct PostCoverStack: View {
         }
       }
       .toolbar { ToolbarItem(placement: .cancellationAction) { Button("Close") { close() }.foregroundStyle(cs.mut) } }
+      .task { kept = KeptCards.rows(await LiveDisk.shared.unsynced()) }
       .sheet(isPresented: $showPlan) { DeclareRoundSheet(leagueId: store.preferredLeague) { _ in close() } }
     }
   }

@@ -266,9 +266,15 @@ public enum LiveRehydrator {
         }
         return out
       }
-      // the local round is finished / gone — retire it, then fall through
+      // The local round is finished or gone server-side. **Keep the card
+      // first.** The commonest way to land here is not a finish somewhere
+      // else — it is the daily tick abandoning the round twenty-four hours
+      // after tee-off, so `openRounds()` (which filters `status = 'live'`)
+      // simply does not list it. Deleting here threw away a card somebody
+      // scored by hand, and told him it was already finished.
+      if let id = st.lr { await disk.retire(st, lr: id) }
       await disk.clearSnapshots(keep: nil)
-      out = Outcome(state: nil, toast: "That round was already finished", retired: true)
+      out = Outcome(state: nil, toast: "That round closed before your last scores landed — it is saved on this phone to post yourself", retired: true)
     }
     if let mine, var s = fromServerRow(mine, myPid: myPid), let lr = s.lr {
       if let cc = await disk.snapshot(lr) { overlay(local: cc, onto: &s) }
@@ -278,6 +284,9 @@ public enum LiveRehydrator {
         ? (s.host.map { "\(LiveFmt.fn1($0)) started a live round with you — tap the LIVE bar" } ?? "You’re in a live round — tap the LIVE bar")
         : "Continue your round — tap the LIVE bar"
     } else if mine == nil {
+      // No live round on the server at all. Anything on this phone with
+      // strokes in it was lost involuntarily — keep it before clearing.
+      await disk.retireAll()
       await disk.clearSnapshots(keep: nil)
     }
     return out

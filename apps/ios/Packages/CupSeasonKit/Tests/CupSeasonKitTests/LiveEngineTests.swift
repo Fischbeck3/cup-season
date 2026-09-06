@@ -476,7 +476,10 @@ private func round(_ names: [String], indices: [Double], scores: [[Int?]], game:
     s.code = nil
     #expect(LiveCopy.syncBadge(s, presence: [], queued: 0) == "Solo pencil · scores live on this phone")
     s.code = "abc"
-    #expect(LiveCopy.syncBadge(s, presence: ["A", "B"], queued: 2) == "2 on the sheet · 2 queued")
+    // D-offline · "queued" implies it will go; "unsent" states the fact, and
+    // with a tee-off time on the card the deadline follows it. This card has
+    // no `startedAt`, so the badge says only what it knows (`UnsentBadgeTests`).
+    #expect(LiveCopy.syncBadge(s, presence: ["A", "B"], queued: 2) == "2 on the sheet · 2 unsent")
     #expect(LiveCopy.syncBadge(s, presence: [], queued: 0) == "1 on the sheet · synced")
     s.course.label = "Papago"
     s.hole = 1

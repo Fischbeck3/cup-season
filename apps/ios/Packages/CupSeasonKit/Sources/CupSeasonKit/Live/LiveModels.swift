@@ -352,6 +352,15 @@ public struct LiveRoundState: Codable, Sendable, Equatable {
   public var teams: [[Int]]
   public var course: LiveCourseCard
   public var ts: Int64
+  /// When the round teed off, ms. Optional because snapshots written before
+  /// this field existed decode without it. It is what makes the server's
+  /// twenty-four-hour window sayable on the phone instead of guessed at.
+  public var startedAt: Int64?
+
+  /// How many strokes are actually written on this card. `anyScored` says
+  /// whether it is worth keeping; this says which of two copies is fuller.
+  public var strokeCount: Int { scores.reduce(0) { $0 + $1.compactMap { $0 }.count } }
+
 
   /// `freshLive()` (7241).
   public static func fresh(players: [LivePlayer] = [], course: LiveCourseCard = LiveCourseCard()) -> LiveRoundState {

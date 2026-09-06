@@ -141,7 +141,7 @@ struct LivePlayView: View {
       }
       }
       if !(cardView && canShowCard) {
-        Text(LiveCopy.syncBadge(s, presence: store.presence, queued: store.queued)).font(CSFont.label).tracking(0.8).foregroundStyle(cs.dimText)
+        Text(LiveCopy.syncBadge(s, presence: store.presence, queued: store.queued, retired: store.retiredCard)).font(CSFont.label).tracking(0.8).foregroundStyle(cs.dimText)
       }
     }
     .padding(.horizontal, 20).padding(.vertical, canShowCard ? 7 : 12)

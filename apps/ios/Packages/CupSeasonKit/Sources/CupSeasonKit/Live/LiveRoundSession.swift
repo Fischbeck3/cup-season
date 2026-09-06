@@ -24,6 +24,9 @@ public actor LiveRoundSession {
     case queued(Int)
     /// the channel's subscribe status — a breadcrumb; silence cost a full session
     case status(String)
+    /// the round can no longer be written to, and its card has been KEPT on
+    /// disk rather than deleted. The host stops pretending it is live.
+    case retired(UUID)
   }
 
   public nonisolated let events: AsyncStream<Event>
@@ -164,8 +167,24 @@ public actor LiveRoundSession {
       } catch {
         let msg = (error as? RpcError)?.underlying ?? error.localizedDescription
         if LiveRoundSession.isDeadWrite(msg) {
+          // **THE CARD IS KEPT BEFORE THE STROKE IS DROPPED.**
+          //
+          // A dead write is un-landable and dropping it is right — but the
+          // commonest way to get one is not a bad argument, it is the daily
+          // tick abandoning the round twenty-four hours after tee-off
+          // (`20260904180000:40-43`), which raises "Round is not live" and
+          // matches this regex. A golfer who scored eighteen holes with no
+          // signal and drained on Tuesday had every stroke he typed removed
+          // here, one `removeFirst()` at a time, in silence.
+          //
+          // The snapshot is written through on every stroke, so retiring it
+          // keeps the whole card. The queue entries still go — they genuinely
+          // cannot land — but the round survives as something the golfer can
+          // post himself.
+          await disk.retireSnapshot(lr)
           q.removeFirst()
           await disk.saveQueue(lr, q)
+          cont.yield(.retired(lr))
           continue
         }
         q[0].tries = (m.tries ?? 0) + 1

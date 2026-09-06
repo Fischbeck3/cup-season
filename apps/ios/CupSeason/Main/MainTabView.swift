@@ -422,6 +422,14 @@ struct MainTabView: View {
       case "live": presenter.showLive = true
       case "wizard": presenter.wizard = .init(existingLeagueId: nil)
       case "events": presenter.showEventPicker = true
+      default: break
+      }
+      // **ONE LIST, WRITTEN AS TWO SWITCHES.** It grew past what the
+      // type-checker will do in a single expression ("unable to type-check in
+      // reasonable time") — and that failure reports whichever line was edited
+      // last rather than the one at fault, which is a bad half-hour to hand
+      // the next person. The halves are disjoint; add a new place to either.
+      switch a[i + 1] {
       // D237's GATE · nobody had ever seen the Ryder room in LIVE or COMPLETE,
       // which is the entire life of a callout. `-cs_dev_open ryder` opens the
       // first event on the payload; `-cs_dev_open callout` opens a field of
@@ -632,12 +640,7 @@ struct MainTabView: View {
       .presentationDetents([.medium, .large])
     }
     .fullScreenCover(isPresented: $presenter.showPost) {
-      PostCoverView(startOnComposer: presenter.postOnComposer, links: PostLinks(openLive: { presenter.showLive = true },
-                                     openReceipt: { presenter.receipt = $0 },
-                                     openPeople: { presenter.showPost = false; openGolfers() },
-                                     openCompetition: { presenter.showPost = false; openCompetition($0) },
-                                     openTourCard: { presenter.showPost = false; presenter.tourCard = $0 },
-                                     startSomething: { presenter.showPost = false; presenter.showIntent = true }))
+      PostCoverView(startOnComposer: presenter.postOnComposer, links: postLinks)
     }
     .fullScreenCover(isPresented: $presenter.showLive) { LiveRoundHost(links: liveLinks) }
   }
@@ -904,6 +907,35 @@ struct MainTabView: View {
 
   private var boardLinks: BoardLinks {
     BoardLinks(openReceipt: { presenter.receipt = $0 }, openTourCard: { presenter.tourCard = $0 })
+  }
+
+  /// D-offline · a card this phone kept because the server abandoned its round
+  /// before the strokes landed. The composer picks it up from
+  /// `LiveRoundStore.shared.pendingPost` and releases it only when the post
+  /// actually LANDS — releasing on the way in would lose it if the post failed.
+  @MainActor private func postKept(_ k: KeptCard) {
+    LiveRoundStore.shared.pendingPost = k.lr
+    presenter.showPost = false
+    Task { @MainActor in
+      // the cover has to finish dismissing before the composer presents
+      try? await Task.sleep(for: .milliseconds(350))
+      presenter.postOnComposer = true
+      presenter.showPost = true
+    }
+  }
+
+  /// Built OUT of the body, the way `youLinks` and `liveLinks` already are.
+  /// Seven closures inlined into a `.fullScreenCover` inside a modifier chain
+  /// this long is more than the type-checker will do in one expression, and
+  /// the error it raises lands on an unrelated line.
+  private var postLinks: PostLinks {
+    PostLinks(openLive: { presenter.showLive = true },
+              openReceipt: { presenter.receipt = $0 },
+              openPeople: { presenter.showPost = false; openGolfers() },
+              openCompetition: { presenter.showPost = false; openCompetition($0) },
+              openTourCard: { presenter.showPost = false; presenter.tourCard = $0 },
+              startSomething: { presenter.showPost = false; presenter.showIntent = true },
+              postKept: { postKept($0) })
   }
 
   private var youLinks: YouLinks {

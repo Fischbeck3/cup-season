@@ -89,6 +89,8 @@ public actor LiveDisk {
   func snapshotURL(_ lr: UUID) -> URL { dir.appendingPathComponent("live-\(lr.uuidString.lowercased()).json") }
   func queueURL(_ lr: UUID) -> URL { dir.appendingPathComponent("queue-\(lr.uuidString.lowercased()).json") }
   var abandonsURL: URL { dir.appendingPathComponent("pending-abandons.json") }
+  /// **The card that can no longer reach the server, kept anyway.**
+  func unsyncedURL(_ lr: UUID) -> URL { dir.appendingPathComponent("unsynced-\(lr.uuidString.lowercased()).json") }
 
   // MARK: snapshots (`persistLive` / `readLiveSnapshots` / `clearLiveCache`)
 
@@ -116,6 +118,12 @@ public actor LiveDisk {
   }
 
   /// `clearLiveCache(keep)`: every snapshot but one.
+  ///
+  /// **This deletes, and that is deliberate.** Retiring is NOT folded in here,
+  /// because `scrap()` calls this too — a golfer throwing a round away must
+  /// not have it kept behind his back, which is the "corpse resurrects on the
+  /// next boot" failure the scrap path already names. Retiring is an explicit
+  /// call at the two sites where the round is lost INVOLUNTARILY.
   public func clearSnapshots(keep: UUID?) {
     let files = (try? FileManager.default.contentsOfDirectory(at: dir, includingPropertiesForKeys: nil)) ?? []
     for f in files where f.lastPathComponent.hasPrefix("live-") {
@@ -125,6 +133,60 @@ public actor LiveDisk {
   }
 
   public func removeSnapshot(_ lr: UUID) { try? FileManager.default.removeItem(at: snapshotURL(lr)) }
+
+  // MARK: the unsynced card
+
+  /// Keep a card whose strokes can no longer land.
+  ///
+  /// **The FULLER card wins, not the first.** Write-once looked safe and was
+  /// the opposite: a round dies server-side on the 5th, the first dead write
+  /// keeps five holes, and the golfer — who is not stopped, and should not be
+  /// — plays on to 18 while every later `retire` no-ops. Thirteen holes then
+  /// went with the snapshot. Comparing stroke counts keeps the best copy from
+  /// whichever direction it arrives, which is what write-once was reaching for.
+  public func retire(_ state: LiveRoundState, lr: UUID) {
+    guard state.anyScored else { return }
+    let url = unsyncedURL(lr)
+    if let old = try? dec.decode(LiveRoundState.self, from: Data(contentsOf: url)),
+       old.strokeCount >= state.strokeCount { return }
+    if let data = try? enc.encode(state) { try? data.write(to: url, options: .atomic) }
+  }
+
+  /// Retire whatever is on disk for this round, if anything worth keeping is.
+  public func retireSnapshot(_ lr: UUID) {
+    guard let s = snapshot(lr) else { return }
+    retire(s, lr: lr)
+  }
+
+  /// Retire every snapshot carrying strokes. For the rehydrate branch that
+  /// finds NO live round on the server at all: whatever is on this phone was
+  /// lost involuntarily, and a card with strokes in it is worth keeping.
+  public func retireAll() {
+    let files = (try? FileManager.default.contentsOfDirectory(at: dir, includingPropertiesForKeys: nil)) ?? []
+    for f in files where f.lastPathComponent.hasPrefix("live-") {
+      if let s = try? dec.decode(LiveRoundState.self, from: Data(contentsOf: f)), let lr = s.lr {
+        retire(s, lr: lr)
+      }
+    }
+  }
+
+  /// Every kept card, newest first.
+  public func unsynced() -> [LiveRoundState] {
+    let files = (try? FileManager.default.contentsOfDirectory(at: dir, includingPropertiesForKeys: nil)) ?? []
+    return files.filter { $0.lastPathComponent.hasPrefix("unsynced-") }
+      .compactMap { try? dec.decode(LiveRoundState.self, from: Data(contentsOf: $0)) }
+      .filter { $0.lr != nil && !$0.players.isEmpty }
+      .sorted { $0.ts > $1.ts }
+  }
+
+  /// One kept card, by round.
+  public func snapshotUnsynced(_ lr: UUID) -> LiveRoundState? {
+    try? dec.decode(LiveRoundState.self, from: Data(contentsOf: unsyncedURL(lr)))
+  }
+
+  /// Drop a kept card — only ever after the golfer has posted it or dismissed
+  /// it. Nothing automatic removes one.
+  public func removeUnsynced(_ lr: UUID) { try? FileManager.default.removeItem(at: unsyncedURL(lr)) }
 
   // MARK: the write queue (`liveSync.q / saveQ`)
 

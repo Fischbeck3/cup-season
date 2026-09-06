@@ -195,19 +195,55 @@ public struct PostService: Sendable {
 
   private struct IdRow: Decodable { let id: UUID }
 
-  /// `insert into rounds … select id`. On ANY error, drop `api_course_id` and
-  /// retry; on ANY error again, drop `photo_path` and retry; then throw.
+  /// `insert into rounds … select id`, retried ONLY for deploy skew.
+  ///
+  /// **A RETRY ON A NETWORK ERROR MINTS A SECOND ROUND.** `rounds` has exactly
+  /// one unique index — `rounds_pkey` on a `gen_random_uuid()` default — so
+  /// there is no idempotency key and nothing server-side to catch a replay.
+  /// This used to retry on ANY error, twice, and the request timeout is
+  /// twelve seconds (`SupabaseService.swift:57`): an insert that COMMITTED at
+  /// 11.9s and lost its response was silently posted again. Two scoring
+  /// rounds, double-counted in the index, the standings, the participation
+  /// floor — which carries real money — and the board feed, with the only
+  /// remedy a manual `delete_round`.
+  ///
+  /// The retry exists for one reason and keeps only that one: Netlify and the
+  /// App Store ship a client before `db push`, so a column the database has
+  /// not got yet must not fail a post. The web has always gated on exactly
+  /// this (`index.html:8599`, `:8603`) — the error has to NAME the column.
+  /// Anything else, including every network failure, throws.
+  /// The two drops are INDEPENDENT, as they are on the web. Nesting the
+  /// `photo_path` retry inside the `api_course_id` catch made it unreachable
+  /// for the commonest post there is — a hand-typed course, where
+  /// `api_course_id` is already nil — so a database missing `photo_path`
+  /// would have failed the post outright.
   public func insertRound(_ payload: PostPayload) async throws -> UUID {
     var p = payload
     do { return try await insert(p) } catch {
-      guard p.api_course_id != nil || p.photo_path != nil else { throw error }
-      if p.api_course_id != nil {
-        p.api_course_id = nil
-        do { return try await insert(p) } catch { if p.photo_path == nil { throw error } }
-      }
-      p.photo_path = nil
-      return try await insert(p)
+      guard p.api_course_id != nil, PostService.names(error, "api_course_id") else { throw error }
+      p.api_course_id = nil
     }
+    do { return try await insert(p) } catch {
+      guard p.photo_path != nil, PostService.names(error, "photo_path") else { throw error }
+      p.photo_path = nil
+    }
+    return try await insert(p)
+  }
+
+  /// Does this error name the column we are about to drop?
+  ///
+  /// A schema complaint does. A timeout and a dropped connection do not, and
+  /// that is the whole point — a retry on those mints a second scoring round.
+  ///
+  /// `rounds` is COLUMN-GRANTED (`20260902173000:228-231`), so the skew this
+  /// codebase actually suffers is not only "column does not exist" (42703) but
+  /// "permission denied for column" (42501) when a migration adds a payload
+  /// column without its grant. Both name the column, so both match; a
+  /// table-level `permission denied for table rounds` does not, and must not.
+  static func names(_ error: any Error, _ column: String) -> Bool {
+    if error is URLError { return false }
+    let text = ((error as? RpcError)?.underlying ?? "") + " " + error.localizedDescription
+    return text.localizedCaseInsensitiveContains(column)
   }
 
   private func insert(_ p: PostPayload) async throws -> UUID {

@@ -63,7 +63,11 @@ struct LiveRoundHost: View {
     .task {
       store.toasts = toast
       await store.configure(me: session.me, preferredLeague: session.preferredLeague)
+      // The round sheet is the only place a queue can be held, so the monitor
+      // lives exactly as long as the sheet does.
+      store.watchReachability()
     }
+    .onDisappear { store.stopWatchingReachability() }
     .onChange(of: phase) { _, p in if p == .active { store.foregrounded() } }
     .onChange(of: store.leaveRequested) { _, v in if v { store.leaveRequested = false; links.done() } }
     .sheet(item: Binding(get: { store.recap }, set: { store.recap = $0 })) { r in

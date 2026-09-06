@@ -9,6 +9,7 @@
 // clock BEFORE it travels, and snapshots to disk so a kill resumes it.
 
 import SwiftUI
+import Network
 import CSDesign
 import CupSeasonKit
 
@@ -552,6 +553,10 @@ final class LiveRoundStore {
       let out = try await repo.start(league: league, label: s.course.label.trimmingCharacters(in: .whitespaces), snapshot: snap, game: g, players: playersJSON, config: cfg,
                                      apiCourseId: s.course.courseId)
       s.lr = out.lr
+      // The server abandons an unfinished round 24h from here. The card carries
+      // the moment so the phone can SAY that deadline instead of guessing it.
+      s.startedAt = LiveFmt.now()
+      retiredCard = false
       s.code = out.code   // D85: nil on an old DB — sync quietly off, the pencil still works
       s.pmap = out.seats.map(\.id)
       for seat in out.seats where seat.guestName != nil { if let t = seat.claimToken { s.guestTokens[String(seat.position)] = t } }
@@ -652,6 +657,52 @@ final class LiveRoundStore {
     if guest == nil { await repo.liveJoin(lr) }
   }
 
+  // MARK: - the reconnect
+
+  /// **A phone that finds signal again drains what it is holding.**
+  ///
+  /// `flush()` had exactly three triggers: the next score tap, a SUCCESSFUL
+  /// channel subscribe, and foregrounding. All three are things the golfer
+  /// does. So a phone sitting open on the play screen, holding eighteen
+  /// strokes, that walked back into coverage on the 18th green drained
+  /// nothing — and if it stayed that way past the server's twenty-four hours
+  /// the whole card became un-landable. The network telling us it is back is
+  /// the one trigger that was missing.
+  private var pathMonitor: NWPathMonitor?
+  private var wasOffline = false
+
+  func watchReachability() {
+    guard pathMonitor == nil else { return }
+    let m = NWPathMonitor()
+    m.pathUpdateHandler = { [weak self] path in
+      Task { @MainActor in
+        guard let self else { return }
+        let up = path.status == .satisfied
+        // **The flag is written BEFORE the awaits.** In a `defer` it ran at
+        // closure exit, after `flush()` had suspended and released the actor —
+        // so a drop DURING the flush was overwritten by the stale `up` from
+        // before it, `wasOffline` stuck false, and the reconnect disarmed
+        // itself permanently under exactly the flapping signal it is for.
+        let cameBack = up && self.wasOffline
+        self.wasOffline = !up
+        // Only on the EDGE from down to up, so a Wi-Fi/cellular flap does not
+        // spin the queue, and never while there is nothing to send.
+        guard cameBack, self.state.active, self.state.lr != nil else { return }
+        if await self.session.isJoined { await self.session.flush(); await self.session.reconcile() }
+        else { await self.joinSync() }
+        self.queued = await self.session.queued()
+      }
+    }
+    m.start(queue: DispatchQueue(label: "cs.live.path"))
+    pathMonitor = m
+  }
+
+  func stopWatchingReachability() {
+    pathMonitor?.cancel()
+    pathMonitor = nil
+    wasOffline = false
+  }
+
   /// Phone back from a pocket: drain the queue, then pull truth.
   func foregrounded() {
     Task {
@@ -691,8 +742,41 @@ final class LiveRoundStore {
     case .presence(let names): presence = names
     case .queued(let n): queued = n
     case .status(let s): syncStatus = s
+    case .retired(let lr):
+      // The strokes cannot land any more. **The STORE keeps the card, not the
+      // session** — the session can only reach the disk snapshot, and a guest
+      // pencil never writes one (`persist()` refuses), so the session's own
+      // retire kept nothing for the phone most likely to be scoring offline
+      // while the badge told it the card was saved. The store holds the live
+      // state for host and guest alike, and it is fresher than the disk.
+      guard state.active, state.lr == lr else { return }
+      retiredCard = true
+      let card = state
+      Task { await disk.retire(card, lr: lr) }
     }
   }
+
+  /// **This round's strokes can no longer reach the server, and the card has
+  /// been kept.** Set once, from the session's `retired` event. The play
+  /// surface reads it to stop claiming the round is syncing and to offer the
+  /// only honest way home: post it yourself.
+  var retiredCard = false
+
+  /// D-offline · the kept card the golfer has asked to post, waiting for the
+  /// composer to open and take it.
+  ///
+  /// It lives HERE rather than on `Presenter` for a mechanical reason worth
+  /// knowing: `MainTabView`'s body reads `$presenter.<member>` a few dozen
+  /// times in one modifier chain, and that chain is already at the edge of
+  /// what the type-checker will do in a single expression — two more members
+  /// on `Presenter` tipped it over ("unable to type-check in reasonable
+  /// time"), on a line nowhere near the change. This store is a singleton the
+  /// composer can already reach, and it is the owner of kept cards anyway.
+  var pendingPost: UUID?
+
+  /// The cards kept on disk because their strokes could never land. Nothing
+  /// removes one automatically — a golfer posts it or dismisses it.
+  func keptCards() async -> [LiveRoundState] { await LiveDisk.shared.unsynced() }
 
   /// `liveRoundEndedRemotely` (7821).
   private func endedRemotely(_ status: String) {
@@ -715,10 +799,27 @@ final class LiveRoundStore {
       return
     }
     let wasVisitor = state.visitor
-    if let lr = state.lr { Task { await disk.removeSnapshot(lr) } }
+    // **KEEP THE CARD HERE TOO.** This is the path a fully-scored round takes
+    // when the daily tick abandons it: the app is still holding the round, the
+    // queue is empty so the flush retires nothing, and `reconcile()` comes
+    // back "abandoned". Deleting the snapshot was the last copy of a card that
+    // was still postable a second earlier — `finish_live_round` refuses only
+    // `status = 'final'`. A round that FINISHED is the opposite case: its
+    // cards are already in `rounds`, so any kept copy is a second post waiting
+    // to happen and must go.
+    let ended = state
+    if let lr = state.lr {
+      Task {
+        if status == "final" { await disk.removeUnsynced(lr) } else { await disk.retire(ended, lr: lr) }
+        await disk.removeSnapshot(lr)
+      }
+    }
     Task { await session.leave() }
     state.active = false; state.stage = .setup
-    toast(status != "final" ? "That round was scrapped"
+    retiredCard = false
+    toast(status != "final" ? (ended.anyScored
+            ? "That round closed — your card is saved on this phone to post yourself"
+            : "That round was scrapped")
       : wasVisitor ? "Round finished — ask them for your scorecard link to keep it"
       : "Round finished from another phone — the cards posted")
     leaveRequested = true
@@ -791,8 +892,12 @@ final class LiveRoundStore {
       await session.leave()
       await disk.removeSnapshot(lr)
       await disk.removeQueue(lr)
+      // The round landed. Any card kept for it is now a duplicate waiting to
+      // be posted twice.
+      await disk.removeUnsynced(lr)
       let course = state.course.label
       state.active = false; state.stage = .setup
+      retiredCard = false
       recap = LiveRecapData(outcome: out, result: casual ? nil : result, lr: lr, course: course, date: Date())
       CSHaptic.success()
       await primeRoster()
@@ -816,9 +921,13 @@ final class LiveRoundStore {
       }
       await repo.drainAbandons(disk: disk)
       await disk.removeQueue(lr)
+      // Scrapping is the golfer saying he does not want it. Keeping a card
+      // behind his back is the corpse this path exists to bury.
+      await disk.removeUnsynced(lr)
     }
     await disk.clearSnapshots(keep: nil)
     state = .fresh()
+    retiredCard = false
     rosterPrimed = false
     await primeRoster()
     toast("Round scrapped — nothing posted")

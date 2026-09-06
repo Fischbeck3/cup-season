@@ -55,6 +55,21 @@ final class PostRoundModel {
     card.date = CSDate.iso(day, calendar: ScheduleDates.gregorian)
   }
 
+  /// D-offline · take a whole card from somewhere else — today, a live round
+  /// the server abandoned before its strokes landed (`KeptCards.compose`). The
+  /// grid is set to holes so the golfer SEES the strokes that were kept and
+  /// can fix a gap, rather than being handed a total he has to trust.
+  /// The kept round this composer was seeded from, released once it posts.
+  var seededFrom: UUID?
+
+  func seed(_ c: PostCard, from lr: UUID? = nil) {
+    card = c
+    seededFrom = lr
+    if let iso = c.date, let d = CSDate.local(iso, calendar: ScheduleDates.gregorian) { day = d }
+    typedSomething = true
+    recalc()
+  }
+
   // MARK: - who and where
 
   var uid: UUID? { store.session?.user.id }
@@ -259,6 +274,14 @@ final class PostRoundModel {
     do { outcome = try await svc.postRound(payload, playedWith: playedWith, fallbackSeason: m?.season?.id) }
     catch { toast.show(HumanError.text(error, prefix: "Post failed.")); return }
     let roundId = outcome.roundId
+
+    // D-offline · the kept card LANDED. Release it now and only now — a card
+    // released on the way into the composer would be gone if the post failed,
+    // and one never released would sit there inviting a second post.
+    if let lr = seededFrom {
+      await LiveDisk.shared.removeUnsynced(lr)
+      seededFrom = nil
+    }
 
     await svc.insertHoles(PostPayload.holeRows(card, roundId: roundId))
     svc.event(PostEvent.submit, [

@@ -249,11 +249,35 @@ public enum LiveCopy {
   }
 
   /// `liveSyncBadge` (7862).
-  public static func syncBadge(_ s: LiveRoundState, presence: [String], queued: Int) -> String {
+  ///
+  /// **"Queued" does not say the thing that matters.** The server abandons an
+  /// unfinished round twenty-four hours after tee-off, and every stroke still
+  /// held on the phone at that moment can never land. The golfer holding them
+  /// was told a number and no deadline. With a tee-off time on the card the
+  /// badge says the deadline instead; without one it stays honest and says
+  /// only that the strokes are unsent.
+  public static func syncBadge(_ s: LiveRoundState, presence: [String], queued: Int,
+                               retired: Bool = false, now: Int64 = LiveFmt.now()) -> String {
     guard s.active else { return "" }
+    if retired { return "This round closed — your card is saved on this phone" }
     guard s.code != nil else { return "Solo pencil · scores live on this phone" }
     let n = max(1, presence.count)
-    return "\(n) on the sheet · \(queued > 0 ? "\(queued) queued" : "synced")"
+    guard queued > 0 else { return "\(n) on the sheet · synced" }
+    let strokes = "\(queued) unsent"
+    guard let deadline = closesText(s, now: now) else { return "\(n) on the sheet · \(strokes)" }
+    return "\(n) on the sheet · \(strokes) · \(deadline)"
+  }
+
+  /// "closes in 6h" / "closes within the hour". Nil when the card predates
+  /// `startedAt`, because a deadline nobody can compute is not one to print
+  /// (L-44). Past the window it says so rather than counting into the negative.
+  static func closesText(_ s: LiveRoundState, now: Int64) -> String? {
+    guard let started = s.startedAt else { return nil }
+    let left = (started + 24 * 3_600_000) - now
+    if left <= 0 { return "past its window" }
+    let hours = Int(left / 3_600_000)
+    if hours < 1 { return "closes within the hour" }
+    return "closes in \(hours)h"
   }
 
   // MARK: - the resume banner (7710–7735; D86)

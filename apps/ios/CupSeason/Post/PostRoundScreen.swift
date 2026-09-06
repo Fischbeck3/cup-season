@@ -39,6 +39,15 @@ struct PostRoundScreen: View {
         let m = PostRoundModel(store: store, toast: toast)
         model = m
         await m.open()
+        // D-offline · a card the server could not take, handed back. Seeded
+        // AFTER `open()` so it wins over a restored draft — the golfer chose
+        // this round explicitly, and a half-typed draft must not overwrite it.
+        if let lr = LiveRoundStore.shared.pendingPost {
+          LiveRoundStore.shared.pendingPost = nil
+          if let st = await LiveDisk.shared.snapshotUnsynced(lr), let k = KeptCards.card(from: st) {
+            m.seed(KeptCards.compose(k), from: lr)
+          }
+        }
         #if DEBUG
         let a = ProcessInfo.processInfo.arguments
         if let i = a.firstIndex(of: "-cs_dev_post_seed"), i + 1 < a.count { m.devSeed(a[i + 1]) }
