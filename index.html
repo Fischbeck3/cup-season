@@ -314,39 +314,63 @@ body{
 button{font-family:var(--sans); touch-action:manipulation; color:var(--ink);}
 .mono{font-family:var(--mono);}
 
-/* ============ shell: sidebar (desktop) / tabbar (mobile) ============ */
+/* ==== WAVE 11 - THE DESK'S SIDEBAR (D280, UI_SYSTEM 14.1, R-C / D234) =====
+   The frame, stated in five clauses and previously honouring none of them.
+
+   **236 on `bg0` with ONE hairline on its right edge**, not a raised `bg1`
+   panel: the sidebar is the page's own margin, not a card stood on end.
+
+   **The mark and the wordmark at the top** - and the header's copy of the
+   wordmark is suppressed at this width. A wordmark printed twice on one
+   screen is a masthead that does not know which one of them it is.
+
+   **Nav in `agate`, with no icons, no fill and no radius.** The shipped item
+   drew a 10px radius over a `bg2` fill - a boxed surface, which is LINT-10's
+   whole finding - and an icon each from a family the system does not own.
+   What says "you are here" is a **3px `brand` tick on the left edge**: the
+   tab bar's underline, rotated, which is the one thing the two shapes share.
+
+   **Below one rule, the section a desk has room for and a tab bar does not.**
+   It is a LIST, not a disclosure: a 900px-tall column has no reason to hide
+   four destinations behind a caret. It is named by its rows rather than by
+   `THE DESK`, which LV-12 already ruled may not become a label on this
+   client (that word names the founder's console here).
+
+   **At the foot the viewer, and the build.** The shipped foot carried the
+   league's own name, which the page it sits beside already says. */
 .shell{min-height:100dvh;}
 .side{display:none;}
 @media(min-width:960px){
-  .shell{display:grid; grid-template-columns:232px 1fr;}
+  .shell{display:grid; grid-template-columns:236px 1fr;}
   .side{
-    display:flex; flex-direction:column; gap:4px;
+    display:flex; flex-direction:column; gap:0;
     position:sticky; top:0; height:100dvh;
-    background:var(--bg1); border-right:1px solid var(--rule);
-    padding:22px 14px;
+    background:var(--bg0); border-right:var(--hair) solid var(--rule);
+    padding:32px 20px 20px;
   }
 }
-.brand{
-  display:flex; align-items:center; gap:10px; padding:2px 10px 18px;
+.brand{display:flex; align-items:center; gap:12px; padding:0 0 32px;}
+.brand .mk{width:20px; height:20px; flex:none; color:var(--brand); display:block;}
+.brand .mk svg{width:20px; height:20px; display:block;}
+html[data-theme="light"] .brand .mk{color:var(--ink);}
+.brand b{
+  font-family:var(--board); font-size:15px; font-weight:700; line-height:1.16;
+  text-transform:uppercase; letter-spacing:calc(var(--agate) * 1em); color:var(--ink);
 }
-.brand .mk{
-  width:30px; height:30px; border-radius:9px; background:var(--bg2);
-  display:grid; place-items:center; border:1px solid var(--rule);
-}
-.brand .mk svg{width:17px; height:17px;}
-.brand b{font-size:14px; font-weight:700; letter-spacing:.02em;}
-.brand small{display:block; font-family:var(--mono); font-size:11px; color:var(--dim); letter-spacing:.14em; text-transform:uppercase;}
 .navitem{
-  display:flex; align-items:center; gap:11px;
-  background:none; border:none; cursor:pointer;
-  padding:10px 12px; border-radius:10px;
-  font-size:13.5px; font-weight:600; color:var(--mut);
-  border-left:2px solid transparent;
+  display:block; width:100%; text-align:left;
+  background:none; border:0; cursor:pointer;
+  padding:12px 0 12px 20px; margin:0;
+  font-family:var(--board); font-size:12px; font-weight:600; line-height:1.2;
+  text-transform:uppercase; letter-spacing:calc(var(--agate) * 1em);
+  color:var(--mut);
+  border-left:3px solid transparent;
 }
-.navitem svg{width:19px; height:19px; stroke:currentColor; fill:none; stroke-width:1.8; stroke-linecap:round; stroke-linejoin:round;}
-.navitem.active{color:var(--ink); background:var(--bg2); border-left-color:var(--brand);}
-.navitem:hover{color:var(--ink);}
+.navitem.active{color:var(--ink); border-left-color:var(--brand);}
+@media(hover:hover){ .navitem:hover{color:var(--ink);} }
 .navitem:focus-visible{outline:2px solid var(--brand); outline-offset:-2px;}
+/* the section below the rule - a list, in `agate-s`, one step quieter */
+.sidesec{margin-top:20px; padding-top:20px; border-top:var(--hair) solid var(--rule);}
 /* ============ D236 - the ME strip / the desk's identity block ============
    A LINE OF TYPE on the page's own ground, never a tile grid: no card, no
    border, no radius, no background. That is the whole distinction between this
@@ -382,8 +406,12 @@ button{font-family:var(--sans); touch-action:manipulation; color:var(--ink);}
 .deskbody{display:block;}
 .deskwire{min-width:0;}
 @media(min-width:960px){
-  .deskbody{display:grid; grid-template-columns:minmax(0,1fr) 348px; gap:34px; align-items:start;}
-  .deskwire{position:sticky; top:78px; max-height:calc(100dvh - 100px); overflow:auto; padding-right:2px;}
+  /* WAVE 11 / D280 - 1fr + 340 at the desk gutter of 40 (UI_SYSTEM 14.1). It
+     was 348 at a 34 gap, which is 348 and 34 rather than a token and a token. */
+  .deskbody{display:grid; grid-template-columns:minmax(0,1fr) 340px; gap:var(--gutter-desk); align-items:start;}
+  /* WAVE 11 / D280 - 40, not 78: the desk's header is no longer a sticky band
+     to clear, so the offset is the gutter. */
+  .deskwire{position:sticky; top:40px; max-height:calc(100dvh - 80px); overflow:auto; padding-right:2px;}
   .deskwire::-webkit-scrollbar{width:6px;}
   .deskwire::-webkit-scrollbar-thumb{background:var(--rule); border-radius:3px;}
 }
@@ -405,7 +433,9 @@ button{font-family:var(--sans); touch-action:manipulation; color:var(--ink);}
 .csedn{display:block; text-align:left; margin:0 0 22px;}
 .csedn .eb{display:flex; align-items:baseline; gap:8px; color:var(--mut); margin-bottom:11px;}
 .csedn.ember .eb{color:var(--brand);}
-.csedn .dot{width:7px; height:7px; border-radius:50%; background:var(--brand); flex:none;}
+/* the LIVE dot, 7px in ember. WAVE 11 adds the season head's eyebrow to the
+   same rule rather than writing the mark a second time. */
+.csedn .dot, .seasoneye .dot{width:7px; height:7px; border-radius:50%; background:var(--brand); flex:none;}
 .csedn .hl{color:var(--ink); margin:0;}
 .csedn .sf{color:var(--mut); margin-top:11px;}
 /* the door: a 2px rule under the words, and the rule is the affordance. It is
@@ -435,20 +465,23 @@ button{font-family:var(--sans); touch-action:manipulation; color:var(--ink);}
 /* D222 · the Desk disclosure. A desk has room for a list; the three surfaces
    under it are destinations a golfer reaches on a Sunday night, not at the
    turn, and they do not earn a slot of their own on a 1,440-px screen. */
-.navitem .deskcaret{margin-left:auto; font-size:11px; transition:transform .16s ease;}   /* LV-17 */
-.navitem[aria-expanded="true"] .deskcaret{transform:rotate(90deg);}
-.deskmenu{display:flex; flex-direction:column; gap:2px; padding:2px 0 6px 18px;}
-/* the UA's `[hidden]{display:none}` loses to an author `display:flex` at equal
-   specificity, so the disclosure has to say it itself or it is never closed. */
+/* the caret went with the disclosure (D280): the section is a list now. */
+.deskmenu{display:flex; flex-direction:column; gap:0;}
 .deskmenu[hidden]{display:none;}
-.navitem.sub{font-size:12.8px; font-weight:600; padding:8px 12px;}
+.navitem.sub{
+  font-size:11px; padding-top:8px; padding-bottom:8px; color:var(--dim);
+  letter-spacing:calc(var(--agate-s) * 1em);
+}
+.navitem.sub.active{color:var(--ink);}
 /* D228's two-column body, GENERALISED (D222). It was `#homeHub .deskmain`
    only; Compete and Golfers are desk bodies too, and the reading measure is a
    property of a COLUMN of prose, not of one screen. */
 .deskaside{min-width:0;}
 @media(min-width:960px){
-  .deskbody.wide{grid-template-columns:minmax(0,1fr) 300px;}
-  .deskaside{position:sticky; top:78px;}
+  /* one desk, one shape: `.wide` was a third column width (300) for two
+     surfaces. D280 - the frame is the frame. */
+  .deskbody.wide{grid-template-columns:minmax(0,1fr) 340px;}
+  .deskaside{position:sticky; top:40px;}
 }
 /* the peer row: mono eyebrow, name, one true sentence. No card, no border —
    a hairline between, the whole row a button (COMPONENT_SYSTEM's list weight) */
@@ -463,7 +496,13 @@ button{font-family:var(--sans); touch-action:manipulation; color:var(--ink);}
 .peerrow .ps{font-family:var(--mono); font-size:12px; color:var(--mut); display:block; margin-top:3px;}
 /* L-32 · the empty root, one shape for both destinations */
 .cmphead{display:flex; align-items:baseline; gap:14px; margin:0 0 6px;}
-.cmphead h2{font-family:var(--serif); font-size:26px; font-weight:700; margin:0; flex:1;}
+/* WAVE 11 / D280 - a page names itself in the DISPLAY role, not the serif.
+   The serif is memory and honour and the budget is one serif OBJECT per
+   viewport (1.4); on this page the empty state's own headline is that object,
+   and the title was spending it a second time three rows above. */
+.cmphead h2{font-family:var(--board); font-size:42px; font-weight:700; line-height:.98;
+  text-transform:uppercase; letter-spacing:calc(var(--d1) * 1em); margin:0; flex:1;}
+@media(max-width:720px){ .cmphead h2{font-size:34px;} }
 .cmphead a{font-family:var(--mono); font-size:11px; letter-spacing:.14em; text-transform:uppercase; color:var(--brand); text-decoration:none;}
 .emptyroot{padding:6px 0 2px;}
 .emptyroot h3{font-family:var(--serif); font-size:22px; margin:0 0 8px; font-weight:700;}
@@ -476,15 +515,41 @@ button{font-family:var(--sans); touch-action:manipulation; color:var(--ink);}
 }
 .emptyroot .doors button:first-child{color:var(--brand);}
 .emptyroot .doors button:focus-visible{outline:2px solid var(--brand); outline-offset:3px;}
-.side .foot{margin-top:0; padding:12px 10px 4px; border-top:1px solid var(--rule);}
-.side .foot .lg{font-size:12.5px; font-weight:700;}
-.side .foot .sm{font-family:var(--mono); font-size:11.5px; color:var(--dim); letter-spacing:.08em; text-transform:uppercase; margin-top:2px;}
+/* THE FOOT - the viewer, and the build (D280). The face is the golfer's own
+   marker on their own frozen pigment, which is the guaranteed floor (6.1):
+   there is no silhouette state on this product and never has been. The build
+   identity is the deploy's own stamp, substituted by stamp-version.sh at
+   build and NEVER hand-edited (CLAUDE.md rule 2). */
+.side .foot{margin-top:20px; padding:20px 0 0; border-top:var(--hair) solid var(--rule);}
+.side .foot .who{display:flex; align-items:center; gap:12px;}
+.side .foot .lg{font-size:13px; font-weight:700; line-height:1.16; overflow-wrap:anywhere;}
+.side .foot .sm{
+  font-family:var(--board); font-size:11px; color:var(--mut); margin-top:4px;
+  letter-spacing:calc(var(--agate-s) * 1em); text-transform:uppercase;
+}
+.side .foot .lgline{
+  font-family:var(--board); font-size:11px; color:var(--dim); margin-top:12px;
+  letter-spacing:calc(var(--agate-s) * 1em); text-transform:uppercase;
+}
+.side .foot .bld{
+  font-family:var(--mono); font-size:11px; color:var(--dim); margin-top:12px;
+  letter-spacing:calc(var(--agate-s) * 1em);
+}
 
 /* ============ main column ============ */
 .main{min-width:0; padding-bottom:140px;} /* clears the tabbar AND the floating Post tee */
 @media(min-width:960px){ .main{padding-bottom:40px;} }
+/* WAVE 11 / D280 - THE DESK'S BODY FILLS. It was capped at 1120 and centred,
+   which on the 1,440px screen the artboard is drawn at left ~90px of dead
+   ground down the right edge and made the 340pt second column narrower than
+   the frame asks for. The measure now is the frame's own arithmetic:
+   236 sidebar + 40 gutter + 1fr + 40 gap + 340 + 40 gutter = 1440 exactly, so
+   the reading column lands at 744 and the aside at 340. The cap survives at
+   1264 (1184 of content) for the screens that are wider than the design, and
+   the READING measure is still capped on the column itself, where D228 put
+   it, rather than on the page. */
 .wrap{max-width:1120px; margin:0 auto; padding:0 16px;}
-@media(min-width:960px){ .wrap{padding:0 30px;} }
+@media(min-width:960px){ .wrap{max-width:1264px; padding:0 var(--gutter-desk);} }
 
 /* header */
 .hdr{
@@ -499,7 +564,23 @@ button{font-family:var(--sans); touch-action:manipulation; color:var(--ink);}
   max-width:1120px; margin:0 auto; padding:14px 16px 12px;
   display:flex; align-items:center; justify-content:space-between; gap:14px;
 }
-@media(min-width:960px){ .hdr-in{padding:16px 30px 14px;} }
+/* WAVE 11 / D280 - AT DESK WIDTH THE HEADER IS NOT A BAND. UI_SYSTEM 14.1
+   puts the mark and the wordmark in the sidebar, so the sticky masthead's own
+   copy of them is suppressed here rather than printed a second time on the
+   same screen; with the wordmark gone there is nothing left to make a band of
+   - the search stays, because `/` needs somewhere to land and a desk without
+   a way to find a golfer is worse than a thin bar. The blur, the ground and
+   the hairline go with it, which is what lets the page start at the top of
+   the viewport the way the artboard does. */
+@media(min-width:960px){
+  .hdr{position:static; background:none; backdrop-filter:none; -webkit-backdrop-filter:none;
+       border-bottom:0;}
+  .hdr-in{max-width:1264px; padding:20px 40px 0; justify-content:flex-end;}
+  .hdr #hdrLogo{display:none !important;}
+  /* the light printing's own `.hdr` fill is declared with a theme attribute
+     and would otherwise outrank the rule above at every width */
+  html[data-theme="light"] .hdr{background:none; border-bottom:0;}
+}
 .hdr .title h1{font-size:19px; font-weight:700; letter-spacing:-.01em; line-height:1.1;}
 .hdr .title .sub{
   font-family:var(--mono); font-size:11.5px; color:var(--dim);
@@ -684,6 +765,19 @@ tr.cutrow td i{display:inline-block; vertical-align:middle; height:2px; backgrou
    untouched (.tbl td keeps its own inset); only the outer frame drops. A
    plain class (not a .card modifier) so there's no cascade to fight in
    either theme or inside .room-dusk — nothing else targets it. */
+/* WAVE 11 / D280 - THE DESK'S EXTRA COLUMNS AND ITS SLAT HEIGHT. The columns
+   are `display:none` below 960 rather than absent from the markup, so the two
+   shapes are one render with one producer; the row grows from 50 to the
+   desk's 56 (UI_SYSTEM 14.2) at the same breakpoint. */
+th.deskonly, td.deskonly{display:none;}
+@media(min-width:960px){
+  th.deskonly, td.deskonly{display:table-cell;}
+  .tbl td{padding:12px 8px;}
+}
+.tbl td.rds{font-family:var(--mono); font-size:14px; color:var(--mut);
+  font-variant-numeric:tabular-nums; letter-spacing:calc(var(--tight) * 1em);}
+.form5{display:inline-flex; align-items:center; gap:8px;}
+.form5 i.on{background:var(--pos); border-color:var(--pos);}
 .tblwrap{background:none; border:none; padding:8px 0 2px;}
 
 /* ============ WAVE 10 - HOVER, FOCUS, KEYBOARD (UI_SYSTEM 14.4, D279) ======
@@ -848,7 +942,10 @@ tr.cutrow td i{display:inline-block; vertical-align:middle; height:2px; backgrou
 .fbnote{font-family:var(--board); font-size:11px; letter-spacing:.08em; text-transform:uppercase;
   color:var(--mut); text-align:right; padding:8px 2px 6px;}
 .h2hdots{display:flex; align-items:center; gap:7px; min-height:28px;}
-.h2hdots i{width:9px; height:9px; border-radius:50%; background:var(--bg2); border:1px solid var(--rule); display:inline-block;}
+/* the tape's meeting mark, and (WAVE 11) the board's five-dot form column:
+   the same disc, and it is drawn once. Filled = the round was beaten; open =
+   it was not. Colour is never the only channel — the FILL is the channel. */
+.h2hdots i, .form5 i{width:9px; height:9px; border-radius:50%; background:var(--bg2); border:1px solid var(--rule); display:inline-block;}
 .h2hdots i.on{background:var(--brand); border-color:var(--brand);}
 .h2hdots small{margin-left:6px; color:var(--dim); font-family:var(--mono); font-size:11px; letter-spacing:.09em;}   /* LV-17 */
 .frow{display:grid; grid-template-columns:1fr 1fr; gap:10px;}
@@ -2682,8 +2779,30 @@ body.noleague .league-only{display:none !important;}
 #seasonBody .stats{display:none;}
 #seasonBody #hhIdent{display:none;}
 /* the dateline, the story line and the arc — the desk's own grain */
-.seasondate{font-family:var(--mono); font-size:11px; letter-spacing:.14em; text-transform:uppercase; color:var(--dim); margin:0 0 8px;}
-.seasonlead{font-family:var(--serif); font-size:20px; line-height:1.36; color:var(--ink); margin:0 0 6px; text-align:left;}
+/* WAVE 11 / D280 - THE SEASON'S HEAD, three rows. The eyebrow carries the
+   stage and the week with a 7px ember dot while play is open; the title is
+   the `display` role, which is 42 at the desk and 34 at the phone measure and
+   is the ONE place the league's name is printed; the dateline under it is the
+   span and the Pro, on agate, separated by the middot the agate voice uses. */
+.seasoneye{
+  font-family:var(--board); font-size:12px; font-weight:600; line-height:1.2;
+  letter-spacing:calc(var(--agate) * 1em); text-transform:uppercase;
+  color:var(--brand); display:flex; align-items:center; gap:8px; margin:0 0 12px;
+}
+.seasoneye:empty{display:none;}
+.seasoneye.quiet{color:var(--mut);}
+.seasontitle{margin:0 0 12px; color:var(--ink);}
+.seasondate{
+  font-family:var(--board); font-size:11px; font-weight:600; line-height:1.2;
+  letter-spacing:calc(var(--agate-s) * 1em); text-transform:uppercase;
+  color:var(--mut); margin:0 0 20px; display:flex; flex-wrap:wrap; gap:0 8px;
+}
+.seasondate span:empty{display:none;}
+.seasondate span + span:not(:empty)::before{content:"\00B7"; margin-right:8px; color:var(--dim);}
+.seasonctl{display:flex; flex-wrap:wrap; align-items:center; gap:12px; margin:0 0 20px;}
+.seasonctl:empty{display:none;}
+.seasonlead{font-family:var(--serif); font-size:21px; line-height:1.34; color:var(--ink); margin:0 0 8px; text-align:left;}
+@media(max-width:720px){ .seasonlead{font-size:20px;} }
 .seasonmore{display:inline-block; font-family:var(--mono); font-size:11.5px; letter-spacing:.12em; text-transform:uppercase; color:var(--brand); margin:0 0 16px; text-decoration:none;}
 .endgamefoot{font-size:12.5px; line-height:1.55; color:var(--dim); text-align:left; padding:8px 0 0; margin:0;}
 .arcrow{border-bottom:1px solid var(--rule); padding:9px 0; text-align:left;}
@@ -2996,10 +3115,11 @@ html[data-theme="light"] .btn.gold{color:#FFFFFF;}
 .tab:active .circ{transform:scale(.94);}
 .tab[data-v="record"].active::after{display:none;}
 
-/* desktop rail: active item glows from its edge */
-.navitem.active{
-  background:linear-gradient(90deg, rgba(232,98,44,.12), rgba(232,98,44,0) 70%);
-}
+/* WAVE 11 / D280 - the ember GLOW behind the selected nav item is deleted.
+   BRIEF section 4 names a gradient wash as a do-not, and D280 gives the state
+   one channel that is not a wash: a 3px `brand` tick on the item's left edge,
+   which is the tab bar's underline rotated. Two channels said the same thing
+   and one of them was a thing the system does not have. */
 /* Batch B: dawn blue is the link & live voice */
 .fine a, .eyebrow a{color:var(--ink);}
 .livebanner .lk .dot{background:var(--ink);}
@@ -3372,6 +3492,23 @@ html[data-theme="light"] .room-dusk .btn:not(.dark):not(.gold):not(.apple){color
   background:var(--brand); opacity:.85;
 }
 .eyebrow a, .eyebrow span:last-child{margin-left:auto;}
+/* WAVE 11 / D280 - AT THE DESK A SECTION HEAD IS A LABEL, A RULE TO THE
+   MARGIN, AND A COUNT SLOT (16A.2, and every artboard in mockups/renders).
+   The ember dash is deleted at this width and the rule takes its job: a desk
+   page carries six section heads, and LINT-18 allows TWO ember marks on a
+   viewport - six of them were spent on furniture before anything live was
+   drawn. The rule is `order:1` so it sits AFTER the label and BEFORE whatever
+   the head puts in its right-hand slot; a label that is itself the head's only
+   element child is guarded by `:not(:first-child)`. The phone's own eyebrow is
+   untouched: R-C licenses a shape per client. */
+@media(min-width:960px){
+  .eyebrow{gap:12px;}
+  .eyebrow::before{
+    width:auto; height:var(--hair); border-radius:0; flex:1 1 auto; min-width:20px;
+    background:var(--rule); opacity:1; order:1;
+  }
+  .eyebrow > a:not(:first-child), .eyebrow > span:not(:first-child):last-child{order:2;}
+}
 
 /* the board scrolls like an instrument, not a page */
 #feedList{scrollbar-gutter:stable; padding-right:2px; overscroll-behavior:contain;}
@@ -3760,22 +3897,37 @@ html[data-theme="light"] .room-dusk .btn:not(.dark):not(.gold):not(.apple){color
 
   <!-- ============ SIDEBAR (desktop) ============ -->
   <aside class="side">
-    <!-- desktop brand block retired: the header carries the Cup Season logo now.
-         #brandSeason setters are guarded, so its removal is a no-op. -->
-    <!-- D222 / R-C (revised) · THE DESK'S OWN NAV. Five entries, and the fifth
-         is a disclosure rather than a destination: a desk has room for a list
-         and no reason to hide the season, the tee sheet and the card behind a
-         tab bar. Every entry drives `switchView`, which is the router both this
-         and the mobile tab bar share — the shape is the web's, the router is
-         not duplicated. -->
+    <!-- WAVE 11 / D280 - THE MARK AND THE WORDMARK, at the top of the desk's
+         own margin. It was retired here and printed in the sticky header
+         instead; UI_SYSTEM 14.1 puts it here, and the header's copy is
+         suppressed at this width so the desk prints it once. The Tracer is
+         the SAME mark the icons, the favicon and the door's rest frame carry
+         - one mark, everywhere. #brandSeason setters are guarded. -->
+    <div class="brand">
+      <span class="mk" aria-hidden="true">
+        <svg viewBox="0 0 96 96"><g fill="currentColor">
+          <path d="M88 12 C 82 36, 70 59, 54 73 C 51 76, 47 75, 46 72 C 60 60, 73 38, 83 13 C 84 10, 87 9, 88 12 Z"/>
+          <ellipse cx="38" cy="79" rx="17" ry="6.5"/>
+          <rect x="27" y="13" width="10" height="68" rx="5"/>
+          <path d="M36 13 L74 26 L36 39 Z"/>
+        </g></svg>
+      </span>
+      <b>Cup Season</b>
+    </div>
+    <!-- D222 / R-C (revised), amended by D280 · THE DESK'S OWN NAV. The five
+         destinations, in `agate` with no icons — the icon each carried came
+         from a family the system does not own, and a nav item is a LABEL.
+         Every entry drives `switchView`, which is the router both this and the
+         mobile tab bar share — the shape is the web's, the router is not
+         duplicated. -->
     <button class="navitem active" data-v="home">
-      <svg viewBox="0 0 24 24"><path d="M4 11.5 12 4l8 7.5"/><path d="M6 10v10h12V10"/></svg> Home
+      Home
     </button>
     <button class="navitem" data-v="compete">
-      <svg viewBox="0 0 24 24"><path d="M6 21V3"/><path d="M6 4h11l-2.4 3.6L17 11H6"/></svg> Compete
+      Compete
     </button>
     <button class="navitem" data-v="golfers">
-      <svg viewBox="0 0 24 24"><circle cx="9" cy="8.5" r="3.2"/><path d="M3.6 19c.4-3 2.7-4.6 5.4-4.6s5 1.6 5.4 4.6"/><path d="M16.2 6.4a3 3 0 0 1 0 5.6"/><path d="M17.4 14.9c2 .6 3.2 2.1 3.5 4.1"/></svg> Golfers
+      Golfers
     </button>
     <!-- LV-03 / R-09 · Play, not "Record". D222 ruled the label (the tab does
          not post, and it is not a noun), NavSlot.play.label ships it on the
@@ -3785,31 +3937,50 @@ html[data-theme="light"] .room-dusk .btn:not(.dark):not(.gold):not(.apple){color
          licenses a shape per CLIENT, not per breakpoint, so the sidebar's own
          extras (the season, the schedule) hang off a disclosure below them. -->
     <button class="navitem" data-v="record">
-      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.6"/><path d="M12 8.2v7.6M8.2 12h7.6"/></svg> Play
+      Play
     </button>
     <button class="navitem" data-v="stats">
-      <svg viewBox="0 0 24 24"><rect x="3" y="5.5" width="18" height="13" rx="2.2"/><circle cx="8.5" cy="11.4" r="2.3"/><path d="M13 9.6h4.6M13 13h4.6M6 15.7c.7-1.3 4-1.3 4.7 0"/></svg> You
+      You
     </button>
-    <!-- LV-12 · "the desk" is one of the overhaul's own DESIGN words, which
-         §3.2 says may never become a label — and it already means the founder's
-         admin console everywhere else in this product. The menu is named for
-         what it holds. -->
-    <button class="navitem" id="deskToggle" type="button" aria-expanded="false" aria-controls="deskMenu">
-      <svg viewBox="0 0 24 24"><path d="M3 8.5h18"/><path d="M4.5 8.5V19h15V8.5"/><path d="M4 8.5 12 4l8 4.5"/></svg> More
-      <span class="deskcaret" aria-hidden="true">&#9656;</span>
-    </button>
-    <div class="deskmenu" id="deskMenu" hidden>
-      <button class="navitem sub" data-v="hub">The season</button>
-      <button class="navitem sub" data-v="schedule">The schedule</button>
+<div class="sidesec">
+      <!-- WAVE 11 / D280 - the section a desk has room for and a tab bar does
+           not, and it is a LIST rather than a disclosure: a 900px column has
+           no reason to hide four destinations behind a caret. UI_SYSTEM 14.1
+           calls this section `THE DESK`; LV-12 already ruled that word may
+           not become a label on this client, because it names the founder's
+           console here and the founder's console has no route of its own on
+           the web. So the section is named by its rows. `data-seg` opens the
+           season page ON a pane - the same `setRoomSeg` the page's own
+           sections use, not a second router. -->
+      <div class="deskmenu" id="deskMenu">
+        <button class="navitem sub" data-v="hub">The season</button>
+        <button class="navitem sub" data-v="schedule">The schedule</button>
+        <button class="navitem sub" data-seg="league">The rules</button>
+        <button class="navitem sub" data-seg="archive">The archive</button>
+      </div>
     </div>
     <!-- D236 - the identity block. The desk puts my number, my last round, my
          next round and my money where the eye rests between reads; the phone
          puts the same four facts across the head of Home. Same producer, two
          shapes. Below 960 the sidebar is gone and #homeMe carries them. -->
     <div class="sideme" id="sideMe"></div>
+    <!-- WAVE 11 / D280 - THE FOOT IS THE VIEWER. It carried the league's own
+         name, which the page beside it already says; UI_SYSTEM 14.1 puts the
+         golfer's face, their number and the build identity here. The league
+         line survives one step quieter, because a desk with three leagues on
+         it does need to say which room this is. -->
     <div class="foot">
-      <div class="lg" id="sideLeague">The Sunday Cup</div>
-      <div class="sm" id="sideMeta">7 golfers · 2 squads</div>
+      <div class="who">
+        <span class="fc s32" id="sideFace" aria-hidden="true"></span>
+        <div style="min-width:0">
+          <div class="lg" id="sideWho">Your golf</div>
+          <div class="sm" id="sideIdx"></div>
+        </div>
+      </div>
+      <div class="lgline"><span id="sideLeague">The Sunday Cup</span> &middot; <span id="sideMeta">7 golfers</span></div>
+      <!-- the deploy's own stamp. NEVER hand-edited: stamp-version.sh does
+           the substitution at build time (CLAUDE.md rule 2). -->
+      <div class="bld">v23 &middot; __CS_VERSION__</div>
     </div>
   </aside>
 
@@ -4585,24 +4756,33 @@ html[data-theme="light"] .room-dusk .btn:not(.dark):not(.gold):not(.apple){color
         <!-- the dateline and the story line: the season's name, its week and
              its stage said ONCE (L-34, D120, D246), then one sentence about a
              person, chosen by the seven-rung ladder (`csSeasonStoryLine`). -->
-        <div class="seasondate league-only" id="seasonDateline"></div>
+        <!-- WAVE 11 / D280 - THE SEASON PAGE TAKES A HEAD. The league's name
+             was on this screen three times: in the mono dateline, at 16px
+             inside the header card, and again in the sidebar's foot. It is
+             said ONCE now, at the top, in the size a title is set in - an
+             eyebrow with the live dot, `display` 42, then the span and the
+             Pro on one agate line. `hhSpan` and `hhPro` MOVED here from the
+             card and kept their ids, so both setters follow them. -->
+        <div class="seasoneye league-only" id="seasonDateline"></div>
+        <h1 class="seasontitle cs-display league-only" id="seasonTitle"></h1>
+        <div class="seasondate league-only"><span id="hhSpan"></span><span id="hhPro"></span></div>
         <div class="seasonlead league-only" id="seasonLead"></div>
         <a href="#seasonArc" class="seasonmore league-only" id="seasonMore" style="display:none">The season's story →</a>
-        <div class="card league-only" id="hubHeader" style="margin-bottom:14px">
-          <div style="display:flex; align-items:center; gap:10px;">
-            <!-- L-34 · the name and the stage are the DATELINE's, four rows up.
-                 The nodes stay because two renderers write into them without a
-                 guard; what they no longer do is say it twice. -->
-            <div style="min-width:0" id="hhIdent"><b id="hhName" style="font-size:16px">The Sunday Cup</b><div class="fine" id="hhPhase" style="padding:2px 0 0">Season live</div></div>
-            <span id="hhCodeSlot" style="margin-left:auto; flex:none"><button class="mini copycode">Code · <b class="mono" id="hhCode">SNDYCUP</b></button></span>
-          </div>
-          <div class="fine" id="hhSpan" style="padding:8px 0 0">Sun Jul 5 → Sat Dec 26 · 25 wks</div>
-          <div class="fine" id="hhPro" style="padding:2px 0 0">THE PRO · JERECHO</div>
+        <!-- WAVE 11 / D280 - THE HEADER CARD IS NOT A CARD. Once the name, the
+             stage, the span and the Pro moved up into the page's own head, what
+             was left inside the box was a code chip and an Add button - a
+             boxed surface holding two controls, which is LINT-10's own finding
+             and D266's rule twice over. It is a row of controls on the page's
+             ground now. `hhIdent` keeps its nodes (two renderers write into
+             them without a guard) and is hidden: the head above says both. -->
+        <div class="league-only seasonctl" id="hubHeader">
+          <div style="display:none" id="hhIdent"><b id="hhName">The Sunday Cup</b><div class="fine" id="hhPhase">Season live</div></div>
+          <span id="hhCodeSlot"><button class="mini copycode">Code &middot; <b class="mono" id="hhCode">SNDYCUP</b></button></span>
           <!-- pilot: "league no longer has ability to add people" — an unlocked
                league showed no add path at all. This button always works; the
                picker's footer offers the share link. -->
-          <div id="hhAddSlot" style="margin-top:10px"><button class="mini" id="hhAdd">Add golfers</button></div>
-          <div class="fine" id="hhDanger" style="display:none; padding:8px 0 0"><a href="#" id="hhDelete" style="color:var(--neg)">Cancel &amp; delete this league</a> <span id="hhDangerNote">(only possible before the first tee)</span></div>
+          <span id="hhAddSlot"><button class="mini" id="hhAdd">Add golfers</button></span>
+          <div class="fine" id="hhDanger" style="display:none; flex-basis:100%; padding:0"><a href="#" id="hhDelete" style="color:var(--neg)">Cancel &amp; delete this league</a> <span id="hhDangerNote">(only possible before the first tee)</span></div>
         </div>
 
         <!-- D71: the cancellation consent banner — an open request shows here to
@@ -4833,11 +5013,19 @@ html[data-theme="light"] .room-dusk .btn:not(.dark):not(.gold):not(.apple){color
              a database that has not reached that migration renders the page
              without this column rather than with an empty one (L-44). -->
         <aside class="deskaside league-only" id="seasonAside">
-          <div class="eyebrow" style="margin-top:0">The season's story</div>
+          <!-- WAVE 11 / D280 - THE DESK'S SECOND COLUMN. UI_SYSTEM 14.1: the
+               clash, the story as a list of weeks, the pot with its ledger
+               line. The clash and the pot are RE-COLUMNED at desk width by
+               `csDeskColumns` below rather than duplicated here - one render,
+               one producer, two shapes - and they go back into the reading
+               column's own order below 960. -->
+          <div id="deskClashSlot"></div>
+          <div class="eyebrow" id="seasonStoryHead" style="margin-top:0">The season's story</div>
           <div id="seasonArc"></div>
           <div class="eyebrow" id="seasonArchiveHead" style="display:none">Every season</div>
           <div id="seasonArchive"></div>
           <button class="mini" id="seasonPrint" style="margin-top:12px">Print this season</button>
+          <div id="deskPotSlot"></div>
         </aside>
         </div><!-- /seasonBody -->
       </section>
@@ -5752,18 +5940,27 @@ function switchView(v){
   if(v==='schedule' && typeof renderCalendar==='function') renderCalendar();
 }
 $$('.tab, .navitem').forEach(b=>b.addEventListener('click',()=>{ if(b.dataset.v) switchView(b.dataset.v); }));
-/* D222 · the More disclosure. It is not a destination and carries no `data-v`;
-   it reveals two that are (LV-12: it was labelled "Desk", one of the design's
-   own words, and the name of the founder's admin console). It opens itself
-   when one of its own is the view on screen, so a golfer who lands on the
-   season page from a Compete row can see where they are. */
+/* WAVE 11 / D280 · the section below the rule is a LIST now, not a disclosure
+   — a 900px column has no reason to hide four destinations behind a caret, and
+   the caret's own label was the one word LV-12 ruled out. Two of the four are
+   PANES of the season page rather than views, so they route through the same
+   `setRoomSeg` the page's own sections use; the archive is the story column,
+   which has no pane id, so it scrolls to itself. `csDeskReveal` survives as a
+   no-op for `switchView`, which calls it optionally. */
 (function(){
-  const t=document.getElementById('deskToggle'), m=document.getElementById('deskMenu');
-  if(!t||!m) return;
-  const set=open=>{ m.hidden=!open; t.setAttribute('aria-expanded', String(open)); };
-  set(false);
-  t.addEventListener('click',()=>set(m.hidden));
-  window.csDeskReveal = v => { if([...m.querySelectorAll('[data-v]')].some(b=>b.dataset.v===v)) set(true); };
+  const m=document.getElementById('deskMenu');
+  if(!m) return;
+  m.querySelectorAll('[data-seg]').forEach(b=>b.addEventListener('click',()=>{
+    const seg=b.dataset.seg;
+    switchView('hub');
+    if(seg==='archive'){
+      const a=document.getElementById('seasonArc');
+      if(a && a.scrollIntoView){ try{ a.scrollIntoView({behavior:'smooth', block:'start'}); }catch(_){ a.scrollIntoView(); } }
+      return;
+    }
+    setRoomSeg(seg);
+  }));
+  window.csDeskReveal = () => {};
 })();
 
 /* a11y: the app renders many click-only .tap rows (hub, switcher, sheets,
@@ -6050,6 +6247,17 @@ function csSeasonDateline(name, stageKey, week, weeks){
   parts.push((STAGE_LABEL[stageKey] || '').toUpperCase());
   return parts.filter(Boolean).join(' · ');
 }
+/* WAVE 11 / D280 - THE HEAD'S EYEBROW. `csSeasonDateline` put the league's
+   NAME in front of the stage because the page had nowhere else to print it;
+   the page has a title now, so the eyebrow is the stage and the week and
+   nothing else. The dateline producer is untouched - it is still what a
+   surface with no title of its own asks for. */
+function csSeasonEyebrow(stageKey, week, weeks){
+  const parts = [(STAGE_LABEL[stageKey] || '').toUpperCase()];
+  if((stageKey === 'season' || stageKey === 'final') && week && weeks) parts.push(`WEEK ${week} OF ${weeks}`);
+  return parts.filter(Boolean).join(' \u00b7 ');
+}
+window.csSeasonEyebrow = csSeasonEyebrow;
 window.csSeasonStoryLine = csSeasonStoryLine;
 window.csSeasonHistoryLine = csSeasonHistoryLine;
 window.csSeasonArcLine = csSeasonArcLine;
@@ -6064,8 +6272,17 @@ function renderSeasonStory(){
   if(dl){
     const wk = (p && p.facts && p.facts.week_no) || (typeof currentWeek === 'function' ? currentWeek() : null);
     const wt = (p && p.facts && p.facts.weeks_total) || (typeof totalWeeks === 'function' ? totalWeeks() : null);
-    dl.textContent = csSeasonDateline(window.CS?.league?.name || (state.demo ? 'The Sunday Cup' : ''),
-                                      leagueStage(), wk, wt);
+    /* WAVE 11 / D280 - the eyebrow, the title, and the dateline the card used
+       to carry. The ember dot is the LIVE mark and it rides only while play
+       is open; every other stage takes the quiet printing, because a dot that
+       is always on says nothing. */
+    const stage = leagueStage();
+    const live = stage === 'season' || stage === 'final';
+    const eye = csSeasonEyebrow(stage, wk, wt);
+    dl.innerHTML = eye ? (live ? '<span class="dot" aria-hidden="true"></span>' : '') + `<span>${esc(eye)}</span>` : '';
+    dl.classList.toggle('quiet', !live);
+    const ti = $('#seasonTitle');
+    if(ti) ti.textContent = window.CS?.league?.name || (state.demo ? 'The Sunday Cup' : '');
   }
   const line = p ? csSeasonStoryLine(p) : null;
   if(lead){ lead.textContent = line ? line.text : ''; lead.style.display = line ? '' : 'none'; }
@@ -6746,7 +6963,39 @@ function renderStandings(){
   /* THE HEADER SHIPS AT EVERY FIELD SIZE (blind review 5): `POS · GOLFER ·
      GAP · PTS`, exactly as it heads the leaderboard, so the two surfaces are
      one component with one geometry. */
-  let html=`<tr><th class="rk">Pos</th><th>Golfer</th><th class="num">Gap</th><th class="num">Pts</th></tr>`;
+  /* WAVE 11 / D280 - THE DESK'S OWN COLUMNS (UI_SYSTEM 14.3). The phone can
+     afford four; a 1,440px screen has 400px spare and the two facts a Pro
+     actually asks a board for are HOW MANY ROUNDS and HOW THE LAST FIVE WENT.
+     Both are already read - `indRows` carries `r` and a per-round `hist` off
+     `v_rounds_ranked` - so this is a column, not a query.
+     They render on the INDIVIDUAL board only: `standings_snapshots` snapshots
+     squads, and a squad has no rounds count and no last five.
+     `BEST` is NOT here and it is a producer's absence, not an oversight:
+     `v_rounds_ranked` carries `differential`, `index_at_post`, `playing_index`,
+     `pvi` and `points` and no `gross`, and a gross is not derivable from a
+     differential without the rating and the slope, which the view also does
+     not carry. A column headed BEST holding something that is not the best
+     gross is worse than no column (16A.3). */
+  const deskCols = solo;
+  const dhead = deskCols
+    ? '<th class="num deskonly">Rds</th><th class="deskonly">Last five</th>'
+    : '';
+  let html=`<tr><th class="rk">Pos</th><th>Golfer</th>${dhead}<th class="num">Gap</th><th class="num">Pts</th></tr>`;
+  /* the five-dot form column, inside the row. `pos` filled = beat your playing
+     HCP that round, `rule` = did not - the sign convention `CSBands` ships
+     (D276 / Wave 7: a POSITIVE pvi is a round beaten). Oldest to newest, left
+     to right, and a golfer with fewer than five rounds gets unfilled slots
+     rather than a shorter row, so the column stays a column. */
+  const formOf = id => {
+    const h = ((window.indRows||[]).find(x => x.mid === id) || {}).hist || [];
+    const five = h.slice(0, 5).reverse();
+    let out = '';
+    for(let k = 0; k < 5; k++){
+      const r = five[k - (5 - five.length)];
+      out += r ? `<i class="${Number(r.pvi) >= 0 ? 'on' : ''}"></i>` : '<i></i>';
+    }
+    return `<span class="form5">${out}</span>`;
+  };
   const leadPts = teams[0] ? teams[0].pts : 0;
   /* WAVE 7 - COMPETITION RANK, WITH TIES SHARED: 04, 04, 06. Both renderers
      indexed the sorted array, so two golfers on 86 points read `04` and `05` -
@@ -6788,6 +7037,14 @@ function renderStandings(){
     const bar = solo
       ? (state.structure==='solo' ? '' : `<span class="sw" style="background:${SQHEX[t.ci]}"></span> `)
       : `<span class="sw side" style="background:${SQHEX[t.ci]}"></span>`;
+    /* WAVE 11 / D280 - A FACE IN EVERY ROW (14.3: "faces above the table, not
+       only in it"). The phone's slat has drawn one since Wave 5; the desk's
+       drew a squad swatch or nothing at all. It is the golfer's own marker on
+       their own FROZEN pigment - `csPigment` is the same FNV-1a the phone runs
+       - and it renders on a GOLFER's row only: a squad has no face. */
+    const face = solo
+      ? `<span class="fc s28" style="background:${csPigment(t.id)}" aria-hidden="true">${(window.mkr && t.mk) ? window.mkr(t.mk) : ''}</span>`
+      : '';
     /* A tie outranks the count: it is the only thing on the row that explains
        why two positions read the same, and a shared numeral with nothing
        saying so looks like a rendering error. */
@@ -6805,7 +7062,8 @@ function renderStandings(){
                            t.pts + ' points'].filter(Boolean).join('. '));
     html+=`<tr class="${ranks[i]===1?'lead':''}${isYou(t)?' mine':''} tap" tabindex="0" role="button" aria-label="${rowSpoken}" data-squad="${esc(t.name)}">
       <td class="rk">${rkH}</td>
-      <td><div style="display:flex;align-items:center;gap:10px">${solo?'':bar}<div style="min-width:0"><div class="tn">${isYou(t) ? 'You' : esc(t.name)}</div><div class="tc">${solo?bar:''}${seedOf(t.id)?'Seed '+seedOf(t.id)+' \u00b7 ':''}${clause}</div></div></div></td>
+      <td><div style="display:flex;align-items:center;gap:12px">${solo?face:bar}<div style="min-width:0"><div class="tn">${isYou(t) ? 'You' : esc(t.name)}</div><div class="tc">${solo?bar:''}${seedOf(t.id)?'Seed '+seedOf(t.id)+' \u00b7 ':''}${clause}</div></div></div></td>
+      ${deskCols ? `<td class="num rds deskonly">${t.sub||0}</td><td class="deskonly">${formOf(t.id)}</td>` : ''}
       <td class="num chg"${mvL?` title="${esc(mvL.long)}"`:''}>${gap}${mvH}</td>
       <td class="num pts">${t.pts}</td>
     </tr>`;
@@ -6813,7 +7071,7 @@ function renderStandings(){
        field of two. `top two PLAY the Cup Final`, never `advance`, and never
        gold. */
     if(i===1 && (state.finish||'cup_final')==='cup_final' && teams.length>2)
-      html+=`<tr class="cutrow"><td colspan="4"><span>Cut \u00b7 top two play the Cup Final</span><i></i></td></tr>`;
+      html+=`<tr class="cutrow"><td colspan="${deskCols?6:4}"><span>Cut \u00b7 top two play the Cup Final</span><i></i></td></tr>`;
   });
   flipRows(el, 'data-squad', ()=>{ el.innerHTML=html; });
   sfGo(el);   /* SF-6: arm any freshly wrapped ranks — no-op on a static render */
@@ -16280,6 +16538,15 @@ function renderMeStrip(){
       else if(go==='season_row')    { switchView('hub'); }
     }));
   });
+  /* WAVE 11 / D280 - THE SIDEBAR'S FOOT IS THE VIEWER. It rides here because
+     this is the one function that runs on every render and already holds the
+     profile; the face is the golfer's own marker on their own FROZEN pigment
+     (`csPigment`, the same FNV-1a the phone runs), which is the guaranteed
+     floor - this product has no silhouette state and never has. A photograph
+     is deliberately NOT fetched here: it is a signed URL, it is async, and a
+     disc that pops from a marker to a face on every re-render is worse than
+     the marker. */
+  csSideWho();
   /* L-34 - the facts this block has SPENT. Whatever renders below drops them:
      the phone hands the same set down from `MeStripCopy.Strip.suppress`. Set
      BEFORE the rest of Home paints, which is why `renderMeStrip` is the first
@@ -16292,6 +16559,54 @@ function renderMeStrip(){
     qaEvent('home_state_seen', { state: seasonState(), facts: strip.slots.length, season_row: !!strip.seasonRow }); }
 }
 window.renderMeStrip = renderMeStrip;
+
+/* WAVE 11 / D280 - the sidebar's foot. Name, face, number, and nothing else:
+   the league's own name moved one step down and one step quieter, because the
+   page beside it already says which room this is. */
+function csSideWho(){
+  const pr = window.CS?.profile || null;
+  const who = document.getElementById('sideWho');
+  const idx = document.getElementById('sideIdx');
+  const fc  = document.getElementById('sideFace');
+  if(who) who.textContent = pr?.display_name || (state.demo ? 'You' : 'Your golf');
+  if(idx){
+    const n = pr && pr.index_current != null ? Number(pr.index_current) : null;
+    /* an unestablished index is ABSENT, never a dash: a slot with no figure
+       is not a verb and not a placeholder (home.md 1.3, rule 1). */
+    idx.textContent = (n != null && isFinite(n)) ? n.toFixed(1) + ' index' : '';
+  }
+  if(fc){
+    fc.style.background = pr?.id ? csPigment(pr.id) : 'var(--bg2)';
+    fc.innerHTML = window.mkr ? (window.mkr(pr?.marker || 'saguaro') || '') : '';
+  }
+}
+window.csSideWho = csSideWho;
+
+/* WAVE 11 / D280 - THE SEASON PAGE'S SECOND COLUMN, and it is a MOVE, not a
+   copy. UI_SYSTEM 14.1 puts the clash and the pot beside the board rather than
+   under it; the phone stacks them in the reading column's own order and must
+   go on doing so. Duplicating the markup would have meant two DOM trees for
+   one producer and two ids for one node - the exact thing every renderer here
+   looks a node up by - so the nodes themselves move between the two shapes and
+   each remembers where it came from. `setRoomSeg('pot')` still finds
+   `#room-pot` by id and still scrolls to it, wherever it is standing. */
+(function(){
+  const DESK = '(min-width: 960px)';
+  const home = new WeakMap();          /* node -> [parent, nextSibling] */
+  const move = (id, slotId) => {
+    const n = document.getElementById(id), slot = document.getElementById(slotId);
+    if(!n || !slot) return;
+    if(!home.has(n)) home.set(n, [n.parentNode, n.nextSibling]);
+    if(window.matchMedia(DESK).matches){ if(n.parentNode !== slot) slot.appendChild(n); }
+    else { const [p, next] = home.get(n); if(n.parentNode !== p) p.insertBefore(n, next); }
+  };
+  const apply = () => { move('clashWrap','deskClashSlot'); move('room-pot','deskPotSlot'); };
+  window.csDeskColumns = apply;
+  if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', apply);
+  else apply();
+  try { window.matchMedia(DESK).addEventListener('change', apply); }
+  catch(_){ window.addEventListener('resize', apply); }
+})();
 
 function renderHomeHub(){
   /* D93: the board is league-scoped; the `league-only` class LOOKS like a

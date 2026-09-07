@@ -771,11 +771,30 @@
 
     t('D222: the sidebar leads with the five destinations',
       nav.slice(0, 4), ['home', 'compete', 'golfers', 'record']);
-    t('D222: the Desk is a disclosure, not a destination (it carries no data-v)',
-      document.getElementById('deskToggle')?.dataset.v, undefined);
-    t('D222: and it reveals three that are',
-      [...document.querySelectorAll('#deskMenu .navitem[data-v]')].map(b => b.dataset.v),
-      ['hub', 'schedule', 'stats']);
+    /* WAVE 11 / D280 · the disclosure is gone: a 900px column has no reason to
+       hide four destinations behind a caret, and the caret's label was the one
+       word LV-12 ruled out. The section is a LIST below a rule now, and two of
+       its four rows are PANES of the season page rather than views, so they
+       carry `data-seg` and route through `setRoomSeg` — the same call the
+       page's own sections use, not a second router. */
+    t('D280: the section below the rule is a list, not a disclosure',
+      document.getElementById('deskToggle'), null);
+    t('D280: and every row in it names a real destination',
+      [...document.querySelectorAll('#deskMenu .navitem')].map(b => b.dataset.v || ('seg:' + b.dataset.seg)),
+      ['hub', 'schedule', 'seg:league', 'seg:archive']);
+    t('D280: a `data-seg` row opens a pane that exists',
+      [...document.querySelectorAll('#deskMenu .navitem[data-seg]')]
+        .every(b => b.dataset.seg === 'archive' || !!document.getElementById('room-' + b.dataset.seg)), true);
+    /* UI_SYSTEM §14.1 · the sidebar ends in the viewer and the build. The
+       version is the deploy's own stamp and is never hand-edited: locally it
+       reads the raw placeholder, which is the tell that this is not a Netlify
+       build (CLAUDE.md rule 2). */
+    t('D280: the sidebar foot carries the build identity',
+      /v23/.test(document.querySelector('.side .foot .bld')?.textContent || ''), true);
+    t('D280: the wordmark is in the sidebar, and the header does not print it twice',
+      !!document.querySelector('.side .brand b') &&
+        getComputedStyle(document.getElementById('hdrLogo')).display === 'none' ||
+        window.innerWidth < 960, true);
     t('D222: the mobile bar carries five slots, the ⊕ in the middle',
       tabs, ['home', 'compete', 'record', 'golfers', 'stats']);
 
@@ -1022,6 +1041,12 @@
       ['Jade took the lead from Galen.', 'You took the week from Galen.', 'You and Jade halved the week.']);
     t('an arc row whose source is not a named read renders nothing',
       csSeasonArcLine({ kind:'post', source:'somewhere', text:'Trust me' }), null);
+    /* WAVE 11 / D280 · the HEAD's eyebrow. The page has a title now, so the
+       eyebrow is the stage and the week and NOT the league's name — the
+       dateline producer keeps the name for the surfaces with no title. */
+    t('D280: the season eyebrow is the stage and the week, never the name',
+      [csSeasonEyebrow('season', 5, 13), csSeasonEyebrow('preseason', 1, 13), csSeasonEyebrow('complete', 13, 13)],
+      ['SEASON LIVE \u00b7 WEEK 5 OF 13', 'BEFORE FIRST TEE', 'SEASON COMPLETE']);
     t('L-34: the dateline carries the week ONCE, and only in a stage that has one',
       [csSeasonDateline('Fellas', 'season', 7, 26), csSeasonDateline('Fellas', 'preseason', 1, 26),
        csSeasonDateline('Fellas', 'complete', 26, 26)],

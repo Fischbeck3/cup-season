@@ -35,9 +35,16 @@ const warn = (name, note) => { warns++; console.log(`~ WARN  ${name} — ${note}
 {
   const hi = (html.match(/__CS_VERSION__/g) || []).length;
   const si = (sw.match(/__CS_VERSION__/g) || []).length;
-  (hi === 3 && si === 1)
+  /* FOUR in index.html since WAVE 11 (D280): the door's caption, the settings
+     foot, that foot's own comment, and the desk sidebar's build identity —
+     UI_SYSTEM §14.1 puts `v23 · <sha>` under the viewer's face. The count is
+     asserted rather than treated as a floor because the failure this check
+     exists to catch is a hand-edited version line, which shows up as a
+     MISSING placeholder; a new render site is deliberate and moves the number
+     here in the same commit. */
+  (hi === 4 && si === 1)
     ? pass('version placeholders', `index ${hi} · sw ${si}`)
-    : fail('version placeholders', `expected index 3 / sw 1, got index ${hi} / sw ${si} — never hand-edit these`);
+    : fail('version placeholders', `expected index 4 / sw 1, got index ${hi} / sw ${si} — never hand-edit these`);
 }
 
 /* 2 · every client RPC has an execute grant in a migration ----------------- */
