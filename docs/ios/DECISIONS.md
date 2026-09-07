@@ -939,3 +939,21 @@ The fourth repair commit: the chrome the system draws for us, and the two places
 **Also:** Home's floor drew its top rule full-measure and its three separators inset 20pt on one edge — an asymmetric hairline reads as a rendering fault. The season head gives ~28pt back to the table.
 
 **Gate:** `build-tokens` clean · preflight PASS · sunningdale PASS · 980 tests / 161 suites.
+
+## IOS-059 · The repair pass — the delete, the total, the heat ramp and the wire's echo — **BUILT 2026-09-07 (D284; owner-authorised "build it", 2026-09-06)**
+
+The fifth repair commit.
+
+**THE PHONE COULD NOT DELETE A ROUND.** `YouScreen`'s comment says deletion belongs on the receipt; the receipt never got one, so for four waves the capability existed only on the desk — which D234 forbids. It is on the receipt now, two steps, owner-gated, with `RoundCopy.deleteConsequence` read by both clients.
+
+**THE RECEIPT ENDED IN PROSE.** `POINTS` is board caps beside a `figure` 27 now, with `THIS MONTH` / `COUNTING #1 OF 4` in agate beneath — and the denominator the leaf was already holding is printed, which is L-01 on the surface that exists to show its work.
+
+**THE FORGE'S HEAT RAMP WAS ONE COLOUR.** `UI_AUDIT` §311–320 names warm → hot → fire → ink as one of the four things that must survive; Wave 0a's mechanical mapping sent three of the four stops to `brand`, so the door drew three indistinguishable ember tracers and one white, and the wordmark's "white-hot with an ember halo" was two layers of the same colour. The palette has one hot metal now, so heat is its intensity: an ember coming up to white, four stops, every one a token at a token alpha, no gold. `DoorTests` asserts the CLIMB — the old test asserted only the timing, which is why nothing caught it.
+
+**A FACE STANDS ON THE GROUND IT IS DRAWN ON.** `CSFace` takes `over:` the way `CSRule` and `CSSlot` do, so a roster on a pinned `ceremony` plate resolves its pigment against that plate rather than against an ancestor's theme modifier.
+
+**THE EVENT'S DATELINE IS ITS SUBTITLE AGAIN** — eyebrow → title → dateline → roster, not title → roster → dateline, which put six faces between an event's name and where it is played.
+
+**AND HOME SAID ONE THING TWICE.** `HomeFeedFold` folded system notes across leagues and left moments alone, so a personal best fanned to two leagues printed two identical wire rows one row apart.
+
+**Gate:** `build-tokens` clean · preflight PASS · sunningdale PASS · **982 tests / 162 suites** — up two, with a new `HomeFeedMomentFoldTests`, a `CredentialBandTests` and the heat-ramp assertion.

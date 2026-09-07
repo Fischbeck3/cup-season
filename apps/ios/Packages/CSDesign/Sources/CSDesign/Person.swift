@@ -119,10 +119,30 @@ public struct CSFace: View {
   /// because the name sits beside it in the row. It never names the marker: a
   /// golfer is "Maya", never "Acorn".
   public let name: String?
+  /// **THE GROUND THE DISC IS DRAWN ON, NOT THE AMBIENT THEME** (DF-06).
+  ///
+  /// D271 freezes a golfer's pigment INDEX so their marker never moves — and
+  /// the rendered VALUE was still resolving against `@Environment(\.cs)`,
+  /// which follows the theme. A pinned `ceremony` plate is dark in BOTH
+  /// printings, so in the light theme the event room put `YOU` on screen twice
+  /// at once: a saturated brown disc with a cream cactus on the pinned title
+  /// card, and a pale cream disc with a brown cactus in the clash row eleven
+  /// hundred points below. One golfer, two coins, one viewport. That is the
+  /// same failure mode the frozen pair exists to prevent, arriving through the
+  /// theme instead of through the key.
+  ///
+  /// `CSRule` and `CSSlot` already take this argument; the face now does too.
+  public let over: CSRule.Ground
 
-  public init(_ model: Model, size: Size, sideRing: Color? = nil, name: String? = nil) {
-    self.model = model; self.size = size; self.sideRing = sideRing; self.name = name
+  public init(_ model: Model, size: Size, sideRing: Color? = nil, name: String? = nil,
+              over: CSRule.Ground = .page) {
+    self.model = model; self.size = size; self.sideRing = sideRing
+    self.name = name; self.over = over
   }
+
+  /// The palette the disc resolves against: the page's, or the pinned dark one
+  /// when the face is standing on a ceremony ground.
+  private var ground: CSPalette { over == .ceremony ? CSTokens.dark : cs }
 
   private var d: CGFloat { size.rawValue }
 
@@ -130,7 +150,10 @@ public struct CSFace: View {
   /// ~0.90 relative luminance and a `mut` stroke on them measured
   /// near-invisible in the light renders. The viewer's own mark takes `ink` in
   /// both printings.
-  private var glyphInk: Color { (scheme == .light || model.isViewer) ? cs.ink : cs.mut }
+  private var glyphInk: Color {
+    over == .ceremony ? (model.isViewer ? ground.ink : ground.mut)
+                      : ((scheme == .light || model.isViewer) ? cs.ink : cs.mut)
+  }
 
   public var body: some View {
     ZStack {
@@ -150,7 +173,7 @@ public struct CSFace: View {
     .frame(width: d, height: d)
     // the 1px inset ring — a ring on a circle, not a box, and one of the four
     // outlines the system permits at all
-    .overlay(Circle().inset(by: 0.5).stroke(cs.rule, lineWidth: CSTokens.Space.hair))
+    .overlay(Circle().inset(by: 0.5).stroke(ground.rule, lineWidth: CSTokens.Space.hair))
     .overlay {
       if let sideRing { Circle().inset(by: -1.5).stroke(sideRing, lineWidth: 2.5) }
     }
@@ -161,7 +184,7 @@ public struct CSFace: View {
 
   private var disc: some View {
     ZStack {
-      Circle().fill(model.pigment(cs))
+      Circle().fill(model.pigment(ground))
       if let key = model.marker {
         CSMarkerView(key: key, size: d * 0.55, lineWidth: 1.8, optical: true)
           .foregroundStyle(glyphInk)
@@ -171,7 +194,7 @@ public struct CSFace: View {
         Text(model.initials)
           .font(.custom(CSType.boardSemi, fixedSize: d * 0.40))
           .tracking(d * 0.40 * CSTokens.Track.caps)
-          .foregroundStyle(cs.ink)
+          .foregroundStyle(ground.ink)
       }
     }
   }

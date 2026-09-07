@@ -144,6 +144,36 @@ public enum HomeFeedFold {
       }
       leagueSets[p.id] = set
     }
+    // 2b · **A MOMENT FANNED TO TWO LEAGUES IS ONE MOMENT** (DF-04).
+    //
+    // Step 2 folds a system NOTE across leagues and stops there, so a moment —
+    // `round_to_board()` fans a personal best to every league the golfer is
+    // in — emitted one wire row per league. A photographed wire carried
+    // *"Jerecho set a personal best. New number to chase."* twice, on the same
+    // day, one row apart: the same moment about the same round, told to the
+    // same golfer, twice. It is the same argument step 2 makes, on the object
+    // the wire is actually made of.
+    //
+    // The key is the ROUND, because that is what the moment is about; a moment
+    // with no round falls back to its body inside the same 48-hour window,
+    // which is exactly how a note folds.
+    var seenRounds = Set<UUID>()
+    var seenBodies: [String: Date] = [:]
+    for i in kept {
+      guard case .post(let p, _) = i, p.kind != "system" else { continue }
+      if let rid = p.round_id {
+        if seenRounds.contains(rid) { dropped.insert(p.id) } else { seenRounds.insert(rid) }
+        continue
+      }
+      let body = key(p.body)
+      guard !body.isEmpty else { continue }
+      let at = p.created_at ?? .distantPast
+      if let first = seenBodies[body], abs(first.timeIntervalSince(at)) <= sameNoteWindow {
+        dropped.insert(p.id)
+      } else {
+        seenBodies[body] = at
+      }
+    }
     // 3 · bucket, then one group per league-set per bucket; notes after the golf.
     return HomeBuckets.bucket(kept.filter { i in
       if case .post(let p, _) = i { return !dropped.contains(p.id) } ; return true

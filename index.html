@@ -17213,7 +17213,10 @@ function renderCareer(){
       const r=c.recent[Number(b.dataset.rcptI)]; if(r) openRoundReceipt(r);
     }));
     yr.querySelectorAll('[data-delr]').forEach(b=>b.addEventListener('click', async ()=>{
-      if(!confirm('Delete this round? It leaves your card and any league standings it counted toward.')) return;
+      /* WAVE 11 · the same sentence the phone's receipt prints, from
+         `RoundCopy.deleteConsequence`. The phone had no delete at all until
+         this commit, so this string had nowhere to be shared FROM. */
+      if(!confirm('Delete this round? ' + CS_ROUND_DELETE)) return;
       b.disabled = true;
       try{
         const { error } = await window.sb.rpc('delete_round', { p_round: b.dataset.delr });
@@ -17228,6 +17231,8 @@ function renderCareer(){
 }
 /* D177 · #youPost is gone from You — the ⊕ is a permanent tab an inch below
    where that button sat, and You is a page about the past. */
+/* `RoundCopy.deleteConsequence` — one sentence, two clients. */
+const CS_ROUND_DELETE = 'It leaves your card and any league standings it counted toward. This cannot be undone.';
 function renderIndStats(){
   renderTrophyCase();
   renderCareerRecord();

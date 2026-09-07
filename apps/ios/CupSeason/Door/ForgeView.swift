@@ -204,7 +204,32 @@ struct ForgeFrame: View {
       .position(pt(230, y))
   }
 
-  private var heat: [Color] { [cs.brand, cs.brand, cs.brand, cs.ink] }
+  /// **THE HEAT RAMP, RE-CUT** (`UI_AUDIT` §311–320: the Forge's warm → hot →
+  /// fire → ink is one of the four things that must survive, "the only
+  /// sequence in the product that could not be any other app").
+  ///
+  /// D270 deleted `heat.warm` `#E9A23B`, `heat.hot` `#FF5A2E` and `heat.fire`
+  /// `#FF3B1A`, and Wave 0a's mechanical mapping sent all three to `brand` —
+  /// so three of the four stops became one hue and the ramp stopped climbing.
+  /// A photograph of the door shows three indistinguishable ember tracers and
+  /// one white.
+  ///
+  /// The palette has ONE hot metal now, so **heat is its intensity**: an ember
+  /// coming up to white. Four distinguishable stops, every one a token at a
+  /// token alpha, and **no gold** — a flame is not something anybody earned
+  /// (`brand-canon` §4).
+  var heat: [Color] {
+    Self.heatStops(cs).map { $0.2 }
+  }
+
+  /// The ramp as `(token, effective luminance over `ceremony`, colour)`, so a
+  /// test can assert the climb rather than trusting the paragraph above.
+  static func heatStops(_ p: CSPalette) -> [(String, Double, Color)] {
+    [("brand", 0.24, p.brand.opacity(CSTokens.Alpha.a24)),
+     ("brand", 0.56, p.brand.opacity(CSTokens.Alpha.a56)),
+     ("brand", 1.00, p.brand),
+     ("ink",   1.40, p.ink)]
+  }
 
   /// `.obtr`: draw on `csDraw`, leave on `csGone`. Width 2.6, round caps, .85.
   private func tracer(_ i: Int) -> some View {
@@ -262,10 +287,15 @@ struct ForgeFrame: View {
     let fireLayer = p < 0.25 ? 1.0 : max(0, 1 - (p - 0.25) / 0.35)
     let hotLayer = p < 0.6 ? 1.0 : max(0, 1 - (p - 0.6) / 0.4)
     let halo = 1 - p
+    // **WHITE-HOT WITH AN EMBER HALO → EMBER → INK**, and the two upper layers
+    // were the SAME colour, so the first half of that sentence did not render:
+    // the letter went ember, then ink, with nothing white about it. The fire
+    // layer is `ink` — the white — over an ember layer, over the resting ink,
+    // and the ember halo is the shadow below.
     return ZStack {
       Text(ch).foregroundStyle(cs.ink)
       Text(ch).foregroundStyle(cs.brand).opacity(hotLayer)
-      Text(ch).foregroundStyle(cs.brand).opacity(fireLayer)
+      Text(ch).foregroundStyle(cs.ink).opacity(fireLayer)
     }
     .font(CSFont.wordmark)
     .blur(radius: 3 * (1 - o))

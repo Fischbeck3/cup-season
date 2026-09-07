@@ -237,3 +237,36 @@ import Foundation
     #expect(CompeteRoot.Head.moments == "YOUR MOMENTS")
   }
 }
+
+// MARK: - a moment fanned to two leagues is one moment (DF-04)
+
+@Suite struct HomeFeedMomentFoldTests {
+  private func moment(_ body: String, round: UUID?, league: UUID, at: Date) -> HomeItem {
+    .post(HomePost(id: UUID(), league_id: league, kind: "moment", body: body,
+                   created_at: at, round_id: round), leagueName: "A league")
+  }
+
+  /// `round_to_board()` fans one round's moment into every league the golfer
+  /// belongs to. The wire printed one row per league — the same personal best,
+  /// about the same round, told to the same golfer, twice, one row apart.
+  @Test func onePersonalBestInTwoLeaguesIsOneWireRow() {
+    let round = UUID(), a = UUID(), b = UUID()
+    let now = Date()
+    let out = HomeFeedFold.fold([moment("Jerecho set a personal best.", round: round, league: a, at: now),
+                                 moment("Jerecho set a personal best.", round: round, league: b, at: now)],
+                                today: CSDate.today())
+    let moments = out.flatMap(\.items).filter { if case .moment = $0 { return true }; return false }
+    #expect(moments.count == 1)
+  }
+
+  /// Two DIFFERENT rounds are two moments, whatever they say.
+  @Test func twoRoundsAreTwoRows() {
+    let a = UUID(), b = UUID()
+    let now = Date()
+    let out = HomeFeedFold.fold([moment("Jerecho set a personal best.", round: UUID(), league: a, at: now),
+                                 moment("Jerecho set a personal best.", round: UUID(), league: b, at: now)],
+                                today: CSDate.today())
+    let moments = out.flatMap(\.items).filter { if case .moment = $0 { return true }; return false }
+    #expect(moments.count == 2)
+  }
+}

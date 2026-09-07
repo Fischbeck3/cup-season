@@ -215,7 +215,13 @@ public enum ReceiptRows {
     if let rank = r.monthRank {
       let cap = r.countingCap ?? capN
       let counting = cap.map { rank <= $0 } ?? true
-      rows.append(.math(label: "This month", value: counting ? "COUNTING #\(rank)" : "BUMPED", sub: false))
+      // **THE DENOMINATOR IS PART OF THE FACT** (L-01). `lb-score-object.png`
+      // prints `COUNTING #2 OF 4`, and the leaf held the cap all along —
+      // Wave 7 left it out to keep the producer untouched, and the artboard is
+      // the document that was right. `COUNTING #2` alone says a golfer's round
+      // counted second without saying what it counted second OF.
+      let clause = cap.map { "COUNTING #\(rank) OF \($0)" } ?? "COUNTING #\(rank)"
+      rows.append(.math(label: "This month", value: counting ? clause : "BUMPED", sub: false))
     }
     if r.holesPlayed == 9 { rows.append(.math(label: "Nine holes", value: "HALF VALUE · HALF A ROUND", sub: false)) }
     if r.attested == true { rows.append(.math(label: "Attested", value: "PLAYED WITH THE GROUP", sub: false)) }

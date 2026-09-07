@@ -116,7 +116,11 @@ public struct CSSideRoster: View {
       HStack(alignment: .top, spacing: CSTokens.Space.s2) {
         ForEach(Array(s.faces.prefix(Side.seats).enumerated()), id: \.offset) { i, f in
           VStack(spacing: CSTokens.Space.s2) {
-            CSFace(f, size: size, sideRing: s.color)
+            // DF-06 · the roster stands on the pinned `ceremony` plate, so the
+            // disc resolves against THAT ground and not against the theme. The
+            // same golfer's coin two blocks apart on one light-theme viewport
+            // was the finding.
+            CSFace(f, size: size, sideRing: s.color, over: .ceremony)
             if i < s.names.count {
               Text(s.names[i]).csType(.agateS, caps: true)
                 .foregroundStyle(f.isViewer ? CSTokens.dark.ceremonyInk : CSTokens.dark.ceremonyMut)

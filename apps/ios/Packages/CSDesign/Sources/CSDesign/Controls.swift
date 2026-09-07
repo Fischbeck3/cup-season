@@ -483,7 +483,9 @@ public extension View {
   func csCloseButton(_ dismiss: @escaping () -> Void) -> some View {
     toolbar {
       ToolbarItem(placement: .topBarTrailing) {
-        Button("Close", action: dismiss).buttonStyle(.csTertiary(.toolbar))
+        Button("Close", action: dismiss)
+          .buttonStyle(.csTertiary(.toolbar))
+
       }
     }
   }

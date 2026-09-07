@@ -19,7 +19,10 @@ import Foundation
     #expect(rows[2] == .math(label: "86 − 64.9 × 113 ⁄ 111", value: "21.5 VS COURSE", sub: true))
     #expect(rows[3] == .math(label: "Against your playing HCP", value: "-11.5 — POSTED ANYWAY", sub: false))
     #expect(rows[4] == .math(label: "Points", value: "5", sub: false))
-    #expect(rows[5] == .math(label: "This month", value: "COUNTING #3", sub: false))
+    // L-01 · the denominator is part of the fact, and the fixture carries a
+    // cap of four. `COUNTING #3` alone said a round counted third without
+    // saying third OF what; `lb-score-object.png` prints `COUNTING #2 OF 4`.
+    #expect(rows[5] == .math(label: "This month", value: "COUNTING #3 OF 4", sub: false))
     #expect(rows.count == 6)
   }
 

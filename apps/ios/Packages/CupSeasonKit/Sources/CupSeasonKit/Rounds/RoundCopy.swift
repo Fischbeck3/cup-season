@@ -15,6 +15,17 @@
 import Foundation
 
 public enum RoundCopy {
+  /// **Deleting a round, and what it costs** — one sentence, both clients.
+  ///
+  /// The desk has confirmed with these words since D57; the phone had no
+  /// delete at all, so the sentence lived in a `confirm()` in `index.html` and
+  /// nowhere a producer could hold it. It is here now, so the two clients
+  /// cannot tell a golfer two different things about the same irreversible act.
+  public static let deleteConsequence =
+    "It leaves your card and any league standings it counted toward. This cannot be undone."
+  /// L-32 · a failed write says so in the golfer's words, never with a code.
+  public static let deleteFailed = "That didn’t delete. Check your signal and try again."
+
   /// The web's `pointsFor(vs)` — a preview (points, sentence) for the post
   /// composer's calc panel. The edges are `CSBands`' (D210).
   public static func pointsFor(_ vs: Double) -> (points: Int, line: String) { CSBands.pointsFor(vs) }

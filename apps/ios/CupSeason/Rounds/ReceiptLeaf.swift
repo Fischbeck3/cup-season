@@ -43,7 +43,9 @@ struct ReceiptLeaf: View {
       if !split.total.isEmpty {
         CSRule(.heavy, over: .leaf).padding(.top, CSTokens.Space.s1)
         ForEach(Array(split.total.enumerated()), id: \.offset) { i, row in
-          line(row, first: true, total: i == 0)
+          // the total, then its own sub-clauses: `THIS MONTH · COUNTING #2 OF
+          // 4` is the figure's caption, not three more rows of body
+          line(row, first: true, total: i == 0, tail: i > 0)
         }
       }
     }
@@ -72,10 +74,11 @@ struct ReceiptLeaf: View {
     return (Array(rows[..<i]), Array(rows[i...]))
   }
 
-  @ViewBuilder private func line(_ row: ReceiptRow, first: Bool, total: Bool = false) -> some View {
+  @ViewBuilder private func line(_ row: ReceiptRow, first: Bool, total: Bool = false,
+                                 tail: Bool = false) -> some View {
     switch row {
     case .math(let label, let value, let sub):
-      mathRow(label: label, value: value, sub: sub, total: total, first: first)
+      mathRow(label: label, value: value, sub: sub, total: total, first: first, tail: tail)
     case .note(let sentence):
       // D124 (i) — a sentence standing where the verdict row would, on the
       // same grid. It is the one line of prose a leaf may hold, because the
@@ -84,7 +87,7 @@ struct ReceiptLeaf: View {
         if !first { hair }
         Text(sentence).csType(.body).foregroundStyle(cs.leafInk)
           .frame(maxWidth: .infinity, alignment: .leading)
-          .padding(.vertical, CSTokens.Space.s2)
+          .padding(.vertical, tail ? CSTokens.Space.s1 : CSTokens.Space.s2)
           .fixedSize(horizontal: false, vertical: true)
       }
     case .playedWith, .scorecard:
@@ -94,7 +97,8 @@ struct ReceiptLeaf: View {
     }
   }
 
-  @ViewBuilder private func mathRow(label: String, value: String, sub: Bool, total: Bool, first: Bool) -> some View {
+  @ViewBuilder private func mathRow(label: String, value: String, sub: Bool, total: Bool,
+                                    first: Bool, tail: Bool = false) -> some View {
     // The verdict arrives from the producer as `−7.6 — BEAT YOUR NUMBER`: one
     // string, because one producer writes it for three renderers. The band
     // word HANGS UNDER ITS FIGURE here, so the split is on the producer's own
@@ -103,16 +107,23 @@ struct ReceiptLeaf: View {
     VStack(spacing: 0) {
       if !first && !total { hair }
       A11yStack(rowAlignment: .firstTextBaseline, spacing: CSTokens.Space.s3, columnSpacing: 2) {
+        // **THE RECEIPT ENDS IN A FIGURE, NOT IN PROSE** (non-negotiable 3).
+        // The total was `Points` in sentence-case `body` beside `6` at
+        // `figureS` — one more row, at a size barely above the rows it sums,
+        // so the 2pt `leafInk` rule above it separated nothing from nothing.
+        // `lb-score-object.png` sets it as the climax it is: the label in
+        // board caps, the figure at 27.
         Text(label)
-          .csType(total ? .name : .body, caps: false)
-          .foregroundStyle(sub ? cs.leafMut : cs.leafInk)
+          .csType(total ? .name : (tail ? .agateS : .body), caps: total || tail)
+          .foregroundStyle(tail || sub ? cs.leafMut : cs.leafInk)
           .fixedSize(horizontal: false, vertical: true)
         Spacer(minLength: CSTokens.Space.s2)
         VStack(alignment: .trailing, spacing: 1) {
           if total {
-            Text(parts[0]).csType(.figureS).foregroundStyle(cs.leafInk)
+            Text(parts[0]).csType(.figureM).foregroundStyle(cs.leafInk)
           } else {
-            Text(parts[0]).csType(.columnM).foregroundStyle(sub ? cs.leafMut : cs.leafInk)
+            Text(parts[0]).csType(tail ? .agateS : .columnM, caps: tail)
+              .foregroundStyle(tail || sub ? cs.leafMut : cs.leafInk)
               .multilineTextAlignment(.trailing)
           }
           if parts.count > 1 {
@@ -121,7 +132,7 @@ struct ReceiptLeaf: View {
           }
         }
       }
-      .padding(.vertical, CSTokens.Space.s2)
+      .padding(.vertical, tail ? CSTokens.Space.s1 : CSTokens.Space.s2)
       .accessibilityElement(children: .combine)
     }
   }

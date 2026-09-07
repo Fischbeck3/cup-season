@@ -2,6 +2,7 @@
 
 import Testing
 import Foundation
+import CSDesign
 @testable import CupSeason
 
 @Suite struct DoorNonceTests {
@@ -50,6 +51,25 @@ import Foundation
     #expect(ForgeTimeline.end <= 2.2)
     #expect(ForgeTimeline.handoff <= ForgeTimeline.end)
     #expect(ForgeTimeline.rest > ForgeTimeline.end)
+  }
+
+  /// **THE RAMP HAS TO CLIMB, AND ONLY A COLOUR ASSERTION CAN SAY SO.**
+  ///
+  /// `heatRampFiresInOrderAndLettersLandWithTracers` asserts the TIMING order
+  /// and nothing else, which is why a palette move that flattened three of the
+  /// four stops to one hue passed every test in the product. `UI_AUDIT`
+  /// §311–320 names this ramp as one of the four things that must survive; a
+  /// future palette change cannot flatten it silently again.
+  @Test func theHeatRampIsFourDISTINGUISHABLEStops() {
+    let stops = ForgeFrame.heatStops(CSTokens.dark)
+    #expect(stops.count == 4)
+    // four different values, and they CLIMB in luminance — an ember coming up
+    // to white is what "warm → hot → fire → ink" means in a one-metal palette
+    #expect(Set(stops.map { "\($0.0)-\($0.1)" }).count == 4)
+    let lum: [Double] = stops.map { $0.1 }
+    #expect(lum == lum.sorted(), "the heat ramp does not climb")
+    // and no stop is gold: a flame is not something anybody earned
+    #expect(!stops.contains { $0.0 == "gold" })
   }
 
   @Test func heatRampFiresInOrderAndLettersLandWithTracers() {

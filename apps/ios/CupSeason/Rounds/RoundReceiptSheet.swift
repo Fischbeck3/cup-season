@@ -29,6 +29,10 @@ struct RoundReceiptSheet: View {
 
   @State private var seed: ReceiptSeed?
   @State private var enriched = false
+  /// **The round's own delete**, two steps, on the object it removes.
+  @State private var armed = false
+  @State private var deleting = false
+  @State private var deleteFailed: String?
 
   init(roundId: UUID, seed: ReceiptSeed?, openScorecard: ((UUID) -> Void)? = nil) {
     self.roundId = roundId; self.initialSeed = seed; self.openScorecard = openScorecard
@@ -57,6 +61,7 @@ struct RoundReceiptSheet: View {
                       dateline: r.playedOn.map { RivalryCopy.monthDay($0) },
                       rows: rows)
           foot(rows)
+          remove(r)
         }
         .padding(.horizontal, CSTokens.Space.gutter)
         .padding(.top, CSTokens.Space.s3)
@@ -139,6 +144,55 @@ struct RoundReceiptSheet: View {
             .multilineTextAlignment(.trailing)
         }
       }
+    }
+  }
+
+  /// **DELETION BELONGS ON THE ROUND'S OWN RECEIPT** — `YouScreen` says so in
+  /// as many words, having removed the per-row `×` from `RecentRoundsList` in
+  /// Wave 3. The receipt never got one, so for four waves the phone had **no
+  /// way at all** to remove a round a golfer had posted wrong, while the desk
+  /// kept its owner-only `×` and its `delete_round` call — two clients
+  /// differing on a capability, which D234 / R-C forbids.
+  ///
+  /// Two steps, because it is not reversible and because it leaves the card
+  /// AND every league standing the round counted toward: a tertiary that arms,
+  /// then the destructive with the consequence spelled out beside it. The
+  /// owner's round only — the same gate the desk applies.
+  @ViewBuilder private func remove(_ r: ReceiptSeed) -> some View {
+    if mine(r) {
+      VStack(alignment: .leading, spacing: CSTokens.Space.s2) {
+        CSRule()
+        if armed {
+          Text(RoundCopy.deleteConsequence).csType(.bodyS).foregroundStyle(cs.mut)
+            .fixedSize(horizontal: false, vertical: true)
+          HStack(spacing: CSTokens.Space.s3) {
+            Button("Delete this round") { Task { await remove() } }
+              .buttonStyle(.csDestructive(busy: deleting))
+            CSDoor(.link("Keep it") { armed = false })
+          }
+        } else {
+          CSDoor(.link("Delete this round") { armed = true; CSHaptic.selection() })
+        }
+        if let deleteFailed {
+          Text(deleteFailed).csType(.bodyS).foregroundStyle(cs.neg)
+            .fixedSize(horizontal: false, vertical: true)
+        }
+      }
+      .padding(.top, CSTokens.Space.s4)
+    }
+  }
+
+  private func remove() async {
+    guard !deleting else { return }
+    deleting = true; deleteFailed = nil
+    do {
+      try await YouRepository().deleteRound(roundId)
+      CSHaptic.success()
+      dismiss()
+    } catch {
+      // L-32 · a failed write says so where the finger is, and never with a code
+      deleteFailed = RoundCopy.deleteFailed
+      deleting = false
     }
   }
 

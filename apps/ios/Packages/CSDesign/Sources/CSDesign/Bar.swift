@@ -85,17 +85,7 @@ public extension View {
   /// measuring one. Never apply it to a surface that runs a photograph or a
   /// contour under the clock — there the scrim is the treatment (§10.3).
   func csStatusCap(_ ground: Color) -> some View {
-    overlay(alignment: .top) {
-      // A HAIRLINE inside the safe area, extended UP through it. A zero-height
-      // view is optimised away before `ignoresSafeArea` can grow it — measured:
-      // the first build of this cap drew nothing at all and Home's wire still
-      // ran under the clock.
-      ground
-        .frame(maxWidth: .infinity)
-        .frame(height: CSTokens.Space.hair)
-        .ignoresSafeArea(edges: .top)
-        .allowsHitTesting(false)
-    }
+    modifier(CSStatusCap(ground: ground))
   }
 }
 
@@ -145,5 +135,40 @@ struct CSDarkPlateTop: ViewModifier {
           paper.frame(height: 0).ignoresSafeArea(edges: .top).allowsHitTesting(false)
         }
       }
+  }
+}
+
+
+
+
+/// See `csStatusCap`.
+///
+/// **The cap is OFFSET above its own bounds, not grown by `ignoresSafeArea`.**
+/// Two constructions were measured first and neither drew anything: a
+/// zero-height view is optimised away before the safe area can grow it, and a
+/// one-point one inside an overlay never grows either, because the parent has
+/// already claimed the area and a `GeometryReader` in there reports an inset of
+/// zero. An overlay child offset above its parent's top edge is not clipped, so
+/// this is the construction that actually paints — and it paints the page's own
+/// ground, at the height the window says the status bar is.
+struct CSStatusCap: ViewModifier {
+  let ground: Color
+  private var topInset: CGFloat {
+    #if canImport(UIKit)
+    let scenes = UIApplication.shared.connectedScenes.compactMap { $0 as? UIWindowScene }
+    return scenes.first?.windows.first(where: \.isKeyWindow)?.safeAreaInsets.top
+        ?? scenes.first?.windows.first?.safeAreaInsets.top ?? 0
+    #else
+    return 0
+    #endif
+  }
+  func body(content: Content) -> some View {
+    content.overlay(alignment: .top) {
+      ground
+        .frame(maxWidth: .infinity)
+        .frame(height: topInset)
+        .offset(y: -topInset)
+        .allowsHitTesting(false)
+    }
   }
 }

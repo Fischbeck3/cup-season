@@ -81,7 +81,11 @@ struct EventTitleCard<Field: View>: View {
             .fixedSize(horizontal: false, vertical: true)
             .accessibilityAddTraits(.isHeader)
         }
-        field
+        // **DF-22 · EYEBROW → TITLE → DATELINE → ROSTER.** The dateline sat
+        // BELOW the field, so a block of six faces separated the event's name
+        // from its own subtitle and a reader had to jump the roster to learn
+        // where and when it is played. `event-ryder-live.png` puts the
+        // dateline directly under the title, where a subtitle goes.
         if !dateline.isEmpty {
           VStack(alignment: .leading, spacing: CSTokens.Space.s1) {
             ForEach(Array(dateline.enumerated()), id: \.offset) { _, line in
@@ -91,6 +95,7 @@ struct EventTitleCard<Field: View>: View {
           }
           .accessibilityElement(children: .combine)
         }
+        field
       }
       .padding(.horizontal, CSTokens.Space.gutter)
       // the status-bar band: the chevron and the eyebrow clear the clock
