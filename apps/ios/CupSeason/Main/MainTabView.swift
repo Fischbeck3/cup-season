@@ -539,9 +539,19 @@ struct MainTabView: View {
       // carries only `setup` and `live` events and a COMPLETE room — half of
       // what D237's gate is for — is unreachable without it.
       case "ryder":
-        presenter.event = (i + 2 < a.count ? UUID(uuidString: a[i + 2]) : nil) ?? store.me?.events.first?.id
+        presenter.event = (i + 2 < a.count ? UUID(uuidString: a[i + 2]) : nil)
+          ?? store.me?.events.first?.id ?? EventFixture.id
       case "callout":
-        presenter.event = await firstCallout() ?? store.me?.events.first?.id
+        presenter.event = await firstCallout() ?? store.me?.events.first?.id ?? EventFixture.id
+      // Wave 6 · the PLAN sheet is one of this surface's five artboards and had
+      // no door here at all: it opens from a row on the schedule, which needs a
+      // finger. The hatch opens the first plan this account holds; with none it
+      // opens nothing rather than inventing a round (D261's rule).
+      case "plan":
+        let today = CSDate.today()
+        let rows = (try? await ScheduleService().schedule(from: LeagueDates.addDays(today, -30),
+                                                          to: LeagueDates.addDays(today, 60))) ?? []
+        presenter.scheduledRound = rows.first?.id
       case "intent": presenter.showIntent = true
       case "length": presenter.showPickAGolfer = true
       // D259 · the three centre-action sheets that set PRIVATE state and had no
@@ -678,10 +688,16 @@ struct MainTabView: View {
     }
     .sheet(isPresented: $presenter.showEventPicker) { EventPickerSheet(links: eventLinks) }
     .fullScreenCover(item: $presenter.event) { eid in
-      NavigationStack {
-        EventRoomScreen(eventId: eid, links: eventLinks)
-          .toolbar { ToolbarItem(placement: .cancellationAction) { Button("Close") { presenter.event = nil } } }
-      }
+      // Wave 6 · the room hides the navigation bar so the title card runs
+      // full-bleed under the status bar, and draws its own chevron on the plate
+      // in `ceremonyInk`. A toolbar `Close` here would be an invisible control.
+      // **A `fullScreenCover` does not inherit `.dynamicTypeSize`.** The
+      // capture hatch is applied at the app root and reaches every pushed
+      // screen; it does not reach across a cover's presentation host, so the
+      // first AX3 shot of this room was pixel-identical to the reading-size
+      // one — evidence that flattered, which is the exact failure IOS-051
+      // exists to prevent. Re-applied here.
+      eventRoom(eid)
     }
     .fullScreenCover(item: $presenter.wizard) { t in
       // CJ-08 · the wizard's Close lives on a navigation bar, and a
@@ -1043,10 +1059,40 @@ struct MainTabView: View {
       findGolfers: { presenter.wizard = nil; tab = .golfers })
   }
 
+  /// **A `fullScreenCover` does not inherit `.dynamicTypeSize`.** The capture
+  /// hatch is applied at the app root and reaches every pushed screen; it does
+  /// not reach across a cover's presentation host, so the first AX3 shot of the
+  /// event room was pixel-identical to the reading-size one — evidence that
+  /// flattered, which is the exact failure IOS-051 exists to prevent.
+  @ViewBuilder private func eventRoom(_ eid: UUID) -> some View {
+    NavigationStack { EventRoomScreen(eventId: eid, links: eventLinks) }
+      .csDevTextSize(CSDevHatch.textSize)
+  }
+
   private var eventLinks: EventLinks {
     EventLinks(openEvent: { presenter.showEventPicker = false; presenter.event = $0 },
                openReceipt: { presenter.receipt = $0 },
-               openTourCard: { presenter.tourCard = $0 })
+               openTourCard: { presenter.tourCard = $0 },
+               // Wave 6 · the title card's ONE primary. Posting the round is
+               // the live thing you can do inside an open week, which is what
+               // makes it legal to be ember (§2.4).
+               addRound: { presenter.event = nil; presenter.postOnComposer = true; presenter.showPost = true },
+               openHeadToHead: { opp in
+                 presenter.event = nil
+                 tab = .golfers
+                 golfersPath = NavigationPath()
+                 golfersPath.append(GolfersRoute.headToHead(opp))
+               },
+               callOut: { opp in
+                 presenter.event = nil
+                 Task {
+                   if let who = await ScheduleService().tagCandidates(league: nil).first(where: { $0.id == opp }) {
+                     presenter.length = who
+                   } else {
+                     presenter.showPickAGolfer = true
+                   }
+                 }
+               })
   }
 
   private var boardLinks: BoardLinks {

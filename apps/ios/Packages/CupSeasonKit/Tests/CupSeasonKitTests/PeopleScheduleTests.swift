@@ -277,8 +277,12 @@ private func row(id: UUID = UUID(), name: String = "Galen", playOn: String, mine
     #expect(d.course?.meta == "BLUE · 71.2 / 131 · PAR 72")
     #expect(d.rsvp[1].label == "No reply")
     #expect(RoundDetail(.object(["id": .string(id.uuidString)]))?.courseName == "A round")
+    // Wave 6 · **the producer no longer embeds a `☀`** (§5.3's emoji ban,
+    // `LINT-12`): the mark is DRAWN from `icon` by the icon family, at the
+    // family's own stroke, and the producer returns words.
     let w = Weather(hi: 71, lo: 55, wind: 9, summary: "Clear", icon: "sun")
-    #expect(w.line == "☀ 71° Clear · 9mph" && w.glance == "☀ 71° · 9mph")
+    #expect(w.line == "71° Clear · 9mph" && w.glance == "71° · 9mph")
+    #expect(!w.line.contains("☀") && !w.glance.contains("☀"))
   }
 
   @Test func rivalryTag() {

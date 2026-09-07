@@ -73,11 +73,11 @@ import Foundation
   @Test func theGrudgeReadsHonestlyInBothStates() {
     let live = Self.grudgeLive, done = Self.grudgeComplete
     // LIVE · a real countdown over a real three-week series
-    #expect(RyderMath.statusChip(live) == "Live · wk 2/3")
-    #expect(RyderMath.clinchLine(live) == "FIRST TO 5 · RED NEEDS 3 · BLUE NEEDS 4")
+    #expect(RyderMath.statusChip(live) == "Live · week 2 of 3")
+    #expect(RyderMath.clinchLine(live) == "First to 5. Red need 3, Blue need 4.")
     // COMPLETE · the cup, and the final score
-    #expect(RyderMath.statusChip(done) == "RED TAKES THE CUP")
-    #expect(RyderMath.clinchLine(done) == "FINAL · 5–4")
+    #expect(RyderMath.statusChip(done) == "Red take the cup")
+    #expect(RyderMath.clinchLine(done) == "Final. Red took it 5–4.")
     // and the clinch arithmetic is the seed's own: 3 a side × 3 weeks = 9, first to 5
     let t = RyderMath.target(live)
     #expect(t.pairings == 3 && t.points == 9 && t.clinch == 5)
@@ -95,12 +95,12 @@ import Foundation
                             aPts: 1, bPts: 0, perSide: 1, winner: 0)
 
     // 1 · a countdown over a thing that is one week long by construction
-    #expect(RyderMath.statusChip(open) == "Live · wk 1/1")
+    #expect(RyderMath.statusChip(open) == "Live · week 1 of 1")
     // 2 · a "first to" over a single point
-    #expect(RyderMath.clinchLine(open) == "FIRST TO 1 · JERECHO NEEDS 1 · GALEN NEEDS 1")
+    #expect(RyderMath.clinchLine(open) == "First to 1. Jerecho need 1, Galen need 1.")
     // 3 · a CUP, and a series score, between two men
-    #expect(RyderMath.statusChip(settled) == "JERECHO TAKES THE CUP")
-    #expect(RyderMath.clinchLine(settled) == "FINAL · 1–0")
+    #expect(RyderMath.statusChip(settled) == "Jerecho take the cup")
+    #expect(RyderMath.clinchLine(settled) == "Final. Jerecho took it 1–0.")
     // 4 · and the rule sentence talks about pairing "everyone"
     #expect(RyderMath.ruleSentence(RyderMath.target(open)).contains("pairs everyone"))
   }

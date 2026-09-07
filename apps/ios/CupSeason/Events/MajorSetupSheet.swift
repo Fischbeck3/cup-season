@@ -81,13 +81,13 @@ struct MajorSetupSheet: View {
       DatePicker("The final day", selection: $final, displayedComponents: .date).labelsHidden().tint(cs.brand)
         .frame(maxWidth: .infinity, alignment: .leading)
       EventFieldLabel(text: "Window")
-      EventSeg(options: [2, 3, 4].map { ($0, "\($0) days") }, selection: $days)
+      CSSegment([2, 3, 4].map { ($0, "\($0) days") }, selection: $days)
       if let when = MajorMath.whenLine(finalOn: finalISO, days: days) { CSFine(when) }
       EventFieldLabel(text: "Buy-in per player", hint: "($0 = bragging rights)")
       CSField("0", text: $buy, font: CSFont.mono).keyboardType(.numberPad).accessibilityLabel("Buy-in per player, dollars")
       if buyIn > 0 {
         EventFieldLabel(text: "The pot pays")
-        EventSeg(options: [("places", "Top 3 · 60/25/15"), ("wta", "Winner takes all")], selection: $split)
+        CSSegment([("places", "Top 3 · 60/25/15"), ("wta", "Winner takes all")], selection: $split)
       }
       EventFieldLabel(text: "Run it with a league", hint: "(optional)")
       EventLeaguePicker(memberships: memberships, selection: $league)
@@ -96,7 +96,7 @@ struct MajorSetupSheet: View {
       ForEach(staged) { p in EventStagedRow(person: p) { staged.removeAll { $0.id == p.id } } }
       // D252 · the jug is defined once, and it is defined HERE too because this
       // is the other first contact: the sheet that creates one.
-      EventFineCard(markdown: "**How it plays.** The jug is the trophy this one is played for. Everyone posts inside the window — any course, any day it's open. Your **best 18-hole card**, scored against *your own* number, is your score; post as many as the weekend allows. An established number (3 posted rounds) plays for the jug; newer golfers are on the board but **don't count this year** — official by the next one. Ties settle on countback: second-best card, then earliest posted, then a logged coin flip.")
+      EventFinePrint(text: "How it plays. The jug is the trophy this one is played for. Everyone posts inside the window — any course, any day it's open. Your best 18-hole card, scored against your playing HCP, is your score; post as many as the weekend allows. An established number (3 posted rounds) plays for the jug; newer golfers are on the board but don't count this year — official by the next one. Ties settle on countback: second-best card, then earliest posted, then a logged coin flip.")
         .padding(.top, 6)
       A11yStack(spacing: 8) {
         CSButton("Cancel", style: .quiet) { dismiss() }.frame(maxWidth: typeSize.isA11y ? .infinity : 120)

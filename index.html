@@ -1376,25 +1376,77 @@ body.guestlive #onboard{display:none !important;}
 .coursedd .coursedd-msg{padding:9px 12px; font-family:var(--mono); font-size:11.5px; color:var(--dim); letter-spacing:.03em;}
 .coursedd .coursedd-back{font-family:var(--mono); font-size:11.5px; font-weight:600; letter-spacing:.06em; color:var(--mut); background:var(--bg1); position:sticky; top:0;}
 .coursedd .coursedd-back:hover{background:var(--bg1); color:var(--ink);}
-/* The Ryder — event scoreboard */
-.evscore{padding:16px 14px; text-align:center;}
-.evtop{display:flex; align-items:center; justify-content:center; gap:14px;}
-.evteam{display:flex; align-items:center; gap:8px; min-width:0; flex:1;}
-.evteam.a{justify-content:flex-end;} .evteam.b{justify-content:flex-start;}
-.evteam b{font-size:14px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
-.evteam .sw{width:12px; height:12px; border-radius:3px; flex:none;}
-.evbig{font-family:var(--mono); font-size:30px; font-weight:700; font-variant-numeric:tabular-nums; letter-spacing:.02em; flex:none;}
-.evbig small{color:var(--dim); font-size:20px; margin:0 6px;}
-.evclinch{padding:10px 0 0; font-family:var(--mono); font-size:11.5px; letter-spacing:.08em; color:var(--mut);}
-.evsess{margin-top:14px;}
-.evsesshd{display:flex; align-items:center; gap:8px; font-family:var(--mono); font-size:11.5px; letter-spacing:.08em; color:var(--dim); margin:0 0 6px;}
-.evduel{display:flex; align-items:center; gap:8px; padding:6px 10px; border:1px solid var(--rule); border-radius:9px; margin-bottom:5px; font-size:12.5px;}
-.evduel .nm{flex:1; min-width:0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
-.evduel .nm.b{text-align:right;}
-.evduel .nm.win{font-weight:700;}
-.evduel .mid{font-family:var(--mono); font-size:11px; letter-spacing:.06em; color:var(--dim); flex:none;}
-.evduel .pv{font-family:var(--mono); font-size:11.5px; color:var(--mut); flex:none;}
-.evwin{color:var(--gold); font-weight:700;}
+/* THE EVENT IS A TITLE CARD (Wave 6; UI_SYSTEM 15.5, 15.5a).
+   The bordered scoreboard card, the 12px tracked-mono clinch line, the 9px
+   rounded duel boxes and the gold status chip are all gone. What replaces them:
+   a full-bleed ceremony plate, figures on ONE rule, and two NAMED GROUPS. */
+.evcard{background:var(--ceremony); color:var(--ceremony-ink); padding:26px 22px 22px; margin:0 0 20px;
+        border-radius:0; position:relative; overflow:hidden;}
+.evcard .evbrow{font-family:var(--board); font-size:12px; font-weight:600; letter-spacing:.1em;
+                text-transform:uppercase; color:var(--ceremony-mut); display:flex; align-items:center; gap:6px;}
+.evcard .evbrow.live{color:var(--ceremony-brand);}
+.evcard .evbrow .dot{width:7px; height:7px; border-radius:50%; background:var(--ceremony-brand); flex:none;}
+.evcard h1{font-family:var(--board); font-size:42px; line-height:1.02; font-weight:700; letter-spacing:.005em;
+           text-transform:uppercase; margin:12px 0 0; color:var(--ceremony-ink);}
+.evcard .evdate{font-family:var(--board); font-size:12px; font-weight:600; letter-spacing:.1em;
+                text-transform:uppercase; color:var(--ceremony-mut); margin-top:12px; line-height:1.5;}
+/* 15.5a - the side is carried by the ROSTER, never by a key. Two named groups,
+   each under a full-width 3pt rule in its squad colour, and every disc rings in
+   that colour while keeping its own pigment and glyph. sq0 and sq3 are 1.58:1
+   apart, so the NAME is the channel hue cannot carry. */
+.evsides{display:flex; gap:20px; margin-top:20px;}
+.evside{flex:1; min-width:0;}
+.evside .rule{height:3px; border-radius:0;}
+.evside .nm{font-family:var(--board); font-size:11px; font-weight:600; letter-spacing:.12em;
+            text-transform:uppercase; color:var(--ceremony-mut); margin-top:8px;}
+.evside.b .nm{text-align:right;}
+.evside .discs{display:flex; gap:10px; margin-top:10px;}
+.evside.b .discs{justify-content:flex-end;}
+.evside .who{text-align:center;}
+.evside .who .d{width:44px; height:44px; border-radius:50%; display:flex; align-items:center; justify-content:center;
+                font-size:19px; box-sizing:border-box;}
+.evside .who small{display:block; margin-top:6px; font-family:var(--board); font-size:11px; font-weight:600;
+                   letter-spacing:.1em; text-transform:uppercase; color:var(--ceremony-mut);}
+.evside .who.me small{color:var(--ceremony-ink);}
+/* the rule-and-figure, at the size of a scoreboard: the metal is the state */
+.evrail{display:flex; gap:10px; align-items:flex-end;}
+.evrail .cell{flex:1; min-width:0;}
+.evrail .tick{width:26px; height:3px; margin-bottom:8px;}
+.evrail .fig{font-family:var(--board); font-size:56px; font-weight:700; line-height:1;
+             font-variant-numeric:tabular-nums; color:var(--ink);}
+.evrail .fig sup{font-size:.56em; vertical-align:.34em; font-weight:700;}
+.evrule{height:2px; background:var(--ink); margin:8px 0 6px;}
+.evrule.live{background:var(--brand);}
+.evlabels{display:flex; gap:10px;}
+.evlabels span{flex:1; min-width:0; font-family:var(--board); font-size:11px; font-weight:600; letter-spacing:.12em;
+               text-transform:uppercase; color:var(--mut);}
+.evlabels span.live{color:var(--brand);}
+.evclinch{margin:12px 0 0; color:var(--mut);}
+.evstake{margin:12px 0 0; display:flex; align-items:baseline; gap:8px;}
+.evstake b{font-family:var(--board); font-size:20px; font-weight:700; color:var(--gold);}
+.evstake span{font-family:var(--board); font-size:12px; font-weight:600; letter-spacing:.1em;
+              text-transform:uppercase; color:var(--mut);}
+.evsess{margin-top:20px;}
+.evsesshd{display:flex; align-items:center; gap:10px; font-family:var(--board); font-size:12px; font-weight:600;
+          letter-spacing:.12em; text-transform:uppercase; color:var(--mut); margin:0 0 4px;}
+.evsesshd i{flex:1; height:1px; background:var(--rule); font-style:normal;}
+/* the clash - 2 lines, one rule on its top edge, NO RAIL (D-4: a pairing has
+   no rank, and a rail painted with a half-point would mean two things) */
+.evclash{border-top:1px solid var(--rule); padding:12px 0 8px;}
+.evclash .top{display:flex; align-items:center; gap:8px;}
+.evclash .nm{font-family:var(--board); font-size:15px; font-weight:600; letter-spacing:.02em; text-transform:uppercase;
+             min-width:0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+.evclash .nm.b{text-align:right;}
+.evclash .nm.lost{color:var(--mut);}
+.evclash .mid{font-family:var(--board); font-size:11px; font-weight:600; letter-spacing:.12em; text-transform:uppercase;
+              color:var(--mut); flex:none;}
+.evclash .figs{display:flex; margin-top:6px; padding:0 38px;}
+.evclash .figs span{flex:1; font-family:var(--board); font-size:20px; font-weight:700; font-variant-numeric:tabular-nums;}
+.evclash .figs span.b{text-align:right;}
+.evclash .figs span.none{color:var(--mut);}
+.evclash .d{width:30px; height:30px; border-radius:50%; display:flex; align-items:center; justify-content:center;
+            font-size:14px; flex:none;}
+@media (min-width:900px){ .evcard h1{font-size:52px;} .evrail .fig{font-size:64px;} }
 /* notifications banner — pending invites, act in line */
 #notifBanner:not(:empty){margin-bottom:12px; display:flex; flex-direction:column; gap:8px;}
 .notifrow{display:flex; align-items:center; gap:10px; padding:11px 13px; border-radius:12px;
@@ -3345,6 +3397,16 @@ html[data-theme="light"] .room-dusk .btn:not(.dark):not(.gold):not(.apple){color
     <circle cx="17" cy="9" r="2.3"/>
     <path d="M15.2 13.2A5 5 0 0 1 20.7 18"/>
   </symbol>
+  <!-- the weather, DRAWN. `Weather.line` no longer embeds a literal sun
+       (UI_SYSTEM 5.3's emoji ban, LINT-12): a producer that puts a glyph in a
+       string decides for every surface how the weather is drawn, in a face
+       nobody chose, at a size nobody set. -->
+  <symbol id="i-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M12 8.2a3.8 3.8 0 100 7.6 3.8 3.8 0 000-7.6M12 3v2.4M12 18.6V21M3 12h2.4M18.6 12H21M5.6 5.6l1.7 1.7M16.7 16.7l1.7 1.7M18.4 5.6l-1.7 1.7M7.3 16.7l-1.7 1.7"/>
+  </symbol>
+  <symbol id="i-cloud" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M7.6 18.5h9.1a3.7 3.7 0 00.4-7.4 5.3 5.3 0 00-10.1-.6 3.7 3.7 0 00.6 8"/>
+  </symbol>
   <symbol id="i-plus" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
     <path d="M12 5v14M5 12h14"/>
   </symbol>
@@ -4912,6 +4974,22 @@ const M3=[2,1,0].map(k=>{ const d=new Date(); d.setDate(1); d.setMonth(d.getMont
 const SQ = ['var(--sq0)','var(--sq1)','var(--sq2)','var(--sq3)'];
 const PILOT=true;   /* flip false to strip pilot chrome: chip + boot narration */
 const SQHEX = ['#57A8FF','#FB8B4B','#A78BFA','#2FD3BE'];
+/* Which drawn mark the weather takes. The phone's twin is
+   `ScheduledRoundSheet.weatherGlyph`; neither client types a glyph into a
+   string any more (LINT-12). **Classic-side, and bridged** — the round sheet
+   that draws the other chip lives in the module, and a module name is not
+   visible to a classic script (CLAUDE.md's boundary landmine). */
+function csWxGlyph(w){
+  const k = ((w&&w.icon)||'') + ' ' + ((w&&w.summary)||'');
+  return /cloud|rain|storm|snow/i.test(k) ? 'i-cloud' : 'i-sun';
+}
+window.csWxGlyph = csWxGlyph;
+/* "Sat Sep 12", classic-side. The module has `csDowMonDay`; the event room is
+   drawn from the classic block and cannot see it. */
+function csEvDowMonDay(iso){
+  try{ const d = localDate(String(iso)); return `${DOW[d.getDay()]} ${MOS[d.getMonth()]} ${d.getDate()}`; }
+  catch(_){ return String(iso); }
+}
 /* the demo diorama is THE CREW — the seven players who pilot this thing */
 const DEMO_ME='Jerecho';
 const teams = [
@@ -15193,9 +15271,10 @@ async function fillHomeWeather(sr){
     const el=document.getElementById('hrwx-'+sr.id); if(!el) return;
     /* D81 R3: the function already returned lo/wind/summary and the chip
        threw them away — richer glance costs zero fetches. Compact form:
-       "☀ 71° · 9mph" (summary drops on the chip; the round object has it). */
+       "71 degrees, 9mph" with a DRAWN mark (summary drops on the chip; the
+       round object has it). */
     const w=data.weather;
-    el.textContent=`☀ ${w.hi}°${w.wind?` · ${w.wind}mph`:''}`; el.style.display='';
+    el.innerHTML=`<svg class="ic" aria-hidden="true"><use href="#${csWxGlyph(w)}"/></svg> ${w.hi}\u00b0${w.wind?` \u00b7 ${w.wind}mph`:''}`; el.style.display='';
   }catch(_){ /* no glance is fine — never a blank */ }
 }
 const DEMO_REQUESTS = [{friendship_id:'demo', display_name:'Marco', handle:'marco_v', marker:'weebridge'}];
@@ -17790,6 +17869,22 @@ $('#calNext').addEventListener('click',()=>{
 /* ---------- The Ryder: read-only event scoreboard ----------
    Renders window.CS_EVENT (assembled by the module's loadEvent): the running
    A–B tally toward the clinch, each session's duels, and the rosters. */
+/* THE PIGMENT IS FROZEN, AND IT IS THE SAME ARITHMETIC ON BOTH CLIENTS.
+   `CSFace.Model.pigmentIndex` is FNV-1a over the UUID's SIXTEEN BYTES — not
+   over its text — because `Hashable.hashValue` in Swift is seeded per process
+   and would give a golfer one pigment this morning and another this afternoon.
+   This is that function in the browser: same id, same coin, both clients,
+   both themes, forever (D271, UI_SYSTEM 6.2a). */
+const CEREMONY_SQ = ['var(--ceremony-sq0)','var(--ceremony-sq1)','var(--ceremony-sq2)','var(--ceremony-sq3)'];
+function csPigment(id){
+  const hex = String(id||'').replace(/-/g,'');
+  if(hex.length < 32) return 'var(--pig0)';
+  let h = 0xcbf29ce484222325n;
+  for(let i=0;i<16;i++){
+    h = BigInt.asUintN(64, (h ^ BigInt(parseInt(hex.slice(i*2,i*2+2),16))) * 0x100000001b3n);
+  }
+  return `var(--pig${Number(h % 6n)})`;
+}
 function evHalf(n){ const w=Math.floor(n), h=(n-w)>=0.5; return (w||!h?String(w):'')+(h?'½':''); }
 function renderEvent(){
   const el=$('#eventBody'); if(!el) return;
@@ -17807,24 +17902,89 @@ function renderEvent(){
   const sw=c=>`<span class="sw" style="background:${SQHEX[c]??SQHEX[0]}"></span>`;
   const wkNo=sessions.filter(s=>s.status==='closed').length;
 
+  /* CASE BELONGS TO THE ROLE (UI_SYSTEM 1.3). These producers shipped
+     "Live · wk 2/3" beside "NAME TAKES THE CUP" — one string shouted by the
+     copy, the other by the view — so both are sentences now and the agate role
+     uppercases. The Swift twins are RyderMath.statusChip / .clinchLine. */
+  const winnerName = ev.winner_team_id ? (ev.winner_team_id===A.id?A.name:B.name) : null;
   let statusChip = ev.status==='complete'
-    ? (ev.winner_team_id ? esc((ev.winner_team_id===A.id?A.name:B.name).toUpperCase())+' TAKES THE CUP'
-                         : 'SHARED — BOTH NAMES ON IT')
-    : ev.status==='setup' ? 'Forming' : `Live · wk ${Math.min(wkNo+1,ev.session_count)}/${ev.session_count}`;
+    ? (winnerName ? esc(winnerName)+' take the cup' : 'Shared \u2014 both names on it')
+    : ev.status==='setup' ? 'Forming'
+    : `Live \u00b7 week ${Math.min(wkNo+1,ev.session_count)} of ${ev.session_count}`;
   let clinchLine = ev.status==='complete'
-    ? `FINAL · ${evHalf(aP)}–${evHalf(bP)}`
-    : `FIRST TO ${evHalf(clinch)} · ${esc(A.name.toUpperCase())} NEEDS ${evHalf(Math.max(0,clinch-aP))} · ${esc(B.name.toUpperCase())} NEEDS ${evHalf(Math.max(0,clinch-bP))}`;
+    ? (winnerName ? `Final. ${esc(winnerName)} took it ${evHalf(Math.max(aP,bP))}\u2013${evHalf(Math.min(aP,bP))}.`
+                  : `Final. It was shared, ${evHalf(aP)}\u2013${evHalf(bP)}.`)
+    : `First to ${evHalf(clinch)}. ${esc(A.name)} need ${evHalf(Math.max(0,clinch-aP))}, ${esc(B.name)} need ${evHalf(Math.max(0,clinch-bP))}.`;
 
-  let html=`<div class="eyebrow" style="margin-top:0; display:flex; align-items:center">${esc(ev.name)}
-    <span class="fine" style="margin-left:auto; padding:0; color:var(--gold)">${statusChip}</span></div>
-    <div class="card evscore">
-      <div class="evtop">
-        <div class="evteam a">${sw(A.color)}<b>${esc(A.name)}</b></div>
-        <div class="evbig">${evHalf(aP)}<small>–</small>${evHalf(bP)}</div>
-        <div class="evteam b"><b>${esc(B.name)}</b>${sw(B.color)}</div>
-      </div>
-      <div class="evclinch">${clinchLine}</div>
+  /* A COUNTDOWN IS NOT A SCORE (15.5a). The rail carries the two side scores;
+     the deadline lives in the live eyebrow with the other time facts. */
+  const openS = sessions.find(s2=>s2.status==='open') || null;
+  const live = ev.status!=='complete' && ev.status!=='setup';
+  let brow = statusChip;
+  if(live && openS){
+    const dd=Math.round((new Date(openS.closes_on+'T00:00:00') - new Date().setHours(0,0,0,0))/864e5);
+    if(dd>=0) brow += dd===0 ? ' \u00b7 closes tonight' : ` \u00b7 ${dd} day${dd===1?'':'s'} left`;
+  }
+  if(ev.status==='complete'){
+    const lastC = sessions.map(s2=>s2.closes_on).sort().pop();
+    brow = 'Final' + (lastC ? ' \u00b7 ' + csEvDowMonDay(lastC) : '');
+  }
+
+  /* the dateline: ONE block, and the field size belongs to it (finding 4) */
+  const opensAll = sessions.map(s2=>s2.opens_on).sort()[0];
+  const closesAll = sessions.map(s2=>s2.closes_on).sort().pop();
+  const spelled=n=>['zero','one','two','three','four','five','six','seven','eight','nine','ten'][n]||String(n);
+  const dateBits=[];
+  if(opensAll && closesAll) dateBits.push(`${csEvDowMonDay(opensAll)} \u2013 ${csEvDowMonDay(closesAll)}`);
+  if(players.length) dateBits.push(`${spelled(players.length)} in the field`);
+
+  /* 15.5a - two NAMED groups, each disc ringed in its side's colour while
+     keeping its own pigment and glyph. Identity and side are two channels. */
+  const disc=(p,ring)=>{
+    const me = p.profile_id && p.profile_id===window.CS?.user?.id;
+    return `<div class="who${me?' me':''}"><div class="d" style="background:${csPigment(p.profile_id||p.id)};
+      box-shadow:0 0 0 2.5px ${ring}">${window.mkr?.(p.marker||'saguaro')||''}</div>
+      <small>${me?'You':esc((p.name||'').split(' ')[0])}</small></div>`;
+  };
+  const sideHtml=(t,cls)=>{
+    const roster=players.filter(p=>p.team_id===t.id).sort((x,y)=>x.seed-y.seed);
+    const ring=CEREMONY_SQ[(t.color??0)%4];
+    const shown=roster.slice(0,3), more=roster.length-shown.length;
+    return `<div class="evside ${cls}"><div class="rule" style="background:${ring}"></div>
+      <div class="nm">${esc(t.name)}</div>
+      <div class="discs">${shown.map(p=>disc(p,ring)).join('')}${more>0
+        ? `<div class="who"><div class="d" style="background:rgba(241,244,239,.16); box-shadow:0 0 0 2.5px ${ring}">+${more}</div><small>more</small></div>` : ''}</div></div>`;
+  };
+
+  let html=`<div class="evcard">
+      <div class="evbrow${live?' live':''}">${live?'<span class="dot"></span>':''}${brow}</div>
+      <h1>${esc(ev.name)}</h1>
+      ${players.length?`<div class="evsides">${sideHtml(A,'a')}${sideHtml(B,'b')}</div>`:''}
+      ${dateBits.length?`<div class="evdate">${dateBits.join(' \u00b7 ')}</div>`:''}
     </div>`;
+
+  /* the score and the clock: figures on ONE rule, and the metal is the state */
+  /* 6.2 - the winner's cell paints GOLD at complete and the pot goes to ink:
+     the pot has been paid, and the RESULT is now the earned thing. One gold
+     object per viewport in both states. */
+  const railCell=(t,v)=>{
+    const w=Math.floor(v), h=(v-w)>=0.5;
+    const won = ev.status==='complete' && ev.winner_team_id===t.id;
+    return `<div class="cell"><div class="tick" style="background:${SQ[(t.color??0)%4]}"></div>
+      <div class="fig"${won?' style="color:var(--gold)"':''}>${(w||!h)?w:''}${h?'<sup>\u00bd</sup>':''}</div></div>`;
+  };
+  if(ev.status!=='setup'){
+    html+=`<div class="evrail">${railCell(A,aP)}${railCell(B,bP)}</div>
+      <div class="evrule${live?' live':''}"></div>
+      <div class="evlabels"><span>${esc(A.name)}</span><span>${esc(B.name)}</span></div>
+      <p class="evclinch">${clinchLine}</p>`;
+    if(Number(ev.buy_in||0)>0){
+      /* the pot is the surface's ONE gold object, and it is gold ink on a
+         NUMERAL — never a fill, never a chip */
+      html+=`<div class="evstake"><b${ev.status==='complete'?' style="color:var(--ink)"':''}>${mjMoney(Number(ev.buy_in)*players.length)}</b>
+        <span>The pot \u00b7 ${ev.pot_split==='wta'?'winner takes all':'60/25/15'} \u00b7 best card each week</span></div>`;
+    }
+  }
 
   /* D62: the series line — editions counted, the cup defended. Chain exists
      only through the rematch tap; shared editions count half each. */
@@ -17834,16 +17994,17 @@ function renderEvent(){
     const rpriors=rchain.filter(r=>r.status==='complete' && r.event_id!==ev.id);
     let aW=0,bW=0;
     rpriors.forEach(r=>{ if(r.winner_shared){aW+=.5;bW+=.5;} else if(r.winner_slot===0)aW++; else if(r.winner_slot===1)bW++; });
-    const series = aW===bW ? `SERIES LEVEL ${evHalf(aW)}–${evHalf(bW)}`
-      : aW>bW ? `${esc(A.name).toUpperCase()} LEADS THE SERIES ${evHalf(aW)}–${evHalf(bW)}`
-              : `${esc(B.name).toUpperCase()} LEADS THE SERIES ${evHalf(bW)}–${evHalf(aW)}`;
+    const series = aW===bW ? `series level ${evHalf(aW)}–${evHalf(bW)}`
+      : aW>bW ? `${esc(A.name)} lead the series ${evHalf(aW)}–${evHalf(bW)}`
+              : `${esc(B.name)} lead the series ${evHalf(bW)}–${evHalf(aW)}`;
     const last=rpriors[rpriors.length-1]||null;
     const hold = (ev.status!=='complete' && last)
-      ? (last.winner_shared ? ' · THE CUP IS SHARED'
-         : last.winner_slot===0 ? ` · ${esc(A.name).toUpperCase()} DEFENDS`
-         : last.winner_slot===1 ? ` · ${esc(B.name).toUpperCase()} DEFENDS` : '')
+      ? (last.winner_shared ? ' · the cup is shared'
+         : last.winner_slot===0 ? ` · ${esc(A.name)} defend`
+         : last.winner_slot===1 ? ` · ${esc(B.name)} defend` : '')
       : '';
-    if(pos>0) html+=`<div class="fine" style="text-align:center; padding:0 0 6px; color:var(--gold)">THE ${nthUp(pos)} RYDER · ${series}${hold}</div>`;
+    /* gold is EARNED, and a series in progress has earned nothing (D-6) */
+    if(pos>0) html+=`<p class="fine" style="padding:8px 0 0">The ${nthUp(pos).toLowerCase()} Ryder · ${series}${hold}</p>`;
   }
   if(ev.status==='complete'){
     /* D62: the rematch tap — benches re-invited, series line follows */
@@ -17860,7 +18021,8 @@ function renderEvent(){
   /* the opt-in taunt (batch-3 #17): a standing target push must be CHOSEN */
   const meP=players.find(p=>p.profile_id===meU);
   if(meP && ev.status!=='complete'){
-    html+=`<div style="margin:2px 0 8px"><button class="mini" onclick="window.ryderNotify('${ev.id}',${meP.notify_target?'false':'true'})">Tell me when he posts: ${meP.notify_target?'ON — mute them':'OFF — ping me when my opponent posts'}</button></div>`;
+    html+=`<div style="margin:10px 0 8px"><button class="mini" onclick="window.ryderNotify('${ev.id}',${meP.notify_target?'false':'true'})">${meP.notify_target?'Mute the taunts':'Tell me when he posts'}</button>
+      <p class="fine" style="padding:4px 0 0">${meP.notify_target?'You hear it the moment your opponent posts.':'Nothing pings you until you ask for it.'}</p></div>`;
   }
   const unassigned = players.filter(p=>!p.team_id);
   if(iAmOrg){
@@ -17882,8 +18044,9 @@ function renderEvent(){
   sessions.slice().sort((a,b)=> anyClosed ? b.session_no-a.session_no : a.session_no-b.session_no).forEach(s=>{
     const ds=duels.filter(d=>d.session_id===s.id);
     const d0=new Date(s.opens_on+'T00:00:00'), d1=new Date(s.closes_on+'T00:00:00');
-    const when=`${MOS[d0.getMonth()].toUpperCase()} ${d0.getDate()}–${MOS[d1.getMonth()].toUpperCase()} ${d1.getDate()}`;
-    html+=`<div class="evsess"><div class="evsesshd">WEEK ${s.session_no} · ${when} · ${s.status.toUpperCase()}</div>`;
+    const when=`${MOS[d0.getMonth()]} ${d0.getDate()} – ${MOS[d1.getMonth()]} ${d1.getDate()}`;
+    /* a section names its count ONCE, in the slot beside the rule (16A.2) */
+    html+=`<div class="evsess"><div class="evsesshd">Week ${s.session_no} · ${when}<i></i>${s.status}</div>`;
     if(!ds.length){ html+=`<div class="fine" style="padding:2px 0">Pairings not set.</div>`; }
     const waiting=[];   /* the nag list: who hasn't posted in an open session */
     ds.forEach(d=>{
@@ -17909,11 +18072,18 @@ function renderEvent(){
       window._pvSeen = window._pvSeen || {};
       const pvRose = pvi && window._pvSeen[d.id]!==undefined && window._pvSeen[d.id]!==pvi;
       window._pvSeen[d.id] = pvi;
-      html+=`<div class="evduel">
-        <span class="nm a ${aw?'win':''}">${window.mkr?.(a.marker||'saguaro')||''} ${esc(a.name)}</span>
-        <span class="mid ${hv?'evwin':''}">${mid}</span>
-        <span class="nm b ${bw?'win':''}">${esc(b.name)} ${window.mkr?.(b.marker||'saguaro')||''}</span>
-        ${pvi?`<span class="pv${pvRose?' pvrise':''}">${pvi}</span>`:''}
+      /* the two figures sit under their OWN names — the single 11px chip in a
+         fourth column is what made the score of a live competition smaller
+         than the label above it. Colour is never the only channel: the result
+         is the WORD and the loser's tone. */
+      const half=(pvi||'').split(' / ');
+      const cell=(v,cls)=>v===undefined?'' :`<span class="${cls}${v==='—'||v==='–'?' none':''}">${v||''}</span>`;
+      const dsc=(p,me)=>`<span class="d" style="background:${csPigment(p.profile_id||p.id)}">${window.mkr?.(p.marker||'saguaro')||''}</span>`;
+      html+=`<div class="evclash${pvRose?' pvrise':''}">
+        <div class="top">${dsc(a)}<span class="nm a${bw?' lost':''}">${esc(a.name)}</span>
+          <span class="mid">${mid}</span>
+          <span class="nm b${aw?' lost':''}">${esc(b.name)}</span>${dsc(b)}</div>
+        ${pvi?`<div class="figs">${cell(half[0],'a')}${cell(half[1],'b')}</div>`:''}
       </div>`;
     });
     if(s.status==='open' && waiting.length){
@@ -17936,7 +18106,8 @@ function renderEvent(){
     return `${w}-${l}-${h}`; };
   [A,B].forEach(t=>{
     const roster=players.filter(p=>p.team_id===t.id).sort((x,y)=>x.seed-y.seed);
-    html+=`<div class="eyebrow" style="display:flex; align-items:center">${sw(t.color)}<span style="margin-left:6px">${esc(t.name)}</span></div>`;
+    html+=`<div class="evsesshd" style="margin-top:18px">${esc(t.name)}<i></i>${roster.length}</div>
+      <div class="rule" style="height:3px; width:44px; background:${SQ[(t.color??0)%4]}; margin:0 0 8px"></div>`;
     html+=roster.map(p=>`<div class="check"><span class="num">${window.mkr?.(p.marker||'saguaro')||'⛳'}</span>
       <div class="tt"><b>${esc(p.name)}${p.role==='captain'?' · <span style="color:var(--gold)">CAPTAIN</span>':''}</b>
       <small>${recOf(p.id)} · W-L-H</small></div></div>`).join('') || '<div class="fine" style="padding:2px 0">No one assigned yet.</div>';
@@ -24735,7 +24906,7 @@ async function loadRoundWeather(d){
     const { data } = await sb.functions.invoke('weather', { body:{ lat:d.course.lat, lon:d.course.lon, date:d.play_on, course_id:d.course_id } });
     if(!data || data.unavailable || !data.weather){ el.style.display='none'; return; }
     const w=data.weather;
-    el.innerHTML=`<span class="sun">☀</span> <b>${w.hi}°</b> ${esc(w.summary||'')}${w.wind?` · ${w.wind}mph`:''}`;
+    el.innerHTML=`<svg class="ic" aria-hidden="true"><use href="#${window.csWxGlyph(w)}"/></svg> <b>${w.hi}\u00b0</b> ${esc(w.summary||'')}${w.wind?` \u00b7 ${w.wind}mph`:''}`;
     el.style.display='';
   }catch(_){ el.style.display='none'; }
 }

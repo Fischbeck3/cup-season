@@ -56,13 +56,13 @@ private func room(status: String = "live", winner: UUID? = nil, sessionCount: In
   }
   @Test func clinchLineLive() {
     let r = room(score: [teamA: 6.5, teamB: 4.5])
-    #expect(RyderMath.clinchLine(r) == "FIRST TO 3½ · RED NEEDS 0 · BLUE NEEDS 0")
+    #expect(RyderMath.clinchLine(r) == "First to 3½. Red need 0, Blue need 0.")
     let fresh = room(score: [:])
-    #expect(RyderMath.clinchLine(fresh) == "FIRST TO 3½ · RED NEEDS 3½ · BLUE NEEDS 3½")
+    #expect(RyderMath.clinchLine(fresh) == "First to 3½. Red need 3½, Blue need 3½.")
   }
   @Test func clinchLineFinal() {
     let r = room(status: "complete", winner: teamA, score: [teamA: 6.5, teamB: 4.5])
-    #expect(RyderMath.clinchLine(r) == "FINAL · 6½–4½")
+    #expect(RyderMath.clinchLine(r) == "Final. Red took it 6½–4½.")
   }
   @Test func ruleSentence() {
     let t = RyderMath.target(rosterA: 6, rosterB: 6, sessionCount: 3, sessionRows: 3)
@@ -78,15 +78,15 @@ private func room(status: String = "live", winner: UUID? = nil, sessionCount: In
   @Test func forming() { #expect(RyderMath.statusChip(room(status: "setup")) == "Forming") }
   @Test func liveWeek() {
     let r = room(sessions: [session(s1, 1, "2026-07-05", "2026-07-11", "closed"), session(s2, 2, "2026-07-12", "2026-07-18", "open")])
-    #expect(RyderMath.statusChip(r) == "Live · wk 2/3")
+    #expect(RyderMath.statusChip(r) == "Live · week 2 of 3")
   }
   @Test func liveWeekCapsAtTheCount() {
     let r = room(sessions: [session(s1, 1, "2026-07-05", "2026-07-11", "closed"), session(s2, 2, "2026-07-12", "2026-07-18", "closed"),
                             session(s3, 3, "2026-07-19", "2026-07-25", "closed")])
-    #expect(RyderMath.statusChip(r) == "Live · wk 3/3")
+    #expect(RyderMath.statusChip(r) == "Live · week 3 of 3")
   }
-  @Test func takesTheCup() { #expect(RyderMath.statusChip(room(status: "complete", winner: teamB)) == "BLUE TAKES THE CUP") }
-  @Test func shared() { #expect(RyderMath.statusChip(room(status: "complete", winner: nil)) == "SHARED — BOTH NAMES ON IT") }
+  @Test func takesTheCup() { #expect(RyderMath.statusChip(room(status: "complete", winner: teamB)) == "Blue take the cup") }
+  @Test func shared() { #expect(RyderMath.statusChip(room(status: "complete", winner: nil)) == "Shared — both names on it") }
 }
 
 // MARK: session order S5-02 (12283–12286) · the header · the nag line
@@ -103,7 +103,10 @@ private func room(status: String = "live", winner: UUID? = nil, sessionCount: In
     #expect(RyderMath.ordered(s).map(\.session_no) == [3, 2, 1])
   }
   @Test func header() {
-    #expect(RyderMath.sessionHeader(session(s1, 1, "2026-07-06", "2026-07-12", "open"), calendar: cal) == "WEEK 1 · JUL 6–JUL 12 · OPEN")
+    #expect(RyderMath.sessionHeader(session(s1, 1, "2026-07-06", "2026-07-12", "open"), calendar: cal) == "Week 1 · Jul 6 – Jul 12")
+    // the status left the label for the head's own count slot (§16A.2)
+    #expect(RyderMath.sessionSlot(session(s1, 1, "2026-07-06", "2026-07-12", "open")) == "Open")
+    #expect(RyderMath.sessionSlot(session(s1, 1, "2026-07-06", "2026-07-12", "closed")) == "Closed")
   }
   @Test func nagLine() {
     #expect(RyderMath.nagLine(waiting: ["Will", "Jade"], closesOn: "2026-07-11", today: "2026-07-08", calendar: cal) == "Still to post: Will, Jade · 3d left.")
@@ -139,12 +142,12 @@ private func room(status: String = "live", winner: UUID? = nil, sessionCount: In
   @Test func leadsTheSeriesAndDefends() {
     let chain = [EventLineageRow(eventId: e1, status: "complete", winnerSlot: 1), EventLineageRow(eventId: e2, status: "complete", winnerSlot: 0),
                  EventLineageRow(eventId: evId, status: "live")]
-    #expect(RyderMath.seriesLine(lineage: chain, eventId: evId, status: "live", aName: "Red", bName: "Blue") == "THE 3RD RYDER · SERIES LEVEL 1–1 · RED DEFENDS")
+    #expect(RyderMath.seriesLine(lineage: chain, eventId: evId, status: "live", aName: "Red", bName: "Blue") == "The 3rd Ryder · series level 1–1 · Red defend")
   }
   @Test func sharedCountsHalfEach() {
     let chain = [EventLineageRow(eventId: e1, status: "complete", winnerShared: true), EventLineageRow(eventId: e2, status: "complete", winnerSlot: 1),
                  EventLineageRow(eventId: evId, status: "complete", winnerSlot: 1)]
-    #expect(RyderMath.seriesLine(lineage: chain, eventId: evId, status: "complete", aName: "Red", bName: "Blue") == "THE 3RD RYDER · BLUE LEADS THE SERIES 1½–½")
+    #expect(RyderMath.seriesLine(lineage: chain, eventId: evId, status: "complete", aName: "Red", bName: "Blue") == "The 3rd Ryder · Blue lead the series 1½–½")
   }
   @Test func quietUntilTheChainHasTwo() {
     #expect(RyderMath.seriesLine(lineage: [EventLineageRow(eventId: evId, status: "live")], eventId: evId, status: "live", aName: "A", bName: "B") == nil)

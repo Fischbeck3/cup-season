@@ -25,20 +25,16 @@ struct EventChips: View {
           HStack(spacing: 8) {
             ForEach(ordered) { e in
               Button { links.openEvent(e.id) } label: {
-                HStack(spacing: 0) {
-                  Text(e.name).font(CSFont.eyebrow).tracking(1.2).textCase(.uppercase).foregroundStyle(cs.ink).lineLimit(1)
-                  Text(" · " + EventCopy.chipSub(e)).font(CSFont.eyebrow).tracking(1.2).textCase(.uppercase).foregroundStyle(cs.mut).lineLimit(1)
-                }
-                .padding(.horizontal, 12).frame(minHeight: 32)
-                .background(cs.bg2, in: Capsule())
-                .frame(minHeight: 44)
-                .contentShape(Rectangle())
+                // Wave 6 · `CSChip` is the one chip. The hand-rolled capsule
+                // with its own `bg2` fill and its own 32pt height was one of
+                // five chip shapes in the product.
+                CSChip("\(e.name) · \(EventCopy.chipSub(e))", selected: false)
               }
               .buttonStyle(.plain)
               .accessibilityLabel("\(e.name) — \(EventCopy.chipSub(e))")
             }
           }
-          .padding(.horizontal, 20)
+          .padding(.horizontal, CSTokens.Space.gutter)
         }
       }
     }

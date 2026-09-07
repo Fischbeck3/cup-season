@@ -228,8 +228,18 @@ public struct CSSectionHead: View {
         // CLASH` broke over two lines with a 300pt rule floating beside it
         // the first time this shipped — a head is one line of type with a
         // rule filling what is left, and the flexible part is the rule.
+        // **AND IT WRAPS AT THE ACCESSIBILITY SIZES, WHICH IS NOT A SOFTENING
+        // OF THE RULE ABOVE.** `fixedSize(horizontal: true)` is right where the
+        // rule exists: the label holds its line and the rule gives way. At AX3
+        // the rule is already dropped — and `WEEK 2 · SEP 5 – SEP 8` at agate
+        // ×2.2 measures ~400pt on a 362pt page, so a head that refuses to wrap
+        // is a row wider than the screen. A vertical `ScrollView` then sizes
+        // its content box to that row and CENTRES it, and **every block on the
+        // page shifts left and the widest runs off the right edge** — the AX3
+        // shear Wave 5 met on the season page, filed as unfinished, and could
+        // not isolate. It is this line.
         Text(title).csEyebrow(la.eyebrow).accessibilityAddTraits(.isHeader)
-          .fixedSize(horizontal: true, vertical: false).layoutPriority(1)
+          .fixedSize(horizontal: !typeSize.isA11y, vertical: true).layoutPriority(1)
         if !typeSize.isA11y {
           Rectangle().fill(cs.rule).frame(height: CSTokens.Space.hair).frame(maxWidth: .infinity)
         }

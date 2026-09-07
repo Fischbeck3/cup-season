@@ -58,6 +58,27 @@ public enum EventDates {
     "\(monthDayUpper(opens, calendar: calendar))–\(monthDayUpper(closes, calendar: calendar))"
   }
 
+  /// "Sep 6" — **case belongs to the ROLE** (§1.3), so the producer stops
+  /// shouting and the `agate` role uppercases what it draws.
+  public static func monthDay(_ iso: String, calendar: Calendar = .current) -> String {
+    guard let d = CSDate.local(iso, calendar: calendar) else { return iso }
+    let c = calendar.dateComponents([.month, .day], from: d)
+    return "\(MOS[max(0, (c.month ?? 1) - 1)]) \(c.day ?? 1)"
+  }
+
+  /// "Sep 6 – Sep 12" — the SPACED en dash a dateline sets, never `→`
+  /// (§5.2, `LINT-13`: an arrow inside a dateline is not a link affordance).
+  public static func windowSpaced(_ opens: String, _ closes: String, calendar: Calendar = .current) -> String {
+    "\(monthDay(opens, calendar: calendar)) – \(monthDay(closes, calendar: calendar))"
+  }
+
+  /// "Sun Sep 6" — the weekday form a title card's dateline takes.
+  public static func dowMonthDay(_ iso: String, calendar: Calendar = .current) -> String {
+    guard let d = CSDate.local(iso, calendar: calendar) else { return iso }
+    let c = calendar.dateComponents([.weekday, .month, .day], from: d)
+    return "\(DOW[max(0, (c.weekday ?? 1) - 1)]) \(MOS[max(0, (c.month ?? 1) - 1)]) \(c.day ?? 1)"
+  }
+
   /// "Thu, Jul 9" — `toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'})`.
   public static func weekdayMonthDay(_ iso: String, calendar: Calendar = .current) -> String {
     guard let d = CSDate.local(iso, calendar: calendar) else { return iso }
@@ -99,6 +120,19 @@ public enum RyderMath {
     }
   }
 
+  /// `3rd` — the same ordinal the role does NOT uppercase, for a sentence.
+  public static func nth(_ n: Int) -> String { nthUp(n).lowercased() }
+
+  /// `3` and a half, as two pieces. **The vulgar fraction is composed, never
+  /// passed as one string** (§13 (a)): `½` drawn from the condensed cut at
+  /// 40pt reads as a small diagonal, and the rider — 0.56 em on a raised
+  /// baseline — is what makes a mixed number read as one figure.
+  public static func evHalfParts(_ n: Double) -> (whole: String, half: Bool) {
+    let w = Int(n.rounded(.down))
+    let h = (n - Double(w)) >= 0.5
+    return ((w != 0 || !h) ? String(w) : "", h)
+  }
+
   /// `sgn(v)` — `(v>=0?'+':'')+v.toFixed(1)`.
   public static func sgn(_ v: Double) -> String { CSBands.pviChip(v) }
 
@@ -122,16 +156,25 @@ public enum RyderMath {
            sessionCount: room.event.session_count, sessionRows: room.sessions.count)
   }
 
-  /// `Forming` · `Live · wk k/N` · `NAME TAKES THE CUP` · `SHARED — BOTH NAMES ON IT`.
+  /// `Forming` · `Live · week 2 of 3` · `Saguaros take the cup` ·
+  /// `Shared — both names on it`.
+  ///
+  /// **CASE BELONGS TO THE ROLE** (§1.3, and §9's producer edit 2). This
+  /// returned `"Live · wk 2/3"` — sentence case with an abbreviation — beside
+  /// `"NAME TAKES THE CUP"`, which called `.uppercased()` inside the producer,
+  /// so one string was shouted by the copy and the other by the view and
+  /// neither client could set them the same way. Both are sentences now and
+  /// the `agate` role uppercases. `wk 2/3` is likewise gone: the golfer's form
+  /// is **week 2 of 3** (`TERMINOLOGY` §4 pattern 10).
   public static func statusChip(status: String, winnerTeamId: UUID?, teamA: EventTeam, teamB: EventTeam,
                                 closedSessions: Int, sessionCount: Int?) -> String {
     if status == "complete" {
-      if let w = winnerTeamId { return (w == teamA.id ? teamA.name : teamB.name).uppercased() + " TAKES THE CUP" }
-      return "SHARED — BOTH NAMES ON IT"
+      if let w = winnerTeamId { return (w == teamA.id ? teamA.name : teamB.name) + " take the cup" }
+      return "Shared — both names on it"
     }
     if status == "setup" { return "Forming" }
     let n = sessionCount ?? 0
-    return "Live · wk \(min(closedSessions + 1, n))/\(n)"
+    return "Live · week \(min(closedSessions + 1, n)) of \(n)"
   }
 
   public static func statusChip(_ room: EventRoom) -> String {
@@ -139,16 +182,27 @@ public enum RyderMath {
                closedSessions: room.sessions.filter { $0.isClosed }.count, sessionCount: room.event.session_count)
   }
 
-  /// `FINAL · 6½–4½` · `FIRST TO 9½ · RED NEEDS 3 · BLUE NEEDS 5`.
-  public static func clinchLine(status: String, aPoints: Double, bPoints: Double, clinch: Double, aName: String, bName: String) -> String {
-    if status == "complete" { return "FINAL · \(evHalf(aPoints))–\(evHalf(bPoints))" }
-    return "FIRST TO \(evHalf(clinch)) · \(aName.uppercased()) NEEDS \(evHalf(max(0, clinch - aPoints))) · \(bName.uppercased()) NEEDS \(evHalf(max(0, clinch - bPoints)))"
+  /// `Final. Saguaros took it 5–4.` · `First to 5. Saguaros need 1½, Coyotes need 2½.`
+  ///
+  /// **The sentence is the story; the figures above it are the record** (§9.9),
+  /// so it is prose in `body` and not a fourth line of tracked caps. It shipped
+  /// pre-uppercased with middots for punctuation, which is a label pretending
+  /// to be a sentence.
+  public static func clinchLine(status: String, aPoints: Double, bPoints: Double, clinch: Double,
+                                aName: String, bName: String, winnerName: String? = nil) -> String {
+    if status == "complete" {
+      guard let w = winnerName else { return "Final. It was shared, \(evHalf(aPoints))–\(evHalf(bPoints))." }
+      let hi = max(aPoints, bPoints), lo = min(aPoints, bPoints)
+      return "Final. \(w) took it \(evHalf(hi))–\(evHalf(lo))."
+    }
+    return "First to \(evHalf(clinch)). \(aName) need \(evHalf(max(0, clinch - aPoints))), \(bName) need \(evHalf(max(0, clinch - bPoints)))."
   }
 
   public static func clinchLine(_ room: EventRoom) -> String {
     let t = target(room)
+    let w = room.event.winner_team_id.map { $0 == room.teamA.id ? room.teamA.name : room.teamB.name }
     return clinchLine(status: room.event.status, aPoints: room.points(room.teamA.id), bPoints: room.points(room.teamB.id),
-                      clinch: t.clinch, aName: room.teamA.name, bName: room.teamB.name)
+                      clinch: t.clinch, aName: room.teamA.name, bName: room.teamB.name, winnerName: w)
   }
 
   /// D62 — the series line: editions counted, the cup defended. nil until the
@@ -164,16 +218,16 @@ public enum RyderMath {
       else if r.winnerSlot == 0 { aW += 1 }
       else if r.winnerSlot == 1 { bW += 1 }
     }
-    let series: String = aW == bW ? "SERIES LEVEL \(evHalf(aW))–\(evHalf(bW))"
-      : aW > bW ? "\(aName.uppercased()) LEADS THE SERIES \(evHalf(aW))–\(evHalf(bW))"
-      : "\(bName.uppercased()) LEADS THE SERIES \(evHalf(bW))–\(evHalf(aW))"
+    let series: String = aW == bW ? "series level \(evHalf(aW))–\(evHalf(bW))"
+      : aW > bW ? "\(aName) lead the series \(evHalf(aW))–\(evHalf(bW))"
+      : "\(bName) lead the series \(evHalf(bW))–\(evHalf(aW))"
     var hold = ""
     if status != "complete", let last = priors.last {
-      if last.winnerShared { hold = " · THE CUP IS SHARED" }
-      else if last.winnerSlot == 0 { hold = " · \(aName.uppercased()) DEFENDS" }
-      else if last.winnerSlot == 1 { hold = " · \(bName.uppercased()) DEFENDS" }
+      if last.winnerShared { hold = " · the cup is shared" }
+      else if last.winnerSlot == 0 { hold = " · \(aName) defend" }
+      else if last.winnerSlot == 1 { hold = " · \(bName) defend" }
     }
-    return "THE \(nthUp(pos)) RYDER · \(series)\(hold)"
+    return "The \(nth(pos)) Ryder · \(series)\(hold)"
   }
 
   /// How it scores — everyone sees the rule, not just the organizer (12257).
@@ -196,9 +250,18 @@ public enum RyderMath {
     return sessions.sorted { anyClosed ? $0.session_no > $1.session_no : $0.session_no < $1.session_no }
   }
 
-  /// `WEEK 2 · JUL 6–JUL 12 · OPEN`.
+  /// `Week 2 · Sep 6 – Sep 12` — the section head's LABEL.
+  ///
+  /// The status left it: a section head names its count ONCE, in the slot to
+  /// the right of the rule (§16A.2), and `sessionSlot` is what goes there. The
+  /// dash is a spaced EN DASH, never `→` (`LINT-13`).
   public static func sessionHeader(_ s: EventSession, calendar: Calendar = .current) -> String {
-    "WEEK \(s.session_no) · \(EventDates.window(s.opens_on, s.closes_on, calendar: calendar)) · \(s.status.uppercased())"
+    "Week \(s.session_no) · \(EventDates.windowSpaced(s.opens_on, s.closes_on, calendar: calendar))"
+  }
+
+  /// The week head's right-hand slot: `Open` · `Closed` · `Ahead`.
+  public static func sessionSlot(_ s: EventSession) -> String {
+    s.isOpen ? "Open" : s.isClosed ? "Closed" : "Ahead"
   }
 
   /// `vs` · `def.` · `halved`.
@@ -263,6 +326,61 @@ public enum RyderMath {
   /// `Scrap "X"? …` — the two-tap arm's question, from state (16266).
   public static func scrapQuestion(_ name: String) -> String {
     "Scrap \"\(name)\"? It hasn't been scored, so this removes it, its board and its field completely."
+  }
+
+  // MARK: - the title card (UI_SYSTEM §15.5)
+
+  /// The live eyebrow: `Live · week 2 of 3 · 2 days left`.
+  ///
+  /// **A COUNTDOWN IS NOT A SCORE** (§15.5a). `3½`, `2½` and `2 DAYS LEFT` sat
+  /// under one rule "as if they were one class of number"; the rail is the two
+  /// side scores and the deadline lives here, with the other time facts. A
+  /// finished event drops the clock and the dot and reads `Final · Sat Sep 26`.
+  public static func eyebrow(_ room: EventRoom, today: String = CSDate.today(), calendar: Calendar = .current) -> String {
+    if room.event.isComplete {
+      let last = ordered(room.sessions).map(\.closes_on).max()
+      return "Final" + (last.map { " · \(EventDates.dowMonthDay($0, calendar: calendar))" } ?? "")
+    }
+    var s = statusChip(room)
+    if let open = room.sessions.first(where: { $0.isOpen }),
+       let d = EventDates.daysUntil(open.closes_on, today: today, calendar: calendar), d >= 0 {
+      s += d == 0 ? " · closes tonight" : " · \(d) day\(d == 1 ? "" : "s") left"
+    }
+    return s
+  }
+
+  /// The dateline's second line: `Sun Sep 6 – Sat Sep 26 · six in the field`.
+  ///
+  /// One block by §1.5's counting rule — a dateline that wraps is still one
+  /// dateline — and the field SIZE belongs to it, not to the roster, because
+  /// the roster now carries two squad names instead (§15.5a, finding 4).
+  public static func dateline(_ room: EventRoom, calendar: Calendar = .current) -> String {
+    let opens = room.sessions.map(\.opens_on).min()
+    let closes = room.sessions.map(\.closes_on).max()
+    var parts: [String] = []
+    if let o = opens, let c = closes {
+      parts.append("\(EventDates.dowMonthDay(o, calendar: calendar)) – \(EventDates.dowMonthDay(c, calendar: calendar))")
+    } else if let start = room.event.starts_on {
+      parts.append("From \(EventDates.dowMonthDay(start, calendar: calendar))")
+    }
+    let n = room.players.count
+    if n > 0 { parts.append("\(spelled(n)) in the field") }
+    return parts.joined(separator: " · ")
+  }
+
+  /// The counting words a dateline uses. Past ten it is a numeral: "eighteen
+  /// in the field" is a sentence nobody reads and "18 in the field" is a fact.
+  public static func spelled(_ n: Int) -> String {
+    let words = ["zero", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine", "ten"]
+    return n >= 0 && n <= 10 ? words[n] : String(n)
+  }
+
+  /// The stakes line's tail: `The pot · 60/25/15 · best card each week`.
+  /// The FIGURE is drawn separately, in gold, because the pot is the surface's
+  /// one gold object and it is gold ink on a numeral — never a fill, never a
+  /// chip (§2 D).
+  public static func stakesTail(potSplit: String?) -> String {
+    "The pot · \(potSplit == "wta" ? "winner takes all" : "60/25/15") · best card each week"
   }
 }
 

@@ -43,8 +43,11 @@ struct EventStagePicker: View {
             ForEach(vm.rows) { r in
               PersonRow(person: r, links: CSLinks()) {
                 if excludeIds.contains(r.id) { CSTag(text: "In", tone: cs.pos) }
-                else if staged.contains(where: { $0.id == r.id }) { CSTag(text: "Added ✓", tone: cs.pos) }
-                else { CSMini("Add") { staged.append(r); CSHaptic.selection() } }
+                else if staged.contains(where: { $0.id == r.id }) { CSTag(text: "Added", tone: cs.pos) }
+                else {
+                  Button("Add") { staged.append(r); CSHaptic.selection() }
+                    .buttonStyle(.csSecondary())
+                }
               }
             }
           }
@@ -52,7 +55,7 @@ struct EventStagePicker: View {
         .padding(20)
       }
       .background(cs.bg0)
-      .toolbar { ToolbarItem(placement: .topBarTrailing) { Button("Done") { dismiss() }.foregroundStyle(cs.brand) } }
+      .csCloseButton { dismiss() }
       .task { await vm.buddies() }
       .task(id: vm.query) { await vm.search() }
       .csToasts(toasts)

@@ -106,7 +106,7 @@ extension EnvironmentValues {
 /// IOS-051 · the content-size hatch, as a modifier so the `nil` case adds
 /// nothing to the view tree at all. `-UIPreferredContentSizeCategoryName` does
 /// not take on a SwiftUI app launched by `simctl`, which is why this exists.
-private extension View {
+extension View {
   @ViewBuilder func csDevTextSize(_ size: DynamicTypeSize?) -> some View {
     if let size { self.dynamicTypeSize(size) } else { self }
   }

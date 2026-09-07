@@ -487,13 +487,21 @@ public struct RoundDetail: Sendable, Equatable {
   /// that counts nowhere — in both cases the sheet prints no worth line, which
   /// is the honest screen either way (L-44).
   public let worth: [RoundWorth.Counters]
+  /// D240 · **the plan's own NAME**, and the game it is being played as. Both
+  /// exist on `scheduled_rounds` and both arrive on `my_schedule`; whether
+  /// `round_detail` carries them depends on the server, so both are optional
+  /// and the head falls back to the day and the course (§4.2's own branch, not
+  /// a degrade). Nothing here is ever rendered blank.
+  public let name: String?
+  public let game: String?
 
   public init(id: UUID, profileId: UUID?, ownerName: String?, ownerMarker: String?, mine: Bool, taggedMe: Bool, playOn: String?, teeTime: String?,
               note: String?, courseLabel: String?, courseId: String?, myRsvp: String?, course: Course?, rsvp: [Rsvp], comments: [Comment],
-              worth: [RoundWorth.Counters] = []) {
+              worth: [RoundWorth.Counters] = [], name: String? = nil, game: String? = nil) {
     self.id = id; self.profileId = profileId; self.ownerName = ownerName; self.ownerMarker = ownerMarker; self.mine = mine; self.taggedMe = taggedMe
     self.playOn = playOn; self.teeTime = teeTime; self.note = note; self.courseLabel = courseLabel; self.courseId = courseId; self.myRsvp = myRsvp
     self.course = course; self.rsvp = rsvp; self.comments = comments; self.worth = worth
+    self.name = name; self.game = game
   }
 
   public init?(_ v: JSONValue) {
@@ -510,14 +518,15 @@ public struct RoundDetail: Sendable, Equatable {
                                                         marker: $0["marker"]?.string, status: $0["status"]?.string) },
               comments: (v["comments"]?.array ?? []).map { Comment(name: $0["name"]?.string ?? "", marker: $0["marker"]?.string, body: $0["body"]?.string ?? "",
                                                                    mine: $0["mine"]?.bool ?? false, at: $0["at"]?.string) },
-              worth: (v["worth"]?.array ?? []).compactMap(RoundWorth.Counters.init))
+              worth: (v["worth"]?.array ?? []).compactMap(RoundWorth.Counters.init),
+              name: v["name"]?.string, game: v["game"]?.string)
   }
 
   /// A `my_schedule` row stands in when `round_detail` is not live (16752).
   public init(fallback sr: ScheduledRound) {
     self.init(id: sr.id ?? UUID(), profileId: sr.profile_id, ownerName: sr.display_name, ownerMarker: sr.marker, mine: sr.isMine, taggedMe: sr.tagged_me ?? false,
               playOn: sr.play_on, teeTime: sr.tee_time, note: sr.note, courseLabel: sr.course_label, courseId: sr.course_id, myRsvp: sr.my_rsvp,
-              course: nil, rsvp: [], comments: [])
+              course: nil, rsvp: [], comments: [], name: sr.name, game: sr.game)
   }
 
   /// cache name → typed label → a word. NEVER blank (16783).
@@ -546,16 +555,24 @@ public struct Weather: Decodable, Sendable, Equatable {
   public let icon: String?
   public init(hi: Int, lo: Int?, wind: Int?, summary: String?, icon: String?) { self.hi = hi; self.lo = lo; self.wind = wind; self.summary = summary; self.icon = icon }
 
-  /// The sheet's chip (16847): "☀ 71° Mostly sunny · 9mph".
+  /// The sheet's line: `"71° Mostly sunny · 9mph"`.
+  ///
+  /// **THE LITERAL `☀` IS GONE** (§5.3's emoji ban, `LINT-12`). A producer that
+  /// embeds a glyph in a string decides for every surface how the weather is
+  /// DRAWN, in a face nobody chose, at a size nobody set, in a colour that is
+  /// whatever the text is — and it is the one emoji in the product that a
+  /// surface then had no way to replace. The mark is drawn from `icon` by the
+  /// icon family at the sentence's own stroke weight; the producer returns
+  /// words.
   public var line: String {
-    var s = "☀ \(hi)°"
+    var s = "\(hi)°"
     if let summary, !summary.isEmpty { s += " \(summary)" }
     if let wind, wind > 0 { s += " · \(wind)mph" }
     return s
   }
-  /// The Home glance (10731): "☀ 71° · 9mph".
+  /// The Home glance: `"71° · 9mph"`.
   public var glance: String {
-    var s = "☀ \(hi)°"
+    var s = "\(hi)°"
     if let wind, wind > 0 { s += " · \(wind)mph" }
     return s
   }

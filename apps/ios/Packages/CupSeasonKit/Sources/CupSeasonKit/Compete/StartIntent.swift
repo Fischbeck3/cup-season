@@ -78,6 +78,12 @@ public enum StartIntent: String, Sendable, Equatable, CaseIterable, Identifiable
   /// The footer door. T-13 owns the noun: a code, not "8 digits" (L-06 owns
   /// that phrase for the email OTP, met four minutes earlier in the same flow).
   public static let codeDoor = "I have a code"
+  /// **The code door is a ROW at option weight, and it needed a gloss to be
+  /// one.** The blind review found it "the smallest thing on the sheet while
+  /// being the highest-frequency act an invited golfer performs" — it was a
+  /// 12pt tracked-caps link with an arrow under four two-line rows. It is the
+  /// fifth row now, below a hairline, and its sub-line is this.
+  public static let codeDoorGloss = "someone already started one"
 
   // MARK: - the object-noun ban, as a value
 
@@ -97,7 +103,7 @@ public enum StartIntent: String, Sendable, Equatable, CaseIterable, Identifiable
 
   /// Every string the sheet renders, in draw order — the surface a lint walks.
   public static var everyString: [String] {
-    peers.flatMap { [$0.line, $0.gloss] } + [title, modifierLine, modifierGloss, codeDoor]
+    peers.flatMap { [$0.line, $0.gloss] } + [title, modifierLine, modifierGloss, codeDoor, codeDoorGloss]
   }
 
   /// The banned nouns a string actually contains, matched on word boundaries so

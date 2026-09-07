@@ -26,13 +26,26 @@ public struct EventRow: Decodable, Sendable, Equatable, Identifiable {
   public let pot_split: String?
   public let lineage_id: UUID?
   public let tz: String?
+  /// **THE ONE FACT THIS SURFACE ASKS FOR THAT THE SERVER CANNOT ANSWER TODAY**
+  /// (surfaces/event.md §10). Brief §14 asks an event graphic for its COURSE;
+  /// `events` has no such column. `20261008090000_events_carry_a_course.sql` is
+  /// written and **unrun** — additive, two nullable columns, FK-by-convention
+  /// to `api_courses` exactly as `scheduled_rounds` carries them — so these
+  /// decode as nil on every event in prod and the title card degrades to the
+  /// bare ceremony ground, which is what `event-callout` renders and what §10
+  /// names as the default if the column is refused. The room selects `*`, so
+  /// a client ahead of its database is not a decode failure.
+  public let course_id: String?
+  public let course_label: String?
 
   public init(id: UUID, name: String, created_by: UUID?, league_id: UUID? = nil, kind: String? = "ryder", status: String,
               starts_on: String? = nil, session_count: Int? = nil, session_weeks: Int? = nil, draw_rule: String? = nil,
-              winner_team_id: UUID? = nil, buy_in: Double? = nil, pot_split: String? = nil, lineage_id: UUID? = nil, tz: String? = nil) {
+              winner_team_id: UUID? = nil, buy_in: Double? = nil, pot_split: String? = nil, lineage_id: UUID? = nil, tz: String? = nil,
+              course_id: String? = nil, course_label: String? = nil) {
     self.id = id; self.name = name; self.created_by = created_by; self.league_id = league_id; self.kind = kind; self.status = status
     self.starts_on = starts_on; self.session_count = session_count; self.session_weeks = session_weeks; self.draw_rule = draw_rule
     self.winner_team_id = winner_team_id; self.buy_in = buy_in; self.pot_split = pot_split; self.lineage_id = lineage_id; self.tz = tz
+    self.course_id = course_id; self.course_label = course_label
   }
 
   public var isMajor: Bool { kind == "major" }

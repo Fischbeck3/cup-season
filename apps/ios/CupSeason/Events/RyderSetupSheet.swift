@@ -88,9 +88,9 @@ struct RyderSetupSheet: View {
         }
       }
       EventFieldLabel(text: "Sessions")
-      EventSeg(options: [3, 4, 5, 6].map { ($0, String($0)) }, selection: $sessions)
+      CSSegment([3, 4, 5, 6].map { ($0, String($0)) }, selection: $sessions)
       EventFieldLabel(text: "Cadence")
-      EventSeg(options: [(1, "Weekly"), (2, "Every 2 wks")], selection: $weeks)
+      CSSegment([(1, "Weekly"), (2, "Every 2 wks")], selection: $weeks)
       EventFieldLabel(text: "First tee (a Sunday)")
       DatePicker("First tee", selection: $start, displayedComponents: .date).labelsHidden().tint(cs.brand)
         .frame(maxWidth: .infinity, alignment: .leading)
@@ -103,7 +103,7 @@ struct RyderSetupSheet: View {
       EventFieldLabel(text: "Add players")
       CSButton("Search the app or tap a buddy", style: .quiet) { picking = true }
       ForEach(staged) { p in EventStagedRow(person: p) { staged.removeAll { $0.id == p.id } } }
-      EventFineCard(markdown: "**How it plays.** Two teams. Each week you play one opponent on the other side, scored against your playing HCP — your best round that week faces theirs. **A week won is 1 point, halved is ½ each.** First team past halfway takes the cup. Points scale to team size: 6‑a‑side over 3 weeks is 18 points, first to 9½.")
+      EventFinePrint(text: "How it plays. Two teams. Each week you play one opponent on the other side, scored against your playing HCP — your best round that week faces theirs. A week won is 1 point, halved is ½ each. First team past halfway takes the cup. Points scale to team size: 6‑a‑side over 3 weeks is 18 points, first to 9½.")
         .padding(.top, 6)
       A11yStack(spacing: 8) {
         CSButton("Cancel", style: .quiet) { dismiss() }.frame(maxWidth: typeSize.isA11y ? .infinity : 120)

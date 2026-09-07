@@ -1,16 +1,19 @@
-// Cup Season — the event-style menu (`openEventPicker` 15293–15312): Ryder is
-// live, the Major is live behind `app_flags.ios.major`, and D252 / R-E OPENS
-// that flag — the migration is `20260912090000_the_major_opens.sql` and the
-// read stays fail-closed, so the door appears the day the owner pushes it and
-// not one build sooner.
+// Cup Season — the event-style menu, re-clothed in Wave 6.
 //
-// The Bracket's row is GONE (D109 parked the mechanic; TERMINOLOGY §2.3 makes
-// hiding the row the level-5 half). A row labelled SOON, that toasts "isn't
-// built yet" when tapped, is a door sold and not opened — the one dishonesty
-// L-32/L-44 forbid, on the very sheet whose other row this wave un-gated.
+// The Ryder is live and the Major is live behind `app_flags.ios.major`, which
+// D252 / R-E opens the day the owner pushes `20260912090000`; the read stays
+// fail-closed, so the door appears then and not one build sooner. The Bracket's
+// row is GONE (D109): a row labelled SOON that toasts "isn't built yet" when
+// tapped is a door sold and not opened.
 //
-// This sheet retires into the intent sheet in wave 7 (D225): it is a menu of
-// schema objects, and the intent sheet asks a question instead.
+// WHAT WENT: the two emoji in stroked circles (⚔️ and 🏆 at `.system(size: 22)`
+// — an emoji carrying a surface's meaning, `LINT-12`), the `bg1` tiles with a
+// **brand border** on every row, and the "LIVE" tag in ember on a thing that is
+// not live. A row is a rule and two lines of type; the chevron is the
+// affordance.
+//
+// This sheet retires into the intent sheet (D225): it is a menu of schema
+// objects, and the intent sheet asks a question instead.
 
 import SwiftUI
 import CSDesign
@@ -30,22 +33,28 @@ struct EventPickerSheet: View {
   var body: some View {
     NavigationStack {
       ScrollView {
-        VStack(alignment: .leading, spacing: 10) {
-          CSSheetHeader(title: "Start something short", sub: "A few weeks, its own trophy")
-          style("⚔️", "The Ryder", "Two teams · each week you play one opponent · first team past halfway wins", live: true) { ryder = true }
-          if majorDoor {
-            style("🏆", "A Major", "A championship window · best card takes the jug", live: true) { major = true }
+        VStack(alignment: .leading, spacing: CSTokens.Space.s3) {
+          Text("Start something short").csType(.lead).foregroundStyle(cs.ink)
+            .fixedSize(horizontal: false, vertical: true)
+            .accessibilityAddTraits(.isHeader)
+          Text("A few weeks, its own trophy").csType(.agate, caps: true).foregroundStyle(cs.mut)
+          VStack(alignment: .leading, spacing: 0) {
+            style("The Ryder",
+                  "Two teams · each week you play one opponent · first team past halfway wins") { ryder = true }
+            if majorDoor {
+              style("A Major", "A championship window · best card takes the jug") { major = true }
+            }
           }
-          // A-4 / T-12 · "mint" is the engine's verb.
-          // F-16 · and the sentence AGREES with the list. With the Major's door
-          // shut this is a picker of one, and "every one of these" was plural
-          // over a list of one.
-          CSFine(majorDoor ? "Every one of these awards a trophy." : "It awards a trophy.")
+          // A-4 / T-12 · "mint" is the engine's verb. F-16 · and the sentence
+          // AGREES with the list: with the Major's door shut this is a picker
+          // of one, and "every one of these" was plural over a list of one.
+          Text(majorDoor ? "Every one of these awards a trophy." : "It awards a trophy.")
+            .csType(.bodyS).foregroundStyle(cs.mut)
         }
-        .padding(20)
+        .padding(CSTokens.Space.gutter)
       }
       .background(cs.bg0)
-      .toolbar { ToolbarItem(placement: .cancellationAction) { Button("Close") { dismiss() }.foregroundStyle(cs.brand) } }
+      .csCloseButton { dismiss() }
       .csToasts(toasts)
       .task { majorDoor = await EventFlags.majorEnabled() }
       .sheet(isPresented: $ryder) {
@@ -59,29 +68,27 @@ struct EventPickerSheet: View {
     .presentationDragIndicator(.visible)
   }
 
-  /// `.check.tap` — emoji · name + line · LIVE (pos) or SOON (a label, not a button).
-  private func style(_ emoji: String, _ name: String, _ line: String, live: Bool, action: @escaping () -> Void) -> some View {
+  private func style(_ name: String, _ line: String, action: @escaping () -> Void) -> some View {
     Button(action: action) {
-      HStack(spacing: 12) {
-        Text(emoji).font(.system(size: 22)).frame(width: 36, height: 36)
-          .background(cs.bg2, in: Circle()).overlay(Circle().stroke(cs.rule, lineWidth: 1))
-          .accessibilityHidden(true)
-        VStack(alignment: .leading, spacing: 3) {
-          Text(name).font(CSFont.subhead.weight(.semibold)).foregroundStyle(cs.ink)
-          Text(line).font(CSFont.monoSmall).foregroundStyle(cs.mut)
+      VStack(spacing: 0) {
+        CSRule()
+        HStack(spacing: CSTokens.Space.s3) {
+          VStack(alignment: .leading, spacing: CSTokens.Space.s1) {
+            Text(name).csType(.name).foregroundStyle(cs.ink)
+            Text(line).csType(.bodyS).foregroundStyle(cs.mut)
+              .fixedSize(horizontal: false, vertical: true)
+          }
+          .frame(maxWidth: .infinity, alignment: .leading)
+          CSGlyph(.chevron, size: .row).foregroundStyle(cs.mut)
         }
-        .frame(maxWidth: .infinity, alignment: .leading)
-        // F-16 · ember is the metal of LIVE (L-25); green is performance-up.
-        Text(live ? "LIVE" : "SOON").font(CSFont.label).tracking(0.8).foregroundStyle(live ? cs.brand : cs.dimText)
+        .padding(.vertical, CSTokens.Space.s3)
+        .frame(minHeight: 56)
       }
-      .padding(.vertical, 8).padding(.horizontal, 12)
-      .frame(minHeight: 52)
-      .background(cs.bg1, in: RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous))
-      .overlay(RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous).stroke(live ? cs.brand : cs.rule, lineWidth: 1))   // F-16
       .contentShape(Rectangle())
     }
     .buttonStyle(.plain)
-    .accessibilityLabel("\(name), \(line)\(live ? "" : ", coming soon")")
-    .accessibilityHint(live ? "Starts the setup" : "")
+    .accessibilityElement(children: .combine)
+    .accessibilityLabel("\(name), \(line)")
+    .accessibilityHint("Starts the setup")
   }
 }

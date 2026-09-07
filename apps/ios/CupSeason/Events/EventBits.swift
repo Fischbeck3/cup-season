@@ -1,106 +1,88 @@
-// Cup Season — the small grammar both rooms and both setup sheets share:
-// the eyebrow-with-chip header, the team swatch, the "How it plays" card,
-// the staged-invitee row, the segmented pills, and C10's rise.
+// Cup Season — the small grammar both rooms and both setup sheets share.
+//
+// **THREE OF THESE ARE DELETED IN WAVE 6, AND WHY IS THE WAVE'S ARGUMENT:**
+//
+//   `EventHeaderRow` — the event's NAME set as an eyebrow (12pt tracked caps)
+//     with the status chip beside it in **gold**. The one screen in the product
+//     where the score of a live competition was smaller than the section label
+//     above it, and gold on a status is not "earned" (`LINT-11`). The head is
+//     `EventTitleCard` now — a full-bleed ceremony plate at `display` 34.
+//   `EventFineCard` — a bordered `bg2` card holding a paragraph. §3 has three
+//     containers and none of them holds prose; fine print is `body` 15 at `mut`
+//     on the page's own ground.
+//   `EventSeg` — the product's FIFTH segmented control. `CSSegment` is the one.
+//
+// `EventTeamSwatch` survives as the 3pt squad RULE (§2 B, §2 D) — a rule under
+// a name, never a 12pt rounded square floating beside one, because a rounded
+// rectangle in a squad colour is the identity mark `CSFace` owns (CS-11).
 
 import SwiftUI
 import CSDesign
 import CupSeasonKit
 
-/// `<div class="eyebrow">NAME <span class="fine" style="color:gold">CHIP</span></div>`
-struct EventHeaderRow: View {
-  @Environment(\.cs) private var cs
-  let name: String
-  let chip: String
-  var body: some View {
-    HStack(alignment: .firstTextBaseline, spacing: 10) {
-      Text(name).csEyebrow(cs.ink).lineLimit(2)
-      Spacer(minLength: 8)
-      Text(chip).font(CSFont.label).tracking(0.8).foregroundStyle(cs.gold).multilineTextAlignment(.trailing)
-    }
-    .accessibilityElement(children: .combine)
-    .accessibilityAddTraits(.isHeader)
-  }
-}
-
-/// `.sw` — the 12pt team swatch in the squad colour (`SQHEX[c]`).
+/// The 3pt squad rule. It is drawn UNDER something and never beside it: a
+/// swatch says "a colour exists"; a rule under a name says "this is that
+/// side's". Colour is never the only channel — the name is always with it.
 struct EventTeamSwatch: View {
   @Environment(\.cs) private var cs
   let colorIndex: Int
+  var width: CGFloat = 26
   var body: some View {
-    RoundedRectangle(cornerRadius: 3).fill(cs.squad(colorIndex)).frame(width: 12, height: 12)
+    Rectangle().fill(cs.squadMark(colorIndex)).frame(width: width, height: 3)
       .accessibilityHidden(true)
   }
 }
 
-/// The `bg2` card with the rule paragraph (setup sheets, the fine print).
-struct EventFineCard: View {
-  @Environment(\.cs) private var cs
-  let markdown: String
-  var body: some View {
-    Text((try? AttributedString(markdown: markdown, options: .init(interpretedSyntax: .inlineOnlyPreservingWhitespace))) ?? AttributedString(markdown))
-      .font(CSFont.footnote).foregroundStyle(cs.dimText).lineSpacing(3)
-      .fixedSize(horizontal: false, vertical: true)
-      .frame(maxWidth: .infinity, alignment: .leading)
-      .padding(.horizontal, 13).padding(.vertical, 11)
-      .background(cs.bg2, in: RoundedRectangle(cornerRadius: CSTokens.Radius.r, style: .continuous))
-      .overlay(RoundedRectangle(cornerRadius: CSTokens.Radius.r, style: .continuous).stroke(cs.rule, lineWidth: 1))
-  }
-}
-
-/// `.seg` — the setup sheets' segmented pills (sessions, cadence, window, split).
-struct EventSeg<T: Hashable>: View {
-  @Environment(\.cs) private var cs
-  let options: [(T, String)]
-  @Binding var selection: T
-  var body: some View {
-    // one row of pills; a column at the accessibility sizes
-    A11yStack(spacing: 6) {
-      ForEach(options, id: \.0) { k, l in
-        Button { selection = k; CSHaptic.selection() } label: {
-          Text(l).font(CSFont.monoSmall).foregroundStyle(selection == k ? cs.bg0 : cs.ink)
-            .padding(.horizontal, 10).frame(minHeight: 40).frame(maxWidth: .infinity)
-            .background(selection == k ? cs.ink : cs.bg2, in: RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous))
-            .overlay(RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous).stroke(cs.rule, lineWidth: selection == k ? 0 : 1))
-            .frame(minHeight: 44)
-        }
-        .buttonStyle(.plain)
-        .accessibilityAddTraits(selection == k ? .isSelected : [])
-      }
-    }
-  }
-}
-
-/// `label.f` — the field label above an input.
+/// The field label above an input — `agate` at `mut`, on the ground.
 struct EventFieldLabel: View {
   @Environment(\.cs) private var cs
   let text: String
   var hint: String? = nil
   var body: some View {
-    HStack(spacing: 6) {
-      Text(text).csEyebrow()
-      if let hint { Text(hint).font(CSFont.label).foregroundStyle(cs.dimText) }
+    HStack(spacing: CSTokens.Space.s2) {
+      Text(text).csType(.agate, caps: true).foregroundStyle(cs.mut)
+      if let hint { Text(hint).csType(.agateS, caps: false).foregroundStyle(cs.mut) }
     }
-    .padding(.top, 6)
+    .padding(.top, CSTokens.Space.s2)
+    .accessibilityAddTraits(.isHeader)
   }
 }
 
-/// A staged invitee — `renderRsPicked` / `renderMjPicked` (15963, 16090):
-/// marker · name · @handle · Remove.
+/// The fine print, on the page's own ground. **`body` 15 at `mut`, no tile, no
+/// border** — a paragraph is not a container's job.
+struct EventFinePrint: View {
+  @Environment(\.cs) private var cs
+  let text: String
+  var body: some View {
+    Text(text).csType(.bodyS).foregroundStyle(cs.mut)
+      .fixedSize(horizontal: false, vertical: true)
+      .frame(maxWidth: .infinity, alignment: .leading)
+  }
+}
+
+/// A staged invitee — the setup sheets stage people BEFORE the event exists,
+/// then fire the invites once `create_event` returns an id.
 struct EventStagedRow: View {
   @Environment(\.cs) private var cs
   let person: Person
   let remove: () -> Void
   var body: some View {
-    A11yStack(spacing: 8, columnSpacing: 4) {
-      HStack(spacing: 8) {
-        CSMarkerView(key: person.marker, size: 18).foregroundStyle(cs.ink).accessibilityHidden(true)
-        Text(person.name).font(CSFont.subhead).foregroundStyle(cs.ink)
-        Text("@\(person.handle ?? "?")").font(CSFont.monoSmall).foregroundStyle(cs.dimText)
+    VStack(spacing: 0) {
+      CSRule()
+      A11yStack(spacing: CSTokens.Space.s3, columnSpacing: CSTokens.Space.s2) {
+        HStack(spacing: CSTokens.Space.s3) {
+          CSFace(.init(id: person.id, marker: person.marker, initials: Initials.of(person.name)), size: .slat)
+          VStack(alignment: .leading, spacing: CSTokens.Space.s1) {
+            Text(person.name).csType(.social).foregroundStyle(cs.ink).lineLimit(1).truncationMode(.tail)
+            Text("@\(person.handle ?? "?")").csType(.columnS).foregroundStyle(cs.mut).lineLimit(1)
+          }
+        }
+        Spacer(minLength: CSTokens.Space.s2)
+        Button("Remove", action: remove).buttonStyle(.csTertiary(.content))
+          .accessibilityLabel("Remove \(person.name)")
       }
-      Spacer()
-      CSMini("Remove", action: remove).accessibilityLabel("Remove \(person.name)")
+      .frame(minHeight: 50)
     }
-    .frame(minHeight: 44)
   }
 }
 
@@ -118,30 +100,6 @@ struct EventLeaguePicker: View {
     .tint(cs.ink)
     .accessibilityLabel("League")
     .frame(maxWidth: .infinity, minHeight: 48, alignment: .leading)
-    .padding(.horizontal, 8)
-    .background(cs.bg2, in: RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous))
-    .overlay(RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous).stroke(cs.rule, lineWidth: 1))
+    .overlay(alignment: .bottom) { CSRule() }
   }
-}
-
-/// C10 — the taunt lands: an incoming duel target chips onto your green —
-/// arcs in, squashes at touch, settles. Banter, never gold, never >350ms.
-/// Reduced motion rests immediately (the web's media block, 2239).
-struct EventRiseModifier: ViewModifier {
-  @Environment(\.accessibilityReduceMotion) private var reduceMotion
-  let rise: Bool
-  @State private var landed = false
-  func body(content: Content) -> some View {
-    content
-      .offset(x: rise && !landed ? -10 : 0, y: rise && !landed ? -18 : 0)
-      .opacity(rise && !landed ? 0 : 1)
-      .onAppear {
-        guard rise, !reduceMotion else { landed = true; return }
-        CSMotion.run { landed = true }
-      }
-  }
-}
-
-extension View {
-  func eventRise(_ rise: Bool) -> some View { modifier(EventRiseModifier(rise: rise)) }
 }

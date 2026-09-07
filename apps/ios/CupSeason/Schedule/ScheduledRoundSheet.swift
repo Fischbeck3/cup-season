@@ -1,8 +1,29 @@
-// Cup Season — the round as an object (`openRoundSheet` / `renderRoundSheet`
-// 16733–16837; `loadRoundWeather` 16839; `openRetagSheet` 16852). Course
-// info + weather + who's-in + a mini board. Everything degrades gracefully: a
-// round with no linked course shows the typed name (never blank), and
-// weather simply hides when there's no location or it's out of range.
+// Cup Season — THE PLAN SHEET, rebuilt in Wave 6 as a title card in a sheet
+// (surfaces/event.md §4). *A planned round is the same head as an event, with
+// the countdown, the tee time, the field and the weather on one rule.*
+//
+// WHAT WENT, AND TWO OF THEM WERE `LINT-11` FAILURES ON THE SAME SCREEN:
+//
+//   · **The gold-tinted weather chip** — a `cs.gold.opacity(0.12)` fill with a
+//     gold border, on a fact nobody earned.
+//   · **The gold middle RSVP button.** *Gold may never touch a control.* The
+//     three-button row is now one primary (**I'm in**), one secondary
+//     (**Maybe**) and **"Can't make it"** as a `mut` text link with no rule —
+//     a decline is not a control the sheet should advertise. §7.1 is one
+//     primary, one secondary, the rest behind a door, and brief §18 names five
+//     equally prominent buttons as the anti-pattern.
+//   · The `"Done"` in ember at `topBarTrailing`: dismissal is **`Close`**,
+//     said one way, everywhere (`LINT-25`).
+//   · The bordered course header, the `☀` in the producer's own string, the
+//     coloured RSVP pills and `CSCheckRow`.
+//
+// **`Send the link` moves to the sheet's one trailing toolbar action** (§12.2)
+// and the four facts become one `CSScoreRail` on an `ink` rule — `ink`, not
+// `brand`, because a plan six days out is not live; it goes `brand` on the day.
+//
+// EVERYTHING DEGRADES THE WAY §4 SAYS: no weather removes the fourth cell and
+// the rule shortens; no tee time removes the second. **It never renders a dash
+// and never shows a blank panel.**
 
 import SwiftUI
 import CSDesign
@@ -29,13 +50,26 @@ struct ScheduledRoundSheet: View {
   var body: some View {
     NavigationStack(path: $path) {
       ScrollView {
-        if let d = vm.detail { sheet(d) }
-        else if vm.failed { CSFine("Couldn’t load that round").padding(20) }
-        else { VStack(alignment: .leading, spacing: 10) { CSSheetHeader(title: "Round", sub: "Loading…"); CSFine("Loading the round…") }.padding(20) }
+        if let d = vm.detail {
+          sheet(d)
+        } else if vm.failed {
+          // §7.3 · a sheet with nothing cached speaks once, and ends in a move.
+          VStack(alignment: .leading, spacing: CSTokens.Space.s3) {
+            Text("That round didn\u{2019}t load.").csType(.lead).foregroundStyle(cs.ink)
+            Text("Your phone could not reach the schedule.").csType(.bodyS).foregroundStyle(cs.mut)
+            CSDoor(.primary("Try again", { Task { await vm.load() } }))
+          }
+          .padding(CSTokens.Space.gutter)
+        } else {
+          // **Loading is the destination's own geometry, redacted** (§13.2).
+          sheet(RoundDetail(fallback: SchedulePlan(play_on: CSDate.today(), course_label: "A course"))).csRedacted(true)
+        }
       }
       .background(cs.bg0)
       .scrollDismissesKeyboard(.interactively)
-      .toolbar { ToolbarItem(placement: .topBarTrailing) { Button("Done") { dismiss() }.foregroundStyle(cs.brand) } }
+      // **Dismiss is one thing: `Close`** — a toolbar tertiary, `mut`, never
+      // ember (`LINT-25`). The shipped sheet said "Done" in brand.
+      .csCloseButton { dismiss() }
       .task { await vm.load() }
       .csToasts(toasts)
       .sheet(item: $retag, onDismiss: { Task { await vm.load() } }) { r in RetagSheet(request: r, leagueId: leagueId) }
@@ -50,162 +84,297 @@ struct ScheduledRoundSheet: View {
   }
 
   private func sheet(_ d: RoundDetail) -> some View {
-    VStack(alignment: .leading, spacing: 12) {
-      CSSheetHeader(title: d.title, sub: TeeTime.format(d.teeTime).isEmpty ? "On the schedule" : TeeTime.chip(d.teeTime))
+    VStack(alignment: .leading, spacing: CSTokens.Space.s4) {
+      // 1–3 · the eyebrow, the name, the dateline
+      VStack(alignment: .leading, spacing: CSTokens.Space.s3) {
+        Text("On the schedule").csType(.agate, caps: true).foregroundStyle(cs.mut)
+        Text(planName(d)).csType(.display).foregroundStyle(cs.ink)
+          .fixedSize(horizontal: false, vertical: true)
+          .accessibilityAddTraits(.isHeader)
+        VStack(alignment: .leading, spacing: CSTokens.Space.s1) {
+          ForEach(Array(dateline(d).enumerated()), id: \.offset) { _, line in
+            Text(line).csType(.agate, caps: true).foregroundStyle(cs.mut)
+              .fixedSize(horizontal: false, vertical: true)
+          }
+        }
+        .accessibilityElement(children: .combine)
+      }
+      .csBudget(display: 1)
 
       // D261 / R-N · L-32 · the read failed and this is the row we already had.
       // It is said once, at the top, before any fact it qualifies.
       if vm.stale {
         Text("Could not reach the server. This is the plan as your phone has it — who is in and the comments may have moved.")
-          .font(CSFont.footnote).foregroundStyle(cs.mut)
+          .csType(.bodyS).foregroundStyle(cs.mut)
           .fixedSize(horizontal: false, vertical: true)
       }
 
-      // course header — cache name if linked, else the typed label, else a word. NEVER blank.
-      VStack(alignment: .leading, spacing: 3) {
-        Text(d.courseName).font(CSFont.sentenceBold).foregroundStyle(cs.ink)
-        if let c = d.course, !c.meta.isEmpty { Text(c.meta).font(CSFont.monoSmall).foregroundStyle(cs.mut) }
-        if let c = d.course, !c.place.isEmpty { Text(c.place).font(CSFont.footnote).foregroundStyle(cs.dimText) }
-        // D261 / R-N · the door the escalation asked for: the tees, the ratings
-        // and slopes, and the card — from the phone, so it opens on a plane.
-        // Offered only for a course this phone has actually kept, because a
-        // door that opens on nothing is the one thing not permitted (L-32).
-        if vm.kept, let id = d.courseId {
-          Button("See the tees and the card") {
-            path.append(CourseSheetRef(id: id, label: d.courseName))
-          }
-          .buttonStyle(.csTertiary(.content))
+      // 4 · the four figures on ONE rule
+      CSScoreRail(facts(d), size: .m, metal: isToday(d) ? .live : .ink)
+
+      // 5 · the weather sentence — a DRAWN glyph at the icon family's stroke,
+      // and the producer's own words beside it.
+      if let w = vm.weather {
+        HStack(alignment: .firstTextBaseline, spacing: CSTokens.Space.s2) {
+          CSGlyph(weatherGlyph(w), size: .row).foregroundStyle(cs.mut)
+          Text(w.line).csType(.bodyS).foregroundStyle(cs.mut)
+            .fixedSize(horizontal: false, vertical: true)
         }
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel(w.line)
       }
-      HStack(spacing: 8) {
-        chip(TeeTime.chip(d.teeTime), fg: cs.ink, bg: cs.bg2, border: cs.rule)
-        if let w = vm.weather { chip(w.line, fg: cs.mut, bg: cs.gold.opacity(0.12), border: cs.gold.opacity(0.32)) }
-      }
-      // R-K / D256 · WHAT THIS ROUND IS WORTH. The server sends the cap and
-      // the month's counters (`round_detail.worth`); the sentence is produced
-      // once, in `RoundWorth`, and rendered by both clients. The subject is
-      // "This round" and not the day and the course, because the header above
-      // already carries both and a card that says one fact twice is DEF-2
-      // (L-34). A database without the migration sends no `worth` key, and
-      // nothing renders in its place (L-44).
+
+      // 6 · the worth line — verbatim, and nothing at all when the server sends
+      // no `worth` key (L-44).
       ForEach(Array(d.worthLines.enumerated()), id: \.offset) { _, worth in
-        Text(worth).font(CSFont.footnote).foregroundStyle(cs.mut)
+        Text(worth).csType(.bodyS).foregroundStyle(cs.mut)
           .fixedSize(horizontal: false, vertical: true)
       }
-      if let n = d.note, !n.isEmpty { Text("“\(n)”").font(CSFont.sentence).italic().foregroundStyle(cs.ink) }
+      if let n = d.note, !n.isEmpty {
+        Text("\u{201C}\(n)\u{201D}").csType(.story).foregroundStyle(cs.ink)
+          .fixedSize(horizontal: false, vertical: true)
+      }
       if !d.mine, let r = RivalryTag.of(d.profileId, rivals: vm.rivals) {
-        (Text("◇ ") + Text(r.text).foregroundStyle(cs.gold) + Text(" · ") + Text("one more round.").italic())
-          .font(CSFont.footnote).foregroundStyle(cs.mut)
+        Text(r.text + " · one more round.").csType(.bodyS).foregroundStyle(cs.mut)
+          .fixedSize(horizontal: false, vertical: true)
+      }
+      // D261 / R-N · the tees, the ratings and the card — from the phone, so it
+      // opens on a plane. Offered only for a course this phone has kept, so a
+      // door can never open on nothing (L-32).
+      if vm.kept, let id = d.courseId {
+        CSDoor(.link("See the tees and the card", {
+          path.append(CourseSheetRef(id: id, label: d.courseName))
+        }))
       }
 
-      HStack { Text("Who’s in").csEyebrow(); Text("\(d.inCount) in").font(CSFont.label).foregroundStyle(cs.pos) }.padding(.top, 6)
+      // 7–8 · who's in
+      CSSectionHead("Who\u{2019}s in", count: "\(d.inCount) of \(max(d.rsvp.count, d.inCount))")
       if d.rsvp.isEmpty {
-        CSFine("Just you so far — tag your group.")
+        Text("Just you so far — tag your group.").csType(.bodyS).foregroundStyle(cs.mut)
       } else {
-        ForEach(d.rsvp) { r in
-          CSCheckRow(marker: r.marker, title: r.profileId == d.profileId ? Text(r.name) + Text("  HOST").font(CSFont.label).foregroundStyle(cs.gold) : Text(r.name), sub: nil) {
-            pill(r.label, status: r.status)
-          }
-          .contentShape(Rectangle())
-          .onTapGesture { if let p = r.profileId { links.openTourCard?(p) } }
+        VStack(alignment: .leading, spacing: 0) {
+          ForEach(d.rsvp) { r in seat(r, host: r.profileId == d.profileId) }
         }
-      }
-      // D69: RSVP is for the invited — the host or a tagged player
-      if d.canRsvp {
-        HStack(spacing: 8) {
-          rsvpButton("I’m in", "in", on: cs.pos, ink: cs.bg0)
-          rsvpButton("Maybe", "maybe", on: cs.gold, ink: Color(hex: 0x3A2C07))
-          rsvpButton("Can’t", "out", on: cs.bg2, ink: cs.ink)
-        }
-      } else if !d.mine {
-        // IOS-032 · the dead end, closed. A golfer who sees a buddy's plan and
-        // wants in had NOWHERE to go: the row rendered and every control was
-        // absent, because D69 says a tee sheet is the host's. "Ask for a seat"
-        // is a REQUEST — one `rsvp` nudge to the host (R16), once per person
-        // per plan — and it writes NOTHING to the tee sheet, so D69 stands
-        // exactly where it stood.
-        VStack(alignment: .leading, spacing: 6) {
-          if vm.asked {
-            Text("ASKED — IT’S WITH THEM").font(CSFont.label).tracking(0.9).foregroundStyle(cs.pos)
-              .frame(minHeight: 32)
-          } else {
-            CSMini("Ask for a seat", busy: vm.asking) { Task { await vm.askForASeat() } }
-          }
-          CSFine("It sends \(d.hostName) a note. Only they can add you to the group.")
-        }
-        .padding(.top, 4)
       }
 
-      Text("On the board").csEyebrow().padding(.top, 6)
+      // 9 · the stake — body, not serif: the plan is the quieter of the two
+      // forfeit surfaces, and the serif is spent on the callout.
+      if let terms = stake(d) {
+        VStack(alignment: .leading, spacing: CSTokens.Space.s2) {
+          Text("On it").csType(.agate, caps: true).foregroundStyle(cs.mut)
+          Text(terms).csType(.body).foregroundStyle(cs.ink)
+            .fixedSize(horizontal: false, vertical: true)
+        }
+      }
+
+      // 10 · two marks, not five
+      actions(d)
+
+      // the board
+      CSSectionHead("On the board", count: d.comments.isEmpty ? nil : "\(d.comments.count)")
       if d.comments.isEmpty {
-        CSFine("No messages yet — kick it off.")
+        Text("No messages yet — kick it off.").csType(.bodyS).foregroundStyle(cs.mut)
       } else {
-        ForEach(d.comments) { c in
-          HStack(alignment: .top, spacing: 10) {
-            CSFace(.unkeyed(marker: c.marker), size: .slat)
-            (Text(c.name).bold().foregroundStyle(cs.ink) + Text(" \(c.body)").foregroundStyle(cs.mut)).font(CSFont.subhead)
-            Spacer(minLength: 0)
+        VStack(alignment: .leading, spacing: CSTokens.Space.s3) {
+          ForEach(d.comments) { c in
+            HStack(alignment: .top, spacing: CSTokens.Space.s3) {
+              CSFace(.unkeyed(marker: c.marker), size: .slat)
+              (Text(c.name).bold().foregroundStyle(cs.ink) + Text(" \(c.body)").foregroundStyle(cs.mut))
+                .csType(.bodyS)
+              Spacer(minLength: 0)
+            }
           }
         }
       }
-      HStack(spacing: 8) {
-        CSField("Say something to the group…", text: $vm.draft, font: CSFont.body)
+      HStack(spacing: CSTokens.Space.s2) {
+        CSField("Say something to the group\u{2026}", text: $vm.draft, font: CSType.body)
           .onChange(of: vm.draft) { _, n in if n.count > 500 { vm.draft = String(n.prefix(500)) } }
           .onSubmit { Task { await vm.send() } }
-        CSMini("Send", busy: vm.sending) { Task { await vm.send() } }
+        Button("Send") { Task { await vm.send() } }.buttonStyle(.csSecondary(busy: vm.sending))
       }
 
       if d.mine {
-        // D253 · THE PLAN LINK. Three screens promised a weekend invite link
-        // that no read and no write ever minted; this is the one that mints
-        // it. It is the host's control alone — the link is the only thing in
-        // the product that can seat a stranger, and D69's rule that a tee
-        // sheet is the host's is what bounds it.
+        // D253 · the plan link — the host's control alone, because the link is
+        // the only thing in the product that can seat a stranger.
         PlanInviteLink(roundId: d.id, course: d.courseLabel, day: d.playOn)
-          .padding(.top, 8)
-        HStack(spacing: 8) {
-          CSMini("Edit group") {
+        HStack(spacing: CSTokens.Space.s3) {
+          CSDoor(.link("Edit group", {
             retag = RetagRequest(roundId: d.id, iso: d.playOn ?? CSDate.today(), courseLabel: d.courseLabel,
                                  tagged: d.rsvp.compactMap { $0.profileId }.filter { $0 != d.profileId })
-          }
-          CSArmedButton(label: "Cancel round", armedLabel: "Sure? Cancel it", busy: vm.scratching) {
-            Task { if await vm.scratch() { dismiss() } }
-          }
+          }))
+          Spacer(minLength: 0)
         }
-        .padding(.top, 8)
+        CSArmedButton(label: "Cancel round", armedLabel: "Sure? Cancel it", busy: vm.scratching) {
+          Task { if await vm.scratch() { dismiss() } }
+        }
       }
     }
-    .padding(20)
+    .padding(CSTokens.Space.gutter)
   }
 
-  private func chip(_ t: String, fg: Color, bg: Color, border: Color) -> some View {
-    Text(t).font(CSFont.monoMediumBody).foregroundStyle(fg).padding(.horizontal, 10).padding(.vertical, 6)
-      .background(bg, in: RoundedRectangle(cornerRadius: 8, style: .continuous))
-      .overlay(RoundedRectangle(cornerRadius: 8, style: .continuous).stroke(border, lineWidth: 1))
-  }
+  // MARK: the head's parts
 
-  private func pill(_ t: String, status: String?) -> some View {
-    let tone: Color = status == "in" ? cs.pos : status == "maybe" ? cs.gold : cs.dimText
-    return Text(t).font(CSFont.label).tracking(0.6).textCase(.uppercase).foregroundStyle(tone)
-      .padding(.horizontal, 8).padding(.vertical, 5)
-      .background((status == "in" || status == "maybe") ? tone.opacity(0.14) : cs.bg2, in: Capsule())
-  }
-
-  private func rsvpButton(_ label: String, _ status: String, on: Color, ink: Color) -> some View {
-    let selected = vm.detail?.myRsvp == status
-    return Button {
-      Task { await vm.rsvp(status) }
-    } label: {
-      Text(label).font(CSFont.button)
-        .foregroundStyle(selected ? ink : cs.ink)
-        .frame(maxWidth: .infinity, minHeight: 44)
-        .background(selected ? on : cs.bg2, in: RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous))
-        .overlay(RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous).stroke(selected ? (status == "out" ? cs.rule : on) : cs.rule, lineWidth: 1))
+  /// The plan's own name if it has one, else the day and the course. **The
+  /// surface never renders an empty title.** `scheduled_rounds.name` (D240) is
+  /// not on `round_detail`'s payload, so today this is always the fallback —
+  /// which is the branch §4.2 writes for it, not a degrade.
+  private func planName(_ d: RoundDetail) -> String {
+    if let n = d.name, !n.isEmpty { return n }
+    let course = d.course?.name ?? d.courseLabel
+    if let c = course, !c.isEmpty, let on = d.playOn {
+      return "\(EventDates.weekdayLong(on)) at \(c)"
     }
-    .buttonStyle(.plain)
-    .disabled(vm.rsvping)
-    .accessibilityAddTraits(selected ? .isSelected : [])
+    return d.title
   }
+
+  private func dateline(_ d: RoundDetail) -> [String] {
+    var lines: [String] = []
+    var first: [String] = []
+    if let on = d.playOn { first.append(ScheduleDates.long(on)) }
+    let place = d.course?.place ?? ""
+    if let c = d.course?.name ?? d.courseLabel, !c.isEmpty {
+      first.append(place.isEmpty ? c : "\(c), \(place)")
+    }
+    if !first.isEmpty { lines.append(first.joined(separator: " · ")) }
+    // the second line is omitted when both facts are absent (§4.3)
+    var second: [String] = []
+    if let g = d.game, !g.isEmpty { second.append(g) }
+    let meta = d.course?.meta ?? ""
+    if !meta.isEmpty { second.append(meta) }
+    if !second.isEmpty { lines.append(second.joined(separator: " · ")) }
+    return lines
+  }
+
+  /// §4.4 · `6 / DAYS OUT` · `7:40 / TEE, A.M.` · `3 / IN` · `71° / HIGH`.
+  ///
+  /// **A cell with no fact is REMOVED and the rule shortens** — it never renders
+  /// a dash and the sheet never shows a blank panel.
+  private func facts(_ d: RoundDetail) -> [CSScoreRail.Cell] {
+    var out: [CSScoreRail.Cell] = []
+    if let on = d.playOn, let days = CSDate.days(from: CSDate.today(), to: on) {
+      out.append(.init(id: "days", value: String(max(0, days)),
+                       label: days == 0 ? "Today" : days == 1 ? "Day out" : "Days out",
+                       labelLive: days == 0,
+                       spoken: days == 0 ? "Today" : "\(days) days out"))
+    }
+    let tee = TeeTime.format(d.teeTime)
+    if !tee.isEmpty {
+      let parts = tee.split(separator: " ", maxSplits: 1).map(String.init)
+      out.append(.init(id: "tee", value: parts.first ?? tee,
+                       label: parts.count > 1 ? "Tee, \(parts[1])" : "Tee",
+                       spoken: "Tee time \(tee)"))
+    }
+    out.append(.init(id: "in", value: String(d.inCount), label: "In",
+                     spoken: "\(d.inCount) in"))
+    if let w = vm.weather {
+      out.append(.init(id: "hi", value: "\(w.hi)°", label: "High", spoken: "High \(w.hi) degrees"))
+    }
+    return out
+  }
+
+  private func isToday(_ d: RoundDetail) -> Bool { d.playOn == CSDate.today() }
+
+  private func weatherGlyph(_ w: Weather) -> CSGlyph.Name {
+    let key = ((w.icon ?? "") + " " + (w.summary ?? "")).lowercased()
+    return key.contains("cloud") || key.contains("rain") || key.contains("storm") || key.contains("snow")
+      ? .cloud : .sun
+  }
+
+  /// The forfeit's own words, if this plan carries one. `forfeits` has no money
+  /// column by rule (T-02 / D242), so a stake is a sentence or it is nothing.
+  private func stake(_ d: RoundDetail) -> String? {
+    guard let n = d.note, n.lowercased().contains("loser") || n.lowercased().contains("buys") else { return nil }
+    return n
+  }
+
+  // MARK: 8 · the seats
+
+  /// 50pt rows, one rule each · `CSFace` 38 · the name in `social` 17 (title
+  /// case — a person in a social row is not the board) · the host's `HOST` in
+  /// agate · the answer right-flush in agate: `IN` in `ink`, `ASKED` and `OUT`
+  /// in `mut`.
+  ///
+  /// **`asked` is the state of the INVITATION, never a verdict on the man**
+  /// (`PlanIdentity` rule 2) — and there is no chase control here, by rule.
+  private func seat(_ r: RoundDetail.Rsvp, host: Bool) -> some View {
+    VStack(spacing: 0) {
+      CSRule()
+      HStack(spacing: CSTokens.Space.s3) {
+        // **A seat with no profile draws no disc**, and that is the ladder's own
+        // rule rather than a degrade: §6.2a keys a pigment to the GOLFER, and a
+        // bare name on a tee sheet is not one yet. Seating it on a pigment
+        // derived from its marker is exactly the debt `LINT-31` is ratcheting
+        // to zero, so the left column collapses and the name sets flush —
+        // §10.2's rule for a course with none of the three legal images.
+        if let pid = r.profileId {
+          CSFace(CSFace.Model(id: pid, marker: r.marker, initials: Initials.of(r.name)), size: .list)
+        }
+        Text(r.name).csType(.social).foregroundStyle(cs.ink).lineLimit(1).truncationMode(.tail)
+        if host {
+          Text("Host").csType(.agateS, caps: true).foregroundStyle(cs.mut)
+        }
+        Spacer(minLength: CSTokens.Space.s2)
+        // **The HOST is not "asked".** A seat with no answer is `ASKED` — the
+        // state of the invitation, never a verdict on the man — but the host
+        // did the asking, so their own empty answer prints nothing at all
+        // rather than a word that is untrue about them.
+        if let word = answer(r, host: host) {
+          Text(word).csType(.agate, caps: true)
+            .foregroundStyle(r.status == "in" ? cs.ink : cs.mut)
+        }
+      }
+      .frame(minHeight: 50)
+      .contentShape(Rectangle())
+      .onTapGesture { if let p = r.profileId { links.openTourCard?(p) } }
+      .accessibilityElement(children: .combine)
+    }
+  }
+
+  private func answer(_ r: RoundDetail.Rsvp, host: Bool) -> String? {
+    if let st = r.status, !st.isEmpty { return r.label }
+    return host ? nil : "Asked"
+  }
+
+  // MARK: 10 · the actions — two marks, not five
+
+  @ViewBuilder private func actions(_ d: RoundDetail) -> some View {
+    if d.canRsvp {
+      VStack(alignment: .leading, spacing: CSTokens.Space.s3) {
+        HStack(spacing: CSTokens.Space.s3) {
+          Button("I\u{2019}m in") { Task { await vm.rsvp("in") } }
+            .buttonStyle(.csPrimary(busy: vm.rsvping))
+            .frame(maxWidth: .infinity)
+            .layoutPriority(1.35)
+            .accessibilityAddTraits(d.myRsvp == "in" ? .isSelected : [])
+          Button("Maybe") { Task { await vm.rsvp("maybe") } }
+            .buttonStyle(.csSecondary(busy: vm.rsvping))
+            .frame(maxWidth: .infinity)
+            .accessibilityAddTraits(d.myRsvp == "maybe" ? .isSelected : [])
+        }
+        // a decline is not a control the sheet should advertise
+        Button("Can\u{2019}t make it") { Task { await vm.rsvp("out") } }
+          .buttonStyle(.plain)
+          .foregroundStyle(cs.mut)
+          .accessibilityAddTraits(d.myRsvp == "out" ? .isSelected : [])
+      }
+    } else if !d.mine {
+      // IOS-032 · the dead end, closed. "Ask for a seat" is a REQUEST — one
+      // nudge to the host, once per person per plan — and it writes NOTHING to
+      // the tee sheet, so D69 stands exactly where it stood.
+      VStack(alignment: .leading, spacing: CSTokens.Space.s2) {
+        if vm.asked {
+          Text("Asked — it\u{2019}s with them").csType(.agate, caps: true).foregroundStyle(cs.mut)
+            .frame(minHeight: 44, alignment: .leading)
+        } else {
+          CSDoor(.secondary("Ask for a seat", { Task { await vm.askForASeat() } }))
+        }
+        Text("It sends \(d.hostName) a note. Only they can add you to the group.")
+          .csType(.bodyS).foregroundStyle(cs.mut)
+          .fixedSize(horizontal: false, vertical: true)
+      }
+    }
+  }
+
 }
 
 @MainActor
