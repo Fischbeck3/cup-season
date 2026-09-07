@@ -7200,6 +7200,47 @@ const easeCaps = s => {
   if(rx) t = t.replace(rx, m => window.csNames.get(m.toLowerCase()) || m);
   return t;
 };
+/* DEF-3 · ONE SCREEN, ONE NAME FOR ONE PERSON — the board's own sentence,
+   readdressed to the golfer reading it (D280, the phone's HomeWireCopy
+   .viewerVoice; the two clients rewrite the same producer the same way).
+
+   round_to_board() writes a moment in the third person because it writes it
+   for a league BOARD, where everybody reading it is somebody else. On Home the
+   reader is often its subject, and both clients printed "Jerecho set a personal
+   best" to Jerecho.
+
+   The viewer's own name resolves to `You` in the subject seat and `you` in
+   every other, and SECOND PERSON TAKES ITS COPULA — the elision that carries a
+   third-person clause ("Galen has posted six weeks running") gains its own
+   verb rather than printing "You has posted". The only name it will ever touch
+   is the viewer's own. */
+const CS_COPULA = { has:'have', is:'are', was:'were', does:'do',
+                    "hasn’t":"haven’t", "isn’t":"aren’t", "wasn’t":"weren’t", "doesn’t":"don’t",
+                    "hasn't":"haven't", "isn't":"aren't", "wasn't":"weren't", "doesn't":"don't" };
+function csYouVoice(body, post){
+  if(!body) return body;
+  /* the league rail's member row is the authority, and it is the reason two
+     golfers who share a given name cannot be confused for each other. The
+     person-homed rail (D238) carries no member row, so the name answers. */
+  if(post && post.member_id){
+    /* a membership row IS the league_members row: its `id` is the member id
+       `round_to_board()` stamps on the post (loadMemberships, above). */
+    const mine = (window.CS?.memberships||[]).some(m => m.id===post.member_id);
+    if(!mine) return body;
+  }
+  const full = (window.CS?.profile?.display_name||'').trim();
+  if(!full) return body;
+  const given = full.split(' ')[0] || full;
+  let out = body;
+  for(const who of (given===full ? [full] : [full, given])){
+    const esc = who.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
+    out = out.replace(new RegExp('\\b'+esc+"[’']s\\b",'g'), (m,o)=> o===0 ? 'Your' : 'your');
+    out = out.replace(new RegExp('\\b'+esc+'\\b','g'),      (m,o)=> o===0 ? 'You'  : 'you');
+    for(const [third,second] of Object.entries(CS_COPULA))
+      out = out.split('You '+third+' ').join('You '+second+' ');
+  }
+  return out;
+}
 /* ---------- reactions + comments: the board's social spine ----------
    Six curated reactions carry the crew's voice; each is one row in post_kudos
    keyed (post_id, member_id, emoji). Rendering + wiring is shared between the
@@ -14977,7 +15018,7 @@ function postRow(p){
     ? ` data-card="${esc(p.live_round_id)}" role="button" tabindex="0"` : '';
   return `<div class="hfcard quiet${sealCls}${p.live_round_id?' opens':''}"${card}>
     <div class="hfhead">${av}
-      <div class="hfid"><b>${esc(easeCaps(p.body||''))}</b><small>${lg?esc(lg)+' · ':''}${dfmtShort((p.created_at||'').slice(0,10))}${p.live_round_id?' · <span style="color:var(--gold)">SCORECARD ›</span>':''}</small></div>
+      <div class="hfid"><b>${esc(csYouVoice(easeCaps(p.body||''), p))}</b><small>${lg?esc(lg)+' · ':''}${dfmtShort((p.created_at||'').slice(0,10))}${p.live_round_id?' · <span style="color:var(--gold)">SCORECARD ›</span>':''}</small></div>
     </div></div>`;
 }
 /* ==== D92 · the scorecard =====================================================

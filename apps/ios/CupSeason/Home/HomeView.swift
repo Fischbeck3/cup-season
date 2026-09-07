@@ -253,14 +253,55 @@ struct HomeView: View {
         }
         .padding(.horizontal, CSTokens.Space.gutter)
       } else {
-        ForEach(Array(page.rows.enumerated()), id: \.element.id) { i, row in
-          if i > 0 || !row.leadsWithRule { CSRule() }
-          wireRow(row)
-        }
+        wireRows(page)
       }
 
     }
     .padding(.top, CSTokens.Space.s5)
+  }
+
+  /// **THE WIRE IS AN EDITION, NOT A LIST** (D280). The rows run under
+  /// datelines — Coming up · Today · This week · Earlier — and every league
+  /// note on the page folds into ONE line beneath all of them.
+  ///
+  /// The head is the separator, so the first row of a group takes no rule; a
+  /// full-bleed band or a ceremony takes none anywhere, because it brings its
+  /// own edge.
+  @ViewBuilder private func wireRows(_ page: HomePage) -> some View {
+    // Rows filed above the first dateline: the digest is a sentence about
+    // every group under it, and the occasion is a card about the calendar.
+    let loose = page.rows.filter { $0.period == nil }
+    ForEach(Array(loose.enumerated()), id: \.element.id) { i, row in
+      if i > 0 { CSRule() }
+      wireRow(row)
+    }
+    ForEach(HomeWirePeriod.allCases, id: \.self) { period in
+      let rows = page.rows.filter { $0.period == period }
+      if !rows.isEmpty {
+        HomeSectionRule(period.head, weight: .period)
+          .padding(.horizontal, CSTokens.Space.gutter)
+          .padding(.top, loose.isEmpty && period == firstFilled(page) ? CSTokens.Space.s3 : CSTokens.Space.s5)
+          .padding(.bottom, CSTokens.Space.s2)
+        ForEach(Array(rows.enumerated()), id: \.element.id) { i, row in
+          if i > 0, row.leadsWithRule { CSRule() }
+          wireRow(row)
+        }
+      }
+    }
+    if let notes = page.notes {
+      // The foot of the wire, and the quietest line the system has. A count is
+      // not news; the board is where the notes are.
+      CSRule().padding(.top, CSTokens.Space.s4)
+      HomeWireLine(marker: nil, text: notes.line,
+                   act: notes.leagueId.map { id in { openCompetition(id, .board) } })
+        .padding(.horizontal, CSTokens.Space.gutter)
+    }
+  }
+
+  /// Which dateline opens the wire, so the first head sits on the section
+  /// head's own spacing rather than adding a second gap to it.
+  private func firstFilled(_ page: HomePage) -> HomeWirePeriod? {
+    HomeWirePeriod.allCases.first { p in page.rows.contains { $0.period == p } }
   }
 
   @ViewBuilder private func wireRow(_ row: HomeWireRow) -> some View {
@@ -296,6 +337,10 @@ struct HomeView: View {
 
     case .takeover(let item):
       HomeWireTakeover(item: item) { take(item) }
+
+    case .item(let it, let stamp):
+      HomeWireItem(headline: it.headline, stamp: stamp) { take(it) }
+        .padding(.horizontal, CSTokens.Space.gutter)
 
     case .line(let marker, let text, let door):
       HomeWireLine(marker: marker, text: text, act: door.map { d in { open(d) } })

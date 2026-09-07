@@ -85,9 +85,9 @@ private let emptyStrip = MeStripCopy.Strip(slots: [], seasonRow: nil)
     #expect(!page.firstRound)
   }
 
-  // MARK: - the deck is deleted
+  // MARK: - D280 · the wire is an edition, not a list
 
-  @Test("H-01 · ranked items 2–5 are WIRE ROWS, never four smaller copies of the lead")
+  @Test("H-01 · ranked items 2–5 are WIRE ROWS at their own weight, never four smaller copies of the lead")
   func theDeckIsDeleted() {
     let items = [item("clash:1", .closing, rank: 1), item("plan:1", .coming, rank: 2, at: "2026-09-07"),
                  item("need:1", .coming, rank: 3, at: "2026-09-05")]
@@ -97,13 +97,154 @@ private let emptyStrip = MeStripCopy.Strip(slots: [], seasonRow: nil)
                              today: "2026-09-06")
     guard case .block = page.lead else { Issue.record("no lead"); return }
     // one of the two survivors becomes the wire's own empty block; the other
-    // is a quiet line. Neither is a second serif sentence.
+    // is a ranked ITEM — not a quiet line, and not a second serif sentence.
     #expect(page.wireEmptyItem != nil)
     for row in page.rows {
-      if case .line = row.body { continue }
-      Issue.record("a ranked survivor rendered as something other than a quiet line")
+      if case .item = row.body { continue }
+      Issue.record("a ranked survivor rendered as something other than a ranked item")
     }
   }
+
+  @Test("THE WIRE RUNS UNDER DATELINES — coming up, today, this week, earlier")
+  func everyRowIsFiled() {
+    #expect(HomeWirePeriod.of(days: 3) == .ahead)
+    #expect(HomeWirePeriod.of(days: 0) == .today)
+    #expect(HomeWirePeriod.of(days: -1) == .week)
+    #expect(HomeWirePeriod.of(days: -6) == .week)
+    #expect(HomeWirePeriod.of(days: -7) == .earlier)
+    // a row with no date cannot claim a place near the front of a rundown
+    #expect(HomeWirePeriod.of(days: nil) == .earlier)
+    #expect(HomeWirePeriod.allCases.map(\.head) == ["Coming up", "Today", "This week", "Earlier"])
+
+    let page = HomePage.make(me: me(rounds: 9), strip: emptyStrip,
+                             ranked: HomeRank.arrange([item("clash:1", .closing, rank: 1),
+                                                       item("plan:1", .coming, rank: 2, at: "2026-09-08"),
+                                                       item("need:1", .coming, rank: 3, at: "2026-09-01")]),
+                             buckets: [HomeFeedBucket(label: "Today", items: [])],
+                             today: "2026-09-06")
+    // every row the wire draws knows which dateline it belongs under
+    for row in page.rows where row.period == nil {
+      if case .digest = row.body { continue }
+      if case .occasion = row.body { continue }
+      Issue.record("a wire row was filed under no dateline at all")
+    }
+  }
+
+  @Test("A ROW UNDER `TODAY` DOES NOT SAY `Today`, and a rundown says a date once")
+  func theDateIsSaidOnce() {
+    let rows = [
+      HomeWireRow(id: "a", body: .line(marker: "Sun", text: "One.", door: nil), period: .week),
+      HomeWireRow(id: "b", body: .line(marker: "Sun", text: "Two.", door: nil), period: .week),
+      HomeWireRow(id: "c", body: .line(marker: "Aug 31", text: "Three.", door: nil), period: .earlier),
+      HomeWireRow(id: "d", body: .line(marker: "Aug 31", text: "Four.", door: nil), period: .earlier),
+    ]
+    let said = HomePage.sayItOnce(rows).map { row -> String? in
+      if case .line(let m, _, _) = row.body { return m }
+      return nil
+    }
+    #expect(said == ["Sun", nil, "Aug 31", nil])
+
+    // and the composition suppresses TODAY's own stamp before that even runs
+    let page = HomePage.make(me: me(rounds: 9), strip: emptyStrip,
+                             ranked: HomeRank.arrange([item("clash:1", .closing, rank: 1),
+                                                       item("plan:1", .coming, rank: 2, at: "2026-09-06")]),
+                             buckets: [HomeFeedBucket(label: "Today", items: [])],
+                             today: "2026-09-06")
+    for row in page.rows {
+      if case .item(_, let stamp) = row.body, row.period == .today {
+        #expect(stamp == nil)
+      }
+    }
+  }
+
+  @Test("H-05 · EVERY league note on the wire is ONE line — not one per league, not one per period")
+  func theNotesFoldToOneLine() {
+    let a = UUID(), b = UUID()
+    func note(_ league: UUID, _ name: String, _ body: String) -> HomeFeedNotes {
+      HomeFeedNotes(leagueIds: [league], leagueNames: [name],
+                    rows: [HomePost(id: UUID(), league_id: league, kind: "system",
+                                    body: body, created_at: Date())])
+    }
+    let buckets = [
+      HomeFeedBucket(label: "Today", items: [.notes(note(a, "Fellas", "one")),
+                                             .notes(note(b, "Who\u{2019}s the bitch?", "two"))]),
+      HomeFeedBucket(label: "Earlier", items: [.notes(note(a, "Fellas", "three"))]),
+    ]
+    let page = HomePage.make(me: me(rounds: 9), strip: emptyStrip,
+                             ranked: HomeRank.arrange([item("clash:1", .closing, rank: 1)]),
+                             buckets: buckets, today: "2026-09-06")
+    for row in page.rows {
+      if case .line(_, let t, _) = row.body, t.contains("league note") {
+        Issue.record("a league-note count rendered as a wire row: \(t)")
+      }
+    }
+    #expect(page.notes?.count == 3)
+    #expect(page.notes?.line == "Fellas & Who\u{2019}s the bitch? · 3 league notes")
+    #expect(page.notes?.leagueId != nil)
+    // and a wire that carries only notes is NOT the roster empty
+    #expect(!page.wireEmpty)
+  }
+
+  @Test("Past two leagues the names stop helping and the line counts them instead")
+  func theNotesLineDegrades() {
+    #expect(HomeWireNotes(leagueNames: ["Fellas"], count: 1, leagueId: nil).line
+            == "Fellas · 1 league note")
+    #expect(HomeWireNotes(leagueNames: ["A", "B", "C"], count: 9, leagueId: nil).line
+            == "3 leagues · 9 league notes")
+    #expect(HomeWireNotes(leagueNames: [], count: 2, leagueId: nil).line
+            == "Your leagues · 2 league notes")
+  }
+
+  // MARK: - DEF-3 · one screen, one name for one person
+
+  @Test("DEF-3 · the wire says YOU to the golfer a board post is about")
+  func theViewerIsYou() {
+    #expect(HomeWireCopy.viewerVoice("Jerecho set a personal best. New number to chase.",
+                                     viewer: "Jerecho Fischbeck")
+            == "You set a personal best. New number to chase.")
+    // the full display name, not only the given one
+    #expect(HomeWireCopy.viewerVoice("Jerecho Fischbeck posted 92 at Encanto GC.",
+                                     viewer: "Jerecho Fischbeck")
+            == "You posted 92 at Encanto GC.")
+    // SECOND PERSON TAKES ITS COPULA
+    #expect(HomeWireCopy.viewerVoice("Jerecho has posted 8 weeks running. The streak holds.",
+                                     viewer: "Jerecho Fischbeck")
+            == "You have posted 8 weeks running. The streak holds.")
+    // the object seat is lower case
+    #expect(HomeWireCopy.viewerVoice("Not the day Jerecho had in mind. We\u{2019}ll leave that one on the scorecard.",
+                                     viewer: "Jerecho Fischbeck")
+            == "Not the day you had in mind. We\u{2019}ll leave that one on the scorecard.")
+    #expect(HomeWireCopy.viewerVoice("First round since August for Jerecho. Welcome back.",
+                                     viewer: "Jerecho Fischbeck")
+            == "First round since August for you. Welcome back.")
+    // the possessive
+    #expect(HomeWireCopy.viewerVoice("Jerecho\u{2019}s buy-in is in.", viewer: "Jerecho Fischbeck")
+            == "Your buy-in is in.")
+  }
+
+  @Test("It touches ONE name — the viewer's own — and nobody else's")
+  func itNeverRenamesAnybodyElse() {
+    let said = "Galen set a personal best. New number to chase."
+    #expect(HomeWireCopy.viewerVoice(said, viewer: "Jerecho Fischbeck") == said)
+    #expect(HomeWireCopy.viewerVoice(said, viewer: nil) == said)
+    #expect(HomeWireCopy.viewerVoice(said, viewer: "") == said)
+    // a name inside another word is not the name
+    #expect(HomeWireCopy.viewerVoice("Jerechoville is not a place.", viewer: "Jerecho")
+            == "Jerechoville is not a place.")
+  }
+
+  @Test("A wire stamp is a CLOCK ahead of today and a DATE behind it")
+  func theStampIsAClock() {
+    #expect(HomeWireCopy.stamp("2026-09-06", today: "2026-09-06") == "Today")
+    #expect(HomeWireCopy.stamp("2026-09-07", today: "2026-09-06") == "Tomorrow")
+    #expect(HomeWireCopy.stamp("2026-09-12", today: "2026-09-06") == "6 days")
+    // past a week ahead, a weekday is a place on a calendar and "in 9 days" is arithmetic
+    #expect(HomeWireCopy.stamp("2026-09-20", today: "2026-09-06") == "Sep 20")
+    // behind today it is the day marker, verbatim
+    #expect(HomeWireCopy.stamp("2026-09-04", today: "2026-09-06") == "Fri")
+    #expect(HomeWireCopy.stamp(nil, today: "2026-09-06") == nil)
+  }
+
 
   // MARK: - the order
 

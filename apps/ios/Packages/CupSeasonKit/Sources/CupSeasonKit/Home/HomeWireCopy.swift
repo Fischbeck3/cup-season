@@ -108,6 +108,90 @@ public enum HomeWireCopy {
     return "\(who) round · \(day)"
   }
 
+  /// **THE STAMP A WIRE ROW WEARS, AND IT IS A CLOCK WHEN THERE IS ONE TO
+  /// READ.** `dayMarker` answers a date; a row about something that has not
+  /// happened yet is answered by how long is left, because *"Sun"* on a clash
+  /// that closes on Sunday is the fact a golfer already has and *"6 days"* is
+  /// the one they do not.
+  ///
+  /// Today and the past keep the marker verbatim — a rundown read backwards is
+  /// read by date. Ahead it is `Tomorrow`, then `N days` out to a week, then
+  /// the marker again, because past a week "in 9 days" is arithmetic where a
+  /// weekday is a place on a calendar.
+  public static func stamp(_ iso: String?, today: String = CSDate.today(),
+                           calendar: Calendar = .current) -> String? {
+    guard let iso, !iso.isEmpty, let days = CSDate.days(from: today, to: iso) else { return nil }
+    if days <= 0 { return dayMarker(iso, today: today, calendar: calendar) }
+    if days == 1 { return "Tomorrow" }
+    if days <= 6 { return "\(days) days" }
+    return dayMarker(iso, today: today, calendar: calendar)
+  }
+
+  /// **DEF-3 · ONE SCREEN, ONE NAME FOR ONE PERSON.** `round_to_board()` writes
+  /// a moment in the third person because it writes it for a league BOARD,
+  /// where everybody reading it is somebody else. On the wire the reader is
+  /// often its subject, and the shipped build printed *"Jerecho set a personal
+  /// best"* to Jerecho — the copy law's exact failure, on a surface addressed
+  /// to one golfer.
+  ///
+  /// The viewer's own name resolves to **You** in the subject seat and **you**
+  /// in every other, and **second person takes its copula**: the elision that
+  /// carries a third-person clause ("Galen has posted six weeks running")
+  /// gains its own verb rather than printing "You has posted".
+  ///
+  /// It REWRITES the producer's sentence rather than composing a second one —
+  /// the posture `StandingsStory.text(viewer:)` takes on the season page and
+  /// `HomeCopy.who` takes on a round. Nothing is invented: the only name it
+  /// will ever touch is the one the caller hands it, which is the viewer's own.
+  public static func viewerVoice(_ body: String, viewer name: String?) -> String {
+    let full = (name ?? "").trimmingCharacters(in: .whitespaces)
+    guard !full.isEmpty, !body.isEmpty else { return body }
+    // The producer writes the GIVEN name ("Jerecho set a personal best"); the
+    // session holds the display name ("Jerecho Fischbeck"). The full name goes
+    // first, so it is spent before its own first word is.
+    let given = full.split(separator: " ").first.map(String.init) ?? full
+    var out = body
+    for who in (given == full ? [full] : [full, given]) { out = swapName(out, who) }
+    return out
+  }
+
+  /// The copulas a second person needs, in both apostrophes. Beside
+  /// `viewerVoice` because they are one rule.
+  private static let copulas = ["has": "have", "is": "are", "was": "were", "does": "do",
+                                "hasn\u{2019}t": "haven\u{2019}t", "isn\u{2019}t": "aren\u{2019}t",
+                                "wasn\u{2019}t": "weren\u{2019}t", "doesn\u{2019}t": "don\u{2019}t",
+                                "hasn't": "haven't", "isn't": "aren't",
+                                "wasn't": "weren't", "doesn't": "don't"]
+
+  private static func swapName(_ body: String, _ who: String) -> String {
+    let esc = NSRegularExpression.escapedPattern(for: who)
+    var out = body
+    // 1 · the possessive, either apostrophe: "Jerecho's buy-in" -> "Your buy-in".
+    out = replaceAll(out, "\\b" + esc + "[\u{2019}']s\\b") { $0 == 0 ? "Your" : "your" }
+    // 2 · the bare name — `You` in the subject seat, `you` anywhere else.
+    out = replaceAll(out, "\\b" + esc + "\\b") { $0 == 0 ? "You" : "you" }
+    // 3 · the copula, and only where `You` now leads the clause.
+    for (third, second) in copulas {
+      out = out.replacingOccurrences(of: "You " + third + " ", with: "You " + second + " ")
+    }
+    return out
+  }
+
+  /// Replace every match, told whether it began the sentence — which is the
+  /// whole subject/object distinction.
+  private static func replaceAll(_ s: String, _ pattern: String, _ f: (Int) -> String) -> String {
+    guard let rx = try? NSRegularExpression(pattern: pattern) else { return s }
+    let ns = s as NSString
+    var out = ""
+    var last = 0
+    for m in rx.matches(in: s, range: NSRange(location: 0, length: ns.length)) {
+      out += ns.substring(with: NSRange(location: last, length: m.range.location - last))
+      out += f(m.range.location)
+      last = m.range.location + m.range.length
+    }
+    return out + ns.substring(from: last)
+  }
+
   /// `Galen` → `Galen’s`, `Chris` → `Chris’`. The typographic apostrophe, and
   /// the given name only — the feed already carries the full name on the face.
   static func possessive(_ name: String) -> String {

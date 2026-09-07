@@ -13,15 +13,27 @@
 //   2 · a friend's round      a full-bleed photograph, a 38pt face, a gross
 //                             panel — or, with no photograph, a 68pt slat with
 //                             a right-flush rule-and-figure
-//   3 · a course discovery    a 68–84pt slat led by a thumbnail and a rating
+//   3 · a ranked item         a 56pt row at `body` 17 in `ink` with its own
+//                             clock — a clash, a standing, a plan; and a
+//                             course discovery, the day a producer emits one
 //   4 · a season moment       a full-bleed ceremony band, `ceremonyInk` in
 //                             BOTH themes, because a ceremony is a physical
 //                             object and does not re-print when the room does
-//   5 · minor activity        one 44pt line with a day marker
+//   5 · minor activity        one 44pt line at `bodyS` 15 in `mut`, its date
+//                             stamped at the trailing edge
 //
 // Nothing differs in colour language, radius or container between them,
 // **because there are no containers**. The rhythm is rule · type · photograph ·
 // rule · quiet line, so scrolling reads as a rundown rather than a stack.
+//
+// D280 · AND THE OWNER READ THE SHIPPED WIRE AS A WALL OF TEXT, BECAUSE FOUR
+// OF THE FIVE WEIGHTS HAD NO DATA AND THE FIFTH DREW EVERYTHING. Weights 2 and
+// 4 need a photograph and a finished season; weight 3 has no producer at all
+// (`BUILD_REPORT` §3). So a clash, a standing, a milestone and four `N league
+// notes` counts all rendered as weight 5, ten deep, each behind a 34pt date
+// column. The three answers are here and in `HomePage`: the wire runs under
+// **datelines** with a real size step, the ranked items take **weight 3**, and
+// every league note on the page folds into **one** line at the foot.
 
 import SwiftUI
 import CSDesign
@@ -29,22 +41,43 @@ import CupSeasonKit
 
 // MARK: - The section head
 
-/// `THE WIRE` — agate at `mut` with a 1px rule running to the margin.
+/// Home's one head, at **two weights** — and the second weight is the whole
+/// answer to *"sections aren't differentiated"*.
 ///
-/// Home draws its own rather than taking `CSSectionHead`, which still sets its
-/// title through `csEyebrow` and the old tracked-mono voice; that component
-/// belongs to every other surface until Wave 8 migrates it, and changing it
-/// here would restyle nine screens that have not had their wave yet.
+/// `.section` names the block: `agate` at `mut` with a 1px rule running to the
+/// margin. Home draws its own rather than taking `CSSectionHead`, which still
+/// sets its title through `csEyebrow` and the old tracked-mono voice; that
+/// component belongs to every other surface until Wave 8 migrates it, and
+/// changing it here would restyle nine screens that have not had their wave yet.
+///
+/// `.period` is the wire's **dateline** — `displayS` 24 in `ink` over rows set
+/// at `bodyS` 15 `mut`. That is a 1.6× size step and a full contrast step in
+/// one object, which is what an eye reads as a new section before it reads a
+/// word. It carries no rule: `s5` of air above it and the size step are the
+/// separation (BRIEF §32 — structure without boxes), and a second hairline
+/// under a 24pt line would be the head competing with the rows for the same
+/// device. It is `displayS` and never `display`: §1.5 allows the viewport
+/// exactly one `display` and the masthead has it.
 struct HomeSectionRule: View {
+  enum Weight { case section, period }
   @Environment(\.cs) private var cs
   let title: String
-  init(_ title: String) { self.title = title }
+  let weight: Weight
+  init(_ title: String, weight: Weight = .section) { self.title = title; self.weight = weight }
   var body: some View {
-    HStack(alignment: .center, spacing: CSTokens.Space.s3) {
-      Text(title).csType(.agate, caps: true).foregroundStyle(cs.mut)
-        .fixedSize()
+    switch weight {
+    case .section:
+      HStack(alignment: .center, spacing: CSTokens.Space.s3) {
+        Text(title).csType(.agate, caps: true).foregroundStyle(cs.mut)
+          .fixedSize()
+          .accessibilityAddTraits(.isHeader)
+        CSRule()
+      }
+    case .period:
+      Text(title).csType(.displayS)
+        .foregroundStyle(cs.ink)
+        .fixedSize(horizontal: false, vertical: true)
         .accessibilityAddTraits(.isHeader)
-      CSRule()
     }
   }
 }
@@ -147,7 +180,15 @@ struct HomeWireSlat: View {
           .frame(maxWidth: .infinity, alignment: .leading)
         }
         if let g = row.gross {
+          // **THE RULE IS THE WIDTH OF ITS COLUMN** (§0.2), and without this it
+          // was the width of half the page: `CSRule` is a bare `Rectangle`, so
+          // the figure's stack reads as FLEXIBLE inside an `HStack` and took
+          // an equal share — which left "89 at UNM Championship — 1.4 over your
+          // playing HCP." breaking over four lines beside a 2pt rule running to
+          // the margin. `fixedSize` proposes the column its own ideal width,
+          // which is the label's, and hands the rest back to the sentence.
           CSFigure("\(g)", size: .m, label: "Gross")
+            .fixedSize(horizontal: true, vertical: false)
             .frame(minWidth: 62, alignment: typeSize.isA11y ? .leading : .trailing)
         }
       }
@@ -274,6 +315,59 @@ struct HomeWireCourse: View {
   }
 }
 
+// MARK: - Weight 3 · a ranked competition item
+
+/// **THE RANKER PUT THIS ABOVE EVERY BOARD NOTE; THE PAGE HAS TO SAY SO.**
+/// A clash that is open, a standing that has moved, a plan on the books — the
+/// shipped wire drew all three at `bodyS` 15 `mut` behind a 34pt date column,
+/// which is the same object it drew *"Fellas · 4 earlier league notes"* with.
+/// Ten rows of one weight is the wall the owner photographed.
+///
+/// So it takes the page's reading size in `ink` — `body` 17, one step up and
+/// one contrast step brighter than the quiet line beneath it — and its stamp
+/// is a **clock** rather than a date, because a clash that closes in six days
+/// has a clock and "Sun" is not one.
+///
+/// **IT DOES NOT WEAR EMBER.** §2.4 gives the live metal exactly two seats per
+/// viewport and the lead already holds both (its dot and its door). A live
+/// thing on the wire reads as live through its clock and its weight, which is
+/// how a printed board does it and costs the page no metal.
+struct HomeWireItem: View {
+  @Environment(\.cs) private var cs
+  let headline: String
+  let stamp: String?
+  let act: (() -> Void)?
+
+  var body: some View {
+    if let act {
+      Button(action: act) { row.contentShape(Rectangle()) }
+        .buttonStyle(.plain)
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel([headline, stamp].compactMap { $0 }.joined(separator: ". "))
+    } else {
+      row.accessibilityElement(children: .combine)
+    }
+  }
+
+  private var row: some View {
+    HStack(alignment: .firstTextBaseline, spacing: CSTokens.Space.s3) {
+      Text(headline).csType(.body).foregroundStyle(cs.ink)
+        .fixedSize(horizontal: false, vertical: true)
+        .frame(maxWidth: .infinity, alignment: .leading)
+      if let stamp {
+        Text(stamp).csType(.agateS, caps: false).foregroundStyle(cs.mut)
+          .fixedSize(horizontal: true, vertical: false)
+      }
+      if act != nil {
+        CSGlyph(.chevron, size: .inline).foregroundStyle(cs.mut)
+          .alignmentGuide(.firstTextBaseline) { $0[.bottom] - 3 }
+      }
+    }
+    .padding(.vertical, CSTokens.Space.s3)
+    .frame(minHeight: 56)
+  }
+}
+
 // MARK: - Weight 4 · the season moment
 
 /// The takeover band — the biggest static object on Home, and it belongs to
@@ -321,14 +415,22 @@ struct HomeWireTakeover: View {
 
 // MARK: - Weight 5 · minor activity
 
-/// One 44pt line: a day marker in `agateS` `mut`, the sentence in `bodyS`
-/// `mut`, and a drawn chevron **only when the line knows where it goes**
-/// (D219). A line that knows nothing is a note — plain text, no glyph disc, no
-/// chevron, never a dimmed button.
+/// One 44pt line: the sentence in `bodyS` `mut`, its date as a stamp at the
+/// **trailing** edge, and a drawn chevron **only when the line knows where it
+/// goes** (D219). A line that knows nothing is a note — plain text, no glyph
+/// disc, no chevron, never a dimmed button.
 ///
-/// The marker is `mut` and never `dim`: `dim` is 3.15 / 2.89 and may not carry
-/// a word (§16.1). Its quietness comes from size, from column position and
-/// from the row's own rule.
+/// **THE DATE CAME OUT OF THE LEFT COLUMN, AND THAT IS HALF OF WHY THE WIRE
+/// STOPPED READING AS A TABLE** (D280). A 34pt leading column of `Sun Sun Sun
+/// Aug 31 Aug 31` in front of every sentence is a database's date field, and
+/// it pushed every headline off the margin the masthead, the lead, the ME
+/// strip and the floor all align to. With the stamp trailing, the wire is a
+/// column of sentences that starts where the page starts; the dateline head
+/// above carries the period, and a row prints its own date only where it adds
+/// something the head did not say.
+///
+/// The stamp is `mut` and never `dim`: `dim` is 3.15 / 2.89 and may not carry
+/// a word (§16.1). Its quietness comes from size and from the row's own rule.
 struct HomeWireLine: View {
   @Environment(\.cs) private var cs
   let marker: String?
@@ -345,7 +447,7 @@ struct HomeWireLine: View {
       Button(action: act) { line.contentShape(Rectangle()) }
         .buttonStyle(.plain)
         .accessibilityElement(children: .ignore)
-        .accessibilityLabel([marker, text].compactMap { $0 }.joined(separator: ". "))
+        .accessibilityLabel([text, marker].compactMap { $0 }.joined(separator: ". "))
     } else {
       line.accessibilityElement(children: .combine)
     }
@@ -353,14 +455,13 @@ struct HomeWireLine: View {
 
   private var line: some View {
     HStack(alignment: .firstTextBaseline, spacing: CSTokens.Space.s3) {
-      if let marker {
-        Text(marker).csType(.agateS, caps: false).foregroundStyle(cs.mut)
-          .frame(width: 34, alignment: .leading)
-          .fixedSize(horizontal: true, vertical: false)
-      }
       Text(text).csType(.bodyS).foregroundStyle(ink ?? cs.mut)
         .fixedSize(horizontal: false, vertical: true)
         .frame(maxWidth: .infinity, alignment: .leading)
+      if let marker {
+        Text(marker).csType(.agateS, caps: false).foregroundStyle(cs.mut)
+          .fixedSize(horizontal: true, vertical: false)
+      }
       if act != nil {
         CSGlyph(.chevron, size: .inline).foregroundStyle(cs.mut)
           .alignmentGuide(.firstTextBaseline) { $0[.bottom] - 3 }
