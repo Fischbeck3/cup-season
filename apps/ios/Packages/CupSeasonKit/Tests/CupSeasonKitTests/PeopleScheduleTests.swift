@@ -64,7 +64,7 @@ private func row(id: UUID = UUID(), name: String = "Galen", playOn: String, mine
     let byDay = CalendarBuilder.items(month: month, schedule: rounds, spans: spans, current: cur)
     #expect(byDay[26]?.contains(.league(text: "PIGL — season ends, cup decided", gold: true)) == true)
     #expect(byDay[1]?.contains(.league(text: "Aug closes — floors & bonuses assessed", gold: false)) == true)
-    #expect(byDay[6]?.contains(.league(text: "Week closes — snapshot recorded", gold: false)) == true)   // a Sunday inside the season
+    #expect(byDay[6]?.contains(.league(text: "Week closes — the table is recorded", gold: false)) == true)   // a Sunday inside the season
     #expect(byDay[6]?.contains(where: { if case .round = $0 { return true }; return false }) == false)
     #expect(byDay[13]?.contains(.league(text: "The Sunday Cup — first tee", gold: false)) == true)
     #expect(byDay[5]?.filter { if case .round = $0 { return true }; return false }.count == 2)

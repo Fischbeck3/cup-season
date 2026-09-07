@@ -306,7 +306,10 @@ public final class BoardStore {
 
   public func announce(_ text: String) async -> Bool {
     let v = text.trimmingCharacters(in: .whitespacesAndNewlines)
-    guard !v.isEmpty else { toast = "Type the announcement first, then 📣"; return false }
+    // **A TOAST NAMES THE CONTROL IN WORDS.** This pointed at a glyph — and
+    // the glyph it pointed at is drawn now, so the sentence pointed at
+    // nothing. LINT-12 and LINT-13 both.
+    guard !v.isEmpty else { toast = "Type the announcement first, then send it"; return false }
     do {
       try await repo.announce(league: leagueId, body: v)
       toast = "Announced. The league heard you."

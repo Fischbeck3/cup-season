@@ -84,9 +84,6 @@ struct SeasonCeremonyView: View {
                   // labels under one rule read as two labels, not as a cause
                   CSFigure(PotMath.money(mine.cents), size: .l, metal: .earned,
                            label: (["You're owed"] + mine.why).joined(separator: " · "))
-                  // the ledger line, verbatim, once per money surface
-                  Text(MoneyCopy.ledger).csType(.bodyS).foregroundStyle(d.mut)
-                    .fixedSize(horizontal: false, vertical: true)
                 }
               }
               if !st.rows.isEmpty && st.potCents > 0 { ledger(st) }
@@ -197,12 +194,18 @@ struct SeasonCeremonyView: View {
         // D106: the truth about the shortfall, by name
         if st.stillOwedCents > 0 { payRow("Still owed to the pot", st.owing.joined(separator: ", "), st.stillOwedCents) }
       }
-      // the ledger line is printed ONCE per money surface; the stake line above
-      // carries it when you are owed, so this is the case where nobody is
-      if st.mine == nil || st.potCents == 0 {
-        Text(MoneyCopy.ledger).csType(.bodyS).foregroundStyle(d.mut)
+      // **THE FOOT, AND ONLY THE FOOT.** D273 puts the line at the foot of the
+      // money surface, and this surface printed it in TWO places — once
+      // mid-page above `THE POT` beside the figure you are owed, and once
+      // here — so which one a golfer read depended on whether they had won
+      // anything. It is here, under the leaf, once, in `agateS` like every
+      // other printing of it in the product.
+      VStack(alignment: .leading, spacing: CSTokens.Space.s2) {
+        CSRule()
+        Text(MoneyCopy.ledger).csType(.agateS, caps: false).foregroundStyle(d.mut)
           .fixedSize(horizontal: false, vertical: true)
       }
+      .padding(.top, CSTokens.Space.s2)
     }
   }
 

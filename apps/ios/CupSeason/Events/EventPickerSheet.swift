@@ -42,7 +42,7 @@ struct EventPickerSheet: View {
             style("The Ryder",
                   "Two teams · each week you play one opponent · first team past halfway wins") { ryder = true }
             if majorDoor {
-              style("A Major", "A championship window · best card takes the jug") { major = true }
+              style("A Major", "A championship window · best round takes the jug") { major = true }
             }
           }
           // A-4 / T-12 · "mint" is the engine's verb. F-16 · and the sentence

@@ -1091,7 +1091,14 @@ let VOCAB_LAWS = null;
        `SEEDS LOCKED` on the season page. */
     [5, 'the season starts; nothing locks', [/lock the bylaws/i, /lock (it|them) in/i, /\bseeds? locked\b/i, /rosters locked/i, /squads locked/i, /\bhas locked\b/i, /\bmore locks\b/i], { sql: true }],
     [6, 'the rules, never the bylaws', [/bylaws/i]],
-    [7, 'a round posts to your rounds', [/\bon your card\b/i, /hit your card/i, /pinned to your card/i]],
+    /* `on the card` is the SEVENTH phrasing of the retired record sense, and
+       `HomeWireCopy` — a file this overhaul ADDED — wrote it on Home's wire.
+       The row's own note warned that a grep for one of them lets the other
+       five ship; this is that, observed. The PROFILE sense ("name on the
+       card", "photo on the card") is the credential and stays exempt, which
+       is why the pattern requires a ROUND's verb in front of it. */
+    [7, 'a round posts to your rounds', [/\bon your card\b/i, /hit your card/i, /pinned to your card/i,
+                                         /\b(round|score|gross)\b[^.]{0,24}\bon the card\b/i]],
     [8, 'one money noun', [/post a stake/i, /the other stakes/i, /pot sheet/i, /prize pool/i]],
     [9, 'the clash, never the duel', [/\bduels?\b/i]],
     [10, 'a week, never a session', [/\bsessions?\b/i]],
@@ -1102,8 +1109,18 @@ let VOCAB_LAWS = null;
     [15, 'vouched by the group', [/attest/i]],
     [16, 'never a printed seat count', [/seats?\s+open/i, /\b\d+\s+seats?\b/i, /\bSEATS\b/]],
     [17, 'the six stage words only', [/LIVE NOW/, /CAPTAINS READY/, /The Pro has the list/i, /captains draft/i], { sql: true, listing: true }],
-    [18, 'the live round says the word', [/RIDING/, /DIED CARRIED/, /BRAGGING POINTS/, /\b3U\b/, /EST .*IDX/, /\bSTK\b/, /\bSELF\b/, /\bSI \d/]],
+    /* `\bSI \d` catches `SI 14` in a sentence and let a bare COLUMN HEAD
+       walk straight through — `label("SI")`, `cell("SI")` — which is exactly
+       the hole §4's own note describes for check 7. A standalone `SI` inside a
+       quoted string is now a hit; `SI` inside an identifier still is not. */
+    [18, 'the live round says the word', [/RIDING/, /DIED CARRIED/, /BRAGGING POINTS/, /\b3U\b/, /EST .*IDX/, /\bSTK\b/, /\bSELF\b/, /\bSI \d/, /^SI$/]],
     [19, 'the ledger says the consequence', [/MONTH FORFEITED/i, /floors? waived/i, /month forfeited/i, /\/mo — posted/i, /^Floor $/], { sql: true }],
+    /* §4 row 35 · `snapshot` is on §3.1's never-print list and had no ship-list
+       row, so three live strings said it — one of them on a pane this overhaul
+       REBUILT. The schema's own identifiers are matched only as a WORD a
+       golfer could read: a quoted `snapshot` in prose, never `snapshot_week`
+       in an identifier or `standings_snapshots` in a query. */
+    [35, 'a week closes; nothing is snapshotted', [/\bsnapshots?\b(?![_\w])/i]],
     [20, 'the Pro, never the commissioner', [/commissioner/i]],
     [21, 'trophies, never hardware', [/stage it/i, /display case/i, /\bhardware\b/i]],
     /* F-5 · the same widening. "league mate" was the only inflection grepped;
@@ -2242,7 +2259,14 @@ const lint = (id, name, hits, note = '') => {
   return pass(`${id} · ${name}`, base === 0 ? `zero, and held there${note ? ' · ' + note : ''}` : `${n} at baseline, and none new${note ? ' · ' + note : ''}`);
 };
 
-/* LINT-04 · every radius is a token. The audit counted 91 hand-typed radii in
+/* LINT-05 · every radius is a token. (The comment said LINT-04 for three
+   waves — Wave 0b swapped the two ids to match `UI_SYSTEM` §17 and wrote in
+   its own report that a table and a codebase disagreeing about a name is "the
+   specific failure this wave exists to prevent". A reader chasing the COLOUR
+   lint landed here, which is one reason `Color(hex:` survived eight sites.
+   The real LINT-04 is ~100 lines below, at "no colour invented in Swift".)
+
+   The audit counted 91 hand-typed radii in
    11 distinct values against 5 the system owns — which is what makes a corner
    read as "some rounding" rather than as a panel, a control, a sheet or an
    object. The five are r 16 · rc 10 · rs 24 · p 3 · rx 28; a pill is a
@@ -2342,8 +2366,18 @@ const lint = (id, name, hits, note = '') => {
      plausible warm portrait would have flattered it. Both are `#if DEBUG` and
      neither ships, so they are exempt BY NAME rather than by a baseline: a
      baseline on a zero-tolerance check is a hole with a number written on it. */
+  /* **AND IT HAS TO MATCH THE FORM THIS REPO ACTUALLY WRITES.** The regex was
+     `Color(red:` / `Color(white:` / `Color(hue:` and reported "zero, and held
+     there" for three waves while EIGHT literals shipped as `Color(hex: 0x…)`,
+     which is the product's own convenience initialiser and the only form
+     anybody here uses. Five of them were the RETIRED D103b palette — Fairway
+     `#2FA46A` and `pine` `#12271B`, both deleted by name in D270 — painting
+     the Share control and the ground of the screen a golfer sees the moment
+     they finish a round. A lint that cannot see the form the codebase writes
+     is a lint that reports on a codebase that does not exist. */
   lint('LINT-04', 'no colour invented in Swift',
-       scan(/(Color|UIColor)\((red|white|hue):/, { skip: /Generated\/|CredentialDev\.swift|DeveloperHarness\.swift/ }),
+       scan(/(Color|UIColor)\((red|white|hue|hex):|UIColor\(rgb:|Color\(\s*"#/,
+            { skip: /Generated\/|CredentialDev\.swift|DeveloperHarness\.swift/ }),
        'every value comes from tokens.json; the two DEBUG fixtures are exempt by name');
 
   /* LINT-09 · no border. The system has NO BORDER TOKEN; the only outlines are
@@ -2719,6 +2753,17 @@ const lint = (id, name, hits, note = '') => {
       if (/enum\s+CSButtonStyle[^\n]*\bgold\b/.test(f.text)) hits.push(`${f.rel} CSButtonStyle names a gold case`);
     }
     hits.push(...scan(/\.tint\(\s*(cs|palette|d)\.gold\b/));
+    /* **AND A LEGEND KEY, WHICH IS TAXONOMY WEARING THE EARNED METAL.** The
+       ButtonStyle scope caught none of the four sites the repair pass found:
+       a colour legend whose key was gold (`legend(cs.gold, "IN YOUR
+       SEASONS")`), the calendar dot that key names, a WARNING paragraph about
+       a push-registration failure, and a gold SF Symbol trophy decorating a
+       leagueless door. Nobody earns a legend, a warning or an ornament. The
+       rail, the leaf and the pot keep their gold; a `legend(`, a `dot(`
+       returning it from a taxonomy switch, and gold on an `Image(systemName:`
+       do not. */
+    hits.push(...scan(/\blegend\(\s*(cs|palette|d)\.gold\b/));
+    hits.push(...scan(/Image\(systemName:[^)]*\)[^\n]*foregroundStyle\(\s*(cs|palette|d)\.gold\b/));
     if (!/struct\s+\w+\s*:\s*(ButtonStyle|PrimitiveButtonStyle)\b/.test('struct CSGoldStyle: ButtonStyle {')) {
       hits.push('self-test failed: LINT-11 no longer notices a ButtonStyle');
     }
@@ -2783,11 +2828,22 @@ const lint = (id, name, hits, note = '') => {
     lint('LINT-21', 'every empty state has a door', hits, 'primary · link · elsewhere, and the compiler enforces it');
   }
 
-  /* LINT-23 · the ledger line is one constant, on both clients. D273 —
-     "Cup Season keeps the ledger; the money moves between friends" is printed
-     ONCE per client and read from `MoneyCopy.ledger` / `CS_LEDGER`. A retyped
-     copy is a sentence that can drift a word and then say something the
-     product does not do with money. */
+  /* LINT-23 · the ledger line is one constant, on both clients, AND every
+     standalone printing of it wears the same role. D273 as amended (D283) —
+     `brand-canon` §3 says the sentence renders verbatim EVERYWHERE money
+     appears, from one constant per client; D273 says that where it stands
+     alone as a policy line it is `agateS` at the foot, under a hairline.
+
+     THE LITERAL CHECK ALONE COULD NEVER FAIL ON THE REAL DRIFT. It greps for
+     a retyped `keeps the ledger`, so eight phone printings in three different
+     type roles — `.body` on the Record page, `.bodyS` on the ceremony and the
+     wizard, `agateS` only on the pot — reported "zero, and held there" for
+     three waves. The FORM is the half that drifts, so the form is checked:
+     a `Text(MoneyCopy.ledger)` in any role but `agateS` is a hit. A printing
+     embedded in prose (string concatenation, an interpolation inside a longer
+     sentence) is not a `Text(MoneyCopy.ledger)` and is not counted — that is
+     D273's own stated exemption for the join flow, the pass cards and the
+     wizard's disclosure. */
   {
     const PHRASE = /keeps the ledger/;
     const hits = [];
@@ -2802,10 +2858,26 @@ const lint = (id, name, hits, note = '') => {
       if (/CS_LEDGER\s*=/.test(line)) return;
       hits.push(`index.html:${i + 1} ${line.trim().slice(0, 70)}`);
     });
+    /* the FORM: a standalone printing is `agateS` and nothing else */
+    const STANDALONE = /Text\(\s*MoneyCopy\.ledger\s*\)\s*\.csType\(\s*\.([A-Za-z]+)/;
+    let standalone = 0;
+    for (const f of src) {
+      f.lines.forEach((line, i) => {
+        if (line.trimStart().startsWith('//')) return;
+        const m = line.match(STANDALONE);
+        if (!m) return;
+        standalone += 1;
+        if (m[1] !== 'agateS') {
+          hits.push(`${f.rel}:${i + 1} the ledger line set in .${m[1]} — a standalone printing is agateS (D273)`);
+        }
+      });
+    }
+    if (standalone === 0) hits.push('self-test failed: LINT-23 can no longer see a standalone printing');
     if (!PHRASE.test('Cup Season keeps the ledger; the money moves between friends.')) {
       hits.push('self-test failed: LINT-23 no longer notices the sentence');
     }
-    lint('LINT-23', 'the ledger line is printed once per client', hits, 'MoneyCopy.ledger on the phone · CS_LEDGER on the desk');
+    lint('LINT-23', 'the ledger line is one constant, and one form', hits,
+         `MoneyCopy.ledger on the phone · CS_LEDGER on the desk · ${standalone} standalone printing(s), all agateS`);
   }
 
   /* LINT-24 · a pushed screen does not name itself twice. `CSPageHeader` IS

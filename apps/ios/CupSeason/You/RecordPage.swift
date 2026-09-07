@@ -123,7 +123,7 @@ struct RecordPage: View {
       // §9.5 · the ledger line renders beneath the leaf on any viewport that
       // shows a money figure, verbatim, from one constant (LINT-23).
       if model.showsMoney {
-        Text(MoneyCopy.ledger).csType(.body).foregroundStyle(cs.mut)
+        Text(MoneyCopy.ledger).csType(.agateS, caps: false).foregroundStyle(cs.mut)
           .fixedSize(horizontal: false, vertical: true)
           .padding(.top, CSTokens.Space.s3)
       }

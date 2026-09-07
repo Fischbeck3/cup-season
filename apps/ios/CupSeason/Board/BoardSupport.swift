@@ -20,11 +20,17 @@ extension CSPalette {
   func squad(_ ci: Int) -> Color { [sq0, sq1, sq2, sq3][max(0, min(3, ci))] }
 }
 
-/// `founderTag` (10115): "✦ Founder" beside the one founder's name.
+/// `founderTag` (10115): the founder's tag beside the one founder's name.
+///
+/// **WAVE 11 · the `✦` and the retired 11pt tracked-mono-caps voice both go.**
+/// `FoundingBadge.label` ships the dingbat (`LINT-12`) and this drew it in
+/// `CSFont.label`, in a file Wave 8's sweep edited without reaching this line.
+/// `CSSlot` is the system's own gold field for exactly this — it is the mark
+/// the credential wears for the same fact, so the product says *founder* one
+/// way, and §17's whitelist already counts it.
 struct FounderTag: View {
-  @Environment(\.cs) private var cs
   var body: some View {
-    Text("✦ Founder").font(CSFont.label).foregroundStyle(cs.gold)
+    CSSlot("Founder")
       .accessibilityLabel("Cup Season founder")
   }
 }

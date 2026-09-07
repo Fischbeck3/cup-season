@@ -95,7 +95,10 @@ import Foundation
 
   @Test func theStakesTailCarriesNoMoney() {
     let tail = RyderMath.stakesTail(potSplit: "places")
-    #expect(tail == "The pot · 60/25/15 · best card each week")
+    // TERMINOLOGY §4 · the card is the CREDENTIAL, so `best card each week`
+    // read as "the best credential each week". The artboard's own word is
+    // ROUND, and it has no collision.
+    #expect(tail == "The pot · 60/25/15 · best round each week")
     #expect(!tail.contains("$"))
     #expect(RyderMath.stakesTail(potSplit: "wta").contains("winner takes all"))
   }

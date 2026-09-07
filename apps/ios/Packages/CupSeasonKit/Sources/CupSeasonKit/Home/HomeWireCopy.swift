@@ -33,7 +33,12 @@ public enum HomeWireCopy {
     }
     if r.is_pr == true { return "\(g) at \(course) — a personal best." }
     if r.is_sub80 == true { return "\(g) at \(course) — broke 80 for the first time." }
-    if r.is_first == true { return "\(g) at \(course) — a first round on the card." }
+    // TERMINOLOGY §4 row 7 retires the RECORD sense of "your card" — the
+    // card is the CREDENTIAL now — and warns that the sense has at least six
+    // phrasings, so "a grep for one of them lets the other five ship". This
+    // file is new and wrote a seventh; check 7's three patterns
+    // (`on your card`, `hit your card`, `pinned to your card`) all missed it.
+    if r.is_first == true { return "\(g) at \(course) — their first round posted." }
     if let p = r.pvi {
       let phrase = r.is_me == true ? CSBands.vsPhrase(p) : CSBands.theirs(CSBands.vsPhrase(p))
       return "\(g) at \(course) — \(phrase)."

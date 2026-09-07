@@ -95,7 +95,8 @@ struct LiveCardView: View {
   /// numeral with no subject.
   private var siRow: some View {
     GridRow {
-      cell("SI", w: nameW, align: .leading).foregroundStyle(cs.mut)
+      // TERMINOLOGY §3.1 · the engine word never reaches a surface: HCP.
+      cell("HCP", w: nameW, align: .leading).foregroundStyle(cs.mut)
         .accessibilityLabel("Stroke index row")
       ForEach(0..<holes, id: \.self) { h in
         let known = h < s.course.si.count

@@ -324,7 +324,13 @@ public enum MeStripCopy {
     // so the pair read as a split sentence while its three neighbours read as
     // figures. The word belongs in the label.
     let value = CSCopy.dollars(cents: cents)
-    return Slot(fact: .myMoney, label: "YOU STILL OWE", value: value, door: .pot(nearest.league_id),
+    return Slot(fact: .myMoney, // **THE THREE MONEY WORDS ARE NAMED, AND THIS IS NOT ONE OF THEM.**
+        // Non-negotiable 8 spells them exactly — `YOU OWE` / `YOU'RE OWED` /
+        // `THE POT` — and the artboard prints `YOU OWE`. The rail printed a
+        // fourth label, on the one place money appears on the product's front
+        // page. The *still* rides the SENTENCE (`SeasonFacts.owe` already
+        // opens with it), which is where a nuance belongs.
+        label: "YOU OWE", value: value, door: .pot(nearest.league_id),
                 voiceOver: "you still owe \(CSCopy.dollars(cents: cents))")
   }
 
@@ -348,7 +354,7 @@ public enum MeStripCopy {
   ///
   /// `SeasonFacts.owe` opens with the amount — *"You still owe $75 · ask the
   /// Pro how to pay"* — because on the pot pane it stands alone and has to.
-  /// In the strip it sits one row under `$75 · YOU STILL OWE`, so the opening
+  /// In the strip it sits one row under `$75 · YOU OWE`, so the opening
   /// clause is the same fact restated in the same words a line apart, which is
   /// the L-34 finding the audit filed and then reproduced.
   ///

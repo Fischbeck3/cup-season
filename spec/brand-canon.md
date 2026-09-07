@@ -94,25 +94,43 @@ rule), sportsbook framing (odds, action, units), corporate golf-speak
 ("synergy scramble"). The crew's own vocabulary (already in reactions) beats
 any invented slang.
 
-## 4. The visual system (LIVE — v23.131 tokens, verified in index.html 2026-07-17)
+## 4. The visual system (LIVE — re-cut by D270, verified 2026-09-07)
+
+> **AMENDED 2026-09-07 (the repair pass, D283).** This section was written
+> against the v23.131 palette and was still headed LIVE eight commits after
+> D268/D270 replaced most of it — naming `Dusk #0A0E0C` as the ground, Fairway
+> as the brand, Charter as the serif, three radii and one easing, none of which
+> is what ships. The palette, type, radii and motion rows are re-printed below
+> at the shipped values. `packages/tokens/tokens.json` is the SOURCE and
+> `docs/ui-overhaul-2026-09-06/UI_SYSTEM.md` §2 is the reasoning; this table is
+> the canon's own summary of them and it is a copy, so it says so.
+>
+> **The one rule below did not change and is not up for amendment.**
 
 Two rooms, one club:
 
 ### The trophy room at dusk (dark — the app's home mood)
 | Token | Hex | Role |
 |---|---|---|
-| Dusk | `#0A0E0C` | the ground (green-black, not gray-black) |
-| Ink | `#ECEEF2` | text |
-| **Fairway** | `#2FA46A` | **primary action + brand** — deep Masters green |
-| Pine | `#0E3B24` | the tee, gradient partner, depth |
-| **Champagne** | `#D8B25A` | **earned only** — see the one rule |
-| Dawn | `#63ADFF` | links · live |
-| Mint | `#43E07C` | semantic only: up, positive, birdie, LIVE dot |
-| Squad quartet | `#57A8FF` `#FB8B4B` `#A78BFA` `#2FD3BE` | squads (blue/orange/violet/teal) |
+| `ground.bg0` | `#0F1A15` | the ground (green-black, not gray-black) |
+| `text.ink` | `#F1F4EF` | text |
+| **`metal.brand` (ember)** | `#E8622C` | **live, and the one primary action** |
+| **`metal.gold` (champagne)** | `#D8B25A` | **earned only** — see the one rule |
+| `semantic.pos` | `#4EC584` | semantic only: up, positive, birdie |
+| `semantic.cool` | `#7F8C95` | semantic only: down — never red |
+| Squad quartet | `#366F87` `#B27E7C` `#97B999` `#EDD4FA` | squads |
+| `object.ceremony` | `#0A0E0C` | the honour room, **pinned in BOTH themes** — the old Dusk, now the ground of an OBJECT rather than of the app |
+| `pigment.pig0–5` | six | a person's frozen ground (D271) |
+
+**Retired by D270, and named here so nothing writes them back:** Fairway
+`#2FA46A`, Pine `#0E3B24`, Dawn `#63ADFF`, `ground.line2`, `heat.warm/hot/fire`,
+`heat.focus`, `effect.glow`, `effect.grad`.
 
 ### The morning tee sheet (light/"paper")
-Paper `#EFF2EE` ground · fairway deepens to `#15743F` · champagne goes ink-dark
-`#9A7418` · dawn `#2C6E9E`. Same system, morning light.
+Paper `#F4F1E9` ground · ink `#151B17` · ember deepens to `#A8420F` ·
+champagne goes ink-dark `#7A5A12` · `pos` `#0B7340` · `neg` `#B02A20`. Same
+system, morning light. **The `ceremony` ramp does not re-print** — a physical
+object looks the same in both rooms.
 
 ### The one rule (the most important sentence in this doc)
 > **Champagne gold means *earned* — a lead, the pot, a trophy, a founder,
@@ -124,21 +142,31 @@ earned." (History: gold carried brand chrome v23.106–130 to solve the Arccos
 problem; Batch B moved chrome to fairway and made gold strict. Both moves were
 deliberate; don't relitigate either without a decision-log entry.)
 
-### Type — three families, three jobs
-- **Serif** (Charter/Iowan/Palatino stack) — **the story.** Headlines, hero
-  numbers, anything with ceremony. Speaks in sentences.
-- **Mono** — **the record.** Eyebrows, labels, points, standings, tabular
-  numerals always. Speaks in entries.
-- **Sans** (system) — **the workhorse.** UI controls, body, forms.
-Serif never on controls; mono never for prose; no fourth family, ever.
+### Type — four families, four jobs (D268)
+- **Board** (IBM Plex Sans Condensed, bundled) — **the numbers and the
+  names.** Every figure, every display line, every agate label and every
+  column head. It is what a scoreboard is set in, and it is the face that
+  carries the brand.
+- **Serif** (`ui-serif` / New York) — **the story.** The chapter line, the
+  lead, the season's prose. Speaks in sentences. *(Charter is RETIRED; the
+  system serif is the platform's.)*
+- **Mono** (IBM Plex Mono, bundled) — **the record.** Codes, handles, times,
+  scorecard columns. Speaks in entries.
+- **Sans** (SF Pro) — **the workhorse.** Body, forms, anything read as prose.
+Serif never on controls; mono never for prose; **no fifth family, ever.**
 
 ### Shape & motion
-- Radii tokens 16 / 10 / 24 (cards / controls / sheets) — Batch A.
-- **One easing everywhere: `--roll` `cubic-bezier(.16,.84,.36,1)` — "the
-  roll-out," a putt dying at the hole.** Motion is how the brand feels alive
-  without being busy. Nothing bounces; things *roll out and settle*.
-- Backgrounds may carry the faint dawn/champagne radial glows (shipped) —
-  atmosphere, never decoration on components.
+- Radii tokens **16 / 10 / 24 / 3 / 28** — `r` object · `rc` control · `rs`
+  sheet · `p` panel · `rx` (D270). Five, and `LINT-05` fails a sixth. A pill is
+  a `Capsule()`, which is not a radius.
+- **Two easings, and the second one is named:** `--roll`
+  `cubic-bezier(.16,.84,.36,1)` — "the roll-out," a putt dying at the hole —
+  for anything arriving or settling; `--snap` `cubic-bezier(.2,0,0,1)` at 180ms
+  for a control answering a finger. Nothing bounces; things *roll out and
+  settle*.
+- **Backgrounds carry no glow, no wash and no gradient.** The dawn/champagne
+  radials are deleted with their tokens (D270, D272): an image is a
+  photograph, a drawn card or a contour, and a ground is painted once.
 
 ## 5. The 2030 trajectory (what the brand must grow into)
 

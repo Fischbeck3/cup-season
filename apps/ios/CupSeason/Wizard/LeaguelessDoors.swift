@@ -98,7 +98,10 @@ struct RunItBackCard: View {
     CSBand(.tone, padding: CSTokens.Space.s3) {
       VStack(alignment: .leading, spacing: 10) {
         HStack(spacing: 12) {
-          Image(systemName: "trophy").font(.system(size: 26, weight: .regular)).foregroundStyle(cs.gold).frame(width: 34).accessibilityHidden(true)
+          // D277 · one icon family, and gold is not a decoration. An SF Symbol
+          // trophy in the earned metal, decorating a door nobody has won
+          // anything through, is both halves of the rule at once.
+          CSTrophyMark("cup", size: 26).frame(width: 34).accessibilityHidden(true)
           VStack(alignment: .leading, spacing: 2) {
             Text(RunItBack.eyebrow).csEyebrow()
             Text(m?.name ?? "Your league").csType(.name).foregroundStyle(cs.ink)

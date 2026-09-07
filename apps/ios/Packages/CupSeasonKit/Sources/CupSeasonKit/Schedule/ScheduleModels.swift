@@ -278,7 +278,7 @@ public enum CalendarBuilder {
       for d in 1...month.daysInMonth {
         let iso = month.iso(d)
         if ScheduleDates.jsDay(iso) == 0 && iso > cur.startsOn && iso <= cur.endsOn {
-          add(iso, .league(text: "Week closes — snapshot recorded", gold: false))
+          add(iso, .league(text: "Week closes — the table is recorded", gold: false))   // TERMINOLOGY §3.1
         }
       }
     }
@@ -351,7 +351,7 @@ public struct WeekLine: Sendable, Equatable, Identifiable {
     }
   }
 
-  public static let empty = "Nothing recorded yet: the first snapshot writes Sunday night, and every week lands here for the season."
+  public static let empty = "Nothing recorded yet: the first week closes Sunday night, and every week lands here for the season."
 }
 
 // MARK: - Up Next (10653–10681)

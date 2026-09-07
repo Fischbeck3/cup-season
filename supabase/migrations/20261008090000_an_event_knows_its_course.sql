@@ -17,7 +17,8 @@
 --     the bare `ceremony` ground.
 --
 -- That is a correct surface, not an unfinished one: `event-callout` is the
--- rendered proof. This buys the dateline's first line and the contour's seed.
+-- rendered proof. This file buys the PLACE those two things would be read
+-- from — see the closing note: nothing writes them yet.
 --
 -- SHAPE: exactly what `scheduled_rounds` already carries — FK-by-convention to
 -- `api_courses` (a text id from the courses cache, never a hard reference, so a
@@ -39,6 +40,30 @@ comment on column public.events.course_label is
 grant select (course_id) on public.events to authenticated;
 grant select (course_label) on public.events to authenticated;
 
--- No UPDATE grant, deliberately: a write with game consequences is an RPC, and
--- the course is set at setup by `create_event` (security definer), which needs
--- no column privilege of its own.
+-- ============================================================================
+-- THERE IS NO WRITER YET, AND THAT IS THE WHOLE OF IT. (Corrected 2026-09-07.)
+--
+-- This file used to close by saying "the course is set at setup by
+-- `create_event` (security definer), which needs no column privilege of its
+-- own." **That reads as a description of a feature and it is not one.**
+-- `create_event` is not changed by this file — there is no create-or-replace
+-- in it — and its signature carries no course argument at all
+-- (`p_name, p_starts_on, p_sessions, p_session_weeks, p_draw_rule, p_team_a,
+-- p_team_b` plus three optionals). Neither client writes the columns. So after
+-- `supabase db push` both columns are NULL for every event that exists and
+-- every event that will be created, the dateline still prints no place, and
+-- the title card still degrades to the bare ceremony ground.
+--
+-- These are GROUNDWORK COLUMNS. Pushing this file is safe, additive and
+-- correct — the read side already decodes both as optional, so there is no
+-- deploy skew either way — but it buys nothing a golfer can see until a
+-- SECOND change lands, and that change is an owner's:
+--
+--   1 · `create_event` gains `p_course_id text default null` and
+--       `p_course_label text default null` and writes them, which is an RPC
+--       SIGNATURE change and therefore a `packages/db/contract.psv` refresh
+--       and a regenerated `Rpc.swift`; and
+--   2 · the event setup sheet asks for the course, on both clients.
+--
+-- No UPDATE grant, deliberately: a write with game consequences is an RPC.
+-- ============================================================================

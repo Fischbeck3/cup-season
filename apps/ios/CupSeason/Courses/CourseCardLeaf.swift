@@ -54,14 +54,17 @@ struct CourseCardLeaf: View {
       } else if typeSize.isA11y {
         HStack(alignment: .top, spacing: 0) {
           VStack(alignment: .leading, spacing: CSTokens.Space.s2) {
-            label("Hole"); label("Par"); label("SI")
+            // TERMINOLOGY §3.1 · `SI` is an engine word and the table at :146
+            // gives the ruled replacement outright: `SI 15` → **HCP 15**. The
+            // column head walked past preflight 18, which greps `\bSI \d`.
+            label("Hole"); label("Par"); label("HCP")
           }
           ScrollView(.horizontal, showsIndicators: false) { grid }
         }
       } else {
         HStack(alignment: .top, spacing: 0) {
           VStack(alignment: .leading, spacing: CSTokens.Space.s2) {
-            label("Hole"); label("Par"); label("SI")
+            label("Hole"); label("Par"); label("HCP")   // TERMINOLOGY §3.1
           }
           grid
         }

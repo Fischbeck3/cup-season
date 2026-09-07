@@ -86,7 +86,9 @@ private let today = "2026-09-08"
     let m = Me(profile: profile(), memberships: [membership(standing: standing(rank: 2, of: 8, points: 27))])
     let s = MeStripCopy.make(m, upcoming: [plan("2026-09-12")], today: today)
     #expect(s.slots.map(\.fact) == [.myNumber, .myLastRound, .myNextRound, .myMoney])
-    #expect(s.slots.map(\.label) == ["YOUR NUMBER", "LAST", "NEXT", "YOU STILL OWE"])
+    // non-negotiable 8 names the three money words exactly, and `YOU STILL
+    // OWE` was a fourth. The *still* lives in `SeasonFacts.owe`'s sentence.
+    #expect(s.slots.map(\.label) == ["YOUR NUMBER", "LAST", "NEXT", "YOU OWE"])
     // F-17 · every slot is DATUM over NOUN: the value is a figure, never a
     // figure with a word welded on ("$75 YOU" over "STILL OWE").
     #expect(s.slots.allSatisfy { !$0.value.contains(" YOU") })
@@ -484,7 +486,7 @@ struct LongCourseNameTests {
     #expect(cut.slots.contains { $0.fact == .myNumber })
   }
 
-  /// L-34, one row apart: `$75 · YOU STILL OWE` and then, directly beneath it,
+  /// L-34, one row apart: `$75 · YOU OWE` and then, directly beneath it,
   /// "You still owe $75 · …". The instruction survives; the echo does not.
   @Test("the owe line does not repeat the figure standing above it")
   func theFigureIsSaidOnce() {

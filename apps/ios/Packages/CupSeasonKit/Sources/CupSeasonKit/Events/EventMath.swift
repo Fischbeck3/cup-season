@@ -375,12 +375,12 @@ public enum RyderMath {
     return n >= 0 && n <= 10 ? words[n] : String(n)
   }
 
-  /// The stakes line's tail: `The pot · 60/25/15 · best card each week`.
+  /// The stakes line's tail: `The pot · 60/25/15 · best round each week`.
   /// The FIGURE is drawn separately, in gold, because the pot is the surface's
   /// one gold object and it is gold ink on a numeral — never a fill, never a
   /// chip (§2 D).
   public static func stakesTail(potSplit: String?) -> String {
-    "The pot · \(potSplit == "wta" ? "winner takes all" : "60/25/15") · best card each week"
+    "The pot · \(potSplit == "wta" ? "winner takes all" : "60/25/15") · best round each week"
   }
 }
 
@@ -542,10 +542,10 @@ public enum MajorMath {
     "\(name) takes \(jug) — \(gross.map { String($0) } ?? "—"), \(vs(pvi).lowercased()) their playing HCP · cupseason.app"
   }
 
-  /// The setup sheet's window line: "Thu, Jul 9 → Sun, Jul 12 · best card by Sunday night".
+  /// The setup sheet's window line: "Thu, Jul 9 – Sun, Jul 12 · best round by Sunday night".
   public static func whenLine(finalOn: String, days: Int, calendar: Calendar = .current) -> String? {
     guard let start = EventDates.isoPlus(finalOn, -(days - 1), calendar: calendar) else { return nil }
-    return "\(EventDates.weekdayMonthDay(start, calendar: calendar)) \u{2013} \(EventDates.weekdayMonthDay(finalOn, calendar: calendar)) · best card by \(EventDates.weekdayLong(finalOn, calendar: calendar)) night"
+    return "\(EventDates.weekdayMonthDay(start, calendar: calendar)) \u{2013} \(EventDates.weekdayMonthDay(finalOn, calendar: calendar)) · best round by \(EventDates.weekdayLong(finalOn, calendar: calendar)) night"
   }
 
   /// `openMajorSetup`'s create failure (16133): the skew line, else the raw text.

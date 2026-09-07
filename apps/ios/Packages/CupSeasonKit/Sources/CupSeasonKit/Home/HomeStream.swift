@@ -220,7 +220,8 @@ public enum HomeCopy {
   public static func milestone(_ r: HomeFeedRow) -> String? {
     if r.is_pr == true { return "🔥 Personal best" }
     if r.is_sub80 == true { return "⛳ Broke 80 — first time" }
-    if r.is_first == true { return "🎉 First round on the card" }
+    // TERMINOLOGY §4 row 7 · the card is the CREDENTIAL; a round POSTS.
+    if r.is_first == true { return "🎉 First round posted" }
     return nil
   }
   public static func who(_ r: HomeFeedRow) -> String { r.is_me == true ? "You" : (r.golfer ?? "A golfer") }
@@ -281,13 +282,13 @@ public struct Occasion: Sendable, Identifiable {
     Occasion(key: "opener", window: (3, 28, 4, 13), earned: true, k: "The first one of the year", h: "Azaleas are blooming somewhere.",
              p: "One window, every card on one board, one name on the jug.", act: "Put a jug up", go: .event, marker: "azalea", leaguelessOnly: false, needsMajor: true),
     Occasion(key: "test", window: (6, 8, 6, 22), earned: true, k: "The hardest test", h: "Somewhere out there, par is winning.",
-             p: "A championship window — two to four days, best card takes it.", act: "Set the Major", go: .event, marker: "no2", leaguelessOnly: false, needsMajor: true),
+             p: "A championship window — two to four days, best round takes it.", act: "Set the Major", go: .event, marker: "no2", leaguelessOnly: false, needsMajor: true),
     Occasion(key: "oldest", window: (7, 10, 7, 24), earned: true, k: "The oldest one", h: "Links weather is a state of mind.",
              p: "One window, every card on one board, one name on the jug.", act: "Name the jug", go: .event, marker: "jug", leaguelessOnly: false, needsMajor: true),
     Occasion(key: "teams", window: (9, 18, 10, 5), earned: false, k: "The big team match", h: "Two teams. One cup. You know the one.",
              p: "One opponent a week, first past half the points. Yours can start the same weekend.", act: "Run your own", go: .event, marker: nil, leaguelessOnly: false, needsMajor: false),
     Occasion(key: "fall", window: (10, 1, 11, 20), earned: true, k: "The season's turning", h: "Cool mornings, empty fairways.",
-             p: "A fall Major — two to four days, best card takes it.", act: "Name the jug", go: .event, marker: nil, leaguelessOnly: false, needsMajor: true),
+             p: "A fall Major — two to four days, best round takes it.", act: "Name the jug", go: .event, marker: nil, leaguelessOnly: false, needsMajor: true),
     // QB-19 · **THE ONE CARD WRITTEN FOR A GOLFER WITH NOTHING RUNNING FIRED
     // TWENTY DAYS A YEAR.**
     //

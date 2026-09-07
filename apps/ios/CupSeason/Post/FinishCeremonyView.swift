@@ -24,17 +24,28 @@ struct FinishCeremonyView: View {
   @State private var thock = false
   @State private var share: PostShareItem?
 
-  // the web's finish palette, verbatim (2098, 2145–2148, 2153)
-  private let eyebrowInk = Color(hex: 0x8FA096)
-  private let bandInk = Color(hex: 0xECEEF2)
-  private let shareBg = Color(hex: 0x2FA46A)
-  private let shareInk = Color(hex: 0x06130B)
-  private let glow = Color(hex: 0x12271B)
+  // **WAVE 11 · THE FINISH IS ON THE CEREMONY RAMP, NOT ON THE OLD WEB'S
+  // HEXES.** Five literals were copied out of `index.html` and lived here in
+  // this repo's own hex form — the one form `LINT-04`'s regex could not see —
+  // so the moment a golfer finishes a round rendered in the palette D270
+  // DELETED: `#2FA46A` is Fairway, the brand green the ember replaced, and
+  // `#12271B` is `pine`, a token D270 removes by name. The Share control wore
+  // a colour that was in no token file at all.
+  //
+  // Every one of them is a `ceremony` token now, which is what a pinned
+  // physical moment is drawn on, and the Share button is the screen's one
+  // primary — so it is EMBER (non-negotiable 4), not a retired green.
+  private var eyebrowInk: Color { CSTokens.dark.ceremonyMut }
+  private var bandInk: Color { CSTokens.dark.ceremonyInk }
+  private var shareBg: Color { CSTokens.dark.ceremonyBrand }
+  private var shareInk: Color { CSTokens.dark.ceremony }
 
   var body: some View {
     ZStack {
+      // **AND THE WASH IS GONE.** A radial gradient over a ground is the one
+      // image state D272 bans by name, and this one was drawn in a deleted
+      // token. One ground, painted once (the audit's F-04 / F-05).
       CSDusk.ground.ignoresSafeArea()
-      RadialGradient(colors: [glow, CSDusk.ground], center: UnitPoint(x: 0.5, y: -0.1), startRadius: 0, endRadius: 520).ignoresSafeArea()
       VStack(spacing: 0) {
         Spacer(minLength: 24)
         Text(ceremony.eyebrow).font(CSFont.eyebrow).tracking(2.6).textCase(.uppercase).foregroundStyle(eyebrowInk)
@@ -96,7 +107,7 @@ struct FinishCeremonyView: View {
 private struct PostCupRoll: View {
   let rolled: Bool
   let reduceMotion: Bool
-  private let ink = Color(hex: 0xECEEF2)
+  private var ink: Color { CSTokens.dark.ceremonyInk }
   var body: some View {
     GeometryReader { g in
       let w = g.size.width, mid = w / 2

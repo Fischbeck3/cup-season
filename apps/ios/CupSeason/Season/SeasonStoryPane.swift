@@ -216,7 +216,9 @@ struct SeasonStoryPane: View {
     } else {
       CSEmpty(glyph: .scheduleSheet, eyebrow: "The story",
               headline: "A season's story starts with the first posted round.",
-              fact: model.seasonStory == nil ? "The story arrives with the season's first weekly snapshot." : nil,
+              // TERMINOLOGY §3.1 · `snapshot` is the engine's word for the Sunday
+              // write. A golfer's word is the WEEK closing.
+              fact: model.seasonStory == nil ? "The story starts when the first week closes." : nil,
               door: links.openRecord.map { go in .primary("Add my round", go) }
                 ?? .elsewhere("The board carries every round as it lands."))
     }

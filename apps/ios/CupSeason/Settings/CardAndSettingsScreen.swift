@@ -502,8 +502,12 @@ private struct SettingsPane: View {
       // device is really registered. When the launch sync could not reach it,
       // say that here rather than let the switch imply a row that isn't there.
       if push.enabled && push.unconfirmed {
+        // **NOBODY EARNED A PUSH-REGISTRATION FAILURE** (brand-canon §4: gold
+        // means EARNED, never chrome and never state). A warning wore the
+        // product's one earned metal; it takes `mut`, which is what a quiet
+        // caution under a switch is.
         Text("This device is on here, but we haven't been able to confirm it with the server. Reopen the app with signal, or tap Disable then Enable.")
-          .csType(.bodyS).foregroundStyle(cs.gold)
+          .csType(.bodyS).foregroundStyle(cs.mut)
       }
       Text("Milestones, results and month closes always come through. Round posts and chat each have their own switch.")
         .csType(.bodyS).foregroundStyle(cs.mut)

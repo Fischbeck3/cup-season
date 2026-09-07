@@ -95,7 +95,8 @@ struct ScheduleScreen: View {
     var t = Text(sr.play_on.map { ScheduleDates.when($0) } ?? "")
     if let c = sr.course_label { t = t + Text(" · \(c.uppercased())") }
     if let tee = sr.tee_time, !TeeTime.format(tee).isEmpty { t = t + Text(" · ") + Text(TeeTime.format(tee)).foregroundStyle(cs.ink) }   // F-10 · a clock
-    if let r = RivalryTag.of(sr.profile_id, rivals: vm.rivals) { t = t + Text(" · ") + Text(r.text).foregroundStyle(cs.gold) }
+    // brand-canon §4 · a rivalry is a RELATIONSHIP, not something won: `ink`.
+    if let r = RivalryTag.of(sr.profile_id, rivals: vm.rivals) { t = t + Text(" · ") + Text(r.text).foregroundStyle(cs.ink) }
     if sr.tagged_me == true { t = t + Text(" · ") + Text("YOU’RE IN").foregroundStyle(cs.ink) }   // F-10
     if let n = sr.note, !n.isEmpty { t = t + Text(" · “\(n)”") }
     return t
@@ -124,7 +125,11 @@ struct ScheduleScreen: View {
           ForEach(1...vm.month.daysInMonth, id: \.self) { d in cell(d) }
         }
         HStack(spacing: 12) {
-          legend(cs.brand, "ON THE SCHEDULE"); legend(cs.gold, "IN YOUR SEASONS"); legend(cs.ink, "SEASON DATE")
+          // **A LEGEND KEY IS TAXONOMY, AND TAXONOMY IS NEVER GOLD** (§4,
+          // D269: gold reachable from a legend key is gold as chrome). The
+          // three channels are the live metal, ink and `mut` — three tones a
+          // golfer can tell apart without one of them being the earned one.
+          legend(cs.brand, "ON THE SCHEDULE"); legend(cs.ink, "IN YOUR SEASONS"); legend(cs.mut, "SEASON DATE")
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(.top, 4)
@@ -137,7 +142,7 @@ struct ScheduleScreen: View {
   }
 
   private func dot(_ k: CalendarItem.Dot) -> Color {
-    switch k { case .round: cs.brand; case .leagueMate: cs.gold; case .season: cs.ink }
+    switch k { case .round: cs.brand; case .leagueMate: cs.ink; case .season: cs.mut }
   }
 
   private func cell(_ d: Int) -> some View {
@@ -188,7 +193,9 @@ struct ScheduleScreen: View {
           case .league(let text, let gold):
             HStack(spacing: CSTokens.Space.s3) {
               CSGlyph(.calendar, size: .row).foregroundStyle(cs.mut)
-              Text(text).csType(.name).foregroundStyle(gold ? cs.gold : cs.ink)
+              // the flag used to paint the row's TITLE gold; a season date is a
+              // date, so the row is ink and the flag is spent nowhere
+              Text(text).csType(.name).foregroundStyle(cs.ink)
               Spacer()
             }
             .padding(.vertical, CSTokens.Space.s3).frame(minHeight: 52)
@@ -209,9 +216,13 @@ struct ScheduleScreen: View {
 
   private func rowTitle(_ sr: ScheduledRound) -> Text {
     var t = Text(sr.who)
-    if let tee = sr.tee_time, !TeeTime.format(tee).isEmpty { t = t + Text(" · ") + Text(TeeTime.format(tee)).foregroundStyle(cs.gold) }
-    if sr.tagged_me == true { t = t + Text(" · ") + Text("YOU’RE IN").foregroundStyle(cs.gold) }
-    else if sr.shared_league == true && !sr.isMine { t = t + Text(" · ") + Text("IN YOUR SEASONS").foregroundStyle(cs.gold) }
+    // F-10 · one fact, one metal — and NEITHER of these is earned. A tee time
+    // is a clock and a membership is a membership; the sibling producer two
+    // functions up already draws both in `ink`, so the schedule was saying the
+    // same two facts in two different metals on one screen.
+    if let tee = sr.tee_time, !TeeTime.format(tee).isEmpty { t = t + Text(" · ") + Text(TeeTime.format(tee)).foregroundStyle(cs.ink) }
+    if sr.tagged_me == true { t = t + Text(" · ") + Text("YOU’RE IN").foregroundStyle(cs.ink) }
+    else if sr.shared_league == true && !sr.isMine { t = t + Text(" · ") + Text("IN YOUR SEASONS").foregroundStyle(cs.mut) }
     else if sr.is_friend == true && !sr.isMine { t = t + Text(" · ") + Text("BUDDY").foregroundStyle(cs.mut) }
     return t
   }

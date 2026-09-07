@@ -1132,6 +1132,12 @@ img.face{border-radius:50%; object-fit:cover; vertical-align:-4px; border:1px so
 .fc .fmk{position:absolute; right:-4px; bottom:-4px; width:46%; height:46%; min-width:17px; min-height:17px; display:flex; align-items:center; justify-content:center; border-radius:50%; background:var(--bg1); border:1px solid var(--rule); box-shadow:0 1px 3px rgba(8,9,11,.16); font-style:normal;}
 .fc .fmk svg{width:68%; height:68%; vertical-align:0;}
 .fc.femoji{font-size:19px;}
+/* WAVE 11 · a post with no author wears a DRAWN mark, never an emoji in a
+   face-shaped cell — a face is a person (D271) and a league announcement is
+   not one. `bg2` ground, `mut` stroke: it reads as chrome, which is what it
+   is. */
+.fc.fmark{background:var(--bg2); color:var(--mut);}
+.fc.fmark .ic{width:20px; height:20px;}
 .fc.s22{width:22px; height:22px;} .fc.s28{width:28px; height:28px;} .fc.s32{width:32px; height:32px;}
 .fc.s36{width:36px; height:36px;} .fc.s44{width:44px; height:44px;} .fc.s56{width:56px; height:56px;}
 .hffacew{display:flex; flex:none;}
@@ -1164,7 +1170,7 @@ img.face{border-radius:50%; object-fit:cover; vertical-align:-4px; border:1px so
 .hsbot{display:flex; align-items:flex-end; justify-content:space-between; padding:0 14px 12px;}
 .hsg{font-family:var(--serif); font-size:44px; line-height:.95; text-shadow:0 2px 10px rgba(0,0,0,.45);}
 .hsg small{display:block; font-family:var(--mono); font-size:10px; letter-spacing:.16em; text-transform:uppercase; opacity:.9; margin-top:4px; text-shadow:none;}
-.hsmedal{width:30px; height:30px; flex:none; border-radius:50%; background:rgba(10,14,12,.55); display:flex; align-items:center; justify-content:center; color:#ECEEF2;}
+.hsmedal{width:30px; height:30px; flex:none; border-radius:50%; background:rgba(10,14,12,.55); display:flex; align-items:center; justify-content:center; color:var(--scrim-ink);}
 .hsmedal svg{width:16px; height:16px;}
 .hsfoot{background:var(--bg1); color:var(--ink); padding:8px 12px; border-top:1px solid var(--rule);}
 /* moments sit quiet — clearly not a round */
@@ -1297,7 +1303,7 @@ img.face{border-radius:50%; object-fit:cover; vertical-align:-4px; border:1px so
   .hfcard.sealed .hfid > b{transform:rotate(-1.4deg);}   /* the cant is information */
 }
 .hfcard .hrx{margin-top:8px;}
-.mkstamp{position:absolute; right:10px; bottom:10px; width:26px; height:26px; display:flex; align-items:center; justify-content:center; border-radius:50%; background:rgba(8,9,11,.55); color:#ECEEF2; backdrop-filter:blur(2px);}
+.mkstamp{position:absolute; right:10px; bottom:10px; width:26px; height:26px; display:flex; align-items:center; justify-content:center; border-radius:50%; background:rgba(8,9,11,.55); color:var(--scrim-ink); backdrop-filter:blur(2px);}
 .rcpt-hero{position:relative;}
 .seg button:focus-visible{outline:2px solid var(--brand); outline-offset:-2px;}
 .preset{
@@ -1864,7 +1870,7 @@ body.guestlive #onboard{display:none !important;}
    meaning. Text-shadow is belt-and-braces on top of the (already-passing)
    forced colors, not a substitute for them. */
 .fcard .round.has-photo .l1,
-.fcard .round.has-photo .pts{ color:#ECEEF2; }
+.fcard .round.has-photo .pts{ color:var(--scrim-ink); }
 .fcard .round.has-photo .l1 span,
 .fcard .round.has-photo .l2,
 .fcard .round.has-photo .rline,
@@ -3148,21 +3154,26 @@ html[data-theme="light"] .btn.gold{color:#FFFFFF;}
 /* ============ the finish screen (2.1): a posted round ends in ceremony ============
    Replaces the quick POSTED stamp for the post flow with a dusk-locked full-
    screen band reveal — the trophy room at dusk. DUSK-LOCKED = the same face in
-   light and paper (an honor moment has one look), so it carries hardcoded dusk
-   hexes, not the theme tokens; only the type families + the house easing come
-   from vars. Gross, band, and points roll in staggered on --roll (a putt dying
+   light and paper (an honor moment has one look) — and WAVE 11 the pinned face
+   it wears is the CEREMONY RAMP, from the token file, not five hardcoded hexes.
+   It carried the pre-D76 palette in the palette D270 deleted: `#12271B` is
+   `pine` (a token removed by name), `#2FA46A` is Fairway (the brand green the
+   ember replaced), and the whole thing sat under a comment saying it used
+   "hexes, not the theme tokens" — which is how it stayed there while Wave 8
+   re-palletted the four canvases beside it. The gradient wash is gone with them
+   (D272 bans it by name); one ground, painted once. Gross, band, and points roll in staggered on --roll (a putt dying
    at the hole); reduced-motion lands them instantly. */
 #finish{
   position:fixed; inset:0; z-index:1100; display:none;
   align-items:center; justify-content:center; padding:32px 24px;
-  background:radial-gradient(120% 90% at 50% -10%, #12271B 0%, #0A0E0C 55%), #0A0E0C;
+  background:var(--ceremony);
   -webkit-tap-highlight-color:transparent;
 }
 #finish.open{display:flex;}
 .finish-card{width:100%; max-width:440px; text-align:center; display:flex; flex-direction:column; align-items:center;}
-.finish-eyebrow{font-family:var(--mono); font-size:12px; font-weight:500; letter-spacing:.22em; text-transform:uppercase; color:#8FA096;}
+.finish-eyebrow{font-family:var(--mono); font-size:12px; font-weight:500; letter-spacing:.22em; text-transform:uppercase; color:var(--ceremony-mut);}
 .gross-slot{position:relative; margin-top:18px;}
-.finish-gross{font-family:var(--serif); font-variant-numeric:tabular-nums; font-weight:700; font-size:clamp(84px,26vw,96px); line-height:.94; color:#ECEEF2;}
+.finish-gross{font-family:var(--serif); font-variant-numeric:tabular-nums; font-weight:700; font-size:clamp(84px,26vw,96px); line-height:.94; color:var(--ceremony-ink);}
 /* C2 - the drop (owner-approved treatment, 2026-07-22 deck session): the ball
    rolls out of the left along the gross baseline on REAL friction - constant
    deceleration, distance follows 1-(1-t)^2 sampled into linear keyframes - dies
@@ -3207,22 +3218,22 @@ html[data-theme="light"] .btn.gold{color:#FFFFFF;}
 #finish.open .finish-ball i{animation:csSpin 1.15s var(--roll) .15s both;}
 #finish.open .finish-cup, #finish.open .finish-cupfront{animation:csFade .4s ease .15s both, csGone .35s ease 2.35s forwards;}  /* in with the ball, gone once the number holds the room */
 #finish.open .finish-cupring{animation:csAnswer .7s var(--roll) 1.7s both;}
-.finish-band{font-family:var(--serif); font-size:19px; line-height:1.32; color:#ECEEF2; margin-top:12px;}
+.finish-band{font-family:var(--serif); font-size:19px; line-height:1.32; color:var(--ceremony-ink); margin-top:12px;}
 .finish-pts{font-family:var(--mono); font-size:13px; font-weight:600; letter-spacing:.16em; text-transform:uppercase; margin-top:24px; min-height:1em;}
 .finish-pts.earned{color:#D8B25A;}   /* champagne — league points, EARNED */
-.finish-pts.card{color:#8FA096;}      /* league-less: it just posts to your rounds */
+.finish-pts.card{color:var(--ceremony-mut);}      /* league-less: it just posts to your rounds */
 .finish-rule{width:64px; height:1px; background:#1C2620; margin-top:26px;}
 .finish-share{
   display:flex; align-items:center; justify-content:center; min-height:46px; min-width:220px;
   margin-top:26px; padding:0 28px; border:0; border-radius:var(--rc); cursor:pointer;
-  font-family:var(--sans); font-size:14px; font-weight:600; color:#06130B; background:#2FA46A;
+  font-family:var(--sans); font-size:14px; font-weight:600; color:var(--ceremony); background:var(--ceremony-brand);
   transition:filter .2s var(--roll);
 }
 .finish-share:hover{filter:brightness(1.06);}
-.finish-share:focus-visible{outline:2px solid #ECEEF2; outline-offset:2px;}
+.finish-share:focus-visible{outline:2px solid var(--ceremony-ink); outline-offset:2px;}
 .finish-back{margin-top:8px; padding:12px; border:0; background:none; cursor:pointer;
-  font-family:var(--sans); font-size:14px; font-weight:500; color:#8FA096;}
-.finish-back:focus-visible{outline:2px solid #8FA096; outline-offset:2px; border-radius:6px;}
+  font-family:var(--sans); font-size:14px; font-weight:500; color:var(--ceremony-mut);}
+.finish-back:focus-visible{outline:2px solid var(--ceremony-mut); outline-offset:2px; border-radius:6px;}
 /* the reveal — staggered roll-in on the brand's one easing, held until the
    ball is in the hole (C2): gross lands at 1.85s where the ball fell */
 #finish.open .finish-gross{animation:finishRoll .64s var(--roll) 1.85s both;}
@@ -3706,6 +3717,15 @@ html[data-theme="light"] .room-dusk .btn:not(.dark):not(.gold):not(.apple){color
   <symbol id="i-swap" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
     <path d="M4 7h13l-3-3"/>
     <path d="M20 17H7l3 3"/>
+  </symbol>
+  <!-- WAVE 11 · the announce mark, DRAWN. `\ud83d\udce3` was the entire LABEL of
+       the Pro's announce BUTTON — an emoji used as a control, on the client
+       D234 calls half the product, in the wave that shipped "one icon
+       family". `CSGlyph(.bell)` is the phone's twin. -->
+  <symbol id="i-bell" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M6.5 16.5V11a5.5 5.5 0 0 1 11 0v5.5"/>
+    <path d="M4.6 16.5h14.8"/>
+    <path d="M10.2 19.4a2 2 0 0 0 3.6 0"/>
   </symbol>
   <symbol id="i-key" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
     <circle cx="7.5" cy="8.5" r="3.5"/>
@@ -4967,7 +4987,7 @@ html[data-theme="light"] .room-dusk .btn:not(.dark):not(.gold):not(.apple){color
           <div id="feedList" style="max-height:52vh; overflow-y:auto;"></div>
           <div class="composer">
             <input class="f" id="chatIn" placeholder="Message the league…">
-            <button class="btn dark" id="annBtn" style="display:none; width:auto; padding:0 14px;" title="Announce to the league">📣</button>
+            <button class="btn dark" id="annBtn" style="display:none; width:auto; padding:0 14px;" title="Announce to the league" aria-label="Announce to the league"><svg class="ic" aria-hidden="true"><use href="#i-bell"/></svg></button>
             <button class="btn" id="chatSend" style="width:auto; padding:0 18px;">Send</button>
           </div>
         </div>
@@ -6295,7 +6315,7 @@ function renderSeasonStory(){
     arc.innerHTML = rows.length
       ? rows.map(({a,t}) => `<div class="arcrow${a.mine?' mine':''}">${a.week?`<span class="aw">Week ${esc(String(a.week))}</span>`:''}<span class="at">${esc(t)}</span></div>`).join('')
       : `<p class="fine" style="padding:6px 0">${p ? 'Nothing has happened yet. The first posted round starts the story.'
-                                                  : 'The story arrives with the season’s first weekly snapshot.'}</p>`;
+                                                  : 'The story starts when the first week closes.'}</p>`;
   }
   /* the archive — every season this league has played */
   const arch = $('#seasonArchive'), archHead = $('#seasonArchiveHead');
@@ -7685,7 +7705,10 @@ function boardDigestHtml(){
    sysRowHtml is one: an affordance must never appear on one surface only. */
 function momRowHtml(f, fi, ns){
   const bar = (fi==null || !f || !f.post_id) ? '' : socialBar(f, fi, {comments:false, ns});
-  return `<div class="momrow"><b>✦</b>${esc(easeCaps(f.txt||''))}${bar}</div>`;
+  /* WAVE 11 · the `\u2726` is gone. A moment's leading mark is the row's own
+     3px spine (`.momrow` already draws one); a dingbat in a produced string is
+     LINT-12's finding and LINT-13's both. */
+  return `<div class="momrow">${esc(easeCaps(f.txt||''))}${bar}</div>`;
 }
 /* D181 · the bar rides OUTSIDE the row, never inside it: a settled-game row is
    itself a role="button" whose delegated click handler reads
@@ -9015,7 +9038,7 @@ function showEpilogue(epi, course, firstEver, roundId, ctx){
     rows.push(`<div class="check"><span class="num">⛳</span><div class="tt"><b>${esc(bandName(pvi))}${epi.points!=null?` · ${epi.points} pts`:''}</b><small>${esc(vsPhrase(pvi))}${epiCounting(epi.month_rank)}</small></div></div>`);
   }
   (epi.earned||[]).forEach(a=>{
-    const m=EPI_ACH[a.kind] || { icon:'✦', txt:a.label||'A milestone', sub:'In your trophy case' };
+    const m=EPI_ACH[a.kind] || { icon:'<svg class="ic" aria-hidden="true"><use href="#i-flag"/></svg>', txt:a.label||'A milestone', sub:'In your trophy case' };
     rows.push(`<div class="check"><span class="num">${m.icon}</span><div class="tt"><b>${esc(m.txt)}</b><small>${esc(m.sub)}</small></div></div>`);
   });
   (epi.rivals||[]).forEach(rv=>{
@@ -11915,7 +11938,7 @@ function renderHoleCard(){
   if(siReal){
     html += '<tr>' + spanRow('si',
       h => `<td class="si">${SI[h] ?? '—'}</td>`,
-      () => '<td class="si">—</td>', 'SI') + '</tr>';
+      () => '<td class="si">—</td>', 'HCP') + '</tr>';   /* TERMINOLOGY §3.1 */
   }
   html += '<tr>' + spanRow('par',
     h => `<td class="parc">${par[h]}</td>`,
@@ -13493,7 +13516,7 @@ function renderCourseBooks(){
         + `The card · ${esc(tee ? (tee.tee_name||'Tee') : '')}</div><table>`
         + row('HOLE', holes.map(h=>h.hole))
         + row('PAR', holes.map(h=>h.par!=null?h.par:''), 'par')
-        + row('SI', holes.map(h=>h.si!=null?h.si:''))
+        + row('HCP', holes.map(h=>h.si!=null?h.si:''))   /* TERMINOLOGY §3.1 */
         + `</table></div>`
       : `<p class="fine">${esc(CS_COURSE_COPY.noCard)}</p>`;
 
@@ -14616,13 +14639,13 @@ const OCCASIONS = [
   {key:'opener',  w:[3,28, 4,13],  earned:true,  k:'The first one of the year', h:'Azaleas are blooming somewhere.',
    p:'One window, every card on one board, one name on the jug.', act:'Put a jug up', go:'event', mk:'azalea'},
   {key:'test',    w:[6,8,  6,22],  earned:true,  k:'The hardest test', h:'Somewhere out there, par is winning.',
-   p:'A championship window — two to four days, best card takes it.', act:'Set the Major', go:'event', mk:'no2'},
+   p:'A championship window — two to four days, best round takes it.', act:'Set the Major', go:'event', mk:'no2'},
   {key:'oldest',  w:[7,10, 7,24],  earned:true,  k:'The oldest one', h:'Links weather is a state of mind.',
    p:'One window, every card on one board, one name on the jug.', act:'Name the jug', go:'event', mk:'jug'},
   {key:'teams',   w:[9,18, 10,5],  earned:false, k:'The big team match', h:'Two teams. One cup. You know the one.',
    p:'One opponent a week, first past half the points. Yours can start the same weekend.', act:'Run your own', go:'event', mk:null},
   {key:'fall',    w:[10,1, 11,20], earned:true,  k:"The season's turning", h:'Cool mornings, empty fairways.',
-   p:'A fall Major — two to four days, best card takes it.', act:'Name the jug', go:'event', mk:null},
+   p:'A fall Major — two to four days, best round takes it.', act:'Name the jug', go:'event', mk:null},
   {key:'fresh',   w:[12,27, 1,15], earned:false, k:'A fresh table', h:"Nobody's ahead yet.",
    p:'A season scores the rounds you’re already playing. Nothing changes about how you post.', act:'Start a season', go:'league', mk:null, leaguelessOnly:true},
 ];
@@ -14696,7 +14719,7 @@ const DEMO_FEED = [
    diorama sells it. */
 function founderTag(pid, name){
   const isF = (state.demo && name && name === DEMO_ME) || (pid && pid === window.FOUNDER_ID);
-  return isF ? ' <span class="ftag" title="Cup Season founder">✦ Founder</span>' : '';
+  return isF ? ' <span class="ftag" title="Cup Season founder">Founder</span>' : '';
 }
 /* ---------- Home circle reactions (option A: through the shared-league post)
    Home is profile-first and cross-league; a reaction is league-scoped
@@ -14893,7 +14916,7 @@ function feedRow(r, idx){
   const pviN = r.pvi!=null ? Number(r.pvi) : null;
   const milestone = r.is_pr ? '🔥 Personal best'
     : r.is_sub80 ? '⛳ Broke 80 — first time'
-    : r.is_first ? '🎉 First round on the card' : null;
+    : r.is_first ? '🎉 First round posted' : null;
   const vp0 = pviN!=null ? vsPhrase(pviN) : '';
   const vp = r.is_me ? vp0 : theirs(vp0);   /* crew rows speak third person */
   const vpCap = vp ? vp[0].toUpperCase()+vp.slice(1) : '';
@@ -14941,7 +14964,7 @@ function postRow(p){
   const mem = p.member_id ? (window.CS?.members||[]).find(x=>x.id===p.member_id) : null;
   const av = mem
     ? `<span class="hffacew" data-tc="${mem.profile_id}">${face(mem.profile_id, mem.mk||mem.profile?.marker, 44)}</span>`
-    : `<span class="fc s44 femoji">${p.kind==='announce' ? '📣' : '🏁'}</span>`;
+    : `<span class="fc s44 fmark" aria-hidden="true"><svg class="ic" ><use href="#i-${p.kind==='announce' ? 'bell' : 'flag'}"/></svg></span>`;
   /* C5 - the month seal: a fresh league event lands with the thock (once,
      while it's under 48h old); a month-close card keeps the 1.4deg cant -
      a hand set it, and that stays true in reduced motion too */
@@ -15070,7 +15093,7 @@ async function openScorecard(lrid){
          <tr class="par"><td class="who">Par</td>${parCells.join('')}
            ${N===18?`<td class="tot">${PARS?sum(PARS,0,9):'·'}</td><td class="tot">${PARS?sum(PARS,9,18):'·'}</td>`:''}
            <td class="tot">${PARS?sum(PARS,0,N):'·'}</td></tr>
-         <tr class="si"><td class="who">SI</td>${siCells.join('')}
+         <tr class="si"><td class="who">HCP</td>${siCells.join('')}
            ${N===18?'<td class="tot"></td><td class="tot"></td>':''}<td class="tot"></td></tr>
          ${rows}
        </tbody>
@@ -15414,7 +15437,7 @@ function homeLead(){
   const today=`${nowD.getFullYear()}-${pad2(nowD.getMonth()+1)}-${pad2(nowD.getDate())}`;
   const m=(window.homeFeedRows||[]).find(r=>!r.is_me && r.played_on===today && (r.is_pr||r.is_sub80||r.is_first));
   if(m){
-    const line = m.is_pr?'\ud83d\udd25 Personal best' : m.is_sub80?'\u26f3 Broke 80 \u2014 first time' : '\ud83c\udf89 First round on the card';
+    const line = m.is_pr?'\ud83d\udd25 Personal best' : m.is_sub80?'\u26f3 Broke 80 \u2014 first time' : '\ud83c\udf89 First round posted';
     return { eb:'Around your buddies', ln:`${esc((m.golfer||'A golfer').split(' ')[0])} \u2014 ${line}`,
              act:'See the round', go:()=> m.round_id && window.openRoundSheet ? window.openRoundSheet(m.round_id) : switchView('home') };
   }
@@ -15575,7 +15598,7 @@ function csFallbackItems(){
   /* the circle's freshest round — the one CIRCLE item, never mine */
   const r = (window.homeFeedRows||[]).find(x => !x.is_me && x.gross != null);
   if(r){
-    const mile = r.is_pr ? 'A personal best.' : r.is_sub80 ? 'Under 80 for the first time.' : r.is_first ? 'Their first round on the card.' : null;
+    const mile = r.is_pr ? 'A personal best.' : r.is_sub80 ? 'Under 80 for the first time.' : r.is_first ? 'Their first round posted.' : null;
     push({ key:`story:${r.round_id||r.played_on}`, tier:'circle', spine: mile?'gold':'mut',
            eyebrow:'AROUND YOUR BUDDIES',
            headline:`${(r.golfer||'A golfer').split(' ')[0]} posted ${r.gross}${r.course?` at ${r.course}`:''}.`,
@@ -18395,7 +18418,7 @@ function renderCalendar(){
     for(let d=1; d<=31; d++){
       const dt=new Date(cur.y, cur.m, d);
       if(dt.getMonth()!==cur.m) break;
-      if(dt.getDay()===0 && dt>s && dt<=e && +dt!==+s) add(dt, {kind:'lg', t:'Week closes — snapshot recorded'});
+      if(dt.getDay()===0 && dt>s && dt<=e && +dt!==+s) add(dt, {kind:'lg', t:'Week closes — the table is recorded'});
     }
   }
   (window.leagueSpans||[]).forEach(ls=>{
@@ -18494,7 +18517,7 @@ function renderCalendar(){
       if(!hist.length){
         wkEl.innerHTML='<p class="fine" style="padding:0">'+(state.demo
           ? 'The demo skips the archive. Real seasons record every Sunday night.'
-          : 'Nothing recorded yet: the first snapshot writes Sunday night, and every week lands here for the season.')+'</p>';
+          : 'Nothing recorded yet: the first week closes Sunday night, and every week lands here for the season.')+'</p>';
       } else {
         /* D234 · a SOLO season forms no squads, so `standings.squads` is []
            and every week of a solo archive rendered as a bare "WK 3" with no
@@ -18653,7 +18676,7 @@ function renderEvent(){
       /* the pot is the surface's ONE gold object, and it is gold ink on a
          NUMERAL — never a fill, never a chip */
       html+=`<div class="evstake"><b${ev.status==='complete'?' style="color:var(--ink)"':''}>${mjMoney(Number(ev.buy_in)*players.length)}</b>
-        <span>The pot \u00b7 ${ev.pot_split==='wta'?'winner takes all':'60/25/15'} \u00b7 best card each week</span></div>`;
+        <span>The pot \u00b7 ${ev.pot_split==='wta'?'winner takes all':'60/25/15'} \u00b7 best round each week</span></div>`;
     }
   }
 
@@ -23668,7 +23691,7 @@ function openEventPicker(){
       <span class="num">⚔️</span><div class="tt"><b>The Ryder</b><small>Two teams. Each week you play one opponent, scored against your playing HCP. First team past halfway wins</small></div>
       <span class="fine" style="padding:0; color:var(--brand)">LIVE</span></div>
     <div class="check tap" data-evstyle="major" style="cursor:pointer; border-color:var(--brand)">
-      <span class="num">🏆</span><div class="tt"><b>A Major</b><small>A championship window — the best card takes the jug</small></div>
+      <span class="num">🏆</span><div class="tt"><b>A Major</b><small>A championship window — the best round takes the jug</small></div>
       <span class="fine" style="padding:0; color:var(--brand)">LIVE</span></div>
     <p class="fine">Every one of these awards a trophy.</p>
   `);
@@ -24679,7 +24702,7 @@ async function openMajorSetup(){
     if(isNaN(end)){ el.textContent=''; return; }
     const start=new Date(end); start.setDate(end.getDate()-(days-1));
     const fmt=dt=>dt.toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'});
-    el.textContent=`${fmt(start)} → ${fmt(end)} · best card by ${end.toLocaleDateString('en-US',{weekday:'long'})} night`;
+    el.textContent=`${fmt(start)} → ${fmt(end)} · best round by ${end.toLocaleDateString('en-US',{weekday:'long'})} night`;
   };
   document.querySelectorAll('#mjDays button').forEach(b=>b.addEventListener('click',()=>{document.querySelectorAll('#mjDays button').forEach(x=>x.classList.remove('on'));b.classList.add('on');days=+b.dataset.n; whenLine();}));
   document.querySelectorAll('#mjSplit button').forEach(b=>b.addEventListener('click',()=>{document.querySelectorAll('#mjSplit button').forEach(x=>x.classList.remove('on'));b.classList.add('on');split=b.dataset.s;}));

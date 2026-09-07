@@ -89,7 +89,7 @@ struct ScorecardSheet: View {
           cell(card.parTot, tot: true).accessibilityLabel("Total par \(card.parTot)")
         }
         GridRow {
-          cell("SI", who: true, dim: true)
+          cell("HCP", who: true, dim: true)   // TERMINOLOGY §3.1
           ForEach(0..<n, id: \.self) { h in cell(card.si(h), dim: true, nine: h == 8) }
           if n == 18 { cell("", tot: true); cell("", tot: true) }
           cell("", tot: true)

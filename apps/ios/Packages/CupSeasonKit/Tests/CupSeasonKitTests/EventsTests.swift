@@ -223,7 +223,7 @@ private func room(status: String = "live", winner: UUID? = nil, sessionCount: In
     #expect(MajorMath.shareText(name: "Marcus", jug: "The PIGL Championship", gross: 82, pvi: 4.2) == "Marcus takes The PIGL Championship — 82, 4.2 under their playing HCP · cupseason.app")
   }
   @Test func whenLine() {
-    #expect(MajorMath.whenLine(finalOn: "2026-07-12", days: 4, calendar: cal) == "Thu, Jul 9 \u{2013} Sun, Jul 12 · best card by Sunday night")   // D278 · a SPAN is an en dash; the arrow said motion
+    #expect(MajorMath.whenLine(finalOn: "2026-07-12", days: 4, calendar: cal) == "Thu, Jul 9 \u{2013} Sun, Jul 12 · best round by Sunday night")   // D278 · a SPAN is an en dash; the arrow said motion
   }
   @Test func finePrintChoosesMoneyOnlyWhenChosen() {
     #expect(!MajorMath.finePrint(buyIn: 0, potSplit: nil).contains("Pot is a ledger"))

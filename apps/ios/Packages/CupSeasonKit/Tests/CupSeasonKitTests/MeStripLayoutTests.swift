@@ -50,7 +50,7 @@ private func slot(_ fact: MeStripCopy.Fact, _ label: String, _ value: String) ->
 private let realSlots = [
   slot(.myNumber, "YOUR NUMBER", "10.6"),
   slot(.myNextRound, "NEXT", "MON · GOLD CANYON"),
-  slot(.myMoney, "YOU STILL OWE", "$75"),
+  slot(.myMoney, "YOU OWE", "$75"),
 ]
 
 @Suite("The ME strip's reflow")
@@ -133,7 +133,7 @@ struct MeStripLayoutTests {
   @Test("no label the strip can print has a word longer than NUMBER")
   func labelsStayWithinTheBudget() {
     // The producer's own set, read off `MeStripCopy` rather than remembered.
-    let labels = ["YOUR NUMBER", "STARTER", "BUILDING", "LAST", "NEXT", "YOU STILL OWE"]
+    let labels = ["YOUR NUMBER", "STARTER", "BUILDING", "LAST", "NEXT", "YOU OWE"]
     for l in labels {
       let widest = MeStripLayout.widestWord(l, unit: Units.labelAX3)
       #expect(widest <= columnAX, "\(l) needs \(widest)pt of a \(columnAX)pt column at AX3")

@@ -18,9 +18,12 @@ struct RoundStoryCard: View {
   let links: BoardLinks
 
   private var hasPhoto: Bool { round.photoURL != nil }
-  /// Text that reads DIRECTLY on the photo is forced light (index.html 1044–1050).
-  private var onPhotoInk: Color { Color(hex: 0xECEEF2) }
-  private var onPhotoMut: Color { Color(hex: 0xECEEF2, opacity: 0.92) }
+  /// Text that reads DIRECTLY on the photo is forced light — and `scrimInk` /
+  /// `scrimMut` are the two tokens `object` carries for exactly that, added by
+  /// D270 so no surface would invent a hex for copy over a photograph. This
+  /// carried `#ECEEF2` twice, in the hex form `LINT-04`'s regex never matched.
+  private var onPhotoInk: Color { CSTokens.dark.scrimInk }
+  private var onPhotoMut: Color { CSTokens.dark.scrimMut }
   private var streak: Int { BoardLogic.roundStreak(round, cache: store.rounds) }
   private var counting: BoardLogic.Counting { BoardLogic.counting(monthRank: round.monthRank, capN: store.capN) }
 

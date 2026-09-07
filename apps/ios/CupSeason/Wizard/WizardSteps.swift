@@ -372,7 +372,7 @@ struct WizardStakeStep: View {
       if model.dials.stake > 0 {
         CSFine(WizardCopy.potLine(stake: model.dials.stake, roster: model.roster))
         // L-09 · the ledger line, verbatim from the constant.
-        Text(MoneyCopy.ledger).csType(.bodyS).foregroundStyle(cs.mut)
+        Text(MoneyCopy.ledger).csType(.agateS, caps: false).foregroundStyle(cs.mut)
           .fixedSize(horizontal: false, vertical: true)
         Text(WizardCopy.payLabel).csEyebrow().padding(.top, 4)
         CSField(WizardCopy.payPlaceholder, text: $model.dials.buyInNote, font: CSFont.body)
