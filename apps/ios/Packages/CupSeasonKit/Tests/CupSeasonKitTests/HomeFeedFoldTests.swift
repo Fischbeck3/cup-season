@@ -150,6 +150,40 @@ import Foundation
     #expect(pair.leagueIds == [Self.fellas, Self.wtb] && lone.leagueIds == [Self.wtb] && lone.line(bucket: "Today") == "Who's the bitch? · 1 league note today")
   }
 
+  /// **D292 · the production shape this suite never had.** `round_moments()`
+  /// writes the milestone post with `round_id = new.id` — the ROUND's own id —
+  /// so a moment and the round row in the same wire carry the SAME key. Step
+  /// 2b's `seenRounds` opened EMPTY, so it deduped a moment against other
+  /// copies of itself across leagues and never against the round standing in
+  /// the bucket with it: the wire said "Jade broke 80 for the first time." as
+  /// a line and "⛳ Broke 80 — first time · 78" as a round, one bucket apart.
+  /// Every fixture above gave its moments a `live_round_id` and no `round_id`,
+  /// which is why the suite passed while the rule did not hold.
+  @Test("D292 · a moment yields to the round it is about, and only to one the wire kept")
+  func momentYieldsToItsRound() {
+    let both = HomeFeedFold.fold([
+      Self.round("2026-09-01"),
+      Self.post(Self.fellas, "moment", "Jade broke 80 for the first time.", "2026-09-01", "16:00", round: Self.roundX),
+      Self.post(Self.wtb, "moment", "Jade broke 80 for the first time.", "2026-09-01", "16:00", round: Self.roundX),
+    ], today: "2026-09-01")
+    #expect(both.reduce(0) { $0 + $1.items.count } == 1)
+    guard case .round = both[0].items[0] else { Issue.record("the ROUND survives, never the line"); return }
+
+    // bounded: a moment whose round is not in the wire is the only telling.
+    let orphan = HomeFeedFold.fold([
+      Self.round("2026-09-01"),
+      Self.post(Self.fellas, "moment", "Jade broke 80.", "2026-09-01", "16:00", round: UUID()),
+    ], today: "2026-09-01")
+    #expect(orphan.reduce(0) { $0 + $1.items.count } == 2)
+
+    // and it yields only to a round the wire KEPT — a spent round takes both.
+    let spent = HomeFeedFold.fold([
+      Self.round("2026-09-01"),
+      Self.post(Self.fellas, "moment", "A best.", "2026-09-01", "16:00", round: Self.roundX),
+    ], spent: [Self.roundX], today: "2026-09-01")
+    #expect(spent.reduce(0) { $0 + $1.items.count } == 0)
+  }
+
   @Test("D219 · a door iff the row knows its round: live, then round, then the booking")
   func doors() {
     let live = HomePost(id: UUID(), league_id: Self.wtb, kind: "moment", body: "x", created_at: nil, live_round_id: Self.liveA, round_id: Self.roundX, scheduled_round_id: Self.booking)

@@ -390,7 +390,7 @@ final class RecordModel {
     }
     s += "."
     if let b = bestRound {
-      s += " The best of them a {\(b.gross)}"
+      s += " The best of them \(CSCopy.article(b.gross)) {\(b.gross)}"
       if let c = b.courseLabel, !c.isEmpty { s += ", at \(RoundCopy.course(c))" }
       s += "."
     }

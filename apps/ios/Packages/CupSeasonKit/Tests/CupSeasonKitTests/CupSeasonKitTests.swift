@@ -90,4 +90,13 @@ import Foundation
     #expect(CSCopy.ordinal(11) == "11th" && CSCopy.ordinal(12) == "12th" && CSCopy.ordinal(21) == "21st")
     #expect(CSCopy.dollars(cents: 7500) == "$75" && CSCopy.dollars(cents: 7550) == "$75.50")
   }
+
+  /// D292 · `RecordPage` printed "The best of them a 80" while its own header
+  /// quoted "an 80". The article follows the number said aloud.
+  @Test func articleFollowsTheSpokenNumber() {
+    #expect(CSCopy.article(80) == "an" && CSCopy.article(85) == "an" && CSCopy.article(89) == "an")
+    #expect(CSCopy.article(8) == "an" && CSCopy.article(11) == "an" && CSCopy.article(18) == "an")
+    #expect(CSCopy.article(79) == "a" && CSCopy.article(90) == "a" && CSCopy.article(100) == "a")
+    #expect(CSCopy.article(72) == "a" && CSCopy.article(118) == "a" && CSCopy.article(1) == "a")
+  }
 }

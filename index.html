@@ -14022,8 +14022,19 @@ function renderCourseBooks(){
   const head = (t, n) => `<h3 class="cs-display-s cs-krow-head-h">${esc(t)}`
     + (n!=null?`<span class="cs-agate-s" style="color:var(--mut)"> · ${esc(String(n))}</span>`:'') + `</h3>`;
 
-  box.innerHTML = (lead ? leadHtml(lead) : '')
-    + (liked.length ? head('Courses you like', liked.length + ' rated') + liked.map(b=>row(b,true)).join('') : '')
+  /* D292 · THE LEAD IS INSIDE THE RECORD IT LEADS. `Courses you like · N
+     rated` counted only the rows beneath it, so the biggest and most-liked
+     course on the page — the lead — was left out of its own record and a
+     golfer with three rated courses read "2 rated". When the lead is rated the
+     head moves ABOVE it and counts it. When the lead is the course you are
+     about to play, it is not evidence of a course you like, so it keeps its
+     place above the head and the count is already honest. */
+  const leadLiked = !!lead && mineOf(lead) != null;
+  const likedHead = head('Courses you like', (liked.length + (leadLiked?1:0)) + ' rated');
+  box.innerHTML = (leadLiked ? likedHead : '')
+    + (lead ? leadHtml(lead) : '')
+    + (leadLiked ? liked.map(b=>row(b,true)).join('')
+       : (liked.length ? likedHead + liked.map(b=>row(b,true)).join('') : ''))
     + (rest.length ? head('Also kept', rest.length) + rest.map(b=>row(b,false)).join('') : '');
   csCourseBooksWire(box);
   csRatingsFillNotes([lead].concat(liked).filter(Boolean).slice(0, 6).map(b=>String(b.id)));
@@ -15855,12 +15866,23 @@ function csHomeFold(input){
     sets[p.id] = set;
   });
 
-  /* 2b · one moment, every league */
+  /* 2b · one moment, every league — AND a moment yields to its own round.
+     D292 · `round_moments()` writes the post with `round_id = new.id`, the
+     ROUND's id, so the key that folds a moment across leagues is the same key
+     the wire's round rows carry. Seeded empty it deduped a moment against
+     other copies of ITSELF and never against the slat standing four rows
+     below it: one round, one bucket, two rows. The set opens with the rounds
+     rule 1 kept, so the line yields to the row exactly as it yields to the
+     deck — and nothing is lost, because the round row already prints the
+     milestone phrase (`feedRow`'s `milestone`, from `home_stories`). */
   const moments = [], seenR = {}, seenB = {};
+  const drawn = {};
+  keptR.forEach(x => { const id = x.r && x.r.round_id; if(id) drawn[String(id)] = true; });
   keptP.forEach(p => {
     if(p.kind === 'system') return;
     const rid = p.round_id ? String(p.round_id) : null;
     if(rid){
+      if(drawn[rid]) return;                       /* the slat says it better */
       if(seenR[rid]){ pushLeague(seenR[rid], p); return; }
       seenR[rid] = p.id;
       sets[p.id] = [{ id: p.league_id || null, name: nameOf(p.league_id) }];

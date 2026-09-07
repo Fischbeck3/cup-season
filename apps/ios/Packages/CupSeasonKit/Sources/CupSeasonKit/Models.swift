@@ -463,4 +463,15 @@ public enum CSCopy {
              "seven", "eight", "nine", "ten", "eleven", "twelve"]
     return (0...12).contains(n) ? w[n] : String(n)
   }
+
+  /// **D292 · the article follows the SPOKEN number, not its first digit.**
+  /// `RecordPage` printed *"The best of them a 80"* while the file's own
+  /// header quoted the sentence it wanted — *"the best of them an 80"* — so
+  /// the top line of a golfer's record was ungrammatical about his best round.
+  /// A gross is said aloud: eight, eleven, eighteen and the eighties all open
+  /// on a vowel; every other score a golfer posts does not. Same arithmetic
+  /// `CSCopy.ordinal` already does on a hole number, in the other direction.
+  public static func article(_ n: Int) -> String {
+    (n == 8 || n == 11 || n == 18 || (80...89).contains(n)) ? "an" : "a"
+  }
 }

@@ -81,6 +81,44 @@ const rows = f => f.buckets.map(b => [b.key, b.items.length]);
   eq(far.buckets.reduce((n, b) => n + b.items.length, 0), 2, 'and does NOT fold outside it');
 }
 
+/* ── 1b · D292 · a moment yields to the round it is ABOUT ────────────────── */
+{
+  /* THE PRODUCTION SHAPE, which the fixtures above never had. `round_moments()`
+     writes the post with `round_id = new.id` — the ROUND's own id — so a
+     milestone post and the round row in the wire carry the SAME key. Seeded
+     empty, rule 2b deduped a moment only against other copies of itself and
+     printed the line four rows from the slat that already says the same thing.
+     Every fixture in this file gave the moment an id no round carried, which
+     is why 25 assertions agreed the fold was right while it was not. */
+  const f = fold({
+    rounds: [round({ rid: 'R1', on: '2026-09-07', gross: 78, i: 0 })],
+    posts: [
+      post({ id: 'a', lg: L1, kind: 'moment', body: 'Jade broke 80 for the first time.', at: '2026-09-07T16:00:00Z', rid: 'R1' }),
+      post({ id: 'b', lg: L2, kind: 'moment', body: 'Jade broke 80 for the first time.', at: '2026-09-07T16:00:00Z', rid: 'R1' }),
+    ] });
+  eq(f.buckets[0].items.length, 1, 'the round is drawn and its moment is not told again');
+  eq(f.buckets[0].items[0].kind, 'round', 'and the survivor is the ROUND, never the line');
+  eq(f.buckets[0].items[0].r.gross, 78, 'the slat keeps the gross the line never had');
+}
+{
+  /* The rule is bounded: a moment whose round is NOT in the wire is the only
+     telling there is, and it survives exactly as it always did. */
+  const f = fold({
+    rounds: [round({ rid: 'R2', on: '2026-09-07', i: 0 })],
+    posts: [post({ id: 'a', lg: L1, kind: 'moment', body: 'Jade broke 80.', at: '2026-09-07T16:00:00Z', rid: 'R1' })] });
+  eq(f.buckets[0].items.length, 2, 'a moment whose round is absent still speaks');
+}
+{
+  /* And it yields only to a round the wire KEPT — a round the deck spent is
+     gone from both, which is rule 1 and not this one. */
+  const f = fold({
+    rounds: [round({ rid: 'R1', on: '2026-09-07', i: 0 })],
+    posts: [post({ id: 'a', lg: L1, kind: 'moment', body: 'A best.', at: '2026-09-07T16:00:00Z', rid: 'R1' })],
+    spent: new Set(['R1']) });
+  eq(f.buckets.reduce((n, b) => n + b.items.length, 0), 0,
+     'a spent round takes its moment with it, and neither returns');
+}
+
 /* ── 2 · the deck already told it (F-2) ──────────────────────────────────── */
 {
   const f = fold({

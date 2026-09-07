@@ -157,7 +157,18 @@ public enum HomeFeedFold {
     // The key is the ROUND, because that is what the moment is about; a moment
     // with no round falls back to its body inside the same 48-hour window,
     // which is exactly how a note folds.
-    var seenRounds = Set<UUID>()
+    // D292 · AND A MOMENT YIELDS TO ITS OWN ROUND. `round_moments()` writes
+    // the post with `round_id = new.id` — the ROUND's id — so this key is the
+    // same key the wire's round rows carry. Seeded EMPTY it deduped a moment
+    // against other copies of itself and never against the row standing four
+    // rows below it: "Jade broke 80 for the first time." as a line, and
+    // "Jade · ⛳ Broke 80 — first time · 78 · Troon North" as a round, one
+    // bucket apart. The set opens with the rounds step 1 kept, so the line
+    // yields to the row exactly as it yields to the deck. Nothing is lost —
+    // `HomeCopy.milestone` already prints the phrase on the round itself.
+    var seenRounds = Set(kept.compactMap { i -> UUID? in
+      if case .round(let r, _) = i { return r.round_id } ; return nil
+    })
     var seenBodies: [String: Date] = [:]
     for i in kept {
       guard case .post(let p, _) = i, p.kind != "system" else { continue }
