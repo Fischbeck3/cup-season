@@ -104,7 +104,16 @@ public struct CSDrawnCard: View {
         ForEach(Array(drawn.enumerated()), id: \.element.id) { i, h in
           VStack(spacing: 2) {
             Rectangle()
-              .fill(h.number == hardest && scale == .hero ? cs.gold : cs.mut.opacity(CSTokens.Alpha.a56))
+              // **THE BARS ARE THE COURSE, NOT A CHART.** Eighteen neutral grey
+              // bars on near-black read as a bar chart — the "generic SaaS
+              // dashboard" §1 warns about, arriving through the one image rung
+              // most courses can actually render. `course-page-noimage.png`
+              // draws them at **#4A6155**, which is `ground.rule`'s own dark
+              // value: sampled off the artboard, not chosen here, and 2.7:1 on
+              // the pinned `ceremony` ground against the 1.3:1 the neutral was
+              // giving. The gold #1-stroke bar is unchanged and is still the
+              // surface's one earned object.
+              .fill(h.number == hardest && scale == .hero ? cs.gold : barGreen)
               .frame(height: max(3, field * height(h)))
             if numerals {
               Text("\(h.number)")
@@ -127,6 +136,14 @@ public struct CSDrawnCard: View {
     .accessibilityLabel(spoken)
     // the one bar that takes the metal — counted, like every other gold object
     .csBudget(gold: hardest != nil && scale == .hero ? 1 : 0)
+  }
+
+  /// The bars' own green. On a **hero** plate it is the pinned dark value,
+  /// because that plate is pinned `ceremony` in both printings; on a
+  /// **thumbnail** the card sits on `bg1` in the reader's own theme, so the
+  /// bars take the theme's rule.
+  private var barGreen: Color {
+    scale == .hero ? CSTokens.dark.rule : cs.rule
   }
 
   @ViewBuilder private var thumbGround: some View {

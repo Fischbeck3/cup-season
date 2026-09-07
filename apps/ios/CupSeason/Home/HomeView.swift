@@ -122,6 +122,14 @@ struct HomeView: View {
     .task(id: loadKey) { await vm.load(me: store.me, key: loadKey) }
     .navigationTitle("")
     .toolbar(.hidden, for: .navigationBar)
+    // **DF-14 · A FIGURE MAY NOT RENDER UNDER THE CLOCK.** Content scrolled
+    // straight under the status bar with no scroll-edge treatment, so at some
+    // scroll position on every page a name, a rule or a gross rendered under
+    // the time and the Dynamic Island. On the You page it landed on the form
+    // row — five grosses on one rule, the object the design is proudest of.
+    // The page's own ground fills exactly the top safe area; a surface whose
+    // top is a photograph or a contour uses the scrim instead (§10.3).
+    .csStatusCap(cs.bg0)
   }
 
   /// §13.3 · the read did not land and there is something on screen. The

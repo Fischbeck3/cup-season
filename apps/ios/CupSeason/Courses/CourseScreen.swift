@@ -64,17 +64,23 @@ struct CourseScreen: View {
     // reason `CSPhotoScrim.top` exists — without this the scroll view insets
     // its content below the bar and the "full-bleed" plate starts 114pt down
     // the screen, which is what the first build of this page did.
-    .ignoresSafeArea(edges: .top)
+    .csPlateBleedsInDark(cs.bg0)
     .background(cs.bg0.ignoresSafeArea())
-    .navigationTitle("")
-    .navigationBarTitleDisplayMode(.inline)
+
     // §2.1 · **the system bar carries the back chevron only** — and on this
     // page it does not carry it at all. A full-bleed plate under a bar means
     // the platform's own back button arrives inside a translucent disc sitting
     // on the photograph; the design draws the chevron itself, at 1.7pt in
     // `scrimInk`, on the `.top` scrim that exists to hold it. The stack's own
     // edge-swipe is untouched.
-    .toolbar(.hidden, for: .navigationBar)
+    // **THE BAR IS EMPTIED, NOT HIDDEN** (`csBareBar`, DF-07). Hiding it left
+    // nothing to hang `toolbarColorScheme` on, so in the LIGHT printing the
+    // system put its DARK glyph set on this page's near-black `ceremony`
+    // plate: the clock, the cellular dots and the battery, unreadable, over
+    // the top 60pt of a flagship surface. The plate is dark in both
+    // printings and now says so. Nothing else about the bar changes — it
+    // paints no background, carries no title and shows no system back button.
+    .csBareBar(overDarkPlate: true)
     .task { await vm.load(me: store.me?.profile?.id) }
     .sheet(isPresented: $rating) {
       RateCourseSheet(courseId: vm.courseId ?? "", course: vm.title, rating: vm.rating) { r in

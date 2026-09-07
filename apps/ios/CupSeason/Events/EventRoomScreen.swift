@@ -84,11 +84,17 @@ struct EventRoomScreen: View {
       // and a child that overflows clips instead of moving the page.
       .containerRelativeFrame(.horizontal)
     }
-    .ignoresSafeArea(edges: .top)
+    .csPlateBleedsInDark(cs.bg0)
     .background(cs.bg0.ignoresSafeArea())
-    .navigationTitle("")
-    .navigationBarTitleDisplayMode(.inline)
-    .toolbar(.hidden, for: .navigationBar)
+
+    // **THE BAR IS EMPTIED, NOT HIDDEN** (`csBareBar`, DF-07). Hiding it left
+    // nothing to hang `toolbarColorScheme` on, so in the LIGHT printing the
+    // system put its DARK glyph set on this page's near-black `ceremony`
+    // plate: the clock, the cellular dots and the battery, unreadable, over
+    // the top 60pt of a flagship surface. The plate is dark in both
+    // printings and now says so. Nothing else about the bar changes — it
+    // paints no background, carries no title and shows no system back button.
+    .csBareBar(overDarkPlate: true)
     .refreshable { await model.load() }
     .task(id: model.eventId) {
       #if DEBUG

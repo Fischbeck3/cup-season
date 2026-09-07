@@ -30,6 +30,7 @@ import CupSeasonKit
 
 struct RecordPage: View {
   @Environment(\.cs) private var cs
+  @Environment(\.dismiss) private var dismiss
   @Environment(SessionStore.self) private var store
   @Environment(\.openCompetition) private var openCompetition
   let links: YouLinks
@@ -40,6 +41,7 @@ struct RecordPage: View {
   var body: some View {
     ScrollView {
       VStack(alignment: .leading, spacing: 0) {
+        CSBackChevron { dismiss() }
         CSPageHeader("The record", eyebrow: model.since)
 
         // §1.4 · the page's ONE serif appearance, and it is the voice the
@@ -74,10 +76,16 @@ struct RecordPage: View {
     }
     .background(cs.bg0)
     .defaultScrollAnchor(CSDevHatch.bottom ? .bottom : .top)
-    // §12.2 · the system bar carries the back chevron and nothing else; the
-    // page names itself once, in `CSPageHeader`.
-    .navigationTitle("")
-    .navigationBarTitleDisplayMode(.inline)
+    // §12.2 · the system bar carries the back chevron and nothing else — and
+    // on iOS 26 "nothing else" included a translucent `bg2` capsule around
+    // the chevron, which is a boxed control on a system whose first
+    // non-negotiable is that a container needs a job. The page draws the
+    // family's own chevron instead, the way the course page and the event
+    // room already do, so the product has ONE back button.
+    .csBareBar()
+    // DF-14 · and the page's own ground sits under the clock, so a figure
+    // never renders through the time.
+    .csStatusCap(cs.bg0)
     .refreshable { await model.load(me: store.me, uid: store.session?.user.id) }
     .task { await model.load(me: store.me, uid: store.session?.user.id) }
     .sliceToastHost()

@@ -98,6 +98,20 @@ public enum SeasonBoardCopy {
     return d > 0 ? "+\(CSCopy.points(d))" : ""
   }
 
+  /// **The same fact in WORDS**, for the accessibility sizes and for
+  /// VoiceOver, where the column that gives `+4` its meaning is not on screen.
+  ///
+  /// The AX3 board line was composing `gap(…) + " back"` and printing **`+4
+  /// BACK`** — a signed figure glued to a direction word, which reads as "plus
+  /// four back" and is the same defect `Movement.long` exists to prevent one
+  /// column to the left. A sentence says it: *`4 back`*, and the leader's is
+  /// *`leading`*, because the leader's cell is empty and a dash is not a fact.
+  public static func gapSpoken(leader: Double, row: Double) -> String? {
+    let d = leader - row
+    guard d > 0 else { return nil }
+    return "\(CSCopy.points(d)) back"
+  }
+
   // MARK: - the slat's clause of why
 
   /// The sub-line under a name, **sentence case, one line, authored to a

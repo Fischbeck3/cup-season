@@ -921,3 +921,21 @@ The third repair commit. Four checks said **zero, and held there** while the def
 **Reversibility.** LOW for the lints (they only widen), MEDIUM for the copy. No producer changes what it MEANS; five change a noun. No RPC, no migration, no mechanic.
 
 **Gate:** `build-tokens` clean · preflight PASS · sunningdale PASS · 980 tests / 161 suites.
+
+## IOS-058 · The repair pass — one back button, and nothing renders under the clock — **BUILT 2026-09-07 (owner-authorised "build it", 2026-09-06)**
+
+The fourth repair commit: the chrome the system draws for us, and the two places it was wrong.
+
+**TWO BACK BUTTONS IN ONE PRODUCT.** iOS 26 wraps every toolbar button in a glass capsule, so the season page, the record page and the fixture table drew their back chevron inside a translucent `bg2` disc while the course page and the event room — which hide the bar and draw their own — did not. No artboard draws either disc, and a boxed control is the first non-negotiable's own defect. **The first fix did not work and is recorded because it cost a build:** keeping the bar, hiding its background and hanging a `.plain` button in it still painted the capsule. A toolbar item cannot be talked out of its glass on this system, so the page draws the chevron: `CSBackChevron`, in the content, riding the head, exactly as the course page has since Wave 4. `csBareBar()` is the one modifier that empties the bar.
+
+**THE CLOCK ON A NEAR-BLACK PLATE IN THE LIGHT PRINTING.** The course page and the event room pin their plate to `ceremony` in both printings and hide their bar, so nothing was left to hang `toolbarColorScheme` on and the light printing put its DARK glyph set on near-black — the time, the cellular dots and the battery, unreadable, over the top 60pt of two flagship surfaces. Three routes were measured and two failed: `toolbarColorScheme(.dark)` does not reach the status bar on a bar with no background, and a surface-level `preferredColorScheme(.dark)` loses to the App's own at the scene root. **So the plate bleeds in the dark printing and stops at the safe area in the light one** (`csPlateBleedsInDark`), and the clock reads dark on paper the way it does on every other light surface. `course-light.png` draws it bleeding with light glyphs; a mockup draws its own status bar and the app does not get to (§19).
+
+**AND CONTENT SCROLLED UNDER THE CLOCK EVERYWHERE ELSE.** `csStatusCap` paints the page's own ground into the top safe area on the four tab roots and the two pushed roots that hide their bar. On the You page the shipped behaviour put the form row — five grosses on one rule — under the Dynamic Island.
+
+**THE DRAWN CARD IS A COURSE, NOT A BAR CHART.** Eighteen neutral grey bars on near-black. `course-page-noimage.png` draws them at **#4A6155** — sampled off the artboard, and it is `ground.rule`'s own dark value, so the fix is a token rather than a choice. 2.7:1 on the pinned ground against the 1.3:1 the neutral gave.
+
+**THE TAB BAND KEEPS ITS WORDS.** At AX3 it dropped all five destination labels, leaving unlabelled glyphs for the golfers most likely to need words. They stay and SHRINK rather than wrap: `COMPE/TE` is not a label. And the AX3 board line prints `4 back`, from a producer, rather than `+4` with `BACK` welded on.
+
+**Also:** Home's floor drew its top rule full-measure and its three separators inset 20pt on one edge — an asymmetric hairline reads as a rendering fault. The season head gives ~28pt back to the table.
+
+**Gate:** `build-tokens` clean · preflight PASS · sunningdale PASS · 980 tests / 161 suites.

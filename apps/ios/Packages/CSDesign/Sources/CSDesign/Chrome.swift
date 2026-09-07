@@ -254,24 +254,36 @@ public struct CSTabBand<T: Hashable>: View {
             else { selection = item.id; CSHaptic.selection() }
           } label: {
             VStack(spacing: CSTokens.Space.s1) {
-              // §16.3 · AT AX3 THE LABELS DROP AND THE GLYPHS GROW TO 28.
-              // Five capped agate labels across 402pt is 72pt a slot, and
-              // `COMPETE` and `GOLFERS` broke in half and printed `COMP/ETE`
-              // and `GOLFE/RS` under their own glyphs — which is the chrome
-              // shearing, and it is why the band draws itself rather than
-              // asking UIKit to.
+              // §16.3 · at AX3 the glyph grows to 28 — and **the label stays**.
+              //
+              // It used to drop, because five capped agate labels across 402pt
+              // is 72pt a slot and `COMPETE` and `GOLFERS` broke in half and
+              // printed `COMP/ETE` and `GOLFE/RS` under their own glyphs. But
+              // the answer to a label that will not fit on one line is not to
+              // delete it: **an unlabelled tab bar is worse than a taller
+              // one**, and it is unlabelled for exactly the golfers most
+              // likely to need the words. The label WRAPS instead, at
+              // `agateS`'s own floor, and the band grows its height — which is
+              // the same rule §16.3 applies to every other row in the product.
               CSGlyph(item.glyph, points: typeSize.isA11y ? 28 : CSGlyph.Size.tab.rawValue,
-                      labelled: typeSize.isA11y)
-              if !typeSize.isA11y {
-                Text(item.label).csType(.agateS, caps: true)
-                  .lineLimit(1).fixedSize()
-              }
+                      labelled: false)
+              // **THE WORD STAYS WHOLE.** Wrapping printed `COMPE/TE` and
+              // `GOLFER/S`, which is the shear the label used to be deleted to
+              // avoid — a broken word is not a label. It SHRINKS instead: at
+              // AX3 `agateS` renders ~25pt and 0.55 of that is ~14, still
+              // above the default reading size and comfortably above the 11pt
+              // floor, on the one row where five slots have to share 402pt.
+              Text(item.label).csType(.agateS, caps: true)
+                .multilineTextAlignment(.center)
+                .lineLimit(1)
+                .minimumScaleFactor(typeSize.isA11y ? 0.55 : 1)
+                .fixedSize(horizontal: !typeSize.isA11y, vertical: true)
               Rectangle()
                 .fill(on && !item.isPlay ? cs.ink : Color.clear)
                 .frame(width: 26, height: 2)
             }
             .foregroundStyle(item.isPlay ? cs.brand : (on ? cs.ink : cs.mut))
-            .frame(maxWidth: .infinity, minHeight: 74)
+            .frame(maxWidth: .infinity, minHeight: typeSize.isA11y ? 84 : 74)
             .contentShape(Rectangle())
           }
           .buttonStyle(.plain)

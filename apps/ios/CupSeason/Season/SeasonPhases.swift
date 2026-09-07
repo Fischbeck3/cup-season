@@ -79,8 +79,12 @@ struct ClashRows: View {
       let aB = wc.settled ? wc.a_best : ClashMath.bestSoFar(model.rankedRounds, member: wc.a_member, window: win, capN: model.bylaws.capN)
       let bB = wc.settled ? wc.b_best : ClashMath.bestSoFar(model.rankedRounds, member: wc.b_member, window: win, capN: model.bylaws.capN)
       let ahead = leader(aB, bB)
-      VStack(alignment: .leading, spacing: CSTokens.Space.s3) {
+      // DF-08 · the two sides of a clash are ONE object and sit at `s2`;
+      // `season-top.png` puts 10pt between them and the shipped `s3` put 12
+      // on top of each row's own height. The head keeps its `s3`.
+      VStack(alignment: .leading, spacing: CSTokens.Space.s2) {
         CSSectionHead("This week · the clash", count: through(wc, weekEnd: win.end))
+          .padding(.bottom, CSTokens.Space.s1)
         side(wc.a_member, best: aB, ahead: ahead == 0)
         side(wc.b_member, best: bB, ahead: ahead == 1)
       }

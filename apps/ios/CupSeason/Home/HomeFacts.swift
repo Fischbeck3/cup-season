@@ -160,7 +160,12 @@ struct HomeFloor: View {
     VStack(alignment: .leading, spacing: 0) {
       if pageHasPrimary { CSRule(.heavy) } else { CSRule() }
       ForEach(Array(rows.enumerated()), id: \.element.id) { i, d in
-        if i > 0 { CSRule().padding(.leading, CSTokens.Space.gutter) }
+        // **A HAIRLINE IS SYMMETRIC OR IT IS A RENDERING FAULT.** The block's own
+        // top rule runs the full measure and these three ran inset 20pt on the
+        // leading edge and flush right — an asymmetric divider inside a block
+        // whose other rule is symmetric. `home-quiet.png` runs all four
+        // full-bleed.
+        if i > 0 { CSRule() }
         row(d)
       }
     }
@@ -241,7 +246,12 @@ struct HomeFirstRoundRows: View {
     VStack(alignment: .leading, spacing: 0) {
       CSRule()
       ForEach(Array(rows.enumerated()), id: \.element.id) { i, r in
-        if i > 0 { CSRule().padding(.leading, CSTokens.Space.gutter) }
+        // **A HAIRLINE IS SYMMETRIC OR IT IS A RENDERING FAULT.** The block's own
+        // top rule runs the full measure and these three ran inset 20pt on the
+        // leading edge and flush right — an asymmetric divider inside a block
+        // whose other rule is symmetric. `home-quiet.png` runs all four
+        // full-bleed.
+        if i > 0 { CSRule() }
         A11yStack(rowAlignment: .firstTextBaseline,
                   spacing: CSTokens.Space.s3, columnSpacing: CSTokens.Space.s2) {
           Text(r.verb).csType(.nameS).foregroundStyle(cs.ink)

@@ -62,6 +62,7 @@ struct SeasonPage: View {
   /// R-10 · IOS-025: "the room wears its league's look — phase ≻ the Pro's
   /// choice ≻ the person's dial".
   @Environment(LookStore.self) private var looks
+  @Environment(\.dismiss) private var dismiss
   @Environment(\.cs) private var cs
   @State private var model: LeagueRoomModel
   @State private var router: RoomRouter
@@ -82,8 +83,15 @@ struct SeasonPage: View {
       page(proxy)
         // LINT-24 · the season's name is printed ONCE, in `display` 34 (CS-07:
         // it was set three times in 50pt of vertical space).
-        .navigationTitle("")
-        .navigationBarTitleDisplayMode(.inline)
+        //
+        // **AND THE BAR CARRIES NOTHING** (DF-09). iOS 26 wrapped the system
+        // back button in a translucent `bg2` capsule, so this page's chevron
+        // arrived boxed while the course page's — the same gesture, one push
+        // away — did not. One back button in the product: the family's own
+        // chevron, no field behind it. The ~40pt the bar's chrome was taking
+        // goes back to the table, which is the object this page is for.
+        .csBareBar()
+        .csStatusCap(cs.bg0)
         .task(id: model.loaded) {
           // the door that named a section lands on it, once the section exists
           guard model.loaded, pane == .pot || pane == .story else { return }
@@ -111,6 +119,19 @@ struct SeasonPage: View {
   private func page(_ proxy: ScrollViewProxy) -> some View {
     ScrollView {
       VStack(alignment: .leading, spacing: CSTokens.Space.s4) {
+        // **THE PAGE DRAWS ITS OWN BACK CHEVRON** (DF-09). iOS 26 wraps every
+        // toolbar button in a glass capsule, so the system's back button
+        // arrived inside a translucent `bg2` disc while the course page's —
+        // the same gesture, one push away — did not. One back button in the
+        // product: the family's chevron, no field, riding the head. It also
+        // hands ~40pt of the first viewport back to the table, which is the
+        // object this page is for.
+        // DF-08 · the chevron's 44pt target is kept and its BOX is not: the
+        // negative insets pull the head up ~28pt, which is the difference
+        // between `season-top.png`'s eyebrow at 64pt and the build's at 92.
+        CSBackChevron { dismiss() }
+          .padding(.top, -CSTokens.Space.s2)
+          .padding(.bottom, -(CSTokens.Space.s4 + CSTokens.Space.s2))
         if let err = model.error, !model.loaded {
           // L-32 · a failed read is never an empty one, and it ends in a move.
           // §3 · "one lead line, one body line, and Try again as the surface's

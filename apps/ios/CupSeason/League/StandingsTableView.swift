@@ -315,8 +315,14 @@ struct StandingsTableView: View {
     }
     // the leader's gap cell is EMPTY on the board and it says so in words too:
     // "leading" is the fact, not a dash.
-    let gap = SeasonBoardCopy.gap(leader: model.teams.first?.pts ?? t.pts, row: t.pts)
-    if leader { out.append("leading") } else if !gap.isEmpty { out.append("\(gap) back") }
+    // **THE WORDS, NOT THE COLUMN GLUED TO A WORD.** This composed
+    // `gap(…) + " back"` and printed `+4 BACK`, which is a signed figure with
+    // a direction welded on — the defect `Movement.long` exists to prevent,
+    // one column to the left.
+    if leader { out.append("leading") }
+    else if let g = SeasonBoardCopy.gapSpoken(leader: model.teams.first?.pts ?? t.pts, row: t.pts) {
+      out.append(g)
+    }
     out.append("\(CSCopy.points(t.pts)) points")
     return out
   }
@@ -477,7 +483,7 @@ struct GolferTableView: View {
                // facts. There is no movement here by design (the snapshot
                // holds squads, not golfers), so the line is two clauses.
                axFacts: [rk[i] == 1 ? "leading"
-                         : "\(SeasonBoardCopy.gap(leader: rows.first?.pts ?? p.pts, row: p.pts)) back",
+                         : (SeasonBoardCopy.gapSpoken(leader: rows.first?.pts ?? p.pts, row: p.pts) ?? ""),
                          "\(CSCopy.points(p.pts)) points"]) {
           CSFigure(CSCopy.points(p.pts), size: rk[i] == 1 ? .l : .m, label: nil)
         }
