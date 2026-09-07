@@ -1,0 +1,7 @@
+{
+  "note": "D274 · the visual-system lint lands with a baseline, or it lands nothing. Each entry is the number of pre-system sites a check found on the day it was written; the check FAILS when the count rises and reports the new floor when it falls. Lower the number in the same commit that lowers the count. A baseline of 0 is zero-tolerance from then on, and the entry stays so the intent is on the record.",
+  "wrote": "2026-09-06 · Wave 0a (D274, IOS-044)",
+  "checks": {
+    "LINT-04": 172
+  }
+}

@@ -12,7 +12,11 @@ struct CupSeasonApp: App {
   /// screen that a golfer may or may not reach.
   @Environment(\.scenePhase) private var scenePhase
   @State private var store = SessionStore()
-  @State private var appearance = CSAppearance.load()
+  /// IOS-051 · `-cs_dev_appearance` wins over the stored choice for one
+  /// launch, and it wins HERE rather than at `.preferredColorScheme`, so
+  /// the Appearance selector in Settings shows the same answer the screen is
+  /// actually rendering. Always the stored value in Release.
+  @State private var appearance = CSDevHatch.appearance ?? CSAppearance.load()
   @State private var toasts = CSToastCenter()
   /// The looks (IOS-025): the personal dial + every league's curated look, one read per session.
   @State private var looks = CSDevHatch.lookStore()
@@ -26,6 +30,11 @@ struct CupSeasonApp: App {
         .environment(\.csAppearance, $appearance)
         .preferredColorScheme(appearance.colorScheme)
         .csTheme()
+        // IOS-051 · `-cs_dev_text_size <category>`. `.dynamicTypeSize(_:)`
+        // with a single size PINS it, which is what a capture needs; nil
+        // leaves the golfer's own setting alone, and in Release it is
+        // always nil.
+        .csDevTextSize(CSDevHatch.textSize)
         .csToasts(toasts)
         .task { store.start() }
         .task { await PushService.shared.syncOnLaunch() }
@@ -91,5 +100,14 @@ extension EnvironmentValues {
   var csAppearance: Binding<CSAppearance> {
     get { self[CSAppearanceKey.self] }
     set { self[CSAppearanceKey.self] = newValue }
+  }
+}
+
+/// IOS-051 · the content-size hatch, as a modifier so the `nil` case adds
+/// nothing to the view tree at all. `-UIPreferredContentSizeCategoryName` does
+/// not take on a SwiftUI app launched by `simctl`, which is why this exists.
+private extension View {
+  @ViewBuilder func csDevTextSize(_ size: DynamicTypeSize?) -> some View {
+    if let size { self.dynamicTypeSize(size) } else { self }
   }
 }

@@ -167,7 +167,7 @@ struct DoorView: View {
       .padding(.top, 16)
     } else if pending == nil {
       Button { codeEntry = true; focus = .joinCode } label: {
-        Text("I HAVE A CODE").csEyebrow(cs.dawn).a11yHitSlop()
+        Text("I HAVE A CODE").csEyebrow(cs.ink).a11yHitSlop()
       }
       .buttonStyle(.plain)
       .accessibilityLabel("I have a code")
@@ -191,7 +191,7 @@ struct DoorView: View {
         .frame(maxWidth: .infinity, minHeight: 64)
         .background(cs.bg2, in: RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous))
         .overlay(RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous)
-          .stroke(focus == .code ? cs.focus : cs.line, lineWidth: focus == .code ? 2 : 1))
+          .stroke(focus == .code ? cs.brand : cs.rule, lineWidth: focus == .code ? 2 : 1))
         .focused($focus, equals: .code)
         .onChange(of: vm.code) { _, new in
           let clean = AuthRules.normalizeCode(new)
@@ -246,9 +246,9 @@ struct DoorView: View {
       // the web's door line, verbatim: the two words are the links
       HStack(spacing: 0) {
         Text("By continuing you agree to the ").foregroundStyle(cs.mut)
-        Link("Terms", destination: CSConfig.legal("terms")).foregroundStyle(cs.dawn)
+        Link("Terms", destination: CSConfig.legal("terms")).foregroundStyle(cs.ink)
         Text(" & ").foregroundStyle(cs.mut)
-        Link("Privacy Policy", destination: CSConfig.legal("privacy")).foregroundStyle(cs.dawn)
+        Link("Privacy Policy", destination: CSConfig.legal("privacy")).foregroundStyle(cs.ink)
         Text(".").foregroundStyle(cs.mut)
       }
       .font(CSFont.footnote)

@@ -98,7 +98,7 @@ struct IndividualRaceView: View {
               .background(p.me ? cs.bg2.opacity(0.7) : .clear, in: RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous))
               .contentShape(Rectangle())
               // the leader's hairline is gold (IOS-003 §2.10); every other row parts on `line`
-              .overlay(alignment: .bottom) { Rectangle().fill(i == 0 && p.pts > 0 ? cs.gold.opacity(0.55) : cs.line).frame(height: 1) }
+              .overlay(alignment: .bottom) { Rectangle().fill(i == 0 && p.pts > 0 ? cs.gold.opacity(0.55) : cs.rule).frame(height: 1) }
             }
             .buttonStyle(.plain)
             .accessibilityLabel("\(CSCopy.ordinal(i + 1)), \(p.n), \(p.r) round\(p.r == 1 ? "" : "s"), \(CSCopy.points(p.pts)) points")

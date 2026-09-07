@@ -30,7 +30,7 @@ struct FeedbackSheet: View {
               Text(title).font(CSFont.monoMediumBody).foregroundStyle(on ? cs.brand : cs.ink)
                 .padding(.horizontal, 12).padding(.vertical, 8)
                 .background(cs.bg2, in: RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous))
-                .overlay(RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous).stroke(on ? cs.brand : cs.line2, lineWidth: 1))
+                .overlay(RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous).stroke(on ? cs.brand : cs.rule, lineWidth: 1))
                 .a11yHitSlop(vertical: 5, horizontal: 0)
             }
             .buttonStyle(.plain)

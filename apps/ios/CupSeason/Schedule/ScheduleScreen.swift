@@ -77,7 +77,7 @@ struct ScheduleScreen: View {
         let rel = sr.is_friend == true ? "BUDDY" : "IN YOUR SEASONS"
         RoomLineRow(marker: sr.marker, title: Text(sr.display_name ?? "A golfer") + Text("  \(rel)").font(CSFont.label).foregroundStyle(cs.dimText),
                     sub: watchBits(sr)) {
-          if sr.tagged_me == true { Text("ON THE SCHEDULE").font(CSFont.label).foregroundStyle(cs.dawn) }   // F-10
+          if sr.tagged_me == true { Text("ON THE SCHEDULE").font(CSFont.label).foregroundStyle(cs.ink) }   // F-10
           else {
             CSMini("I’m in") {
               declare = DeclarePrefill(iso: sr.play_on, course: sr.course_label ?? "", tee: sr.tee_time, courseId: sr.course_id,
@@ -94,9 +94,9 @@ struct ScheduleScreen: View {
   private func watchBits(_ sr: ScheduledRound) -> Text {
     var t = Text(sr.play_on.map { ScheduleDates.when($0) } ?? "")
     if let c = sr.course_label { t = t + Text(" · \(c.uppercased())") }
-    if let tee = sr.tee_time, !TeeTime.format(tee).isEmpty { t = t + Text(" · ") + Text(TeeTime.format(tee)).foregroundStyle(cs.dawn) }   // F-10 · a clock
+    if let tee = sr.tee_time, !TeeTime.format(tee).isEmpty { t = t + Text(" · ") + Text(TeeTime.format(tee)).foregroundStyle(cs.ink) }   // F-10 · a clock
     if let r = RivalryTag.of(sr.profile_id, rivals: vm.rivals) { t = t + Text(" · ") + Text(r.text).foregroundStyle(cs.gold) }
-    if sr.tagged_me == true { t = t + Text(" · ") + Text("YOU’RE IN").foregroundStyle(cs.dawn) }   // F-10
+    if sr.tagged_me == true { t = t + Text(" · ") + Text("YOU’RE IN").foregroundStyle(cs.ink) }   // F-10
     if let n = sr.note, !n.isEmpty { t = t + Text(" · “\(n)”") }
     return t
   }
@@ -124,7 +124,7 @@ struct ScheduleScreen: View {
           ForEach(1...vm.month.daysInMonth, id: \.self) { d in cell(d) }
         }
         HStack(spacing: 12) {
-          legend(cs.brand, "ON THE SCHEDULE"); legend(cs.gold, "IN YOUR SEASONS"); legend(cs.dawn, "SEASON DATE")
+          legend(cs.brand, "ON THE SCHEDULE"); legend(cs.gold, "IN YOUR SEASONS"); legend(cs.ink, "SEASON DATE")
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(.top, 4)
@@ -137,7 +137,7 @@ struct ScheduleScreen: View {
   }
 
   private func dot(_ k: CalendarItem.Dot) -> Color {
-    switch k { case .round: cs.brand; case .leagueMate: cs.gold; case .season: cs.dawn }
+    switch k { case .round: cs.brand; case .leagueMate: cs.gold; case .season: cs.ink }
   }
 
   private func cell(_ d: Int) -> some View {

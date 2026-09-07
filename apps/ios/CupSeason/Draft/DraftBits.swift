@@ -27,7 +27,7 @@ struct DraftClockCard<Content: View>: View {
     .padding(18)
     .frame(maxWidth: .infinity, alignment: .leading)
     .background(CSDusk.surface, in: RoundedRectangle(cornerRadius: CSTokens.Radius.r, style: .continuous))
-    .overlay(RoundedRectangle(cornerRadius: CSTokens.Radius.r, style: .continuous).stroke(cs.line, lineWidth: 1))
+    .overlay(RoundedRectangle(cornerRadius: CSTokens.Radius.r, style: .continuous).stroke(cs.rule, lineWidth: 1))
     .overlay(alignment: .leading) { RoundedRectangle(cornerRadius: 2).fill(accent).frame(width: 3.5).padding(.vertical, 12) }
   }
 }
@@ -67,7 +67,7 @@ struct DraftSquadCard: View {
       .padding(14)
       .frame(maxWidth: .infinity, alignment: .leading)
       .background(CSDusk.surface, in: RoundedRectangle(cornerRadius: CSTokens.Radius.r, style: .continuous))
-      .overlay(RoundedRectangle(cornerRadius: CSTokens.Radius.r, style: .continuous).stroke(selected ? cs.pos : cs.line, lineWidth: selected ? 1.5 : 1))
+      .overlay(RoundedRectangle(cornerRadius: CSTokens.Radius.r, style: .continuous).stroke(selected ? cs.pos : cs.rule, lineWidth: selected ? 1.5 : 1))
       .overlay(alignment: .leading) { RoundedRectangle(cornerRadius: 2).fill(color).frame(width: 3.5).padding(.vertical, 10) }
       .contentShape(Rectangle())
     }
@@ -125,7 +125,7 @@ struct DraftSnakeSquadCard: View {
     .padding(14)
     .frame(maxWidth: .infinity, alignment: .leading)
     .background(CSDusk.surface, in: RoundedRectangle(cornerRadius: CSTokens.Radius.r, style: .continuous))
-    .overlay(RoundedRectangle(cornerRadius: CSTokens.Radius.r, style: .continuous).stroke(onClock ? color : cs.line, lineWidth: onClock ? 1.5 : 1))
+    .overlay(RoundedRectangle(cornerRadius: CSTokens.Radius.r, style: .continuous).stroke(onClock ? color : cs.rule, lineWidth: onClock ? 1.5 : 1))
     .overlay(alignment: .leading) { RoundedRectangle(cornerRadius: 2).fill(color).frame(width: 3.5).padding(.vertical, 10) }
   }
 
@@ -156,7 +156,7 @@ struct DraftPoolChip: View {
       .foregroundStyle(selected ? cs.pos : cs.ink)
       .padding(.horizontal, 10).frame(minHeight: 36)
       .background(CSDusk.surface, in: Capsule())
-      .overlay(Capsule().stroke(selected ? cs.pos : cs.line2, lineWidth: 1))
+      .overlay(Capsule().stroke(selected ? cs.pos : cs.rule, lineWidth: 1))
       .frame(minHeight: 44)
       .contentShape(Rectangle())
     }
@@ -184,7 +184,7 @@ struct DraftPoolRow: View {
       }
       .padding(.horizontal, 14).frame(minHeight: 48)
       .background(CSDusk.surface, in: RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous))
-      .overlay(RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous).stroke(cs.line, lineWidth: 1))
+      .overlay(RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous).stroke(cs.rule, lineWidth: 1))
       .opacity(allowed ? 1 : 0.45)
       .contentShape(Rectangle())
     }
@@ -221,7 +221,7 @@ struct DraftSnakeDots: View {
   var body: some View {
     LazyVGrid(columns: [GridItem(.adaptive(minimum: 12), spacing: 5)], alignment: .leading, spacing: 5) {
       ForEach(0..<max(0, total), id: \.self) { i in
-        Circle().fill(i < made ? cs.ink : i == made ? cs.brand : cs.line2).frame(width: 8, height: 8)
+        Circle().fill(i < made ? cs.ink : i == made ? cs.brand : cs.rule).frame(width: 8, height: 8)
       }
     }
     .padding(.top, 8)

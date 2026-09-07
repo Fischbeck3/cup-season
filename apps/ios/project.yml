@@ -89,10 +89,17 @@ targets:
         NSBonjourServices:
           - _cs-tee._tcp
           - _cs-tee._udp
+        # D258's lesson, and IOS-044's: a bundled face is only bundled when it
+        # is HERE and in Info.plist. The PostScript names are read from the
+        # files' own name table (id 6) — IBMPlexSansCond-SmBld and
+        # IBMPlexSansCond-Bold, NOT "…Condensed…" — and preflight check 44
+        # asserts the Swift constants against the TTFs on every run.
         UIAppFonts:
           - IBMPlexMono-Regular.ttf
           - IBMPlexMono-Medium.ttf
           - IBMPlexMono-SemiBold.ttf
+          - IBMPlexSansCondensed-SemiBold.ttf
+          - IBMPlexSansCondensed-Bold.ttf
         CFBundleURLTypes:
           - CFBundleURLName: app.cupseason.ios
             CFBundleURLSchemes: [cupseason]

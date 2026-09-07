@@ -33,80 +33,202 @@
 <title>Cup Season — season-long fantasy golf with your own crew</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<!-- D268/D258 · a STACK DOES NOT LOAD A FACE. --board is a CSS stack, and
+     without this line 46% of the desk's type renders in system-ui and
+     nobody sees it happen. netlify.toml already allows fonts.gstatic.com. -->
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans+Condensed:wght@600;700&display=swap" rel="stylesheet">
 <style>
 :root{
-  /* D76 — Charcoal: coals in the grate. Near-black ground, slate greys for
-     everything stable, heat (amber→ember) as the live voice. Two metals:
-     ember = LIVE (momentum, pressure, actions), champagne gold = EARNED
-     (unchanged). The old dusk-green palette is not deleted — it retires into
-     .room-dusk and the artifact faces: ceremonies keep the trophy room. */
-  --bg0:#0B1410;         /* page — charcoal (converges meta/favicon/legal) */
-  --bg1:#131D17;         /* surface */
-  --bg2:#1A2820;         /* raised / inputs */
-  --line:#24352B;
-  --line2:#34493D;
-  --ink:#F0F2F3;
-  --mut:#8E979E;
-  --dim:#5C646B;
-  --pos:#4EC584;         /* performance up / money in — SEMANTIC only (de-neoned mint) */
-  --neg:#FF5F56;         /* performance down / money owed */
-  --gold:#D8B25A;        /* champagne — EARNED only: leads, pot, trophies */
-  --pine:#0E3B24;        /* deepest green — ceremony grounds (the honor room) */
-  --brand:#E8622C;       /* ember — primary action + brand (the live metal) */
-  --dawn:#7FA6C9;        /* links & live states — cooled to slate-blue */
-  /* D76 heat axis — temperature is semantic, never decorative. Stable=slate,
-     momentum ramps warm→hot→fire; cooling reads slate, never red-means-bad. */
-  --focus:#FF8A4C;       /* focus rings ONLY — was --pos (green), which is a
-                            SEMANTIC (performance up); a focused field is not
-                            a good score. Lifted off --hot so the ring reads
-                            against ember fills too. */
-  --warm:#E9A23B;        /* building: streaks forming, deadlines near */
-  --hot:#FF5A2E;         /* burning: carries riding, gaps closing */
-  --fire:#FF3B1A;        /* peak: the pressure meter's tip */
-  --cool:#66707A;        /* cooling: falling rows — slate, not alarm */
-  --sq0:#57A8FF;         /* squad blue */
-  --sq1:#FB8B4B;         /* squad orange */
-  --sq2:#A78BFA;         /* squad violet */
-  --sq3:#2FD3BE;         /* squad teal */
-  /* Design tokens (vision doc, Batch A): cards 16 · controls 10 · sheets 24.
-     Three type voices — sans (now), mono (the scorer's tent), serif (memory
-     & honor: hero numbers, headlines, trophies). One motion physics: the
-     roll-out — fast start, long soft settle, like a putt dying at the hole.
-     Exactly two shadow levels: resting whisper, lifted sheet. */
-  --r:16px;              /* cards */
-  --rc:10px;             /* controls: buttons, inputs, minis */
-  --rs:24px;             /* sheets */
+  /* THE VISUAL SYSTEM (D265, D270, 2026-09-06) — this block is GENERATED-IN-
+     SPIRIT: packages/tokens/tokens.json is the source and preflight check 10
+     compares the two byte for byte, so a colour changed here and not there
+     cannot ship. Two printings of one system: fescue at dusk, and warm
+     almanac stock. Two metals and only two — ember is LIVE and the one
+     primary action, champagne gold is EARNED and nothing else. There is no
+     border token, no heat axis, no third metal, no glow and no gradient:
+     BRIEF §4 names the last two as do-nots and D270 deletes them. */
+  /* ground — Surfaces, darkest to raised. D270: bg0 is 49% further from
+     black than D103b's (dE 10.28 at chroma 6.35), so the fescue is nameable;
+     the light theme is warm almanac stock, not a paler dark. `line2` is
+     deleted and `line` is renamed `rule` — the system has ONE hairline and
+     no border token. */
+  --bg0:#0F1A15;                  /* page — fescue (green-black) / almanac stock */
+  --bg1:#1A2620;                  /* surface */
+  --bg2:#26352E;                  /* raised / inputs */
+  --rule:#4A6155;                 /* the ONE hairline — 2.66:1 on bg0, and there is no border token */
+
+  --ink:#F1F4EF;
+  --mut:#9BA69D;
+  --dim:#5E6A62;
+
+  /* semantic — SEMANTIC ONLY — performance up/down, a falling row. Never
+     decorative, and NEVER money: D273 puts money in `ink`, the pot in
+     `gold`, and the sign in a word. */
+  --pos:#4EC584;                  /* performance up — SEMANTIC only (de-neoned mint) */
+  --neg:#FF6A5E;                  /* performance down */
+  --cool:#7F8C95;                 /* cooling: falling rows — slate, not alarm (was heat.cool) */
+
+  /* metal — Two metals and only two (D269). ember = LIVE and the one primary
+     action; champagne gold = EARNED and nothing else. One gold object per
+     viewport, counted by hue; at most two ember marks. Gold may never touch
+     a control. `dawn` and `pine` are deleted. */
+  --gold:#D8B25A;                 /* champagne / bronze on paper — EARNED only: leads, the pot, trophies */
+  --brand:#E8622C;                /* ember / stamp red on paper — live, and the one primary action */
+
+  /* squad — Four squad hues, re-cut off the metals so a team colour can
+     never be mistaken for ember or champagne (D270). */
+  --sq0:#366F87;                  /* squad slate-blue */
+  --sq1:#B27E7C;                  /* squad clay */
+  --sq2:#97B999;                  /* squad sage */
+  --sq3:#EDD4FA;                  /* squad lilac */
+
+  /* object — D266 · the three containers, and the inks that ride on them.
+     The PANEL inverts between the printings (it is a chip of the other
+     theme's paper); the LEAF does not (it is a scorecard, and scorecards are
+     cream in every light); the CEREMONY ramp is pinned in BOTH themes
+     because a physical object does not re-print. The last four are the
+     off-palette literals four surface specs had written inline, named here
+     so preflight 15 passes. */
+  --panel:#E9ECE3;                /* the panel: one opaque tile, <=96x96, one figure or one word */
+  --panel-ink:#0B120E;            /* the figure on the panel */
+  --panel-mut:#4C574F;            /* the agate label under it */
+  --leaf:#EFEADD;                 /* the leaf: a sheet of scorecard paper, and it must hold a grid */
+  --leaf-ink:#1A1B14;             /* scorecard ink — the same in both printings, and it has no colour */
+  --leaf-mut:#57605A;             /* the leaf column heads */
+  --ceremony:#0A0E0C;             /* the honour room — pinned in both themes */
+  --ceremony-ink:#F1F4EF;
+  --ceremony-mut:#9BA69D;
+  --ceremony-brand:#E8622C;
+  --ceremony-gold:#D8B25A;
+  --ceremony-pos:#4EC584;
+  --ceremony-cool:#7F8C95;
+  --ceremony-sq0:#366F87;
+  --ceremony-sq1:#B27E7C;
+  --ceremony-sq2:#97B999;
+  --ceremony-sq3:#EDD4FA;
+  --crest:#33463B;                /* the crest plate behind a medallion */
+  --folio-rule:#8B8F8B;           /* the folio hairline on an object, which is not the page rule */
+  --scrim-ink:#F1F4EF;            /* type over a photograph — the photo is the ground, not the theme */
+  --scrim-mut:#CBD2C8;
+
+  /* pigment — D271 · the six discs a face is drawn on, chosen
+     deterministically from the golfer's id and frozen with the glyph. A
+     pigment carries NO meaning — two golfers with the same marker become two
+     different coins, and nothing is implied by which. */
+  --pig0:#492D2C;
+  --pig1:#473C28;
+  --pig2:#293B2B;
+  --pig3:#1F4648;
+  --pig4:#293B4E;
+  --pig5:#4E3C4F;
+
+  /* radius — Five radii. `p` is the panel's corner — the tile is nearly
+     square, because a figure in a rounded box reads as a button. */
+  --r:16px;                       /* objects */
+  --rc:10px;                      /* controls: buttons, inputs, minis */
+  --rs:24px;                      /* sheets */
+  --p:3px;                        /* the panel */
+  --rx:28px;                      /* the credential and the settlement card — the two artefacts */
+
+  /* space — One spacing scale, and it is the only one. `rail` is the 44pt
+     rank rail — the signature — and `hair` is the hairline's width, so a
+     rule is never 0.5 on one client and 1 on the other. */
+  --s1:4px;
+  --s2:8px;
+  --s3:12px;
+  --s4:20px;
+  --s5:32px;
+  --s6:52px;
+  --gutter:20px;                  /* the phone measure */
+  --gutter-desk:40px;             /* the desk measure (R-C / D234) */
+  --rail:44px;                    /* the rank rail */
+  --hair:1px;
+
+  /* alpha — The five opacities anything in the system is allowed to be. Bare
+     numbers, not percentages. */
+  --a08:0.08;
+  --a16:0.16;
+  --a24:0.24;
+  --a56:0.56;
+  --a88:0.88;
+
+  /* track — Letterspacing, as a RATIO of the rendered point size — never a
+     length, so it holds at AX3. D268 resolves the group at nine values:
+     UI_SYSTEM 1.2's table asks for eight and 1.7's ordinal for a ninth,
+     which the four names that section proposes cannot express. */
+  --flat:0;                       /* body, prose, anything set in a sentence */
+  --tight:-0.01;                  /* the column face at size */
+  --d1:0.005;                     /* display */
+  --d2:0.01;                      /* display, small */
+  --caps:0.035;                   /* a name in caps */
+  --caps2:0.04;                   /* a name in caps, small */
+  --agate-s:0.08;                 /* agate, small (11pt — the floor) */
+  --agate:0.09;                   /* agate — the metadata voice */
+  --ord:0.05;                     /* the ordinal suffix on a figure */
+
+  /* type — Four voices (D268): BOARD is the brand's own — IBM Plex Sans
+     Condensed, bundled; sans is prose; mono keeps what print gave it
+     (columns of figures, codes, handles, times); serif is memory and honour.
+     Charter is retired — it has no display cut, no optical sizes, one weight
+     step, and must be addressed by PostScript string, which is D258's defect
+     class. */
+  --board:'IBM Plex Sans Condensed', system-ui, sans-serif;/* the figure, the rail, every title — bundled, and a stack does not load a face */
   --sans:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;
   --mono:'IBM Plex Mono', ui-monospace, 'SF Mono', Menlo, monospace;
-  --serif:'Charter','Iowan Old Style','Palatino Linotype',Georgia,serif;
+  --serif:ui-serif, 'New York', 'Iowan Old Style', Georgia, serif;
+
+  /* motion — Two easings. `roll` is the putt dying at the hole — arrivals
+     and settles. `snap` is a control answering a finger, and it is the only
+     thing allowed to be fast. */
   --roll:cubic-bezier(.16,.84,.36,1);
-  --shadow-rest:0 1px 2px rgba(0,0,0,.28);
+  --snap:cubic-bezier(.2,0,0,1);  /* presses, chips, the tab band */
+
+  /* shadow — Two shadows, and neither of them is depth for its own sake: the
+     lifted sheet, and the single dark line under a leaf that says it is a
+     piece of paper. `shadow-rest` is deleted — it had zero references. */
+  --leaf-shade:0 1px 0 rgba(0,0,0,.22);/* the leaf sits on the page */
   --shadow-lift:0 18px 44px -12px rgba(0,0,0,.55);
 }
 /* light mode: same bones, dawn palette. html[data-theme] is stamped by the
    pre-paint script below and the Appearance selector in the profile. */
 html[data-theme="light"]{
-  --bg0:#EFF2EE; --bg1:#FBFCFA; --bg2:#E5EAE4;
-  --line:#D9DFD7; --line2:#C9D1C8;
-  --ink:#1A2620; --mut:#52625A; --dim:#8C9992;
-  --pos:#0B793F; --neg:#BE3831; --gold:#846415;   /* champagne, ink-dark for paper (D211: AA on bg1/bg2 at 13pt) */
-  --pine:#0E3B24; --brand:#B3461C; --dawn:#38678C;  /* ember + slate-blue on paper (D76) */
-  --sq0:#2C7CD3; --sq1:#DE6A22; --sq2:#7A58DE; --sq3:#0D9E8F;
-  --glow:rgba(201,78,31,.12);
-  --warm:#B97A1E; --hot:#C94E1F; --fire:#B03014; --cool:#6E7A84;  /* heat axis on paper */
-  --focus:#C0431A;   /* focus ring, ink-dark enough for paper (3:1 vs #EFF2EE) */
+  /* ground */
+  --bg0:#F4F1E9; --bg1:#EAE6DB; --bg2:#DED8C8;
+  --rule:#A9A08A;
+  /* text */
+  --ink:#151B17; --mut:#575F57; --dim:#8B9089;
+  /* semantic */
+  --pos:#0A6D3C; --neg:#B02A20; --cool:#56615B;
+  /* metal */
+  --gold:#795912; --brand:#A13F0E;
+  /* squad */
+  --sq0:#002B40; --sq1:#603E35; --sq2:#4C705D;
+  --sq3:#8B88A8;
+  /* object */
+  --panel:#141A16; --panel-ink:#F4F1E9; --panel-mut:#A6AEA5;
+  --leaf:#FFFDF7; --leaf-ink:#1A1B14; --leaf-mut:#5A625A;
+  --ceremony:#0A0E0C; --ceremony-ink:#F1F4EF; --ceremony-mut:#9BA69D;
+  --ceremony-brand:#E8622C; --ceremony-gold:#D8B25A; --ceremony-pos:#4EC584;
+  --ceremony-cool:#7F8C95; --ceremony-sq0:#366F87; --ceremony-sq1:#B27E7C;
+  --ceremony-sq2:#97B999; --ceremony-sq3:#EDD4FA; --crest:#33463B;
+  --folio-rule:#8B8F8B; --scrim-ink:#F1F4EF; --scrim-mut:#CBD2C8;
+  /* pigment */
+  --pig0:#FDDAD8; --pig1:#E6D8C2; --pig2:#D6EBD7;
+  --pig3:#BEE4E7; --pig4:#D9EAFF; --pig5:#EED9EE;
 }
-html[data-theme="light"] body::before{opacity:.3;}
-/* the design layer machines dark surfaces by hand — light counterparts */
+/* D270 · the light printing is warm almanac stock, not a paler dark, and
+   these four overrides were cut for the old cool paper — in literal hexes,
+   which is the thing tokens exist to stop. Every value is a token now, and
+   the card's vertical gradient is flat: BRIEF §4 names a gradient wash as a
+   do-not and a container does not get depth for being a container (D266). */
 html[data-theme="light"] .card, html[data-theme="light"] .stat{
-  background:linear-gradient(180deg, #FDFEFC 0%, #F4F7F3 100%);
-  border-color:#DBE1D9;
-  box-shadow:inset 0 1px 0 rgba(255,255,255,.85), 0 1px 3px rgba(23,38,30,.07);
+  background:var(--bg1);
+  border-color:var(--rule);
+  box-shadow:none;
 }
-html[data-theme="light"] .hdr{background:rgba(239,242,238,.86);}
-html[data-theme="light"] .tabbar{background:rgba(239,242,238,.92); border-top:1px solid var(--line);}
-html[data-theme="light"] .msgrow, html[data-theme="light"] .sysrow{background:#FBFCFA;}
+html[data-theme="light"] .hdr{background:color-mix(in srgb, var(--bg0) 88%, transparent);}
+html[data-theme="light"] .tabbar{background:color-mix(in srgb, var(--bg0) 92%, transparent); border-top:1px solid var(--rule);}
+html[data-theme="light"] .msgrow, html[data-theme="light"] .sysrow{background:var(--bg1);}
 *{box-sizing:border-box; margin:0; padding:0;}
 html{height:100%;}
 body{
@@ -128,7 +250,7 @@ button{font-family:var(--sans); touch-action:manipulation; color:var(--ink);}
   .side{
     display:flex; flex-direction:column; gap:4px;
     position:sticky; top:0; height:100dvh;
-    background:var(--bg1); border-right:1px solid var(--line);
+    background:var(--bg1); border-right:1px solid var(--rule);
     padding:22px 14px;
   }
 }
@@ -137,7 +259,7 @@ button{font-family:var(--sans); touch-action:manipulation; color:var(--ink);}
 }
 .brand .mk{
   width:30px; height:30px; border-radius:9px; background:var(--bg2);
-  display:grid; place-items:center; border:1px solid var(--line2);
+  display:grid; place-items:center; border:1px solid var(--rule);
 }
 .brand .mk svg{width:17px; height:17px;}
 .brand b{font-size:14px; font-weight:700; letter-spacing:.02em;}
@@ -152,14 +274,14 @@ button{font-family:var(--sans); touch-action:manipulation; color:var(--ink);}
 .navitem svg{width:19px; height:19px; stroke:currentColor; fill:none; stroke-width:1.8; stroke-linecap:round; stroke-linejoin:round;}
 .navitem.active{color:var(--ink); background:var(--bg2); border-left-color:var(--brand);}
 .navitem:hover{color:var(--ink);}
-.navitem:focus-visible{outline:2px solid var(--focus); outline-offset:-2px;}
+.navitem:focus-visible{outline:2px solid var(--brand); outline-offset:-2px;}
 /* ============ D236 - the ME strip / the desk's identity block ============
    A LINE OF TYPE on the page's own ground, never a tile grid: no card, no
    border, no radius, no background. That is the whole distinction between this
    and the KPI strip the audit filed as an anti-pattern. In the sidebar it
    stacks (a desk has height and no width to waste); at the head of Home it
    flows. Exactly ONE of the two is on screen at any width. */
-.sideme{margin-top:auto; padding:14px 10px 12px; border-top:1px solid var(--line);}
+.sideme{margin-top:auto; padding:14px 10px 12px; border-top:1px solid var(--rule);}
 .sideme:empty{display:none;}
 .sideme .mefacts{display:flex; flex-wrap:wrap; gap:14px 22px;}
 .sideme .mefact{
@@ -171,14 +293,14 @@ button{font-family:var(--sans); touch-action:manipulation; color:var(--ink);}
 /* L-10 - money is `neg`, never gold and never a countdown */
 .sideme .mefact.owed b{color:var(--neg);}
 .sideme .mefact:hover b{color:var(--brand);}
-.sideme .mefact:focus-visible{outline:2px solid var(--focus); outline-offset:3px; border-radius:4px;}
+.sideme .mefact:focus-visible{outline:2px solid var(--brand); outline-offset:3px; border-radius:4px;}
 .sideme .mesr{
   display:block; width:100%; margin-top:12px; padding:0; border:0; background:none; cursor:pointer;
   font-family:var(--sans); font-size:11.5px; line-height:1.5; color:var(--mut); text-align:left;
   letter-spacing:.02em;
 }
 .sideme .mesr:hover{color:var(--ink);}
-.sideme .mesr:focus-visible{outline:2px solid var(--focus); outline-offset:3px; border-radius:4px;}
+.sideme .mesr:focus-visible{outline:2px solid var(--brand); outline-offset:3px; border-radius:4px;}
 /* ============ D228 - the desk's two-column body ============
    The phone reorders ONE lane; the desk reorders a WIDE BODY. Same producer,
    two shapes (D234, R-C as revised): the dispatch reads down the left, the
@@ -191,7 +313,7 @@ button{font-family:var(--sans); touch-action:manipulation; color:var(--ink);}
   .deskbody{display:grid; grid-template-columns:minmax(0,1fr) 348px; gap:34px; align-items:start;}
   .deskwire{position:sticky; top:78px; max-height:calc(100dvh - 100px); overflow:auto; padding-right:2px;}
   .deskwire::-webkit-scrollbar{width:6px;}
-  .deskwire::-webkit-scrollbar-thumb{background:var(--line2); border-radius:3px;}
+  .deskwire::-webkit-scrollbar-thumb{background:var(--rule); border-radius:3px;}
 }
 /* ============ D231 - one dispatch card, two weights ============
    mono dateline / serif headline / sans standfirst / one ember verb. The
@@ -200,10 +322,10 @@ button{font-family:var(--sans); touch-action:manipulation; color:var(--ink);}
    verb - a verb is a control (L-25). */
 .dcard{
   position:relative; text-align:left; background:var(--bg1);
-  border:1px solid var(--line); border-radius:14px;
+  border:1px solid var(--rule); border-radius:14px;
   padding:15px 16px 14px 19px; margin:0 0 12px; overflow:hidden;
 }
-.dcard::before{content:''; position:absolute; left:0; top:0; bottom:0; width:3.5px; background:var(--line2);}
+.dcard::before{content:''; position:absolute; left:0; top:0; bottom:0; width:3.5px; background:var(--rule);}
 .dcard.ember::before{background:var(--brand);}
 .dcard.gold::before{background:var(--gold);}
 .dcard.lead{padding:19px 20px 17px 23px;}
@@ -226,13 +348,13 @@ button{font-family:var(--sans); touch-action:manipulation; color:var(--ink);}
   background:none; border:0; padding:0; cursor:pointer;
   font-family:var(--sans); font-size:13px; font-weight:700; color:var(--brand);
 }
-.dcard .act:focus-visible{outline:2px solid var(--focus); outline-offset:3px; border-radius:4px;}
+.dcard .act:focus-visible{outline:2px solid var(--brand); outline-offset:3px; border-radius:4px;}
 .dcard .more{
   display:block; margin-top:8px; background:none; border:0; padding:0; cursor:pointer;
   font-family:var(--mono); font-size:11px; letter-spacing:.1em; text-transform:uppercase; color:var(--mut);
 }
 /* the sidebar is the desk's home for it; #homeMe covers the narrow widths */
-.homeme{display:block; margin:0 0 18px; padding:0 0 14px; border-top:0; border-bottom:1px solid var(--line);}
+.homeme{display:block; margin:0 0 18px; padding:0 0 14px; border-top:0; border-bottom:1px solid var(--rule);}
 .homeme .mefacts{gap:12px 20px;}
 @media(min-width:960px){ .homeme{display:none;} }
 /* D222 · the Desk disclosure. A desk has room for a list; the three surfaces
@@ -257,10 +379,10 @@ button{font-family:var(--sans); touch-action:manipulation; color:var(--ink);}
    a hairline between, the whole row a button (COMPONENT_SYSTEM's list weight) */
 .peerrow{
   display:block; width:100%; text-align:left; background:none; border:0;
-  border-bottom:1px solid var(--line); padding:12px 2px; cursor:pointer; color:var(--ink);
+  border-bottom:1px solid var(--rule); padding:12px 2px; cursor:pointer; color:var(--ink);
 }
 .peerrow:hover{background:var(--bg1);}
-.peerrow:focus-visible{outline:2px solid var(--focus); outline-offset:-2px;}
+.peerrow:focus-visible{outline:2px solid var(--brand); outline-offset:-2px;}
 .peerrow .pe{font-family:var(--mono); font-size:11px; letter-spacing:.14em; text-transform:uppercase; color:var(--dim); display:block;}
 .peerrow .pn{font-size:14.5px; font-weight:700; display:block; margin-top:2px;}
 .peerrow .ps{font-family:var(--mono); font-size:12px; color:var(--mut); display:block; margin-top:3px;}
@@ -278,8 +400,8 @@ button{font-family:var(--sans); touch-action:manipulation; color:var(--ink);}
   font-family:var(--mono); font-size:11.5px; letter-spacing:.14em; text-transform:uppercase; color:var(--mut);
 }
 .emptyroot .doors button:first-child{color:var(--brand);}
-.emptyroot .doors button:focus-visible{outline:2px solid var(--focus); outline-offset:3px;}
-.side .foot{margin-top:0; padding:12px 10px 4px; border-top:1px solid var(--line);}
+.emptyroot .doors button:focus-visible{outline:2px solid var(--brand); outline-offset:3px;}
+.side .foot{margin-top:0; padding:12px 10px 4px; border-top:1px solid var(--rule);}
 .side .foot .lg{font-size:12.5px; font-weight:700;}
 .side .foot .sm{font-family:var(--mono); font-size:11.5px; color:var(--dim); letter-spacing:.08em; text-transform:uppercase; margin-top:2px;}
 
@@ -295,7 +417,7 @@ button{font-family:var(--sans); touch-action:manipulation; color:var(--ink);}
   background:rgba(12,13,15,.86);
   backdrop-filter:blur(16px) saturate(1.3);
   -webkit-backdrop-filter:blur(16px) saturate(1.3);
-  border-bottom:1px solid var(--line);
+  border-bottom:1px solid var(--rule);
   padding-top:env(safe-area-inset-top);
 }
 .hdr-in{
@@ -310,7 +432,7 @@ button{font-family:var(--sans); touch-action:manipulation; color:var(--ink);}
 }
 .hdr .who{
   width:32px; height:32px; border-radius:50%; flex:none;
-  background:var(--bg2); border:1px solid var(--line2);
+  background:var(--bg2); border:1px solid var(--rule);
   display:grid; place-items:center;
   font-family:var(--mono); font-size:12.5px; font-weight:600; color:var(--mut);
 }
@@ -330,7 +452,7 @@ button{font-family:var(--sans); touch-action:manipulation; color:var(--ink);}
 .eyebrow a{color:var(--pos); text-decoration:none;}
 
 .card{
-  background:var(--bg1); border:1px solid var(--line); border-radius:var(--r);
+  background:var(--bg1); border:1px solid var(--rule); border-radius:var(--r);
   padding:16px;
 }
 
@@ -338,7 +460,7 @@ button{font-family:var(--sans); touch-action:manipulation; color:var(--ink);}
 .stats{display:grid; grid-template-columns:repeat(2,1fr); gap:8px;}
 @media(min-width:700px){ .stats{grid-template-columns:repeat(4,1fr);} }
 .stat{
-  background:var(--bg1); border:1px solid var(--line); border-radius:var(--r);
+  background:var(--bg1); border:1px solid var(--rule); border-radius:var(--r);
   padding:12px 14px;
 }
 .stat .k{font-family:var(--mono); font-size:11px; letter-spacing:.14em; text-transform:uppercase; color:var(--dim);}
@@ -367,7 +489,7 @@ button{font-family:var(--sans); touch-action:manipulation; color:var(--ink);}
    with the distance it hides. Voice lines wrap onto a second row inside the
    two adjacent rungs. Ghost/enter classes serve the FLIP applier. */
 .climb{display:flex; flex-direction:column; position:relative;}
-.climb-rung{display:flex; align-items:center; flex-wrap:wrap; gap:2px 9px; padding:8px 10px; margin-bottom:7px; border:1px solid var(--line); border-radius:9px; background:var(--bg1);}
+.climb-rung{display:flex; align-items:center; flex-wrap:wrap; gap:2px 9px; padding:8px 10px; margin-bottom:7px; border:1px solid var(--rule); border-radius:9px; background:var(--bg1);}
 .climb-rung:last-child{margin-bottom:0;}
 .climb-rung .rk{font-family:var(--mono); font-size:11px; color:var(--dim); flex:none; width:18px;}
 .climb-rung .sw{width:10px; height:10px; border-radius:3px; flex:none;}
@@ -386,7 +508,7 @@ button{font-family:var(--sans); touch-action:manipulation; color:var(--ink);}
 .climb-rung .voice .stake{color:var(--gold);}
 .climb-rung .badge{font-family:var(--mono); font-size:11px; letter-spacing:.08em; padding:1px 5px; border-radius:4px; flex:none;}   /* D258 · 11px is the floor (L-29); the phone's badge is CSFont.label */
 .climb-rung .badge.lock{color:var(--pos); border:1px solid var(--pos);}
-.climb-rung .badge.out{color:var(--dim); border:1px solid var(--line);}
+.climb-rung .badge.out{color:var(--dim); border:1px solid var(--rule);}
 .climb-spark{flex:none; margin:0 1px;}
 .climb-cut{display:flex; align-items:center; gap:8px; padding:2px 2px; margin-bottom:6px; font-family:var(--mono); font-size:11px; letter-spacing:.08em; color:var(--gold);}   /* D258 · L-29 */
 .climb-cut .ln{flex:1; height:0; border-top:1px dashed var(--gold); opacity:.55;}
@@ -409,18 +531,18 @@ button{font-family:var(--sans); touch-action:manipulation; color:var(--ink);}
 @media (prefers-reduced-motion:reduce){ .climb-rung.in{animation:none;} .climb-ghost{display:none;} .climb-roar{display:none;} }
 .climb-empty{font-family:var(--mono); font-size:11px; letter-spacing:.1em; color:var(--dim); text-align:center; padding:26px 10px; line-height:1.9;}
 .climb-empty span{opacity:.7; font-size:10px;}
-.standStory{font-family:var(--serif); font-size:13px; line-height:1.45; color:var(--ink); padding:2px 2px 10px; margin-bottom:2px; border-bottom:1px solid var(--line);}
+.standStory{font-family:var(--serif); font-size:13px; line-height:1.45; color:var(--ink); padding:2px 2px 10px; margin-bottom:2px; border-bottom:1px solid var(--rule);}
 .standStory:empty{display:none;}
 .standStory b{font-weight:600;}
 /* the clinch/scenario line — the endgame math, quieter than the story above */
-.scenLine{font-family:var(--mono); font-size:11px; letter-spacing:.05em; line-height:1.7; color:var(--mut); padding:9px 2px 3px; border-top:1px solid var(--line);}
+.scenLine{font-family:var(--mono); font-size:11px; letter-spacing:.05em; line-height:1.7; color:var(--mut); padding:9px 2px 3px; border-top:1px solid var(--rule);}
 .scenLine .clinch{color:var(--pos);}
 .scenLine .out{color:var(--dim);}
 .scenLine b{color:var(--ink); font-weight:600;}
 /* A-4: the label carries its own clock, so it is a line under the rank
    rather than a glyph beside it - the rank column keeps its width. */
 .rkmove{display:block; font-family:var(--mono); font-size:11px; margin:2px 0 0; letter-spacing:.04em; white-space:nowrap;}   /* LV-17 · 11px floor */
-.rkmove.up{color:var(--warm);} .rkmove.up2{color:var(--hot);} .rkmove.dn{color:var(--cool);} .rkmove.fl{color:var(--dim);}  /* D76 heat */
+.rkmove.up{color:var(--brand);} .rkmove.up2{color:var(--brand);} .rkmove.dn{color:var(--cool);} .rkmove.fl{color:var(--dim);}  /* D76 heat */
 .rivrec{font-family:var(--mono); font-size:14px; font-weight:600; letter-spacing:.02em; flex:none;}
 .rivrec.up{color:var(--pos);} .rivrec.dn{color:var(--dim);} .rivrec.ev{color:var(--mut);}
 #youRivals .prow.tap{cursor:pointer;}
@@ -441,7 +563,7 @@ button{font-family:var(--sans); touch-action:manipulation; color:var(--ink);}
   padding:4px 8px 10px;
 }
 .tbl th.num, .tbl td.num{text-align:right;}
-.tbl td{padding:11px 8px; border-top:1px solid var(--line); vertical-align:middle;}
+.tbl td{padding:11px 8px; border-top:1px solid var(--rule); vertical-align:middle;}
 .tbl .rk{font-family:var(--mono); font-size:12px; color:var(--dim); width:26px;}
 .tbl tr.lead .rk{color:var(--gold);}
 /* Batch B: the leader carries a hairline champagne underline — gold earned */
@@ -468,7 +590,7 @@ tr.cutrow td{
 /* ============ feed ============ */
 .round{
   display:flex; align-items:center; gap:12px;
-  background:var(--bg1); border:1px solid var(--line); border-radius:12px;
+  background:var(--bg1); border:1px solid var(--rule); border-radius:12px;
   padding:11px 13px; margin-bottom:8px;
 }
 .round .bar{width:3.5px; align-self:stretch; border-radius:2px; flex:none;}
@@ -478,7 +600,7 @@ tr.cutrow td{
 .round .l2{font-family:var(--mono); font-size:12px; color:var(--mut); margin-top:2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
 .round .pvi{
   font-family:var(--mono); font-size:12.5px; font-weight:600; flex:none;
-  padding:3px 8px; border-radius:6px; background:var(--bg2); border:1px solid var(--line2);
+  padding:3px 8px; border-radius:6px; background:var(--bg2); border:1px solid var(--rule);
 }
 .round .pvi.up{color:var(--pos);} .round .pvi.dn{color:var(--neg);}
 .round .pts{
@@ -493,7 +615,7 @@ tr.cutrow td{
   .draftgrid{display:grid; grid-template-columns:minmax(0,1.4fr) minmax(0,1fr); gap:22px; align-items:start;}
 }
 .clock{
-  background:var(--bg1); border:1px solid var(--line2); border-radius:var(--r);
+  background:var(--bg1); border:1px solid var(--rule); border-radius:var(--r);
   padding:18px; text-align:center; position:relative;
 }
 .clock .k{font-family:var(--mono); font-size:11.5px; letter-spacing:.18em; text-transform:uppercase; color:var(--dim);}
@@ -501,30 +623,30 @@ tr.cutrow td{
 .clock .m{font-family:var(--mono); font-size:12.5px; color:var(--mut);}
 .clock .accent{position:absolute; left:0; top:0; bottom:0; width:3.5px; border-radius:3px 0 0 3px;}
 .snake{display:flex; gap:5px; justify-content:center; margin-top:14px; flex-wrap:wrap;}
-.snake i{width:13px; height:13px; border-radius:4px; background:var(--bg2); border:1px solid var(--line2);}
+.snake i{width:13px; height:13px; border-radius:4px; background:var(--bg2); border:1px solid var(--rule);}
 .snake i.made{background:var(--dim); border-color:transparent;}
 .snake i.now{background:var(--pos); border-color:transparent;}
 .squads{display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:14px;}
-.squad{background:var(--bg1); border:1px solid var(--line); border-radius:12px; padding:12px 13px;}
-.squad.onclock{border-color:var(--line2); box-shadow:inset 3px 0 0 var(--clr,var(--pos));}
+.squad{background:var(--bg1); border:1px solid var(--rule); border-radius:12px; padding:12px 13px;}
+.squad.onclock{border-color:var(--rule); box-shadow:inset 3px 0 0 var(--clr,var(--pos));}
 .squad h4{font-size:13.5px; font-weight:700; display:flex; align-items:center; gap:8px;}
 .squad h4 .sw{width:9px; height:9px; border-radius:3px; flex:none;}
 .squad ul{list-style:none; margin-top:8px;}
 .squad li{
   display:flex; justify-content:space-between; gap:8px;
-  font-size:12px; font-weight:500; padding:5px 0; border-top:1px solid var(--line);
+  font-size:12px; font-weight:500; padding:5px 0; border-top:1px solid var(--rule);
 }
 .squad li em{font-style:normal; font-family:var(--mono); font-size:12.5px; color:var(--mut);}
 .squad li.cap em{color:var(--gold);}
 .squad li.empty{color:var(--dim);}
 .pool-row{
   display:flex; align-items:center; gap:12px; width:100%;
-  background:var(--bg1); border:1px solid var(--line); border-radius:11px;
+  background:var(--bg1); border:1px solid var(--rule); border-radius:11px;
   padding:10px 12px; margin-bottom:7px; cursor:pointer; text-align:left;
   transition:border-color .12s ease;
 }
-.pool-row:hover{border-color:var(--line2);}
-.pool-row:focus-visible{outline:2px solid var(--focus); outline-offset:2px;}
+.pool-row:hover{border-color:var(--rule);}
+.pool-row:focus-visible{outline:2px solid var(--brand); outline-offset:2px;}
 .pool-row .nm{flex:1; font-size:13.5px; font-weight:600;}
 .pool-row .hcp{font-family:var(--mono); font-size:12.5px; color:var(--mut);}
 .pool-row .go{
@@ -541,7 +663,7 @@ tr.cutrow td{
    the band past the row's right edge (a real screenshot caught it clipped). */
 .bdfig{flex:none; color:var(--mut); font-size:11.5px; letter-spacing:.06em; text-align:right; white-space:nowrap;}
 .h2hdots{display:flex; align-items:center; gap:7px; min-height:28px;}
-.h2hdots i{width:9px; height:9px; border-radius:50%; background:var(--bg2); border:1px solid var(--line2); display:inline-block;}
+.h2hdots i{width:9px; height:9px; border-radius:50%; background:var(--bg2); border:1px solid var(--rule); display:inline-block;}
 .h2hdots i.on{background:var(--brand); border-color:var(--brand);}
 .h2hdots small{margin-left:6px; color:var(--dim); font-family:var(--mono); font-size:11px; letter-spacing:.09em;}   /* LV-17 */
 .frow{display:grid; grid-template-columns:1fr 1fr; gap:10px;}
@@ -556,10 +678,10 @@ label.f{
    form zoomed). Keep the whole family in one rule so it can't drift. */
 input.f, textarea.f, select.f{
   width:100%; font-family:var(--mono); font-size:16px; font-weight:500; color:var(--ink);
-  background:var(--bg2); border:1px solid var(--line2); border-radius:var(--rc);
+  background:var(--bg2); border:1px solid var(--rule); border-radius:var(--rc);
   padding:11px 12px; min-height:44px;
 }
-input.f:focus-visible, textarea.f:focus-visible, select.f:focus-visible{outline:2px solid var(--focus); outline-offset:1px;}
+input.f:focus-visible, textarea.f:focus-visible, select.f:focus-visible{outline:2px solid var(--brand); outline-offset:1px;}
 /* iOS date inputs ship an intrinsic min-width that ignores width:100% and
    pokes past the container (the pilot's protruding date selector). Width
    clamps everywhere; the appearance flattening is iOS-only (desktop Chrome
@@ -597,19 +719,19 @@ input.f::-webkit-outer-spin-button, input.f::-webkit-inner-spin-button{-webkit-a
 .grossbox::placeholder{color:var(--dim);}
 .inheritline{
   display:flex; align-items:baseline; gap:10px; width:100%; text-align:left;
-  background:transparent; border:0; border-top:1px solid var(--line2);
+  background:transparent; border:0; border-top:1px solid var(--rule);
   padding:12px 0 0; margin-top:12px; cursor:pointer;
   font-family:var(--mono); font-size:12px; letter-spacing:.06em; color:var(--ink);
 }
 .inheritline .edit{margin-left:auto; color:var(--brand);}
 .whochip{
   display:inline-flex; align-items:center; gap:6px; padding:7px 12px; margin:0 6px 6px 0;
-  border-radius:999px; border:1px solid var(--line2); background:var(--bg2);
+  border-radius:999px; border:1px solid var(--rule); background:var(--bg2);
   color:var(--mut); font-size:13px; cursor:pointer;
 }
 .whochip.on{border-color:var(--brand); background:color-mix(in srgb, var(--brand) 16%, transparent); color:var(--ink);}
 .calc{
-  background:var(--bg1); border:1px solid var(--line2); border-radius:var(--r);
+  background:var(--bg1); border:1px solid var(--rule); border-radius:var(--r);
   padding:18px; text-align:center;
 }
 .calc .k{font-family:var(--mono); font-size:11.5px; letter-spacing:.18em; text-transform:uppercase; color:var(--dim);}
@@ -620,12 +742,12 @@ input.f::-webkit-outer-spin-button, input.f::-webkit-inner-spin-button{-webkit-a
 .calc .msg{font-size:12.5px; color:var(--mut);}
 .calc .trio{
   display:flex; justify-content:center; gap:26px;
-  margin-top:16px; padding-top:14px; border-top:1px solid var(--line);
+  margin-top:16px; padding-top:14px; border-top:1px solid var(--rule);
 }
 .calc .trio b{display:block; font-family:var(--mono); font-size:17px; font-weight:600; font-variant-numeric:tabular-nums;}
 .calc .trio span{font-family:var(--mono); font-size:10px; letter-spacing:.14em; text-transform:uppercase; color:var(--dim);}
 .bands{width:100%; border-collapse:collapse; font-size:12.5px;}
-.bands td{padding:9px 2px; border-top:1px solid var(--line); color:var(--mut);}
+.bands td{padding:9px 2px; border-top:1px solid var(--rule); color:var(--mut);}
 .bands tr:first-child td{border-top:none;}
 .bands td:last-child{text-align:right; font-family:var(--mono); font-size:14px; font-weight:600; color:var(--ink);}
 
@@ -638,7 +760,7 @@ input.f::-webkit-outer-spin-button, input.f::-webkit-inner-spin-button{-webkit-a
 }
 .btn:hover{filter:brightness(1.06);}
 .btn:focus-visible{outline:2px solid var(--ink); outline-offset:2px;}
-.btn.dark{background:var(--bg2); color:var(--ink); border:1px solid var(--line2);}
+.btn.dark{background:var(--bg2); color:var(--ink); border:1px solid var(--rule);}
 .btn.gold{background:var(--gold); color:#171204;}
 .btn.apple{background:#fff; color:#0A0A0A;}
 .btn + .btn{margin-top:9px;}
@@ -649,7 +771,7 @@ input.f::-webkit-outer-spin-button, input.f::-webkit-inner-spin-button{-webkit-a
   .potgrid{display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1.2fr); gap:22px; align-items:start;}
 }
 .purse{
-  background:var(--bg1); border:1px solid var(--line2); border-radius:var(--r);
+  background:var(--bg1); border:1px solid var(--rule); border-radius:var(--r);
   padding:20px; text-align:center; position:relative; overflow:hidden;
 }
 .purse::before{content:""; position:absolute; left:0; top:0; bottom:0; width:3.5px; background:var(--gold);}
@@ -657,20 +779,20 @@ input.f::-webkit-outer-spin-button, input.f::-webkit-inner-spin-button{-webkit-a
 .purse .amt{font-family:var(--mono); font-size:52px; font-weight:600; line-height:1; margin:8px 0 4px; color:var(--gold); font-variant-numeric:tabular-nums;}
 .purse .m{font-family:var(--mono); font-size:12.5px; color:var(--mut);}
 .trip{display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin-top:10px;}
-.trip .p{background:var(--bg1); border:1px solid var(--line); border-radius:12px; padding:12px 8px; text-align:center;}
+.trip .p{background:var(--bg1); border:1px solid var(--rule); border-radius:12px; padding:12px 8px; text-align:center;}
 .trip .p b{display:block; font-family:var(--mono); font-size:17px; font-weight:600; font-variant-numeric:tabular-nums; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; min-width:0;}
 .trip .p{min-width:0;}
 .trip .p span{font-family:var(--mono); font-size:10px; letter-spacing:.1em; text-transform:uppercase; color:var(--dim);}
 .payer{
   display:flex; align-items:center; justify-content:space-between; gap:10px;
-  width:100%; background:var(--bg1); border:1px solid var(--line); border-radius:11px;
+  width:100%; background:var(--bg1); border:1px solid var(--rule); border-radius:11px;
   padding:11px 13px; margin-bottom:7px; cursor:pointer;
   font-size:13px; font-weight:600; min-height:44px;
 }
-.payer:focus-visible{outline:2px solid var(--focus); outline-offset:2px;}
+.payer:focus-visible{outline:2px solid var(--brand); outline-offset:2px;}
 .payer .tick{
   width:22px; height:22px; border-radius:6px; flex:none;
-  border:1.5px solid var(--line2);
+  border:1.5px solid var(--rule);
   display:grid; place-items:center; color:transparent; font-size:12px; font-weight:700;
 }
 .payer.paid .tick{background:var(--pos); border-color:var(--pos); color:var(--bg0);}
@@ -685,41 +807,41 @@ input.f::-webkit-outer-spin-button, input.f::-webkit-inner-spin-button{-webkit-a
 }
 .setrow{
   display:flex; align-items:center; justify-content:space-between; gap:12px;
-  background:var(--bg1); border:1px solid var(--line); border-radius:12px;
+  background:var(--bg1); border:1px solid var(--rule); border-radius:12px;
   padding:12px 14px; margin-bottom:8px;
 }
 .setrow .lab{font-size:13px; font-weight:600;}
 .setrow .lab small{display:block; font-family:var(--mono); font-size:11.5px; color:var(--dim); margin-top:2px;}
 .setrow .val{font-family:var(--mono); font-size:15px; font-weight:600; min-width:72px; text-align:center; font-variant-numeric:tabular-nums;}
-.setrow .ctl{display:flex; gap:2px; background:var(--bg2); border-radius:10px; border:1px solid var(--line2);}
+.setrow .ctl{display:flex; gap:2px; background:var(--bg2); border-radius:10px; border:1px solid var(--rule);}
 .setrow .ctl button{
   width:36px; height:34px; border:none; background:none; font-size:17px; font-weight:600;
   cursor:pointer; border-radius:9px; color:var(--mut);
 }
 .setrow .ctl button:hover{color:var(--ink);}
-.setrow .ctl button:focus-visible{outline:2px solid var(--focus); outline-offset:-2px;}
-.seg{display:flex; gap:4px; background:var(--bg2); border:1px solid var(--line2); border-radius:11px; padding:4px; margin-bottom:8px;}
+.setrow .ctl button:focus-visible{outline:2px solid var(--brand); outline-offset:-2px;}
+.seg{display:flex; gap:4px; background:var(--bg2); border:1px solid var(--rule); border-radius:11px; padding:4px; margin-bottom:8px;}
 .seg button{
   flex:1; border:none; background:none; cursor:pointer;
   font-size:12px; font-weight:600; color:var(--mut);
   padding:9px 6px; border-radius:8px;
 }
-.seg button.on{background:var(--bg1); color:var(--ink); border:1px solid var(--line2);}
+.seg button.on{background:var(--bg1); color:var(--ink); border:1px solid var(--rule);}
 /* photos arc 2 (ckpt 1): album grid · receipt hero · digest thumb */
 #albumGrid{display:grid; grid-template-columns:repeat(3,1fr); gap:6px;}
 #albumGrid .almonth{grid-column:1/-1; font-family:var(--mono); font-size:10.5px; letter-spacing:.14em; text-transform:uppercase; color:var(--dim); padding:10px 2px 2px;}
-#albumGrid .alcell{aspect-ratio:1; border:1px solid var(--line2); border-radius:10px; background-size:cover; background-position:center; cursor:pointer; padding:0;}
-#albumGrid .alcell:focus-visible{outline:2px solid var(--focus); outline-offset:2px;}
+#albumGrid .alcell{aspect-ratio:1; border:1px solid var(--rule); border-radius:10px; background-size:cover; background-position:center; cursor:pointer; padding:0;}
+#albumGrid .alcell:focus-visible{outline:2px solid var(--brand); outline-offset:2px;}
 .rcpt-hero{margin:0 0 12px;}
-.rcpt-hero img{width:100%; max-height:260px; object-fit:cover; border-radius:12px; border:1px solid var(--line2); display:block;}
-.digest .dgthumb{float:right; width:44px; height:44px; border-radius:10px; object-fit:cover; margin-left:10px; border:1px solid var(--line2);}
+.rcpt-hero img{width:100%; max-height:260px; object-fit:cover; border-radius:12px; border:1px solid var(--rule); display:block;}
+.digest .dgthumb{float:right; width:44px; height:44px; border-radius:10px; object-fit:cover; margin-left:10px; border:1px solid var(--rule);}
 /* photos arc 2 ckpt 2 (D59): faces + the marker stamp */
-img.face{border-radius:50%; object-fit:cover; vertical-align:-4px; border:1px solid var(--line2); background:var(--bg2);}
+img.face{border-radius:50%; object-fit:cover; vertical-align:-4px; border:1px solid var(--rule); background:var(--bg2);}
 /* the one avatar unit: photo circle + marker badge, or the marker alone */
-.fc{position:relative; flex:none; display:inline-flex; align-items:center; justify-content:center; border-radius:50%; background:var(--bg2); border:1px solid var(--line2);}
+.fc{position:relative; flex:none; display:inline-flex; align-items:center; justify-content:center; border-radius:50%; background:var(--bg2); border:1px solid var(--rule);}
 .fc img.face{width:100%; height:100%; border-radius:50%; object-fit:cover; display:block; border:none; vertical-align:top;}
 .fc > svg{width:58%; height:58%;}
-.fc .fmk{position:absolute; right:-4px; bottom:-4px; width:46%; height:46%; min-width:17px; min-height:17px; display:flex; align-items:center; justify-content:center; border-radius:50%; background:var(--bg1); border:1px solid var(--line2); box-shadow:0 1px 3px rgba(8,9,11,.16); font-style:normal;}
+.fc .fmk{position:absolute; right:-4px; bottom:-4px; width:46%; height:46%; min-width:17px; min-height:17px; display:flex; align-items:center; justify-content:center; border-radius:50%; background:var(--bg1); border:1px solid var(--rule); box-shadow:0 1px 3px rgba(8,9,11,.16); font-style:normal;}
 .fc .fmk svg{width:68%; height:68%; vertical-align:0;}
 .fc.femoji{font-size:19px;}
 .fc.s22{width:22px; height:22px;} .fc.s28{width:28px; height:28px;} .fc.s32{width:32px; height:32px;}
@@ -727,8 +849,8 @@ img.face{border-radius:50%; object-fit:cover; vertical-align:-4px; border:1px so
 .hffacew{display:flex; flex:none;}
 /* identity-led home feed — A2 scorecard rail + B1 photo-story takeover (owner
    pick off the feed boards, 2026-07-23) */
-.hfcard{background:var(--bg1); border:1px solid var(--line2); border-radius:14px; padding:12px 14px; margin:0 0 10px; cursor:pointer;}
-.hfcard:focus-visible{outline:2px solid var(--focus); outline-offset:2px;}
+.hfcard{background:var(--bg1); border:1px solid var(--rule); border-radius:14px; padding:12px 14px; margin:0 0 10px; cursor:pointer;}
+.hfcard:focus-visible{outline:2px solid var(--brand); outline-offset:2px;}
 .hfhead{display:flex; align-items:center; gap:11px;}
 .hfid{flex:1; min-width:0;}
 .hfid b{display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; font-size:15px; font-weight:650; letter-spacing:-.02em; line-height:1.3;}
@@ -756,7 +878,7 @@ img.face{border-radius:50%; object-fit:cover; vertical-align:-4px; border:1px so
 .hsg small{display:block; font-family:var(--mono); font-size:10px; letter-spacing:.16em; text-transform:uppercase; opacity:.9; margin-top:4px; text-shadow:none;}
 .hsmedal{width:30px; height:30px; flex:none; border-radius:50%; background:rgba(10,14,12,.55); display:flex; align-items:center; justify-content:center; color:#ECEEF2;}
 .hsmedal svg{width:16px; height:16px;}
-.hsfoot{background:var(--bg1); color:var(--ink); padding:8px 12px; border-top:1px solid var(--line2);}
+.hsfoot{background:var(--bg1); color:var(--ink); padding:8px 12px; border-top:1px solid var(--rule);}
 /* moments sit quiet — clearly not a round */
 .hfcard.quiet{background:var(--bg2); border-style:dashed; cursor:default;}
 /* Tour Card — C4 credential, refaced charcoal (D76): one flat #131D17
@@ -815,26 +937,26 @@ img.face{border-radius:50%; object-fit:cover; vertical-align:-4px; border:1px so
 .hfcard .hrx{margin-top:8px;}
 .mkstamp{position:absolute; right:10px; bottom:10px; width:26px; height:26px; display:flex; align-items:center; justify-content:center; border-radius:50%; background:rgba(8,9,11,.55); color:#ECEEF2; backdrop-filter:blur(2px);}
 .rcpt-hero{position:relative;}
-.seg button:focus-visible{outline:2px solid var(--focus); outline-offset:-2px;}
+.seg button:focus-visible{outline:2px solid var(--brand); outline-offset:-2px;}
 .preset{
   width:100%; text-align:left; cursor:pointer;
-  background:var(--bg1); border:1px solid var(--line); border-radius:12px;
+  background:var(--bg1); border:1px solid var(--rule); border-radius:12px;
   padding:13px 14px; margin-bottom:8px;
 }
-.preset:focus-visible{outline:2px solid var(--focus); outline-offset:2px;}
+.preset:focus-visible{outline:2px solid var(--brand); outline-offset:2px;}
 .preset h4{font-size:14px; font-weight:700; display:flex; align-items:center; gap:8px;}
 .preset .ok{
   margin-left:auto; width:20px; height:20px; border-radius:6px; flex:none;
-  border:1.5px solid var(--line2); color:transparent;
+  border:1.5px solid var(--rule); color:transparent;
   display:grid; place-items:center; font-size:12.5px; font-weight:700;
 }
-.preset.sel{border-color:var(--line2); box-shadow:inset 3px 0 0 var(--brand);}
+.preset.sel{border-color:var(--rule); box-shadow:inset 3px 0 0 var(--brand);}
 .preset.sel .ok{background:var(--brand); border-color:var(--brand); color:var(--bg0);}
 .preset p{font-family:var(--mono); font-size:12.5px; color:var(--mut); line-height:1.6; margin-top:5px;}
 .preset p b{color:var(--ink); font-weight:600;}
 .preset .lead{font-family:var(--sans); font-size:13px; font-weight:600; color:var(--ink); line-height:1.45; margin-top:4px;}
 .pro{
-  background:var(--bg1); border:1px solid var(--line2); border-radius:var(--r);
+  background:var(--bg1); border:1px solid var(--rule); border-radius:var(--r);
   padding:16px; position:relative; overflow:hidden; margin-bottom:10px;
 }
 .pro::before{content:""; position:absolute; left:0; top:0; bottom:0; width:3.5px; background:var(--gold);}
@@ -842,7 +964,7 @@ img.face{border-radius:50%; object-fit:cover; vertical-align:-4px; border:1px so
 .pro .pr{font-family:var(--mono); font-size:12px; color:var(--gold); margin:3px 0 10px;}
 .pro li{
   list-style:none; display:flex; align-items:center; gap:9px;
-  font-size:12.5px; color:var(--mut); padding:7px 0; border-top:1px solid var(--line);
+  font-size:12.5px; color:var(--mut); padding:7px 0; border-top:1px solid var(--rule);
 }
 .pro .pb{
   font-family:var(--mono); font-size:9.5px; font-weight:600; letter-spacing:.1em;
@@ -893,7 +1015,7 @@ body.cardview nav.tabbar .tab[data-v="record"]{visibility:hidden;}
   body.cardview header.hdr{display:none;}
   body.cardview .backlink{display:none;}
 }
-.vtog{display:none; margin-left:auto; border:.5px solid var(--line); border-radius:7px; overflow:hidden;}
+.vtog{display:none; margin-left:auto; border:.5px solid var(--rule); border-radius:7px; overflow:hidden;}
 @media(min-width:740px){ .vtog{display:flex;} }
 .vtog button{font-family:var(--mono); font-size:9.5px; letter-spacing:.1em; padding:4px 9px;
   color:var(--dim); background:none; border:0; cursor:pointer;}
@@ -901,7 +1023,7 @@ body.cardview nav.tabbar .tab[data-v="record"]{visibility:hidden;}
 .cardwrap{overflow-x:auto; -webkit-overflow-scrolling:touch;}
 table.hcard{width:100%; border-collapse:collapse; font-family:var(--mono); min-width:600px;}
 table.hcard th, table.hcard td{padding:4px 0; text-align:center; font-size:11px;
-  border-bottom:.5px solid var(--line); white-space:nowrap;}
+  border-bottom:.5px solid var(--rule); white-space:nowrap;}
 table.hcard th{color:var(--dim); font-weight:500; letter-spacing:.04em; font-size:10px;}
 table.hcard th.brk, table.hcard td.brk{color:var(--gold);}
 table.hcard td.nm{text-align:left; font-family:var(--sans); font-size:12px; font-weight:600;
@@ -927,7 +1049,7 @@ table.hcard td.stk2::before{content:''; position:absolute; top:2px; right:8px;
   width:3px; height:3px; border-radius:50%; background:var(--gold);}
 table.hcard tr.ledrow td{border-bottom:none; padding-top:6px;}
 table.hcard tr.ledrow td.nm{color:var(--dim); font-family:var(--mono); font-size:10px; font-weight:500;}
-.ledc{display:block; height:11px; margin:0 1px; border-radius:2px; border:1px solid var(--line);}
+.ledc{display:block; height:11px; margin:0 1px; border-radius:2px; border:1px solid var(--rule);}
 .ledc.me{background:var(--brand); border-color:var(--brand);}
 .ledc.them{background:var(--dim); border-color:var(--dim);}
 .ledc.pend{opacity:.22}
@@ -936,7 +1058,7 @@ table.hcard tr.ledrow td.nm{color:var(--dim); font-family:var(--mono); font-size
    (the animation-gated-reveal landmine). */
 .scoreboard{
   position:sticky; top:0; z-index:60;
-  background:var(--bg1); border:1px solid var(--line2); border-radius:var(--r);
+  background:var(--bg1); border:1px solid var(--rule); border-radius:var(--r);
   padding:12px 14px; margin-bottom:12px;
   box-shadow:0 6px 18px rgba(0,0,0,.18);
 }
@@ -944,7 +1066,7 @@ table.hcard tr.ledrow td.nm{color:var(--dim); font-family:var(--mono); font-size
 .scoreboard .sb-chips{display:flex; gap:6px; flex-wrap:wrap; margin-top:8px;}
 .scoreboard .sbchip{
   display:flex; align-items:center; gap:6px; background:var(--bg2);
-  border:1px solid var(--line); border-radius:9px; padding:5px 8px;
+  border:1px solid var(--rule); border-radius:9px; padding:5px 8px;
   font-family:var(--mono); font-size:11.5px; color:var(--mut);
   font-variant-numeric:tabular-nums;
 }
@@ -961,23 +1083,23 @@ body.guestlive header.hdr, body.guestlive nav.tabbar{display:none !important;}
 body.guestlive #onboard{display:none !important;}
 .holehdr{
   display:flex; align-items:center; justify-content:space-between; gap:10px;
-  background:var(--bg1); border:1px solid var(--line); border-radius:var(--r); padding:12px 14px;
+  background:var(--bg1); border:1px solid var(--rule); border-radius:var(--r); padding:12px 14px;
 }
 .holehdr .hnum{font-family:var(--mono); font-size:22px; font-weight:600; letter-spacing:.04em;}
 .holehdr .hmeta{font-family:var(--mono); font-size:11.5px; color:var(--dim); letter-spacing:.12em; text-transform:uppercase; margin-top:2px;}
 .holehdr button{
-  width:42px; height:42px; border-radius:11px; border:1px solid var(--line2);
+  width:42px; height:42px; border-radius:11px; border:1px solid var(--rule);
   background:var(--bg2); font-size:16px; cursor:pointer; color:var(--mut); flex:none;
 }
 .holehdr button:hover{color:var(--ink);}
-.holehdr button:focus-visible{outline:2px solid var(--focus);}
+.holehdr button:focus-visible{outline:2px solid var(--brand);}
 .holedots{display:flex; gap:3px; margin-top:8px; flex-wrap:wrap;}
-.holedots i{width:11px; height:11px; border-radius:3px; background:var(--bg2); border:1px solid var(--line);}
+.holedots i{width:11px; height:11px; border-radius:3px; background:var(--bg2); border:1px solid var(--rule);}
 .holedots i.done{background:var(--dim); border-color:transparent;}
 .holedots i.cur{background:var(--pos); border-color:transparent;}
 .prow{
   display:flex; align-items:center; gap:10px;
-  background:var(--bg1); border:1px solid var(--line); border-radius:12px;
+  background:var(--bg1); border:1px solid var(--rule); border-radius:12px;
   padding:10px 12px; margin-top:8px;
 }
 .prow .sw{width:9px; height:28px; border-radius:3px; flex:none;}
@@ -986,16 +1108,16 @@ body.guestlive #onboard{display:none !important;}
 .prow .nm small{font-family:var(--mono); font-size:11px; color:var(--dim); letter-spacing:.06em;}
 .strokedot{width:6px; height:6px; border-radius:50%; background:var(--gold); display:inline-block; flex:none;}
 .prow .tot{font-family:var(--mono); font-size:12px; color:var(--mut); text-align:right; min-width:66px; font-variant-numeric:tabular-nums;}
-.step{display:flex; align-items:center; gap:2px; background:var(--bg2); border:1px solid var(--line2); border-radius:10px; flex:none;}
+.step{display:flex; align-items:center; gap:2px; background:var(--bg2); border:1px solid var(--rule); border-radius:10px; flex:none;}
 .step button{width:36px; height:36px; border:none; background:none; font-size:16px; font-weight:600; color:var(--mut); cursor:pointer; border-radius:9px;}
 .step button:hover{color:var(--ink);}
-.step button:focus-visible{outline:2px solid var(--focus); outline-offset:-2px;}
+.step button:focus-visible{outline:2px solid var(--brand); outline-offset:-2px;}
 .step .sv{font-family:var(--mono); font-size:15px; font-weight:600; min-width:26px; text-align:center; font-variant-numeric:tabular-nums;}
 /* Batch C: the old scorecard notation — under par draws a gold birdie circle */
 .step .sv.birdie{width:28px; height:28px; line-height:28px; min-width:28px; border-radius:50%;
   color:var(--gold); box-shadow:inset 0 0 0 2px var(--gold);}
 .gamecard{
-  background:var(--bg1); border:1px solid var(--line2); border-radius:var(--r);
+  background:var(--bg1); border:1px solid var(--rule); border-radius:var(--r);
   padding:14px; margin-bottom:10px; position:relative; overflow:hidden;
 }
 .gamecard::before{content:""; position:absolute; left:0; top:0; bottom:0; width:3.5px; background:var(--acc,var(--sq0));}
@@ -1004,33 +1126,33 @@ body.guestlive #onboard{display:none !important;}
 .gamecard .gm{font-family:var(--mono); font-size:12px; color:var(--mut); margin-top:3px;}
 .wolfbtns{display:flex; gap:6px; flex-wrap:wrap; margin-top:10px;}
 .wolfbtns button{
-  flex:1; min-width:72px; border:1px solid var(--line2); background:var(--bg2);
+  flex:1; min-width:72px; border:1px solid var(--rule); background:var(--bg2);
   border-radius:9px; padding:9px 6px; font-family:var(--mono); font-size:12px;
   font-weight:600; color:var(--mut); cursor:pointer;
 }
 .wolfbtns button.on{color:var(--bg0); background:var(--brand); border-color:var(--brand);}
-.wolfbtns button:focus-visible{outline:2px solid var(--focus); outline-offset:2px;}
+.wolfbtns button:focus-visible{outline:2px solid var(--brand); outline-offset:2px;}
 .wolftally{display:grid; grid-template-columns:repeat(4,1fr); gap:6px; margin-top:12px;}
-.wolftally .wt{background:var(--bg2); border:1px solid var(--line); border-radius:9px; padding:8px 4px; text-align:center;}
+.wolftally .wt{background:var(--bg2); border:1px solid var(--rule); border-radius:9px; padding:8px 4px; text-align:center;}
 .wolftally .wt b{display:block; font-family:var(--mono); font-size:14px; font-variant-numeric:tabular-nums;}
 .wolftally .wt span{font-family:var(--mono); font-size:10px; color:var(--dim); letter-spacing:.08em;}
 .settle .srow{
   display:flex; justify-content:space-between; font-family:var(--mono); font-size:13px;
-  color:var(--mut); padding:8px 2px; border-top:1px solid var(--line);
+  color:var(--mut); padding:8px 2px; border-top:1px solid var(--rule);
 }
 .settle .srow:first-child{border-top:none;}
 .settle .srow b{color:var(--ink);}
 .groupchips{display:flex; flex-wrap:wrap; gap:6px; margin:10px 0 4px;}
 .gchip{
   display:flex; align-items:center; gap:7px;
-  background:var(--bg1); border:1px solid var(--line); border-radius:99px;
+  background:var(--bg1); border:1px solid var(--rule); border-radius:99px;
   padding:7px 12px 7px 9px; font-size:12px; font-weight:600; color:var(--ink);
 }
 .gchip .sw{width:8px; height:8px; border-radius:3px;}
 .gchip small{font-family:var(--mono); font-size:10.5px; color:var(--dim); letter-spacing:.06em;}
 .gchip.add{border-style:dashed; color:var(--mut); background:none; cursor:pointer;}
 .gchip.add:hover{color:var(--ink);}
-.gchip.add:focus-visible{outline:2px solid var(--focus); outline-offset:2px;}
+.gchip.add:focus-visible{outline:2px solid var(--brand); outline-offset:2px;}
 .gtag{
   font-family:var(--mono); font-size:9.5px; font-weight:600; letter-spacing:.1em;
   color:var(--bg0); background:var(--mut); border-radius:4px; padding:2.5px 5px; flex:none;
@@ -1045,18 +1167,18 @@ body.guestlive #onboard{display:none !important;}
 .backlink:hover{color:var(--ink);}
 .optcard{
   display:block; width:100%; text-align:left; cursor:pointer;
-  background:var(--bg1); border:1px solid var(--line2); border-radius:var(--r);
+  background:var(--bg1); border:1px solid var(--rule); border-radius:var(--r);
   padding:16px 40px 16px 18px; margin-bottom:10px; position:relative; overflow:hidden;
   transition:border-color .25s var(--roll);
 }
 .optcard::before{content:""; position:absolute; left:0; top:0; bottom:0; width:3.5px; background:var(--acc,var(--brand));}
-.optcard:hover{border-color:var(--line2); filter:brightness(1.08);}
-.optcard:focus-visible{outline:2px solid var(--focus); outline-offset:2px;}
+.optcard:hover{border-color:var(--rule); filter:brightness(1.08);}
+.optcard:focus-visible{outline:2px solid var(--brand); outline-offset:2px;}
 .optcard h4{font-size:15px; font-weight:700;}
 .optcard p{font-family:var(--mono); font-size:12px; color:var(--mut); margin-top:5px; line-height:1.7; letter-spacing:.02em;}
 .optcard .go{position:absolute; right:16px; top:50%; transform:translateY(-50%); color:var(--dim); font-size:16px;}
 /* D110: the live door is the hero — ember spine, LIVE word, room to breathe */
-.optcard.live{padding:22px 40px 22px 18px; border-color:var(--line2);}
+.optcard.live{padding:22px 40px 22px 18px; border-color:var(--rule);}
 .optcard.live h4{font-size:17px;}
 .optcard.live .go{color:var(--brand);}
 .optcard .liveword{display:flex; align-items:center; gap:7px; font-family:var(--mono); font-size:11px; font-weight:600; letter-spacing:.14em; color:var(--brand); margin-bottom:7px;}
@@ -1068,14 +1190,14 @@ body.guestlive #onboard{display:none !important;}
    round that would never leave the device. Quick post is the real path. */
 .optcard.soon{opacity:.6; cursor:default;}
 .optcard.soon::before{background:var(--dim);}
-.optcard.soon:hover{border-color:var(--line2); filter:none;}
+.optcard.soon:hover{border-color:var(--rule); filter:none;}
 .optcard.soon .go{font-family:var(--mono); font-size:10.5px; font-weight:600; letter-spacing:.12em; color:var(--dim);}
 /* course search results — type a course, pick a tee, rating+slope autofill */
-.coursedd{margin:6px 0 2px; border:1px solid var(--line2); border-radius:10px; overflow:hidden; background:var(--bg2); max-height:230px; overflow-y:auto;}
-.coursedd button{display:block; width:100%; text-align:left; background:none; border:none; border-bottom:1px solid var(--line); padding:9px 12px; cursor:pointer; color:var(--ink);}
+.coursedd{margin:6px 0 2px; border:1px solid var(--rule); border-radius:10px; overflow:hidden; background:var(--bg2); max-height:230px; overflow-y:auto;}
+.coursedd button{display:block; width:100%; text-align:left; background:none; border:none; border-bottom:1px solid var(--rule); padding:9px 12px; cursor:pointer; color:var(--ink);}
 .coursedd button:last-child{border-bottom:none;}
 .coursedd button:hover{background:var(--bg1);}
-.coursedd button.kbd{background:var(--bg1); outline:2px solid var(--focus); outline-offset:-2px;}
+.coursedd button.kbd{background:var(--bg1); outline:2px solid var(--brand); outline-offset:-2px;}
 .coursedd button b{display:block; font-size:13px; font-weight:600; line-height:1.3;}
 .coursedd button span{font-family:var(--mono); font-size:11.5px; color:var(--mut); letter-spacing:.03em;}
 .coursedd .coursedd-msg{padding:9px 12px; font-family:var(--mono); font-size:11.5px; color:var(--dim); letter-spacing:.03em;}
@@ -1093,7 +1215,7 @@ body.guestlive #onboard{display:none !important;}
 .evclinch{padding:10px 0 0; font-family:var(--mono); font-size:11.5px; letter-spacing:.08em; color:var(--mut);}
 .evsess{margin-top:14px;}
 .evsesshd{display:flex; align-items:center; gap:8px; font-family:var(--mono); font-size:11.5px; letter-spacing:.08em; color:var(--dim); margin:0 0 6px;}
-.evduel{display:flex; align-items:center; gap:8px; padding:6px 10px; border:1px solid var(--line); border-radius:9px; margin-bottom:5px; font-size:12.5px;}
+.evduel{display:flex; align-items:center; gap:8px; padding:6px 10px; border:1px solid var(--rule); border-radius:9px; margin-bottom:5px; font-size:12.5px;}
 .evduel .nm{flex:1; min-width:0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
 .evduel .nm.b{text-align:right;}
 .evduel .nm.win{font-weight:700;}
@@ -1103,29 +1225,29 @@ body.guestlive #onboard{display:none !important;}
 /* notifications banner — pending invites, act in line */
 #notifBanner:not(:empty){margin-bottom:12px; display:flex; flex-direction:column; gap:8px;}
 .notifrow{display:flex; align-items:center; gap:10px; padding:11px 13px; border-radius:12px;
-  background:linear-gradient(90deg, var(--glow), transparent); border:1px solid var(--brand);}
+  background:linear-gradient(90deg, color-mix(in srgb, var(--brand) 20%, transparent), transparent); border:1px solid var(--brand);}
 .notifrow .tt{flex:1; min-width:0;}
 .notifrow .tt b{font-size:13.5px; display:block;}
 .notifrow .tt small{font-family:var(--mono); font-size:11px; letter-spacing:.06em; color:var(--mut);}
 .mini{
   font-family:var(--mono); font-size:12.5px; font-weight:600; letter-spacing:.04em;
-  color:var(--ink); background:var(--bg2); border:1px solid var(--line2);
+  color:var(--ink); background:var(--bg2); border:1px solid var(--rule);
   border-radius:var(--rc); padding:9px 14px; cursor:pointer; flex:none;
 }
 .mini:hover{border-color:var(--dim);}
-.mini:focus-visible{outline:2px solid var(--focus); outline-offset:2px;}
+.mini:focus-visible{outline:2px solid var(--brand); outline-offset:2px;}
 /* F6: the one icon-chrome class — sized/aligned for inline use next to text */
 .ic{width:14px; height:14px; vertical-align:-2px; pointer-events:none;}
 .ic.flip{transform:rotate(180deg);}
 .dot{display:inline-block; width:8px; height:8px; border-radius:50%; background:currentColor; flex:none; vertical-align:1px;}
 .check{
   display:flex; align-items:center; gap:12px;
-  background:var(--bg1); border:1px solid var(--line); border-radius:var(--r);
+  background:var(--bg1); border:1px solid var(--rule); border-radius:var(--r);
   padding:13px 14px; margin-bottom:8px;
 }
 .check .num{
   font-family:var(--mono); width:26px; height:26px; border-radius:8px; flex:none;
-  background:var(--bg2); border:1px solid var(--line2);
+  background:var(--bg2); border:1px solid var(--rule);
   display:grid; place-items:center; font-size:12.5px; color:var(--mut);
 }
 .check .tt{flex:1; min-width:0;}
@@ -1135,12 +1257,12 @@ body.guestlive #onboard{display:none !important;}
 .feedsec{font-family:var(--mono); font-size:10.5px; letter-spacing:.14em; text-transform:uppercase; color:var(--dim); margin:16px 2px 8px;}
 .feedsec:first-child{margin-top:2px;}
 .feedmore{margin-top:4px;}
-.feedmore>summary{list-style:none; cursor:pointer; font-family:var(--mono); font-size:11px; letter-spacing:.1em; text-transform:uppercase; color:var(--mut); padding:10px 12px; border:1px solid var(--line); border-radius:var(--r); background:var(--bg1); text-align:center; user-select:none;}
+.feedmore>summary{list-style:none; cursor:pointer; font-family:var(--mono); font-size:11px; letter-spacing:.1em; text-transform:uppercase; color:var(--mut); padding:10px 12px; border:1px solid var(--rule); border-radius:var(--r); background:var(--bg1); text-align:center; user-select:none;}
 .feedmore>summary::-webkit-details-marker{display:none;}
-.feedmore>summary:hover{color:var(--ink); border-color:var(--line2);}
+.feedmore>summary:hover{color:var(--ink); border-color:var(--rule);}
 .feedmore[open]>summary{margin-bottom:8px; color:var(--dim);}
 .phasehero{
-  background:var(--bg1); border:1px solid var(--line2); border-radius:var(--r);
+  background:var(--bg1); border:1px solid var(--rule); border-radius:var(--r);
   padding:22px 20px; position:relative; overflow:hidden;
 }
 .phasehero::before{content:""; position:absolute; left:0; top:0; bottom:0; width:3.5px; background:var(--brand);}
@@ -1149,7 +1271,7 @@ body.guestlive #onboard{display:none !important;}
 .phasehero .m{font-family:var(--mono); font-size:12px; color:var(--dim); letter-spacing:.08em;}
 .nextcard{
   display:flex; align-items:center; gap:12px;
-  background:var(--bg1); border:1px solid var(--line2); border-radius:var(--r);
+  background:var(--bg1); border:1px solid var(--rule); border-radius:var(--r);
   padding:13px 15px; margin-bottom:14px; position:relative; overflow:hidden;
 }
 .nextcard::before{content:""; position:absolute; left:0; top:0; bottom:0; width:3.5px; background:var(--brand);}
@@ -1175,21 +1297,21 @@ body.guestlive #onboard{display:none !important;}
 .wizp-row{display:flex; align-items:center; gap:8px; font-size:13px; flex-wrap:wrap;}
 .wizp-row .k{font-family:var(--mono); font-size:9px; letter-spacing:.12em; color:var(--dim); text-transform:uppercase; width:62px; flex:none;}
 .wizp-dot{width:10px; height:10px; border-radius:3px; display:inline-block; flex:none;}
-.wizp-chip{font-family:var(--mono); font-size:9.5px; letter-spacing:.04em; text-transform:uppercase; padding:3px 9px; border-radius:99px; border:1px solid var(--line2); color:var(--dim); white-space:nowrap;}
-.wizp-chip.on{border-color:var(--brand); color:var(--brand); background:var(--glow);}
+.wizp-chip{font-family:var(--mono); font-size:9.5px; letter-spacing:.04em; text-transform:uppercase; padding:3px 9px; border-radius:99px; border:1px solid var(--rule); color:var(--dim); white-space:nowrap;}
+.wizp-chip.on{border-color:var(--brand); color:var(--brand); background:color-mix(in srgb, var(--brand) 20%, transparent);}
 .wizp-gold{font-family:var(--serif); color:var(--gold); font-weight:700; font-size:24px; font-variant-numeric:tabular-nums;}
 .wizp-sub{font-family:var(--mono); font-size:9px; letter-spacing:.08em; color:var(--dim); text-transform:uppercase; padding-left:70px; margin-top:-4px;}
 /* Stage 3d-2: Start something as schema-art doors, competition-forward */
 .startgrid{display:grid; grid-template-columns:1fr 1fr; gap:10px;}
-.startdoor{display:flex; flex-direction:column; align-items:flex-start; gap:7px; text-align:left; padding:13px; background:var(--bg1); border:1px solid var(--line2); border-radius:14px; cursor:pointer; color:var(--ink);}
+.startdoor{display:flex; flex-direction:column; align-items:flex-start; gap:7px; text-align:left; padding:13px; background:var(--bg1); border:1px solid var(--rule); border-radius:14px; cursor:pointer; color:var(--ink);}
 .startdoor svg{width:54px; height:36px;}
 .startdoor b{font-family:var(--serif); font-size:16px; font-weight:700;}
 .startdoor small{font-family:var(--mono); font-size:9.5px; letter-spacing:.1em; text-transform:uppercase; color:var(--dim);}
-.startjoin{display:flex; align-items:center; justify-content:center; gap:8px; width:100%; margin-top:10px; padding:11px; background:var(--bg2); border:1px solid var(--line2); border-radius:12px; font-weight:600; font-size:13px; cursor:pointer; color:var(--ink);}
+.startjoin{display:flex; align-items:center; justify-content:center; gap:8px; width:100%; margin-top:10px; padding:11px; background:var(--bg2); border:1px solid var(--rule); border-radius:12px; font-weight:600; font-size:13px; cursor:pointer; color:var(--ink);}
 @media(hover:hover){ .startdoor:hover, .startjoin:hover{border-color:var(--brand);} }
-.startdoor:focus-visible, .startjoin:focus-visible{outline:2px solid var(--focus); outline-offset:2px;}
+.startdoor:focus-visible, .startjoin:focus-visible{outline:2px solid var(--brand); outline-offset:2px;}
 /* D41: run-it-back — the settled season, gold-washed, above the cold-start doors */
-.runback{border:1px solid color-mix(in srgb, var(--gold) 42%, var(--line2)); border-radius:14px; padding:14px; margin-bottom:12px;
+.runback{border:1px solid color-mix(in srgb, var(--gold) 42%, var(--rule)); border-radius:14px; padding:14px; margin-bottom:12px;
   background:linear-gradient(180deg, color-mix(in srgb, var(--gold) 10%, transparent), transparent 72%);}
 .runback .rb-top{display:flex; align-items:center; gap:11px; margin-bottom:12px;}
 .runback .rb-top svg{flex:none;}
@@ -1229,17 +1351,17 @@ body.guestlive #onboard{display:none !important;}
 .wizstep.on{display:block; animation:vin .22s ease both;}
 /* quick-post hole grid (decision #5): par-prefilled, adjust only deviations */
 .pgrid{display:grid; grid-template-columns:repeat(auto-fill,minmax(52px,1fr)); gap:6px;}
-.pcell{background:var(--bg2); border:0.5px solid var(--line); border-radius:9px; padding:5px 2px 6px; text-align:center;}
+.pcell{background:var(--bg2); border:0.5px solid var(--rule); border-radius:9px; padding:5px 2px 6px; text-align:center;}
 .pcell .pn{display:block; font-size:9.5px; color:var(--dim); letter-spacing:.04em;}
 .pcell .prow{display:flex; align-items:center; justify-content:center; gap:3px; margin-top:2px;}
-.pcell .prow button{width:19px; height:19px; border:0.5px solid var(--line); background:var(--bg); border-radius:6px; color:var(--ink); font-size:14px; line-height:1; padding:0; cursor:pointer;}
+.pcell .prow button{width:19px; height:19px; border:0.5px solid var(--rule); background:var(--bg); border-radius:6px; color:var(--ink); font-size:14px; line-height:1; padding:0; cursor:pointer;}
 .pcell .ps{min-width:18px; font-size:15px; font-weight:600; font-variant-numeric:tabular-nums;}
 .pcell.bird .ps{color:var(--pos);} .pcell.bog .ps{color:var(--mut);} .pcell.eag .ps{color:var(--gold);}
 .wiznav{display:flex; gap:8px; margin-top:16px;}
 .wiznav .btn{flex:1; margin:0;}
 .codebox{
   font-family:var(--mono); font-size:26px; font-weight:600; letter-spacing:.22em;
-  text-align:center; background:var(--bg2); border:1px dashed var(--line2);
+  text-align:center; background:var(--bg2); border:1px dashed var(--rule);
   border-radius:12px; padding:16px 10px; margin-bottom:10px;
 }
 .tab .circ{
@@ -1252,7 +1374,7 @@ body.guestlive #onboard{display:none !important;}
 /* ============ v7: dashboard, feed social, bylaws, email invites ============ */
 .ontheline{
   display:flex; align-items:center; gap:14px; flex-wrap:wrap;
-  background:var(--bg1); border:1px solid var(--line2); border-radius:var(--r);
+  background:var(--bg1); border:1px solid var(--rule); border-radius:var(--r);
   padding:13px 16px; margin-bottom:14px; cursor:pointer;
   position:relative; overflow:hidden; width:100%; text-align:left;
 }
@@ -1262,7 +1384,7 @@ body.guestlive #onboard{display:none !important;}
 .ontheline .os{font-family:var(--mono); font-size:11.5px; color:var(--mut); letter-spacing:.06em;}
 .ontheline .go{margin-left:auto; color:var(--dim);}
 .fcard{
-  background:var(--bg1); border:1px solid var(--line); border-radius:14px;
+  background:var(--bg1); border:1px solid var(--rule); border-radius:14px;
   padding:12px 13px; margin-bottom:8px;
 }
 .fcard .round{border:none; background:none; padding:0; margin:0;}
@@ -1330,7 +1452,7 @@ body.guestlive #onboard{display:none !important;}
 .rsheet .rs-course .meta{display:block; font-size:11px; color:var(--mut); margin-top:3px; letter-spacing:.02em;}
 .rsheet .rs-course .place{display:block; font-size:11.5px; color:var(--dim); margin-top:1px;}
 .rs-when{display:flex; gap:8px; flex-wrap:wrap; align-items:center;}
-.teechip{font-size:12.5px; font-weight:600; background:var(--bg2); border:1px solid var(--line); border-radius:8px; padding:6px 10px;}
+.teechip{font-size:12.5px; font-weight:600; background:var(--bg2); border:1px solid var(--rule); border-radius:8px; padding:6px 10px;}
 .wxchip{font-size:12px; color:var(--mut); background:rgba(212,178,62,.12); border:1px solid rgba(212,178,62,.32); border-radius:8px; padding:6px 10px;}
 .wxchip .sun{color:var(--gold);} .wxchip b{color:var(--ink);}
 .rs-note{font-style:italic; color:var(--mut); font-size:13px; margin-top:10px;}
@@ -1344,23 +1466,23 @@ body.guestlive #onboard{display:none !important;}
 .rsvppill.out{color:var(--dim); background:var(--bg2);}
 .rsvppill.none{color:var(--dim); background:var(--bg2);}
 .rsvpset{display:flex; gap:7px; margin-top:10px;}
-.rbtn{flex:1; font-size:12.5px; font-weight:600; color:var(--mut); border:1px solid var(--line); border-radius:9px; padding:9px; background:var(--panel);}
+.rbtn{flex:1; font-size:12.5px; font-weight:600; color:var(--mut); border:1px solid var(--rule); border-radius:9px; padding:9px; background:var(--panel);}
 .rbtn.on.in{color:#fff; background:var(--pos); border-color:var(--pos);}
 .rbtn.on.maybe{color:#3a2c07; background:var(--gold); border-color:var(--gold);}
-.rbtn.on.out{color:var(--ink); background:var(--bg2); border-color:var(--line2);}
+.rbtn.on.out{color:var(--ink); background:var(--bg2); border-color:var(--rule);}
 .rs-thread{display:flex; flex-direction:column; gap:8px;}
 .crow2{display:flex; gap:9px; align-items:flex-start; font-size:13px;}
 .crow2 b{font-weight:600;} .crow2 .t{color:var(--mut);}
 .rs-cinput{display:flex; gap:8px; margin-top:10px;}
 .rs-cinput .f{flex:1;}
 .managebar2{display:flex; gap:8px; margin-top:16px;}
-.mbtn2{flex:1; text-align:center; font-size:12px; font-weight:600; color:var(--mut); border:1px solid var(--line); border-radius:9px; padding:9px;}
+.mbtn2{flex:1; text-align:center; font-size:12px; font-weight:600; color:var(--mut); border:1px solid var(--rule); border-radius:9px; padding:9px;}
 .mbtn2.warn{color:var(--neg); border-color:rgba(255,90,90,.3);}
 /* D81 hero — ONE card, dispatched on lifecycle. Ember spine = live states,
    champagne spine + figure = earned (rank 1, the wrapped season). The figure
    is the serif number idiom the standings already speak. */
 .hhero{position:relative; overflow:hidden; text-align:left; padding:15px 16px; margin:0 0 12px;
-  background:var(--panel); border:1px solid var(--line); border-radius:var(--r);}
+  background:var(--panel); border:1px solid var(--rule); border-radius:var(--r);}
 .hhero::before{content:''; position:absolute; left:0; top:0; bottom:0; width:3px; background:var(--brand);}
 .hhero.earned::before{background:var(--gold);}
 .hhero .hh-top{font-family:var(--mono); font-size:10.5px; letter-spacing:.12em; text-transform:uppercase; color:var(--mut); margin-bottom:10px;}
@@ -1375,15 +1497,15 @@ body.guestlive #onboard{display:none !important;}
 .hhero .hh-line{font-size:13.5px; line-height:1.5; color:var(--ink); margin:10px 0 0;}
 .hhero .hh-line em{font-style:normal; color:var(--brand); font-weight:600;}
 .hhero.earned .hh-line em{color:var(--gold);}
-.hhero .hh-foot{display:flex; align-items:center; gap:9px; margin-top:12px; padding-top:11px; border-top:1px solid var(--line);
+.hhero .hh-foot{display:flex; align-items:center; gap:9px; margin-top:12px; padding-top:11px; border-top:1px solid var(--rule);
   font-family:var(--mono); font-size:10px; letter-spacing:.07em; text-transform:uppercase; color:var(--dim);}
 .hhero .hh-bar{flex:1; height:5px; border-radius:99px; background:var(--bg2); overflow:hidden;}
 .hhero .hh-bar i{display:block; height:100%; border-radius:99px; background:var(--brand);}
 .hhero .hh-bar i.ok{background:var(--pos);}
 .hhero .hh-cta{display:flex; align-items:center; justify-content:center; min-height:44px; margin-top:12px;
   border-radius:var(--rc); background:var(--brand); color:#fff; font-size:14px; font-weight:600; width:100%;
-  box-shadow:0 8px 22px -12px var(--glow), inset 0 1px 0 rgba(255,255,255,.2);}
-.hhero .hh-cta.q{background:var(--bg2); color:var(--ink); border:1px solid var(--line2); box-shadow:none;}
+  box-shadow:0 8px 22px -12px color-mix(in srgb, var(--brand) 20%, transparent), inset 0 1px 0 rgba(255,255,255,.2);}
+.hhero .hh-cta.q{background:var(--bg2); color:var(--ink); border:1px solid var(--rule); box-shadow:none;}
 /* D119 · the member's second move: present, but never competing with the hero's
    one action (D27/D81 — a hero has ONE move; this is a quiet link under it). */
 /* D126 · the endgame sentence under the seat line — a second voice, not a
@@ -1399,21 +1521,21 @@ body.guestlive #onboard{display:none !important;}
    Champagne spine = a Major window; ember = everything live. The marker
    art carries the wink (famous-golf-wing rule: oblique, never named). */
 .hocc{position:relative; overflow:hidden; text-align:left; padding:13px 14px; margin:0 0 12px;
-  background:var(--panel); border:1px solid var(--line); border-radius:var(--r);}
+  background:var(--panel); border:1px solid var(--rule); border-radius:var(--r);}
 .hocc::before{content:''; position:absolute; left:0; top:0; bottom:0; width:3px; background:var(--brand);}
 .hocc.earned::before{background:var(--gold);}
 .hocc .ho-k{font-family:var(--mono); font-size:10px; letter-spacing:.13em; text-transform:uppercase; color:var(--brand); margin-bottom:7px;}
 .hocc.earned .ho-k{color:var(--gold);}
 .hocc h4{font-family:var(--serif); font-size:18px; font-weight:700; margin:0 0 5px; color:var(--ink); line-height:1.2; letter-spacing:-.01em;}
 .hocc p{margin:0; font-size:12.5px; line-height:1.5; color:var(--mut);}
-.hocc .ho-act{display:flex; align-items:center; justify-content:space-between; margin-top:11px; padding-top:10px; border-top:1px solid var(--line);
+.hocc .ho-act{display:flex; align-items:center; justify-content:space-between; margin-top:11px; padding-top:10px; border-top:1px solid var(--rule);
   font-size:13px; font-weight:600; color:var(--brand); cursor:pointer; width:100%; background:none; border-left:0; border-right:0; border-bottom:0; text-align:left; font-family:var(--sans);}
 .hocc.earned .ho-act{color:var(--gold);}
 .hocc .ho-mk{position:absolute; right:34px; top:12px; width:30px; height:30px; opacity:.3; pointer-events:none;}
 .hocc .ho-mk svg{width:100%; height:100%; stroke:var(--gold); fill:none; stroke-width:1.4; stroke-linecap:round; stroke-linejoin:round;}
 .hocc .ho-x{position:absolute; right:8px; top:8px; width:24px; height:24px; border-radius:50%; border:none; background:none; color:var(--dim); font-size:14px; line-height:1; cursor:pointer;}
 /* Home "Coming up" rich cards (round-object arc Stage 6) */
-.hround{display:flex; align-items:center; gap:10px; padding:11px 12px; margin-bottom:7px; background:var(--panel); border:1px solid var(--line); border-radius:11px;}
+.hround{display:flex; align-items:center; gap:10px; padding:11px 12px; margin-bottom:7px; background:var(--panel); border:1px solid var(--rule); border-radius:11px;}
 .hround.tap{cursor:pointer;} .hround.tap:active{transform:scale(.99);}
 .hround .num{flex:none;}
 .hr-body{flex:1; min-width:0;}
@@ -1426,7 +1548,7 @@ body.guestlive #onboard{display:none !important;}
 .cthread{margin-top:10px;}
 .crow{
   font-size:12.5px; color:var(--mut); padding:7px 2px;
-  border-top:1px solid var(--line); line-height:1.5;
+  border-top:1px solid var(--rule); line-height:1.5;
 }
 .crow b{color:var(--ink); font-weight:600; margin-right:6px;}
 .cinput{display:flex; gap:8px; margin-top:8px;}
@@ -1434,11 +1556,11 @@ body.guestlive #onboard{display:none !important;}
 /* reactions — the crew's vocabulary. present reactions read as counted chips;
    ＋ opens the palette. one row per (member, emoji), so a round can collect a
    🦅 and a 🚨 at once. who-reacted rides the chip title (rule 4: shows work). */
-.social{margin-top:10px; padding-top:10px; border-top:1px solid var(--line);}
+.social{margin-top:10px; padding-top:10px; border-top:1px solid var(--rule);}
 .rxbar{display:flex; flex-wrap:wrap; gap:6px; align-items:center;}
 .rxchip{
   font-family:var(--mono); font-size:12.5px; font-weight:600; letter-spacing:.02em;
-  color:var(--mut); background:var(--bg2); border:1px solid var(--line2);
+  color:var(--mut); background:var(--bg2); border:1px solid var(--rule);
   border-radius:99px; padding:5px 10px; cursor:pointer; line-height:1;
 }
 .rxchip .e{font-family:var(--sans); margin-right:4px;}
@@ -1455,7 +1577,7 @@ body.guestlive #onboard{display:none !important;}
 }
 .rxcm{
   font-family:var(--mono); font-size:12.5px; font-weight:600; color:var(--mut);
-  background:var(--bg2); border:1px solid var(--line2);
+  background:var(--bg2); border:1px solid var(--rule);
   border-radius:99px; padding:5px 11px; cursor:pointer; line-height:1;
 }
 /* the add-reaction affordance is a plain "+" icon — the tray hangs off it,
@@ -1465,25 +1587,25 @@ body.guestlive #onboard{display:none !important;}
    the report button stays its original compact size. */
 .rxadd{
   font-family:var(--mono); font-size:15px; font-weight:600; color:var(--mut);
-  background:var(--bg2); border:1px solid var(--line2);
+  background:var(--bg2); border:1px solid var(--rule);
   border-radius:99px; cursor:pointer; line-height:1;
   display:inline-flex; align-items:center; justify-content:center;
   padding:0 11px; height:26px;
 }
 .rxadd[data-rxadd], .rxadd[data-hadd]{min-width:44px; min-height:44px; padding:0 14px;}
 .rxadd:hover, .rxcm:hover{color:var(--ink);}
-.rxadd:focus-visible, .rxcm:focus-visible{outline:2px solid var(--focus); outline-offset:2px;}
+.rxadd:focus-visible, .rxcm:focus-visible{outline:2px solid var(--brand); outline-offset:2px;}
 .rxpalette{
   display:none; gap:5px; flex-wrap:wrap; margin-top:8px; padding:8px;
-  background:var(--bg2); border:1px solid var(--line); border-radius:12px;
+  background:var(--bg2); border:1px solid var(--rule); border-radius:12px;
 }
 .rxpalette.open{display:flex;}
 .rxpalette button{
   font-family:var(--sans); font-size:19px; line-height:1; background:none;
   border:1px solid transparent; border-radius:10px; padding:5px 7px; cursor:pointer;
 }
-.rxpalette button:hover{border-color:var(--line2); background:var(--bg1);}
-.rxpalette button:focus-visible{outline:2px solid var(--focus); outline-offset:2px;}
+.rxpalette button:hover{border-color:var(--rule); background:var(--bg1);}
+.rxpalette button:focus-visible{outline:2px solid var(--brand); outline-offset:2px;}
 /* Home's circle rows are denser than board cards — the strip shrinks to fit
    under the round line and never opens a thread (comments stay a board thing).
    The quick-tap heater and the + still hold the 44px floor (bullet 5) here
@@ -1499,7 +1621,7 @@ body.guestlive #onboard{display:none !important;}
    resurfaces the best recent thing so the open still reveals something. */
 .digest{
   font-family:var(--sans); font-size:13px; line-height:1.55; color:var(--mut);
-  background:var(--bg1); border:1px solid var(--line);
+  background:var(--bg1); border:1px solid var(--rule);
   border-left:3px solid var(--brand);
   border-radius:12px; padding:10px 13px; margin-bottom:10px;
 }
@@ -1517,7 +1639,7 @@ html[data-theme="light"] .digest{background:#FBFCFA;}
    these carry the quiet "where do I go". */
 .hometiles{display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px; margin:10px 0 4px;}
 .htile{
-  background:var(--bg1); border:1px solid var(--line2); border-radius:14px;
+  background:var(--bg1); border:1px solid var(--rule); border-radius:14px;
   padding:10px 9px; text-align:left; cursor:pointer; position:relative; overflow:hidden;
   display:flex; flex-direction:column; gap:5px; min-width:0;
 }
@@ -1529,8 +1651,8 @@ html[data-theme="light"] .digest{background:#FBFCFA;}
   white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
 .htile .s{font-family:var(--mono); font-size:9px; letter-spacing:.1em; color:var(--mut);
   white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
-.htile:hover{border-color:var(--acc,var(--line2));}
-.htile:focus-visible{outline:2px solid var(--focus); outline-offset:2px;}
+.htile:hover{border-color:var(--acc,var(--rule));}
+.htile:focus-visible{outline:2px solid var(--brand); outline-offset:2px;}
 /* D93 · a section head that carries a way through. renderHomeRounds clears the
    head's inline display, so the flex must live in a rule or the link loses its
    right edge the moment the section is shown. */
@@ -1540,11 +1662,11 @@ html[data-theme="light"] .digest{background:#FBFCFA;}
   color:var(--gold); text-decoration:none;
 }
 .eyebrow.withgo a:hover{color:var(--ink);}
-.eyebrow.withgo a:focus-visible{outline:2px solid var(--focus); outline-offset:2px;}
+.eyebrow.withgo a:focus-visible{outline:2px solid var(--brand); outline-offset:2px;}
 .sysrow{
   font-family:var(--sans); font-size:12.5px; letter-spacing:.01em; line-height:1.5;
   color:var(--mut); text-align:left; padding:10px 13px; margin-bottom:8px;
-  border:1px solid var(--line); border-left:3px solid rgba(233,190,98,.5);
+  border:1px solid var(--rule); border-left:3px solid rgba(233,190,98,.5);
   border-radius:12px; background:var(--bg1);
 }
 /* D92 · a settled game is a door. The row keeps its quiet clubhouse-note voice
@@ -1559,7 +1681,7 @@ html[data-theme="light"] .digest{background:#FBFCFA;}
   color:var(--gold); font-size:17px; line-height:1;
 }
 .sysrow.opens:hover{ background:var(--bg2); }
-.sysrow.opens:focus-visible{ outline:2px solid var(--focus); outline-offset:2px; }
+.sysrow.opens:focus-visible{ outline:2px solid var(--brand); outline-offset:2px; }
 /* D181 · a settlement's reaction bar sits below its row, outside the door. The
    row keeps its own border, so the bar drops the divider it wears elsewhere and
    indents to the row's text instead. */
@@ -1570,7 +1692,7 @@ html[data-theme="light"] .digest{background:#FBFCFA;}
 .scwrap{overflow-x:auto; -webkit-overflow-scrolling:touch; margin:0 -4px; padding:0 4px;}
 .sccard{border-collapse:separate; border-spacing:0; font-family:var(--mono); font-size:12px;
   font-variant-numeric:tabular-nums; min-width:100%;}
-.sccard th, .sccard td{padding:6px 0; text-align:center; min-width:26px; border-bottom:1px solid var(--line);}
+.sccard th, .sccard td{padding:6px 0; text-align:center; min-width:26px; border-bottom:1px solid var(--rule);}
 .sccard th.who, .sccard td.who{
   text-align:left; padding-right:12px; min-width:96px; position:sticky; left:0;
   background:var(--bg1); z-index:1; white-space:nowrap;
@@ -1581,7 +1703,7 @@ html[data-theme="light"] .digest{background:#FBFCFA;}
 .sccard td.won{color:var(--bg0); background:var(--gold); border-radius:4px; font-weight:700;}
 .sccard td.gap{color:var(--dim);}
 .sccard td.bird{color:var(--gold); font-weight:700;}
-.sccard .nine{border-right:1px solid var(--line2);}
+.sccard .nine{border-right:1px solid var(--rule);}
 .momrow{
   font-family:var(--sans); font-size:12.5px; letter-spacing:.01em; line-height:1.5;
   color:var(--ink); text-align:left; padding:10px 13px; margin-bottom:8px;
@@ -1594,14 +1716,14 @@ html[data-theme="light"] .momrow{background:rgba(21,116,63,.06);}
 .echip{
   display:flex; align-items:center; gap:7px;
   font-family:var(--mono); font-size:12.5px; color:var(--ink);
-  background:var(--bg2); border:1px solid var(--line2); border-radius:99px; padding:6px 11px;
+  background:var(--bg2); border:1px solid var(--rule); border-radius:99px; padding:6px 11px;
 }
 .echip button{border:none; background:none; color:var(--dim); cursor:pointer; font-size:12px; padding:0;}
 .echip button:hover{color:var(--neg);}
 .byrow{
   display:flex; justify-content:space-between; gap:12px;
   font-family:var(--mono); font-size:12.5px; padding:8px 2px;
-  border-top:1px solid var(--line); color:var(--dim); letter-spacing:.04em;
+  border-top:1px solid var(--rule); color:var(--dim); letter-spacing:.04em;
 }
 .byrow:first-child{border-top:none;}
 .byrow b{color:var(--ink); font-weight:600; text-align:right;}
@@ -1612,10 +1734,10 @@ html[data-theme="light"] .momrow{background:rgba(21,116,63,.06);}
   color:var(--dim); text-align:center; margin:18px 0 10px;
   display:flex; align-items:center; gap:12px;
 }
-.datesep::before,.datesep::after{content:""; flex:1; border-top:1px solid var(--line);}
+.datesep::before,.datesep::after{content:""; flex:1; border-top:1px solid var(--rule);}
 .msgrow{
   display:flex; gap:10px; align-items:flex-start;
-  background:var(--bg1); border:1px solid var(--line); border-radius:14px;
+  background:var(--bg1); border:1px solid var(--rule); border-radius:14px;
   padding:11px 13px; margin-bottom:8px;
 }
 .msgrow .bar{width:3.5px; align-self:stretch; border-radius:2px; flex:none;}
@@ -1625,7 +1747,7 @@ html[data-theme="light"] .momrow{background:rgba(21,116,63,.06);}
   position:sticky; bottom:84px; z-index:10;
   display:flex; gap:8px; padding:10px 0 6px; margin-top:14px;
   background:linear-gradient(180deg, transparent, var(--bg0) 26%);
-  border-top:1px solid var(--line);
+  border-top:1px solid var(--rule);
 }
 @media(min-width:960px){ .composer{bottom:0;} }
 .composer input{flex:1; font-family:var(--sans); font-weight:500; min-height:46px;}
@@ -1633,16 +1755,16 @@ html[data-theme="light"] .momrow{background:rgba(21,116,63,.06);}
 .selchip{
   display:inline-flex; align-items:center; gap:7px;
   font-family:var(--mono); font-size:12.5px; font-weight:600; letter-spacing:.03em;
-  color:var(--mut); background:var(--bg2); border:1px solid var(--line2);
+  color:var(--mut); background:var(--bg2); border:1px solid var(--rule);
   border-radius:99px; padding:8px 13px; cursor:pointer; margin:0 6px 6px 0;
 }
 .selchip.on{color:var(--bg0); background:var(--brand); border-color:var(--brand);}
 .selchip.on .gtag{background:var(--bg0); color:var(--brand);}
-.selchip:focus-visible{outline:2px solid var(--focus); outline-offset:2px;}
+.selchip:focus-visible{outline:2px solid var(--brand); outline-offset:2px;}
 .selchip[disabled]{opacity:.45; cursor:default;}
 .livebanner{
   display:none; width:100%; text-align:left; cursor:pointer;
-  background:var(--bg1); border:1px solid var(--line2); border-radius:var(--r);
+  background:var(--bg1); border:1px solid var(--rule); border-radius:var(--r);
   padding:18px; margin-bottom:14px; position:relative; overflow:hidden;
 }
 .livebanner::before{content:""; position:absolute; left:0; top:0; bottom:0; width:3.5px; background:var(--pos);}
@@ -1675,25 +1797,25 @@ html[data-theme="light"] .momrow{background:rgba(21,116,63,.06);}
 .rlab:first-child{margin-top:0;}
 .ibtn{
   display:inline-grid; place-items:center; width:18px; height:18px; margin-left:6px;
-  border-radius:50%; border:1px solid var(--line2); background:var(--bg2);
+  border-radius:50%; border:1px solid var(--rule); background:var(--bg2);
   color:var(--dim); font-family:var(--mono); font-size:11.5px; font-weight:600;
   cursor:pointer; vertical-align:middle; padding:0; text-transform:lowercase;
 }
 .ibtn:hover{color:var(--ink); border-color:var(--dim);}
-.ibtn:focus-visible{outline:2px solid var(--focus); outline-offset:2px;}
+.ibtn:focus-visible{outline:2px solid var(--brand); outline-offset:2px;}
 /* D76 sweep: open/closed is an interaction state, not an outcome — ember, not
    --pos. Toggle and panel move together or an opened help shows two metals. */
 .ibtn[aria-expanded="true"]{color:var(--brand); border-color:var(--brand);}
 .ihelp{
   display:none; font-size:12px; color:var(--mut); line-height:1.65;
-  background:var(--bg1); border:1px solid var(--line); border-left:3px solid var(--brand);
+  background:var(--bg1); border:1px solid var(--rule); border-left:3px solid var(--brand);
   border-radius:10px; padding:11px 13px; margin:2px 0 10px;
 }
 .ihelp.open{display:block; animation:vin .18s ease both;}
 .ihelp b{color:var(--ink);}
 .soon{
   font-family:var(--mono); font-size:10px; font-weight:600; letter-spacing:.1em;
-  color:var(--dim); background:var(--bg2); border:1px solid var(--line2);
+  color:var(--dim); background:var(--bg2); border:1px solid var(--rule);
   border-radius:5px; padding:2.5px 6px; margin-left:8px;
 }
 .ob-status{
@@ -1710,15 +1832,15 @@ html[data-theme="light"] .momrow{background:rgba(21,116,63,.06);}
 .slot4.court{display:block;}
 .slot4 #modeSeg{grid-column:1/-1;}
 .crtrow{display:flex; gap:8px;}
-.crtzone{flex:1; border:1.5px dashed var(--line2); border-radius:13px; padding:8px;
+.crtzone{flex:1; border:1.5px dashed var(--rule); border-radius:13px; padding:8px;
   min-height:116px; display:flex; flex-direction:column; gap:8px;
   transition:border-color .15s, background .15s;}
-.crtzone.hot{border-color:var(--brand); background:var(--glow); border-style:solid;}
+.crtzone.hot{border-color:var(--brand); background:color-mix(in srgb, var(--brand) 20%, transparent); border-style:solid;}
 .crtzone h5{font-family:var(--mono); font-size:9.5px; letter-spacing:.14em; color:var(--mut);
   text-transform:uppercase; text-align:center; padding:2px 0 0; margin:0; font-weight:500;}
 .crtvs{align-self:center; font-family:var(--mono); font-size:10px; color:var(--dim); padding-top:52px; flex:none;}
 .crtchip{position:relative; display:flex; align-items:center; gap:8px; background:var(--bg2);
-  border:1px solid var(--line2); border-radius:11px; padding:8px 26px 8px 10px;
+  border:1px solid var(--rule); border-radius:11px; padding:8px 26px 8px 10px;
   min-height:44px; user-select:none; -webkit-user-select:none; touch-action:none; cursor:grab;}
 .crtchip b{font-size:13px; display:flex; align-items:center; gap:6px;}
 .crtchip small{display:block; font-family:var(--mono); font-size:8.5px; letter-spacing:.1em; color:var(--dim);}
@@ -1735,7 +1857,7 @@ html[data-theme="light"] .momrow{background:rgba(21,116,63,.06);}
   transform:translate(-50%,-56%) rotate(2deg) scale(1.04);
   box-shadow:0 10px 26px rgba(10,25,15,.30); opacity:.95;}
 .pslot{
-  position:relative; background:var(--bg2); border:1px solid var(--line2);
+  position:relative; background:var(--bg2); border:1px solid var(--rule);
   border-radius:12px; padding:10px 12px 9px; min-height:56px;
 }
 .pslot.empty{border-style:dashed; background:none;}
@@ -1747,7 +1869,7 @@ html[data-theme="light"] .momrow{background:rgba(21,116,63,.06);}
   color:var(--dim); font-size:14px; cursor:pointer; padding:2px 4px;
 }
 .pslot .sx:hover{color:var(--neg);}
-.pslot .sx:focus-visible{outline:2px solid var(--focus); border-radius:6px;}
+.pslot .sx:focus-visible{outline:2px solid var(--brand); border-radius:6px;}
 
 /* ============ v23: drill-down sheet, draft, quick-enter card ============ */
 .sheet{
@@ -1763,7 +1885,7 @@ html[data-theme="light"] .momrow{background:rgba(21,116,63,.06);}
      (Tour Card) trapped the user until they rotated. Now the ✕/title header
      stays put and #shBody scrolls beneath it. */
   display:flex; flex-direction:column; overflow:hidden;
-  background:var(--bg1); border-top:1px solid var(--line2);
+  background:var(--bg1); border-top:1px solid var(--rule);
   border-radius:var(--rs) var(--rs) 0 0; padding:14px 16px 0;
   box-shadow:var(--shadow-lift);
 }
@@ -1778,7 +1900,7 @@ html[data-theme="light"] .momrow{background:rgba(21,116,63,.06);}
 }
 @media(min-width:760px){
   .sheet .panel{ left:50%; right:auto; bottom:auto; top:50%; transform:translate(-50%,-50%);
-    width:640px; max-height:82vh; border-radius:var(--rs); border:1px solid var(--line2); }
+    width:640px; max-height:82vh; border-radius:var(--rs); border:1px solid var(--rule); }
 }
 /* iOS: vh ignores the collapsing Safari toolbar — a 88vh panel overruns the
    VISIBLE viewport, so scrolling collapses the toolbar and the sheet appears
@@ -1787,18 +1909,18 @@ html[data-theme="light"] .momrow{background:rgba(21,116,63,.06);}
   .sheet .panel{ max-height:88dvh; }
   @media(min-width:760px){ .sheet .panel{ max-height:82dvh; } }
 }
-.sheet .grab{width:36px; height:4px; border-radius:99px; background:var(--line2); margin:0 auto 14px;}
+.sheet .grab{width:36px; height:4px; border-radius:99px; background:var(--rule); margin:0 auto 14px;}
 .sheet h3{font-size:18px; font-weight:700; letter-spacing:-.01em; padding-right:28px;}
 .sheet .sub{font-family:var(--mono); font-size:11.5px; color:var(--dim); letter-spacing:.1em; text-transform:uppercase; margin-top:3px;}
 .sheet .x{position:absolute; top:14px; right:14px; border:none; background:none; color:var(--dim); font-size:20px; cursor:pointer; padding:4px;}
 .mathrow{
   display:flex; justify-content:space-between; gap:12px; align-items:baseline;
-  font-family:var(--mono); font-size:13px; padding:9px 2px; border-top:1px solid var(--line);
+  font-family:var(--mono); font-size:13px; padding:9px 2px; border-top:1px solid var(--rule);
   color:var(--mut); letter-spacing:.03em;
 }
 .mathrow:first-of-type{border-top:none;}
 .mathrow b{color:var(--ink); font-weight:600;}
-.mathrow.tot{border-top:1px solid var(--line2); margin-top:4px; padding-top:11px;}
+.mathrow.tot{border-top:1px solid var(--rule); margin-top:4px; padding-top:11px;}
 .mathrow.tot b{font-size:15px;}
 .mathrow.neg b{color:var(--neg);}
 .mathrow.pos b{color:var(--pos);}
@@ -1812,7 +1934,7 @@ html[data-theme="light"] .momrow{background:rgba(21,116,63,.06);}
 .mathrow.sub span{font-family:var(--mono); font-size:11px; letter-spacing:.04em;}
 .rdrow{
   display:flex; align-items:center; gap:10px; width:100%; text-align:left;
-  background:none; border:none; border-top:1px solid var(--line); padding:10px 2px; cursor:pointer;
+  background:none; border:none; border-top:1px solid var(--rule); padding:10px 2px; cursor:pointer;
   color:inherit; font:inherit;
 }
 .rdrow:hover{background:var(--bg2);}
@@ -1824,7 +1946,7 @@ html[data-theme="light"] .momrow{background:rgba(21,116,63,.06);}
 .rdrow.cut .rp{color:var(--dim);}
 .cuttag{
   font-family:var(--mono); font-size:9.5px; letter-spacing:.1em; color:var(--dim);
-  border:1px solid var(--line2); border-radius:4px; padding:2px 5px; flex:none;
+  border:1px solid var(--rule); border-radius:4px; padding:2px 5px; flex:none;
 }
 .tap{cursor:pointer;}
 .tap:hover{filter:brightness(1.12);}
@@ -1840,7 +1962,7 @@ html[data-theme="light"] .momrow{background:rgba(21,116,63,.06);}
 .cardin{
   width:100%; font-family:var(--mono); font-size:19px; font-weight:600;
   letter-spacing:.34em; text-align:center; color:var(--ink);
-  background:var(--bg2); border:1px solid var(--line2); border-radius:11px;
+  background:var(--bg2); border:1px solid var(--rule); border-radius:11px;
   padding:13px 8px; min-height:52px;
 }
 .cardin::placeholder{letter-spacing:.34em; color:var(--dim); opacity:.4;}
@@ -1859,7 +1981,7 @@ html[data-theme="light"] .momrow{background:rgba(21,116,63,.06);}
   border-radius:6px; padding:5px 9px; margin-bottom:10px;
 }
 .fbcat{ font-family:var(--sans); font-size:12px; color:var(--mut); background:var(--bg1);
-  border:1px solid var(--line2); border-radius:99px; padding:6px 12px; cursor:pointer; }
+  border:1px solid var(--rule); border-radius:99px; padding:6px 12px; cursor:pointer; }
 .fbcat.on{ color:var(--ink); border-color:var(--brand); background:rgba(232,98,44,.12); }
 .ftag{ display:inline-flex; align-items:center; gap:2px; font-family:var(--mono); font-size:10px;
   letter-spacing:.04em; color:var(--gold); background:rgba(216,178,90,.12);  /* founder = earned → champagne */
@@ -1883,7 +2005,7 @@ html[data-theme="light"] .momrow{background:rgba(21,116,63,.06);}
   background:rgba(12,13,15,.9);
   backdrop-filter:blur(18px) saturate(1.3);
   -webkit-backdrop-filter:blur(18px) saturate(1.3);
-  border-top:1px solid var(--line);
+  border-top:1px solid var(--rule);
 }
 @media(min-width:960px){ .tabbar{display:none;} }
 .tab{
@@ -1894,7 +2016,7 @@ html[data-theme="light"] .momrow{background:rgba(21,116,63,.06);}
 }
 .tab svg{width:21px; height:21px; stroke:currentColor; fill:none; stroke-width:1.8; stroke-linecap:round; stroke-linejoin:round;}
 .tab.active{color:var(--brand);}
-.tab:focus-visible{outline:2px solid var(--focus); outline-offset:-2px;}
+.tab:focus-visible{outline:2px solid var(--brand); outline-offset:-2px;}
 
 /* ============ toast ============ */
 .toast{
@@ -2075,19 +2197,19 @@ html[data-theme="light"] .hdrmark{color:#0B1410;}
 .joinbox input{
   flex:1; font-family:var(--mono); font-size:16px; font-weight:600; letter-spacing:.14em;
   text-transform:uppercase; color:var(--ink); text-align:center;
-  background:var(--bg2); border:1px solid var(--line2); border-radius:11px;
+  background:var(--bg2); border:1px solid var(--rule); border-radius:11px;
   padding:12px; min-height:46px;
 }
 #obCodeIn{letter-spacing:.3em;}
 .joinbox input.email{
   text-align:left; text-transform:none; letter-spacing:0;
-  font-family:var(--sans); font-weight:500; caret-color:var(--focus);
+  font-family:var(--sans); font-weight:500; caret-color:var(--brand);
 }
 .joinbox input::placeholder{
   color:var(--dim); opacity:.55; font-weight:400;
   letter-spacing:.02em; text-transform:none;
 }
-.joinbox input:focus-visible{outline:2px solid var(--focus);}
+.joinbox input:focus-visible{outline:2px solid var(--brand);}
 .joinbox .btn{width:auto; padding:0 22px; margin:0;}
 
 /* ---- the wings: live showcases beside the centered door (>=1100px only).
@@ -2100,12 +2222,12 @@ html[data-theme="light"] .hdrmark{color:#0B1410;}
   font-family:var(--mono); font-size:10.5px; letter-spacing:.16em;
   text-transform:uppercase; color:var(--dim); margin-bottom:10px;
 }
-.ob-wing .wt::after{content:""; height:1px; flex:1; background:var(--line);}
+.ob-wing .wt::after{content:""; height:1px; flex:1; background:var(--rule);}
 .ob-feed{position:relative; height:250px; overflow:hidden;}
 .ob-pcard{
   position:absolute; left:0; right:0; top:0; height:74px;
-  background:var(--bg1); border:1px solid var(--line); border-radius:var(--r);
-  padding:12px 14px; box-shadow:var(--shadow-rest); overflow:hidden;
+  background:var(--bg1); border:1px solid var(--rule); border-radius:var(--r);
+  padding:12px 14px; box-shadow:none; overflow:hidden;
   transition:opacity .55s var(--roll), transform .55s var(--roll);
   will-change:transform;
 }
@@ -2120,14 +2242,14 @@ html[data-theme="light"] .hdrmark{color:#0B1410;}
 .ob-pcard .band{font-family:var(--mono); font-size:10.5px; letter-spacing:.08em; text-transform:uppercase; color:var(--mut); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
 .ob-pcard .pts{margin-left:auto; font-family:var(--mono); font-size:12px; font-weight:600; color:var(--brand); white-space:nowrap;}
 .ob-lb{
-  background:var(--bg1); border:1px solid var(--line); border-radius:var(--r);
-  padding:14px 14px 10px; box-shadow:var(--shadow-rest);
+  background:var(--bg1); border:1px solid var(--rule); border-radius:var(--r);
+  padding:14px 14px 10px; box-shadow:none;
 }
 .ob-lb .rows{position:relative; height:176px;}
 .ob-lbrow{
   position:absolute; left:0; right:0; top:0; height:44px;
   display:flex; align-items:center; gap:10px;
-  border-top:1px solid var(--line);
+  border-top:1px solid var(--rule);
   transition:transform .65s var(--roll); will-change:transform;
 }
 .ob-lbrow .dot{flex:none; width:9px; height:9px; border-radius:3px; background:var(--sqc);}
@@ -2137,7 +2259,7 @@ html[data-theme="light"] .hdrmark{color:#0B1410;}
 .ob-lbrow.lead .nm{color:var(--ink);}
 .ob-lb .lfoot{
   font-family:var(--mono); font-size:9.5px; letter-spacing:.12em; text-transform:uppercase;
-  color:var(--dim); padding-top:8px; border-top:1px solid var(--line); text-align:center;
+  color:var(--dim); padding-top:8px; border-top:1px solid var(--rule); text-align:center;
 }
 
 
@@ -2149,7 +2271,7 @@ html[data-theme="light"] .hdrmark{color:#0B1410;}
   font-size:12.5px; color:var(--dim); text-decoration:underline; text-underline-offset:3px;
 }
 .cs-tskip:hover{color:var(--mut);}
-.cs-tskip:focus-visible{outline:2px solid var(--focus); outline-offset:2px;}
+.cs-tskip:focus-visible{outline:2px solid var(--brand); outline-offset:2px;}
 
 
 
@@ -2183,7 +2305,7 @@ body.noleague .league-only{display:none !important;}
 .seasonlead{font-family:var(--serif); font-size:20px; line-height:1.36; color:var(--ink); margin:0 0 6px; text-align:left;}
 .seasonmore{display:inline-block; font-family:var(--mono); font-size:11.5px; letter-spacing:.12em; text-transform:uppercase; color:var(--brand); margin:0 0 16px; text-decoration:none;}
 .endgamefoot{font-size:12.5px; line-height:1.55; color:var(--dim); text-align:left; padding:8px 0 0; margin:0;}
-.arcrow{border-bottom:1px solid var(--line); padding:9px 0; text-align:left;}
+.arcrow{border-bottom:1px solid var(--rule); padding:9px 0; text-align:left;}
 .arcrow .aw{display:block; font-family:var(--mono); font-size:11px; letter-spacing:.13em; text-transform:uppercase; color:var(--dim);}   /* LV-17 */
 .arcrow .at{display:block; font-size:13px; line-height:1.5; color:var(--ink); margin-top:2px;}
 .arcrow.mine .at{font-weight:600;}
@@ -2203,7 +2325,7 @@ body.noleague .league-only{display:none !important;}
   body{background:#fff; color:#000;}
   .card, .tblwrap{border-color:#ccc;}
 }
-.prow{display:flex; align-items:center; gap:10px; padding:11px 0; border-top:1px solid var(--line);}
+.prow{display:flex; align-items:center; gap:10px; padding:11px 0; border-top:1px solid var(--rule);}
 .prow:first-child{border-top:none;}
 .prow .pmk{flex:none; display:flex; color:var(--mut);}
 .prow .pmeta{min-width:0; flex:1; display:flex; flex-direction:column; line-height:1.3;}
@@ -2215,32 +2337,32 @@ body.noleague .league-only{display:none !important;}
 body:not(.noleague) #hubLeagueless{display:none;}
 /* Up Next strip — what's coming, one glance, hides when empty */
 #homeUpNext:not(:empty){display:flex; gap:8px; flex-wrap:wrap; margin:0 0 14px;}
-.upchip{display:inline-flex; align-items:center; gap:8px; border:0.5px solid var(--line);
+.upchip{display:inline-flex; align-items:center; gap:8px; border:0.5px solid var(--rule);
   background:var(--bg2); border-radius:99px; padding:7px 13px; white-space:nowrap;}
 .upchip .k{font-family:var(--mono); font-size:10.5px; letter-spacing:.09em; color:var(--mut); text-transform:uppercase;}
 .upchip b{font-size:12.5px; font-weight:600; color:var(--ink);}
 /* D176: a chip is a button now. Min-height keeps the tap target honest on a
    phone; amber is spent only inside three days, where it means something. */
 .upchip{min-height:36px; cursor:pointer; font-family:var(--sans); text-align:left;}
-.upchip[data-upgo]:hover{border-color:var(--line2);}
+.upchip[data-upgo]:hover{border-color:var(--rule);}
 .upchip .ch{color:var(--brand); font-size:14px; line-height:1; margin-left:-2px;}
-.upchip.hot{border-color:color-mix(in srgb, var(--warm) 70%, transparent);}
-.upchip.hot .k{color:var(--warm);}
+.upchip.hot{border-color:color-mix(in srgb, var(--brand) 70%, transparent);}
+.upchip.hot .k{color:var(--brand);}
 /* D177 · a GROUP head: one level above .eyebrow, for a page that needs a spine
    rather than a list. Brand at rest (a group head is structure, not an accent
    moment), a heavier rule, and real air above so the eye reads a break. Two on
    a page is a spine; four is a table of contents. */
 .grouphead{font-family:var(--mono); font-size:11.5px; letter-spacing:.14em;
   text-transform:uppercase; color:var(--brand); margin:26px 0 7px;
-  padding-bottom:7px; border-bottom:1px solid var(--line2);}
+  padding-bottom:7px; border-bottom:1px solid var(--rule);}
 .grouphead:first-child{margin-top:0;}
 /* D261 / R-N · the desk's course archive. The card scrolls INSIDE its own
    container — the page never scrolls sideways (IA §4.2, and preflight 39's
    web twin asserts it at 320px). Nothing here declares below the 11px floor. */
-.cbook{border:1px solid var(--line); border-radius:10px; padding:10px 12px; margin-bottom:8px; background:var(--bg1);}
+.cbook{border:1px solid var(--rule); border-radius:10px; padding:10px 12px; margin-bottom:8px; background:var(--bg1);}
 .cbook>summary{cursor:pointer; list-style:none; padding:4px 0; min-height:32px;}
 .cbook>summary::-webkit-details-marker{display:none;}
-.cbtee{margin-top:10px; padding-top:8px; border-top:1px solid var(--line);}
+.cbtee{margin-top:10px; padding-top:8px; border-top:1px solid var(--rule);}
 .cbcard{overflow-x:auto; -webkit-overflow-scrolling:touch; max-width:100%;}
 .cbtable{border-collapse:collapse; font-family:var(--mono); font-size:11px; white-space:nowrap;}
 .cbtable th{text-align:left; padding:2px 8px 2px 0; color:var(--dim); font-weight:400;}
@@ -2252,7 +2374,7 @@ body:not(.noleague) #hubLeagueless{display:none;}
    a comparison down one column is not one. Under 900px they stack. */
 .bagcols{display:grid; grid-template-columns:1fr 1fr; gap:18px; align-items:start;}
 @media (max-width:900px){ .bagcols{grid-template-columns:1fr; gap:10px;} }
-.bagrow{display:flex; flex-wrap:wrap; gap:8px; align-items:center; padding:6px 0; border-top:1px solid var(--line);}
+.bagrow{display:flex; flex-wrap:wrap; gap:8px; align-items:center; padding:6px 0; border-top:1px solid var(--rule);}
 .bagrow .bslot{font-family:var(--mono); font-size:11px; letter-spacing:.08em; text-transform:uppercase;
   color:var(--dim); flex:0 0 92px; min-width:0; overflow-wrap:anywhere;}
 .bagrow .blab{flex:1 1 auto; min-width:0; overflow-wrap:anywhere;}
@@ -2261,19 +2383,19 @@ body:not(.noleague) #hubLeagueless{display:none;}
 /* the four move buttons wrap under the two boxes rather than crushing the
    label to one character — measured at 390, which is where it happened */
 .bagrow input.blab{flex:1 1 150px; min-width:140px;}
-.bagrow .bmove{flex:none; background:none; border:1px solid var(--line); color:var(--mut);
+.bagrow .bmove{flex:none; background:none; border:1px solid var(--rule); color:var(--mut);
   border-radius:8px; min-width:44px; min-height:44px; cursor:pointer; font-family:var(--mono); font-size:12px;}
 .bagsince{font-family:var(--serif); font-size:16px; line-height:1.45; color:var(--ink); padding:2px 0 10px;}
 /* D180 · a standing notice row — amber, an icon, room to breathe. Used where
    the app reports a state the golfer chose, never to scold them for it. */
 .warnrow{display:flex; gap:8px; align-items:flex-start; padding:10px 12px 10px 11px;
   margin:0 0 10px; border-radius:var(--rc); line-height:1.45;
-  background:color-mix(in srgb, var(--warm) 9%, transparent);
-  border:1px solid color-mix(in srgb, var(--warm) 45%, transparent); color:var(--ink);}
-.warnrow > span:first-child{color:var(--warm); flex:none;}
+  background:color-mix(in srgb, var(--brand) 9%, transparent);
+  border:1px solid color-mix(in srgb, var(--brand) 45%, transparent); color:var(--ink);}
+.warnrow > span:first-child{color:var(--brand); flex:none;}
 /* D177 · the buddies invite-link door */
 .pdoorlink{display:flex; flex-direction:column; align-items:flex-start; gap:2px; width:100%;
-  background:var(--bg1); border:1px solid var(--line); border-radius:var(--rc);
+  background:var(--bg1); border:1px solid var(--rule); border-radius:var(--rc);
   padding:11px 13px; min-height:44px; cursor:pointer; text-align:left;
   font-family:var(--sans); color:var(--ink);}
 .pdoorlink span{font-size:13.5px; font-weight:600;}
@@ -2284,7 +2406,7 @@ body:not(.noleague) #hubLeagueless{display:none;}
    running (a clash mid-week, a month not yet closed, a table that just moved).
    Gold would be wrong: nothing on this card is earned yet. */
 #homeLead:not(:empty){margin:0 0 14px;}
-.leadcard{background:var(--bg1); border:1px solid var(--line); border-left:3px solid var(--brand);
+.leadcard{background:var(--bg1); border:1px solid var(--rule); border-left:3px solid var(--brand);
   border-radius:var(--r); padding:13px 15px; text-align:left;}
 .leadcard .eb{font-family:var(--mono); font-size:11px; letter-spacing:.13em; text-transform:uppercase;
   color:var(--brand); display:block; margin-bottom:6px;}
@@ -2306,7 +2428,7 @@ body:not(.noleague) #hubLeagueless{display:none;}
 .calcell.blank{background:none;}
 .calcell.today{border-color:var(--pos); color:var(--ink);}
 .calcell.tap{cursor:pointer;}
-.calcell.tap:hover{border-color:var(--line);}
+.calcell.tap:hover{border-color:var(--rule);}
 .calcell.tap:active{transform:scale(.94);}
 .calcell.plan:hover{border-color:var(--gold); color:var(--ink);}
 .caldots{display:flex; gap:3px; height:5px;}
@@ -2322,42 +2444,34 @@ body:not(.noleague) #hubLeagueless{display:none;}
    Layered surfaces, one living accent (scoreline green -> teal),
    state you can feel. Overrides ride the cascade; base stays.
    ================================================================ */
-:root{
-  --grad:linear-gradient(135deg, #E9A23B 0%, #E8622C 100%);  /* D76 heat gradient — amber→ember. Primary brand accent: btn, tee, eyebrow dash, nav glow */
-  --glow:rgba(232,98,44,.20);
-}
-
-/* atmosphere: coals under the grate — a faint ember warmth, fixed behind everything */
-body::before{
-  content:""; position:fixed; inset:0; z-index:-1; pointer-events:none;
-  background:
-    radial-gradient(60% 34% at 50% -6%, rgba(255,90,46,.045), transparent 70%),
-    radial-gradient(48% 30% at 88% 104%, rgba(233,162,59,.035), transparent 70%);
-}
+/* D270 · the atmosphere is deleted. It was two radial washes in the retired
+   heat colours, fixed behind every screen — a gradient wash, which BRIEF §4
+   names as a do-not, and the desk's twin of the accent sky the phone loses in
+   the same decision. The ground is the ground. */
 
 ::selection{background:rgba(255,90,46,.30);}
-*{scrollbar-width:thin; scrollbar-color:var(--line2) transparent;}
+*{scrollbar-width:thin; scrollbar-color:var(--rule) transparent;}
 *::-webkit-scrollbar{width:8px; height:8px;}
-*::-webkit-scrollbar-thumb{background:var(--line2); border-radius:99px;}
+*::-webkit-scrollbar-thumb{background:var(--rule); border-radius:99px;}
 *::-webkit-scrollbar-track{background:transparent;}
 
 /* D76 heat grammar — temperature is semantic, never decorative. Stable=slate,
    climbing=warm, climbing hard=hot, falling=cool (slate, never red-means-bad). */
-.heatwarm{color:var(--warm);} .heathot{color:var(--hot);} .heatcool{color:var(--cool);}
+.heatwarm{color:var(--brand);} .heathot{color:var(--brand);} .heatcool{color:var(--cool);}
 .streaktag{font-family:var(--mono); font-size:9.5px; letter-spacing:.08em; display:inline-block;
   border:1px solid currentColor; border-radius:4px; padding:1px 5px;}
 .pressmeter{margin:10px 2px 0;}
 .pressmeter .track{height:4px; border-radius:2px; background:color-mix(in srgb, var(--ink) 8%, transparent);}
 .pressmeter .fill{position:relative; height:100%; border-radius:2px;
-  background:linear-gradient(90deg, var(--warm), var(--hot) 70%, var(--fire));}
+  background:linear-gradient(90deg, var(--brand), var(--brand) 70%, var(--brand));}
 .pressmeter .fill::after{  /* the tip — this screen's one pulse */
   content:""; position:absolute; right:-2px; top:50%; width:6px; height:6px; margin-top:-3px;
-  border-radius:50%; background:var(--fire); box-shadow:0 0 6px 1px rgba(255,59,26,.4);
+  border-radius:50%; background:var(--brand); box-shadow:0 0 6px 1px rgba(255,59,26,.4);
   animation:heatPulse 2s ease-in-out infinite;}
 .pressmeter .legend{font-family:var(--mono); font-size:10px; letter-spacing:.06em;
   text-align:right; margin-top:4px; color:var(--mut);}
 .carryhot{  /* skins, 2+ riding — the play screen's one pulse */
-  background:linear-gradient(90deg, var(--warm), var(--hot)); color:#1C1208;
+  background:linear-gradient(90deg, var(--brand), var(--brand)); color:#1C1208;
   border-radius:6px; padding:2px 8px; animation:heatPulse 2s ease-in-out infinite;}
 @keyframes heatPulse{  /* a breath, not a blink — base state reads whole with animation off */
   0%,100%{opacity:1; box-shadow:0 0 6px 1px rgba(255,59,26,.40);}
@@ -2370,7 +2484,7 @@ body::before{
    DOM text — readers/copy see only the settled value. Em-sized: inherits context. */
 .sfw{display:inline-flex; gap:2px; vertical-align:middle;}
 .sfc{overflow:hidden; height:1.25em; line-height:1.25em; min-width:.74em;
-  background:var(--bg2); border:1px solid var(--line); border-radius:4px;
+  background:var(--bg2); border:1px solid var(--rule); border-radius:4px;
   padding:0 .08em; font-variant-numeric:tabular-nums; text-align:center;}
 .sfc > i{display:block; font-style:normal; white-space:pre;}
 .sfc > i::before{content:attr(data-d);}
@@ -2400,7 +2514,7 @@ body::before{
 }
 .check{transition:border-color .15s ease, transform .15s ease;}
 @media(hover:hover){
-  .check:hover{border-color:var(--line2); transform:translateY(-1px);}
+  .check:hover{border-color:var(--rule); transform:translateY(-1px);}
 }
 
 /* D76: primary actions are flat ember with near-black ink (the hottest thing
@@ -2408,7 +2522,7 @@ body::before{
    cream glyph and no text to worry about. */
 .btn:not(.dark):not(.gold):not(.apple){
   background:var(--brand); color:#1C1208;
-  box-shadow:0 8px 22px -12px var(--glow), inset 0 1px 0 rgba(255,255,255,.2);
+  box-shadow:0 8px 22px -12px color-mix(in srgb, var(--brand) 20%, transparent), inset 0 1px 0 rgba(255,255,255,.2);
 }
 /* F1 (re-run for D76): dark ink on the light-theme ember (#C94E1F) is ~3.0:1 —
    fails AA. White ink clears 4.5:1. Dark theme's brighter ember (#E8622C)
@@ -2424,8 +2538,8 @@ html[data-theme="light"] .btn.gold{color:#FFFFFF;}
    rgba(233,190,98,.55) — a pre-token gold matching NEITHER theme's --gold —
    and its outline:none beat the fallback, so this was the whole treatment. */
 .mini:focus-visible, .f:focus-visible{
-  outline:none; border-color:var(--focus);
-  box-shadow:0 0 0 3px var(--glow);
+  outline:none; border-color:var(--brand);
+  box-shadow:0 0 0 3px color-mix(in srgb, var(--brand) 20%, transparent);
 }
 
 /* header: the chip wears the brand ring.
@@ -2434,10 +2548,10 @@ html[data-theme="light"] .btn.gold{color:#FFFFFF;}
    ember (--glow), so the chip flipped metals on tap. Now both are ember. */
 .hdr .who{
   border-color:var(--brand);
-  box-shadow:0 0 0 2px var(--glow);
+  box-shadow:0 0 0 2px color-mix(in srgb, var(--brand) 20%, transparent);
   color:var(--brand); transition:box-shadow .15s ease;
 }
-.hdr .who:active{box-shadow:0 0 0 4px var(--glow);}
+.hdr .who:active{box-shadow:0 0 0 4px color-mix(in srgb, var(--brand) 20%, transparent);}
 
 /* tabbar: four lanes (D222's five slots less the floating ⊕); the Record tee
    is a standalone floating tab ABOVE the bar, dead center — a ball teed up on
@@ -2457,8 +2571,8 @@ html[data-theme="light"] .btn.gold{color:#FFFFFF;}
   width:4px; height:4px; border-radius:50%; background:var(--brand);
 }
 .tab .circ{
-  background:var(--grad);
-  box-shadow:0 10px 24px -8px var(--glow), 0 4px 10px -4px rgba(0,0,0,.5),
+  background:var(--brand);
+  box-shadow:0 10px 24px -8px color-mix(in srgb, var(--brand) 20%, transparent), 0 4px 10px -4px rgba(0,0,0,.5),
              inset 0 1px 0 rgba(255,255,255,.3);
   transition:transform .22s var(--roll);
 }
@@ -2470,8 +2584,8 @@ html[data-theme="light"] .btn.gold{color:#FFFFFF;}
   background:linear-gradient(90deg, rgba(232,98,44,.12), rgba(232,98,44,0) 70%);
 }
 /* Batch B: dawn blue is the link & live voice */
-.fine a, .eyebrow a{color:var(--dawn);}
-.livebanner .lk .dot{background:var(--dawn);}
+.fine a, .eyebrow a{color:var(--ink);}
+.livebanner .lk .dot{background:var(--ink);}
 
 /* Batch C: the stamp — a posted round hits the board like a signed scorecard.
    Mint (semantic success), a quick impact + settle, then fades. */
@@ -2723,14 +2837,14 @@ html[data-theme="light"] .room-dusk .btn:not(.dark):not(.gold):not(.apple){color
 /* ---- D67: the record. Titles lead and carry the gold (they are EARNED);
    the money sits underneath, quiet, in D39's frame. */
 .recgrid{display:flex; flex-wrap:wrap; gap:8px;}
-.rec{flex:1 1 84px; min-width:84px; padding:9px 10px; border:1px solid var(--line);
+.rec{flex:1 1 84px; min-width:84px; padding:9px 10px; border:1px solid var(--rule);
   border-radius:10px; background:var(--bg1); text-align:center;}
 .rec b{display:block; font-family:var(--serif); font-size:26px;
   line-height:1; color:var(--gold);}
 .rec span{display:block; margin-top:4px; font-family:var(--mono); font-size:9px;
   letter-spacing:.12em; text-transform:uppercase; color:var(--mut);}
 .recmoney{display:flex; justify-content:space-between; align-items:baseline; gap:12px;
-  margin-top:12px; padding-top:10px; border-top:1px solid var(--line);}
+  margin-top:12px; padding-top:10px; border-top:1px solid var(--rule);}
 .recmoney b{font-family:var(--mono); font-size:19px; color:var(--ink);}
 .recmoney small{display:block; font-family:var(--mono); font-size:9.5px;
   letter-spacing:.1em; text-transform:uppercase; color:var(--mut); margin-top:2px;}
@@ -2746,7 +2860,7 @@ html[data-theme="light"] .room-dusk .btn:not(.dark):not(.gold):not(.apple){color
 #homeSeason.raceled > .stats{order:3;}
 #homeSeason.raceled > .nextcard{order:4;}
 #homeSeason.raceled > .ontheline{order:5;}
-#roomFooter{margin-top:20px; padding-top:14px; border-top:1px solid var(--line);
+#roomFooter{margin-top:20px; padding-top:14px; border-top:1px solid var(--rule);
   display:flex; gap:8px; align-items:center; flex-wrap:wrap;}
 #roomFooter:empty{display:none;}
 #hhAddSlot:empty{display:none;}
@@ -2766,31 +2880,31 @@ html[data-theme="light"] .room-dusk .btn:not(.dark):not(.gold):not(.apple){color
 .certag{font-family:var(--mono); font-size:10px; letter-spacing:.12em; text-transform:uppercase;
   color:var(--mut); margin-top:6px;}
 .cerrow{display:flex; justify-content:space-between; align-items:baseline; gap:12px;
-  padding:7px 0; border-bottom:1px solid var(--line);}
+  padding:7px 0; border-bottom:1px solid var(--rule);}
 .cerrow:last-child{border-bottom:0;}
 .cerrow .k{font-family:var(--mono); font-size:10px; letter-spacing:.12em;
   text-transform:uppercase; color:var(--mut);}
 .cerrow .v{font-size:14px; color:var(--ink);}
 .cerrow .v.gold{color:var(--gold);}
 .cerblock{text-align:left; margin-top:16px; padding:12px 14px;
-  background:var(--bg1); border:1px solid var(--line); border-radius:12px;}
+  background:var(--bg1); border:1px solid var(--rule); border-radius:12px;}
 .cerblock h4{margin:0 0 2px; font-size:13px; color:var(--ink);}
 .cerblock .fine{margin:0 0 8px;}
 .cerpay{display:flex; justify-content:space-between; align-items:baseline; gap:10px; padding:6px 0;}
-.cerpay + .cerpay{border-top:1px solid var(--line);}
+.cerpay + .cerpay{border-top:1px solid var(--rule);}
 .cerpay .who{font-size:14px; color:var(--ink);}
 .cerpay .why{display:block; font-family:var(--mono); font-size:9.5px; letter-spacing:.1em;
   text-transform:uppercase; color:var(--dim); margin-top:2px;}
 .cerpay .amt{font-family:var(--mono); font-size:15px; color:var(--ink); white-space:nowrap;}
 .ceryou{margin-top:14px; padding:12px 14px; border-radius:12px;
-  background:var(--glow); border:1px solid var(--brand); text-align:left;}
+  background:color-mix(in srgb, var(--brand) 20%, transparent); border:1px solid var(--brand); text-align:left;}
 .ceryou b{display:block; font-size:15px; color:var(--ink);}
 .ceryou small{color:var(--mut);}
 
 /* Batch C: scorecard-shaped skeletons while the feed loads — never a spinner */
 .skrow{display:flex; align-items:center; gap:12px; background:var(--bg1);
-  border:1px solid var(--line); border-radius:var(--r); padding:13px 14px; margin-bottom:8px;}
-.skb{background:linear-gradient(90deg,var(--bg2) 25%,var(--line2) 40%,var(--bg2) 60%);
+  border:1px solid var(--rule); border-radius:var(--r); padding:13px 14px; margin-bottom:8px;}
+.skb{background:linear-gradient(90deg,var(--bg2) 25%,var(--rule) 40%,var(--bg2) 60%);
   background-size:280% 100%; border-radius:6px; animation:shimmer 1.3s ease-in-out infinite;}
 @keyframes shimmer{0%{background-position:100% 0;} 100%{background-position:-80% 0;}}
 @media(prefers-reduced-motion:reduce){ .skb{animation:none;} }
@@ -2799,7 +2913,7 @@ html[data-theme="light"] .room-dusk .btn:not(.dark):not(.gold):not(.apple){color
 .eyebrow{justify-content:flex-start; gap:8px;}
 .eyebrow::before{
   content:""; width:10px; height:3px; border-radius:2px; flex:none;
-  background:var(--grad); opacity:.85;
+  background:var(--brand); opacity:.85;
 }
 .eyebrow a, .eyebrow span:last-child{margin-left:auto;}
 
@@ -2868,13 +2982,13 @@ html[data-theme="light"] .room-dusk .btn:not(.dark):not(.gold):not(.apple){color
 #boardFull.open{display:flex; animation:vin .22s ease both;}
 .bf-hdr{
   display:flex; align-items:center; justify-content:space-between;
-  padding:14px 16px 12px; border-bottom:1px solid var(--line);
+  padding:14px 16px 12px; border-bottom:1px solid var(--rule);
   background:rgba(12,13,15,.9); backdrop-filter:blur(16px);
 }
 .bf-hdr b{font-size:12px; letter-spacing:.14em; color:var(--pos);}
 .bf-hdr small{display:block; font-family:var(--mono); font-size:11.5px; color:var(--dim); letter-spacing:.1em; margin-top:2px;}
 #feedListFull{flex:1; overflow-y:auto; padding:6px 16px 12px; overscroll-behavior:contain;}
-.bf-comp{position:static; margin:0; padding:10px 16px calc(12px + env(safe-area-inset-bottom)); border-top:1px solid var(--line); background:var(--bg0);}
+.bf-comp{position:static; margin:0; padding:10px 16px calc(12px + env(safe-area-inset-bottom)); border-top:1px solid var(--rule); background:var(--bg0);}
 .rline{font-family:var(--mono); font-size:12.5px; color:var(--mut); margin-top:3px; letter-spacing:.02em;}
 .rline .ok{color:var(--pos);} .rline .dim{color:var(--dim);}
 
@@ -3143,7 +3257,7 @@ html[data-theme="light"] .room-dusk .btn:not(.dark):not(.gold):not(.apple){color
       <!-- D251 · the consent sentence renders HERE, at the point of the ask,
            and nowhere else. Two controls, both real, and declining leaves the
            step finishable (L-32: never an alert(), never a trap). -->
-      <div id="obCrewConsent" style="display:none; margin-top:12px; padding:12px; border:1px solid var(--line); border-radius:12px"></div>
+      <div id="obCrewConsent" style="display:none; margin-top:12px; padding:12px; border:1px solid var(--rule); border-radius:12px"></div>
       <div id="obCrewSearchWrap" style="display:none; margin-top:10px">
         <input class="f" id="obCrewSearch" autocomplete="off" placeholder="Search by name or @handle" style="font-family:var(--sans); font-size:16px;">
       </div>
@@ -3349,7 +3463,7 @@ html[data-theme="light"] .room-dusk .btn:not(.dark):not(.gold):not(.apple){color
         <!-- F8: feedback pill retired from floating chrome (de-AI scrub) — same
              handler (window.openFeedback via #pilotChip id), quiet row right by
              the card/settings entry instead of hovering over every screen. -->
-        <button type="button" id="pilotChip" style="display:flex; align-items:center; gap:9px; width:100%; text-align:left; background:var(--bg1); border:1px solid var(--line); border-radius:12px; padding:12px 14px; margin-bottom:14px; cursor:pointer; color:var(--ink); font-family:var(--sans); font-size:13.5px; font-weight:600;">💬 Tell us how it's going<span style="margin-left:auto; color:var(--dim); font-weight:400">→</span></button>
+        <button type="button" id="pilotChip" style="display:flex; align-items:center; gap:9px; width:100%; text-align:left; background:var(--bg1); border:1px solid var(--rule); border-radius:12px; padding:12px 14px; margin-bottom:14px; cursor:pointer; color:var(--ink); font-family:var(--sans); font-size:13.5px; font-weight:600;">💬 Tell us how it's going<span style="margin-left:auto; color:var(--dim); font-weight:400">→</span></button>
         <!-- the founder's desk: hidden for everyone but the owner; the SERVER
              is the gate (founder_desk/founder_note refuse non-founders) — this
              display toggle is courtesy, not security -->
@@ -3525,12 +3639,12 @@ html[data-theme="light"] .room-dusk .btn:not(.dark):not(.gold):not(.apple){color
           <p>Everyone scores from their own phone — Match Play, Wolf or Skins — and it settles up at the end. Friends without the app just play; their card is waiting when they want it.</p>
           <span class="go">→</span>
         </button>
-        <button class="optcard" style="--acc:var(--line2)" data-go="post">
+        <button class="optcard" style="--acc:var(--rule)" data-go="post">
           <h4>Add my round — after you play</h4>
           <p>Gross + tee, 20 seconds · posts to your rounds and in every league</p>
           <span class="go">→</span>
         </button>
-        <button class="optcard" id="optPlan" style="--acc:var(--line2)">
+        <button class="optcard" id="optPlan" style="--acc:var(--rule)">
           <h4>Plan a tee time — before</h4>
           <p>Put a round on the schedule · your buddies and leagues see it the moment you post</p>
           <span class="go">→</span>
@@ -3590,7 +3704,7 @@ html[data-theme="light"] .room-dusk .btn:not(.dark):not(.gold):not(.apple){color
               <button data-g="sunningdale">Sunningdale Rules</button>
             </div>
             <p class="fine" id="gameNote">Stroke play — your card, your pace. One to four players; post when you’re done.</p>
-            <div id="matchSetup" style="display:none; margin-top:12px; border-top:0.5px solid var(--line); padding-top:12px;">
+            <div id="matchSetup" style="display:none; margin-top:12px; border-top:0.5px solid var(--rule); padding-top:12px;">
               <label class="f" for="lrStake">Stake per side · $0 = bragging rights</label>
               <!-- max=200 to match the season buy-in ladder's own ceiling. The
                    field was unbounded, which made it the one surface in the
@@ -3764,14 +3878,14 @@ html[data-theme="light"] .room-dusk .btn:not(.dark):not(.gold):not(.apple){color
                 <button class="mini" id="postPhotoClear" type="button" style="display:none"><svg class="ic" aria-hidden="true"><use href="#i-close"/></svg> Remove</button>
               </div>
               <div id="postPhotoPrev" style="display:none; margin-top:8px">
-                <img id="postPhotoImg" alt="Round photo" style="max-width:100%; max-height:180px; border-radius:10px; object-fit:cover; border:1px solid var(--line2)">
+                <img id="postPhotoImg" alt="Round photo" style="max-width:100%; max-height:180px; border-radius:10px; object-fit:cover; border:1px solid var(--rule)">
               </div>
               <input type="file" id="postPhotoFile" accept="image/*" style="display:none">
               <input type="file" id="postScanFile" accept="image/*" capture="environment" style="display:none">
               </div><!-- /postCardFold -->
               <!-- F2: the live gross reads at a glance right above Post, so an
                    untouched (even-par) card is visible before the tap -->
-              <div id="postGrossLine" style="margin-top:12px; padding:10px 12px; border:1px solid var(--line2); border-radius:10px; background:var(--bg2); font-weight:700; font-size:15px; text-align:center; color:var(--ink)">—</div>
+              <div id="postGrossLine" style="margin-top:12px; padding:10px 12px; border:1px solid var(--rule); border-radius:10px; background:var(--bg2); font-weight:700; font-size:15px; text-align:center; color:var(--ink)">—</div>
               <div style="height:12px"></div>
               <button class="btn" id="postBtn">Post round</button>
               <!-- abandonment is a real path, not a refresh: one tap empties the
@@ -3897,7 +4011,7 @@ html[data-theme="light"] .room-dusk .btn:not(.dark):not(.gold):not(.apple){color
             <button data-s="squads4" class="on">4 Squads</button>
           </div>
           <p class="fine" id="structNote">4 squads · the full cup experience for 8+ players.</p>
-          <p class="fine" id="structFit" style="padding-top:0; color:var(--warm)"></p>
+          <p class="fine" id="structFit" style="padding-top:0; color:var(--brand)"></p>
           <div class="eyebrow">How teams fill <button class="ibtn" data-i="draft" aria-expanded="false" aria-label="About how teams fill">i</button></div>
           <div class="ihelp" id="ih-draft">How squads get filled. <b>Random draw</b> shuffles everyone server-side and announces the reveal to the board, so nobody can rig the hat. <b>The Pro picks</b> lets you place players yourself, for groups who picked teams in the group chat. Live picking with a clock isn't built yet.</div>
           <div class="seg" id="draftSeg">
@@ -4221,7 +4335,7 @@ html[data-theme="light"] .room-dusk .btn:not(.dark):not(.gold):not(.apple){color
         <!-- D244 · LEAVE THE SEASON. Forward-only, member-only, two taps, and
              the copy says exactly what happens and nothing else. There has
              never been a member exit on either client. -->
-        <div class="league-only" id="leaveSeason" style="margin-top:6px; border-top:1px solid var(--line); padding-top:12px; text-align:left"></div>
+        <div class="league-only" id="leaveSeason" style="margin-top:6px; border-top:1px solid var(--rule); padding-top:12px; text-align:left"></div>
         </div><!-- /room-league -->
         </div><!-- /room-grid -->
         </div><!-- /deskmain -->
@@ -4472,7 +4586,7 @@ html[data-theme="light"] .room-dusk .btn:not(.dark):not(.gold):not(.apple){color
      blind audit and elementFromPoint at its centre returned this banner. It
      lives at the TOP now and below the bar in the stack, so it cannot take a
      tap meant for the one control every round starts from. -->
-<div id="installNudge" style="display:none; position:fixed; left:12px; right:12px; top:calc(env(safe-area-inset-top) + 8px); bottom:auto; z-index:24; background:var(--bg2); border:1px solid var(--line2); border-radius:14px; padding:12px 14px; align-items:center; gap:10px;">
+<div id="installNudge" style="display:none; position:fixed; left:12px; right:12px; top:calc(env(safe-area-inset-top) + 8px); bottom:auto; z-index:24; background:var(--bg2); border:1px solid var(--rule); border-radius:14px; padding:12px 14px; align-items:center; gap:10px;">
   <!-- D186 · the nudge now leads with the reason, not the feature. Safari
        deletes every site's localStorage, IndexedDB and service worker after
        seven days without a visit; a home-screen app is exempt and keeps its
@@ -12644,7 +12758,7 @@ function renderStats(){
       const fl=$('#pmFill'); if(fl) fl.style.width=Math.min(100, Math.max(0, (dim-left)/dim*100)).toFixed(1)+'%';
       const lg=$('#pmLegend');
       if(lg){ lg.textContent=`${left} day${left===1?'':'s'} left in ${curMonth()}`;
-        lg.style.color = left<=7 ? 'var(--hot)' : 'var(--mut)'; }
+        lg.style.color = left<=7 ? 'var(--brand)' : 'var(--mut)'; }
     }
   }
   const nk=$('#nextK');
@@ -12813,7 +12927,7 @@ const dfmtShort = iso => { if(!iso) return ''; const d=(typeof localDate==='func
 
 /* ---------- Clubhouse: the group switcher (chips at the top) ---------- */
 function groupChip(label, sub, here, attr){
-  return `<button ${attr} style="flex:0 0 auto; text-align:left; padding:8px 12px; border-radius:10px; border:0.5px solid ${here?'var(--pos)':'var(--line)'}; background:var(--bg2); cursor:pointer;">
+  return `<button ${attr} style="flex:0 0 auto; text-align:left; padding:8px 12px; border-radius:10px; border:0.5px solid ${here?'var(--pos)':'var(--rule)'}; background:var(--bg2); cursor:pointer;">
     <span style="display:block; font-size:13px; font-weight:600; color:var(--ink); white-space:nowrap">${label}</span>
     <span style="display:block; font-size:11.5px; letter-spacing:.04em; color:${here?'var(--pos)':'var(--mut)'}; white-space:nowrap; text-transform:uppercase">${sub}</span>
   </button>`;
@@ -12875,10 +12989,10 @@ function renderHomeTiles(){
   const nextT = next
     ? { t:'Next', v:DOWS[localDate(next.play_on).getDay()],
         s:esc(((next.tee_time?String(next.tee_time).slice(0,5)+' · ':'')+(next.course_label||'')).toUpperCase()),
-        go:()=>switchView('schedule'), acc:'var(--warm)' }
+        go:()=>switchView('schedule'), acc:'var(--brand)' }
     /* D176 · "PLAN A ROUND" was the app talking to itself. Say the thing the
        golfer would actually do: put one on the calendar. */
-    : { t:'Next', v:'Open', s:'PUT A ROUND ON THE CALENDAR', go:()=>switchView('schedule'), acc:'var(--warm)' };
+    : { t:'Next', v:'Open', s:'PUT A ROUND ON THE CALENDAR', go:()=>switchView('schedule'), acc:'var(--brand)' };
 
   /* 3 · the board — how much has landed since yesterday, never a fake badge */
   const since=Date.now()-24*3600*1000;
@@ -15324,7 +15438,7 @@ function pulseGauge(credits, floor, top, bodyHtml){
     <div class="mono" style="font-size:11px; letter-spacing:.08em; color:var(--mut); margin-bottom:8px">${esc(top)}</div>
     <div style="display:flex; align-items:center; gap:14px">
       <svg viewBox="0 0 64 64" width="58" height="58" style="flex:none" aria-hidden="true">
-        <circle cx="32" cy="32" r="26" stroke="var(--line2)" stroke-width="6" fill="none"/>
+        <circle cx="32" cy="32" r="26" stroke="var(--rule)" stroke-width="6" fill="none"/>
         <circle cx="32" cy="32" r="26" stroke="${cleared?'var(--pos)':'var(--brand)'}" stroke-width="6" fill="none" stroke-linecap="round"
           stroke-dasharray="${(pct*C).toFixed(1)} ${C.toFixed(1)}" transform="rotate(-90 32 32)"/>
         <text x="32" y="36" text-anchor="middle" font-size="15" fill="var(--ink)" style="font-family:var(--serif)" font-weight="700">${cx}/${floor}</text>
@@ -15586,7 +15700,7 @@ function renderTrophyCase(){
   const keyOf = x => String(x.id ?? ((x.title||x.kind||'')+'|'+(x.season_year||x.earned_on||'')));
   const fresh = id => _trophySeen!==null && !_trophySeen.has(id);
   const cell = (icon,title,sub,mint,rid) =>
-    `<div class="tcell${mint?' mintin':''}"${rid?` data-achr="${esc(rid)}" role="button" tabindex="0" style="cursor:pointer;`:' style="'}border:0.5px solid var(--line); background:var(--bg2); border-radius:12px; padding:12px 6px 10px; text-align:center;">
+    `<div class="tcell${mint?' mintin':''}"${rid?` data-achr="${esc(rid)}" role="button" tabindex="0" style="cursor:pointer;`:' style="'}border:0.5px solid var(--rule); background:var(--bg2); border-radius:12px; padding:12px 6px 10px; text-align:center;">
       <div style="font-size:26px; line-height:1">${esc(icon)}</div>
       <div style="font-size:12px; font-weight:600; color:var(--ink); margin-top:6px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis">${mint?`<span class="tmint">${esc(title)}<span class="tcover" aria-hidden="true"></span></span>`:esc(title)}</div>
       <div style="font-size:11.5px; color:var(--mut); margin-top:1px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis">${esc(sub)}</div>
@@ -16641,10 +16755,10 @@ function wizPortrait(){
        <div class="wizp-sub">${fmt$(stake)} / player · ${roster} in so far · ${pay.join('/')}</div>`
     : `<div class="wizp-row"><span class="k">The pot</span><b style="color:var(--ink)">Bragging rights</b><span style="font-family:var(--mono);font-size:10px;color:var(--dim)">$0 STAKE</span></div>`;
   const mo = Math.max(1, Math.min(6, Math.round(state.durWeeks/4.345)));
-  let blocks=''; for(let i=0;i<mo;i++) blocks += `<rect x="${i*41}" y="12" width="36" height="22" rx="5" fill="none" stroke="var(--line2)" stroke-width="1.2"/>`;
+  let blocks=''; for(let i=0;i<mo;i++) blocks += `<rect x="${i*41}" y="12" width="36" height="22" rx="5" fill="none" stroke="var(--rule)" stroke-width="1.2"/>`;
   const fx = mo*41;
   const finalSeg = canCup
-    ? `<rect x="${fx}" y="12" width="24" height="22" rx="5" stroke="var(--brand)" fill="var(--glow)" stroke-width="1.6"/><text x="${fx+12}" y="8" font-size="6" letter-spacing="1" text-anchor="middle" fill="var(--brand)" style="font-family:var(--mono)">FINAL 4</text><path d="M${fx+22} 12V4" stroke="var(--ink)" stroke-width="1.5" stroke-linecap="round"/><path d="M${fx+22} 4l7 2.4-7 2.4z" fill="var(--gold)"/>`
+    ? `<rect x="${fx}" y="12" width="24" height="22" rx="5" stroke="var(--brand)" fill="color-mix(in srgb, var(--brand) 20%, transparent)" stroke-width="1.6"/><text x="${fx+12}" y="8" font-size="6" letter-spacing="1" text-anchor="middle" fill="var(--brand)" style="font-family:var(--mono)">FINAL 4</text><path d="M${fx+22} 12V4" stroke="var(--ink)" stroke-width="1.5" stroke-linecap="round"/><path d="M${fx+22} 4l7 2.4-7 2.4z" fill="var(--gold)"/>`
     : '';
   const bandW = fx + (canCup?30:6);
   const seasonRow = `<div class="wizp-row"><span class="k">Season</span><svg viewBox="0 0 ${bandW} 40" width="${Math.min(210,bandW)}" aria-hidden="true">${blocks}${finalSeg}</svg><span style="font-family:var(--mono);font-size:9.5px;color:var(--mut)">${durLabel(state.durWeeks)}${canCup?'':' · POINTS TABLE'}</span></div>`;
@@ -16987,7 +17101,7 @@ function renderCalendar(){
     const dowName = `${DOW[new Date(cur.y,cur.m,d).getDay()]} ${MOS[cur.m]} ${d}`;
     openSheet(dowName, `${items.length} ON THE SHEET`,
       items.map(it=> it.kind==='rd'
-        ? `<div class="check tap" data-roundopen="${it.sr.id}"><span class="num">${window.mkr?.(it.sr.marker||'saguaro')||'⛳'}</span><div class="tt"><b>${it.sr.mine?'You':esc(it.sr.display_name)}${it.sr.tee_time?' · <span style="color:var(--dawn)">'+fmtTee(it.sr.tee_time)+'</span>':''}${it.sr.tagged_me?' · <span style="color:var(--dawn)">YOU’RE IN</span>':(it.sr.shared_league&&!it.sr.mine?' · <span style="color:var(--dawn)">IN YOUR SEASONS</span>':'')}</b><small>${[it.sr.course_label?esc(it.sr.course_label.toUpperCase()):null, (it.sr.tagged_names||[]).length?'WITH '+esc(it.sr.tagged_names.join(' & ').toUpperCase()):null, it.sr.note?'“'+esc(it.sr.note)+'”':null].filter(Boolean).join(' · ')||'ON THE SCHEDULE'}</small></div>${it.sr.mine?'<span style="display:flex; gap:6px; flex:none; margin-left:auto"><button class="mini" data-retag="'+it.sr.id+'" title="Edit group"><svg class="ic" aria-hidden="true"><use href="#i-plus"/></svg></button><button class="mini" data-scratch="'+it.sr.id+'" title="Cancel this round"><svg class="ic" aria-hidden="true"><use href="#i-close"/></svg></button></span>':''}</div>`
+        ? `<div class="check tap" data-roundopen="${it.sr.id}"><span class="num">${window.mkr?.(it.sr.marker||'saguaro')||'⛳'}</span><div class="tt"><b>${it.sr.mine?'You':esc(it.sr.display_name)}${it.sr.tee_time?' · <span style="color:var(--ink)">'+fmtTee(it.sr.tee_time)+'</span>':''}${it.sr.tagged_me?' · <span style="color:var(--ink)">YOU’RE IN</span>':(it.sr.shared_league&&!it.sr.mine?' · <span style="color:var(--ink)">IN YOUR SEASONS</span>':'')}</b><small>${[it.sr.course_label?esc(it.sr.course_label.toUpperCase()):null, (it.sr.tagged_names||[]).length?'WITH '+esc(it.sr.tagged_names.join(' & ').toUpperCase()):null, it.sr.note?'“'+esc(it.sr.note)+'”':null].filter(Boolean).join(' · ')||'ON THE SCHEDULE'}</small></div>${it.sr.mine?'<span style="display:flex; gap:6px; flex:none; margin-left:auto"><button class="mini" data-retag="'+it.sr.id+'" title="Edit group"><svg class="ic" aria-hidden="true"><use href="#i-plus"/></svg></button><button class="mini" data-scratch="'+it.sr.id+'" title="Cancel this round"><svg class="ic" aria-hidden="true"><use href="#i-close"/></svg></button></span>':''}</div>`
         : `<div class="check"><span class="num">⛳</span><div class="tt"><b style="${it.gold?'color:var(--gold)':''}">${esc(it.t)}</b></div></div>`
       ).join('')
       + (canAdd ? `<button class="btn dark" id="dayAdd" style="margin-top:12px"><svg class="ic" aria-hidden="true"><use href="#i-plus"/></svg> Put your round on this day</button>` : ''));
@@ -17022,7 +17136,7 @@ function renderCalendar(){
         const withTxt=(sr.tagged_names||[]).length?' · WITH '+esc(sr.tagged_names.join(' & ').toUpperCase()):'';
         return `<div class="check">
           <span class="num">${window.mkr?.(sr.marker||'saguaro')||'⛳'}</span>
-          <div class="tt"><b>${sr.mine?'You':esc(sr.display_name)}${sr.tee_time?' · <span style="color:var(--dawn)">'+fmtTee(sr.tee_time)+'</span>':''}${sr.tagged_me?' · <span style="color:var(--dawn)">YOU’RE IN</span>':(sr.shared_league&&!sr.mine?' · <span style="color:var(--dawn)">IN YOUR SEASONS</span>':(sr.is_friend&&!sr.mine?' · <span style="color:var(--mut)">BUDDY</span>':''))}</b>
+          <div class="tt"><b>${sr.mine?'You':esc(sr.display_name)}${sr.tee_time?' · <span style="color:var(--ink)">'+fmtTee(sr.tee_time)+'</span>':''}${sr.tagged_me?' · <span style="color:var(--ink)">YOU’RE IN</span>':(sr.shared_league&&!sr.mine?' · <span style="color:var(--ink)">IN YOUR SEASONS</span>':(sr.is_friend&&!sr.mine?' · <span style="color:var(--mut)">BUDDY</span>':''))}</b>
           <small>${DOW[d.getDay()].toUpperCase()} ${MOS[d.getMonth()].toUpperCase()} ${d.getDate()}${sr.course_label?' · '+esc(sr.course_label.toUpperCase()):''}${withTxt}${sr.note?' · “'+esc(sr.note)+'”':''}</small></div>
           <span style="display:flex; gap:6px; align-items:center; flex:none">
             <b class="mono" style="font-size:11.5px; color:var(--mut); letter-spacing:.06em">${when}</b>
@@ -17634,7 +17748,7 @@ function csRenderPayNote(){
     fine.textContent = csPayNoteMissing()
       ? "They'll need somewhere to send it."
       : "Everyone who owes will see this. It's the only place they can look.";
-    fine.style.color = csPayNoteMissing() ? 'var(--warm)' : '';
+    fine.style.color = csPayNoteMissing() ? 'var(--brand)' : '';
   }
   const btn = document.getElementById('lockBtn');
   if(btn){ btn.disabled = csPayNoteMissing(); btn.style.opacity = csPayNoteMissing() ? 0.5 : ''; }
@@ -22246,7 +22360,7 @@ function openIntentSheet(){
     </button>`;
   openSheet(CS_INTENT_TITLE, 'PICK THE ONE THAT SOUNDS LIKE YOU',
     CS_INTENTS.map((i, n) => row(i.line, i.gloss, 'csi-' + i.k, n === 0)).join('')
-    + '<div style="height:1px; background:var(--line); margin:10px 0"></div>'
+    + '<div style="height:1px; background:var(--rule); margin:10px 0"></div>'
     + row(CS_INTENT_MODIFIER.line, CS_INTENT_MODIFIER.gloss, 'csi-money', false)
     + `<p class="fine" style="padding-top:12px"><a href="#" id="csi-code" style="color:var(--mut); text-decoration:underline; text-underline-offset:3px">${esc(CS_INTENT_CODE_DOOR)} →</a></p>`);
   CS_INTENTS.forEach(i => document.getElementById('csi-' + i.k)?.addEventListener('click', () => {
@@ -22563,9 +22677,9 @@ function renderWatchList(){
     const when = n===0?'TODAY':n===1?'TOMORROW':`${DOW[d.getDay()].toUpperCase()} ${MOS[d.getMonth()].toUpperCase()} ${d.getDate()}`;
     const rel = sr.is_friend ? 'BUDDY' : 'IN YOUR SEASONS';
     const bits = [ when, sr.course_label?esc(sr.course_label.toUpperCase()):null,
-      sr.tee_time?`<span style="color:var(--dawn)">${fmtTee(sr.tee_time)}</span>`:null,
+      sr.tee_time?`<span style="color:var(--ink)">${fmtTee(sr.tee_time)}</span>`:null,
       rivalryTag(sr.profile_id),   /* M4/#7: the head-to-head, before the round */
-      sr.tagged_me?'<span style="color:var(--dawn)">YOU’RE IN</span>':null,
+      sr.tagged_me?'<span style="color:var(--ink)">YOU’RE IN</span>':null,
       sr.note?'“'+esc(sr.note)+'”':null ].filter(Boolean).join(' · ');
     return `<div class="check tap" data-wopen="${sr.id}">
       <span class="num">${window.mkr?.(sr.marker||'saguaro')||'⛳'}</span>
@@ -23525,7 +23639,7 @@ async function openDeclareSheet(prefillISO, opts){
     `${joining ? `<p class="fine" style="padding:0 0 10px; color:var(--gold)">${joining}</p>` : ''}
      <div style="display:flex; gap:10px; align-items:flex-end; flex-wrap:wrap">
        <div style="flex:1 1 150px; min-width:150px"><label class="f" for="drDate">Day</label><input class="f" id="drDate" type="date" value="${iso}"></div>
-       <div style="flex:1 1 150px; min-width:150px"><label class="f" for="drTee" style="color:var(--dawn)">Tee time · optional</label><input class="f" id="drTee" type="time" step="300" value="${teeVal}"></div>
+       <div style="flex:1 1 150px; min-width:150px"><label class="f" for="drTee" style="color:var(--ink)">Tee time · optional</label><input class="f" id="drTee" type="time" step="300" value="${teeVal}"></div>
      </div>
      <label class="f" style="margin-top:10px; display:block">Course</label>
      <input class="f" id="drCourse" placeholder="Pebble Beach" style="font-family:var(--sans)" value="${esc(opts.course||'')}">
@@ -24020,7 +24134,7 @@ function openLeagueWelcome(name){
     <p class="fine" style="padding:0 0 10px"><b>Rounds score against your playing HCP.</b> Beat your handicap and it's a big day, whatever you shot. Your best rounds each month count; a better round always bumps your worst.</p>
     <p class="fine" style="padding:0 0 12px"><b>The pot lives on the books.</b> ${CS_LEDGER} The settlement card shows who owes what.</p>
     <p class="fine" style="padding:0 0 12px"><a href="#" onclick="openScoringHelp();return false" style="color:var(--brand)">How scoring works →</a></p>
-    <div style="border-top:1px solid var(--line); padding-top:12px">
+    <div style="border-top:1px solid var(--rule); padding-top:12px">
       <p class="fine" style="padding:0 0 8px"><b>Who else plays with you?</b> Growing the league isn't the Pro's chore — any member's link works.</p>
       <button class="btn dark" id="cvShare">Share the invite link</button>
     </div>`);

@@ -238,7 +238,7 @@ struct PersonInviteLink: View {
     .padding(12)
     .frame(minHeight: 44)
     .background(cs.bg1, in: RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous))
-    .overlay(RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous).stroke(cs.line, lineWidth: 1))
+    .overlay(RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous).stroke(cs.rule, lineWidth: 1))
     .contentShape(Rectangle())
   }
 }
@@ -302,7 +302,7 @@ struct PeopleInviteLink: View {
     .padding(12)
     .frame(minHeight: 44)
     .background(cs.bg1, in: RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous))
-    .overlay(RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous).stroke(cs.line, lineWidth: 1))
+    .overlay(RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous).stroke(cs.rule, lineWidth: 1))
     .contentShape(Rectangle())
   }
 }
@@ -530,7 +530,7 @@ struct PlanInviteLink: View {
         .padding(12)
         .frame(minHeight: 44)
         .background(cs.bg1, in: RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous))
-        .overlay(RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous).stroke(cs.line, lineWidth: 1))
+        .overlay(RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous).stroke(cs.rule, lineWidth: 1))
         .contentShape(Rectangle())
       }
       .buttonStyle(.plain)

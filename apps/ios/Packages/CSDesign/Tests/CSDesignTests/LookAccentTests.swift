@@ -33,7 +33,8 @@ import SwiftUI
     let la = CSLookAccent(look: nil, cs: CSTokens.dark, theme: .dark)
     #expect(la.washStrength == 0.14)
     #expect(la.skyStrength == 0.10)
-    #expect(la.tick == CSTokens.gradStops)
+    #expect(la.tick == [CSTokens.dark.brand, CSTokens.dark.brand],
+            "D270: homebase's tick is flat ember — the gradient is deleted")
     #expect(la.eyebrow == nil, "no look: an eyebrow stays mut")
   }
 

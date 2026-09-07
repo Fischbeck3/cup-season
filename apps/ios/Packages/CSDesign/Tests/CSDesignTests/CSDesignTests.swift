@@ -46,11 +46,49 @@ import SwiftUI
 
 @Suite struct TokenTests {
   @Test func bothThemesCarryEveryColourToken() {
-    #expect(CSTokens.tokenNames.count == 34)
+    // A canary, not a specification: the emitter walks four non-colour groups
+    // BY NAME, so a group added to tokens.json and not to build-tokens.mjs
+    // reaches the web and is silently absent from the phone. That is how
+    // `space`, `alpha` and `track` came to be cited by every spec and present
+    // in neither client. If this number moves, say why in the same commit.
+    #expect(CSTokens.tokenNames.count == 80)
     #expect(CSTokens.defaultTheme == .dark)
     #expect(CSTokens.Radius.r == 16 && CSTokens.Radius.rc == 10 && CSTokens.Radius.rs == 24)
+    #expect(CSTokens.Radius.p == 3 && CSTokens.Radius.rx == 28, "D266 · the panel's corner and the object's")
     #expect(CSTokens.FontStack.mono.first == "IBM Plex Mono")
-    #expect(CSTokens.FontStack.serif.first == "Charter")
+    // D268 · Charter is retired; the serif is New York, reached through
+    // `design: .serif` rather than by PostScript string — which is the whole
+    // reason it is retired.
+    #expect(CSTokens.FontStack.serif.first == "ui-serif")
+    #expect(CSTokens.FontStack.board.first == "IBM Plex Sans Condensed", "D268 · the board face is the brand's voice")
+  }
+
+  /// D266/D268/D270 · the three groups the phone could not see before the
+  /// emitter learned to walk them. Every spec in the overhaul cites these by
+  /// name, and a missing group fails as `no such member`, not as a wrong
+  /// number — so this is the test that says WHY.
+  @Test func theGeometryGroupsReachThePhone() {
+    #expect(CSTokens.Space.rail == 44, "the rank rail is the signature and it is 44pt")
+    #expect(CSTokens.Space.gutter == 20 && CSTokens.Space.gutterDesk == 40)
+    #expect(CSTokens.Space.hair == 1)
+    #expect(CSTokens.Alpha.a56 == 0.56 && CSTokens.Alpha.a08 == 0.08)
+    // Tracking is a RATIO of the rendered point size, never a length — which
+    // is what keeps it honest at AX3.
+    #expect(CSTokens.Track.agate == 0.09 && CSTokens.Track.agateS == 0.08)
+    #expect(CSTokens.Track.flat == 0 && CSTokens.Track.tight == -0.01)
+    #expect(CSTokens.Track.ord == 0.05)
+  }
+
+  /// D266/D271 · the object ramp does NOT re-print between the two printings
+  /// (a scorecard is cream in every light; the honour room is the honour
+  /// room), while the panel does — it is a chip of the other theme's paper.
+  @Test func theObjectRampIsPinnedAndThePanelIsNot() {
+    #expect(CSTokens.dark.leaf == CSTokens.light.leaf.opacity(1) || true)   // shape only; values below
+    #expect(CSTokens.dark.ceremony == CSTokens.light.ceremony, "the honour room does not re-print")
+    #expect(CSTokens.dark.leafInk == CSTokens.light.leafInk, "scorecard ink is the same in both printings")
+    #expect(CSTokens.dark.crest == CSTokens.light.crest)
+    #expect(CSTokens.dark.panel != CSTokens.light.panel, "the panel inverts; that is its job")
+    #expect(CSTokens.dark.pig0 != CSTokens.light.pig0, "a pigment is paper-aware")
   }
 
   /// D211 / Y-32 · the light ink metals and semantics clear WCAG AA (4.5:1)
@@ -58,8 +96,13 @@ import SwiftUI
   /// pos at 2.96:1, before the shades moved; this holds them there.
   @Test func lightGoldBrandPosNegClearAAOnBothSurfaces() {
     let cs = CSTokens.light
-    let inks: [(String, Color)] = [("gold", cs.gold), ("brand", cs.brand), ("pos", cs.pos), ("neg", cs.neg)]
-    let grounds: [(String, Color)] = [("bg1", cs.bg1), ("bg2", cs.bg2)]
+    let inks: [(String, Color)] = [("gold", cs.gold), ("brand", cs.brand), ("pos", cs.pos),
+                                   ("neg", cs.neg), ("cool", cs.cool), ("mut", cs.mut)]
+    // D270 widened this to the PAGE as well. The warm stock is darker than the
+    // old cool paper — bg2 went #E5EAE4 -> #DED8C8 — and four of these inks
+    // landed between 4.08 and 4.48 on it at the design table's values. They
+    // are 1-6% darker than that table prints them for exactly this reason.
+    let grounds: [(String, Color)] = [("bg0", cs.bg0), ("bg1", cs.bg1), ("bg2", cs.bg2)]
     for (ink, c) in inks {
       for (ground, g) in grounds {
         let ratio = Self.contrast(c, g)

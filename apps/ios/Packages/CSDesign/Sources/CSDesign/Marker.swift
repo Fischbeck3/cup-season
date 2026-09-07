@@ -74,7 +74,7 @@ public struct CSFace: View {
             .foregroundStyle(cs.ink)
             .padding(3)
             .background(cs.bg1, in: Circle())
-            .overlay(Circle().stroke(cs.line, lineWidth: 1))
+            .overlay(Circle().stroke(cs.rule, lineWidth: 1))
             .offset(x: 2, y: 2)
         }
       } else {
@@ -91,7 +91,7 @@ public struct CSFace: View {
   private var markerDisc: some View {
     ZStack {
       Circle().fill(cs.bg2)
-      Circle().stroke(cs.line2, lineWidth: 1)
+      Circle().stroke(cs.rule, lineWidth: 1)
       CSMarkerView(key: markerKey, size: size * 0.58)
         .foregroundStyle(cs.ink)
     }

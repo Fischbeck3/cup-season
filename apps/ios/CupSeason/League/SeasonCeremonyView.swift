@@ -87,7 +87,7 @@ struct SeasonCeremonyView: View {
               // D106: the pot is what the roster owes; collected is the cash the split was paid from
               Text("The pot — \(PotMath.money(st.potCents))" + (st.stillOwedCents > 0 ? " · collected \(PotMath.money(st.collectedCents))" : ""))
                 .font(CSFont.title).foregroundStyle(d.ink)
-              if !st.fromLedger { Text("PREVIEW").csEyebrow(d.warm) }
+              if !st.fromLedger { Text("PREVIEW").csEyebrow(d.brand) }
             }
             Text("\(memberCount) golfers · \(st.stillOwedCents > 0 ? "paid from what was collected" : "what each is owed")").font(CSFont.footnote).foregroundStyle(d.mut)
             ForEach(st.rows) { r in payRow(r.name, r.why.joined(separator: " + "), r.cents) }

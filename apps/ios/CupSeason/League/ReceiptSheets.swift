@@ -65,7 +65,7 @@ struct SquadReceiptSheet: View {
               Text(CSCopy.points(p.pts) + (typeSize.isA11y ? " PTS" : "")).font(CSFont.monoMediumBody).csTabular().foregroundStyle(cs.ink)
             }
             .padding(.vertical, 10).frame(minHeight: 48).contentShape(Rectangle())
-            .overlay(alignment: .bottom) { Rectangle().fill(cs.line).frame(height: 1) }
+            .overlay(alignment: .bottom) { Rectangle().fill(cs.rule).frame(height: 1) }
           }
           .buttonStyle(.plain)
           .accessibilityLabel("\(p.n), \(p.r) round\(p.r == 1 ? "" : "s"), \(CSCopy.points(p.pts)) points")
@@ -126,7 +126,7 @@ struct MemberHistorySheet: View {
                   .font(CSFont.monoSmall).csTabular().foregroundStyle(h.counting ? cs.ink : cs.mut).lineLimit(typeSize.isA11y ? nil : 1)
               }
               .padding(.vertical, 10).frame(minHeight: 44).contentShape(Rectangle())
-              .overlay(alignment: .bottom) { Rectangle().fill(cs.line).frame(height: 1) }
+              .overlay(alignment: .bottom) { Rectangle().fill(cs.rule).frame(height: 1) }
             }
             .buttonStyle(.plain)
             .disabled(h.round_id == nil)

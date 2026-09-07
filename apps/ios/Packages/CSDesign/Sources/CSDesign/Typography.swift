@@ -28,10 +28,31 @@ public enum CSFont {
   // in `label` measured 24.0 points a character where the rendered label took
   // 29.9. A layout that measures its own type is a layout that can catch this;
   // preflight 38 now catches it before the push.
-  static let monoRegular = "IBMPlexMono-Regular"
-  static let monoMedium = "IBMPlexMono-Medium"
-  static let monoSemibold = "IBMPlexMono-SemiBold"
-  // Charter ships on iOS as a system face — no bundling.
+  public static let monoRegular = "IBMPlexMono-Regular"
+  public static let monoMedium = "IBMPlexMono-Medium"
+  public static let monoSemibold = "IBMPlexMono-SemiBold"
+
+  // D268 · THE BOARD FACE — IBM Plex Sans Condensed, bundled with this build
+  // (OFL 1.1, ~225KB for the two cuts). It is the brand's own voice: the
+  // figure, the rank rail, every title.
+  //
+  // **AND THESE ARE NOT THE NAMES THE BUILD BRIEF PREDICTED.** The brief says
+  // `IBMPlexSansCondensed-SemiBold` / `-Bold`; the files' own `name` table
+  // (id 6) says `IBMPlexSansCond-SmBld` and `IBMPlexSansCond-Bold`, and the
+  // SemiBold file's family (id 1) is `IBM Plex Sans Cond SmBld` with a
+  // subfamily of `Regular`. Had the brief's names been typed from memory,
+  // both cuts would have resolved to nothing and every figure in the product
+  // would have rendered in SF Pro — silently, exactly as D258 did, on the
+  // face that carries 46% of the type. Read from the file, never remembered;
+  // preflight 38(b) now asserts these two the way it asserts the mono three,
+  // and `CupSeasonTests.BundledFaceTests` resolves them at runtime.
+  public static let boardSemibold = "IBMPlexSansCond-SmBld"
+  public static let boardBold = "IBMPlexSansCond-Bold"
+
+  // Charter ships on iOS as a system face — no bundling. D268 RETIRES it in
+  // favour of New York, which is reached through `design: .serif` rather than
+  // by PostScript string; the roles move in the component wave, not here, so
+  // that a face swap and a role re-cut are not one commit.
   static let serifRegular = "Charter-Roman"
   static let serifBold = "Charter-Bold"
 

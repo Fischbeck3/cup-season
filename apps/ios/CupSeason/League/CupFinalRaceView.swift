@@ -58,7 +58,7 @@ struct CupFinalRaceView: View {
         Text(CSCopy.points(f.total)).font(CSFont.stat).csTabular().foregroundStyle(lead ? cs.gold : cs.ink)
       }
       .padding(.horizontal, 4).padding(.vertical, 10).frame(minHeight: 56).contentShape(Rectangle())
-      .overlay(alignment: .bottom) { Rectangle().fill(lead ? cs.gold.opacity(0.55) : cs.line).frame(height: 1) }
+      .overlay(alignment: .bottom) { Rectangle().fill(lead ? cs.gold.opacity(0.55) : cs.rule).frame(height: 1) }
     }
     .buttonStyle(.plain)
     .accessibilityLabel("Seed \(f.seed), \(name), \(CSCopy.points(f.total)) points in the Final" + (f.head_start > 0 ? ", starts plus \(CSCopy.points(f.head_start))" : ""))
@@ -110,7 +110,7 @@ struct FinalistReceiptSheet: View {
                   .font(CSFont.monoSmall).csTabular().foregroundStyle(cs.ink).lineLimit(typeSize.isA11y ? nil : 1)
               }
               .padding(.vertical, 10).frame(minHeight: 44).contentShape(Rectangle())
-              .overlay(alignment: .bottom) { Rectangle().fill(cs.line).frame(height: 1) }
+              .overlay(alignment: .bottom) { Rectangle().fill(cs.rule).frame(height: 1) }
             }
             .buttonStyle(.plain)
             .disabled(h.round_id == nil)

@@ -58,7 +58,7 @@ struct CSMini: View {
       .padding(.horizontal, label.isEmpty ? 10 : 12)
       .frame(minWidth: 36, minHeight: 36)
       .background(cs.bg2, in: Capsule())
-      .overlay(Capsule().stroke(tone ?? cs.line2, lineWidth: 1))
+      .overlay(Capsule().stroke(tone ?? cs.rule, lineWidth: 1))
       .opacity(busy ? 0.5 : 1)
       .frame(minWidth: 44, minHeight: 44)   // accessibility: an icon-only mini is still a 44pt target
       .contentShape(Rectangle())
@@ -78,7 +78,7 @@ struct CSTag: View {
     Text(text).font(CSFont.label).tracking(0.8).textCase(.uppercase)
       .foregroundStyle(tone ?? cs.mut)
       .padding(.horizontal, 8).padding(.vertical, 5)
-      .overlay(Capsule().stroke((tone ?? cs.line2).opacity(0.7), lineWidth: 1))
+      .overlay(Capsule().stroke((tone ?? cs.rule).opacity(0.7), lineWidth: 1))
   }
 }
 
@@ -110,7 +110,7 @@ struct CSCheckRow<Trailing: View>: View {
     .padding(.vertical, 8).padding(.horizontal, 12)
     .frame(minHeight: 52)
     .background(cs.bg1, in: RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous))
-    .overlay(RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous).stroke(spine ?? cs.line, lineWidth: 1))
+    .overlay(RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous).stroke(spine ?? cs.rule, lineWidth: 1))
   }
 }
 

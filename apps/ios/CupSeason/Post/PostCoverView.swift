@@ -125,9 +125,9 @@ private struct PostCoverStack: View {
                             sub: "One phone or four — guests need no account. It settles up at the end.") {
               close(); links.openLive()
             }
-            PostOptionRow(tick: cs.line2, title: "Add a round you played",
+            PostOptionRow(tick: cs.rule, title: "Add a round you played",
                           sub: "Your gross and the tee — it posts to your rounds, and every season you're in reads it.") { path.append(PostCoverView.Route.post) }
-            PostOptionRow(tick: cs.line2, title: "Plan a round",
+            PostOptionRow(tick: cs.rule, title: "Plan a round",
                           // LV-14 · row 113: "league" is never a thing you join. The container is
                           // a SEASON.
                           sub: "Put it on the schedule; your buddies and your seasons see it.", last: true) { showPlan = true }
@@ -150,9 +150,9 @@ private struct PostCoverStack: View {
           if !kept.isEmpty {
             VStack(alignment: .leading, spacing: 0) {
               CSHairline()
-              Text("STILL ON THIS PHONE").csEyebrow(cs.warm).padding(.top, 14).padding(.bottom, 2)
+              Text("STILL ON THIS PHONE").csEyebrow(cs.brand).padding(.top, 14).padding(.bottom, 2)
               ForEach(Array(kept.enumerated()), id: \.element.id) { i, k in
-                PostOptionRow(tick: cs.warm, title: k.line,
+                PostOptionRow(tick: cs.brand, title: k.line,
                               sub: k.isComplete
                                 ? "Scored here, never landed. Check it and post it."
                                 : "Scored here, never landed — \(18 - k.holesPlayed) holes blank.",
@@ -180,7 +180,7 @@ private struct PostCoverStack: View {
             // spending it twice spends it on nothing. What sets this row apart
             // is structural — its own rule and its own gap — not a second
             // metal competing with the one act that is genuinely happening now.
-            PostOptionRow(tick: cs.line2, title: "Start something",
+            PostOptionRow(tick: cs.rule, title: "Start something",
                           sub: "A season, a weekend, a one-off — pick who's in and what you're playing for.",
                           last: true) { close(); links.startSomething() }
           }

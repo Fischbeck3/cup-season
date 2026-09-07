@@ -167,7 +167,7 @@ struct HomeView: View {
               // D222 · Golfers is a TAB. It was a push into a screen that lived
               // under You, declared here and resolved in three stacks — the shape
               // that made D178's dead link possible.
-              Button { openGolfers() } label: { Text("YOUR BUDDIES ↗").csEyebrow(cs.dawn).a11yHitSlop() }
+              Button { openGolfers() } label: { Text("YOUR BUDDIES ↗").csEyebrow(cs.ink).a11yHitSlop() }
                 .buttonStyle(.plain)
                 .accessibilityLabel("Your buddies")
                 .accessibilityHint("Opens the Golfers tab")
@@ -668,7 +668,7 @@ private struct FeedBucketView: View {
     VStack(alignment: .leading, spacing: 0) {
       if bucket.label == "Earlier" && !expanded && !only {
         Button { expanded = true } label: {
-          Text("Show earlier · \(bucket.items.count)").font(CSFont.footnote).foregroundStyle(cs.dawn).frame(minHeight: 44).contentShape(Rectangle())
+          Text("Show earlier · \(bucket.items.count)").font(CSFont.footnote).foregroundStyle(cs.ink).frame(minHeight: 44).contentShape(Rectangle())
         }
         .buttonStyle(.plain)
       } else {
@@ -686,7 +686,7 @@ private struct FeedBucketView: View {
         if !showAll {
           Button { expanded = true } label: {
             Text("Show \(bucket.items.count - cap) more · \(bucket.label.lowercased())")
-              .font(CSFont.footnote).foregroundStyle(cs.dawn).frame(minHeight: 44).contentShape(Rectangle())
+              .font(CSFont.footnote).foregroundStyle(cs.ink).frame(minHeight: 44).contentShape(Rectangle())
           }
           .buttonStyle(.plain)
         }
@@ -897,7 +897,7 @@ private struct FeedPostRow: View {
       HStack(alignment: .top, spacing: 12) {
         Text(p.kind == "announce" ? "📣" : "🏁").font(.system(size: 18))
           .frame(width: 40, height: 40).background(cs.bg2, in: Circle())
-          .overlay(Circle().stroke(fresh ? cs.line2 : .clear, lineWidth: 1))
+          .overlay(Circle().stroke(fresh ? cs.rule : .clear, lineWidth: 1))
           .accessibilityHidden(true)
         VStack(alignment: .leading, spacing: 3) {
           Text(HomeCopy.easeCaps(p.body ?? "")).font(CSFont.subhead).foregroundStyle(cs.ink)
@@ -1008,7 +1008,7 @@ private struct FeedNotesRow: View {
             }
           }
           .padding(.leading, 12)
-          .overlay(alignment: .leading) { Rectangle().fill(cs.line).frame(width: 1) }
+          .overlay(alignment: .leading) { Rectangle().fill(cs.rule).frame(width: 1) }
         }
       }
     }
@@ -1034,7 +1034,7 @@ private struct HomeReactionStrip: View {
           .padding(.horizontal, 8).padding(.vertical, 5)
           .frame(minHeight: 30)
           .background(cs.bg2, in: Capsule())
-          .overlay(Capsule().stroke(st.me ? cs.brand : cs.line2, lineWidth: 1))
+          .overlay(Capsule().stroke(st.me ? cs.brand : cs.rule, lineWidth: 1))
           .foregroundStyle(st.me ? cs.brand : cs.ink)
           .a11yHitSlop(vertical: 7, horizontal: 0)   // a 30pt chip, a 44pt target
         }
@@ -1049,7 +1049,7 @@ private struct HomeReactionStrip: View {
             .padding(.horizontal, 8).padding(.vertical, 5)
             .frame(minHeight: 30)
             .background(cs.bg2, in: Capsule())
-            .overlay(Capsule().stroke(cs.line2, lineWidth: 1))
+            .overlay(Capsule().stroke(cs.rule, lineWidth: 1))
         }
         .buttonStyle(.plain)
         .accessibilityLabel(CSReactions.all.first { $0.emoji == CSReactions.quick }?.label ?? "heater")

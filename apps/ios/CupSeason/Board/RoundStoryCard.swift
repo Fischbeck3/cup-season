@@ -37,7 +37,7 @@ struct RoundStoryCard: View {
     .padding(.horizontal, 13).padding(.vertical, 12)
     .background(cs.bg1, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
     // a door (tap → the receipt): the one card kind on the board that keeps its line
-    .overlay(RoundedRectangle(cornerRadius: 14, style: .continuous).stroke(cs.line, lineWidth: 1))
+    .overlay(RoundedRectangle(cornerRadius: 14, style: .continuous).stroke(cs.rule, lineWidth: 1))
     .padding(.vertical, 6)
   }
 
@@ -64,9 +64,9 @@ struct RoundStoryCard: View {
             .foregroundStyle(hasPhoto ? onPhotoMut : (counting.ok ? cs.pos : cs.dimText))
           if streak >= 2 {
             Text("\(streak) STRAIGHT UNDER").font(CSFont.label).tracking(1)
-              .foregroundStyle(streak >= 3 ? cs.hot : cs.warm)
+              .foregroundStyle(streak >= 3 ? cs.brand : cs.brand)
               .padding(.horizontal, 5).padding(.vertical, 1)
-              .overlay(RoundedRectangle(cornerRadius: 4).stroke(streak >= 3 ? cs.hot : cs.warm, lineWidth: 1))
+              .overlay(RoundedRectangle(cornerRadius: 4).stroke(streak >= 3 ? cs.brand : cs.brand, lineWidth: 1))
               .padding(.top, 2)
           }
         }
@@ -79,7 +79,7 @@ struct RoundStoryCard: View {
             .foregroundStyle(pvi >= 0 ? cs.pos : cs.neg)
             .padding(.horizontal, 8).padding(.vertical, 3)
             .background(cs.bg2, in: RoundedRectangle(cornerRadius: 6, style: .continuous))
-            .overlay(RoundedRectangle(cornerRadius: 6, style: .continuous).stroke(cs.line2, lineWidth: 1))
+            .overlay(RoundedRectangle(cornerRadius: 6, style: .continuous).stroke(cs.rule, lineWidth: 1))
         }
         if let pts = round.points {
           VStack(alignment: .trailing, spacing: 0) {

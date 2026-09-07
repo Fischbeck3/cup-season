@@ -157,7 +157,7 @@ struct CardGateView: View {
         .foregroundStyle(on ? cs.brand : cs.ink)
         .padding(.horizontal, 14).frame(minHeight: 44)
         .background(cs.bg1, in: Capsule())
-        .overlay(Capsule().stroke(on ? cs.brand : cs.line, lineWidth: on ? 2 : 1))
+        .overlay(Capsule().stroke(on ? cs.brand : cs.rule, lineWidth: on ? 2 : 1))
         .contentShape(Capsule())
     }
     .buttonStyle(.plain)
@@ -203,7 +203,7 @@ struct CardGateView: View {
           .frame(maxWidth: .infinity, minHeight: 78)
           .background(cs.bg1, in: RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous))
           .overlay(RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous)
-            .stroke(marker == m.key ? cs.brand : cs.line, lineWidth: marker == m.key ? 2 : 1))
+            .stroke(marker == m.key ? cs.brand : cs.rule, lineWidth: marker == m.key ? 2 : 1))
         }
         .buttonStyle(.plain)
         .accessibilityLabel(m.name)

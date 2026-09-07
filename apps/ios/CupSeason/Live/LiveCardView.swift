@@ -161,7 +161,7 @@ struct LiveCardView: View {
     RoundedRectangle(cornerRadius: 2)
       .fill(v == .me ? cs.brand : v == .them ? cs.dim : .clear)
       .frame(width: cellW - 3, height: 13)
-      .overlay(RoundedRectangle(cornerRadius: 2).stroke(cs.line2, lineWidth: v == nil || v == .halved ? 1 : 0))
+      .overlay(RoundedRectangle(cornerRadius: 2).stroke(cs.rule, lineWidth: v == nil || v == .halved ? 1 : 0))
       .opacity(v == nil ? 0.25 : 1)
       .frame(width: cellW)
   }

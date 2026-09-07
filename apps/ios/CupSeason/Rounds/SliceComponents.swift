@@ -39,7 +39,7 @@ private struct ToastHostModifier: ViewModifier {
           .font(CSFont.subhead).foregroundStyle(cs.ink)
           .padding(.horizontal, 16).padding(.vertical, 11)
           .background(cs.bg0, in: Capsule())
-          .overlay(Capsule().stroke(cs.line2, lineWidth: 1))
+          .overlay(Capsule().stroke(cs.rule, lineWidth: 1))
           .padding(.bottom, 20).padding(.horizontal, 24)
           .transition(reduceMotion ? .opacity : .move(edge: .bottom).combined(with: .opacity))
           .accessibilityAddTraits(.updatesFrequently)
@@ -107,7 +107,7 @@ struct CheckRow<Trailing: View>: View {
           .frame(minWidth: 26, minHeight: 26)
           .padding(.horizontal, 2)
           .background(cs.bg2, in: RoundedRectangle(cornerRadius: 8, style: .continuous))
-          .overlay(RoundedRectangle(cornerRadius: 8, style: .continuous).stroke(cs.line2, lineWidth: 1))
+          .overlay(RoundedRectangle(cornerRadius: 8, style: .continuous).stroke(cs.rule, lineWidth: 1))
           .accessibilityHidden(true)
         VStack(alignment: .leading, spacing: 2) {
           Text(title).font(CSFont.subhead.weight(.semibold)).foregroundStyle(cs.ink)
@@ -120,7 +120,7 @@ struct CheckRow<Trailing: View>: View {
     .padding(.horizontal, 14).padding(.vertical, 13)
     .frame(minHeight: 44)
     .background(cs.bg1, in: RoundedRectangle(cornerRadius: CSTokens.Radius.r, style: .continuous))
-    .overlay(RoundedRectangle(cornerRadius: CSTokens.Radius.r, style: .continuous).stroke(cs.line, lineWidth: 1))
+    .overlay(RoundedRectangle(cornerRadius: CSTokens.Radius.r, style: .continuous).stroke(cs.rule, lineWidth: 1))
   }
 }
 
@@ -167,7 +167,7 @@ struct MathRow: View {
         .multilineTextAlignment(typeSize.isA11y ? .leading : .trailing)
     }
     .padding(.vertical, sub ? 7 : 9)
-    .overlay(alignment: .top) { Rectangle().fill(cs.line).frame(height: 1) }
+    .overlay(alignment: .top) { Rectangle().fill(cs.rule).frame(height: 1) }
     .accessibilityElement(children: .combine)
   }
 }
@@ -186,7 +186,7 @@ struct MiniButton: View {
       Text(label).font(CSFont.monoMediumBody).foregroundStyle(tone ?? cs.ink)
         .padding(.horizontal, 14).frame(minHeight: 44)
         .background(cs.bg2, in: RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous))
-        .overlay(RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous).stroke(cs.line2, lineWidth: 1))
+        .overlay(RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous).stroke(cs.rule, lineWidth: 1))
         .opacity(busy ? 0.5 : 1)
     }
     .buttonStyle(.plain)
@@ -216,9 +216,9 @@ struct StreakTag: View {
   let hot: Bool
   var body: some View {
     Text(text).font(CSFont.label).tracking(0.8)
-      .foregroundStyle(hot ? cs.hot : cs.warm)
+      .foregroundStyle(hot ? cs.brand : cs.brand)
       .padding(.horizontal, 5).padding(.vertical, 1)
-      .overlay(RoundedRectangle(cornerRadius: 4).stroke(hot ? cs.hot : cs.warm, lineWidth: 1))
+      .overlay(RoundedRectangle(cornerRadius: 4).stroke(hot ? cs.brand : cs.brand, lineWidth: 1))
   }
 }
 
@@ -249,9 +249,9 @@ struct FormRowView: View {
       Text("LAST FIVE").font(CSFont.label).tracking(1.6).foregroundStyle(palette.mut).padding(.trailing, 2)
       ForEach(Array(form.dots.enumerated()), id: \.offset) { _, on in
         Circle()
-          .fill(on == true ? palette.hot : palette.ink.opacity(0.14))
+          .fill(on == true ? palette.brand : palette.ink.opacity(0.14))
           .frame(width: 9, height: 9)
-          .shadow(color: on == true ? palette.hot.opacity(0.55) : .clear, radius: 3.5)
+          .shadow(color: on == true ? palette.brand.opacity(0.55) : .clear, radius: 3.5)
       }
       if let tag = form.tag { StreakTag(text: tag, hot: form.hot).padding(.leading, 4).environment(\.cs, palette) }
     }

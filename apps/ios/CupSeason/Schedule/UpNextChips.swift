@@ -53,14 +53,14 @@ struct UpNextChips: View {
   private func chip(_ c: UpChip) -> some View {
     let hot = c.k == "Month closes" && isSoon(c.v)
     return HStack(spacing: 8) {
-      Text(c.k).font(CSFont.label).tracking(1).textCase(.uppercase).foregroundStyle(hot ? cs.warm : cs.mut)
+      Text(c.k).font(CSFont.label).tracking(1).textCase(.uppercase).foregroundStyle(hot ? cs.brand : cs.mut)
       Text(c.v).font(CSFont.subhead.weight(.semibold)).foregroundStyle(cs.ink)
       if c.go != nil { Text("›").font(CSFont.subhead).foregroundStyle(cs.brand) }
     }
     .padding(.horizontal, 12).frame(minHeight: 36)
     .contentShape(Capsule())
     .background(cs.bg1, in: Capsule())
-    .overlay(Capsule().stroke(hot ? cs.warm.opacity(0.7) : cs.line, lineWidth: 1))
+    .overlay(Capsule().stroke(hot ? cs.brand.opacity(0.7) : cs.rule, lineWidth: 1))
     .accessibilityElement(children: .combine)
   }
 

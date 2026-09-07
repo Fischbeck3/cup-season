@@ -141,7 +141,7 @@ struct DeclareRoundSheet: View {
         .foregroundStyle(on ? cs.bg0 : cs.ink)
         .padding(.horizontal, 8).frame(maxWidth: .infinity, minHeight: 44)
         .background(on ? cs.ink : cs.bg2, in: RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous))
-        .overlay(RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous).stroke(cs.line2, lineWidth: on ? 0 : 1))
+        .overlay(RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous).stroke(cs.rule, lineWidth: on ? 0 : 1))
     }
     .buttonStyle(.plain)
     .accessibilityAddTraits(on ? [.isSelected] : [])
@@ -253,7 +253,7 @@ struct TagChips: View {
           }
           .padding(.horizontal, 12).frame(minHeight: 36)
           .background(cs.bg2, in: Capsule())
-          .overlay(Capsule().stroke(on ? cs.pos : cs.line2, lineWidth: 1))
+          .overlay(Capsule().stroke(on ? cs.pos : cs.rule, lineWidth: 1))
           .frame(minHeight: 44)
         }
         .buttonStyle(.plain)
@@ -355,7 +355,7 @@ struct CourseSearchField: View {
   private func dropdown<C: View>(@ViewBuilder _ content: () -> C) -> some View {
     VStack(spacing: 0) { content() }
       .background(cs.bg1, in: RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous))
-      .overlay(RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous).stroke(cs.line2, lineWidth: 1))
+      .overlay(RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous).stroke(cs.rule, lineWidth: 1))
   }
 
   private func ddRow(_ b: String, _ s: String?, action: @escaping () -> Void) -> some View {

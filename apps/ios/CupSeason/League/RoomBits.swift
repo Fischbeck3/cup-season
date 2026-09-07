@@ -27,7 +27,7 @@ struct RoomMini: View {
       .padding(.horizontal, 12)
       .frame(minHeight: 36)
       .background(cs.bg2, in: Capsule())
-      .overlay(Capsule().stroke(tone?.opacity(0.6) ?? cs.line2, lineWidth: 1))
+      .overlay(Capsule().stroke(tone?.opacity(0.6) ?? cs.rule, lineWidth: 1))
       .frame(minWidth: 44, minHeight: 44)   // a one-glyph mini ("✕") is still a 44pt target
       .contentShape(Rectangle())
     }
@@ -104,7 +104,7 @@ struct RoomCheckRow<Lead: View, Trail: View>: View {
       HStack(spacing: 12) {
         lead.frame(width: 36, height: 36)
           .background(cs.bg2, in: Circle())
-          .overlay(Circle().stroke(cs.line, lineWidth: 1))
+          .overlay(Circle().stroke(cs.rule, lineWidth: 1))
           .accessibilityHidden(true)
         VStack(alignment: .leading, spacing: 2) {
           Text(title).font(CSFont.subhead.weight(.semibold)).foregroundStyle(cs.ink)
@@ -117,7 +117,7 @@ struct RoomCheckRow<Lead: View, Trail: View>: View {
     }
     .padding(.vertical, 10)
     .frame(minHeight: 56)
-    .overlay(alignment: .bottom) { Rectangle().fill(cs.line).frame(height: 1) }
+    .overlay(alignment: .bottom) { Rectangle().fill(cs.rule).frame(height: 1) }
   }
 }
 
@@ -157,7 +157,7 @@ struct RoomMathRow: View {
       Text(v).font(total ? CSFont.stat : CSFont.monoMediumBody).csTabular().foregroundStyle(tone ?? cs.ink)
     }
     .padding(.vertical, 8)
-    .overlay(alignment: .top) { if total { Rectangle().fill(cs.line2).frame(height: 1) } }
+    .overlay(alignment: .top) { if total { Rectangle().fill(cs.rule).frame(height: 1) } }
     .accessibilityElement(children: .combine)
   }
 }

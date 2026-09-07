@@ -569,3 +569,35 @@ The ⊕'s composer is its own decision (IOS-020). Ceremonies, the finish, the se
 **Gate:** preflight 0 failures 0 warnings (39 checks reported, numbered through 43); sunningdale 27; CupSeasonKit **854** · CupSeason **28** · CSDesign **14**, all passing; `web-verify` clean at 1440/390, 0 console errors, no document overflow, and the pot split asserted in the running browser over 828 combinations with 0 mismatches. Three migrations edited and each dry-ran clean against production inside `begin … rollback`, with the rollback VERIFIED by `pg_proc` afterwards rather than trusted to a clean envelope.
 
 **Not fixed, and named rather than buried:** the P2s and P3s of all six stress reports, and the two owner actions (`my_course_books` is live in production while its migration is unapplied — `db push` heals it; and the push function must be deployed BEFORE the database). Both are in `MORNING.md`.
+
+---
+
+## IOS-044 · The tokens, the emitter, the two bundled cuts, and the app icon that finally ships — **P1 · BUILT 2026-09-06, Wave 0a (D268, D270, D274; owner-authorised "build it", 2026-09-06)**
+
+**Decision.** Lay the ground the whole overhaul stands on, change no surface's composition, and prove each piece rather than assert it.
+
+**THE EMITTER CHANGED FIRST, AND IT HAD TO.** `tools/build-tokens.mjs:117` did an unguarded `entries.find(([, n]) => n === 'glow')[2].dark`, and `:118` the same for `grad` — two tokens D270 deletes. The very first command of the overhaul threw `TypeError: Cannot read properties of undefined`, nothing regenerated, and preflight 10 would then have failed permanently on "generated tokens are stale". The block is **deleted rather than guarded**: a token that does not exist should not have a line waiting for it. In its place the emitter learned three groups — `CSTokens.Space`, `.Alpha`, `.Track` — and the reason they were missing is worth keeping: **the Swift emitter walks colours plus four groups BY NAME**, so a group added to `tokens.json` reaches `tokens.css` and `tokens.ts` for free and is *silently absent from the phone*. That is exactly how `space`, `alpha` and `track` came to be cited by every spec in the design and present in neither client. `TokenTests.theGeometryGroupsReachThePhone` is now the thing that says so out loud.
+
+**THE BOARD FACE IS BUNDLED, AND ITS POSTSCRIPT NAMES ARE NOT THE ONES THE BRIEF PREDICTED.** `BUILD_BRIEF` §2.6 names `IBMPlexSansCondensed-SemiBold` / `-Bold`. The files' own `name` table (id 6) says **`IBMPlexSansCond-SmBld`** and **`IBMPlexSansCond-Bold`**, and the SemiBold file's family (id 1) is `IBM Plex Sans Cond SmBld` with a subfamily of `Regular`. Typing the brief's names would have resolved nothing and rendered 46% of the product's type in SF Pro — no crash, no log, D258 on a bigger surface. So: read from the file, and then held there by three things that fail rather than remember. **Preflight 38(b)** now checks `board*` beside `mono*` against the bundled files' name tables, and additionally refuses any TTF that sits in `Resources/Fonts` but is missing from `project.yml`'s **or** `CupSeason/Info.plist`'s `UIAppFonts` — one without the other is D258's other half. **`CupSeasonTests.BundledFaceTests`** resolves all five faces through CoreText inside the app host, asserts CoreText hands back the face that was asked for, asserts the board cut is measurably narrower than the system sans at the same size (a right name on the wrong cut passes every string check and fails here), and asserts the mono cut still advances uniformly. Both new preflight assertions were self-tested by breaking them.
+
+**THE APP ICON.** The shipped build carried Xcode's blue placeholder while `brand/appstore-1024.png` — the ember flag — sat finished in the repo. `AppIcon.appiconset` now carries it as the universal 1024, plus the two iOS 18 appearances declared in `Contents.json`: **dark**, the flag in ember on transparency so the system's dark material shows through, and **tinted**, the same shape in grayscale on transparency so the system's tint takes. Both are derived from the shipped mark by an alpha mask off its own antialiasing, so the silhouette is the brand's, to the pixel. Verified by the asset catalogue compiling into the installed app and by reading all three PNGs; SpringBoard itself is not scriptable from here.
+
+**Reversibility.** MEDIUM. The token diff is one commit and reverts as one, but ~180 Swift sites and ~270 web sites moved colour token inside it. The mapping is in D270 and is mechanical.
+
+**Gate:** `node tools/build-tokens.mjs` clean; preflight **PASS — 0 failures, 0 warnings** (40 checks, numbered through 44); sunningdale 27; CupSeason **32** · CSDesign **16** · CupSeasonKit **887**, all passing (up from 28 / 14 / 887 — no test was deleted, two were migrated); `web-verify` clean at 1440/390 with 0 console errors and no document overflow. No migration was written, so there was none to dry-run.
+
+---
+
+## IOS-051 · The two capture hatches — appearance and content size, at launch — **P1 · BUILT 2026-09-06, Wave 0a (owner-authorised "build it", 2026-09-06)**
+
+**Decision.** Two DEBUG launch arguments, and they are the smallest entry of the overhaul and the one to write first.
+
+**Why they are not a convenience.** Every light-theme and AX3 statement in `UI_SYSTEM.md`, in all seven surface specs and in both columns of `UI_SCORECARD.md` was **computed, never seen** — and not for want of trying. `CupSeasonApp` applies `preferredColorScheme` from `UserDefaults`, so `xcrun simctl ui <udid> appearance light` changes the simulator and **never reaches this app's UI**; and `-UIPreferredContentSizeCategoryName` does not take on a SwiftUI app launched by `simctl`. Without these two arguments the Phase-7 blind review is blind on two of its ten axes, exactly as Phase 1's was.
+
+**`-cs_dev_appearance <light|dark|auto>`** overrides the stored choice for one launch, and it wins at `@State private var appearance` rather than at `.preferredColorScheme` — so the Appearance selector in Settings shows the same answer the screen is actually rendering, and there is no second source of truth to drift. **`-cs_dev_text_size <category>`** pins Dynamic Type through `.dynamicTypeSize(_:)`, applied as a `@ViewBuilder` modifier so the `nil` case adds nothing to the view tree at all. It takes a UIKit category name (`UICTContentSizeCategoryAccessibilityL`), a SwiftUI name (`accessibility3`), or the shorthand the reviews actually use (`AX3`), because a hatch nobody can spell is a hatch nobody uses. Both are `#if DEBUG` and return `nil`/`nil` in Release by construction.
+
+**Proved, not asserted.** Home was photographed three ways off one build in one minute: `w0a-home-dark.png`, `w0a-home-light.png` — genuinely the warm almanac stock, not a dimmer — and `w0a-home-ax3.png`, where the masthead's dateline drops to its own line and the ME strip's two labels wrap, which is the layout the design says it is and which nobody had seen.
+
+**Reversibility.** TRIVIAL — two computed properties and one modifier, none of which exists in Release.
+
+**Gate:** as IOS-044, same commit.

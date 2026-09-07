@@ -169,7 +169,7 @@ public enum CSHeaderDate {
 public struct CSHairline: View {
   @Environment(\.cs) private var cs
   public init() {}
-  public var body: some View { Rectangle().fill(cs.line).frame(height: 1) }
+  public var body: some View { Rectangle().fill(cs.rule).frame(height: 1) }
 }
 
 /// An eyebrow over a hairline, with an optional trailing link in `dawn`. The
@@ -194,9 +194,9 @@ public struct CSSectionHead: View {
         if let trailing {
           if let action {
             // accessibility: the eyebrow link keeps its look and gains a 44pt hit area
-            Button(action: action) { Text(trailing).csEyebrow(cs.dawn).a11yHitSlop() }.buttonStyle(.plain)
+            Button(action: action) { Text(trailing).csEyebrow(cs.ink).a11yHitSlop() }.buttonStyle(.plain)
           } else {
-            Text(trailing).csEyebrow(cs.dawn)
+            Text(trailing).csEyebrow(cs.ink)
           }
         }
       }
@@ -219,7 +219,7 @@ public struct CSGroupHead: View {
   public var body: some View {
     VStack(alignment: .leading, spacing: 7) {
       Text(title).csEyebrow(cs.brand)
-      Rectangle().fill(cs.line2).frame(height: 1)
+      Rectangle().fill(cs.rule).frame(height: 1)
     }
     .padding(.top, 26)
     .accessibilityAddTraits(.isHeader)

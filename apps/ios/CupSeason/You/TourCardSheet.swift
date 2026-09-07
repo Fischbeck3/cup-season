@@ -42,7 +42,7 @@ struct TourCardSheet: View {
         SliceSheet(title: GolfersRoot.CardName.title(nil), sub: "COULD NOT LOAD") {
           VStack(alignment: .leading, spacing: 10) {
             Fine("Could not pull the card — check your signal and try again.")
-            Button("Try again") { failed = false; Task { await fetch() } }.font(CSFont.subhead).foregroundStyle(cs.dawn)
+            Button("Try again") { failed = false; Task { await fetch() } }.font(CSFont.subhead).foregroundStyle(cs.ink)
           }
         }
       } else {

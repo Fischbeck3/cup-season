@@ -95,7 +95,7 @@ struct ScorecardSheet: View {
               if row.guest { Text("G").font(CSFont.label).foregroundStyle(cs.dimText) }
             }
             .frame(width: 96, alignment: .leading).padding(.vertical, 6)
-            .overlay(alignment: .bottom) { Rectangle().fill(cs.line).frame(height: 1) }
+            .overlay(alignment: .bottom) { Rectangle().fill(cs.rule).frame(height: 1) }
             .accessibilityElement(children: .ignore)
             .accessibilityLabel(row.name + (row.guest ? ", guest" : ""))
             .accessibilityAddTraits(.isHeader)
@@ -104,8 +104,8 @@ struct ScorecardSheet: View {
                 .foregroundStyle(color(c.state))
                 .frame(minWidth: 26, minHeight: 30)
                 .background(c.state == .won ? cs.gold : .clear, in: RoundedRectangle(cornerRadius: 4))
-                .overlay(alignment: .trailing) { if h == 8 { Rectangle().fill(cs.line2).frame(width: 1) } }
-                .overlay(alignment: .bottom) { Rectangle().fill(cs.line).frame(height: 1) }
+                .overlay(alignment: .trailing) { if h == 8 { Rectangle().fill(cs.rule).frame(width: 1) } }
+                .overlay(alignment: .bottom) { Rectangle().fill(cs.rule).frame(height: 1) }
                 .accessibilityLabel(Self.cellLabel(hole: h, par: card.par(h), cell: c))
             }
             if n == 18 {
@@ -144,8 +144,8 @@ struct ScorecardSheet: View {
     Text(t).font(CSFont.label).tracking(1).foregroundStyle(cs.dimText)
       .frame(minWidth: who ? 96 : (tot ? 38 : 26), maxWidth: who ? 96 : nil, minHeight: 30, alignment: who ? .leading : .center)
       .padding(.leading, tot ? 10 : 0)
-      .overlay(alignment: .trailing) { if nine { Rectangle().fill(cs.line2).frame(width: 1) } }
-      .overlay(alignment: .bottom) { Rectangle().fill(cs.line).frame(height: 1) }
+      .overlay(alignment: .trailing) { if nine { Rectangle().fill(cs.rule).frame(width: 1) } }
+      .overlay(alignment: .bottom) { Rectangle().fill(cs.rule).frame(height: 1) }
   }
 
   private func cell(_ t: String, who: Bool = false, dim: Bool = false, tot: Bool = false, nine: Bool = false) -> some View {
@@ -153,8 +153,8 @@ struct ScorecardSheet: View {
       .foregroundStyle(dim ? cs.dimText : cs.ink)
       .frame(minWidth: who ? 96 : (tot ? 38 : 26), maxWidth: who ? 96 : nil, minHeight: 30, alignment: who ? .leading : .center)
       .padding(.leading, tot ? 10 : 0)
-      .overlay(alignment: .trailing) { if nine { Rectangle().fill(cs.line2).frame(width: 1) } }
-      .overlay(alignment: .bottom) { Rectangle().fill(cs.line).frame(height: 1) }
+      .overlay(alignment: .trailing) { if nine { Rectangle().fill(cs.rule).frame(width: 1) } }
+      .overlay(alignment: .bottom) { Rectangle().fill(cs.rule).frame(height: 1) }
   }
 
   private func footer(_ card: Scorecard) -> some View {

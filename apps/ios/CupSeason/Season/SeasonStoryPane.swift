@@ -77,7 +77,7 @@ struct SeasonStoryPane: View {
         }
         .padding(.vertical, 10)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .overlay(alignment: .bottom) { Rectangle().fill(cs.line).frame(height: 1) }
+        .overlay(alignment: .bottom) { Rectangle().fill(cs.rule).frame(height: 1) }
         .accessibilityElement(children: .combine)
       }
     }
@@ -99,7 +99,7 @@ struct SeasonStoryPane: View {
           }
           .padding(.vertical, 10)
           .frame(maxWidth: .infinity, alignment: .leading)
-          .overlay(alignment: .bottom) { Rectangle().fill(cs.line).frame(height: 1) }
+          .overlay(alignment: .bottom) { Rectangle().fill(cs.rule).frame(height: 1) }
           .accessibilityElement(children: .combine)
         }
       }

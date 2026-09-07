@@ -22,7 +22,10 @@ import CupSeasonKit
 /// `-cs_dev_open <place>` lands a simulator on a screen, `-cs_dev_bottom`
 /// opens Home / You scrolled to the foot so the lower half can be seen
 /// without a finger, `-cs_dev_home_state <id>` puts Home in any state of the
-/// matrix. None of them exists in Release.
+/// matrix, and — IOS-051 — `-cs_dev_appearance <light|dark|auto>` and
+/// `-cs_dev_text_size <category>` make the light printing and the
+/// accessibility sizes PHOTOGRAPHABLE rather than computed. None of them
+/// exists in Release.
 enum CSDevHatch {
   static var bottom: Bool {
     #if DEBUG
@@ -39,6 +42,65 @@ enum CSDevHatch {
     #endif
     return 0
   }
+  /// `-cs_dev_appearance <light|dark|auto>` overrides the STORED appearance
+  /// for one launch (IOS-051). Without it the light theme is unreachable from
+  /// a script: `CupSeasonApp` applies `preferredColorScheme` from
+  /// `UserDefaults`, so `xcrun simctl ui <udid> appearance light` changes the
+  /// simulator and never reaches this app's UI — every light-theme claim in
+  /// the design was computed and none of it had been seen. DEBUG only.
+  static var appearance: CSAppearance? {
+    #if DEBUG
+    let a = ProcessInfo.processInfo.arguments
+    guard let i = a.firstIndex(of: "-cs_dev_appearance"), i + 1 < a.count else { return nil }
+    switch a[i + 1].lowercased() {
+    case "light": return .light
+    case "dark", "charcoal", "fescue": return .charcoal
+    case "auto", "device", "system": return .device
+    default: return nil
+    }
+    #else
+    return nil
+    #endif
+  }
+
+  /// `-cs_dev_text_size <category>` pins Dynamic Type for one launch
+  /// (IOS-051). `-UIPreferredContentSizeCategoryName` does not take on a
+  /// SwiftUI app launched by `simctl`, so AX3 was the other half of the
+  /// design that had been reasoned about rather than photographed. Takes a
+  /// UIKit category name (`UICTContentSizeCategoryAccessibilityL`), a SwiftUI
+  /// name (`accessibility3`), or the shorthand the reviews use (`AX3`).
+  /// DEBUG only.
+  static var textSize: DynamicTypeSize? {
+    #if DEBUG
+    let a = ProcessInfo.processInfo.arguments
+    guard let i = a.firstIndex(of: "-cs_dev_text_size"), i + 1 < a.count else { return nil }
+    let raw = a[i + 1]
+    let key = raw
+      .replacingOccurrences(of: "UICTContentSizeCategory", with: "")
+      .replacingOccurrences(of: "UIContentSizeCategory", with: "")
+      .replacingOccurrences(of: "_", with: "")
+      .lowercased()
+    switch key {
+    case "xs", "xsmall", "extrasmall":                       return .xSmall
+    case "s", "small":                                        return .small
+    case "m", "medium":                                       return .medium
+    case "l", "large":                                        return .large
+    case "xl", "xlarge", "extralarge":                        return .xLarge
+    case "xxl", "xxlarge":                                    return .xxLarge
+    case "xxxl", "xxxlarge":                                  return .xxxLarge
+    case "ax1", "accessibilitym", "accessibilitymedium":      return .accessibility1
+    case "ax2", "accessibilityl", "accessibilitylarge":       return .accessibility2
+    case "ax3", "accessibilityxl", "accessibility3",
+         "accessibilityextralarge":                           return .accessibility3
+    case "ax4", "accessibilityxxl", "accessibility4":         return .accessibility4
+    case "ax5", "accessibilityxxxl", "accessibility5":        return .accessibility5
+    default:                                                  return nil
+    }
+    #else
+    return nil
+    #endif
+  }
+
   /// `-cs_dev_home_state <id>` substitutes a FIXTURE payload for Home's one
   /// read, so any state in `HOME_STATE_MATRIX.md` §4 is a screen a simulator
   /// can open (D259). Twelve of the seventeen cannot be reached from any

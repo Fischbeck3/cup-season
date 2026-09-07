@@ -54,8 +54,10 @@ public struct CSLookAccent: Sendable {
   /// The sky's top: 22% of the accent under a look; ember at 10% on homebase,
   /// so Fescue-only still has warmth at the top of the page.
   public var skyStrength: Double { active ? 0.22 : 0.10 }
-  /// The page header's gradient tick: accent → accent2 under a look, ember → amber otherwise.
-  public var tick: [Color] { active ? [accent, accent2] : CSTokens.gradStops }
+  /// The page header's tick: accent → accent2 under a look; flat ember on
+  /// homebase. D270 deleted `effect.grad` — BRIEF §4 names the amber→ember
+  /// gradient as a do-not, and a two-stop ramp of one hue is not a gradient.
+  public var tick: [Color] { active ? [accent, accent2] : [cs.brand, cs.brand] }
   /// An eyebrow or section head's colour: the accent at full strength under a
   /// look; nil = `.csEyebrow()`'s default `mut`. Gold eyebrows are the caller's.
   public var eyebrow: Color? { active ? accent : nil }

@@ -33,7 +33,7 @@ struct HomeLeadCard: View {
     switch item.spine {
     case .ember: cs.brand
     case .gold:  cs.gold
-    case .mut:   la.active ? la.accent : cs.line2
+    case .mut:   la.active ? la.accent : cs.rule
     }
   }
 
@@ -86,7 +86,7 @@ struct HomeDeckCard: View {
     switch item.spine {
     case .ember: cs.brand
     case .gold:  cs.gold
-    case .mut:   la.active ? la.accent : cs.line2
+    case .mut:   la.active ? la.accent : cs.rule
     }
   }
 

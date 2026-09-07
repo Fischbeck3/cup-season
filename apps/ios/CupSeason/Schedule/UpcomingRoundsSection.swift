@@ -32,7 +32,7 @@ struct UpcomingRoundsSection: View {
         HStack(alignment: .firstTextBaseline) {
           Text("Coming up").csEyebrow(cs.mut)
           Spacer()
-          NavigationLink(value: HomeRoute.schedule) { Text("THE CALENDAR ↗").csEyebrow(cs.dawn).a11yHitSlop() }
+          NavigationLink(value: HomeRoute.schedule) { Text("THE CALENDAR ↗").csEyebrow(cs.ink).a11yHitSlop() }
         }
         CSHairline()
       }
@@ -49,7 +49,7 @@ struct UpcomingRoundsSection: View {
           .padding(12)
           .frame(minHeight: 44)
           .background(cs.bg1, in: RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous))
-          .overlay(RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous).stroke(cs.line, lineWidth: 1))
+          .overlay(RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous).stroke(cs.rule, lineWidth: 1))
         }
         .buttonStyle(.plain)
       } else {
@@ -84,7 +84,7 @@ struct HomeRoundCard: View {
       CSFace(marker: sr.marker, size: 36)
       VStack(alignment: .leading, spacing: 3) {
         (Text(sr.play_on.map { ScheduleDates.when($0) } ?? "").bold()
-         + (eyebrow.map { Text(" · ") + Text($0).font(CSFont.label).foregroundStyle(sr.withYou ? cs.dawn : cs.dimText) } ?? Text("")))
+         + (eyebrow.map { Text(" · ") + Text($0).font(CSFont.label).foregroundStyle(sr.withYou ? cs.ink : cs.dimText) } ?? Text("")))
           .font(CSFont.subhead).foregroundStyle(cs.ink)
         bits.font(CSFont.monoSmall).foregroundStyle(cs.mut)
       }
@@ -94,7 +94,7 @@ struct HomeRoundCard: View {
     }
     .padding(12)
     .background(cs.bg1, in: RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous))
-    .overlay(RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous).stroke(cs.line, lineWidth: 1))
+    .overlay(RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous).stroke(cs.rule, lineWidth: 1))
   }
 
   /// The card's trailing facts — the pill, the seat door, the count, the
@@ -109,7 +109,7 @@ struct HomeRoundCard: View {
           // F-10 · being on somebody's tee sheet is a MEMBERSHIP FACT: it is not
           // earned (gold, L-25) and it is not performance up (green). It is
           // quiet and true, which is what dawn is for.
-          Text("YOU’RE IN").font(CSFont.label).foregroundStyle(cs.dawn)
+          Text("YOU’RE IN").font(CSFont.label).foregroundStyle(cs.ink)
         } else if askable {
           // IOS-032 · a buddy's plan you are not in used to render every fact
           // and no way in — the dead end IA §10.1 names. The card does not do
@@ -141,7 +141,7 @@ struct HomeRoundCard: View {
     var t = Text(sr.who)
     if let c = sr.course_label { t = t + Text(" · \(c.uppercased())") }
     let tee = TeeTime.format(sr.tee_time)
-    if !tee.isEmpty { t = t + Text(" · ") + Text(tee).foregroundStyle(cs.dawn) }   // F-10 · a clock is not an achievement
+    if !tee.isEmpty { t = t + Text(" · ") + Text(tee).foregroundStyle(cs.ink) }   // F-10 · a clock is not an achievement
     return t
   }
 }

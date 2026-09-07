@@ -170,7 +170,7 @@ struct MajorRoomView: View {
         }
         .padding(.vertical, 8).padding(.horizontal, 12).frame(minHeight: 52)
         .background(cs.bg1, in: RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous))
-        .overlay(RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous).stroke(cs.line, lineWidth: 1))
+        .overlay(RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous).stroke(cs.rule, lineWidth: 1))
         .accessibilityElement(children: .combine)
       }
     }
@@ -216,7 +216,7 @@ struct MajorRoomView: View {
     .padding(.vertical, 8).padding(.horizontal, 12)
     .frame(minHeight: 52)
     .background(cs.bg1, in: RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous))
-    .overlay(RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous).stroke(cs.line, lineWidth: 1))
+    .overlay(RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous).stroke(cs.rule, lineWidth: 1))
     .contentShape(Rectangle())
 
     let said = "\(pos == "🏆" ? "Champion" : pos == "EX" ? "Doesn’t count this year" : pos == "—" ? "" : pos), \(name), \(line)" + (pvi.map { ", \(MajorMath.vs($0))" } ?? "")

@@ -169,7 +169,7 @@ struct YouTrophyChip: View {
       .foregroundStyle(earned ? cs.gold : cs.mut)
       .padding(.horizontal, 10).frame(minHeight: 28)
       .background((earned ? cs.gold : cs.ink).opacity(0.08), in: Capsule())
-      .overlay(Capsule().stroke(earned ? cs.gold.opacity(0.35) : cs.line2, lineWidth: 1))
+      .overlay(Capsule().stroke(earned ? cs.gold.opacity(0.35) : cs.rule, lineWidth: 1))
   }
 }
 

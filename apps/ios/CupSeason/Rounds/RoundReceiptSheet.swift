@@ -40,7 +40,7 @@ struct RoundReceiptSheet: View {
             img.resizable().scaledToFill()
               .frame(maxWidth: .infinity).frame(height: 240)
               .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
-              .overlay(RoundedRectangle(cornerRadius: 12, style: .continuous).stroke(cs.line2, lineWidth: 1))
+              .overlay(RoundedRectangle(cornerRadius: 12, style: .continuous).stroke(cs.rule, lineWidth: 1))
               .overlay(alignment: .bottomTrailing) {
                 if r.profileId != nil { MarkerStamp(marker: r.marker) }
               }
@@ -62,7 +62,7 @@ struct RoundReceiptSheet: View {
             // D124 (i) — a sentence in the verdict row's place, on the same hairline grid
             Text(line).font(CSFont.subhead.weight(.semibold)).foregroundStyle(cs.ink)
               .frame(maxWidth: .infinity, alignment: .leading).padding(.vertical, 9)
-              .overlay(alignment: .top) { Rectangle().fill(cs.line).frame(height: 1) }
+              .overlay(alignment: .top) { Rectangle().fill(cs.rule).frame(height: 1) }
               .fixedSize(horizontal: false, vertical: true)
           case .playedWith(let mates):
             (Text("Played with ").foregroundStyle(cs.dimText) + Text(mates.joined(separator: ", ")).foregroundStyle(cs.mut).bold())

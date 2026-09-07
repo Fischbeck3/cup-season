@@ -201,14 +201,14 @@ struct RyderRoomView: View {
       .frame(maxWidth: .infinity, alignment: ax ? .leading : .trailing)
       if let chip {
         let rose = model.risen.contains(d.id)
-        Text(chip).font(CSFont.label).csTabular().foregroundStyle(rose ? cs.warm : cs.mut).fixedSize()
+        Text(chip).font(CSFont.label).csTabular().foregroundStyle(rose ? cs.brand : cs.mut).fixedSize()
           .eventRise(rose)
           .id("\(d.id)-\(chip)")
       }
     }
     .padding(.horizontal, 10).padding(.vertical, 8)
     .frame(minHeight: 44)
-    .overlay(RoundedRectangle(cornerRadius: 9, style: .continuous).stroke(cs.line, lineWidth: 1))
+    .overlay(RoundedRectangle(cornerRadius: 9, style: .continuous).stroke(cs.rule, lineWidth: 1))
     .accessibilityElement(children: .combine)
   }
 

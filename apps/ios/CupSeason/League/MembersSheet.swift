@@ -39,7 +39,7 @@ struct MembersSheet: View {
         ShareLink(item: url, subject: Text("Cup Season"), message: Text(model.inviteText)) {
           Text("Share the invite link").font(CSFont.button).frame(maxWidth: .infinity, minHeight: 50)
             .foregroundStyle(cs.ink).background(cs.bg2, in: RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous))
-            .overlay(RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous).stroke(cs.line2, lineWidth: 1))
+            .overlay(RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous).stroke(cs.rule, lineWidth: 1))
         }
         .simultaneousGesture(TapGesture().onEnded { CSGrowth.log(.artifactShared, kind: "join", token: model.league?.code, league: model.league?.id) })
       }
@@ -108,7 +108,7 @@ struct MembersSheet: View {
       }
     }
     .padding(.vertical, 10)
-    .overlay(alignment: .bottom) { Rectangle().fill(cs.line).frame(height: 1) }
+    .overlay(alignment: .bottom) { Rectangle().fill(cs.rule).frame(height: 1) }
   }
 
   private func run(_ id: UUID, _ op: @escaping @MainActor () async throws -> Void) {
@@ -137,7 +137,7 @@ struct LeagueMarkerPicker: View {
             }
             .padding(.vertical, 10).padding(.horizontal, 4).frame(maxWidth: .infinity, minHeight: 64)
             .background(cs.bg2, in: RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous))
-            .overlay(RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous).stroke(cur == mk.key ? cs.pos : cs.line2, lineWidth: 1))
+            .overlay(RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous).stroke(cur == mk.key ? cs.pos : cs.rule, lineWidth: 1))
           }
           .buttonStyle(.plain)
           .accessibilityLabel(mk.name)

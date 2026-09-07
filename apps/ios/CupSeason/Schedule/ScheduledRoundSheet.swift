@@ -71,7 +71,7 @@ struct ScheduledRoundSheet: View {
         }
       }
       HStack(spacing: 8) {
-        chip(TeeTime.chip(d.teeTime), fg: cs.ink, bg: cs.bg2, border: cs.line)
+        chip(TeeTime.chip(d.teeTime), fg: cs.ink, bg: cs.bg2, border: cs.rule)
         if let w = vm.weather { chip(w.line, fg: cs.mut, bg: cs.gold.opacity(0.12), border: cs.gold.opacity(0.32)) }
       }
       // R-K / D256 · WHAT THIS ROUND IS WORTH. The server sends the cap and
@@ -193,7 +193,7 @@ struct ScheduledRoundSheet: View {
         .foregroundStyle(selected ? ink : cs.ink)
         .frame(maxWidth: .infinity, minHeight: 44)
         .background(selected ? on : cs.bg2, in: RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous))
-        .overlay(RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous).stroke(selected ? (status == "out" ? cs.line2 : on) : cs.line, lineWidth: 1))
+        .overlay(RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous).stroke(selected ? (status == "out" ? cs.rule : on) : cs.rule, lineWidth: 1))
     }
     .buttonStyle(.plain)
     .disabled(vm.rsvping)

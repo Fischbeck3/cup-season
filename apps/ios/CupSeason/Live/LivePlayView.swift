@@ -64,7 +64,7 @@ struct LivePlayView: View {
             Spacer()
             if !store.isPencilOnly {
               Button { store.backToSetup() } label: {
-                Text("Change setup").font(CSFont.footnote).foregroundStyle(cs.dawn).a11yHitSlop()
+                Text("Change setup").font(CSFont.footnote).foregroundStyle(cs.ink).a11yHitSlop()
               }
               .buttonStyle(.plain)
             }
@@ -135,7 +135,7 @@ struct LivePlayView: View {
             }
             .padding(.horizontal, 10).padding(.vertical, 6)
             .background(cs.bg2, in: Capsule())
-            .overlay(Capsule().stroke(c.lead ? cs.gold : cs.line2, lineWidth: 1))
+            .overlay(Capsule().stroke(c.lead ? cs.gold : cs.rule, lineWidth: 1))
           }
         }
       }
@@ -147,7 +147,7 @@ struct LivePlayView: View {
     .padding(.horizontal, 20).padding(.vertical, canShowCard ? 7 : 12)
     .frame(maxWidth: .infinity, alignment: .leading)
     .background(cs.bg1)
-    .overlay(alignment: .bottom) { Rectangle().fill(cs.line).frame(height: 1) }
+    .overlay(alignment: .bottom) { Rectangle().fill(cs.rule).frame(height: 1) }
     .accessibilityElement(children: .combine)
     .accessibilityAddTraits(.updatesFrequently)   // the scoreboard moves as the group scores
   }
@@ -203,7 +203,7 @@ struct LivePlayView: View {
       }
     }
     .clipShape(RoundedRectangle(cornerRadius: 7))
-    .overlay(RoundedRectangle(cornerRadius: 7).stroke(cs.line2, lineWidth: 1))
+    .overlay(RoundedRectangle(cornerRadius: 7).stroke(cs.rule, lineWidth: 1))
   }
 
   // MARK: hole header + dots
@@ -236,7 +236,7 @@ struct LivePlayView: View {
     HStack(spacing: 4) {
       ForEach(0..<s.liveHoles, id: \.self) { k in
         Circle()
-          .fill(s.holeDone(k) ? cs.brand : cs.line2)
+          .fill(s.holeDone(k) ? cs.brand : cs.rule)
           .frame(width: k == s.hole ? 10 : 6, height: k == s.hole ? 10 : 6)
           .overlay(Circle().stroke(k == s.hole ? cs.ink : .clear, lineWidth: 1))
           .frame(maxWidth: .infinity)
@@ -295,7 +295,7 @@ struct LivePlayView: View {
       .padding(.leading, typeSize.isA11y ? 14 : 0)
     }
     .padding(.vertical, canShowCard ? 4 : 6)
-    .overlay(alignment: .bottom) { Rectangle().fill(cs.line).frame(height: 1) }
+    .overlay(alignment: .bottom) { Rectangle().fill(cs.rule).frame(height: 1) }
   }
 
   // MARK: game cards (3070–3092)
@@ -327,7 +327,7 @@ struct LivePlayView: View {
     if let k = LiveCopy.skinsCard(s) {
       gameCard(accent: cs.gold) {
         Text("Skins · ties carry the pot").font(CSFont.footnote).foregroundStyle(cs.mut)
-        Text(k.status).font(CSFont.monoMediumBody).tracking(0.6).foregroundStyle(k.hot ? cs.hot : cs.ink)
+        Text(k.status).font(CSFont.monoMediumBody).tracking(0.6).foregroundStyle(k.hot ? cs.brand : cs.ink)
           .modifier(LiveCarryPulse(on: k.hot))
         Text(k.meta).font(CSFont.label).tracking(0.8).foregroundStyle(cs.dimText)
         tally(s.players.indices.map { (s.players[$0].n, String(k.won[$0]), k.won[$0] > 0 ? cs.pos : cs.mut) })
@@ -355,7 +355,7 @@ struct LivePlayView: View {
     VStack(alignment: .leading, spacing: 6) { content() }
       .padding(14).frame(maxWidth: .infinity, alignment: .leading)
       .background(cs.bg1, in: RoundedRectangle(cornerRadius: CSTokens.Radius.r, style: .continuous))
-      .overlay(RoundedRectangle(cornerRadius: CSTokens.Radius.r, style: .continuous).stroke(cs.line, lineWidth: 1))
+      .overlay(RoundedRectangle(cornerRadius: CSTokens.Radius.r, style: .continuous).stroke(cs.rule, lineWidth: 1))
       .overlay(alignment: .leading) { RoundedRectangle(cornerRadius: 2).fill(accent).frame(width: 3.5).padding(.vertical, 10) }
   }
 
@@ -365,7 +365,7 @@ struct LivePlayView: View {
         .foregroundStyle(on ? cs.bg0 : cs.ink)
         .padding(.horizontal, 10).frame(minHeight: 36)
         .background(on ? cs.gold : cs.bg2, in: Capsule())
-        .overlay(Capsule().stroke(on ? cs.gold : cs.line2, lineWidth: 1))
+        .overlay(Capsule().stroke(on ? cs.gold : cs.rule, lineWidth: 1))
         .frame(minHeight: 44).contentShape(Rectangle())
     }
     .buttonStyle(.plain)
@@ -434,7 +434,7 @@ struct LivePlayView: View {
         .font(CSFont.monoMediumBody).foregroundStyle(scrapArmed ? cs.neg : cs.dimText)
         .padding(.horizontal, 12).frame(minHeight: 44)
         .background(cs.bg2, in: Capsule())
-        .overlay(Capsule().stroke(scrapArmed ? cs.neg : cs.line2, lineWidth: 1))
+        .overlay(Capsule().stroke(scrapArmed ? cs.neg : cs.rule, lineWidth: 1))
     }
     .buttonStyle(.plain)
     .task(id: scrapArmed) {

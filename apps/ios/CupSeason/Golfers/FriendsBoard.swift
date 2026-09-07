@@ -151,7 +151,7 @@ struct PlayingSoonSection: View {
       if p.tagged_me == true {
         // F-10 · one fact, one metal. This said green while Home and the
         // calendar said gold for the same fact; a membership fact is neither.
-        Text("YOU’RE IN").font(CSFont.label).tracking(0.8).foregroundStyle(cs.dawn)
+        Text("YOU’RE IN").font(CSFont.label).tracking(0.8).foregroundStyle(cs.ink)
       } else if asked.contains(id) {
         Text("ASKED").font(CSFont.label).tracking(0.8).foregroundStyle(cs.mut)
       } else {

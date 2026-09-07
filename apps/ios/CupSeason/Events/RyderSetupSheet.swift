@@ -96,7 +96,7 @@ struct RyderSetupSheet: View {
         .frame(maxWidth: .infinity, alignment: .leading)
       if !EventDates.isSunday(startISO) {
         // the server raises on any other day — say so before the tap
-        CSFine("The Ryder starts on a Sunday — each week runs Sun to Sat", tone: cs.warm)
+        CSFine("The Ryder starts on a Sunday — each week runs Sun to Sat", tone: cs.brand)
       }
       EventFieldLabel(text: "Attach to a league", hint: "(optional)")
       EventLeaguePicker(memberships: memberships, selection: $league)

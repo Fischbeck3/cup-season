@@ -207,7 +207,7 @@ struct LeagueWelcomeSheet: View {
         rule("Rounds score against your playing HCP.", " Beat your handicap and it's a big day, whatever you shot. Your best rounds each month count; a better round always bumps your worst.")
         rule("The pot lives on the books.", " \(MoneyCopy.ledger) The settlement card shows who owes what.")
         Button("How scoring works →") { scoring = true }.font(CSFont.footnote).foregroundStyle(cs.brand).padding(.bottom, 4)
-        Rectangle().fill(cs.line).frame(height: 1)
+        Rectangle().fill(cs.rule).frame(height: 1)
         rule("Who else plays with you?", " Growing the league isn't the Pro's chore — any member's link works.")
         if let code = welcome.code {
           ShareLink(item: URL(string: "https://cupseason.app/?join=\(code)")!, subject: Text("Cup Season"),
@@ -215,7 +215,7 @@ struct LeagueWelcomeSheet: View {
             Text("Share the invite link").font(CSFont.button).foregroundStyle(cs.ink)
               .frame(maxWidth: .infinity, minHeight: 50)
               .background(cs.bg2, in: RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous))
-              .overlay(RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous).stroke(cs.line2, lineWidth: 1))
+              .overlay(RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous).stroke(cs.rule, lineWidth: 1))
           }
         }
       }

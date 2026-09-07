@@ -107,7 +107,7 @@ struct BoardScreen: View {
         .frame(minHeight: 44)
         .background(cs.bg2, in: RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous))
         .overlay(RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous)
-          .stroke(composing ? cs.focus : cs.line, lineWidth: composing ? 2 : 1))
+          .stroke(composing ? cs.brand : cs.rule, lineWidth: composing ? 2 : 1))
         .focused($composing)
         .submitLabel(.send)
         .frame(maxWidth: .infinity)
@@ -116,7 +116,7 @@ struct BoardScreen: View {
           Button { announcing = true } label: {
             Text("📣").font(.system(size: 18)).frame(minWidth: 44, minHeight: 44)
               .background(cs.bg2, in: RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous))
-              .overlay(RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous).stroke(cs.line2, lineWidth: 1))
+              .overlay(RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous).stroke(cs.rule, lineWidth: 1))
           }
           .buttonStyle(.plain)
           .accessibilityLabel("Announce to the league")
@@ -134,7 +134,7 @@ struct BoardScreen: View {
     }
     .padding(.horizontal, 16).padding(.vertical, 10)
     .background(cs.bg0)
-    .overlay(alignment: .top) { Rectangle().fill(cs.line).frame(height: 1) }
+    .overlay(alignment: .top) { Rectangle().fill(cs.rule).frame(height: 1) }
   }
 
   private func send(_ store: BoardStore) {

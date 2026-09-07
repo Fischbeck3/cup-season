@@ -60,7 +60,7 @@ struct LeaguelessDoors: View {
         .foregroundStyle(cs.ink)
         .padding(.horizontal, 6).frame(maxWidth: .infinity, minHeight: 50)
         .background(cs.bg2, in: RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous))
-        .overlay(RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous).stroke(cs.line2, lineWidth: 1))
+        .overlay(RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous).stroke(cs.rule, lineWidth: 1))
         .contentShape(Rectangle())
     }
     .buttonStyle(.plain)

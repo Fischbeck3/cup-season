@@ -143,7 +143,7 @@ struct HeadToHeadPage: View {
       ForEach(h.lastFive.reversed()) { m in
         Circle()
           .fill(m.won == true ? cs.brand : cs.bg2)
-          .overlay(Circle().stroke(m.won == nil ? cs.line2 : Color.clear, lineWidth: 1))
+          .overlay(Circle().stroke(m.won == nil ? cs.rule : Color.clear, lineWidth: 1))
           .frame(width: 10, height: 10)
       }
       Text(lastFiveLegend(h)).font(CSFont.label).tracking(0.8).foregroundStyle(cs.dimText)

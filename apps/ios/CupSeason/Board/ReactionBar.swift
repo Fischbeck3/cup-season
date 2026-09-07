@@ -29,7 +29,7 @@ struct ReactionBar: View {
 
   var body: some View {
     VStack(alignment: .leading, spacing: 8) {
-      Rectangle().fill(cs.line).frame(height: 1)
+      Rectangle().fill(cs.rule).frame(height: 1)
       FlowRow(spacing: 6) {
         ForEach(present, id: \.self) { e in chip(e, quick: e == CSReactions.quick) }
         if !present.contains(CSReactions.quick) { chip(CSReactions.quick, quick: true, bare: true) }
@@ -40,7 +40,7 @@ struct ReactionBar: View {
           Button { reporting = true } label: {
             Text("⚑").font(CSFont.monoSmall).frame(minWidth: 36, minHeight: 36)
               .foregroundStyle(cs.mut)
-              .background(cs.bg2, in: Capsule()).overlay(Capsule().stroke(cs.line2, lineWidth: 1))
+              .background(cs.bg2, in: Capsule()).overlay(Capsule().stroke(cs.rule, lineWidth: 1))
               .a11yHitSlop(vertical: 4, horizontal: 4)   // 36pt chip, 44pt target
           }
           .buttonStyle(.plain)
@@ -56,7 +56,7 @@ struct ReactionBar: View {
             }
             .foregroundStyle(cs.mut)
             .padding(.horizontal, 10).frame(minWidth: 36, minHeight: 36)
-            .background(cs.bg2, in: Capsule()).overlay(Capsule().stroke(cs.line2, lineWidth: 1))
+            .background(cs.bg2, in: Capsule()).overlay(Capsule().stroke(cs.rule, lineWidth: 1))
             .a11yHitSlop(vertical: 4, horizontal: 4)
           }
           .buttonStyle(.plain)
@@ -91,7 +91,7 @@ struct ReactionBar: View {
       .frame(minWidth: quick ? 44 : 36, minHeight: quick ? 44 : 36)
       .foregroundStyle(r.me ? cs.bg0 : cs.mut)
       .background(r.me ? cs.brand : cs.bg2, in: Capsule())
-      .overlay(Capsule().stroke(r.me ? cs.brand : cs.line2, lineWidth: 1))
+      .overlay(Capsule().stroke(r.me ? cs.brand : cs.rule, lineWidth: 1))
       .a11yHitSlop(vertical: quick ? 0 : 4, horizontal: quick ? 0 : 4)
     }
     .buttonStyle(.plain)
@@ -110,7 +110,7 @@ struct ReactionBar: View {
       Image(systemName: symbol).font(.system(size: 13, weight: .medium))
         .frame(minWidth: 36, minHeight: 36)
         .foregroundStyle(cs.mut)
-        .background(cs.bg2, in: Capsule()).overlay(Capsule().stroke(cs.line2, lineWidth: 1))
+        .background(cs.bg2, in: Capsule()).overlay(Capsule().stroke(cs.rule, lineWidth: 1))
         .a11yHitSlop(vertical: 4, horizontal: 4)
     }
     .buttonStyle(.plain)
@@ -135,7 +135,7 @@ struct ReactionBar: View {
     }
     .padding(.horizontal, 6)
     .background(cs.bg2, in: RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous))
-    .overlay(RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous).stroke(cs.line2, lineWidth: 1))
+    .overlay(RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous).stroke(cs.rule, lineWidth: 1))
     .transition(.opacity.combined(with: .move(edge: .top)))
   }
 
@@ -156,14 +156,14 @@ struct ReactionBar: View {
           .padding(.horizontal, 12)
           .frame(minHeight: 44)
           .background(cs.bg2, in: RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous))
-          .overlay(RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous).stroke(cs.line, lineWidth: 1))
+          .overlay(RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous).stroke(cs.rule, lineWidth: 1))
           .submitLabel(.send)
           .onSubmit(send)
         Button("Send", action: send)
           .font(CSFont.monoMediumBody)
           .foregroundStyle(cs.ink)
           .padding(.horizontal, 12).frame(minHeight: 44)
-          .background(cs.bg2, in: Capsule()).overlay(Capsule().stroke(cs.line2, lineWidth: 1))
+          .background(cs.bg2, in: Capsule()).overlay(Capsule().stroke(cs.rule, lineWidth: 1))
           .buttonStyle(.plain)
       }
     }

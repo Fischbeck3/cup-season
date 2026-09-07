@@ -157,7 +157,7 @@ struct LiveSetupView: View {
             Text("TAP A PLAYER BELOW").font(CSFont.label).tracking(1).foregroundStyle(cs.dimText)   // text never in `dim` (IOS-013)
           }
           .padding(10).frame(maxWidth: .infinity, minHeight: 56, alignment: .leading)
-          .overlay(RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous).stroke(cs.line2, style: StrokeStyle(lineWidth: 1, dash: [4, 3])))
+          .overlay(RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous).stroke(cs.rule, style: StrokeStyle(lineWidth: 1, dash: [4, 3])))
           .accessibilityElement(children: .combine)
         }
       }
@@ -250,7 +250,7 @@ struct LiveSetupView: View {
                 }
                 .padding(.horizontal, 10).frame(minHeight: 36)
                 .background(cs.bg2, in: Capsule())
-                .overlay(Capsule().stroke(cs.line2, lineWidth: 1))
+                .overlay(Capsule().stroke(cs.rule, lineWidth: 1))
                 .frame(minHeight: 44).contentShape(Rectangle())   // the 44pt frame must be INSIDE the label to count
               }
               .buttonStyle(.plain)
@@ -294,7 +294,7 @@ struct LiveSetupView: View {
         }
         CSFine(store.state.game.note)
         if store.state.game.money {
-          Divider().overlay(cs.line)
+          Divider().overlay(cs.rule)
           fieldLabel(store.state.game.stakeLabel)
           CSField("0", text: $stakeText).keyboardType(.decimalPad).frame(width: 110).accessibilityLabel(store.state.game.stakeLabel)
             .onChange(of: stakeText) { _, v in store.setStake(Double(v.replacingOccurrences(of: ",", with: ".")) ?? 0) }
@@ -346,7 +346,7 @@ struct LiveSlotChip: View {
     }
     .padding(10).frame(maxWidth: .infinity, minHeight: 56, alignment: .leading)
     .background(cs.bg2, in: RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous))
-    .overlay(RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous).stroke(picked ? cs.brand : cs.line2, lineWidth: picked ? 2 : 1))
+    .overlay(RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous).stroke(picked ? cs.brand : cs.rule, lineWidth: picked ? 2 : 1))
     .accessibilityElement(children: .contain)
     .accessibilityLabel("\(player.n), \(player.est ? "estimated " : "")index \(LiveFmt.idx(player.i))\(player.guest ? (player.buddy ? ", buddy" : ", guest") : "")\(picked ? ", selected" : "")")
   }
@@ -395,7 +395,7 @@ struct LiveCourtView: View {
     .frame(maxWidth: .infinity)
     .padding(8)
     .background(cs.bg1, in: RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous))
-    .overlay(RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous).stroke(cs.line, lineWidth: 1))
+    .overlay(RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous).stroke(cs.rule, lineWidth: 1))
   }
 }
 
@@ -422,7 +422,7 @@ struct LiveSeg<V: Hashable>: View {
     }
     .padding(3)
     .background(cs.bg2, in: RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous))
-    .overlay(RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous).stroke(cs.line2, lineWidth: 1))
+    .overlay(RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous).stroke(cs.rule, lineWidth: 1))
   }
 }
 
@@ -510,7 +510,7 @@ struct LiveCourseField: View {
   private func dropdown<C: View>(@ViewBuilder _ content: () -> C) -> some View {
     VStack(spacing: 0) { content() }
       .background(cs.bg1, in: RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous))
-      .overlay(RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous).stroke(cs.line2, lineWidth: 1))
+      .overlay(RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous).stroke(cs.rule, lineWidth: 1))
   }
 
   private func ddRow(_ b: String, _ s: String?, action: @escaping () -> Void) -> some View {

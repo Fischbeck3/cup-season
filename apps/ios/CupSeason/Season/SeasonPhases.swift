@@ -67,7 +67,7 @@ struct SeasonDraftHero: View {
           ShareLink(item: url, subject: Text("Cup Season"), message: Text(model.inviteText)) {
             Text("Share the invite link").font(CSFont.button).frame(maxWidth: .infinity, minHeight: 50)
               .foregroundStyle(cs.ink).background(cs.bg2, in: RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous))
-              .overlay(RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous).stroke(cs.line2, lineWidth: 1))
+              .overlay(RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous).stroke(cs.rule, lineWidth: 1))
           }
           .simultaneousGesture(TapGesture().onEnded { CSGrowth.log(.artifactShared, kind: "join", token: model.league?.code, league: model.league?.id) })
         }
@@ -129,12 +129,12 @@ struct PressMeter: View {
       GeometryReader { g in
         ZStack(alignment: .leading) {
           Capsule().fill(cs.bg2)
-          Capsule().fill(LinearGradient(colors: [cs.warm, cs.hot, cs.fire], startPoint: .leading, endPoint: .trailing))
+          Capsule().fill(LinearGradient(colors: [cs.brand, cs.brand, cs.brand], startPoint: .leading, endPoint: .trailing))
             .frame(width: max(6, g.size.width * pm.fill))
         }
       }
       .frame(height: 6)
-      Text(pm.legend).font(CSFont.label).tracking(1.0).foregroundStyle(pm.hot ? cs.hot : cs.mut)
+      Text(pm.legend).font(CSFont.label).tracking(1.0).foregroundStyle(pm.hot ? cs.brand : cs.mut)
     }
     .accessibilityElement(children: .combine)
     .accessibilityLabel(pm.legend)

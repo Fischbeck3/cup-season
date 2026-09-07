@@ -135,7 +135,7 @@ struct StandingsTableView: View {
       .frame(minHeight: 52)
       .contentShape(Rectangle())
       // IOS-003 §2.10: the leader's rank hairline is gold — the one earned rule in the table
-      .overlay(alignment: .bottom) { Rectangle().fill(i == 0 && t.pts > 0 ? cs.gold.opacity(0.55) : cs.line).frame(height: 1) }
+      .overlay(alignment: .bottom) { Rectangle().fill(i == 0 && t.pts > 0 ? cs.gold.opacity(0.55) : cs.rule).frame(height: 1) }
     }
     .buttonStyle(.plain)
     // "1st, Galen, 27 points, up 1 this week" — the row in one breath
@@ -149,8 +149,8 @@ struct StandingsTableView: View {
   private func moveChip(_ mv: Movement) -> some View {
     let tone: Color = switch mv.tone {
     case .held: cs.mut
-    case .up: cs.warm
-    case .up2: cs.hot
+    case .up: cs.brand
+    case .up2: cs.brand
     case .down: cs.cool
     }
     // D258 · `CSFont.label` IS the 11pt floor (L-29), so a 0.8 scale factor

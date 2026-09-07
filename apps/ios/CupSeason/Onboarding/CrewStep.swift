@@ -273,7 +273,7 @@ struct CrewStep: View {
       .padding(.horizontal, 14).padding(.vertical, 12)
       .background(cs.bg1, in: RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous))
       .overlay(RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous)
-        .stroke(ember ? cs.brand : cs.line2, lineWidth: 1))
+        .stroke(ember ? cs.brand : cs.rule, lineWidth: 1))
       .contentShape(Rectangle())
     }
     .buttonStyle(.plain)

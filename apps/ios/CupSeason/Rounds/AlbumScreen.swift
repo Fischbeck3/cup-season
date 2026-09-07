@@ -85,7 +85,7 @@ struct AlbumScreen: View {
           }
         }
         .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
-        .overlay(RoundedRectangle(cornerRadius: 10, style: .continuous).stroke(cs.line2, lineWidth: 1))
+        .overlay(RoundedRectangle(cornerRadius: 10, style: .continuous).stroke(cs.rule, lineWidth: 1))
     }
     .buttonStyle(.plain)
     .accessibilityLabel("\(nameOf(r.profile_id)) — \(r.gross.map(String.init) ?? "") at \(r.course_label ?? "the course"), \(r.played_on ?? "")")

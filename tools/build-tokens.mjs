@@ -55,7 +55,10 @@ for (const theme of doc.meta.themes) {
   out += `  ${theme}: {\n`;
   for (const [, name, spec] of entries) {
     const v = spec[theme] ?? spec.dark ?? spec.light;      // no light override = theme-independent
-    out += `    ${ts(name)}: ${ts(v)},\n`;
+    /* String(): `alpha` and `track` are stored as bare numbers (0.56, 0.09 —
+       a ratio of the rendered size, not a length), and this map is typed
+       Record<TokenName, string>. CSS custom properties are strings anyway. */
+    out += `    ${ts(name)}: ${ts(String(v))},\n`;
   }
   out += '  },\n';
 }
@@ -113,21 +116,43 @@ ${doc.meta.themes.map(t => `    case .${t}: return ${t}`).join('\n')}
   }
 
 `;
-/* effects */
-const glow = rgba(entries.find(([, n]) => n === 'glow')[2].dark);
-const grad = [...entries.find(([, n]) => n === 'grad')[2].dark.matchAll(/#[0-9a-f]{6}/gi)].map(m => m[0]);
-sw += `  /// effect — ember halo (tab circle, hero CTA). Theme-independent by design.
-  public static let glow = Color(red: ${glow.r}/255, green: ${glow.g}/255, blue: ${glow.b}/255, opacity: ${glow.a})
-  /// effect — the amber→ember 135° gradient (btn, tee, eyebrow dash, nav glow).
-  public static let gradStops: [Color] = [${grad.map(h => `Color(hex: ${hex(h)})`).join(', ')}]
+/* D270 deleted `effect.glow` and `effect.grad` — BRIEF §4's named do-not — and
+   this block used to reach for both with an unguarded `.find(...)[2]`, so the
+   first command of the overhaul threw `Cannot read properties of undefined`
+   and nothing regenerated. It is gone rather than guarded: a token that does
+   not exist should not have a line here waiting for it.
 
-  public enum Radius {
+   The four non-colour groups below are a WHITELIST on purpose. A group added
+   to tokens.json reaches tokens.css and tokens.ts for free but is silently
+   absent from Swift until it is named here — which is how `space`, `alpha`
+   and `track` came to be missing from the phone while every spec cited them.
+   Add the group AND its emitter, or the phone does not have it. */
+sw += `  public enum Radius {
 ${entries.filter(([g]) => g === 'radius').map(([, n, s]) => `    public static let ${camel(n)}: CGFloat = ${px(s.dark)}${s.note ? `  // ${s.note}` : ''}`).join('\n')}
   }
 
+  /// The one spacing scale, in points. \`rail\` is the 44pt rank rail.
+  public enum Space {
+${entries.filter(([g]) => g === 'space').map(([, n, s]) => `    public static let ${camel(n)}: CGFloat = ${px(s.dark)}${s.note ? `  // ${s.note}` : ''}`).join('\n')}
+  }
+
+  /// The five opacities anything in the system is allowed to be.
+  public enum Alpha {
+${entries.filter(([g]) => g === 'alpha').map(([, n, s]) => `    public static let ${camel(n)}: Double = ${s.dark}${s.note ? `  // ${s.note}` : ''}`).join('\n')}
+  }
+
+  /// Letterspacing as a RATIO of the rendered point size — multiply by the
+  /// size you are actually drawing at, never by the declared one, so tracking
+  /// still holds at AX3. SwiftUI's \`.tracking(_:)\` takes points.
+  public enum Track {
+${entries.filter(([g]) => g === 'track').map(([, n, s]) => `    public static let ${camel(n)}: Double = ${s.dark}${s.note ? `  // ${s.note}` : ''}`).join('\n')}
+  }
+
   /// The CSS font stacks, verbatim. The platform walks the list; on iOS
-  /// "-apple-system" resolves to San Francisco and Charter ships as a system
-  /// face, so only IBM Plex Mono is bundled.
+  /// "-apple-system" resolves to San Francisco and "ui-serif" to New York, so
+  /// the two families the product actually bundles are IBM Plex Mono and IBM
+  /// Plex Sans Condensed. A STACK DOES NOT LOAD A FACE: the PostScript names
+  /// live in CSFont and preflight 38 holds them to the files' own name table.
   public enum FontStack {
 ${entries.filter(([g]) => g === 'type').map(([, n, s]) => `    public static let ${camel(n)}: [String] = [${stack(s.dark).map(f => JSON.stringify(f)).join(', ')}]`).join('\n')}
   }

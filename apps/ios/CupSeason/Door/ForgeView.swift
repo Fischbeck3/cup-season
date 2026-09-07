@@ -187,7 +187,7 @@ struct ForgeFrame: View {
     let o = ForgeTimeline.progress(t, ForgeTimeline.ambientIn) * (1 - ForgeTimeline.progress(t, ForgeTimeline.ambientGone))
     return ZStack {
       Ellipse()
-        .fill(RadialGradient(colors: [cs.hot.opacity(0.26), cs.hot.opacity(0.08), cs.hot.opacity(0)],
+        .fill(RadialGradient(colors: [cs.brand.opacity(0.26), cs.brand.opacity(0.08), cs.brand.opacity(0)],
                              center: .center, startRadius: 0, endRadius: 150 * s))
         .frame(width: 300 * s, height: 88 * s)
         .position(pt(230, 238))
@@ -199,12 +199,12 @@ struct ForgeFrame: View {
   }
 
   private func ring(rx: CGFloat, ry: CGFloat, y: CGFloat, opacity: Double) -> some View {
-    Ellipse().stroke(cs.hot.opacity(opacity), lineWidth: 1.5 * s)
+    Ellipse().stroke(cs.brand.opacity(opacity), lineWidth: 1.5 * s)
       .frame(width: rx * 2 * s, height: ry * 2 * s)
       .position(pt(230, y))
   }
 
-  private var heat: [Color] { [cs.warm, cs.hot, cs.fire, cs.ink] }
+  private var heat: [Color] { [cs.brand, cs.brand, cs.brand, cs.ink] }
 
   /// `.obtr`: draw on `csDraw`, leave on `csGone`. Width 2.6, round caps, .85.
   private func tracer(_ i: Int) -> some View {
@@ -264,8 +264,8 @@ struct ForgeFrame: View {
     let halo = 1 - p
     return ZStack {
       Text(ch).foregroundStyle(cs.ink)
-      Text(ch).foregroundStyle(cs.hot).opacity(hotLayer)
-      Text(ch).foregroundStyle(cs.fire).opacity(fireLayer)
+      Text(ch).foregroundStyle(cs.brand).opacity(hotLayer)
+      Text(ch).foregroundStyle(cs.brand).opacity(fireLayer)
     }
     .font(CSFont.wordmark)
     .blur(radius: 3 * (1 - o))
@@ -283,14 +283,14 @@ struct ForgeFrame: View {
     return ZStack(alignment: .leading) {
       Rectangle()
         .fill(LinearGradient(stops: [
-          .init(color: cs.hot.opacity(0), location: 0), .init(color: cs.hot, location: 0.18),
-          .init(color: cs.hot, location: 0.82), .init(color: cs.hot.opacity(0), location: 1),
+          .init(color: cs.brand.opacity(0), location: 0), .init(color: cs.brand, location: 0.18),
+          .init(color: cs.brand, location: 0.82), .init(color: cs.brand.opacity(0), location: 1),
         ], startPoint: .leading, endPoint: .trailing))
         .frame(height: 2)
         .scaleEffect(x: max(0.001, p), y: 1, anchor: .leading)
         .opacity(p > 0 ? 1 : 0)   // an unlit fuse draws nothing, not a sliver
-      Circle().fill(cs.fire).frame(width: 8, height: 8)
-        .shadow(color: cs.fire.opacity(0.8), radius: 6)
+      Circle().fill(cs.brand).frame(width: 8, height: 8)
+        .shadow(color: cs.brand.opacity(0.8), radius: 6)
         .offset(x: width * p - 4)
         .opacity(dot)
     }

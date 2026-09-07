@@ -171,7 +171,7 @@ struct WizardWhoStep: View {
         .foregroundStyle(on ? cs.pos : cs.ink)
         .padding(.horizontal, 16).frame(minWidth: 44, minHeight: 44)
         .background(cs.bg2, in: Capsule())
-        .overlay(Capsule().stroke(on ? cs.pos : cs.line2, lineWidth: 1))
+        .overlay(Capsule().stroke(on ? cs.pos : cs.rule, lineWidth: 1))
     }
     .buttonStyle(.plain)
     .accessibilityLabel("\(WizardCopy.howManyLabel(n)) golfers")
@@ -250,7 +250,7 @@ struct WizardWhoStep: View {
       }
       .padding(.horizontal, 12).frame(minHeight: 44)
       .background(cs.bg2, in: Capsule())
-      .overlay(Capsule().stroke(on ? cs.pos : cs.line2, lineWidth: 1))
+      .overlay(Capsule().stroke(on ? cs.pos : cs.rule, lineWidth: 1))
     }
     .buttonStyle(.plain)
     .accessibilityAddTraits(on ? .isSelected : [])
@@ -272,7 +272,7 @@ struct WizardWhoStep: View {
       .frame(maxWidth: .infinity, alignment: .leading)
       .padding(.horizontal, 12).padding(.vertical, 10).frame(minHeight: 50)
       .background(cs.bg2, in: RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous))
-      .overlay(RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous).stroke(ember ? cs.brand : cs.line2, lineWidth: 1))
+      .overlay(RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous).stroke(ember ? cs.brand : cs.rule, lineWidth: 1))
       .contentShape(Rectangle())
     }
     .buttonStyle(.plain)
@@ -301,12 +301,12 @@ struct WizardWhenStep: View {
           .accessibilityLabel(WizardCopy.firstTee.0)
       }
       .padding(.vertical, 8)
-      .overlay(alignment: .bottom) { Rectangle().fill(cs.line).frame(height: 1) }
+      .overlay(alignment: .bottom) { Rectangle().fill(cs.rule).frame(height: 1) }
       // L-13, in a golfer's words, at the moment it matters.
       CSFine(WizardCopy.step2Note(endsOn: model.dials.endDate()))
       // QB-06 · and the two things the first tee COSTS, said here rather than
       // three panes deep and after publication.
-      CSFine(WizardCopy.step2Consequence(startsOn: model.dials.startDate()), tone: cs.warm)
+      CSFine(WizardCopy.step2Consequence(startsOn: model.dials.startDate()), tone: cs.brand)
     }
   }
 
@@ -366,10 +366,10 @@ struct WizardStakeStep: View {
           .accessibilityLabel(WizardCopy.payLabel)
         // The ONE required field the wizard gains.
         CSFine(model.dials.payNoteMissing ? WizardCopy.payMissing : WizardCopy.payFine,
-               tone: model.dials.payNoteMissing ? cs.warm : cs.dimText)
+               tone: model.dials.payNoteMissing ? cs.brand : cs.dimText)
       }
 
-      Rectangle().fill(cs.line).frame(height: 1).padding(.vertical, 4)
+      Rectangle().fill(cs.rule).frame(height: 1).padding(.vertical, 4)
 
       // THE RULES, IN ONE SENTENCE. Every dial is still there, verbatim, behind
       // More settings (P-6: complexity hidden, never deleted).
@@ -384,7 +384,7 @@ struct WizardStakeStep: View {
           Image(systemName: "chevron.down").font(.system(size: 12, weight: .semibold)).rotationEffect(.degrees(model.showDials ? 180 : 0))
         }
         .foregroundStyle(cs.ink).padding(.horizontal, 12).frame(minHeight: 44)
-        .background(cs.bg2, in: Capsule()).overlay(Capsule().stroke(cs.line2, lineWidth: 1))
+        .background(cs.bg2, in: Capsule()).overlay(Capsule().stroke(cs.rule, lineWidth: 1))
       }
       .buttonStyle(.plain)
       .accessibilityValue(model.showDials ? "expanded" : "collapsed")
@@ -416,7 +416,7 @@ struct WizardStakeStep: View {
         .foregroundStyle(on ? cs.bg0 : cs.ink)
         .padding(.horizontal, 10).frame(maxWidth: .infinity, minHeight: 44)
         .background(on ? cs.ink : cs.bg2, in: RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous))
-        .overlay(RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous).stroke(cs.line2, lineWidth: on ? 0 : 1))
+        .overlay(RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous).stroke(cs.rule, lineWidth: on ? 0 : 1))
     }
     .buttonStyle(.plain)
     .accessibilityAddTraits(on ? [.isSelected] : [])
@@ -433,7 +433,7 @@ struct WizardStakeStep: View {
         .foregroundStyle(otherOpen ? cs.bg0 : cs.ink)
         .padding(.horizontal, 10).frame(maxWidth: .infinity, minHeight: 44)
         .background(otherOpen ? cs.ink : cs.bg2, in: RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous))
-        .overlay(RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous).stroke(cs.line2, lineWidth: otherOpen ? 0 : 1))
+        .overlay(RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous).stroke(cs.rule, lineWidth: otherOpen ? 0 : 1))
     }
     .buttonStyle(.plain)
     .accessibilityAddTraits(otherOpen ? [.isSelected] : [])
@@ -467,7 +467,7 @@ struct WizardDialsPane: View {
         model.squadsChosen = (s != "solo")
       }
       CSFine(model.dials.structNote)
-      CSFine(WizardDials.structFitLine(roster: model.roster), tone: cs.warm)
+      CSFine(WizardDials.structFitLine(roster: model.roster), tone: cs.brand)
 
       eyebrow(WizardCopy.fillEyebrow, key: "draft", text: WizardCopy.fillHelp)
       WizardSeg(options: WizardDials.draftTypes.map { ($0, WizardDials.draftLabels[$0] ?? $0) },
@@ -512,7 +512,7 @@ struct WizardDialsPane: View {
       .padding(14)
       .frame(maxWidth: .infinity, alignment: .leading)
       .background(cs.bg1, in: RoundedRectangle(cornerRadius: CSTokens.Radius.r, style: .continuous))
-      .overlay(RoundedRectangle(cornerRadius: CSTokens.Radius.r, style: .continuous).stroke(on ? cs.brand : cs.line, lineWidth: on ? 1.5 : 1))
+      .overlay(RoundedRectangle(cornerRadius: CSTokens.Radius.r, style: .continuous).stroke(on ? cs.brand : cs.rule, lineWidth: on ? 1.5 : 1))
       .contentShape(Rectangle())
     }
     .buttonStyle(.plain)
@@ -575,7 +575,7 @@ struct WizardSetRow: View {
       if open, let help { CSFine(help.text) }
     }
     .padding(.vertical, 8)
-    .overlay(alignment: .bottom) { Rectangle().fill(cs.line).frame(height: 1) }
+    .overlay(alignment: .bottom) { Rectangle().fill(cs.rule).frame(height: 1) }
   }
 
   private func stepButton(_ glyph: String, _ label: String, _ action: @escaping () -> Void) -> some View {
@@ -583,7 +583,7 @@ struct WizardSetRow: View {
       Text(glyph).font(CSFont.monoMediumBody).foregroundStyle(cs.ink)
         .frame(width: 44, height: 44)
         .background(cs.bg2, in: RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous))
-        .overlay(RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous).stroke(cs.line2, lineWidth: 1))
+        .overlay(RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous).stroke(cs.rule, lineWidth: 1))
     }
     .buttonStyle(.plain)
     .accessibilityLabel(label)
@@ -608,7 +608,7 @@ struct WizardSeg: View {
             .foregroundStyle(on ? cs.bg0 : cs.ink)
             .padding(.horizontal, 10).frame(maxWidth: .infinity, minHeight: 44)
             .background(on ? cs.ink : cs.bg2, in: RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous))
-            .overlay(RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous).stroke(cs.line2, lineWidth: on ? 0 : 1))
+            .overlay(RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous).stroke(cs.rule, lineWidth: on ? 0 : 1))
             .opacity(dimmed(o.key) && !on ? 0.4 : 1)
         }
         .buttonStyle(.plain)
@@ -630,7 +630,7 @@ struct WizardInfoButton: View {
       Text("i").font(CSFont.label).foregroundStyle(open ? cs.bg0 : cs.mut)
         .frame(width: 20, height: 20)
         .background(open ? cs.mut : cs.bg2, in: Circle())
-        .overlay(Circle().stroke(cs.line2, lineWidth: 1))
+        .overlay(Circle().stroke(cs.rule, lineWidth: 1))
         .frame(width: 44, height: 44)
         .contentShape(Rectangle())
     }
@@ -714,7 +714,7 @@ struct WizardPortraitCard: View {
     Text(t).font(CSFont.label).tracking(0.6)
       .foregroundStyle(on ? cs.brand : cs.mut)
       .padding(.horizontal, 8).padding(.vertical, 4)
-      .overlay(Capsule().stroke(on ? cs.brand : cs.line2, lineWidth: 1))
+      .overlay(Capsule().stroke(on ? cs.brand : cs.rule, lineWidth: 1))
       .accessibilityLabel(on ? "\(t), chosen" : t)
   }
 
@@ -733,11 +733,11 @@ struct WizardPortraitCard: View {
   private var seasonBand: some View {
     HStack(spacing: 4) {
       ForEach(0..<portrait.months, id: \.self) { _ in
-        RoundedRectangle(cornerRadius: 4).stroke(cs.line2, lineWidth: 1.2).frame(width: 26, height: 16)
+        RoundedRectangle(cornerRadius: 4).stroke(cs.rule, lineWidth: 1.2).frame(width: 26, height: 16)
       }
       if portrait.canCup {
         // the final block, then its name at a readable size — a 7pt caption over the block fell under the 11pt floor (IOS-003 §2.1)
-        RoundedRectangle(cornerRadius: 4).fill(CSTokens.glow).frame(width: 18, height: 16)
+        RoundedRectangle(cornerRadius: 4).fill(cs.brand.opacity(CSTokens.Alpha.a24)).frame(width: 18, height: 16)
           .overlay(RoundedRectangle(cornerRadius: 4).stroke(cs.brand, lineWidth: 1.4))
         Text("FINAL 4").font(CSFont.label).tracking(0.8).foregroundStyle(cs.brand).fixedSize()
       }

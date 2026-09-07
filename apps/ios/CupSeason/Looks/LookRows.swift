@@ -175,7 +175,7 @@ struct LookSwatch: View {
         Circle().fill(cs.bg0)
       }
     }
-    .overlay(Circle().stroke(cs.line2, lineWidth: 1))
+    .overlay(Circle().stroke(cs.rule, lineWidth: 1))
     .frame(width: size, height: size)
     .accessibilityHidden(true)
   }

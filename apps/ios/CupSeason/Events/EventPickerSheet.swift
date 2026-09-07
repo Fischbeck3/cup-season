@@ -64,7 +64,7 @@ struct EventPickerSheet: View {
     Button(action: action) {
       HStack(spacing: 12) {
         Text(emoji).font(.system(size: 22)).frame(width: 36, height: 36)
-          .background(cs.bg2, in: Circle()).overlay(Circle().stroke(cs.line, lineWidth: 1))
+          .background(cs.bg2, in: Circle()).overlay(Circle().stroke(cs.rule, lineWidth: 1))
           .accessibilityHidden(true)
         VStack(alignment: .leading, spacing: 3) {
           Text(name).font(CSFont.subhead.weight(.semibold)).foregroundStyle(cs.ink)
@@ -77,7 +77,7 @@ struct EventPickerSheet: View {
       .padding(.vertical, 8).padding(.horizontal, 12)
       .frame(minHeight: 52)
       .background(cs.bg1, in: RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous))
-      .overlay(RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous).stroke(live ? cs.brand : cs.line, lineWidth: 1))   // F-16
+      .overlay(RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous).stroke(live ? cs.brand : cs.rule, lineWidth: 1))   // F-16
       .contentShape(Rectangle())
     }
     .buttonStyle(.plain)

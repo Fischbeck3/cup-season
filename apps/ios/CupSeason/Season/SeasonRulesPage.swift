@@ -75,7 +75,7 @@ struct SeasonRulesPage: View {
       }
       Button { router.open(.scoringHelp) } label: {
         // F-12 · a full clause is prose, and L-29 keeps prose out of mono.
-        Text("How scoring and handicaps work →").font(CSFont.subhead.weight(.medium)).foregroundStyle(cs.dawn)
+        Text("How scoring and handicaps work →").font(CSFont.subhead.weight(.medium)).foregroundStyle(cs.ink)
           .frame(minHeight: 44).contentShape(Rectangle())
       }
       .buttonStyle(.plain)
@@ -103,7 +103,7 @@ struct SeasonRulesPage: View {
           ShareLink(item: url, subject: Text("Cup Season"), message: Text(model.inviteText)) {
             Text("Invite").font(CSFont.monoSmall).foregroundStyle(cs.ink)
               .padding(.horizontal, 12).frame(minHeight: 36)
-              .background(cs.bg2, in: Capsule()).overlay(Capsule().stroke(cs.line2, lineWidth: 1))
+              .background(cs.bg2, in: Capsule()).overlay(Capsule().stroke(cs.rule, lineWidth: 1))
               .frame(minHeight: 44)
           }
           .simultaneousGesture(TapGesture().onEnded {

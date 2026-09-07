@@ -27,7 +27,7 @@ public struct CSCard<Content: View>: View {
       .padding(padding)
       .frame(maxWidth: .infinity, alignment: .leading)
       .background(cs.bg1, in: RoundedRectangle(cornerRadius: CSTokens.Radius.r, style: .continuous))
-      .overlay(RoundedRectangle(cornerRadius: CSTokens.Radius.r, style: .continuous).stroke(cs.line, lineWidth: 1))
+      .overlay(RoundedRectangle(cornerRadius: CSTokens.Radius.r, style: .continuous).stroke(cs.rule, lineWidth: 1))
       .overlay(alignment: .leading) {
         if let spine {
           RoundedRectangle(cornerRadius: 2).fill(spine).frame(width: 3.5).padding(.vertical, 10)
@@ -88,7 +88,7 @@ public struct CSButton: View {
     case .gold: cs.bg0
     }
   }
-  private var border: Color { style == .quiet ? cs.line2 : .clear }
+  private var border: Color { style == .quiet ? cs.rule : .clear }
 }
 
 // MARK: - Field
@@ -113,7 +113,7 @@ public struct CSField: View {
       .frame(minHeight: 48)
       .background(cs.bg2, in: RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous))
       .overlay(RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous)
-        .stroke(focused ? cs.focus : cs.line, lineWidth: focused ? 2 : 1))
+        .stroke(focused ? cs.brand : cs.rule, lineWidth: focused ? 2 : 1))
       .focused($focused)
   }
 }
@@ -140,7 +140,7 @@ public struct CSStat: View {
     .padding(.vertical, 14).padding(.horizontal, 14)
     .frame(maxWidth: .infinity, alignment: .leading)
     .background(cs.bg1, in: RoundedRectangle(cornerRadius: CSTokens.Radius.r, style: .continuous))
-    .overlay(RoundedRectangle(cornerRadius: CSTokens.Radius.r, style: .continuous).stroke(cs.line, lineWidth: 1))
+    .overlay(RoundedRectangle(cornerRadius: CSTokens.Radius.r, style: .continuous).stroke(cs.rule, lineWidth: 1))
   }
 }
 

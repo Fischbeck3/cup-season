@@ -305,7 +305,7 @@ private struct CardEditorPane: View {
             .frame(maxWidth: .infinity, minHeight: 66)
             .background(cs.bg1, in: RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous))
             .overlay(RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous)
-              .stroke(vm.marker == m.key ? cs.brand : cs.line, lineWidth: vm.marker == m.key ? 2 : 1))
+              .stroke(vm.marker == m.key ? cs.brand : cs.rule, lineWidth: vm.marker == m.key ? 2 : 1))
           }
           .buttonStyle(.plain)
           // Y-33 · the glyph is silent by construction (`CSMarkerView` names
@@ -358,7 +358,7 @@ private struct CardEditorPane: View {
                 Text(title).font(CSFont.monoSmall).foregroundStyle(on ? cs.pos : cs.ink)
                   .padding(.horizontal, 10).padding(.vertical, 8)
                   .background(cs.bg2, in: RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous))
-                  .overlay(RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous).stroke(on ? cs.pos : cs.line2, lineWidth: 1))
+                  .overlay(RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous).stroke(on ? cs.pos : cs.rule, lineWidth: 1))
                   .a11yHitSlop(vertical: 5, horizontal: 0)
               }
               .buttonStyle(.plain)
@@ -454,7 +454,7 @@ private struct CardEditorPane: View {
   /// The scoring guide's door, in the card pane's footnote voice.
   private func guideLink(_ title: String) -> some View {
     Button { openGuide(.scoring) } label: {
-      Text("\(title) →").font(CSFont.footnote).foregroundStyle(cs.dawn).frame(minHeight: 44).contentShape(Rectangle())
+      Text("\(title) →").font(CSFont.footnote).foregroundStyle(cs.ink).frame(minHeight: 44).contentShape(Rectangle())
     }
     .buttonStyle(.plain)
     .accessibilityLabel(title)
@@ -619,7 +619,7 @@ private struct SettingsPane: View {
       Text(s).font(CSFont.monoMediumBody).foregroundStyle(cs.ink)
         .padding(.horizontal, 12).padding(.vertical, 9)
         .background(cs.bg2, in: RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous))
-        .overlay(RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous).stroke(cs.line2, lineWidth: 1))
+        .overlay(RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous).stroke(cs.rule, lineWidth: 1))
         .a11yHitSlop(vertical: 5, horizontal: 0)   // a 35pt pill, a 44pt target
     }
     .buttonStyle(.plain)
@@ -661,7 +661,7 @@ private struct MiniPill: View {
     Text(text).font(CSFont.monoMediumBody).foregroundStyle(accent ? cs.bg0 : cs.ink)
       .padding(.horizontal, 14).padding(.vertical, 9)
       .background(accent ? cs.brand : cs.bg2, in: RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous))
-      .overlay(RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous).stroke(accent ? .clear : cs.line2, lineWidth: 1))
+      .overlay(RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous).stroke(accent ? .clear : cs.rule, lineWidth: 1))
       .a11yHitSlop(vertical: 5, horizontal: 0)   // a 35pt pill, a 44pt target
   }
 }

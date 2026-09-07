@@ -159,7 +159,7 @@ struct WizardDots: View {
   var body: some View {
     HStack(spacing: 6) {
       ForEach(0..<3, id: \.self) { i in
-        Capsule().fill(i <= step ? cs.brand : cs.line2).frame(width: i == step ? 22 : 8, height: 4)
+        Capsule().fill(i <= step ? cs.brand : cs.rule).frame(width: i == step ? 22 : 8, height: 4)
           .csAnimation(CSMotion.rise, value: step)
       }
     }

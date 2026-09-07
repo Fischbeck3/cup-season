@@ -43,7 +43,7 @@ struct EventFineCard: View {
       .frame(maxWidth: .infinity, alignment: .leading)
       .padding(.horizontal, 13).padding(.vertical, 11)
       .background(cs.bg2, in: RoundedRectangle(cornerRadius: CSTokens.Radius.r, style: .continuous))
-      .overlay(RoundedRectangle(cornerRadius: CSTokens.Radius.r, style: .continuous).stroke(cs.line, lineWidth: 1))
+      .overlay(RoundedRectangle(cornerRadius: CSTokens.Radius.r, style: .continuous).stroke(cs.rule, lineWidth: 1))
   }
 }
 
@@ -60,7 +60,7 @@ struct EventSeg<T: Hashable>: View {
           Text(l).font(CSFont.monoSmall).foregroundStyle(selection == k ? cs.bg0 : cs.ink)
             .padding(.horizontal, 10).frame(minHeight: 40).frame(maxWidth: .infinity)
             .background(selection == k ? cs.ink : cs.bg2, in: RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous))
-            .overlay(RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous).stroke(cs.line2, lineWidth: selection == k ? 0 : 1))
+            .overlay(RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous).stroke(cs.rule, lineWidth: selection == k ? 0 : 1))
             .frame(minHeight: 44)
         }
         .buttonStyle(.plain)
@@ -120,7 +120,7 @@ struct EventLeaguePicker: View {
     .frame(maxWidth: .infinity, minHeight: 48, alignment: .leading)
     .padding(.horizontal, 8)
     .background(cs.bg2, in: RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous))
-    .overlay(RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous).stroke(cs.line, lineWidth: 1))
+    .overlay(RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous).stroke(cs.rule, lineWidth: 1))
   }
 }
 

@@ -49,7 +49,7 @@ struct PricingChip: View {
     Text(text).font(CSFont.monoSmall).foregroundStyle(cs.ink)
       .padding(.horizontal, 10).padding(.vertical, 6)
       .background(cs.bg2, in: Capsule())
-      .overlay(Capsule().stroke(cs.line2, lineWidth: 1))
+      .overlay(Capsule().stroke(cs.rule, lineWidth: 1))
   }
 }
 

@@ -31,7 +31,7 @@ struct AnnounceSheet: View {
           .padding(12)
           .background(cs.bg2, in: RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous))
           .overlay(RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous)
-            .stroke(focused ? cs.focus : cs.line, lineWidth: focused ? 2 : 1))
+            .stroke(focused ? cs.brand : cs.rule, lineWidth: focused ? 2 : 1))
           .focused($focused)
           .onChange(of: text) { _, v in if v.count > 280 { text = String(v.prefix(280)) } }
         Text("\(text.count) / 280").font(CSFont.label).foregroundStyle(text.count >= 280 ? cs.neg : cs.dimText)
@@ -85,7 +85,7 @@ struct ReportSheet: View {
                 .padding(.horizontal, 12).frame(minHeight: 36)
                 .foregroundStyle(why == r ? cs.bg0 : cs.ink)
                 .background(why == r ? cs.brand : cs.bg2, in: Capsule())
-                .overlay(Capsule().stroke(why == r ? cs.brand : cs.line2, lineWidth: 1))
+                .overlay(Capsule().stroke(why == r ? cs.brand : cs.rule, lineWidth: 1))
             }
             .buttonStyle(.plain)
           }
@@ -96,7 +96,7 @@ struct ReportSheet: View {
           .lineLimit(2...6)
           .padding(12)
           .background(cs.bg2, in: RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous))
-          .overlay(RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous).stroke(cs.line, lineWidth: 1))
+          .overlay(RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous).stroke(cs.rule, lineWidth: 1))
           .onChange(of: why) { _, v in if v.count > 500 { why = String(v.prefix(500)) } }
         CSButton("Send the report", busy: busy) {
           busy = true

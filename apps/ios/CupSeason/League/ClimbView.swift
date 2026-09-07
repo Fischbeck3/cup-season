@@ -118,7 +118,7 @@ struct ClimbView: View {
       .background(r.isMe ? cs.bg2.opacity(0.7) : .clear, in: RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous))
       .contentShape(Rectangle())
       // rungs separate with a hairline; the leader's is gold (IOS-003 §2.10)
-      .overlay(alignment: .bottom) { Rectangle().fill(r.isLead && r.team.pts > 0 ? cs.gold.opacity(0.55) : cs.line).frame(height: 1) }
+      .overlay(alignment: .bottom) { Rectangle().fill(r.isLead && r.team.pts > 0 ? cs.gold.opacity(0.55) : cs.rule).frame(height: 1) }
     }
     .buttonStyle(.plain)
     .accessibilityLabel(r.accessibility)

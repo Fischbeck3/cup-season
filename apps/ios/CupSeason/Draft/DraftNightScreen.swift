@@ -116,7 +116,7 @@ struct DraftNightScreen: View {
                 RoomMini(DraftCopy.start, busy: board.busy) { startSeason(blocker: blocker) }
               }
               // the server's own words, said before the tap (audit 02 §7.19)
-              if let blocker, pool.isEmpty || room.members.count < 4 { CSFine(blocker, tone: dk.warm) }
+              if let blocker, pool.isEmpty || room.members.count < 4 { CSFine(blocker, tone: dk.brand) }
             }
             .padding(.top, 6)
           }

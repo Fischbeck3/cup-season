@@ -27,7 +27,7 @@ struct PostSeg<T: Hashable>: View {
           Text(l).font(CSFont.monoSmall).foregroundStyle(on ? cs.bg0 : cs.ink)
             .padding(.horizontal, 12).frame(minHeight: 36).frame(maxWidth: .infinity)
             .background(on ? cs.ink : cs.bg2, in: Capsule())
-            .overlay(Capsule().stroke(cs.line2, lineWidth: on ? 0 : 1))
+            .overlay(Capsule().stroke(cs.rule, lineWidth: on ? 0 : 1))
             .frame(minHeight: 44)
         }
         .buttonStyle(.plain)
@@ -101,7 +101,7 @@ struct PostScorecardStrip: View {
       if model.card.side == 18 { row(1, cellWidth: cellWidth) }
     }
     .padding(1)
-    .background(cs.line, in: RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous))
+    .background(cs.rule, in: RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous))
     .clipShape(RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous))
   }
 
@@ -143,7 +143,7 @@ struct PostScorecardStrip: View {
         if on {
           RoundedRectangle(cornerRadius: 4, style: .continuous).stroke(cs.brand, lineWidth: 2).padding(2)
         } else if unread {
-          RoundedRectangle(cornerRadius: 4, style: .continuous).stroke(cs.warm, style: StrokeStyle(lineWidth: 1, dash: [3, 2])).padding(2)
+          RoundedRectangle(cornerRadius: 4, style: .continuous).stroke(cs.brand, style: StrokeStyle(lineWidth: 1, dash: [3, 2])).padding(2)
         }
       }
       .contentShape(Rectangle())
@@ -193,7 +193,7 @@ struct PostScorecardStrip: View {
         CSMotion.run(CSMotion.rise) { selected = PostStrip.next(after: i, side: model.card.side) }
         CSHaptic.selection()
       } label: {
-        Text("Next hole →").font(CSFont.footnote).foregroundStyle(cs.dawn).frame(maxWidth: .infinity, minHeight: 44)
+        Text("Next hole →").font(CSFont.footnote).foregroundStyle(cs.ink).frame(maxWidth: .infinity, minHeight: 44)
       }
       .buttonStyle(.plain)
     }
@@ -204,7 +204,7 @@ struct PostScorecardStrip: View {
       Text(glyph).font(.system(size: 26, weight: .medium)).foregroundStyle(cs.ink)
         .frame(minWidth: 60, minHeight: 60)
         .background(cs.bg2, in: RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous))
-        .overlay(RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous).stroke(cs.line2, lineWidth: 1))
+        .overlay(RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous).stroke(cs.rule, lineWidth: 1))
         .contentShape(Rectangle())
     }
     .buttonStyle(.plain)
@@ -273,7 +273,7 @@ struct PostParsSheet: View {
         .foregroundStyle(bad ? cs.neg : cs.ink)
         .padding(.horizontal, 14).frame(minHeight: 56)
         .background(cs.bg2, in: RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous))
-        .overlay(RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous).stroke(bad ? cs.neg : (focus == f ? cs.focus : cs.line), lineWidth: focus == f ? 2 : 1))
+        .overlay(RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous).stroke(bad ? cs.neg : (focus == f ? cs.brand : cs.rule), lineWidth: focus == f ? 2 : 1))
         .focused($focus, equals: f)
         .onChange(of: v) { _, n in
           let c = PostPars.clean(n)

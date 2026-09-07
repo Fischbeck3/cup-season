@@ -298,7 +298,7 @@ struct SeasonStoryLead: View {
           .id(SeasonPane.story.anchor)
         if let id = model.league?.id {
           NavigationLink(value: SeasonSubRoute.story(id)) {
-            Text("The season's story →").font(CSFont.monoMediumBody).foregroundStyle(cs.dawn)
+            Text("The season's story →").font(CSFont.monoMediumBody).foregroundStyle(cs.ink)
               .frame(minHeight: 44).contentShape(Rectangle())
           }
           .buttonStyle(.plain)
@@ -367,7 +367,7 @@ struct SeasonDoors: View {
     .padding(.vertical, 12)
     .frame(minHeight: 56)
     .contentShape(Rectangle())
-    .overlay(alignment: .bottom) { Rectangle().fill(cs.line).frame(height: 1) }
+    .overlay(alignment: .bottom) { Rectangle().fill(cs.rule).frame(height: 1) }
     .accessibilityElement(children: .combine)
   }
 }

@@ -148,7 +148,7 @@ struct PotPane: View {
       .padding(.horizontal, 4).frame(minHeight: 48)
       .contentShape(Rectangle())
       // a row, not a card: the hairline warms to `pos` once the money is in
-      .overlay(alignment: .bottom) { Rectangle().fill(paid ? cs.pos.opacity(0.45) : cs.line).frame(height: 1) }
+      .overlay(alignment: .bottom) { Rectangle().fill(paid ? cs.pos.opacity(0.45) : cs.rule).frame(height: 1) }
     }
     .buttonStyle(.plain)
     .disabled(busy)
@@ -281,7 +281,7 @@ struct FlowSeg: View {
           Text(l).font(CSFont.monoSmall).foregroundStyle(selection == k ? cs.bg0 : cs.ink)
             .padding(.horizontal, 12).frame(minHeight: 36).frame(maxWidth: .infinity)
             .background(selection == k ? cs.ink : cs.bg2, in: Capsule())
-            .overlay(Capsule().stroke(cs.line2, lineWidth: selection == k ? 0 : 1))
+            .overlay(Capsule().stroke(cs.rule, lineWidth: selection == k ? 0 : 1))
             .frame(minHeight: 44)
         }
         .buttonStyle(.plain)

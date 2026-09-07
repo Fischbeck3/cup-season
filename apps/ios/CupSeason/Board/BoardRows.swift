@@ -13,9 +13,9 @@ struct DateSeparator: View {
   let label: String
   var body: some View {
     HStack(spacing: 12) {
-      Rectangle().fill(cs.line).frame(height: 1)
+      Rectangle().fill(cs.rule).frame(height: 1)
       Text(label).font(CSFont.label).tracking(2).textCase(.uppercase).foregroundStyle(cs.dimText).fixedSize()
-      Rectangle().fill(cs.line).frame(height: 1)
+      Rectangle().fill(cs.rule).frame(height: 1)
     }
     .padding(.top, 18).padding(.bottom, 10)
     .accessibilityElement(children: .combine)
@@ -107,7 +107,7 @@ struct SystemRow: View {
       .padding(.horizontal, 13).padding(.vertical, 10)
       .frame(maxWidth: .infinity, minHeight: opens == nil ? 0 : 44, alignment: .leading)
       .background(opens == nil ? .clear : cs.bg1, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
-      .overlay(RoundedRectangle(cornerRadius: 12, style: .continuous).stroke(opens == nil ? .clear : cs.line, lineWidth: 1))
+      .overlay(RoundedRectangle(cornerRadius: 12, style: .continuous).stroke(opens == nil ? .clear : cs.rule, lineWidth: 1))
       .overlay(alignment: .leading) {
         RoundedRectangle(cornerRadius: 2).fill(opens == nil ? cs.gold.opacity(0.5) : cs.gold).frame(width: 3.5).padding(.vertical, 6)
       }

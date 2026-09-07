@@ -251,18 +251,25 @@ const warn = (name, note) => { warns++; console.log(`~ WARN  ${name} — ${note}
   };
   const decls = (body) => new Map(
     [...body.matchAll(/--([\w-]+)\s*:\s*([^;]+);/g)].map(m => [m[1], m[2].trim()]));
+  /* D270 merged the client's two :root blocks into one — the second, 2,287
+     lines down the file, carried only `--grad` and `--glow`, and both are
+     deleted. So a second block is now OPTIONAL and no longer required; if a
+     future refresh splits them again, both are still read. */
   const r1 = cssBlock(':root');
   const r2 = r1 && cssBlock(':root', r1.end);
   const lt = cssBlock('html[data-theme="light"]');
   const problems = [];
-  if (!r1 || !r2 || !lt) problems.push('could not find the :root / light theme blocks in index.html');
+  if (!r1 || !lt) problems.push('could not find the :root / light theme blocks in index.html');
   else {
-    const gotDark = new Map([...decls(r1.body), ...decls(r2.body)]);
+    const gotDark = new Map([...decls(r1.body), ...(r2 ? decls(r2.body) : [])]);
     const gotLight = decls(lt.body);
+    /* `alpha` and `track` are stored as bare NUMBERS (0.56; 0.09, a ratio of
+       the rendered point size). A CSS declaration is always a string, so the
+       comparison is string-to-string or every one of the fourteen fails. */
     for (const [name, spec] of want) {
-      if (spec.dark !== undefined && gotDark.get(name) !== spec.dark)
+      if (spec.dark !== undefined && gotDark.get(name) !== String(spec.dark))
         problems.push(`--${name} dark: client ${gotDark.get(name) ?? '(absent)'} != tokens.json ${spec.dark}`);
-      if (spec.light !== undefined && gotLight.get(name) !== spec.light)
+      if (spec.light !== undefined && gotLight.get(name) !== String(spec.light))
         problems.push(`--${name} light: client ${gotLight.get(name) ?? '(absent)'} != tokens.json ${spec.light}`);
     }
     for (const name of gotDark.keys()) if (!want.has(name)) problems.push(`--${name} is in index.html but not tokens.json`);
@@ -1638,13 +1645,34 @@ else {
         }
       }
     }
-    /* Charter is a system face on iOS and is not bundled; the mono faces are ours. */
-    for (const m of src.matchAll(/static let (mono\w+) = "([^"]+)"/g)) {
+    /* Charter is a system face on iOS and is not bundled; the mono faces are
+       ours, and since D268 so is the BOARD face — IBM Plex Sans Condensed,
+       which carries 46% of the type in the new system. The brief that ordered
+       it predicted `IBMPlexSansCondensed-SemiBold`; the file's own name table
+       says `IBMPlexSansCond-SmBld`. That is one letter-group of difference
+       between the brand's voice and SF Pro, with no crash and no log — D258
+       exactly — so `board*` is held here beside `mono*`. */
+    for (const m of src.matchAll(/static let ((?:mono|board)\w+) = "([^"]+)"/g)) {
       if (!bundled.has(m[2])) {
         hits.push(`CSFont.${m[1]} names "${m[2]}", which no bundled face carries — Font.custom falls back to the system sans, silently`);
       }
     }
     if (bundled.size === 0) hits.push('no bundled font names could be read — the face check is not running');
+    /* A face is only bundled when it is in the folder AND in both UIAppFonts
+       arrays. project.yml writes the plist Xcode compiles; CupSeason/Info.plist
+       is the one a human reads. One without the other is D258's other half. */
+    const decl = [
+      ['apps/ios/project.yml', join(iosRoot, 'project.yml')],
+      ['apps/ios/CupSeason/Info.plist', join(iosRoot, 'CupSeason', 'Info.plist')],
+    ];
+    if (existsSync(fontDir)) {
+      const files = readdirSync(fontDir).filter(x => /\.(ttf|otf)$/i.test(x));
+      for (const [label, path] of decl) {
+        if (!existsSync(path)) { hits.push(`${label} is missing — nothing declares UIAppFonts`); continue; }
+        const body = readFileSync(path, 'utf8');
+        for (const f of files) if (!body.includes(f)) hits.push(`${f} sits in Resources/Fonts but ${label} never names it — it does not ship`);
+      }
+    }
   }
 
   /* a role scaled below the floor is below the floor */
@@ -2153,6 +2181,74 @@ else {
   hits.length === 0
     ? pass('the bag says one sentence on both clients', `${FRAGMENTS.length} fragment(s) × 2 producer(s) · cap ${phoneCap} on both`)
     : fail('the bag says one sentence on both clients', `${hits.length} hit(s) — ` + hits.slice(0, 6).join('\n           '));
+}
+
+/* 44 · the visual-system lint, and it lands with a baseline (D274) --------
+   `LINT-01…29` extend this file over both clients. They fall on roughly 2,300
+   sites that were written before the system existed, and `ship.sh` refuses to
+   ship anything if preflight fails — so a check that lands at zero tolerance
+   blocks every push for the rest of a multi-session build.
+
+   So each check lands with an entry in `tests/preflight-baselines.json`
+   holding TODAY's count, and fails only when the count RISES. The moment a
+   baseline reaches 0 it is zero-tolerance for ever after, and this helper says
+   so on the line. Lower a baseline in the same commit that lowers the count;
+   the line tells you the number to write.
+
+   Wave 0a lands the mechanism and LINT-04, the one that belongs to the tokens.
+   The other twenty-eight land with the component vocabulary they police. */
+const BASELINES = (() => {
+  const p = join(root, 'tests', 'preflight-baselines.json');
+  try { return JSON.parse(readFileSync(p, 'utf8')).checks ?? {}; } catch { return {}; }
+})();
+
+/** A lint with a ratchet. Fails on a RISE; names the new floor on a fall. */
+const lint = (id, name, hits, note = '') => {
+  const base = BASELINES[id];
+  const n = hits.length;
+  if (base === undefined) {
+    return n === 0 ? pass(`${id} · ${name}`, note)
+                   : fail(`${id} · ${name}`, `${n} hit(s) and no baseline in tests/preflight-baselines.json — add "${id}": ${n} and lower it as you go\n           ` + hits.slice(0, 5).join('\n           '));
+  }
+  if (n > base) {
+    return fail(`${id} · ${name}`, `${n} hit(s), up from a baseline of ${base} — ${n - base} NEW\n           ` + hits.slice(0, 6).join('\n           '));
+  }
+  if (n < base) return pass(`${id} · ${name}`, `${n} left of ${base} — lower the baseline to ${n} in this commit${note ? ' · ' + note : ''}`);
+  return pass(`${id} · ${name}`, base === 0 ? `zero, and held there${note ? ' · ' + note : ''}` : `${n} at baseline, and none new${note ? ' · ' + note : ''}`);
+};
+
+/* LINT-04 · every radius is a token. The audit counted 91 hand-typed radii in
+   11 distinct values against 5 the system owns — which is what makes a corner
+   read as "some rounding" rather than as a panel, a control, a sheet or an
+   object. The five are r 16 · rc 10 · rs 24 · p 3 · rx 28; a pill is a
+   Capsule() on the phone and 99/999px on the web, and neither is a radius. */
+{
+  const LEGAL = new Set(['16', '10', '24', '3', '28']);
+  const PILL = new Set(['99', '999', '9999']);
+  const hits = [];
+  const iosRoot = join(root, 'apps', 'ios');
+  const swiftAll = (await import('../tools/extract-strings.mjs')).swiftSources(iosRoot);
+  for (const f of swiftAll) {
+    if (/\/Tests\/|\/Generated\//.test(f)) continue;
+    const rel = f.slice(root.length).replace(/^\//, '');
+    readFileSync(f, 'utf8').split('\n').forEach((line, i) => {
+      for (const m of line.matchAll(/cornerRadius: *([0-9]+(?:\.[0-9]+)?)/g)) {
+        const v = m[1].replace(/\.0$/, '');
+        if (!LEGAL.has(v) && !PILL.has(v)) hits.push(`${rel}:${i + 1} cornerRadius: ${m[1]}`);
+      }
+    });
+  }
+  html.split('\n').forEach((line, i) => {
+    for (const m of line.matchAll(/border-radius: *([0-9]+(?:\.[0-9]+)?)px/g)) {
+      const v = m[1].replace(/\.0$/, '');
+      if (!LEGAL.has(v) && !PILL.has(v)) hits.push(`index.html:${i + 1} border-radius:${m[1]}px`);
+    }
+  });
+  /* the self-test: a check that cannot fail is not a check */
+  if (!/cornerRadius: *([0-9]+)/.test('RoundedRectangle(cornerRadius: 7)')) {
+    hits.push('self-test failed: LINT-04 no longer notices a hand-typed radius');
+  }
+  lint('LINT-04', 'every radius is one of the five', hits, 'r 16 · rc 10 · rs 24 · p 3 · rx 28');
 }
 
 console.log(`\n${fails ? 'FAIL' : 'PASS'} — ${fails} failure(s), ${warns} warning(s)`);

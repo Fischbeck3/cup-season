@@ -142,7 +142,7 @@ private struct PostRoundBody: View {
         // goes with the metal — an ember dot is the live signal, and nothing
         // is live here yet.
         Button { onDone(); links.openLive() } label: {
-          Text("Play now").font(CSFont.subhead.weight(.semibold)).foregroundStyle(cs.dawn)
+          Text("Play now").font(CSFont.subhead.weight(.semibold)).foregroundStyle(cs.ink)
         }
         .accessibilityHint("Opens live scoring for a round")
       }
@@ -185,7 +185,7 @@ private struct PostRoundBody: View {
           Text(inheritedText).font(CSFont.monoSmall).foregroundStyle(model.card.course.isEmpty ? cs.mut : cs.ink)
             .multilineTextAlignment(.leading)
           Spacer(minLength: 8)
-          Text(cardIsOpen ? "done" : "edit").font(CSFont.monoSmall).foregroundStyle(cs.dawn)
+          Text(cardIsOpen ? "done" : "edit").font(CSFont.monoSmall).foregroundStyle(cs.ink)
         }
       }
       .contentShape(Rectangle())
@@ -223,7 +223,7 @@ private struct PostRoundBody: View {
                 .font(CSFont.subhead).foregroundStyle(on ? cs.ink : cs.mut)
                 .padding(.horizontal, 12).padding(.vertical, 8)
                 .background((on ? cs.brand.opacity(0.16) : cs.bg2), in: Capsule())
-                .overlay(Capsule().stroke(on ? cs.brand : cs.line2, lineWidth: 1))
+                .overlay(Capsule().stroke(on ? cs.brand : cs.rule, lineWidth: 1))
             }
             .buttonStyle(.plain)
             .accessibilityLabel(p.name)
@@ -288,7 +288,7 @@ private struct PostRoundBody: View {
             HStack(alignment: .firstTextBaseline, spacing: 8) {
               Text(ratingLine).font(CSFont.monoSmall).foregroundStyle(cs.ink).csTabular()
               Text("·").font(CSFont.monoSmall).foregroundStyle(cs.dimText)
-              Text(ratingFieldsShown ? "done" : "edit").font(CSFont.monoSmall).foregroundStyle(cs.dawn)
+              Text(ratingFieldsShown ? "done" : "edit").font(CSFont.monoSmall).foregroundStyle(cs.ink)
             }
           }
         }
@@ -413,7 +413,7 @@ private struct PostRoundBody: View {
         Image(uiImage: img).resizable().scaledToFill()
           .frame(maxWidth: .infinity).frame(height: 180).clipped()
           .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
-          .overlay(RoundedRectangle(cornerRadius: 10, style: .continuous).stroke(cs.line2, lineWidth: 1))
+          .overlay(RoundedRectangle(cornerRadius: 10, style: .continuous).stroke(cs.rule, lineWidth: 1))
           .accessibilityLabel("Round photo, attached")
       }
     }
