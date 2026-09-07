@@ -271,7 +271,9 @@ public struct CourseBookStore: Sendable {
     let tees: [CourseBookTee] = (v["tees"]?.array ?? []).compactMap { t in
       let holes: [CourseHole] = (t["holes"]?.array ?? []).compactMap { h in
         guard let n = h["hole"]?.int else { return nil }
-        return CourseHole(hole: n, par: h["par"]?.int, si: h["si"]?.int)
+        // D290 · `yards` is nil on a database that predates the column, and
+        // the card falls back to height-by-par exactly as it always has.
+        return CourseHole(hole: n, par: h["par"]?.int, si: h["si"]?.int, yards: h["yards"]?.int)
       }
       return CourseBookTee(teeName: t["tee_name"]?.string, gender: t["gender"]?.string,
                            rating: t["course_rating"]?.double, slope: t["slope_rating"]?.int,

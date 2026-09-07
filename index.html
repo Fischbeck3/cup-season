@@ -2981,6 +2981,16 @@ body:not(.noleague) #hubLeagueless{display:none;}
 .cs-krow.is-quiet{padding:var(--s3) 0 var(--s4);}
 .cs-krow-head{display:flex; align-items:flex-start; justify-content:space-between; gap:var(--s3);}
 .cs-krow-rate{display:flex; align-items:center; gap:var(--s2); flex:0 0 auto; white-space:nowrap;}
+/* D290 · the plan's own course block. No card and no box: a rule at the top,
+   the drawing, and three figures on a rule of their own (§9.2, §32). */
+.cs-plan-course{border-top:1px solid var(--rule); margin-top:var(--s4); padding-top:var(--s3);}
+.cs-plan-card{height:84px; margin-top:var(--s2);}
+.cs-plan-card svg{width:100%; height:100%; display:block;}
+.cs-hardrow{display:flex; gap:var(--s4); margin-top:var(--s2);}
+.cs-hard{flex:1 1 0; min-width:0; border-top:2px solid var(--ink); padding-top:var(--s2);}
+.cs-hard .cs-fig-m{display:block;}
+.cs-hard .cs-agate-s{display:block; color:var(--mut); padding-top:4px; white-space:nowrap;
+  overflow:hidden; text-overflow:ellipsis;}
 .cs-krow-head-h{margin:var(--s6) 0 0;}
 .cs-kplate{margin-top:var(--s3); height:40px; background:var(--bg1);}
 .cs-krow .cs-kplate svg{width:100%; height:100%; display:block;}
@@ -14080,6 +14090,82 @@ function csCourseRowRepaint(box, id){
   if(block && r.mine != null && !field){ renderCourseBooks(); }
   else if(field && r.mine == null){ field.remove(); }
 }
+
+/* ── D290 · WHAT YOU ARE ABOUT TO PLAY ──────────────────────────────────────
+   The owner's own sentence: *"Future rounds should highlight holes if we have
+   that info."* We do, for any course whose tee has been cached, and the plan
+   already carries the key (`my_schedule.course_id`).
+
+   Four things, in the order a golfer wants them the night before: the card
+   drawn, THE THREE THAT DECIDE IT, the turn, and how you have done here.
+
+   THE DEGRADE IS THE POINT (L-44). No `course_id` — a hand-typed course —
+   returns '' and the sheet keeps its tee time, its field and its game. A tee
+   whose card was never cached returns the store's own `noCard` sentence
+   rather than eighteen invented par 4s: *fake data as ornament is less
+   premium than a plain colour*. */
+function csPlanCourseHtml(courseId, want){
+  if(!courseId) return '';
+  const b = (typeof csCourseGet === 'function') ? csCourseGet(courseId) : null;
+  if(!b) return '';
+  /* **THE TEE THE PLAN NAMES, NOT THE LONGEST ONE.** The sheet's own head
+     already prints `CHAMPIONSHIP · 73.3 / 132 · PAR 72` off `round_detail`;
+     drawing the longest tee's card under it puts two tees for one round in one
+     viewport (D201), and stroke indexes allocate strokes. A name that matches
+     nothing falls back to the book's default rather than to a near miss —
+     the phone's `CourseBook.tee(named:)` takes the same line. */
+  const named = want ? (b.tees||[]).filter(t=>t.tee_name===want && t.course_rating!=null) : [];
+  const tee = (named.slice().sort((x,y)=>(y.total_yards||0)-(x.total_yards||0))[0]) || csBookTee(b);
+  const holes = tee && Array.isArray(tee.holes)
+    ? tee.holes.slice().sort((x,y)=>(x.hole||0)-(y.hole||0)) : [];
+  const card = csDrawnCardSvg(holes);
+  if(!card) return `<p class="fine" style="padding:8px 0">${esc(CS_COURSE_COPY.noCard)}</p>`;
+
+  /* the three lowest stroke indexes — the fact a golfer actually wants, and
+     the literal answer to his sentence. Never four, never a "hardest stretch":
+     three fits one rule at `figure` 27 on a 340 aside and at 390. */
+  const three = holes.filter(h=>h.si!=null).sort((x,y)=>x.si-y.si).slice(0,3).map(h=>{
+    const sub = [h.par!=null?`par ${h.par}`:null, h.yards?String(h.yards):null,
+                 `si ${h.si}`].filter(Boolean).join(' · ');
+    return `<div class="cs-hard"><span class="cs-fig-m">${h.hole}${csOrdinalSuffix(h.hole)}</span>`
+      + `<span class="cs-agate-s">${esc(sub)}</span></div>`;
+  }).join('');
+
+  /* the turn. OUT and IN here are the COURSE'S PARS and never a score, which
+     is why the line is labelled with the tee it is drawn from. */
+  const sum = list => list.reduce((a,h)=>a + (h.par||0), 0);
+  const out = sum(holes.slice(0,9)), inn = sum(holes.slice(9,18));
+  const grouped = n => String(n).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+  const turn = [
+    (out && inn) ? `OUT ${out} · IN ${inn}` : null,
+    tee && tee.total_yards ? `${grouped(tee.total_yards)} YDS` : null,
+    (tee && tee.course_rating!=null && tee.slope_rating!=null)
+      ? `${tee.course_rating} / ${tee.slope_rating}` : null
+  ].filter(Boolean).join('  ·  ');
+
+  const hist = csCourseHistoryLine(b);
+  const r = csRatingOf(b.id);
+  const mine = r && r.mine != null ? Number(r.mine) : null;
+  const all  = r && r.stars != null ? Number(r.stars) : null;
+  /* D289 · the rating rides along, so the night before you play you see what
+     your golfers thought of it. A PICTURE here, not a control: the act lives
+     on the record, where the rail is big enough to have a legal half-star. */
+  const rate = (mine != null || all != null)
+    ? `<div class="cs-krow-rate" style="padding-top:8px">${csStarsSvg(mine != null ? mine : all, false, { size:20 })}`
+      + `<span class="cs-agate-s" style="color:var(--mut)">${
+          mine != null ? `Yours ${mine.toFixed(1)}` : `${all.toFixed(1)} · ${r.count} rating${r.count===1?'':'s'}`}</span></div>`
+    : '';
+
+  return `<div class="cs-plan-course">
+    <div class="cs-agate-s" style="color:var(--mut)">The card · ${esc(tee ? (tee.tee_name||'Tee') : '')}</div>
+    <div class="cs-plan-card">${card}</div>
+    ${turn?`<p class="cs-col-m" style="color:var(--mut);padding-top:8px">${esc(turn)}</p>`:''}
+    ${three?`<div class="cs-agate-s" style="color:var(--mut);padding-top:12px">The three that decide it</div>
+      <div class="cs-hardrow">${three}</div>`:''}
+    ${hist}${rate}
+  </div>`;
+}
+window.csPlanCourseHtml = csPlanCourseHtml;
 
 /* `1` -> `st`. One ordinal in the product, and the phone's `CSOrdinal.suffix`
    is the same three lines. */
@@ -26288,6 +26374,7 @@ function renderRoundSheet(id, d){
   const body = `<div class="rsheet">
     <div class="rs-course"><b>${esc(courseName)}</b>${meta?`<span class="meta mono">${meta}</span>`:''}${place?`<span class="place">${esc(place)}</span>`:''}</div>
     <div class="rs-when"><span class="teechip mono">${tee?tee+' tee':'Tee TBD'}</span><span class="wxchip mono" id="rsWx" style="display:none"></span></div>
+    ${typeof csPlanCourseHtml==='function' ? csPlanCourseHtml(d.course_id, d.course && d.course.tee) : ''}
     ${worthHtml}
     ${d.note?`<div class="rs-note">“${esc(d.note)}”</div>`:''}
     ${rivHtml}

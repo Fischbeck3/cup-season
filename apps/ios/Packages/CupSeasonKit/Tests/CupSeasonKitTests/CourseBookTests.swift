@@ -193,3 +193,63 @@ import Testing
     #expect(hit.subline == "Tempe, AZ · 3 tees")
   }
 }
+
+/// D290 · the three sentences a PLANNED round says about its course. The
+/// desk's `csPlanCourseHtml` prints the same three, and this is the witness
+/// that keeps the two from drifting — a producer written twice in two idioms
+/// with nothing behind it is how the clients came to draw the same course as
+/// two different shapes in the first place.
+@Suite struct PlanCourseCopyTests {
+
+  private func card(_ pars: [Int], yards: [Int]? = nil) -> [CourseHole] {
+    pars.enumerated().map { CourseHole(hole: $0.offset + 1, par: $0.element,
+                                       si: $0.offset + 1, yards: yards?[$0.offset]) }
+  }
+  private func tee(yards: Int? = 7068, rating: Double? = 73.3, slope: Int? = 137) -> CourseBookTee {
+    CourseBookTee(teeName: "Black", gender: nil, rating: rating, slope: slope,
+                  holesCount: 18, parTotal: 72, yards: yards, holes: [])
+  }
+
+  /// **OUT and IN are the COURSE'S PARS.** The line is drawn from the card,
+  /// never from a score, and it carries the tee's own length and rating.
+  @Test func theTurnTotalsTheCardAndNeverAScore() {
+    let pars = Array(repeating: 4, count: 18)
+    #expect(PlanCourseCopy.turn(holes: card(pars), tee: tee())
+            == "OUT 36 · IN 36  ·  7,068 YDS  ·  73.3 / 137")
+  }
+
+  /// A card with only a front nine cannot say OUT and IN — so it says neither,
+  /// rather than printing `OUT 36 · IN 0` (L-44).
+  @Test func halfACardSaysNoTurnAtAll() {
+    let nine = PlanCourseCopy.turn(holes: card(Array(repeating: 4, count: 9)), tee: tee())
+    #expect(nine == "7,068 YDS  ·  73.3 / 137")
+    // and a tee with nothing on it at all produces no line, not an empty one
+    #expect(PlanCourseCopy.turn(holes: [], tee: tee(yards: nil, rating: nil, slope: nil)) == nil)
+  }
+
+  /// `PAR 5 · 604 · SI 1`, and a hole with no yardage cached says par and
+  /// stroke index and stops. **It does not guess a length.**
+  @Test func aHoleSaysWhatItKnowsAndNoMore() {
+    #expect(PlanCourseCopy.hole(par: 5, yards: 604, si: 1) == "par 5 · 604 · si 1")
+    #expect(PlanCourseCopy.hole(par: 5, yards: nil, si: 1) == "par 5 · si 1")
+    #expect(PlanCourseCopy.hole(par: nil, yards: 0, si: nil) == "")
+  }
+
+  /// L-33 · small numbers are words, through the one producer. A course you
+  /// have never played has **no line at all** — never "you have played here
+  /// zero times".
+  @Test func theHistoryLineIsAbsentRatherThanZero() {
+    #expect(PlanCourseCopy.history("Papago", played: []) == nil)
+    #expect(PlanCourseCopy.history("Papago", played: [82]) == "You have played here one time · best 82.")
+    #expect(PlanCourseCopy.history("Papago", played: [82, 78, 85, 80])
+            == "You have played here four times · best 78.")
+  }
+
+  /// D290 · the book carries a yardage now, and the height-by-par fallback
+  /// survives for a book written before the column existed.
+  @Test func aHoleCarriesItsLengthAndNilIsStillLegal() {
+    let withY = card([4, 5], yards: [420, 560])
+    #expect(withY[1].yards == 560)
+    #expect(card([4, 5]).allSatisfy { $0.yards == nil })
+  }
+}

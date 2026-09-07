@@ -576,7 +576,9 @@ final class CourseModel {
     guard let tee = tee(in: book) else { return nil }
     let holes = tee.holes.sorted { $0.hole < $1.hole }.compactMap { h -> CSDrawnCard.Hole? in
       guard let par = h.par else { return nil }
-      return CSDrawnCard.Hole(number: h.hole, par: par, si: h.si, yards: nil)
+      // D290 · the book carries a yardage now, so the phone's plate is
+      // height-by-yardage like the desk's rather than height-by-par.
+      return CSDrawnCard.Hole(number: h.hole, par: par, si: h.si, yards: h.yards)
     }
     return holes.isEmpty ? nil : holes
   }

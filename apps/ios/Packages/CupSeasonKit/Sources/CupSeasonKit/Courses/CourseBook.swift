@@ -31,14 +31,24 @@
 
 import Foundation
 
-/// One hole on one tee: the par and the stroke index, as the API cached them.
+/// One hole on one tee: the par, the stroke index and the length, as the API
+/// cached them.
 public struct CourseHole: Codable, Sendable, Equatable {
   public let hole: Int
   public let par: Int?
   /// The stroke index. `handicap` in `api_course_holes`; SI everywhere a
   /// golfer reads it.
   public let si: Int?
-  public init(hole: Int, par: Int?, si: Int?) { self.hole = hole; self.par = par; self.si = si }
+  /// **D290 · the length.** `api_course_holes.yardage` has existed since
+  /// `20260714050000` and `my_course_books` never selected it, so the phone
+  /// drew its card height-by-PAR while the desk drew height-by-yardage — the
+  /// same course, two shapes (`Course.swift`'s D-2). Optional, and a book
+  /// written before that migration decodes with nil here and falls back to
+  /// par, which is a weaker picture and still a real one.
+  public var yards: Int?
+  public init(hole: Int, par: Int?, si: Int?, yards: Int? = nil) {
+    self.hole = hole; self.par = par; self.si = si; self.yards = yards
+  }
 }
 
 /// One rated tee, with its card if we have it.
@@ -208,6 +218,59 @@ public struct CourseBook: Codable, Sendable, Equatable, Identifiable {
   /// "updated" or "live", because it is neither.
   public func savedLine(now: Date = Date(), calendar: Calendar = .current) -> String {
     "Saved on your phone \(CourseBookCopy.when(savedAt, now: now, calendar: calendar))"
+  }
+}
+
+/// The sentences a PLANNED round is allowed to say about its course (D290).
+/// One home, and the desk's `csPlanCourseHtml` prints the same three — a
+/// producer written twice in two idioms with no witness is how two clients
+/// come to disagree about the same course (D201/D234).
+public enum PlanCourseCopy {
+  /// `OUT 36 · IN 36  ·  7,068 YDS  ·  73.3 / 137`.
+  ///
+  /// **OUT and IN here are the COURSE'S PARS and never a score**, which is why
+  /// the block above them is labelled with the tee it is drawn from. nil when
+  /// the card is too thin to total — never a half-line with one figure in it.
+  public static func turn(holes: [CourseHole], tee: CourseBookTee?) -> String? {
+    var parts: [String] = []
+    let ordered = holes.sorted { $0.hole < $1.hole }
+    let out = ordered.prefix(9).compactMap(\.par).reduce(0, +)
+    let inn = ordered.dropFirst(9).prefix(9).compactMap(\.par).reduce(0, +)
+    if out > 0 && inn > 0 { parts.append("OUT \(out) · IN \(inn)") }
+    if let y = tee?.yards, y > 0 { parts.append("\(PlanCourseCopy.grouped(y)) YDS") }
+    if let r = tee?.rating, let sl = tee?.slope { parts.append("\(CSCopy.points(r)) / \(sl)") }
+    return parts.isEmpty ? nil : parts.joined(separator: "  ·  ")
+  }
+
+  /// `PAR 5 · 604 · SI 1` — the label under one of the three that decide it.
+  /// A hole with no yardage cached says par and stroke index and stops; it
+  /// does not guess a length (L-44).
+  public static func hole(par: Int?, yards: Int?, si: Int?) -> String {
+    var parts: [String] = []
+    if let par { parts.append("par \(par)") }
+    if let yards, yards > 0 { parts.append("\(yards)") }
+    if let si { parts.append("si \(si)") }
+    return parts.joined(separator: " · ")
+  }
+
+  /// *"You have played here four times · best 78."* — L-33's small numbers as
+  /// words, through the one producer. nil when you have never played it: the
+  /// line is ABSENT rather than saying you have not.
+  public static func history(_ course: String, played: [Int]) -> String? {
+    guard !played.isEmpty else { return nil }
+    let n = played.count
+    let head = "You have played here \(CSCopy.spelled(n)) time\(n == 1 ? "" : "s")"
+    guard let best = played.min() else { return head + "." }
+    return head + " · best \(best)."
+  }
+
+  /// `7,068` — a yardage is grouped, because four digits with no separator is
+  /// a part number.
+  public static func grouped(_ n: Int) -> String {
+    let f = NumberFormatter()
+    f.numberStyle = .decimal
+    f.groupingSeparator = ","
+    return f.string(from: NSNumber(value: n)) ?? "\(n)"
   }
 }
 

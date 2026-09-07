@@ -181,7 +181,7 @@ struct CourseRow: View {
   private var holes: [CSDrawnCard.Hole] {
     let tee = book.defaultTee
     return (tee?.holes ?? []).sorted { $0.hole < $1.hole }.compactMap { h in
-      h.par.map { CSDrawnCard.Hole(number: h.hole, par: $0, si: h.si, yards: nil) }
+      h.par.map { CSDrawnCard.Hole(number: h.hole, par: $0, si: h.si, yards: h.yards) }
     }
   }
 

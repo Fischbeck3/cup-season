@@ -36,6 +36,7 @@ struct ScheduledRoundSheet: View {
   @State private var toasts: CSToastCenter
   @State private var retag: RetagRequest? = nil
   @State private var path = NavigationPath()
+  @Environment(SessionStore.self) private var store
   let links: CSLinks
   let leagueId: UUID?
 
@@ -70,7 +71,7 @@ struct ScheduledRoundSheet: View {
       // **Dismiss is one thing: `Close`** — a toolbar tertiary, `mut`, never
       // ember (`LINT-25`). The shipped sheet said "Done" in brand.
       .csCloseButton { dismiss() }
-      .task { await vm.load() }
+      .task { vm.me = store.me?.profile?.id; await vm.load() }
       .csToasts(toasts)
       .sheet(item: $retag, onDismiss: { Task { await vm.load() } }) { r in RetagSheet(request: r, leagueId: leagueId) }
       // D261 / R-N · the course is pushed from inside this sheet's own stack:
@@ -138,11 +139,17 @@ struct ScheduledRoundSheet: View {
         Text(r.text + " · one more round.").csType(.bodyS).foregroundStyle(cs.mut)
           .fixedSize(horizontal: false, vertical: true)
       }
-      // D261 / R-N · the tees, the ratings and the card — from the phone, so it
-      // opens on a plane. Offered only for a course this phone has kept, so a
-      // door can never open on nothing (L-32).
+      // D290 · WHAT YOU ARE ABOUT TO PLAY. The card drawn, the three holes that
+      // decide it, the turn, your record here and what your golfers thought —
+      // above the field, because it is the reason a golfer opens a plan the
+      // night before. Everything comes off the phone's own store, so it is
+      // there on a plane (R-N).
+      planCourse(d)
+      // D261 / R-N · the tees, the ratings and the whole card — from the phone.
+      // Offered only for a course this phone has kept, so a door can never
+      // open on nothing (L-32).
       if vm.kept, let id = d.courseId {
-        CSDoor(.link("See the tees and the card", {
+        CSDoor(.link("The tees and the whole card", {
           path.append(CourseSheetRef(id: id, label: d.courseName))
         }))
       }
@@ -249,6 +256,88 @@ struct ScheduledRoundSheet: View {
   ///
   /// **A cell with no fact is REMOVED and the rule shortens** — it never renders
   /// a dash and the sheet never shows a blank panel.
+  // MARK: - D290 · what you are about to play
+
+  /// The owner's own sentence — *"future rounds should highlight holes if we
+  /// have that info"* — and we do, for any course whose tee has been cached.
+  ///
+  /// **THE DEGRADE IS THE POINT** (L-44). No `courseId` (a course typed by
+  /// hand) draws nothing at all and the sheet keeps its tee time, its field
+  /// and its game. A tee whose card was never cached prints
+  /// `CourseBookCopy.noCard`, which already says the right thing, rather than
+  /// eighteen invented par 4s: *fake data as ornament is less premium than a
+  /// plain colour* — three blind reviewers, in three sentences.
+  @ViewBuilder private func planCourse(_ d: RoundDetail) -> some View {
+    if d.courseId?.isEmpty == false, let book = vm.book {
+      // **THE TEE THE PLAN NAMES, NOT THE LONGEST ONE.** The head above
+      // already prints `BLUE · 74.5 / 140 · PAR 72` off `round_detail`, and
+      // `defaultTee` returns the longest 18 — so the first build drew GOLD's
+      // card under BLUE's rating and put two tees for one round in one
+      // viewport (D201). `tee(named:holes:rating:)` returns the PICKED tee or
+      // nil, never a near miss, and the fallback is only for a plan whose row
+      // carries no tee at all.
+      let tee = book.tee(named: d.course?.tee, holes: 18, rating: d.course?.rating) ?? book.defaultTee
+      let holes = (tee?.holes ?? []).sorted { $0.hole < $1.hole }
+      let drawn = holes.compactMap { h in
+        h.par.map { CSDrawnCard.Hole(number: h.hole, par: $0, si: h.si, yards: h.yards) }
+      }
+      VStack(alignment: .leading, spacing: CSTokens.Space.s3) {
+        CSRule()
+        if drawn.isEmpty {
+          Text(CourseBookCopy.noCard).csType(.bodyS).foregroundStyle(cs.mut)
+            .fixedSize(horizontal: false, vertical: true)
+        } else {
+          Text("The card · " + (tee?.teeName ?? "Tee"))
+            .csType(.agateS, caps: true).foregroundStyle(cs.mut)
+          CSDrawnCard(drawn).frame(height: 84)
+          if let turn = PlanCourseCopy.turn(holes: holes, tee: tee) {
+            Text(turn).csType(.columnM).foregroundStyle(cs.mut)
+          }
+          hardest(drawn)
+        }
+        if let line = PlanCourseCopy.history(book.label, played: vm.played) {
+          Text(line).csType(.bodyS).foregroundStyle(cs.mut)
+            .fixedSize(horizontal: false, vertical: true)
+        }
+        // D289 · the rating, as a PICTURE. The act lives on the course page,
+        // where the rail is big enough to carry a legal half-star target.
+        if let mine = vm.rating.mine ?? vm.rating.stars {
+          HStack(spacing: CSTokens.Space.s2) {
+            CSStarRail(mine, size: 18)
+            Text(vm.rating.mine != nil
+                 ? "Yours " + CSRating.format(mine)
+                 : CSRating.format(mine) + " · \(vm.rating.count) rating\(vm.rating.count == 1 ? "" : "s")")
+              .csType(.agateS, caps: true).foregroundStyle(cs.mut)
+          }
+        }
+      }
+    }
+  }
+
+  /// **THE THREE THAT DECIDE IT** — the three lowest stroke indexes as three
+  /// figures on one rule, with `PAR 5 · 604 · SI 1` beneath each.
+  ///
+  /// It is a fact about the CARD and not about the golfer: a scratch player's
+  /// three hardest holes are not a bogey golfer's, and the product has no
+  /// model that would know the difference. The head says "decide it" rather
+  /// than "your three hardest" for exactly that reason.
+  @ViewBuilder private func hardest(_ holes: [CSDrawnCard.Hole]) -> some View {
+    let three = holes.filter { $0.si != nil }.sorted { ($0.si ?? 99) < ($1.si ?? 99) }.prefix(3)
+    if three.count == 3 {
+      VStack(alignment: .leading, spacing: CSTokens.Space.s2) {
+        Text("The three that decide it").csType(.agateS, caps: true).foregroundStyle(cs.mut)
+        HStack(alignment: .top, spacing: CSTokens.Space.s4) {
+          ForEach(Array(three), id: \.id) { h in
+            CSFigure("\(h.number)", size: .m, metal: .ink,
+                     label: PlanCourseCopy.hole(par: h.par, yards: h.yards, si: h.si),
+                     ordinal: CSOrdinal.suffix(h.number))
+              .frame(maxWidth: .infinity, alignment: .leading)
+          }
+        }
+      }
+    }
+  }
+
   private func facts(_ d: RoundDetail) -> [CSScoreRail.Cell] {
     var out: [CSScoreRail.Cell] = []
     if let on = d.playOn, let days = CSDate.days(from: CSDate.today(), to: on) {
@@ -398,6 +487,14 @@ final class RoundSheetModel {
   /// to the tee sheet. `asked` is the local echo of the server's own state.
   var asking = false
   var asked = false
+  /// D290 · the course book behind `courseId`, off the phone's own store.
+  var book: CourseBook?
+  /// Your eighteens at this course, newest first — the raw material for
+  /// *"you have played here four times, best 78"*. Empty is a real answer.
+  var played: [Int] = []
+  var rating = CourseRating.none
+  /// The viewer, for the rounds read. Set by the view before `load`.
+  var me: UUID?
   private let fallback: ScheduledRound?
   private let toasts: CSToastCenter
   private let sched = ScheduleService()
@@ -433,7 +530,18 @@ final class RoundSheetModel {
     }
     // D261 · does the phone hold this course? The door below is drawn only if
     // it does, so it can never open on nothing.
-    kept = await CourseBookStore().book(detail?.courseId).book != nil
+    //
+    // D290 · and the BOOK itself, because the plan now draws the course rather
+    // than linking to it. Off the disk, so it is there with no signal — which
+    // is the state a golfer reads a plan in most often (R-N).
+    book = await CourseBookStore().book(detail?.courseId).book
+    kept = book != nil
+    // your record here, and what your golfers thought of it. Both are allowed
+    // to answer nothing; neither takes the plan with it (L-32).
+    if let cid = detail?.courseId, !cid.isEmpty {
+      played = await CoursePageRepository().roundsAt(cid, me: me)
+      rating = await CourseRatingService().rating(cid)
+    }
     rivals = await RivalsCache.shared.rivals()
     // weather rides in async; no location or out of range → the chip just stays hidden
     if let d = detail, let c = d.course, let lat = c.lat, let lon = c.lon, let on = d.playOn {

@@ -259,6 +259,28 @@ public struct CoursePageRepository: Sendable {
     return out
   }
 
+  /// **Your eighteens at one course**, newest first (D290). One filtered read
+  /// on the table `myBests` already reads, kept separate because the plan
+  /// wants the COUNT and the best, and a dictionary of bests cannot say how
+  /// many times you have been.
+  ///
+  /// Empty is a real answer and it is not narrated: a plan for a course you
+  /// have never played simply has no history line.
+  public func roundsAt(_ courseId: String, me: UUID?) async -> [Int] {
+    guard let me, !courseId.isEmpty, !courseId.hasPrefix("never-kept") else { return [] }
+    struct Row: Decodable, Sendable { let gross: Int?; let voided: Bool?; let holes_played: Int? }
+    guard let rows: [Row] = try? await db.from("rounds")
+      .select("gross, voided, holes_played")
+      .eq("profile_id", value: me).eq("api_course_id", value: courseId)
+      .order("played_on", ascending: false).limit(60).execute().value else { return [] }
+    // eighteens only — a nine's 35 is not a best, and it is not a round you
+    // played "here" in the sense the sentence means (see `page`).
+    return rows.compactMap { r in
+      guard let g = r.gross, !(r.voided ?? false), (r.holes_played ?? 18) == 18 else { return nil }
+      return g
+    }
+  }
+
   /// **Rung 1 of the ladder.** The most recent round photo at this course from
   /// someone the viewer can see, with the photographer's name and the round's
   /// date. A photo whose signing fails, or whose golfer has no name, is not
