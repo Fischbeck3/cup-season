@@ -189,6 +189,77 @@
   --leaf-shade:0 1px 0 rgba(0,0,0,.22);/* the leaf sits on the page */
   --shadow-lift:0 18px 44px -12px rgba(0,0,0,.55);
 }
+
+/* ===== THE NINE ROLES, AS CSS (D268, UI_SYSTEM §1.2 and §14.5) ============
+   The desk's own numbers to retire: 492 `font-size` declarations across 36
+   values, with zero type tokens. These sixteen classes are what they collapse
+   into, and they are the SAME nine roles the phone sets — one system, two
+   shapes. Migration is largest first, surface by surface, Waves 0-8; this
+   commit lands the vocabulary so a surface wave has something to migrate TO.
+
+   Three things worth knowing before using them:
+
+   1 · The three capped roles cap with `clamp()` rather than with a media
+       query, because the desk's own scaling is the browser's zoom and a
+       breakpoint cannot see it. The ratios are the phone's: figure x1.45-1.5,
+       display x1.6-1.8, agate x2.2.
+   2 · Tracking is an `em` here and a RATIO on the phone, which is the same
+       number said two ways — `em` already scales with the rendered size, which
+       is exactly what `.tracking()` on iOS does not do.
+   3 · Desk density (UI_SYSTEM §14.2): `display` is 42 and `story` 21 at the
+       desk, not 34 and 20. `--desk` carries the step so a component does not
+       have to know which client it is in. */
+/* NO SECOND `:root`. The leadings are written into the class rules below
+   rather than lifted into custom properties, and that is deliberate: a `:root`
+   variable is a TOKEN, and preflight check 10 compares every one of them to
+   `tokens.json` byte for byte. A leading is not a token — it is one column of
+   the role table, and the role table is a RENDERING of the tokens in each
+   client's own idiom (a Swift `switch` there, a class rule here), exactly as
+   the point sizes are. Inventing five properties the JSON does not carry would
+   have broken the single-source guarantee to make a stylesheet tidier. */
+.cs-fig-xl,.cs-fig-l,.cs-fig-m,.cs-fig-s{
+  font-family:var(--board); font-weight:700; font-feature-settings:'tnum' 1,'lnum' 1;
+  font-variant-numeric:tabular-nums; letter-spacing:var(--flat); }
+.cs-fig-xl{ font-size:clamp(40px,3.6vw,56px); line-height:.92; }
+.cs-fig-l { font-size:40px; line-height:.94; }
+.cs-fig-m { font-size:27px; line-height:.96; }
+.cs-fig-s { font-size:20px; line-height:1; }
+.cs-display,.cs-display-s{
+  font-family:var(--board); font-weight:700; text-transform:uppercase; }
+.cs-display  { font-size:42px; line-height:.98; letter-spacing:calc(var(--d1) * 1em); }
+.cs-display-s{ font-size:24px; line-height:1.05; letter-spacing:calc(var(--d2) * 1em); }
+.cs-name,.cs-name-s,.cs-social{
+  font-family:var(--board); font-weight:600; line-height:1.16; }
+.cs-name  { font-size:17px; text-transform:uppercase; letter-spacing:calc(var(--caps) * 1em); }
+.cs-name-s{ font-size:15px; text-transform:uppercase; letter-spacing:calc(var(--caps2) * 1em); }
+.cs-social{ font-size:17px; letter-spacing:var(--flat); }
+.cs-lead { font-family:var(--serif); font-weight:700; font-size:28px; line-height:1.14;
+           letter-spacing:calc(var(--tight) * 1em); }
+.cs-story{ font-family:var(--serif); font-weight:400; font-size:21px; line-height:1.34;
+           letter-spacing:var(--flat); }
+.cs-body { font-family:var(--sans); font-weight:400; font-size:17px; line-height:1.45; }
+.cs-body-s{font-family:var(--sans); font-weight:400; font-size:15px; line-height:1.45; }
+/* agate sets CAPS for a label and SENTENCE CASE for a phrase a person could
+   read aloud — same face, same size, same tracking, and only the caps form
+   counts against the budget of ten. `.cs-agate.is-phrase` is the switch. */
+.cs-agate,.cs-agate-s{
+  font-family:var(--board); font-weight:600; line-height:1.2;
+  text-transform:uppercase; }
+.cs-agate  { font-size:12px; letter-spacing:calc(var(--agate) * 1em); }
+.cs-agate-s{ font-size:11px; letter-spacing:calc(var(--agate-s) * 1em); }
+.cs-agate.is-phrase,.cs-agate-s.is-phrase{ text-transform:none; }
+.cs-col,.cs-col-m,.cs-col-s{ font-family:var(--mono); }
+.cs-col  { font-size:17px; font-weight:500; line-height:1.3; }
+.cs-col-m{ font-size:14px; font-weight:500; line-height:1.25;
+           letter-spacing:calc(var(--tight) * 1em);
+           font-variant-numeric:tabular-nums; }
+.cs-col-s{ font-size:12px; font-weight:400; line-height:1.2;
+           font-variant-numeric:tabular-nums; }
+/* the phone's measure, for anything the desk renders at phone width */
+@media (max-width:720px){
+  .cs-display{ font-size:34px; }
+  .cs-story  { font-size:20px; }
+}
 /* light mode: same bones, dawn palette. html[data-theme] is stamped by the
    pre-paint script below and the Appearance selector in the profile. */
 html[data-theme="light"]{

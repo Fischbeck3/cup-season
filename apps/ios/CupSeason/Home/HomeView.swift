@@ -750,7 +750,7 @@ private struct FeedRoundCard: View {
         // the photo is the GROUND: the text decides the height (220 at least), so nothing overflows at the accessibility sizes
         VStack(alignment: .leading, spacing: 6) {
             HStack(spacing: 8) {
-              faceButton(size: 36)
+              faceButton(size: .list)
               VStack(alignment: .leading, spacing: 1) {
                 // F-15 · the name TRUNCATES and the capsule keeps its size.
                 // Both were unconstrained, so the row overflowed its column and
@@ -791,7 +791,7 @@ private struct FeedRoundCard: View {
             // face + name across; the gross drops under them at the accessibility sizes
             A11yStack(spacing: 10) {
               HStack(spacing: 10) {
-                faceButton(size: 44)
+                faceButton(size: .list)
                 VStack(alignment: .leading, spacing: 2) {
                   HStack(alignment: .firstTextBaseline, spacing: 6) {   // F-15
                     Text(who).font(CSFont.button).foregroundStyle(cs.ink)
@@ -835,9 +835,9 @@ private struct FeedRoundCard: View {
     .modifier(A11yReactionActions(enabled: canReact, toggle: toggle))
   }
 
-  private func faceButton(size: CGFloat) -> some View {
+  private func faceButton(size: CSFace.Size) -> some View {
     Button { if let p = r.profile_id { presenter.tourCard = p } } label: {
-      CSFace(marker: r.marker, size: size)
+      CSFace(.init(id: r.profile_id ?? UUID(), marker: r.marker), size: size)
     }
     .buttonStyle(.plain)
   }

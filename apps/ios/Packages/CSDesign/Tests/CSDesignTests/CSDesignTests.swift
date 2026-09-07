@@ -39,8 +39,11 @@ import SwiftUI
   @Test func aMarkerIsSilentUnlessItStandsAlone() {
     #expect(CSMarkerView(key: "azalea").labelled == false)
     #expect(CSMarkerView(key: "azalea", labelled: true).marker.name == CSMarkers.marker("azalea").name)
-    #expect(CSFace(marker: "azalea").name == nil)
-    #expect(CSFace(marker: "azalea", name: "Maya").name == "Maya")
+    // D271 · migrated to the frozen pair. A face still speaks the PERSON or
+    // nothing — it never names the marker.
+    let m = CSFace.Model(id: UUID(), marker: "azalea")
+    #expect(CSFace(m, size: .list).name == nil)
+    #expect(CSFace(m, size: .list, name: "Maya").name == "Maya")
   }
 }
 

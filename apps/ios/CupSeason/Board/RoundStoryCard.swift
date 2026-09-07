@@ -48,7 +48,7 @@ struct RoundStoryCard: View {
         RoundedRectangle(cornerRadius: 2).fill(cs.squad(item.ci)).frame(width: 3.5)
         VStack(alignment: .leading, spacing: 3) {
           HStack(spacing: 8) {
-            CSFace(photoURL: store.face(profile: round.profileId), marker: store.marker(profile: round.profileId), size: 22)
+            CSFace(.init(id: round.profileId ?? UUID(), marker: store.marker(profile: round.profileId), photoURL: store.face(profile: round.profileId)), size: .inline)
             Button { if let p = round.profileId { links.openTourCard(p) } } label: {
               Text(item.who.isEmpty ? "—" : item.who).font(CSFont.subhead.weight(.semibold))
                 .foregroundStyle(hasPhoto ? onPhotoInk : cs.ink)

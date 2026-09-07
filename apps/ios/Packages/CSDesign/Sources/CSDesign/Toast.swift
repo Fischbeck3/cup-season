@@ -9,14 +9,41 @@ import SwiftUI
 @MainActor
 @Observable
 public final class CSToastCenter {
-  public struct Item: Equatable { public let id: UUID; public let text: String }
+  /// **Shape AND colour.** 133 `toast.show(...)` sites carried `id` and `text`
+  /// and nothing else, so "Round posted: +9 pts" and "Reaction did not save."
+  /// were the same grey pill. A toast now carries a KIND — a 3pt leading rail
+  /// plus a drawn glyph in the same colour — and at most one action.
+  ///
+  /// What it is NOT: an arrival. A notification and a confirmation are
+  /// different objects. The toast confirms **the golfer's own action**;
+  /// something that happened elsewhere arrives as a row in the wire and as a
+  /// badge.
+  public enum Kind: Sendable {
+    case confirmed, failed, neutral
+    var glyph: CSGlyph.Name? {
+      switch self {
+      case .confirmed: .check
+      case .failed: .cross
+      case .neutral: nil
+      }
+    }
+  }
+  public struct Item: Equatable, @unchecked Sendable {
+    public let id: UUID
+    public let text: String
+    public let kind: Kind
+    public let actionLabel: String?
+    let action: (() -> Void)?
+    public static func == (a: Item, b: Item) -> Bool { a.id == b.id }
+  }
   public private(set) var current: Item?
   private var hide: Task<Void, Never>?
 
   nonisolated public init() {}
 
-  public func show(_ text: String, seconds: Double = 2.6) {
-    current = Item(id: UUID(), text: text)
+  public func show(_ text: String, kind: Kind = .neutral, seconds: Double = 2.6,
+                   actionLabel: String? = nil, action: (() -> Void)? = nil) {
+    current = Item(id: UUID(), text: text, kind: kind, actionLabel: actionLabel, action: action)
     hide?.cancel()
     hide = Task { [weak self] in
       try? await Task.sleep(for: .seconds(seconds))
@@ -38,6 +65,13 @@ public extension EnvironmentValues {
 
 private struct CSToastHost: ViewModifier {
   @Environment(\.cs) private var cs
+  func rail(_ k: CSToastCenter.Kind) -> Color {
+    switch k {
+    case .confirmed: cs.pos
+    case .failed: cs.neg
+    case .neutral: cs.rule
+    }
+  }
   /// what the floating tab bar actually covers, measured by `CSTabBarProbe`
   /// (0 off the tabs — the door, the covers, the ceremonies).
   @Environment(\.csBarInset) private var barInset
@@ -48,11 +82,24 @@ private struct CSToastHost: ViewModifier {
       .environment(\.toast, center)
       .overlay(alignment: .bottom) {
         if let item = center.current {
-          Text(item.text)
-            .font(CSFont.subhead)
-            .foregroundStyle(cs.bg0)
-            .padding(.horizontal, 16).padding(.vertical, 10)
-            .background(cs.ink, in: Capsule())
+          // 46pt, `rc` 10, `bg2` fill, `body` 15 in `ink`, a 3pt leading kind
+          // rail and a drawn glyph. There is no pill: a chip is a 3pt rectangle,
+          // a toast is a 10pt block, a badge is a circle because it holds a count.
+          HStack(spacing: CSTokens.Space.s3) {
+            Rectangle().fill(rail(item.kind)).frame(width: 3)
+            if let g = item.kind.glyph {
+              CSGlyph(g, size: .row).foregroundStyle(rail(item.kind))
+            }
+            Text(item.text).csType(.bodyS).foregroundStyle(cs.ink).lineLimit(1)
+            if let label = item.actionLabel, let run = item.action {
+              Spacer(minLength: CSTokens.Space.s2)
+              Button(label, action: run).buttonStyle(.csTertiary(.content))
+            }
+          }
+          .padding(.horizontal, CSTokens.Space.s3)
+          .frame(minHeight: 46)
+          .background(cs.bg2, in: RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous))
+          .padding(.horizontal, CSTokens.Space.gutter)
             // 92 is the floor (off the tabs); on a tab it clears the measured pill
             .padding(.bottom, max(92, barInset + 24))
             // reduced motion: the pill fades in place — no roll (IOS-003 §2.7)

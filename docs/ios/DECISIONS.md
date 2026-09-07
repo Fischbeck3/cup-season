@@ -601,3 +601,27 @@ The ⊕'s composer is its own decision (IOS-020). Ceremonies, the finish, the se
 **Reversibility.** TRIVIAL — two computed properties and one modifier, none of which exists in Release.
 
 **Gate:** as IOS-044, same commit.
+
+---
+
+## IOS-045 · `CSDesign` becomes the product's only container and control vocabulary — **P1 · BUILT 2026-09-06, Wave 0b (D265, D266, D267, D269, D271; owner-authorised "build it", 2026-09-06)**
+
+**Decision.** Build the whole vocabulary before any surface is rewritten, prove it on a screen rather than in a changelog, and name the wave that removes every shim it leaves behind.
+
+**THE THREE CONTAINERS, AND A DEFECT THEY FOUND IN THEMSELVES.** `CSBand` · `CSRule` · `CSPanel` · `CSLeaf` · `CSPlate` · `CSObject` replace the card. The first build drew **one leaf per paragraph** — the scorecard grid on one sheet of paper and its legend on a second, 12pt below it — because a SwiftUI `@ViewBuilder` that yields more than one child is a `TupleView`, and a modifier applied to a `TupleView` applies to **each child**. `CSBand` and `CSObject` had the same bug. No unit test would have caught it and the first screenshot could not miss it; every container now composes its children into a stack before it draws anything. This is the harness earning its keep on its first run.
+
+**THE THREE TIERS ARE `ButtonStyle`s AT LAST.** `CSPrimaryStyle` / `CSSecondaryStyle` / `CSTertiaryStyle(.live|.content|.toolbar)` / `CSDestructiveStyle`, plus `.csPrimary` / `.csSecondary` / `.csTertiary(_:)` / `.csDestructive`. `configuration.isPressed` and `isEnabled` are read **zero times** in the shipped product; that is the finding, and this is the fix. A pressed state cannot be photographed by `simctl` — there is no finger — so each style takes a `held:` flag **used by the developer harness and by nothing else**, documented as such, rather than the specimen sheet hand-copying a pressed fill, which is the exact duplication `Controls.swift` exists to remove.
+
+**THE TYPE ROLES READ THE ENVIRONMENT'S SIZE, NOT THE DEVICE'S.** `figure`, `display` and `agate` are capped (×1.45 – ×2.2) and `Font.custom(_:size:relativeTo:)` offers no ceiling, so a capped role computes `min(UIFontMetrics.scaledValue(for:), base × cap)` itself. **`UIFontMetrics.scaledValue(for:)` with no trait collection reads the SYSTEM content-size category**, and `-cs_dev_text_size AX3` (IOS-051) pins `\.dynamicTypeSize` and never touches the system's — so every capped role would have photographed at the default size while every uncapped one grew, and the AX3 evidence would have been a lie in the direction that flatters. `CSType.renderedSize` passes a `UITraitCollection` built from the environment value; a test asserts every capped role grows between Large and AX3.
+
+**AND THE AX3 SHOT FOUND A REAL DEFECT IN THE LINK.** The tertiary's label was `lineLimit(1)` + `fixedSize`, which is right at the reading sizes and at AX3 pushes 300pt of label off a 362pt measure — taking the page's whole left edge with it, so the specimen photographed as a screen sheared down its left side. The label now takes two lines and the rule spans the block. That is one of the two things IOS-051's hatches exist for, catching something on its first use.
+
+**THE FROZEN PAIR, AND THE LINE THAT WOULD HAVE BROKEN IT.** `UI_SYSTEM` §6.2a specifies `pig[hash(id) % 6]`. Swift's `Hashable.hashValue` is **seeded per process**, so writing that line literally would have reseated every golfer on every cold launch — the precise drift the clause forbids, arriving through the one line that looks most like the spec. It is FNV-1a over the UUID's sixteen bytes, and the test pins the seat for a fixed id.
+
+**WHAT IS KEPT, AND UNTIL WHEN.** `CSCard` (20 sites), `CSStat` (12), `CSEmptyState` (6), `CSButton` (90) and `CSHairline` (34) keep their declarations, unchanged, and each names the wave that removes it: **Waves 1–7 take the seven surfaces, Wave 8 the remainder, Wave 9 deletes the five declarations.** A shim with no named removal is not a shim; it is a second system. `LINT-30` counts them at **157** and fails on a rise, so nothing new can be written against them while they wait. `CSFont`'s 857 sites are the same story and are migrated role by role with the surfaces.
+
+**THE HARNESS IS THE WAVE'S ONLY ACCEPTANCE EVIDENCE.** `-cs_dev_developer <a|a2|b|c>` renders every component in every declared state, arranged as the three system specimens are so a shot lands beside `cs-system-{a,b,c}.png` and reads row for row. It takes a page argument because a simulator driven by `simctl` has no finger and cannot scroll. Shot nine ways — four pages dark, four light, three at AX3 — and every one was looked at.
+
+**Reversibility.** MEDIUM. Ten new files in `CSDesign` and four changed ones; the eleven `CSFace` call sites and the two Home face sizes are the only app-side edits, and both are mechanical. Nothing in `CupSeasonKit` moves.
+
+**Gate:** `node tools/build-tokens.mjs` reports `same` on every artefact; preflight **PASS — 0 failures, 0 warnings** (45 checks, 14 of them `LINT-nn` with baselines); sunningdale 27; **CupSeason 35 · CSDesign 49 · CupSeasonKit 887 = 971 tests in 166 suites**, up from 935 / 157 at Wave 0a and 929 / 156 at the design commit. No test was deleted; the two `CSFace` assertions were migrated to the frozen-pair API. No migration was written, so there was none to dry-run.

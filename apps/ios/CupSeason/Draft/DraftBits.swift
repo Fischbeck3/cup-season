@@ -58,7 +58,7 @@ struct DraftSquadCard: View {
         } else {
           ForEach(squad.squad_members, id: \.member_id) { seat in
             HStack(spacing: 8) {
-              CSFace(photoURL: avatar(seat.member_id), marker: marker(seat.member_id), size: 22)
+              CSFace(.init(id: seat.member_id, marker: marker(seat.member_id), photoURL: avatar(seat.member_id)), size: .inline)
               Text(name(seat.member_id) + (squad.captain_member_id == seat.member_id ? " · C" : "")).font(CSFont.footnote).foregroundStyle(cs.ink)
             }
           }
@@ -142,6 +142,7 @@ struct DraftSnakeSquadCard: View {
 /// A pool player as a `.mini` chip; selected = the pos ring (`CS.sel`).
 struct DraftPoolChip: View {
   @Environment(\.cs) private var cs
+  let id: UUID
   let name: String
   let marker: String
   let avatar: URL?
@@ -150,7 +151,7 @@ struct DraftPoolChip: View {
   var body: some View {
     Button(action: tap) {
       HStack(spacing: 6) {
-        CSFace(photoURL: avatar, marker: marker, size: 22)
+        CSFace(.init(id: id, marker: marker, photoURL: avatar), size: .inline)
         Text(name).font(CSFont.monoSmall).lineLimit(1)
       }
       .foregroundStyle(selected ? cs.pos : cs.ink)

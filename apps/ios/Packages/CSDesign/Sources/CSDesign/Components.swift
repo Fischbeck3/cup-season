@@ -1,7 +1,32 @@
-// Cup Season — the M0 component set (IOS-003 §2.4).
+// Cup Season — what is left of the M0 component set (IOS-003 §2.4), and what
+// is on its way out.
 //
-// Card with the spine · Button (primary ember / quiet / gold-earned) · Field ·
-// Stat tile · Eyebrow · Empty state · Note line · Haptics vocabulary.
+// D266 / IOS-045 · `CSCard`, `CSStat`, `CSEmptyState` and `CSButton` are
+// RETIRED NAMES. The system that replaces them is in `Structure.swift`,
+// `Figures.swift`, `States.swift` and `Controls.swift`:
+//
+//   CSCard        → band · rule · rail · panel · leaf     (20 sites)
+//   CSStat        → CSFigure, the rule-and-figure          (12 sites)
+//   CSEmptyState  → CSEmpty, whose door is non-optional     (6 sites)
+//   CSButton      → CSPrimaryStyle / CSSecondaryStyle /
+//                   CSTertiaryStyle as ButtonStyles        (90 sites)
+//   CSButtonStyle.gold → THE TIER DOES NOT EXIST. Gold may never touch a
+//                   control; a disabled primary is never ember.
+//
+// **THEY ARE KEPT HERE, UNCHANGED, ONLY UNTIL THE WAVE THAT MIGRATES THEIR
+// CALL SITES**, and each wave is named rather than implied: Waves 1–7 migrate
+// the seven surfaces that carry most of them, **Wave 8 (propagate) takes the
+// remainder, and Wave 9 (the consistency sweep) deletes these four
+// declarations and drops their `LINT` baselines to zero.** A shim with no
+// named removal is not a shim; it is a second system. `LINT-30` counts the
+// four and fails on a RISE, so nothing new can be written against them while
+// they wait.
+//
+// What genuinely survives, and why: `CSHaptic` (IOS-003 §2.8's vocabulary,
+// verbatim), `CSNote`, `CSTone`, the tab-bar room plumbing and
+// `CSTabBarChrome` — the last of which becomes `CSTabBand`'s measurement.
+// `CSField` moved to `Controls.swift`, where it gained the label, the caption,
+// the error, the counter, the disabled and the loading states it never had.
 
 import SwiftUI
 #if canImport(UIKit)
@@ -10,8 +35,12 @@ import UIKit
 
 // MARK: - Card
 
-/// bg1 · 1px line · radius 16 · padding 16, with the 3.5pt left spine that
-/// tells you live (ember) vs earned (gold) vs squad vs nothing.
+/// **RETIRED (D266). Removed in Wave 9.** 13 of its 20 sites draw a border and
+/// a spine 2px apart, and on eight of fifteen screens in the audit's card
+/// census deleting every border costs ZERO information. Use a band, a rule, a
+/// rail, a panel or a leaf.
+///
+/// bg1 · 1px line · radius 16 · padding 16, with the 3.5pt left spine.
 public struct CSCard<Content: View>: View {
   @Environment(\.cs) private var cs
   let spine: Color?
@@ -38,6 +67,11 @@ public struct CSCard<Content: View>: View {
 
 // MARK: - Button
 
+/// **RETIRED (D269). Removed in Wave 9.** `.gold` is the tier that does not
+/// exist: gold means EARNED and may never touch a control. The replacement is
+/// `.buttonStyle(.csPrimary)` / `.csSecondary` / `.csTertiary(_:)`, which are
+/// `ButtonStyle`s — so every button gets a pressed state and a disabled state
+/// for free, which is the one thing 90 hand-rolled sites never had.
 public enum CSButtonStyle { case primary, quiet, gold }
 
 public struct CSButton: View {
@@ -91,35 +125,11 @@ public struct CSButton: View {
   private var border: Color { style == .quiet ? cs.rule : .clear }
 }
 
-// MARK: - Field
-
-/// Mono · bg2 · radius 10 · 44pt · focus ring in `focus`.
-public struct CSField: View {
-  @Environment(\.cs) private var cs
-  let placeholder: String
-  @Binding var text: String
-  let font: Font
-  @FocusState private var focused: Bool
-
-  public init(_ placeholder: String, text: Binding<String>, font: Font = CSFont.mono) {
-    self.placeholder = placeholder; _text = text; self.font = font
-  }
-
-  public var body: some View {
-    TextField(placeholder, text: $text)
-      .font(font)
-      .foregroundStyle(cs.ink)
-      .padding(.horizontal, 14)
-      .frame(minHeight: 48)
-      .background(cs.bg2, in: RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous))
-      .overlay(RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous)
-        .stroke(focused ? cs.brand : cs.rule, lineWidth: focused ? 2 : 1))
-      .focused($focused)
-  }
-}
-
 // MARK: - Stat
 
+/// **RETIRED (D267). Removed in Wave 9.** A number in a bordered tile is the
+/// audit's problem 1 and problem 2 at once. Use `CSFigure` — the figure, a 2pt
+/// rule the width of its column, and an agate label beneath.
 public struct CSStat: View {
   @Environment(\.cs) private var cs
   let label: String
@@ -146,6 +156,10 @@ public struct CSStat: View {
 
 // MARK: - Empty state
 
+/// **RETIRED (D266 / non-negotiable 9). Removed in Wave 9.** Its `cta` is
+/// optional and its `action` is optional, so the door silently vanishes on
+/// exactly the surfaces that need one. `CSEmpty` takes a non-optional `Door`.
+///
 /// "a quiet icon, one line in voice, one next step … Every dead end becomes a
 /// next move." (index.html 11085)
 public struct CSEmptyState: View {

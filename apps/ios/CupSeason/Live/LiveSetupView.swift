@@ -675,7 +675,7 @@ struct LiveRosterPickerSheet: View {
           } else {
             ForEach(rows) { r in
               HStack(spacing: 12) {
-                CSFace(marker: r.marker, size: 36)
+                CSFace(.init(id: r.id, marker: r.marker), size: .list)
                 VStack(alignment: .leading, spacing: 2) {
                   Text(r.name).font(CSFont.subhead.weight(.semibold)).foregroundStyle(cs.ink)
                   Text(r.subline).font(CSFont.monoSmall).foregroundStyle(cs.mut)

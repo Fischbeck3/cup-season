@@ -81,7 +81,7 @@ struct HomeRoundCard: View {
     // COLUMN there — the facts keep their order and each gets the full width.
     A11yStack(alignment: .leading, rowAlignment: .center, spacing: 12, columnSpacing: 10) {
       HStack(alignment: .center, spacing: 12) {
-      CSFace(marker: sr.marker, size: 36)
+      CSFace(.unkeyed(marker: sr.marker), size: .list)
       VStack(alignment: .leading, spacing: 3) {
         (Text(sr.play_on.map { ScheduleDates.when($0) } ?? "").bold()
          + (eyebrow.map { Text(" · ") + Text($0).font(CSFont.label).foregroundStyle(sr.withYou ? cs.ink : cs.dimText) } ?? Text("")))

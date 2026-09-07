@@ -166,23 +166,32 @@ public enum CSHeaderDate {
 
 // MARK: - Sections and hairlines
 
+/// **RETIRED (D266). Removed in Wave 9.** `CSRule` is the only divider — it
+/// carries the 2pt heavy weight and the three metals as well as this hairline,
+/// and 34 sites plus every bare `Divider()` migrate to it wave by wave.
 public struct CSHairline: View {
-  @Environment(\.cs) private var cs
   public init() {}
-  public var body: some View { Rectangle().fill(cs.rule).frame(height: 1) }
+  public var body: some View { CSRule() }
 }
 
-/// An eyebrow over a hairline, with an optional trailing link in `dawn`. The
-/// title wears the look's accent at full strength under a look (D103b), `mut`
-/// on homebase.
+/// An agate label with a 1px rule running to the margin, and a **count slot**
+/// flush right.
+///
+/// **The right slot takes a count or a period — `LAST FIVE`, `11 KEPT`,
+/// `WEEK 5` — and NEVER a proper name**, never a date range, never a filter and
+/// never a league's name, which belongs in the label or in the row's own
+/// sub-line (§16A.2). A section names its count ONCE, and the slot is where.
+/// `trailing:` with an `action:` is still a link, for the handful of heads that
+/// genuinely lead somewhere; `count:` is the slot.
 public struct CSSectionHead: View {
   @Environment(\.cs) private var cs
   @Environment(\.csLookAccent) private var la
   let title: String
+  let count: String?
   let trailing: String?
   let action: (() -> Void)?
-  public init(_ title: String, trailing: String? = nil, action: (() -> Void)? = nil) {
-    self.title = title; self.trailing = trailing; self.action = action
+  public init(_ title: String, count: String? = nil, trailing: String? = nil, action: (() -> Void)? = nil) {
+    self.title = title; self.count = count; self.trailing = trailing; self.action = action
   }
   public var body: some View {
     VStack(alignment: .leading, spacing: 8) {
@@ -191,6 +200,9 @@ public struct CSSectionHead: View {
         // stays its own element and never reads as part of the heading
         Text(title).csEyebrow(la.eyebrow).accessibilityAddTraits(.isHeader)
         Spacer()
+        if let count {
+          Text(count).csType(.agateS, caps: true).foregroundStyle(cs.mut)
+        }
         if let trailing {
           if let action {
             // accessibility: the eyebrow link keeps its look and gains a 44pt hit area
@@ -206,6 +218,10 @@ public struct CSSectionHead: View {
   }
 }
 
+/// **RETIRED (D266). Removed in Wave 9** — it folds into `CSSectionHead`, and
+/// `CSTabStrip` into `CSSegment`, so a page has one head and one pane control
+/// rather than two of each.
+///
 /// D177 · A GROUP head: one level above `CSSectionHead`, for a page that needs
 /// a spine rather than a list. It wears the brand at rest — a group head is
 /// structure, not an accent moment — sits on a heavier rule, and gets real air
@@ -308,6 +324,11 @@ public enum CSMotion {
   public static let settle = Animation.timingCurve(0.16, 0.84, 0.36, 1, duration: 0.55)
   /// A quick roll, for a disclosure that opens under the finger.
   public static let tick = Animation.timingCurve(0.16, 0.84, 0.36, 1, duration: 0.18)
+  /// **The snap** — `cubic-bezier(.2,0,0,1)` at 180ms. The roll is how a thing
+  /// ARRIVES; the snap is how a control ANSWERS A FINGER. A press that rolls
+  /// for 320ms reads as lag, which is why every `ButtonStyle` in the system
+  /// animates on this and nothing else does.
+  public static let snap = Animation.timingCurve(0.2, 0, 0, 1, duration: 0.18)
 
   /// The one repeating motion the product has: a live dot breathing. It is
   /// still the roll — `easeInOut` was a fourth curve wearing a fifth job.

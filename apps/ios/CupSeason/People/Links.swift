@@ -94,7 +94,7 @@ struct CSCheckRow<Trailing: View>: View {
   var body: some View {
     HStack(alignment: .center, spacing: 12) {
       // the title names the person; the marker inside the face would name itself too
-      CSFace(marker: marker, size: 36).accessibilityHidden(true)
+      CSFace(.unkeyed(marker: marker), size: .list).accessibilityHidden(true)
       VStack(alignment: .leading, spacing: 3) {
         title.font(CSFont.subhead.weight(.semibold)).foregroundStyle(cs.ink)
         if let sub { sub.font(CSFont.monoSmall).foregroundStyle(cs.mut) }
@@ -165,7 +165,7 @@ struct RoomLineRow<Trailing: View>: View {
   private var lead: some View {
     HStack(alignment: .center, spacing: 12) {
       // the title names the person; the marker inside the face would name itself too
-      CSFace(marker: marker, size: 36).accessibilityHidden(true)
+      CSFace(.unkeyed(marker: marker), size: .list).accessibilityHidden(true)
       VStack(alignment: .leading, spacing: 3) {
         title.font(CSFont.subhead.weight(.semibold)).foregroundStyle(cs.ink)
         if let sub { sub.font(CSFont.monoSmall).foregroundStyle(cs.mut).fixedSize(horizontal: false, vertical: true) }

@@ -137,7 +137,7 @@ struct DraftNightScreen: View {
         Text(DraftCopy.poolEyebrow).csEyebrow()
         LazyVGrid(columns: [GridItem(.adaptive(minimum: 150), spacing: 6, alignment: .leading)], alignment: .leading, spacing: 6) {
           ForEach(pool) { m in
-            DraftPoolChip(name: m.name, marker: m.mk, avatar: room.avatarURL[m.profile_id], selected: board.selected == m.id) {
+            DraftPoolChip(id: m.profile_id, name: m.name, marker: m.mk, avatar: room.avatarURL[m.profile_id], selected: board.selected == m.id) {
               guard room.isPro, assign else { return }
               CSHaptic.selection()
               board.selected = board.selected == m.id ? nil : m.id

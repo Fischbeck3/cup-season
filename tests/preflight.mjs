@@ -1751,8 +1751,15 @@ else {
     });
     for (const m of src.matchAll(CURVE)) {
       const got = [m[1], m[2], m[3], m[4]].map(Number);
-      if (got.join(',') !== '0.16,0.84,0.36,1') {
-        hits.push(`${rel(f)} — timingCurve(${got.join(', ')}) is not the roll`);
+      /* TWO curves, and the second one is a ruling rather than a slip. The
+         ROLL is how a thing ARRIVES — fast start, long soft settle, 320ms. The
+         SNAP is how a control ANSWERS A FINGER, and a press that rolls for
+         320ms reads as lag. `CSMotion.snap` (D269 / BUILD_BRIEF §3.2) is the
+         only other legal curve in the product and it lives in `Surfaces.swift`
+         beside the roll; every `ButtonStyle` animates on it and nothing else
+         does. A third curve still fails here. */
+      if (got.join(',') !== '0.16,0.84,0.36,1' && got.join(',') !== '0.2,0,0,1') {
+        hits.push(`${rel(f)} — timingCurve(${got.join(', ')}) is neither the roll nor the snap`);
       }
     }
     /* reduced motion rests on the frame: the guard is CSMotion, not a habit */
@@ -2248,7 +2255,152 @@ const lint = (id, name, hits, note = '') => {
   if (!/cornerRadius: *([0-9]+)/.test('RoundedRectangle(cornerRadius: 7)')) {
     hits.push('self-test failed: LINT-04 no longer notices a hand-typed radius');
   }
-  lint('LINT-04', 'every radius is one of the five', hits, 'r 16 · rc 10 · rs 24 · p 3 · rx 28');
+  lint('LINT-05', 'every radius is one of the five', hits, 'r 16 · rc 10 · rs 24 · p 3 · rx 28');
+}
+
+/* 45 · the visual-system lint, the component half (D274, IOS-045) ---------
+   Wave 0a landed the ratchet and the radius check. These are the checks that
+   police the VOCABULARY, and they land with the vocabulary rather than before
+   it — a check for "use CSFigure" written before CSFigure exists is a check
+   that can only be satisfied by deleting it.
+
+   THE IDS NOW MATCH `UI_SYSTEM` §17, AND ONE OF THEM MOVED TO GET THERE.
+   Wave 0a shipped the radius check as `LINT-04`; §17's `LINT-04` is the colour
+   literal and `LINT-05` is the radius. With exactly one check in the file the
+   rename is free, and the alternative was a table and a codebase disagreeing
+   about a name for the rest of a twelve-wave build — which is the specific
+   failure this wave exists to prevent. The baseline key moved with it.
+
+   Each check reports every hit it finds and fails only when the COUNT RISES.
+   A baseline is a debt written down, which is the only kind worth having. */
+{
+  const { swiftSources } = await import('../tools/extract-strings.mjs');
+  const iosRoot = join(root, 'apps', 'ios');
+  const files = swiftSources(iosRoot).filter(f => !/\/Tests\//.test(f));
+  const design = join(iosRoot, 'Packages', 'CSDesign', 'Sources', 'CSDesign');
+  const src = files.map(f => ({
+    path: f,
+    rel: f.slice(root.length).replace(/^\//, ''),
+    inDesign: f.startsWith(design),
+    lines: readFileSync(f, 'utf8').split('\n'),
+  }));
+
+  /** Every line matching `re`, as "path:line text", skipping files by regex. */
+  const scan = (re, { skip = null, only = null, max = 400 } = {}) => {
+    const out = [];
+    for (const f of src) {
+      if (skip && skip.test(f.rel)) continue;
+      if (only && !only.test(f.rel)) continue;
+      f.lines.forEach((line, i) => {
+        if (line.trimStart().startsWith('//')) return;          // a comment is not a call site
+        if (re.test(line) && out.length < max) out.push(`${f.rel}:${i + 1} ${line.trim().slice(0, 90)}`);
+      });
+    }
+    return out;
+  };
+
+  /* LINT-01 · no face by PostScript string. The four names live in one file;
+     everywhere else `.custom("` is how D258 happens — silently, in SF Pro. */
+  lint('LINT-01', 'no face named by string outside the type file',
+       scan(/\.custom\(\s*"/, { skip: /CSDesign\/(Type|Typography)\.swift/ }),
+       'CSType holds the four names, read from the files’ own name table');
+
+  /* LINT-03 · no bare system font. A size typed at a call site is a size that
+     is in no table, scales against no text style and declares no leading. */
+  lint('LINT-03', 'no bare system font outside the type file',
+       scan(/\.system\(size:/, { skip: /CSDesign\// }),
+       'nine roles, fourteen symbols — no surface may name a size');
+
+  /* LINT-04 · no colour literal in Swift (check 15's sibling, scoped to the
+     forms a component reaches for). Generated/Tokens.swift is the one source. */
+  /* `CredentialDev` and the developer harness draw a GREYSCALE stand-in
+     subject on purpose — the scrim's worst case is a nearly-white patch, and a
+     plausible warm portrait would have flattered it. Both are `#if DEBUG` and
+     neither ships, so they are exempt BY NAME rather than by a baseline: a
+     baseline on a zero-tolerance check is a hole with a number written on it. */
+  lint('LINT-04', 'no colour invented in Swift',
+       scan(/(Color|UIColor)\((red|white|hue):/, { skip: /Generated\/|CredentialDev\.swift|DeveloperHarness\.swift/ }),
+       'every value comes from tokens.json; the two DEBUG fixtures are exempt by name');
+
+  /* LINT-09 · no border. The system has NO BORDER TOKEN; the only outlines are
+     the focus ring, the face's inset ring, the leaf's light edge and the
+     scorecard marks. `.stroke(` anywhere else is a box coming back. */
+  lint('LINT-09', 'no border outside the four outlines the system allows',
+       scan(/\.stroke\(/, { skip: /CSDesign\// }),
+       'focus ring · face ring · leaf edge (light) · the scorecard marks');
+
+  /* LINT-10 · no rounded rectangle outside CSDesign. 338 hand-rolled
+     containers against 34 component uses is the audit's whole finding. */
+  lint('LINT-10', 'no container shape drawn outside CSDesign',
+       scan(/(RoundedRectangle\(|Capsule\(\))/, { skip: /CSDesign\// }),
+       'band · rule · rail · panel · leaf · object');
+
+  /* LINT-12 · no emoji. Reactions keep the six canon glyphs; everything else
+     is a drawn stroke. The range is the pictographic block plus the two
+     dingbat runs the audit actually found in the product. */
+  lint('LINT-12', 'no emoji outside the six reactions',
+       scan(/[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}\u{2B00}-\u{2BFF}]/u,
+            { skip: /Reactions\.swift|CSDesign\/Generated\// }),
+       'the six canon reactions and a golfer’s own typed text');
+
+  /* LINT-13 · no typed arrow inside a produced string. The set is the one §17
+     names; `−` (minus), `–` (en dash) and `—` (em dash) are
+     explicitly exempt, because a first draft that matched a bare `v` and a
+     bare `^` failed thousands of innocent strings and would have been turned
+     off on its first run. */
+  lint('LINT-13', 'no typed arrow in a produced string',
+       scan(/"[^"]*[→←▲▼↑↓⇧⇩][^"]*"/),
+       'movement is a drawn mark; a link’s arrow is absorbed into its underline');
+
+  /* LINT-14 · no uppercasing in a string. Case is a role's job; `.uppercased()`
+     breaks VoiceOver and localisation, and the shipped product produces the
+     same label three ways. */
+  lint('LINT-14', 'case is a role’s job, never a string’s',
+       scan(/\.uppercased\(\)/, { skip: /CSDesign\/Generated\// }),
+       '.textCase(.uppercase) is the one way');
+
+  /* LINT-22 · no spinner in content. A spinner inside a CONTROL is legal and
+     is three mono dots that tally; a spinner inside content is the loading
+     state the system replaces with the destination's own geometry. */
+  lint('LINT-22', 'no spinner inside content',
+       scan(/ProgressView\(/, { skip: /CSDesign\/Controls\.swift/ }),
+       'loading is the destination’s own geometry, redacted');
+
+  /* LINT-25 · one dismiss verb. Three verbs in three colours at two positions
+     plus an xmark circle is the single most visible inconsistency a golfer
+     meets, because they meet it on 84 sheets and 11 covers. */
+  lint('LINT-25', 'one dismiss verb, and it is Close',
+       scan(/(Button\("(Done|Cancel|Dismiss)"|systemName: "xmark)/),
+       'Close, a toolbar tertiary at topBarTrailing, never ember');
+
+  /* LINT-28 · the pennant is reserved to the tab band and the app icon. Nine
+     flags carrying seven meanings, on the product's core symbol, is ICO-12. */
+  lint('LINT-28', 'the pennant is reserved',
+       scan(/\.pennant\b/, { skip: /CSDesign\/(Chrome)\.swift|Dev\// }),
+       'the tab band and the app icon, and nowhere else');
+
+  /* LINT-29 · `dim` is a hairline/dot tier, never a word. IOS-013 already
+     routes web `dim` text to `mut` on the phone; this stops it coming back. */
+  lint('LINT-29', '`dim` is never a word',
+       scan(/foregroundStyle\((cs|palette)\.dim\)/, { skip: /CSDesign\// }),
+       'dimText is the tier that passes AA');
+
+  /* LINT-30 · the four retired M0 components, counted while they wait. Each is
+     kept ONLY until the wave that migrates its call sites — Waves 1–7 take the
+     surfaces, Wave 8 the remainder, Wave 9 deletes the declarations. A shim
+     with no named removal is not a shim; it is a second system. This is what
+     stops anything NEW being written against them in the meantime. */
+  lint('LINT-30', 'nothing new is written against a retired component',
+       scan(/\b(CSCard|CSStat|CSEmptyState|CSHairline|CSButton)\s*[(<]/, { skip: /CSDesign\/(Components|Surfaces)\.swift/ }),
+       'band · rule · panel · leaf · CSFigure · CSEmpty · CSRule · the three ButtonStyles');
+
+  /* LINT-31 · a face drawn before its surface plumbed the profile id through.
+     §6.2a keys the pigment to the GOLFER; `.unkeyed` keys it to the marker, so
+     two golfers who chose the same glyph share a coin. Deterministic, frozen,
+     named — and ratcheted to zero rather than allowed to spread. */
+  lint('LINT-31', 'every face is keyed to a golfer, not to a glyph',
+       scan(/CSFace\.Model\.unkeyed|\.unkeyed\(marker:/, { skip: /CSDesign\// }),
+       'Waves 1, 3 and 8 plumb the id through the four rows that lack it');
 }
 
 console.log(`\n${fails ? 'FAIL' : 'PASS'} — ${fails} failure(s), ${warns} warning(s)`);

@@ -108,3 +108,60 @@ public enum CSPhotoScrim {
                    startPoint: .top, endPoint: .bottom)
   }
 }
+
+// MARK: - The three named geometries (UI_SYSTEM §10.3, D272)
+
+/// "One scrim" was THREE in the first draft — a left-to-right three-stop on the
+/// wire band, a top-to-bottom four-stop on the course hero, and a third with
+/// different offsets on the credential: three geometries and two directions, in
+/// the mockups that illustrated the claim that there was one. There are now
+/// exactly three, they are named, and nothing else is legal.
+///
+/// Copy over any of them takes `scrimInk` (a name, a headline) or `scrimMut` (a
+/// credit, a caption) — the two named tokens, so the off-palette greys four
+/// specs had invented are gone.
+public extension CSPhotoScrim {
+  /// Bottom-anchored, for **a name reversed out of a plate** — the course hero,
+  /// the credential, the event's title card. Top → bottom.
+  static let title: [Stop] = [Stop(0.00, 0.00), Stop(0.24, 0.44), Stop(0.72, 0.72), Stop(0.88, 1.00)]
+
+  /// Leading-anchored, for **a wire photo band** where the copy sets at the
+  /// left. Leading → trailing.
+  static let band: [Stop] = [Stop(0.88, 0.00), Stop(0.56, 0.46), Stop(0.00, 1.00)]
+
+  /// For any plate that runs full-bleed **under the status bar**. Without it
+  /// the credit line, the system back chevron and the status clock sit on raw
+  /// image — and over a real sunrise photograph, which is rung 1 of the ladder
+  /// and the whole point of it, the credit computes at **1.48:1** on the bright
+  /// band. `0% ceremony a72 → clear` over the first 96pt.
+  static let top: [Stop] = [Stop(0.72, 0.00), Stop(0.00, 1.00)]
+  static let topHeight: CGFloat = 96
+
+  /// **A SIXTH ARITHMETIC CONFLICT, FOUND BY TESTING IT.** §10.3 says copy over
+  /// a scrim takes `scrimInk` (a name, a headline) or `scrimMut` (a credit, a
+  /// caption). That holds on `.title` and `.band`, which reach `a88`. It does
+  /// **not** hold on `.top`, which reaches only `a72` — deliberately, because
+  /// `.top`'s whole job is to protect the status bar WITHOUT blacking out the
+  /// head of the picture. Over the brightest subject the product prints, a
+  /// `scrimMut` credit under `.top` computes at **4.15:1**: better than the
+  /// 1.48:1 it fixes, and still under AA.
+  ///
+  /// So the ink is a function of the geometry rather than a habit each surface
+  /// keeps: **on `.top`, a caption takes `scrimInk` too.** Stated here, once,
+  /// so no course page and no event card resolves it by omission.
+  static func ink(_ stops: [Stop], caption: Bool) -> Color {
+    guard caption, stops.last?.alpha ?? 0 >= 0.88 || stops.first?.alpha ?? 0 >= 0.88 else {
+      return CSTokens.dark.scrimInk
+    }
+    return CSTokens.dark.scrimMut
+  }
+
+  /// The geometry, drawn. `ceremony` is the ground in BOTH printings: a
+  /// photograph carries its own dusk and a light-theme scrim would bleach it.
+  @ViewBuilder static func layer(_ stops: [Stop], leading: Bool = false) -> some View {
+    LinearGradient(stops: stops.map { .init(color: CSTokens.dark.ceremony.opacity($0.alpha), location: $0.at) },
+                   startPoint: leading ? .leading : .top,
+                   endPoint: leading ? .trailing : .bottom)
+      .allowsHitTesting(false)
+  }
+}

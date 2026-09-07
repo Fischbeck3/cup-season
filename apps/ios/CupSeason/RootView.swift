@@ -131,6 +131,11 @@ struct RootView: View {
     // `-cs_dev_cred <photo|crest|hero|herocrest>`: the credential itself, over
     // the root — see CredentialDev.swift.
     .overlay { if let m = CredDev.mode { CredDevView(mode: m) } }
+    // `-cs_dev_developer`: every component in the system, in every state it
+    // declares, over the root — see Dev/DeveloperHarness.swift. It is the
+    // component wave's only acceptance evidence and every later wave's
+    // regression check.
+    .overlay { if DeveloperHarness.on { DeveloperHarnessView() } }
     .overlay {
       if (CSDevHatch.live || CSDevHatch.nearby) && devLive {
         LiveRoundHost(links: LiveLinks(done: { devLive = false }))

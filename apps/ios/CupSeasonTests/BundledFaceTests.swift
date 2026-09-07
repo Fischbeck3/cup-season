@@ -19,6 +19,7 @@
 
 import Testing
 import UIKit
+import SwiftUI
 import CSDesign
 @testable import CupSeason
 
@@ -68,5 +69,63 @@ import CSDesign
     }
     let w = { (s: String) in (s as NSString).size(withAttributes: [.font: mono]).width }
     #expect(abs(w("1111") - w("MMMM")) < 0.01, "the mono face is not advancing uniformly")
+  }
+}
+
+/// **`LINT-02`'s other half — the TABULAR assertion, and it is not a formality.**
+///
+/// `csTabular()` is `.monospacedDigit()`, which Apple documents for *system*
+/// fonts. On a `Font.custom` it resolves through the descriptor's
+/// `kNumberSpacingType` feature and works only if the face carries it. Every
+/// column in this system depends on it — the rank rail, points, the gap, the
+/// form row, the receipt — and all 69 existing `csTabular()` sites sat on
+/// Charter, which is retired. If the board face's default figures were
+/// proportional and nobody asked for the feature, the rail's `01` and `11`
+/// would be different widths and every board in the product would wobble by a
+/// point or two per row: visible, unattributable, and impossible to find later.
+///
+/// `CSType.tabularUIFont` asks for the feature EXPLICITLY rather than hoping.
+/// This proves the ask lands.
+@Suite struct TabularFigureTests {
+  private func advance(_ f: UIFont, _ s: String) -> CGFloat {
+    (s as NSString).size(withAttributes: [.font: f]).width
+  }
+
+  @Test func theBoardFaceAdvancesTabularly() {
+    for (name, job) in [(CSType.boardBold, "the figure"), (CSType.boardSemi, "agate and the name")] {
+      guard let f = CSType.tabularUIFont(name, 40) else {
+        Issue.record("\(name) (\(job)) did not resolve for the tabular ask")
+        continue
+      }
+      let zeros = advance(f, "0000000000")
+      let ones = advance(f, "1111111111")
+      #expect(abs(zeros - ones) < 0.01,
+              "\(name): ten zeros measured \(zeros)pt against ten ones at \(ones)pt — the figures are proportional and every column in the product wobbles")
+    }
+  }
+
+  /// The mono column face too, which is the other half of "digits line up".
+  @Test func theColumnFaceAdvancesTabularly() {
+    guard let f = UIFont(name: CSType.monoMedium, size: 14) else {
+      Issue.record("the mono medium face did not resolve")
+      return
+    }
+    #expect(abs(advance(f, "0000000000") - advance(f, "1111111111")) < 0.01)
+  }
+
+  /// **`figure` 27's ×1.45 cap is load-bearing and this is the arithmetic.**
+  /// Two tabular digits of the board face measure ~1.08 em. At the ×1.7 an
+  /// uncapped role would reach, the pair is 49.6pt — 5.6pt wider than the 44pt
+  /// rail, so a rank overflows between AX1 and AX2. At ×1.45 the pair is 42.3pt
+  /// and fits with 0.85pt each side.
+  @Test func twoDigitsFitTheRailAtEveryAccessibilitySize() {
+    for size in [DynamicTypeSize.large, .accessibility1, .accessibility3, .accessibility5] {
+      let pt = CSType.renderedSize(.figureM, size)
+      #expect(pt <= 27 * 1.45 + 0.01, "figureM reached \(pt)pt at \(size) — the ×1.45 cap is not holding")
+      guard let f = CSType.tabularUIFont(CSType.boardBold, pt) else { continue }
+      let pair = advance(f, "88")
+      #expect(pair <= CSTokens.Space.rail,
+              "two digits measured \(pair)pt at \(size) — they do not fit the \(CSTokens.Space.rail)pt rail")
+    }
   }
 }

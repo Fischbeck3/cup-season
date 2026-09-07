@@ -135,7 +135,7 @@ struct ScheduledRoundSheet: View {
       } else {
         ForEach(d.comments) { c in
           HStack(alignment: .top, spacing: 10) {
-            CSFace(marker: c.marker, size: 28)
+            CSFace(.unkeyed(marker: c.marker), size: .slat)
             (Text(c.name).bold().foregroundStyle(cs.ink) + Text(" \(c.body)").foregroundStyle(cs.mut)).font(CSFont.subhead)
             Spacer(minLength: 0)
           }

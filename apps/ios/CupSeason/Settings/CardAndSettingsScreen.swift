@@ -319,8 +319,9 @@ private struct CardEditorPane: View {
       A11yStack(spacing: 10) {
         // Y-33 · one label, the face's own — it hides itself when unnamed, so a
         // label bolted on from outside would have been read to nobody.
-        CSFace(photoURL: vm.avatar, marker: vm.marker ?? vm.profile?.marker,
-               name: vm.avatar == nil ? "Your marker, no photo yet" : "Your photo", size: 56)
+        CSFace(.init(id: vm.profile?.id ?? UUID(), marker: vm.marker ?? vm.profile?.marker,
+                     photoURL: vm.avatar, isViewer: true), size: .block,
+               name: vm.avatar == nil ? "Your marker, no photo yet" : "Your photo")
         HStack(spacing: 10) {
           PhotosPicker(selection: $pick, matching: .images) {
             MiniPill(text: vm.photoBusy ? "Uploading…" : (vm.avatar == nil ? "Add a photo" : "Change photo"))

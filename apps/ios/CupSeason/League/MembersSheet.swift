@@ -58,7 +58,7 @@ struct MembersSheet: View {
       A11yStack(spacing: 12, columnSpacing: 6) {
         HStack(spacing: 12) {
           Button { dismiss(); links.openTourCard(m.profile_id) } label: {
-            CSFace(photoURL: model.avatarURL[m.profile_id], marker: m.mk, size: 36).a11yHitSlop(vertical: 4, horizontal: 4)
+            CSFace(.init(id: m.profile_id, marker: m.mk, photoURL: model.avatarURL[m.profile_id]), size: .list).a11yHitSlop(vertical: 4, horizontal: 4)
           }
           .buttonStyle(.plain).accessibilityLabel(GolfersRoot.CardName.title(m.name))
           VStack(alignment: .leading, spacing: 2) {
