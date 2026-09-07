@@ -100,7 +100,7 @@ struct MajorSetupSheet: View {
       EventFinePrint(text: "How it plays. The jug is the trophy this one is played for. Everyone posts inside the window — any course, any day it's open. Your best 18-hole card, scored against your playing HCP, is your score; post as many as the weekend allows. An established number (3 posted rounds) plays for the jug; newer golfers are on the board but don't count this year — official by the next one. Ties settle on countback: second-best card, then earliest posted, then a logged coin flip.")
         .padding(.top, 6)
       A11yStack(spacing: 8) {
-        Button("Cancel") { dismiss() }
+        Button("Close") { dismiss() }
           .buttonStyle(.csSecondary()).frame(maxWidth: typeSize.isA11y ? .infinity : 120)
         Button("Set the Major") { create() }
           .buttonStyle(.csPrimary(busy: busy))

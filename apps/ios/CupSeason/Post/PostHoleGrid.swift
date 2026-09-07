@@ -57,7 +57,7 @@ struct PostScorecardStrip: View {
       VStack(alignment: .leading, spacing: 0) {
         CSFine("Each hole starts on par — tap to adjust only what you didn't.")
         Button { model.showPars = true } label: {
-          Text("Set the pars →").csType(.bodyS).foregroundStyle(cs.brand).frame(minHeight: 44)
+          Text("Set the pars").csType(.bodyS).foregroundStyle(cs.brand).frame(minHeight: 44)
         }
         .buttonStyle(.plain)
       }
@@ -192,7 +192,7 @@ struct PostScorecardStrip: View {
         CSMotion.run(CSMotion.rise) { selected = PostStrip.next(after: i, side: model.card.side) }
         CSHaptic.selection()
       } label: {
-        Text("Next hole →").csType(.bodyS).foregroundStyle(cs.ink).frame(maxWidth: .infinity, minHeight: 44)
+        Text("Next hole").csType(.bodyS).foregroundStyle(cs.ink).frame(maxWidth: .infinity, minHeight: 44)
       }
       .buttonStyle(.plain)
     }
@@ -239,13 +239,16 @@ struct PostParsSheet: View {
           .accessibilityElement(children: .combine)
           .accessibilityAddTraits(.updatesFrequently)
           CSFine("Nine digits a side, 3–6. \(nine ? "Front nine only." : "Type it once.") Only matters if this course isn't par 72 — exact stroke index arrives with the course database.")
-          Button("Done") { if model.setPars(front: front, back: back) { dismiss() } }
+          // §7.1 · "Done" was doing two different jobs in this product — a
+          // dismiss on five sheets and a COMMIT on two. This one saves the pars,
+          // so it says so; the dismiss verb is Close and it is in the toolbar.
+          Button("Save the pars") { if model.setPars(front: front, back: back) { dismiss() } }
             .buttonStyle(.csPrimary()).padding(.top, 4)
         }
         .padding(20)
       }
       .background(cs.bg0)
-      .toolbar { ToolbarItem(placement: .topBarLeading) { Button("Cancel") { dismiss() }.foregroundStyle(cs.mut) } }
+      .csCloseButton { dismiss() }
     }
     .presentationDetents([.medium, .large])
     .presentationDragIndicator(.visible)

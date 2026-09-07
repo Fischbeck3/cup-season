@@ -152,15 +152,26 @@ public struct CSTertiaryStyle: ButtonStyle {
 /// — never an `alert()`.
 public struct CSDestructiveStyle: ButtonStyle {
   @Environment(\.cs) private var cs
-  public init() {}
+  /// **The busy state, added in Wave 9 because two sheets were hand-rolling
+  /// it.** `SeasonAdminSheets` drew its own `ZStack { label.opacity(busy ? 0 :
+  /// 1); if busy { ProgressView() } }` over its own `RoundedRectangle` — a
+  /// third button tier, invisible to every check that counts tiers, with a
+  /// spinner in it where the primary tallies. It is the style's job.
+  let busy: Bool
+  public init(busy: Bool = false) { self.busy = busy }
   public func makeBody(configuration: Configuration) -> some View {
-    configuration.label
-      .csType(.name)
-      .frame(maxWidth: .infinity, minHeight: 50)
-      .foregroundStyle(cs.neg)
-      .background(configuration.isPressed ? cs.neg.opacity(CSTokens.Alpha.a16) : cs.bg2,
-                  in: RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous))
-      .csAnimation(CSMotion.snap, value: configuration.isPressed)
+    ZStack {
+      configuration.label
+        .csType(.name)
+        .opacity(busy ? 0 : 1)
+      // never a spinner, here either: the same three dots the primary tallies
+      if busy { CSTallyDots(tint: cs.neg) }
+    }
+    .frame(maxWidth: .infinity, minHeight: 50)
+    .foregroundStyle(cs.neg)
+    .background(configuration.isPressed ? cs.neg.opacity(CSTokens.Alpha.a16) : cs.bg2,
+                in: RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous))
+    .csAnimation(CSMotion.snap, value: configuration.isPressed)
   }
 }
 
@@ -209,6 +220,7 @@ public extension ButtonStyle where Self == CSTertiaryStyle {
 }
 public extension ButtonStyle where Self == CSDestructiveStyle {
   static var csDestructive: CSDestructiveStyle { CSDestructiveStyle() }
+  static func csDestructive(busy: Bool) -> CSDestructiveStyle { CSDestructiveStyle(busy: busy) }
 }
 
 // MARK: - The chip

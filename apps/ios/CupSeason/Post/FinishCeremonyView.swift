@@ -23,7 +23,6 @@ struct FinishCeremonyView: View {
   @State private var stage = 0
   @State private var thock = false
   @State private var share: PostShareItem?
-  @ScaledMetric(relativeTo: .largeTitle) private var grossSize: CGFloat = 88
 
   // the web's finish palette, verbatim (2098, 2145–2148, 2153)
   private let eyebrowInk = Color(hex: 0x8FA096)
@@ -41,8 +40,13 @@ struct FinishCeremonyView: View {
         Text(ceremony.eyebrow).font(CSFont.eyebrow).tracking(2.6).textCase(.uppercase).foregroundStyle(eyebrowInk)
           .multilineTextAlignment(.center).opacity(stage >= 1 ? 1 : 0)
         PostCupRoll(rolled: stage >= 2, reduceMotion: reduceMotion).frame(height: 44).padding(.top, 18)
-        Text("\(ceremony.gross)").font(.custom("Charter-Bold", size: grossSize, relativeTo: .largeTitle)).foregroundStyle(bandInk)
-          .csTabular().opacity(stage >= 2 ? 1 : 0).offset(y: stage >= 2 ? 0 : 6)
+        // D267 / D268 · a gross is a FIGURE, and the serif it was set in is
+        // Charter, which D268 retired. `figureXL` is the role: the board face,
+        // tabular, capped at ×1.45 so an accessibility size grows it without
+        // driving the band off the screen. It was the last `.custom("` outside
+        // the type file in the product (`LINT-01`, and D258's own mechanism).
+        Text("\(ceremony.gross)").csType(.figureXL).foregroundStyle(bandInk)
+          .opacity(stage >= 2 ? 1 : 0).offset(y: stage >= 2 ? 0 : 6)
           .accessibilityLabel("\(ceremony.gross) gross")
         if !ceremony.band.isEmpty {
           Text(ceremony.band).csType(.story).foregroundStyle(bandInk).multilineTextAlignment(.center)

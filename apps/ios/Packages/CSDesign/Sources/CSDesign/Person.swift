@@ -494,6 +494,14 @@ public struct CSCredential<Plate: View>: View {
         .padding(.bottom, plateMedallionDrop)
         .accessibilityLabel("Their marker, the \(CSMarkers.marker(golfer.face.marker).name)")
         .accessibilityHidden(false)
+        // §17's NAMED WHITELIST, and this is one of the exactly two.
+        // `LINT-17` allows one gold object per viewport; a card that has earned
+        // a slot carries the slot AND this medallion, and the paragraph above
+        // is the ruling that puts both here. So the medallion declares itself
+        // as the paired half rather than the budget quietly failing on every
+        // credential in the product — which is what the probe reported the
+        // first time anything read it. A THIRD gold mark on a card still fails.
+        .csBudget(goldPaired: golfer.slot != nil ? 1 : 0)
     }
     .frame(height: plateHeight)
     .clipped()

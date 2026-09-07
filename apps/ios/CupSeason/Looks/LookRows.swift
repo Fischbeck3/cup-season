@@ -87,7 +87,7 @@ struct LookRoomSection: View {
     } else {
       HStack(spacing: 10) {
         LookSwatch(spec: current, size: 16)
-        Text(LookCopy.roomLine(current)).font(CSFont.label).tracking(0.6).foregroundStyle(cs.mut)
+        Text(LookCopy.roomLine(current)).csType(.agateS).foregroundStyle(cs.mut)
       }
       .frame(minHeight: 44)
       .accessibilityElement(children: .combine)
@@ -136,7 +136,7 @@ struct LookPickRow: View {
         LookSwatch(spec: swatch, size: 22)
         VStack(alignment: .leading, spacing: 2) {
           Text(title).font(CSFont.subhead.weight(selected ? .semibold : .regular)).foregroundStyle(enabled ? cs.ink : cs.mut)
-          Text(sub).font(CSFont.label).tracking(0.6).foregroundStyle(cs.mut).fixedSize(horizontal: false, vertical: true)
+          Text(sub).csType(.agateS).foregroundStyle(cs.mut).fixedSize(horizontal: false, vertical: true)
         }
         Spacer(minLength: 8)
         if selected {

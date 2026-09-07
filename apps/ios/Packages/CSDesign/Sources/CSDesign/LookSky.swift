@@ -1,53 +1,31 @@
-// Cup Season — the sky (D103b) and the strip (Y-10).
+// Cup Season — the ground under a page, and the strip under the clock
+// (D103b, Y-10, closed by D270 / D278).
 //
-// A vertical band of the look's accent, ~22% at the very top fading to
-// nothing by ~260pt, under the scroll content and behind the page header or
-// the league hero; it ignores the top safe area so the tint runs to the
-// status bar. Homebase = ember at 10%, so Fescue-only still has warmth at the
-// top. Never on the door, ceremonies, settlement, share cards or the pot
-// pane — those keep their own grounds. The sky never animates.
+// THE SKY IS GONE. This file used to paint a vertical band of the look's
+// accent — 22% at the very top fading to nothing by 260pt — under every
+// look-ground screen. `D270` named it in the "still owed" list on the day the
+// palette was re-printed, and Waves 0a, 0b and 8 each deferred it because
+// removing a wash changes six surfaces and none of those waves owned all six.
+// Wave 9 owns the sweep, so it goes here.
 //
-// The strip is the one thing here that moves: once the page has scrolled
-// ~8pt, a band the height of the top safe area — status bar, or status bar
-// plus the toolbar — CONTINUES the sky's own ramp on `bg0`, so the clock and
-// the toolbar keep a ground while rows pass under them. It draws over the
-// scroll, outside its clip, and adds nothing to layout: at rest it is
-// invisible, and the page underneath measures exactly as it did before.
+// The argument is `UI_SYSTEM` §2 and `BRIEF` §4: depth comes from GROUND and
+// from the two objects a screen is about, never from atmosphere sprayed over a
+// page. A 22% tint over the top third is the same move as the border the card
+// lost — a cost paid on every screen for a signal on none of them, and on the
+// season page it put a coloured cast behind a masthead whose whole job is to
+// be the one loud thing at the top.
 //
-// "Invisible" is the whole specification, and it was not met until 2026-09-02.
-// The strip used to fill FLAT accent at `skyStrength` — the ramp's top colour,
-// held for the strip's full height — while the sky kept fading behind it, so
-// its foot stepped against the band it is meant to continue (measured on the
-// 17 Pro: a warm #211C13 strip against a #1C1A12 page), and a `CSHairline()`
-// drew `line` — a GREEN — across that warm ground at y=61pt. Both are gone:
-// the strip draws the sky's ramp, clipped, and nothing else.
+// WHAT SURVIVES IS THE STRIP, and it earns its keep: once the page has
+// scrolled ~8pt, a band the height of the top safe area paints `bg0` so the
+// clock and the toolbar keep a ground while rows pass under them. It draws
+// over the scroll, outside its clip, and adds nothing to layout. At rest it is
+// invisible and the page underneath measures exactly as it did before.
+//
+// iOS 17 still gets no strip — `onScrollGeometryChange` is 18+ and there is no
+// drop-in fallback from a modifier applied TO the ScrollView. That floor is
+// unchanged by this wave.
 
 import SwiftUI
-
-public struct CSLookSky: View {
-  @Environment(\.csLookAccent) private var la
-  /// How far the ramp runs from the top of the screen. The strip reads the
-  /// same number, so the two can never disagree about where the sky ends.
-  public static let span: CGFloat = 260
-  let height: CGFloat
-  public init(height: CGFloat = CSLookSky.span) { self.height = height }
-
-  /// The ramp itself, so the strip can draw THIS rather than sample its top
-  /// colour. One definition; a stop added here reaches both by construction.
-  static func ramp(_ la: CSLookAccent) -> LinearGradient {
-    LinearGradient(colors: [la.accent.opacity(la.skyStrength), la.accent.opacity(0)],
-                   startPoint: .top, endPoint: .bottom)
-  }
-
-  public var body: some View {
-    Self.ramp(la)
-      .frame(height: height)
-      .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
-      .ignoresSafeArea(edges: .top)
-      .allowsHitTesting(false)
-      .accessibilityHidden(true)
-  }
-}
 
 public extension View {
   /// The screen's ground with the sky on it: `bg0`, then the band at the top,
@@ -67,7 +45,6 @@ private struct CSLookGround: ViewModifier {
 
   func body(content: Content) -> some View {
     sensed(content)
-      .background(alignment: .top) { CSLookSky() }
       .background(cs.bg0)
       .overlay(alignment: .top) { CSLookStrip(shown: scrolled) }
   }
@@ -106,15 +83,12 @@ private struct CSLookGround: ViewModifier {
   }
 }
 
-/// The band under the top chrome: the sky's own ramp over `bg0`, cut to the
-/// height of the top safe-area inset. It is the sky's construction verbatim —
-/// the same gradient, at the same length, anchored to the same screen top —
-/// so the ramp runs through the strip's foot without a step. Nothing else is
-/// on it: no hairline, no second tone. What the strip adds is OPACITY, not
-/// colour, and that is all it may ever add.
+/// The band under the top chrome: `bg0`, cut to the height of the top
+/// safe-area inset. With the sky deleted it is the page's own ground and
+/// nothing else — no hairline, no ramp, no second tone. What the strip adds is
+/// OPACITY, not colour, and that is all it may ever add.
 private struct CSLookStrip: View {
   @Environment(\.cs) private var cs
-  @Environment(\.csLookAccent) private var la
   let shown: Bool
 
   /// How far the page moves before the strip shows.
@@ -122,16 +96,10 @@ private struct CSLookStrip: View {
 
   var body: some View {
     GeometryReader { g in
-      ZStack(alignment: .top) {
-        cs.bg0
-        // the full ramp, drawn from the same top the sky draws from, then cut
-        // to the inset — never a flat sample of its first colour
-        CSLookSky.ramp(la).frame(height: CSLookSky.span)
-      }
-      .frame(height: g.safeAreaInsets.top, alignment: .top)
-      .clipped()
-      .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
-      .ignoresSafeArea(edges: .top)
+      cs.bg0
+        .frame(height: g.safeAreaInsets.top, alignment: .top)
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+        .ignoresSafeArea(edges: .top)
     }
     .opacity(shown ? 1 : 0)
     .allowsHitTesting(false)

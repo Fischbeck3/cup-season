@@ -95,7 +95,7 @@ struct RivalrySheet: View {
       VStack(alignment: .leading, spacing: 2) {
         (Text(w.verdictText).foregroundStyle(verdictColor(w.verdict)) + Text(" · " + w.headline).foregroundStyle(cs.ink))
           .csType(.name)
-        Text(RivalryCopy.weekSub).font(CSFont.label).tracking(0.8).foregroundStyle(cs.mut)
+        Text(RivalryCopy.weekSub).csType(.agateS).foregroundStyle(cs.mut)
       }
       .frame(maxWidth: .infinity, alignment: .leading)
     }

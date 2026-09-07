@@ -328,7 +328,10 @@ public enum LeagueCopy {
   public static func indexSub(established: Bool, delta: Double?) -> String {
     guard established else { return "Building your number" }
     guard let d = delta, d.isFinite, abs(d) >= 0.05 else { return "Season to date" }
-    return (d < 0 ? "▼ " : "▲ ") + String(format: "%.1f", abs(d)) + " this season"
+    /* D276 · a FALLING index is good news, and this printed the same ▼ that
+       means "you fell" on the board. Words, in the direction the golfer reads
+       them: 0.3 OFF the index is an improvement, 0.3 ON it is not. */
+    return String(format: "%.1f", abs(d)) + (d < 0 ? " off your index this season" : " on your index this season")
   }
 
   /// `#statCountD` (9494).

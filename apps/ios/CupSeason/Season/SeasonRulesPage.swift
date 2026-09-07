@@ -75,7 +75,7 @@ struct SeasonRulesPage: View {
       }
       Button { router.open(.scoringHelp) } label: {
         // F-12 · a full clause is prose, and L-29 keeps prose out of mono.
-        Text("How scoring and handicaps work →").font(CSFont.subhead.weight(.medium)).foregroundStyle(cs.ink)
+        Text("How scoring and handicaps work").csType(.body).foregroundStyle(cs.ink)
           .frame(minHeight: 44).contentShape(Rectangle())
       }
       .buttonStyle(.plain)

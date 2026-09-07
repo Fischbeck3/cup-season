@@ -163,10 +163,17 @@ struct BootingView: View {
   @Environment(\.cs) private var cs
   let step: String
   var body: some View {
-    VStack(spacing: 14) {
-      ProgressView().tint(cs.brand)
-      Text(step).csEyebrow()
+    // §6.1 · loading is the destination's own geometry, never a spinner
+    // (`LINT-22`). At BOOT there is no destination yet — so the geometry is the
+    // one thing every screen behind this shares: the masthead, held. The named
+    // step keeps the web's `bootStep` breadcrumb visible under it.
+    VStack(alignment: .leading, spacing: CSTokens.Space.s2) {
+      Text("Cup Season").csType(.display).foregroundStyle(cs.ink)
+      CSRule(.heavy)
+      Text(step).csType(.agate, caps: true).foregroundStyle(cs.mut)
     }
+    .padding(.horizontal, CSTokens.Space.s4)
+    .frame(maxWidth: .infinity, alignment: .leading)
   }
 }
 
@@ -272,7 +279,7 @@ struct BootFailedView: View {
         VStack(alignment: .leading, spacing: 4) {
           ForEach(Array(s.facts.enumerated()), id: \.offset) { _, f in
             HStack(alignment: .firstTextBaseline, spacing: 8) {
-              Text(f.label).font(CSFont.label).tracking(1.0).foregroundStyle(cs.mut)
+              Text(f.label).csType(.agateS, caps: true).foregroundStyle(cs.mut)
               Text(f.value).csType(.columnS).foregroundStyle(cs.ink)
             }
           }

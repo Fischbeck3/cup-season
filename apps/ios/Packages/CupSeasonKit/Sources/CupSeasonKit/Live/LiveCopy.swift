@@ -140,7 +140,8 @@ public enum LiveCopy {
   public static func settleRows(pts: [Int], stake: Double, names: [String]) -> [SettleRow] {
     guard stake > 0 else { return [SettleRow(label: "WOLF POINTS — NO MONEY ON IT", amount: "$0")] }
     let rows = LiveEngines.settleTransfers(pts: pts, val: stake).map {
-      SettleRow(label: "\(names[$0.from].uppercased()) → \(names[$0.to].uppercased())", amount: "$\(LiveFmt.js($0.amt))")
+      // a settlement is a sentence about who pays whom, not an arrow
+      SettleRow(label: "\(names[$0.from].uppercased()) PAYS \(names[$0.to].uppercased())", amount: "$\(LiveFmt.js($0.amt))")
     }
     return rows.isEmpty ? [SettleRow(label: "ALL SQUARE", amount: "$0")] : rows
   }
@@ -357,7 +358,7 @@ public enum LiveCopy {
     let invite = !s.mine
     let kicker = invite ? (s.host.map { "\(LiveFmt.fn1($0)) started a live round with you" } ?? "You're in a live round") : "Continue your round"
     let meta = thru > 0 ? "HOLE \(s.hole + 1) · THRU \(thru)" : (invite ? "JUST TEED OFF · NOTHING SCORED YET" : "HOLE \(s.hole + 1)")
-    return ResumeBanner(invite: invite, kicker: kicker, line: "\(course.uppercased()) · \(s.game.banner.uppercased())", meta: meta, go: invite ? "JOIN" : "→")
+    return ResumeBanner(invite: invite, kicker: kicker, line: "\(course.uppercased()) · \(s.game.banner.uppercased())", meta: meta, go: invite ? "JOIN" : "RESUME")
   }
 
   // MARK: - the strokes preview (8660–8719)

@@ -526,7 +526,7 @@ public enum WizardCopy {
   public static let presetHelp = "One pick, made now, that sets the fairness rules for the whole season — how much of your index you play off, how scores are vouched for, which courses count. Casual is an honor-system beer league. Standard asks you to post what you’d post to GHIN. Cutthroat wants receipts: vouched by the group where you can; the Pro rules on the rest. Deciding this before anyone tees off is what keeps October friendly."
   /// M-15 · the footnote under the preset cards: verification is a norm, not a filter.
   public static let verificationNote = "Verification is a norm the league holds, not a filter the engine applies."
-  public static let fastPath = "Use these defaults →"
+  public static let fastPath = "Use these defaults"
   public static let customize = "Customize"
   public static let hideOptions = "Hide options"
   public static let buyIn = ("Buy-in", "Per player · $0 = bragging rights")

@@ -545,7 +545,7 @@ public enum MajorMath {
   /// The setup sheet's window line: "Thu, Jul 9 → Sun, Jul 12 · best card by Sunday night".
   public static func whenLine(finalOn: String, days: Int, calendar: Calendar = .current) -> String? {
     guard let start = EventDates.isoPlus(finalOn, -(days - 1), calendar: calendar) else { return nil }
-    return "\(EventDates.weekdayMonthDay(start, calendar: calendar)) → \(EventDates.weekdayMonthDay(finalOn, calendar: calendar)) · best card by \(EventDates.weekdayLong(finalOn, calendar: calendar)) night"
+    return "\(EventDates.weekdayMonthDay(start, calendar: calendar)) \u{2013} \(EventDates.weekdayMonthDay(finalOn, calendar: calendar)) · best card by \(EventDates.weekdayLong(finalOn, calendar: calendar)) night"
   }
 
   /// `openMajorSetup`'s create failure (16133): the skew line, else the raw text.

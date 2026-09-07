@@ -107,7 +107,7 @@ struct RyderSetupSheet: View {
       EventFinePrint(text: "How it plays. Two teams. Each week you play one opponent on the other side, scored against your playing HCP — your best round that week faces theirs. A week won is 1 point, halved is ½ each. First team past halfway takes the cup. Points scale to team size: 6‑a‑side over 3 weeks is 18 points, first to 9½.")
         .padding(.top, 6)
       A11yStack(spacing: 8) {
-        Button("Cancel") { dismiss() }
+        Button("Close") { dismiss() }
           .buttonStyle(.csSecondary()).frame(maxWidth: typeSize.isA11y ? .infinity : 120)
         Button("Create the event") { create() }
           .buttonStyle(.csPrimary(busy: busy))

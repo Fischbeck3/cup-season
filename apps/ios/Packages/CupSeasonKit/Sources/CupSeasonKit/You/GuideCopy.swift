@@ -121,7 +121,7 @@ public enum GuideCopy {
         "Your handicap index builds from your scores — no typing. Every round measures how you played against the course's difficulty (rating & slope), and your best recent rounds set your index, WHS-style. It appears once you've posted **3 rounds**; until then it shows as building.",
         "You (or the Pro) can set a **starter** to get going sooner — but once you have 3 posted rounds, your scores take over. Manual changes are announced to your league so the crew keeps everyone honest.",
       ], bands: []),
-      ScoringSection(eyebrow: "Every round → cup points", paragraphs: [
+      ScoringSection(eyebrow: "Every round becomes cup points", paragraphs: [
         "Every round is scored against **your own playing HCP** — a 22-index beating theirs is worth exactly what a 6-index beating theirs is:",
       ], bands: [
         // one value inside each band; the name and the points are the engine's (CSBands), the edge is said in words

@@ -42,7 +42,7 @@ struct LiveNowBar: View {
               .csType(.columnS)
               .lineLimit(1).truncationMode(.tail)
             Spacer(minLength: 6)
-            Text("→").font(CSFont.monoSmall.weight(.semibold))
+            CSGlyph(.chevron, size: .inline)
           }
           .foregroundStyle(cs.bg0)
           .padding(.horizontal, 16)

@@ -97,21 +97,34 @@ struct LiveResumeBanner: View {
   var body: some View {
     Group {
       if let b = LiveCopy.resumeBanner(store.state), store.guest == nil {
+        // D266 · the resume banner was a `CSCard(spine:)` — a bordered box with
+        // a 3.5pt coloured edge, which is the grammar the audit measured as
+        // meaning "a box" rather than meaning anything. It is a BAND now: a 2pt
+        // rule whose metal IS the state (ember while a round is open, ink
+        // otherwise), the eyebrow with its own live dot, the line, the meta.
+        // Same three facts, same target, no container.
         Button(action: open) {
-          CSCard(spine: b.invite ? cs.brand : cs.pos) {
-            HStack(alignment: .center, spacing: 12) {
-              VStack(alignment: .leading, spacing: 4) {
-                HStack(spacing: 6) {
-                  Circle().fill(b.invite ? cs.brand : cs.pos).frame(width: 8, height: 8)
-                  Text(b.kicker).csEyebrow(b.invite ? cs.brand : cs.pos)
+          VStack(alignment: .leading, spacing: CSTokens.Space.s2) {
+            CSRule(.heavy, metal: b.invite ? .live : .ink)
+            HStack(alignment: .firstTextBaseline, spacing: CSTokens.Space.s3) {
+              VStack(alignment: .leading, spacing: CSTokens.Space.s1) {
+                HStack(spacing: CSTokens.Space.s2) {
+                  if b.invite {
+                    Circle().fill(cs.brand).frame(width: 7, height: 7)
+                  }
+                  Text(b.kicker).csType(.agate, caps: true)
+                    .foregroundStyle(b.invite ? cs.brand : cs.mut)
                 }
                 Text(b.line).csType(.name).foregroundStyle(cs.ink)
-                Text(b.meta).font(CSFont.label).tracking(1.2).foregroundStyle(cs.mut)
+                  .fixedSize(horizontal: false, vertical: true)
+                Text(b.meta).csType(.agateS, caps: true).foregroundStyle(cs.mut)
               }
-              Spacer()
-              Text(b.go).font(b.invite ? CSFont.monoMediumBody : CSFont.title).foregroundStyle(b.invite ? cs.brand : cs.ink)
+              Spacer(minLength: CSTokens.Space.s3)
+              Text(b.go).csType(.body).foregroundStyle(b.invite ? cs.brand : cs.ink)
             }
           }
+          .frame(minHeight: 52)
+          .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
         .accessibilityLabel("\(b.kicker). \(b.line). \(b.meta)")

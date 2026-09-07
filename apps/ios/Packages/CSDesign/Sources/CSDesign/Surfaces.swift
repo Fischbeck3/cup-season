@@ -1,91 +1,19 @@
-// Cup Season — how surfaces sit (IOS-019).
+// Cup Season — how surfaces sit (IOS-019, re-cut by D266 / D278).
 //
-// Depth from ground, not from borders. One hero per screen wears the wash;
-// the page header lives in the scroll; sections are an eyebrow and a
-// hairline; panes are a tab strip with an ember underline. Every colour here
-// is a token at an opacity — nothing is invented (preflight 15).
+// Depth from GROUND, not from borders, and after Wave 9 not from atmosphere
+// either. What this file used to carry — the radial `CSWash`, the `CSHero`
+// card that wore it, `CSDuskCard`, `CSHairline` and `CSTabStrip` — is deleted:
+// a hero is a band, a divider is `CSRule`, a pane control is `CSSegment`, and
+// nothing in the product paints a gradient over a page to suggest depth.
+//
+// What is left is the page header, the section head, the row and the motion
+// vocabulary. Every colour is a token at an opacity — nothing is invented
+// (preflight 15).
 
 import SwiftUI
 #if canImport(UIKit)
 import UIKit
 #endif
-
-// MARK: - The wash
-
-/// A radial of the spine colour, 14% at the top-leading corner fading to
-/// nothing (30% when a hero wears a look — D103b). Ember = live, gold =
-/// earned, `pos` = on the tee, dusk = ceremony. Exactly one per screen.
-public struct CSWash: View {
-  let color: Color
-  let strength: Double
-  public init(_ color: Color, strength: Double = 0.14) { self.color = color; self.strength = strength }
-  public var body: some View {
-    GeometryReader { g in
-      RadialGradient(colors: [color.opacity(strength), color.opacity(0)],
-                     center: UnitPoint(x: 0.08, y: 0.0),
-                     startRadius: 0, endRadius: max(g.size.width, g.size.height) * 0.9)
-    }
-    .allowsHitTesting(false)
-  }
-}
-
-/// The hero card: `bg1`, the spine, the wash, radius `r`, no border.
-///
-/// `spine: nil` (the default) wears the look's accent from `\.csLook`, or
-/// ember when no look applies. A caller that passes gold keeps gold — a look
-/// never overrides the earned metal (D103a). Under a look the wash the accent
-/// wears is 30%, not 14% (D103b); a passed spine (gold) keeps the 14%.
-public struct CSHero<Content: View>: View {
-  @Environment(\.cs) private var cs
-  @Environment(\.csLookAccent) private var la
-  let spine: Color?
-  let padding: CGFloat
-  let content: Content
-  public init(spine: Color? = nil, padding: CGFloat = 20, @ViewBuilder content: () -> Content) {
-    self.spine = spine; self.padding = padding; self.content = content()
-  }
-  private var spineColor: Color { spine ?? la.accent }
-  private var washStrength: Double { spine == nil ? la.washStrength : 0.14 }
-  public var body: some View {
-    content
-      .padding(padding)
-      .frame(maxWidth: .infinity, alignment: .leading)
-      .background {
-        ZStack {
-          RoundedRectangle(cornerRadius: CSTokens.Radius.r, style: .continuous).fill(cs.bg1)
-          CSWash(spineColor, strength: washStrength)
-        }
-        .clipShape(RoundedRectangle(cornerRadius: CSTokens.Radius.r, style: .continuous))
-      }
-      .overlay(alignment: .leading) {
-        RoundedRectangle(cornerRadius: 2).fill(spineColor).frame(width: 3.5).padding(.vertical, 14)
-      }
-  }
-}
-
-/// The ceremony ground as a card: dusk in every theme (IOS-003 §2.6).
-public struct CSDuskCard<Content: View>: View {
-  let wash: Color?
-  let padding: CGFloat
-  let content: Content
-  public init(wash: Color? = nil, padding: CGFloat = 20, @ViewBuilder content: () -> Content) {
-    self.wash = wash; self.padding = padding; self.content = content()
-  }
-  public var body: some View {
-    content
-      .padding(padding)
-      .frame(maxWidth: .infinity, alignment: .leading)
-      .background {
-        ZStack {
-          RoundedRectangle(cornerRadius: CSTokens.Radius.r, style: .continuous).fill(CSDusk.surface)
-          if let wash { CSWash(wash, strength: 0.18) }
-        }
-        .clipShape(RoundedRectangle(cornerRadius: CSTokens.Radius.r, style: .continuous))
-      }
-      .environment(\.colorScheme, .dark)
-      .environment(\.cs, CSTokens.dark)
-  }
-}
 
 // MARK: - The page header
 
@@ -181,14 +109,6 @@ public enum CSHeaderDate {
 
 // MARK: - Sections and hairlines
 
-/// **RETIRED (D266). Removed in Wave 9.** `CSRule` is the only divider — it
-/// carries the 2pt heavy weight and the three metals as well as this hairline,
-/// and 34 sites plus every bare `Divider()` migrate to it wave by wave.
-public struct CSHairline: View {
-  public init() {}
-  public var body: some View { CSRule() }
-}
-
 /// An agate label with a 1px rule running to the margin, and a **count slot**
 /// flush right.
 ///
@@ -262,30 +182,6 @@ public struct CSSectionHead: View {
   }
 }
 
-/// **RETIRED (D266). Removed in Wave 9** — it folds into `CSSectionHead`, and
-/// `CSTabStrip` into `CSSegment`, so a page has one head and one pane control
-/// rather than two of each.
-///
-/// D177 · A GROUP head: one level above `CSSectionHead`, for a page that needs
-/// a spine rather than a list. It wears the brand at rest — a group head is
-/// structure, not an accent moment — sits on a heavier rule, and gets real air
-/// above it so the eye reads a break rather than another section.
-///
-/// Use sparingly. Two on a page is a spine; four is a table of contents.
-public struct CSGroupHead: View {
-  @Environment(\.cs) private var cs
-  let title: String
-  public init(_ title: String) { self.title = title }
-  public var body: some View {
-    VStack(alignment: .leading, spacing: 7) {
-      Text(title).csEyebrow(cs.brand)
-      Rectangle().fill(cs.rule).frame(height: 1)
-    }
-    .padding(.top, 26)
-    .accessibilityAddTraits(.isHeader)
-  }
-}
-
 /// A row inside a section: content, then a hairline. Rows never nest cards.
 public struct CSRow<Content: View>: View {
   let last: Bool
@@ -294,53 +190,8 @@ public struct CSRow<Content: View>: View {
   public var body: some View {
     VStack(spacing: 0) {
       content.padding(.vertical, 12).frame(maxWidth: .infinity, alignment: .leading)
-      if !last { CSHairline() }
+      if !last { CSRule() }
     }
-  }
-}
-
-// MARK: - The tab strip
-
-/// Panes: mono uppercase labels, an underline that slides on the roll — the
-/// look's accent under a look, ember on homebase (D103b).
-public struct CSTabStrip<T: Hashable>: View {
-  @Environment(\.cs) private var cs
-  @Environment(\.csLookAccent) private var la
-  let items: [(T, String)]
-  @Binding var selection: T
-  @Namespace private var ns
-  public init(_ items: [(T, String)], selection: Binding<T>) { self.items = items; _selection = selection }
-  public var body: some View {
-    ScrollView(.horizontal, showsIndicators: false) {
-      HStack(spacing: 0) {
-        ForEach(items, id: \.0) { key, label in
-          let on = key == selection
-          Button {
-            CSMotion.run { selection = key }
-            CSHaptic.selection()
-          } label: {
-            VStack(spacing: 8) {
-              Text(label).font(CSFont.eyebrow).tracking(1.4).textCase(.uppercase)
-                .foregroundStyle(on ? cs.ink : cs.mut)
-              ZStack {
-                Rectangle().fill(.clear).frame(height: 2)
-                if on {
-                  Rectangle().fill(la.accent).frame(height: 2)
-                    .matchedGeometryEffect(id: "underline", in: ns)
-                }
-              }
-            }
-            .padding(.horizontal, 12).padding(.top, 8)
-            .contentShape(Rectangle())
-          }
-          .buttonStyle(.plain)
-          .accessibilityLabel(label)
-          .accessibilityAddTraits(on ? [.isSelected] : [])
-        }
-      }
-    }
-    // the strip scrolls sideways at every type size (IOS-022 item 9): a tab is never clipped, only off to the right
-    .overlay(alignment: .bottom) { CSHairline() }
   }
 }
 
@@ -456,12 +307,12 @@ public extension View {
   }
 }
 
-#Preview("Tab strip · accessibility3") {
-  VStack(alignment: .leading, spacing: 20) {
+#Preview("Page header · accessibility3") {
+  VStack(alignment: .leading, spacing: CSTokens.Space.s4) {
     CSPageHeader("Cup Season", eyebrow: "THU · AUG 27") { Image(systemName: "plus").frame(width: 44, height: 44) }
-    CSTabStrip([("a", "Standings"), ("b", "Board"), ("c", "Schedule"), ("d", "Pot"), ("e", "Album"), ("f", "League")], selection: .constant("a"))
+    CSSectionHead("The table", count: "12 GOLFERS")
   }
-  .padding(20)
+  .padding(CSTokens.Space.s4)
   .environment(\.dynamicTypeSize, .accessibility3)
   .csTheme()
 }

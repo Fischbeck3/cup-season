@@ -42,11 +42,15 @@ struct ScoringHelpSheet: View {
         if !s.eyebrow.isEmpty { Text(s.eyebrow).csEyebrow().padding(.top, 6) }
         ForEach(Array(s.paragraphs.enumerated()), id: \.offset) { _, p in Fine(markdown: p) }
         if !s.bands.isEmpty {
-          CSCard(padding: 12) {
-            VStack(alignment: .leading, spacing: 4) {
-              ForEach(s.bands, id: \.self) { b in Fine(markdown: b) }
-            }
+          // D266 · the five band lines were in a bordered card inside a sheet
+          // that is already a container. A rule sets them apart; a box around
+          // them was the product paying the full cost of over-carding for
+          // nothing. `CSLeaf` is not right either — this is prose, not a grid.
+          VStack(alignment: .leading, spacing: CSTokens.Space.s1) {
+            CSRule()
+            ForEach(s.bands, id: \.self) { b in Fine(markdown: b) }
           }
+          .padding(.top, CSTokens.Space.s1)
         }
       }
     }

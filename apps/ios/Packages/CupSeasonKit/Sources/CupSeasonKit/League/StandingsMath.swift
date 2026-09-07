@@ -134,13 +134,13 @@ public enum RankMove: Sendable, Equatable {
   case held
   case up(Int)
   case down(Int)
-  public var label: String {
-    switch self {
-    case .held: "–"
-    case .up(let n): "▲\(n)"
-    case .down(let n): "▼\(n)"
-    }
-  }
+  /* D276 / LINT-13 · `label` is DELETED. It emitted `▲2` — a typed triangle
+     in a produced string, in the same face and size as the DOWN triangle three
+     other producers put on an IMPROVING handicap index, with no colour between
+     them (the audit's DD-02). `Movement` already superseded it as the
+     user-facing label and nothing rendered `label` any more, so the fix is the
+     deletion rather than a second parts-shaped producer. `title` survives
+     because it is WORDS, which is what a producer is allowed to emit. */
   public var title: String {
     switch self {
     case .held: "held this week"

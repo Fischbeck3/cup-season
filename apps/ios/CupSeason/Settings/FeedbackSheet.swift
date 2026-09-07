@@ -142,15 +142,22 @@ struct FounderDeskSheet: View {
           if let error {
             Text(error).csType(.bodyS).foregroundStyle(cs.mut)
           } else if let d = desk {
-            LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 8) {
-              CSStat("Golfers", value: n(d["profiles_total"]))
-              CSStat("New · 7d", value: n(d["profiles_new_7d"]))
-              CSStat("Rounds", value: n(d["rounds_total"]))
-              CSStat("Rounds · 7d", value: n(d["rounds_7d"]))
-              CSStat("Leagues", value: n(d["leagues"]))
-              CSStat("Events", value: n(d["events"]))
-              CSStat("Live now", value: n(d["live_open"]))
-              CSStat("Posts · 7d", value: n(d["posts_7d"]))
+            // D267 · eight numbers in eight bordered tiles was the audit's
+            // problem 1 and problem 2 in one grid. These are rule-and-figures:
+            // the numeral, a 2pt rule the width of its column, the label under
+            // it. Same eight facts, no boxes, and the figures line up because
+            // the board face is tabular.
+            LazyVGrid(columns: [GridItem(.flexible(), alignment: .leading),
+                                GridItem(.flexible(), alignment: .leading)],
+                      alignment: .leading, spacing: CSTokens.Space.s4) {
+              CSFigure(n(d["profiles_total"]), size: .m, label: "Golfers")
+              CSFigure(n(d["profiles_new_7d"]), size: .m, label: "New · 7d")
+              CSFigure(n(d["rounds_total"]), size: .m, label: "Rounds")
+              CSFigure(n(d["rounds_7d"]), size: .m, label: "Rounds · 7d")
+              CSFigure(n(d["leagues"]), size: .m, label: "Leagues")
+              CSFigure(n(d["events"]), size: .m, label: "Events")
+              CSFigure(n(d["live_open"]), size: .m, label: "Live now")
+              CSFigure(n(d["posts_7d"]), size: .m, label: "Posts · 7d")
             }
             section("Newest golfer cards", d["newest"]?.array) { p in
               row(p["marker"]?.string != nil ? "⛳" : "👤", p["name"]?.string ?? "?",

@@ -247,9 +247,9 @@ struct PlayingSoonSection: View {
       if p.tagged_me == true {
         // F-10 · one fact, one metal. This said green while Home and the
         // calendar said gold for the same fact; a membership fact is neither.
-        Text("YOU’RE IN").font(CSFont.label).tracking(0.8).foregroundStyle(cs.ink)
+        Text("YOU’RE IN").csType(.agateS, caps: true).foregroundStyle(cs.ink)
       } else if asked.contains(id) {
-        Text("ASKED").font(CSFont.label).tracking(0.8).foregroundStyle(cs.mut)
+        Text("ASKED").csType(.agateS, caps: true).foregroundStyle(cs.mut)
       } else {
         CSMini("Ask for a seat", busy: busy.contains(id)) { Task { await ask(p) } }
           // LV-06 / R-02 · D249's sweep of "put you on the tee sheet" ran into a

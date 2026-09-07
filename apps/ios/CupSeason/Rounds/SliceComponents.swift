@@ -67,7 +67,7 @@ struct SliceSheet<Content: View>: View {
       VStack(alignment: .leading, spacing: 12) {
         VStack(alignment: .leading, spacing: 4) {
           Text(title).csType(.displayS).foregroundStyle(cs.ink)
-          if !sub.isEmpty { Text(sub).font(CSFont.label).tracking(1.2).foregroundStyle(cs.mut) }
+          if !sub.isEmpty { Text(sub).csType(.agateS).foregroundStyle(cs.mut) }
         }
         .padding(.bottom, 4)
         content()
@@ -109,7 +109,7 @@ struct CheckRow<Trailing: View>: View {
           .accessibilityHidden(true)
         VStack(alignment: .leading, spacing: 2) {
           Text(title).csType(.name).foregroundStyle(cs.ink)
-          if let sub, !sub.isEmpty { Text(sub).font(CSFont.label).tracking(0.8).foregroundStyle(subColor ?? cs.mut) }
+          if let sub, !sub.isEmpty { Text(sub).csType(.agateS).foregroundStyle(subColor ?? cs.mut) }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
       }
@@ -121,10 +121,10 @@ struct CheckRow<Trailing: View>: View {
   }
 }
 
-extension CheckRow where Trailing == Text {
-  /// The `→` door.
+extension CheckRow where Trailing == CSGlyph {
+  /// The door: the DRAWN chevron, not a typed `→` (`LINT-13`, §5.2).
   init(glyph: Text, title: String, sub: String?) {
-    self.init(glyph: glyph, title: title, sub: sub) { Text("→") }
+    self.init(glyph: glyph, title: title, sub: sub) { CSGlyph(.chevron, size: .inline) }
   }
 }
 
@@ -137,7 +137,7 @@ struct CheckDoor: View {
   let action: () -> Void
   var body: some View {
     Button(action: action) {
-      CheckRow(glyph: glyph, title: title, sub: sub) { Text("→").csType(.body).foregroundStyle(cs.mut) }
+      CheckRow(glyph: glyph, title: title, sub: sub) { CSGlyph(.chevron, size: .inline).foregroundStyle(cs.mut) }
     }
     .buttonStyle(.plain)
     .accessibilityElement(children: .combine)
@@ -211,7 +211,7 @@ struct StreakTag: View {
   let text: String
   let hot: Bool
   var body: some View {
-    Text(text).font(CSFont.label).tracking(0.8)
+    Text(text).csType(.agateS, caps: true)
       .foregroundStyle(hot ? cs.brand : cs.brand)
       .padding(.horizontal, 5).padding(.vertical, 1)
       .overlay(RoundedRectangle(cornerRadius: 4).stroke(hot ? cs.brand : cs.brand, lineWidth: 1))
@@ -242,7 +242,7 @@ struct FormRowView: View {
     HStack(spacing: 6) {
       // F-14 · TERMINOLOGY line 90 rules the row's label: a dot row with no
       // label is a puzzle, and FORM was the puzzle's name.
-      Text("LAST FIVE").font(CSFont.label).tracking(1.6).foregroundStyle(palette.mut).padding(.trailing, 2)
+      Text("LAST FIVE").csType(.agateS, caps: true).foregroundStyle(palette.mut).padding(.trailing, 2)
       ForEach(Array(form.dots.enumerated()), id: \.offset) { _, on in
         Circle()
           .fill(on == true ? palette.brand : palette.ink.opacity(0.14))

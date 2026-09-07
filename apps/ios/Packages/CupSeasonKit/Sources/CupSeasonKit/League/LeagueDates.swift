@@ -109,7 +109,8 @@ public enum LeagueDates {
 
   /// `seasonSpanText()` — "Sat Sep 5 → Sat Mar 6 · 26 wks", real weekdays (S2-01).
   public static func spanText(start: String, end: String, calendar: Calendar = .current) -> String {
-    "\(dowMonDay(start, calendar: calendar)) → \(dowMonDay(end, calendar: calendar)) · \(totalWeeks(start: start, end: end, calendar: calendar)) wks"
+    // a span is an EN DASH, which §17 exempts by name; the arrow said motion
+    "\(dowMonDay(start, calendar: calendar)) \u{2013} \(dowMonDay(end, calendar: calendar)) · \(totalWeeks(start: start, end: end, calendar: calendar)) wks"
   }
 
   /// `durLabel` — "6 wk" under eight weeks, months above.

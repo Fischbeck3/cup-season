@@ -21,7 +21,7 @@ struct PostScanPickSheet: View {
           Button { pick(i); dismiss() } label: {
             CheckRow(glyph: Text("⛳"), title: p.label(i),
                      sub: (p.total.map { "\($0) GROSS · " } ?? "") + "\(p.holes_read)/18 HOLES READ") {
-              Text("→").csType(.body).foregroundStyle(cs.mut)
+              CSGlyph(.chevron, size: .inline).foregroundStyle(cs.mut)
             }
           }
           .buttonStyle(.plain)

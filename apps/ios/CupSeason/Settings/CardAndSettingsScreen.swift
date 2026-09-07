@@ -449,14 +449,15 @@ private struct CardEditorPane: View {
 
   /// Y-27 · a label wraps rather than truncates; the handle's label used to clip mid-word.
   private func label(_ s: String) -> some View {
-    Text(s).font(CSFont.label).tracking(1).textCase(.uppercase).foregroundStyle(cs.mut)
+    Text(s).csType(.agateS, caps: true).foregroundStyle(cs.mut)
       .fixedSize(horizontal: false, vertical: true)
   }
 
   /// The scoring guide's door, in the card pane's footnote voice.
   private func guideLink(_ title: String) -> some View {
     Button { openGuide(.scoring) } label: {
-      Text("\(title) →").csType(.bodyS).foregroundStyle(cs.ink).frame(minHeight: 44).contentShape(Rectangle())
+      // §5.2 · a link's arrow is absorbed into its underline, product-wide
+      Text(title).csType(.bodyS).foregroundStyle(cs.ink).frame(minHeight: 44).contentShape(Rectangle())
     }
     .buttonStyle(.plain)
     .accessibilityLabel(title)

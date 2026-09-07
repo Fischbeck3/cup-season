@@ -346,7 +346,7 @@ struct ForfeitCreateSheet: View {
       label("Rides on (optional)")
       CSField(ForfeitCopy.settlesPlaceholder, text: $hangs, font: CSFont.body)
       A11yStack(spacing: 8) {
-        Button("Cancel") { dismiss() }
+        Button("Close") { dismiss() }
           .buttonStyle(.csSecondary()).frame(maxWidth: typeSize.isA11y ? .infinity : 110)
         Button(ForfeitCopy.put) {
           busy = true

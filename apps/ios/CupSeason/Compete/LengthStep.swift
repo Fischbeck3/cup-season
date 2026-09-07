@@ -262,7 +262,17 @@ struct PickAGolferSheet: View {
       VStack(alignment: .leading, spacing: 10) {
         CSSheetHeader(title: head, sub: "YOUR BUDDIES")
         if !loaded {
-          ProgressView().tint(cs.brand).frame(maxWidth: .infinity)
+          // §6.1 · the destination's own geometry, redacted — three rows the
+          // width of the rows that are coming, so the sheet does not resize
+          // under the golfer when they arrive.
+          VStack(spacing: 0) {
+            ForEach(0..<3, id: \.self) { _ in
+              CSRule()
+              HStack { Text("A golfer’s name").csType(.name); Spacer() }
+                .frame(minHeight: 52)
+            }
+          }
+          .csRedacted(true)
         } else if people.isEmpty {
           Text(CalloutCopy.noBuddies).csType(.story).foregroundStyle(cs.ink)
           Button { CSHaptic.selection(); dismiss(); findGolfers() } label: {

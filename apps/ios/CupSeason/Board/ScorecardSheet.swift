@@ -28,7 +28,14 @@ struct ScorecardSheet: View {
             Text("LOADING…").csEyebrow()
             BoardSkeleton()
           case .unavailable(let line):
-            CSEmptyState(icon: "🗂", line: line, cta: "Close") { dismiss() }
+            // D266 · `CSEmptyState`'s cta and action were both optional, so
+            // the door vanished on exactly the surfaces that needed one.
+            // `CSEmpty` takes a non-optional Door and draws the object rather
+            // than an emoji in whatever face the sentence happens to be.
+            CSEmpty(glyph: .scorecard,
+                    eyebrow: "The scorecard",
+                    headline: line,
+                    door: .primary("Close") { dismiss() })
           case .card(let card):
             Text(card.eyebrow).csEyebrow()
             if !card.story.isEmpty { Text(card.story).csType(.name).foregroundStyle(cs.ink) }
@@ -141,7 +148,7 @@ struct ScorecardSheet: View {
   }
 
   private func head(_ t: String, who: Bool = false, tot: Bool = false, nine: Bool = false) -> some View {
-    Text(t).font(CSFont.label).tracking(1).foregroundStyle(cs.mut)
+    Text(t).csType(.columnS).foregroundStyle(cs.mut)
       .frame(minWidth: who ? 96 : (tot ? 38 : 26), maxWidth: who ? 96 : nil, minHeight: 30, alignment: who ? .leading : .center)
       .padding(.leading, tot ? 10 : 0)
       .overlay(alignment: .trailing) { if nine { Rectangle().fill(cs.rule).frame(width: 1) } }

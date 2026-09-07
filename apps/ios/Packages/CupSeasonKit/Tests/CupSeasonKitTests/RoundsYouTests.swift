@@ -393,7 +393,11 @@ import Foundation
                 RankedRound(member_id: me, pvi: -0.6, points: 7, month_rank: 2, floor_credit: 1, played_on: "2026-05-17", index_at_post: 12.1, holes_played: 18),
                 RankedRound(member_id: UUID(), pvi: 4, points: 12, month_rank: 1, floor_credit: 1, played_on: "2026-05-17", index_at_post: 8, holes_played: 18)]
     let s = SeasonStats.compute(rows: rows, standings: [IndividualStanding(season_id: sid, member_id: me, points: 16, rounds_posted: 2)], myMemberId: me)
-    #expect(s.roundsText == "2" && s.avgText == "+0.4" && s.bestText == "+1.4" && s.deltaText == "▼ 0.3")
+    /* D276 · `deltaText` is a SIGNED FIGURE now, with U+2212 for the minus —
+       `▼ 0.3` put the board's "you fell" mark on an index that improved. */
+    #expect(s.roundsText == "2" && s.avgText == "+0.4" && s.bestText == "+1.4")
+    #expect(s.deltaText == "\u{2212}0.3", "a fall in the index reads as a minus, not as a verdict")
+    #expect(SeasonStats(rounds: 2, counting: 2, avg: 0, best: 0, delta: 0.4).deltaText == "+0.4")
     #expect(s.counting == 2 && s.figureScope == "across 2 counting rounds" && s.deltaSub == YouCopy.seasonToDate)
     // Y-28 · two rounds and the number did not move is "Held", not a dash;
     // a dash is only "there is no second round yet", and the sub says so.

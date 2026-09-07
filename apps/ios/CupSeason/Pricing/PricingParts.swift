@@ -33,7 +33,7 @@ struct PricingFoundingBadge: View {
   let number: Int
   var body: some View {
     Text("★ FOUNDING LEAGUE № \(number)")
-      .font(CSFont.label).tracking(1.2).foregroundStyle(cs.gold)
+      .csType(.agateS, caps: true).foregroundStyle(cs.gold)
       .padding(.horizontal, 8).padding(.vertical, 4)
       
       .accessibilityLabel("Founding League, number \(number)")

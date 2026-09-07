@@ -86,7 +86,7 @@ public enum DraftCopy {
     draftType == "assign" ? "Tap a golfer, then tap a squad" : "IT’S RANDOM — NOBODY PICKS"
   }
   public static let draw = "Draw squads"
-  public static let start = "Start the season →"
+  public static let start = "Start the season"
   public static let hatSpoken = "The hat has spoken"
   public static let drawFailed = "Draw failed."
   public static let assignFailed = "Assign failed."

@@ -119,8 +119,18 @@ struct MemberHistorySheet: View {
   var body: some View {
     SheetFrame(row.n, sub: "\(row.r) ROUND\(row.r == 1 ? "" : "S") · \(CSCopy.points(row.pts)) PTS") {
       if row.hist.isEmpty {
-        CSEmptyState(icon: "⛳", line: "No rounds this season yet — post one and you're on the board.",
-                     cta: links.openRecord == nil ? nil : "Add my round") { dismiss(); links.openRecord?() }
+        // §13.1 · a fact about the world, never the golfer's omission — and
+        // a door that is there whether or not the composer can be reached
+        // from here. `CSEmptyState` made both optional and dropped the door
+        // silently; `CSEmpty.Door` is non-optional and the compiler is LINT-21.
+        CSEmpty(glyph: .scorecard,
+                eyebrow: row.me ? "Your season" : "Their season",
+                headline: row.me ? "No rounds on the board yet."
+                                 : "Nothing on the board this season.",
+                fact: "A round posts here the moment it is scored.",
+                door: links.openRecord == nil
+                  ? .elsewhere("Add my round from the play tab.")
+                  : .primary("Add my round") { dismiss(); links.openRecord?() })
       } else {
         VStack(spacing: 0) {
           ForEach(row.hist) { h in

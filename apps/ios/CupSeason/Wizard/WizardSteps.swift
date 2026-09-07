@@ -101,7 +101,15 @@ struct WizardWhoStep: View {
   var body: some View {
     VStack(alignment: .leading, spacing: 12) {
       if !model.buddiesLoaded {
-        ProgressView().tint(cs.brand)
+        // §6.1 · the rows that are coming, redacted
+        VStack(spacing: 0) {
+          ForEach(0..<3, id: \.self) { _ in
+            CSRule()
+            HStack { Text("A golfer’s name").csType(.name); Spacer() }
+              .frame(minHeight: 52)
+          }
+        }
+        .csRedacted(true)
       } else if model.buddies.isEmpty {
         // THE EMPTY BRANCH — every first-time organiser's state, and it was
         // missing. `search_golfers` matches an exact @handle or an existing

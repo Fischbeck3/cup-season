@@ -297,7 +297,7 @@ struct PeopleInviteLink: View {
       Image(systemName: "link").font(.system(size: 15)).foregroundStyle(cs.brand)
       VStack(alignment: .leading, spacing: 1) {
         Text("Send an invite link").csType(.name).foregroundStyle(cs.ink)
-        Text(sub).font(CSFont.label).tracking(1.1).textCase(.uppercase).foregroundStyle(cs.mut)
+        Text(sub).csType(.agateS, caps: true).foregroundStyle(cs.mut)
           .fixedSize(horizontal: false, vertical: true)
       }
       .multilineTextAlignment(.leading)

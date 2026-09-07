@@ -1018,6 +1018,11 @@ else {
     : fail('the anon surface is exactly twelve', problems.slice(0, 3).join(' · '));
 }
 
+/* The 34 laws, lifted out of check 27's block so `LINT-27` can run the same
+   patterns over the DESIGN DOCS as well as the code. One table, two scopes —
+   the alternative was a second copy of §4 that drifts from the first. */
+let VOCAB_LAWS = null;
+
 /* 27 · one vocabulary, one lint per law (D249, IOS-036) -------------------
    TERMINOLOGY.md §4 is the ship list: twenty-nine patterns, each guarding a
    ruling that has already drifted back once because it was only a sentence.
@@ -1255,6 +1260,8 @@ else {
     }
     if (isExempt('Lock the bylaws & form the squads')) hits.push('self-test failed: the exemption list swallows a real offender');
   }
+
+  VOCAB_LAWS = LAWS;
 
   hits.length === 0
     ? pass('one vocabulary, one lint per law', `${LAWS.length + 1} laws · ${swift.length} Swift file(s) + index.html + ${liveDefs.size} live SQL definitions`)
@@ -2222,7 +2229,7 @@ const lint = (id, name, hits, note = '') => {
                    : fail(`${id} · ${name}`, `${n} hit(s) and no baseline in tests/preflight-baselines.json — add "${id}": ${n} and lower it as you go\n           ` + hits.slice(0, 5).join('\n           '));
   }
   if (n > base) {
-    return fail(`${id} · ${name}`, `${n} hit(s), up from a baseline of ${base} — ${n - base} NEW\n           ` + hits.slice(0, 6).join('\n           '));
+    return fail(`${id} · ${name}`, `${n} hit(s), up from a baseline of ${base} — ${n - base} NEW\n           ` + hits.slice(0, process.env.CS_LINT_ALL ? 400 : 6).join('\n           '));
   }
   if (n < base) return pass(`${id} · ${name}`, `${n} left of ${base} — lower the baseline to ${n} in this commit${note ? ' · ' + note : ''}`);
   return pass(`${id} · ${name}`, base === 0 ? `zero, and held there${note ? ' · ' + note : ''}` : `${n} at baseline, and none new${note ? ' · ' + note : ''}`);
@@ -2280,7 +2287,13 @@ const lint = (id, name, hits, note = '') => {
 {
   const { swiftSources } = await import('../tools/extract-strings.mjs');
   const iosRoot = join(root, 'apps', 'ios');
-  const files = swiftSources(iosRoot).filter(f => !/\/Tests\//.test(f));
+  /* TEST SOURCES ARE OUT OF SCOPE, and not as a convenience. Every check in
+     here carries a self-test, and a self-test's whole job is to WRITE the
+     offender the check is supposed to notice — `CSLeaf { CSPanel { … } }` in
+     `BudgetProbeTests` exists precisely because a leaf holding a panel must
+     fail. A lint that counts its own tripwires reports the product as dirtier
+     the better it is tested, which is the incentive to delete the test. */
+  const files = swiftSources(iosRoot).filter(f => !/\/Tests\/|\/CupSeasonTests\//.test(f));
   const design = join(iosRoot, 'Packages', 'CSDesign', 'Sources', 'CSDesign');
   const src = files.map(f => ({
     path: f,
@@ -2335,9 +2348,21 @@ const lint = (id, name, hits, note = '') => {
 
   /* LINT-10 · no rounded rectangle outside CSDesign. 338 hand-rolled
      containers against 34 component uses is the audit's whole finding. */
-  lint('LINT-10', 'no container shape drawn outside CSDesign',
-       scan(/(RoundedRectangle\(|Capsule\(\))/, { skip: /CSDesign\// }),
-       'band · rule · rail · panel · leaf · object');
+  {
+    const hits = scan(/(RoundedRectangle\(|Capsule\(\))/, { skip: /CSDesign\// });
+    /* THE DESK, TOO. The web's version of a hand-rolled container is a BOXED
+       SURFACE: a rounded corner with a fill or an edge on it. The audit
+       counted 114 of them against the three the system owns, and §14.5 step 3
+       is the migration that resolves them to band / rule / rail / panel /
+       leaf, which is also where the desk's 25 radii collapse to five. */
+    html.split('\n').forEach((line, i) => {
+      if (/border-radius:/.test(line) && /(border:\s*(?!none|0)|background)/.test(line)) {
+        hits.push(`index.html:${i + 1} a boxed surface · ${line.trim().slice(0, 70)}`);
+      }
+    });
+    lint('LINT-10', 'no container shape drawn outside CSDesign', hits,
+         'band · rule · rail · panel · leaf · object — on both clients');
+  }
 
   /* LINT-12 · no emoji. Reactions keep the six canon glyphs; everything else
      is a drawn stroke. The range is the pictographic block plus the two
@@ -2352,8 +2377,12 @@ const lint = (id, name, hits, note = '') => {
      explicitly exempt, because a first draft that matched a bare `v` and a
      bare `^` failed thousands of innocent strings and would have been turned
      off on its first run. */
+  /* A PRODUCED STRING IS ONE A GOLFER READS. An `#Preview` title is Xcode's
+     canvas chrome and never ships; an `NSLog`/`print` is a console line. Both
+     are exempt BY FORM rather than by a baseline — a baseline on a
+     zero-tolerance check is a hole with a number written on it. */
   lint('LINT-13', 'no typed arrow in a produced string',
-       scan(/"[^"]*[→←▲▼↑↓⇧⇩][^"]*"/),
+       scan(/"[^"]*[→←▲▼↑↓⇧⇩][^"]*"/).filter(h => !/#Preview\(|NSLog\(|\bprint\(/.test(h)),
        'movement is a drawn mark; a link’s arrow is absorbed into its underline');
 
   /* LINT-14 · no uppercasing in a string. Case is a role's job; `.uppercased()`
@@ -2529,6 +2558,439 @@ const lint = (id, name, hits, note = '') => {
   problems.length === 0
     ? pass('one settlement card, two clients', 'the ceremony ramp on both canvases · no typed hex on the phone · Charter retired')
     : fail('one settlement card, two clients', problems.join(' · '));
+}
+
+/* 48 · the lint completed — the fifteen checks §17 names and Wave 0b could not
+   write (D278, IOS-053) ------------------------------------------------------
+   Wave 0a landed the ratchet and the radius. Wave 0b landed the vocabulary's
+   own thirteen. What was left were the checks that police rules the surfaces
+   had not yet written — a spacing scale nothing used, a tracking ratio with one
+   legal call site, a gold that may not touch a control, a panel that may not
+   hold a sentence — plus the five that are not greps at all.
+   `UI_SYSTEM` §17 names twenty-nine; this file now runs every one of them that
+   a grep can run, and `CSDesignTests.BudgetProbeTests` runs the other five.
+
+   THE SAME RATCHET. Each lands with today's count in
+   `tests/preflight-baselines.json` and fails on a RISE. A check that lands at
+   zero-tolerance on 1,300 pre-system sites blocks every push and gets deleted
+   by the third engineer who meets it; a check with a debt written down gets
+   paid off. Four of the fifteen land AT zero and are zero-tolerance from here. */
+{
+  const { swiftSources } = await import('../tools/extract-strings.mjs');
+  const iosRoot = join(root, 'apps', 'ios');
+  /* TEST SOURCES ARE OUT OF SCOPE, and not as a convenience. Every check in
+     here carries a self-test, and a self-test's whole job is to WRITE the
+     offender the check is supposed to notice — `CSLeaf { CSPanel { … } }` in
+     `BudgetProbeTests` exists precisely because a leaf holding a panel must
+     fail. A lint that counts its own tripwires reports the product as dirtier
+     the better it is tested, which is the incentive to delete the test. */
+  const files = swiftSources(iosRoot).filter(f => !/\/Tests\/|\/CupSeasonTests\//.test(f));
+  const design = join(iosRoot, 'Packages', 'CSDesign', 'Sources', 'CSDesign');
+  const src = files.map(f => ({
+    path: f,
+    rel: f.slice(root.length).replace(/^\//, ''),
+    inDesign: f.startsWith(design),
+    text: readFileSync(f, 'utf8'),
+    lines: readFileSync(f, 'utf8').split('\n'),
+  }));
+
+  /** Every line matching `re`, as "path:line text". A `//` line is not a call site. */
+  const scan = (re, { skip = null, only = null, max = 400 } = {}) => {
+    const out = [];
+    for (const f of src) {
+      if (skip && skip.test(f.rel)) continue;
+      if (only && !only.test(f.rel)) continue;
+      f.lines.forEach((line, i) => {
+        if (line.trimStart().startsWith('//')) return;
+        if (re.test(line) && out.length < max) out.push(`${f.rel}:${i + 1} ${line.trim().slice(0, 90)}`);
+      });
+    }
+    return out;
+  };
+
+  /* LINT-06 · no spacing literal. One scale, and it is the only one: 1 4 8 12
+     20 32 52, plus the gutter 20, the desk's 40 and the 44pt rail. A `padding(
+     14)` is not a mistake anybody makes twice — it is a mistake everybody makes
+     once, and forty of them are why a product's rhythm reads as "roughly". 0 is
+     legal (it is the absence of space, not a value), and so is 2, the heavy
+     rule's own width, which §3.2 states as `hair × 2`. */
+  {
+    const LEGAL = new Set(['0', '1', '2', '4', '8', '12', '20', '32', '40', '44', '52']);
+    const hits = [];
+    for (const f of src) {
+      f.lines.forEach((line, i) => {
+        if (line.trimStart().startsWith('//')) return;
+        const found = new Set();
+        for (const m of line.matchAll(/\.padding\(\s*(?:\.\w+\s*,\s*)?(-?[0-9]+(?:\.[0-9]+)?)\s*\)/g)) found.add(m[1]);
+        for (const m of line.matchAll(/\bspacing:\s*(-?[0-9]+(?:\.[0-9]+)?)\b/g)) found.add(m[1]);
+        for (const v of found) {
+          if (!LEGAL.has(v.replace(/\.0$/, ''))) {
+            hits.push(`${f.rel}:${i + 1} ${v} · ${line.trim().slice(0, 70)}`);
+          }
+        }
+      });
+    }
+    /* THE DESK, TOO (Wave 9's stated web half). `UI_SYSTEM` §14.5 turns
+       `LINT-05/06/07/10` on for `index.html` one check at a time; this is 06.
+       The audit counted ZERO spacing tokens on the web against a ten-value
+       scale on the phone, which is why the desk's rhythm reads as "roughly". */
+    html.split('\n').forEach((line, i) => {
+      const found = new Set();
+      for (const m of line.matchAll(/(?:padding|margin|gap|row-gap|column-gap)(?:-(?:top|bottom|left|right|inline|block)[a-z-]*)?:\s*([^;"'}]+)/g)) {
+        for (const v of m[1].matchAll(/(-?[0-9]+(?:\.[0-9]+)?)px/g)) found.add(v[1]);
+      }
+      for (const v of found) {
+        if (!LEGAL.has(v.replace(/\.0$/, ''))) hits.push(`index.html:${i + 1} ${v}px`);
+      }
+    });
+    if (!/\.padding\(\s*(?:\.\w+\s*,\s*)?(-?[0-9]+)/.test('.padding(.horizontal, 14)')) {
+      hits.push('self-test failed: LINT-06 no longer notices a hand-typed inset');
+    }
+    lint('LINT-06', 'every space is one of the ten', hits, 's1 4 · s2 8 · s3 12 · s4/gutter 20 · s5 32 · desk 40 · rail 44 · s6 52 · hair 1');
+  }
+
+  /* LINT-07 · no tracking literal. Tracking is a RATIO of the rendered size
+     (§1.2), never a length, which is the whole reason a caps label holds its
+     colour at AX3 instead of shearing. `CSType`'s own computed call is the one
+     exemption — and it is an exemption for a MULTIPLICATION, so the check
+     fails a bare number and passes `pt * role.track`. */
+  {
+    const hits = scan(/\.tracking\(\s*-?[0-9]/, { skip: /CSDesign\/(Type|Figures|Person)\.swift/ });
+    /* THE DESK, TOO. On the web tracking is already a ratio (`em`) rather than
+       a length, which is the half the phone got wrong — so the check here is
+       that the ratio is one of the NINE the `track` group declares. A `px`
+       letter-spacing is worse than an off-scale `em` and fails outright. */
+    const TRACK = (() => {
+      try {
+        const doc = JSON.parse(readFileSync(join(root, 'packages', 'tokens', 'tokens.json'), 'utf8'));
+        return new Set(Object.values(doc.groups?.track?.tokens ?? {}).map(t => String(t.dark)));
+      } catch { return new Set(); }
+    })();
+    if (!TRACK.size) hits.push('tokens.json has no track group — LINT-07 has nothing to compare against');
+    html.split('\n').forEach((line, i) => {
+      for (const m of line.matchAll(/letter-spacing:\s*(-?[0-9.]+)px/g)) {
+        hits.push(`index.html:${i + 1} letter-spacing:${m[1]}px — tracking is a ratio, never a length`);
+      }
+      for (const m of line.matchAll(/letter-spacing:\s*(-?[0-9.]+)em/g)) {
+        if (!TRACK.has(String(parseFloat(m[1])))) hits.push(`index.html:${i + 1} letter-spacing:${m[1]}em`);
+      }
+    });
+    lint('LINT-07', 'one tracking call site, and it multiplies', hits,
+         'tracking is a ratio of the scaled size — CSType is the one call site, and the desk’s nine are the track group');
+  }
+
+  /* LINT-11 · no gold on a control's own chrome (§2.4). The naïve form — any
+     gold reachable from a `Button` — fails the leader's gold rail, the course
+     row's star rail and the record leaf's earned rules, because every slat in
+     this product IS a Button. So the check is scoped to a control's own
+     CHROME: the gold token inside a `ButtonStyle`'s body, a `.tint(` that
+     takes it, and a button-style enum that names a `gold` case at all. */
+  {
+    const hits = [];
+    for (const f of src) {
+      /* a ButtonStyle's own body: from `: ButtonStyle` to the struct's close */
+      const lines = f.lines;
+      let depth = null, brace = 0;
+      lines.forEach((line, i) => {
+        if (depth === null && /struct\s+\w+\s*:\s*(ButtonStyle|PrimitiveButtonStyle)\b/.test(line)) { depth = i; brace = 0; }
+        if (depth !== null) {
+          brace += (line.match(/\{/g) || []).length - (line.match(/\}/g) || []).length;
+          if (!line.trimStart().startsWith('//') && /\b(cs|palette|d)\.gold\b|CSTokens\.\w+\.gold\b/.test(line)) {
+            hits.push(`${f.rel}:${i + 1} gold inside a ButtonStyle · ${line.trim().slice(0, 70)}`);
+          }
+          if (brace <= 0 && i > depth) depth = null;
+        }
+      });
+      if (/enum\s+CSButtonStyle[^\n]*\bgold\b/.test(f.text)) hits.push(`${f.rel} CSButtonStyle names a gold case`);
+    }
+    hits.push(...scan(/\.tint\(\s*(cs|palette|d)\.gold\b/));
+    if (!/struct\s+\w+\s*:\s*(ButtonStyle|PrimitiveButtonStyle)\b/.test('struct CSGoldStyle: ButtonStyle {')) {
+      hits.push('self-test failed: LINT-11 no longer notices a ButtonStyle');
+    }
+    lint('LINT-11', 'gold never touches a control',
+         hits, 'the rail, the leaf’s earned rule and the pot — never a button’s chrome');
+  }
+
+  /* LINT-19 · a panel never holds a sentence. The panel is the system's one
+     real depth (14.91:1) and it is spent on ONE figure or ONE word; the moment
+     it holds a sentence it is a card again, which is what D266 deleted.
+     Twelve characters, or a space, and it has drifted. */
+  {
+    const hits = [];
+    for (const f of src) {
+      f.lines.forEach((line, i) => {
+        if (line.trimStart().startsWith('//')) return;
+        if (!/CSPanel\s*\(/.test(line)) return;
+        /* the literal a panel is asked to hold, on the call's own line or the next */
+        const near = [line, f.lines[i + 1] ?? ''].join(' ');
+        for (const m of near.matchAll(/Text\(\s*"([^"]*)"/g)) {
+          const t = m[1];
+          if (t.length > 12 || /\s/.test(t)) hits.push(`${f.rel}:${i + 1} a panel holding ${JSON.stringify(t)}`);
+        }
+      });
+    }
+    lint('LINT-19', 'a panel holds a figure, never a sentence', hits, 'more than 12 characters, or a space, and it is a card again');
+  }
+
+  /* LINT-20 · a leaf always holds a grid. The leaf is the printed page — the
+     receipt, the scorecard, the ledger — and a leaf with a paragraph in it is
+     a card wearing bone. Every `CSLeaf {` opens a grid within ten lines. */
+  {
+    const hits = [];
+    for (const f of src) {
+      f.lines.forEach((line, i) => {
+        if (line.trimStart().startsWith('//')) return;
+        if (!/\bCSLeaf\s*\(?\s*\{|\bCSLeaf\s*\(/.test(line)) return;
+        const window = f.lines.slice(i, i + 12).join('\n');
+        if (!/(Grid\b|GridRow|HStack|ForEach|CSLeafRule|rows:|\.earnedRule)/.test(window)) {
+          hits.push(`${f.rel}:${i + 1} a leaf with no grid · ${line.trim().slice(0, 70)}`);
+        }
+      });
+    }
+    lint('LINT-20', 'a leaf always holds a grid', hits, 'the receipt, the scorecard and the ledger — never a paragraph');
+  }
+
+  /* LINT-21 · the door is required, and the SWIFT COMPILER is the check. §13.1
+     says an empty state without a way out is a dead end, so `CSEmpty` takes a
+     non-optional `Door` with the three cases. All this can do is prove the
+     declaration has not quietly grown a `= nil`. */
+  {
+    const hits = [];
+    const states = src.find(f => /CSDesign\/States\.swift$/.test(f.rel));
+    if (!states) hits.push('CSDesign/States.swift is gone — CSEmpty has no declaration');
+    else {
+      if (!/\bdoor:\s*Door\b/.test(states.text)) hits.push('CSEmpty no longer takes a Door');
+      if (/\bdoor:\s*Door\?\s*=|\bdoor:\s*Door\s*=\s*nil/.test(states.text)) hits.push('CSEmpty’s door became optional — §13.1 has no dead ends');
+      for (const c of ['case primary(', 'case link(', 'case elsewhere(']) {
+        if (!states.text.includes(c)) hits.push(`CSEmpty.Door lost ${c.replace('case ', '').replace('(', '')}`);
+      }
+    }
+    lint('LINT-21', 'every empty state has a door', hits, 'primary · link · elsewhere, and the compiler enforces it');
+  }
+
+  /* LINT-23 · the ledger line is one constant, on both clients. D273 —
+     "Cup Season keeps the ledger; the money moves between friends" is printed
+     ONCE per client and read from `MoneyCopy.ledger` / `CS_LEDGER`. A retyped
+     copy is a sentence that can drift a word and then say something the
+     product does not do with money. */
+  {
+    const PHRASE = /keeps the ledger/;
+    const hits = [];
+    for (const f of src) {
+      f.lines.forEach((line, i) => {
+        if (line.trimStart().startsWith('//')) return;
+        if (PHRASE.test(line) && !/MoneyCopy\.swift$/.test(f.rel)) hits.push(`${f.rel}:${i + 1} ${line.trim().slice(0, 70)}`);
+      });
+    }
+    html.split('\n').forEach((line, i) => {
+      if (!PHRASE.test(line)) return;
+      if (/CS_LEDGER\s*=/.test(line)) return;
+      hits.push(`index.html:${i + 1} ${line.trim().slice(0, 70)}`);
+    });
+    if (!PHRASE.test('Cup Season keeps the ledger; the money moves between friends.')) {
+      hits.push('self-test failed: LINT-23 no longer notices the sentence');
+    }
+    lint('LINT-23', 'the ledger line is printed once per client', hits, 'MoneyCopy.ledger on the phone · CS_LEDGER on the desk');
+  }
+
+  /* LINT-24 · a pushed screen does not name itself twice. `CSPageHeader` IS
+     the name of the page; a navigation title above it prints the same words
+     11pt smaller, 44pt higher, in the system's face rather than the
+     product's. Either is fine; both is the shipped defect. */
+  {
+    const hits = [];
+    for (const f of src) {
+      if (!/CSPageHeader/.test(f.text)) continue;
+      f.lines.forEach((line, i) => {
+        if (line.trimStart().startsWith('//')) return;
+        const m = line.match(/\.navigationTitle\(\s*(.*)$/);
+        if (!m) return;
+        if (/^""\s*\)/.test(m[1])) return;                     // the empty title is the fix
+        hits.push(`${f.rel}:${i + 1} ${line.trim().slice(0, 70)}`);
+      });
+    }
+    lint('LINT-24', 'a pushed screen names itself once', hits, 'CSPageHeader is the name; navigationTitle("") is the answer');
+  }
+
+  /* LINT-26 · photos are not avatars (§6.2). A round's photograph is a
+     PHOTOGRAPH — the top rung of the imagery ladder, credited and full-bleed —
+     and cropping it to a 38pt disc is how a product loses both. A face is the
+     golfer's own avatar, a pigment disc, or a drawn mark. */
+  {
+    const hits = [];
+    for (const f of src) {
+      f.lines.forEach((line, i) => {
+        if (line.trimStart().startsWith('//')) return;
+        const near = [f.lines[i - 1] ?? '', line, f.lines[i + 1] ?? ''].join(' ');
+        if (/CSFace\s*\(/.test(line) && /photo_?path|roundPhoto|round\.photo|\.photoPath\b/.test(near)) {
+          hits.push(`${f.rel}:${i + 1} a round photo in a face · ${line.trim().slice(0, 70)}`);
+        }
+      });
+    }
+    lint('LINT-26', 'a round’s photograph is never an avatar', hits, 'the ladder’s top rung is credited and full-bleed, not cropped to 38pt');
+  }
+
+  /* LINT-27 · no retired term in the DESIGN's own copy. Check 27 runs
+     `TERMINOLOGY` §4's 34 laws over the two clients; this runs the same table
+     over the documents Phase 3 builds FROM — `UI_SYSTEM.md`, the seven surface
+     specs and the seven mockups. §17's own note is the reason: five of the six
+     hits found in this design's copy were written into specs the build was
+     going to build from without asking.
+
+     THE SCOPE IS PRODUCED STRINGS, NOT PROSE. A spec that says "the clash,
+     never the duel" contains the word `duel` and is the ruling itself. So the
+     markdown is read for COPY SPECIMENS — text inside double quotes or inside
+     italics — and the mockups for their rendered TEXT NODES. */
+  {
+    const docs = join(root, 'docs', 'ui-overhaul-2026-09-06');
+    const hits = [];
+    const read = p => { try { return readFileSync(p, 'utf8'); } catch { return null; } };
+    const md = [join(docs, 'UI_SYSTEM.md')];
+    for (const s of ['home', 'player-card', 'profile', 'course', 'season', 'event', 'leaderboard']) {
+      md.push(join(docs, 'surfaces', `${s}.md`));
+    }
+    const specimens = [];
+    for (const p of md) {
+      const t = read(p);
+      if (t === null) { hits.push(`${p.slice(root.length).replace(/^\//, '')} is missing — the lint has no scope`); continue; }
+      const rel = p.slice(root.length).replace(/^\//, '');
+      t.split('\n').forEach((line, i) => {
+        for (const m of line.matchAll(/[“"]([^”"]{4,120})[”"]/g)) specimens.push([rel, i + 1, m[1], line]);
+        for (const m of line.matchAll(/\*([^*\n]{6,120})\*/g)) specimens.push([rel, i + 1, m[1], line]);
+      });
+    }
+    const mockDir = join(docs, 'mockups');
+    let mocks = [];
+    try { mocks = readdirSync(mockDir).filter(f => f.endsWith('.html')).map(f => join(mockDir, f)); } catch {}
+    for (const p of mocks) {
+      const t = read(p) ?? '';
+      const rel = p.slice(root.length).replace(/^\//, '');
+      /* the rendered text nodes, with <style>/<script> and the tags removed */
+      /* blank the blocks out KEEPING their newlines — collapsing a 400-line
+         <style> to one space renumbers every line after it, and a lint that
+         cites the wrong line is a lint nobody can act on */
+      const body = t.replace(/<(style|script)[\s\S]*?<\/\1>/g, m => m.replace(/[^\n]/g, ' '));
+      body.split('\n').forEach((line, i) => {
+        const text = line.replace(/<[^>]*>/g, ' ').replace(/&[a-z]+;/g, ' ').trim();
+        if (text.length >= 4) specimens.push([rel, i + 1, text, line]);
+      });
+    }
+    const LAWS = VOCAB_LAWS ?? [];
+    if (!LAWS.length) hits.push('LINT-27 has no law table — check 27 did not run');
+    /* A DOCUMENT THAT RETIRES A WORD HAS TO SAY THE WORD. `TERMINOLOGY` §4's
+       own table, §17's retired-words line and every surface decision that
+       names the thing it is deleting all quote the term in order to kill it,
+       and a lint that fails those is a lint that fails the ruling. So the
+       RULING test runs over the whole LINE, not the quoted fragment: the
+       fragment is `"the Tour Card"`, and the sentence around it is
+       *Not "the Tour Card" — §4 pattern 30 retires that name*. */
+    const RULING = /never|retired|retires|banned|instead of|rather than|do not|don’t|no longer|→|replaced|forbidden|survives only|is not\b|refuses|deleted|withdraw|first draft|earlier draft|\bwas\b/i;
+    /* Exempt BY SPECIMEN, each with the reason it is the OTHER sense of the
+       word — the auth session, the light theme's own canon name, the Ryder
+       Cup's own noun for a half-day of play. A new exemption is an argument
+       with §4, which is why they are written out rather than counted. */
+    const DOC_EXEMPT = [
+      [/morning tee sheet/i, 'the light theme\u2019s canon name (UI_SYSTEM §16.1: “survives only as the light theme’s canon”)'],
+      [/no session\b|with no session/i, 'the auth session — check 27 exempts the same sense (§4 row 10)'],
+      [/Ryder\u2019s session pairings|session pairings/i, 'the Ryder Cup’s own noun for a half-day of play'],
+    ];
+    for (const [rel, line, text, source] of specimens) {
+      if (RULING.test(source ?? text)) continue;
+      if (DOC_EXEMPT.some(([re]) => re.test(text))) continue;
+      for (const [n, name, res] of LAWS) {
+        if (res.some(re => re.test(text))) {
+          hits.push(`${rel}:${line} §4.${n} (${name}) — ${JSON.stringify(text.slice(0, 60))}`);
+          break;
+        }
+      }
+    }
+    if (LAWS.length) {
+      const bylaw = LAWS.find(l => l[0] === 6);
+      if (!bylaw || !bylaw[2].some(re => re.test('Lock the bylaws'))) {
+        hits.push('self-test failed: LINT-27 no longer catches a retired term');
+      }
+    }
+    lint('LINT-27', 'the design’s own copy uses the shipped vocabulary', hits,
+         `${specimens.length} specimen(s) across UI_SYSTEM, 7 surface specs and ${mocks.length} mockup(s)`);
+  }
+}
+
+/* 49 · every check in the table has something behind it (D278, IOS-053) ------
+   THE FAILURE THIS WHOLE WAVE EXISTS TO PREVENT is a table and a codebase that
+   disagree about what is enforced. `UI_SYSTEM` §17 lists twenty-nine checks;
+   for eight waves the file ran thirteen of them, and nothing anywhere said
+   which sixteen were only a sentence. A reader of §17 would have believed the
+   product was linted for spacing, tracking, gold-on-a-control and the five
+   budgets, and none of it was true.
+
+   So this reads §17's OWN TABLE out of the document and insists each id has
+   something behind it: a `lint('LINT-nn'` call in this file, or a test named in
+   the map below. A check added to the table with nothing behind it fails the
+   push, and so does a check deleted from the file. */
+{
+  const sysPath = join(root, 'docs', 'ui-overhaul-2026-09-06', 'UI_SYSTEM.md');
+  const problems = [];
+  const sys = existsSync(sysPath) ? readFileSync(sysPath, 'utf8') : '';
+  if (!sys) problems.push('UI_SYSTEM.md is missing — §17 has no table to check against');
+
+  /* the ids §17 declares, from the table's own rows */
+  const declared = [...new Set([...sys.matchAll(/^\|\s*\*\*(LINT-\d\d)\*\*\s*\|/gm)].map(m => m[1]))];
+  /* the ids this file runs */
+  const self = readFileSync(join(root, 'tests', 'preflight.mjs'), 'utf8');
+  const grepped = new Set([...self.matchAll(/lint\('(LINT-\d\d)'/g)].map(m => m[1]));
+
+  /* the ids a TEST carries, because five of them are not greps and two are
+     assertions about a font the grep cannot resolve. Each names its file, and
+     the file has to contain the id — a suite renamed out from under the table
+     is the same drift by another route. */
+  const byTest = {
+    'LINT-02': 'apps/ios/CupSeasonTests/BundledFaceTests.swift',
+    'LINT-08': 'apps/ios/CupSeasonTests/BudgetProbeTests.swift',
+    'LINT-15': 'apps/ios/CupSeasonTests/BudgetProbeTests.swift',
+    'LINT-16': 'apps/ios/CupSeasonTests/BudgetProbeTests.swift',
+    'LINT-17': 'apps/ios/CupSeasonTests/BudgetProbeTests.swift',
+    'LINT-18': 'apps/ios/CupSeasonTests/BudgetProbeTests.swift',
+  };
+  const tested = new Set();
+  for (const [id, rel] of Object.entries(byTest)) {
+    const p = join(root, rel);
+    if (!existsSync(p)) { problems.push(`${id} names ${rel}, which does not exist`); continue; }
+    const t = readFileSync(p, 'utf8');
+    const tag = id.toLowerCase().replace('-', '');                 // LINT-15 → lint15
+    if (!t.includes(id) && !new RegExp(tag, 'i').test(t)) {
+      problems.push(`${id} names ${rel}, which never mentions it`);
+    } else tested.add(id);
+  }
+
+  if (declared.length !== 29) problems.push(`§17 declares ${declared.length} checks, not 29 — the table moved`);
+  for (const id of declared) {
+    if (!grepped.has(id) && !tested.has(id)) problems.push(`${id} is in §17's table and nothing runs it`);
+  }
+  /* and the other direction: a check here that §17 never declared */
+  for (const id of grepped) {
+    if (!declared.includes(id) && !['LINT-30', 'LINT-31'].includes(id)) {
+      problems.push(`${id} runs here and is not in §17's table`);
+    }
+  }
+  /* the two this BUILD added — D274's own, and they are declared in the
+     baselines file rather than in §17, which is where a build's own debt
+     belongs */
+  const baseNote = (() => {
+    try { return JSON.parse(readFileSync(join(root, 'tests', 'preflight-baselines.json'), 'utf8')); } catch { return {}; }
+  })();
+  for (const id of ['LINT-30', 'LINT-31']) {
+    if (!(id in (baseNote.checks ?? {}))) problems.push(`${id} runs and has no baseline entry`);
+  }
+
+  /* the self-test: the check has to be able to see a table that grew */
+  if (!/^\|\s*\*\*(LINT-\d\d)\*\*\s*\|/m.test('| **LINT-99** | grep · a new law | something |')) {
+    problems.push('self-test failed: the table reader no longer sees a row');
+  }
+
+  problems.length === 0
+    ? pass('every check in §17 has something behind it',
+           `${declared.length} declared · ${[...grepped].length} grepped here · ${tested.size} carried by a test`)
+    : fail('every check in §17 has something behind it', problems.join('\n           '));
 }
 
 console.log(`\n${fails ? 'FAIL' : 'PASS'} — ${fails} failure(s), ${warns} warning(s)`);

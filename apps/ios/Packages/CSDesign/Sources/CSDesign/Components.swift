@@ -1,26 +1,24 @@
 // Cup Season — what is left of the M0 component set (IOS-003 §2.4), and what
 // is on its way out.
 //
-// D266 / IOS-045 · `CSCard`, `CSStat`, `CSEmptyState` and `CSButton` are
-// RETIRED NAMES. The system that replaces them is in `Structure.swift`,
-// `Figures.swift`, `States.swift` and `Controls.swift`:
+// D266 / IOS-045, CLOSED BY D278 / IOS-053 · `CSCard`, `CSStat`,
+// `CSEmptyState` and `CSButton` ARE GONE. They were kept as declarations for
+// eight waves with their removal wave named IN THIS FILE — Waves 1–7 took the
+// seven surfaces, Wave 8 the remainder, **Wave 9 deleted the declarations** —
+// and `LINT-30` counted the sites at a baseline that could only fall, so
+// nothing new could be written against them while they waited. It worked:
+// 157 → 111 → 14 → 0.
 //
-//   CSCard        → band · rule · rail · panel · leaf     (20 sites)
-//   CSStat        → CSFigure, the rule-and-figure          (12 sites)
-//   CSEmptyState  → CSEmpty, whose door is non-optional     (6 sites)
-//   CSButton      → CSPrimaryStyle / CSSecondaryStyle /
-//                   CSTertiaryStyle as ButtonStyles        (90 sites)
-//   CSButtonStyle.gold → THE TIER DOES NOT EXIST. Gold may never touch a
-//                   control; a disabled primary is never ember.
+//   CSCard        → band · rule · rail · panel · leaf
+//   CSStat        → CSFigure, the rule-and-figure
+//   CSEmptyState  → CSEmpty, whose door is non-optional (LINT-21)
+//   CSButton      → CSPrimaryStyle / CSSecondaryStyle / CSTertiaryStyle
+//   CSButtonStyle.gold → THE TIER NEVER EXISTED AGAIN. Gold may never touch a
+//                   control (`LINT-11`); a disabled primary is never ember.
 //
-// **THEY ARE KEPT HERE, UNCHANGED, ONLY UNTIL THE WAVE THAT MIGRATES THEIR
-// CALL SITES**, and each wave is named rather than implied: Waves 1–7 migrate
-// the seven surfaces that carry most of them, **Wave 8 (propagate) takes the
-// remainder, and Wave 9 (the consistency sweep) deletes these four
-// declarations and drops their `LINT` baselines to zero.** A shim with no
-// named removal is not a shim; it is a second system. `LINT-30` counts the
-// four and fails on a RISE, so nothing new can be written against them while
-// they wait.
+// A shim with no named removal is not a shim; it is a second system. That is
+// the whole reason these were removable at all, and it is the pattern anything
+// retired after this should copy.
 //
 // What genuinely survives, and why: `CSHaptic` (IOS-003 §2.8's vocabulary,
 // verbatim), `CSNote`, `CSTone`, the tab-bar room plumbing and
@@ -32,162 +30,6 @@ import SwiftUI
 #if canImport(UIKit)
 import UIKit
 #endif
-
-// MARK: - Card
-
-/// **RETIRED (D266). Removed in Wave 9.** 13 of its 20 sites draw a border and
-/// a spine 2px apart, and on eight of fifteen screens in the audit's card
-/// census deleting every border costs ZERO information. Use a band, a rule, a
-/// rail, a panel or a leaf.
-///
-/// bg1 · 1px line · radius 16 · padding 16, with the 3.5pt left spine.
-public struct CSCard<Content: View>: View {
-  @Environment(\.cs) private var cs
-  let spine: Color?
-  let padding: CGFloat
-  let content: Content
-
-  public init(spine: Color? = nil, padding: CGFloat = 16, @ViewBuilder content: () -> Content) {
-    self.spine = spine; self.padding = padding; self.content = content()
-  }
-
-  public var body: some View {
-    content
-      .padding(padding)
-      .frame(maxWidth: .infinity, alignment: .leading)
-      .background(cs.bg1, in: RoundedRectangle(cornerRadius: CSTokens.Radius.r, style: .continuous))
-      .overlay(RoundedRectangle(cornerRadius: CSTokens.Radius.r, style: .continuous).stroke(cs.rule, lineWidth: 1))
-      .overlay(alignment: .leading) {
-        if let spine {
-          RoundedRectangle(cornerRadius: 2).fill(spine).frame(width: 3.5).padding(.vertical, 10)
-        }
-      }
-  }
-}
-
-// MARK: - Button
-
-/// **RETIRED (D269). Removed in Wave 9.** `.gold` is the tier that does not
-/// exist: gold means EARNED and may never touch a control. The replacement is
-/// `.buttonStyle(.csPrimary)` / `.csSecondary` / `.csTertiary(_:)`, which are
-/// `ButtonStyle`s — so every button gets a pressed state and a disabled state
-/// for free, which is the one thing 90 hand-rolled sites never had.
-public enum CSButtonStyle { case primary, quiet, gold }
-
-public struct CSButton: View {
-  @Environment(\.cs) private var cs
-  let label: String
-  let style: CSButtonStyle
-  let busy: Bool
-  let action: () -> Void
-
-  public init(_ label: String, style: CSButtonStyle = .primary, busy: Bool = false, action: @escaping () -> Void) {
-    self.label = label; self.style = style; self.busy = busy; self.action = action
-  }
-
-  public var body: some View {
-    Button(action: action) {
-      ZStack {
-        Text(label).font(CSFont.button).opacity(busy ? 0 : 1)
-        if busy { ProgressView().tint(fg) }
-      }
-      .frame(maxWidth: .infinity, minHeight: 50)
-      .foregroundStyle(fg)
-      .background(bg, in: RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous))
-      .overlay(RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous).stroke(border, lineWidth: 1))
-    }
-    .disabled(busy)
-    .buttonStyle(.plain)
-  }
-
-  private var bg: Color {
-    switch style {
-    case .primary: cs.brand
-    case .quiet: cs.bg2
-    case .gold: cs.gold
-    }
-  }
-  private var fg: Color {
-    switch style {
-    // `bg0` is the ink that turns over with the theme — near-black on the
-    // dark grounds, paper-white on the light one. It is the phone's form of
-    // the web's F1 rule (dark ink on the light-theme ember misses AA; white
-    // ink clears it), and it needs no per-theme branch to say so.
-    case .primary: cs.bg0
-    case .quiet: cs.ink
-    // D211 stepped the light gold darker for text, which took the web's
-    // near-black gold-button ink (#171204) down to 3.4:1 on it. `bg0` reads
-    // the same on the dark champagne (9.3:1, was 9.3) and clears 4.9:1 on
-    // the light metal.
-    case .gold: cs.bg0
-    }
-  }
-  private var border: Color { style == .quiet ? cs.rule : .clear }
-}
-
-// MARK: - Stat
-
-/// **RETIRED (D267). Removed in Wave 9.** A number in a bordered tile is the
-/// audit's problem 1 and problem 2 at once. Use `CSFigure` — the figure, a 2pt
-/// rule the width of its column, and an agate label beneath.
-public struct CSStat: View {
-  @Environment(\.cs) private var cs
-  let label: String
-  let value: String
-  let tone: Color?
-  let sub: String?
-
-  public init(_ label: String, value: String, tone: Color? = nil, sub: String? = nil) {
-    self.label = label; self.value = value; self.tone = tone; self.sub = sub
-  }
-
-  public var body: some View {
-    VStack(alignment: .leading, spacing: 6) {
-      Text(label).font(CSFont.label).tracking(1.2).textCase(.uppercase).foregroundStyle(cs.dimText)
-      Text(value).font(CSFont.stat).csTabular().foregroundStyle(tone ?? cs.ink)
-      if let sub { Text(sub).font(CSFont.monoSmall).foregroundStyle(cs.mut) }
-    }
-    .padding(.vertical, 14).padding(.horizontal, 14)
-    .frame(maxWidth: .infinity, alignment: .leading)
-    .background(cs.bg1, in: RoundedRectangle(cornerRadius: CSTokens.Radius.r, style: .continuous))
-    .overlay(RoundedRectangle(cornerRadius: CSTokens.Radius.r, style: .continuous).stroke(cs.rule, lineWidth: 1))
-  }
-}
-
-// MARK: - Empty state
-
-/// **RETIRED (D266 / non-negotiable 9). Removed in Wave 9.** Its `cta` is
-/// optional and its `action` is optional, so the door silently vanishes on
-/// exactly the surfaces that need one. `CSEmpty` takes a non-optional `Door`.
-///
-/// "a quiet icon, one line in voice, one next step … Every dead end becomes a
-/// next move." (index.html 11085)
-public struct CSEmptyState: View {
-  @Environment(\.cs) private var cs
-  let icon: String
-  let line: String
-  let cta: String?
-  let action: (() -> Void)?
-
-  public init(icon: String, line: String, cta: String? = nil, action: (() -> Void)? = nil) {
-    self.icon = icon; self.line = line; self.cta = cta; self.action = action
-  }
-
-  public var body: some View {
-    VStack(spacing: 12) {
-      Text(icon).font(.system(size: 28)).accessibilityHidden(true)
-      Text(line).font(CSFont.subhead).foregroundStyle(cs.mut).multilineTextAlignment(.center)
-      if let cta, let action {
-        Button(action: action) {
-          Text(cta).font(CSFont.button).foregroundStyle(cs.brand).a11yMinTarget()
-        }
-        .buttonStyle(.plain)
-      }
-    }
-    .frame(maxWidth: .infinity)
-    .padding(.vertical, 28)
-  }
-}
 
 // MARK: - Note (status line in voice)
 

@@ -62,7 +62,10 @@ struct PeoplePickerSheet: View {
         .padding(20)
       }
       .background(cs.bg0)
-      .toolbar { ToolbarItem(placement: .topBarTrailing) { Button("Done") { onDone(); dismiss() }.foregroundStyle(cs.brand) } }
+      // the picker's "Done" was a commit wearing the dismiss verb, in ember,
+      // where every other sheet in the product now says Close. It still commits
+      // — `onDone()` runs on the way out, as it always did.
+      .csCloseButton { onDone(); dismiss() }
       .task { await vm.buddies() }
       .task(id: vm.query) { await vm.search() }
       .csToasts(toasts)

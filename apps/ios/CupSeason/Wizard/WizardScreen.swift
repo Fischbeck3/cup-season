@@ -62,8 +62,17 @@ struct WizardScreen: View {
   var body: some View {
     Group {
       if model.loading {
-        VStack(spacing: 12) { ProgressView().tint(cs.brand); Text("Loading…").csEyebrow() }
-          .frame(maxWidth: .infinity, maxHeight: .infinity)
+        // §6.1 · the wizard's own head and first field, redacted — the step
+        // the golfer is about to read, in the place they will read it.
+        VStack(alignment: .leading, spacing: CSTokens.Space.s3) {
+          Text("Setting up").csType(.agate, caps: true)
+          Text("A season for the fellas").csType(.lead)
+          CSRule()
+          Text("Every league needs a name and a first tee.").csType(.body)
+        }
+        .csRedacted(true)
+        .padding(CSTokens.Space.s4)
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
       } else {
         wizard
       }

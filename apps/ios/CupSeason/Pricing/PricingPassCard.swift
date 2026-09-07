@@ -26,13 +26,16 @@ struct PricingPassCard: View {
       let price = PricingFlags.dollars(band.cents)
       let each = PricingFlags.perPlayer(cents: band.cents, roster: roster)
       let bragging = (buyInCents ?? 0) == 0
-      CSCard(padding: 16) {
-        VStack(alignment: .leading, spacing: 10) {
+      // D266 · same removal as `PotPassCard`. The block's own eyebrow over a
+      // rule is the whole of what the border was doing.
+      VStack(alignment: .leading, spacing: CSTokens.Space.s2) {
+        CSRule()
+        VStack(alignment: .leading, spacing: CSTokens.Space.s3) {
           Text("The league pass").csEyebrow()
           VStack(alignment: .leading, spacing: 4) {
             Text("One pass, the whole league, every season you run for a year —").csType(.story).foregroundStyle(cs.ink)
             HStack(alignment: .firstTextBaseline, spacing: 6) {
-              Text(price).font(CSFont.stat).csTabular().foregroundStyle(cs.ink)
+              Text(price).csType(.figureS).foregroundStyle(cs.ink)
               Text(bragging ? "· ≈ \(each) a player · split it on Venmo — less than a sleeve each"
                             : "· ≈ \(each) a player a year · one line on the buy-in")
                 .font(CSFont.label).tracking(0.6).foregroundStyle(cs.mut)
@@ -44,6 +47,7 @@ struct PricingPassCard: View {
           PricingMarkdown("**Where the money goes:** the pass is paid to Cup Season. The pot never is — " + MoneyCopy.ledger)
         }
       }
+      .padding(.vertical, CSTokens.Space.s2)
     }
   }
 }

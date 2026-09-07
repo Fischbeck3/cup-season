@@ -183,7 +183,7 @@ import Foundation
     var d = WizardDials()
     d.startISO = "2026-09-05"; d.durWeeks = 26
     let rows = d.bylawsRows(today: "2026-08-27")
-    #expect(rows.first { $0.k == "SEASON" }?.v == "6 mo · Sat Sep 5 → Sat Mar 6 · 26 wks")
+    #expect(rows.first { $0.k == "SEASON" }?.v == "6 mo · Sat Sep 5 \u{2013} Sat Mar 6 · 26 wks")
     #expect(rows.first { $0.k == "CUP FINAL" }?.v == "Final 4 weeks · from Sun Feb 7 · scored fresh")
     #expect(rows.first { $0.k == "BUY-IN" }?.v == "None · bragging rights")
   }

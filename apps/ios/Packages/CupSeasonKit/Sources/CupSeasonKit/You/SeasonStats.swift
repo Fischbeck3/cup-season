@@ -44,13 +44,18 @@ public struct SeasonStats: Sendable, Equatable {
   /// both, because they are read off the same set (`Career.figureScope` is its
   /// all-time twin; the two panels speak one grammar).
   public var figureScope: String { counting == 0 ? YouCopy.noCountingRounds : YouCopy.acrossCounting(counting) }
-  /// `|d| ≥ 0.05 ? (d<0 ? '▼ ' : '▲ ') + |d|.toFixed(1)` — and, Y-28, "Held"
-  /// when two rounds bracket no move at all; a dash only when there is no
-  /// second round to measure from (`deltaSub` says so).
+  /// A SIGNED FIGURE, and Y-28's "Held" when two rounds bracket no move at
+  /// all; a dash only when there is no second round to measure from
+  /// (`deltaSub` says so).
+  ///
+  /// D276 · it used to print `▼ 0.3`, which is the "you fell" mark on an index
+  /// that IMPROVED. A minus sign is the arithmetic and says nothing about who
+  /// is winning: `−` is U+2212, the tabular minus, and `LINT-13` exempts it by
+  /// name because a sign is not a direction glyph.
   public var deltaText: String {
     guard let d = delta else { return "—" }
     guard abs(d) >= 0.05 else { return YouCopy.held }
-    return (d < 0 ? "▼ " : "▲ ") + RoundCopy.f1(abs(d))
+    return (d < 0 ? "\u{2212}" : "+") + RoundCopy.f1(abs(d))
   }
   /// the row's sub: why the cell is a dash, or its scope
   public var deltaSub: String { delta == nil ? YouCopy.needsTwoRounds : YouCopy.seasonToDate }

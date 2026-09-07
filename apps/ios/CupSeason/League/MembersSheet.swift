@@ -66,7 +66,7 @@ struct MembersSheet: View {
               Text(m.name).csType(.name).foregroundStyle(cs.ink)
               if m.isPro { Text("THE PRO").csEyebrow(cs.gold).fixedSize() }
             }
-            Text(sub.isEmpty ? "GOLFER" : sub).font(CSFont.label).tracking(0.6).foregroundStyle(cs.mut)
+            Text(sub.isEmpty ? "GOLFER" : sub).csType(.agateS, caps: true).foregroundStyle(cs.mut)
           }
           .frame(maxWidth: .infinity, alignment: .leading)
         }
@@ -132,7 +132,7 @@ struct LeagueMarkerPicker: View {
           Button { set(mk.key) } label: {
             VStack(spacing: 4) {
               CSMarkerView(mk, size: 24).foregroundStyle(cur == mk.key ? cs.pos : cs.ink)
-              Text(mk.name.uppercased()).font(CSFont.label).tracking(0.6).foregroundStyle(cur == mk.key ? cs.pos : cs.mut)
+              Text(mk.name).csType(.agateS, caps: true).foregroundStyle(cur == mk.key ? cs.pos : cs.mut)
                 .lineLimit(2).multilineTextAlignment(.center)   // L-29 · 11pt is the floor; it wraps rather than shrinks
             }
             .padding(.vertical, 10).padding(.horizontal, 4).frame(maxWidth: .infinity, minHeight: 64)
@@ -181,7 +181,7 @@ struct SetIndexSheet: View {
         }
       }
         .buttonStyle(.csPrimary(busy: busy))
-      Button("Cancel") { dismiss() }
+      Button("Close") { dismiss() }
         .buttonStyle(.csSecondary())
     }
     .onAppear { if let v = member.profile?.index_current { text = String(format: "%.1f", v) } }

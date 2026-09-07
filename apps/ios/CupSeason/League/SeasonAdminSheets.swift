@@ -41,7 +41,7 @@ struct NoticesRoomSection: View {
     } else {
       HStack(spacing: 10) {
         Image(systemName: on ? "bell" : "bell.slash").font(.system(size: 13, weight: .regular)).foregroundStyle(cs.mut)
-        Text(NoticesCopy.memberLine(on)).font(CSFont.label).tracking(0.6).foregroundStyle(cs.mut)
+        Text(NoticesCopy.memberLine(on)).csType(.agateS).foregroundStyle(cs.mut)
           .fixedSize(horizontal: false, vertical: true)
       }
       .frame(minHeight: 44)
@@ -111,11 +111,13 @@ struct CancelLeagueSheet: View {
           } catch { toast.show(roomError(error), kind: .failed) }
         }
       } label: {
-        ZStack { Text("Start the cancellation").csType(.name).opacity(busy ? 0 : 1); if busy { ProgressView().tint(cs.bg0) } }
-          .frame(maxWidth: .infinity, minHeight: 50).foregroundStyle(cs.bg0)
-          .background(cs.neg, in: RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous))
+        // D266 · this was a fourth button tier hand-rolled in a sheet: its own
+        // fill, its own radius, its own busy state and a SPINNER where every
+        // other control in the product tallies three dots. `csDestructive`
+        // gained `busy:` for it, so the two sheets and the one style agree.
+        Text("Start the cancellation")
       }
-      .buttonStyle(.plain).disabled(busy)
+      .buttonStyle(.csDestructive(busy: busy)).disabled(busy)
       Button("Keep it") { dismiss() }
         .buttonStyle(.csSecondary())
     }
@@ -152,11 +154,9 @@ struct DeleteLeagueSheet: View {
           catch { toast.show(roomError(error), kind: .failed) }
         }
       } label: {
-        ZStack { Text(others == 0 ? "Delete the league" : "Delete for everyone").csType(.name).opacity(busy ? 0 : 1); if busy { ProgressView().tint(cs.bg0) } }
-          .frame(maxWidth: .infinity, minHeight: 50).foregroundStyle(cs.bg0)
-          .background(cs.neg, in: RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous))
+        Text(others == 0 ? "Delete the league" : "Delete for everyone")
       }
-      .buttonStyle(.plain).disabled(busy)
+      .buttonStyle(.csDestructive(busy: busy)).disabled(busy)
       Button("Keep it") { dismiss() }
         .buttonStyle(.csSecondary())
     }

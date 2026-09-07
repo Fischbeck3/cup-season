@@ -58,7 +58,13 @@ private func team(_ id: UUID, _ name: String, _ pts: Double, ci: Int = 0) -> Tea
     #expect(StandingsMath.move(prior: 0, now: 2) == .down(2))
     #expect(StandingsMath.move(prior: 1, now: 1) == .held)
     #expect(StandingsMath.move(prior: nil, now: 0) == nil)
-    #expect(RankMove.up(2).label == "▲2" && RankMove.down(1).title == "down 1 this week" && RankMove.held.label == "–")
+    /* D276 · `RankMove.label` is deleted — it typed `▲2` into a string, and
+       three other producers typed the same DOWN triangle onto an improving
+       handicap index. `title` is words and survives; the arithmetic above is
+       unchanged and is what this suite is actually about. */
+    #expect(RankMove.up(2).title == "up 2 this week")
+    #expect(RankMove.down(1).title == "down 1 this week")
+    #expect(RankMove.held.title == "held this week")
   }
 
   /// A-4 · the label carries its own clock, or it does not render. The same
@@ -407,7 +413,7 @@ private func team(_ id: UUID, _ name: String, _ pts: Double, ci: Int = 0) -> Tea
     #expect(rows[4].v == "Post what you'd post to GHIN")   // M-15: a norm the league holds
     #expect(Bylaws.verif == ["Honor system", "Post what you'd post to GHIN", "Vouched by the group where you can; the Pro rules on the rest"])
     #expect(rows[7].v == "$75 / player" && rows[8].v == "60 / 25 / 15 · champ / 2nd / king")
-    #expect(rows[9].v == "5 mo · Sun May 3 → Sat Sep 26 · 21 wks")
+    #expect(rows[9].v == "5 mo · Sun May 3 \u{2013} Sat Sep 26 · 21 wks")
     #expect(rows[10].v == "Final 4 weeks · from Sun Aug 30 · scored fresh")
     let free = LeagueCopy.bylawsRows(Bylaws(stake: 0, finish: "points_table"), clock: clock("2026-06-01", finish: "points_table"))
     #expect(free.first { $0.k == "BUY-IN" }?.v == "None · bragging rights" && free.last?.k == "FINISH" && free.last?.v == "Points table crowns it · whole season, one race")
@@ -476,7 +482,11 @@ private func team(_ id: UUID, _ name: String, _ pts: Double, ci: Int = 0) -> Tea
     let pm = LeagueCopy.pressMeter(today: "2026-08-27")
     #expect(pm.legend == "5 days left in August" && pm.hot && abs(pm.fill - 26.0 / 31.0) < 1e-9)
     #expect(LeagueCopy.indexSub(established: false, delta: -1) == "Building your number")
-    #expect(LeagueCopy.indexSub(established: true, delta: -0.3) == "▼ 0.3 this season" && LeagueCopy.indexSub(established: true, delta: 0.01) == "Season to date")
+    /* D276 · a falling index is GOOD NEWS. It used to print the "you fell"
+       triangle; it says which way the number went, in words. */
+    #expect(LeagueCopy.indexSub(established: true, delta: -0.3) == "0.3 off your index this season")
+    #expect(LeagueCopy.indexSub(established: true, delta: 0.3) == "0.3 on your index this season")
+    #expect(LeagueCopy.indexSub(established: true, delta: 0.01) == "Season to date")
     #expect(LeagueCopy.countingSub(month: "August", capN: Int.max) == "August · every round counts")
     #expect(LeagueCopy.lineSplit(potCents: 52_500, payout: [60, 25, 15]) == "CHAMPS $315 · RUNNER-UP $131.25 · POINTS KING $78.75")
     #expect(LeagueCopy.finishDial(current: "cup_final").label == "Finish: Cup Final — switch to points table")
@@ -489,7 +499,7 @@ private func team(_ id: UUID, _ name: String, _ pts: Double, ci: Int = 0) -> Tea
     #expect(LeagueDates.currentWeek(start: "2026-05-03", end: "2026-09-26", today: "2026-05-10") == 2)
     #expect(LeagueDates.currentWeek(start: "2026-05-03", end: "2026-09-26", today: "2027-01-01") == 21)
     #expect(LeagueDates.cupFinalStart(end: "2026-09-26") == "2026-08-30")
-    #expect(LeagueDates.spanText(start: "2026-05-03", end: "2026-09-26") == "Sun May 3 → Sat Sep 26 · 21 wks")
+    #expect(LeagueDates.spanText(start: "2026-05-03", end: "2026-09-26") == "Sun May 3 \u{2013} Sat Sep 26 · 21 wks")
     #expect(LeagueDates.durLabel(6) == "6 wk" && LeagueDates.durLabel(26) == "6 mo")
     #expect(LeagueDates.nextSunday("2026-08-27") == "2026-08-30" && LeagueDates.nextSunday("2026-08-30") == "2026-08-30")
     #expect(LeagueDates.firstOfNextMonth("2026-12-05") == "2027-01-01" && LeagueDates.firstOfMonth("2026-08-27") == "2026-08-01")

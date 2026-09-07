@@ -52,7 +52,7 @@ struct JoinLeagueFlow: View {
         .padding(20)
       }
       .background(cs.bg0)
-      .toolbar { ToolbarItem(placement: .topBarLeading) { Button("Cancel") { dismiss() }.foregroundStyle(cs.mut) } }
+      .csCloseButton { dismiss() }
       .task { if vm.presetCode != nil { await vm.go() } }
       .sheet(item: $vm.covenant) { c in
         // QB-08 · `postedRounds` was never passed, so `Covenant.starterClause`
@@ -209,7 +209,7 @@ struct LeagueWelcomeSheet: View {
              " Only by not playing. Every posted round scores — a rough day is still points on the board.")
         rule("Rounds score against your playing HCP.", " Beat your handicap and it's a big day, whatever you shot. Your best rounds each month count; a better round always bumps your worst.")
         rule("The pot lives on the books.", " \(MoneyCopy.ledger) The settlement card shows who owes what.")
-        Button("How scoring works →") { scoring = true }.csType(.bodyS).foregroundStyle(cs.brand).padding(.bottom, 4)
+        Button("How scoring works") { scoring = true }.csType(.bodyS).foregroundStyle(cs.brand).padding(.bottom, 4)
         Rectangle().fill(cs.rule).frame(height: 1)
         rule("Who else plays with you?", " Growing the league isn't the Pro's chore — any member's link works.")
         if let code = welcome.code {

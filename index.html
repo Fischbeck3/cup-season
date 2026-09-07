@@ -4457,7 +4457,7 @@ html[data-theme="light"] .room-dusk .btn:not(.dark):not(.gold):not(.apple){color
           </div>
           <p class="fine" id="finishNote">Cup Final: the last four weeks reset and score fresh — top seeds only, whoever's hottest takes the cup.</p>
           <div class="eyebrow">The pot split <button class="ibtn" data-i="payout" aria-expanded="false" aria-label="About the pot split">i</button></div>
-          <div class="ihelp" id="ih-payout">How the pot pays out at season's end. Every split rewards the champion, the runner-up, and the Points King (best individual all year). Cup Season keeps the ledger; the money moves between friends.</div>
+          <div class="ihelp" id="ih-payout">How the pot pays out at season's end. Every split rewards the champion, the runner-up, and the Points King (best individual all year). <span data-ledger></span></div>
           <div class="seg" id="paySeg">
             <button data-pay="60,25,15" class="on">Balanced</button>
             <button data-pay="70,20,10">Winner-heavy</button>
@@ -4605,7 +4605,7 @@ html[data-theme="light"] .room-dusk .btn:not(.dark):not(.gold):not(.apple){color
         <div class="stats">
           <div class="stat" data-dup="week"><div class="k">Season</div><div class="v"><span id="statWk">W18</span> <small>/ <span id="wkTotal2">24</span></small></div><div class="d fl" id="statFinal">Cup Final · final 4 wks</div></div>
           <div class="stat" data-dup="pot"><div class="k">The pot</div><div class="v gold" id="chipPot">$525</div><div class="d fl" id="paidChip">5/7 buy-ins in</div></div>
-          <div class="stat" data-dup="index"><div class="k">Your index</div><div class="v heronum" id="statIdx">12.4</div><div class="d up" id="statIdxD">▼ 0.3 this month</div></div>
+          <div class="stat" data-dup="index"><div class="k">Your index</div><div class="v heronum" id="statIdx">12.4</div><div class="d up" id="statIdxD">0.3 off your index this month</div></div>
           <div class="stat"><div class="k">Counting rounds</div><div class="v" id="statCount">3 <small>/ 4</small></div><div class="d fl" id="statCountD">This month · best 4 count</div></div>
         </div>
 
@@ -6095,7 +6095,7 @@ function csSeasonRules(){
     out.push({ head:"What's on it",
                body:`${fmt$(state.stake)} each, ${fmt$(state.stake*n)} in the pot. `
                   + `${csCapWord(csWord(pay[0]))} percent to the champion, ${csWord(pay[1])} to the runner-up, `
-                  + `${csWord(pay[2])} to the points king. Cup Season keeps the ledger; the money moves between friends.` });
+                  + `${csWord(pay[2])} to the points king. ${CS_LEDGER}` });   /* D273 · one constant, LINT-23 */
   }
   out.push({ head:'Scores', body: VERIF[state.preset] + '.' });
   const pro = (window.CS?.members||[]).find(m => m.role === 'commissioner')?.profile?.display_name;
@@ -13422,7 +13422,10 @@ function renderStats(){
     if(xd && !state.demo){
       const d=window.myIndexDelta;
       if(d==null || !isFinite(d) || Math.abs(d)<0.05){ xd.textContent='Season to date'; xd.className='d fl'; }
-      else { xd.textContent=(d<0?'▼ ':'▲ ')+Math.abs(d).toFixed(1)+' this season'; xd.className='d '+(d<0?'up':'fl'); }
+      /* D276 · a falling index is GOOD NEWS and this printed the same down
+         triangle the board uses for "you fell". The twin is
+         `LeagueCopy.indexSub`; the two must say the same words. */
+      else { xd.textContent=Math.abs(d).toFixed(1)+(d<0?' off your index this season':' on your index this season'); xd.className='d '+(d<0?'up':'fl'); }
     }
   }
   /* D3: the month is a fill meter, not prose about "caps" — four slots you
@@ -14160,9 +14163,12 @@ function heroMyRung(){
       arr.slice().sort((a,b)=>(Number(b.points)||0)-(Number(a.points)||0))
         .forEach((row,idx)=>{ prior[solo?row.member_id:row.squad_id]=idx; });
       if(prior[myId]!=null){ moved = prior[myId]-i;
-        moveChip = moved>0 ? `<span class="hh-move">▲ UP ${moved}</span>`
-                 : moved<0 ? `<span class="hh-move dn">▼ DOWN ${-moved}</span>`
-                 : `<span class="hh-move flat">— HELD</span>`; }
+        /* D276 / LINT-13 · the triangle was typed into the string. The word
+           carries the direction and the chip's own class carries the colour,
+           which is what `csMovement` already emits for every other board. */
+        moveChip = moved>0 ? `<span class="hh-move">UP ${moved}</span>`
+                 : moved<0 ? `<span class="hh-move dn">DOWN ${-moved}</span>`
+                 : `<span class="hh-move flat">HELD</span>`; }
     }
   }
   /* the cause, or the forward line — the hero always says something */
@@ -16769,7 +16775,7 @@ function renderIndStats(){
   $('#msR').textContent=me.r;
   $('#msAvg').textContent=vsShort(me.avg);   /* Q-23 */
   $('#msBest').textContent='+'+me.best.toFixed(1);
-  $('#msDelta').textContent='▼ '+Math.abs(me.d).toFixed(1);
+  $('#msDelta').textContent='\u2212'+Math.abs(me.d).toFixed(1);   /* D276 · a sign, not a verdict */
   $('#msAvgSub').textContent=countingScope(me.r);
   $('#msBestSub').textContent=countingScope(me.r);
   $('#msDeltaSub').textContent='Season to date';
@@ -16825,7 +16831,7 @@ function renderIndStatsReal(){
      and the sub says which of the two you are looking at. */
   $('#msDelta').textContent = (!me || me.d==null) ? '—'
     : Math.abs(me.d)<0.05 ? 'Held'
-    : (me.d<0?'▼ ':'▲ ')+Math.abs(me.d).toFixed(1);
+    : (me.d<0?'\u2212':'+')+Math.abs(me.d).toFixed(1);   /* D276 · the twin of SeasonStats.deltaText */
   /* Y-14 · the scope line carries the denominator and rides BOTH figures */
   const msScope = cnt===0 ? 'No counting rounds yet' : countingScope(cnt);
   $('#msAvgSub').textContent = msScope;

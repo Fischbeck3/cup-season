@@ -685,7 +685,7 @@ struct LiveRosterPickerSheet: View {
         .padding(20)
       }
       .background(cs.bg0)
-      .toolbar { ToolbarItem(placement: .topBarTrailing) { Button("Done") { dismiss() }.foregroundStyle(cs.brand) } }
+      .csCloseButton { dismiss() }
       .task { await buddies() }
       .task(id: query) { await search() }
     }

@@ -30,8 +30,13 @@ struct PotPassCard: View {
 
   var body: some View {
     if flags.visible && isPro {
-      CSCard(padding: 16) {
-        VStack(alignment: .leading, spacing: 8) {
+      // D266 · the pass was a bordered card on a pane that is already a
+      // pane. The eyebrow and a rule say "this block is about the pass"
+      // without spending a container on it — and the container was the one
+      // §3.1 has no job for: it holds neither one figure nor a printed grid.
+      VStack(alignment: .leading, spacing: CSTokens.Space.s2) {
+        CSRule()
+        VStack(alignment: .leading, spacing: CSTokens.Space.s2) {
           Text("League pass · Pro only").csEyebrow()
           if let n = flags.foundingNumber(leagueId: league.league_id) {
             PricingFoundingBadge(number: n)
@@ -45,7 +50,7 @@ struct PotPassCard: View {
               Text(price).csType(.nameS).strikethrough().foregroundStyle(cs.mut)
                 .accessibilityLabel("\(price), waived")
             }
-            Text(endsLine).font(CSFont.label).tracking(0.6).foregroundStyle(cs.mut)
+            Text(endsLine).csType(.agateS).foregroundStyle(cs.mut)
               .fixedSize(horizontal: false, vertical: true)
             /* The words "paid from the pot" shipped in the binary until 2026-09-01,
                one boolean flip away from rendering. Arizona’s social-gambling
@@ -59,6 +64,7 @@ struct PotPassCard: View {
           }
         }
       }
+      .padding(.vertical, CSTokens.Space.s2)
       .accessibilityElement(children: .combine)
     }
   }

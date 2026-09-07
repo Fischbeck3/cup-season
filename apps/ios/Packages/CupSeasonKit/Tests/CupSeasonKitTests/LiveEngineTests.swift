@@ -450,7 +450,7 @@ private func round(_ names: [String], indices: [Double], scores: [[Int?]], game:
   @Test func liveRows() {
     #expect(LiveCopy.settleRows(pts: [1, -1], stake: 0, names: ["A", "B"]) == [.init(label: "WOLF POINTS — NO MONEY ON IT", amount: "$0")])
     #expect(LiveCopy.settleRows(pts: [0, 0], stake: 5, names: ["A", "B"]) == [.init(label: "ALL SQUARE", amount: "$0")])
-    #expect(LiveCopy.settleRows(pts: [1, -1], stake: 2.5, names: ["Ed", "Al"]) == [.init(label: "AL → ED", amount: "$2.5")])
+    #expect(LiveCopy.settleRows(pts: [1, -1], stake: 2.5, names: ["Ed", "Al"]) == [.init(label: "AL PAYS ED", amount: "$2.5")])   // D278 · a settlement is a sentence about who pays whom
   }
 }
 
@@ -518,7 +518,7 @@ private func round(_ names: [String], indices: [Double], scores: [[Int?]], game:
     s.course.label = "Papago"
     s.hole = 1
     let mine = LiveCopy.resumeBanner(s)!
-    #expect(mine.kicker == "Continue your round" && mine.line == "PAPAGO · STROKE PLAY" && mine.meta == "HOLE 2" && mine.go == "→")
+    #expect(mine.kicker == "Continue your round" && mine.line == "PAPAGO · STROKE PLAY" && mine.meta == "HOLE 2" && mine.go == "RESUME")   // D278 · the door says the word
     s.mine = false; s.host = "Marcus Webb"
     let inv = LiveCopy.resumeBanner(s)!
     #expect(inv.invite && inv.kicker == "Marcus started a live round with you" && inv.meta == "JUST TEED OFF · NOTHING SCORED YET" && inv.go == "JOIN")
