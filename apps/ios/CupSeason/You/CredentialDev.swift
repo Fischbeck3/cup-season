@@ -1,11 +1,16 @@
-// Cup Season — `-cs_dev_cred <photo|crest|hero|herocrest>`: one credential
-// over the root, in the state named, whatever the session is.
+// Cup Season — `-cs_dev_cred <photo|crest|earned|empty|private|loading|long>`:
+// **the harness that renders all seven states of `player-card.md` §6**, over
+// the root, whatever the session is.
 //
-// Same trick and same reason as `-cs_dev_door` and `-cs_dev_live`: the card is
-// the most reviewed object in the app and the hardest to reach — it needs an
-// account, a season, trophies and a photograph. This shows it with none of
-// them, so a change to it can be LOOKED AT before it ships. D197 shipped two
-// regressions past a green test suite; a card is a thing you have to see.
+// Same reason as `-cs_dev_door` and `-cs_dev_live`: the card is the most
+// reviewed object in the app and the hardest to reach — it needs an account, a
+// season, a photograph and a founding row. This shows it with none of them, so
+// a change to it can be LOOKED AT before it ships. D197 shipped two regressions
+// past a green test suite; a card is a thing you have to see.
+//
+// The harness takes a state argument because `simctl` has no finger and cannot
+// scroll: one state per launch, and a human with a trackpad gets all of them by
+// passing `all`.
 //
 // DEBUG only. Nothing here touches the server.
 
@@ -22,11 +27,13 @@ enum CredDev {
   }
 
   /// A stand-in photograph, DRAWN rather than downloaded — a simulator with no
-  /// account and no network reviews nothing if the panel is a spinner.
+  /// account and no network reviews nothing if the plate is a spinner.
   ///
   /// GREYSCALE on purpose, and not only to keep preflight 15 honest: a NEARLY
   /// WHITE subject under the name is the worst case the scrim has to survive,
-  /// and a plausible warm portrait would have flattered it.
+  /// and a plausible warm portrait would have flattered it. **No face is
+  /// fabricated**: it is a head-and-shoulders MASS, which is what the scrim's
+  /// arithmetic is being tested against.
   static let photo: URL? = {
     let size = CGSize(width: 900, height: 1200)
     let img = UIGraphicsImageRenderer(size: size).image { ctx in
@@ -45,40 +52,115 @@ enum CredDev {
     try? img.pngData()?.write(to: url)
     return url
   }()
+
+  /// A fixed id, so the pigment and the plot are the same in every screenshot.
+  static let id = UUID(uuidString: "b0000000-0000-4000-8000-0000000000c2")!
+  /// A second fixed id, so the clash seats two golfers on two pigments.
+  static let other = UUID(uuidString: "b0000000-0000-4000-8000-0000000000d7")!
 }
 
 struct CredDevView: View {
   @Environment(\.cs) private var cs
   let mode: String
 
-  private var withPhoto: Bool { mode == "photo" || mode == "hero" }
-  private var isHero: Bool { mode.hasPrefix("hero") }
+  private var states: [String] {
+    mode == "all" ? ["photo", "crest", "earned", "empty", "clash", "private", "loading", "long"] : [mode]
+  }
 
   var body: some View {
     ScrollView {
-      VStack(alignment: .leading, spacing: 16) {
-        Text(mode.uppercased()).csEyebrow()
-        if isHero {
-          YouHero(photoURL: withPhoto ? CredDev.photo : nil, marker: "saguaro", name: "Jerecho Fischbeck",
-                  meta: "@jerecho · Tempe, AZ · Papago GC", indexCurrent: 12.4, rounds: 42,
-                  trophyChips: ["🔥 Broke 80 · '26", "📈 4-week streak · '26", "⛳ First round · '26", "🎯 Broke 90 · '25", "📉 Personal best · '25"],
-                  form: FormRow.from(beats: [true, true, true, false, true]),
-                  anchor: { Text("GHIN 1234567 · est. Jul 2026").font(CSFont.footnote).foregroundStyle(cs.mut) })
-        } else {
-          CredentialCard(photoURL: withPhoto ? CredDev.photo : nil, marker: "saguaro", name: "Jerecho Fischbeck",
-                         badge: .founder, meta: "@jerecho · Tempe, AZ · Papago GC",
-                         indexCurrent: 12.4, rounds: 42,
-                         trophyLines: ["🔥 Broke 80 · '26", "📈 4-week streak · '26", "⛳ First round · '26"],
-                         // somebody ELSE's card: the form key's usual person, and the
-                         // one worth looking at
-                         form: FormRow.from(beats: [true, true, true, false, true]), isMe: false,
-                         anchor: { Text("GHIN 1234567 · est. Jul 2026").font(CSFont.footnote).foregroundStyle(CSTokens.dark.mut) },
-                         extra: { EmptyView() }, settings: {})
+      VStack(alignment: .leading, spacing: CSTokens.Space.s5) {
+        ForEach(states, id: \.self) { s in
+          VStack(alignment: .leading, spacing: CSTokens.Space.s3) {
+            Text(s).csType(.agate, caps: true).foregroundStyle(cs.mut)
+            state(s)
+          }
         }
       }
-      .padding(20)
+      .padding(CSTokens.Space.gutter)
     }
     .background(cs.bg0.ignoresSafeArea())
+  }
+
+  @ViewBuilder private func state(_ s: String) -> some View {
+    switch s {
+    // 1 · the flagship: the ladder's TOP legal rung, a photograph owning the
+    // plate edge to edge, the earned slot, three figures on one rule.
+    case "photo":
+      CSCredential(golfer(slot: "Founder", figures: three), hasPhoto: true) {
+        AsyncImage(url: CredDev.photo) { $0.resizable().scaledToFill() } placeholder: { crest }
+      }
+    // 2 · the marker floor, and it must be as designed as the photo version:
+    // the contour of the home course, the crest bleeding off the right edge,
+    // and NO gold field, because nothing was earned.
+    case "crest":
+      CSCredential(golfer(slot: nil, figures: two), hasPhoto: false) { crest }
+    // 3 · earned, on the marker floor — the slot is the one gold field.
+    case "earned":
+      CSCredential(golfer(slot: "Founding member", figures: three), hasPhoto: false) { crest }
+    // 4 · §6.2 · a golfer with no rounds: one figure, and the card still
+    // renders. The form block below it is `CSEmpty`, on the page.
+    case "empty":
+      CSCredential(golfer(slot: nil, figures: [.init("0", label: "Rounds")]), hasPhoto: false) { crest }
+    // 5 · §3 · **the clash** — two 56pt faces facing across ONE rule-and-figure,
+    // on the page's own ground. No box, no shadow, no per-side WINS figures,
+    // and a lead line that names a subject rather than a gender. It has a
+    // harness state because it needs two golfers with a real record between
+    // them, and the signed-in account has none.
+    case "clash":
+      CSClash(left: .init(id: CredDev.id, marker: "saguaro", isViewer: true), leftName: "You",
+              right: .init(id: CredDev.other, marker: "thistle"), rightName: "Galen Marr",
+              leftSub: "10.6 index · Tempe", rightSub: "10.2 index · Mesa") {
+        VStack(spacing: CSTokens.Space.s1) {
+          CSFigure("6–5", size: .l, label: nil)
+          CSRule(.heavy)
+          Text("You lead").csType(.agate, caps: true).foregroundStyle(cs.mut)
+        }
+        .frame(maxWidth: 120)
+      }
+    // 6 · §6.4 · private is not an error and is never dressed as one.
+    case "private":
+      CSCredential(
+        CSCredentialGolfer(face: .init(id: CredDev.id, marker: nil), name: "", identity: "",
+                            figures: [], club: "Cup Season"),
+        hasPhoto: false) { CSTokens.dark.ceremony }
+    // 7 · §6.1 · the destination's own geometry, redacted. No spinner.
+    case "loading":
+      CSCredential(golfer(slot: "Founder", figures: three), hasPhoto: false) { crest }
+        .csRedacted(true)
+    // 8 · §6.7 · a long name takes two lines and the object grows with it —
+    // no tightening, no `minimumScaleFactor`.
+    case "long":
+      CSCredential(golfer(slot: "Founder", name: "Bartholomew Fotherington-Vance",
+                          figures: three), hasPhoto: false) { crest }
+    default:
+      CSCredential(golfer(slot: nil, figures: two), hasPhoto: false) { crest }
+    }
+  }
+
+  private var crest: CSCrestPlate {
+    CSCrestPlate(marker: "saguaro", seed: "papago-golf-course", hasCourse: true)
+  }
+
+  private var three: [CSCredentialGolfer.Figure] {
+    [.init("10.2", label: "Handicap index"),
+     .init("31", label: "Rounds"),
+     .init("1", label: "The Fellas", ordinal: "ST")]
+  }
+  private var two: [CSCredentialGolfer.Figure] {
+    [.init("2", label: "Rounds"), .init("79", label: "Best · Papago")]
+  }
+
+  private func golfer(slot: String?, name: String = "Galen Marr",
+                      figures: [CSCredentialGolfer.Figure]) -> CSCredentialGolfer {
+    CSCredentialGolfer(
+      face: .init(id: CredDev.id, marker: "saguaro", initials: "GM"),
+      name: name,
+      identity: CredentialCopy.identity(handle: "galenm", city: "Mesa, AZ", homeCourse: "Papago"),
+      slot: slot,
+      credit: "Galen’s round · Aug 24",
+      figures: figures,
+      club: CredentialCopy.club(markerName: CSMarkers.marker("saguaro").name))
   }
 }
 #endif

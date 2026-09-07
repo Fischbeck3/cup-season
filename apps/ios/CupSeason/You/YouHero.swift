@@ -1,195 +1,119 @@
-// Cup Season — the You hero (IOS-019 rule 1): your credential as the one
-// hero on the screen. Same bones as `.cred` (index.html 585–613) — the face
-// panel, name, the index in gold once EARNED, the trophies engraved on it,
-// the marker NAMED as the mono eyebrow, the form row — on the CSHero wash, in
-// the screen's own theme. The Tour Card keeps `CredentialCard` (fixed dark
-// face).
+// Cup Season — the You hero IS the card (Wave 2, `surfaces/player-card.md` §8;
+// IOS-047).
 //
-// D202 — the photograph owns the top of the card, or the marker does
-// (`CredentialFace`). IOS-022 item 2 killed a 220pt watermark at 10%, which
-// was a smudge on charcoal and a stain on paper; a crest at ink on the look's
-// wash is the opposite object, and the eyebrow still says the marker's name
-// out loud — under the panel now, where it reads as its caption.
+// **One object, one chrome, one ratio, one meta string.** The You tab drew a
+// `CSHero` wash with a gold spine, a `CredentialFace` panel at a different
+// aspect ratio from the Tour Card's, a second identity line built from
+// different clauses, a scrolling row of emoji milestone chips with a trailing
+// fade, and a dot row — five things the person page did differently for the
+// same golfer. It is now `CSCredential` at hero size, which is the same object
+// the card screen and the person page draw, from the same producer.
+//
+// WHAT LEFT WITH IT: `CSHero`'s wash and the gold spine (the spine is retired
+// product-wide, `UI_SYSTEM` §0.3), and the milestone chip row — **milestones
+// move to the record, without emoji** (YRS-03, CH-01). `trophyChips:` stays in
+// the signature so `YouScreen` is untouched by this wave; **Wave 3 removes the
+// parameter** when it rebuilds the tab around the record.
+//
+// WHAT STAYS UNTIL WAVE 3: the dot form row. `FormRow` carries verdicts, not
+// grosses, and §9.7's row is five GROSSES with their dates on one rule with the
+// best in gold — which needs `career.recent`, which is the You tab's own read
+// and the You tab's own wave. Deleting the dots here would take the form off
+// the tab for a wave rather than replace it, so the row is kept and the wave
+// that replaces it is named.
 
 import SwiftUI
 import CSDesign
 import CupSeasonKit
 
-/// Y-11 · how far the trailing fade on the milestone row ramps, and how much
-/// room the row leaves past its last chip so that chip is never the thing
-/// being faded. (A file constant because `YouHero` is generic, and a generic
-/// type cannot hold a static stored property.)
-private enum HeroChips { static let fade: CGFloat = 24 }
-
 struct YouHero<Anchor: View>: View {
   @Environment(\.cs) private var cs
-  @Environment(\.csLookAccent) private var la
   @Environment(SessionStore.self) private var session
 
   let photoURL: URL?
   let marker: String?
   let name: String
-  /// "@handle · city · home course"
+  /// The identity line. `CredentialCopy.identity` produces it once for both
+  /// clients; this parameter is what the caller already computed and Wave 3
+  /// retires in favour of the producer.
   let meta: String
   let indexCurrent: Double?
-  /// rounds on the card — drives "n of 3" until the index is established
   let rounds: Int
-  /// EVERY engraved line — "🔥 Broke 80 · '26" … The card shows
-  /// `TrophyMeta.credentialChips` of them; "+N more in the case" adds the rest
-  /// to the row in place (P3 nit: a chip that only says "more" and goes
-  /// nowhere is a dead end, and the case is two sections down).
+  /// **Unused, and named as such.** Milestones move to the record (YRS-03);
+  /// Wave 3 deletes the parameter with the section that fed it.
   let trophyChips: [String]
   let form: FormRow?
   @ViewBuilder let anchor: () -> Anchor
 
-  @State private var expanded = false
-
-  private var established: Bool { indexCurrent != nil }
-  private var shown: [String] { expanded ? trophyChips : Array(trophyChips.prefix(TrophyMeta.credentialChips)) }
-  private var hidden: Int { max(0, trophyChips.count - TrophyMeta.credentialChips) }
+  private var profileId: UUID? { session.me?.profile?.id }
 
   var body: some View {
-    // F-1 · gold when the card carries something EARNED — a trophy — and not
-    // merely because the index is established. UX_PRINCIPLES §4 forbids gold
-    // on a handicap index in those words, and keying the spine off
-    // `established` was the same claim made with a stripe. (IOS-025)
-    CSHero(spine: trophyChips.isEmpty ? nil : cs.gold, padding: 20) {
-      VStack(alignment: .leading, spacing: 0) {
-          // the panel bleeds to the card's edges — the 20pt hero padding is
-          // for the record below it, not for the face
-          CredentialFace(photoURL: photoURL, marker: marker, name: name,
-                         badge: session.founding.badge(for: session.me?.profile?.id),
-                         meta: meta, p: cs, accent: la.accent,
-                         sub: { anchor() }, trailing: { EmptyView() })
-            .padding(.horizontal, -20).padding(.top, -20)
+    VStack(alignment: .leading, spacing: CSTokens.Space.s3) {
+      CSCredential(golfer, hasPhoto: photoURL != nil) { plate }
+      anchor()
+      if let form { FormRowView(form: form, palette: cs, caption: YouCopy.formKey) }
+    }
+  }
 
-          // the marker's name — the web's `.cred` watermark, said out loud, as
-          // the CAPTION of the panel above it.
-          // Y-08 · it used to be `csEyebrow`, the same face, size and tracking
-          // as every stat label on the page, sitting directly over "11.3 ·
-          // HANDICAP INDEX" — so "THE NO. 2" read as a rank. Its own mark
-          // beside it in the sentence face can only be what it is. D103b's
-          // look accent moves to the mark, so the personal dial still shows.
-          HStack(spacing: 6) {
-            CSMarkerView(key: marker, size: 15).foregroundStyle(la.accent)
-            Text(CSMarkers.marker(marker).name).font(CSFont.footnote).foregroundStyle(cs.mut)
-          }
-          .padding(.top, 16)
-          .accessibilityElement(children: .ignore)
-          .accessibilityLabel("Marker: \(CSMarkers.marker(marker).name)")
+  private var golfer: CSCredentialGolfer {
+    var figures: [CSCredentialGolfer.Figure] = []
+    if let idx = indexCurrent {
+      figures.append(.init(CSCopy.index(idx), label: "Handicap index"))
+    }
+    figures.append(.init(String(rounds), label: "Rounds"))
+    if let m = session.me?.memberships.first(where: { $0.standing != nil }), let st = m.standing {
+      figures.append(.init(String(st.rank), label: m.name, ordinal: CSOrdinal.suffix(st.rank)))
+    }
+    return CSCredentialGolfer(
+      face: CSFace.Model(id: profileId ?? UUID(), marker: marker, photoURL: photoURL,
+                         initials: Initials.of(name), isViewer: true),
+      name: name,
+      identity: meta,
+      slot: slot,
+      figures: figures,
+      club: CredentialCopy.club(markerName: CSMarkers.marker(marker).name))
+  }
 
-          VStack(alignment: .leading, spacing: 4) {
-            if let idx = indexCurrent {
-              // F-1 · INK, not gold. UX_PRINCIPLES §4 names this exact case
-              // under "This forbids": "Gold on a handicap index (a fact about
-              // you, not a thing you took off someone)." L-25 is gold = EARNED
-              // only, and a number is not taken off anybody. The trophy chips
-              // beside it keep the metal, because those were.
-              Text(CSCopy.index(idx)).font(CSFont.hero).foregroundStyle(cs.ink).csTabular()
-            } else {
-              Text(Career.establishing(rounds: rounds)).font(CSFont.hero).foregroundStyle(cs.ink).csTabular()
-            }
-            Text("Handicap index").font(CSFont.label).tracking(1.8).textCase(.uppercase).foregroundStyle(cs.mut)
-          }
-          .padding(.top, 10)
-          .accessibilityElement(children: .combine)
+  /// The one gold object on the surface, and absent when nothing was earned.
+  private var slot: String? {
+    switch session.founding.badge(for: profileId) {
+    case .founder: "Founder"
+    case .member: "Founding member"
+    case nil: nil
+    }
+  }
 
-          if !established {
-            // P3 nit: this sentence used to be the hint on the row above it as
-            // well, so VoiceOver said it twice. It is visible; that is enough.
-            Text(YouCopy.buildingNumber)
-              .font(CSFont.footnote).foregroundStyle(cs.mut).padding(.top, 8)
-          }
-
-          if !trophyChips.isEmpty {
-            // bleeds to the card edge so a clipped chip reads as "more to the
-            // right", not a cut.
-            // Y-11 · that only worked while the bleed carried a FADE. Without
-            // one the card's own `clipShape` cut the third chip through the
-            // middle of a glyph ("Broke 1|") with nothing to say the row
-            // scrolled. The mask ramps the last `chipFade` points out, and the
-            // row's trailing inset is that much wider — so at the far right
-            // the last chip stops before the ramp and is never dimmed, and the
-            // fade only ever eats empty space or a chip there IS more of.
-            ScrollView(.horizontal, showsIndicators: false) {
-              HStack(spacing: 6) {
-                // by index: two milestones of the same kind and year engrave the same line
-                ForEach(Array(shown.enumerated()), id: \.offset) { _, line in
-                  YouTrophyChip(text: line, earned: true)
-                    .accessibilityLabel(TrophyMeta.spoken(line))   // Y-33 · VoiceOver says "Broke 80", not "fire, Broke 80"
-                }
-                // P3 nit: the expansion goes both ways. It used to be a
-                // one-way door — the "+N more" chip vanished on the first tap
-                // and the row could never be folded again.
-                if hidden > 0 {
-                  Button { CSMotion.run(CSMotion.tick) { expanded.toggle() } } label: {
-                    YouTrophyChip(text: expanded ? TrophyMeta.showFewer : TrophyMeta.moreLine(hidden, suffix: TrophyMeta.moreInCase), earned: false)
-                  }
-                  .buttonStyle(.plain)
-                  .accessibilityLabel(expanded ? "Show fewer milestones" : "\(hidden) more milestone\(hidden == 1 ? "" : "s")")
-                  .accessibilityHint(expanded ? "Folds the row back" : "Adds them to this row")
-                }
-              }
-              .padding(.leading, 20).padding(.trailing, 20 + HeroChips.fade)
-            }
-            .padding(.horizontal, -20)
-            .mask { chipFadeMask }   // iOS 15+ overload; the deprecated `mask(_:)` takes no alignment
-            .padding(.top, 14)
-          }
-
-          // Y-08 · the dots' key rides the row itself, so the sentence has one
-          // home. Nothing on the page said what a lit dot meant unless a streak
-          // pill happened to be sitting beside them, and a VoiceOver label is
-          // not a legend for the eye.
-          if let form { FormRowView(form: form, palette: cs, caption: YouCopy.formKey) }
+  @ViewBuilder private var plate: some View {
+    if let photoURL {
+      AsyncImage(url: photoURL) { phase in
+        switch phase {
+        case .success(let img): img.resizable().scaledToFill()
+        default: crest
+        }
       }
+    } else {
+      crest
     }
-    .clipShape(RoundedRectangle(cornerRadius: CSTokens.Radius.r, style: .continuous))
   }
 
-  /// An ALPHA ramp, not a colour: opaque to the card's right edge, then out
-  /// over `chipFade` points. Hit-testing is untouched, so the last chip stays
-  /// reachable — a mask hides pixels, never touches.
-  private var chipFadeMask: some View {
-    HStack(spacing: 0) {
-      Rectangle().fill(.black)
-      LinearGradient(colors: [.black, .black.opacity(0)], startPoint: .leading, endPoint: .trailing)
-        .frame(width: HeroChips.fade)
-    }
+  private var crest: CSCrestPlate {
+    let course = session.me?.profile?.home_course.flatMap { $0.isEmpty ? nil : $0 }
+    return CSCrestPlate(marker: marker,
+                        seed: course ?? profileId?.uuidString ?? "cup-season",
+                        hasCourse: course != nil)
   }
 }
 
-/// One engraved line as a chip: gold for hardware, quiet for "+N more".
-struct YouTrophyChip: View {
-  @Environment(\.cs) private var cs
-  let text: String
-  let earned: Bool
-  var body: some View {
-    Text(text).font(CSFont.label).tracking(0.4).lineLimit(1)
-      .foregroundStyle(earned ? cs.gold : cs.mut)
-      .padding(.horizontal, 10).frame(minHeight: 28)
-      .background((earned ? cs.gold : cs.ink).opacity(0.08), in: Capsule())
-      .overlay(Capsule().stroke(earned ? cs.gold.opacity(0.35) : cs.rule, lineWidth: 1))
-  }
-}
-
-#Preview("Established, five milestones, on a streak") {
+#Preview("The hero is the card") {
   ScrollView {
-    YouHero(photoURL: nil, marker: "saguaro", name: "Jerecho Fischbeck", meta: "@jerecho · Tempe, AZ · Papago GC",
-            indexCurrent: 12.4, rounds: 42,
-            trophyChips: ["🔥 Broke 80 · '26", "📈 4-week streak · '26", "⛳ First round · '26", "🎯 Broke 90 · '25", "📉 Personal best · '25"],
+    YouHero(photoURL: nil, marker: "saguaro", name: "Jerecho Fischbeck",
+            meta: "@jerecho · Tempe, AZ · Papago",
+            indexCurrent: 12.4, rounds: 42, trophyChips: [],
             form: FormRow.from(beats: [true, true, true, false, true]),
-            anchor: { Text("GHIN 1234567 · est. Jul 2026").font(CSFont.footnote).foregroundStyle(CSTokens.dark.mut) })
+            anchor: { EmptyView() })
       .padding(20)
   }
-  .background(CSTokens.dark.bg0).csTheme()
-}
-
-#Preview("Building — 2 of 3, light") {
-  ScrollView {
-    YouHero(photoURL: nil, marker: "thistle", name: "New Golfer", meta: "@newg · Mesa, AZ", indexCurrent: nil, rounds: 2,
-            trophyChips: [], form: nil, anchor: { EmptyView() })
-      .padding(20)
-  }
-  .background(CSTokens.light.bg0).environment(\.colorScheme, .light).csTheme()
+  .background(CSTokens.dark.bg0)
+  .environment(SessionStore())
+  .csTheme()
 }

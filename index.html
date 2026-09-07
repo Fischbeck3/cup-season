@@ -959,33 +959,107 @@ img.face{border-radius:50%; object-fit:cover; vertical-align:-4px; border:1px so
    OBJECT, ember heat top-right, ivory ink; trophies stay champagne (earned
    metal — the two-metals rule). Fixed hexes: same face for every viewer,
    light theme included. Structure/geometry untouched. */
-.cred{position:relative; isolation:isolate; overflow:hidden; border-radius:16px; color:#F0F2F3; padding:16px;
-  background:#131D17; border:1px solid rgba(255,255,255,.07);
-  box-shadow:0 10px 30px rgba(0,0,0,.4), 0 2px 8px rgba(0,0,0,.3);}
-.cred::before{content:""; position:absolute; inset:0; z-index:-1; pointer-events:none;
-  background:radial-gradient(closest-side at 82% 0%, rgba(255,90,46,.16), transparent 70%);}
-.cred .cwm{position:absolute; right:-30px; bottom:-34px; width:150px; height:150px; opacity:.1; pointer-events:none;}
-.cred .cwm svg{width:100%; height:100%; stroke:#F0F2F3; fill:none; stroke-width:1.2; stroke-linecap:round; stroke-linejoin:round;}
-.cred .ctop{display:flex; align-items:center; gap:12px;}
-.cred b.cnm{display:block; font-size:17px; font-weight:700; letter-spacing:-.02em;}
-.cred small.chd{display:block; font-family:var(--mono); font-size:10px; letter-spacing:.1em; text-transform:uppercase; color:#8E979E; margin-top:2px;}
-.cred .csplit{display:flex; align-items:flex-end; justify-content:space-between; gap:12px; margin-top:16px;}
-.cred .cidx b{font-family:var(--serif); font-size:42px; line-height:.95; font-weight:400;}
-.cred .cidx small{display:block; font-family:var(--mono); font-size:9px; letter-spacing:.18em; opacity:.65; text-transform:uppercase; margin-top:3px;}
-.cred .ctros{text-align:right; font-family:var(--mono); font-size:10.5px; color:#D8B25A; line-height:1.9; min-width:0;}
-.cred .fc{background:rgba(240,242,243,.08); border-color:rgba(240,242,243,.3); color:#F0F2F3;}
-.cred .fc .fmk{background:#101214; border-color:rgba(240,242,243,.3); color:#D8B25A;}
-.cred a{color:#FF5A2E;}
-.cred .mini{background:rgba(240,242,243,.1); color:#F0F2F3; border-color:rgba(240,242,243,.3);}
-.cred .cvs{margin-top:14px; display:inline-block; font-family:var(--mono); font-size:11px; font-weight:600; letter-spacing:.06em; color:#F0F2F3; background:rgba(240,242,243,.1); border:1px solid rgba(240,242,243,.28); border-radius:8px; padding:6px 10px; cursor:pointer;}
-/* D76 — FORM L5: the last five rounds as coals, oldest→newest; ember = beat
-   your number. Hardcoded like the rest of .cred — the card is charcoal in
-   every theme (same reason .cred a is literal #FF5A2E). */
-.cred .cform{display:flex; align-items:center; gap:6px; margin-top:14px;}
-.cred .cform .cfl{font-family:var(--mono); font-size:9px; letter-spacing:.18em; color:#8E979E; margin-right:2px;}
-.cred .cform i{flex:none; width:9px; height:9px; border-radius:50%; background:rgba(255,255,255,.14);}
-.cred .cform i.on{background:#FF5A2E; box-shadow:0 0 7px rgba(255,90,46,.55);}
-.cred .cform .streaktag{margin-left:4px;}
+/* WAVE 2 / IOS-047 - THE CREDENTIAL IS AN OBJECT, and it is the one object
+   that does not change shape between the phone and the desk (R-C). 362 x 312,
+   radius 16, shadow-lift, on the ceremony ground in BOTH printings - a
+   physical card does not change colour when the room does (audit D8). The
+   charcoal reface, the ember radial wash, the 42px serif index, the mono
+   trophy column and the dot form row are all deleted: the wash is the one
+   image state the ladder bans, the index is a rule-and-figure now, and the
+   trophies moved to the record. */
+.cred{position:relative; isolation:isolate; overflow:hidden; border-radius:var(--r);
+  width:100%; max-width:362px; aspect-ratio:362/312; display:flex; flex-direction:column;
+  color:var(--ceremony-ink); background:var(--ceremony); box-shadow:var(--shadow-lift);}
+/* the plate: a golfer's photograph, or the crest over their home course's
+   contour. NEVER a gradient wash - it is not one of the three legal states. */
+.cred .cplate{position:relative; flex:0 0 58%; overflow:hidden; background:var(--ceremony);}
+.cred .cplate img{width:100%; height:100%; object-fit:cover; display:block;}
+.cred .cplate .ccont{position:absolute; inset:0; width:100%; height:100%;}
+.cred .cplate .ccont path{fill:none; stroke:var(--ceremony-ink); stroke-opacity:var(--a24); stroke-width:1.2;}
+.cred .cplate .ccont circle{fill:var(--ceremony-brand);}
+/* the crest: the marker at 1.5pt on a ~190px box, bleeding off the right
+   edge, so the object reads as printed stock and not as an icon in a box */
+.cred .cplate .ccrest{position:absolute; right:-46px; bottom:6px; width:190px; height:190px;}
+.cred .cplate .ccrest svg{width:100%; height:100%; fill:none; stroke:var(--crest);
+  stroke-width:1.5; stroke-linecap:round; stroke-linejoin:round;}
+.cred .cscrim{position:absolute; inset:0; pointer-events:none;
+  background:linear-gradient(to bottom, rgba(10,14,12,0) 0%, rgba(10,14,12,.24) 44%, rgba(10,14,12,.72) 72%, rgba(10,14,12,.88) 100%);}
+.cred .ctop{position:absolute; inset:16px 16px auto 16px; display:flex; align-items:flex-start;
+  justify-content:space-between; gap:12px;}
+/* the slot: the surface's ONE gold field, and absent when nothing was earned */
+.cred .cslot{display:inline-block; height:24px; line-height:24px; padding:0 8px;
+  background:var(--ceremony-gold); color:var(--panel-ink);
+  font-family:var(--board); font-weight:600; font-size:11px; letter-spacing:.08em; text-transform:uppercase;}
+.cred .ccredit{font-family:var(--board); font-weight:600; font-size:11px; letter-spacing:.08em;
+  text-transform:uppercase; color:var(--scrim-ink); text-align:right;}
+/* the medallion: the ceremony disc, a 1px gold ring, the marker in gold. One
+   slot, one size, one treatment - on every card, photograph or crest. */
+.cred .cmed{position:absolute; right:20px; bottom:72px; width:44px; height:44px; border-radius:50%;
+  background:var(--ceremony); border:1px solid var(--ceremony-gold); display:grid; place-items:center;}
+.cred .cmed svg{width:24px; height:24px; fill:none; stroke:var(--ceremony-gold);
+  stroke-width:1.8; stroke-linecap:round; stroke-linejoin:round;}
+.cred .cname{position:absolute; left:20px; right:20px; bottom:12px;}
+.cred .cname b{display:block; font-family:var(--board); font-weight:700; font-size:34px; line-height:1.02;
+  letter-spacing:.005em; text-transform:uppercase; color:var(--ceremony-ink);}
+.cred .cname small{display:block; margin-top:4px; font-family:var(--board); font-weight:600; font-size:11px;
+  letter-spacing:.08em; text-transform:uppercase; color:var(--ceremony-mut);
+  white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+/* the record half: one to three figures on ONE ceremony-ink rule - never
+   `ink`, which is 1.11:1 on ceremony in the light printing - and the folio. */
+.cred .cfoot{flex:1 1 auto; padding:20px; display:flex; flex-direction:column; justify-content:space-between;}
+.cred .cfigs{display:flex; align-items:flex-start; position:relative;}
+.cred .cfigs .cfig{flex:0 0 33.333%; min-width:0;}
+.cred .cfigs .cfig b{display:block; font-family:var(--board); font-weight:700; font-size:27px; line-height:1;
+  font-variant-numeric:tabular-nums; color:var(--ceremony-ink);}
+.cred .cfigs .cfig b i{font-style:normal; font-size:12px; letter-spacing:.05em; text-transform:uppercase;}
+.cred .cfigs .cfig small{display:block; margin-top:8px; font-family:var(--board); font-weight:600; font-size:11px;
+  letter-spacing:.08em; text-transform:uppercase; color:var(--ceremony-mut);
+  white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+.cred .cfigs .crule{position:absolute; left:0; top:31px; height:2px; background:var(--ceremony-ink);}
+/* the milestone column, out of the object and onto the page (YRS-03) */
+.ctros{font-family:var(--board); font-weight:600; font-size:12px; letter-spacing:.06em;
+  color:var(--gold); line-height:1.9;}
+/* the rivalry door under the card: a tertiary link on a rule, never a pill */
+.cvs{display:inline-block; background:none; border:0; padding:2px 0; cursor:pointer;
+  font-family:var(--sans); font-size:15px; color:var(--ink);
+  border-bottom:2px solid var(--mut);}
+@media (hover:hover){ .cvs:hover{border-bottom-width:3px;} }
+/* THE DESK's RECORD AT LENGTH (R-C / IOS-047). Density follows section 14.2:
+   the section head is an agate label, a rule and a count flush right; the
+   form row is five columns with the best gross and its date in gold and a
+   gold rule under that column; the course table runs to full length rather
+   than three rows and a door, because a desk has the room. */
+.dsec{display:flex; align-items:center; gap:12px; margin:32px 0 12px;
+  font-family:var(--board); font-weight:600; font-size:12px; letter-spacing:.09em;
+  text-transform:uppercase; color:var(--mut);}
+.dsec i{flex:1 1 auto; height:1px; background:var(--rule);}
+.dform{display:flex; gap:12px;}
+.dform .dfcol{flex:1 1 0; min-width:0;}
+.dform .dfcol b{display:block; font-family:var(--board); font-weight:700; font-size:20px;
+  line-height:1; font-variant-numeric:tabular-nums; color:var(--ink);}
+.dform .dfcol i{display:block; height:2px; background:var(--ink); margin:4px 0 8px;}
+.dform .dfcol small{display:block; font-family:var(--board); font-weight:600; font-size:11px;
+  letter-spacing:.08em; text-transform:uppercase; color:var(--mut);}
+.dform .dfcol.won b, .dform .dfcol.won small{color:var(--gold);}
+.dform .dfcol.won i{background:var(--gold);}
+.dtab{width:100%; border-collapse:collapse;}
+.dtab td{padding:14px 0; border-top:1px solid var(--rule); vertical-align:baseline;}
+.dtab td:first-child{font-size:17px; color:var(--ink);}
+.dtab td.ag{font-family:var(--board); font-weight:600; font-size:11px; letter-spacing:.08em;
+  text-transform:uppercase; color:var(--mut); padding-left:12px;}
+.dtab td.rt{text-align:right; font-family:var(--board); font-weight:600; font-size:11px;
+  letter-spacing:.08em; text-transform:uppercase; color:var(--mut); white-space:nowrap;}
+@media (hover:hover){ .dtab tr:hover td{background:var(--bg1);} }
+/* the status sentence under the card, and its figure run - the board face at
+   the SENTENCE's own size, so the number sits on the sentence's baseline
+   rather than looking pasted in */
+.cstatus{font-size:15px; line-height:1.5; color:var(--mut); margin:20px 0 0;}
+.cstatus .cfrun{font-family:var(--board); font-weight:700; color:var(--mut);}
+.crow{margin-top:12px;}
+.cred .cfolio{border-top:1px solid rgba(241,244,239,.16); padding-top:8px; display:flex;
+  justify-content:space-between; gap:8px;
+  font-family:var(--board); font-weight:600; font-size:11px; letter-spacing:.08em;
+  text-transform:uppercase; color:var(--folio-rule);}
 /* pilot: "Save card is hard to find when a change is made" — the button ARMS
    the moment the card changes: fairway fill, one soft rise. Disarms on save. */
 .mini.armed{background:var(--brand); color:#fff; border-color:var(--brand); font-weight:700; animation:csRise .35s var(--roll) both;}
@@ -3520,20 +3594,38 @@ html[data-theme="light"] .room-dusk .btn:not(.dark):not(.gold):not(.apple){color
       <!-- STATS -->
       <section class="view" id="view-stats">
         <!-- C4: your own credential — same object your buddies see on your Tour Card -->
+        <!-- IOS-047 - YOUR OWN CARD IS THE SAME OBJECT your buddies see:
+             one chrome, one ratio, one meta string. The charcoal panel with a
+             56px face beside a 42px serif index, the mono trophy column and
+             the marker watermark are gone. This is `.cred`, the credential,
+             and its plate, slot, medallion, figures and folio are the ones
+             `csCredentialHtml` builds for every other surface. The gear moved
+             OUT of the object - a card is not a settings row. -->
         <div class="cred" id="youCard" style="margin-bottom:14px; text-align:left;">
-          <div class="cwm" id="youWm" aria-hidden="true"></div>
-          <div class="ctop">
-            <span id="youMk" style="display:flex; flex:none"></span>
-            <div style="min-width:0; flex:1"><b class="cnm" id="youName">Your card</b><small class="chd" id="youMeta"></small><small class="chd" id="youAnchor" style="opacity:.55; text-transform:none; letter-spacing:.04em"></small></div>
-            <button class="mini" id="youProfile" style="flex:none" aria-label="Card & settings" title="Card & settings">⚙︎</button>
+          <div class="cplate" id="youPlate">
+            <span class="cscrim"></span>
+            <div class="ctop"><span class="cslot" id="youSlot" hidden></span><span></span></div>
+            <span class="cmed" id="youMk"></span>
+            <div class="cname">
+              <b id="youName">Your card</b>
+              <small id="youMeta"></small>
+            </div>
           </div>
-          <div class="csplit">
-            <div class="cidx"><b id="youIdx">—</b><small>Handicap index</small></div>
-            <div class="ctros" id="youTros"></div>
+          <div class="cfoot">
+            <div class="cfigs" id="youFigs">
+              <div class="cfig"><b id="youIdx">&#8212;</b><small>Handicap index</small></div>
+              <div class="cfig"><b id="youRds">&#8212;</b><small>Rounds</small></div>
+              <span class="crule" style="width:66.67%"></span>
+            </div>
+            <div class="cfolio"><span id="youFolio">Cup Season</span><span id="youAnchor"></span></div>
           </div>
-          <!-- D76 FORM L5 — filled by renderCareer via formRowHtml; empty = no row -->
-          <div id="youForm"></div>
         </div>
+        <!-- the form row and the milestone column live UNDER the object now,
+             on the page's own ground, because the card carries only the four
+             facts that are permanent -->
+        <div id="youForm"></div>
+        <div class="ctros" id="youTros" style="text-align:left; margin:10px 0 14px"></div>
+        <button class="mini" id="youProfile" style="margin-bottom:14px">Card and settings</button>
         <!-- F8: feedback pill retired from floating chrome (de-AI scrub) — same
              handler (window.openFeedback via #pilotChip id), quiet row right by
              the card/settings entry instead of hovering over every screen. -->
@@ -4498,7 +4590,13 @@ html[data-theme="light"] .room-dusk .btn:not(.dark):not(.gold):not(.apple){color
             <div id="perMain" style="text-align:left"></div>
           </div>
           <aside class="deskaside">
-            <div class="eyebrow">The record between you</div>
+            <!-- R-C / IOS-047 - the card is the one object that does not
+                 change shape between the two clients: it renders at its
+                 native 362 x 312 in the right column, pinned under the
+                 sidebar's rule, while the left column carries the record at
+                 length. The eyebrow went with the h2h summary underneath it,
+                 because the column's first object is the card and a card
+                 needs no label. -->
             <div id="perAside" style="text-align:left"></div>
           </aside>
         </div>
@@ -15895,16 +15993,28 @@ window.renderCareerRecord = renderCareerRecord;
    the row itself so the sentence has one home; the Tour Card's credential
    passes none, because that card can be somebody else's and "your playing
    number" would be a lie on it. */
+/* IOS-047 / UI_SYSTEM 9.7 · THE FORM ROW IS FIVE GROSSES ON ONE RULE, oldest
+   to newest, with the best gross AND its date in gold and a gold rule under
+   that column. It replaces the five dots, and the `caption` argument with
+   them: five dots need a legend to mean anything ("lit = beat it"), and five
+   grosses on a rule say "recent form" without one. Fewer than five rounds
+   renders only the rounds that exist, left-flush, on a rule spanning only
+   them - **no blank slots and no em dash**, because three empty slots make a
+   two-round golfer's row read as a five-round row with failures in it. The
+   head's count is the honest statement of the gap. */
 function formRowHtml(recent, caption){
   if(!Array.isArray(recent) || !recent.length) return '';
-  const last5 = recent.slice(0,5);                       /* newest first */
-  if(!last5.some(r => r && ('beat' in r))) return '';    /* old DB — no row */
-  let stk = 0;
-  for(const r of last5){ if(r && r.beat === true) stk++; else break; }
-  const dots = last5.slice().reverse().map(r => `<i class="${r && r.beat === true ? 'on' : ''}"></i>`).join('');
-  const tag = stk >= 2 ? `<span class="streaktag ${stk >= 3 ? 'heathot' : 'heatwarm'}">${stk} STRAIGHT UNDER</span>` : '';
-  const key = caption ? `<div class="fine" style="padding-top:6px">${esc(caption)}</div>` : '';
-  return `<div class="cform" role="img" aria-label="Form, last ${last5.length} rounds${stk >= 2 ? `, ${stk} straight under` : ''}"><span class="cfl">LAST FIVE</span>${dots}${tag}</div>${key}`;
+  const cols = recent.slice(0, 5).reverse();             /* oldest first */
+  if(!cols.some(r => r && r.gross != null)) return '';
+  const best = cols.map(r => r && r.gross).filter(g => g != null).sort((a, b) => a - b)[0];
+  let seen = false;
+  const head = `<div class="dsec"><span>Form</span><i></i><span>${cols.length >= 5 ? 'Last five' : esc(csCapFirst(csSpelled(cols.length))) + ' of five'}</span></div>`;
+  const body = cols.map(r => {
+    const gold = !seen && best != null && r && r.gross === best; if(gold) seen = true;
+    return `<div class="dfcol${gold ? ' won' : ''}"><b>${r && r.gross != null ? r.gross : '—'}</b><i></i>`
+         + `<small>${esc(csDayToken(r && r.played_on || ''))}</small></div>`;
+  }).join('');
+  return head + `<div class="dform" role="img" aria-label="Form, last ${cols.length} rounds">${body}</div>`;
 }
 /* the one wording for what a lit dot means — web twin of `YouCopy.formKey` */
 const CS_FORM_KEY = 'Your last five rounds, oldest first — a lit dot beat your playing HCP.';
@@ -16017,7 +16127,19 @@ function renderIndStats(){
     const set=(id,v,html)=>{ const e=$(id); if(e){ if(html) e.innerHTML=v; else e.textContent=v; } };
     set('#youName','Jerecho'); set('#youMeta','@jerecho · Tempe, AZ · Papago GC');
     set('#youIdx', (state.myIndex||12.4).toFixed(1));
-    if(window.mkr) set('#youMk', window.mkr('saguaro'), true);
+    set('#youRds', String(feed.filter(f=>f.gross!=null).length || 0));
+    set('#youFolio','Cup Season · The Saguaro');
+    /* IOS-047 · the medallion is an SVG in a gold-ringed disc, not a bare
+       glyph - and the diorama draws the same object as a real account, which
+       is the whole of "one object, one chrome" (and it fabricates no face). */
+    if(window.MARKERS && MARKERS.saguaro)
+      set('#youMk', `<svg viewBox="0 0 24 24"><path d="${MARKERS.saguaro.p}"/></svg>`, true);
+    const dp = $('#youPlate');
+    if(dp && !dp.querySelector('.ccont') && typeof csContourSvg === 'function')
+      dp.insertAdjacentHTML('afterbegin',
+        csContourSvg('papago-golf-course', true)
+        + (window.MARKERS && MARKERS.saguaro
+            ? `<span class="ccrest"><svg viewBox="0 0 24 24"><path d="${MARKERS.saguaro.p}"/></svg></span>` : ''));
   }
   const ysl=$('#youSeasonLg'); if(ysl) ysl.textContent = state.demo ? 'The Sunday Cup' : (window.CS?.league?.name || 'your league');
   renderLeagueRecord();
@@ -18601,25 +18723,51 @@ function refreshWhoChip(){
       });
     }
   }
-  if($('#youIdx')){
-    if(p.index_current != null){
-      $('#youIdx').textContent = fmtIdx(p.index_current);
-      $('#youIdx').style.fontSize = '';
-    } else {
-      /* building, not broken — the dash read as an error (decision D3) */
-      const n = Math.min(window.career?.rounds ?? 0, 3);
-      $('#youIdx').textContent = n + ' of 3';
-      $('#youIdx').style.fontSize = '15px';
-      $('#youIdx').title = 'Building your number — your index appears at 3 posted rounds';
-    }
+  /* IOS-047 · the figure strip. **A slot with no figure is ABSENT** - the
+     index cell is dropped while the number is still building rather than
+     printing "2 of 3" in a numeral seat, because the establishing denominator
+     belongs in the sentence where it reads as English, not in a second rail
+     against the card's own figures. The rule then fits its own cells: 33%
+     for one, 66% for two. */
+  const figs = $('#youFigs');
+  if(figs){
+    const rounds = Number(window.career?.rounds ?? 0);
+    const cells = [];
+    if(p.index_current != null) cells.push([fmtIdx(p.index_current), 'Handicap index']);
+    cells.push([String(rounds), 'Rounds']);
+    figs.innerHTML = cells.map(([v, l]) =>
+      `<div class="cfig"><b>${esc(v)}</b><small>${esc(l)}</small></div>`).join('')
+      + `<span class="crule" style="width:${(cells.length * 33.333).toFixed(2)}%"></span>`;
   }
-  if($('#youMk')) $('#youMk').innerHTML = window.face ? window.face(CS.user?.id, p.marker, 56) : mkr(p.marker || 'saguaro');
-  /* C4 credential dressing: your marker as the card's watermark, your top
-     hardware engraved on the face of it */
-  const wm = $('#youWm');
-  if(wm && window.MARKERS){
+  /* the medallion: the ceremony disc, the gold ring, the marker in gold. One
+     slot, one size, one treatment - the same one every other card carries. */
+  const mkEl = $('#youMk');
+  if(mkEl && window.MARKERS){
     const mk = MARKERS[p.marker] || MARKERS.saguaro;
-    wm.innerHTML = mk ? `<svg viewBox="0 0 24 24"><path d="${mk.p}"/></svg>` : '';
+    mkEl.innerHTML = mk ? `<svg viewBox="0 0 24 24"><path d="${mk.p}"/></svg>` : '';
+    const folio = $('#youFolio');
+    if(folio) folio.textContent = 'Cup Season' + (mk && mk.n ? ' · ' + mk.n : '');
+  }
+  /* the plate: your own photograph, or the crest over your home course's
+     contour. Never a gradient wash - it is not one of the three legal states. */
+  const plate = $('#youPlate');
+  if(plate && !plate.querySelector('img, .ccont')){
+    const photo = (window.avatarUrl && window.avatarUrl[CS.user?.id]) || null;
+    const mk = window.MARKERS ? (MARKERS[p.marker] || MARKERS.saguaro) : null;
+    const html = photo
+      ? `<img src="${esc(photo)}" alt="">`
+      : (typeof csContourSvg === 'function'
+          ? csContourSvg(p.home_course || String(CS.user?.id || 'cup-season'), !!p.home_course)
+            + (mk ? `<span class="ccrest"><svg viewBox="0 0 24 24"><path d="${mk.p}"/></svg></span>` : '')
+          : '');
+    plate.insertAdjacentHTML('afterbegin', html);
+  }
+  /* the slot is the one gold field, and absent when nothing was earned */
+  const slotEl = $('#youSlot');
+  if(slotEl){
+    const earned = CS.user?.id && CS.user.id === window.FOUNDER_ID;
+    slotEl.textContent = earned ? 'Founder' : '';
+    slotEl.hidden = !earned;
   }
   const yt = $('#youTros');
   if(yt){
@@ -18894,6 +19042,179 @@ function openNameRivalry(oppId, oppName, cur){
 /* Tour Card: any golfer's whole card, viewable (tour_card RPC). The identity
    object was owner-only; now every name is a door. Visibility is enforced
    server-side (shared league/event, accepted buddy, or discoverable=everyone). */
+/* ---------- THE CREDENTIAL, produced ONCE (Wave 2 / IOS-047) ----------
+   The card is the one object that does not change shape between the two
+   clients (owner ruling R-C): the sheet and the desk's right column render
+   the SAME markup from the same producer, because "one object, two chromes,
+   two aspect ratios, two meta strings" is the defect this wave closes. The
+   phone's twin is `CSCredential` in CSDesign/Person.swift, and every value
+   below comes from tokens.json through tokens.css. */
+
+/* @galenm - Mesa, AZ - Papago. Handle, city, home course. `est. Jul 2026` is
+   NOT in it: the founding fact is already the gold slot, and a third telling
+   is the duplication YRS-21 names. The phone's twin is
+   `CredentialCopy.identity`. Uppercased by the ROLE, in CSS, never here. */
+function csIdentityLine(p){
+  return [p.handle ? '@' + p.handle : null,
+          p.city || null,
+          p.home_course ? csCourse(p.home_course) : null].filter(Boolean).join(' · ');
+}
+
+/* The contour plate (D272 rung 3): a seeded value-noise field sampled at six
+   isolevels by marching squares, cropped hard off its own centre, with one
+   ember dot on the hardest hole. NOT nested ellipses - six near-concentric
+   circles with a radial line is a radar sweep, and a noise field is what
+   makes two courses look like two places. FNV-1a over the seed, so the same
+   course draws the same plot forever and on both clients. */
+function csContourSvg(seed, hasCourse){
+  const N = 32, L = 4;
+  const h01 = (x, y) => {
+    let h = 0xcbf29ce4n, lo = 0x84222325n, H = (h << 32n) | lo;
+    for(const b of new TextEncoder().encode(seed)) H = BigInt.asUintN(64, (H ^ BigInt(b)) * 0x100000001b3n);
+    for(const b of [x & 255, y & 255, 0x5f]) H = BigInt.asUintN(64, (H ^ BigInt(b)) * 0x100000001b3n);
+    return Number(H % 10000n) / 10000;
+  };
+  const corners = [];
+  for(let y = 0; y <= L; y++) for(let x = 0; x <= L; x++) corners[y * (L + 1) + x] = h01(x, y);
+  const sm = t => t * t * (3 - 2 * t);
+  const f = [];
+  for(let gy = 0; gy < N; gy++) for(let gx = 0; gx < N; gx++){
+    const fx = gx / (N - 1) * L, fy = gy / (N - 1) * L;
+    const x0 = Math.min(L - 1, Math.floor(fx)), y0 = Math.min(L - 1, Math.floor(fy));
+    const tx = sm(fx - x0), ty = sm(fy - y0);
+    const a = corners[y0 * (L + 1) + x0], b = corners[y0 * (L + 1) + x0 + 1];
+    const c = corners[(y0 + 1) * (L + 1) + x0], d = corners[(y0 + 1) * (L + 1) + x0 + 1];
+    const top = a + (b - a) * tx, bot = c + (d - c) * tx;
+    f[gy * N + gx] = top + (bot - top) * ty;
+  }
+  const step = 1 / (N - 1);
+  let paths = '';
+  for(let i = 0; i < 6; i++){
+    const lv = 0.18 + (0.64 / 5) * i;
+    let d = '';
+    for(let y = 0; y < N - 1; y++) for(let x = 0; x < N - 1; x++){
+      const tl = f[y * N + x], tr = f[y * N + x + 1], bl = f[(y + 1) * N + x], br = f[(y + 1) * N + x + 1];
+      let code = 0;
+      if(tl > lv) code |= 8; if(tr > lv) code |= 4; if(br > lv) code |= 2; if(bl > lv) code |= 1;
+      if(code === 0 || code === 15) continue;
+      const x0 = x * step, y0 = y * step;
+      const lp = (a, b) => Math.abs(b - a) < 1e-9 ? 0.5 : (lv - a) / (b - a);
+      const P = {
+        top: [x0 + lp(tl, tr) * step, y0], bottom: [x0 + lp(bl, br) * step, y0 + step],
+        left: [x0, y0 + lp(tl, bl) * step], right: [x0 + step, y0 + lp(tr, br) * step] };
+      const seg = (a, b) => { d += `M${(a[0]*100).toFixed(2)} ${(a[1]*100).toFixed(2)}L${(b[0]*100).toFixed(2)} ${(b[1]*100).toFixed(2)}`; };
+      if(code === 1 || code === 14) seg(P.left, P.bottom);
+      else if(code === 2 || code === 13) seg(P.bottom, P.right);
+      else if(code === 3 || code === 12) seg(P.left, P.right);
+      else if(code === 4 || code === 11) seg(P.top, P.right);
+      else if(code === 6 || code === 9) seg(P.top, P.bottom);
+      else if(code === 7 || code === 8) seg(P.left, P.top);
+      else if(code === 5){ seg(P.left, P.top); seg(P.bottom, P.right); }
+      else if(code === 10){ seg(P.left, P.bottom); seg(P.top, P.right); }
+    }
+    if(d) paths += `<path d="${d}"/>`;
+  }
+  const hx = (0.22 + h01(91, 7) * 0.5) * 100, hy = (0.24 + h01(13, 61) * 0.46) * 100;
+  const dot = hasCourse ? `<circle cx="${hx.toFixed(2)}" cy="${hy.toFixed(2)}" r="1"/>` : '';
+  /* cropped hard off its own centre: the plate carries a piece of a place
+     rather than a diagram centred in a frame */
+  return `<svg class="ccont" viewBox="-22 -30 170 170" preserveAspectRatio="xMidYMid slice" aria-hidden="true">${paths}${dot}</svg>`;
+}
+
+/* One to three figures. A slot with no figure is ABSENT - never a dash, never
+   a zero, never a verb - and the rule fits its own cells: 66% for two, 33%
+   for one, because a two-cell strip under a full-width rule reads as a
+   missing value. */
+/* The status sentence, with the gross set in the board face inside the
+   sentence - a FIGURE RUN, marked by the producer, never found by a regex
+   over prose. No round means the line is not drawn, and it is certainly not
+   a dash (L-44). The phone's twin is `CredentialCopy.status`. */
+/* D150's overlap sentence - the reason two golfers start talking, fetched by
+   `tour_card` since D150 and thrown away by both clients ever since. The
+   phone's twin is `CredentialCopy.overlap`. */
+function csBothPlayed(shared){
+  const n = (shared || []).map(x => csCourse(x.name)).filter(Boolean);
+  if(!n.length) return '';
+  if(n.length === 1) return `You’ve both played ${n[0]}.`;
+  if(n.length === 2) return `You’ve both played ${n[0]} and ${n[1]}.`;
+  return `You’ve both played ${n.slice(0, 2).join(', ')} and ${n.length - 2} more.`;
+}
+window.csBothPlayed = csBothPlayed;
+
+function csStatusSentence(card){
+  const p = card.profile || {}, r = (card.recent || [])[0];
+  if(!r || r.gross == null){
+    return p.is_me ? 'This is how your buddies see you.' : '';
+  }
+  let s = `Posted <b class="cfrun">${r.gross}</b>`;
+  if(r.course_label) s += ' at ' + esc(csCourse(r.course_label));
+  if(r.played_on) s += ' on ' + esc(csSpokenDay(r.played_on));
+  s += '.';
+  const rounds = Number((card.career || {}).rounds || 0);
+  if(p.index_current == null && rounds < 3){
+    const left = 3 - rounds;
+    s += left === 1
+      ? ` One more round sets ${p.is_me ? 'your' : 'their'} number.`
+      : ` ${csSpelled(left)} more rounds set ${p.is_me ? 'your' : 'their'} number.`;
+  }
+  return s;
+}
+window.csStatusSentence = csStatusSentence;
+
+function csCredentialHtml(profileId, card){
+  const p = card.profile || {}, c = card.career || {};
+  const mk = (typeof MARKERS !== 'undefined' && (MARKERS[p.marker] || MARKERS.saguaro)) || null;
+  const photo = (window.avatarUrl && window.avatarUrl[profileId]) || null;
+  const figs = [];
+  if(p.index_current != null) figs.push([fmtIdx(p.index_current), 'Handicap index', '']);
+  figs.push([String(Number(c.rounds || 0)), 'Rounds', '']);
+  /* the position figure needs a STANDING, and `tour_card` carries none - see
+     IOS-047. It falls to the best round, which the card already holds. */
+  if(c.best_round && c.best_round.gross != null){
+    figs.push([String(c.best_round.gross),
+               'Best' + (c.best_round.course_label ? ' · ' + csCourse(c.best_round.course_label) : ''), '']);
+  }
+  const n = Math.min(3, figs.length) || 1;
+  /* the slot is the surface's ONE gold field, and it is absent when nothing
+     was earned - then the card carries no gold field at all. `founderTag`
+     ships a dingbat, which LINT-12 fails; the slot takes the words and the
+     ROLE does the uppercasing. */
+  const slot = (profileId && profileId === window.FOUNDER_ID) ? 'Founder' : null;
+  const rec0 = (card.recent || [])[0];
+  const credit = photo && rec0 && rec0.played_on
+    ? `${String(p.display_name || '').split(' ')[0] || 'Their'}’s round · ${csDayToken(rec0.played_on)}` : '';
+  const seed = p.home_course || String(profileId);
+  const plate = photo
+    ? `<img src="${esc(photo)}" alt="">`
+    : `${csContourSvg(seed, !!p.home_course)}${mk ? `<span class="ccrest"><svg viewBox="0 0 24 24"><path d="${mk.p}"/></svg></span>` : ''}`;
+  return `<div class="cred">
+    <div class="cplate">
+      ${plate}
+      <span class="cscrim"></span>
+      <div class="ctop">
+        ${slot ? `<span class="cslot">${esc(slot)}</span>` : '<span></span>'}
+        ${credit ? `<span class="ccredit">${esc(credit)}</span>` : ''}
+      </div>
+      ${mk ? `<span class="cmed"><svg viewBox="0 0 24 24"><path d="${mk.p}"/></svg></span>` : ''}
+      <div class="cname">
+        <b>${esc(p.display_name || '—')}</b>
+        <small>${esc(csIdentityLine(p))}</small>
+      </div>
+    </div>
+    <div class="cfoot">
+      <div class="cfigs">
+        ${figs.slice(0, 3).map(([v, l, o]) =>
+          `<div class="cfig"><b>${esc(v)}${o ? `<i>${esc(o)}</i>` : ''}</b><small>${esc(l)}</small></div>`).join('')}
+        <span class="crule" style="width:${(n * 33.333).toFixed(2)}%"></span>
+      </div>
+      <div class="cfolio">
+        <span>Cup Season${mk && mk.n ? ' · ' + esc(mk.n) : ''}</span>
+      </div>
+    </div>
+  </div>`;
+}
+window.csCredentialHtml = csCredentialHtml;
+
 async function openTourCard(profileId){
   if(!profileId) return;
   /* LV-05 · "Tour Card" is a playing privilege in real golf and means nothing
@@ -18951,19 +19272,16 @@ async function openTourCard(profileId){
   });
   const troHid = troAll.slice(CRED_CHIPS);
   const trosLines = troAll.slice(0,CRED_CHIPS);
-  const header = `<div class="cred">
-    ${mkMeta?`<div class="cwm" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="${mkMeta.p}"/></svg></div>`:''}
-    <div class="ctop">
-      ${window.face ? window.face(profileId, p.marker, 56) : `<span style="font-size:34px; line-height:1">${mkr(p.marker||'saguaro')}</span>`}
-      <div style="min-width:0; flex:1"><b class="cnm">${esc(p.display_name||'—')}</b><small class="chd">${chd||'&nbsp;'}</small></div>
-    </div>
-    <div class="csplit">
-      <div class="cidx"><b>${idx}</b><small>Handicap index</small></div>
-      ${trosLines.length?`<div class="ctros">${trosLines.join('<br>')}${troHid.length?`<span id="tcTroMore" hidden><br>${troHid.join('<br>')}</span><br><button id="tcTroTog" data-n="${troHid.length}" aria-expanded="false" style="background:none; border:none; padding:2px 0; font:inherit; color:var(--mut); cursor:pointer;">+${troHid.length} more</button>`:''}</div>`:''}
-    </div>
-    ${window.formRowHtml ? window.formRowHtml(rec) : ''}
-    ${vsChip}
-  </div>${reportLine}`;
+  /* Wave 2 / IOS-047 - ONE object, produced once for both clients. The
+     charcoal reface, the ember radial, the 42px serif index, the mono trophy
+     column and the vs-you chip are gone: the index is a rule-and-figure on
+     the card, the trophies are the record's, and the rivalry is a slat under
+     it rather than a pill on it. */
+  const status = csStatusSentence(card);
+  const header = csCredentialHtml(profileId, card)
+    + (status ? `<p class="cstatus">${status}</p>` : '')
+    + (vsChip ? `<div class="crow">${vsChip}</div>` : '')
+    + reportLine;
   const trHtml='';
   /* D209 · ONE lens, named ONCE in the eyebrow rather than buried in every row
      label. `tour_card()` (migration 20260902180000) corrects `avg_pvi` to the
@@ -19535,20 +19853,28 @@ async function openPerson(profileId){
   const shared = (card.shared_courses || []).slice(0, 3).map(x => esc(x.name)).join(' · ');
   const rec = card.recent || [];
 
+  /* IOS-047 · the DESK's own shape (R-C): the record at length in the left
+     column, the object in the right. The three `mathrow` figures the card
+     already carries are gone from here - one fact, one encoding, per
+     viewport - and what replaces them is the form row as five columns and
+     the full course table, which the phone can only show three of. */
+  const courses = card.courses || [];
+  const formCols = rec.slice(0, 5).reverse();
+  const bestG = formCols.map(r => r.gross).filter(g => g != null).sort((a, b) => a - b)[0];
+  let bestSeen = false;
   if(main) main.innerHTML = `
     ${narrative ? `<p style="font-size:16px; line-height:1.5; margin:0 0 14px">${esc(narrative)}</p>` : ''}
-    <div class="mathrow"><span>Handicap index</span><b>${esc(idx)}</b></div>
-    <div class="mathrow"><span>Rounds</span><b>${Number(c.rounds || 0)}</b></div>
-    ${best ? `<div class="mathrow"><span>Best</span><b>${best}</b></div>` : ''}
-    ${caseLine ? `<div class="mathrow"><span>Trophies</span><b>${esc(caseLine)}</b></div>` : ''}
-    ${p.home_course ? `<div class="mathrow"><span>Home course</span><b>${esc(csCourse(p.home_course))}</b></div>` : ''}
-    ${shared ? `<div class="cboth" style="margin-top:14px"><b>You’ve both played</b><small>${shared}</small></div>` : ''}
-    ${rec.length ? `<div class="eyebrow" style="margin-top:16px">Recent rounds</div>` + rec.map(r => {
-      const d = String(r.played_on || '');
-      return `<div class="check"><span class="num mono" style="font-size:11px">${esc(csDayToken(d))}</span>
-        <div class="tt"><b>${r.gross != null ? r.gross : '—'} GROSS${r.holes_played === 9 ? ' · 9 HOLES' : ''}</b>
-        <small>${r.course_label ? esc(String(r.course_label).toUpperCase()) + ' · ' : ''}VS COURSE ${r.differential != null ? Number(r.differential).toFixed(1) : '—'}</small></div></div>`;
-    }).join('') : ''}
+    ${formCols.length ? `<div class="dsec"><span>Form</span><i></i><span>${esc(formCols.length >= 5 ? 'Last five' : csCapFirst(csSpelled(formCols.length)) + ' of five')}</span></div>
+      <div class="dform">${formCols.map(r => {
+        const gold = !bestSeen && bestG != null && r.gross === bestG; if(gold) bestSeen = true;
+        return `<div class="dfcol${gold ? ' won' : ''}"><b>${r.gross != null ? r.gross : '—'}</b><i></i><small>${esc(csDayToken(r.played_on || ''))}</small></div>`;
+      }).join('')}</div>` : ''}
+    ${courses.length ? `<div class="dsec"><span>Courses</span><i></i><span>${courses.length} kept</span></div>
+      <table class="dtab"><tbody>${courses.map(x => `<tr><td>${esc(csCourse(x.name))}</td>
+        <td class="ag">${x.last_played ? 'Last played ' + esc(csDayToken(x.last_played)) : ''}</td>
+        <td class="rt">${Number(x.rounds || 0)} round${Number(x.rounds || 0) === 1 ? '' : 's'}</td></tr>`).join('')}</tbody></table>` : ''}
+    ${caseLine ? `<div class="dsec"><span>The record</span><i></i><span></span></div><p class="fine" style="padding-top:0">${esc(caseLine)}</p>` : ''}
+    ${shared ? `<p class="cstatus">${esc(csBothPlayed(card.shared_courses || []))}</p>` : ''}
     <div class="eyebrow" style="margin-top:18px">Play them</div>
     <p class="fine" style="padding-top:0">How long do you want it to run?</p>
     <div style="display:flex; gap:8px; flex-wrap:wrap">
@@ -19560,8 +19886,11 @@ async function openPerson(profileId){
 
   /* the aside IS the record between the two of you - the desk's own shape */
   if(aside){
+    const status = csStatusSentence(card);
+    const object = csCredentialHtml(profileId, card) + (status ? `<p class="cstatus">${status}</p>` : '');
     if(h2h && (h2h.settled > 0 || h2h.facets.length)){
-      aside.innerHTML = `
+      aside.innerHTML = object + `
+        <div class="eyebrow" style="margin-top:24px">The record between you</div>
         ${csH2HHeadline(h2h) ? `<p style="font-size:15px; margin:0 0 6px"><b>${esc(csH2HHeadline(h2h))}</b></p>` : ''}
         ${csH2HStandfirst(h2h) ? `<p class="fine" style="padding-top:0">${esc(csH2HStandfirst(h2h))}</p>` : ''}
         ${h2h.facets.map(f => `<div class="mathrow"><span>${esc(f.head)}</span><b>${esc(f.record || (f.meetings + ' SO FAR'))}</b></div>`).join('')}
@@ -19569,7 +19898,8 @@ async function openPerson(profileId){
         <button class="btn dark" type="button" id="perOpenH2H" style="margin-top:10px">See the whole record</button>`;
       document.getElementById('perOpenH2H')?.addEventListener('click', () => openHeadToHead(profileId, name));
     } else {
-      aside.innerHTML = `<p class="fine" style="padding:0">Nothing between you yet. The moment you both post a round the same week, or one of you tags the other on a card, this fills in.</p>`;
+      aside.innerHTML = object + `<div class="eyebrow" style="margin-top:24px">The record between you</div>
+        <p class="fine" style="padding:0">Nothing between you yet. The moment you both post a round the same week, or one of you tags the other on a card, this fills in.</p>`;
     }
   }
   main?.querySelectorAll('[data-len]').forEach(b => b.addEventListener('click', () => {

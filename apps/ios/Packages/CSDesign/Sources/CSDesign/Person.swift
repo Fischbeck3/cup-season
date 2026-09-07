@@ -262,8 +262,13 @@ public struct CSSlot: View {
 /// nothing is invented in Swift** (preflight 15).
 public struct CSFolio: View {
   let club: String
-  let serial: String
-  public init(club: String, serial: String) { self.club = club; self.serial = serial }
+  /// **The serial degrades.** The product owns the marker's NAME ("The Lone
+  /// Tree") and does not own a card number — there is no such column, and a
+  /// stable-looking `No. 12` derived from a UUID is fake data as ornament,
+  /// which D272 rules is less premium than a plain colour. Absent, then, and
+  /// the folio is still a folio.
+  let serial: String?
+  public init(club: String, serial: String? = nil) { self.club = club; self.serial = serial }
   public var body: some View {
     VStack(spacing: CSTokens.Space.s2) {
       Rectangle().fill(CSTokens.dark.ceremonyInk.opacity(CSTokens.Alpha.a16))
@@ -271,10 +276,63 @@ public struct CSFolio: View {
       HStack {
         Text(club).csType(.agateS, caps: true)
         Spacer(minLength: CSTokens.Space.s2)
-        Text(serial).csType(.agateS, caps: true)
+        if let serial { Text(serial).csType(.agateS, caps: true) }
       }
       .foregroundStyle(CSTokens.dark.folioRule)
     }
+    // a serial is not spoken
+    .accessibilityHidden(true)
+  }
+}
+
+/// **Hoisted out of the generic on purpose.** `CSCredential` is generic over
+/// its plate, and a type nested inside a generic cannot be NAMED without the
+/// generic argument — `CSCredential.Golfer` does not compile in a type
+/// position, which is where every surface needs it (a `figures:` array, a
+/// `golfer:` property). `CSCredential.Golfer` remains as a typealias so the
+/// object's own code reads as the anatomy it is.
+/// Everything the object prints. The object owns its own anatomy so no
+/// surface can re-cut it — that is the whole of GP-16.
+public struct CSCredentialGolfer: Sendable {
+  public let face: CSFace.Model
+  public let name: String
+  /// One string, product-wide: `@GALENM · MESA, AZ · PAPAGO` — handle, city,
+  /// home course. **It never carries `EST. JUL 2026`**: the founding fact is
+  /// already the gold slot and the folio's serial, and a third telling is the
+  /// duplication YRS-21 names. Produced by `CredentialCopy.identity`, in the
+  /// Kit, once, for both clients.
+  public let identity: String
+  /// `FOUNDER` · `CHAMPION` · `THE PRO`. Absent when nothing is earned, and
+  /// then the card carries no gold FIELD at all.
+  public let slot: String?
+  /// Replaces the slot while a round is live — the only ember on the card.
+  public let liveTag: String?
+  /// The credit line over a photograph: `GALEN'S ROUND · AUG 24`. An image
+  /// the product borrowed and an image somebody took are told apart by this
+  /// line and by nothing else.
+  public let credit: String?
+  /// index · rounds · position. **One to three**, and a slot with no figure
+  /// is ABSENT — never a dash, never a zero, never a verb.
+  public let figures: [Figure]
+  public let club: String
+  public let serial: String?
+
+  public struct Figure: Sendable {
+    public let value: String
+    public let label: String
+    public let ordinal: String?
+    public init(_ value: String, label: String, ordinal: String? = nil) {
+      self.value = value; self.label = label; self.ordinal = ordinal
+    }
+  }
+
+  public init(face: CSFace.Model, name: String, identity: String, slot: String? = nil,
+              liveTag: String? = nil, credit: String? = nil, figures: [Figure],
+              club: String, serial: String? = nil) {
+    self.face = face; self.name = name; self.identity = identity; self.slot = slot
+    self.liveTag = liveTag; self.credit = credit
+    self.figures = Array(figures.prefix(3))
+    self.club = club; self.serial = serial
   }
 }
 
@@ -283,51 +341,48 @@ public struct CSFolio: View {
 /// **The card.** A collectible object, not a layout — and `UI_SYSTEM` §6.5 is
 /// its single anatomy of record. `profile.md` and `player-card.md` both point
 /// here rather than restating it, because a second disagreeing anatomy table
-/// would reopen the very defect ("one object, two chromes, two aspect ratios")
-/// that this closes.
+/// would reopen the very defect ("one object, two chromes, two aspect ratios,
+/// two meta strings") that this closes.
 ///
 /// **362 × 312 (≈ 7:6, landscape), radius `r` 16, `shadow-lift`, ground
-/// `ceremony` in every theme.** A 3:4 object at the 362pt measure is 483pt
-/// tall, and with the chrome above it the page's ranked action lands below the
-/// tab bar on every device. **The 3:4 portrait survives in exactly one place:
-/// the share PNG**, which has no fold and no chrome under it.
+/// `ceremony` in every theme, MEASURE-RELATIVE** — 335 × 289 on an SE. A 3:4
+/// object at the 362pt measure is 483pt tall, and with the chrome above it the
+/// page's ranked action lands below the tab bar on every device. **The 3:4
+/// portrait survives in exactly one place: the share PNG**, which has no fold
+/// and no chrome under it.
+///
+/// At the accessibility sizes **the ratio is released and the object grows the
+/// page** (§16.3): it never scrolls inside itself, the plate holds ~180 and the
+/// figure half takes the growth.
 public struct CSCredential<Plate: View>: View {
-  /// Everything the object prints. Wave 2 maps the app's profile onto it; the
-  /// object owns its own anatomy so no surface can re-cut it.
-  public struct Golfer: Sendable {
-    public let face: CSFace.Model
-    public let name: String
-    /// One string, product-wide: `@GALENM · MESA, AZ · PAPAGO`. Never carries
-    /// `EST. JUL 2026` — the founding fact is already the slot and the serial,
-    /// and saying it a third time is the defect this closes.
-    public let identity: String
-    /// `FOUNDER` · `CHAMPION` · `THE PRO`. Absent when nothing is earned.
-    public let slot: String?
-    /// Replaces the slot while a round is live — the only ember on the card.
-    public let liveTag: String?
-    /// index · rounds · position, each with its agate label.
-    public let figures: [(String, String, String?)]   // value, label, ordinal
-    public let club: String
-    public let serial: String
-
-    public init(face: CSFace.Model, name: String, identity: String, slot: String? = nil,
-                liveTag: String? = nil, figures: [(String, String, String?)],
-                club: String, serial: String) {
-      self.face = face; self.name = name; self.identity = identity; self.slot = slot
-      self.liveTag = liveTag; self.figures = figures; self.club = club; self.serial = serial
-    }
-  }
+  /// See `CSCredentialGolfer` — hoisted out of the generic so a surface can
+  /// name it.
+  public typealias Golfer = CSCredentialGolfer
 
   public enum Presentation: Sendable {
-    case hero, held, sharePNG
-    var scale: CGFloat { self == .held ? 0.82 : 1 }
-    var size: CGSize { self == .sharePNG ? CGSize(width: 362, height: 483) : CGSize(width: 362, height: 312) }
+    /// The You tab, the person page, the card screen — full measure.
+    case hero
+    /// The one 3:4 crop, exported at 2×, because a shared image has no fold.
+    case sharePNG
+
+    var ratio: CGFloat { self == .sharePNG ? 362.0 / 483.0 : 362.0 / 312.0 }
+    var maxWidth: CGFloat { 362 }
   }
+
+  @Environment(\.dynamicTypeSize) private var typeSize
+  /// **The object is MEASURE-RELATIVE**, so it has to know its own width: the
+  /// plate's share, the figure strip's three equal columns and the rule that
+  /// spans only the columns carrying a figure are all fractions of it. One
+  /// measurement drives all three — width never depends on height, so the pass
+  /// converges rather than oscillating.
+  @State private var measured: CGFloat = 362
 
   let golfer: Golfer
   let presentation: Presentation
-  /// The plate: the golfer's photograph, or the crest. **Crest OR corner
-  /// medallion, never both** — on a crest card the crest IS the mark.
+  /// The plate: the golfer's photograph, or `CSCrestPlate`. The medallion is
+  /// notched into the lower right of **both** — one slot, one size, one
+  /// treatment (§6.2a, after the blind review), and the crest card additionally
+  /// carries the same glyph magnified, which is the point of the frozen pair.
   let plate: Plate
   let hasPhoto: Bool
 
@@ -337,63 +392,262 @@ public struct CSCredential<Plate: View>: View {
     self.hasPhoto = hasPhoto; self.plate = plate()
   }
 
+  /// The plate's share of the object. At the accessibility sizes it stops
+  /// being a fraction and becomes ~180pt, so the figures take the growth.
+  private var plateFraction: CGFloat { 0.58 }
+  private var cardWidth: CGFloat { min(measured, presentation.maxWidth) }
+  private var cardHeight: CGFloat { cardWidth / presentation.ratio }
+  private var plateHeight: CGFloat { typeSize.isA11y ? 180 : cardHeight * plateFraction }
+  /// The inner measure, and a third of it. `HANDICAP INDEX` is 86pt at the
+  /// default size and a third of a 362pt card is 107, so the columns fit — but
+  /// only if they are actually EQUAL. `frame(maxWidth: .infinity)` inside an
+  /// HStack does not make equal columns: it hands each child its ideal width
+  /// first and redistributes the remainder, so the second label started 16pt
+  /// left of its own numeral in the first screenshot of this card.
+  private var column: CGFloat { (cardWidth - CSTokens.Space.s4 * 2) / 3 }
+
   public var body: some View {
     CSObject {
       VStack(alignment: .leading, spacing: 0) {
-        ZStack(alignment: .bottomLeading) {
-          plate.frame(height: presentation.size.height * 0.58).clipped()
-          LinearGradient(stops: CSPhotoScrim.title.map {
-            .init(color: CSTokens.dark.ceremony.opacity($0.alpha), location: $0.at)
-          }, startPoint: .top, endPoint: .bottom)
-          VStack(alignment: .leading, spacing: CSTokens.Space.s1) {
-            if let live = golfer.liveTag {
-              HStack(spacing: CSTokens.Space.s1) {
-                Circle().fill(CSTokens.dark.ceremonyBrand).frame(width: 7, height: 7)
-                Text(live).csType(.agateS, caps: true).foregroundStyle(CSTokens.dark.ceremonyBrand)
-              }
-              .csBudget(ember: 1)
-            } else if let slot = golfer.slot {
-              CSSlot(slot, over: .ceremony)
-            }
-            Text(golfer.name).csType(.display).foregroundStyle(CSTokens.dark.ceremonyInk)
-              .lineLimit(1).minimumScaleFactor(0.7)
-            Text(golfer.identity).csType(.agateS, caps: true).foregroundStyle(CSTokens.dark.ceremonyMut)
-              .lineLimit(1).minimumScaleFactor(0.8)
-          }
-          .padding(CSTokens.Space.s3)
-        }
-        .overlay(alignment: .bottomTrailing) {
-          if hasPhoto {
-            CSMedallion(golfer.face.marker).padding(CSTokens.Space.s2)
-          }
-        }
-        VStack(alignment: .leading, spacing: CSTokens.Space.s2) {
-          // three figures on ONE rule — `ink` is 1.11:1 on `ceremony` in
-          // light and forbidden here; the rule that binds the card's three
-          // figures is the last thing that may vanish in one printing
-          HStack(alignment: .top, spacing: 0) {
-            ForEach(Array(golfer.figures.enumerated()), id: \.offset) { _, f in
-              VStack(alignment: .leading, spacing: CSTokens.Space.s1) {
-                CSFigure(f.0, size: .m, label: nil, ordinal: f.2, over: .ceremony)
-                Text(f.1).csType(.agateS, caps: true).foregroundStyle(CSTokens.dark.ceremonyMut)
-              }
-              .frame(maxWidth: .infinity, alignment: .leading)
-            }
-          }
-          .overlay(alignment: .top) {
-            CSRule(.heavy, over: .ceremony)
-              .padding(.top, CSType.renderedSize(.figureM, .large) + CSTokens.Space.s1)
-          }
-          CSFolio(club: golfer.club, serial: golfer.serial)
-        }
-        .padding(CSTokens.Space.s3)
+        head
+        foot
       }
-      .frame(width: presentation.size.width, height: presentation.size.height)
+      .frame(width: typeSize.isA11y ? nil : cardWidth,
+             height: typeSize.isA11y ? nil : cardHeight, alignment: .topLeading)
+      .frame(maxWidth: .infinity, alignment: .leading)
       .background(CSTokens.dark.ceremony)
       .csCeremony()
     }
-    .scaleEffect(presentation.scale)
-    .frame(width: presentation.size.width * presentation.scale,
-           height: presentation.size.height * presentation.scale)
+    .frame(maxWidth: presentation.maxWidth)
+    .background {
+      GeometryReader { g in
+        Color.clear
+          .onAppear { measured = g.size.width }
+          .onChange(of: g.size.width) { _, n in measured = n }
+      }
+    }
+    .accessibilityElement(children: .contain)
+  }
+
+  // MARK: the plate half
+
+  private var head: some View {
+    ZStack(alignment: .bottomLeading) {
+      // **The plate is sized BEFORE the ZStack, not clipped after it.** A
+      // `scaledToFill` image has no intrinsic ceiling, so the stack sized to
+      // the image and the name, the identity line and the slot were laid out
+      // hundreds of points below the card's own foot — present, addressable by
+      // VoiceOver, and invisible. The first screenshot of the photo card had
+      // no name on it.
+      plate
+        .frame(width: typeSize.isA11y ? nil : cardWidth, height: plateHeight)
+        .clipped()
+      CSPhotoScrim.layer(CSPhotoScrim.title)
+      // the slot and the credit sit at the plate's HEAD, where `.title` has
+      // not started ramping — so they get `.top`'s own geometry under them,
+      // and `CSPhotoScrim.ink(_:caption:)` gives the credit `scrimInk`
+      // rather than the `scrimMut` that computes at 4.15:1 under a72.
+      if hasPhoto {
+        VStack(spacing: 0) {
+          CSPhotoScrim.layer(CSPhotoScrim.top).frame(height: CSPhotoScrim.topHeight)
+          Spacer(minLength: 0)
+        }
+      }
+      // **`riding`, kept verbatim from `CredentialFace`: legibility beats
+      // composition.** At the accessibility sizes `display` reaches ~60pt on
+      // two lines and the copy band would exceed 45% of a 180pt plate — the
+      // first AX3 screenshot of this card printed the name THROUGH the credit
+      // line and the gold slot. The identity block drops off the photograph
+      // onto the card's own ground instead (§6.7, §6.8).
+      if !typeSize.isA11y {
+        identityBlock
+          .padding(.horizontal, CSTokens.Space.s4)
+          .padding(.bottom, CSTokens.Space.s3)
+          .frame(maxWidth: .infinity, alignment: .leading)
+      }
+    }
+    .overlay(alignment: .topLeading) { plateHead }
+    // **The medallion is on every card, in the same slot, at the same size.**
+    // All three blind reviewers filed the shipped split ("on Galen it is a
+    // small gold-ringed medallion in the corner; on Tash it is a giant flat
+    // glyph filling a third of the card"), and §19(i) accepts the crest and
+    // the medallion drawing the same glyph at two scales as the point of the
+    // frozen pair rather than as a duplication. §6.5's older "crest or corner,
+    // never both" is the rule this supersedes, and it is named in IOS-047.
+    .overlay(alignment: .bottomTrailing) {
+      CSMedallion(golfer.face.marker)
+        .padding(.trailing, CSTokens.Space.s4)
+        .padding(.bottom, plateMedallionDrop)
+        .accessibilityLabel("Their marker, the \(CSMarkers.marker(golfer.face.marker).name)")
+        .accessibilityHidden(false)
+    }
+    .frame(height: plateHeight)
+    .clipped()
+  }
+
+  /// The medallion clears the copy band rather than sitting on the name: it is
+  /// notched at the plate's lower right, above the display line's own top.
+  private var plateMedallionDrop: CGFloat { CSTokens.Space.s6 + CSTokens.Space.s4 }
+
+  var identityBlock: some View {
+    VStack(alignment: .leading, spacing: CSTokens.Space.s1) {
+      Text(golfer.name)
+        .csType(.display)
+        .foregroundStyle(CSTokens.dark.ceremonyInk)
+        .lineLimit(2)
+        .fixedSize(horizontal: false, vertical: true)
+      if !golfer.identity.isEmpty {
+        Text(golfer.identity).csType(.agateS, caps: true)
+          .foregroundStyle(CSTokens.dark.ceremonyMut)
+          .lineLimit(typeSize.isA11y ? 3 : 1)
+          .fixedSize(horizontal: false, vertical: typeSize.isA11y)
+      }
+    }
+  }
+
+  /// The slot and the credit share the plate's head. At the reading sizes they
+  /// sit at opposite corners; at AX3 they stack, because two grown agate lines
+  /// on one line print through each other.
+  @ViewBuilder private var plateHead: some View {
+    if typeSize.isA11y {
+      VStack(alignment: .leading, spacing: CSTokens.Space.s2) {
+        slotOrTag
+        creditText
+      }
+      .padding(CSTokens.Space.s4)
+    } else {
+      HStack(alignment: .top) {
+        slotOrTag
+        Spacer(minLength: CSTokens.Space.s3)
+        creditText
+      }
+      .padding(CSTokens.Space.s4)
+    }
+  }
+
+  @ViewBuilder private var slotOrTag: some View {
+    if let live = golfer.liveTag {
+      HStack(spacing: CSTokens.Space.s1) {
+        Circle().fill(CSTokens.dark.ceremonyBrand).frame(width: 7, height: 7)
+        Text(live).csType(.agateS, caps: true).foregroundStyle(CSTokens.dark.ceremonyBrand)
+      }
+      .csBudget(ember: 1)
+    } else if let slot = golfer.slot {
+      CSSlot(slot, over: .ceremony)
+    }
+  }
+
+  @ViewBuilder private var creditText: some View {
+    if let credit = golfer.credit, hasPhoto {
+      // §10.3, resolved: over `.title` the credit takes `scrimInk`, not
+      // `scrimMut` — the ramp reaches a88 there, but the credit sits at the
+      // TOP of the plate where it reaches only a72, and `scrimMut` under a72
+      // over a bright subject computes at 4.15:1.
+      Text(credit).csType(.agateS, caps: true)
+        .foregroundStyle(CSPhotoScrim.ink(CSPhotoScrim.top, caption: true))
+        .lineLimit(2)
+        .multilineTextAlignment(typeSize.isA11y ? .leading : .trailing)
+    }
+  }
+
+  // MARK: the record half
+
+  private var foot: some View {
+    VStack(alignment: .leading, spacing: CSTokens.Space.s3) {
+      if typeSize.isA11y { identityBlock }
+      figureStrip
+      CSFolio(club: golfer.club, serial: golfer.serial)
+    }
+    .padding(CSTokens.Space.s4)
+    .frame(maxWidth: .infinity, alignment: .leading)
+  }
+
+  /// **One to three figures on ONE shared rule** — and the rule fits its own
+  /// cells. A two-cell strip under a full-width rule "reads as a missing
+  /// value" (blind-3), so the grid is three columns wide and the rule spans
+  /// only the columns that carry a figure: 66% for two, 33% for one.
+  ///
+  /// The rule is `ceremonyInk` and never `ink`, which is **1.11:1 on
+  /// `ceremony` in light** — the rule that binds the card's three figures is
+  /// the last thing that may vanish in one printing.
+  @ViewBuilder private var figureStrip: some View {
+    let n = max(1, golfer.figures.count)
+    if typeSize.isA11y {
+      // §6.8 · three ROWS, each its own cell: label leading, figure trailing,
+      // each on its own rule.
+      VStack(alignment: .leading, spacing: CSTokens.Space.s3) {
+        ForEach(Array(golfer.figures.enumerated()), id: \.offset) { _, f in
+          VStack(alignment: .leading, spacing: CSTokens.Space.s1) {
+            CSFigure(f.value, size: .m, label: nil, ordinal: f.ordinal, over: .ceremony)
+            CSRule(.heavy, over: .ceremony)
+            Text(f.label).csType(.agateS, caps: true)
+              .foregroundStyle(CSTokens.dark.ceremonyMut)
+          }
+        }
+      }
+    } else {
+      HStack(alignment: .top, spacing: 0) {
+        ForEach(Array(golfer.figures.enumerated()), id: \.offset) { _, f in
+          VStack(alignment: .leading, spacing: CSTokens.Space.s1) {
+            CSFigure(f.value, size: .m, label: nil, ordinal: f.ordinal, over: .ceremony)
+            Text(f.label).csType(.agateS, caps: true)
+              .foregroundStyle(CSTokens.dark.ceremonyMut)
+              .lineLimit(1).truncationMode(.tail)
+              .frame(width: column, alignment: .leading)
+          }
+          .frame(width: column, alignment: .leading)
+        }
+        Spacer(minLength: 0)
+      }
+      .overlay(alignment: .topLeading) {
+        // **The rule fits its own cells.** A two-cell strip under a full-width
+        // rule "reads as a missing value" — so 66% for two, 33% for one.
+        CSRule(.heavy, over: .ceremony)
+          .frame(width: column * CGFloat(n))
+          .offset(y: CSType.renderedSize(.figureM, typeSize) + CSTokens.Space.s1)
+          .allowsHitTesting(false)
+      }
+    }
+  }
+}
+
+// MARK: - The crest plate — the marker floor, designed rather than degraded
+
+/// A golfer with no photograph gets a **designed card**. This is canon
+/// (`IOS-003` §1, `UI_SYSTEM` §6.1: no silhouette state, no fabricated face,
+/// ever) and it is the state most golfers are actually in.
+///
+/// The contour is the plate's FIELD, seeded from the golfer's home course; the
+/// crest is their own marker at ~1.5pt on a ~190pt box in `crest` `#33463B` —
+/// an emboss, not a picture — **bleeding off the plate's right edge**, so the
+/// object reads as printed stock rather than as an icon centred in a box.
+///
+/// There is no ember wash. GP-10 (the shipped 28% ember radial: "a muddy
+/// ochre-brown cloud, and ember is the *live* metal, which a crest is not") is
+/// killed at the token level rather than dimmed.
+public struct CSCrestPlate: View {
+  let marker: String?
+  /// The course id, or the golfer's own id when they keep no home course.
+  let seed: String
+  /// **No home course → no `brand` dot.** There is no hole to point at, and a
+  /// dot that means nothing is the ornament D272 forbids.
+  let hasCourse: Bool
+
+  public init(marker: String?, seed: String, hasCourse: Bool) {
+    self.marker = marker; self.seed = seed; self.hasCourse = hasCourse
+  }
+
+  public var body: some View {
+    ZStack(alignment: .bottomTrailing) {
+      CSTokens.dark.ceremony
+      CSContour(seed: seed, levels: 6, lineWidth: 1.2,
+                tint: CSTokens.dark.ceremonyInk.opacity(CSTokens.Alpha.a24),
+                mark: hasCourse ? CSTokens.dark.ceremonyBrand : nil)
+      CSMarkerView(key: marker, size: 190, lineWidth: 1.5, optical: true)
+        .foregroundStyle(CSTokens.dark.crest)
+        .offset(x: 46, y: 6)
+        .accessibilityHidden(true)
+    }
+    .clipped()
   }
 }

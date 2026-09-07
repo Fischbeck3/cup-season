@@ -887,10 +887,14 @@ else {
   const mounts = [
     ['CupSeason/Golfers/PersonPage.swift',    /CSSafetyMenu\(/],
     ['CupSeason/Golfers/HeadToHeadPage.swift', /CSSafetyMenu\(/],
-    /* the peek sheet keeps its OWN copy, unchanged — the promotion did not
-       take mute or the two-step report off it */
-    ['CupSeason/You/TourCardSheet.swift',     /setMute|toggleMute/],
-    ['CupSeason/You/TourCardSheet.swift',     /Sure\? Report/],
+    /* IOS-047 · `TourCardSheet` is DELETED. The peek from a round card is the
+       same object — `presenter.tourCard` presents `PersonPage` in its own
+       stack — so the sheet no longer keeps its own copy of mute and the
+       two-step report, because there is no longer a second surface to keep
+       them on. That is a stronger guarantee than the one it replaces (one
+       mount instead of two that could drift), and this check now asserts the
+       peek is that object rather than asserting a file that must not exist. */
+    ['CupSeason/Main/MainTabView.swift',      /\$presenter\.tourCard\)\s*\{[\s\S]{0,400}?PersonPage\(/],
   ];
   for (const [rel, pat] of mounts) {
     const src = swift.get(rel);
@@ -2405,6 +2409,72 @@ const lint = (id, name, hits, note = '') => {
   lint('LINT-31', 'every face is keyed to a golfer, not to a glyph',
        scan(/CSFace\.Model\.unkeyed|\.unkeyed\(marker:/, { skip: /CSDesign\// }),
        'Waves 1, 3 and 8 plumb the id through the four rows that lack it');
+}
+
+/* 46 · one credential, two clients (R-C / D234, IOS-047) --------------------
+   The card is the one object that does not change shape between the phone and
+   the desk, and GP-16 — "one object, two chromes, two aspect ratios, two meta
+   strings" — is the defect Wave 2 exists to close. So four things are checked
+   here, because each of them is a way the two could drift back apart:
+
+     1 · both clients HAVE the object, and both have the identity producer
+     2 · NEITHER identity line carries `est.` — the founding fact is already
+         the gold slot, and a third telling is the duplication YRS-21 names
+     3 · the contour is seeded with the SAME hash constant on both sides, so a
+         course draws the same plot in a browser and on a phone (verified by
+         value in `ContourTests`, and by constant here)
+     4 · a gradient wash never stands in for a photograph — the one image
+         state D272 bans by name, and the one the old `.cred` shipped
+   ------------------------------------------------------------------------- */
+{
+  const problems = [];
+  const src = new Map(iosSrc);
+  const cred = src.get('Packages/CSDesign/Sources/CSDesign/Person.swift') || '';
+  const copy = src.get('Packages/CupSeasonKit/Sources/CupSeasonKit/You/CredentialCopy.swift') || '';
+  const contour = src.get('Packages/CSDesign/Sources/CSDesign/Contour.swift') || '';
+
+  if (!/struct CSCredential</.test(cred)) problems.push('the phone has no CSCredential');
+  if (!/func identity\(handle:/.test(copy)) problems.push('the phone has no CredentialCopy.identity');
+  if (!/function csCredentialHtml\(/.test(html)) problems.push('the web has no csCredentialHtml');
+  if (!/function csIdentityLine\(/.test(html)) problems.push('the web has no csIdentityLine');
+
+  /* the identity line, on both sides, and neither of them says est. */
+  const swiftIdent = copy.slice(copy.indexOf('func identity(handle:'), copy.indexOf('public static func identity(_ p:'));
+  const webIdent = html.slice(html.indexOf('function csIdentityLine('), html.indexOf('function csContourSvg('));
+  if (/est\./i.test(swiftIdent)) problems.push('the phone identity line carries est. (YRS-21)');
+  if (/est\.|estSince/i.test(webIdent)) problems.push('the web identity line carries est. (YRS-21)');
+  for (const [where, src] of [['phone', swiftIdent], ['web', webIdent]]) {
+    for (const clause of ['handle', 'city', 'home']) {
+      if (!new RegExp(clause, 'i').test(src)) problems.push(`the ${where} identity line has no ${clause} clause`);
+    }
+  }
+
+  /* the contour's seed, byte for byte. FNV-1a on both sides, never a
+     per-process hash — the trap CSFace.pigmentIndex already names. */
+  const fnv = ['cbf29ce484222325', '100000001b3'];
+  for (const k of fnv) {
+    if (!contour.toLowerCase().includes(k)) problems.push(`the phone contour lost the FNV constant ${k}`);
+  }
+  if (!/0xcbf29ce4n[\s\S]{0,80}0x84222325n/.test(html)) problems.push('the web contour lost the FNV offset basis');
+  if (!/0x100000001b3n/.test(html)) problems.push('the web contour lost the FNV prime');
+  if (/hashCode|\.hashValue/.test(contour)) problems.push('the contour uses a per-process hash — one course, two plots');
+
+  /* D272 · a gradient wash is not one of the three legal image states, and it
+     may not ship. The old `.cred` carried a 16% ember radial. */
+  const credCss = html.slice(html.indexOf('.cred{'), html.indexOf('.cstatus{'));
+  if (/radial-gradient|linear-gradient\([^)]*rgba\(255,\s*90/i.test(credCss))
+    problems.push('the web credential draws a gradient wash (D272 bans it by name)');
+
+  /* self-test: the check has to be able to see a card that drifted */
+  {
+    const drifted = webIdent.replace('csIdentityLine', 'csIdentityLineX');
+    if (/function csIdentityLine\(/.test(drifted)) problems.push('self-test failed: the web half cannot see a renamed producer');
+    if (!/est\./i.test(swiftIdent + 'est.')) problems.push('self-test failed: the est. probe cannot fire');
+  }
+
+  problems.length === 0
+    ? pass('one credential, two clients', 'CSCredential + csCredentialHtml · one identity line, no est. · one contour seed · no wash')
+    : fail('one credential, two clients', problems.join(' · '));
 }
 
 console.log(`\n${fails ? 'FAIL' : 'PASS'} — ${fails} failure(s), ${warns} warning(s)`);

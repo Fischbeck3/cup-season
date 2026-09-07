@@ -44,7 +44,10 @@ public struct CSRankRail: View {
   public var body: some View {
     Text(text)
       .csType(.figureM)
-      .foregroundStyle(field == .none ? cs.mut : cs.panelInk)
+      // Unpainted is a FIELD state, not an ink state: the numeral stays `ink`
+      // so a rank reads as a figure. `mut` made every row but the leader's and
+      // the viewer's read as a caption beside its own name.
+      .foregroundStyle(field == .none ? cs.ink : cs.panelInk)
       .frame(width: CSTokens.Space.rail)
       .frame(maxHeight: .infinity)
       .background(background)
@@ -138,7 +141,11 @@ public struct CSSlat<Trailing: View>: View {
           .frame(minWidth: 0, maxWidth: .infinity, alignment: .leading)
           .padding(.leading, CSSlatMetrics.railGap)
         }
-        if !typeSize.isA11y { change }
+        // **A cell with nothing in it is not reserved.** D245 clause 5 puts no
+        // movement and no gap on the friends board at all, and holding 58pt
+        // open for two absent facts took the name column to 130pt and
+        // ellipsised a sub-line that fits easily without it.
+        if !typeSize.isA11y, hasChange { change }
         if !typeSize.isA11y {
           trailing.frame(width: CSSlatMetrics.trailingWidth, alignment: .trailing)
         }
@@ -147,7 +154,7 @@ public struct CSSlat<Trailing: View>: View {
       // squeezing a two-digit figure against a name that no longer fits
       if typeSize.isA11y {
         HStack(spacing: CSTokens.Space.s3) {
-          change
+          if hasChange { change }
           Spacer(minLength: 0)
           trailing
         }
@@ -165,6 +172,8 @@ public struct CSSlat<Trailing: View>: View {
   /// **A held row prints ONE mark.** `— —` — an em dash for the gap beside a
   /// held bar for the delta — reads as a rendering error, so a leader with no
   /// gap and no movement prints the held bar alone.
+  private var hasChange: Bool { movement != nil || (gap?.isEmpty == false) }
+
   @ViewBuilder private var change: some View {
     HStack(spacing: CSTokens.Space.s2) {
       Spacer(minLength: 0)
@@ -384,27 +393,55 @@ public struct CSSeasonCalendar: View {
 /// composition, not a pair of cards with a "vs" between them.
 public struct CSClash<Figure: View>: View {
   @Environment(\.cs) private var cs
+  @Environment(\.dynamicTypeSize) private var typeSize
   let left: CSFace.Model
   let right: CSFace.Model
   let leftName: String
   let rightName: String
+  /// The identity clause under a name — `10.6 index · Tempe` — in SENTENCE
+  /// case, because it is a phrase and not a label, and so it costs none of the
+  /// viewport's ten tracked-caps agate lines.
+  let leftSub: String?
+  let rightSub: String?
   let figure: Figure
+
   public init(left: CSFace.Model, leftName: String, right: CSFace.Model, rightName: String,
+              leftSub: String? = nil, rightSub: String? = nil,
               @ViewBuilder figure: () -> Figure) {
     self.left = left; self.right = right
-    self.leftName = leftName; self.rightName = rightName; self.figure = figure()
+    self.leftName = leftName; self.rightName = rightName
+    self.leftSub = leftSub; self.rightSub = rightSub
+    self.figure = figure()
   }
+
   public var body: some View {
-    HStack(alignment: .center, spacing: CSTokens.Space.s3) {
-      VStack(spacing: CSTokens.Space.s2) {
-        CSFace(left, size: .list)
-        Text(leftName).csType(.agateS, caps: true).foregroundStyle(cs.mut).lineLimit(1)
+    // §6.8 · at the accessibility sizes the pair STACKS, full measure — two
+    // 56pt faces and a 40pt figure do not share a 335pt line at AX3.
+    if typeSize.isA11y {
+      VStack(alignment: .leading, spacing: CSTokens.Space.s3) {
+        side(left, leftName, leftSub, .leading)
+        figure
+        side(right, rightName, rightSub, .leading)
       }
-      figure.frame(maxWidth: .infinity)
-      VStack(spacing: CSTokens.Space.s2) {
-        CSFace(right, size: .list)
-        Text(rightName).csType(.agateS, caps: true).foregroundStyle(cs.mut).lineLimit(1)
+      .frame(maxWidth: .infinity, alignment: .leading)
+    } else {
+      HStack(alignment: .top, spacing: CSTokens.Space.s3) {
+        side(left, leftName, leftSub, .leading)
+        figure.frame(maxWidth: .infinity)
+        side(right, rightName, rightSub, .trailing)
       }
     }
+  }
+
+  private func side(_ f: CSFace.Model, _ name: String, _ sub: String?,
+                    _ align: HorizontalAlignment) -> some View {
+    VStack(alignment: align, spacing: CSTokens.Space.s2) {
+      CSFace(f, size: .block)
+      Text(name).csType(.name).foregroundStyle(cs.ink).lineLimit(1).truncationMode(.tail)
+      if let sub {
+        Text(sub).csType(.agateS, caps: false).foregroundStyle(cs.mut).lineLimit(1)
+      }
+    }
+    .accessibilityElement(children: .combine)
   }
 }

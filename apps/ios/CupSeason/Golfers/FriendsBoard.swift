@@ -40,68 +40,85 @@ struct FriendsBoardSection: View {
       // A board of ONE is not a board — it is me, alone, ranked first of one,
       // and it would sit under the tab's own "No buddies yet." root, which is
       // one page saying two things (L-34).
-      CSSectionHead("\(FriendsBoard.head.capitalized) · \(lens.caption(days: b.days).capitalized)")
+      //
+      // §3.1 · **a person in a list is a SLAT.** The row was a bare
+      // `CSMarkerView(key:size:22)` with a mono rank and a band string on the
+      // right — the construction site `UI_SYSTEM` §6.2 deletes by name,
+      // because a golfer with a photograph structurally could not show it on
+      // the people tab. It is `CSRankRail` + `CSFace` + the sub-line + the
+      // beats column now, and the logic, the two lenses and every string are
+      // untouched.
+      CSSectionHead(FriendsBoard.head.capitalized,
+                    count: lens == .form ? "\(lens.caption(days: b.days)) · beats" : lens.caption(days: b.days))
       // two lenses, and only two (D245 clauses 1 and 2)
-      HStack(spacing: 6) {
+      HStack(spacing: CSTokens.Space.s2) {
         ForEach(FriendsBoard.Lens.allCases, id: \.self) { l in
-          CSMini(l.label, tone: lens == l ? cs.pos : nil, selected: lens == l) {
+          Button {
             lens = l
             CSHaptic.selection()
+          } label: {
+            CSChip(l.label, selected: lens == l)
           }
+          .buttonStyle(.plain)
         }
+        Spacer()
       }
-      .padding(.bottom, 2)
-      VStack(spacing: 0) {
-        let rows = b.ordered(lens)
-        ForEach(Array(rows.enumerated()), id: \.element.id) { i, r in
-          CSRow(last: i == rows.count - 1) { row(r) }
-        }
+      .padding(.bottom, CSTokens.Space.s2)
+      let rows = b.ordered(lens)
+      ForEach(rows) { r in
+        Button { openPerson(r.profileId) } label: { row(r) }
+          .buttonStyle(.plain)
       }
-      CSFine(FriendsBoard.note)
+      // L-22 is a promise a golfer should be able to read, so it renders
+      // verbatim beneath the list.
+      Text(FriendsBoard.note).csType(.body).foregroundStyle(cs.mut)
+        .fixedSize(horizontal: false, vertical: true)
+        .padding(.top, CSTokens.Space.s3)
     }
   }
 
+  /// **No movement, no badge, no arrow anywhere on this list** — D245 clause 5
+  /// and L-22, obeyed. The rank rail is the only borrowed board device, and it
+  /// carries a rank the server already computes.
+  ///
+  /// The rail's field is `panel` when the row is YOURS and unpainted otherwise
+  /// — **never gold**, because D245 clause 5 says the board is a list and not
+  /// a score, so no position on it was earned.
   private func row(_ r: FriendsBoard.Row) -> some View {
-    Button { openPerson(r.profileId) } label: {
-      HStack(spacing: 12) {
-        Text(String(r.rank(lens))).font(CSFont.monoSmall).foregroundStyle(cs.mut)
-          .frame(minWidth: 22, alignment: .trailing)
-          .accessibilityHidden(true)
-        CSMarkerView(key: r.marker, size: 22).foregroundStyle(cs.ink).frame(width: 26)
-          .accessibilityHidden(true)
-        VStack(alignment: .leading, spacing: 2) {
-          Text(r.name).font(CSFont.subhead.weight(r.isMe ? .bold : .semibold)).foregroundStyle(cs.ink)
-          Text(sub(r)).font(CSFont.label).tracking(0.6).foregroundStyle(cs.dimText)
-        }
-        .multilineTextAlignment(.leading)
-        .frame(maxWidth: .infinity, alignment: .leading)
-        Text(trailing(r)).font(CSFont.monoMediumBody).csTabular().foregroundStyle(cs.mut)
-      }
-      .frame(minHeight: 44)
-      .contentShape(Rectangle())
+    CSSlat(rank: r.rank(lens),
+           field: r.isMe ? .mine : .none,
+           face: CSFace.Model(id: r.profileId, marker: r.marker,
+                              initials: Initials.of(r.displayName), isViewer: r.isMe),
+           name: r.name,
+           sub: sub(r),
+           movement: nil,
+           gap: nil) {
+      Text(trailing(r)).csType(.columnM).foregroundStyle(cs.mut)
     }
-    .buttonStyle(.plain)
-    .accessibilityElement(children: .combine)
-    .accessibilityLabel("\(r.rank(lens)). \(r.name), \(sub(r))")
+    .contentShape(Rectangle())
     .accessibilityHint("Opens their card")
   }
 
   /// FORM says the rounds AND what they did — the denominator is part of the
-  /// fact (L-01). HANDICAP says the index and how recently it was moved.
+  /// fact (L-01), and it is the COLUMN, which is what lets the sub-line stay
+  /// one line at the default size. HANDICAP says the index and how recently it
+  /// was moved.
   private func sub(_ r: FriendsBoard.Row) -> String {
     switch lens {
     case .form:
-      return r.formLine
+      return r.band ?? (r.rounds > 0 ? r.formLine : "No rounds in the window")
     case .handicap:
       guard let on = r.lastRoundOn else { return "No rounds posted yet" }
       return "Last round \(RivalryCopy.monthDaySpoken(on))"
     }
   }
 
+  /// Under FORM the column is `3/4` — `BEATS` is named once in the section
+  /// head's count, so the column needs no unit. Under the handicap lens it
+  /// becomes the index.
   private func trailing(_ r: FriendsBoard.Row) -> String {
     switch lens {
-    // L-14 / T-07 · the BAND, never the raw figure
-    case .form:     return r.band?.uppercased() ?? "—"
+    case .form:     return r.beatsColumn
     case .handicap: return r.indexText
     }
   }

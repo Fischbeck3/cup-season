@@ -26,6 +26,7 @@ import CupSeasonKit
 
 struct HeadToHeadPage: View {
   @Environment(\.cs) private var cs
+  @Environment(SessionStore.self) private var store
   let opponentId: UUID
   /// The name the caller already knows, so the page has a title before the
   /// read lands and never shows a bare "—" in its own header.
@@ -45,7 +46,11 @@ struct HeadToHeadPage: View {
   var body: some View {
     ScrollView {
       VStack(alignment: .leading, spacing: 14) {
-        CSPageHeader("You and \(name)", eyebrow: eyebrow) { EmptyView() }
+        // §8 · the head is an agate label, a rule and a COUNT flush right —
+        // **never a proper name**. A real production league name in the count
+        // slot is in-joke space on a screen headed for strangers, which is the
+        // one thing the shipped recap card already refuses to draw.
+        CSSectionHead("The clash", count: clashCount)
 
         switch model.state {
         case .loading:
@@ -82,8 +87,9 @@ struct HeadToHeadPage: View {
   }
 
   @ViewBuilder private func body(_ h: HeadToHead) -> some View {
+    clash(h)
     if let head = HeadToHeadCopy.headline(h) {
-      Text(head).font(CSFont.title).foregroundStyle(cs.ink)
+      Text(head).csType(.story).foregroundStyle(cs.ink)
         .fixedSize(horizontal: false, vertical: true)
     }
     if let sf = HeadToHeadCopy.standfirst(h) {
@@ -132,6 +138,76 @@ struct HeadToHeadPage: View {
                    action: { naming = true })
       }
     }
+  }
+
+  /// §3 · **THE CLASH, built from objects the system already owns.** Two 56pt
+  /// faces facing across the record, on the page's own ground, no box and no
+  /// shadow — because a person in a list is a slat and there is no fourth
+  /// container. The first draft of this was a pair of 170 × 190 rounded
+  /// rectangles at radius 16 with a shadow, holding a plate, a medallion, a
+  /// name, a rule, a figure and a label: the card grammar coming back through
+  /// the one door left open, and it stated the record THREE TIMES in one
+  /// viewport (`4 WINS`, `6 WINS`, `4–6 · HE LEADS`).
+  ///
+  /// **No per-side WINS figures.** The `4–6` says it once. And the lead line
+  /// names a SUBJECT — `YOU LEAD` / `GALEN LEADS` / `ALL SQUARE`, never
+  /// `HE LEADS`, which is the one sentence on the surface not addressed to
+  /// every golfer in a mixed league.
+  @ViewBuilder private func clash(_ h: HeadToHead) -> some View {
+    CSClash(left: me, leftName: myName,
+            right: CSFace.Model(id: h.opponent.id ?? opponentId, marker: h.opponent.marker,
+                                initials: Initials.of(h.opponent.displayName)),
+            rightName: name,
+            leftSub: mySub, rightSub: theirSub(h)) {
+      VStack(spacing: CSTokens.Space.s1) {
+        CSFigure(h.record.line, size: .l, label: nil)
+        CSRule(.heavy)
+        Text(RivalryCopy.leadLabel(h.lead, them: name))
+          .csType(.agate, caps: true).foregroundStyle(cs.mut)
+      }
+      .frame(maxWidth: 120)
+      .accessibilityElement(children: .ignore)
+      .accessibilityLabel("\(h.record.line), \(RivalryCopy.leadLabel(h.lead, them: name).lowercased())")
+    }
+    .padding(.vertical, CSTokens.Space.s3)
+    if let since = h.since.map(RivalryCopy.monthDaySpoken), !since.isEmpty {
+      Text("\(h.record.total) meeting\(h.record.total == 1 ? "" : "s") since \(since).")
+        .csType(.bodyS).foregroundStyle(cs.mut)
+        .frame(maxWidth: .infinity, alignment: .center)
+    }
+  }
+
+  /// The count slot: the league and the week, never the league's own name in
+  /// place of a count. A rivalry with no shared league says how many meetings.
+  private var clashCount: String? {
+    guard let h = model.h2h else { return nil }
+    if let l = h.league, !l.isEmpty { return l }
+    return h.record.total > 0 ? "\(h.record.total) meetings" : nil
+  }
+
+  private var me: CSFace.Model {
+    let p = store.me?.profile
+    return CSFace.Model(id: p?.id ?? UUID(), marker: p?.marker,
+                        initials: Initials.of(p?.display_name), isViewer: true)
+  }
+
+  /// The viewer's own row reads `YOU` alone, product-wide.
+  private var myName: String { "You" }
+
+  /// `10.6 index · Tempe` — the two facts a golfer trades in a parking lot,
+  /// each dropped rather than guessed.
+  private var mySub: String? {
+    clause(index: store.me?.profile?.index_current, city: store.me?.profile?.city)
+  }
+  /// **DEGRADE, named.** `head_to_head` returns the opponent's id, name,
+  /// handle and marker — no index and no city — so their clause is absent
+  /// rather than half-invented. Two clauses where the payload has one fact
+  /// would be worse than one.
+  private func theirSub(_ h: HeadToHead) -> String? { nil }
+  private func clause(index: Double?, city: String?) -> String? {
+    let parts = [index.map { "\(CSCopy.index($0)) index" }, city?.isEmpty == false ? city : nil]
+      .compactMap { $0 }
+    return parts.isEmpty ? nil : parts.joined(separator: " · ")
   }
 
   /// The dots read oldest → newest, ember when the meeting was mine — the same

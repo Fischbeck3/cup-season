@@ -109,6 +109,14 @@ public struct FriendsBoard: Sendable, Equatable {
       return isMe ? name : name.replacingOccurrences(of: "your", with: "their")
     }
 
+    /// **`3/4` — the beats column.** `BEATS` is named once in the section
+    /// head's count, so the column needs no unit, and the denominator is part
+    /// of the fact (L-01): it is the COLUMN rather than a clause in the
+    /// sub-line, which is what lets the sub-line stay one line at the default
+    /// size. A window with no rounds reads `—`: there is nothing to be a
+    /// fraction of.
+    public var beatsColumn: String { rounds > 0 ? "\(beats)/\(rounds)" : "\u{2014}" }
+
     /// The handicap lens's own figure. A golfer with no index reads "—", not
     /// a zero and not a guess.
     public var indexText: String { indexCurrent.map { CSCopy.index($0) } ?? "—" }

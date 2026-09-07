@@ -585,7 +585,21 @@ struct MainTabView: View {
         openPlay()
       }
     }
-    .sheet(item: $presenter.tourCard) { TourCardSheet(profileId: $0, links: youLinks) }
+    // GP-16 · the card and the person page were two chromes, two ratios and
+    // two meta strings for one golfer. `TourCardSheet` is deleted: the peek
+    // from a round card presents THE SAME OBJECT in its own stack, so there is
+    // one card in the product and one place its anatomy is decided.
+    .sheet(item: $presenter.tourCard) { id in
+      NavigationStack {
+        PersonPage(profileId: id,
+                   openHeadToHead: { _ in },
+                   openReceipt: { presenter.receipt = $0 },
+                   stageRound: { playOn, tag in presenter.declare = DeclarePrefill(iso: playOn, tagPids: [tag]) },
+                   startSomething: { presenter.showIntent = true },
+                   playThem: { presenter.tourCard = nil; presenter.length = $0 })
+          .csCloseButton { presenter.tourCard = nil }
+      }
+    }
     .sheet(item: $presenter.courseCard) { CourseCardSheet(courseId: $0.id, label: $0.label) }
     /* D262 · R-O · the bag. The You row that opens it is drawn only once its
        read has answered, so this sheet is never reachable without one. */
@@ -862,7 +876,11 @@ struct MainTabView: View {
                  openHeadToHead: { golfersPath.append(GolfersRoute.headToHead($0)) },
                  openReceipt: { presenter.receipt = $0 },
                  stageRound: { playOn, tag in presenter.declare = DeclarePrefill(iso: playOn, tagPids: [tag]) },
-                 startSomething: { presenter.showIntent = true })
+                 startSomething: { presenter.showIntent = true },
+                 // R-F · the page's ONE primary asks the length, all three of
+                 // them, in one step — which is where the three settings-list
+                 // rows Wave 2 deletes actually went.
+                 playThem: { presenter.length = $0 })
     case .headToHead(let id):
       HeadToHeadPage(opponentId: id,
                      openPerson: { golfersPath.append(GolfersRoute.person($0)) },

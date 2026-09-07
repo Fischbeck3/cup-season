@@ -1,26 +1,33 @@
-// Cup Season — THE PERSON PAGE (IOS-032, IA §10.3).
+// Cup Season — THE CARD (Wave 2, `surfaces/player-card.md`; IOS-047).
 //
-// Every face in the app opens a Tour Card from twenty-three call sites, and
-// the card was a SHEET — a peek, dismissed by a swipe, with nowhere to go
-// from it. D222 makes a golfer a destination: the sheet is promoted to a page,
-// and the sheet survives for the in-context peek from a round card.
+// **One object, one chrome, one ratio, one meta string.** The person page and
+// the Tour Card were the same golfer told twice — two aspect ratios, two
+// identity lines, two records, two sets of words — which is GP-16, the defect
+// this file closes. `TourCardSheet` is deleted; this is the surface, and it is
+// what `presenter.tourCard` presents and what `openPerson` pushes.
 //
-// WHAT THE PROMOTION ADDS, beyond a bigger canvas:
-//   * a NARRATIVE head — what this golfer has done, and what they have done to
-//     you — instead of a stat block a stranger has to assemble themselves
-//   * YOU AND <NAME>, which is a DOOR to the head-to-head page rather than a
-//     chip that opened a week list
-//   * the three lengths (R-F), asked as one step and never guessed
-//   * `courses` and `shared_courses`, returned by `tour_card` since D150 and
-//     discarded by the phone ever since (`TourCard.swift:93-126`)
-//   * P-17, in the toolbar. `TourCardSheet` carries mute and the two-step
-//     report today; promoting it to a page without them would drop report and
-//     block from the surface a golfer most often reaches a person on, which
-//     L-38 forbids and Guideline 1.2 rejects.
+// THE SHAPE, top to bottom: the credential · the status sentence · ONE primary
+// · FORM · the league · the head-to-head · COURSES · the overlap sentence. The
+// card carries only the four facts that are PERMANENT (face, name, number,
+// position); the three that move live in the rows beneath it, in the order a
+// golfer asks for them. Nothing under the card is boxed — the card is the only
+// thing on the screen with depth, which is what makes it an object.
 //
-// EVERY ROW WAITS FOR ITS FACT. TROPHIES and BEST need R21, YOU AND <NAME>
-// needs R4, THIS SEASON needs a shared season. A row whose fact did not arrive
-// is not drawn as a dash — it is not drawn (L-44).
+// WHAT SURVIVES UNCHANGED, because the audit says the producers and the
+// accessibility work are assets: `PersonModel.load`'s card → bag → head-to-head
+// cascade, every copy producer it reads, the L-32 failed-is-never-private
+// branch, the privacy gate's own words, and R-F's three lengths — which now
+// open from the page's ONE primary through `LengthStep` rather than from three
+// settings-list rows, so all three are still always offered and the page is no
+// longer a form.
+//
+// WHAT DEGRADES, and it is named rather than faked: the league block needs a
+// STANDING. `tour_card` does not carry one — `PersonModel.sharedSeason` was
+// declared and read and never once assigned, so THIS SEASON has never rendered
+// for anybody — and `me.memberships[].standing` is the viewer's own. So the
+// block draws on your own card and is ABSENT on somebody else's, which is
+// §6.3's own rule ("each block is independently absent") rather than an
+// invented rank.
 
 import SwiftUI
 import CSDesign
@@ -32,277 +39,586 @@ struct PersonPage: View {
   @Environment(\.presenter) private var presenter
   @Environment(\.openCompetition) private var openCompetition
   let profileId: UUID
-  /// Pushed by the host — the head-to-head page, and the tee sheet with this
-  /// golfer already tagged.
   var openHeadToHead: (UUID) -> Void = { _ in }
   var openReceipt: (UUID) -> Void = { _ in }
   var stageRound: ((_ playOn: String, _ tag: UUID) -> Void)? = nil
   var startSomething: () -> Void = {}
+  /// R-F · the golfer, then the length. All three lengths, always — asked as
+  /// one step from the page's one primary.
+  var playThem: ((TagCandidate) -> Void)? = nil
 
   @State private var model = PersonModel()
 
   var body: some View {
     ScrollView {
-      VStack(alignment: .leading, spacing: 14) {
+      VStack(alignment: .leading, spacing: 0) {
         switch model.state {
         case .loading:
           skeleton
         case .failed(let root):
           EmptyRootView(root: root) { _ in Task { await model.load(profileId) } }
         case .hidden:
-          // the privacy gate, said plainly, with the one door that can change it
-          VStack(alignment: .leading, spacing: 10) {
-            CSPageHeader(GolfersRoot.CardName.title(model.name), eyebrow: "PRIVATE") { EmptyView() }
-            CSFine(TourCard.privateLine)
-            if model.relation.actionLabel != nil { buddyAction }
-          }
+          privateCard
         case .card(let load):
           card(load)
         }
       }
-      .padding(20)
+      .padding(.horizontal, CSTokens.Space.gutter)
+      .padding(.bottom, CSTokens.Space.s6)
+      .frame(maxWidth: .infinity, alignment: .leading)
     }
-    // `-cs_dev_bottom` — the same door Home, You and Golfers already have.
-    // The bag block sits below the card, the career table and the rivalry, so
-    // the one part of this page a screenshot most needs was the one part a
-    // simulator could not reach without a finger.
     .defaultScrollAnchor(CSDevHatch.bottom ? .bottom : .top)
     .background(cs.bg0)
-    // The bar STAYS. A pushed page with `toolbar(.hidden)` has no back button,
-    // and the first simulator screenshot of this page was a golfer's card with
-    // no way off it — the bar is the back, and P-17 rides its trailing edge
-    // where the design puts it ("mounted in the page's overflow").
-    .navigationTitle(model.name ?? GolfersRoot.CardName.title(nil))
+    // §12.2, half obeyed and half deviated, and the deviation is recorded in
+    // the spec: the card's `display` name IS the page's naming object, so a
+    // page header would print the name twice and put two `display` roles in
+    // one viewport. Empty title, system back, ONE trailing action.
+    .navigationTitle("")
     .navigationBarTitleDisplayMode(.inline)
-    .toolbar {
-      if !model.isMe, let name = model.name {
-        ToolbarItem(placement: .topBarTrailing) { CSSafetyMenu(profileId: profileId, name: name) }
-      }
-    }
+    .toolbar { ToolbarItem(placement: .topBarTrailing) { shareAction } }
     .refreshable { await model.load(profileId) }
     .task(id: profileId) { await model.load(profileId) }
     .sliceToastHost()
   }
 
-  // MARK: the card
+  // MARK: - the object
 
   @ViewBuilder private func card(_ l: TourCardLoad) -> some View {
     let c = l.card, p = c.profile
-    let est = p.memberSince.map { TourCard.established($0) }
-    let meta = [p.handle.map { "@\($0)" }, p.city, p.homeCourse, est].compactMap { $0 }
-      .filter { !$0.isEmpty }.joined(separator: " · ")
+    credential(l)
+      .padding(.top, CSTokens.Space.s3)
 
-    CredentialCard(photoURL: l.avatarURL, marker: p.marker, name: p.displayName ?? "—",
-                   badge: store.founding.badge(for: profileId), meta: meta,
-                   indexCurrent: p.indexCurrent, rounds: c.career.rounds,
-                   trophyLines: TrophyMeta.credChips(c.trophies),
-                   form: FormRow.from(beats: c.recent.map(\.beat)),
-                   isMe: p.isMe,
-                   // F-8 · a 1:1 panel is ~350pt on the biggest iPhone, and with
-                   // four identity lines, the index, the buddy chip and the
-                   // narrative under it the page's ONLY actions landed below
-                   // the tab bar. This is the page `PushRoute.headToHead` lands
-                   // a callout on, so it may not ask for a scroll to answer.
-                   aspect: 16.0 / 10.0,
-                   anchor: { EmptyView() }, extra: { EmptyView() })
+    // ── the status sentence. No round → the line is NOT DRAWN (L-44).
+    statusSentence(c)
 
-    // ── the narrative head. Two clauses, each dropped rather than guessed.
-    if let line = HeadToHeadCopy.personNarrative(card: c, h2h: model.h2h) {
-      Text(line).font(CSFont.sentence).foregroundStyle(cs.ink)
+    // ── the action. One primary, and the tier is chosen by the relationship
+    // rather than by the screen.
+    action(p)
+
+    formBlock(c)
+    leagueBlock(p)
+    rivalryBlock(c, name: p.displayName)
+    coursesBlock(c, isMe: p.isMe)
+    bagBlock(isMe: p.isMe)
+
+    // ── D150's overlap sentence, returned since D150 and thrown away ever
+    // since: the reason two golfers start talking.
+    if let line = CredentialCopy.overlap(model.sharedCourses) {
+      Text(line).csType(.body).foregroundStyle(cs.mut)
         .fixedSize(horizontal: false, vertical: true)
-        .padding(.top, 2)
+        .padding(.top, CSTokens.Space.s4)
     }
 
-    if !p.isMe { buddyAction }
-
-    // ── R-F · THE THREE LENGTHS, hoisted (F-8). The owner ruled that beating
-    // one guy asks how long it runs; that question is the page's ranked
-    // action, so it sits above the record rather than under it.
-    if !p.isMe { lengths(p.displayName ?? "them") }
-
-    // ── the five rows. Each renders only when its fact arrived.
-    VStack(spacing: 0) {
-      if let h = model.h2h, h.record.total > 0 {
-        CSRow {
-          YouDoorRow(glyph: Text("VS"),
-                     title: TourCard.youAndThem(p.displayName),
-                     sub: youAndThemSub(h),
-                     action: { openHeadToHead(profileId) })
-            .accessibilityHint("Opens the record between you")
-        }
-      }
-      if let vs = c.vsYou, vs.total > 0, model.h2h == nil {
-        // the fallback while R4 is unpushed: the season-only figure the card
-        // has always returned, under a label that says which one it is
-        CSRow {
-          YouDoorRow(glyph: Text("VS"),
-                     title: TourCard.youAndThem(p.displayName),
-                     sub: "\(vs.record) in the seasons you share",
-                     action: { openHeadToHead(profileId) })
-        }
-      }
-      if let seasonRow = model.sharedSeason {
-        CSRow {
-          YouDoorRow(glyph: Text(Image(systemName: "flag")),
-                     title: TourCard.rowThisSeason,
-                     sub: seasonRow.sub,
-                     action: { openCompetition(seasonRow.leagueId, .table) })
-        }
-      }
-      if !c.recent.isEmpty {
-        CSRow { MathRow(label: TourCard.rowLastFive, value: lastFive(c)) }
-      }
-      // R21 · the best round, as the sentence a golfer says
-      if let best = c.bestRound {
-        CSRow { MathRow(label: TourCard.rowBest, value: best.line) }
-      }
-      // R21 · the actual silverware, off the viewed golfer's own trophies
-      if !c.cabinet.isEmpty {
-        CSRow(last: true) { MathRow(label: TourCard.rowTrophies, value: caseLine(c.cabinet)) }
-      }
+    // P-17 · report and mute stay reachable FROM the surface a golfer most
+    // often reaches a person on (L-38, Guideline 1.2). They are off the chrome
+    // — the toolbar carries the one trailing action the design gives it — and
+    // at the page's foot, where a safety act belongs.
+    if !p.isMe, let name = p.displayName {
+      HStack { Spacer(); CSSafetyMenu(profileId: profileId, name: name); Spacer() }
+        .padding(.top, CSTokens.Space.s5)
     }
+  }
 
-    // ── the career block, the lens named once (D209), verbatim from the sheet.
-    // A golfer with NO rounds gets one true sentence instead of three dashes —
-    // the first screenshot of this page was a buddy with an empty card and a
-    // column of em dashes, which says nothing three times (L-44).
-    if c.career.rounds > 0 {
-      Text(TourCard.careerEyebrow(playingLens: c.playingLens, isMe: p.isMe)).csEyebrow().padding(.top, 8)
-      VStack(spacing: 0) {
-        MathRow(label: TourCard.roundsLabel, value: String(c.career.rounds))
-        MathRow(label: TourCard.bestLabel(playingLens: c.playingLens), value: c.bestText)
-        MathRow(label: TourCard.avgLabel(playingLens: c.playingLens, isMe: p.isMe), value: c.avgText)
+  @ViewBuilder private func credential(_ l: TourCardLoad) -> some View {
+    let c = l.card, p = c.profile
+    let golfer = CSCredentialGolfer(
+      face: face(p, photo: l.avatarURL),
+      name: p.displayName ?? "—",
+      identity: CredentialCopy.identity(p),
+      slot: slotLabel(p),
+      liveTag: nil,
+      credit: credit(c, name: p.displayName),
+      figures: figures(c),
+      club: CredentialCopy.club(markerName: CSMarkers.marker(p.marker).name))
+    if let url = l.avatarURL {
+      CSCredential(golfer, hasPhoto: true) {
+        AsyncImage(url: url) { phase in
+          switch phase {
+          case .success(let img): img.resizable().scaledToFill()
+          default: crestPlate(p)
+          }
+        }
       }
-      if !c.playingLens { CSFine(TourCard.careerSignsLine(isMe: p.isMe)).padding(.top, 6) }
     } else {
-      CSFine(TourCard.noRoundsYet(p.displayName)).padding(.top, 8)
+      CSCredential(golfer, hasPhoto: false) { crestPlate(p) }
     }
+  }
 
-    // ── D262 · R-O · THE BAG. Drawn only when the read answered AND there is
-    // something in it: an empty "In the bag" head on somebody else's page is a
-    // sentence about them that they did not write (L-44). The visibility is
-    // the card's own — `bag_of` runs the Tour Card's predicate — so a bag is
-    // never on a page the card is not.
-    if let bag = model.bag, !bag.isEmpty {
-      Text(BagCopy.head(isMe: p.isMe).uppercased()).csEyebrow().padding(.top, 8)
-      // the line the whole feature exists for, in the third person for a page
-      // that is about somebody else
-      if let since = bag.since {
-        Text(BagCopy.sinceLine(since, isMe: p.isMe))
-          .font(CSFont.sentence).foregroundStyle(cs.ink)
-          .fixedSize(horizontal: false, vertical: true).padding(.bottom, 2)
-      }
-      VStack(spacing: 0) {
-        ForEach(bag.clubs) { club in
-          MathRow(label: club.slotLabel.isEmpty ? "Club" : club.slotLabel, value: club.label)
+  /// The marker floor, designed rather than degraded: the contour of their
+  /// home course, and their own marker as a crest bleeding off the right edge.
+  private func crestPlate(_ p: TourCard.Profile) -> CSCrestPlate {
+    let course = p.homeCourse.flatMap { $0.isEmpty ? nil : $0 }
+    return CSCrestPlate(marker: p.marker,
+                        seed: course ?? profileId.uuidString,
+                        hasCourse: course != nil)
+  }
+
+  private func face(_ p: TourCard.Profile, photo: URL?) -> CSFace.Model {
+    CSFace.Model(id: p.id ?? profileId, marker: p.marker, photoURL: photo,
+                 initials: Initials.of(p.displayName), isViewer: p.isMe)
+  }
+
+  /// **The slot is the surface's one gold object, and it is absent when
+  /// nothing was earned** — then the card carries no gold field at all.
+  /// `FoundingBadge.label` ships a `✦`, which LINT-12 fails; the slot takes
+  /// the words and the role does the uppercasing.
+  private func slotLabel(_ p: TourCard.Profile) -> String? {
+    switch store.founding.badge(for: p.id ?? profileId) {
+    case .founder: "Founder"
+    case .member: "Founding member"
+    case nil: nil
+    }
+  }
+
+  /// `GALEN'S ROUND · AUG 24` — a photograph the product borrowed and a
+  /// photograph somebody took are told apart by this line and by nothing else.
+  private func credit(_ c: TourCard, name: String?) -> String? {
+    guard let r = c.recent.first else { return nil }
+    let who = name?.split(separator: " ").first.map(String.init) ?? "Their"
+    let day = RivalryCopy.monthDay(r.playedOn)
+    return day.isEmpty ? nil : "\(who)’s round · \(day)"
+  }
+
+  /// One to three. **A slot with no figure is ABSENT** — never a dash, never a
+  /// zero, never a verb. The position figure needs a standing, and the payload
+  /// carries one only for the viewer, so somebody else's third cell falls to
+  /// their best round, which is a fact the card already holds.
+  private func figures(_ c: TourCard) -> [CSCredentialGolfer.Figure] {
+    var out: [CSCredentialGolfer.Figure] = []
+    if let idx = c.profile.indexCurrent {
+      out.append(.init(CSCopy.index(idx), label: "Handicap index"))
+    }
+    out.append(.init(String(c.career.rounds), label: "Rounds"))
+    if c.profile.isMe, let m = standing, let st = m.standing {
+      out.append(.init(String(st.rank), label: m.name, ordinal: CSOrdinal.suffix(st.rank)))
+    } else if let best = c.bestRound {
+      let where_ = best.courseLabel.map { " · " + RoundCopy.course($0) } ?? ""
+      out.append(.init(String(best.gross), label: "Best" + where_))
+    }
+    return out
+  }
+
+  /// The viewer's own live membership — the only standing this payload holds.
+  private var standing: Me.Membership? {
+    store.me?.memberships.first { $0.standing != nil && $0.season?.status == "active" }
+      ?? store.me?.memberships.first { $0.standing != nil }
+  }
+
+  // MARK: - the sentence and the action
+
+  @ViewBuilder private func statusSentence(_ c: TourCard) -> some View {
+    let p = c.profile
+    let toEstablish = (p.indexCurrent == nil && c.career.rounds < 3) ? 3 - c.career.rounds : nil
+    if p.isMe, c.recent.isEmpty {
+      Text(CredentialCopy.mine).csType(.body).foregroundStyle(cs.mut)
+        .padding(.top, CSTokens.Space.s4)
+    } else if let r = c.recent.first,
+              let line = CredentialCopy.status(gross: r.gross, course: r.courseLabel,
+                                               playedOn: r.playedOn,
+                                               roundsToEstablish: toEstablish, isMe: p.isMe) {
+      CSFigureRun(line, role: .body)
+        .foregroundStyle(cs.mut)
+        .fixedSize(horizontal: false, vertical: true)
+        .padding(.top, CSTokens.Space.s4)
+    } else if p.isMe {
+      Text(CredentialCopy.mine).csType(.body).foregroundStyle(cs.mut)
+        .padding(.top, CSTokens.Space.s4)
+    }
+  }
+
+  /// **One primary, and the alternative is a link** (§16A.5). A buddy gets
+  /// `Play Galen` alone; a stranger gets `Add buddy` with `Play Tash` as a
+  /// tier-3 link centred under it — two ember-weight decisions side by side is
+  /// the thing the blind review filed. A pending ask is a TAG, because there
+  /// is nothing to tap that can do anything. **Your own card carries no action
+  /// at all, and the screen carries no ember.**
+  @ViewBuilder private func action(_ p: TourCard.Profile) -> some View {
+    if !p.isMe {
+      let first = p.displayName?.split(separator: " ").first.map(String.init) ?? "them"
+      VStack(spacing: CSTokens.Space.s3) {
+        if model.relation == .friend {
+          // a buddy → ONE primary, alone. The settled tag is for a state with
+          // nothing to tap; "Buddies" printed over a live primary is a label
+          // about the past sitting on top of the page's one live act.
+          play(first, tier: .primary)
+        } else if let label = model.relation.actionLabel {
+          Button(label) { Task { await model.addBuddy(profileId) } }
+            .buttonStyle(.csPrimary(busy: model.busyAdd))
+          // §16A.5 · the alternative is a LINK, centred, at the same place on
+          // every card. Two ember-weight decisions side by side is the thing
+          // the blind review filed.
+          play(first, tier: .link)
+        } else if let tag = model.relation.tag {
+          // **a pending ask is a TAG** — there is nothing to tap that can do
+          // anything, so nothing is drawn as if there were.
+          Text(tag).csType(.agateS, caps: true).foregroundStyle(cs.mut)
+            .frame(maxWidth: .infinity, alignment: .leading)
         }
-        if let ball = bag.ball { MathRow(label: "Ball", value: ball.label) }
       }
-      if !bag.sideline.isEmpty {
-        Text(BagCopy.sideline.uppercased()).csEyebrow().padding(.top, 8)
-        CSFine(bag.sideline.map(\.line).joined(separator: " · "))
-      }
-    }
-
-    // ── D150's two answers, returned since D150 and never rendered here
-    if !model.sharedCourses.isEmpty {
-      Text("You’ve both played").csEyebrow().padding(.top, 8)
-      CSFine(model.sharedCourses.prefix(3).joined(separator: " · ")
-             + (model.sharedCourses.count > 3 ? " +\(model.sharedCourses.count - 3) more" : ""))
-    }
-
-    if !c.recent.isEmpty {
-      Text("Recent rounds").csEyebrow().padding(.top, 8)
-      ForEach(c.recent) { r in
-        CheckRow(glyph: Text(RivalryCopy.monthDay(r.playedOn)),
-                 title: "\(r.gross.map(String.init) ?? "—") GROSS\(r.holesPlayed == 9 ? " · 9 HOLES" : "")",
-                 sub: (r.courseLabel.map { RoundCopy.course($0).uppercased() + " · " } ?? "")
-                      + "VS COURSE " + (r.differential.map(RoundCopy.f1) ?? "—")) { EmptyView() }
-      }
+      .padding(.top, CSTokens.Space.s3)
     }
   }
 
-  // MARK: the three lengths (R-F)
+  private enum Tier { case primary, link }
 
-  @ViewBuilder private func lengths(_ name: String) -> some View {
-    Text(TourCard.lengthsHead).csEyebrow().padding(.top, 12)
-    CSFine(TourCard.lengthsSub)
-    VStack(spacing: 0) {
-      ForEach(Array(TourCard.Length.allCases.enumerated()), id: \.offset) { i, len in
-        CSRow(last: i == TourCard.Length.allCases.count - 1) {
-          YouDoorRow(glyph: Text(glyph(len)), title: len.label, sub: sub(len),
-                     action: take(len))
+  @ViewBuilder private func play(_ first: String, tier: Tier) -> some View {
+    let take: () -> Void = {
+      guard let playThem else { stageRound?(LastRoundWith.nextSaturday(), profileId); return }
+      playThem(TagCandidate(id: profileId, name: model.name ?? first, marker: model.marker))
+    }
+    switch tier {
+    case .primary: CSDoor(.primary("Play \(first)", take))
+    case .link: HStack { Spacer(); CSDoor(.link("Play \(first)", take)); Spacer() }
+    }
+  }
+
+  /// `s5` 32 between sections — `CSSectionHead` carries 10 of it itself.
+  private func sectionHead(_ title: String, count: String?) -> some View {
+    CSSectionHead(title, count: count).padding(.top, CSTokens.Space.s5 - 10)
+  }
+
+  // MARK: - FORM
+
+  @ViewBuilder private func formBlock(_ c: TourCard) -> some View {
+    let rounds = Array(c.recent.prefix(5))
+    if rounds.isEmpty {
+      firstCard(c)
+    } else {
+      sectionHead("Form", count: CredentialCopy.formCount(rounds.count))
+      // oldest → newest, left to right, which is how a form line is read.
+      let shown = Array(rounds.reversed())
+      let best = shown.compactMap(\.gross).min()
+      // **Fewer than five rounds → only the rounds that exist, left-flush, on
+      // a rule spanning only them.** No blank slots and no em dash: three
+      // empty slots make a two-round golfer's row read as a five-round row
+      // with failures in it, and the head's count is the honest statement.
+      HStack(alignment: .top, spacing: CSTokens.Space.s3) {
+        ForEach(Array(shown.enumerated()), id: \.offset) { i, r in
+          formColumn(r, best: best != nil && r.gross == best
+                             && shown.firstIndex(where: { $0.gross == best }) == i)
+        }
+        if shown.count < 5 {
+          ForEach(shown.count..<5, id: \.self) { _ in Color.clear.frame(height: 1) }
         }
       }
+      .padding(.top, CSTokens.Space.s3)
     }
   }
 
-  private func glyph(_ l: TourCard.Length) -> String {
-    switch l { case .saturday: "SAT"; case .week: "WK"; case .season: "SSN" }
+  private func formColumn(_ r: TourCard.Recent, best: Bool) -> some View {
+    VStack(alignment: .leading, spacing: CSTokens.Space.s1) {
+      CSFigure(r.gross.map(String.init) ?? "—", size: .s,
+               metal: best ? .earned : .ink, label: nil)
+      CSRule(.heavy, metal: best ? .earned : .ink)
+      Text(RivalryCopy.monthDay(r.playedOn)).csType(.agateS, caps: true)
+        .foregroundStyle(best ? cs.gold : cs.mut)
+        .padding(.top, CSTokens.Space.s1)
+    }
+    .frame(maxWidth: .infinity, alignment: .leading)
+    .accessibilityElement(children: .ignore)
+    .accessibilityLabel("\(r.gross.map(String.init) ?? "no round"), \(RivalryCopy.monthDaySpoken(r.playedOn))\(best ? ", their best" : "")")
   }
 
-  /// R-F: all three are always offered. The one that has no object yet says so
-  /// in its own sub rather than being hidden — the owner ruled that the golfer
-  /// is asked the length, and a length quietly missing is a guess.
-  ///
-  /// QB-01 / F-9 · the sentence is `TourCard.weekNotYet` now, produced once in
-  /// the Kit for both clients. It no longer teaches the golfer the product's
-  /// private noun inside a failure, and it ends in a move.
-  private func sub(_ l: TourCard.Length) -> String {
-    l == .week ? l.sub + " · " + TourCard.weekNotYet : l.sub
+  /// §6.2 · a golfer with no rounds. **A fact about the world, never the
+  /// golfer's omission**, and the door is required rather than optional.
+  @ViewBuilder private func firstCard(_ c: TourCard) -> some View {
+    let name = c.profile.displayName
+    let first = name?.split(separator: " ").first.map(String.init) ?? "They"
+    CSEmpty(glyph: .scorecard,
+            eyebrow: "The first card",
+            headline: CredentialCopy.firstCard(name: name, since: c.profile.memberSince),
+            fact: c.profile.homeCourse.flatMap {
+              $0.isEmpty ? nil : "\(RoundCopy.course($0)) is on the board because \(first) keeps it."
+            } ?? TourCard.noRoundsYet(name),
+            // **The door is required and never nil** — and it is never a
+            // second copy of the page's own primary either. `Play Galen` is
+            // already the ember above; a second ember pill 300pt below it,
+            // with the same verb, is one act offered twice at two weights
+            // (§16A.5, and Home's own floor rule from Wave 1). On somebody
+            // else's card the block takes `.elsewhere`, which is a reference
+            // line rather than a control; on your own card the page carries
+            // no action at all, so the door IS the primary.
+            door: c.profile.isMe
+              ? .primary("Add my round", { presenter.postOnComposer = true; presenter.showPost = true })
+              : .elsewhere("Play \(first), and the round they post lands here."))
+      .padding(.top, CSTokens.Space.s5)
   }
 
-  private func take(_ l: TourCard.Length) -> (() -> Void)? {
-    switch l {
-    case .saturday:
-      guard let stage = stageRound else { return nil }
-      return { stage(LastRoundWith.nextSaturday(), profileId) }
-    case .week:
-      // D237 / R19 is wave 7. A door that does not open is the one thing not
-      // permitted (L-32/L-44), so this one says what it is waiting on and
-      // does not pretend to mint anything.
+  // MARK: - the league, the rivalry, the courses
+
+  /// **DEGRADE, stated.** The block draws off `me.memberships[].standing`,
+  /// which is the VIEWER's own. `tour_card` carries no `standing` for the
+  /// golfer being viewed, so on somebody else's card the whole block is absent
+  /// (§6.3) rather than carrying a rank nobody computed.
+  @ViewBuilder private func leagueBlock(_ p: TourCard.Profile) -> some View {
+    if p.isMe, let m = standing, let st = m.standing {
+      sectionHead(m.name, count: weekCount(m))
+      CSSlat(rank: st.rank,
+             field: .mine,
+             face: face(p, photo: nil),
+             name: "You",
+             sub: countingSub(m),
+             movement: movement(st),
+             gap: st.gap_to_leader.map { $0 > 0 ? "+\(Int($0))" : "" } ?? "") {
+        // the trailing column repeats down a table, so it carries no rule and
+        // no label — column position is already the hierarchy (§9.2)
+        if let pts = st.points { CSFigure(String(Int(pts)), size: .m, label: nil) }
+      }
+      .padding(.horizontal, -CSTokens.Space.gutter)
+      .padding(.top, CSTokens.Space.s3)
+      CSDoor(.link("\(m.name) table", { openCompetition(m.league_id, .table) }))
+        .padding(.top, CSTokens.Space.s3)
+    }
+  }
+
+  private func weekCount(_ m: Me.Membership) -> String? {
+    guard let s = m.season, let w = s.week_no, let total = s.weeks_total else { return nil }
+    return "Week \(w) of \(total)"
+  }
+
+  private func countingSub(_ m: Me.Membership) -> String {
+    let cap = m.settings?.counting_cap ?? 0
+    guard cap > 0 else {
+      return m.standing?.points.map { "\(Int($0)) points" } ?? ""
+    }
+    return "Best \(cap) count"
+  }
+
+  private func movement(_ st: Me.Standing) -> CSMovement.State? {
+    guard let prev = st.prev_rank, prev != st.rank else { return nil }
+    return prev > st.rank ? .up(prev - st.rank) : .down(st.rank - prev)
+  }
+
+  /// The head-to-head, as an overlapping pair rather than as a chip: **no
+  /// rail**, because it is not a ranked row.
+  @ViewBuilder private func rivalryBlock(_ c: TourCard, name: String?) -> some View {
+    let record: (String, String, String)? = {
+      if let h = model.h2h, h.record.total > 0 {
+        return (h.record.line, RivalryCopy.leadLabel(h.lead, them: name),
+                sinceLine(h))
+      }
+      if let vs = c.vsYou, vs.total > 0 {
+        return (vs.record,
+                RivalryCopy.leadLabel(vs.wins > vs.losses ? .up : vs.wins < vs.losses ? .down : .even, them: name),
+                "\(vs.total) meeting\(vs.total == 1 ? "" : "s") in the seasons you share")
+      }
       return nil
-    case .season:
-      return { startSomething() }
+    }()
+    if let (line, lead, sub) = record, !c.profile.isMe {
+      Button { openHeadToHead(profileId) } label: {
+        VStack(spacing: 0) {
+          CSRule()
+          HStack(spacing: 0) {
+            Color.clear.frame(width: CSTokens.Space.rail, height: 1)
+            CSFaceRow([me(), face(c.profile, photo: nil)], style: .overlapped)
+            VStack(alignment: .leading, spacing: CSTokens.Space.s2) {
+              Text(TourCard.youAndThem(name)).csType(.name).foregroundStyle(cs.ink)
+                .lineLimit(1).truncationMode(.tail)
+              Text(sub).csType(.agateS, caps: true).foregroundStyle(cs.mut).lineLimit(1)
+            }
+            .padding(.leading, CSTokens.Space.s3)
+            .frame(minWidth: 0, maxWidth: .infinity, alignment: .leading)
+            VStack(alignment: .trailing, spacing: CSTokens.Space.s1) {
+              CSFigure(line, size: .s, label: nil)
+              Text(lead).csType(.agateS, caps: true).foregroundStyle(cs.mut)
+            }
+            .frame(width: 74, alignment: .trailing)
+          }
+          .frame(minHeight: 52)
+        }
+      }
+      .buttonStyle(.plain)
+      .padding(.horizontal, -CSTokens.Space.gutter)
+      .padding(.top, CSTokens.Space.s3)
+      .accessibilityElement(children: .ignore)
+      .accessibilityLabel("\(TourCard.youAndThem(name)). \(line), \(lead.lowercased()). \(sub)")
+      .accessibilityHint("Opens the record between you")
     }
   }
 
-  // MARK: bits
-
-  @ViewBuilder private var buddyAction: some View {
-    if let tag = model.relation.tag {
-      Text(tag).font(CSFont.label).tracking(0.8)
-        .foregroundStyle(model.relation == .friend ? cs.pos : cs.mut).padding(.top, 4)
-    } else if let label = model.relation.actionLabel {
-      CSButton(label, style: .quiet, busy: model.busyAdd) { Task { await model.addBuddy(profileId) } }
+  private func sinceLine(_ h: HeadToHead) -> String {
+    var s = "\(h.record.total) meeting\(h.record.total == 1 ? "" : "s")"
+    if let on = h.since {
+      let d = RivalryCopy.monthDaySpoken(on)
+      if !d.isEmpty { s += " · since \(d)" }
     }
-  }
-
-  private func youAndThemSub(_ h: HeadToHead) -> String {
-    var s = h.record.settled > 0 ? h.record.line + " · " + RivalryCopy.leadLabel(h.lead).lowercased() : ""
-    if s.isEmpty { s = "\(h.record.total) together" }
-    if HeadToHeadCopy.usesHeuristic(h) { s += " · some matched by day and course" }
     return s
   }
 
-  private func lastFive(_ c: TourCard) -> String {
-    let grosses = c.recent.compactMap(\.gross).prefix(5).map(String.init)
-    return grosses.isEmpty ? "—" : grosses.joined(separator: " · ")
+  private func me() -> CSFace.Model {
+    let p = store.me?.profile
+    return CSFace.Model(id: p?.id ?? UUID(), marker: p?.marker,
+                        initials: Initials.of(p?.display_name), isViewer: true)
   }
 
-  private func caseLine(_ cabinet: [TourCard.Cabinet]) -> String {
-    let lines = cabinet.compactMap(\.line)
-    guard !lines.isEmpty else { return "—" }
-    return lines.prefix(3).joined(separator: " · ") + (lines.count > 3 ? " +\(lines.count - 3)" : "")
-  }
-
-  private var skeleton: some View {
-    VStack(alignment: .leading, spacing: 12) {
-      ForEach(0..<4, id: \.self) { _ in
-        RoundedRectangle(cornerRadius: CSTokens.Radius.r, style: .continuous).fill(cs.bg1).frame(height: 56)
+  /// D150's course history — returned since D150 and never rendered here.
+  ///
+  /// **No thumbnail.** §10.2's drawn card needs real par and stroke index, and
+  /// `tour_card.courses[]` carries a NAME and nothing that keys the course
+  /// book — so the left column collapses and the name sets flush to the
+  /// margin, which is what the system says a course with none of the three
+  /// legal images does. Fake bars as ornament are less premium than nothing.
+  @ViewBuilder private func coursesBlock(_ c: TourCard, isMe: Bool) -> some View {
+    if !c.courses.isEmpty {
+      sectionHead("Courses", count: CredentialCopy.coursesCount(c.courses.count))
+      VStack(spacing: 0) {
+        ForEach(Array(c.courses.prefix(3).enumerated()), id: \.offset) { _, course in
+          VStack(spacing: 0) {
+            CSRule()
+            HStack(alignment: .center, spacing: CSTokens.Space.s3) {
+              VStack(alignment: .leading, spacing: CSTokens.Space.s2) {
+                Text(RoundCopy.course(course.name)).csType(.social).foregroundStyle(cs.ink)
+                  .lineLimit(1).truncationMode(.tail)
+                let sub = CredentialCopy.courseSub(
+                  city: nil,
+                  isHome: c.profile.homeCourse.map { RoundCopy.course($0) == RoundCopy.course(course.name) } ?? false,
+                  lastPlayed: course.lastPlayed, isMe: isMe)
+                if !sub.isEmpty {
+                  Text(sub).csType(.agateS, caps: true).foregroundStyle(cs.mut).lineLimit(1)
+                }
+              }
+              .frame(minWidth: 0, maxWidth: .infinity, alignment: .leading)
+              Text("\(course.rounds) round\(course.rounds == 1 ? "" : "s")")
+                .csType(.agateS, caps: true).foregroundStyle(cs.mut)
+            }
+            .frame(minHeight: 52)
+          }
+          .accessibilityElement(children: .combine)
+        }
+      }
+      .padding(.top, CSTokens.Space.s3)
+      if c.courses.count > 3 {
+        CSDoor(.link("All \(c.courses.count) courses", { model.showAllCourses.toggle() }))
+          .padding(.top, CSTokens.Space.s3)
+      }
+      if model.showAllCourses {
+        VStack(alignment: .leading, spacing: CSTokens.Space.s2) {
+          ForEach(Array(c.courses.dropFirst(3).enumerated()), id: \.offset) { _, course in
+            HStack {
+              Text(RoundCopy.course(course.name)).csType(.body).foregroundStyle(cs.ink)
+              Spacer()
+              Text("\(course.rounds)").csType(.column).foregroundStyle(cs.mut)
+            }
+          }
+        }
+        .padding(.top, CSTokens.Space.s3)
       }
     }
-    .redacted(reason: .placeholder)
+  }
+
+  /// D262 · R-O · the bag. Drawn only when the read answered AND there is
+  /// something in it: an empty "In the bag" head on somebody else's page is a
+  /// sentence about them that they did not write (L-44).
+  @ViewBuilder private func bagBlock(isMe: Bool) -> some View {
+    if let bag = model.bag, !bag.isEmpty {
+      sectionHead(BagCopy.head(isMe: isMe), count: "\(bag.clubs.count) clubs")
+      if let since = bag.since {
+        Text(BagCopy.sinceLine(since, isMe: isMe)).csType(.body).foregroundStyle(cs.mut)
+          .fixedSize(horizontal: false, vertical: true)
+          .padding(.top, CSTokens.Space.s3)
+      }
+      VStack(spacing: 0) {
+        ForEach(bag.clubs) { club in
+          bagRow(club.slotLabel.isEmpty ? "Club" : club.slotLabel, club.label)
+        }
+        if let ball = bag.ball { bagRow("Ball", ball.label) }
+      }
+      .padding(.top, CSTokens.Space.s3)
+      if !bag.sideline.isEmpty {
+        Text(bag.sideline.map(\.line).joined(separator: " · "))
+          .csType(.agateS, caps: true).foregroundStyle(cs.mut)
+          .padding(.top, CSTokens.Space.s3)
+      }
+    }
+  }
+
+  private func bagRow(_ label: String, _ value: String) -> some View {
+    VStack(spacing: 0) {
+      CSRule()
+      HStack {
+        Text(label).csType(.agateS, caps: true).foregroundStyle(cs.mut)
+        Spacer(minLength: CSTokens.Space.s3)
+        Text(value).csType(.body).foregroundStyle(cs.ink).lineLimit(1).truncationMode(.tail)
+      }
+      .frame(minHeight: 44)
+    }
+  }
+
+  // MARK: - the other three states
+
+  /// §6.4 · **Private is not an error and is never dressed as one.** The card
+  /// renders as its object outline and `TourCard.privateLine` speaks verbatim.
+  @ViewBuilder private var privateCard: some View {
+    CSCredential(
+      CSCredentialGolfer(face: CSFace.Model(id: profileId, marker: nil),
+                          name: "", identity: "", figures: [],
+                          club: "Cup Season"),
+      hasPhoto: false
+    ) { CSTokens.dark.ceremony }
+      .padding(.top, CSTokens.Space.s3)
+    Text("This card is private.").csType(.lead).foregroundStyle(cs.ink)
+      .fixedSize(horizontal: false, vertical: true)
+      .padding(.top, CSTokens.Space.s4)
+    Text(TourCard.privateLine).csType(.body).foregroundStyle(cs.mut)
+      .fixedSize(horizontal: false, vertical: true)
+      .padding(.top, CSTokens.Space.s3)
+    if let label = model.relation.actionLabel {
+      Button(label) { Task { await model.addBuddy(profileId) } }
+        .buttonStyle(.csPrimary(busy: model.busyAdd))
+        .padding(.top, CSTokens.Space.s3)
+    }
+  }
+
+  /// §6.1 · **the destination's own geometry, redacted.** The card's shape
+  /// appearing instantly is the point: the object is what the golfer came for.
+  private var skeleton: some View {
+    VStack(alignment: .leading, spacing: 0) {
+      CSCredential(
+        CSCredentialGolfer(face: CSFace.Model(id: profileId, marker: nil),
+                            name: "Loading name", identity: "@handle · city · course",
+                            figures: [.init("00.0", label: "Handicap index"),
+                                      .init("00", label: "Rounds")],
+                            club: "Cup Season"),
+        hasPhoto: false
+      ) { CSTokens.dark.ceremony }
+        .padding(.top, CSTokens.Space.s3)
+      ForEach(0..<2, id: \.self) { _ in
+        CSSectionHead("Section", count: "Count")
+        ForEach(0..<3, id: \.self) { _ in
+          VStack(spacing: 0) {
+            CSRule()
+            HStack { Text("A golfer’s row").csType(.name); Spacer() }.frame(minHeight: 52)
+          }
+        }
+      }
+    }
+    .csRedacted(true)
+  }
+
+  /// The one trailing action. **`SHARE`, spelled, in both themes** — a `…` on
+  /// the most shareable screen in the app hides the only verb that matters.
+  @ViewBuilder private var shareAction: some View {
+    if case .card(let l) = model.state {
+      ShareLink(item: shareText(l), subject: Text(l.card.profile.displayName ?? "A Cup Season card")) {
+        Text("Share")
+      }
+      .buttonStyle(.csTertiary(.toolbar))
+    }
+  }
+
+  private func shareText(_ l: TourCardLoad) -> String {
+    let p = l.card.profile
+    let who = p.isMe ? "My" : "\(p.displayName ?? "A golfer")’s"
+    return "\(who) card on Cup Season — \(CredentialCopy.identity(p))"
+  }
+}
+
+/// The initials a golfer gets when they chose NO marker. There is no initials
+/// rung below the marker (§6.2a); this is the "chose nothing" case only.
+enum Initials {
+  static func of(_ name: String?) -> String {
+    let parts = (name ?? "").split(separator: " ").prefix(2)
+    return parts.compactMap { $0.first.map(String.init) }.joined().uppercased()
   }
 }
 
@@ -329,15 +645,17 @@ final class PersonModel {
   /// D262 · nil is "the read did not happen" (no signal, or a database this
   /// migration has not reached) and draws NOTHING — never an empty bag.
   var bag: Bag?
-  var sharedSeason: SharedSeason?
   var isMe = false
   var name: String?
-
-  struct SharedSeason { let leagueId: UUID; let sub: String }
+  var marker: String?
+  var showAllCourses = false
 
   private let repo = TourCardRepository()
   private let people = PeopleService()
 
+  /// UNCHANGED (Wave 2 rebuilds the view, not the read): card → bag →
+  /// head-to-head, each riding in after the card, so a slow read never holds
+  /// the credential back.
   func load(_ id: UUID) async {
     let load: TourCardLoad?
     do { load = try await repo.load(id) } catch { load = nil }
@@ -350,22 +668,17 @@ final class PersonModel {
     relation = l.relation
     isMe = l.card.profile.isMe
     name = l.card.profile.displayName
+    marker = l.card.profile.marker
     guard l.card.visible else { state = .hidden; return }
     sharedCourses = l.card.sharedCourseNames
     state = .card(l)
 
-    // the bag rides in after the card, like the head-to-head: the page is
-    // useful without it and a slow read never holds the credential back
     bag = await BagService().load(id)
 
     guard !l.card.profile.isMe else { return }
-    // R4 rides in after the card — the page is useful without it, and a slow
-    // read never holds the credential back.
     if let h = await people.headToHead(id) {
       h2h = h.visible ? h : nil
     } else {
-      // the declared fallback; a read that answers with no record leaves the
-      // row off the page rather than putting an error on a card that loaded
       h2h = try? await people.headToHeadFallback(id, name: l.card.profile.displayName, marker: l.card.profile.marker)
     }
   }
@@ -386,7 +699,7 @@ final class PersonModel {
   }
 }
 
-#Preview("Person") {
+#Preview("The card") {
   NavigationStack { PersonPage(profileId: UUID()) }
     .environment(SessionStore())
     .csTheme()

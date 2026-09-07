@@ -84,6 +84,24 @@ public enum RivalryCopy {
     case .even: leadLabel(wins: 0, losses: 0)
     }
   }
+  /// **The named form: `YOU LEAD` · `GALEN LEADS` · `ALL SQUARE`.**
+  ///
+  /// `THEY LEAD` is not gendered and is fine in a row; on the clash it is the
+  /// one line on the surface not addressed to every golfer in a mixed league,
+  /// and `TERMINOLOGY`'s ruled form names a SUBJECT ("You lead 6–5"). One form
+  /// on both surfaces: the profile's record line reads this and so does the
+  /// clash. Falls back to the bare form when there is no name to name.
+  public static func leadLabel(_ lead: RivalryLead, them: String?) -> String {
+    guard let n = them?.split(separator: " ").first.map(String.init), !n.isEmpty else {
+      return leadLabel(lead)
+    }
+    switch lead {
+    case .up: return "YOU LEAD"
+    case .down: return "\(n.uppercased()) LEADS"
+    case .even: return "ALL SQUARE"
+    }
+  }
+
   /// "JUL 6" from "2026-07-06" — by parts, never through an ISO parser.
   public static func monthDay(_ iso: String) -> String {
     let parts = iso.split(separator: "-").compactMap { Int($0) }
