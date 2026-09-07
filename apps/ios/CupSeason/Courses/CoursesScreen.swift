@@ -30,6 +30,7 @@ struct CoursesScreen: View {
   @Environment(SessionStore.self) private var store
   @State private var books: [CourseBook] = []
   @State private var bests: [String: Int] = [:]
+  @State private var stars: [String: MyCourseRating] = [:]
   @State private var loaded = false
   @State private var filter: Filter = .all
 
@@ -44,6 +45,17 @@ struct CoursesScreen: View {
     case .played: return books.filter { $0.played }
     }
   }
+
+  /// **D289 · THE RECORD OF THE COURSES YOU LIKE.** The owner's own clause,
+  /// and the whole change to this screen: the list stops being an inventory in
+  /// schedule-then-recency order and becomes an OPINION, sorted. The rated
+  /// come first, best first; the rest fall under `ALSO KEPT` with a rail a
+  /// golfer can still tap on the page behind them.
+  private var liked: [CourseBook] {
+    shown.filter { stars[$0.id] != nil }
+      .sorted { (stars[$0.id]?.mine ?? 0, $1.label) > (stars[$1.id]?.mine ?? 0, $0.label) }
+  }
+  private var rest: [CourseBook] { shown.filter { stars[$0.id] == nil } }
 
   var body: some View {
     ScrollView {
@@ -86,15 +98,13 @@ struct CoursesScreen: View {
             }
             .padding(.top, CSTokens.Space.s2)
           }
-          VStack(spacing: 0) {
-            ForEach(shown) { b in
-              CSRule()
-              NavigationLink(value: CourseSheetRef(id: b.id, label: b.label)) {
-                CourseRow(book: b, best: bests[b.id], open: {})
-              }
-              .buttonStyle(.plain)
-            }
-            CSRule()
+          if !liked.isEmpty {
+            CSSectionHead("Courses you like", count: "\(liked.count) rated")
+            group(liked)
+          }
+          if !rest.isEmpty {
+            if !liked.isEmpty { CSSectionHead("Also kept", count: "\(rest.count)") }
+            group(rest)
           }
         }
       }
@@ -107,9 +117,27 @@ struct CoursesScreen: View {
     .task {
       books = await CourseBookStore().kept()
       loaded = true
-      // the phone's own store answers first and alone; the bests are one read
-      // on top, and a failure leaves the column absent rather than the list
+      // the phone's own store answers first and alone; the bests and the
+      // ratings are one read each on top, and a failure leaves the column
+      // absent rather than emptying the list (L-32)
       bests = await CoursePageRepository().myBests(me: store.me?.profile?.id)
+      let mine = await CourseRatingService().mine()
+      stars = Dictionary(mine.map { ($0.courseId, $0) }, uniquingKeysWith: { a, _ in a })
+    }
+  }
+
+  /// One run of rows under one head. The rule is the row's own top edge, and
+  /// the run closes with one — never a border and never a card (§32).
+  @ViewBuilder private func group(_ list: [CourseBook]) -> some View {
+    VStack(spacing: 0) {
+      ForEach(list) { b in
+        CSRule()
+        NavigationLink(value: CourseSheetRef(id: b.id, label: b.label)) {
+          CourseRow(book: b, best: bests[b.id], mine: stars[b.id]?.mine, open: {})
+        }
+        .buttonStyle(.plain)
+      }
+      CSRule()
     }
   }
 
@@ -143,6 +171,11 @@ struct CourseRow: View {
   /// Your best gross here, when the page's read has one. The list itself does
   /// no network read, so this is nil on the list and filled on the page.
   let best: Int?
+  /// **Your own star** (D289), when `my_course_ratings` has answered. The
+  /// rail on a ROW is a picture and not a control: a half-star target that
+  /// clears WCAG 2.5.8 needs a 48pt star, which is a headline and not a row,
+  /// so the control lives on the page this row opens.
+  var mine: Double? = nil
   let open: () -> Void
 
   private var holes: [CSDrawnCard.Hole] {
@@ -163,6 +196,12 @@ struct CourseRow: View {
         Text(book.label).csType(.social).foregroundStyle(cs.ink)
           .lineLimit(2).truncationMode(.tail)
           .fixedSize(horizontal: false, vertical: true)
+        if let mine, !typeSize.isA11y {
+          HStack(spacing: CSTokens.Space.s2) {
+            CSStarRail(mine, size: 14)
+            Text(CSRating.format(mine)).csType(.agateS, caps: true).foregroundStyle(cs.mut)
+          }
+        }
         Text(sub).csType(.agateS, caps: false).foregroundStyle(cs.mut)
           .lineLimit(typeSize.isA11y ? 3 : 1).truncationMode(.tail)
       }
@@ -185,7 +224,7 @@ struct CourseRow: View {
   }
 
   /// One casing rule: the place is sentence case, the facts are the page's
-  /// own. `Not rated` until the aggregate exists (D275).
+  /// own. The rating is a rail above this line (D289), never a word in it.
   private var sub: String {
     var parts: [String] = []
     if !book.place.isEmpty { parts.append(book.place) }
@@ -199,6 +238,7 @@ struct CourseRow: View {
 
   private var spoken: String {
     let b = best.map { ", your best \($0)" } ?? ""
-    return "\(book.label)\(b). \(sub)"
+    let r = mine.map { ", you rate it \(CSRating.format($0))" } ?? ""
+    return "\(book.label)\(b)\(r). \(sub)"
   }
 }

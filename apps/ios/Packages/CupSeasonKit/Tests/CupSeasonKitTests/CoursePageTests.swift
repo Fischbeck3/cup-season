@@ -85,12 +85,53 @@ import Foundation
     #expect(r.countLine.isEmpty)
   }
 
-  /// The function does not exist on this database yet — the migration is
-  /// written and not pushed — so the client's own state is `unavailable`, and
-  /// it draws the same rail an unrated course draws.
+  /// The read did not happen — no signal, or a database that predates a
+  /// function — so the client's own state is `unavailable`, and it draws the
+  /// same rail an unrated course draws. It is NOT "not rated", and only the
+  /// sheet is allowed to tell them apart.
   @Test func noFunctionMeansUnavailableRatherThanZero() {
     #expect(CourseRating.none.unavailable)
     #expect(CourseRating.none.stars == nil)
+  }
+
+  /// **D289 · the sentences come back with the numbers**, and an uncredited
+  /// one does not come back at all: a note with no name behind it is the thing
+  /// this product does not print, so the decoder drops it rather than the view
+  /// hiding it.
+  @Test func theSentencesDecodeAndTheUncreditedOneIsDropped() {
+    let v = JSONValue.object([
+      "rated": .bool(true), "stars": .number(4.5), "count": .number(24),
+      "friends": .number(4.5), "friends_count": .number(6), "mine": .number(5),
+      "mine_note": .string("Best muni in the state and it isn’t close."),
+      "notes": .array([
+        .object(["who": .string("Galen Marr"), "stars": .number(4.5),
+                 "note": .string("The 12th is the only hole that scares me.")]),
+        .object(["who": .string(""), "stars": .number(3), "note": .string("no name")]),
+        .object(["who": .string("Jade"), "stars": .number(4), "note": .string("")])])])
+    let r = CourseRatingService.decode(v)
+    #expect(r.mineNote == "Best muni in the state and it isn’t close.")
+    #expect(r.notes.count == 1)
+    #expect(r.notes.first?.line == "Galen Marr · 4.5")
+  }
+
+  /// A rating with no sentence is the common case, and it is nil rather than
+  /// an empty string dressed as one (L-44).
+  @Test func aRatingWithNoSentenceCarriesNone() {
+    let v = JSONValue.object(["rated": .bool(true), "stars": .number(4), "count": .number(2),
+                              "mine": .number(4), "mine_note": .null])
+    let r = CourseRatingService.decode(v)
+    #expect(r.mineNote == nil && r.notes.isEmpty)
+  }
+
+  /// **`p_note` is DROPPABLE, and that is what makes the default safe.** A
+  /// client newer than its database still sets the star: `svc.call` retries
+  /// without the argument, and the server's `null` contract leaves any
+  /// sentence already stored exactly where it was.
+  @Test func theNoteArgumentIsTheDroppableOne() {
+    #expect(RateCourseCall.optionalArgs == ["p_note"])
+    #expect(CourseRatingCall.optionalArgs.isEmpty)
+    #expect(UnrateCourseCall.optionalArgs.isEmpty)
+    #expect(MyCourseRatingsCall.name == "my_course_ratings")
   }
 
   /// The two sentences, with L-33's small numbers as words through the one

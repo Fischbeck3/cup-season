@@ -17,19 +17,23 @@
 // representing nothing. `CSDrawnCard` therefore refuses to draw at all when
 // it has no real card to draw FROM, and it never invents a height.
 //
-// There is **no gold on the course page** except the one bar the drawn card
-// marks, and that is `BUILD_BRIEF` §4's own acceptance line ("gold on the #1
-// stroke hole") winning over `course.md` §2.3's later sentence. The RATING is
-// `ink` in every state, in a control and out of one: an average of opinions is
-// not earned (D275), and gold may never touch a control (D269 / `LINT-11`).
+// **THERE IS NO GOLD ON THE COURSE PAGE AT ALL** (D289). The drawn card's #1
+// stroke bar was the one exception, carried on `BUILD_BRIEF` §4's acceptance
+// line over `course.md` §2.3's later sentence; `VISUAL_PASS` §2 rules the
+// other way and it is right — gold means a thing that was WON (§2.4), and a
+// hole's stroke index is not won. The mark is `mut` at full strength instead.
+// The RATING is `ink` in every state, in a control and out of one: an average
+// of opinions is not earned (D275), and gold may never touch a control
+// (D269 / `LINT-11`).
 
 import SwiftUI
 
 // MARK: - Rung 2 · the drawn card
 
 /// **The drawn card** — the plate a course generates from its own scorecard.
-/// Eighteen bars, **height by yardage, width by par**, one bar in `gold` on
-/// the #1 stroke hole, numbered 1–18 in `columnS` beneath.
+/// Eighteen bars, **height by yardage, width by par**, the #1 stroke hole at
+/// full strength against the rest at 56%, numbered 1–18 in `columnS` beneath.
+/// **No gold, in any state** (D289).
 ///
 /// **At ≤64pt it renders the front nine only** — nine bars at three heights by
 /// par, one tone, no numerals (`UI_SYSTEM` §10.2). Eighteen 3pt bars in a
@@ -86,8 +90,9 @@ public struct CSDrawnCard: View {
   /// The bars actually drawn: eighteen at hero, the front nine at thumbnail.
   var drawn: [Hole] { scale == .thumb ? Array(holes.prefix(9)) : Array(holes.prefix(18)) }
 
-  /// The hardest hole by stroke index — the one bar that takes the metal.
-  /// nil when no hole carries an SI, and then no bar is marked.
+  /// The hardest hole by stroke index — the one bar that takes the mark (never
+  /// the metal, D289). nil when no hole carries an SI, and then nothing is
+  /// marked.
   var hardest: Int? { drawn.filter { $0.si != nil }.min { ($0.si ?? 99) < ($1.si ?? 99) }.map(\.number) }
 
   public var body: some View {
@@ -111,9 +116,20 @@ public struct CSDrawnCard: View {
               // draws them at **#4A6155**, which is `ground.rule`'s own dark
               // value: sampled off the artboard, not chosen here, and 2.7:1 on
               // the pinned `ceremony` ground against the 1.3:1 the neutral was
-              // giving. The gold #1-stroke bar is unchanged and is still the
-              // surface's one earned object.
-              .fill(h.number == hardest && scale == .hero ? cs.gold : barGreen)
+              // giving.
+              //
+              // D289 / `VISUAL_PASS` §2 · **NO GOLD IN THE DRAWING, IN ANY
+              // STATE.** The #1 stroke bar was `gold`. That is the same
+              // category error §9.11 spent a paragraph removing from the
+              // rating: gold means a thing that was WON (§2.4), and neither a
+              // hole's par nor its stroke index is won by anybody. **The mark
+              // survives** — it moves to `mut`, the next tone up from the bars
+              // themselves, at full strength — so the card still says which
+              // hole plays hardest and spends no metal saying it. This
+              // overrides `BUILD_BRIEF` §4's acceptance line ("gold on the #1
+              // stroke hole"); `course.md` §2.3 said so first and this file's
+              // own head note named the clash and left it standing.
+              .fill(h.number == hardest && scale == .hero ? barMark : barGreen)
               .frame(height: max(3, field * height(h)))
             if numerals {
               Text("\(h.number)")
@@ -134,8 +150,8 @@ public struct CSDrawnCard: View {
     .background(thumbGround)
     .accessibilityElement(children: .ignore)
     .accessibilityLabel(spoken)
-    // the one bar that takes the metal — counted, like every other gold object
-    .csBudget(gold: hardest != nil && scale == .hero ? 1 : 0)
+    // D289 · the drawn card spends NO gold in any state, so it counts none.
+    .csBudget(gold: 0)
   }
 
   /// The bars' own green. On a **hero** plate it is the pinned dark value,
@@ -144,6 +160,14 @@ public struct CSDrawnCard: View {
   /// bars take the theme's rule.
   private var barGreen: Color {
     scale == .hero ? CSTokens.dark.rule : cs.rule
+  }
+
+  /// The hardest hole's bar: the same family one tone up, **never gold**
+  /// (D289). On a hero plate the ground is pinned `ceremony` in both
+  /// printings, so the mark is pinned with it; on a thumbnail it takes the
+  /// reader's own theme, like the bars beside it.
+  private var barMark: Color {
+    scale == .hero ? CSTokens.dark.mut : cs.mut
   }
 
   @ViewBuilder private var thumbGround: some View {
@@ -217,31 +241,84 @@ public struct CSStarRail: View {
   /// The unfilled outline's tone. `mut` when the whole rail is empty — an
   /// unrated course still shows a rail a golfer can see.
   let unrated: Bool
-  public init(_ value: Double, size: CGFloat = 22, unrated: Bool = false) {
-    self.value = value; self.size = size; self.unrated = unrated
+  /// **D289 · the rail as a CONTROL.** Non-nil turns on ten half-star targets
+  /// and makes the rail adjustable to VoiceOver. Tapping the value already set
+  /// calls it with the SAME value, and the caller reads that as "take it off"
+  /// — one tap in, one tap out, no confirm and no sheet (`VISUAL_PASS` §5.1).
+  ///
+  /// **The geometry is the reason `rate` forces 48pt.** WCAG 2.5.8 wants
+  /// 24 × 24, and a half star is half the glyph: at the 22pt display size the
+  /// target would be 11pt. `RateCourseSheet`'s 28pt half rides a stated
+  /// carve-out because the sheet also carries 44pt steppers; a rail sitting
+  /// alone on a page has no stepper to lean on, so it grows instead of
+  /// borrowing an exemption it has not earned.
+  let onSet: ((Double) -> Void)?
+
+  public init(_ value: Double, size: CGFloat = 22, unrated: Bool = false,
+              onSet: ((Double) -> Void)? = nil) {
+    self.value = value; self.size = onSet == nil ? size : max(size, 48); self.unrated = unrated
+    self.onSet = onSet
   }
+
   public var body: some View {
+    if let onSet { control(onSet) } else { rail }
+  }
+
+  /// §22 · the newly filled stars sweep left to right. Nothing else moves,
+  /// and `CSMotion` owns the curve so this is not a second easing.
+  private func control(_ set: @escaping (Double) -> Void) -> some View {
     HStack(spacing: CSTokens.Space.s1) {
       ForEach(0..<5, id: \.self) { i in
         ZStack(alignment: .leading) {
-          // **A filled star is FILLED.** The glyph family strokes every mark,
-          // and a stroked star masked at 50% reads as five outlines in two
-          // greys — "not rated" and "four and a half" drew the same picture.
-          // The star is the one mark in the family with a filled state,
-          // because filling it is what the rating MEANS.
-          CSStarShape().stroke(lineWidth: 1.4)
-            .foregroundStyle(unrated ? cs.mut : cs.rule)
-            .frame(width: size, height: size)
-          CSStarShape().fill(cs.ink)
-            .frame(width: size, height: size)
-            .mask(alignment: .leading) {
-              Rectangle().frame(width: size * CGFloat(min(1, max(0, value - Double(i)))))
-            }
+          star(i)
+          HStack(spacing: 0) {
+            half(Double(i) + 0.5, set)
+            half(Double(i) + 1.0, set)
+          }
         }
       }
     }
+    .csAnimation(CSMotion.snap, value: value)
+    .accessibilityElement(children: .ignore)
+    .accessibilityLabel("Your rating")
+    .accessibilityValue(unrated ? "Not yours yet" : CSStarRail.spoken(value))
+    .accessibilityAdjustableAction { d in
+      set(min(5, max(0.5, value + (d == .increment ? 0.5 : -0.5))))
+    }
+  }
+
+  private func half(_ v: Double, _ set: @escaping (Double) -> Void) -> some View {
+    Button { CSHaptic.selection(); set(v) } label: {
+      Color.clear.frame(width: size / 2, height: size)
+    }
+    .buttonStyle(.plain)
+    .accessibilityHidden(true)
+  }
+
+  private var rail: some View {
+    HStack(spacing: CSTokens.Space.s1) {
+      ForEach(0..<5, id: \.self) { i in star(i) }
+    }
     .accessibilityElement(children: .ignore)
     .accessibilityLabel(unrated && value == 0 ? "Not rated" : CSStarRail.spoken(value))
+  }
+
+  private func star(_ i: Int) -> some View {
+    ZStack(alignment: .leading) {
+      // **A filled star is FILLED.** The glyph family strokes every mark,
+      // and a stroked star masked at 50% reads as five outlines in two
+      // greys — "not rated" and "four and a half" drew the same picture.
+      // The star is the one mark in the family with a filled state,
+      // because filling it is what the rating MEANS.
+      CSStarShape().stroke(lineWidth: 1.4)
+        .foregroundStyle(unrated ? cs.mut : cs.rule)
+        .frame(width: size, height: size)
+      CSStarShape().fill(cs.ink)
+        .frame(width: size, height: size)
+        .mask(alignment: .leading) {
+          Rectangle().frame(width: size * CGFloat(min(1, max(0, value - Double(i)))))
+        }
+    }
   }
 
   /// *"four and a half stars"* — the value a golfer HEARS, and the value the
@@ -271,9 +348,14 @@ struct CSStarShape: Shape {
 
 // MARK: - The rating (D275)
 
-/// The rating block: the community's number as a rule-and-figure **in `ink`**,
-/// the drawn rail beside it, one sentence naming your golfers' number, and one
-/// tertiary link. Two columns, `s4` apart; stacked at the accessibility sizes.
+/// The rating block: **two objects, not one row with two numbers in it.**
+///
+/// THE AGGREGATE is the community's mean as a rule-and-figure in `ink`, with
+/// one sentence naming your golfers' number beneath it. THE ACT is the rail
+/// under that, and the rail shows **YOURS** — because a control that displays
+/// somebody else's number is a control a golfer cannot read. The first draft
+/// of this wave put a 4.5 figure beside a five-star rail and made the two
+/// disagree in a single glance (D289).
 ///
 /// **There is no gold on this object in any state.** An average of opinions is
 /// not earned, and its weight comes from size and the rule (D275).
@@ -281,28 +363,38 @@ public struct CSRating: View {
   @Environment(\.cs) private var cs
   @Environment(\.dynamicTypeSize) private var typeSize
 
-  /// nil = **not rated**, which is a state and not an error: the rail draws
-  /// full size and unfilled, and the link still says `Rate it`.
+  /// nil = **not rated**, which is a state and not an error.
   let value: Double?
   let count: Int
   /// *"Your golfers give it {4.9}."* — braces mark the figure run; nil when
   /// none of your golfers has rated it.
   let sentence: String?
+  /// **The viewer's own star**, or nil. The rail draws this, and the label
+  /// under it says which state you are in — `YOUR RATING · 4.5` or
+  /// `NOT YOURS YET`. Null, never zero (L-44).
+  let mine: Double?
+  /// D289 · one tap sets it, and tapping the value you already hold takes it
+  /// off. nil leaves the rail a picture, which is what a row wants.
+  let onSet: ((Double) -> Void)?
+  /// The deeper surface — the sheet where the SENTENCE is written. It is not
+  /// how a star is set any more.
   let rate: (() -> Void)?
 
-  public init(value: Double?, count: Int, sentence: String?, rate: (() -> Void)? = nil) {
-    self.value = value; self.count = count; self.sentence = sentence; self.rate = rate
+  public init(value: Double?, count: Int, sentence: String?, mine: Double? = nil,
+              onSet: ((Double) -> Void)? = nil, rate: (() -> Void)? = nil) {
+    self.value = value; self.count = count; self.sentence = sentence
+    self.mine = mine; self.onSet = onSet; self.rate = rate
   }
 
   public var body: some View {
-    if typeSize.isA11y {
-      VStack(alignment: .leading, spacing: CSTokens.Space.s3) { figure; rail; line; door }
-    } else {
-      HStack(alignment: .top, spacing: CSTokens.Space.s4) {
-        figure.frame(width: 132, alignment: .leading)
-        VStack(alignment: .leading, spacing: CSTokens.Space.s3) { rail; line; door }
-          .frame(maxWidth: .infinity, alignment: .leading)
+    VStack(alignment: .leading, spacing: CSTokens.Space.s3) {
+      figure
+      line
+      if onSet != nil || mine != nil {
+        VStack(alignment: .leading, spacing: CSTokens.Space.s2) { rail; mineLine }
+          .padding(.top, CSTokens.Space.s1)
       }
+      door
     }
   }
 
@@ -314,7 +406,13 @@ public struct CSRating: View {
   }
 
   @ViewBuilder private var rail: some View {
-    CSStarRail(value ?? 0, unrated: value == nil)
+    CSStarRail(mine ?? 0, size: onSet == nil ? 22 : 48, unrated: mine == nil, onSet: onSet)
+  }
+
+  @ViewBuilder private var mineLine: some View {
+    Text(mine.map { "Your rating · " + CSRating.format($0) } ?? "Not yours yet")
+      .csType(.agateS, caps: true).foregroundStyle(cs.mut)
+      .fixedSize(horizontal: false, vertical: true)
   }
 
   @ViewBuilder private var line: some View {
@@ -334,7 +432,8 @@ public struct CSRating: View {
     if let rate {
       // `.content`, never `.live`: the rating is not this screen's live
       // action, so the link keeps the shape and loses the metal (D269).
-      Button("Rate it", action: rate).buttonStyle(.csTertiary(.content))
+      Button(mine == nil ? "Rate it" : "Say something about it", action: rate)
+        .buttonStyle(.csTertiary(.content))
     }
   }
 

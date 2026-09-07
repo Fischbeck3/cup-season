@@ -58,9 +58,11 @@ import SwiftUI
     #expect(card.height(byPar[1]) > card.height(byPar[3]))   // par 4 over par 3
   }
 
-  /// **The metal lands on the #1 stroke hole and nowhere else.** One gold
-  /// object per viewport is counted by hue, and the card counts itself.
-  @Test func oneBarTakesTheMetalAndItIsTheHardestHole() {
+  /// **The mark lands on the #1 stroke hole and nowhere else — and it is not
+  /// the metal any more** (D289). Gold means a thing that was WON, and a
+  /// hole's stroke index is not won by anybody; the bar takes `mut` at full
+  /// strength instead, and the card's gold budget is zero.
+  @Test func oneBarTakesTheMarkAndItIsTheHardestHole() {
     let card = CSDrawnCard(nine())
     #expect(card.hardest == 6)                 // SI 1 is the 6th at Papago
     // no stroke index anywhere: no mark at all, rather than a guess
@@ -74,8 +76,7 @@ import SwiftUI
     let eighteen = (1...18).map { CSDrawnCard.Hole(number: $0, par: $0 % 3 == 0 ? 3 : 4, si: $0) }
     #expect(CSDrawnCard(eighteen, scale: .thumb).drawn.count == 9)
     #expect(CSDrawnCard(eighteen, scale: .hero).drawn.count == 18)
-    // and it carries no metal: a row's left column is not where a viewport
-    // spends its one gold object
+    // and it carries no mark: a row's left column is nine bars in one tone
     #expect(CSDrawnCard(eighteen, scale: .thumb).hardest == 1)
   }
 

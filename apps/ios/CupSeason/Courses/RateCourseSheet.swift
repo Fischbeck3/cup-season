@@ -19,14 +19,18 @@
 // remainder is `mut`. An average of opinions is not earned (D275), and gold
 // may never touch a control in any case (D269 / `LINT-11`).
 //
-// AND IT SAYS WHEN IT CANNOT SAVE. `rate_course` is written and NOT PUSHED
-// (`supabase/migrations/20261007090000_…`), so on today's database every write
-// fails. The sheet says so **in the product's voice, before the golfer
-// commits**, rather than letting them drag a rail and meet an error — and it
-// promises nothing it cannot do: the number is not queued and not kept. The
-// primary is still offered, because a client ahead of its database is a state
-// this repo ships deliberately (D261's own posture), and the moment the owner
-// pushes, the same button starts working with no client change.
+// **D289 · THE STAR IS NO LONGER SET HERE, AND THIS SHEET IS NOT AN ERROR
+// MESSAGE ANY MORE.** `rate_course` is LIVE (the owner pushed
+// `20261007090000` on 2026-09-07; that file's own "HAS NOT BEEN RUN" header is
+// stale), and the page's own rail now sets a star in ONE TAP with no sheet at
+// all (`VISUAL_PASS` §5.1). What is left here is the thing a tap cannot do:
+// **the sentence.** 140 characters, one line, saved with the star it belongs
+// to — the owner's *"what we thought of the course"*, and the whole reason
+// `course_ratings` grew a `note` column.
+//
+// The fine control stays because it is the ACCESSIBLE one: a 28pt half with
+// 44pt steppers beside it and an adjustable rail for VoiceOver. A golfer who
+// cannot hit a half star on the page can always come here.
 
 import SwiftUI
 import CSDesign
@@ -43,8 +47,15 @@ struct RateCourseSheet: View {
   let onChange: (CourseRating) -> Void
 
   @State private var stars: Double = 4.0
+  @State private var note: String = ""
   @State private var busy = false
   @State private var failed = false
+  /// The star landed and the sentence did not, because this database predates
+  /// the column. Said out loud; never dismissed over.
+  @State private var noteWaiting = false
+  /// D289 · the sentence has a column and a constraint, and the field says so
+  /// rather than truncating in silence.
+  static let noteCap = 140
 
   var body: some View {
     NavigationStack {
@@ -67,11 +78,18 @@ struct RateCourseSheet: View {
               .frame(maxWidth: .infinity, alignment: .leading)
           }
 
+          sentence
+
           CSRule()
           others
-          if failed || rating.unavailable { unavailable }
+          if failed { unavailable }
+          if noteWaiting {
+            Text("Your rating saved. The sentence needs the next update — it is not lost, it is just not stored yet.")
+              .csType(.bodyS).foregroundStyle(cs.mut)
+              .fixedSize(horizontal: false, vertical: true)
+          }
 
-          CSDoor(.primary(busy ? "Saving" : "Rate it") { Task { await save() } })
+          CSDoor(.primary(busy ? "Saving" : "Save it") { Task { await save() } })
           if rating.mine != nil {
             Button("Take my rating off") { Task { await remove() } }
               .buttonStyle(.csTertiary(.content))
@@ -84,7 +102,28 @@ struct RateCourseSheet: View {
       .csCloseButton { dismiss() }
     }
     .csFittedSheet(560, large: true)
-    .onAppear { stars = rating.mine ?? rating.stars ?? 4.0 }
+    .onAppear {
+      stars = rating.mine ?? rating.stars ?? 4.0
+      note = rating.mineNote ?? ""
+    }
+  }
+
+  // MARK: the sentence (D289)
+
+  /// **One line about the course, 140 characters.** The serif, because it is a
+  /// person talking and not a form field — the same face `CSQuote` prints it
+  /// back in on the page. There is no formatting, no second screen and no
+  /// "read more": the cap is the column's, and a golfer who wants to write a
+  /// paragraph about a course cannot.
+  @ViewBuilder private var sentence: some View {
+    CSField(label: "What you thought",
+            placeholder: "Best muni in the state\u{2026}",
+            text: $note,
+            caption: "Optional. One line, and your golfers see it on the course.",
+            limit: Self.noteCap)
+      .onChange(of: note) { _, n in
+        if n.count > Self.noteCap { note = String(n.prefix(Self.noteCap)) }
+      }
   }
 
   // MARK: the control
@@ -170,10 +209,11 @@ struct RateCourseSheet: View {
     }
   }
 
-  /// The client is ahead of its database, and it says so in the one place a
-  /// golfer would otherwise meet a silent failure.
+  /// The write did not land. One sentence, in the product's voice, with the
+  /// golfer's number still in the control — never a raw code, and never a
+  /// promise that it was queued, because it was not.
   private var unavailable: some View {
-    Text("Ratings are not switched on yet, so this one cannot be saved. Everything else on the page is real.")
+    Text("That did not save. Your number is still here — try it again in a moment.")
       .csType(.bodyS).foregroundStyle(cs.mut)
       .fixedSize(horizontal: false, vertical: true)
   }
@@ -184,8 +224,21 @@ struct RateCourseSheet: View {
     busy = true
     defer { busy = false }
     do {
-      let r = try await CourseRatingService().rate(courseId, stars: stars)
+      // D289 · the sentence rides the same call. `""` takes it off by the
+      // column's own contract, which is why an empty field is sent rather
+      // than swallowed.
+      let wanted = note.trimmingCharacters(in: .whitespacesAndNewlines)
+      let r = try await CourseRatingService().rate(courseId, stars: stars, note: wanted)
       onChange(r)
+      // A DATABASE OLDER THAN THE COLUMN TAKES THE STAR AND NOT THE SENTENCE:
+      // `p_note` is droppable, so `svc.call` retries without it and succeeds.
+      // The aggregate comes back with no note on it, and that is the tell — so
+      // the sheet SAYS SO rather than dismissing on a half-saved act.
+      if !wanted.isEmpty && (r.mineNote ?? "") != wanted {
+        noteWaiting = true
+        CSHaptic.impact(.light)
+        return
+      }
       CSHaptic.impact(.light)
       dismiss()
     } catch {

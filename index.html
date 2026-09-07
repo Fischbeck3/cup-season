@@ -2911,6 +2911,11 @@ body:not(.noleague) #hubLeagueless{display:none;}
 .cs-course{display:grid; grid-template-columns:1fr 340px; gap:var(--gutter-desk);
   align-items:start; margin-bottom:var(--s6);}
 @media (max-width:900px){ .cs-course{grid-template-columns:1fr; gap:var(--s4);} }
+/* D289 · a grid item's automatic minimum is its CONTENT, and the leaf's
+   eighteen-column table is 514px wide — so at 390 the whole page scrolled
+   sideways. `min-width:0` hands the scroll back to the leaf, which already
+   owns one. */
+.cs-course>div{min-width:0;}
 .cs-plate{position:relative; aspect-ratio:2.6/1; background:var(--ceremony);
   overflow:hidden; display:flex; align-items:flex-end;}
 .cs-plate .cs-plate-copy{position:relative; z-index:2; padding:var(--s4);
@@ -2938,8 +2943,53 @@ body:not(.noleague) #hubLeagueless{display:none;}
 .cs-leaf td{padding:2px 6px; text-align:right; min-width:22px; color:var(--leaf-mut);}
 .cs-leaf tr.par td{color:var(--leaf-ink); font-weight:500;}
 .cs-leaf tr.par{border-top:1px solid color-mix(in srgb, var(--leaf-ink) 20%, transparent);}
-.cs-stars{display:inline-flex; gap:var(--s1); vertical-align:middle;}
-.cs-stars svg{width:22px; height:22px;}
+/* D289 · the rail is a CONTROL. The fill is a second copy of the same five
+   stars behind a clipping window whose width IS the value, so setting a rating
+   is a width change and §22's 180ms left-to-right sweep is the transition on
+   it. `--star` is the instance's size; the ten half-star buttons are absolute
+   over it, 48pt tall so the target clears 44 in the axis that can. */
+.cs-stars{position:relative; display:inline-flex; gap:var(--s1); vertical-align:middle;
+  line-height:0; --star:22px;}
+.cs-stars .csr-base,.cs-stars .csr-inner{display:inline-flex; gap:var(--s1); flex:0 0 auto;}
+.cs-stars .csr-fill{position:absolute; left:0; top:0; height:100%; overflow:hidden;
+  pointer-events:none; transition:width 180ms cubic-bezier(.2,.7,.3,1);}
+.cs-stars svg{width:var(--star); height:var(--star); flex:0 0 auto;}
+.cs-stars .csh{position:absolute; top:-8px; height:calc(var(--star) + 16px);
+  width:calc(var(--star) / 2); padding:0; margin:0; border:0; background:none;
+  cursor:pointer; -webkit-appearance:none; appearance:none;}
+.cs-stars .csh:focus-visible{outline:2px solid var(--ink); outline-offset:2px; border-radius:var(--p);}
+@media (prefers-reduced-motion:reduce){ .cs-stars .csr-fill{transition:none;} }
+/* the aggregate: a figure, a 2pt rule under both it and the rail, one agate
+   line. NO GOLD IN ANY STATE — an average of opinions is not earned. */
+.cs-rating{margin-top:var(--s4);}
+.cs-rating-top{display:flex; align-items:center; gap:var(--s3); flex-wrap:wrap;}
+@media (max-width:420px){ .cs-rating .cs-stars{--star:44px;} }
+.cs-rating-rule{height:2px; background:var(--ink); margin:12px 0 8px;}
+.cs-rating-act{margin-top:var(--s4);}
+.cs-note{display:block; width:100%; margin-top:var(--s3); padding:8px 0;
+  background:none; border:0; border-bottom:1px solid var(--rule); color:var(--ink);
+  font-family:var(--serif); font-size:19px; line-height:1.34;}
+.cs-note::placeholder{color:var(--mut); font-family:var(--sans); font-size:15px;}
+.cs-note:focus{outline:none; border-bottom-color:var(--ink);}
+.cs-said{margin:var(--s3) 0 0; padding:0;}
+.cs-said p{margin:0;}
+/* §5.4 · the record. A row is a rule, a plate and three lines — never a card
+   inside a card (§32), and the unrated are quieter by being SMALLER, not by
+   being a dashed box. */
+.cs-krow{border-top:1px solid var(--rule); padding:var(--s4) 0 var(--s5); cursor:pointer;}
+.cs-krow:focus-visible{outline:2px solid var(--ink); outline-offset:4px;}
+.cs-krow.is-quiet{padding:var(--s3) 0 var(--s4);}
+.cs-krow-head{display:flex; align-items:flex-start; justify-content:space-between; gap:var(--s3);}
+.cs-krow-rate{display:flex; align-items:center; gap:var(--s2); flex:0 0 auto; white-space:nowrap;}
+.cs-krow-head-h{margin:var(--s6) 0 0;}
+.cs-kplate{margin-top:var(--s3); height:40px; background:var(--bg1);}
+.cs-krow .cs-kplate svg{width:100%; height:100%; display:block;}
+.cs-krow .cs-facts{margin-top:var(--s3);}
+.cs-cardleaf{margin-top:var(--s3);}
+.cs-cardleaf>summary{color:var(--mut); cursor:pointer; list-style:none; padding:8px 0;}
+.cs-cardleaf>summary::-webkit-details-marker{display:none;}
+.cs-cardleaf>summary::after{content:' \203A';}
+.cs-cardleaf[open]>summary::after{content:'';}
 .cs-roster{display:flex; flex-wrap:wrap; gap:var(--s3); margin-top:var(--s3);}
 .cs-roster .who{text-align:center;}
 /* D262 / R-O · the bag. The desk's half is DESKTOP-FIRST (R-C): on a 1440 the
@@ -13519,7 +13569,12 @@ function csDrawnCardSvg(holes, opts){
   const o = opts || {};
   const list = (holes||[]).filter(h=>h && h.par!=null).slice(0, o.nine ? 9 : 18);
   if(!list.length) return '';
-  const W = 1000, H = o.nine ? 180 : 220, GAP = o.nine ? 6 : 10, LAB = o.nine ? 0 : 26;
+  /* `bare` · eighteen holes, no numerals. A row's plate is 40pt tall, and at
+     that height an 18-numeral row scales to five pixels — the same illegible
+     comb §10.2 bans the contour at thumbnail scale for. The SHAPE survives,
+     which is the part that says "that is Papago". */
+  const W = 1000, H = (o.nine || o.bare) ? 180 : 220, GAP = o.nine ? 6 : 10,
+        LAB = (o.nine || o.bare) ? 0 : 26;
   const wOf = p => p<=3 ? 0.78 : (p>=5 ? 1.30 : 1);
   const total = list.reduce((a,h)=>a+wOf(h.par), 0);
   const usable = W - GAP*(list.length-1);
@@ -13533,7 +13588,15 @@ function csDrawnCardSvg(holes, opts){
   let x = 0, out = '';
   list.forEach(h=>{
     const w = usable * wOf(h.par) / total, bh = Math.max(3, field * hOf(h));
-    const fill = (si && h.hole===si.hole && !o.nine) ? 'var(--gold)' : 'var(--mut)';
+    /* D289 / `VISUAL_PASS` §2 · NO GOLD IN THE DRAWING, IN ANY STATE. The
+       hardest hole was filled `gold`, which is the same category error §9.11
+       spent a paragraph removing from the rating: gold means a thing that was
+       WON (§2.4), and a hole's stroke index is not won. The mark stays — it is
+       the same tone at full opacity against the rest at 56% — so the card
+       still says which hole plays hardest without spending the metal.
+       (This overrides `BUILD_BRIEF` §4's acceptance line "gold on the #1
+       stroke hole"; `surfaces/course.md` §2.3 said so first.) */
+    const fill = 'var(--mut)';
     const op   = (si && h.hole===si.hole && !o.nine) ? '1' : 'var(--a56)';
     out += `<rect x="${x.toFixed(1)}" y="${(field-bh).toFixed(1)}" width="${w.toFixed(1)}" height="${bh.toFixed(1)}" fill="${fill}" opacity="${op}"/>`;
     if(LAB) out += `<text x="${(x+w/2).toFixed(1)}" y="${(H-6).toFixed(1)}" text-anchor="middle" font-family="var(--mono)" font-size="15" fill="var(--mut)" opacity="var(--a56)">${h.hole}</text>`;
@@ -13542,23 +13605,212 @@ function csDrawnCardSvg(holes, opts){
   return `<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" aria-hidden="true">${out}</svg>`;
 }
 
-/* Five drawn stars, filled `ink` / unfilled `rule`, halves by clipping — the
-   phone's `CSStarRail`, and the same path the glyph family draws. There is no
-   dingbat star anywhere in this product. */
-function csStarsSvg(value, unrated){
-  const d = 'M12 3.8l2.5 5.2 5.7.8-4.1 4 1 5.6-5.1-2.7-5.1 2.7 1-5.6-4.1-4 5.7-.8z';
-  let out = '<span class="cs-stars" aria-hidden="true">';
-  for(let i=0;i<5;i++){
-    const f = Math.min(1, Math.max(0, (value||0) - i));
-    out += `<svg viewBox="0 0 24 24">`
-        +  `<path d="${d}" fill="none" stroke="${unrated?'var(--mut)':'var(--rule)'}" stroke-width="1.4"/>`
-        +  (f>0 ? `<clipPath id="cs-st${i}-${Math.round((value||0)*10)}"><rect x="0" y="0" width="${(24*f).toFixed(1)}" height="24"/></clipPath>`
-                + `<path d="${d}" fill="var(--ink)" clip-path="url(#cs-st${i}-${Math.round((value||0)*10)})"/>` : '')
-        +  `</svg>`;
-  }
-  return out + '</span>';
+/* ── D289 · THE RATING, LIVE ───────────────────────────────────────────────
+   `course_rating`, `rate_course`, `unrate_course` and `my_course_ratings` are
+   APPLIED and granted to `authenticated`. Until today this file drew
+   `csStarsSvg(0, true)` on every course under a comment saying the functions
+   were unpushed — so the desk told a golfer their course was unrated whatever
+   the database held. That comment is gone and so is the hardcode.
+
+   THE STORE IS A MIRROR, NOT A CACHE WITH OPINIONS. `my_course_ratings()` is
+   one read for the whole record; `course_rating(id)` fills in your golfers'
+   sentences for the courses actually on screen; and every write returns the
+   aggregate, so the client re-tallies from the server's own arithmetic and
+   never adds one to a number it was holding. A failed read leaves what the
+   device had, which is not the same as zero (L-44). */
+const CS_RATING_KEY = 'cs.ratings.v1';
+const CS_RATINGS = { by: Object.create(null), loaded: false, notesFor: Object.create(null) };
+function csRatingsLoad(){
+  if(CS_RATINGS.loaded) return;
+  CS_RATINGS.loaded = true;
+  try{
+    const raw = JSON.parse(localStorage.getItem(CS_RATING_KEY) || '{}');
+    if(raw && typeof raw === 'object' && !Array.isArray(raw)) CS_RATINGS.by = raw;
+  }catch(_){ /* a blocked store is not a reason to lose a screen */ }
+}
+function csRatingsSave(){
+  try{ localStorage.setItem(CS_RATING_KEY, JSON.stringify(CS_RATINGS.by)); }catch(_){}
+}
+function csRatingOf(id){ csRatingsLoad(); return id ? (CS_RATINGS.by[String(id)] || null) : null; }
+/* the aggregate as every one of the three functions returns it */
+function csRatingPut(id, agg){
+  if(!id || !agg) return null;
+  csRatingsLoad();
+  const k = String(id), had = CS_RATINGS.by[k] || {};
+  CS_RATINGS.by[k] = {
+    stars:   agg.stars != null ? Number(agg.stars) : null,
+    count:   Number(agg.count || 0),
+    friends: agg.friends != null ? Number(agg.friends) : null,
+    friends_count: Number(agg.friends_count || 0),
+    mine:    agg.mine != null ? Number(agg.mine) : null,
+    note:    agg.mine_note || null,
+    notes:   Array.isArray(agg.notes) ? agg.notes.slice(0, 3) : (had.notes || [])
+  };
+  csRatingsSave();
+  return CS_RATINGS.by[k];
+}
+/* the record, in ONE read. Returns null when the read did not happen — never
+   zero, and never an empty record over a failure. */
+async function csRatingsRefresh(){
+  if(state.demo || !window.sb || !window.CS?.user) return null;
+  csRatingsLoad();
+  let data;
+  try{
+    const res = await window.sb.rpc('my_course_ratings');
+    if(res.error || !Array.isArray(res.data)) return null;
+    data = res.data;
+  }catch(_){ return null; }
+  data.forEach(r=>{
+    if(!r || !r.course_id) return;
+    const k = String(r.course_id), had = CS_RATINGS.by[k] || {};
+    CS_RATINGS.by[k] = Object.assign({}, had, {
+      mine:  r.stars != null ? Number(r.stars) : null,
+      note:  r.note || null,
+      stars: r.all != null ? Number(r.all) : null,
+      count: Number(r.count || 0)
+    });
+  });
+  csRatingsSave();
+  return data.length;
+}
+window.csRatingsRefresh = csRatingsRefresh;
+/* one course, with your golfers' sentences on it */
+async function csCourseRatingRead(id){
+  if(!id || state.demo || !window.sb || !window.CS?.user) return null;
+  try{
+    const res = await window.sb.rpc('course_rating', { p_course_id: String(id) });
+    if(res.error || !res.data) return null;
+    return csRatingPut(id, res.data);
+  }catch(_){ return null; }
+}
+/* THE ACT. One tap, no confirm, no sheet. The note rides the same call — and
+   a database that predates the note column takes the star anyway, because the
+   star is the act and the sentence is the part that waits (deploy skew). */
+async function csRateCourse(id, stars, note){
+  if(!id || !window.sb || !window.CS?.user) return null;
+  const args = { p_course_id: String(id), p_stars: Number(stars) };
+  if(note !== undefined) args.p_note = note === null ? '' : String(note).slice(0, 140);
+  try{
+    let res = await window.sb.rpc('rate_course', args);
+    if(res.error && args.p_note !== undefined){
+      const bare = { p_course_id: args.p_course_id, p_stars: args.p_stars };
+      res = await window.sb.rpc('rate_course', bare);
+      if(!res.error) toast('Rated — the sentence needs the next database push');
+    }
+    if(res.error) throw res.error;
+    return csRatingPut(id, res.data || {});
+  }catch(e){ return null; }
+}
+async function csUnrateCourse(id){
+  if(!id || !window.sb || !window.CS?.user) return null;
+  try{
+    const res = await window.sb.rpc('unrate_course', { p_course_id: String(id) });
+    if(res.error) throw res.error;
+    return csRatingPut(id, res.data || {});
+  }catch(_){ return null; }
 }
 
+/* Five drawn stars, filled `ink` / unfilled `rule`, halves by CLIPPING — the
+   phone's `CSStarRail`, and the same path the glyph family draws. There is no
+   dingbat star anywhere in this product.
+
+   D289 · IT IS NOW A CONTROL. The fill is a second, absolutely-positioned copy
+   of the same five stars behind a clipping window whose width is the value —
+   so setting a rating is a WIDTH change and §22's 180ms left-to-right sweep is
+   the transition on it, with nothing else on the page moving. `rate` turns on
+   ten half-star buttons, each 48pt tall over a 16pt-wide half; below this
+   system's 44 in one axis, which is the same carve-out `RateCourseSheet`
+   carries by name (`UI_SYSTEM` §16.2) and the reason the value is also
+   reversible in one tap rather than only draggable. */
+const CS_STAR_PATH = 'M12 3.8l2.5 5.2 5.7.8-4.1 4 1 5.6-5.1-2.7-5.1 2.7 1-5.6-4.1-4 5.7-.8z';
+function csStarsWidth(value){
+  const v = Math.max(0, Math.min(5, Number(value) || 0));
+  const full = Math.floor(v), frac = +(v - full).toFixed(2);
+  return `calc(${full} * (var(--star) + var(--s1)) + ${frac} * var(--star))`;
+}
+function csStarsSvg(value, unrated, opts){
+  const o = opts || {};
+  const size = o.size || 22;
+  const one = fill => `<svg viewBox="0 0 24 24">`
+    + (fill ? `<path d="${CS_STAR_PATH}" fill="var(--ink)"/>`
+            : `<path d="${CS_STAR_PATH}" fill="none" stroke="${unrated?'var(--mut)':'var(--rule)'}" stroke-width="1.4"/>`)
+    + `</svg>`;
+  const five = fill => one(fill) + one(fill) + one(fill) + one(fill) + one(fill);
+  const taps = o.rate ? [1,2,3,4,5,6,7,8,9,10].map(i=>{
+    const val = i / 2, idx = Math.floor((i-1)/2), half = (i-1) % 2;
+    const left = `calc(${idx} * (var(--star) + var(--s1)) + ${half} * var(--star) / 2)`;
+    return `<button type="button" class="csh" data-csrate="${esc(String(o.rate))}" data-csval="${val}"`
+      + ` style="left:${left}" aria-label="${val} star${val===1?'':'s'}"></button>`;
+  }).join('') : '';
+  return `<span class="cs-stars${o.rate?' is-rate':''}${unrated?' is-unrated':''}"`
+    + ` style="--star:${size}px"${o.rate?` role="group" aria-label="Your rating"`:' aria-hidden="true"'}>`
+    + `<span class="csr-base">${five(false)}</span>`
+    + `<span class="csr-fill" style="width:${csStarsWidth(value)}"><span class="csr-inner">${five(true)}</span></span>`
+    + taps + `</span>`;
+}
+
+/* §5.2 · the aggregate — one figure, one rule, one line. NO GOLD IN ANY STATE:
+   an average of opinions is not earned (§2.4), and the number's weight comes
+   from its size and its rule. Null, never zero, never a dash (L-44). */
+function csRatingBlock(id, opts){
+  const o = opts || {};
+  const r = csRatingOf(id);
+  const mine = r && r.mine != null ? Number(r.mine) : null;
+  const all  = r && r.stars != null ? Number(r.stars) : null;
+  const n    = r ? Number(r.count || 0) : 0;
+  const fr   = r && r.friends != null ? Number(r.friends) : null;
+  const frn  = r ? Number(r.friends_count || 0) : 0;
+  const one  = v => Number(v).toFixed(1);
+  /* TWO OBJECTS, NOT ONE ROW WITH TWO NUMBERS IN IT. The AGGREGATE is a
+     figure over a rule — the community's mean, an average of opinions, no
+     gold in any state. THE ACT is the rail beneath it, and the rail shows
+     YOURS, because a control that displays somebody else's number is a
+     control a golfer cannot read. The first draft put a 4.5 figure beside a
+     five-star rail and made the two disagree in one glance. */
+  const label = all != null
+    ? `Cup Season golfers · ${n} rating${n===1?'':'s'}`
+    : 'Not rated · the first rating sets the number';
+  const theirLine = (fr != null && frn > 0)
+    ? `<p class="cs-body-s" data-csfr="${esc(String(id))}" style="padding-top:4px">`
+      + `Your golfers ${one(fr)} <span style="color:var(--mut)">(${frn})</span></p>` : '';
+  const rail = csStarsSvg(mine || 0, mine == null, { size: o.size || 48, rate: id });
+  const mineLab = mine != null ? `Your rating · ${one(mine)}` : 'Not yours yet';
+  const note = mine != null
+    ? `<input class="cs-note" type="text" maxlength="140" data-csnote="${esc(String(id))}"`
+      + ` value="${esc(r && r.note ? r.note : '')}" placeholder="What did you think? One line.">`
+    : '';
+  const theirs = (r && Array.isArray(r.notes) ? r.notes : []).filter(x=>x && x.note).slice(0,3).map(x=>
+    `<blockquote class="cs-said"><p class="cs-story">“${esc(x.note)}”</p>`
+    + `<p class="cs-agate-s" style="color:var(--mut)">${esc(x.who||'')} · ${one(x.stars||0)}</p></blockquote>`).join('');
+  return `<div class="cs-rating" data-csrow="${esc(String(id))}">`
+    + (all != null ? `<div class="cs-rating-top"><span class="cs-fig-l" data-csfig="${esc(String(id))}">${one(all)}</span></div>` : '')
+    + `<div class="cs-rating-rule"></div>`
+    + `<p class="cs-agate-s" data-cslab="${esc(String(id))}" style="color:var(--mut)">${esc(label)}</p>`
+    + theirLine
+    + `<div class="cs-rating-act">${rail}`
+    + `<p class="cs-agate-s" data-csmine="${esc(String(id))}" style="color:var(--mut);padding-top:8px">${esc(mineLab)}</p>`
+    + `</div>${note}${theirs}</div>`;
+}
+
+/* the tee a course opens on — `CourseBook.defaultTee`'s own rule, so the desk
+   and the phone open a course on the same tee */
+function csBookTee(b){
+  const tees = (b.tees||[]).filter(t=>t.course_rating!=null && t.slope_rating!=null);
+  const full = tees.filter(t=>(t.number_of_holes||18)===18);
+  const pool = full.length ? full : tees;
+  return pool.slice().sort((x,y)=>(y.total_yards||0)-(x.total_yards||0))[0] || null;
+}
+function csBookHoles(b){
+  const tee = csBookTee(b);
+  return tee && Array.isArray(tee.holes) ? tee.holes.slice().sort((x,y)=>(x.hole||0)-(y.hole||0)) : [];
+}
+
+/* §5.4 · KEPT COURSES — the record of the courses you like.
+   The rated, best first, each with its drawn card as the row's own plate, its
+   rail, its history and its sentence; the unrated below a rule under ALSO
+   KEPT, with a rail a golfer can still tap. The card table survives as the
+   row's own disclosure, because R-N's airplane-mode read is what this surface
+   is FOR and a record that lost the hole card would be a prettier regression. */
 function renderCourseBooks(){
   const box = $('#youCourses'); if(!box) return;
   const what = $('#youCoursesWhat'); if(what) what.textContent = CS_COURSE_COPY.what;
@@ -13567,25 +13819,16 @@ function renderCourseBooks(){
     box.innerHTML = '<p class="fine">Nothing kept yet. Post a round or put one on the schedule and its course comes with you.</p>';
     return;
   }
+  csRatingsLoad();
   const dmd = iso => { try{ const d=localDate(iso); return `${DOW[d.getDay()]} ${MOS[d.getMonth()]} ${d.getDate()}`; }catch(_){ return iso; } };
   const grouped = n => String(n).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+  const mineOf = b => { const r = csRatingOf(b.id); return r && r.mine != null ? Number(r.mine) : null; };
 
-  box.innerHTML = books.map(b=>{
-    const tees = (b.tees||[]).filter(t=>t.course_rating!=null && t.slope_rating!=null);
-    /* the longest 18 — `CourseBook.defaultTee`'s own rule, so the desk and the
-       phone open a course on the same tee */
-    const full = tees.filter(t=>(t.number_of_holes||18)===18);
-    const pool = full.length ? full : tees;
-    const tee = pool.slice().sort((x,y)=>(y.total_yards||0)-(x.total_yards||0))[0] || null;
-    const holes = tee && Array.isArray(tee.holes)
-      ? tee.holes.slice().sort((x,y)=>(x.hole||0)-(y.hole||0)) : [];
+  const row = (b, liked) => {
+    const tee = csBookTee(b);
+    const holes = csBookHoles(b);
     const hardest = holes.filter(h=>h.si!=null).sort((x,y)=>x.si-y.si)[0];
-
-    /* the plate — rung 2 where there is a card, rung 3 where there is not.
-       There is no round photo on the desk yet: the signed-URL read is the
-       phone's, and a course with no legal image shows the contour rather than
-       a wash. */
-    const plate = csDrawnCardSvg(holes) ||
+    const plate = csDrawnCardSvg(holes, { bare:true }) ||
       (typeof csContourSvg === 'function' ? csContourSvg(String(b.id), true) : '');
 
     const facts = [];
@@ -13597,32 +13840,108 @@ function renderCourseBooks(){
       (i?'<span class="sep cs-agate-s">·</span>':'') +
       `<span class="cs-fig-s">${esc(String(v))}</span><span class="u cs-agate-s">${u}</span>`).join(' ');
 
-    /* D-1 · the provenance is the facts object's own label, under the figures
-       it qualifies rather than as the first paragraph a golfer reads. */
+    /* D-1 · the provenance is the object's own label, under the figures it
+       qualifies rather than as the first paragraph a golfer reads. */
     const label = [tee ? (tee.tee_name||'Tee') : null,
                    hardest ? `the ${hardest.hole}${csOrdinalSuffix(hardest.hole)} plays hardest` : null,
                    csCourseSavedLine(b)].filter(Boolean).join(' · ');
+    const best = csBestAt(b.id);
+    const played = csRoundsAt(b.id);
+    const history = [
+      csCoursePlace(b) || null,
+      played ? `${played} round${played===1?'':'s'}` : null,
+      best != null ? `best ${best}` : null,
+      b.next_play_on ? `on your schedule ${dmd(b.next_play_on)}`
+        : b.last_played_on ? `last ${dmd(b.last_played_on)}` : null
+    ].filter(Boolean).join(' · ');
 
-    const row = (head, cells, cls) =>
+    const tr = (head, cells, cls) =>
       `<tr class="${cls||''}"><th>${esc(head)}</th>${cells.map(c=>`<td>${esc(String(c))}</td>`).join('')}</tr>`;
+    const leaf = holes.length
+      ? `<details class="cs-cardleaf"><summary class="cs-agate-s">The card · ${esc(tee ? (tee.tee_name||'Tee') : '')}</summary>`
+        + `<div class="cs-leaf"><table>`
+        + tr('HOLE', holes.map(h=>h.hole))
+        + tr('PAR', holes.map(h=>h.par!=null?h.par:''), 'par')
+        + tr('HCP', holes.map(h=>h.si!=null?h.si:''))   /* TERMINOLOGY §3.1 */
+        + `</table></div></details>`
+      : `<p class="fine">${esc(CS_COURSE_COPY.noCard)}</p>`;
+
+    /* ONE RAIL PER ROW. The rail trails the name — your star where you have
+       one, the unfilled rail and `RATE IT` where you have not — and the full
+       aggregate (a figure over a 2pt rule) belongs to the LEAD alone. Two
+       controls for one fact is the repeat this whole wave is about. */
+    /* THE ROW'S RAIL IS A PICTURE, AND THE ROW IS THE DOOR. A half-star target
+       that clears WCAG 2.5.8's 24 × 24 needs a 48pt star, which is a headline
+       and not a row; so the control lives on the LEAD, at that size, and a row
+       carries the drawn rail plus your figure — or `RATE IT`, which opens the
+       course as the lead rather than pretending to be a second control. Two
+       controls for one fact is the repeat this whole wave is about. */
+    const r = csRatingOf(b.id);
+    const mine = r && r.mine != null ? Number(r.mine) : null;
+    const trail = `<div class="cs-krow-rate">${csStarsSvg(mine || 0, mine == null, { size:24 })}`
+      + (mine != null
+          ? `<span class="cs-fig-s">${mine.toFixed(1)}</span>`
+          : `<span class="cs-agate-s" style="color:var(--mut)">Rate it</span>`) + `</div>`;
+    const said = (mine != null && r && r.note)
+      ? `<p class="cs-story" style="padding-top:8px">“${esc(r.note)}”</p>` : '';
+
+    return `<section class="cs-krow${liked?'':' is-quiet'}" role="button" tabindex="0"
+        data-cslead="${esc(String(b.id))}" aria-label="${esc(csCourseLabel(b))}">
+      <div class="cs-krow-head">
+        <div style="min-width:0">
+          <h4 class="${liked?'cs-display-s':'cs-name'}" style="margin:0">${esc(csCourseLabel(b))}</h4>
+          ${history?`<p class="cs-agate-s is-phrase" style="color:var(--mut);padding-top:4px">${esc(history)}</p>`:''}
+        </div>
+        ${trail}
+      </div>
+      ${plate?`<div class="cs-kplate">${plate}</div>`:''}
+      ${said}
+      <div class="cs-facts">${factLine}</div>
+      <p class="cs-agate-s" style="color:var(--mut);padding-top:8px">${esc(label)}</p>
+      ${leaf}
+    </section>`;
+  };
+
+  /* THE LEAD. One course gets the plate, the reversed name and the full act —
+     the one you are about to play, else the one you rate highest. A record
+     that is forty equal rows is the wall the owner photographed six of; a
+     record with a front page is an edition (BRIEF §7). */
+  const picked = window.CS_COURSE_LEAD
+    ? books.find(b=>String(b.id)===String(window.CS_COURSE_LEAD)) : null;
+  const soon = books.filter(b=>b.next_play_on)
+    .sort((a,b)=>String(a.next_play_on).localeCompare(String(b.next_play_on)))[0];
+  const best = books.filter(b=>mineOf(b)!=null).sort((a,b)=>mineOf(b)-mineOf(a))[0];
+  const lead = picked || soon || best || books[0];
+
+  const leadHtml = b => {
+    const tee = csBookTee(b);
+    const holes = csBookHoles(b);
+    const plate = csDrawnCardSvg(holes) ||
+      (typeof csContourSvg === 'function' ? csContourSvg(String(b.id), true) : '');
+    const why = b.next_play_on ? `On your schedule ${esc(dmd(b.next_play_on))}`
+              : b.last_played_on ? `You last played here ${esc(dmd(b.last_played_on))}` : 'Kept';
+    const facts = [];
+    if(tee && tee.par_total) facts.push([tee.par_total, 'par']);
+    if(tee && tee.total_yards) facts.push([grouped(tee.total_yards), 'yds']);
+    if(tee && tee.course_rating!=null) facts.push([tee.course_rating, 'rtg']);
+    if(tee && tee.slope_rating!=null) facts.push([tee.slope_rating, 'slope']);
+    const factLine = facts.map(([v,u],i)=>
+      (i?'<span class="sep cs-agate-s">·</span>':'') +
+      `<span class="cs-fig-s">${esc(String(v))}</span><span class="u cs-agate-s">${u}</span>`).join(' ');
+    const hardest = holes.filter(h=>h.si!=null).sort((x,y)=>x.si-y.si)[0];
+    const label = [tee ? (tee.tee_name||'Tee') : null,
+                   hardest ? `the ${hardest.hole}${csOrdinalSuffix(hardest.hole)} plays hardest` : null,
+                   csCourseSavedLine(b)].filter(Boolean).join(' · ');
+    const tr = (head2, cells, cls) =>
+      `<tr class="${cls||''}"><th>${esc(head2)}</th>${cells.map(c=>`<td>${esc(String(c))}</td>`).join('')}</tr>`;
     const leaf = holes.length
       ? `<div class="cs-leaf"><div class="cs-agate-s" style="color:var(--leaf-mut);padding-bottom:6px">`
         + `The card · ${esc(tee ? (tee.tee_name||'Tee') : '')}</div><table>`
-        + row('HOLE', holes.map(h=>h.hole))
-        + row('PAR', holes.map(h=>h.par!=null?h.par:''), 'par')
-        + row('HCP', holes.map(h=>h.si!=null?h.si:''))   /* TERMINOLOGY §3.1 */
+        + tr('HOLE', holes.map(h=>h.hole))
+        + tr('PAR', holes.map(h=>h.par!=null?h.par:''), 'par')
+        + tr('HCP', holes.map(h=>h.si!=null?h.si:''))   /* TERMINOLOGY §3.1 */
         + `</table></div>`
       : `<p class="fine">${esc(CS_COURSE_COPY.noCard)}</p>`;
-
-    /* D275 · the rating is content, and it degrades to the unrated rail
-       because `course_rating` is written and not pushed. No gold on it in any
-       state: an average of opinions is not earned. */
-    const rating = `<div style="margin-bottom:var(--s4)">${csStarsSvg(0, true)}`
-      + `<p class="cs-agate-s" style="color:var(--mut);padding-top:8px">Not rated · the first rating sets the number</p></div>`;
-
-    const why = b.next_play_on ? `On your schedule ${esc(dmd(b.next_play_on))}`
-              : b.last_played_on ? `You last played here ${esc(dmd(b.last_played_on))}` : 'Kept';
-
     return `<section class="cs-course">
       <div>
         <div class="cs-plate">${plate}<div class="cs-scrim"></div>
@@ -13634,11 +13953,134 @@ function renderCourseBooks(){
         </div>
         <div class="cs-facts">${factLine}</div>
         <p class="cs-agate-s" style="color:var(--mut);padding-top:6px">${esc(label)}</p>
+        ${csCourseHistoryLine(b)}
       </div>
-      <div>${rating}${leaf}</div>
+      <div>${csRatingBlock(b.id, { size:48 })}${leaf}</div>
     </section>`;
-  }).join('');
+  };
+
+  const liked = books.filter(b=>mineOf(b) != null && b !== lead)
+    .sort((a,b)=> (mineOf(b)-mineOf(a)) || csCourseLabel(a).localeCompare(csCourseLabel(b)));
+  const rest = books.filter(b=>mineOf(b) == null && b !== lead);
+  const head = (t, n) => `<h3 class="cs-display-s cs-krow-head-h">${esc(t)}`
+    + (n!=null?`<span class="cs-agate-s" style="color:var(--mut)"> · ${esc(String(n))}</span>`:'') + `</h3>`;
+
+  box.innerHTML = (lead ? leadHtml(lead) : '')
+    + (liked.length ? head('Courses you like', liked.length + ' rated') + liked.map(b=>row(b,true)).join('') : '')
+    + (rest.length ? head('Also kept', rest.length) + rest.map(b=>row(b,false)).join('') : '');
+  csCourseBooksWire(box);
+  csRatingsFillNotes([lead].concat(liked).filter(Boolean).slice(0, 6).map(b=>String(b.id)));
 }
+
+/* "You have played Papago 4 times · best 78 · last Aug 24" — the fact §4 and
+   §5 both want the night before, drawn from the 400 rounds `loadCareer`
+   already holds. Absent, never dashed, when nothing produced it (L-44). */
+function csCourseHistoryLine(b){
+  const n = csRoundsAt(b.id), best = csBestAt(b.id);
+  if(!n) return '';
+  const bits = [`You have played here ${n} time${n===1?'':'s'}`];
+  if(best != null) bits.push(`best ${best}`);
+  return `<p class="cs-body-s" style="color:var(--mut);padding-top:8px">${esc(bits.join(' · '))}</p>`;
+}
+
+/* your record AT a course, off the 400 rounds `loadCareer` already holds.
+   `api_course_id` is one word on that select and no migration (`rounds`
+   carries no column grants), so "best 78" is a real number or it is absent. */
+function csRoundsAt(id){
+  if(!id) return 0;
+  return (window.career?.rows || []).filter(r=>String(r.api_course_id||'')===String(id)).length;
+}
+function csBestAt(id){
+  if(!id) return null;
+  /* a nine's 35 is not a best — the phone's own rule (`CoursePageRepository`) */
+  const g = (window.career?.rows || [])
+    .filter(r=>String(r.api_course_id||'')===String(id) && (r.holes_played==null || r.holes_played===18))
+    .map(r=>Number(r.gross)).filter(n=>n>0);
+  return g.length ? Math.min(...g) : null;
+}
+
+/* the sentences your golfers wrote, for the courses actually on screen. One
+   read per course, capped at six, once per session — never one per row of a
+   list that could be forty long. */
+function csRatingsFillNotes(ids){
+  const want = (ids||[]).filter(id => id && !CS_RATINGS.notesFor[id]);
+  if(!want.length) return;
+  want.forEach(id => { CS_RATINGS.notesFor[id] = true; });
+  Promise.all(want.map(id => csCourseRatingRead(id)))
+    .then(rs => { if(rs.some(Boolean)) renderCourseBooks(); })
+    .catch(()=>{});
+}
+
+/* the act, wired once per render: ten half-star buttons and one note field.
+   The rail moves IN PLACE — the list is not re-sorted under the thumb — and
+   §22's sweep is the width transition, with nothing else on the page moving. */
+function csCourseBooksWire(box){
+  box.querySelectorAll('[data-cslead]').forEach(row=>{
+    const go = e => {
+      if(e.target.closest('details') || e.target.closest('input')) return;
+      window.CS_COURSE_LEAD = row.dataset.cslead;
+      renderCourseBooks();
+      box.scrollIntoView({ block:'start', behavior:'smooth' });
+    };
+    row.addEventListener('click', go);
+    row.addEventListener('keydown', e=>{ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); go(e); } });
+  });
+  box.querySelectorAll('button[data-csrate]').forEach(btn=>{
+    btn.addEventListener('click', async ()=>{
+      const id = btn.dataset.csrate, v = Number(btn.dataset.csval);
+      const had = csRatingOf(id);
+      const same = had && had.mine != null && Math.abs(had.mine - v) < 0.01;
+      const rail = btn.closest('.cs-stars');
+      const fill = rail && rail.querySelector('.csr-fill');
+      if(fill) fill.style.width = csStarsWidth(same ? 0 : v);   /* the sweep */
+      const out = same ? await csUnrateCourse(id) : await csRateCourse(id, v);
+      if(!out){
+        if(fill) fill.style.width = csStarsWidth(had && had.mine != null ? had.mine : 0);
+        toast('Could not save that rating');
+        return;
+      }
+      csCourseRowRepaint(box, id);
+    });
+  });
+  box.querySelectorAll('input[data-csnote]').forEach(inp=>{
+    const save = async ()=>{
+      const id = inp.dataset.csnote, r = csRatingOf(id);
+      if(!r || r.mine == null) return;
+      const v = inp.value.trim().slice(0,140);
+      if(v === String(r.note||'')) return;
+      inp.disabled = true;
+      const out = await csRateCourse(id, r.mine, v);
+      inp.disabled = false;
+      if(!out){ toast('Could not save that'); return; }
+      toast(v ? 'Saved' : 'Sentence removed');
+    };
+    inp.addEventListener('blur', save);
+    inp.addEventListener('keydown', e=>{ if(e.key==='Enter'){ e.preventDefault(); inp.blur(); } });
+  });
+}
+/* one row's figures, after a write. Never the whole list: re-sorting under the
+   thumb that just tapped is the one motion §22 forbids. */
+function csCourseRowRepaint(box, id){
+  const r = csRatingOf(id); if(!r) return;
+  const one = v => Number(v).toFixed(1);
+  const fig = box.querySelector(`[data-csfig="${CSS.escape(String(id))}"]`);
+  if(fig) fig.textContent = r.stars != null ? one(r.stars) : '';
+  const lab = box.querySelector(`[data-cslab="${CSS.escape(String(id))}"]`);
+  if(lab) lab.textContent = r.stars != null
+    ? `Cup Season golfers · ${r.count} rating${r.count===1?'':'s'}`
+    : 'Not rated · the first rating sets the number';
+  const fr = box.querySelector(`[data-csfr="${CSS.escape(String(id))}"]`);
+  if(fr) fr.innerHTML = (r.friends != null && r.friends_count > 0)
+    ? `Your golfers ${one(r.friends)} <span style="color:var(--mut)">(${r.friends_count})</span>` : '';
+  const mine = box.querySelector(`[data-csmine="${CSS.escape(String(id))}"]`);
+  if(mine) mine.textContent = r.mine != null ? `Your rating · ${one(r.mine)}` : 'Not yours yet';
+  /* the note field arrives with the first rating and leaves with the last */
+  const block = box.querySelector(`[data-csrow="${CSS.escape(String(id))}"]`);
+  const field = block && block.querySelector('input[data-csnote]');
+  if(block && r.mine != null && !field){ renderCourseBooks(); }
+  else if(field && r.mine == null){ field.remove(); }
+}
+
 /* `1` -> `st`. One ordinal in the product, and the phone's `CSOrdinal.suffix`
    is the same three lines. */
 function csOrdinalSuffix(n){
@@ -22513,6 +22955,7 @@ async function enterLeague(m, nav=true){
      succeeded. Never awaited — it must not delay a screen — and silent on
      failure, because a failure means this device keeps the books it has. */
   csCourseRefresh().then(n=>{ if(n) renderCourseBooks(); }).catch(()=>{});
+  csRatingsRefresh().then(n=>{ if(n) renderCourseBooks(); }).catch(()=>{});   /* D289 */
   renderProChip();
 
   bootStep = 'reveal';
@@ -25294,10 +25737,16 @@ window.loadCareerRecord = loadCareerRecord;
 async function loadCareer(){
   if(!CS.user){ window.career = null; if(window.renderCareer) window.renderCareer(); return; }
   try{
+    /* D289 · `api_course_id` joins the select — one word, and NO migration:
+       `rounds` carries no column-level grants (the freeze is on `profiles`),
+       so this is readable today. It is what turns "a course you kept" into
+       "you have played here four times, best 78" on both the record and the
+       plan. The retry drops BOTH newer columns on ANY error, because 42501
+       never names its column. */
     let rq = await sb.from('rounds')
-      .select('id, gross, differential, index_at_post, played_on, course_label, holes_played, photo_path')
+      .select('id, gross, differential, index_at_post, played_on, course_label, holes_played, photo_path, api_course_id')
       .eq('profile_id', CS.user.id).order('played_on', { ascending:false }).limit(400);
-    if(rq.error && /photo_path/.test(rq.error.message||''))
+    if(rq.error)
       rq = await sb.from('rounds')
         .select('id, gross, differential, index_at_post, played_on, course_label, holes_played')
         .eq('profile_id', CS.user.id).order('played_on', { ascending:false }).limit(400);
@@ -25341,6 +25790,9 @@ async function loadCareer(){
     const vals = rows.map(r => figures[r.id]).filter(v => v!=null);
     window.career = {
       rounds: rows.length,
+      /* D289 · the raw rounds stay in memory so `csRoundsAt` / `csBestAt` can
+         answer "you have played here four times, best 78" with no second read */
+      rows,
       best:  vals.length ? Math.max(...vals) : null,
       avg:   vals.length ? vals.reduce((a,b)=>a+b,0)/vals.length : null,
       /* Y-28 · how many rounds carry a figure — when it is 0 the dash says why */
@@ -26179,6 +26631,7 @@ function showWelcome(){
   renderIndStats();
   loadCourseMemory();
   csCourseRefresh().then(n=>{ if(n) renderCourseBooks(); }).catch(()=>{});   /* D261 / R-N */
+  csRatingsRefresh().then(n=>{ if(n) renderCourseBooks(); }).catch(()=>{});  /* D289 */
   loadPulse();                          /* role-aware Home: month participation pulse */
   loadLeagueSpans().then(loadSchedule).then(()=>window.renderHomeHub&&window.renderHomeHub()).catch(e=>bootTrace('home hub: '+(e.message||e))); /* Home recap "next rounds" */
   loadWatchList().catch(e=>bootTrace('watch: '+(e.message||e)));                               /* the crew's plans, league-less too */

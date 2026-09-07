@@ -281,14 +281,19 @@ public struct CoursePageRepository: Sendable {
 
 // MARK: - The rating (D275)
 
-/// A course's rating: the community's number, your golfers' number, and yours.
+/// A course's rating: the community's number, your golfers' number, yours, and
+/// the sentences behind them.
 ///
-/// **`rate_course` / `unrate_course` / `course_rating` are written and NOT
-/// PUSHED** (`supabase/migrations/20261007090000_…`). Until the owner runs it
-/// every read here returns `.unavailable`, both clients draw the full-size
-/// unfilled rail and `NOT RATED · THE FIRST RATING SETS THE NUMBER`, and the
-/// sheet says plainly that a rating cannot be saved yet. Nothing 403s a golfer
-/// and nothing renders a number the database does not hold.
+/// **`course_rating` / `rate_course` / `unrate_course` ARE LIVE** — the owner
+/// pushed `20261007090000` on 2026-09-07, and that migration's own "THIS FILE
+/// HAS NOT BEEN RUN" header is stale (rule 2 leaves a run migration alone).
+/// D289 adds the sentence: `course_ratings.note`, 140 characters, written by
+/// the same call, plus up to three of YOUR GOLFERS' notes on the read.
+///
+/// `.unavailable` survives as the honest name for a read that did not happen —
+/// no signal, or a database that predates a function — and it is drawn exactly
+/// like "not rated", because an unrated course and an unreachable one both
+/// show a rail a golfer can still tap.
 public struct CourseRating: Sendable, Equatable {
   /// The community's mean, or nil when nobody has rated it.
   public let stars: Double?
@@ -299,6 +304,13 @@ public struct CourseRating: Sendable, Equatable {
   /// The viewer's own, or nil. **Never zero** — the sheet's third slot reads
   /// `NOT YOURS YET` and its value slot does not render.
   public let mine: Double?
+  /// **What YOU said about it** (D289), or nil. 140 characters, one line, and
+  /// nil is a real state: a star with no sentence behind it is the common case
+  /// and the field is empty rather than absent.
+  public let mineNote: String?
+  /// Up to three of your golfers' sentences, newest first. Never a stranger's,
+  /// and never one with no name behind it — an uncredited opinion is the thing
+  /// this product does not print.
   /// The read did not happen: no function on this database, or no signal. It
   /// is not "not rated", and the two are drawn the same way on purpose — an
   /// unrated course and an unreachable one both show the rail a golfer can
@@ -306,10 +318,14 @@ public struct CourseRating: Sendable, Equatable {
   /// do anything about it.
   public let unavailable: Bool
 
+  public let notes: [CourseNote]
+
   public init(stars: Double? = nil, count: Int = 0, friends: Double? = nil,
-              friendsCount: Int = 0, mine: Double? = nil, unavailable: Bool = false) {
+              friendsCount: Int = 0, mine: Double? = nil, mineNote: String? = nil,
+              notes: [CourseNote] = [], unavailable: Bool = false) {
     self.stars = stars; self.count = count; self.friends = friends
-    self.friendsCount = friendsCount; self.mine = mine; self.unavailable = unavailable
+    self.friendsCount = friendsCount; self.mine = mine; self.mineNote = mineNote
+    self.notes = notes; self.unavailable = unavailable
   }
 
   public static let none = CourseRating(unavailable: true)
@@ -338,10 +354,29 @@ public struct CourseRating: Sendable, Equatable {
   }
 }
 
-/// `course_rating` · `rate_course` · `unrate_course`, hand-declared until the
-/// owner's push regenerates `Rpc.swift` from the contract (the standing rule
-/// for an RPC that is written and not yet applied — `MyCourseBooksCall` is the
-/// precedent, one file over).
+/// One golfer's sentence about a course (D289). The name is REQUIRED: the
+/// producer drops a note whose profile carries no display name, because an
+/// uncredited opinion is not one this product prints.
+public struct CourseNote: Sendable, Equatable, Identifiable {
+  public let who: String
+  public let marker: String?
+  public let stars: Double?
+  public let note: String
+  public var id: String { who + "·" + note }
+  public init(who: String, marker: String? = nil, stars: Double? = nil, note: String) {
+    self.who = who; self.marker = marker; self.stars = stars; self.note = note
+  }
+  /// *"Galen Marr · 4.5"* — the attribution under the quote.
+  public var line: String {
+    guard let stars else { return who }
+    return "\(who) · \(String(format: "%.1f", stars))"
+  }
+}
+
+/// `course_rating` · `rate_course` · `unrate_course` · `my_course_ratings`,
+/// hand-declared until the owner's push regenerates `Rpc.swift` from the
+/// contract (the standing rule — `MyCourseBooksCall` is the precedent, one
+/// file over).
 public struct CourseRatingCall: RpcCall {
   public static let name = "course_rating"
   public static let optionalArgs: [String] = []
@@ -350,14 +385,45 @@ public struct CourseRatingCall: RpcCall {
   public init(p_course_id: String) { self.p_course_id = p_course_id }
 }
 
+/// D289 · `p_note` is DEFAULTED server-side and droppable here, so a client
+/// newer than its database still sets the star. **Null leaves the note alone;
+/// `""` takes it off** — which is what makes the default safe for a client
+/// that predates notes and never sends the argument at all.
 public struct RateCourseCall: RpcCall {
   public static let name = "rate_course"
-  public static let optionalArgs: [String] = []
+  public static let optionalArgs: [String] = ["p_note"]
   public typealias Returns = JSONValue
   public var p_course_id: String
   public var p_stars: Double
-  public init(p_course_id: String, p_stars: Double) {
-    self.p_course_id = p_course_id; self.p_stars = p_stars
+  public var p_note: String?
+  public init(p_course_id: String, p_stars: Double, p_note: String? = nil) {
+    self.p_course_id = p_course_id; self.p_stars = p_stars; self.p_note = p_note
+  }
+}
+
+/// `my_course_ratings()` — every course you have rated, best first, in ONE
+/// read. The record (`VISUAL_PASS` §5.4) is a list sorted by your own star,
+/// and twenty courses cannot be twenty `course_rating` round trips.
+public struct MyCourseRatingsCall: RpcCall {
+  public static let name = "my_course_ratings"
+  public static let optionalArgs: [String] = []
+  public typealias Returns = JSONValue
+  public init() {}
+}
+
+/// One row of the record: your star and sentence at a course, with the
+/// community's mean and count beside them.
+public struct MyCourseRating: Sendable, Equatable, Identifiable {
+  public let courseId: String
+  public let mine: Double
+  public let note: String?
+  public let all: Double?
+  public let count: Int
+  public var id: String { courseId }
+  public init(courseId: String, mine: Double, note: String? = nil,
+              all: Double? = nil, count: Int = 0) {
+    self.courseId = courseId; self.mine = mine; self.note = note
+    self.all = all; self.count = count
   }
 }
 
@@ -382,10 +448,26 @@ public struct CourseRatingService: Sendable {
   /// Half stars only. The value is rounded on the way out as well as in the
   /// function, because a control and a constraint should agree before the
   /// round trip rather than after it.
-  public func rate(_ courseId: String, stars: Double) async throws -> CourseRating {
+  ///
+  /// `note` follows the column's own contract: **nil leaves the sentence
+  /// alone, `""` takes it off** (D289). A one-tap rating on the page passes
+  /// nil and cannot erase what a golfer wrote in the sheet.
+  public func rate(_ courseId: String, stars: Double, note: String? = nil) async throws -> CourseRating {
     let half = (stars * 2).rounded() / 2
-    let v = try await svc.call(RateCourseCall(p_course_id: courseId, p_stars: half))
+    let v = try await svc.call(RateCourseCall(p_course_id: courseId, p_stars: half,
+                                              p_note: note.map { String($0.prefix(140)) }))
     return CourseRatingService.decode(v)
+  }
+
+  /// The record, in one read. Empty when the read did not happen — the caller
+  /// draws the list it already has rather than an emptied one.
+  public func mine() async -> [MyCourseRating] {
+    guard let v = try? await svc.call(MyCourseRatingsCall()), let rows = v.array else { return [] }
+    return rows.compactMap { r in
+      guard let id = r["course_id"]?.string, let s = r["stars"]?.double else { return nil }
+      return MyCourseRating(courseId: id, mine: s, note: r["note"]?.string,
+                            all: r["all"]?.double, count: r["count"]?.int ?? 0)
+    }
   }
 
   public func unrate(_ courseId: String) async throws -> CourseRating {
@@ -402,6 +484,13 @@ public struct CourseRatingService: Sendable {
                  friends: v["friends"]?.double,
                  friendsCount: v["friends_count"]?.int ?? 0,
                  mine: v["mine"]?.double,
+                 mineNote: v["mine_note"]?.string,
+                 notes: (v["notes"]?.array ?? []).compactMap { n in
+                   guard let who = n["who"]?.string, !who.isEmpty,
+                         let note = n["note"]?.string, !note.isEmpty else { return nil }
+                   return CourseNote(who: who, marker: n["marker"]?.string,
+                                     stars: n["stars"]?.double, note: note)
+                 },
                  unavailable: false)
   }
 }

@@ -131,9 +131,16 @@ struct CourseScreen: View {
     plate(book)
     VStack(alignment: .leading, spacing: CSTokens.Space.s4) {
       facts(book)
+      // D289 · the rail IS the control. One tap sets it, tapping the value you
+      // already hold takes it off, and the write returns the aggregate so the
+      // figure above re-tallies from the server's own arithmetic rather than
+      // from a number this view was holding.
       CSRating(value: vm.rating.stars, count: vm.rating.count,
                sentence: vm.rating.friendsLine.isEmpty ? nil : vm.rating.friendsLine,
+               mine: vm.rating.mine,
+               onSet: vm.courseId == nil ? nil : { v in Task { await vm.set(v) } },
                rate: { rating = true })
+      said
       quote
       friends
       CourseCardLeaf(tee: vm.tee(in: book), title: leafTitle(book)).id("course-leaf")
@@ -236,6 +243,25 @@ struct CourseScreen: View {
   @ViewBuilder private func facts(_ book: CourseBook) -> some View {
     if let tee = vm.tee(in: book) {
       CSFactsLine(vm.facts(tee), label: vm.factsLabel(book, tee: tee), spoken: vm.factsSpoken(book, tee: tee))
+    }
+  }
+
+  /// **D289 · WHAT WE THOUGHT OF THE COURSE** — the owner's own clause, and
+  /// the surface's serif finally has a producer. Your sentence first (it is
+  /// yours and you can change it), then up to three of your golfers'. Never a
+  /// stranger's, never an uncredited one, and the block is ABSENT rather than
+  /// empty when nobody has written anything.
+  @ViewBuilder private var said: some View {
+    if vm.rateFailed {
+      Text("That did not save. Your rating is as it was — try it again in a moment.")
+        .csType(.bodyS).foregroundStyle(cs.mut)
+        .fixedSize(horizontal: false, vertical: true)
+    }
+    if let mine = vm.rating.mineNote, !mine.isEmpty {
+      CSQuote(mine, attribution: "You.")
+    }
+    ForEach(vm.rating.notes) { n in
+      CSQuote(n.note, attribution: n.line)
     }
   }
 
@@ -413,6 +439,9 @@ final class CourseModel {
   /// placeholder, never a stock line, and never a caption about the course
   /// written by us.
   var quote: (text: String, attribution: String?)?
+  /// D289 · the last write did not land. Said once, under the rail, in the
+  /// product's voice — never a raw code and never a silent no-op.
+  var rateFailed = false
 
   private let store = CourseBookStore()
 
@@ -434,6 +463,29 @@ final class CourseModel {
 
   func tee(in book: CourseBook) -> CourseBookTee? {
     book.tees.first { $0.id == picked } ?? book.defaultTee
+  }
+
+  /// **THE ACT** (D289). One tap: the value goes to the server, the server
+  /// hands back the whole aggregate, and this view takes it. Tapping the value
+  /// you already hold is `unrate_course` — one tap in, one tap out.
+  ///
+  /// **`p_note` is not sent**, so a star moved on the page can never erase a
+  /// sentence written in the sheet: null leaves the note alone by the
+  /// column's own contract.
+  ///
+  /// A failure leaves the rating exactly as it was and says so. It does not
+  /// queue, and it does not pretend.
+  func set(_ v: Double) async {
+    guard let courseId else { return }
+    let had = rating
+    do {
+      rating = (rating.mine.map { abs($0 - v) < 0.01 } ?? false)
+        ? try await CourseRatingService().unrate(courseId)
+        : try await CourseRatingService().rate(courseId, stars: v)
+    } catch {
+      rating = had
+      rateFailed = true
+    }
   }
 
   func load(me: UUID?) async {
