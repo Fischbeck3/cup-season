@@ -222,6 +222,36 @@ private let emptyStrip = MeStripCopy.Strip(slots: [], seasonRow: nil)
             == "Your buy-in is in.")
   }
 
+  /// **THE REGRESSION, AND IT REACHED PRODUCTION.** Every case above puts the
+  /// golfer's name at offset 0, and the first version asked exactly that —
+  /// `offset == 0` — to decide the subject seat. The producer's commonest
+  /// sentence does not: it opens with the clock and puts the golfer in the
+  /// SECOND clause. So the name lowercased to `you`, and the copula rule, which
+  /// only knew `You`, left the verb alone. The owner photographed
+  /// "The clash closes today. you has answered. Jade has not." on the live site.
+  @Test("DEF-3 · a golfer in the second clause is still the subject")
+  func theViewerIsYouAfterAFullStop() {
+    #expect(HomeWireCopy.viewerVoice("The clash closes today. Jerecho has answered. Jade has not.",
+                                     viewer: "Jerecho Fischbeck")
+            == "The clash closes today. You have answered. Jade has not.")
+    // a question mark and an exclamation open a sentence too
+    #expect(HomeWireCopy.viewerVoice("Who is chasing? Jerecho is, by four.",
+                                     viewer: "Jerecho Fischbeck")
+            == "Who is chasing? You are, by four.")
+    // …and a closing quote between the stop and the name does not hide it
+    #expect(HomeWireCopy.viewerVoice("He called it \u{201C}a good week.\u{201D} Jerecho was not so sure.",
+                                     viewer: "Jerecho Fischbeck")
+            == "He called it \u{201C}a good week.\u{201D} You were not so sure.")
+    // the object seat inside a later clause stays lower case
+    #expect(HomeWireCopy.viewerVoice("The clash: Jade v Jerecho. Best round takes it.",
+                                     viewer: "Jerecho Fischbeck")
+            == "The clash: Jade v you. Best round takes it.")
+    // a mid-clause name that happens to precede a copula is NOT a subject
+    #expect(HomeWireCopy.viewerVoice("Galen and Jerecho are level.",
+                                     viewer: "Jerecho Fischbeck")
+            == "Galen and you are level.")
+  }
+
   @Test("It touches ONE name — the viewer's own — and nobody else's")
   func itNeverRenamesAnybodyElse() {
     let said = "Galen set a personal best. New number to chase."

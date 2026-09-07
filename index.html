@@ -7234,12 +7234,28 @@ function csYouVoice(body, post){
   let out = body;
   for(const who of (given===full ? [full] : [full, given])){
     const esc = who.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
-    out = out.replace(new RegExp('\\b'+esc+"[’']s\\b",'g'), (m,o)=> o===0 ? 'Your' : 'your');
-    out = out.replace(new RegExp('\\b'+esc+'\\b','g'),      (m,o)=> o===0 ? 'You'  : 'you');
-    for(const [third,second] of Object.entries(CS_COPULA))
-      out = out.split('You '+third+' ').join('You '+second+' ');
+    out = out.replace(new RegExp('\\b'+esc+"[’']s\\b",'g'), (m,o,str)=> csOpensSentence(str,o) ? 'Your' : 'your');
+    out = out.replace(new RegExp('\\b'+esc+'\\b','g'),      (m,o,str)=> csOpensSentence(str,o) ? 'You'  : 'you');
+    /* BOTH CASES. The first version corrected only "You has", and the
+       producer's commonest sentence puts the name in the SECOND clause
+       ("The clash closes today. Jerecho has answered."), which lowercased to
+       `you` and sailed past a rule that only knew `You`. It reached production
+       reading "you has answered". */
+    for(const [third,second] of Object.entries(CS_COPULA)){
+      const t = third.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
+      out = out.replace(new RegExp('\\b(You|you)\\s+'+t+'\\b','g'), '$1 '+second);
+    }
   }
   return out;
+}
+/* A sentence opens at the start of the string, or after . ! ? — allowing for a
+   closing quote or bracket on the clause before it. Asking `offset === 0` (the
+   first version) meant the only name ever treated as a subject was one in a
+   single-clause sentence. Mirrors HomeWireCopy.opensSentence on the phone. */
+function csOpensSentence(str, at){
+  let i = at - 1;
+  while(i >= 0 && ' \n\t”")]’\''.indexOf(str[i]) !== -1) i--;
+  return i < 0 || str[i] === '.' || str[i] === '!' || str[i] === '?';
 }
 /* ---------- reactions + comments: the board's social spine ----------
    Six curated reactions carry the crew's voice; each is one row in post_kudos

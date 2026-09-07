@@ -167,29 +167,68 @@ public enum HomeWireCopy {
     let esc = NSRegularExpression.escapedPattern(for: who)
     var out = body
     // 1 · the possessive, either apostrophe: "Jerecho's buy-in" -> "Your buy-in".
-    out = replaceAll(out, "\\b" + esc + "[\u{2019}']s\\b") { $0 == 0 ? "Your" : "your" }
-    // 2 · the bare name — `You` in the subject seat, `you` anywhere else.
-    out = replaceAll(out, "\\b" + esc + "\\b") { $0 == 0 ? "You" : "you" }
-    // 3 · the copula, and only where `You` now leads the clause.
-    for (third, second) in copulas {
-      out = out.replacingOccurrences(of: "You " + third + " ", with: "You " + second + " ")
-    }
+    out = replaceAll(out, "\\b" + esc + "[\u{2019}']s\\b") { $0 ? "Your" : "your" }
+    // 2 · the bare name — `You` when it opens a SENTENCE, `you` anywhere else.
+    out = replaceAll(out, "\\b" + esc + "\\b") { $0 ? "You" : "you" }
+    // 3 · the copula. **BOTH CASES AND ON A WORD BOUNDARY, and that is the fix.**
+    // The first version replaced the literal "You has " — capital, and with a
+    // trailing SPACE. It missed twice over: the producer's commonest sentence
+    // puts the name in the second clause ("The clash closes today. Jerecho has
+    // answered."), which lowercases to `you`; and a verb can be followed by a
+    // comma ("You is, by four") as easily as a space. Production read
+    // "you has answered". A second person takes its verb wherever it stands and
+    // whatever punctuation follows.
+    out = fixCopulas(out)
     return out
   }
 
-  /// Replace every match, told whether it began the sentence — which is the
-  /// whole subject/object distinction.
-  private static func replaceAll(_ s: String, _ pattern: String, _ f: (Int) -> String) -> String {
+  /// Replace every match, told whether it OPENS A SENTENCE — which is the whole
+  /// subject/object distinction.
+  ///
+  /// **It used to ask `offset == 0`, and that is why production read "you has
+  /// answered".** The producer's commonest shape puts the golfer in the second
+  /// clause ("The clash closes today. Jerecho has answered."), so the only
+  /// name that ever sat at offset 0 was the one in a single-clause sentence.
+  /// A sentence also opens after `.`, `!` or `?` — and after a closing quote or
+  /// bracket on the end of the clause before it.
+  private static func replaceAll(_ s: String, _ pattern: String, _ f: (Bool) -> String) -> String {
     guard let rx = try? NSRegularExpression(pattern: pattern) else { return s }
     let ns = s as NSString
     var out = ""
     var last = 0
     for m in rx.matches(in: s, range: NSRange(location: 0, length: ns.length)) {
       out += ns.substring(with: NSRange(location: last, length: m.range.location - last))
-      out += f(m.range.location)
+      out += f(opensSentence(ns, before: m.range.location))
       last = m.range.location + m.range.length
     }
     return out + ns.substring(from: last)
+  }
+
+  /// `You`/`you` followed by a third-person verb takes the second-person form,
+  /// in either case and however the clause ends after it.
+  private static func fixCopulas(_ s: String) -> String {
+    var out = s
+    for (third, second) in copulas {
+      let esc = NSRegularExpression.escapedPattern(for: third)
+      guard let rx = try? NSRegularExpression(pattern: "\\b(You|you)\\s+" + esc + "\\b") else { continue }
+      out = rx.stringByReplacingMatches(in: out,
+                                        range: NSRange(location: 0, length: (out as NSString).length),
+                                        withTemplate: "$1 " + second)
+    }
+    return out
+  }
+
+  /// True when nothing but whitespace and closing punctuation stands between
+  /// this point and a full stop — or the start of the string.
+  private static func opensSentence(_ ns: NSString, before at: Int) -> Bool {
+    var i = at - 1
+    let skip: Set<Character> = [" ", "\n", "\t", "\u{201D}", "\"", ")", "]", "\u{2019}", "'"]
+    while i >= 0, let c = Character(UnicodeScalar(ns.character(at: i)) ?? " ") as Character?, skip.contains(c) {
+      i -= 1
+    }
+    if i < 0 { return true }
+    let c = Character(UnicodeScalar(ns.character(at: i)) ?? " ")
+    return c == "." || c == "!" || c == "?"
   }
 
   /// `Galen` → `Galen’s`, `Chris` → `Chris’`. The typographic apostrophe, and
