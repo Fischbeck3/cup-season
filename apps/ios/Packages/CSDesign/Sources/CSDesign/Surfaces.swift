@@ -121,13 +121,41 @@ public enum CSHeaderDate {
 public struct CSSectionHead: View {
   @Environment(\.cs) private var cs
   @Environment(\.csLookAccent) private var la
+
+  /// **ONE SECTION-HEAD IDIOM IN THE PRODUCT, AT TWO WEIGHTS** (D286).
+  ///
+  /// `.label` NAMES a block — an agate label with a rule running to the margin
+  /// and an optional count. It is right above a block whose rows already carry
+  /// their own weight (a table, a slat list, a form), where the head is a
+  /// caption on something self-evident.
+  ///
+  /// `.display` is the head that is a real STEP: `displayS` 24 in `ink` over
+  /// rows set at 15–17, which is a 1.6× size step and a full contrast step in
+  /// one object. An eye reads that as a new section before it reads a word,
+  /// and it is the answer to *"sections aren't differentiated"* — the head is
+  /// spent on the surfaces where the rows are quiet type and the head is
+  /// otherwise no louder than they are (Home's datelines, Compete's YOUR
+  /// SEASONS). It carries **no rule and no box** (`BRIEF` §32 — structure
+  /// without containers): `s5` of air above it and the size step are the
+  /// separation, and a second hairline under a 24pt line would be the head
+  /// competing with its own rows for the same device.
+  ///
+  /// It is `displayS` and never `display`: §1.5 gives a viewport exactly one
+  /// `display` and the masthead has it. `count:` and `trailing:` belong to
+  /// `.label`; a `.display` head is the title alone, because a 24pt line with
+  /// an 11pt rider beside it is two heads.
+  public enum Weight: Sendable { case label, display }
+
   let title: String
   let count: String?
   let trailing: String?
   let action: (() -> Void)?
+  let weight: Weight
   @Environment(\.dynamicTypeSize) private var typeSize
-  public init(_ title: String, count: String? = nil, trailing: String? = nil, action: (() -> Void)? = nil) {
-    self.title = title; self.count = count; self.trailing = trailing; self.action = action
+  public init(_ title: String, count: String? = nil, trailing: String? = nil,
+              weight: Weight = .label, action: (() -> Void)? = nil) {
+    self.title = title; self.count = count; self.trailing = trailing
+    self.weight = weight; self.action = action
   }
   /// **THE RULE RUNS BETWEEN THE LABEL AND THE COUNT** (§18's own anatomy:
   /// "agate label + rule + optional count", and §16A.2's *right-of-rule* slot).
@@ -139,7 +167,26 @@ public struct CSSectionHead: View {
   /// At the accessibility sizes the rule is dropped rather than squeezed: a
   /// 6pt sliver between two wrapped agate blocks is noise, and the count then
   /// takes its own line under the label.
-  public var body: some View {
+  @ViewBuilder public var body: some View {
+    switch weight {
+    case .display: displayHead
+    case .label:   labelHead
+    }
+  }
+
+  /// The step. `fixedSize(horizontal: false)` deliberately — the label wraps
+  /// at the accessibility sizes rather than holding its line, because there is
+  /// no rule beside it to give way and a head wider than the page is the AX3
+  /// shear the comment below records.
+  private var displayHead: some View {
+    Text(title).csType(.displayS)
+      .foregroundStyle(cs.ink)
+      .fixedSize(horizontal: false, vertical: true)
+      .frame(maxWidth: .infinity, alignment: .leading)
+      .accessibilityAddTraits(.isHeader)
+  }
+
+  private var labelHead: some View {
     A11yStack(rowAlignment: .center, spacing: CSTokens.Space.s3, columnSpacing: CSTokens.Space.s2) {
       HStack(spacing: CSTokens.Space.s3) {
         // Y-33: the trait rides the title, not the row, so the trailing link

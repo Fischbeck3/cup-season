@@ -25,26 +25,49 @@ struct CompeteScreen: View {
   @State private var readFailed = false
   @State private var loaded = false
 
+  /// The payload the tab draws. `-cs_dev_compete_fixture` substitutes ONE
+  /// VALUE — the `Me` — and nothing else changes: the same `CompeteRoot.make`,
+  /// the same heads, the same rows. It is `nil` in Release by construction.
+  private var me: Me? {
+    #if DEBUG
+    if let f = CompeteFixture.me { return f }
+    #endif
+    return store.me
+  }
+
   private var list: CompeteRoot.List {
-    CompeteRoot.make(store.me, upcoming: store.me?.upcoming ?? [])
+    CompeteRoot.make(me, upcoming: me?.upcoming ?? [])
   }
 
   var body: some View {
     ScrollView {
-      VStack(alignment: .leading, spacing: 14) {
+      // §4 rule 2 · the gap between two blocks is the block's own, taken at
+      // the head that opens it, so a section carries its air with it. The
+      // shipped page put 14pt between EVERY child — masthead, head, row, head,
+      // row — which is why the two heads read as two more rows.
+      VStack(alignment: .leading, spacing: 0) {
         CSPageHeader("Compete", eyebrow: CSHeaderDate.today()) {
-          // IA §6.1 · one primary door at the head.
+          // IA §6.1 · one primary door at the head — and it is the page's ONE
+          // ember (L-25), which is why the foot's two doors are quiet.
+          //
+          // **THE ARROW IS GONE, AND IT WAS BREAKING THE HEAD.** `START
+          // SOMETHING ↗` measures wider than the 362pt measure leaves beside
+          // `COMPETE` and `MON · SEP 7`, so the glyph wrapped onto a second
+          // line under the words and sat beside the dateline. It was also the
+          // only typed arrow left in the phone: `LINT-13` deletes them by name
+          // — *movement is a drawn mark; a link's arrow is absorbed into its
+          // underline* — and this was the one that got away.
           Button { presenter.showIntent = true } label: {
-            Text("START SOMETHING ↗").csEyebrow(cs.brand).a11yHitSlop()
+            Text("START SOMETHING").csEyebrow(cs.brand).lineLimit(1).fixedSize().a11yHitSlop()
           }
           .buttonStyle(.plain)
           .accessibilityLabel("Start something")
         }
-        .padding(.bottom, 2)
+
 
         switch CompeteRoot.state(list: list, loaded: loaded, readFailed: readFailed, buddies: buddies) {
         case .loading:
-          ForEach(0..<2, id: \.self) { _ in skeleton }
+          skeleton
         case .failed(let root):
           EmptyRootView(root: root, take: take)
         case .empty(let root):
@@ -53,12 +76,14 @@ struct CompeteScreen: View {
           // running" is true and "you have never played one" is not.
           section(CompeteRoot.Head.finished, list.finished)
         case .list:
-          section(CompeteRoot.Head.seasons, list.seasons)
-          section(CompeteRoot.Head.moments, list.moments)
-          section(CompeteRoot.Head.finished, list.finished)
+          section(CompeteRoot.Head.seasons, list.seasons, first: true)
+          section(CompeteRoot.Head.moments, list.moments, first: list.seasons.isEmpty)
+          section(CompeteRoot.Head.finished, list.finished,
+                  first: list.seasons.isEmpty && list.moments.isEmpty)
+          foot
         }
       }
-      .padding(.horizontal, 20).padding(.top, 4).padding(.bottom, 32)
+      .padding(.horizontal, CSTokens.Space.gutter).padding(.top, 4).padding(.bottom, CSTokens.Space.s5)
     }
     .csLookGround()
     .environment(\.csLook, looks.personalLook())
@@ -74,14 +99,24 @@ struct CompeteScreen: View {
     .csStatusCap(cs.bg0)
     .refreshable { await store.reload(); await countBuddies() }
     .task(id: store.me?.generated_at) {
-      loaded = store.me != nil
+      loaded = me != nil
       await countBuddies()
     }
   }
 
-  @ViewBuilder private func section(_ head: String, _ rows: [CompeteRoot.Row]) -> some View {
+  /// **THE HEAD IS A REAL STEP, AND IT IS THE PRODUCT'S ONE HEAD** (D286).
+  ///
+  /// `YOUR SEASONS` shipped as `csEyebrow` — mono 12 tracked caps in `mut` —
+  /// over rows whose own name was 17pt caps in `ink`. The head was the
+  /// QUIETEST thing in its own section, so the page read as one flat list with
+  /// two labels in it. `CSSectionHead(.display)` is `displayS` 24 in `ink`:
+  /// the same object Home's wire runs its datelines under, used here for the
+  /// second time, which is what makes it an idiom rather than a one-off.
+  @ViewBuilder private func section(_ head: String, _ rows: [CompeteRoot.Row], first: Bool = false) -> some View {
     if !rows.isEmpty {
-      Text(head).csEyebrow().padding(.top, 6)
+      CSSectionHead(head, weight: .display)
+        .padding(.top, first ? CSTokens.Space.s4 : CSTokens.Space.s5)
+        .padding(.bottom, CSTokens.Space.s2)
       ForEach(rows) { row in
         CompeteRowView(row: row) { open(row) }
           .environment(\.csLook, look(row))
@@ -89,8 +124,41 @@ struct CompeteScreen: View {
     }
   }
 
+  /// **THE FOOT — AND THE HONEST ANSWER TO A SCREEN AND A HALF OF NOTHING.**
+  ///
+  /// A golfer with two seasons and one moment has a short page, and the space
+  /// under it is not a design problem to be filled: §27 forbids decorative UI
+  /// with no purpose, and §32 forbids answering it with a card. What the space
+  /// IS good for is the two acts this tab offers that the masthead does not —
+  /// and the masthead's door is at the top-right corner of a phone, which is
+  /// the one place a thumb cannot reach.
+  ///
+  /// So: `s6` (§4's own token — *before a ceremony or a page foot*), a heavy
+  /// rule, and the two doors `CompeteRoot.empty` already names as the
+  /// alternatives to starting something. **Neither is lit**: L-25 allows the
+  /// page exactly one ember and the masthead is wearing it, so a second one
+  /// here would spend it on nothing. Everything below them stays empty, which
+  /// is what a short page should look like.
+  private var foot: some View {
+    VStack(alignment: .leading, spacing: 0) {
+      CSRule(.heavy)
+      CSDoorRow(verb: "Join with a code", gloss: "Someone sent you one") {
+        CSHaptic.selection()
+        CSTelemetry.event(CSTelemetry.Metric.ctaTapped.rawValue, ["door": .string("join_with_a_code")])
+        presenter.join(code: nil)
+      }
+      CSRule()
+      CSDoorRow(verb: "Find golfers", gloss: "The people you play with") {
+        CSHaptic.selection()
+        CSTelemetry.event(CSTelemetry.Metric.ctaTapped.rawValue, ["door": .string("find_golfers")])
+        openGolfers()
+      }
+    }
+    .padding(.top, CSTokens.Space.s6)
+  }
+
   private func look(_ row: CompeteRoot.Row) -> CSLookSpec? {
-    guard let id = row.leagueId, let m = store.me?.memberships.first(where: { $0.league_id == id }) else { return nil }
+    guard let id = row.leagueId, let m = me?.memberships.first(where: { $0.league_id == id }) else { return nil }
     return looks.look(for: m)
   }
 
@@ -122,38 +190,83 @@ struct CompeteScreen: View {
     if let l = try? await PeopleService().friends() { buddies = l.buddies.count }
   }
 
+  /// **LOADING IS THE DESTINATION'S OWN GEOMETRY, REDACTED** (§13.2) — and
+  /// this screen was drawing two 68pt rounded rectangles in `bg1`, which is
+  /// the audit's finding 1 (a card standing in for content) on the one frame
+  /// where nobody would think to look for it. It is now the head and two rows
+  /// this page is about to render, in the same type at the same size.
   private var skeleton: some View {
-    RoundedRectangle(cornerRadius: CSTokens.Radius.r, style: .continuous).fill(cs.bg1).frame(height: 68)
-      .redacted(reason: .placeholder)
+    VStack(alignment: .leading, spacing: 0) {
+      CSSectionHead(CompeteRoot.Head.seasons, weight: .display)
+        .padding(.top, CSTokens.Space.s4)
+        .padding(.bottom, CSTokens.Space.s2)
+      ForEach(0..<2, id: \.self) { i in
+        CompeteRowView(row: .init(id: "skeleton:\(i)", kind: .season, eyebrow: "Week 8 of 15",
+                                  title: "A season you are in", sub: "4 back of the lead",
+                                  clock: nil, rank: .init(place: 2, of: 8))) {}
+      }
+    }
+    .csRedacted(true)
   }
 }
 
-/// One peer: the mono eyebrow, the name, the one true sentence. The card
-/// grammar's three slots (COMPONENT_SYSTEM), at list weight — no border, a
-/// hairline between, the whole row one button.
+/// One peer, as a **slat**: the stage eyebrow, the name, the one true
+/// sentence — and, on a season, the standing as a rule-and-figure at the
+/// trailing edge (D286, `UI_SYSTEM` §9.1/§9.2).
+///
+/// **THE ROW IS THE PAGE'S SUBJECT AND IT SHIPPED AS THREE GREY LINES.** This
+/// is the tab a competitive golfer opens to see where he stands; the standing
+/// was the fourth clause of a 12pt mono sentence, drawn no louder than the
+/// week or the money. The figure is the same object the leaderboard's rail and
+/// the ME strip already are, in the same face at the same size, so a rank
+/// reads as a rank everywhere in the product.
+///
+/// A moment and a weekend carry **no figure** and are quieter for it — `BRIEF`
+/// §7: do not make every item visually equal.
 private struct CompeteRowView: View {
   @Environment(\.cs) private var cs
+  @Environment(\.dynamicTypeSize) private var typeSize
   let row: CompeteRoot.Row
   let onTap: () -> Void
 
+  /// "2nd of 8" — the row's own standing said the way a person says it, for
+  /// VoiceOver, which never hears a rule-and-figure.
+  private var spokenRank: String? {
+    row.rank.map { " \(CSCopy.ordinal($0.place)) of \($0.of)." }
+  }
+
   var body: some View {
     Button(action: onTap) {
-      VStack(alignment: .leading, spacing: 3) {
-        Text(row.eyebrow).csEyebrow()
-        Text(row.title).csType(.name).foregroundStyle(cs.ink)
-        Text(row.sub).csType(.columnS).foregroundStyle(cs.mut)
-          .fixedSize(horizontal: false, vertical: true)
+      A11yStack(alignment: .leading, rowAlignment: .center,
+                spacing: CSTokens.Space.s3, columnSpacing: CSTokens.Space.s3) {
+        VStack(alignment: .leading, spacing: CSTokens.Space.s1) {
+          Text(row.eyebrow).csEyebrow()
+          Text(row.title).csType(.name).foregroundStyle(cs.ink)
+          Text(row.sub).csType(.bodyS).foregroundStyle(cs.mut)
+            .fixedSize(horizontal: false, vertical: true)
+        }
+        .multilineTextAlignment(.leading)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        if let r = row.rank {
+          // `fixedSize(horizontal: true)` is the same line the round slat
+          // needed: `CSRule` is a bare `Rectangle`, so a figure's stack reads
+          // as FLEXIBLE inside an `HStack` and takes an equal share of it —
+          // the 2pt rule then runs half the page and the sentence beside it
+          // breaks over four lines. The rule is the width of its column (§0.2).
+          CSFigure("\(r.place)", size: .m, label: "of \(r.of)",
+                   ordinal: CSOrdinal.suffix(r.place))
+            .fixedSize(horizontal: true, vertical: false)
+            .frame(minWidth: 62, alignment: typeSize.isA11y ? .leading : .trailing)
+        }
       }
-      .multilineTextAlignment(.leading)
-      .frame(maxWidth: .infinity, alignment: .leading)
-      .padding(.vertical, 10)
-      .frame(minHeight: 56)
+      .padding(.vertical, CSTokens.Space.s3)
+      .frame(minHeight: 68)
       .overlay(alignment: .bottom) { CSRule() }
       .contentShape(Rectangle())
     }
     .buttonStyle(.plain)
-    .accessibilityElement(children: .combine)
-    .accessibilityLabel("\(row.title), \(row.eyebrow), \(row.sub)")
+    .accessibilityElement(children: .ignore)
+    .accessibilityLabel("\(row.title), \(row.eyebrow).\(spokenRank ?? "") \(row.sub)")
     .accessibilityHint(row.kind == .season ? "Opens the season" : "Opens it")
   }
 }

@@ -41,43 +41,27 @@ import CupSeasonKit
 
 // MARK: - The section head
 
-/// Home's one head, at **two weights** — and the second weight is the whole
-/// answer to *"sections aren't differentiated"*.
+/// Home's own **block name** — `agate` at `mut` with a 1px rule running to the
+/// margin. Home draws this one rather than taking `CSSectionHead(.label)`,
+/// which still sets its title through `csEyebrow` and the old tracked-mono
+/// voice; that component belongs to every other surface until Wave 8 migrates
+/// it, and changing it here would restyle nine screens that have not had their
+/// wave yet.
 ///
-/// `.section` names the block: `agate` at `mut` with a 1px rule running to the
-/// margin. Home draws its own rather than taking `CSSectionHead`, which still
-/// sets its title through `csEyebrow` and the old tracked-mono voice; that
-/// component belongs to every other surface until Wave 8 migrates it, and
-/// changing it here would restyle nine screens that have not had their wave yet.
-///
-/// `.period` is the wire's **dateline** — `displayS` 24 in `ink` over rows set
-/// at `bodyS` 15 `mut`. That is a 1.6× size step and a full contrast step in
-/// one object, which is what an eye reads as a new section before it reads a
-/// word. It carries no rule: `s5` of air above it and the size step are the
-/// separation (BRIEF §32 — structure without boxes), and a second hairline
-/// under a 24pt line would be the head competing with the rows for the same
-/// device. It is `displayS` and never `display`: §1.5 allows the viewport
-/// exactly one `display` and the masthead has it.
+/// **THE HEAVY HEAD IS NOT HERE.** The wire's dateline and Compete's YOUR
+/// SEASONS are the same object — `CSSectionHead(…, weight: .display)` — and
+/// it lives in `CSDesign` because there is ONE section-head idiom in the
+/// product and the surface that proves it is the second one to use it (D286).
 struct HomeSectionRule: View {
-  enum Weight { case section, period }
   @Environment(\.cs) private var cs
   let title: String
-  let weight: Weight
-  init(_ title: String, weight: Weight = .section) { self.title = title; self.weight = weight }
+  init(_ title: String) { self.title = title }
   var body: some View {
-    switch weight {
-    case .section:
-      HStack(alignment: .center, spacing: CSTokens.Space.s3) {
-        Text(title).csType(.agate, caps: true).foregroundStyle(cs.mut)
-          .fixedSize()
-          .accessibilityAddTraits(.isHeader)
-        CSRule()
-      }
-    case .period:
-      Text(title).csType(.displayS)
-        .foregroundStyle(cs.ink)
-        .fixedSize(horizontal: false, vertical: true)
+    HStack(alignment: .center, spacing: CSTokens.Space.s3) {
+      Text(title).csType(.agate, caps: true).foregroundStyle(cs.mut)
+        .fixedSize()
         .accessibilityAddTraits(.isHeader)
+      CSRule()
     }
   }
 }

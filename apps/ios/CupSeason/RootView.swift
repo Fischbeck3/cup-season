@@ -136,6 +136,18 @@ struct RootView: View {
     // component wave's only acceptance evidence and every later wave's
     // regression check.
     .overlay { if DeveloperHarness.on { DeveloperHarnessView() } }
+    // `-cs_dev_compete_fixture`: the COMPETE tab over the root, on a named
+    // payload — the same trick, for the same reason (D286). Compete lives
+    // behind the tab bar and the tab bar lives behind a session; this wave
+    // opened with the simulator's refresh token expired, and a screen that
+    // cannot be photographed is a screen nobody looked at. It reads a fixture
+    // and never the server, so nothing here can touch anybody's real season.
+    .overlay {
+      if CompeteFixture.on {
+        NavigationStack { CompeteScreen(links: CSLinks()) }
+          .background(cs.bg0.ignoresSafeArea())
+      }
+    }
     .overlay {
       if (CSDevHatch.live || CSDevHatch.nearby) && devLive {
         LiveRoundHost(links: LiveLinks(done: { devLive = false }))

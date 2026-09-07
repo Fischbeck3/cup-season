@@ -29,6 +29,27 @@ public enum CompeteRoot {
 
   public struct Row: Sendable, Equatable, Identifiable {
     public enum Kind: String, Sendable, Equatable { case season, moment, weekend }
+
+    /// **WHERE THE GOLFER STANDS, AS FIGURES** (D286, `UI_SYSTEM` §1.6/§9.6).
+    ///
+    /// This is the tab a competitive golfer opens to find out where he is, and
+    /// the answer shipped as the fourth clause of a grey sentence —
+    /// *"2nd of 2, 4 back of Galen"* — in the same size, weight and colour as
+    /// the week, the money and the stage word. §9.9 names this exact failure
+    /// for the HCP and the gap: *the two facts that keep escaping into prose*.
+    /// A rank is a figure, it belongs in the figure's own voice, and the row
+    /// that carries one hands `rank` to a rule-and-figure and takes the rank
+    /// OUT of its sentence (`seasonLine(rank: false)`), so the fact is said
+    /// once.
+    ///
+    /// The phone builds the ordinal (`CSOrdinal`, a `CSDesign` symbol) — this
+    /// type carries the two numbers and nothing about how they are drawn.
+    public struct Rank: Sendable, Equatable {
+      public let place: Int
+      public let of: Int
+      public init(place: Int, of: Int) { self.place = place; self.of = of }
+    }
+
     /// Stable across loads: the object's own id, so SwiftUI keeps the row.
     public let id: String
     public let kind: Kind
@@ -40,14 +61,21 @@ public enum CompeteRoot {
     /// Days until this row's next deadline; nil = no clock. Never printed —
     /// it is the sort key (L-22: a countdown nobody asked for is pressure).
     public let clock: Int?
+    /// nil on every row that has no standing to show — a moment, a weekend, a
+    /// season that has not started, a wrapped season the payload never ranked
+    /// me in. A row without one is a row without a figure, and it is quieter
+    /// for it, which is `BRIEF` §7 working rather than a gap.
+    public let rank: Rank?
     public let leagueId: UUID?
     public let eventId: UUID?
     public let roundId: UUID?
 
     public init(id: String, kind: Kind, eyebrow: String, title: String, sub: String, clock: Int?,
+                rank: Rank? = nil,
                 leagueId: UUID? = nil, eventId: UUID? = nil, roundId: UUID? = nil) {
       self.id = id; self.kind = kind; self.eyebrow = eyebrow; self.title = title; self.sub = sub
-      self.clock = clock; self.leagueId = leagueId; self.eventId = eventId; self.roundId = roundId
+      self.clock = clock; self.rank = rank
+      self.leagueId = leagueId; self.eventId = eventId; self.roundId = roundId
     }
   }
 
@@ -148,11 +176,42 @@ public enum CompeteRoot {
     }
     // L-34 · the EYEBROW carries the week and the stage, so the sentence under
     // it does not say them again. `week: false` is the same producer's other
-    // grain, not a second producer.
+    // grain, not a second producer — and `rank:` is the third: when the row
+    // draws the standing as a figure, the sentence stops saying it (D286).
+    let rank = rank(m, phase: phase)
     return Row(id: "league:\(m.league_id.uuidString)", kind: .season, eyebrow: eyebrow, title: m.name,
-               sub: finishedSub(m, phase: phase) ?? SeasonFacts.seasonLine(m, week: false, today: today, calendar: calendar),
+               sub: finishedSub(m, phase: phase)
+                 ?? SeasonFacts.seasonLine(m, week: false, rank: rank == nil, today: today, calendar: calendar),
                clock: clock(m, phase: phase, today: today, calendar: calendar),
+               rank: rank,
                leagueId: m.league_id)
+  }
+
+  /// **A FIGURE IS ONLY DRAWN WHERE THERE IS A STANDING TO DRAW**, and the two
+  /// phases that have one are the only two that get it.
+  ///
+  ///   · a RUNNING season — `standing.rank of standing.of`, the same numbers
+  ///     `seasonLine` was printing as prose;
+  ///   · a WRAPPED one — `last_season.my_rank of .of`, which is the payload's
+  ///     own final finish and is nil rather than guessed for a squads member
+  ///     (`LastSeason`'s note) and on a v1 payload.
+  ///
+  /// Preseason, forming and the Cup Final render NO figure. A season that has
+  /// not teed off ranks everybody 1st of N on zero points, and printing `1ST`
+  /// over that is a lie in 27pt type; through the Final `rank` is the live
+  /// table and not the locked seed (D138), so a figure there would be the one
+  /// number a finalist must not be told twice.
+  private static func rank(_ m: Me.Membership, phase: SeasonPhase) -> Row.Rank? {
+    switch phase {
+    case .season:
+      guard let st = m.standing, st.rank > 0, st.of > 0 else { return nil }
+      return Row.Rank(place: st.rank, of: st.of)
+    case .wrapped:
+      guard let ls = m.last_season, let p = ls.my_rank, let n = ls.of, p > 0, n > 0 else { return nil }
+      return Row.Rank(place: p, of: n)
+    case .preseason, .forming, .cupFinal:
+      return nil
+    }
   }
 
   /// "Mike took it" — only when the payload actually names the champion of THIS

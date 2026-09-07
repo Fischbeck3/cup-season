@@ -359,3 +359,54 @@ import SwiftUI
     #expect(live.spoken == "Week 5 of 13, the live week")
   }
 }
+
+// MARK: - D286 · one section head, at two weights
+
+@Suite struct SectionHeadWeightTests {
+
+  /// **THE DEFAULT DOES NOT MOVE.** Nine screens take `CSSectionHead` as an
+  /// agate label with a rule; adding a weight to the type may not restyle one
+  /// of them, and the only way that stays true is that `.label` is what you
+  /// get when you say nothing.
+  @Test func theDefaultWeightIsStillTheLabel() {
+    #expect(CSSectionHead("The table").weight == .label)
+    #expect(CSSectionHead("The table", count: "12 GOLFERS").weight == .label)
+    #expect(CSSectionHead("Your seasons", weight: .display).weight == .display)
+  }
+
+  /// **AND THE SECOND WEIGHT IS A REAL STEP, WHICH IS THE WHOLE POINT.** The
+  /// owner read the product as an undifferentiated wall of similar-sized text;
+  /// a head one point larger than its rows would not have answered him. The
+  /// head sets `displayS` 24 over rows at `bodyS` 15 and `name` 17 — 1.6× and
+  /// 1.41×, plus a full contrast step from `mut` to `ink`.
+  @Test func theDisplayHeadOutSizesTheRowsItSitsOver() {
+    let head = CSType.Role.displayS.size
+    #expect(head / CSType.Role.bodyS.size >= 1.5, "head \(head) over a 15pt quiet line")
+    #expect(head / CSType.Role.name.size >= 1.35, "head \(head) over a 17pt name")
+    #expect(head > CSType.Role.agate.size * 1.9, "the shipped head was agate 12 — this is the step it lacked")
+  }
+
+  /// §1.5 gives a viewport exactly ONE `display` and the masthead has it, so
+  /// the head is `displayS` and can repeat down a page without spending it.
+  @Test func theHeadIsDisplaySAndNeverDisplay() {
+    #expect(CSType.Role.displayS.size == 24 && CSType.Role.display.size == 34)
+  }
+}
+
+// MARK: - D286 · the door row, which lived three times in one file
+
+@Suite struct DoorRowTests {
+
+  /// A row that STATES rather than opens carries no action — the brand-new
+  /// Home's three facts about the product use the same drawing as the floor's
+  /// four doors, which is what its own comment asked for and what three copies
+  /// of the layout could never guarantee.
+  @Test func aDoorRowIsLitAndTappableOnlyWhenItIsSaidToBe() {
+    let stated = CSDoorRow(verb: "Add my round", gloss: "One you already played")
+    #expect(stated.lit == false)
+    #expect(stated.action == nil)
+    let door = CSDoorRow(verb: "Start something", gloss: "A season, a weekend, a clash", lit: true) {}
+    #expect(door.lit == true)
+    #expect(door.action != nil)
+  }
+}

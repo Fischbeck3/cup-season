@@ -278,7 +278,7 @@ struct HomeView: View {
     ForEach(HomeWirePeriod.allCases, id: \.self) { period in
       let rows = page.rows.filter { $0.period == period }
       if !rows.isEmpty {
-        HomeSectionRule(period.head, weight: .period)
+        CSSectionHead(period.head, weight: .display)
           .padding(.horizontal, CSTokens.Space.gutter)
           .padding(.top, loose.isEmpty && period == firstFilled(page) ? CSTokens.Space.s3 : CSTokens.Space.s5)
           .padding(.bottom, CSTokens.Space.s2)

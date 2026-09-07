@@ -303,14 +303,22 @@ public enum SeasonFacts {
   /// again is the same fact in two places on one row (L-34). Compete's peer
   /// list is that surface; a second producer for it would be the drift D234
   /// exists to forbid.
-  public static func seasonLine(_ m: Me.Membership, week: Bool = true,
+  ///
+  /// **`rank: false` IS THE THIRD GRAIN, AND IT EXISTS BECAUSE A RANK IS A
+  /// FIGURE** (D286). Where the surface draws the standing as a rule-and-figure
+  /// — Compete's season row — the sentence must stop printing it, or the
+  /// golfer is told his position twice in two voices on one row. The race
+  /// clause and the money stay: those are the STORY beside the record, which
+  /// is the same division §9.9 makes for the gap ("the chapter line may say
+  /// the gap; the column is the record").
+  public static func seasonLine(_ m: Me.Membership, week: Bool = true, rank: Bool = true,
                                 today: String = CSDate.today(), calendar: Calendar = .current) -> String {
     switch SeasonPhase.of(m, today: today) {
     case .season(let w, let n):
       var s = week ? "Week \(w) of \(n)" : ""
       if let st = m.standing {
-        s += (s.isEmpty ? "" : " · ") + "\(CSCopy.ordinal(st.rank)) of \(st.of)"
-        if let race = race(st) { s += ", \(race)" }
+        if rank { s += (s.isEmpty ? "" : " · ") + "\(CSCopy.ordinal(st.rank)) of \(st.of)" }
+        if let race = race(st) { s += (s.isEmpty ? "" : (rank ? ", " : " · ")) + race }
       }
       if let money = SeasonFacts.footMoney(m) { s += (s.isEmpty ? "" : " · ") + money }
       // A season with no standing and no money has nothing left to say once

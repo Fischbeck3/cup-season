@@ -172,55 +172,13 @@ struct HomeFloor: View {
   }
 
   private func row(_ d: Door) -> some View {
-    Button {
+    // The drawing — and the AX5 shear this row used to cause — is
+    // `CSDoorRow`'s (D286). This file kept three copies of it.
+    CSDoorRow(verb: d.verb, gloss: d.gloss, lit: d.key == emberKey) {
       CSHaptic.selection()
       CSTelemetry.event(CSTelemetry.Metric.ctaTapped.rawValue, ["door": .string(d.key)])
       open(d.key)
-    } label: {
-      // **WAVE 10 · THIS ROW WAS THE PAGE'S SHEAR, AND IT TOOK A PROBE TO
-      // FIND IT.** The verb held `fixedSize(horizontal: true)` so its 2pt
-      // ember rule would stop at the end of the word rather than run the
-      // measure — right at the reading sizes, and at AX5 `Start something` in
-      // `nameS` measures more than the whole phone, refuses to shrink, and
-      // makes the WHOLE Home page 466pt wide. A vertical `ScrollView` then
-      // centres a content box wider than itself and every block on the page
-      // slides ~32pt left: the masthead runs off the leading edge and the ME
-      // strip's figures run off the trailing one. Nothing on the screen said
-      // the floor was the cause. `csPage` now measures and logs the breach;
-      // this is the breach.
-      //
-      // The fix is §16.3's own general rule rather than a clamp: at the
-      // accessibility sizes the row becomes a COLUMN, the verb takes the
-      // measure (so its rule does too, which is the same lit state), and the
-      // gloss sets under it flush left instead of fighting it for the line.
-      A11yStack(rowAlignment: .firstTextBaseline,
-                spacing: CSTokens.Space.s3, columnSpacing: CSTokens.Space.s2) {
-        VStack(alignment: .leading, spacing: 3) {
-          Text(d.verb).csType(.nameS).foregroundStyle(cs.ink)
-            .fixedSize(horizontal: false, vertical: true)
-          // the rule IS the lit state; the verb never changes colour, because
-          // a control that changes colour to mean "recommended" is a control
-          // wearing state (§7)
-          Rectangle().fill(d.key == emberKey ? cs.brand : Color.clear).frame(height: 2)
-        }
-        .fixedSize(horizontal: !typeSize.isA11y, vertical: false)
-        if !typeSize.isA11y { Spacer(minLength: CSTokens.Space.s3) }
-        Text(d.gloss).csType(.agateS, caps: false).foregroundStyle(cs.mut)
-          .multilineTextAlignment(typeSize.isA11y ? .leading : .trailing)
-          .fixedSize(horizontal: false, vertical: true)
-      }
-      .frame(maxWidth: .infinity, alignment: .leading)
-      .padding(.vertical, CSTokens.Space.s3)
-      .frame(minHeight: 48)
-      .contentShape(Rectangle())
     }
-    .buttonStyle(.plain)
-    .csBudget(ember: d.key == emberKey ? 1 : 0)
-    // VoiceOver reads a tracked all-caps verb letter by letter; give it the
-    // sentence, with the gloss folded in (§7).
-    .accessibilityElement(children: .ignore)
-    .accessibilityLabel("\(d.verb). \(d.gloss)")
-    .accessibilityAddTraits(.isButton)
   }
 
   private func open(_ key: String) {
@@ -238,8 +196,6 @@ struct HomeFloor: View {
 /// The brand-new Home's three rows — `HomeFirstRound`'s producer, drawn in the
 /// floor's own grammar so the page has one row shape and not two.
 struct HomeFirstRoundRows: View {
-  @Environment(\.cs) private var cs
-  @Environment(\.dynamicTypeSize) private var typeSize
   let rows: [HomeFirstRound.Row]
 
   var body: some View {
@@ -252,19 +208,9 @@ struct HomeFirstRoundRows: View {
         // whose other rule is symmetric. `home-quiet.png` runs all four
         // full-bleed.
         if i > 0 { CSRule() }
-        A11yStack(rowAlignment: .firstTextBaseline,
-                  spacing: CSTokens.Space.s3, columnSpacing: CSTokens.Space.s2) {
-          Text(r.verb).csType(.nameS).foregroundStyle(cs.ink)
-            .fixedSize(horizontal: !typeSize.isA11y, vertical: false)
-          if !typeSize.isA11y { Spacer(minLength: CSTokens.Space.s3) }
-          Text(r.gloss).csType(.agateS, caps: false).foregroundStyle(cs.mut)
-            .multilineTextAlignment(typeSize.isA11y ? .leading : .trailing)
-            .fixedSize(horizontal: false, vertical: true)
-        }
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(.vertical, CSTokens.Space.s3)
-        .frame(minHeight: 46)
-        .accessibilityElement(children: .combine)
+        // No action: these three STATE what a first round turns on. They are
+        // the same row as the floor's, which is `CSDoorRow` (D286).
+        CSDoorRow(verb: r.verb, gloss: r.gloss)
       }
     }
   }

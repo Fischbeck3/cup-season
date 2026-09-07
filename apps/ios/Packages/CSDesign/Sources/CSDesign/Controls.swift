@@ -489,6 +489,85 @@ public struct CSDoor: View {
   }
 }
 
+// MARK: - The door row
+
+/// **A VERB AND ITS GLOSS ON ONE 48pt ROW** — the product's page-foot grammar,
+/// and the shape a list of acts takes when it is not a stack of buttons.
+///
+/// Four tracked-caps text links in two ragged columns (audit H-07, *"buttons
+/// that look like links"*) become a verb in `nameS` caps at the leading edge
+/// and one line of `agateS` flush right, separated by rules. At most one row
+/// in a foot is ever lit, and **the lit state is a 2px `brand` rule under the
+/// verb** — the verb itself never changes colour, because a control that
+/// changes colour to mean *recommended* is a control wearing state (§7).
+///
+/// It lived three times in `HomeFacts.swift` — the floor's row, the
+/// first-round row, and the floor's collapsed row — with the second carrying
+/// the comment *"drawn in the floor's own grammar so the page has one row
+/// shape and not two"*, which is the argument for this type existing. Compete
+/// is the fourth caller (D286).
+///
+/// **AND IT IS THE PAGE'S AX5 SHEAR IF THE VERB HOLDS ITS LINE.** The verb
+/// carried `fixedSize(horizontal: true)` so its ember rule would stop at the
+/// end of the word — right at the reading sizes, and at AX5 `Start something`
+/// in `nameS` measures more than the phone, refuses to shrink, and makes the
+/// whole page 466pt wide. A vertical `ScrollView` then centres a content box
+/// wider than itself and every block on the page slides left. At the
+/// accessibility sizes the row becomes a COLUMN: the verb takes the measure
+/// (so its rule does too, which is the same lit state) and the gloss sets
+/// under it flush left instead of fighting it for the line (§16.3).
+public struct CSDoorRow: View {
+  @Environment(\.cs) private var cs
+  @Environment(\.dynamicTypeSize) private var typeSize
+  let verb: String
+  let gloss: String
+  let lit: Bool
+  /// nil for a row that STATES rather than opens — the brand-new Home's three
+  /// facts about the product. It then carries no button trait and no hit area.
+  let action: (() -> Void)?
+
+  public init(verb: String, gloss: String, lit: Bool = false, action: (() -> Void)? = nil) {
+    self.verb = verb; self.gloss = gloss; self.lit = lit; self.action = action
+  }
+
+  public var body: some View {
+    Group {
+      if let action {
+        Button(action: action) { line }
+          .buttonStyle(.plain)
+          .accessibilityAddTraits(.isButton)
+      } else {
+        line
+      }
+    }
+    .csBudget(ember: lit ? 1 : 0)
+    // VoiceOver reads a tracked all-caps verb letter by letter; give it the
+    // sentence, with the gloss folded in (§7).
+    .accessibilityElement(children: .ignore)
+    .accessibilityLabel("\(verb). \(gloss)")
+  }
+
+  private var line: some View {
+    A11yStack(rowAlignment: .firstTextBaseline,
+              spacing: CSTokens.Space.s3, columnSpacing: CSTokens.Space.s2) {
+      VStack(alignment: .leading, spacing: 3) {
+        Text(verb).csType(.nameS).foregroundStyle(cs.ink)
+          .fixedSize(horizontal: false, vertical: true)
+        Rectangle().fill(lit ? cs.brand : Color.clear).frame(height: 2)
+      }
+      .fixedSize(horizontal: !typeSize.isA11y, vertical: false)
+      if !typeSize.isA11y { Spacer(minLength: CSTokens.Space.s3) }
+      Text(gloss).csType(.agateS, caps: false).foregroundStyle(cs.mut)
+        .multilineTextAlignment(typeSize.isA11y ? .leading : .trailing)
+        .fixedSize(horizontal: false, vertical: true)
+    }
+    .frame(maxWidth: .infinity, alignment: .leading)
+    .padding(.vertical, CSTokens.Space.s3)
+    .frame(minHeight: 48)
+    .contentShape(Rectangle())
+  }
+}
+
 // MARK: - Dismiss, said once
 
 public extension View {
