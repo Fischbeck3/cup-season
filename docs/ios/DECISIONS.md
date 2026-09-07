@@ -957,3 +957,13 @@ The fifth repair commit.
 **AND HOME SAID ONE THING TWICE.** `HomeFeedFold` folded system notes across leagues and left moments alone, so a personal best fanned to two leagues printed two identical wire rows one row apart.
 
 **Gate:** `build-tokens` clean · preflight PASS · sunningdale PASS · **982 tests / 162 suites** — up two, with a new `HomeFeedMomentFoldTests`, a `CredentialBandTests` and the heat-ramp assertion.
+
+## IOS-060 · The repair pass — the live sheet's act comes back up the screen — **BUILT 2026-09-07 (owner-authorised "build it", 2026-09-06)**
+
+`lb-live.png` sets the match block in **two** lines. The build set it in four — `MATCH PLAY · NET BEST BALL · YOU + DANNY VS CHUCK + GARY` wrapping to two on a 402pt measure, then the status, then `THRU 14 · STROKES OFF LOW MAN (CHUCK)` — which pushed `FINISH THE ROUND`, the surface's one primary, off the screen a golfer reads standing on a tee with one thumb.
+
+Two lines now, and each clause moved to where it is READ rather than where it was produced. The pairing goes to the scorecard, beside the strokes it decides. `THRU n` rides the status, where the eye already is — and **not** on a closed match, because `WIN 3&2` already says how far it went and a test caught that the moment the clause moved. `STROKES OFF LOW MAN` is a rule about the scorecard and is read there. A stake and an estimated card are facts about this round and stay; an empty meta line draws nothing.
+
+**And the live hole head said `SI`** — `PAR 4 · SI 14`, on a surface a golfer reads eighteen times a round, after the terminology sweep. TERMINOLOGY §3.1's ruled replacement is `HCP`.
+
+**Not fully closed, and measured:** on a FOUR-player round the primary is still a short scroll away. Four 60pt score rows, the eighteen-cell hole strip and the hole header are ~640pt before the match block starts; the artboard's round is a pair. The block is the artboard's two lines and ~120pt came back, which is the half of this that was a layout defect rather than a content count.

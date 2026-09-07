@@ -312,8 +312,11 @@ struct LivePlayView: View {
               if canShowCard { cardView = true } else { showCard = true }
             })
           }
-          Text(m.meta).csType(.agateS, caps: true).foregroundStyle(cs.mut)
-            .fixedSize(horizontal: false, vertical: true)
+          // a meta line with nothing in it is not a line
+          if !m.meta.isEmpty {
+            Text(m.meta).csType(.agateS, caps: true).foregroundStyle(cs.mut)
+              .fixedSize(horizontal: false, vertical: true)
+          }
         }
         .csGutter()
       }

@@ -42,16 +42,30 @@ public enum LiveCopy {
       let chs = s.courseHandicaps
       let li = chs.firstIndex(of: s.lowCH) ?? -1
       let lowMan = li >= 0 ? up(s.players[li].n) : ""
-      let teams = n == 2
-        ? "Match play · singles · \(s.players[0].n) vs \(s.players[1].n)"
-        : "Match play · net best ball · \(sideNames(s, 0, sep: " + ")) vs \(sideNames(s, 1, sep: " + "))"
+      // **DF-11 · THE AGATE LINE IS THE GAME, NOT THE PAIRING.** `lb-live.png`
+      // sets the match block in TWO lines; the build set it in four, and on a
+      // 402pt measure `MATCH PLAY · NET BEST BALL · YOU + DANNY VS CHUCK +
+      // GARY` wrapped to two of them on its own — which pushed `FINISH THE
+      // ROUND`, the surface's ONE primary, below the fold on the screen a
+      // golfer reads standing on a tee with one thumb. The pairing is in the
+      // scorecard, one tap away, beside the strokes it decides.
+      let teams = n == 2 ? "Match play · singles" : "Match play · net best ball"
       let m = LiveEngines.match(scores: s.scores, strokes: s.strokeTable, teams: s.teams, holes: s.liveHoles)
       let status: String
       if let c = m.closed { status = "\(c.winner == 0 ? teamA : teamB) WIN \(c.lead)&\(c.rem)" }
       else if m.a == m.b { status = "ALL SQUARE" }
       else { status = "\(m.a > m.b ? teamA : teamB) \(abs(m.a - m.b)) UP\(m.dormie(holes: s.liveHoles) ? " · DORMIE" : "")" }
-      let meta = "THRU \(m.played) · STROKES OFF LOW MAN (\(lowMan))" + (s.stake > 0 ? " · $\(js(s.stake)) A SIDE" : "") + (s.course.siEst ? " · EST. CARD" : "")
-      return GameCard(teams: teams, status: status, meta: meta)
+      // `THRU n` rides the STATUS, where the eye already is; `STROKES OFF LOW
+      // MAN` is a rule about the scorecard and it is read there. A stake and an
+      // estimated card are facts about this round and stay.
+      // **A CLOSED MATCH DOES NOT SAY THRU.** `WIN 3&2` already says how far
+      // it went, and `3&2 · THRU 16` is the same fact twice (D201) — which a
+      // test caught the moment `THRU n` moved onto this line.
+      let statusLine = m.closed == nil ? "\(status) · THRU \(m.played)" : status
+      let meta = [s.stake > 0 ? "$\(js(s.stake)) A SIDE" : nil,
+                  s.course.siEst ? "EST. CARD" : nil].compactMap { $0 }.joined(separator: " · ")
+      _ = lowMan
+      return GameCard(teams: teams, status: statusLine, meta: meta)
     }
     if s.game == .sunningdale, s.solo, n == 4 {
       let m = LiveEngines.sunningdaleSolo(scores: s.scores, holes: s.liveHoles)
@@ -253,7 +267,8 @@ public enum LiveCopy {
 
   /// `HOLE n` · `PAR p · SI s`.
   public static func holeHeader(_ s: LiveRoundState) -> (num: String, meta: String) {
-    ("HOLE \(s.hole + 1)", "PAR \(s.course.pars[s.hole]) · SI \(s.course.si[s.hole])")
+    // TERMINOLOGY §3.1 · `SI` is an engine word; the ruled replacement is HCP.
+    ("HOLE \(s.hole + 1)", "PAR \(s.course.pars[s.hole]) · HCP \(s.course.si[s.hole])")
   }
 
   // MARK: - the scoreboard (8604–8654)

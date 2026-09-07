@@ -474,9 +474,15 @@ private func round(_ names: [String], indices: [Double], scores: [[Int?]], game:
     let s = round(["Jerecho", "Ed"], indices: [8.6, 8.1], scores: [a, b], game: .match, stake: 10)
     #expect(s.strokes == [1, 0] && s.strokeOn(0, 3) == 1)
     let c = LiveCopy.matchCard(s)!
-    #expect(c.teams == "Match play · singles · Jerecho vs Ed")
-    #expect(c.status == "JERECHO 3 UP · DORMIE")
-    #expect(c.meta == "THRU 15 · STROKES OFF LOW MAN (ED) · $10 A SIDE · EST. CARD")
+    // DF-11 · the match block is TWO lines, as `lb-live.png` sets it. The
+    // pairing is in the scorecard beside the strokes it decides; `THRU n`
+    // rides the status, where the eye already is; `STROKES OFF LOW MAN` is a
+    // rule about the scorecard and is read there. Four lines here put the
+    // screen's ONE primary below the fold.
+    #expect(c.teams == "Match play · singles")
+    #expect(c.status == "JERECHO 3 UP · DORMIE · THRU 15")
+    #expect(c.meta == "$10 A SIDE · EST. CARD")
+    #expect(!c.teams.contains("vs"))
     a[15] = 4; b[15] = 4
     let s2 = round(["Jerecho", "Ed"], indices: [8.6, 8.1], scores: [a, b], game: .match)
     #expect(LiveCopy.matchCard(s2)!.status == "JERECHO WIN 3&2")
