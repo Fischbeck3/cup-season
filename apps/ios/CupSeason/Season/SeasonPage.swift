@@ -242,8 +242,17 @@ struct SeasonPage: View {
         // individual table prints beneath it under EVERY GOLFER. In a solo
         // season neither the squad layer nor the swatch renders at all and the
         // head stays THE TABLE — which is what CS-11 actually asked for.
+        // **THE MOVEMENT CLOCK RIDES THE SECTION HEAD** (`leaderboard.md` D-2,
+        // and the one idea this surface adds to the system). The shipped board
+        // printed `HELD SINCE SUN` eleven times at 11pt beside eleven ranks;
+        // the clock is a property of the SNAPSHOT, not of a row, so it is
+        // named ONCE for the whole table and the rows carry a drawn mark.
+        // `StandingsMath`'s absolute rule survives the move: no clock, no
+        // claim — with none the head falls back to the field count and the
+        // movement column does not render either.
         CSSectionHead(model.bylaws.solo ? "The table" : "The squads",
-                      count: model.bylaws.solo ? fieldCount : SeasonBoardCopy.sides(model.teams.count))
+                      count: StandingsMath.movedSince(model.priorSince)
+                        ?? (model.bylaws.solo ? fieldCount : SeasonBoardCopy.sides(model.teams.count)))
           .csGutter()
           .id(SeasonPane.table.anchor)
       }

@@ -761,6 +761,38 @@ tr.cutrow td i{display:inline-block; vertical-align:middle; height:2px; backgrou
 /* the board's trailing figure gets its own lane: `.pmeta` is flex:1 and pushed
    the band past the row's right edge (a real screenshot caught it clipped). */
 .bdfig{flex:none; color:var(--mut); font-size:11.5px; letter-spacing:.06em; text-align:right; white-space:nowrap;}
+/* WAVE 7 - THE FORM BOARD IS THE SAME SLAT (leaderboard.md 4). The desk drew a
+   bare 11px mono rank, no face at all and the band word alone in the trailing
+   lane: three tones of grey, no person, and the FIGURE the band is a name for
+   nowhere on the row. It is the rank rail, a CSFace disc, the count, and the
+   figure with its band beneath - the phone's own row at the desk's density.
+   THE RAIL IS NEVER GOLD HERE (D-6): leading a rolling 30-day form window is
+   not a thing that was won, so it has two states, yours and nobody's. */
+.fbrow{display:flex; align-items:center; gap:12px; border-top:1px solid var(--rule); min-height:60px;}
+.fbrow:last-of-type{border-bottom:1px solid var(--rule);}
+.fbrow .rk{font-family:var(--board); font-size:22px; font-weight:700; line-height:1;
+  font-variant-numeric:tabular-nums; color:var(--ink); width:44px; text-align:center;
+  align-self:stretch; display:flex; align-items:center; justify-content:center; flex:none;}
+.fbrow.mine .rk{background:var(--panel); color:var(--panelInk);}
+.fbrow .fc{width:38px; height:38px; border-radius:50%; flex:none; display:flex;
+  align-items:center; justify-content:center; color:var(--mut); box-shadow:inset 0 0 0 1px var(--rule);}
+.fbrow.mine .fc{color:var(--ink);}
+.fbrow .fbn{min-width:0; flex:1;}
+.fbrow .fbn b{display:block; font-family:var(--board); font-size:15px; font-weight:600;
+  letter-spacing:.035em; text-transform:uppercase; color:var(--ink);
+  overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+.fbrow .fbn small{display:block; font-family:var(--board); font-size:11px; letter-spacing:.08em;
+  color:var(--mut); margin-top:3px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+.fbrow .fbv{flex:none; text-align:right; padding-right:2px;}
+.fbrow .fbv b{display:block; font-family:var(--board); font-size:20px; font-weight:700;
+  font-variant-numeric:tabular-nums; color:var(--ink); line-height:1;}
+.fbrow .fbv small{display:block; font-family:var(--board); font-size:11px; letter-spacing:.08em;
+  color:var(--mut); margin-top:3px; white-space:nowrap;}
+/* 16A.3 - the column says which way is good, over the column. NOT "lower is
+   better": in this product a POSITIVE figure means the golfer beat their
+   playing HCP by that much (bandName(+3) is "Torched it"). */
+.fbnote{font-family:var(--board); font-size:11px; letter-spacing:.08em; text-transform:uppercase;
+  color:var(--mut); text-align:right; padding:8px 2px 6px;}
 .h2hdots{display:flex; align-items:center; gap:7px; min-height:28px;}
 .h2hdots i{width:9px; height:9px; border-radius:50%; background:var(--bg2); border:1px solid var(--rule); display:inline-block;}
 .h2hdots i.on{background:var(--brand); border-color:var(--brand);}
@@ -1266,10 +1298,32 @@ body.guestlive #onboard{display:none !important;}
 }
 .holehdr button:hover{color:var(--ink);}
 .holehdr button:focus-visible{outline:2px solid var(--brand);}
-.holedots{display:flex; gap:3px; margin-top:8px; flex-wrap:wrap;}
-.holedots i{width:11px; height:11px; border-radius:3px; background:var(--bg2); border:1px solid var(--rule);}
-.holedots i.done{background:var(--dim); border-color:transparent;}
-.holedots i.cur{background:var(--pos); border-color:transparent;}
+/* WAVE 7 - THE HOLE STRIP REPLACES THE EIGHTEEN DOTS (leaderboard.md 5.4,
+   chart 4). The dots were countable and said only how FAR the round was; the
+   strip says how it is GOING, in the scorecard ink law - a ring under par, a
+   dot at par, a box over it, drawn in ink in both printings, with a 9x1 `mut`
+   dash for a hole not played. The hole you are on carries a 2pt `brand` rule
+   under its own cell: a position on the axis, not a colour-coded status.
+   AND IT HAS A KEY. Squares, circles and dots had no legend anywhere in the
+   product, and all three blind reviewers filed it. */
+.holestrip{margin-top:10px;}
+.holestrip .cells{display:flex; align-items:center;}
+.holestrip .cells i{flex:1; min-width:20px; height:22px; display:flex; align-items:center; justify-content:center;}
+.holestrip .cells i s{display:block; text-decoration:none; border:1.7px solid var(--ink); width:13px; height:13px;}
+.holestrip .cells i.under s{border-radius:50%;}
+.holestrip .cells i.level s{width:4px; height:4px; border:none; background:var(--ink); border-radius:50%;}
+.holestrip .cells i.open s{width:9px; height:1px; border:none; background:var(--mut);}
+.holestrip .rule{height:1px; background:var(--rule);}
+.holestrip .ticks{display:flex;}
+.holestrip .ticks i{flex:1; min-width:20px; height:2px;}
+.holestrip .ticks i.cur{background:var(--brand);}
+.holestrip .key{display:flex; align-items:center; gap:14px; margin-top:6px;
+  font-family:var(--board); font-size:11px; letter-spacing:.08em; color:var(--mut);}
+.holestrip .key span{display:flex; align-items:center; gap:5px;}
+.holestrip .key s{display:block; text-decoration:none; border:1.7px solid var(--mut); width:12px; height:12px;}
+.holestrip .key s.u{border-radius:50%;}
+.holestrip .key s.l{width:4px; height:4px; border:none; background:var(--mut); border-radius:50%;}
+.holestrip .key b{margin-left:auto; font-weight:400;}
 .prow{
   display:flex; align-items:center; gap:10px;
   background:var(--bg1); border:1px solid var(--rule); border-radius:12px;
@@ -2138,6 +2192,43 @@ html[data-theme="light"] .momrow{background:rgba(21,116,63,.06);}
 .sheet h3{font-size:18px; font-weight:700; letter-spacing:-.01em; padding-right:28px;}
 .sheet .sub{font-family:var(--mono); font-size:11.5px; color:var(--dim); letter-spacing:.1em; text-transform:uppercase; margin-top:3px;}
 .sheet .x{position:absolute; top:14px; right:14px; border:none; background:none; color:var(--dim); font-size:20px; cursor:pointer; padding:4px;}
+/* WAVE 7 - THE RECEIPT IS PRINTED ON A LEAF (leaderboard.md 6). A receipt is a
+   printed grid, and a printed grid is the one thing 3.3 licenses a leaf for.
+   The rows keep every word `roundCardBody` produces; what changed is the paper
+   under them, the hairline (the leaf's own ink at 16%, never the page's rule,
+   which is cut for the page's ground and vanishes on bone), the 2pt leaf-ink
+   rule above the total, and the total's value as a FIGURE - a receipt ends in
+   a figure, which is the whole point of a receipt.
+   GOLD INK NEVER TOUCHES A LEAF (1.68:1). An earned figure takes a 2pt gold
+   RULE beneath it and keeps leaf ink. */
+.rcpt-leaf{background:var(--leaf); color:var(--leaf-ink); border-radius:3px;
+  padding:14px 16px; box-shadow:var(--leaf-shade); margin-top:6px;}
+html[data-theme="light"] .rcpt-leaf{box-shadow:none; outline:1px solid var(--leaf-mut);}
+.rcpt-leaf .rcpt-cap{display:flex; justify-content:space-between; gap:12px;
+  font-family:var(--board); font-size:11px; letter-spacing:.08em; text-transform:uppercase;
+  color:var(--leaf-mut); padding-bottom:4px;}
+.rcpt-leaf .mathrow{border-top:1px solid rgba(26,27,20,.16); color:var(--leaf-ink);}
+.rcpt-leaf .mathrow b{color:var(--leaf-ink);}
+.rcpt-leaf .mathrow.sub, .rcpt-leaf .mathrow.sub b, .rcpt-leaf .mathrow.sub span{color:var(--leaf-mut);}
+.rcpt-leaf .mathrow.tot{border-top:2px solid var(--leaf-ink); margin-top:6px; padding-top:12px;}
+.rcpt-leaf .mathrow.tot b{font-family:var(--board); font-size:20px; font-weight:700;
+  font-variant-numeric:tabular-nums; color:var(--leaf-ink);}
+/* a signed points row is INK on a leaf: pos/neg are cut for the page's ground
+   and a green +2 beside a red -1 is the P&L axis D273 retired. */
+.rcpt-leaf .mathrow.pos b, .rcpt-leaf .mathrow.neg b{color:var(--leaf-ink);}
+/* THE SCORE AS AN OBJECT: two rule-and-figures on one baseline, the numeral
+   over a 2pt rule with an agate label beneath. No panel, no card, no plate -
+   the numeral and its rule ARE the object (16). */
+.rcpt-figs{display:flex; align-items:flex-end; gap:32px; margin:2px 0 10px;}
+.rcpt-figs .f{min-width:0;}
+.rcpt-figs .f b{display:block; font-family:var(--board); font-weight:700; line-height:.94;
+  font-variant-numeric:tabular-nums; color:var(--ink);}
+.rcpt-figs .f.g b{font-size:56px;}
+.rcpt-figs .f.p b{font-size:40px;}
+.rcpt-figs .f i{display:block; height:2px; background:var(--ink); margin:6px 0 5px;}
+.rcpt-figs .f small{font-family:var(--board); font-size:11px; letter-spacing:.08em;
+  text-transform:uppercase; color:var(--mut);}
+.rcpt-figs .f.g{width:132px;} .rcpt-figs .f.p{width:76px;}
 .mathrow{
   display:flex; justify-content:space-between; gap:12px; align-items:baseline;
   font-family:var(--mono); font-size:13px; padding:9px 2px; border-top:1px solid var(--rule);
@@ -5694,11 +5785,20 @@ function csMovement(delta, sinceISO){
   const day=DOW[d.getDay()].toUpperCase();
   const n=Math.abs(delta);
   const word=CS_MOVE_WORDS[n] || String(n);
-  if(delta===0) return { tone:'fl', text:`HELD SINCE ${day}`, long:`held since ${DOW[d.getDay()]}`, dir:0 };
+  if(delta===0) return { tone:'fl', text:`HELD SINCE ${day}`, count:0, sinceShort:day, long:`held since ${DOW[d.getDay()]}`, dir:0 };
   const up=delta>0;
+  /* WAVE 7 - NO GLYPH IN A PRODUCED STRING (LINT-13, and the audit's DD-02).
+     It emitted a triangle plus the count; three other producers emitted the
+     DOWN triangle for MOST IMPROVED, where it means the opposite thing, in the
+     same face at the same size with no colour separating them. The producer
+     emits the PARTS - dir, count, the short day - and the renderer draws the
+     mark, so the one down-triangle left in the product means one thing: you
+     fell. `up2` keeps its magnitude and carries no colour of its own. */
   return {
     tone: up ? (delta>=2 ? 'up2' : 'up') : 'dn',
-    text: `${up?'\u25b2':'\u25bc'}${n} SINCE ${day}`,
+    text: `${up?'UP':'DOWN'} ${n} SINCE ${day}`,
+    count: n,
+    sinceShort: day,
     long: `${up?'up':'down'} ${word} since ${DOW[d.getDay()]}`,
     dir: up ? 1 : -1,
   };
@@ -6583,6 +6683,15 @@ function renderStandings(){
      one component with one geometry. */
   let html=`<tr><th class="rk">Pos</th><th>Golfer</th><th class="num">Gap</th><th class="num">Pts</th></tr>`;
   const leadPts = teams[0] ? teams[0].pts : 0;
+  /* WAVE 7 - COMPETITION RANK, WITH TIES SHARED: 04, 04, 06. Both renderers
+     indexed the sorted array, so two golfers on 86 points read `04` and `05` -
+     the same figure in the PTS column with two different positions beside it,
+     which is the one thing a points table may not do. It is computed over the
+     column the table actually PRINTS, so what a golfer sees and what the rail
+     says can never disagree. `StandingsMath.competitionRanks` is the twin. */
+  const ranks = teams.map((t,i)=> i > 0 && teams[i-1].pts === t.pts ? null : i + 1);
+  ranks.forEach((v,i)=>{ if(v === null) ranks[i] = ranks[i-1]; });
+  const tiedAt = i => (i > 0 && ranks[i-1] === ranks[i]) || (i+1 < ranks.length && ranks[i+1] === ranks[i]);
   teams.forEach((t,i)=>{
     const ti=teams.indexOf(t);
     const arr=series[ti]||[];
@@ -6595,7 +6704,7 @@ function renderStandings(){
        Colour is never the only channel: the shape says which way. */
     const mvL=csMovement(pr!=null ? pr-i : null, priorSince);
     /* SF-6: the climb — a rank that moved since the last snapshot flips in */
-    const rk0=String(i+1).padStart(2,'0');
+    const rk0=String(ranks[i]).padStart(2,'0');
     const rkH=(sfFresh && pr!=null && pr!==i) ? sfWrap(rk0) : rk0;
     /* THE MERGED CHANGE CELL, and the LEADER'S CELL IS EMPTY — not `0`, and
        not an em dash either: a dash reads as a value, which is the thing
@@ -6614,10 +6723,14 @@ function renderStandings(){
     const bar = solo
       ? (state.structure==='solo' ? '' : `<span class="sw" style="background:${SQHEX[t.ci]}"></span> `)
       : `<span class="sw side" style="background:${SQHEX[t.ci]}"></span>`;
-    const clause = solo
+    /* A tie outranks the count: it is the only thing on the row that explains
+       why two positions read the same, and a shared numeral with nothing
+       saying so looks like a rendering error. */
+    const clause = tiedAt(i) ? 'Tied'
+      : solo
       ? ((t.sub||0)===0 ? 'No rounds yet' : (t.sub||0)+' round'+(t.sub===1?'':'s'))
       : 'Capt. '+esc(t.cap);
-    html+=`<tr class="${i===0?'lead':''}${isYou(t)?' mine':''} tap" data-squad="${esc(t.name)}">
+    html+=`<tr class="${ranks[i]===1?'lead':''}${isYou(t)?' mine':''} tap" data-squad="${esc(t.name)}">
       <td class="rk">${rkH}</td>
       <td><div style="display:flex;align-items:center;gap:10px">${solo?'':bar}<div style="min-width:0"><div class="tn">${isYou(t) ? 'You' : esc(t.name)}</div><div class="tc">${solo?bar:''}${seedOf(t.id)?'Seed '+seedOf(t.id)+' \u00b7 ':''}${clause}</div></div></div></td>
       <td class="num chg"${mvL?` title="${esc(mvL.long)}"`:''}>${gap}${mvH}</td>
@@ -11770,12 +11883,35 @@ function renderPlay(){
       to the season, vouched by the group… A partial card is skipped, not lost." */
    if(_ff) _ff.style.display = liveAnyScored() ? 'none' : '';}
 
-  const dots=$('#holeDots'); dots.innerHTML='';
-  for(let k=0;k<liveHoles();k++){   /* D73: a nine shows nine dots, not eighteen */
-    const d=document.createElement('i');
-    if(holeDone(k))d.classList.add('done');
-    if(k===h)d.classList.add('cur');
-    dots.appendChild(d);
+  /* THE HOLE STRIP - the viewer's own card, in the scorecard ink law. It draws
+     MY row (the phone draws the same), because eighteen cells cannot hold four
+     golfers and the rows beneath already carry the others. A hole with no par
+     draws nothing rather than asserting a mark it cannot compute (N-3). */
+  const strip=$('#holeDots');
+  if(strip){
+    const mineIdx = Math.max(0, LIVE.findIndex(p=>p.me));
+    const mine = state.live.scores[mineIdx] || [];
+    const doneN = mine.filter(v=>v!==null).length;
+    const grossN = mine.reduce((a,b)=>a+(b||0),0);
+    let cells='', ticks='';
+    for(let k=0;k<liveHoles();k++){   /* D73: a nine shows nine cells, not eighteen */
+      const v = mine[k];
+      const cls = v==null ? 'open' : (v < PAR[k] ? 'under' : v > PAR[k] ? 'over' : 'level');
+      cells += `<i class="${cls}"><s></s></i>`;
+      ticks += `<i class="${k===h?'cur':''}"></i>`;
+    }
+    strip.className='holestrip';
+    strip.removeAttribute('aria-hidden');
+    strip.innerHTML = `<div class="cells">${cells}</div><div class="rule"></div><div class="ticks">${ticks}</div>
+      <div class="key"><span><s class="u"></s>under</span><span><s class="l"></s>level</span><span><s></s>over</span>
+        <b>${doneN ? `Your card \u00b7 ${grossN} thru ${doneN}` : 'Nothing in yet'}</b></div>`;
+    /* ONE element for the whole strip, in the product's voice - eighteen cells
+       read one at a time is not a scorecard, it is eighteen announcements. */
+    strip.setAttribute('role','img');
+    const u=mine.filter((v,k)=>v!=null&&v<PAR[k]).length, l=mine.filter((v,k)=>v!=null&&v===PAR[k]).length, o=mine.filter((v,k)=>v!=null&&v>PAR[k]).length;
+    strip.setAttribute('aria-label', doneN
+      ? `Through ${doneN}. ${u} under par, ${l} at par, ${o} over par. You are on ${h+1}.`
+      : 'No holes played yet.');
   }
 
   const rows=$('#playerRows'); rows.innerHTML='';
@@ -16616,7 +16752,10 @@ function renderIndStats(){
   const imp=[...rows].sort((a,b)=>a.d-b.d)[0];
   const iron=[...rows].sort((a,b)=>b.r-a.r)[0];
   $('#awKing').textContent=king.n;  $('#awKingS').textContent='Points King · '+king.pts+' pts';
-  $('#awImp').textContent=imp.n;    $('#awImpS').textContent='Most Improved · ▼'+Math.abs(imp.d).toFixed(1);
+  /* DD-02 · the award says the fact in words. A down-triangle here meant the
+     OPPOSITE of a down-triangle on the table, in the same face at the same
+     size, with no colour separating them. No producer emits an arrow for it. */
+  $('#awImp').textContent=imp.n;    $('#awImpS').textContent='Most Improved · '+Math.abs(imp.d).toFixed(1)+' off the index';
   $('#awIron').textContent=iron.n;  $('#awIronS').textContent='Iron Man · '+iron.r+' rds';
 
   let html=`<tr><th></th><th>Golfer</th><th class="num">R</th><th class="num">Avg vs your playing HCP</th><th class="num">Pts</th></tr>`;
@@ -16676,7 +16815,7 @@ function renderIndStatsReal(){
   const movers=rows.filter(p=>p.d!=null && p.d<-0.04).sort((a,b)=>a.d-b.d);
   $('#awKing').textContent=king.pts>0?fn(king.n):'—';
   $('#awKingS').textContent='Points King'+(king.pts>0?' · '+king.pts+' pts':'');
-  if(movers.length){ $('#awImp').textContent=fn(movers[0].n); $('#awImpS').textContent='Most Improved · ▼'+Math.abs(movers[0].d).toFixed(1); }
+  if(movers.length){ $('#awImp').textContent=fn(movers[0].n); $('#awImpS').textContent='Most Improved · '+Math.abs(movers[0].d).toFixed(1)+' off the index'; }
   else { $('#awImp').textContent='—'; $('#awImpS').textContent='Most Improved · needs 2+ rounds'; }
   $('#awIron').textContent=iron.r>0?fn(iron.n):'—';
   $('#awIronS').textContent='Iron Man'+(iron.r>0?' · '+iron.r+' rds':'');
@@ -16828,6 +16967,13 @@ async function enrichRoundReceipt(rid, seed){
    fallback filled the gap. Worse, no surface carried rating/slope — so a true
    -11.5 looked like an accusation instead of "an 86 on a 64.9/111 course".
    Now: open instantly with what we have, then enrich from round_card(). */
+/* "your" vs "their" on somebody else's round — the same test `roundCardBody`
+   makes, lifted so the head can make it too. */
+function mineOf(r){
+  return r.is_mine!=null ? !!r.is_mine
+       : (!r.profile_id || r.profile_id===window.CS?.user?.id);
+}
+function csTheirs(s){ return String(s||'').replace(/your/gi, m => m[0]==='Y' ? 'Their' : 'their'); }
 function openRoundReceipt(x){
   const r = (x && typeof x==='object') ? x : (window.roundCache||{})[x];
   if(!r) return;
@@ -16842,9 +16988,26 @@ function openRoundReceipt(x){
   /* D59 (2c): the poster's marker medallion rides the photo — attribution */
   const stampOf = () => r.profile_id && window.mkr
     ? `<span class="mkstamp">${window.mkr(memberMarker(r.profile_id))}</span>` : '';
-  openSheet(r.gross!=null ? r.gross+' gross' : 'The round', line.toUpperCase(), `
+  /* WAVE 7 - the head is the SCORE AS AN OBJECT (leaderboard.md 6): the gross
+     at 56 over its own 2pt rule and the points at 40 over theirs, on one
+     baseline, with the band sentence under them. The sheet's title becomes the
+     page's name rather than a restatement of the figure four lines below it. */
+  const band = pvi!=null ? bandName(Number(pvi)) : null;
+  const phrase = pvi!=null ? vsPhrase(Number(pvi)) : '';
+  const sentence = band && phrase
+    ? phrase.charAt(0).toUpperCase() + phrase.slice(1) + ' \u2014 ' + (mineOf(r) ? band : csTheirs(band)).toLowerCase() + '.'
+    : '';
+  const figs = `<div class="rcpt-figs">
+      ${r.gross!=null ? `<div class="f g"><b>${esc(String(r.gross))}</b><i></i><small>Gross \u00b7 ${(r.holes_played||18)} holes</small></div>` : ''}
+      ${r.points!=null ? `<div class="f p"><b>${esc(String(r.points))}</b><i></i><small>Points</small></div>` : ''}
+    </div>${sentence ? `<p class="fine" style="padding:0 0 4px">${esc(sentence)}</p>` : ''}`;
+  openSheet(mineOf(r) ? 'Your round' : 'The round', line.toUpperCase(), `
     <div class="rcpt-hero" id="rcptHero" style="${r.photo_url?'':'display:none'}">${r.photo_url?`<img src="${esc(r.photo_url)}" alt="Round photo">${stampOf()}`:''}</div>
-    <div id="rcptBody">${roundCardBody(r, pvi, capN)}</div>`);
+    ${figs}
+    <div class="eyebrow">The receipt</div>
+    <div id="rcptBody" class="rcpt-leaf">
+      <div class="rcpt-cap"><span>What this round was worth</span><span>${esc(line.split(' \u00b7 ').pop()||'')}</span></div>
+      ${roundCardBody(r, pvi, capN)}</div>`);
   if(!r.photo_url && r.photo_path && window.sb && !state.demo){
     window.sb.storage.from('media').createSignedUrl(r.photo_path, 3600).then(({data})=>{
       const hb=document.getElementById('rcptHero');
@@ -17885,6 +18048,11 @@ function csPigment(id){
   }
   return `var(--pig${Number(h % 6n)})`;
 }
+/* CLASSIC -> MODULE. A face is drawn in the module block too (the form board),
+   and a classic top-level `function` is NOT visible there. An unbridged name
+   fails SILENTLY as a missing disc, which is the exact landmine CLAUDE.md
+   names: guard nothing, bridge explicitly. */
+window.csPigment = csPigment;
 function evHalf(n){ const w=Math.floor(n), h=(n-w)>=0.5; return (w||!h?String(w):'')+(h?'½':''); }
 function renderEvent(){
   const el=$('#eventBody'); if(!el) return;
@@ -20338,24 +20506,37 @@ async function renderFriendsBoard(){
   const lens = CS_BOARD_LENS;
   const rank = r => Number((lens === 'form' ? r.rank_by_form : r.rank_by_index) || 0);
   const sorted = rows.slice().sort((a, b) => rank(a) - rank(b) || String(a.display_name||'').localeCompare(String(b.display_name||'')));
+  /* WAVE 7 - the same slat, and the same three facts in the same order as the
+     phone: the rail, the face, the count, and the FIGURE with its band under
+     it. The sub-line carries the count ONLY - it used to carry the count AND
+     the verdict, which is the fact the column beside it was already stating
+     (D201, one fact one place). */
+  const rounds = r => Number(r.rounds_30d || 0);
+  const signed = v => (v < 0 ? '\u2212' : '+') + Math.abs(v).toFixed(1);
   box.innerHTML = `
     <div class="eyebrow" style="display:flex; align-items:center; gap:10px">The board
       <span style="margin-left:auto; display:flex; gap:6px">
         <button class="mini" type="button" data-lens="form"${lens==='form'?' style="border-color:var(--pos); color:var(--pos)"':''}>Form</button>
         <button class="mini" type="button" data-lens="handicap"${lens==='handicap'?' style="border-color:var(--pos); color:var(--pos)"':''}>Handicap</button>
       </span></div>
+    ${lens === 'form' ? '<div class="fbnote">Vs playing HCP \u00b7 plus is better</div>' : ''}
     ${sorted.map(r => {
-      const name = r.is_me ? 'You' : (r.display_name || '—');
-      const sub = lens === 'form' ? csBoardFormLine(r)
-                : (r.last_round_on ? `Last round ${csDayToken(r.last_round_on)}` : 'No rounds posted yet');
-      const fig = lens === 'form' ? (csBoardBand(r) || '—').toUpperCase()
-                : (r.index_current != null ? fmtIdx(r.index_current) : '—');
-      return `<div class="prow" data-person="${esc(r.profile_id)}">
-        <span class="pmk" style="min-width:26px; text-align:right; color:var(--mut); font-family:var(--mono); font-size:11px">${rank(r)}</span>
-        <span class="pmeta"><b>${esc(name)}</b><small>${esc(sub)}</small></span>
-        <span class="bdfig mono">${esc(fig)}</span></div>`;
+      const name = r.is_me ? 'You' : (r.display_name || '\u2014');
+      const n = rounds(r);
+      const sub = lens === 'form'
+        ? (n ? `${n} round${n === 1 ? '' : 's'}` : 'No rounds in the window')
+        : (r.last_round_on ? `Last round ${csDayToken(r.last_round_on)}` : 'No rounds posted yet');
+      const fig = lens === 'form'
+        ? (n && r.avg_vs_number_30d != null ? signed(Number(r.avg_vs_number_30d)) : '\u2014')
+        : (r.index_current != null ? fmtIdx(r.index_current) : '\u2014');
+      const word = lens === 'form' ? (csBoardBand(r) || (n ? '' : 'Nothing yet')) : '';
+      return `<div class="fbrow${r.is_me ? ' mine' : ''} tap" data-person="${esc(r.profile_id)}">
+        <span class="rk">${String(rank(r)).padStart(2, '0')}</span>
+        <span class="fc" style="background:${window.csPigment?.(r.profile_id) || 'var(--pig0)'}">${window.mkr?.(r.marker || 'saguaro') || ''}</span>
+        <span class="fbn"><b>${esc(name)}</b><small>${esc(sub)}</small></span>
+        <span class="fbv"><b>${esc(fig)}</b>${word ? `<small>${esc(word)}</small>` : ''}</span></div>`;
     }).join('')}
-    <p class="fine" style="padding:6px 0 0">Your buddies, by how they are playing. No badges, no streaks — just rounds.</p>`;
+    <p class="fine" style="padding:10px 0 0">Your buddies, by how they are playing. No badges, no streaks \u2014 just rounds.</p>`;
   box.querySelectorAll('[data-lens]').forEach(b => b.addEventListener('click', () => {
     CS_BOARD_LENS = b.dataset.lens; renderFriendsBoard();
   }));

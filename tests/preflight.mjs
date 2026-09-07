@@ -1504,7 +1504,7 @@ else {
    one paid off ratchets the number down. It is the only shape that makes a
    pre-existing violation safe to leave in place. */
 {
-  const BELOW_11 = 83;                    // 2026-09-05, after LV-17 paid six back and D258 paid the climb's three
+  const BELOW_11 = 78;                    // 2026-09-07, after Wave 7's live sheet, form board and receipts paid five back
   const found = (html.match(/font-size:\s*(?:[0-9]|10)(?:\.[0-9]+)?px/g) || []);
   if (found.length > BELOW_11) {
     fail('the 11px floor holds', `${found.length} rule(s) below 11px — the debt is ${BELOW_11} and may only shrink (L-29). New: ${found.length - BELOW_11}`);

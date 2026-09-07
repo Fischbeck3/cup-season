@@ -39,9 +39,14 @@ struct LiveRoundHost: View {
         // actually end it.
         NavigationStack {
           LivePlayView(store: store, links: links)
+            // §5.1 · **the one dismiss verb, at `topBarTrailing`, as a
+            // TOOLBAR tertiary** — `ink` label, 1px `mut` rule, never ember.
+            // A dismiss verb is neither live nor primary, and the loudest
+            // control on the live sheet is never the one that closes it.
             .toolbar {
-              ToolbarItem(placement: .cancellationAction) {
-                Button("Close") { links.done() }.foregroundStyle(cs.mut)
+              ToolbarItem(placement: .topBarTrailing) {
+                Button("Close") { links.done() }
+                  .buttonStyle(.csTertiary(.toolbar))
                   .accessibilityHint("Leaves this screen — the round keeps going, and the bar at the top brings you back")
               }
             }

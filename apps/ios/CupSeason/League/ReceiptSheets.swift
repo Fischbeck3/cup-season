@@ -20,32 +20,42 @@ struct SquadReceiptSheet: View {
     let adj = team.pts - fromRounds   // the ledger's net: bonuses − penalties
     let ledger = model.ledger(squad: team.id)
     SheetFrame(team.name, sub: "\(team.cap.isEmpty ? "" : "CAPT. \(team.cap.uppercased()) · ")\(rows.count) GOLFERS · \(CSCopy.points(team.pts)) PTS") {
-      VStack(alignment: .leading, spacing: 0) {
+      // §6 · **the same leaf as the round's receipt.** One receipt shape in the
+      // product: label rows on hairlines, the arithmetic quieter than the
+      // answer, and the total under a 2pt `leafInk` rule ending in a figure.
+      CSLeaf(padding: CSTokens.Space.s3) {
+        HStack(alignment: .firstTextBaseline) {
+          Text("What this squad is worth").csType(.agateS, caps: true).foregroundStyle(cs.leafMut)
+          Spacer(minLength: CSTokens.Space.s2)
+          Text("\(rows.count) golfers").csType(.agateS, caps: true).foregroundStyle(cs.leafMut)
+        }
         RoomMathRow(k: "Counting rounds", v: CSCopy.points(fromRounds))
         if ledger.isEmpty {
-          if adj != 0 { RoomMathRow(k: "Bonuses & penalties · the ledger", v: (adj > 0 ? "+" : "") + CSCopy.points(adj), tone: adj > 0 ? cs.pos : cs.neg) }
+          if adj != 0 { RoomMathRow(k: "Bonuses & penalties · the ledger", v: (adj > 0 ? "+" : "") + CSCopy.points(adj)) }
         } else {
           ForEach(ledger) { a in
-            RoomMathRow(k: ledgerLabel(a), v: (a.points > 0 ? "+" : "") + String(a.points), tone: a.points > 0 ? cs.pos : a.points < 0 ? cs.neg : cs.mut)
+            RoomMathRow(k: ledgerLabel(a), v: (a.points > 0 ? "+" : "") + String(a.points))
           }
           if ledger.reduce(0, { $0 + Double($1.points) }) != adj {
-            RoomMathRow(k: "Bonuses & penalties · the ledger", v: (adj > 0 ? "+" : "") + CSCopy.points(adj), tone: adj > 0 ? cs.pos : cs.neg)
+            RoomMathRow(k: "Bonuses & penalties · the ledger", v: (adj > 0 ? "+" : "") + CSCopy.points(adj))
           }
         }
         RoomMathRow(k: "Total", v: CSCopy.points(team.pts), total: true)
-        // the table's Trend column (web 4547) lives here on the phone, as promised in StandingsTableView
-        if let s = model.series[team.id], s.count >= 2 {
-          HStack {
-            Text("Trend").font(CSFont.label).tracking(0.8).foregroundStyle(cs.dimText)
-            Spacer()
-            RoomSpark(values: s, color: team.solo ? nil : cs.squad(team.ci))
-          }
-          .padding(.vertical, 8)
-          .accessibilityElement(children: .ignore)
-          .accessibilityLabel("Trend, \(s.suffix(7).map { CSCopy.points($0) }.joined(separator: ", ")) over the last \(min(7, s.count)) weeks")
-        }
       }
-      Text("Who built it").csEyebrow().padding(.top, 6)
+      // the table's Trend column (web 4547) lives here on the phone, as
+      // promised in StandingsTableView — on the PAGE, not on the leaf: a leaf
+      // holds a grid, and a sparkline is not one.
+      if let s = model.series[team.id], s.count >= 2 {
+        HStack {
+          Text("Trend").csType(.agateS, caps: true).foregroundStyle(cs.mut)
+          Spacer()
+          RoomSpark(values: s, color: team.solo ? nil : cs.squad(team.ci))
+        }
+        .padding(.vertical, CSTokens.Space.s2)
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel("Trend, \(s.suffix(7).map { CSCopy.points($0) }.joined(separator: ", ")) over the last \(min(7, s.count)) weeks")
+      }
+      CSSectionHead("Who built it").padding(.top, CSTokens.Space.s2)
       VStack(spacing: 0) {
         ForEach(rows) { p in
           Button { router.open(.member(p)) } label: {

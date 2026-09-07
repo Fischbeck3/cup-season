@@ -292,7 +292,7 @@ struct MajorRoomView: View {
       CSSlat(rank: rank, field: champion ? .earned : (row?.profileId == me ? .mine : .none),
              face: row.map { face($0) }, name: name, sub: sub,
              movement: nil, gap: cards > 0 ? String(cards) : nil,
-             emphasis: champion, railHidesNumeral: rank == 0) {
+             variant: champion ? .leader : .table, railHidesNumeral: rank == 0) {
         VStack(alignment: .trailing, spacing: CSTokens.Space.s1) {
           if champion { CSSlot("The jug") }
           if let pvi {

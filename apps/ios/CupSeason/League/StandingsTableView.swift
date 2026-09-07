@@ -53,6 +53,13 @@ struct StandingsTableView: View {
     return (rows, hidden)
   }
 
+  /// **04 · 04 · 06 — competition rank, not the array index** (§3's second hard
+  /// case). The renderers indexed the sorted array, so two golfers on 86 points
+  /// read `04` and `05` — the same figure in the PTS column with two different
+  /// positions beside it, which is the one thing a points table may not do. The
+  /// rank is computed over the column the table actually prints.
+  private var ranks: [Int] { StandingsMath.competitionRanks(model.teams.map { Int($0.pts.rounded()) }) }
+
   var body: some View {
     let teams = model.teams
     if teams.isEmpty {
@@ -60,11 +67,13 @@ struct StandingsTableView: View {
     } else {
       let indices = window?.rows ?? Array(teams.indices)
       let hidden = window?.hidden ?? [:]
+      let rk = ranks
       VStack(spacing: 0) {
         CSStandingsBoard(count: indices.count, cut: cutLabel, cutAfter: cutAfter(in: indices)) { k, abbreviate in
           let i = indices[k]
           if let n = hidden[i] { ellipsis(n) }
-          row(i, teams[i], abbreviate: abbreviate)
+          row(i, teams[i], rank: rk.indices.contains(i) ? rk[i] : i + 1,
+              tied: tied(i, rk), abbreviate: abbreviate)
         }
         if window != nil {
           HStack {
@@ -94,24 +103,38 @@ struct StandingsTableView: View {
 
   // MARK: a row
 
-  @ViewBuilder private func row(_ i: Int, _ t: Team, abbreviate: Bool) -> some View {
+  /// A row is tied when the row above or the row below shares its numeral.
+  private func tied(_ i: Int, _ rk: [Int]) -> Bool {
+    guard rk.indices.contains(i) else { return false }
+    if i > 0, rk[i - 1] == rk[i] { return true }
+    if i + 1 < rk.count, rk[i + 1] == rk[i] { return true }
+    return false
+  }
+
+  @ViewBuilder private func row(_ i: Int, _ t: Team, rank: Int, tied: Bool, abbreviate: Bool) -> some View {
     let solo = t.solo
     let mine = model.myTeamId == t.id
-    let leader = i == 0
+    // **The leader is rank 01, not row 0.** With two golfers genuinely tied at
+    // the top of a points table, both earned the position and both rails are
+    // gold — which puts the board's gold count at three (two rails and the
+    // pot) against §15.4's whitelisted pair. That is a true statement about a
+    // rare season rather than a rendering rule, and `CSBudgetProbe` reports it
+    // honestly rather than the code hiding a tie to make a budget.
+    let leader = rank == 1
     let pr = model.priorRank[t.id]
     let flips = flipOnce && pr != nil && pr != i
     Button {
       if solo, let r = model.indRow(t.id) { router.open(.member(r)) } else { router.open(.squad(t)) }
     } label: {
-      CSSlat(rank: i + 1,
+      CSSlat(rank: rank,
              field: leader ? .earned : (mine ? .mine : .none),
              face: face(t),
              name: name(t, mine: mine, abbreviate: abbreviate),
-             sub: clause(i, t, mine: mine),
+             sub: clause(i, t, mine: mine, tied: tied),
              squad: squad(t),
              movement: movement(t, at: i),
              gap: SeasonBoardCopy.gap(leader: model.teams.first?.pts ?? t.pts, row: t.pts),
-             emphasis: leader, railHidesNumeral: flips) {
+             variant: leader ? .leader : .table, railHidesNumeral: flips) {
         // the trailing column repeats down the table, so it carries no rule
         // and no label — position is already the hierarchy (§9.2). The
         // LEADER's total is `figure` 40 (D-5), and it is INK: the leader's
@@ -122,7 +145,7 @@ struct StandingsTableView: View {
       // SF-6 · the rank slots on a fresh load, over the rail's own numeral
       .overlay(alignment: .leading) {
         if flips {
-          RankFlipText(text: String(format: "%02d", i + 1), flip: true,
+          RankFlipText(text: String(format: "%02d", rank), flip: true,
                        tone: leader || mine ? cs.panelInk : cs.ink)
             .frame(width: CSTokens.Space.rail)
             .frame(maxHeight: .infinity)
@@ -175,7 +198,7 @@ struct StandingsTableView: View {
     model.squads.first { $0.seats(memberId) }?.name
   }
 
-  private func clause(_ i: Int, _ t: Team, mine: Bool) -> String {
+  private func clause(_ i: Int, _ t: Team, mine: Bool, tied: Bool) -> String {
     let story = model.seasonStory
     let row = story?.table.first { $0.id == t.id.uuidString.lowercased() || $0.id == t.id.uuidString }
     let run = story?.facts?.leader?.run_weeks
@@ -189,7 +212,7 @@ struct StandingsTableView: View {
     return SeasonBoardCopy.clause(isLeader: i == 0, runSince: sinceWeek, runWeeks: run,
                                   isMe: mine, counted: row?.counted, cap: model.bylaws.cap,
                                   rounds: t.solo ? t.sub : 0, solo: t.solo,
-                                  left: row?.left == true, cooled: cooled)
+                                  left: row?.left == true, cooled: cooled, tied: tied)
   }
 
   /// `3 golfers · 3 counting` — a squad's row states its roster, because a
@@ -205,7 +228,13 @@ struct StandingsTableView: View {
   /// `CSMovement` on the page's own ground — no chip, no fill, no tint.
   /// `▼` means *you fell* and nothing else.
   private func movement(_ t: Team, at i: Int) -> CSMovement.State? {
-    guard let pr = model.priorRank[t.id] else { return nil }
+    // **NO CLOCK, NO COLUMN** (§3's fourth hard case, made structural). The
+    // clock rides the section head for the whole table now, so a row drawing a
+    // triangle under a head that does not name a day is a movement claim with
+    // nothing behind it. `priorRank` and `priorSince` come from the same
+    // snapshots on real data; the guard is what keeps them together when
+    // something else supplies one and not the other.
+    guard model.priorSince != nil, let pr = model.priorRank[t.id] else { return nil }
     let d = pr - i
     if d > 0 { return .up(d) }
     if d < 0 { return .down(-d) }
@@ -350,19 +379,21 @@ struct GolferTableView: View {
 
   var body: some View {
     let rows = model.indRows
+    let rk = StandingsMath.competitionRanks(rows.map { Int($0.pts.rounded()) })
     CSStandingsBoard(count: rows.count) { i, abbreviate in
       let p = rows[i]
+      let tied = (i > 0 && rk[i - 1] == rk[i]) || (i + 1 < rk.count && rk[i + 1] == rk[i])
       Button { router.open(.member(p)) } label: {
-        CSSlat(rank: i + 1,
-               field: i == 0 ? .earned : (p.me ? .mine : .none),
+        CSSlat(rank: rk.indices.contains(i) ? rk[i] : i + 1,
+               field: rk[i] == 1 ? .earned : (p.me ? .mine : .none),
                face: face(p),
                name: p.me ? "You" : abbreviated(p.n, abbreviate),
-               sub: clause(p),
+               sub: clause(p, tied: tied),
                squad: p.sq.isEmpty ? nil : (cs.squad(p.ci), squadName(p.mid) ?? p.sq),
                movement: nil,
                gap: SeasonBoardCopy.gap(leader: rows.first?.pts ?? p.pts, row: p.pts),
-               emphasis: i == 0) {
-          CSFigure(CSCopy.points(p.pts), size: i == 0 ? .l : .m, label: nil)
+               variant: rk[i] == 1 ? .leader : .table) {
+          CSFigure(CSCopy.points(p.pts), size: rk[i] == 1 ? .l : .m, label: nil)
         }
         .contentShape(Rectangle())
       }
@@ -381,11 +412,11 @@ struct GolferTableView: View {
                         isViewer: model.viewer?.id == m.profile_id)
   }
 
-  private func clause(_ p: IndRow) -> String {
+  private func clause(_ p: IndRow, tied: Bool) -> String {
     SeasonBoardCopy.clause(isLeader: false, runSince: nil, runWeeks: nil,
                            isMe: p.me, counted: model.myMonth.map { Int($0.counting) },
                            cap: p.me ? model.bylaws.cap : nil,
-                           rounds: p.r, solo: true, left: false)
+                           rounds: p.r, solo: true, left: false, tied: tied)
   }
 
   private func abbreviated(_ name: String, _ on: Bool) -> String {

@@ -553,6 +553,12 @@
     t('A-4: down two says down two', csMovement(-2, sun).long, 'down two since Sun');
     t('A-4: held says since when', csMovement(0, sun).long, 'held since Sun');
     t('A-4: held is never a bare dash', csMovement(0, sun).text, 'HELD SINCE SUN');
+    /* WAVE 7 - the producer emits the PARTS and the renderer draws the mark.
+       A typed triangle in a produced string is LINT-13, and the DOWN triangle
+       meant "you fell" here and "most improved" in three other producers. */
+    t('LINT-13: the label carries no arrow glyph', /[\u25b2\u25bc]/.test(csMovement(-2, sun).text), false);
+    t('LINT-13: nor does a climb', /[\u25b2\u25bc]/.test(csMovement(1, sun).text), false);
+    t('A-4: the parts are emitted', [csMovement(-2, sun).count, csMovement(-2, sun).sinceShort, csMovement(-2, sun).dir], [2, 'SUN', -1]);
     /* D76's heat survives: climbing runs warm, climbing 2+ hot, falling cools */
     t('A-4: D76 heat is kept', [csMovement(1,sun).tone, csMovement(2,sun).tone, csMovement(-1,sun).tone, csMovement(0,sun).tone],
       ['up','up2','dn','fl']);

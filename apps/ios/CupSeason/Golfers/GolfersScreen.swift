@@ -119,9 +119,12 @@ struct GolfersScreen: View {
     }
   }
 
+  /// **The search field folds under the header and loses its head** (§4). A
+  /// field whose placeholder reads "Search by name or @handle" does not need a
+  /// tracked-caps line above it saying FIND GOLFERS, and the first viewport
+  /// was carrying three agate blocks before a golfer's name appeared.
   private var search: some View {
     VStack(alignment: .leading, spacing: 10) {
-      CSSectionHead("Find golfers")
       CSField("Search by name or @handle", text: $vm.query, font: CSFont.body)
         .focused($searchFocused)
         .textInputAutocapitalization(.never).autocorrectionDisabled()

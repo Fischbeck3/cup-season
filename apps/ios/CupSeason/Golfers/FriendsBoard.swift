@@ -26,6 +26,7 @@ import CupSeasonKit
 
 struct FriendsBoardSection: View {
   @Environment(\.cs) private var cs
+  @Environment(\.dynamicTypeSize) private var typeSize
   let board: FriendsBoard?
   /// L-32 · a failed read says so in one line. It does not replace the tab.
   let failed: Bool
@@ -46,10 +47,14 @@ struct FriendsBoardSection: View {
       // right — the construction site `UI_SYSTEM` §6.2 deletes by name,
       // because a golfer with a photograph structurally could not show it on
       // the people tab. It is `CSRankRail` + `CSFace` + the sub-line + the
-      // beats column now, and the logic, the two lenses and every string are
+      // figure now, and the logic, the two lenses and every string are
       // untouched.
-      CSSectionHead(FriendsBoard.head.capitalized,
-                    count: lens == .form ? "\(lens.caption(days: b.days)) · beats" : lens.caption(days: b.days))
+      //
+      // **THE FRAME IS NAMED ONCE, AT THE HEAD, NOT ON EVERY ROW** (§4). The
+      // shipped row captioned each figure with a band word AND repeated the
+      // verdict in the sub-line: `3 ROUNDS · BEAT IT ONCE`, `−1.8`, `A LITTLE
+      // LOOSE` — the same fact three times, against D201.
+      CSSectionHead(FriendsBoard.head.capitalized, count: headCount(b))
       // two lenses, and only two (D245 clauses 1 and 2)
       HStack(spacing: CSTokens.Space.s2) {
         ForEach(FriendsBoard.Lens.allCases, id: \.self) { l in
@@ -64,6 +69,7 @@ struct FriendsBoardSection: View {
         Spacer()
       }
       .padding(.bottom, CSTokens.Space.s2)
+      columnNote
       let rows = b.ordered(lens)
       ForEach(rows) { r in
         Button { openPerson(r.profileId) } label: { row(r) }
@@ -77,13 +83,49 @@ struct FriendsBoardSection: View {
     }
   }
 
+  /// `THE BOARD · LAST 30 DAYS`. The window is a period, which is what §16A.2's
+  /// right-of-rule slot takes and all it takes: §4's longer head (`· VS PLAYING
+  /// HCP ·`) wrapped the slot to two lines and pushed the rule off its own row,
+  /// and the FRAME belongs over the column anyway (§16A.3, blind review 5) —
+  /// which is where it now is.
+  private func headCount(_ b: FriendsBoard) -> String { lens.caption(days: b.days) }
+
+  /// §16A.3 · **the column says which way is good, over the column.**
+  ///
+  /// Two corrections to the artboard, and the second matters. (1) It writes
+  /// `VS YOUR NUMBER`; R-M retired *number* as the comparison noun and
+  /// preflight 42 fails that frame, so the line names the governing noun.
+  /// (2) It says **LOWER IS BETTER, and in this product that is false**:
+  /// `CSBands` is written so a POSITIVE figure means you beat your playing HCP
+  /// by that much — `bandName(+3)` is *Torched it* and `bandName(−3)` is
+  /// *Posted anyway*. The artboard was drawn in the golfer's other convention
+  /// (a score under par), and shipping its words would have told every golfer
+  /// on the board that the best round on it was the worst.
+  @ViewBuilder private var columnNote: some View {
+    if lens == .form {
+      Text("Vs playing HCP · plus is better")
+        .csType(.agateS, caps: true).foregroundStyle(cs.mut)
+        // At the accessibility sizes it WRAPS rather than shrinking: a line
+        // that reads `PLUS IS BET…` has lost the half of it that matters, and
+        // this is the one line on the board that says which way is good.
+        .lineLimit(typeSize.isA11y ? nil : 1)
+        .minimumScaleFactor(typeSize.isA11y ? 1 : 0.8)
+        .fixedSize(horizontal: false, vertical: true)
+        .multilineTextAlignment(.trailing)
+        .frame(maxWidth: .infinity, alignment: .trailing)
+        .padding(.trailing, CSTokens.Space.gutter)
+        .padding(.bottom, CSTokens.Space.s1)
+        .accessibilityLabel("The column is each golfer against their own playing handicap. A plus is better.")
+    }
+  }
+
   /// **No movement, no badge, no arrow anywhere on this list** — D245 clause 5
   /// and L-22, obeyed. The rank rail is the only borrowed board device, and it
   /// carries a rank the server already computes.
   ///
   /// The rail's field is `panel` when the row is YOURS and unpainted otherwise
-  /// — **never gold**, because D245 clause 5 says the board is a list and not
-  /// a score, so no position on it was earned.
+  /// — **never gold** (D-6), because leading a rolling 30-day form window is
+  /// not a thing that was *won*, so this surface spends **zero** gold objects.
   private func row(_ r: FriendsBoard.Row) -> some View {
     CSSlat(rank: r.rank(lens),
            field: r.isMe ? .mine : .none,
@@ -92,35 +134,72 @@ struct FriendsBoardSection: View {
            name: r.name,
            sub: sub(r),
            movement: nil,
-           gap: nil) {
-      Text(trailing(r)).csType(.columnM).foregroundStyle(cs.mut)
+           gap: nil,
+           variant: .form) {
+      trailing(r)
     }
     .contentShape(Rectangle())
     .accessibilityHint("Opens their card")
   }
 
-  /// FORM says the rounds AND what they did — the denominator is part of the
-  /// fact (L-01), and it is the COLUMN, which is what lets the sub-line stay
-  /// one line at the default size. HANDICAP says the index and how recently it
-  /// was moved.
+  /// **The sub-line carries the COUNT only** (§4). It used to carry the count
+  /// AND the verdict — the same fact the column beside it was already stating.
   private func sub(_ r: FriendsBoard.Row) -> String {
     switch lens {
     case .form:
-      return r.band ?? (r.rounds > 0 ? r.formLine : "No rounds in the window")
+      guard r.rounds > 0 else { return "No rounds in the window" }
+      return "\(r.rounds) round\(r.rounds == 1 ? "" : "s")"
     case .handicap:
       guard let on = r.lastRoundOn else { return "No rounds posted yet" }
       return "Last round \(RivalryCopy.monthDaySpoken(on))"
     }
   }
 
-  /// Under FORM the column is `3/4` — `BEATS` is named once in the section
-  /// head's count, so the column needs no unit. Under the handicap lens it
-  /// becomes the index.
-  private func trailing(_ r: FriendsBoard.Row) -> String {
+  /// **A bare tabular figure with no rule** (§9.2: a figure repeating down a
+  /// column takes no rule — column position is the hierarchy, and six
+  /// rule-and-figures down one list is six 2pt rules and eleven lines of ragged
+  /// caps against one right edge). The band word hangs beneath it, on ONE line,
+  /// in a slot wide enough for the longest of the five at the default size.
+  @ViewBuilder private func trailing(_ r: FriendsBoard.Row) -> some View {
+    VStack(alignment: .trailing, spacing: 2) {
+      Text(figure(r)).csType(.figureS).foregroundStyle(cs.ink)
+        .lineLimit(1).fixedSize(horizontal: true, vertical: false)
+      if let word = word(r) {
+        Text(word).csType(.agateS, caps: true).foregroundStyle(cs.mut)
+          .lineLimit(1).truncationMode(.tail)
+      }
+    }
+    .accessibilityElement(children: .ignore)
+    .accessibilityLabel([figure(r), word(r)].compactMap { $0 }.joined(separator: ", "))
+  }
+
+  /// Under FORM the column is the golfer's average against their own playing
+  /// HCP over the window — the figure the band is a name for, and the one the
+  /// desk has always shown. Under the handicap lens it is the index.
+  private func figure(_ r: FriendsBoard.Row) -> String {
     switch lens {
-    case .form:     return r.beatsColumn
+    // NOT `CSBands.vsShort`, which collapses everything inside ±1 to the word
+    // "level" (Q-20). That is right for a chip in a sentence and wrong for a
+    // COLUMN: a column of figures with one word in it does not line up and
+    // cannot be scanned. The band word beneath already says what the figure
+    // means, which is the whole reason the column can be a bare number.
+    //
+    // **A TRUE MINUS, U+2212, not a hyphen.** At tabular widths a hyphen sits
+    // narrower than a plus and the column's signs stop aligning — the defect
+    // Wave 6 recorded on the clash row, fixed here rather than inherited.
+    case .form:
+      guard let v = r.avgVsNumber, r.rounds > 0 else { return "\u{2014}" }
+      return (v < 0 ? "\u{2212}" : "+") + String(format: "%.1f", abs(v))
     case .handicap: return r.indexText
     }
+  }
+
+  /// One of the five, verbatim (`CSBands`), and only under the form lens —
+  /// there is no band for an index. A window with no rounds has no verdict:
+  /// `NOTHING YET` says the window is empty rather than inventing a sixth band.
+  private func word(_ r: FriendsBoard.Row) -> String? {
+    guard lens == .form else { return nil }
+    return r.band ?? (r.rounds > 0 ? nil : "Nothing yet")
   }
 }
 

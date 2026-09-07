@@ -70,15 +70,45 @@ private func team(_ id: UUID, _ name: String, _ pts: Double, ci: Int = 0) -> Tea
     #expect(StandingsMath.movement(delta: nil, since: sun) == nil)
     #expect(StandingsMath.movement(delta: 1, since: "not-a-date") == nil)
     #expect(StandingsMath.movement(delta: 1, since: sun)?.long == "up one since Sun")
-    #expect(StandingsMath.movement(delta: 1, since: sun)?.text == "▲1 SINCE SUN")
+    // Wave 7 · NO GLYPH IN A PRODUCED STRING (`LINT-13`, and the audit's DD-02):
+    // the producer emits the parts and `CSMovement` draws the triangle, so the
+    // one down-arrow in the product means one thing.
+    #expect(StandingsMath.movement(delta: 1, since: sun)?.text == "UP 1 SINCE SUN")
+    #expect(StandingsMath.movement(delta: -2, since: sun)?.text == "DOWN 2 SINCE SUN")
+    #expect(StandingsMath.movement(delta: 1, since: sun)?.count == 1)
+    #expect(StandingsMath.movement(delta: -2, since: sun)?.count == 2)
+    #expect(StandingsMath.movement(delta: 0, since: sun)?.count == 0)
+    #expect(StandingsMath.movement(delta: 1, since: sun)?.sinceShort == "SUN")
     #expect(StandingsMath.movement(delta: -2, since: sun)?.long == "down two since Sun")
     #expect(StandingsMath.movement(delta: 0, since: sun)?.text == "HELD SINCE SUN")
+    #expect(!(StandingsMath.movement(delta: -2, since: sun)?.text.contains("\u{25BC}") ?? true))
+    #expect(!(StandingsMath.movement(delta: 1, since: sun)?.text.contains("\u{25B2}") ?? true))
     // D76's heat, kept
     #expect([StandingsMath.movement(delta: 1, since: sun)?.tone,
              StandingsMath.movement(delta: 2, since: sun)?.tone,
              StandingsMath.movement(delta: -1, since: sun)?.tone,
              StandingsMath.movement(delta: 0, since: sun)?.tone] == [.up, .up2, .down, .held])
   }
+  /// Wave 7 · **04 · 04 · 06.** A tie is a real state of a points table, and
+  /// the rail shows it rather than handing two golfers on the same figure two
+  /// different positions.
+  @Test func competitionRankSharesATieAndSkipsTheNext() {
+    #expect(StandingsMath.competitionRanks([104, 95, 93, 86, 86, 83]) == [1, 2, 3, 4, 4, 6])
+    #expect(StandingsMath.competitionRanks([10, 10, 10]) == [1, 1, 1])
+    #expect(StandingsMath.competitionRanks([19, 15]) == [1, 2])
+    #expect(StandingsMath.competitionRanks([]).isEmpty)
+    // three tied at the top still leaves the fourth at 04
+    #expect(StandingsMath.competitionRanks([9, 9, 9, 7]) == [1, 1, 1, 4])
+  }
+
+  /// The clock is named ONCE for the whole table (D-2), and never without one.
+  @Test func theTableNamesTheDayItMovedFrom() {
+    #expect(StandingsMath.movedSince("2026-08-30T07:10:00.228+00:00") == "moved since Sun")
+    #expect(StandingsMath.movedSince(nil) == nil)
+    #expect(StandingsMath.movedSince("") == nil)
+    #expect(StandingsMath.movedSince("not-a-date") == nil)
+  }
+
   @Test func seriesIsSnapshotsThenNow() {
     let teams = [team(a, "A", 30), team(b, "B", 18)]
     let s = StandingsMath.series(teams: teams, snapshots: [snap(1, [(a, 10), (b, 12)]), snap(2, [(a, 20), (b, 15)])], weeks: 18, solo: false)
@@ -122,7 +152,10 @@ private func team(_ id: UUID, _ name: String, _ pts: Double, ci: Int = 0) -> Tea
     let aw = StandingsMath.awards(rows)!
     #expect(aw.king == "Joe" && aw.kingSub == "Points King · 21 pts")
     #expect(aw.iron == "Dan" && aw.ironSub == "Iron Man · 2 rds")
-    #expect(aw.improved == "Dan" && aw.improvedSub == "Most Improved · ▼0.5")
+    // DD-02 · most improved says the fact in words. A down-triangle here meant
+    // the OPPOSITE of a down-triangle on the table, in the same face and size.
+    #expect(aw.improved == "Dan" && aw.improvedSub == "Most Improved · 0.5 off the index")
+    #expect(!aw.improvedSub.contains("\u{25BC}"))
   }
   @Test func mostImprovedNeedsTwoRounds() {
     let one = StandingsMath.indRows(indiv: [indiv[1]], ranked: [ranked[2]], members: members, squads: squads, myMemberId: nil, capN: 4)

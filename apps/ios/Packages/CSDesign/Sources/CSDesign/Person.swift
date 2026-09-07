@@ -67,13 +67,27 @@ public struct CSFace: View {
     /// and `LINT-31` counts the call sites and fails on a rise, so the debt
     /// ratchets to zero instead of spreading.
     public static func unkeyed(marker: String?, photoURL: URL? = nil, initials: String = "") -> Model {
+      seeded(key: marker ?? "saguaro", marker: marker, photoURL: photoURL, initials: initials)
+    }
+
+    /// **A face keyed to a golfer the payload identifies by something other
+    /// than a profile id.** A GUEST on a tee sheet is the case: they have no
+    /// profile at all, and they still have a seat, a name and a mark, so they
+    /// still get a coin of their own — two guests who both chose the Saguaro
+    /// come out different, which is the whole point of the pigment.
+    ///
+    /// It is `unkeyed`'s arithmetic over a better key, and the difference is
+    /// the reason `LINT-31` counts one and not the other: `unkeyed` keys to
+    /// the GLYPH and is a debt, `seeded` keys to the PERSON and is not.
+    public static func seeded(key: String, marker: String?, photoURL: URL? = nil,
+                              initials: String = "", isViewer: Bool = false) -> Model {
       var h: UInt64 = 0xcbf29ce484222325
-      for b in Array((marker ?? "saguaro").utf8) { h = (h ^ UInt64(b)) &* 0x100000001b3 }
+      for b in Array(key.utf8) { h = (h ^ UInt64(b)) &* 0x100000001b3 }
       let hi = h.byteSwapped
       let bytes = withUnsafeBytes(of: (h, hi)) { Array($0) }
       let u = UUID(uuid: (bytes[0], bytes[1], bytes[2], bytes[3], bytes[4], bytes[5], bytes[6], bytes[7],
                           bytes[8], bytes[9], bytes[10], bytes[11], bytes[12], bytes[13], bytes[14], bytes[15]))
-      return Model(id: u, marker: marker, photoURL: photoURL, initials: initials)
+      return Model(id: u, marker: marker, photoURL: photoURL, initials: initials, isViewer: isViewer)
     }
 
     public func pigment(_ p: CSPalette) -> Color {

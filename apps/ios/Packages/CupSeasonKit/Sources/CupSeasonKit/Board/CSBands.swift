@@ -66,6 +66,23 @@ public enum CSBands {
     return fixed1(vs).replacingOccurrences(of: "-", with: "") + " over your playing HCP"
   }
 
+  /// **The same sentence, with the FIGURE MARKED** (`UI_SYSTEM` §3 / D267): a
+  /// number inside a sentence is set in the board face at the sentence's own
+  /// size, and the run is marked by the producer of the fact rather than found
+  /// by a regex over prose. A regex would also restyle dates, money, ordinals
+  /// and any digit inside a course name, and it rewrites the runs VoiceOver
+  /// reads — which is the part nobody notices until a golfer hears a sentence
+  /// in pieces.
+  ///
+  /// The braces never render; `CSFigureRun` eats them. The words are
+  /// `vsPhrase`'s, verbatim, so the two can never drift apart.
+  public static func vsPhraseMarked(_ v: Double?) -> String {
+    guard let vs = v, vs.isFinite else { return "" }
+    if vs >= 1 { return "beat your playing HCP by {\(fixed1(vs))}" }
+    if vs > -1 { return "played to your playing HCP" }
+    return "{" + fixed1(vs).replacingOccurrences(of: "-", with: "") + "} over your playing HCP"
+  }
+
   /// D176 · the compact form for a card that has no room for a sentence:
   /// "+2.4" / "level" / "-1.8", against your playing HCP. Same half-open boundary
   /// as `bandName` and `cup_points`, so the short form and the long form can

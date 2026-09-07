@@ -386,7 +386,41 @@ private func round(_ names: [String], indices: [Double], scores: [[Int?]], game:
     #expect(r.json["unit"]?.double == 5 && r.json["bank"]?.int == -1)
     #expect(r.recapRow.money == "ED TAKES THE BANK - $5")
     // no handicaps: the strokes ladder never touches Sunningdale
-    #expect(LiveCopy.playerRow(s, 1).sub == "NO HCP · STRAIGHT UP")
+    #expect(LiveCopy.playerRow(s, 1).sub.hasPrefix("NO HCP · STRAIGHT UP"))
+    // Wave 7 · the row states where the card stands, and the INDEX has left it
+    // (D-4): a live row's facts are the strokes and the running total.
+    #expect(!LiveCopy.playerRow(s, 1).sub.contains("NUMBER"))
+  }
+
+  /// Wave 7 · **a running total computed over an empty seat says so**, and
+  /// **there is no number to beat until somebody has posted one.**
+  @Test func theLiveRowAndTheNumberToBeat() {
+    // four golfers, a real stroke index, thirteen holes in and hole 14 open —
+    // and B's 6th is missing, which is the empty seat under his own total.
+    var s = round(["You", "B", "C", "D"], indices: [8.4, 12.1, 6.2, 18.0],
+                  scores: [[4,3,3,5,4,5,3,4,5, 4,3,3,5,nil,nil,nil,nil,nil],
+                           [5,4,3,6,4,nil,2,4,5, 4,3,4,6,nil,nil,nil,nil,nil],
+                           [4,4,4,5,3,4,3,4,5, 4,3,4,5,4,nil,nil,nil,nil],
+                           [5,5,3,5,4,4,4,5,5, 4,4,4,5,nil,nil,nil,nil,nil]],
+                  game: .match, si: [5,11,17,1,7,13,15,3,9, 6,18,12,2,8,14,16,4,10])
+    s.hole = 13
+    let you = LiveCopy.playerRow(s, 0), b = LiveCopy.playerRow(s, 1)
+    #expect(you.notIn == 0 && b.notIn == 1)
+    #expect(b.sub.hasSuffix("ONE NOT IN"))
+    #expect(!you.sub.contains("NOT IN"))
+    #expect(you.par == s.course.pars[13])
+
+    // C is the only card in on 14, so C is the number and the other three are
+    // told what beats it — in NET, which is the figure the four compare.
+    let win = LiveCopy.toWinThisHole(s)
+    #expect(win.count == 4)
+    #expect(win[2].line.hasPrefix("in for net "))
+    #expect(win[0].line.hasPrefix("net ") && win[0].line.hasSuffix(" beats it"))
+
+    // …and with nothing in on the hole there is no target to state.
+    var open = s
+    open.scores[2][13] = nil
+    #expect(LiveCopy.toWinThisHole(open).isEmpty)
   }
 
   @Test func soloResultEnvelope() {

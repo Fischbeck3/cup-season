@@ -88,6 +88,14 @@ public enum CSSlatMetrics {
   /// The merged change cell: the gap figure, then the movement mark.
   public static let changeWidth: CGFloat = 58
   public static let trailingWidth: CGFloat = 50
+  /// **The form board's trailing column is wider than the season board's, and
+  /// it has to be.** It carries a signed figure at `figureS` with a band word
+  /// beneath it — `BEAT YOUR NUMBER` is the longest of the five and it sets on
+  /// ONE line or it is not a fixed slot (§4). 50pt would ellipsise four of the
+  /// five bands; 120 fits the longest at the default size and the name column
+  /// keeps 156 at the 402 measure, which is more than the season board's own
+  /// row gives a name once the gap and the movement are on it.
+  public static let formTrailingWidth: CGFloat = 120
   public static let fixedColumns: CGFloat =
     CSTokens.Space.rail + CSFace.Size.slat.rawValue + railGap
     + changeWidth + trailingWidth + CSTokens.Space.gutter
@@ -120,26 +128,51 @@ public struct CSSlat<Trailing: View>: View {
   let squad: (Color, String)?
   let movement: CSMovement.State?
   let gap: String?
-  /// **D-5 · the board's ONE second geometry, used once per table and only on
-  /// rank 1.** 74pt against 50, a 38pt face against 30, and the caller sets the
-  /// total at `figure` 40. It is not a card: no radius, no border, no fill,
-  /// same rail, same columns — the leader's row is a beat taller and one metal
-  /// apart, which is what "the current leader should visually matter" asks for
-  /// without a container.
-  let emphasis: Bool
+  let variant: Variant
   /// The rank is being animated over the rail by the surface; the rail paints
   /// its field and draws no numeral of its own.
   let railHidesNumeral: Bool
   let trailing: Trailing
 
+  /// **Three shapes, one row.** The measurements are here rather than at the
+  /// call sites so that "the same table at 2, 6 and 12 golfers" is a property
+  /// of the component and not of whoever wrote the surface.
+  public enum Variant: Sendable {
+    /// The season board's row: 50pt, a 30pt face, a 50pt trailing column.
+    case table
+    /// **D-5 · the board's ONE second geometry, used once per table and only
+    /// on rank 1.** 74pt against 50, a 38pt face against 30, and the caller
+    /// sets the total at `figure` 40. It is not a card: no radius, no border,
+    /// no fill, same rail, same columns — the leader's row is a beat taller
+    /// and one metal apart, which is what "the current leader should visually
+    /// matter" asks for without a container.
+    case leader
+    /// The Golfers board's row (§4): 60pt, a 38pt face, and a trailing column
+    /// wide enough for the signed figure and its band word.
+    case form
+    var height: CGFloat { switch self { case .table: 50; case .leader: 74; case .form: 60 } }
+    var face: CSFace.Size { self == .table ? .slat : .list }
+    var trailingWidth: CGFloat {
+      self == .form ? CSSlatMetrics.formTrailingWidth : CSSlatMetrics.trailingWidth
+    }
+    /// **The form board's trailing column HUGS.** A fixed 120 sized every row
+    /// to the longest band in the set — `BEAT THEIR NUMBER` — and starved the
+    /// name column on the five rows that do not carry it, which is the same
+    /// arithmetic that cut four surnames on the twelve-row board. Everything
+    /// in the cell is right-flush to the margin either way, so the figures
+    /// still line up down the page; what varies is how much of the row a long
+    /// band takes, and it takes it from the row that has one.
+    var trailingHugs: Bool { self == .form }
+  }
+
   public init(rank: Int, field: CSRankRail.Field, face: CSFace.Model?,
               name: String, sub: String, squad: (Color, String)? = nil,
-              movement: CSMovement.State?, gap: String?, emphasis: Bool = false,
+              movement: CSMovement.State?, gap: String?, variant: Variant = .table,
               railHidesNumeral: Bool = false,
               @ViewBuilder trailing: () -> Trailing) {
     self.rank = rank; self.field = field; self.face = face
     self.name = name; self.sub = sub; self.squad = squad
-    self.movement = movement; self.gap = gap; self.emphasis = emphasis
+    self.movement = movement; self.gap = gap; self.variant = variant
     self.railHidesNumeral = railHidesNumeral
     self.trailing = trailing()
   }
@@ -152,7 +185,7 @@ public struct CSSlat<Trailing: View>: View {
           CSRankRail(rank, field: field, hidesNumeral: railHidesNumeral)
           // the leader's wider face is absorbed by the flexible name column,
           // never by the change or points columns, which stay on their grid
-          if let face { CSFace(face, size: emphasis ? .list : .slat).padding(.leading, CSSlatMetrics.railGap) }
+          if let face { CSFace(face, size: variant.face).padding(.leading, CSSlatMetrics.railGap) }
           VStack(alignment: .leading, spacing: CSTokens.Space.s2) {
             Text(name).csType(.name).foregroundStyle(cs.ink)
               .lineLimit(1).truncationMode(.tail)
@@ -186,7 +219,12 @@ public struct CSSlat<Trailing: View>: View {
         // ellipsised a sub-line that fits easily without it.
         if !typeSize.isA11y, hasChange { change }
         if !typeSize.isA11y {
-          trailing.frame(width: CSSlatMetrics.trailingWidth, alignment: .trailing)
+          if variant.trailingHugs {
+            trailing.fixedSize(horizontal: true, vertical: false)
+              .frame(minWidth: CSSlatMetrics.trailingWidth, alignment: .trailing)
+          } else {
+            trailing.frame(width: variant.trailingWidth, alignment: .trailing)
+          }
         }
       }
       // at the accessibility sizes the row becomes a column rather than
@@ -216,7 +254,7 @@ public struct CSSlat<Trailing: View>: View {
     // reading sizes and unmissable at AX3. The frame re-clamps to the measure.
     .padding(.trailing, CSTokens.Space.gutter)
     .frame(maxWidth: .infinity, alignment: .leading)
-    .frame(minHeight: emphasis ? 74 : 50)
+    .frame(minHeight: variant.height)
     .fixedSize(horizontal: false, vertical: true)
     // ONE VoiceOver element per row.
     .accessibilityElement(children: .ignore)
@@ -360,41 +398,141 @@ public struct CSCut: View {
 
 // MARK: - The hole strip
 
-/// 18 cells on one rule, marks only, each ≥20pt. A single ring or box per
-/// cell — the strip states the shape of a round, it does not re-draw the card.
+/// **Chart 4 (`UI_SYSTEM` §9.10), and the live sheet's signature.** 18 cells
+/// across the measure at a ≥20pt pitch, one `rule` beneath them, and one agate
+/// line under that: the KEY on the left, a caller's own line on the right.
+///
+/// **Single ring, dot, single box — and nothing else.** At a 20pt pitch an
+/// eagle's double ring and a birdie's single ring are the same mark, so the
+/// strip clamps to one; the double variants live on the card and the receipt
+/// where §9.4 has the room. A par is a **4pt `ink` dot** rather than the
+/// scorecard's empty cell, because an empty cell and an unplayed hole would be
+/// the same picture on the one screen where the difference is the whole point.
+///
+/// **Unplayed is a 9 × 1 `mut` dash, never `rule`.** A `rule` bar sits at
+/// 2.30:1 in the light printing and states nothing (§16.1), and this screen is
+/// read in sunlight.
+///
+/// **The hole you are on carries a 2pt `brand` rule under its own cell** — the
+/// strip's one ember mark, and it is a position rather than a colour-coded
+/// status, so it survives being printed in grey.
+///
+/// **ONE VoiceOver element for the whole strip**, in the product's voice. A
+/// caller that has the sentence passes it; without one the strip counts its own
+/// marks rather than reading eighteen cells aloud.
 public struct CSHoleStrip: View {
   @Environment(\.cs) private var cs
+  @Environment(\.dynamicTypeSize) private var typeSize
   public struct Hole: Identifiable, Sendable {
     public let id: Int
+    /// nil = not played yet. A hole with no par on the payload is also nil:
+    /// the strip refuses to assert a mark it cannot compute (N-3's degrade).
     public let overPar: Int?
     public init(number: Int, overPar: Int?) { self.id = number; self.overPar = overPar }
   }
   let holes: [Hole]
   let current: Int?
-  public init(holes: [Hole], current: Int? = nil) { self.holes = holes; self.current = current }
+  /// The key — `○ under · • level · □ over` — drawn once beside the strip.
+  /// The blind review filed its absence three times: squares, circles and dots
+  /// had no legend anywhere in the product.
+  let key: Bool
+  /// The strip's own right-hand line, e.g. `YOUR CARD · 55 THRU 14`.
+  let trailing: String?
+  let spoken: String?
+
+  public init(holes: [Hole], current: Int? = nil, key: Bool = true,
+              trailing: String? = nil, spoken: String? = nil) {
+    self.holes = holes; self.current = current
+    self.key = key; self.trailing = trailing; self.spoken = spoken
+  }
 
   public var body: some View {
-    VStack(spacing: CSTokens.Space.s1) {
-      HStack(spacing: 0) {
-        ForEach(holes) { h in
-          ZStack {
-            if let o = h.overPar {
-              CSScoreMark(o, numeral: nil, size: 20).foregroundStyle(cs.ink)
-            }
-            if h.id == current { Circle().fill(cs.brand).frame(width: 5, height: 5) }
-          }
-          .frame(minWidth: 20, maxWidth: .infinity, minHeight: 20)
-        }
-      }
+    VStack(alignment: .leading, spacing: CSTokens.Space.s1) {
+      cells
       CSRule()
+      // the current hole's 2pt brand rule sits UNDER the strip's own rule, in
+      // its cell's column — a tick on the axis, not a highlight on the mark
       HStack(spacing: 0) {
         ForEach(holes) { h in
-          Text("\(h.id)").csType(.agateS, caps: true).foregroundStyle(cs.mut)
+          Rectangle().fill(h.id == current ? cs.brand : Color.clear)
+            .frame(height: 2)
             .frame(minWidth: 20, maxWidth: .infinity)
         }
       }
+      if key || trailing != nil { legend }
     }
     .csBudget(ember: current == nil ? 0 : 1)
+    .accessibilityElement(children: .ignore)
+    .accessibilityLabel(spokenLine)
+  }
+
+  private var cells: some View {
+    HStack(spacing: 0) {
+      ForEach(holes) { h in
+        mark(h.overPar).frame(minWidth: 20, maxWidth: .infinity, minHeight: 22)
+      }
+    }
+  }
+
+  /// The clamp is the component's, not the caller's: a surface handed a −3 and
+  /// asked to draw one ring would otherwise decide for itself what "capped"
+  /// means, and the two live surfaces would drift.
+  @ViewBuilder private func mark(_ overPar: Int?) -> some View {
+    if let o = overPar {
+      if o == 0 { Circle().fill(cs.ink).frame(width: 4, height: 4) }
+      else { CSScoreMark(o < 0 ? -1 : 1, numeral: nil, size: 20).foregroundStyle(cs.ink) }
+    } else {
+      Rectangle().fill(cs.mut).frame(width: 9, height: 1)
+    }
+  }
+
+  /// **The key, once, beside the strip.** Squares, circles and dots had no
+  /// legend anywhere in the product and all three blind reviewers said so.
+  ///
+  /// At the accessibility sizes it becomes a COLUMN: three words that each want
+  /// a fifth of the measure cannot share one row, and the first build of it
+  /// printed `un / der`, `le / vel`, `ov / er` broken across three lines each.
+  private var legend: some View {
+    A11yStack(rowAlignment: .firstTextBaseline, spacing: CSTokens.Space.s3, columnSpacing: CSTokens.Space.s1) {
+      if key {
+        A11yStack(spacing: CSTokens.Space.s2, columnSpacing: CSTokens.Space.s1) {
+          keyItem("under") { Circle().stroke(lineWidth: 1.7).frame(width: 13, height: 13) }
+          keyItem("level") { Circle().fill(cs.ink).frame(width: 4, height: 4) }
+          keyItem("over") { Rectangle().stroke(lineWidth: 1.7).frame(width: 12, height: 12) }
+        }
+      }
+      if !typeSize.isA11y { Spacer(minLength: CSTokens.Space.s2) }
+      if let trailing {
+        Text(trailing).csType(.agateS, caps: false).foregroundStyle(cs.mut)
+          .lineLimit(typeSize.isA11y ? nil : 1).truncationMode(.tail)
+          .fixedSize(horizontal: false, vertical: true)
+      }
+    }
+    .frame(maxWidth: .infinity, alignment: .leading)
+  }
+
+  private func keyItem<S: View>(_ word: String, @ViewBuilder _ shape: () -> S) -> some View {
+    HStack(spacing: 4) {
+      ZStack { shape() }.frame(width: 14, height: 14).foregroundStyle(cs.mut)
+      Text(word).csType(.agateS, caps: false).foregroundStyle(cs.mut)
+        .fixedSize(horizontal: true, vertical: false)
+    }
+  }
+
+  /// The count, in the product's voice, when a caller has not written one.
+  var spokenLine: String {
+    if let spoken { return spoken }
+    let played = holes.compactMap(\.overPar)
+    guard !played.isEmpty else { return "No holes played yet." }
+    let under = played.filter { $0 < 0 }.count
+    let level = played.filter { $0 == 0 }.count
+    let over = played.filter { $0 > 0 }.count
+    var parts = ["Through \(played.count)"]
+    if under > 0 { parts.append("\(under) under par") }
+    if level > 0 { parts.append("\(level) at par") }
+    if over > 0 { parts.append("\(over) over par") }
+    if let current { parts.append("You are on \(current)") }
+    return parts.joined(separator: ". ") + "."
   }
 }
 

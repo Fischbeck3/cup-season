@@ -54,6 +54,9 @@ final class LiveRoundStore {
   private var myName: String?
   private var myMemberId: UUID?
   private var myIndex: Double?
+  /// D271 · the viewer's own mark, so their live row is a face like everyone
+  /// else's rather than the one row that is not.
+  private var myMarker: String?
   private var rosterLeague: UUID?
   private var rosterPrimed = false
   private var rehydrated = false
@@ -81,6 +84,7 @@ final class LiveRoundStore {
     myPid = me?.profile?.id
     myName = me?.profile?.display_name
     myIndex = me?.profile?.index_current
+    myMarker = me?.profile?.marker
     myMemberId = m?.member_id
     leagueId = m?.league_id
     #if DEBUG
@@ -129,9 +133,14 @@ final class LiveRoundStore {
   }
 
   private func seedDevRound() {
-    let players = [("You", 8.4, 0, false), ("Danny", 12.1, 1, false),
-                   ("Chuck", 6.2, 2, false), ("Gary", 18.0, 3, true)]
-      .map { LivePlayer(id: $0.0, n: $0.0, i: $0.1, ci: $0.3 ? -1 : $0.2, guest: $0.3) }
+    // Wave 7 · the four carry MARKS, because the sheet draws a `CSFace` now and
+    // a screenshot of four initials would be a picture of the degrade rather
+    // than of the design. They are invented golfers on an invented round; the
+    // marks are invented with them, and nothing here touches the server.
+    let players = [("You", 8.4, 0, false, "saguaro"), ("Danny", 12.1, 1, false, "lonetree"),
+                   ("Chuck", 6.2, 2, false, "dunes"), ("Gary", 18.0, 3, true, "beer")]
+      .map { LivePlayer(id: $0.0, n: $0.0, i: $0.1, ci: $0.3 ? -1 : $0.2, guest: $0.3,
+                        me: $0.0 == "You", mk: $0.4) }
     var course = LiveCourseCard()
     course.pars = [4,4,3,5,4,4,3,4,5, 4,3,4,5,4,4,3,4,5]
     course.si   = [5,11,17,1,7,13,15,3,9, 6,18,12,2,8,14,16,4,10]
@@ -140,9 +149,12 @@ final class LiveRoundStore {
     var st = LiveRoundState.fresh(players: players, course: course)
     st.stage = .live; st.active = true; st.game = .match; st.hole = 14
     st.teams = [[0, 1], [2, 3]]
+    // …and TWO of the four are already in on the 15th, so one screenshot holds
+    // both states of the score object AND the number-to-beat block, which does
+    // not render until somebody has posted one.
     st.scores = [[4,3,3,5,4,5,3,4,5, 4,3,3,5,4,nil,nil,nil,nil],
-                 [5,4,3,6,4,4,2,4,5, 4,3,4,6,4,nil,nil,nil,nil],
-                 [4,4,4,5,3,4,3,4,5, 4,3,4,5,5,nil,nil,nil,nil],
+                 [5,4,3,6,4,4,2,4,5, 4,3,4,6,4,3,nil,nil,nil],
+                 [4,4,4,5,3,4,3,4,5, 4,3,4,5,5,5,nil,nil,nil],
                  [5,5,3,5,4,4,4,5,5, 4,4,4,5,4,nil,nil,nil,nil]]
     state = st
   }
@@ -153,11 +165,11 @@ final class LiveRoundStore {
     guard !(state.active) else { return }
     var r: [LivePlayer] = []
     r.append(LivePlayer(id: "me", n: myName ?? "You", i: myIndex ?? 18, ci: 1, guest: false, est: myIndex == nil,
-                        mid: myMemberId, pid: myPid, me: true, locked: true, team: "—"))
+                        mid: myMemberId, pid: myPid, me: true, locked: true, team: "—", mk: myMarker))
     if let lid = leagueId, let mates = try? await repo.leagueRoster(leagueId: lid) {
       for m in mates where m.profileId != myPid {
         r.append(LivePlayer(id: "m:\(m.memberId.uuidString)", n: m.displayName ?? "Member", i: m.indexCurrent ?? 18, ci: 1, guest: false,
-                            est: m.indexCurrent == nil, mid: m.memberId, pid: m.profileId, team: "—"))
+                            est: m.indexCurrent == nil, mid: m.memberId, pid: m.profileId, team: "—", mk: m.marker))
       }
     }
     // keep any guests / buddies already added this session

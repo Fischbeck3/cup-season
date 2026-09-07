@@ -18,17 +18,20 @@ struct CupFinalRaceView: View {
   var body: some View {
     if let race = model.cupRace, race.isLive {
       let dl = race.days_left ?? model.clock.daysLeft
-      let ax = typeSize.isA11y
+      // §10 · **the same slat.** The block's own 21pt finalist total was the
+      // only points figure in the shipped set above 14pt, and generalising it
+      // is exactly what `figure` 27 is: the Cup Final's board is the season
+      // board's board, at the season board's geometry, with the seed in the
+      // rail. The head's own gold eyebrow went with it — nothing here has been
+      // won yet, and the rail already carries the one metal this block spends.
       VStack(alignment: .leading, spacing: 0) {
-        HStack(spacing: 6) {
-          Text("The Cup Final").csEyebrow(cs.gold)
-          Text("· \(dl) DAY\(dl == 1 ? "" : "S") LEFT" + (race.seed_rung.map { " · SEEDED BY \($0.uppercased())" } ?? ""))
-            .font(CSFont.label).tracking(1.0).foregroundStyle(cs.dimText).lineLimit(ax ? nil : 1)
-        }
-        .padding(.vertical, 8)
-        .overlay(alignment: .bottom) { CSHairline() }
-        ForEach(Array(race.race.enumerated()), id: \.element.seed) { i, f in
-          row(i, f, capN: race.cap_n)
+        CSSectionHead("The Cup Final",
+                      count: "\(dl) day\(dl == 1 ? "" : "s") left"
+                        + (race.seed_rung.map { " · seeded by \($0)" } ?? ""))
+          .csGutter()
+          .padding(.bottom, CSTokens.Space.s2)
+        CSStandingsBoard(count: race.race.count) { i, _ in
+          row(i, race.race[i], capN: race.cap_n)
         }
       }
       .accessibilityElement(children: .contain)
@@ -36,33 +39,47 @@ struct CupFinalRaceView: View {
     }
   }
 
+  /// **`THRU` in place of `GAP`** is §15.5's rule for an EVENT board; a Cup
+  /// Final is a season's endgame and its change cell is the head start, which
+  /// is a fact about the seed rather than about movement — so the cell is the
+  /// gap to the leader and the movement column is absent. `cup_final_race`
+  /// carries no prior rank, and a triangle derived from nothing is the
+  /// invention D-7 forbids.
   private func row(_ i: Int, _ f: CupFinalRace.Finalist, capN: Int?) -> some View {
     let team = model.teams.first { $0.id == f.teamId }
-    let ci = team?.ci ?? (i % 4)
     let name = team?.name ?? f.name
     let lead = i == 0 && f.total > 0
-    let sub = (f.head_start > 0 ? "STARTS +\(CSCopy.points(f.head_start)) · TOP SEED · " : "")
-      + "WINDOW \(CSCopy.points(f.window_points)) PTS · \(f.rounds_used) ROUND\(f.rounds_used == 1 ? "" : "S")"
-      + ((capN ?? 10000) < 10000 ? " OF \(capN!)" : "")
+    let mine = f.teamId != nil && f.teamId == model.myTeamId
+    let sub = (f.head_start > 0 ? "Starts +\(CSCopy.points(f.head_start)) · top seed · " : "")
+      + "Window \(CSCopy.points(f.window_points)) pts · \(f.rounds_used) round\(f.rounds_used == 1 ? "" : "s")"
+      + ((capN ?? 10000) < 10000 ? " of \(capN!)" : "")
+    let leader = model.cupRace?.race.first?.total ?? f.total
     return Button { router.open(.finalist(f)) } label: {
-      A11yStack(spacing: 10, columnSpacing: 4) {
-        HStack(spacing: 10) {
-          Text("S\(f.seed)").font(CSFont.monoMediumBody).csTabular().foregroundStyle(lead ? cs.gold : cs.mut).frame(minWidth: 34, alignment: .leading)
-          RoundedRectangle(cornerRadius: 3).fill(cs.squad(ci)).frame(width: 10, height: 10)
-          VStack(alignment: .leading, spacing: 1) {
-            Text(name).font(CSFont.subhead.weight(lead ? .semibold : .regular)).foregroundStyle(cs.ink)
-            Text(sub).font(CSFont.label).tracking(0.8).foregroundStyle(cs.dimText).fixedSize(horizontal: false, vertical: true)
-          }
-          .frame(maxWidth: .infinity, alignment: .leading)
-        }
-        Text(CSCopy.points(f.total)).font(CSFont.stat).csTabular().foregroundStyle(lead ? cs.gold : cs.ink)
+      CSSlat(rank: f.seed,
+             field: lead ? .earned : (mine ? .mine : .none),
+             face: face(f),
+             name: mine && (team?.solo ?? false) ? "You" : name,
+             sub: sub,
+             squad: team.map { $0.solo ? nil : (cs.squad($0.ci), "") } ?? nil,
+             movement: nil,
+             gap: SeasonBoardCopy.gap(leader: leader, row: f.total),
+             variant: lead ? .leader : .table) {
+        CSFigure(CSCopy.points(f.total), size: lead ? .l : .m, label: nil)
       }
-      .padding(.horizontal, 4).padding(.vertical, 10).frame(minHeight: 56).contentShape(Rectangle())
-      .overlay(alignment: .bottom) { Rectangle().fill(lead ? cs.gold.opacity(0.55) : cs.rule).frame(height: 1) }
+      .contentShape(Rectangle())
     }
     .buttonStyle(.plain)
-    .accessibilityLabel("Seed \(f.seed), \(name), \(CSCopy.points(f.total)) points in the Final" + (f.head_start > 0 ? ", starts plus \(CSCopy.points(f.head_start))" : ""))
     .accessibilityHint("Opens the rounds behind the number")
+  }
+
+  /// A SQUAD's rung draws no disc — the rail and the swatch already say which
+  /// side it is, and a face there would be one of four golfers standing in for
+  /// four (§1's own `face: nil` rule).
+  private func face(_ f: CupFinalRace.Finalist) -> CSFace.Model? {
+    guard let team = model.teams.first(where: { $0.id == f.teamId }), team.solo,
+          let m = model.member(team.id) else { return nil }
+    return CSFace.Model(id: m.profile_id, marker: m.mk, photoURL: model.avatarURL[m.profile_id],
+                        isViewer: model.viewer?.id == m.profile_id)
   }
 }
 

@@ -143,7 +143,19 @@ struct PhaseHero<Content: View>: View {
   }
 }
 
-/// `.mathrow` — label · value, with the receipt's tones.
+/// `.mathrow` — label · value. **The receipt shape the audit calls right, and
+/// it survives as THE LEAF'S ROW** (`leaderboard.md` §10): a receipt is a
+/// printed grid, a leaf is what the system has for a printed grid, and this is
+/// the line printed on it.
+///
+/// Three changes and no more: `CSFont.stat` becomes `figure` 20 on the total,
+/// `cs.line2` becomes a **2pt `leafInk` rule** above it, and the ink is the
+/// leaf's rather than the page's — a leaf does not invert, so a row drawn in
+/// `cs.ink` on bone is near-white on paper in the dark printing.
+///
+/// **The signed tone is gone.** A green +2 beside a red −1 is the P&L axis
+/// D273 retired, and a receipt's own sign is already the sign: the figure
+/// carries a `+` or a `−` and the label says what it was for.
 struct RoomMathRow: View {
   @Environment(\.cs) private var cs
   let k: String
@@ -151,13 +163,19 @@ struct RoomMathRow: View {
   var tone: Color? = nil
   var total = false
   var body: some View {
-    A11yStack(rowAlignment: .firstTextBaseline, columnSpacing: 2) {
-      Text(k).font(total ? CSFont.subhead.weight(.semibold) : CSFont.subhead).foregroundStyle(total ? cs.ink : cs.mut)
-      Spacer()
-      Text(v).font(total ? CSFont.stat : CSFont.monoMediumBody).csTabular().foregroundStyle(tone ?? cs.ink)
+    VStack(spacing: 0) {
+      if total { CSRule(.heavy, over: .leaf).padding(.bottom, CSTokens.Space.s1) }
+      A11yStack(rowAlignment: .firstTextBaseline, columnSpacing: 2) {
+        Text(k).csType(total ? .name : .body, caps: false).foregroundStyle(total ? cs.leafInk : cs.leafMut)
+          .fixedSize(horizontal: false, vertical: true)
+        Spacer(minLength: CSTokens.Space.s2)
+        Text(v).csType(total ? .figureS : .columnM).foregroundStyle(cs.leafInk)
+      }
+      .padding(.vertical, CSTokens.Space.s2)
+      .overlay(alignment: .top) {
+        if !total { Rectangle().fill(cs.leafInk.opacity(CSTokens.Alpha.a16)).frame(height: CSTokens.Space.hair) }
+      }
     }
-    .padding(.vertical, 8)
-    .overlay(alignment: .top) { if total { Rectangle().fill(cs.rule).frame(height: 1) } }
     .accessibilityElement(children: .combine)
   }
 }

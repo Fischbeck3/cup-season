@@ -159,6 +159,14 @@ public struct LiveRosterRow: Sendable, Equatable {
   public let profileId: UUID?
   public let displayName: String?
   public let indexCurrent: Double?
+  /// `profiles.marker` — carried so the live sheet can draw a `CSFace` rather
+  /// than a colour bar (D271). Nullable: a golfer who chose nothing has none.
+  public let marker: String?
+  public init(memberId: UUID, profileId: UUID?, displayName: String?,
+              indexCurrent: Double?, marker: String? = nil) {
+    self.memberId = memberId; self.profileId = profileId
+    self.displayName = displayName; self.indexCurrent = indexCurrent; self.marker = marker
+  }
 }
 
 public struct LiveRepository: Sendable {
@@ -313,14 +321,18 @@ public struct LiveRepository: Sendable {
   // MARK: the pick list (7398)
 
   private struct MemberRow: Decodable {
-    struct P: Decodable { let display_name: String?; let index_current: Double? }
+    struct P: Decodable { let display_name: String?; let index_current: Double?; let marker: String? }
     let id: UUID; let profile_id: UUID?; let profile: P?
   }
 
   public func leagueRoster(leagueId: UUID) async throws -> [LiveRosterRow] {
-    let rows: [MemberRow] = try await svc.client.from("league_members").select("id, profile_id, profile:profiles(display_name, index_current)")
+    // `marker` joins the select so the tee sheet can draw the golfer's own
+    // mark. It is in the frozen column-grant list already (`friends_board`
+    // and the league roster both read it), so this needs no migration.
+    let rows: [MemberRow] = try await svc.client.from("league_members").select("id, profile_id, profile:profiles(display_name, index_current, marker)")
       .eq("league_id", value: leagueId).execute().value
-    return rows.map { LiveRosterRow(memberId: $0.id, profileId: $0.profile_id, displayName: $0.profile?.display_name, indexCurrent: $0.profile?.index_current) }
+    return rows.map { LiveRosterRow(memberId: $0.id, profileId: $0.profile_id, displayName: $0.profile?.display_name,
+                                    indexCurrent: $0.profile?.index_current, marker: $0.profile?.marker) }
   }
 
   /// D125 · tell the server this phone is in the round. Marks only the CALLER's

@@ -17,6 +17,22 @@
 // nobody is playing.
 //
 // Web sibling: `renderHoleCard()` in index.html.
+//
+// WAVE 7 · **KEPT. This is the product's ceiling at 6.8 and it is not being
+// redesigned.** Four fixes, and the fourth is named because `leaderboard.md`
+// §10 asked for three:
+//   1 · its eleven `cs.dim` text sites move to `mut` — `dim` is a DISABLED
+//       ink and none of these is disabled.
+//   2 · **the birdie stops being a colour.** It was `pos` green here and GOLD
+//       on the portrait sheet — one product, two colour languages for the same
+//       fact. The scorecard ink law applies: a ring under par, a box over it,
+//       nothing at par, drawn in ink, in both printings (D267 / non-negotiable 8).
+//   3 · per-COLUMN accessibility labels, so OUT, IN, TOT and +/- are named
+//       rather than read as four bare numbers at the end of a row.
+//   4 · **OUT / IN / TOT and the stroke pips were gold.** A column total is
+//       not a thing anybody won, and D269 is a non-negotiable that outranks a
+//       surface spec's fix count: gold may never be chrome. The totals are ink
+//       and the pips are `mut`.
 
 import SwiftUI
 import CSDesign
@@ -52,28 +68,28 @@ struct LiveCardView: View {
 
   private var holeRow: some View {
     GridRow {
-      cell("HOLE", w: nameW, align: .leading).foregroundStyle(cs.dim)
+      cell("HOLE", w: nameW, align: .leading).foregroundStyle(cs.mut)
       ForEach(0..<holes, id: \.self) { h in
-        Button { onPickHole(h) } label: { cell("\(h + 1)").foregroundStyle(cs.dim) }
+        Button { onPickHole(h) } label: { cell("\(h + 1)").foregroundStyle(cs.mut) }
           .buttonStyle(.plain)
           .accessibilityLabel("Jump to hole \(h + 1)")
-        if h == half - 1 { cell(holes == 9 ? "TOT" : "OUT").foregroundStyle(cs.gold) }
+        if h == half - 1 { cell(holes == 9 ? "TOT" : "OUT").foregroundStyle(cs.ink) }
       }
-      if holes > 9 { cell("IN").foregroundStyle(cs.gold); cell("TOT").foregroundStyle(cs.gold) }
-      cell("+/-").foregroundStyle(cs.dim)
+      if holes > 9 { cell("IN").foregroundStyle(cs.ink); cell("TOT").foregroundStyle(cs.ink) }
+      cell("+/-").foregroundStyle(cs.mut)
     }
     .font(CSFont.monoSmall)
   }
 
   private var siRow: some View {
     GridRow {
-      cell("SI", w: nameW, align: .leading).foregroundStyle(cs.dim)
+      cell("SI", w: nameW, align: .leading).foregroundStyle(cs.mut)
       ForEach(0..<holes, id: \.self) { h in
-        cell(h < s.course.si.count ? "\(s.course.si[h])" : "—").foregroundStyle(cs.dim)
-        if h == half - 1 { cell("—").foregroundStyle(cs.dim) }
+        cell(h < s.course.si.count ? "\(s.course.si[h])" : "—").foregroundStyle(cs.mut)
+        if h == half - 1 { cell("—").foregroundStyle(cs.mut) }
       }
-      if holes > 9 { cell("—").foregroundStyle(cs.dim); cell("—").foregroundStyle(cs.dim) }
-      cell("").foregroundStyle(cs.dim)
+      if holes > 9 { cell("—").foregroundStyle(cs.mut); cell("—").foregroundStyle(cs.mut) }
+      cell("").foregroundStyle(cs.mut)
     }
     .font(CSFont.monoSmall)
   }
@@ -82,14 +98,14 @@ struct LiveCardView: View {
     GridRow {
       cell("PAR", w: nameW, align: .leading).foregroundStyle(cs.mut)
       ForEach(0..<holes, id: \.self) { h in
-        cell("\(par(h))").foregroundStyle(cs.dim)
-        if h == half - 1 { cell("\(parSum(0, half))").foregroundStyle(cs.gold) }
+        cell("\(par(h))").foregroundStyle(cs.mut)
+        if h == half - 1 { cell("\(parSum(0, half))").foregroundStyle(cs.ink).accessibilityLabel("Par out, \(parSum(0, half))") }
       }
       if holes > 9 {
-        cell("\(parSum(9, 18))").foregroundStyle(cs.gold)
-        cell("\(parSum(0, 18))").foregroundStyle(cs.gold)
+        cell("\(parSum(9, 18))").foregroundStyle(cs.ink).accessibilityLabel("Par in, \(parSum(9, 18))")
+        cell("\(parSum(0, 18))").foregroundStyle(cs.ink).accessibilityLabel("Par total, \(parSum(0, 18))")
       }
-      cell("").foregroundStyle(cs.dim)
+      cell("").foregroundStyle(cs.mut)
     }
     .font(CSFont.monoSmall)
   }
@@ -106,7 +122,7 @@ struct LiveCardView: View {
     return GridRow {
       HStack(spacing: 5) {
         RoundedRectangle(cornerRadius: 2)
-          .fill(p.guest ? cs.dim : squadColor(p.ci))
+          .fill(p.guest ? cs.mut : squadColor(p.ci))
           .frame(width: 6, height: 6)
         Text(p.n).font(CSFont.footnote).foregroundStyle(cs.ink).lineLimit(1)
         Spacer(minLength: 0)
@@ -114,35 +130,45 @@ struct LiveCardView: View {
       .frame(width: nameW, alignment: .leading)
       ForEach(0..<holes, id: \.self) { h in
         let v = h < sc.count ? sc[h] : nil
-        cell(v.map(String.init) ?? "–")
-          .foregroundStyle(v == nil ? cs.dim : (v! < par(h) ? cs.pos : (v! > par(h) ? cs.mut : cs.ink)))
-          .overlay(alignment: .topTrailing) {
-            if h < stk.count, stk[h] > 0 {
-              HStack(spacing: 1) {
-                ForEach(0..<min(stk[h], 2), id: \.self) { _ in
-                  Circle().fill(cs.gold).frame(width: 3, height: 3)
-                }
+        ZStack {
+          // THE INK LAW: a ring under par, a box over it, nothing at par — in
+          // ink, in both printings, on every scorecard in the product.
+          if let v { CSScoreMark(v - par(h), numeral: nil, size: cellW - 8).foregroundStyle(cs.ink) }
+          cell(v.map(String.init) ?? "–").foregroundStyle(v == nil ? cs.mut : cs.ink)
+        }
+        .frame(width: cellW)
+        .overlay(alignment: .topTrailing) {
+          if h < stk.count, stk[h] > 0 {
+            HStack(spacing: 1) {
+              ForEach(0..<min(stk[h], 2), id: \.self) { _ in
+                Circle().fill(cs.mut).frame(width: 3, height: 3)
               }
-              .padding(.trailing, 3)
-              .accessibilityHidden(true)
             }
+            .padding(.trailing, 3)
+            .accessibilityHidden(true)
           }
-        if h == half - 1 { cell(total(sc, 0, half)).foregroundStyle(cs.gold) }
+        }
+        .accessibilityLabel(v == nil ? "Hole \(h + 1), not scored"
+                            : "Hole \(h + 1), \(v!)\(v! == par(h) ? "" : ", " + CSScoreMark(v! - par(h)).spoken)")
+        if h == half - 1 {
+          cell(total(sc, 0, half)).foregroundStyle(cs.ink)
+            .accessibilityLabel("\(holes == 9 ? "Total" : "Out"), \(total(sc, 0, half))")
+        }
       }
       if holes > 9 {
-        cell(total(sc, 9, 18)).foregroundStyle(cs.gold)
-        cell(total(sc, 0, 18)).foregroundStyle(cs.gold)
+        cell(total(sc, 9, 18)).foregroundStyle(cs.ink).accessibilityLabel("In, \(total(sc, 9, 18))")
+        cell(total(sc, 0, 18)).foregroundStyle(cs.ink).accessibilityLabel("Total, \(total(sc, 0, 18))")
       }
       // D152 · the number a golfer actually reads off a card: where they stand
       // against par, right now, on the holes they have finished.
-      cell(vsPar(sc)).foregroundStyle(cs.mut)
+      cell(vsPar(sc)).foregroundStyle(cs.mut).accessibilityLabel("Versus par, \(vsPar(sc))")
     }
     .font(CSFont.mono)
   }
 
   private func ledgerRow(_ led: Ledger) -> some View {
     GridRow {
-      Text(led.label).font(CSFont.monoSmall).foregroundStyle(cs.dim)
+      Text(led.label).font(CSFont.monoSmall).foregroundStyle(cs.mut)
         .frame(width: nameW, alignment: .leading)
       ForEach(0..<holes, id: \.self) { h in
         ledgerCell(h < led.cells.count ? led.cells[h] : nil)
@@ -159,7 +185,7 @@ struct LiveCardView: View {
 
   private func ledgerCell(_ v: Side?) -> some View {
     RoundedRectangle(cornerRadius: 2)
-      .fill(v == .me ? cs.brand : v == .them ? cs.dim : .clear)
+      .fill(v == .me ? cs.brand : v == .them ? cs.mut : .clear)
       .frame(width: cellW - 3, height: 13)
       .overlay(RoundedRectangle(cornerRadius: 2).stroke(cs.rule, lineWidth: v == nil || v == .halved ? 1 : 0))
       .opacity(v == nil ? 0.25 : 1)
@@ -217,7 +243,7 @@ struct LiveCardView: View {
     return t == 0 ? "–" : "\(t)"
   }
   private func squadColor(_ ci: Int) -> Color {
-    ci < 0 ? cs.dim : [cs.sq0, cs.sq1, cs.sq2, cs.sq3][ci % 4]
+    ci < 0 ? cs.mut : [cs.sq0, cs.sq1, cs.sq2, cs.sq3][ci % 4]
   }
   private func cell(_ t: String, w: CGFloat? = nil, align: Alignment = .center) -> some View {
     Text(t).frame(width: w ?? cellW, alignment: align).lineLimit(1)

@@ -166,6 +166,14 @@ public enum LiveCopy {
     public let toPar: String?
     public let score: Int?
     public let birdie: Bool
+    /// **How many holes BEFORE this one have no score on this card.** A
+    /// running total computed over an empty seat says so (§5, item 6a): the
+    /// sub-line reads `55 THRU 14 · TWO NOT IN` rather than letting a total
+    /// that is missing two holes look like a total that is not.
+    public let notIn: Int
+    /// This hole's par — the stepper opens on it, and an unscored slot names
+    /// it BELOW the rule rather than printing it in the value's own place.
+    public let par: Int
   }
 
   public static func playerRow(_ s: LiveRoundState, _ pi: Int) -> PlayerRow {
@@ -182,12 +190,64 @@ public enum LiveCopy {
         ? (LiveEngines.sunningdaleSoloStrokesAt(h: h, scores: s.scores, holes: s.liveHoles)[pi])
         : (LiveEngines.sunningdaleStrokesAt(h: h, scores: s.scores, teams: s.teams, holes: s.liveHoles)[s.teams[0].contains(pi) ? 0 : 1])
     } else { dots = s.strokeOn(pi, h) }
-    let sub = s.game == .sunningdale ? "NO HCP · STRAIGHT UP"
-      : "\(p.est ? "EST " : (p.guest ? "SELF " : ""))\(LiveFmt.idx(p.i)) NUMBER · \(s.strokes[pi]) STROKES"
-    return PlayerRow(name: p.n, guest: p.guest, strokeDots: dots, sub: sub,
+    // **THE INDEX LEAVES THE LIVE ROW** (D-4). It is a setup fact and a receipt
+    // fact; standing over a putt the facts are the strokes you receive and
+    // where the card stands. Dropping it is what lets the sub-line fit on one
+    // line at the 402 measure without an ellipsis, which is the defect that
+    // broke `THRU` across two lines on an SE.
+    let notIn = (0..<min(h, s.liveHoles)).reduce(0) { s.scores[pi][$1] == nil ? $0 + 1 : $0 }
+    let strokesWord = s.strokes[pi] == 0 ? "NO STROKES" : "\(s.strokes[pi]) STROKES"
+    var parts: [String] = s.game == .sunningdale ? ["NO HCP · STRAIGHT UP"] : [strokesWord]
+    if !done.isEmpty { parts.append("\(gross) THRU \(done.count)") }
+    if notIn > 0 { parts.append("\(SeasonStoryCopy.word(notIn).uppercased()) NOT IN") }
+    return PlayerRow(name: p.n, guest: p.guest, strokeDots: dots, sub: parts.joined(separator: " · "),
                      total: done.isEmpty ? nil : "\(gross) THRU \(done.count)",
                      toPar: done.isEmpty ? nil : (vp >= 0 ? "+\(vp)" : String(vp)),
-                     score: sc, birdie: sc != nil && sc! < s.course.pars[h])
+                     score: sc, birdie: sc != nil && sc! < s.course.pars[h],
+                     notIn: notIn, par: s.course.pars[h])
+  }
+
+  // MARK: - the number to beat, hole by hole (§5, the blind review's finding 4)
+
+  /// **What each golfer needs on THIS hole**, which is the one question a
+  /// foursome is actually asking while they stand on it — and the half-screen
+  /// of dead space above `Finish the round` is where it goes.
+  ///
+  /// It is arithmetic over produced facts: the strokes each golfer receives on
+  /// this hole and the scores already in on it. **With nothing in yet there is
+  /// no number to beat and the block does not render** — the alternative is an
+  /// app inventing a target, which is what §9.9 forbids.
+  ///
+  /// The figures are NET, because net is the number the four of them are
+  /// comparing; the row's own sub-line states the strokes.
+  public struct ToWin: Sendable, Equatable, Identifiable {
+    public let id: Int
+    public let name: String
+    public let line: String
+    public let mine: Bool
+  }
+
+  public static func toWinThisHole(_ s: LiveRoundState) -> [ToWin] {
+    let h = s.hole
+    guard h >= 0, h < s.liveHoles, s.players.count > 1 else { return [] }
+    let noH = s.game == .sunningdale
+    let table = s.strokeTable
+    func net(_ pi: Int) -> Int? {
+      guard s.scores.indices.contains(pi), s.scores[pi].indices.contains(h),
+            let g = s.scores[pi][h] else { return nil }
+      return noH ? g : g - table[pi][h]
+    }
+    let ins = s.players.indices.compactMap(net)
+    guard let best = ins.min() else { return [] }
+    return s.players.indices.map { pi in
+      let p = s.players[pi]
+      if let n = net(pi) {
+        return ToWin(id: pi, name: p.n, line: n <= best ? "in for net \(n)" : "net \(n) · out of it", mine: p.me)
+      }
+      let need = best - 1
+      return ToWin(id: pi, name: p.n,
+                   line: need < 1 ? "nothing beats it" : "net \(need) beats it", mine: p.me)
+    }
   }
 
   /// `HOLE n` · `PAR p · SI s`.

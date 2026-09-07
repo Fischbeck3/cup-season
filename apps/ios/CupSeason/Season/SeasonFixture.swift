@@ -105,6 +105,10 @@ enum SeasonFixture {
       // squads snapshot keys `squads`/`squad_id`, and passing the wrong pair
       // renders a table with no triangles at all — which is what the first
       // fixture shot showed.
+      // …and it carries its `captured_at`, because Wave 7 made the movement
+      // COLUMN conditional on the clock the section head names: a fixture that
+      // seeds prior ranks and no snapshot date now draws no triangles at all,
+      // which is correct behaviour and a useless screenshot.
       snapshots: [.init(week_no: 4, standings: .object([
         squads ? "squads" : "individuals": .array(
           (0..<(squads ? 4 : n)).map { i in
@@ -112,7 +116,8 @@ enum SeasonFixture {
             let prior = squads ? [58.0, 40, 47, 37][i] : priorPoints[i]
             return .object([(squads ? "squad_id" : "member_id"): .string(id.uuidString.lowercased()),
                             "points": .number(prior)])
-          })]))],
+          })]),
+        captured_at: "2026-08-30T07:10:00.000+00:00")],
       // six of eight are in; the viewer is not, so the leaf photographs
       // `YOU OWE` beside `PAID` and `OWES` — the three words the sign takes
       buyIns: (0..<n).compactMap { i in

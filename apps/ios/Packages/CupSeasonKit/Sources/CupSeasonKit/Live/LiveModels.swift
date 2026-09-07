@@ -126,13 +126,24 @@ public struct LivePlayer: Codable, Sendable, Equatable, Identifiable {
   public var regular: Int?
   /// D156 · resolved over a local Bluetooth session, right now
   public var nearby: Bool?
+  /// **The golfer's ball marker** (`profiles.marker`), so the live sheet can
+  /// draw a person the one legal way (D271, and the audit's problem 3 on the
+  /// most-looked-at screen in the product). It was the 4pt colour bar's job
+  /// and a colour bar is not a person.
+  ///
+  /// OPTIONAL for the same reason `regular` is: this struct is inside the
+  /// persisted round snapshot, and a snapshot written before today carries no
+  /// key — a synthesised `Decodable` reads an Optional with `decodeIfPresent`,
+  /// so an old snapshot decodes with `nil` and the face falls to the pigment
+  /// disc rather than losing somebody's round.
+  public var mk: String?
 
   public init(id: String = UUID().uuidString, n: String, i: Double, ci: Int, guest: Bool, est: Bool = false, buddy: Bool = false,
               mid: UUID? = nil, pid: UUID? = nil, me: Bool = false, locked: Bool = false, team: String? = nil,
-              regular: Int? = nil, nearby: Bool? = nil) {
+              regular: Int? = nil, nearby: Bool? = nil, mk: String? = nil) {
     self.id = id; self.n = n; self.i = i; self.ci = ci; self.guest = guest; self.est = est; self.buddy = buddy
     self.mid = mid; self.pid = pid; self.me = me; self.locked = locked; self.team = team
-    self.regular = regular; self.nearby = nearby
+    self.regular = regular; self.nearby = nearby; self.mk = mk
   }
 
   /// `fn1` (5598): the first name, or 'Someone'.
@@ -298,11 +309,18 @@ public struct LiveCourseCard: Codable, Sendable, Equatable {
 
   /// The live eyebrow (8388–8391): "Live round · Papago · Blue · 70.2/123",
   /// never "BLUE — BLUE" when the label already ends in the tee (S6-04).
-  public var eyebrow: String {
+  public var eyebrow: String { "Live round · " + place }
+
+  /// **The eyebrow without its own kicker** — `Encanto GC — Blue · 72/113`.
+  /// The live sheet's eyebrow already opens with a `brand` dot and the word
+  /// LIVE, and `LIVE · LIVE ROUND · ENCANTO` is the same word twice in eight
+  /// characters (§5.2: one line, and every character on it has to earn its
+  /// place before the tail is dropped).
+  public var place: String {
     let c = label.isEmpty ? "Course" : label
     let t = tee.trimmingCharacters(in: .whitespaces)
     let dup = !t.isEmpty && c.lowercased().hasSuffix(("· " + t).lowercased())
-    return "Live round · \(c)\(!t.isEmpty && !dup ? " — \(t)" : "") · \(LiveFmt.js(effectiveRating))/\(effectiveSlope)"
+    return "\(c)\(!t.isEmpty && !dup ? " — \(t)" : "") · \(LiveFmt.js(effectiveRating))/\(effectiveSlope)"
   }
 }
 

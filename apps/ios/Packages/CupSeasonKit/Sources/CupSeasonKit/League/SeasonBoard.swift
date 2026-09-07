@@ -108,10 +108,19 @@ public enum SeasonBoardCopy {
   /// one fact the table can state that the points cannot. Everyone else gets
   /// what is counting if it is theirs, and the rounds posted if it is not.
   /// **Never the word *floor*** (`TERMINOLOGY` §4 pattern 2).
+  /// - tied: **the row shares its position with the row beside it.** A tie is a
+  ///   real state of a points table and it is stated in words as well as by the
+  ///   shared rail numeral, because two golfers reading `04` twice with no
+  ///   explanation is the rendering error a shared numeral looks like.
   public static func clause(isLeader: Bool, runSince: Int?, runWeeks: Int?,
                             isMe: Bool, counted: Int?, cap: Int?,
-                            rounds: Int, solo: Bool, left: Bool, cooled: Bool = false) -> String {
+                            rounds: Int, solo: Bool, left: Bool, cooled: Bool = false,
+                            tied: Bool = false) -> String {
     if left { return "Stopped scoring" }
+    // A tie outranks the run and the count: it is the only thing on the row
+    // that explains why two positions read the same, and §3's hard case says
+    // the sub-line says so.
+    if tied { return "Tied" }
     if isLeader {
       if let s = runSince, s > 0 { return "Held since week \(SeasonStoryCopy.word(s))" }
       if let w = runWeeks, w > 1 { return "Held \(SeasonStoryCopy.word(w)) weeks" }

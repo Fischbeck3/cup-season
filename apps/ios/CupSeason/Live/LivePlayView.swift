@@ -1,6 +1,30 @@
-// Cup Season — `#playLive` (index.html 3039–3094; `renderPlay` 8386–8589,
-// `renderScoreboard` 8604–8654 (D85), the group sheet 9317–9331, the
-// two-tap scrap 9332–9364).
+// Cup Season — THE LIVE SHEET (Wave 7, `surfaces/leaderboard.md` §5).
+//
+// The most-looked-at surface in the product, and the one the audit scored 4.8
+// in portrait against 6.8 for its own landscape card. This is the portrait
+// sheet rebuilt to the landscape card's standard, from the status band down.
+//
+// WHAT WENT, BY NAME: the two capsule chips restating four rows twelve points
+// above them; the eighteen ember dots that said how FAR the round was and never
+// how it was GOING; the four 4 × 40 colour bars standing in for four people on
+// a screen with four people on it; the stacked `55 / THRU / 14 / -1` column
+// that broke `THRU` across two lines on an SE; the `− – +` tray whose unscored
+// placeholder was an en dash 34pt from the decrement glyph; and the bordered
+// side-game card.
+//
+// WHAT SURVIVES: the 44pt hole targets and the stepper opening on par, the
+// wolf's own controls, the two-tap scrap, the group-phones sheet, the sync
+// badge (a round held on a phone says so), and D152's landscape card — which
+// is the ceiling and is not being redesigned.
+//
+// THE FOUR NEW OBJECTS: the hole strip with its key (`CSHoleStrip`, chart 4);
+// the score object — a bare `figure` 27 over a 2pt rule between two 44pt
+// targets, **no ring and no box**, because a circled numeral between a − and a
+// + reads as *this field is selected* and the paper convention and the
+// selection convention must not be one shape; `TO WIN THIS HOLE`, which is
+// what a foursome is actually asking while it stands there; and one full-width
+// ember primary, because the live thing a golfer standing on a course can do
+// is finish the round.
 
 import SwiftUI
 import CSDesign
@@ -15,6 +39,10 @@ struct LivePlayView: View {
   @State private var showFinish = false
   @State private var showGroup = false
   @State private var scrapArmed = false
+  /// §5.7 · "The scorecard" — the whole card, from the state this phone holds,
+  /// so it opens on a course with no signal. In a wide window the CARD toggle
+  /// is the same door and this link becomes it.
+  @State private var showCard = false
   /// D152 · portrait enters, landscape reads. Offered only when the window is
   /// wide enough for eighteen columns to be legible; a rotation back to portrait
   /// drops it, so nobody can be stranded on a view they cannot leave.
@@ -41,357 +69,366 @@ struct LivePlayView: View {
   }
 
   var body: some View {
-    VStack(spacing: 0) {
-      scoreboard
+    Group {
       if cardView && canShowCard {
-        LiveCardView(s: s) { h in
-          store.state.hole = h
-          cardView = false
+        VStack(spacing: 0) {
+          landscapeBar
+          LiveCardView(s: s) { h in
+            store.state.hole = h
+            cardView = false
+          }
         }
       } else if canShowCard {
-        // D152 · sideways, the HOLE view must fit on one screen. The portrait
-        // stack — eyebrow, header, dots, four rows, two buttons, the
-        // auto-attest paragraph, scrap, then the side games — is far taller
-        // than 390pt, so rotating used to hand you a scroll. Two columns, and
-        // the teaching copy stands down: it is a first-round explanation, not
-        // something anyone reads standing over a putt.
-        landscapeHole
-      } else {
-      ScrollView {
-        VStack(alignment: .leading, spacing: 14) {
-          A11yStack(rowAlignment: .firstTextBaseline, columnSpacing: 4) {
-            Text(s.course.eyebrow).csEyebrow().lineLimit(typeSize.isA11y ? nil : 2)
-            Spacer()
-            if !store.isPencilOnly {
-              Button { store.backToSetup() } label: {
-                Text("Change setup").font(CSFont.footnote).foregroundStyle(cs.ink).a11yHitSlop()
-              }
-              .buttonStyle(.plain)
-            }
-          }
-          holeHeader
-          holeDots
-          ForEach(s.players.indices, id: \.self) { pi in playerRow(pi) }
-          // D153 · the side games come BEFORE the finish block. They are the
-          // only thing down here that changes every hole, and they used to sit
-          // under a full-width brand button plus five lines of teaching copy —
-          // so the one question a golfer has mid-round ("where does the match
-          // stand") was the one thing they had to scroll for. Landscape already
-          // had this right by accident (D152 put them in the right column).
-          Text("Side games · tracked live, settled between friends").csEyebrow().padding(.top, 8)
-          gameCards
-          if !store.isPencilOnly {
-            CSMini("Group phones — everyone can score") { showGroup = true }
-            finishButton
-            // …and the teaching copy speaks ONCE, before the first score. It is
-            // restated where it has consequence — the finish sheet opens with
-            // "Complete cards post to the season, vouched by the group; N
-            // guests get a recap to claim. A partial card is skipped, not lost."
-            if !s.anyScored {
-              CSFine("Scores entered together are vouched by the group: the group verifies everyone's round just by playing it. Guests need no account: they play every side game, appear in the settlement, and get a recap text with their scorecard and an invite when you finish. Only league members' rounds post to the season.")
-            }
-            scrapButton
-          }
+        // D152 · sideways, the HOLE view must fit on one screen. Two columns,
+        // and the teaching copy stands down: it is a first-round explanation,
+        // not something anyone reads standing over a putt.
+        VStack(spacing: 0) {
+          landscapeBar
+          landscapeHole
         }
-        .padding(20)
-      }
+      } else {
+        portrait
       }
     }
     .background(cs.bg0)
     // D152 · a rotation back to portrait must never strand anyone on a view the
     // toggle no longer offers.
     .onChange(of: canShowCard) { _, wide in if !wide { cardView = false } }
-    .navigationTitle("Live round")
+    .navigationTitle("")
     .navigationBarTitleDisplayMode(.inline)
     .sheet(isPresented: $showFinish) { LiveFinishSheet(store: store) }
     .sheet(isPresented: $showGroup) { LiveGroupSheet(store: store) }
-  }
-
-  // MARK: the scoreboard (D85)
-
-  private var scoreboard: some View {
-    let sb = LiveCopy.scoreboard(s, presence: store.presence)
-    return VStack(alignment: .leading, spacing: 8) {
-      HStack(alignment: .firstTextBaseline) {
-        Text(sb.hero).font(CSFont.monoMediumBody).tracking(0.6).foregroundStyle(cs.ink).lineLimit(2)
-        Spacer(minLength: 8)
-        if canShowCard { viewToggle }
-      }
-      // D152 · sideways, the chips stand down in BOTH views. In CARD they are
-      // restated by the table underneath — every score, every total, hole by
-      // hole. In HOLE they are restated by the four rows, which carry the same
-      // name / thru / net. A landscape phone has ~380pt to spend and the chips
-      // cost 40 of them; spent there, the last player's row falls off the
-      // bottom (it did — SwiftUI overflows a too-tall VStack symmetrically, so
-      // the toggle went off the TOP at the same time and read as "missing").
-      if !canShowCard {
-      ScrollView(.horizontal, showsIndicators: false) {
-        HStack(spacing: 6) {
-          ForEach(Array(sb.chips.enumerated()), id: \.offset) { _, c in
-            HStack(spacing: 6) {
-              if c.present { Circle().fill(cs.pos).frame(width: 6, height: 6) }
-              Text(c.name).font(CSFont.monoMediumBody).foregroundStyle(c.lead ? cs.gold : cs.ink)
-              Text(c.line).font(CSFont.label).foregroundStyle(cs.mut)
-            }
-            .padding(.horizontal, 10).padding(.vertical, 6)
-            .background(cs.bg2, in: Capsule())
-            .overlay(Capsule().stroke(c.lead ? cs.gold : cs.rule, lineWidth: 1))
-          }
-        }
-      }
-      }
-      if !(cardView && canShowCard) {
-        Text(LiveCopy.syncBadge(s, presence: store.presence, queued: store.queued, retired: store.retiredCard)).font(CSFont.label).tracking(0.8).foregroundStyle(cs.dimText)
+    .sheet(isPresented: $showCard) {
+      NavigationStack {
+        LiveCardView(s: s) { h in store.state.hole = h; showCard = false }
+          .navigationTitle("").navigationBarTitleDisplayMode(.inline)
+          .csCloseButton { showCard = false }
       }
     }
-    .padding(.horizontal, 20).padding(.vertical, canShowCard ? 7 : 12)
-    .frame(maxWidth: .infinity, alignment: .leading)
-    .background(cs.bg1)
-    .overlay(alignment: .bottom) { Rectangle().fill(cs.rule).frame(height: 1) }
-    .accessibilityElement(children: .combine)
-    .accessibilityAddTraits(.updatesFrequently)   // the scoreboard moves as the group scores
   }
 
-  /// D152 · the hole, sideways: entry left, the games right, nothing scrolling.
-  private var landscapeHole: some View {
-    HStack(alignment: .top, spacing: 16) {
-      VStack(alignment: .leading, spacing: 6) {
-        holeHeader
-        holeDots
-        ForEach(s.players.indices, id: \.self) { pi in playerRow(pi) }
-        Spacer(minLength: 0)
-      }
-      .frame(maxWidth: .infinity, alignment: .leading)
+  // MARK: - portrait, top to bottom
 
-      VStack(alignment: .leading, spacing: 8) {
-        gameCards
-        Spacer(minLength: 0)
+  private var portrait: some View {
+    ScrollView {
+      VStack(alignment: .leading, spacing: CSTokens.Space.s4) {
+        eyebrow.csGutter()
+        holeHeader.csGutter()
+        strip.csGutter()
+        VStack(spacing: 0) { ForEach(s.players.indices, id: \.self) { playerRow($0) } }
+        matchState
+        toWinBlock
+        gameBlocks.csGutter()
+        foot.csGutter()
+      }
+      .padding(.vertical, CSTokens.Space.s3)
+    }
+  }
+
+  /// §5.2 · a 7pt `brand` dot and one line: `LIVE · PAPAGO · BLUE · 71.2 / 128`.
+  /// **One line, never wrapped** — the tail is dropped before it orphans. The
+  /// sync badge rides under it and only when it has something to say: a round
+  /// held on a phone with no signal says so (D-offline).
+  private var eyebrow: some View {
+    let badge = LiveCopy.syncBadge(s, presence: store.presence, queued: store.queued, retired: store.retiredCard)
+    return VStack(alignment: .leading, spacing: CSTokens.Space.s1) {
+      // At the accessibility sizes the dot, the place and the setup link stop
+      // fighting for one row: the eyebrow is already the longest line on the
+      // screen, and a 44pt link beside it shears it into four words a line.
+      A11yStack(rowAlignment: .firstTextBaseline, spacing: CSTokens.Space.s2, columnSpacing: CSTokens.Space.s2) {
+        HStack(alignment: .firstTextBaseline, spacing: CSTokens.Space.s2) {
+          Circle().fill(cs.brand).frame(width: 7, height: 7)
+          Text("Live · " + s.course.place).csType(.agate, caps: true).foregroundStyle(cs.brand)
+            .lineLimit(typeSize.isA11y ? nil : 1).truncationMode(.tail)
+            .fixedSize(horizontal: false, vertical: true)
+        }
+        if !typeSize.isA11y { Spacer(minLength: 0) }
         if !store.isPencilOnly {
-          let done = LiveCopy.roundComplete(s)
-          if let line = LiveCopy.finishStatus(s) {
-            Text(line).csEyebrow(done ? cs.gold : cs.dimText)
+          Button { store.backToSetup() } label: {
+            Text("Change setup").csType(.agateS, caps: true).foregroundStyle(cs.mut).a11yHitSlop()
           }
-          CSButton(done ? "Finish & post" : "Finish round",
-                   style: done ? .primary : .quiet,
-                   busy: store.busy) { showFinish = true }
+          .buttonStyle(.plain)
+          .fixedSize(horizontal: !typeSize.isA11y, vertical: true)
         }
       }
-      .frame(width: 290)
-    }
-    .padding(.horizontal, 20)
-    .padding(.top, 10)
-    .padding(.bottom, 12)
-    .frame(maxHeight: .infinity, alignment: .top)
-  }
-
-  /// D152 · HOLE / CARD. Named for what each shows, not for the orientation —
-  /// a wide window on any device can read the card, and the phrase "landscape"
-  /// means nothing to someone holding one.
-  private var viewToggle: some View {
-    HStack(spacing: 0) {
-      ForEach([false, true], id: \.self) { isCard in
-        Button { cardView = isCard } label: {
-          Text(isCard ? "CARD" : "HOLE")
-            .font(CSFont.label).tracking(0.8)
-            .foregroundStyle(cardView == isCard ? cs.bg0 : cs.dim)
-            .padding(.horizontal, 9).padding(.vertical, 4)
-            .background(cardView == isCard ? cs.brand : .clear)
-        }
-        .buttonStyle(.plain)
-        .accessibilityLabel(isCard ? "Show the whole card" : "Show this hole")
-        .accessibilityAddTraits(cardView == isCard ? [.isSelected] : [])
+      if !badge.isEmpty {
+        Text(badge).csType(.agateS, caps: true).foregroundStyle(cs.mut)
+          .accessibilityAddTraits(.updatesFrequently)
       }
     }
-    .clipShape(RoundedRectangle(cornerRadius: 7))
-    .overlay(RoundedRectangle(cornerRadius: 7).stroke(cs.rule, lineWidth: 1))
+    .csBudget(ember: 1)
+    .accessibilityElement(children: .combine)
   }
 
-  // MARK: hole header + dots
-
+  /// §5.3 · the screen's ONE `display`, between two 44pt targets.
   private var holeHeader: some View {
     let h = LiveCopy.holeHeader(s)
-    return HStack {
-      Button { store.prevHole() } label: {
-        Image(systemName: "arrow.left").font(.system(size: 16, weight: .semibold)).foregroundStyle(cs.ink).frame(width: 44, height: 44)
-          .background(cs.bg2, in: Circle())
-      }
-      .buttonStyle(.plain).accessibilityLabel("Previous hole")
-      Spacer()
+    return HStack(spacing: CSTokens.Space.s3) {
+      holeTarget(back: true)
       VStack(spacing: 2) {
-        Text(h.num).font(CSFont.heroSmall).foregroundStyle(cs.ink)
-        Text(h.meta).font(CSFont.label).tracking(1.2).foregroundStyle(cs.dimText)
+        Text(h.num).csType(.display, caps: true).foregroundStyle(cs.ink)
+        Text(h.meta).csType(.agateS, caps: true).foregroundStyle(cs.mut)
       }
+      .frame(maxWidth: .infinity)
       .accessibilityElement(children: .combine)
       .accessibilityAddTraits(.isHeader)
-      Spacer()
-      Button { store.nextHole() } label: {
-        Image(systemName: "arrow.right").font(.system(size: 16, weight: .semibold)).foregroundStyle(cs.ink).frame(width: 44, height: 44)
-          .background(cs.bg2, in: Circle())
-      }
-      .buttonStyle(.plain).accessibilityLabel("Next hole")
+      holeTarget(back: false)
     }
   }
 
-  private var holeDots: some View {
-    HStack(spacing: 4) {
-      ForEach(0..<s.liveHoles, id: \.self) { k in
-        Circle()
-          .fill(s.holeDone(k) ? cs.brand : cs.rule)
-          .frame(width: k == s.hole ? 10 : 6, height: k == s.hole ? 10 : 6)
-          .overlay(Circle().stroke(k == s.hole ? cs.ink : .clear, lineWidth: 1))
-          .frame(maxWidth: .infinity)
-      }
+  /// The mockup draws the two hole targets as 44pt rounded tiles rather than
+  /// the shipped circles, and the score object beside every name draws the same
+  /// tile: three targets on one screen, one shape. The chevron is drawn, not an
+  /// SF symbol, so it is the same hand as the rest of the family.
+  private func holeTarget(back: Bool) -> some View {
+    Button { back ? store.prevHole() : store.nextHole() } label: {
+      CSGlyph(.chevron, points: 18)
+        .rotationEffect(.degrees(back ? 180 : 0))
+        .foregroundStyle(cs.ink)
+        .frame(width: 44, height: 44)
+        .background(cs.bg2, in: RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous))
+        .contentShape(Rectangle())
     }
-    .accessibilityHidden(true)
+    .buttonStyle(.plain)
+    .accessibilityLabel(back ? "Previous hole" : "Next hole")
   }
 
-  // MARK: player rows (8409–8441)
+  /// §5.4 · chart 4. **This replaces the eighteen ember dots** — same
+  /// countability, and it now says *how* the round is going rather than only
+  /// how far.
+  private var strip: some View {
+    let mine = s.players.firstIndex(where: \.me) ?? 0
+    let holes = (0..<s.liveHoles).map { i -> CSHoleStrip.Hole in
+      let sc = s.scores.indices.contains(mine) ? s.scores[mine][i] : nil
+      // N-3's degrade, obeyed: no par, no mark. `LiveCourseCard` guarantees a
+      // par per hole today, and a card that ever stops doing so draws ticks.
+      return .init(number: i + 1, overPar: sc.map { $0 - s.course.pars[i] })
+    }
+    let row = LiveCopy.playerRow(s, mine)
+    return CSHoleStrip(holes: holes, current: s.hole + 1,
+                       trailing: row.total.map { t in
+                         "Your card · " + t.lowercased()
+                           + (row.notIn > 0 ? " · \(SeasonStoryCopy.word(row.notIn)) not in" : "")
+                       } ?? "Nothing in yet")
+  }
+
+  // MARK: - a golfer's row and the score object (§5.5, §5.6)
 
   private func playerRow(_ pi: Int) -> some View {
     let r = LiveCopy.playerRow(s, pi)
     let p = s.players[pi]
-    let scoreText = r.score.map(String.init) ?? "–"
-    // name + sub, then the totals and the stepper — on one line, or two at the accessibility sizes
-    return A11yStack(spacing: 10, columnSpacing: 6) {
-      HStack(spacing: 10) {
-        RoundedRectangle(cornerRadius: 2).fill(p.guest ? cs.dim : cs.squad(p.ci)).frame(width: 4, height: 40)
-        VStack(alignment: .leading, spacing: 3) {
-          HStack(spacing: 4) {
-            Text(r.name).font(CSFont.subhead.weight(.semibold)).foregroundStyle(cs.ink).lineLimit(typeSize.isA11y ? nil : 1)
-            if r.guest { Text("GUEST").font(CSFont.label).foregroundStyle(cs.dimText) }
-            ForEach(0..<r.strokeDots, id: \.self) { _ in Circle().fill(cs.gold).frame(width: 6, height: 6) }
+    return VStack(spacing: 0) {
+      CSRule()
+      A11yStack(spacing: CSTokens.Space.s3, columnSpacing: CSTokens.Space.s2) {
+        HStack(spacing: CSTokens.Space.s3) {
+          CSFace(LiveFaces.model(p), size: .list)
+          VStack(alignment: .leading, spacing: 2) {
+            HStack(spacing: CSTokens.Space.s2) {
+              Text(r.name).csType(.name).foregroundStyle(cs.ink)
+                .lineLimit(typeSize.isA11y ? nil : 1).truncationMode(.tail)
+              if r.guest { Text("Guest").csType(.agateS, caps: true).foregroundStyle(cs.mut) }
+              // the strokes a golfer gets on THIS hole, drawn rather than said
+              ForEach(0..<r.strokeDots, id: \.self) { _ in
+                Circle().fill(cs.mut).frame(width: 5, height: 5)
+              }
+            }
+            Text(r.sub).csType(.agateS, caps: true).foregroundStyle(cs.mut)
+              .lineLimit(typeSize.isA11y ? nil : 1).truncationMode(.tail)
           }
-          Text(r.sub).font(CSFont.label).tracking(0.8).foregroundStyle(cs.dimText)
+          .frame(minWidth: 0, maxWidth: .infinity, alignment: .leading)
         }
-        .frame(maxWidth: .infinity, alignment: .leading)
-      }
-      .accessibilityElement(children: .combine)
-      .accessibilityLabel("\(r.name)\(r.guest ? ", guest" : ""), \(r.sub)" + (r.strokeDots > 0 ? ", \(r.strokeDots) stroke\(r.strokeDots == 1 ? "" : "s") here" : ""))
-      Spacer(minLength: 4)
-      HStack(spacing: 10) {
-        VStack(alignment: .trailing, spacing: 0) {
-          Text(r.total ?? "—").font(CSFont.label).foregroundStyle(cs.mut)
-          if let tp = r.toPar { Text(tp).font(CSFont.label).foregroundStyle(cs.mut) }
-        }
-        // sideways the name takes the slack first and wrapped "55 THRU / 14";
-        // the running total is one line or it is not a running total
-        .lineLimit(canShowCard ? 1 : nil)
-        .fixedSize(horizontal: canShowCard, vertical: false)
         .accessibilityElement(children: .combine)
-        .accessibilityLabel("Total \(r.total ?? "none")" + (r.toPar.map { ", \($0)" } ?? ""))
-        .accessibilityAddTraits(.updatesFrequently)
-        HStack(spacing: 0) {
-          Button { store.step(pi, -1) } label: { Text("−").font(CSFont.title).frame(minWidth: 44, minHeight: 44).contentShape(Rectangle()) }
-            .buttonStyle(.plain).accessibilityLabel("Minus, \(p.n)")
-          Text(scoreText).font(CSFont.stat).csTabular().foregroundStyle(r.birdie ? cs.gold : cs.ink).frame(minWidth: 34)
-            .accessibilityLabel("Hole \(s.hole + 1), \(r.score.map { "\($0) stroke\($0 == 1 ? "" : "s")" } ?? "not scored")\(r.birdie ? ", under par" : "")")
-            .accessibilityAddTraits(.updatesFrequently)
-          Button { store.step(pi, 1) } label: { Text("+").font(CSFont.title).frame(minWidth: 44, minHeight: 44).contentShape(Rectangle()) }
-            .buttonStyle(.plain).accessibilityLabel("Plus, \(p.n)")
-        }
-        .foregroundStyle(cs.ink)
-        .background(cs.bg2, in: RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous))
+        // §7 · AX3 · the score object goes FULL WIDTH ABOVE the name; at the
+        // reading sizes it is the row's trailing column.
+        scoreObject(pi, r)
       }
-      .padding(.leading, typeSize.isA11y ? 14 : 0)
+      .padding(.leading, CSTokens.Space.gutter)
+      .padding(.trailing, CSTokens.Space.gutter)
+      .padding(.vertical, CSTokens.Space.s2)
+      .frame(minHeight: 70)
     }
-    .padding(.vertical, canShowCard ? 4 : 6)
-    .overlay(alignment: .bottom) { Rectangle().fill(cs.rule).frame(height: 1) }
   }
 
-  // MARK: game cards (3070–3092)
-
-  @ViewBuilder private var gameCards: some View {
-    if let m = LiveCopy.matchCard(s) {
-      gameCard(accent: cs.sq0) {
-        Text(m.teams).font(CSFont.footnote).foregroundStyle(cs.mut)
-        Text(m.status).font(CSFont.monoMediumBody).tracking(0.6).foregroundStyle(cs.ink)
-        Text(m.meta).font(CSFont.label).tracking(0.8).foregroundStyle(cs.dimText)
+  /// §5.6 · a 44pt decrement target, **the hole's score as `figure` 27 over a
+  /// 2pt rule**, a 44pt increment target.
+  ///
+  /// **The numeral is bare.** No ring, no box: the marks live in the strip
+  /// above, where nothing is tappable, and a circled numeral between a − and a
+  /// + reads as *this field is selected*.
+  ///
+  /// **Unscored is an em dash** (the blind review's finding 4). The first draft
+  /// hung the hole's par under the rule; three reviewers read it as "they
+  /// scored par". Rendering par in the value's own slot IS the guess §9.9
+  /// forbids, and a ghost of it under the rule is the same guess quieter.
+  private func scoreObject(_ pi: Int, _ r: LiveCopy.PlayerRow) -> some View {
+    // 44 + 4 + 54 + 4 + 44 = 150, which leaves the name column 162 at the 402
+    // measure — the artboard's own split, and the one that fits
+    // `2 STROKES · 55 THRU 14` on one line without an ellipsis.
+    HStack(spacing: CSTokens.Space.s1) {
+      stepTarget("−", pi: pi, by: -1)
+      VStack(spacing: CSTokens.Space.s1) {
+        Text(r.score.map(String.init) ?? "\u{2014}")
+          .csType(.figureM)
+          .foregroundStyle(r.score == nil ? cs.mut : cs.ink)
+          .contentTransition(.numericText())
+          .frame(minWidth: 44)
+        Rectangle().fill(r.score == nil ? cs.rule : cs.ink).frame(height: 2)
       }
+      .frame(width: 54)
+      .accessibilityElement(children: .ignore)
+      .accessibilityLabel("Hole \(s.hole + 1), \(r.score.map { "\($0) stroke\($0 == 1 ? "" : "s")" } ?? "not scored")")
+      .accessibilityAddTraits(.updatesFrequently)
+      stepTarget("+", pi: pi, by: 1)
     }
-    if let w = LiveCopy.wolfCard(s) {
-      gameCard(accent: cs.gold) {
-        Text("Wolf · lone wolf plays for 3").font(CSFont.footnote).foregroundStyle(cs.mut)
-        Text(w.who).font(CSFont.monoMediumBody).tracking(0.6).foregroundStyle(cs.ink)
-        Text(w.meta).font(CSFont.label).tracking(0.8).foregroundStyle(cs.dimText)
-        let pick = s.wolf[s.hole]
-        LiveFlow(spacing: 6) {
-          ForEach([0, 1, 2, 3].filter { $0 != w.wolf }, id: \.self) { p in
-            wolfButton("+ " + s.players[p].n.uppercased(), on: pick?.mode == "partner" && pick?.partner == p) { store.setWolf(.partner(p)) }
+  }
+
+  private func stepTarget(_ glyph: String, pi: Int, by: Int) -> some View {
+    Button { store.step(pi, by) } label: {
+      Text(glyph).csType(.figureS).foregroundStyle(cs.ink)
+        .frame(width: 44, height: 44)
+        .background(cs.bg2, in: RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous))
+        .contentShape(Rectangle())
+    }
+    .buttonStyle(.plain)
+    .accessibilityLabel("\(by < 0 ? "Minus" : "Plus"), \(s.players[pi].n)")
+  }
+
+  // MARK: - the match state (§5.7)
+
+  @ViewBuilder private var matchState: some View {
+    if let m = LiveCopy.matchCard(s) {
+      VStack(alignment: .leading, spacing: CSTokens.Space.s2) {
+        CSRule()
+        VStack(alignment: .leading, spacing: CSTokens.Space.s2) {
+          Text(m.teams).csType(.agateS, caps: true).foregroundStyle(cs.mut)
+            .fixedSize(horizontal: false, vertical: true)
+          A11yStack(rowAlignment: .firstTextBaseline, columnSpacing: CSTokens.Space.s2) {
+            Text(m.status).csType(.name).foregroundStyle(cs.ink)
+              .fixedSize(horizontal: false, vertical: true)
+            Spacer(minLength: CSTokens.Space.s3)
+            // "the card" is the person (T-01), so the link says *scorecard*.
+            // No arrow: the 2px rule is the affordance (§5.2).
+            CSDoor(.link("The scorecard") {
+              if canShowCard { cardView = true } else { showCard = true }
+            })
           }
-          wolfButton("LONE WOLF", on: pick?.isLone == true) { store.setWolf(.lone) }
-          if pick != nil { wolfButton("CLEAR", on: false) { store.setWolf(nil) } }
+          Text(m.meta).csType(.agateS, caps: true).foregroundStyle(cs.mut)
+            .fixedSize(horizontal: false, vertical: true)
         }
-        tally(s.players.indices.map { (s.players[$0].n, LiveFmt.pm(w.pts[$0]), w.pts[$0] > 0 ? cs.pos : w.pts[$0] < 0 ? cs.neg : cs.mut) })
+        .csGutter()
       }
+      .accessibilityElement(children: .contain)
+    }
+  }
+
+  // MARK: - the number to beat (§5, the blind review's finding 4)
+
+  @ViewBuilder private var toWinBlock: some View {
+    let rows = LiveCopy.toWinThisHole(s)
+    if !rows.isEmpty {
+      VStack(spacing: 0) {
+        CSSectionHead("To win this hole").csGutter()
+        ForEach(rows) { r in
+          VStack(spacing: 0) {
+            CSRule()
+            HStack(spacing: CSTokens.Space.s3) {
+              Text(r.mine ? "You" : r.name).csType(.name).foregroundStyle(cs.ink)
+                .lineLimit(1).truncationMode(.tail)
+              Spacer(minLength: CSTokens.Space.s3)
+              Text(r.line).csType(.agateS, caps: false).foregroundStyle(cs.mut)
+                .lineLimit(1)
+            }
+            .csGutter()
+            .padding(.vertical, CSTokens.Space.s3)
+            .accessibilityElement(children: .combine)
+          }
+        }
+      }
+      .padding(.top, CSTokens.Space.s2)
+    }
+  }
+
+  // MARK: - the games, re-clothed (§10: the bordered card is deleted, not the game)
+
+  @ViewBuilder private var gameBlocks: some View {
+    if let w = LiveCopy.wolfCard(s) {
+      VStack(alignment: .leading, spacing: CSTokens.Space.s2) {
+        Text("Wolf · lone wolf plays for 3").csType(.agateS, caps: true).foregroundStyle(cs.mut)
+        Text(w.who).csType(.name).foregroundStyle(cs.ink).fixedSize(horizontal: false, vertical: true)
+        Text(w.meta).csType(.agateS, caps: true).foregroundStyle(cs.mut).fixedSize(horizontal: false, vertical: true)
+        let pick = s.wolf[s.hole]
+        LiveFlow(spacing: CSTokens.Space.s2) {
+          ForEach([0, 1, 2, 3].filter { $0 != w.wolf }, id: \.self) { p in
+            wolfButton("+ " + s.players[p].n, on: pick?.mode == "partner" && pick?.partner == p) { store.setWolf(.partner(p)) }
+          }
+          wolfButton("Lone wolf", on: pick?.isLone == true) { store.setWolf(.lone) }
+          if pick != nil { wolfButton("Clear", on: false) { store.setWolf(nil) } }
+        }
+        tally(s.players.indices.map { (s.players[$0].n, LiveFmt.pm(w.pts[$0])) })
+      }
+      .frame(maxWidth: .infinity, alignment: .leading)
     }
     if let k = LiveCopy.skinsCard(s) {
-      gameCard(accent: cs.gold) {
-        Text("Skins · ties carry the pot").font(CSFont.footnote).foregroundStyle(cs.mut)
-        Text(k.status).font(CSFont.monoMediumBody).tracking(0.6).foregroundStyle(k.hot ? cs.brand : cs.ink)
+      VStack(alignment: .leading, spacing: CSTokens.Space.s2) {
+        Text("Skins · ties carry the pot").csType(.agateS, caps: true).foregroundStyle(cs.mut)
+        Text(k.status).csType(.name).foregroundStyle(k.hot ? cs.brand : cs.ink)
           .modifier(LiveCarryPulse(on: k.hot))
-        Text(k.meta).font(CSFont.label).tracking(0.8).foregroundStyle(cs.dimText)
-        tally(s.players.indices.map { (s.players[$0].n, String(k.won[$0]), k.won[$0] > 0 ? cs.pos : cs.mut) })
+          .fixedSize(horizontal: false, vertical: true)
+        Text(k.meta).csType(.agateS, caps: true).foregroundStyle(cs.mut).fixedSize(horizontal: false, vertical: true)
+        tally(s.players.indices.map { (s.players[$0].n, String(k.won[$0])) })
       }
+      .frame(maxWidth: .infinity, alignment: .leading)
     }
+    // D273 · money is INK and the sign is a word. The live settlement was a
+    // dusk card with an ember spine and gold figures; it is a ruled list now.
     if let rows = LiveCopy.liveSettle(s) {
-      VStack(alignment: .leading, spacing: 8) {
-        Text("Round settlement · live").font(CSFont.footnote).foregroundStyle(CSTokens.dark.mut)
+      VStack(alignment: .leading, spacing: 0) {
+        CSSectionHead("Round settlement", count: "live")
         ForEach(Array(rows.enumerated()), id: \.offset) { _, r in
-          HStack {
-            Text(r.label).font(CSFont.label).tracking(0.8).foregroundStyle(CSTokens.dark.ink)
-            Spacer()
-            Text(r.amount).font(CSFont.monoMediumBody).foregroundStyle(cs.gold)
+          VStack(spacing: 0) {
+            CSRule()
+            HStack {
+              Text(r.label).csType(.agateS, caps: true).foregroundStyle(cs.ink)
+              Spacer()
+              Text(r.amount).csType(.columnM).foregroundStyle(cs.ink)
+            }
+            .padding(.vertical, CSTokens.Space.s2)
+            .accessibilityElement(children: .combine)
           }
-          .accessibilityElement(children: .combine)
         }
       }
-      .padding(14).frame(maxWidth: .infinity, alignment: .leading)
-      .background(CSDusk.surface, in: RoundedRectangle(cornerRadius: CSTokens.Radius.r, style: .continuous))
-      .overlay(alignment: .leading) { RoundedRectangle(cornerRadius: 2).fill(cs.brand).frame(width: 3.5).padding(.vertical, 10) }
     }
-  }
-
-  private func gameCard<C: View>(accent: Color, @ViewBuilder _ content: () -> C) -> some View {
-    VStack(alignment: .leading, spacing: 6) { content() }
-      .padding(14).frame(maxWidth: .infinity, alignment: .leading)
-      .background(cs.bg1, in: RoundedRectangle(cornerRadius: CSTokens.Radius.r, style: .continuous))
-      .overlay(RoundedRectangle(cornerRadius: CSTokens.Radius.r, style: .continuous).stroke(cs.rule, lineWidth: 1))
-      .overlay(alignment: .leading) { RoundedRectangle(cornerRadius: 2).fill(accent).frame(width: 3.5).padding(.vertical, 10) }
   }
 
   private func wolfButton(_ label: String, on: Bool, action: @escaping () -> Void) -> some View {
     Button(action: action) {
-      Text(label).font(CSFont.label).tracking(0.8)
-        .foregroundStyle(on ? cs.bg0 : cs.ink)
-        .padding(.horizontal, 10).frame(minHeight: 36)
-        .background(on ? cs.gold : cs.bg2, in: Capsule())
-        .overlay(Capsule().stroke(on ? cs.gold : cs.rule, lineWidth: 1))
-        .frame(minHeight: 44).contentShape(Rectangle())
+      CSChip(label, selected: on).frame(minHeight: 44).contentShape(Rectangle())
     }
     .buttonStyle(.plain)
     .accessibilityAddTraits(on ? .isSelected : [])
   }
 
-  /// Four figures across; at the accessibility sizes one "name · figure" line per player, so a name is never truncated.
-  private func tally(_ items: [(String, String, Color)]) -> some View {
+  /// The running tally: a name and a figure, on the page's own ground.
+  /// **`pos`/`neg` never touch it** — a wolf's points are not a P&L (D273).
+  private func tally(_ items: [(String, String)]) -> some View {
     Group {
       if typeSize.isA11y {
-        VStack(alignment: .leading, spacing: 4) {
+        VStack(alignment: .leading, spacing: CSTokens.Space.s1) {
           ForEach(Array(items.enumerated()), id: \.offset) { _, it in
-            HStack(spacing: 8) {
-              Text(it.0.uppercased()).font(CSFont.label).tracking(0.6).foregroundStyle(cs.dimText)
+            HStack(spacing: CSTokens.Space.s2) {
+              Text(it.0).csType(.agateS, caps: true).foregroundStyle(cs.mut)
               Spacer()
-              Text(it.1).font(CSFont.stat).csTabular().foregroundStyle(it.2)
+              Text(it.1).csType(.figureS).foregroundStyle(cs.ink)
             }
             .accessibilityElement(children: .combine)
           }
         }
       } else {
-        HStack(spacing: 12) {
+        HStack(spacing: CSTokens.Space.s3) {
           ForEach(Array(items.enumerated()), id: \.offset) { _, it in
             VStack(spacing: 2) {
-              Text(it.1).font(CSFont.stat).csTabular().foregroundStyle(it.2)
-              Text(it.0.uppercased()).font(CSFont.label).tracking(0.6).foregroundStyle(cs.dimText).lineLimit(1)
+              Text(it.1).csType(.figureS).foregroundStyle(cs.ink)
+              Text(it.0).csType(.agateS, caps: true).foregroundStyle(cs.mut).lineLimit(1)
             }
             .frame(maxWidth: .infinity)
             .accessibilityElement(children: .combine)
@@ -399,26 +436,111 @@ struct LivePlayView: View {
         }
       }
     }
-    .padding(.top, 6)
+    .padding(.top, CSTokens.Space.s1)
     .accessibilityAddTraits(.updatesFrequently)
   }
 
-  /// D153b · prominence tracks the round, wording does not editorialise about
-  /// it. Finishing early is legitimate — rained out, quit after nine — and the
-  /// sheet already handles it (it names the missing holes and skips partial
-  /// cards rather than losing them), so the button stays reachable at every
-  /// hole and stays neutrally worded. "End the round early" passed judgement on
-  /// a decision that is usually just weather. What moves is the volume, and the
-  /// LINE ABOVE it, which carries the state the wording used to try to carry.
-  @ViewBuilder private var finishButton: some View {
-    let done = LiveCopy.roundComplete(s)
-    if let line = LiveCopy.finishStatus(s) {
-      Text(line).csEyebrow(done ? cs.gold : cs.dimText)
-        .accessibilityAddTraits(.updatesFrequently)
+  // MARK: - the foot (§5.8)
+
+  /// **ONE full-width PRIMARY.** On the screen a golfer is holding *while
+  /// standing on the course* the live thing they can do is finish the round.
+  /// The shipped sheet made it a quiet secondary and left `Close` as the only
+  /// underlined control, so the loudest mark on the screen closed it and the
+  /// screen had no primary at all. It stays primary at every stage; when cards
+  /// are still out it carries the count in its own label and the finish sheet
+  /// (which already names the missing holes) is the confirmation.
+  @ViewBuilder private var foot: some View {
+    if !store.isPencilOnly {
+      VStack(alignment: .leading, spacing: CSTokens.Space.s3) {
+        CSDoor(.primary(finishLabel) { showFinish = true })
+        HStack {
+          CSDoor(.link("Group phones — everyone can score") { showGroup = true })
+          Spacer(minLength: 0)
+        }
+        if !s.anyScored {
+          CSFine("Scores entered together are vouched by the group: the group verifies everyone's round just by playing it. Guests need no account: they play every side game, appear in the settlement, and get a recap text with their scorecard and an invite when you finish. Only league members' rounds post to the season.")
+        }
+        scrapButton
+      }
     }
-    CSButton(done ? "Finish round & post to season" : "Finish round",
-             style: done ? .primary : .quiet,
-             busy: store.busy) { showFinish = true }
+  }
+
+  /// **A card is OUT when it has a gap BEHIND the group**, not when the round
+  /// is unfinished: on the 15th tee every card is missing four holes and none
+  /// of them is late. The count is the same `notIn` the rows print, so the
+  /// button and the sub-lines can never say different things.
+  private var finishLabel: String {
+    let out = s.players.indices.filter { LiveCopy.playerRow(s, $0).notIn > 0 }.count
+    return out == 0 ? "Finish the round" : "Finish the round · \(out) not in"
+  }
+
+  // MARK: - landscape (D152, kept)
+
+  /// The one row landscape keeps above the card: the eyebrow and the toggle.
+  private var landscapeBar: some View {
+    HStack(spacing: CSTokens.Space.s3) {
+      Circle().fill(cs.brand).frame(width: 7, height: 7)
+      Text("Live · " + s.course.place).csType(.agateS, caps: true).foregroundStyle(cs.brand)
+        .lineLimit(1).truncationMode(.tail)
+      Spacer(minLength: CSTokens.Space.s2)
+      viewToggle
+    }
+    .padding(.horizontal, CSTokens.Space.gutter)
+    .padding(.vertical, CSTokens.Space.s2)
+    .overlay(alignment: .bottom) { CSRule() }
+    .csBudget(ember: 1)
+  }
+
+  private var landscapeHole: some View {
+    HStack(alignment: .top, spacing: CSTokens.Space.s4) {
+      VStack(alignment: .leading, spacing: CSTokens.Space.s2) {
+        holeHeader
+        strip
+        ForEach(s.players.indices, id: \.self) { pi in playerRow(pi) }
+        Spacer(minLength: 0)
+      }
+      .frame(maxWidth: .infinity, alignment: .leading)
+
+      VStack(alignment: .leading, spacing: CSTokens.Space.s3) {
+        if let m = LiveCopy.matchCard(s) {
+          Text(m.teams).csType(.agateS, caps: true).foregroundStyle(cs.mut)
+          Text(m.status).csType(.name).foregroundStyle(cs.ink).fixedSize(horizontal: false, vertical: true)
+        }
+        ForEach(LiveCopy.toWinThisHole(s)) { r in
+          HStack {
+            Text(r.mine ? "You" : r.name).csType(.agateS, caps: true).foregroundStyle(cs.ink).lineLimit(1)
+            Spacer(minLength: CSTokens.Space.s2)
+            Text(r.line).csType(.agateS, caps: false).foregroundStyle(cs.mut).lineLimit(1)
+          }
+          .accessibilityElement(children: .combine)
+        }
+        Spacer(minLength: 0)
+        if !store.isPencilOnly {
+          CSDoor(.primary(finishLabel) { showFinish = true })
+        }
+      }
+      .frame(width: 290)
+    }
+    .padding(.horizontal, CSTokens.Space.gutter)
+    .padding(.top, CSTokens.Space.s3)
+    .padding(.bottom, CSTokens.Space.s3)
+    .frame(maxHeight: .infinity, alignment: .top)
+  }
+
+  /// D152 · HOLE / CARD. Named for what each shows, not for the orientation —
+  /// a wide window on any device can read the card, and the phrase "landscape"
+  /// means nothing to someone holding one.
+  private var viewToggle: some View {
+    HStack(spacing: CSTokens.Space.s2) {
+      ForEach([false, true], id: \.self) { isCard in
+        Button { cardView = isCard } label: {
+          CSChip(isCard ? "Card" : "Hole", selected: cardView == isCard)
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel(isCard ? "Show the whole card" : "Show this hole")
+        .accessibilityAddTraits(cardView == isCard ? [.isSelected] : [])
+      }
+    }
   }
 
   // MARK: scrap (two-tap; 9332)
@@ -431,10 +553,10 @@ struct LivePlayView: View {
       } else { scrapArmed = true; CSHaptic.warning() }
     } label: {
       Text(scrapArmed ? "Tap again to scrap — nothing posts, for anyone" : "Scrap this round")
-        .font(CSFont.monoMediumBody).foregroundStyle(scrapArmed ? cs.neg : cs.dimText)
-        .padding(.horizontal, 12).frame(minHeight: 44)
-        .background(cs.bg2, in: Capsule())
-        .overlay(Capsule().stroke(scrapArmed ? cs.neg : cs.rule, lineWidth: 1))
+        .csType(.agateS, caps: true)
+        .foregroundStyle(scrapArmed ? cs.neg : cs.mut)
+        .frame(minHeight: 44)
+        .contentShape(Rectangle())
     }
     .buttonStyle(.plain)
     .task(id: scrapArmed) {
@@ -442,6 +564,19 @@ struct LivePlayView: View {
       try? await Task.sleep(for: .seconds(4))
       scrapArmed = false
     }
+  }
+}
+
+/// **A live golfer is drawn the one legal way** (D271). A league member is
+/// keyed to their profile id; a GUEST has no profile at all and is keyed to
+/// their seat, so two guests who both chose the Saguaro still come out as two
+/// different coins. Nobody on this screen is a 4pt colour bar any more.
+enum LiveFaces {
+  static func model(_ p: LivePlayer) -> CSFace.Model {
+    if let pid = p.pid {
+      return CSFace.Model(id: pid, marker: p.mk, initials: Initials.of(p.n), isViewer: p.me)
+    }
+    return CSFace.Model.seeded(key: p.id, marker: p.mk, initials: Initials.of(p.n), isViewer: p.me)
   }
 }
 

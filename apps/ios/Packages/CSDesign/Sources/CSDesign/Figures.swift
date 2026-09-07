@@ -321,7 +321,9 @@ public struct CSScoreMark: View {
     }
   }
 
-  var spoken: String {
+  /// The mark, in words — the one place the ink law is spoken rather than
+  /// drawn. Public because the card reads it per cell (§10's a11y fix).
+  public var spoken: String {
     switch strokesOverPar {
     case ...(-2): "eagle or better"
     case -1: "birdie"

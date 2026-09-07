@@ -518,6 +518,14 @@ struct MainTabView: View {
           golfersPath.append(a[i + 1] == "person" ? GolfersRoute.person(opp) : GolfersRoute.headToHead(opp))
         }
       case "record": tab = .you; youPath.append(YouRoute.record)
+      // Wave 7 · the receipt opens from a POINTS FIGURE, which means a finger,
+      // and it is one of this wave's two flagship artboards. The hatch opens
+      // the newest round this account actually holds; with none it opens
+      // nothing rather than inventing a round (D261's rule).
+      case "receipt":
+        if let uid = store.me?.profile?.id {
+          presenter.receipt = (try? await RoundsRepository().myRounds(uid))?.first?.id
+        }
       case "post": presenter.postOnComposer = false; presenter.showPost = true
       case "postround": presenter.postOnComposer = true; presenter.showPost = true
       case "live": presenter.showLive = true
@@ -665,7 +673,22 @@ struct MainTabView: View {
     /* D262 · R-O · the bag. The You row that opens it is drawn only once its
        read has answered, so this sheet is never reachable without one. */
     .sheet(isPresented: $presenter.showBag) { BagSheet() }
-    .sheet(item: $presenter.receipt) { RoundReceiptSheet(roundId: $0, seed: nil, openScorecard: { presenter.scorecard = $0 }) }
+    // **IOS-051'S HATCH DOES NOT CROSS A `.sheet`, AND IT HAS TO.**
+    // `-cs_dev_text_size` is applied once at the app root; a
+    // `.fullScreenCover` inherits it (the live sheet photographs at AX3) and a
+    // `.sheet` presents in its own host with the DEVICE's size, so the receipt
+    // — one of Wave 7's two flagship artboards — photographed at the reading
+    // size under the accessibility flag and nothing in the shot said so. It is
+    // applied at the PRESENTATION site rather than inside the sheet, because a
+    // view cannot read an override applied to itself: `@Environment` in the
+    // sheet's own struct resolves before its body's modifiers run, which is
+    // how `POINTS` still broke as `POIN / TS` on the first attempt at this.
+    // DEBUG-only by construction — `CSDevHatch.textSize` is nil in Release.
+    // Wave 8 owns the same line at the product's other sheets.
+    .sheet(item: $presenter.receipt) {
+      RoundReceiptSheet(roundId: $0, seed: nil, openScorecard: { presenter.scorecard = $0 })
+        .csDevTextSize(CSDevHatch.textSize)
+    }
     .sheet(item: $presenter.scorecard) { ScorecardSheet(liveRoundId: $0) }
     .sheet(item: $presenter.scheduledRound) { ScheduledRoundSheet(roundId: $0, leagueId: store.preferredLeague, links: csLinks) }
     .sheet(item: $presenter.declare) { DeclareRoundSheet(prefill: $0, leagueId: store.preferredLeague) { _ in } }

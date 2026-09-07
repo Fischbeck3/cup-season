@@ -47,7 +47,13 @@ struct PeopleTabBody: View {
     // field doing the same job — on the page named after buddies, the
     // inline field is the real one. The sheet still serves every other
     // caller; it is only this duplicate entry that goes.
-    CSSectionHead("Find golfers")
+    //
+    // **WAVE 7 · THE SEARCH FIELD FOLDS UNDER THE HEADER AND LOSES ITS HEAD**
+    // (`leaderboard.md` §4). The first viewport carried THREE tracked-caps
+    // agate blocks before a golfer's name appeared — the dateline, `FIND
+    // GOLFERS` and `THE BOARD` — and a search field is self-evidently a search
+    // field: the placeholder says what it does. One block now, and **the board
+    // leads**, which is what the tab is for.
     CSField("Search by name or @handle", text: $vm.query, font: CSFont.body)
       .textInputAutocapitalization(.never).autocorrectionDisabled()
       .accessibilityLabel("Search golfers by name or @handle")

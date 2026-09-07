@@ -88,17 +88,40 @@ public struct MyMonth: Sendable, Equatable {
 /// the snapshot's own `captured_at`; its calendar-date prefix is what names the
 /// day, never an ISO parse of the instant (L-07).
 public struct Movement: Sendable, Equatable {
-  /// `held` · `up` · `up2` · `down` — D76's heat, kept.
+  /// `held` · `up` · `up2` · `down`.
+  ///
+  /// **Wave 7 · `up2` KEEPS ITS MAGNITUDE AND LOSES ITS COLOUR.** The fourth
+  /// case is inherited from the deleted heat axis, where a climb of two or
+  /// more took a hotter tint than a climb of one. There is now one `pos` and
+  /// one `cool` in the whole system, so `up2` is a *size* of movement and
+  /// never a second green: `CSMovement` paints from `dir`, and the desk's
+  /// `.up2` class carries no colour of its own. The case survives because the
+  /// arithmetic (who moved, by how much) is still the arithmetic.
   public enum Tone: String, Sendable, Equatable { case held, up, up2, down }
   public let tone: Tone
-  /// "▲1 SINCE SUN" / "HELD SINCE SUN" — never a bare arrow.
+  /// **NO GLYPH.** `UP 1 SINCE SUN` / `DOWN 2 SINCE SUN` / `HELD SINCE SUN`.
+  ///
+  /// It used to emit `▲1 SINCE SUN` — a typed arrow inside a produced string,
+  /// which `LINT-13` fails, and which is the half of the audit's DD-02 that a
+  /// renderer cannot fix: the same glyph was being emitted for **most
+  /// improved** by three other producers, where it means the opposite thing.
+  /// The producer now emits the PARTS — `dir`, `count`, `sinceShort` — and
+  /// `CSMovement` draws the triangle, in one direction, with one meaning.
   public let text: String
-  /// "up one since Sunday" — the VoiceOver grain.
+  /// The magnitude, with no sign and no glyph: 1, 2, … · **0 when held**.
+  public let count: Int
+  /// `SUN` — the short day the movement is measured from. A movement label
+  /// NAMES THE DAY IT IS MEASURED FROM or it does not render, and this is the
+  /// part of that rule a drawn mark cannot carry, which is why the clock rides
+  /// the section head for the whole table (D-2).
+  public let sinceShort: String
+  /// "up one since Sunday" — the VoiceOver grain, and the AX3 line. Unchanged.
   public let long: String
   /// 1 climbed · 0 held · -1 fell.
   public let dir: Int
-  public init(tone: Tone, text: String, long: String, dir: Int) {
-    self.tone = tone; self.text = text; self.long = long; self.dir = dir
+  public init(tone: Tone, text: String, count: Int, sinceShort: String, long: String, dir: Int) {
+    self.tone = tone; self.text = text; self.count = count
+    self.sinceShort = sinceShort; self.long = long; self.dir = dir
   }
 }
 
@@ -278,15 +301,53 @@ public enum StandingsMath {
     let short = LeagueDates.dow[max(0, min(6, wd - 1))].uppercased()
     let long = LeagueDates.dow[max(0, min(6, wd - 1))]
     if delta == 0 {
-      return Movement(tone: .held, text: "HELD SINCE \(short)", long: "held since \(long)", dir: 0)
+      return Movement(tone: .held, text: "HELD SINCE \(short)", count: 0, sinceShort: short,
+                      long: "held since \(long)", dir: 0)
     }
     let n = abs(delta)
     let word = SeasonStoryCopy.word(n)
     let up = delta > 0
     return Movement(tone: up ? (delta >= 2 ? .up2 : .up) : .down,
-                    text: "\(up ? "▲" : "▼")\(n) SINCE \(short)",
+                    text: "\(up ? "UP" : "DOWN") \(n) SINCE \(short)",
+                    count: n, sinceShort: short,
                     long: "\(up ? "up" : "down") \(word) since \(long)",
                     dir: up ? 1 : -1)
+  }
+
+  /// **`MOVED SINCE SUN` — the movement clock, named ONCE for the whole
+  /// table** (D-2). The shipped board printed `HELD SINCE SUN` eleven times at
+  /// 11pt beside eleven two-digit ranks; the clock is a property of the
+  /// SNAPSHOT, not of a row, so it rides the section head and the rows carry a
+  /// drawn mark. `StandingsMath`'s absolute rule is unchanged: no clock, no
+  /// claim — this returns nil and the movement column does not render either.
+  public static func movedSince(_ since: String?, calendar: Calendar = .current) -> String? {
+    guard let since, !since.isEmpty,
+          let d = CSDate.local(String(since.prefix(10)), calendar: calendar) else { return nil }
+    let wd = calendar.component(.weekday, from: d)
+    return "moved since \(LeagueDates.dow[max(0, min(6, wd - 1))])"
+  }
+
+  /// **COMPETITION RANK, WITH TIES SHARED — 04, 04, 06.**
+  ///
+  /// The shipped renderers index the sorted array, so two golfers on 86 points
+  /// read `04` and `05`: the table showed the same figure twice and gave it
+  /// two positions, which is the one thing a points table may not do. This is
+  /// standard competition ranking over the column the table actually PRINTS —
+  /// the points — so what a golfer sees and what the rail says can never
+  /// disagree. The rows keep the server's order; only the numeral is shared.
+  ///
+  /// It is computed on the client because both clients hold the whole column
+  /// and a rank derived from it is arithmetic over produced facts, not a new
+  /// fact. `N-2` on the server would let the tiebreak ladder split a tie that
+  /// the points alone cannot; until it exists, a tie on points is drawn as a
+  /// tie on points.
+  public static func competitionRanks(_ points: [Int]) -> [Int] {
+    var out: [Int] = []
+    out.reserveCapacity(points.count)
+    for (i, p) in points.enumerated() {
+      if i > 0, p == points[i - 1] { out.append(out[i - 1]) } else { out.append(i + 1) }
+    }
+    return out
   }
 
   /// The clock a movement label is measured from — the latest snapshot's own
@@ -368,7 +429,14 @@ public enum StandingsMath {
       king: king.pts > 0 ? firstName(king.n) : "—",
       kingSub: "Points King" + (king.pts > 0 ? " · \(CSCopy.points(king.pts)) pts" : ""),
       improved: movers.first.map { firstName($0.n) } ?? "—",
-      improvedSub: movers.first.map { "Most Improved · ▼" + String(format: "%.1f", abs($0.d!)) } ?? "Most Improved · needs 2+ rounds",
+      // **▼ MEANT TWO OPPOSITE THINGS IN ONE PRODUCT** (the audit's DD-02, a
+      // P0). On the table a down-triangle means *you fell*; here it meant
+      // *your index came down*, which is the best thing that can happen to a
+      // golfer — the same 11pt glyph, in the same face, with no colour and no
+      // label separating them. The award now says the fact in words: an index
+      // that dropped 0.5 reads `0.5 OFF THE INDEX`, and **no producer in the
+      // product emits an arrow character for most improved.**
+      improvedSub: movers.first.map { "Most Improved · " + String(format: "%.1f", abs($0.d!)) + " off the index" } ?? "Most Improved · needs 2+ rounds",
       iron: iron.r > 0 ? firstName(iron.n) : "—",
       ironSub: "Iron Man" + (iron.r > 0 ? " · \(iron.r) rds" : ""))
   }

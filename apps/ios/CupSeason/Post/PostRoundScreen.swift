@@ -501,17 +501,26 @@ private struct PostRoundBody: View {
 
 // MARK: - The hero: the live gross (IOS-020 "the gross is the hero and it is live")
 
+/// **WAVE 7 · THE GROSS IS THE CANONICAL RULE-AND-FIGURE, AND IT LEAVES THE
+/// CARD.** `leaderboard.md` §10 names this hero as the best-typeset object in
+/// the product and the model the rest of the surface is derived from — and a
+/// figure inside a container does not draw its rule (`CSFigure` suppresses it
+/// under `csInContainer`, on purpose, because a panel's label hangs straight
+/// off the numeral). So the dusk card goes, its `brand` wash with it (a
+/// gradient wash is the one image state D272 bans by name), and the gross
+/// stands on the page's own ground over its own 2pt rule.
 private struct PostHeroCard: View {
   @Environment(\.cs) private var cs
   let model: PostRoundModel
   var focus: FocusState<Bool>.Binding
   var body: some View {
-    CSDuskCard(wash: cs.brand) { PostHeroContent(model: model, focus: focus) }
+    PostHeroContent(model: model, focus: focus)
+      .padding(.bottom, CSTokens.Space.s3)
       .accessibilityAddTraits(.updatesFrequently)
   }
 }
 
-/// Its own view so `cs` resolves to the dusk card's dark palette.
+/// Its own view so the hero's own arithmetic stays out of the screen's body.
 private struct PostHeroContent: View {
   @Environment(\.cs) private var cs
   @Bindable var model: PostRoundModel
@@ -525,37 +534,42 @@ private struct PostHeroContent: View {
       // control, so it wears the mono figure face and never the serif (L-29).
       // When the golfer opens the card and types their nines instead, the box
       // stands down and shows what those nines add up to.
-      HStack(alignment: .firstTextBaseline, spacing: 10) {
+      // THE RULE-AND-FIGURE: the numeral, a 2pt rule the width of its column,
+      // and the agate label beneath. The rule stays `ink` while the round is
+      // being typed — it is not live, and nothing here is earned.
+      VStack(alignment: .leading, spacing: CSTokens.Space.s1) {
         if usesNines, let p {
-          Text("\(p.gross)").font(CSFont.figure).csTabular().foregroundStyle(cs.ink)
+          Text("\(p.gross)").csType(.figureXL).foregroundStyle(cs.ink)
             .contentTransition(.numericText())
         } else {
           // no prompt glyph: an em dash at the figure size reads as a redaction
-          // bar, and the label beside the box already says what it wants
+          // bar, and the label beneath the rule already says what it wants
           TextField("", text: $model.card.whole)
-            .font(CSFont.figure).csTabular().foregroundStyle(cs.ink)
+            .csType(.figureXL).foregroundStyle(cs.ink)
             .keyboardType(.numberPad).focused(focus)
-            .frame(maxWidth: 150)
             .accessibilityLabel("Your gross")
         }
-        Text(p.map { $0.holes == 9 ? "9 holes · half value" : "18 holes" } ?? "your gross").font(CSFont.monoSmall).foregroundStyle(cs.mut)
+        CSRule(.heavy)
+        Text(p.map { $0.holes == 9 ? "gross · 9 holes · half value" : "gross · 18 holes" } ?? "your gross")
+          .csType(.agateS, caps: true).foregroundStyle(cs.mut)
       }
-      Text(sentence).font(CSFont.sentence).foregroundStyle(p == nil ? cs.mut : cs.ink)
-        .fixedSize(horizontal: false, vertical: true)
+      .frame(width: 150, alignment: .leading)
+      // §6.5 · the sentence, and a number inside it is in the number's voice.
+      CSFigureRun(sentence, role: .body).foregroundStyle(p == nil ? cs.mut : cs.ink)
       if let p {
-        FlowLayout(spacing: 8) {
-          // D124 (i) · with no number yet there is no points total and no
-          // signed figure to show — only what the round was against the course.
-          if p.provisional {
-            chip(p.vsText, tone: cs.mut)
-          } else {
-            chip(pointsText, tone: cs.ink)
-            // LV-19 / L-14 / R-M · one lens, one word: "your playing HCP".
-            // governing body's word and check 12's grep does not see it here.
-            chip(p.vsText + " vs your playing HCP", tone: p.vs >= 0 ? cs.pos : cs.neg)
-          }
-        }
-        .padding(.top, 2)
+        // **ONE agate line, and no tinted pills.** It was two: a points chip
+        // and a `pos`/`neg` chip reading `+7.6 vs your playing HCP` — a signed
+        // green figure saying, twelve points below it, exactly what the
+        // sentence above already said (D201, one fact one place), in the
+        // red/green P&L axis D273 retired. The points and the league are the
+        // fact the sentence does NOT carry, so that is what stays.
+        //
+        // D124 (i) · with no number yet there is no points total and no signed
+        // figure to show — only what the round was against the course.
+        Text(p.provisional ? p.vsText : pointsText)
+          .csType(.agateS, caps: true).foregroundStyle(cs.mut)
+          .fixedSize(horizontal: false, vertical: true)
+          .padding(.top, 2)
       }
       // D178 · it is no longer a 100% preview, so it must no longer say so.
       CSFine("A preview — your season's own math scores it on the books.").padding(.top, 4)
@@ -572,10 +586,13 @@ private struct PostHeroContent: View {
   }
 
   /// The band phrase, the way the feed says it ("Beat your playing HCP by 2.4"); the web's empty-state lines until there is a card.
+  /// The braces are `CSFigureRun`'s marks and never render; `vsPhraseMarked`
+  /// is `vsPhrase`'s own words with the figure named, so the sentence and the
+  /// chip beneath it can never disagree.
   private var sentence: String {
     guard let p = model.preview else { return model.calcMessage }
     if p.provisional { return p.message }   // D124 (i) · "No number yet — this round starts it"
-    let s = CSBands.vsPhrase(p.vs)
+    let s = CSBands.vsPhraseMarked(p.vs)
     return s.prefix(1).uppercased() + s.dropFirst()
   }
 
@@ -586,11 +603,6 @@ private struct PostHeroContent: View {
     return "posts to your rounds"
   }
 
-  private func chip(_ text: String, tone: Color) -> some View {
-    Text(text).font(CSFont.monoMediumBody).csTabular().foregroundStyle(tone).fixedSize(horizontal: false, vertical: true)
-      .padding(.horizontal, 10).padding(.vertical, 6)
-      .background(tone.opacity(0.12), in: RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous))
-  }
 }
 
 // MARK: - A band row (the web's `table.bands` line)
