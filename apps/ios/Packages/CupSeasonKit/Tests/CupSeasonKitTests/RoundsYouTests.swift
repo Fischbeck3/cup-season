@@ -286,11 +286,18 @@ import Foundation
     let a = Achievement(kind: "sub_80", label: "Broke 80", earned_on: "2026-06-14", meta: .object(["gross": .number(79)]))
     let pb = Achievement(kind: "personal_best", label: nil, earned_on: "2026-06-14", meta: .object(["diff": .number(7.8)]))
     let tiles = TrophyCase.tiles(trophies: [t], achievements: [a, pb])
-    #expect(tiles[0].glyph == "duel" && tiles[0].title == "The Grudge" && tiles[0].sub == "The Ryder · '26")
+    // D291 · the YEAR came out of the hardware sub-line and into its own
+    // right-flush slot, so the line is the subtitle and nothing else.
+    #expect(tiles[0].glyph == "duel" && tiles[0].title == "The Grudge"
+            && tiles[0].sub == "The Ryder" && tiles[0].trail == "’26" && tiles[0].shelf == .hardware)
+    // D291 · a BESTS slat names the ROUND it was won on. With no round in
+    // hand — the state on the phone for anything older than the newest five —
+    // it keeps its figure and takes the day, not the year: "79 · Jun 14".
     #expect(tiles[1].glyph == "threshold" && tiles[1].numeral == "80"
-            && tiles[1].title == "Broke 80" && tiles[1].sub == "79 gross · '26")
+            && tiles[1].title == "Broke 80" && tiles[1].sub == "79 · Jun 14" && tiles[1].shelf == .bests)
     // D210 · the banned word is off the tile; the figure is named for what it is
-    #expect(tiles[2].glyph == "personalBest" && tiles[2].title == "Personal best" && tiles[2].sub == "7.8 vs course · '26")
+    #expect(tiles[2].glyph == "personalBest" && tiles[2].title == "Personal best"
+            && tiles[2].sub == "7.8 vs course · Jun 14")
     #expect(TrophyMeta.trophyGlyph(kind: "bracket", placement: "winner") == "bracket")
     #expect(TrophyMeta.trophyGlyph(kind: "league", placement: "winner") == "cup")
     #expect(TrophyMeta.trophyGlyph(kind: "league", placement: "runner_up") == "runnerUp")
@@ -330,10 +337,13 @@ import Foundation
   }
 
   /// Y-02 · one empty state. The record strip has nothing to draw, so the
-  /// case's line is the only sentence a new golfer reads.
+  /// case's own words are the only ones a new golfer reads — and D291 makes
+  /// them a head and a lead beside four uncut marks, not a 118-character
+  /// grey sentence in a card (§17).
   @Test func anEmptyCaseSaysItOnce() {
     #expect(TrophyCase.tiles(trophies: [], achievements: []).isEmpty)
-    #expect(TrophyCase.emptyLine.hasPrefix("Nothing in the case yet."))
+    #expect(TrophyCase.emptyHead == "The case is empty")
+    #expect(TrophyCase.emptyLead == "Break 80, post a first round, or win a Cup Final.")
     #expect(CareerRecord.parse(.object([:])).items.isEmpty)
   }
 
@@ -347,7 +357,9 @@ import Foundation
     let tiles = TrophyCase.tiles(trophies: [], achievements: ach)
     #expect(tiles.count == 5)
     #expect(tiles[0].glyph == "threshold" && tiles[0].numeral == "90")
-    #expect(tiles[0].title == "Broke 90" && tiles[0].sub.hasSuffix("'26"))
+    // D291 · a threshold with NO gross in its meta prints the date alone —
+    // never "Broke 90" under a title reading BROKE 90 (one fact, one place).
+    #expect(tiles[0].title == "Broke 90" && tiles[0].sub == "Jan 1")
   }
   @Test func onlyArrivalsEngrave() {
     let tiles = [TrophyTile(id: "a1", glyph: "firstCard", title: "First round", sub: "Posted"),

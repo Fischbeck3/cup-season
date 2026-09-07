@@ -155,6 +155,12 @@ struct RecordPage: View {
       TrophySlats(tiles: tiles, userId: store.session?.user.id, openReceipt: links.openReceipt)
         .padding(.horizontal, -CSTokens.Space.gutter)
         .padding(.top, CSTokens.Space.s3)
+    } else if model.loaded && model.rounds > 0 {
+      // D291 · a golfer WITH rounds and no trophies is told what fills the
+      // case, in the case's own marks. A golfer with nothing at all falls to
+      // the page's one bare empty below, not to two empties stacked (Y-02).
+      ProfileHead("Trophies")
+      TrophyCaseEmpty().padding(.top, CSTokens.Space.s3)
     }
   }
 
@@ -184,38 +190,67 @@ struct TrophySlats: View {
   @State private var stamped = false
 
   var body: some View {
-    VStack(spacing: 0) {
-      ForEach(tiles) { t in
-        if let rid = t.roundId, let openReceipt {
-          Button { openReceipt(rid) } label: { slat(t).contentShape(Rectangle()) }
-            .buttonStyle(.plain)
-            .accessibilityHint("Opens the round")
-        } else {
-          slat(t)
+    VStack(alignment: .leading, spacing: 0) {
+      let groups = TrophyCase.shelves(tiles)
+      ForEach(Array(groups.enumerated()), id: \.element.shelf) { i, group in
+        // The FIRST head hangs off the section head above it, not off a
+        // 32pt gap — "is it first", never "is it hardware": an account with
+        // no silverware opens on BESTS and must not open on a hole.
+        Text(group.shelf.head).csType(.agateS, caps: true).foregroundStyle(cs.mut)
+          .padding(.horizontal, CSTokens.Space.gutter)
+          .padding(.top, i == 0 ? 0 : CSTokens.Space.s5)
+          .padding(.bottom, CSTokens.Space.s2)
+        ForEach(group.tiles) { t in
+          // THE DOOR IS THE MIDDLE SHELF'S, and only its. Three shelves have
+          // to read as three RANKS: hardware takes the 44pt mark and its
+          // year, a best takes the door into the round it was won on, and the
+          // quiet shelf takes neither. A first round's receipt is still
+          // reachable from Recent rounds, the board and the form row.
+          if let rid = t.roundId, t.shelf == .bests, let openReceipt {
+            Button { openReceipt(rid) } label: { slat(t).contentShape(Rectangle()) }
+              .buttonStyle(.plain)
+              .accessibilityHint("Opens the round")
+          } else {
+            slat(t)
+          }
         }
       }
     }
     .onChange(of: tiles.map(\.id), initial: true) { _, ids in stamp(ids) }
   }
 
+  /// D291 · **three sizes, and the size is the shelf's.** A Cup is drawn at
+  /// 44pt with its name at `nameL` and its year trailing; a best and a
+  /// milestone stay at 28. The quiet shelf takes `mut` for the mark and the
+  /// name too, because "quiet" has to be visible somewhere other than a head.
   private func slat(_ t: TrophyTile) -> some View {
-    VStack(spacing: 0) {
+    let hw = t.shelf == .hardware
+    let quiet = t.shelf == .along
+    return VStack(spacing: 0) {
       CSRule()
       HStack(alignment: .center, spacing: CSTokens.Space.s3) {
-        CSTrophyMark(t.glyph, numeral: t.numeral, size: 28)
-          .frame(width: CSTokens.Space.rail - CSTokens.Space.s3, alignment: .center)
+        CSTrophyMark(t.glyph, numeral: t.numeral, size: t.shelf.mark)
+          .frame(width: max(CSTokens.Space.rail - CSTokens.Space.s3, t.shelf.mark), alignment: .center)
+          .opacity(quiet ? CSTokens.Alpha.a56 : 1)
         VStack(alignment: .leading, spacing: CSTokens.Space.s2) {
-          EngravedName(t.title, engrave: fresh.contains(t.id))
+          EngravedName(t.title, engrave: fresh.contains(t.id), quiet: quiet)
           if !t.sub.isEmpty {
             Text(t.sub).csType(.agateS, caps: false).foregroundStyle(cs.mut)
               .lineLimit(2).multilineTextAlignment(.leading)
           }
         }
         .frame(minWidth: 0, maxWidth: .infinity, alignment: .leading)
+        // The year sits on the hardware line, right-flush — §16A.2's slot,
+        // and it is the one fact that tells two Cups apart at a glance.
+        if let trail = t.trail {
+          Text(trail).csType(.columnM).csTabular().foregroundStyle(cs.mut)
+        } else if t.roundId != nil && t.shelf == .bests && openReceipt != nil {
+          CSGlyph(.chevron, size: .inline).foregroundStyle(cs.mut)
+        }
       }
       .padding(.leading, CSTokens.Space.gutter)
       .padding(.trailing, CSTokens.Space.gutter)
-      .frame(minHeight: 50)
+      .frame(minHeight: hw ? 68 : 50)
     }
     .accessibilityElement(children: .ignore)
     .accessibilityLabel("\(t.title). \(t.sub)")
@@ -233,6 +268,31 @@ struct TrophySlats: View {
   }
 }
 
+/// **D291 · the empty, given a shape** (§17). Four marks a golfer has not cut
+/// yet, drawn at 12% in a row, under the case's own head and one sentence.
+/// No card, no button — the ⊕ is a permanent tab an inch below (D177).
+struct TrophyCaseEmpty: View {
+  @Environment(\.cs) private var cs
+  var body: some View {
+    VStack(alignment: .leading, spacing: 0) {
+      CSRule()
+      HStack(alignment: .center, spacing: CSTokens.Space.s4) {
+        ForEach(Array(TrophyCase.emptyMarks.enumerated()), id: \.offset) { _, m in
+          CSTrophyMark(m.glyph, numeral: m.numeral, size: 28)
+        }
+      }
+      .opacity(0.12)
+      .padding(.top, CSTokens.Space.s4)
+      Text(TrophyCase.emptyHead).csType(.name).foregroundStyle(cs.ink)
+        .padding(.top, CSTokens.Space.s4)
+      Text(TrophyCase.emptyLead).csType(.bodyS).foregroundStyle(cs.mut)
+        .fixedSize(horizontal: false, vertical: true)
+        .padding(.top, CSTokens.Space.s2)
+    }
+    .accessibilityElement(children: .combine)
+  }
+}
+
 /// C4's engraver, kept: **a 2pt gold needle sliding a cover off a fresh
 /// trophy's name over 1.1s**, once, on arrival. It is the one real ceremony on
 /// this surface and the only place gold moves in the product.
@@ -241,12 +301,17 @@ struct EngravedName: View {
   @Environment(\.accessibilityReduceMotion) private var reduceMotion
   let title: String
   let engrave: Bool
+  /// D291 · the quiet shelf's names are `mut`, so "quiet" is visible on the
+  /// row and not only in the head above it.
+  var quiet = false
   @State private var coverGone = false
 
-  init(_ title: String, engrave: Bool) { self.title = title; self.engrave = engrave }
+  init(_ title: String, engrave: Bool, quiet: Bool = false) {
+    self.title = title; self.engrave = engrave; self.quiet = quiet
+  }
 
   var body: some View {
-    Text(title).csType(.name).foregroundStyle(cs.ink)
+    Text(title).csType(.name).foregroundStyle(quiet ? cs.mut : cs.ink)
       .lineLimit(2).multilineTextAlignment(.leading)
       .overlay {
         if engrave && !reduceMotion {
@@ -279,6 +344,8 @@ final class RecordModel {
   var rivalries: [RivalryLine] = []
   var courses: [TourCard.Course] = []
   var rounds: Int = 0
+  /// D291 · the five newest rounds, for the BESTS slats' own sub-lines.
+  var recent: [RoundRow] = []
   var bestRound: TourCard.BestRound?
   var loaded = false
 
@@ -292,7 +359,16 @@ final class RecordModel {
       && courses.isEmpty && tiles.isEmpty && (record?.items.isEmpty ?? true)
   }
 
-  var tiles: [TrophyTile] { TrophyCase.tiles(trophies: trophies, achievements: achievements) }
+  /// D291 · the case, with what the phone knows about the rounds its
+  /// milestones were won on. `Career.recent` is FIVE rounds, so most Bests
+  /// slats fall back to `79 · Aug 24` — which is the honest degrade and the
+  /// same one the desk takes when a round is older than its 400.
+  var tiles: [TrophyTile] {
+    TrophyCase.tiles(trophies: trophies, achievements: achievements) { id in
+      guard let r = recent.first(where: { $0.id == id }) else { return nil }
+      return MilestoneRound(gross: r.gross, courseLabel: r.course_label, playedOn: r.played_on)
+    }
+  }
 
   /// §9 · `SINCE MARCH 2026` — **not today's date.** nil until `first_round_on`
   /// arrives, because an account's creation date is not when somebody started
@@ -376,6 +452,7 @@ final class RecordModel {
     rivalries = d.rivalries
     seasons = d.leagueRecord
     rounds = d.career?.rounds ?? 0
+    recent = d.career?.recent ?? []
     if let card {
       let tc = TourCard.parse(card)
       if tc.career.rounds > 0 { rounds = tc.career.rounds }

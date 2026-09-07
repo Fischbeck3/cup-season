@@ -3388,11 +3388,64 @@ html[data-theme="light"] .btn.gold{color:#FFFFFF;}
 .tslat[role="button"]{cursor:pointer;}
 .tslatx{display:flex; flex-direction:column; gap:2px; min-width:0;}
 .tslatx b{color:var(--ink); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
-.tslatx small{color:var(--mut);}
+.tslatx small{color:var(--mut); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
 .tslat .tmint{position:relative; display:inline-block; overflow:hidden; max-width:100%; vertical-align:bottom;}
 .tslat .tmint .tcover{position:absolute; inset:0; background:var(--bg0); border-left:2px solid var(--gold);}
 .tslat.mintin{animation:csUp .5s var(--roll) both;}
 .tslat.mintin .tcover{animation:csEngrave 1.1s var(--roll) .5s forwards;}
+/* D291 · THE CASE HAS THREE SHELVES. Every slat was 50pt and every mark 28pt,
+   so a Cup sat at exactly the weight of "Posted" — a run of eleven identical
+   rows in which nothing outranked anything (BRIEF §7, §8). The SHELF sets the
+   mark's size and the row's height, the head names it, and a BESTS slat is a
+   door into the round it was won on. Colour does none of the work. */
+.tshelf{display:block; margin:var(--s5) 0 var(--s2); color:var(--mut);}
+.tshelf.is-first{margin-top:0;}
+.tslat.is-hw{min-height:68px;}
+.tslat.is-quiet .tslatx b{color:var(--mut);}
+.tslat.is-quiet>:first-child{opacity:var(--a56);}
+.tslat .tslatx{flex:1 1 auto;}
+.tslat .ttrail{flex:none; color:var(--mut); white-space:nowrap;}
+.tslat .tgo{flex:none; color:var(--mut); line-height:1;}
+/* §17 · the empty, GIVEN A SHAPE: four marks a golfer has not cut yet, drawn
+   at 12%, one head, one line. Not a card with a grey sentence in it. */
+.tempty{border-top:1px solid var(--rule); padding-top:var(--s4);}
+.tempty-marks{display:flex; align-items:center; gap:var(--s4); opacity:.12;}
+.tempty h4{margin:var(--s4) 0 0; color:var(--ink);}
+.tempty p{margin:var(--s2) 0 0; color:var(--mut);}
+/* D291 · THE RECORD IS ONE FIGURE, NOT FOUR BOXES. `.recgrid` was four
+   bordered `bg1` tiles carrying gold serif numerals — four cards in a row on
+   the page he photographed six cards of (§32, §6). The largest count takes
+   the 2pt rule (§9.2); the rest are bare figures on the same baseline; the
+   money is its own rule-and-figure and it is INK, because §9.5 rules money
+   ink and a tally of cups is not the cup. */
+.crec{display:flex; align-items:flex-end; flex-wrap:wrap; gap:var(--s3) var(--s5);}
+.crecc{flex:0 0 auto; min-width:0;}
+.crecc>span{display:block; color:var(--ink);}
+.crecc>i{display:block; height:2px; background:transparent; margin:6px 0;}
+.crecc.is-lead>i{background:var(--ink);}
+.crecc>small{display:block; color:var(--mut); white-space:nowrap;}
+.crec-money{margin-top:var(--s4);}
+/* D291 · RECENT ROUNDS — `formRowHtml`'s big brother. The gross is the row's
+   object: a bare tabular figure on a shared right edge, no rule, because a
+   figure repeating down a trailing column takes none (§9.2). Between the
+   name and the gross sits the COURSE's own card where this device kept one —
+   the same drawing the plan and the record use, or nothing at all. */
+.yrow{display:flex; align-items:center; gap:var(--s3); padding:var(--s3) 0;
+  border-top:1px solid var(--rule); cursor:pointer;}
+.yrow:focus-visible{outline:2px solid var(--ink); outline-offset:2px;}
+.yrowx{flex:1 1 auto; min-width:0;}
+.yrowx b{display:block; color:var(--ink); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+/* the sub-line may run to two lines rather than clip: `vs your playing HCP`
+   is the denominator and a figure without one is a lie (§16.1, L-32), so the
+   line wraps and the ROW grows. `YouCopy.vsPlayingNumber` is one constant on
+   both clients and this surface does not get to shorten it. */
+.yrowx small{display:block; color:var(--mut); padding-top:3px; line-height:1.3;}
+.yrowc{flex:0 0 60px; width:60px; height:18px;}
+.yrowc svg{width:100%; height:100%; display:block;}
+/* no min-width: two grosses right-flush in a flex row already share an edge,
+   and 2.6em at `figure` 27 reserved 70px for a two-digit number. */
+.yrowg{flex:0 0 auto; color:var(--ink); text-align:right;}
+.yrow .ydel{flex:none; background:none; border:0; color:var(--dim); cursor:pointer; padding:2px 0 2px 6px; line-height:1;}
 /* THE RECORD, printed on a leaf — `year · competition · finish`. The money
    column is DROPPED rather than zeroed: `season_payouts` holds no rows in
    prod, and four zeroes is not a table (profile.md §14.2). A WIN takes the
@@ -3518,20 +3571,9 @@ html[data-theme="light"] .room-dusk .stat{
 }
 html[data-theme="light"] .room-dusk .btn:not(.dark):not(.gold):not(.apple){color:#08120C;}
 
-/* ---- D67: the record. Titles lead and carry the gold (they are EARNED);
-   the money sits underneath, quiet, in D39's frame. */
-.recgrid{display:flex; flex-wrap:wrap; gap:8px;}
-.rec{flex:1 1 84px; min-width:84px; padding:9px 10px; border:1px solid var(--rule);
-  border-radius:10px; background:var(--bg1); text-align:center;}
-.rec b{display:block; font-family:var(--serif); font-size:26px;
-  line-height:1; color:var(--gold);}
-.rec span{display:block; margin-top:4px; font-family:var(--mono); font-size:9px;
-  letter-spacing:.12em; text-transform:uppercase; color:var(--mut);}
-.recmoney{display:flex; justify-content:space-between; align-items:baseline; gap:12px;
-  margin-top:12px; padding-top:10px; border-top:1px solid var(--rule);}
-.recmoney b{font-family:var(--mono); font-size:19px; color:var(--ink);}
-.recmoney small{display:block; font-family:var(--mono); font-size:9.5px;
-  letter-spacing:.1em; text-transform:uppercase; color:var(--mut); margin-top:2px;}
+/* ---- D67's record was four bordered tiles with 26px gold serif numerals
+   (`.recgrid` / `.rec` / `.recmoney`). D291 deleted all three: the record
+   is `.crec` above — one rule-and-figure, in ink (§9.2, §9.5, §32). */
 
 /* ---- #14: once the season is live, the room LEADS WITH THE RACE. The stat
    strip, "next up" and the pot line are all week-12 furniture the owner had to
@@ -4285,8 +4327,13 @@ html[data-theme="light"] .room-dusk .btn:not(.dark):not(.gold):not(.apple){color
              stays D39's frame — what friends settled between themselves,
              never a balance the app holds. -->
         <div class="eyebrow">Trophies</div>
-        <div class="card" id="careerRecord" style="text-align:left; padding:12px 14px; margin-bottom:10px"></div>
-        <div id="trophyCase" class="room-dusk" style="margin-bottom:14px"></div>
+        <!-- D291 · neither of these is a card any more. The record was four
+             bordered tiles and the case sat inside a `.room-dusk` left over
+             from the tile era — a class that re-asserts the dusk INK and no
+             ground, so in the light theme the whole case was near-white type
+             on paper. Both are slats on the page's own ground now (§32). -->
+        <div id="careerRecord" style="text-align:left; margin-bottom:16px"></div>
+        <div id="trophyCase" style="margin-bottom:14px"></div>
 
         <!-- "Lifetime" -> "All time": same rows, a name that states the scope
              out loud. It shares two row LABELS with "This season" below, and
@@ -4305,7 +4352,7 @@ html[data-theme="light"] .room-dusk .btn:not(.dark):not(.gold):not(.apple){color
         </div>
 
         <div class="eyebrow">Recent rounds</div>
-        <div class="card" style="text-align:left; padding:10px 12px"><div id="youRecent"></div></div>
+        <div id="youRecent" style="text-align:left"></div>
         <!-- D177: the "Add my round" button that sat here is gone. The ⊕ is a
              permanent tab an inch below it, and this is a page about the past. -->
 
@@ -17759,6 +17806,77 @@ function achSubtitle(a){
   if(a.kind==='first_round') return 'Posted';
   return a.label||'';
 }
+/* ── D291 · THE SHELF ──────────────────────────────────────────────────────
+   Three shelves, one rule, both clients (`TrophyMeta.shelf` on the phone —
+   D234). Hardware is every trophy row; BESTS is a number you beat or a
+   scoring award, and its slat opens the round it was won on; everything
+   else — the first card, the streaks, Iron Man, and any kind a later
+   migration mints that this build has never heard of — is quiet at the foot,
+   which is the safe place for an unknown.
+
+   FILED, and it is the honest half of this pass: `low_round` and
+   `most_improved` are declared in `ACH_META` on both clients with a drawn
+   mark each, and NOTHING in the database ever inserts either kind — the
+   round trigger mints `first_round`, `sub_100/90/80`, `personal_best` and
+   `streak_4/8/12`, and no season close mints the other two. They are kept
+   rather than deleted (the marks are right, and a mapping deleted today is a
+   real trophy drawn as a `medal` the day a producer lands), but the case
+   holds EIGHT kinds and not ten. */
+const CS_BESTS = ['sub_100','sub_90','sub_80','personal_best','low_round','most_improved'];
+const CS_SHELF = { hardware:{head:'Hardware', mark:44}, bests:{head:'Bests', mark:28},
+                   along:{head:'Along the way', mark:28} };
+function csTrophyShelf(kind, isHardware){
+  if(isHardware) return 'hardware';
+  return CS_BESTS.indexOf(String(kind||'')) >= 0 ? 'bests' : 'along';
+}
+/* "Aug 24" — by the local constructor, never through an ISO parse (CLAUDE.md).
+   The phone's twin is `BoardText.shortDate`. */
+function csMonthDay(iso){
+  if(!iso) return '';
+  const d = localDate(String(iso).slice(0,10));
+  if(isNaN(d)) return '';
+  return `${MOS[d.getMonth()]} ${d.getDate()}`;
+}
+/* the round a milestone was won on, out of the 400 `loadCareer` holds. Absent
+   rather than guessed when the round is older than that window (L-44). */
+function csMilestoneRound(rid){
+  if(!rid) return null;
+  return (window.career?.rows || []).find(r => String(r.id) === String(rid)) || null;
+}
+/* D291 · a BESTS slat says the round it was won on — `79 at Papago · Aug 24`.
+   Every part is dropped rather than faked: no round in hand → `79 · Aug 24`;
+   no gross anywhere → `achSubtitle`'s own words. Twin: `milestoneSub`. */
+function csMilestoneSub(a, round){
+  const m = a.meta || {};
+  const c = round && round.course_label ? csCourse(round.course_label) : null;
+  let lead = '';
+  /* A MILESTONE PRINTS THE FIGURE IT IS ABOUT. A threshold is about a gross,
+     so it reads `79 at Papago`; a personal best is about the DIFFERENTIAL
+     (D210's "vs course"), so it reads `4.1 vs course · Papago`. Taking the
+     gross for both put the same sentence under BROKE 80 and PERSONAL BEST
+     when one round earned them together — which is the owner's own
+     complaint, arriving inside the fix for it. */
+  if(a.kind === 'personal_best' && m.diff != null){
+    lead = Number(m.diff).toFixed(1) + ' vs course';
+    if(c) lead += ' \u00b7 ' + c;
+  } else {
+    const g = (round && round.gross != null) ? round.gross : (m.gross != null ? m.gross : null);
+    if(g != null){
+      lead = String(g);
+      if(c) lead += ' at ' + c;
+    }
+  }
+  /* NEVER `achSubtitle`'s label fallback here: the slat's own title already
+     says BROKE 80, and "Broke 80 · Aug 24" beneath it is the name twice
+     (brand canon 3 — one fact, one place). With no figure it is the date. */
+  const when = csMonthDay((round && round.played_on) || a.earned_on || '');
+  return lead ? (when ? lead + ' \u00b7 ' + when : lead) : when;
+}
+/* §17 · the empty, given a shape. Four marks a golfer has NOT cut yet — real
+   marks at 12%, never four placeholder boxes. Twin: `TrophyCase.emptyMarks`. */
+const CS_CASE_EMPTY = { marks:[['cup',null],['threshold','80'],['personalBest',null],['crown',null]],
+  head:'The case is empty',
+  lead:'Break 80, post a first round, or win a Cup Final.' };
 let _trophySeen=null;   /* C4: ids already in the case this session - a tile only engraves on ARRIVAL */
 function renderTrophyCase(){
   const box=$('#trophyCase'); if(!box) return;
@@ -17772,19 +17890,25 @@ function renderTrophyCase(){
      inside a page is YRS-07, and the thing worth keeping was never the tile —
      it was the engraver. A 28pt drawn mark, the name in `name` caps, the
      dated sub-line in agate, one `rule` on the top edge. */
-  const cell = (glyph,numeral,title,sub,mint,rid) =>
-    `<div class="tslat${mint?' mintin':''}"${rid?` data-achr="${esc(rid)}" role="button" tabindex="0"`:''}>
-      ${csTrophyMark(glyph, numeral, 28)}
+  /* D291 · THE SHELF SETS THE SIZE. The mark is 44pt on hardware and 28
+     everywhere else, the quiet shelf takes `mut`, and the right-flush slot
+     carries the season year on a trophy or the door chevron on a best. */
+  const cell = (o) =>
+    `<div class="tslat is-${o.shelf}${o.mint?' mintin':''}"${o.rid?` data-achr="${esc(o.rid)}" role="button" tabindex="0"`:''}>
+      ${csTrophyMark(o.glyph, o.numeral, CS_SHELF[o.shelf].mark)}
       <span class="tslatx">
-        <b class="cs-name">${mint?`<span class="tmint">${esc(title)}<span class="tcover" aria-hidden="true"></span></span>`:esc(title)}</b>
-        <small class="cs-agate-s is-phrase">${esc(sub)}</small>
+        <b class="cs-name">${o.mint?`<span class="tmint">${esc(o.title)}<span class="tcover" aria-hidden="true"></span></span>`:esc(o.title)}</b>
+        ${o.sub?`<small class="cs-agate-s is-phrase">${esc(o.sub)}</small>`:''}
       </span>
+      ${o.trail?`<span class="ttrail cs-col-m">${esc(o.trail)}</span>`
+        : o.rid?`<span class="tgo cs-agate-s" aria-hidden="true">›</span>` : ''}
     </div>`;
   const tiles = [], ids = [];
   hw.forEach(t=>{
-    const yr = t.season_year ? " · '"+String(t.season_year).slice(2) : '';
     const id='t'+keyOf(t); ids.push(id);
-    tiles.push(cell(trophyGlyph(t.kind, t.placement), null, t.title||'—', (t.subtitle||t.kind||'')+yr, fresh(id)));
+    tiles.push({ shelf:'hardware', glyph:trophyGlyph(t.kind, t.placement), numeral:null,
+      title:t.title||'—', sub:t.subtitle||t.kind||'', mint:fresh(id), rid:null,
+      trail: t.season_year ? '’'+String(t.season_year).slice(2) : null });
   });
   ach.forEach(a=>{
     const m = ACH_META[a.kind] || {glyph:'medal', title:a.label||'Milestone'};
@@ -17794,14 +17918,39 @@ function renderTrophyCase(){
        pushed the key is simply absent and the tile stays a tile. Never break
        on absence (CLAUDE.md: neither deploy order breaks a live user). */
     const numeral = m.glyph==='lowRound' ? ((a.meta||{}).gross!=null ? String((a.meta||{}).gross) : null) : (m.numeral||null);
-    tiles.push(cell(m.glyph, numeral, m.title, achSubtitle(a)+yr, fresh(id), a.round_id||null));
+    const shelf = csTrophyShelf(a.kind, false);
+    /* THE DOOR IS THE MIDDLE SHELF'S, and only its. Three shelves have to read
+       as three RANKS: hardware takes the 44pt mark and its year, a best takes
+       the door into the round it was won on, and the quiet shelf takes
+       neither. A first round's receipt is still reachable from Recent rounds,
+       from the board and from the form row. */
+    const rid = shelf==='bests' ? (a.round_id||null) : null;
+    tiles.push({ shelf, glyph:m.glyph, numeral, title:m.title, mint:fresh(id), rid, trail:null,
+      /* a BESTS slat names the round it was won on; the quiet shelf keeps the
+         dated line it has always had — "Posted · '26" is the whole of it. */
+      sub: shelf==='bests' ? csMilestoneSub(a, csMilestoneRound(rid)) : achSubtitle(a)+yr });
   });
   _trophySeen = new Set(ids);
   if(!tiles.length){
-    box.innerHTML = '<div class="card" style="text-align:left"><div class="fine" style="padding:0">Nothing in the case yet. Break 80, post your first round, or win a Cup Final — milestones and trophies land here.</div></div>';
+    /* §17 · the empty, GIVEN A SHAPE — four marks nobody has cut yet at 12%,
+       one head, one line. No card, and no button: the ⊕ is a permanent tab an
+       inch below where one would sit (D177). */
+    box.innerHTML = `<div class="tempty">
+      <div class="tempty-marks" aria-hidden="true">${CS_CASE_EMPTY.marks.map(m=>csTrophyMark(m[0],m[1],28)).join('')}</div>
+      <h4 class="cs-name">${esc(CS_CASE_EMPTY.head)}</h4>
+      <p class="cs-body-s">${esc(CS_CASE_EMPTY.lead)}</p></div>`;
     return;
   }
-  box.innerHTML = tiles.join('');
+  /* AN EMPTY SHELF IS ABSENT — a head over nothing is a heading that lies
+     about what is under it. Twin: `TrophyCase.shelves`. */
+  let firstShelf = true;
+  box.innerHTML = ['hardware','bests','along'].map(k=>{
+    const rows = tiles.filter(t=>t.shelf===k);
+    if(!rows.length) return '';
+    const head = `<h4 class="tshelf cs-agate${firstShelf?' is-first':''}">${esc(CS_SHELF[k].head)}</h4>`;
+    firstShelf = false;
+    return head + rows.map(cell).join('');
+  }).join('');
   box.querySelectorAll('[data-achr]').forEach(el=>{
     const open = () => { const rid=el.dataset.achr; openRoundReceipt((window.roundCache||{})[rid] || { id: rid }); };
     el.addEventListener('click', open);
@@ -17842,19 +17991,31 @@ function renderCareerRecord(){
                  ['majors','Major','Majors'], ['events','Event','Events'],
                  ['runner_ups','Runner-up','Runner-ups']]
     .map(([k,one,many]) => ({ n:Number(r[k]||0), one, many }))
-    .filter(x => x.n>0);
+    .filter(x => x.n>0)
+    .sort((a,b)=> b.n - a.n);
+  /* D291 · THE RECORD IS ONE FIGURE. `.recgrid` was four bordered `bg1` tiles
+     carrying 26px gold serif numerals — four cards in a row, on the surface
+     whose whole complaint was cards (§32, §6). It becomes §9.2's signature:
+     the largest count as a `figure` 40 over a 2pt `ink` rule with its title
+     beneath, the rest as BARE `figure` 20 on the same baseline (a repeating
+     value takes no rule of its own), and the money as its own rule-and-figure
+     underneath. **In ink, not gold** — §9.5 rules money ink, and a tally OF
+     cups is not the cup: the metal stays on the trophy, where the engraver's
+     needle already spends it. Twin: `RecordPage.career`. */
+  const cellHtml = (i, lead) =>
+    `<div class="crecc${lead?' is-lead':''}"><span class="${lead?'cs-fig-l':'cs-fig-s'}">${i.n}</span><i></i>`
+    + `<small class="cs-agate-s">${esc(i.n===1?i.one:i.many)}</small></div>`;
   const titles = items.length
-    ? `<div class="recgrid">${items.map(i=>
-        `<div class="rec"><b>${i.n}</b><span>${esc(i.n===1?i.one:i.many)}</span></div>`).join('')}</div>`
-    : '';
+    ? `<div class="crec">${items.map((i,ix)=>cellHtml(i, ix===0)).join('')}</div>` : '';
   const cents = Number(r.earnings_cents||0);
   const done  = Number(r.seasons_done||0);
   /* D39 verbatim posture: a record of what friends settled between themselves.
      No balance, nothing owed to or by the app, no affordance to move a cent. */
   const money = cents>0 ? `
-    <div class="recmoney">
-      <div><b>${csMoney(cents)}</b><small>Settled across ${done} season${done===1?'':'s'}</small></div>
-    </div>
+    <div class="crec crec-money"><div class="crecc is-lead">
+      <span class="cs-fig-m">${esc(csMoney(cents))}</span><i></i>
+      <small class="cs-agate-s">Settled across ${done} season${done===1?'':'s'}</small>
+    </div></div>
     <p class="fine" style="margin:8px 0 0">What your friends settled with you.</p>` : '';
   el.style.display = (titles || money) ? '' : 'none';
   el.innerHTML = titles + money;
@@ -17954,31 +18115,51 @@ function renderCareer(){
   set('#clBestSub', clScope);
   set('#clPlayed', state.demo ? c.played : playedInCount());
   const yr=$('#youRecent'); if(yr){
-    /* delete-a-round lives here now (moved off the retired quick-post card):
-       owner-only ×, delete_round RPC, standings views recompute on their own */
+    /* D291 · RECENT ROUNDS — `formRowHtml`'s big brother, and the other half
+       of "trophies and recent rounds also not engaging". The row was a 13.5px
+       bold sentence, a mono `79 GROSS` and a second grey line, six of them,
+       identical. Now the GROSS is the row's object: a tabular figure on a
+       shared right edge, BARE (a figure repeating down a trailing column takes
+       no rule of its own — §9.2), the course in `nameS`, and the date and the
+       figure it was measured against in one agate line beneath.
+
+       BETWEEN THEM SITS THE COURSE'S OWN CARD, 60 × 18, where this device has
+       kept one — `csDrawnCardSvg`, the same drawing the plan and the record
+       already use, at `bare` so the eighteen numerals do not scale to five
+       pixels (§10.2). The STROKES are not in `career.rows` and `home_stories`
+       carries no course id, so this is the COURSE's shape and never the
+       round's; a round whose course was never kept draws nothing at all
+       rather than eighteen invented par 4s (L-44). THE WHOLE ROW is the door
+       to the receipt now — the photo button was a 20pt target that only
+       existed on rounds carrying a photograph. */
     const canDel = !state.demo && window.sb;
+    const bookOf = id => id ? (csCourseAll().find(b=>String(b.id)===String(id)) || null) : null;
     yr.innerHTML = (c.recent && c.recent.length)
-      /* Y-12 / D210 · the row used to read "2026-06-14 · GRAYHAWK   80 · 7.8":
-         a raw ISO date and two bare floats, the second of them the banned word
-         in numeral form. Now it reads the way the phone's recent-round row
-         does — the date as a glyph, the gross labelled, and the figure on its
-         own line under it, named for what it is measured against (D209). */
       ? c.recent.map((r,ri)=>{
-          const d = r.played_on ? localDate(String(r.played_on)) : null;
-          const when = d ? `${MOS[d.getMonth()].toUpperCase()} ${d.getDate()}` : '';
+          const when = r.played_on ? csMonthDay(r.played_on).toUpperCase() : '';
           const course = esc((r.course_label||'').toUpperCase()) || 'SOMEWHERE OUT THERE';
           const fig = r.pvi!=null ? Number(r.pvi) : null;
-          const photo = (r.photo_url||r.photo_path)?`<button data-rcpt-i="${ri}" title="Round photo" aria-label="Open the round" style="background:none; border:none; color:var(--dim); cursor:pointer; padding:2px 2px; line-height:1;"><svg class="ic" aria-hidden="true"><use href="#i-photo"/></svg></button>`:'';
-          const del = canDel&&r.id?`<button data-delr="${r.id}" title="Delete this round" aria-label="Delete round" style="background:none; border:none; color:var(--dim); cursor:pointer; font-size:16px; line-height:1; padding:2px 4px;"><svg class="ic" aria-hidden="true"><use href="#i-close"/></svg></button>`:'';
-          return `<div class="fine" style="padding:3px 0"><div style="display:flex; justify-content:space-between; align-items:center; gap:8px;"><span>${when} · ${course}</span><span style="display:flex; align-items:center; gap:12px;">${photo}<b class="mono">${r.gross} GROSS${r.holes_played===9?' · 9 HOLES':''}</b>${del}</span></div>`
-            + (fig!=null ? `<div style="color:var(--mut)">${sign(fig)} vs your playing HCP</div>` : '')
-            + `</div>`;
+          const sub = [when, fig!=null ? sign(fig)+' vs your playing HCP' : null,
+                       r.holes_played===9 ? '9 holes' : null].filter(Boolean).join(' · ');
+          const bk = bookOf(r.api_course_id);
+          const card = bk ? csDrawnCardSvg(csBookHoles(bk), { bare:true }) : '';
+          const del = canDel&&r.id?`<button class="ydel" data-delr="${r.id}" title="Delete this round" aria-label="Delete round"><svg class="ic" aria-hidden="true"><use href="#i-close"/></svg></button>`:'';
+          return `<div class="yrow" data-rcpt-i="${ri}" role="button" tabindex="0" aria-label="${course}, ${esc(String(r.gross??''))}">
+            <span class="yrowx"><b class="cs-name-s">${course}</b>${sub?`<small class="cs-agate-s">${esc(sub)}</small>`:''}</span>
+            ${card?`<span class="yrowc" aria-hidden="true">${card}</span>`:''}
+            <span class="yrowg cs-fig-m">${r.gross!=null?r.gross:'—'}</span>${del}</div>`;
         }).join('')
-      : emptyState({ icon:'⛳', line:'No rounds yet — your card fills as you play.', ctaLabel:'Post your first round', ctaGo:'record' });
-    /* photos arc 2: the receipt sheet carries the photo — no bare image tabs */
-    yr.querySelectorAll('[data-rcpt-i]').forEach(b=>b.addEventListener('click', ()=>{
-      const r=c.recent[Number(b.dataset.rcptI)]; if(r) openRoundReceipt(r);
-    }));
+      : `<div class="tempty"><h4 class="cs-name">No rounds yet</h4>`
+        + `<p class="cs-body-s">Your card fills as you play — every round, every course, forever.</p>`
+        + `<p class="cs-agate-s" style="padding-top:10px"><a href="#" data-empty-go="record" style="color:var(--mut); text-decoration:underline; text-underline-offset:3px">Post your first round</a></p></div>`;
+    /* the whole row opens the receipt (photos arc 2: the sheet carries the
+       photograph — no bare image tabs), and the × stays the × */
+    yr.querySelectorAll('[data-rcpt-i]').forEach(b=>{
+      const go = e => { if(e.target.closest('[data-delr]')) return;
+        const r=c.recent[Number(b.dataset.rcptI)]; if(r) openRoundReceipt(r); };
+      b.addEventListener('click', go);
+      b.addEventListener('keydown', e=>{ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); go(e); } });
+    });
     yr.querySelectorAll('[data-delr]').forEach(b=>b.addEventListener('click', async ()=>{
       /* WAVE 11 · the same sentence the phone's receipt prints, from
          `RoundCopy.deleteConsequence`. The phone had no delete at all until

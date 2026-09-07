@@ -7,7 +7,8 @@
 // themselves (D39) — no balance, nothing owed to or by the app.
 //
 // Y-02 · a record with no titles renders NOTHING — the display case under it
-// carries the one empty line (`TrophyCase.emptyLine`), so a new golfer is
+// carries the one empty (D291 · `TrophyCase.emptyHead` + `emptyLead` beside
+// four uncut marks — §17's shape, not a sentence), so a new golfer is
 // not told twice that the shelf is bare. The two lines this file used to
 // carry for that are retired.
 
