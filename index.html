@@ -1143,24 +1143,34 @@ img.face{border-radius:50%; object-fit:cover; vertical-align:-4px; border:1px so
 .hffacew{display:flex; flex:none;}
 /* identity-led home feed — A2 scorecard rail + B1 photo-story takeover (owner
    pick off the feed boards, 2026-07-23) */
-.hfcard{background:var(--bg1); border:1px solid var(--rule); border-radius:14px; padding:12px 14px; margin:0 0 10px; cursor:pointer;}
+/* D288 · THE WIRE IS NOT SIX CARDS. `.hfcard` was `bg1` + a 1px border + a
+   14px radius on EVERY row, so a round, a moment and a notice arrived as
+   three identical rounded rectangles — the object the owner photographed six
+   of (§6, §32: the card cannot mark rank when it is the only shape). The
+   container survives for ONE weight, the photographed round, which is a
+   full-bleed object and not a box (§10.1 rung 1). */
+.hfcard{margin:0 0 12px; cursor:pointer;}
 .hfcard:focus-visible{outline:2px solid var(--brand); outline-offset:2px;}
-.hfhead{display:flex; align-items:center; gap:11px;}
+.hfhead{display:flex; align-items:center; gap:12px;}
 .hfid{flex:1; min-width:0;}
-.hfid b{display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; font-size:15px; font-weight:650; letter-spacing:-.02em; line-height:1.3;}
-.hfid small{display:block; margin-top:2px; font-family:var(--mono); font-size:10.5px; color:var(--dim); letter-spacing:.05em; text-transform:uppercase;}
-.hfid small.hfphrase{font-family:var(--sans); font-size:12.5px; color:var(--mut); text-transform:none; letter-spacing:0; margin-top:3px;}
-/* A2: the rail + the serif gross — the receipt's number language, pulled home.
-   Fairway rail by default; champagne ONLY on milestones (earned). */
-.hfcard.hfrail{position:relative; overflow:hidden; padding-left:18px;}
-.hfcard.hfrail::before{content:""; position:absolute; left:0; top:0; bottom:0; width:4px; background:var(--brand);}
-.hfcard.hfrail.gold::before{background:var(--gold);}
+.hfid b{display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; color:var(--ink);}
+/* the two sub-lines carry their ROLE as a class (`cs-body-s`, `cs-agate-s`);
+   this sets only what a role does not — the stack and the colour step */
+.hfid small{display:block; margin-top:4px;}
+.hfid small.hfphrase{color:var(--mut);}
+.hfid small.hfmeta{color:var(--dim);}
+/* D288 · WEIGHT 2b — a round with no photograph is a SLAT. No ground, no
+   edge, no radius and no 4px rail: a 1px rule, a 44pt face, the name, the
+   phrase, the course, and the gross as a BARE figure on the right edge
+   (§9.2 — a column takes no rule-and-figure). The rail went because it was
+   `brand` on every row and `gold` on a milestone the phrase already names,
+   which is colour doing no work (§9.4) and gold on a thing that is not the
+   thing that was won (§2.4). */
+.hfcard.hfrail{border-top:1px solid var(--rule); padding:12px 0; margin:0;}
 .hfgross{flex:none; text-align:right;}
-.hfgross b{display:block; font-family:var(--serif); font-size:30px; line-height:1; font-weight:400; color:var(--ink);}
-.hfgross small{font-family:var(--mono); font-size:9.5px; letter-spacing:.14em; color:var(--dim); text-transform:uppercase;}
-.hfmeta{font-family:var(--mono); font-size:10.5px; color:var(--dim); letter-spacing:.06em; text-transform:uppercase; margin-top:9px;}
+.hfgross b{display:block; color:var(--ink);}
 /* B1: a photo-backed round IS the card — dusk wash, serif gross, marker medal */
-.hfcard.hfstory{padding:0; position:relative; overflow:hidden; min-height:220px; display:flex; flex-direction:column; justify-content:space-between; color:#F4F6F2; border:none;}
+.hfcard.hfstory{padding:0; position:relative; overflow:hidden; border-radius:var(--r); min-height:220px; display:flex; flex-direction:column; justify-content:space-between; color:#F4F6F2; border:none;}
 .hfcard.hfstory .hsbg{position:absolute; inset:0; width:100%; height:100%; object-fit:cover;}
 .hfcard.hfstory::after{content:""; position:absolute; inset:0; background:linear-gradient(180deg, rgba(10,14,12,.55), rgba(10,14,12,.05) 40%, rgba(10,14,12,.72));}
 .hstop,.hsbot,.hsfoot{position:relative; z-index:2;}
@@ -1173,8 +1183,26 @@ img.face{border-radius:50%; object-fit:cover; vertical-align:-4px; border:1px so
 .hsmedal{width:30px; height:30px; flex:none; border-radius:50%; background:rgba(10,14,12,.55); display:flex; align-items:center; justify-content:center; color:var(--scrim-ink);}
 .hsmedal svg{width:16px; height:16px;}
 .hsfoot{background:var(--bg1); color:var(--ink); padding:8px 12px; border-top:1px solid var(--rule);}
-/* moments sit quiet — clearly not a round */
-.hfcard.quiet{background:var(--bg2); border-style:dashed; cursor:default;}
+/* D288 · WEIGHT 5 — a moment that is not a round is a LINE, not a card.
+   `.hfcard.quiet` was `bg2` plus a DASHED edge, which is a quiet thing made
+   loud by being drawn twice; a quiet thing is quiet by being small and grey
+   (§27, §32). One `bodyS` in `mut`, a trailing `agateS` stamp, no avatar. */
+.hfline{display:flex; align-items:baseline; gap:12px; border-top:1px solid var(--rule); padding:12px 0;}
+.hfline .hl{flex:1; min-width:0; color:var(--mut);}
+.hfline .hl i{font-style:normal; color:var(--dim); white-space:nowrap;}   /* the two names wrap as one, never mid-league */
+.hfline .hs{flex:none; color:var(--dim);}
+.hfline.opens{cursor:pointer;}
+.hfline.opens:hover{background:var(--bg1);}
+.hfline.opens:focus-visible{outline:2px solid var(--brand); outline-offset:2px;}
+/* D288 · EVERY SURVIVING LEAGUE NOTE, AS ONE LINE (D285's `HomeWireNotes`).
+   The quietest voice the wire has, at its foot, and it opens the board where
+   the notes actually live. */
+.hfnotes{display:flex; width:100%; text-align:left; align-items:baseline; gap:12px;
+  background:none; border:0; border-top:1px solid var(--rule); padding:12px 0; margin:0;
+  color:var(--mut); cursor:pointer;}
+.hfnotes:hover{color:var(--ink);}
+.hfnotes:focus-visible{outline:2px solid var(--brand); outline-offset:2px;}
+.hfnotes .hl{flex:1; min-width:0;}
 /* Tour Card — C4 credential, refaced charcoal (D76): one flat #131D17
    OBJECT, ember heat top-right, ivory ink; trophies stay champagne (earned
    metal — the two-metals rule). Fixed hexes: same face for every viewer,
@@ -1698,8 +1726,17 @@ body.guestlive #onboard{display:none !important;}
 .check .tt b{font-size:13.5px; font-weight:600; display:block;}
 .check .tt small{font-family:var(--mono); font-size:11px; color:var(--dim); letter-spacing:.08em; display:block; margin-top:2px;}
 /* home feed time buckets (pilot: "today, this week, a button for older") */
-.feedsec{font-family:var(--mono); font-size:10.5px; letter-spacing:.14em; text-transform:uppercase; color:var(--dim); margin:16px 2px 8px;}
-.feedsec:first-child{margin-top:2px;}
+/* D288 · THE DATELINE OUTRANKS ITS ROWS. This was mono 10.5 in `dim` over
+   rows set 15px/650 in `ink` — the section head was the quietest thing in its
+   own section, which is why "sections aren't differentiated" survived on the
+   desk after D285/D287 fixed it on the phone. It is `displayS` now (the class
+   carries the role; `displayS` does not spend the one `display` a viewport
+   gets, §1.3), so the step to the row beneath is 24 → 17 AND `ink` → `mut`.
+   No rule and no box under it — a head is type, not a container (§32). */
+.feedsec{color:var(--ink); margin:32px 0 12px;}
+.feedsec:first-child{margin-top:0;}
+/* the first row under a dateline needs no rule — the head is its edge */
+.feedsec + .hfcard.hfrail, .feedsec + .hfline{border-top:0;}
 .feedmore{margin-top:4px;}
 .feedmore>summary{list-style:none; cursor:pointer; font-family:var(--mono); font-size:11px; letter-spacing:.1em; text-transform:uppercase; color:var(--mut); padding:10px 12px; border:1px solid var(--rule); border-radius:var(--r); background:var(--bg1); text-align:center; user-select:none;}
 .feedmore>summary::-webkit-details-marker{display:none;}
@@ -14962,7 +14999,7 @@ function memberMarker(pid){
   const m = (window.CS?.members||[]).find(m => m.profile_id === pid);
   return m ? (m.mk || m.marker || m.profile?.marker || 'saguaro') : 'saguaro';
 }
-function feedRow(r, idx){
+function feedRow(r, idx, stamp){
   /* A2 scorecard rail + B1 photo takeover (owner pick, feed boards 2026-07-23):
      the face carries the name, the serif gross carries the score — the same
      number language as the receipt. A photo-backed round becomes the card
@@ -15001,41 +15038,40 @@ function feedRow(r, idx){
       ${social?`<div class="hsfoot">${social}</div>`:''}</div>`;
   }
 
-  return `<div class="hfcard hfrail stamped${milestone?' gold':''}"${idx!==undefined?` data-hfr="${idx}"`:''} role="button" tabindex="0" aria-label="${who} — ${r.gross??''} at ${course}">
+  /* D288 · WEIGHT 2b — the slat. `stamp` is the producer's ruling on whether
+     this row says its own date: null under TODAY, and null again when the row
+     above it in the same group already said it (`csHomeFold`'s sayItOnce).
+     The course still prints, because it is the place and not the date. */
+  const meta = [course, stamp ? esc(csDayToken(stamp)) : null].filter(Boolean).join(' · ');
+  return `<div class="hfcard hfrail stamped"${idx!==undefined?` data-hfr="${idx}"`:''} role="button" tabindex="0" aria-label="${who} — ${r.gross??''} at ${course}">
     <div class="hfhead">
       <span class="hffacew"${r.profile_id?` data-tc="${r.profile_id}"`:''}>${face(r.profile_id, r.marker, 44)}</span>
-      <div class="hfid"><b>${whoTag}</b>${(milestone||vpCap)?`<small class="hfphrase">${milestone||vpCap}</small>`:''}</div>
-      ${r.gross!=null?`<div class="hfgross"><b>${grossH}</b><small>gross</small></div>`:''}
+      <div class="hfid"><b class="cs-social">${whoTag}</b>${(milestone||vpCap)?`<small class="hfphrase cs-body-s">${milestone||vpCap}</small>`:''}<small class="hfmeta cs-agate-s">${meta}</small></div>
+      ${r.gross!=null?`<div class="hfgross"><b class="cs-fig-m">${grossH}</b></div>`:''}
     </div>
-    <div class="hfmeta">${course} · ${dfmtShort(r.played_on)}</div>
     ${social}</div>`;
 }
-/* league moments (announce + system posts) as feed cards — rounds never come
-   this way (home_feed owns them), so the two sources can't double up */
-function postRow(p){
-  const m = (window.CS?.memberships||[]).find(x=>x.league.id===p.league_id);
-  const lg = m ? m.league.name : '';
-  /* D59 follow-up: moments join the same card family as rounds — a known
-     author leads with their face (marker-badged), others get the icon in the
-     same circle; the server's SHOUTING body eases to a sentence (easeCaps). */
-  const mem = p.member_id ? (window.CS?.members||[]).find(x=>x.id===p.member_id) : null;
-  const av = mem
-    ? `<span class="hffacew" data-tc="${mem.profile_id}">${face(mem.profile_id, mem.mk||mem.profile?.marker, 44)}</span>`
-    : `<span class="fc s44 fmark" aria-hidden="true"><svg class="ic" ><use href="#i-${p.kind==='announce' ? 'bell' : 'flag'}"/></svg></span>`;
-  /* C5 - the month seal: a fresh league event lands with the thock (once,
-     while it's under 48h old); a month-close card keeps the 1.4deg cant -
-     a hand set it, and that stays true in reduced motion too */
-  const ageMs = p.created_at ? (Date.now()-new Date(p.created_at).getTime()) : Infinity;
-  const closed = /\bclosed\b/i.test(p.body||'');
-  const sealCls = (p.kind!=='announce' && ageMs<48*3600*1000 ? ' sealin' : '') + (closed ? ' sealed' : '');
+/* D288 · WEIGHT 5 — a league moment is a LINE (VISUAL_PASS §1c). It was a
+   44pt face, a bold sentence and a mono sub-line inside a dashed `bg2` card,
+   which is a quiet thing shouted: six of them, at the weight of a round, are
+   the screen the owner photographed. The face went because the sentence
+   already names its subject; the card went because a quiet thing is quiet by
+   being small and grey. `leagues` is the fold's ruling — one moment fanned to
+   two leagues carries BOTH names and prints once (DF-04). */
+function momentRow(p, stamp, leagues){
+  /* the league is named only when the fold MERGED one — "Fellas & Who's the
+     bitch?" is the answer to "why is this here once and not twice"; on a
+     moment that only ever belonged to one league it is noise, because the
+     wire is already this golfer's own circle. */
+  const names = (leagues||[]).map(s=>s&&s.name).filter(Boolean);
+  const lg = names.length>1 ? names.slice(0,2).join(' & ') : '';
   /* D92: a settlement on Home is the same door it is on the board — same
      data-card contract, so the one delegated listener serves both. */
   const card = p.live_round_id
     ? ` data-card="${esc(p.live_round_id)}" role="button" tabindex="0"` : '';
-  return `<div class="hfcard quiet${sealCls}${p.live_round_id?' opens':''}"${card}>
-    <div class="hfhead">${av}
-      <div class="hfid"><b>${esc(csYouVoice(easeCaps(p.body||''), p))}</b><small>${lg?esc(lg)+' · ':''}${dfmtShort((p.created_at||'').slice(0,10))}${p.live_round_id?' · <span style="color:var(--gold)">SCORECARD ›</span>':''}</small></div>
-    </div></div>`;
+  return `<div class="hfline${p.live_round_id?' opens':''}"${card}>
+    <span class="hl cs-body-s">${esc(csYouVoice(easeCaps(p.body||''), p))}${lg?` <i>${esc(lg)}</i>`:''}</span>
+    ${stamp?`<span class="hs cs-agate-s">${esc(csDayToken(stamp))}</span>`:''}</div>`;
 }
 /* ==== D92 · the scorecard =====================================================
    The first read-back of hole detail in the product. Every stroke ever entered
@@ -15168,36 +15204,157 @@ function skeletonRows(n){
     +`<span class="skb" style="display:block;height:9px;width:42%;margin-top:8px"></span></div></div>`;
   return h;
 }
-/* group feed items into Today / This week / Earlier so the stream stops
-   stacking (pilot: "today section, this week, and a button for older").
-   Bucket by the row's own displayed date (d) so section and label agree;
-   Earlier collapses behind a native <details> — auto-open when nothing's recent
-   so the feed never looks empty. */
-function feedBuckets(items){
-  const now=new Date(), today0=new Date(now.getFullYear(),now.getMonth(),now.getDate());
-  const g=[[],[],[]];   // 0 today · 1 this week · 2 earlier
-  items.forEach(i=>{
-    const ds=(i.d||'').slice(0,10); let b=2;
-    if(ds){ const days=Math.round((today0-localDate(ds))/86400000); b = days<=0?0 : days<=6?1 : 2; }
-    g[b].push(i.html);
+/* ==== D288 · THE DESK'S FOLD ================================================
+   The desk's twin of the phone's `HomeFeedFold` (D217) and the wire pass of
+   `HomePage.make` (D285/D287), written as ONE PURE function so the rule can
+   be tested rather than looked at — `tests/homefold.test.mjs` brace-extracts
+   it out of this file exactly as `tests/sunningdale.test.mjs` extracts
+   `sunnEngine`. A rule stated twice in two idioms with no witness drifts; the
+   desk's copy of it had drifted so far that the dedupe it was written with
+   had never once run (`p.round_id` was in neither post select).
+
+   The rules, in the order they apply:
+
+     1. a round the ranked deck above has already told is DROPPED (F-2's
+        `__spentRounds`) — the card is the better rendering, so the wire yields;
+     2. the same league note in two leagues within 48 hours is ONE note, and
+        the survivor carries every league's name (the month-close line and the
+        clash lines are posted per league by one job);
+     2b. A MOMENT FANNED TO TWO LEAGUES IS ONE MOMENT (DF-04) — keyed on the
+        ROUND, because that is what the moment is about; a moment with no round
+        falls back to its body inside the same 48-hour window. This is the
+        owner's own photograph: "You took the week" printed once per league;
+     3. what is left buckets into COMING UP · TODAY · THIS WEEK · EARLIER, and
+        the league NOTES do not enter as rows at all — they are counted, and
+        the count is one line at the foot of the wire;
+     4. A RUNDOWN SAYS A DATE ONCE: a row under TODAY prints no stamp (the
+        dateline said it), and inside a group a stamp equal to the row above
+        it is dropped.
+
+   Pure: no DOM, no globals, no clock — `today` and the league lookup come in.
+   `rounds` are `{ r, i, t, d }` (the source row, its index in the source
+   array, its sort time, its displayed date); `posts` are raw `posts` rows. */
+function csHomeFold(input){
+  const inp = input || {};
+  const rounds = inp.rounds || [];
+  const posts = inp.posts || [];
+  const spent = inp.spent || new Set();
+  const today = String(inp.today || '').slice(0, 10);
+  const nameOf = inp.leagueName || (() => null);
+  const WINDOW = 48 * 3600 * 1000;   /* two calendar days — one job's run */
+
+  const dayOf = iso => {
+    const s = String(iso || '').slice(0, 10);
+    if(!/^\d{4}-\d{2}-\d{2}$/.test(s) || !/^\d{4}-\d{2}-\d{2}$/.test(today)) return null;
+    const a = Date.UTC(+s.slice(0,4), +s.slice(5,7)-1, +s.slice(8,10));
+    const b = Date.UTC(+today.slice(0,4), +today.slice(5,7)-1, +today.slice(8,10));
+    return Math.round((a - b) / 864e5);
+  };
+  /* `HomeWirePeriod.of` — an UNDATED row files under earlier, for the same
+     reason it sorts last: it cannot claim a place near the front of a
+     rundown. */
+  const period = d => d === null ? 'earlier' : d > 0 ? 'ahead' : d === 0 ? 'today' : d >= -6 ? 'week' : 'earlier';
+  const key = b => String(b == null ? '' : b).trim().toLowerCase();
+  const at = p => { const t = Date.parse((p && p.created_at) || ''); return isNaN(t) ? 0 : t; };
+  const isSpent = id => !!id && spent.has(String(id));
+
+  /* 1 · the deck already told it */
+  const keptR = rounds.filter(x => !isSpent(x.r && x.r.round_id));
+  const keptP = posts.filter(p => !isSpent(p.round_id));
+
+  /* 2 · one note, every league */
+  const sys = keptP.filter(p => p.kind === 'system');
+  const dropped = {}, sets = {};
+  sys.forEach((p, i) => {
+    if(dropped[p.id]) return;
+    const set = [{ id: p.league_id || null, name: nameOf(p.league_id) }];
+    const k = key(p.body);
+    if(k) for(let j = i + 1; j < sys.length; j++){
+      const q = sys[j];
+      if(dropped[q.id] || q.league_id === p.league_id || key(q.body) !== k) continue;
+      if(Math.abs(at(p) - at(q)) > WINDOW) continue;
+      if(set.some(s => s.id === (q.league_id || null))) continue;
+      set.push({ id: q.league_id || null, name: nameOf(q.league_id) });
+      dropped[q.id] = true;
+    }
+    sets[p.id] = set;
   });
-  const LAB=['Today','This week']; let html='';
-  /* pilot (filed twice): time buckets alone didn't stop the stacking — an
-     active league puts 20+ rounds inside "This week". Cap what each bucket
-     shows; the rest waits behind its own expander. CAP+1 guard so a single
-     hidden row never earns a whole "show 1 more" button. */
-  const CAP=8;
-  for(let k=0;k<2;k++) if(g[k].length){
-    html += `<div class="feedsec">${LAB[k]}</div>`;
-    if(g[k].length<=CAP+1) html += g[k].join('');
-    else html += g[k].slice(0,CAP).join('')
-      + `<details class="feedmore"><summary>Show ${g[k].length-CAP} more · ${LAB[k].toLowerCase()}</summary>${g[k].slice(CAP).join('')}</details>`;
+
+  /* 2b · one moment, every league */
+  const moments = [], seenR = {}, seenB = {};
+  keptP.forEach(p => {
+    if(p.kind === 'system') return;
+    const rid = p.round_id ? String(p.round_id) : null;
+    if(rid){
+      if(seenR[rid]){ pushLeague(seenR[rid], p); return; }
+      seenR[rid] = p.id;
+      sets[p.id] = [{ id: p.league_id || null, name: nameOf(p.league_id) }];
+      moments.push(p); return;
+    }
+    const k = key(p.body);
+    if(k && seenB[k] && Math.abs(seenB[k].t - at(p)) <= WINDOW){ pushLeague(seenB[k].id, p); return; }
+    if(k) seenB[k] = { id: p.id, t: at(p) };
+    sets[p.id] = [{ id: p.league_id || null, name: nameOf(p.league_id) }];
+    moments.push(p);
+  });
+  function pushLeague(survivorId, p){
+    const set = sets[survivorId];
+    if(set && !set.some(s => s.id === (p.league_id || null))) {
+      set.push({ id: p.league_id || null, name: nameOf(p.league_id) });
+    }
   }
-  if(g[2].length){
-    const open=(g[0].length+g[1].length)===0;
-    html += `<details class="feedmore"${open?' open':''}><summary>${open?'Earlier':'Show earlier · '+g[2].length}</summary>${g[2].join('')}</details>`;
-  }
-  return html;
+
+  /* 3 · the rows, newest first — the desk's own order, kept */
+  const items = [];
+  keptR.forEach(x => {
+    const when = String(x.d || '').slice(0, 10);
+    items.push({ kind: 'round', r: x.r, i: x.i, t: x.t || '', when, period: period(dayOf(when)), stamp: null });
+  });
+  moments.forEach(p => {
+    const when = String(p.created_at || '').slice(0, 10);
+    items.push({ kind: 'moment', p, leagues: sets[p.id] || [], t: p.created_at || '', when,
+                 period: period(dayOf(when)), stamp: null });
+  });
+  items.sort((a, b) => a.t < b.t ? 1 : a.t > b.t ? -1 : 0);
+
+  const ORDER = ['ahead', 'today', 'week', 'earlier'];
+  const LAB = { ahead: 'Coming up', today: 'Today', week: 'This week', earlier: 'Earlier' };
+  const buckets = ORDER.map(k => ({ key: k, label: LAB[k], items: items.filter(x => x.period === k) }))
+                       .filter(b => b.items.length);
+
+  /* 4 · a rundown says a date once */
+  buckets.forEach(b => {
+    let said = null;
+    b.items.forEach(x => {
+      if(b.key === 'today' || !x.when){ x.stamp = null; return; }
+      x.stamp = x.when === said ? null : x.when;
+      said = x.when;
+    });
+  });
+
+  /* the notes, gathered across EVERY bucket — they are a line, not rows */
+  const names = [];
+  let count = 0, leagueId = null;
+  sys.forEach(p => {
+    if(dropped[p.id]) return;
+    count++;
+    if(leagueId === null) leagueId = p.league_id || null;
+    (sets[p.id] || []).forEach(s => { if(s.name && names.indexOf(s.name) < 0) names.push(s.name); });
+  });
+  const notes = count ? { names: names.slice().sort(), count, leagueId } : null;
+
+  return { buckets, notes };
+}
+/* `HomeWireNotes.line`, on the desk (D285). "Fellas & Who's the bitch? · 14
+   league notes" — past two leagues the names stop being an aid and become the
+   wall again, so it counts them instead. */
+function csNotesLine(n){
+  const c = (n && n.count) || 0;
+  const names = (n && n.names) || [];
+  const who = names.length === 0 ? 'Your leagues'
+            : names.length <= 2 ? names.join(' & ')
+            : names.length + ' leagues';
+  return who + ' · ' + c + ' league note' + (c === 1 ? '' : 's');
 }
 /* ---------- the quiet-day frame (the thin-feed problem) ----------
    Crew-scale arithmetic: an 8-person league posting weekly makes ~2–3 board
@@ -15349,26 +15506,51 @@ function wireFeedReceipts(box){
 }
 function renderHomeFeed(){
   const box=$('#homeFeed'); if(!box) return;
-  if(state.demo){ box.innerHTML = feedBuckets(DEMO_FEED.map((r,i)=>({ d:r.played_on, html:feedRow(r,i) }))); wireHomeSocial(box); wireFeedReceipts(box); return; }
   /* loading: scorecard skeletons until the first fetch lands (undefined = not
      yet loaded; [] = loaded empty → the real empty state) */
-  if(window.homeFeedRows===undefined && window.homePosts===undefined){ box.innerHTML = skeletonRows(3); return; }
+  if(!state.demo && window.homeFeedRows===undefined && window.homePosts===undefined){ box.innerHTML = skeletonRows(3); return; }
   /* ONE feed (IA P1): circle rounds + league moments, newest first. Sort by
      actual post time (created_at, full ISO); bucket by the displayed date (d). */
   /* the index rides into feedRow so the reaction strip can map back to the
-     SOURCE row (window.homeFeedRows[i]) after the merged sort/slice */
-  /* F-2 · a round the ranked deck above already told is not told again here. */
-  const spent = window.__spentRounds || new Set();
-  const items = (window.homeFeedRows||[]).map((r,i) => ({ r, i }))
-    .filter(({ r }) => !(r.round_id && spent.has(String(r.round_id))))
-    .map(({ r, i }) => ({ t:(r.created_at||r.played_on||''), d:((r.played_on||r.created_at||'')+'').slice(0,10), html:feedRow(r,i) }))
-    .concat((window.homePosts||[]).filter(p => !(p.round_id && spent.has(String(p.round_id))))
-              .map(p => ({ t:(p.created_at||''), d:((p.created_at||'')+'').slice(0,10), html:postRow(p) })))
-    .sort((a,b)=> a.t<b.t ? 1 : a.t>b.t ? -1 : 0)
-    .slice(0,30);
-  box.innerHTML = items.length
-    ? feedBuckets(items)
-    : '<p class="fine" style="padding:0">No rounds from your buddies yet. Post one, or <a href="#" data-gopeople style="color:var(--brand)">add some buddies</a>.</p>';
+     SOURCE row (window.homeFeedRows[i]) after the fold */
+  const src = state.demo ? DEMO_FEED : (window.homeFeedRows||[]);
+  const lgName = id => { const m=(window.CS?.memberships||[]).find(x=>x.league.id===id); return m ? m.league.name : null; };
+  /* D288 · the fold is the PRODUCER's, and it decides four things this
+     renderer only draws: what is dropped, what carries two league names, what
+     bucket a row files under, and whether a row says its own date. */
+  const fold = csHomeFold({
+    rounds: src.map((r,i)=>({ r, i, t:(r.created_at||r.played_on||''), d:((r.played_on||r.created_at||'')+'').slice(0,10) })),
+    posts: state.demo ? [] : (window.homePosts||[]),
+    spent: window.__spentRounds || new Set(),
+    today: isoOf(new Date()),
+    leagueName: lgName });
+  /* pilot (filed twice): time buckets alone didn't stop the stacking — an
+     active league puts 20+ rounds inside "This week". Cap what each bucket
+     shows; the rest waits behind its own expander. CAP+1 guard so a single
+     hidden row never earns a whole "show 1 more" button. */
+  const CAP=8;
+  let html='';
+  fold.buckets.forEach(b=>{
+    const rows=b.items.map(x=> x.kind==='round' ? feedRow(x.r, x.i, x.stamp) : momentRow(x.p, x.stamp, x.leagues));
+    html += `<div class="feedsec cs-display-s">${b.label}</div>`;
+    if(rows.length<=CAP+1) html += rows.join('');
+    else html += rows.slice(0,CAP).join('')
+      + `<details class="feedmore"><summary>Show ${rows.length-CAP} more · ${b.label.toLowerCase()}</summary>${rows.slice(CAP).join('')}</details>`;
+  });
+  /* D285 · every surviving league note as ONE line, at the foot, opening the
+     board where the notes live. A wire carrying only notes is NOT empty. */
+  if(fold.notes){
+    html += `<button type="button" class="hfnotes"${fold.notes.leagueId?` data-notes="${esc(fold.notes.leagueId)}"`:''}>`
+          + `<span class="hl cs-body-s">${esc(csNotesLine(fold.notes))}</span>`
+          + `<span class="hs cs-agate-s">The board</span></button>`;
+  }
+  box.innerHTML = html
+    || '<p class="fine" style="padding:0">No rounds from your buddies yet. Post one, or <a href="#" data-gopeople style="color:var(--brand)">add some buddies</a>.</p>';
+  box.querySelectorAll('[data-notes]').forEach(el=>el.addEventListener('click',()=>{
+    const id=el.dataset.notes;
+    if(id && window.CS?.league?.id!==id) window.enterLeagueById?.(id, false);
+    switchView('board');
+  }));
   wireHomeSocial(box);
   wireFeedReceipts(box);
   /* SF-6: the just-posted card landed here first — arm it, retire the flag */
@@ -25274,7 +25456,14 @@ async function loadHome(){
          already carries every circle round; board round-posts would double). */
       /* D92: carry live_round_id so a settlement card on Home opens too; retry
          without it on ANY error so an un-migrated DB still fills the feed */
-      const HCOLS = lr => `id, league_id, kind, member_id, body, created_at${lr?', live_round_id':''}`;
+      /* D288 · `round_id` finally rides along. The dedupe in `renderHomeFeed`
+         was written against `p.round_id` and this select has never carried it,
+         so the filter has read `undefined` since the day it was written — and
+         a round fanned into two leagues printed twice. It needs no skew guard
+         of its own — `posts.round_id` is in the BASELINE (`posts_round_id_fkey
+         → rounds(id)`), so it is on every database this client can reach; the
+         `lr` flag stays what it was, the retry for `live_round_id`. */
+      const HCOLS = lr => `id, league_id, kind, member_id, body, created_at, round_id${lr?', live_round_id':''}`;
       let hr = await sb.from('posts').select(HCOLS(true))
         .in('league_id', ids).neq('kind','chat').neq('kind','round')
         .order('created_at', { ascending:false }).limit(20);
@@ -25296,7 +25485,7 @@ async function loadHome(){
      reason it does above. Deduped by id, and any error is an empty list rather
      than a broken Home. */
   try{
-    const PCOLS = lr => `id, league_id, profile_id, kind, member_id, body, created_at${lr?', live_round_id':''}`;
+    const PCOLS = lr => `id, league_id, profile_id, kind, member_id, body, created_at, round_id${lr?', live_round_id':''}`;   /* D288 · see HCOLS */
     let pr = await sb.from('posts').select(PCOLS(true))
       .not('profile_id','is',null).neq('kind','chat').neq('kind','round')
       .order('created_at', { ascending:false }).limit(20);
