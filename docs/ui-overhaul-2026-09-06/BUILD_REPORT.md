@@ -651,3 +651,136 @@ clipped by the screen. Pre-existing, on every tab, and not this wave's.
 **7 · The desk owes both halves** (D234). The web's Home feed still has no fold, no datelines and one
 row per post; `csYouVoice` shipped, so DEF-3 is answered on both, but the layout half of D285 and
 all of D286 are phone-only. Named in each entry's tradeoffs and still true.
+
+---
+
+# The visual pass, 2026-09-07
+
+> *"Better but these are bland. What do we need maybe in league creation to make these tabs visually
+> more appealing. Trophies and recent rounds also not engaging. Maybe that is waiting photo dynamic
+> but it should be more of a visual. Think Strava. Future rounds should highlight holes if we have
+> that info, what we thought of the course etc. a record of the courses we like"*
+>
+> — the owner, on **cupseason.app in mobile Safari**, not the app. What he photographed: six
+> consecutive rounded-rectangle cards, each a grey circle-with-a-flag and two lines of text, with the
+> same fact printed once per league — *"You took the week"* twice, *"The clash: X v you"* twice,
+> *"The clash closes today"* twice.
+
+Built as D288–D291 across four commits (`8e73193`, `1fb8819`, `62d7ad2`, `0118d3a`); reviewed and
+corrected as **D292** (`8b085bc`). `VISUAL_PASS.md` is the design document; this is what shipped and
+what did not.
+
+## The gate, at `8b085bc`
+
+| | |
+|---|---|
+| `build-tokens` | clean — no token drift |
+| `preflight` | **PASS — 0 failures, 0 warnings** |
+| `sunningdale` | PASS — 27 assertions |
+| `homefold` | PASS — **30/30** (25 at `8e73193`, +5 for D292's production shape) |
+| `rating` | PASS — 21/21 |
+| `trophycase` | PASS — 51/51 |
+| iOS | **TEST SUCCEEDED** — 1011 + 120 + 67 = **1,198 tests in 209 suites** (164 + 32 + 13) |
+
+Baseline was 1,173 tests / 207 suites at `4d825cd`. It held and grew by **25 tests / 2 suites**. Six
+preflight baselines fell across the wave and none rose (LINT-03 41→40, LINT-05 102→101, LINT-06
+1219→1206, LINT-07 208→202, LINT-10 264→261, LINT-12 61→59): the feed row's radius, its ground, its
+hand-typed spaces and its off-scale trackings are gone.
+
+Verified on 8791 with the service worker unregistered and caches cleared, at 1440 and 390 in both
+themes; on the simulator via `-cs_dev_open coursecard|record|you|schedule`. Console clean but for the
+known boot 401.
+
+## What changed
+
+**1 · The desk feed folds, and its datelines outrank their rows (D288).** `csHomeFold` is a pure
+producer — the desk's twin of `HomeFeedFold` — brace-extracted by its own test the way `sunnEngine`
+is. The dedupe that had **never once run** (`renderHomeFeed` filtered posts on `p.round_id`, and
+`round_id` was in neither `HCOLS` nor `PCOLS`) now runs. `.feedsec` went from mono 10.5 in `dim` to
+`displayS` 24 UPPER in `ink`, so the head outranks its rows by 1.6× **and** a colour step.
+`.hfcard.quiet` — `bg2` plus a **dashed** edge — is deleted; it was the exact object photographed six
+of. The owner's own screen, rebuilt: **16 inputs → 3 datelines, 5 slats, 1 line, 1 notes line, 0
+cards.**
+
+**2 · A planned round draws its course (D290).** `THE CARD · CHAMPIONSHIP` at full width, eighteen
+columns width-by-par; `OUT 36 · IN 36 · 7,333 YDS · 73.3 / 132`; **THE THREE THAT DECIDE IT** as
+three `figure` hole numbers on one rule with `PAR 4 · 470 · SI 1` beneath each; *"You have played
+here 4 times · best 78"*; and the rating. On **both** clients (`ScheduledRoundSheet.swift:280–312`,
+`index.html:14147`). `my_course_books` gained per-hole `yards` so the phone's offline card draws the
+same shape the desk does.
+
+**3 · The case gets three shelves and a door (D291).** HARDWARE at 44pt with the year; BESTS at 28pt
+whose sub-line is **the round it was won on** and whose slat **opens that round's receipt**; ALONG
+THE WAY quiet and doorless. The record above it is one rule-and-figure. Recent rounds became a column
+of grosses on a shared right edge with the course's drawn card between.
+
+**4 · The rating is live and is called (D289).** `course_rating` / `rate_course` / `unrate_course`
+were applied, granted, and called by nothing; `index.html:13591` hardcoded `csStarsSvg(0, true)`
+under a comment that was no longer true. All three now have callers (`index.html:13751`, `:13764`).
+`course_ratings` gained a 140-character `note`, so *"what we thought of the course"* has a home, and
+`renderCourseBooks` sorts the record by your own rating under **COURSES YOU LIKE** with **ALSO KEPT**
+below it.
+
+**5 · D292 — the review's own three.** *(This is the reviewer's pass, not the build's.)*
+- **A milestone was still told twice.** `round_moments()` writes its post with `round_id = new.id`,
+  so a moment and its round carry the same key — and both folds seeded that set empty, deduping a
+  moment against copies of itself and never against the slat beside it. **The fixtures hid it**: the
+  desk's used `R3x` against a round `R3`, the phone's used `live_round_id` and no `round_id`. Fixed
+  in both idioms, and both witnesses now carry the production shape.
+- **The record undercounted itself.** `Courses you like · N rated` counted only the rows beneath the
+  lead, so a golfer with three rated courses read *"2 rated"* and the course he liked most was the
+  one left out. The head now moves above a rated lead and counts it: **3 rated · Also kept · 1**.
+- **`The best of them a 80`** — while `RecordPage.swift:14`'s own header quoted *"an 80"*.
+  `CSCopy.article` picks the article off the number said aloud.
+
+## The league-creation question, answered
+
+> *"What do we need maybe in league creation to make these tabs visually more appealing?"*
+
+**Nothing new. The hook exists and the desk never read it.** `leagues.look` is live
+(`20260827200000`), constrained to a token key, with `league_looks()` and `set_league_look()` both
+granted to `authenticated`; `packages/tokens/tokens.json` ships **eleven** looks with light and dark
+accents; the **phone** reads them (`LookStore.swift`); `index.html` has **zero hits** for either RPC.
+On the surface he was actually looking at, a league's look does not exist.
+
+- **Wire `look` on the desk** — ~40 lines, no migration, no wizard change. §2.7's one job: the rail
+  and the eyebrow. Two leagues stop being interchangeable the moment one is green and the other
+  claret. *This may be the entire answer.* **NOT BUILT — the largest thing this wave left open.**
+- **One optional wizard step** — six named swatches, four seconds, skippable. After the wiring.
+- **DECLINE the crest and the photograph** — an upload path, moderation, a bucket, a signed URL on
+  every league surface and a fallback for everyone who skips, for a mark at 24pt.
+
+**His tabs are not bland because the wizard captured too little. They are bland because the desk
+never read what the wizard already captures.**
+
+## What is still open
+
+**1 · A round in the wire still cannot draw.** `home_stories` returns `course text` — a **label** —
+and no `api_course_id` and no `live_round_id` (`20260908090000:104–109`). So the front page, the
+screen he actually photographed, has **no drawing on it at all**: five slats are still five identical
+rows of face-name-phrase-number, and "think Strava" is answered everywhere except where he was
+looking. Unblocking it is a `drop function` + recreate (adding a column to a `returns table` is a
+42P13) plus its grant. **This is the single biggest thing left.**
+
+**2 · The desk does not read `leagues.look`.** Above; it is the answer to his own question and it is
+not built.
+
+**3 · The recent-rounds drawing is the COURSE, not the round.** Two rounds at Papago draw two
+identical combs, and a round at a course this device never cached draws nothing — so the column is
+ragged and the drawing is decoration rather than data. Honest (L-44 forbids inventing eighteen par
+4s) but weak. The strokes are not in `window.career.rows`; fixing it properly is §2's data gap again.
+
+**4 · The receipt is not drawn.** `VISUAL_PASS` §2's third rung — a posted round showing its
+course's card with the gross on it — is free on the desk and not on the phone (`ReceiptSeed` has no
+course id), and a desk-only half breaks D234.
+
+**5 · Two of the ten milestones cannot fire.** `low_round` and `most_improved` are declared in
+`ACH_META` and `TrophyMeta.ach` on both clients and **nothing in the database ever inserts either**.
+Kept, not deleted; the case holds **eight** kinds today.
+
+**6 · `COMING UP` has a bucket in the producer and nothing feeds it on the desk.** Deliberate — the
+desk already prints the coming round in three other places on the same screen, and the honest order
+is to retire the chips first.
+
+**7 · The owner's account has no round photographs.** Every surface above was reviewed in that state
+and holds up, which was the point — but §10.1 rung 1 has never been seen on his own data.
